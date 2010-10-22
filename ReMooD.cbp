@@ -1,0 +1,442 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes" ?>
+<CodeBlocks_project_file>
+	<FileVersion major="1" minor="6" />
+	<Project>
+		<Option title="ReMooD" />
+		<Option makefile="GNUmakefile" />
+		<Option makefile_is_custom="1" />
+		<Option pch_mode="2" />
+		<Option compiler="gcc" />
+		<Build>
+			<Target title="Debug">
+				<Option output="bin\remood-dbg" prefix_auto="1" extension_auto="1" />
+				<Option working_dir="bin\" />
+				<Option object_output="objs\" />
+				<Option type="0" />
+				<Option compiler="gcc" />
+				<Compiler>
+					<Add option="-g" />
+				</Compiler>
+				<MakeCommands>
+					<Build command="$make -f $makefile release DEBUG=1" />
+					<CompileFile command="$make -f $makefile $file" />
+					<Clean command="$make -f $makefile clean DEBUG=1" />
+					<DistClean command="$make -f $makefile clean DEBUG=1" />
+				</MakeCommands>
+			</Target>
+			<Target title="Release">
+				<Option output="bin\remood" prefix_auto="1" extension_auto="1" />
+				<Option working_dir="bin\" />
+				<Option object_output="objs\" />
+				<Option type="0" />
+				<Option compiler="gcc" />
+				<Compiler>
+					<Add option="-O2" />
+				</Compiler>
+				<Linker>
+					<Add option="-s" />
+				</Linker>
+				<MakeCommands>
+					<Build command="$make -f $makefile release" />
+					<CompileFile command="$make -f $makefile $file" />
+					<Clean command="$make -f $makefile clean" />
+					<DistClean command="$make -f $makefile clean" />
+				</MakeCommands>
+			</Target>
+		</Build>
+		<Compiler>
+			<Add option="-Wall" />
+		</Compiler>
+		<Unit filename="rc\remood.rc">
+			<Option compilerVar="WINDRES" />
+		</Unit>
+		<Unit filename="isrc\sdl\dosstr.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="isrc\sdl\endtxt.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="isrc\sdl\endtxt.h" />
+		<Unit filename="isrc\sdl\i_cdmus.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="isrc\sdl\i_crash.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="isrc\sdl\i_main.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="isrc\sdl\i_music.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="isrc\sdl\i_net.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="isrc\sdl\i_sound.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="isrc\sdl\i_system.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="isrc\sdl\i_video.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="src_cl\am_map.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="src_cl\am_map.h" />
+		<Unit filename="src\byteptr.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="src\byteptr.h" />
+		<Unit filename="src\command.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="src\command.h" />
+		<Unit filename="src\console.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="src\console.h" />
+		<Unit filename="src\d_clisrv.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="src\d_clisrv.h" />
+		<Unit filename="src\d_englsh.h" />
+		<Unit filename="src\d_event.h" />
+		<Unit filename="src\d_french.h" />
+		<Unit filename="src\d_items.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="src\d_items.h" />
+		<Unit filename="src\d_main.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="src\d_main.h" />
+		<Unit filename="src\d_net.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="src\d_net.h" />
+		<Unit filename="src\d_netcmd.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="src\d_netcmd.h" />
+		<Unit filename="src\d_player.h" />
+		<Unit filename="src\d_prof.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="src\d_prof.h" />
+		<Unit filename="src\d_rdf.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="src\d_rdf.h" />
+		<Unit filename="src\d_think.h" />
+		<Unit filename="src\d_ticcmd.h" />
+		<Unit filename="src\dehacked.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="src\dehacked.h" />
+		<Unit filename="src\doomdata.h" />
+		<Unit filename="src\doomdef.h" />
+		<Unit filename="src\doomstat.h" />
+		<Unit filename="src\doomtype.h" />
+		<Unit filename="src\dstrings.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="src\dstrings.h" />
+		<Unit filename="src_cl\f_finale.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="src_cl\f_finale.h" />
+		<Unit filename="src_cl\f_wipe.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="src_cl\f_wipe.h" />
+		<Unit filename="src\g_game.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="src\g_game.h" />
+		<Unit filename="src\g_input.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="src\g_input.h" />
+		<Unit filename="src\g_state.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="src\g_state.h" />
+		<Unit filename="src_cl\hu_stuff.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="src_cl\hu_stuff.h" />
+		<Unit filename="src\i_joy.h" />
+		<Unit filename="src\i_net.h" />
+		<Unit filename="src\i_sound.h" />
+		<Unit filename="src\i_system.h" />
+		<Unit filename="src\i_tcp.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="src\i_tcp.h" />
+		<Unit filename="src\i_thread.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="src\i_thread.h" />
+		<Unit filename="src\i_video.h" />
+		<Unit filename="src\info.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="src\info.h" />
+		<Unit filename="src\keys.h" />
+		<Unit filename="src\m_argv.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="src\m_argv.h" />
+		<Unit filename="src\m_bbox.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="src\m_bbox.h" />
+		<Unit filename="src\m_cheat.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="src\m_cheat.h" />
+		<Unit filename="src\m_fixed.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="src\m_fixed.h" />
+		<Unit filename="src_cl\m_menu.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="src_cl\m_menu.h" />
+		<Unit filename="src_cl\m_menudr.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="src_cl\m_menufn.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="src\m_misc.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="src\m_misc.h" />
+		<Unit filename="src\m_random.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="src\m_random.h" />
+		<Unit filename="src\m_swap.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="src\m_swap.h" />
+		<Unit filename="src\md5.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="src\md5.h" />
+		<Unit filename="src\p_ceilng.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="src\p_chex.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="src\p_chex.h" />
+		<Unit filename="src\p_demcmp.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="src\p_demcmp.h" />
+		<Unit filename="src\p_doors.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="src\p_enemy.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="src\p_fab.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="src\p_fab.h" />
+		<Unit filename="src\p_floor.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="src\p_genlin.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="src\p_info.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="src\p_info.h" />
+		<Unit filename="src\p_inter.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="src\p_inter.h" />
+		<Unit filename="src\p_lights.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="src\p_local.h" />
+		<Unit filename="src\p_map.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="src\p_maputl.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="src\p_maputl.h" />
+		<Unit filename="src\p_mobj.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="src\p_mobj.h" />
+		<Unit filename="src\p_plats.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="src\p_pspr.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="src\p_pspr.h" />
+		<Unit filename="src\p_saveg.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="src\p_saveg.h" />
+		<Unit filename="src\p_setup.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="src\p_setup.h" />
+		<Unit filename="src\p_sight.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="src\p_spec.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="src\p_spec.h" />
+		<Unit filename="src\p_switch.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="src\p_telept.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="src\p_tick.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="src\p_tick.h" />
+		<Unit filename="src\p_user.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="src_cl\r_bsp.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="src_cl\r_bsp.h" />
+		<Unit filename="src_cl\r_data.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="src_cl\r_data.h" />
+		<Unit filename="src_cl\r_defs.h" />
+		<Unit filename="src_cl\r_draw.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="src_cl\r_draw.h" />
+		<Unit filename="src_cl\r_local.h" />
+		<Unit filename="src_cl\r_main.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="src_cl\r_main.h" />
+		<Unit filename="src_cl\r_plane.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="src_cl\r_plane.h" />
+		<Unit filename="src_cl\r_segs.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="src_cl\r_segs.h" />
+		<Unit filename="src_cl\r_sky.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="src_cl\r_sky.h" />
+		<Unit filename="src_cl\r_splats.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="src_cl\r_splats.h" />
+		<Unit filename="src_cl\r_state.h" />
+		<Unit filename="src_cl\r_things.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="src_cl\r_things.h" />
+		<Unit filename="src\rmd_frgl.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="src\rmd_func.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="src\rmd_func.h" />
+		<Unit filename="src\rmd_main.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="src\rmd_main.h" />
+		<Unit filename="src\s_sound.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="src\s_sound.h" />
+		<Unit filename="src\screen.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="src\screen.h" />
+		<Unit filename="src\sounds.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="src\sounds.h" />
+		<Unit filename="src\st_lib.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="src\st_lib.h" />
+		<Unit filename="src\st_stuff.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="src\st_stuff.h" />
+		<Unit filename="src\t_comp.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="src\t_comp.h" />
+		<Unit filename="src\t_func.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="src\t_func.h" />
+		<Unit filename="src\t_oper.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="src\t_oper.h" />
+		<Unit filename="src\t_parse.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="src\t_parse.h" />
+		<Unit filename="src\t_prepro.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="src\t_prepro.h" />
+		<Unit filename="src\t_script.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="src\t_script.h" />
+		<Unit filename="src\t_spec.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="src\t_spec.h" />
+		<Unit filename="src\t_vari.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="src\t_vari.h" />
+		<Unit filename="src\tables.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="src\tables.h" />
+		<Unit filename="src_cl\v_video.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="src_cl\v_video.h" />
+		<Unit filename="src\w_wad.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="src\w_wad.h" />
+		<Unit filename="src\wi_stuff.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="src\wi_stuff.h" />
+		<Unit filename="src\z_zone.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="src\z_zone.h" />
+		<Extensions>
+			<code_completion />
+			<debugger />
+		</Extensions>
+	</Project>
+</CodeBlocks_project_file>

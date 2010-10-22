@@ -1,0 +1,43 @@
+# ReMooD WAD to PKZIP Map
+# http://remood.sourceforge.net/
+#################################################
+# Lump names are always capital
+# Clone >>
+# Symlink ~>
+# This maps every lump to a possible PKZip directory for this WAD
+
+# Generic Lumps
+VERSION >> /remood/Version
+RMD_MBJD >> /remood/MobjData
+
+# Locales
+LOC_ENUS >> /locales/enus
+LOC_JAJA >> /locales/jaja
+LOC_NLNL >> /locales/nlnl
+
+# Translations
+TRANSFIR >> /trans/fire
+TRANSFX1 >> /trans/effect1
+TRANSHI >> /trans/high
+TRANSMED >> /trans/medium
+TRANSMOR >> /trans/more
+
+# Colormaps
+WATERMAP >> /colormaps/watermap
+
+# Sounds (Digital)
+DSFLOUSH >> /sounds/floush
+DSGLOOP >> /sounds/gloop
+DSJUMP >> /sounds/jump
+DSOUCH >> /sounds/ouch
+DSSPLASH >> /sounds/splash
+DSLOTIME >> /sounds/lotime
+DSSPAWNA >> /sounds/spawna
+DSSPAWNB >> /sounds/spawnb
+
+# Sounds (Analog)
+DPJUMP >> /pulse/jump
+
+# Legacy Script
+THINGS_H >> /lscripts/things.h
+

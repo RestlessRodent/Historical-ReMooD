@@ -1,0 +1,53 @@
+/* Emacs style mode select   -*- C++ -*- 
+ * -----------------------------------------------------------------------------
+ * ########   ###### #####   #####  ######   ######  ######
+ * ##     ##  ##     ##  ## ##  ## ##    ## ##    ## ##   ##
+ * ##     ##  ##     ##   ###   ## ##    ## ##    ## ##    ##
+ * ########   ####   ##    #    ## ##    ## ##    ## ##    ##
+ * ##    ##   ##     ##         ## ##    ## ##    ## ##    ##
+ * ##     ##  ##     ##         ## ##    ## ##    ## ##   ##
+ * ##      ## ###### ##         ##  ######   ######  ######
+ *                      http://remood.sourceforge.net/
+ * -----------------------------------------------------------------------------
+ * Project Leader:    GhostlyDeath           (ghostlydeath@gmail.com)
+ * Project Co-Leader: RedZTag                (jostol27@gmail.com)
+ * Members:           Demyx                  (demyx@endgameftw.com)
+ * -----------------------------------------------------------------------------
+ * Copyright (C) 2008 ReMooD Team.
+ * -----------------------------------------------------------------------------
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License
+ * as published by the Free Software Foundation; either version 2
+ * of the License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ * -----------------------------------------------------------------------------
+ * DESCRIPTION: Palm OS Resource
+ */
+
+ICONFAMILYEX
+BEGIN
+    BITMAP "icon_l1.bmp" BPP 1 
+    BITMAP "icon_l2.bmp" BPP 2 
+    BITMAP "icon_l4.bmp" BPP 4
+    BITMAP "icon_l8.bmp" BPP 8 TRANSPARENTINDEX 229
+    BITMAP "icon_lh1.bmp" BPP 1 DENSITY 2
+    BITMAP "icon_lh2.bmp" BPP 2 DENSITY 2 
+    BITMAP "icon_lh4.bmp" BPP 4 DENSITY 2
+    BITMAP "icon_lh8.bmp" BPP 8 TRANSPARENTINDEX 229 DENSITY 2
+END
+
+SMALLICONFAMILYEX
+BEGIN
+    BITMAP "icon_s1.bmp" BPP 1 
+    BITMAP "icon_s2.bmp" BPP 2 
+    BITMAP "icon_s4.bmp" BPP 4
+    BITMAP "icon_s8.bmp" BPP 8 TRANSPARENTINDEX 229 
+    BITMAP "icon_sh1.bmp" BPP 1 DENSITY 2
+    BITMAP "icon_sh2.bmp" BPP 2 DENSITY 2 
+    BITMAP "icon_sh4.bmp" BPP 4 DENSITY 2
+    BITMAP "icon_sh8.bmp" BPP 8 TRANSPARENTINDEX 229 DENSITY 2 
+END

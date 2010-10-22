@@ -1,0 +1,12 @@
+[Desktop Entry]
+Version=1.0
+Encoding=UTF-8
+Name=ReMooD
+GenericName=Doom source port based off Doom Legacy 1.42
+Comment=ReMooD, a Doom Legacy source port
+Exec=remood -waddir /usr/share/games/doom
+Icon=remood.xpm
+Terminal=false
+Type=Application
+Categories=Game
+GenericName[en_US]=Doom source port based off Doom Legacy 1.42

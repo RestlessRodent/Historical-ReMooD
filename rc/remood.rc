@@ -1,0 +1,96 @@
+// Emacs style mode select   -*- C++ -*- 
+// -----------------------------------------------------------------------------
+// ########   ###### #####   #####  ######   ######  ######
+// ##     ##  ##     ##  ## ##  ## ##    ## ##    ## ##   ##
+// ##     ##  ##     ##   ###   ## ##    ## ##    ## ##    ##
+// ########   ####   ##    #    ## ##    ## ##    ## ##    ##
+// ##    ##   ##     ##         ## ##    ## ##    ## ##    ##
+// ##     ##  ##     ##         ## ##    ## ##    ## ##   ##
+// ##      ## ###### ##         ##  ######   ######  ######
+//                      http://remood.sourceforge.net/
+// -----------------------------------------------------------------------------
+// Project Leader:    GhostlyDeath           (ghostlydeath@gmail.com)
+// Project Co-Leader: RedZTag                (jostol27@gmail.com)
+// Members:           Demyx                  (demyx@endgameftw.com)
+//                    Dragan                 (poliee13@hotmail.com)
+// -----------------------------------------------------------------------------
+// Copyright (C) 2008-2009 ReMooD Team.
+// -----------------------------------------------------------------------------
+// This program is free software; you can redistribute it and/or
+// modify it under the terms of the GNU General Public License
+// as published by the Free Software Foundation; either version 2
+// of the License, or (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+// -----------------------------------------------------------------------------
+// DESCRIPTION: Win32 Resource
+
+#ifndef MINGWMAKED
+	#ifdef GAMESERVER
+		1 ICON "globe.ico"
+		2 ICON "globes.ico"
+	#else
+		1 ICON "remood.ico"
+		2 ICON "remoods.ico"
+	#endif
+#else
+	#ifdef GAMESERVER
+		1 ICON "rc/globe.ico"
+		2 ICON "rc/globes.ico"
+	#else
+		1 ICON "rc/remood.ico"
+		2 ICON "rc/remoods.ico"
+	#endif
+#endif
+
+// VERSION INFORMATION
+1 VERSIONINFO
+	FILEVERSION 0,8,98,0
+	PRODUCTVERSION 0,8,98,0
+	FILEFLAGSMASK 0x3fL
+	#ifdef _DEBUG
+		FILEFLAGS 0x1L
+	#else
+		FILEFLAGS 0x0L
+	#endif
+	FILEOS 0x4L
+	FILETYPE 0x1L
+	FILESUBTYPE 0x0L
+BEGIN
+	BLOCK "StringFileInfo"
+	BEGIN
+		BLOCK "040904b0"
+		BEGIN
+			VALUE "CompanyName", "The ReMooD Team"
+			VALUE "LegalCopyright", "The ReMooD Team"
+			VALUE "Description", "http://remood.sourceforge.net/"
+			VALUE "LegalTrademarks", "The ReMooD Team"
+			VALUE "FileVersion", "0.8b"
+			VALUE "ProductVersion", "0.8b"
+			VALUE "InternalName", "ReMooD"
+#ifdef _DEBUG
+	#ifdef GAMESERVER
+			VALUE "OriginalFilename", "remood-server-dbg.exe"
+	#else
+			VALUE "OriginalFilename", "remood-dbg.exe"
+	#endif
+#else
+	#ifdef GAMESERVER
+			VALUE "OriginalFilename", "remood-server.exe"
+	#else
+			VALUE "OriginalFilename", "remood.exe"
+	#endif
+#endif
+			VALUE "FileDescription", "ReMooD"
+			VALUE "ProductName", "ReMooD"
+		END
+	END
+	BLOCK "VarFileInfo"
+	BEGIN
+		VALUE "Translation", 0x0409, 0x04B0
+	END
+END
+
