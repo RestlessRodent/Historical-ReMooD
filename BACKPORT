@@ -1,0 +1,128 @@
+$Id$
+
+Stuff to backport:
+	* SPEED		Super duper new memory manager
+	* SPEED		Wad name hashing stuff
+	* ART		Logos and such
+	* SOURCE	Move src_cl/, src_sv/, and isrc/ into src/
+	* SOURCE	Re-improve build system
+	* SOURCE	Unify directories
+	* SOURCE	Nuke RMOD
+	* SOURCE	Nuke Hi-Color
+	* FUN		Implement Networking
+	* LICENSE	Redo console subsystem completely due to Quake violations
+	
+	* LOG		r1216 Remove _REMOOD_INLINE, _REMOOD_EXTERNINLINE, and _REMOOD_INLINEFROMEXTERN, very annoying
+	* LOG		r1215: Change HighInt to UInt64, ULONG to UInt32, USHORT to UInt16, INT64 to Int64; Change (MIN/MAX)(SHORT/INT) to (SHRT/INT)_(MIN/MAX) a.k.a. limits.h
+	* LOG		r1202: sed out IDepMobjInfo
+	* LOG		r1198: Add a player 1 start if it does not exist
+	* LOG		r1197: Add variable straferunfix (default off) which prevents players from exploiting a strafe running bug (disables sr40 and above)
+	* LOG		r1195: Use hash table when finding entries by name, this should increase speed
+	* LOG		r1194: Each WAD Entry is now given a hash number, W_BiCheckNumForName() now compares the hash code and if it matches does a strcasecmp instead of strcasecmp against every entry. 
+	* LOG		r1190: Hopefully fix PPC illegal pointer read
+	* LOG		r1189: More Mac fixes. Compiles now but doesn't run.
+	* LOG		r1190: Define wcscasecmp for Mac OS X
+	* LOG		r1182: No longer free all cached data when setting up a new level, that way any cached sounds and textures do not have to be regenerated; Fix memory leak where a buffer would be allocated for wiping effect but no wiping code was actually called (if screenlink is set to None) causing no cleanup to be done of that initial buffer
+	* LOG		r1180: Return a value in I_GetUserName()
+	* LOG		r1179: Fix memory problems; All that remains is a memory leak somewhere as with 32MBs allocated you can only get up to map24 before you run out of memory
+	* LOG		r1178: Use config resolution when setting the resolution for the first time.
+	* LOG		r1177: Correct fullscreen stuff with new code; Choose nearest resolution when swithing to/from fullscreen (since it has always switched to the saved resolution)
+	* LOG		r1158: Update the screen before any wipe effect; If the wipe takes to long to complete, make sure the wipe cleanup function is called
+	* LOG		r1155: Remove 3 ylookup buffers and use the 4 player splitscreen buffers instead (this saves vh * 3 bytes in memory, on *x768 it saves 2K)
+	* LOG		r1154: Reduce number of screens from 4 to 2; Dynamically allocate (and free) screen wipe data since the screen wipe code seemed to be the only thing that used the extra 2 buffers
+	* LOG		r1153: Add a UNICODE_DestroyContext() function to remove contexts that are no longer used to free a very small amount of wasted memory
+	* LOG		r1151: Do not remove map objects if they are still attached to a player (and back) even if their state is S_NULL; Handle all object flags in a quick and easy fashion using macros
+	* LOG		r1139: Increase CONS_VSPrintfUL() percentile buffer size to accomidate semi-forced %hs; In SCR_Startup() use VID_GetModeForSize() to obtain 320x200 instead of assuming the first mode is always 320x200
+	* LOG		r1137: In CONS_PrintfUL(), use wcstombs() instead of %ls, as this causes problems on Windows; Force narrow size on strings on CONS_VSPrintfUL(), this fixes problems on Windows (mostly CE) systems
+	* LOG		r1109: The number of threads in Linux is no longer limited to 32 but maxes out at 32 at once (previsouly only 32 threads could be created even if all the threads died)
+	* LOG		r1104: Add secondary function in G_InitKeys() which checks and makes sure the buffer does not overflow; Increase max video modes from 33 to 40; Don't blindly set number of video modes
+	* LOG		r1103: Lower down to -O1, there appears to be a large overflow/underflow or optimization problem which jumps to the incorrect code and thus causes a crash and some other over/underflows. Potentially an optimization set by -O2 that makes bad assumptions.
+	* LOG		r1102: Add check in P_CheckSight() to check for a valid sector before doing a REJECT check, this fixes a crash where a few things have invalid sectors when the map is rapidly reloaded (map reload at gametic 0 or 1)
+	* LOG		r1099: Byte swap patches in R_AddSingleSpriteDef() due to code changes.
+	* LOG		r1098: Forgot to swap a parm
+	* LOG		r1097: Swap [texture patches] on the go! Because if we store the swap, we would need to remember what map patches we swapped when setting up textures so we just swap on the go then. Textures can reference the same patch over and over again which causes more problems. Also the code expects patch_t to be native so we don't have to worry about it since we are swapping it correctly now.
+	* LOG		r1096: remove accidental swap
+	* LOG		r1095: Byte swap mpatch->patch because it's never swapped and needs to be swapped on big endian systems (otherwise the sanity checking code will use AASHITTY for every texture)
+	* LOG		r1094: Modify pname handling a bit
+	* LOG		r1090: When generating single patch textures, do not byte swap the column offsets on big endian systems; Do not byte swap patches in the status bar code on big endian systems
+	* LOG		r1089: Fix SIGBUS on SPARC in R_AddSingleSpriteDef() where aligned access is attempted on an unaligned type.
+	* LOG		r1088: Fixed memory leak in R_LoadTextures() where an allocated array is never freed
+	* LOG		r1087: Shifting a value off the type will produce incorrect results
+	* LOG		r1086: Don't cast to type in special ReadByte function
+	* LOG		r1085: Modify byte per byte read formula
+	* LOG		r1083: Potentially and hopefully fix a SPARC crash related to alignment
+	* LOG		r1081: Do not byte swap the patch sizes when determining where the menu should be in function M_Init()
+	* LOG		r1069: Remove USEBOOMFUNC and use Boom functions (as in, remove the #ifndef USEBOOMFUNC)
+	* LOG		r1063: For MSVC++, place CALLBACK in (*), not outside
+	* LOG		r1062: Remove what appeared to be an accidental paste which broke the rules of C
+	* LOG		r1050: Use SDL.h instead of SDL/SDL.h under Mac OS X instead; Change Uint32 to UInt32 in SDL's I_GetTime() as it does not seem to be defined for Mac OS X
+	* LOG		r1049: byte by byte ReadUIntX for sparc too
+	* LOG		r1048: Correct alignment formula to (alignbits >> 3) - (realsize % (alignbits >> 3))
+	* LOG		r1043: Game/Profiles: If only a single profile exists, automatically use that profile instead of asking.
+	* LOG		r1042: No longer I_Error() if a sound effect is invalid (seen with weap01.wad)
+	* LOG		r1035: Fix infinite splash bug (seen in Heretic E4M1) where a splash effect would trigger another splash effect, this only happened in areas that have a low ceiling causing a bounce off a splash (river right from the start); Potentially fix a sprite rendering problem where checks to see if a thing's sprite frame was valid was removed.; E flags are now placed for a spawned object, fixing thing problems.; removed -nosprites
+	* LOG		r1032: Slightly better detection of a pic_t to prevent a title screen cras
+	* LOG		r1026: Free music tags
+	* LOG		r1024: Fix crash where if you did just -iwad or -waddir (as in nothing after them) when specifying a command line parameter
+	* LOG		r1023: Correct debinfo, Lone_Rifle had indicated to me about "ReMooD is a source port of Doom Legacy, which in itself is a source port based off Doom Legacy." which now has the later part removed.
+	* LOG		r1021: Count terminating zero when adding to the execution buffer for COM_BufAddText()
+	* LOG		r1017: Reimplement COM_BufAddText(), copy added text line by line and add it to the execution buffer, if the buffer becomes full, everything is executed (hopefully) then the new stuff is added. This allows loading of config files greater than the size of the execution buffer.
+	* LOG		r1016: Before shutting down the music, remove the song stuff
+	* LOG		r1015: Adjust music volume by adjusting note volume
+	* LOG		r1008: Fix bug where if another message box appeared while already in a message box, you would get stuck in an endless messagebox loop
+	* LOG		r982: Fix questionable bug where textures starting with '-' was considered as "-" (ex: "-WATER" would be treated as "-")
+	* LOG		r975: Rework W_CachePatchNum a bit to something that hopefully works with any alignment
+	* LOG		r972: Remove ors in makefile
+	* LOG		r965: Implement W_CachePatchNum
+	* LOG		r938: Fix error (although a sacrifice is made with death messages for now) in the BFG Spray code where objects would be damaged with the originator being the BFG spray and not the player, enabling buggybfgspray will switch to the Doom Legacy behavior.
+	* LOG		r926: Corrected ng_ variables for menus.
+	* LOG		r923: Demo cvars are now correctly retrieved and the new game menu options are now correct.
+	* LOG		r930: Send CVARs to be stabbed
+	* LOG		r902: Add check for WADs containing 0 lumps, lower the lower limit of IndexOffset from 12 bytes to 8 bytes (for cases where a lump points to the index and the IndexOffset IS the lump's offset).
+	* LOG		r901: New and improved W_LoadWadFile()
+	* LOG		r899: Prevent crash in A_BFGSpray if the object executing the action has no owner.
+	* LOG		r898: Fix logical error in P_PlayerInSpecialSector() where it would incorrectly check if a map object could activate player sensitive objects
+	* LOG		r895: Removed code that draws flat filler, since the title screen is scaled to the screen, it is no longer needed; Add code that currently checks a title screen picture's size to determine if it's a raw 320x200 image; RMD_CR_? are not pic_ts, they are raw images.
+	* LOG		r893: Fix error where gathering and pickups were incorrect; The game would crash if a gatherable object touched a gatherable object (if such object moved to call PIT_CheckThing), but this would only happen with scrolling sectors. Otherwise, players could not pickup items due to incorrect flag checking.
+	* LOG		r883: When one hit killing, do not set the player's percentage life if they are not a player (when target->player == NULL).
+	* LOG		r881: Increase MAXSEGS
+	* LOG		r880: Check to see if a player has a map object before originating a sound
+	* LOG		r879: Fix error in V_DrawFillEx
+	* LOG		r877: Fix some objects from becoming cameras on level loads. When a level is being setup the state of profiles and players it not known so since camera[i].chase could be TRUE on a previous game, it could be reset to false on or before a new game. Since the last value was FALSE, mo may be a valid map object (because it was never NULLed) and may point to some other data structure in Doom but it will most likely be map objects because it is usually allocated in the same place or slightly offsetted.
+	* LOG		r874: Each splitscreen player may now have their own chase camera; The chase camera now resets when you are out of view
+	* LOG		r869: Use a better macro; Fix a bug where DeHackEd files (loaded from -file) were not correctly loaded
+	* LOG		r867: Classic lost soul logic (currently only the code where it crashes into everything on the ground) is set for Classic and Legacy, but not for ReMooD
+	* LOG		r861: Add compatibility flag for lost souls; misc stuff
+	* LOG		r860: Add dogs, sprites are just boxes that say "MISSING SPRITE" and the sounds are from Wesnoth.
+	* LOG		r859: You may now use the mouse to navigate menus (ex: Hover over items and click on them)
+	* LOG		r851: Don't draw background fill in menus
+	* LOG		r842: Crushing ceilings no longer instant kill players
+	* LOG		r841: Slowly die like normal when on a damaging sector
+	* LOG		r840: Implement Alpha ReMooD setting: One Hit Kills
+	* LOG		r839: The chase camera can no longer create splashes on water
+	* LOG		r837: Fixed memory corruption when changing screen resolution
+	* LOG		r836: Add decimal point to FPS counter
+	* LOG		r834: Turbo Red and Turbo Yellow locked doors now open
+	* LOG		r833: Change GS:S to S:GS
+	* LOG		r832: Add FPS Counter
+	* LOG		r830: Add -sdl32bpp that wraps 8-bit color mode into 32-bit color mode
+	* LOG		r828: Byte swap ENDOOM screen, otherwise Doom 2 is brought to you by NNNNNNNNNNNNNNNN
+	* LOG		r827: Big Endian is now supported
+	* LOG		r826: Possibly fix texture byte swap error
+	* LOG		r825: Swap column offsets opn big endian systems
+	* LOG		r821: Load ultfdoom.wad for Ultimate FreeDoom
+	* LOG		r819: Add check for invalid remood.wad; Clean up some code a bit
+	* LOG		r816: Swap DOOMWADDIR and DOOMWADPATH; Improve Debian package building (utilize doom and boom symlinks, create a wrapper for remood that adds DOOMWADPATH, provide doom-engine and boom-engine, recommend only doom-wad and boom-wad).
+	* LOG		r815: Allow custom resolutions
+	* LOG		r812: Change flat loading code slightly for BE systems
+	* LOG		r807: Add check in BSP Nodes
+	* LOG		r806: Byte swap things
+	* LOG		r804: Hopefully correctly swap stuff when drawing text on the screen and menu title patches
+	* LOG		r800: Add some missing swaps in w_wad.c, __BIG_ENDIAN__ is NOT defined on most GCCs (except mac).
+	* LOG		r795: Adjustments for Big Endien, may or may not work
+	* LOG		r792: Fixed a bug where W_CheckNumForNamePwadPtr would misrepresent the first loaded WAD; Fixed a bug in W_LumpsSoFar where entry numbers were offset by the first loaded WAD; Truly implemented flat lists, fixes tutti-fruity when a patch has the same as a flat; Support PWADs that use FF_START->F_END if FF_START->FF_END is not possible; Added new flat, -NOFLAT-, which is used when a flat is not found; Now support flats that have the same name as other lumps
+	* LOG		r779: Add transparency maps for Heretic (RMD_THHI and RMD_THMO); Add colormaps for each game (RMD_CMPD, RMD_CMPH, RMD_CMPX, and RMD_CMPS)
+	* LOG		r750: Use some experimental resources; unbranch client and server source into single source
+
+Stuff backported
+
