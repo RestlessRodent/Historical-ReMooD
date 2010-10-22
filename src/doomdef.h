@@ -88,13 +88,13 @@
 #define LOGMESSAGES				// write message in log.txt (win32 and Linux only for the moment)
 #endif
 
-#define REMOOD_MAJORVERSION 0
-#define REMOOD_MINORVERSION 8
-#define REMOOD_RELEASEVERSION 'b'
-#define REMOOD_VERSIONSTRING "0.8b"
-#define REMOOD_VERSIONCODESTRING "French Onion Soup"
+#define REMOOD_MAJORVERSION 1
+#define REMOOD_MINORVERSION 0
+#define REMOOD_RELEASEVERSION 'a'
+#define REMOOD_VERSIONSTRING "1.0a"
+#define REMOOD_VERSIONCODESTRING "Final"
 #define REMOOD_FULLVERSIONSTRING ""REMOOD_VERSIONSTRING" \""REMOOD_VERSIONCODESTRING"\""
-#define REMOOD_URL "http://remood.sourceforge.net"
+#define REMOOD_URL "http://remood.org/"
 
 #define VERSION		((((REMOOD_MAJORVERSION % 10) * 100) + ((REMOOD_MINORVERSION % 10) * 10) + (((REMOOD_RELEASEVERSION - 'a') % 10))) + 100)
 #define VERSIONSTRING  " \""REMOOD_VERSIONCODESTRING"\""
