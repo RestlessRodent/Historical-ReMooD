@@ -49,7 +49,7 @@
 //#include "c_net.h"
 //#include "c_runcmd.h"
 #include "g_game.h"
-#include "../src_cl/r_state.h"
+#include "r_state.h"
 #include "p_info.h"
 #include "p_mobj.h"
 #include "p_spec.h"

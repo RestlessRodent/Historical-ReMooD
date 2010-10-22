@@ -33,7 +33,7 @@
 #define __P_MAPUTL__
 
 #include "doomtype.h"
-#include "../src_cl/r_defs.h"
+#include "r_defs.h"
 #include "m_fixed.h"
 
 //

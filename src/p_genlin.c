@@ -35,7 +35,7 @@
 #include "doomdef.h"
 #include "g_game.h"
 #include "p_local.h"
-#include "../src_cl/r_data.h"
+#include "r_data.h"
 #include "m_random.h"
 #include "s_sound.h"
 #include "z_zone.h"

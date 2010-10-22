@@ -34,7 +34,7 @@
 #define __P_SETUP__
 
 #include "doomdata.h"
-#include "../src_cl/r_defs.h"
+#include "r_defs.h"
 
 // Player spawn spots for deathmatch.
 #define MAX_DM_STARTS   64

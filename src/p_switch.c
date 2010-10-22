@@ -35,7 +35,7 @@
 #include "g_game.h"
 #include "p_local.h"
 #include "s_sound.h"
-#include "../src_cl/r_main.h"
+#include "r_main.h"
 #include "w_wad.h"				//SoM: 3/22/2000
 #include "z_zone.h"
 #include "t_script.h"

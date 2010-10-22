@@ -34,8 +34,8 @@
 #include "doomdef.h"
 #include "doomstat.h"
 #include "p_local.h"
-#include "../src_cl/r_main.h"
-#include "../src_cl/r_state.h"
+#include "r_main.h"
+#include "r_state.h"
 
 //
 // P_CheckSight

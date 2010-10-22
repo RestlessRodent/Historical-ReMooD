@@ -54,11 +54,11 @@
 
 #include "i_video.h"
 #include "dehacked.h"
-#include "../src_cl/r_defs.h"
+#include "r_defs.h"
 #include "i_system.h"
 
 #include "md5.h"
-#include "../src_cl/v_video.h"
+#include "v_video.h"
 
 // New WAD Code by GhostlyDeath
 WadFile_t *WADFiles = NULL;

@@ -33,6 +33,7 @@
 //             set up initial state and misc. LUTs.
 
 #include "doomdef.h"
+#include "c_lib.h"
 #include "d_main.h"
 #include "byteptr.h"
 #include "g_game.h"
@@ -43,20 +44,20 @@
 
 #include "i_sound.h"			//for I_PlayCD()..
 
-#include "../src_cl/r_data.h"
-#include "../src_cl/r_things.h"
-#include "../src_cl/r_sky.h"
+#include "r_data.h"
+#include "r_things.h"
+#include "r_sky.h"
 
 #include "s_sound.h"
-#include "../src_cl/st_stuff.h"
+#include "st_stuff.h"
 #include "w_wad.h"
 #include "z_zone.h"
-#include "../src_cl/r_splats.h"
+#include "r_splats.h"
 #include "p_info.h"
 #include "t_func.h"
 #include "t_script.h"
 
-#include "../src_cl/hu_stuff.h"
+#include "hu_stuff.h"
 #include "console.h"
 
 #ifdef _WIN32
@@ -65,10 +66,6 @@
 #endif
 
 #include "command.h"
-
-#ifdef LINUX
-int strupr(char *n);
-#endif
 
 //
 // MAP related Lookup tables.
@@ -330,7 +327,7 @@ int P_AddLevelFlat(char *flatname, levelflat_t * levelflat)
 
 	strncpy(name8.s, flatname, 8);	// make it two ints for fast compares
 	name8.s[8] = 0;				// in case the name was a fill 8 chars
-	strupr(name8.s);			// case insensitive
+	C_strupr(name8.s);			// case insensitive
 	v1 = name8.x[0];
 	v2 = name8.x[1];
 

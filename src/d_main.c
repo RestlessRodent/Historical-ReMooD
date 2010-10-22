@@ -56,43 +56,43 @@
 
 #include "doomstat.h"
 
-#include "../src_cl/am_map.h"
+#include "am_map.h"
 #include "d_net.h"
 #include "d_netcmd.h"
 #include "dehacked.h"
 #include "dstrings.h"
 
-#include "../src_cl/f_wipe.h"
-#include "../src_cl/f_finale.h"
+#include "f_wipe.h"
+#include "f_finale.h"
 
 #include "g_game.h"
 #include "g_input.h"
 
-#include "../src_cl/hu_stuff.h"
+#include "hu_stuff.h"
 
 #include "i_sound.h"
 #include "i_system.h"
 #include "i_video.h"
 
 #include "m_argv.h"
-#include "../src_cl/m_menu.h"
+#include "m_menu.h"
 #include "m_misc.h"
 
 #include "p_setup.h"
 #include "p_fab.h"
 #include "p_info.h"
 
-#include "../src_cl/r_main.h"
-#include "../src_cl/r_local.h"
+#include "r_main.h"
+#include "r_local.h"
 
 #include "s_sound.h"
-#include "../src_cl/st_stuff.h"
+#include "st_stuff.h"
 
 #include "t_script.h"
 
-#include "../src_cl/v_video.h"
+#include "v_video.h"
 
-#include "../src_cl/wi_stuff.h"
+#include "wi_stuff.h"
 #include "w_wad.h"
 
 #include "z_zone.h"

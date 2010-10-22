@@ -35,7 +35,7 @@
 #include "command.h"
 #include "doomstat.h"
 #include "console.h"
-#include "../src_cl/m_menu.h"
+#include "m_menu.h"
 #include "m_argv.h"
 #include "g_game.h"
 #include "d_main.h"

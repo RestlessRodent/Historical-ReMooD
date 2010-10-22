@@ -35,7 +35,7 @@
 //      and some PIT_* functions to use for iteration.
 
 #include "p_local.h"
-#include "../src_cl/r_main.h"
+#include "r_main.h"
 #include "p_maputl.h"
 
 //

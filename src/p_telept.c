@@ -34,10 +34,10 @@
 #include "doomdef.h"
 #include "g_game.h"
 #include "p_local.h"
-#include "../src_cl/r_state.h"
+#include "r_state.h"
 #include "s_sound.h"
 
-#include "../src_cl/r_main.h"				//SoM: 3/16/2000
+#include "r_main.h"				//SoM: 3/16/2000
 
 boolean P_Teleport(mobj_t * thing, fixed_t x, fixed_t y, angle_t angle)
 {

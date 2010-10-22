@@ -40,7 +40,7 @@
 #include "s_sound.h"
 #include "g_game.h"
 #include "g_input.h"
-#include "../src_cl/r_main.h"
+#include "r_main.h"
 #include "m_random.h"
 #include "p_inter.h"
 #include "p_demcmp.h"

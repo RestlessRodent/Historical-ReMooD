@@ -39,7 +39,7 @@
 #include "m_fixed.h"
 #include "m_bbox.h"
 #include "p_tick.h"
-#include "../src_cl/r_defs.h"
+#include "r_defs.h"
 #include "p_maputl.h"
 
 #define FLOATSPEED              (FRACUNIT*4)

@@ -34,14 +34,14 @@
 #include "g_game.h"
 #include "p_local.h"
 #include "p_setup.h"			//levelflats for flat animation
-#include "../src_cl/r_data.h"
+#include "r_data.h"
 #include "m_random.h"
 
 #include "s_sound.h"
 #include "w_wad.h"
 #include "z_zone.h"
 #include "dstrings.h"			//SoM: 3/10/2000
-#include "../src_cl/r_main.h"				//Two extra includes.
+#include "r_main.h"				//Two extra includes.
 #include "t_script.h"
 
 #define MAX_AMBIENT_SFX 8		// Per level

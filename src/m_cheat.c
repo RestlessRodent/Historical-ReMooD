@@ -34,11 +34,11 @@
 #include "doomdef.h"
 #include "dstrings.h"
 
-#include "../src_cl/am_map.h"
+#include "am_map.h"
 #include "m_cheat.h"
 #include "g_game.h"
 
-#include "../src_cl/r_local.h"
+#include "r_local.h"
 #include "p_local.h"
 #include "p_inter.h"
 
@@ -46,8 +46,8 @@
 
 #include "i_sound.h"			// for I_PlayCD()
 #include "s_sound.h"
-#include "../src_cl/v_video.h"
-#include "../src_cl/st_stuff.h"
+#include "v_video.h"
+#include "st_stuff.h"
 #include "w_wad.h"
 
 static boolean HandleCheats(byte key);

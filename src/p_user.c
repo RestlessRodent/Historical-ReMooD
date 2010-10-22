@@ -37,7 +37,7 @@
 #include "d_event.h"
 #include "g_game.h"
 #include "p_local.h"
-#include "../src_cl/r_main.h"
+#include "r_main.h"
 #include "s_sound.h"
 #include "p_setup.h"
 #include "p_inter.h"

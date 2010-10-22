@@ -32,6 +32,7 @@
 //      Refresh of things, i.e. objects represented by sprites.
 
 #include "doomdef.h"
+#include "c_lib.h"
 #include "console.h"
 #include "g_game.h"
 #include "r_local.h"
@@ -42,11 +43,6 @@
 #include "m_argv.h"
 
 #include "i_video.h"
-
-#ifdef LINUX
-int strupr(char *n);			// from dosstr.c
-int strlwr(char *n);			// from dosstr.c
-#endif
 
 static void R_InitSkins(void);
 
@@ -2040,7 +2036,7 @@ void R_AddSkins(int wadnum)
 							default skin name set above" */
 							
 						strncpy(skins[numskins].name, Value, SKINNAMESIZE);
-						strlwr(skins[numskins].name);
+						C_strlwr(skins[numskins].name);
 						
 						do	// This should take care of it (ex: "marine" -> "narine")
 						{
@@ -2063,7 +2059,7 @@ void R_AddSkins(int wadnum)
 					{	// Skin Face (Status Bar)
 						strncpy(skins[numskins].faceprefix, Value, 3);
 						skins[numskins].faceprefix[3] = 0;
-						strupr(skins[numskins].faceprefix);						
+						C_strupr(skins[numskins].faceprefix);						
 					}
 					else if (strcasecmp(Token, "sprite") == 0)
 					{	// Skin Sprite
@@ -2072,7 +2068,7 @@ void R_AddSkins(int wadnum)
 						// for Value to change (sprname = Value)
 						SprName = Z_Malloc(strlen(Value) + 1, PU_STATIC, NULL);
 						strcpy(SprName, Value);
-						strupr(SprName);
+						C_strupr(SprName);
 					}
 					else if (strncasecmp(Token, "ds", 2) == 0)
 					{	// Skin Sound (Legacy did something bad, assumed invalid tokens were sounds!)

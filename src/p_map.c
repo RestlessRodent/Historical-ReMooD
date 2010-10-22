@@ -38,12 +38,12 @@
 #include "m_random.h"
 #include "p_local.h"
 #include "p_inter.h"
-#include "../src_cl/r_state.h"
-#include "../src_cl/r_main.h"
-#include "../src_cl/r_sky.h"
+#include "r_state.h"
+#include "r_main.h"
+#include "r_sky.h"
 #include "s_sound.h"
 
-#include "../src_cl/r_splats.h"			//faB: testing
+#include "r_splats.h"			//faB: testing
 
 #include "z_zone.h"				//SoM: 3/15/2000
 #include "p_demcmp.h"

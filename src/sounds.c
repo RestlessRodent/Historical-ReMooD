@@ -37,8 +37,8 @@
 #include "doomtype.h"
 #include "i_sound.h"
 #include "sounds.h"
-#include "../src_cl/r_defs.h"
-#include "../src_cl/r_things.h"
+#include "r_defs.h"
+#include "r_things.h"
 #include "z_zone.h"
 #include "w_wad.h"
 

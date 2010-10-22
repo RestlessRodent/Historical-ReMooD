@@ -31,7 +31,7 @@
 
 #include "doomdef.h"
 #include "p_demcmp.h"
-#include "../src_cl/m_menu.h"
+#include "m_menu.h"
 #include "g_input.h"
 #include "p_local.h"
 #include "g_game.h"

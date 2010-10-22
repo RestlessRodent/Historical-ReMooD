@@ -45,8 +45,8 @@ extern int msg_id;
 #include "command.h"
 #include "g_game.h"
 #include "m_argv.h"
-#include "../src_cl/r_main.h"				//R_PointToAngle2() used to calc stereo sep.
-#include "../src_cl/r_things.h"						// for skins
+#include "r_main.h"				//R_PointToAngle2() used to calc stereo sep.
+#include "r_things.h"						// for skins
 #include "p_info.h"
 
 #include "i_sound.h"
@@ -56,7 +56,7 @@ extern int msg_id;
 #include "d_main.h"
 
 #include "m_random.h"
-#include "../src_cl/m_menu.h"
+#include "m_menu.h"
 
 void Command_SoundReset_f(void)
 {
