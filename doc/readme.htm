@@ -328,6 +328,7 @@ To&nbsp;&nbsp;: ReMooD 1.0a "Final" [To Be Determined]<BR>
  * Game/Renderer: Changed console and menu fade backscreen code due to Quake pre-GPL violation, it should be must faster also. [GhostlyDeath]<BR>
  * Game/Renderer: Rewrite R_AddWallSplat() and improve it. If a splat is close to another splat of the same graphic replace it, however one might notice decals dancing. [GhostlyDeath]<BR>
  * Source/Global: Place files in single directories. [GhostlyDeath]<BR>
+ * Source/Misc: Newly Enhanced FixedMul(), faster than original FixedMul() on x86-based systems especially when inlined. Speed improvements are basically removing casts to/from Int64s (copying of memory to temporaries, then the 64-bit multiplication operation if available) and inlining removes overhead. [GhostlyDeath]<BR>
 </DIV>
  
 <BR> <!-- ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ -->

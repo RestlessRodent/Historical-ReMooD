@@ -36,9 +36,20 @@
 
 //
 // Fixed point, 32bit as 16.16.
-//
-#define FRACBITS                16
-#define FRACUNIT                (1<<FRACBITS)
+// Constants
+#define _FIXED_FRACBITS 16
+#define _FIXED_ONE (1 << _FIXED_FRACBITS)
+#define _FIXED_TWO (2 << _FIXED_FRACBITS)
+#define _FIXED_NEGONE (-1 << _FIXED_FRACBITS)
+#define _FIXED_SIGN		0x80000000
+#define _FIXED_INT		0xFFFF0000
+#define _FIXED_FRAC		0x0000FFFF
+#define _FIXED_ROUND	0x00008000
+
+// Compatibility
+#define FRACBITS _FIXED_FRACBITS
+#define FRACUNIT (1 << _FIXED_FRACBITS)
+
 typedef Int32 fixed_t;
 #define FIXED_TO_FLOAT(x) (((float)(x)) / 65536.0)
 
@@ -50,7 +61,64 @@ fixed_t FixedDiv (fixed_t a, fixed_t b);
 fixed_t FixedDiv2 (fixed_t a, fixed_t b);
 */
 
-fixed_t FixedMul(fixed_t a, fixed_t b);
+/* FixedMul() -- Multiply two fixed numbers */
+static fixed_t ATTRIB_FORCEINLINE ATTRIB_UNUSED FixedMul(fixed_t a, fixed_t b)
+{
+	// Copyright (C) 2010 GhostlyDeath (ghostlydeath@gmail.com / ghostlydeath@remood.org)
+	register UInt32 w, x, y, z;
+	UInt32 A, B;
+	fixed_t Res;
+	UInt8 Bits;
+	
+	/* Short circuit */
+	// These comparisons may be cheaper!
+	if (b == _FIXED_ONE)
+		return a;
+	else if (b == _FIXED_NEGONE)
+		return -a;
+	else if (b == 0)
+		return 0;
+	
+	/* Long math */
+	else
+	{
+		// Clear bits
+		Bits = 0;
+		
+		// Get A and B
+		if (a & _FIXED_SIGN)
+		{
+			Bits |= 1;
+			A = -a;
+		}
+		else
+			A = a;
+			
+		if (b & _FIXED_SIGN)
+		{
+			Bits |= 2;
+			B = -b;
+		}
+		else
+			B = b;
+		
+		// Multiply sections of the numbers
+		w = ((A & _FIXED_FRAC) * (B & _FIXED_FRAC)) >> _FIXED_FRACBITS;
+		x = ((A & _FIXED_INT) >> _FIXED_FRACBITS) * (B & _FIXED_FRAC);
+		y = (A & _FIXED_FRAC) * ((B & _FIXED_INT) >> _FIXED_FRACBITS);
+		z = (((A & _FIXED_INT) >> _FIXED_FRACBITS) * ((B & _FIXED_INT) >> _FIXED_FRACBITS)) << _FIXED_FRACBITS;
+		
+		// Get result
+		Res = (w + x + y + z);
+		
+		// Return additions
+		if (Bits == 2 || Bits == 1)
+			Res = -(Res);	// + * - or - * +
+		
+		return Res;
+	}
+}
+
 fixed_t FixedDiv2(fixed_t a, fixed_t b);
 
 static inline fixed_t FixedDiv(fixed_t a, fixed_t b)

@@ -201,5 +201,17 @@ typedef union FColorRGBA RGBA_t;
 #define UINT2RGBA(a) ((a&0xff)<<24)|((a&0xff00)<<8)|((a&0xff0000)>>8)|(((ULONG)a&0xff000000)>>24)
 #endif
 
+#if defined(__GNUC__)
+	#define ATTRIB_FORCEINLINE	__attribute__((always_inline))
+	#define ATTRIB_HOT			__attribute__((hot))
+	#define ATTRIB_COLD			__attribute__((cold))
+	#define ATTRIB_UNUSED		__attribute__((unused))
+#else
+	#define ATTRIB_FORCEINLINE
+	#define ATTRIB_HOT
+	#define ATTRIB_COLD
+	#define ATTRIB_UNUSED
+#endif
+
 #endif							//__DOOMTYPE__
 

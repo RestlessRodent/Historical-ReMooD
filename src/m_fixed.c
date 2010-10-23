@@ -37,10 +37,7 @@
 #ifdef _WIN32
 #pragma warning (disable : 4244)
 #endif
-fixed_t FixedMul(fixed_t a, fixed_t b)
-{
-	return ((INT64) a * (INT64) b) >> FRACBITS;
-}
+
 fixed_t FixedDiv2(fixed_t a, fixed_t b)
 {
 #if 0
