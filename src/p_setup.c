@@ -58,6 +58,7 @@
 
 #include "hu_stuff.h"
 #include "console.h"
+#include "t_comp.h"
 
 #ifdef _WIN32
 #include "malloc.h"
@@ -1290,6 +1291,11 @@ boolean P_SetupLevel(int episode, int map, skill_t skill, char *wadname)	// for 
 	// TODO: First attempt to load ReMooD scripts, if that fails do Legacy Script
 	if (M_CheckParm("-newscripting"))
 		RMD_CompileLegacyScript(lastloadedmaplumpnum);
+	else if (M_CheckParm("-tls"))
+	{
+		TLS_ClearScripts();
+		TLS_CompileLump(lastloadedmaplumpnum);
+	}
 	else
 		T_PreprocessScripts();		// preprocess FraggleScript scripts
 

@@ -121,8 +121,8 @@ Stuff to backport:
 	* LOG		r800: Add some missing swaps in w_wad.c, __BIG_ENDIAN__ is NOT defined on most GCCs (except mac).
 	* LOG		r795: Adjustments for Big Endien, may or may not work
 	* LOG		r792: Fixed a bug where W_CheckNumForNamePwadPtr would misrepresent the first loaded WAD; Fixed a bug in W_LumpsSoFar where entry numbers were offset by the first loaded WAD; Truly implemented flat lists, fixes tutti-fruity when a patch has the same as a flat; Support PWADs that use FF_START->F_END if FF_START->FF_END is not possible; Added new flat, -NOFLAT-, which is used when a flat is not found; Now support flats that have the same name as other lumps
-	* LOG		r779: Add transparency maps for Heretic (RMD_THHI and RMD_THMO); Add colormaps for each game (RMD_CMPD, RMD_CMPH, RMD_CMPX, and RMD_CMPS)
-	* LOG		r750: Use some experimental resources; unbranch client and server source into single source
 
 Stuff backported
+	* LOG		r779: Add transparency maps for Heretic (RMD_THHI and RMD_THMO); Add colormaps for each game (RMD_CMPD, RMD_CMPH, RMD_CMPX, and RMD_CMPS)
+	* LOG		r750: Use some experimental resources; unbranch client and server source into single source
 

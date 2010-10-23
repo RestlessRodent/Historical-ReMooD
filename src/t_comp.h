@@ -13,7 +13,7 @@
 // Project Co-Leader: RedZTag                (jostol27@gmail.com)
 // Members:           TetrisMaster512        (tetrismaster512@hotmail.com)
 // -----------------------------------------------------------------------------
-// Copyright (C) 2008 ReMooD Team.
+// Copyright (C) 2010 ReMooD Team.
 // -----------------------------------------------------------------------------
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
@@ -25,23 +25,57 @@
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 // GNU General Public License for more details.
 // -----------------------------------------------------------------------------
-// FraggleScript/ReMooD Script compiler
-// *** DEPRECATED ***
-
-// #############################################################################
-// ##  THIS SOURCE FILE HAS BEEN DEPRECATED AND WILL BE REMOVED IN THE FUTURE ##
-// #############################################################################
-// # There should be no futher changes unless necessary. Future dependencies   #
-// # on this code will be changed, replaced and/or removed.                    #
-// #############################################################################
-// # NOTE: Deprecated and will be replaced by the new ReMooD Virtual Machine   #
-// #       Which will be the heart of ReMooD Script. Of course there is a      #
-// #       Legacy compatibility layer that will be maintained so all those     #
-// #       awesome Legacy mods can be played.                                  #
-// #############################################################################
+// Legacy Script compiler
 
 #ifndef __T_COMP_H__
 #define __T_COMP_H__
+
+/***************
+*** INCLUDES ***
+***************/
+
+#include "doomtype.h"
+#include "doomdef.h"
+#include "w_wad.h"
+#include "z_zone.h"
+
+/**********************
+*** UPPER CONSTANTS ***
+**********************/
+
+#define TLS_MAXCODESIZE		65536						// Only 65536 bytes for execution
+
+/* TLS_VariableType_t -- Type of variable available */
+typedef enum TLS_VariableType_e
+{
+	TLSVT_NULL,											// Nothing
+	TLSVT_CONST,										// Constant
+	TLSVT_INT,											// int
+	TLSVT_FIXED,										// Fixed point
+	TLSVT_MOBJ,											// Map object
+	TLSVT_STRING,										// String
+	
+	NUMTLSVARIABLETYPES
+} TLS_VariableType_t;
+
+/*****************
+*** STRUCTURES ***
+*****************/
+
+/**********************
+*** LOWER CONSTANTS ***
+**********************/
+
+/**************
+*** GLOBALS ***
+**************/
+
+/*****************
+*** PROTOTYPES ***
+*****************/
+
+boolean TLS_ClearScripts(void);
+boolean TLS_CompileLump(const WadIndex_t Index);
 
 #endif /* __T_COMP_H__ */
 

@@ -1436,8 +1436,8 @@ void D_DoomMain(void)
 		novideo = true;
 	
 	//added:18-02-98:keep error messages until the final flush(stderr)
-	if (setvbuf(stderr, NULL, _IOFBF, 1000))
-		CONS_Printf("setvbuf didnt work\n");
+	//if (setvbuf(stderr, NULL, _IOFBF, 1000))
+	//	CONS_Printf("setvbuf didnt work\n");
 
 	// get parameters from a response file (eg: doom3 @parms.txt)
 	M_FindResponseFile();
@@ -1445,7 +1445,7 @@ void D_DoomMain(void)
 	// identify the main IWAD file to use
 	IdentifyVersion();
 
-	setbuf(stdout, NULL);		// non-buffered output
+	//setbuf(stdout, NULL);		// non-buffered output
 	modifiedgame = false;
 
 	nomonsters = M_CheckParm("-nomonsters");

@@ -40,6 +40,8 @@
 #include <windows.h>
 #endif
 
+#include <stddef.h>
+
 #include <wchar.h>
 
 #ifdef _MSC_VER
