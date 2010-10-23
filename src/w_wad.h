@@ -7,15 +7,16 @@
 // ##    ##   ##     ##         ## ##    ## ##    ## ##    ##
 // ##     ##  ##     ##         ## ##    ## ##    ## ##   ##
 // ##      ## ###### ##         ##  ######   ######  ######
-//                      http://remood.org/
+//                      http://remood.sourceforge.net/
 // -----------------------------------------------------------------------------
 // Project Leader:    GhostlyDeath           (ghostlydeath@gmail.com)
 // Project Co-Leader: RedZTag                (jostol27@gmail.com)
-// Members:           TetrisMaster512        (tetrismaster512@hotmail.com)
+// Members:           Demyx                  (demyx@endgameftw.com)
+//                    Dragan                 (poliee13@hotmail.com)
 // -----------------------------------------------------------------------------
 // Copyright (C) 1993-1996 by id Software, Inc.
 // Portions Copyright (C) 1998-2000 by DooM Legacy Team.
-// Portions Copyright (C) 2008-2010 The ReMooD Team..
+// Portions Copyright (C) 2008-2009 The ReMooD Team..
 // -----------------------------------------------------------------------------
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
@@ -35,7 +36,6 @@
 #include "doomtype.h"
 #include <stdio.h>
 #include <stdlib.h>
-//#include "r_defs.h"
 
 typedef void GlidePatch_t;
 
@@ -62,16 +62,40 @@ enum
 
 struct WadFile_s;
 
+typedef enum
+{
+	WETYPE_RAW,
+	
+	/* Image */
+	WETYPE_PICTURETYPESTART,
+	
+	WETYPE_PATCHT = WETYPE_PICTURETYPESTART,
+	WETYPE_PICT,
+	WETYPE_FLAT,
+	
+	WETYPE_PICTURETYPEEND = WETYPE_FLAT,
+	
+	/* Text */
+	WETYPE_TEXTTYPESTART,
+	
+	WETYPE_AUTOTEXT = WETYPE_TEXTTYPESTART,
+	WETYPE_WCHART,
+	
+	WETYPE_TEXTTYPEEND = WETYPE_WCHART,
+	
+	NUMWADENTRYTYPES
+} WadEntryType_t;
+
 typedef struct WadEntry_s
 {
 	/* Basic */
 	char *Name;					// Pointer to a string (for Pk3s later on)
 	size_t Size;
 	size_t Position;
+	WadEntryType_t Type;		// File type
 
 	/* Cache Info */
-	void *CachePtr;
-	void *Picture;
+	void* Cache[NUMWADENTRYTYPES];
 
 	/* Parent */
 	struct WadFile_s *Host;
@@ -108,38 +132,42 @@ typedef int WadIndex_t;
 #define MAXLUMPS 2147483647
 #define INDEXSIZET(x) ((int)(x))
 
-size_t W_NumWadFiles(void);
-WadFile_t *W_GetWadForNum(size_t Num);
-WadFile_t *W_GetWadForName(char *Name);
-size_t W_GetNumForWad(WadFile_t * WAD);
-WadEntry_t *W_GetEntry(WadIndex_t lump);
-WadIndex_t W_LumpsSoFar(WadFile_t * wadid);
-WadIndex_t W_InitMultipleFiles(char **filenames);
-void W_Shutdown(void);
-int W_LoadWadFile(char *filename);
-void W_Reload(void);
-WadIndex_t W_CheckNumForName(char *name);
-WadIndex_t W_CheckNumForNamePwad(char *name, size_t wadid, WadIndex_t startlump);
-WadIndex_t W_CheckNumForNamePwadPtr(char *name, WadFile_t * wadid, WadIndex_t startlump);
-WadIndex_t W_GetNumForName(char *name);
-WadIndex_t W_CheckNumForNameFirst(char *name);
-WadIndex_t W_GetNumForNameFirst(char *name);
-size_t W_LumpLength(WadIndex_t lump);
-size_t W_ReadLumpHeader(WadIndex_t lump, void *dest, size_t size);
-void W_ReadLump(WadIndex_t lump, void *dest);
-void *W_CacheLumpNum(WadIndex_t lump, size_t PU);
-void *W_CacheLumpName(char *name, size_t PU);
-void *W_CachePatchName(char *name, size_t PU);
-//void* W_CacheEntry(WadEntry_t* Entry, size_t PU);
-#define W_CachePatchNum(lump,tag)    W_CacheLumpNum(lump,tag)
-void *W_CacheRawAsPic(WadIndex_t lump, int width, int height, size_t tag);	// return a pic_t
-WadIndex_t W_GetNumForEntry(WadEntry_t* Entry);
+size_t		W_NumWadFiles(void);
+WadFile_t*	W_GetWadForNum(size_t Num);
+WadFile_t*	W_GetWadForName(char *Name);
+size_t		W_GetNumForWad(WadFile_t * WAD);
+WadEntry_t*	W_GetEntry(WadIndex_t lump);
+WadIndex_t	W_LumpsSoFar(WadFile_t * wadid);
+WadIndex_t	W_InitMultipleFiles(char **filenames);
+void		W_Shutdown(void);
+int			W_LoadWadFile(char *filename);
+void		W_Reload(void);
+WadIndex_t	W_BiCheckNumForName(char *name, int forwards);
+WadIndex_t	W_CheckNumForName(char *name);
+WadIndex_t	W_CheckNumForNamePwad(char *name, size_t wadid, WadIndex_t startlump);
+WadIndex_t	W_CheckNumForNamePwadPtr(char *name, WadFile_t * wadid, WadIndex_t startlump);
+WadIndex_t	W_GetNumForName(char *name);
+WadIndex_t	W_CheckNumForNameFirst(char *name);
+WadIndex_t	W_GetNumForNameFirst(char *name);
+size_t		W_LumpLength(WadIndex_t lump);
+size_t		W_ReadLumpHeader(WadIndex_t lump, void *dest, size_t size);
+void		W_ReadLump(WadIndex_t lump, void *dest);
+void*		W_CacheLumpNum(WadIndex_t lump, size_t PU);
+void*		W_CacheLumpName(char *name, size_t PU);
+void*		W_CachePatchName(char *name, size_t PU);
+void*		W_CacheRawAsPic(WadIndex_t lump, int width, int height, size_t tag);	// return a pic_t
+void*		W_CacheAsConvertableType(WadIndex_t Lump, size_t PU, WadEntryType_t Type, WadEntryType_t From);
+void*		W_CacheAsConvertableTypeName(char* Name, size_t PU, WadEntryType_t Type, WadEntryType_t From);
+WadIndex_t	W_GetNumForEntry(WadEntry_t* Entry);
+
+#define W_CachePatchNum(lump,tag) W_CacheLumpNum(lump,tag)
 
 typedef struct
 {
 	WadFile_t *WadFile;
-	size_t firstlump;
-	size_t numlumps;
+	WadIndex_t LumpNum;
+	WadIndex_t firstlump;
+	WadIndex_t numlumps;
 } lumplist_t;
 
 extern WadFile_t *WADFiles;

@@ -3,8 +3,6 @@ $Id$
 Stuff to backport:
 	* SPEED		Super duper new memory manager
 	* SPEED		Wad name hashing stuff
-	* ART		Logos and such
-	* SOURCE	Move src_cl/, src_sv/, and isrc/ into src/
 	* SOURCE	Re-improve build system
 	* SOURCE	Unify directories
 	* SOURCE	Nuke RMOD
@@ -125,4 +123,6 @@ Stuff to backport:
 Stuff backported
 	* LOG		r779: Add transparency maps for Heretic (RMD_THHI and RMD_THMO); Add colormaps for each game (RMD_CMPD, RMD_CMPH, RMD_CMPX, and RMD_CMPS)
 	* LOG		r750: Use some experimental resources; unbranch client and server source into single source
+	* ART		Logos and such
+	* SOURCE	Move src_cl/, src_sv/, and isrc/ into src/
 

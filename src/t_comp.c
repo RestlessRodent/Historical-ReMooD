@@ -60,12 +60,29 @@ boolean l_ScriptDebug = false;									// Debug scripts
 *** FUNCTIONS ***
 ****************/
 
+
+static int Deepness;	// Deepness brace wise
+static TLS_BlockType_t PushBlockType;	// Block type to push next
+static boolean HubVar;		// Make hub variable?
+static boolean BoostHubVar;	// Boosted hub variable
+static TLS_VariableType_t NextVar;	// next variable type
+static boolean Skip = false;		// Skip token
+static char Blocks[512];
+static char LastBlock[2] = {'A', 'A'};
+static int Deeps[64];
+
 /* TLS_ClearScripts() -- Clear old scripts */
 boolean TLS_ClearScripts(void)
 {
 	/* Clear flags */
 	// Compiling a [scripts] section
 	l_DoCompile = false;
+	
+	Deepness = 0;
+	memset(Blocks, 0, sizeof(Blocks));
+	LastBlock[0] = 'A';
+	LastBlock[1] = 'A';
+	Skip = false;
 	
 	return true;
 }
@@ -300,6 +317,126 @@ char* TLS_TokenData(const char* const Data, const size_t Size, void** const TokD
 #undef BUFSIZE
 }
 
+/* TLS_ValidIdent() -- Valid identifier? */
+boolean TLS_ValidIdent(char* Ident)
+{
+	int i;
+	
+	/* Check */
+	if (!Ident)
+		return false;
+	
+	/* Reserved? */
+	if (strcasecmp(Ident, "const") == 0 || 
+		strcasecmp(Ident, "else") == 0 || 
+		strcasecmp(Ident, "elseif") == 0 || 
+		strcasecmp(Ident, "fixed") == 0 || 
+		strcasecmp(Ident, "float") == 0 || 
+		strcasecmp(Ident, "for") == 0 || 
+		strcasecmp(Ident, "hub") == 0 || 
+		strcasecmp(Ident, "if") == 0 || 
+		strcasecmp(Ident, "int") == 0 || 
+		strcasecmp(Ident, "mobj") == 0 || 
+		strcasecmp(Ident, "script") == 0 || 
+		strcasecmp(Ident, "string") == 0 || 
+		strcasecmp(Ident, "while") == 0)
+		return false;
+	
+	/* Valid characters */
+	for (i = 0; i < strlen(Ident); i++)
+		if (!i)
+		{
+			if (!((Ident[i] >= 'a' && Ident[i] <= 'z') || (Ident[i] >= 'A' && Ident[i] <= 'Z')))
+				return false;
+		}
+		else
+		{
+			if (!((Ident[i] >= 'a' && Ident[i] <= 'z') || (Ident[i] >= 'A' && Ident[i] <= 'Z') || (Ident[i] >= '0' && Ident[i] <= '9') || Ident[i] == '_'))
+				return false;
+		}
+	
+	/* Otherwise */
+	return true;
+}
+
+/* TLS_ValidUInt() -- Valid unsigned number */
+boolean TLS_ValidUInt(char* Ident)
+{
+	int i;
+	
+	/* Check */
+	if (!Ident || !strlen(Ident))
+		return false;
+	
+	/* Loop */
+	for (i = 0; i < strlen(Ident); i++)
+		if (!(Ident[i] >= '0' && Ident[i] <= '9'))
+			return false;
+	
+	return true;
+}
+
+/* TLS_Deepen() -- Change deepness */
+int TLS_Deepen(int Dir, int Deep)
+{
+	if (Dir > 0)
+	{
+		Deepness++;
+		Blocks[strlen(Blocks)] = LastBlock[0];
+		Blocks[strlen(Blocks)] = LastBlock[1]++;
+		
+		/*if (LastBlock[1] > 'Z')
+		{
+			LastBlock[0]++;
+			LastBlock[1] = 'A';
+		}*/
+		LastBlock[0] = 'A';
+		LastBlock[1] = 'A';
+		
+		Deeps[Deepness] = Deep;
+		
+		CONS_Printf("%%%% PUSHBLOCK \"%s\"\n", Blocks);
+		
+		Skip = false;
+		return 0;
+	}
+	
+	else if (Dir < 0)
+	{
+		Deepness--;
+		
+		if (Deepness < 0)
+			return;
+			
+		LastBlock[1] = Blocks[strlen(Blocks) - 1] + 1;
+		LastBlock[0] = Blocks[strlen(Blocks) - 2];
+		Blocks[strlen(Blocks) - 1] = 0;
+		Blocks[strlen(Blocks) - 1] = 0;
+		
+		if (LastBlock[1] > 'Z')
+		{
+			LastBlock[1] = 'A';
+			LastBlock[0]++;
+		}
+		
+		CONS_Printf("%%%% POPBLOCK\n");
+		
+		Skip = false;
+		
+		return Deeps[Deepness + 1];
+	}
+}
+
+/* TLS_FillStatement() -- Expand a statement */
+void TLD_FillStatement(char* Tokens, char* FinalRes)
+{
+	char* p;
+	int i;
+	
+	for (i = 0, p = Tokens; *p; p += strlen(p) + 1, i++)
+		CONS_Printf("> %i: %s\n", i, p);
+}
+
 /* TLS_IncrementalCompile() -- Compile recursive */
 boolean TLS_IncrementalCompile(const WadIndex_t Index)
 {
@@ -308,16 +445,11 @@ boolean TLS_IncrementalCompile(const WadIndex_t Index)
 	char* Token = NULL;
 	void* TokData = NULL;
 	char Buf[BUFSIZE];
+	char Buf2[BUFSIZE];
 	size_t Len = 0;
 	size_t RecCount = 0;
 	boolean Ok;
-	int i;
-	
-	static int Deepness;	// Deepness brace wise
-	static TLS_BlockType_t PushBlockType;	// Block type to push next
-	static boolean HubVar;		// Make hub variable?
-	static boolean BoostHubVar;	// Boosted hub variable
-	static TLS_VariableType_t NextVar;	// next variable type
+	int i, j, k;
 	
 	/* Cache lump data */
 	Data = W_CacheLumpNum(Index, PU_STATIC);
@@ -340,7 +472,7 @@ boolean TLS_IncrementalCompile(const WadIndex_t Index)
 	/* Token loop */
 	Ok = true;
 	Len = W_LumpLength(Index);
-	while ((Token = TLS_TokenData(Data, Len, &TokData)))
+	while (Skip || (Token = TLS_TokenData(Data, Len, &TokData)))
 	{
 		/* Not OK */
 		Ok = false;
@@ -459,6 +591,165 @@ boolean TLS_IncrementalCompile(const WadIndex_t Index)
 			continue;
 		}
 		
+		/* Long statement expansion */
+		// Script
+		else if (strcasecmp(Token, "script") == 0)
+		{
+			// Unset skip
+			Skip = false;
+			
+			// Get script id
+			Token = TLS_TokenData(Data, Len, &TokData);
+			
+			if (!Token || !TLS_ValidUInt(Token))
+			{
+				if (l_ScriptDebug)
+					CONS_Printf("TLSD: Invalid script id \"%s\".\n", Token);
+				break;
+			}
+			
+			// Print label
+			CONS_Printf("%%%% LABEL \"_SCRIPT_%04X\"\n", atoi(Token));
+		}
+		
+		// Variable
+		else if (strcasecmp(Token, "int") == 0 || strcasecmp(Token, "fixed") == 0 ||
+			strcasecmp(Token, "string") == 0 || strcasecmp(Token, "mobj") == 0 ||
+			strcasecmp(Token, "const") == 0 || strcasecmp(Token, "float") == 0)
+		{
+			// Copy type
+			strcpy(Buf, Token);
+			
+			// Get identifier name
+			Token = TLS_TokenData(Data, Len, &TokData);
+			
+			if (!Token || !TLS_ValidIdent(Token))
+			{
+				if (l_ScriptDebug)
+					CONS_Printf("TLSD: Invalid identifier name \"%s\".\n", Token);
+				break;
+			}
+			
+			strcpy(Buf2, Token);
+			
+			// Stay on
+			Skip = true;
+			
+			// Instruction
+			CONS_Printf("%%%% DECL \"%s\", \"_%s_%s\"\n", Buf, Blocks, Buf2);
+		}
+		
+		// Begin block
+		else if (strcasecmp(Token, "{") == 0)
+		{
+			// Unset skip
+			Skip = false;
+			
+			TLS_Deepen(1, 0);
+		}
+		
+		// End block
+		else if (strcasecmp(Token, "}") == 0)
+		{
+			// Unset skip
+			Skip = false;
+			
+			i = TLS_Deepen(-1, 0);
+		}
+		
+		// Conditional
+		else if (strcasecmp(Token, "if") == 0 || strcasecmp(Token, "elseif") == 0 || strcasecmp(Token, "else") == 0)
+		{
+			// Unset skip
+			Skip = false;
+			
+			// Deepen
+			TLS_Deepen(1, 0);
+			
+			// Label start
+			CONS_Printf("%%%% LABEL \"_%s_BEGINIF\"\n", Blocks);
+			
+			// Find (
+			while (Token && strcasecmp(Token, "(") != 0)
+				Token = TLS_TokenData(Data, Len, &TokData);
+			Token = TLS_TokenData(Data, Len, &TokData);
+			
+			// Clear buf
+			memset(Buf, 0, sizeof(Buf));
+			memset(Buf2, 0, sizeof(Buf2));
+			i = k = 0;
+			
+			// Until we reach a ), read tokens into buffer
+			while (Token && ((k == 0 && strcasecmp(Token, ")") != 0) || (k > 0)))
+			{
+				// Is a (?
+				if (strcasecmp(Token, "("))
+					k++;
+				if (strcasecmp(Token, ")"))
+					k--;
+				
+				// Copy token over
+				for (j = 0; j < strlen(Token) + 1; j++)
+					Buf[i++] = Token[j];
+				
+				// Next token
+				Token = TLS_TokenData(Data, Len, &TokData);
+			}
+			
+			// Send buf over
+			TLD_FillStatement(Buf, Buf2);
+			
+			CONS_Printf("? %s\n", Token);
+			CONS_Printf("%%%% LABEL \"_%s_BEGINIF\"\n", Blocks);
+			CONS_Printf("%%%% IF \"_%s\"\n", Buf2);
+			Skip = true;
+		}
+		
+		// Loop
+		else if (strcasecmp(Token, "for") == 0 || strcasecmp(Token, "while") == 0)
+		{
+			// Unset skip
+			Skip = false;
+			
+			// Deepen
+			//TLS_Deepen(1, 0);
+			
+			// Label start
+			CONS_Printf("%%%% LABEL \"_%s\"\n", Blocks);
+			
+			// Parse loop
+			
+			// Undeep
+			//TLS_Deepen(-1, 0);
+		}
+		
+		// Standard Statement
+		else
+		{
+			// Unset skip
+			Skip = false;
+			
+			// Clear buf
+			memset(Buf, 0, sizeof(Buf));
+			memset(Buf2, 0, sizeof(Buf2));
+			i = 0;
+			
+			// Until we reach a ;, read tokens into buffer
+			while (Token && strcasecmp(Token, ";") != 0)
+			{
+				// Copy token over
+				for (j = 0; j < strlen(Token) + 1; j++)
+					Buf[i++] = Token[j];
+				
+				// Next token
+				Token = TLS_TokenData(Data, Len, &TokData);
+			}
+			
+			// Send buf over
+			TLD_FillStatement(Buf, Buf2);
+		}
+		
+#if 0
 		/* Check for script */
 		else if (strcasecmp(Token, "script") == 0)
 		{
@@ -623,8 +914,7 @@ boolean TLS_IncrementalCompile(const WadIndex_t Index)
 			BoostHubVar = false;
 			NextVar = false;
 		}
-		
-		//CONS_Printf("%s ", Token);
+#endif
 		
 		/* Ok */
 		Ok = true;

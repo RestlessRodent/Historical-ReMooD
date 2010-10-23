@@ -7,13 +7,14 @@
 // ##    ##   ##     ##         ## ##    ## ##    ## ##    ##
 // ##     ##  ##     ##         ## ##    ## ##    ## ##   ##
 // ##      ## ###### ##         ##  ######   ######  ######
-//                      http://remood.org/
+//                      http://remood.sourceforge.net/
 // -----------------------------------------------------------------------------
 // Project Leader:    GhostlyDeath           (ghostlydeath@gmail.com)
 // Project Co-Leader: RedZTag                (jostol27@gmail.com)
-// Members:           TetrisMaster512        (tetrismaster512@hotmail.com)
+// Members:           Demyx                  (demyx@endgameftw.com)
+//                    Dragan                 (poliee13@hotmail.com)
 // -----------------------------------------------------------------------------
-// Copyright (C) 2008-2010 The ReMooD Team.
+// Copyright (C) 2008-2009 The ReMooD Team.
 // -----------------------------------------------------------------------------
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
@@ -50,12 +51,10 @@
 #include "doomtype.h"
 #include "w_wad.h"
 #include "z_zone.h"
-
 #include "i_video.h"
 #include "dehacked.h"
 #include "r_defs.h"
 #include "i_system.h"
-
 #include "md5.h"
 #include "v_video.h"
 
@@ -137,6 +136,8 @@ int W_LoadWadFile(char *filename)
 	UInt32 OpenMethod = MAXMETHODS;	// Method of opening the file
 	int readcount;
 	int err;
+	int y, z;
+	char tName[9];
 
 	/* Scan! -- Don't open a WAD twice yknow! */
 	n = WADFiles;
@@ -305,7 +306,10 @@ int W_LoadWadFile(char *filename)
 						UInt32 pos = 0;
 
 						n->WADNameHack = Z_Malloc((NumLumps * 9) + 1, PU_STATIC, NULL);
+						memset(n->WADNameHack, 0, (NumLumps * 9) + 1);
+						
 						n->Index = Z_Malloc(sizeof(WadEntry_t) * NumLumps, PU_STATIC, NULL);
+						memset(n->Index, 0, sizeof(WadEntry_t) * NumLumps);
 
 						fseek(tFile, IndexOffset, SEEK_SET);
 
@@ -322,11 +326,14 @@ int W_LoadWadFile(char *filename)
 							   n->Index[l].Name[8] = 0; */
 
 							n->Index[l].Name = &(((char *)(n->WADNameHack))[l * 9]);
-							fread(n->Index[l].Name, 8, 1, tFile);
+							
+							fread(tName, 8, 1, tFile);
+							strncpy(n->Index[l].Name, tName, 9);
+							
 							n->Index[l].Name[8] = 0;
 
-							n->Index[l].CachePtr = NULL;
-							n->Index[l].Picture = NULL;
+							/*n->Index[l].CachePtr = NULL;
+							n->Index[l].Picture = NULL;*/
 							n->Index[l].Host = n;
 						}
 						
@@ -379,19 +386,12 @@ void W_Shutdown(void)
 		// Un-cache all lumps
 		for (i = 0; i < Rover->NumLumps; i++)
 		{
-			// Normal data cache
-			if (Rover->Index[i].CachePtr)
-			{
-				Z_Free(Rover->Index[i].CachePtr);
-				Rover->Index[i].CachePtr = NULL;
-			}
-			
-			// pic_t or patch_t cache
-			if (Rover->Index[i].Picture)
-			{
-				Z_Free(Rover->Index[i].Picture);
-				Rover->Index[i].Picture = NULL;
-			}
+			for (j = 0; j < NUMWADENTRYTYPES; j++)
+				if (Rover->Index[i].Cache[j])
+				{
+					Z_Free(Rover->Index[i].Cache[j]);
+					Rover->Index[i].Cache[j] = NULL;
+				}
 		}
 		
 		// Free the Index
@@ -484,7 +484,15 @@ WadIndex_t W_BiCheckNumForName(char *name, int forwards)
 	Int32 i;
 	Int32 num;
 	Int32 actual = 0;
-
+	char NewName[9] = {0, 0, 0, 0, 0, 0, 0, 0, 0};
+	
+	// Turn into a UInt64
+	memcpy(NewName, name, strlen(name));
+	for (i = 0; i < 8; i++)
+		if (NewName[i] >= 'A' && NewName[i] <= 'Z')
+			NewName[i] += 32;
+	
+	// Now find it
 	if (rover)
 	{
 		if (forwards)
@@ -497,6 +505,7 @@ WadIndex_t W_BiCheckNumForName(char *name, int forwards)
 					num = rover->NumLumps;
 
 				for (i = 0; i < num; i++, actual++)
+					//if (memcmp(NewName, rover->Index[i].Name, 8) == 0)
 					if (strncasecmp(rover->Index[i].Name, name, 8) == 0)
 						return actual;
 
@@ -524,8 +533,11 @@ WadIndex_t W_BiCheckNumForName(char *name, int forwards)
 					num = rover->NumLumps;
 
 				for (i = num; i > 0; i--, actual--)
+				{
+					//if (memcmp(NewName, rover->Index[i - 1].Name, 8) == 0)
 					if (strncasecmp(rover->Index[i - 1].Name, name, 8) == 0)
 						return actual;
+				}
 
 				rover = rover->Prev;
 			}
@@ -537,11 +549,39 @@ WadIndex_t W_BiCheckNumForName(char *name, int forwards)
 		return INVALIDLUMP;
 }
 
+/* W_LumpsSoFar() -- Returns number of lumps passed to get to this WAD */
 WadIndex_t W_LumpsSoFar(WadFile_t * wadid)
 {
 	WadIndex_t actual = 0;
-	WadFile_t *rover = WADFiles;
-
+	WadFile_t* OldWAD = NULL;
+	WadFile_t* rover = WADFiles;
+	
+	// GhostlyDeath <June 21, 2009> -- Not sure if we should really return INVALIDLUMP
+	if (!rover || !wadid)
+		return INVALIDLUMP;
+		
+	// Shortcut to first WAD..
+	if (rover == wadid)
+		return 0;
+	
+	// Otherwise
+	while (rover)
+	{
+		OldWAD = rover;
+		rover = rover->Next;
+	
+		if (rover)
+		{
+			actual += OldWAD->NumLumps;
+			
+			if (rover == wadid)
+				break;
+		}
+	}
+	
+	return actual;
+	
+	/*
 	if (rover)
 	{
 		if (!rover)
@@ -555,7 +595,9 @@ WadIndex_t W_LumpsSoFar(WadFile_t * wadid)
 
 		return actual;
 	}
+	
 	return INVALIDLUMP;
+	*/
 }
 
 /* W_CheckNumForName() -- Checks for the existance of a lump by name */
@@ -607,12 +649,13 @@ WadIndex_t W_CheckNumForNamePwadPtr(char *name, WadFile_t * wadid, WadIndex_t st
 	WadIndex_t num;
 	WadIndex_t startlumpx;
 	WadIndex_t actual = 0;
-	UInt32 j;
+	Int32 j;
 
 	if (wadid)
 	{
-		for (j = 0; j < W_GetNumForWad(wadid); j++)
-			actual += W_GetWadForNum(j)->NumLumps - 1;
+		//for (j = 0; j < W_GetNumForWad(wadid) - 1; j++)
+		//	actual += W_GetWadForNum(j)->NumLumps - 1;
+		//actual += W_LumpsSoFar(wadid);
 
 		if (wadid->NumLumps > MAXLUMPS)
 			num = MAXLUMPS;
@@ -623,10 +666,12 @@ WadIndex_t W_CheckNumForNamePwadPtr(char *name, WadFile_t * wadid, WadIndex_t st
 			startlumpx = MAXLUMPS;
 		else
 			startlumpx = startlump;
+			
+		actual = startlumpx;
 
 		for (i = startlumpx; i < num; i++, actual++)
 			if (strncasecmp(wadid->Index[i].Name, name, 8) == 0)
-				return actual;
+				return W_LumpsSoFar(wadid) + actual;
 
 		return INVALIDLUMP;
 	}
@@ -673,7 +718,7 @@ WadEntry_t *W_GetEntry(WadIndex_t lump)
 
 	if (lump == INVALIDLUMP)
 		return NULL;
-
+		
 	while (rover)
 	{
 		// in this WAD?
@@ -747,6 +792,82 @@ void W_ReadLump(WadIndex_t lump, void *dest)
 	W_ReadLumpHeader(lump, dest, 0);
 }
 
+void* W_CacheAsConvertableType(WadIndex_t Lump, size_t PU, WadEntryType_t Type, WadEntryType_t From)
+{
+	WadEntry_t *Entry = W_GetEntry(Lump);
+	void* RawData = NULL;
+	
+	/* Bunch of Checks */
+	if (!Entry)
+		return NULL;
+		
+	if (Type < 0 || Type >= NUMWADENTRYTYPES)
+		return NULL;
+		
+	if (From < 0 || From >= NUMWADENTRYTYPES)
+		return NULL;
+		
+	/* What converts into what? */
+	if (Entry->Cache[Type] != NULL)
+		return Entry->Cache[Type];
+	
+	/* Get the raw data */
+	RawData = W_CacheLumpNum(Lump, PU);
+	
+	/* From and to the same? */
+	if (From == Type)
+		return RawData;
+	
+	/* From/To Mess */
+	switch (From)
+	{
+		case WETYPE_RAW:
+			return NULL;
+			break;
+		
+		/********* PICTURE FORMATS *********/
+		case WETYPE_PATCHT:
+			if (Type >= WETYPE_TEXTTYPESTART && Type <= WETYPE_TEXTTYPEEND)
+				return NULL;
+			
+			break;
+			
+		case WETYPE_PICT:
+			if (Type >= WETYPE_TEXTTYPESTART && Type <= WETYPE_TEXTTYPEEND)
+				return NULL;
+			
+			break;
+			
+		case WETYPE_FLAT:
+			if (Type >= WETYPE_TEXTTYPESTART && Type <= WETYPE_TEXTTYPEEND)
+				return NULL;
+			
+			break;
+		
+		/********* TEXT FORMATS *********/
+		case WETYPE_AUTOTEXT:
+			if (Type >= WETYPE_PICTURETYPESTART && Type <= WETYPE_PICTURETYPEEND)
+				return NULL;
+			
+			break;
+			
+		case WETYPE_WCHART:
+			if (Type >= WETYPE_PICTURETYPESTART && Type <= WETYPE_PICTURETYPEEND)
+				return NULL;
+			
+			break;
+		
+		default:
+			break;
+	}
+}
+
+void* W_CacheAsConvertableTypeName(char* Name, size_t PU, WadEntryType_t Type, WadEntryType_t From)
+{
+	return W_CacheAsConvertableType(W_GetNumForName(Name), PU, Type, From);
+}
+
+/* W_CacheAs() -- */
 void *W_CacheLumpNum(WadIndex_t lump, size_t PU)
 {
 	WadEntry_t *Entry = W_GetEntry(lump);
@@ -757,17 +878,17 @@ void *W_CacheLumpNum(WadIndex_t lump, size_t PU)
 			return NULL;
 
 		// Is it already cached?
-		if (Entry->CachePtr == NULL)
+		if (Entry->Cache[WETYPE_RAW] == NULL)
 		{
-			Entry->CachePtr = Z_Malloc(Entry->Size, PU, &(Entry->CachePtr));
+			Entry->Cache[WETYPE_RAW] = Z_Malloc(Entry->Size, PU, &(Entry->Cache[WETYPE_RAW]));
 
-			if (!Entry->CachePtr)
+			if (!Entry->Cache[WETYPE_RAW])
 				I_Error("W_CacheLumpNum: Failed to allocate space for lump!\n");
 
-			W_ReadLump(lump, Entry->CachePtr);
+			W_ReadLump(lump, Entry->Cache[WETYPE_RAW]);
 		}
 
-		return Entry->CachePtr;
+		return Entry->Cache[WETYPE_RAW];
 	}
 	else
 		return NULL;
@@ -815,18 +936,18 @@ void *W_CacheRawAsPic(WadIndex_t lump, int width, int height, size_t tag)
 
 	if (we)
 	{
-		if (!we->Picture)
+		if (!we->Cache[WETYPE_PICT])
 		{
-			we->Picture = Z_Malloc(W_LumpLength(lump) + sizeof(pic_t), tag, &we->Picture);
-			W_ReadLumpHeader(lump, ((pic_t*)we->Picture)->data, 0);
-			((pic_t*)we->Picture)->width = SHORT(width);
-			((pic_t*)we->Picture)->height = SHORT(height);
-			((pic_t*)we->Picture)->mode = PALETTE;
+			we->Cache[WETYPE_PICT] = Z_Malloc(W_LumpLength(lump) + sizeof(pic_t), tag, &we->Cache[WETYPE_PICT]);
+			W_ReadLumpHeader(lump, ((pic_t*)we->Cache[WETYPE_PICT])->data, 0);
+			((pic_t*)we->Cache[WETYPE_PICT])->width = SHORT(width);
+			((pic_t*)we->Cache[WETYPE_PICT])->height = SHORT(height);
+			((pic_t*)we->Cache[WETYPE_PICT])->mode = PALETTE;
 		}
 		else
-			Z_ChangeTag(we->Picture, tag);
+			Z_ChangeTag(we->Cache[WETYPE_PICT], tag);
 
-		return we->Picture;
+		return we->Cache[WETYPE_PICT];
 	}
 	else
 		return NULL;

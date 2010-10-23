@@ -1104,44 +1104,32 @@ void V_DrawFlatFill(int x, int y, int w, int h, int flatnum)
 //
 void V_DrawFadeScreen(void)
 {
-	int x, y, w;
-	int *buf;
-	unsigned quad;
-	byte p1, p2, p3, p4;
+	int x, y, i;
+	int* buf;
+	int* buf2;
+	int c;
 	byte *fadetable = (byte *) colormaps + 16 * 256;
-	//short*    wput;
 	
-	if (!graphics_started)
-		return;
-
-	w = vid.width >> 2;
-	for (y = 0; y < vid.height; y++)
+	for (y = 0; y < vid.height; y += 8)
 	{
+		// Set buf
 		buf = (int *)(screens[0] + vid.width * y);
-		for (x = 0; x < w; x++)
+		
+		// Loop
+		for (x = 0; x < (vid.width >> 2); x += 2)
 		{
-			quad = buf[x];
-			p1 = fadetable[quad & 255];
-			p2 = fadetable[(quad >> 8) & 255];
-			p3 = fadetable[(quad >> 16) & 255];
-			p4 = fadetable[quad >> 24];
-			buf[x] = (p4 << 24) | (p3 << 16) | (p2 << 8) | p1;
+			c = fadetable[buf[x] & 0xFF];
+			buf[x] = c | (c << 8) | (c << 16) | (c << 24);
+			buf[x + 1] = buf[x];
+		}
+		
+		// Inner second loop
+		for (i = 1; i < 8 && (y + i) < vid.height; i++)
+		{
+			buf2 = (int *)(screens[0] + vid.width * (y + i));
+			memcpy(buf2, buf, vid.width);
 		}
 	}
-
-#ifdef _16bitcrapneverfinished
-	{
-		w = vid.width;
-		for (y = 0; y < vid.height; y++)
-		{
-			wput = (short *)(screens[0] + vid.width * y);
-			for (x = 0; x < w; x++)
-			{
-				*wput++ = (*wput >> 1) & 0x3def;
-			}
-		}
-	}
-#endif
 }
 
 // Simple translucence with one color, coords are resolution dependent
@@ -1149,43 +1137,29 @@ void V_DrawFadeScreen(void)
 //added:20-03-98: console test
 void V_DrawFadeConsBack(int x1, int y1, int x2, int y2)
 {
-	int x, y, w;
-	int *buf;
-	unsigned quad;
-	byte p1, p2, p3, p4;
-	short *wput;	
+	int x, y, i;
+	int* buf;
+	int* buf2;
+	int c;
 	
-	if (!graphics_started)
-		return;
-
-	if (scr_bpp == 1)
+	for (y = y1; y < y2; y += 8)
 	{
-		x1 >>= 2;
-		x2 >>= 2;
-		for (y = y1; y < y2; y++)
+		// Set buf
+		buf = (int *)(screens[0] + vid.width * y);
+		
+		// Loop
+		for (x = (x1 >> 2); x < (x2 >> 2); x += 2)
 		{
-			buf = (int *)(screens[0] + vid.width * y);
-			for (x = x1; x < x2; x++)
-			{
-				quad = buf[x];
-				p1 = greenmap[quad & 255];
-				p2 = greenmap[(quad >> 8) & 255];
-				p3 = greenmap[(quad >> 16) & 255];
-				p4 = greenmap[quad >> 24];
-				buf[x] = (p4 << 24) | (p3 << 16) | (p2 << 8) | p1;
-			}
+			c = greenmap[buf[x] & 0xFF];
+			buf[x] = c | (c << 8) | (c << 16) | (c << 24);
+			buf[x + 1] = buf[x];
 		}
-	}
-	else
-	{
-		w = x2 - x1;
-		for (y = y1; y < y2; y++)
+		
+		// Inner second loop
+		for (i = 1; i < 8 && (y + i) < y2; i++)
 		{
-			wput = (short *)(screens[0] + vid.width * y) + x1;
-			for (x = 0; x < w; x++)
-			{
-				*wput++ = ((*wput & 0x7bde) + (15 << 5)) >> 1;
-			}
+			buf2 = (int *)(screens[0] + vid.width * (y + i));
+			memcpy(buf2, buf, x2 - x1);
 		}
 	}
 }
