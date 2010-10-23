@@ -1023,8 +1023,23 @@ void V_DrawScreenFill(int x, int y, int w, int h, int c)
 //  scaled to screen size.
 //
 //added:06-02-98:
+
+/* V_DrawFlatFill() -- Draws a flat filled to the screen */
+// Originally the texture itself was scaled, but I removed that behavior during
+// optimization.
 void V_DrawFlatFill(int x, int y, int w, int h, int flatnum)
 {
+#if 0
+	int xx, yy;
+	UInt8* FlatData;
+	
+	/* Get flat data */
+	FlatData = W_CacheLumpNum(flatnum, PU_CACHE);
+	
+	/* Scale coordinates */
+	
+	
+#else
 	byte *dest;
 	int u, v;
 	float dupx, dupy;
@@ -1096,27 +1111,29 @@ void V_DrawFlatFill(int x, int y, int w, int h, int flatnum)
 		}
 		yfrac += dy;
 	}
+#endif
 }
 
-//
-//  Fade all the screen buffer, so that the menu is more readable,
-//  especially now that we use the small hufont in the menus...
-//
+/* V_DrawFadeScreen() -- Pixelate and draw dark */
 void V_DrawFadeScreen(void)
 {
-	int x, y, i;
+	int x, y, i, w;
 	int* buf;
 	int* buf2;
 	int c;
 	byte *fadetable = (byte *) colormaps + 16 * 256;
 	
+	// Speed
+	w = (vid.width >> 2);
+	
+	// Loop
 	for (y = 0; y < vid.height; y += 8)
 	{
 		// Set buf
 		buf = (int *)(screens[0] + vid.width * y);
 		
 		// Loop
-		for (x = 0; x < (vid.width >> 2); x += 2)
+		for (x = 0; x < w; x += 2)
 		{
 			c = fadetable[buf[x] & 0xFF];
 			buf[x] = c | (c << 8) | (c << 16) | (c << 24);
@@ -1132,23 +1149,25 @@ void V_DrawFadeScreen(void)
 	}
 }
 
-// Simple translucence with one color, coords are resolution dependent
-//
-//added:20-03-98: console test
+/* V_DrawFadeConsBack() -- Pixelate and add red tint */
 void V_DrawFadeConsBack(int x1, int y1, int x2, int y2)
 {
-	int x, y, i;
+	int x, y, i, w;
 	int* buf;
 	int* buf2;
 	int c;
 	
+	// Speed
+	w = (x2 >> 2);
+	
+	// Loop
 	for (y = y1; y < y2; y += 8)
 	{
 		// Set buf
 		buf = (int *)(screens[0] + vid.width * y);
 		
 		// Loop
-		for (x = (x1 >> 2); x < (x2 >> 2); x += 2)
+		for (x = (x1 >> 2); x < w; x += 2)
 		{
 			c = greenmap[buf[x] & 0xFF];
 			buf[x] = c | (c << 8) | (c << 16) | (c << 24);

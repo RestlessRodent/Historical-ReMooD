@@ -134,97 +134,164 @@ static wallsplat_t *R_AllocWallSplat(void)
 	return splat;
 }
 
-// Add a new splat to the linedef:
-// top : top z coord
-// wallfrac : frac along the linedef vector (0 to FRACUNIT)
-// splatpatchname : name of patch to draw
+/* R_AddWallSplat() -- Adds a splat to a wall */
+// GhostlyDeath <Octover 23, 2010> -- Rewritten. If a splat is near another splat replace that splat.
 void R_AddWallSplat(line_t * wallline,
 					int sectorside, char *patchname, fixed_t top, fixed_t wallfrac, int flags)
 {
-	fixed_t fracsplat;
-	wallsplat_t *splat;
-	wallsplat_t *p_splat;
-	patch_t *patch;
-	fixed_t linelength;
-	sector_t *backsector = NULL;
-
+	fixed_t LineLength;
+	fixed_t FracSplat;
+	fixed_t Offset;
+	WadIndex_t PatchId;
+	patch_t* Patch;
+	wallsplat_t* Rover;
+	wallsplat_t* Next;
+	sector_t *BackSector = NULL;
+	int* yOffset = NULL;
+	wallsplat_t Temp;
+	
+	/* Check */
+	// Proper arguments
+	if (!wallline || !patchname)
+		return;
+	
+	// Demo version
 	if (demoversion < 128)
 		return;
-
-	splat = R_AllocWallSplat();
-	if (!splat)
+	
+	/* Pre-init some variables */
+	// Get ID
+	PatchId = W_CheckNumForName(patchname);
+	
+	// See if the patch really exists
+	if (PatchId == INVALIDLUMP)
 		return;
-
-	// set the splat
-	splat->patch = W_GetNumForName(patchname);
+	
+	// Allocate patch
+	Patch = W_CachePatchNum(PatchId, PU_CACHE);
+	
+	// Get side of sector
 	sectorside ^= 1;
 	if (wallline->sidenum[sectorside] != -1)
 	{
-		backsector = sides[wallline->sidenum[sectorside]].sector;
+		BackSector = sides[wallline->sidenum[sectorside]].sector;
 
-		if (top < backsector->floorheight)
+		if (top < BackSector->floorheight)
 		{
-			splat->yoffset = &backsector->floorheight;
-			top -= backsector->floorheight;
+			yOffset = &BackSector->floorheight;
+			top -= BackSector->floorheight;
 		}
-		else if (top > backsector->ceilingheight)
+		else if (top > BackSector->ceilingheight)
 		{
-			splat->yoffset = &backsector->ceilingheight;
-			top -= backsector->ceilingheight;
+			yOffset = &BackSector->ceilingheight;
+			top -= BackSector->ceilingheight;
 		}
 	}
-	//splat->sectorside = sectorside;
-
-	splat->top = top;
-	splat->flags = flags;
-
-	// bad.. but will be needed for drawing anyway..
-	patch = W_CachePatchNum(splat->patch, PU_CACHE);
-
-	// offset needed by draw code for texture mapping
-	linelength = P_SegLength((seg_t *) wallline);
-	splat->offset = FixedMul(wallfrac, linelength) - (patch->width << (FRACBITS - 1));
-	//CONS_Printf("offset splat %d\n",splat->offset);
-	fracsplat = FixedDiv(((patch->width << FRACBITS) >> 1), linelength);
-
-	wallfrac -= fracsplat;
-	if (wallfrac > linelength)
+	
+	// Get offset of splat along the line
+	LineLength = P_SegLength((seg_t *)wallline);
+	Offset = FixedMul(wallfrac, LineLength) - (Patch->width << (FRACBITS - 1));
+	FracSplat = FixedDiv(((Patch->width << FRACBITS) >> 1), LineLength);
+	wallfrac -= FracSplat;
+	
+	// Splat off wall?
+	if (wallfrac > LineLength)
 		return;
-	//CONS_Printf("final splat possition %f\n",FIXED_TO_FLOAT(wallfrac));
-	splat->v1.x = wallline->v1->x + FixedMul(wallline->dx, wallfrac);
-	splat->v1.y = wallline->v1->y + FixedMul(wallline->dy, wallfrac);
-	wallfrac += fracsplat + fracsplat;
+	
+	/* Replace an existing splat */
+	// Start on line
+	Rover = wallline->splats;
+	
+	// Rove line
+	while (Rover)
+	{
+		// Next
+		Rover = Rover->next;
+	}
+	
+	// Ran out of Rover
+	if (!Rover)
+		Rover = R_AllocWallSplat();
+	
+	// Double-check
+	if (!Rover)
+		return;
+	
+	/* Set splat properties */
+	// Basic
+	Temp.patch = PatchId;
+	Temp.top = top;
+	Temp.flags = flags;
+	Temp.offset = Offset;
+	Temp.yoffset = yOffset;
+	
+	// Get position
+	Temp.v1.x = wallline->v1->x + FixedMul(wallline->dx, wallfrac);
+	Temp.v1.y = wallline->v1->y + FixedMul(wallline->dy, wallfrac);
+	wallfrac += FracSplat + FracSplat;
+	
+	// Off left of wall?
 	if (wallfrac < 0)
 		return;
-	splat->v2.x = wallline->v1->x + FixedMul(wallline->dx, wallfrac);
-	splat->v2.y = wallline->v1->y + FixedMul(wallline->dy, wallfrac);
+	
+	Temp.v2.x = wallline->v1->x + FixedMul(wallline->dx, wallfrac);
+	Temp.v2.y = wallline->v1->y + FixedMul(wallline->dy, wallfrac);
 
-	if (wallline->frontsector && wallline->frontsector == backsector)
-	{
-/*  BP: dont work texture mapping problem :(
-        // in the other side
-        vertex_t p = splat->v1;
-        splat->v1 = splat->v2;
-        splat->v2 = p;
-        CONS_Printf("split\n");
-*/
+	if (wallline->frontsector && wallline->frontsector == BackSector)
 		return;
-	}
-
-	// insert splat in the linedef splat list
-	// BP: why not insert in head is mush more simple ?
-	// BP: because for remove it is more simple !
-	splat->line = wallline;
-	splat->next = NULL;
-	if (wallline->splats)
+	
+	/* Insert splat into wall */
+	// Wall has no splats
+	if (!wallline->splats)
 	{
-		p_splat = wallline->splats;
-		while (p_splat->next)
-			p_splat = p_splat->next;
-		p_splat->next = splat;
+		// Just set into wall
+		wallline->splats = R_AllocWallSplat();
+		Rover = wallline->splats;
+		
+		// Clone Data
+		*Rover = Temp;
+		Rover->next = NULL;
 	}
+	
+	// Wall has splats
 	else
-		wallline->splats = splat;
+	{
+		// Get head
+		Rover = wallline->splats;
+		
+		// Check each entry
+		while (Rover)
+		{
+			// Same patch id?
+			if (Rover->patch == PatchId)
+				// Near offset?
+				if ((abs((Rover->offset >> FRACBITS) - (Offset >> FRACBITS)) < 8) &&
+					(abs((Rover->top >> FRACBITS) - (top >> FRACBITS)) < 8))
+				{
+					// Copy
+					Next = Rover->next;
+					*Rover = Temp;
+					Rover->next = Next;
+					
+					// Break out
+					break;
+				}
+			
+			// Next?
+			if (Rover->next)
+				Rover = Rover->next;
+			
+			// Create next and break out (new)
+			else
+			{
+				Rover->next = R_AllocWallSplat();
+		
+				// Clone Data
+				*(Rover->next) = Temp;
+				break;
+			}
+		}
+	}
 }
 #endif							// WALLSPLATS
 

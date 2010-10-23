@@ -32,6 +32,7 @@
 #define __R_SPLATS_H__
 
 #include "r_defs.h"
+#include "w_wad.h"
 
 #define WALLSPLATS				// comment this out to compile without splat effects
 //#define FLOORSPLATS
@@ -54,7 +55,7 @@
 // WALL SPLATS are patches drawn on top of wall segs
 struct wallsplat_s
 {
-	int patch;					// lump id.
+	WadIndex_t patch;					// lump id.
 	vertex_t v1;				// vertices along the linedef
 	vertex_t v2;
 	fixed_t top;
