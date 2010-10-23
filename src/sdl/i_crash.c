@@ -7,11 +7,11 @@
 // ##    ##   ##     ##         ## ##    ## ##    ## ##    ##
 // ##     ##  ##     ##         ## ##    ## ##    ## ##   ##
 // ##      ## ###### ##         ##  ######   ######  ######
-//                      http://remood.sourceforge.net/
+//                      http://remood.org/
 // -----------------------------------------------------------------------------
 // Project Leader:    GhostlyDeath           (ghostlydeath@gmail.com)
 // Project Co-Leader: RedZTag                (jostol27@gmail.com)
-// Members:           Demyx                  (demyx@endgameftw.com)
+// Members:           TetrisMaster512        (tetrismaster512@hotmail.com)
 // -----------------------------------------------------------------------------
 // Copyright (C) 1993-1996 by id Software, Inc.
 // Portions Copyright (C) 1998-2000 by DooM Legacy Team.

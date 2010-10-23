@@ -7,12 +7,11 @@
 // ##    ##   ##     ##         ## ##    ## ##    ## ##    ##
 // ##     ##  ##     ##         ## ##    ## ##    ## ##   ##
 // ##      ## ###### ##         ##  ######   ######  ######
-//                      http://remood.sourceforge.net/
+//                      http://remood.org/
 // -----------------------------------------------------------------------------
 // Project Leader:    GhostlyDeath           (ghostlydeath@gmail.com)
 // Project Co-Leader: RedZTag                (jostol27@gmail.com)
-// Members:           Demyx                  (demyx@endgameftw.com)
-//                    Dragan                 (poliee13@hotmail.com)
+// Members:           TetrisMaster512        (tetrismaster512@hotmail.com)
 // -----------------------------------------------------------------------------
 // Copyright (C) 1995, 1996 Free Software Foundation, Inc.
 // Copyright (C) 1995 Ulrich Drepper (drepper@gnu.ai.mit.edu)

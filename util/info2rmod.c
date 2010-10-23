@@ -7,13 +7,13 @@
 // ##    ##   ##     ##         ## ##    ## ##    ## ##    ##
 // ##     ##  ##     ##         ## ##    ## ##    ## ##   ##
 // ##      ## ###### ##         ##  ######   ######  ######
-//                      http://remood.sourceforge.net/
+//                      http://remood.org/
 // -----------------------------------------------------------------------------
 // Project Leader:    GhostlyDeath           (ghostlydeath@gmail.com)
 // Project Co-Leader: RedZTag                (jostol27@gmail.com)
-// Members:           Demyx                  (demyx@endgameftw.com)
+// Members:           TetrisMaster512        (tetrismaster512@hotmail.com)
 // -----------------------------------------------------------------------------
-// Copyright (C) 2009 The ReMooD Team.
+// Copyright (C) 2009-2010 The ReMooD Team.
 // -----------------------------------------------------------------------------
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
@@ -31,7 +31,7 @@
 	ReMooD Map Object Data
 	----------------------------------------------------------------------------
 	Specification Document Copyright (C) 2009 GhostlyDeath.
-	Specification Document Copyright (C) 2009 The ReMooD Team.
+	Specification Document Copyright (C) 2009-2010 The ReMooD Team.
 	----------------------------------------------------------------------------
 	This format is a textual data format (shown in plain text or unicode). It is
 	for the containment of map things to be represented as text instead of C
@@ -1373,7 +1373,7 @@ int main(int argc, char** argv)
 	
 	printf("info.c + info.h to ReMooD Map Object Data\n");
 	printf("Copyright (C) 2009 GhostlyDeath.\n");
-	printf("Copyright (C) 2009 The ReMooD Team.\n");
+	printf("Copyright (C) 2009-2010 The ReMooD Team.\n");
 	printf("Available under the GNU GPL 2 (or later)!\n");
 	
 	OutRMOD = fopen("rmod_mti.lmp", "wt");
@@ -1389,13 +1389,13 @@ int main(int argc, char** argv)
 	fprintf(OutRMOD, "// ##    ##   ##     ##         ## ##    ## ##    ## ##    ##\r\n");
 	fprintf(OutRMOD, "// ##     ##  ##     ##         ## ##    ## ##    ## ##   ##\r\n");
 	fprintf(OutRMOD, "// ##      ## ###### ##         ##  ######   ######  ######\r\n");
-	fprintf(OutRMOD, "//                      http://remood.sourceforge.net/\r\n");
+	fprintf(OutRMOD, "//                      http://remood.org/\r\n");
 	fprintf(OutRMOD, "// -----------------------------------------------------------------------------\r\n");
 	fprintf(OutRMOD, "// Project Leader:    GhostlyDeath           (ghostlydeath@gmail.com)\r\n");
 	fprintf(OutRMOD, "// Project Co-Leader: RedZTag                (jostol27@gmail.com)\r\n");
-	fprintf(OutRMOD, "// Members:           Demyx                  (demyx@endgameftw.com)\r\n");
+	fprintf(OutRMOD, "// Members:           TetrisMaster512        (tetrismaster512@hotmail.com)\r\n");
 	fprintf(OutRMOD, "// -----------------------------------------------------------------------------\r\n");
-	fprintf(OutRMOD, "// Copyright (C) 2009 The ReMooD Team.\r\n");
+	fprintf(OutRMOD, "// Copyright (C) 2009-2010 The ReMooD Team.\r\n");
 	fprintf(OutRMOD, "// -----------------------------------------------------------------------------\r\n");
 	fprintf(OutRMOD, "// ReMooD Map Object Data (Converted: %u using version %s %s)\r\n", time(NULL), __TIME__, __DATE__);
 	fprintf(OutRMOD, "\r\n");

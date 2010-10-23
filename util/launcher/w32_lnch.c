@@ -7,14 +7,13 @@
 // ##    ##   ##     ##         ## ##    ## ##    ## ##    ##
 // ##     ##  ##     ##         ## ##    ## ##    ## ##   ##
 // ##      ## ###### ##         ##  ######   ######  ######
-//                      http://remood.sourceforge.net/
+//                      http://remood.org/
 // -----------------------------------------------------------------------------
 // Project Leader:    GhostlyDeath           (ghostlydeath@gmail.com)
 // Project Co-Leader: RedZTag                (jostol27@gmail.com)
-// Members:           Demyx                  (demyx@endgameftw.com)
-//                    Dragan                 (poliee13@hotmail.com)
+// Members:           TetrisMaster512        (tetrismaster512@hotmail.com)
 // -----------------------------------------------------------------------------
-// Copyright (C) 2008-2009 The ReMooD Team..
+// Copyright (C) 2008-2010 The ReMooD Team..
 // -----------------------------------------------------------------------------
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
@@ -59,7 +58,7 @@
 #endif
 
 // Autoupdate is at:
-//  - http://remood.sourceforge.net/remoodup.txt
+//  - http://remood.org/remoodup.txt
 //  - http://remood.stealthii.net/remoodup.txt
 //  - http://midnightcentral.game-host.org/remoodup.txt
 // Freedoom is at:
@@ -76,7 +75,7 @@
 #define REMOOD_VERSIONSTRING "0.8b"
 #define REMOOD_VERSIONCODESTRING "French Onion Soup"
 #define REMOOD_FULLVERSIONSTRING ""REMOOD_VERSIONSTRING" \""REMOOD_VERSIONCODESTRING"\""
-#define REMOOD_URL "http://remood.sourceforge.net"
+#define REMOOD_URL "http://remood.org"
 #define REMOOD_PROPERNAME "ReMooD 0.8b"
 
 #define WIZPADDING 5

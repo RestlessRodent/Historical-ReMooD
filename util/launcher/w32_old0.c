@@ -7,13 +7,13 @@
 // ##    ##   ##     ##         ## ##    ## ##    ## ##    ##
 // ##     ##  ##     ##         ## ##    ## ##    ## ##   ##
 // ##      ## ###### ##         ##  ######   ######  ######
-//                      http://remood.sourceforge.net/
+//                      http://remood.org/
 // -----------------------------------------------------------------------------
 // Project Leader:    GhostlyDeath           (ghostlydeath@gmail.com)
 // Project Co-Leader: RedZTag                (jostol27@gmail.com)
-// Members:           Demyx                  (demyx@endgameftw.com)
+// Members:           TetrisMaster512        (tetrismaster512@hotmail.com)
 // -----------------------------------------------------------------------------
-// Copyright (C) 2008-2009 The ReMooD Team..
+// Copyright (C) 2008-2010 The ReMooD Team..
 // -----------------------------------------------------------------------------
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
@@ -184,11 +184,11 @@ LRESULT CALLBACK LauncherProc(HWND hWnd, UINT Msg, WPARAM wParam, LPARAM lParam)
 			{
 				/* Go to the home page */
 				case CE_WEBSITE:
-					if (!ShellExecute(NULL, TEXT("open"), TEXT("http://remood.sourceforge.net/"), NULL, NULL, SW_SHOWNORMAL))
+					if (!ShellExecute(NULL, TEXT("open"), TEXT("http://remood.org/"), NULL, NULL, SW_SHOWNORMAL))
 					{
 						LastError = GetLastError();
 						usnprintf(ErrorString, sizeof(ErrorString) / sizeof(TCHAR),
-							TEXT("Attempt to launch web browser to http://remood.sourceforge.net/ failed with error %i!"), i, LastError);
+							TEXT("Attempt to launch web browser to http://remood.org/ failed with error %i!"), i, LastError);
 						MessageBox(hWnd, ErrorString, TEXT("Error"), MB_OK | MB_ICONWARNING);
 					}
 					break;
