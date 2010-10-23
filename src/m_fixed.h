@@ -119,6 +119,58 @@ static fixed_t ATTRIB_FORCEINLINE ATTRIB_UNUSED FixedMul(fixed_t a, fixed_t b)
 	}
 }
 
+/* FixedPtInv() -- Inverse of fixed point */
+static fixed_t ATTRIB_FORCEINLINE ATTRIB_UNUSED FixedInv(const fixed_t a)
+{
+	// Copyright (C) 2010 GhostlyDeath (ghostlydeath@gmail.com / ghostlydeath@remood.org)
+	register fixed_t A, SDiv, Res;
+	
+	/* Short circuit */
+	// These comparisons may be cheaper!
+	if (a == _FIXED_ONE)
+		return _FIXED_ONE;
+	
+	/* Long math */
+	else
+	{
+		// Set A from a
+		A = a;
+		if (A & _FIXED_SIGN)
+			A = -A;
+		
+		// Set division a bit smaller
+		SDiv = A >> 2;
+		
+		// If division is big enough and not zero
+		if (SDiv)
+			Res = ((Int32)1 << ((_FIXED_FRACBITS << (Int32)1) - 2)) / SDiv;
+		
+		// A is a small number
+		else if (A == 3)
+			Res = 0x55550806;
+		
+		// A is super small or zero
+		else
+			Res = 0x7FFFFFFF;
+		
+		// If a was originally negative, return negative result
+		if (a & _FIXED_SIGN)
+			return -Res;
+		
+		// Otherwise it's positive
+		else
+			return Res;
+	}
+}
+
+/* FixedDiv() -- Divide two fixed numbers */
+static fixed_t ATTRIB_FORCEINLINE ATTRIB_UNUSED FixedDiv(fixed_t a, fixed_t b)
+{
+	// Copyright (C) 2010 GhostlyDeath (ghostlydeath@gmail.com / ghostlydeath@remood.org)
+	return FixedMul(a, FixedInv(b));
+}
+
+#if 0
 fixed_t FixedDiv2(fixed_t a, fixed_t b);
 
 static inline fixed_t FixedDiv(fixed_t a, fixed_t b)
@@ -130,5 +182,6 @@ static inline fixed_t FixedDiv(fixed_t a, fixed_t b)
 
 	return FixedDiv2(a, b);
 }
+#endif
 
 #endif							/* __M_FIXED_H__ */

@@ -204,7 +204,6 @@ void P_MakeDivline(line_t * li, divline_t * dl)
 //
 fixed_t P_InterceptVector(divline_t * v2, divline_t * v1)
 {
-#if 1
 	fixed_t frac;
 	fixed_t num;
 	fixed_t den;
@@ -220,30 +219,6 @@ fixed_t P_InterceptVector(divline_t * v2, divline_t * v1)
 	frac = FixedDiv(num, den);
 
 	return frac;
-#else							// UNUSED, float debug.
-	float frac, num, den;
-	float v1x, v1y, v1dx, v1dy;
-	float v2x, v2y, v2dx, v2dy;
-
-	v1x = (float)v1->x / FRACUNIT;
-	v1y = (float)v1->y / FRACUNIT;
-	v1dx = (float)v1->dx / FRACUNIT;
-	v1dy = (float)v1->dy / FRACUNIT;
-	v2x = (float)v2->x / FRACUNIT;
-	v2y = (float)v2->y / FRACUNIT;
-	v2dx = (float)v2->dx / FRACUNIT;
-	v2dy = (float)v2->dy / FRACUNIT;
-
-	den = v1dy * v2dx - v1dx * v2dy;
-
-	if (den == 0)
-		return 0;				// parallel
-
-	num = (v1x - v2x) * v1dy + (v2y - v1y) * v1dx;
-	frac = num / den;
-
-	return frac * FRACUNIT;
-#endif
 }
 
 //
