@@ -208,6 +208,18 @@ char ForeignTranslation(unsigned char ch)
 	return ch < 128 ? frenchKeyMap[ch] : ch;
 }
 
+typedef struct
+{
+	int lumpnum;
+	int xpos;
+	int ypos;
+	patch_t *data;
+	boolean draw;
+} fspic_t;
+
+fspic_t *piclist = NULL;
+int maxpicsize = 0;
+
 //======================================================================
 //                          HEADS UP INIT
 //======================================================================
@@ -218,29 +230,56 @@ void Command_Sayto_f(void);
 void Command_Sayteam_f(void);
 void Got_Saycmd(char **p, int playernum);
 
-// Initialise Heads up
-// once at game startup.
-//
-void HU_Init(void)
+/* HU_UnloadWadData() -- Unloads all WAD related data */
+void HU_UnloadWadData(void)
 {
+	int i;
+	
+	/* Unload all graphics */
+	// HUD Font
+	for (i = 0; i < HU_FONTSIZE; i++)
+	{
+		if (hu_font[i])
+			Z_Free(hu_font[i]);
+		hu_font[i] = NULL;
+	}
+	
+	// Crosshairs
+	for (i = 0; i < HU_CROSSHAIRS; i++)
+	{
+		if (crosshair[i])
+			Z_Free(crosshair[i]);
+		crosshair[i] = NULL;
+	}
+	
+	// Script pictures
+	if (piclist)
+	{
+		for (i = 0; i < maxpicsize; i++)
+		{
+			if (piclist[i].data)
+				Z_Free(piclist[i].data);
+			piclist[i].data = NULL;
+			piclist[i].lumpnum = 0;
+		}
+		
+		Z_Free(piclist);
+	}
+	piclist = NULL;
+	maxpicsize = 0;
+}
 
+/* HU_LoadWadData() -- Loads all WAD related data */
+void HU_LoadWadData(void)
+{
 	int i;
 	int j;
 	char buffer[9];
-
+	
+	// Not in dedicated
 	if (dedicated)
 		return;
-
-	COM_AddCommand("say", Command_Say_f);
-	COM_AddCommand("sayto", Command_Sayto_f);
-	COM_AddCommand("sayteam", Command_Sayteam_f);
-
-	// set shift translation table
-	if (language == french)
-		shiftxform = french_shiftxform;
-	else
-		shiftxform = english_shiftxform;
-
+	
 	// cache the heads-up font for entire game execution
 	j = (gamemode == heretic ? 1 : HU_FONTSTART);
 	for (i = 0; i < HU_FONTSIZE; i++)
@@ -260,6 +299,25 @@ void HU_Init(void)
 		sprintf(buffer, "CROSHAI%c", '1' + i);
 		crosshair[i] = (patch_t *) W_CachePatchName(buffer, PU_STATIC);
 	}
+}
+
+// Initialise Heads up
+// once at game startup.
+//
+void HU_Init(void)
+{
+	if (dedicated)
+		return;
+
+	COM_AddCommand("say", Command_Say_f);
+	COM_AddCommand("sayto", Command_Sayto_f);
+	COM_AddCommand("sayteam", Command_Sayteam_f);
+
+	// set shift translation table
+	if (language == french)
+		shiftxform = french_shiftxform;
+	else
+		shiftxform = english_shiftxform;
 }
 
 void HU_Stop(void)
@@ -781,17 +839,6 @@ void HU_ClearTips()
 //======================================================================
 //                           FS HUD Grapics!
 //======================================================================
-typedef struct
-{
-	int lumpnum;
-	int xpos;
-	int ypos;
-	patch_t *data;
-	boolean draw;
-} fspic_t;
-
-fspic_t *piclist = NULL;
-int maxpicsize = 0;
 
 //
 // HU_InitFSPics

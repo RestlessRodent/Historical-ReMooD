@@ -902,461 +902,127 @@ wadinformation_t wadinfos[] =
 #define PATHDELIM '/'
 #endif
 
+/* D_AddPWADs() -- Add PWADs from -file */
+// GhostlyDeath <October 24, 2010> -- Greatly improved
 void D_AddPWADs(void)
 {
-	char* pwadarg = NULL;
-	char* pwadbase = NULL;
-	char* doomwaddir = NULL;
-	char* doomwadpath = NULL;
-	char* waddir = NULL;
-	char** searchorder = NULL;
-	char tpath[256];
-	size_t i = 1, j, k, m;
-	char* x;
-	char* y;
-	int found = 0;
-	int addedwads = 0;
+	char* PWADArg = NULL;
+	char WADPath[256];
 	
-	/* Get basic arguments */
-	doomwaddir = getenv("DOOMWADDIR");
-	doomwadpath = getenv("DOOMWADPATH");
-	
-	if (doomwaddir)
-	{
-		i++;	// always starts with something
-		
-		x = doomwaddir;
-		
-		while (*x && (x > doomwaddir ? (*(x-0) != 0) : true))
+	/* Load every -file */
+	if (M_CheckParm("-file"))
+		while (M_IsNextParm())
 		{
-			if (
-#ifdef _WIN32
-				*x == ';'
-#else
-				*x == ':'
-#endif
-				)
-				i++;
-			x++;
-		}
-	}
-	
-	if (doomwadpath)
-		i++;
-		
-	if (M_CheckParm("-waddir"))
-	{
-		waddir = M_GetNextParm();
-		i++;
-	}
-	
-	/* Get the searching order */
-	searchorder = malloc(sizeof(char*) * i);
-	
-	j = 0;
-	
-	/* Load up the searching stuff */
-	// .
-	searchorder[j] = malloc(2);
-	sprintf(searchorder[j], ".");
-	j++;
-	
-	if (waddir)
-	{
-		searchorder[j] = malloc(strlen(waddir) + 1);
-		sprintf(searchorder[j], waddir);
-		j++;
-	}
-	
-	// DOOMWADPATH
-	if (doomwadpath)
-	{
-		searchorder[j] = malloc(strlen(doomwadpath) + 1);
-		sprintf(searchorder[j], doomwadpath);
-		j++;
-	}
-	
-	// DOOMWADDIR
-	if (doomwaddir)
-	{
-		x = doomwaddir;
-		y = doomwaddir;
-		
-		for (k = j; k < i; k++)
-		{
-			while (
-#ifdef _WIN32
-				*y != ';'
-#else
-				*y != ':'
-#endif
-				&& *y != 0
-				)
-				y++;
+			// Get it
+			PWADArg = M_GetNextParm();
 			
-			searchorder[j] = malloc((y - x) + 1);
-			memset(searchorder[j], 0, (y - x) + 1);
-			strncpy(searchorder[j], x, y - x);
-			
-			y++;
-			x = y;
-			
-			j++;
-		}
-	}
-	
-	// Strip ending /...
-	for (k = 0; k < i; k++)
-		if (searchorder[k][strlen(searchorder[k]) - 1] == '/'
-#ifdef _WIN32
-			|| searchorder[k][strlen(searchorder[k]) - 1] == '\\'
-#endif
-			)
-			searchorder[k][strlen(searchorder[k]) - 1] = 0;
-	
-	/* Now Add the files */
-	M_CheckParm("-file");
-	while (M_IsNextParm())
-	{
-		found = 0;
-		
-		/* Get the argument and the base of the PWAD */
-		pwadarg = M_GetNextParm();
-		
-		x = pwadarg + strlen(pwadarg);
-	
-		while (*(x - 1) && *(x - 1) != '/'
-#ifdef _WIN32
-			&& *(x - 1) != '\\'
-#endif
-			)
-			x--;
-			
-		pwadbase = x;
-		
-		if (devparm)
-			CONS_Printf("D_AddPWADs: Attempting to add \"%s\"\n", pwadarg);
-		
-		// Check to see if the passed path works
-		if (!access(pwadarg, R_OK))
-		{
-			D_AddFile(pwadarg);
-			found = 1;
-		}
-		
-		// Search since it isn't really there
-		if (!found)
-			for (k = 0; k < i; k++)
-			{
-				if (devparm)
-					CONS_Printf("D_AddPWADs: Searching for \"%s%c%s\"\n",
-						searchorder[k], PATHDELIM, pwadbase);
-			
-				memset(tpath, 0, sizeof(tpath));
-				snprintf(tpath, sizeof(tpath), "%s%c%s", searchorder[k], PATHDELIM, pwadbase);
-			
-				// Check to see if it exists...
-				if (!access(tpath, R_OK))
+			// Find it
+			if (PWADArg)
+				if (W_FindWad(PWADArg, NULL, WADPath, 256))
 				{
-					D_AddFile(tpath);
-					found = 1;
-					break;
+					// Add it
+					D_AddFile(WADPath);
+				
+					// Modify Game
+					modifiedgame = true;
 				}
-			}
-		
-		if (found)
-			addedwads++;
-	}
-	
-	/* Was it ever modified? */
-	if (addedwads)
-		modifiedgame = true;
-		
-	/* Free up the search info */
-	for (j = 0; j < i; j++)
-		free(searchorder[j]);
-	free(searchorder);
+		}
 }
 
+/* IdentifyVersion() -- Find an IWAD and remood.wad */
+// GhostlyDeath <October 24, 2010> -- Greatly improved
 void IdentifyVersion(void)
 {
-	char* iwadarg = NULL;
-	char* iwadbase = NULL;
-	char* remoodarg = NULL;
-	char* doomwaddir = NULL;
-	char* doomwadpath = NULL;
-	char* waddir = NULL;
-	char** searchorder = NULL;
-	char tpath[256];
-	size_t i = 1, j, k, m;
-	char* x;
-	char* y;
-	int found = 0;
-	int skipiwad = 0;
+	char WADPath[256];
+	char* IWADArg = NULL;
+	boolean IWADOk = false;
+	char* RMDArg = NULL;
+	boolean RMDOk = false;
+	char* BaseName;
+	int i;
 	
-	/* Get basic arguments */
-	doomwaddir = getenv("DOOMWADDIR");
-	doomwadpath = getenv("DOOMWADPATH");
+	/* Clear for IWAD */
+	memset(WADPath, 0, sizeof(WADPath));
 	
+	/* -iwad argument set? */
 	if (M_CheckParm("-iwad"))
 	{
-		iwadarg = M_GetNextParm();
+		// Get IWAD
+		IWADArg = M_GetNextParm();
 		
-		// Get the base name...
-		x = iwadarg + strlen(iwadarg);
+		// Try finding IWAD
+		if (W_FindWad(IWADArg, NULL, WADPath, 256))
+			// Don't search for a random IWAD
+			IWADOk = true;
+	}
 	
-		while (*(x - 1) && *(x - 1) != '/'
-#ifdef _WIN32
-			&& *(x - 1) != '\\'
-#endif
-			)
-			x--;
-			
-		iwadbase = x;
-		
-		// Check to see if the actual name works
-		if (!access(iwadarg, R_OK))
-		{
-			// If we are allowed, determine what it is based on filename
-			for (k = 0; k < sizeof(wadinfos) / sizeof(wadinformation_t); k++)
-				if (!
-#ifdef _WIN32
-					strcasecmp
-#else
-					strcmp
-#endif
-					(iwadbase, wadinfos[k].filename))
-				{
-					gamemission = wadinfos[k].mission;
-	
-					if (wadinfos[k].check)
-						gamemode = wadinfos[k].check(iwadarg);
-					else
-						gamemode = wadinfos[k].mode;
-						
-					if (devparm)
-						CONS_Printf("IdentifyVersion: \"%s\" identified as mission %i mode %i\n", iwadarg, gamemission, gamemode);
-			
-					D_AddFile(iwadarg);
-					
-					skipiwad = 1;
-					found = 1;
-					break;
-				}
-			
-			// huh!? Assume it's Doom 2 for fun
-			if (!found)
+	/* Search for random IWAD */
+	if (!IWADOk)
+		for (i = 0; i < sizeof(wadinfos) / sizeof(wadinformation_t); i++)
+			if (W_FindWad(wadinfos[i].filename, NULL, WADPath, 256))
 			{
-				CONS_Printf("IdentifyVersion: The IWAD was found, but the game mode could not be determined, assuming Doom 2.\n");
-				gamemission = doom2;
-				gamemode = commercial;
-				D_AddFile(iwadarg);
-				skipiwad = 1;
-				found = 1;
-			}
-		}
-	}
-		
-	if (doomwaddir)
-	{
-		i++;	// always starts with something
-		
-		x = doomwaddir;
-		
-		while (*x && (x > doomwaddir ? (*(x-0) != 0) : true))
-		{
-			if (
-#ifdef _WIN32
-				*x == ';'
-#else
-				*x == ':'
-#endif
-				)
-				i++;
-			x++;
-		}
-	}
-	
-	if (doomwadpath)
-		i++;
-		
-	if (M_CheckParm("-waddir"))
-	{
-		waddir = M_GetNextParm();
-		i++;
-	}
-	
-	/* Get the searching order */
-	searchorder = malloc(sizeof(char*) * i);
-	
-	j = 0;
-	
-	/* Load up the searching stuff */
-	// .
-	searchorder[j] = malloc(2);
-	sprintf(searchorder[j], ".");
-	j++;
-	
-	if (waddir)
-	{
-		searchorder[j] = malloc(strlen(waddir) + 1);
-		sprintf(searchorder[j], waddir);
-		j++;
-	}
-	
-	// DOOMWADPATH
-	if (doomwadpath)
-	{
-		searchorder[j] = malloc(strlen(doomwadpath) + 1);
-		sprintf(searchorder[j], doomwadpath);
-		j++;
-	}
-	
-	// DOOMWADDIR
-	if (doomwaddir)
-	{
-		x = doomwaddir;
-		y = doomwaddir;
-		
-		for (k = j; k < i; k++)
-		{
-			while (
-#ifdef _WIN32
-				*y != ';'
-#else
-				*y != ':'
-#endif
-				&& *y != 0
-				)
-				y++;
-			
-			searchorder[j] = malloc((y - x) + 1);
-			memset(searchorder[j], 0, (y - x) + 1);
-			strncpy(searchorder[j], x, y - x);
-			
-			y++;
-			x = y;
-			
-			j++;
-		}
-	}
-	
-	// Strip ending /...
-	for (k = 0; k < i; k++)
-		if (searchorder[k][strlen(searchorder[k]) - 1] == '/'
-#ifdef _WIN32
-			|| searchorder[k][strlen(searchorder[k]) - 1] == '\\'
-#endif
-			)
-			searchorder[k][strlen(searchorder[k]) - 1] = 0;
-	
-	if (skipiwad)
-		found = 1;
-	else
-		for (k = 0; k < i; k++)
-		{
-			for (m = 0; m < sizeof(wadinfos) / sizeof(wadinformation_t); m++)
-			{
-				// if someone passed -iwad <wad> they MUST want it!
-				if (iwadbase)
-					if (
-#ifdef _WIN32
-						strcasecmp
-#else
-						strcmp
-#endif
-						(iwadbase, wadinfos[m].filename))
-						continue;	// no match so ignore it...
-				
-				// otherwise...
-				if (devparm)
-					CONS_Printf("IdentifyVersion: Searching for \"%s%c%s\"\n",
-						searchorder[k], PATHDELIM, wadinfos[m].filename);
-			
-				memset(tpath, 0, sizeof(tpath));
-				snprintf(tpath, sizeof(tpath), "%s%c%s", searchorder[k], PATHDELIM, wadinfos[m].filename);
-			
-				// Check to see if it exists...
-				if (!access(tpath, R_OK))
-				{
-					gamemission = wadinfos[m].mission;
-				
-					if (wadinfos[m].check)
-						gamemode = wadinfos[m].check(tpath);
-					else
-						gamemode = wadinfos[m].mode;
-						
-					if (devparm)
-						CONS_Printf("IdentifyVersion: \"%s\" identified as mission %i mode %i\n", tpath, gamemission, gamemode);
-					
-					D_AddFile(tpath);
-				
-					found = 1;
-					break;
-				}
+				IWADOk = true;
+				break;	// found it so break out
 			}
 	
-			if (found)
-				break;
-		}
-	
-	// Find remood.wad
-	if (found)
+	/* Load the WAD if we found it */
+	if (strlen(WADPath))
 	{
-		found = 0;
+		// Get the basename of the WAD to determine mission, etc.
+		BaseName = W_BaseName(WADPath);
 		
-		// New -remoodwad
-		if (M_CheckParm("-remoodwad"))
-		{
-			remoodarg = M_GetNextParm();
-			
-			if (remoodarg)
+		// Now load it
+		D_AddFile(WADPath);
+		
+		// Set mission
+		for (i = 0; i < sizeof(wadinfos) / sizeof(wadinformation_t); i++)
+			if (strcasecmp(BaseName, wadinfos[i].filename) == 0)
 			{
-				if (devparm)
-					CONS_Printf("IdentifyVersion: Searching for \"%s\"\n", remoodarg);
-			
-				if (!access(remoodarg, R_OK))
-				{
-					D_AddFile(remoodarg);
-					found = 1;
-				}
-			}
-		}
-		
-		if (!found)
-			for (k = 0; k < i; k++)
-			{
-				if (devparm)
-					CONS_Printf("IdentifyVersion: Searching for \"%s%c%s\"\n",
-						searchorder[k], PATHDELIM, "remood.wad");
-		
-				memset(tpath, 0, sizeof(tpath));
-				snprintf(tpath, sizeof(tpath), "%s%c%s", searchorder[k], PATHDELIM, "remood.wad");
-		
-				// Check to see if it exists...
-				if (!access(tpath, R_OK))
-				{
-					D_AddFile(tpath);
-					found = 1;
-					break;
-				}
+				// Set
+				gamemission = wadinfos[i].mission;
+
+				if (wadinfos[i].check)
+					gamemode = wadinfos[i].check(WADPath);
 				else
-					found = -1;
+					gamemode = wadinfos[i].mode;
+					
+				if (devparm)
+					CONS_Printf("IdentifyVersion: \"%s\" identified as mission %i mode %i\n", BaseName, gamemission, gamemode);
+				
+				// Break
+				break;
 			}
 	}
 	
-	/* Free up the search info */
-	for (j = 0; j < i; j++)
-		free(searchorder[j]);
-	free(searchorder);
-	
-	if (found < 1)
+	/* -remoodwad argument set */
+	if (M_CheckParm("-remoodwad"))
 	{
-		if (found == -1)	// No remood.wad
-			I_Error("ReMooD was unable to find remood.wad. To fix this problem: Place remood.wad where ReMooD is located; pass -file <exact path to remood.wad>; pass -waddir <location of remood.wad>; set the environment variable DOOMWADPATH to a location where remood.wad exist.");
-		else				// No IWAD
-			I_Error("ReMooD was unable to find an IWAD (doom.wad, doom2.wad, etc.). To fix this problem: Place the correct IWADs where ReMooD is located; pass -iwad <exact path to IWAD>; pass -waddir <location of WADs>; set the environment variable DOOMWADPATH to locations where WADs exist.");
+		// Get IWAD
+		RMDArg = M_GetNextParm();
+		
+		// Try finding IWAD
+		if (W_FindWad(RMDArg, NULL, WADPath, 256))
+			// Don't search for remood.wad
+			RMDOk = true;
 	}
+	
+	/* Search for remood.wad */
+	if (!RMDOk)
+		if (W_FindWad("remood.wad", NULL, WADPath, 256))
+			RMDOk = true;
+	
+	/* Load remood.wad */
+	if (strlen(WADPath))
+	{
+		// Just load it
+		D_AddFile(WADPath);
+	}
+	
+	/* Failure messages */
+	if (!IWADOk)
+		I_Error("ReMooD was unable to find an IWAD (doom.wad, doom2.wad, etc.). To fix this problem: Place the correct IWADs where ReMooD is located; pass -iwad <exact path to IWAD>; pass -waddir <location of WADs>; set the environment variable DOOMWADPATH to locations where WADs exist.");
+	else if (!RMDOk)
+		I_Error("ReMooD was unable to find remood.wad. To fix this problem: Place remood.wad where ReMooD is located; pass -file <exact path to remood.wad>; pass -waddir <location of remood.wad>; set the environment variable DOOMWADPATH to a location where remood.wad exist.");
 }
 
 //added:11-01-98:
@@ -1613,6 +1279,9 @@ void D_DoomMain(void)
 
 	if (!M_CheckParm("-nocheckwadversion"))
 		D_CheckWadVersion();
+	
+	// GhostlyDeath <October 24, 2010> -- Load WAD Data
+	W_LoadData();
 
 	//Hurdler: someone wants to keep those lines?
 	//BP: i agree with you why should be registered to play someone wads ?

@@ -209,6 +209,10 @@ typedef struct player_s
 
 	// Sound Info
 	int flushdelay;
+	
+	// GhostlyDeath <October 23, 2010> -- Player inflicted momentum
+	fixed_t MoveMom;
+	fixed_t TargetViewZ;
 
 } player_t;
 

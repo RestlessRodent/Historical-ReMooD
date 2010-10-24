@@ -160,6 +160,11 @@ void*		W_CacheAsConvertableType(WadIndex_t Lump, size_t PU, WadEntryType_t Type,
 void*		W_CacheAsConvertableTypeName(char* Name, size_t PU, WadEntryType_t Type, WadEntryType_t From);
 WadIndex_t	W_GetNumForEntry(WadEntry_t* Entry);
 
+void		W_UnloadData(void);
+void		W_LoadData(void);
+boolean		W_FindWad(const char* Name, const char* MD5, char* OutPath, const size_t OutSize);
+const char*	W_BaseName(const char* Name);
+
 #define W_CachePatchNum(lump,tag) W_CacheLumpNum(lump,tag)
 
 typedef struct

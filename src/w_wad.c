@@ -58,6 +58,247 @@
 #include "md5.h"
 #include "v_video.h"
 
+// WAD DATA
+#include "m_argv.h"
+#include "hu_stuff.h"
+
+/* W_UnloadData() -- Unload all WAD attached data */
+void W_UnloadData(void)
+{
+	HU_UnloadWadData();
+}
+
+/* W_LoadData() -- Load all WAD attached data */
+void W_LoadData(void)
+{
+	HU_LoadWadData();
+}
+
+/* W_BaseName() -- Find basename of file */
+const char* W_BaseName(const char* Name)
+{
+	const char* TempX = NULL;
+	const char* OldTempX = NULL;
+	
+	/* Check */
+	if (!Name)
+		return NULL;
+		
+	/* Get last occurence */
+	// Find last slash
+	TempX = strrchr(Name, '/');
+	
+#if defined(_WIN32)
+	// Find last backslash if we found no slashes
+	if (!TempX)
+		TempX = strrchr(Name, '\\');
+	
+	// Otherwise find the last backslash but revert to last slash if not found
+	else
+	{
+		OldTempX = TempX;
+		TempX = strrchr(OldTempX, '\\');
+		
+		if (!TempX)
+			TempX = OldTempX;
+	}
+#endif
+	
+	// Found nothing at all
+	if (!TempX)
+		TempX = Name;
+	
+	/* Check if we landed on a slash */
+	while (*TempX == '/'
+#if defined(_WIN32)
+			|| *TempX == '\\'
+#endif
+		)
+		TempX++;
+	
+	/* Return pointer */
+	return TempX;
+}
+
+/* W_FindWad() -- Finds a WAD File */
+boolean W_FindWad(const char* Name, const char* MD5, char* OutPath, const size_t OutSize)
+{
+	#define MAXSEARCHPATH 32
+	#define PATHSIZE 512//PATH_MAX
+#ifdef _WIN32
+	#define PATHDELIM '\\'
+#else
+	#define PATHDELIM '/'
+#endif
+	char* WADPath;											// DOOMWADPATH
+	char* WADDir;											// DOOMWADDIR
+	char* DirArg;											// -waddir argument
+	char SearchDirs[MAXSEARCHPATH][PATHSIZE];				// Current searching directories
+	char Buf[PATHSIZE];
+	size_t NumDirs;											// Number of search directories
+	int i, n, j;
+	const char* BaseName;
+	
+	/* Check */
+	if (!Name)
+		return false;
+	
+	/* Clear */
+	BaseName = NULL;
+	WADPath = NULL;
+	WADDir = NULL;
+	memset(SearchDirs, 0, sizeof(SearchDirs));
+	NumDirs = 0;
+	
+	/* Find base name */
+	BaseName = W_BaseName(Name);
+	
+	/* Add Paths */
+	// Nothing
+	strncpy(SearchDirs[NumDirs++], "", PATHSIZE);
+	
+	// Current working dir
+	strncpy(SearchDirs[NumDirs++], "./", PATHSIZE);
+	
+	// bin
+	strncpy(SearchDirs[NumDirs++], "./bin/", PATHSIZE);
+	
+	// -waddir
+	if (M_CheckParm("-waddir"))
+		while (M_IsNextParm())
+		{
+			// Get directory argument
+			DirArg = M_GetNextParm();
+			
+			// Add to Search
+			if (NumDirs < MAXSEARCHPATH)
+			{
+				strncpy(SearchDirs[NumDirs], DirArg, PATHSIZE);
+			
+				// Remove trailing slashes
+				while (strlen(SearchDirs[NumDirs]) &&
+					(SearchDirs[NumDirs][strlen(SearchDirs[NumDirs]) - 1] == '/'
+#if defined(_WIN32)
+					|| SearchDirs[NumDirs][strlen(SearchDirs[NumDirs]) - 1] == '\\'
+#endif
+					))
+					SearchDirs[NumDirs][strlen(SearchDirs[NumDirs]) - 1] = 0;
+				
+				// Add trailing slash
+				SearchDirs[NumDirs][strlen(SearchDirs[NumDirs])] = '/';
+			
+				// Increment
+				NumDirs++;
+			}
+		}
+	
+	// DOOMWADDIR
+	WADDir = getenv("DOOMWADDIR");
+	
+	if (WADDir)
+		if (NumDirs < MAXSEARCHPATH)
+		{
+			// Add to Search
+			strncpy(SearchDirs[NumDirs], WADDir, PATHSIZE);
+			
+			// Remove trailing slashes
+			while (strlen(SearchDirs[NumDirs]) &&
+				(SearchDirs[NumDirs][strlen(SearchDirs[NumDirs]) - 1] == '/'
+#if defined(_WIN32)
+				|| SearchDirs[NumDirs][strlen(SearchDirs[NumDirs]) - 1] == '\\'
+#endif
+				))
+				SearchDirs[NumDirs][strlen(SearchDirs[NumDirs]) - 1] = 0;
+			
+			// Add trailing slash
+			SearchDirs[NumDirs][strlen(SearchDirs[NumDirs])] = '/';
+			
+			// Increment
+			NumDirs++;
+		}
+	
+	// DOOMWADPATH
+	WADPath = getenv("DOOMWADPATH");
+	
+	if (WADPath)
+	{
+		// Get length
+		n = strlen(WADPath);
+		
+		if (n)
+			for (j = 0, i = 0; i < n + 1; i++)
+				if (WADPath[i] == 0 ||
+#ifdef _WIN32
+					WADPath[i] == ';'
+#else
+					WADPath[i] == ':'
+#endif
+					)
+				{
+					// Clip off
+					if (j < PATHSIZE)
+						SearchDirs[NumDirs][j] = 0;
+					j = 0;
+					
+					// Remove trailing slashes
+					while (strlen(SearchDirs[NumDirs]) &&
+						(SearchDirs[NumDirs][strlen(SearchDirs[NumDirs]) - 1] == '/'
+#if defined(_WIN32)
+						|| SearchDirs[NumDirs][strlen(SearchDirs[NumDirs]) - 1] == '\\'
+#endif
+						))
+						SearchDirs[NumDirs][strlen(SearchDirs[NumDirs]) - 1] = 0;
+			
+					// Add trailing slash
+					SearchDirs[NumDirs][strlen(SearchDirs[NumDirs])] = '/';
+					
+					// Increment
+					NumDirs++;
+				}
+				else
+				{
+					if (j < PATHSIZE - 1)
+						SearchDirs[NumDirs][j++] = WADPath[i];
+				}
+	}
+	
+	/* Do actual WAD Searching */
+	for (i = 0; i < NumDirs; i++)
+		for (j = 0; j < 2; j++)
+		{
+			// Skip base
+			if (j && Name == BaseName)
+				continue;
+			
+			// Copy to buffer
+			strncpy(Buf, SearchDirs[i], PATHSIZE);
+			strncat(Buf, (j ? BaseName : Name), PATHSIZE);
+		
+			// Message
+			if (devparm)
+				CONS_Printf("W_FindWad: Searching \"%s\"...\n", Buf);
+		
+			// Found it?
+			if (!access(Buf, R_OK))
+			{
+				// Check MD5
+				if (MD5)
+					;
+			
+				// Copy to buffer
+				if (OutPath && OutSize)
+					strncpy(OutPath, Buf, OutSize);
+			
+				// Success!
+				return true;
+			}
+		}
+	
+	/* Failure */
+	return false;
+#undef PATHDELIM
+}
+
 // New WAD Code by GhostlyDeath
 WadFile_t *WADFiles = NULL;
 

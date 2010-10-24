@@ -102,4 +102,10 @@ int HU_DeleteFSPic(int handle);
 int HU_ModifyFSPic(int handle, int lumpnum, int xpos, int ypos);
 void HU_DrawFSPics();
 void HU_ClearFSPics();
+
+// GhostlyDeath <October 24, 2010> -- Dynamic WAD support
+void HU_UnloadWadData(void);
+void HU_LoadWadData(void);
+
 #endif
+

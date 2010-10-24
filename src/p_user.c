@@ -54,23 +54,27 @@
 
 boolean onground;
 
-//
-// P_Thrust
-// Moves the given origin along a given angle.
-//
+/* P_Thrust() -- Moves the given origin along a given angle. */
 void P_Thrust(player_t * player, angle_t angle, fixed_t move)
 {
+	fixed_t cX, cY;
+	
 	angle >>= ANGLETOFINESHIFT;
 	if (player->mo->subsector->sector->special == 15 && !(player->powers[pw_flight] && !(player->mo->z <= player->mo->floorz)))	// Friction_Low
 	{
-		player->mo->momx += FixedMul(move >> 2, finecosine[angle]);
-		player->mo->momy += FixedMul(move >> 2, finesine[angle]);
+		cX = FixedMul(move >> 2, finecosine[angle]);
+		cY = FixedMul(move >> 2, finesine[angle]);
 	}
 	else
 	{
-		player->mo->momx += FixedMul(move, finecosine[angle]);
-		player->mo->momy += FixedMul(move, finesine[angle]);
+		cX = FixedMul(move, finecosine[angle]);
+		cY = FixedMul(move, finesine[angle]);
 	}
+	
+	/* Change momentum */
+	player->MoveMom += move;
+	player->mo->momx += cX;
+	player->mo->momy += cY;
 }
 
 //
@@ -79,9 +83,75 @@ void P_Thrust(player_t * player, angle_t angle, fixed_t move)
 //
 void P_CalcHeight(player_t * player)
 {
+	fixed_t ViewHeight;
+	fixed_t Diff;
+	fixed_t bob;
+	int angle;
+	subsector_t* SubS;
+	
+	/* Base */
+	ViewHeight = cv_viewheight.value << FRACBITS;
+	
+	// Calculate bobbing
+	player->bob = ((FixedMul(player->mo->momx, player->mo->momx) + FixedMul(player->mo->momy, player->mo->momy)) * NEWTICRATERATIO) >> 2;
+
+	if (player->bob > MAXBOB)
+		player->bob = MAXBOB;
+
+	if (player->mo->flags2 & MF2_FLY && !onground)
+		player->bob = FRACUNIT / 2;
+
+	angle = (FINEANGLES / 20 * localgametic / NEWTICRATERATIO) & FINEMASK;
+	bob = FixedMul(player->bob / 2, finesine[angle]);
+	
+	/* Set target */
+	player->TargetViewZ = player->mo->z + ViewHeight;
+	
+	// Near ledge (stepping partly off ledge)
+	/*SubS = R_PointInSubsector(player->mo->x, player->mo->z);
+	
+	if (player->mo->z <= player->mo->floorz && player->mo->z > SubS->sector->floorheight)
+		player->TargetViewZ -= FOOTCLIPSIZE;*/
+	
+	// Water
+	/*if (player->mo->flags2 & MF2_FEETARECLIPPED
+		&& player->playerstate != PST_DEAD && player->mo->z <= player->mo->floorz)
+	{
+		player->TargetViewZ -= FOOTCLIPSIZE;
+	}*/
+	
+	/* Move viewz to target */
+	// Below
+	if (player->viewz + bob < player->TargetViewZ)
+	{
+		Diff = FixedDiv(abs(player->TargetViewZ - (player->viewz + bob)), 2 << FRACBITS);
+		player->viewz += Diff;
+	}
+	
+	// Above
+	else if (player->viewz + bob > player->TargetViewZ)
+	{
+		Diff = FixedDiv(abs(player->TargetViewZ - (player->viewz + bob)), 2 << FRACBITS);
+		player->viewz -= Diff;
+	}
+	
+	/* Clip viewz */
+	// Player object
+	if (player->viewz > player->mo->z + (player->mo->height + (player->mo->height >> 2)))
+		player->viewz = player->mo->z + (player->mo->height + (player->mo->height >> 2));
+	if (player->viewz < player->mo->z + (player->mo->height - (player->mo->height >> 1)))
+		player->viewz = player->mo->z + (player->mo->height - (player->mo->height >> 1));
+	
+	// Real world
+	if (player->viewz > player->mo->ceilingz - 4 * FRACUNIT)
+		player->viewz = player->mo->ceilingz - 4 * FRACUNIT;
+	if (player->viewz < player->mo->floorz + 4 * FRACUNIT)
+		player->viewz = player->mo->floorz + 4 * FRACUNIT;
+#if 0
 	int angle;
 	fixed_t bob;
 	fixed_t viewheight;
+	fixed_t Diff;
 	mobj_t *mo;
 
 	// Regular movement bobbing
@@ -93,8 +163,8 @@ void P_CalcHeight(player_t * player)
 
 	mo = player->mo;
 
-	player->bob = ((FixedMul(mo->momx, mo->momx)
-					+ FixedMul(mo->momy, mo->momy)) * NEWTICRATERATIO) >> 2;
+	player->bob = ((FixedMul(mo->momx, mo->momx) + FixedMul(mo->momy, mo->momy)) * NEWTICRATERATIO) >> 2;
+	//player->bob = FixedMul(player->MoveMom, player->MoveMom) >> 2;
 
 	if (player->bob > MAXBOB)
 		player->bob = MAXBOB;
@@ -115,7 +185,7 @@ void P_CalcHeight(player_t * player)
 
 	angle = (FINEANGLES / 20 * localgametic / NEWTICRATERATIO) & FINEMASK;
 	bob = FixedMul(player->bob / 2, finesine[angle]);
-
+	
 	// move viewheight
 	viewheight = cv_viewheight.value << FRACBITS;	// default eye view height
 
@@ -159,7 +229,7 @@ void P_CalcHeight(player_t * player)
 		player->viewz = mo->ceilingz - 4 * FRACUNIT;
 	if (player->viewz < mo->floorz + 4 * FRACUNIT)
 		player->viewz = mo->floorz + 4 * FRACUNIT;
-
+#endif
 }
 
 extern int ticruned, ticmiss;
@@ -273,6 +343,10 @@ void P_MovePlayer(player_t * player)
 
 			P_Thrust(player, player->mo->angle - ANG90, movepushside);
 		}
+		
+		// GhostlyDeath <October 23, 2010> -- Slow down
+		if (!cmd->forwardmove && !cmd->sidemove)
+			player->MoveMom >>= 1;
 
 		// mouselook swim when waist underwater
 		player->mo->eflags &= ~MF_SWIMMING;

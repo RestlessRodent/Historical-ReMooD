@@ -224,6 +224,7 @@ void R_AddWallSplat(line_t * wallline,
 	Temp.flags = flags;
 	Temp.offset = Offset;
 	Temp.yoffset = yOffset;
+	Temp.line = wallline;
 	
 	// Get position
 	Temp.v1.x = wallline->v1->x + FixedMul(wallline->dx, wallfrac);
@@ -288,6 +289,7 @@ void R_AddWallSplat(line_t * wallline,
 		
 				// Clone Data
 				*(Rover->next) = Temp;
+				Rover->next->next = NULL;
 				break;
 			}
 		}
