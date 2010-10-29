@@ -30,25 +30,41 @@
 // DESCRIPTION:
 //      Cheat sequence checking.
 
+/***************
+*** INCLUDES ***
+***************/
+
 #include "doomdef.h"
 #include "dstrings.h"
-
 #include "am_map.h"
 #include "m_cheat.h"
 #include "g_game.h"
-
 #include "r_local.h"
 #include "p_local.h"
 #include "p_inter.h"
-
 #include "m_cheat.h"
-
 #include "i_sound.h"			// for I_PlayCD()
 #include "s_sound.h"
 #include "v_video.h"
 #include "st_stuff.h"
 #include "w_wad.h"
 
+#if defined(NEWCHEATS)
+/*****************
+*** STRUCTURES ***
+*****************/
+
+/**************
+*** GLOBALS ***
+**************/
+
+/****************
+*** FUNCTIONS ***
+****************/
+
+
+
+#else
 static boolean HandleCheats(byte key);
 
 // ==========================================================================
@@ -1355,4 +1371,5 @@ static void CheatIDDQDFunc(player_t * player, Cheat_t * cheat)
 	P_DamageMobj(player->mo, NULL, player->mo, 10000);
 	P_SetMessage(player, TXT_CHEATIDDQD, true);
 }
+#endif
 

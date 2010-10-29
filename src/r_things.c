@@ -738,22 +738,6 @@ static void R_ProjectSprite(mobj_t * thing)
 	int heightsec;
 	int light = 0;
 
-	if (DrawSprites == 0)
-	{
-		if (M_CheckParm("-nosprites"))
-		{
-			DrawSprites = 2;
-			return;
-		}
-		else
-			DrawSprites = 1;
-	}
-	else if (DrawSprites == 1)
-	{
-	}
-	else if (DrawSprites == 2)
-		return;
-
 	// transform the origin point
 	tr_x = thing->x - viewx;
 	tr_y = thing->y - viewy;

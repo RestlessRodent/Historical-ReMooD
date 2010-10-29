@@ -29,11 +29,44 @@
 // -----------------------------------------------------------------------------
 // DESCRIPTION: Cheat code checking.
 
-#ifndef __M_CHEAT__
-#define __M_CHEAT__
+#ifndef __M_CHEAT_H__
+#define __M_CHEAT_H__
+
+/***************
+*** INCLUDES ***
+***************/
 
 #include "d_event.h"
 
+#if defined(NEWCHEATS)
+/****************
+*** CONSTANTS ***
+****************/
+
+/*****************
+*** STRUCTURES ***
+*****************/
+
+/* M_Cheat_t -- A cheat */
+typedef struct M_Cheat_s
+{
+	/* Static */
+	char* OldSeq;									// Letters to activate cheat
+	UInt8 Games;									// Doom, Doom 2, Heretic?
+	
+	/* Dynamic */
+	char* Seq;										// Sequence set by dehacked
+} M_Cheat_t;
+
+/**************
+*** GLOBALS ***
+**************/
+
+/*****************
+*** PROTOTYPES ***
+*****************/
+
+#else
 //
 // CHEAT SEQUENCE PACKAGE
 //
@@ -63,5 +96,7 @@ void Command_CheatGimme_f(void);
 // Summoning
 void Command_CheatSummon_f(void);
 void Command_CheatSummonFriend_f(void);
-
 #endif
+
+#endif /* __M_CHEAT_H__ */
+

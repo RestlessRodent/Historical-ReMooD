@@ -409,7 +409,18 @@ typedef enum
 #error MAXSKINCOLOR have changed Change MF_TRANSLATION to take effect of the change
 #endif
 
-// Map Object definition.
+/* KidList_t -- Linked list of kids */
+typedef struct KidList_s
+{
+	/* Link to kid */
+	void* Kid;
+	
+	/* Links */
+	struct KidList_s* Prev;
+	struct KidList_s* Next;
+} KidList_t;
+
+/* mobj_t -- Map Object definition */
 typedef struct mobj_s
 {
 	// List: thinker links.
@@ -521,11 +532,19 @@ typedef struct mobj_s
 	// WARNING : new field are not automaticely added to save game 
 	struct ffloor_s* ChildFloor;
 	
-	/*** EXTENDED MAP OBJECT FLAGS ***/
+	/*** EXTENDED OBJECT DATA ***/
+	// Flags
 	UInt32 XFlagsA;
 	UInt32 XFlagsB;
 	UInt32 XFlagsC;
 	UInt32 XFlagsD;
+	
+	// Owners
+#if 0
+	struct mobj_s* RootOwner;								// Root owner of this object (first mobj in owner chain)
+	struct mobj_s* Owner;									// Owner of this object
+	KidList_t* Kids;										// Kid objects
+#endif
 } mobj_t;
 
 /* Converts natural flags to/from extended flags */

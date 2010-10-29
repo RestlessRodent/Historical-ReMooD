@@ -172,7 +172,7 @@ extern boolean devparm;			// development mode (-devparm)
 // =======================
 
 // if we ever make our alloc stuff...
-#define ZZ_Alloc(x) Z_Malloc(x,PU_STATIC,NULL)
+#define ZZ_Alloc(x) Z_Malloc((x),PU_STATIC,NULL)
 
 // debug me in color (v_video.c)
 void IO_Color(unsigned char color, unsigned char r, unsigned char g, unsigned char b);

@@ -287,7 +287,7 @@ int COM_CheckParm(char *check)
 // breaks the string up into arg tokens.
 static void COM_TokenizeString(char *text)
 {
-	int i;
+	int i, n;
 
 // clear the args from the last string
 	for (i = 0; i < com_argc; i++)
@@ -321,8 +321,9 @@ static void COM_TokenizeString(char *text)
 
 		if (com_argc < MAX_ARGS)
 		{
-			com_argv[com_argc] = ZZ_Alloc(strlen(com_token) + 1);
-			strcpy(com_argv[com_argc], com_token);
+			n = strlen(com_token) + 1;
+			com_argv[com_argc] = ZZ_Alloc(n);
+			strncpy(com_argv[com_argc], com_token, n);
 			com_argc++;
 		}
 	}
