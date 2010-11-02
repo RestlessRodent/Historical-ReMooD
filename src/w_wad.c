@@ -186,7 +186,7 @@ boolean W_FindWad(const char* Name, const char* MD5, char* OutPath, const size_t
 				
 				// Add trailing slash
 				SearchDirs[NumDirs][strlen(SearchDirs[NumDirs])] = '/';
-			
+				
 				// Increment
 				NumDirs++;
 			}
@@ -1111,6 +1111,9 @@ void* W_CacheAsConvertableTypeName(char* Name, size_t PU, WadEntryType_t Type, W
 /* W_CacheAs() -- */
 void *W_CacheLumpNum(WadIndex_t lump, size_t PU)
 {
+#if defined(_DEBUG)
+	char DbgString[128];
+#endif
 	WadEntry_t *Entry = W_GetEntry(lump);
 
 	if (Entry)
@@ -1122,6 +1125,12 @@ void *W_CacheLumpNum(WadIndex_t lump, size_t PU)
 		if (Entry->Cache[WETYPE_RAW] == NULL)
 		{
 			Entry->Cache[WETYPE_RAW] = Z_Malloc(Entry->Size, PU, &(Entry->Cache[WETYPE_RAW]));
+
+#if defined(_DEBUG)
+			snprintf(DbgString, 128, "E=\"%s\";S=%u;P=%u;H=\"%s\"", Entry->Name, Entry->Size, Entry->Position, Entry->Host->FileName);
+			
+			Z_DebugMarkBlock(Entry->Cache[WETYPE_RAW], DbgString);
+#endif
 
 			if (!Entry->Cache[WETYPE_RAW])
 				I_Error("W_CacheLumpNum: Failed to allocate space for lump!\n");
@@ -1156,7 +1165,13 @@ void *W_CacheLumpName(char *name, size_t PU)
 	}
 	else
 		return NULL;
-																																   																   								   				   		   	   	}*/// Dont use this yet...
+}*/// Dont use this yet...
+
+/* W_CachePatchNum() -- Cache's a patch from a raw patch */
+void* W_CachePatchNum(const WadIndex_t Lump, size_t PU)
+{
+	return W_CacheLumpNum(Lump, PU);
+}
 
 /* W_CachePatchName() -- Cache's a patch as a patch_t */
 void *W_CachePatchName(char *name, size_t PU)

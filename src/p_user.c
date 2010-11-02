@@ -105,43 +105,48 @@ void P_CalcHeight(player_t * player)
 	bob = FixedMul(player->bob / 2, finesine[angle]);
 	
 	/* Set target */
-	player->TargetViewZ = player->mo->z + ViewHeight;
-	
-	// Near ledge (stepping partly off ledge)
-	/*SubS = R_PointInSubsector(player->mo->x, player->mo->z);
-	
-	if (player->mo->z <= player->mo->floorz && player->mo->z > SubS->sector->floorheight)
-		player->TargetViewZ -= FOOTCLIPSIZE;*/
-	
-	// Water
-	/*if (player->mo->flags2 & MF2_FEETARECLIPPED
-		&& player->playerstate != PST_DEAD && player->mo->z <= player->mo->floorz)
+	if (player->playerstate == PST_DEAD)
+		player->viewz = player->mo->z + player->viewheight;
+	else
 	{
-		player->TargetViewZ -= FOOTCLIPSIZE;
-	}*/
+		player->TargetViewZ = player->mo->z + ViewHeight;
 	
-	/* Move viewz to target */
-	// Below
-	if (player->viewz + bob < player->TargetViewZ)
-	{
-		Diff = FixedDiv(abs(player->TargetViewZ - (player->viewz + bob)), 2 << FRACBITS);
-		player->viewz += Diff;
-	}
+		// Near ledge (stepping partly off ledge)
+		/*SubS = R_PointInSubsector(player->mo->x, player->mo->z);
 	
-	// Above
-	else if (player->viewz + bob > player->TargetViewZ)
-	{
-		Diff = FixedDiv(abs(player->TargetViewZ - (player->viewz + bob)), 2 << FRACBITS);
-		player->viewz -= Diff;
+		if (player->mo->z <= player->mo->floorz && player->mo->z > SubS->sector->floorheight)
+			player->TargetViewZ -= FOOTCLIPSIZE;*/
+	
+		// Water
+		/*if (player->mo->flags2 & MF2_FEETARECLIPPED
+			&& player->playerstate != PST_DEAD && player->mo->z <= player->mo->floorz)
+		{
+			player->TargetViewZ -= FOOTCLIPSIZE;
+		}*/
+	
+		/* Move viewz to target */
+		// Below
+		if (player->viewz + bob < player->TargetViewZ)
+		{
+			Diff = FixedDiv(abs(player->TargetViewZ - (player->viewz + bob)), 2 << FRACBITS);
+			player->viewz += Diff;
+		}
+	
+		// Above
+		else if (player->viewz + bob > player->TargetViewZ)
+		{
+			Diff = FixedDiv(abs(player->TargetViewZ - (player->viewz + bob)), 2 << FRACBITS);
+			player->viewz -= Diff;
+		}
+	
+		// Clip viewz Player object
+		if (player->viewz > player->mo->z + (player->mo->height + (player->mo->height >> 2)))
+			player->viewz = player->mo->z + (player->mo->height + (player->mo->height >> 2));
+		if (player->viewz < player->mo->z + (player->mo->height - (player->mo->height >> 1)))
+			player->viewz = player->mo->z + (player->mo->height - (player->mo->height >> 1));
 	}
 	
 	/* Clip viewz */
-	// Player object
-	if (player->viewz > player->mo->z + (player->mo->height + (player->mo->height >> 2)))
-		player->viewz = player->mo->z + (player->mo->height + (player->mo->height >> 2));
-	if (player->viewz < player->mo->z + (player->mo->height - (player->mo->height >> 1)))
-		player->viewz = player->mo->z + (player->mo->height - (player->mo->height >> 1));
-	
 	// Real world
 	if (player->viewz > player->mo->ceilingz - 4 * FRACUNIT)
 		player->viewz = player->mo->ceilingz - 4 * FRACUNIT;

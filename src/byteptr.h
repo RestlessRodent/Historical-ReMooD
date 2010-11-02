@@ -183,15 +183,15 @@ void WriteStringN(char** const Ptr, const char* Val, const size_t n);
 #endif
 
 /*** DEPRECATED BYTE SWAPPING ***/
-#define SHORT(x)	((Int16)LITTLESWAP16((Int16)(x)))
-#define LONG(x)		((Int32)LITTLESWAP32((Int32)(x)))
-#define SHORTU(x)	((UInt16)LITTLESWAP16((UInt16)(x)))
-#define LONGU(x)	((UInt32)LITTLESWAP32((UInt32)(x)))
-#define SIZET(x)	((size_t)((sizeof(size_t) == 8 ? (LITTLESWAP64((size_t)(x))) : (LITTLESWAP32((size_t)(x))))))
+#define SHORT(x)	(x)//((Int16)LITTLESWAP16((Int16)(x)))
+#define LONG(x)		(x)//((Int32)LITTLESWAP32((Int32)(x)))
+#define SHORTU(x)	(x)//((UInt16)LITTLESWAP16((UInt16)(x)))
+#define LONGU(x)	(x)//((UInt32)LITTLESWAP32((UInt32)(x)))
+#define SIZET(x)	(x)//((size_t)((sizeof(size_t) == 8 ? (LITTLESWAP64((size_t)(x))) : (LITTLESWAP32((size_t)(x))))))
 
 #if defined(_REMOOD_BIG_ENDIAN)
-	#define SwapSHORT(n)	SWAP16((UInt16)(n))
-	#define SwapLONG(n)		SWAP32((UInt32)(n))
+	#define SwapSHORT(n)	(n)//SWAP16((UInt16)(n))
+	#define SwapLONG(n)		(n)//SWAP32((UInt32)(n))
 #endif
 
 #endif							/* __BYTEPTR_H__ */

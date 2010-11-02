@@ -36,6 +36,7 @@
 #include "doomtype.h"
 #include <stdio.h>
 #include <stdlib.h>
+#include "z_zone.h"
 
 typedef void GlidePatch_t;
 
@@ -165,7 +166,7 @@ void		W_LoadData(void);
 boolean		W_FindWad(const char* Name, const char* MD5, char* OutPath, const size_t OutSize);
 const char*	W_BaseName(const char* Name);
 
-#define W_CachePatchNum(lump,tag) W_CacheLumpNum(lump,tag)
+void*		W_CachePatchNum(const WadIndex_t Lump, size_t PU);
 
 typedef struct
 {

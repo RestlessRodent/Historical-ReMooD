@@ -741,7 +741,7 @@ void R_DrawColumn_8(void)
 	fixed_t fracstep;
 
 	count = dc_yh - dc_yl + 1;
-
+	
 	if (count <= 0)				// Zero length, column does not exceed a pixel.
 		return;
 

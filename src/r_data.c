@@ -1030,7 +1030,7 @@ int R_CreateColormap(char *p1, char *p2, char *p3)
 	extra_colormaps[mapnum].fadeend = fadeend;
 	extra_colormaps[mapnum].fog = fog;
 
-#define ABS2(x) (x) < 0 ? -(x) : (x)
+#define ABS2(x) ((x) < 0 ? -(x) : (x))
 	extra_colormaps[mapnum].colormap = colormap_p = Z_MallocAlign((256 * 34) + 10, PU_LEVEL, 0, 16);	// Aligning on 16 bits, NOT 8, keeps it from crashing! SSNTails 12-13-2002
 
 	for (p = 0; p < 34; p++)

@@ -547,7 +547,7 @@ static void R_DrawVisSprite(vissprite_t * vis, int x1, int x2)
 
 	if (!patch)
 		return;
-
+	
 	dc_colormap = vis->colormap;
 
 	// Support for translated and translucent sprites. SSNTails 11-11-2002
@@ -704,8 +704,6 @@ static void R_SplitSprite(vissprite_t * sprite, mobj_t * thing)
 		sprite = newsprite;
 	}
 }
-
-int DrawSprites = 0;
 
 //
 // R_ProjectSprite
@@ -1031,23 +1029,7 @@ void R_DrawPSprite(pspdef_t * psp)
 	boolean flip;
 	vissprite_t *vis;
 	vissprite_t avis;
-
-	if (DrawSprites == 0)
-	{
-		if (M_CheckParm("-nosprites"))
-		{
-			DrawSprites = 2;
-			return;
-		}
-		else
-			DrawSprites = 1;
-	}
-	else if (DrawSprites == 1)
-	{
-	}
-	else if (DrawSprites == 2)
-		return;
-
+	
 	// decide which patch to use
 #ifdef RANGECHECK
 	if ((unsigned)psp->state->sprite >= numsprites)
