@@ -143,7 +143,96 @@ void VID_BlitLinearScreen(byte * srcptr, byte * destptr, int width,
 
 extern int FontBBaseLump;	// draw text with fontB (big font)
 
-/******************************************************************************/
+/*******************************************************************************
+********************************************************************************
+*******************************************************************************/
+
+// GhostlyDeath <July 8, 2009> -- Add FPS Counter
+extern consvar_t cv_vid_drawfps;
+
+/*************************
+*** BASIC DRAWING CODE ***
+*************************/
+
+/* Normal */
+#define VEX_NOSCALESTART		0x00000001		// Starting point is not scaled
+#define VEX_NOSCALESCREEN		0x00000002		// Do not scale to screen
+#define VEX_HOLLOW				0x00000004		// Do not fill with a solid color (for polygons and such)
+#define VEX_NOFLOATSCALE		0x00000008		// Do not scale using floats
+#define	VEX_FUZZY				0x00000010		// Draw as fuzzy
+#define VEX_NOASPECTADJUST		0x00000020		// Ignore aspect ratio
+#define VEX_HORIZFLIPPED		0x00000040		// Draw as horizontally flipped
+#define VEX_VERTFLIPPED			0x00000080		// Draw as vertically flipped
+#define VEX_NOSCALE160160		0x00000100		// Do not scale on 160x160
+#define VEX_MAPTHENMASK			0x00000200		// Apply color mapping then apply color masking
+#define VEX_SKIPEVEN			0x00000400		// Don't draw even pixels
+
+/* Color mapping */
+#define VEX_COLORMAPWHITEBASE	1
+#define VEX_COLORMAPGRAYBASE	2
+#define VEX_COLORMAPORANGEBASE	3
+#define VEX_COLORMAPGREENBASE	4
+
+#define VEX_COLORMAPMASK		0x000F0000		// Mask of the colormap
+#define VEX_COLORMAPSHIFT		16				// Color shift
+#define VEX_COLORMAPWHITE		(VEX_COLORMAPWHITEBASE<<VEX_COLORMAPSHIFT)
+#define VEX_COLORMAPGRAY		(VEX_COLORMAPGRAYBASE<<VEX_COLORMAPSHIFT)
+#define VEX_COLORMAPORANGE		(VEX_COLORMAPORANGEBASE<<VEX_COLORMAPSHIFT)
+#define VEX_COLORMAPGREEN		(VEX_COLORMAPGREENBASE<<VEX_COLORMAPSHIFT)
+
+/* Color masking (Matches skin colors) */
+#define VEX_COLORMASK			0x00F00000		// Mask of the colors
+#define VEX_COLORSHIFT			20				// Shift
+
+/* Transparency */
+// Base
+#define VEX_BASETRANSMED		1				// Medium Transparency
+#define VEX_BASETRANSHIGH		2				// High transparency
+#define VEX_BASETRANSMORE		3				// More transparency
+#define VEX_BASETRANSFIRE		4				// Fire Effect
+#define	VEX_BASETRANSFX1		5				// Transparency Effect
+#define VEX_BASETRANSFULL		6				// Completely Invisible
+
+// Line
+#define VEX_LINETRANSMASK		0x0F000000
+#define VEX_LINETRANSSHIFT		24
+#define VEX_LINETRANSMED		(VEX_BASETRANSMED<<VEX_LINETRANSSHIFT)
+#define VEX_LINETRANSHIGH		(VEX_BASETRANSHIGH<<VEX_LINETRANSSHIFT)
+#define VEX_LINETRANSMORE		(VEX_BASETRANSMORE<<VEX_LINETRANSSHIFT)
+#define VEX_LINETRANSFIRE		(VEX_BASETRANSFIRE<<VEX_LINETRANSSHIFT)
+#define	VEX_LINETRANSFX1		(VEX_BASETRANSFX1<<VEX_LINETRANSSHIFT)
+#define VEX_LINETRANSFULL		(VEX_BASETRANSFULL<<VEX_LINETRANSSHIFT)
+
+// Fill
+#define VEX_FILLTRANSMASK		0xF0000000
+#define VEX_FILLTRANSSHIFT		28
+#define VEX_FILLTRANSMED		(VEX_BASETRANSMED<<VEX_FILLTRANSSHIFT)
+#define VEX_FILLTRANSHIGH		(VEX_BASETRANSHIGH<<VEX_FILLTRANSSHIFT)
+#define VEX_FILLTRANSMORE		(VEX_BASETRANSMORE<<VEX_FILLTRANSSHIFT)
+#define VEX_FILLTRANSFIRE		(VEX_BASETRANSFIRE<<VEX_FILLTRANSSHIFT)
+#define	VEX_FILLTRANSFX1		(VEX_BASETRANSFX1<<VEX_FILLTRANSSHIFT)
+#define VEX_FILLTRANSFULL		(VEX_BASETRANSFULL<<VEX_FILLTRANSSHIFT)
+
+// Both
+#define VEX_TRANSMASK			0xFF000000
+#define VEX_TRANSMED			(VEX_LINETRANSMED|VEX_FILLTRANSMED)
+#define VEX_TRANSHIGH			(VEX_LINETRANSHIGH|VEX_FILLTRANSHIGH)
+#define VEX_TRANSMORE			(VEX_LINETRANSMORE|VEX_FILLTRANSMORE)
+#define VEX_TRANSFIRE			(VEX_LINETRANSFIRE|VEX_FILLTRANSFIRE)
+#define	VEX_TRANSFX1			(VEX_LINETRANSFX1|VEX_FILLTRANSFX1)
+#define VEX_TRANSFULL			(VEX_LINETRANSFULL|VEX_FILLTRANSFULL)
+
+/* Drawing Functions */
+void V_DrawColorBoxEx(UInt32 Flags, UInt8 LineColor, UInt8 FillColor, Int32 x, Int32 y, Int32 w, Int32 h);
+
+/* Compatability */
+void V_DrawFadeScreen(void);
+void V_DrawFill(int x, int y, int w, int h, int c);
+void V_DrawScreenFill(int x, int y, int w, int h, int c);
+
+/**************
+*** UNICODE ***
+**************/
 
 typedef enum
 {
@@ -154,6 +243,8 @@ typedef enum
 	VFONT_OEM,					// Defined by ReMooD
 	VFONT_USERSPACEA,			// User Defined Font (No port should use this at all, this is for the people!)
 	VFONT_USERSPACEB,			// User Defined Font (No port should use this at all, this is for the people!)
+	VFONT_USERSPACEC,			// User Defined Font (No port should use this at all, this is for the people!)
+	VFONT_USERSPACED,			// User Defined Font (No port should use this at all, this is for the people!)
 	
 	NUMVIDEOFONTS
 } VideoFont_t;
@@ -163,6 +254,9 @@ typedef struct UniChar_s
 	wchar_t Char;
 	struct patch_s* Patch;
 	struct WadEntry_s* Entry;
+	
+	struct UniChar_s* BuildTop;
+	struct UniChar_s* BuildBottom;
 } UniChar_t;
 
 extern UniChar_t** CharacterGroups[NUMVIDEOFONTS];

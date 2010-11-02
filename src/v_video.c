@@ -1304,6 +1304,8 @@ char* FontName[NUMVIDEOFONTS][2] =	/* Nice Name and ReMooD Script Name */
 	{"OEM Font", "oem"},
 	{"User Font Alpha", "usera"},
 	{"User Font Beta", "userb"},
+	{"User Font Gamma", "userc"},
+	{"User Font Delta", "userd"}
 };
 
 char Font[NUMVIDEOFONTS][4][9] =	/* Doom, Doom (Alt), Heretic, Heretic (Alt) */
@@ -1313,14 +1315,20 @@ char Font[NUMVIDEOFONTS][4][9] =	/* Doom, Doom (Alt), Heretic, Heretic (Alt) */
 	{"UFNK", "", "UFNK", ""},			// VFONT_STATUSBARSMALL
 	{"UFNJ", "DIG", "UFNJ", "DIG"},		// VFONT_PRBOOMHUD
 	{"UFNR", "", "UFNR", ""},			// VFONT_OEM
-	{"UFNU", "", "UFNU", ""},			// VFONT_USERSPACEA
-	{"UFNV", "", "UFNV", ""}			// VFONT_USERSPACEB
+	{"UFNW", "", "UFNW", ""},			// VFONT_USERSPACEA
+	{"UFNX", "", "UFNX", ""},			// VFONT_USERSPACEB
+	{"UFNY", "", "UFNY", ""},			// VFONT_USERSPACEC
+	{"UFNZ", "", "UFNZ", ""}			// VFONT_USERSPACED
 };
 
-void V_AddCharacter(VideoFont_t Font, WadEntry_t* Entry, wchar_t Char)
+void V_AddCharacter(VideoFont_t Font, WadEntry_t* Entry, wchar_t Char, wchar_t Top, wchar_t Bottom)
 {
-	int Group = (Char >> 8) & 0xFF;//(int)(Char / 256);
-	int Local = Char & 0x00FF;//Char % 256;
+	int Group = (Char >> 8) & 0xFF;
+	int Local = Char & 0x00FF;
+	int TG = (Top >> 8) & 0xFF;
+	int TL = Top & 0x00FF;
+	int BG = (Bottom >> 8) & 0xFF;
+	int BL = Bottom & 0x00FF;
 	
 	// Check if the pointer list exists for a font
 	if (!CharacterGroups[Font])
@@ -1334,6 +1342,19 @@ void V_AddCharacter(VideoFont_t Font, WadEntry_t* Entry, wchar_t Char)
 	CharacterGroups[Font][Group][Local].Char = Char;
 	CharacterGroups[Font][Group][Local].Entry = Entry;
 	CharacterGroups[Font][Group][Local].Patch = W_CachePatchNum(W_GetNumForEntry(Entry), PU_STATIC);
+	
+	// Top and bottom
+	CharacterGroups[Font][Group][Local].BuildTop = NULL;
+	if (Top)
+		if (CharacterGroups[Font][TG])
+			if (CharacterGroups[Font][TG][TL].Char)
+				CharacterGroups[Font][Group][Local].BuildTop = &CharacterGroups[Font][TG][TL];
+
+	CharacterGroups[Font][Group][Local].BuildBottom = NULL;
+	if (Bottom)
+		if (CharacterGroups[Font][BG])
+			if (CharacterGroups[Font][BG][BL].Char)
+				CharacterGroups[Font][Group][Local].BuildBottom = &CharacterGroups[Font][BG][BL];
 }
 
 void V_MapGraphicalCharacters(void)
@@ -1568,7 +1589,7 @@ void V_MapGraphicalCharacters(void)
 				NewChar >= 0xFFF9 && NewChar <= 0xFFFB)
 				continue;
 			
-			V_AddCharacter(k, &CurWad->Index[j], NewChar);
+			V_AddCharacter(k, &CurWad->Index[j], NewChar, 0, 0);
 			Totals[k]++;
 		}
 	}
@@ -1596,10 +1617,111 @@ void V_MapGraphicalCharacters(void)
 			UInt16 d;	// Dest
 			UInt16 s;	// Source
 			UInt16 l;	// Len
+			
+			UInt16 b_top;	// Top build character
+			UInt16 b_bot;	// Bottom build character
 		} ln_t;
 	
-		ln_t ln[] =		// I love symlinks
+		static const ln_t ln[] =		// I love symlinks
 		{
+			/****** CHARACTER CLONES (SINGLE CHARACTER) ******/
+			/*** CYRILLIC ***/
+			{0x0405, 0x0053, 1},		// S
+			{0x0406, 0x0049, 1},		// I
+			{0x0408, 0x004A, 1},		// J
+			{0x0410, 0x0041, 1},		// A
+			{0x0412, 0x0042, 1},		// B
+			{0x0415, 0x0045, 1},		// E
+			{0x0417, 0x0033, 1},		// 3
+			{0x041A, 0x004B, 1},		// K
+			{0x041C, 0x004D, 1},		// M
+			{0x041D, 0x0048, 1},		// H
+			{0x041E, 0x004F, 1},		// O
+			{0x0420, 0x0050, 1},		// P
+			{0x0421, 0x0043, 1},		// C
+			{0x0422, 0x0054, 1},		// T
+			{0x0423, 0x0059, 1},		// Y
+			{0x0425, 0x0058, 1},		// X
+			/****************/
+			
+			/*** ROMAN NUMERALS ***/
+			{0x2160, 0x0049, 1},		// I
+			{0x2164, 0x0056, 1},		// V
+			{0x2169, 0x0058, 1},		// X
+			{0x216C, 0x004C, 1},		// L
+			{0x216D, 0x0043, 1},		// C
+			{0x216E, 0x0044, 1},		// D
+			{0x216F, 0x004D, 1},		// M
+			/**********************/
+			
+			/*** HALFWIDTH and FULLWIDTH FORMS ***/
+			{0xFF01, 0x0021, 63},		// ! to `
+			/*************************************/
+			
+			/*** LATIN EXTENDED B ***/
+			{0x01C3, 0x0021, 1},		// !
+			/************************/
+			/******************************/
+			
+			/****** CHARACTER CLONES (CHARACTER BUILDING) ******/
+			/*** LATIN-1 SUPPLEMENT ***/
+			
+			{0x00C0, 0x0041, 1, 0x0300},	// A with `
+			{0x00C1, 0x0041, 1, 0x0301},	// A with reverse `
+			{0x00C2, 0x0041, 1, 0x0302},	// A with ^
+			{0x00C3, 0x0041, 1, 0x0303},	// A with ~
+			{0x00C4, 0x0041, 1, 0x0308},	// A with ..
+			{0x00C5, 0x0041, 1, 0x030A},	// A with o
+			
+			{0x00C8, 0x0045, 1, 0x0300},	// E with `
+			{0x00C9, 0x0045, 1, 0x0301},	// E with reverse `
+			{0x00CA, 0x0045, 1, 0x0302},	// E with ^
+			{0x00CB, 0x0045, 1, 0x0308},	// E with ..
+			
+			{0x00CC, 0x0049, 1, 0x0300},	// I with `
+			{0x00CD, 0x0049, 1, 0x0301},	// I with reverse `
+			{0x00CE, 0x0049, 1, 0x0302},	// I with ^
+			{0x00CF, 0x0049, 1, 0x0308},	// I with ..
+			
+			{0x00D2, 0x004F, 1, 0x0300},	// O with `
+			{0x00D3, 0x004F, 1, 0x0301},	// O with reverse `
+			{0x00D4, 0x004F, 1, 0x0302},	// O with ^
+			{0x00D5, 0x004F, 1, 0x0303},	// O with ~
+			{0x00D6, 0x004F, 1, 0x0308},	// O with ..
+			
+			{0x00D9, 0x0055, 1, 0x0300},	// U with `
+			{0x00DA, 0x0055, 1, 0x0301},	// U with reverse `
+			{0x00DB, 0x0055, 1, 0x0302},	// U with ^
+			{0x00DC, 0x0055, 1, 0x0308},	// U with ..
+			
+			{0x00D1, 0x004E, 1, 0x0303},	// N with ~
+			
+			{0x00DD, 0x0059, 1, 0x0301},	// Y with reverse `
+			/**************************/
+			
+			/*** LATIN EXTENDED A ***/
+			{0x010C, 0x0043, 1, 0x030C},	// C with v
+			{0x010E, 0x0044, 1, 0x030C},	// D with v
+			{0x011A, 0x0041, 1, 0x030C},	// E with v
+			{0x0147, 0x004E, 1, 0x030C},	// N with v
+			{0x0158, 0x0052, 1, 0x030C},	// R with v
+			{0x0160, 0x0053, 1, 0x030C},	// S with v
+			{0x0164, 0x0054, 1, 0x030C},	// T with v
+			{0x016E, 0x0055, 1, 0x030A},	// U with o
+			{0x017D, 0x005A, 1, 0x030C},	// Z with v
+			/************************/
+			
+			/*** CRYLLIC ***/
+			{0x040C, 0x041A, 1, 0x0301},	// K with reverse `
+			{0x040D, 0x0418, 1, 0x0300},	// N with `
+			{0x040E, 0x0423, 1, 0x0306},	// Y with u thingy
+			{0x0419, 0x0418, 1, 0x0306},	// N with u thingy
+			{0x0403, 0x0413, 1, 0x0301},	// upside down reversed L with right acute
+			/***************/
+			/***************************************************/
+			
+			
+			/****** LOWERCASE TO CAPITAL ******/
 			{0x0061, 0x0041, 25 + 1},	// a-z
 			{0x00E0, 0x00C0, 22 + 1},	// accented vowels
 			{0x00F8, 0x00D8, 6 + 1},	// accented vowels
@@ -1686,6 +1808,10 @@ void V_MapGraphicalCharacters(void)
 			{0x1E95, 0x1E94, 1},
 			/*********************************/
 			
+			/*** ROMAN NUMERALS ***/
+			{0x2170, 0x2160, 16},		// i to m -to- I to M
+			/**********************/
+			
 			/*** JAPANESE HIRAGANA ***/
 			{0x3041, 0x3042, 1},
 			{0x3043, 0x3044, 1},
@@ -1701,6 +1827,7 @@ void V_MapGraphicalCharacters(void)
 			{0x30A7, 0x30A8, 1},
 			{0x30A9, 0x30AA, 1},
 			/*************************/
+			/**********************************/
 			
 			{0xFF41, 0xFF21, 25 + 1},	// Halfwidth and Fullwidth Forms
 		
@@ -1708,7 +1835,7 @@ void V_MapGraphicalCharacters(void)
 		};
 	
 		int x, y, z;
-		int groups, ids, groupd, idd;
+		int groups, ids, groupd, idd, tgs, tds, bgs, bds;
 		
 		for (i = 0; i < NUMVIDEOFONTS; i++)
 		{
@@ -1737,8 +1864,15 @@ void V_MapGraphicalCharacters(void)
 					// Do not replace dest if it already exists
 					if (CharacterGroups[i][groupd] && CharacterGroups[i][groupd][idd].Char)
 						continue;
+						
+					// TODO: Check for lowercase existence and use the building on that also.
 					
-					V_AddCharacter(i, CharacterGroups[i][groups][ids].Entry, ln[j].d + x);
+#define MAKINGLIFESIMPLER(a,b,c) ((a) ? (a) : ((b)[i] ? ((b)[i][groups] ? ((b)[i][groups][ids].c ? (b)[i][groups][ids].c->Char : 0) : 0) : 0))
+					V_AddCharacter(i, CharacterGroups[i][groups][ids].Entry, ln[j].d + x,
+						MAKINGLIFESIMPLER(ln[j].b_top,CharacterGroups,BuildTop),
+						MAKINGLIFESIMPLER(ln[j].b_bot,CharacterGroups,BuildBottom)
+						);
+#undef MAKINGLIFESIMPLER
 					Totals[i]++;
 				}
 		}
@@ -1817,21 +1951,31 @@ int V_DrawCharacterW(VideoFont_t Font, UInt32 Options, wchar_t WChar, int x, int
 		return 4;
 		
 	// Get Group
-	group = (WChar >> 8) & 0xFF;//WChar / 256;
-	id = WChar & 0x00FF;//WChar % 256;
+	group = (WChar >> 8) & 0xFF;
+	id = WChar & 0x00FF;
 	
 	// Find Character
 	if (!CharacterGroups[Font][group])
 	{
 		if (UnknownLink[Font])
+		{
 			D = UnknownLink[Font];
+			
+			group = (0xFFFD >> 8) & 0xFF;
+			id = 0xFFFD & 0x00FF;
+		}
 		else
 			return 0;
 	}
 	else if (!CharacterGroups[Font][group][id].Char)
 	{
 		if (UnknownLink[Font])
+		{
 			D = UnknownLink[Font];
+			
+			group = (0xFFFD >> 8) & 0xFF;
+			id = 0xFFFD & 0x00FF;
+		}
 		else
 			return 0;
 	}
@@ -1855,6 +1999,7 @@ int V_DrawCharacterW(VideoFont_t Font, UInt32 Options, wchar_t WChar, int x, int
 		VDrawOpt |= V_NOSCALESTART;
 		
 	/* Draw */
+	// Draw primary Glyph
 	if (Options & VFONTOPTION_WHITE)
 		V_DrawMappedPatch(x, y, VDrawOpt, D->Patch, whitemap);
 	else if (Options & VFONTOPTION_GRAY)
@@ -1863,6 +2008,13 @@ int V_DrawCharacterW(VideoFont_t Font, UInt32 Options, wchar_t WChar, int x, int
 		V_DrawMappedPatch(x, y, VDrawOpt, D->Patch, orangemap);
 	else
 		V_DrawScaledPatch(x, y, VDrawOpt, D->Patch);
+	
+	// Draw top and/or bottom glyph
+	if (D->BuildTop)
+		V_DrawCharacterW(Font, Options, D->BuildTop->Char, x, y - (D->BuildTop->Patch->height));
+	
+	if (D->BuildBottom)
+		V_DrawCharacterW(Font, Options, D->BuildTop->Char, x, y + (D->Patch->height));
 	
 	/* Return width */
 	return D->Patch->width;
@@ -2048,19 +2200,29 @@ void V_StringDimensionsW(VideoFont_t Font, UInt32 Options, wchar_t* WString, int
 		{
 			group = (*c >> 8) & 0xFF;//*c / 256;
 			id = *c & 0x00FF;//*c % 256;
-
+			
 			// Find Character
 			if (!CharacterGroups[Font][group])
 			{
 				if (UnknownLink[Font])
+				{
 					D = UnknownLink[Font];
+			
+					group = (0xFFFD >> 8) & 0xFF;
+					id = 0xFFFD & 0x00FF;
+				}
 				else
 					goto bad;
 			}
 			else if (!CharacterGroups[Font][group][id].Char)
 			{
 				if (UnknownLink[Font])
+				{
 					D = UnknownLink[Font];
+			
+					group = (0xFFFD >> 8) & 0xFF;
+					id = 0xFFFD & 0x00FF;
+				}
 				else
 					goto bad;
 			}
