@@ -252,6 +252,7 @@ typedef enum
 typedef struct UniChar_s
 {
 	wchar_t Char;
+	char MB[5];
 	struct patch_s* Patch;
 	struct WadEntry_s* Entry;
 	
@@ -274,20 +275,24 @@ extern UniChar_t* UnknownLink[NUMVIDEOFONTS];
 #define VFONTOPTION_NOSCALESTART	0x00040000
 #define VFONTOPTION_NOSCALEPATCH	0x00080000
 #define VFONTOPTION_NOFLOATSCALE	0x00100000
+#define VFONTOPTION_NOSCALELORES	0x00200000	// NOT IMPLEMENTED!
 
 void V_MapGraphicalCharacters(void);
 
+/* Multibyte ASCII */
+int V_DrawCharacterMB(const VideoFont_t Font, const UInt32 Options, const char* const MBChar, const int x, const int y, size_t* const BSkip);
+
 /* ASCII */
-int V_DrawCharacterA(VideoFont_t Font, UInt32 Options, char Char, int x, int y);
-int V_DrawStringA(VideoFont_t Font, UInt32 Options, char* String, int x, int y);
-void V_StringDimensionsA(VideoFont_t Font, UInt32 Options, char* String, int* Width, int* Height);
+int V_DrawCharacterA(const VideoFont_t Font, const UInt32 Options, const char Char, const int x, const int y);
+int V_DrawStringA(const VideoFont_t Font, const UInt32 Options, const char* const String, const int x, const int y);
+void V_StringDimensionsA(const VideoFont_t Font, const UInt32 Options, const char* const String, int* const Width, int* const Height);
 
 /* Unicode */
-int V_DrawCharacterW(VideoFont_t Font, UInt32 Options, wchar_t WChar, int x, int y);
-int V_DrawStringW(VideoFont_t Font, UInt32 Options, wchar_t* WString, int x, int y);
-void V_StringDimensionsW(VideoFont_t Font, UInt32 Options, wchar_t* WString, int* Width, int* Height);
-int V_StringWidthW(VideoFont_t Font, UInt32 Options, wchar_t* WString);
-int V_StringHeightW(VideoFont_t Font, UInt32 Options, wchar_t* WString);
+int V_DrawCharacterW(const VideoFont_t Font, const UInt32 Options, const wchar_t const WChar, const int x, const int y);
+int V_DrawStringW(const VideoFont_t Font, const UInt32 Options, const wchar_t* const WString, const int x, const int y);
+void V_StringDimensionsW(const VideoFont_t Font, const UInt32 Options, const wchar_t* const WString, int* const Width, int* const Height);
+int V_StringWidthW(const VideoFont_t Font, const UInt32 Options, const wchar_t* const WString);
+int V_StringHeightW(const VideoFont_t Font, const UInt32 Options, const wchar_t* const WString);
 
 /* Compatability */
 void V_DrawCharacter(int x, int y, int c);	//added:20-03-98: draw a single character

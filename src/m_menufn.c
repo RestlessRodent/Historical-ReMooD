@@ -1401,6 +1401,7 @@ boolean M_ChangeStringCvar(int choise)
 {
 	consvar_t *cv = (consvar_t *) currentMenu->menuitems[itemOn].itemaction;
 	char buf[255];
+	char c;
 	int len;
 	
 	if (currentMenu->menuitems[itemOn].status & IT_CVARREADONLY)
@@ -1412,8 +1413,18 @@ boolean M_ChangeStringCvar(int choise)
 			len = strlen(cv->string);
 			if (len > 0)
 			{
+				// GhostlyDeath <November 2, 2010> -- Backspace must clear multibyte chars also
 				memcpy(buf, cv->string, len);
-				buf[len - 1] = 0;
+				
+				if (!(buf[len - 1] & 0x80))		// Single
+					buf[len - 1] = 0;
+				else							// Multi
+					do
+					{
+						c = buf[len - 1];
+						buf[len - 1] = 0;
+						len--;
+					} while (len > 1 && (c & 0xC0) != 0xC0);
 				CV_Set(cv, buf);
 			}
 			return true;

@@ -455,7 +455,7 @@ void CON_Print(char *msg)
 		while (*msg)
 		{
 			// skip non-printable characters and white spaces
-			while (*msg && *msg <= ' ')
+			while (*msg && *msg >= 0x00 && *msg <= ' ')
 			{
 
 				// carriage return
@@ -494,7 +494,7 @@ void CON_Print(char *msg)
 				return;
 
 			// printable character
-			for (l = 0; l < con_width && msg[l] > ' '; l++)
+			for (l = 0; l < con_width && !(msg[l] >= 0x00 && msg[l] <= ' '); l++)
 
 			// word wrap
 			if (con_cx + l > con_width)
@@ -502,7 +502,7 @@ void CON_Print(char *msg)
 
 			// a word at a time
 			for (; l > 0; l--)
-				con_line[con_cx++] = *(msg++) | mask;
+				con_line[con_cx++] = *(msg++)/* | mask*/;
 
 		}
 	}
@@ -1175,8 +1175,9 @@ void CON_DrawBackpic(pic_t * pic, int startx, int destwidth)
 void CON_DrawConsole(void)
 {
 	char *p;
-	int i, x, y;
+	int i, x, y, lx;
 	int w = 0, x2 = 0;
+	size_t MBSkip;
 
 	if (con_curlines <= 0)
 		return;
@@ -1216,8 +1217,27 @@ void CON_DrawConsole(void)
 
 		p = &con_buffer[(i % con_totallines) * con_width];
 
+#if 1
+		// GhostlyDeath <November 2, 2010> -- UTF-8 Console
+		for (MBSkip = 1, x = 0, lx = 0; x < con_width; x += MBSkip, lx++)
+		{
+			V_DrawCharacterMB(
+					VFONT_SMALL,
+					VFONTOPTION_NOSCALEPATCH | VFONTOPTION_NOSCALESTART | VFONTOPTION_NOSCALELORES,
+					&p[x],
+					(lx + 1) << 3,	// require logical x
+					y,
+					&MBSkip
+				);
+			
+			// Just in case
+			if (!MBSkip)
+				MBSkip = 1;
+		}
+#else
 		for (x = 0; x < con_width; x++)
 			V_DrawCharacter((x + 1) << 3, y, p[x] | V_NOSCALEPATCH | V_NOSCALESTART | V_NOSCALELOWRES);
+#endif
 	}
 
 	// draw prompt if enough place (not while game startup)

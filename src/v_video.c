@@ -1321,6 +1321,55 @@ char Font[NUMVIDEOFONTS][4][9] =	/* Doom, Doom (Alt), Heretic, Heretic (Alt) */
 	{"UFNZ", "", "UFNZ", ""}			// VFONT_USERSPACED
 };
 
+/* V_WCharToMB() -- Convert wide character to multibyte */
+static void V_WCharToMB(const wchar_t WChar, char* const MB)
+{
+	unsigned char* MBx;
+	
+	/* Check */
+	if (!MB)
+		return;
+		
+	/* Set */
+	MBx = (unsigned char*)MB;
+	
+	/* Convert in steps */
+	// Single byte
+	if (WChar >= 0x0000 && WChar <= 0x007F)
+	{
+		MBx[0] = WChar & 0x7F;
+		MBx[1] = 0;
+	}
+	
+	// Double byte
+	else if (WChar >= 0x0080 && WChar <= 0x07FF)
+	{
+		MBx[0] = 0xC0 | (WChar >> 6);
+		MBx[1] = 0x80 | (WChar & 0x3F);
+		MBx[2] = 0;
+	}
+	
+	// Triple byte
+	else if (WChar >= 0x8000 && WChar <= 0xFFFF)
+	{
+		MBx[0] = 0xE0 | (WChar >> 12);
+		MBx[1] = 0x80 | ((WChar >> 6) & 0x3F);
+		MBx[2] = 0x80 | (WChar & 0x3F);
+		MBx[3] = 0;
+	}
+	
+	// Quad-byte (Requires 32-bit wchar_t)
+	else if (sizeof(wchar_t) >= 4 && (WChar >= 0x010000 && WChar <= 0x10FFFF))
+	{
+		MBx[0] = 0xF0 | (WChar >> 18);
+		MBx[1] = 0x80 | ((WChar >> 12) & 0x3F);
+		MBx[2] = 0x80 | ((WChar >> 6) & 0x3F);
+		MBx[3] = 0x80 | (WChar & 0x3F);
+		MBx[4] = 0;
+	}
+}
+
+/* V_AddCharacter() -- Add single character */
 void V_AddCharacter(VideoFont_t Font, WadEntry_t* Entry, wchar_t Char, wchar_t Top, wchar_t Bottom)
 {
 	int Group = (Char >> 8) & 0xFF;
@@ -1343,6 +1392,9 @@ void V_AddCharacter(VideoFont_t Font, WadEntry_t* Entry, wchar_t Char, wchar_t T
 	CharacterGroups[Font][Group][Local].Entry = Entry;
 	CharacterGroups[Font][Group][Local].Patch = W_CachePatchNum(W_GetNumForEntry(Entry), PU_STATIC);
 	
+	// Multibyte
+	V_WCharToMB(CharacterGroups[Font][Group][Local].Char, CharacterGroups[Font][Group][Local].MB);
+	
 	// Top and bottom
 	CharacterGroups[Font][Group][Local].BuildTop = NULL;
 	if (Top)
@@ -1357,6 +1409,7 @@ void V_AddCharacter(VideoFont_t Font, WadEntry_t* Entry, wchar_t Char, wchar_t T
 				CharacterGroups[Font][Group][Local].BuildBottom = &CharacterGroups[Font][BG][BL];
 }
 
+/* V_MapGraphicalCharacters() -- Scan WADs for characters and add them */
 void V_MapGraphicalCharacters(void)
 {
 	int i, j, k, l, m, n;
@@ -1888,108 +1941,157 @@ void V_MapGraphicalCharacters(void)
 
 // =================================== ASCII ===================================
 
-int V_DrawCharacterA(VideoFont_t Font, UInt32 Options, char Char, int x, int y)
+/* V_MBToWChar() -- Convert multibyte to character */
+// *BSkip: Characters to skip after conversion (optional)
+static wchar_t V_MBToWChar(const char* MBChar, size_t* const BSkip)
 {
-	return V_DrawCharacterW(Font, Options, Char, x, y);
-}
-
-int V_DrawStringA(VideoFont_t Font, UInt32 Options, char* String, int x, int y)
-{
-	wchar_t* WStr = NULL;
-	size_t WSz = 0;
-	int Ret = 0;
+	size_t n;
+	wchar_t Feed = 0;
 	
-	if (!String)
+	/* Check */
+	if (!MBChar)
+		return 0xFFFD;
+	
+	/* Get length of character */
+	n = strlen(MBChar);
+	
+	// Double check
+	if (!n)
 		return 0;
 	
-	if (UNICODE_ASCIIToUnicode(String, strlen(String), &WStr, &WSz))
+	/* Convert in stages (I think) */
+	// Single byte
+	if (n == 1 || !(*MBChar & 0x80))
 	{
-		Ret = V_DrawStringW(Font, Options, WStr, x, y);
-		Z_Free(WStr);
-		return Ret;
+		if (BSkip)
+			*BSkip = 1;
+		return *MBChar & 0x7F;
 	}
-	else
-		return 0;
-}
-
-void V_StringDimensionsA(VideoFont_t Font, UInt32 Options, char* String, int* Width, int* Height)
-{
-	wchar_t* WStr = NULL;
-	size_t WSz = 0;
-	int Ret = 0;
 	
-	if (!String)
-		return;
+	// Double byte
+	else if (n == 2 || (*MBChar & 0xE0) == 0xC0)
+	{
+		Feed = (*MBChar & 0x1F);
+		Feed <<= 6;
+		MBChar++;
 		
-	if (!Width && !Height)
-		return;
-	
-	if (UNICODE_ASCIIToUnicode(String, strlen(String), &WStr, &WSz))
-	{
-		V_StringDimensionsW(Font, Options, WStr, Width, Height);
-		Z_Free(WStr);
-		return;
+		Feed |= (*MBChar & 0x3F);
+		
+		if (BSkip)
+			*BSkip = 2;
+		return Feed;
 	}
+	
+	// Triple byte
+	else if (n == 3 || (*MBChar & 0xF0) == 0xE0)
+	{
+		Feed = (*MBChar & 0x0F);
+		Feed <<= 6;
+		MBChar++;
+		
+		Feed |= (*MBChar & 0x3F);
+		Feed <<= 6;
+		MBChar++;
+		
+		Feed |= (*MBChar & 0x3F);
+		
+		if (BSkip)
+			*BSkip = 3;
+		return Feed;
+	}
+		
+	// Quad byte (requires 32-bit wchar_t)
+	else if (sizeof(wchar_t) >= 4 && (n == 4 || (*MBChar & 0xF8) == 0xF0))
+	{
+		Feed = (*MBChar & 0x07);
+		Feed <<= 6;
+		MBChar++;
+		
+		Feed |= (*MBChar & 0x3F);
+		Feed <<= 6;
+		MBChar++;
+		
+		Feed |= (*MBChar & 0x3F);
+		Feed <<= 6;
+		MBChar++;
+		
+		Feed |= (*MBChar & 0x3F);
+		
+		if (BSkip)
+			*BSkip = 4;
+		return Feed;
+	}
+	
+	// Fail
 	else
-		return;
+	{
+		if (BSkip)
+			*BSkip = 1;
+		return 0;
+	}
 }
 
-// ================================== UNICODE ==================================
-
-int V_DrawCharacterW(VideoFont_t Font, UInt32 Options, wchar_t WChar, int x, int y)
+/* V_BestWChar() -- Find best wchar_t for a character */
+static const UniChar_t* V_BestWChar(const VideoFont_t Font, const wchar_t WChar)
 {
 	int group, id;
-	UniChar_t* D = NULL;
-	int VDrawOpt = 0;
 	
-	/* Check for valid character */
-	if (!CharacterGroups[Font])
-		return 0;
-	
-	// Any kind of space?
-	if (WChar == ' ')
-		return 4;
+	/* Check */
+	if (Font < 0 || Font >= NUMVIDEOFONTS)
+		return NULL;
 		
-	// Get Group
+	/* Check group (if it even exists) */
+	if (!CharacterGroups[Font])
+		return NULL;
+	
+	/* Find character */
+	// Get group and id
 	group = (WChar >> 8) & 0xFF;
 	id = WChar & 0x00FF;
 	
 	// Find Character
 	if (!CharacterGroups[Font][group])
-	{
 		if (UnknownLink[Font])
-		{
-			D = UnknownLink[Font];
-			
-			group = (0xFFFD >> 8) & 0xFF;
-			id = 0xFFFD & 0x00FF;
-		}
+			return &CharacterGroups[Font][0xFF][0xFD];
 		else
-			return 0;
-	}
+			return NULL;
 	else if (!CharacterGroups[Font][group][id].Char)
-	{
 		if (UnknownLink[Font])
-		{
-			D = UnknownLink[Font];
-			
-			group = (0xFFFD >> 8) & 0xFF;
-			id = 0xFFFD & 0x00FF;
-		}
+			return &CharacterGroups[Font][0xFF][0xFD];
 		else
-			return 0;
-	}
+			return NULL;
+	else
+		return &CharacterGroups[Font][group][id];
+}
+
+/* V_DrawCharacterMB() -- Draw multibyte character */
+// Returns: Width of drawn character
+// *BSkip : Characters to skip after drawing (optional)
+int V_DrawCharacterMB(const VideoFont_t Font, const UInt32 Options, const char* const MBChar, const int x, const int y, size_t* const BSkip)
+{
+	const UniChar_t* D = NULL;
+	wchar_t WC = 0;
+	int VDrawOpt = 0;
 	
-	D = &CharacterGroups[Font][group][id];
-	
-	// Bad Patch
-	if (!D->Patch)
+	/* Check */
+	if (!MBChar || !strlen(MBChar) || Font < 0 || Font >= NUMVIDEOFONTS)
 		return 0;
 		
-	/* Check bounds */
-	if (x + D->Patch->width > vid.width)
-		return 0;
+	/* Any kind of space? */
+	if (*MBChar == ' ')
+		return 4;
 	
+	/* Find character */
+	// wchar_t
+	WC = V_MBToWChar(MBChar, BSkip);
+	
+	// Graphic
+	D = V_BestWChar(Font, WC);
+	
+	/* Missing graphic or bad drawing parms? */
+	if (!D || !D->Patch || x + D->Patch->width > vid.width)
+		return 0;
+		
 	/* Options */
 	if (Options & VFONTOPTION_NOSCALEPATCH)
 		VDrawOpt |= V_NOSCALEPATCH;
@@ -1997,7 +2099,7 @@ int V_DrawCharacterW(VideoFont_t Font, UInt32 Options, wchar_t WChar, int x, int
 		VDrawOpt |= V_NOFLOATSCALE;
 	if (Options & VFONTOPTION_NOSCALESTART)
 		VDrawOpt |= V_NOSCALESTART;
-		
+	
 	/* Draw */
 	// Draw primary Glyph
 	if (Options & VFONTOPTION_WHITE)
@@ -2009,71 +2111,87 @@ int V_DrawCharacterW(VideoFont_t Font, UInt32 Options, wchar_t WChar, int x, int
 	else
 		V_DrawScaledPatch(x, y, VDrawOpt, D->Patch);
 	
-	// Draw top and/or bottom glyph
+	// Draw top and/or bottom glyph (and ignore bskip)
 	if (D->BuildTop)
-		V_DrawCharacterW(Font, Options, D->BuildTop->Char, x, y - (D->BuildTop->Patch->height));
+		V_DrawCharacterMB(Font, Options, D->BuildTop->MB, x, y - (D->BuildTop->Patch->height), NULL);
 	
 	if (D->BuildBottom)
-		V_DrawCharacterW(Font, Options, D->BuildTop->Char, x, y + (D->Patch->height));
+		V_DrawCharacterMB(Font, Options, D->BuildTop->MB, x, y + (D->Patch->height), NULL);
 	
-	/* Return width */
+	/* Return graphic width */
 	return D->Patch->width;
 }
 
-int V_DrawStringW(VideoFont_t Font, UInt32 Options, wchar_t* WString, int x, int y)
+/* V_DrawCharacterA() -- Draw ASCII Character */
+int V_DrawCharacterA(const VideoFont_t Font, const UInt32 Options, const char Char, const int x, const int y)
 {
-	wchar_t* c = WString;
-	int Ret = 0;
+	char MB[2];
+	
+	/* Convert to MB */
+	MB[0] = Char;
+	MB[1] = 0;
+	
+	/* Draw and return */
+	return V_DrawCharacterMB(Font, Options, MB, x, y, NULL);
+}
+
+/* V_DrawStringA() -- Draw ASCII String */
+// Really multibyte
+int V_DrawStringA(const VideoFont_t Font, const UInt32 Options, const char* const String, const int x, const int y)
+{
+	const char* c;
+	int X, Y, k;
+	int LineWidth = 0;
+	size_t MBSkip = 0;
 	int LS = 0;
 	int NL = 0;
-	int LineWidth = 0;
-	int realx, realy;
-	int k;
+	int Ret = 0;
 	
-	if (!WString)
+	/* Check */
+	if (!String || !CharacterGroups[Font])
 		return 0;
 	
-	if (!CharacterGroups[Font])
-		return 0;
-		
-	// Real Position
-	realx = x;
-	realy = y;
+	/* Find position */
+	X = x;
+	Y = y;
 	
+	// Centered?
 	if (Options & VFONTOPTION_CENTERED)
 	{
-		V_StringDimensionsW(Font, Options, WString, &LineWidth, NULL);
+		V_StringDimensionsA(Font, Options, String, &LineWidth, NULL);
 		
 		if (Options & VFONTOPTION_NOSCALESTART)
 		{
 			if (Options & VFONTOPTION_NOSCALEPATCH)
-				realx = (vid.width >> 1) - ((LineWidth * vid.dupx) >> 1);
+				X = (vid.width >> 1) - ((LineWidth * vid.dupx) >> 1);
 			else
-				realx = (vid.width >> 1) - (LineWidth >> 1);
+				X = (vid.width >> 1) - (LineWidth >> 1);
 		}
 		else
 		{
 			if (Options & VFONTOPTION_NOSCALEPATCH)
-				realx = (BASEVIDWIDTH >> 1) - ((LineWidth * vid.dupx) >> 1);
+				X = (BASEVIDWIDTH >> 1) - ((LineWidth * vid.dupx) >> 1);
 			else
-				realx = (BASEVIDWIDTH >> 1) - (LineWidth >> 1);
+				X = (BASEVIDWIDTH >> 1) - (LineWidth >> 1);
 		}
 	}
 	
-	while (*c)
+	/* Drawing loop */
+	for (c = String; *c; c += MBSkip)
 	{
 		// Check for space
 		if (*c == ' ')
 		{
-			if (Options & VFONTOPTION_RIGHTTOLEFT)
-				LS -= 4;
-			else
-				LS += 4;
+			LS += ((Options & VFONTOPTION_RIGHTTOLEFT) ? -4 : 4);
+			MBSkip = 1;
 		}
+		
+		// Check for newline
 		else if (*c == '\n')
 		{
 			LS = 0;
 			
+			// Use unknown character height
 			if (UnknownLink[Font] && UnknownLink[Font]->Patch)
 				NL += UnknownLink[Font]->Patch->height;
 			else
@@ -2095,153 +2213,124 @@ int V_DrawStringW(VideoFont_t Font, UInt32 Options, wchar_t* WString, int x, int
 						NL += 12;
 						break;
 				}
+				
+			MBSkip = 1;
 		}
 		
-		// Draw Character
+		// Otherwise draw the character
 		else
 		{
-			k = V_DrawCharacterW(Font, Options, *c, realx + LS, realy + NL);
+			// Send character to screen
+			k = V_DrawCharacterMB(Font, Options, c, X + LS, Y + NL, &MBSkip);
 			
+			// Scale?
 			if (Options & VFONTOPTION_NOSCALESTART && !(Options & VFONTOPTION_NOSCALEPATCH))
 				k *= vid.fdupx;
 			
-			if (Options & VFONTOPTION_RIGHTTOLEFT)
-				LS -= k;
-			else
-				LS += k;
+			// RtL?
+			LS += ((Options & VFONTOPTION_RIGHTTOLEFT) ? -k : k);
+			
+			// MBSkip failure?
+			if (!MBSkip)
+				MBSkip = 1;
 		}
 		
 		Ret += LS;
-		
-		// Next character
-		c++;
 	}
 	
+	// Normalize (in case of RTL)
 	if (Ret < 0)
 		Ret = -Ret;
 	
 	return Ret;
 }
 
-void V_StringDimensionsW(VideoFont_t Font, UInt32 Options, wchar_t* WString, int* Width, int* Height)
+void V_StringDimensionsA(const VideoFont_t Font, const UInt32 Options, const char* const String, int* const Width, int* const Height)
 {
-	wchar_t* c = WString;
+	const char* c = String;
+	wchar_t wc;
+	UniChar_t* D = NULL;
+	int LineHeight = 0;
 	int XWidth = 0;
 	int XHeight = 0;
+	size_t MBSkip;
 	int CLine = 0;
-	int group, id;
-	UniChar_t* D = NULL;
-		
-	if (!Width && !Height)
-		return;
-		
-	if (!CharacterGroups[Font])
+	
+	/* Check */
+	if (!String || (!Width && !Height) || !CharacterGroups[Font])
 	{
-		if (Width) *Width = 0;
-		if (Height) *Width = 0;
+		if (Width)
+			*Width = 0;
+		
+		if (Height)
+			*Height = 0;
 		return;
 	}
 	
-	// Initial height
+	/* Initial height */
 	if (UnknownLink[Font] && UnknownLink[Font]->Patch)
-		XHeight += UnknownLink[Font]->Patch->height;
+		LineHeight = UnknownLink[Font]->Patch->height;
 	else
 		switch (Font)
 		{
 			case VFONT_SMALL:
-				XHeight += 12;
+				LineHeight = 12;
 				break;
 			case VFONT_LARGE:
-				XHeight += 16;
+				LineHeight = 16;
 				break;
 			case VFONT_STATUSBARSMALL:
-				XHeight += 4;
+				LineHeight = 4;
 				break;
 			case VFONT_PRBOOMHUD:
-				XHeight += 8;
+				LineHeight = 8;
 				break;
 			default:
-				XHeight += 12;
+				LineHeight = 12;
 				break;
 		}
 	
-	// From String
-	while (*c)
+	// Now set
+	XHeight = LineHeight;
+	
+	/* Parse String */	
+	for (MBSkip = 1, c = String; *c; c += MBSkip)
 	{
+		// Space
 		if (*c == ' ')
+		{
 			CLine += 4;
+			MBSkip = 1;
+		}
+		
+		// Newline
 		else if (*c == '\n')
 		{
+			XHeight += LineHeight;
 			CLine = 0;
-			
-			if (UnknownLink[Font] && UnknownLink[Font]->Patch)
-				XHeight += UnknownLink[Font]->Patch->height;
-			else
-				switch (Font)
-				{
-					case VFONT_SMALL:
-						XHeight += 12;
-						break;
-					case VFONT_LARGE:
-						XHeight += 16;
-						break;
-					case VFONT_STATUSBARSMALL:
-						XHeight += 4;
-						break;
-					case VFONT_PRBOOMHUD:
-						XHeight += 8;
-						break;
-					default:
-						XHeight += 12;
-						break;
-				}
+			MBSkip = 1;
 		}
+		
+		// Normal character
 		else
 		{
-			group = (*c >> 8) & 0xFF;//*c / 256;
-			id = *c & 0x00FF;//*c % 256;
+			// wchar_t
+			wc = V_MBToWChar(c, &MBSkip);
+	
+			// Graphic
+			D = V_BestWChar(Font, wc);
 			
-			// Find Character
-			if (!CharacterGroups[Font][group])
-			{
-				if (UnknownLink[Font])
-				{
-					D = UnknownLink[Font];
-			
-					group = (0xFFFD >> 8) & 0xFF;
-					id = 0xFFFD & 0x00FF;
-				}
-				else
-					goto bad;
-			}
-			else if (!CharacterGroups[Font][group][id].Char)
-			{
-				if (UnknownLink[Font])
-				{
-					D = UnknownLink[Font];
-			
-					group = (0xFFFD >> 8) & 0xFF;
-					id = 0xFFFD & 0x00FF;
-				}
-				else
-					goto bad;
-			}
-
-			D = &CharacterGroups[Font][group][id];
-
-			// Bad Patch
-			if (!D->Patch)
-				goto bad;
-			
-			CLine += D->Patch->width;
+			// Good graphic
+			if (!(!D || !D->Patch))
+				CLine += D->Patch->width;
 		}
-
-bad:
+		
+		// Just in case
+		if (!MBSkip)
+			MBSkip = 1;
 		
 		if (CLine > XWidth)
 			XWidth = CLine;
-		
-		c++;
 	}
 	
 	if (Width)
@@ -2250,14 +2339,92 @@ bad:
 		*Height = XHeight;
 }
 
-int V_StringWidthW(VideoFont_t Font, UInt32 Options, wchar_t* WString)
+// ================================== UNICODE ==================================
+
+/* V_DrawCharacterW() -- Draw wide character */
+int V_DrawCharacterW(const VideoFont_t Font, const UInt32 Options, const wchar_t WChar, const int x, const int y)
+{
+	char MB[5];
+	
+	/* Convert to MB */
+	V_WCharToMB(WChar, MB);
+	
+	/* Draw and return */
+	return V_DrawCharacterMB(Font, Options, MB, x, y, NULL);
+}
+
+int V_DrawStringW(const VideoFont_t Font, const UInt32 Options, const wchar_t* WString, const int x, const int y)
+{
+#define BUFSIZE 512
+	char MB[5];
+	char Buf[BUFSIZE];
+	wchar_t* w;
+	char* b;
+	size_t i, n;
+	
+	/* Check */
+	if (!WString)
+		return 0;
+	
+	/* Clear */
+	memset(Buf, 0, sizeof(Buf));
+	
+	/* Rove convert */
+	b = Buf;
+	for (n = 0, w = WString; *w; w++)
+	{
+		// Convert this character
+		V_WCharToMB(*w, MB);
+		
+		// Append
+		for (i = 0; MB[i] && n < Buf;)
+			Buf[n++] = MB[i++];
+	}
+		
+	return V_DrawStringA(Font, Options, Buf, x, y);
+#undef BUFSIZE
+}
+
+void V_StringDimensionsW(const VideoFont_t Font, const UInt32 Options, const wchar_t* const WString, int* const Width, int* const Height)
+{
+#define BUFSIZE 512
+	char MB[5];
+	char Buf[BUFSIZE];
+	wchar_t* w;
+	char* b;
+	size_t i, n;
+	
+	/* Check */
+	if (!WString)
+		return 0;
+	
+	/* Clear */
+	memset(Buf, 0, sizeof(Buf));
+	
+	/* Rove convert */
+	b = Buf;
+	for (n = 0, w = WString; *w; w++)
+	{
+		// Convert this character
+		V_WCharToMB(*w, MB);
+		
+		// Append
+		for (i = 0; MB[i] && n < Buf;)
+			Buf[n++] = MB[i++];
+	}
+		
+	return V_StringDimensionsA(Font, Options, Buf, Width, Height);
+#undef BUFSIZE
+}
+
+int V_StringWidthW(const VideoFont_t Font, const UInt32 Options, const wchar_t* const WString)
 {
 	int n = 0;
 	V_StringDimensionsW(Font, Options, WString, &n, NULL);
 	return n;
 }
 
-int V_StringHeightW(VideoFont_t Font, UInt32 Options, wchar_t* WString)
+int V_StringHeightW(const VideoFont_t Font, const UInt32 Options, const wchar_t* const WString)
 {
 	int n = 0;
 	V_StringDimensionsW(Font, Options, WString, NULL, &n);
