@@ -1237,6 +1237,14 @@ void M_SetupNextMenu(menu_t * menudef)
 	int status = 0;
 	int cont = 1;
 	
+	// GhostlyDeath <November 3, 2010> -- Check if menu was passed
+	if (!menudef)
+	{
+		menuactive = false;
+		currentMenu = NULL;
+		return;
+	}
+	
 	if (currentMenu->quitroutine)
 	{
 		if (!currentMenu->quitroutine())

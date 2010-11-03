@@ -28,9 +28,81 @@
 // -----------------------------------------------------------------------------
 // DESCRIPTION: Console
 
+#ifndef __CONSOLE_H__
+#define __CONSOLE_H__
+
+/******************************************************************************/
+
+/***************
+*** INCLUDES ***
+***************/
+
 #include "d_event.h"
 #include "command.h"
 #include "g_input.h"
+
+/*****************
+*** STRUCTURES ***
+*****************/
+
+struct CONEx_Console_s;
+
+/* CONEx_Buffer_t -- Extended Console Buffer */
+typedef struct CONEx_Buffer_s
+{
+	/* Circular Buffer Data */
+	char* Buffer;										// Text in buffer
+	size_t BufferSize;									// Size of buffer
+	size_t BufferStart;									// Start of buffer
+	size_t BufferWrite;									// Write position of buffer
+	
+	/* Line Buffer Data */
+	char** Lines;										// Lines in buffer
+	size_t LineSize;									// Size of lines
+	size_t LineStart;									// Start of lines (first line)
+	size_t LineWrite;									// Write position of buffer
+	
+	/* Owner */
+	struct CONEx_Console_s* Parent;						// Parent console
+} CONEx_Buffer_t;
+
+/* CONEx_Console_t -- Extended console interface */
+typedef struct CONEx_Console_s
+{
+	/* Identification */
+	UInt32 UUID;										// Console ID
+	
+	/* Buffers */
+	CONEx_Buffer_t* Output;								// Text output buffer
+	CONEx_Buffer_t* Command;							// Command buffer
+	
+	/* Siblings */
+	struct CONEx_Console_s* Parent;						// Parent console (attachment)
+	struct CONEx_Console_s** Kids;						// Attached consoles
+	size_t NumKids;										// Attached console count
+} CONEx_Console_t;
+
+/****************
+*** FUNCTIONS ***
+****************/
+
+CONEx_Buffer_t* CONEx_CreateBuffer(const size_t Size);
+void CONEx_DestroyBuffer(CONEx_Buffer_t* const Buffer);
+void CONEx_BufferWrite(CONEx_Buffer_t* const Buffer, const char* const Text);
+
+CONEx_Console_t* CONEx_CreateConsole(void);
+void CONEx_DestroyConsole(CONEx_Console_t* const Console);
+
+void CONEx_AttachConsole(CONEx_Console_t* const ToThis, CONEx_Console_t* const Attacher);
+void CONEx_DetachConsole(CONEx_Console_t* const FromThis, CONEx_Console_t* const Detacher);
+
+boolean CONEx_Responder(event_t* const Event);
+void CONEx_Ticker(void);
+void CONEx_Drawer(void);
+
+/*******************************************************************************
+********************************************************************************
+*******************************************************************************/
 
 // for debugging shopuld be replaced by nothing later.. so debug is inactive
 #define LOG(x) CONS_Printf(x)
@@ -119,4 +191,8 @@ void CONS_Error(char *msg);		// print out error msg, and wait a key
 
 // force console to move out
 void CON_ToggleOff(void);
+
+/******************************************************************************/
+
+#endif /* __CONSOLE_H__ */
 

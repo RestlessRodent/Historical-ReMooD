@@ -382,10 +382,21 @@ void M_DrawTextBox(int x, int y, int width, int lines)
 	int cx, cy;
 	int n;
 	int step, boff;
+	
+	fixed_t x1, y1, x2, y2;
 
 	step = 8;
 	boff = 8;
 
+#if 1
+	// GhostlyDeath <November 3, 2010> -- Banded message (gray band)
+	x1 = 1;
+	y1 = y + 8;
+	x2 = vid.width - 1;
+	y2 = y1 + (lines * 8);
+	
+	V_DrawFadeConsBackEx(VEX_COLORMAPWHITE, x1, y1, x2, y2);
+#else
 	// draw left side
 	cx = x;
 	cy = y;
@@ -425,6 +436,7 @@ void M_DrawTextBox(int x, int y, int width, int lines)
 		cy += step;
 	}
 	V_DrawScaledPatch(cx, cy, 0, W_CachePatchNum(viewborderlump[BRDR_BR], PU_CACHE));
+#endif
 }
 
 //==========================================================================
@@ -471,9 +483,14 @@ void M_StartMessageW(wchar_t *string, void *routine, menumessagetype_t itemtype)
 		Z_Free(message);
 	message = Z_StrDupW(string);
 	//DEBFILE(message);
-
+	
 	M_StartControlPanel();		// can't put menuactiv to true
-	MessageDef.prevMenu = currentMenu;
+	
+	// GhostlyDeath <November 3, 2010> -- Do not infinite loop in message windows
+	// As long as the previous menu wasn't a message
+	if (MessageDef.prevMenu && MessageDef.prevMenu != &MessageDef)
+		MessageDef.prevMenu = currentMenu;
+	
 	*(MessageDef.menuitems[0].WItemTextPtr) = message;
 	MessageDef.menuitems[0].alphaKey = itemtype;
 	switch (itemtype)
@@ -649,16 +666,16 @@ void M_Drawer(void)
 	// center the scaled graphics for the menu,
 	//  set it 0 again before return!!!
 	//scaledofs = vid.centerofs;
-
-	// now that's more readable with a faded background (yeah like Quake...)
-	V_DrawFadeScreen();
-
+	
 	if (currentMenu->drawroutine)
+	{
+		if (currentMenu->drawroutine != M_DrawMessageMenu)
+			V_DrawFadeScreen();
 		currentMenu->drawroutine();	// call current menu Draw routine
+	}
 
 	//added:18-02-98: it should always be 0 for non-menu scaled graphics.
 	scaledofs = 0;
-
 }
 
 //

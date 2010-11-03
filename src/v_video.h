@@ -223,6 +223,7 @@ extern consvar_t cv_vid_drawfps;
 #define VEX_TRANSFULL			(VEX_LINETRANSFULL|VEX_FILLTRANSFULL)
 
 /* Drawing Functions */
+void V_DrawFadeConsBackEx(const UInt32 Flags, const int x1, const int y1, const int x2, const int y2);
 void V_DrawColorBoxEx(UInt32 Flags, UInt8 LineColor, UInt8 FillColor, Int32 x, Int32 y, Int32 w, Int32 h);
 
 /* Compatability */
@@ -268,8 +269,10 @@ extern UniChar_t* UnknownLink[NUMVIDEOFONTS];
 #define VFONTOPTION_WHITE			0x00000001
 #define VFONTOPTION_GRAY			0x00000002
 #define VFONTOPTION_ORANGE			0x00000003
+#define VFONTOPTION_RED				0x00000004
 
 // Ordering
+#define VFONTOPTION_COLORMASK		0x0000000F
 #define VFONTOPTION_RIGHTTOLEFT		0x00010000
 #define VFONTOPTION_CENTERED		0x00020000
 #define VFONTOPTION_NOSCALESTART	0x00040000
@@ -278,6 +281,11 @@ extern UniChar_t* UnknownLink[NUMVIDEOFONTS];
 #define VFONTOPTION_NOSCALELORES	0x00200000	// NOT IMPLEMENTED!
 
 void V_MapGraphicalCharacters(void);
+
+/* Misc */
+void V_ExtWCharToMB(const wchar_t WChar, char* const MB);
+int V_FontHeight(const VideoFont_t Font);
+int V_FontWidth(const VideoFont_t Font);
 
 /* Multibyte ASCII */
 int V_DrawCharacterMB(const VideoFont_t Font, const UInt32 Options, const char* const MBChar, const int x, const int y, size_t* const BSkip);

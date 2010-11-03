@@ -1149,38 +1149,121 @@ void V_DrawFadeScreen(void)
 	}
 }
 
-/* V_DrawFadeConsBack() -- Pixelate and add red tint */
-void V_DrawFadeConsBack(int x1, int y1, int x2, int y2)
+/* V_DrawFadeConsBackMap() -- Pixelate and add red tint */
+void V_DrawFadeConsBackEx(const UInt32 Flags, const int x1, const int y1, const int x2, const int y2)
 {
+	int X1, Y1, X2, Y2;
 	int x, y, i, w;
 	int* buf;
 	int* buf2;
 	int c;
+	byte* Map;
 	
+	/* Flags */
+	// Unscaled
+	if (Flags & VEX_NOSCALESTART)
+	{
+		X1 = x1;
+		Y1 = y1;
+		X2 = x2;
+		Y2 = y2;
+	}
+	
+	// Scaled
+	else
+	{
+		X1 = (float)x1 * (float)vid.fdupx;
+		Y1 = (float)y1 * (float)vid.fdupy;
+		X2 = (float)x2 * (float)vid.fdupx;
+		Y2 = (float)y2 * (float)vid.fdupy;
+	}
+	
+	/* Normalize */
+	// Other way
+	if (X2 < X1)
+	{
+		x = X2;
+		X2 = X1;
+		X1 = x;
+	}
+	
+	if (Y2 < Y1)
+	{
+		x = Y2;
+		Y2 = Y1;
+		Y1 = x;
+	}
+	
+	// Squash off screen
+	if (X1 < 0)
+		X1 = 0;
+	if (X2 >= vid.width)
+		X2 = vid.width;
+	if (Y1 < 0)
+		Y1 = 0;
+	if (Y2 >= vid.height)
+		Y2 = vid.height;
+	
+	// Not visible?
+	if (X1 == X2 || Y1 == Y2 || X1 >= vid.width || X2 < 0 || Y1 >= vid.height || Y2 < 0)
+		return;
+	
+	/* Mapping */
+	switch ((Flags & VEX_COLORMAPMASK) >> VEX_COLORMAPSHIFT)
+	{
+		case VEX_COLORMAPWHITEBASE:
+			Map = whitemap;
+			break;
+		
+		case VEX_COLORMAPGRAYBASE:
+			Map = graymap;
+			break;
+		
+		case VEX_COLORMAPORANGEBASE:
+			Map = orangemap;
+			break;
+			
+		case VEX_COLORMAPGREENBASE:
+		default:
+			Map = greenmap;
+			break;
+	};
+	
+	/* Actual Drawing */
 	// Speed
-	w = (x2 >> 2);
+	w = (X2 >> 2);
 	
 	// Loop
-	for (y = y1; y < y2; y += 8)
+	for (y = Y1; y < Y2; y += 8)
 	{
 		// Set buf
 		buf = (int *)(screens[0] + vid.width * y);
 		
 		// Loop
-		for (x = (x1 >> 2); x < w; x += 2)
+		for (x = (X1 >> 2); x < w - 1; x += 2)
 		{
-			c = greenmap[buf[x] & 0xFF];
+			c = Map[buf[x] & 0xFF];
 			buf[x] = c | (c << 8) | (c << 16) | (c << 24);
 			buf[x + 1] = buf[x];
 		}
 		
+		// Final bits
+		for (x = x << 2; x < w; x++)
+			((UInt8*)buf)[x] = c & 0xFF;
+		
 		// Inner second loop
-		for (i = 1; i < 8 && (y + i) < y2; i++)
+		for (i = 1; i < 8 && (y + i) < Y2; i++)
 		{
 			buf2 = (int *)(screens[0] + vid.width * (y + i));
-			memcpy(buf2, buf, x2 - x1);
+			memcpy(buf2, buf, X2 - X1);
 		}
 	}
+}
+
+/* V_DrawFadeConsBack() -- Pixelate and add red tint */
+void V_DrawFadeConsBack(int x1, int y1, int x2, int y2)
+{
+	V_DrawFadeConsBackEx(VEX_COLORMAPGREEN | VEX_NOSCALESTART | VEX_NOSCALESCREEN, x1, y1, x2, y2);
 }
 
 // V_Init
@@ -1367,6 +1450,12 @@ static void V_WCharToMB(const wchar_t WChar, char* const MB)
 		MBx[3] = 0x80 | (WChar & 0x3F);
 		MBx[4] = 0;
 	}
+}
+
+/* V_ExtWCharToMB() -- Convert wide character to multibyte */
+void V_ExtWCharToMB(const wchar_t WChar, char* const MB)
+{
+	V_WCharToMB(WChar, MB);
 }
 
 /* V_AddCharacter() -- Add single character */
@@ -2064,6 +2153,50 @@ static const UniChar_t* V_BestWChar(const VideoFont_t Font, const wchar_t WChar)
 		return &CharacterGroups[Font][group][id];
 }
 
+/* V_FontHeight() -- Return height of font */
+int V_FontHeight(const VideoFont_t Font)
+{
+	/* Check */
+	if (Font < 0 || Font >= NUMVIDEOFONTS)
+		return 12;
+	
+	/* Return */
+	if (UnknownLink[Font] && UnknownLink[Font]->Patch)
+		return UnknownLink[Font]->Patch->height;
+	else
+		switch (Font)
+		{
+			case VFONT_SMALL:
+				return 12;
+				
+			case VFONT_LARGE:
+				return 16;
+				
+			case VFONT_STATUSBARSMALL:
+				return 4;
+				
+			case VFONT_PRBOOMHUD:
+				return 8;
+				
+			default:
+				return 12;
+		}
+}
+
+/* V_FontWidth() -- Width of font */
+int V_FontWidth(const VideoFont_t Font)
+{
+	/* Check */
+	if (Font < 0 || Font >= NUMVIDEOFONTS)
+		return 4;
+	
+	/* Return */
+	if (UnknownLink[Font] && UnknownLink[Font]->Patch)
+		return UnknownLink[Font]->Patch->width;
+	else
+		return 4;
+}
+
 /* V_DrawCharacterMB() -- Draw multibyte character */
 // Returns: Width of drawn character
 // *BSkip : Characters to skip after drawing (optional)
@@ -2079,7 +2212,11 @@ int V_DrawCharacterMB(const VideoFont_t Font, const UInt32 Options, const char* 
 		
 	/* Any kind of space? */
 	if (*MBChar == ' ')
+	{
+		if (BSkip)
+			*BSkip = 1;
 		return 4;
+	}
 	
 	/* Find character */
 	// wchar_t
@@ -2102,11 +2239,11 @@ int V_DrawCharacterMB(const VideoFont_t Font, const UInt32 Options, const char* 
 	
 	/* Draw */
 	// Draw primary Glyph
-	if (Options & VFONTOPTION_WHITE)
+	if ((Options & VFONTOPTION_COLORMASK) == VFONTOPTION_WHITE)
 		V_DrawMappedPatch(x, y, VDrawOpt, D->Patch, whitemap);
-	else if (Options & VFONTOPTION_GRAY)
+	else if ((Options & VFONTOPTION_COLORMASK) == VFONTOPTION_GRAY)
 		V_DrawMappedPatch(x, y, VDrawOpt, D->Patch, graymap);
-	else if (Options & VFONTOPTION_ORANGE)
+	else if ((Options & VFONTOPTION_COLORMASK) == VFONTOPTION_ORANGE)
 		V_DrawMappedPatch(x, y, VDrawOpt, D->Patch, orangemap);
 	else
 		V_DrawScaledPatch(x, y, VDrawOpt, D->Patch);
@@ -2245,6 +2382,7 @@ int V_DrawStringA(const VideoFont_t Font, const UInt32 Options, const char* cons
 	return Ret;
 }
 
+/* V_StringDimensionsA() -- Return dimensions of string */
 void V_StringDimensionsA(const VideoFont_t Font, const UInt32 Options, const char* const String, int* const Width, int* const Height)
 {
 	const char* c = String;

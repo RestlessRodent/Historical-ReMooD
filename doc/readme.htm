@@ -328,16 +328,21 @@ To&nbsp;&nbsp;: ReMooD 1.0a "Final" [To Be Determined]<BR>
  * Backend/Internationalization: For multinational support use UTF-8 instead of UTF-16/UTF-32 to save space and to support targets that lack wchar_t support. [GhostlyDeath]<BR>
  * Backend/WAD: Greatly improved D_AddPWADs() and IdentifyVersion(), moved searching code to a new function W_FindWad() which handles -waddir, DOOMWADDIR, and DOOMWADPATH in a single function. [GhostlyDeath]<BR>
  * Game/Menu: Editable strings can now handle multibyte backspaces. [GhostlyDeath]<BR>
+ * Game/Menu: Do not get stuck when displaying a message over an existing message. [GhostlyDeath]<BR>
+ * Game/Menu: Add white band behind a menu message. [GhostlyDeath]<BR>
  * Game/Renderer: Changed console and menu fade backscreen code due to Quake pre-GPL violation, it should be must faster also. [GhostlyDeath]<BR>
  * Game/Renderer: Rewrite R_AddWallSplat() and improve it. If a splat is close to another splat of the same graphic replace it, however one might notice decals dancing. [GhostlyDeath]<BR>
  * Game/Renderer: When standing in water, change the delta viewheight. [GhostlyDeath]<BR>
  * Game/Renderer: Change bobbing mechanism. [GhostlyDeath]<BR>
+ * game/Renderer: If the menu is active disable the console and vice versa. [GhostlyDeath]<BR>
  * Game/Video: Instead of wrapping narrow text drawing functions to wide ones, wrap wide ones to narrow and modify narrow ones to support UTF-8 which converts multi-byte characters into wide characters to draw them (this makes it so we can use the original code with no change). [GhostlyDeath]<BR>
  * Game/Video: Remove some repeated text drawing code and const correct the functions. [GhostlyDeath]<BR>
+ * Game/Video: Font colors are not a bit-field, now colors should work correctly. [GhostlyDeath]<BR>
  * Source/Global: Place files in single directories. [GhostlyDeath]<BR>
  * Source/Misc: Newly Enhanced FixedMul(), faster than original FixedMul() on x86-based systems especially when inlined. Speed improvements are basically removing casts to/from Int64s (copying of memory to temporaries, then the 64-bit multiplication operation if available) and inlining removes overhead. [GhostlyDeath]<BR>
  * Source/Misc: Enhanced FixedDiv(), removed the floating point cast and make it entirely an integer operation. It is also inlined. [GhostlyDeath]<BR>
  * Source/Misc: Fixed 'comparisons like ‘X<=Y<=Z’ do not have their mathematical meaning' error due to missing parenthesis around #define used as a function. [GhostlyDeath].<BR>
+ + Game/Video: Add V_DrawFadeConsBackEx() which just uses VEX_ for the fade screen. [GhostlyDeath]<BR>
 </DIV>
  
 <BR> <!-- ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ -->

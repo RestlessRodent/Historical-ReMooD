@@ -185,10 +185,16 @@ void D_ProcessEvents(void)
 		else if (ev->type == ev_keyup && ev->data1 == KEY_SHIFT)
 			shiftdown = false;
 		
+		// GhostlyDeath <November 2, 2010> -- Only respond to console if menu is not active
+		if (!menuactive)
+			// GhostlyDeath <November 2, 2010> -- Extended console
+			if (CONEx_Responder(ev))
+				continue;
+		
 		// Menu input
 		if (M_Responder(ev))
 			continue;			// menu ate the event
-
+		
 		// console input
 		if (CON_Responder(ev))
 			continue;			// ate the event
@@ -412,11 +418,15 @@ void D_Display(void)
 
 	//added:24-01-98:vid size change is now finished if it was on...
 	vid.recalc = 0;
-
-	//FIXME: draw either console or menu, not the two
-	CON_Drawer();
-
-	M_Drawer();					// menu is drawn even on top of everything
+	
+	//CON_Drawer();
+	
+	// GhostlyDeath <November 2, 2010> -- Draw either the console or the menu
+	if (menuactive)
+		M_Drawer();
+	else
+		CONEx_Drawer();
+	
 	NetUpdate();				// send out any new accumulation
 
 //

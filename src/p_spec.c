@@ -2189,7 +2189,7 @@ void P_ProcessSpecialSector(player_t * player, sector_t * sector, boolean instan
 
 				//faB: useful only in single & coop.
 				if (!cv_deathmatch.value && players - player == displayplayer[0])
-					CONS_Printf("\2You found a secret area!\n");
+					CONS_Printf("\x02You found a secret area!\n");
 
 				break;
 
