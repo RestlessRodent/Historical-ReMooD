@@ -695,11 +695,14 @@ static void ST_updateWidgets(void)
 {
 	static int largeammo = 1994;	// means "n/a"
 	int i;
-
-#ifdef PARANOIA
+	
+	// GhostlyDeath <November 3, 2010> -- PARANOIA Removal
 	if (!plyr)
-		I_Error("plyr==NULL\n");
-#endif
+	{
+		CONS_Printf("WARNING - ST_updateWidgets: plyr is NULL (%s:%i).\n", __FILE__, __LINE__);
+		return;
+	}
+	
 	// must redirect the pointer if the ready weapon has changed.
 	//  if (w_ready.data != plyr->readyweapon)
 	//  {

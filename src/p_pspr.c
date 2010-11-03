@@ -74,10 +74,14 @@ void P_SetPsprite(player_t * player, int position, statenum_t stnum)
 			psp->state = NULL;
 			break;
 		}
-#ifdef PARANOIA
+		
+		// GhostlyDeath <November 3, 2010> -- PARANOIA removal
 		if (stnum >= NUMSTATES)
-			I_Error("P_SetPsprite : state %d unknown\n", stnum);
-#endif
+		{
+			CONS_Printf("WARNING - P_SetPsprite: State %i exceeds %i. (%s:%i).\n", stnum, NUMSTATES, __FILE__, __LINE__);
+			return;
+		}
+		
 		state = &states[stnum];
 		psp->state = state;
 		psp->tics = state->tics;	// could be 0
@@ -141,6 +145,10 @@ void P_CalcSwing (player_t*     player)
 void P_BringUpWeapon(player_t * player)
 {
 	statenum_t newstate;
+	
+	/* Check */
+	if (!player)
+		return;
 
 	if (player->pendingweapon == wp_nochange)
 		player->pendingweapon = player->readyweapon;
@@ -150,12 +158,12 @@ void P_BringUpWeapon(player_t * player)
 	else if (player->pendingweapon == wp_gauntlets)
 		S_StartAttackSound(player->mo, sfx_gntact);
 
-#ifdef PARANOIA
+	// GhostlyDeath <November 3, 2010> -- PARANOIA removal
 	if (player->pendingweapon >= NUMWEAPONS)
 	{
-		I_Error("P_BringUpWeapon : pendingweapon %d\n", player->pendingweapon);
+		CONS_Printf("WARNING - P_BringUpWeapon: %i (player->pendingweapon) >= %i (%s:%i).\n", player->pendingweapon, NUMWEAPONS, __FILE__, __LINE__);
+		return;
 	}
-#endif
 
 	newstate = player->weaponinfo[player->pendingweapon].upstate;
 

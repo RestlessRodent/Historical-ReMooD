@@ -836,9 +836,6 @@ void G_DoLoadLevel(boolean resetplayer)
 			displayplayer[i] = consoleplayer[i];
 
 	gameaction = ga_nothing;
-/*#ifdef PARANOIA
-	Z_CheckHeap(-2);
-#endif*/
 
 	if (camera.chase)
 		P_ResetCamera(&players[displayplayer[0]]);

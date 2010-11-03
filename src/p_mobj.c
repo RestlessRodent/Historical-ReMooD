@@ -1460,10 +1460,12 @@ void P_SpawnPlayer(mapthing_t * mthing)
 	if (!playeringame[playernum])
 		return;
 
-#ifdef PARANOIA
+	// GhostlyDeath <November 3, 2010> -- PARANOIA removal
 	if (playernum < 0 && playernum >= MAXPLAYERS)
-		I_Error("P_SpawnPlayer : playernum not in bound (%d)", playernum);
-#endif
+	{
+		CONS_Printf("WARNING - P_SpawnPlayer: playernum not valid %i. (%s:%i).\n", playernum, __FILE__, __LINE__);
+		return;
+	}
 
 	p = &players[playernum];
 
@@ -2062,13 +2064,14 @@ mobj_t *P_SpawnMissile(mobj_t * source, mobj_t * dest, mobjtype_t type)
 	angle_t an;
 	int dist;
 	fixed_t z;
-
-#ifdef PARANOIA
-	if (!source)
-		I_Error("P_SpawnMissile : no source");
-	if (!dest)
-		I_Error("P_SpawnMissile : no dest");
-#endif
+	
+	// GhostlyDeath <November 3, 2010> -- Paranoia removal
+	if (!source || !dest)
+	{
+		CONS_Printf("WARNING - P_SpawnMissile: source %p, dest %p (%s:%i).\n", source, dest, __FILE__, __LINE__);
+		return;
+	}
+	
 	switch (type)
 	{
 		case MT_MNTRFX1:		// Minotaur swing attack missile

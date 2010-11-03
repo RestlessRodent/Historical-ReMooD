@@ -111,11 +111,15 @@ static wallsplat_t *R_AllocWallSplat(void)
 			li->splats = splat->next;	//remove from head
 		else
 		{
-#ifdef PARANOIA
+			// GhostlyDeath <November 3, 2010> -- PARANOIA removal
 			if (!li->splats)
-				I_Error("R_AllocWallSplat : No splat in this line\n");
-#endif
-			for (p_splat = li->splats; p_splat->next; p_splat = p_splat->next)
+			{
+				CONS_Printf("WARNING - R_AllocWallSplat: Line has no splats (%s:%i).\n", __FILE__, __LINE__);
+				return;
+			}
+			
+			// GhostlyDeath <November 3, 2010> -- Remove NULL dereference
+			for (p_splat = li->splats; p_splat && p_splat->next; p_splat = p_splat->next)
 				if (p_splat->next == splat)
 				{
 					p_splat->next = splat->next;
@@ -402,6 +406,7 @@ void R_ClearVisibleFloorSplats(void)
 void R_AddVisibleFloorSplats(subsector_t * subsec)
 {
 	floorsplat_t *pSplat;
+	
 #ifdef PARANOIA
 	if (subsec->splats == NULL)
 		I_Error("R_AddVisibleFloorSplats: call with no splats");

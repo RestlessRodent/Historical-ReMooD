@@ -970,12 +970,7 @@ void P_HitSlideLine(line_t * ld)
 boolean PTR_SlideTraverse(intercept_t * in)
 {
 	line_t *li;
-
-#ifdef PARANOIA
-	if (!in->isaline)
-		I_Error("PTR_SlideTraverse: not a line?");
-#endif
-
+	
 	li = in->d.line;
 
 	if (!(li->flags & ML_TWOSIDED))

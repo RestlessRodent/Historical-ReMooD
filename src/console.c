@@ -483,6 +483,59 @@ void CONEx_Drawer(void)
 	/* Console off? -- draw last few lines as hud text */
 	if (!l_ExConsoleOn)
 	{
+		// Get height of small font
+		h = V_FontHeight(VFONT_SMALL);
+		w = V_FontWidth(VFONT_SMALL);
+		
+		// Draw last lines in buffer
+		if (l_ActiveConsole && l_ActiveConsole->Output && l_ActiveConsole->Output->Lines)
+			//for (i = 1, n = 5; n >= 0; n--, i++)
+			for (i = 1, n = 0; n < 5; n++, i++)
+			{
+				// Get line
+				j = l_ActiveConsole->Output->LineWrite - i;
+				
+				while (j < 0)	// Don't allow below zero
+					j += l_ActiveConsole->Output->LineSize;
+				while (j >= l_ActiveConsole->Output->LineSize)	// Don't allow above size
+					j -= l_ActiveConsole->Output->LineSize;
+				
+				Line = l_ActiveConsole->Output->Lines[j];
+				ColorBits = 0;
+				
+				// No line?
+				if (!Line)
+					break;
+				
+				b = Line;
+				for (MBSkip = 1, m = 0, b = Line; *b && *b != '\n'; b += MBSkip, m++)
+				{
+					// Standard White Value
+					if (*b == 0x02)
+					{
+						ColorBits = VFONTOPTION_WHITE;
+						MBSkip = 1;
+					}
+					
+					// Beep (but don't beep, just blink)
+					else if (*b == 0x03)
+					{
+						ColorBits = ((gametic & 0x08) ? VFONTOPTION_WHITE : 0);
+						MBSkip = 1;
+					}
+					
+					// Draw character
+					else
+						V_DrawCharacterMB(
+								VFONT_SMALL,
+								VFONTOPTION_NOSCALEPATCH | VFONTOPTION_NOSCALESTART | VFONTOPTION_NOSCALELORES,
+								b,
+								4 + (w * m),
+								(-(i - 5)) * h,
+								&MBSkip
+							);
+				}
+			}
 	}
 	
 	/* Console on? -- draw background */

@@ -165,11 +165,13 @@ static void R_DrawWallSplats()
 	fixed_t texturecolumn;
 
 	splat = (wallsplat_t *) linedef->splats;
-
-#ifdef PARANOIA
+	
+	// GhostlyDeath <November 3, 2010> -- PARANOIA removal
 	if (!splat)
-		I_Error("R_DrawWallSplats: splat is NULL");
-#endif
+	{
+		CONS_Printf("WARNING - R_DrawWallSplats: splat is NULL (%s:%i).\n", __FILE__, __LINE__);
+		return;
+	}
 
 	seg = ds_p->curline;
 
