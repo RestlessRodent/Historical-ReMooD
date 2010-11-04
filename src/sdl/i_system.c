@@ -782,7 +782,7 @@ char *I_GetUserName(void)
 
 int I_mkdir(const char *dirname, int unixright)
 {
-#ifdef LINUX
+#if defined(LINUX) || defined(FREEBSD)
 	return mkdir(dirname, unixright);
 #else
 	return mkdir(dirname);
