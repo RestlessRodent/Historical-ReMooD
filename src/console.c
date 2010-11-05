@@ -75,11 +75,17 @@
 *** LOCALS ***
 *************/
 
+/* Root Console */
 CONEx_Console_t* l_RootConsole = NULL;
-CONEx_Console_t* l_ActiveConsole = NULL;
 
+/* Drawing parms */
+CONEx_Console_t* l_ActiveConsole = NULL;
 boolean l_ExConsoleOn = false;
 Int8 l_ExConsoleLines = 0;
+void* l_BackPic = NULL;
+boolean l_BackPicIsPicT = false;
+
+/* Command Control */;
 char l_ExInputBuffer[CON_MAXPROMPTCHARS] = "";
 size_t l_ExInputCursor = 0;
 
@@ -469,8 +475,11 @@ void CONEx_Drawer(void)
 	char* b;
 	char* Line;
 	size_t MBSkip;
-	int n, m, k, i, j;
+	int n, m, k, i, j, z;
 	UInt32 ColorBits;
+	Int8 ConsoleLines;
+	boolean DoPrompt;
+	boolean FadeBack;
 	
 	/* Check */
 	if (!l_RootConsole)
@@ -481,7 +490,7 @@ void CONEx_Drawer(void)
 		l_ActiveConsole = l_RootConsole;
 	
 	/* Console off? -- draw last few lines as hud text */
-	if (!l_ExConsoleOn)
+	if (!l_ExConsoleOn && !con_startup)
 	{
 		// Get height of small font
 		h = V_FontHeight(VFONT_SMALL);
@@ -541,11 +550,48 @@ void CONEx_Drawer(void)
 	/* Console on? -- draw background */
 	else
 	{
+		// Force full lines when starting
+		if (con_startup)
+		{
+			ConsoleLines = (vid.height / V_FontHeight(VFONT_SMALL)) + 1;
+			DoPrompt = false;
+			FadeBack = false;
+		}
+		
+		// Normal operation
+		else
+		{
+			ConsoleLines = l_ExConsoleLines;
+			DoPrompt = true;
+			FadeBack = true;
+		}
+		
 		// Find bottom of console
-		BottomCon = l_ExConsoleLines * V_FontHeight(VFONT_SMALL);
+		BottomCon = ConsoleLines * V_FontHeight(VFONT_SMALL);
 		
 		// Draw background (either fade or image)
-		V_DrawFadeConsBack(0, 0, vid.width, BottomCon);
+		if (FadeBack)
+			V_DrawFadeConsBack(0, 0, vid.width, BottomCon);
+		else
+		{
+			// Cache back pic?
+			if (!l_BackPic)
+			{
+				// Cache
+				l_BackPic = W_CacheLumpName((heretic ? "RMD_CB_D" : "RMD_CB_H"), PU_STATIC);
+				
+				// Determine if it's pic_t or not...
+				l_BackPicIsPicT = true;	// TODO
+			}
+			
+			// Draw back
+			if (l_BackPicIsPicT)
+				V_BlitScalePicExtern(0, 0, 0, l_BackPic);
+			else
+			{
+				// TODO
+			}
+		}
 		
 		// Draw ReMooD version
 		V_StringDimensionsA(VFONT_OEM, VFONTOPTION_NOSCALESTART | VFONTOPTION_NOSCALEPATCH, REMOOD_FULLVERSIONSTRING, &w, &h);
@@ -558,6 +604,14 @@ void CONEx_Drawer(void)
 					vid.width - w - 4,
 					BottomCon - h - 4
 				);
+		
+		// If console startup and we aren't devparming, don't draw text at all
+		if (con_startup && !devparm)
+		{
+			// Just say "LOADING..."
+			V_DrawStringA(VFONT_LARGE, VFONTOPTION_CENTERED, "Loading...", 160, 100);
+			return;
+		}
 			
 		// Get height of small font
 		h = V_FontHeight(VFONT_SMALL);
@@ -565,7 +619,7 @@ void CONEx_Drawer(void)
 		
 		// Draw last lines in buffer
 		if (l_ActiveConsole && l_ActiveConsole->Output && l_ActiveConsole->Output->Lines)
-			for (i = 1, n = l_ExConsoleLines - 4; n >= 0; n--, i++)
+			for (i = 1, n = ConsoleLines - 4; n >= 0; n--, i++)
 			{
 				// Get line
 				j = l_ActiveConsole->Output->LineWrite - i;
@@ -611,6 +665,10 @@ void CONEx_Drawer(void)
 							);
 				}
 			}
+		
+		// Everything after is prompt
+		if (!DoPrompt)
+			return;
 		
 		// Draw current command buffer
 		if (BottomCon - h - 4 > 0)
@@ -669,6 +727,12 @@ void CONS_ConExtended_f(void)
 	/* Startup extended console */
 	l_ExConsoleOn = true;
 }
+
+/***************************
+*** DEPRECATED FUNCTIONS ***
+***************************/
+
+
 
 /*******************************************************************************
 ********************************************************************************
@@ -1126,6 +1190,7 @@ void CONS_Printf(char *fmt, ...)
 {
 	va_list argptr;
 	char txt[512];
+	static boolean AlreadyDrawn;	// Draw once
 
 	va_start(argptr, fmt);
 #if _MSC_VER >= 1400
@@ -1182,8 +1247,17 @@ void CONS_Printf(char *fmt, ...)
 #else*/
 		// here we display the console background and console text
 		// (no hardware accelerated support for these versions)
-		CON_Drawer();
-		I_FinishUpdate();		// page flip or blit buffer
+		
+		// GhostlyDeath <November 4, 2010> -- If we aren't devparming, draw once
+		if (devparm || (!devparm && !AlreadyDrawn))
+		{
+			CONEx_Drawer();
+		
+			//CON_Drawer();
+			I_FinishUpdate();		// page flip or blit buffer
+			
+			AlreadyDrawn = true;
+		}
 //#endif
 	}
 }

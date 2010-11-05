@@ -327,6 +327,7 @@ To&nbsp;&nbsp;: ReMooD 1.0a "Final" [To Be Determined]<BR>
 ===============================================================================<BR>
  * Backend/Internationalization: For multinational support use UTF-8 instead of UTF-16/UTF-32 to save space and to support targets that lack wchar_t support. [GhostlyDeath]<BR>
  * Backend/WAD: Greatly improved D_AddPWADs() and IdentifyVersion(), moved searching code to a new function W_FindWad() which handles -waddir, DOOMWADDIR, and DOOMWADPATH in a single function. [GhostlyDeath]<BR>
+ * Game/Console: When the game is first starting and -devparm was not passed, draw the startup console only once and place the words LOADING in it. This decreases loading time for non-developers since drawing and updating the screen after every line of text is printed will add up (about 0.2s on an Intel D510). [GhostlyDeath]<BR>
  * Game/Menu: Editable strings can now handle multibyte backspaces. [GhostlyDeath]<BR>
  * Game/Menu: Do not get stuck when displaying a message over an existing message. [GhostlyDeath]<BR>
  * Game/Menu: Add white band behind a menu message. [GhostlyDeath]<BR>

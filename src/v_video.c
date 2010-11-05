@@ -929,6 +929,12 @@ void V_DrawScalePic(int x1, int y1, int scrn,	// hack flag
 	V_BlitScalePic(x1, y1, scrn, W_CacheLumpNum(lumpnum, PU_CACHE));
 }
 
+/* V_BlitScalePicExtern() -- Extern for static */
+void V_BlitScalePicExtern(int x1, int y1, int scrn, pic_t* pic)
+{
+	V_BlitScalePic(x1, y1, scrn, pic);
+}
+
 static void V_BlitScalePic(int x1, int y1, int scrn, pic_t * pic)
 {	// QuickRound
 	int dupx, dupy;

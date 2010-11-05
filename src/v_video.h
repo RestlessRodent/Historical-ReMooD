@@ -115,6 +115,7 @@ void V_GetBlock(int x, int y, int scrn, int width, int height, byte * dest);
 
 // draw a pic_t, SCALED
 void V_DrawScalePic(int x1, int y1, int scrn, int lumpnum /*pic_t*        pic */ );
+void V_BlitScalePicExtern(int x1, int y1, int scrn, pic_t* pic);
 
 void V_DrawRawScreen(int x, int y, int lumpnum, int width, int height);
 
