@@ -330,7 +330,6 @@ static int numVidModes= 0;
 
 static char vidModeName[33][32]; // allow 33 different modes
 
-boolean highcolor = false;
 boolean mousegrabbed = false;
 
 // synchronize page flipping with screen refresh
@@ -997,17 +996,8 @@ void I_StartupGraphics(void)
     }
     
     // Set color depth; either 1=256pseudocolor or 2=hicolor
-    if (M_CheckParm("-highcolor"))
-    {
-    	vid.bpp = 2;
-    	BitsPerPixel = 16;
-    }
-    else
-    {
-	    vid.bpp = 1 /*videoInfo->vfmt->BytesPerPixel*/;
-	    BitsPerPixel = 8;
-	}
-    highcolor = (vid.bpp == 2) ? true:false;
+    vid.bpp = 1 /*videoInfo->vfmt->BytesPerPixel*/;
+    BitsPerPixel = 8;
 
     modeList = SDL_ListModes(NULL, SDL_FULLSCREEN|surfaceFlags);
 

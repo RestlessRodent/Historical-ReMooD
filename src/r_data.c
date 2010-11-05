@@ -79,10 +79,6 @@ int flatmemory;
 int spritememory;
 int texturememory;
 
-//faB: highcolor stuff
-short color8to16[256];			//remap color index to highcolor rgb value
-short *hicolormaps;				// test a 32k colormap remaps high -> high
-
 //
 // MAPTEXTURE_T CACHING
 // When a texture is first needed,
@@ -1126,34 +1122,6 @@ char *R_ColormapNameForNum(int num)
 }
 
 //
-//  build a table for quick conversion from 8bpp to 15bpp
-//
-int makecol15(int r, int g, int b)
-{
-	return (((r >> 3) << 10) | ((g >> 3) << 5) | ((b >> 3)));
-}
-
-void R_Init8to16(void)
-{
-	byte *palette;
-	int i;
-
-	palette = W_CacheLumpName("PLAYPAL", PU_CACHE);
-
-	for (i = 0; i < 256; i++)
-	{
-		// doom PLAYPAL are 8 bit values
-		color8to16[i] = makecol15(palette[0], palette[1], palette[2]);
-		palette += 3;
-	}
-
-	// test a big colormap
-	hicolormaps = Z_Malloc(32768 /**34*/ , PU_STATIC, 0);
-	for (i = 0; i < 16384; i++)
-		hicolormaps[i] = i << 1;
-}
-
-//
 // R_InitData
 // Locates all the lumps
 //  that will be used by all views
@@ -1161,13 +1129,6 @@ void R_Init8to16(void)
 //
 void R_InitData(void)
 {
-	//fab highcolor
-	if (highcolor)
-	{
-		CONS_Printf("\nInitHighColor...");
-		R_Init8to16();
-	}
-
 	CONS_Printf("\nInitTextures...");
 	R_LoadTextures();
 	CONS_Printf("\nInitFlats...");

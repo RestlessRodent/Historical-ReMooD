@@ -771,7 +771,7 @@ void CONEx_CommandWriteLine(struct CONEx_Console_s* const Parent, struct CONEx_B
 		return;
 	
 	/* Parse command */
-	printf(">>> \"%s\"\n", Line);
+	//printf(">>> \"%s\"\n", Line);
 }
 
 /* CONEx_Init() -- Initialize extended console */

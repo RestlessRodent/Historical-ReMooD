@@ -45,7 +45,6 @@
 #include "command.h"
 
 #ifdef GAMECLIENT
-boolean highcolor = false;
 consvar_t cv_vidwait = {"vid_wait","1",CV_SAVE,CV_OnOff};
 byte graphics_started = 0;
 boolean allow_fullscreen = false;

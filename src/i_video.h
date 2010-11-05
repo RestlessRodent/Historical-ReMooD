@@ -38,9 +38,6 @@
 #pragma interface
 #endif
 
-// use highcolor modes if true
-extern boolean highcolor;
-
 void I_StartupGraphics(void);	//setup video mode
 void I_ShutdownGraphics(void);	//restore old video mode
 

@@ -27,7 +27,7 @@
 // GNU General Public License for more details.
 // -----------------------------------------------------------------------------
 // DESCRIPTION:
-//      handles multiple resolutions, 8bpp/16bpp(highcolor) modes
+//      handles multiple resolutions, 8bpp mode
 
 #include "doomdef.h"
 #include "screen.h"
@@ -152,25 +152,6 @@ void SCR_SetMode(void)
 		// FIXME: quick fix
 		skydrawerfunc[0] = R_DrawColumn_8;	//old skies
 		skydrawerfunc[1] = R_DrawSkyColumn_8;	//tall sky
-	}
-	else if (vid.bpp > 1)
-	{
-		CONS_Printf("using highcolor mode\n");
-
-		colfunc = basecolfunc = R_DrawColumn_16;
-
-		fuzzcolfunc = (fuzzymode) ? R_DrawFuzzColumn_16 : R_DrawTranslucentColumn_16;
-		transcolfunc = R_DrawTranslatedColumn_16;
-		oldfuzzcolfunc = R_DrawFuzzColumn_16;
-		shadecolfunc = NULL;	//detect error if used somewhere..
-		spanfunc = basespanfunc = R_DrawSpan_16;
-
-		// No 16bit operation for this function SSNTails 11-11-2002
-		transtransfunc = R_DrawTranslucentColumn_16;
-
-		// FIXME: quick fix to think more..
-		skydrawerfunc[0] = R_DrawColumn_16;
-		skydrawerfunc[1] = R_DrawSkyColumn_16;
 	}
 	else
 		I_Error("unknown bytes per pixel mode %d\n", vid.bpp);

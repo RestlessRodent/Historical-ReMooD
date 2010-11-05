@@ -79,7 +79,7 @@ typedef struct viddef_s
 	fixed_t fxdupy;				// GhostlyDeath <November 5, 2010> -- Fixed scaling
 	float fdupx, fdupy;			// same as dupx,dupy but exact value when aspect ratio isn't 320/200
 	int centerofs;				// centering for the scaled menu gfx
-	int bpp;					// BYTES per pixel: 1=256color, 2=highcolor
+	int bpp;					// BYTES per pixel: 1=256color
 
 	int baseratio;				// SoM: Used to get the correct value for lighting walls
 
@@ -105,7 +105,7 @@ typedef struct vmode_s
 	unsigned int width;
 	unsigned int height;
 	unsigned int rowbytes;		//bytes per scanline
-	unsigned int bytesperpixel;	// 1 for 256c, 2 for highcolor
+	unsigned int bytesperpixel;	// 1 for 256c
 	int windowed;				// if true this is a windowed mode
 	int numpages;
 	vesa_extra_t *pextradata;	//vesa mode extra data
