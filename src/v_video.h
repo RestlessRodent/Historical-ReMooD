@@ -76,12 +76,6 @@ void V_CopyRect
 void V_CopyRectTrans
 	(int srcx, int srcy, int srcscrn, int width, int height, int destx, int desty, int destscrn, int trans);
 
-
-//added:03-02-98:like V_DrawPatch, + using a colormap.
-void V_DrawMappedPatch(int x, int y, int scrn, patch_t * patch, byte * colormap);
-
-//added:05-02-98:V_DrawPatch scaled 2,3,4 times size and position.
-
 // flags hacked in scrn (not supported by all functions (see src))
 #define V_NOSCALESTART       0x010000	// dont scale x,y, start coords
 #define V_SCALESTART         0x020000	// scale x,y, start coords
@@ -96,16 +90,11 @@ void V_DrawMappedPatch(int x, int y, int scrn, patch_t * patch, byte * colormap)
 #define V_NOFLOATSCALE		0x3000000	// Don't scale using floats
 
 // default params : scale patch and scale start
-void V_DrawScaledPatch(int x, int y, int scrn,	// + flags
-					   patch_t * patch);
 
 //added:05-02-98:kiktest : this draws a patch using translucency
-void V_DrawTransPatch(int x, int y, int scrn, patch_t * patch);
 
 //added:16-02-98: like V_DrawScaledPatch, plus translucency
-void V_DrawTranslucentPatch(int x, int y, int scrn, patch_t * patch);
 
-void V_DrawPatch(int x, int y, int scrn, patch_t * patch);
 
 // Draw a linear block of pixels into the view buffer.
 void V_DrawBlock(int x, int y, int scrn, int width, int height, byte * src);
@@ -129,9 +118,6 @@ void V_DrawFlatFill(int x, int y, int w, int h, int flatnum);
 
 //added:10-02-98: fade down the screen buffer before drawing the menu over
 void V_DrawFadeScreen(void);
-
-//added:20-03-98: test console
-void V_DrawFadeConsBack(int x1, int y1, int x2, int y2);
 
 //added:12-02-98:
 void V_DrawTiltView(byte * viewbuffer);
@@ -167,12 +153,33 @@ extern consvar_t cv_vid_drawfps;
 #define VEX_NOSCALE160160		0x00000100		// Do not scale on 160x160
 #define VEX_MAPTHENMASK			0x00000200		// Apply color mapping then apply color masking
 #define VEX_SKIPEVEN			0x00000400		// Don't draw even pixels
+#define VEX_SECONDBUFFER		0x00000800		// Draw in second video buffer
 
 /* Color mapping */
-#define VEX_COLORMAPWHITEBASE	1
-#define VEX_COLORMAPGRAYBASE	2
-#define VEX_COLORMAPORANGEBASE	3
-#define VEX_COLORMAPGREENBASE	4
+typedef enum VEX_ColorList_s
+{
+	VEX_MAP_NONE,								// No Color mapping
+	VEX_MAP_RED,								// Red
+	VEX_MAP_ORANGE,								// Orange
+	VEX_MAP_YELLOW,								// Yellow
+	VEX_MAP_GREEN,								// Green
+	VEX_MAP_CYAN,								// Cyan
+	VEX_MAP_BLUE,								// Blue
+	VEX_MAP_MAGENTA,							// Magenta
+	
+	VEX_MAP_BROWN,								// Brown
+	VEX_MAP_BRIGHTWHITE,						// Bright white
+	VEX_MAP_WHITE,								// White
+	VEX_MAP_GRAY,								// Gray
+	VEX_MAP_BLACK,								// Black
+	
+	NUMVEXCOLORS
+} VEX_ColorList_t;
+
+#define VEX_COLORMAPWHITEBASE	VEX_MAP_WHITE
+#define VEX_COLORMAPGRAYBASE	VEX_MAP_GRAY
+#define VEX_COLORMAPORANGEBASE	VEX_MAP_ORANGE
+#define VEX_COLORMAPGREENBASE	VEX_MAP_RED
 
 #define VEX_COLORMAPMASK		0x000F0000		// Mask of the colormap
 #define VEX_COLORMAPSHIFT		16				// Color shift
@@ -223,14 +230,25 @@ extern consvar_t cv_vid_drawfps;
 #define	VEX_TRANSFX1			(VEX_LINETRANSFX1|VEX_FILLTRANSFX1)
 #define VEX_TRANSFULL			(VEX_LINETRANSFULL|VEX_FILLTRANSFULL)
 
+/* Initialization */
+void V_InitializeColormaps(void);
+const UInt8* V_ReturnColormapPtr(const VEX_ColorList_t Color);
+
 /* Drawing Functions */
 void V_DrawFadeConsBackEx(const UInt32 Flags, const int x1, const int y1, const int x2, const int y2);
 void V_DrawColorBoxEx(UInt32 Flags, UInt8 LineColor, UInt8 FillColor, Int32 x, Int32 y, Int32 w, Int32 h);
+void V_DrawPatchEx(const UInt32 Flags, const int x, const int y, const patch_t* const Patch);
 
 /* Compatability */
+void V_DrawPatch(const int x, const int y, const int scrn, const patch_t* const patch);
+void V_DrawMappedPatch(const int x, const int y, const int scrn, const patch_t* const patch, const byte* const colormap);
+void V_DrawScaledPatch(const int x, const int y, const int scrn, const patch_t* const patch);
+void V_DrawTransPatch(const int x, const int y, const int scrn, const patch_t* const patch);
+void V_DrawTranslucentPatch(const int x, const int y, const int scrn, const patch_t* const patch);
 void V_DrawFadeScreen(void);
 void V_DrawFill(int x, int y, int w, int h, int c);
 void V_DrawScreenFill(int x, int y, int w, int h, int c);
+void V_DrawFadeConsBack(int x1, int y1, int x2, int y2);
 
 /**************
 *** UNICODE ***
@@ -267,10 +285,10 @@ extern UniChar_t* UnknownLink[NUMVIDEOFONTS];
 
 /* Options */
 // Font Coloring
-#define VFONTOPTION_WHITE			0x00000001
-#define VFONTOPTION_GRAY			0x00000002
-#define VFONTOPTION_ORANGE			0x00000003
-#define VFONTOPTION_RED				0x00000004
+#define VFONTOPTION_WHITE			VEX_MAP_WHITE
+#define VFONTOPTION_GRAY			VEX_MAP_GRAY
+#define VFONTOPTION_ORANGE			VEX_MAP_ORANGE
+#define VFONTOPTION_RED				VEX_MAP_RED
 
 // Ordering
 #define VFONTOPTION_COLORMASK		0x0000000F

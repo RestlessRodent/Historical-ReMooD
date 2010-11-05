@@ -32,6 +32,7 @@
 #define __SCREEN_H__
 
 #include "command.h"
+#include "m_fixed.h"
 
 #ifdef _WIN32
 #include <windows.h>
@@ -74,6 +75,8 @@ typedef struct viddef_s
 	int recalc;					// if true, recalc vid-based stuff
 	byte *direct;				// linear frame buffer, or vga base mem.
 	int dupx, dupy;				// scale 1,2,3 value for menus & overlays
+	fixed_t fxdupx;				// GhostlyDeath <November 5, 2010> -- Fixed scaling
+	fixed_t fxdupy;				// GhostlyDeath <November 5, 2010> -- Fixed scaling
 	float fdupx, fdupy;			// same as dupx,dupy but exact value when aspect ratio isn't 320/200
 	int centerofs;				// centering for the scaled menu gfx
 	int bpp;					// BYTES per pixel: 1=256color, 2=highcolor

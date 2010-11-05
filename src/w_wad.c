@@ -379,6 +379,7 @@ int W_LoadWadFile(char *filename)
 	int err;
 	int y, z;
 	char tName[9];
+	boolean Swapped = false;
 
 	/* Scan! -- Don't open a WAD twice yknow! */
 	n = WADFiles;
@@ -524,7 +525,7 @@ int W_LoadWadFile(char *filename)
 				case METHOD_WAD:	// WAD File
 					/* NumLumps */
 					if ((readcount = fread(&NumLumps, sizeof(NumLumps), 1, tFile)))
-						n->NumLumps = NumLumps;
+						n->NumLumps = LITTLESWAP32(NumLumps);
 					else
 					{
 						if (devparm)
@@ -545,6 +546,9 @@ int W_LoadWadFile(char *filename)
 						UInt32 l;
 						UInt32 sz = 0;
 						UInt32 pos = 0;
+						
+						// GhostlyDeath <November 5, 2010> -- Swap for BE
+						IndexOffset = LITTLESWAP32(IndexOffset);
 
 						n->WADNameHack = Z_Malloc((NumLumps * 9) + 1, PU_STATIC, NULL);
 						memset(n->WADNameHack, 0, (NumLumps * 9) + 1);

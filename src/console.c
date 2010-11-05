@@ -577,7 +577,7 @@ void CONEx_Drawer(void)
 		
 		// Draw background (either fade or image)
 		if (FadeBack)
-			V_DrawFadeConsBack(0, 0, vid.width, BottomCon);
+			V_DrawFadeConsBackEx((VEX_MAP_RED << VEX_COLORMAPSHIFT) | VEX_NOSCALESTART | VEX_NOSCALESCREEN, 0, 0, vid.width, BottomCon);
 		else
 		{
 			// Cache back pic?
@@ -924,78 +924,26 @@ byte *whitemap;
 byte *greenmap;
 byte *graymap;
 byte* orangemap;
+
+/* CON_SetupBackColormap() -- Deprecated handler for old colormaps */
 void CON_SetupBackColormap(void)
 {
-	int i, j, k, l, m;
-	byte *pal;
-	double hicolor;
-	double locolor;
-
-//
-//  setup the green translucent background colormap
-//
+	/* Call new function */
+	// GhostlyDeath <November 5, 2010> -- Initialize colormaps
+	V_InitializeColormaps();
+	
+	/* Wrap old arrays */
+	// Allocate
 	greenmap = (byte *) Z_Malloc(256, PU_STATIC, NULL);
 	whitemap = (byte *) Z_Malloc(256, PU_STATIC, NULL);
 	graymap = (byte *) Z_Malloc(256, PU_STATIC, NULL);
 	orangemap = (byte *) Z_Malloc(256, PU_STATIC, NULL);
-
-	pal = W_CacheLumpName("PLAYPAL", PU_CACHE);
-
-	for (i = 0, k = 0; i < 768; i += 3, k++)
-	{
-		j = pal[i] + pal[i + 1] + pal[i + 2];
-
-		// 191 is darker
-		// 183 is the lightest
-		if (gamemode == heretic)
-			greenmap[k] = 145 + (j >> 6);
-		else
-			greenmap[k] = /*127 */ 183 - (j >> 6);
-	}
 	
-	// GhostlyDeath <July 9, 2008> -- TRUE COLOR CHANGING STUFF (FINALLY!!)
-	for (i = 0, k = 0; i < 768; i += 3, k++)
-	{
-		hicolor = pal[i] + pal[i + 1] + pal[i + 2];
-		hicolor /= 3.0;
-		
-		// Convert to Percent
-		hicolor *= 1.0 / 255.0;
-		locolor = hicolor + (hicolor * 2);
-		if (locolor > 1.0)
-			locolor = 1.0;
-		if (locolor < 0.0)
-			locolor = 0.0;
-
-		// 255 * 0.32 = 81.6, 255 / 32 = 7.96875
-		if (gamemode == heretic)
-			l = 145 + (int)(12 * locolor);//37 + (int)(7 * locolor);
-		else
-		{
-			l = 111 - (int)(32 * locolor);
-			if (l <= 79) l = 4;
-		}
-		whitemap[k] = l;
-
-		// 255 * 0.32 = 81.6, 255 / 32 = 7.96875
-		if (gamemode == heretic)
-			l = 241 + (int)(4 * locolor);
-		else
-		{
-			l = 223 - (int)(24 * locolor);
-			if (l <= 207) l = 4;
-			else if (l >= 224 && l <= 226) l = 232;
-			else if (l >= 227 && l <= 228) l = 233;
-			else if (l >= 229 && l <= 230) l = 234;
-			else if (l >= 231 && l <= 232) l = 235;
-		}
-		orangemap[k] = l;
-		
-		if (gamemode == heretic)
-			graymap[k] = 0 + (int)(16 * locolor);
-		else
-			graymap[k] = 111 - (int)(16 * hicolor);
-	}
+	// Copy in
+	memmove(greenmap, V_ReturnColormapPtr(VEX_MAP_RED), sizeof(UInt8) * 256);
+	memmove(whitemap, V_ReturnColormapPtr(VEX_MAP_BRIGHTWHITE), sizeof(UInt8) * 256);
+	memmove(graymap, V_ReturnColormapPtr(VEX_MAP_GRAY), sizeof(UInt8) * 256);
+	memmove(orangemap, V_ReturnColormapPtr(VEX_MAP_ORANGE), sizeof(UInt8) * 256);
 }
 #endif
 

@@ -459,408 +459,6 @@ void VID_BlitLinearScreen(byte * srcptr, byte * destptr, int width, int height,
 }
 
 //
-//  V_DrawMappedPatch : like V_DrawScaledPatch, but with a colormap.
-//
-//
-//added:05-02-98:
-void V_DrawMappedPatch(int x, int y, int scrn, patch_t * patch, byte * colormap)
-{
-	int count;
-	int col;
-	column_t *column;
-	byte *desttop;
-	byte *dest;
-	byte *source;
-	int w;
-
-	float dupx, dupy;
-	int ofs;
-	int colfrac, rowfrac;
-	
-	if (!graphics_started)
-		return;
-
-	if ((scrn & V_NOSCALEPATCH))
-		dupx = dupy = 1;
-	else
-	{
-		if (scrn & V_NOFLOATSCALE)
-		{
-			dupx = vid.dupx;
-			dupy = vid.dupy;
-		}
-		else
-		{
-			dupx = vid.fdupx;
-			dupy = vid.fdupy;
-		}
-	}
-	y -= SHORT(patch->topoffset);
-	x -= SHORT(patch->leftoffset);
-
-	if (scrn & V_NOSCALESTART)
-		desttop = screens[scrn & 0xffff] + (y * vid.width) + x;
-	else
-		desttop = screens[scrn & 0xffff] + (QuickRound(y * dupy) * vid.width) + QuickRound(x * dupx) + scaledofs;
-
-	scrn &= 0xffff;
-
-	if (!scrn)
-		V_MarkRect(x, y, QuickRound(SHORT(patch->width) * dupx), QuickRound(SHORT(patch->height) * dupy));
-
-	col = 0;
-	colfrac = FixedDiv(FRACUNIT, dupx * 65535.0);
-	rowfrac = FixedDiv(FRACUNIT, dupy * 65535.0);
-
-	w = SHORT(patch->width) << FRACBITS;
-
-	for (; col < w; col += colfrac, desttop++)
-	{
-		column = (column_t *) ((byte *) patch + LONG(patch->columnofs[col >> FRACBITS]));
-
-		while (column->topdelta != 0xff)
-		{
-			source = (byte *) column + 3;
-			dest = desttop + QuickRound(column->topdelta * dupy) * vid.width;
-			count = QuickRound(column->length * dupy);
-
-			ofs = 0;
-			while (count--)
-			{
-				*dest = *(colormap + source[ofs >> FRACBITS]);
-				dest += vid.width;
-				ofs += rowfrac;
-			}
-
-			column = (column_t *) ((byte *) column + column->length + 4);
-		}
-	}
-
-}
-
-//
-// V_DrawScaledPatch
-//   like V_DrawPatch, but scaled 2,3,4 times the original size and position
-//   this is used for menu and title screens, with high resolutions
-//
-//added:05-02-98:
-// default params : scale patch and scale start
-void V_DrawScaledPatch(int x, int y, int scrn,	// hacked flags in it...
-					   patch_t * patch)
-{
-	int count;
-	int col;
-	column_t *column;
-	byte *desttop;
-	byte *dest;
-	byte *source;
-
-	float dupx, dupy;
-	int ofs;
-	int colfrac, rowfrac;
-	byte *destend;
-	
-	if (!graphics_started)
-		return;
-
-	if ((scrn & V_NOSCALEPATCH))
-		dupx = dupy = 1;
-	else
-	{
-		if (scrn & V_NOFLOATSCALE)
-		{
-			dupx = vid.dupx;
-			dupy = vid.dupy;
-		}
-		else
-		{
-			dupx = vid.fdupx;
-			dupy = vid.fdupy;
-		}
-	}
-
-	y -= SHORT(patch->topoffset);
-	x -= SHORT(patch->leftoffset);
-
-	colfrac = FixedDiv(FRACUNIT, dupx * 65535.0);
-	rowfrac = FixedDiv(FRACUNIT, dupy * 65535.0);
-
-	desttop = screens[scrn & 0xFF];
-	if (scrn & V_NOSCALESTART)
-		desttop += (y * vid.width) + x;
-	else
-		desttop += (QuickRound(y * dupy) * vid.width) + QuickRound(x * dupx) + scaledofs;
-	destend = desttop + QuickRound(SHORT(patch->width) * dupx);
-
-	if (scrn & V_FLIPPEDPATCH)
-	{
-		colfrac = -colfrac;
-		col = (SHORT(patch->width) << FRACBITS) + colfrac;
-	}
-	else
-		col = 0;
-
-	for (; desttop < destend; col += colfrac, desttop++)
-	{
-		column = (column_t *) ((byte *) patch + LONG(patch->columnofs[col >> FRACBITS]));
-
-		while (column->topdelta != 0xff)
-		{
-			source = (byte *) column + 3;
-			dest = desttop + QuickRound(column->topdelta * dupy) * vid.width;
-			count = QuickRound(column->length * dupy);
-
-			ofs = 0;
-			while (count--)
-			{
-				*dest = source[ofs >> FRACBITS];
-				dest += vid.width;
-				ofs += rowfrac;
-			}
-
-			column = (column_t *) ((byte *) column + column->length + 4);
-		}
-	}
-}
-
-void HWR_DrawSmallPatch(GlidePatch_t * gpatch, int x, int y, int option, byte * colormap);
-// Draws a patch 2x as small. SSNTails 06-10-2003
-void V_DrawSmallScaledPatch(int x, int y, int scrn, patch_t * patch, byte * colormap)
-{
-	int count;
-	int col;
-	column_t *column;
-	byte *desttop;
-	byte *dest;
-	byte *source;
-
-	float dupx, dupy;
-	int ofs;
-	int colfrac, rowfrac;
-	byte *destend;
-	boolean skippixels = false;
-	
-	if (!graphics_started)
-		return;
-
-//    if( (scrn & V_NOSCALEPATCH) )
-	if (vid.dupx > 1 && vid.dupy > 1)
-		dupx = dupy = 1;
-	else
-	{
-		dupx = 1;
-		dupy = 1;
-		skippixels = true;
-	}
-
-	y -= SHORT(patch->topoffset);
-	x -= SHORT(patch->leftoffset);
-
-	colfrac = FixedDiv(FRACUNIT, dupx * 65535.0);
-	rowfrac = FixedDiv(FRACUNIT, dupy * 65535.0);
-
-	desttop = screens[scrn & 0xFF];
-
-	if (skippixels)
-	{
-		desttop += (y * vid.width) + x;
-		destend = desttop + QuickRound(SHORT(patch->width) / 2 * dupx);
-	}
-	else
-	{
-		desttop += (y * vid.width) + x;
-		destend = desttop + QuickRound(SHORT(patch->width) * dupx);
-	}
-
-	if (scrn & V_FLIPPEDPATCH)
-	{
-		colfrac = -colfrac;
-		col = (SHORT(patch->width) << FRACBITS) + colfrac;
-	}
-	else
-		col = 0;
-
-	if (skippixels)
-	{
-		int i = 0;
-		for (; desttop < destend; col += colfrac, col += colfrac, desttop++)
-		{
-			column = (column_t *) ((byte *) patch + LONG(patch->columnofs[col >> FRACBITS]));
-
-			while (column->topdelta != 0xff)
-			{
-				source = (byte *) column + 3;
-				dest = desttop + QuickRound(column->topdelta * dupy) * vid.width;
-				count = QuickRound((column->length * dupy) / 2);
-
-				ofs = 0;
-				while (count--)
-				{
-					*dest = *(colormap + source[ofs >> FRACBITS]);
-					dest += vid.width;
-					ofs += rowfrac;
-					ofs += rowfrac;
-				}
-
-				column = (column_t *) ((byte *) column + column->length + 4);
-			}
-			i++;
-		}
-	}
-	else
-	{
-		for (; desttop < destend; col += colfrac, desttop++)
-		{
-			column = (column_t *) ((byte *) patch + LONG(patch->columnofs[col >> FRACBITS]));
-
-			while (column->topdelta != 0xff)
-			{
-				source = (byte *) column + 3;
-				dest = desttop + QuickRound(column->topdelta * dupy) * vid.width;
-				count = QuickRound(column->length * dupy);
-
-				ofs = 0;
-				while (count--)
-				{
-					*dest = *(colormap + source[ofs >> FRACBITS]);
-					dest += vid.width;
-					ofs += rowfrac;
-				}
-
-				column = (column_t *) ((byte *) column + column->length + 4);
-			}
-		}
-	}
-}
-
-//added:16-02-98: now used for crosshair
-//
-//  This draws a patch over a background with translucency...SCALED
-//  SCALE THE STARTING COORDS!!
-//
-void V_DrawTranslucentPatch(int x, int y, int scrn,	// hacked flag on it
-							patch_t * patch)
-{
-	int count;
-	int col;
-	column_t *column;
-	byte *desttop;
-	byte *dest;
-	byte *source;
-	int w;
-
-	float dupx, dupy;
-	int ofs;
-	int colfrac, rowfrac;
-	
-	if (!graphics_started)
-		return;
-
-	dupx = vid.dupx;
-	dupy = vid.dupy;
-
-	y -= SHORT(patch->topoffset) * dupy;
-	x -= SHORT(patch->leftoffset) * dupx;
-
-	if (!(scrn & 0xffff))
-		V_MarkRect(x, y, QuickRound(SHORT(patch->width) * dupx), QuickRound(SHORT(patch->height) * dupy));
-
-	col = 0;
-	colfrac = FixedDiv(FRACUNIT, dupx * 65535.0);
-	rowfrac = FixedDiv(FRACUNIT, dupy * 65535.0);
-
-	desttop = screens[scrn & 0xffff];
-	if (scrn & V_NOSCALESTART)
-		desttop += (y * vid.width) + x;
-	else
-		desttop += (QuickRound(y * dupy) * vid.width) + QuickRound(x * dupx) + scaledofs;
-
-	w = SHORT(patch->width) << FRACBITS;
-
-	for (; col < w; col += colfrac, desttop++)
-	{
-		column = (column_t *) ((byte *) patch + LONG(patch->columnofs[col >> FRACBITS]));
-
-		while (column->topdelta != 0xff)
-		{
-			source = (byte *) column + 3;
-			dest = desttop + QuickRound(column->topdelta * dupy) * vid.width;
-			count = QuickRound(column->length * dupy);
-
-			ofs = 0;
-			while (count--)
-			{
-				*dest = *(transtables + ((source[ofs >> FRACBITS] << 8) & 0xFF00) + (*dest & 0xFF));
-				dest += vid.width;
-				ofs += rowfrac;
-			}
-
-			column = (column_t *) ((byte *) column + column->length + 4);
-		}
-	}
-}
-
-//
-// V_DrawPatch
-// Masks a column based masked pic to the screen. NO SCALING!!!
-//
-void V_DrawPatch(int x, int y, int scrn, patch_t * patch)
-{
-
-	int count;
-	int col;
-	column_t *column;
-	byte *desttop;
-	byte *dest;
-	byte *source;
-	int w;
-	
-	if (!graphics_started)
-		return;
-	
-	y -= SHORT(patch->topoffset);
-	x -= SHORT(patch->leftoffset);
-#ifdef RANGECHECK
-	if (x < 0 || x + SHORT(patch->width) > vid.width || y < 0 ||
-		y + SHORT(patch->height) > vid.height || (unsigned)scrn > 4)
-	{
-		fprintf(stderr, "Patch at %d,%d exceeds LFB\n", x, y);
-		// No I_Error abort - what is up with TNT.WAD?
-		fprintf(stderr, "V_DrawPatch: bad patch (ignored)\n");
-		return;
-	}
-#endif
-
-	if (!scrn)
-		V_MarkRect(x, y, SHORT(patch->width), SHORT(patch->height));
-
-	col = 0;
-	desttop = screens[scrn] + y * vid.width + x;
-
-	w = SHORT(patch->width);
-
-	for (; col < w; x++, col++, desttop++)
-	{
-		column = (column_t *) ((byte *) patch + LONG(patch->columnofs[col]));
-
-		// step through the posts in a column
-		while (column->topdelta != 0xff)
-		{
-			source = (byte *) column + 3;
-			dest = desttop + column->topdelta * vid.width;
-			count = column->length;
-
-			while (count--)
-			{
-				*dest = *source++;
-				dest += vid.width;
-			}
-			column = (column_t *) ((byte *) column + column->length + 4);
-		}
-	}
-}
-
-//
 // V_DrawBlock
 // Draw a linear block of pixels into the view buffer.
 //
@@ -1155,122 +753,9 @@ void V_DrawFadeScreen(void)
 	}
 }
 
-/* V_DrawFadeConsBackMap() -- Pixelate and add red tint */
-void V_DrawFadeConsBackEx(const UInt32 Flags, const int x1, const int y1, const int x2, const int y2)
-{
-	int X1, Y1, X2, Y2;
-	int x, y, i, w;
-	int* buf;
-	int* buf2;
-	int c;
-	byte* Map;
-	
-	/* Flags */
-	// Unscaled
-	if (Flags & VEX_NOSCALESTART)
-	{
-		X1 = x1;
-		Y1 = y1;
-		X2 = x2;
-		Y2 = y2;
-	}
-	
-	// Scaled
-	else
-	{
-		X1 = (float)x1 * (float)vid.fdupx;
-		Y1 = (float)y1 * (float)vid.fdupy;
-		X2 = (float)x2 * (float)vid.fdupx;
-		Y2 = (float)y2 * (float)vid.fdupy;
-	}
-	
-	/* Normalize */
-	// Other way
-	if (X2 < X1)
-	{
-		x = X2;
-		X2 = X1;
-		X1 = x;
-	}
-	
-	if (Y2 < Y1)
-	{
-		x = Y2;
-		Y2 = Y1;
-		Y1 = x;
-	}
-	
-	// Squash off screen
-	if (X1 < 0)
-		X1 = 0;
-	if (X2 >= vid.width)
-		X2 = vid.width;
-	if (Y1 < 0)
-		Y1 = 0;
-	if (Y2 >= vid.height)
-		Y2 = vid.height;
-	
-	// Not visible?
-	if (X1 == X2 || Y1 == Y2 || X1 >= vid.width || X2 < 0 || Y1 >= vid.height || Y2 < 0)
-		return;
-	
-	/* Mapping */
-	switch ((Flags & VEX_COLORMAPMASK) >> VEX_COLORMAPSHIFT)
-	{
-		case VEX_COLORMAPWHITEBASE:
-			Map = whitemap;
-			break;
-		
-		case VEX_COLORMAPGRAYBASE:
-			Map = graymap;
-			break;
-		
-		case VEX_COLORMAPORANGEBASE:
-			Map = orangemap;
-			break;
-			
-		case VEX_COLORMAPGREENBASE:
-		default:
-			Map = greenmap;
-			break;
-	};
-	
-	/* Actual Drawing */
-	// Speed
-	w = (X2 >> 2);
-	
-	// Loop
-	for (y = Y1; y < Y2; y += 8)
-	{
-		// Set buf
-		buf = (int *)(screens[0] + vid.width * y);
-		
-		// Loop
-		for (x = (X1 >> 2); x < w - 1; x += 2)
-		{
-			c = Map[buf[x] & 0xFF];
-			buf[x] = c | (c << 8) | (c << 16) | (c << 24);
-			buf[x + 1] = buf[x];
-		}
-		
-		// Final bits
-		for (x = x << 2; x < w; x++)
-			((UInt8*)buf)[x] = c & 0xFF;
-		
-		// Inner second loop
-		for (i = 1; i < 8 && (y + i) < Y2; i++)
-		{
-			buf2 = (int *)(screens[0] + vid.width * (y + i));
-			memcpy(buf2, buf, X2 - X1);
-		}
-	}
-}
 
-/* V_DrawFadeConsBack() -- Pixelate and add red tint */
-void V_DrawFadeConsBack(int x1, int y1, int x2, int y2)
-{
-	V_DrawFadeConsBackEx(VEX_COLORMAPGREEN | VEX_NOSCALESTART | VEX_NOSCALESCREEN, x1, y1, x2, y2);
-}
+
+
 
 // V_Init
 // olf software stuff, buffers are allocated at video mode setup
@@ -1369,6 +854,651 @@ void V_DrawPerspView(byte * viewbuffer, int aiming)
 // =============================================================================
 // === 16-BIT - 16-BIT - 16-BIT - 16-BIT - 16-BIT - 16-BIT - 16-BIT - 16-BIT ===
 // =============================================================================
+
+
+// #############################################################################
+// #############################################################################
+// ####                      EXTENDED DRAWING FUNCTIONS                     ####
+// #############################################################################
+// #############################################################################
+
+/*************
+*** LOCALS ***
+*************/
+
+static UInt8* l_ColorMaps[NUMVEXCOLORS];					// Local colors
+
+/*****************
+*** STRUCTURES ***
+*****************/
+
+/* V_ColorEntry_t -- HSV table */
+typedef union V_ColorEntry_s
+{
+	struct
+	{
+		UInt8 R;
+		UInt8 G;
+		UInt8 B;
+	} RGB;
+	
+	struct
+	{
+		UInt8 H;
+		UInt8 S;
+		UInt8 V;
+	} HSV;
+} V_ColorEntry_t;
+
+/****************
+*** FUNCTIONS ***
+****************/
+
+/* V_ReturnColormapPtr() -- Return pointer to colormap */
+const UInt8* V_ReturnColormapPtr(const VEX_ColorList_t Color)
+{
+	/* Check */
+	if (Color < 0 || Color >= NUMVEXCOLORS)
+		return NULL;
+	return l_ColorMaps[Color];
+}
+
+/* V_HSVtoRGB() -- Convert HSV to RGB */
+static V_ColorEntry_t V_HSVtoRGB(const V_ColorEntry_t HSV)
+{
+	int R, G, B, H, S, V, P, Q, T, F;
+	V_ColorEntry_t Ret;
+	
+	/* Get inital values */
+	H = HSV.HSV.H;
+	S = HSV.HSV.S;
+	V = HSV.HSV.V;
+	
+	/* Gray Color? */
+	if (!S)
+	{
+		R = G = B = V;
+	}
+	
+	/* Real Color */
+	else
+	{
+		// Calculate Hue Shift
+		F = ((H % 60) * 255) / 60;
+		H /= 60;
+		
+		// Calculate channel values
+		P = (V * (256 - S)) / 256;
+		Q = (V * (256 - (S * F) / 256)) / 256;
+		T = (V * (256 - (S * (256 - F)) / 256)) / 256;
+		
+		switch (H)
+		{
+			case 0:
+				R = V;
+				G = T;
+				B = P;
+				break;
+			
+			case 1:
+				R = Q;
+				G = V;
+				B = P;
+				break;
+			
+			case 2:
+				R = P;
+				G = V;
+				B = T;
+				break;
+			
+			case 3:
+				R = P;
+				G = Q;
+				B = V;
+				break;
+			
+			case 4:
+				R = T;
+				G = P;
+				B = V;
+				break;
+			
+			default:
+				R = V;
+				G = P;
+				B = Q;
+				break;
+		}
+	}
+	
+	/* Set Return */
+	Ret.RGB.R = R;
+	Ret.RGB.G = G;
+	Ret.RGB.B = B;
+	
+	/* Return */
+	return Ret;
+}
+
+/* V_RGBtoHSV() -- Convert RGB to HSV */
+static V_ColorEntry_t V_RGBtoHSV(const V_ColorEntry_t RGB)
+{
+	V_ColorEntry_t Ret;
+	UInt8 rMin, rMax, rDif;
+	
+	// Get min/max
+	rMin = 255;
+	rMax = 0;
+
+	// Get RGB minimum
+	if (RGB.RGB.R < rMin)
+		rMin = RGB.RGB.R;
+	if (RGB.RGB.G < rMin)
+		rMin = RGB.RGB.G;
+	if (RGB.RGB.B < rMin)
+		rMin = RGB.RGB.B;
+
+	// Get RGB maximum
+	if (RGB.RGB.R > rMax)
+		rMax = RGB.RGB.R;
+	if (RGB.RGB.G > rMax)
+		rMax = RGB.RGB.G;
+	if (RGB.RGB.B > rMax)
+		rMax = RGB.RGB.B;
+
+	// Obtain value
+	Ret.HSV.V = rMax;
+
+	// Short circuit?
+	if (Ret.HSV.V == 0)
+	{
+		Ret.HSV.H = Ret.HSV.S = 0;
+		return Ret;
+	}
+
+	// Obtain difference
+	rDif = rMax - rMin;
+
+	// Obtain saturation
+	Ret.HSV.S = (UInt8)(((UInt32)255 * (UInt32)rDif) / (UInt32)Ret.HSV.V);
+
+	// Short circuit?
+	if (Ret.HSV.S == 0)
+	{
+		Ret.HSV.H = 0;
+		return Ret;
+	}
+
+	/* Obtain hue */
+	if (rMax == RGB.RGB.R)
+		Ret.HSV.H = 43 * (RGB.RGB.G - RGB.RGB.B) / rMax;
+	else if (rMax == RGB.RGB.G)
+		Ret.HSV.H = 85 + (43 * (RGB.RGB.B - RGB.RGB.R) / rMax);
+	else
+		Ret.HSV.H = 171 + (43 * (RGB.RGB.R - RGB.RGB.G) / rMax);
+	
+	return Ret;
+}
+
+/* V_BestHSVMatch() -- Best match between HSV for tables */
+static size_t V_BestHSVMatch(const V_ColorEntry_t* const Table, const V_ColorEntry_t HSV)
+{
+	size_t i, Best;
+	V_ColorEntry_t tRGB, iRGB;
+	Int32 BestSqr, ThisSqr, Dr, Dg, Db;
+	
+	/* Check *?
+	if (!Table)
+		return 0;
+	
+	/* Convert input to RGB */
+	iRGB = V_HSVtoRGB(HSV);
+	
+	/* Loop colors */
+	for (Best = 0, BestSqr = 0x7FFFFFFFUL, i = 0; i < 256; i++)
+	{
+		// Convert table entry to RGB
+		tRGB = V_HSVtoRGB(Table[i]);
+		
+		// Perfect match?
+		if (iRGB.RGB.R == tRGB.RGB.R && iRGB.RGB.B == tRGB.RGB.B && iRGB.RGB.G == tRGB.RGB.G)
+			return i;
+		
+		// Distance of colors
+		Dr = tRGB.RGB.R - iRGB.RGB.R;
+		Dg = tRGB.RGB.G - iRGB.RGB.G;
+		Db = tRGB.RGB.B - iRGB.RGB.B;
+		ThisSqr = (Dr * Dr) + (Dg * Dg) + (Db * Db);
+		
+		// Closer?
+		if (ThisSqr < BestSqr)
+		{
+			Best = i;
+			BestSqr = ThisSqr;
+		}
+	}
+	
+	/* Fail */
+	return Best;
+}
+
+/* V_InitializeColormaps() -- Initialize Spectrum colormaps */
+void V_InitializeColormaps(void)
+{
+#define GRAN 23
+#define QUICKMINMAX(a,b,c) (a) = ((GRAN >= (c)) ? 0 : ((c) - GRAN)); (b) = (((c) >= (255 - GRAN)) ? 255 : ((c) + GRAN));
+	size_t i, j, l;
+	Int32 k;
+	V_ColorEntry_t Base[256];
+	V_ColorEntry_t First[256];
+	V_ColorEntry_t Temp;
+	UInt16 Additive[256];
+	UInt8* PlayPal;
+	
+	// BaseHue -- Base for spectrum colors
+	const UInt8 BaseHue[NUMVEXCOLORS] = {0, 30, 42, 85, 128, 170, 213};
+	
+	/* Destroy old maps */
+	for (i = 0; i < NUMVEXCOLORS; i++)
+		if (l_ColorMaps[i])
+		{
+			Z_Free(l_ColorMaps[i]);
+			l_ColorMaps[i] = NULL;
+		}
+	
+	/* Initialize the base map */
+	PlayPal = W_CacheLumpName("PLAYPAL", PU_CACHE);
+	
+	// Load initial
+	for (i = 0; i < 256; i++)
+	{
+		// Get RGBs
+		Base[i].RGB.R = PlayPal[i * 3];
+		Base[i].RGB.G = PlayPal[(i * 3) + 1];
+		Base[i].RGB.B = PlayPal[(i * 3) + 2];
+		
+		// Get Additive Color
+		Additive[i] = Base[i].RGB.R + Base[i].RGB.G + Base[i].RGB.B;
+		
+		// Get HSV
+		First[i] = V_RGBtoHSV(Base[i]);
+		
+	}
+	
+	/* Loop through none color */
+	l_ColorMaps[0] = Z_Malloc(sizeof(UInt8) * 256, PU_STATIC, &l_ColorMaps[0]);
+	for (j = 0; j < 256; j++)
+		l_ColorMaps[0][j] = j;
+	
+	/* Loop through all spectrum colors */
+	for (i = VEX_MAP_RED; i <= VEX_MAP_MAGENTA; i++)
+	{
+		// Create color table
+		l_ColorMaps[i] = Z_Malloc(sizeof(UInt8) * 256, PU_STATIC, &l_ColorMaps[i]);
+		
+		// Loop through colors
+		for (j = 0; j < 256; j++)
+		{
+			Temp = First[j];
+			
+			// Change hue to match color
+			Temp.HSV.H = BaseHue[i - VEX_MAP_RED];
+			
+			// Max out saturation to make it colorful
+			Temp.HSV.S = 255;
+			
+			// Use additive for value
+			if (i == VEX_MAP_ORANGE || i == VEX_MAP_YELLOW || i == VEX_MAP_CYAN)
+				k = ((Additive[j] / 64) * 12) - 255;//(Int32)83 - (Int32)((Additive[j] / 64) * 12);
+			else
+				k = (Int32)167 - (Int32)((Additive[j] / 64) * 12);
+				
+			if (k <= 0)
+				Temp.HSV.V = 0;
+			else if (k >= 255)
+				Temp.HSV.V = 255;
+			else
+				Temp.HSV.V = k;
+			
+			Temp.HSV.V = -((Int32)Temp.HSV.V - (Int32)256);	// flip
+			
+			// Find color
+			l_ColorMaps[i][j] = V_BestHSVMatch(First, Temp);
+		}
+	}
+	
+	/* Brown */
+	l_ColorMaps[VEX_MAP_BROWN] = Z_Malloc(sizeof(UInt8) * 256, PU_STATIC, &l_ColorMaps[0]);
+	for (j = 0; j < 256; j++)
+		l_ColorMaps[VEX_MAP_BROWN][j] = j;
+	
+	/* Loop through gray colors */
+	for (i = VEX_MAP_BRIGHTWHITE; i <= VEX_MAP_BLACK; i++)
+	{
+		// Create color table
+		l_ColorMaps[i] = Z_Malloc(sizeof(UInt8) * 256, PU_STATIC, &l_ColorMaps[i]);
+		
+		// Loop through colors
+		for (j = 0; j < 256; j++)
+		{
+			Temp = First[j];
+			
+			// Remove both hue and saturation
+			Temp.HSV.H = Temp.HSV.S = 0;
+			
+			// Increase/decrease value on some shades
+			if (i == VEX_MAP_BRIGHTWHITE)
+			{
+				if (Temp.HSV.V >= 192)
+					Temp.HSV.V = 255;
+				else if (Temp.HSV.V >= 64)
+					Temp.HSV.V += 32;
+				else if (Temp.HSV.V >= 32)
+					Temp.HSV.V += 16;
+			}
+			else if (i == VEX_MAP_GRAY)
+				Temp.HSV.V >>= 1;
+			else if (i == VEX_MAP_BLACK)
+				Temp.HSV.V >>= 2;
+			
+			// Find color
+			l_ColorMaps[i][j] = V_BestHSVMatch(First, Temp);
+		}
+	}
+
+#undef GRAN
+#undef QUICKMINMAX
+}
+
+/* V_DrawFadeConsBackEx() -- Pixelate and add red tint */
+void V_DrawFadeConsBackEx(const UInt32 Flags, const int x1, const int y1, const int x2, const int y2)
+{
+	int X1, Y1, X2, Y2;
+	int x, y, i, w;
+	int* buf;
+	int* buf2;
+	int c;
+	UInt8* Map;
+	
+	/* Flags */
+	// Unscaled
+	if (Flags & VEX_NOSCALESTART)
+	{
+		X1 = x1;
+		Y1 = y1;
+		X2 = x2;
+		Y2 = y2;
+	}
+	
+	// Scaled
+	else
+	{
+		X1 = (float)x1 * (float)vid.fdupx;
+		Y1 = (float)y1 * (float)vid.fdupy;
+		X2 = (float)x2 * (float)vid.fdupx;
+		Y2 = (float)y2 * (float)vid.fdupy;
+	}
+	
+	/* Normalize */
+	// Other way
+	if (X2 < X1)
+	{
+		x = X2;
+		X2 = X1;
+		X1 = x;
+	}
+	
+	if (Y2 < Y1)
+	{
+		x = Y2;
+		Y2 = Y1;
+		Y1 = x;
+	}
+	
+	// Squash off screen
+	if (X1 < 0)
+		X1 = 0;
+	if (X2 >= vid.width)
+		X2 = vid.width;
+	if (Y1 < 0)
+		Y1 = 0;
+	if (Y2 >= vid.height)
+		Y2 = vid.height;
+	
+	// Not visible?
+	if (X1 == X2 || Y1 == Y2 || X1 >= vid.width || X2 < 0 || Y1 >= vid.height || Y2 < 0)
+		return;
+	
+	/* Mapping */
+	if (((Flags & VEX_COLORMAPMASK) >> VEX_COLORMAPSHIFT) < NUMVEXCOLORS)
+		Map = l_ColorMaps[(Flags & VEX_COLORMAPMASK) >> VEX_COLORMAPSHIFT];
+	else
+		Map = l_ColorMaps[VEX_MAP_RED];
+	
+	/* Actual Drawing */
+	// Speed
+	w = (X2 >> 2);
+	
+	// Loop
+	for (y = Y1; y < Y2; y += 8)
+	{
+		// Set buf
+		buf = (int *)(screens[0] + vid.width * y);
+		
+		// Loop
+		for (x = (X1 >> 2); x < w - 1; x += 2)
+		{
+			c = Map[buf[x] & 0xFF];
+			buf[x] = c | (c << 8) | (c << 16) | (c << 24);
+			buf[x + 1] = buf[x];
+		}
+		
+		// Final bits
+		for (x = x << 2; x < w; x++)
+			((UInt8*)buf)[x] = c & 0xFF;
+		
+		// Inner second loop
+		for (i = 1; i < 8 && (y + i) < Y2; i++)
+		{
+			buf2 = (int *)(screens[0] + vid.width * (y + i));
+			memcpy(buf2, buf, X2 - X1);
+		}
+	}
+}
+
+/* V_DrawPatchEx() -- Extended patch drawing function */
+void V_DrawPatchEx(const UInt32 Flags, const int x, const int y, const patch_t* const Patch)
+{
+	int X, Y, Count;
+	fixed_t RowFrac, ColFrac, Col, Width, Offset, DupX, DupY;
+	column_t* Column;
+	UInt8* Dest;
+	UInt8* DestTop;
+	UInt8* Source;
+	
+	const UInt8* TransMap;	// TODO!
+	const UInt8* ColorMap;
+	Int8 Color, Screen;
+	
+	/* Check */
+	if (!Patch)
+		return;
+	
+	/* Init */
+	X = x - Patch->leftoffset;
+	Y = y - Patch->topoffset;
+	RowFrac = 1 << FRACBITS;
+	ColFrac = 1 << FRACBITS;
+	Width = Patch->width << FRACBITS;
+	DupX = DupY = 1 << FRACBITS;
+	
+	/* Handle Flags */
+	// Transparency
+	switch ((Flags & VEX_FILLTRANSMASK) >> VEX_FILLTRANSSHIFT)
+	{
+		case VEX_BASETRANSMED:
+		case VEX_BASETRANSHIGH:
+		case VEX_BASETRANSMORE:
+		case VEX_BASETRANSFIRE:
+		case VEX_BASETRANSFX1:
+		case VEX_BASETRANSFULL:
+		default:
+			break;
+	}	// TODO!
+	
+	// Mapping
+	Color = (Flags & VEX_COLORMAPMASK) >> VEX_COLORMAPSHIFT;
+	
+	if (Color < 0 || Color >= NUMVEXCOLORS)
+		Color = 0;
+	
+	ColorMap = V_ReturnColormapPtr(Color);
+	
+	// Scaled picture
+	if (!(Flags & VEX_NOSCALESCREEN))
+	{
+		// New scale
+		DupX = vid.fxdupx;
+		DupY = vid.fxdupy;
+		
+		// Scale all
+		RowFrac = FixedDiv(RowFrac, DupY);
+		ColFrac = FixedDiv(ColFrac, DupX);
+		Width = FixedMul(Width, DupX);
+	}
+	
+	// Scaled Start
+	if (!(Flags & VEX_NOSCALESTART))
+	{
+		X = FixedMul(X << FRACBITS, DupX) >> FRACBITS;
+		Y = FixedMul(Y << FRACBITS, DupY) >> FRACBITS;
+	}
+	
+	// Alternate screen
+	if (Flags & VEX_SECONDBUFFER)
+		Screen = 1;
+	else
+		Screen = 0;
+	
+	/* Update dirty rectangle */
+	if (!Screen)
+		V_MarkRect(X, Y, Width >> FRACBITS, (Patch->height << FRACBITS, DupY) >> FRACBITS);
+	
+	/* Start Drawing Patch */
+	for (DestTop = screens[Screen] + (/*FixedMul(*/Y/*, DupY)*/ * vid.width) + /*FixedMul(*/X/*, DupX)*/, Col = 0;
+			(Col >> FRACBITS) < Patch->width && Col < Width; Col += ColFrac, DestTop++)
+	{
+		// Get source column
+		Column = (column_t*)((UInt8*)Patch + Patch->columnofs[Col >> FRACBITS]);
+		
+		// Draw column
+		while (Column->topdelta != 0xFF)
+		{
+			// Get Drawing parms
+			Source = (UInt8*)Column + 3;
+			Dest = DestTop + (FixedMul(Column->topdelta, DupY) * vid.width);
+			
+			// Draw column
+			for (Offset = 0, Count = (FixedMul(Column->length << FRACBITS, DupY) >> FRACBITS);
+					Count >= 0; Count--, Dest += vid.width, Offset += RowFrac)
+				*Dest = ColorMap[Source[Offset >> FRACBITS]];
+			
+			// Go to next column
+			Column = (column_t*)((UInt8*)Column + Column->length + 4);
+		}
+	}
+}
+
+/********************
+*** COMPATIBILITY ***
+********************/
+
+/* V_DrawFadeConsBack() -- Pixelate and add red tint */
+void V_DrawFadeConsBack(int x1, int y1, int x2, int y2)
+{
+	V_DrawFadeConsBackEx(VEX_COLORMAPGREEN | VEX_NOSCALESTART | VEX_NOSCALESCREEN, x1, y1, x2, y2);
+}
+
+/* V_DrawPatch() -- Draws patch unscaled */
+void V_DrawPatch(const int x, const int y, const int scrn, const patch_t* const patch)
+{
+	UInt32 Flags = 0;
+	
+	/* Handle */
+	if (scrn & 0xFFFF)
+		Flags |= VEX_SECONDBUFFER;
+	
+	V_DrawPatchEx(Flags, x, y, patch);
+}
+
+/* V_DrawMappedPatch() -- Draws colormapped patch scaled */
+void V_DrawMappedPatch(const int x, const int y, const int scrn, const patch_t* const patch, const byte* const colormap)
+{
+	UInt32 Flags = 0;
+	
+	/* Handle */
+	if (scrn & 0xFFFF)
+		Flags |= VEX_SECONDBUFFER;
+	if (scrn & V_NOSCALEPATCH)
+		Flags |= VEX_NOSCALESCREEN;
+	if (scrn & V_NOSCALESTART)
+		Flags |= VEX_NOSCALESTART;
+	
+	/* Color */
+	if (colormap == greenmap)
+		Flags |= VEX_MAP_RED << VEX_COLORMAPSHIFT;
+	else if (colormap == whitemap)
+		Flags |= VEX_MAP_BRIGHTWHITE << VEX_COLORMAPSHIFT;
+	else if (colormap == graymap)
+		Flags |= VEX_MAP_GRAY << VEX_COLORMAPSHIFT;
+	else if (colormap == orangemap)
+		Flags |= VEX_MAP_ORANGE << VEX_COLORMAPSHIFT;
+	
+	/* Now Draw */
+	V_DrawPatchEx(Flags, x, y, patch);
+}
+
+/* V_DrawScaledPatch() -- Draws patch scaled */
+void V_DrawScaledPatch(const int x, const int y, const int scrn, const patch_t* const patch)
+{
+	UInt32 Flags = 0;
+	
+	/* Handle */
+	if (scrn & 0xFFFF)
+		Flags |= VEX_SECONDBUFFER;
+	if (scrn & V_NOSCALEPATCH)
+		Flags |= VEX_NOSCALESCREEN;
+	if (scrn & V_NOSCALESTART)
+		Flags |= VEX_NOSCALESTART;
+	
+	/* Now Draw */
+	V_DrawPatchEx(Flags, x, y, patch);
+}
+
+/* V_DrawTransPatch() -- Draw translucent patch unscaled */
+void V_DrawTransPatch(const int x, const int y, const int scrn, const patch_t* const patch)
+{
+	UInt32 Flags = VEX_NOSCALESTART | VEX_NOSCALESCREEN;
+	
+	/* Handle */
+	if (scrn & 0xFFFF)
+		Flags |= VEX_SECONDBUFFER;
+	
+	V_DrawPatchEx(Flags, x, y, patch);
+}
+
+/* V_DrawTranslucentPatch() -- Draw scaled translucent patch */
+void V_DrawTranslucentPatch(const int x, const int y, const int scrn, const patch_t* const patch)
+{
+	UInt32 Flags = 0;
+	
+	/* Handle */
+	if (scrn & 0xFFFF)
+		Flags |= VEX_SECONDBUFFER;
+	
+	V_DrawPatchEx(Flags, x, y, patch);
+}
 
 // #############################################################################
 // #############################################################################

@@ -43,6 +43,7 @@ ReMooD (C) 2006-2010 GhostlyDeath, 2006-2010 ReMooD Team. The ReMooD Name and Lo
 			</UL></LI>
 		<LI><A href="#changes">Changes</A>
 			<UL>
+				<LI><A href="#08bto10a">0.8b to 1.0a</A></LI>
 				<LI><A href="#08ato08b">0.8a to 0.8b</A></LI>
 				<LI><A href="#07cto08a">0.7c to 0.8a</A></LI>
 				<LI><A href="#07bto07c">0.7b to 0.7c</A></LI>
@@ -321,7 +322,7 @@ ReMooD (C) 2006-2010 GhostlyDeath, 2006-2010 ReMooD Team. The ReMooD Name and Lo
  - = Removal<BR>
  
 <BR> <!-- ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ -->
-<DIV id="08ato08b">
+<DIV id="08bto10a">
 From: ReMooD 0.8b "French Onion Soup" [Thursday, April 30, 2009 - UNRELEASED]<BR>
 To&nbsp;&nbsp;: ReMooD 1.0a "Final" [To Be Determined]<BR>
 ===============================================================================<BR>
@@ -345,6 +346,10 @@ To&nbsp;&nbsp;: ReMooD 1.0a "Final" [To Be Determined]<BR>
  * Source/Misc: Fixed 'comparisons like ‘X<=Y<=Z’ do not have their mathematical meaning' error due to missing parenthesis around #define used as a function. [GhostlyDeath].<BR>
  + Game/Console: Add command line option -quiet (useful only with -devparm) for the console loading screen that has the same effect with -devparm not passed on initial start. This would increase developer startup time on very slow development systems such as emulators by skipping multiple draw operations. [GhostlyDeath]<BR>
  + Game/Video: Add V_DrawFadeConsBackEx() which just uses VEX_ for the fade screen. [GhostlyDeath]<BR>
+ + Game/Video: Add better graphical color map support and deprecate the console colormap code (a.k.a. greenmap). [GhostlyDeath]<BR>
+ + Game/Video: Add V_DrawPatchEx() which deprecates and replaces V_DrawPatch(), V_DrawMappedPatch(), V_DrawScaledPatch(), V_DrawTransPatch() (no code), and V_DrawTranslucentPatch(). This merges similar code across 5 functions into a single function.[GhostlyDeath]<BR>
+ + Game/Video: Add vid.fxdupx and vid.fxdupy, fixed point screen scale values and base other scales off that. [GhostlyDeath]<BR>
+ - Game/Video: Remove V_DrawSmallScaledPatch(), it was never used and if we want a small patch we can just rely on reduced screen multiplier values. [GhostlyDeath]<BR>
 </DIV>
  
 <BR> <!-- ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ -->

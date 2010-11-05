@@ -191,11 +191,16 @@ void SCR_Startup(void)
 		return;
 
 	vid.modenum = 0;
-
-	vid.fdupx = (float)vid.width / BASEVIDWIDTH;	//1.0;
-	vid.fdupy = (float)vid.height / BASEVIDHEIGHT;	//1.0f;
-	vid.dupx = (int)vid.fdupx;	//1;
-	vid.dupy = (int)vid.fdupy;	//1;
+	
+	// GhostlyDeath <November 5, 2010> -- Fixed point scale
+	vid.fxdupx = FixedDiv(vid.width << FRACBITS, BASEVIDWIDTH << FRACBITS);
+	vid.fxdupy = FixedDiv(vid.height << FRACBITS, BASEVIDHEIGHT << FRACBITS);
+	
+	// GhostlyDeath <November 5, 2010> -- Use fixed point scale
+	vid.fdupx = FIXED_TO_FLOAT(vid.fxdupx);
+	vid.fdupy = FIXED_TO_FLOAT(vid.fxdupy);
+	vid.dupx = vid.fxdupx >> FRACBITS;
+	vid.dupy = vid.fxdupy >> FRACBITS;
 
 	vid.baseratio = FRACUNIT;
 
@@ -229,10 +234,15 @@ void SCR_Recalc(void)
 	//added:18-02-98: scale 1,2,3 times in x and y the patches for the
 	//                menus and overlays... calculated once and for all
 	//                used by routines in v_video.c
-	vid.dupx = vid.width / BASEVIDWIDTH;
-	vid.dupy = vid.height / BASEVIDHEIGHT;
-	vid.fdupx = (float)vid.width / BASEVIDWIDTH;
-	vid.fdupy = (float)vid.height / BASEVIDHEIGHT;
+	// GhostlyDeath <November 5, 2010> -- Fixed point scale
+	vid.fxdupx = FixedDiv(vid.width << FRACBITS, BASEVIDWIDTH << FRACBITS);
+	vid.fxdupy = FixedDiv(vid.height << FRACBITS, BASEVIDHEIGHT << FRACBITS);
+	
+	// GhostlyDeath <November 5, 2010> -- Use fixed point scale
+	vid.fdupx = FIXED_TO_FLOAT(vid.fxdupx);
+	vid.fdupy = FIXED_TO_FLOAT(vid.fxdupy);
+	vid.dupx = vid.fxdupx >> FRACBITS;
+	vid.dupy = vid.fxdupy >> FRACBITS;
 	vid.baseratio = FixedDiv(vid.height << FRACBITS, BASEVIDHEIGHT << FRACBITS);
 
 	//added:18-02-98: calculate centering offset for the scaled menu
