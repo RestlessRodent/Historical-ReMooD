@@ -536,7 +536,7 @@ void V_BlitScalePicExtern(int x1, int y1, int scrn, pic_t* pic)
 static void V_BlitScalePic(int x1, int y1, int scrn, pic_t * pic)
 {	// QuickRound
 	int dupx, dupy;
-	int x, y, z;
+	int x, y;
 	byte *src, *dest;
 	int width, height;
 	
@@ -707,7 +707,7 @@ void V_DrawFlatFill(int x, int y, int w, int h, int flatnum)
 	for (v = 0; v < h; v++, dest += vid.width)
 	{
 		xfrac = 0;
-		src = flat + (((yfrac >> FRACBITS - 1) & (flatsize - 1)) << flatshift);
+		src = flat + ((((yfrac >> FRACBITS) - 1) & (flatsize - 1)) << flatshift);
 		for (u = 0; u < w; u++)
 		{
 			dest[u] = src[(xfrac >> FRACBITS) & (flatsize - 1)];
@@ -1048,7 +1048,7 @@ static size_t V_BestHSVMatch(const V_ColorEntry_t* const Table, const V_ColorEnt
 	V_ColorEntry_t tRGB, iRGB;
 	Int32 BestSqr, ThisSqr, Dr, Dg, Db;
 	
-	/* Check *?
+	/* Check */
 	if (!Table)
 		return 0;
 	
@@ -1086,9 +1086,7 @@ static size_t V_BestHSVMatch(const V_ColorEntry_t* const Table, const V_ColorEnt
 /* V_InitializeColormaps() -- Initialize Spectrum colormaps */
 void V_InitializeColormaps(void)
 {
-#define GRAN 23
-#define QUICKMINMAX(a,b,c) (a) = ((GRAN >= (c)) ? 0 : ((c) - GRAN)); (b) = (((c) >= (255 - GRAN)) ? 255 : ((c) + GRAN));
-	size_t i, j, l;
+	size_t i, j;
 	Int32 k;
 	V_ColorEntry_t Base[256];
 	V_ColorEntry_t First[256];
@@ -1127,7 +1125,7 @@ void V_InitializeColormaps(void)
 	}
 	
 	/* Loop through none color */
-	l_ColorMaps[0] = Z_Malloc(sizeof(UInt8) * 256, PU_STATIC, &l_ColorMaps[0]);
+	l_ColorMaps[0] = Z_Malloc(sizeof(UInt8) * 256, PU_STATIC, (void**)&l_ColorMaps[0]);
 	for (j = 0; j < 256; j++)
 		l_ColorMaps[0][j] = j;
 	
@@ -1135,7 +1133,7 @@ void V_InitializeColormaps(void)
 	for (i = VEX_MAP_RED; i <= VEX_MAP_MAGENTA; i++)
 	{
 		// Create color table
-		l_ColorMaps[i] = Z_Malloc(sizeof(UInt8) * 256, PU_STATIC, &l_ColorMaps[i]);
+		l_ColorMaps[i] = Z_Malloc(sizeof(UInt8) * 256, PU_STATIC, (void**)&l_ColorMaps[i]);
 		
 		// Loop through colors
 		for (j = 0; j < 256; j++)
@@ -1150,18 +1148,16 @@ void V_InitializeColormaps(void)
 			
 			// Use additive for value
 			if (i == VEX_MAP_ORANGE || i == VEX_MAP_YELLOW || i == VEX_MAP_CYAN)
-				k = ((Additive[j] / 64) * 12) - 255;//(Int32)83 - (Int32)((Additive[j] / 64) * 12);
+			{
+				k = (Temp.HSV.V * Temp.HSV.V) >> 8;
+				Temp.HSV.V = (k < 255 ? k : 255);
+			}
 			else
+			{
 				k = (Int32)167 - (Int32)((Additive[j] / 64) * 12);
-				
-			if (k <= 0)
-				Temp.HSV.V = 0;
-			else if (k >= 255)
-				Temp.HSV.V = 255;
-			else
 				Temp.HSV.V = k;
-			
-			Temp.HSV.V = -((Int32)Temp.HSV.V - (Int32)256);	// flip
+				Temp.HSV.V = -((Int32)Temp.HSV.V - (Int32)256);	// flip
+			}
 			
 			// Find color
 			l_ColorMaps[i][j] = V_BestHSVMatch(First, Temp);
@@ -1169,7 +1165,7 @@ void V_InitializeColormaps(void)
 	}
 	
 	/* Brown */
-	l_ColorMaps[VEX_MAP_BROWN] = Z_Malloc(sizeof(UInt8) * 256, PU_STATIC, &l_ColorMaps[0]);
+	l_ColorMaps[VEX_MAP_BROWN] = Z_Malloc(sizeof(UInt8) * 256, PU_STATIC, (void**)&l_ColorMaps[0]);
 	for (j = 0; j < 256; j++)
 		l_ColorMaps[VEX_MAP_BROWN][j] = j;
 	
@@ -1177,7 +1173,7 @@ void V_InitializeColormaps(void)
 	for (i = VEX_MAP_BRIGHTWHITE; i <= VEX_MAP_BLACK; i++)
 	{
 		// Create color table
-		l_ColorMaps[i] = Z_Malloc(sizeof(UInt8) * 256, PU_STATIC, &l_ColorMaps[i]);
+		l_ColorMaps[i] = Z_Malloc(sizeof(UInt8) * 256, PU_STATIC, (void**)&l_ColorMaps[i]);
 		
 		// Loop through colors
 		for (j = 0; j < 256; j++)
@@ -1206,9 +1202,6 @@ void V_InitializeColormaps(void)
 			l_ColorMaps[i][j] = V_BestHSVMatch(First, Temp);
 		}
 	}
-
-#undef GRAN
-#undef QUICKMINMAX
 }
 
 /* V_DrawFadeConsBackEx() -- Pixelate and add red tint */
@@ -1335,6 +1328,8 @@ void V_DrawPatchEx(const UInt32 Flags, const int x, const int y, const patch_t* 
 	
 	/* Handle Flags */
 	// Transparency
+	TransMap = NULL;
+	
 	switch ((Flags & VEX_FILLTRANSMASK) >> VEX_FILLTRANSSHIFT)
 	{
 		case VEX_BASETRANSMED:
@@ -1383,7 +1378,7 @@ void V_DrawPatchEx(const UInt32 Flags, const int x, const int y, const patch_t* 
 	
 	/* Update dirty rectangle */
 	if (!Screen)
-		V_MarkRect(X, Y, Width >> FRACBITS, (Patch->height << FRACBITS, DupY) >> FRACBITS);
+		V_MarkRect(X, Y, Width >> FRACBITS, FixedMul(Patch->height << FRACBITS, DupY) >> FRACBITS);
 	
 	/* Start Drawing Patch */
 	for (DestTop = screens[Screen] + (/*FixedMul(*/Y/*, DupY)*/ * vid.width) + /*FixedMul(*/X/*, DupX)*/, Col = 0;
@@ -1400,7 +1395,7 @@ void V_DrawPatchEx(const UInt32 Flags, const int x, const int y, const patch_t* 
 			Dest = DestTop + (FixedMul(Column->topdelta, DupY) * vid.width);
 			
 			// Draw column
-			for (Offset = 0, Count = (FixedMul(Column->length << FRACBITS, DupY) >> FRACBITS);
+			for (Offset = 0, Count = ((FixedMul(Column->length << FRACBITS, DupY) >> FRACBITS) - 1);
 					Count >= 0; Count--, Dest += vid.width, Offset += RowFrac)
 				*Dest = ColorMap[Source[Offset >> FRACBITS]];
 			
@@ -1637,15 +1632,15 @@ void V_AddCharacter(VideoFont_t Font, WadEntry_t* Entry, wchar_t Char, wchar_t T
 /* V_MapGraphicalCharacters() -- Scan WADs for characters and add them */
 void V_MapGraphicalCharacters(void)
 {
-	int i, j, k, l, m, n;
+	int i, j, k, l;
 	WadFile_t* CurWad = NULL;
 	int Mode;
-	wchar_t GivenFont = 0;
 	char x;
 	wchar_t NewChar = 0;
 	wchar_t Temp = 0;
 	wchar_t Temp2 = 0;
 	size_t Totals[NUMVIDEOFONTS];
+	int groups, ids, groupd, idd;
 	
 	memset(Totals, 0, sizeof(Totals));
 	
@@ -1691,8 +1686,8 @@ void V_MapGraphicalCharacters(void)
 					Mode = 0;
 					break;
 				}
-				else if ((gamemode != heretic && strlen(Font[k][1]) && (!strncasecmp(Font[k][1], CurWad->Index[j].Name, strlen(Font[k][1]))) ||
-					(gamemode == heretic && strlen(Font[k][3]) && (!strncasecmp(Font[k][3], CurWad->Index[j].Name, strlen(Font[k][3]))))))
+				else if ((gamemode != heretic && strlen(Font[k][1]) && (!strncasecmp(Font[k][1], CurWad->Index[j].Name, strlen(Font[k][1])))) ||
+					(gamemode == heretic && strlen(Font[k][3]) && (!strncasecmp(Font[k][3], CurWad->Index[j].Name, strlen(Font[k][3])))))
 				{
 					Mode = 1;
 					
@@ -1860,11 +1855,11 @@ void V_MapGraphicalCharacters(void)
 				NewChar == '\b' ||
 				NewChar == ' ' ||
 				NewChar == 0x00A0 ||
-				NewChar >= 0x2000 && NewChar <= 0x200F ||
-				NewChar >= 0x2028 && NewChar <= 0x202F ||
-				NewChar >= 0x205F && NewChar <= 0x2063 ||
-				NewChar >= 0x206A && NewChar <= 0x206F ||
-				NewChar >= 0xFFF9 && NewChar <= 0xFFFB)
+				(NewChar >= 0x2000 && NewChar <= 0x200F) ||
+				(NewChar >= 0x2028 && NewChar <= 0x202F) ||
+				(NewChar >= 0x205F && NewChar <= 0x2063) ||
+				(NewChar >= 0x206A && NewChar <= 0x206F) ||
+				(NewChar >= 0xFFF9 && NewChar <= 0xFFFB))
 				continue;
 			
 			V_AddCharacter(k, &CurWad->Index[j], NewChar, 0, 0);
@@ -1889,6 +1884,8 @@ void V_MapGraphicalCharacters(void)
 	
 	/* Map Lowercase to Capital IF lowercase does not exist */
 	{
+		int x;
+		
 		// Scope!
 		typedef struct ln_s
 		{
@@ -2111,10 +2108,8 @@ void V_MapGraphicalCharacters(void)
 		
 			{0x0000, 0x0000, 0}		// THE END
 		};
-	
-		int x, y, z;
-		int groups, ids, groupd, idd, tgs, tds, bgs, bds;
 		
+		// Go through each font	
 		for (i = 0; i < NUMVIDEOFONTS; i++)
 		{
 			// Check if the font set exists
@@ -2523,7 +2518,7 @@ void V_StringDimensionsA(const VideoFont_t Font, const UInt32 Options, const cha
 {
 	const char* c = String;
 	wchar_t wc;
-	UniChar_t* D = NULL;
+	const UniChar_t* D = NULL;
 	int LineHeight = 0;
 	int XWidth = 0;
 	int XHeight = 0;
@@ -2632,7 +2627,7 @@ int V_DrawStringW(const VideoFont_t Font, const UInt32 Options, const wchar_t* W
 #define BUFSIZE 512
 	char MB[5];
 	char Buf[BUFSIZE];
-	wchar_t* w;
+	const wchar_t* w;
 	char* b;
 	size_t i, n;
 	
@@ -2651,7 +2646,7 @@ int V_DrawStringW(const VideoFont_t Font, const UInt32 Options, const wchar_t* W
 		V_WCharToMB(*w, MB);
 		
 		// Append
-		for (i = 0; MB[i] && n < Buf;)
+		for (i = 0; MB[i] && n < BUFSIZE;)
 			Buf[n++] = MB[i++];
 	}
 		
@@ -2664,13 +2659,13 @@ void V_StringDimensionsW(const VideoFont_t Font, const UInt32 Options, const wch
 #define BUFSIZE 512
 	char MB[5];
 	char Buf[BUFSIZE];
-	wchar_t* w;
+	const wchar_t* w;
 	char* b;
 	size_t i, n;
 	
 	/* Check */
 	if (!WString)
-		return 0;
+		return;
 	
 	/* Clear */
 	memset(Buf, 0, sizeof(Buf));
@@ -2683,7 +2678,7 @@ void V_StringDimensionsW(const VideoFont_t Font, const UInt32 Options, const wch
 		V_WCharToMB(*w, MB);
 		
 		// Append
-		for (i = 0; MB[i] && n < Buf;)
+		for (i = 0; MB[i] && n < BUFSIZE;)
 			Buf[n++] = MB[i++];
 	}
 		

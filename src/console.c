@@ -174,6 +174,7 @@ void CONEx_DestroyBuffer(CONEx_Buffer_t* const Buffer)
 void CONEx_BufferWrite(CONEx_Buffer_t* const Buffer, const char* const Text)
 {
 	const char* p;
+	size_t LastLine;
 	
 	/* Check */
 	if (!Buffer || !Text)
@@ -211,7 +212,7 @@ void CONEx_BufferWrite(CONEx_Buffer_t* const Buffer, const char* const Text)
 		if (*p == '\n')
 		{
 			// Increase written line
-			Buffer->LineWrite++;
+			LastLine = Buffer->LineWrite++;
 			
 			// Write hit end?
 			if (Buffer->LineWrite == Buffer->LineSize)
@@ -227,6 +228,10 @@ void CONEx_BufferWrite(CONEx_Buffer_t* const Buffer, const char* const Text)
 			
 			// Ensure NULL
 			Buffer->Lines[Buffer->LineWrite] = NULL;
+			
+			// Execute line
+			if (Buffer->WroteLineFunc)
+				Buffer->WroteLineFunc(Buffer->Parent, Buffer, Buffer->Lines[LastLine]);
 		}
 		
 		// Carriage return?
@@ -401,6 +406,30 @@ boolean CONEx_Responder(event_t* const Event)
 							l_ExInputBuffer[len - 1] = 0;
 							len--;
 						} while (len > 1 && (c & 0xC0) != 0xC0);
+					return true;
+					
+					// Enter command
+				case KEY_ENTER:
+					// Only if it has length
+					if (!strlen(l_ExInputBuffer))
+						return true;
+					
+					// Send to write of active console
+					if (l_ActiveConsole->Command)
+					{
+						// Append \n at end
+						strncat(l_ExInputBuffer, "\n", CON_MAXPROMPTCHARS);
+						
+						// Dirty hack \n at end
+						l_ExInputBuffer[CON_MAXPROMPTCHARS - 1] = 0;
+						l_ExInputBuffer[CON_MAXPROMPTCHARS - 2] = '\n';
+						
+						// Write to command buffer
+						CONEx_BufferWrite(l_ActiveConsole->Command, l_ExInputBuffer);
+					}
+					
+					// Clear
+					memset(l_ExInputBuffer, 0, sizeof(l_ExInputBuffer));
 					return true;
 					
 					// Close console
@@ -734,6 +763,25 @@ void CONS_ConExtended_f(void)
 	l_ExConsoleOn = true;
 }
 
+/* CONEx_CommandWriteLine() -- Default action when line is written to execution buffer */
+void CONEx_CommandWriteLine(struct CONEx_Console_s* const Parent, struct CONEx_Buffer_s* const This, const char* const Line)
+{
+	/* Check */
+	if (!Parent || !This || !Line)
+		return;
+	
+	/* Parse command */
+	printf(">>> \"%s\"\n", Line);
+}
+
+/* CONEx_Init() -- Initialize extended console */
+void CONEx_Init(void)
+{
+	/* Create root console */
+	l_RootConsole = CONEx_CreateConsole();
+	l_RootConsole->Command->WroteLineFunc = CONEx_CommandWriteLine;
+}
+
 /***************************
 *** DEPRECATED FUNCTIONS ***
 ***************************/
@@ -953,8 +1001,8 @@ void CON_Init(void)
 {
 	int i;
 	
-	// GhostlyDeath <November 2, 2010> -- Root console
-	l_RootConsole = CONEx_CreateConsole();
+	// GhostlyDeath <November 2, 2010> -- Extended console
+	CONEx_Init();
 
 #ifdef GAMECLIENT
 	if (dedicated)

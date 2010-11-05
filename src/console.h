@@ -64,6 +64,7 @@ typedef struct CONEx_Buffer_s
 	
 	/* Owner */
 	struct CONEx_Console_s* Parent;						// Parent console
+	void (*WroteLineFunc)(struct CONEx_Console_s* const Parent, struct CONEx_Buffer_s* const This, const char* const Line);
 } CONEx_Buffer_t;
 
 /* CONEx_Console_t -- Extended console interface */
@@ -102,6 +103,7 @@ void CONEx_DestroyConsole(CONEx_Console_t* const Console);
 void CONEx_AttachConsole(CONEx_Console_t* const ToThis, CONEx_Console_t* const Attacher);
 void CONEx_DetachConsole(CONEx_Console_t* const FromThis, CONEx_Console_t* const Detacher);
 
+void CONEx_Init(void);
 boolean CONEx_Responder(event_t* const Event);
 void CONEx_Ticker(void);
 void CONEx_Drawer(void);
