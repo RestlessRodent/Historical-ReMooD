@@ -1098,6 +1098,7 @@ void D_DoomMain(void)
 	
 	// GhostlyDeath <November 18, 2008> -- Move devparm up here
 	devparm = M_CheckParm("-devparm");
+	g_QuietConsole = M_CheckParm("-quiet");
 	
 	// GhostlyDeath <July 6, 2008> -- initialize fields
 	memset(player_names, 0, sizeof(player_names));

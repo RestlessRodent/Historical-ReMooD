@@ -71,6 +71,12 @@
 #include <unistd.h>
 #endif
 
+/**************
+*** GLOBALS ***
+**************/
+
+boolean g_QuietConsole = false;								// Mute startup console
+
 /*************
 *** LOCALS ***
 *************/
@@ -606,7 +612,7 @@ void CONEx_Drawer(void)
 				);
 		
 		// If console startup and we aren't devparming, don't draw text at all
-		if (con_startup && !devparm)
+		if (con_startup && (!devparm || g_QuietConsole))
 		{
 			// Just say "LOADING..."
 			V_DrawStringA(VFONT_LARGE, VFONTOPTION_CENTERED, "Loading...", 160, 100);
@@ -1249,7 +1255,7 @@ void CONS_Printf(char *fmt, ...)
 		// (no hardware accelerated support for these versions)
 		
 		// GhostlyDeath <November 4, 2010> -- If we aren't devparming, draw once
-		if (devparm || (!devparm && !AlreadyDrawn))
+		if ((devparm && !g_QuietConsole) || ((!devparm || g_QuietConsole) && !AlreadyDrawn))
 		{
 			CONEx_Drawer();
 		

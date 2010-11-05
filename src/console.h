@@ -82,6 +82,12 @@ typedef struct CONEx_Console_s
 	size_t NumKids;										// Attached console count
 } CONEx_Console_t;
 
+/**************
+*** GLOBALS ***
+**************/
+
+extern boolean g_QuietConsole;							// Mute startup console
+
 /****************
 *** FUNCTIONS ***
 ****************/
