@@ -174,8 +174,8 @@ void SCR_Startup(void)
 	vid.modenum = 0;
 	
 	// GhostlyDeath <November 5, 2010> -- Fixed point scale
-	vid.fxdupx = FixedDiv(vid.width << FRACBITS, BASEVIDWIDTH << FRACBITS);
-	vid.fxdupy = FixedDiv(vid.height << FRACBITS, BASEVIDHEIGHT << FRACBITS);
+	vid.fxdupx = FixedDivSlow(vid.width << FRACBITS, BASEVIDWIDTH << FRACBITS);
+	vid.fxdupy = FixedDivSlow(vid.height << FRACBITS, BASEVIDHEIGHT << FRACBITS);
 	
 	// GhostlyDeath <November 5, 2010> -- Use fixed point scale
 	vid.fdupx = FIXED_TO_FLOAT(vid.fxdupx);
@@ -216,8 +216,8 @@ void SCR_Recalc(void)
 	//                menus and overlays... calculated once and for all
 	//                used by routines in v_video.c
 	// GhostlyDeath <November 5, 2010> -- Fixed point scale
-	vid.fxdupx = FixedDiv(vid.width << FRACBITS, BASEVIDWIDTH << FRACBITS);
-	vid.fxdupy = FixedDiv(vid.height << FRACBITS, BASEVIDHEIGHT << FRACBITS);
+	vid.fxdupx = FixedDivSlow(vid.width << FRACBITS, BASEVIDWIDTH << FRACBITS);
+	vid.fxdupy = FixedDivSlow(vid.height << FRACBITS, BASEVIDHEIGHT << FRACBITS);
 	
 	// GhostlyDeath <November 5, 2010> -- Use fixed point scale
 	vid.fdupx = FIXED_TO_FLOAT(vid.fxdupx);

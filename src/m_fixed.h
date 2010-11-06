@@ -53,13 +53,7 @@
 typedef Int32 fixed_t;
 #define FIXED_TO_FLOAT(x) (((float)(x)) / 65536.0)
 
-//
-// Declare those functions:
-/*
-fixed_t FixedMul (fixed_t a, fixed_t b);
-fixed_t FixedDiv (fixed_t a, fixed_t b);
-fixed_t FixedDiv2 (fixed_t a, fixed_t b);
-*/
+//#define FIXEDBREAKVANILLA
 
 /* FixedMul() -- Multiply two fixed numbers */
 static fixed_t ATTRIB_FORCEINLINE ATTRIB_UNUSED FixedMul(fixed_t a, fixed_t b)
@@ -102,7 +96,7 @@ static fixed_t ATTRIB_FORCEINLINE ATTRIB_UNUSED FixedMul(fixed_t a, fixed_t b)
 		else
 			B = b;
 		
-		// Multiply sections of the numbers
+		// Multiply sections of the numbers (Standard math)
 		w = ((A & _FIXED_FRAC) * (B & _FIXED_FRAC)) >> _FIXED_FRACBITS;
 		x = ((A & _FIXED_INT) >> _FIXED_FRACBITS) * (B & _FIXED_FRAC);
 		y = (A & _FIXED_FRAC) * ((B & _FIXED_INT) >> _FIXED_FRACBITS);
@@ -123,7 +117,7 @@ static fixed_t ATTRIB_FORCEINLINE ATTRIB_UNUSED FixedMul(fixed_t a, fixed_t b)
 static fixed_t ATTRIB_FORCEINLINE ATTRIB_UNUSED FixedInv(const fixed_t a)
 {
 	// Copyright (C) 2010 GhostlyDeath (ghostlydeath@gmail.com / ghostlydeath@remood.org)
-	register fixed_t A, SDiv, Res;
+	register UInt32 A, SDiv, Res;
 	
 	/* Short circuit */
 	// These comparisons may be cheaper!
@@ -134,16 +128,18 @@ static fixed_t ATTRIB_FORCEINLINE ATTRIB_UNUSED FixedInv(const fixed_t a)
 	else
 	{
 		// Set A from a
-		A = a;
-		if (A & _FIXED_SIGN)
-			A = -A;
+		if (a & _FIXED_SIGN)
+			A = -a;
+		else
+			A = a;
 		
 		// Set division a bit smaller
-		SDiv = A >> 2;
+		SDiv = A >> 1;
+		//SDiv = A >> 2;
 		
 		// If division is big enough and not zero
 		if (SDiv)
-			Res = ((Int32)1 << ((_FIXED_FRACBITS << (Int32)1) - 2)) / SDiv;
+			Res = ((UInt32)1 << ((_FIXED_FRACBITS << (UInt32)1) - 1)) / SDiv;
 		
 		// A is a small number
 		else if (A == 3)
@@ -155,11 +151,11 @@ static fixed_t ATTRIB_FORCEINLINE ATTRIB_UNUSED FixedInv(const fixed_t a)
 		
 		// If a was originally negative, return negative result
 		if (a & _FIXED_SIGN)
-			return -Res;
+			return -((fixed_t)Res);
 		
 		// Otherwise it's positive
 		else
-			return Res;
+			return (fixed_t)Res;
 	}
 }
 
@@ -167,24 +163,24 @@ static fixed_t ATTRIB_FORCEINLINE ATTRIB_UNUSED FixedInv(const fixed_t a)
 static fixed_t ATTRIB_FORCEINLINE ATTRIB_UNUSED FixedDiv(fixed_t a, fixed_t b)
 {
 	// Copyright (C) 2010 GhostlyDeath (ghostlydeath@gmail.com / ghostlydeath@remood.org)
+#ifdef FIXEDBREAKVANILLA
 	if (a == b)
 		return _FIXED_ONE;	// TODO -- Breaks vanilla
 	else
+#endif
 		return FixedMul(a, FixedInv(b));
 }
 
-#if 0
-fixed_t FixedDiv2(fixed_t a, fixed_t b);
-
-static inline fixed_t FixedDiv(fixed_t a, fixed_t b)
+/* FixedMulSlow() -- Multiply two fixed numbers (slowly) */
+static fixed_t ATTRIB_FORCEINLINE ATTRIB_UNUSED FixedMulSlow(fixed_t a, fixed_t b)
 {
-	//I_Error("<a: %ld, b: %ld>",(long)a,(long)b);
-
-	if ((abs(a) >> 14) >= abs(b))
-		return (a ^ b) < 0 ? MININT : MAXINT;
-
-	return FixedDiv2(a, b);
+	return ((Int64)a * (Int64)b) >> FRACBITS;
 }
-#endif
+
+/* FixedDivSlow() -- Divide two fixed numbers (slowly) */
+static fixed_t ATTRIB_FORCEINLINE ATTRIB_UNUSED FixedDivSlow(fixed_t a, fixed_t b)
+{
+	return (((Int64)a) << (Int64)FRACBITS) / ((Int64)b);
+}
 
 #endif							/* __M_FIXED_H__ */
