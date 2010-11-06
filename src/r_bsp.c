@@ -849,12 +849,7 @@ void R_Subsector(int num)
 			}
 		}
 	}
-
-#ifdef FLOORSPLATS
-	if (sub->splats)
-		R_AddVisibleFloorSplats(sub);
-#endif
-
+	
 	R_AddSprites(sub->sector, tempsec.lightlevel);
 
 	firstseg = NULL;

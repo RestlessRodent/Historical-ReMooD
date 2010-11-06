@@ -1087,9 +1087,6 @@ void R_SetupFrame(player_t * player)
 
 void R_DrawPlayerSprites(void);
 
-//extern consvar_t cv_grsoftwareview; //r_glide.c
-extern void R_DrawFloorSplats(void);	//r_plane.c
-
 void R_RenderPlayerViewEx(player_t * player, int quarter)
 {
 	register byte* dest;
@@ -1103,10 +1100,6 @@ void R_RenderPlayerViewEx(player_t * player, int quarter)
 	R_ClearPlanes(player);		//needs player for waterheight in occupied sector
 	//R_ClearPortals ();
 	R_ClearSprites();
-
-#ifdef FLOORSPLATS
-	R_ClearVisibleFloorSplats();
-#endif
 
 	// check for new console commands.
 	NetUpdate();
@@ -1123,11 +1116,6 @@ void R_RenderPlayerViewEx(player_t * player, int quarter)
 
 	// Check for new console commands.
 	NetUpdate();
-
-#ifdef FLOORSPLATS
-	//faB(21jan): testing
-	R_DrawVisibleFloorSplats();
-#endif
 
 	// draw mid texture and sprite
 	// SoM: And now 3D floors/sides!

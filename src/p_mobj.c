@@ -1933,11 +1933,6 @@ void P_SpawnBloodSplats(fixed_t x, fixed_t y, fixed_t z, int damage, fixed_t mom
 		P_PathTraverse(x, y, x2, y2, PT_ADDLINES, PTR_BloodTraverse);
 	}
 #endif
-
-#ifdef FLOORSPLATS
-	// add a test floor splat
-	R_AddFloorSplat(bloodthing->subsector, "STEP2", x, y, bloodthing->floorz, SPLATDRAWMODE_SHADE);
-#endif
 }
 
 // P_SpawnBlood

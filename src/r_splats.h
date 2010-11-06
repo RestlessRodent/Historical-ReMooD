@@ -35,7 +35,6 @@
 #include "w_wad.h"
 
 #define WALLSPLATS				// comment this out to compile without splat effects
-//#define FLOORSPLATS
 
 #define MAXLEVELSPLATS      1024
 
@@ -69,19 +68,6 @@ struct wallsplat_s
 };
 typedef struct wallsplat_s wallsplat_t;
 
-// FLOOR SPLATS are pic_t (raw horizontally stored) drawn on top of the floor or ceiling
-struct floorsplat_s
-{
-	int pic;					// a pic_t lump id
-	int flags;
-	vertex_t verts[4];			// (x,y) as viewn from above on map
-	fixed_t z;					//     z (height) is constant for all the floorsplat
-	subsector_t *subsector;		// the parent subsector
-	struct floorsplat_s *next;
-	struct floorsplat_s *nextvis;
-};
-typedef struct floorsplat_s floorsplat_t;
-
 //p_setup.c
 extern float P_SegLength(seg_t * seg);
 
@@ -90,11 +76,6 @@ void R_ClearLevelSplats(void);
 
 void R_AddWallSplat(line_t * wallline, int sectorside, char *patchname,
 					fixed_t top, fixed_t wallfrac, int flags);
-void R_AddFloorSplat(subsector_t * subsec, char *picname, fixed_t x, fixed_t y,
-					 fixed_t z, int flags);
-
-void R_ClearVisibleFloorSplats(void);
-void R_AddVisibleFloorSplats(subsector_t * subsec);
-void R_DrawVisibleFloorSplats(void);
 
 #endif /*__R_SPLATS_H__*/
+
