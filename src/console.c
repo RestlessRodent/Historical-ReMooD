@@ -606,26 +606,20 @@ void CONEx_Drawer(void)
 		
 		// Draw background (either fade or image)
 		if (FadeBack)
-			V_DrawFadeConsBackEx((VEX_MAP_RED << VEX_COLORMAPSHIFT) | VEX_NOSCALESTART | VEX_NOSCALESCREEN, 0, 0, vid.width, BottomCon);
+			V_DrawFadeConsBackEx(
+					(VEX_MAP_RED << VEX_COLORMAPSHIFT) | VEX_NOSCALESTART | VEX_NOSCALESCREEN,
+					0,
+					0,
+					vid.width, BottomCon
+				);
+		// Draw as pic_t
+		else if (l_BackPicIsPicT)
+			V_BlitScalePicExtern(0, 0, 0, l_BackPic);
+			
+		// Draw as patch_t
 		else
 		{
-			// Cache back pic?
-			if (!l_BackPic)
-			{
-				// Cache
-				l_BackPic = W_CacheLumpName((heretic ? "RMD_CB_D" : "RMD_CB_H"), PU_STATIC);
-				
-				// Determine if it's pic_t or not...
-				l_BackPicIsPicT = true;	// TODO
-			}
-			
-			// Draw back
-			if (l_BackPicIsPicT)
-				V_BlitScalePicExtern(0, 0, 0, l_BackPic);
-			else
-			{
-				// TODO
-			}
+			// TODO
 		}
 		
 		// Draw ReMooD version
@@ -780,6 +774,16 @@ void CONEx_Init(void)
 	/* Create root console */
 	l_RootConsole = CONEx_CreateConsole();
 	l_RootConsole->Command->WroteLineFunc = CONEx_CommandWriteLine;
+	
+	/* Make Pictures */
+	if (!l_BackPic)
+	{
+		// Cache
+		l_BackPic = W_CacheLumpName((heretic ? "RMD_CB_D" : "RMD_CB_H"), PU_STATIC);
+		
+		// Determine if it's pic_t or not...
+		l_BackPicIsPicT = true;	// TODO
+	}
 }
 
 /***************************

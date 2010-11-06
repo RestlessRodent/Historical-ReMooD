@@ -517,22 +517,6 @@ void V_GetBlock(int x, int y, int scrn, int width, int height, byte * dest)
 	}
 }
 
-static void V_BlitScalePic(int x1, int y1, int scrn, pic_t * pic);
-//  Draw a linear pic, scaled, TOTALLY CRAP CODE!!! OPTIMISE AND ASM!!
-//  CURRENTLY USED FOR StatusBarOverlay, scale pic but not starting coords
-//
-void V_DrawScalePic(int x1, int y1, int scrn,	// hack flag
-					int lumpnum)
-{
-	V_BlitScalePic(x1, y1, scrn, W_CacheLumpNum(lumpnum, PU_CACHE));
-}
-
-/* V_BlitScalePicExtern() -- Extern for static */
-void V_BlitScalePicExtern(int x1, int y1, int scrn, pic_t* pic)
-{
-	V_BlitScalePic(x1, y1, scrn, pic);
-}
-
 static void V_BlitScalePic(int x1, int y1, int scrn, pic_t * pic)
 {	// QuickRound
 	int dupx, dupy;
@@ -574,6 +558,21 @@ static void V_BlitScalePic(int x1, int y1, int scrn, pic_t * pic)
 			dest += vid.width - QuickRound(vid.dupx * width);
 		}
 	}
+}
+
+//  Draw a linear pic, scaled, TOTALLY CRAP CODE!!! OPTIMISE AND ASM!!
+//  CURRENTLY USED FOR StatusBarOverlay, scale pic but not starting coords
+//
+void V_DrawScalePic(int x1, int y1, int scrn,	// hack flag
+					int lumpnum)
+{
+	V_BlitScalePic(x1, y1, scrn, W_CacheLumpNum(lumpnum, PU_CACHE));
+}
+
+/* V_BlitScalePicExtern() -- Extern for static */
+void V_BlitScalePicExtern(int x1, int y1, int scrn, pic_t* pic)
+{
+	V_BlitScalePic(x1, y1, scrn, pic);
 }
 
 void V_DrawRawScreen(int x1, int y1, int lumpnum, int width, int height)

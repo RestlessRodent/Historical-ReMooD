@@ -167,7 +167,10 @@ static fixed_t ATTRIB_FORCEINLINE ATTRIB_UNUSED FixedInv(const fixed_t a)
 static fixed_t ATTRIB_FORCEINLINE ATTRIB_UNUSED FixedDiv(fixed_t a, fixed_t b)
 {
 	// Copyright (C) 2010 GhostlyDeath (ghostlydeath@gmail.com / ghostlydeath@remood.org)
-	return FixedMul(a, FixedInv(b));
+	if (a == b)
+		return _FIXED_ONE;	// TODO -- Breaks vanilla
+	else
+		return FixedMul(a, FixedInv(b));
 }
 
 #if 0
