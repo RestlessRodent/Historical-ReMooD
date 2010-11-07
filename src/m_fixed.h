@@ -133,6 +133,18 @@ static fixed_t ATTRIB_FORCEINLINE ATTRIB_UNUSED FixedInv(const fixed_t a)
 		else
 			A = a;
 		
+#if 0
+		// 16.16 (x/65536 .. 0xFFFF) -> 15.15 (x/32768 .. 0x7FFF)
+			// 32,768 = 0x8000 (16) = 0x4000 (15)
+		Res = 0x1000U >> 1;
+		SDiv = (A >> 1) & 0x7FFFFFFFU;
+		
+		// Wide multiply like in 64-bit
+		Res = (Res << 15U) / SDiv;
+		
+		// 15.15 -> 16.16
+		Res <<= 1;
+#else
 		// Set division a bit smaller
 		SDiv = A >> 1;
 		//SDiv = A >> 2;
@@ -148,6 +160,7 @@ static fixed_t ATTRIB_FORCEINLINE ATTRIB_UNUSED FixedInv(const fixed_t a)
 		// A is super small or zero
 		else
 			Res = 0x7FFFFFFF;
+#endif
 		
 		// If a was originally negative, return negative result
 		if (a & _FIXED_SIGN)
@@ -165,10 +178,15 @@ static fixed_t ATTRIB_FORCEINLINE ATTRIB_UNUSED FixedDiv(fixed_t a, fixed_t b)
 	// Copyright (C) 2010 GhostlyDeath (ghostlydeath@gmail.com / ghostlydeath@remood.org)
 #ifdef FIXEDBREAKVANILLA
 	if (a == b)
-		return _FIXED_ONE;	// TODO -- Breaks vanilla
+		return _FIXED_ONE;
 	else
+		return FixedMul(a, FixedInv(b));	// TODO -- Breaks vanilla
+#else
+	if (b == 0)
+		return 0x7FFFFFFF | (a & 0x80000000);
+	else
+		return (((Int64)a) << (Int64)FRACBITS) / ((Int64)b);
 #endif
-		return FixedMul(a, FixedInv(b));
 }
 
 /* FixedMulSlow() -- Multiply two fixed numbers (slowly) */

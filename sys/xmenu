@@ -1,0 +1,6 @@
+?package(remood):\
+needs="X11"\
+section="Games/Action"\
+hints="Doom,First person"\
+title="ReMooD"\
+command="/usr/games/remood -waddir /usr/share/games/doom"
