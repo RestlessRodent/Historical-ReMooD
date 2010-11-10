@@ -41,6 +41,12 @@
 #include "command.h"
 #include "g_input.h"
 
+/****************
+*** CONSTANTS ***
+****************/
+
+#define CONEX_MAXVARIABLENAME		32					// Size limit of var name
+
 /*****************
 *** STRUCTURES ***
 *****************/
@@ -67,6 +73,49 @@ typedef struct CONEx_Buffer_s
 	void (*WroteLineFunc)(struct CONEx_Console_s* const Parent, struct CONEx_Buffer_s* const This, const char* const Line);
 } CONEx_Buffer_t;
 
+/* CONEx_Command_t -- Console command */
+typedef struct CONEx_Command_s
+{
+	/* Basic */
+	char Name[CONEX_MAXVARIABLENAME];					// Command name
+	UInt32 Hash;										// Hash ID
+	UInt32 Flags;										// Command flags
+	void (*Func)(struct CONEx_Console_s* Console, struct CONEx_Command_s* Command, const int ArgC, const char* const* const ArgV);
+	
+	/* Deprecated */
+	void (*DepFunc)(void);								// Deprecated function
+} CONEx_Command_t;
+
+/* CONEx_Variable_t -- Console variable */
+typedef struct CONEx_Variable_s
+{
+	char Name[CONEX_MAXVARIABLENAME];					// Variable name
+	UInt32 Hash;										// Hash ID
+	UInt32 Flags;										// Command flags
+	void (*Func)(struct CONEx_Console_s* Console, struct CONEx_Variable_s* Command, const int ArgC, const char* const* const ArgV);
+} CONEx_Variable_t;
+
+/* CONEx_VarTypeList_t -- Command/variable union */
+typedef struct CONEx_VarTypeList_s
+{
+	boolean IsVariable;									// Is this a variable?
+	struct CONEx_VarTypeList_s* Prev;					// Previous link
+	struct CONEx_VarTypeList_s* Next;					// Next link
+	
+	union
+	{
+		CONEx_Command_t Command;						// A command
+		CONEx_Variable_t Variable;						// A variable
+	} Data;
+} CONEx_VarTypeList_t;
+
+/* CONEx_VarTypeHash_t -- Variable and hash holder */
+typedef struct CONEx_VarTypeHash_s
+{
+	CONEx_VarTypeList_t* VarType;						// Associated variable type
+	UInt32 Hash;										// Hash
+} CONEx_VarTypeHash_t;
+
 /* CONEx_Console_t -- Extended console interface */
 typedef struct CONEx_Console_s
 {
@@ -76,6 +125,11 @@ typedef struct CONEx_Console_s
 	/* Buffers */
 	CONEx_Buffer_t* Output;								// Text output buffer
 	CONEx_Buffer_t* Command;							// Command buffer
+	
+	/* Commands and variables */
+	CONEx_VarTypeList_t* ComVarList;					// List of commands and variables
+	CONEx_VarTypeHash_t* ComVarHash[256];				// Hash list for variables
+	size_t NumComVarHash[256];							// Number of console variable hashes
 	
 	/* Siblings */
 	struct CONEx_Console_s* Parent;						// Parent console (attachment)
@@ -100,8 +154,19 @@ void CONEx_BufferWrite(CONEx_Buffer_t* const Buffer, const char* const Text);
 CONEx_Console_t* CONEx_CreateConsole(void);
 void CONEx_DestroyConsole(CONEx_Console_t* const Console);
 
+CONEx_Console_t* CONEx_GetRootConsole(void);
+CONEx_Console_t* CONEx_GetActiveConsole(void);
+
 void CONEx_AttachConsole(CONEx_Console_t* const ToThis, CONEx_Console_t* const Attacher);
 void CONEx_DetachConsole(CONEx_Console_t* const FromThis, CONEx_Console_t* const Detacher);
+
+CONEx_VarTypeList_t* CONEx_FindComVar(CONEx_Console_t* const Console, const char* const String);
+CONEx_VarTypeList_t* CONEx_FindComVarHash(CONEx_Console_t* const Console, const UInt32 Hash);
+
+UInt32 CONEx_HashString(const char* const Name);
+
+void CONEx_AddCommand(CONEx_Console_t* const Console, const CONEx_Command_t* const Command);
+void CONEx_AddVariable(CONEx_Console_t* const Console, const CONEx_Variable_t* const Variable);
 
 void CONEx_Init(void);
 boolean CONEx_Responder(event_t* const Event);

@@ -309,6 +309,140 @@ void CONEx_DestroyConsole(CONEx_Console_t* const Console)
 	Z_Free(Console);
 }
 
+/* CONEx_GetRootConsole() -- Return root console */
+CONEx_Console_t* CONEx_GetRootConsole(void)
+{
+	return l_RootConsole;
+}
+
+/* CONEx_GetActiveConsole() -- Get the current active console */
+CONEx_Console_t* CONEx_GetActiveConsole(void)
+{
+	return l_ActiveConsole;
+}
+
+/* CONEx_FindComVar() -- Find variable by name */
+CONEx_VarTypeList_t* CONEx_FindComVar(CONEx_Console_t* const Console, const char* const String)
+{
+	/* Check */
+	// Basic
+	if (!Console || !String)
+		return;
+	
+	// Sanity
+	if (strlen(String) >= CONEX_MAXVARIABLENAME)
+		return;
+	
+	/* Return */
+	return CONEx_FindComVarHash(Console, CONEx_HashString(String));
+}
+
+/* CONEx_FindComVarHash() -- Find command or variable by hash */
+CONEx_VarTypeList_t* CONEx_FindComVarHash(CONEx_Console_t* const Console, const UInt32 Hash)
+{
+	CONEx_VarTypeList_t* Rover;
+	
+	/* Check */
+	if (!Console)
+		return;
+	
+	/* Search Hash List */
+	
+	/* Long search since the hash list failed us? */
+	for (Rover = Console->ComVarList; Rover; Rover = Rover->Next)
+	{
+		// Command?
+		if (!Rover->IsVariable)
+			if (Rover->Data.Command.Hash == Hash)
+				return Rover;
+			else
+				continue;
+		
+		// Variable?
+		else
+			if (Rover->Data.Variable.Hash == Hash)
+				return Rover;
+			else
+				continue;
+	}
+	
+	/* Failed */
+	return NULL;
+}
+
+/* CONEx_HashString() -- Converts string to a hashcode */
+UInt32 CONEx_HashString(const char* const Name)
+{
+	size_t i, n;
+	UInt32 Ret = 0;
+	
+	/* Check */
+	if (!Name)
+		return 0;
+	
+	/* Hash */
+	n = strlen(Name);
+	for (i = 0; i < n; i++)
+		Ret ^= (UInt32)((toupper(Name[i]) - 32) & 0x3F) << (6 * (i % 5));
+	
+	// Don't make zero hashes
+	if (!Ret)
+		Ret++;
+	
+	/* Return */
+	return Ret;
+}
+
+/* CONEx_AddCommand() -- Add command to the console */
+void CONEx_AddCommand(CONEx_Console_t* const Console, const CONEx_Command_t* const Command)
+{
+	UInt32 Hash;
+	UInt8 HashBit;
+	CONEx_VarTypeList_t* New;
+	
+	/* Check */
+	// Basic
+	if (!Console || !Command)
+		return;
+	
+	// Sanity
+	if (!strlen(Command->Name) || strlen(Command->Name) >= CONEX_MAXVARIABLENAME || !Command->Func)
+		return;
+		
+	/* Search console for existing command or variable */
+	if (CONEx_FindComVar(Console, Command->Name))
+		return;
+	
+	/* Allocate */
+	New = Z_Malloc(sizeof(CONEx_VarTypeList_t), PU_STATIC, NULL);
+	
+	/* Copy Data */
+	strncpy(New->Data.Command.Name, Command->Name, CONEX_MAXVARIABLENAME);
+	New->Data.Command.Hash = CONEx_HashString(New->Data.Command.Name);
+	New->Data.Command.Flags = Command->Flags;
+	New->Data.Command.Func = Command->Func;
+	New->Data.Command.DepFunc = Command->DepFunc;
+	
+	/* Link to console */
+	if (!Console->ComVarList)
+		Console->ComVarList = New;
+	else
+	{
+		// Link to start
+		New->Next = Console->ComVarList;
+		New->Next->Prev = New;
+		Console->ComVarList = New;
+		
+		// Add to hash list
+		HashBit = Hash & 0xFF;
+	}
+}
+
+/* CONEx_AddVariable() -- Add variable to the console */
+void CONEx_AddVariable(CONEx_Console_t* const Console, const CONEx_Variable_t* const Variable)
+{
+}
+
 /* CONEx_AttachConsole() -- Attach sub console to another console */
 void CONEx_AttachConsole(CONEx_Console_t* const ToThis, CONEx_Console_t* const Attacher)
 {
@@ -760,12 +894,109 @@ void CONS_ConExtended_f(void)
 /* CONEx_CommandWriteLine() -- Default action when line is written to execution buffer */
 void CONEx_CommandWriteLine(struct CONEx_Console_s* const Parent, struct CONEx_Buffer_s* const This, const char* const Line)
 {
+#define BUFSIZE 512
+	size_t i, j, k;
+	int Quoted = 0;
+	char* q;
+	int ArgC = 0;
+	char** ArgV = NULL;
+	CONEx_VarTypeList_t* Found = NULL;
+	
 	/* Check */
 	if (!Parent || !This || !Line)
 		return;
 	
-	/* Parse command */
-	//printf(">>> \"%s\"\n", Line);
+	/* Tokenize command */
+	// Get ArgC and ArgV
+	ArgC = j = k = 0;
+	ArgV = NULL;
+	Quoted = 0;
+	
+	// Create ArgV
+	ArgV = Z_Malloc(sizeof(char*) * BUFSIZE, PU_STATIC, NULL);
+	
+	q = Line;
+	while (*q && *q != '\n')
+	{
+		// If we hit a whitespace character in non-quoted mode
+		// then we make some more args.
+		if (!Quoted && (*q == ' ' || *q == '\t'))
+		{
+			// Only bother if the current argv has something
+			if (ArgV[j])
+				j++;
+			
+			// Hit arg limit?
+			if (j == BUFSIZE - 1)
+				break;
+		}
+		
+		// normal
+		else
+		{
+			// Start quoting
+			if (!Quoted && *q == '\"')
+				Quoted = *q;
+			
+			// End quoting
+			else if (Quoted == *q)
+				Quoted = 0;
+			
+			// Write into ArgV
+			else
+			{
+				// If no ArgV exists, create it
+				if (!ArgV[j])
+				{
+					ArgV[j] = Z_Malloc(sizeof(char) * BUFSIZE, PU_STATIC, NULL);
+					k = 0;
+				}
+				
+				// Fill in buffer
+				if (k < BUFSIZE)
+					ArgV[j][k++] = *q;
+			}
+		}
+		
+		// Increment
+		q++;
+	}
+	
+	ArgC = j + (ArgV[j] != NULL ? 1 : 0);
+	
+	/* Find command */
+	Found = CONEx_FindComVar(Parent, ArgV[0]);
+	
+	// Execute if found, there is no unterminated quote, arguments exist, and first argument exists
+	if (Found && !Quoted && ArgV && ArgV[0])
+	{
+		// Command?
+		if (!Found->IsVariable)
+			Found->Data.Command.Func(Parent, &Found->Data.Command, ArgC, (const char* const* const)ArgV);
+		
+		// Variable?
+		else
+		{
+		}
+	}
+	
+	/* Cleanup */
+	if (ArgV)
+	{
+		// Free members
+		for (i = 0; i < ArgC; i++)
+		{
+			if (ArgV[i])
+				Z_Free(ArgV[i]);
+			ArgV[i] = 0;
+		}
+		
+		// Free holder
+		Z_Free(ArgV);
+	}
+	ArgV = NULL;
+
+#undef BUFSIZE
 }
 
 /* CONEx_Init() -- Initialize extended console */

@@ -1300,7 +1300,7 @@ void V_DrawFadeConsBackEx(const UInt32 Flags, const int x1, const int y1, const 
 }
 
 /* V_DrawPatchEx() -- Extended patch drawing function */
-void V_DrawPatchEx(const UInt32 Flags, const int x, const int y, const patch_t* const Patch)
+void V_DrawPatchEx(const UInt32 Flags, const int x, const int y, const patch_t* const Patch, const UInt8* const ExtraMap)
 {
 	int X, Y, Count;
 	fixed_t RowFrac, ColFrac, Col, Width, Offset, DupX, DupY;
@@ -1311,6 +1311,7 @@ void V_DrawPatchEx(const UInt32 Flags, const int x, const int y, const patch_t* 
 	
 	const UInt8* TransMap;	// TODO!
 	const UInt8* ColorMap;
+	const UInt8* ColorMap2;
 	Int8 Color, Screen;
 	
 	/* Check */
@@ -1348,6 +1349,14 @@ void V_DrawPatchEx(const UInt32 Flags, const int x, const int y, const patch_t* 
 		Color = 0;
 	
 	ColorMap = V_ReturnColormapPtr(Color);
+	
+	// Extra mapping
+	if (ExtraMap)
+		ColorMap2 = ExtraMap;
+	
+	// No extra mapping
+	else
+		ColorMap2 = V_ReturnColormapPtr(VEX_MAP_NONE);
 	
 	// Scaled picture
 	if (!(Flags & VEX_NOSCALESCREEN))
@@ -1396,7 +1405,7 @@ void V_DrawPatchEx(const UInt32 Flags, const int x, const int y, const patch_t* 
 			// Draw column
 			for (Offset = 0, Count = ((FixedMul(Column->length << FRACBITS, DupY) >> FRACBITS) - 1);
 					Count >= 0; Count--, Dest += vid.width, Offset += RowFrac)
-				*Dest = ColorMap[Source[Offset >> FRACBITS]];
+				*Dest = ColorMap[ColorMap2[Source[Offset >> FRACBITS]]];
 			
 			// Go to next column
 			Column = (column_t*)((UInt8*)Column + Column->length + 4);
@@ -1423,7 +1432,7 @@ void V_DrawPatch(const int x, const int y, const int scrn, const patch_t* const 
 	if (scrn & 0xFFFF)
 		Flags |= VEX_SECONDBUFFER;
 	
-	V_DrawPatchEx(Flags, x, y, patch);
+	V_DrawPatchEx(Flags, x, y, patch, NULL);
 }
 
 /* V_DrawMappedPatch() -- Draws colormapped patch scaled */
@@ -1450,7 +1459,7 @@ void V_DrawMappedPatch(const int x, const int y, const int scrn, const patch_t* 
 		Flags |= VEX_MAP_ORANGE << VEX_COLORMAPSHIFT;
 	
 	/* Now Draw */
-	V_DrawPatchEx(Flags, x, y, patch);
+	V_DrawPatchEx(Flags, x, y, patch, colormap);
 }
 
 /* V_DrawScaledPatch() -- Draws patch scaled */
@@ -1467,31 +1476,31 @@ void V_DrawScaledPatch(const int x, const int y, const int scrn, const patch_t* 
 		Flags |= VEX_NOSCALESTART;
 	
 	/* Now Draw */
-	V_DrawPatchEx(Flags, x, y, patch);
+	V_DrawPatchEx(Flags, x, y, patch, NULL);
 }
 
 /* V_DrawTransPatch() -- Draw translucent patch unscaled */
 void V_DrawTransPatch(const int x, const int y, const int scrn, const patch_t* const patch)
 {
-	UInt32 Flags = VEX_NOSCALESTART | VEX_NOSCALESCREEN;
+	UInt32 Flags = VEX_NOSCALESTART | VEX_NOSCALESCREEN | VEX_TRANSMED;
 	
 	/* Handle */
 	if (scrn & 0xFFFF)
 		Flags |= VEX_SECONDBUFFER;
 	
-	V_DrawPatchEx(Flags, x, y, patch);
+	V_DrawPatchEx(Flags, x, y, patch, NULL);
 }
 
 /* V_DrawTranslucentPatch() -- Draw scaled translucent patch */
 void V_DrawTranslucentPatch(const int x, const int y, const int scrn, const patch_t* const patch)
 {
-	UInt32 Flags = 0;
+	UInt32 Flags = VEX_TRANSMED;
 	
 	/* Handle */
 	if (scrn & 0xFFFF)
 		Flags |= VEX_SECONDBUFFER;
 	
-	V_DrawPatchEx(Flags, x, y, patch);
+	V_DrawPatchEx(Flags, x, y, patch, NULL);
 }
 
 // #############################################################################
