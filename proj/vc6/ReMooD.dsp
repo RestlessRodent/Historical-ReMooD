@@ -43,7 +43,7 @@ RSC=rc.exe
 # PROP Ignore_Export_Lib 0
 # PROP Target_Dir ""
 # ADD BASE CPP /nologo /W3 /GX /O2 /D "WIN32" /D "NDEBUG" /D "_WINDOWS" /D "_MBCS" /YX /FD /c
-# ADD CPP /nologo /MD /W3 /GX /O2 /I "..\sdl" /I "..\win32" /I "..\src_cl" /I "..\src" /D "GAMECLIENT" /U "GAMESERVER" /D "_WIN32" /D "WIN32" /D "NDEBUG" /D "_WINDOWS" /D "_MBCS" /D "ENABLEMULTITHREADING" /FD /c
+# ADD CPP /nologo /MD /W3 /GX /O2 /I "..\..\sdl" /I "..\..\win32" /I "..\..\src_cl" /I "..\..\src" /D "GAMECLIENT" /U "GAMESERVER" /D "_WIN32" /D "WIN32" /D "NDEBUG" /D "_WINDOWS" /D "_MBCS" /D "ENABLEMULTITHREADING" /FD /c
 # SUBTRACT CPP /YX
 # ADD BASE MTL /nologo /D "NDEBUG" /mktyplib203 /win32
 # ADD MTL /nologo /D "NDEBUG" /mktyplib203 /win32
@@ -54,7 +54,7 @@ BSC32=bscmake.exe
 # ADD BSC32 /nologo
 LINK32=link.exe
 # ADD BASE LINK32 kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib /nologo /subsystem:windows /machine:I386
-# ADD LINK32 kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib SDL.lib winmm.lib /nologo /subsystem:console /machine:I386 /out:"..\bin\remood.exe"
+# ADD LINK32 kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib SDL.lib winmm.lib /nologo /subsystem:console /machine:I386 /out:"..\..\bin\remood.exe"
 # SUBTRACT LINK32 /pdb:none
 
 !ELSEIF  "$(CFG)" == "ReMooD - Win32 Debug"
@@ -71,7 +71,7 @@ LINK32=link.exe
 # PROP Ignore_Export_Lib 0
 # PROP Target_Dir ""
 # ADD BASE CPP /nologo /W3 /Gm /GX /ZI /Od /D "WIN32" /D "_DEBUG" /D "_WINDOWS" /D "_MBCS" /D "HIGHMEMORYUNICODE" /YX /FD /GZ /c
-# ADD CPP /nologo /MDd /W3 /Gm /GX /ZI /Od /I "..\sdl" /I "..\win32" /I "..\src" /I "..\src_cl" /D "GAMECLIENT" /U "GAMESERVER" /D "_WIN32" /D "WIN32" /D "_DEBUG" /D "_WINDOWS" /D "_MBCS" /D "ENABLEMULTITHREADING" /D "HIGHMEMORYUNICODE" /FD /GZ /c
+# ADD CPP /nologo /MDd /W3 /Gm /GX /ZI /Od /I "..\..\sdl" /I "..\..\win32" /I "..\..\src" /I "..\..\src_cl" /D "GAMECLIENT" /U "GAMESERVER" /D "_WIN32" /D "WIN32" /D "_DEBUG" /D "_WINDOWS" /D "_MBCS" /D "ENABLEMULTITHREADING" /D "HIGHMEMORYUNICODE" /FD /GZ /c
 # SUBTRACT CPP /YX
 # ADD BASE MTL /nologo /D "_DEBUG" /mktyplib203 /win32
 # ADD MTL /nologo /D "_DEBUG" /mktyplib203 /win32
@@ -82,7 +82,7 @@ BSC32=bscmake.exe
 # ADD BSC32 /nologo
 LINK32=link.exe
 # ADD BASE LINK32 kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib /nologo /subsystem:windows /debug /machine:I386 /pdbtype:sept
-# ADD LINK32 kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib SDL.lib winmm.lib /nologo /subsystem:console /debug /machine:I386 /out:"..\bin\remood-dbg.exe" /pdbtype:sept
+# ADD LINK32 kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib SDL.lib winmm.lib /nologo /subsystem:console /debug /machine:I386 /out:"..\..\bin\remood-dbg.exe" /pdbtype:sept
 # SUBTRACT LINK32 /pdb:none
 
 !ENDIF 
@@ -96,399 +96,399 @@ LINK32=link.exe
 # PROP Default_Filter "cpp;c;cxx;rc;def;r;odl;idl;hpj;bat"
 # Begin Source File
 
-SOURCE=..\src_cl\am_map.c
+SOURCE=..\..\src_cl\am_map.c
 # End Source File
 # Begin Source File
 
-SOURCE=..\src\byteptr.c
+SOURCE=..\..\src\byteptr.c
 # End Source File
 # Begin Source File
 
-SOURCE=..\src\cmp_rle.c
+SOURCE=..\..\src\cmp_rle.c
 # End Source File
 # Begin Source File
 
-SOURCE=..\src\command.c
+SOURCE=..\..\src\command.c
 # End Source File
 # Begin Source File
 
-SOURCE=..\src\console.c
+SOURCE=..\..\src\console.c
 # End Source File
 # Begin Source File
 
-SOURCE=..\src\d_clisrv.c
+SOURCE=..\..\src\d_clisrv.c
 # End Source File
 # Begin Source File
 
-SOURCE=..\src\d_items.c
+SOURCE=..\..\src\d_items.c
 # End Source File
 # Begin Source File
 
-SOURCE=..\src\d_main.c
+SOURCE=..\..\src\d_main.c
 # End Source File
 # Begin Source File
 
-SOURCE=..\src\d_net.c
+SOURCE=..\..\src\d_net.c
 # End Source File
 # Begin Source File
 
-SOURCE=..\src\d_netcmd.c
+SOURCE=..\..\src\d_netcmd.c
 # End Source File
 # Begin Source File
 
-SOURCE=..\src\d_prof.c
+SOURCE=..\..\src\d_prof.c
 # End Source File
 # Begin Source File
 
-SOURCE=..\src\d_rdf.c
+SOURCE=..\..\src\d_rdf.c
 # End Source File
 # Begin Source File
 
-SOURCE=..\src\dehacked.c
+SOURCE=..\..\src\dehacked.c
 # End Source File
 # Begin Source File
 
-SOURCE=..\isrc\sdl\dosstr.c
+SOURCE=..\..\isrc\sdl\dosstr.c
 # End Source File
 # Begin Source File
 
-SOURCE=..\src\dstrings.c
+SOURCE=..\..\src\dstrings.c
 # End Source File
 # Begin Source File
 
-SOURCE=..\isrc\sdl\endtxt.c
+SOURCE=..\..\isrc\sdl\endtxt.c
 # End Source File
 # Begin Source File
 
-SOURCE=..\src_cl\f_finale.c
+SOURCE=..\..\src_cl\f_finale.c
 # End Source File
 # Begin Source File
 
-SOURCE=..\src_cl\f_wipe.c
+SOURCE=..\..\src_cl\f_wipe.c
 # End Source File
 # Begin Source File
 
-SOURCE=..\src\g_game.c
+SOURCE=..\..\src\g_game.c
 # End Source File
 # Begin Source File
 
-SOURCE=..\src\g_input.c
+SOURCE=..\..\src\g_input.c
 # End Source File
 # Begin Source File
 
-SOURCE=..\src\g_state.c
+SOURCE=..\..\src\g_state.c
 # End Source File
 # Begin Source File
 
-SOURCE=..\src_cl\hu_stuff.c
+SOURCE=..\..\src_cl\hu_stuff.c
 # End Source File
 # Begin Source File
 
-SOURCE=..\isrc\sdl\i_cdmus.c
+SOURCE=..\..\isrc\sdl\i_cdmus.c
 # End Source File
 # Begin Source File
 
-SOURCE=..\isrc\sdl\i_main.c
+SOURCE=..\..\isrc\sdl\i_main.c
 # End Source File
 # Begin Source File
 
-SOURCE=..\isrc\sdl\i_music.c
+SOURCE=..\..\isrc\sdl\i_music.c
 # End Source File
 # Begin Source File
 
-SOURCE=..\isrc\sdl\i_net.c
+SOURCE=..\..\isrc\sdl\i_net.c
 # End Source File
 # Begin Source File
 
-SOURCE=..\isrc\sdl\i_sound.c
+SOURCE=..\..\isrc\sdl\i_sound.c
 # End Source File
 # Begin Source File
 
-SOURCE=..\isrc\sdl\i_system.c
+SOURCE=..\..\isrc\sdl\i_system.c
 # End Source File
 # Begin Source File
 
-SOURCE=..\isrc\sdl\i_tcp.c
+SOURCE=..\..\isrc\sdl\i_tcp.c
 # End Source File
 # Begin Source File
 
-SOURCE=..\isrc\sdl\i_thread.c
+SOURCE=..\..\isrc\sdl\i_thread.c
 # End Source File
 # Begin Source File
 
-SOURCE=..\isrc\sdl\i_video.c
+SOURCE=..\..\isrc\sdl\i_video.c
 # End Source File
 # Begin Source File
 
-SOURCE=..\src\info.c
+SOURCE=..\..\src\info.c
 # End Source File
 # Begin Source File
 
-SOURCE=..\src\m_argv.c
+SOURCE=..\..\src\m_argv.c
 # End Source File
 # Begin Source File
 
-SOURCE=..\src\m_bbox.c
+SOURCE=..\..\src\m_bbox.c
 # End Source File
 # Begin Source File
 
-SOURCE=..\src\m_cheat.c
+SOURCE=..\..\src\m_cheat.c
 # End Source File
 # Begin Source File
 
-SOURCE=..\src\m_fixed.c
+SOURCE=..\..\src\m_fixed.c
 # End Source File
 # Begin Source File
 
-SOURCE=..\src_cl\m_menu.c
+SOURCE=..\..\src_cl\m_menu.c
 # End Source File
 # Begin Source File
 
-SOURCE=..\src_cl\m_menudr.c
+SOURCE=..\..\src_cl\m_menudr.c
 # End Source File
 # Begin Source File
 
-SOURCE=..\src_cl\m_menufn.c
+SOURCE=..\..\src_cl\m_menufn.c
 # End Source File
 # Begin Source File
 
-SOURCE=..\src\m_misc.c
+SOURCE=..\..\src\m_misc.c
 # End Source File
 # Begin Source File
 
-SOURCE=..\src\m_random.c
+SOURCE=..\..\src\m_random.c
 # End Source File
 # Begin Source File
 
-SOURCE=..\src\m_swap.c
+SOURCE=..\..\src\m_swap.c
 # End Source File
 # Begin Source File
 
-SOURCE=..\src\md5.c
+SOURCE=..\..\src\md5.c
 # End Source File
 # Begin Source File
 
-SOURCE=..\src\p_ceilng.c
+SOURCE=..\..\src\p_ceilng.c
 # End Source File
 # Begin Source File
 
-SOURCE=..\src\p_chex.c
+SOURCE=..\..\src\p_chex.c
 # End Source File
 # Begin Source File
 
-SOURCE=..\src\p_demcmp.c
+SOURCE=..\..\src\p_demcmp.c
 # End Source File
 # Begin Source File
 
-SOURCE=..\src\p_doors.c
+SOURCE=..\..\src\p_doors.c
 # End Source File
 # Begin Source File
 
-SOURCE=..\src\p_enemy.c
+SOURCE=..\..\src\p_enemy.c
 # End Source File
 # Begin Source File
 
-SOURCE=..\src\p_fab.c
+SOURCE=..\..\src\p_fab.c
 # End Source File
 # Begin Source File
 
-SOURCE=..\src\p_floor.c
+SOURCE=..\..\src\p_floor.c
 # End Source File
 # Begin Source File
 
-SOURCE=..\src\p_genlin.c
+SOURCE=..\..\src\p_genlin.c
 # End Source File
 # Begin Source File
 
-SOURCE=..\src\p_info.c
+SOURCE=..\..\src\p_info.c
 # End Source File
 # Begin Source File
 
-SOURCE=..\src\p_inter.c
+SOURCE=..\..\src\p_inter.c
 # End Source File
 # Begin Source File
 
-SOURCE=..\src\p_lights.c
+SOURCE=..\..\src\p_lights.c
 # End Source File
 # Begin Source File
 
-SOURCE=..\src\p_map.c
+SOURCE=..\..\src\p_map.c
 # End Source File
 # Begin Source File
 
-SOURCE=..\src\p_maputl.c
+SOURCE=..\..\src\p_maputl.c
 # End Source File
 # Begin Source File
 
-SOURCE=..\src\p_mobj.c
+SOURCE=..\..\src\p_mobj.c
 # End Source File
 # Begin Source File
 
-SOURCE=..\src\p_plats.c
+SOURCE=..\..\src\p_plats.c
 # End Source File
 # Begin Source File
 
-SOURCE=..\src\p_pspr.c
+SOURCE=..\..\src\p_pspr.c
 # End Source File
 # Begin Source File
 
-SOURCE=..\src\p_saveg.c
+SOURCE=..\..\src\p_saveg.c
 # End Source File
 # Begin Source File
 
-SOURCE=..\src\p_setup.c
+SOURCE=..\..\src\p_setup.c
 # End Source File
 # Begin Source File
 
-SOURCE=..\src\p_sight.c
+SOURCE=..\..\src\p_sight.c
 # End Source File
 # Begin Source File
 
-SOURCE=..\src\p_spec.c
+SOURCE=..\..\src\p_spec.c
 # End Source File
 # Begin Source File
 
-SOURCE=..\src\p_switch.c
+SOURCE=..\..\src\p_switch.c
 # End Source File
 # Begin Source File
 
-SOURCE=..\src\p_telept.c
+SOURCE=..\..\src\p_telept.c
 # End Source File
 # Begin Source File
 
-SOURCE=..\src\p_tick.c
+SOURCE=..\..\src\p_tick.c
 # End Source File
 # Begin Source File
 
-SOURCE=..\src\p_user.c
+SOURCE=..\..\src\p_user.c
 # End Source File
 # Begin Source File
 
-SOURCE=..\src_cl\r_bsp.c
+SOURCE=..\..\src_cl\r_bsp.c
 # End Source File
 # Begin Source File
 
-SOURCE=..\src_cl\r_data.c
+SOURCE=..\..\src_cl\r_data.c
 # End Source File
 # Begin Source File
 
-SOURCE=..\src_cl\r_draw.c
+SOURCE=..\..\src_cl\r_draw.c
 # End Source File
 # Begin Source File
 
-SOURCE=..\src_cl\r_main.c
+SOURCE=..\..\src_cl\r_main.c
 # End Source File
 # Begin Source File
 
-SOURCE=..\src_cl\r_plane.c
+SOURCE=..\..\src_cl\r_plane.c
 # End Source File
 # Begin Source File
 
-SOURCE=..\src_cl\r_segs.c
+SOURCE=..\..\src_cl\r_segs.c
 # End Source File
 # Begin Source File
 
-SOURCE=..\src_cl\r_sky.c
+SOURCE=..\..\src_cl\r_sky.c
 # End Source File
 # Begin Source File
 
-SOURCE=..\src_cl\r_splats.c
+SOURCE=..\..\src_cl\r_splats.c
 # End Source File
 # Begin Source File
 
-SOURCE=..\src_cl\r_things.c
+SOURCE=..\..\src_cl\r_things.c
 # End Source File
 # Begin Source File
 
-SOURCE=..\src\rmd_frgl.c
+SOURCE=..\..\src\rmd_frgl.c
 # End Source File
 # Begin Source File
 
-SOURCE=..\src\rmd_func.c
+SOURCE=..\..\src\rmd_func.c
 # End Source File
 # Begin Source File
 
-SOURCE=..\src\rmd_main.c
+SOURCE=..\..\src\rmd_main.c
 # End Source File
 # Begin Source File
 
-SOURCE=..\src\s_amb.c
+SOURCE=..\..\src\s_amb.c
 # End Source File
 # Begin Source File
 
-SOURCE=..\src\s_sound.c
+SOURCE=..\..\src\s_sound.c
 # End Source File
 # Begin Source File
 
-SOURCE=..\src_cl\sb_bar.c
+SOURCE=..\..\src_cl\sb_bar.c
 # End Source File
 # Begin Source File
 
-SOURCE=..\src\screen.c
+SOURCE=..\..\src\screen.c
 # End Source File
 # Begin Source File
 
-SOURCE=..\src\sounds.c
+SOURCE=..\..\src\sounds.c
 # End Source File
 # Begin Source File
 
-SOURCE=..\src_cl\st_lib.c
+SOURCE=..\..\src_cl\st_lib.c
 # End Source File
 # Begin Source File
 
-SOURCE=..\src_cl\st_stuff.c
+SOURCE=..\..\src_cl\st_stuff.c
 # End Source File
 # Begin Source File
 
-SOURCE=..\src\t_comp.c
+SOURCE=..\..\src\t_comp.c
 # End Source File
 # Begin Source File
 
-SOURCE=..\src\t_func.c
+SOURCE=..\..\src\t_func.c
 # End Source File
 # Begin Source File
 
-SOURCE=..\src\t_oper.c
+SOURCE=..\..\src\t_oper.c
 # End Source File
 # Begin Source File
 
-SOURCE=..\src\t_parse.c
+SOURCE=..\..\src\t_parse.c
 # End Source File
 # Begin Source File
 
-SOURCE=..\src\t_prepro.c
+SOURCE=..\..\src\t_prepro.c
 # End Source File
 # Begin Source File
 
-SOURCE=..\src\t_script.c
+SOURCE=..\..\src\t_script.c
 # End Source File
 # Begin Source File
 
-SOURCE=..\src\t_spec.c
+SOURCE=..\..\src\t_spec.c
 # End Source File
 # Begin Source File
 
-SOURCE=..\src\t_vari.c
+SOURCE=..\..\src\t_vari.c
 # End Source File
 # Begin Source File
 
-SOURCE=..\src\tables.c
+SOURCE=..\..\src\tables.c
 # End Source File
 # Begin Source File
 
-SOURCE=..\src_cl\v_video.c
+SOURCE=..\..\src_cl\v_video.c
 # End Source File
 # Begin Source File
 
-SOURCE=..\src\w_wad.c
+SOURCE=..\..\src\w_wad.c
 # End Source File
 # Begin Source File
 
-SOURCE=..\src_cl\wi_stuff.c
+SOURCE=..\..\src_cl\wi_stuff.c
 # End Source File
 # Begin Source File
 
-SOURCE=..\src\z_zone.c
+SOURCE=..\..\src\z_zone.c
 # End Source File
 # End Group
 # Begin Group "Header Files"
@@ -496,375 +496,375 @@ SOURCE=..\src\z_zone.c
 # PROP Default_Filter "h;hpp;hxx;hm;inl"
 # Begin Source File
 
-SOURCE=..\src\am_map.h
+SOURCE=..\..\src\am_map.h
 # End Source File
 # Begin Source File
 
-SOURCE=..\src\byteptr.h
+SOURCE=..\..\src\byteptr.h
 # End Source File
 # Begin Source File
 
-SOURCE=..\src\cmp_rle.h
+SOURCE=..\..\src\cmp_rle.h
 # End Source File
 # Begin Source File
 
-SOURCE=..\src\command.h
+SOURCE=..\..\src\command.h
 # End Source File
 # Begin Source File
 
-SOURCE=..\src\console.h
+SOURCE=..\..\src\console.h
 # End Source File
 # Begin Source File
 
-SOURCE=..\src\d_clisrv.h
+SOURCE=..\..\src\d_clisrv.h
 # End Source File
 # Begin Source File
 
-SOURCE=..\src\d_englsh.h
+SOURCE=..\..\src\d_englsh.h
 # End Source File
 # Begin Source File
 
-SOURCE=..\src\d_event.h
+SOURCE=..\..\src\d_event.h
 # End Source File
 # Begin Source File
 
-SOURCE=..\src\d_french.h
+SOURCE=..\..\src\d_french.h
 # End Source File
 # Begin Source File
 
-SOURCE=..\src\d_items.h
+SOURCE=..\..\src\d_items.h
 # End Source File
 # Begin Source File
 
-SOURCE=..\src\d_main.h
+SOURCE=..\..\src\d_main.h
 # End Source File
 # Begin Source File
 
-SOURCE=..\src\d_net.h
+SOURCE=..\..\src\d_net.h
 # End Source File
 # Begin Source File
 
-SOURCE=..\src\d_player.h
+SOURCE=..\..\src\d_player.h
 # End Source File
 # Begin Source File
 
-SOURCE=..\src\d_prof.h
+SOURCE=..\..\src\d_prof.h
 # End Source File
 # Begin Source File
 
-SOURCE=..\src\d_rdf.h
+SOURCE=..\..\src\d_rdf.h
 # End Source File
 # Begin Source File
 
-SOURCE=..\src\d_think.h
+SOURCE=..\..\src\d_think.h
 # End Source File
 # Begin Source File
 
-SOURCE=..\src\d_ticcmd.h
+SOURCE=..\..\src\d_ticcmd.h
 # End Source File
 # Begin Source File
 
-SOURCE=..\src\dehacked.h
+SOURCE=..\..\src\dehacked.h
 # End Source File
 # Begin Source File
 
-SOURCE=..\src\doomdata.h
+SOURCE=..\..\src\doomdata.h
 # End Source File
 # Begin Source File
 
-SOURCE=..\src\doomdef.h
+SOURCE=..\..\src\doomdef.h
 # End Source File
 # Begin Source File
 
-SOURCE=..\src\doomstat.h
+SOURCE=..\..\src\doomstat.h
 # End Source File
 # Begin Source File
 
-SOURCE=..\src\doomtype.h
+SOURCE=..\..\src\doomtype.h
 # End Source File
 # Begin Source File
 
-SOURCE=..\src\dstrings.h
+SOURCE=..\..\src\dstrings.h
 # End Source File
 # Begin Source File
 
-SOURCE=..\isrc\sdl\endtxt.h
+SOURCE=..\..\isrc\sdl\endtxt.h
 # End Source File
 # Begin Source File
 
-SOURCE=..\src_cl\f_finale.h
+SOURCE=..\..\src_cl\f_finale.h
 # End Source File
 # Begin Source File
 
-SOURCE=..\src_cl\f_wipe.h
+SOURCE=..\..\src_cl\f_wipe.h
 # End Source File
 # Begin Source File
 
-SOURCE=..\src\g_game.h
+SOURCE=..\..\src\g_game.h
 # End Source File
 # Begin Source File
 
-SOURCE=..\src\g_input.h
+SOURCE=..\..\src\g_input.h
 # End Source File
 # Begin Source File
 
-SOURCE=..\src\g_state.h
+SOURCE=..\..\src\g_state.h
 # End Source File
 # Begin Source File
 
-SOURCE=..\src_cl\hu_stuff.h
+SOURCE=..\..\src_cl\hu_stuff.h
 # End Source File
 # Begin Source File
 
-SOURCE=..\src\i_joy.h
+SOURCE=..\..\src\i_joy.h
 # End Source File
 # Begin Source File
 
-SOURCE=..\src\i_net.h
+SOURCE=..\..\src\i_net.h
 # End Source File
 # Begin Source File
 
-SOURCE=..\src\i_sound.h
+SOURCE=..\..\src\i_sound.h
 # End Source File
 # Begin Source File
 
-SOURCE=..\src\i_system.h
+SOURCE=..\..\src\i_system.h
 # End Source File
 # Begin Source File
 
-SOURCE=..\src\i_tcp.h
+SOURCE=..\..\src\i_tcp.h
 # End Source File
 # Begin Source File
 
-SOURCE=..\src\i_thread.h
+SOURCE=..\..\src\i_thread.h
 # End Source File
 # Begin Source File
 
-SOURCE=..\src\i_video.h
+SOURCE=..\..\src\i_video.h
 # End Source File
 # Begin Source File
 
-SOURCE=..\src\info.h
+SOURCE=..\..\src\info.h
 # End Source File
 # Begin Source File
 
-SOURCE=..\src\keys.h
+SOURCE=..\..\src\keys.h
 # End Source File
 # Begin Source File
 
-SOURCE=..\src\m_argv.h
+SOURCE=..\..\src\m_argv.h
 # End Source File
 # Begin Source File
 
-SOURCE=..\src\m_bbox.h
+SOURCE=..\..\src\m_bbox.h
 # End Source File
 # Begin Source File
 
-SOURCE=..\src\m_cheat.h
+SOURCE=..\..\src\m_cheat.h
 # End Source File
 # Begin Source File
 
-SOURCE=..\src\m_fixed.h
+SOURCE=..\..\src\m_fixed.h
 # End Source File
 # Begin Source File
 
-SOURCE=..\src_cl\m_menu.h
+SOURCE=..\..\src_cl\m_menu.h
 # End Source File
 # Begin Source File
 
-SOURCE=..\src\m_misc.h
+SOURCE=..\..\src\m_misc.h
 # End Source File
 # Begin Source File
 
-SOURCE=..\src\m_random.h
+SOURCE=..\..\src\m_random.h
 # End Source File
 # Begin Source File
 
-SOURCE=..\src\m_swap.h
+SOURCE=..\..\src\m_swap.h
 # End Source File
 # Begin Source File
 
-SOURCE=..\src\md5.h
+SOURCE=..\..\src\md5.h
 # End Source File
 # Begin Source File
 
-SOURCE=..\src\p_chex.h
+SOURCE=..\..\src\p_chex.h
 # End Source File
 # Begin Source File
 
-SOURCE=..\src\p_demcmp.h
+SOURCE=..\..\src\p_demcmp.h
 # End Source File
 # Begin Source File
 
-SOURCE=..\src\p_fab.h
+SOURCE=..\..\src\p_fab.h
 # End Source File
 # Begin Source File
 
-SOURCE=..\src\p_info.h
+SOURCE=..\..\src\p_info.h
 # End Source File
 # Begin Source File
 
-SOURCE=..\src\p_inter.h
+SOURCE=..\..\src\p_inter.h
 # End Source File
 # Begin Source File
 
-SOURCE=..\src\p_local.h
+SOURCE=..\..\src\p_local.h
 # End Source File
 # Begin Source File
 
-SOURCE=..\src\p_maputl.h
+SOURCE=..\..\src\p_maputl.h
 # End Source File
 # Begin Source File
 
-SOURCE=..\src\p_mobj.h
+SOURCE=..\..\src\p_mobj.h
 # End Source File
 # Begin Source File
 
-SOURCE=..\src\p_pspr.h
+SOURCE=..\..\src\p_pspr.h
 # End Source File
 # Begin Source File
 
-SOURCE=..\src\p_saveg.h
+SOURCE=..\..\src\p_saveg.h
 # End Source File
 # Begin Source File
 
-SOURCE=..\src\p_setup.h
+SOURCE=..\..\src\p_setup.h
 # End Source File
 # Begin Source File
 
-SOURCE=..\src\p_spec.h
+SOURCE=..\..\src\p_spec.h
 # End Source File
 # Begin Source File
 
-SOURCE=..\src\p_tick.h
+SOURCE=..\..\src\p_tick.h
 # End Source File
 # Begin Source File
 
-SOURCE=..\src_cl\r_bsp.h
+SOURCE=..\..\src_cl\r_bsp.h
 # End Source File
 # Begin Source File
 
-SOURCE=..\src_cl\r_data.h
+SOURCE=..\..\src_cl\r_data.h
 # End Source File
 # Begin Source File
 
-SOURCE=..\src_cl\r_defs.h
+SOURCE=..\..\src_cl\r_defs.h
 # End Source File
 # Begin Source File
 
-SOURCE=..\src_cl\r_draw.h
+SOURCE=..\..\src_cl\r_draw.h
 # End Source File
 # Begin Source File
 
-SOURCE=..\src_cl\r_local.h
+SOURCE=..\..\src_cl\r_local.h
 # End Source File
 # Begin Source File
 
-SOURCE=..\src_cl\r_main.h
+SOURCE=..\..\src_cl\r_main.h
 # End Source File
 # Begin Source File
 
-SOURCE=..\src_cl\r_plane.h
+SOURCE=..\..\src_cl\r_plane.h
 # End Source File
 # Begin Source File
 
-SOURCE=..\src_cl\r_segs.h
+SOURCE=..\..\src_cl\r_segs.h
 # End Source File
 # Begin Source File
 
-SOURCE=..\src_cl\r_sky.h
+SOURCE=..\..\src_cl\r_sky.h
 # End Source File
 # Begin Source File
 
-SOURCE=..\src_cl\r_splats.h
+SOURCE=..\..\src_cl\r_splats.h
 # End Source File
 # Begin Source File
 
-SOURCE=..\src_cl\r_state.h
+SOURCE=..\..\src_cl\r_state.h
 # End Source File
 # Begin Source File
 
-SOURCE=..\src_cl\r_things.h
+SOURCE=..\..\src_cl\r_things.h
 # End Source File
 # Begin Source File
 
-SOURCE=..\src\rmd_func.h
+SOURCE=..\..\src\rmd_func.h
 # End Source File
 # Begin Source File
 
-SOURCE=..\src\rmd_main.h
+SOURCE=..\..\src\rmd_main.h
 # End Source File
 # Begin Source File
 
-SOURCE=..\src\s_sound.h
+SOURCE=..\..\src\s_sound.h
 # End Source File
 # Begin Source File
 
-SOURCE=..\src\screen.h
+SOURCE=..\..\src\screen.h
 # End Source File
 # Begin Source File
 
-SOURCE=..\src\sounds.h
+SOURCE=..\..\src\sounds.h
 # End Source File
 # Begin Source File
 
-SOURCE=..\src_cl\st_lib.h
+SOURCE=..\..\src_cl\st_lib.h
 # End Source File
 # Begin Source File
 
-SOURCE=..\src_cl\st_stuff.h
+SOURCE=..\..\src_cl\st_stuff.h
 # End Source File
 # Begin Source File
 
-SOURCE=..\src\t_comp.h
+SOURCE=..\..\src\t_comp.h
 # End Source File
 # Begin Source File
 
-SOURCE=..\src\t_func.h
+SOURCE=..\..\src\t_func.h
 # End Source File
 # Begin Source File
 
-SOURCE=..\src\t_oper.h
+SOURCE=..\..\src\t_oper.h
 # End Source File
 # Begin Source File
 
-SOURCE=..\src\t_parse.h
+SOURCE=..\..\src\t_parse.h
 # End Source File
 # Begin Source File
 
-SOURCE=..\src\t_prepro.h
+SOURCE=..\..\src\t_prepro.h
 # End Source File
 # Begin Source File
 
-SOURCE=..\src\t_script.h
+SOURCE=..\..\src\t_script.h
 # End Source File
 # Begin Source File
 
-SOURCE=..\src\t_spec.h
+SOURCE=..\..\src\t_spec.h
 # End Source File
 # Begin Source File
 
-SOURCE=..\src\t_vari.h
+SOURCE=..\..\src\t_vari.h
 # End Source File
 # Begin Source File
 
-SOURCE=..\src\tables.h
+SOURCE=..\..\src\tables.h
 # End Source File
 # Begin Source File
 
-SOURCE=..\src_cl\v_video.h
+SOURCE=..\..\src_cl\v_video.h
 # End Source File
 # Begin Source File
 
-SOURCE=..\src\w_wad.h
+SOURCE=..\..\src\w_wad.h
 # End Source File
 # Begin Source File
 
-SOURCE=..\src\wi_stuff.h
+SOURCE=..\..\src\wi_stuff.h
 # End Source File
 # Begin Source File
 
-SOURCE=..\src\z_zone.h
+SOURCE=..\..\src\z_zone.h
 # End Source File
 # End Group
 # Begin Group "Resource Files"
@@ -872,7 +872,7 @@ SOURCE=..\src\z_zone.h
 # PROP Default_Filter "ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe"
 # Begin Source File
 
-SOURCE=..\rc\remood.rc
+SOURCE=..\..\rc\remood.rc
 # End Source File
 # End Group
 # End Target
