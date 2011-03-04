@@ -56,7 +56,7 @@ int numtextures = 0;			// total number of textures found,
 // size of following tables
 
 texture_t **textures = NULL;
-UInt32 **texturecolumnofs;		// column offset lookup table for each texture
+uint32_t **texturecolumnofs;		// column offset lookup table for each texture
 byte **texturecache;			// graphics data for each generated full-size texture
 int *texturewidthmask;			// texture width is a power of 2, so it
 									// can easily repeat along sidedefs using
@@ -174,7 +174,7 @@ byte *R_GenerateTexture(int texnum)
 	int x2;
 	int i;
 	column_t *patchcol;
-	UInt32 *colofs;
+	uint32_t *colofs;
 	size_t blocksize;
 
 	texture = textures[texnum];
@@ -364,23 +364,23 @@ void R_LoadTextures(void)
 	WadIndex_t k;
 	int l;
 
-	UInt32 *maptex;
-	UInt32 *maptex2;
-	UInt32 *maptex1;
+	uint32_t *maptex;
+	uint32_t *maptex2;
+	uint32_t *maptex1;
 
 	char name[9];
 	char *name_p;
 
 	WadIndex_t *patchlookup;
 
-	UInt32 nummappatches;
-	UInt32 offset;
-	UInt32 maxoff;
-	UInt32 maxoff2;
-	UInt32 numtextures1;
-	UInt32 numtextures2;
+	uint32_t nummappatches;
+	uint32_t offset;
+	uint32_t maxoff;
+	uint32_t maxoff2;
+	uint32_t numtextures1;
+	uint32_t numtextures2;
 
-	UInt32 *directory;
+	uint32_t *directory;
 	
 	char* PS;
 	char* PE;
@@ -402,7 +402,7 @@ void R_LoadTextures(void)
 	// Load the patch names from pnames.lmp.
 	name[8] = 0;
 	pnames = W_CacheLumpName("PNAMES", PU_STATIC);
-	nummappatches = LONG(*((UInt32 *) pnames));
+	nummappatches = LONG(*((uint32_t *) pnames));
 	name_p = pnames + 4;
 	patchlookup = Z_Malloc(nummappatches * sizeof(*patchlookup), PU_STATIC, NULL);
 
@@ -536,15 +536,15 @@ void R_LoadTextures(void)
 	   FOR REFERENCE:
 
 	   texture_t** textures=NULL;
-	   UInt32** texturecolumnofs;   // column offset lookup table for each texture
+	   uint32_t** texturecolumnofs;   // column offset lookup table for each texture
 	   byte** texturecache;       // graphics data for each generated full-size texture
 	   int* texturewidthmask;   // texture width is a power of 2, so it can easily repeat along sidedefs using a simple mask
 	   fixed_t* textureheight;      // needed for texture pegging
 	 */
 	textures = Z_Malloc(numtextures * sizeof(texture_t *), PU_STATIC, 0);
 	memset(textures, 0, numtextures * sizeof(texture_t *));
-	texturecolumnofs = Z_Malloc(numtextures * sizeof(UInt32 *), PU_STATIC, 0);
-	memset(textures, 0, numtextures * sizeof(UInt32 *));
+	texturecolumnofs = Z_Malloc(numtextures * sizeof(uint32_t *), PU_STATIC, 0);
+	memset(textures, 0, numtextures * sizeof(uint32_t *));
 	texturecache = Z_Malloc(numtextures * sizeof(byte *), PU_STATIC, 0);
 	memset(textures, 0, numtextures * sizeof(byte *));
 	texturewidthmask = Z_Malloc(numtextures * sizeof(int), PU_STATIC, 0);
@@ -660,7 +660,7 @@ int numcolormaplumps;
 void R_InitExtraColormaps()
 {
 	WadFile_t *scout = NULL;
-	UInt32 i;
+	uint32_t i;
 	int Start = 0;
 	int End = 0;
 	int clump = 0;
@@ -731,7 +731,7 @@ void R_InitFlats()
 	int cfile;
 	int clump;
 	WadFile_t *wad;
-	UInt32 i;
+	uint32_t i;
 
 	numflatlists = 0;
 	flats = NULL;

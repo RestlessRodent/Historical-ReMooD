@@ -323,7 +323,7 @@ int P_AddLevelFlat(char *flatname, levelflat_t * levelflat)
 	} name8;
 
 	int i;
-	UInt32 v1, v2;
+	uint32_t v1, v2;
 
 	strncpy(name8.s, flatname, 8);	// make it two ints for fast compares
 	name8.s[8] = 0;				// in case the name was a fill 8 chars
@@ -337,7 +337,7 @@ int P_AddLevelFlat(char *flatname, levelflat_t * levelflat)
 	//
 	for (i = 0; i < numlevelflats; i++, levelflat++)
 	{
-		if (*(UInt32 *) levelflat->name == v1 && *(UInt32 *) & levelflat->name[4] == v2)
+		if (*(uint32_t *) levelflat->name == v1 && *(uint32_t *) & levelflat->name[4] == v2)
 		{
 			break;
 		}
@@ -555,7 +555,7 @@ void P_LoadThings(int lump)
 	int i;
 	mapthing_t *mt;
 	boolean spawn;
-	Int16 *data, *datastart;
+	int16_t *data, *datastart;
 
 	data = datastart = W_CacheLumpNum(lump, PU_LEVEL);
 	nummapthings = W_LumpLength(lump) / (5 * sizeof(short));
@@ -863,12 +863,12 @@ void P_LoadSideDefs2(int lump)
 //
 void P_LoadBlockMap(int lump)
 {
-	Int32 count;
+	int32_t count;
 
 	count = W_LumpLength(lump) / 2;
 	{
-		Int32 i;
-		Int16 *wadblockmaplump = W_CacheLumpNum(lump, PU_LEVEL);
+		int32_t i;
+		int16_t *wadblockmaplump = W_CacheLumpNum(lump, PU_LEVEL);
 		blockmaplump = Z_Malloc(sizeof(*blockmaplump) * count, PU_LEVEL, 0);
 
 		// killough 3/1/98: Expand wad blockmap into larger internal one,
@@ -878,13 +878,13 @@ void P_LoadBlockMap(int lump)
 
 		blockmaplump[0] = SHORT(wadblockmaplump[0]);
 		blockmaplump[1] = SHORT(wadblockmaplump[1]);
-		blockmaplump[2] = (Int32) (SHORT(wadblockmaplump[2])) & 0xffff;
-		blockmaplump[3] = (Int32) (SHORT(wadblockmaplump[3])) & 0xffff;
+		blockmaplump[2] = (int32_t) (SHORT(wadblockmaplump[2])) & 0xffff;
+		blockmaplump[3] = (int32_t) (SHORT(wadblockmaplump[3])) & 0xffff;
 
 		for (i = 4; i < count; i++)
 		{
-			Int16 t = SHORT(wadblockmaplump[i]);	// killough 3/1/98
-			blockmaplump[i] = t == -1 ? -1l : (Int32) t & 0xffff;
+			int16_t t = SHORT(wadblockmaplump[i]);	// killough 3/1/98
+			blockmaplump[i] = t == -1 ? -1l : (int32_t) t & 0xffff;
 		}
 
 		Z_Free(wadblockmaplump);
@@ -1321,8 +1321,8 @@ boolean P_AddWadFile(char *wadfilename, char **firstmapname)
 	char *name;
 	size_t i, j, k, num;
 	int firstmapreplaced;
-	UInt32 SoundReplacements;
-	UInt32 MusicReplacements;
+	uint32_t SoundReplacements;
+	uint32_t MusicReplacements;
 	boolean TextChange;
 
 	/******************
@@ -1573,12 +1573,12 @@ boolean P_AddWadFile(char *wadfilename, char **firstmapname)
 
 typedef struct COMMONSeg_s
 {
-	UInt16 v1;
-	UInt16 v2;
-	UInt16 Angle;
-	UInt16 LineDef;
-	UInt16 Direction;
-	UInt16 Length;
+	uint16_t v1;
+	uint16_t v2;
+	uint16_t Angle;
+	uint16_t LineDef;
+	uint16_t Direction;
+	uint16_t Length;
 } COMMONSeg_t;
 
 COMMONSeg_t* CommonSegs = NULL;

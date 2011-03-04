@@ -87,7 +87,7 @@ CONEx_Console_t* l_RootConsole = NULL;
 /* Drawing parms */
 CONEx_Console_t* l_ActiveConsole = NULL;
 boolean l_ExConsoleOn = false;
-Int8 l_ExConsoleLines = 0;
+int8_t l_ExConsoleLines = 0;
 void* l_BackPic = NULL;
 boolean l_BackPicIsPicT = false;
 
@@ -251,7 +251,7 @@ void CONEx_BufferWrite(CONEx_Buffer_t* const Buffer, const char* const Text)
 /* CONEx_CreateConsole() -- Create a new console */
 CONEx_Console_t* CONEx_CreateConsole(void)
 {
-	static UInt32 BaseUUID;
+	static uint32_t BaseUUID;
 	CONEx_Console_t* Temp;
 	
 	/* Allocate */
@@ -338,7 +338,7 @@ CONEx_VarTypeList_t* CONEx_FindComVar(CONEx_Console_t* const Console, const char
 }
 
 /* CONEx_FindComVarHash() -- Find command or variable by hash */
-CONEx_VarTypeList_t* CONEx_FindComVarHash(CONEx_Console_t* const Console, const UInt32 Hash)
+CONEx_VarTypeList_t* CONEx_FindComVarHash(CONEx_Console_t* const Console, const uint32_t Hash)
 {
 	CONEx_VarTypeList_t* Rover;
 	
@@ -371,10 +371,10 @@ CONEx_VarTypeList_t* CONEx_FindComVarHash(CONEx_Console_t* const Console, const 
 }
 
 /* CONEx_HashString() -- Converts string to a hashcode */
-UInt32 CONEx_HashString(const char* const Name)
+uint32_t CONEx_HashString(const char* const Name)
 {
 	size_t i, n;
-	UInt32 Ret = 0;
+	uint32_t Ret = 0;
 	
 	/* Check */
 	if (!Name)
@@ -383,7 +383,7 @@ UInt32 CONEx_HashString(const char* const Name)
 	/* Hash */
 	n = strlen(Name);
 	for (i = 0; i < n; i++)
-		Ret ^= (UInt32)((toupper(Name[i]) - 32) & 0x3F) << (6 * (i % 5));
+		Ret ^= (uint32_t)((toupper(Name[i]) - 32) & 0x3F) << (6 * (i % 5));
 	
 	// Don't make zero hashes
 	if (!Ret)
@@ -396,8 +396,8 @@ UInt32 CONEx_HashString(const char* const Name)
 /* CONEx_AddCommand() -- Add command to the console */
 void CONEx_AddCommand(CONEx_Console_t* const Console, const CONEx_Command_t* const Command)
 {
-	UInt32 Hash;
-	UInt8 HashBit;
+	uint32_t Hash;
+	uint8_t HashBit;
 	CONEx_VarTypeList_t* New;
 	
 	/* Check */
@@ -639,14 +639,14 @@ void CONEx_Ticker(void)
 void CONEx_Drawer(void)
 {
 #define BUFSIZE 512
-	Int32 BottomCon, w, h;
+	int32_t BottomCon, w, h;
 	char Buf[BUFSIZE];
 	char* b;
 	char* Line;
 	size_t MBSkip;
 	int n, m, k, i, j, z;
-	UInt32 ColorBits;
-	Int8 ConsoleLines;
+	uint32_t ColorBits;
+	int8_t ConsoleLines;
 	boolean DoPrompt;
 	boolean FadeBack;
 	
@@ -1223,10 +1223,10 @@ void CON_SetupBackColormap(void)
 	orangemap = (byte *) Z_Malloc(256, PU_STATIC, NULL);
 	
 	// Copy in
-	memmove(greenmap, V_ReturnColormapPtr(VEX_MAP_RED), sizeof(UInt8) * 256);
-	memmove(whitemap, V_ReturnColormapPtr(VEX_MAP_BRIGHTWHITE), sizeof(UInt8) * 256);
-	memmove(graymap, V_ReturnColormapPtr(VEX_MAP_GRAY), sizeof(UInt8) * 256);
-	memmove(orangemap, V_ReturnColormapPtr(VEX_MAP_ORANGE), sizeof(UInt8) * 256);
+	memmove(greenmap, V_ReturnColormapPtr(VEX_MAP_RED), sizeof(uint8_t) * 256);
+	memmove(whitemap, V_ReturnColormapPtr(VEX_MAP_BRIGHTWHITE), sizeof(uint8_t) * 256);
+	memmove(graymap, V_ReturnColormapPtr(VEX_MAP_GRAY), sizeof(uint8_t) * 256);
+	memmove(orangemap, V_ReturnColormapPtr(VEX_MAP_ORANGE), sizeof(uint8_t) * 256);
 }
 #endif
 

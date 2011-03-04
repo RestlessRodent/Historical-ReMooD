@@ -57,7 +57,7 @@ consvar_t cv_snd_output = {"snd_output", "Default", CV_SAVE};
 consvar_t cv_snd_device = {"snd_device", "auto", CV_SAVE};
 #endif
 
-void I_UpdateSound_sdl(void *unused, Int8* stream, int len)
+void I_UpdateSound_sdl(void *unused, int8_t* stream, int len)
 {
 }
 

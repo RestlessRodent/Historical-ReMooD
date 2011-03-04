@@ -73,11 +73,11 @@ size_t ExecPos[MAXDEEPCALLS];
 size_t ByteCodeZone = 0;
 size_t CurrentExec = 0;
 
-UInt16* GroupParent = NULL;
+uint16_t* GroupParent = NULL;
 size_t NumGroups = 0;
 RMD_Symbol_t* Symbols = NULL;
 size_t NumSymbols = 0;
-UInt8* UserZone = NULL;
+uint8_t* UserZone = NULL;
 size_t UserZoneSize = NULL;
 
 size_t TypeSizes[MAXRMDTYPEID] =
@@ -294,19 +294,19 @@ char* NameCodes[MAXRMDBYTEID] =
 };
 
 /* RMD_CreateByte() -- Creates an instruction at a location with passed parameters */
-int RMD_CreateByte(UInt32* Loc, rmdbyteid_t code, char* types, ...)
+int RMD_CreateByte(uint32_t* Loc, rmdbyteid_t code, char* types, ...)
 {
 	va_list vars;
 	rmdbyte_t* TempByte = NULL;
-	UInt32 Offset = 0;
+	uint32_t Offset = 0;
 	char* VData = NULL;
 	char* IData = NULL;
 	void* WrappedPtr = NULL;
 	ssize_t WrappedDiff = 0;
-	UInt32 UsedSize = 0;
+	uint32_t UsedSize = 0;
 	
-	Int32 Ti32 = 0;
-	UInt32 Tui32 = 0;
+	int32_t Ti32 = 0;
+	uint32_t Tui32 = 0;
 	char* Tc = 0;
 	
 	/* Check Validity */
@@ -322,7 +322,7 @@ int RMD_CreateByte(UInt32* Loc, rmdbyteid_t code, char* types, ...)
 	va_start(vars, types);
 	
 	/* Check start bytes */
-	if (*Loc >= (ByteCodeZone - (sizeof(UInt32) * 4)))
+	if (*Loc >= (ByteCodeZone - (sizeof(uint32_t) * 4)))
 	{
 		TempByte = Z_Malloc(sizeof(rmdbyte_t) * ((ByteCodeZone / sizeof(rmdbyte_t)) + 100), PU_STATIC, NULL);
 		memcpy(TempByte, ByteCode, ByteCodeZone);
@@ -343,7 +343,7 @@ int RMD_CreateByte(UInt32* Loc, rmdbyteid_t code, char* types, ...)
 	
 	while (*VData)
 	{
-		if (WrappedPtr >= (size_t)ByteCode + (ByteCodeZone - (sizeof(UInt32) * 4)))
+		if (WrappedPtr >= (size_t)ByteCode + (ByteCodeZone - (sizeof(uint32_t) * 4)))
 		{	
 			// Now Resize
 			TempByte = Z_Malloc(sizeof(rmdbyte_t) * ((ByteCodeZone / sizeof(rmdbyte_t)) + 100), PU_STATIC, NULL);
@@ -369,12 +369,12 @@ int RMD_CreateByte(UInt32* Loc, rmdbyteid_t code, char* types, ...)
 					switch (*IData)
 					{
 						case 'i':
-							Ti32 = va_arg(vars, Int32);
+							Ti32 = va_arg(vars, int32_t);
 							WriteInt32(&WrappedPtr, Ti32);
 							break;
 						case 't':
 						case 'u':
-							Tui32 = va_arg(vars, UInt32);
+							Tui32 = va_arg(vars, uint32_t);
 							if (Tui32 >= 2147483647)
 								Ti32 = 2147483647;
 							else
@@ -400,7 +400,7 @@ int RMD_CreateByte(UInt32* Loc, rmdbyteid_t code, char* types, ...)
 					switch (*IData)
 					{
 						case 'i':
-							Ti32 = va_arg(vars, Int32);
+							Ti32 = va_arg(vars, int32_t);
 							if (Ti32 <= 0)
 								Tui32 = 0;
 							else
@@ -409,7 +409,7 @@ int RMD_CreateByte(UInt32* Loc, rmdbyteid_t code, char* types, ...)
 							break;
 						case 't':
 						case 'u':
-							Tui32 = va_arg(vars, UInt32);
+							Tui32 = va_arg(vars, uint32_t);
 							WriteUInt32(&WrappedPtr, Tui32);
 							break;
 						case 's':
@@ -459,9 +459,9 @@ int RMD_CreateByte(UInt32* Loc, rmdbyteid_t code, char* types, ...)
 	
 	va_end(vars);
 	
-	WrappedPtr = (size_t)ByteCode + *Loc + sizeof(UInt32);
+	WrappedPtr = (size_t)ByteCode + *Loc + sizeof(uint32_t);
 	WriteUInt32(&WrappedPtr, UsedSize);
-	*Loc += UsedSize + (sizeof(UInt32) * 2);
+	*Loc += UsedSize + (sizeof(uint32_t) * 2);
 	
 	if (devparm)
 		CONS_Printf("Created byte code %i (%s) w/ size %i\n", code, NameCodes[code], UsedSize);
@@ -471,14 +471,14 @@ int RMD_CreateByte(UInt32* Loc, rmdbyteid_t code, char* types, ...)
 
 void Command_DumpAssembly_f(void)
 {
-	UInt8* Code;
+	uint8_t* Code;
 	char* x;
-	UInt32 OpCode = 0;
+	uint32_t OpCode = 0;
 	char String[128];
 	char Comment[128];
-	Int32 i;
-	UInt32 u;
-	UInt32* p;
+	int32_t i;
+	uint32_t u;
+	uint32_t* p;
 	size_t j;
 	size_t k = 0;
 	
@@ -561,11 +561,11 @@ void Command_DumpAssembly_f(void)
 /* RMD_CreateSymbol() -- */
 typedef struct UserChunk_s
 {
-	UInt32 Variable;
-	UInt32 Size;
+	uint32_t Variable;
+	uint32_t Size;
 } UserChunk_t;
 
-UInt32 RMD_CreateSymbol(UInt16 ParentGroup, UInt16 Group, char* ID, rmdtypeid_t Type)
+uint32_t RMD_CreateSymbol(uint16_t ParentGroup, uint16_t Group, char* ID, rmdtypeid_t Type)
 {
 	RMD_Symbol_t* NewSymbol;
 	
@@ -595,7 +595,7 @@ UInt32 RMD_CreateSymbol(UInt16 ParentGroup, UInt16 Group, char* ID, rmdtypeid_t 
 	strncpy(Symbols[NumSymbols - 1].ID, ID, 32);
 	Symbols[NumSymbols - 1].Type = Type;
 	Symbols[NumSymbols - 1].Group = Group;
-	Symbols[NumSymbols - 1].PhysicalLocation = (UInt32)0x80000000 + (NumSymbols - 1);
+	Symbols[NumSymbols - 1].PhysicalLocation = (uint32_t)0x80000000 + (NumSymbols - 1);
 	Symbols[NumSymbols - 1].Size = 0;
 	
 	if (devparm)

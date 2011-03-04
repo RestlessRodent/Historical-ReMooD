@@ -181,7 +181,7 @@ static void *getsfx(const char *sfxname, int *len)
 	sfx = (unsigned char *)W_CacheLumpNum(sfxlump);
 
 	// If it's a 22Khz Sound
-	if (((UInt16 *) sfx)[1] == 22050)
+	if (((uint16_t *) sfx)[1] == 22050)
 	{
 		size /= 2;
 		paddedsize = /*(*/(size - 8 + (samplecount - 1))/* / samplecount) * samplecount*/;

@@ -534,10 +534,10 @@ typedef struct mobj_s
 	
 	/*** EXTENDED OBJECT DATA ***/
 	// Flags
-	UInt32 XFlagsA;
-	UInt32 XFlagsB;
-	UInt32 XFlagsC;
-	UInt32 XFlagsD;
+	uint32_t XFlagsA;
+	uint32_t XFlagsB;
+	uint32_t XFlagsC;
+	uint32_t XFlagsD;
 	
 	// Owners
 #if 0

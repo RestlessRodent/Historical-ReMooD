@@ -154,12 +154,12 @@ ticcmd_t *I_BaseTiccmd(void)
 // returns time in 1/TICRATE second tics
 //
 
-UInt32 LastTime = 0;
+uint32_t LastTime = 0;
 
 ULONG I_GetTime(void)
 {
-	UInt32 ticks = 0;
-	static UInt32 basetime = 0;
+	uint32_t ticks = 0;
+	static uint32_t basetime = 0;
 	
 	//ticks = ((float)clock() / (float)CLOCKS_PER_SEC) / 1000.0;
 	ticks = clock() / (CLOCKS_PER_SEC / 1000);

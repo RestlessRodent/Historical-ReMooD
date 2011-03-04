@@ -9,12 +9,11 @@
 // ##      ## ###### ##         ##  ######   ######  ######
 //                      http://remood.org/
 // -----------------------------------------------------------------------------
-// Project Leader:    GhostlyDeath           (ghostlydeath@remood.org)
-// Project Co-Leader: RedZTag                (jostol@remood.org)
-// Members:           TetrisMaster512        (tetrismaster512@hotmail.com)
+// Project Leader:    GhostlyDeath           (ghostlydeath@gmail.com)
+// Project Co-Leader: RedZTag                (Jostol27@gmail.com)
 // -----------------------------------------------------------------------------
-// Copyright (C) 2008-2010 The ReMooD Team..
-// Copyright (C) 2007-2010 GhostlyDeath (ghostlydeath@remood.org)
+// Copyright (C) 2008-2011 The ReMooD Team..
+// Copyright (C) 2007-2011 GhostlyDeath (ghostlydeath@gmail.com)
 // -----------------------------------------------------------------------------
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
@@ -31,84 +30,69 @@
 #ifndef __BYTEPTR_H__
 #define __BYTEPTR_H__
 
+/*****************************************************************************/
+
+/***************
+*** INCLUDES ***
+****************/
+
 #include "doomtype.h"
 #include "doomdef.h"
 
-Int8 ReadInt8(Int8** const Ptr);
-Int16 ReadInt16(Int16** const Ptr);
-Int32 ReadInt32(Int32** const Ptr);
-UInt8 ReadUInt8(UInt8** const Ptr);
-UInt16 ReadUInt16(UInt16** const Ptr);
-UInt32 ReadUInt32(UInt32** const Ptr);
-wchar_t Readwchar_t(wchar_t** const Ptr);
-void ReadStringN(char** const Ptr, char* Dest, size_t n);
+// Everything moved to doomtype.h!
 
-void WriteInt8(Int8** const Ptr, const Int8 Val);
-void WriteInt16(Int16** const Ptr, const Int16 Val);
-void WriteInt32(Int32** const Ptr, const Int32 Val);
-void WriteUInt8(UInt8** const Ptr, const UInt8 Val);
-void WriteUInt16(UInt16** const Ptr, const UInt16 Val);
-void WriteUInt32(UInt32** const Ptr, const UInt32 Val);
-void Writewchar_t(wchar_t** const Ptr, const wchar_t Val);
-void WriteString(char** const Ptr, const char* Val);
-void WriteStringN(char** const Ptr, const char* Val, const size_t n);
-
-
-#if !defined(_REMOOD_NOINT64)
-	Int64 ReadInt64(Int64** const Ptr);
-	UInt64 ReadUInt64(UInt64** const Ptr);
-	void WriteInt64(Int64** const Ptr, const Int64 Val);
-	void WriteUInt64(UInt64** const Ptr, const UInt64 Val);
-#endif
+/**************************************
+*** REMOVE THIS GARBAGE, SERIOUSLY! ***
+**************************************/
 
 #if defined(_REMOOD_BIG_ENDIAN)
-	#define writeshort(p,b)     *(Int16*)  (p)   = LITTLESWAP32(b)
-	#define writelong(p,b)      *(Int32 *)  (p)   = LITTLESWAP32(b)
+	#define writeshort(p,b)     *(int16_t*)  (p)   = LITTLESWAP32(b)
+	#define writelong(p,b)      *(int32_t *)  (p)   = LITTLESWAP32(b)
 
-	#define WRITECHAR(p,b)		WriteInt8((Int8**)&(p), (Int8)(b))
-	#define WRITEBYTE(p,b)		WriteUInt8((UInt8**)&(p), (UInt8)(b))
-	#define WRITESHORT(p,b)		WriteInt16((Int16**)&(p), (Int16)(LITTLESWAP16(b)))
-	#define WRITEUSHORT(p,b)	WriteUInt16((UInt16**)&(p), (UInt16)(LITTLESWAP16(b)))
-	#define WRITELONG(p,b)		WriteInt32((Int32**)&(p), (Int32)(LITTLESWAP32(b)))
-	#define WRITEULONG(p,b)		WriteUInt32((UInt32**)&(p), (UInt32)(LITTLESWAP32(b)))
-	#define WRITEFIXED(p,b)		WriteInt32((Int32**)&(p), (Int32)(LITTLESWAP32(b)))
-	#define WRITEANGLE(p,b)		WriteUInt32((UInt32**)&(p), (UInt32)(LITTLESWAP32(b)))
+	#define WRITECHAR(p,b)		WriteInt8((int8_t**)&(p), (int8_t)(b))
+	#define WRITEBYTE(p,b)		WriteUInt8((uint8_t**)&(p), (uint8_t)(b))
+	#define WRITESHORT(p,b)		WriteInt16((int16_t**)&(p), (int16_t)(LITTLESWAP16(b)))
+	#define WRITEUSHORT(p,b)	WriteUInt16((uint16_t**)&(p), (uint16_t)(LITTLESWAP16(b)))
+	#define WRITELONG(p,b)		WriteInt32((int32_t**)&(p), (int32_t)(LITTLESWAP32(b)))
+	#define WRITEULONG(p,b)		WriteUInt32((uint32_t**)&(p), (uint32_t)(LITTLESWAP32(b)))
+	#define WRITEFIXED(p,b)		WriteInt32((int32_t**)&(p), (int32_t)(LITTLESWAP32(b)))
+	#define WRITEANGLE(p,b)		WriteUInt32((uint32_t**)&(p), (uint32_t)(LITTLESWAP32(b)))
 
-	#define readshort(p)	    LITTLESWAP32(*((Int16  *)(p)))
-	#define readlong(p)	  		LITTLESWAP32(*((Int32   *)(p)))
+	#define readshort(p)	    LITTLESWAP32(*((int16_t  *)(p)))
+	#define readlong(p)	  		LITTLESWAP32(*((int32_t   *)(p)))
 
-	#define READCHAR(p)			ReadInt8((Int8**)(&(p)))
-	#define READBYTE(p)			ReadUInt8((UInt8**)(&(p)))
-	#define READSHORT(p)		LITTLESWAP16(ReadInt16((Int16**)(&(p))))
-	#define READUSHORT(p)		LITTLESWAP16(ReadUInt16((UInt16**)(&(p))))
-	#define READLONG(p)			LITTLESWAP32(ReadInt32((Int32**)(&(p))))
-	#define	READULONG(p)		LITTLESWAP32(ReadUInt32((UInt32**)(&(p))))
-	#define READFIXED(p)		LITTLESWAP32(ReadInt32((Int32**)(&(p))))
-	#define READANGLE(p)		LITTLESWAP32(ReadUInt32((UInt32**)(&(p))))
+	#define READCHAR(p)			ReadInt8((int8_t**)(&(p)))
+	#define READBYTE(p)			ReadUInt8((uint8_t**)(&(p)))
+	#define READSHORT(p)		LITTLESWAP16(ReadInt16((int16_t**)(&(p))))
+	#define READUSHORT(p)		LITTLESWAP16(ReadUInt16((uint16_t**)(&(p))))
+	#define READLONG(p)			LITTLESWAP32(ReadInt32((int32_t**)(&(p))))
+	#define	READULONG(p)		LITTLESWAP32(ReadUInt32((uint32_t**)(&(p))))
+	#define READFIXED(p)		LITTLESWAP32(ReadInt32((int32_t**)(&(p))))
+	#define READANGLE(p)		LITTLESWAP32(ReadUInt32((uint32_t**)(&(p))))
 #else
-	#define writeshort(p,b)     *(Int16*)  (p)   = b
-	#define writelong(p,b)      *(Int32 *)  (p)   = b
+	#define writeshort(p,b)     *(int16_t*)  (p)   = b
+	#define writelong(p,b)      *(int32_t *)  (p)   = b
 
-	#define WRITECHAR(p,b)		WriteInt8((Int8**)&(p), (Int8)(b))
-	#define WRITEBYTE(p,b)		WriteUInt8((UInt8**)&(p), (UInt8)(b))
-	#define WRITESHORT(p,b)		WriteInt16((Int16**)&(p), (Int16)(b))
-	#define WRITEUSHORT(p,b)	WriteUInt16((UInt16**)&(p), (UInt16)(b))
-	#define WRITELONG(p,b)		WriteInt32((Int32**)&(p), (Int32)(b))
-	#define WRITEULONG(p,b)		WriteUInt32((UInt32**)&(p), (UInt32)(b))
-	#define WRITEFIXED(p,b)		WriteInt32((Int32**)&(p), (Int32)(b))
-	#define WRITEANGLE(p,b)		WriteUInt32((UInt32**)&(p), (UInt32)(b))
+	#define WRITECHAR(p,b)		WriteInt8((int8_t**)&(p), (int8_t)(b))
+	#define WRITEBYTE(p,b)		WriteUInt8((uint8_t**)&(p), (uint8_t)(b))
+	#define WRITESHORT(p,b)		WriteInt16((int16_t**)&(p), (int16_t)(b))
+	#define WRITEUSHORT(p,b)	WriteUInt16((uint16_t**)&(p), (uint16_t)(b))
+	#define WRITELONG(p,b)		WriteInt32((int32_t**)&(p), (int32_t)(b))
+	#define WRITEULONG(p,b)		WriteUInt32((uint32_t**)&(p), (uint32_t)(b))
+	#define WRITEFIXED(p,b)		WriteInt32((int32_t**)&(p), (int32_t)(b))
+	#define WRITEANGLE(p,b)		WriteUInt32((uint32_t**)&(p), (uint32_t)(b))
 
-	#define readshort(p)	    *((Int16  *)(p))
-	#define readlong(p)	  		  *((Int32   *)(p))
+	#define readshort(p)	    *((int16_t  *)(p))
+	#define readlong(p)	  		  *((int32_t   *)(p))
 
-	#define READCHAR(p)			ReadInt8((Int8**)(&(p)))
-	#define READBYTE(p)			ReadUInt8((UInt8**)(&(p)))
-	#define READSHORT(p)		ReadInt16((Int16**)(&(p)))
-	#define READUSHORT(p)		ReadUInt16((UInt16**)(&(p)))
-	#define READLONG(p)			ReadInt32((Int32**)(&(p)))
-	#define	READULONG(p)		ReadUInt32((UInt32**)(&(p)))
-	#define READFIXED(p)		ReadInt32((Int32**)(&(p)))
-	#define READANGLE(p)		ReadUInt32((UInt32**)(&(p)))
+	#define READCHAR(p)			ReadInt8((int8_t**)(&(p)))
+	#define READBYTE(p)			ReadUInt8((uint8_t**)(&(p)))
+	#define READSHORT(p)		ReadInt16((int16_t**)(&(p)))
+	#define READUSHORT(p)		ReadUInt16((uint16_t**)(&(p)))
+	#define READLONG(p)			ReadInt32((int32_t**)(&(p)))
+	#define	READULONG(p)		ReadUInt32((uint32_t**)(&(p)))
+	#define READFIXED(p)		ReadInt32((int32_t**)(&(p)))
+	#define READANGLE(p)		ReadUInt32((uint32_t**)(&(p)))
 #endif
 
 #define WRITESTRING(p,b)    { int tmp_i=0; do { WRITECHAR(p,b[tmp_i]); } while(b[tmp_i++]); }
@@ -183,16 +167,18 @@ void WriteStringN(char** const Ptr, const char* Val, const size_t n);
 #endif
 
 /*** DEPRECATED BYTE SWAPPING ***/
-#define SHORT(x)	(x)//((Int16)LITTLESWAP16((Int16)(x)))
-#define LONG(x)		(x)//((Int32)LITTLESWAP32((Int32)(x)))
-#define SHORTU(x)	(x)//((UInt16)LITTLESWAP16((UInt16)(x)))
-#define LONGU(x)	(x)//((UInt32)LITTLESWAP32((UInt32)(x)))
+#define SHORT(x)	(x)//((int16_t)LITTLESWAP16((int16_t)(x)))
+#define LONG(x)		(x)//((int32_t)LITTLESWAP32((int32_t)(x)))
+#define SHORTU(x)	(x)//((uint16_t)LITTLESWAP16((uint16_t)(x)))
+#define LONGU(x)	(x)//((uint32_t)LITTLESWAP32((uint32_t)(x)))
 #define SIZET(x)	(x)//((size_t)((sizeof(size_t) == 8 ? (LITTLESWAP64((size_t)(x))) : (LITTLESWAP32((size_t)(x))))))
 
 #if defined(_REMOOD_BIG_ENDIAN)
-	#define SwapSHORT(n)	(n)//SWAP16((UInt16)(n))
-	#define SwapLONG(n)		(n)//SWAP32((UInt32)(n))
+	#define SwapSHORT(n)	(n)//SWAP16((uint16_t)(n))
+	#define SwapLONG(n)		(n)//SWAP32((uint32_t)(n))
 #endif
+
+/*****************************************************************************/
 
 #endif							/* __BYTEPTR_H__ */
 

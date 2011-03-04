@@ -32,10 +32,11 @@
 #ifndef __I_SYSTEM__
 #define __I_SYSTEM__
 
+#include <stdio.h>
+
 #include "doomtype.h"
 #include "d_ticcmd.h"
 #include "d_event.h"
-#include <stdio.h>
 
 #ifdef __GNUG__
 #pragma interface
@@ -131,7 +132,7 @@ void I_RemoveExitFunc(void (*func) ());
 int I_StartupSystem(void);
 void I_ShutdownSystem(void);
 
-void I_GetDiskFreeSpace(INT64 * freespace);
+void I_GetDiskFreeSpace(uint64_t * freespace);
 char *I_GetUserName(void);
 int I_mkdir(const char *dirname, int unixright);
 

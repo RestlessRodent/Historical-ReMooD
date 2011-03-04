@@ -905,11 +905,11 @@ int VID_SetMode(int modeNum)
 #ifndef _WIN32
 		if (!IconSurface)
 		{
-			UInt8 r[4] = {255, 0, 0, 0};
-			UInt8 g[4] = {0, 255, 0, 0};
-			UInt8 b[4] = {0, 0, 255, 0};
-			UInt8 a[4] = {0, 0, 0, 255};
-			IconSurface = SDL_CreateRGBSurfaceFrom(ICON, 32, 32, 32, 4 * 32, *((UInt32*)r), *((UInt32*)g), *((UInt32*)b), *((UInt32*)a));
+			uint8_t r[4] = {255, 0, 0, 0};
+			uint8_t g[4] = {0, 255, 0, 0};
+			uint8_t b[4] = {0, 0, 255, 0};
+			uint8_t a[4] = {0, 0, 0, 255};
+			IconSurface = SDL_CreateRGBSurfaceFrom(ICON, 32, 32, 32, 4 * 32, *((uint32_t*)r), *((uint32_t*)g), *((uint32_t*)b), *((uint32_t*)a));
 		}
 		
 		SDL_WM_SetIcon(IconSurface, NULL);
@@ -1017,11 +1017,11 @@ void I_StartupGraphics(void)
 #ifndef _WIN32
 		if (!IconSurface)
 		{
-			UInt8 r[4] = {255, 0, 0, 0};
-			UInt8 g[4] = {0, 255, 0, 0};
-			UInt8 b[4] = {0, 0, 255, 0};
-			UInt8 a[4] = {0, 0, 0, 255};
-			IconSurface = SDL_CreateRGBSurfaceFrom(ICON, 32, 32, 32, 4 * 32, *((UInt32*)r), *((UInt32*)g), *((UInt32*)b), *((UInt32*)a));
+			uint8_t r[4] = {255, 0, 0, 0};
+			uint8_t g[4] = {0, 255, 0, 0};
+			uint8_t b[4] = {0, 0, 255, 0};
+			uint8_t a[4] = {0, 0, 0, 255};
+			IconSurface = SDL_CreateRGBSurfaceFrom(ICON, 32, 32, 32, 4 * 32, *((uint32_t*)r), *((uint32_t*)g), *((uint32_t*)b), *((uint32_t*)a));
 		}
 		
 		SDL_WM_SetIcon(IconSurface, NULL);

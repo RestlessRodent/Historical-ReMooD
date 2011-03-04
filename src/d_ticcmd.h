@@ -84,7 +84,7 @@ typedef struct
 	short angleturn;			// <<16 for angle delta
 	// SAVED AS A BYTE into demos
 	signed short aiming;		//added:16-02-98:mouse aiming, see G_BuildTicCmd
-	UInt16 buttons;
+	uint16_t buttons;
 	byte artifact;				// For Heretic
 } ticcmd_t;
 

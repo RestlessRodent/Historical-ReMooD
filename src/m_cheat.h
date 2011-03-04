@@ -52,7 +52,7 @@ typedef struct M_Cheat_s
 {
 	/* Static */
 	char* OldSeq;									// Letters to activate cheat
-	UInt8 Games;									// Doom, Doom 2, Heretic?
+	uint8_t Games;									// Doom, Doom 2, Heretic?
 	
 	/* Dynamic */
 	char* Seq;										// Sequence set by dehacked

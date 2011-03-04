@@ -374,7 +374,7 @@ int W_LoadWadFile(char *filename)
 	WadFile_t *n = NULL;		// Scanning (Next/This)
 	WadFile_t *o = NULL;		// Oh...
 	WadFile_t *p = NULL;		// Scanning (Prev)
-	UInt32 OpenMethod = MAXMETHODS;	// Method of opening the file
+	uint32_t OpenMethod = MAXMETHODS;	// Method of opening the file
 	int readcount;
 	int err;
 	int y, z;
@@ -414,7 +414,7 @@ int W_LoadWadFile(char *filename)
 		{
 			char Temp[4];
 
-			if (!(readcount = fread(Temp, sizeof(UInt32), 1, tFile)))
+			if (!(readcount = fread(Temp, sizeof(uint32_t), 1, tFile)))
 			{
 				if (devparm)
 					CONS_Printf("W_LoadWadFile: Failed to read header!\n");
@@ -508,9 +508,9 @@ int W_LoadWadFile(char *filename)
 		// OK! Now the fun part!
 		if (n)
 		{
-			UInt32 NumLumps = 0;
-			UInt32 IndexOffset = 0;
-			UInt32 j = 0;
+			uint32_t NumLumps = 0;
+			uint32_t IndexOffset = 0;
+			uint32_t j = 0;
 
 			n->Method = OpenMethod;
 			n->File = tFile;
@@ -543,9 +543,9 @@ int W_LoadWadFile(char *filename)
 					/* Indexes */
 					if (readcount = fread(&IndexOffset, sizeof(IndexOffset), 1, tFile))
 					{
-						UInt32 l;
-						UInt32 sz = 0;
-						UInt32 pos = 0;
+						uint32_t l;
+						uint32_t sz = 0;
+						uint32_t pos = 0;
 						
 						// GhostlyDeath <November 5, 2010> -- Swap for BE
 						IndexOffset = LITTLESWAP32(IndexOffset);
@@ -560,10 +560,10 @@ int W_LoadWadFile(char *filename)
 
 						for (l = 0; l < NumLumps; l++)
 						{
-							fread(&pos, sizeof(UInt32), 1, tFile);
+							fread(&pos, sizeof(uint32_t), 1, tFile);
 							n->Index[l].Position = pos;
 
-							fread(&sz, sizeof(UInt32), 1, tFile);
+							fread(&sz, sizeof(uint32_t), 1, tFile);
 							n->Index[l].Size = sz;
 
 							/*n->Index[l].Name = Z_Malloc(9, PU_STATIC, NULL);
@@ -726,9 +726,9 @@ WadIndex_t W_BiCheckNumForName(char *name, int forwards)
 {
 	// Go the the last WAD
 	WadFile_t *rover = WADFiles;
-	Int32 i;
-	Int32 num;
-	Int32 actual = 0;
+	int32_t i;
+	int32_t num;
+	int32_t actual = 0;
 	char NewName[9] = {0, 0, 0, 0, 0, 0, 0, 0, 0};
 	
 	// Turn into a UInt64
@@ -860,7 +860,7 @@ WadIndex_t W_CheckNumForNamePwad(char *name, size_t wadid, WadIndex_t startlump)
 	   WadIndex_t num;
 	   WadIndex_t startlumpx;
 	   WadIndex_t actual = 0;
-	   UInt32 j;
+	   uint32_t j;
 
 	   if (rover)
 	   {
@@ -894,7 +894,7 @@ WadIndex_t W_CheckNumForNamePwadPtr(char *name, WadFile_t * wadid, WadIndex_t st
 	WadIndex_t num;
 	WadIndex_t startlumpx;
 	WadIndex_t actual = 0;
-	Int32 j;
+	int32_t j;
 
 	if (wadid)
 	{

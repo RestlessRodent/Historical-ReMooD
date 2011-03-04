@@ -141,11 +141,11 @@ void Command_SoundReset_f(void);
 struct mobj_s;
 
 int S_AdjustSoundParamsEx(struct mobj_s* Listener, struct mobj_s* Source,
-	Int32* Volume,		// Volume of the sound (Distance) [Mono]
-	Int32* Balance,		// Balance of the sound (left/right) [Stereo + Surround + Full Surround]
-	Int32* Pitch,		// Change in pitch (Doppler!?!?) [All]
-	Int32* Orientation,	// Balance of the sound (front/back) [Surround + Full Surround]
-	Int32* FrontVolume	// How loud to play a sound for the front speaker [Full Surround]
+	int32_t* Volume,		// Volume of the sound (Distance) [Mono]
+	int32_t* Balance,		// Balance of the sound (left/right) [Stereo + Surround + Full Surround]
+	int32_t* Pitch,		// Change in pitch (Doppler!?!?) [All]
+	int32_t* Orientation,	// Balance of the sound (front/back) [Surround + Full Surround]
+	int32_t* FrontVolume	// How loud to play a sound for the front speaker [Full Surround]
 	);
 
 // GhostlyDeath -- Hw3sound.h had these functions, so I'm using a define instead

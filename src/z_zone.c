@@ -78,10 +78,10 @@ typedef struct Z_MemoryBlock_s
 	struct
 	{
 		char File[32];										// File malloced/freed in
-		UInt32 Line;										// Line of file
-		UInt32 Count;										// Times malloced/freed
+		uint32_t Line;										// Line of file
+		uint32_t Count;										// Times malloced/freed
 	} DebugInfo[2];
-	UInt32 Order;											// Order number
+	uint32_t Order;											// Order number
 #endif
 } Z_MemoryBlock_t;
 
@@ -141,9 +141,9 @@ void Command_z_dump_f(void)
 	Z_MemoryBlock_t* SelectedBlock = NULL;
 	Z_MemoryPartition_t* SelectedPartition = NULL;
 	size_t i, j, k, l;
-	UInt8* x, y;
-	UInt8 Line[ASCIISIZE];
-	UInt8 LastLine[ASCIISIZE];
+	uint8_t* x, y;
+	uint8_t Line[ASCIISIZE];
+	uint8_t LastLine[ASCIISIZE];
 	boolean WasLast;
 	
 	FILE* f;
@@ -239,7 +239,7 @@ void Command_z_dump_f(void)
 						memmove(LastLine, Line, sizeof(LastLine));
 						
 						// Copy now to Line
-						memmove(Line, &((UInt8*)SelectedBlock->Ptr)[j], sizeof(Line));
+						memmove(Line, &((uint8_t*)SelectedBlock->Ptr)[j], sizeof(Line));
 						
 						// Print data
 						if (l == 0 || j + ASCIISIZE >= SelectedBlock->Size || memcmp(Line, LastLine, sizeof(Line)))
@@ -252,7 +252,7 @@ void Command_z_dump_f(void)
 							{
 								if (k < SelectedBlock->Size)
 								{
-									fprintf(f, "%02x", ((UInt8*)SelectedBlock->Ptr)[k]);
+									fprintf(f, "%02x", ((uint8_t*)SelectedBlock->Ptr)[k]);
 #if !defined(_DEBUG)
 									fprintf(f, " ");
 #else
@@ -269,7 +269,7 @@ void Command_z_dump_f(void)
 							// Chars
 							for (k = j; k < j + ASCIISIZE; k++)
 								if (k < SelectedBlock->Size)
-									fprintf(f, "%c", (((UInt8*)SelectedBlock->Ptr)[k] >= ' ' && ((UInt8*)SelectedBlock->Ptr)[k] < 0x7F ? ((UInt8*)SelectedBlock->Ptr)[k] : '.'));
+									fprintf(f, "%c", (((uint8_t*)SelectedBlock->Ptr)[k] >= ' ' && ((uint8_t*)SelectedBlock->Ptr)[k] < 0x7F ? ((uint8_t*)SelectedBlock->Ptr)[k] : '.'));
 								else
 									fprintf(f, "_");
 							
@@ -291,7 +291,7 @@ void Command_z_dump_f(void)
 					for (x = SelectedBlock->Ptr, j = 0; j < SelectedBlock->Size;)
 					{
 						// Print base address:
-						fprintf(f, "%06X: ", (UInt8*)x - (UInt8*)SelectedBlock->Ptr);
+						fprintf(f, "%06X: ", (uint8_t*)x - (uint8_t*)SelectedBlock->Ptr);
 					
 						// Print hex
 						for (l = 0, k = j; k < j + ASCIISIZE; k++, l++)
@@ -303,7 +303,7 @@ void Command_z_dump_f(void)
 								memcmp
 							{
 								if (k < SelectedBlock->Size)
-									fprintf(f, "%02x ", ((UInt8*)SelectedBlock->Ptr)[k]);
+									fprintf(f, "%02x ", ((uint8_t*)SelectedBlock->Ptr)[k]);
 								else
 									fprintf(f, "__ ");
 							}
@@ -312,7 +312,7 @@ void Command_z_dump_f(void)
 						// Print chars
 						/*for (k = j; k < j + ASCIISIZE; k++)
 							if (k < SelectedBlock->Size)
-								fprintf(f, "%c", (((UInt8*)SelectedBlock->Ptr)[k] >= ' ' && ((UInt8*)SelectedBlock->Ptr)[k] < 0x7F ? ((UInt8*)SelectedBlock->Ptr)[k] : '.'));
+								fprintf(f, "%c", (((uint8_t*)SelectedBlock->Ptr)[k] >= ' ' && ((uint8_t*)SelectedBlock->Ptr)[k] < 0x7F ? ((uint8_t*)SelectedBlock->Ptr)[k] : '.'));
 							else
 								fprintf(f, "_");*/
 					
@@ -362,7 +362,7 @@ wchar_t* Z_StrdupW(const wchar_t* WString, const Z_MemoryTag_t Tag, void** Ref)
 /* Z_Sort() -- Sort data using selection sort */
 void Z_Sort(void* const List, const size_t ElemSize, const size_t NumElem, const boolean Reverse, int (*CompFunc)(const void* const A, const void* const B))
 {
-#define SORTELEMOF(base,sz,i) (((UInt8*)(base)) + ((sz) * (i)))
+#define SORTELEMOF(base,sz,i) (((uint8_t*)(base)) + ((sz) * (i)))
 	size_t i , j, l;
 	void* Temp;
 	
@@ -411,7 +411,7 @@ void Z_Sort(void* const List, const size_t ElemSize, const size_t NumElem, const
 }
 
 /* Z_CreateNewZone() -- Adds a new zone */
-Z_MemoryZoneArea_t* Z_CreateNewZone(const UInt32 Size)
+Z_MemoryZoneArea_t* Z_CreateNewZone(const uint32_t Size)
 {
 	int i;
 	Z_MemoryZoneArea_t* TempZone;
@@ -495,7 +495,7 @@ Z_MemoryZoneArea_t* Z_CreateNewZone(const UInt32 Size)
 	memset(TempZone->PartitionList, 0, sizeof(Z_MemoryPartition_t) * TempZone->PartitionCount);
 	TempZone->PartitionList[0].Sides[0].Ptr = TempZone->Ptr;
 	TempZone->PartitionList[0].Sides[0].Offset = 0;
-	TempZone->PartitionList[0].Sides[1].Ptr = ((UInt8*)TempZone->Ptr) + TempZone->Size;
+	TempZone->PartitionList[0].Sides[1].Ptr = ((uint8_t*)TempZone->Ptr) + TempZone->Size;
 	TempZone->PartitionList[0].Sides[1].Offset = TempZone->Size;
 	TempZone->PartitionList[0].Size = TempZone->PartitionList[0].Sides[1].Offset;
 	
@@ -526,8 +526,8 @@ void Z_Init(void)
 {
 	size_t FreeMem = 0;
 	size_t TotalMem;
-	UInt32 ToAlloc;
-	Int32 ZoneCount;
+	uint32_t ToAlloc;
+	int32_t ZoneCount;
 	
 	/* Check Free Memory */
 	if (devparm)
@@ -741,7 +741,7 @@ void* Z_InternalMalloc(Z_MemoryZoneArea_t* SelectedZone, Z_MemoryPartition_t* Se
 	Z_MemoryTag_t BackTag;
 	int i;
 #if defined(_DEBUG)
-	static UInt32 LastOrder = 0;
+	static uint32_t LastOrder = 0;
 	Z_MemoryBlock_t OldBlock;
 #endif
 	
@@ -777,7 +777,7 @@ void* Z_InternalMalloc(Z_MemoryZoneArea_t* SelectedZone, Z_MemoryPartition_t* Se
 	BasePtr = SelectedPartition->Sides[0].Ptr;
 	
 	SelectedPartition->Sides[0].Offset += Size;
-	SelectedPartition->Sides[0].Ptr = ((UInt8*)SelectedZone->Ptr) + SelectedPartition->Sides[0].Offset;
+	SelectedPartition->Sides[0].Ptr = ((uint8_t*)SelectedZone->Ptr) + SelectedPartition->Sides[0].Offset;
 	SelectedPartition->Size -= Size;
 
 #if defined(_DEBUG)
@@ -809,19 +809,19 @@ void* Z_InternalMalloc(Z_MemoryZoneArea_t* SelectedZone, Z_MemoryPartition_t* Se
 	
 	// Setup first debug border
 #if defined(_DEBUG)
-	*((UInt32*)BasePtr) = 0xDEADBEEF;
-	BasePtr = ((UInt8*)BasePtr) + sizeof(UInt32);
+	*((uint32_t*)BasePtr) = 0xDEADBEEF;
+	BasePtr = ((uint8_t*)BasePtr) + sizeof(uint32_t);
 #endif
 	
 	// Setup block ref
-	*((UInt32*)BasePtr) = SelectedBlock - SelectedZone->BlockList;
-	BasePtr = ((UInt8*)BasePtr) + sizeof(UInt32);
+	*((uint32_t*)BasePtr) = SelectedBlock - SelectedZone->BlockList;
+	BasePtr = ((uint8_t*)BasePtr) + sizeof(uint32_t);
 	RefPtr = BasePtr;
 	
 	// Setup second debug border
 #if defined(_DEBUG)
-	BasePtr = ((UInt8*)SelectedBlock->Ptr) + (SelectedBlock->BEEFPOINT - sizeof(UInt32));
-	*((UInt32*)BasePtr) = 0xDEADBEEF;
+	BasePtr = ((uint8_t*)SelectedBlock->Ptr) + (SelectedBlock->BEEFPOINT - sizeof(uint32_t));
+	*((uint32_t*)BasePtr) = 0xDEADBEEF;
 	
 	SelectedBlock->RefPtr = RefPtr;
 #endif
@@ -868,11 +868,11 @@ void* Z_MallocWrappee(const size_t Size, const Z_MemoryTag_t Tag, void** const R
 	
 	/* Correct Size */
 	// Block Ref
-	FixedSize += sizeof(UInt32);
+	FixedSize += sizeof(uint32_t);
 	
 	// Debug Marks
 #if defined(_DEBUG)
-	FixedSize += sizeof(UInt32) << 1;
+	FixedSize += sizeof(uint32_t) << 1;
 #endif
 	
 	// Segment alignment
@@ -954,8 +954,8 @@ void* Z_MallocWrappee(const size_t Size, const Z_MemoryTag_t Tag, void** const R
 /* Z_BlockForPtr() -- Get block from ptr */
 Z_MemoryBlock_t* Z_BlockForPtr(Z_MemoryZoneArea_t* SelectedZone, void* const Ptr)
 {
-	UInt32* Scanner = NULL;
-	UInt32 BlockRef = 0;
+	uint32_t* Scanner = NULL;
+	uint32_t BlockRef = 0;
 	void* Base = NULL;
 	size_t i;
 	
@@ -994,7 +994,7 @@ void Z_InternalFree(Z_MemoryZoneArea_t* SelectedZone, void* const Ptr
 		)
 {
 	Z_MemoryBlock_t* SelectedBlock = NULL;
-	Int32 i;
+	int32_t i;
 	size_t BasedOffset, BasedStart;
 	
 	/* Check */
@@ -1012,7 +1012,7 @@ void Z_InternalFree(Z_MemoryZoneArea_t* SelectedZone, void* const Ptr
 		Z_CorrectPartitions(SelectedZone);
 		
 		// Offset for partitioning
-		BasedStart = (UInt8*)SelectedBlock->Ptr - (UInt8*)SelectedZone->Ptr;
+		BasedStart = (uint8_t*)SelectedBlock->Ptr - (uint8_t*)SelectedZone->Ptr;
 		BasedOffset = BasedStart + SelectedBlock->Size;
 		
 		// If Z_CorrectPartitions sorts and merges partitions and we run it anyway,
@@ -1021,7 +1021,7 @@ void Z_InternalFree(Z_MemoryZoneArea_t* SelectedZone, void* const Ptr
 		SelectedZone->PartitionList[i].Size = SelectedBlock->Size;
 		SelectedZone->PartitionList[i].Sides[0].Ptr = SelectedBlock->Ptr;
 		SelectedZone->PartitionList[i].Sides[0].Offset = BasedStart;
-		SelectedZone->PartitionList[i].Sides[1].Ptr = (UInt8*)SelectedBlock->Ptr + SelectedBlock->Size;
+		SelectedZone->PartitionList[i].Sides[1].Ptr = (uint8_t*)SelectedBlock->Ptr + SelectedBlock->Size;
 		SelectedZone->PartitionList[i].Sides[1].Offset = BasedOffset;
 		
 		// May have broken something, hopefully not!
@@ -1042,11 +1042,11 @@ void Z_InternalFree(Z_MemoryZoneArea_t* SelectedZone, void* const Ptr
 		
 		// Check */
 #if defined(_DEBUG)
-		if (*((UInt32*)(SelectedBlock->Ptr)) != 0xDEADBEEF || *((UInt32*)((void*)SelectedBlock->Ptr + (SelectedBlock->BEEFPOINT - sizeof(UInt32)))) != 0xDEADBEEF)
+		if (*((uint32_t*)(SelectedBlock->Ptr)) != 0xDEADBEEF || *((uint32_t*)((void*)SelectedBlock->Ptr + (SelectedBlock->BEEFPOINT - sizeof(uint32_t)))) != 0xDEADBEEF)
 		{
 			CONS_Printf("Z_Free: %s%s %hs:%i (%i) / %hs:%i (%i) [%08x %08x]\n",
-					(*((UInt32*)(SelectedBlock->Ptr)) != 0xDEADBEEF ? "under" : ""),
-					(*((UInt32*)((void*)SelectedBlock->Ptr + (SelectedBlock->BEEFPOINT - sizeof(UInt32)))) != 0xDEADBEEF ? "over" : ""),
+					(*((uint32_t*)(SelectedBlock->Ptr)) != 0xDEADBEEF ? "under" : ""),
+					(*((uint32_t*)((void*)SelectedBlock->Ptr + (SelectedBlock->BEEFPOINT - sizeof(uint32_t)))) != 0xDEADBEEF ? "over" : ""),
 					
 					// Malloc info
 					SelectedBlock->DebugInfo[0].File,
@@ -1058,8 +1058,8 @@ void Z_InternalFree(Z_MemoryZoneArea_t* SelectedZone, void* const Ptr
 					SelectedBlock->DebugInfo[1].Line,
 					SelectedBlock->DebugInfo[1].Count,
 					
-					*((UInt32*)(SelectedBlock->Ptr)),
-					*((UInt32*)((void*)SelectedBlock->Ptr + (SelectedBlock->BEEFPOINT - sizeof(UInt32))))
+					*((uint32_t*)(SelectedBlock->Ptr)),
+					*((uint32_t*)((void*)SelectedBlock->Ptr + (SelectedBlock->BEEFPOINT - sizeof(uint32_t))))
 				);
 		}
 #endif
@@ -1114,7 +1114,7 @@ void Z_FreeWrappee(void* const Ptr
 	for (Rover = l_HeadZone; Rover; Rover = Rover->Next)
 	{
 		/* Not in this zone? */
-		if (!(Ptr >= Rover->Ptr && Ptr < (void*)(((UInt8*)Rover->Ptr) + Rover->Size)))
+		if (!(Ptr >= Rover->Ptr && Ptr < (void*)(((uint8_t*)Rover->Ptr) + Rover->Size)))
 			continue;
 		
 		// Pass to internal free
@@ -1154,7 +1154,7 @@ size_t Z_FreeTagsWrappee(const Z_MemoryTag_t LowTag, const Z_MemoryTag_t HighTag
 				if (Rover->BlockList[i].Tag >= LowTag && Rover->BlockList[i].Tag <= HighTag)
 				{
 					// Pass to internal free
-					Z_InternalFree(Rover, (UInt8*)Rover->BlockList[i].Ptr + (sizeof(UInt32)
+					Z_InternalFree(Rover, (uint8_t*)Rover->BlockList[i].Ptr + (sizeof(uint32_t)
 #if defined(_DEBUG)
 							<< 1), File, Line
 #else
@@ -1184,7 +1184,7 @@ void Z_ChangeTag(void* const Ptr, const Z_MemoryTag_t Tag)
 	for (Rover = l_HeadZone; Rover; Rover = Rover->Next)
 	{
 		/* Not in this zone? */
-		if (!(Ptr >= Rover->Ptr && Ptr < (void*)(((UInt8*)Rover->Ptr) + Rover->Size)))
+		if (!(Ptr >= Rover->Ptr && Ptr < (void*)(((uint8_t*)Rover->Ptr) + Rover->Size)))
 			continue;
 		
 		// Find block
@@ -1215,7 +1215,7 @@ void Z_DebugMarkBlock(void* const Ptr, const char* const String)
 	for (Rover = l_HeadZone; Rover; Rover = Rover->Next)
 	{
 		/* Not in this zone? */
-		if (!(Ptr >= Rover->Ptr && Ptr < (void*)(((UInt8*)Rover->Ptr) + Rover->Size)))
+		if (!(Ptr >= Rover->Ptr && Ptr < (void*)(((uint8_t*)Rover->Ptr) + Rover->Size)))
 			continue;
 		
 		// Find block
@@ -1247,11 +1247,11 @@ void Z_CheckHeap(const int Code)
 				// Select
 				SelectedBlock = &Rover->BlockList[i];
 				
-				if (*((UInt32*)(SelectedBlock->Ptr)) != 0xDEADBEEF || *((UInt32*)((void*)SelectedBlock->Ptr + (SelectedBlock->BEEFPOINT - sizeof(UInt32)))) != 0xDEADBEEF)
+				if (*((uint32_t*)(SelectedBlock->Ptr)) != 0xDEADBEEF || *((uint32_t*)((void*)SelectedBlock->Ptr + (SelectedBlock->BEEFPOINT - sizeof(uint32_t)))) != 0xDEADBEEF)
 				{
 					CONS_Printf("Z_Free: %s%s %hs:%i (%i) / %hs:%i (%i) [%08x %08x]\n",
-							(*((UInt32*)(SelectedBlock->Ptr)) != 0xDEADBEEF ? "under" : ""),
-							(*((UInt32*)((void*)SelectedBlock->Ptr + (SelectedBlock->BEEFPOINT - sizeof(UInt32)))) != 0xDEADBEEF ? "over" : ""),
+							(*((uint32_t*)(SelectedBlock->Ptr)) != 0xDEADBEEF ? "under" : ""),
+							(*((uint32_t*)((void*)SelectedBlock->Ptr + (SelectedBlock->BEEFPOINT - sizeof(uint32_t)))) != 0xDEADBEEF ? "over" : ""),
 					
 							// Malloc info
 							SelectedBlock->DebugInfo[0].File,
@@ -1263,8 +1263,8 @@ void Z_CheckHeap(const int Code)
 							SelectedBlock->DebugInfo[1].Line,
 							SelectedBlock->DebugInfo[1].Count,
 					
-							*((UInt32*)(SelectedBlock->Ptr)),
-							*((UInt32*)((void*)SelectedBlock->Ptr + (SelectedBlock->BEEFPOINT - sizeof(UInt32))))
+							*((uint32_t*)(SelectedBlock->Ptr)),
+							*((uint32_t*)((void*)SelectedBlock->Ptr + (SelectedBlock->BEEFPOINT - sizeof(uint32_t))))
 						);
 				}
 			}
@@ -1335,7 +1335,7 @@ void Command_ClearCache_f(void);
 
 // A block size of 8 is efficient at all speeds, can compete with Zone
 
-#define CAPNUMBER ((UInt32)0xDEADBEEF)
+#define CAPNUMBER ((uint32_t)0xDEADBEEF)
 //#define SEGMENTSIZE (1 << 11)					// Lowest possible is (1 << 3) = 8
 //#define SUBSEGMENTSIZE (SEGMENTSIZE >> 3)		// SEGMENTSIZE >> 3
 
@@ -1348,7 +1348,7 @@ size_t SUBSEGMENTSIZE = DEFAULT_SUBSEGMENTSIZE;
 // 60 bytes w/ DEBUG + 64-bit
 typedef struct MemBlock_s
 {
-	Int8 Tag;
+	int8_t Tag;
 	size_t Size;
 	void* Ptr;
 	void** User;
@@ -1356,15 +1356,15 @@ typedef struct MemBlock_s
 	// Segment Links (for free speed)
 	size_t StartSeg;
 	size_t EndSeg;
-	UInt8 StartSub;
-	UInt8 EndSub;
+	uint8_t StartSub;
+	uint8_t EndSub;
 
 #ifdef ZDEBUG
 	char File[32];
-	UInt32 Line;
+	uint32_t Line;
 	
-	UInt32* StartCap;
-	UInt32* EndCap;
+	uint32_t* StartCap;
+	uint32_t* EndCap;
 #endif
 } MemBlock_t;
 
@@ -1372,7 +1372,7 @@ void* MemoryZone = NULL;
 size_t AllocatedMemory = 0;
 MemBlock_t* StartBlock = NULL;
 size_t NumBlocks = 0;
-UInt8* SegmentMap = NULL;
+uint8_t* SegmentMap = NULL;
 size_t NumSegments = 0;
 size_t LastCheckedBlock = 0;
 size_t LastUsedBlock = 0;
@@ -1541,7 +1541,7 @@ void* Z_MallocAlign2(size_t size, int tag, void** user, int alignbits, char* fil
 		realsize += realsize % (alignbits << 3);
 
 #ifdef ZDEBUG
-	realsize = realsize + (sizeof(UInt32) * 2);
+	realsize = realsize + (sizeof(uint32_t) * 2);
 #endif
 		
 	/* Find a Free Segment */
@@ -1648,7 +1648,7 @@ void* Z_MallocAlign2(size_t size, int tag, void** user, int alignbits, char* fil
 #ifdef ZDEBUG
 	// Debug Parameters
 	Rover->StartCap = CreationSpot;
-	Rover->EndCap = (UInt8*)CreationSpot + (realsize - sizeof(UInt32));
+	Rover->EndCap = (uint8_t*)CreationSpot + (realsize - sizeof(uint32_t));
 	*(Rover->StartCap) = 0xDEADBEEF;
 	*(Rover->EndCap) = 0xDEADBEEF;
 	
@@ -1677,7 +1677,7 @@ void* Z_MallocAlign2(size_t size, int tag, void** user, int alignbits, char* fil
 		}
 		
 #ifdef ZDEBUG
-	return (UInt8*)CreationSpot + sizeof(UInt32);
+	return (uint8_t*)CreationSpot + sizeof(uint32_t);
 #else
 	return CreationSpot;
 #endif
@@ -1704,7 +1704,7 @@ void Z_Free2(void* ptr, void* Block, char* file, int line)
 		I_Error("Z_Free: Free called before Z_Init!\n");
 	
 	/* Direct Block Free */
-	if (Block && Block >= MemoryZone && Block <= ((UInt8*)MemoryZone + AllocatedMemory))
+	if (Block && Block >= MemoryZone && Block <= ((uint8_t*)MemoryZone + AllocatedMemory))
 	{
 		// Clear Segments
 		for (j = ((MemBlock_t*)Block)->StartSeg; j <= ((MemBlock_t*)Block)->EndSeg; j++)
@@ -1754,11 +1754,11 @@ void Z_Free2(void* ptr, void* Block, char* file, int line)
 		}
 		
 #ifdef ZDEBUG
-		ptr = ((size_t)ptr) - sizeof(UInt32);
+		ptr = ((size_t)ptr) - sizeof(uint32_t);
 #endif
 		
 		/* Get Estimated Segment based on Pointer */
-		// CreationSpot = ((UInt8*)MemoryZone) + (StartSeg * SEGMENTSIZE) + (StartSub * SUBSEGMENTSIZE);
+		// CreationSpot = ((uint8_t*)MemoryZone) + (StartSeg * SEGMENTSIZE) + (StartSub * SUBSEGMENTSIZE);
 		// NumSegments = AllocatedMemory / SEGMENTSIZE;
 		ChoppedPtr = (size_t)ptr - (size_t)MemoryZone;
 		StartSeg = (double)NumSegments * ((double)ChoppedPtr / (double)AllocatedMemory);
@@ -1846,11 +1846,11 @@ void Z_ChangeTag2(void *ptr, int tag)
 	}
 		
 #ifdef ZDEBUG
-	ptr = ((size_t)ptr) - sizeof(UInt32);
+	ptr = ((size_t)ptr) - sizeof(uint32_t);
 #endif
 		
 	/* Get Estimated Segment based on Pointer */
-	// CreationSpot = ((UInt8*)MemoryZone) + (StartSeg * SEGMENTSIZE) + (StartSub * SUBSEGMENTSIZE);
+	// CreationSpot = ((uint8_t*)MemoryZone) + (StartSeg * SEGMENTSIZE) + (StartSub * SUBSEGMENTSIZE);
 	// NumSegments = AllocatedMemory / SEGMENTSIZE;
 	ChoppedPtr = (size_t)ptr - (size_t)MemoryZone;
 	StartSeg = (double)NumSegments * ((double)ChoppedPtr / (double)AllocatedMemory);
@@ -2019,10 +2019,10 @@ int Z_CheckCollision(void* ptr, void* Start, size_t Length)
 		return 0;
 	}
 	
-	ptr = ((size_t)ptr) - sizeof(UInt32);
+	ptr = ((size_t)ptr) - sizeof(uint32_t);
 		
 	/* Get Estimated Segment based on Pointer */
-	// CreationSpot = ((UInt8*)MemoryZone) + (StartSeg * SEGMENTSIZE) + (StartSub * SUBSEGMENTSIZE);
+	// CreationSpot = ((uint8_t*)MemoryZone) + (StartSeg * SEGMENTSIZE) + (StartSub * SUBSEGMENTSIZE);
 	// NumSegments = AllocatedMemory / SEGMENTSIZE;
 	ChoppedPtr = (size_t)ptr - (size_t)MemoryZone;
 	StartSeg = (double)NumSegments * ((double)ChoppedPtr / (double)AllocatedMemory);

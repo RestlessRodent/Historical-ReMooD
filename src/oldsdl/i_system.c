@@ -495,7 +495,7 @@ ticcmd_t *I_BaseTiccmd(void)
 // returns time in 1/TICRATE second tics
 //
 
-UInt32 LastTime = 0;
+uint32_t LastTime = 0;
 
 ULONG I_GetTime(void)
 {

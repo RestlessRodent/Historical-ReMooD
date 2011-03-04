@@ -124,7 +124,7 @@ typedef enum
 typedef struct rmdbyte_s
 {
 	rmdbyteid_t Type;
-	UInt32 Size;
+	uint32_t Size;
 } rmdbyte_t;
 
 // Symbol
@@ -132,30 +132,30 @@ typedef struct RMD_Symbol_s
 {
 	char ID[32];
 	rmdtypeid_t Type;
-	UInt32 Group;
-	UInt32 PhysicalLocation;
-	UInt32 Size;
+	uint32_t Group;
+	uint32_t PhysicalLocation;
+	uint32_t Size;
 } RMD_Symbol_t;
 
 // Fucntions
 int RMD_CompileScript(WadIndex_t Lump);
-int RMD_ExecuteScript(UInt16 Number);
+int RMD_ExecuteScript(uint16_t Number);
 int RMD_PauseExecution(void);
 int RMD_ResumeExecution(void);
 int RMD_ResetCompiler(void);
 int RMD_ClearCompiler(void);
 int RMD_CreateTokens(void);
 int RMD_RemoveTokens(void);
-UInt32 RMD_CreateSymbol(UInt16 ParentGroup, UInt16 Group, char* ID, rmdtypeid_t Type);
-int RMD_CreateByte(UInt32* Loc, rmdbyteid_t code, char* types, ...);
+uint32_t RMD_CreateSymbol(uint16_t ParentGroup, uint16_t Group, char* ID, rmdtypeid_t Type);
+int RMD_CreateByte(uint32_t* Loc, rmdbyteid_t code, char* types, ...);
 
 // Tables
 extern size_t TypeSizes[MAXRMDTYPEID];
-extern UInt16* GroupParent;
+extern uint16_t* GroupParent;
 extern size_t NumGroups;
 extern RMD_Symbol_t* Symbols;
 extern size_t NumSymbols;
-extern UInt8* UserZone;
+extern uint8_t* UserZone;
 extern size_t UserZoneSize;
 extern rmdbyte_t* ByteCode;
 extern size_t ByteCodeZone;
@@ -221,8 +221,8 @@ typedef enum
 /* RMD_Data_t -- Data */
 typedef struct RMD_Data_s
 {
-	UInt32 Type;
-	UInt32 Data;
+	uint32_t Type;
+	uint32_t Data;
 } RMD_Data_t;
 
 /* RMD_InstructionFunction -- Type for an instruction */
@@ -234,7 +234,7 @@ typedef struct RMD_Instruction_s
 {
 	CONST char* Name;
 	CONST size_t NumParameters;
-	CONST UInt32* Parameters;
+	CONST uint32_t* Parameters;
 	CONST RMD_InstructionFunction Function;
 } RMD_Instruction_t;
 

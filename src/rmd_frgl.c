@@ -45,19 +45,19 @@
 // that if the src lump is for example 128KB, a copy would cost 128KB and
 // especially with the tokenizers going on too, may cost alot more memory!
 
-UInt32 LegacyCheck = 0;
+uint32_t LegacyCheck = 0;
 
 /* RMD_LSParseAndTokenize() -- Parses and tokenizes, all in one */
-int RMD_LSParseAndTokenize(WadIndex_t Lump, UInt8 Recursive)
+int RMD_LSParseAndTokenize(WadIndex_t Lump, uint8_t Recursive)
 {
 	char* Src = NULL;
 	size_t Size = 0;
 	char* x;
 	char* a;
 	char* b;
-	UInt8 ReachedScriptZone = 0;
-	UInt8 CopyMode = 0;
-	UInt8 LowerCase = 0;
+	uint8_t ReachedScriptZone = 0;
+	uint8_t CopyMode = 0;
+	uint8_t LowerCase = 0;
 	char InQuotes = 0;
 	size_t i;
 	WadIndex_t IncludeLump = INVALIDLUMP;
@@ -371,13 +371,13 @@ typedef struct EvalEntry_s
 {
 	rmdtypeid_t Type;
 	char VariableID[32];
-	UInt32 Variable;
+	uint32_t Variable;
 	char* Op;
 	char** Tokens;
 	size_t NumTokens;
 } EvalEntry_t;
 
-UInt32 RMD_LSEvaluateExpression(UInt32* PosPtr, UInt8* EndedInErrorPtr, UInt16* BlockPtr, UInt16* BlockParentPtr, size_t Len, char** TokenBufPtr)
+uint32_t RMD_LSEvaluateExpression(uint32_t* PosPtr, uint8_t* EndedInErrorPtr, uint16_t* BlockPtr, uint16_t* BlockParentPtr, size_t Len, char** TokenBufPtr)
 {
 	/* Local */
 	// Counters
@@ -420,8 +420,8 @@ UInt32 RMD_LSEvaluateExpression(UInt32* PosPtr, UInt8* EndedInErrorPtr, UInt16* 
 	rmdtypeid_t ev_Type = RMDTID_VOID;
 	
 	// Tests
-	UInt32 ts_Result = 0;
-	UInt32 ts_Result2 = 0;
+	uint32_t ts_Result = 0;
+	uint32_t ts_Result2 = 0;
 	
 	//////////////// INITIALIZATION ////////////////
 	/* Determine Length */
@@ -549,7 +549,7 @@ UInt32 RMD_LSEvaluateExpression(UInt32* PosPtr, UInt8* EndedInErrorPtr, UInt16* 
 				RMD_CreateByte(PosPtr, RMDBID_SETVALUE_INTEGER, "ti", ts_Result2, atoi(ev_Eval[0].Tokens[i]));
 			else
 				RMD_CreateByte(PosPtr, RMDBID_SETVALUE_FIXED, "ti", ts_Result2,
-					(Int32)(atof(ev_Eval[0].Tokens[i]) * 65535.0));
+					(int32_t)(atof(ev_Eval[0].Tokens[i]) * 65535.0));
 			
 			Z_Free(ev_Eval[0].Tokens[i]);
 			ev_Eval[0].Tokens[i] = Z_Malloc(sizeof(char) * (strlen(Symbols[NumSymbols - 1].ID) + 1), PU_STATIC, NULL);
@@ -740,22 +740,22 @@ UInt32 RMD_LSEvaluateExpression(UInt32* PosPtr, UInt8* EndedInErrorPtr, UInt16* 
 int RMD_CompileLegacyScript(WadIndex_t Lump)
 {
 	size_t NumParenthesis = 0;
-	UInt8 Area = 0;
-	Int32 Note = 0;
-	Int32 Note2 = 0;
-	UInt8 EndedInError = 0;
+	uint8_t Area = 0;
+	int32_t Note = 0;
+	int32_t Note2 = 0;
+	uint8_t EndedInError = 0;
 	int ReturnVal = 1;
 	char* t_charstar;
-	UInt32 pos = 0;
-	UInt32 origvar;
+	uint32_t pos = 0;
+	uint32_t origvar;
 	size_t i, j, k;
-	UInt8 ParserClass = 0;
-	UInt16 Block = 0;
-	UInt16 LastBlock = 0xFFFF;
-	UInt32 Var_Result = 0;
-	UInt32 Var_Sym = 0;
+	uint8_t ParserClass = 0;
+	uint16_t Block = 0;
+	uint16_t LastBlock = 0xFFFF;
+	uint32_t Var_Result = 0;
+	uint32_t Var_Sym = 0;
 	
-	UInt32 Var_CP, Var_DP, Var_Zoom, Var_Trigger;
+	uint32_t Var_CP, Var_DP, Var_Zoom, Var_Trigger;
 	
 	RMD_CreateTokens();
 	
@@ -883,7 +883,7 @@ int RMD_CompileLegacyScript(WadIndex_t Lump)
 							
 						if (k)
 							RMD_CreateByte(&pos, RMDBID_SETVALUE_FIXED, "ti", Var_Sym,
-								(Int32)(atof(TokenBuf[CurrentToken]) * 65535.0));
+								(int32_t)(atof(TokenBuf[CurrentToken]) * 65535.0));
 						else
 							RMD_CreateByte(&pos, RMDBID_SETVALUE_INTEGER, "ti", Var_Sym,
 								atoi(TokenBuf[CurrentToken]));

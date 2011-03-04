@@ -71,7 +71,7 @@ typedef struct
 	short width;
 	short height;
 
-	UInt32 columndirectory;		// JUST IN CASE! but they say it's obsolete so..
+	uint32_t columndirectory;		// JUST IN CASE! but they say it's obsolete so..
 	//void                **columndirectory;      // OBSOLETE
 
 	short patchcount;

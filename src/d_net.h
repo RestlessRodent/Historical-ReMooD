@@ -127,8 +127,8 @@ typedef enum
 /* ReMooD Network Protocol Packet */
 typedef struct RNPPacketBase_s
 {
-	UInt32 ID;			// ID		(cHAT or ATcH, LE or BE, if first letter is lowercase, it's LE!)
-	UInt32 Flags;		// Flags
+	uint32_t ID;			// ID		(cHAT or ATcH, LE or BE, if first letter is lowercase, it's LE!)
+	uint32_t Flags;		// Flags
 	
 	/* Misc */
 	// ORDER                               = Packet Number (Unsigned 32-bit)
@@ -168,11 +168,11 @@ typedef struct RNPPacketBase_s
 // The resulting number could be subtracted by 1 so 'A' is 0x00 and 'Z' is 0x19
 // 0x19 in binary is 1 1001 and 0x20 is 10 0000 so to see if a letter is valid, we can just check for 0x20
 // To optimize, ReMooD could determine new ordering based on how many times a packet is requested and such
-typedef int (*RNPHandler_t)(RNPPacketBase_t* BasePtr, UInt16 Host, UInt8* Data, size_t Size);
+typedef int (*RNPHandler_t)(RNPPacketBase_t* BasePtr, uint16_t Host, uint8_t* Data, size_t Size);
 
 typedef struct HandlerHolder_s
 {
-	UInt32 Rest;			// Rest of the code
+	uint32_t Rest;			// Rest of the code
 	int Num;				// Priority Number
 	int Count;				// Call count
 	RNPHandler_t* Handler;	// Handler
@@ -185,29 +185,29 @@ typedef struct HandlerHolder_s
 /* Network Host */
 typedef struct NetworkHost_s
 {
-	UInt32 ip[4];
-	UInt16 Port;
+	uint32_t ip[4];
+	uint16_t Port;
 } NetworkHost_t;
 
 /* Network Player */
 typedef struct NetworkPlayer_s
 {
 	/* Identity */
-	UInt8 LocalID;						// Local Player Number
-	UInt16 NetworkID;					// Network ID
+	uint8_t LocalID;						// Local Player Number
+	uint16_t NetworkID;					// Network ID
 	
 	/* Look */
 	wchar_t Name[MAXPLAYERNAME];		// Name
 	wchar_t Skin[MAXPLAYERNAME];		// Skin
-	UInt8 Color;						// Color
+	uint8_t Color;						// Color
 	
 	/* Timing */
-	UInt32 LocalGameTic;				// Local Game Tic
-	UInt32 RemoteGameTic;				// Remote Game Tic
-	UInt32 ToTime;						// Average time it takes to get there (in tics)
-	UInt32 FromTime;					// Average time it takes to get here (in tics)
-	UInt32 MSToTime;					// Actual ping (time to there)
-	UInt32 MSFromTime;					// Virtual ping (time to here)
+	uint32_t LocalGameTic;				// Local Game Tic
+	uint32_t RemoteGameTic;				// Remote Game Tic
+	uint32_t ToTime;						// Average time it takes to get there (in tics)
+	uint32_t FromTime;					// Average time it takes to get here (in tics)
+	uint32_t MSToTime;					// Actual ping (time to there)
+	uint32_t MSFromTime;					// Virtual ping (time to here)
 		// There will be 2 parts of the ping indicator, Actual Ping and Virtual Ping (ap/vp)
 		// Tic Based Ping will be ((ToTime + FromTime) * 28)
 		// Which means in game pings will be: 0, 28, 56, 84, 112, 140, 168, 196, 224, 252, 280, 308, 336,
@@ -217,7 +217,7 @@ typedef struct NetworkPlayer_s
 		// Actual ping will be the actual amount of time it takes to get there, this will hover around virtual ping
 	
 	/* Host */
-	UInt32 SizeLimit;					// Limits packet size (if the limit is reached then the server will go snip
+	uint32_t SizeLimit;					// Limits packet size (if the limit is reached then the server will go snip
 										// on the packets marked NOTIMPORTANT).
 	NetworkHost_t Host;					// Host
 } NetworkPlayer_t;

@@ -1014,11 +1014,11 @@ static void S_StopChannel(int cnum)
 // Returns 1 if sound is heard (but is not centered)
 // Returns 2 if sound is heard (but is centered)
 int S_AdjustSoundParamsEx(mobj_t* Listener, mobj_t* Source,
-	Int32* Volume,		// Volume of the sound (Distance) [Mono]
-	Int32* Balance,		// Balance of the sound (left/right) [Stereo + Surround + Full Surround]
-	Int32* Pitch,		// Change in pitch (Doppler!?!?) [All]
-	Int32* Orientation,	// Balance of the sound (front/back) [Surround + Full Surround]
-	Int32* FrontVolume	// How loud to play a sound for the front speaker [Full Surround]
+	int32_t* Volume,		// Volume of the sound (Distance) [Mono]
+	int32_t* Balance,		// Balance of the sound (left/right) [Stereo + Surround + Full Surround]
+	int32_t* Pitch,		// Change in pitch (Doppler!?!?) [All]
+	int32_t* Orientation,	// Balance of the sound (front/back) [Surround + Full Surround]
+	int32_t* FrontVolume	// How loud to play a sound for the front speaker [Full Surround]
 	)
 {
 	fixed_t approx_dist;

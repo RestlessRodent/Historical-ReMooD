@@ -48,16 +48,16 @@ typedef struct DEMOPack_s
 {
 	union
 	{
-		UInt32 Num;
-		UInt8 Char[4];
+		uint32_t Num;
+		uint8_t Char[4];
 	} IDs;
 	
-	UInt16 Flags;
+	uint16_t Flags;
 	
 	union
 	{
-		UInt16 ZSize[2];
-		UInt32 Size;
+		uint16_t ZSize[2];
+		uint32_t Size;
 	} Sizes;
 } DEMOPack_t;
 
@@ -66,54 +66,54 @@ typedef struct DEMOPack_s
 typedef struct DEMOHeader_s
 {	
 	// Compiler Info
-	UInt32 DeadBeef;
-	UInt32 SizeShort;
-	UInt32 SizeInt;
-	UInt32 SizeLong;
-	UInt32 SizeSizeT;
-	UInt32 SizeFloat;
-	UInt32 SizeDouble;
-	UInt32 SizeEightS;
-	UInt32 SizeSixteenS;
-	UInt32 SizeThirtyS;
-	UInt32 SizeSixtyS;
-	Int8 Compiler[32];
+	uint32_t DeadBeef;
+	uint32_t SizeShort;
+	uint32_t SizeInt;
+	uint32_t SizeLong;
+	uint32_t SizeSizeT;
+	uint32_t SizeFloat;
+	uint32_t SizeDouble;
+	uint32_t SizeEightS;
+	uint32_t SizeSixteenS;
+	uint32_t SizeThirtyS;
+	uint32_t SizeSixtyS;
+	int8_t Compiler[32];
 	
 	// Port Info
-	UInt8 LegacyVersion;
-	UInt8 Major;
-	UInt8 Minor;
-	UInt8 Release;
-	Int8 CodeName[32];
-	Int8 URL[32];
+	uint8_t LegacyVersion;
+	uint8_t Major;
+	uint8_t Minor;
+	uint8_t Release;
+	int8_t CodeName[32];
+	int8_t URL[32];
 	
 	// RDF Info
-	Int8 RDFDate[32];
-	Int8 RDFTime[32];
+	int8_t RDFDate[32];
+	int8_t RDFTime[32];
 } DEMOHeader_t;
 
 typedef struct EightStruct_s
 {
-	UInt8 a;
-	UInt8 b;
+	uint8_t a;
+	uint8_t b;
 } EightStruct_t;
 
 typedef struct SixteenStruct_s
 {
-	UInt16 a;
-	UInt16 b;
+	uint16_t a;
+	uint16_t b;
 } SixteenStruct_t;
 
 typedef struct ThirtyStruct_s
 {
-	UInt32 a;
-	UInt32 b;
+	uint32_t a;
+	uint32_t b;
 } ThirtyStruct_t;
 
 typedef struct SixtyStruct_s
 {
-	UInt64 a;
-	UInt64 b;
+	uint64_t a;
+	uint64_t b;
 } SixtyStruct_t;
 
 FILE* DemoFile = NULL;

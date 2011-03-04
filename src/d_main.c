@@ -830,7 +830,7 @@ void D_AddFile(char *file)
 // GhostlyDeath <July 11, 2008> -- This should work for now...
 gamemode_t GetDoomVersion(char *wadfile)
 {
-	UInt32 Magic, NumLumps, IndexOffset;
+	uint32_t Magic, NumLumps, IndexOffset;
 	FILE* IWAD;
 	
 	// Cheap but it works
@@ -840,9 +840,9 @@ gamemode_t GetDoomVersion(char *wadfile)
 		return registered;	// woops!
 	else
 	{
-		fread(&Magic, sizeof(UInt32), 1, IWAD);
-		fread(&NumLumps, sizeof(UInt32), 1, IWAD);
-		fread(&IndexOffset, sizeof(UInt32), 1, IWAD);
+		fread(&Magic, sizeof(uint32_t), 1, IWAD);
+		fread(&NumLumps, sizeof(uint32_t), 1, IWAD);
+		fread(&IndexOffset, sizeof(uint32_t), 1, IWAD);
 	
 		fclose(IWAD);
 	}
@@ -856,7 +856,7 @@ gamemode_t GetDoomVersion(char *wadfile)
 
 gamemode_t GetHereticVersion(char *wadfile)
 {
-	UInt32 Magic, NumLumps, IndexOffset;
+	uint32_t Magic, NumLumps, IndexOffset;
 	FILE* IWAD;
 	
 	// Cheap but it works
@@ -866,9 +866,9 @@ gamemode_t GetHereticVersion(char *wadfile)
 		return pack_heretic;	// woops!
 	else
 	{
-		fread(&Magic, sizeof(UInt32), 1, IWAD);
-		fread(&NumLumps, sizeof(UInt32), 1, IWAD);
-		fread(&IndexOffset, sizeof(UInt32), 1, IWAD);
+		fread(&Magic, sizeof(uint32_t), 1, IWAD);
+		fread(&NumLumps, sizeof(uint32_t), 1, IWAD);
+		fread(&IndexOffset, sizeof(uint32_t), 1, IWAD);
 	
 		fclose(IWAD);
 	}

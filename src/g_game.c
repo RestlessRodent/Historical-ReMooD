@@ -1205,7 +1205,7 @@ boolean G_CheckSpot(int playernum, mapthing_t * mthing)
 	fixed_t x;
 	fixed_t y;
 	subsector_t *ss;
-	UInt32 an;
+	uint32_t an;
 	mobj_t *mo;
 	int i;
 

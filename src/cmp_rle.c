@@ -29,12 +29,12 @@
 
 #include "cmp_rle.h"
 
-int RLE_Compress(UInt8* InData, size_t InSize, UInt8* OutData, size_t* OutSize)
+int RLE_Compress(uint8_t* InData, size_t InSize, uint8_t* OutData, size_t* OutSize)
 {
 	return 0;
 }
 
-int RLE_Decompress(UInt8* InData, size_t InSize, UInt8* OutData, size_t* OutSize)
+int RLE_Decompress(uint8_t* InData, size_t InSize, uint8_t* OutData, size_t* OutSize)
 {
 	return 0;
 }

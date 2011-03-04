@@ -1157,7 +1157,7 @@ static int QuickCheckA(char in)
 }
 
 /* UNICODE_ASCIILengthForUnicode() -- Checks out ASCII String, returns correct size (in div 2s) of Unicode variant */
-size_t UNICODE_ASCIILengthForUnicode(UInt8* InData, size_t InSize)
+size_t UNICODE_ASCIILengthForUnicode(uint8_t* InData, size_t InSize)
 {
 	size_t retval = 0;
 	int i;
@@ -1321,23 +1321,23 @@ boolean UNICODE_UnicodeToASCII(wchar_t* InData, size_t InSize, char** OutData, s
 // UT_WCHART (out only)
 // When converting from ASCII and UTF8: Convert ReMooD \xhhhh to a Unicode Character
 // When converting UTF* to ASCII: Create ReMooD \xhhhh in ASCII
-boolean UNICODE_ConvertFile(UTFType_t InType, UInt8* InData, size_t InSize,
-	UTFType_t OutType, UInt8** OutData, size_t* OutSize)
+boolean UNICODE_ConvertFile(UTFType_t InType, uint8_t* InData, size_t InSize,
+	UTFType_t OutType, uint8_t** OutData, size_t* OutSize)
 {
 	// Pointers
-	UInt8* x8;
-	UInt16* x16;
-	UInt32* x32;
+	uint8_t* x8;
+	uint16_t* x16;
+	uint32_t* x32;
 	size_t InitOffset = 0;
 	size_t CorrectedSize = 0;
 	boolean StrippedOut = false;
 	boolean SwappedIn = false;
 	boolean SwappedOut = false;
 	boolean DontAdd = false;
-	UInt32 In;
-	UInt8* y8;
-	UInt16* y16;
-	UInt32* y32;
+	uint32_t In;
+	uint8_t* y8;
+	uint16_t* y16;
+	uint32_t* y32;
 	size_t NumChars;
 	
 	/* Check Validity */
@@ -1524,15 +1524,15 @@ boolean UNICODE_ConvertFile(UTFType_t InType, UInt8* InData, size_t InSize,
 					In = *x16;
 				
 				// Escape sequences and multibyte
-				if ((In == '\\') && (x16 < (UInt16*)(InData + InSize)) && (*(x16+1)))
+				if ((In == '\\') && (x16 < (uint16_t*)(InData + InSize)) && (*(x16+1)))
 				{
 					// Skip characters
-					if ((*(x16+1) == DOWESWAP16('x')) && ((x16 + 5) < (UInt16*)(InData + InSize)))
+					if ((*(x16+1) == DOWESWAP16('x')) && ((x16 + 5) < (uint16_t*)(InData + InSize)))
 						x16 += 5;
-					else if ((*(x16+1) == DOWESWAP16('\\')) && ((x16 + 1) < (UInt16*)(InData + InSize)))
+					else if ((*(x16+1) == DOWESWAP16('\\')) && ((x16 + 1) < (uint16_t*)(InData + InSize)))
 						x16 += 1;
 				}
-				else if (In >= 0xD800 && In <= 0xDB7F && ((x16 + 1) < (UInt16*)(InData + InSize)))	// 4-byte
+				else if (In >= 0xD800 && In <= 0xDB7F && ((x16 + 1) < (uint16_t*)(InData + InSize)))	// 4-byte
 					x16 += 1;
 				
 				// Increment
@@ -1558,12 +1558,12 @@ boolean UNICODE_ConvertFile(UTFType_t InType, UInt8* InData, size_t InSize,
 					In = *x32;
 					
 				// Escape sequences
-				if ((In == '\\') && (x32 < (UInt32*)(InData + InSize)) && (*(x32+1)))
+				if ((In == '\\') && (x32 < (uint32_t*)(InData + InSize)) && (*(x32+1)))
 				{
 					// Skip characters
-					if ((*(x32+1) == DOWESWAP32('x')) && ((x32 + 5) < (UInt32*)(InData + InSize)))
+					if ((*(x32+1) == DOWESWAP32('x')) && ((x32 + 5) < (uint32_t*)(InData + InSize)))
 						x32 += 5;
-					else if ((*(x16+1) == DOWESWAP32('\\')) && ((x32 + 1) < (UInt32*)(InData + InSize)))
+					else if ((*(x16+1) == DOWESWAP32('\\')) && ((x32 + 1) < (uint32_t*)(InData + InSize)))
 						x32 += 1;
 				}
 				
@@ -1592,7 +1592,7 @@ boolean UNICODE_ConvertFile(UTFType_t InType, UInt8* InData, size_t InSize,
 // UTF-16LE --> UTF-16 (Native Endieness)
 // UTF-32BE --> UTF-16 (Native Endieness)
 // UTF-32LE --> UTF-16 (Native Endienness
-boolean UNICODE_Localize(UInt8* InData, size_t InSize, wchar_t** OutData, size_t* OutSize)
+boolean UNICODE_Localize(uint8_t* InData, size_t InSize, wchar_t** OutData, size_t* OutSize)
 {
 	return UNICODE_ConvertFile(UT_AUTO, InData, InSize, UT_WCHART, OutData, OutSize);
 }

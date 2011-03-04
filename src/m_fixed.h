@@ -50,7 +50,7 @@
 #define FRACBITS _FIXED_FRACBITS
 #define FRACUNIT (1 << _FIXED_FRACBITS)
 
-typedef Int32 fixed_t;
+typedef int32_t fixed_t;
 #define FIXED_TO_FLOAT(x) (((float)(x)) / 65536.0)
 
 //#define FIXEDBREAKVANILLA
@@ -59,10 +59,10 @@ typedef Int32 fixed_t;
 static fixed_t ATTRIB_FORCEINLINE ATTRIB_UNUSED FixedMul(fixed_t a, fixed_t b)
 {
 	// Copyright (C) 2010 GhostlyDeath (ghostlydeath@gmail.com / ghostlydeath@remood.org)
-	register UInt32 w, x, y, z;
-	UInt32 A, B;
+	register uint32_t w, x, y, z;
+	uint32_t A, B;
 	fixed_t Res;
-	UInt8 Bits;
+	uint8_t Bits;
 	
 	/* Short circuit */
 	// These comparisons may be cheaper!
@@ -117,7 +117,7 @@ static fixed_t ATTRIB_FORCEINLINE ATTRIB_UNUSED FixedMul(fixed_t a, fixed_t b)
 static fixed_t ATTRIB_FORCEINLINE ATTRIB_UNUSED FixedInv(const fixed_t a)
 {
 	// Copyright (C) 2010 GhostlyDeath (ghostlydeath@gmail.com / ghostlydeath@remood.org)
-	register UInt32 A, SDiv, Res;
+	register uint32_t A, SDiv, Res;
 	
 	/* Short circuit */
 	// These comparisons may be cheaper!
@@ -151,7 +151,7 @@ static fixed_t ATTRIB_FORCEINLINE ATTRIB_UNUSED FixedInv(const fixed_t a)
 		
 		// If division is big enough and not zero
 		if (SDiv)
-			Res = ((UInt32)1 << ((_FIXED_FRACBITS << (UInt32)1) - 1)) / SDiv;
+			Res = ((uint32_t)1 << ((_FIXED_FRACBITS << (uint32_t)1) - 1)) / SDiv;
 		
 		// A is a small number
 		else if (A == 3)
@@ -185,20 +185,20 @@ static fixed_t ATTRIB_FORCEINLINE ATTRIB_UNUSED FixedDiv(fixed_t a, fixed_t b)
 	if (b == 0)
 		return 0x7FFFFFFF | (a & 0x80000000);
 	else
-		return (((Int64)a) << (Int64)FRACBITS) / ((Int64)b);
+		return (((int64_t)a) << (int64_t)FRACBITS) / ((int64_t)b);
 #endif
 }
 
 /* FixedMulSlow() -- Multiply two fixed numbers (slowly) */
 static fixed_t ATTRIB_FORCEINLINE ATTRIB_UNUSED FixedMulSlow(fixed_t a, fixed_t b)
 {
-	return ((Int64)a * (Int64)b) >> FRACBITS;
+	return ((int64_t)a * (int64_t)b) >> FRACBITS;
 }
 
 /* FixedDivSlow() -- Divide two fixed numbers (slowly) */
 static fixed_t ATTRIB_FORCEINLINE ATTRIB_UNUSED FixedDivSlow(fixed_t a, fixed_t b)
 {
-	return (((Int64)a) << (Int64)FRACBITS) / ((Int64)b);
+	return (((int64_t)a) << (int64_t)FRACBITS) / ((int64_t)b);
 }
 
 #endif							/* __M_FIXED_H__ */

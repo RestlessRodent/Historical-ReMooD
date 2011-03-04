@@ -61,16 +61,16 @@ int DigFreq[96] =
 
 typedef struct SoundChannel_s
 {
-	UInt32 Age;					// Tic of the sound
+	uint32_t Age;					// Tic of the sound
 	
-	UInt8 Volume;				// Volume of the sound
-	Int8 Balance;				// Balance to the left and right
-	Int8 Orientation;			// Balance to the front and back
-	Int8 Pitch;					// Pitch of the sound (playback speed maybe?)
+	uint8_t Volume;				// Volume of the sound
+	int8_t Balance;				// Balance to the left and right
+	int8_t Orientation;			// Balance to the front and back
+	int8_t Pitch;					// Pitch of the sound (playback speed maybe?)
 	
 	mobj_t* LinkedMobj;			// Object the sound is linked to
 	
-	Int32 SoundID;				// Identification of the playing sound
+	int32_t SoundID;				// Identification of the playing sound
 	void* Data;					// Pointer to the data
 	size_t Offset;				// Offset of the data
 } SoundChannel_t;
@@ -81,14 +81,14 @@ static SDL_AudioSpec AudioSpec;
 
 typedef struct SoundCache_s
 {
-	UInt16 Freq;
-	UInt8 Density;
+	uint16_t Freq;
+	uint8_t Density;
 	void* Data;
 	size_t End;
 } SoundCache_t;
 
-UInt16 OurFreq = 0;
-UInt8 OurDensity = 0;
+uint16_t OurFreq = 0;
+uint8_t OurDensity = 0;
 SoundCache_t* SoundCache = NULL;
 size_t NumChannels = 0;
 size_t NumSpeakers = 0;
@@ -266,7 +266,7 @@ AUDIODRIVER_t* SelectedAudioDriver = NULL;
 /* GetAudioDriver() -- returns an audio driver by name */
 AUDIODRIVER_t* GetAudioDriver(char* Driver)
 {
-	Int8 i;
+	int8_t i;
 	
 	if (Driver)
 		for (i = 0; i < NUMAUDIODRIVERS; i++)
@@ -281,16 +281,16 @@ AUDIODRIVER_t* GetAudioDriver(char* Driver)
 *************************/
 
 /*** DEFAULT ***/
-void I_UpdateSound_sdl(void *unused, Int8* stream, int len)
+void I_UpdateSound_sdl(void *unused, int8_t* stream, int len)
 {
 	/*static*/ size_t i, j, k;
 	/*static*/ size_t NewLen;
 	/*static*/ size_t WavLen;
-	/*static*/ Int8* i8;
-	/*static*/ Int16* i16;
-	/*static*/ Int32 TData;
-	/*static*/ Int32 TData2;
-	/*static*/ Int8* Out = NULL;
+	/*static*/ int8_t* i8;
+	/*static*/ int16_t* i16;
+	/*static*/ int32_t TData;
+	/*static*/ int32_t TData2;
+	/*static*/ int8_t* Out = NULL;
 	/*static*/ float Mul[6];
 	/*static*/ float Vol;
 	/*static*/ float T;
@@ -383,7 +383,7 @@ void I_UpdateSound_sdl(void *unused, Int8* stream, int len)
 				if (OurDensity == 8)
 				{
 					TData = *Out;
-					TData += (*((Int8*)Channels[i].Data + Channels[i].Offset)) * Mul[k];
+					TData += (*((int8_t*)Channels[i].Data + Channels[i].Offset)) * Mul[k];
 				
 					if (TData > 127)
 						TData = 127;
@@ -394,15 +394,15 @@ void I_UpdateSound_sdl(void *unused, Int8* stream, int len)
 				}
 				else
 				{
-					TData = *((Int16*)Out);
-					TData += (*((Int16*)Channels[i].Data + Channels[i].Offset)) * Mul[k];
+					TData = *((int16_t*)Out);
+					TData += (*((int16_t*)Channels[i].Data + Channels[i].Offset)) * Mul[k];
 				
 					if (TData > 32767)
 						TData = 32767;
 					else if (TData < -32768)
 						TData = -32768;
 					
-					*((Int16*)Out) = TData;
+					*((int16_t*)Out) = TData;
 				}
 			
 				Out += OurDensity >> 3;
@@ -601,9 +601,9 @@ void I_SOUND_DestroyAnalog(void)
 
 void I_StartupSound()
 {
-	Int8 i;
+	int8_t i;
 	AUDIODRIVER_t* WantedDriver = NULL;
-	Int8 LoadLoop[NUMAUDIODRIVERS];
+	int8_t LoadLoop[NUMAUDIODRIVERS];
 	
 	if (M_CheckParm("-nosound") || M_CheckParm("-nosfx"))
 		return;
@@ -760,18 +760,18 @@ void *I_GetSfx(sfxinfo_t* sfx)
 	int i, j, k, l;
 	int SoundID = -1;
 	int DoCache = 0;
-	UInt16 InFreq = 0;
+	uint16_t InFreq = 0;
 	void* InData = NULL;
 	size_t InLen = 0;
 	size_t InSamples = 0;
-	Int8* y8;
-	Int16* y16;
-	Int8* x8;
+	int8_t* y8;
+	int16_t* y16;
+	int8_t* x8;
 	size_t YAdd = 0;
-	UInt16 Mask = 0;
+	uint16_t Mask = 0;
 	int Multiply = 0;
 	int RMultiply = 0;
-	Int32 tVal = 0;
+	int32_t tVal = 0;
 	size_t sz = 0;
 	size_t AnLen;
 	size_t PerSample;
@@ -844,18 +844,18 @@ void *I_GetSfx(sfxinfo_t* sfx)
 			InLen = W_LumpLength(sfx->lumpnum);
 			
 			// Get fake len
-			AnLen = ((UInt16*)InData)[1];
+			AnLen = ((uint16_t*)InData)[1];
 			
 			if (AnLen > InLen - 4)
 				AnLen = InLen - 4;
 			
-			sz = (size_t)(((float)(((UInt16*)InData)[1]) / 140.0) * OurFreq) * (OurDensity / 8);
+			sz = (size_t)(((float)(((uint16_t*)InData)[1]) / 140.0) * OurFreq) * (OurDensity / 8);
 			SoundCache[SoundID].Data = Z_Malloc(sz, PU_CACHE, &SoundCache[SoundID].Data);
 			SoundCache[SoundID].End = sz / (OurDensity / 8);
 			
 			PerSample = (int)((float)OurFreq * (1.0/140.0));
 			
-			x8 = &(((Int16*)InData)[3]);
+			x8 = &(((int16_t*)InData)[3]);
 			y8 = SoundCache[SoundID].Data;
 			y16 = SoundCache[SoundID].Data;
 			
@@ -1004,8 +1004,8 @@ void *I_GetSfx(sfxinfo_t* sfx)
 		
 			InLen = W_LumpLength(sfx->lumpnum);
 		
-			InFreq = ((UInt16*)InData)[1];
-			InSamples = ((UInt16*)InData)[2] - 1;
+			InFreq = ((uint16_t*)InData)[1];
+			InSamples = ((uint16_t*)InData)[2] - 1;
 		
 			/* Figure out how much space we need to use */
 			Multiply = ((float)OurFreq / (float)InFreq);
@@ -1019,7 +1019,7 @@ void *I_GetSfx(sfxinfo_t* sfx)
 			SoundCache[SoundID].End = sz / (OurDensity / 8);
 		
 			/* Matches doom and stuff, so just copy and paste! kinda... */
-			x8 = &(((Int16*)InData)[4]);
+			x8 = &(((int16_t*)InData)[4]);
 			y8 = SoundCache[SoundID].Data;
 			y16 = SoundCache[SoundID].Data;
 		
@@ -1029,7 +1029,7 @@ void *I_GetSfx(sfxinfo_t* sfx)
 				{
 					for (j = 0; j < SoundCache[SoundID].End; j++)
 					{
-						tVal = *((UInt8*)x8);
+						tVal = *((uint8_t*)x8);
 						tVal -= 128;
 						*y8 = tVal;
 				
@@ -1042,7 +1042,7 @@ void *I_GetSfx(sfxinfo_t* sfx)
 					for (j = 0; j < SoundCache[SoundID].End; j++)
 					{
 						// I think a site on PCM states that the range was equal to 16 bits instead of 8 so maybe...
-						tVal = *((UInt8*)x8) << 8;
+						tVal = *((uint8_t*)x8) << 8;
 						tVal -= 32768;
 						*y16 = tVal;
 				
@@ -1063,7 +1063,7 @@ void *I_GetSfx(sfxinfo_t* sfx)
 					{
 						for (j = 0; j < SoundCache[SoundID].End; j++)
 						{
-							tVal = (*((UInt8*)x8)) - 128;
+							tVal = (*((uint8_t*)x8)) - 128;
 						
 							for (k = 0; k < Multiply; k++)
 							{
@@ -1084,7 +1084,7 @@ void *I_GetSfx(sfxinfo_t* sfx)
 					
 							for (k = 0; k < RMultiply; k++)
 							{
-								tVal += (*((UInt8*)x8)) - 128;
+								tVal += (*((uint8_t*)x8)) - 128;
 								x8++;
 							}
 					
@@ -1102,7 +1102,7 @@ void *I_GetSfx(sfxinfo_t* sfx)
 					{
 						for (j = 0; j < SoundCache[SoundID].End; j++)
 						{
-							tVal = (*((UInt8*)x8) << 8) - 32768;
+							tVal = (*((uint8_t*)x8) << 8) - 32768;
 						
 							for (k = 0; k < Multiply; k++)
 							{
@@ -1123,7 +1123,7 @@ void *I_GetSfx(sfxinfo_t* sfx)
 					
 							for (k = 0; k < RMultiply; k++)
 							{
-								tVal += (*((UInt8*)x8) << 8) - 32768;
+								tVal += (*((uint8_t*)x8) << 8) - 32768;
 								x8++;
 							}
 					
@@ -1208,9 +1208,9 @@ void I_UpdateSoundParams(int handle, int vol, int sep, int pitch)
 		return;
 	
 	Channels[handle].Volume = vol;
-	Channels[handle].Pitch = ((Int32)pitch) - 128;
-	Channels[handle].Balance = ((Int32)sep) - 128;
-	//Channels[handle].Orientation = ((Int32)orientation) - 128;
+	Channels[handle].Pitch = ((int32_t)pitch) - 128;
+	Channels[handle].Balance = ((int32_t)sep) - 128;
+	//Channels[handle].Orientation = ((int32_t)orientation) - 128;
 }
 
 int I_StartSoundEx(int id, int vol, int sep, int pitch, int priority, mobj_t * origin, int orientation, int front, int center)
@@ -1300,9 +1300,9 @@ int I_StartSoundEx(int id, int vol, int sep, int pitch, int priority, mobj_t * o
 			Channels[ChanToUse].SoundID = id;
 			Channels[ChanToUse].Volume = vol;
 			Channels[ChanToUse].LinkedMobj = origin;
-			Channels[ChanToUse].Pitch = ((Int32)pitch) - 128;
-			Channels[ChanToUse].Balance = ((Int32)sep) - 128;
-			Channels[ChanToUse].Orientation = ((Int32)orientation) - 128;
+			Channels[ChanToUse].Pitch = ((int32_t)pitch) - 128;
+			Channels[ChanToUse].Balance = ((int32_t)sep) - 128;
+			Channels[ChanToUse].Orientation = ((int32_t)orientation) - 128;
 			Channels[ChanToUse].Data = SoundCache[id].Data;
 			Channels[ChanToUse].Offset = 0;
 		

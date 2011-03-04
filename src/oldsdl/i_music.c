@@ -57,9 +57,9 @@ typedef enum
 static MusicReady = 0;
 extern boolean nomusic;
 int threadedmusic = 0;
-UInt8* MusicData = NULL;
+uint8_t* MusicData = NULL;
 size_t MusicLen = 0;
-UInt8* MusicPtr = NULL;
+uint8_t* MusicPtr = NULL;
 int MusicControl = MUS_STOP;
 int MusicThread = 0;
 int ThreadHandle = -2;
@@ -115,7 +115,7 @@ void I_ShutdownMusic(void)
 
 int I_RegisterSong(char* lumpname)
 {
-	UInt8* ptr = NULL;
+	uint8_t* ptr = NULL;
 	WadIndex_t lump = INVALIDLUMP;
 	
 	if (!PLATFORMSUPPORTSMUSIC)
@@ -143,7 +143,7 @@ int I_RegisterSong(char* lumpname)
 	}
 	
 	// Check the header
-	switch (*((UInt32*)ptr))
+	switch (*((uint32_t*)ptr))
 	{
 		case 441668941:	// MUS 0x1A
 			// if we are using multi-threaded music, we must wait
@@ -164,7 +164,7 @@ int I_RegisterSong(char* lumpname)
 			// Copy in new music
 			MusicLen = W_LumpLength(lump);
 			MusicData = Z_Malloc(MusicLen, PU_MUSIC, &MusicData);
-			MusicPtr = MusicData + (((UInt16*)ptr)[3]);
+			MusicPtr = MusicData + (((uint16_t*)ptr)[3]);
 			
 			// GhostlyDeath says <October 19, 2008>:
 			//     It took me a good 2 hours to find out why the MIDI code kept
@@ -179,7 +179,7 @@ int I_RegisterSong(char* lumpname)
 			return 1;
 			
 		default:
-			CONS_Printf("I_RegisterSong: Song format not known \"%04x\"\n", (*((UInt32*)ptr)));
+			CONS_Printf("I_RegisterSong: Song format not known \"%04x\"\n", (*((uint32_t*)ptr)));
 			return 0;
 	}
 
@@ -194,8 +194,8 @@ void I_UnRegisterSong(int handle)
 #ifdef _WIN32
 typedef union
 {
-	UInt32 word;
-	UInt8 bytes[4];
+	uint32_t word;
+	uint8_t bytes[4];
 } MIDIMsg_t;
 #endif
 
@@ -219,13 +219,13 @@ HMIDIOUT* hMidiOutPtr = NULL;
 void* I_UpdateMusicThreaded(void* unused)
 {
 	size_t TimeDelay = 0;
-	UInt8 Channel = 0;
-	UInt8 Last = 0;
-	UInt8 Event = 0;
-	UInt8 ShortCircuit = 0;
+	uint8_t Channel = 0;
+	uint8_t Last = 0;
+	uint8_t Event = 0;
+	uint8_t ShortCircuit = 0;
 	size_t i = 0;
-	UInt8 ChanVol[16];
-	UInt8 IgnoreNote = 0;
+	uint8_t ChanVol[16];
+	uint8_t IgnoreNote = 0;
 #ifdef _WIN32
 	HMIDIOUT hMidiOut;
 	MIDIMsg_t mData;
@@ -278,7 +278,7 @@ void* I_UpdateMusicThreaded(void* unused)
 			
 				case MUS_PLAY:		// Play or continue to play the music
 					if (MusicData && (MusicPtr < MusicData || MusicPtr >= MusicData + MusicLen))
-						MusicPtr = MusicData + (((UInt16*)MusicData)[3]);
+						MusicPtr = MusicData + (((uint16_t*)MusicData)[3]);
 						
 					if (MusicData && MusicPtr)
 					{
@@ -419,7 +419,7 @@ void* I_UpdateMusicThreaded(void* unused)
 										CONS_Printf("Score End: %i [%02x %02x >%02x< %02x %02x]\n",
 											Event,
 											*(MusicPtr-2), *(MusicPtr-1), *MusicPtr, *(MusicPtr+1), *(MusicPtr+2));
-									MusicPtr = MusicData + (((UInt16*)MusicData)[3]);
+									MusicPtr = MusicData + (((uint16_t*)MusicData)[3]);
 									ShortCircuit = 1;
 									break;
 									
@@ -479,7 +479,7 @@ void* I_UpdateMusicThreaded(void* unused)
 					
 				case MUS_REWIND:	// Go to the beginning of the music and continue playing
 					if (MusicData)
-						MusicPtr = MusicData + (((UInt16*)MusicData)[3]);
+						MusicPtr = MusicData + (((uint16_t*)MusicData)[3]);
 					break;
 					
 				default:

@@ -232,12 +232,12 @@ typedef enum VEX_ColorList_s
 
 /* Initialization */
 void V_InitializeColormaps(void);
-const UInt8* V_ReturnColormapPtr(const VEX_ColorList_t Color);
+const uint8_t* V_ReturnColormapPtr(const VEX_ColorList_t Color);
 
 /* Drawing Functions */
-void V_DrawFadeConsBackEx(const UInt32 Flags, const int x1, const int y1, const int x2, const int y2);
-void V_DrawColorBoxEx(UInt32 Flags, UInt8 LineColor, UInt8 FillColor, Int32 x, Int32 y, Int32 w, Int32 h);
-void V_DrawPatchEx(const UInt32 Flags, const int x, const int y, const patch_t* const Patch, const UInt8* const ExtraMap);
+void V_DrawFadeConsBackEx(const uint32_t Flags, const int x1, const int y1, const int x2, const int y2);
+void V_DrawColorBoxEx(uint32_t Flags, uint8_t LineColor, uint8_t FillColor, int32_t x, int32_t y, int32_t w, int32_t h);
+void V_DrawPatchEx(const uint32_t Flags, const int x, const int y, const patch_t* const Patch, const uint8_t* const ExtraMap);
 
 /* Compatability */
 void V_DrawPatch(const int x, const int y, const int scrn, const patch_t* const patch);
@@ -307,19 +307,19 @@ int V_FontHeight(const VideoFont_t Font);
 int V_FontWidth(const VideoFont_t Font);
 
 /* Multibyte ASCII */
-int V_DrawCharacterMB(const VideoFont_t Font, const UInt32 Options, const char* const MBChar, const int x, const int y, size_t* const BSkip);
+int V_DrawCharacterMB(const VideoFont_t Font, const uint32_t Options, const char* const MBChar, const int x, const int y, size_t* const BSkip);
 
 /* ASCII */
-int V_DrawCharacterA(const VideoFont_t Font, const UInt32 Options, const char Char, const int x, const int y);
-int V_DrawStringA(const VideoFont_t Font, const UInt32 Options, const char* const String, const int x, const int y);
-void V_StringDimensionsA(const VideoFont_t Font, const UInt32 Options, const char* const String, int* const Width, int* const Height);
+int V_DrawCharacterA(const VideoFont_t Font, const uint32_t Options, const char Char, const int x, const int y);
+int V_DrawStringA(const VideoFont_t Font, const uint32_t Options, const char* const String, const int x, const int y);
+void V_StringDimensionsA(const VideoFont_t Font, const uint32_t Options, const char* const String, int* const Width, int* const Height);
 
 /* Unicode */
-int V_DrawCharacterW(const VideoFont_t Font, const UInt32 Options, const wchar_t const WChar, const int x, const int y);
-int V_DrawStringW(const VideoFont_t Font, const UInt32 Options, const wchar_t* const WString, const int x, const int y);
-void V_StringDimensionsW(const VideoFont_t Font, const UInt32 Options, const wchar_t* const WString, int* const Width, int* const Height);
-int V_StringWidthW(const VideoFont_t Font, const UInt32 Options, const wchar_t* const WString);
-int V_StringHeightW(const VideoFont_t Font, const UInt32 Options, const wchar_t* const WString);
+int V_DrawCharacterW(const VideoFont_t Font, const uint32_t Options, const wchar_t const WChar, const int x, const int y);
+int V_DrawStringW(const VideoFont_t Font, const uint32_t Options, const wchar_t* const WString, const int x, const int y);
+void V_StringDimensionsW(const VideoFont_t Font, const uint32_t Options, const wchar_t* const WString, int* const Width, int* const Height);
+int V_StringWidthW(const VideoFont_t Font, const uint32_t Options, const wchar_t* const WString);
+int V_StringHeightW(const VideoFont_t Font, const uint32_t Options, const wchar_t* const WString);
 
 /* Compatability */
 void V_DrawCharacter(int x, int y, int c);	//added:20-03-98: draw a single character

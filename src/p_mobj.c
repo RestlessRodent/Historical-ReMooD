@@ -2469,13 +2469,13 @@ boolean inventory = false;
 // TODO: Remove array when all the code relysMFXD_LEGACYCOMPATIBILITY on extended flags (+RMOD) and not normal flags
 typedef struct XFlagConv_s
 {
-	UInt32 Flag;
-	UInt32 Flag2;
-	UInt32 FlagE;
-	UInt32 XFlagA;
-	UInt32 XFlagB;
-	UInt32 XFlagC;
-	UInt32 XFlagD;
+	uint32_t Flag;
+	uint32_t Flag2;
+	uint32_t FlagE;
+	uint32_t XFlagA;
+	uint32_t XFlagB;
+	uint32_t XFlagC;
+	uint32_t XFlagD;
 } XFlagConv_t;
 
 XFlagConv_t XFlagConvList[] =

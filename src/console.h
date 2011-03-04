@@ -78,8 +78,8 @@ typedef struct CONEx_Command_s
 {
 	/* Basic */
 	char Name[CONEX_MAXVARIABLENAME];					// Command name
-	UInt32 Hash;										// Hash ID
-	UInt32 Flags;										// Command flags
+	uint32_t Hash;										// Hash ID
+	uint32_t Flags;										// Command flags
 	void (*Func)(struct CONEx_Console_s* Console, struct CONEx_Command_s* Command, const int ArgC, const char* const* const ArgV);
 	
 	/* Deprecated */
@@ -90,8 +90,8 @@ typedef struct CONEx_Command_s
 typedef struct CONEx_Variable_s
 {
 	char Name[CONEX_MAXVARIABLENAME];					// Variable name
-	UInt32 Hash;										// Hash ID
-	UInt32 Flags;										// Command flags
+	uint32_t Hash;										// Hash ID
+	uint32_t Flags;										// Command flags
 	void (*Func)(struct CONEx_Console_s* Console, struct CONEx_Variable_s* Command, const int ArgC, const char* const* const ArgV);
 } CONEx_Variable_t;
 
@@ -113,14 +113,14 @@ typedef struct CONEx_VarTypeList_s
 typedef struct CONEx_VarTypeHash_s
 {
 	CONEx_VarTypeList_t* VarType;						// Associated variable type
-	UInt32 Hash;										// Hash
+	uint32_t Hash;										// Hash
 } CONEx_VarTypeHash_t;
 
 /* CONEx_Console_t -- Extended console interface */
 typedef struct CONEx_Console_s
 {
 	/* Identification */
-	UInt32 UUID;										// Console ID
+	uint32_t UUID;										// Console ID
 	
 	/* Buffers */
 	CONEx_Buffer_t* Output;								// Text output buffer
@@ -161,9 +161,9 @@ void CONEx_AttachConsole(CONEx_Console_t* const ToThis, CONEx_Console_t* const A
 void CONEx_DetachConsole(CONEx_Console_t* const FromThis, CONEx_Console_t* const Detacher);
 
 CONEx_VarTypeList_t* CONEx_FindComVar(CONEx_Console_t* const Console, const char* const String);
-CONEx_VarTypeList_t* CONEx_FindComVarHash(CONEx_Console_t* const Console, const UInt32 Hash);
+CONEx_VarTypeList_t* CONEx_FindComVarHash(CONEx_Console_t* const Console, const uint32_t Hash);
 
-UInt32 CONEx_HashString(const char* const Name);
+uint32_t CONEx_HashString(const char* const Name);
 
 void CONEx_AddCommand(CONEx_Console_t* const Console, const CONEx_Command_t* const Command);
 void CONEx_AddVariable(CONEx_Console_t* const Console, const CONEx_Variable_t* const Variable);

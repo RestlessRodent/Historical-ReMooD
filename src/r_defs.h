@@ -592,7 +592,7 @@ struct patch_s
 	short height;
 	short leftoffset;			// pixels to the left of origin
 	short topoffset;			// pixels below the origin
-	UInt32 columnofs[8];		// only [width] used
+	uint32_t columnofs[8];		// only [width] used
 	// the [0] is &columnofs[width]
 };
 typedef struct patch_s patch_t;

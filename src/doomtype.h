@@ -33,8 +33,8 @@
 //    
 //-----------------------------------------------------------------------------
 
-#ifndef __DOOMTYPE__
-#define __DOOMTYPE__
+#ifndef __DOOMTYPE_H__
+#define __DOOMTYPE_H__
 
 #ifdef _WIN32
 #include <windows.h>
@@ -44,45 +44,285 @@
 
 #include <wchar.h>
 
-#ifdef _MSC_VER
-typedef signed __int8 Int8;
-typedef signed __int16 Int16;
-typedef signed __int32 Int32;
-typedef signed __int64 Int64;
-typedef unsigned __int8 UInt8;
-typedef unsigned __int16 UInt16;
-typedef unsigned __int32 UInt32;
-typedef unsigned __int64 UInt64;
-#else
-#include <stdint.h>
-typedef int8_t Int8;
-typedef int16_t Int16;
-typedef int32_t Int32;
-typedef int64_t Int64;
-typedef uint8_t UInt8;
-typedef uint16_t UInt16;
-typedef uint32_t UInt32;
-typedef uint64_t UInt64;
+/***********************
+*** FIXED SIZE TYPES ***
+***********************/
+
+/* Microsoft Visual C++ */
+#if defined(_MSC_VER)
+	typedef signed __int8 int8_t;
+	typedef signed __int16 int16_t;
+	typedef signed __int32 int32_t;
+	typedef signed __int64 int64_t;
+	typedef unsigned __int8 uint8_t;
+	typedef unsigned __int16 uint16_t;
+	typedef unsigned __int32 uint32_t;
+	typedef unsigned __int64 uint64_t;
+
+/* Everything else */
+#elif (__STDC_VERSION__ >= 199901L) || defined(__GNUC__) || defined(__WATCOMC__)
+	#include <stdint.h>
 #endif
+
+/*****************
+*** C KEYWORDS ***
+*****************/
+
+// Keywords
+#if defined(__GNUC__)
+	#define __REMOOD_INLINE inline
+	#define __REMOOD_FORCEINLINE __attribute__((always_inline))
+	#define __REMOOD_UNUSED __attribute__((unused))
+#elif defined(_MSC_VER)
+	#define __REMOOD_INLINE _inline
+	#define __REMOOD_FORCEINLINE __forceinline
+	#define __REMOOD_UNUSED
+#else
+	#define __REMOOD_INLINE inline
+	#define __REMOOD_FORCEINLINE
+	#define __REMOOD_UNUSED
+#endif
+
+// Visual C++ does not like inline in C
+#if defined(_MSC_VER)
+	#define inline _inline
+#endif
+
+// String comparison
+#if defined(_MSC_VER)
+	#define strcasecmp stricmp
+	#define strncasecmp strnicmp
+	#define snprintf _snprintf
+	#define alloca _alloca
+#else
+	#define stricmp strcasecmp
+	#define strnicmp strncasecmp
+#endif
+
+// PATH_MAX/MAX_PATH
+#ifndef PATH_MAX
+	#ifdef MAX_PATH
+		#define PATH_MAX MAX_PATH
+	#else
+		#define PATH_MAX 4096
+	#endif
+#endif
+
+/***************************
+*** DATA READING/WRITING ***
+***************************/
+
+#define BP_MERGE(a,b) a##b
+
+#if defined(__arm__) || defined(_M_ARM) || defined(__sparc__) || defined(__sparc)
+	/* Access to pointer data for system that can't handle unaligned access */
+	// Lets say we have the following data:
+	// { 01  23  45  67  |  89  AB  CD  EF }
+	//      [*DEREF           ]
+	// On normal systems we can just dereference as normal, but on some systems
+	// such as ARM, we cannot do this. Instead we have to dereference both sides
+	// then merge the data together.
+	// Or we could just read byte by byte.
+
+	#define BP_READ(w,x) static inline x __REMOOD_FORCEINLINE BP_MERGE(Read,w)(const x** const Ptr)\
+	{\
+		x Ret = 0;\
+		uint8_t* p8;\
+		size_t i;\
+		\
+		if (!Ptr || !(*Ptr))\
+			return 0;\
+		\
+		p8 = (uint8_t*)*Ptr;\
+		for (i = 0; i < sizeof(x); i++)\
+			((uint8_t*)&Ret)[i] = p8[i];\
+		\
+		(*Ptr)++;\
+		return Ret;\
+	}
+#else
+	/* Normal Pointer Access */
+	#define BP_READ(w,x) static inline x __REMOOD_FORCEINLINE BP_MERGE(Read,w)(const x** const Ptr)\
+	{\
+		x Ret;\
+		\
+		if (!Ptr || !(*Ptr))\
+			return 0;\
+		\
+		Ret = **Ptr;\
+		(*Ptr)++;\
+		return Ret;\
+	}
+#endif
+
+BP_READ(Int8,int8_t)
+BP_READ(Int16,int16_t)
+BP_READ(Int32,int32_t)
+BP_READ(Int64,int64_t)
+BP_READ(UInt8,uint8_t)
+BP_READ(UInt16,uint16_t)
+BP_READ(UInt32,uint32_t)
+BP_READ(UInt64,uint64_t)
+
+#define BP_WRITE(w,x) static inline void __REMOOD_FORCEINLINE BP_MERGE(Write,w)(x** const Ptr, const x Val)\
+{\
+	if (!Ptr || !(*Ptr))\
+		return;\
+	**Ptr = Val;\
+	(*Ptr)++;\
+}
+
+BP_WRITE(Int8,int8_t)
+BP_WRITE(Int16,int16_t)
+BP_WRITE(Int32,int32_t)
+BP_WRITE(Int64,int64_t)
+BP_WRITE(UInt8,uint8_t)
+BP_WRITE(UInt16,uint16_t)
+BP_WRITE(UInt32,uint32_t)
+BP_WRITE(UInt64,uint64_t)
+
+#undef BP_READ
+#undef BP_WRITE
+
+/* WriteString() -- Write a string of any length (bad) */
+static inline void __REMOOD_FORCEINLINE WriteString(uint8_t** const Out, uint8_t* const String)
+{
+	size_t i;
+	
+	// Loop
+	for (i = 0; String[i]; i++)
+		WriteUInt8(Out, (uint8_t)String[i]);
+	WriteUInt8(Out, 0);
+}
+
+/* WriteStringN() -- Write a string of n length */
+static inline void __REMOOD_FORCEINLINE WriteStringN(uint8_t** const Out, uint8_t* const String, const size_t Count)
+{
+	size_t i;
+	
+	// Loop
+	for (i = 0; i < Count && String[i]; i++)
+		WriteUInt8(Out, (uint8_t)String[i]);
+	for (; i < Count; i++)
+		WriteUInt8(Out, 0);
+}
+
+/********************
+*** BYTE SWAPPING ***
+********************/
+
+/* SwapUInt16() -- Swap 16-bits */
+static inline uint16_t __REMOOD_FORCEINLINE SwapUInt16(const uint16_t In)
+{
+	return ((In & 0xFFU) << 8) | ((In & 0xFF00U) >> 8);
+}
+
+/* SwapUInt32() -- Swap 32-bits */
+static inline uint32_t __REMOOD_FORCEINLINE SwapUInt32(const uint32_t In)
+{
+	return ((In & 0xFFU) << 24) | ((In & 0xFF00U) << 8) | ((In & 0xFF0000U) >> 8) | ((In & 0xFF000000U) >> 24);
+}
+
+/* SwapUInt64() -- Swap 64-bits */
+static inline uint64_t __REMOOD_FORCEINLINE SwapUInt64(const uint64_t In)
+{
+	return (((In >> 56)) |
+		((In >> 40) & 0x000000000000FF00LL) |
+		((In >> 24) & 0x0000000000FF0000LL) |
+		((In >> 8 ) & 0x00000000FF000000LL) |
+		((In << 8 ) & 0x000000FF00000000LL) |
+		((In << 24) & 0x0000FF0000000000LL) |
+		((In << 40) & 0x00FF000000000000LL) |
+		((In << 56) & 0xFF00000000000000LL));
+}
+
+/* SwapInt16() -- Swap 16-bits */
+static inline int16_t __REMOOD_FORCEINLINE SwapInt16(const int16_t In)
+{
+	return (int16_t)SwapUInt16((uint16_t)In);
+}
+
+/* SwapInt32() -- Swap 32-bits */
+static inline int32_t __REMOOD_FORCEINLINE SwapInt32(const int32_t In)
+{
+	return (int32_t)SwapUInt32((uint32_t)In);
+}
+
+/* SwapInt64() -- Swap 64-bits */
+static inline int32_t __REMOOD_FORCEINLINE SwapInt64(const int64_t In)
+{
+	return (int64_t)SwapUInt64((uint64_t)In);
+}
+
+/* Little swapping */
+#if defined(__BIG_ENDIAN__)
+	#define LS_x(w,x) static inline x __REMOOD_FORCEINLINE BP_MERGE(LittleSwap,w)(const x In)\
+	{\
+		return BP_MERGE(Swap,w)(In);\
+	}
+#else
+	#define LS_x(w,x) static inline x __REMOOD_FORCEINLINE BP_MERGE(LittleSwap,w)(const x In)\
+	{\
+		return In;\
+	}
+#endif
+
+LS_x(Int16,int16_t)
+LS_x(UInt16,uint16_t)
+LS_x(Int32,int32_t)
+LS_x(UInt32,uint32_t)
+LS_x(Int64,int64_t)
+LS_x(UInt64,uint64_t)
+
+#undef LS_x
+
+/* Big swapping */
+#if defined(__BIG_ENDIAN__)
+	#define BS_x(w,x) static inline x __REMOOD_FORCEINLINE BP_MERGE(BigSwap,w)(const x In)\
+	{\
+		return In;\
+	}
+#else
+	#define BS_x(w,x) static inline x __REMOOD_FORCEINLINE BP_MERGE(BigSwap,w)(const x In)\
+	{\
+		return BP_MERGE(Swap,w)(In);\
+	}
+#endif
+
+BS_x(Int16,int16_t)
+BS_x(UInt16,uint16_t)
+BS_x(Int32,int32_t)
+BS_x(UInt32,uint32_t)
+BS_x(Int64,int64_t)
+BS_x(UInt64,uint64_t)
+
+#undef BS_x
+
+/* End */
+#undef BP_MERGE
+
+/******************************************
+*** REMOVE ALL THIS GARBAGE, SERIOUSLY! ***
+******************************************/
 
 #ifdef _MSC_VER
 #ifndef __ssize_t_defined
 #if defined(_M_IA64) || defined(_M_X64) || defined(_WIN64)
-typedef Int64 ssize_t;
+typedef int64_t ssize_t;
 #else
-typedef Int32 ssize_t;
+typedef int32_t ssize_t;
 #endif
 #define __ssize_t_defined
 #endif
 #endif
 
 #if (_MSC_VER > 1200) || !defined(_MSC_VER)
-typedef UInt8 byte;
+typedef uint8_t byte;
 #endif
 
-typedef UInt32 tic_t;
+typedef uint32_t tic_t;
 #ifndef _WIN32
-typedef Int32 boolean;
+typedef int32_t boolean;
 #else
 #ifndef boolean
 #define boolean BOOL
@@ -90,11 +330,11 @@ typedef Int32 boolean;
 #endif
 
 // Win32 :(
-#define ULONG UInt32
-#define USHORT UInt16
+#define ULONG uint32_t
+#define USHORT uint16_t
 
 // Legacy Compat
-#define INT64 Int64
+#define INT64 uint64_t
 
 #ifdef _MSC_VER
 #define strncasecmp strnicmp
@@ -143,15 +383,15 @@ typedef Int32 boolean;
 #endif
 
 #ifndef MAXCHAR
-#define MAXCHAR   ((Int8)0x7f)
+#define MAXCHAR   ((int8_t)0x7f)
 #endif
 
 #ifndef MAXSHORT
-#define MAXSHORT  ((Int16)0x7fff)
+#define MAXSHORT  ((int16_t)0x7fff)
 #endif
 
 #ifndef MAXINT
-#define MAXINT    ((Int32)0x7fffffff)
+#define MAXINT    ((int32_t)0x7fffffff)
 #endif
 
 #ifndef MAXLONG
@@ -159,19 +399,19 @@ typedef Int32 boolean;
 #endif
 
 #ifndef MAXINT64
-#define MAXINT64   ((Int64)0x7fffffffffffffffL)
+#define MAXINT64   ((int64_t)0x7fffffffffffffffL)
 #endif
 
 #ifndef MINCHAR
-#define MINCHAR   ((Int8)0x80)
+#define MINCHAR   ((int8_t)0x80)
 #endif
 
 #ifndef MINSHORT
-#define MINSHORT  ((Int16)0x8000)
+#define MINSHORT  ((int16_t)0x8000)
 #endif
 
 #ifndef MININT
-#define MININT    ((Int32)0x80000000)
+#define MININT    ((int32_t)0x80000000)
 #endif
 
 #ifndef MINLONG
@@ -179,7 +419,7 @@ typedef Int32 boolean;
 #endif
 
 #ifndef MININT64
-#define MININT64   ((Int64)0x8000000000000000L)
+#define MININT64   ((int64_t)0x8000000000000000L)
 #endif
 
 union FColorRGBA
@@ -213,5 +453,5 @@ typedef union FColorRGBA RGBA_t;
 	#define ATTRIB_UNUSED
 #endif
 
-#endif							//__DOOMTYPE__
+#endif /* __DOOMTYPE_H__ */
 

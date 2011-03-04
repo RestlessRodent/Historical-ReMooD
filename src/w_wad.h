@@ -118,10 +118,10 @@ typedef struct WadFile_s
 	void *WADNameHack;
 
 	/* Special */
-	UInt32 Method;				// File Method
+	uint32_t Method;				// File Method
 
 	/* Multiplayer Verification */
-	UInt8 MD5Sum[16];			// MD5 Sum
+	uint8_t MD5Sum[16];			// MD5 Sum
 
 	/* Links */
 	struct WadFile_s *Prev;

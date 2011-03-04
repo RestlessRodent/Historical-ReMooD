@@ -357,12 +357,12 @@ typedef enum
 } UTFType_t; 
 
 /*** UNICODE ***/
-boolean UNICODE_ConvertFile(UTFType_t InType, UInt8* InData, size_t InSize,
-	UTFType_t OutType, UInt8** OutData, size_t* OutSize);
-boolean UNICODE_Localize(UInt8* InData, size_t InSize, wchar_t** OutData, size_t* OutSize);	/* Deprecated */
+boolean UNICODE_ConvertFile(UTFType_t InType, uint8_t* InData, size_t InSize,
+	UTFType_t OutType, uint8_t** OutData, size_t* OutSize);
+boolean UNICODE_Localize(uint8_t* InData, size_t InSize, wchar_t** OutData, size_t* OutSize);	/* Deprecated */
 
 /* For Internal Usage to convert to/from unicode */
-size_t UNICODE_ASCIILengthForUnicode(UInt8* InData, size_t InSize);
+size_t UNICODE_ASCIILengthForUnicode(uint8_t* InData, size_t InSize);
 boolean UNICODE_ASCIIToUnicode(char* InData, size_t InSize, wchar_t** OutData, size_t* OutSize);
 boolean UNICODE_UnicodeToASCII(wchar_t* InData, size_t InSie, char** OutData, size_t* OutSize);
 

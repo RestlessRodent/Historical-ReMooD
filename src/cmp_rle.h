@@ -34,11 +34,11 @@
 
 typedef struct RLEHeader_s
 {
-	UInt8 Method;
+	uint8_t Method;
 } RLEHeader_t;
 
-int RLE_Compress(UInt8* InData, size_t InSize, UInt8* OutData, size_t* OutSize);
-int RLE_Decompress(UInt8* InData, size_t InSize, UInt8* OutData, size_t* OutSize);
+int RLE_Compress(uint8_t* InData, size_t InSize, uint8_t* OutData, size_t* OutSize);
+int RLE_Decompress(uint8_t* InData, size_t InSize, uint8_t* OutData, size_t* OutSize);
 
 #endif /* __CMP_RLE_H__ */
 
