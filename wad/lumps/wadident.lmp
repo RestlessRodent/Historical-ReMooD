@@ -3,9 +3,9 @@
 	<title type="string">ReMooD Resource WAD</title>
 	<version type="string">1.0a</version>
 	<url type="string">http://remood.org/</url>
-	<author type="string">The ReMooD Team</author>
+	<author type="string">ghostlydeath@gmail.com</author>
 	<port type="string">ReMooD</port>
-	<portminimumversion type="string">1.0b</portminimumversion>
-	<portmaximumversion type="string">1.0b</portmaximumversion>
+	<portminimumversion type="string">1.0a</portminimumversion>
+	<portmaximumversion type="string">1.0a</portmaximumversion>
 </wadidentity>
 

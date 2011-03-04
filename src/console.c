@@ -1258,9 +1258,9 @@ void CON_Init(void)
 
 	// load console background pic
 	if (gamemode == heretic)
-		con_backpic = (pic_t *) W_CacheLumpName("CONSBCKH", PU_STATIC);
+		con_backpic = (pic_t *) W_CacheLumpName("RMD_CB_H", PU_STATIC);
 	else
-		con_backpic = (pic_t *) W_CacheLumpName("CONSBACK", PU_STATIC);
+		con_backpic = (pic_t *) W_CacheLumpName("RMD_CB_D", PU_STATIC);
 
 	// borders MUST be there
 	//con_bordleft  = (pic_t*) W_CacheLumpName ("CBLEFT",PU_STATIC);
