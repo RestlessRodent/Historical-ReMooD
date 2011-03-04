@@ -1300,19 +1300,20 @@ void V_DrawFadeConsBackEx(const UInt32 Flags, const int x1, const int y1, const 
 }
 
 /* V_DrawPatchEx() -- Extended patch drawing function */
-void V_DrawPatchEx(const UInt32 Flags, const int x, const int y, const patch_t* const Patch, const UInt8* const ExtraMap)
+// GhostlyDeath <March 3, 2011> -- Take V_DrawPatchEx() from NewReMooD (improved version)
+void V_DrawPatchEx(const uint32_t Flags, const int x, const int y, const patch_t* const Patch, const uint8_t* const ExtraMap)
 {
-	int X, Y, Count;
+	int X, Y, Count, ColNum, ColLimit, vW, Off;
 	fixed_t RowFrac, ColFrac, Col, Width, Offset, DupX, DupY;
 	column_t* Column;
-	UInt8* Dest;
-	UInt8* DestTop;
-	UInt8* Source;
+	uint8_t* Dest;
+	uint8_t* DestTop;
+	uint8_t* Source;
 	
-	const UInt8* TransMap;	// TODO!
-	const UInt8* ColorMap;
-	const UInt8* ColorMap2;
-	Int8 Color, Screen;
+	const uint8_t* TransMap;	// TODO!
+	const uint8_t* ColorMap;
+	const uint8_t* ColorMap2;
+	int8_t Color, Screen;
 	
 	/* Check */
 	if (!Patch)
@@ -1384,31 +1385,79 @@ void V_DrawPatchEx(const UInt32 Flags, const int x, const int y, const patch_t* 
 	else
 		Screen = 0;
 	
+	/* Offscreen? */
+	if (X < 0 || Y < 0 || X >= vid.width || Y >= vid.height)
+		return;
+	
 	/* Update dirty rectangle */
 	if (!Screen)
 		V_MarkRect(X, Y, Width >> FRACBITS, FixedMul(Patch->height << FRACBITS, DupY) >> FRACBITS);
+		
+	/* Setup column limit */
+	// GhostlyDeath <December 10, 2010> -- Column limit is the Width / ColFrac
+	ColLimit = FixedDiv(Width, ColFrac) >> FRACBITS;	// lose the decimal also
+	
+	/* Flipped? */
+	// GhostlyDeath <December 10, 2010> -- Support flipping patch
+	// With horizontal flipping
+	if (Flags & VEX_HORIZFLIPPED)
+	{
+		Col = Width - FRACUNIT;			// Start at end
+		ColFrac = -ColFrac;				// Reverse column frac
+	}
+	
+	// Without horizontal flipping
+	else
+		Col = 0;						// Start at beginning
+	
+	// With vertical flipping
+	if (Flags & VEX_VERTFLIPPED)
+	{
+		DestTop = screens[Screen] + (Y + (FixedMul(Patch->height << FRACBITS, DupY) >> FRACBITS) * vid.width) + X;
+		vW = -((int32_t)vid.width);	// Move back by width size (go up)
+	}
+	
+	// Without vertical flipping
+	else
+	{
+		DestTop = screens[Screen] + (Y * vid.width) + X;
+		vW = (int32_t)vid.width;	// Move by width size (go down)
+	}
 	
 	/* Start Drawing Patch */
-	for (DestTop = screens[Screen] + (/*FixedMul(*/Y/*, DupY)*/ * vid.width) + /*FixedMul(*/X/*, DupX)*/, Col = 0;
-			(Col >> FRACBITS) < Patch->width && Col < Width; Col += ColFrac, DestTop++)
+	for (ColNum = 0;
+			ColNum < ColLimit; Col += ColFrac, DestTop++, ColNum++)
 	{
+		// GhostlyDeath <December 10, 2010> -- Check column bounds
+		if ((Col >> FRACBITS) < 0 || (Col >> FRACBITS) >= Patch->width)
+			break;
+		
 		// Get source column
-		Column = (column_t*)((UInt8*)Patch + Patch->columnofs[Col >> FRACBITS]);
+		Column = (column_t*)((uint8_t*)Patch + Patch->columnofs[Col >> FRACBITS]);
 		
 		// Draw column
 		while (Column->topdelta != 0xFF)
 		{
 			// Get Drawing parms
-			Source = (UInt8*)Column + 3;
-			Dest = DestTop + (FixedMul(Column->topdelta, DupY) * vid.width);
+			Source = (uint8_t*)Column + 3;
+			
+			// Get offset from top
+			Off = (FixedMul(Column->topdelta, DupY) * vid.width);
+			//Off = (FixedMul(((fixed_t)Column->topdelta) << FRACBITS, DupY) >> FRACBITS) * vid.width;
+			//Off = FixedMul(FixedMul(((fixed_t)Column->topdelta) << FRACBITS, DupY), ((fixed_t)vid.width) << FRACBITS) >> FRACBITS;
+			
+			if (Flags & VEX_VERTFLIPPED)
+				Dest = DestTop - Off;
+			else
+				Dest = DestTop + Off;
 			
 			// Draw column
 			for (Offset = 0, Count = ((FixedMul(Column->length << FRACBITS, DupY) >> FRACBITS) - 1);
-					Count >= 0; Count--, Dest += vid.width, Offset += RowFrac)
+					Count >= 0; Count--, Dest += vW, Offset += RowFrac)
 				*Dest = ColorMap[ColorMap2[Source[Offset >> FRACBITS]]];
 			
 			// Go to next column
-			Column = (column_t*)((UInt8*)Column + Column->length + 4);
+			Column = (column_t*)((uint8_t*)Column + Column->length + 4);
 		}
 	}
 }
