@@ -1,4 +1,4 @@
-// Emacs style mode select   -*- C++ -*- 
+// -*- Mode: C; indent-tabs-mode: t; c-basic-offset: 4; tab-width: 4 -*-
 // -----------------------------------------------------------------------------
 // ########   ###### #####   #####  ######   ######  ######
 // ##     ##  ##     ##  ## ##  ## ##    ## ##    ## ##   ##
@@ -106,7 +106,7 @@ size_t Z_FreeTagsWrappee(const Z_MemoryTag_t LowTag, const Z_MemoryTag_t HighTag
 
 #else
 
-// Emacs style mode select   -*- C++ -*- 
+// -*- Mode: C; indent-tabs-mode: t; c-basic-offset: 4; tab-width: 4 -*-
 // -----------------------------------------------------------------------------
 // ########   ###### #####   #####  ######   ######  ######
 // ##     ##  ##     ##  ## ##  ## ##    ## ##    ## ##   ##
