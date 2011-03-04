@@ -9,16 +9,13 @@
 // ##      ## ###### ##         ##  ######   ######  ######
 //                      http://remood.org/
 // -----------------------------------------------------------------------------
-// Project Leader:    GhostlyDeath           (ghostlydeath@gmail.com)
-// Project Co-Leader: RedZTag                (jostol27@gmail.com)
-// Members:           TetrisMaster512        (tetrismaster512@hotmail.com)
 // -----------------------------------------------------------------------------
 // Copyright (C) 1995, 1996 Free Software Foundation, Inc.
 // Copyright (C) 1995 Ulrich Drepper (drepper@gnu.ai.mit.edu)
 // -----------------------------------------------------------------------------
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
-// as published by the Free Software Foundation; either version 2
+// as published by the Free Software Foundation; either version 3
 // of the License, or (at your option) any later version.
 //
 // This program is distributed in the hope that it will be useful,

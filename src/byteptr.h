@@ -9,15 +9,13 @@
 // ##      ## ###### ##         ##  ######   ######  ######
 //                      http://remood.org/
 // -----------------------------------------------------------------------------
-// Project Leader:    GhostlyDeath           (ghostlydeath@gmail.com)
-// Project Co-Leader: RedZTag                (Jostol27@gmail.com)
 // -----------------------------------------------------------------------------
-// Copyright (C) 2008-2011 The ReMooD Team..
+// Copyright (C) 2008-2011 GhostlyDeath (ghostlydeath@gmail.com)
 // Copyright (C) 2007-2011 GhostlyDeath (ghostlydeath@gmail.com)
 // -----------------------------------------------------------------------------
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
-// as published by the Free Software Foundation; either version 2
+// as published by the Free Software Foundation; either version 3
 // of the License, or (at your option) any later version.
 //
 // This program is distributed in the hope that it will be useful,
