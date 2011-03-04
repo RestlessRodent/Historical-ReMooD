@@ -9,7 +9,6 @@
 // ##      ## ###### ##         ##  ######   ######  ######
 //                      http://remood.org/
 // -----------------------------------------------------------------------------
-// -----------------------------------------------------------------------------
 // Copyright (C) 1998-2000 by DooM Legacy Team.
 // Copyright (C) 2008-2011 GhostlyDeath (ghostlydeath@gmail.com)
 // -----------------------------------------------------------------------------
@@ -38,7 +37,6 @@
 static wallsplat_t wallsplats[MAXLEVELSPLATS];	// WALL splats
 static int freewallsplat;
 #endif
-
 
 // for floorsplats, accessed by asm code
 struct rastery_s *prastertab;
@@ -267,5 +265,4 @@ void R_AddWallSplat(line_t * wallline,
 	}
 }
 #endif							// WALLSPLATS
-
 

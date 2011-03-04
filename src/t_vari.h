@@ -9,7 +9,6 @@
 // ##      ## ###### ##         ##  ######   ######  ######
 //                      http://remood.org/
 // -----------------------------------------------------------------------------
-// -----------------------------------------------------------------------------
 // Copyright(C) 2000 Simon Howard
 // Copyright (C) 2008-2011 GhostlyDeath (ghostlydeath@gmail.com)
 // -----------------------------------------------------------------------------
@@ -35,7 +34,6 @@
 // #       Legacy compatibility layer that will be maintained so all those     #
 // #       awesome Legacy mods can be played.                                  #
 // #############################################################################
-
 
 #ifndef __VARIABLE_H__
 #define __VARIABLE_H__

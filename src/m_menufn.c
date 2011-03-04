@@ -9,7 +9,6 @@
 // ##      ## ###### ##         ##  ######   ######  ######
 //                      http://remood.org/
 // -----------------------------------------------------------------------------
-// -----------------------------------------------------------------------------
 // Copyright (C) 1993-1996 by id Software, Inc.
 // Copyright (C) 1998-2000 by DooM Legacy Team.
 // Copyright (C) 2008-2011 GhostlyDeath (ghostlydeath@gmail.com)
@@ -281,7 +280,6 @@ void M_LocalGameOptions(int choice)
 	currentMenu->lastOn = itemOn;
 	M_SetupNextMenu(&NewGameOptionsDef);
 }
-
 
 CV_PossibleValue_t NGSkill[] =
 {
@@ -777,7 +775,6 @@ void M_StartLocalGame(int choice)
 	M_SetupGameOptionsNow(&CreateLocalGameDef);
 	M_WarpToMap(&CreateLocalGameDef);
 }
-
 
 void M_SetupGameOptionsNow(menu_t* Orig)
 {
@@ -1374,7 +1371,6 @@ void M_ControlsDoPlayer4(int choice)
 	DefaultKeyBindDef.WMenuTitlePtr = PTROFUNICODESTRING(MENU_OTHER_PLAYERDCONTROLS);
 	M_SetupNextMenu(&DefaultKeyBindDef);
 }
-
 
 //
 // CONTROL PANEL

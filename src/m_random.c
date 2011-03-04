@@ -9,7 +9,6 @@
 // ##      ## ###### ##         ##  ######   ######  ######
 //                      http://remood.org/
 // -----------------------------------------------------------------------------
-// -----------------------------------------------------------------------------
 // Copyright (C) 1993-1996 by id Software, Inc.
 // Copyright (C) 1998-2000 by DooM Legacy Team.
 // Copyright (C) 2008-2011 GhostlyDeath (ghostlydeath@gmail.com)
@@ -94,7 +93,6 @@ int P_SignedRandom2(char *a, int b)
 {
 	int r;
 	RandFile = fopen("prandom", "at");
-	fprintf(RandFile, "P_Random at (gt = %i)\t%sp %d\n", gametic, a, b);
 	fprintf(RandFile, "P_Random at (gt = %i)\t%sp %d\n", gametic, a, b);
 	fclose(RandFile);
 	r = rndtable[++prndindex];

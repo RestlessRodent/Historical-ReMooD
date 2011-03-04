@@ -9,7 +9,6 @@
 // ##      ## ###### ##         ##  ######   ######  ######
 //                      http://remood.org/
 // -----------------------------------------------------------------------------
-// -----------------------------------------------------------------------------
 // Copyright (C) 1998-2000 by DooM Legacy Team.
 // Copyright (C) 2008-2011 GhostlyDeath (ghostlydeath@gmail.com)
 // -----------------------------------------------------------------------------
@@ -1018,8 +1017,6 @@ void CONEx_Init(void)
 *** DEPRECATED FUNCTIONS ***
 ***************************/
 
-
-
 /*******************************************************************************
 ********************************************************************************
 *******************************************************************************/
@@ -1064,7 +1061,6 @@ int con_scrollup;				// how many rows of text to scroll up (pgup/pgdn)
 
 int con_lineowner[CON_MAXHUDLINES];	//In splitscreen, which player gets this line of text
 										 //0 or 1 is player 1, 2 is player 2
-
 
 char inputlines[32][CON_MAXPROMPTCHARS];	// hold last 32 prompt lines
 
@@ -1307,8 +1303,6 @@ void CON_InputInit(void)
 	input_cx = 1;
 
 }
-
-
 
 //  Insert a new line in the console text buffer
 //
@@ -2190,5 +2184,4 @@ void CON_Drawer(void)
 
 	hu_font['I' - HU_FONTSTART]->leftoffset = 0;
 }
-
 

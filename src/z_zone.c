@@ -9,7 +9,6 @@
 // ##      ## ###### ##         ##  ######   ######  ######
 //                      http://remood.org/
 // -----------------------------------------------------------------------------
-// -----------------------------------------------------------------------------
 // Copyright (C) 2010 GhostlyDeath.
 // -----------------------------------------------------------------------------
 // This program is free software; you can redistribute it and/or
@@ -292,7 +291,6 @@ void Command_z_dump_f(void)
 						// Print hex
 						for (l = 0, k = j; k < j + ASCIISIZE; k++, l++)
 						{
-							
 							
 							// Always print on first/last or non-match
 							if (l == 0 || k + ASCIISIZE >= SelectedBlock->Size ||
@@ -1280,7 +1278,6 @@ void Z_CheckHeap(const int Code)
 // ##      ## ###### ##         ##  ######   ######  ######
 //                      http://remood.org/
 // -----------------------------------------------------------------------------
-// -----------------------------------------------------------------------------
 // Copyright (C) 1993-1996 by id Software, Inc.
 // Copyright (C) 1998-2000 by DooM Legacy Team.
 // Copyright (C) 2008-2011 GhostlyDeath (ghostlydeath@gmail.com)
@@ -2070,7 +2067,6 @@ wchar_t* Z_StrdupW(const wchar_t* w, int tag, void** user)
 {
 	return UNICODE_Copy(Z_Malloc((UNICODE_StringLength(w) * sizeof(wchar_t)) + 2, tag, user), w);
 }
-
 
 #endif
 

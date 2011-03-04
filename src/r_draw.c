@@ -9,7 +9,6 @@
 // ##      ## ###### ##         ##  ######   ######  ######
 //                      http://remood.org/
 // -----------------------------------------------------------------------------
-// -----------------------------------------------------------------------------
 // Copyright (C) 1993-1996 by id Software, Inc.
 // Copyright (C) 1998-2000 by DooM Legacy Team.
 // Copyright (C) 2008-2011 GhostlyDeath (ghostlydeath@gmail.com)
@@ -187,7 +186,6 @@ char *Color_Names[MAXSKINCOLORS]={
 	"Pink"	,
 };
 
-
 CV_PossibleValue_t Color_cons_t[] = { {0, NULL}, {1, NULL}, {2, NULL}, {3, NULL},
 {4, NULL}, {5, NULL}, {6, NULL}, {7, NULL},
 {8, NULL}, {9, NULL}, {10, NULL}, {11, NULL}, {12, NULL}, {13, NULL}, {14, NULL}, {15, NULL}, {0, NULL}
@@ -359,7 +357,6 @@ void R_InitTranslationTables(void)
 				translationtables [i+11*256] = 0xd0 + (i&0xf); // orange
 				translationtables [i+12*256] = 0x30 + (i&0xf); // Tan
 
-
 				if ((i&0xf) < 1)
 					translationtables [i+13*256] = 0x05 + (i&0xf); // Black
 				else if ((i&0xf) < 2)
@@ -392,7 +389,6 @@ void R_InitTranslationTables(void)
 					translationtables [i+13*256] = 0x08-14 + (i&0xf);
 				else
 					translationtables [i+13*256] = 0x08-15 + (i&0xf);
-				
 				
 				translationtables [i+14*256] = 0x10 + (i&0xf); // Pink
 

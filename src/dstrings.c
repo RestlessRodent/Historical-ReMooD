@@ -9,7 +9,6 @@
 // ##      ## ###### ##         ##  ######   ######  ######
 //                      http://remood.org/
 // -----------------------------------------------------------------------------
-// -----------------------------------------------------------------------------
 // Copyright (C) 1993-1996 by id Software, Inc.
 // Copyright (C) 1998-2000 by DooM Legacy Team.
 // Copyright (C) 2008-2011 GhostlyDeath (ghostlydeath@gmail.com)
@@ -1593,5 +1592,4 @@ boolean UNICODE_Localize(uint8_t* InData, size_t InSize, wchar_t** OutData, size
 {
 	return UNICODE_ConvertFile(UT_AUTO, InData, InSize, UT_WCHART, OutData, OutSize);
 }
-
 

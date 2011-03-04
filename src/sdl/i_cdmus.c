@@ -9,7 +9,6 @@
 // ##      ## ###### ##         ##  ######   ######  ######
 //                      http://remood.org/
 // -----------------------------------------------------------------------------
-// -----------------------------------------------------------------------------
 // Copyright (C) 1998-2000 by DooM Legacy Team.
 // Copyright (C) 2008-2011 GhostlyDeath (ghostlydeath@gmail.com)
 // -----------------------------------------------------------------------------
@@ -93,7 +92,6 @@ static int CDAudio_GetAudioDiskInfo(void)
  * function: I_EjectCD
  *
  * description:
- *
  *
  **************************************************************************/
 static void I_EjectCD(void)
@@ -242,7 +240,6 @@ static void Command_Cd_f(void)
  *
  * description:
  *
- *
  **************************************************************************/
 void I_StopCD(void)
 {
@@ -267,7 +264,6 @@ void I_StopCD(void)
  *
  * description:
  *
- *
  **************************************************************************/
 void I_PauseCD(void)
 {
@@ -291,7 +287,6 @@ void I_PauseCD(void)
  * function: ResumeCD
  *
  * description:
- *
  *
  **************************************************************************/
 // continue after a pause
@@ -325,7 +320,6 @@ void I_ResumeCD(void)
  * function: ShutdownCD
  *
  * description:
- *
  *
  **************************************************************************/
 void I_ShutdownCD(void)

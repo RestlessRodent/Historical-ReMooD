@@ -9,7 +9,6 @@
 // ##      ## ###### ##         ##  ######   ######  ######
 //                      http://remood.org/
 // -----------------------------------------------------------------------------
-// -----------------------------------------------------------------------------
 // Stubbed
 // -----------------------------------------------------------------------------
 // This program is free software; you can redistribute it and/or
@@ -56,7 +55,6 @@ boolean LOCAL_NetOpenSocket(void)
 void LOCAL_NetCloseSocket(void)
 {
 }
-
 
 int I_InitTcpNetwork(void)
 {

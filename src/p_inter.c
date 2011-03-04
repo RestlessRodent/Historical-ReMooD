@@ -9,7 +9,6 @@
 // ##      ## ###### ##         ##  ######   ######  ######
 //                      http://remood.org/
 // -----------------------------------------------------------------------------
-// -----------------------------------------------------------------------------
 // Copyright (C) 1993-1996 by id Software, Inc.
 // Copyright (C) 1998-2000 by DooM Legacy Team.
 // Copyright (C) 2008-2011 GhostlyDeath (ghostlydeath@gmail.com)
@@ -1868,7 +1867,6 @@ void P_KillMobj(mobj_t * target, mobj_t * inflictor, mobj_t * source)
 	mo->dropped_ammo_count = drop_ammo_count;
 }
 
-
 //---------------------------------------------------------------------------
 //
 // FUNC P_MinotaurSlam
@@ -2114,7 +2112,6 @@ void P_AutoUseHealth(player_t * player, int saveHealth)
 	player->mo->health = player->health;
 }
 
-
 //
 // P_DamageMobj
 // Damages both enemies and players
@@ -2229,7 +2226,6 @@ boolean P_DamageMobj(mobj_t * target, mobj_t * inflictor, mobj_t * source, int d
 				break;
 		}
 	}
-
 
 	// Some close combat weapons should not
 	// inflict thrust and push the victim out of reach,

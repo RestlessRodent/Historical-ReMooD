@@ -9,7 +9,6 @@
 // ##      ## ###### ##         ##  ######   ######  ######
 //                      http://remood.org/
 // -----------------------------------------------------------------------------
-// -----------------------------------------------------------------------------
 // Copyright (C) 1993-1996 by id Software, Inc.
 // Copyright (C) 1998-2000 by DooM Legacy Team.
 // Copyright (C) 2008-2011 GhostlyDeath (ghostlydeath@gmail.com)
@@ -728,7 +727,6 @@ static void ST_updateWidgets(void)
 	{
 		// GhostlyDeath <December 20, 2008> -- Boom Double keys
 		keyboxes[i] = (plyr->cards & (1 << i)) ? i : -1;
-
 
 		if (plyr->cards & (1 << (i + 3)))
 		{

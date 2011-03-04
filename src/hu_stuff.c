@@ -9,7 +9,6 @@
 // ##      ## ###### ##         ##  ######   ######  ######
 //                      http://remood.org/
 // -----------------------------------------------------------------------------
-// -----------------------------------------------------------------------------
 // Copyright (C) 1993-1996 by id Software, Inc.
 // Copyright (C) 1998-2000 by DooM Legacy Team.
 // Copyright (C) 2008-2011 GhostlyDeath (ghostlydeath@gmail.com)
@@ -436,7 +435,6 @@ boolean HU_keyInChatString(char *s, char ch)
 }
 
 //
-//
 void HU_Ticker(void)
 {
 	player_t *pl;
@@ -494,7 +492,6 @@ static int head = 0;
 static int tail = 0;
 
 //
-//
 char HU_dequeueChatChar(void)
 {
 	char c;
@@ -512,7 +509,6 @@ char HU_dequeueChatChar(void)
 	return c;
 }
 
-//
 //
 void HU_queueChatChar(char c)
 {

@@ -9,7 +9,6 @@
 // ##      ## ###### ##         ##  ######   ######  ######
 //                      http://remood.org/
 // -----------------------------------------------------------------------------
-// -----------------------------------------------------------------------------
 // Copyright (C) 1993-1996 by id Software, Inc.
 // Copyright (C) 1998-2000 by DooM Legacy Team.
 // Copyright (C) 2008-2011 GhostlyDeath (ghostlydeath@gmail.com)
@@ -421,7 +420,6 @@ fixed_t P_FindNextHighestFloor(sector_t * sec, int currentheight)
 // the floor height passed. If no such height exists the floorheight
 // passed is returned.
 //
-//
 fixed_t P_FindNextLowestFloor(sector_t * sec, int currentheight)
 {
 	sector_t *other;
@@ -448,7 +446,6 @@ fixed_t P_FindNextLowestFloor(sector_t * sec, int currentheight)
 // the ceiling height passed. If no such height exists the ceiling height
 // passed is returned.
 //
-//
 fixed_t P_FindNextLowestCeiling(sector_t * sec, int currentheight)
 {
 	sector_t *other;
@@ -474,7 +471,6 @@ fixed_t P_FindNextLowestCeiling(sector_t * sec, int currentheight)
 // of the smallest ceiling height in a surrounding sector larger than
 // the ceiling height passed. If no such height exists the ceiling height
 // passed is returned.
-//
 //
 fixed_t P_FindNextHighestCeiling(sector_t * sec, int currentheight)
 {
@@ -564,7 +560,6 @@ fixed_t P_FindHighestCeilingSurrounding(sector_t * sec)
 // Passed a sector number, returns the shortest lower texture on a
 // linedef bounding the sector.
 //
-//
 fixed_t P_FindShortestTextureAround(int secnum)
 {
 	int minsize = MAXINT;
@@ -598,7 +593,6 @@ fixed_t P_FindShortestTextureAround(int secnum)
 //
 // Passed a sector number, returns the shortest upper texture on a
 // linedef bounding the sector.
-//
 //
 fixed_t P_FindShortestUpperAround(int secnum)
 {
@@ -637,7 +631,6 @@ fixed_t P_FindShortestUpperAround(int secnum)
 //
 // Note: If no sector at that height bounds the sector passed, return NULL
 //
-//
 sector_t *P_FindModelFloorSector(fixed_t floordestheight, int secnum)
 {
 	int i;
@@ -671,7 +664,6 @@ sector_t *P_FindModelFloorSector(fixed_t floordestheight, int secnum)
 // line surrounding the sector.
 //
 // Note: If no sector at that height bounds the sector passed, return NULL
-//
 //
 sector_t *P_FindModelCeilingSector(fixed_t ceildestheight, int secnum)
 {
@@ -803,7 +795,6 @@ int P_FindMinSurroundingLight(sector_t * sector, int max)
 // Note: The linedef passed MUST be a generalized locked door type
 //       or results are undefined.
 //
-//
 boolean P_CanUnlockGenDoor(line_t * line, player_t * player)
 {
 	// does this line special distinguish between skulls and keys?
@@ -910,7 +901,6 @@ boolean P_CanUnlockGenDoor(line_t * line, player_t * player)
 // same class. If old demo compatibility true, all linedef special classes
 // are the same.
 //
-//
 size_t P_SectorActive(special_e t, sector_t * sec)
 {
 	if (!boomsupport)
@@ -938,7 +928,6 @@ size_t P_SectorActive(special_e t, sector_t * sec)
 //
 // Note: Only line specials activated by walkover, pushing, or shooting are
 //       checked by this routine.
-//
 //
 int P_CheckTag(line_t * line)
 {

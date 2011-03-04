@@ -9,7 +9,6 @@
 // ##      ## ###### ##         ##  ######   ######  ######
 //                      http://remood.org/
 // -----------------------------------------------------------------------------
-// -----------------------------------------------------------------------------
 // Copyright (C) 1998-2000 by DooM Legacy Team.
 // Copyright (C) 2008-2011 GhostlyDeath (ghostlydeath@gmail.com)
 // -----------------------------------------------------------------------------
@@ -108,7 +107,6 @@ void Command_Kill(void);
 //                           CLIENT VARIABLES
 // =========================================================================
 
-
 void CL_Player1Change(void);
 void CL_Player2Change(void);
 void CL_Player3Change(void);
@@ -160,12 +158,10 @@ consvar_t cv_weaponpref4 = { "cl4_weaponpref", "014576328", CV_SAVE | CV_CALL | 
 consvar_t cv_autoaim4 = { "cl4_autoaim", "1", CV_SAVE | CV_CALL | CV_NOINIT, CV_OnOff, CL_Player4Change };
 /****************************************/
 
-
 consvar_t cv_originalweaponswitch =
 	{ "originalweaponswitch", "0", CV_SAVE, CV_OnOff,
 	NULL
 };
-
 
 CV_PossibleValue_t usemouse_cons_t[] = { {0, "Off"}, {1, "On"}, {2, "Force"}, {0, NULL} };
 
@@ -348,7 +344,6 @@ void D_RegisterClientCommands(void)
 	CV_RegisterVar(&cv_weaponpref4);
 	CV_RegisterVar(&cv_autoaim4);
 	CV_RegisterVar(&cv_skin4);
-	
 	
 	CV_RegisterVar(&cv_originalweaponswitch);
 

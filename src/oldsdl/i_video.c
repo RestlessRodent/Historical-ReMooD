@@ -9,7 +9,6 @@
 // ##      ## ###### ##         ##  ######   ######  ######
 //                      http://remood.org/
 // -----------------------------------------------------------------------------
-// -----------------------------------------------------------------------------
 // Copyright (C) 1993-1996 by id Software, Inc.
 // Copyright (C) 1998-2000 by DooM Legacy Team.
 // Copyright (C) 2008-2011 GhostlyDeath (ghostlydeath@gmail.com)
@@ -394,7 +393,6 @@ static int windowedModes[][2] =
 // maximum number of windowed modes (see windowedModes[][])
 #define MAXWINMODES (sizeof(windowedModes) / sizeof(*windowedModes))
 
-
 //
 //  Translates the SDL key into Doom key
 //
@@ -487,8 +485,6 @@ static int xlatekey(SDLKey sym)
     return rc;
 }
 
-
-
 //
 // I_StartFrame
 //
@@ -508,7 +504,6 @@ extern void I_GetJoyEvent();
 #ifdef LMOUSE2
 extern void I_GetMouse2Event();
 #endif
-
 
 void I_GetEvent(void)
 {
@@ -696,7 +691,6 @@ void I_OsPolling(void)
     return;
 }
 
-
 //
 // I_UpdateNoBlit
 //
@@ -727,7 +721,6 @@ void I_FinishUpdate(void)
     I_GetEvent();
 }
 
-
 //
 // I_ReadScreen
 //
@@ -735,8 +728,6 @@ void I_ReadScreen(byte* scr)
 {
     memcpy (scr, screens[0], vid.width*vid.height*vid.bpp);
 }
-
-
 
 //
 // I_SetPalette
@@ -756,7 +747,6 @@ void I_SetPalette(RGBA_t* palette)
 
     return;
 }
-
 
 // return number of fullscreen + X11 modes
 int   VID_NumModes(void)
@@ -833,7 +823,6 @@ int VID_GetModeForSize(int w, int h) {
 
     return matchMode;
 }
-
 
 void VID_PrepareModeList(void)
 {

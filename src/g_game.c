@@ -9,7 +9,6 @@
 // ##      ## ###### ##         ##  ######   ######  ######
 //                      http://remood.org/
 // -----------------------------------------------------------------------------
-// -----------------------------------------------------------------------------
 // Copyright (C) 1993-1996 by id Software, Inc.
 // Copyright (C) 1998-2000 by DooM Legacy Team.
 // Copyright (C) 2008-2011 GhostlyDeath (ghostlydeath@gmail.com)
@@ -152,7 +151,6 @@ CV_PossibleValue_t exmy_cons_t[] = { {11, "e1m1"}
 , {49, "e4m9"}
 , {0, NULL}
 };
-
 
 consvar_t cv_skill = { "skill", "4", CV_HIDEN, skill_cons_t };
 consvar_t cv_monsters = { "monsters", "0", CV_HIDEN, CV_YesNo };

@@ -9,7 +9,6 @@
 // ##      ## ###### ##         ##  ######   ######  ######
 //                      http://remood.org/
 // -----------------------------------------------------------------------------
-// -----------------------------------------------------------------------------
 // Copyright (C) 1993-1996 by id Software, Inc.
 // Copyright (C) 1998-2000 by DooM Legacy Team.
 // Copyright (C) 2008-2011 GhostlyDeath (ghostlydeath@gmail.com)
@@ -598,7 +597,6 @@ int EV_DoFloor(line_t * line, floor_e floortype)
 //
 // The linedef causing the change and the type of change is passed
 // Returns true if any sector changes
-//
 //
 int EV_DoChange(line_t * line, change_e changetype)
 {

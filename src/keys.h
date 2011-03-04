@@ -9,7 +9,6 @@
 // ##      ## ###### ##         ##  ######   ######  ######
 //                      http://remood.org/
 // -----------------------------------------------------------------------------
-// -----------------------------------------------------------------------------
 // Copyright (C) 1998-2000 by DooM Legacy Team.
 // Copyright (C) 2008-2011 GhostlyDeath (ghostlydeath@gmail.com)
 // -----------------------------------------------------------------------------
@@ -113,7 +112,6 @@
 #define KEY_XWORLDSTART	256
 
 // World Keys
-
 
 // these ones must be non-extended scancodes (rctrl,rshift,lalt)
 #define KEY_SHIFT       (0x80+54)

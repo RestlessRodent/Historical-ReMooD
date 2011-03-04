@@ -9,7 +9,6 @@
 // ##      ## ###### ##         ##  ######   ######  ######
 //                      http://remood.org/
 // -----------------------------------------------------------------------------
-// -----------------------------------------------------------------------------
 // Copyright (C) 1993-1996 by id Software, Inc.
 // Copyright (C) 1998-2000 by DooM Legacy Team.
 // Copyright (C) 2008-2011 GhostlyDeath (ghostlydeath@gmail.com)
@@ -2017,7 +2016,6 @@ int P_HitFloor(mobj_t * thing)
 	// do not down the viewpoint
 	return (FLOOR_SOLID);
 }
-
 
 //
 // P_CheckMissileSpawn

@@ -9,7 +9,6 @@
 // ##      ## ###### ##         ##  ######   ######  ######
 //                      http://remood.org/
 // -----------------------------------------------------------------------------
-// -----------------------------------------------------------------------------
 // Copyright (C) 1993-1996 by id Software, Inc.
 // Copyright (C) 1998-2000 by DooM Legacy Team.
 // Copyright (C) 2008-2011 GhostlyDeath (ghostlydeath@gmail.com)
@@ -312,8 +311,6 @@ void AM_getIslope(mline_t * ml, islope_t * is)
 }
 
 //
-//
-//
 void AM_activateNewScale(void)
 {
 	m_x += m_w / 2;
@@ -327,8 +324,6 @@ void AM_activateNewScale(void)
 }
 
 //
-//
-//
 void AM_saveScaleAndLoc(void)
 {
 	old_m_x = m_x;
@@ -337,8 +332,6 @@ void AM_saveScaleAndLoc(void)
 	old_m_h = m_h;
 }
 
-//
-//
 //
 void AM_restoreScaleAndLoc(void)
 {
@@ -415,8 +408,6 @@ void AM_findMinMaxBoundaries(void)
 }
 
 //
-//
-//
 void AM_changeWindowLoc(void)
 {
 	if (m_paninc.x || m_paninc.y)
@@ -442,8 +433,6 @@ void AM_changeWindowLoc(void)
 	m_y2 = m_y + m_h;
 }
 
-//
-//
 //
 static void AM_initVariables(void)
 {
@@ -518,8 +507,6 @@ static void AM_initVariables(void)
 static byte *maplump;			// pointer to the raw data for the automap background.
 
 //
-//
-//
 static void AM_loadPics(void)
 {
 	int i;
@@ -580,8 +567,6 @@ void AM_LevelInit(void)
 }
 
 //
-//
-//
 void AM_Stop(void)
 {
 	static event_t st_notify = { 0, ev_keyup, AM_MSGEXITED };
@@ -593,8 +578,6 @@ void AM_Stop(void)
 	stopped = true;
 }
 
-//
-//
 //
 void AM_Start(void)
 {
@@ -796,8 +779,6 @@ void AM_changeWindowScale(void)
 }
 
 //
-//
-//
 void AM_doFollowPlayer(void)
 {
 
@@ -819,8 +800,6 @@ void AM_doFollowPlayer(void)
 
 }
 
-//
-//
 //
 void AM_updateLightLev(void)
 {

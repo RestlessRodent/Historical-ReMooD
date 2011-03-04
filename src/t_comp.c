@@ -9,7 +9,6 @@
 // ##      ## ###### ##         ##  ######   ######  ######
 //                      http://remood.org/
 // -----------------------------------------------------------------------------
-// -----------------------------------------------------------------------------
 // Copyright (C) 2008-2011 GhostlyDeath (ghostlydeath@gmail.com)
 // -----------------------------------------------------------------------------
 // This program is free software; you can redistribute it and/or
@@ -56,7 +55,6 @@ boolean l_ScriptDebug = false;									// Debug scripts
 /****************
 *** FUNCTIONS ***
 ****************/
-
 
 static int Deepness;	// Deepness brace wise
 static TLS_BlockType_t PushBlockType;	// Block type to push next

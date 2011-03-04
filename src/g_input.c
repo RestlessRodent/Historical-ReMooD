@@ -9,7 +9,6 @@
 // ##      ## ###### ##         ##  ######   ######  ######
 //                      http://remood.org/
 // -----------------------------------------------------------------------------
-// -----------------------------------------------------------------------------
 // Copyright (C) 1998-2000 by DooM Legacy Team.
 // Copyright (C) 2008-2011 GhostlyDeath (ghostlydeath@gmail.com)
 // -----------------------------------------------------------------------------
@@ -160,7 +159,6 @@ static boolean G_CheckDoubleClick(int state, dclick_t * dt)
 //  A game control can be triggered by one or more keys/buttons.
 //
 //  Each key/mousebutton/joybutton triggers ONLY ONE game control.
-//
 //
 void G_MapEventsToControls(event_t * ev)
 {

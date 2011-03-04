@@ -9,7 +9,6 @@
 // ##      ## ###### ##         ##  ######   ######  ######
 //                      http://remood.org/
 // -----------------------------------------------------------------------------
-// -----------------------------------------------------------------------------
 // Copyright (C) 1993-1996 by id Software, Inc.
 // Copyright (C) 1998-2000 by DooM Legacy Team.
 // Copyright (C) 2008-2011 GhostlyDeath (ghostlydeath@gmail.com)
@@ -1295,7 +1294,6 @@ typedef enum
 	S_SPLASH2,
 	S_SPLASH3,
 	S_TNT1,						//SoM: 3/9/2000: add state for invisible sprite
-	
 	
 // heretic stuff
 
