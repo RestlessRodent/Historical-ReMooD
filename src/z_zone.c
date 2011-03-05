@@ -347,50 +347,75 @@ void* Z_MallocWrappee(const size_t Size, const Z_MemoryTag_t Tag, void** const R
 	return (void*)0xDEADBEEFL;	// Segfault, hopefully!
 }
 
+/* Z_GetBlockFromPtr() -- Gets the assigned block from a Ptr */
+static Z_MemBlock_t* Z_GetBlockFromPtr(void* const Ptr)
+{
+	Z_MemBlock_t* Block;
+	
+	/* Check */
+	if (!Ptr)
+		return NULL;
+	
+	/* Do some math */
+	Block = (Z_MemBlock_t*)((uintptr_t)Ptr - (uintptr_t)Z_AlignPlacePointer(NULL, sizeof(Z_MemBlock_t)));
+	
+	/* Are we insane? */
+	if (Block->Ptr == Ptr)
+		return Block;
+	
+	// we are
+	return NULL;
+}
+
 /* Z_FreeWrappee() -- Free memory */
 void Z_FreeWrappee(void* const Ptr _ZMGD_WRAPPEE)
 {
 	Z_MemBlock_t* Block = NULL;
 	
-	/* Check */
-	if (!Ptr)
+	/* Get Block */
+	Block = Z_GetBlockFromPtr(Ptr);
+	
+	// Check
+	if (!Block)
 		return;
 	
-	/* Try to find the block quickly */
-	// Back track using pointer alignment coolness
-	Block = (Z_MemBlock_t*)((uintptr_t)Ptr - (uintptr_t)Z_AlignPlacePointer(NULL, sizeof(Z_MemBlock_t)));
-	
-	// Match?
-	if (Block->Ptr == Ptr)
-	{
-		Z_FreeBlock(Block);
-		return;
-	}
+	/* Match? */
+	Z_FreeBlock(Block);
 }
 
 /* Z_ChangeTag() -- Change a pointer's tag */
-void Z_ChangeTag(void* const Ptr, const Z_MemoryTag_t Tag)
+void Z_ChangeTag(void* const Ptr, const Z_MemoryTag_t NewTag)
+{
+	Z_MemBlock_t* Block = NULL;
+	Z_MemoryTag_t OldTag;
+	
+	/* Get Block */
+	Block = Z_GetBlockFromPtr(Ptr);
+	
+	// Check
+	if (!Block)
+		return ((Z_MemoryTag_t)-1);
+	
+	/* Match? */
+	OldTag = Block->Tag;
+	Block->Tag = NewTag;
+	return OldTag;
+}
+
+/* Z_GetTagFromPtr() -- Return the memory tag associated with a pointer */
+Z_MemoryTag_t Z_GetTagFromPtr(void* const Ptr)
 {
 	Z_MemBlock_t* Block = NULL;
 	
-	/* Check */
-	if (!Ptr)
-		return;
+	/* Get Block */
+	Block = Z_GetBlockFromPtr(Ptr);
 	
-	/* Try to find the block quickly */
-	// Back track using pointer alignment coolness
-	Block = (Z_MemBlock_t*)((uintptr_t)Ptr - (uintptr_t)Z_AlignPlacePointer(NULL, sizeof(Z_MemBlock_t)));
-	
-	// Match?
-	if (Block->Ptr == Ptr)
-	{
-		// If the tag is already the same...
-		if (Block->Tag == Tag)
-			return;
+	// Check
+	if (!Block)
+		return ((Z_MemoryTag_t)-1);
 		
-		Block->Tag = Tag;
-		return;
-	}
+	/* Match? */
+	return Block->Tag;
 }
 
 /* Z_DebugMarkBlock() -- Not implemented */
@@ -439,24 +464,51 @@ void Z_CheckHeap(const int Code)
 void Z_ResizeArray(void** const PtrPtr, const size_t ElemSize, const size_t OldSize, const size_t NewSize)
 {
 	void* Temp;
+	Z_MemoryTag_t OldTag;
 	
 	/* Check */
 	if (!PtrPtr || !ElemSize || OldSize == NewSize)
 		return;
 	
+	/* Free? */
+	// Only if the newsize is zero
+	if (!NewSize)
+	{
+		Z_Free(*PtrPtr);
+		*PtrPtr = NULL;
+		return;
+	}
+	
+	/* Change info from PtrPtr */
+	// Find the old tag
+	if (*PtrPtr)
+	{
+		OldTag = Z_GetTagFromPtr(*PtrPtr);
+		
+		// Force tag to be static
+		Z_ChangeTag(*PtrPtr, PU_STATIC);
+	}
+	else
+		OldTag = PU_STATIC;
+	
 	/* Allocate temp for new size */
 	Temp = Z_Malloc(ElemSize * NewSize, PU_STATIC, NULL);
 	
-	/* If *PtrPtr is set, copy it's data */
+	/* If *PtrPtr is set then manage it */
 	if (*PtrPtr)
+	{
+		// Copy all the old data
 		memmove(Temp, *PtrPtr, ElemSize * (NewSize < OldSize ? NewSize : OldSize));
-	
-	/* Free *PtrPtr */
-	if (*PtrPtr)
+		
+		// Free it
 		Z_Free(*PtrPtr);
+	}
 	
 	/* Set *PtrPtr to temp */
 	*PtrPtr = Temp;
+	
+	// Restore the old tag
+	Z_ChangeTag(*PtrPtr, OldTag);
 }
 
 /* Z_StrDup() -- Duplicate a string */

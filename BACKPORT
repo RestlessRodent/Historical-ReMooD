@@ -126,3 +126,14 @@ Stuff backported
 	* ART		Logos and such
 	* SOURCE	Move src_cl/, src_sv/, and isrc/ into src/
 
+*********************************************
+
+ * A LongPatch_t
+  > 16-bit Offsets (further away offsets)
+  > 16-bit Size (so no need for large patch hacks)
+  > Internal fixed_t Scale (texture scale to 320x200, for hi-res patches)
+  ? Possible low-res ability?
+  ? Possible transparency mapping per pixel?
+
+ * Fixup the Unicode mess
+  > Use RMD_UNIC too for ln_t instead of huge static struct

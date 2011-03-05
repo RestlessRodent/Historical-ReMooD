@@ -9,8 +9,6 @@
 // ##      ## ###### ##         ##  ######   ######  ######
 //                      http://remood.sourceforge.net/
 // -----------------------------------------------------------------------------
-//                    Dragan                 (poliee13@hotmail.com)
-// -----------------------------------------------------------------------------
 // Copyright (C) 1993-1996 by id Software, Inc.
 // Copyright (C) 1998-2000 by DooM Legacy Team.
 // Copyright (C) 2008-2011 GhostlyDeath (ghostlydeath@gmail.com)

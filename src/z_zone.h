@@ -74,9 +74,9 @@ void Z_CheckHeap(const int Code);
 /* Misc */
 char *Z_Strdup(const char* const String, const Z_MemoryTag_t Tag, void** Ref);
 wchar_t* Z_StrdupW(const wchar_t* const WString, const Z_MemoryTag_t Tag, void** Ref);
-void Z_ChangeTag(void* const Ptr, const Z_MemoryTag_t Tag);
+void Z_ChangeTag(void* const Ptr, const Z_MemoryTag_t NewTag);
 void Z_DebugMarkBlock(void* const Ptr, const char* const String);
-
+void Z_ResizeArray(void** const PtrPtr, const size_t ElemSize, const size_t OldSize, const size_t NewSize);
 
 /* Memory */
 #if defined(_DEBUG)		// DEBUG
