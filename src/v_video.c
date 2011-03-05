@@ -1954,6 +1954,7 @@ void V_MapGraphicalCharacters(void)
 		ln_t* ln = NULL;
 		size_t lnCount = 0;
 		size_t lnLumpLen = 0;
+		size_t b;
 		const void* lnData = NULL;
 		const void* p = NULL;
 		WadIndex_t lnLumpNum = INVALIDLUMP;
@@ -1966,7 +1967,10 @@ void V_MapGraphicalCharacters(void)
 			lnData = W_CacheLumpNum(lnLumpNum, PU_STATIC);
 			p = lnData;
 			
-			//
+			// Read every character then parse every entry
+			for (b = 0; b < lnLumpLen; b++)
+			{
+			}
 		}
 		
 		// Go through each font
