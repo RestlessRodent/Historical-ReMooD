@@ -426,6 +426,7 @@ void Z_DebugMarkBlock(void* const Ptr, const char* const String)
 /* Z_FreeTagsWrappee() -- Clear tags from low to high */
 size_t Z_FreeTagsWrappee(const Z_MemoryTag_t LowTag, const Z_MemoryTag_t HighTag _ZMGD_WRAPPEE)
 {
+	size_t Count;
 	Z_MemBlock_t* Start;
 	Z_RootMemChunk_t* Root = NULL;
 	
@@ -446,9 +447,14 @@ size_t Z_FreeTagsWrappee(const Z_MemoryTag_t LowTag, const Z_MemoryTag_t HighTag
 		
 		// Is this a cached block?
 		if (Root->Rover->Tag >= LowTag && Root->Rover->Tag < HighTag)
+		{
 			// Free the block if it is so., Rover will be renormalized
 			Z_FreeBlock(Root->Rover);
+			Count++;
+		}
 	}
+	
+	return Count;
 }
 
 /* Z_CheckHeap() -- Not implemented */

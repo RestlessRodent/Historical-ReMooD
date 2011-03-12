@@ -1,7 +1,20 @@
 $Id$
 
+TODO IN ORDER FROM TOP TO BOTTOM
+	> IMPORTANT	Rewrite w_wad with NewReMooDisms (busy, hashes, etc.)
+	> CLEANCODE	Rewrite V_MapGraphicalCharacters() and friends to use RMD_UNIC
+	> REWRITE	Write a much better and cleaner console
+	> CLEANCODE	Make all of f_finale.c in a lump (RMD_FINL)
+	> CLEANCODE	Make all of line/sector specials in a lump (RMD_SPEC)
+	> CLEANCODE	Make all of info.c along with everything in a lump (RMD_MOBJ)
+	> REWRITE	Rewrite the level loading code to be much cleaner and support Hexen with UDMF also
+	> CLEANCODE	Redo the sprite stuff as what I did in NewReMooD, maybe
+	> 
+
+DONE TODO FROM BOTTOM TO TOP
+	> Nothing =(
+
 Stuff to backport:
-	* SPEED		Super duper new memory manager
 	* SPEED		Wad name hashing stuff
 	* SOURCE	Re-improve build system
 	* SOURCE	Unify directories
@@ -125,6 +138,7 @@ Stuff backported
 	* LOG		r750: Use some experimental resources; unbranch client and server source into single source
 	* ART		Logos and such
 	* SOURCE	Move src_cl/, src_sv/, and isrc/ into src/
+	* SPEED		Super duper new memory manager
 
 *********************************************
 
