@@ -651,9 +651,9 @@ ifneq (,$(findstring sdl,$(_INTERNAL_INTERFACE)))
 		endif
 		
 		ifdef SDL_LIB
-			_INTERNAL_ILD_FLAGS = $(SDL_LIB) -lSDL.dll
+			_INTERNAL_ILD_FLAGS = $(SDL_LIB) -lSDL.dll -lm
 		else
-			_INTERNAL_ILD_FLAGS = -L. -LSDL -lSDL.dll
+			_INTERNAL_ILD_FLAGS = -L. -LSDL -lSDL.dll -lm
 		endif
 	else
 		ifdef SDL_INCLUDE
@@ -663,9 +663,9 @@ ifneq (,$(findstring sdl,$(_INTERNAL_INTERFACE)))
 		endif
 		
 		ifdef SDL_LIB
-			_INTERNAL_ILD_FLAGS = $(SDL_LIB) -lSDL
+			_INTERNAL_ILD_FLAGS = $(SDL_LIB) -lSDL -lm
 		else
-			_INTERNAL_ILD_FLAGS = $(shell sdl-config --libs) -DDIRECTFULLSCREEN -DSDL
+			_INTERNAL_ILD_FLAGS = $(shell sdl-config --libs) -DDIRECTFULLSCREEN -DSDL  -lm
 		endif
 	endif
 else
