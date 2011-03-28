@@ -1,5 +1,3 @@
-$Id$
-
 TODO IN ORDER FROM TOP TO BOTTOM
 	> IMPORTANT	Rewrite w_wad with NewReMooDisms (busy, hashes, etc.)
 	> CLEANCODE	Rewrite V_MapGraphicalCharacters() and friends to use RMD_UNIC
