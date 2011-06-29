@@ -2026,95 +2026,6 @@ void V_MapGraphicalCharacters(void)
 		}
 	}
 	
-#if 0
-	/* Map Lowercase to Capital IF lowercase does not exist */
-	{
-		int x;
-		
-		// Scope!
-		typedef struct ln_s
-		{
-			uint16_t d;	// Dest
-			uint16_t s;	// Source
-			uint16_t l;	// Len
-			
-			uint16_t b_top;	// Top build character
-			uint16_t b_bot;	// Bottom build character
-		} ln_t;
-		
-		// GhostlyDeath <March 5, 2011> -- Moved huge table to WAD resource
-		ln_t* ln = NULL;
-		size_t lnCount = 0;
-		size_t lnLumpLen = 0;
-		size_t b;
-		const void* lnData = NULL;
-		const void* p = NULL;
-		WadIndex_t lnLumpNum = INVALIDLUMP;
-		
-		// Load RMD_UNIC, which contains the ln_t data (if it exists)
-		if ((lnLumpNum = W_CheckNumForName("RMD_UNIC")) != INVALIDLUMP)
-		{
-			// Load it up
-			lnLumpLen = W_LumpLength(lnLumpNum);
-			lnData = W_CacheLumpNum(lnLumpNum, PU_STATIC);
-			p = lnData;
-			
-			// Read every character then parse every entry
-			for (b = 0; b < lnLumpLen; b++)
-			{
-			}
-		}
-		
-		// Go through each font
-		if (ln)
-			for (i = 0; i < NUMVIDEOFONTS; i++)
-			{
-				// Check if the font set exists
-				if (!CharacterGroups[i])
-					continue;
-			
-				// Now copy
-				for (j = 0; j < lnCount; j++)
-					for (x = 0; x < ln[j].l; x++)
-					{
-						// Get Groups and IDs
-						groups = ((ln[j].s + x) >> 8) & 0xFF;//(ln[j].s + x) / 256;
-						ids = (ln[j].s + x) & 0xFF;//(ln[j].s + x) % 256;
-						groupd = ((ln[j].d + x) >> 8) & 0xFF;//(ln[j].d + x) / 256;
-						idd = (ln[j].d + x) & 0xFF;//(ln[j].d + x) % 256;
-					
-						// Check group and local existence of source capital
-						if (!CharacterGroups[i][groups])
-							continue;
-					
-						// Source char does not exist
-						if (!CharacterGroups[i][groups][ids].Char)
-							continue;
-					
-						// Do not replace dest if it already exists
-						if (CharacterGroups[i][groupd] && CharacterGroups[i][groupd][idd].Char)
-							continue;
-						
-						// TODO: Check for lowercase existence and use the building on that also.
-					
-	#define MAKINGLIFESIMPLER(a,b,c) ((a) ? (a) : ((b)[i] ? ((b)[i][groups] ? ((b)[i][groups][ids].c ? (b)[i][groups][ids].c->Char : 0) : 0) : 0))
-						V_AddCharacter(i, CharacterGroups[i][groups][ids].Entry, ln[j].d + x,
-							MAKINGLIFESIMPLER(ln[j].b_top,CharacterGroups,BuildTop),
-							MAKINGLIFESIMPLER(ln[j].b_bot,CharacterGroups,BuildBottom)
-							);
-	#undef MAKINGLIFESIMPLER
-						Totals[i]++;
-					}
-			}
-		
-		// Cleanup
-		if (lnData)
-			Z_Free(lnData);
-		if (ln)
-			Z_Free(ln);
-	}
-#endif
-	
 	CONS_Printf("V_MapGraphicalCharacters: Finished mapping characters, results as followed:\n");
 	for (i = 0; i < NUMVIDEOFONTS; i++)
 		if (Totals[i] == 1)
@@ -2572,6 +2483,22 @@ void V_StringDimensionsA(const VideoFont_t Font, const uint32_t Options, const c
 		*Height = XHeight;
 }
 
+/* V_StringWidthA() -- Width of UTF-8 String */
+int V_StringWidthA(const VideoFont_t Font, const uint32_t Options, const char* const String)
+{
+	int n = 0;
+	V_StringDimensionsA(Font, Options, String, &n, NULL);
+	return n;
+}
+
+/* V_StringHeightA() -- Height of UTF-8 String */
+int V_StringHeightA(const VideoFont_t Font, const uint32_t Options, const char* const String)
+{
+	int n = 0;
+	V_StringDimensionsA(Font, Options, String, NULL, &n);
+	return n;
+}
+
 // ================================== UNICODE ==================================
 
 /* V_DrawCharacterW() -- Draw wide character */
@@ -2767,4 +2694,21 @@ int V_TextBHeight(char *text)
 	V_StringDimensionsA(VFONT_LARGE, 0, text, NULL, &H);
 	return H;
 }
+
+/*******************************************************************************
+********************************************************************************
+*******************************************************************************/
+
+V_PDString_t* V_CreatePD(const VideoFont_t Font, const uint32_t Options, const char* const NewString, const int NewX, const int NewY);
+void V_DeletePD(V_PDString_t* const PDStr);
+
+void V_SetStringPD(V_PDString_t* const PDStr, const char* const NewString);
+void V_SetPosPD(V_PDString_t* const PDStr, const int NewX, const int NewY);
+void V_SetFontPD(V_PDString_t* const PDStr, const VideoFont_t Font);
+void V_SetFlagsPD(V_PDString_t* const PDStr, const uint32_t Options);
+
+void V_InvalidatePD(V_PDString_t* const PDStr);
+void V_InvalidateAllPD(void);
+void V_UpdatePD(V_PDString_t* const PDStr);
+void V_RenderPD(V_PDString_t* const PDStr);
 

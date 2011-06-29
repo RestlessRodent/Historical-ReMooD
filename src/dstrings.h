@@ -318,7 +318,7 @@ typedef enum
 typedef struct StringGroupEX_s
 {
 	CONST char* CONST id;
-	wchar_t* wcharstr;
+	char* wcharstr;
 } StringGroupEX_t;
 
 StringGroupEX_t UnicodeStrings[NUMUNICODESTRINGS];

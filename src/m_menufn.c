@@ -1335,12 +1335,12 @@ void M_ChangecontrolResponse(event_t * ev)
 
 void M_ChangeControl(int choice)
 {
-	static wchar_t tmp[55];
+	static char tmp[55];
 
 	controltochange = currentMenu->menuitems[choice].alphaKey;
-	swprintf(tmp, L"Hit the new key for\n%s\nESC for Cancel", *(currentMenu->menuitems[choice].WItemTextPtr));
+	snprintf(tmp, 55, "Hit the new key for\n%s\nESC for Cancel", *(currentMenu->menuitems[choice].WItemTextPtr));
 
-	M_StartMessageW(tmp, M_ChangecontrolResponse, MM_EVENTHANDLER);
+	M_StartMessage(tmp, M_ChangecontrolResponse, MM_EVENTHANDLER);
 }
 
 void M_ControlsDoPlayer1(int choice)

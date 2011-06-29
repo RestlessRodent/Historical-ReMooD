@@ -308,6 +308,8 @@ int V_DrawCharacterMB(const VideoFont_t Font, const uint32_t Options, const char
 int V_DrawCharacterA(const VideoFont_t Font, const uint32_t Options, const char Char, const int x, const int y);
 int V_DrawStringA(const VideoFont_t Font, const uint32_t Options, const char* const String, const int x, const int y);
 void V_StringDimensionsA(const VideoFont_t Font, const uint32_t Options, const char* const String, int* const Width, int* const Height);
+int V_StringWidthA(const VideoFont_t Font, const uint32_t Options, const char* const String);
+int V_StringHeightA(const VideoFont_t Font, const uint32_t Options, const char* const String);
 
 /* Unicode */
 int V_DrawCharacterW(const VideoFont_t Font, const uint32_t Options, const wchar_t const WChar, const int x, const int y);
@@ -325,6 +327,27 @@ void V_DrawTextB(char *text, int x, int y);
 void V_DrawTextBGray(char *text, int x, int y);
 int V_TextBWidth(char *text);
 int V_TextBHeight(char *text);
+
+/*******************************************************************************
+********************************************************************************
+*******************************************************************************/
+
+/* Pre-drawn srtings, to reduce CPU but increase mem usage */
+
+typedef struct V_PDString_s V_PDString_t;
+
+V_PDString_t* V_CreatePD(const VideoFont_t Font, const uint32_t Options, const char* const NewString, const int NewX, const int NewY);
+void V_DeletePD(V_PDString_t* const PDStr);
+
+void V_SetStringPD(V_PDString_t* const PDStr, const char* const NewString);
+void V_SetPosPD(V_PDString_t* const PDStr, const int NewX, const int NewY);
+void V_SetFontPD(V_PDString_t* const PDStr, const VideoFont_t Font);
+void V_SetFlagsPD(V_PDString_t* const PDStr, const uint32_t Options);
+
+void V_InvalidatePD(V_PDString_t* const PDStr);
+void V_InvalidateAllPD(void);
+void V_UpdatePD(V_PDString_t* const PDStr);
+void V_RenderPD(V_PDString_t* const PDStr);
 
 #endif
 

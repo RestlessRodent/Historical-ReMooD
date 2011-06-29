@@ -74,7 +74,6 @@ typedef enum
 		// and routine is void routine(event_t *) (ex: set control)
 } menumessagetype_t;
 void M_StartMessage(const char *string, void *routine, menumessagetype_t itemtype);
-void M_StartMessageW(wchar_t *string, void *routine, menumessagetype_t itemtype);
 
 // Called by linux_x/i_video_xshm.c
 void M_QuitResponse(int ch);
@@ -149,7 +148,7 @@ typedef struct menuitem_s
 	int status;
 
 	char *patch;
-	wchar_t** WItemTextPtr;
+	char** WItemTextPtr;
 	//char *text;					// used when FONTBxx lump is found
 
 	// FIXME: should be itemaction_t !!!
@@ -169,7 +168,7 @@ typedef struct menu_s
 {
 	int extraflags;				// Flags if we ever need them
 	char *menutitlepic;
-	wchar_t** WMenuTitlePtr;	// Pointer to string specification
+	char** WMenuTitlePtr;	// Pointer to string specification
 	//char *menutitle;			// title as string for display with fontb if present
 	short numitems;				// # of menu items
 	menuitem_t *menuitems;		// menu items
@@ -206,7 +205,6 @@ void M_StartControlPanel(void);
 void M_StopMessage(int choice);
 void M_ClearMenus(boolean callexitmenufunc);
 int M_StringHeight(char *string);
-int M_StringHeightW(wchar_t *string);
 void M_GameOption(int choice);
 void M_NetOption(int choice);
 //28/08/99: added by Hurdler

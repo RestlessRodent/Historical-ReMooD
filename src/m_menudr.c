@@ -97,14 +97,14 @@ void M_DrawMenuTitle(void)
 	
 	if (CharacterGroups[VFONT_LARGE] && currentMenu->WMenuTitlePtr)
 	{
-		xtitle = (BASEVIDWIDTH - V_StringWidthW(VFONT_LARGE, 0, *(currentMenu->WMenuTitlePtr))) / 2;
-		ytitle = (currentMenu->y - V_StringHeightW(VFONT_LARGE, 0, *(currentMenu->WMenuTitlePtr))) / 2;
+		xtitle = (BASEVIDWIDTH - V_StringWidthA(VFONT_LARGE, 0, *(currentMenu->WMenuTitlePtr))) / 2;
+		ytitle = (currentMenu->y - V_StringHeightA(VFONT_LARGE, 0, *(currentMenu->WMenuTitlePtr))) / 2;
 		if (xtitle < 0)
 			xtitle = 0;
 		if (ytitle < 0)
 			ytitle = 0;
 
-		V_DrawStringW(VFONT_LARGE, 0, *(currentMenu->WMenuTitlePtr), xtitle, ytitle);
+		V_DrawStringA(VFONT_LARGE, 0, *(currentMenu->WMenuTitlePtr), xtitle, ytitle);
 	}
 	else if (currentMenu->menutitlepic)
 	{
@@ -135,8 +135,8 @@ void M_DrawGenericMenu(void)
 	int fixedx, fixedy;
 	int cursorx1;
 	int cursorx2;
-	int USSizeW = V_StringWidthW(VFONT_SMALL, 0, L"_");
-	int USSizeH = V_StringHeightW(VFONT_SMALL, 0, L"_");
+	int USSizeW = V_StringWidthA(VFONT_SMALL, 0, "_");
+	int USSizeH = V_StringHeightA(VFONT_SMALL, 0, "_");
 
 	// DRAW MENU
 	x = currentMenu->x;
@@ -158,7 +158,7 @@ void M_DrawGenericMenu(void)
 			case IT_PATCH:
 				if (CharacterGroups[VFONT_LARGE] && currentMenu->menuitems[i].WItemTextPtr)
 				{
-					V_DrawStringW(VFONT_LARGE, 0, *(currentMenu->menuitems[i].WItemTextPtr), x, y);
+					V_DrawStringA(VFONT_LARGE, 0, *(currentMenu->menuitems[i].WItemTextPtr), x, y);
 					y += FONTBHEIGHT - LINEHEIGHT;
 				}
 				else if (currentMenu->menuitems[i].patch && currentMenu->menuitems[i].patch[0])
@@ -182,12 +182,12 @@ void M_DrawGenericMenu(void)
 				if (currentMenu->menuitems[i].status & IT_CENTERSTRING)
 				{
 					fixedx = ((currentMenu->width + currentMenu->x) >> 1) -
-						(V_StringWidthW(VFONT_SMALL, 0, *(currentMenu->menuitems[i].WItemTextPtr)) >> 1);
+						(V_StringWidthA(VFONT_SMALL, 0, *(currentMenu->menuitems[i].WItemTextPtr)) >> 1);
 						
 					if (i == itemOn)
 					{
 						cursorx1 = fixedx - 10;
-						cursorx2 = fixedx + V_StringWidthW(VFONT_SMALL, 0, *(currentMenu->menuitems[i].WItemTextPtr)) + 4;
+						cursorx2 = fixedx + V_StringWidthA(VFONT_SMALL, 0, *(currentMenu->menuitems[i].WItemTextPtr)) + 4;
 					}
 				}
 				else
@@ -195,13 +195,13 @@ void M_DrawGenericMenu(void)
 				fixedy = y;
 
 				if (currentMenu->menuitems[i].status & IT_DISABLED2)
-					V_DrawStringW(VFONT_SMALL, VFONTOPTION_GRAY, *(currentMenu->menuitems[i].WItemTextPtr), fixedx, fixedy);
+					V_DrawStringA(VFONT_SMALL, VFONTOPTION_GRAY, *(currentMenu->menuitems[i].WItemTextPtr), fixedx, fixedy);
 				else
 				{
 					if ((currentMenu->menuitems[i].status & IT_DISPLAY) == IT_STRING)
-						V_DrawStringW(VFONT_SMALL, 0, *(currentMenu->menuitems[i].WItemTextPtr), fixedx, fixedy);
+						V_DrawStringA(VFONT_SMALL, 0, *(currentMenu->menuitems[i].WItemTextPtr), fixedx, fixedy);
 					else
-						V_DrawStringW(VFONT_SMALL, VFONTOPTION_WHITE, *(currentMenu->menuitems[i].WItemTextPtr), fixedx, fixedy);
+						V_DrawStringA(VFONT_SMALL, VFONTOPTION_WHITE, *(currentMenu->menuitems[i].WItemTextPtr), fixedx, fixedy);
 				}
 
 				// Cvar specific handling
@@ -228,8 +228,8 @@ void M_DrawGenericMenu(void)
 									/* TODO: WHY constantly check the size of a single char? */
 #if 0
 								V_DrawFill((currentMenu->x + currentMenu->width) -
-									V_StringWidthW(VFONT_SMALL, 0, cv->string) - (i == itemOn ? USSizeW : 0) - 1,
-									y - 1, V_StringWidthW(VFONT_SMALL, 0, cv->string) + (i == itemOn ? USSizeW : 0) + 2,
+									V_StringWidthA(VFONT_SMALL, 0, cv->string) - (i == itemOn ? USSizeW : 0) - 1,
+									y - 1, V_StringWidthA(VFONT_SMALL, 0, cv->string) + (i == itemOn ? USSizeW : 0) + 2,
 									USSizeH + 2, 0);
 								V_DrawStringW(VFONT_SMALL, VFONTOPTION_WHITE, cv->wstring,
 									V_StringWidth(cv->string) - (i == itemOn ? USSizeW : 0),
@@ -255,7 +255,7 @@ void M_DrawGenericMenu(void)
 #if 0
 								V_DrawStringW(VFONT_SMALL, (currentMenu->menuitems[i].status & IT_DISABLED2 || currentMenu->menuitems[i].status & IT_CVARREADONLY? VFONTOPTION_GRAY : VFONTOPTION_WHITE),
 									cv->wstring,
-									((currentMenu->x + currentMenu->width)) - V_StringWidthW(VFONT_SMALL, 0, cv->wstring),
+									((currentMenu->x + currentMenu->width)) - V_StringWidthA(VFONT_SMALL, 0, cv->wstring),
 									y);
 #else
 								V_DrawString(
@@ -275,7 +275,7 @@ void M_DrawGenericMenu(void)
 				y += STRINGHEIGHT;
 				break;
 			case IT_STRING2:
-				V_DrawStringW(VFONT_SMALL, 0, *(currentMenu->menuitems[i].WItemTextPtr), x, y);
+				V_DrawStringA(VFONT_SMALL, 0, *(currentMenu->menuitems[i].WItemTextPtr), x, y);
 			case IT_DYLITLSPACE:
 				y += STRINGHEIGHT;
 				break;
@@ -284,7 +284,7 @@ void M_DrawGenericMenu(void)
 				{
 					if (CharacterGroups[VFONT_LARGE] && *(currentMenu->menuitems[i].WItemTextPtr))
 					{
-						V_DrawStringW(VFONT_LARGE, VFONTOPTION_GRAY, *(currentMenu->menuitems[i].WItemTextPtr), x, y);
+						V_DrawStringA(VFONT_LARGE, VFONTOPTION_GRAY, *(currentMenu->menuitems[i].WItemTextPtr), x, y);
 						y += FONTBHEIGHT - LINEHEIGHT;
 					}
 					else if (currentMenu->menuitems[i].patch && currentMenu->menuitems[i].patch[0])
@@ -440,8 +440,8 @@ void M_DrawTextBox(int x, int y, int width, int lines)
 //==========================================================================
 void M_DrawMessageMenu(void);
 
-wchar_t* MessageWStuff = NULL;
-wchar_t* MessageItemWStuff = NULL;
+char* MessageWStuff = NULL;
+char* MessageItemWStuff = NULL;
 
 menuitem_t MessageMenu[] = {
 	// TO HACK
@@ -462,22 +462,11 @@ menu_t MessageDef = {
 
 void M_StartMessage(const char *string, void *routine, menumessagetype_t itemtype)
 {
-	wchar_t* WStr = NULL;
-	size_t WSz = 0;
-	
-	UNICODE_ASCIIToUnicode(string, strlen(string), &WStr, &WSz);
-	M_StartMessageW(WStr, routine, itemtype);
-	
-	Z_Free(WStr);
-}
-
-void M_StartMessageW(wchar_t *string, void *routine, menumessagetype_t itemtype)
-{
 	int max, start, i, lines;
 #define message (*(MessageDef.menuitems[0].WItemTextPtr))
 	if (message)
 		Z_Free(message);
-	message = Z_StrDupW(string);
+	message = Z_StrDup(string);
 	//DEBFILE(message);
 	
 	M_StartControlPanel();		// can't put menuactiv to true
@@ -510,7 +499,7 @@ void M_StartMessageW(wchar_t *string, void *routine, menumessagetype_t itemtype)
 	start = 0;
 	for (lines = 0; *(message + start); lines++)
 	{
-		for (i = 0; i < (int)UNICODE_StringLength(message + start); i++)
+		for (i = 0; i < (int)strlen(message + start); i++)
 		{
 			if (*(message + start + i) == '\n')
 			{
@@ -522,12 +511,12 @@ void M_StartMessageW(wchar_t *string, void *routine, menumessagetype_t itemtype)
 			}
 		}
 
-		if (i == (int)UNICODE_StringLength(message + start))
+		if (i == (int)strlen(message + start))
 			start += i;
 	}
 
 	MessageDef.x = (BASEVIDWIDTH - 8 * max - 16) / 2;
-	MessageDef.y = (BASEVIDHEIGHT - M_StringHeightW(message)) / 2;
+	MessageDef.y = (BASEVIDHEIGHT - M_StringHeight(message)) / 2;
 
 	MessageDef.lastOn = (lines << 8) + max;
 
@@ -542,9 +531,9 @@ void M_DrawMessageMenu(void)
 {
 	int y;
 	short i, max;
-	wchar_t string[MAXMSGLINELEN];
+	char string[MAXMSGLINELEN];
 	int start, lines;
-	wchar_t *msg = *(currentMenu->menuitems[0].WItemTextPtr);
+	char *msg = *(currentMenu->menuitems[0].WItemTextPtr);
 
 	y = currentMenu->y;
 	start = 0;
@@ -554,7 +543,7 @@ void M_DrawMessageMenu(void)
 
 	while (*(msg + start))
 	{
-		for (i = 0; i < (int)UNICODE_StringLength(msg + start); i++)
+		for (i = 0; i < (int)strlen(msg + start); i++)
 		{
 			if (*(msg + start + i) == '\n')
 			{
@@ -566,7 +555,7 @@ void M_DrawMessageMenu(void)
 				}
 				else
 				{
-					UNICODE_CopyN(string, msg + start, i);
+					strncpy(string, msg + start, i);
 					start += i + 1;
 					i = -1;		//added:07-02-98:damned!
 				}
@@ -575,7 +564,7 @@ void M_DrawMessageMenu(void)
 			}
 		}
 
-		if (i == (int)UNICODE_StringLength(msg + start))
+		if (i == (int)strlen(msg + start))
 		{
 			if (i >= MAXMSGLINELEN)
 			{
@@ -584,12 +573,12 @@ void M_DrawMessageMenu(void)
 			}
 			else
 			{
-				UNICODE_Copy(string, msg + start);
+				strcpy(string, msg + start);
 				start += i;
 			}
 		}
 
-		V_DrawStringW(VFONT_SMALL, 0, string, (BASEVIDWIDTH - V_StringWidthW(VFONT_SMALL, 0, string)) / 2, y);
+		V_DrawStringA(VFONT_SMALL, 0, string, (BASEVIDWIDTH - V_StringWidthA(VFONT_SMALL, 0, string)) / 2, y);
 		y += 8;					//SHORT(hu_font[0]->height);
 	}
 }
@@ -628,20 +617,6 @@ int M_StringHeight(char *string)
 
 	h = height;
 	for (i = 0; i < (int)strlen(string); i++)
-		if (string[i] == '\n')
-			h += height;
-
-	return h;
-}
-
-int M_StringHeightW(wchar_t* string)
-{
-	int i;
-	int h;
-	int height = 8;				//(hu_font[0]->height);
-
-	h = height;
-	for (i = 0; i < (int)UNICODE_StringLength(string); i++)
 		if (string[i] == '\n')
 			h += height;
 
