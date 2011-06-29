@@ -33,8 +33,9 @@ set -e
 
 case "$1" in
     remove)
-        update-alternatives --remove doom /usr/games/prboom
-        update-alternatives --remove boom /usr/games/prboom
+        update-alternatives --remove doom /usr/games/remood
+        update-alternatives --remove boom /usr/games/remood
+        update-alternatives --remove heretic /usr/games/remood
         ;;
     upgrade|deconfigure|failed-upgrade)
         ;;

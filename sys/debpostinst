@@ -34,6 +34,7 @@ case "$1" in
 	configure|abort-upgrade)
 		update-alternatives --install /usr/games/doom doom /usr/games/remood 50
 		update-alternatives --install /usr/games/boom boom /usr/games/remood 50
+		update-alternatives --install /usr/games/heretic heretic /usr/games/remood 50
 	;;
 
 	abort-remove|abort-deconfigure)

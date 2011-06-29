@@ -8,5 +8,5 @@ Exec=remood -waddir /usr/share/games/doom
 Icon=remood.xpm
 Terminal=false
 Type=Application
-Categories=Game
+Categories=Games
 GenericName[en_US]=Doom source port based off Doom Legacy 1.42
