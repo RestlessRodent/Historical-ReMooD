@@ -1694,6 +1694,10 @@ void V_MapGraphicalCharacters(void)
 	wchar_t Temp2 = 0;
 	size_t Totals[NUMVIDEOFONTS];
 	int groups, ids, groupd, idd;
+	uint8_t* utttLump = NULL;
+	uint8_t* p, *e;
+	WadIndex_t utttNum;
+	size_t utttSize;
 	
 	memset(Totals, 0, sizeof(Totals));
 	
@@ -1935,6 +1939,94 @@ void V_MapGraphicalCharacters(void)
 		UnknownLink[i] = &CharacterGroups[i][(int)(0xFFFD / 256)][0xFFFD % 256];
 	}
 	
+	/* EX: Read RMD_UTTT lump for Unicode character translations! */
+	// Check if it exists first
+	if ((utttNum = W_CheckNumForName("RMD_UTTT")) == INVALIDLUMP)
+		CONS_Printf("V_MapGraphicalCharacters: RMD_UTTT does not exist, character mappings WILL BE WRONG!\n");
+	else
+	{
+		if (devparm)
+			CONS_Printf("V_MapGraphicalCharacters: Parsing RMD_UTTT...\n");
+		
+		// Read in the data
+		utttLump = W_CacheLumpNum(utttNum, PU_STATIC);
+		utttSize = W_LumpLength(utttNum);
+		
+		// Set pointer
+		p = utttLump;
+		e = utttLump + utttSize;
+		
+		/* Read slowly */		
+		for (; p < e;)
+		{
+			// Read marker
+			k = ReadUInt8((uint8_t**)&p);
+			
+			// What is this marker?
+			switch (k)
+			{
+					// Case mapping
+				case 1:
+					// Debug info
+					if (devparm)
+						CONS_Printf("V_MapGraphicalCharacters: Case mapping...\n");
+					
+					// Run through file
+					for (j = 0;;)
+					{
+						// Read first character (small)
+						k = ReadUInt16((uint16_t**)&p);
+					
+						// end of sequence
+						if (!k)
+							break;
+						
+						// Read second character (cap)
+						l = ReadUInt16((uint16_t**)&p);
+						
+						if (!l)
+							break;
+						
+						// Do unicode mapping (for every font)
+						for (i = 0; i < NUMVIDEOFONTS; i++)
+						{
+							// Check if the font set exists
+							if (!CharacterGroups[i])
+								continue;
+							
+							// Get Groups and IDs
+							groups = ((l) >> 8) & 0xFF;
+							ids = (l) & 0xFF;
+							groupd = ((k) >> 8) & 0xFF;
+							idd = (k) & 0xFF;
+							
+							// Check group and local existence of source capital; Source char does not exist; Do not replace dest if it already exists
+							if (!CharacterGroups[i][groups] || !CharacterGroups[i][groups][ids].Char || (CharacterGroups[i][groupd] && CharacterGroups[i][groupd][idd].Char))
+								continue;
+							
+							// Add single character
+							V_AddCharacter(i, CharacterGroups[i][groups][ids].Entry, k, 0, 0);
+							
+							// Increment total
+							Totals[i]++;
+							j++;
+						}
+					}
+					
+					// Debug info
+					if (devparm)
+						CONS_Printf("V_MapGraphicalCharacters: Case mapped %i glyphs...\n", j);
+					break;
+				
+					// Stop or unknown
+				default:
+					p = e;
+					break;
+			}
+		}
+	}
+	
+#if 0
 	/* Map Lowercase to Capital IF lowercase does not exist */
 	{
 		int x;
@@ -2021,6 +2113,7 @@ void V_MapGraphicalCharacters(void)
 		if (ln)
 			Z_Free(ln);
 	}
+#endif
 	
 	CONS_Printf("V_MapGraphicalCharacters: Finished mapping characters, results as followed:\n");
 	for (i = 0; i < NUMVIDEOFONTS; i++)

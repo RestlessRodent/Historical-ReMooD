@@ -344,6 +344,7 @@ To&nbsp;&nbsp;: ReMooD 1.0a "Final" [To Be Determined]<BR>
  * Source/Misc: Newly Enhanced FixedMul(), faster than original FixedMul() on x86-based systems especially when inlined. Speed improvements are basically removing casts to/from Int64s (copying of memory to temporaries, then the 64-bit multiplication operation if available) and inlining removes overhead. [GhostlyDeath]<BR>
  * Source/Misc: Enhanced FixedDiv(), removed the floating point cast and make it entirely an integer operation. It is also inlined. [GhostlyDeath]<BR>
  * Source/Misc: Fixed 'comparisons like ‘X<=Y<=Z’ do not have their mathematical meaning' error due to missing parenthesis around #define used as a function. [GhostlyDeath].<BR>
+ + Backend/Internationalization: Create Unicode tables based on unicode.org and put them in the lump RMD_UTTT, which is a binary format. [GhostlyDeath].<BR>
  + Game/Console: Add command line option -quiet (useful only with -devparm) for the console loading screen that has the same effect with -devparm not passed on initial start. This would increase developer startup time on very slow development systems such as emulators by skipping multiple draw operations. [GhostlyDeath]<BR>
  + Game/Video: Add V_DrawFadeConsBackEx() which just uses VEX_ for the fade screen. [GhostlyDeath]<BR>
  + Game/Video: Add better graphical color map support and deprecate the console colormap code (a.k.a. greenmap). [GhostlyDeath]<BR>
