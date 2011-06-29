@@ -644,25 +644,6 @@ char *Z_StrDup(const char *in)
 	return out;
 }
 
-wchar_t* Z_StrDupW(const wchar_t* in)
-{
-	wchar_t *out;
-
-	out = ZZ_Alloc((UNICODE_StringLength(in) + 1) * sizeof(wchar_t));
-	UNICODE_Copy(out, in);
-	return out;
-}
-
-wchar_t* Z_StrDupWfromA(const char* in)
-{
-	wchar_t *out;
-	size_t outlen;
-
-	out = ZZ_Alloc((UNICODE_ASCIILengthForUnicode(in, strlen(in)) + 1) * sizeof(wchar_t));
-	UNICODE_ASCIIToUnicode(in, strlen(in), &out, &outlen);
-	return out;
-}
-
 // s1=s2+s3+s1
 void strcatbf(char *s1, char *s2, char *s3)
 {

@@ -944,7 +944,6 @@ void CV_RegisterVar(consvar_t * variable)
 		consvar_vars = variable;
 	}
 	variable->string = NULL;
-	variable->wstring = NULL;
 
 	// copy the value off, because future sets will Z_Free it
 	//variable->string = Z_StrDup (variable->string);
@@ -1156,10 +1155,6 @@ void Setvalue(consvar_t * var, char *valstr)
 			ActualVar->value = ActualVar->PossibleValue[i].value;
 			ActualVar->string = ActualVar->PossibleValue[i].strvalue;
 			
-			if (ActualVar->wstring)
-				Z_Free(ActualVar->wstring);
-			ActualVar->wstring = Z_StrDupWfromA(ActualVar->PossibleValue[i].strvalue);
-			
 			goto finish;
 		}
 	}
@@ -1169,10 +1164,6 @@ void Setvalue(consvar_t * var, char *valstr)
 		Z_Free(ActualVar->string);
 
 	ActualVar->string = Z_StrDup(valstr);
-	
-	if (var->wstring)
-		Z_Free(ActualVar->wstring);
-	ActualVar->wstring = Z_StrDupWfromA(valstr);
 
 	if (ActualVar->flags & CV_FLOAT)
 	{
@@ -1192,7 +1183,6 @@ void Setvalue(consvar_t * var, char *valstr)
 			ActualVar->ALink[i]->flags |= CV_MODIFIED;
 			ActualVar->ALink[i]->value = ActualVar->value;
 			ActualVar->ALink[i]->string = ActualVar->string;
-			ActualVar->ALink[i]->wstring = ActualVar->wstring;
 		}
 	}
 	

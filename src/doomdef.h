@@ -153,8 +153,6 @@ void CONS_Printf(char *fmt, ...);
 // m_misc.h
 char *va(char *format, ...);
 char *Z_StrDup(const char *in);
-wchar_t *Z_StrDupW(const wchar_t *in);
-wchar_t* Z_StrDupWfromA(const char* in);
 
 // g_game.h
 extern boolean devparm;			// development mode (-devparm)

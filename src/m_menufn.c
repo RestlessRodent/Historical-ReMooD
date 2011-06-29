@@ -1144,7 +1144,7 @@ void M_Init(void)
 			}
 			
 			// First determine how big our title will be
-			if (CharacterGroups[VFONT_LARGE] && glob->WMenuTitlePtr && UNICODE_StringLength(*(glob->WMenuTitlePtr)) > 0)
+			if (CharacterGroups[VFONT_LARGE] && glob->WMenuTitlePtr && strlen(*(glob->WMenuTitlePtr)) > 0)
 			{
 				// Use height of the patch
 				glob->menutitlex = (BASEVIDWIDTH / 2) - (V_StringWidthW(VFONT_LARGE, 0, *(glob->WMenuTitlePtr)) / 2);

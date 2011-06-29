@@ -536,22 +536,3 @@ char* Z_Strdup(const char* const String, const Z_MemoryTag_t Tag, void** Ref)
 	return Ptr;
 }
 
-/* Z_StrDupW() -- Duplicate a wide string */
-wchar_t* Z_StrdupW(const wchar_t* const WString, const Z_MemoryTag_t Tag, void** Ref)
-{
-	size_t n;
-	wchar_t* Ptr;
-
-	/* Check */
-	if (!WString)
-		return NULL;
-
-	/* Copy */
-	n = wcslen(WString);
-	Ptr = Z_Malloc(sizeof(wchar_t) * (n + 1), Tag, Ref);
-	wcscpy(Ptr, WString);
-
-	/* Return */
-	return Ptr;
-}
-

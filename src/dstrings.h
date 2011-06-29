@@ -25,8 +25,8 @@
 // -----------------------------------------------------------------------------
 // DESCRIPTION: DOOM strings, by language.
 
-#ifndef __DSTRINGS__
-#define __DSTRINGS__
+#ifndef __DSTRINGS_H__
+#define __DSTRINGS_H__
 
 #include "doomtype.h"
 
@@ -326,58 +326,5 @@ StringGroupEX_t UnicodeStrings[NUMUNICODESTRINGS];
 #define PTROFUNICODESTRING(n) (&(UnicodeStrings[n].wcharstr))
 #define PTRTOUNICODESTRING(n) (UnicodeStrings[n].wcharstr)
 
-/******************************************************************************/
-/******************************************************************************/
-/******************************************************************************/
-
-#define UT_REMOODSTRIP 0x4000	// Strip UTF-32 Super high characters to 0xFFFD
-								// Even if converted to UTF-32
-
-typedef enum
-{
-	UT_AUTO,
-	UT_WCHART,
-	UT_ASCII,
-	UT_UTF8,
-	UT_UTF16,
-	UT_UTF16LE,
-	UT_UTF16BE,
-	UT_UTF32,
-	UT_UTF32LE,
-	UT_UTF32BE,
-	
-	NUMUTFTYPE,
-	
-	UT_UTF16BS,		// INTERNAL USE ONLY, DO NOT USE
-	UT_UTF32BS		// INTERNAL USE ONLY, DO NOT USE
-} UTFType_t; 
-
-/*** UNICODE ***/
-boolean UNICODE_ConvertFile(UTFType_t InType, uint8_t* InData, size_t InSize,
-	UTFType_t OutType, uint8_t** OutData, size_t* OutSize);
-boolean UNICODE_Localize(uint8_t* InData, size_t InSize, wchar_t** OutData, size_t* OutSize);	/* Deprecated */
-
-/* For Internal Usage to convert to/from unicode */
-size_t UNICODE_ASCIILengthForUnicode(uint8_t* InData, size_t InSize);
-boolean UNICODE_ASCIIToUnicode(char* InData, size_t InSize, wchar_t** OutData, size_t* OutSize);
-boolean UNICODE_UnicodeToASCII(wchar_t* InData, size_t InSie, char** OutData, size_t* OutSize);
-
-#if defined(EMULATEWCHARFUNCTIONS)
-size_t UNICODE_StringLength(wchar_t* String);
-int UNICODE_Compare(wchar_t* A, wchar_t* B);
-int UNICODE_CompareN(wchar_t* A, wchar_t* B, size_t N);
-int UNICODE_CaselessCompare(wchar_t* A, wchar_t* B);
-int UNICODE_CaselessCompareN(wchar_t* A, wchar_t* B, size_t N);
-wchar_t* UNICODE_Copy(wchar_t* D, wchar_t* S);
-#else
-#define UNICODE_StringLength(a) wcslen(a)
-#define UNICODE_Compare(a,b) wcscmp(a,b)
-#define UNICODE_CompareN(a,b,c) wcsncmp(a,b,c)
-#define UNICODE_CaselessCompare(a,b) wcscasecmp(a,b)
-#define UNICODE_CaselessCompareN(a,b,c) wcsncasecmp(a,b,c)
-#define UNICODE_Copy(d,s) wcscpy(d,s)
-#define UNICODE_CopyN(d,s,n) wcsncpy(d,s,n)
-#endif
-
-#endif
+#endif /* __DSTRINGS_H__ */
 
