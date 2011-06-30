@@ -60,6 +60,9 @@ typedef struct Z_MemBlock_s
 	struct Z_MemBlock_s* Prev;								// Previous block
 	struct Z_MemBlock_s* Next;								// Next block
 	
+	/* LockBack */
+	boolean (*LockBack)(void* const a_Base, const Z_LockBackAction_t a_ZLBA, const uintptr_t a_A, const uintptr_t a_B);
+	
 	/* Guard */
 	uint32_t BlockIDEnd;									// ID of end
 } Z_MemBlock_t;
@@ -459,6 +462,11 @@ size_t Z_FreeTagsWrappee(const Z_MemoryTag_t LowTag, const Z_MemoryTag_t HighTag
 
 /* Z_CheckHeap() -- Not implemented */
 void Z_CheckHeap(const int Code)
+{
+}
+
+/* Z_SetLockBack() -- Set lockback function */
+void Z_SetLockBack(void* const Ptr, boolean (*LockBack)(void* const, const Z_LockBackAction_t, const uintptr_t, const uintptr_t))
 {
 }
 

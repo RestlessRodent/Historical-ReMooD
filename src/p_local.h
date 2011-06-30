@@ -322,7 +322,6 @@ boolean P_ChickenMorphPlayer(player_t * player);
 void P_PlayerUseArtifact(player_t * player, artitype_t arti);
 boolean P_UseArtifact(player_t * player, artitype_t arti);
 boolean P_GiveArtifact(player_t * player, artitype_t arti, mobj_t * mo);
-boolean P_GLOBAL_CreateLevel(skill_t skill, char* mapname, char *wadname);
 
 extern consvar_t cv_spawnmonsters;
 

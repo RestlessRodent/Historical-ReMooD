@@ -797,28 +797,11 @@ void G_DoLoadLevel(boolean resetplayer)
 	
 	multiplayer = j > 1;
 
-	if (M_CheckParm("-loadlevelex"))
+	if (!P_SetupLevel(gameepisode, gamemap, gameskill, gamemapname[0] ? gamemapname : NULL))
 	{
-		if (gamemode == commercial)
-			sprintf(tMap, "MAP%02i", gamemap);
-		else
-			sprintf(tMap, "E%iM%i", gameepisode, gamemap);
-			
-		if (!P_GLOBAL_CreateLevel(gameskill, tMap, NULL))
-		{
-			// fail so reset game stuff
-			Command_ExitGame_f();
-			return;
-		}
-	}
-	else
-	{
-		if (!P_SetupLevel(gameepisode, gamemap, gameskill, gamemapname[0] ? gamemapname : NULL))
-		{
-			// fail so reset game stuff
-			Command_ExitGame_f();
-			return;
-		}
+		// fail so reset game stuff
+		Command_ExitGame_f();
+		return;
 	}
 
 	//BOT_InitLevelBots ();

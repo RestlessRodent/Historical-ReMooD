@@ -62,6 +62,15 @@ typedef enum Z_MemoryTag_e
 	NUMZTAGS
 } Z_MemoryTag_t;
 
+/* Z_LockBackAction_t -- Action being performed */
+typedef enum Z_LockBackAction_e
+{
+	ZLBA_CHANGETAG,								// Tag is being changed
+	ZLBA_FREE,									// Being freed
+	
+	NUMZLOCKBACKACTIONS
+} Z_LockBackAction_t;
+
 /*****************
 *** PROTOTYPES ***
 *****************/
@@ -76,6 +85,7 @@ char *Z_Strdup(const char* const String, const Z_MemoryTag_t Tag, void** Ref);
 void Z_ChangeTag(void* const Ptr, const Z_MemoryTag_t NewTag);
 void Z_DebugMarkBlock(void* const Ptr, const char* const String);
 void Z_ResizeArray(void** const PtrPtr, const size_t ElemSize, const size_t OldSize, const size_t NewSize);
+void Z_SetLockBack(void* const Ptr, boolean (*LockBack)(void* const, const Z_LockBackAction_t, const uintptr_t, const uintptr_t));
 
 /* Memory */
 #if defined(_DEBUG)		// DEBUG
