@@ -157,33 +157,6 @@ void F_StartFinale(void)
 				break;
 			}
 			
-		case heretic:
-			S_ChangeMusic(mus_hcptd, true);
-			switch (gameepisode)
-			{
-				case 1:
-					finaleflat = "FLOOR25";
-					finaletext = text[HERETIC_E1TEXT];
-					break;
-				case 2:
-					finaleflat = "FLATHUH1";
-					finaletext = text[HERETIC_E2TEXT];
-					break;
-				case 3:
-					finaleflat = "FLTWAWA2";
-					finaletext = text[HERETIC_E3TEXT];
-					break;
-				case 4:
-					finaleflat = "FLOOR28";
-					finaletext = text[HERETIC_E4TEXT];
-					break;
-				case 5:
-					finaleflat = "FLOOR08";
-					finaletext = text[HERETIC_E5TEXT];
-					break;
-			}
-			break;
-
 			// Indeterminate.
 		default:
 			S_ChangeMusic(mus_read_m, true);
@@ -259,7 +232,7 @@ void F_Ticker(void)
 					finalecount = 0;
 					finalestage = 1;
 					wipegamestate = -1;	// force a wipe
-					if (!raven && gameepisode == 3)
+					if (gameepisode == 3)
 						S_StartMusic(mus_bunny);
 				}
 			}
@@ -290,16 +263,8 @@ void F_TextWrite(void)
 	V_MarkRect(0, 0, vid.width, vid.height);
 
 	// draw some of the text onto the screen
-	if (raven)
-	{
-		cx = 20;
-		cy = 5;
-	}
-	else
-	{
-		cx = 10;
-		cy = 10;
-	}
+	cx = 10;
+	cy = 10;
 	ch = finaletext;
 
 	count = (finalecount - 10) / TEXTSPEED;
@@ -312,8 +277,8 @@ void F_TextWrite(void)
 			break;
 		if (c == '\n')
 		{
-			cx = raven ? 20 : 10;
-			cy += raven ? 9 : 11;
+			cx = 10;
+			cy += 11;
 			continue;
 		}
 
@@ -755,50 +720,24 @@ void F_Drawer(void)
 		F_TextWrite();
 	else
 	{
-		if (gamemode == heretic)
+		switch (gameepisode)
 		{
-			switch (gameepisode)
-			{
-				case 1:
-					if (W_CheckNumForName("e2m1") == -1)
-						V_DrawRawScreen(0, 0, W_CheckNumForName("ORDER"), 320, 200);
-					else
-						// BP: search only in the first pwad since legacy define a pathc with same name
-						V_DrawRawScreen(0, 0, W_CheckNumForNamePwad("CREDIT", 0, 0), 320, 200);
-					break;
-				case 2:
-					F_DrawUnderwater();
-					break;
-				case 3:
-					F_DemonScroll();
-					break;
-				case 4:		// Just show credits screen for extended episodes
-				case 5:
-					// BP: search only in the first pwad since legacy define a pathc with same name
-					V_DrawRawScreen(0, 0, W_CheckNumForNamePwad("CREDIT", 0, 0), 320, 200);
-					break;
-			}
-
+			case 1:
+				if (gamemode == retail)
+					V_DrawScaledPatch(0, 0, 0, W_CachePatchName(text[CREDIT_NUM], PU_CACHE));
+				else
+					V_DrawScaledPatch(0, 0, 0, W_CachePatchName(text[HELP2_NUM], PU_CACHE));
+				break;
+			case 2:
+				V_DrawScaledPatch(0, 0, 0, W_CachePatchName(text[VICTORY2_NUM], PU_CACHE));
+				break;
+			case 3:
+				F_BunnyScroll();
+				break;
+			case 4:
+				V_DrawScaledPatch(0, 0, 0, W_CachePatchName(text[ENDPIC_NUM], PU_CACHE));
+				break;
 		}
-		else
-			switch (gameepisode)
-			{
-				case 1:
-					if (gamemode == retail)
-						V_DrawScaledPatch(0, 0, 0, W_CachePatchName(text[CREDIT_NUM], PU_CACHE));
-					else
-						V_DrawScaledPatch(0, 0, 0, W_CachePatchName(text[HELP2_NUM], PU_CACHE));
-					break;
-				case 2:
-					V_DrawScaledPatch(0, 0, 0, W_CachePatchName(text[VICTORY2_NUM], PU_CACHE));
-					break;
-				case 3:
-					F_BunnyScroll();
-					break;
-				case 4:
-					V_DrawScaledPatch(0, 0, 0, W_CachePatchName(text[ENDPIC_NUM], PU_CACHE));
-					break;
-			}
 	}
 
 }

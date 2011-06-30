@@ -333,8 +333,7 @@ static fixed_t angleturn[3] = { 640, 1280, 320 };	// + slow turn
 
 // for change this table change also nextweapon func in g_game and P_PlayerThink
 byte nextweaponorder[NUMWEAPONS] = { wp_fist, wp_chainsaw, wp_pistol,
-	wp_shotgun, wp_supershotgun, wp_chaingun, wp_missile, wp_plasma, wp_bfg, wp_staff,
-	wp_goldwand, wp_crossbow, wp_blaster, wp_skullrod, wp_phoenixrod, wp_mace, wp_gauntlets, wp_beak
+	wp_shotgun, wp_supershotgun, wp_chaingun, wp_missile, wp_plasma, wp_bfg
 };
 
 byte NextWeapon(player_t * player, int step)
@@ -1058,9 +1057,6 @@ void G_PlayerFinishLevel(int player)
 	for (i = 0; i < p->inventorySlotNum; i++)
 		if (p->inventory[i].count > 1)
 			p->inventory[i].count = 1;
-	if (!cv_deathmatch.value)
-		for (i = 0; i < MAXARTECONT; i++)
-			P_PlayerUseArtifact(p, arti_fly);
 	//if (gamemode == heretic)
 		p->weaponinfo = wpnlev1info;	// cancel power weapons
 	//else
@@ -1145,21 +1141,11 @@ void G_PlayerReborn(int player)
 	p->health = initial_health;
 	
 	p->weaponinfo = wpnlev1info;
-	if (gamemode == heretic)
-	{
-		p->readyweapon = p->pendingweapon = wp_goldwand;
-		p->weaponowned[wp_staff] = true;
-		p->weaponowned[wp_goldwand] = true;
-		p->ammo[am_goldwand] = 50;
-	}
-	else
-	{
-		//p->weaponinfo = doomweaponinfo;
-		p->readyweapon = p->pendingweapon = wp_pistol;
-		p->weaponowned[wp_fist] = true;
-		p->weaponowned[wp_pistol] = true;
-		p->ammo[am_clip] = initial_bullets;
-	}
+	//p->weaponinfo = doomweaponinfo;
+	p->readyweapon = p->pendingweapon = wp_pistol;
+	p->weaponowned[wp_fist] = true;
+	p->weaponowned[wp_pistol] = true;
+	p->ammo[am_clip] = initial_bullets;
 	
 	p->profile = prof;
 
@@ -1469,23 +1455,6 @@ void G_DoCompleted(void)
 					wminfo.next = 15;
 					break;
 			}
-		else if (gamemode == heretic)
-		{
-			if (secretexit)
-				wminfo.next = 8;	// go to secret level
-			else if (gamemap == 9)
-			{
-				switch (gameepisode)
-				{
-					case 1: wminfo.next = 6; break;
-					case 2: wminfo.next = 4; break;
-					case 3: wminfo.next = 4; break;
-					case 4: wminfo.next = 4; break;
-					case 5: wminfo.next = 3; break;
-					default: wminfo.next = gamemap; break;
-				}
-			}
-		}
 		else
 			switch (gamemap)
 			{

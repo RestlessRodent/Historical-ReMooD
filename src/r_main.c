@@ -735,7 +735,7 @@ void R_ExecuteSetViewSize(void)
 		CV_SetValue(&cv_detaillevel, setdetail);
 	}
 
-	stbarheight = gamemode == heretic ? SBARHEIGHT : ST_HEIGHT;
+	stbarheight = ST_HEIGHT;
 
 	if (!cv_splitscreen.value && cv_scalestatusbar.value || cv_viewsize.value >= 11)
 		stbarheight *= vid.fdupy;

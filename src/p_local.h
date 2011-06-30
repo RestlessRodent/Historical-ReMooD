@@ -319,9 +319,6 @@ void P_SetMessage(player_t * player, char *message, boolean ultmsg);
 void P_Massacre(void);
 void P_AddBossSpot(fixed_t x, fixed_t y, angle_t angle);
 boolean P_ChickenMorphPlayer(player_t * player);
-void P_PlayerUseArtifact(player_t * player, artitype_t arti);
-boolean P_UseArtifact(player_t * player, artitype_t arti);
-boolean P_GiveArtifact(player_t * player, artitype_t arti, mobj_t * mo);
 
 extern consvar_t cv_spawnmonsters;
 

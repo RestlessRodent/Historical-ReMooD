@@ -920,8 +920,7 @@ static void R_ProjectSprite(mobj_t * thing)
 			// actually only the player should use this (temporary invisibility)
 			// because now the translucency is set through FF_TRANSMASK
 		{
-			if (thing->flags2 & MF2_FORCETRANSPARENCY ||
-				(gamemode == heretic && thing->type == MT_PLAYER))
+			if (thing->flags2 & MF2_FORCETRANSPARENCY)
 				vis->transmap = ((tr_transhi - 1) << FF_TRANSSHIFT) + transtables;
 			else
 				vis->transmap = VIS_OLDFUZZ;
@@ -1109,10 +1108,7 @@ void R_DrawPSprite(pspdef_t * psp)
 		if (viewplayer->powers[pw_invisibility] > 4 * TICRATE
 			|| viewplayer->powers[pw_invisibility] & 8)
 		{
-			if (gamemode == heretic)
-				vis->transmap = ((tr_transhi - 1) << FF_TRANSSHIFT) + transtables;
-			else
-				vis->transmap = VIS_OLDFUZZ;
+			vis->transmap = VIS_OLDFUZZ;
 		}
 		else
 			vis->transmap = NULL;//((tr_transmed - 1) << FF_TRANSSHIFT) + transtables;

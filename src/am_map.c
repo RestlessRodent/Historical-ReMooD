@@ -471,33 +471,10 @@ static void AM_initVariables(void)
 	old_m_w = m_w;
 	old_m_h = m_h;
 	
-	if (gamemode == heretic)
-	{
-		REDS = 12 * 8;
-		REDRANGE = 1;
-		BLUES = (256 - 4 * 16 + 8);
-		BLUERANGE = 1;
-		GREENS = 224;
-		GREENRANGE = 1;
-		GRAYS = (5 * 8);
-		GRAYSRANGE = 1;
-		BROWNS = (14 * 8);
-		BROWNRANGE = 1;
-		YELLOWS = 10 * 8;
-		YELLOWRANGE = 1;
-		DBLACK = 0;
-		DWHITE = 4 * 8;
 
-		BLUEKEYCOLOR = 197;
-		YELLOWKEYCOLOR = 144;
-		REDKEYCOLOR = 220;		// green 
-	}
-	else
-	{
-		BLUEKEYCOLOR = 200;
-		YELLOWKEYCOLOR = 231;
-		REDKEYCOLOR = 176;
-	}
+	BLUEKEYCOLOR = 200;
+	YELLOWKEYCOLOR = 231;
+	REDKEYCOLOR = 176;
 
 	// inform the status bar of the change
 	ST_Responder(&st_notify);
@@ -1388,42 +1365,37 @@ void AM_drawThings(int colors, int colorrange)
 			}
 			
 			// Modify Color
-			if (gamemode != heretic)
+			if (t->info->flags & MF_COUNTKILL || t->type == MT_SKULL)
 			{
-				if (t->info->flags & MF_COUNTKILL || t->type == MT_SKULL)
-				{
-					if (t->health <= 0 || t->flags & MF_CORPSE)
-						color = GRAYS + (GRAYSRANGE >> 1);
-					else
-					{
-						if (t->target && t->state && t->state->action.acv != A_Look)
-							color = REDS + (gametic % REDRANGE);
-						else
-							color = REDS + ((gametic >> 1) % REDRANGE);
-					}
-				}
-				else if (t->info->flags & MF_SPECIAL)
-				{
-					switch (t->type)
-					{
-						case MT_MISC12:		// Soul Sphere
-						case MT_MEGA:		// Mega Sphere
-						case MT_INV:		// Invincibility Sphere
-						case MT_INS:		// Partial Invisibility Sphere
-						case MT_MISC13:		// Berzerker
-						case MT_MISC14:		// Radiation Suit
-						case MT_MISC15:		// Computer Map
-						case MT_MISC16:		// Light Amplification Goggles
-							color = YELLOWS + ((gametic >> 1) % YELLOWRANGE);
-							break;
-						
-						default:
-							color = YELLOWS + 7;
-							break;
-					}
-				}
+				if (t->health <= 0 || t->flags & MF_CORPSE)
+					color = GRAYS + (GRAYSRANGE >> 1);
 				else
-					color = colors + lightlev;
+				{
+					if (t->target && t->state && t->state->action.acv != A_Look)
+						color = REDS + (gametic % REDRANGE);
+					else
+						color = REDS + ((gametic >> 1) % REDRANGE);
+				}
+			}
+			else if (t->info->flags & MF_SPECIAL)
+			{
+				switch (t->type)
+				{
+					case MT_MISC12:		// Soul Sphere
+					case MT_MEGA:		// Mega Sphere
+					case MT_INV:		// Invincibility Sphere
+					case MT_INS:		// Partial Invisibility Sphere
+					case MT_MISC13:		// Berzerker
+					case MT_MISC14:		// Radiation Suit
+					case MT_MISC15:		// Computer Map
+					case MT_MISC16:		// Light Amplification Goggles
+						color = YELLOWS + ((gametic >> 1) % YELLOWRANGE);
+						break;
+					
+					default:
+						color = YELLOWS + 7;
+						break;
+				}
 			}
 			else
 				color = colors + lightlev;
@@ -1486,7 +1458,7 @@ void AM_Drawer(void)
 	// mapname
 	{
 		int y;
-		y = BASEVIDHEIGHT - (gamemode == heretic ? SBARHEIGHT : ST_HEIGHT) - 1;
+		y = BASEVIDHEIGHT - (ST_HEIGHT) - 1;
 
 		V_DrawString(20, y - V_StringHeight(P_LevelName()), 0, P_LevelName());
 	}

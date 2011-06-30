@@ -277,13 +277,10 @@ void HU_LoadWadData(void)
 		return;
 	
 	// cache the heads-up font for entire game execution
-	j = (gamemode == heretic ? 1 : HU_FONTSTART);
+	j = HU_FONTSTART;
 	for (i = 0; i < HU_FONTSIZE; i++)
 	{
-		if (raven)
-			sprintf(buffer, "FONTA%.2d", j > 59 ? 59 : j);
-		else
-			sprintf(buffer, "STCFN%.3d", j);
+		sprintf(buffer, "STCFN%.3d", j);
 		j++;
 		hu_font[i] = (patch_t *) W_CachePatchName(buffer, PU_STATIC);
 	}

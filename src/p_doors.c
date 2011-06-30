@@ -141,8 +141,6 @@ void T_VerticalDoor(vldoor_t * door)
 					case genClose:
 						door->sector->ceilingdata = NULL;	//SoM: 3/6/2000
 						P_RemoveThinker(&door->thinker);	// unlink and free
-						if (gamemode == heretic)
-							S_StartSound((mobj_t *) & door->sector->soundorg, sfx_dorcls);
 						break;
 
 					case close30ThenOpen:
@@ -231,8 +229,6 @@ void T_VerticalDoor(vldoor_t * door)
 					case genBlazeCdO:
 						door->sector->ceilingdata = NULL;
 						P_RemoveThinker(&door->thinker);	// unlink and free
-						if (gamemode == heretic)
-							S_StopSound((mobj_t *) & door->sector->soundorg);
 
 						break;
 
@@ -289,8 +285,7 @@ int EV_DoLockedDoor(line_t * line, vldoor_e type, mobj_t * thing, fixed_t speed)
 	{
 		case 99:				// Blue Lock
 		case 133:
-			if ((gamemode == heretic && !(p->cards & it_hbluekey)) ||
-				(gamemode != heretic && (!(p->cards & it_bluecard) && !(p->cards & it_blueskull))))
+			if (((!(p->cards & it_bluecard) && !(p->cards & it_blueskull))))
 			{
 				p->message = PD_BLUEO;
 				S_StartScreamSound(p->mo, sfx_oof);	//SoM: 3/6/200: killough's idea
@@ -300,8 +295,7 @@ int EV_DoLockedDoor(line_t * line, vldoor_e type, mobj_t * thing, fixed_t speed)
 
 		case 134:				// Red Lock
 		case 135:
-			if ((gamemode == heretic && !(p->cards & it_hgreenkey)) ||
-				(gamemode != heretic && (!(p->cards & it_redcard) && !(p->cards & it_redskull))))
+			if (((!(p->cards & it_redcard) && !(p->cards & it_redskull))))
 			{
 				p->message = PD_REDO;
 				S_StartScreamSound(p->mo, sfx_oof);	//SoM: 3/6/200: killough's idea
@@ -311,8 +305,7 @@ int EV_DoLockedDoor(line_t * line, vldoor_e type, mobj_t * thing, fixed_t speed)
 
 		case 136:				// Yellow Lock
 		case 137:
-			if ((gamemode == heretic && !(p->cards & it_hyellowkey)) ||
-				(gamemode != heretic && (!(p->cards & it_yellowcard) && !(p->cards & it_yellowskull))))
+			if (((!(p->cards & it_yellowcard) && !(p->cards & it_yellowskull))))
 			{
 				p->message = PD_YELLOWO;
 				S_StartScreamSound(p->mo, sfx_oof);	//SoM: 3/6/200: killough's idea
@@ -528,8 +521,7 @@ int EV_VerticalDoor(line_t * line, mobj_t * thing)
 		case 32:
 			if (!player)
 				return 0;
-			if ((gamemode == heretic && !(player->cards & it_hbluekey)) ||
-				(gamemode != heretic && (!(player->cards & it_bluecard) && !(player->cards & it_blueskull))))
+			if (((!(player->cards & it_bluecard) && !(player->cards & it_blueskull))))
 			{
 				player->message = PD_BLUEK;
 				S_StartScreamSound(player->mo, sfx_oof);	//SoM: 3/6/2000: Killough's idea
@@ -542,8 +534,7 @@ int EV_VerticalDoor(line_t * line, mobj_t * thing)
 			if (!player)
 				return 0;
 
-			if ((gamemode == heretic && !(player->cards & it_hyellowkey)) ||
-				(gamemode != heretic && (!(player->cards & it_yellowcard) && !(player->cards & it_yellowskull))))
+			if (((!(player->cards & it_yellowcard) && !(player->cards & it_yellowskull))))
 			{
 				player->message = PD_YELLOWK;
 				S_StartScreamSound(player->mo, sfx_oof);	//SoM: 3/6/2000: Killough's idea
@@ -556,8 +547,7 @@ int EV_VerticalDoor(line_t * line, mobj_t * thing)
 			if (!player)
 				return 0;
 
-			if ((gamemode == heretic && !(player->cards & it_hgreenkey)) ||
-				(gamemode != heretic && (!(player->cards & it_redcard) && !(player->cards & it_redskull))))
+			if (((!(player->cards & it_redcard) && !(player->cards & it_redskull))))
 			{
 				player->message = PD_REDK;
 				S_StartScreamSound(player->mo, sfx_oof);	//SoM: 3/6/2000: Killough's idea

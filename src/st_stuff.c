@@ -764,12 +764,6 @@ void ST_Ticker(void)
 	if (st_stopped)
 		return;
 	
-	if (gamemode == heretic)
-	{
-		SB_Ticker();
-		return;
-	}
-	
 	st_clock++;
 	st_randomnumber = M_Random();
 	ST_updateWidgets();
@@ -922,12 +916,6 @@ void ST_Drawer(boolean refresh)
 	int i;
 	
 	st_statusbaron = (cv_viewsize.value < 11) || (automapactive && !automapoverlay);
-	
-	if (gamemode == heretic)
-	{
-		SB_Drawer(refresh);
-		return;
-	}
 
 	//added:30-01-98:force a set of the palette by doPaletteStuff()
 	if (vid.recalc)
@@ -1293,14 +1281,7 @@ static void ST_Stop(void)
 }
 
 void ST_Start(void)
-{
-	if (gamemode == heretic)
-	{
-		plyr = &players[statusbarplayer];
-		st_stopped = false;
-		return;
-	}
-	
+{	
 	if (!st_stopped)
 		ST_Stop();
 
@@ -1325,9 +1306,6 @@ void ST_Init(void)
 
 	if (dedicated)
 		return;
-		
-	if (gamemode == heretic)
-		SB_Init();
 
 	//added:26-01-98:screens[4] is allocated at videomode setup, and
 	//               set at V_Init(), the first time being at SCR_Recalc()
@@ -1338,12 +1316,6 @@ void ST_Init(void)
 		case commercial:
 			// DOOM II border patch, original was GRNROCK
 			st_borderpatchnum = W_GetNumForName("GRNROCK");
-			break;
-		case heretic:
-			if (gamemission != pack_hereticsw)
-				st_borderpatchnum = W_GetNumForName("FLOOR04");
-			else
-				st_borderpatchnum = W_GetNumForName("FLAT513");
 			break;
 		default:
 			// DOOM border patch.

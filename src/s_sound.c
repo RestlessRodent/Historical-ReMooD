@@ -287,10 +287,7 @@ int S_GetSfxLumpNum(sfxinfo_t * sfx)
 	char namebuf[9];
 	int sfxlump;
 
-	if (gamemode == heretic)
-		sprintf(namebuf, "%s", sfx->name);
-	else
-		sprintf(namebuf, "ds%s", sfx->name);
+	sprintf(namebuf, "ds%s", sfx->name);
 
 	sfxlump = W_CheckNumForName(namebuf);
 	if (sfxlump > 0)
@@ -298,11 +295,8 @@ int S_GetSfxLumpNum(sfxinfo_t * sfx)
 		sfx->lumpnum = sfxlump;
 		return sfxlump;
 	}
-
-	if (gamemode != heretic)
-		sprintf(namebuf, "%s", sfx->name);
-	else
-		sprintf(namebuf, "ds%s", sfx->name);
+	
+	sprintf(namebuf, "%s", sfx->name);;
 
 	sfxlump = W_CheckNumForName(namebuf);
 	
@@ -312,10 +306,7 @@ int S_GetSfxLumpNum(sfxinfo_t * sfx)
 		return sfxlump;
 	}
 
-	if (gamemode == heretic)
-		sfx->lumpnum = W_GetNumForName("keyup");
-	else
-		sfx->lumpnum = W_GetNumForName("dspistol");
+	sfx->lumpnum = W_GetNumForName("dspistol");
 	
 	return sfx->lumpnum;
 }
@@ -347,8 +338,6 @@ void S_Start(void)
 
 	if (gamemode == commercial)
 		mnum = mus_runnin + gamemap - 1;
-	else if (gamemode == heretic)
-		mnum = mus_he1m1 + (gameepisode - 1) * 9 + gamemap - 1;
 	else
 	{
 		int spmus[] = {
@@ -529,15 +518,10 @@ void S_StartSoundAtVolume(void *origin_p, int sfx_id, int volume)
 	//Sound pitching for both Doom and Heretic
 	if (cv_rndsoundpitch.value)
 	{
-		if (gamemode != heretic)
-		{
-			if (sfx_id >= sfx_sawup && sfx_id <= sfx_sawhit)
-				pitch += 8 - (M_Random() & 15);
-			else if (sfx_id != sfx_itemup && sfx_id != sfx_tink)
-				pitch += 16 - (M_Random() & 31);
-		}
-		else
-			pitch = 128 + (M_Random() & 7) - (M_Random() & 7);
+		if (sfx_id >= sfx_sawup && sfx_id <= sfx_sawhit)
+			pitch += 8 - (M_Random() & 15);
+		else if (sfx_id != sfx_itemup && sfx_id != sfx_tink)
+			pitch += 16 - (M_Random() & 31);
 	}
 
 	if (pitch < 0)
@@ -870,10 +854,7 @@ void S_ChangeMusic(int music_num, int looping)
 	if (mus_playing == music)
 		return;
 	
-	if (gamemode == heretic)
-		I_RegisterSong(music->name);
-	else
-		I_RegisterSong(va("d_%s", music->name));
+	I_RegisterSong(va("d_%s", music->name));
 	
 	mus_playing = music;
 	

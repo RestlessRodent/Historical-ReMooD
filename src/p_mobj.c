@@ -169,22 +169,15 @@ boolean P_SetMobjStateNF(mobj_t * mobj, statenum_t state)
 // P_ExplodeMissile
 //
 void P_ExplodeMissile(mobj_t * mo)
-{
-	if (mo->type == MT_WHIRLWIND)
-		if (++mo->special2 < 60)
-			return;
-	
+{	
 	mo->momx = mo->momy = mo->momz = 0;
 
 	P_SetMobjState(mo, mobjinfo[mo->type].deathstate);
+	
+	mo->tics -= P_Random() & 3;
 
-	if (gamemode != heretic)
-	{
-		mo->tics -= P_Random() & 3;
-
-		if (mo->tics < 1)
-			mo->tics = 1;
-	}
+	if (mo->tics < 1)
+		mo->tics = 1;
 
 	mo->flags &= ~MF_MISSILE;
 
@@ -238,10 +231,8 @@ void P_XYFriction(mobj_t * mo, fixed_t oldx, fixed_t oldy, boolean oldfriction)
 		// if in a walking frame, stop moving
 		if (player && (mo->type != MT_SPIRIT))
 		{
-			if ((player->chickenTics) && ((unsigned)((player->mo->state - states) - S_CHICPLAY_RUN1) < 4))
-				P_SetMobjState(player->mo, S_CHICPLAY);
-			else if ((unsigned)((player->mo->state - states) - S_PLAY_RUN1) < 4)
-					P_SetMobjState(player->mo, S_PLAY);
+			if ((unsigned)((player->mo->state - states) - S_PLAY_RUN1) < 4)
+				P_SetMobjState(player->mo, S_PLAY);
 		}
 		
 		mo->momx = 0;
@@ -249,25 +240,7 @@ void P_XYFriction(mobj_t * mo, fixed_t oldx, fixed_t oldy, boolean oldfriction)
 	}
 	else
 	{
-		if (gamemode == heretic)
-		{
-			if (mo->flags2 & MF2_FLY && !(mo->z <= mo->floorz) && !(mo->flags2 & MF2_ONMOBJ))
-			{
-				mo->momx = FixedMul(mo->momx, FRICTION_FLY);
-				mo->momy = FixedMul(mo->momy, FRICTION_FLY);
-			}
-			else if (mo->subsector->sector->special == 15)	// Friction_Low
-			{
-				mo->momx = FixedMul(mo->momx, FRICTION_LOW);
-				mo->momy = FixedMul(mo->momy, FRICTION_LOW);
-			}
-			else
-			{
-				mo->momx = FixedMul(mo->momx, FRICTION);
-				mo->momy = FixedMul(mo->momy, FRICTION);
-			}
-		}
-		else if (oldfriction)
+		if (oldfriction)
 		{
 			mo->momx = FixedMul(mo->momx, FRICTION);
 			mo->momy = FixedMul(mo->momy, FRICTION);
@@ -311,7 +284,7 @@ void P_XYMovement(mobj_t * mo)
 			mo->momx = mo->momy = mo->momz = 0;
 
 			//added:18-02-98: comment: set in 'search new direction' state?
-			P_SetMobjState(mo, gamemode == heretic ? mo->info->seestate : mo->info->spawnstate);
+			P_SetMobjState(mo, mo->info->spawnstate);
 		}
 		return;
 	}
@@ -414,13 +387,7 @@ void P_XYMovement(mobj_t * mo)
 						// against the sky.
 						// Does not handle sky floors.
 						//SoM: 4/3/2000: Check frontsector as well..
-						if (mo->type == MT_BLOODYSKULL)
-						{
-							mo->momx = mo->momy = 0;
-							mo->momz = -FRACUNIT;
-						}
-						else
-							P_RemoveMobj(mo);
+						P_RemoveMobj(mo);
 						return;
 					}
 
@@ -605,10 +572,6 @@ void P_ZMovement(mobj_t * mo)
 				P_FloorBounceMissile(mo);
 				return;
 			}
-			else if (mo->type == MT_MNTRFX2)
-			{					// Minotaur floor fire can go up steps
-				return;
-			}
 			else
 			{
 				if ((mo->flags & MF_NOCLIP) == 0)
@@ -719,13 +682,7 @@ void P_ZMovement(mobj_t * mo)
 				mo->subsector->sector->ceilingpic == skyflatnum &&
 				mo->subsector->sector->ceilingheight == mo->ceilingz)
 			{
-				if (mo->type == MT_BLOODYSKULL)
-				{
-					mo->momx = mo->momy = 0;
-					mo->momz = -FRACUNIT;
-				}
-				else
-					P_RemoveMobj(mo);
+				P_RemoveMobj(mo);
 				return;
 			}
 
@@ -776,12 +733,11 @@ void P_NightmareRespawn(mobj_t * mobj)
 	// spawn a teleport fog at old spot
 	// because of removal of the body?
 	if (mthing->options & MTF_FS_SPAWNED)
-		mo = P_SpawnMobj(mobj->x, mobj->y, mobj->z + (gamemode == heretic ? TELEFOGHEIGHT : 0),
+		mo = P_SpawnMobj(mobj->x, mobj->y, mobj->z + (0),
 						 MT_TFOG);
 	else
 		mo = P_SpawnMobj(mobj->x, mobj->y,
-						 mobj->subsector->sector->floorheight + (gamemode ==
-																 heretic ? TELEFOGHEIGHT : 0),
+						 mobj->subsector->sector->floorheight + ( 0),
 						 MT_TFOG);
 	// initiate teleport sound
 	S_StartSound(mo, sfx_telept);
@@ -1314,15 +1270,12 @@ void P_RespawnSpecials(void)
 	y = mthing->y << FRACBITS;
 
 	// spawn a teleport fog at the new spot
-	if (gamemode != heretic)
-	{
-		subsector_t *ss = R_PointInSubsector(x, y);
-		if (mthing->options & MTF_FS_SPAWNED)
-			mo = P_SpawnMobj(x, y, mthing->z << FRACBITS, MT_IFOG);
-		else
-			mo = P_SpawnMobj(x, y, ss->sector->floorheight, MT_IFOG);
-		S_StartSound(mo, sfx_itmbk);
-	}
+	ss = R_PointInSubsector(x, y);
+	if (mthing->options & MTF_FS_SPAWNED)
+		mo = P_SpawnMobj(x, y, mthing->z << FRACBITS, MT_IFOG);
+	else
+		mo = P_SpawnMobj(x, y, ss->sector->floorheight, MT_IFOG);
+	S_StartSound(mo, sfx_itmbk);
 
 	// find which type to spawn
 	for (i = 0; i < NUMMOBJTYPES; i++)
@@ -1581,20 +1534,6 @@ void P_SpawnMapThing(mapthing_t * mthing)
 
 		return;
 	}
-	
-	// Ambient sound sequences
-	if (mthing->type >= 1200 && mthing->type < 1300)
-	{
-		P_AddAmbientSfx(mthing->type - 1200);
-		return;
-	}
-
-	// Check for boss spots
-	if (raven && mthing->type == 56)	// Monster_BossSpot
-	{
-		P_AddBossSpot(mthing->x << FRACBITS, mthing->y << FRACBITS, mthing->angle * ANGLE_1);	// SSNTails 06-10-2003
-		return;
-	}
 
 	// check for apropriate skill level
 	if (!multiplayer && (mthing->options & 16))
@@ -1619,31 +1558,15 @@ void P_SpawnMapThing(mapthing_t * mthing)
 		return;
 
 	// find which type to spawn (woo hacky and I like it)
-	if (gamemode == heretic)
+	for (i = 0; i < NUMMOBJTYPES; i++)
+		if (mthing->type == mobjinfo[i].doomednum)
+			break;
+	
+	if (i == NUMMOBJTYPES)
 	{
-		for (i = BEGINHERETIC_MT; i < ENDHERETIC_MT; i++)
-			if (mthing->type == mobjinfo[i].doomednum)
-				break;
-	}
-	else
-	{
-		for (i = 0; i < BEGINHERETIC_MT; i++)
-			if (mthing->type == mobjinfo[i].doomednum)
-				break;
-	}
-
-	if ((gamemode != heretic && i == BEGINHERETIC_MT) || (gamemode == heretic && i == ENDHERETIC_MT))
-	{
-		for (i = ENDHERETIC_MT; i < NUMMOBJTYPES; i++)
-			if (mthing->type == mobjinfo[i].doomednum)
-				break;
-		
-		if (i == NUMMOBJTYPES)
-		{
-			CONS_Printf("\2P_SpawnMapThing: Unknown type %i at (%i, %i)\n",
-						mthing->type, mthing->x, mthing->y);
-			return;
-		}
+		CONS_Printf("\2P_SpawnMapThing: Unknown type %i at (%i, %i)\n",
+					mthing->type, mthing->x, mthing->y);
+		return;
 	}
 
 	// don't spawn keycards and players in deathmatch
@@ -1653,12 +1576,6 @@ void P_SpawnMapThing(mapthing_t * mthing)
 	// don't spawn any monsters if -nomonsters
 	if (!cv_spawnmonsters.value && (i == MT_SKULL || (mobjinfo[i].flags & MF_COUNTKILL)))
 		return;
-		
-	if (i == MT_WMACE)
-	{
-		P_AddMaceSpot(mthing);
-		return;
-	}
 
 	// spawn it
 	x = mthing->x << FRACBITS;
@@ -1794,13 +1711,6 @@ void P_SpawnPuff(fixed_t x, fixed_t y, fixed_t z)
 			if (attackrange == MELEERANGE)
 				P_SetMobjState(puff, S_PUFF3);
 			break;
-		case MT_BEAKPUFF:
-		case MT_STAFFPUFF:
-			puff->momz = FRACUNIT;
-			break;
-		case MT_GAUNTLETPUFF1:
-		case MT_GAUNTLETPUFF2:
-			puff->momz = 0.8 * FRACUNIT;
 		default:
 			break;
 	}
@@ -1852,11 +1762,7 @@ boolean PTR_BloodTraverse(intercept_t * in)
 	  hitline:
 		P_MakeDivline(li, &divl);
 		frac = P_InterceptVector(&divl, &trace);
-		if (gamemode == heretic)
-			R_AddWallSplat(li, P_PointOnLineSide(bloodspawnpointx, bloodspawnpointy, li), "BLODC0",
-						   z, frac, SPLATDRAWMODE_TRANS);
-		else
-			R_AddWallSplat(li,
+		R_AddWallSplat(li,
 					   P_PointOnLineSide(bloodspawnpointx, bloodspawnpointy,
 										 li), "BLUDC0", z, frac, SPLATDRAWMODE_TRANS);
 		return false;
@@ -1976,41 +1882,8 @@ int P_HitFloor(mobj_t * thing)
 		return (FLOOR_SOLID);
 	}
 	floortype = P_GetThingFloorType(thing);
-	if (gamemode == heretic)
-	{
-
-		if (thing->type != MT_BLOOD)
-		{
-			switch (floortype)
-			{
-				case FLOOR_WATER:
-					P_SpawnMobj(thing->x, thing->y, ONFLOORZ, MT_SPLASHBASE);
-					mo = P_SpawnMobj(thing->x, thing->y, ONFLOORZ, MT_HSPLASH);
-					mo->target = thing;
-					mo->momx = P_SignedRandom() << 8;
-					mo->momy = P_SignedRandom() << 8;
-					mo->momz = 2 * FRACUNIT + (P_Random() << 8);
-					S_StartSound(mo, sfx_gloop);
-					break;
-				case FLOOR_LAVA:
-					P_SpawnMobj(thing->x, thing->y, ONFLOORZ, MT_LAVASPLASH);
-					mo = P_SpawnMobj(thing->x, thing->y, ONFLOORZ, MT_LAVASMOKE);
-					mo->momz = FRACUNIT + (P_Random() << 7);
-					S_StartSound(mo, sfx_burn);
-					break;
-				case FLOOR_SLUDGE:
-					P_SpawnMobj(thing->x, thing->y, ONFLOORZ, MT_SLUDGESPLASH);
-					mo = P_SpawnMobj(thing->x, thing->y, ONFLOORZ, MT_SLUDGECHUNK);
-					mo->target = thing;
-					mo->momx = P_SignedRandom() << 8;
-					mo->momy = P_SignedRandom() << 8;
-					mo->momz = FRACUNIT + (P_Random() << 8);
-					break;
-			}
-		}
-		return floortype;
-	}
-	else if (floortype == FLOOR_WATER)
+	
+	if (floortype == FLOOR_WATER)
 		P_SpawnSplash(thing, thing->floorz);
 
 	// do not down the viewpoint
@@ -2024,12 +1897,9 @@ int P_HitFloor(mobj_t * thing)
 //
 boolean P_CheckMissileSpawn(mobj_t * th)
 {
-	if (gamemode != heretic)
-	{
-		th->tics -= P_Random() & 3;
-		if (th->tics < 1)
-			th->tics = 1;
-	}
+	th->tics -= P_Random() & 3;
+	if (th->tics < 1)
+		th->tics = 1;
 
 	// move a little forward so an angle can
 	// be computed if it immediately explodes
@@ -2064,19 +1934,6 @@ mobj_t *P_SpawnMissile(mobj_t * source, mobj_t * dest, mobjtype_t type)
 	
 	switch (type)
 	{
-		case MT_MNTRFX1:		// Minotaur swing attack missile
-			z = source->z + 40 * FRACUNIT;
-			break;
-		case MT_MNTRFX2:		// Minotaur floor fire missile
-			z = ONFLOORZ;
-			break;
-		case MT_SRCRFX1:		// Sorcerer Demon fireball
-			z = source->z + 48 * FRACUNIT;
-			break;
-		case MT_KNIGHTAXE:		// Knight normal axe
-		case MT_REDAXE:		// Knight red power axe
-			z = source->z + 36 * FRACUNIT;
-			break;
 		default:
 			z = source->z + 32 * FRACUNIT;
 			break;
@@ -2151,10 +2008,7 @@ mobj_t *P_SpawnMissile(mobj_t * source, mobj_t * dest, mobjtype_t type)
 		// fuzzy player
 		if (dest->flags & MF_SHADOW)
 		{
-			if (gamemode == heretic)
-				an += P_SignedRandom() << 21;
-			else
-				an += P_SignedRandom() << 20;
+			an += P_SignedRandom() << 20;
 		}
 
 		th->angle = an;
@@ -2254,13 +2108,6 @@ mobj_t *P_SPMAngle(mobj_t * source, mobjtype_t type, angle_t angle)
 		th->momy = FixedMul(th->momy, finecosine[source->player->aiming >> ANGLETOFINESHIFT]);
 	}
 	th->momz = FixedMul(th->info->speed, slope);
-	
-	if (th->type == MT_BLASTERFX1)
-	{							// Ultra-fast ripper spawning missile
-		th->x += (th->momx >> 3) - (th->momx >> 1);
-		th->y += (th->momy >> 3) - (th->momy >> 1);
-		th->z += (th->momz >> 3) - (th->momz >> 1);
-	}
 
 	slope = P_CheckMissileSpawn(th);
 
@@ -2280,12 +2127,6 @@ void A_ContMobjSound(mobj_t * actor)
 {
 	switch (actor->type)
 	{
-		case MT_KNIGHTAXE:
-			S_StartSound(actor, sfx_kgtatk);
-			break;
-		case MT_MUMMYFX1:
-			S_StartSound(actor, sfx_mumhed);
-			break;
 		default:
 			break;
 	}
@@ -2413,15 +2254,6 @@ mobj_t *P_SpawnMissileAngle(mobj_t * source, mobjtype_t type, angle_t angle, fix
 
 	switch (type)
 	{
-		case MT_MNTRFX1:		// Minotaur swing attack missile
-			z = source->z + 40 * FRACUNIT;
-			break;
-		case MT_MNTRFX2:		// Minotaur floor fire missile
-			z = ONFLOORZ;
-			break;
-		case MT_SRCRFX1:		// Sorcerer Demon fireball
-			z = source->z + 48 * FRACUNIT;
-			break;
 		default:
 			z = source->z + 32 * FRACUNIT;
 			break;

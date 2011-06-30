@@ -402,9 +402,7 @@ void P_FindLevelName()
 	// not a new level or dehacked level names ?
 	else if (!newlevel || deh_loaded)
 	{
-		if (gamemode == heretic)
-			levelname = HU_TITLEH;
-		else if (isMAPxy(maplumpname))
+		if (isMAPxy(maplumpname))
 			levelname = gamemission == pack_tnt ? HU_TITLET :
 				gamemission == pack_plut ? HU_TITLEP : HU_TITLE2;
 		else if (isExMy(maplumpname))
@@ -597,8 +595,6 @@ char *P_LevelNameByNum(int episode, int map)
 				default:
 					return text[HUSTR_1_NUM + map - 1];
 			}
-		case heretic:
-			return text[HERETIC_E1M1_NUM + (episode - 1) * 9 + map - 1];
 		default:
 			break;
 	}

@@ -58,10 +58,7 @@ void ShowEndTxt()
 	 */
 
 	/* get the lump with the text */
-	if (gamemode == heretic)
-		text = W_CacheLumpNum(W_GetNumForName("ENDTEXT"), PU_CACHE);
-	else
-		text = W_CacheLumpNum(W_GetNumForName("ENDOOM"), PU_CACHE);
+	text = W_CacheLumpNum(W_GetNumForName("ENDOOM"), PU_CACHE);
 
 	/* print 80x25 text and deal with the attributes too */
 	for (i = 1; i <= 80 * 25; i++)

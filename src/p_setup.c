@@ -1213,7 +1213,6 @@ boolean P_SetupLevel(int episode, int map, skill_t skill, char *wadname)	// for 
 
 	//faB: now part of level loading since in future each level may have
 	//     its own anim texture sequences, switches etc.
-	P_InitAmbientSound();
 	P_InitSwitchList();
 	P_InitPicAnims();
 	P_SetupLevelSky();

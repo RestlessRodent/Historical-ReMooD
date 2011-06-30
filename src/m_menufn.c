@@ -64,11 +64,11 @@
 void M_SetupGameOptionsNow(menu_t* Orig);
 void M_WarpToMap(menu_t* Orig);
 
-#define GAMESTNMOV (gamemode == heretic ? sfx_hstnmov : sfx_stnmov)
-#define GAMESWITCHN (gamemode == heretic ? sfx_switch : sfx_swtchn)
-#define GAMESWITCHX (gamemode == heretic ? sfx_switch : sfx_swtchx)
-#define GAMEPSTOP (gamemode == heretic ? sfx_hpstop : sfx_pstop)
-#define GAMEPISTOL (gamemode == heretic ? sfx_keyup : sfx_pstop)
+#define GAMESTNMOV (/*gamemode == heretic ? sfx_hstnmov :*/ sfx_stnmov)
+#define GAMESWITCHN (/*gamemode == heretic ? sfx_switch :*/ sfx_swtchn)
+#define GAMESWITCHX (/*gamemode == heretic ? sfx_switch :*/ sfx_swtchx)
+#define GAMEPSTOP (/*gamemode == heretic ? sfx_hpstop :*/ sfx_pstop)
+#define GAMEPISTOL (/*gamemode == heretic ? sfx_keyup :*/ sfx_pstop)
 
 // =============================================================================
 //                                 Video Options
@@ -217,18 +217,15 @@ void M_QuitResponse(int ch)
 	if (ch != 'y')
 		return;
 	
-	if (gamemode != heretic)
-	{
-		if (gamemission != commercial)
-			S_StartSound(NULL, quitsounds[(gametic >> 2) % 8]);
-		else
-			S_StartSound(NULL, quitsounds[(gametic >> 2) % 16]);
+	if (gamemission != commercial)
+		S_StartSound(NULL, quitsounds[(gametic >> 2) % 8]);
+	else
+		S_StartSound(NULL, quitsounds[(gametic >> 2) % 16]);
 
-		if (!nosound)
-		{
-			time = I_GetTime() + TICRATE * 2;
-			while (time > I_GetTime());
-		}
+	if (!nosound)
+	{
+		time = I_GetTime() + TICRATE * 2;
+		while (time > I_GetTime());
 	}
 
 	I_Quit();
@@ -451,17 +448,6 @@ static void M_GenerateLevelPossible(void)
 		DynMaps = NULL;
 	}
 	
-	// Heretic Hack
-	if (gamemode == heretic)
-	{
-		if (gamemission == pack_hereticsw)
-			NumMaps[gamemode] = 9;
-		else if (gamemission == pack_heretic)
-			NumMaps[gamemode] = 9 * 3;
-		else
-			NumMaps[gamemode] = (9 * 5) + 3;	// includes secret levels :}
-	}
-	
 	// Create map list
 	NewCount = (NumMaps[gamemode] + 2);
 	
@@ -469,13 +455,10 @@ static void M_GenerateLevelPossible(void)
 	NewCount++;		// Random Map (All Maps)
 	if (gamemode != shareware && gamemode != chexquest1 && gamemode != commercial)
 	{
-		if (gamemode == registered || gamemode == retail ||
-			(gamemode == heretic && (gamemission == pack_heretic || gamemission == pack_heretic13)))
+		if (gamemode == registered || gamemode == retail)
 			NewCount += 2;	// TSOH + I
-		if (gamemode == retail || (gamemode == heretic && gamemission == pack_heretic13))
+		if (gamemode == retail)
 			NewCount++;		// TFC
-		if (gamemode == heretic && gamemission == pack_heretic13)
-			NewCount += 2;
 	}
 	
 	DynMaps = Z_Malloc(NewCount * sizeof(CV_PossibleValue_t), PU_STATIC, 0);
@@ -487,8 +470,7 @@ static void M_GenerateLevelPossible(void)
 	// Episode Based
 	if (gamemode != shareware && gamemode != chexquest1 && gamemode != commercial)
 	{
-		if (gamemode == registered || gamemode == retail ||
-			(gamemode == heretic && (gamemission == pack_heretic || gamemission == pack_heretic13)))
+		if (gamemode == registered || gamemode == retail)
 		{
 			DynMaps[NumMaps[gamemode] + 1].value = 91;
 			DynMaps[NumMaps[gamemode] + 1].strvalue = "Random (Episode 1)";
@@ -498,18 +480,10 @@ static void M_GenerateLevelPossible(void)
 			DynMaps[NumMaps[gamemode] + 3].strvalue = "Random (Episode 3)";
 		}
 		
-		if (gamemode == retail || (gamemode == heretic && gamemission == pack_heretic13))
+		if (gamemode == retail)
 		{
 			DynMaps[NumMaps[gamemode] + 4].value = 94;
 			DynMaps[NumMaps[gamemode] + 4].strvalue = "Random (Episode 4)";
-		}
-		
-		if (gamemode == heretic && gamemission == pack_heretic13)
-		{
-			DynMaps[NumMaps[gamemode] + 5].value = 95;
-			DynMaps[NumMaps[gamemode] + 5].strvalue = "Random (Episode 5)";
-			DynMaps[NumMaps[gamemode] + 6].value = 96;
-			DynMaps[NumMaps[gamemode] + 6].strvalue = "Random (Episode 6)";
 		}
 	}
 	
@@ -539,27 +513,6 @@ static void M_GenerateLevelPossible(void)
 			}
 			break;
 			
-		case heretic:		/* Heretic */
-			for (j = 0; j < NumMaps[gamemode]; j++)
-			{
-				DynMaps[j].value = (((j / 9) + 1) * 10) + ((j % 9) + 1);
-				bx = text[HERETIC_E1M1_NUM+j];
-				while (*bx && *bx != ':')
-					bx++;
-				if (*bx == ':')
-				{
-					bx++;
-					while (*bx != ' ')
-						bx++;
-					bx++;
-				}
-				else
-					bx = text[HERETIC_E1M1_NUM+j];
-				DynMaps[j].strvalue = Z_Malloc(8 + strlen(bx) + 1, PU_STATIC, 0);
-				sprintf(DynMaps[j].strvalue, "E%iM%i - %s", (j / 9) + 1, (j % 9) + 1, bx);
-			}
-			break;
-		
 		case commercial:	/* DOOM 2 */
 			for (j = 0; j < NumMaps[gamemode]; j++)
 			{
@@ -599,28 +552,14 @@ void M_DoNewGameClassicClassic(int choice)
 	currentMenu->lastOn = itemOn;
 	
 	// Heretic?
-	if (gamemode == heretic)
-		cv_ng_skill.PossibleValue = NGSkillHeretic;
-	else
-		cv_ng_skill.PossibleValue = NGSkill;
+	cv_ng_skill.PossibleValue = NGSkill;
 		
 	// Skill?
-	if (gamemode == heretic)
-	{
-		NewGameCCSkillDef.menuitems[0].WItemTextPtr = PTROFUNICODESTRING(MENU_CLASSICGAME_HERETICSKILLA);
-		NewGameCCSkillDef.menuitems[1].WItemTextPtr = PTROFUNICODESTRING(MENU_CLASSICGAME_HERETICSKILLB);
-		NewGameCCSkillDef.menuitems[2].WItemTextPtr = PTROFUNICODESTRING(MENU_CLASSICGAME_HERETICSKILLC);
-		NewGameCCSkillDef.menuitems[3].WItemTextPtr = PTROFUNICODESTRING(MENU_CLASSICGAME_HERETICSKILLD);
-		NewGameCCSkillDef.menuitems[4].WItemTextPtr = PTROFUNICODESTRING(MENU_CLASSICGAME_HERETICSKILLE);
-	}
-	else
-	{
-		NewGameCCSkillDef.menuitems[0].WItemTextPtr = PTROFUNICODESTRING(MENU_CLASSICGAME_DOOMSKILLA);
-		NewGameCCSkillDef.menuitems[1].WItemTextPtr = PTROFUNICODESTRING(MENU_CLASSICGAME_DOOMSKILLB);
-		NewGameCCSkillDef.menuitems[2].WItemTextPtr = PTROFUNICODESTRING(MENU_CLASSICGAME_DOOMSKILLC);
-		NewGameCCSkillDef.menuitems[3].WItemTextPtr = PTROFUNICODESTRING(MENU_CLASSICGAME_DOOMSKILLD);
-		NewGameCCSkillDef.menuitems[4].WItemTextPtr = PTROFUNICODESTRING(MENU_CLASSICGAME_DOOMSKILLE);
-	}
+	NewGameCCSkillDef.menuitems[0].WItemTextPtr = PTROFUNICODESTRING(MENU_CLASSICGAME_DOOMSKILLA);
+	NewGameCCSkillDef.menuitems[1].WItemTextPtr = PTROFUNICODESTRING(MENU_CLASSICGAME_DOOMSKILLB);
+	NewGameCCSkillDef.menuitems[2].WItemTextPtr = PTROFUNICODESTRING(MENU_CLASSICGAME_DOOMSKILLC);
+	NewGameCCSkillDef.menuitems[3].WItemTextPtr = PTROFUNICODESTRING(MENU_CLASSICGAME_DOOMSKILLD);
+	NewGameCCSkillDef.menuitems[4].WItemTextPtr = PTROFUNICODESTRING(MENU_CLASSICGAME_DOOMSKILLE);
 	
 	// Episode?
 	if (gamemode == commercial)
@@ -633,67 +572,30 @@ void M_DoNewGameClassicClassic(int choice)
 		NewGameCCEpiDef.prevMenu = &NewGameDef;
 		NewGameCCSkillDef.prevMenu = &NewGameCCEpiDef;
 		
-		if (gamemode == heretic)
+		NewGameCCEpiDef.menuitems[0].WItemTextPtr = PTROFUNICODESTRING(MENU_CLASSICGAME_DOOMEPISODEA);
+		NewGameCCEpiDef.menuitems[1].WItemTextPtr = PTROFUNICODESTRING(MENU_CLASSICGAME_DOOMEPISODEB);
+		NewGameCCEpiDef.menuitems[2].WItemTextPtr = PTROFUNICODESTRING(MENU_CLASSICGAME_DOOMEPISODEC);
+		NewGameCCEpiDef.menuitems[3].WItemTextPtr = PTROFUNICODESTRING(MENU_CLASSICGAME_DOOMEPISODED);
+		NewGameCCEpiDef.menuitems[4].WItemTextPtr = PTROFUNICODESTRING(MENU_NULLSPACE);
+		NewGameCCEpiDef.menuitems[5].WItemTextPtr = PTROFUNICODESTRING(MENU_NULLSPACE);
+		
+		NewGameCCEpiDef.menuitems[4].status |= IT_DISABLED2;
+		NewGameCCEpiDef.menuitems[5].status |= IT_DISABLED2;
+	
+		if (gamemode != retail)
+			NewGameCCEpiDef.menuitems[3].status |= IT_DISABLED2;
+		else
+			NewGameCCEpiDef.menuitems[3].status &= ~IT_DISABLED2;
+		
+		if (gamemode == shareware)
 		{
-			NewGameCCEpiDef.menuitems[0].WItemTextPtr = PTROFUNICODESTRING(MENU_CLASSICGAME_HERETICEPISODEA);
-			NewGameCCEpiDef.menuitems[1].WItemTextPtr = PTROFUNICODESTRING(MENU_CLASSICGAME_HERETICEPISODEB);
-			NewGameCCEpiDef.menuitems[2].WItemTextPtr = PTROFUNICODESTRING(MENU_CLASSICGAME_HERETICEPISODEC);
-			NewGameCCEpiDef.menuitems[3].WItemTextPtr = PTROFUNICODESTRING(MENU_CLASSICGAME_HERETICEPISODED);
-			NewGameCCEpiDef.menuitems[4].WItemTextPtr = PTROFUNICODESTRING(MENU_CLASSICGAME_HERETICEPISODEE);
-			NewGameCCEpiDef.menuitems[5].WItemTextPtr = PTROFUNICODESTRING(MENU_CLASSICGAME_HERETICEPISODEF);
-			
-			if (gamemission == pack_hereticsw)
-			{
-				NewGameCCEpiDef.menuitems[1].status |= IT_DISABLED2;
-				NewGameCCEpiDef.menuitems[2].status |= IT_DISABLED2;
-				NewGameCCEpiDef.menuitems[3].status |= IT_DISABLED2;
-				NewGameCCEpiDef.menuitems[4].status |= IT_DISABLED2;
-				NewGameCCEpiDef.menuitems[5].status |= IT_DISABLED2;
-			}
-			else if (gamemission == pack_heretic)
-			{
-				NewGameCCEpiDef.menuitems[1].status &= ~IT_DISABLED2;
-				NewGameCCEpiDef.menuitems[2].status &= ~IT_DISABLED2;
-				NewGameCCEpiDef.menuitems[3].status |= IT_DISABLED2;
-				NewGameCCEpiDef.menuitems[4].status |= IT_DISABLED2;
-				NewGameCCEpiDef.menuitems[5].status |= IT_DISABLED2;
-			}
-			else
-			{
-				NewGameCCEpiDef.menuitems[1].status &= ~IT_DISABLED2;
-				NewGameCCEpiDef.menuitems[2].status &= ~IT_DISABLED2;
-				NewGameCCEpiDef.menuitems[3].status &= ~IT_DISABLED2;
-				NewGameCCEpiDef.menuitems[4].status &= ~IT_DISABLED2;
-				NewGameCCEpiDef.menuitems[5].status &= ~IT_DISABLED2;
-			}
+			NewGameCCEpiDef.menuitems[1].status |= IT_DISABLED2;
+			NewGameCCEpiDef.menuitems[2].status |= IT_DISABLED2;
 		}
 		else
 		{
-			NewGameCCEpiDef.menuitems[0].WItemTextPtr = PTROFUNICODESTRING(MENU_CLASSICGAME_DOOMEPISODEA);
-			NewGameCCEpiDef.menuitems[1].WItemTextPtr = PTROFUNICODESTRING(MENU_CLASSICGAME_DOOMEPISODEB);
-			NewGameCCEpiDef.menuitems[2].WItemTextPtr = PTROFUNICODESTRING(MENU_CLASSICGAME_DOOMEPISODEC);
-			NewGameCCEpiDef.menuitems[3].WItemTextPtr = PTROFUNICODESTRING(MENU_CLASSICGAME_DOOMEPISODED);
-			NewGameCCEpiDef.menuitems[4].WItemTextPtr = PTROFUNICODESTRING(MENU_NULLSPACE);
-			NewGameCCEpiDef.menuitems[5].WItemTextPtr = PTROFUNICODESTRING(MENU_NULLSPACE);
-			
-			NewGameCCEpiDef.menuitems[4].status |= IT_DISABLED2;
-			NewGameCCEpiDef.menuitems[5].status |= IT_DISABLED2;
-		
-			if (gamemode != retail)
-				NewGameCCEpiDef.menuitems[3].status |= IT_DISABLED2;
-			else
-				NewGameCCEpiDef.menuitems[3].status &= ~IT_DISABLED2;
-			
-			if (gamemode == shareware)
-			{
-				NewGameCCEpiDef.menuitems[1].status |= IT_DISABLED2;
-				NewGameCCEpiDef.menuitems[2].status |= IT_DISABLED2;
-			}
-			else
-			{
-				NewGameCCEpiDef.menuitems[1].status &= ~IT_DISABLED2;
-				NewGameCCEpiDef.menuitems[2].status &= ~IT_DISABLED2;
-			}
+			NewGameCCEpiDef.menuitems[1].status &= ~IT_DISABLED2;
+			NewGameCCEpiDef.menuitems[2].status &= ~IT_DISABLED2;
 		}
 		
 		M_SetupNextMenu(&NewGameCCEpiDef);
@@ -947,24 +849,6 @@ void M_WarpToMap(menu_t* Orig)
 			case 90:	// All Maps
 				switch (gamemode)
 				{
-					case heretic:
-						switch (gamemission)
-						{
-							case pack_heretic:
-								GameEp = (M_Random() % 3) + 1;
-								GameMap = (M_Random() % 9) + 1;
-								break;
-							case pack_heretic13:
-								GameEp = (M_Random() % 6) + 1;
-								GameMap = (M_Random() % 9) + 1;
-								break;
-							case pack_hereticsw:
-							default:
-								GameEp = 1;
-								GameMap = (M_Random() % 9) + 1;
-								break;
-						}
-						break;
 					case chexquest1:
 						GameEp = 1;
 						GameMap = (M_Random() % 5) + 1;
@@ -1137,10 +1021,7 @@ void M_Init(void)
 		{
 			if (glob->menutitlepic && glob->menutitlepic[0] == '*')
 			{
-				if (gamemode == heretic)
-					glob->menutitlepic = "M_HTIC";
-				else
-					glob->menutitlepic = "M_DOOM";
+				glob->menutitlepic = "M_DOOM";
 			}
 			
 			// First determine how big our title will be

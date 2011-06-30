@@ -48,8 +48,6 @@ boolean P_Teleport(mobj_t * thing, fixed_t x, fixed_t y, angle_t angle)
 	oldy = thing->y;
 	oldz = thing->z;
 	fogDelta = 0;
-	if (gamemode == heretic && !(thing->flags & MF_MISSILE))
-		fogDelta = TELEFOGHEIGHT;
 	aboveFloor = thing->z - thing->floorz;
 
 	if (!P_TeleportMove(thing, x, y))
@@ -60,15 +58,7 @@ boolean P_Teleport(mobj_t * thing, fixed_t x, fixed_t y, angle_t angle)
 	{
 		// heretic code
 		player_t *player = thing->player;
-		if (player->powers[pw_flight] && aboveFloor)
-		{
-			thing->z = thing->floorz + aboveFloor;
-			if (thing->z + thing->height > thing->ceilingz)
-				thing->z = thing->ceilingz - thing->height;
-			player->viewz = thing->z + player->viewheight;
-		}
-		else
-			player->viewz = thing->z + player->viewheight;
+		player->viewz = thing->z + player->viewheight;
 	}
 	else if (thing->flags & MF_MISSILE)	// heretic stuff
 	{
@@ -89,8 +79,7 @@ boolean P_Teleport(mobj_t * thing, fixed_t x, fixed_t y, angle_t angle)
 	// don't move for a bit
 	if (thing->player)
 	{
-		if (!thing->player->powers[pw_weaponlevel2])
-			thing->reactiontime = 18;
+		thing->reactiontime = 18;
 		// added : absolute angle position
 		for (i = 0; i < MAXSPLITSCREENPLAYERS; i++)
 			if (playeringame[consoleplayer[i]] && thing == players[consoleplayer[i]].mo)
@@ -101,11 +90,6 @@ boolean P_Teleport(mobj_t * thing, fixed_t x, fixed_t y, angle_t angle)
 	}
 
 	thing->angle = angle;
-	if (thing->flags2 & MF2_FOOTCLIP && P_GetThingFloorType(thing) != FLOOR_SOLID &&
--		gamemode == heretic)
-	{
-		thing->flags2 &= ~MF2_FEETARECLIPPED;
-	}
 	if (thing->flags & MF_MISSILE)
 	{
 		thing->momx = FixedMul(thing->info->speed, finecosine[an]);
@@ -130,7 +114,7 @@ int EV_Teleport(line_t * line, int side, mobj_t * thing)
 	sector_t *sector;
 
 	// don't teleport missiles
-	if (((thing->flags & MF_MISSILE) && gamemode != heretic) || (thing->flags2 & MF2_NOTELEPORT))
+	if (((thing->flags & MF_MISSILE)) || (thing->flags2 & MF2_NOTELEPORT))
 		return 0;
 
 	// Don't teleport if hit back of line,

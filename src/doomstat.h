@@ -52,9 +52,9 @@ typedef enum
 	retail,						// DOOM 1 retail, E4, M36
 	indetermined,				// Well, no IWAD found.
 	chexquest1,					// DarkWolf95:July 14, 2003: Chex Quest Support
-	heretic,
 	
-	numgamemodes
+	numgamemodes,
+	heretic
 } gamemode_t;
 
 // Mission packs - might be useful for TC stuff?
@@ -65,9 +65,6 @@ typedef enum
 	pack_tnt,					// TNT mission pack
 	pack_plut,					// Plutonia pack
 	pack_chex,					// Chex Quest
-	pack_hereticsw,
-	pack_heretic,
-	pack_heretic13,
 	none,
 	
 	numgamemissions
@@ -89,7 +86,6 @@ typedef enum
 extern gamemode_t gamemode;
 extern gamemission_t gamemission;
 extern boolean inventory;		// true with heretic and hexen
-extern boolean raven;			// true with heretic and hexen
 
 // Set if homebrew PWAD stuff has been added.
 extern boolean modifiedgame;

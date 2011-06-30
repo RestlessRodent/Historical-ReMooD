@@ -765,10 +765,7 @@ void V_Init(void)
 
 	LoadPalette("PLAYPAL");
 	
-	if (gamemode == heretic)
-		FontBBaseLump = W_CheckNumForName("FONTB_S") + 1;
-	else
-		FontBBaseLump = W_CheckNumForName("FONTC01");
+	FontBBaseLump = W_CheckNumForName("FONTC01");
 
 	//added:26-01-98:start address of NUMSCREENS * width*height vidbuffers
 	base = vid.buffer;
@@ -1737,14 +1734,14 @@ void V_MapGraphicalCharacters(void)
 			
 			/* Check for a match */
 			for (k = 0; k < NUMVIDEOFONTS; k++)
-				if ((gamemode != heretic && strlen(Font[k][0]) && (!strncasecmp(Font[k][0], CurWad->Index[j].Name, strlen(Font[k][0])))) ||
-					(gamemode == heretic && strlen(Font[k][2]) && (!strncasecmp(Font[k][2], CurWad->Index[j].Name, strlen(Font[k][2])))))
+				if ((/*gamemode != heretic &&*/ strlen(Font[k][0]) && (!strncasecmp(Font[k][0], CurWad->Index[j].Name, strlen(Font[k][0]))))/* ||
+					(gamemode == heretic && strlen(Font[k][2]) && (!strncasecmp(Font[k][2], CurWad->Index[j].Name, strlen(Font[k][2]))))*/)
 				{
 					Mode = 0;
 					break;
 				}
-				else if ((gamemode != heretic && strlen(Font[k][1]) && (!strncasecmp(Font[k][1], CurWad->Index[j].Name, strlen(Font[k][1])))) ||
-					(gamemode == heretic && strlen(Font[k][3]) && (!strncasecmp(Font[k][3], CurWad->Index[j].Name, strlen(Font[k][3])))))
+				else if ((/*gamemode != heretic &&*/ strlen(Font[k][1]) && (!strncasecmp(Font[k][1], CurWad->Index[j].Name, strlen(Font[k][1]))))/* ||
+					(gamemode == heretic && strlen(Font[k][3]) && (!strncasecmp(Font[k][3], CurWad->Index[j].Name, strlen(Font[k][3]))))*/)
 				{
 					Mode = 1;
 					

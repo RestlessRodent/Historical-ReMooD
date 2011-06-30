@@ -1001,10 +1001,6 @@ int P_CheckTag(line_t * line)
 		case 278:				// GR
 		case 279:				// G1
 			return 1;			// zero tag allowed
-			
-		case 105:
-			if (gamemode == heretic)
-				return 1;
 
 		default:
 			break;
@@ -1062,7 +1058,7 @@ void P_ActivateCrossedLine(line_t * line, int side, mobj_t * thing)
 	forceuse = line->flags & ML_ALLTRIGGER && thing->type != MT_BLOOD;
 
 	//  Triggers that other things can activate
-	if (!thing->player && gamemode != heretic)
+	if (!thing->player)
 	{
 		// Things that should NOT trigger specials...
 		switch (thing->type)
@@ -1180,11 +1176,7 @@ void P_ActivateCrossedLine(line_t * line, int side, mobj_t * thing)
 
 	if (!thing->player)
 	{
-		if (gamemode == heretic &&
-			(line->special == 4 || line->special == 39 || line->special == 97))
-			ok = 1;
-		else
-			ok = 0;
+		ok = 0;
 			
 		switch (line->special)
 		{
@@ -1263,7 +1255,7 @@ void P_ActivateCrossedLine(line_t * line, int side, mobj_t * thing)
 
 		case 8:
 			// Build Stairs
-			if (EV_BuildStairs(line, gamemode == heretic ? 8 * FRACUNIT : build8) || !boomsupport)
+			if (EV_BuildStairs(line, build8) || !boomsupport)
 				line->special = 0;
 			break;
 
@@ -1429,14 +1421,9 @@ void P_ActivateCrossedLine(line_t * line, int side, mobj_t * thing)
 			break;
 
 		case 100:
-			if (gamemode == heretic)
-				EV_DoDoor(line, normalDoor, VDOORSPEED * 3);
-			else
-			{
-				// Build Stairs Turbo 16
-				if (EV_BuildStairs(line, turbo16) || !boomsupport)
-					line->special = 0;
-			}
+			// Build Stairs Turbo 16
+			if (EV_BuildStairs(line, turbo16) || !boomsupport)
+				line->special = 0;
 			break;
 
 		case 110:
@@ -1634,34 +1621,18 @@ void P_ActivateCrossedLine(line_t * line, int side, mobj_t * thing)
 			break;
 
 		case 105:
-			if (gamemode == heretic)
-			{
-				if (cv_allowexitlevel.value)
-				{
-					G_SecretExitLevel();
-					line->special = 0;
-				}
-			}
-			else
-				// Blazing Door Raise (faster than TURBO!)
-				EV_DoDoor(line, blazeRaise, 4 * VDOORSPEED);
+			// Blazing Door Raise (faster than TURBO!)
+			EV_DoDoor(line, blazeRaise, 4 * VDOORSPEED);
 			break;
 
 		case 106:
-			if (gamemode == heretic)
-			{
-				if (EV_BuildStairs(line, 16 * FRACUNIT) || !boomsupport)
-					line->special = 0;
-			}
-			else
-				// Blazing Door Open (faster than TURBO!)
-				EV_DoDoor(line, blazeOpen, 4 * VDOORSPEED);
+			// Blazing Door Open (faster than TURBO!)
+			EV_DoDoor(line, blazeOpen, 4 * VDOORSPEED);
 			break;
 
 		case 107:
-			if (gamemode != heretic)	// used for a switch !
-				// Blazing Door Close (faster than TURBO!)
-				EV_DoDoor(line, blazeClose, 4 * VDOORSPEED);
+			// Blazing Door Close (faster than TURBO!)
+			EV_DoDoor(line, blazeClose, 4 * VDOORSPEED);
 			break;
 
 		case 120:
@@ -2296,12 +2267,6 @@ void P_PlayerInSpecialSector(player_t * player)
 
 	if (!player->specialsector)	// nothing special, exit
 		return;
-		
-	if (gamemode == heretic)
-	{
-		P_HerePlayerInSpecialSector(player);
-		return;
-	}
 
 	// Falling, not all the way down yet?
 	//SoM: 3/17/2000: Damage if in slimey water!
@@ -2504,7 +2469,7 @@ void P_SpawnSpecials(void)
 		if (sector->special & SECRET_MASK)	//SoM: 3/8/2000: count secret flags
 			totalsecret++;
 
-		switch (raven ? sector->special : sector->special & 31)
+		switch (sector->special & 31)
 		{
 			case 1:
 				// FLICKERING LIGHTS
@@ -2522,8 +2487,6 @@ void P_SpawnSpecials(void)
 				break;
 
 			case 4:
-				if (raven)
-					break;
 				// STROBE FAST/DEATH SLIME
 				P_SpawnStrobeFlash(sector, FASTDARK, 0);
 				sector->special |= 3 << DAMAGE_SHIFT;	//SoM: 3/8/2000: put damage bits in
@@ -2950,8 +2913,7 @@ static void P_SpawnScrollers(void)
 				break;
 			
 			case 99:			// heretic right scrolling
-				if (gamemode != heretic)
-					break;		// doom use it as bluekeydoor
+				break;		// doom use it as bluekeydoor
 
 			case 85:			// jff 1/30/98 2-way scroll
 				Add_Scroller(sc_side, -FRACUNIT, 0, -1, lines[i].sidenum[0], accel);
@@ -3553,19 +3515,6 @@ static void P_SpawnPushers(void)
 }
 
 mobj_t LavaInflictor;
-
-//----------------------------------------------------------------------------
-//
-// PROC P_InitLava
-//
-//----------------------------------------------------------------------------
-
-void P_InitLava(void)
-{
-	memset(&LavaInflictor, 0, sizeof(mobj_t));
-	LavaInflictor.type = MT_PHOENIXFX2;
-	LavaInflictor.flags2 = MF2_FIREDAMAGE | MF2_NODMGTHRUST;
-}
 
 //----------------------------------------------------------------------------
 //

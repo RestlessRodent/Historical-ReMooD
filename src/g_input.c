@@ -492,24 +492,12 @@ void G_Controldefault(void)
 	gamecontrol[0][gc_nextweapon][1] = KEY_JOY1B1 + 4;
 	gamecontrol[0][gc_prevweapon][1] = KEY_JOY1B1 + 5;
 
-	if (gamemode == heretic)
-	{
-		gamecontrol[0][gc_nextweapon][0] = '\'';
-		gamecontrol[0][gc_prevweapon][0] = ';';
-		gamecontrol[0][gc_invnext][0] = ']';
-		gamecontrol[0][gc_invprev][0] = '[';
-		gamecontrol[0][gc_invuse][0] = KEY_ENTER;
-		gamecontrol[0][gc_flydown][0] = KEY_DEL;
-	}
-	else
-	{
-		gamecontrol[0][gc_invnext][0] = '\'';
-		gamecontrol[0][gc_invprev][0] = ';';
-		gamecontrol[0][gc_nextweapon][0] = ']';
-		gamecontrol[0][gc_prevweapon][0] = '[';
-		gamecontrol[0][gc_invuse][0] = KEY_ENTER;
-		gamecontrol[0][gc_flydown][0] = KEY_DEL;
-	}
+	gamecontrol[0][gc_invnext][0] = '\'';
+	gamecontrol[0][gc_invprev][0] = ';';
+	gamecontrol[0][gc_nextweapon][0] = ']';
+	gamecontrol[0][gc_prevweapon][0] = '[';
+	gamecontrol[0][gc_invuse][0] = KEY_ENTER;
+	gamecontrol[0][gc_flydown][0] = KEY_DEL;
 }
 
 void G_SaveKeySetting(FILE * f)

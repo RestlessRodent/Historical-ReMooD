@@ -608,15 +608,8 @@ void D_PageDrawer(char *lumpname)
 			}
 		}
 	}
-
-	if (raven && demosequence != 2)	// big hack for legacy's credits
-	{
-		V_DrawRawScreen(0, 0, W_GetNumForName(lumpname), 320, 200);
-		if (demosequence == 0 && pagetic <= 140)
-			V_DrawScaledPatch(4, 160, 0, W_CachePatchName("ADVISOR", PU_CACHE));
-	}
-	else
-		V_DrawScaledPatch(0, 0, 0, W_CachePatchName(lumpname, PU_CACHE));
+	
+	V_DrawScaledPatch(0, 0, 0, W_CachePatchName(lumpname, PU_CACHE));
 
 	//added:08-01-98:if you wanna centre the pages it's here.
 	//          I think it's not so beautiful to have the pic centered,
@@ -660,11 +653,6 @@ void D_DoAdvanceDemo(void)
 			case 0:
 				switch (gamemode)
 				{
-					case heretic:
-						pagetic = 210 + 140;
-						pagename = "TITLE";
-						S_StartMusic(mus_htitl);
-						break;
 					case commercial:
 						pagename = "TITLEPIC";
 						pagetic = TICRATE * 11;
@@ -691,14 +679,6 @@ void D_DoAdvanceDemo(void)
 					pagename = "CREDIT";
 					S_StartMusic(mus_dm2ttl);
 				}
-				else if (gamemode == heretic)
-				{
-					pagetic = 200;
-					if (W_CheckNumForName("e2m1") == -1)
-						pagename = "ORDER";
-					else
-						pagename = "CREDIT";
-				}
 				else
 				{
 					pagetic = 200;
@@ -714,11 +694,6 @@ void D_DoAdvanceDemo(void)
 			case 0:
 				switch (gamemode)
 				{
-					case heretic:
-						pagetic = 210 + 140;
-						pagename = "TITLE";
-						S_StartMusic(mus_htitl);
-						break;
 					case commercial:
 						pagename = "TITLEPIC";
 						pagetic = TICRATE * 11;
@@ -850,31 +825,6 @@ gamemode_t GetDoomVersion(char *wadfile)
 		return registered;
 }
 
-gamemode_t GetHereticVersion(char *wadfile)
-{
-	uint32_t Magic, NumLumps, IndexOffset;
-	FILE* IWAD;
-	
-	// Cheap but it works
-	IWAD = fopen(wadfile, "rb");
-	
-	if (!IWAD)
-		return pack_heretic;	// woops!
-	else
-	{
-		fread(&Magic, sizeof(uint32_t), 1, IWAD);
-		fread(&NumLumps, sizeof(uint32_t), 1, IWAD);
-		fread(&IndexOffset, sizeof(uint32_t), 1, IWAD);
-	
-		fclose(IWAD);
-	}
-	
-	if ((LONG(NumLumps) == 2633) && (LONG(IndexOffset) == 14147848))
-		return pack_heretic13;
-	else
-		return pack_heretic;
-}
-
 typedef struct wadinformation_s
 {
 	char filename[13];
@@ -894,10 +844,8 @@ wadinformation_t wadinfos[] =
 	{"doom.wad", doom, 0, GetDoomVersion, NULL},
 	{"plutonia.wad", pack_plut, commercial, NULL, NULL},
 	{"tnt.wad", pack_tnt, commercial, NULL, NULL},
-	{"heretic.wad", 0, heretic, NULL, GetHereticVersion},
 	{"chex1.wad", pack_chex, chexquest1, NULL, NULL},
 	{"doom1.wad", doom, shareware, NULL, NULL},
-	{"heretic1.wad", pack_hereticsw, heretic, NULL, NULL},
 	{"freedoom.wad", doom2, commercial, NULL, NULL},
 	{"freedm.wad", doom2, commercial, NULL, NULL}
 };
@@ -1152,10 +1100,6 @@ void D_DoomMain(void)
 					break;
 			}
 			break;
-		case heretic:
-			strcpy(title, "Heretic Startup");
-			raven = true;
-			break;
 		default:
 			strcpy(title, "Public DOOM");
 			break;
@@ -1270,11 +1214,6 @@ void D_DoomMain(void)
 
 	// adapt tables to legacy needs
 	P_PatchInfoTables();
-	
-	if (gamemode == heretic)
-	{
-		inventory = true;
-	}
 
 	if (gamemode == chexquest1)
 		Chex1PatchEngine();

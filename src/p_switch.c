@@ -157,9 +157,6 @@ void P_InitSwitchList(void)
 		case commercial:
 			episode = 3;
 			break;
-		case heretic:
-			episode = 4;
-			break;
 		default:
 			episode = 1;
 	}
@@ -186,7 +183,7 @@ void P_InitSwitchList(void)
 								 (max_numswitches = max_numswitches ? max_numswitches * 2 : 8));
 
 		if (alphSwitchList[i].episode <= episode &&
-			(gamemode != heretic || alphSwitchList[i].episode == 4))
+			(alphSwitchList[i].episode == 4))
 		{
 			switchlist[index++] = R_TextureNumForName(alphSwitchList[i].name1);
 			switchlist[index++] = R_TextureNumForName(alphSwitchList[i].name2);
@@ -466,16 +463,8 @@ boolean P_UseSpecialLine(mobj_t * thing, line_t * line, int side)
 			// SWITCHES
 		case 7:
 			// Build Stairs
-			if (EV_BuildStairs(line, gamemode == heretic ? 8 * FRACUNIT : build8))
+			if (EV_BuildStairs(line, build8))
 				P_ChangeSwitchTexture(line, 0);
-			break;
-
-		case 107:
-			if (gamemode == heretic)
-			{
-				if (EV_BuildStairs(line, 16 * FRACUNIT))
-					P_ChangeSwitchTexture(line, 0);
-			}
 			break;
 
 		case 9:
@@ -626,8 +615,6 @@ boolean P_UseSpecialLine(mobj_t * thing, line_t * line, int side)
 			break;
 
 		case 99:
-			if (gamemode == heretic)	// used for right scrolling texture
-				break;
 
 		case 133:
 			// BlzOpenDoor BLUE

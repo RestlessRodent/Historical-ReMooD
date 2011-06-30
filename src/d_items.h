@@ -49,33 +49,6 @@
 //Hurdler: special option to tell the things has been spawned by an FS
 #define MTF_FS_SPAWNED    0x1000
 
-// heretic stuff
-#define AMMO_GWND_WIMPY 10
-#define AMMO_GWND_HEFTY 50
-#define AMMO_CBOW_WIMPY 5
-#define AMMO_CBOW_HEFTY 20
-#define AMMO_BLSR_WIMPY 10
-#define AMMO_BLSR_HEFTY 25
-#define AMMO_SKRD_WIMPY 20
-#define AMMO_SKRD_HEFTY 100
-#define AMMO_PHRD_WIMPY 1
-#define AMMO_PHRD_HEFTY 10
-#define AMMO_MACE_WIMPY 20
-#define AMMO_MACE_HEFTY 100
-
-#define USE_GWND_AMMO_1 1
-#define USE_GWND_AMMO_2 1
-#define USE_CBOW_AMMO_1 1
-#define USE_CBOW_AMMO_2 1
-#define USE_BLSR_AMMO_1 1
-#define USE_BLSR_AMMO_2 5
-#define USE_SKRD_AMMO_1 1
-#define USE_SKRD_AMMO_2 5
-#define USE_PHRD_AMMO_1 1
-#define USE_PHRD_AMMO_2 1
-#define USE_MACE_AMMO_1 1
-#define USE_MACE_AMMO_2 5
-
 //
 // Key cards.
 //
@@ -92,33 +65,10 @@ typedef enum
 	it_allskulls = it_blueskull | it_yellowskull | it_redskull,
 	it_allkeys = it_allcards | it_allskulls,
 	
-	// Heretic Keys
-	it_hbluekey = 64,
-	it_hgreenkey = 128,
-	it_hyellowkey = 256,
-	
-	it_hallkeys = it_hbluekey | it_hgreenkey | it_hyellowkey,
-	
-	it_gallkeys = it_allkeys | it_hallkeys,
+	it_gallkeys = it_allkeys,
 	
 	NUMCARDS = 9,
 } card_t;
-
-typedef enum
-{
-	arti_none,
-	arti_invulnerability,
-	arti_invisibility,
-	arti_health,
-	arti_superhealth,
-	arti_tomeofpower,
-	arti_torch,
-	arti_firebomb,
-	arti_egg,
-	arti_fly,
-	arti_teleport,
-	NUMARTIFACTS
-} artitype_t;
 
 #define NUMINVENTORYSLOTS  14
 #define MAXARTECONT        16
@@ -137,10 +87,6 @@ typedef enum
 	pw_ironfeet,
 	pw_allmap,
 	pw_infrared,
-	
-	// heretic
-	pw_weaponlevel2,
-	pw_flight,
 
 	NUMPOWERS
 } powertype_t;
@@ -172,17 +118,6 @@ typedef enum
 	wp_bfg,
 	wp_chainsaw,
 	wp_supershotgun,
-	
-	// Heretic Weapons
-	wp_staff,
-	wp_goldwand,
-	wp_crossbow,
-	wp_blaster,
-	wp_skullrod,
-	wp_phoenixrod,
-	wp_mace,
-	wp_gauntlets,
-	wp_beak,
 
 	NUMWEAPONS,
 
@@ -197,14 +132,6 @@ typedef enum
 	am_shell,					// Shotgun / double barreled shotgun.
 	am_cell,					// Plasma rifle, BFG.
 	am_misl,					// Missile launcher.
-	
-	// Heretic Ammo
-	am_goldwand,
-	am_crossbow,
-	am_blaster,
-	am_skullrod,
-	am_phoenixrod,
-	am_mace,
 
 	NUMAMMO,
 	am_noammo					// Unlimited for chainsaw / fist.

@@ -116,11 +116,11 @@ static boolean PIT_StompThing(mobj_t * thing)
 		return true;			// didn't hit it
 
 	// monsters don't stomp things except on boss level
-	if (gamemode != heretic && !tmthing->player && gamemap != 30)
+	if (!tmthing->player && gamemap != 30)
 		return false;
 
 	// Not allowed to stomp things
-	if (gamemode == heretic && !(tmthing->flags2 & MF2_TELESTOMP))
+	if (!(tmthing->flags2 & MF2_TELESTOMP))
 		return (false);
 
 	P_DamageMobj(thing, tmthing, tmthing, 10000);
@@ -292,12 +292,7 @@ static boolean PIT_CheckThing(mobj_t * thing)
 
 	// heretic stuffs
 	if (tmthing->flags2 & MF2_PASSMOBJ)
-	{							// check if a mobj passed over/under another object
-		if ((tmthing->type == MT_IMP || tmthing->type == MT_WIZARD)
-			&& (thing->type == MT_IMP || thing->type == MT_WIZARD))
-		{						// don't let imps/wizards fly over other imps/wizards
-			return false;
-		}
+	{
 		if (tmthing->z >= thing->z + thing->height && !(thing->flags & MF_SPECIAL))
 		{
 			return (true);
@@ -318,7 +313,7 @@ static boolean PIT_CheckThing(mobj_t * thing)
 		tmthing->flags &= ~MF_SKULLFLY;
 		tmthing->momx = tmthing->momy = tmthing->momz = 0;
 
-				P_SetMobjState(tmthing, gamemode == heretic ? tmthing->info->seestate : tmthing->info->spawnstate);
+				P_SetMobjState(tmthing, tmthing->info->spawnstate);
 
 		return false;			// stop moving
 	}
@@ -1253,7 +1248,7 @@ boolean PTR_AimTraverse(intercept_t * in)
 	if (th == shootthing)
 		return true;			// can't shoot self
 
-	if ((!(th->flags & MF_SHOOTABLE)) || (th->flags & MF_CORPSE) || (th->type == MT_POD))
+	if ((!(th->flags & MF_SHOOTABLE)) || (th->flags & MF_CORPSE))
 		return true;			// corpse or something
 
 	// check angles to see if the thing can be aimed at
@@ -1544,11 +1539,6 @@ boolean PTR_ShootTraverse(intercept_t * in)
 
 	if (!(th->flags & MF_SHOOTABLE))
 		return true;			// corpse or something
-		
-	// check for physical attacks on a ghost
-	if (gamemode == heretic && (th->flags & MF_SHADOW) &&
-		shootthing->player->readyweapon == wp_staff)
-		return true;
 
 	// check angles to see if the thing can be aimed at
 	dist = FixedMul(attackrange, in->frac);
@@ -1597,7 +1587,7 @@ boolean PTR_ShootTraverse(intercept_t * in)
 	{
 		// Spawn bullet puffs or blood spots,
 		// depending on target type.
-		if (in->d.thing->flags & MF_NOBLOOD && gamemode != heretic)
+		if (in->d.thing->flags & MF_NOBLOOD)
 			P_SpawnPuff(x, y, z);
 		else
 			P_SpawnBlood(x, y, z, la_damage);
@@ -1612,15 +1602,11 @@ boolean PTR_ShootTraverse(intercept_t * in)
 	{
 		// Spawn bullet puffs or blood spots,
 		// depending on target type.
-		if (in->d.thing->flags & MF_NOBLOOD && gamemode != heretic)
+		if (in->d.thing->flags & MF_NOBLOOD)
 			P_SpawnPuff(x, y, z);
 		else
 		{
-			if (PuffType == MT_BLASTERPUFF1)
-				// Make blaster big puff
-				S_StartSound(P_SpawnMobj(x, y, z, MT_BLASTERPUFF2), sfx_blshit);
-			else
-				P_SpawnBlood(x, y, z, la_damage);//P_SpawnPuff(x, y, z);
+			P_SpawnBlood(x, y, z, la_damage);//P_SpawnPuff(x, y, z);
 			
 			if (hitplane)
 			{
@@ -1754,8 +1740,7 @@ boolean PTR_UseTraverse(intercept_t * in)
 		P_LineOpening(in->d.line);
 		if (openrange <= 0)
 		{
-			if (gamemode != heretic)
-				S_StartSound(usething, sfx_noway);
+			S_StartSound(usething, sfx_noway);
 			// can't use through a wall
 			return false;
 		}
@@ -1830,8 +1815,7 @@ boolean PIT_RadiusAttack(mobj_t * thing)
 	// Boss spider and cyborg
 	// take no damage from concussion.
 	if (thing->type == MT_CYBORG
-		|| thing->type == MT_SPIDER
-		|| thing->type == MT_MINOTAUR || thing->type == MT_SORCERER1 || thing->type == MT_SORCERER2)
+		|| thing->type == MT_SPIDER)
 		return true;
 
 	dx = abs(thing->x - bombspot->x);
@@ -1900,10 +1884,7 @@ void P_RadiusAttack(mobj_t * spot, mobj_t * source, int damage)
 	yl = (spot->y - dist - bmaporgy) >> MAPBLOCKSHIFT;
 	xh = (spot->x + dist - bmaporgx) >> MAPBLOCKSHIFT;
 	xl = (spot->x - dist - bmaporgx) >> MAPBLOCKSHIFT;
-	if (spot->type == MT_POD && spot->target)
-		bombsource = spot->target;
-	else
-		bombspot = spot;
+	bombspot = spot;
 	bombsource = source;
 	bombdamage = damage;
 
@@ -1945,13 +1926,10 @@ boolean PIT_ChangeSector(mobj_t * thing)
 	// crunch bodies to giblets
 	if (thing->flags & MF_CORPSE)
 	{
-		if (!raven)
-		{
-			P_SetMobjState(thing, S_GIBS);
-			thing->flags &= ~MF_SOLID;
-			//added:22-02-98: lets have a neat 'crunch' sound!
-			S_StartSound(thing, sfx_slop);
-		}
+		P_SetMobjState(thing, S_GIBS);
+		thing->flags &= ~MF_SOLID;
+		//added:22-02-98: lets have a neat 'crunch' sound!
+		S_StartSound(thing, sfx_slop);
 		
 		thing->height = 0;
 		thing->radius = 0;

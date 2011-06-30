@@ -136,10 +136,7 @@ static void *getsfx(const char *sfxname, int *len)
 
 	// Get the sound data from the WAD, allocate lump
 	//  in zone memory.
-	if (gamemode == heretic)
-		sprintf(name, "%s", sfxname);
-	else
-		sprintf(name, "ds%s", sfxname);
+	sprintf(name, "ds%s", sfxname);
 
 	// Now, there is a severe problem with the
 	//  sound handling, in it is not (yet/anymore)
@@ -154,17 +151,11 @@ static void *getsfx(const char *sfxname, int *len)
 
 	if (W_CheckNumForName(name) == -1)
 	{
-		if (gamemode == heretic)
-			sprintf(name, "ds%s", sfxname);
-		else
-			sprintf(name, "%s", sfxname);
+		sprintf(name, "%s", sfxname);
 		
 		if (W_CheckNumForName(name) == -1)
 		{
-			if (gamemode == heretic)
-				sfxlump = W_GetNumForName("gldhit");
-			else
-				sfxlump = W_GetNumForName("dspistol");
+			sfxlump = W_GetNumForName("dspistol");
 		}
 		else
 			sfxlump = W_GetNumForName(name);
@@ -417,10 +408,7 @@ int I_GetSfxLumpNum(sfxinfo_t * sfx)
 {
 	char namebuf[9];
 	
-	if (gamemode == heretic)
-		sprintf(namebuf, "%s", sfx->name);
-	else
-		sprintf(namebuf, "ds%s", sfx->name);
+	sprintf(namebuf, "ds%s", sfx->name);
 		
 	return W_GetNumForName(namebuf);
 }

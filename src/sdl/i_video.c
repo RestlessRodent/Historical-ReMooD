@@ -570,7 +570,7 @@ void I_GetEvent(void)
             break;
 
         case SDL_QUIT:
-        	S_StartSound(NULL, (gamemode == heretic ? sfx_switch : sfx_swtchn));
+        	S_StartSound(NULL, sfx_swtchn);
 	        M_QuitDOOM(0);
             //M_QuitResponse('y');
             break;

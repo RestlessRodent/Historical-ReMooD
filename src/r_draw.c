@@ -207,22 +207,11 @@ void R_InitTranslationTables(void)
 	transtables = Z_MallocAlign(NUMTRANSTABLES * 0x10000, PU_STATIC, 0, 16);
 
 	// load in translucency tables
-	if (gamemode == heretic)
-	{
-		W_ReadLump(W_GetNumForName("TINTTAB"), transtables);
-		W_ReadLump(W_GetNumForName("TINTTAB"), transtables + 0x10000);
-		W_ReadLump(W_GetNumForName("TINTTAB"), transtables + 0x20000);
-		W_ReadLump(W_GetNumForName("TINTTAB"), transtables + 0x30000);
-		W_ReadLump(W_GetNumForName("TINTTAB"), transtables + 0x40000);
-	}
-	else
-	{
-		W_ReadLump(W_GetNumForName("TRANSMED"), transtables);
-		W_ReadLump(W_GetNumForName("TRANSMOR"), transtables + 0x10000);
-		W_ReadLump(W_GetNumForName("TRANSHI"), transtables + 0x20000);
-		W_ReadLump(W_GetNumForName("TRANSFIR"), transtables + 0x30000);
-		W_ReadLump(W_GetNumForName("TRANSFX1"), transtables + 0x40000);
-	}
+	W_ReadLump(W_GetNumForName("TRANSMED"), transtables);
+	W_ReadLump(W_GetNumForName("TRANSMOR"), transtables + 0x10000);
+	W_ReadLump(W_GetNumForName("TRANSHI"), transtables + 0x20000);
+	W_ReadLump(W_GetNumForName("TRANSFIR"), transtables + 0x30000);
+	W_ReadLump(W_GetNumForName("TRANSFX1"), transtables + 0x40000);
 
 	translationtables = Z_MallocAlign(256 * (MAXSKINCOLORS - 1), PU_STATIC, 0, 8);
 
@@ -286,7 +275,7 @@ void R_InitTranslationTables(void)
 		if ((i >= 0x70 && i <= 0x7f && gamemode != heretic) || 
 			(i >=  225 && i <=  240 && gamemode == heretic))
 		{
-			if( gamemode == heretic )
+			/*if( gamemode == heretic )
 			{
 				translationtables[i+ 0*256] =   0+(i-225); // dark gray
 				translationtables[i+ 1*256] =  67+(i-225); // brown
@@ -324,7 +313,7 @@ void R_InitTranslationTables(void)
 				}
 				
 			}
-			else
+			else*/
 			{
 				// map green ramp to gray, brown, red
 				translationtables [i	  ] = 0x60 + (i&0xf);
@@ -488,28 +477,14 @@ void R_InitViewBuffer(int width, int height)
 int viewborderlump[8];
 void R_InitViewBorder(void)
 {
-	if (raven)
-	{
-		viewborderlump[BRDR_T] = W_GetNumForName("bordt");
-		viewborderlump[BRDR_B] = W_GetNumForName("bordb");
-		viewborderlump[BRDR_L] = W_GetNumForName("bordl");
-		viewborderlump[BRDR_R] = W_GetNumForName("bordr");
-		viewborderlump[BRDR_TL] = W_GetNumForName("bordtl");
-		viewborderlump[BRDR_BL] = W_GetNumForName("bordbl");
-		viewborderlump[BRDR_TR] = W_GetNumForName("bordtr");
-		viewborderlump[BRDR_BR] = W_GetNumForName("bordbr");
-	}
-	else
-	{
-		viewborderlump[BRDR_T] = W_GetNumForName("brdr_t");
-		viewborderlump[BRDR_B] = W_GetNumForName("brdr_b");
-		viewborderlump[BRDR_L] = W_GetNumForName("brdr_l");
-		viewborderlump[BRDR_R] = W_GetNumForName("brdr_r");
-		viewborderlump[BRDR_TL] = W_GetNumForName("brdr_tl");
-		viewborderlump[BRDR_BL] = W_GetNumForName("brdr_bl");
-		viewborderlump[BRDR_TR] = W_GetNumForName("brdr_tr");
-		viewborderlump[BRDR_BR] = W_GetNumForName("brdr_br");
-	}
+	viewborderlump[BRDR_T] = W_GetNumForName("brdr_t");
+	viewborderlump[BRDR_B] = W_GetNumForName("brdr_b");
+	viewborderlump[BRDR_L] = W_GetNumForName("brdr_l");
+	viewborderlump[BRDR_R] = W_GetNumForName("brdr_r");
+	viewborderlump[BRDR_TL] = W_GetNumForName("brdr_tl");
+	viewborderlump[BRDR_BL] = W_GetNumForName("brdr_bl");
+	viewborderlump[BRDR_TR] = W_GetNumForName("brdr_tr");
+	viewborderlump[BRDR_BR] = W_GetNumForName("brdr_br");
 }
 
 //
@@ -555,17 +530,9 @@ void R_FillBackScreen(void)
 	//added:08-01-98:dont draw the borders when viewwidth is full vid.width.
 	if (scaledviewwidth == vid.width)
 		return;
-
-	if (gamemode == heretic)
-	{
-		step = 16;
-		boff = 4;				// borderoffset
-	}
-	else
-	{
-		step = 8;
-		boff = 8;
-	}
+	
+	step = 8;
+	boff = 8;
 
 	patch = W_CacheLumpNum(viewborderlump[BRDR_T], PU_CACHE);
 	for (x = 0; x < scaledviewwidth; x += step)
