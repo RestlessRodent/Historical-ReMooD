@@ -214,34 +214,3 @@ extern void D_CloseConnection(void)
 		netgame = false;
 }
 
-/*******************************************************************************
-**************************** ReMooD Network Protocol ***************************
-*******************************************************************************/
-
-#include "cmp_rle.h"
-
-HandlerHolder_t* HandlerHash[26];
-NetworkPlayer_t NetPlayers[MAXPLAYERS];
-
-//////////////////////////////// PROTOCOL FUNCS ////////////////////////////////
-
-//////////////////////////////// NET CONTROL ////////////////////////////////
-
-/* RNET_CreateServer() -- Creates a network game */
-int RNET_CreateServer(NetworkHost_t Host)
-{
-	return 0;
-}
-
-/* RNET_Connect() -- Connects to a server */
-int RNET_Connect(NetworkHost_t Host)
-{
-	return 0;
-}
-
-/* RNET_Disconnect() -- Destroys server or client connection */
-int RNET_Disconnect(int ConnectionID)
-{
-	return 0;
-}
-

@@ -25,7 +25,6 @@
 
 #include "d_rdf.h"
 #include "byteptr.h"
-#include "cmp_rle.h"
 #include <stdio.h>
 #include <stdlib.h>
 

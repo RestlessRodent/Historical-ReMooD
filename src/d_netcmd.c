@@ -56,7 +56,6 @@
 #include "v_video.h"
 #include "d_main.h"
 #include "p_demcmp.h"
-#include "rmd_main.h"
 #include "i_sound.h"
 
 // ------
@@ -256,7 +255,6 @@ void D_RegisterClientCommands(void)
 	//
 	// register commands
 	//
-	COM_AddCommand("dumpassembly", Command_DumpAssembly_f);
 	COM_AddCommand("playdemo", Command_Playdemo_f);
 	COM_AddCommand("timedemo", Command_Timedemo_f);
 	COM_AddCommand("stopdemo", Command_Stopdemo_f);
