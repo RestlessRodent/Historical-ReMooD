@@ -734,3 +734,148 @@ menu_t CreateLocalGameDef =
 	1
 };
 
+/* M_CreateID() -- Creates a menu ID */
+char* M_CreateID(char* TempBuf, size_t TempSize, menu_t* MenuPtr)
+{
+	/* Check */
+	if (!TempBuf || !TempSize || !MenuPtr)
+		return NULL;
+	
+	if (MenuPtr == &MainDef)
+		return "main";
+	else if (MenuPtr == &OptionsDef)
+		return "options";
+	else if (MenuPtr == &DefaultKeyBindDef)
+		return "keybinds";
+	else if (MenuPtr == &GameOptionsDef)
+		return "gameoptions";
+	else if (MenuPtr == &NewGameDef)
+		return "newgame";
+	else if (MenuPtr == &NewGameClassicDef)
+		return "newgameclassic";
+	else if (MenuPtr == &ProfileDef)
+		return "profiles";
+	else if (MenuPtr == &SoundsDef)
+		return "sounds";
+	else if (MenuPtr == &VideoDef)
+		return "video";
+	else if (MenuPtr == &CreateLocalGameDef)
+		return "createlocalgame";
+	else if (MenuPtr == &NewGameOptionsDef)
+		return "newgameoptions";
+	else if (MenuPtr == &NewGameCCSkillDef)
+		return "newgameskill";
+	else if (MenuPtr == &NewGameCCEpiDef)
+		return "newgameepisode";
+	else if (MenuPtr == &ControlSettingsDef)
+		return "controls";
+	else if (MenuPtr == &GraphicalSettingsDef)
+		return "graphics";
+	else
+		return NULL;
+}
+
+/* M_DumpMenuXML() -- Dumps the XML data of the menus */
+void M_DumpMenuXML(void)
+{
+#define BUFSIZE 512
+	size_t i, j, n;
+	menu_t* MenuPtr;
+	menuitem_t* MenuItem;
+	menuitem_t** PtrPtr;
+	char TempBuf[BUFSIZE];
+	
+	return;
+	
+	/* Go through every single menu */
+	for (i = 0, MenuPtr = NULL; MenuPtrList[i]; i++)
+	{
+		// Copy pointer
+		MenuPtr = MenuPtrList[i];
+		PtrPtr = &MenuPtrList[i];
+		
+		// Check
+		if (!MenuPtr)
+			break;
+			
+		// Menu opening
+		CONS_Printf("<SubMenu>\n");
+		
+		// Menu Number
+		CONS_Printf("\t<ID>%s</ID>\n", M_CreateID(TempBuf, BUFSIZE, MenuPtr));
+		
+		// Menu Title
+		if (MenuPtr->WMenuTitlePtr)
+			CONS_Printf("\t<Title>%s</Title>\n", *(MenuPtr->WMenuTitlePtr));
+		
+		// Menu Unicode String
+		CONS_Printf("\t<Unicode>%s</Unicode>\n", DS_NameOfString(MenuPtr->WMenuTitlePtr));
+		
+		// Previous Menu
+		if (MenuPtr->prevMenu)
+			CONS_Printf("\t<PrevID>%s</PrevID>\n", M_CreateID(TempBuf, BUFSIZE, MenuPtr->prevMenu));
+		
+		// Column Count
+		if (MenuPtr->numcolumns)
+			CONS_Printf("\t<Columns>%i</Columns>\n", MenuPtr->numcolumns);
+		
+		// Menu Flags
+		CONS_Printf("\t<Flags>");
+		
+		if (MenuPtr == &MainDef)
+			CONS_Printf("root ");
+		if (MenuPtr->extraflags & MENUFLAG_OPTIMALSPACE)
+			CONS_Printf("optimalspace ");
+		if (MenuPtr->extraflags & MENUFLAG_HIDECURSOR)
+			CONS_Printf("hidecursor ");
+		
+		CONS_Printf("</Flags>\n");
+		
+		// Print Items
+		CONS_Printf("\t<Items>\n");
+		
+		// Go through every item
+		for (j = 0; j < MenuPtr->numitems; j++)
+		{
+			// Get item
+			MenuItem = &MenuPtr->menuitems[j];
+			
+			// Intro
+			CONS_Printf("\t\t<Item>\n");
+			
+			// Item text
+			if (MenuItem->WItemTextPtr)
+				CONS_Printf("\t\t\t<Text>%s</Text>\n", *(MenuItem->WItemTextPtr));
+			
+			// Item unicode string
+			CONS_Printf("\t\t\t<Unicode>%s</Unicode>\n", DS_NameOfString(MenuItem->WItemTextPtr));
+			
+			// Hotkey
+			if (MenuItem->alphaKey > 0x32 && MenuItem->alphaKey < 0x7F)
+				CONS_Printf("\t\t\t<Hotkey>%c</Hotkey>\n", MenuItem->alphaKey);
+			
+			// Item Type
+			if ((MenuItem->status & IT_TYPE) == IT_CVAR)
+				CONS_Printf("\t\t\t<ConsoleVar>%s</ConsoleVar>\n", ((consvar_t*)MenuItem->itemaction)->name);
+			
+			// Item Flags
+			CONS_Printf("\t\t\t<Flags>");
+			
+			//if (MenuPtr->extraflags & MENUFLAG_OPTIMALSPACE)
+			//	CONS_Printf("optimalspace ");
+		
+			CONS_Printf("</Flags>\n");
+			
+			// Outro
+			CONS_Printf("\t\t</Item>\n");
+		}
+		
+		// Close items
+		CONS_Printf("\t</Items>\n");
+		
+		// Menu Closing
+		CONS_Printf("</SubMenu>\n");
+	}
+#undef BUFSIZE
+}
+

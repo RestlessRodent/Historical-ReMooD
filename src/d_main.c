@@ -1390,6 +1390,10 @@ void D_DoomMain(void)
 	S_RegisterSoundStuff();
 	PROF_Init();
 	CV_RegisterVar(&cv_screenslink);
+	
+	if (devparm)
+		M_DumpMenuXML();
+	
 	CONS_Printf(text[M_INIT_NUM]);
 	M_Init();
 

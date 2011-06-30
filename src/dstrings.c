@@ -1101,3 +1101,21 @@ StringGroupEX_t UnicodeStrings[NUMUNICODESTRINGS] =
 	{				   "MENU_OPTIONS_BINARYSAVES", "Binary Saves"},
 };
 
+/* DS_NameOfString() -- Returns name of pointer to string */
+const char* DS_NameOfString(char** const WCharStr)
+{
+	size_t i;
+	
+	/* Check */
+	if (!WCharStr)
+		return NULL;
+	
+	/* Look through all */
+	for (i = 0; i < NUMUNICODESTRINGS; i++)
+		if (WCharStr == &UnicodeStrings[i].wcharstr)
+			return UnicodeStrings[i].id;
+	
+	/* Failure */
+	return NULL;
+}
+

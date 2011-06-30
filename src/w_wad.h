@@ -101,13 +101,13 @@ typedef struct WadEntry_s
 typedef struct WadFile_s
 {
 	/* Filesystem */
-	char *FileName;				// Filename
-	size_t NumLumps;			// Number of Lumps
-	FILE *File;					// File pointer
-	size_t Size;				// Size of the file
+	char *FileName;					// Filename
+	size_t NumLumps;				// Number of Lumps
+	FILE *File;						// File pointer
+	size_t Size;					// Size of the file
 
 	/* Data */
-	WadEntry_t *Index;			// WAD's Index
+	WadEntry_t *Index;				// WAD's Index
 
 	/* WAD Hack */
 	void *WADNameHack;
@@ -116,7 +116,10 @@ typedef struct WadFile_s
 	uint32_t Method;				// File Method
 
 	/* Multiplayer Verification */
-	uint8_t MD5Sum[16];			// MD5 Sum
+	uint8_t MD5Sum[16];				// MD5 Sum
+	
+	/* WAD Specific Data */
+	void* Specific;				// Specific Data for said WAD
 
 	/* Links */
 	struct WadFile_s *Prev;

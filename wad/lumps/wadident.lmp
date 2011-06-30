@@ -1,12 +1,12 @@
-<?xml version="1.0" encoding="UTF-8"?>
+<?xml version="1.0" encoding="UTF-8" ?>
 <wadidentity>
-	<title type="string">ReMooD Resource WAD</title>
-	<version type="string">1.0a</version>
-	<uuid type="string">2c2caf42-a218-11e0-bc82-406186ae41f7</uuid>
-	<url type="string">http://remood.org/</url>
-	<author type="string">ghostlydeath@remood.org</author>
-	<port type="string">ReMooD</port>
-	<portminimumversion type="string">1.0a</portminimumversion>
-	<portmaximumversion type="string">1.0a</portmaximumversion>
+	<title>ReMooD Resource WAD</title>
+	<version>1.0a</version>
+	<uuid>2c2caf42-a218-11e0-bc82-406186ae41f7</uuid>
+	<url>http://remood.org/</url>
+	<author>ghostlydeath@remood.org</author>
+	<port>ReMooD</port>
+	<portminimumversion>1.0a</portminimumversion>
+	<portmaximumversion>1.0a</portmaximumversion>
 </wadidentity>
 

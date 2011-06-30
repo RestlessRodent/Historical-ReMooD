@@ -326,5 +326,7 @@ StringGroupEX_t UnicodeStrings[NUMUNICODESTRINGS];
 #define PTROFUNICODESTRING(n) (&(UnicodeStrings[n].wcharstr))
 #define PTRTOUNICODESTRING(n) (UnicodeStrings[n].wcharstr)
 
+const char* DS_NameOfString(char** const WCharStr);
+
 #endif /* __DSTRINGS_H__ */
 
