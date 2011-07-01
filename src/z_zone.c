@@ -21,7 +21,8 @@
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 // GNU General Public License for more details.
 // -----------------------------------------------------------------------------
-// DESCRIPTION: New Memory Manager Written by GhostlyDeath
+// DESCRIPTION: New New Memory Manager Written by GhostlyDeath
+//              Stolen from my proprietary game and stripped
 
 /***************
 *** INCLUDES ***
@@ -30,444 +31,684 @@
 #include <stdlib.h>
 #include <string.h>
 #include "z_zone.h"
+#include "i_system.h"
+#include "m_misc.h"
+#include "doomdef.h"
 
 /****************
 *** CONSTANTS ***
 ****************/
 
-#define ALIGNSIZE	8										// Size alignment
-#define ALIGNBLOCK	((sizeof(Z_MemBlock_t) + (ALIGNSIZE - 1)) & ~(ALIGNSIZE - 1))	// Block alignment
-#define ROOTID		0xDEADCAFEU								// Root ID
-#define BLOCKID		0x7BEEEFE7U								// ID for blocks
-#define BADBLOCK	0xDEADBEEFU								// Bad block
+#define PARTSHIFT		5						// >>/<< for partition sizes
+#define MINZONESIZE		(512 << 10)				// Minimum zone size: 512KiB
+#define INITPARTCOUNT	256						// Initial partition count
+#define RIGHTSIZE		8						// Minimum size to allocate on right
+#define FORCEDMEMORYSIZE	(4U << 20)			// Minimum allowed auto memory
 
 /*****************
 *** STRUCTURES ***
 *****************/
 
-/* Z_MemBlock_t -- Memory block */
-typedef struct Z_MemBlock_s
+/* Z_MemPartition_t -- A memory partition */
+typedef struct Z_MemPartition_s
 {
-	/* Guard */
-	uint32_t BlockIDStart;									// ID of start
+	/* Partition Data */
+	struct
+	{
+		size_t Start;							// Partition start
+		size_t End;								// Partition end
+		size_t Size;							// Partition size
+		boolean Used;							// Partition used
+	} Part;										// Partition Info
 	
-	/* Normals */
-	Z_MemoryTag_t Tag;										// Block tag
-	void* Ptr;												// Pointer to data
-	void** Ref;												// Reference
-	size_t BlockSize;										// Size of the block related data
-	size_t Size;											// Size of the data
-	struct Z_MemBlock_s* Prev;								// Previous block
-	struct Z_MemBlock_s* Next;								// Next block
-	
-	/* LockBack */
-	boolean (*LockBack)(void* const a_Base, const Z_LockBackAction_t a_ZLBA, const uintptr_t a_A, const uintptr_t a_B);
-	
-	/* Guard */
-	uint32_t BlockIDEnd;									// ID of end
-} Z_MemBlock_t;
+	/* Block Data */
+	struct
+	{
+		void* Ptr;								// Pointer to block
+		void** Ref;								// Reference
+		Z_MemoryTag_t Tag;						// Tag
+		size_t Size;							// Allocation size
+	} Block;
+} Z_MemPartition_t;
 
-/* Z_RootMemChunk_t -- Root memory chunk */
-typedef struct Z_RootMemChunk_s
+/* Z_MemZone_t -- A memory zone */
+typedef struct Z_MemZone_s
 {
-	/* Guard */
-	uint32_t RootIDStart;									// ID of start
+	/* Partitions */
+	Z_MemPartition_t* PartitionList;			// List of partitions
+	size_t NumPartitions;						// Number of partitions
+	size_t MaxPartitions;						// Max partitions for list
 	
-	/* Normals */
-	size_t TotalSize;										// Total memory available
-	Z_MemBlock_t* Rover;									// Block rover
-	Z_MemBlock_t* Head;										// Head block
-	Z_MemBlock_t* Tail;										// Tail block
+	/* Data */
+	uint8_t* DataChunk;							// Where all the data is stored
+	size_t AllocSize;							// Allocated size
+	size_t TotalMemory;							// Allocated memory (in shifts)
+	size_t FreeMemory;							// Free memory (in shifts)
 	
-	/* Gaurd */
-	uint32_t RootIDEnd;										// ID of end
-} Z_RootMemChunk_t;
+	/* Speed */
+	size_t FirstFree;							// First free partition
+	size_t LastFree;							// Last free partition
+} Z_MemZone_t;
 
 /*************
 *** LOCALS ***
 *************/
 
-static void* l_CoreMemory = NULL;							// Local memory
+static Z_MemZone_t* l_MainZone = NULL;			// Memory zones
+
+/************************
+*** PRIVATE FUNCTIONS ***
+************************/
+
+/* ZP_NewZone() -- Creates a new memory zone */
+boolean ZP_NewZone(size_t* const SizePtr, Z_MemZone_t** const ZoneRef)
+{
+	size_t ShiftSize;
+	Z_MemZone_t* NewZone;
+	Z_MemPartition_t* Part;
+	
+	/* Check */
+	if (!SizePtr)
+		return false;
+	
+	/* Obtain the shift size */
+	ShiftSize = *SizePtr >> PARTSHIFT;
+	
+	/* Create an empty zone */
+	NewZone = malloc(sizeof(*NewZone));
+	
+	// Failed?
+	if (!NewZone)
+		return false;
+	
+	// Clear it out
+	memset(NewZone, 0, sizeof(*NewZone));
+	
+	/* Create huge chunk zone */
+	NewZone->DataChunk = malloc(ShiftSize << PARTSHIFT);
+	
+	// Failed?
+	if (!NewZone->DataChunk)
+	{
+		free(NewZone);
+		return false;
+	}
+	
+	// Clear it out
+	memset(NewZone->DataChunk, 0, ShiftSize << PARTSHIFT);
+	
+	/* Create initial partitions */
+	NewZone->PartitionList = malloc(sizeof(*NewZone->PartitionList) * INITPARTCOUNT);
+	
+	// Failed?
+	if (!NewZone->PartitionList)
+	{
+		free(NewZone->DataChunk);
+		free(NewZone);
+		return false;
+	}
+	
+	// Clear it out
+	memset(NewZone->PartitionList, 0, sizeof(*NewZone->PartitionList) * INITPARTCOUNT);
+	
+	/* Initialize everything else in the zone stuff */
+	NewZone->NumPartitions = 1;
+	NewZone->MaxPartitions = INITPARTCOUNT;
+	NewZone->TotalMemory = ShiftSize;
+	NewZone->FreeMemory = ShiftSize;
+	NewZone->AllocSize = ShiftSize << PARTSHIFT;
+	
+	// Initialize the first partition
+	Part = NewZone->PartitionList;	// To save on typing
+	
+	Part->Part.Start = 0;
+	Part->Part.End = NewZone->TotalMemory;
+	Part->Part.Size = Part->Part.End - Part->Part.Start;
+	Part->Part.Used = false;
+	
+	memset(&Part->Block, 0, sizeof(Part->Block));	// Quick clear
+	
+	/* Set zone to last and increment the zone count */
+	l_MainZone = NewZone;
+	
+	/* Set return values */
+	if (ZoneRef)
+		*ZoneRef = NewZone;
+	
+	*SizePtr = ShiftSize << PARTSHIFT;
+	
+	/* Return success */
+	return true;
+}
+
+/* ZP_PartitionSplit() -- Splits a partition into two new pieces */
+void ZP_PartitionSplit(Z_MemPartition_t* const ToSplit, Z_MemPartition_t** const ResLeftPtr, Z_MemPartition_t** const ResRightPtr, const size_t Pos, const boolean AtEnd)
+{
+	size_t pI, SplitPos;
+	Z_MemPartition_t Copy;
+	Z_MemPartition_t* NewList;
+	
+	/* Check */
+	if (!l_MainZone || !ToSplit || !ResLeftPtr || !ResRightPtr || !Pos)
+		return;
+	
+	/* Partition cannot be used */
+	if (ToSplit->Part.Used)
+		return;
+	
+	/* Get location of partition in zone */
+	pI = ToSplit - l_MainZone->PartitionList;
+	
+	// Check that
+	if (pI >= l_MainZone->NumPartitions)
+		return;
+	
+	/* Determine split point */
+	// Base position is the partition start
+	SplitPos = ToSplit->Part.Start;
+	
+	// Where do we attach?
+	if (!AtEnd)
+		SplitPos += Pos;
+	else
+		SplitPos += (ToSplit->Part.End - ToSplit->Part.Start) - Pos;
+	
+	/* Copy base partition before we lose it */
+	Copy = *ToSplit;
+	
+	/* Depending if there is enough size or not */
+	// Create new partitions if needed
+	if (l_MainZone->NumPartitions >= (l_MainZone->MaxPartitions - (INITPARTCOUNT >> 2)))
+	{
+		// Allocate
+		NewList = malloc(sizeof(Z_MemPartition_t) * (l_MainZone->MaxPartitions + INITPARTCOUNT));
+		
+		// Only if we successfully created a new list
+		if (NewList)
+		{
+			// Clear the list
+			memset(NewList, 0, sizeof(Z_MemPartition_t) * (l_MainZone->MaxPartitions + INITPARTCOUNT));
+			
+			// Copy all the old stuff over
+			memmove(NewList, l_MainZone->PartitionList, sizeof(Z_MemPartition_t) * l_MainZone->MaxPartitions);
+			
+			// Free old stuff
+			free(l_MainZone->PartitionList);
+			
+			// Set new list data
+			l_MainZone->PartitionList = NewList;
+			
+			// Increment with the new max
+			l_MainZone->MaxPartitions += INITPARTCOUNT;
+		}
+		
+		// Failure
+		else
+		{
+			// If we reached the breaking point, fail completely
+			if (l_MainZone->NumPartitions >= (l_MainZone->MaxPartitions - 1))
+				I_Error("ZP_PartitionSplit: Needed more partitions but ran out of memory.");
+		}
+	}
+	
+	// Move everything over
+	memmove(
+			&l_MainZone->PartitionList[pI + 1],
+			&l_MainZone->PartitionList[pI],
+			sizeof(Z_MemPartition_t) * (l_MainZone->NumPartitions - pI)
+		);
+	l_MainZone->NumPartitions++;
+	
+	// Set left and right
+	*ResLeftPtr = &l_MainZone->PartitionList[pI];
+	*ResRightPtr = &l_MainZone->PartitionList[pI + 1];
+	
+	/* Clear result partitions */
+	memset(*ResLeftPtr, 0, sizeof(**ResLeftPtr));
+	memset(*ResRightPtr, 0, sizeof(**ResRightPtr));
+	
+	/* Set partition data of left side */
+	(*ResLeftPtr)->Part.Start = Copy.Part.Start;
+	(*ResLeftPtr)->Part.End = SplitPos;
+	(*ResLeftPtr)->Part.Size = (*ResLeftPtr)->Part.End - (*ResLeftPtr)->Part.Start;
+	
+	(*ResRightPtr)->Part.Start = SplitPos;
+	(*ResRightPtr)->Part.End = Copy.Part.End;
+	(*ResRightPtr)->Part.Size = (*ResRightPtr)->Part.End - (*ResRightPtr)->Part.Start;
+}
+
+/* ZP_PointerForPartition() -- Returns the pointer to the start of the partition */
+void* ZP_PointerForPartition(Z_MemPartition_t* const Part)
+{
+	/* Check */
+	if (!l_MainZone || !Part)
+		return NULL;
+	
+	/* Return base zone plus the shifted size of partition */
+	return (void*)(((uintptr_t)l_MainZone->DataChunk) + (Part->Part.Start << PARTSHIFT));
+}
+
+/* ZP_FindPointerForPartition() -- Finds a pointer that was found in a partition (if any) */
+boolean ZP_FindPointerForPartition(void* const Ptr, Z_MemPartition_t** const PartPtr)
+{
+	size_t i;
+	Z_MemPartition_t* Part;
+	
+	/* Check */
+	if (!Ptr || !l_MainZone || !PartPtr)
+		return false;
+	
+	/* Did we grab a zone? */
+	// Search the zone partition by partition for this pointer
+	for (i = 0; i < l_MainZone->NumPartitions; i++)
+	{
+		// Get local pointer
+		Part = &l_MainZone->PartitionList[i];
+		
+		// Partition not used? (pointers only for freeed blocks)
+		if (!Part->Part.Used)
+			continue;
+		
+		// Partition pointer does not match?
+		if (Part->Block.Ptr != Ptr)
+			continue;
+		
+		// A match! So set the zone and part
+		*PartPtr = Part;
+		
+		// Return for success
+		return true;
+	}
+	
+	/* Failure */
+	return false;
+}
+
+/* ZP_FreePartitionInZone() -- Frees selected partition in selected zone */
+// Returns (negative) result of partitions merged away (NewNP = OldNumPartitions - RetVal)
+size_t ZP_FreePartitionInZone(Z_MemPartition_t* const Part)
+{
+	size_t i;
+	size_t RetVal;
+	Z_MemPartition_t* Mergee;
+	Z_MemPartition_t LP, RP;
+	
+	/* Check */
+	if (!!Part)
+		return 0;
+	
+	/* Partition free? */
+	if (!Part->Part.Used)
+	{
+		I_Error("ZP_FreePartitionInZone: Freeing a partition already free?");
+		return 0;
+	}
+	
+	/* Lazy fragment freeing */
+	// Is there a reference set?
+	if (Part->Block.Ref)
+		*Part->Block.Ref = NULL;
+	
+	// Clear out data with a simple sweep
+	memset(&Part->Block, 0, sizeof(Part->Block));
+	
+	// No longer used anymore
+	Part->Part.Used = false;
+	
+	/* Get local partition id */
+	i = Part - l_MainZone->PartitionList;
+	
+	/* As long as there is partition before us and it is free, go to that */
+	Mergee = Part;
+	RetVal = 0;
+	
+	while (i > 0 && !l_MainZone->PartitionList[i - 1].Part.Used)
+	{
+		Mergee--;	// Pointers are fun
+		i--;
+	}
+	
+	/* As long as a partition is to the right of us, merge into it */
+	while (i + 1 < l_MainZone->NumPartitions && !l_MainZone->PartitionList[i + 1].Part.Used)
+	{
+		// Get original left and right, copy them
+		LP = l_MainZone->PartitionList[i];	// also Mergee
+		RP = l_MainZone->PartitionList[i + 1];
+		
+		// Slap back zones
+		memmove(
+				&l_MainZone->PartitionList[i],
+				&l_MainZone->PartitionList[i + 1],
+				sizeof(Z_MemPartition_t) * (l_MainZone->NumPartitions - i)
+			);
+		
+		// Decrement partition count
+		l_MainZone->NumPartitions--;
+		
+		// Clear block data, it should be free anyway
+		memset(Mergee, 0, sizeof(*Mergee));
+		
+		// Set data from copies
+		Mergee->Part.Start = LP.Part.Start;
+		Mergee->Part.End = RP.Part.End;
+		Mergee->Part.Size = LP.Part.Size + RP.Part.Size;
+		
+		// Increment retval since we just lost a partition
+		RetVal++;
+	}
+	
+	/* Return number of merged partitions */
+	return RetVal;
+}
 
 /****************
 *** FUNCTIONS ***
 ****************/
 
-/* Z_AlignPlacePointer() -- Gives a nice pointer after n bytes */
-static void* Z_AlignPlacePointer(void* const Ptr, const size_t Bytes)
-{
-	uintptr_t Base = (uintptr_t)Ptr;
-	
-	/* Move base ahead */
-	Base += Bytes;
-	
-	/* Add alignment size */
-	Base += ALIGNSIZE - 1;
-	
-	/* Clip base */
-	Base &= ~(ALIGNSIZE - 1);
-	
-	/* Return base */
-	return (void*)Base;
-}
-
 /* Z_Init() -- Initializes the memory manager */
 void Z_Init(void)
 {
-	size_t l_CoreSize = 0;
-	Z_RootMemChunk_t* Root = NULL;
+	size_t FreeMem = 0, TotalMem;
+	size_t LoopSize, i;
+	boolean Ok = false;
 	
-	/* Determine core size */
-	l_CoreSize = 64 << 20;			// Default 4 MiB
+	/* Create new zone in a loop */
+	// Check free memory
+	FreeMem = I_GetFreeMem(&TotalMem);
 	
-	/* Allocate core */
-	l_CoreMemory = malloc(l_CoreSize);
-	
-	if (!l_CoreMemory)
+	// Less than 20MB?
+	if (FreeMem < FORCEDMEMORYSIZE)
 	{
-		I_Error("Z_Init: Failed to allocate core zone\n");
-		return;
+		if (devparm)
+			CONS_Printf("Z_Init: Reported value below %iMiB, capping.\n", FORCEDMEMORYSIZE >> 20);
+		
+		FreeMem = FORCEDMEMORYSIZE;
 	}
 	
-	/* Initialize root */
-	memset(l_CoreMemory, 0, l_CoreSize);
-	Root = (Z_RootMemChunk_t*)l_CoreMemory;
+	// Initial size
+	if (M_CheckParm("-mb") && M_IsNextParm())
+		LoopSize = atoi(M_GetNextParm()) << 20;
+	else
+		LoopSize = (FreeMem < (32 << 20) ? FreeMem : (32 << 20));
 	
-	// Fields
-	Root->RootIDStart = Root->RootIDEnd = ROOTID;
-	Root->TotalSize = l_CoreSize;
+	// Size cap?
+	if (LoopSize < MINZONESIZE)
+		LoopSize = MINZONESIZE;
 	
-	// First free block
-	Root->Rover = Root->Head = Root->Tail = Z_AlignPlacePointer(Root, sizeof(Z_RootMemChunk_t));
+	// Cap to power of two
+	for (i = (sizeof(size_t) * 8) - 1; i > 0; i--)
+		if (LoopSize & (1 << i))
+		{
+			LoopSize = 1 << i;
+			break;
+		}
 	
-	/* Initialize first block */
-	Root->Head->BlockIDStart = Root->Head->BlockIDEnd = BLOCKID;
-	Root->Head->BlockSize = l_CoreSize - ((uintptr_t)Root->Head - (uintptr_t)Root);
-	Root->Head->Prev = Root->Head->Next = Root->Head;
-}
-
-/* Z_CheckBlockOK() -- Check to see if a block is OK */
-static boolean Z_CheckBlockOK(Z_MemBlock_t* const Block)
-{
-	/* Non-fatal */
-	// Bad pointer (oops!)
-	if (!Block)
-		return false;
-	
-	/* Fatal */
-	// Start ID does not match end ID
-	if (Block->BlockIDStart != Block->BlockIDEnd)
-	{
-		I_Error("Z_CheckBlockOK: Start != End");
-		return false;
-	}
-	
-	// Start ID is not BLOCKID
-	if (Block->BlockIDStart != BLOCKID)
-	{
-		I_Error("Z_CheckBlockOK: Start != BLOCKID");
-		return false;
-	}
-	
-	/* All OK */
-	return true;
-}
-
-/* Z_FreeBlock() -- Frees a specific block */
-static void Z_FreeBlock(Z_MemBlock_t* const Block)
-{
-	Z_RootMemChunk_t* Root = NULL;
-	Z_MemBlock_t* BackBlock = NULL;
-	Z_MemBlock_t* PurgeBlock = NULL;
-	
-	/* Check */
-	if (!Block)
-		return;
-	
-	/* Valid block */
-	if (!Z_CheckBlockOK(Block))
-		return;
-	
-	/* Obtain root */
-	Root = (Z_RootMemChunk_t*)l_CoreMemory;
-	
-	/* Clear block info */
-	// Deref
-	if (Block->Ref)
-		*Block->Ref = NULL;
-	
-	// Clear others
-	Block->Size = 0;
-	Block->Ptr = NULL;
-	Block->Ref = NULL;
-	Block->Tag = 0;
-	
-	/* Forward merging (ONLY IF WE ARE NOT TAIL!) */
-	// Don't merge if head is the tail
-	if (Root->Tail != Root->Head && !Block->Next->Ptr && Block != Root->Tail)
-	{
-		// If the tail is the block we merge with set tail to this
-		if (Root->Tail == Block->Next)
-			Root->Tail = Block;
-		
-		// Merge
-		PurgeBlock = Block->Next;
-		Block->BlockSize += PurgeBlock->BlockSize;
-		Block->Next = PurgeBlock->Next;
-		Block->Next->Prev = Block;
-		
-		// Wipe any trace of block
-		memset(PurgeBlock, 0, sizeof(*PurgeBlock));
-		PurgeBlock->BlockIDStart = PurgeBlock->BlockIDEnd = BADBLOCK;
-		
-		// Is rover the merged block?
-		if (Root->Rover == PurgeBlock)
-			Root->Rover = Block;
-	}
-	
-	/* Backward merging (ONLY IF WE ARE NOT HEAD!) */
-	// Don't merge if head is the tail
-	if (Root->Tail != Root->Head && !Block->Prev->Ptr && Block != Root->Head)
-	{
-		BackBlock = Block->Prev;
-		
-		// We don't have to worry about head in this case since we backstep
-	
-		// Merge
-		PurgeBlock = BackBlock->Next;
-		
-		BackBlock->BlockSize += PurgeBlock->BlockSize;
-		BackBlock->Next = PurgeBlock->Next;
-		BackBlock->Next->Prev = BackBlock;
-		
-		// Wipe any trace of block
-		memset(PurgeBlock, 0, sizeof(*PurgeBlock));
-		PurgeBlock->BlockIDStart = PurgeBlock->BlockIDEnd = BADBLOCK;
-		
-		// Is rover the merged block?
-		if (Root->Rover == PurgeBlock)
-			Root->Rover = BackBlock;
-	}
+	// Creation loop
+	while (LoopSize > MINZONESIZE && !(Ok = ZP_NewZone(&LoopSize, NULL)))
+		LoopSize -= LoopSize >> 2;	// Cut down by 1/4th
 }
 
 /* Z_MallocWrappee() -- Allocate memory */
 void* Z_MallocWrappee(const size_t Size, const Z_MemoryTag_t Tag, void** const Ref _ZMGD_WRAPPEE)
 {
-	size_t GoodSize;
-	void* PlacePtr;
-	Z_MemBlock_t* Start;
-	Z_MemBlock_t* Next;
-	Z_RootMemChunk_t* Root = NULL;
-	int32_t i;
+	size_t i, ShiftSize, iBase, iEnd;
+	uint32_t DidMask, FullMask;
+	Z_MemPartition_t* ResLeft, *ResRight, *New, *Free;
+	void* RetVal;
+	boolean AtEnd;
 	
-	/* Obtain root */
-	Root = (Z_RootMemChunk_t*)l_CoreMemory;
+	/* Clear some */
+	RetVal = NULL;
+	ResLeft = ResRight = New = Free = NULL;
 	
-	/* Calculate the good size */
-	// The good size of the size of the block plus size of the data we want
-	GoodSize = ((sizeof(Z_MemBlock_t) + (Size ? Size : 1)) + (ALIGNSIZE - 1)) & ~(ALIGNSIZE - 1);
-	//GoodSize = ((sizeof(Z_MemBlock_t) + (ALIGNSIZE - 1)) & ~(ALIGNSIZE - 1)) + 
-		//((Size + (ALIGNSIZE - 1)) & ~(ALIGNSIZE - 1));
+	/* Size for shift */
+	ShiftSize = (Size >> PARTSHIFT) + 1;
 	
-	/* Rove list for suitable find */
-	for (i = 0; i < 5; i++, Root->Rover = Root->Rover->Next)
+	// Do we allocate at the end?
+	if (ShiftSize < RIGHTSIZE)
+		AtEnd = true;
+	else
+		AtEnd = false;
+	
+	// Figure out full mask
+	FullMask = ~0;
+	
+	// Set the mask for this zone
+		// Do it here since if we fail to lock a zone we don't use it
+		// which means a zone that was locked could have the space we
+		// need to allocate.
+	DidMask |= 1 << i;
+	
+	// Determine the base and end
+		// At the start
+	if (!AtEnd)
 	{
-		// Prepare
-		Start = Root->Rover->Prev;
-		//Root->Rover = Root->Rover->Next;
-		
-		// NULL-ify Start if it's Root->Rover or the next after
-		if (Start == Start->Next || Start == Root->Rover->Next || Start == Root->Rover->Next->Next)
-			Start = NULL;
-		
-		// Only make a single loop around and allocate if we can
-		for (; Root->Rover != Start; Root->Rover = Root->Rover->Next)
-		{
-			// Valid block?
-			if (!Z_CheckBlockOK(Root->Rover))
-				continue;
-		
-			// Is this a cached block?
-			if (Root->Rover->Tag >= PU_PURGELEVEL)
-			{
-				// Free the block if it is so., Rover will be renormalized
-				Z_FreeBlock(Root->Rover);
-			}
-		
-			// Is this block actually free?
-			if (Root->Rover->Ptr)
-				continue;
-		
-			// Is there enough space in this block to allocate this and the next block?
-			if (GoodSize > Root->Rover->BlockSize - ALIGNBLOCK)
-				continue;
-		
-			// If we are good, place the pointer here and set next after
-			PlacePtr = Z_AlignPlacePointer(Root->Rover, sizeof(Z_MemBlock_t));
-			Next = Z_AlignPlacePointer(Root->Rover, GoodSize);
-		
-			// Relink now and next
-			Next->Next = Root->Rover->Next;		// Place between old next [a new b]
-			Root->Rover->Next = Next;			// Rover next is now new
-			Next->Prev = Root->Rover;			// the block before new block is the rover
-		
-			// If the tail is rover, change it so next is the tail
-			if (Root->Tail == Root->Rover)
-				Root->Tail = Next;
-		
-			// Initialize rover and next to match allocation
-			Next->BlockSize = Root->Rover->BlockSize - GoodSize;	// next is shrunken this
-			Root->Rover->BlockSize = GoodSize;
-		
-			Root->Rover->Ptr = PlacePtr;
-			Root->Rover->Tag = Tag;
-			Root->Rover->Ref = Ref;
-			Root->Rover->Size = Size;		// includes size
-		
-			Next->BlockIDStart = Next->BlockIDEnd = BLOCKID;
-			Next->Ptr = NULL;
-			Next->Ref = NULL;
-			Next->Size = 0;
-			Next->Tag = 0;
-		
-			// Clear memory
-			memset(Root->Rover->Ptr, 0, Root->Rover->Size);
-		
-			// Place rover at the next block
-			Root->Rover = Next;
-		
-			// Return pointer
-			return PlacePtr;
-		}
-		
-		// If we reached this point, allocation failed
-		Z_FreeTags(PU_PURGELEVEL, NUMZTAGS);	// Try and free some tags
+		iBase = 0;
+		iEnd = l_MainZone->NumPartitions;
 	}
 	
-	// Error
-	I_Error("Z_Malloc: Nore more space left to allocate inside!\n");
+		// At the end
+	else
+	{
+		iBase = l_MainZone->NumPartitions - 1;
+		iEnd = (size_t)-1;
+	}	
 	
-	return (void*)0xDEADBEEFL;	// Segfault, hopefully!
-}
+	// Search every partition
+	for (i = iBase; i != iEnd; (AtEnd ? i-- : i++))
+	{
+		// Partition used?
+		if (l_MainZone->PartitionList[i].Part.Used)
+			continue;
 
-/* Z_GetBlockFromPtr() -- Gets the assigned block from a Ptr */
-static Z_MemBlock_t* Z_GetBlockFromPtr(void* const Ptr)
-{
-	Z_MemBlock_t* Block;
+		// Paritition too small?
+		if (l_MainZone->PartitionList[i].Part.Size < ShiftSize)
+			continue;
+		
+		// Not a perfect fit? Then we need to split
+		if (l_MainZone->PartitionList[i].Part.Size != ShiftSize)
+		{
+			// Clear results
+			ResLeft = ResRight = NULL;
+			
+			// Split partition
+			ZP_PartitionSplit(&l_MainZone->PartitionList[i], &ResLeft, &ResRight, ShiftSize, AtEnd);
+			
+			// Big block?
+			if (!AtEnd)
+			{
+				New = ResLeft;
+				Free = ResRight;
+			}
+			
+			// Tiny Block?
+			else
+			{
+				New = ResRight;
+				Free = ResLeft;
+			}
+		}
+		
+		// A perfect fit so just use the entire block
+		else
+		{
+			New = &l_MainZone->PartitionList[i];
+			Free = NULL;
+		}
+		
+		// Set used in new
+		New->Part.Used = true;
+		
+		// Set block info
+		New->Block.Ptr = ZP_PointerForPartition(New);
+		New->Block.Ref = Ref;
+		New->Block.Size = Size;
+		
+		// Block Tag (if it is invalid, just make it static to be sure)
+		if ((size_t)Tag >= NUMZTAGS)
+			New->Block.Tag = PU_STATIC;
+		else
+			New->Block.Tag = Tag;
+		
+		// Set return value
+		RetVal = New->Block.Ptr;
+		
+		// Complementary memset
+		memset(RetVal, 0, Size);
+		
+		// Return pointer
+		return RetVal;
+	}
 	
-	/* Check */
-	if (!Ptr)
-		return NULL;
-	
-	/* Do some math */
-	Block = (Z_MemBlock_t*)((uintptr_t)Ptr - (uintptr_t)Z_AlignPlacePointer(NULL, sizeof(Z_MemBlock_t)));
-	
-	/* Are we insane? */
-	if (Block->Ptr == Ptr)
-		return Block;
-	
-	// we are
+	/* Failure? */
+	I_Error("Z_MallocReal: Failed to allocate %zu bytes.\n", Size);
 	return NULL;
 }
 
 /* Z_FreeWrappee() -- Free memory */
 void Z_FreeWrappee(void* const Ptr _ZMGD_WRAPPEE)
 {
-	Z_MemBlock_t* Block = NULL;
+	Z_MemPartition_t* Part;
 	
-	/* Get Block */
-	Block = Z_GetBlockFromPtr(Ptr);
-	
-	// Check
-	if (!Block)
+	/* Check */
+	if (!Ptr)
 		return;
 	
-	/* Match? */
-	Z_FreeBlock(Block);
+	/* Find zone and partition relating to pointer */
+	// Clear
+	Part = NULL;
+	
+	// Now call
+	if (!ZP_FindPointerForPartition(Ptr, &Part))
+		return;	// not found
+	
+	/* Send zone along with partition to my free function */
+	ZP_FreePartitionInZone(Part);
 }
 
-/* Z_ChangeTag() -- Change a pointer's tag */
-void Z_ChangeTag(void* const Ptr, const Z_MemoryTag_t NewTag)
+/* Z_ChangeTagWrappee() -- Change memory tag returning the old one */
+Z_MemoryTag_t Z_ChangeTagWrappee(void* const Ptr, const Z_MemoryTag_t NewTag _ZMGD_WRAPPEE)
 {
-	Z_MemBlock_t* Block = NULL;
 	Z_MemoryTag_t OldTag;
+	Z_MemPartition_t* Part;
 	
-	/* Get Block */
-	Block = Z_GetBlockFromPtr(Ptr);
-	
-	// Check
-	if (!Block)
+	/* Check */
+	if (!Ptr)
 		return ((Z_MemoryTag_t)-1);
 	
-	/* Match? */
-	OldTag = Block->Tag;
-	Block->Tag = NewTag;
+	/* Find zone and partition relating to pointer */
+	// Clear
+	Part = NULL;
+	
+	// Now call
+	if (!ZP_FindPointerForPartition(Ptr, &Part))
+		return ((Z_MemoryTag_t)-1);	// not found
+	
+	/* Remember old tag */
+	OldTag = Part->Block.Tag;
+	
+	// Validate new tag (if it is invalid, just make it static)
+	if ((size_t)NewTag >= NUMZTAGS)
+		Part->Block.Tag = PU_STATIC;
+	else
+		Part->Block.Tag = NewTag;
+
+	// Return the old tag
 	return OldTag;
 }
 
-/* Z_GetTagFromPtr() -- Return the memory tag associated with a pointer */
-Z_MemoryTag_t Z_GetTagFromPtr(void* const Ptr)
+/* Z_GetTagFromPtrWrappee() -- Return the memory tag associated with a pointer */
+Z_MemoryTag_t Z_GetTagFromPtrWrappee(void* const Ptr _ZMGD_WRAPPEE)
 {
-	Z_MemBlock_t* Block = NULL;
+	Z_MemoryTag_t RetVal;
+	Z_MemPartition_t* Part;
 	
-	/* Get Block */
-	Block = Z_GetBlockFromPtr(Ptr);
-	
-	// Check
-	if (!Block)
+	/* Check */
+	if (!Ptr)
 		return ((Z_MemoryTag_t)-1);
-		
-	/* Match? */
-	return Block->Tag;
+	
+	/* Find zone and partition relating to pointer */
+	// Clear
+	Part = NULL;
+	
+	// Now call
+	if (!ZP_FindPointerForPartition(Ptr, &Part))
+		return ((Z_MemoryTag_t)-1);	// not found
+	
+	/* Remember the tag */
+	RetVal = Part->Block.Tag;
+
+	// Return the tag
+	return RetVal;
 }
 
-/* Z_DebugMarkBlock() -- Not implemented */
-void Z_DebugMarkBlock(void* const Ptr, const char* const String)
+/* Z_GetRefFromPtrWrappee() -- Returns the reference of a block */
+void** Z_GetRefFromPtrWrappee(void* const Ptr _ZMGD_WRAPPEE)
 {
+	void** RetVal;
+	Z_MemPartition_t* Part;
+	
+	/* Check */
+	if (!Ptr)
+		return NULL;
+	
+	/* Find zone and partition relating to pointer */
+	// Clear
+	Part = NULL;
+	
+	// Now call
+	if (!ZP_FindPointerForPartition(Ptr, &Part))
+		return NULL;	// not found
+	
+	/* Remember the reference */
+	RetVal = Part->Block.Ref;
+
+	// Return the tag
+	return RetVal;
 }
 
-/* Z_FreeTagsWrappee() -- Clear tags from low to high */
+/* Z_FreeTagsWrappee() -- Free all tags between low inclusive and high exclusive */
 size_t Z_FreeTagsWrappee(const Z_MemoryTag_t LowTag, const Z_MemoryTag_t HighTag _ZMGD_WRAPPEE)
 {
-	size_t Count;
-	Z_MemBlock_t* Start;
-	Z_RootMemChunk_t* Root = NULL;
+	size_t i, j, FreeCount, Lost;
+	Z_MemPartition_t* Part;
 	
-	/* Obtain root */
-	Root = (Z_RootMemChunk_t*)l_CoreMemory;
+	/* Clear free count */
+	FreeCount = 0;
 	
-	/* Free loop */
-	// Prepare
-	Start = Root->Rover;
-	Root->Rover = Root->Rover->Next;
+	// Zone does not exist?
+	if (!l_MainZone)
+		return 0;
 	
-	// Only make a single loop around and clear what we can kinda
-	for (; Root->Rover != Start; Root->Rover = Root->Rover->Next)
+	// Go through each partition in the zone
+	for (j = 0; j < l_MainZone->NumPartitions; j++)
 	{
-		// Valid block?
-		if (!Z_CheckBlockOK(Root->Rover))
+		// Copy partition
+		Part = &l_MainZone->PartitionList[j];
+		
+		// Partition not used?
+		if (!Part->Part.Used)
 			continue;
 		
-		// Is this a cached block?
-		if (Root->Rover->Tag >= LowTag && Root->Rover->Tag < HighTag)
-		{
-			// Free the block if it is so., Rover will be renormalized
-			Z_FreeBlock(Root->Rover);
-			Count++;
-		}
+		// Tags not in bounds?
+		if (Part->Block.Tag < LowTag || Part->Block.Tag > HighTag)
+			continue;
+		
+		// Free this partition
+		Lost = ZP_FreePartitionInZone(Part);
+		
+		// Increment free count
+		FreeCount++;
+		
+		// Subtract lost partitions
+		if (j - Lost > j)	// Negative
+			j = 0;
+		else				// Backtrace to said partition (leftmost free)
+			j -= Lost;
 	}
 	
-	return Count;
-}
-
-/* Z_CheckHeap() -- Not implemented */
-void Z_CheckHeap(const int Code)
-{
-}
-
-/* Z_SetLockBack() -- Set lockback function */
-void Z_SetLockBack(void* const Ptr, boolean (*LockBack)(void* const, const Z_LockBackAction_t, const uintptr_t, const uintptr_t))
-{
+	/* Return freed stuff */
+	return FreeCount;
 }
 
 /***********************

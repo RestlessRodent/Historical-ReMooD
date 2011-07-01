@@ -1125,12 +1125,6 @@ void *W_CacheLumpNum(WadIndex_t lump, size_t PU)
 		{
 			Entry->Cache[WETYPE_RAW] = Z_Malloc(Entry->Size, PU, &(Entry->Cache[WETYPE_RAW]));
 
-#if defined(_DEBUG)
-			snprintf(DbgString, 128, "E=\"%s\";S=%u;P=%u;H=\"%s\"", Entry->Name, Entry->Size, Entry->Position, Entry->Host->FileName);
-			
-			Z_DebugMarkBlock(Entry->Cache[WETYPE_RAW], DbgString);
-#endif
-
 			if (!Entry->Cache[WETYPE_RAW])
 				I_Error("W_CacheLumpNum: Failed to allocate space for lump!\n");
 

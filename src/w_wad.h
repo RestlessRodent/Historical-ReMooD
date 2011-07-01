@@ -131,40 +131,40 @@ typedef int WadIndex_t;
 #define MAXLUMPS 2147483647
 #define INDEXSIZET(x) ((int)(x))
 
-size_t		W_NumWadFiles(void);
-WadFile_t*	W_GetWadForNum(size_t Num);
-WadFile_t*	W_GetWadForName(char *Name);
-size_t		W_GetNumForWad(WadFile_t * WAD);
-WadEntry_t*	W_GetEntry(WadIndex_t lump);
-WadIndex_t	W_LumpsSoFar(WadFile_t * wadid);
-WadIndex_t	W_InitMultipleFiles(char **filenames);
-void		W_Shutdown(void);
-int			W_LoadWadFile(char *filename);
-void		W_Reload(void);
-WadIndex_t	W_BiCheckNumForName(char *name, int forwards);
-WadIndex_t	W_CheckNumForName(char *name);
-WadIndex_t	W_CheckNumForNamePwad(char *name, size_t wadid, WadIndex_t startlump);
-WadIndex_t	W_CheckNumForNamePwadPtr(char *name, WadFile_t * wadid, WadIndex_t startlump);
-WadIndex_t	W_GetNumForName(char *name);
-WadIndex_t	W_CheckNumForNameFirst(char *name);
-WadIndex_t	W_GetNumForNameFirst(char *name);
-size_t		W_LumpLength(WadIndex_t lump);
-size_t		W_ReadLumpHeader(WadIndex_t lump, void *dest, size_t size);
-void		W_ReadLump(WadIndex_t lump, void *dest);
-void*		W_CacheLumpNum(WadIndex_t lump, size_t PU);
-void*		W_CacheLumpName(char *name, size_t PU);
-void*		W_CachePatchName(char *name, size_t PU);
-void*		W_CacheRawAsPic(WadIndex_t lump, int width, int height, size_t tag);	// return a pic_t
-void*		W_CacheAsConvertableType(WadIndex_t Lump, size_t PU, WadEntryType_t Type, WadEntryType_t From);
-void*		W_CacheAsConvertableTypeName(char* Name, size_t PU, WadEntryType_t Type, WadEntryType_t From);
-WadIndex_t	W_GetNumForEntry(WadEntry_t* Entry);
+size_t		__REMOOD_DEPRECATED W_NumWadFiles(void);
+WadFile_t*	__REMOOD_DEPRECATED W_GetWadForNum(size_t Num);
+WadFile_t*	__REMOOD_DEPRECATED W_GetWadForName(char *Name);
+size_t		__REMOOD_DEPRECATED W_GetNumForWad(WadFile_t * WAD);
+WadEntry_t*	__REMOOD_DEPRECATED W_GetEntry(WadIndex_t lump);
+WadIndex_t	__REMOOD_DEPRECATED W_LumpsSoFar(WadFile_t * wadid);
+WadIndex_t	__REMOOD_DEPRECATED W_InitMultipleFiles(char **filenames);
+void		__REMOOD_DEPRECATED W_Shutdown(void);
+int			__REMOOD_DEPRECATED W_LoadWadFile(char *filename);
+void		__REMOOD_DEPRECATED W_Reload(void);
+WadIndex_t	__REMOOD_DEPRECATED W_BiCheckNumForName(char *name, int forwards);
+WadIndex_t	__REMOOD_DEPRECATED W_CheckNumForName(char *name);
+WadIndex_t	__REMOOD_DEPRECATED W_CheckNumForNamePwad(char *name, size_t wadid, WadIndex_t startlump);
+WadIndex_t	__REMOOD_DEPRECATED W_CheckNumForNamePwadPtr(char *name, WadFile_t * wadid, WadIndex_t startlump);
+WadIndex_t	__REMOOD_DEPRECATED W_GetNumForName(char *name);
+WadIndex_t	__REMOOD_DEPRECATED W_CheckNumForNameFirst(char *name);
+WadIndex_t	__REMOOD_DEPRECATED W_GetNumForNameFirst(char *name);
+size_t		__REMOOD_DEPRECATED W_LumpLength(WadIndex_t lump);
+size_t		__REMOOD_DEPRECATED W_ReadLumpHeader(WadIndex_t lump, void *dest, size_t size);
+void		__REMOOD_DEPRECATED W_ReadLump(WadIndex_t lump, void *dest);
+void*		__REMOOD_DEPRECATED W_CacheLumpNum(WadIndex_t lump, size_t PU);
+void*		__REMOOD_DEPRECATED W_CacheLumpName(char *name, size_t PU);
+void*		__REMOOD_DEPRECATED W_CachePatchName(char *name, size_t PU);
+void*		__REMOOD_DEPRECATED W_CacheRawAsPic(WadIndex_t lump, int width, int height, size_t tag);	// return a pic_t
+void*		__REMOOD_DEPRECATED W_CacheAsConvertableType(WadIndex_t Lump, size_t PU, WadEntryType_t Type, WadEntryType_t From);
+void*		__REMOOD_DEPRECATED W_CacheAsConvertableTypeName(char* Name, size_t PU, WadEntryType_t Type, WadEntryType_t From);
+WadIndex_t	__REMOOD_DEPRECATED W_GetNumForEntry(WadEntry_t* Entry);
 
-void		W_UnloadData(void);
-void		W_LoadData(void);
-boolean		W_FindWad(const char* Name, const char* MD5, char* OutPath, const size_t OutSize);
-const char*	W_BaseName(const char* Name);
+void		__REMOOD_DEPRECATED W_UnloadData(void);
+void		__REMOOD_DEPRECATED W_LoadData(void);
+boolean		__REMOOD_DEPRECATED W_FindWad(const char* Name, const char* MD5, char* OutPath, const size_t OutSize);
+const char*	__REMOOD_DEPRECATED W_BaseName(const char* Name);
 
-void*		W_CachePatchNum(const WadIndex_t Lump, size_t PU);
+void*		__REMOOD_DEPRECATED W_CachePatchNum(const WadIndex_t Lump, size_t PU);
 
 typedef struct
 {

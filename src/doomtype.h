@@ -69,14 +69,17 @@
 	#define __REMOOD_INLINE inline
 	#define __REMOOD_FORCEINLINE __attribute__((always_inline))
 	#define __REMOOD_UNUSED __attribute__((unused))
+	#define __REMOOD_DEPRECATED __attribute__((deprecated))
 #elif defined(_MSC_VER)
 	#define __REMOOD_INLINE _inline
 	#define __REMOOD_FORCEINLINE __forceinline
 	#define __REMOOD_UNUSED
+	#define __REMOOD_DEPRECATED
 #else
 	#define __REMOOD_INLINE inline
 	#define __REMOOD_FORCEINLINE
 	#define __REMOOD_UNUSED
+	#define __REMOOD_DEPRECATED
 #endif
 
 // Visual C++ does not like inline in C

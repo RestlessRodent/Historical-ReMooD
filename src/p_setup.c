@@ -1291,10 +1291,6 @@ boolean P_SetupLevel(int episode, int map, skill_t skill, char *wadname)	// for 
 		T_PreprocessScripts();		// preprocess FraggleScript scripts
 
 	script_camera_on = false;
-	
-#ifdef _DEBUG
-	Z_CheckHeap(10);
-#endif
 
 	//CONS_Printf("%d vertexs %d segs %d subsector\n",numvertexes,numsegs,numsubsectors);
 	return true;
