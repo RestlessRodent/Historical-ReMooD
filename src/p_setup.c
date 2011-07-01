@@ -1147,8 +1147,6 @@ boolean P_SetupLevel(int episode, int map, skill_t skill, char *wadname)	// for 
 #endif
 
 	script_camera_on = false;
-	if (M_CheckParm("-newscripting"))
-		RMD_ClearOldLevelCode();
 	HU_ClearTips();
 
 	if (camera.chase)
@@ -1284,9 +1282,7 @@ boolean P_SetupLevel(int episode, int map, skill_t skill, char *wadname)	// for 
 		R_PrecacheLevel();
 
 	// TODO: First attempt to load ReMooD scripts, if that fails do Legacy Script
-	if (M_CheckParm("-newscripting"))
-		RMD_CompileLegacyScript(lastloadedmaplumpnum);
-	else if (M_CheckParm("-tls"))
+	if (M_CheckParm("-tls"))
 	{
 		TLS_ClearScripts();
 		TLS_CompileLump(lastloadedmaplumpnum);

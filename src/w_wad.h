@@ -176,5 +176,15 @@ typedef struct
 
 extern WadFile_t *WADFiles;
 
+/****************************
+*** EXTENDED WAD HANDLING ***
+****************************/
+
+/*** STRUCTURES ***/
+typedef struct WX_WADFile_s WX_WADFile_t;
+typedef struct WX_WADEntry_s WX_WADEntry_t;
+
+/*** PROTOTYPES ***/
+
 #endif							/* __W_WAD__ */
 

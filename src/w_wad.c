@@ -1208,3 +1208,105 @@ void *W_CacheRawAsPic(WadIndex_t lump, int width, int height, size_t tag)
 		return NULL;
 }
 
+/*******************************************************************************
+***************************** EXTENDED WAD HANDLING ****************************
+*******************************************************************************/
+
+/****************
+*** CONSTANTS ***
+****************/
+
+#define WXCHECKSUMSIZE					32		// Max characters allowed in checksum
+
+/* WX_EntryFlag_t -- Flag for an entry */
+typedef enum WX_EntryFlag_e
+{
+	WXEF_COMPRESSED				= 0x00000001,	// Entry is compressed (to save space)
+} WX_EntryFlag_t;
+
+/* WX_WADType_t -- Type of WAD File this is */
+typedef enum WX_WADType_e
+{
+	WXWT_VIRTUAL,								// Pure virtual WAD
+	WXWT_DOOMWAD,								// Standard IWAD/PWAD
+	WXWT_LUMP,									// A single lump (file)
+	WXWT_DEHACKED,								// DeHackEd Patch wrapper
+	
+	NUMWXWADTYPES
+} WX_WADType_t;
+
+/*****************
+*** STRUCTURES ***
+*****************/
+
+/* WX_WADFile_s -- An Extended WAD File */
+struct WX_WADFile_s
+{
+	/* WAD Info */
+	WX_WADType_t WADType;						// Type of WAD File (WAD)
+	char* WADBaseName;							// Name of the WAD (DOOM2.WAD)
+	char* WADPathName;							// Full path to WAD (/usr/share/games/doom/doom2.wad)
+	char CheckSum[WXCHECKSUMSIZE];				// MD5 Sum of WAD
+	
+	/* Entries */
+	WadIndex_t NumLumps;						// Number of lumps in WAD
+	WX_WADEntry_t* Entries;						// Lump data in WAD
+	
+	/* Virtual Stuff */
+	void* VirtPrivate;							// Virtual Private Data
+	size_t VirtSize;							// VPD Size
+	
+	/* Virtual Handler Functions */
+		// FuncLoadWAD -- Load WAD File
+	boolean (*FuncLoadWAD)(WX_WADFile_t* const a_WAD);
+		// FuncUnLoadWAD -- Unloads a WAD File
+	boolean (*FuncUnLoadWAD)(WX_WADFile_t* const a_WAD);
+		// FuncReadEntryData -- Reads a single entry from the wad (for cache)
+	void* (*FuncReadEntryData)(WX_WADFile_t* const a_WAD, WX_WADEntry_t* const a_Entry);
+	
+	/* Chains */
+	WX_WADFile_t* PrevWAD;						// Previous WAD in link
+	WX_WADFile_t* NextWAD;						// Next WAD in link
+	WX_WADFile_t* VPrevWAD;						// Virtual previous WAD (re-order)
+	WX_WADFile_t* VNextWAD;						// Virtual next WAD (re-order)
+};
+
+/* WX_WADEntry_s -- An Extended WAD Entry */
+struct WX_WADEntry_s
+{
+	/* Entry Info */
+	char* Name;									// Name of the entry
+	size_t Position;							// Position in file
+	size_t Size;								// Size of entry
+	WX_WADFile_t* ParentWAD;					// WAD that owns this entry
+	WX_WADEntry_t* SymLink;						// Symbolic link to another entry
+	
+	/* Cache Data */
+	void* Cache;								// Cached Data
+	int32_t UsageCount;							// Times this entry is being used
+};
+
+/***************************
+*** VIRTUAL WAD HANDLERS ***
+***************************/
+
+/*** LMP ***/
+
+/*** DEH ***/
+
+/*** WAD ***/
+
+/*** REMOOD INTERNAL VIRTUAL WAD ***/
+
+/*************
+*** LOCALS ***
+*************/
+
+static WX_WADFile_t* l_FirstWAD = NULL;			// First WAD File
+static WX_WADFile_t* l_FirstVWAD = NULL;		// First WAD File seen by game (re-order)
+
+/****************
+*** FUNCTIONS ***
+****************/
+
+
