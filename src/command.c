@@ -123,7 +123,7 @@ void COM_BufInsertText(char *text)
 	templen = com_text.cursize;
 	if (templen)
 	{
-		temp = ZZ_Alloc(templen);
+		temp = Z_Malloc(templen, PU_STATIC, NULL);
 		memcpy(temp, com_text.data, templen);
 		VS_Clear(&com_text);
 	}
@@ -318,7 +318,7 @@ static void COM_TokenizeString(char *text)
 		if (com_argc < MAX_ARGS)
 		{
 			n = strlen(com_token) + 1;
-			com_argv[com_argc] = ZZ_Alloc(n);
+			com_argv[com_argc] = Z_Malloc(n, PU_STATIC, NULL);
 			strncpy(com_argv[com_argc], com_token, n);
 			com_argc++;
 		}
@@ -418,7 +418,7 @@ void COM_AddCommand(char *name, com_func_t func)
 		}
 	}
 
-	cmd = ZZ_Alloc(sizeof(xcommand_t));
+	cmd = Z_Malloc(sizeof(xcommand_t), PU_STATIC, NULL);
 	cmd->name = name;
 	cmd->function = func;
 	cmd->next = com_commands;
@@ -531,11 +531,11 @@ static void COM_Alias_f(void)
 		return;
 	}
 
-	a = ZZ_Alloc(sizeof(cmdalias_t));
+	a = Z_Malloc(sizeof(cmdalias_t), PU_STATIC, NULL);
 	a->next = com_alias;
 	com_alias = a;
 
-	a->name = Z_StrDup(COM_Argv(1));
+	a->name = Z_StrDup(COM_Argv(1), PU_STATIC, NULL);
 
 // copy the rest of the command line
 	cmd[0] = 0;					// start out with a null string
@@ -548,7 +548,7 @@ static void COM_Alias_f(void)
 	}
 	strcat(cmd, "\n");
 
-	a->value = Z_StrDup(cmd);
+	a->value = Z_StrDup(cmd, PU_STATIC, NULL);
 }
 
 // Echo a line of text to console
@@ -1163,7 +1163,7 @@ void Setvalue(consvar_t * var, char *valstr)
 	if (var->string)
 		Z_Free(ActualVar->string);
 
-	ActualVar->string = Z_StrDup(valstr);
+	ActualVar->string = Z_StrDup(valstr, PU_STATIC, NULL);
 
 	if (ActualVar->flags & CV_FLOAT)
 	{

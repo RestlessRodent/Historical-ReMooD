@@ -466,7 +466,7 @@ void M_StartMessage(const char *string, void *routine, menumessagetype_t itemtyp
 #define message (*(MessageDef.menuitems[0].WItemTextPtr))
 	if (message)
 		Z_Free(message);
-	message = Z_StrDup(string);
+	message = Z_StrDup(string, PU_STATIC, NULL);
 	//DEBFILE(message);
 	
 	M_StartControlPanel();		// can't put menuactiv to true

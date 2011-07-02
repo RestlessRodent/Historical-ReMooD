@@ -1186,7 +1186,7 @@ void CONS_Bind_f(void)
 	}
 
 	if (na == 3)
-		bindtable[key] = Z_StrDup(COM_Argv(2));
+		bindtable[key] = Z_StrDup(COM_Argv(2), PU_STATIC, NULL);
 }
 
 //======================================================================

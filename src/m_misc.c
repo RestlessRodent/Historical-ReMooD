@@ -632,18 +632,6 @@ char *va(char *format, ...)
 	return string;
 }
 
-// creates a copy of a string, null-terminated
-// returns ptr to the new duplicate string
-//
-char *Z_StrDup(const char *in)
-{
-	char *out;
-
-	out = ZZ_Alloc(strlen(in) + 1);
-	strcpy(out, in);
-	return out;
-}
-
 // s1=s2+s3+s1
 void strcatbf(char *s1, char *s2, char *s3)
 {

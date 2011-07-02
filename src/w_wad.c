@@ -375,6 +375,9 @@ int W_LoadWadFile(char *filename)
 	int y, z;
 	char tName[9];
 	boolean Swapped = false;
+	
+	/* Send to extended code */
+	WX_LoadWAD(filename);
 
 	/* Scan! -- Don't open a WAD twice yknow! */
 	n = WADFiles;
@@ -678,6 +681,9 @@ int W_InitMultipleFiles(char **filenames)
 	int worked = 0;
 	int ret = -1;
 	char* p = NULL;
+	
+	/* Initialize the extended WAD Code here */
+	WX_Init();
 
 	// will be realloced as lumps are added
 	for (; *filenames; filenames++)
@@ -1211,6 +1217,7 @@ void *W_CacheRawAsPic(WadIndex_t lump, int width, int height, size_t tag)
 ****************/
 
 #define WXCHECKSUMSIZE					32		// Max characters allowed in checksum
+#define MAXSEARCHBUFFER					32		// Max Paths to store
 
 /* WX_EntryFlag_t -- Flag for an entry */
 typedef enum WX_EntryFlag_e
@@ -1221,7 +1228,6 @@ typedef enum WX_EntryFlag_e
 /* WX_WADType_t -- Type of WAD File this is */
 typedef enum WX_WADType_e
 {
-	WXWT_VIRTUAL,								// Pure virtual WAD
 	WXWT_DOOMWAD,								// Standard IWAD/PWAD
 	WXWT_LUMP,									// A single lump (file)
 	WXWT_DEHACKED,								// DeHackEd Patch wrapper
@@ -1241,14 +1247,19 @@ struct WX_WADFile_s
 	char* WADBaseName;							// Name of the WAD (DOOM2.WAD)
 	char* WADPathName;							// Full path to WAD (/usr/share/games/doom/doom2.wad)
 	char CheckSum[WXCHECKSUMSIZE];				// MD5 Sum of WAD
+	size_t FileSize;							// Size of WAD File
+	FILE* CFile;								// C File for WAD
 	
 	/* Entries */
 	WadIndex_t NumLumps;						// Number of lumps in WAD
+	WadIndex_t PreLumps;						// Number of lumps presized for
 	WX_WADEntry_t* Entries;						// Lump data in WAD
 	
 	/* Virtual Stuff */
 	void* VirtPrivate;							// Virtual Private Data
 	size_t VirtSize;							// VPD Size
+	void* FormatPrivate;						// Format Private Data
+	size_t FormatSize;							// Size of format
 	
 	/* Virtual Handler Functions */
 		// FuncLoadWAD -- Load WAD File
@@ -1270,6 +1281,7 @@ struct WX_WADEntry_s
 {
 	/* Entry Info */
 	char* Name;									// Name of the entry
+	uint32_t Flags;								// Entry flags
 	size_t Position;							// Position in file
 	size_t Size;								// Size of entry
 	WX_WADFile_t* ParentWAD;					// WAD that owns this entry
@@ -1285,22 +1297,604 @@ struct WX_WADEntry_s
 ***************************/
 
 /*** LMP ***/
+/* WX_P_LMP_LoadWAD() -- Load a format */
+boolean WX_P_LMP_LoadWAD(WX_WADFile_t* const a_WAD)
+{
+	WX_WADEntry_t* SoloEntry;
+	char* p;
+	
+	/* Check */
+	if (!a_WAD)
+		return false;
+	
+	/* Add a single entry */
+	SoloEntry = WX_AddEntry(a_WAD);
+	
+	/* Set Data */
+	SoloEntry->Name = Z_StrDup(a_WAD->WADBaseName, PU_STATIC, NULL);
+	SoloEntry->Position = 0;
+	SoloEntry->Size = a_WAD->FileSize;
+	
+	/* Format name to normal */
+	// Uppercase
+	C_strupr(SoloEntry->Name);
+	
+	// Strip . and after
+	p = strrchr(SoloEntry->Name, '.');
+	
+	if (p)
+		*p = '\0';
+	
+	/* Success! */
+	return true;
+}
+
+/* WX_P_LMP_UnLoadWAD() -- Unload format */
+boolean WX_P_LMP_UnLoadWAD(WX_WADFile_t* const a_WAD)
+{
+	/* Check */
+	if (!a_WAD)
+		return false;
+	
+	// Nothing to do here really
+	
+	/* Success! */
+	return true;
+}
+
+/* WX_P_LMP_ReadEntryData() -- Reads a single entry in format */
+boolean WX_P_LMP_ReadEntryData(WX_WADFile_t* const a_WAD, WX_WADEntry_t* const a_Entry)
+{
+	/* Check */
+	if (!a_WAD || !a_Entry)
+		return false;
+	
+	/* Use C Function */
+	if (a_WAD->CFile)
+	{
+		// Set position in lump
+		fseek(a_WAD->CFile, a_Entry->Position, SEEK_SET);
+		
+		// Direct read
+		if (a_Entry->Cache)
+			fread(a_Entry->Cache, a_Entry->Size, 1, a_WAD->CFile);
+	}
+	
+	/* Success! */
+	return true;
+}
 
 /*** DEH ***/
+/* WX_P_DEH_LoadWAD() -- Load a format */
+// Same as LMP, but use DEHACKED instead
+boolean WX_P_DEH_LoadWAD(WX_WADFile_t* const a_WAD)
+{
+	/* LMP Call */
+	if (!WX_P_LMP_LoadWAD(a_WAD))
+		return false;
+	
+	/* Free and set to DEHACKED */
+	Z_Free(a_WAD->Entries[0].Name);
+	a_WAD->Entries[0].Name = Z_StrDup("DEHACKED", PU_STATIC, NULL);
+	
+	/* Success! */
+	return true;
+}
+
+/* WX_P_DEH_UnLoadWAD() -- Unload format */
+boolean WX_P_DEH_UnLoadWAD(WX_WADFile_t* const a_WAD)
+{
+	/* LMP Call */
+	return WX_P_LMP_UnLoadWAD(a_WAD);
+}
+
+/* WX_P_DEH_ReadEntryData() -- Reads a single entry in format */
+boolean WX_P_DEH_ReadEntryData(WX_WADFile_t* const a_WAD, WX_WADEntry_t* const a_Entry)
+{
+	/* LMP Call */
+	return WX_P_LMP_ReadEntryData(a_WAD, a_Entry);
+}
 
 /*** WAD ***/
+/* WX_P_WAD_LoadWAD() -- Load a format */
+boolean WX_P_WAD_LoadWAD(WX_WADFile_t* const a_WAD)
+{
+	/* Check */
+	if (!a_WAD)
+		return false;
+	
+	/* Success! */
+	return false;
+}
+
+/* WX_P_WAD_UnLoadWAD() -- Unload format */
+boolean WX_P_WAD_UnLoadWAD(WX_WADFile_t* const a_WAD)
+{
+	/* Check */
+	if (!a_WAD)
+		return false;
+	
+	/* Success! */
+	return false;
+}
+
+/* WX_P_WAD_ReadEntryData() -- Reads a single entry in format */
+boolean WX_P_WAD_ReadEntryData(WX_WADFile_t* const a_WAD, WX_WADEntry_t* const a_Entry)
+{
+	/* Check */
+	if (!a_WAD || !a_Entry)
+		return false;
+	
+	/* Success! */
+	return false;
+}
 
 /*** REMOOD INTERNAL VIRTUAL WAD ***/
+/* WX_Handlers_t -- List of function pointers */
+typedef struct WX_Handlers_s
+{
+	boolean (*FuncLoadWAD)(WX_WADFile_t* const a_WAD);
+	boolean (*FuncUnLoadWAD)(WX_WADFile_t* const a_WAD);
+	void* (*FuncReadEntryData)(WX_WADFile_t* const a_WAD, WX_WADEntry_t* const a_Entry);
+} WX_Handlers_t;
+
+/* l_WXHandlers -- Handlers for file formats */
+WX_Handlers_t l_WXHandlers[NUMWXWADTYPES] =
+{
+	{WX_P_LMP_LoadWAD, WX_P_LMP_UnLoadWAD, WX_P_LMP_ReadEntryData},
+	{WX_P_DEH_LoadWAD, WX_P_DEH_UnLoadWAD, WX_P_DEH_ReadEntryData},
+	{WX_P_WAD_LoadWAD, WX_P_WAD_UnLoadWAD, WX_P_WAD_ReadEntryData},
+};
 
 /*************
 *** LOCALS ***
 *************/
 
-static WX_WADFile_t* l_FirstWAD = NULL;			// First WAD File
-static WX_WADFile_t* l_FirstVWAD = NULL;		// First WAD File seen by game (re-order)
+static char l_SearchList[MAXSEARCHBUFFER][PATH_MAX];	// Places to look for WADs
+static size_t l_SearchCount = 0;						// Number of places to look
+static WX_WADFile_t* l_FirstWAD = NULL;					// First WAD File
+static WX_WADFile_t* l_FirstVWAD = NULL;				// First WAD File seen by game (re-order)
 
 /****************
 *** FUNCTIONS ***
 ****************/
+
+/* WX_BaseName() -- Returns the base name of the WAD */
+const char*			WX_BaseName(const char* const a_File)
+{
+	const char* TempX = NULL;
+	const char* OldTempX = NULL;
+	
+	/* Check */
+	if (!a_File)
+		return NULL;
+		
+	/* Get last occurence */
+	// Find last slash
+	TempX = strrchr(a_File, '/');
+	
+#if defined(_WIN32)
+	// Find last backslash if we found no slashes
+	if (!TempX)
+		TempX = strrchr(a_File, '\\');
+	
+	// Otherwise find the last backslash but revert to last slash if not found
+	else
+	{
+		OldTempX = TempX;
+		TempX = strrchr(OldTempX, '\\');
+		
+		if (!TempX)
+			TempX = OldTempX;
+	}
+#endif
+	
+	// Found nothing at all
+	if (!TempX)
+		TempX = a_File;
+	
+	/* Check if we landed on a slash */
+	while (*TempX == '/'
+#if defined(_WIN32)
+			|| *TempX == '\\'
+#endif
+		)
+		TempX++;
+	
+	/* Return pointer */
+	return TempX;
+}
+
+/* WX_BaseExtension() -- Return extension of filename */
+const char*			WX_BaseExtension(const char* const a_File)
+{
+	const char* TempX = NULL;
+	
+	/* Check */
+	if (!a_File)
+		return NULL;
+		
+	/* Get last occurence */
+	// Find last period
+	TempX = strrchr(a_File, '.');
+	
+	// Found nothing at all
+	if (!TempX)
+		TempX = a_File;
+	
+	/* Check if we landed on a period */
+	while (*TempX == '.')
+		TempX++;
+	
+	/* Return pointer */
+	return TempX;
+}
+
+/* WX_Init() -- Initializes the extended WAD Code */
+boolean				WX_Init(void)
+{
+	size_t i;
+	char* DirArg;
+
+	/* Initialize the search list */
+	// Clear it
+	memset(l_SearchList, 0, sizeof(l_SearchList));
+	
+	// Add implicit nothing, current dir, bin/
+	strncpy(l_SearchList[l_SearchCount++], "", PATH_MAX);
+	strncpy(l_SearchList[l_SearchCount++], "./", PATH_MAX);
+	strncpy(l_SearchList[l_SearchCount++], "bin/", PATH_MAX);
+	
+	// -waddir argument
+	if (M_CheckParm("-waddir"))
+		while (M_IsNextParm())
+		{
+			// Get directory argument
+			DirArg = M_GetNextParm();
+			
+			// Add to Search
+			if (l_SearchCount < MAXSEARCHBUFFER)
+			{
+				// Copy
+				strncpy(l_SearchList[l_SearchCount], DirArg, PATH_MAX);
+				
+				// Add trailing slash and increment the count
+				strncat(l_SearchList[l_SearchCount++], "/", PATH_MAX);
+			}
+		}
+	
+	// Debug: Print order of search locations
+	if (devparm)
+	{
+		CONS_Printf("WX_Init: Searching in: ");
+		for (i = 0; i < l_SearchCount; i++)
+			CONS_Printf("\"%s\"%s", l_SearchList[i], (i < l_SearchCount - 1 ? ", " : ""));
+		CONS_Printf("\n");
+	}
+	
+	/* Success! */
+	return true;
+}
+
+/* WX_LocateWAD() -- Locates an IWAD that matches the name (and optionally) its sum */
+// This is alot better than the former W_FindWad() which wasted many CPU cycles calculating the same thing for
+// every single WAD we want to find.
+boolean				WX_LocateWAD(const char* const a_Name, const char* const a_MD5, char* const a_OutPath, const size_t a_OutSize)
+{
+	char CheckBuffer[PATH_MAX];
+	char BaseWAD[PATH_MAX];
+	const char* p;
+	size_t i, j;
+	
+	/* Name is required and a size must be given if a_OutPath is set */
+	if (!a_Name || (a_OutPath && !a_OutSize))
+		return false;
+	
+	/* Look in the search buffer for said WADs */
+	for (j = 0; j < 2; j++)
+	{
+		// Search the exact given name, then the basename
+		if (!j)
+			p = a_Name;
+		else
+		{
+			memset(BaseWAD, 0, sizeof(BaseWAD));
+			strncpy(BaseWAD, WX_BaseName(a_Name), PATH_MAX);
+			p = BaseWAD;
+		}
+		
+		// Now search
+		for (i = 0; i < l_SearchCount; i++)
+		{	
+			// Clear the check buffer
+			memset(CheckBuffer, 0, sizeof(CheckBuffer));
+		
+			// Append the current search path along with the name of the WAD
+				// Do not add trailing slash here since we already do it as needed in WX_Init()
+			strncpy(CheckBuffer, l_SearchList[i], PATH_MAX);
+			strncat(CheckBuffer, p, PATH_MAX);
+		
+			// Check whether we can read it
+			if (!access(CheckBuffer, R_OK))
+			{
+				// TODO: Check MD5
+				
+				// Send to output buffer (if it was passed)
+				if (a_OutPath)
+					strncpy(a_OutPath, CheckBuffer, a_OutSize);
+				
+				// Success
+				return true;
+			}
+		}
+	}
+	
+	/* Failed */
+	return false;
+}
+
+/* WX_LoadWAD() -- Loads a single WAD file */
+WX_WADFile_t*		WX_LoadWAD(const char* const a_AutoPath)
+{
+	char FoundWAD[PATH_MAX];
+	WX_WADFile_t* NewWAD, *Rover;
+	
+	/* Check */
+	if (!a_AutoPath)
+		return NULL;
+	
+	/* Attempt location of WAD */
+	memset(FoundWAD, 0, sizeof(FoundWAD));
+	if (!WX_LocateWAD(a_AutoPath, 0, FoundWAD, PATH_MAX))
+		return NULL;
+	
+	// Debug, which file we are going to load
+	if (devparm)
+		CONS_Printf("WX_LoadWAD: Loading \"%s\".\n", FoundWAD);
+	
+	/* Allocate blank WAD File */
+	NewWAD = Z_Malloc(sizeof(*NewWAD), PU_STATIC, NULL);
+	
+	// Copy fullname and basename
+	NewWAD->WADPathName = Z_StrDup(FoundWAD, PU_STATIC, NULL);
+	NewWAD->WADBaseName = WX_BaseName(FoundWAD);
+	
+	/* Load the base file and gain some more info */
+	NewWAD->CFile = fopen(FoundWAD, "rb");
+	
+	// worked?
+	if (!NewWAD->CFile)
+	{
+		WX_UnLoadWAD(NewWAD);
+		return NULL;
+	}
+	
+	// Obtain file size
+	fseek(NewWAD->CFile, 0, SEEK_END);
+	NewWAD->FileSize = ftell(NewWAD->CFile);
+	fseek(NewWAD->CFile, 0, SEEK_SET);
+	
+	/* Determine how the WAD should be handled */
+	// Explicit WAD
+	if (strncasecmp("wad", WX_BaseExtension(NewWAD->WADBaseName), 3) == 0)
+		NewWAD->WADType = WXWT_DOOMWAD;
+	
+	// Explicit DEHACKED
+	else if (strncasecmp("deh", WX_BaseExtension(NewWAD->WADBaseName), 3) == 0)
+		NewWAD->WADType = WXWT_DEHACKED;
+	
+	// Try to detect it based on the format
+	else
+	{
+		// Check for WAD
+		
+		// Failed so treat it as a lump
+		NewWAD->WADType = WXWT_LUMP;
+	}
+	
+	/* Loader setup and call */
+	// Based on type
+	NewWAD->FuncLoadWAD = l_WXHandlers[NewWAD->WADType].FuncLoadWAD;
+	NewWAD->FuncUnLoadWAD = l_WXHandlers[NewWAD->WADType].FuncUnLoadWAD;
+	NewWAD->FuncReadEntryData = l_WXHandlers[NewWAD->WADType].FuncReadEntryData;
+	
+	// Call loader
+	if (NewWAD->FuncLoadWAD)
+		if (!NewWAD->FuncLoadWAD(NewWAD))
+		{
+			// Loader failed
+			WX_UnLoadWAD(NewWAD);
+			return NULL;
+		}
+	
+	/* Load data in WAD that will soon be composited */
+	WX_LoadWADStuff(NewWAD);
+	
+	/* Link into WAD list */
+	if (!l_FirstWAD)
+		l_FirstWAD = NewWAD;
+	else
+	{
+		Rover = l_FirstWAD;
+		
+		// Go to last
+		while (Rover->NextWAD)
+			Rover = Rover->NextWAD;
+			
+		// Set after last
+		Rover->NextWAD = NewWAD;
+	}
+	
+	/* Success */
+	// A little message
+	if (devparm)
+		CONS_Printf("WX_LoadWAD: \"%s\" loaded!\n", NewWAD->WADBaseName);
+	
+	// Return the freshly made WAD
+	return NewWAD;
+}
+
+/* WX_UnLoadWAD() -- Unloads a WAD file */
+void				WX_UnLoadWAD(WX_WADFile_t* const a_WAD)
+{
+	/* Check */
+	if (!a_WAD)
+		return;
+		
+	// Debug, which file we are going to unload
+	if (devparm)
+		CONS_Printf("WX_UnLoadWAD: Unloading \"%s\".\n", a_WAD->WADBaseName);
+	
+	/* If this is a virtually linked WAD, a composite depends on it */
+	if (a_WAD->VPrevWAD || a_WAD->VNextWAD)
+		WX_ClearComposite();
+		
+	/* Free anything special for this WAD */
+	WX_ClearWADStuff(a_WAD);
+	
+	/* Unload format specifics */
+	if (a_WAD->FuncUnLoadWAD)
+		a_WAD->FuncUnLoadWAD(a_WAD);
+	
+	/* Wipe the entry table */
+	WX_WipeEntryTable(a_WAD);
+	
+	/* Clear normals */
+	Z_Free(a_WAD->WADBaseName);
+	Z_Free(a_WAD->WADPathName);
+	
+	/* Unlink WAD */
+	// From real chain
+	if (a_WAD->PrevWAD)
+		a_WAD->PrevWAD->NextWAD = a_WAD->NextWAD;
+	if (a_WAD->NextWAD)
+		a_WAD->NextWAD->PrevWAD = a_WAD->PrevWAD;
+		
+	// From virtual chain
+	if (a_WAD->VPrevWAD)
+		a_WAD->VPrevWAD->VNextWAD = a_WAD->VNextWAD;
+	if (a_WAD->VNextWAD)
+		a_WAD->VNextWAD->VPrevWAD = a_WAD->VPrevWAD;
+	
+	// If this WAD is the first real WAD
+	if (l_FirstWAD == a_WAD)
+		l_FirstWAD = l_FirstWAD->NextWAD;
+	
+	// If this WAD is the first virtual WAD
+	if (l_FirstVWAD == a_WAD)
+		l_FirstVWAD = l_FirstVWAD->VNextWAD;
+	
+	/* Free the current WAD */
+	Z_Free(a_WAD);
+}
+
+/* WX_PreEntryTable() -- Preallocate entry table */
+void				WX_PreEntryTable(WX_WADFile_t* const a_WAD, const size_t a_Count)
+{
+	WX_WADEntry_t* NewList;
+	
+	/* Check */
+	if (!a_WAD || !a_Count)
+		return;
+	
+	/* Check if the entry table actually needs resizing */
+	if (a_WAD->PreLumps >= a_Count)
+		return;
+	
+	/* It does, so resize it all */
+	// Create new
+	NewList = Z_Malloc(sizeof(*NewList) * a_Count, PU_STATIC, NULL);
+	
+	// Copy old then free, if it exists
+	if (a_WAD->Entries)
+	{
+		// Copy
+		memmove(NewList, a_WAD->Entries, sizeof(*a_WAD->Entries) * a_WAD->PreLumps);
+		
+		// Free
+		Z_Free(a_WAD->Entries);
+	}
+	
+	/* Set new stuff */
+	a_WAD->PreLumps = a_Count;
+	a_WAD->Entries = NewList;
+}
+
+/* WX_AddEntry() -- Adds a single entry and returns a pointer to it */
+WX_WADEntry_t*		WX_AddEntry(WX_WADFile_t* const a_WAD)
+{
+	/* Check */
+	if (!a_WAD)
+		return NULL;
+	
+	/* Is there room in pre-allocated lumps? */
+	if (a_WAD->NumLumps + 1 <= a_WAD->PreLumps)
+		// Use that entry then
+		return &a_WAD->Entries[a_WAD->NumLumps++];
+	
+	/* Otherwise allocate more room */
+	WX_PreEntryTable(a_WAD, a_WAD->NumLumps + 1);
+	
+	/* Success */
+	return &a_WAD->Entries[a_WAD->NumLumps++];
+}
+
+/* WX_WipeEntryTable() -- Delete all entries within a WAD */
+void				WX_WipeEntryTable(WX_WADFile_t* const a_WAD)
+{
+	size_t i;
+	
+	/* Check */
+	if (!a_WAD)
+		return;
+	
+	/* Clear table */
+	if (a_WAD->Entries)
+	{
+		// Go through every entry
+		for (i = 0; i < a_WAD->NumLumps; i++)
+		{
+			// Warn if cache still in use
+			if (devparm && a_WAD->Entries[i].UsageCount)
+				CONS_Printf("WX_WipeEntryTable: Warning, \"%s\" still in use!\n", a_WAD->Entries[i].Name);
+			
+			// Delete Name
+			Z_Free(a_WAD->Entries[i].Name);
+			
+			// Clear cache
+			Z_Free(a_WAD->Entries[i].Cache);
+		}
+		
+		// Delete table
+		Z_Free(a_WAD->Entries);
+		a_WAD->PreLumps = a_WAD->NumLumps = 0;
+	}
+}
+
+/* WX_LoadWADStuff() -- Load stuff from WAD that will soon be part of a composite */
+void				WX_LoadWADStuff(WX_WADFile_t* const a_WAD)
+{
+	/* Check */
+	if (!a_WAD)
+		return;
+}
+
+/* WX_ClearWADStuff() -- Clear stuff from WAD that will soon be part of a composite */
+void				WX_ClearWADStuff(WX_WADFile_t* const a_WAD)
+{
+	/* Check */
+	if (!a_WAD)
+		return;
+}
+
+/* WX_CompileComposite() -- Merge all the loaded WAD Data and create a composite of it */
+void				WX_CompileComposite(void)
+{
+}
+
+/* WX_ClearComposite() -- Clear all of the compositied WAD data */
+void				WX_ClearComposite(void)
+{
+}
 
 

@@ -185,6 +185,19 @@ typedef struct WX_WADFile_s WX_WADFile_t;
 typedef struct WX_WADEntry_s WX_WADEntry_t;
 
 /*** PROTOTYPES ***/
+const char*			WX_BaseName(const char* const a_File);
+const char*			WX_BaseExtension(const char* const a_File);
+boolean				WX_Init(void);
+boolean				WX_LocateWAD(const char* const a_Name, const char* const a_MD5, char* const a_OutPath, const size_t a_OutSize);
+WX_WADFile_t*		WX_LoadWAD(const char* const a_AutoPath);
+void				WX_UnLoadWAD(WX_WADFile_t* const a_WAD);
+void				WX_PreEntryTable(WX_WADFile_t* const a_WAD, const size_t a_Count);
+WX_WADEntry_t*		WX_AddEntry(WX_WADFile_t* const a_WAD);
+void				WX_WipeEntryTable(WX_WADFile_t* const a_WAD);
+void				WX_LoadWADStuff(WX_WADFile_t* const a_WAD);
+void				WX_ClearWADStuff(WX_WADFile_t* const a_WAD);
+void				WX_CompileComposite(void);
+void				WX_ClearComposite(void);
 
 #endif							/* __W_WAD__ */
 

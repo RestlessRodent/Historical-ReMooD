@@ -766,8 +766,7 @@ void Z_ResizeArray(void** const PtrPtr, const size_t ElemSize, const size_t OldS
 	Z_ChangeTag(*PtrPtr, OldTag);
 }
 
-/* Z_StrDup() -- Duplicate a string */
-char* Z_Strdup(const char* const String, const Z_MemoryTag_t Tag, void** Ref)
+char *Z_StrDup(const char* const String, const Z_MemoryTag_t Tag, void** Ref)
 {
 	size_t n;
 	char* Ptr;
@@ -783,5 +782,11 @@ char* Z_Strdup(const char* const String, const Z_MemoryTag_t Tag, void** Ref)
 
 	/* Return */
 	return Ptr;
+}
+
+/* Z_StrDup() -- Duplicate a string */
+char* Z_Strdup(const char* const String, const Z_MemoryTag_t Tag, void** Ref)
+{
+	return Z_StrDup(String, Tag, Ref);
 }
 
