@@ -1639,6 +1639,152 @@ void V_ExtWCharToMB(const wchar_t WChar, char* const MB)
 	V_WCharToMB(WChar, MB);
 }
 
+/*----------------------------------------------------------------------------*/
+
+/* V_WADPrivateStuff_t -- Private WAD Stuff */
+typedef struct V_WADPrivateStuff_s
+{
+	int junk;
+} V_WADPrivateStuff_t;
+
+/* V_WXMapGraphicCharsWAD() -- Map graphical characters within a WAD */
+void V_WXMapGraphicCharsWAD(WX_WADFile_t* const a_WAD)
+{
+#define BUFSIZE 12
+	WX_WADEntry_t* Rover, *Last;
+	V_WADPrivateStuff_t** PrivateD = NULL;
+	size_t* PrivateSZ = 0, i;
+	char NameBuf[BUFSIZE];
+	
+	/* Check */
+	if (!a_WAD)
+		return;
+	
+	/* Get Private data */
+	if (!WX_GetVirtualPrivateData(a_WAD, WXDPID_GCHARS, &PrivateD, &PrivateSZ))
+		return;
+	
+	/* If data is not allocated then allocate it */
+	if (!*PrivateD)
+	{
+		*PrivateSZ = sizeof(V_WADPrivateStuff_t);
+		*PrivateD = Z_Malloc(*PrivateSZ, PU_STATIC, NULL);
+	}
+	
+	/* Get rover pointers */
+	Rover = WX_GetNumEntry(a_WAD, 0);
+	Last = WX_GetNumEntry(a_WAD, (size_t)-2);
+	
+	/* Go through */
+	for (; Rover < Last; Rover = WX_RoveEntry(Rover, 1))
+	{
+		// Get name of entry
+		memset(NameBuf, 0, sizeof(NameBuf));
+		WX_GetEntryName(Rover, NameBuf, BUFSIZE);
+		
+		// Universal Font Name? [UFNxhhhh]
+			// UFNxhhhh
+			// A = Small Doom
+			// B = Large Doom
+			// C = Small Heretic
+			// D = Large Heretic
+			// K = Small Doom Statusbar
+			// J = PrBoom HUD
+			// R = OEM
+			// W X Y Z = User
+		if (strncasecmp(NameBuf, "UFN", 3) == 0)
+		{
+			// Validate Font: Font Letter ID
+			if (NameBuf[3] < 'A' || NameBuf[3] > 'Z')
+				continue;
+			
+			// Validate Font: Font UTF-16 Hex
+			for (i = 0; i < 4; i++)
+				if (!((NameBuf[4 + i] >= '0' && NameBuf[4 + i] <= '9') || (NameBuf[4 + i] >= 'A' && NameBuf[4 + i] <= 'F')))
+					break;
+			if (i != 4)
+				continue;
+			
+			printf("> Universal Font Name: %s\n", NameBuf);
+		}
+		
+		// Doom Standard Font [STCFNddd]
+		else if (strncasecmp(NameBuf, "STCFN", 5) == 0)
+		{
+			// Validate Font: Decimal
+			for (i = 0; i < 3; i++)
+				if (NameBuf[5 + i] < '0' || NameBuf[5 + i] > '9')
+					break;
+			if (i != 3)
+				continue;
+			
+			printf("> Doom Standard Font: %s\n", NameBuf); 
+		}
+		
+		// PrBoom HUD Font
+		else if (strncasecmp(NameBuf, "DIG", 3) == 0)
+		{
+			printf("> PrBoom HUD Font: %s\n", NameBuf); 
+		}
+		
+		// Font Class
+			// FONTa
+			// A = Small Heretic
+			// B = Large Heretic
+			// C = Large Doom
+		else if (strncasecmp(NameBuf, "FONT", 4) == 0)
+		{
+			// Validate Font: Class Letter
+			if (NameBuf[3] < 'A' || NameBuf[3] > 'C')
+				continue;
+			
+			// Validate Font: Character Number
+			for (i = 0; i < 2; i++)
+				if (NameBuf[5 + i] < '0' || NameBuf[5 + i] > '9')
+					break;
+			if (i != 2)
+				continue;
+			
+			printf("> Font Class: %s\n", NameBuf);
+		}
+		
+		// Not defined
+		else
+			continue;
+	}
+#undef BUFSIZE
+}
+
+/* V_WXClearGraphicCharsWAD() -- Clears a WAD's characters */
+void V_WXClearGraphicCharsWAD(WX_WADFile_t* const a_WAD)
+{
+	V_WADPrivateStuff_t** PrivateD = NULL;
+	size_t* PrivateSZ = 0;
+	
+	/* Check */
+	if (!a_WAD)
+		return;
+	
+	/* Get Private data */
+	if (!WX_GetVirtualPrivateData(a_WAD, WXDPID_GCHARS, &PrivateD, &PrivateSZ))
+		return;
+}
+
+/* V_WXMapGraphicCharsComposite() -- Composite of all the characters */
+void V_WXMapGraphicCharsComposite(WX_WADFile_t* const a_VWAD)
+{
+	/* Check */
+	if (!a_VWAD)
+		return;
+}
+
+/* V_WXClearGraphicCharsComposite() -- Clears all composit characters */
+void V_WXClearGraphicCharsComposite(void)
+{
+}
+
+/*----------------------------------------------------------------------------*/
+
 /* V_AddCharacter() -- Add single character */
 void V_AddCharacter(VideoFont_t Font, WadEntry_t* Entry, wchar_t Char, wchar_t Top, wchar_t Bottom)
 {

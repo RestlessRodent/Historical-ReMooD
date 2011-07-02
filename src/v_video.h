@@ -33,6 +33,7 @@
 #include "doomdef.h"
 #include "doomtype.h"
 #include "r_defs.h"
+#include "w_wad.h"
 
 //
 // VIDEO
@@ -251,8 +252,11 @@ void V_DrawFadeConsBack(int x1, int y1, int x2, int y2);
 
 typedef enum
 {
-	VFONT_SMALL,				// Doom, Heretic, Hexen, and Strife
-	VFONT_LARGE,				// Doom, Heretic, Hexen, and Strife
+	/* Aliases */
+	VFONT_SMALL,				// Doom, Heretic, Hexen, and Strife (alias to VFONT_SMALL_x)
+	VFONT_LARGE,				// Doom, Heretic, Hexen, and Strife (alias to VFONT_LARGE_x)
+	
+	/* Real Fonts */
 	VFONT_STATUSBARSMALL,		// Defined by Doom
 	VFONT_PRBOOMHUD,			// Defined by PrBoom
 	VFONT_OEM,					// Defined by ReMooD
@@ -260,6 +264,12 @@ typedef enum
 	VFONT_USERSPACEB,			// User Defined Font (No port should use this at all, this is for the people!)
 	VFONT_USERSPACEC,			// User Defined Font (No port should use this at all, this is for the people!)
 	VFONT_USERSPACED,			// User Defined Font (No port should use this at all, this is for the people!)
+	VFONT_SMALL_DOOM,			// Small Doom Font
+	VFONT_LARGE_DOOM,			// Large Doom Font
+	VFONT_SMALL_HERETIC,		// Small Heretic Font
+	VFONT_LARGE_HERETIC,		// Large Heretic Font
+	VFONT_SMALL_STRIFE,			// Small Strife Font
+	VFONT_LARGE_STRIFE,			// Large Strife Font
 	
 	NUMVIDEOFONTS
 } VideoFont_t;
@@ -295,6 +305,11 @@ extern UniChar_t* UnknownLink[NUMVIDEOFONTS];
 #define VFONTOPTION_NOSCALELORES	0x00200000	// NOT IMPLEMENTED!
 
 void V_MapGraphicalCharacters(void);
+
+void V_WXMapGraphicCharsWAD(WX_WADFile_t* const a_WAD);
+void V_WXClearGraphicCharsWAD(WX_WADFile_t* const a_WAD);
+void V_WXMapGraphicCharsComposite(WX_WADFile_t* const a_VWAD);
+void V_WXClearGraphicCharsComposite(void);
 
 /* Misc */
 void V_ExtWCharToMB(const wchar_t WChar, char* const MB);

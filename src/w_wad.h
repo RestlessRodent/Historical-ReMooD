@@ -180,6 +180,25 @@ extern WadFile_t *WADFiles;
 *** EXTENDED WAD HANDLING ***
 ****************************/
 
+/*** CONSTANTS ***/
+/* WX_ConvType_t -- Convertable type */
+typedef enum WX_ConvType_e
+{
+	WXCT_RAW,										// Raw Data
+	WXCT_PATCH,										// patch_t
+	WXCT_PIC,										// pic_t
+	
+	NUMWXCONVTYPES
+} WX_ConvType_t;
+
+/* WX_DataPrivateID_t -- Private DATA ID Tag */
+typedef enum WX_DataPrivateID_e
+{
+	WXDPID_GCHARS,									// Graphic characters
+	
+	NUMWXDATAPRIVATEIDS
+}  WX_DataPrivateID_t;
+
 /*** STRUCTURES ***/
 typedef struct WX_WADFile_s WX_WADFile_t;
 typedef struct WX_WADEntry_s WX_WADEntry_t;
@@ -201,9 +220,12 @@ void				WX_CompileComposite(void);
 void				WX_ClearComposite(void);
 WX_WADEntry_t*		WX_GetNumEntry(WX_WADFile_t* const a_WAD, const size_t a_Index);
 WX_WADEntry_t*		WX_EntryForName(WX_WADFile_t* const a_WAD, const char* const a_Name, const boolean a_Forwards);
-void*				WX_CacheEntry(WX_WADEntry_t* const a_Entry);
-void*				WX_UseEntry(WX_WADEntry_t* const a_Entry, const boolean a_Use);
+void*				WX_CacheEntry(WX_WADEntry_t* const a_Entry, const WX_ConvType_t a_From, const WX_ConvType_t a_To);
+void*				WX_UseEntry(WX_WADEntry_t* const a_Entry, const WX_ConvType_t a_Type, const boolean a_Use);
 boolean				WX_VirtualPushPop(WX_WADFile_t* const a_WAD, const boolean a_Pop, const boolean a_Back);
+boolean				WX_GetVirtualPrivateData(WX_WADFile_t* const a_WAD, const WX_DataPrivateID_t a_ID, void*** const a_PPPtr, size_t** const a_PPSize);
+WX_WADEntry_t*		WX_RoveEntry(WX_WADEntry_t* const a_Entry, const ssize_t a_Next);
+size_t				WX_GetEntryName(WX_WADEntry_t* const a_Entry, char* const a_OutBuf, const size_t a_OutSize);
 
 #endif							/* __W_WAD__ */
 

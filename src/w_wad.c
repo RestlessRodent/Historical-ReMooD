@@ -377,7 +377,7 @@ int W_LoadWadFile(char *filename)
 	boolean Swapped = false;
 	
 	/* Send to extended code */
-	WX_LoadWAD(filename);
+	WX_VirtualPushPop(WX_LoadWAD(filename), false, false);
 
 	/* Scan! -- Don't open a WAD twice yknow! */
 	n = WADFiles;
@@ -1258,8 +1258,8 @@ struct WX_WADFile_s
 	Z_HashTable_t* HashTable;					// Hash Table for entries
 	
 	/* Virtual Stuff */
-	void* VirtPrivate;							// Virtual Private Data
-	size_t VirtSize;							// VPD Size
+	void* VirtPrivate[NUMWXDATAPRIVATEIDS];		// Virtual Private Data
+	size_t VirtSize[NUMWXDATAPRIVATEIDS];		// VPD Size
 	void* FormatPrivate;						// Format Private Data
 	size_t FormatSize;							// Size of format
 	
@@ -1291,8 +1291,8 @@ struct WX_WADEntry_s
 	WX_WADEntry_t* SymLink;						// Symbolic link to another entry
 	
 	/* Cache Data */
-	void* Cache;								// Cached Data
-	int32_t UsageCount;							// Times this entry is being used
+	void* Cache[NUMWXCONVTYPES];				// Cached Data
+	int32_t UsageCount[NUMWXCONVTYPES];			// Times this entry is being used
 };
 
 /***************************
@@ -1359,8 +1359,8 @@ boolean WX_P_LMP_ReadEntryData(WX_WADFile_t* const a_WAD, WX_WADEntry_t* const a
 		fseek(a_WAD->CFile, a_Entry->Position, SEEK_SET);
 		
 		// Direct read
-		if (a_Entry->Cache)
-			fread(a_Entry->Cache, a_Entry->Size, 1, a_WAD->CFile);
+		if (a_Entry->Cache[WXCT_RAW])
+			fread(a_Entry->Cache[WXCT_RAW], a_Entry->Size, 1, a_WAD->CFile);
 	}
 	
 	/* Success! */
@@ -1551,8 +1551,8 @@ boolean WX_P_WAD_ReadEntryData(WX_WADFile_t* const a_WAD, WX_WADEntry_t* const a
 		fseek(a_WAD->CFile, a_Entry->Position, SEEK_SET);
 		
 		// Direct read
-		if (a_Entry->Cache)
-			fread(a_Entry->Cache, a_Entry->Size, 1, a_WAD->CFile);
+		if (a_Entry->Cache[WXCT_RAW])
+			fread(a_Entry->Cache[WXCT_RAW], a_Entry->Size, 1, a_WAD->CFile);
 	}
 	
 	/* Success! */
@@ -2019,7 +2019,7 @@ WX_WADEntry_t*		WX_AddEntry(WX_WADFile_t* const a_WAD)
 /* WX_WipeEntryTable() -- Delete all entries within a WAD */
 void				WX_WipeEntryTable(WX_WADFile_t* const a_WAD)
 {
-	size_t i;
+	size_t i, j;
 	
 	/* Check */
 	if (!a_WAD)
@@ -2031,15 +2031,20 @@ void				WX_WipeEntryTable(WX_WADFile_t* const a_WAD)
 		// Go through every entry
 		for (i = 0; i < a_WAD->NumLumps; i++)
 		{
-			// Warn if cache still in use
-			if (devparm && a_WAD->Entries[i].UsageCount)
-				CONS_Printf("WX_WipeEntryTable: Warning, \"%s\" still in use!\n", a_WAD->Entries[i].Name);
+			// Clear data
+			for (j = 0; j < NUMWXCONVTYPES; j++)
+			{
+				// Warn if cache still in use
+				if (devparm && a_WAD->Entries[i].UsageCount[j])
+					CONS_Printf("WX_WipeEntryTable: Warning, \"%s\" still in use!\n", a_WAD->Entries[i].Name);
+			
+				// Clear cache
+				if (a_WAD->Entries[i].Cache[j])
+					Z_Free(a_WAD->Entries[i].Cache[j]);
+			}
 			
 			// Delete Name
 			Z_Free(a_WAD->Entries[i].Name);
-			
-			// Clear cache
-			Z_Free(a_WAD->Entries[i].Cache);
 		}
 		
 		// Delete table
@@ -2054,6 +2059,8 @@ void				WX_LoadWADStuff(WX_WADFile_t* const a_WAD)
 	/* Check */
 	if (!a_WAD)
 		return;
+	
+	V_WXMapGraphicCharsWAD(a_WAD);
 }
 
 /* WX_ClearWADStuff() -- Clear stuff from WAD that will soon be part of a composite */
@@ -2062,16 +2069,20 @@ void				WX_ClearWADStuff(WX_WADFile_t* const a_WAD)
 	/* Check */
 	if (!a_WAD)
 		return;
+	
+	V_WXClearGraphicCharsWAD(a_WAD);
 }
 
 /* WX_CompileComposite() -- Merge all the loaded WAD Data and create a composite of it */
 void				WX_CompileComposite(void)
 {
+	V_WXMapGraphicCharsComposite(l_FirstVWAD);
 }
 
 /* WX_ClearComposite() -- Clear all of the compositied WAD data */
 void				WX_ClearComposite(void)
 {
+	V_WXClearGraphicCharsComposite();
 }
 
 /* WX_GetNumEntry() -- Gets entry in WAD by lump number */
@@ -2084,8 +2095,11 @@ WX_WADEntry_t*		WX_GetNumEntry(WX_WADFile_t* const a_WAD, const size_t a_Index)
 		return NULL;
 	
 	/* Otherwise */
+	// After last (forced overflow)
+	if (a_Index == (size_t)-2)
+		CorrectedIndex = a_WAD->NumLumps;
 	// Do not overflow
-	if (a_Index >= a_WAD->NumLumps - 1)
+	else if (a_Index >= a_WAD->NumLumps - 1)
 		CorrectedIndex = a_WAD->NumLumps - 1;
 	else
 		CorrectedIndex = a_Index;
@@ -2138,42 +2152,119 @@ WX_WADEntry_t*		WX_EntryForName(WX_WADFile_t* const a_WAD, const char* const a_N
 }
 
 /* WX_CacheEntry() -- Caches a single entry */
-void*				WX_CacheEntry(WX_WADEntry_t* const a_Entry)
+void*				WX_CacheEntry(WX_WADEntry_t* const a_Entry, const WX_ConvType_t a_From, const WX_ConvType_t a_To)
 {
+	void* RawData;
+	size_t From, To;
+	
 	/* Check */
 	if (!a_Entry)
 		return NULL;
 	
-	/* Get cache */
+	/* Map From/To */
+	From = a_From;
+	To = a_To;
+	
+	if (From >= NUMWXCONVTYPES)
+		From = WXCT_RAW;
+	if (To >= NUMWXCONVTYPES)
+		To = WXCT_RAW;
+	
+	/* Cache the raw data */
 	// Already cached
-	if (a_Entry->Cache)
-		return a_Entry->Cache;
+	if (a_Entry->Cache[WXCT_RAW])
+		RawData = a_Entry->Cache[WXCT_RAW];
 	
 	// Not cached
 	else
 	{
 		// Allocate size needed for cache
-		a_Entry->Cache = Z_Malloc(a_Entry->Size, PU_STATIC, NULL);
+		a_Entry->Cache[WXCT_RAW] = Z_Malloc(a_Entry->Size, PU_STATIC, NULL);
 		
 		// Load in data
 		if (!a_Entry->ParentWAD->FuncReadEntryData(a_Entry->ParentWAD, a_Entry))
 			return NULL;
-		return a_Entry->Cache;
+		RawData = a_Entry->Cache[WXCT_RAW];
+	}
+	
+	/* Conversion Matrix */
+	switch (From)
+	{
+		/* From RAW */
+		case WXCT_RAW:
+			switch (To)
+			{
+				// To RAW
+				case WXCT_RAW:
+					return RawData;
+	
+				// To patch_t
+				case WXCT_PATCH:
+	
+				// To pic_t
+				case WXCT_PIC:
+	
+				// To Unhandled
+				default:
+					return NULL;
+			}
+		
+		/* From patch_t */
+		case WXCT_PATCH:
+			switch (To)
+			{
+				// To RAW
+				case WXCT_RAW:
+					return RawData;
+	
+				// To patch_t
+				case WXCT_PATCH:
+	
+				// To pic_t
+				case WXCT_PIC:
+	
+				// To Unhandled
+				default:
+					return NULL;
+			}
+		
+		/* From pic_t */
+		case WXCT_PIC:
+			switch (To)
+			{
+				// To RAW
+				case WXCT_RAW:
+					return RawData;
+	
+				// To patch_t
+				case WXCT_PATCH:
+	
+				// To pic_t
+				case WXCT_PIC:
+	
+				// To Unhandled
+				default:
+					return NULL;
+			}
+		
+		/* Unhandled */
+		default:
+			return NULL;
 	}
 }
 
 /* WX_UseEntry() -- Uses an entry to prevent its free */
-void*				WX_UseEntry(WX_WADEntry_t* const a_Entry, const boolean a_Use)
+void*				WX_UseEntry(WX_WADEntry_t* const a_Entry, const WX_ConvType_t a_Type, const boolean a_Use)
 {
 	/* Check */
-	if (!a_Entry)
+	if (!a_Entry || (size_t)a_Type >= (size_t)NUMWXCONVTYPES)
 		return NULL;
 	
 	/* Do we use it or not? */
 	if (a_Use)
-		a_Entry->UsageCount++;
+		a_Entry->UsageCount[a_Type]++;
 	else
-		a_Entry->UsageCount--;
+		a_Entry->UsageCount[a_Type]--;
 }
 
 /* WX_VirtualPushPop() -- Pushes or pops a WAD on the virtual stack */
@@ -2247,5 +2338,42 @@ boolean				WX_VirtualPushPop(WX_WADFile_t* const a_WAD, const boolean a_Pop, con
 	/* Nothing */
 	else
 		return false;
+}
+
+/* WX_GetVirtualPrivateData() -- Return private data in a WAD */
+boolean				WX_GetVirtualPrivateData(WX_WADFile_t* const a_WAD, const WX_DataPrivateID_t a_ID, void*** const a_PPPtr, size_t** const a_PPSize)
+{
+	/* Check */
+	if (!a_WAD || !a_PPPtr || !a_PPSize || (size_t)a_ID >= (size_t)NUMWXDATAPRIVATEIDS)
+		return false;
+	
+	/* Send */
+	*a_PPPtr = &a_WAD->VirtPrivate[a_ID];
+	*a_PPSize = &a_WAD->VirtSize[a_ID];
+	
+	return true;
+	
+}
+
+/* WX_RoveEntry() -- Changes entries */
+WX_WADEntry_t*		WX_RoveEntry(WX_WADEntry_t* const a_Entry, const ssize_t a_Next)
+{
+	/* Check */
+	if (!a_Entry)
+		return NULL;
+	
+	/* Return next */
+	return a_Entry + a_Next;
+}
+
+/* WX_GetEntryName() -- Gets name of entry */
+size_t				WX_GetEntryName(WX_WADEntry_t* const a_Entry, char* const a_OutBuf, const size_t a_OutSize)
+{
+	/* Check */
+	if (!a_Entry || !a_OutBuf || !a_OutSize)
+		return NULL;
+	
+	/* Slap into buffer */
+	return strncpy(a_OutBuf, a_Entry->Name, a_OutSize);
 }
 
