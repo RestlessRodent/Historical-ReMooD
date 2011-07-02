@@ -199,6 +199,7 @@ void				WX_LoadWADStuff(WX_WADFile_t* const a_WAD);
 void				WX_ClearWADStuff(WX_WADFile_t* const a_WAD);
 void				WX_CompileComposite(void);
 void				WX_ClearComposite(void);
+WX_WADEntry_t*		WX_GetNumEntry(WX_WADFile_t* const a_WAD, const size_t a_Index);
 WX_WADEntry_t*		WX_EntryForName(WX_WADFile_t* const a_WAD, const char* const a_Name, const boolean a_Forwards);
 
 #endif							/* __W_WAD__ */

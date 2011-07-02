@@ -1584,6 +1584,7 @@ static char l_SearchList[MAXSEARCHBUFFER][PATH_MAX];	// Places to look for WADs
 static size_t l_SearchCount = 0;						// Number of places to look
 static WX_WADFile_t* l_FirstWAD = NULL;					// First WAD File
 static WX_WADFile_t* l_FirstVWAD = NULL;				// First WAD File seen by game (re-order)
+static WX_WADFile_t* l_LastVWAD = NULL;					// Last WAD File seen by game (re-order)
 
 /****************
 *** FUNCTIONS ***
@@ -1968,6 +1969,10 @@ void				WX_UnLoadWAD(WX_WADFile_t* const a_WAD)
 	if (l_FirstVWAD == a_WAD)
 		l_FirstVWAD = l_FirstVWAD->VNextWAD;
 	
+	// If this WAD is the last virtual WAD
+	if (l_LastVWAD == a_WAD)
+		l_LastVWAD = l_LastVWAD->VPrevWAD;
+	
 	/* Free the current WAD */
 	Z_Free(a_WAD);
 }
@@ -2069,10 +2074,62 @@ void				WX_ClearComposite(void)
 {
 }
 
+/* WX_GetNumEntry() -- Gets entry in WAD by lump number */
+WX_WADEntry_t*		WX_GetNumEntry(WX_WADFile_t* const a_WAD, const size_t a_Index)
+{
+	size_t CorrectedIndex;
+	
+	/* Check */
+	if (!a_WAD)
+		return NULL;
+	
+	/* Otherwise */
+	// Do not overflow
+	if (a_Index >= a_WAD->NumLumps - 1)
+		CorrectedIndex = a_WAD->NumLumps - 1;
+	else
+		CorrectedIndex = a_Index;
+	
+	return &a_WAD->Entries[CorrectedIndex];
+}
+
 /* WX_EntryForName() -- Finds an entry based on name */
 // If a_WAD is NULL, then all virtual wads are checked in said order
 WX_WADEntry_t*		WX_EntryForName(WX_WADFile_t* const a_WAD, const char* const a_Name, const boolean a_Forwards)
 {
-	return false;
+	uint32_t SeekHash;
+	WX_WADEntry_t* Rover;
+	WX_WADEntry_t* Found;
+	
+	/* Check */
+	if (!a_Name)
+		return NULL;
+	
+	/* Hash Name */
+	SeekHash = WX_Hash(a_Name);
+	
+	/* Rove WADs */
+	if (a_WAD)
+		Rover = a_WAD;
+	else
+		Rover = (a_Forwards ? l_FirstVWAD : l_LastVWAD);
+	
+	// find it!
+	while (Rover)
+	{
+		// Check hash
+		Found = Z_HashFindEntry(Rover->HashTable, SeekHash, a_Name, !a_Forwards);
+		
+		// If we found it, return
+		if (Found)
+			return Found;
+		
+		// Go to the next list
+		if (a_WAD)
+			Rover = (a_Forwards ? Rover->VNextWAD : Rover->VPrevWAD);
+	}
+	
+	/* Failed */
+	return NULL;
 }
 

@@ -895,5 +895,8 @@ void* Z_HashFindEntry(Z_HashTable_t* const a_HashTable, const uint32_t a_Key, vo
 			return a_HashTable->KeyList[Nub][i].Data;
 		}
 	}
+	
+	/* Found nothing */
+	return NULL;
 }
 
