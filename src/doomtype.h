@@ -297,6 +297,48 @@ BS_x(UInt64,uint64_t)
 
 #undef BS_x
 
+/*** Reading/Writing Little Endian Data ***/
+#if defined(__BIG_ENDIAN__)
+	#define BPLREAD_x(w,x) static inline x __REMOOD_FORCEINLINE BP_MERGE(LittleRead,w)(const x** const Ptr)\
+	{\
+		return BP_MERGE(Swap,w)(BP_MERGE(Read,w)(Ptr));\
+	}
+#else
+	#define BPLREAD_x(w,x) static inline x __REMOOD_FORCEINLINE BP_MERGE(LittleRead,w)(const x** const Ptr)\
+	{\
+		return BP_MERGE(Read,w)(Ptr);\
+	}
+#endif
+
+#if defined(__BIG_ENDIAN__)
+	#define BPLWRITE_x(w,x) static inline void __REMOOD_FORCEINLINE BP_MERGE(LittleWrite,w)(x** const Ptr, const x Val)\
+	{\
+		BP_MERGE(Write,w)(Ptr, BP_MERGE(Swap,w)(Val));\
+	}
+#else
+	#define BPLWRITE_x(w,x) static inline void __REMOOD_FORCEINLINE BP_MERGE(LittleWrite,w)(x** const Ptr, const x Val)\
+	{\
+		BP_MERGE(Write,w)(Ptr, Val);\
+	}
+#endif
+
+BPLREAD_x(Int16,int16_t)
+BPLREAD_x(UInt16,uint16_t)
+BPLREAD_x(Int32,int32_t)
+BPLREAD_x(UInt32,uint32_t)
+BPLREAD_x(Int64,int64_t)
+BPLREAD_x(UInt64,uint64_t)
+
+BPLWRITE_x(Int16,int16_t)
+BPLWRITE_x(UInt16,uint16_t)
+BPLWRITE_x(Int32,int32_t)
+BPLWRITE_x(UInt32,uint32_t)
+BPLWRITE_x(Int64,int64_t)
+BPLWRITE_x(UInt64,uint64_t)
+
+#undef BPLREAD_x
+#undef BPLWRITE_x
+
 /* End */
 #undef BP_MERGE
 
