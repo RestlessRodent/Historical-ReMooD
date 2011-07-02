@@ -790,3 +790,110 @@ char* Z_Strdup(const char* const String, const Z_MemoryTag_t Tag, void** Ref)
 	return Z_StrDup(String, Tag, Ref);
 }
 
+/*******************
+*** HASH UTILITY ***
+*******************/
+
+/*** STRUCTURES ***/
+/* Z_HashKey_t -- A single key in a hash table */
+typedef struct Z_HashKey_s
+{
+	uint32_t Key;
+	void* Data;
+} Z_HashKey_t;
+
+/* Z_HashTable_s -- A hash table */
+struct Z_HashTable_s
+{
+	Z_HashKey_t* KeyList[256];								// Key list
+	size_t KeySize[256];							// Keys in list
+	boolean (*CompareFunc)(void* const a_A, void* const a_B);
+};
+
+/*** FUNCTIONS ***/
+/* Z_HashCreateTable() -- Creates a new hashing table */
+Z_HashTable_t* Z_HashCreateTable(boolean (*a_CompareFunc)(void* const a_A, void* const a_B))
+{
+	Z_HashTable_t* New;
+	
+	/* Allocate and function */
+	New = Z_Malloc(sizeof(*New), PU_STATIC, NULL);
+	New->CompareFunc = a_CompareFunc;
+	
+	/* Return new table */
+	return New;
+}
+
+/* Z_HashDeleteTable() -- Deletes a hash table */
+void Z_HashDeleteTable(Z_HashTable_t* const a_HashTable)
+{
+	size_t i;
+	
+	/* Check */
+	if (!a_HashTable)
+		return;
+	
+	/* Free it */
+	for (i = 0; i < 256; i++)
+		if (a_HashTable->KeyList[i])
+			Z_Free(a_HashTable->KeyList[i]);
+	Z_Free(a_HashTable);
+}
+
+/* Z_HashAddEntry() -- Adds a single entry to the hash table */
+boolean Z_HashAddEntry(Z_HashTable_t* const a_HashTable, const uint32_t a_Key, void* const a_Data)
+{
+	uint32_t Nub;
+	size_t i;
+	
+	/* Check */
+	if (!a_HashTable || !a_Data)
+		return false;
+	
+	/* Get nub of key */
+	Nub = a_Key & 0xFF;
+	
+	/* Resize list */
+	Z_ResizeArray(&a_HashTable->KeyList[Nub], sizeof(Z_HashKey_t), a_HashTable->KeySize[Nub], a_HashTable->KeySize[Nub] + 1);
+	
+	// Slap at end
+	i = a_HashTable->KeySize[Nub]++;
+	a_HashTable->KeyList[Nub][i].Key = a_Key;
+	a_HashTable->KeyList[Nub][i].Data = a_Data;
+	
+	/* Success! */
+	return true;
+}
+
+/* Z_HashFindEntry() -- Finds an entry in the hash table */
+void* Z_HashFindEntry(Z_HashTable_t* const a_HashTable, const uint32_t a_Key, void* const a_DataSim, const boolean a_BackRun)
+{
+	uint32_t Nub;
+	size_t i;
+	
+	/* Check */
+	if (!a_HashTable)
+		return NULL;
+	
+	/* Get nub */
+	Nub = a_Key & 0xFF;
+	
+	/* Seek based on direction */
+	for (i = (a_BackRun ? a_HashTable->KeySize[Nub] - 1 : 0);
+		i != (a_BackRun ? (size_t)-1 : a_HashTable->KeySize[Nub]);
+		i = (a_BackRun ? i - 1 : i + 1))
+	{
+		// Compare for key equality
+		if (a_Key == a_HashTable->KeyList[Nub][i].Key)
+		{
+			// If there is a compare function and data is being passed
+			if (a_HashTable->CompareFunc && a_DataSim)
+				if (!a_HashTable->CompareFunc(a_DataSim, a_HashTable->KeyList[Nub][i].Data))
+					continue;
+			
+			// Found it!
+			return a_HashTable->KeyList[Nub][i].Data;
+		}
+	}
+}
+

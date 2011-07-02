@@ -185,6 +185,7 @@ typedef struct WX_WADFile_s WX_WADFile_t;
 typedef struct WX_WADEntry_s WX_WADEntry_t;
 
 /*** PROTOTYPES ***/
+uint32_t			WX_Hash(const char* const a_Str);
 const char*			WX_BaseName(const char* const a_File);
 const char*			WX_BaseExtension(const char* const a_File);
 boolean				WX_Init(void);
@@ -198,6 +199,7 @@ void				WX_LoadWADStuff(WX_WADFile_t* const a_WAD);
 void				WX_ClearWADStuff(WX_WADFile_t* const a_WAD);
 void				WX_CompileComposite(void);
 void				WX_ClearComposite(void);
+WX_WADEntry_t*		WX_EntryForName(WX_WADFile_t* const a_WAD, const char* const a_Name, const boolean a_Forwards);
 
 #endif							/* __W_WAD__ */
 

@@ -1255,6 +1255,7 @@ struct WX_WADFile_s
 	WadIndex_t NumLumps;						// Number of lumps in WAD
 	WadIndex_t PreLumps;						// Number of lumps presized for
 	WX_WADEntry_t* Entries;						// Lump data in WAD
+	Z_HashTable_t* HashTable;					// Hash Table for entries
 	
 	/* Virtual Stuff */
 	void* VirtPrivate;							// Virtual Private Data
@@ -1282,6 +1283,7 @@ struct WX_WADEntry_s
 {
 	/* Entry Info */
 	char* Name;									// Name of the entry
+	uint32_t Hash;								// Hash name
 	uint32_t Flags;								// Entry flags
 	size_t Position;							// Position in file
 	size_t Size;								// Size of entry
@@ -1587,6 +1589,24 @@ static WX_WADFile_t* l_FirstVWAD = NULL;				// First WAD File seen by game (re-o
 *** FUNCTIONS ***
 ****************/
 
+/* WX_Hash() -- Hashes a string */
+uint32_t			WX_Hash(const char* const a_Str)
+{
+	uint32_t Ret = 0;
+	size_t i;
+	
+	/* Check */
+	if (!a_Str)
+		return 0;
+	
+	/* Hash loop */
+	for (i = 0; a_Str[i]; i++)
+		Ret ^= (uint32_t)((toupper(a_Str[i]) - 32) & 0x3F) << (6 * (i % 5));
+	
+	/* Return */
+	return Ret;
+}
+
 /* WX_BaseName() -- Returns the base name of the WAD */
 const char*			WX_BaseName(const char* const a_File)
 {
@@ -1761,11 +1781,36 @@ boolean				WX_LocateWAD(const char* const a_Name, const char* const a_MD5, char*
 	return false;
 }
 
+/* ZP_EntryHashCompare() -- Compares entry hash */
+// A = const char*
+// B = WX_WADEntry_t*
+static boolean ZP_EntryHashCompare(void* const a_A, void* const a_B)
+{
+	const char* A;
+	WX_WADEntry_t* B;
+	
+	/* Check */
+	if (!a_A || !a_B)
+		return false;
+	
+	/* Clone */
+	A = a_A;
+	B = a_B;
+	
+	/* Compare name */
+	if (strcasecmp(A, B->Name) == 0)
+		return true;
+	
+	// Not matched
+	return false;
+}
+
 /* WX_LoadWAD() -- Loads a single WAD file */
 WX_WADFile_t*		WX_LoadWAD(const char* const a_AutoPath)
 {
 	char FoundWAD[PATH_MAX];
 	WX_WADFile_t* NewWAD, *Rover;
+	size_t i;
 	
 	/* Check */
 	if (!a_AutoPath)
@@ -1834,6 +1879,17 @@ WX_WADFile_t*		WX_LoadWAD(const char* const a_AutoPath)
 			WX_UnLoadWAD(NewWAD);
 			return NULL;
 		}
+	
+	// Hash all entries
+	NewWAD->HashTable = Z_HashCreateTable(ZP_EntryHashCompare);
+	for (i = 0; i < NewWAD->NumLumps; i++)
+	{
+		// Create
+		NewWAD->Entries[i].Hash = WX_Hash(NewWAD->Entries[i].Name);
+		
+		// Add to WAD hash list
+		Z_HashAddEntry(NewWAD->HashTable, NewWAD->Entries[i].Hash, &NewWAD->Entries[i]);
+	}
 	
 	/* Load data in WAD that will soon be composited */
 	WX_LoadWADStuff(NewWAD);
@@ -1919,8 +1975,6 @@ void				WX_UnLoadWAD(WX_WADFile_t* const a_WAD)
 /* WX_PreEntryTable() -- Preallocate entry table */
 void				WX_PreEntryTable(WX_WADFile_t* const a_WAD, const size_t a_Count)
 {
-	WX_WADEntry_t* NewList;
-	
 	/* Check */
 	if (!a_WAD || !a_Count)
 		return;
@@ -1930,22 +1984,8 @@ void				WX_PreEntryTable(WX_WADFile_t* const a_WAD, const size_t a_Count)
 		return;
 	
 	/* It does, so resize it all */
-	// Create new
-	NewList = Z_Malloc(sizeof(*NewList) * a_Count, PU_STATIC, NULL);
-	
-	// Copy old then free, if it exists
-	if (a_WAD->Entries)
-	{
-		// Copy
-		memmove(NewList, a_WAD->Entries, sizeof(*a_WAD->Entries) * a_WAD->PreLumps);
-		
-		// Free
-		Z_Free(a_WAD->Entries);
-	}
-	
-	/* Set new stuff */
+	Z_ResizeArray(&a_WAD->Entries, sizeof(*a_WAD->Entries), a_WAD->PreLumps, a_Count);
 	a_WAD->PreLumps = a_Count;
-	a_WAD->Entries = NewList;
 }
 
 /* WX_AddEntry() -- Adds a single entry and returns a pointer to it */
@@ -2029,4 +2069,10 @@ void				WX_ClearComposite(void)
 {
 }
 
+/* WX_EntryForName() -- Finds an entry based on name */
+// If a_WAD is NULL, then all virtual wads are checked in said order
+WX_WADEntry_t*		WX_EntryForName(WX_WADFile_t* const a_WAD, const char* const a_Name, const boolean a_Forwards)
+{
+	return false;
+}
 

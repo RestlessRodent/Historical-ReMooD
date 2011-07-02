@@ -115,6 +115,17 @@ size_t Z_FreeTagsWrappee(const Z_MemoryTag_t LowTag, const Z_MemoryTag_t HighTag
 Z_MemoryTag_t Z_GetTagFromPtrWrappee(void* const Ptr _ZMGD_WRAPPEE);
 Z_MemoryTag_t Z_ChangeTagWrappee(void* const Ptr, const Z_MemoryTag_t NewTag _ZMGD_WRAPPEE);
 
+/*** Hash Utility ***/
+
+/* Structures */
+typedef struct Z_HashTable_s Z_HashTable_t;
+
+/* Prototypes */
+Z_HashTable_t* Z_HashCreateTable(boolean (*a_CompareFunc)(void* const a_A, void* const a_B));
+void Z_HashDeleteTable(Z_HashTable_t* const a_HashTable);
+boolean Z_HashAddEntry(Z_HashTable_t* const a_HashTable, const uint32_t a_Key, void* const a_Data);
+void* Z_HashFindEntry(Z_HashTable_t* const a_HashTable, const uint32_t a_Key, void* const a_DataSim, const boolean a_BackRun);
+
 /*****************************************************************************/
 
 #endif /* __Z_ZONE_H__ */
