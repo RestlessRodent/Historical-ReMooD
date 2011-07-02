@@ -1251,6 +1251,7 @@ struct WX_WADFile_s
 	FILE* CFile;								// C File for WAD
 	
 	/* Entries */
+	size_t IndexOffset;							// Offset to the index
 	WadIndex_t NumLumps;						// Number of lumps in WAD
 	WadIndex_t PreLumps;						// Number of lumps presized for
 	WX_WADEntry_t* Entries;						// Lump data in WAD
@@ -1399,23 +1400,139 @@ boolean WX_P_DEH_ReadEntryData(WX_WADFile_t* const a_WAD, WX_WADEntry_t* const a
 /* WX_P_WAD_LoadWAD() -- Load a format */
 boolean WX_P_WAD_LoadWAD(WX_WADFile_t* const a_WAD)
 {
+	uint32_t HeaderSet[3];
+	uint32_t Temp;
+	WX_WADEntry_t* NewEntry;
+	size_t i, j, k;
+	char* p;
+	
 	/* Check */
 	if (!a_WAD)
 		return false;
+
+	/* Read WAD Header */
+	// Seek to start (just in case)
+	fseek(a_WAD->CFile, 0, SEEK_SET);
+	
+	// Start reading data
+	if (fread(&HeaderSet, 12, 1, a_WAD->CFile) < 1)
+		return false;
+	
+	/* Byte swap as needed */
+	for (i = 0; i < 3; i++)
+		HeaderSet[i] = LittleSwapUInt32(HeaderSet[i]);
+		
+	/* Perform some checks */
+	// Check magic number to see if it is valid
+	if (HeaderSet[0] != 1145132873 /* IWAD */ && HeaderSet[0] != 1145132880 /* PWAD */)
+		return false;
+	
+	// Check to see if there are more than zero lumps
+	if (HeaderSet[1] == 0)
+		return false;
+	
+	// Check to see that the index offset is within file bounds
+	if (HeaderSet[2] >= a_WAD->FileSize)
+		return false;
+	
+	/* Make some corrections */
+	// If the index runs off the WAD prevent it from doing as such
+	if (HeaderSet[2] + (HeaderSet[1] * 16) >= a_WAD->FileSize)
+		HeaderSet[1] = (a_WAD->FileSize - HeaderSet[2]) / 16;
+	
+	/* Set parent info */
+	a_WAD->IndexOffset = HeaderSet[2];
+	
+	/* Allocate entries */
+	WX_PreEntryTable(a_WAD, HeaderSet[1]);
+	
+	/* Jump to the index and start the read */
+	// Seek
+	fseek(a_WAD->CFile, a_WAD->IndexOffset, SEEK_SET);
+	
+	// Create WAD Name Hack
+	a_WAD->FormatSize = (sizeof(char) * 9) * (HeaderSet[1] + 1);
+	a_WAD->FormatPrivate = Z_Malloc(a_WAD->FormatSize, PU_STATIC, NULL);
+	
+	// Read
+	for (i = 0; i < HeaderSet[1]; i++)
+	{
+		// Create a new entry
+		NewEntry = WX_AddEntry(a_WAD);
+		
+		// Read in lump position and send to entry
+		if (fread(&Temp, 4, 1, a_WAD->CFile) < 1)
+			return false;
+		Temp = LittleSwapUInt32(Temp);
+		NewEntry->Position = Temp;
+		
+		// Read in lump size and send to entry
+		if (fread(&Temp, 4, 1, a_WAD->CFile) < 1)
+			return false;
+		Temp = LittleSwapUInt32(Temp);
+		NewEntry->Size = Temp;
+		
+		// Read name and slap it into name hack
+		p = &((char*)a_WAD->FormatPrivate)[i * 9];
+		if (fread(p, 8, 1, a_WAD->CFile) < 1)
+			return false;
+		NewEntry->Name = p;
+		
+		// Correct name
+		for (j = 0, k = 0; j < 8; j++)
+			if (k)
+				NewEntry->Name[j] = '\0';
+			else
+			{
+				// Is NUL?
+				if (NewEntry->Name[j] == '\0')
+				{
+					k = 1;
+					continue;
+				}
+				
+				// Compression?
+				if (j == 0 && NewEntry->Name[j] & 0x80)
+				{
+					NewEntry->Flags |= WXEF_COMPRESSED;
+					NewEntry->Name[j] &= 0x7F;
+				}
+				
+				// Make uppercase
+				NewEntry->Name[j] = toupper(NewEntry->Name[j]);
+			}
+		
+		// Offset out of bounds?
+		if (NewEntry->Position >= a_WAD->FileSize)
+			NewEntry->Position = NewEntry->Size = 0;
+		
+		// Correct size and offset
+		if (NewEntry->Position + NewEntry->Size >= a_WAD->FileSize)
+			NewEntry->Size = a_WAD->FileSize - NewEntry->Position;
+	}
 	
 	/* Success! */
-	return false;
+	return true;
 }
 
 /* WX_P_WAD_UnLoadWAD() -- Unload format */
 boolean WX_P_WAD_UnLoadWAD(WX_WADFile_t* const a_WAD)
 {
+	size_t i;
+	
 	/* Check */
 	if (!a_WAD)
 		return false;
+		
+	/* Clear Names as they are not controlled by Z_ */
+	for (i = 0; i < a_WAD->NumLumps; i++)
+		a_WAD->Entries[i].Name = NULL;
+	
+	/* Delete private data */
+	Z_Free(a_WAD->FormatPrivate);
 	
 	/* Success! */
-	return false;
+	return true;
 }
 
 /* WX_P_WAD_ReadEntryData() -- Reads a single entry in format */
@@ -1425,8 +1542,19 @@ boolean WX_P_WAD_ReadEntryData(WX_WADFile_t* const a_WAD, WX_WADEntry_t* const a
 	if (!a_WAD || !a_Entry)
 		return false;
 	
+	/* Use C Function */
+	if (a_WAD->CFile)
+	{
+		// Set position in lump
+		fseek(a_WAD->CFile, a_Entry->Position, SEEK_SET);
+		
+		// Direct read
+		if (a_Entry->Cache)
+			fread(a_Entry->Cache, a_Entry->Size, 1, a_WAD->CFile);
+	}
+	
 	/* Success! */
-	return false;
+	return true;
 }
 
 /*** REMOOD INTERNAL VIRTUAL WAD ***/
@@ -1823,20 +1951,24 @@ void				WX_PreEntryTable(WX_WADFile_t* const a_WAD, const size_t a_Count)
 /* WX_AddEntry() -- Adds a single entry and returns a pointer to it */
 WX_WADEntry_t*		WX_AddEntry(WX_WADFile_t* const a_WAD)
 {
+	WX_WADEntry_t* Entry;
+	
 	/* Check */
 	if (!a_WAD)
 		return NULL;
+		
+	/* If there is no more room, then allocate some more */
+	if (a_WAD->NumLumps + 1 >= a_WAD->PreLumps)
+		WX_PreEntryTable(a_WAD, a_WAD->NumLumps + 1);
 	
-	/* Is there room in pre-allocated lumps? */
-	if (a_WAD->NumLumps + 1 <= a_WAD->PreLumps)
-		// Use that entry then
-		return &a_WAD->Entries[a_WAD->NumLumps++];
+	/* Set entry */
+	Entry = &a_WAD->Entries[a_WAD->NumLumps++];
 	
-	/* Otherwise allocate more room */
-	WX_PreEntryTable(a_WAD, a_WAD->NumLumps + 1);
+	// Set parent
+	Entry->ParentWAD = a_WAD;
 	
-	/* Success */
-	return &a_WAD->Entries[a_WAD->NumLumps++];
+	/* Success! */
+	return Entry;
 }
 
 /* WX_WipeEntryTable() -- Delete all entries within a WAD */
