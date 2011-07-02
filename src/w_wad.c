@@ -1441,9 +1441,9 @@ typedef struct WX_Handlers_s
 /* l_WXHandlers -- Handlers for file formats */
 WX_Handlers_t l_WXHandlers[NUMWXWADTYPES] =
 {
+	{WX_P_WAD_LoadWAD, WX_P_WAD_UnLoadWAD, WX_P_WAD_ReadEntryData},
 	{WX_P_LMP_LoadWAD, WX_P_LMP_UnLoadWAD, WX_P_LMP_ReadEntryData},
 	{WX_P_DEH_LoadWAD, WX_P_DEH_UnLoadWAD, WX_P_DEH_ReadEntryData},
-	{WX_P_WAD_LoadWAD, WX_P_WAD_UnLoadWAD, WX_P_WAD_ReadEntryData},
 };
 
 /*************
@@ -1657,7 +1657,7 @@ WX_WADFile_t*		WX_LoadWAD(const char* const a_AutoPath)
 	
 	// Copy fullname and basename
 	NewWAD->WADPathName = Z_StrDup(FoundWAD, PU_STATIC, NULL);
-	NewWAD->WADBaseName = WX_BaseName(FoundWAD);
+	NewWAD->WADBaseName = WX_BaseName(NewWAD->WADPathName);
 	
 	/* Load the base file and gain some more info */
 	NewWAD->CFile = fopen(FoundWAD, "rb");
