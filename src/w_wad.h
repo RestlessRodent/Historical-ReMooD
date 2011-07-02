@@ -201,6 +201,9 @@ void				WX_CompileComposite(void);
 void				WX_ClearComposite(void);
 WX_WADEntry_t*		WX_GetNumEntry(WX_WADFile_t* const a_WAD, const size_t a_Index);
 WX_WADEntry_t*		WX_EntryForName(WX_WADFile_t* const a_WAD, const char* const a_Name, const boolean a_Forwards);
+void*				WX_CacheEntry(WX_WADEntry_t* const a_Entry);
+void*				WX_UseEntry(WX_WADEntry_t* const a_Entry, const boolean a_Use);
+boolean				WX_VirtualPushPop(WX_WADFile_t* const a_WAD, const boolean a_Pop, const boolean a_Back);
 
 #endif							/* __W_WAD__ */
 

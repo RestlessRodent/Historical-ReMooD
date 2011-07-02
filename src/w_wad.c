@@ -1269,7 +1269,7 @@ struct WX_WADFile_s
 		// FuncUnLoadWAD -- Unloads a WAD File
 	boolean (*FuncUnLoadWAD)(WX_WADFile_t* const a_WAD);
 		// FuncReadEntryData -- Reads a single entry from the wad (for cache)
-	void* (*FuncReadEntryData)(WX_WADFile_t* const a_WAD, WX_WADEntry_t* const a_Entry);
+	boolean (*FuncReadEntryData)(WX_WADFile_t* const a_WAD, WX_WADEntry_t* const a_Entry);
 	
 	/* Chains */
 	WX_WADFile_t* PrevWAD;						// Previous WAD in link
@@ -1565,7 +1565,7 @@ typedef struct WX_Handlers_s
 {
 	boolean (*FuncLoadWAD)(WX_WADFile_t* const a_WAD);
 	boolean (*FuncUnLoadWAD)(WX_WADFile_t* const a_WAD);
-	void* (*FuncReadEntryData)(WX_WADFile_t* const a_WAD, WX_WADEntry_t* const a_Entry);
+	boolean (*FuncReadEntryData)(WX_WADFile_t* const a_WAD, WX_WADEntry_t* const a_Entry);
 } WX_Handlers_t;
 
 /* l_WXHandlers -- Handlers for file formats */
@@ -2098,7 +2098,7 @@ WX_WADEntry_t*		WX_GetNumEntry(WX_WADFile_t* const a_WAD, const size_t a_Index)
 WX_WADEntry_t*		WX_EntryForName(WX_WADFile_t* const a_WAD, const char* const a_Name, const boolean a_Forwards)
 {
 	uint32_t SeekHash;
-	WX_WADEntry_t* Rover;
+	WX_WADFile_t* Rover;
 	WX_WADEntry_t* Found;
 	
 	/* Check */
@@ -2127,9 +2127,125 @@ WX_WADEntry_t*		WX_EntryForName(WX_WADFile_t* const a_WAD, const char* const a_N
 		// Go to the next list
 		if (a_WAD)
 			Rover = (a_Forwards ? Rover->VNextWAD : Rover->VPrevWAD);
+		
+		// Nothing else to do here
+		else
+			break;
 	}
 	
 	/* Failed */
 	return NULL;
+}
+
+/* WX_CacheEntry() -- Caches a single entry */
+void*				WX_CacheEntry(WX_WADEntry_t* const a_Entry)
+{
+	/* Check */
+	if (!a_Entry)
+		return NULL;
+	
+	/* Get cache */
+	// Already cached
+	if (a_Entry->Cache)
+		return a_Entry->Cache;
+	
+	// Not cached
+	else
+	{
+		// Allocate size needed for cache
+		a_Entry->Cache = Z_Malloc(a_Entry->Size, PU_STATIC, NULL);
+		
+		// Load in data
+		if (!a_Entry->ParentWAD->FuncReadEntryData(a_Entry->ParentWAD, a_Entry))
+			return NULL;
+		return a_Entry->Cache;
+	}
+}
+
+/* WX_UseEntry() -- Uses an entry to prevent its free */
+void*				WX_UseEntry(WX_WADEntry_t* const a_Entry, const boolean a_Use)
+{
+	/* Check */
+	if (!a_Entry)
+		return NULL;
+	
+	/* Do we use it or not? */
+	if (a_Use)
+		a_Entry->UsageCount++;
+	else
+		a_Entry->UsageCount--;
+}
+
+/* WX_VirtualPushPop() -- Pushes or pops a WAD on the virtual stack */
+boolean				WX_VirtualPushPop(WX_WADFile_t* const a_WAD, const boolean a_Pop, const boolean a_Back)
+{
+	/* A WAD, and pushing -- Add to front or back */
+	if (a_WAD && !a_Pop)
+	{
+		// Do not push if we are linked
+		if (a_WAD->VPrevWAD || a_WAD->VNextWAD)
+			return false;
+		
+		// Nothing exists
+		if (!l_FirstVWAD)
+		{
+			l_FirstVWAD = l_LastVWAD = a_WAD;
+			return true;
+		}
+		
+		// Pushing to front
+		if (!a_Back)
+		{
+			a_WAD->VNextWAD = l_FirstVWAD;
+			l_FirstVWAD->VPrevWAD = a_WAD;
+			l_FirstVWAD = a_WAD;
+		}
+		
+		// Pushing to back
+		else
+		{
+			a_WAD->VPrevWAD = l_LastVWAD;
+			l_LastVWAD->VNextWAD = a_WAD;
+			l_LastVWAD = a_WAD;
+		}
+		
+		return true;
+	}
+	
+	/* A WAD, and popping -- Remove from chain */
+	else if (a_WAD && a_Pop)
+	{
+		// Do not pop if we are unlinked
+		if (!a_WAD->VPrevWAD || !a_WAD->VNextWAD)
+			return false;
+		
+		// Fix chain if this is first or last
+		if (a_WAD == l_FirstVWAD)
+			l_FirstVWAD = l_FirstVWAD->VNextWAD;
+		if (a_WAD == l_LastVWAD)
+			l_LastVWAD = l_LastVWAD->VPrevWAD;
+		
+		// Just remove links
+		if (a_WAD->VPrevWAD)
+			a_WAD->VPrevWAD->VNextWAD = a_WAD->VNextWAD;
+		if (a_WAD->VNextWAD)
+			a_WAD->VNextWAD->VPrevWAD = a_WAD->VPrevWAD;
+		
+		// Clear
+		a_WAD->VPrevWAD = a_WAD->VNextWAD = NULL;
+		
+		return true;
+	}
+	
+	/* No WAD, and popping -- Remove front or back */
+	else if (!a_WAD && a_Pop)
+	{
+		// Just call self!
+		return WX_VirtualPushPop((!a_Back ? l_FirstVWAD : l_LastVWAD), true, false);
+	}
+	
+	/* Nothing */
+	else
+		return false;
 }
 
