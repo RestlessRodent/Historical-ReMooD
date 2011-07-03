@@ -404,7 +404,6 @@ int NumMaps[numgamemodes] =
 	36,	// retail
 	1,	// indetermined
 	5,	// chexquest1
-	45,	// heretic
 };
 
 int MissionTXTStart[numgamemissions] =
@@ -414,9 +413,6 @@ int MissionTXTStart[numgamemissions] =
 	THUSTR_1_NUM,	// pack_tnt
 	PHUSTR_1_NUM,	// pack_plut
 	HUSTR_E1M1_NUM,	// pack_chex -- TODO: Use Chex Quest level names
-	HERETIC_E1M1_NUM,	// pack_hereticsw
-	HERETIC_E1M1_NUM,	// pack_heretic
-	HERETIC_E1M1_NUM,	// pack_heretic13
 };
 
 static void M_GenerateLevelPossible(void)

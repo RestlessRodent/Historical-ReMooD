@@ -430,7 +430,7 @@ void CONEx_AddCommand(CONEx_Console_t* const Console, const CONEx_Command_t* con
 		Console->ComVarList = New;
 		
 		// Add to hash list
-		HashBit = Hash & 0xFF;
+		HashBit = New->Data.Command.Hash & 0xFF;
 	}
 }
 

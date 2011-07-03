@@ -67,10 +67,10 @@ BEGIN
 	BEGIN
 		BLOCK "040904b0"
 		BEGIN
-			VALUE "CompanyName", "GhostlyDeath (ghostlydeath@gmail.com)"
-			VALUE "LegalCopyright", "GhostlyDeath (ghostlydeath@gmail.com)"
+			VALUE "CompanyName", "GhostlyDeath <ghostlydeath@gmail.com>"
+			VALUE "LegalCopyright", "GhostlyDeath <ghostlydeath@gmail.com>"
 			VALUE "Description", "http://remood.org/"
-			VALUE "LegalTrademarks", "GhostlyDeath (ghostlydeath@gmail.com)"
+			VALUE "LegalTrademarks", "GhostlyDeath <ghostlydeath@gmail.com>"
 			VALUE "FileVersion", "1.0a"
 			VALUE "ProductVersion", "1.0a"
 			VALUE "InternalName", "ReMooD"

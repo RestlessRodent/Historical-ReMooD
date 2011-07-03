@@ -452,7 +452,6 @@ void Z_Init(void)
 void* Z_MallocWrappee(const size_t Size, const Z_MemoryTag_t Tag, void** const Ref _ZMGD_WRAPPEE)
 {
 	size_t i, ShiftSize, iBase, iEnd;
-	uint32_t DidMask, FullMask;
 	Z_MemPartition_t* ResLeft, *ResRight, *New, *Free;
 	void* RetVal;
 	boolean AtEnd;
@@ -469,15 +468,6 @@ void* Z_MallocWrappee(const size_t Size, const Z_MemoryTag_t Tag, void** const R
 		AtEnd = true;
 	else
 		AtEnd = false;
-	
-	// Figure out full mask
-	FullMask = ~0;
-	
-	// Set the mask for this zone
-		// Do it here since if we fail to lock a zone we don't use it
-		// which means a zone that was locked could have the space we
-		// need to allocate.
-	DidMask |= 1 << i;
 	
 	// Determine the base and end
 		// At the start
