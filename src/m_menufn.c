@@ -1024,13 +1024,13 @@ void M_Init(void)
 			if (CharacterGroups[VFONT_LARGE] && glob->WMenuTitlePtr && strlen(*(glob->WMenuTitlePtr)) > 0)
 			{
 				// Use height of the patch
-				glob->menutitlex = (BASEVIDWIDTH / 2) - (V_StringWidthW(VFONT_LARGE, 0, *(glob->WMenuTitlePtr)) / 2);
+				glob->menutitlex = (BASEVIDWIDTH / 2) - (V_StringWidthA(VFONT_LARGE, 0, *(glob->WMenuTitlePtr)) / 2);
 				glob->menutitley = (MENUPADDING / 2);
 				
 				glob->x = MENUPADDING;
-				glob->y = MENUPADDING + glob->menutitley + V_StringHeightW(VFONT_LARGE, 0, *(glob->WMenuTitlePtr));
+				glob->y = MENUPADDING + glob->menutitley + V_StringHeightA(VFONT_LARGE, 0, *(glob->WMenuTitlePtr));
 				glob->width = BASEVIDWIDTH - (MENUPADDING * 2);
-				glob->height = (BASEVIDHEIGHT - glob->menutitley - V_StringHeightW(VFONT_LARGE, 0, *(glob->WMenuTitlePtr))) - (MENUPADDING * 2);
+				glob->height = (BASEVIDHEIGHT - glob->menutitley - V_StringHeightA(VFONT_LARGE, 0, *(glob->WMenuTitlePtr))) - (MENUPADDING * 2);
 			}
 			else if (glob->menutitlepic)
 			{

@@ -503,8 +503,7 @@ static void AM_loadPics(void)
 static void AM_unloadPics(void)
 {
 	int i;
-
-	//faB: GlidePatch_t are always purgeable
+	
 	for (i = 0; i < 10; i++)
 		Z_ChangeTag(marknums[i], PU_CACHE);
 	if (maplump)

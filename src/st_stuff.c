@@ -1070,8 +1070,7 @@ void ST_unloadGraphics(void)
 {
 
 	int i;
-
-	//faB: GlidePatch_t are always purgeable
+	
 	// unload the numbers, tall and short
 	for (i = 0; i < 10; i++)
 	{
@@ -1105,8 +1104,7 @@ void ST_unloadGraphics(void)
 void ST_unloadFaceGraphics(void)
 {
 	int i;
-
-	//faB: GlidePatch_t are always purgeable
+	
 	for (i = 0; i < ST_NUMFACES; i++)
 		Z_ChangeTag(faces[i], PU_CACHE);
 
@@ -1447,7 +1445,7 @@ void ST_overlayDrawer(void)
 {
 	char *cmds;
 	char c;
-	wchar_t buf2[12];
+	char buf2[12];
 	int i;
 
 	cmds = cv_stbaroverlay.string;
@@ -1463,9 +1461,9 @@ void ST_overlayDrawer(void)
 					ST_drawOverlayNum(SCX(50) + NOTINTWOSPLIT(8 * vid.fdupx), SCY(198) - (16 * vid.fdupy), plyr->health, tallnum, NULL);
 				else
 				{
-					swprintf(buf2, sizeof(buf2) / sizeof(wchar_t), L"%i", plyr->health);
-					V_DrawStringW(VFONT_SMALL, VFONTOPTION_NOSCALESTART, buf2,
-						SCX(45 - V_StringWidthW(VFONT_SMALL, 0, buf2)),
+					sprintf(buf2, sizeof(buf2) / sizeof(char), "%i", plyr->health);
+					V_DrawStringA(VFONT_SMALL, VFONTOPTION_NOSCALESTART, buf2,
+						SCX(45 - V_StringWidthA(VFONT_SMALL, 0, buf2)),
 						SCY(198) - 12 * vid.fdupy);
 				}
 
@@ -1499,9 +1497,9 @@ void ST_overlayDrawer(void)
 						}
 						else
 						{
-							swprintf(buf2, sizeof(buf2) / sizeof(wchar_t), L"%i", plyr->ammo[plyr->weaponinfo[plyr->readyweapon].ammo]);
-							V_DrawStringW(VFONT_SMALL, VFONTOPTION_NOSCALESTART, buf2,
-								SCX(145 - V_StringWidthW(VFONT_SMALL, 0, buf2)),
+							sprintf(buf2, sizeof(buf2) / sizeof(char), "%i", plyr->ammo[plyr->weaponinfo[plyr->readyweapon].ammo]);
+							V_DrawStringA(VFONT_SMALL, VFONTOPTION_NOSCALESTART, buf2,
+								SCX(145 - V_StringWidthA(VFONT_SMALL, 0, buf2)),
 								SCY(198) - 12 * vid.fdupy);
 						}
 
@@ -1539,9 +1537,9 @@ void ST_overlayDrawer(void)
 				}
 				else
 				{
-					swprintf(buf2, sizeof(buf2) / sizeof(wchar_t), L"%i", plyr->armorpoints);
-					V_DrawStringW(VFONT_SMALL, VFONTOPTION_NOSCALESTART, buf2,
-						SCX(250 - V_StringWidthW(VFONT_SMALL, 0, buf2)),
+					sprintf(buf2, sizeof(buf2), "%i", plyr->armorpoints);
+					V_DrawStringA(VFONT_SMALL, VFONTOPTION_NOSCALESTART, buf2,
+						SCX(250 - V_StringWidthA(VFONT_SMALL, 0, buf2)),
 						SCY(198) - 12 * vid.fdupy);
 				}
 
@@ -1552,10 +1550,10 @@ void ST_overlayDrawer(void)
 			case 'e':			// number of monster killed 
 				if ((!cv_deathmatch.value) && (!cv_splitscreen.value))
 				{
-					wchar_t buf[16];
-					swprintf(buf, sizeof(buf) / sizeof(wchar_t), L"%d/%d", plyr->killcount, totalkills);
-					V_DrawStringW(VFONT_SMALL, VFONTOPTION_NOSCALESTART, buf,
-						SCX(318 - V_StringWidthW(VFONT_SMALL, 0, buf)),
+					char buf[16];
+					sprintf(buf, sizeof(buf), "%d/%d", plyr->killcount, totalkills);
+					V_DrawStringA(VFONT_SMALL, VFONTOPTION_NOSCALESTART, buf,
+						SCX(318 - V_StringWidthA(VFONT_SMALL, 0, buf)),
 						SCY(1));
 
 				}
@@ -1564,10 +1562,10 @@ void ST_overlayDrawer(void)
 			case 's':			// number of secrets found
 				if ((!cv_deathmatch.value) && (!cv_splitscreen.value))
 				{
-					wchar_t buf[16];
-					swprintf(buf, sizeof(buf) / sizeof(wchar_t), L"%d/%d", plyr->secretcount, totalsecret);
-					V_DrawStringW(VFONT_SMALL, VFONTOPTION_NOSCALESTART, buf,
-						SCX(318 - V_StringWidthW(VFONT_SMALL, 0, buf)),
+					char buf[16];
+					sprintf(buf, sizeof(buf), "%d/%d", plyr->secretcount, totalsecret);
+					V_DrawStringA(VFONT_SMALL, VFONTOPTION_NOSCALESTART, buf,
+						SCX(318 - V_StringWidthA(VFONT_SMALL, 0, buf)),
 						SCY(11));
 				}
 				break;

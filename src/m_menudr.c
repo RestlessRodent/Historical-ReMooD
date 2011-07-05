@@ -226,25 +226,13 @@ void M_DrawGenericMenu(void)
 								break;
 							case IT_CV_STRING:
 									/* TODO: WHY constantly check the size of a single char? */
-#if 0
 								V_DrawFill((currentMenu->x + currentMenu->width) -
-									V_StringWidthA(VFONT_SMALL, 0, cv->string) - (i == itemOn ? USSizeW : 0) - 1,
+								V_StringWidthA(VFONT_SMALL, 0, cv->string) - (i == itemOn ? USSizeW : 0) - 1,
 									y - 1, V_StringWidthA(VFONT_SMALL, 0, cv->string) + (i == itemOn ? USSizeW : 0) + 2,
 									USSizeH + 2, 0);
-								V_DrawStringW(VFONT_SMALL, VFONTOPTION_WHITE, cv->wstring,
-									V_StringWidth(cv->string) - (i == itemOn ? USSizeW : 0),
+								V_DrawStringA(VFONT_SMALL, VFONTOPTION_WHITE, cv->string,
+									V_StringWidthA(VFONT_SMALL, 0, cv->string) - (i == itemOn ? USSizeW : 0),
 									y);
-								
-#else
-								V_DrawFill((currentMenu->x + currentMenu->width) -
-									V_StringWidth(cv->string) - (i == itemOn ? USSizeW : 0) - 1,
-									y - 1, V_StringWidth(cv->string) + (i == itemOn ? USSizeW : 0) + 2,
-									USSizeH + 2, 0);
-								V_DrawString(
-									(currentMenu->x + currentMenu->width) -
-									V_StringWidth(cv->string) - (i == itemOn ? USSizeW : 0),
-									y/* + 12*/, V_WHITEMAP, cv->string);
-#endif
 								if (skullAnimCounter < 4 && i == itemOn)
 									V_DrawCharacter((currentMenu->x + currentMenu->width) -
 										USSizeW, y, '_' | 0x80);
@@ -252,19 +240,10 @@ void M_DrawGenericMenu(void)
 								//y += LINEHEIGHT;
 								break;
 							default:
-#if 0
-								V_DrawStringW(VFONT_SMALL, (currentMenu->menuitems[i].status & IT_DISABLED2 || currentMenu->menuitems[i].status & IT_CVARREADONLY? VFONTOPTION_GRAY : VFONTOPTION_WHITE),
-									cv->wstring,
-									((currentMenu->x + currentMenu->width)) - V_StringWidthA(VFONT_SMALL, 0, cv->wstring),
+								V_DrawStringA(VFONT_SMALL, (currentMenu->menuitems[i].status & IT_DISABLED2 || currentMenu->menuitems[i].status & IT_CVARREADONLY? VFONTOPTION_GRAY : VFONTOPTION_WHITE),
+									cv->string,
+									((currentMenu->x + currentMenu->width)) - V_StringWidthA(VFONT_SMALL, 0, cv->string),
 									y);
-#else
-								V_DrawString(
-									((currentMenu->x + currentMenu->width)) - V_StringWidth(cv->string),
-									y,
-									(currentMenu->menuitems[i].status & IT_DISABLED2 || currentMenu->menuitems[i].status &  IT_CVARREADONLY? V_GRAYMAP : V_WHITEMAP),
-									cv->string);
-									
-#endif
 								//V_DrawString(BASEVIDWIDTH - x -
 								//			 V_StringWidth(cv->string), y, V_WHITEMAP, cv->string);
 								//y += STRINGHEIGHT;

@@ -1954,9 +1954,6 @@ void R_AddSkins(int wadnum)
 			/* Create Token Buffer */
 			TokenBuf = Z_Malloc(WAD->Index[i].Size + 1, PU_STATIC, NULL);
 			
-			if (!TokenBuf)
-				I_Error("R_AddSkins: Ran out of memory when attempting to allocate token buffer.\n");
-				
 			memcpy(TokenBuf, W_CacheLumpNum(i + W_LumpsSoFar(WAD), PU_CACHE), WAD->Index[i].Size);
 			TokenBuf[WAD->Index[i].Size] = 0;
 			

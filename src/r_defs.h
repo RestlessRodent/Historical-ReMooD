@@ -581,7 +581,6 @@ typedef struct drawseg_s
 // and we compose textures from the TEXTURE1/2 lists
 // of patches.
 //
-//WARNING: this structure is clooned in GlidePatch_t
 struct patch_s
 {
 	short width;				// bounding box size

@@ -33,8 +33,6 @@
 #include <stdlib.h>
 #include "z_zone.h"
 
-typedef void GlidePatch_t;
-
 #ifdef __GNUG__
 #pragma interface
 #endif

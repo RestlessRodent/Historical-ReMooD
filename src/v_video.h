@@ -329,13 +329,6 @@ void V_StringDimensionsA(const VideoFont_t Font, const uint32_t Options, const c
 int V_StringWidthA(const VideoFont_t Font, const uint32_t Options, const char* const String);
 int V_StringHeightA(const VideoFont_t Font, const uint32_t Options, const char* const String);
 
-/* Unicode */
-int V_DrawCharacterW(const VideoFont_t Font, const uint32_t Options, const wchar_t const WChar, const int x, const int y);
-int V_DrawStringW(const VideoFont_t Font, const uint32_t Options, const wchar_t* const WString, const int x, const int y);
-void V_StringDimensionsW(const VideoFont_t Font, const uint32_t Options, const wchar_t* const WString, int* const Width, int* const Height);
-int V_StringWidthW(const VideoFont_t Font, const uint32_t Options, const wchar_t* const WString);
-int V_StringHeightW(const VideoFont_t Font, const uint32_t Options, const wchar_t* const WString);
-
 /* Compatability */
 void V_DrawCharacter(int x, int y, int c);	//added:20-03-98: draw a single character
 void V_DrawString(int x, int y, int option, char *string);	//added:05-02-98: draw a string using the hu_font

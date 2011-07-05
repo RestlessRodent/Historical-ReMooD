@@ -657,9 +657,10 @@ static void HU_DrawChat(void)
 	y = HU_INPUTY;
 	while (w_chat[i])
 	{
+	int V_DrawCharacterA(const VideoFont_t Font, const uint32_t Options, const char Char, const int x, const int y);
+	
 		//Hurdler: isn't it better like that?
-		V_DrawCharacter(HU_INPUTX + (c << 3), y,
-						w_chat[i++] | 0x80 | V_NOSCALEPATCH | V_NOSCALESTART | V_NOSCALELOWRES);
+		V_DrawCharacterA(VFONT_SMALL, VFONTOPTION_NOSCALESTART | VFONTOPTION_NOSCALEPATCH | VFONTOPTION_NOSCALELORES | VFONTOPTION_WHITE, w_chat[i++], HU_INPUTX + (c << 3), y);
 
 		c++;
 		if (c >= (vid.width >> 3))
@@ -671,7 +672,7 @@ static void HU_DrawChat(void)
 	}
 
 	if (hu_tick < 4)
-		V_DrawCharacter(HU_INPUTX + (c << 3), y, '_' | 0x80 | V_NOSCALEPATCH | V_NOSCALESTART | V_NOSCALELOWRES);
+		V_DrawCharacterA(VFONT_SMALL, VFONTOPTION_NOSCALESTART | VFONTOPTION_NOSCALEPATCH | VFONTOPTION_NOSCALELORES | VFONTOPTION_WHITE, '_', HU_INPUTX + (c << 3), y);
 }
 
 extern consvar_t cv_chasecam;
