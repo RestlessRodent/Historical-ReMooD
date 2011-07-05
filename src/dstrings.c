@@ -1099,6 +1099,22 @@ StringGroupEX_t UnicodeStrings[NUMUNICODESTRINGS] =
 	{				 "MENU_OTHER_PLAYERCCONTROLS", "Player 3's Controls"},
 	{				 "MENU_OTHER_PLAYERDCONTROLS", "Player 4's Controls"},
 	{				   "MENU_OPTIONS_BINARYSAVES", "Binary Saves"},
+	
+	{					  "INTERMISSION_FINISHED", "Finished"},
+	{					  "INTERMISSION_ENTERING", "Entering"},
+	{						 "INTERMISSION_KILLS", "Kills"},
+	{						 "INTERMISSION_ITEMS", "Items"},
+	{					   "INTERMISSION_SECRETS", "Secrets"},
+	{						 "INTERMISSION_FRAGS", "Frags"},
+	{					  "INTERMISSION_NETKILLS", "Kills"},
+	{					  "INTERMISSION_NETITEMS", "Items"},
+	{				    "INTERMISSION_NETSECRETS", "Secrt"},
+	{					  "INTERMISSION_NETFRAGS", "Frags"},
+	{				   "INTERMISSION_NOWENTERING", "Now Entering:"},
+	{						  "INTERMISSION_TIME", "Time"},
+	{						   "INTERMISSION_PAR", "Par"},
+	{					   "INTERMISSION_NETTIME", "Time"},
+	{					    "INTERMISSION_NETPAR", "Par"},
 };
 
 /* DS_NameOfString() -- Returns name of pointer to string */

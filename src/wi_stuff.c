@@ -39,6 +39,7 @@
 #include "z_zone.h"
 #include "console.h"
 #include "p_info.h"
+#include "dstrings.h"
 
 //
 // Data needed to add patches to full screen intermission pics.
@@ -427,9 +428,9 @@ static void WI_drawLF(void)
 	// draw <LevelName>
 	if (FontBBaseLump)
 	{
-		V_DrawTextB(P_LevelName(), (BASEVIDWIDTH - V_TextBWidth(P_LevelName())) / 2, y);
-		y += (5 * V_TextBHeight(P_LevelName())) / 4;
-		V_DrawTextB("Finished", (BASEVIDWIDTH - V_TextBWidth("Finished")) / 2, y);
+		V_DrawStringA(VFONT_LARGE, VFONTOPTION_CENTERED, P_LevelName(), 0, y);
+		y += (5 * V_StringHeightA(VFONT_LARGE, 0, P_LevelName())) / 4;
+		V_DrawStringA(VFONT_LARGE, VFONTOPTION_CENTERED, DS_GetString(DSTR_INTERMISSION_FINISHED), 0, y);
 	}
 	else
 	{
@@ -449,11 +450,11 @@ static void WI_drawEL(void)
 	// draw "Entering"
 	if (FontBBaseLump)
 	{
-		V_DrawTextB("Entering", (BASEVIDWIDTH - V_TextBWidth("Entering")) / 2, y);
-		y += (5 * V_TextBHeight("Entering")) / 4;
-		V_DrawTextB(P_LevelNameByNum(wbs->epsd + 1, wbs->next + 1),
-					(BASEVIDWIDTH -
-					 V_TextBWidth(P_LevelNameByNum(wbs->epsd + 1, wbs->next + 1))) / 2, y);
+		V_DrawStringA(VFONT_LARGE, VFONTOPTION_CENTERED, DS_GetString(DSTR_INTERMISSION_ENTERING),
+			0, y);
+		y += (5 * V_StringHeightA(VFONT_LARGE, VFONTOPTION_CENTERED, DS_GetString(DSTR_INTERMISSION_ENTERING))) / 4;
+		V_DrawStringA(VFONT_LARGE, VFONTOPTION_CENTERED, P_LevelNameByNum(wbs->epsd + 1, wbs->next + 1),
+			0, y);
 	}
 	else
 	{
@@ -518,12 +519,9 @@ static void IN_DrawYAH(void)
 	int i;
 	int x;
 	int prevmap;
-
-	x = (BASEVIDWIDTH - V_StringWidth("NOW ENTERING:")) / 2;
-	V_DrawString(x, 10, 0, "NOW ENTERING:");
-
-	x = (BASEVIDWIDTH - V_TextBWidth(P_LevelNameByNum(wbs->epsd + 1, wbs->next + 1))) / 2;
-	V_DrawTextB(P_LevelNameByNum(wbs->epsd + 1, wbs->next + 1), x, 20);
+	
+	V_DrawStringA(VFONT_LARGE, VFONTOPTION_CENTERED, DS_GetString(DSTR_INTERMISSION_NOWENTERING), 0, 10);
+	V_DrawStringA(VFONT_LARGE, VFONTOPTION_CENTERED, P_LevelNameByNum(wbs->epsd + 1, wbs->next + 1), 0, 20);
 
 	prevmap = (wbs->last == 8) ? wbs->next - 1 : wbs->last;
 
@@ -1449,13 +1447,18 @@ static void WI_drawNetgameStats(void)
 	if (FontBBaseLump)
 	{
 		// use FontB if any
-		V_DrawTextB("Kills", NG_STATSX + NG_SPACINGX - V_TextBWidth("Kills"), NG_STATSY);
-		V_DrawTextB("Items", NG_STATSX + 2 * NG_SPACINGX - V_TextBWidth("Items"), NG_STATSY);
-		V_DrawTextB("Scrt", NG_STATSX + 3 * NG_SPACINGX - V_TextBWidth("Scrt"), NG_STATSY);
+		
+		V_DrawStringA(VFONT_LARGE, 0, DS_GetString(DSTR_INTERMISSION_NETKILLS),
+			NG_STATSX + NG_SPACINGX - V_StringWidthA(VFONT_LARGE,  0, DS_GetString(DSTR_INTERMISSION_NETKILLS)), NG_STATSY);
+		V_DrawStringA(VFONT_LARGE, 0, DS_GetString(DSTR_INTERMISSION_NETITEMS),
+			NG_STATSX + 2 * NG_SPACINGX - V_StringWidthA(VFONT_LARGE,  0, DS_GetString(DSTR_INTERMISSION_NETITEMS)), NG_STATSY);
+		V_DrawStringA(VFONT_LARGE, 0, DS_GetString(DSTR_INTERMISSION_NETSECRETS),
+			NG_STATSX + 3 * NG_SPACINGX - V_StringWidthA(VFONT_LARGE,  0, DS_GetString(DSTR_INTERMISSION_NETSECRETS)), NG_STATSY);
 		if (dofrags)
-			V_DrawTextB("Frgs", NG_STATSX + 4 * NG_SPACINGX - V_TextBWidth("Frgs"), NG_STATSY);
-
-		y = NG_STATSY + V_TextBHeight("Kills");
+			V_DrawStringA(VFONT_LARGE, 0, DS_GetString(DSTR_INTERMISSION_NETFRAGS),
+				NG_STATSX + 4 * NG_SPACINGX - V_StringWidthA(VFONT_LARGE,  0, DS_GetString(DSTR_INTERMISSION_NETFRAGS)), NG_STATSY);
+		
+		y = NG_STATSY + V_StringHeightA(VFONT_LARGE, 0, DS_GetString(DSTR_INTERMISSION_NETKILLS));
 	}
 	else
 	{
@@ -1642,12 +1645,13 @@ static void WI_drawStats(void)
 	if (FontBBaseLump)
 	{
 		// use FontB if any
-		V_DrawTextB("Kills", SP_STATSX, SP_STATSY);
-		V_DrawTextB("Items", SP_STATSX, SP_STATSY + lh);
-		V_DrawTextB("Secrets", SP_STATSX, SP_STATSY + 2 * lh);
-		V_DrawTextB("Time", SP_TIMEX, SP_TIMEY);
+		V_DrawStringA(VFONT_LARGE, 0, DS_GetString(DSTR_INTERMISSION_KILLS), SP_STATSX, SP_STATSY);
+		V_DrawStringA(VFONT_LARGE, 0, DS_GetString(DSTR_INTERMISSION_ITEMS), SP_STATSX, SP_STATSY + lh);
+		V_DrawStringA(VFONT_LARGE, 0, DS_GetString(DSTR_INTERMISSION_SECRETS), SP_STATSX, SP_STATSY + 2 * lh);
+		V_DrawStringA(VFONT_LARGE, 0, DS_GetString(DSTR_INTERMISSION_TIME), SP_STATSX, SP_TIMEY);
+		
 		if (wbs->epsd < 3)
-			V_DrawTextB("Par", BASEVIDWIDTH / 2 + SP_TIMEX, SP_TIMEY);
+			V_DrawStringA(VFONT_LARGE, 0, DS_GetString(DSTR_INTERMISSION_PAR), BASEVIDWIDTH / 2 + SP_TIMEX, SP_TIMEY);
 	}
 	else
 	{

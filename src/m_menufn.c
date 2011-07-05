@@ -551,11 +551,11 @@ void M_DoNewGameClassicClassic(int choice)
 	cv_ng_skill.PossibleValue = NGSkill;
 		
 	// Skill?
-	NewGameCCSkillDef.menuitems[0].WItemTextPtr = PTROFUNICODESTRING(MENU_CLASSICGAME_DOOMSKILLA);
-	NewGameCCSkillDef.menuitems[1].WItemTextPtr = PTROFUNICODESTRING(MENU_CLASSICGAME_DOOMSKILLB);
-	NewGameCCSkillDef.menuitems[2].WItemTextPtr = PTROFUNICODESTRING(MENU_CLASSICGAME_DOOMSKILLC);
-	NewGameCCSkillDef.menuitems[3].WItemTextPtr = PTROFUNICODESTRING(MENU_CLASSICGAME_DOOMSKILLD);
-	NewGameCCSkillDef.menuitems[4].WItemTextPtr = PTROFUNICODESTRING(MENU_CLASSICGAME_DOOMSKILLE);
+	NewGameCCSkillDef.menuitems[0].WItemTextPtr = PTROFUNICODESTRING(DSTR_MENUCLASSICGAME_DOOMSKILLA);
+	NewGameCCSkillDef.menuitems[1].WItemTextPtr = PTROFUNICODESTRING(DSTR_MENUCLASSICGAME_DOOMSKILLB);
+	NewGameCCSkillDef.menuitems[2].WItemTextPtr = PTROFUNICODESTRING(DSTR_MENUCLASSICGAME_DOOMSKILLC);
+	NewGameCCSkillDef.menuitems[3].WItemTextPtr = PTROFUNICODESTRING(DSTR_MENUCLASSICGAME_DOOMSKILLD);
+	NewGameCCSkillDef.menuitems[4].WItemTextPtr = PTROFUNICODESTRING(DSTR_MENUCLASSICGAME_DOOMSKILLE);
 	
 	// Episode?
 	if (gamemode == commercial)
@@ -568,12 +568,12 @@ void M_DoNewGameClassicClassic(int choice)
 		NewGameCCEpiDef.prevMenu = &NewGameDef;
 		NewGameCCSkillDef.prevMenu = &NewGameCCEpiDef;
 		
-		NewGameCCEpiDef.menuitems[0].WItemTextPtr = PTROFUNICODESTRING(MENU_CLASSICGAME_DOOMEPISODEA);
-		NewGameCCEpiDef.menuitems[1].WItemTextPtr = PTROFUNICODESTRING(MENU_CLASSICGAME_DOOMEPISODEB);
-		NewGameCCEpiDef.menuitems[2].WItemTextPtr = PTROFUNICODESTRING(MENU_CLASSICGAME_DOOMEPISODEC);
-		NewGameCCEpiDef.menuitems[3].WItemTextPtr = PTROFUNICODESTRING(MENU_CLASSICGAME_DOOMEPISODED);
-		NewGameCCEpiDef.menuitems[4].WItemTextPtr = PTROFUNICODESTRING(MENU_NULLSPACE);
-		NewGameCCEpiDef.menuitems[5].WItemTextPtr = PTROFUNICODESTRING(MENU_NULLSPACE);
+		NewGameCCEpiDef.menuitems[0].WItemTextPtr = PTROFUNICODESTRING(DSTR_MENUCLASSICGAME_DOOMEPISODEA);
+		NewGameCCEpiDef.menuitems[1].WItemTextPtr = PTROFUNICODESTRING(DSTR_MENUCLASSICGAME_DOOMEPISODEB);
+		NewGameCCEpiDef.menuitems[2].WItemTextPtr = PTROFUNICODESTRING(DSTR_MENUCLASSICGAME_DOOMEPISODEC);
+		NewGameCCEpiDef.menuitems[3].WItemTextPtr = PTROFUNICODESTRING(DSTR_MENUCLASSICGAME_DOOMEPISODED);
+		NewGameCCEpiDef.menuitems[4].WItemTextPtr = PTROFUNICODESTRING(DSTR_MENUNULLSPACE);
+		NewGameCCEpiDef.menuitems[5].WItemTextPtr = PTROFUNICODESTRING(DSTR_MENUNULLSPACE);
 		
 		NewGameCCEpiDef.menuitems[4].status |= IT_DISABLED2;
 		NewGameCCEpiDef.menuitems[5].status |= IT_DISABLED2;
@@ -1224,28 +1224,28 @@ void M_ControlsDoPlayer1(int choice)
 {
 	setupcontrols = gamecontrol[0];
 	currentMenu->lastOn = itemOn;
-	DefaultKeyBindDef.WMenuTitlePtr = PTROFUNICODESTRING(MENU_OTHER_PLAYERACONTROLS);
+	DefaultKeyBindDef.WMenuTitlePtr = PTROFUNICODESTRING(DSTR_MENUOTHER_PLAYERACONTROLS);
 	M_SetupNextMenu(&DefaultKeyBindDef);
 }
 void M_ControlsDoPlayer2(int choice)
 {
 	setupcontrols = gamecontrol[1];
 	currentMenu->lastOn = itemOn;
-	DefaultKeyBindDef.WMenuTitlePtr = PTROFUNICODESTRING(MENU_OTHER_PLAYERBCONTROLS);
+	DefaultKeyBindDef.WMenuTitlePtr = PTROFUNICODESTRING(DSTR_MENUOTHER_PLAYERBCONTROLS);
 	M_SetupNextMenu(&DefaultKeyBindDef);
 }
 void M_ControlsDoPlayer3(int choice)
 {
 	setupcontrols = gamecontrol[2];
 	currentMenu->lastOn = itemOn;
-	DefaultKeyBindDef.WMenuTitlePtr = PTROFUNICODESTRING(MENU_OTHER_PLAYERCCONTROLS);
+	DefaultKeyBindDef.WMenuTitlePtr = PTROFUNICODESTRING(DSTR_MENUOTHER_PLAYERCCONTROLS);
 	M_SetupNextMenu(&DefaultKeyBindDef);
 }
 void M_ControlsDoPlayer4(int choice)
 {
 	setupcontrols = gamecontrol[3];
 	currentMenu->lastOn = itemOn;
-	DefaultKeyBindDef.WMenuTitlePtr = PTROFUNICODESTRING(MENU_OTHER_PLAYERDCONTROLS);
+	DefaultKeyBindDef.WMenuTitlePtr = PTROFUNICODESTRING(DSTR_MENUOTHER_PLAYERDCONTROLS);
 	M_SetupNextMenu(&DefaultKeyBindDef);
 }
 
