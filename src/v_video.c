@@ -1644,8 +1644,72 @@ void V_ExtWCharToMB(const wchar_t WChar, char* const MB)
 /* V_WADPrivateStuff_t -- Private WAD Stuff */
 typedef struct V_WADPrivateStuff_s
 {
-	int junk;
+	// CharacterGroups is a bit compatible with what I use before
+	UniChar_t** CharacterGroups[NUMVIDEOFONTS];
 } V_WADPrivateStuff_t;
+
+/* V_WXAliasFont -- Returns true alias for a font */
+static VideoFont_t V_WXAliasFont(const VideoFont_t a_InFont)
+{
+	/* Small */
+	if (a_InFont == VFONT_SMALL)
+	{
+		// Always return Doom for now
+		return VFONT_SMALL_DOOM;
+	}
+	
+	/* Large */
+	else if (a_InFont == VFONT_LARGE)
+	{
+		// Always return Doom for now
+		return VFONT_LARGE_DOOM;
+	}
+	
+	/* Not aliasable */
+	else
+		return a_InFont;
+}
+
+/* V_WXAddCharacter() -- Add single character (extended WAD capable) */
+static void V_WXAddCharacter(UniChar_t**** CharacterGroupsRef, const VideoFont_t xFont, WX_WADEntry_t* const Entry, const uint16_t Char, const uint16_t Top, const uint16_t Bottom)
+{
+	int Group = (Char >> 8) & 0xFF;
+	int Local = Char & 0x00FF;
+	int TG = (Top >> 8) & 0xFF;
+	int TL = Top & 0x00FF;
+	int BG = (Bottom >> 8) & 0xFF;
+	int BL = Bottom & 0x00FF;
+	VideoFont_t Font = V_WXAliasFont(xFont);
+	
+	// Check if the pointer list exists for a font
+	if (!(*CharacterGroupsRef)[Font])
+		(*CharacterGroupsRef)[Font] = Z_Malloc(sizeof(UniChar_t*) * 256, PU_STATIC, NULL);
+		
+	// Check if local group exists
+	if (!(*CharacterGroupsRef)[Font][Group])
+		(*CharacterGroupsRef)[Font][Group] = Z_Malloc(sizeof(UniChar_t) * 256, PU_STATIC, NULL);
+	
+	// Place in and/or overwrite
+	(*CharacterGroupsRef)[Font][Group][Local].Char = Char;
+	(*CharacterGroupsRef)[Font][Group][Local].XEntry = Entry;
+	(*CharacterGroupsRef)[Font][Group][Local].Patch = WX_CacheEntry(Entry, WXCT_PATCH, WXCT_PATCH);
+	
+	// Multibyte
+	V_WCharToMB((*CharacterGroupsRef)[Font][Group][Local].Char, (*CharacterGroupsRef)[Font][Group][Local].MB);
+	
+	// Top and bottom
+	(*CharacterGroupsRef)[Font][Group][Local].BuildTop = NULL;
+	if (Top)
+		if ((*CharacterGroupsRef)[Font][TG])
+			if ((*CharacterGroupsRef)[Font][TG][TL].Char)
+				(*CharacterGroupsRef)[Font][Group][Local].BuildTop = &(*CharacterGroupsRef)[Font][TG][TL];
+
+	(*CharacterGroupsRef)[Font][Group][Local].BuildBottom = NULL;
+	if (Bottom)
+		if ((*CharacterGroupsRef)[Font][BG])
+			if ((*CharacterGroupsRef)[Font][BG][BL].Char)
+				(*CharacterGroupsRef)[Font][Group][Local].BuildBottom = &(*CharacterGroupsRef)[Font][BG][BL];
+}
 
 /* V_WXMapGraphicCharsWAD() -- Map graphical characters within a WAD */
 void V_WXMapGraphicCharsWAD(WX_WADFile_t* const a_WAD)
@@ -1655,6 +1719,8 @@ void V_WXMapGraphicCharsWAD(WX_WADFile_t* const a_WAD)
 	V_WADPrivateStuff_t** PrivateD = NULL;
 	size_t* PrivateSZ = 0, i;
 	char NameBuf[BUFSIZE];
+	uint16_t CharID;
+	VideoFont_t FontID;
 	
 	/* Check */
 	if (!a_WAD)
@@ -1682,6 +1748,10 @@ void V_WXMapGraphicCharsWAD(WX_WADFile_t* const a_WAD)
 		memset(NameBuf, 0, sizeof(NameBuf));
 		WX_GetEntryName(Rover, NameBuf, BUFSIZE);
 		
+		// Forget character ID and the selected font
+		CharID = 0;
+		FontID = 0;
+		
 		// Universal Font Name? [UFNxhhhh]
 			// UFNxhhhh
 			// A = Small Doom
@@ -1705,7 +1775,18 @@ void V_WXMapGraphicCharsWAD(WX_WADFile_t* const a_WAD)
 			if (i != 4)
 				continue;
 			
-			printf("> Universal Font Name: %s\n", NameBuf);
+			// Translare name to ID
+			for (i = 0; i < 4; i++)
+			{
+				if (NameBuf[4 + i] >= 'A')
+					CharID |= (NameBuf[4 + i] - 'A') + 10;
+				else
+					CharID |= NameBuf[4 + i] - '0';
+				
+				// Need to shift?
+				if (i < 3)
+					CharID <<= 4;
+			}
 		}
 		
 		// Doom Standard Font [STCFNddd]
@@ -1718,13 +1799,20 @@ void V_WXMapGraphicCharsWAD(WX_WADFile_t* const a_WAD)
 			if (i != 3)
 				continue;
 			
-			printf("> Doom Standard Font: %s\n", NameBuf); 
+			// Translate name to ID
+			for (i = 0; i < 3; i++)
+			{
+				CharID += NameBuf[5 + i] - '0';
+				
+				// Need to shift
+				if (i < 2)
+					CharID *= 10;
+			}
 		}
 		
 		// PrBoom HUD Font
 		else if (strncasecmp(NameBuf, "DIG", 3) == 0)
 		{
-			printf("> PrBoom HUD Font: %s\n", NameBuf); 
 		}
 		
 		// Font Class
@@ -1744,13 +1832,17 @@ void V_WXMapGraphicCharsWAD(WX_WADFile_t* const a_WAD)
 					break;
 			if (i != 2)
 				continue;
-			
-			printf("> Font Class: %s\n", NameBuf);
 		}
 		
 		// Not defined
 		else
 			continue;
+		
+		// Check to see if the character is valid
+		if (!CharID)
+			continue;
+		
+		
 	}
 #undef BUFSIZE
 }
@@ -1786,7 +1878,7 @@ void V_WXClearGraphicCharsComposite(void)
 /*----------------------------------------------------------------------------*/
 
 /* V_AddCharacter() -- Add single character */
-void V_AddCharacter(VideoFont_t Font, WadEntry_t* Entry, wchar_t Char, wchar_t Top, wchar_t Bottom)
+void V_AddCharacter(VideoFont_t xFont, WadEntry_t* Entry, wchar_t Char, wchar_t Top, wchar_t Bottom)
 {
 	int Group = (Char >> 8) & 0xFF;
 	int Local = Char & 0x00FF;
@@ -1794,6 +1886,7 @@ void V_AddCharacter(VideoFont_t Font, WadEntry_t* Entry, wchar_t Char, wchar_t T
 	int TL = Top & 0x00FF;
 	int BG = (Bottom >> 8) & 0xFF;
 	int BL = Bottom & 0x00FF;
+	VideoFont_t Font = V_WXAliasFont(xFont);
 	
 	// Check if the pointer list exists for a font
 	if (!CharacterGroups[Font])
@@ -2270,9 +2363,10 @@ static wchar_t V_MBToWChar(const char* MBChar, size_t* const BSkip)
 }
 
 /* V_BestWChar() -- Find best wchar_t for a character */
-static const UniChar_t* V_BestWChar(const VideoFont_t Font, const wchar_t WChar)
+static const UniChar_t* V_BestWChar(const VideoFont_t xFont, const wchar_t WChar)
 {
 	int group, id;
+	VideoFont_t Font = V_WXAliasFont(xFont);
 	
 	/* Check */
 	if (Font < 0 || Font >= NUMVIDEOFONTS)
@@ -2303,8 +2397,10 @@ static const UniChar_t* V_BestWChar(const VideoFont_t Font, const wchar_t WChar)
 }
 
 /* V_FontHeight() -- Return height of font */
-int V_FontHeight(const VideoFont_t Font)
+int V_FontHeight(const VideoFont_t xFont)
 {
+	VideoFont_t Font = V_WXAliasFont(xFont);
+	
 	/* Check */
 	if (Font < 0 || Font >= NUMVIDEOFONTS)
 		return 12;
@@ -2315,10 +2411,10 @@ int V_FontHeight(const VideoFont_t Font)
 	else
 		switch (Font)
 		{
-			case VFONT_SMALL:
+			case VFONT_SMALL_DOOM:
 				return 12;
 				
-			case VFONT_LARGE:
+			case VFONT_LARGE_DOOM:
 				return 16;
 				
 			case VFONT_STATUSBARSMALL:
@@ -2333,8 +2429,10 @@ int V_FontHeight(const VideoFont_t Font)
 }
 
 /* V_FontWidth() -- Width of font */
-int V_FontWidth(const VideoFont_t Font)
+int V_FontWidth(const VideoFont_t xFont)
 {
+	VideoFont_t Font = V_WXAliasFont(xFont);
+	
 	/* Check */
 	if (Font < 0 || Font >= NUMVIDEOFONTS)
 		return 4;
@@ -2349,11 +2447,12 @@ int V_FontWidth(const VideoFont_t Font)
 /* V_DrawCharacterMB() -- Draw multibyte character */
 // Returns: Width of drawn character
 // *BSkip : Characters to skip after drawing (optional)
-int V_DrawCharacterMB(const VideoFont_t Font, const uint32_t Options, const char* const MBChar, const int x, const int y, size_t* const BSkip)
+int V_DrawCharacterMB(const VideoFont_t xFont, const uint32_t Options, const char* const MBChar, const int x, const int y, size_t* const BSkip)
 {
 	const UniChar_t* D = NULL;
 	wchar_t WC = 0;
 	int VDrawOpt = 0;
+	VideoFont_t Font = V_WXAliasFont(xFont);
 	
 	/* Check */
 	if (!MBChar || !strlen(MBChar) || Font < 0 || Font >= NUMVIDEOFONTS)
@@ -2409,9 +2508,10 @@ int V_DrawCharacterMB(const VideoFont_t Font, const uint32_t Options, const char
 }
 
 /* V_DrawCharacterA() -- Draw ASCII Character */
-int V_DrawCharacterA(const VideoFont_t Font, const uint32_t Options, const char Char, const int x, const int y)
+int V_DrawCharacterA(const VideoFont_t xFont, const uint32_t Options, const char Char, const int x, const int y)
 {
 	char MB[2];
+	VideoFont_t Font = V_WXAliasFont(xFont);
 	
 	/* Convert to MB */
 	MB[0] = Char;
@@ -2423,7 +2523,7 @@ int V_DrawCharacterA(const VideoFont_t Font, const uint32_t Options, const char 
 
 /* V_DrawStringA() -- Draw ASCII String */
 // Really multibyte
-int V_DrawStringA(const VideoFont_t Font, const uint32_t Options, const char* const String, const int x, const int y)
+int V_DrawStringA(const VideoFont_t xFont, const uint32_t Options, const char* const String, const int x, const int y)
 {
 	const char* c;
 	int X, Y, k;
@@ -2432,6 +2532,7 @@ int V_DrawStringA(const VideoFont_t Font, const uint32_t Options, const char* co
 	int LS = 0;
 	int NL = 0;
 	int Ret = 0;
+	VideoFont_t Font = V_WXAliasFont(xFont);
 	
 	/* Check */
 	if (!String || !CharacterGroups[Font])
@@ -2483,10 +2584,10 @@ int V_DrawStringA(const VideoFont_t Font, const uint32_t Options, const char* co
 			else
 				switch (Font)
 				{
-					case VFONT_SMALL:
+					case VFONT_SMALL_DOOM:
 						NL += 12;
 						break;
-					case VFONT_LARGE:
+					case VFONT_LARGE_DOOM:
 						NL += 16;
 						break;
 					case VFONT_STATUSBARSMALL:
@@ -2532,7 +2633,7 @@ int V_DrawStringA(const VideoFont_t Font, const uint32_t Options, const char* co
 }
 
 /* V_StringDimensionsA() -- Return dimensions of string */
-void V_StringDimensionsA(const VideoFont_t Font, const uint32_t Options, const char* const String, int* const Width, int* const Height)
+void V_StringDimensionsA(const VideoFont_t xFont, const uint32_t Options, const char* const String, int* const Width, int* const Height)
 {
 	const char* c = String;
 	wchar_t wc;
@@ -2542,6 +2643,7 @@ void V_StringDimensionsA(const VideoFont_t Font, const uint32_t Options, const c
 	int XHeight = 0;
 	size_t MBSkip;
 	int CLine = 0;
+	VideoFont_t Font = V_WXAliasFont(xFont);
 	
 	/* Check */
 	if (!String || (!Width && !Height) || !CharacterGroups[Font])
@@ -2560,10 +2662,10 @@ void V_StringDimensionsA(const VideoFont_t Font, const uint32_t Options, const c
 	else
 		switch (Font)
 		{
-			case VFONT_SMALL:
+			case VFONT_SMALL_DOOM:
 				LineHeight = 12;
 				break;
-			case VFONT_LARGE:
+			case VFONT_LARGE_DOOM:
 				LineHeight = 16;
 				break;
 			case VFONT_STATUSBARSMALL:

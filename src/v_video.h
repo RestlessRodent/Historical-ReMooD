@@ -278,8 +278,11 @@ typedef struct UniChar_s
 {
 	wchar_t Char;
 	char MB[5];
+	
 	struct patch_s* Patch;
-	struct WadEntry_s* Entry;
+	
+	struct WadEntry_s* Entry;	// DEPRECATED
+	WX_WADEntry_t* XEntry;
 	
 	struct UniChar_s* BuildTop;
 	struct UniChar_s* BuildBottom;

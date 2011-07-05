@@ -2217,8 +2217,9 @@ void*				WX_CacheEntry(WX_WADEntry_t* const a_Entry, const WX_ConvType_t a_From,
 				case WXCT_RAW:
 					return RawData;
 	
-				// To patch_t
+				// To patch_t -- TODO: Implement Propers
 				case WXCT_PATCH:
+					return RawData;
 	
 				// To pic_t
 				case WXCT_PIC:
