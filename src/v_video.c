@@ -2810,16 +2810,6 @@ void V_DrawCenteredString(int x, int y, int option, char *string)
 	V_DrawStringA(VFONT_SMALL, Options | VFONTOPTION_CENTERED, string, x, y);
 }
 
-void V_DrawTextB(char *text, int x, int y)
-{
-	V_DrawStringA(VFONT_LARGE, 0, text, x, y);
-}
-
-void V_DrawTextBGray(char *text, int x, int y)
-{
-	V_DrawStringA(VFONT_LARGE, VFONTOPTION_GRAY, text, x, y);
-}
-
 int V_StringWidth(char *string)
 {
 	int W;
@@ -2831,20 +2821,6 @@ int V_StringHeight(char *string)
 {
 	int H;
 	V_StringDimensionsA(VFONT_SMALL, 0, string, NULL, &H);
-	return H;
-}
-
-int V_TextBWidth(char *text)
-{
-	int W;
-	V_StringDimensionsA(VFONT_LARGE, 0, text, &W, NULL);
-	return W;
-}
-
-int V_TextBHeight(char *text)
-{
-	int H;
-	V_StringDimensionsA(VFONT_LARGE, 0, text, NULL, &H);
 	return H;
 }
 

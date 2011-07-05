@@ -334,10 +334,6 @@ void V_DrawCharacter(int x, int y, int c);	//added:20-03-98: draw a single chara
 void V_DrawString(int x, int y, int option, char *string);	//added:05-02-98: draw a string using the hu_font
 int V_StringWidth(char *string);	// Find string width from hu_font chars
 int V_StringHeight(char *string);	// Find string height from hu_font chars
-void V_DrawTextB(char *text, int x, int y);
-void V_DrawTextBGray(char *text, int x, int y);
-int V_TextBWidth(char *text);
-int V_TextBHeight(char *text);
 
 /*******************************************************************************
 ********************************************************************************
