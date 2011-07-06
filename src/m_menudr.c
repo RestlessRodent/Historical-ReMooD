@@ -137,6 +137,7 @@ void M_DrawGenericMenu(void)
 	int cursorx2;
 	int USSizeW = V_StringWidthA(VFONT_SMALL, 0, "_");
 	int USSizeH = V_StringHeightA(VFONT_SMALL, 0, "_");
+	uint8_t BaseFlags;
 
 	// DRAW MENU
 	x = currentMenu->x;
@@ -152,13 +153,19 @@ void M_DrawGenericMenu(void)
 	for (i = currentMenu->firstdraw; i < currentMenu->numitems && i < (currentMenu->firstdraw + currentMenu->itemsperpage); i++)
 	{
 		if (i == itemOn)
+		{
 			cursory = y;
+			BaseFlags = 0;
+		}
+		else
+			BaseFlags = 0;
+		
 		switch (currentMenu->menuitems[i].status & IT_DISPLAY)
 		{
 			case IT_PATCH:
-				if (CharacterGroups[VFONT_LARGE] && currentMenu->menuitems[i].WItemTextPtr)
+				if (CharacterGroups[VFONT_LARGE_DOOM] && currentMenu->menuitems[i].WItemTextPtr)
 				{
-					V_DrawStringA(VFONT_LARGE, 0, *(currentMenu->menuitems[i].WItemTextPtr), x, y);
+					V_DrawStringA(VFONT_LARGE, BaseFlags, *(currentMenu->menuitems[i].WItemTextPtr), x, y);
 					y += FONTBHEIGHT - LINEHEIGHT;
 				}
 				else if (currentMenu->menuitems[i].patch && currentMenu->menuitems[i].patch[0])
@@ -199,7 +206,7 @@ void M_DrawGenericMenu(void)
 				else
 				{
 					if ((currentMenu->menuitems[i].status & IT_DISPLAY) == IT_STRING)
-						V_DrawStringA(VFONT_SMALL, 0, *(currentMenu->menuitems[i].WItemTextPtr), fixedx, fixedy);
+						V_DrawStringA(VFONT_SMALL, BaseFlags, *(currentMenu->menuitems[i].WItemTextPtr), fixedx, fixedy);
 					else
 						V_DrawStringA(VFONT_SMALL, VEX_MAP_WHITE, *(currentMenu->menuitems[i].WItemTextPtr), fixedx, fixedy);
 				}
@@ -250,7 +257,7 @@ void M_DrawGenericMenu(void)
 				y += STRINGHEIGHT;
 				break;
 			case IT_STRING2:
-				V_DrawStringA(VFONT_SMALL, 0, *(currentMenu->menuitems[i].WItemTextPtr), x, y);
+				V_DrawStringA(VFONT_SMALL, BaseFlags, *(currentMenu->menuitems[i].WItemTextPtr), x, y);
 			case IT_DYLITLSPACE:
 				y += STRINGHEIGHT;
 				break;
