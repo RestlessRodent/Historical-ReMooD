@@ -763,12 +763,12 @@ void HU_SetTip(char *tip, int displaytics)
 	while (*rover)
 	{
 		if (*rover == '\n' || strlen(ctipline) + 2 >= 128 ||
-			V_StringWidth(ctipline) + 16 >= BASEVIDWIDTH)
+			V_StringWidthA(VFONT_SMALL, 0, ctipline) + 16 >= BASEVIDWIDTH)
 		{
 			if (numtiplines > MAXTIPLINES)
 				break;
-			if (V_StringWidth(ctipline) > largestline)
-				largestline = V_StringWidth(ctipline);
+			if (V_StringWidthA(VFONT_SMALL, 0, ctipline) > largestline)
+				largestline = V_StringWidthA(VFONT_SMALL, 0, ctipline);
 
 			tiplines[numtiplines] = ctipline;
 			ctipline = ctipline_p = Z_Malloc(128, PU_STATIC, NULL);
@@ -785,8 +785,8 @@ void HU_SetTip(char *tip, int displaytics)
 
 		if (!*rover)
 		{
-			if (V_StringWidth(ctipline) > largestline)
-				largestline = V_StringWidth(ctipline);
+			if (V_StringWidthA(VFONT_SMALL, 0, ctipline) > largestline)
+				largestline = V_StringWidthA(VFONT_SMALL, 0, ctipline);
 			tiplines[numtiplines] = ctipline;
 			numtiplines++;
 		}

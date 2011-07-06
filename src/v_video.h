@@ -332,8 +332,6 @@ int V_StringHeightA(const VideoFont_t Font, const uint32_t Options, const char* 
 /* Compatability */
 void V_DrawCharacter(int x, int y, int c);	//added:20-03-98: draw a single character
 void V_DrawString(int x, int y, int option, char *string);	//added:05-02-98: draw a string using the hu_font
-int V_StringWidth(char *string);	// Find string width from hu_font chars
-int V_StringHeight(char *string);	// Find string height from hu_font chars
 
 /*******************************************************************************
 ********************************************************************************

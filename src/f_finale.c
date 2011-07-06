@@ -527,7 +527,7 @@ boolean F_CastResponder(event_t * ev)
 #define CASTNAME_Y   180		// where the name of actor is drawn
 void F_CastPrint(char *text)
 {
-	V_DrawString((BASEVIDWIDTH - V_StringWidth(text)) / 2, CASTNAME_Y, 0, text);
+	V_DrawStringA(VFONT_SMALL, VFONTOPTION_CENTERED, text, 0, CASTNAME_Y);
 }
 
 //

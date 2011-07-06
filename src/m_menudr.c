@@ -236,17 +236,12 @@ void M_DrawGenericMenu(void)
 								if (skullAnimCounter < 4 && i == itemOn)
 									V_DrawCharacter((currentMenu->x + currentMenu->width) -
 										USSizeW, y, '_' | 0x80);
-								//y += STRINGHEIGHT;
-								//y += LINEHEIGHT;
 								break;
 							default:
 								V_DrawStringA(VFONT_SMALL, (currentMenu->menuitems[i].status & IT_DISABLED2 || currentMenu->menuitems[i].status & IT_CVARREADONLY? VFONTOPTION_GRAY : VFONTOPTION_WHITE),
 									cv->string,
 									((currentMenu->x + currentMenu->width)) - V_StringWidthA(VFONT_SMALL, 0, cv->string),
 									y);
-								//V_DrawString(BASEVIDWIDTH - x -
-								//			 V_StringWidth(cv->string), y, V_WHITEMAP, cv->string);
-								//y += STRINGHEIGHT;
 								break;
 						}
 						break;
@@ -579,10 +574,7 @@ void M_StopMessage(int choice)
 //
 void M_CentreText(int y, char *string)
 {
-	int x;
-	//added:02-02-98:centre on 320, because V_DrawString centers on vid.width...
-	x = (BASEVIDWIDTH - V_StringWidth(string)) >> 1;
-	V_DrawString(x, y, 0, string);
+	V_DrawStringA(VFONT_SMALL, VFONTOPTION_CENTERED, string, 0, y);
 }
 
 //
@@ -740,8 +732,10 @@ void M_DrawControl(void)
 				strcat(tmp, G_KeynumToString(keys[1]));
 
 		}
-		V_DrawString((DefaultKeyBindDef.x + DefaultKeyBindDef.width) - V_StringWidth(tmp),
-					 DefaultKeyBindDef.y + (i - currentMenu->firstdraw) * STRINGHEIGHT, V_WHITEMAP, tmp);
+		
+		V_DrawStringA(VFONT_SMALL, VFONTOPTION_WHITE, tmp,
+			(DefaultKeyBindDef.x + DefaultKeyBindDef.width) - V_StringWidthA(VFONT_SMALL, 0, tmp),
+			DefaultKeyBindDef.y + (i - currentMenu->firstdraw) * STRINGHEIGHT);
 	}
 }
 

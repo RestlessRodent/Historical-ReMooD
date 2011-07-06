@@ -927,10 +927,14 @@ void WI_drawRancking(char *title, int x, int y, fragsort_t * fragtable,
 
 		// draw frags count
 		sprintf(num, "%3i", frags);
-		V_DrawString(x + (large ? 32 : 24) - V_StringWidth(num), y, 0, num);
+		
+		V_DrawStringA(VFONT_SMALL, 0, num,
+			x + (large ? 32 : 24) - V_StringWidthA(VFONT_SMALL, 0, num),
+			y);
 
 		// draw name
-		V_DrawString(x + (large ? 64 : 29), y, plnum == white ? V_WHITEMAP : 0, fragtable[i].name);
+		V_DrawStringA(VFONT_SMALL, (plnum == white ? VFONTOPTION_WHITE : 0), fragtable[i].name,
+			x + (large ? 64 : 29), y);
 
 		y += 12;
 		if (y >= BASEVIDHEIGHT)
@@ -1029,8 +1033,8 @@ static void WI_drawDeathmatchStats(void)
 	WI_drawRancking("deads", 245, RANKINGY, fragtab, scorelines, false, whiteplayer);
 
 	timeleft = va("start in %d", cnt_pause / TICRATE);
-	//i=V_StringWidth(num);
-	V_DrawString(200, 30, V_WHITEMAP, timeleft);
+	
+	V_DrawStringA(VFONT_SMALL, VFONTOPTION_WHITE, timeleft, 200, 30);
 }
 
 boolean teamingame(int teamnum)

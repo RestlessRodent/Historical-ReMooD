@@ -1459,7 +1459,8 @@ void AM_Drawer(void)
 		int y;
 		y = BASEVIDHEIGHT - (ST_HEIGHT) - 1;
 
-		V_DrawString(20, y - V_StringHeight(P_LevelName()), 0, P_LevelName());
+		V_DrawStringA(VFONT_SMALL, 0, P_LevelName(),
+			20, y - V_StringHeightA(VFONT_SMALL, 0, P_LevelName()));
 	}
 
 	V_MarkRect(f_x, f_y, f_w, f_h);
