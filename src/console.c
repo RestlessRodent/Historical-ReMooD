@@ -1991,13 +1991,15 @@ void CON_DrawInput(void)
 	y = con_curlines - 12;
 
 	for (x = 0; x < con_width; x++)
-		V_DrawCharacter((x + 1) << 3, y, p[x] | V_NOSCALEPATCH | V_NOSCALESTART | V_NOSCALELOWRES);
+		V_DrawCharacterA(VFONT_SMALL, VFONTOPTION_NOSCALESTART | VFONTOPTION_NOSCALEPATCH | VFONTOPTION_NOSCALELORES,
+			p[x], (x + 1) << 3, y);
 
 	// draw the blinking cursor
 	//
 	x = (input_cx >= con_width) ? con_width - 1 : input_cx;
 	if (con_tick < 4)
-		V_DrawCharacter((x + 1) << 3, y, 0x80 | '_' | V_NOSCALEPATCH | V_NOSCALESTART | V_NOSCALELOWRES);
+		V_DrawCharacterA(VFONT_SMALL, VFONTOPTION_NOSCALESTART | VFONTOPTION_NOSCALEPATCH | VFONTOPTION_NOSCALELORES,
+			'_', (x + 1) << 3, y);
 }
 
 // draw the last lines of console text to the top of the screen
@@ -2026,7 +2028,8 @@ void CON_DrawHudlines(void)
 		p = &con_buffer[(i % con_totallines) * con_width];
 
 		for (x = 0; x < con_width; x++)
-			V_DrawCharacter(x << 3, y, (p[x] & 0xff) | V_NOSCALEPATCH | V_NOSCALESTART | V_NOSCALELOWRES);
+			V_DrawCharacterA(VFONT_SMALL, VFONTOPTION_NOSCALESTART | VFONTOPTION_NOSCALEPATCH | VFONTOPTION_NOSCALELORES,
+			(p[x] & 0xff), x << 3, y);
 
 		if (con_lineowner[i % con_hudlines] == 2)
 			y2 += 8;
@@ -2131,8 +2134,7 @@ void CON_DrawConsole(void)
 			i = 0;
 
 		p = &con_buffer[(i % con_totallines) * con_width];
-
-#if 1
+		
 		// GhostlyDeath <November 2, 2010> -- UTF-8 Console
 		for (MBSkip = 1, x = 0, lx = 0; x < con_width; x += MBSkip, lx++)
 		{
@@ -2149,10 +2151,6 @@ void CON_DrawConsole(void)
 			if (!MBSkip)
 				MBSkip = 1;
 		}
-#else
-		for (x = 0; x < con_width; x++)
-			V_DrawCharacter((x + 1) << 3, y, p[x] | V_NOSCALEPATCH | V_NOSCALESTART | V_NOSCALELOWRES);
-#endif
 	}
 
 	// draw prompt if enough place (not while game startup)

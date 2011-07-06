@@ -112,10 +112,10 @@ void M_DrawVideoOptions(void)
 	if (itemOn == 0)
 	{
 		if (skullAnimCounter < 4 * NEWTICRATERATIO)	//blink cursor
-			V_DrawCharacter(cursorx, cursory, '*' | 0x80);
+			V_DrawCharacterA(VFONT_SMALL, VFONTOPTION_WHITE, '*', cursorx, cursory);
 			
 		if (!(skullAnimCounter < 4 * NEWTICRATERATIO))	//blink cursor
-			V_DrawCharacter(currentMenu->x - 10, currentMenu->y + (itemOn * STRINGHEIGHT), '*' | 0x80);
+			V_DrawCharacterA(VFONT_SMALL, VFONTOPTION_WHITE, '*', currentMenu->x - 10, currentMenu->y + (itemOn * STRINGHEIGHT));
 	}
 }
 

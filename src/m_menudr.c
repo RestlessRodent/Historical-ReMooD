@@ -234,8 +234,9 @@ void M_DrawGenericMenu(void)
 									V_StringWidthA(VFONT_SMALL, 0, cv->string) - (i == itemOn ? USSizeW : 0),
 									y);
 								if (skullAnimCounter < 4 && i == itemOn)
-									V_DrawCharacter((currentMenu->x + currentMenu->width) -
-										USSizeW, y, '_' | 0x80);
+									V_DrawCharacterA(VFONT_SMALL, VFONTOPTION_WHITE, '_',
+										(currentMenu->x + currentMenu->width) -
+										USSizeW, y);
 								break;
 							default:
 								V_DrawStringA(VFONT_SMALL, (currentMenu->menuitems[i].status & IT_DISABLED2 || currentMenu->menuitems[i].status & IT_CVARREADONLY? VFONTOPTION_GRAY : VFONTOPTION_WHITE),
@@ -285,11 +286,11 @@ void M_DrawGenericMenu(void)
 		{
 			if (currentMenu->menuitems[itemOn].status & IT_CENTERSTRING)
 			{
-				V_DrawCharacter(cursorx1, cursory, '*' | 0x80);
-				V_DrawCharacter(cursorx2, cursory, '*' | 0x80);
+				V_DrawCharacterA(VFONT_SMALL, VFONTOPTION_WHITE, '*', cursorx1, cursory);
+				V_DrawCharacterA(VFONT_SMALL, VFONTOPTION_WHITE, '*', cursorx2, cursory);
 			}
 			else
-				V_DrawCharacter(currentMenu->x - 10, cursory, '*' | 0x80);
+				V_DrawCharacterA(VFONT_SMALL, VFONTOPTION_WHITE, '*', currentMenu->x - 10, cursory);
 		}
 	}
 }
