@@ -426,7 +426,7 @@ static void WI_drawLF(void)
 	int y = WI_TITLEY;
 
 	// draw <LevelName>
-	if (FontBBaseLump)
+	if (true/*FontBBaseLump*/)
 	{
 		V_DrawStringA(VFONT_LARGE, VFONTOPTION_CENTERED, P_LevelName(), 0, y);
 		y += (5 * V_StringHeightA(VFONT_LARGE, 0, P_LevelName())) / 4;
@@ -448,7 +448,7 @@ static void WI_drawEL(void)
 	int y = WI_TITLEY;
 
 	// draw "Entering"
-	if (FontBBaseLump)
+	if (true/*FontBBaseLump*/)
 	{
 		V_DrawStringA(VFONT_LARGE, VFONTOPTION_CENTERED, DS_GetString(DSTR_INTERMISSION_ENTERING),
 			0, y);
@@ -910,7 +910,8 @@ void WI_drawRancking(char *title, int x, int y, fragsort_t * fragtable,
 			}
 
 	if (title)
-		V_DrawString(x, y - 14, 0, title);
+		V_DrawStringA(VFONT_SMALL, 0, title, x, y - 14);
+	
 	// draw rankings
 	for (i = 0; i < scorelines; i++)
 	{
@@ -1448,7 +1449,7 @@ static void WI_drawNetgameStats(void)
 	WI_drawLF();
 
 	// draw stat titles (top line)
-	if (FontBBaseLump)
+	if (true/*FontBBaseLump*/)
 	{
 		// use FontB if any
 		
@@ -1646,7 +1647,7 @@ static void WI_drawStats(void)
 
 	WI_drawLF();
 
-	if (FontBBaseLump)
+	if (true/*FontBBaseLump*/)
 	{
 		// use FontB if any
 		V_DrawStringA(VFONT_LARGE, 0, DS_GetString(DSTR_INTERMISSION_KILLS), SP_STATSX, SP_STATSY);

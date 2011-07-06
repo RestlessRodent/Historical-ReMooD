@@ -71,12 +71,6 @@ void M_SaveConfig(char *filename);
 
 //===========================================================================
 
-/*int M_DrawText ( int           x,
-                 int           y,
-                 boolean       direct,
-                 char*         string );*/
-#define M_DrawText(x,y,d,s) V_DrawString(x,y,V_SCALESTART | V_SCALEPATCH,s)
-
 // s1=s2+s3+s1 (1024 lenghtmax)
 void strcatbf(char *s1, char *s2, char *s3);
 

@@ -810,10 +810,7 @@ static void HU_DrawTip()
 	tiptime--;
 
 	for (i = 0; i < numtiplines; i++)
-	{
-		V_DrawString((BASEVIDWIDTH - largestline) / 2,
-					 ((BASEVIDHEIGHT - (numtiplines * 8)) / 2) + ((i + 1) * 8), 0, tiplines[i]);
-	}
+		V_DrawStringA(VFONT_SMALL, VFONTOPTION_CENTERED, tiplines[i], 0, ((BASEVIDHEIGHT - (numtiplines * 8)) / 2) + ((i + 1) * 8));
 }
 
 void HU_ClearTips()

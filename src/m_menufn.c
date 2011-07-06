@@ -105,7 +105,7 @@ void M_DrawVideoOptions(void)
 		y = currentMenu->y + (STRINGHEIGHT << 1) + ((i / 3) * STRINGHEIGHT);
 		
 		if (text)
-			V_DrawString(x, y, (vid.modenum == i ? V_WHITEMAP : 0), text);
+			V_DrawStringA(VFONT_SMALL, (vid.modenum == i ? VFONTOPTION_WHITE : 0), text, x, y);
 	}
 	
 	// Draw Cursor

@@ -1569,17 +1569,6 @@ void ST_overlayDrawer(void)
 						SCY(11));
 				}
 				break;
-
-				/* //TODO
-				   case 'r': // current frame rate
-				   {
-				   char buf[8];
-				   int framerate = 35;
-				   sprintf(buf, "%d FPS", framerate);
-				   V_DrawString(SCX(2), SCY(4), V_NOSCALESTART, buf);
-				   }
-				   break;
-				 */
 		}
 	}
 }

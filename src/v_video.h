@@ -124,8 +124,6 @@ void V_DrawPerspView(byte * viewbuffer, int aiming);
 void VID_BlitLinearScreen(byte * srcptr, byte * destptr, int width,
 						  int height, int srcrowbytes, int destrowbytes);
 
-extern int FontBBaseLump;	// draw text with fontB (big font)
-
 /*******************************************************************************
 ********************************************************************************
 *******************************************************************************/
@@ -328,9 +326,6 @@ int V_DrawStringA(const VideoFont_t Font, const uint32_t Options, const char* co
 void V_StringDimensionsA(const VideoFont_t Font, const uint32_t Options, const char* const String, int* const Width, int* const Height);
 int V_StringWidthA(const VideoFont_t Font, const uint32_t Options, const char* const String);
 int V_StringHeightA(const VideoFont_t Font, const uint32_t Options, const char* const String);
-
-/* Compatability */
-void V_DrawString(int x, int y, int option, char *string);	//added:05-02-98: draw a string using the hu_font
 
 /*******************************************************************************
 ********************************************************************************
