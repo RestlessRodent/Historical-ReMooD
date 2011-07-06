@@ -468,7 +468,7 @@ void M_DrawProfileMenu(void)
 	// Draw Skin Value
 	skinchar = PROF_GetNumber(((consvar_t*)(currentMenu->menuitems[1].itemaction))->value)->cvars[PC_SKIN].string;
 	
-	V_DrawStringA(VFONT_SMALL, VFONTOPTION_WHITE, skinchar,
+	V_DrawStringA(VFONT_SMALL, VEX_MAP_WHITE, skinchar,
 		(currentMenu->x + currentMenu->width) - V_StringWidthA(VFONT_SMALL, 0, skinchar),
 		(currentMenu->y + (5 * STRINGHEIGHT)));
 }

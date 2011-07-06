@@ -1460,7 +1460,7 @@ void V_DrawPatchEx(const uint32_t Flags, const int x, const int y, const patch_t
 /* V_DrawFadeConsBack() -- Pixelate and add red tint */
 void V_DrawFadeConsBack(int x1, int y1, int x2, int y2)
 {
-	V_DrawFadeConsBackEx(VEX_COLORMAPGREEN | VEX_NOSCALESTART | VEX_NOSCALESCREEN, x1, y1, x2, y2);
+	V_DrawFadeConsBackEx((VEX_MAP_GREEN << VEX_COLORMAPSHIFT) | VEX_NOSCALESTART | VEX_NOSCALESCREEN, x1, y1, x2, y2);
 }
 
 /* V_DrawPatch() -- Draws patch unscaled */
@@ -2449,7 +2449,7 @@ int V_DrawCharacterMB(const VideoFont_t xFont, const uint32_t Options, const cha
 {
 	const UniChar_t* D = NULL;
 	wchar_t WC = 0;
-	int VDrawOpt = 0;
+	uint32_t VDrawOpt = 0;
 	VideoFont_t Font = V_WXAliasFont(xFont);
 	
 	/* Check */
@@ -2474,25 +2474,23 @@ int V_DrawCharacterMB(const VideoFont_t xFont, const uint32_t Options, const cha
 	/* Missing graphic or bad drawing parms? */
 	if (!D || !D->Patch || x + D->Patch->width > vid.width)
 		return 0;
-		
-	/* Options */
-	if (Options & VFONTOPTION_NOSCALEPATCH)
-		VDrawOpt |= V_NOSCALEPATCH;
-	if (Options & VFONTOPTION_NOFLOATSCALE)
-		VDrawOpt |= V_NOFLOATSCALE;
-	if (Options & VFONTOPTION_NOSCALESTART)
-		VDrawOpt |= V_NOSCALESTART;
 	
-	/* Draw */
-	// Draw primary Glyph
-	if ((Options & VFONTOPTION_COLORMASK) == VFONTOPTION_WHITE)
-		V_DrawMappedPatch(x, y, VDrawOpt, D->Patch, whitemap);
-	else if ((Options & VFONTOPTION_COLORMASK) == VFONTOPTION_GRAY)
-		V_DrawMappedPatch(x, y, VDrawOpt, D->Patch, graymap);
-	else if ((Options & VFONTOPTION_COLORMASK) == VFONTOPTION_ORANGE)
-		V_DrawMappedPatch(x, y, VDrawOpt, D->Patch, orangemap);
-	else
-		V_DrawScaledPatch(x, y, VDrawOpt, D->Patch);
+	/* Draw extended */
+	// Flags
+	if (Options & VFO_NOSCALESTART)
+		VDrawOpt |= VEX_NOSCALESTART;
+	if (Options & VFO_NOSCALEPATCH)
+		VDrawOpt |= VEX_NOSCALESCREEN;
+	if (Options & VFO_NOFLOATSCALE)
+		VDrawOpt |= VEX_NOFLOATSCALE;
+	if (Options & VFO_NOSCALELORES)
+		VDrawOpt |= VEX_NOSCALE160160;
+	
+	// Colors
+	VDrawOpt |= (Options & VFO_COLORMASK) << VEX_COLORMAPSHIFT;
+	
+	// Do the drawing
+	V_DrawPatchEx(VDrawOpt, x, y, D->Patch, NULL);
 	
 	// Draw top and/or bottom glyph (and ignore bskip)
 	if (D->BuildTop)
@@ -2541,20 +2539,20 @@ int V_DrawStringA(const VideoFont_t xFont, const uint32_t Options, const char* c
 	Y = y;
 	
 	// Centered?
-	if (Options & VFONTOPTION_CENTERED)
+	if (Options & VFO_CENTERED)
 	{
 		V_StringDimensionsA(Font, Options, String, &LineWidth, NULL);
 		
-		if (Options & VFONTOPTION_NOSCALESTART)
+		if (Options & VFO_NOSCALESTART)
 		{
-			if (Options & VFONTOPTION_NOSCALEPATCH)
+			if (Options & VFO_NOSCALEPATCH)
 				X = (vid.width >> 1) - ((LineWidth * vid.dupx) >> 1);
 			else
 				X = (vid.width >> 1) - (LineWidth >> 1);
 		}
 		else
 		{
-			if (Options & VFONTOPTION_NOSCALEPATCH)
+			if (Options & VFO_NOSCALEPATCH)
 				X = (BASEVIDWIDTH >> 1) - ((LineWidth * vid.dupx) >> 1);
 			else
 				X = (BASEVIDWIDTH >> 1) - (LineWidth >> 1);
@@ -2567,7 +2565,7 @@ int V_DrawStringA(const VideoFont_t xFont, const uint32_t Options, const char* c
 		// Check for space
 		if (*c == ' ')
 		{
-			LS += ((Options & VFONTOPTION_RIGHTTOLEFT) ? -4 : 4);
+			LS += ((Options & VFO_RIGHTTOLEFT) ? -4 : 4);
 			MBSkip = 1;
 		}
 		
@@ -2609,11 +2607,11 @@ int V_DrawStringA(const VideoFont_t xFont, const uint32_t Options, const char* c
 			k = V_DrawCharacterMB(Font, Options, c, X + LS, Y + NL, &MBSkip);
 			
 			// Scale?
-			if (Options & VFONTOPTION_NOSCALESTART && !(Options & VFONTOPTION_NOSCALEPATCH))
+			if (Options & VFO_NOSCALESTART && !(Options & VFO_NOSCALEPATCH))
 				k *= vid.fdupx;
 			
 			// RtL?
-			LS += ((Options & VFONTOPTION_RIGHTTOLEFT) ? -k : k);
+			LS += ((Options & VFO_RIGHTTOLEFT) ? -k : k);
 			
 			// MBSkip failure?
 			if (!MBSkip)

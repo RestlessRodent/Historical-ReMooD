@@ -660,7 +660,7 @@ static void HU_DrawChat(void)
 	int V_DrawCharacterA(const VideoFont_t Font, const uint32_t Options, const char Char, const int x, const int y);
 	
 		//Hurdler: isn't it better like that?
-		V_DrawCharacterA(VFONT_SMALL, VFONTOPTION_NOSCALESTART | VFONTOPTION_NOSCALEPATCH | VFONTOPTION_NOSCALELORES | VFONTOPTION_WHITE, w_chat[i++], HU_INPUTX + (c << 3), y);
+		V_DrawCharacterA(VFONT_SMALL, VFO_NOSCALESTART | VFO_NOSCALEPATCH | VFO_NOSCALELORES | VEX_MAP_WHITE, w_chat[i++], HU_INPUTX + (c << 3), y);
 
 		c++;
 		if (c >= (vid.width >> 3))
@@ -672,7 +672,7 @@ static void HU_DrawChat(void)
 	}
 
 	if (hu_tick < 4)
-		V_DrawCharacterA(VFONT_SMALL, VFONTOPTION_NOSCALESTART | VFONTOPTION_NOSCALEPATCH | VFONTOPTION_NOSCALELORES | VFONTOPTION_WHITE, '_', HU_INPUTX + (c << 3), y);
+		V_DrawCharacterA(VFONT_SMALL, VFO_NOSCALESTART | VFO_NOSCALEPATCH | VFO_NOSCALELORES | VEX_MAP_WHITE, '_', HU_INPUTX + (c << 3), y);
 }
 
 extern consvar_t cv_chasecam;
@@ -810,7 +810,7 @@ static void HU_DrawTip()
 	tiptime--;
 
 	for (i = 0; i < numtiplines; i++)
-		V_DrawStringA(VFONT_SMALL, VFONTOPTION_CENTERED, tiplines[i], 0, ((BASEVIDHEIGHT - (numtiplines * 8)) / 2) + ((i + 1) * 8));
+		V_DrawStringA(VFONT_SMALL, VFO_CENTERED, tiplines[i], 0, ((BASEVIDHEIGHT - (numtiplines * 8)) / 2) + ((i + 1) * 8));
 }
 
 void HU_ClearTips()

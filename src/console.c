@@ -687,14 +687,14 @@ void CONEx_Drawer(void)
 					// Standard White Value
 					if (*b == 0x02)
 					{
-						ColorBits = VFONTOPTION_WHITE;
+						ColorBits = VEX_MAP_WHITE;
 						MBSkip = 1;
 					}
 					
 					// Beep (but don't beep, just blink)
 					else if (*b == 0x03)
 					{
-						ColorBits = ((gametic & 0x08) ? VFONTOPTION_WHITE : 0);
+						ColorBits = ((gametic & 0x08) ? VEX_MAP_WHITE : 0);
 						MBSkip = 1;
 					}
 					
@@ -702,7 +702,7 @@ void CONEx_Drawer(void)
 					else
 						V_DrawCharacterMB(
 								VFONT_SMALL,
-								VFONTOPTION_NOSCALEPATCH | VFONTOPTION_NOSCALESTART | VFONTOPTION_NOSCALELORES,
+								VFO_NOSCALEPATCH | VFO_NOSCALESTART | VFO_NOSCALELORES,
 								b,
 								4 + (w * m),
 								(-(i - 5)) * h,
@@ -753,12 +753,12 @@ void CONEx_Drawer(void)
 		}
 		
 		// Draw ReMooD version
-		V_StringDimensionsA(VFONT_OEM, VFONTOPTION_NOSCALESTART | VFONTOPTION_NOSCALEPATCH, REMOOD_FULLVERSIONSTRING, &w, &h);
+		V_StringDimensionsA(VFONT_OEM, VFO_NOSCALESTART | VFO_NOSCALEPATCH, REMOOD_FULLVERSIONSTRING, &w, &h);
 		
 		if (BottomCon - h - 4 > 0)
 			V_DrawStringA(
 					VFONT_OEM,
-					VFONTOPTION_ORANGE | VFONTOPTION_NOSCALESTART | VFONTOPTION_NOSCALEPATCH,
+					VEX_MAP_ORANGE | VFO_NOSCALESTART | VFO_NOSCALEPATCH,
 					REMOOD_FULLVERSIONSTRING,
 					vid.width - w - 4,
 					BottomCon - h - 4
@@ -768,7 +768,7 @@ void CONEx_Drawer(void)
 		if (con_startup && (!devparm || g_QuietConsole))
 		{
 			// Just say "LOADING..."
-			V_DrawStringA(VFONT_LARGE, VFONTOPTION_CENTERED, "Loading...", 160, 100);
+			V_DrawStringA(VFONT_LARGE, VFO_CENTERED, "Loading...", 160, 100);
 			return;
 		}
 			
@@ -801,14 +801,14 @@ void CONEx_Drawer(void)
 					// Standard White Value
 					if (*b == 0x02)
 					{
-						ColorBits = VFONTOPTION_WHITE;
+						ColorBits = VEX_MAP_WHITE;
 						MBSkip = 1;
 					}
 					
 					// Beep (but don't beep, just blink)
 					else if (*b == 0x03)
 					{
-						ColorBits = ((gametic & 0x08) ? VFONTOPTION_WHITE : 0);
+						ColorBits = ((gametic & 0x08) ? VEX_MAP_WHITE : 0);
 						MBSkip = 1;
 					}
 					
@@ -816,7 +816,7 @@ void CONEx_Drawer(void)
 					else
 						V_DrawCharacterMB(
 								VFONT_SMALL,
-								VFONTOPTION_NOSCALEPATCH | VFONTOPTION_NOSCALESTART | VFONTOPTION_NOSCALELORES,
+								VFO_NOSCALEPATCH | VFO_NOSCALESTART | VFO_NOSCALELORES,
 								b,
 								4 + (w * m),
 								(n + 1) * h,
@@ -835,7 +835,7 @@ void CONEx_Drawer(void)
 			// Draw dollar prompt
 			n = V_DrawStringA(
 						VFONT_SMALL,
-						VFONTOPTION_ORANGE | VFONTOPTION_NOSCALEPATCH | VFONTOPTION_NOSCALESTART | VFONTOPTION_NOSCALELORES,
+						VEX_MAP_ORANGE | VFO_NOSCALEPATCH | VFO_NOSCALESTART | VFO_NOSCALELORES,
 						"$ ",
 						0,
 						BottomCon - h - 4
@@ -847,7 +847,7 @@ void CONEx_Drawer(void)
 				// Draw input character
 				k = V_DrawCharacterMB(
 						VFONT_SMALL,
-						VFONTOPTION_ORANGE | VFONTOPTION_NOSCALEPATCH | VFONTOPTION_NOSCALESTART | VFONTOPTION_NOSCALELORES,
+						VEX_MAP_ORANGE | VFO_NOSCALEPATCH | VFO_NOSCALESTART | VFO_NOSCALELORES,
 						b,
 						n,
 						BottomCon - h - 4,
@@ -866,7 +866,7 @@ void CONEx_Drawer(void)
 			if ((gametic & 0x10))
 				V_DrawCharacterMB(
 						VFONT_SMALL,
-						VFONTOPTION_WHITE | VFONTOPTION_NOSCALEPATCH | VFONTOPTION_NOSCALESTART | VFONTOPTION_NOSCALELORES,
+						VEX_MAP_WHITE | VFO_NOSCALEPATCH | VFO_NOSCALESTART | VFO_NOSCALELORES,
 						"_",
 						n,
 						BottomCon - h - 4,
@@ -1991,14 +1991,14 @@ void CON_DrawInput(void)
 	y = con_curlines - 12;
 
 	for (x = 0; x < con_width; x++)
-		V_DrawCharacterA(VFONT_SMALL, VFONTOPTION_NOSCALESTART | VFONTOPTION_NOSCALEPATCH | VFONTOPTION_NOSCALELORES,
+		V_DrawCharacterA(VFONT_SMALL, VFO_NOSCALESTART | VFO_NOSCALEPATCH | VFO_NOSCALELORES,
 			p[x], (x + 1) << 3, y);
 
 	// draw the blinking cursor
 	//
 	x = (input_cx >= con_width) ? con_width - 1 : input_cx;
 	if (con_tick < 4)
-		V_DrawCharacterA(VFONT_SMALL, VFONTOPTION_NOSCALESTART | VFONTOPTION_NOSCALEPATCH | VFONTOPTION_NOSCALELORES,
+		V_DrawCharacterA(VFONT_SMALL, VFO_NOSCALESTART | VFO_NOSCALEPATCH | VFO_NOSCALELORES,
 			'_', (x + 1) << 3, y);
 }
 
@@ -2028,7 +2028,7 @@ void CON_DrawHudlines(void)
 		p = &con_buffer[(i % con_totallines) * con_width];
 
 		for (x = 0; x < con_width; x++)
-			V_DrawCharacterA(VFONT_SMALL, VFONTOPTION_NOSCALESTART | VFONTOPTION_NOSCALEPATCH | VFONTOPTION_NOSCALELORES,
+			V_DrawCharacterA(VFONT_SMALL, VFO_NOSCALESTART | VFO_NOSCALEPATCH | VFO_NOSCALELORES,
 			(p[x] & 0xff), x << 3, y);
 
 		if (con_lineowner[i % con_hudlines] == 2)
@@ -2140,7 +2140,7 @@ void CON_DrawConsole(void)
 		{
 			V_DrawCharacterMB(
 					VFONT_SMALL,
-					VFONTOPTION_NOSCALEPATCH | VFONTOPTION_NOSCALESTART | VFONTOPTION_NOSCALELORES,
+					VFO_NOSCALEPATCH | VFO_NOSCALESTART | VFO_NOSCALELORES,
 					&p[x],
 					(lx + 1) << 3,	// require logical x
 					y,

@@ -105,17 +105,17 @@ void M_DrawVideoOptions(void)
 		y = currentMenu->y + (STRINGHEIGHT << 1) + ((i / 3) * STRINGHEIGHT);
 		
 		if (text)
-			V_DrawStringA(VFONT_SMALL, (vid.modenum == i ? VFONTOPTION_WHITE : 0), text, x, y);
+			V_DrawStringA(VFONT_SMALL, (vid.modenum == i ? VEX_MAP_WHITE : 0), text, x, y);
 	}
 	
 	// Draw Cursor
 	if (itemOn == 0)
 	{
 		if (skullAnimCounter < 4 * NEWTICRATERATIO)	//blink cursor
-			V_DrawCharacterA(VFONT_SMALL, VFONTOPTION_WHITE, '*', cursorx, cursory);
+			V_DrawCharacterA(VFONT_SMALL, VEX_MAP_WHITE, '*', cursorx, cursory);
 			
 		if (!(skullAnimCounter < 4 * NEWTICRATERATIO))	//blink cursor
-			V_DrawCharacterA(VFONT_SMALL, VFONTOPTION_WHITE, '*', currentMenu->x - 10, currentMenu->y + (itemOn * STRINGHEIGHT));
+			V_DrawCharacterA(VFONT_SMALL, VEX_MAP_WHITE, '*', currentMenu->x - 10, currentMenu->y + (itemOn * STRINGHEIGHT));
 	}
 }
 

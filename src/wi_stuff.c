@@ -428,9 +428,9 @@ static void WI_drawLF(void)
 	// draw <LevelName>
 	if (true/*FontBBaseLump*/)
 	{
-		V_DrawStringA(VFONT_LARGE, VFONTOPTION_CENTERED, P_LevelName(), 0, y);
+		V_DrawStringA(VFONT_LARGE, VFO_CENTERED, P_LevelName(), 0, y);
 		y += (5 * V_StringHeightA(VFONT_LARGE, 0, P_LevelName())) / 4;
-		V_DrawStringA(VFONT_LARGE, VFONTOPTION_CENTERED, DS_GetString(DSTR_INTERMISSION_FINISHED), 0, y);
+		V_DrawStringA(VFONT_LARGE, VFO_CENTERED, DS_GetString(DSTR_INTERMISSION_FINISHED), 0, y);
 	}
 	else
 	{
@@ -450,10 +450,10 @@ static void WI_drawEL(void)
 	// draw "Entering"
 	if (true/*FontBBaseLump*/)
 	{
-		V_DrawStringA(VFONT_LARGE, VFONTOPTION_CENTERED, DS_GetString(DSTR_INTERMISSION_ENTERING),
+		V_DrawStringA(VFONT_LARGE, VFO_CENTERED, DS_GetString(DSTR_INTERMISSION_ENTERING),
 			0, y);
-		y += (5 * V_StringHeightA(VFONT_LARGE, VFONTOPTION_CENTERED, DS_GetString(DSTR_INTERMISSION_ENTERING))) / 4;
-		V_DrawStringA(VFONT_LARGE, VFONTOPTION_CENTERED, P_LevelNameByNum(wbs->epsd + 1, wbs->next + 1),
+		y += (5 * V_StringHeightA(VFONT_LARGE, VFO_CENTERED, DS_GetString(DSTR_INTERMISSION_ENTERING))) / 4;
+		V_DrawStringA(VFONT_LARGE, VFO_CENTERED, P_LevelNameByNum(wbs->epsd + 1, wbs->next + 1),
 			0, y);
 	}
 	else
@@ -520,8 +520,8 @@ static void IN_DrawYAH(void)
 	int x;
 	int prevmap;
 	
-	V_DrawStringA(VFONT_LARGE, VFONTOPTION_CENTERED, DS_GetString(DSTR_INTERMISSION_NOWENTERING), 0, 10);
-	V_DrawStringA(VFONT_LARGE, VFONTOPTION_CENTERED, P_LevelNameByNum(wbs->epsd + 1, wbs->next + 1), 0, 20);
+	V_DrawStringA(VFONT_LARGE, VFO_CENTERED, DS_GetString(DSTR_INTERMISSION_NOWENTERING), 0, 10);
+	V_DrawStringA(VFONT_LARGE, VFO_CENTERED, P_LevelNameByNum(wbs->epsd + 1, wbs->next + 1), 0, 20);
 
 	prevmap = (wbs->last == 8) ? wbs->next - 1 : wbs->last;
 
@@ -934,7 +934,7 @@ void WI_drawRancking(char *title, int x, int y, fragsort_t * fragtable,
 			y);
 
 		// draw name
-		V_DrawStringA(VFONT_SMALL, (plnum == white ? VFONTOPTION_WHITE : 0), fragtable[i].name,
+		V_DrawStringA(VFONT_SMALL, (plnum == white ? VEX_MAP_WHITE : 0), fragtable[i].name,
 			x + (large ? 64 : 29), y);
 
 		y += 12;
@@ -1035,7 +1035,7 @@ static void WI_drawDeathmatchStats(void)
 
 	timeleft = va("start in %d", cnt_pause / TICRATE);
 	
-	V_DrawStringA(VFONT_SMALL, VFONTOPTION_WHITE, timeleft, 200, 30);
+	V_DrawStringA(VFONT_SMALL, VEX_MAP_WHITE, timeleft, 200, 30);
 }
 
 boolean teamingame(int teamnum)
