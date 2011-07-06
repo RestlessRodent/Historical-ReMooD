@@ -32,6 +32,7 @@
 
 // Needed for action function pointer handling.
 #include "d_think.h"
+#include "doomtype.h"
 
 typedef enum
 {
@@ -1179,9 +1180,9 @@ typedef enum
 typedef struct
 {
 	spritenum_t sprite;
-	long frame;					//faB: we use the upper 16bits for translucency
+	int32_t frame;					//faB: we use the upper 16bits for translucency
 	//     and other shade effects
-	long tics;
+	int32_t tics;
 	// void       (*action) ();
 	actionf_t action;
 	statenum_t nextstate;

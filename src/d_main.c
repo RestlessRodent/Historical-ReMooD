@@ -1025,6 +1025,8 @@ void D_CheckWadVersion()
 	}
 }
 
+extern boolean g_PaintBallMode;
+
 //
 // D_DoomMain
 //
@@ -1043,6 +1045,7 @@ void D_DoomMain(void)
 	// GhostlyDeath <November 18, 2008> -- Move devparm up here
 	devparm = M_CheckParm("-devparm");
 	g_QuietConsole = M_CheckParm("-quiet");
+	g_PaintBallMode = M_CheckParm("-paintballmode");
 	
 	// GhostlyDeath <July 6, 2008> -- initialize fields
 	memset(player_names, 0, sizeof(player_names));
@@ -1494,3 +1497,4 @@ void D_DoomMain(void)
 
 	}
 }
+

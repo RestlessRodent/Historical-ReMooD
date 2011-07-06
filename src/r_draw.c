@@ -964,6 +964,45 @@ void R_DrawSpanNoWrap(void)
 {
 }
 
+boolean g_PaintBallMode = false;
+uint8_t g_PBColor = 0;
+
+/* R_DrawPaintballColumn_8() -- Paintball mode! */
+void R_DrawPaintballColumn_8(void)
+{	register int count;
+	register byte *dest;
+	register fixed_t frac;
+	register fixed_t fracstep;
+	
+	// check out coords for src*
+	if ((dc_yl < 0) || (dc_x >= vid.width))
+		return;
+	
+	count = dc_yh - dc_yl;
+	if (count < 0)
+		return;
+	
+	if ((unsigned)dc_x >= vid.width || dc_yl < 0 || dc_yh >= vid.height)
+		return;
+
+	// FIXME. As above.
+	//src  = ylookup[dc_yl] + columnofs[dc_x+2];
+	dest = activeylookup[dc_yl] + columnofs[dc_x];
+
+	// Looks familiar.
+	fracstep = dc_iscale;
+	frac = dc_texturemid + (dc_yl - centery) * fracstep;
+
+	// Here we do an additional index re-mapping.
+	do
+	{
+		*dest = g_PBColor;
+		dest += vid.width;
+		frac += fracstep;
+	}
+	while (count--);
+}
+
 void R_DrawShadeColumn_8(void)
 {
 	register int count;
@@ -1014,29 +1053,16 @@ void R_DrawTranslucentColumn_8(void)
 	register fixed_t fracstep;
 
 	// check out coords for src*
-	if ((dc_yl < 0) || (dc_x >= vid.width))
+	if ((dc_yl < 0) || (dc_x >= vid.width) || (dc_yh >= vid.height) || (dc_yl < 0) || ((unsigned)dc_x >= vid.width) || activeylookup[dc_yl] == NULL)
 		return;
 
 	count = dc_yh - dc_yl;
+	
 	if (count < 0)
-		return;
-
-#ifdef RANGECHECK
-	if ((unsigned)dc_x >= vid.width || dc_yl < 0 || dc_yh >= vid.height)
-	{
-		I_Error("R_DrawColumn: %i to %i at %i", dc_yl, dc_yh, dc_x);
-	}
-
-#endif
-
-	if ((dc_yh >= vid.height) || (dc_yl < 0) || ((unsigned)dc_x >= vid.width))
 		return;
 
 	// FIXME. As above.
 	//src  = ylookup[dc_yl] + columnofs[dc_x+2];
-
-	if (activeylookup[dc_yl] == NULL)
-		return;
 
 	dest = activeylookup[dc_yl] + columnofs[dc_x];
 

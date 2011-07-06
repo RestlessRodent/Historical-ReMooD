@@ -81,6 +81,20 @@ void R_SetTrans(statenum_t state1, statenum_t state2, transnum_t transmap)
 	while (state1++ < state2);
 }
 
+void R_SetSmokeShade(statenum_t state1, statenum_t state2, boolean smoke)
+{
+	state_t *state = &states[state1];
+	do
+	{
+		if (smoke)
+			state->frame |= FF_SMOKESHADE;
+		else
+			state->frame &= ~FF_SMOKESHADE;
+		state++;
+	}
+	while (state1++ < state2);
+}
+
 //  hack the translucency in the states for a set of standard doom sprites
 //
 void P_SetTranslucencies(void)
@@ -173,6 +187,8 @@ void P_SetTranslucencies(void)
 	//Fab: lava/slime damage smoke test
 	R_SetTrans(S_SMOK1, S_SMOK5, tr_transmed);
 	R_SetTrans(S_SPLASH1, S_SPLASH3, tr_transmor);
+	
+	//R_SetSmokeShade(S_SMOK1, S_SMOK5, true);
 }
 
 void Translucency_OnChange(void)

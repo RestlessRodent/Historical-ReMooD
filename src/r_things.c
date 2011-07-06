@@ -552,9 +552,11 @@ static void R_DrawVisSprite(vissprite_t * vis, int x1, int x2)
 		dc_translation = translationtables - 256 +
 			((vis->mobjflags & MF_TRANSLATION) >> (MF_TRANSSHIFT - 8));
 	}
-	if (vis->transmap == VIS_SMOKESHADE)
+	if (vis->colormap == VIS_SMOKESHADE)
+	{
 		// shadecolfunc uses 'colormaps'
 		colfunc = shadecolfunc;
+	}
 	else if (vis->transmap == VIS_OLDFUZZ)
 		colfunc = oldfuzzcolfunc;
 	else if (vis->transmap)

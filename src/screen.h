@@ -120,6 +120,7 @@ extern void (*fuzzcolfunc) (void);
 extern void (*oldfuzzcolfunc)(void);
 extern void (*transcolfunc) (void);
 extern void (*shadecolfunc) (void);
+extern void (*paintballcolfunc) (void);	// GhostlyDeath <July 6, 2011> -- Paintball mode!
 extern void (*spanfunc) (void);
 extern void (*basespanfunc) (void);
 extern void (*transtransfunc) (void);	// SSNTails 11-11-2002

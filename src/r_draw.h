@@ -143,6 +143,7 @@ void ASMCALL R_DrawFuzzColumn_8(void);
 void ASMCALL R_DrawTranslucentColumn_8(void);
 void ASMCALL R_DrawTranslatedColumn_8(void);
 void ASMCALL R_DrawSpan_8(void);
+void ASMCALL R_DrawPaintballColumn_8(void);
 
 // SSNTails 11-11-2002
 void R_DrawTranslatedTranslucentColumn_8(void);
