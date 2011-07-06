@@ -2748,28 +2748,6 @@ int V_StringHeightA(const VideoFont_t Font, const uint32_t Options, const char* 
 
 int FontBBaseLump;
 
-void V_DrawCharacter(int x, int y, int c)
-{
-	uint32_t Options = 0;
-	
-	if (c & 0x80)
-		Options |= VFONTOPTION_WHITE;
-	if (c & V_WHITEMAP)
-		Options |= VFONTOPTION_WHITE;
-	if (c & V_GRAYMAP)
-		Options |= VFONTOPTION_GRAY;
-	if (c & V_ORANGEMAP)
-		Options |= VFONTOPTION_ORANGE;
-	if (c & V_NOSCALEPATCH)
-		Options |= VFONTOPTION_NOSCALEPATCH;
-	if (c & V_NOFLOATSCALE)
-		Options |= VFONTOPTION_NOFLOATSCALE;
-	if (c & V_NOSCALESTART)
-		Options |= VFONTOPTION_NOSCALESTART;
-	
-	V_DrawCharacterA(VFONT_SMALL, Options, c & 0x7F, x, y);
-}
-
 void V_DrawString(int x, int y, int option, char *string)
 {
 	uint32_t Options = 0;
