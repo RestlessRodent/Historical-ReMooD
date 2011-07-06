@@ -520,7 +520,7 @@ void I_GetEvent(void)
                     (inputEvent.motion.x > (vid.width/2)+(vid.width/4)) ||
                     (inputEvent.motion.y > (vid.height/2)+(vid.height/4)))
                 {*/
-                if (!menuactive && !consoleready && !demoplayback)
+                if (!M_ActiveMenu() && !consoleready && !demoplayback)
                 {
                     SDL_WarpMouse(vid.width/2, vid.height/2);
                     SDL_ShowCursor(SDL_DISABLE);
@@ -571,7 +571,7 @@ void I_GetEvent(void)
 
         case SDL_QUIT:
         	S_StartSound(NULL, sfx_swtchn);
-	        M_QuitDOOM(0);
+        	M_SpawnMenu("exitremood");
             //M_QuitResponse('y');
             break;
         default:

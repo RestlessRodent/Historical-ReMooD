@@ -701,7 +701,7 @@ void P_PlayerThink(player_t * player)
 #endif
 
 	// GhostlyDeath <July 10, 2008> -- Profile Check
-	if (!player->profile && !demoplayback && !menuactive)
+	if (!player->profile && !demoplayback && !M_ActiveMenu())
 		for (i = 0; i < cv_splitscreen.value + 1; i++)
 			if (playeringame[consoleplayer[i]] && player == &players[consoleplayer[i]])
 			{

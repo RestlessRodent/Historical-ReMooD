@@ -225,6 +225,7 @@ boolean precache = false;		// if true, load all graphics at start
 wbstartstruct_t wminfo;			// parms for world map / intermission
 
 byte *savebuffer;
+boolean localgame;
 
 void ShowMessage_OnChange(void);
 void AllowTurbo_OnChange(void);
@@ -862,7 +863,7 @@ boolean G_Responder(event_t * ev)
 	{
 		if (ev->type == ev_keydown)
 		{
-			M_StartControlPanel();
+			M_SpawnMenu("root");
 			return true;
 		}
 		return false;
@@ -1775,7 +1776,7 @@ void G_DeferedInitNew(skill_t skill, char *mapname, int StartSplitScreenGame)
 		players[i].profile = NULL;
 	
 	// Enable End Game option
-	MainDef.menuitems[1].status &= ~IT_DISABLED2;
+	//MainDef.menuitems[1].status &= ~IT_DISABLED2;
 	
 	CV_Set(&cv_splitscreen, va("%d", StartSplitScreenGame));
 

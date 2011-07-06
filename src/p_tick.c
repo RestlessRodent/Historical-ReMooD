@@ -123,7 +123,7 @@ void P_Ticker(void)
 	int i;
 
 	// run the tic
-	if (paused || (!netgame && menuactive && !demoplayback))
+	if (paused || (!netgame && M_ActiveMenu() && !demoplayback))
 		return;
 
 	for (i = 0; i < MAXPLAYERS; i++)

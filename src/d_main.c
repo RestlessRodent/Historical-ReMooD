@@ -182,7 +182,7 @@ void D_ProcessEvents(void)
 			shiftdown = false;
 		
 		// GhostlyDeath <November 2, 2010> -- Only respond to console if menu is not active
-		if (!menuactive)
+		if (!M_ActiveMenu())
 			// GhostlyDeath <November 2, 2010> -- Extended console
 			if (CONEx_Responder(ev))
 				continue;
@@ -316,7 +316,7 @@ void D_Display(void)
 		{
 			// the menu may draw over parts out of the view window,
 			// which are refreshed only when needed
-			if (menuactive || menuactivestate || !viewactivestate)
+			if (M_ActiveMenu() || menuactivestate || !viewactivestate)
 				borderdrawcount = 3;
 
 			if (borderdrawcount)
@@ -397,11 +397,11 @@ void D_Display(void)
 	if (gamestate != oldgamestate && gamestate != GS_LEVEL)
 		V_SetPalette(0);
 
-	menuactivestate = menuactive;
+	menuactivestate = M_ActiveMenu();
 	oldgamestate = wipegamestate = gamestate;
 
 	// draw pause pic
-	if (paused && (!menuactive || netgame) && (gamestate == GS_LEVEL || gamestate == GS_INTERMISSION))
+	if (paused && (!M_ActiveMenu() || netgame) && (gamestate == GS_LEVEL || gamestate == GS_INTERMISSION))
 	{
 		patch_t *patch;
 		if (automapactive)
@@ -418,7 +418,7 @@ void D_Display(void)
 	//CON_Drawer();
 	
 	// GhostlyDeath <November 2, 2010> -- Draw either the console or the menu
-	if (menuactive)
+	if (M_ActiveMenu())
 		M_Drawer();
 	else
 		CONEx_Drawer();
@@ -761,7 +761,7 @@ void D_StartTitle(void)
 	for (i = 0; i < MAXPLAYERS; i++)
 		players[i].profile = NULL;
 	
-	MainDef.menuitems[1].status |= IT_DISABLED2;
+	//MainDef.menuitems[1].status |= IT_DISABLED2;
 	
 	gameaction = ga_nothing;
 	playerdeadview = false;
@@ -1332,12 +1332,6 @@ void D_DoomMain(void)
 	S_RegisterSoundStuff();
 	PROF_Init();
 	CV_RegisterVar(&cv_screenslink);
-	
-	if (devparm)
-		M_DumpMenuXML();
-	
-	CONS_Printf(text[M_INIT_NUM]);
-	M_Init();
 
 	//Fab:29-04-98: do some dirty chatmacros strings initialisation
 	HU_HackChatmacros();

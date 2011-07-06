@@ -140,8 +140,6 @@ extern boolean digmusic;		// SSNTails 12-13-2002
 // Note that there is no way to disable the
 //  status bar explicitely.
 extern boolean statusbaractive;
-
-extern boolean menuactive;		// Menu overlayed?
 extern boolean paused;			// Game Pause?
 
 extern boolean nodrawers;
