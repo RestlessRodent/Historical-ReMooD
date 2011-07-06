@@ -764,8 +764,6 @@ void V_Init(void)
 	int screensize;
 
 	LoadPalette("PLAYPAL");
-	
-	FontBBaseLump = W_CheckNumForName("FONTC01");
 
 	//added:26-01-98:start address of NUMSCREENS * width*height vidbuffers
 	base = vid.buffer;
@@ -2745,48 +2743,6 @@ int V_StringHeightA(const VideoFont_t Font, const uint32_t Options, const char* 
 }
 
 // =============================== COMPATIBILITY ===============================
-
-int FontBBaseLump;
-
-void V_DrawString(int x, int y, int option, char *string)
-{
-	uint32_t Options = 0;
-	
-	if (option & V_WHITEMAP)
-		Options |= VFONTOPTION_WHITE;
-	if (option & V_GRAYMAP)
-		Options |= VFONTOPTION_GRAY;
-	if (option & V_ORANGEMAP)
-		Options |= VFONTOPTION_ORANGE;
-	if (option & V_NOSCALEPATCH)
-		Options |= VFONTOPTION_NOSCALEPATCH;
-	if (option & V_NOFLOATSCALE)
-		Options |= VFONTOPTION_NOFLOATSCALE;
-	if (option & V_NOSCALESTART)
-		Options |= VFONTOPTION_NOSCALESTART;
-	
-	V_DrawStringA(VFONT_SMALL, Options, string, x, y);
-}
-
-void V_DrawCenteredString(int x, int y, int option, char *string)
-{
-	uint32_t Options = 0;
-	
-	if (option & V_WHITEMAP)
-		Options |= VFONTOPTION_WHITE;
-	if (option & V_GRAYMAP)
-		Options |= VFONTOPTION_GRAY;
-	if (option & V_ORANGEMAP)
-		Options |= VFONTOPTION_ORANGE;
-	if (option & V_NOSCALEPATCH)
-		Options |= VFONTOPTION_NOSCALEPATCH;
-	if (option & V_NOFLOATSCALE)
-		Options |= VFONTOPTION_NOFLOATSCALE;
-	if (option & V_NOSCALESTART)
-		Options |= VFONTOPTION_NOSCALESTART;
-	
-	V_DrawStringA(VFONT_SMALL, Options | VFONTOPTION_CENTERED, string, x, y);
-}
 
 /*******************************************************************************
 ********************************************************************************
