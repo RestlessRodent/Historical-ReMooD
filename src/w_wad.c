@@ -2148,8 +2148,8 @@ WX_WADEntry_t*		WX_EntryForName(WX_WADFile_t* const a_WAD, const char* const a_N
 		if (Found)
 			return Found;
 		
-		// Go to the next list
-		if (a_WAD)
+		// Go to the next list (as long as we are searching all virtuals)
+		if (!a_WAD)
 			Rover = (a_Forwards ? Rover->VNextWAD : Rover->VPrevWAD);
 		
 		// Nothing else to do here
@@ -2386,5 +2386,16 @@ size_t				WX_GetEntryName(WX_WADEntry_t* const a_Entry, char* const a_OutBuf, co
 	
 	/* Slap into buffer */
 	return strncpy(a_OutBuf, a_Entry->Name, a_OutSize);
+}
+
+/* WX_GetEntrySize() -- Returns the size of an entry */
+size_t				WX_GetEntrySize(WX_WADEntry_t* const a_Entry)
+{
+	/* Check */
+	if (!a_Entry)
+		return NULL;
+	
+	/* Return size here */
+	return a_Entry->Size;
 }
 

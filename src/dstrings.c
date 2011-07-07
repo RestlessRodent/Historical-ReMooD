@@ -30,6 +30,10 @@
 #include "z_zone.h"
 #include "m_swap.h"
 
+/**************
+*** GLOBALS ***
+**************/
+
 char *text[NUMTEXT] = {
 	"Development mode ON.\n",
 	"CD-ROM Version: default.cfg from c:\\doomdata\n",
@@ -852,6 +856,10 @@ char savegamename[256];
 /******************************************************************************/
 /******************************************************************************/
 
+/**************
+*** GLOBALS ***
+**************/
+
 StringGroupEX_t UnicodeStrings[NUMUNICODESTRINGS] =
 {
 	/****** MENUS ******/
@@ -1117,6 +1125,10 @@ StringGroupEX_t UnicodeStrings[NUMUNICODESTRINGS] =
 	{					    "INTERMISSION_NETPAR", "Par"},
 };
 
+/****************
+*** FUNCTIONS ***
+****************/
+
 /* DS_NameOfString() -- Returns name of pointer to string */
 const char* DS_NameOfString(char** const WCharStr)
 {
@@ -1133,5 +1145,132 @@ const char* DS_NameOfString(char** const WCharStr)
 	
 	/* Failure */
 	return NULL;
+}
+
+/* XMLData_t -- Locally allocated XML Data */
+struct XMLData_s
+{
+	const char* CharData;
+	const char* p;
+	const char* pEnd;
+	size_t Size;
+	const char** KeyStack;
+	size_t CurStackSize;
+	size_t MaxStackSize;
+};
+
+/* DS_StartXML() -- Start reading XML Data */
+XMLData_t* DS_StartXML(const char* const a_CharData, const size_t a_Size)
+{
+	XMLData_t* XD = NULL;
+	size_t RealSize;
+	
+	/* Check */
+	if (!a_CharData)
+		return NULL;
+	
+	/* Obtain array size */
+	if (!a_Size)
+		RealSize = strlen(a_CharData);
+	else
+		RealSize = a_Size;
+	
+	/* Allocate */
+	XD = Z_Malloc(sizeof(*XD), PU_STATIC, NULL);
+	XD->CharData = a_CharData;
+	XD->Size = RealSize;
+	XD->p = XD->CharData;
+	XD->pEnd = XD->CharData[XD->Size];
+	
+	/* Return */
+	return XD;
+}
+
+/* DS_EndXML() -- End reading XML Data */
+void DS_EndXML(XMLData_t* const a_XML)
+{
+	size_t i;
+	
+	/* Check */
+	if (!a_XML)
+		return;
+	
+	/* Free Contents */
+	for (i = 0; i < a_XML->MaxStackSize; i++)
+		if (a_XML->KeyStack[i])
+			Z_Free(a_XML->KeyStack[i]);
+	
+	/* Free Self */
+	Z_Free(a_XML);
+}
+
+/* DS_ParseXML() -- Parse XML Data */
+// There are probably security holes in this
+boolean DS_ParseXML(XMLData_t* const a_XML, void* const a_Data, boolean (*a_CBFunc)(void* const a_Data, const char* const a_Key, const char* const a_Value))
+{
+#define BUFSIZE 512
+	char* p;
+	char LoadedKey[BUFSIZE];
+	size_t i, ValidCount;
+	
+	/* Check */
+	if (!a_XML || !a_CBFunc)
+		return false;
+	
+	/* Constantly Read Data */
+	for (a_XML->p; a_XML->p < a_XML->pEnd; a_XML->p++)
+	{
+		// Ignore whitespace
+		if (*a_XML->p <= ' ')
+			continue;
+		
+		// If this is not a tag opening, fail
+		if (*a_XML->p != '<')
+			return false;
+		a_XML->p++;	// Step ahead
+		
+		// Which kind of tag is this?
+		switch (*a_XML->p)
+		{
+				// Comment
+			case '!':
+				a_XML->p++;
+				
+				// Check for validity
+				for (i = 0; i < 2; i++)
+					if (a_XML->p[i] != '-')
+						return false;
+				
+				// Valid, skip ahead a bit
+				a_XML->p += 2;
+				
+				// Seek until --> is found
+				for (; a_XML->p < a_XML->pEnd; a_XML->p++)
+					if (strncasecmp("-->", a_XML->p, 3) == 0)
+						break;
+				
+				printf("* Comment\n");
+				break;
+				
+				// Special
+			case '?':
+				// Seek until ?> is found
+				for (; a_XML->p < a_XML->pEnd; a_XML->p++)
+					if (strncasecmp("?>", a_XML->p, 2) == 0)
+						break;
+			
+				printf("* Special\n");
+				break;
+				
+				// Normal
+			default:
+				printf("* Normal\n");
+				break;
+		}
+	}
+	
+	/* Done reading */
+	return false;
+#undef BUFSIZE
 }
 

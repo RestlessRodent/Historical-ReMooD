@@ -10,18 +10,5 @@
 	
 	<!-- Menu Tree -->
 	<Menu>
-		<SubMenu>
-			<Title>Main Menu</Title>
-			<ID>idMainMenu</ID>
-			<Items>
-				<Item>
-					<Text>New Game</Text>
-					<Unicode>MENU_MAIN_NEWGAME</Unicode>
-				</Item>
-				<Item>
-					
-				</Item>
-			</Items>
-		</SubMenu>
 	</Menu>
 </ReMooD>

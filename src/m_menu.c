@@ -27,7 +27,10 @@
 *** INCLUDES ***
 ***************/
 
+#include "doomtype.h"
+#include "doomdef.h"
 #include "m_menu.h"
+#include "dstrings.h"
 
 /********************
 *** GUI FUNCTIONS ***
@@ -73,12 +76,48 @@ void M_Drawer(void)
 
 /*****************************************************************************/
 
+
+/* M_WX_BuildXMLBack() -- XML Callback, handle menu stuff */
+static boolean M_WX_BuildXMLBack(void* const a_Data, const char* const a_Key, const char* const a_Value)
+{
+	return true;
+}
+
 /* M_WX_Build() -- Loads menu from WAD */
 void M_WX_Build(WX_WADFile_t* const a_WAD)
 {
+	XMLData_t* XML;
+	WX_WADEntry_t* Entry;
+	
 	/* Check */
 	if (!a_WAD)
 		return;
+	
+	/* Find entry and parse XML */
+	Entry = WX_EntryForName(a_WAD, "RMD_XDAT", false);
+	
+	// Exists?
+	if (!Entry)
+	{
+		if (devparm)
+			CONS_Printf("M_WX_Build: RMD_XDAT missing!\n");
+		return;
+	}
+	
+	XML = DS_StartXML(WX_CacheEntry(Entry, WXCT_RAW, WXCT_RAW), WX_GetEntrySize(Entry));
+	
+	// Got XML?
+	if (!XML)
+		return;
+	
+	if (devparm)
+		CONS_Printf("M_WX_Build: Starting to parse XML...\n");
+		
+	/* While we are parsing the XML... */
+	DS_ParseXML(XML, NULL, M_WX_BuildXMLBack);
+	
+	if (devparm)
+		CONS_Printf("M_WX_Build: Done!\n");
 }
 
 /* M_WX_ClearBuild() -- Clears menu from WAD */

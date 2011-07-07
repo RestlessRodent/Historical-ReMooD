@@ -224,6 +224,7 @@ boolean				WX_VirtualPushPop(WX_WADFile_t* const a_WAD, const boolean a_Pop, con
 boolean				WX_GetVirtualPrivateData(WX_WADFile_t* const a_WAD, const WX_DataPrivateID_t a_ID, void*** const a_PPPtr, size_t** const a_PPSize);
 WX_WADEntry_t*		WX_RoveEntry(WX_WADEntry_t* const a_Entry, const ssize_t a_Next);
 size_t				WX_GetEntryName(WX_WADEntry_t* const a_Entry, char* const a_OutBuf, const size_t a_OutSize);
+size_t				WX_GetEntrySize(WX_WADEntry_t* const a_Entry);
 
 #endif							/* __W_WAD__ */
 
