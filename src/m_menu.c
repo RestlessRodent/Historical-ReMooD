@@ -29,9 +29,13 @@
 
 #include "m_menu.h"
 
-/****************
-*** FUNCTIONS ***
-****************/
+/********************
+*** GUI FUNCTIONS ***
+********************/
+
+/*********************
+*** MENU FUNCTIONS ***
+*********************/
 
 /* M_SpawnMenu() -- Opens an existing menu */
 void M_SpawnMenu(const char* const Name)
@@ -44,7 +48,14 @@ const char* M_ActiveMenu(void)
 	return NULL;
 }
 
-/*M_Responder() -- Responds to events passed from below */
+/* M_StartMessage() -- Starts a single message */
+void M_StartMessage(const char* const a_Str, void* A_Unk, const MessageMode_t a_Mode)
+{
+}
+
+/*****************************************************************************/
+
+/* M_Responder() -- Responds to events passed from below */
 boolean M_Responder(event_t* const Event)
 {
 	return false;
@@ -60,8 +71,34 @@ void M_Drawer(void)
 {
 }
 
-/* M_StartMessage() -- Starts a single message */
-void M_StartMessage(const char* const a_Str, void* A_Unk, const MessageMode_t a_Mode)
+/*****************************************************************************/
+
+/* M_WX_Build() -- Loads menu from WAD */
+void M_WX_Build(WX_WADFile_t* const a_WAD)
+{
+	/* Check */
+	if (!a_WAD)
+		return;
+}
+
+/* M_WX_ClearBuild() -- Clears menu from WAD */
+void M_WX_ClearBuild(WX_WADFile_t* const a_WAD)
+{
+	/* Check */
+	if (!a_WAD)
+		return;
+}
+
+/* M_WX_Composite() -- Merges all menus together */
+void M_WX_Composite(WX_WADFile_t* const a_WAD)
+{
+	/* Check */
+	if (!a_WAD)
+		return;
+}
+
+/* M_WX_ClearComposite() -- Clears merged menus */
+void M_WX_ClearComposite(void)
 {
 }
 

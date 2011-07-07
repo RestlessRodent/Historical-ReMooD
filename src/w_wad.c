@@ -56,6 +56,7 @@
 // WAD DATA
 #include "m_argv.h"
 #include "hu_stuff.h"
+#include "m_menu.h"
 
 /* W_UnloadData() -- Unload all WAD attached data */
 void W_UnloadData(void)
@@ -713,6 +714,9 @@ int W_InitMultipleFiles(char **filenames)
 
 	if (W_NumWadFiles() == 0)
 		I_Error("W_InitMultipleFiles: no files found\n");
+	
+	// WX: Compile composite here	
+	WX_CompileComposite();
 
 	return W_NumWadFiles();
 }
@@ -2061,6 +2065,7 @@ void				WX_LoadWADStuff(WX_WADFile_t* const a_WAD)
 		return;
 	
 	V_WXMapGraphicCharsWAD(a_WAD);
+	M_WX_Build(a_WAD);
 }
 
 /* WX_ClearWADStuff() -- Clear stuff from WAD that will soon be part of a composite */
@@ -2071,18 +2076,23 @@ void				WX_ClearWADStuff(WX_WADFile_t* const a_WAD)
 		return;
 	
 	V_WXClearGraphicCharsWAD(a_WAD);
+	M_WX_ClearBuild(a_WAD);
 }
 
 /* WX_CompileComposite() -- Merge all the loaded WAD Data and create a composite of it */
 void				WX_CompileComposite(void)
 {
-	V_WXMapGraphicCharsComposite(l_FirstVWAD);
+	WX_WADFile_t* WAD = l_FirstVWAD;	
+	
+	V_WXMapGraphicCharsComposite(WAD);
+	M_WX_Composite(WAD);
 }
 
 /* WX_ClearComposite() -- Clear all of the compositied WAD data */
 void				WX_ClearComposite(void)
 {
 	V_WXClearGraphicCharsComposite();
+	M_WX_ClearComposite();
 }
 
 /* WX_GetNumEntry() -- Gets entry in WAD by lump number */

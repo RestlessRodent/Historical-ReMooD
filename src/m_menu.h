@@ -32,6 +32,7 @@
 
 #include "doomtype.h"
 #include "d_event.h"
+#include "w_wad.h"
 
 /****************
 *** CONSTANTS ***
@@ -47,16 +48,26 @@ typedef enum MessageMode_e
 	NUMMESSAGEMODES
 } MessageMode_t;
 
-/*****************
-*** PROTOTYPES ***
-*****************/
+/*********************
+*** GUI PROTOTYPES ***
+*********************/
+
+/**********************
+*** MENU PROTOTYPES ***
+**********************/
 
 void M_SpawnMenu(const char* const Name);
 const char* M_ActiveMenu(void);
+void M_StartMessage(const char* const a_Str, void* A_Unk, const MessageMode_t a_Mode);
+
 boolean M_Responder(event_t* const Event);
 void M_Ticker(void);
 void M_Drawer(void);
-void M_StartMessage(const char* const a_Str, void* A_Unk, const MessageMode_t a_Mode);
+
+void M_WX_Build(WX_WADFile_t* const a_WAD);
+void M_WX_ClearBuild(WX_WADFile_t* const a_WAD);
+void M_WX_Composite(WX_WADFile_t* const a_WAD);
+void M_WX_ClearComposite(void);
 
 #endif /* __M_MENU_H__ */
 
