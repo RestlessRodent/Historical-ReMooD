@@ -1180,7 +1180,7 @@ XMLData_t* DS_StartXML(const char* const a_CharData, const size_t a_Size)
 	XD->CharData = a_CharData;
 	XD->Size = RealSize;
 	XD->p = XD->CharData;
-	XD->pEnd = XD->CharData[XD->Size];
+	XD->pEnd = &XD->CharData[XD->Size];
 	
 	/* Return */
 	return XD;
@@ -1206,66 +1206,211 @@ void DS_EndXML(XMLData_t* const a_XML)
 
 /* DS_ParseXML() -- Parse XML Data */
 // There are probably security holes in this
+// And this can't really do error free XML at all
 boolean DS_ParseXML(XMLData_t* const a_XML, void* const a_Data, boolean (*a_CBFunc)(void* const a_Data, const char* const a_Key, const char* const a_Value))
 {
 #define BUFSIZE 512
-	char* p;
+	char* p, c, **xP, z;
 	char LoadedKey[BUFSIZE];
-	size_t i, ValidCount;
+	char LoadedData[BUFSIZE];
+	char SendKey[BUFSIZE];
+	size_t i, k, ValidCount;
+	boolean EndTag, OK, BreakLoop;
 	
 	/* Check */
 	if (!a_XML || !a_CBFunc)
 		return false;
 	
+	/* Clear loaded string */
+	k = 0;
+	memset(LoadedData, 0, sizeof(LoadedData));
+	
 	/* Constantly Read Data */
-	for (a_XML->p; a_XML->p < a_XML->pEnd; a_XML->p++)
+	for (; a_XML->p < a_XML->pEnd; a_XML->p++)
 	{
 		// Ignore whitespace
 		if (*a_XML->p <= ' ')
 			continue;
 		
-		// If this is not a tag opening, fail
-		if (*a_XML->p != '<')
-			return false;
-		a_XML->p++;	// Step ahead
-		
-		// Which kind of tag is this?
-		switch (*a_XML->p)
+		// If this is not a tag opening, then it is data
+		if ((c = *a_XML->p) != '<')
 		{
-				// Comment
-			case '!':
-				a_XML->p++;
+			if (k < BUFSIZE - 1)
+				LoadedData[k++] = c;
+		}
+		
+		else
+		{
+			a_XML->p++;	// Step ahead
+			OK = false;
+			BreakLoop = false;	// Stop parsing?
+		
+			// Which kind of tag is this?
+			switch (c = *a_XML->p)
+			{
+					// Comment
+				case '!':
+					a_XML->p++;
 				
-				// Check for validity
-				for (i = 0; i < 2; i++)
-					if (a_XML->p[i] != '-')
+					// Check for validity
+					for (i = 0; i < 2; i++)
+						if (a_XML->p[i] != '-')
+						{
+							if (devparm)
+								CONS_Printf("DS_ParseXML: Bad XML Comment\n");
+							return false;
+						}
+				
+					// Valid, skip ahead a bit
+					a_XML->p += 2;
+				
+					// Seek until --> is found
+					for (; a_XML->p < a_XML->pEnd; a_XML->p++)
+						if (strncasecmp("-->", a_XML->p, 3) == 0)
+						{
+							OK = true;
+							break;
+						}
+					
+					if (!OK)
+					{
+						if (devparm)
+							CONS_Printf("DS_ParseXML: Bad XML Comment\n");
 						return false;
+					}
+					
+					// Valid skip ahead a bit
+					a_XML->p += 2;
+					
+					OK = true;
+					break;
 				
-				// Valid, skip ahead a bit
-				a_XML->p += 2;
+					// Special
+				case '?':
+					// Seek until ?> is found
+					for (; a_XML->p < a_XML->pEnd; a_XML->p++)
+						if (strncasecmp("?>", a_XML->p, 2) == 0)
+						{
+							OK = true;
+							break;
+						}
+					
+					if (!OK)
+					{
+						if (devparm)
+							CONS_Printf("DS_ParseXML: Bad XML Special\n");
+						return false;
+					}
 				
-				// Seek until --> is found
-				for (; a_XML->p < a_XML->pEnd; a_XML->p++)
-					if (strncasecmp("-->", a_XML->p, 3) == 0)
-						break;
+					// Valid skip ahead a bit
+					a_XML->p++;
+					
+					OK = true;
+					break;
 				
-				printf("* Comment\n");
-				break;
+					// Normal
+				default:
+					// End of tag?
+					EndTag = !!(*a_XML->p == '/');
+					if (EndTag)
+						a_XML->p++;
 				
-				// Special
-			case '?':
-				// Seek until ?> is found
-				for (; a_XML->p < a_XML->pEnd; a_XML->p++)
-					if (strncasecmp("?>", a_XML->p, 2) == 0)
-						break;
+					// Load key
+					memset(LoadedKey, 0, sizeof(LoadedKey));
+					for (i = 0; a_XML->p < a_XML->pEnd; a_XML->p++, i++)
+						if (*a_XML->p != ' ' && *a_XML->p != '>')
+						{
+							if (i < BUFSIZE - 1)
+								LoadedKey[i] = *a_XML->p;
+						}
+						else
+							break;
+					
+					// Read until >
+					for (;a_XML->p < a_XML->pEnd; a_XML->p++)
+						if (*a_XML->p == '>')
+							break;
+					
+					// If this is not the end, push to stack
+					if (!EndTag)
+					{
+						// There is not enough room on the stack
+						if (a_XML->CurStackSize + 1 >= a_XML->MaxStackSize)
+						{
+							Z_ResizeArray(&a_XML->KeyStack, sizeof(char*), a_XML->MaxStackSize, a_XML->MaxStackSize + 5);
+							a_XML->MaxStackSize += 5;
+						}
+						
+						// Choose last spot
+						xP = &a_XML->KeyStack[a_XML->CurStackSize++];
+						
+						// Duplicate key string here
+						*xP = Z_StrDup(LoadedKey, PU_STATIC, NULL);
+					}
+					
+					// Otherwise, pop from stack and ship off to handler
+					else
+					{
+						// Can't close a stack on nothing
+						if (!a_XML->CurStackSize)
+						{
+							if (devparm)
+								CONS_Printf("DS_ParseXML: No stack.\n");
+							return false;
+						}
+					
+						// Check the last member and make sure it is the same
+							// if not, bad XML
+						if (strcasecmp(LoadedKey, a_XML->KeyStack[a_XML->CurStackSize - 1]) != 0)
+						{
+							if (devparm)
+								CONS_Printf("DS_ParseXML: XML key unmatched! (\"%s\" != \"%s\")\n", LoadedKey, a_XML->KeyStack[a_XML->CurStackSize - 1]);
+							return false;
+						}
+						
+						// Clear it out
+						Z_Free(a_XML->KeyStack[a_XML->CurStackSize - 1]);
+						a_XML->KeyStack[a_XML->CurStackSize - 1] = NULL;
+						a_XML->CurStackSize--;
+						
+						// Anything to send?
+						if (LoadedData[0] != '\0')
+						{
+							// Fill key to send (sep with <)
+							memset(SendKey, 0, sizeof(SendKey));
+							for (z = 0; z < a_XML->CurStackSize; z++)
+							{
+								strncat(SendKey, a_XML->KeyStack[z], BUFSIZE);
+								strncat(SendKey, "<", BUFSIZE);
+							}
+						
+							// Append key
+							strncat(SendKey, LoadedKey, BUFSIZE);
+							
+							// Send to handler
+							BreakLoop = !a_CBFunc(a_Data, SendKey, LoadedData);
+						}
+					}
+					
+					// Always clear loaded data (helps validate XML a bit
+					k = 0;
+					memset(LoadedData, 0, sizeof(LoadedData));
+					
+					OK = true;
+					break;
+			}
 			
-				printf("* Special\n");
-				break;
-				
-				// Normal
-			default:
-				printf("* Normal\n");
-				break;
+			// Something bad happened
+			if (!OK)
+			{
+				if (devparm)
+					CONS_Printf("DS_ParseXML: Bad XML (Last \'%c\')\n", c);
+				return false;
+			}
+			
+			// Break the loop
+			if (BreakLoop)
+				return true;
 		}
 	}
 	

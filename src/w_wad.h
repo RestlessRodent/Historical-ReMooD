@@ -226,5 +226,7 @@ WX_WADEntry_t*		WX_RoveEntry(WX_WADEntry_t* const a_Entry, const ssize_t a_Next)
 size_t				WX_GetEntryName(WX_WADEntry_t* const a_Entry, char* const a_OutBuf, const size_t a_OutSize);
 size_t				WX_GetEntrySize(WX_WADEntry_t* const a_Entry);
 
+
+
 #endif							/* __W_WAD__ */
 

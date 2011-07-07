@@ -80,6 +80,7 @@ void M_Drawer(void)
 /* M_WX_BuildXMLBack() -- XML Callback, handle menu stuff */
 static boolean M_WX_BuildXMLBack(void* const a_Data, const char* const a_Key, const char* const a_Value)
 {
+	CONS_Printf("%s: %s\n", a_Key, a_Value);
 	return true;
 }
 
