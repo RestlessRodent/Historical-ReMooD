@@ -64,10 +64,6 @@ boolean M_Responder(event_t* const Event);
 void M_Ticker(void);
 void M_Drawer(void);
 
-void M_WX_Build(WX_WADFile_t* const a_WAD);
-void M_WX_ClearBuild(WX_WADFile_t* const a_WAD);
-void M_WX_Composite(WX_WADFile_t* const a_WAD);
-void M_WX_ClearComposite(void);
 
 #endif /* __M_MENU_H__ */
 

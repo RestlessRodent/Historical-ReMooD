@@ -21,60 +21,64 @@
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 // GNU General Public License for more details.
 // -----------------------------------------------------------------------------
-// DESCRIPTION: XML Menu Code
+// DESCRIPTION: Global XML Parsing
+
+#ifndef __D_XML_H__
+#define __D_XML_H__
 
 /***************
 *** INCLUDES ***
 ***************/
 
 #include "doomtype.h"
-#include "doomdef.h"
-#include "m_menu.h"
 #include "dstrings.h"
+#include "w_wad.h"
 
-/********************
-*** GUI FUNCTIONS ***
-********************/
+/****************
+*** CONSTANTS ***
+****************/
 
-/*********************
-*** MENU FUNCTIONS ***
-*********************/
-
-/* M_SpawnMenu() -- Opens an existing menu */
-void M_SpawnMenu(const char* const Name)
+/* D_XMLBuildAction_t -- Type of action being performed */
+typedef enum D_XMLBuildAction_e
 {
-}
+	DXMLBA_BUILD,									// Building for a WAD
+	DXMLBA_CLEARBUILD,								// Cleaning out a WAD
+	DXMLBA_COMPOSITE,								// Compositing virtual WADs
+	DXMLBA_CLEARCOMPOSITE,							// Clear virtual composite
+	
+	MAXXMLBUILDACTIONS
+} D_XMLBuildAction_t;
 
-/* M_ActiveMenu() -- Returns the name of the current active menu */
-const char* M_ActiveMenu(void)
+/* D_XMLKeyJunk_t -- Type of key junk */
+typedef enum D_XMLKeyJunk_e
 {
-	return NULL;
-}
+	DXMLKJ_IDENTITY,								// <Identity> -- XML Info
+	DXMLKJ_MENU,									// <Menu> -- Menu definitions
+	DXMLKJ_WADINDEX,								// <WadIndex> -- WAD Information (seeking)
 
-/* M_StartMessage() -- Starts a single message */
-void M_StartMessage(const char* const a_Str, void* A_Unk, const MessageMode_t a_Mode)
+	NUMXMLKEYJUNKS
+} D_XMLKeyJunk_t;
+
+/*****************
+*** STRUCTURES ***
+*****************/
+
+/* D_XMLPassedData_t -- Data to pass to an XML handler */
+typedef struct D_XMLPassedData_s
 {
-}
+	D_XMLBuildAction_t Action;						// What is happening?
+	D_XMLKeyJunk_t KeyJunk;							// What is this?
+	WX_WADFile_t* WAD;								// WAD File being checked
+} D_XMLPassedData_t;
 
-/*****************************************************************************/
+/*****************
+*** PROTOTYPES ***
+*****************/
 
-/* M_Responder() -- Responds to events passed from below */
-boolean M_Responder(event_t* const Event)
-{
-	return false;
-}
+void D_WX_XMLBuild(WX_WADFile_t* const a_WAD);
+void D_WX_XMLClearBuild(WX_WADFile_t* const a_WAD);
+void D_WX_XMLComposite(WX_WADFile_t* const a_WAD);
+void D_WX_XMLClearComposite(void);
 
-/* M_Ticker() -- Ticks the XML menu system */
-void M_Ticker(void)
-{
-}
-
-/* M_Drawer() -- Draws the menu */
-void M_Drawer(void)
-{
-}
-
-/*****************************************************************************/
-
-
+#endif /* __D_XML_H__ */
 

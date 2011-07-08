@@ -1341,6 +1341,23 @@ boolean DS_ParseXML(XMLData_t* const a_XML, void* const a_Data, boolean (*a_CBFu
 							a_XML->MaxStackSize += 5;
 						}
 						
+						// Fill key to send (sep with <)
+						memset(SendKey, 0, sizeof(SendKey));
+						for (z = 0; z < a_XML->CurStackSize; z++)
+						{
+							strncat(SendKey, a_XML->KeyStack[z], BUFSIZE);
+							strncat(SendKey, "<", BUFSIZE);
+						}
+						
+						// Place tag opening check
+						strncat(SendKey, "?", BUFSIZE);
+					
+						// Append key
+						strncat(SendKey, LoadedKey, BUFSIZE);
+						
+						// Send to handler
+						BreakLoop = !a_CBFunc(a_Data, SendKey, LoadedData);
+						
 						// Choose last spot
 						xP = &a_XML->KeyStack[a_XML->CurStackSize++];
 						
@@ -1373,23 +1390,23 @@ boolean DS_ParseXML(XMLData_t* const a_XML, void* const a_Data, boolean (*a_CBFu
 						a_XML->KeyStack[a_XML->CurStackSize - 1] = NULL;
 						a_XML->CurStackSize--;
 						
-						// Anything to send?
-						if (LoadedData[0] != '\0')
+						// Fill key to send (sep with <)
+						memset(SendKey, 0, sizeof(SendKey));
+						for (z = 0; z < a_XML->CurStackSize; z++)
 						{
-							// Fill key to send (sep with <)
-							memset(SendKey, 0, sizeof(SendKey));
-							for (z = 0; z < a_XML->CurStackSize; z++)
-							{
-								strncat(SendKey, a_XML->KeyStack[z], BUFSIZE);
-								strncat(SendKey, "<", BUFSIZE);
-							}
-						
-							// Append key
-							strncat(SendKey, LoadedKey, BUFSIZE);
-							
-							// Send to handler
-							BreakLoop = !a_CBFunc(a_Data, SendKey, LoadedData);
+							strncat(SendKey, a_XML->KeyStack[z], BUFSIZE);
+							strncat(SendKey, "<", BUFSIZE);
 						}
+						
+						// If there is no data, do a standard tag close here
+						if (LoadedData[0] == '\0')
+							strncat(SendKey, "/", BUFSIZE);
+					
+						// Append key
+						strncat(SendKey, LoadedKey, BUFSIZE);
+						
+						// Send to handler
+						BreakLoop = !a_CBFunc(a_Data, SendKey, LoadedData);
 					}
 					
 					// Always clear loaded data (helps validate XML a bit
@@ -1410,7 +1427,10 @@ boolean DS_ParseXML(XMLData_t* const a_XML, void* const a_Data, boolean (*a_CBFu
 			
 			// Break the loop
 			if (BreakLoop)
+			{
+				a_XML->p++;	// Relies on p being increment at end
 				return true;
+			}
 		}
 	}
 	

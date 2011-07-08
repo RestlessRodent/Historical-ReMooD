@@ -21,60 +21,84 @@
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 // GNU General Public License for more details.
 // -----------------------------------------------------------------------------
-// DESCRIPTION: XML Menu Code
+// DESCRIPTION: Global XML Parsing
 
 /***************
 *** INCLUDES ***
 ***************/
 
-#include "doomtype.h"
 #include "doomdef.h"
+#include "d_xml.h"
 #include "m_menu.h"
-#include "dstrings.h"
+#include "console.h"
 
-/********************
-*** GUI FUNCTIONS ***
-********************/
+/****************
+*** FUNCTIONS ***
+****************/
 
-/*********************
-*** MENU FUNCTIONS ***
-*********************/
-
-/* M_SpawnMenu() -- Opens an existing menu */
-void M_SpawnMenu(const char* const Name)
+/* D_WX_XMLBuildXMLBack() -- XML Callback */
+static boolean D_WX_XMLBuildXMLBack(void* const a_Data, const char* const a_Key, const char* const a_Value)
 {
+	CONS_Printf("D_WX_XMLBuildXMLBack: %s: %s\n", a_Key, a_Value);
+	return true;
 }
 
-/* M_ActiveMenu() -- Returns the name of the current active menu */
-const char* M_ActiveMenu(void)
+
+/* D_WX_XMLBuild() -- Build per wad XML data */
+void D_WX_XMLBuild(WX_WADFile_t* const a_WAD)
 {
-	return NULL;
+	XMLData_t* XML;
+	WX_WADEntry_t* Entry;
+	
+	/* Check */
+	if (!a_WAD)
+		return;
+	
+	/* Find entry and parse XML */
+	Entry = WX_EntryForName(a_WAD, "RMD_XDAT", false);
+	
+	// Exists?
+	if (!Entry)
+	{
+		if (devparm)
+			CONS_Printf("D_WX_XMLBuild: RMD_XDAT missing!\n");
+		return;
+	}
+	
+	XML = DS_StartXML(WX_CacheEntry(Entry, WXCT_RAW, WXCT_RAW), WX_GetEntrySize(Entry));
+	
+	// Got XML?
+	if (!XML)
+		return;
+	
+	if (devparm)
+		CONS_Printf("D_WX_XMLBuild: Starting to parse XML...\n");
+		
+	/* While we are parsing the XML... */
+	DS_ParseXML(XML, NULL, D_WX_XMLBuildXMLBack);
+	
+	if (devparm)
+		CONS_Printf("D_WX_XMLBuild: Done!\n");
 }
 
-/* M_StartMessage() -- Starts a single message */
-void M_StartMessage(const char* const a_Str, void* A_Unk, const MessageMode_t a_Mode)
+/* D_WX_XMLClearBuild() -- Clear per wad XML Data */
+void D_WX_XMLClearBuild(WX_WADFile_t* const a_WAD)
 {
+	/* Check */
+	if (!a_WAD)
+		return;
 }
 
-/*****************************************************************************/
-
-/* M_Responder() -- Responds to events passed from below */
-boolean M_Responder(event_t* const Event)
+/* D_WX_XMLComposite() -- Compile XML Composite */
+void D_WX_XMLComposite(WX_WADFile_t* const a_WAD)
 {
-	return false;
+	/* Check */
+	if (!a_WAD)
+		return;
 }
 
-/* M_Ticker() -- Ticks the XML menu system */
-void M_Ticker(void)
+/* D_WX_XMLClearComposite() -- Clear XML Composite */
+void D_WX_XMLClearComposite(void)
 {
 }
-
-/* M_Drawer() -- Draws the menu */
-void M_Drawer(void)
-{
-}
-
-/*****************************************************************************/
-
-
 
