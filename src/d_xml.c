@@ -43,10 +43,9 @@ static boolean D_WX_XMLBuildXMLBack(void* const a_Data, const char* const a_Key,
 	D_XMLPassedData_t* XMLPass = a_Data;
 	const char* Base = a_Key;
 	const char* Used;
-	D_XMLEntry_t** CurrentTable;
-	size_t* CurrentSize, i;
 	char Temp[BUFSIZE];
 	boolean Missing;
+	D_XMLEntry_t* Rover, *OldRover;
 	
 	CONS_Printf("D_WX_XMLBuildXMLBack: %s: %s\n", a_Key, a_Value);
 	
@@ -54,8 +53,18 @@ static boolean D_WX_XMLBuildXMLBack(void* const a_Data, const char* const a_Key,
 	if (!a_Data || !a_Key || !a_Value)
 		return false;
 	
+	/* If the table is not set, initialize it with ReMooD */
+	if (!*XMLPass->Table)
+	{
+		*XMLPass->TableSize = sizeof(D_XMLEntry_t);
+		*XMLPass->Table = Z_Malloc(*XMLPass->TableSize, PU_STATIC, NULL);
+		Rover = *XMLPass->Table;
+		Rover->HasTable = true;
+		Rover->Key = Z_StrDup("ReMooD", PU_STATIC, NULL);
+	}
+	
 	/* Constantly read key off the key stack */
-	for (CurrentTable = XMLPass->Table, CurrentSize = XMLPass->TableSize; Base[0];)
+	for (OldRover = NULL, Rover = *XMLPass->Table; Base[0];)	
 	{
 		// Ignore ? and /
 		if (Base[0] == '?' || Base[0] == '/')
@@ -65,41 +74,36 @@ static boolean D_WX_XMLBuildXMLBack(void* const a_Data, const char* const a_Key,
 		strncpy(Temp, Base, BUFSIZE);
 		Base += strlen(Base) + 1;
 		
-		// Search table for key
-		i = 0;
-		Missing = true;
-		if (*CurrentTable)
-			for (i = 0; i < *CurrentSize; i++)
-				if (strcasecmp((*CurrentTable)[i].Key, Temp) == 0)
-				{
-					// Found in table
-					Missing = false;	// No longer missing
-					
-					// Select table and use that instead (traverse)
-					if ((*CurrentTable)[i].HasTable)
-					{
-						CurrentTable = &((*CurrentTable)[i].Data.Index.Table);
-						CurrentSize = &((*CurrentTable)[i].Data.Index.Size);
-						i = 0;
-					}
-					
-					// Break out always
-					break;
-				}
-		
-		// Table is missing (resize table to add it)
-		if (Missing)
+		// Until we are roving
+		OldRover = NULL;
+		while (Rover)
 		{
-			i = 0;
-			// Resize
-			Z_ResizeArray(CurrentTable, sizeof(D_XMLEntry_t), *CurrentSize, *CurrentSize + 1);
-			*CurrentSize += 1;
+			// Remember old rover
+			OldRover = Rover;
 			
-			// Set key
-			(*CurrentTable)[i].Key = Z_StrDup(Temp, PU_STATIC, NULL);
-			
-			continue;
+			// Rove around for key
+			if (strcasecmp(Rover->Key, Temp) == 0)
+			{
+				// found it! If it is a subtable then enter it
+				if (Rover->HasTable)
+					Rover = Rover->Data.SubTable;
+				break;
+			}
+		
+			// Did not find it
+			else
+				Rover = Rover->Next;
 		}
+		
+		// If there was no rover, append here
+		if (!Rover)
+		{
+			OldRover->Next = Z_Malloc(sizeof(*OldRover->Next), PU_STATIC, NULL);
+			Rover = OldRover->Next;
+			
+			Rover->Key = Z_StrDup(Temp, PU_STATIC, NULL);
+		}
+		
 	}
 	
 	return true;

@@ -92,17 +92,16 @@ typedef struct D_XMLHandler_s
 typedef struct D_XMLEntry_s
 {
 	char* Key;										// XML Key
-	boolean Defined;								// Actually Defined
 	boolean HasTable;								// Is a table and not a value
+	
 	union
 	{
 		char* Value;								// Plain key value
-		struct
-		{
-			struct D_XMLEntry_s* Table;				// Tables
-			size_t Size;							// Size of Table
-		} Index;									// Contains more keys
+		struct D_XMLEntry_s* SubTable;				// Subtable
 	} Data;											// Entry data
+	
+	struct D_XMLEntry_s* Prev;						// Previous in chain
+	struct D_XMLEntry_s* Next;						// Next in chain
 } D_XMLEntry_t;
 
 /* D_XMLPassedData_t -- Data to pass to an XML handler */
