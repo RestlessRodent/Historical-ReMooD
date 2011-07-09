@@ -38,6 +38,8 @@
 *** CONSTANTS ***
 ****************/
 
+#define MAXXMLHANDLERKEYSIZE				32		// buffer size of key handler key
+
 /* D_XMLBuildAction_t -- Type of action being performed */
 typedef enum D_XMLBuildAction_e
 {
@@ -59,6 +61,20 @@ typedef enum D_XMLKeyJunk_e
 	NUMXMLKEYJUNKS
 } D_XMLKeyJunk_t;
 
+/* D_XMLHandleMethod_t -- How to actually handle something */
+typedef enum D_XMLHandleMethod_e
+{
+	DXMLHM_UNHANDLED,								// Ignore completely
+	DXMLHM_SUBKEYS,									// Contains subkeys
+	DXMLHM_STRDUP,									// Duplicate String
+	DXMLHM_TOINT32,									// Convert value to int
+	DXMLHM_TOFIXED,									// Convert value to fixed
+	DXMLHM_CUSTOM,									// Custom handler
+	DXMLHM_FLAGS,									// Flag handler
+	
+	NUMXMLHANDLEMETHODS
+} D_XMLHandleMethod_t;
+
 /*****************
 *** STRUCTURES ***
 *****************/
@@ -75,6 +91,15 @@ typedef struct D_XMLPassedData_s
 	const char* Value;								// Passed Value
 	int CheckRetVal;								// Return value of checker
 } D_XMLPassedData_t;
+
+/* D_XMLHandler_t -- Handles an XML thing */
+typedef struct D_XMLHandler_s
+{
+	const char KeyDef[MAXXMLHANDLERKEYSIZE];		// Actual Key to handle
+	D_XMLHandleMethod_t Method;						// How do we handle this?
+	void* Data;										// Data attached to method
+	size_t Size;									// Size attached to method
+} D_XMLHandler_t;
 
 /*****************
 *** PROTOTYPES ***
