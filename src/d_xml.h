@@ -79,6 +79,32 @@ typedef enum D_XMLHandleMethod_e
 *** STRUCTURES ***
 *****************/
 
+/* D_XMLHandler_t -- Handles an XML thing */
+typedef struct D_XMLHandler_s
+{
+	const char KeyDef[MAXXMLHANDLERKEYSIZE];		// Actual Key to handle
+	D_XMLHandleMethod_t Method;						// How do we handle this?
+	void* Data;										// Data attached to method
+	size_t Size;									// Size attached to method
+} D_XMLHandler_t;
+
+/* D_XMLEntry_t -- Entry in an XML table */
+typedef struct D_XMLEntry_s
+{
+	char* Key;										// XML Key
+	boolean Defined;								// Actually Defined
+	boolean HasTable;								// Is a table and not a value
+	union
+	{
+		char* Value;								// Plain key value
+		struct
+		{
+			struct D_XMLEntry_s* Table;				// Tables
+			size_t Size;							// Size of Table
+		} Index;									// Contains more keys
+	} Data;											// Entry data
+} D_XMLEntry_t;
+
 /* D_XMLPassedData_t -- Data to pass to an XML handler */
 typedef struct D_XMLPassedData_s
 {
@@ -90,22 +116,14 @@ typedef struct D_XMLPassedData_s
 	const char* Key;								// Passed Key
 	const char* Value;								// Passed Value
 	int CheckRetVal;								// Return value of checker
+	
+	D_XMLEntry_t** Table;							// XML Table
+	size_t* TableSize;								// Size of table
 } D_XMLPassedData_t;
-
-/* D_XMLHandler_t -- Handles an XML thing */
-typedef struct D_XMLHandler_s
-{
-	const char KeyDef[MAXXMLHANDLERKEYSIZE];		// Actual Key to handle
-	D_XMLHandleMethod_t Method;						// How do we handle this?
-	void* Data;										// Data attached to method
-	size_t Size;									// Size attached to method
-} D_XMLHandler_t;
 
 /*****************
 *** PROTOTYPES ***
 *****************/
-
-int D_XMLCheckKey(const char* const a_Key, const char* const a_CheckValue, const char** const a_Next);
 
 void D_WX_XMLBuild(WX_WADFile_t* const a_WAD);
 void D_WX_XMLClearBuild(WX_WADFile_t* const a_WAD);

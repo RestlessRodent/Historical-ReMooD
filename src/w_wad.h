@@ -194,6 +194,7 @@ typedef enum WX_DataPrivateID_e
 {
 	WXDPID_GCHARS,									// Graphic characters
 	WXDPID_MENU,									// Menu Junk
+	WXDPID_XML,										// XML Table
 	
 	NUMWXDATAPRIVATEIDS
 }  WX_DataPrivateID_t;

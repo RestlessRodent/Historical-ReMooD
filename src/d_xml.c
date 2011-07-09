@@ -36,79 +36,17 @@
 *** FUNCTIONS ***
 ****************/
 
-/* D_XMLCheckKey() -- Checks a key and returns its type */
-int D_XMLCheckKey(const char* const a_Key, const char* const a_CheckValue, const char** const a_Next)
-{
-	const char* Base;
-	size_t Len;
-	boolean Open, Closed;
-	
-	/* Check */
-	if (!a_Key || !a_CheckValue)
-		return 0;
-	
-	/* Check now */
-	// Get length of check
-	Len = strlen(a_CheckValue);
-	
-	if (!Len)
-		return 0;
-		
-	// if the first character in a key is / or ? move the base
-	Open = Closed = false;
-	switch (a_Key[0])
-	{
-		case '?':
-			Open = true;
-		case '/':
-			Closed = !Open;
-			
-			// Boost
-			Base = a_Key + 1;
-			break;
-		
-			// Nothing
-		default:
-			Base = a_Key;
-			break;
-	}
-	
-	// Check to see if it matches
-	if (strncasecmp(Base, a_CheckValue, Len) != 0)
-		return 0;
-	
-	/* It does match */
-	// Check to see which kind of ending this is
-	switch (Base[Len])
-	{
-			// Just this
-		case '\0':
-			// Tag was opened
-			if (Open)
-				return 2;
-				
-			// Tag was closed
-			if (Closed)
-				return -1;
-			break;
-		
-			// Key is followed by something else
-		case '<':
-		default:
-			if (a_Next)
-				*a_Next = &Base[Len + 1];
-			return 1;
-	}
-	
-	/* Shouldn't really reach here */
-	return 0;
-}
-
 /* D_WX_XMLBuildXMLBack() -- XML Callback */
 static boolean D_WX_XMLBuildXMLBack(void* const a_Data, const char* const a_Key, const char* const a_Value)
 {
+#define BUFSIZE 512
 	D_XMLPassedData_t* XMLPass = a_Data;
 	const char* Base = a_Key;
+	const char* Used;
+	D_XMLEntry_t** CurrentTable;
+	size_t* CurrentSize, i;
+	char Temp[BUFSIZE];
+	boolean Missing;
 	
 	CONS_Printf("D_WX_XMLBuildXMLBack: %s: %s\n", a_Key, a_Value);
 	
@@ -116,54 +54,56 @@ static boolean D_WX_XMLBuildXMLBack(void* const a_Data, const char* const a_Key,
 	if (!a_Data || !a_Key || !a_Value)
 		return false;
 	
-	/* Set stuff */
-	XMLPass->Key = a_Key;
-	XMLPass->Value = a_Value;
-	
-	/* Check to make sure we are in the ReMooD namespace */
-	if (D_XMLCheckKey(Base, "ReMooD", &Base) > 0)
+	/* Constantly read key off the key stack */
+	for (CurrentTable = XMLPass->Table, CurrentSize = XMLPass->TableSize; Base[0];)
 	{
-		CONS_Printf("-> %s\n", Base);
+		// Ignore ? and /
+		if (Base[0] == '?' || Base[0] == '/')
+			Base++;
 		
-		// Now which subnamespace is this?
-			// Identity -- About this XML file
-		if ((XMLPass->CheckRetVal = D_XMLCheckKey(Base, "Identity", &Base)) != 0)
+		// Place base in buffer and skip it
+		strncpy(Temp, Base, BUFSIZE);
+		Base += strlen(Base) + 1;
+		
+		// Search table for key
+		i = 0;
+		Missing = true;
+		if (*CurrentTable)
+			for (i = 0; i < *CurrentSize; i++)
+				if (strcasecmp((*CurrentTable)[i].Key, Temp) == 0)
+				{
+					// Found in table
+					Missing = false;	// No longer missing
+					
+					// Select table and use that instead (traverse)
+					if ((*CurrentTable)[i].HasTable)
+					{
+						CurrentTable = &((*CurrentTable)[i].Data.Index.Table);
+						CurrentSize = &((*CurrentTable)[i].Data.Index.Size);
+						i = 0;
+					}
+					
+					// Break out always
+					break;
+				}
+		
+		// Table is missing (resize table to add it)
+		if (Missing)
 		{
-			XMLPass->KeyJunk = DXMLKJ_IDENTITY;
-			XMLPass->Key = Base;
+			i = 0;
+			// Resize
+			Z_ResizeArray(CurrentTable, sizeof(D_XMLEntry_t), *CurrentSize, *CurrentSize + 1);
+			*CurrentSize += 1;
 			
-			// Send to parser
-		}
-			// WadIndex -- IWAD info
-		else if ((XMLPass->CheckRetVal = D_XMLCheckKey(Base, "WadIndex", &Base)) != 0)
-		{
-			XMLPass->KeyJunk = DXMLKJ_WADINDEX;
-			XMLPass->Key = Base;
+			// Set key
+			(*CurrentTable)[i].Key = Z_StrDup(Temp, PU_STATIC, NULL);
 			
-			// Send to parser
-		}
-			// Menu -- Main menu
-		else if ((XMLPass->CheckRetVal = D_XMLCheckKey(Base, "Menu", &Base)) != 0)
-		{
-			XMLPass->KeyJunk = DXMLKJ_MENU;
-			XMLPass->Key = Base;
-			if (!WX_GetVirtualPrivateData(XMLPass->WAD, WXDPID_MENU, &XMLPass->PrivateJunk, &XMLPass->PrivateSize))
-			{
-				XMLPass->PrivateJunk = NULL;
-				XMLPass->PrivateSize = 0;
-			}
-			
-			// Send to parser
-			M_XMLDataParse(XMLPass);
-		}
-			// Unknown
-		else
-		{
-			// TODO: warn about it (if -devparm)
+			continue;
 		}
 	}
 	
 	return true;
+#undef BUFSIZE
 }
 
 
@@ -203,6 +143,9 @@ void D_WX_XMLBuild(WX_WADFile_t* const a_WAD)
 	memset(&XMLPass, 0, sizeof(XMLPass));
 	XMLPass.Action = DXMLBA_BUILD;
 	XMLPass.WAD = a_WAD;
+	
+	// Create private data
+	WX_GetVirtualPrivateData(XMLPass.WAD, WXDPID_XML, &XMLPass.Table, &XMLPass.TableSize);
 	
 	// Send
 	DS_ParseXML(XML, &XMLPass, D_WX_XMLBuildXMLBack);

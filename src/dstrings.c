@@ -1211,11 +1211,11 @@ void DS_EndXML(XMLData_t* const a_XML)
 boolean DS_ParseXML(XMLData_t* const a_XML, void* const a_Data, boolean (*a_CBFunc)(void* const a_Data, const char* const a_Key, const char* const a_Value))
 {
 #define BUFSIZE 512
-	char* p, c, **xP, z;
+	char* p, c, **xP;
 	char LoadedKey[BUFSIZE];
 	char LoadedData[BUFSIZE];
 	char SendKey[BUFSIZE];
-	size_t i, k, ValidCount;
+	size_t i, k, ValidCount, z, w;
 	boolean EndTag, OK, BreakLoop;
 	
 	/* Check */
@@ -1364,6 +1364,12 @@ boolean DS_ParseXML(XMLData_t* const a_XML, void* const a_Data, boolean (*a_CBFu
 						// Append key
 						strncat(SendKey, LoadedKey, BUFSIZE);
 						
+						// Turn all < into 0
+						w = strlen(SendKey);
+						for (z = 0; z < w; z++)
+							if (SendKey[z] == '<')
+								SendKey[z] = '\0';
+						
 						// Send to handler
 						BreakLoop = !a_CBFunc(a_Data, SendKey, LoadedData);
 						
@@ -1413,6 +1419,12 @@ boolean DS_ParseXML(XMLData_t* const a_XML, void* const a_Data, boolean (*a_CBFu
 					
 						// Append key
 						strncat(SendKey, LoadedKey, BUFSIZE);
+						
+						// Turn all < into 0
+						w = strlen(SendKey);
+						for (z = 0; z < w; z++)
+							if (SendKey[z] == '<')
+								SendKey[z] = '\0';
 						
 						// Send to handler
 						BreakLoop = !a_CBFunc(a_Data, SendKey, LoadedData);
