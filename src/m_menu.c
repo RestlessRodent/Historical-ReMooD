@@ -33,6 +33,57 @@
 #include "dstrings.h"
 
 /********************
+*** GUI CONSTANTS ***
+********************/
+
+/*********************
+*** MENU CONSTANTS ***
+*********************/
+
+/* M_MenuItemType_t -- Type of menu item */
+typedef enum M_MenuItemType_e
+{
+	MMIT_NOTHING,								// Nothing important
+	MMIT_FUNCTION,								// Function
+	MMIT_SUBMENU,								// Another menu
+	MMIT_CVAR,									// Console variable
+	
+	NUMMENUITEMTYPES
+} M_MenuItemType_t;
+
+/* M_MenuFlags_t -- Flags for the menu */
+typedef enum M_MenuFlags_e
+{
+	MMF_AUTOADJUST	= 0x00000001,				// Menu is autoadjusted
+} M_MenuFlags_t;
+
+/**********************
+*** MENU STRUCTURES ***
+**********************/
+
+/* M_MenuItem_t -- A menu item */
+typedef struct M_MenuItem_s
+{
+	M_MenuItemType_t Type;						// Type of menu item
+} M_MenuItem_t;
+
+/* M_MenuDef_t -- Menu definition */
+typedef struct M_MenuDef_s
+{
+	char* MenuID;								// ID of the menu
+	char* TitleStrID;							// String ID of the title to show
+	char* TitlePic;								// Title picture name
+	char** TitleStrRef;							// Pointer to pointer of UTF-8 string
+	uint32_t Flags;								// Flags for menu
+	M_MenuItem_t* Items;						// Menu items
+	size_t NumItems;							// Number of items
+} M_MenuDef_t;
+
+/*************
+*** LOCALS ***
+*************/
+
+/********************
 *** GUI FUNCTIONS ***
 ********************/
 
@@ -76,5 +127,30 @@ void M_Drawer(void)
 
 /*****************************************************************************/
 
-
+/* M_XMLDataParse() -- Parse XML data */
+void M_XMLDataParse(D_XMLPassedData_t* const a_PassDat)
+{
+	/* Check */
+	if (!a_PassDat)
+		return;
+	
+	/* If we closed the menu tag do some cleanup */
+	if (a_PassDat->CheckRetVal == -1)
+	{
+		if (devparm)
+			CONS_Printf("M_XMLDataParse: Finalize menus.\n");
+		return;
+	}
+	
+	/* If we opened the menu, prepare to modify it */
+	else if (a_PassDat->CheckRetVal == 2)
+	{
+		if (devparm)
+			CONS_Printf("M_XMLDataParse: Begin menus.\n");
+		return;
+	}
+	
+	/* Otherwise, we recreate a new menu now */
+	CONS_Printf("%s: %s\n", a_PassDat->Key, a_PassDat->Value);
+}
 

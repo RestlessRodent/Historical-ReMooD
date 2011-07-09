@@ -69,11 +69,16 @@ typedef struct D_XMLPassedData_s
 	D_XMLBuildAction_t Action;						// What is happening?
 	D_XMLKeyJunk_t KeyJunk;							// What is this?
 	WX_WADFile_t* WAD;								// WAD File being checked
+	const char* Key;								// Passed Key
+	const char* Value;								// Passed Value
+	int CheckRetVal;								// Return value of checker
 } D_XMLPassedData_t;
 
 /*****************
 *** PROTOTYPES ***
 *****************/
+
+int D_XMLCheckKey(const char* const a_Key, const char* const a_CheckValue, const char** const a_Next);
 
 void D_WX_XMLBuild(WX_WADFile_t* const a_WAD);
 void D_WX_XMLClearBuild(WX_WADFile_t* const a_WAD);

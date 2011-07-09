@@ -16,7 +16,7 @@
 			<Type>IWAD</Type>
 			<FileName>doom2.wad</FileName>
 			<GameMode>commercial</GameMode>
-			<GameMission>doom2</GameMode>
+			<GameMission>doom2</GameMission>
 			<XMLMapInfo>MX_DOOM2</XMLMapInfo>
 			<MapInfo>MI_DOOM2</MapInfo>
 			<Target>
@@ -37,6 +37,21 @@
 	
 	<!-- Menu Tree -->
 	<Menu>
+		<!-- Root Menu -->
+		<SubMenu>
+			<MenuID>root</MenuID>
+			<TitleStr>MENUMAIN_TITLE</TitleStr>
+			<TitlePatch>M_DOOM;M_HERETI</TitlePatch>
+			<Flags>AutoAdjust</Flags>
+			<Items>
+				<Item>
+					<Type>Function</Type>
+					<String>MENUMAIN_QUITGAME</String>
+					<Flags>MainMenuItem</Flags>
+					<Function>QuitDOOM</Function>
+				</Item>
+			</Items>
+		</SubMenu>
 	</Menu>
 </ReMooD>
 

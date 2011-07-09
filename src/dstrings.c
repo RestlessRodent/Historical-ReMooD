@@ -864,6 +864,7 @@ StringGroupEX_t UnicodeStrings[NUMUNICODESTRINGS] =
 {
 	/****** MENUS ******/
 	{							 "MENU_NULLSPACE", " "},
+	{							 "MENUMAIN_TITLE", "Main Menu"},
 	{						  "MENU_MAIN_NEWGAME", "New Game"},
 	{						  "MENU_MAIN_ENDGAME", "End Game"},
 	{						 "MENU_MAIN_LOADGAME", "Load Game"},
@@ -1334,6 +1335,14 @@ boolean DS_ParseXML(XMLData_t* const a_XML, void* const a_Data, boolean (*a_CBFu
 					// If this is not the end, push to stack
 					if (!EndTag)
 					{
+						// You cannot open a tag with data inside
+						if (LoadedData[0] != '\0')
+						{
+							if (devparm)
+								CONS_Printf("DS_ParseXML: Expected data not another key.\n");
+							return false;
+						}
+						
 						// There is not enough room on the stack
 						if (a_XML->CurStackSize + 1 >= a_XML->MaxStackSize)
 						{

@@ -33,6 +33,7 @@
 #include "doomtype.h"
 #include "d_event.h"
 #include "w_wad.h"
+#include "d_xml.h"
 
 /****************
 *** CONSTANTS ***
@@ -64,6 +65,7 @@ boolean M_Responder(event_t* const Event);
 void M_Ticker(void);
 void M_Drawer(void);
 
+void M_XMLDataParse(D_XMLPassedData_t* const a_PassDat);
 
 #endif /* __M_MENU_H__ */
 
