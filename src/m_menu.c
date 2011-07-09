@@ -79,6 +79,15 @@ typedef struct M_MenuDef_s
 	size_t NumItems;							// Number of items
 } M_MenuDef_t;
 
+/* M_WADPrivateJunk_t -- Private stuff for said WAD */
+typedef struct M_WADPrivateJunk_s
+{
+	M_MenuDef_t* Menus;							// Available Menus
+	size_t NumMenus;							// Number of menus
+	
+	M_MenuDef_t* EditMenu;						// Menu currently being edited
+} M_WADPrivateJunk_t;
+
 /*************
 *** LOCALS ***
 *************/
@@ -130,27 +139,102 @@ void M_Drawer(void)
 /* M_XMLDataParse() -- Parse XML data */
 void M_XMLDataParse(D_XMLPassedData_t* const a_PassDat)
 {
+	M_WADPrivateJunk_t** JunkPtrPtr;
+	M_WADPrivateJunk_t* JunkPtr;
+	const char* Base;
+	
 	/* Check */
 	if (!a_PassDat)
 		return;
+		
+	/* Get junk */
+	JunkPtrPtr = a_PassDat->PrivateJunk;
+	JunkPtr = *JunkPtrPtr;
 	
-	/* If we closed the menu tag do some cleanup */
-	if (a_PassDat->CheckRetVal == -1)
+	/* If a standard build is being done */
+	if (a_PassDat->Action == DXMLBA_BUILD)
 	{
-		if (devparm)
-			CONS_Printf("M_XMLDataParse: Finalize menus.\n");
-		return;
+		// If junk is not allocated
+		JunkPtrPtr = a_PassDat->PrivateJunk;
+	
+		if (!*JunkPtrPtr)
+		{
+			*a_PassDat->PrivateSize = sizeof(M_WADPrivateJunk_t)
+			*JunkPtrPtr = Z_Malloc(*a_PassDat->PrivateSize, PU_STATIC, NULL);
+			JunkPtr = *JunkPtrPtr;
+		}
+	
+		// If we closed the menu tag do some cleanup
+		if (a_PassDat->CheckRetVal == -1)
+		{
+			JunkPtr->EditMenu = NULL;
+			
+			if (devparm)
+				CONS_Printf("M_XMLDataParse: Finalize menus.\n");
+			return;
+		}
+	
+		// If we opened the menu, prepare to modify it
+		else if (a_PassDat->CheckRetVal == 2)
+		{
+			if (devparm)
+				CONS_Printf("M_XMLDataParse: Begin menus.\n");
+			return;
+		}
+		
+		// A submenu is being defined
+		Base = a_PassDat->Key;
+		if ((XMLPass->CheckRetVal = D_XMLCheckKey(Base, "SubMenuMenu", &Base)) != 0)
+		{
+			switch (XMLPass->CheckRetVal)
+			{
+					// SubMenu being closed
+				case -1:
+					if (devparm)
+						CONS_Printf("M_XMLDataParse: Closed submenu\n");
+					
+					JunkPtr->EditMenu = NULL;
+					break;
+				
+					// SubMenu being edited
+				case 1:
+					
+					break;
+				
+					// SubMenu being opened
+				case 2:
+					if (devparm)
+						CONS_Printf("M_XMLDataParse: Opened submenu.\n");
+						
+					// Resize the menu list
+					Z_ResizeArray(&JunkPtr->Menus, sizeof(M_MenuDef_t), JunkPtr->NumMenus, JunkPtr->NumMenus + 1);
+					
+					JunkPtr->EditMenu = &JunkPtr->Menus[JunkPtr->NumMenus++];
+					break;
+				
+					// unhandled
+				default:
+					break;
+			}
+		}
+	
+		// Otherwise, we recreate a new menu now
+		CONS_Printf("%s: %s\n", a_PassDat->Key, a_PassDat->Value);
 	}
 	
-	/* If we opened the menu, prepare to modify it */
-	else if (a_PassDat->CheckRetVal == 2)
+	/* Clearing built data in a WAD */
+	else if (a_PassDat->Action == DXMLBA_CLEARBUILD)
 	{
-		if (devparm)
-			CONS_Printf("M_XMLDataParse: Begin menus.\n");
-		return;
 	}
 	
-	/* Otherwise, we recreate a new menu now */
-	CONS_Printf("%s: %s\n", a_PassDat->Key, a_PassDat->Value);
+	/* Building a composite */
+	else if (a_PassDat->Action == DXMLBA_COMPOSITE)
+	{
+	}
+	
+	/* Clearing a composite */
+	else if (a_PassDat->Action == DXMLBA_CLEARCOMPOSITE)
+	{
+	}
 }
 

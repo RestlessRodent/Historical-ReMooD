@@ -147,6 +147,11 @@ static boolean D_WX_XMLBuildXMLBack(void* const a_Data, const char* const a_Key,
 		{
 			XMLPass->KeyJunk = DXMLKJ_MENU;
 			XMLPass->Key = Base;
+			if (!WX_GetVirtualPrivateData(XMLPass->WAD, WXDPID_MENU, &XMLPass->PrivateJunk, &XMLPass->PrivateSize))
+			{
+				XMLPass->PrivateJunk = NULL;
+				XMLPass->PrivateSize = 0;
+			}
 			
 			// Send to parser
 			M_XMLDataParse(XMLPass);

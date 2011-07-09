@@ -69,6 +69,8 @@ typedef struct D_XMLPassedData_s
 	D_XMLBuildAction_t Action;						// What is happening?
 	D_XMLKeyJunk_t KeyJunk;							// What is this?
 	WX_WADFile_t* WAD;								// WAD File being checked
+	void** PrivateJunk;								// Private Data
+	size_t PrivateSize;								// Size of Private Data
 	const char* Key;								// Passed Key
 	const char* Value;								// Passed Value
 	int CheckRetVal;								// Return value of checker
