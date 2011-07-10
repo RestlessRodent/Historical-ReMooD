@@ -121,10 +121,24 @@ Z_MemoryTag_t Z_ChangeTagWrappee(void* const Ptr, const Z_MemoryTag_t NewTag _ZM
 typedef struct Z_HashTable_s Z_HashTable_t;
 
 /* Prototypes */
+uint32_t Z_Hash(const char* const a_Str);
 Z_HashTable_t* Z_HashCreateTable(boolean (*a_CompareFunc)(void* const a_A, void* const a_B));
 void Z_HashDeleteTable(Z_HashTable_t* const a_HashTable);
 boolean Z_HashAddEntry(Z_HashTable_t* const a_HashTable, const uint32_t a_Key, void* const a_Data);
 void* Z_HashFindEntry(Z_HashTable_t* const a_HashTable, const uint32_t a_Key, void* const a_DataSim, const boolean a_BackRun);
+
+/*** Table Utility ***/
+
+/* Structures */
+typedef struct Z_Table_s Z_Table_t;
+
+/* Prototypes */
+Z_Table_t* Z_TableCreate(const char* const a_Key);
+void Z_TableDestroy(Z_Table_t* const a_Table);
+Z_Table_t* Z_FindSubTable(Z_Table_t* const a_Table, const char* const a_Key, const boolean a_Create);
+const char* Z_TableGetValue(Z_Table_t* const a_Table, const char* const a_SubKey);
+void Z_TableSetValue(Z_Table_t* const a_Table, const char* const a_SubKey, const char* const a_NewValue);
+void Z_TablePrint(Z_Table_t* const a_Table, const char* const a_Prefix);
 
 /*****************************************************************************/
 

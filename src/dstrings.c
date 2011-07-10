@@ -1354,6 +1354,7 @@ boolean DS_ParseXML(XMLData_t* const a_XML, void* const a_Data, boolean (*a_CBFu
 						memset(SendKey, 0, sizeof(SendKey));
 						for (z = 0; z < a_XML->CurStackSize; z++)
 						{
+							strncat(SendKey, ">", BUFSIZE);
 							strncat(SendKey, a_XML->KeyStack[z], BUFSIZE);
 							strncat(SendKey, "<", BUFSIZE);
 						}
@@ -1409,6 +1410,7 @@ boolean DS_ParseXML(XMLData_t* const a_XML, void* const a_Data, boolean (*a_CBFu
 						memset(SendKey, 0, sizeof(SendKey));
 						for (z = 0; z < a_XML->CurStackSize; z++)
 						{
+							strncat(SendKey, ">", BUFSIZE);
 							strncat(SendKey, a_XML->KeyStack[z], BUFSIZE);
 							strncat(SendKey, "<", BUFSIZE);
 						}
@@ -1416,6 +1418,8 @@ boolean DS_ParseXML(XMLData_t* const a_XML, void* const a_Data, boolean (*a_CBFu
 						// If there is no data, do a standard tag close here
 						if (LoadedData[0] == '\0')
 							strncat(SendKey, "/", BUFSIZE);
+						else	// Otherwise, indicate data is here
+							strncat(SendKey, "!", BUFSIZE);
 					
 						// Append key
 						strncat(SendKey, LoadedKey, BUFSIZE);

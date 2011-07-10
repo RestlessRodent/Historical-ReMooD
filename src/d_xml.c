@@ -31,6 +31,17 @@
 #include "d_xml.h"
 #include "m_menu.h"
 #include "console.h"
+#include "z_zone.h"
+
+/*****************
+*** STRUCTURES ***
+*****************/
+
+/* D_XMLHidden_t -- Contained within WAD */
+typedef struct D_XMLHidden_s
+{
+	Z_Table_t* XMLTable;								// XML Data table
+} D_XMLHidden_t;
 
 /****************
 *** FUNCTIONS ***
@@ -46,64 +57,77 @@ static boolean D_WX_XMLBuildXMLBack(void* const a_Data, const char* const a_Key,
 	char Temp[BUFSIZE];
 	boolean Missing;
 	D_XMLEntry_t* Rover, *OldRover;
-	
-	CONS_Printf("D_WX_XMLBuildXMLBack: %s: %s\n", a_Key, a_Value);
+	Z_Table_t* CurTable;
 	
 	/* Check */
 	if (!a_Data || !a_Key || !a_Value)
 		return false;
 	
-	/* If the table is not set, initialize it with ReMooD */
-	if (!*XMLPass->Table)
-	{
-		*XMLPass->TableSize = sizeof(D_XMLEntry_t);
-		*XMLPass->Table = Z_Malloc(*XMLPass->TableSize, PU_STATIC, NULL);
-		Rover = *XMLPass->Table;
-		Rover->HasTable = true;
-		Rover->Key = Z_StrDup("ReMooD", PU_STATIC, NULL);
-	}
+	/* Link of current table */
+	CurTable = XMLPass->Table;
 	
-	/* Constantly read key off the key stack */
-	for (OldRover = NULL, Rover = *XMLPass->Table; Base[0];)	
+	/* Traverse key */
+	Base = a_Key;
+	while (Base[0])
 	{
-		// Ignore ? and /
-		if (Base[0] == '?' || Base[0] == '/')
-			Base++;
-		
-		// Place base in buffer and skip it
-		strncpy(Temp, Base, BUFSIZE);
-		Base += strlen(Base) + 1;
-		
-		// Until we are roving
-		OldRover = NULL;
-		while (Rover)
+		// > means a traversal
+		if (Base[0] == '>')
 		{
-			// Remember old rover
-			OldRover = Rover;
+			// Ignore >
+			Base += 1;
 			
-			// Rove around for key
-			if (strcasecmp(Rover->Key, Temp) == 0)
-			{
-				// found it! If it is a subtable then enter it
-				if (Rover->HasTable)
-					Rover = Rover->Data.SubTable;
-				break;
-			}
-		
-			// Did not find it
-			else
-				Rover = Rover->Next;
+			// Create temporary
+			memset(Temp, 0, sizeof(Temp));
+			snprintf(Temp, BUFSIZE, "%s", Base, XMLPass->j++);
+			
+			// Create table with tempkey
+			CurTable = Z_FindSubTable(CurTable, Temp, true);
 		}
 		
-		// If there was no rover, append here
-		if (!Rover)
+		// ? means new table
+		else if (Base[0] == '?')
 		{
-			OldRover->Next = Z_Malloc(sizeof(*OldRover->Next), PU_STATIC, NULL);
-			Rover = OldRover->Next;
-			
-			Rover->Key = Z_StrDup(Temp, PU_STATIC, NULL);
 		}
 		
+		// ! means data
+		else if (Base[0] == '!')
+		{
+			
+		}
+	
+	
+		// If value contains ? at the start, it is another fresh table
+		if (Base[0] == '?')
+		{
+			// Ignore this, don't care
+			Base += 1;
+			//Z_FindSubTable(CurTable, Base, true);
+			break;
+		}
+		
+		// ! means data
+		else if (Base[0] == '!')
+		{
+			Base += 1;
+			break;
+		}
+		
+		// Closing
+		else if (Base[0] == '/')
+		{
+			// Ignore this, don't care
+			break;
+		}
+		
+		// Otherwise, we keep traversing
+		else
+		{
+			Base += strlen(Base) + 1;
+			
+			if (Base[0] == '?' || Base[0] == '!' || Base[0] == '/')
+				Base += 1;
+			CurTable = Z_FindSubTable(CurTable, Base, true);	// choose new table
+		}
 	}
 	
 	return true;
@@ -117,6 +141,7 @@ void D_WX_XMLBuild(WX_WADFile_t* const a_WAD)
 	XMLData_t* XML;
 	WX_WADEntry_t* Entry;
 	D_XMLPassedData_t XMLPass;
+	D_XMLHidden_t* Hidden;
 	
 	/* Check */
 	if (!a_WAD)
@@ -149,10 +174,28 @@ void D_WX_XMLBuild(WX_WADFile_t* const a_WAD)
 	XMLPass.WAD = a_WAD;
 	
 	// Create private data
-	WX_GetVirtualPrivateData(XMLPass.WAD, WXDPID_XML, &XMLPass.Table, &XMLPass.TableSize);
+	WX_GetVirtualPrivateData(XMLPass.WAD, WXDPID_XML, &XMLPass.PrivateJunk, &XMLPass.PrivateSize);
+	
+	// Attempt retrieval of hidden stuff
+	Hidden = *XMLPass.PrivateJunk;
+	
+	// Does not exist
+	if (!Hidden)
+	{
+		*XMLPass.PrivateSize = sizeof(*Hidden);
+		Hidden = *XMLPass.PrivateJunk = Z_Malloc(*XMLPass.PrivateSize, PU_STATIC, NULL);
+		Hidden->XMLTable = Z_TableCreate("ReMooD");
+	}
+	
+	// Clone table here
+	XMLPass.Table = Hidden->XMLTable;
 	
 	// Send
 	DS_ParseXML(XML, &XMLPass, D_WX_XMLBuildXMLBack);
+	
+	// Print table when debugging
+	if (devparm)
+		Z_TablePrint(Hidden->XMLTable, ">");
 	
 	if (devparm)
 		CONS_Printf("D_WX_XMLBuild: Done!\n");

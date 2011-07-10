@@ -1598,19 +1598,7 @@ static WX_WADFile_t* l_LastVWAD = NULL;					// Last WAD File seen by game (re-or
 /* WX_Hash() -- Hashes a string */
 uint32_t			WX_Hash(const char* const a_Str)
 {
-	uint32_t Ret = 0;
-	size_t i;
-	
-	/* Check */
-	if (!a_Str)
-		return 0;
-	
-	/* Hash loop */
-	for (i = 0; a_Str[i]; i++)
-		Ret ^= (uint32_t)((toupper(a_Str[i]) - 32) & 0x3F) << (6 * (i % 5));
-	
-	/* Return */
-	return Ret;
+	return Z_Hash(a_Str);
 }
 
 /* WX_BaseName() -- Returns the base name of the WAD */

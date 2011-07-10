@@ -33,6 +33,7 @@
 #include "doomtype.h"
 #include "dstrings.h"
 #include "w_wad.h"
+#include "z_zone.h"
 
 /****************
 *** CONSTANTS ***
@@ -111,13 +112,13 @@ typedef struct D_XMLPassedData_s
 	D_XMLKeyJunk_t KeyJunk;							// What is this?
 	WX_WADFile_t* WAD;								// WAD File being checked
 	void** PrivateJunk;								// Private Data
-	size_t PrivateSize;								// Size of Private Data
+	size_t* PrivateSize;								// Size of Private Data
 	const char* Key;								// Passed Key
 	const char* Value;								// Passed Value
 	int CheckRetVal;								// Return value of checker
+	int32_t j;										// Tag ID
 	
-	D_XMLEntry_t** Table;							// XML Table
-	size_t* TableSize;								// Size of table
+	Z_Table_t* Table;								// XML Table
 } D_XMLPassedData_t;
 
 /*****************
