@@ -1,0 +1,97 @@
+// -----------------------------------------------------------------------------
+// ########   ###### #####   #####  ######   ######  ######
+// ##     ##  ##     ##  ## ##  ## ##    ## ##    ## ##   ##
+// ##     ##  ##     ##   ###   ## ##    ## ##    ## ##    ##
+// ########   ####   ##    #    ## ##    ## ##    ## ##    ##
+// ##    ##   ##     ##         ## ##    ## ##    ## ##    ##
+// ##     ##  ##     ##         ## ##    ## ##    ## ##   ##
+// ##      ## ###### ##         ##  ######   ######  ######
+//                      http://remood.org/
+// -----------------------------------------------------------------------------
+// Project Leader:    GhostlyDeath           <ghostlydeath@remood.org>
+// -----------------------------------------------------------------------------
+// Copyright (C) 2011 The ReMooD Team.
+// -----------------------------------------------------------------------------
+// ReMooD Internal Game Data Format
+
+// ************
+// *** WADS ***
+// ************
+
+WADProperty "Doom2"
+{
+	// Info
+	Title "Doom II: Hell on Earth";
+	Type "IWAD";
+	FileName "doom2.wad";
+	GameMode "commercial";
+	GameMission "doom2";
+	MapInfo "MI_DOOM2";
+	
+	// Identification
+	IdSHA512 "32f720c85134da7bee3a7d6cd18c98dae7c6a0cb821a9f05fe28eeb055c97f40cc73fd336b6ba3d9be8fd39072129829e458769b3ed3c2fa298d3ec8b9805c6d";
+	IdSHA384 "2f802064dd58b27a87d77a30597481b89710afa799796c5dd803eb26935c13c1fccecd6dc7de51a897fcc3ac1260d45d";
+	IdSHA256 "10d67824b11025ddd9198e8cfc87ca335ee6e2d3e63af4180fa9b8a471893255";
+	IdSHA224 "844bf047a2bbd765176f5264674b66e7702cc51567f6c7201c816434";
+	IdSHA1 "7ec7652fcfce8ddc6e801839291f0e28ef1d5ae7";
+	IdMD5 "25e1459ca71d321525f84628f45ca8cd";
+	IdCRC32 "ec8725db";
+	IdSize "14604584";
+	IdNumLumps "2919";
+	IdFileName "doom2.wad:freedoom.wad";
+};
+
+// *****************
+// *** MAPTHINGS ***
+// *****************
+
+MapThing "DoomPlayer"
+{
+	// Info
+	SpawnHealth 100;
+	PainChance 0.996094;
+	Radius 16;
+	Height 56;
+	Mass 100;
+	Density 1;
+	BloodType "DoomBlood";
+	MapThingID "MT_PLAYER";
+	ForceCompatibilityLevel 100;
+	CompatibilityAs "-";
+	OldClass "DoomPlayer";
+	DeHackEdID 0;
+	
+	// Flags
+	CanDropOff true;
+	CanFeetClip true;
+	CanGather true;
+	CanJump true;
+	CanSlide true;
+	CanSwim true;
+	CanTeleportStomp true;
+	EnableZCheck true;
+	IsDoomPlayer true;
+	IsShootable true;
+	IsSolid true;
+	IsWindPushable true;
+	NoDeathmatch true;
+	SlidesAlongWalls true;
+	
+	// Sounds
+	PainSound "plpain";
+	DeathSound "pldeth";
+	GibDeathSound "slop";
+	
+	State "SpawnState"
+	{
+		Frame 1
+		{
+			Sprite "PLAY:0";
+			Next "1";
+			Tics "-1";
+			DEH "S_PLAY";
+			DEHId 149;
+		};
+	};
+};
+
