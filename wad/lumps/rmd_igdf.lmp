@@ -8,9 +8,7 @@
 // ##      ## ###### ##         ##  ######   ######  ######
 //                      http://remood.org/
 // -----------------------------------------------------------------------------
-// Project Leader:    GhostlyDeath           <ghostlydeath@remood.org>
-// -----------------------------------------------------------------------------
-// Copyright (C) 2011 The ReMooD Team.
+// Copyright (C) 2011 GhostlyDeath <ghostlydeath@remood.org>
 // -----------------------------------------------------------------------------
 // ReMooD Internal Game Data Format
 
@@ -40,6 +38,10 @@ WADProperty "Doom2"
 	IdNumLumps "2919";
 	IdFileName "doom2.wad:freedoom.wad";
 };
+
+// *************
+// *** MENUS ***
+// *************
 
 // *****************
 // *** MAPTHINGS ***
@@ -86,7 +88,7 @@ MapThing "DoomPlayer"
 	{
 		Frame 1
 		{
-			Sprite "PLAY:0";
+			Sprite "PLAY";
 			Next "1";
 			Tics "-1";
 			DEH "S_PLAY";
