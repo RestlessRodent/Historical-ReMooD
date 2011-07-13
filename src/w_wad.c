@@ -57,7 +57,7 @@
 #include "m_argv.h"
 #include "hu_stuff.h"
 #include "m_menu.h"
-#include "d_xml.h"
+#include "d_rmod.h"
 
 /* W_UnloadData() -- Unload all WAD attached data */
 void W_UnloadData(void)
@@ -2054,7 +2054,7 @@ void				WX_LoadWADStuff(WX_WADFile_t* const a_WAD)
 		return;
 	
 	V_WXMapGraphicCharsWAD(a_WAD);
-	D_WX_XMLBuild(a_WAD);
+	D_WX_RMODBuild(a_WAD);
 }
 
 /* WX_ClearWADStuff() -- Clear stuff from WAD that will soon be part of a composite */
@@ -2065,7 +2065,7 @@ void				WX_ClearWADStuff(WX_WADFile_t* const a_WAD)
 		return;
 	
 	V_WXClearGraphicCharsWAD(a_WAD);
-	D_WX_XMLClearBuild(a_WAD);
+	D_WX_RMODClearBuild(a_WAD);
 }
 
 /* WX_CompileComposite() -- Merge all the loaded WAD Data and create a composite of it */
@@ -2074,14 +2074,14 @@ void				WX_CompileComposite(void)
 	WX_WADFile_t* WAD = l_FirstVWAD;	
 	
 	V_WXMapGraphicCharsComposite(WAD);
-	D_WX_XMLComposite(WAD);
+	D_WX_RMODComposite(WAD);
 }
 
 /* WX_ClearComposite() -- Clear all of the compositied WAD data */
 void				WX_ClearComposite(void)
 {
 	V_WXClearGraphicCharsComposite();
-	D_WX_XMLClearComposite();
+	D_WX_RMODClearComposite();
 }
 
 /* WX_GetNumEntry() -- Gets entry in WAD by lump number */

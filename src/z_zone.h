@@ -137,8 +137,10 @@ Z_Table_t* Z_TableCreate(const char* const a_Key);
 void Z_TableDestroy(Z_Table_t* const a_Table);
 Z_Table_t* Z_FindSubTable(Z_Table_t* const a_Table, const char* const a_Key, const boolean a_Create);
 const char* Z_TableGetValue(Z_Table_t* const a_Table, const char* const a_SubKey);
-void Z_TableSetValue(Z_Table_t* const a_Table, const char* const a_SubKey, const char* const a_NewValue);
+boolean Z_TableSetValue(Z_Table_t* const a_Table, const char* const a_SubKey, const char* const a_NewValue);
+void Z_TableClearValue(Z_Table_t* const a_Table, const char* const a_SubKey);
 void Z_TablePrint(Z_Table_t* const a_Table, const char* const a_Prefix);
+boolean Z_TableMergeInto(Z_Table_t* const a_Target, const Z_Table_t* const a_Source);
 
 /*****************************************************************************/
 

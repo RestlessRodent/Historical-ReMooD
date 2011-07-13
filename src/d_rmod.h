@@ -21,49 +21,36 @@
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 // GNU General Public License for more details.
 // -----------------------------------------------------------------------------
-// DESCRIPTION: XML Menu Code
+// DESCRIPTION: Global RMOD Parsing
 
-#ifndef __M_MENU_H__
-#define __M_MENU_H__
+#ifndef __D_RMOD_H__
+#define __D_RMOD_H__
 
 /***************
 *** INCLUDES ***
 ***************/
 
 #include "doomtype.h"
-#include "d_event.h"
+#include "dstrings.h"
 #include "w_wad.h"
-#include "d_rmod.h"
+#include "z_zone.h"
 
 /****************
 *** CONSTANTS ***
 ****************/
 
-/* MessageMode_t -- Type of message to display */
-typedef enum MessageMode_e
-{
-	MM_NOTHING,										// Nothing special
-	MM_WARNING,										// Warning message
-	MM_ERROR,										// Error Message
-	
-	NUMMESSAGEMODES
-} MessageMode_t;
+/*****************
+*** STRUCTURES ***
+*****************/
 
-/*********************
-*** GUI PROTOTYPES ***
-*********************/
+/*****************
+*** PROTOTYPES ***
+*****************/
 
-/**********************
-*** MENU PROTOTYPES ***
-**********************/
+void D_WX_RMODBuild(WX_WADFile_t* const a_WAD);
+void D_WX_RMODClearBuild(WX_WADFile_t* const a_WAD);
+void D_WX_RMODComposite(WX_WADFile_t* const a_WAD);
+void D_WX_RMODClearComposite(void);
 
-void M_SpawnMenu(const char* const Name);
-const char* M_ActiveMenu(void);
-void M_StartMessage(const char* const a_Str, void* A_Unk, const MessageMode_t a_Mode);
-
-boolean M_Responder(event_t* const Event);
-void M_Ticker(void);
-void M_Drawer(void);
-
-#endif /* __M_MENU_H__ */
+#endif /* __D_RMOD_H__ */
 
