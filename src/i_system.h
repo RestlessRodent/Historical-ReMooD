@@ -62,6 +62,7 @@ size_t I_GetFreeMem(size_t * total);
 // Called by D_DoomLoop,
 // returns current time in tics.
 tic_t I_GetTime(void);
+uint32_t I_GetTimeMS(void);
 
 void I_GetEvent(void);
 

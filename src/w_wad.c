@@ -2054,7 +2054,7 @@ void				WX_LoadWADStuff(WX_WADFile_t* const a_WAD)
 		return;
 	
 	V_WXMapGraphicCharsWAD(a_WAD);
-	D_WX_RMODBuild(a_WAD);
+	D_WX_RMODMultiBuild(a_WAD, WXBA_BUILDWAD);
 }
 
 /* WX_ClearWADStuff() -- Clear stuff from WAD that will soon be part of a composite */
@@ -2065,23 +2065,26 @@ void				WX_ClearWADStuff(WX_WADFile_t* const a_WAD)
 		return;
 	
 	V_WXClearGraphicCharsWAD(a_WAD);
-	D_WX_RMODClearBuild(a_WAD);
+	D_WX_RMODMultiBuild(a_WAD, WXBA_CLEARWAD);
+	
 }
 
 /* WX_CompileComposite() -- Merge all the loaded WAD Data and create a composite of it */
 void				WX_CompileComposite(void)
 {
-	WX_WADFile_t* WAD = l_FirstVWAD;	
+	WX_WADFile_t* WAD = l_FirstVWAD;
 	
 	V_WXMapGraphicCharsComposite(WAD);
-	D_WX_RMODComposite(WAD);
+	D_WX_RMODMultiBuild(WAD, WXBA_BUILDCOMPOSITE);
 }
 
 /* WX_ClearComposite() -- Clear all of the compositied WAD data */
 void				WX_ClearComposite(void)
 {
+	WX_WADFile_t* WAD = l_FirstVWAD;
+	
 	V_WXClearGraphicCharsComposite();
-	D_WX_RMODClearComposite();
+	D_WX_RMODMultiBuild(WAD, WXBA_CLEARCOMPOSITE);
 }
 
 /* WX_GetNumEntry() -- Gets entry in WAD by lump number */
@@ -2182,8 +2185,17 @@ void*				WX_CacheEntry(WX_WADEntry_t* const a_Entry, const WX_ConvType_t a_From,
 		
 		// Load in data
 		if (!a_Entry->ParentWAD->FuncReadEntryData(a_Entry->ParentWAD, a_Entry))
+		{
+			// Free data here (prevent leaks of sorts)
+			Z_Free(a_Entry->Cache[WXCT_RAW]);
+			a_Entry->Cache[WXCT_RAW] = NULL;
 			return NULL;
+		}
+		
 		RawData = a_Entry->Cache[WXCT_RAW];
+		
+		// Use entry
+		WX_UseEntry(a_Entry, WXCT_RAW, true);
 	}
 	
 	/* Conversion Matrix */

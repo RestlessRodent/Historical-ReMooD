@@ -492,11 +492,11 @@ ticcmd_t *I_BaseTiccmd(void)
 //
 
 uint32_t LastTime = 0;
+static Uint32 basetime = 0;
 
 ULONG I_GetTime(void)
 {
 	Uint32 ticks = 0;
-	static Uint32 basetime = 0;
 	
 	// milliseconds since SDL initialization
 	ticks = SDL_GetTicks();
@@ -505,6 +505,20 @@ ULONG I_GetTime(void)
 		basetime = ticks;
 
 	return (ticks - basetime) * TICRATE / 1000;
+}
+
+/* I_GetTimeMS() -- Returns passed time in milliseconds */
+uint32_t I_GetTimeMS(void)
+{
+	Uint32 ticks = 0;
+	
+	// milliseconds since SDL initialization
+	ticks = SDL_GetTicks();
+
+	if (!basetime)
+		basetime = ticks;
+
+	return ticks - basetime;
 }
 
 //

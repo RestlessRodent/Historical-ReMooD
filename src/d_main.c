@@ -220,6 +220,7 @@ consvar_t cv_screenslink = { "screenlink", "2", CV_SAVE, screenslink_cons_t };
 
 void D_Display(void)
 {
+#define TIMEBUF 20
 	static boolean menuactivestate = false;
 	static gamestate_t oldgamestate = -1;
 	static int borderdrawcount;
@@ -234,6 +235,8 @@ void D_Display(void)
 	boolean wipe;
 	boolean redrawsbar;
 	boolean viewactivestate = false;
+	uint32_t EnterTime, LeaveTime, TotalTime;
+	char TimeBuf[TIMEBUF];
 
 	if (dedicated)
 		return;
@@ -329,6 +332,10 @@ void D_Display(void)
 		// draw the view directly
 		if (!automapactive || automapoverlay)
 		{
+			// GhostlyDeath <July 14, 2011> -- Render time
+			if (devparm)
+				EnterTime = I_GetTimeMS();
+			
 			// added 16-6-98: render the second screen
 			switch (cv_splitscreen.value)
 			{
@@ -382,6 +389,18 @@ void D_Display(void)
 								vid.width >> 1, vid.height >> 1, 0);
 					}
 					break;
+			}
+			
+			
+			// GhostlyDeath <July 14, 2011> -- Render time
+			if (devparm)
+			{
+				LeaveTime = I_GetTimeMS();
+				
+				// Get total time
+				TotalTime = LeaveTime - EnterTime;
+				snprintf(TimeBuf, TIMEBUF, "MS %3u\nTC %3u", TotalTime, TotalTime / TICRATE);
+				V_DrawStringA(VFONT_PRBOOMHUD, 0, TimeBuf, 320 - 40, 0);
 			}
 		}
 		
@@ -466,6 +485,7 @@ void D_Display(void)
 	while (!done && I_GetTime() < (unsigned)y);
 
 	ST_Invalidate();
+#undef TIMEBUF
 }
 
 // =========================================================================

@@ -179,6 +179,17 @@ extern WadFile_t *WADFiles;
 ****************************/
 
 /*** CONSTANTS ***/
+/* WX_BuildAction_t -- Build action for WAD */
+typedef enum WX_BuildAction_e
+{
+	WXBA_BUILDWAD,									// Build single WAD
+	WXBA_CLEARWAD,									// Clear single WAD
+	WXBA_BUILDCOMPOSITE,							// Build WAD composite
+	WXBA_CLEARCOMPOSITE,							// Clear WAD composite
+	
+	NUMWXBUILDACTIONS
+} WX_BuildAction_t;
+
 /* WX_ConvType_t -- Convertable type */
 typedef enum WX_ConvType_e
 {
@@ -194,7 +205,7 @@ typedef enum WX_DataPrivateID_e
 {
 	WXDPID_GCHARS,									// Graphic characters
 	WXDPID_MENU,									// Menu Junk
-	WXDPID_XML,										// XML Table
+	WXDPID_RMOD,									// RMOD Table
 	
 	NUMWXDATAPRIVATEIDS
 }  WX_DataPrivateID_t;

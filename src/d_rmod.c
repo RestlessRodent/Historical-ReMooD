@@ -40,81 +40,85 @@
 /* D_WXRMODPrivate_t -- RMOD Private Data */ 
 typedef struct D_WXRMODPrivate_s
 {
+	Z_Table_t* RMODTable;								// Table to store RMOD data
 } D_WXRMODPrivate_t;
 
 /****************
 *** FUNCTIONS ***
 ****************/
 
-/* D_WX_RMODBuild() -- Build RMOD for WAD */
-void D_WX_RMODBuild(WX_WADFile_t* const a_WAD)
+/* D_WX_RMODMultiBuild() -- RMOD Multi builder */
+void D_WX_RMODMultiBuild(WX_WADFile_t* const a_WAD, const WX_BuildAction_t a_Action)
 {
-	Z_Table_t* Table, *Sub;
+#define BUFSIZE 512
+	D_WXRMODPrivate_t* Private;
+	WX_WADEntry_t* Entry;	
+	char* Data;
+	void** PvPtr;
+	size_t* PvSize;
 	
 	/* Check */
 	if (!a_WAD)
 		return;
 	
-	Table = Z_TableCreate("Root");
-	
-	if (!Z_TableSetValue(Table, "ReMooD", "Is Awesome"))
-		CONS_Printf("D_WX_RMODBuild: Failed to add subvalue ReMooD\n");
-	if (!Z_TableSetValue(Table, "Doom", "Is Awesome"))
-		CONS_Printf("D_WX_RMODBuild: Failed to add subvalue ReMooD\n");
-		
-	Sub = Z_FindSubTable(Table, "ReMooD", false);
-	if (Sub)
-		CONS_Printf("D_WX_RMODBuild: found subtable ReMooD?\n");
-	
-	Sub = Z_FindSubTable(Table, "Woo", false);
-	if (Sub)
-		CONS_Printf("D_WX_RMODBuild: fount subtable Woo?\n");
-		
-	Sub = Z_FindSubTable(Table, "Woo", true);
-	if (!Sub)
-		CONS_Printf("D_WX_RMODBuild: Failed to add subtable Woo\n");
-	else
+	/* If we are building or clearing, get private data */
+	if (a_Action >= WXBA_BUILDWAD && a_Action <= WXBA_CLEARWAD)
 	{
-		if (!Z_TableSetValue(Sub, "Foo", "Bar"))
-			CONS_Printf("D_WX_RMODBuild: Failed to add subvalue Foo\n");
-		if (!Z_TableSetValue(Sub, "Bar", "Foo"))
-			CONS_Printf("D_WX_RMODBuild: Failed to add subvalue Foo\n");
+		// Get private data from WAD
+		if (!WX_GetVirtualPrivateData(a_WAD, WXDPID_RMOD, &PvPtr, &PvSize))
+			return;
 		
+		// Check whether it really exists, if not create it
+		if (!*PvPtr)
+		{
+			*PvSize = sizeof(D_WXRMODPrivate_t);
+			*PvPtr = Z_Malloc(*PvSize, PU_STATIC, NULL);
+		}
 		
-		if (!Z_TableSetValue(Sub, "Foo", "Not Foo"))
-			CONS_Printf("D_WX_RMODBuild: Failed to set subvalue Foo\n");
-		
-		Sub = Z_FindSubTable(Sub, "Foo", true);
-		
-		if (Sub)
-			CONS_Printf("D_WX_RMODBuild: found subtable which really should be entry.\n");
-		
+		// Set private data
+		Private = (D_WXRMODPrivate_t*)*PvPtr;
 	}
+	else
+		Private = 0;
 	
-	if (Z_TableSetValue(Table, "Woo", "Wee"))
-		CONS_Printf("D_WX_RMODBuild: Set value of table Woo?\n");
-	
-	Z_TablePrint(Table, ">");
-}
-
-/* D_WX_RMODClearBuild() -- Clear RMOD from WAD */
-void D_WX_RMODClearBuild(WX_WADFile_t* const a_WAD)
-{
-	/* Check */
-	if (!a_WAD)
-		return;
-}
-
-/* D_WX_RMODComposite() -- Build RMOD composite */
-void D_WX_RMODComposite(WX_WADFile_t* const a_WAD)
-{
-	/* Check */
-	if (!a_WAD)
-		return;
-}
-
-/* D_WX_RMODClearComposite() -- Clear RMOD composite */
-void D_WX_RMODClearComposite(void)
-{
+	/* Based on action */
+	switch (a_Action)
+	{
+			// Build single WAD
+		case WXBA_BUILDWAD:
+			// Obtain entry and make sure we got it
+			Entry = WX_EntryForName(a_WAD, "REMOODAT", false);
+			if (!Entry)
+				return;
+			
+			// Create the root table
+			Private->RMODTable = Z_TableCreate("ReMooD");
+			
+			// Debugging
+			if (devparm)
+				Z_TablePrint(Private->RMODTable, "|");
+			break;
+			
+			// Clear single WAD
+		case WXBA_CLEARWAD:
+			// Delete table
+			if (Private->RMODTable)
+				Z_TableDestroy(Private->RMODTable);
+			Private->RMODTable = NULL;
+			break;
+			
+			// Build WAD composite
+		case WXBA_BUILDCOMPOSITE:
+			break;
+			
+			// Clear WAD composite
+		case WXBA_CLEARCOMPOSITE:
+			break;
+			
+			// Unknown
+		default:
+			break;
+	}
+#undef BUFSIZE
 }
 
