@@ -30,8 +30,6 @@
 ### TARGETS ###
 ###############
 
-BIGVAR="sup"
-
 all:			
 				$(MAKE) -e -f makefile.rmd all
 

@@ -20,34 +20,26 @@
 # GNU General Public License for more details.
 # -----------------------------------------------------------------------------
 # Another makefile setup, recursive makes
-# Root makefile, calls other makefiles
+# This contains the makefile for compiling via DJGPP
 
-##########################
-### MAKEFILE SELECTION ###
-##########################
+####################
+### OBJECT FILES ###
+####################
 
-# Which makefile do we use?
-USEMAKEFILE ?= lnx#auto
-
-# If we selected "auto" then we detect based on the host
-
-################
-### COMPILER ###
-################
-
-# Use toolchain prefix on default $(CC)
-ifneq (,$(TOOLPREFIX))
-	export __INT_CC := $(TOOLPREFIX)$(CC)
-endif
-export __INT_CC += $(CC)
+# Slap on down object prefix (unexporting needed)
+__INT_TEMP := $(__INT_OBJPREFIX)
+unexport __INT_OBJPREFIX
+export __INT_OBJPREFIX := $(__INT_TEMP)s
 
 ###############
 ### TARGETS ###
-##############/
+###############
 
-all:			
-				$(MAKE) -f makefile.$(USEMAKEFILE) all
+all:						
+							$(MAKE) -f makefile.rmd all
 
-clean:			
-				$(MAKE) -f makefile.$(USEMAKEFILE) clean
+clean:						
+							$(MAKE) -f makefile.rmd clean
+
+
 

@@ -22,10 +22,49 @@
 # Another makefile setup, recursive makes
 # This is the core makefile, everything eventually drops down to this specific
 
+###########################
+### DIRECTORY LOCATIONS ###
+###########################
+
+# Binary location
+__INT_BIN = bin
+
+# Object location
+__INT_OBJ = obj
+
+# Source code location
+__INT_SRC = src
+
+#####################
+### COMPILE FLAGS ###
+#####################
+
+__INT_CFLAGS += -I$(__INT_SRC) -DGAMECLIENT
+
+####################
+### OBJECT FILES ###
+####################
+
+__INT_OBJS := $(foreach __X_SOURCE, $(wildcard $(__INT_SRC)/*.c), $(__INT_OBJ)/$(__INT_OBJPREFIX)$(basename $(notdir $(__X_SOURCE))).o)
+
 ###############
 ### TARGETS ###
 ###############
 
-all:			
-				echo $(LITTLEVAR) $(BIGVAR)
+all:										$(__INT_BIN)/remood
+											
+
+clean:										
+											rm -f $(__INT_OBJS)
+
+$(__INT_BIN)/remood:						$(__INT_OBJ) $(__INT_OBJS)
+											
+
+$(__INT_OBJ):								
+											mkdir -p $(__INT_OBJ)
+
+$(__INT_OBJ)/$(__INT_OBJPREFIX)%.o:			$(__INT_SRC)/%.c
+											@echo "  [CC] $<"
+											@$(__INT_CC) -c $< -o $@ $(__INT_CFLAGS)
+
 
