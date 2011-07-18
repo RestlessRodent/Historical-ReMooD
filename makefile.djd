@@ -26,11 +26,34 @@
 ### COMPILER DEFAULTS ###
 #########################
 
+export _INT_EXESUFFIX := .exe
+
+#####################
+### COMPILE FLAGS ###
+#####################
+
+# CC Flags
+__INT_TEMP := $(__INT_CFLAGS)
+unexport __INT_TEMP
+export __INT_CFLAGS := $(__INT_TEMP) -D__REMOOD_SYSTEM_MSDOS
+
+# Linker Flags
+__INT_TEMP := $(__INT_LDFLAGS)
+unexport __INT_TEMP
+export __INT_LDFLAGS := $(__INT_TEMP)
+
 ###############
 ### TARGETS ###
 ###############
 
 all:			
-				$(MAKE) -e -f makefile.rmd all
+							$(MAKE) -f makefile.$(__INT_INTERFACE) all
+
+clean:						
+							$(MAKE) -f makefile.$(__INT_INTERFACE) clean
+
+remood:			
+							$(MAKE) -f makefile.$(__INT_INTERFACE) remood
+
 
 

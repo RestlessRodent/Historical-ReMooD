@@ -39,32 +39,47 @@ __INT_SRC = src
 ### COMPILE FLAGS ###
 #####################
 
-__INT_CFLAGS += -I$(__INT_SRC) -DGAMECLIENT
+# CC Flags
+__INT_TEMP := $(__INT_CFLAGS)
+unexport __INT_TEMP
+export __INT_CFLAGS := $(__INT_TEMP) -I$(__INT_SRC) -DGAMECLIENT
+
+# Linker Flags
+__INT_TEMP := $(__INT_LDFLAGS)
+unexport __INT_TEMP
+export __INT_LDFLAGS := $(__INT_TEMP)
 
 ####################
 ### OBJECT FILES ###
 ####################
 
-__INT_OBJS := $(foreach __X_SOURCE, $(wildcard $(__INT_SRC)/*.c), $(__INT_OBJ)/$(__INT_OBJPREFIX)$(basename $(notdir $(__X_SOURCE))).o)
+__INT_OBJS := $(foreach __X_SOURCE, $(wildcard $(__INT_SRC)/*.c), $(__INT_OBJ)/$(__INT_OBJPREFIX)$(basename $(notdir $(__X_SOURCE))).o) $(foreach __X_SOURCE, $(wildcard $(__INT_SRC)/$(__INT_IFACEDIR)/*.c), $(__INT_OBJ)/$(__INT_OBJPREFIX)$(basename $(notdir $(__X_SOURCE))).o)
 
 ###############
 ### TARGETS ###
 ###############
 
-all:										$(__INT_BIN)/remood
+all:										remood
+											
+
+remood:										$(__INT_BIN)/remood$(_INT_EXESUFFIX)
 											
 
 clean:										
 											rm -f $(__INT_OBJS)
 
-$(__INT_BIN)/remood:						$(__INT_OBJ) $(__INT_OBJS)
-											
+$(__INT_BIN)/remood$(_INT_EXESUFFIX):		$(__INT_OBJ) $(__INT_OBJS)
+											@echo "  [LD] $@"
 
 $(__INT_OBJ):								
 											mkdir -p $(__INT_OBJ)
 
 $(__INT_OBJ)/$(__INT_OBJPREFIX)%.o:			$(__INT_SRC)/%.c
 											@echo "  [CC] $<"
-											@$(__INT_CC) -c $< -o $@ $(__INT_CFLAGS)
+											$(__INT_CC) -c $< -o $@ $(__INT_CFLAGS)
+
+$(__INT_OBJ)/$(__INT_OBJPREFIX)%.o:			$(__INT_SRC)/$(__INT_IFACEDIR)/%.c
+											@echo "  [CC] $<"
+											$(__INT_CC) -c $< -o $@ $(__INT_CFLAGS)
 
 

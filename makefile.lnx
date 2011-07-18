@@ -26,6 +26,22 @@
 ### COMPILER DEFAULTS ###
 #########################
 
+export _INT_EXESUFFIX :=
+
+#####################
+### COMPILE FLAGS ###
+#####################
+
+# CC Flags
+__INT_TEMP := $(__INT_CFLAGS)
+unexport __INT_TEMP
+export __INT_CFLAGS := $(__INT_TEMP) -D__REMOOD_SYSTEM_LINUX
+
+# Linker Flags
+__INT_TEMP := $(__INT_LDFLAGS)
+unexport __INT_TEMP
+export __INT_LDFLAGS := $(__INT_TEMP)
+
 ####################
 ### OBJECT FILES ###
 ####################
@@ -37,9 +53,12 @@ export __INT_OBJPREFIX := $(__INT_OBJPREFIX)l
 ###############
 
 all:			
-				$(MAKE) -f makefile.sdl all
+				$(MAKE) -f makefile.$(__INT_INTERFACE) all
 
 clean:			
-				$(MAKE) -f makefile.sdl clean
+				$(MAKE) -f makefile.$(__INT_INTERFACE) clean
+
+remood:			
+				$(MAKE) -f makefile.$(__INT_INTERFACE) remood
 
 

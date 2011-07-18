@@ -31,6 +31,23 @@ __INT_TEMP := $(__INT_OBJPREFIX)
 unexport __INT_OBJPREFIX
 export __INT_OBJPREFIX := $(__INT_TEMP)s
 
+# Which interface dir?
+export __INT_IFACEDIR := sdl
+
+#####################
+### COMPILE FLAGS ###
+#####################
+
+# CC Flags
+__INT_TEMP := $(__INT_CFLAGS)
+unexport __INT_TEMP
+export __INT_CFLAGS := $(__INT_TEMP) -D__REMOOD_INTERFACE_SDL
+
+# Linker Flags
+__INT_TEMP := $(__INT_LDFLAGS)
+unexport __INT_TEMP
+export __INT_LDFLAGS := $(__INT_TEMP)
+
 ###############
 ### TARGETS ###
 ###############
@@ -40,6 +57,10 @@ all:
 
 clean:						
 							$(MAKE) -f makefile.rmd clean
+
+remood:						
+							$(MAKE) -f makefile.rmd remood
+
 
 
 
