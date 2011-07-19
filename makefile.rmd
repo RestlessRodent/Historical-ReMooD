@@ -47,7 +47,7 @@ export __INT_CFLAGS := $(__INT_TEMP) -I$(__INT_SRC) -DGAMECLIENT
 # Linker Flags
 __INT_TEMP := $(__INT_LDFLAGS)
 unexport __INT_TEMP
-export __INT_LDFLAGS := $(__INT_TEMP)
+export __INT_LDFLAGS := $(__INT_TEMP) -lm
 
 ####################
 ### OBJECT FILES ###
@@ -70,6 +70,7 @@ clean:
 
 $(__INT_BIN)/remood$(_INT_EXESUFFIX):		$(__INT_OBJ) $(__INT_OBJS)
 											@echo "  [LD] $@"
+											$(__INT_CC) -o $@ $(__INT_OBJS) $(__INT_LDFLAGS)
 
 $(__INT_OBJ):								
 											mkdir -p $(__INT_OBJ)
