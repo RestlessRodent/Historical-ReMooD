@@ -52,7 +52,7 @@ void D_WX_RMODMultiBuild(WX_WADFile_t* const a_WAD, const WX_BuildAction_t a_Act
 {
 #define BUFSIZE 512
 	D_WXRMODPrivate_t* Private;
-	WX_WADEntry_t* Entry;	
+	WX_WADEntry_t* Entry;
 	char* Data;
 	void** PvPtr;
 	size_t* PvSize;
@@ -89,6 +89,11 @@ void D_WX_RMODMultiBuild(WX_WADFile_t* const a_WAD, const WX_BuildAction_t a_Act
 			// Obtain entry and make sure we got it
 			Entry = WX_EntryForName(a_WAD, "REMOODAT", false);
 			if (!Entry)
+				return;
+			
+			// Attempt loading of entry data
+			Data = WX_CacheEntry(Entry, WXCT_RAW, WXCT_RAW);
+			if (!Data)
 				return;
 			
 			// Create the root table
