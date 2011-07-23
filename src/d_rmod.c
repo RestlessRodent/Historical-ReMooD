@@ -189,19 +189,46 @@ static boolean DS_RMODNextToken(const char* const a_DataBase, const size_t a_Dat
 	return false;
 }
 
+/* DS_RMODConfirmProperty() -- Checks a property to check whether it is valid */
+static boolean DS_REMODConfirmProperty(const char* const a_Property)
+{
+	const char* p;
+	
+	/* Check */
+	if (!a_Property)
+		return false;
+	
+	/* Limit property keys to 64 characters */
+	if (strlen(a_Property) > 64)
+		return false;
+	
+	/* Rove around */
+	for (p = a_Property; *p; p++)
+		// fail on illegal characters
+		if (!((*p >= 'a' && *p <= 'z') || (*p >= '0' && *p <= '9') || (*p == '_')))
+			return false;
+	
+	/* Success */
+	return true;
+}
+
 /* D_WX_RMODMultiBuild() -- RMOD Multi builder */
 void D_WX_RMODMultiBuild(WX_WADFile_t* const a_WAD, const WX_BuildAction_t a_Action)
 {
 #define BUFSIZE 512
 	char Token[BUFSIZE];
+	int j;
+	char KeyProperty[BUFSIZE], KeyValue[BUFSIZE];
 	D_WXRMODPrivate_t* Private;
 	WX_WADEntry_t* Entry;
-	size_t Size;
+	size_t Size, z;
 	const char* Data;
 	void** PvPtr;
 	size_t* PvSize;
 	Z_Table_t* CurrentTable;
 	const char* p;
+	const char* ErrP;
+	boolean Fail;
 	
 	uint32_t cCol, cRow, lCol, lRow;
 	
@@ -248,27 +275,142 @@ void D_WX_RMODMultiBuild(WX_WADFile_t* const a_WAD, const WX_BuildAction_t a_Act
 			Size = WX_GetEntrySize(Entry);
 			
 			// Create the root table
-			Private->RMODTable = Z_TableCreate("ReMooD");
+			Private->RMODTable = Z_TableCreate("remood");
 			CurrentTable = Private->RMODTable;
 			
 			// Prepare RMOD Reading
 			lCol = cCol = 0;		// Columns are zero based since they are always incremented
 			lRow = cRow = 1;		// non-zero based rows
 			p = Data;
+			j = 0;
 			
 			// Read RMOD Data
+			Fail = false;
+			ErrP = "Unknown";
 			while (DS_RMODNextToken(Data, Size, &p, Token, BUFSIZE, &cCol, &cRow))
 			{
-				CONS_Printf("Tok r%3i c%3i: `%s`\n", lRow, lCol, Token);
+				// Expect property
+				if (j == 0)
+				{
+					// End of table
+					if (strcmp("}", Token) == 0)
+					{
+						// Get parent table
+						CurrentTable = Z_TableUp(CurrentTable);
+						
+						// Did we go up too many times?
+						if (!CurrentTable)
+						{
+							ErrP = "Too many closing braces";
+							Fail = true;
+							break;
+						}
+						
+						// Continue to the next token
+						continue;
+					}
+					
+					// Lowercase it
+					C_strlwr(Token);
+					
+					// Confirm the property
+					if (!DS_REMODConfirmProperty(Token))
+					{
+						ErrP = "Property contains invalid characters or > 64";
+						Fail = true;
+						break;
+					}
+					
+					// Copy to property buffer
+					memset(KeyProperty, 0, sizeof(KeyProperty));
+					strncpy(KeyProperty, Token, BUFSIZE);
+					
+					// Increment j and go to value now
+					j++;
+				}
+				
+				// Expect value
+				else if (j == 1)
+				{
+					// Values must start and end with "
+					z = strlen(Token);
+					
+					if (Token[0] != Token[z - 1] && Token[0] != '\"')
+					{
+						ErrP = "Values must always be quoted";
+						Fail = true;
+						break;
+					}
+					
+					// Copy the quote free chunk
+					memset(KeyValue, 0, sizeof(KeyValue));
+					strncpy(KeyValue, Token + 1, z - 2);
+					
+					// Increment j and go to statement type
+					j++;
+				}
+				
+				// Now expect either { or ;
+				else
+				{
+					// Create table
+					if (strcmp(Token, "{") == 0)
+					{
+						// Lowercase value
+						C_strlwr(KeyValue);
+						
+						// Table values are limited to properties
+						if (!DS_REMODConfirmProperty(KeyValue))
+						{
+							ErrP = "Table values are under property name limitations";
+							Fail = true;
+							break;
+						}
+						
+						// Add @ to KeyProperty
+						strncat(KeyProperty, "#", BUFSIZE);
+						
+						// Add value to property
+						strncat(KeyProperty, KeyValue, BUFSIZE);
+						
+						// Create table and set as current table
+						CurrentTable = Z_FindSubTable(CurrentTable, KeyProperty, true);
+					}
+					
+					// Create key
+					else if (strcmp(Token, ";") == 0)
+					{
+						// Add new entry to the current table with said stuff
+						Z_TableSetValue(CurrentTable, KeyProperty, KeyValue);
+					}
+					
+					// Unknown
+					else
+					{
+						ErrP = "Neither table nor key, must be } or ;";
+						Fail = true;
+						break;
+					}
+					
+					// Reset j
+					j = 0;
+				}
 				
 				// Remember last column and row (since it is at parse time)
 				lRow = cRow;
 				lCol = cCol;
 			}
+			
+			// Failure?
+			if (Fail)
+			{
+				CONS_Printf("RMOD Parse Error at column %u on row %u (%s).\n", lRow, lCol, ErrP);
+				return;
+			}
 						
 			// Debugging
 			if (devparm)
-				Z_TablePrint(Private->RMODTable, "|");
+				Z_TablePrint(Private->RMODTable, "");
 			break;
 			
 			// Clear single WAD

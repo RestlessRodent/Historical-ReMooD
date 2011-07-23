@@ -53,7 +53,7 @@ WADProperty "Doom2"
 	IdSize "14604584";
 	IdNumLumps "2919";
 	IdFileName "doom2.wad:freedoom.wad";
-};
+}
 
 // *************
 // *** MENUS ***
@@ -109,8 +109,8 @@ MapThing "DoomPlayer"
 			Next "1";
 			Tics "-1";
 			DEH "S_PLAY";
-			DEHId 149;
-		};
-	};
-};
+			DEHId "149";
+		}
+	}
+}
 
