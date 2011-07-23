@@ -135,6 +135,7 @@ typedef struct Z_Table_s Z_Table_t;
 /* Prototypes */
 Z_Table_t* Z_TableCreate(const char* const a_Key);
 void Z_TableDestroy(Z_Table_t* const a_Table);
+Z_Table_t* Z_TableUp(Z_Table_t* const a_Table);
 Z_Table_t* Z_FindSubTable(Z_Table_t* const a_Table, const char* const a_Key, const boolean a_Create);
 const char* Z_TableGetValue(Z_Table_t* const a_Table, const char* const a_SubKey);
 boolean Z_TableSetValue(Z_Table_t* const a_Table, const char* const a_SubKey, const char* const a_NewValue);

@@ -21,11 +21,12 @@ WADProperty "ReMooD"
 	// Info
 	Title "ReMooD Game Data";
 	UUID "550c62fe-acef-11e0-b945-7071bc43d0ee";
-	Author "GhostlyDeath <ghostlydeath@gmail.com>";
+	Author "GhostlyDeath <ghostlydeath@remood.org>";
+	URL "http://remood.org/";
 	Type "PWAD";
 	
 	// Identification
-	IdSelf true;
+	IdSelf "true";
 }
 
 WADProperty "Doom2"
@@ -66,34 +67,34 @@ MapThing "DoomPlayer"
 {
 	// Info
 	UUID "073e81e4-aced-11e0-b35a-7071bc43d0ee";
-	SpawnHealth 100;
-	PainChance 0.996094;
-	Radius 16;
-	Height 56;
-	Mass 100;
-	Density 1;
+	SpawnHealth "100";
+	PainChance "0.996094";
+	Radius "16";
+	Height "56";
+	Mass "100";
+	Density "1";
 	BloodType "DoomBlood";
 	MapThingID "MT_PLAYER";
-	ForceCompatibilityLevel 100;
+	ForceCompatibilityLevel "100";
 	CompatibilityAs "-";
 	OldClass "DoomPlayer";
-	DeHackEdID 0;
+	DeHackEdID "0";
 	
 	// Flags
-	CanDropOff true;
-	CanFeetClip true;
-	CanGather true;
-	CanJump true;
-	CanSlide true;
-	CanSwim true;
-	CanTeleportStomp true;
-	EnableZCheck true;
-	IsDoomPlayer true;
-	IsShootable true;
-	IsSolid true;
-	IsWindPushable true;
-	NoDeathmatch true;
-	SlidesAlongWalls true;
+	CanDropOff "true";
+	CanFeetClip "true";
+	CanGather "true";
+	CanJump "true";
+	CanSlide "true";
+	CanSwim "true";
+	CanTeleportStomp "true";
+	EnableZCheck "true";
+	IsDoomPlayer "true";
+	IsShootable "true";
+	IsSolid "true";
+	IsWindPushable "true";
+	NoDeathmatch "true";
+	SlidesAlongWalls "true";
 	
 	// Sounds
 	PainSound "plpain";
@@ -102,7 +103,7 @@ MapThing "DoomPlayer"
 	
 	State "SpawnState"
 	{
-		Frame 1
+		Frame "1"
 		{
 			Sprite "PLAY";
 			Next "1";

@@ -1049,6 +1049,17 @@ void Z_TableDestroy(Z_Table_t* const a_Table)
 	Z_Free(a_Table);
 }
 
+/* Z_TableUp() -- Returns the parent of the table */
+Z_Table_t* Z_TableUp(Z_Table_t* const a_Table)
+{
+	/* Check */
+	if (!a_Table)
+		return NULL;
+	
+	/* Easy */
+	return a_Table->ParentTable;
+}
+
 /* Z_PushNewEntry() -- Adds new entry to end of entries (prevents dup code) */
 static Z_TableEntry_t* Z_PushNewEntry(Z_Table_t* const a_Table, const char* const a_Key)
 {
