@@ -92,6 +92,9 @@ typedef struct M_WADPrivateJunk_s
 *** LOCALS ***
 *************/
 
+static M_MenuDef_t** l_Menus = NULL;			// All menus available
+static size_t l_NumMenus = 0;					// Number of menus
+
 /********************
 *** GUI FUNCTIONS ***
 ********************/
@@ -100,13 +103,70 @@ typedef struct M_WADPrivateJunk_s
 *** MENU FUNCTIONS ***
 *********************/
 
+/* M_PushOrFindMenu() -- Adds a new menu to the list or finds a menu and returns that */
+static M_MenuDef_t* M_PushOrFindMenu(const char* const a_Name, const boolean a_Create)
+{
+	size_t i;
+	
+	/* Check */
+	if (!a_Name)
+		return NULL;
+	
+	/* Go through every menu */
+	for (i = 0; i < l_NumMenus; i++)
+		if (l_Menus[i])
+			if (strcasecmp(l_Menus[i]->MenuID, a_Name) == 0)
+				return l_Menus[i];
+	
+	/* Not found so create (if wanted) */
+	if (!a_Create)
+		return NULL;
+	
+	// Resize the array
+	i = l_NumMenus++;
+	Z_ResizeArray(&l_Menus, sizeof(*l_Menus), i, l_NumMenus);
+	
+	// Create menu here
+	l_Menus[i] = Z_Malloc(sizeof(M_MenuDef_t), PU_STATIC, NULL);
+	
+	// Set menu stuff
+	l_Menus[i]->MenuID = Z_StrDup(a_Name, PU_STATIC, NULL);
+	
+	return l_Menus[i];
+}
+
+/* M_LoadMenuTable() -- Loads a menu from a table */
+boolean M_LoadMenuTable(Z_Table_t* const a_Table, const char* const a_ID)
+{
+#define BUFSIZE 512
+	char Temp[BUFSIZE];
+	M_MenuDef_t* NewMenu;
+	
+	/* Check */
+	if (!a_Table || !a_ID)
+		return false;
+	
+	/* Debug */
+	if (devparm)
+		CONS_Printf("L_LoadMenuTable: Handling table \"%s\".\n", a_ID);
+	
+	/* Obtain the root name */
+	NewMenu = M_PushOrFindMenu(a_ID, true);
+	
+	/* Success! */
+	return true;
+#undef BUFSIZE
+}
+
+/*****************************************************************************/
+
 /* M_SpawnMenu() -- Opens an existing menu */
-void M_SpawnMenu(const char* const Name)
+void M_SpawnMenu(const char* const Name, const size_t a_PlayerID)
 {
 }
 
 /* M_ActiveMenu() -- Returns the name of the current active menu */
-const char* M_ActiveMenu(void)
+const char* M_ActiveMenu(const size_t a_PlayerID)
 {
 	return NULL;
 }

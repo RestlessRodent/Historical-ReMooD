@@ -1060,6 +1060,17 @@ Z_Table_t* Z_TableUp(Z_Table_t* const a_Table)
 	return a_Table->ParentTable;
 }
 
+/* Z_TableName() -- Returns the name of the table */
+const char* Z_TableName(Z_Table_t* const a_Table)
+{
+	/* Check */
+	if (!a_Table)
+		return NULL;
+	
+	/* Easy */
+	return a_Table->Key;
+}
+
 /* Z_PushNewEntry() -- Adds new entry to end of entries (prevents dup code) */
 static Z_TableEntry_t* Z_PushNewEntry(Z_Table_t* const a_Table, const char* const a_Key)
 {
@@ -1265,6 +1276,27 @@ boolean Z_TableMergeInto(Z_Table_t* const a_Target, const Z_Table_t* const a_Sou
 	if (!a_Target || !a_Source)
 		return false;
 	
+	return true;
+}
+
+/* Z_TableSuperCallback() -- Goes through a table and sends a found table to a callback */
+boolean Z_TableSuperCallback(Z_Table_t* const a_Table, boolean (*a_Callback)(Z_Table_t* const a_Sub))
+{
+	size_t i;	
+	
+	/* Check */
+	if (!a_Table || !a_Callback)
+		return false;
+
+	/* Rove */
+	for (i = 0; i < a_Table->NumEntries; i++)
+		// Exists and is a table?
+		if (a_Table->Entries[i] && a_Table->Entries[i]->IsTable)
+			if (!a_Callback(a_Table->Entries[i]->Data.TableLink))
+				// Callback function returned false, so return false here
+				return false;
+	
+	/* Success */
 	return true;
 }
 

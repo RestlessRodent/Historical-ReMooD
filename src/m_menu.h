@@ -34,6 +34,7 @@
 #include "d_event.h"
 #include "w_wad.h"
 #include "d_rmod.h"
+#include "z_zone.h"
 
 /****************
 *** CONSTANTS ***
@@ -57,8 +58,10 @@ typedef enum MessageMode_e
 *** MENU PROTOTYPES ***
 **********************/
 
-void M_SpawnMenu(const char* const Name);
-const char* M_ActiveMenu(void);
+boolean M_LoadMenuTable(Z_Table_t* const a_Table, const char* const a_ID);
+
+void M_SpawnMenu(const char* const Name, const size_t a_PlayerID);
+const char* M_ActiveMenu(const size_t a_PlayerID);
 void M_StartMessage(const char* const a_Str, void* A_Unk, const MessageMode_t a_Mode);
 
 boolean M_Responder(event_t* const Event);

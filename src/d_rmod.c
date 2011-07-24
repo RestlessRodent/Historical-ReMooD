@@ -212,6 +212,58 @@ static boolean DS_REMODConfirmProperty(const char* const a_Property)
 	return true;
 }
 
+/* DS_RMODTableHandler() -- Handles a table */
+static boolean DS_RMODTableHandler(Z_Table_t* const a_Sub)
+{
+#define PREFIXSIZE 48
+	const char* q;
+	const char* p;
+	size_t n, j;
+	struct
+	{
+		const char const Prefix[PREFIXSIZE];			// Prefix# to look for
+		boolean (*Handler)(Z_Table_t* const a_Table, const char* const a_ID);
+	} Handlers[] =
+	{
+		{"menu#", M_LoadMenuTable},
+		{"", NULL}
+	};
+	
+	/* Check */
+	if (!a_Sub)
+		return false;
+	
+	/* Obtain ID from thing and determine its type */
+	p = q = Z_TableName(a_Sub);
+	q = strchr(q, '#');
+	n = q - p;
+	
+	// Increment to remove # for a_ID passing
+	q++;
+	
+	/* Go through the list */
+	for (j = 0; Handlers[j].Handler; j++)
+	{
+		// Try a name match
+		if (strncasecmp(Handlers[j].Prefix, p, n) == 0)
+		{
+			// Send to handler
+			Handlers[j].Handler(a_Sub, q);
+			break;	// No more searching needed
+		}
+	}
+	
+	// Failure?
+	if (!Handlers[j].Handler)
+		if (devparm)
+			CONS_Printf("RMOD: Unknown table \"%.*s\"\n", n, p);
+	
+	/* Always return true! */
+	return true;
+
+#undef PREFIXSIZE
+}
+
 /* D_WX_RMODMultiBuild() -- RMOD Multi builder */
 void D_WX_RMODMultiBuild(WX_WADFile_t* const a_WAD, const WX_BuildAction_t a_Action)
 {
@@ -229,6 +281,7 @@ void D_WX_RMODMultiBuild(WX_WADFile_t* const a_WAD, const WX_BuildAction_t a_Act
 	const char* p;
 	const char* ErrP;
 	boolean Fail;
+	WX_WADFile_t* Wover;
 	
 	uint32_t cCol, cRow, lCol, lRow;
 	
@@ -423,6 +476,23 @@ void D_WX_RMODMultiBuild(WX_WADFile_t* const a_WAD, const WX_BuildAction_t a_Act
 			
 			// Build WAD composite
 		case WXBA_BUILDCOMPOSITE:
+			// Linearly read all RMODs for every WAD
+			for (Wover = a_WAD; Wover; Wover = WX_RoveWAD(Wover, true, 1))
+			{
+				// Obtain private data
+				if (!WX_GetVirtualPrivateData(Wover, WXDPID_RMOD, &PvPtr, &PvSize))
+					continue;
+		
+				// Check whether it really exists, if not ignore it
+				if (!*PvPtr)
+					continue;
+		
+				// Set private data
+				Private = (D_WXRMODPrivate_t*)*PvPtr;
+				
+				// Rove table and send to callback
+				Z_TableSuperCallback(Private->RMODTable, DS_RMODTableHandler);
+			}
 			break;
 			
 			// Clear WAD composite

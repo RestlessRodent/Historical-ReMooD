@@ -41,6 +41,7 @@ WADProperty "Doom2"
 	GameMode "commercial";
 	GameMission "doom2";
 	MapInfo "MI_DOOM2";
+	Critical "true";
 	
 	// Identification
 	IdSHA512 "32f720c85134da7bee3a7d6cd18c98dae7c6a0cb821a9f05fe28eeb055c97f40cc73fd336b6ba3d9be8fd39072129829e458769b3ed3c2fa298d3ec8b9805c6d";
@@ -58,6 +59,14 @@ WADProperty "Doom2"
 // *************
 // *** MENUS ***
 // *************
+
+Menu "Root"
+{
+	UUID "dc455d5a-b610-11e0-b293-101f740b7dc2";
+	Title "Main Menu";
+	String "MENUMAIN_TITLE";
+	Flags "Auto";
+}
 
 // *****************
 // *** MAPTHINGS ***

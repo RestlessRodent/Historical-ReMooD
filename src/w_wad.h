@@ -222,6 +222,7 @@ boolean				WX_Init(void);
 boolean				WX_LocateWAD(const char* const a_Name, const char* const a_MD5, char* const a_OutPath, const size_t a_OutSize);
 WX_WADFile_t*		WX_LoadWAD(const char* const a_AutoPath);
 void				WX_UnLoadWAD(WX_WADFile_t* const a_WAD);
+WX_WADFile_t*		WX_RoveWAD(WX_WADFile_t* const a_WAD, const boolean a_Virtual, const ssize_t a_Next);
 void				WX_PreEntryTable(WX_WADFile_t* const a_WAD, const size_t a_Count);
 WX_WADEntry_t*		WX_AddEntry(WX_WADFile_t* const a_WAD);
 void				WX_WipeEntryTable(WX_WADFile_t* const a_WAD);

@@ -1970,6 +1970,41 @@ void				WX_UnLoadWAD(WX_WADFile_t* const a_WAD)
 	Z_Free(a_WAD);
 }
 
+/* WX_RoveWAD() -- Moves around WADs */
+WX_WADFile_t*		WX_RoveWAD(WX_WADFile_t* const a_WAD, const boolean a_Virtual, const ssize_t a_Next)
+{
+	ssize_t TimesLeft;
+	WX_WADFile_t* Rover;
+	
+	/* Check */
+	if (!a_WAD || !a_Next)
+		return NULL;
+	
+	/* Rove around */
+	Rover = a_WAD;
+	TimesLeft = a_Next;
+	
+	while (Rover && TimesLeft != 0)
+	{
+		// Seek Left
+		if (TimesLeft < 0)
+		{
+			Rover = (a_Virtual ? Rover->VPrevWAD : Rover->PrevWAD);
+			TimesLeft++;
+		}
+		
+		// Seek right
+		else
+		{
+			Rover = (a_Virtual ? Rover->VNextWAD : Rover->NextWAD);
+			TimesLeft--;
+		}
+	}
+	
+	/* Return rover */
+	return Rover;
+}
+
 /* WX_PreEntryTable() -- Preallocate entry table */
 void				WX_PreEntryTable(WX_WADFile_t* const a_WAD, const size_t a_Count)
 {
