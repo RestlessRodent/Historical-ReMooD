@@ -40,6 +40,8 @@
 *** MENU CONSTANTS ***
 *********************/
 
+#define MENUSTACKMULTIPLE		8				// Menu stack multiple
+
 /* M_MenuItemType_t -- Type of menu item */
 typedef enum M_MenuItemType_e
 {
@@ -55,6 +57,8 @@ typedef enum M_MenuItemType_e
 typedef enum M_MenuFlags_e
 {
 	MMF_AUTOADJUST	= 0x00000001,				// Menu is autoadjusted
+	MMF_NOPAUSEGAME	= 0x00000002,				// Do not pause the game even when playing solo
+	MNF_UNIQUE		= 0x00000004,				// Menu is unique (only one can be open at once)
 } M_MenuFlags_t;
 
 /**********************
@@ -80,12 +84,22 @@ typedef struct M_MenuDef_s
 	size_t NumItems;							// Number of items
 } M_MenuDef_t;
 
+/* M_MenuLoadedData_t -- Menu loaded data */
+typedef struct M_MenuLoadedData_s
+{
+	const M_MenuDef_t* Template;				// Template for loaded menu
+} M_MenuLoadedData_t;
+
 /*************
 *** LOCALS ***
 *************/
 
 static M_MenuDef_t** l_Menus = NULL;			// All menus available
 static size_t l_NumMenus = 0;					// Number of menus
+
+static M_MenuLoadedData_t** l_MenuStack[MAXSPLITSCREENPLAYERS];
+static size_t l_MenuStackSize[MAXSPLITSCREENPLAYERS];
+static size_t l_MenuOpenCount[MAXSPLITSCREENPLAYERS];
 
 /********************
 *** GUI FUNCTIONS ***
