@@ -58,7 +58,7 @@ typedef enum MessageMode_e
 *** MENU PROTOTYPES ***
 **********************/
 
-boolean M_LoadMenuTable(Z_Table_t* const a_Table, const char* const a_ID);
+boolean M_LoadMenuTable(Z_Table_t* const a_Table, const char* const a_ID, void* const a_Data);
 
 void M_SpawnMenu(const char* const Name, const size_t a_PlayerID);
 const char* M_ActiveMenu(const size_t a_PlayerID);

@@ -143,7 +143,7 @@ boolean Z_TableSetValue(Z_Table_t* const a_Table, const char* const a_SubKey, co
 void Z_TableClearValue(Z_Table_t* const a_Table, const char* const a_SubKey);
 void Z_TablePrint(Z_Table_t* const a_Table, const char* const a_Prefix);
 boolean Z_TableMergeInto(Z_Table_t* const a_Target, const Z_Table_t* const a_Source);
-boolean Z_TableSuperCallback(Z_Table_t* const a_Table, boolean (*a_Callback)(Z_Table_t* const a_Sub));
+boolean Z_TableSuperCallback(Z_Table_t* const a_Table, boolean (*a_Callback)(Z_Table_t* const a_Sub, void* const a_Data), void* const a_Data);
 
 /*****************************************************************************/
 

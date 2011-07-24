@@ -1280,7 +1280,7 @@ boolean Z_TableMergeInto(Z_Table_t* const a_Target, const Z_Table_t* const a_Sou
 }
 
 /* Z_TableSuperCallback() -- Goes through a table and sends a found table to a callback */
-boolean Z_TableSuperCallback(Z_Table_t* const a_Table, boolean (*a_Callback)(Z_Table_t* const a_Sub))
+boolean Z_TableSuperCallback(Z_Table_t* const a_Table, boolean (*a_Callback)(Z_Table_t* const a_Sub, void* const a_Data), void* const a_Data)
 {
 	size_t i;	
 	
@@ -1292,7 +1292,7 @@ boolean Z_TableSuperCallback(Z_Table_t* const a_Table, boolean (*a_Callback)(Z_T
 	for (i = 0; i < a_Table->NumEntries; i++)
 		// Exists and is a table?
 		if (a_Table->Entries[i] && a_Table->Entries[i]->IsTable)
-			if (!a_Callback(a_Table->Entries[i]->Data.TableLink))
+			if (!a_Callback(a_Table->Entries[i]->Data.TableLink, a_Data))
 				// Callback function returned false, so return false here
 				return false;
 	

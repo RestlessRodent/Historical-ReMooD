@@ -348,12 +348,10 @@ typedef enum
 /* StringGroupEX_t -- A localized string */
 typedef struct StringGroupEX_s
 {
-	CONST char* CONST id;
+	const char* const id;
 	char* wcharstr;
+	uint32_t IdHash;
 } StringGroupEX_t;
-
-/* XMLData_t -- XML Loaded data */
-typedef struct XMLData_s XMLData_t;
 
 /**************
 *** GLOBALS ***
@@ -366,10 +364,7 @@ StringGroupEX_t UnicodeStrings[NUMUNICODESTRINGS];
 ****************/
 
 const char* DS_NameOfString(char** const WCharStr);
-
-XMLData_t* DS_StartXML(const char* const a_CharData, const size_t a_Size);
-void DS_EndXML(XMLData_t* const a_XML);
-boolean DS_ParseXML(XMLData_t* const a_XML, void* const a_Data, boolean (*a_CBFunc)(void* const a_Data, const char* const a_Key, const char* const a_Value));
+const char** const DS_FindString(const char* const a_RefName);
 
 #endif /* __DSTRINGS_H__ */
 

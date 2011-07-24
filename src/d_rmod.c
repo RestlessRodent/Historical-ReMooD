@@ -213,7 +213,7 @@ static boolean DS_REMODConfirmProperty(const char* const a_Property)
 }
 
 /* DS_RMODTableHandler() -- Handles a table */
-static boolean DS_RMODTableHandler(Z_Table_t* const a_Sub)
+static boolean DS_RMODTableHandler(Z_Table_t* const a_Sub, void* const a_Data)
 {
 #define PREFIXSIZE 48
 	const char* q;
@@ -222,7 +222,7 @@ static boolean DS_RMODTableHandler(Z_Table_t* const a_Sub)
 	struct
 	{
 		const char const Prefix[PREFIXSIZE];			// Prefix# to look for
-		boolean (*Handler)(Z_Table_t* const a_Table, const char* const a_ID);
+		boolean (*Handler)(Z_Table_t* const a_Table, const char* const a_ID, void* const a_Data);
 	} Handlers[] =
 	{
 		{"menu#", M_LoadMenuTable},
@@ -248,7 +248,7 @@ static boolean DS_RMODTableHandler(Z_Table_t* const a_Sub)
 		if (strncasecmp(Handlers[j].Prefix, p, n) == 0)
 		{
 			// Send to handler
-			Handlers[j].Handler(a_Sub, q);
+			Handlers[j].Handler(a_Sub, q, a_Data);
 			break;	// No more searching needed
 		}
 	}
@@ -491,7 +491,7 @@ void D_WX_RMODMultiBuild(WX_WADFile_t* const a_WAD, const WX_BuildAction_t a_Act
 				Private = (D_WXRMODPrivate_t*)*PvPtr;
 				
 				// Rove table and send to callback
-				Z_TableSuperCallback(Private->RMODTable, DS_RMODTableHandler);
+				Z_TableSuperCallback(Private->RMODTable, DS_RMODTableHandler, Wover);
 			}
 			break;
 			

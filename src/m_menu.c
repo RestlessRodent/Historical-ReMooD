@@ -71,6 +71,7 @@ typedef struct M_MenuItem_s
 typedef struct M_MenuDef_s
 {
 	char* MenuID;								// ID of the menu
+	char* MenuTitle;							// Menu title
 	char* TitleStrID;							// String ID of the title to show
 	char* TitlePic;								// Title picture name
 	char** TitleStrRef;							// Pointer to pointer of UTF-8 string
@@ -78,15 +79,6 @@ typedef struct M_MenuDef_s
 	M_MenuItem_t* Items;						// Menu items
 	size_t NumItems;							// Number of items
 } M_MenuDef_t;
-
-/* M_WADPrivateJunk_t -- Private stuff for said WAD */
-typedef struct M_WADPrivateJunk_s
-{
-	M_MenuDef_t* Menus;							// Available Menus
-	size_t NumMenus;							// Number of menus
-	
-	M_MenuDef_t* EditMenu;						// Menu currently being edited
-} M_WADPrivateJunk_t;
 
 /*************
 *** LOCALS ***
@@ -136,11 +128,12 @@ static M_MenuDef_t* M_PushOrFindMenu(const char* const a_Name, const boolean a_C
 }
 
 /* M_LoadMenuTable() -- Loads a menu from a table */
-boolean M_LoadMenuTable(Z_Table_t* const a_Table, const char* const a_ID)
+boolean M_LoadMenuTable(Z_Table_t* const a_Table, const char* const a_ID, void* const a_Data)
 {
 #define BUFSIZE 512
 	char Temp[BUFSIZE];
 	M_MenuDef_t* NewMenu;
+	const char* p;
 	
 	/* Check */
 	if (!a_Table || !a_ID)
@@ -148,14 +141,43 @@ boolean M_LoadMenuTable(Z_Table_t* const a_Table, const char* const a_ID)
 	
 	/* Debug */
 	if (devparm)
-		CONS_Printf("L_LoadMenuTable: Handling table \"%s\".\n", a_ID);
+		CONS_Printf("RMOD/Menu: Handling \"%s\".\n", a_ID);
 	
 	/* Obtain the root name */
 	NewMenu = M_PushOrFindMenu(a_ID, true);
 	
+	/* Obtain stuff from the menu */
+	// Title
+	if ((p = Z_TableGetValue(a_Table, "title")))
+		NewMenu->MenuTitle = Z_StrDup(p, PU_STATIC, NULL);
+	
+	// String ID
+	if ((p = Z_TableGetValue(a_Table, "string")))
+	{
+		// Set
+		NewMenu->TitleStrID = Z_StrDup(p, PU_STATIC, NULL);
+		
+		// Find reference
+		NewMenu->TitleStrRef = DS_FindString(NewMenu->TitleStrID);
+	}
+	
 	/* Success! */
 	return true;
 #undef BUFSIZE
+}
+
+/* M_DestroyMenu() -- Destroys a menu */
+void M_DestroyMenu(M_MenuDef_t* const a_Menu)
+{
+	/* Check */
+	if (!a_Menu)
+		return;
+	
+	/* Clear things away */
+	if (a_Menu->MenuTitle)
+		Z_Free(a_Menu->MenuTitle);
+	if (a_Menu->TitleStrID)
+		Z_Free(a_Menu->TitleStrID);
 }
 
 /*****************************************************************************/
