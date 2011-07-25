@@ -24,6 +24,7 @@ WADProperty "ReMooD"
 	Author "GhostlyDeath <ghostlydeath@remood.org>";
 	URL "http://remood.org/";
 	Type "PWAD";
+	Critical "true";
 	
 	// Identification
 	IdSelf "true";
@@ -41,7 +42,6 @@ WADProperty "Doom2"
 	GameMode "commercial";
 	GameMission "doom2";
 	MapInfo "MI_DOOM2";
-	Critical "true";
 	
 	// Identification
 	IdSHA512 "32f720c85134da7bee3a7d6cd18c98dae7c6a0cb821a9f05fe28eeb055c97f40cc73fd336b6ba3d9be8fd39072129829e458769b3ed3c2fa298d3ec8b9805c6d";
@@ -56,6 +56,25 @@ WADProperty "Doom2"
 	IdFileName "doom2.wad:freedoom.wad";
 }
 
+WADProperty "BoomEditRef"
+{
+	// Info
+	Title "BOOM Editing Reference";
+	UUID "c2cdf940-acec-11e0-8cad-7071bc43d0ee";
+	Author "TeamTNT";
+	ReleaseDate "";
+	Type "PWAD";
+	FileName "boomedit.wad";
+	
+	// Identification
+	IdSHA256 "bdf7c98ac6084b0993edbcce9a29f8528b3ac6c944459dee0a7503471b9975d9";
+	IdSHA1 "5f7212e598ef9b341cf90185e6702151e1f7a1f9";
+	IdMD5 "8b81578ba565585f90d5cf0ade10183c";
+	IdCRC32 "b5bb2154";
+	IdSize "685156";
+	IdFileName "boomedit.wad";
+}
+
 // *************
 // *** MENUS ***
 // *************
@@ -66,6 +85,13 @@ Menu "Root"
 	Title "Main Menu";
 	String "MENUMAIN_TITLE";
 	Flags "Auto";
+	
+	Item "1"
+	{
+		Type "SubMenu";
+		String "ENU_MAIN_NEWGAME";
+		SubMenu "newgame";
+	}
 }
 
 // *****************

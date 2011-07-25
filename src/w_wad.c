@@ -1308,30 +1308,88 @@ struct WX_WADEntry_s
 /* WX_P_LMP_LoadWAD() -- Load a format */
 boolean WX_P_LMP_LoadWAD(WX_WADFile_t* const a_WAD)
 {
-	WX_WADEntry_t* SoloEntry;
+	WX_WADEntry_t* DOSEntry, *LongEntry;
 	char* p;
+	boolean MakeDOS;
+	size_t i, j, n, m;
+	const char DosLegals[] =	// Not complete but stripped enough for normal files
+	{
+		'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N',
+		'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z',
+		'0', '1', '2', '3', '4', '5', '6', '7', '8', '9',
+		'!', '#', '$', '%', '&', '\'', '(', ')', '@', '^', '_', '`', '{', '}'
+	};
 	
 	/* Check */
 	if (!a_WAD)
 		return false;
 	
-	/* Add a single entry */
-	SoloEntry = WX_AddEntry(a_WAD);
+	/* Add a single entry (8.3 format) */
+	LongEntry = WX_AddEntry(a_WAD);
 	
 	/* Set Data */
-	SoloEntry->Name = Z_StrDup(a_WAD->WADBaseName, PU_STATIC, NULL);
-	SoloEntry->Position = 0;
-	SoloEntry->Size = a_WAD->FileSize;
+	LongEntry->Name = Z_StrDup(a_WAD->WADBaseName, PU_STATIC, NULL);
+	LongEntry->Position = 0;
+	LongEntry->Size = a_WAD->FileSize;
 	
-	/* Format name to normal */
-	// Uppercase
-	C_strupr(SoloEntry->Name);
-	
-	// Strip . and after
-	p = strrchr(SoloEntry->Name, '.');
+	C_strupr(LongEntry->Name);	// Uppercase
+	p = strrchr(LongEntry->Name, '.');	// Strip . and after
 	
 	if (p)
 		*p = '\0';
+	
+	/* Is the wad a long name or it contains illegals? */
+	MakeDOS = false;
+	m = sizeof(DosLegals) / sizeof(DosLegals[0]);
+	if ((n = strlen(LongEntry->Name)) > 8)
+		MakeDOS = true;
+	
+	if (!MakeDOS)
+		for (i = 0; i < n; i++)
+		{
+			// Check if character is legal
+			for (j = 0; j < m; j++)
+				if (LongEntry->Name[i] == DosLegals[j])
+					break;
+			
+			// Illegal?
+			if (j >= m)
+			{
+				MakeDOS = true;
+				break;
+			}
+		}
+	
+	// We creating a DOS version?
+	if (MakeDOS)
+	{
+		p = LongEntry->Name;
+		DOSEntry = WX_AddEntry(a_WAD);
+		DOSEntry->Name = Z_StrDup(p, PU_STATIC, NULL);
+		DOSEntry->Position = 0;
+		DOSEntry->Size = a_WAD->FileSize;
+		DOSEntry->SymLink = &a_WAD->Entries[0];
+		
+		// Fix name
+		m = sizeof(DosLegals) / sizeof(DosLegals[0]);
+		n = strlen(DOSEntry->Name);
+		for (i = 0; i < n; i++)
+		{
+			// Check if character is legal
+			for (j = 0; j < m; j++)
+				if (DOSEntry->Name[i] == DosLegals[j])
+					break;
+		
+			// Illegal?
+			if (j >= m)
+				DOSEntry->Name[i] = '_';
+		}
+		
+		// Run through again and zero out anything 8 and above
+		for (i = 0; i < n; i++)
+			if (i >= 8)
+				DOSEntry->Name[i] = 0;
+	}
 	
 	/* Success! */
 	return true;

@@ -88,6 +88,8 @@ typedef struct M_MenuDef_s
 typedef struct M_MenuLoadedData_s
 {
 	const M_MenuDef_t* Template;				// Template for loaded menu
+	size_t CurrentItem;							// Current Item being selected
+	boolean PauseProp;							// Pause game propogation
 } M_MenuLoadedData_t;
 
 /*************
@@ -141,6 +143,25 @@ static M_MenuDef_t* M_PushOrFindMenu(const char* const a_Name, const boolean a_C
 	return l_Menus[i];
 }
 
+/* MS_ProcessMenuItem() -- Process a menu item */
+boolean MS_ProcessMenuItem(Z_Table_t* const a_Sub, void* const a_Data)
+{
+	M_MenuDef_t* CurrentMenu;
+	
+	/* Check */
+	if (!a_Sub || !a_Data)
+		return false;
+	
+	/* Data is the menu */
+	CurrentMenu = a_Data;
+	
+	if (devparm)
+		CONS_Printf("RMOD/Menu: Subtable \"%s\"\n", Z_TableName(a_Sub));
+	
+	/* Success */
+	return true;
+}
+
 /* M_LoadMenuTable() -- Loads a menu from a table */
 boolean M_LoadMenuTable(Z_Table_t* const a_Table, const char* const a_ID, void* const a_Data)
 {
@@ -148,6 +169,7 @@ boolean M_LoadMenuTable(Z_Table_t* const a_Table, const char* const a_ID, void* 
 	char Temp[BUFSIZE];
 	M_MenuDef_t* NewMenu;
 	const char* p;
+	const char* Flags;
 	
 	/* Check */
 	if (!a_Table || !a_ID)
@@ -174,6 +196,14 @@ boolean M_LoadMenuTable(Z_Table_t* const a_Table, const char* const a_ID, void* 
 		// Find reference
 		NewMenu->TitleStrRef = DS_FindString(NewMenu->TitleStrID);
 	}
+	
+	// Flags
+	if ((p = Z_TableGetValue(a_Table, "flags")))
+	{
+	}
+	
+	/* Process menu items */
+	Z_TableSuperCallback(a_Table, MS_ProcessMenuItem, NewMenu);
 	
 	/* Success! */
 	return true;

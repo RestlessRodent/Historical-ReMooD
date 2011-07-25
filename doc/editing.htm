@@ -157,26 +157,48 @@
 		</P>
 		
 		<!-- ###################
-		         XML DATA
+		         RMOD DATA
 		     ################### -->
-		<DIV id="xml">
-		<H1>XML Data</H1>
+		<DIV id="rmod">
+		<H1>ReMooD Map Object Data</H1>
 		<P>
 			<P>
-				The XML Data is located in the lump RMD_XDAT.
+				ReMooD Map Object Data is enclosed in the lump <I>REMOODAT</I> and contains nearly all of the mostly static data. It was decided during ReMooD development to move such data into a dynamic file and load it at run time for clarity and simple patching. It also allows more advanced modifications of ReMooD than previously allowed in Doom Legacy.
 			</P>
 			
 			<P>
-				<H2>XML Tree</H2>
+				The data format is a strict format. All identifiers are case insensitive so "WADProperty", "WadProperty", "wadproperty", and "WaDaPrOpErTy" are all the same. There is a basic format to the entire structure and that is the <I>Property</I> and <I>Value</I> format. Properties define what type of thing the value is such as a menu. Properties may only contain <U>UPPERCASE LETTERS</U>, <U>lowercase letters</U>, <U>numbers</U>, <U>underscore</U> and <U>at sign</U> (characters: <B>ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789_@</B>), no white space or any other character. The remainder of the format is values, all values must be enclosed in <B>&quot;</B>double quotes<B>&quot;</B>. C-like single line comments are supported also so the following characters and everything after it until the end of the line are ignored with <B>//</B>, a double forward slash.
+			</P>
+			
+			<P>
+				Beyond the basic structure is the table format, each property value pair is either a key or a table. Keys end in a <B>semicolon ;</B> following the closing double quote of the specified value. The major layout of the format is in tables, following a closing double quote a <B>{ opening curly brace</B> defines that this is a table. All keys and tables following are inside of that table. A table is dominant until a <B>} closing curly brace</B> is encountered. There is also an exception to the rule of tables and their values, the value of the table (the one enclosed in <B>&quot;</B>double quotes<B>&quot;</B>) are restricted to the same characters as properties (which are <B>ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789_@</B>). This means a property defining a table can not have a value such as <I>"Doom Guy"</I>.
+			</P>
+			
+			<P>
+				Only one similarly named key and table can exist at a table at one time. If a table later defines another key of the same value it is overwritten. This means if you have "<I>Name &quot;Doom Guy&quot;;</I>" and later "<I>Name &quot;Heretic Guy&quot;;</I>" in the same table, the latter takes precedence. Please note that it is only on the same table block, sub-tables are in their own block. The same rule also applies to tables, however it is limited to the table value (the one enclosed in <B>&quot;</B>double quotes<B>&quot;</B>), therefor you may have two MapThing tables provided the enclosed value is different.
+			<P>
+			
+			<!-- WADProperty -->
+			<DIV id="rmod_wadproperty">
+			<P>
+				<H2>WADProperty</H2>
 				<P>
-					<UL>
-						<LI>ReMooD
-							<UL>
-								<LI>Identity</LI>
-								<LI>WadIndex</LI>
-								<LI>Menu</LI>
-							</UL></LI>
-					</UL>
+				</P>
+			</P>
+			
+			<!-- Menu -->
+			<DIV id="rmod_menu">
+			<P>
+				<H2>Menu</H2>
+				<P>
+				</P>
+			</P>
+			
+			<!-- MapThing -->
+			<DIV id="rmod_mapthing">
+			<P>
+				<H2>MapThing</H2>
+				<P>
 				</P>
 			</P>
 		</P>

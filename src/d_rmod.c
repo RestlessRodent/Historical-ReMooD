@@ -205,7 +205,7 @@ static boolean DS_REMODConfirmProperty(const char* const a_Property)
 	/* Rove around */
 	for (p = a_Property; *p; p++)
 		// fail on illegal characters
-		if (!((*p >= 'a' && *p <= 'z') || (*p >= '0' && *p <= '9') || (*p == '_')))
+		if (!((*p >= 'a' && *p <= 'z') || (*p >= '0' && *p <= '9') || (*p == '_') || (*p == '@')))
 			return false;
 	
 	/* Success */
