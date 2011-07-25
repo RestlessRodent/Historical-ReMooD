@@ -49,6 +49,7 @@ extern fixed_t *spritewidth;
 extern fixed_t *spriteoffset;
 extern fixed_t *spritetopoffset;
 extern fixed_t *spriteheight;
+extern size_t g_SpritesBufferSize;			// GhostlyDeath <July 24, 2011> -- Unlimited sprites! not really
 
 extern lighttable_t *colormaps;
 

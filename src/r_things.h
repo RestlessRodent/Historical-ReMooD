@@ -30,9 +30,8 @@
 
 #include "sounds.h"
 
-// number of sprite lumps for spritewidth,offset,topoffset lookup tables
-// Fab: this is a hack : should allocate the lookup tables per sprite
-#define     MAXSPRITELUMPS     4096
+// GhostlyDeath <July 24, 2011> -- Remove sprite limit
+#define NUMSPRITEBUMPS	512
 
 #define MAXVISSPRITES   256		// added 2-2-98 was 128
 
@@ -93,7 +92,7 @@ typedef struct
 } skin_t;
 
 extern int numskins;
-extern skin_t skins[MAXSKINS + 1];
+extern skin_t* skins;
 //extern CV_PossibleValue_t skin_cons_t[MAXSKINS+1];
 extern consvar_t cv_skin;
 

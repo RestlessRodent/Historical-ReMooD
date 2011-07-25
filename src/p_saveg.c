@@ -476,13 +476,13 @@ void P_SAVE_MapObjects(void)
 			WriteUInt64(&SaveBlock, mobj);		// This will be used to determine stuff when relinking, etc.
 			
 			// Class Information
-			MOPZ(24 * 3);
+			MOPZ(16 * 3);
 			WriteStringN(&SaveBlock, MT2ReMooDClass[mobj->type], 24);			// RMOD Class Name
 			WriteStringN(&SaveBlock, MT2MTString[mobj->type], 24);				// MT_ Compatible Name
-			if (mobj->skin)														// Skin Name
+			/*if (mobj->skin)														// Skin Name
 				WriteStringN(&SaveBlock, mobj->skin, 24);
 			else
-				WriteStringN(&SaveBlock, "", 24);
+				WriteStringN(&SaveBlock, "", 24);*/
 				
 			// Misc
 			MOPZ(6 * 4);
