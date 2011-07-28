@@ -436,9 +436,6 @@ void D_RegisterClientCommands(void)
 	//i_cdmus.c
 	CV_RegisterVar(&cd_volume);
 	CV_RegisterVar(&cdUpdate);
-#if defined (LINUX) && !defined (SDL)
-	CV_RegisterVar(&cv_jigglecdvol);
-#endif
 
 	// screen.c ?
 	CV_RegisterVar(&cv_fullscreen);	// only for opengl so use differant name please and move it to differant place

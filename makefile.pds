@@ -1,0 +1,66 @@
+# ########   ###### #####   #####  ######   ######  ######
+# ##     ##  ##     ##  ## ##  ## ##    ## ##    ## ##   ##
+# ##     ##  ##     ##   ###   ## ##    ## ##    ## ##    ##
+# ########   ####   ##    #    ## ##    ## ##    ## ##    ##
+# ##    ##   ##     ##         ## ##    ## ##    ## ##    ##
+# ##     ##  ##     ##         ## ##    ## ##    ## ##   ##
+# ##      ## ###### ##         ##  ######   ######  ######
+#                      http://remood.org/
+# -----------------------------------------------------------------------------
+# Copyright (C) 2009-2011 GhostlyDeath <ghostlydeath@remood.org>
+# -----------------------------------------------------------------------------
+# This program is free software; you can redistribute it and/or
+# modify it under the terms of the GNU General Public License
+# as published by the Free Software Foundation; either version 3
+# of the License, or (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+# -----------------------------------------------------------------------------
+# Another makefile setup, recursive makes
+# This contains the makefile for compiling via DJGPP
+
+####################
+### OBJECT FILES ###
+####################
+
+# Slap on down object prefix (unexporting needed)
+__INT_TEMP := $(__INT_OBJPREFIX)
+unexport __INT_OBJPREFIX
+export __INT_OBJPREFIX := $(__INT_TEMP)d
+
+# Which interface dir?
+export __INT_IFACEDIR := puredos
+
+#####################
+### COMPILE FLAGS ###
+#####################
+
+# CC Flags
+__INT_TEMP := $(__INT_CFLAGS)
+unexport __INT_TEMP
+export __INT_CFLAGS := $(__INT_TEMP) -D__REMOOD_INTERFACE_PUREDOS
+
+# Linker Flags
+__INT_TEMP := $(__INT_LDFLAGS)
+unexport __INT_TEMP
+export __INT_LDFLAGS := $(__INT_TEMP)
+
+###############
+### TARGETS ###
+###############
+
+all:						
+							$(MAKE) -f makefile.rmd all
+
+clean:						
+							$(MAKE) -f makefile.rmd clean
+
+remood:						
+							$(MAKE) -f makefile.rmd remood
+
+
+
+
