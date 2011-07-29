@@ -58,9 +58,6 @@
 // NETWORKING
 //
 
-FILE *debugfile = NULL;			// put some net info in a file
-							  // during the game
-							  
 void (*I_NetGet) (void);
 void (*I_NetSend) (void);
 boolean(*I_NetCanSend) (void);
@@ -141,37 +138,6 @@ static node_t nodes[MAXNETNODES];
 #define  PINGDEFAULT     ((200*TICRATE*FRACUNIT)/1000)
 #define  VARPINGDEFAULT  ( (50*TICRATE*FRACUNIT)/1000)
 #define  TIMEOUT(p,v)    (p+4*v+FRACUNIT/2)>>FRACBITS;
-
-#ifdef DEBUGFILE
-
-static void fprintfstring(char *s, byte len)
-{
-	int i;
-	int mode = 0;
-
-	for (i = 0; i < len; i++)
-		if (s[i] < 32)
-			if (mode == 0)
-			{
-				fprintf(debugfile, "[%d", (byte) s[i]);
-				mode = 1;
-			}
-			else
-				fprintf(debugfile, ",%d", (byte) s[i]);
-		else
-		{
-			if (mode == 1)
-			{
-				fprintf(debugfile, "]");
-				mode = 0;
-			}
-			fprintf(debugfile, "%c", s[i]);
-		}
-	if (mode == 1)
-		fprintf(debugfile, "]");
-	fprintf(debugfile, "\n");
-}
-#endif
 
 void Internal_Get(void)
 {

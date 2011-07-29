@@ -25,6 +25,20 @@
 // -----------------------------------------------------------------------------
 // DESCRIPTION:
 
+/***************
+*** INCLUDES ***
+***************/
+
+/* System */
+#include <allegro.h>
+
+#if !defined(__REMOOD_SYSTEM_WINDOWS)
+	#include <sys/stat.h>
+#endif
+
+/* Local */
+#include "doomtype.h"
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -429,15 +443,6 @@ char *I_GetUserName(void)
 #endif
 }
 
-int I_mkdir(const char *dirname, int unixright)
-{
-#ifdef LINUX
-	return mkdir(dirname, unixright);
-#else
-	return mkdir(dirname);
-#endif
-}
-
 void I_LocateWad(void)
 {
 	// relict from the Linux version
@@ -550,5 +555,38 @@ size_t I_GetFreeMem(size_t * total)
 	return 16 << 20;
 #endif
 #endif							/* LINUX */
+}
+
+/****************
+*** FUNCTIONS ***
+****************/
+
+/* I_mkdir() -- Creates a new directory */
+int I_mkdir(const char* a_Path, int a_UNIXPowers)
+{
+#if defined(__REMOOD_SYSTEM_WINDOWS)
+	mkdir(a_Path);
+#else
+	// Ignore UNIX Powers
+	mkdir(a_Path, S_IWUSR);
+#endif
+}
+
+/* I_SysAlloc() -- Allocate system memory */
+void* I_SysAlloc(const size_t a_Size)
+{
+	return malloc(a_Size);
+}
+
+/* I_SysRealloc() -- Reallocate system memory */
+void* I_SysRealloc(void* const a_Ptr, const size_t a_NewSize)
+{
+	return realloc(a_Ptr, a_NewSize);
+}
+
+/* I_SysFree() -- Free memory */
+void I_SysFree(void* const a_Ptr)
+{
+	free(a_Ptr);
 }
 

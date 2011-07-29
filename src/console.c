@@ -1427,15 +1427,6 @@ void CONS_Printf(char *fmt, ...)
 #endif
 	va_end(argptr);
 
-	// echo console prints to log file
-#ifdef LOGMESSAGES
-#ifndef _WIN32
-	if (logstream != INVALID_HANDLE_VALUE)
-		write(logstream, txt, strlen(txt));
-#endif
-#endif
-	DEBFILE(txt);
-
 #ifndef GAMESERVER
 	if (devparm || !con_started /* || !graphics_started */ )
 	{

@@ -9,9 +9,7 @@
 // ##      ## ###### ##         ##  ######   ######  ######
 //                      http://remood.org/
 // -----------------------------------------------------------------------------
-// Copyright (C) 1993-1996 by id Software, Inc.
-// Copyright (C) 1998-2000 by DooM Legacy Team.
-// Copyright (C) 2008-2011 GhostlyDeath (ghostlydeath@gmail.com)
+// Copyright (C) 2011 GhostlyDeath <ghostlydeath@gmail.com>
 // -----------------------------------------------------------------------------
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
@@ -23,34 +21,22 @@
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 // GNU General Public License for more details.
 // -----------------------------------------------------------------------------
-// DESCRIPTION:
-//      Main program, simply calls D_DoomMain high level loop.
+// DESCRIPTION: Common Interface Utilities (to reduce code bloat and dup)
+
+#ifndef __I_UTIL_H__
+#define __I_UTIL_H__
 
 /***************
 *** INCLUDES ***
 ***************/
 
-#include <allegro.h>
-#include "doomdef.h"
-#include "m_argv.h"
-#include "d_main.h"
+#include "doomtype.h"
 
 /****************
 *** FUNCTIONS ***
 ****************/
 
-/* main() -- Main entry point */
-int main(int argc, char** argv)
-{
-	/* Set command line */
-	myargc = argc;
-	myargv = argv;
-	
-	/* Run the game */
-	D_DoomMain();
-	D_DoomLoop();
-	
-	/* Success! */
-	return EXIT_SUCCESS;
-}
+boolean I_UtilWinArgToUNIXArg(int* const a_argc, char*** const a_argv, const char* const a_Win);
+
+#endif /* __I_UTIL_H__ */
 

@@ -1129,15 +1129,6 @@ boolean P_SetupLevel(int episode, int map, skill_t skill, char *wadname)	// for 
 
 	// Make sure all sounds are stopped before Z_FreeTags.
 	S_StopSounds();
-
-#if 0							// UNUSED
-	if (debugfile)
-	{
-		Z_FreeTags(PU_LEVEL, MAXINT);
-		Z_FileDumpHeap(debugfile);
-	}
-	else
-#endif
 	
 	Z_FreeTags(PU_LEVEL, PU_PURGELEVEL - 1);
 

@@ -20,7 +20,7 @@
 # GNU General Public License for more details.
 # -----------------------------------------------------------------------------
 # Another makefile setup, recursive makes
-# This contains the makefile for compiling via DJGPP
+# This contains the makefile for compiling for Windows
 
 #########################
 ### COMPILER DEFAULTS ###

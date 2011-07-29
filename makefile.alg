@@ -46,7 +46,7 @@ export __INT_CFLAGS := $(__INT_TEMP) -D__REMOOD_INTERFACE_ALLEGRO
 # Linker Flags
 __INT_TEMP := $(__INT_LDFLAGS)
 unexport __INT_TEMP
-export __INT_LDFLAGS := $(__INT_TEMP)
+export __INT_LDFLAGS := $(__INT_TEMP) -lalleg
 
 ###############
 ### TARGETS ###

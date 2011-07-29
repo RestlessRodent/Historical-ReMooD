@@ -1196,7 +1196,6 @@ void Setvalue(consvar_t * var, char *valstr)
 		CONS_Printf("%s set to %s\n", ActualVar->name, ActualVar->string);
 		ActualVar->flags &= ~CV_SHOWMODIFONETIME;
 	}
-	DEBFILE(va("%s set to %s\n", ActualVar->name, ActualVar->string));
 	ActualVar->flags |= CV_MODIFIED;
 	// raise 'on change' code
 	if (ActualVar->flags & CV_CALL)

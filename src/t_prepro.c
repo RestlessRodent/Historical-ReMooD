@@ -369,22 +369,13 @@ void dry_run_script()
 
 void preprocess(script_t * script)
 {
-	if (debugfile)
-		fprintf(debugfile, "  preprocess script %i\n", script->scriptnum);
-
 	current_script = script;
 	script->len = strlen(script->data);
 
 	clear_script();
-
-	if (debugfile)
-		fprintf(debugfile, "    run thru script\n");
-
+	
 	process_find_char(script->data, 0);	// fill in everything
-
-	if (debugfile)
-		fprintf(debugfile, "    dry run script\n");
-
+	
 	dry_run_script();
 }
 

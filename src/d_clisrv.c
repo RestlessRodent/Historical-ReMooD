@@ -171,24 +171,6 @@ void TryRunTics(tic_t realtics)
 		tictoclear = firstticstosend;
 	}
 
-#ifdef DEBUGFILE
-	if (realtics == 0)
-		if (load)
-			load--;
-#endif
-
-#ifdef DEBUGFILE
-	if (debugfile && (realtics || neededtic > gametic))
-	{
-		//SoM: 3/30/2000: Need long int in the format string for args 4 & 5.
-		//Shut up stupid warning!
-		fprintf(debugfile,
-				"------------ Tryruntic : REAL:%li NEED:%li GAME:%li LOAD: %i\n",
-				realtics, neededtic, gametic, load);
-		load = 100000;
-	}
-#endif
-
 	if (neededtic > gametic)
 	{
 		if (advancedemo)
@@ -198,7 +180,6 @@ void TryRunTics(tic_t realtics)
 			// run the count * tics
 			while (neededtic > gametic)
 			{
-				DEBFILE(va("============ Runing tic %u (local %d)\n", gametic, localgametic));
 
 				if (gametic % 5 == 0)
 					I_UpdateMusic();

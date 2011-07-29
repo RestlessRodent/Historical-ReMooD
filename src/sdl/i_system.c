@@ -899,3 +899,27 @@ size_t I_GetFreeMem(size_t * total)
 #endif							/* LINUX */
 }
 
+
+/****************
+*** FUNCTIONS ***
+****************/
+
+/* I_SysAlloc() -- Allocate system memory */
+void* I_SysAlloc(const size_t a_Size)
+{
+	return malloc(s_Size);
+}
+
+/* I_SysRealloc() -- Reallocate system memory */
+void* I_SysRealloc(void* const a_Ptr, const size_t a_NewSize)
+{
+	return realloc(a_Ptr, a_NewSize);
+}
+
+/* I_SysFree() -- Free memory */
+void I_SysFree(void* const a_Ptr)
+{
+	free(a_Ptr);
+}
+
+

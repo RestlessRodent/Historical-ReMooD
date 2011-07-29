@@ -201,20 +201,6 @@ extern int maxammo[NUMAMMO];
 // File handling stuff.
 extern char basedefault[1024];
 
-#ifdef __MACOS__
-#define DEBFILE(msg) I_OutputMsg(msg)
-extern FILE *debugfile;
-#else
-#define DEBUGFILE
-#ifdef DEBUGFILE
-#define DEBFILE(msg) { if(debugfile) fputs(msg,debugfile); }
-extern FILE *debugfile;
-#else
-#define DEBFILE(msg) {}
-extern FILE *debugfile;
-#endif
-#endif							//__MACOS__
-
 // if true, load all graphics at level load
 extern boolean precache;
 
