@@ -19,8 +19,9 @@
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 # GNU General Public License for more details.
 # -----------------------------------------------------------------------------
-# Another makefile setup, recursive makes
+# Another makefile setup, dynamic recursive makes
 # Root makefile, calls other makefiles
+# Lean and mean!
 
 ################
 ### COMPILER ###
@@ -65,6 +66,7 @@ __INT_LSHELL   := $(call __INT_LOWERJUNK,$(SHELL))
 __INT_LCOMSPEC := $(call __INT_LOWERJUNK,$(COMSPEC))
 
 # Check if COMSPEC is set, if it we, are are on crippled WinDOS
+#  GNU Make always sets $(SHELL) to something
 #    DOS    : COMSPEC should match SHELL (for DJGPP at least)
 #    CygWin : SHELL == /bin/sh, COMPSPEC = command (Use shell here)
 #    Windows: COMPSEC should match SHELL
