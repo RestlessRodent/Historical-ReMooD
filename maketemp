@@ -1,30 +1,3 @@
-// -*- Mode: C; indent-tabs-mode: t; c-basic-offset: 4; tab-width: 4 -*-
-// -----------------------------------------------------------------------------
-// ########   ###### #####   #####  ######   ######  ######
-// ##     ##  ##     ##  ## ##  ## ##    ## ##    ## ##   ##
-// ##     ##  ##     ##   ###   ## ##    ## ##    ## ##    ##
-// ########   ####   ##    #    ## ##    ## ##    ## ##    ##
-// ##    ##   ##     ##         ## ##    ## ##    ## ##    ##
-// ##     ##  ##     ##         ## ##    ## ##    ## ##   ##
-// ##      ## ###### ##         ##  ######   ######  ######
-//                      http://remood.org/
-// -----------------------------------------------------------------------------
-// Copyright (C) 2011 GhostlyDeath <ghostlydeath@remood.org>
-// -----------------------------------------------------------------------------
-// This program is free software; you can redistribute it and/or
-// modify it under the terms of the GNU General Public License
-// as published by the Free Software Foundation; either version 3
-// of the License, or (at your option) any later version.
-//
-// This program is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-// GNU General Public License for more details.
-// -----------------------------------------------------------------------------
-// DESCRIPTION: Makefile template
-// http://predef.sf.net/ == Huge help here!
-
-
 
 /************************
 *** OPERATING SYSTEMS ***
@@ -32,7 +5,7 @@
 
 /****** UNIX-BASED FAMILIES ******/
 /*** Linux ***/
-#if (__IN_SYS == __IN_SYSID_LINUX) || (!defined(__IN_SYS) && (defined(__linux__)))))
+#if (__IN_SYS == __IN_SYSID_LINUX) || (!defined(__IN_SYS) && (defined(__linux__)))
 	#define __OUT_FAMILY __OUT_FAMILYID_UNIX
 
 /*** *BSD ***/
@@ -93,15 +66,34 @@
 #endif
 
 /**************************
-*** COMPILER INTERFACES ***
+*** FAMILY OUTPUT STUFF ***
 **************************/
 
-#define __BANANA 2
-#define __PEAR 3
+/*** UNIX Related ***/
+#if (__OUT_FAMILY == __OUT_FAMILYID_UNIX)
+	#define __OUT_EXESUFFIX x
 
-#if (__FRUIT == __BANANA)
-	banana!
+/*** CP/M Related ***/
+#elif (__OUT_FAMILY == __OUT_FAMILYID_CPM)
+	#define __OUT_EXESUFFIX .exe
+
+/*** Other ***/
 #else
-	not a banana
+	#define __OUT_EXESUFFIX
+
+/*** ***/
 #endif
+
+/*****************
+*** MAIN BLOCK ***
+*****************/
+
+#define __SM_MERGE(a,b) a/**/b 
+
+all:									remood/**/__OUT_EXESUFFIX
+										echo xx $(CC) $(__INT_CC) $(TOOLPREFIX)
+
+__SM_MERGE(remood,__OUT_EXESUFFIX):		/**/
+										$(shell ./somethng)
+										echo yy $(__INT_CC) -o $@ $(__INT_LDFLAGS)
 
