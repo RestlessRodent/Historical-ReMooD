@@ -22,6 +22,16 @@
 # Another makefile setup, recursive makes
 # Root makefile, calls other makefiles
 
+################
+### COMPILER ###
+################
+
+# Use toolchain prefix on default $(CC)
+ifneq (,$(TOOLPREFIX))
+	export __INT_CC := $(TOOLPREFIX)
+endif
+export __INT_CC := $(__INT_CC)$(CC)
+
 ##########################
 ### MAKEFILE SELECTION ###
 ##########################
@@ -53,12 +63,19 @@ ifeq (auto,$(strip $(USEMAKEFILE)))
 						ifneq (,$(findstring ReactOS,$(strip $(shell pr_ver.bat))))
 							USEMAKEFILE := w32
 						else
+							# Real MS-DOS or DOSBOX
+								# DOSBox version 0.74, Reported DOS version 5.0
 							ifneq (,$(findstring DOS,$(strip $(shell pr_ver.bat))))
 								USEMAKEFILE := djd
 							else
 								# WINE
 								ifneq (,$(findstring CMD,$(strip $(shell pr_ver.bat))))
 									USEMAKEFILE := w32
+								else
+									# DOSEmu
+									ifneq (,$(findstring DOS,$(strip $(shell "pr_ver.bat /r"))))
+										USEMAKEFILE := djd
+									endif
 								endif
 							endif
 						endif
@@ -126,16 +143,6 @@ export __INT_CFLAGS := $(CFLAGS) $(__INT_MCFLAGS)
 
 # Linker Flags
 export __INT_LDFLAGS := $(LDFLAGS) $(__INT_MLDFLAGS)
-
-################
-### COMPILER ###
-################
-
-# Use toolchain prefix on default $(CC)
-ifneq (,$(TOOLPREFIX))
-	export __INT_CC := $(TOOLPREFIX)$(CC)
-endif
-export __INT_CC += $(CC)
 
 ###############
 ### TARGETS ###

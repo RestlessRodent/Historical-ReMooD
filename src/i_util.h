@@ -36,6 +36,13 @@
 *** FUNCTIONS ***
 ****************/
 
+int VID_NumModes(void);
+char* __REMOOD_DEPRECATED VID_GetModeName(int a_ModeNum);
+int VID_ClosestMode(int* const a_WidthP, int* const a_HeightP, const boolean a_Fullscreen);
+int __REMOOD_DEPRECATED VID_GetModeForSize(int a_Width, int a_Height);
+boolean VID_AddMode(const int a_Width, const int a_Height, const boolean a_Fullscreen);
+int VID_SetMode(int a_ModeNum);
+
 boolean I_UtilWinArgToUNIXArg(int* const a_argc, char*** const a_argv, const char* const a_Win);
 
 #endif /* __I_UTIL_H__ */

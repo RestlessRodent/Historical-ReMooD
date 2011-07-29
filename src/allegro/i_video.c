@@ -9,9 +9,7 @@
 // ##      ## ###### ##         ##  ######   ######  ######
 //                      http://remood.org/
 // -----------------------------------------------------------------------------
-// Copyright (C) 1993-1996 by id Software, Inc.
-// Copyright (C) 1998-2000 by DooM Legacy Team.
-// Copyright (C) 2008-2011 GhostlyDeath (ghostlydeath@gmail.com)
+// Copyright (C) 2011 GhostlyDeath <ghostlydeath@remood.org>
 // -----------------------------------------------------------------------------
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
@@ -23,28 +21,20 @@
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 // GNU General Public License for more details.
 // -----------------------------------------------------------------------------
-// DESCRIPTION:
-//      DOOM graphics stuff for SDL
+// DESCRIPTION: DOOM graphics stuff for Allegro
 
+/***************
+*** INCLUDES ***
+***************/
+
+/* System */
 #include <stdlib.h>
+#include <allegro.h>
 
-#include "doomdef.h"
-#include "doomstat.h"
-#include "i_system.h"
-#include "m_argv.h"
-#include "d_main.h"
-#include "s_sound.h"
-#include "g_input.h"
-#include "g_game.h"
+/* Local */
+#include "doomtype.h"
 #include "i_video.h"
-#include "console.h"
-#include "command.h"
-
-#ifdef GAMECLIENT
-consvar_t cv_vidwait = {"vid_wait","1",CV_SAVE,CV_OnOff};
-byte graphics_started = 0;
-boolean allow_fullscreen = false;
-#endif
+#include "i_util.h"
 
 void I_StartFrame(void)
 {
@@ -82,34 +72,22 @@ void I_SetPalette(RGBA_t* palette)
 {
 }
 
-int VID_NumModes(void)
-{
-   return 0;
-}
-
-char* VID_GetModeName(int modeNum)
-{
-	return NULL;
-}
-
-int VID_GetModeForSize(int w, int h)
-{
-	return 0;
-}
-
+/* VID_PrepareModeList() -- Adds video modes to the mode list */
 void VID_PrepareModeList(void)
 {
 }
 
-int VID_SetMode(int modeNum)
+/* I_SetVideoMode() -- Sets the current video mode */
+boolean I_SetVideoMode(const uint32_t a_Width, const uint32_t a_Height, const boolean a_Fullscreen)
 {
-	return 1;
 }
 
+/* I_StartupGraphics() -- Initializes graphics */
 void I_StartupGraphics(void)
 {
 }
 
+/* I_ShutdownGraphics() -- Turns off graphics */
 void I_ShutdownGraphics(void)
 {
 }

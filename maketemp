@@ -1,0 +1,107 @@
+// -*- Mode: C; indent-tabs-mode: t; c-basic-offset: 4; tab-width: 4 -*-
+// -----------------------------------------------------------------------------
+// ########   ###### #####   #####  ######   ######  ######
+// ##     ##  ##     ##  ## ##  ## ##    ## ##    ## ##   ##
+// ##     ##  ##     ##   ###   ## ##    ## ##    ## ##    ##
+// ########   ####   ##    #    ## ##    ## ##    ## ##    ##
+// ##    ##   ##     ##         ## ##    ## ##    ## ##    ##
+// ##     ##  ##     ##         ## ##    ## ##    ## ##   ##
+// ##      ## ###### ##         ##  ######   ######  ######
+//                      http://remood.org/
+// -----------------------------------------------------------------------------
+// Copyright (C) 2011 GhostlyDeath <ghostlydeath@remood.org>
+// -----------------------------------------------------------------------------
+// This program is free software; you can redistribute it and/or
+// modify it under the terms of the GNU General Public License
+// as published by the Free Software Foundation; either version 3
+// of the License, or (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+// -----------------------------------------------------------------------------
+// DESCRIPTION: Makefile template
+// http://predef.sf.net/ == Huge help here!
+
+
+
+/************************
+*** OPERATING SYSTEMS ***
+************************/
+
+/****** UNIX-BASED FAMILIES ******/
+/*** Linux ***/
+#if (__IN_SYS == __IN_SYSID_LINUX) || (!defined(__IN_SYS) && (defined(__linux__)))))
+	#define __OUT_FAMILY __OUT_FAMILYID_UNIX
+
+/*** *BSD ***/
+#elif (__IN_SYS == __IN_SYSID_BSD) || (!defined(__IN_SYS) && (defined(__bsdi__) || defined(__DragonFly__) || defined(__FreeBSD__) || defined(__OpenBSD__) || defined(__NetBSD__)))
+	#define __OUT_FAMILY __OUT_FAMILYID_UNIX
+
+/*** Window UNIX Compatible ***/
+#elif (__IN_SYS == __IN_SYSID_WINUNIX) || (!defined(__IN_SYS) && (defined(__CYGWIN__) || defined(__INTERIX)))
+	#define __OUT_FAMILY __OUT_FAMILYID_UNIX
+
+/*** Mac OS X ***/
+#elif (__IN_SYS == __IN_SYSID_MACOSX) || (!defined(__IN_SYS) && (defined(__APPLE__) && defined(__MACH__)))
+	#define __OUT_FAMILY __OUT_FAMILYID_UNIX
+
+/*** Solaris ***/
+#elif (__IN_SYS == __IN_SYSID_SOLARIS) || (!defined(__IN_SYS) && (defined(__sun)))
+	#define __OUT_FAMILY __OUT_FAMILYID_UNIX
+
+/*** Generic UNIX ***/
+#elif (__IN_SYS == __IN_SYSID_UNIX) || (!defined(__IN_SYS) && (defined(__unix__)))
+	#define __OUT_FAMILY __OUT_FAMILYID_UNIX
+
+/****** CPM-BASED FAMILIES ******/
+/*** MS-DOS ***/
+#elif (__IN_SYS == __IN_SYSID_MSDOS) || (!defined(__IN_SYS) && (defined(__MSDOS__) || defined(__DOS__)))
+	#define __OUT_FAMILY __OUT_FAMILYID_CPM
+
+/*** OS/2 ***/
+#elif (__IN_SYS == __IN_SYSID_OS2) || (!defined(__IN_SYS) && (defined(__OS2__)))
+	#define __OUT_FAMILY __OUT_FAMILYID_CPM
+
+/*** Windows CE ***/
+#elif (__IN_SYS == __IN_SYSID_WINCE) || (!defined(__IN_SYS) && (defined(_WIN32) && defined(_WIN32_WCE)))
+	#define __OUT_FAMILY __OUT_FAMILYID_CPM
+
+/*** Windows ***/	
+#elif (__IN_SYS == __IN_SYSID_WINDOWS) || (!defined(__IN_SYS) && (defined(_WIN32) || defined(__WINDOWS__)))
+	#define __OUT_FAMILY __OUT_FAMILYID_CPM
+
+/****** OTHERS ******/
+/*** Mac OS Classic ***/
+#elif (__IN_SYS == __IN_SYSID_MACOSCLASSIC) || (!defined(__IN_SYS) && (defined(Macintosh)))
+	#define __OUT_FAMILY __OUT_FAMILYID_OTHER
+
+/*** AmigaOS ***/
+#elif (__IN_SYS == __IN_SYSID_AMIGAOS) || (!defined(__IN_SYS) && (defined(__amigaos__)))
+	#define __OUT_FAMILY __OUT_FAMILYID_OTHER
+
+/*** PalmOS ***/
+#elif (__IN_SYS == __IN_SYSID_PALMOS) || (!defined(__IN_SYS) && (defined(__palmos__)))
+	#define __OUT_FAMILY __OUT_FAMILYID_OTHER
+
+/****** UNDEFINED ******/
+/*** Other ***/
+#else
+
+/*** ***/
+#endif
+
+/**************************
+*** COMPILER INTERFACES ***
+**************************/
+
+#define __BANANA 2
+#define __PEAR 3
+
+#if (__FRUIT == __BANANA)
+	banana!
+#else
+	not a banana
+#endif
+

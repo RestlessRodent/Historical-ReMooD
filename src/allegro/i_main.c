@@ -46,6 +46,10 @@ int main(int argc, char** argv)
 	myargc = argc;
 	myargv = argv;
 	
+	/* Initialize Allegro */
+	if (allegro_init())
+		return EXIT_FAILURE;
+	
 	/* Run the game */
 	D_DoomMain();
 	D_DoomLoop();
@@ -53,4 +57,5 @@ int main(int argc, char** argv)
 	/* Success! */
 	return EXIT_SUCCESS;
 }
+END_OF_MAIN()
 
