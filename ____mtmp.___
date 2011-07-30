@@ -1,0 +1,13 @@
+## Make file template
+## Lines starting with two ## are comments
+## While lines starting with a single # are preprocessor stuff
+## Everything is processed line by line with whitespace preservation
+##
+## #ifdef <define>			Is whatever defined?
+## #ifndef <define>			Is whatever not defined?
+##
+## Have fun!
+##
+
+
+

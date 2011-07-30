@@ -46,34 +46,98 @@ typedef struct CDefine_s
 *** LOCALS ***
 *************/
 
-static CDefine_t** l_Defines;					// Available defines
+static CDefine_t* l_Defines;					// Available defines
 static size_t l_NumDefines;						// Number of defines
 
 /****************
 *** FUNCTIONS ***
 ****************/
 
+/* IfDef() -- Checks if something is defined */
+// Return zero if not found
+size_t IfDef(const char* const Def)
+{
+	size_t i;
+	
+	/* Look in list */
+	for (i = 0; i < l_NumDefines; i++)
+		if (strcasecmp(Def, l_Defines[i].Define) == 0)
+			return i + 1;
+	
+	/* Not found */
+	return 0;
+}
+
+/* IfNDef() -- Checks if something is not defined */
+// Return zero if found
+size_t IfNDef(const char* const Def)
+{
+	return !IfDef(Def);
+}
+
 /* ParseDefines() -- Parses a define in GCC preprocessor output format */
 void ParseDefines(FILE* const InDef)
 {
 #define BUFSIZE 512
 	char TempBuf[BUFSIZE];
+	char* p;
+	char* q;
 	
 	/* Check */
 	if (!InDef)
 		return;
 	
 	/* While we are not at the end of the file */
-	
-
-#endif
+	while (!feof(InDef))
+	{
+		// Read in buffer
+		fgets(TempBuf, BUFSIZE, InDef);
+		
+		// Must start with #define (hacky)
+		if (strncmp("#define", TempBuf, 7))
+			continue;
+		
+		// remove any newlines
+		while ((p = strchr(TempBuf, '\n')))
+			*p = 0;
+		while ((p = strchr(TempBuf, '\r')))
+			*p = 0;
+		
+		// Find first space
+		p = strchr(TempBuf, ' ');
+		p++;
+		
+		// Find first space in that, then NULL it, then +1 it
+		q = strchr(p + 1, ' ');
+		if (!q)
+			continue;	// oops!
+		*q = 0;
+		q++;
+		
+		// Reallocate defines
+		l_Defines = realloc(l_Defines, sizeof(*l_Defines) * (l_NumDefines + 1));
+		
+		if (!l_Defines)
+		{
+			l_NumDefines = 0;
+			return;	// Oops
+		}
+		
+		// Copy
+		l_Defines[l_NumDefines].Define = strdup(p);
+		l_Defines[l_NumDefines].Value = strdup(q);
+		
+		// Increment
+		l_NumDefines++;
+	}
+#undef BUFSIZE
 }
 
 /* MakeMakefile() -- Creates a makefile */
-void MakeMakefile(FILE* const OutMake)
+void MakeMakefile(FILE* const InTemp, FILE* const OutMake)
 {
 	/* Check */
-	if (!OutMake)
+	if (!InTemp || !OutMake)
 		return;
 }
 
@@ -81,11 +145,16 @@ void MakeMakefile(FILE* const OutMake)
 int main(int argc, char** argv)
 {
 	FILE* InDef = NULL;
+	FILE* InTemp = NULL;
 	FILE* OutMake = NULL;
 	
 	/* Check command line arguments */
-	if (argc < 3)
+	if (argc < 4)
+	{
+		fprintf(stderr, "Usage: %s <input> <template> <output>\n", argv[0]);
+		fprintf(stderr, "Only %i arguments were passed.\n", argc);
 		return EXIT_FAILURE;
+	}
 	
 	/* Attempt opening of arguments */
 	// Input C definitions
@@ -93,24 +162,41 @@ int main(int argc, char** argv)
 	
 	// Check
 	if (!InDef)
+	{
+		fprintf(stderr, "Failed to open \"%s\".\n", argv[1]);
 		return EXIT_FAILURE;
+	}
+	
+	// Input Template
+	InTemp = fopen(argv[2], "rt");
+	
+	// Check
+	if (!InTemp)
+	{
+		fprintf(stderr, "Failed to open \"%s\".\n", argv[2]);
+		fclose(InDef);
+		return EXIT_FAILURE;
+	}
 	
 	// Output makefile
-	OutMake = fopen(argv[2], "wt");
+	OutMake = fopen(argv[3], "wt");
 	
 	// Check
 	if (!OutMake)
 	{
+		fprintf(stderr, "Failed to open \"%s\".\n", argv[3]);
 		fclose(InDef);
+		fclose(InTemp);
 		return EXIT_FAILURE;
 	}
 	
 	/* Parse defines then create the makefile */
 	ParseDefines(InDef);
-	MakeMakefile(OutMake);
+	MakeMakefile(InTemp, OutMake);
 	
 	/* Close and success! */
 	fclose(InDef);
+	fclose(InTemp);
 	fclose(OutMake);
 	return EXIT_SUCCESS;
 }
