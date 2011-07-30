@@ -213,7 +213,7 @@ size_t l_NumDoomPals = 0;
 void LoadPalette(char *lumpname)
 {
 	WadIndex_t Idx;
-	size_t NumBasePals, Len;
+	size_t NumBasePals, BasePal, Len;
 	size_t i, j, k, l, m;
 	uint8_t* PlayPal;
 	fixed_t pR[256], pG[256], pB[256];
@@ -263,6 +263,9 @@ void LoadPalette(char *lumpname)
 	/* Start smoothing palettes */
 	for (i = 0; i < l_NumDoomPals; i++)
 	{
+		// Get Base number
+		BasePal = i / VPALSMOOTHCOUNT;
+		
 		// Base palette for interpolation
 		if ((i % VPALSMOOTHCOUNT) == 0)
 		{
@@ -274,7 +277,7 @@ void LoadPalette(char *lumpname)
 			k = (i + (VPALSMOOTHCOUNT));
 			
 			// There is a valid palette here
-			if (k < l_NumDoomPals && l_DoomPals[k])
+			if ((BasePal != 8 && BasePal != 12) && (k < l_NumDoomPals && l_DoomPals[k]))
 			{
 				for (j = 0; j < 256; j++)
 				{

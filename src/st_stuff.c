@@ -782,12 +782,24 @@ static int st_palette = 0;
 void ST_doPaletteStuff(void)
 {
 	int ChosePal = 0;
+	int BaseDam = 0, BzFade;
+	
+	/* Berserker fade */
+	BaseDam = plyr->damagecount;
+	
+	if (plyr->powers[pw_strength])
+	{
+		BzFade = 12 - (plyr->powers[pw_strength] >> 6);
+		
+		if (BzFade > BaseDam)
+			BaseDam = BzFade;
+	}
 	
 	/* Player is hurt? */
-	if (plyr->damagecount)
+	if (BaseDam)
 	{
 		// Division is number of palettes
-		ChosePal = FixedMul(NUMREDPALS << FRACBITS, FixedDiv((plyr->damagecount) << FRACBITS, 100 << FRACBITS)) >> FRACBITS;
+		ChosePal = FixedMul(NUMREDPALS << FRACBITS, FixedDiv((BaseDam) << FRACBITS, 100 << FRACBITS)) >> FRACBITS;
 		ChosePal++;	// +7
 		//ChosePal = (plyr->damagecount * (10000 / NUMREDPALS) ) / 100;
 		
@@ -802,6 +814,16 @@ void ST_doPaletteStuff(void)
 	/* Player got an item */
 	else if (plyr->bonuscount)
 	{
+		// Division is number of palettes
+		ChosePal = FixedMul(NUMBONUSPALS << FRACBITS, FixedDiv((plyr->bonuscount) << FRACBITS, 100 << FRACBITS)) >> FRACBITS;
+		ChosePal++;	// +7
+		
+		// Don't exceed
+		if (ChosePal >= NUMBONUSPALS)
+			ChosePal = NUMBONUSPALS - 1;
+		
+		// Offset
+		ChosePal += STARTBONUSPALS;
 	}
 	
 	/* Player has radiation suit */

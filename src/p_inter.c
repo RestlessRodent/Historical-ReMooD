@@ -1474,7 +1474,7 @@ boolean P_DamageMobj(mobj_t * target, mobj_t * inflictor, mobj_t * source, int d
 			!source->player ||
 			(cv_deathmatch.value && (!cv_teamplay.value || !ST_SameTeam(source->player, player))))
 		{			
-			//player->health -= damage;	// mirror mobj health here for Dave
+			player->health -= damage;	// mirror mobj health here for Dave
 			if (player->health < 0)
 				player->health = 0;
 			takedamage = true;
@@ -1496,7 +1496,6 @@ boolean P_DamageMobj(mobj_t * target, mobj_t * inflictor, mobj_t * source, int d
 	if (takedamage)
 	{
 		// do the damage
-		if (target->type != MT_PLAYER)
 		target->health -= damage;
 		if (target->health <= 0)
 		{
