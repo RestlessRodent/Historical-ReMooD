@@ -9,7 +9,7 @@
 // ##      ## ###### ##         ##  ######   ######  ######
 //                      http://remood.org/
 // -----------------------------------------------------------------------------
-// Copyright (C) 2011 GhostlyDeath <ghostlydeath@gmail.com>
+// Copyright (C) 2011 GhostlyDeath <ghostlydeath@remood.org>
 // -----------------------------------------------------------------------------
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
@@ -31,14 +31,87 @@
 #include <stdio.h>
 #include <string.h>
 
+/*****************
+*** STRUCTURES ***
+*****************/
+
+/* CDefine_t -- C Definition */
+typedef struct CDefine_s
+{
+	char* Define;								// The actual C Define
+	char* Value;								// The value of said define
+} CDefine_t;
+
+/*************
+*** LOCALS ***
+*************/
+
+static CDefine_t** l_Defines;					// Available defines
+static size_t l_NumDefines;						// Number of defines
+
 /****************
 *** FUNCTIONS ***
 ****************/
 
+/* ParseDefines() -- Parses a define in GCC preprocessor output format */
+void ParseDefines(FILE* const InDef)
+{
+#define BUFSIZE 512
+	char TempBuf[BUFSIZE];
+	
+	/* Check */
+	if (!InDef)
+		return;
+	
+	/* While we are not at the end of the file */
+	
+
+#endif
+}
+
+/* MakeMakefile() -- Creates a makefile */
+void MakeMakefile(FILE* const OutMake)
+{
+	/* Check */
+	if (!OutMake)
+		return;
+}
+
 /* main() -- Main entry point */
 int main(int argc, char** argv)
 {
-	printf("woot!\n");
+	FILE* InDef = NULL;
+	FILE* OutMake = NULL;
+	
+	/* Check command line arguments */
+	if (argc < 3)
+		return EXIT_FAILURE;
+	
+	/* Attempt opening of arguments */
+	// Input C definitions
+	InDef = fopen(argv[1], "rt");
+	
+	// Check
+	if (!InDef)
+		return EXIT_FAILURE;
+	
+	// Output makefile
+	OutMake = fopen(argv[2], "wt");
+	
+	// Check
+	if (!OutMake)
+	{
+		fclose(InDef);
+		return EXIT_FAILURE;
+	}
+	
+	/* Parse defines then create the makefile */
+	ParseDefines(InDef);
+	MakeMakefile(OutMake);
+	
+	/* Close and success! */
+	fclose(InDef);
+	fclose(OutMake);
 	return EXIT_SUCCESS;
 }
 
