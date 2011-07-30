@@ -311,6 +311,7 @@ boolean M_Responder(event_t* const a_Event)
 	{
 			// Key is pressed
 		case ev_keydown:
+			// Master menu
 			if (a_Event->data1 == KEY_ESCAPE)
 			{
 				// If a menu is open, go back
