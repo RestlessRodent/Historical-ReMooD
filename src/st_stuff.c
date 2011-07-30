@@ -61,14 +61,18 @@ extern fixed_t waterheight;
 // STATUS BAR DATA
 //
 
+// GhostlyDeath <July 30, 2011> -- cv_r_smoothfade, Smooth transition between
+// colormaps and playpal
+consvar_t cv_r_smoothfade = { "r_smoothfade", "1", CV_SAVE, CV_YesNo };
+
 // Palette indices.
 // For damage/bonus red-/gold-shifts
-#define STARTREDPALS            1
-#define STARTBONUSPALS          9
-#define NUMREDPALS              8
-#define NUMBONUSPALS            4
+#define STARTREDPALS            (1 * VPALSMOOTHCOUNT)
+#define STARTBONUSPALS          (9 * VPALSMOOTHCOUNT)
+#define NUMREDPALS              (8 * VPALSMOOTHCOUNT)
+#define NUMBONUSPALS            (4 * VPALSMOOTHCOUNT)
 // Radiation suit, green shift.
-#define RADIATIONPAL            13
+#define RADIATIONPAL            (13 * VPALSMOOTHCOUNT)
 
 // N/256*100% probability
 //  that the normal face state will change
@@ -773,9 +777,43 @@ void ST_Ticker(void)
 
 static int st_palette = 0;
 
+/* ST_doPaletteStuff() -- Changes the current palette */
+// GhostlyDeath <July 30, 2011> -- Redone for smoothing
 void ST_doPaletteStuff(void)
 {
-
+	int ChosePal = 0;
+	
+	/* Player is hurt? */
+	if (plyr->damagecount)
+	{
+		// Division is number of palettes
+		ChosePal = FixedMul(NUMREDPALS << FRACBITS, FixedDiv((plyr->damagecount) << FRACBITS, 100 << FRACBITS)) >> FRACBITS;
+		ChosePal++;	// +7
+		//ChosePal = (plyr->damagecount * (10000 / NUMREDPALS) ) / 100;
+		
+		// Don't exceed
+		if (ChosePal >= NUMREDPALS)
+			ChosePal = NUMREDPALS - 1;
+		
+		// Offset
+		ChosePal += STARTREDPALS;
+	}
+	
+	/* Player got an item */
+	else if (plyr->bonuscount)
+	{
+	}
+	
+	/* Player has radiation suit */
+	else if (plyr->powers[pw_ironfeet] > 4 * 32 || plyr->powers[pw_ironfeet] & 8)
+	{
+		ChosePal = RADIATIONPAL;
+	}
+	
+	/* Set palette */
+	if (!cv_splitscreen.value)
+		V_SetPalette(ChosePal);
+#if 0
 	int palette;
 	int cnt;
 	int bzc;
@@ -826,6 +864,7 @@ void ST_doPaletteStuff(void)
 		if (!cv_splitscreen.value || !palette)
 			V_SetPalette(palette);
 	}
+#endif
 }
 
 static void ST_drawWidgets(boolean refresh)

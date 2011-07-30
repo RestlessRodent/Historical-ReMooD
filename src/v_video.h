@@ -59,6 +59,7 @@ extern consvar_t cv_usegamma;
 void V_Init(void);
 
 // Set the current RGB palette lookup to use for palettized graphics
+#define VPALSMOOTHCOUNT 16
 void V_SetPalette(int palettenum);
 
 void V_SetPaletteLump(char *pal);
