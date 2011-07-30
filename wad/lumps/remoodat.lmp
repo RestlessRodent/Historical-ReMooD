@@ -86,11 +86,18 @@ Menu "Root"
 	String "MENUMAIN_TITLE";
 	Flags "Auto";
 	
-	Item "1"
+	Item "NewGame"
 	{
 		Type "SubMenu";
-		String "ENU_MAIN_NEWGAME";
+		String "MENU_MAIN_NEWGAME";
 		SubMenu "newgame";
+	}
+	
+	Item "Quit"
+	{
+		Type "Function";
+		String "MENU_MAIN_QUITGAME";
+		Function "QuitDoom";
 	}
 }
 

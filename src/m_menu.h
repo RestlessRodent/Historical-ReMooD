@@ -66,6 +66,7 @@ void M_StartMessage(const char* const a_Str, void* A_Unk, const MessageMode_t a_
 
 boolean M_Responder(event_t* const Event);
 void M_Ticker(void);
+void M_GetSSBox(const size_t a_Player, const size_t a_SplitCount, int32_t* const a_x, int32_t* const a_y, int32_t* const a_w, int32_t* const a_h);
 void M_Drawer(void);
 
 #endif /* __M_MENU_H__ */

@@ -31,6 +31,11 @@
 #include "doomdef.h"
 #include "m_menu.h"
 #include "dstrings.h"
+#include "v_video.h"
+#include "screen.h"
+#include "d_netcmd.h"
+#include "d_event.h"
+#include "g_input.h"
 
 /********************
 *** GUI CONSTANTS ***
@@ -99,9 +104,9 @@ typedef struct M_MenuLoadedData_s
 static M_MenuDef_t** l_Menus = NULL;			// All menus available
 static size_t l_NumMenus = 0;					// Number of menus
 
-static M_MenuLoadedData_t** l_MenuStack[MAXSPLITSCREENPLAYERS];
-static size_t l_MenuStackSize[MAXSPLITSCREENPLAYERS];
-static size_t l_MenuOpenCount[MAXSPLITSCREENPLAYERS];
+static M_MenuLoadedData_t** l_MenuStack[MAXSPLITSCREENPLAYERS + 1];
+static size_t l_MenuStackSize[MAXSPLITSCREENPLAYERS + 1];
+static size_t l_MenuOpenCount[MAXSPLITSCREENPLAYERS + 1];
 
 /********************
 *** GUI FUNCTIONS ***
@@ -229,11 +234,61 @@ void M_DestroyMenu(M_MenuDef_t* const a_Menu)
 /* M_SpawnMenu() -- Opens an existing menu */
 void M_SpawnMenu(const char* const Name, const size_t a_PlayerID)
 {
+	M_MenuDef_t* Template;
+	M_MenuLoadedData_t* Loader;
+	size_t p, i;
+	
+	/* Check */
+	if (!Name || a_PlayerID > MAXSPLITSCREENPLAYERS + 1)
+		return;
+	
+	/* Find menu */
+	Template = M_PushOrFindMenu(Name, false);
+	
+	// not found?
+	if (!Template)
+		return;
+	
+	/* If it was, resize the menu stack */
+	// Simple
+	p = a_PlayerID;
+	
+	// Resize the stack if needed
+	i = l_MenuOpenCount[p] + 1;
+	
+	if (l_MenuOpenCount[p] + 1 > l_MenuStackSize[p])
+	{
+		Z_ResizeArray(&l_MenuStack[p], sizeof(*l_MenuStack[p]), l_MenuStackSize[p], l_MenuStackSize[p] + MENUSTACKMULTIPLE);
+		l_MenuStackSize[p] += MENUSTACKMULTIPLE;
+	}
+	
+	// Place at end
+	i = l_MenuOpenCount[p]++;
+	
+	/* Create loader */
+	Loader = Z_Malloc(sizeof(*Loader), PU_STATIC, NULL);
+	l_MenuStack[p][i] = Loader;
+	
+	/* Fill Loader */
+	Loader->Template = Template;
+}
+
+/* M_PopMenu() -- Pops the menu off the stack */
+void M_PopMenu(const size_t a_PlayerID)
+{
 }
 
 /* M_ActiveMenu() -- Returns the name of the current active menu */
 const char* M_ActiveMenu(const size_t a_PlayerID)
 {
+	/* Check */
+	if (a_PlayerID > MAXSPLITSCREENPLAYERS + 1)
+		return NULL;
+	
+	/* Get submenu */
+	// Is there actually a menu open?
+	if (l_MenuOpenCount[a_PlayerID])
+		return l_MenuStack[a_PlayerID][l_MenuOpenCount[a_PlayerID] - 1]->Template->MenuID;
 	return NULL;
 }
 
@@ -245,19 +300,113 @@ void M_StartMessage(const char* const a_Str, void* A_Unk, const MessageMode_t a_
 /*****************************************************************************/
 
 /* M_Responder() -- Responds to events passed from below */
-boolean M_Responder(event_t* const Event)
+boolean M_Responder(event_t* const a_Event)
 {
-	return false;
+	/* Check */
+	if (!a_Event)
+		return false;
+	
+	/* Which event type? */
+	switch (a_Event->type)
+	{
+			// Key is pressed
+		case ev_keydown:
+			if (a_Event->data1 == KEY_ESCAPE)
+			{
+				// If a menu is open, go back
+				if (M_ActiveMenu(0))
+					M_PopMenu(0);
+				
+				// Otherwise open a root menu
+				else
+					M_SpawnMenu("root", 0);
+				
+				// Event was eaten
+				return true;
+			}
+			
+			// Not eaten
+			return false;
+		
+			// Unhandled
+		default:
+			return false;
+	}
 }
 
-/* M_Ticker() -- Ticks the XML menu system */
+/* M_Ticker() -- Ticks the menu system */
 void M_Ticker(void)
 {
 }
 
+/* M_GetSSBox() -- Get splitscreen box location */
+void M_GetSSBox(const size_t a_Player, const size_t a_SplitCount, int32_t* const a_x, int32_t* const a_y, int32_t* const a_w, int32_t* const a_h)
+{
+	/* Check */
+	if (!a_SplitCount || a_SplitCount > MAXSPLITSCREENPLAYERS || a_Player >= a_SplitCount || (!a_x && !a_y && !a_w && !a_h))
+		return;
+	
+	/* Number of players in game */
+	switch (a_SplitCount)
+	{
+			// 1 player
+		case 1:
+		
+			// 2 players
+		case 2:
+		
+			// 3 or 4 players
+		case 3:
+		case 4:
+		
+			// Unknown
+		default:
+			if (a_x)
+				*a_x = 0;
+			if (a_y)
+				*a_y = 0;
+			if (a_w)
+				*a_w = BASEVIDWIDTH;
+			if (a_h)
+				*a_h = BASEVIDHEIGHT;
+			break;
+	}
+}
+
+/* M_DrawMenu() -- Draws a menu */
+static void M_DrawMenu(M_MenuLoadedData_t* const a_Data, const int32_t a_x, const int32_t a_y, const int32_t a_w, const int32_t a_h)
+{
+	V_DrawFadeScreen();
+}
+
 /* M_Drawer() -- Draws the menu */
 void M_Drawer(void)
-{
+{	
+	size_t i = 0;
+	boolean Skip = false;
+	int32_t x, y, w, h;
+	
+	/* Render each menu */
+	for (i = 0; i <= MAXSPLITSCREENPLAYERS; i++)	// +1
+	{
+		// Skip rendering player menus?
+		if (i >= 1 && Skip)
+			return;
+		
+		// Is there not a menu open?
+		if (!l_MenuOpenCount[i])
+			continue;
+		
+		// A menu was open, if this is for everyone, skip everyone else
+		if (i == 0)
+			Skip = true;
+		
+		// Get location to draw
+		M_GetSSBox((i >= 1 ? i - 1 : 0), cv_splitscreen.value, &x, &y, &w, &h);
+		
+		// Render the top most menu
+		M_DrawMenu(l_MenuStack[i][l_MenuOpenCount[i] - 1], x, y, w, h);
+	}
 }
 
 /*****************************************************************************/

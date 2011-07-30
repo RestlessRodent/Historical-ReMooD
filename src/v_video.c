@@ -1194,11 +1194,11 @@ void V_InitializeColormaps(void)
 	}
 }
 
-/* V_DrawFadeConsBackEx() -- Pixelate and add red tint */
+/* V_DrawFadeConsBackEx() -- Pixelate and add tint */
 void V_DrawFadeConsBackEx(const uint32_t Flags, const int x1, const int y1, const int x2, const int y2)
 {
 	int X1, Y1, X2, Y2;
-	int x, y, i, w;
+	int x, y, i, w, wloss, wreal;
 	int* buf;
 	int* buf2;
 	int c;
@@ -1261,6 +1261,7 @@ void V_DrawFadeConsBackEx(const uint32_t Flags, const int x1, const int y1, cons
 	
 	/* Actual Drawing */
 	// Speed
+	wloss = X2 & 3;
 	w = (X2 >> 2);
 	
 	// Loop
@@ -1278,8 +1279,14 @@ void V_DrawFadeConsBackEx(const uint32_t Flags, const int x1, const int y1, cons
 		}
 		
 		// Final bits
+#if 1
+		if (wloss)
+			for (x = x << 2; x < X2; x++)
+				((uint8_t*)buf)[x] = c & 0xFF;
+#else
 		for (x = x << 2; x < w; x++)
 			((uint8_t*)buf)[x] = c & 0xFF;
+#endif
 		
 		// Inner second loop
 		for (i = 1; i < 8 && (y + i) < Y2; i++)
