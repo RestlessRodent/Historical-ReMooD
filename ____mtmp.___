@@ -7,32 +7,44 @@
 ## `ccifndef <define>		Is whatever defined by the C Compiler?
 ## `ifdef <define>			Is whatever defined?
 ## `ifndef <define>			Is whatever not defined?
-## `if <stuff>				Conditional
-## `elif <stuff>			Conditional, Else if
-## `else					Conditional, Else
-## `endif					End of conditional
-##
-## The following are valid conditionals
-##
-## !						Not, true becomes false, false becomes true
-## ||						Or
-## &&						And
-## <, <=, >, >=, ==, !=		Relational operators
-## (, )						Parenthesis
-## ccdefined(define)		Is whatever defined by the C Compiler
-## defined(define)			Is whatever defined?
+## `elccifdef <define>		Is whatever defined by the C Compiler?
+## `elccifndef <define>		Is whatever defined by the C Compiler?
+## `elifdef <define>		Is whatever defined?
+## `elifndef <define>		Is whatever not defined?
+## `else					Something else
+## `endif					End of IF statement
+## `define					Define something
+## `undef					Undefine something
 ##
 ## Have fun!
 ##
 
+greetings
+
 ### System Building For ###
 # MS-DOS, FreeDOS, *DOS
-`if defined(__MSDOS__)
+`ccifdef __MSDOS__
+	dos
+
+# Linux
+`elccifdef __linux__
+	linux
 
 # Unknown
 `else
+	neither
 
 # #
 `endif
+
+`ifdef NOTDEFINED
+	1
+`elifdef NOTDEFINEDSTILL
+	2
+`else
+	3
+`endif
+
+bye
 
 

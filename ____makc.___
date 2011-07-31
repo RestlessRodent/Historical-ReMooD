@@ -46,33 +46,113 @@ typedef struct CDefine_s
 *** LOCALS ***
 *************/
 
-static CDefine_t* l_Defines;					// Available defines
-static size_t l_NumDefines;						// Number of defines
+static CDefine_t* l_Defines[2];					// Available defines
+static size_t l_NumDefines[2];					// Number of defines
 
 /****************
 *** FUNCTIONS ***
 ****************/
 
-/* CCIfDef() -- Checks if something is defined by the C Compiler */
-// Return zero if not found
-size_t CCIfDef(const char* const Def)
+/* AddDefine() -- Define something */
+void AddDefine(const int Type, const char* const Define, const char* const Value)
+{
+	size_t i, j;
+	
+	// Check
+	if (Type < 0 || Type > 1 || !Define || !Value)
+		return;
+	
+	// Look for an empty spot
+	for (i = 0; i < l_NumDefines[Type]; i++)
+		if (!l_Defines[Type][i].Define)
+		{
+			j = i;
+			break;
+		}
+	
+	// Ran out?
+	if (i == l_NumDefines[Type])
+	{
+		// Reallocate defines
+		l_Defines[Type] = realloc(l_Defines[Type], sizeof(*l_Defines[Type]) * (l_NumDefines[Type] + 1));
+	
+		if (!l_Defines[Type])
+		{
+			l_NumDefines[Type] = 0;
+			return;	// Oops
+		}
+	
+		j = l_NumDefines[Type]++;
+	}
+	
+	// Copy
+	l_Defines[Type][j].Define = strdup(Define);
+	l_Defines[Type][j].Value = strdup(Value);
+}
+
+/* FindDef() -- Finds a definition */
+CDefine_t* FindDef(const int Type, const char* const Def)
 {
 	size_t i;
 	
-	/* Look in list */
-	for (i = 0; i < l_NumDefines; i++)
-		if (strcasecmp(Def, l_Defines[i].Define) == 0)
-			return i + 1;
+	// Check
+	if (Type < 0 || Type > 1 || !Def)
+		return NULL;
 	
-	/* Not found */
+	// Search
+	for (i = 0; i < l_NumDefines[Type]; i++)
+		if (strcasecmp(Def, l_Defines[Type][i].Define) == 0)
+			return &l_Defines[Type][i];
+}
+
+/* UnDef() -- Undefine something */
+void UnDef(const int Type, const char* const Def)
+{
+	CDefine_t* Got;
+	
+	// Check
+	if (Type < 0 || Type > 1 || !Def)
+		return;
+	
+	// Look
+	Got = FindDef(0, Def);
+	
+	// Got it?
+	if (Got)
+	{
+		if (Got->Define)
+			free(Got->Define);
+		Got->Define = NULL;
+		if (Got->Value)
+			free(Got->Value);
+		Got->Value = NULL;
+	}
+}
+
+/* IfDef() -- Checks if something is defined by the C Compiler or ourself */
+// Return zero if not found
+size_t IfDef(const int Type, const char* const Def)
+{
+	CDefine_t* Got;
+	
+	// Check
+	if (Type < 0 || Type > 1 || !Def)
+		return 0;
+	
+	// Look
+	Got = FindDef(0, Def);
+	
+	// Got it?
+	if (Got)
+		return (Got - l_Defines[0]) + 1;
 	return 0;
 }
 
-/* CCIfNDef() -- Checks if something is not defined by the C Compiler */
+/* IfNDef() -- Checks if something is not defined by the C Compiler or ourself */
 // Return zero if found
-size_t CCIfNDef(const char* const Def)
+size_t IfNDef(const int Type, const char* const Def)
 {
-	return !CCIfDef(Def);
+	return !IfDef(Type, Def);
 }
 
 /* ParseDefines() -- Parses a define in GCC preprocessor output format */
@@ -114,21 +194,7 @@ void ParseDefines(FILE* const InDef)
 		*q = 0;
 		q++;
 		
-		// Reallocate defines
-		l_Defines = realloc(l_Defines, sizeof(*l_Defines) * (l_NumDefines + 1));
-		
-		if (!l_Defines)
-		{
-			l_NumDefines = 0;
-			return;	// Oops
-		}
-		
-		// Copy
-		l_Defines[l_NumDefines].Define = strdup(p);
-		l_Defines[l_NumDefines].Value = strdup(q);
-		
-		// Increment
-		l_NumDefines++;
+		AddDefine(0, p, q);
 	}
 #undef BUFSIZE
 }
@@ -137,11 +203,21 @@ void ParseDefines(FILE* const InDef)
 void MakeMakefile(FILE* const InTemp, FILE* const OutMake)
 {
 #define BUFSIZE 512
+#define MAXDEFINESTACK 64
 	char TempBuf[BUFSIZE];
+	char IfStates[MAXDEFINESTACK];
+	int IfStack;
+	char* p, *q, *r;
+	char IsElse;
+	size_t i, j, k;
 	
 	/* Check */
 	if (!InTemp || !OutMake)
 		return;
+	
+	/* Force always true state */
+	IfStates[0] = 1;
+	IfStack = 1;
 	
 	/* While we are not at the end of the file */
 	while (!feof(InTemp))
@@ -149,28 +225,155 @@ void MakeMakefile(FILE* const InTemp, FILE* const OutMake)
 		// Read in buffer
 		fgets(TempBuf, BUFSIZE, InTemp);
 		
-		// Debug
-		fprintf(stderr, "%s", TempBuf);
+		// remove any newlines
+		while ((p = strchr(TempBuf, '\n')))
+			*p = 0;
+		while ((p = strchr(TempBuf, '\r')))
+			*p = 0;
 		
 		// What is the first character?
 		switch (TempBuf[0])
 		{
 				// Comment
 			case '#':
-				fprintf(stderr, "Comment\n");
+				// Completely ignore
 				break;
 				
 				// Preprocessor
 			case '`':
-				fprintf(stderr, "PP\n");
+				// Lose 1
+				p = &TempBuf[1];
+				
+				fprintf(stderr, ">> %s\n", p);
+				
+				// Is this an else?
+				if (strncmp("el", p, 2) == 0)
+				{
+					IsElse = 1;
+					p += 2;
+				}
+				else
+					IsElse = 0;
+				
+				// Get define value
+				q = strchr(p, ' ');
+				
+				if (!q)
+					continue;
+				q++;
+				
+				// Find value
+				r = strchr(q, ' ');
+				
+				if (r)
+				{
+					*r = 0;
+					r++;
+				}
+				
+				// #ccifdef?
+				if (strncmp("ccifdef", p, 7) == 0)
+				{
+					// Check whether something is defined by the C Compiler
+					k = IfDef(0, q);
+					IfStates[IfStack - 1] = (IfStates[IfStack - 1] ^ 1) | !!k;
+					
+					if (k)
+						IfStates[IfStack] |= 0x80;
+				}
+				
+				// #ccifndef
+				else if (strncmp("ccifndef", p, 8) == 0)
+				{
+					// Check whether something is defined by the C Compiler
+					k = IfNDef(0, q);
+					IfStates[IfStack - 1] = (IfStates[IfStack - 1] ^ 1) | !!k;
+					
+					if (k)
+						IfStates[IfStack] |= 0x80;
+				}
+				
+				// #ifdef
+				else if (strncmp("ifdef", p, 5) == 0)
+				{
+					// Check whether something is defined by the makefile
+					k = IfDef(1, q);
+					IfStates[IfStack - 1] = (IfStates[IfStack - 1] ^ 1) | !!k;
+					
+					if (k)
+						IfStates[IfStack] |= 0x80;
+				}
+				
+				// #ifndef
+				else if (strncmp("ifndef", p, 6) == 0)
+				{
+					// Check whether something is defined by the makefile
+					k = IfNDef(1, q);
+					IfStates[IfStack - 1] = (IfStates[IfStack - 1] ^ 1) | !!k;
+					
+					if (k)
+						IfStates[IfStack] |= 0x80;
+				}
+				
+				// #else
+				else if (strncmp("se", p, 2) == 0)
+				{
+					// Make the current stack opposite of current unless it was true at some point
+					if (IfStates[IfStack - 1] & 0x80)
+						IfStates[IfStack - 1] = 0;
+					else
+						IfStates[IfStack - 1] = IfStates[IfStack - 1] ^ 1;
+				}
+				
+				// #endif
+				else if (strncmp("endif", p, 5) == 0)
+				{
+					printf(stderr, "%i > %i\n", IfStack, IfStack - 1);
+					// Lower the stack count
+					IfStack--;
+					
+					// Always set IsElse to prevent ++
+					IsElse = 1;
+					
+					if (IfStack == 0)
+					{
+						fprintf(stderr, "Went too far down\n");
+						return;
+					}
+				}
+				
+				// Unknown
+				else
+				{
+					fprintf(stderr, "Unknown %s\n", p);
+					return;
+				}
+				
+				// Is  an else?
+				if (!IsElse)
+					IfStack++;
 				break;
 			
 				// Normal line
 			default:
-				fprintf(stderr, "Norm\n");
+				// Determine if the stack is completely true
+				for (i = 0; i < IfStack; i++)
+				{
+					fprintf(stderr, "...%i (%i): %i\n", i, IfStack, IfStates[i]);
+					if (!(IfStates[i] & 1))
+						break;
+				}
+				
+				// Only if it reaches the end is the line parsed
+				if (i == IfStack)
+				{
+					fprintf(stderr, "%s\n", TempBuf);
+				}
 				break;
 		}
 	}
+
+#undef MAXDEFINESTACK
 #undef BUFSIZE
 }
 
