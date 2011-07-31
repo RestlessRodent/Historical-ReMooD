@@ -53,9 +53,9 @@ static size_t l_NumDefines;						// Number of defines
 *** FUNCTIONS ***
 ****************/
 
-/* IfDef() -- Checks if something is defined */
+/* CCIfDef() -- Checks if something is defined by the C Compiler */
 // Return zero if not found
-size_t IfDef(const char* const Def)
+size_t CCIfDef(const char* const Def)
 {
 	size_t i;
 	
@@ -68,11 +68,11 @@ size_t IfDef(const char* const Def)
 	return 0;
 }
 
-/* IfNDef() -- Checks if something is not defined */
+/* CCIfNDef() -- Checks if something is not defined by the C Compiler */
 // Return zero if found
-size_t IfNDef(const char* const Def)
+size_t CCIfNDef(const char* const Def)
 {
-	return !IfDef(Def);
+	return !CCIfDef(Def);
 }
 
 /* ParseDefines() -- Parses a define in GCC preprocessor output format */
@@ -136,9 +136,42 @@ void ParseDefines(FILE* const InDef)
 /* MakeMakefile() -- Creates a makefile */
 void MakeMakefile(FILE* const InTemp, FILE* const OutMake)
 {
+#define BUFSIZE 512
+	char TempBuf[BUFSIZE];
+	
 	/* Check */
 	if (!InTemp || !OutMake)
 		return;
+	
+	/* While we are not at the end of the file */
+	while (!feof(InTemp))
+	{
+		// Read in buffer
+		fgets(TempBuf, BUFSIZE, InTemp);
+		
+		// Debug
+		fprintf(stderr, "%s", TempBuf);
+		
+		// What is the first character?
+		switch (TempBuf[0])
+		{
+				// Comment
+			case '#':
+				fprintf(stderr, "Comment\n");
+				break;
+				
+				// Preprocessor
+			case '`':
+				fprintf(stderr, "PP\n");
+				break;
+			
+				// Normal line
+			default:
+				fprintf(stderr, "Norm\n");
+				break;
+		}
+	}
+#undef BUFSIZE
 }
 
 /* main() -- Main entry point */
