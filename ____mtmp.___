@@ -27,7 +27,7 @@ __XX_OBJ = $(__INT_OBJ)
 # MS-DOS, FreeDOS, *DOS
 `if ?__MSDOS__
 	__XX_EXESUFFIX = .exe
-	__XX_OBJPREFIX = m
+	__XX_OBJPREFIX = a
 	__XX_ICFLAGS  = -D__REMOOD_SYSTEM_DOS
 	__XX_ILDFLAGS =
 	__XX_DEFINTRF = allegro
@@ -35,7 +35,7 @@ __XX_OBJ = $(__INT_OBJ)
 # Windows CE
 `ei ?__WIN32_WCE
 	__XX_EXESUFFIX = .exe
-	__XX_OBJPREFIX = c
+	__XX_OBJPREFIX = b
 	__XX_ICFLAGS  = -D__REMOOD_SYSTEM_WINCE
 	__XX_ILDFLAGS =
 	__XX_DEFINTRF = win36c
@@ -43,7 +43,7 @@ __XX_OBJ = $(__INT_OBJ)
 # Windows 32-bit and 64-bit
 `ei ?__WIN32
 	__XX_EXESUFFIX = .exe
-	__XX_OBJPREFIX = w
+	__XX_OBJPREFIX = c
 	__XX_ICFLAGS  = -D__REMOOD_SYSTEM_WINDOWS
 	__XX_ILDFLAGS = -mwindows
 	__XX_DEFINTRF = sdl
@@ -51,20 +51,117 @@ __XX_OBJ = $(__INT_OBJ)
 # Linux
 `ei ?__linux__
 	__XX_EXESUFFIX = 
-	__XX_OBJPREFIX = l
-	__XX_ICFLAGS  = -D__REMOOD_SYSTEM_LINUX
+	__XX_OBJPREFIX = d
+	__XX_ICFLAGS  = -D__REMOOD_SYSTEM_UNIX -D__REMOOD_SYSTEM_LINUX
 	__XX_ILDFLAGS =
 	__XX_DEFINTRF = sdl
 
+# Apple
+`ei ?__APPLE__
+	# X
+	`if ?__MACH__
+		__XX_EXESUFFIX = 
+		__XX_OBJPREFIX = e
+		__XX_ICFLAGS  = -D__REMOOD_SYSTEM_UNIX -D__REMOOD_SYSTEM_MACOSX
+		__XX_ILDFLAGS =
+		__XX_DEFINTRF = sdl
+	
+	# Classic
+	`el
+		__XX_EXESUFFIX = 
+		__XX_OBJPREFIX = f
+		__XX_ICFLAGS  = -D__REMOOD_SYSTEM_MACOS
+		__XX_ILDFLAGS =
+		__XX_DEFINTRF = sdl
+	
+	#
+	`en
+
+# Other UNIXES
+`ei ?__unix__
+	# CYGWin
+	`if ?__CYGWIN
+		__XX_EXESUFFIX = 
+		__XX_OBJPREFIX = g
+		__XX_ICFLAGS  = -D__REMOOD_SYSTEM_UNIX -D__REMOOD_SYSTEM_CYGWIN
+		__XX_ILDFLAGS =
+		__XX_DEFINTRF = sdl
+	
+	# Interix
+	`ei ?__INTERIX
+		__XX_EXESUFFIX = 
+		__XX_OBJPREFIX = h
+		__XX_ICFLAGS  = -D__REMOOD_SYSTEM_UNIX -D__REMOOD_SYSTEM_INTERIX
+		__XX_ILDFLAGS =
+		__XX_DEFINTRF = sdl
+	
+	# FreeBSD
+	`ei ?__FreeBSD__
+		__XX_EXESUFFIX = 
+		__XX_OBJPREFIX = i
+		__XX_ICFLAGS  = -D__REMOOD_SYSTEM_UNIX -D__REMOOD_SYSTEM_BSD
+		__XX_ILDFLAGS =
+		__XX_DEFINTRF = sdl
+	
+	# NetBSD
+	`ei ?__NetBSD__
+		__XX_EXESUFFIX = 
+		__XX_OBJPREFIX = j
+		__XX_ICFLAGS  = -D__REMOOD_SYSTEM_UNIX -D__REMOOD_SYSTEM_BSD
+		__XX_ILDFLAGS =
+		__XX_DEFINTRF = sdl
+	
+	# OpenBSD
+	`ei ?__OpenBSD__
+		__XX_EXESUFFIX = 
+		__XX_OBJPREFIX = k
+		__XX_ICFLAGS  = -D__REMOOD_SYSTEM_UNIX -D__REMOOD_SYSTEM_BSD
+		__XX_ILDFLAGS =
+		__XX_DEFINTRF = sdl
+	
+	# Solaris
+	`ei ?__sun
+		__XX_EXESUFFIX = 
+		__XX_OBJPREFIX = l
+		__XX_ICFLAGS  = -D__REMOOD_SYSTEM_UNIX -D__REMOOD_SYSTEM_SOLARIS
+		__XX_ILDFLAGS =
+		__XX_DEFINTRF = sdl
+	
+	# Generic UNIX
+	`el
+		__XX_EXESUFFIX = 
+		__XX_OBJPREFIX = m
+		__XX_ICFLAGS  = -D__REMOOD_SYSTEM_UNIX
+		__XX_ILDFLAGS =
+		__XX_DEFINTRF = sdl
+	
+	#
+	`en
+
+# AmigaOS
+`el ?__amigaos__
+	__XX_EXESUFFIX =
+	__XX_OBJPREFIX = n
+	__XX_ICFLAGS  = -D__REMOOD_SYSTEM_AMIGA
+	__XX_ILDFLAGS =
+	__XX_DEFINTRF = sdl
+
+# PalmOS
+`el ?__palmos__
+	__XX_EXESUFFIX =
+	__XX_OBJPREFIX = o
+	__XX_ICFLAGS  = -D__REMOOD_SYSTEM_PALMOS
+	__XX_ILDFLAGS =
+	__XX_DEFINTRF = headless
+	
 # Unknown
 `el
 	__XX_EXESUFFIX =
-	__XX_OBJPREFIX = u
+	__XX_OBJPREFIX = z
 	__XX_ICFLAGS  = -D__REMOOD_SYSTEM_UNKNOWN
 	__XX_ILDFLAGS =
 	__XX_DEFINTRF = headless
 
-# #
 `en
 
 ##########################
