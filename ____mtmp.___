@@ -3,48 +3,100 @@
 ## While lines starting with a single ` are preprocessor stuff
 ## Everything is processed line by line with whitespace preservation
 ##
-## `ccifdef <define>		Is whatever defined by the C Compiler?
-## `ccifndef <define>		Is whatever defined by the C Compiler?
-## `ifdef <define>			Is whatever defined?
-## `ifndef <define>			Is whatever not defined?
-## `elccifdef <define>		Is whatever defined by the C Compiler?
-## `elccifndef <define>		Is whatever defined by the C Compiler?
-## `elifdef <define>		Is whatever defined?
-## `elifndef <define>		Is whatever not defined?
-## `else					Something else
-## `endif					End of IF statement
-## `define					Define something
-## `undef					Undefine something
+## `if		-> #ifdef
+## `ei		-> #elseifdef (not a real thing)
+## `el		-> #else
+## `en		-> #endif
 ##
 ## Have fun!
 ##
 
-greetings
+###################
+### DIRECTORIES ###
+###################
+
+__XX_BIN = bin
+__XX_SRC = src
+__XX_OBJ = $(__INT_OBJ)
+
+##########################
+### SYSTEM DEFINITIONS ###
+##########################
 
 ### System Building For ###
 # MS-DOS, FreeDOS, *DOS
-`ccifdef __MSDOS__
-	dos
+`if ?__MSDOS__
+	__XX_EXESUFFIX = .exe
+	__XX_OBJPREFIX = m
+	__XX_ICFLAGS = -D__REMOOD_SYSTEM_DOS
+	__XX_ILDFLAGS =
+
+# Windows CE
+`ei ?__WIN32_WCE
+	__XX_EXESUFFIX = .exe
+	__XX_OBJPREFIX = c
+	__XX_ICFLAGS = -D__REMOOD_SYSTEM_WINCE
+	__XX_ILDFLAGS =
+
+# Windows 32-bit and 64-bit
+`ei ?__WIN32
+	__XX_EXESUFFIX = .exe
+	__XX_OBJPREFIX = w
+	__XX_ICFLAGS = -D__REMOOD_SYSTEM_WINDOWS
+	__XX_ILDFLAGS = -mwindows
 
 # Linux
-`elccifdef __linux__
-	linux
+`ei ?__linux__
+	__XX_EXESUFFIX = 
+	__XX_OBJPREFIX = l
+	__XX_ICFLAGS = -D__REMOOD_SYSTEM_LINUX
+	__XX_ILDFLAGS =
 
 # Unknown
-`else
-	neither
+`el
+	__XX_EXESUFFIX =
+	__XX_OBJPREFIX = u
+	__XX_ICFLAGS = -D__REMOOD_SYSTEM_UNKNOWN
+	__XX_ILDFLAGS =
 
 # #
-`endif
+`en
 
-`ifdef NOTDEFINED
-	1
-`elifdef NOTDEFINEDSTILL
-	2
-`else
-	3
-`endif
+##########################
+### SELECTED INTERFACE ###
+##########################
 
-bye
+##############
+### CFLAGS ###
+##############
 
+__XX_CFLAGS := $(__INT_CFLAGS) $(__XX_ICFLAGS) $(__XX_FCFLAGS) -DGAMECLIENT -UGAMESERVER
+__XX_LDFLAGS := $(__INT_LDFLAGS) $(__XX_ILDFLAGS) $(__XX_FLDFLAGS)
+__XX_OBJPRIME := $(__XX_OBJPREFIX)o
 
+###############
+### OBJECTS ###
+###############
+
+__XX_OBJS := $(foreach __X_SOURCE, $(wildcard $(__XX_SRC)/*.c), $(__XX_OBJ)/$(basename $(notdir $(__X_SOURCE))).$(__XX_OBJPRIME)) $(foreach __X_SOURCE, $(wildcard $(__XX_SRC)/$(__INT_IFACEDIR)/*.c), $(__XX_OBJ)/$(basename $(notdir $(__X_SOURCE))).$(__XX_OBJPRIME))
+
+###############
+### TARGETS ###
+###############
+
+# All: Default
+.PHONY: all
+all:													$(__XX_BIN)/remood$(__INT_EXESUFFIX)$(__XX_EXESUFFIX)
+														
+
+# The actual binary
+$(__XX_BIN)/remood$(__INT_EXESUFFIX)$(__XX_EXESUFFIX):	$(__XX_OBJS)
+														$(__INT_CC) -o $@ $(__XX_OBJS) $(__XX_LDFLAGS)
+
+$(__XX_OBJ)/%.$(__XX_OBJPRIME):							$(__XX_SRC)/%.c
+														@echo "  [CC] $<"
+														@$(__INT_CC) -c $< -o $@ $(__XX_CFLAGS)
+
+$(__XX_OBJ)/%.$(__XX_OBJPRIME):							$(__XX_SRC)/$(__INT_IFACEDIR)/%.c
+														@echo "  [CC] $<"
+														@$(__INT_CC) -c $< -o $@ $(__XX_CFLAGS)

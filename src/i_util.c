@@ -28,6 +28,7 @@
 ***************/
 
 #include "i_util.h"
+#include "command.h"
 
 /**************
 *** GLOBALS ***

@@ -31,6 +31,10 @@
 #include <stdio.h>
 #include <string.h>
 
+#ifndef __restrict__
+	#define __restrict__
+#endif
+
 /*****************
 *** STRUCTURES ***
 *****************/
@@ -103,6 +107,9 @@ CDefine_t* FindDef(const int Type, const char* const Def)
 	for (i = 0; i < l_NumDefines[Type]; i++)
 		if (strcasecmp(Def, l_Defines[Type][i].Define) == 0)
 			return &l_Defines[Type][i];
+	
+	// Failure
+	return NULL;
 }
 
 /* UnDef() -- Undefine something */
@@ -199,6 +206,49 @@ void ParseDefines(FILE* const InDef)
 #undef BUFSIZE
 }
 
+/* Eval() -- Evaluates string */
+int Eval(const char* const String)
+{
+	char* Tok;
+	char* p;
+	int Xor;
+	int Result = 0;
+	int Op = 0;
+	
+	// Check
+	if (!String)
+		return 0;
+		
+	// While there is a token
+	for (Tok = strtok((char* __restrict__)String, " "); Tok; Tok = strtok(NULL, " ")) 
+	{
+		// Reset
+		p = Tok;
+		Op = 0;
+		
+		// If the character is a !, the result at the end of opposite
+		if (*p == '!')
+		{
+			p++;
+			Op = 1;
+		}
+		
+		// If the first character is a ? check define
+		if (*p == '?')
+		{
+			p++;	// Lose the ?
+			Result = !!IfDef(0, p);
+		}
+		
+		// Opposite?
+		if (Op)
+			Result = !Result;
+	}
+	
+	// Return result
+	return Result;
+}
+
 /* MakeMakefile() -- Creates a makefile */
 void MakeMakefile(FILE* const InTemp, FILE* const OutMake)
 {
@@ -208,8 +258,8 @@ void MakeMakefile(FILE* const InTemp, FILE* const OutMake)
 	char IfStates[MAXDEFINESTACK];
 	int IfStack;
 	char* p, *q, *r;
-	char IsElse;
 	size_t i, j, k;
+	int Type;
 	
 	/* Check */
 	if (!InTemp || !OutMake)
@@ -244,114 +294,53 @@ void MakeMakefile(FILE* const InTemp, FILE* const OutMake)
 				// Lose 1
 				p = &TempBuf[1];
 				
-				fprintf(stderr, ">> %s\n", p);
+				// Which type is it?
+				Type = (p[0] << 8) | p[1];
 				
-				// Is this an else?
-				if (strncmp("el", p, 2) == 0)
+				// Bump up
+				p = &p[2];
+				
+				switch (Type)
 				{
-					IsElse = 1;
-					p += 2;
-				}
-				else
-					IsElse = 0;
-				
-				// Get define value
-				q = strchr(p, ' ');
-				
-				if (!q)
-					continue;
-				q++;
-				
-				// Find value
-				r = strchr(q, ' ');
-				
-				if (r)
-				{
-					*r = 0;
-					r++;
-				}
-				
-				// #ccifdef?
-				if (strncmp("ccifdef", p, 7) == 0)
-				{
-					// Check whether something is defined by the C Compiler
-					k = IfDef(0, q);
-					IfStates[IfStack - 1] = (IfStates[IfStack - 1] ^ 1) | !!k;
+					case 0x6966:	// if (if)
+						// Is this true or not?
+						i = Eval(p);
+						
+						// Push to the stack
+						IfStates[(IfStack++)] = i | (i ? 0x80 : 0);
+						break;
+						
+					case 0x6569:	// ei (else if)
+						// Is this true or not?
+						i = Eval(p);
+						
+						// Modify existing stack
+						IfStates[IfStack - 1] = ((IfStates[IfStack - 1] & 0x80) ? 0x80 : i | (i ? 0x80 : 0));
+						break;
+						
+					case 0x656c:	// el (else)
+						// Modify existing stack
+						IfStates[IfStack - 1] = ((IfStates[IfStack - 1] & 0x80) ? 0 : 1 | 0x80);
+						break;
+						
+					case 0x656e:	// en (endif)
+						// Lose stack
+						IfStack--;
+						
+						// Too many?
+						if (IfStack == 0)
+						{
+							fprintf(stderr, "Extra `en\n");
+							return;
+						}
+						break;
 					
-					if (k)
-						IfStates[IfStack] |= 0x80;
-				}
-				
-				// #ccifndef
-				else if (strncmp("ccifndef", p, 8) == 0)
-				{
-					// Check whether something is defined by the C Compiler
-					k = IfNDef(0, q);
-					IfStates[IfStack - 1] = (IfStates[IfStack - 1] ^ 1) | !!k;
-					
-					if (k)
-						IfStates[IfStack] |= 0x80;
-				}
-				
-				// #ifdef
-				else if (strncmp("ifdef", p, 5) == 0)
-				{
-					// Check whether something is defined by the makefile
-					k = IfDef(1, q);
-					IfStates[IfStack - 1] = (IfStates[IfStack - 1] ^ 1) | !!k;
-					
-					if (k)
-						IfStates[IfStack] |= 0x80;
-				}
-				
-				// #ifndef
-				else if (strncmp("ifndef", p, 6) == 0)
-				{
-					// Check whether something is defined by the makefile
-					k = IfNDef(1, q);
-					IfStates[IfStack - 1] = (IfStates[IfStack - 1] ^ 1) | !!k;
-					
-					if (k)
-						IfStates[IfStack] |= 0x80;
-				}
-				
-				// #else
-				else if (strncmp("se", p, 2) == 0)
-				{
-					// Make the current stack opposite of current unless it was true at some point
-					if (IfStates[IfStack - 1] & 0x80)
-						IfStates[IfStack - 1] = 0;
-					else
-						IfStates[IfStack - 1] = IfStates[IfStack - 1] ^ 1;
-				}
-				
-				// #endif
-				else if (strncmp("endif", p, 5) == 0)
-				{
-					printf(stderr, "%i > %i\n", IfStack, IfStack - 1);
-					// Lower the stack count
-					IfStack--;
-					
-					// Always set IsElse to prevent ++
-					IsElse = 1;
-					
-					if (IfStack == 0)
-					{
-						fprintf(stderr, "Went too far down\n");
+						// Unknown
+					default:
+						fprintf(stderr, "Unknown PP %x!\n", Type);
 						return;
-					}
 				}
 				
-				// Unknown
-				else
-				{
-					fprintf(stderr, "Unknown %s\n", p);
-					return;
-				}
-				
-				// Is  an else?
-				if (!IsElse)
-					IfStack++;
 				break;
 			
 				// Normal line
@@ -359,16 +348,13 @@ void MakeMakefile(FILE* const InTemp, FILE* const OutMake)
 				// Determine if the stack is completely true
 				for (i = 0; i < IfStack; i++)
 				{
-					fprintf(stderr, "...%i (%i): %i\n", i, IfStack, IfStates[i]);
 					if (!(IfStates[i] & 1))
 						break;
 				}
 				
 				// Only if it reaches the end is the line parsed
 				if (i == IfStack)
-				{
-					fprintf(stderr, "%s\n", TempBuf);
-				}
+					fprintf(OutMake, "%s\n", TempBuf);
 				break;
 		}
 	}
