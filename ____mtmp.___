@@ -28,36 +28,41 @@ __XX_OBJ = $(__INT_OBJ)
 `if ?__MSDOS__
 	__XX_EXESUFFIX = .exe
 	__XX_OBJPREFIX = m
-	__XX_ICFLAGS = -D__REMOOD_SYSTEM_DOS
+	__XX_ICFLAGS  = -D__REMOOD_SYSTEM_DOS
 	__XX_ILDFLAGS =
+	__XX_DEFINTRF = allegro
 
 # Windows CE
 `ei ?__WIN32_WCE
 	__XX_EXESUFFIX = .exe
 	__XX_OBJPREFIX = c
-	__XX_ICFLAGS = -D__REMOOD_SYSTEM_WINCE
+	__XX_ICFLAGS  = -D__REMOOD_SYSTEM_WINCE
 	__XX_ILDFLAGS =
+	__XX_DEFINTRF = win36c
 
 # Windows 32-bit and 64-bit
 `ei ?__WIN32
 	__XX_EXESUFFIX = .exe
 	__XX_OBJPREFIX = w
-	__XX_ICFLAGS = -D__REMOOD_SYSTEM_WINDOWS
+	__XX_ICFLAGS  = -D__REMOOD_SYSTEM_WINDOWS
 	__XX_ILDFLAGS = -mwindows
+	__XX_DEFINTRF = sdl
 
 # Linux
 `ei ?__linux__
 	__XX_EXESUFFIX = 
 	__XX_OBJPREFIX = l
-	__XX_ICFLAGS = -D__REMOOD_SYSTEM_LINUX
+	__XX_ICFLAGS  = -D__REMOOD_SYSTEM_LINUX
 	__XX_ILDFLAGS =
+	__XX_DEFINTRF = sdl
 
 # Unknown
 `el
 	__XX_EXESUFFIX =
 	__XX_OBJPREFIX = u
-	__XX_ICFLAGS = -D__REMOOD_SYSTEM_UNKNOWN
+	__XX_ICFLAGS  = -D__REMOOD_SYSTEM_UNKNOWN
 	__XX_ILDFLAGS =
+	__XX_DEFINTRF = headless
 
 # #
 `en
@@ -100,3 +105,4 @@ $(__XX_OBJ)/%.$(__XX_OBJPRIME):							$(__XX_SRC)/%.c
 $(__XX_OBJ)/%.$(__XX_OBJPRIME):							$(__XX_SRC)/$(__INT_IFACEDIR)/%.c
 														@echo "  [CC] $<"
 														@$(__INT_CC) -c $< -o $@ $(__XX_CFLAGS)
+

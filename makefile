@@ -96,7 +96,7 @@ endif
 ##############/
 
 # Object Location
-export __INT_OBJ := o
+export __INT_OBJ := objs
 
 # Default
 .PHONY: all
@@ -113,7 +113,7 @@ remood:			$(__INT_OBJ) ____make.___
 
 # Object directory
 $(__INT_OBJ):	
-				$(__INT_RUNCOMMAND,mkdir $(__INT_OBJ))
+				$(__INT_RUNCOMMAND,mkdir $@)
 
 ###################################
 ### MAGICAL MAKEFILE GENERATION ###

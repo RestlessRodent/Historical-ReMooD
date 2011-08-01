@@ -20,3 +20,11 @@ relre:.*BuildLog\.htm$
 relre:.*\.o$
 relre:.*\.manifest$
 relre:.*\.dep$
+glob:____cdef.___
+glob:bin/remood-dbg
+relre:objs\/.*
+glob:wad/deutex.log
+glob:____make.___
+relre:.*\.wad$
+relre:.*\.WAD$
+glob:____bild.exe
