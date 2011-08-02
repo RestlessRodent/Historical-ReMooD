@@ -1436,20 +1436,14 @@ void CONS_Printf(char *fmt, ...)
 #endif
 	DEBFILE(txt);
 
-#ifndef GAMESERVER
 	if (devparm || !con_started /* || !graphics_started */ )
 	{
-#endif
 //#if !defined( _WIN32) && !defined( __OS2__)
 		I_OutputMsg("%s", txt);
 //#endif
-#ifndef GAMESERVER
 		if (!devparm)
 			return;
 	}
-#else
-	return;
-#endif
 
 	// GhostlyDeath <November 2, 2010> -- CONS_Printf is global to extended console
 	if (l_RootConsole)
