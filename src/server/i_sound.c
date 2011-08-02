@@ -41,7 +41,6 @@
 #include "doomtype.h"
 #include "d_main.h"
 
-#ifdef GAMECLIENT
 consvar_t cv_snd_speakersetup = {"snd_speakersetup", "2", CV_SAVE};
 consvar_t cv_snd_soundquality = {"snd_soundquality", "11025", CV_SAVE};
 consvar_t cv_snd_sounddensity = {"snd_sounddensity", "1", CV_SAVE};
@@ -51,7 +50,6 @@ consvar_t cv_snd_reservedchannels = {"snd_reservedchannels", "4", CV_SAVE};
 consvar_t cv_snd_multithreaded = {"snd_multithreaded", "1", CV_SAVE};
 consvar_t cv_snd_output = {"snd_output", "Default", CV_SAVE};
 consvar_t cv_snd_device = {"snd_device", "auto", CV_SAVE};
-#endif
 
 void I_UpdateSound_sdl(void *unused, int8_t* stream, int len)
 {

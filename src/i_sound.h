@@ -110,7 +110,6 @@ void I_UpdateCD(void);
 void I_PlayCD(int track, boolean looping);
 int I_SetVolumeCD(int volume);	// return 0 on failure
 
-#ifndef GAMESERVER
 extern byte cdaudio_started;
 extern consvar_t cv_snd_speakersetup;
 extern consvar_t cv_snd_soundquality;
@@ -121,9 +120,6 @@ extern consvar_t cv_snd_channels;
 extern consvar_t cv_snd_reservedchannels;
 extern consvar_t cv_snd_multithreaded;
 extern consvar_t cv_snd_sounddensity;
-#else
-#define cdaudio_started false
-#endif
 
 int I_StartSoundEx(int id, int vol, int sep, int pitch, int priority, mobj_t * origin, int orientation, int front, int center);
 

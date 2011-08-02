@@ -48,8 +48,6 @@
 #include "p_info.h"
 #include "d_main.h"
 
-#if GAMECLIENT
-
 // For use if I do walls with outsides/insides
 static byte REDS = (256 - 5 * 16);
 static byte REDRANGE = 16;
@@ -1466,6 +1464,4 @@ void AM_Drawer(void)
 	V_MarkRect(f_x, f_y, f_w, f_h);
 
 }
-
-#endif
 

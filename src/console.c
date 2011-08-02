@@ -56,12 +56,10 @@
 #include "st_stuff.h"
 #include "r_defs.h"
 
-#ifdef GAMECLIENT
 #include "hu_stuff.h"
 #include "v_video.h"
 #include "st_stuff.h"
 #include "r_defs.h"
-#endif
 
 #ifndef _WIN32
 #include <unistd.h>
@@ -1068,12 +1066,10 @@ int inputline;					// current input line number
 int inputhist;					// line number of history input line to restore
 int input_cx;					// position in current input line
 
-#ifdef GAMECLIENT
 // GhostlyDeath <April 26, 2009> -- 
 struct pic_s *con_backpic;				// console background picture, loaded static
 struct pic_s *con_bordleft;
 struct pic_s *con_bordright;			// console borders in translucent mode
-#endif
 
 // protos.
 void CON_InputInit(void);
@@ -1130,22 +1126,18 @@ int con_keymap;					//0 english, 1 french
 //
 void CONS_English_f(void)
 {
-#ifdef GAMECLIENT
 	shiftxform = english_shiftxform;
 	con_keymap = english;
 	CONS_Printf("English keymap.\n");
-#endif
 }
 
 //  Choose french keymap
 //
 void CONS_French_f(void)
 {
-#ifdef GAMECLIENT
 	shiftxform = french_shiftxform;
 	con_keymap = french;
 	CONS_Printf("French keymap.\n");
-#endif
 }
 
 char *bindtable[NUMINPUTS];
@@ -1195,7 +1187,6 @@ void CONS_Bind_f(void)
 
 // Prepare a colormap for GREEN ONLY translucency over background
 // GhostlyDeath - Red in ReMooD
-#ifdef GAMECLIENT
 byte *whitemap;
 byte *greenmap;
 byte *graymap;
@@ -1221,7 +1212,6 @@ void CON_SetupBackColormap(void)
 	memmove(graymap, V_ReturnColormapPtr(VEX_MAP_GRAY), sizeof(uint8_t) * 256);
 	memmove(orangemap, V_ReturnColormapPtr(VEX_MAP_ORANGE), sizeof(uint8_t) * 256);
 }
-#endif
 
 //  Setup the console text buffer
 //
@@ -1232,7 +1222,6 @@ void CON_Init(void)
 	// GhostlyDeath <November 2, 2010> -- Extended console
 	CONEx_Init();
 
-#ifdef GAMECLIENT
 	if (dedicated)
 		return;
 
@@ -1283,7 +1272,6 @@ void CON_Init(void)
 	// until we are in Doomloop
 	
 	COM_AddCommand("conextended", CONS_ConExtended_f);
-#endif
 }
 
 //  Console input initialization
@@ -1427,20 +1415,14 @@ void CONS_Printf(char *fmt, ...)
 #endif
 	va_end(argptr);
 
-#ifndef GAMESERVER
 	if (devparm || !con_started /* || !graphics_started */ )
 	{
-#endif
 //#if !defined( _WIN32) && !defined( __OS2__)
 		I_OutputMsg("%s", txt);
 //#endif
-#ifndef GAMESERVER
 		if (!devparm)
 			return;
 	}
-#else
-	return;
-#endif
 
 	// GhostlyDeath <November 2, 2010> -- CONS_Printf is global to extended console
 	if (l_RootConsole)
