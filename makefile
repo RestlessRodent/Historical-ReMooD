@@ -91,6 +91,36 @@ else
 #
 endif
 
+###########
+### SDL ###
+###########
+
+# Use sdl-config if SDL_LIB and SDL_INCLUDE are not set
+ifeq (,$(strip $(SDL_LIB))$(strip $(SDL_INCLUDE)))
+	ifneq (,$(strip $(call __INT_RUNCOMMAND,sdl-config --version)))
+		export __INT_SDLCFLAGS  := $(shell $(call __INT_RUNCOMMAND,sdl-config --cflags))
+		export __INT_SDLLDFLAGS := $(shell $(call __INT_RUNCOMMAND,sdl-config --libs))
+	# Not found so make some assumptions
+	else
+$(warning SDL Config not found)
+		export __INT_SDLCFLAGS  := -ISDL -Iinclude
+		export __INT_SDLLDFLAGS := -lSDL -Llib
+	endif
+# Otherwise use them instead
+else
+	ifneq (,$(strip $(SDL_INCLUDE)))
+		export __INT_SDLCFLAGS  := -I$(SDL_INCLUDE)
+	else
+		export __INT_SDLCFLAGS  := -Iinclude
+	endif
+	
+	ifneq (,$(strip $(SDL_LIB)))
+		export __INT_SDLLDFLAGS := -L$(SDL_LIB) -lSDL
+	else
+		export __INT_SDLLDFLAGS :=  -Llib -lSDL
+	endif
+endif
+
 ###############
 ### TARGETS ###
 ##############/

@@ -30,23 +30,28 @@ __XX_OBJ = $(__INT_OBJ)
 	__XX_OBJPREFIX = a
 	__XX_ICFLAGS  = -D__REMOOD_SYSTEM_DOS
 	__XX_ILDFLAGS =
-	__XX_DEFINTRF = allegro
+	__XX_DEFINTRF ?= allegro
 
 # Windows CE
-`ei ?__WIN32_WCE
+`ei ?_WIN32_WCE
 	__XX_EXESUFFIX = .exe
 	__XX_OBJPREFIX = b
 	__XX_ICFLAGS  = -D__REMOOD_SYSTEM_WINCE
 	__XX_ILDFLAGS =
-	__XX_DEFINTRF = win36c
+	__XX_DEFINTRF ?= win36c
 
 # Windows 32-bit and 64-bit
-`ei ?__WIN32
+`ei ?_WIN32
+# Use different object stuff for win64
+`if ?_WIN64
+		__XX_OBJPREFIX = 6
+`el
+		__XX_OBJPREFIX = c
+`en
 	__XX_EXESUFFIX = .exe
-	__XX_OBJPREFIX = c
 	__XX_ICFLAGS  = -D__REMOOD_SYSTEM_WINDOWS
 	__XX_ILDFLAGS = -mwindows
-	__XX_DEFINTRF = sdl
+	__XX_DEFINTRF ?= sdl
 
 # Linux
 `ei ?__linux__
@@ -54,7 +59,7 @@ __XX_OBJ = $(__INT_OBJ)
 	__XX_OBJPREFIX = d
 	__XX_ICFLAGS  = -D__REMOOD_SYSTEM_UNIX -D__REMOOD_SYSTEM_LINUX
 	__XX_ILDFLAGS =
-	__XX_DEFINTRF = sdl
+	__XX_DEFINTRF ?= sdl
 
 # Apple
 `ei ?__APPLE__
@@ -64,7 +69,7 @@ __XX_OBJ = $(__INT_OBJ)
 		__XX_OBJPREFIX = e
 		__XX_ICFLAGS  = -D__REMOOD_SYSTEM_UNIX -D__REMOOD_SYSTEM_MACOSX
 		__XX_ILDFLAGS =
-		__XX_DEFINTRF = sdl
+		__XX_DEFINTRF ?= sdl
 	
 	# Classic
 	`el
@@ -72,7 +77,7 @@ __XX_OBJ = $(__INT_OBJ)
 		__XX_OBJPREFIX = f
 		__XX_ICFLAGS  = -D__REMOOD_SYSTEM_MACOS
 		__XX_ILDFLAGS =
-		__XX_DEFINTRF = sdl
+		__XX_DEFINTRF ?= sdl
 	
 	#
 	`en
@@ -85,7 +90,7 @@ __XX_OBJ = $(__INT_OBJ)
 		__XX_OBJPREFIX = g
 		__XX_ICFLAGS  = -D__REMOOD_SYSTEM_UNIX -D__REMOOD_SYSTEM_CYGWIN
 		__XX_ILDFLAGS =
-		__XX_DEFINTRF = sdl
+		__XX_DEFINTRF ?= sdl
 	
 	# Interix
 	`ei ?__INTERIX
@@ -93,7 +98,7 @@ __XX_OBJ = $(__INT_OBJ)
 		__XX_OBJPREFIX = h
 		__XX_ICFLAGS  = -D__REMOOD_SYSTEM_UNIX -D__REMOOD_SYSTEM_INTERIX
 		__XX_ILDFLAGS =
-		__XX_DEFINTRF = sdl
+		__XX_DEFINTRF ?= sdl
 	
 	# FreeBSD
 	`ei ?__FreeBSD__
@@ -101,7 +106,7 @@ __XX_OBJ = $(__INT_OBJ)
 		__XX_OBJPREFIX = i
 		__XX_ICFLAGS  = -D__REMOOD_SYSTEM_UNIX -D__REMOOD_SYSTEM_BSD
 		__XX_ILDFLAGS =
-		__XX_DEFINTRF = sdl
+		__XX_DEFINTRF ?= sdl
 	
 	# NetBSD
 	`ei ?__NetBSD__
@@ -109,7 +114,7 @@ __XX_OBJ = $(__INT_OBJ)
 		__XX_OBJPREFIX = j
 		__XX_ICFLAGS  = -D__REMOOD_SYSTEM_UNIX -D__REMOOD_SYSTEM_BSD
 		__XX_ILDFLAGS =
-		__XX_DEFINTRF = sdl
+		__XX_DEFINTRF ?= sdl
 	
 	# OpenBSD
 	`ei ?__OpenBSD__
@@ -117,7 +122,7 @@ __XX_OBJ = $(__INT_OBJ)
 		__XX_OBJPREFIX = k
 		__XX_ICFLAGS  = -D__REMOOD_SYSTEM_UNIX -D__REMOOD_SYSTEM_BSD
 		__XX_ILDFLAGS =
-		__XX_DEFINTRF = sdl
+		__XX_DEFINTRF ?= sdl
 	
 	# Solaris
 	`ei ?__sun
@@ -125,7 +130,7 @@ __XX_OBJ = $(__INT_OBJ)
 		__XX_OBJPREFIX = l
 		__XX_ICFLAGS  = -D__REMOOD_SYSTEM_UNIX -D__REMOOD_SYSTEM_SOLARIS
 		__XX_ILDFLAGS =
-		__XX_DEFINTRF = sdl
+		__XX_DEFINTRF ?= sdl
 	
 	# Generic UNIX
 	`el
@@ -133,26 +138,26 @@ __XX_OBJ = $(__INT_OBJ)
 		__XX_OBJPREFIX = m
 		__XX_ICFLAGS  = -D__REMOOD_SYSTEM_UNIX
 		__XX_ILDFLAGS =
-		__XX_DEFINTRF = sdl
+		__XX_DEFINTRF ?= sdl
 	
 	#
 	`en
 
 # AmigaOS
-`el ?__amigaos__
+`ei ?__amigaos__
 	__XX_EXESUFFIX =
 	__XX_OBJPREFIX = n
 	__XX_ICFLAGS  = -D__REMOOD_SYSTEM_AMIGA
 	__XX_ILDFLAGS =
-	__XX_DEFINTRF = sdl
+	__XX_DEFINTRF ?= sdl
 
 # PalmOS
-`el ?__palmos__
+`ei ?__palmos__
 	__XX_EXESUFFIX =
 	__XX_OBJPREFIX = o
 	__XX_ICFLAGS  = -D__REMOOD_SYSTEM_PALMOS
 	__XX_ILDFLAGS =
-	__XX_DEFINTRF = headless
+	__XX_DEFINTRF ?= headless
 	
 # Unknown
 `el
@@ -160,7 +165,7 @@ __XX_OBJ = $(__INT_OBJ)
 	__XX_OBJPREFIX = z
 	__XX_ICFLAGS  = -D__REMOOD_SYSTEM_UNKNOWN
 	__XX_ILDFLAGS =
-	__XX_DEFINTRF = headless
+	__XX_DEFINTRF ?= headless
 
 `en
 
@@ -168,11 +173,39 @@ __XX_OBJ = $(__INT_OBJ)
 ### SELECTED INTERFACE ###
 ##########################
 
+# SDL Interface
+ifeq (sdl,$(strip $(__XX_DEFINTRF)))
+	__XX_IFACEDIR = sdl
+	__XX_FCFLAGS = -D__REMOOD_INTERFACE_SDL $(__INT_SDLCFLAGS)
+	__XX_FLDFLAGS = $(__INT_SDLLDFLAGS)
+else
+	# Allegro Interface
+	ifeq (allegro,$(strip $(__XX_DEFINTRF)))
+		__XX_IFACEDIR = allegro
+		__XX_FCFLAGS = -D__REMOOD_INTERFACE_ALLEGRO
+		__XX_FLDFLAGS = -lalleg
+	else
+		# Raw Windows Interface
+		ifeq (win36c,$(strip $(__XX_DEFINTRF)))
+			__XX_IFACEDIR = win36c
+			__XX_FCFLAGS = -D__REMOOD_INTERFACE_WIN36C
+			__XX_FLDFLAGS = 
+		else
+			# Headless interface
+			ifeq (headless,$(strip $(__XX_DEFINTRF)))
+				__XX_IFACEDIR = headless
+				__XX_FCFLAGS = -D__REMOOD_INTERFACE_HEADLESS
+				__XX_FLDFLAGS = 
+			endif
+		endif
+	endif
+endif
+
 ##############
 ### CFLAGS ###
 ##############
 
-__XX_CFLAGS := $(__INT_CFLAGS) $(__XX_ICFLAGS) $(__XX_FCFLAGS) -DGAMECLIENT -UGAMESERVER
+__XX_CFLAGS := -I$(__XX_SRC) $(__INT_CFLAGS) $(__XX_ICFLAGS) $(__XX_FCFLAGS)
 __XX_LDFLAGS := $(__INT_LDFLAGS) $(__XX_ILDFLAGS) $(__XX_FLDFLAGS)
 __XX_OBJPRIME := $(__XX_OBJPREFIX)o
 
@@ -180,7 +213,7 @@ __XX_OBJPRIME := $(__XX_OBJPREFIX)o
 ### OBJECTS ###
 ###############
 
-__XX_OBJS := $(foreach __X_SOURCE, $(wildcard $(__XX_SRC)/*.c), $(__XX_OBJ)/$(basename $(notdir $(__X_SOURCE))).$(__XX_OBJPRIME)) $(foreach __X_SOURCE, $(wildcard $(__XX_SRC)/$(__INT_IFACEDIR)/*.c), $(__XX_OBJ)/$(basename $(notdir $(__X_SOURCE))).$(__XX_OBJPRIME))
+__XX_OBJS := $(foreach __X_SOURCE, $(wildcard $(__XX_SRC)/*.c), $(__XX_OBJ)/$(basename $(notdir $(__X_SOURCE))).$(__XX_OBJPRIME)) $(foreach __X_SOURCE, $(wildcard $(__XX_SRC)/$(__XX_IFACEDIR)/*.c), $(__XX_OBJ)/$(basename $(notdir $(__X_SOURCE))).$(__XX_OBJPRIME))
 
 ###############
 ### TARGETS ###
@@ -191,6 +224,14 @@ __XX_OBJS := $(foreach __X_SOURCE, $(wildcard $(__XX_SRC)/*.c), $(__XX_OBJ)/$(ba
 all:													$(__XX_BIN)/remood$(__INT_EXESUFFIX)$(__XX_EXESUFFIX)
 														
 
+# Clean targets
+clean:													
+														echo
+
+# Alias for binary
+remood:													$(__XX_BIN)/remood$(__INT_EXESUFFIX)$(__XX_EXESUFFIX)
+														
+
 # The actual binary
 $(__XX_BIN)/remood$(__INT_EXESUFFIX)$(__XX_EXESUFFIX):	$(__XX_OBJS)
 														$(__INT_CC) -o $@ $(__XX_OBJS) $(__XX_LDFLAGS)
@@ -199,7 +240,7 @@ $(__XX_OBJ)/%.$(__XX_OBJPRIME):							$(__XX_SRC)/%.c
 														@echo "  [CC] $<"
 														@$(__INT_CC) -c $< -o $@ $(__XX_CFLAGS)
 
-$(__XX_OBJ)/%.$(__XX_OBJPRIME):							$(__XX_SRC)/$(__INT_IFACEDIR)/%.c
+$(__XX_OBJ)/%.$(__XX_OBJPRIME):							$(__XX_SRC)/$(__XX_IFACEDIR)/%.c
 														@echo "  [CC] $<"
 														@$(__INT_CC) -c $< -o $@ $(__XX_CFLAGS)
 

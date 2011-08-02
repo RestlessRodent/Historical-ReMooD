@@ -29,9 +29,11 @@
 #ifndef __DOOMDEF__
 #define __DOOMDEF__
 
-#ifdef _WIN32
+#if defined(_WIN32)
 
 /* Set the system to Windows 98/NT */
+// But only for 32-bit targets
+#if !defined(_WIN32)
 //#undef NTDDI_VERSION
 #undef WINVER
 #undef _WIN32_WINDOWS
@@ -40,6 +42,7 @@
 #define WINVER 0x0410
 #define _WIN32_WINDOWS 0x0410
 #define _WIN32_IE 0x0400
+#endif
 
 /* Now include windows.h */
 #include <windows.h>

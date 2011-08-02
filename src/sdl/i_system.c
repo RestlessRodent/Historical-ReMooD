@@ -778,10 +778,10 @@ char *I_GetUserName(void)
 
 int I_mkdir(const char *dirname, int unixright)
 {
-#if defined(LINUX) || defined(FREEBSD)
-	return mkdir(dirname, unixright);
-#else
+#if defined(__REMOOD_SYSTEM_WINDOWS)
 	return mkdir(dirname);
+#else
+	return mkdir(dirname, unixright);
 #endif
 }
 
@@ -907,7 +907,7 @@ size_t I_GetFreeMem(size_t * total)
 /* I_SysAlloc() -- Allocate system memory */
 void* I_SysAlloc(const size_t a_Size)
 {
-	return malloc(s_Size);
+	return malloc(a_Size);
 }
 
 /* I_SysRealloc() -- Reallocate system memory */
