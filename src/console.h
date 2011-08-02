@@ -193,7 +193,6 @@ boolean CON_Responder(event_t * ev);
 #define  CON_MAXPROMPTCHARS    256
 #define  CON_PROMPTCHAR        '>'
 
-#ifdef GAMECLIENT
 extern boolean con_started;
 extern boolean con_startup;
 extern boolean con_forcepic;
@@ -249,8 +248,6 @@ extern consvar_t cons_msgtimeout;
 extern consvar_t cons_speed;
 extern consvar_t cons_height;
 extern consvar_t cons_backpic;
-
-#endif
 
 void CON_ClearHUD(void);		// clear heads up messages
 
