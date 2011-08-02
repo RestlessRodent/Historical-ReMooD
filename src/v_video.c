@@ -1584,7 +1584,7 @@ char Font[NUMVIDEOFONTS][4][9] =	/* Doom, Doom (Alt), Heretic, Heretic (Alt) */
 };
 
 /* V_WCharToMB() -- Convert wide character to multibyte */
-static void V_WCharToMB(const wchar_t WChar, char* const MB)
+static void V_WCharToMB(const uint16_t WChar, char* const MB)
 {
 	unsigned char* MBx;
 	
@@ -1620,8 +1620,8 @@ static void V_WCharToMB(const wchar_t WChar, char* const MB)
 		MBx[3] = 0;
 	}
 	
-	// Quad-byte (Requires 32-bit wchar_t)
-	else if (sizeof(wchar_t) >= 4 && (WChar >= 0x010000 && WChar <= 0x10FFFF))
+	// Quad-byte (Requires 32-bit uint16_t)
+	else if (sizeof(uint16_t) >= 4 && (WChar >= 0x010000 && WChar <= 0x10FFFF))
 	{
 		MBx[0] = 0xF0 | (WChar >> 18);
 		MBx[1] = 0x80 | ((WChar >> 12) & 0x3F);
@@ -1632,7 +1632,7 @@ static void V_WCharToMB(const wchar_t WChar, char* const MB)
 }
 
 /* V_ExtWCharToMB() -- Convert wide character to multibyte */
-void V_ExtWCharToMB(const wchar_t WChar, char* const MB)
+void V_ExtWCharToMB(const uint16_t WChar, char* const MB)
 {
 	V_WCharToMB(WChar, MB);
 }
@@ -1876,7 +1876,7 @@ void V_WXClearGraphicCharsComposite(void)
 /*----------------------------------------------------------------------------*/
 
 /* V_AddCharacter() -- Add single character */
-void V_AddCharacter(VideoFont_t xFont, WadEntry_t* Entry, wchar_t Char, wchar_t Top, wchar_t Bottom)
+void V_AddCharacter(VideoFont_t xFont, WadEntry_t* Entry, uint16_t Char, uint16_t Top, uint16_t Bottom)
 {
 	int Group = (Char >> 8) & 0xFF;
 	int Local = Char & 0x00FF;
@@ -1923,9 +1923,9 @@ void V_MapGraphicalCharacters(void)
 	WadFile_t* CurWad = NULL;
 	int Mode;
 	char x;
-	wchar_t NewChar = 0;
-	wchar_t Temp = 0;
-	wchar_t Temp2 = 0;
+	uint16_t NewChar = 0;
+	uint16_t Temp = 0;
+	uint16_t Temp2 = 0;
 	size_t Totals[NUMVIDEOFONTS];
 	int groups, ids, groupd, idd;
 	uint8_t* utttLump = NULL;
@@ -2272,10 +2272,10 @@ void V_MapGraphicalCharacters(void)
 
 /* V_MBToWChar() -- Convert multibyte to character */
 // *BSkip: Characters to skip after conversion (optional)
-static wchar_t V_MBToWChar(const char* MBChar, size_t* const BSkip)
+static uint16_t V_MBToWChar(const char* MBChar, size_t* const BSkip)
 {
 	size_t n;
-	wchar_t Feed = 0;
+	uint16_t Feed = 0;
 	
 	/* Check */
 	if (!MBChar)
@@ -2329,8 +2329,8 @@ static wchar_t V_MBToWChar(const char* MBChar, size_t* const BSkip)
 		return Feed;
 	}
 		
-	// Quad byte (requires 32-bit wchar_t)
-	else if (sizeof(wchar_t) >= 4 && (n == 4 || (*MBChar & 0xF8) == 0xF0))
+	// Quad byte (requires 32-bit uint16_t)
+	else if (sizeof(uint16_t) >= 4 && (n == 4 || (*MBChar & 0xF8) == 0xF0))
 	{
 		Feed = (*MBChar & 0x07);
 		Feed <<= 6;
@@ -2360,8 +2360,8 @@ static wchar_t V_MBToWChar(const char* MBChar, size_t* const BSkip)
 	}
 }
 
-/* V_BestWChar() -- Find best wchar_t for a character */
-static const UniChar_t* V_BestWChar(const VideoFont_t xFont, const wchar_t WChar)
+/* V_BestWChar() -- Find best uint16_t for a character */
+static const UniChar_t* V_BestWChar(const VideoFont_t xFont, const uint16_t WChar)
 {
 	int group, id;
 	VideoFont_t Font = V_WXAliasFont(xFont);
@@ -2448,7 +2448,7 @@ int V_FontWidth(const VideoFont_t xFont)
 int V_DrawCharacterMB(const VideoFont_t xFont, const uint32_t Options, const char* const MBChar, const int x, const int y, size_t* const BSkip)
 {
 	const UniChar_t* D = NULL;
-	wchar_t WC = 0;
+	uint16_t WC = 0;
 	uint32_t VDrawOpt = 0;
 	VideoFont_t Font = V_WXAliasFont(xFont);
 	
@@ -2465,7 +2465,7 @@ int V_DrawCharacterMB(const VideoFont_t xFont, const uint32_t Options, const cha
 	}
 	
 	/* Find character */
-	// wchar_t
+	// uint16_t
 	WC = V_MBToWChar(MBChar, BSkip);
 	
 	// Graphic
@@ -2632,7 +2632,7 @@ int V_DrawStringA(const VideoFont_t xFont, const uint32_t Options, const char* c
 void V_StringDimensionsA(const VideoFont_t xFont, const uint32_t Options, const char* const String, int* const Width, int* const Height)
 {
 	const char* c = String;
-	wchar_t wc;
+	uint16_t wc;
 	const UniChar_t* D = NULL;
 	int LineHeight = 0;
 	int XWidth = 0;
@@ -2699,7 +2699,7 @@ void V_StringDimensionsA(const VideoFont_t xFont, const uint32_t Options, const 
 		// Normal character
 		else
 		{
-			// wchar_t
+			// uint16_t
 			wc = V_MBToWChar(c, &MBSkip);
 	
 			// Graphic

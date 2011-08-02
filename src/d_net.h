@@ -193,8 +193,8 @@ typedef struct NetworkPlayer_s
 	uint16_t NetworkID;					// Network ID
 	
 	/* Look */
-	wchar_t Name[MAXPLAYERNAME];		// Name
-	wchar_t Skin[MAXPLAYERNAME];		// Skin
+	uint16_t Name[MAXPLAYERNAME];		// Name
+	uint16_t Skin[MAXPLAYERNAME];		// Skin
 	uint8_t Color;						// Color
 	
 	/* Timing */

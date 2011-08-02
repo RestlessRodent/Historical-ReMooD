@@ -32,17 +32,6 @@
 //      This protocol use mix of "goback n" and "selective repeat" implementation
 //      The NOTHING packet is send when connection is idle for acknowledge packets
 
-#ifdef _WIN32									/* Win32 WinSock/BSD */
-#include <winsock2.h>
-#elif !defined(_WIN32) && !defined(__palmos__)	/* BSD */
-#include <netdb.h>
-#include <sys/types.h>
-#include <sys/socket.h>
-#define closesocket close
-#elif defined(__palmos__)						/* Palm OS */
-#include <INetMgr.h>
-#endif
-
 #include "doomdef.h"
 #include "g_game.h"
 #include "i_net.h"

@@ -38,8 +38,6 @@
 
 #include <stddef.h>
 
-#include <wchar.h>
-
 /***********************
 *** FIXED SIZE TYPES ***
 ***********************/

@@ -138,7 +138,7 @@ typedef struct consvar_s
 	
 	int value;					// for int and fixed_t
 	char *string;				// value in string
-	wchar_t* wstring;			// value in wide string (Menus)
+	uint16_t* wstring;			// value in wide string (Menus)
 	unsigned short netid;		// used internaly : netid for send end receive
 	// used only with CV_NETVAR
 	struct consvar_s *next;
