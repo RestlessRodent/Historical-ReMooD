@@ -169,36 +169,24 @@ uint32_t LastTime = 0;
 
 int g_RefreshRate = 0;
 
-/* I_GetTime() -- Returns time since the game started */
-uint32_t I_GetTime(void)
+/* I_GetTimeMS() -- Returns time since the game started (in MS) */
+uint32_t I_GetTimeMS(void)
 {
-	uint32_t ticks = 0;
-	static uint32_t basetime = 0;
-
-#if 1
 	/* Is the refresh rate known? */
 	// retrace_count will match it
 	if (g_RefreshRate)
-	{
 		return (retrace_count * 1000) / g_RefreshRate;
-	}
 	
 	/* It isn't */
 	// Otherwise retrace_count will be simulated at 70
 	else
-	{
 		return (retrace_count * 1000) / 70;
-	}
-#else
-	//ticks = ((float)clock() / (float)CLOCKS_PER_SEC) / 1000.0;
-	ticks = (clock() * 1000) / CLOCKS_PER_SEC;
-	//ticks = clock();
+}
 
-	if (!basetime)
-		basetime = ticks;
-
-	return (ticks - basetime) * TICRATE / 1000;
-#endif
+/* I_GetTime() -- Returns time since the game started */
+uint32_t I_GetTime(void)
+{
+	return (I_GetTimeMS() * TICRATE) / 1000;
 }
 
 //

@@ -433,7 +433,7 @@ boolean I_SetVideoMode(const uint32_t a_Width, const uint32_t a_Height, const bo
 	I_VideoUnsetBuffer();	// Remove old buffer if any
 	
 	/* Set new video mode */
-	request_refresh_rate(0);
+	request_refresh_rate(70);
 	set_color_depth(8);	// always 8-bit color
 	
 	// Try initial set with a_Fullscreen honored
