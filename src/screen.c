@@ -249,7 +249,7 @@ void SCR_Recalc(void)
 	// r_main : xtoviewangle, allocated at the maximum size.
 	// r_things : negonearray, screenheightarray allocated max. size.
 
-	// set the screen[x] ptrs on the new vidbuffers
+		// set the screen[x] ptrs on the new vidbuffers
 	V_Init();
 
 	// scr_viewsize doesn't change, neither detailLevel, but the pixels

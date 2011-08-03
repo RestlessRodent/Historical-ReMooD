@@ -39,6 +39,7 @@
 ****************/
 
 #define EVENTQUEUESIZE		64					// Max events allowed in queue
+#define MODENAMELENGTH		16					// Length of mode name
 
 /**************
 *** GLOBALS ***
@@ -75,6 +76,7 @@ typedef struct I_VideoMode_s
 {
 	uint16_t Width;								// Screen Width
 	uint16_t Height;							// Screen height
+	char Name[MODENAMELENGTH];					// Mode name
 } I_VideoMode_t;
 
 /*************
@@ -163,10 +165,13 @@ static int IS_NewKeyToOldKey(const uint8_t a_New)
 	/* Giant Switch */
 	switch (a_New)
 	{
+		case IKBK_ESCAPE:	return KEY_ESCAPE;
+		case IKBK_ENTER:	return KEY_ENTER;
 		case IKBK_UP:		return KEY_UPARROW;
 		case IKBK_DOWN:		return KEY_DOWNARROW;
 		case IKBK_LEFT:		return KEY_LEFTARROW;
 		case IKBK_RIGHT:	return KEY_RIGHTARROW;
+		
 			// Ranges
 		default:
 			if (a_New >= IKBK_A && a_New <= IKBK_Z)
@@ -223,7 +228,10 @@ int VID_NumModes(void)
 /* VID_GetModeName() -- Gets the name of the video modes */
 char* __REMOOD_DEPRECATED VID_GetModeName(int a_ModeNum)
 {
-	return NULL;
+	/* Check */
+	if (a_ModeNum < 0 || a_ModeNum >= l_NumModes)
+		return NULL;
+	return l_Modes[a_ModeNum].Name;
 }
 
 /* VID_ClosestMode() -- Returns the closest mode against width and height */
@@ -233,7 +241,7 @@ int VID_ClosestMode(int* const a_WidthP, int* const a_HeightP, const boolean a_F
 	size_t i, BestMode;
 	
 	/* Check */
-	if (!a_WidthP || !a_HeightP)
+	if (!a_WidthP || !a_HeightP || !l_NumModes)
 		return 0;
 	
 	/* Go through list */
@@ -291,6 +299,7 @@ boolean VID_AddMode(const int a_Width, const int a_Height, const boolean a_Fulls
 	l_Modes = I_SysRealloc(l_Modes, sizeof(*l_Modes) * (l_NumModes + 1));
 	
 	// Set
+	snprintf(l_Modes[l_NumModes].Name, MODENAMELENGTH, "%ix%i", a_Width, a_Height);
 	l_Modes[l_NumModes].Width = a_Width;
 	l_Modes[l_NumModes++].Height = a_Height;
 	
@@ -355,11 +364,18 @@ boolean I_VideoPostInit(void)
 // This is here so I do not constantly repeat code in I_SetVideoMode()
 void I_VideoSetBuffer(const uint32_t a_Width, const uint32_t a_Height, const uint32_t a_Pitch, uint8_t* const a_Direct)
 {
+	int w, h;
+	
+	/* Setup */
+	w = a_Width;
+	h = a_Height;
+	
 	/* Set direct video buffer */
 	vid.rowbytes = a_Pitch;	// Set rowbytes to pitch
 	vid.direct = a_Direct;	// Set direct, if it is passed (if not, direct access not supported)
 	vid.width = a_Width;
 	vid.height = a_Height;
+	vid.modenum = VID_ClosestMode(&w, &h, true);
 	
 	/* Allocate buffer for mode */
 	vid.buffer = I_SysAlloc(a_Width * a_Height * NUMSCREENS);
@@ -370,6 +386,9 @@ void I_VideoSetBuffer(const uint32_t a_Width, const uint32_t a_Height, const uin
 	
 	// Clear buffer
 	memset(vid.buffer, 0, a_Width * a_Height);
+	
+	/* Initialize video stuff (ouch) */
+	V_Init();
 }
 
 /* I_VideoUnsetBuffer() -- Unsets the video buffer */

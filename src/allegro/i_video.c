@@ -53,6 +53,10 @@ static const uint32_t c_AllegroCards[] =
 #elif defined(_WIN32)
 	GFX_DIRECTX, GFX_DIRECTX_OVL, GFX_GDI, 0,
 	
+	// X11
+#elif defined(ALLEGRO_WITH_XWINDOWS)
+	GFX_XWINDOWS, GFX_XWINDOWS_FULLSCREEN, GFX_XDGA2, GFX_XDGA2_SOFT, 0
+	
 	// Linux
 #elif defined(__linux__)
 	GFX_FBCON, GFX_VBEAF, GFX_SVGALIB, GFX_VGA, GFX_MODEX, 0
@@ -68,32 +72,32 @@ static const uint32_t c_AllegroCards[] =
 const uint8_t c_AllegroToReMooDKey[KEY_MAX] =				// Converts an Allegro key to a ReMooD Key
 {
 	IKBK_NULL,	//	Allegro	starts	at	1,	so	we	don't	want	off
-	'A',	//	KEY_A	
-	'B',	//	KEY_B	
-	'C',	//	KEY_C	
-	'D',	//	KEY_D	
-	'E',	//	KEY_E	
-	'F',	//	KEY_F	
-	'G',	//	KEY_G	
-	'H',	//	KEY_H	
-	'I',	//	KEY_I	
-	'J',	//	KEY_J	
-	'K',	//	KEY_K	
-	'L',	//	KEY_L	
-	'M',	//	KEY_M	
-	'N',	//	KEY_N	
-	'O',	//	KEY_O	
-	'P',	//	KEY_P	
-	'Q',	//	KEY_Q	
-	'R',	//	KEY_R	
-	'S',	//	KEY_S	
-	'T',	//	KEY_T	
-	'U',	//	KEY_U	
-	'V',	//	KEY_V	
-	'W',	//	KEY_W	
-	'X',	//	KEY_X	
-	'Y',	//	KEY_Y	
-	'Z',	//	KEY_Z	
+	IKBK_A,	//	KEY_A	
+	IKBK_B,	//	KEY_B	
+	IKBK_C,	//	KEY_C	
+	IKBK_D,	//	KEY_D	
+	IKBK_E,	//	KEY_E	
+	IKBK_F,	//	KEY_F	
+	IKBK_G,	//	KEY_G	
+	IKBK_H,	//	KEY_H	
+	IKBK_I,	//	KEY_I	
+	IKBK_J,	//	KEY_J	
+	IKBK_K,	//	KEY_K	
+	IKBK_L,	//	KEY_L	
+	IKBK_M,	//	KEY_M	
+	IKBK_N,	//	KEY_N	
+	IKBK_O,	//	KEY_O	
+	IKBK_P,	//	KEY_P	
+	IKBK_Q,	//	KEY_Q	
+	IKBK_R,	//	KEY_R	
+	IKBK_S,	//	KEY_S	
+	IKBK_T,	//	KEY_T	
+	IKBK_U,	//	KEY_U	
+	IKBK_V,	//	KEY_V	
+	IKBK_W,	//	KEY_W	
+	IKBK_X,	//	KEY_X	
+	IKBK_Y,	//	KEY_Y	
+	IKBK_Z,	//	KEY_Z	
 	IKBK_NULL,	//	KEY_0	
 	IKBK_NULL,	//	KEY_1	
 	IKBK_NULL,	//	KEY_2	
@@ -126,7 +130,7 @@ const uint8_t c_AllegroToReMooDKey[KEY_MAX] =				// Converts an Allegro key to a
 	IKBK_NULL,	//	KEY_F10	
 	IKBK_NULL,	//	KEY_F11	
 	IKBK_NULL,	//	KEY_F12	
-	IKBK_NULL,	//	KEY_ESC	
+	IKBK_ESCAPE,	//	KEY_ESC	
 	IKBK_NULL,	//	KEY_TILDE	
 	IKBK_NULL,	//	KEY_MINUS	
 	IKBK_NULL,	//	KEY_EQUALS	
@@ -134,7 +138,7 @@ const uint8_t c_AllegroToReMooDKey[KEY_MAX] =				// Converts an Allegro key to a
 	IKBK_NULL,	//	KEY_TAB	
 	IKBK_NULL,	//	KEY_OPENBRACE	
 	IKBK_NULL,	//	KEY_CLOSEBRACE	
-	IKBK_NULL,	//	KEY_ENTER	
+	IKBK_ENTER,	//	KEY_ENTER	
 	IKBK_NULL,	//	KEY_COLON	
 	IKBK_NULL,	//	KEY_QUOTE	
 	IKBK_NULL,	//	KEY_BACKSLASH	//	Two	of	the	same	key!?	
@@ -254,6 +258,9 @@ void I_GetEvent(void)
 		// Only make events for keys that are depressed
 		if (!(Shifties[i] && !key[i]))
 			continue;
+		
+		// Key is no longer up, so clear it
+		Shifties[i] = 0;
 		
 		// Create event
 		memset(&ExEvent, 0, sizeof(&ExEvent));
@@ -397,6 +404,9 @@ boolean I_SetVideoMode(const uint32_t a_Width, const uint32_t a_Height, const bo
 	if (!a_Width || !a_Height)
 		return false;
 	
+	/* Destroy old buffer */
+	I_VideoUnsetBuffer();	// Remove old buffer if any
+	
 	/* Set new video mode */
 	set_color_depth(8);	// always 8-bit color
 	
@@ -416,7 +426,6 @@ boolean I_SetVideoMode(const uint32_t a_Width, const uint32_t a_Height, const bo
 	}
 	
 	/* Allocate Buffer */
-	I_VideoUnsetBuffer();	// Remove old buffer if any
 	I_VideoSetBuffer(a_Width, a_Height, a_Width, NULL);
 	
 	/* Set title */
