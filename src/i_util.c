@@ -29,8 +29,16 @@
 
 #include "i_util.h"
 #include "i_joy.h"
+#include "i_system.h"
 #include "command.h"
 #include "screen.h"
+#include "g_input.h"
+
+/****************
+*** CONSTANTS ***
+****************/
+
+#define EVENTQUEUESIZE		64					// Max events allowed in queue
 
 /**************
 *** GLOBALS ***
@@ -76,13 +84,134 @@ typedef struct I_VideoMode_s
 static I_VideoMode_t* l_Modes = NULL;			// Video Modes
 static size_t l_NumModes = 0;					// Number of video modes
 
+static I_EventEx_t l_EventQ[EVENTQUEUESIZE];	// Events in queue
+static size_t l_EQRead = 0;						// Read position in queue
+static size_t l_EQWrite = 0;					// Write position in queue
+
 /****************
 *** FUNCTIONS ***
 ****************/
 
+/* I_EventExPush() -- Pushes an event to the queue */
+void I_EventExPush(const I_EventEx_t* const a_Event)
+{
+	/* Check */
+	if (!a_Event)
+		return 0;
+	
+	/* Write at current write pos */
+	l_EventQ[l_EQWrite++] = *a_Event;
+	
+	// Overlap?
+	if (l_EQWrite >= EVENTQUEUESIZE)
+		l_EQWrite = 0;
+	
+	// Got too many events in Q?
+	if (l_EQWrite == l_EQRead)
+	{
+		// Increment reader
+		l_EQRead++;
+		
+		// Reader overlap?
+		if (l_EQRead >= EVENTQUEUESIZE)
+			l_EQRead = 0;
+	}
+}
+
+/* I_EventExPop() -- Pops event from the queue */
+boolean I_EventExPop(I_EventEx_t* const a_Event)
+{
+	/* Determine whether something is in the queue currently */
+	if (l_EQRead == l_EQWrite)
+		return false;	// Nothing!
+	
+	/* If event was passed, copy */
+	if (a_Event)
+		*a_Event = l_EventQ[l_EQRead];
+	
+	/* Remove from queue */
+	// Wipe
+	memset(&l_EventQ[l_EQRead], 0, sizeof(l_EventQ[l_EQRead]));
+	
+	// Increment
+	l_EQRead++;
+	
+	// Overlap?
+	if (l_EQRead >= EVENTQUEUESIZE)
+		l_EQRead = 0;
+	
+	/* Something was there */
+	return true;
+}
+
+/* I_OsPolling() -- Handles operating system polling (all of it) */
+void I_OsPolling(void)
+{
+	I_EventEx_t Event;
+	
+	/* Just read all events */
+	I_GetEvent();
+	
+	/* Translate events to old Doom events */
+	while (I_EventExPop(&Event))
+		I_EventToOldDoom(&Event);
+}
+
+/* IS_NewKeyToOldKey() -- Converts a new key to an old key */
+static int IS_NewKeyToOldKey(const uint8_t a_New)
+{
+	/* Giant Switch */
+	switch (a_New)
+	{
+		case IKBK_UP:		return KEY_UPARROW;
+		case IKBK_DOWN:		return KEY_DOWNARROW;
+		case IKBK_LEFT:		return KEY_LEFTARROW;
+		case IKBK_RIGHT:	return KEY_RIGHTARROW;
+			// Ranges
+		default:
+			if (a_New >= IKBK_A && a_New <= IKBK_Z)
+				return 'a' + (a_New - IKBK_A);
+			break;
+	}
+	
+	/* Unknown */
+	return 0;
+}
+
 /* I_EventToOldDoom() -- Converts an extended event to the old format */
 void I_EventToOldDoom(const I_EventEx_t* const a_Event)
 {
+	event_t SendEvent;
+	
+	/* Check */
+	if (!a_Event)
+		return;
+	
+	/* Which event type? */
+	switch (a_Event->Type)
+	{
+			// Keyboard
+		case IET_KEYBOARD:
+			// Ignore repeated keys
+			if (a_Event->Data.Keyboard.Repeat)
+				return;
+			
+			// Convert
+			SendEvent.type = (a_Event->Data.Keyboard.Down ? ev_keydown : ev_keyup);
+			SendEvent.data1 = IS_NewKeyToOldKey(a_Event->Data.Keyboard.KeyCode);
+			SendEvent.typekey = a_Event->Data.Keyboard.Character;
+			
+			if (!SendEvent.data1)
+				return;
+			break;
+			
+			// Unknown
+		default:
+			return;
+	}
+	
+	/* Send event */
+	D_PostEvent(&SendEvent);
 }
 
 /* VID_NumModes() -- Returns the number of video modes */

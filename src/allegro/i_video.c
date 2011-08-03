@@ -34,6 +34,7 @@
 
 /* Local */
 #include "doomtype.h"
+#include "doomdef.h"
 #include "i_video.h"
 #include "i_util.h"
 
@@ -64,12 +65,207 @@ static const uint32_t c_AllegroCards[] =
 #endif
 };
 
+const uint8_t c_AllegroToReMooDKey[KEY_MAX] =				// Converts an Allegro key to a ReMooD Key
+{
+	IKBK_NULL,	//	Allegro	starts	at	1,	so	we	don't	want	off
+	'A',	//	KEY_A	
+	'B',	//	KEY_B	
+	'C',	//	KEY_C	
+	'D',	//	KEY_D	
+	'E',	//	KEY_E	
+	'F',	//	KEY_F	
+	'G',	//	KEY_G	
+	'H',	//	KEY_H	
+	'I',	//	KEY_I	
+	'J',	//	KEY_J	
+	'K',	//	KEY_K	
+	'L',	//	KEY_L	
+	'M',	//	KEY_M	
+	'N',	//	KEY_N	
+	'O',	//	KEY_O	
+	'P',	//	KEY_P	
+	'Q',	//	KEY_Q	
+	'R',	//	KEY_R	
+	'S',	//	KEY_S	
+	'T',	//	KEY_T	
+	'U',	//	KEY_U	
+	'V',	//	KEY_V	
+	'W',	//	KEY_W	
+	'X',	//	KEY_X	
+	'Y',	//	KEY_Y	
+	'Z',	//	KEY_Z	
+	IKBK_NULL,	//	KEY_0	
+	IKBK_NULL,	//	KEY_1	
+	IKBK_NULL,	//	KEY_2	
+	IKBK_NULL,	//	KEY_3	
+	IKBK_NULL,	//	KEY_4	
+	IKBK_NULL,	//	KEY_5	
+	IKBK_NULL,	//	KEY_6	
+	IKBK_NULL,	//	KEY_7	
+	IKBK_NULL,	//	KEY_8	
+	IKBK_NULL,	//	KEY_9	
+	IKBK_NULL,	//	KEY_0_PAD	
+	IKBK_NULL,	//	KEY_1_PAD	
+	IKBK_NULL,	//	KEY_2_PAD	
+	IKBK_NULL,	//	KEY_3_PAD	
+	IKBK_NULL,	//	KEY_4_PAD	
+	IKBK_NULL,	//	KEY_5_PAD	
+	IKBK_NULL,	//	KEY_6_PAD	
+	IKBK_NULL,	//	KEY_7_PAD	
+	IKBK_NULL,	//	KEY_8_PAD	
+	IKBK_NULL,	//	KEY_9_PAD	
+	IKBK_NULL,	//	KEY_F1	
+	IKBK_NULL,	//	KEY_F2	
+	IKBK_NULL,	//	KEY_F3	
+	IKBK_NULL,	//	KEY_F4	
+	IKBK_NULL,	//	KEY_F5	
+	IKBK_NULL,	//	KEY_F6	
+	IKBK_NULL,	//	KEY_F7	
+	IKBK_NULL,	//	KEY_F8	
+	IKBK_NULL,	//	KEY_F9	
+	IKBK_NULL,	//	KEY_F10	
+	IKBK_NULL,	//	KEY_F11	
+	IKBK_NULL,	//	KEY_F12	
+	IKBK_NULL,	//	KEY_ESC	
+	IKBK_NULL,	//	KEY_TILDE	
+	IKBK_NULL,	//	KEY_MINUS	
+	IKBK_NULL,	//	KEY_EQUALS	
+	IKBK_NULL,	//	KEY_BACKSPACE	
+	IKBK_NULL,	//	KEY_TAB	
+	IKBK_NULL,	//	KEY_OPENBRACE	
+	IKBK_NULL,	//	KEY_CLOSEBRACE	
+	IKBK_NULL,	//	KEY_ENTER	
+	IKBK_NULL,	//	KEY_COLON	
+	IKBK_NULL,	//	KEY_QUOTE	
+	IKBK_NULL,	//	KEY_BACKSLASH	//	Two	of	the	same	key!?	
+	IKBK_NULL,	//	KEY_BACKSLASH2	
+	IKBK_NULL,	//	KEY_COMMA	
+	IKBK_NULL,	//	KEY_STOP	
+	IKBK_NULL,	//	KEY_SLASH	
+	IKBK_NULL,	//	KEY_SPACE	
+	IKBK_NULL,	//	KEY_INSERT	
+	IKBK_NULL,	//	KEY_DEL	
+	IKBK_NULL,	//	KEY_HOME	
+	IKBK_NULL,	//	KEY_END	
+	IKBK_NULL,	//	KEY_PGUP	
+	IKBK_NULL,	//	KEY_PGDN	
+	IKBK_LEFT,	//	KEY_LEFT	
+	IKBK_RIGHT,	//	KEY_RIGHT	
+	IKBK_UP,	//	KEY_UP	
+	IKBK_DOWN,	//	KEY_DOWN	
+	IKBK_NULL,	//	KEY_SLASH_PAD	
+	IKBK_NULL,	//	KEY_ASTERISK	
+	IKBK_NULL,	//	KEY_MINUS_PAD	
+	IKBK_NULL,	//	KEY_PLUS_PAD	
+	IKBK_NULL,	//	KEY_DEL_PAD	
+	IKBK_NULL,	//	KEY_ENTER_PAD	
+	IKBK_NULL,	//	KEY_PRTSCR	
+	IKBK_NULL,	//	KEY_PAUSE	
+	IKBK_NULL,	//	KEY_ABNT_C1	
+	IKBK_NULL,	//	KEY_YEN	
+	IKBK_NULL,	//	KEY_KANA	
+	IKBK_NULL,	//	KEY_CONVERT	
+	IKBK_NULL,	//	KEY_NOCONVERT	
+	IKBK_NULL,	//	KEY_AT	
+	IKBK_NULL,	//	KEY_CIRCUMFLEX	
+	IKBK_NULL,	//	KEY_COLON2	
+	IKBK_NULL,	//	KEY_KANJI	
+	IKBK_NULL,	//	KEY_EQUALS_PAD	
+	IKBK_NULL,	//	KEY_BACKQUOTE	
+	IKBK_NULL,	//	KEY_SEMICOLON	
+	IKBK_NULL,	//	KEY_COMMAND	
+	IKBK_NULL,	//	KEY_UNKNOWN1	
+	IKBK_NULL,	//	KEY_UNKNOWN2	
+	IKBK_NULL,	//	KEY_UNKNOWN3	
+	IKBK_NULL,	//	KEY_UNKNOWN4	
+	IKBK_NULL,	//	KEY_UNKNOWN5	
+	IKBK_NULL,	//	KEY_UNKNOWN6	
+	IKBK_NULL,	//	KEY_UNKNOWN7	
+	IKBK_NULL,	//	KEY_UNKNOWN8	
+	IKBK_NULL,	//	KEY_LSHIFT	
+	IKBK_NULL,	//	KEY_RSHIFT	
+	IKBK_NULL,	//	KEY_LCONTROL	
+	IKBK_NULL,	//	KEY_RCONTROL	
+	IKBK_NULL,	//	KEY_ALT	
+	IKBK_NULL,	//	KEY_ALTGR	
+	IKBK_NULL,	//	KEY_LWIN	
+	IKBK_NULL,	//	KEY_RWIN	
+	IKBK_NULL,	//	KEY_MENU	
+	IKBK_NULL,	//	KEY_SCRLOCK	
+	IKBK_NULL,	//	KEY_NUMLOCK	
+	IKBK_NULL,	//	KEY_CAPSLOCK	
+	IKBK_NULL,	//	KEY_MAX	
+};
+
 /****************
 *** FUNCTIONS ***
 ****************/
 
+/* IS_ConvertKey() -- Converts an allegro key to a ReMooD Key */
+static uint8_t IS_ConvertKey(const size_t a_AKey)
+{
+	/* Check */
+	if (a_AKey >= KEY_MAX)
+		return 0;
+	
+	return c_AllegroToReMooDKey[a_AKey];
+}
+
+/* I_GetEvent() -- Gets an event and adds it to the queue */
 void I_GetEvent(void)
 {
+	size_t i;
+	static uint8_t Shifties[KEY_MAX];
+	I_EventEx_t ExEvent;
+	int Key;
+	boolean Repeat;
+	
+	/* Keyboard getting */
+	// Poll the keyboard
+	poll_keyboard();
+	
+	// Grab all key presses and set shifties as such
+	while (keypressed())
+	{
+		// Get key
+		Key = readkey();
+		
+		// If the key is already pressed, set it as repeated
+		Repeat = !!Shifties[(Key & 0xFF00) >> 8];
+		
+		// Set to 1 in Shifites (always presses here)
+		Shifties[(Key & 0xFF00) >> 8] = 1;
+		
+		// Create event
+		memset(&ExEvent, 0, sizeof(&ExEvent));
+		ExEvent.Type = IET_KEYBOARD;
+		ExEvent.Data.Keyboard.Down = 1;
+		ExEvent.Data.Keyboard.Repeat = Repeat;
+		ExEvent.Data.Keyboard.KeyCode = IS_ConvertKey((Key & 0xFF00) >> 8);
+		ExEvent.Data.Keyboard.Character = Key & 0x7F;	// Char is easy
+		
+		// Send away
+		I_EventExPush(&ExEvent);
+	}
+	
+	// Determine key releases by going through shifties and keys
+	for (i = 1; i < KEY_MAX; i++)
+	{
+		// Only make events for keys that are depressed
+		if (!(Shifties[i] && !key[i]))
+			continue;
+		
+		// Create event
+		memset(&ExEvent, 0, sizeof(&ExEvent));
+		ExEvent.Type = IET_KEYBOARD;
+		ExEvent.Data.Keyboard.Down = 0;
+		ExEvent.Data.Keyboard.Repeat = false;
+		ExEvent.Data.Keyboard.KeyCode = IS_ConvertKey(i);
+		ExEvent.Data.Keyboard.Character = 0;	// Ignore character
+		
+		// Send away
+		I_EventExPush(&ExEvent);
+	}
 }
 
 void I_StartupMouse(void)
@@ -77,10 +273,6 @@ void I_StartupMouse(void)
 }
 
 void I_UpdateJoysticks(void)
-{
-}
-
-void I_OsPolling(void)
 {
 }
 
@@ -141,26 +333,19 @@ void I_SetPalette(RGBA_t* palette)
 {
 	PALETTE ScrPal;
 	register uint32_t i;
-	int Depth;
 	
 	/* Check */
 	if (!palette)
 		return;
 	
 	/* Load colors into screen palette */
-	// Cap in DOS?
-#if defined(__MSDOS__)
-	Depth = 2;
-#else
-	Depth = 0;
-#endif
-	
 	// Now loop
 	for (i = 0; i < 256; i++)
 	{
-		ScrPal[i].r = palette[i].s.red >> Depth;
-		ScrPal[i].g = palette[i].s.green >> Depth;
-		ScrPal[i].b = palette[i].s.blue >> Depth;
+		// Allegro is limited to 6-bit precision for some reason
+		ScrPal[i].r = palette[i].s.red >> 2;
+		ScrPal[i].g = palette[i].s.green >> 2;
+		ScrPal[i].b = palette[i].s.blue >> 2;
 	}
 	
 	/* Now set it */
@@ -197,6 +382,12 @@ void VID_PrepareModeList(void)
 		// Clear modes
 		destroy_gfx_mode_list(Modes);
 	}
+	
+	/* Always add 320x200, 320x240, 640x400, 640x480 */
+	VID_AddMode(320, 200, true);
+	VID_AddMode(320, 240, true);
+	VID_AddMode(640, 400, true);
+	VID_AddMode(640, 480, true);
 }
 
 /* I_SetVideoMode() -- Sets the current video mode */
@@ -227,6 +418,9 @@ boolean I_SetVideoMode(const uint32_t a_Width, const uint32_t a_Height, const bo
 	/* Allocate Buffer */
 	I_VideoUnsetBuffer();	// Remove old buffer if any
 	I_VideoSetBuffer(a_Width, a_Height, a_Width, NULL);
+	
+	/* Set title */
+	set_window_title("ReMooD "REMOOD_FULLVERSIONSTRING);
 	
 	/* Success */
 	return true;

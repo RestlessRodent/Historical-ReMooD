@@ -36,6 +36,60 @@
 *** CONSTANTS ***
 ****************/
 
+/* I_KeyBoardKey_t -- A keyboard key */
+typedef enum I_KeyBoardKey_e
+{
+	// Specials
+	IKBK_NULL,
+	IKBK_ESCAPE,
+	IKBK_ENTER,
+	IKBK_UP,
+	IKBK_DOWN,
+	IKBK_LEFT,
+	IKBK_RIGHT,
+	
+	// Letters
+	IKBK_A = 'A',
+	IKBK_B,
+	IKBK_C,
+	IKBK_D,
+	IKBK_E,
+	IKBK_F,
+	IKBK_G,
+	IKBK_H,
+	IKBK_I,
+	IKBK_J,
+	IKBK_K,
+	IKBK_L,
+	IKBK_M,
+	IKBK_N,
+	IKBK_O,
+	IKBK_P,
+	IKBK_Q,
+	IKBK_R,
+	IKBK_S,
+	IKBK_T,
+	IKBK_U,
+	IKBK_V,
+	IKBK_W,
+	IKBK_X,
+	IKBK_Y,
+	IKBK_Z,
+	
+	// Numbers
+	IKBK_0 = '0',
+	IKBK_1,
+	IKBK_2,
+	IKBK_3,
+	IKBK_4,
+	IKBK_5,
+	IKBK_6,
+	IKBK_7,
+	IKBK_8,
+	IKBK_9,
+} I_KeyBoardKey_t;
+
+/* I_EventType_t -- Event type */
 typedef enum I_EventType_e
 {
 	IET_NULL,									// Blank event
@@ -58,6 +112,9 @@ typedef struct I_EventEx_s
 		struct
 		{
 			boolean Down;						// Key pressed down
+			boolean Repeat;						// Is the key repeated?
+			uint8_t KeyCode;					// Code for key
+			uint16_t Character;					// Character pressed
 		} Keyboard;								// Keyboard event
 	} Data;										// Event data
 } I_EventEx_t;
@@ -66,6 +123,8 @@ typedef struct I_EventEx_s
 *** FUNCTIONS ***
 ****************/
 
+void I_EventExPush(const I_EventEx_t* const a_Event);
+boolean I_EventExPop(I_EventEx_t* const a_Event);
 void I_EventToOldDoom(const I_EventEx_t* const a_Event);
 
 int VID_NumModes(void);

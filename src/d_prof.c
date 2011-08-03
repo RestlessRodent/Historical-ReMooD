@@ -56,6 +56,21 @@ ProfileInfo_t* PROF_GetNumber(size_t Num)
 	return Rover;
 }
 
+/* PROF_NumProfiles() -- Returns profile count */
+size_t PROF_NumProfiles(void)
+{
+	ProfileInfo_t* Rover = Profiles;
+	size_t i = 0;
+	
+	while (Rover)
+	{
+		i++;
+		Rover = Rover->next;
+	}
+	
+	return i;
+}
+
 /* PROF_CVARWasChanged() -- A cvar linked to a profile was changed */
 // This isn't the greatest but it works
 void PROF_CVARWasChanged(void)
@@ -660,6 +675,13 @@ void M_ProfilePrompt(int player)
 	}
 	else
 		ProfileChooserItems[1].WItemTextPtr = PTROFUNICODESTRING(DSTR_MENUSELECTPROFILE_FORYOU);
+	
+	// GhostlyDeath <August 3, 2011> -- if there is only one profile, autochoose that
+	if (PROF_NumProfiles() == 1)
+	{
+		M_ProfAccept(1);
+		return;
+	}
 	
 	M_StartControlPanel();
 	if (currentMenu)

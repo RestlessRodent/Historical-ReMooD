@@ -55,6 +55,10 @@ __XX_BIN = bin
 __XX_SRC = src
 __XX_OBJ = $(__INT_OBJ)
 
+ifneq (,$(strip $(__INT_INTERFACE)))
+	__XX_DEFINTRF := $(__INT_INTERFACE)
+endif
+
 ##########################
 ### SYSTEM DEFINITIONS ###
 ##########################
@@ -220,8 +224,8 @@ else
 	ifeq (allegro,$(strip $(__XX_DEFINTRF)))
 		__XX_IFACEDIR = allegro
 		__XX_FPREFIX = a
-		__XX_FCFLAGS = -D__REMOOD_INTERFACE_ALLEGRO
-		__XX_FLDFLAGS = -lalleg
+		__XX_FCFLAGS = -D__REMOOD_INTERFACE_ALLEGRO $(__INT_ALLEGROCFLAGS)
+		__XX_FLDFLAGS = $(__INT_ALLEGROLDFLAGS)
 	else
 		# Raw Windows Interface
 		ifeq (win36c,$(strip $(__XX_DEFINTRF)))

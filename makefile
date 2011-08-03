@@ -63,6 +63,9 @@ export __INT_CFLAGS := $(CFLAGS) $(__INT_MCFLAGS)
 # Linker Flags
 export __INT_LDFLAGS := $(LDFLAGS) $(__INT_MLDFLAGS)
 
+# Interface?
+export __INT_INTERFACE := $(USEINTERFACE)
+
 ##################################
 ### HOW DO WE EXECUTE COMMANDS ###
 #################################/
@@ -93,33 +96,61 @@ else
 #
 endif
 
-###########
+#####################
+### LIBRARY STUFF ###
+#####################
+
 ### SDL ###
-###########
 
 # Use sdl-config if SDL_LIB and SDL_INCLUDE are not set
 ifeq (,$(strip $(SDL_LIB))$(strip $(SDL_INCLUDE)))
-	ifneq (,$(strip $(call __INT_RUNCOMMAND,sdl-config --version)))
+	ifneq (,$(findstring 1.2,$(strip $(shell $(call __INT_RUNCOMMAND,sdl-config --version)))))
 		export __INT_SDLCFLAGS  := $(shell $(call __INT_RUNCOMMAND,sdl-config --cflags))
 		export __INT_SDLLDFLAGS := $(shell $(call __INT_RUNCOMMAND,sdl-config --libs))
-	# Not found so make some assumptions
-	else
-$(warning SDL Config not found)
-		export __INT_SDLCFLAGS  := -ISDL -Iinclude
-		export __INT_SDLLDFLAGS := -lSDL -Llib
 	endif
-# Otherwise use them instead
-else
+endif
+
+# Fall back to environment variables
+ifeq (,$(strip $(__INT_SDLCFLAGS)))
 	ifneq (,$(strip $(SDL_INCLUDE)))
 		export __INT_SDLCFLAGS  := -I$(SDL_INCLUDE)
 	else
-		export __INT_SDLCFLAGS  := -Iinclude
+		export __INT_SDLCFLAGS  := -Iinclude -ISDL
 	endif
-	
+endif
+
+ifeq (,$(strip $(__INT_SDLLDFLAGS)))
 	ifneq (,$(strip $(SDL_LIB)))
 		export __INT_SDLLDFLAGS := -L$(SDL_LIB) -lSDL
 	else
 		export __INT_SDLLDFLAGS :=  -Llib -lSDL
+	endif
+endif
+
+### ALLEGRO ###
+
+# Use allegro-config if ALLEGRO_LIB and ALLEGRO_INCLUDE are not set
+ifeq (,$(strip $(ALLEGRO_LIB))$(strip $(ALLEGRO_INCLUDE)))
+	ifneq (,$(findstring 4.2,$(strip $(shell $(call __INT_RUNCOMMAND,allegro-config --version)))))
+		export __INT_ALLEGROCFLAGS  := $(shell $(call __INT_RUNCOMMAND,allegro-config --cflags))
+		export __INT_ALLEGROLDFLAGS := $(shell $(call __INT_RUNCOMMAND,allegro-config --libs))
+	endif
+endif
+
+# Fall back to environment variables
+ifeq (,$(strip $(__INT_ALLEGROCFLAGS)))
+	ifneq (,$(strip $(ALLEGRO_INCLUDE)))
+		export __INT_ALLEGROCFLAGS  := -I$(ALLEGRO_INCLUDE)
+	else
+		export __INT_ALLEGROCFLAGS  := -Iinclude -Iallegro
+	endif
+endif
+
+ifeq (,$(strip $(__INT_ALLEGROLDFLAGS)))
+	ifneq (,$(strip $(ALLEGRO_LIB)))
+		export __INT_ALLEGROLDFLAGS := -L$(ALLEGRO_LIB) -lalleg
+	else
+		export __INT_ALLEGROLDFLAGS := -Llib -lalleg
 	endif
 endif
 

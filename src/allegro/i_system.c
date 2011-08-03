@@ -104,10 +104,14 @@ void I_OutputMsg(char *fmt, ...)
 
 void I_StartupKeyboard(void)
 {
+	/* Start Allegro keyboard stuff */
+	install_keyboard();
 }
 
 void I_StartupTimer(void)
 {
+	/* Start Allegro Timer stuff */
+	install_timer();
 }
 
 int I_GetKey(void)
@@ -211,19 +215,21 @@ void I_Quit(void)
 	exit(0);
 }
 
+/* I_WaitVBL() -- Wait for vertical blank */
 void I_WaitVBL(int count)
 {
-#ifndef _WIN32
-	usleep(count);
-#else
-	Sleep(count);
-#endif
+	/* Use rest() */
+	//rest(count);
 }
 
+/* I_BeginRead() -- Before a file is read */
+// Flashes floppy disk (or CD)
 void I_BeginRead(void)
 {
 }
 
+/* I_EndRead() -- When a file is no longer being read */
+// Flashes floppy disk (or CD)
 void I_EndRead(void)
 {
 }
