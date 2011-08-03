@@ -160,5 +160,13 @@ void I_VideoSetBuffer(const uint32_t a_Width, const uint32_t a_Height, const uin
 void I_VideoUnsetBuffer(void);
 uint8_t* I_VideoSoftBuffer(uint32_t* const a_WidthP, uint32_t* const a_HeightP);
 
+uint32_t I_GetTime(void);
+
+void ShowEndTxt(void);
+
+void I_AddExitFunc(void (*func) ());
+void I_RemoveExitFunc(void (*func) ());
+void I_ShutdownSystem(void);
+
 #endif /* __I_UTIL_H__ */
 

@@ -74,8 +74,6 @@
 #include "d_net.h"
 #include "g_game.h"
 
-#include "endtxt.h"
-
 #ifdef GAMECLIENT
 #include "i_video.h"
 #include "i_sound.h"
@@ -183,12 +181,6 @@ uint32_t I_GetTimeMS(void)
 		return (retrace_count * 1000) / 70;
 }
 
-/* I_GetTime() -- Returns time since the game started */
-uint32_t I_GetTime(void)
-{
-	return (I_GetTimeMS() * TICRATE) / 1000;
-}
-
 //
 // I_Init
 //
@@ -283,67 +275,6 @@ void I_Error(char *error, ...)
 	I_ShutdownSystem();
 
 	exit(-1);
-}
-#define MAX_QUIT_FUNCS     16
-typedef void (*quitfuncptr) ();
-static quitfuncptr quit_funcs[MAX_QUIT_FUNCS] = { NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
-	NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL
-};
-//
-//  Adds a function to the list that need to be called by I_SystemShutdown().
-//
-void I_AddExitFunc(void (*func) ())
-{
-	int c;
-
-	for (c = 0; c < MAX_QUIT_FUNCS; c++)
-	{
-		if (!quit_funcs[c])
-		{
-			quit_funcs[c] = func;
-			break;
-		}
-	}
-}
-
-//
-//  Removes a function from the list that need to be called by
-//   I_SystemShutdown().
-//
-void I_RemoveExitFunc(void (*func) ())
-{
-	int c;
-
-	for (c = 0; c < MAX_QUIT_FUNCS; c++)
-	{
-		if (quit_funcs[c] == func)
-		{
-			while (c < MAX_QUIT_FUNCS - 1)
-			{
-				quit_funcs[c] = quit_funcs[c + 1];
-				c++;
-			}
-			quit_funcs[MAX_QUIT_FUNCS - 1] = NULL;
-			break;
-		}
-	}
-}
-
-//
-//  Closes down everything. This includes restoring the initial
-//  pallete and video mode, and removing whatever mouse, keyboard, and
-//  timer routines have been installed.
-//
-//  NOTE : Shutdown user funcs. are effectively called in reverse order.
-//
-void I_ShutdownSystem()
-{
-	int c;
-
-	for (c = MAX_QUIT_FUNCS - 1; c >= 0; c--)
-		if (quit_funcs[c])
-			(*quit_funcs[c]) ();
-
 }
 
 void I_GetDiskFreeSpace(INT64 * freespace)
@@ -598,5 +529,17 @@ void* I_SysRealloc(void* const a_Ptr, const size_t a_NewSize)
 void I_SysFree(void* const a_Ptr)
 {
 	free(a_Ptr);
+}
+
+/* I_SystemPreExit() -- Called before functions are exited */
+void I_SystemPreExit(void)
+{
+}
+
+/* I_SystemPostExit() -- Called after functions are exited */
+void I_SystemPostExit(void)
+{
+	/* Quit Allegro */
+	allegro_exit();
 }
 

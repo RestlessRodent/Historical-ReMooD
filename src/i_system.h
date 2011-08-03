@@ -60,8 +60,7 @@ void I_InitJoystick(void);
 size_t I_GetFreeMem(size_t * total);
 
 // Called by D_DoomLoop,
-// returns current time in tics.
-tic_t I_GetTime(void);
+uint32_t I_GetTimeMS(void);
 
 void I_GetEvent(void);
 
@@ -120,13 +119,8 @@ void I_UpdateJoysticks(void);
 void I_TimerISR(void);			//timer callback routine.
 void I_StartupTimer(void);
 
-/* list of functions to call at program cleanup */
-void I_AddExitFunc(void (*func) ());
-void I_RemoveExitFunc(void (*func) ());
-
 // Setup signal handler, plus stuff for trapping errors and cleanly exit.
 int I_StartupSystem(void);
-void I_ShutdownSystem(void);
 
 void I_GetDiskFreeSpace(uint64_t * freespace);
 char *I_GetUserName(void);
@@ -145,6 +139,8 @@ int I_mkdir(const char* a_Path, int a_UNIXPowers);
 void* I_SysAlloc(const size_t a_Size);
 void* I_SysRealloc(void* const a_Ptr, const size_t a_NewSize);
 void I_SysFree(void* const a_Ptr);
+void I_SystemPreExit(void);
+void I_SystemPostExit(void);
 
 #endif
 

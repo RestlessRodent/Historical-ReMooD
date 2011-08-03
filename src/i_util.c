@@ -40,6 +40,7 @@
 
 #define EVENTQUEUESIZE		64					// Max events allowed in queue
 #define MODENAMELENGTH		16					// Length of mode name
+#define MAX_QUIT_FUNCS		16					// Max number of quit functions
 
 /**************
 *** GLOBALS ***
@@ -89,6 +90,9 @@ static size_t l_NumModes = 0;					// Number of video modes
 static I_EventEx_t l_EventQ[EVENTQUEUESIZE];	// Events in queue
 static size_t l_EQRead = 0;						// Read position in queue
 static size_t l_EQWrite = 0;					// Write position in queue
+
+typedef void (*quitfuncptr) ();
+static quitfuncptr quit_funcs[MAX_QUIT_FUNCS];
 
 /****************
 *** FUNCTIONS ***
@@ -432,6 +436,12 @@ uint8_t* I_VideoSoftBuffer(uint32_t* const a_WidthP, uint32_t* const a_HeightP)
 	return vid.buffer;
 }
 
+/* I_GetTime() -- Returns time since the game started */
+uint32_t I_GetTime(void)
+{
+	return (I_GetTimeMS() * TICRATE) / 1000;
+}
+
 /* I_ReadScreen() -- Reads the screen into pointer */
 // This is enough to make the code work as it should
 void I_ReadScreen(byte* scr)
@@ -444,4 +454,56 @@ void I_ReadScreen(byte* scr)
 	memcpy(scr, vid.buffer, vid.width * vid.height * vid.bpp);
 }
 
+/* ShowEndTxt() -- Shows the ending text screen */
+void ShowEndTxt(void)
+{
+}
+
+/* I_AddExitFunc() -- Adds an exit function */
+void I_AddExitFunc(void (*func) ())
+{
+	int c;
+
+	for (c = 0; c < MAX_QUIT_FUNCS; c++)
+		if (!quit_funcs[c])
+		{
+			quit_funcs[c] = func;
+			break;
+		}
+}
+
+/* I_RemoveExitFunc() -- Removes an exit function */
+void I_RemoveExitFunc(void (*func) ())
+{
+	int c;
+
+	for (c = 0; c < MAX_QUIT_FUNCS; c++)
+		if (quit_funcs[c] == func)
+		{
+			while (c < MAX_QUIT_FUNCS - 1)
+			{
+				quit_funcs[c] = quit_funcs[c + 1];
+				c++;
+			}
+			quit_funcs[MAX_QUIT_FUNCS - 1] = NULL;
+			break;
+		}
+}
+
+/* I_ShutdownSystem() -- Shuts the system down */
+void I_ShutdownSystem(void)
+{
+	int c;
+	
+	/* Pre exit func */
+	I_SystemPreExit();
+	
+	/* Call functions */
+	for (c = MAX_QUIT_FUNCS - 1; c >= 0; c--)
+		if (quit_funcs[c])
+			(*quit_funcs[c]) ();
+	
+	/* Post exit func */
+	I_SystemPostExit();
+}
 
