@@ -108,6 +108,7 @@ void I_StartupKeyboard(void)
 	install_keyboard();
 }
 
+/* I_StartupTimer() -- Timer startup */
 void I_StartupTimer(void)
 {
 	/* Start Allegro Timer stuff */
@@ -164,18 +165,31 @@ ticcmd_t *I_BaseTiccmd(void)
 	return &emptycmd;
 }
 
-//
-// I_GetTime
-// returns time in 1/TICRATE second tics
-//
-
 uint32_t LastTime = 0;
 
-ULONG I_GetTime(void)
+int g_RefreshRate = 0;
+
+/* I_GetTime() -- Returns time since the game started */
+uint32_t I_GetTime(void)
 {
 	uint32_t ticks = 0;
 	static uint32_t basetime = 0;
+
+#if 1
+	/* Is the refresh rate known? */
+	// retrace_count will match it
+	if (g_RefreshRate)
+	{
+		return (retrace_count * 1000) / g_RefreshRate;
+	}
 	
+	/* It isn't */
+	// Otherwise retrace_count will be simulated at 70
+	else
+	{
+		return (retrace_count * 1000) / 70;
+	}
+#else
 	//ticks = ((float)clock() / (float)CLOCKS_PER_SEC) / 1000.0;
 	ticks = (clock() * 1000) / CLOCKS_PER_SEC;
 	//ticks = clock();
@@ -184,6 +198,7 @@ ULONG I_GetTime(void)
 		basetime = ticks;
 
 	return (ticks - basetime) * TICRATE / 1000;
+#endif
 }
 
 //

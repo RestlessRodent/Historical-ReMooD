@@ -433,7 +433,7 @@ uint8_t* I_VideoSoftBuffer(uint32_t* const a_WidthP, uint32_t* const a_HeightP)
 }
 
 /* I_ReadScreen() -- Reads the screen into pointer */
-// This is enough to make the code work as it shoulde
+// This is enough to make the code work as it should
 void I_ReadScreen(byte* scr)
 {
 	/* Check */
@@ -443,4 +443,5 @@ void I_ReadScreen(byte* scr)
 	/* Blind copy */
 	memcpy(scr, vid.buffer, vid.width * vid.height * vid.bpp);
 }
+
 

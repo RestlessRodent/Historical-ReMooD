@@ -201,6 +201,12 @@ const uint8_t c_AllegroToReMooDKey[KEY_MAX] =				// Converts an Allegro key to a
 	IKBK_NULL,	//	KEY_MAX	
 };
 
+/**************
+*** GLOBALS ***
+**************/
+
+extern int g_RefreshRate;
+
 /****************
 *** FUNCTIONS ***
 ****************/
@@ -427,6 +433,7 @@ boolean I_SetVideoMode(const uint32_t a_Width, const uint32_t a_Height, const bo
 	I_VideoUnsetBuffer();	// Remove old buffer if any
 	
 	/* Set new video mode */
+	request_refresh_rate(0);
 	set_color_depth(8);	// always 8-bit color
 	
 	// Try initial set with a_Fullscreen honored
@@ -449,6 +456,9 @@ boolean I_SetVideoMode(const uint32_t a_Width, const uint32_t a_Height, const bo
 	
 	/* Set title */
 	set_window_title("ReMooD "REMOOD_FULLVERSIONSTRING);
+	
+	/* Get refresh rate */
+	g_RefreshRate = get_refresh_rate();
 	
 	/* Success */
 	return true;
