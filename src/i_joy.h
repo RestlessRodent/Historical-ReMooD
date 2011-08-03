@@ -27,6 +27,7 @@
 #ifndef __I_JOY_H__
 #define __I_JOY_H__
 
+#include "doomdef.h"
 #include "g_input.h"
 
 #define JOYAXISRANGE     1023	//faB: (1024-1) so we can do a right shift instead of division

@@ -29,6 +29,7 @@
 
 /* System */
 #include <stdlib.h>
+#include <stdint.h>
 #include <allegro.h>
 
 /* Local */

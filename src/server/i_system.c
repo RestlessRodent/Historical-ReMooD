@@ -156,7 +156,7 @@ ULONG I_GetTime(void)
 	static uint32_t basetime = 0;
 	
 	//ticks = ((float)clock() / (float)CLOCKS_PER_SEC) / 1000.0;
-	ticks = clock() / (CLOCKS_PER_SEC / 1000);
+	ticks = (clock() * 1000) / CLOCKS_PER_SEC;
 	//ticks = clock();
 
 	if (!basetime)

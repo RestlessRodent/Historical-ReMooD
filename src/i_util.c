@@ -28,16 +28,34 @@
 ***************/
 
 #include "i_util.h"
+#include "i_joy.h"
 #include "command.h"
 
 /**************
 *** GLOBALS ***
 **************/
 
+JoyType_t Joystick;
+
 /* i_video.c -- Remove this garbage */
 consvar_t cv_vidwait = {"vid_wait","1",CV_SAVE,CV_OnOff};
 byte graphics_started = 0;
 boolean allow_fullscreen = false;
+
+/* i_sound.c -- Remove this garbage */
+consvar_t cv_snd_speakersetup = {"snd_speakersetup", "2", CV_SAVE};
+consvar_t cv_snd_soundquality = {"snd_soundquality", "11025", CV_SAVE};
+consvar_t cv_snd_sounddensity = {"snd_sounddensity", "1", CV_SAVE};
+consvar_t cv_snd_pcspeakerwave = {"snd_pcspeakerwave", "1", CV_SAVE};
+consvar_t cv_snd_channels = {"snd_numchannels", "16", CV_SAVE};
+consvar_t cv_snd_reservedchannels = {"snd_reservedchannels", "4", CV_SAVE};
+consvar_t cv_snd_multithreaded = {"snd_multithreaded", "1", CV_SAVE};
+consvar_t cv_snd_output = {"snd_output", "Default", CV_SAVE};
+consvar_t cv_snd_device = {"snd_device", "auto", CV_SAVE};
+
+/* i_cdmus.c -- Remove this garbage */
+consvar_t cd_volume = { "cd_volume", "31", CV_SAVE};
+consvar_t cdUpdate = { "cd_update", "1", CV_SAVE };
 
 /*************
 *** LOCALS ***

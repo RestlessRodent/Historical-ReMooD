@@ -64,8 +64,8 @@ __XX_OBJ = $(__INT_OBJ)
 `if ?__MSDOS__
 	__XX_EXESUFFIX = .exe
 	__XX_OBJPREFIX = a
-	__XX_ICFLAGS  = -D__REMOOD_SYSTEM_DOS
-	__XX_ILDFLAGS =
+	__XX_ICFLAGS  = -D__REMOOD_SYSTEM_DOS -Ilib/glib/include
+	__XX_ILDFLAGS = -lglib
 	__XX_DEFINTRF ?= allegro
 
 # Windows CE

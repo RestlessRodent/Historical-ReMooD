@@ -30,6 +30,7 @@
 *** INCLUDES ***
 ***************/
 
+#include <stdint.h>
 #include <allegro.h>
 #include "doomdef.h"
 #include "m_argv.h"
