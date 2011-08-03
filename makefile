@@ -81,11 +81,13 @@ __INT_LCOMSPEC := $(call __INT_LOWERJUNK,$(COMSPEC))
 #    Windows: COMPSEC should match SHELL
 ifeq ($(strip $(__INT_LSHELL)),$(strip $(__INT_LCOMSPEC)))
 	__INT_RUNCURDIR  = 
+	__INT_DELETE     = del
 	__INT_RUNCOMMAND = $(COMSPEC) /C $1
 
 # Otherwise assume a UNIX shell, or at least a compatible on
 else
 	__INT_RUNCURDIR  = ./
+	__INT_DELETE     = rm -f
 	__INT_RUNCOMMAND = $(SHELL) -c "$1"
 
 #

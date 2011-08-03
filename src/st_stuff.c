@@ -1399,7 +1399,7 @@ void ST_drawOverlayNum(int x,	// right border!
 						  FG | V_NOSCALESTART | V_TRANSLUCENTPATCH, sttminus);
 }
 
-static inline int SCY(int y)
+static __REMOOD_INLINE int SCY(int y)
 {
 	//31/10/99: fixed by Hurdler so it _works_ also in hardware mode
 	// do not scale to resolution for hardware accelerated
@@ -1421,7 +1421,7 @@ static inline int SCY(int y)
 	return y;
 }
 
-static inline int SCX(int x)
+static __REMOOD_INLINE int SCX(int x)
 {
 	x = x * vid.fdupx;
 	

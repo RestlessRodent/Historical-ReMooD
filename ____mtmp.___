@@ -11,6 +11,42 @@
 ## Have fun!
 ##
 
+##################################
+### HOW DO WE EXECUTE COMMANDS ###
+#################################/
+
+# Ugly lowercasing for shells
+__XX_LOWERJUNK = $(subst A,a,$(subst B,b,$(subst C,c,$(subst D,d,$(subst E,e,$(subst F,f,$(subst G,g,$(subst H,h,$(subst I,i,$(subst J,j,$(subst K,k,$(subst L,l,$(subst M,m,$(subst N,n,$(subst O,o,$(subst P,p,$(subst Q,q,$(subst R,r,$(subst S,s,$(subst T,t,$(subst U,u,$(subst V,v,$(subst W,w,$(subst X,x,$(subst Y,y,$(subst Z,z,$1))))))))))))))))))))))))))
+
+# Do lowercasing
+__XX_LSHELL   := $(call __XX_LOWERJUNK,$(SHELL))
+__XX_LCOMSPEC := $(call __XX_LOWERJUNK,$(COMSPEC))
+
+# Check if COMSPEC is set, if it we, are are on crippled WinDOS
+#  GNU Make always sets $(SHELL) to something
+#    DOS    : COMSPEC should match SHELL (for DJGPP at least)
+#    CygWin : SHELL == /bin/sh, COMPSPEC = command (Use shell here)
+#    Windows: COMPSEC should match SHELL
+ifeq ($(strip $(__XX_LSHELL)),$(strip $(__XX_LCOMSPEC)))
+	__XX_RUNCURDIR  = 
+	__XX_DELETE     = del
+	__XX_DIRSEP     = $(strip \ )
+	__XX_RUNCOMMAND = $(COMSPEC) /C $1
+	__XX_DOSPATH    = $(subst /,\,$1)
+	__XX_DEVNULL	= NUL
+
+# Otherwise assume a UNIX shell, or at least a compatible on
+else
+	__XX_RUNCURDIR  = ./
+	__XX_DELETE     = rm -f
+	__XX_DIRSEP     = /
+	__XX_RUNCOMMAND = $(SHELL) -c "$1"
+	__XX_DOSPATH    = $1
+	__XX_DEVNULL    = /dev/null
+
+#
+endif
+
 ###################
 ### DIRECTORIES ###
 ###################
@@ -176,24 +212,28 @@ __XX_OBJ = $(__INT_OBJ)
 # SDL Interface
 ifeq (sdl,$(strip $(__XX_DEFINTRF)))
 	__XX_IFACEDIR = sdl
+	__XX_FPREFIX = s
 	__XX_FCFLAGS = -D__REMOOD_INTERFACE_SDL $(__INT_SDLCFLAGS)
 	__XX_FLDFLAGS = $(__INT_SDLLDFLAGS)
 else
 	# Allegro Interface
 	ifeq (allegro,$(strip $(__XX_DEFINTRF)))
 		__XX_IFACEDIR = allegro
+		__XX_FPREFIX = a
 		__XX_FCFLAGS = -D__REMOOD_INTERFACE_ALLEGRO
 		__XX_FLDFLAGS = -lalleg
 	else
 		# Raw Windows Interface
 		ifeq (win36c,$(strip $(__XX_DEFINTRF)))
 			__XX_IFACEDIR = win36c
+			__XX_FPREFIX = w
 			__XX_FCFLAGS = -D__REMOOD_INTERFACE_WIN36C
 			__XX_FLDFLAGS = 
 		else
 			# Headless interface
 			ifeq (headless,$(strip $(__XX_DEFINTRF)))
 				__XX_IFACEDIR = headless
+				__XX_FPREFIX = h
 				__XX_FCFLAGS = -D__REMOOD_INTERFACE_HEADLESS
 				__XX_FLDFLAGS = 
 			endif
@@ -207,13 +247,14 @@ endif
 
 __XX_CFLAGS := -I$(__XX_SRC) $(__INT_CFLAGS) $(__XX_ICFLAGS) $(__XX_FCFLAGS)
 __XX_LDFLAGS := $(__INT_LDFLAGS) $(__XX_ILDFLAGS) $(__XX_FLDFLAGS)
-__XX_OBJPRIME := $(__XX_OBJPREFIX)o
+__XX_OBJPRIME := $(__INT_OBJPREFIX)$(__XX_OBJPREFIX)$(__XX_FPREFIX)
 
 ###############
 ### OBJECTS ###
 ###############
 
 __XX_OBJS := $(foreach __X_SOURCE, $(wildcard $(__XX_SRC)/*.c), $(__XX_OBJ)/$(basename $(notdir $(__X_SOURCE))).$(__XX_OBJPRIME)) $(foreach __X_SOURCE, $(wildcard $(__XX_SRC)/$(__XX_IFACEDIR)/*.c), $(__XX_OBJ)/$(basename $(notdir $(__X_SOURCE))).$(__XX_OBJPRIME))
+__XX_OBJSCLEAN := $(foreach __X_OBJ, $(__XX_OBJS), __$(notdir $(__X_OBJ)))
 
 ###############
 ### TARGETS ###
@@ -225,8 +266,9 @@ all:													$(__XX_BIN)/remood$(__INT_EXESUFFIX)$(__XX_EXESUFFIX)
 														
 
 # Clean targets
-clean:													
-														echo
+.PHONY: clean
+clean:													$(__XX_OBJSCLEAN)
+														@$(call __XX_RUNCOMMAND,$(__XX_DELETE) $(call __XX_DOSPATH,$(__XX_BIN)/remood$(__INT_EXESUFFIX)$(__XX_EXESUFFIX))) > $(__XX_DEVNULL)
 
 # Alias for binary
 remood:													$(__XX_BIN)/remood$(__INT_EXESUFFIX)$(__XX_EXESUFFIX)
@@ -236,11 +278,18 @@ remood:													$(__XX_BIN)/remood$(__INT_EXESUFFIX)$(__XX_EXESUFFIX)
 $(__XX_BIN)/remood$(__INT_EXESUFFIX)$(__XX_EXESUFFIX):	$(__XX_OBJS)
 														$(__INT_CC) -o $@ $(__XX_OBJS) $(__XX_LDFLAGS)
 
+# Source files in src/
 $(__XX_OBJ)/%.$(__XX_OBJPRIME):							$(__XX_SRC)/%.c
-														@echo "  [CC] $<"
+														@echo [CC] $(notdir $<)
 														@$(__INT_CC) -c $< -o $@ $(__XX_CFLAGS)
 
+# Source files in interfaces
 $(__XX_OBJ)/%.$(__XX_OBJPRIME):							$(__XX_SRC)/$(__XX_IFACEDIR)/%.c
-														@echo "  [CC] $<"
+														@echo [CC] $(notdir $<)
 														@$(__INT_CC) -c $< -o $@ $(__XX_CFLAGS)
+
+# Clean object files built
+__%.$(__XX_OBJPRIME):									
+														@$(if $(wildcard $(__XX_OBJ)/$(subst __,,$@)),echo [RM] $(subst __,,$(basename $@)).o,)
+														@$(if $(wildcard $(__XX_OBJ)/$(subst __,,$@)),$(call __XX_RUNCOMMAND,$(__XX_DELETE) $(call __XX_DOSPATH,$(__XX_OBJ)/$(subst __,,$@))) > $(__XX_DEVNULL),)
 

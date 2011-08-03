@@ -38,6 +38,10 @@
 
 #include <stddef.h>
 
+#if defined(__unix__)
+	#include <unistd.h>
+#endif
+
 /***********************
 *** FIXED SIZE TYPES ***
 ***********************/
