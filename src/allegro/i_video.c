@@ -37,6 +37,37 @@
 #include "i_video.h"
 #include "i_util.h"
 
+/****************
+*** CONSTANTS ***
+****************/
+
+/* c_AllegroCards -- Cards used by allegro */
+static const uint32_t c_AllegroCards[] =
+{
+	// DOS
+#if defined(__MSDOS__)
+	GFX_VGA, GFX_MODEX, GFX_VESA1, GFX_VESA2L, GFX_VESA3, GFX_VBEAF, GFX_XTENDED, 0
+
+	// Windows
+#elif defined(_WIN32)
+	GFX_DIRECTX, GFX_DIRECTX_OVL, GFX_GDI, 0,
+	
+	// Linux
+#elif defined(__linux__)
+	GFX_FBCON, GFX_VBEAF, GFX_SVGALIB, GFX_VGA, GFX_MODEX, 0
+
+	// Unknown
+#else
+	0
+	
+	//
+#endif
+};
+
+/****************
+*** FUNCTIONS ***
+****************/
+
 void I_GetEvent(void)
 {
 }
@@ -137,8 +168,35 @@ void I_SetPalette(RGBA_t* palette)
 }
 
 /* VID_PrepareModeList() -- Adds video modes to the mode list */
+// Allegro does not allow "magic" drivers to be passed in the mode list getting
+// function. Therefor I decided to use a loop of sorts with available drivers
+// for everything. This is because I tell it to autodetect anyway, so it could
+// choose any of the specified drivers anyway. Also, VID_AddMode() will not
+// add a duplicate mode anyway.
 void VID_PrepareModeList(void)
 {
+	size_t i, j;
+	GFX_MODE_LIST* Modes;
+	
+	/* Go through cards */
+	for (i = 0; c_AllegroCards[i]; i++)
+	{
+		// Get modes for this card
+		Modes = get_gfx_mode_list(c_AllegroCards[i]);
+		
+		// Check
+		if (!Modes)
+			continue;
+			
+		// Go through each mode
+		for (j = 0; j < Modes->num_modes; j++)
+			// Only allow 8-bit modes
+			if (Modes->mode[j].bpp == 8)
+				VID_AddMode(Modes->mode[j].width, Modes->mode[j].height, true);
+		
+		// Clear modes
+		destroy_gfx_mode_list(Modes);
+	}
 }
 
 /* I_SetVideoMode() -- Sets the current video mode */
@@ -180,6 +238,9 @@ void I_StartupGraphics(void)
 	/* Pre-initialize video */
 	if (!I_VideoPreInit())
 		return;
+	
+	/* Set allegro stuff */
+	set_display_switch_mode(SWITCH_BACKGROUND);
 	
 	/* Initialize before mode set */
 	if (!I_VideoBefore320200Init())

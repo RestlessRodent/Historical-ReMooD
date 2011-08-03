@@ -58,18 +58,37 @@ consvar_t cv_snd_device = {"snd_device", "auto", CV_SAVE};
 consvar_t cd_volume = { "cd_volume", "31", CV_SAVE};
 consvar_t cdUpdate = { "cd_update", "1", CV_SAVE };
 
+/*****************
+*** STRUCTURES ***
+*****************/
+
+/* I_VideoMode_t -- A video mode */
+typedef struct I_VideoMode_s
+{
+	uint16_t Width;								// Screen Width
+	uint16_t Height;							// Screen height
+} I_VideoMode_t;
+
 /*************
 *** LOCALS ***
 *************/
+
+static I_VideoMode_t* l_Modes = NULL;			// Video Modes
+static size_t l_NumModes = 0;					// Number of video modes
 
 /****************
 *** FUNCTIONS ***
 ****************/
 
+/* I_EventToOldDoom() -- Converts an extended event to the old format */
+void I_EventToOldDoom(const I_EventEx_t* const a_Event)
+{
+}
+
 /* VID_NumModes() -- Returns the number of video modes */
 int VID_NumModes(void)
 {
-   return 0;
+   return l_NumModes;
 }
 
 /* VID_GetModeName() -- Gets the name of the video modes */
@@ -79,9 +98,36 @@ char* __REMOOD_DEPRECATED VID_GetModeName(int a_ModeNum)
 }
 
 /* VID_ClosestMode() -- Returns the closest mode against width and height */
+// Ignore fullscreen for now
 int VID_ClosestMode(int* const a_WidthP, int* const a_HeightP, const boolean a_Fullscreen)
 {
-	return 0;
+	size_t i, BestMode;
+	
+	/* Check */
+	if (!a_WidthP || !a_HeightP)
+		return 0;
+	
+	/* Go through list */
+	for (BestMode = 0, i = 0; i < l_NumModes; i++)
+		// Width matches
+		if (l_Modes[i].Width == *a_WidthP)
+		{
+			// Height matches
+			if (l_Modes[i].Height == *a_HeightP)
+			{
+				BestMode = i;
+				break;	// it is here!
+			}
+			
+			// Otherwise, set the best mode as long as height diff is lower
+			else if (abs((int32_t)l_Modes[i].Height - (int32_t)*a_HeightP) < abs((int32_t)l_Modes[BestMode].Height - (int32_t)*a_HeightP))
+				BestMode = i;
+		}
+	
+	/* Return mode */
+	*a_WidthP = l_Modes[BestMode].Width;
+	*a_HeightP = l_Modes[BestMode].Height;
+	return BestMode;
 }
 
 /* VID_GetModeForSize() -- Gets the closest mode for a widthxheight */
@@ -98,14 +144,43 @@ int __REMOOD_DEPRECATED VID_GetModeForSize(int a_Width, int a_Height)
 }
 
 /* VID_AddMode() -- Add video mode to the list, either being fullscreen or not */
+// Ignore fullscreen for now
 boolean VID_AddMode(const int a_Width, const int a_Height, const boolean a_Fullscreen)
 {
+	size_t i;
+	
+	/* Check */
+	if (!a_Width || !a_Height)
+		return false;
+	
+	/* Was this mode already set? */
+	for (i = 0; i < l_NumModes; i++)
+		if (l_Modes[i].Width == a_Width && l_Modes[i].Height == a_Height)
+			return true;
+	
+	/* Resize mode list and set*/
+	l_Modes = I_SysRealloc(l_Modes, sizeof(*l_Modes) * (l_NumModes + 1));
+	
+	// Set
+	l_Modes[l_NumModes].Width = a_Width;
+	l_Modes[l_NumModes++].Height = a_Height;
+	
+	/* Success! */
+	return true;
 }
 
 /* VID_SetMode() -- Sets the specified video mode */
+// Funny thing is, despite returning an int, Legacy never checked if it worked!
 int VID_SetMode(int a_ModeNum)
 {
-	return 1;
+	/* Check */
+	if (a_ModeNum < 0 || a_ModeNum >= l_NumModes)
+		return 0;	// Failure despite not being checked!
+	
+	/* Try to set the mode */
+	if (!I_SetVideoMode(l_Modes[a_ModeNum].Width, l_Modes[a_ModeNum].Height, cv_fullscreen.value))
+		return false;
+	return true;
 }
 
 /* I_UtilWinArgToUNIXArg() -- Converts Windows-style command line to a UNIX one */
@@ -154,9 +229,11 @@ void I_VideoSetBuffer(const uint32_t a_Width, const uint32_t a_Height, const uin
 	/* Set direct video buffer */
 	vid.rowbytes = a_Pitch;	// Set rowbytes to pitch
 	vid.direct = a_Direct;	// Set direct, if it is passed (if not, direct access not supported)
+	vid.width = a_Width;
+	vid.height = a_Height;
 	
 	/* Allocate buffer for mode */
-	vid.buffer = I_SysAlloc(a_Width * a_Height);
+	vid.buffer = I_SysAlloc(a_Width * a_Height * NUMSCREENS);
 	
 	// Oops!
 	if (!vid.buffer)
@@ -172,6 +249,8 @@ void I_VideoUnsetBuffer(void)
 	/* Clear direct */
 	vid.rowbytes = 0;
 	vid.direct = NULL;
+	vid.width = 0;
+	vid.height = 0;
 	
 	/* Free */
 	if (vid.buffer)

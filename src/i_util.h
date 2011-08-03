@@ -33,8 +33,40 @@
 #include "doomtype.h"
 
 /****************
+*** CONSTANTS ***
+****************/
+
+typedef enum I_EventType_e
+{
+	IET_NULL,									// Blank event
+	IET_KEYBOARD,								// Keyboard event
+	
+	NUMIEVENTTYPES
+} I_EventType_t;
+
+/*****************
+*** STRUCTURES ***
+*****************/
+
+/* I_EventEx_t -- Extended event */
+typedef struct I_EventEx_s
+{
+	I_EventType_t Type;							// Type of event
+	
+	union
+	{
+		struct
+		{
+			boolean Down;						// Key pressed down
+		} Keyboard;								// Keyboard event
+	} Data;										// Event data
+} I_EventEx_t;
+
+/****************
 *** FUNCTIONS ***
 ****************/
+
+void I_EventToOldDoom(const I_EventEx_t* const a_Event);
 
 int VID_NumModes(void);
 char* __REMOOD_DEPRECATED VID_GetModeName(int a_ModeNum);
