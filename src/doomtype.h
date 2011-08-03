@@ -391,24 +391,6 @@ typedef int32_t boolean;
 #endif
 #endif
 
-// GhostlyDeath <April 23, 2009> -- Inline, Static and Const Messes
-#if defined(_MSC_VER)
-	#define INLINE __forceinline
-	#define EXTERNINLINE
-	#define STATIC static
-	#define CONST const
-#elif defined(__GNUC__) || defined(_GNUC_)
-	#define INLINE inline
-	#define EXTERNINLINE INLINE
-	#define STATIC static
-	#define CONST const
-#else
-	#define INLINE
-	#define EXTERNINLINE
-	#define STATIC
-	#define CONST
-#endif
-
 #ifndef FALSE
 #define FALSE 0
 #endif

@@ -38,8 +38,8 @@
 void P_SaveGame(void);
 boolean P_LoadGame(void);
 
-boolean P_LoadGameEx(CONST char* FileName, char* ExtFileName, size_t ExtFileNameLen, size_t* SaveLen, byte** Origin);
-boolean P_SaveGameEx(CONST char* Desc, char* ExtFileName, size_t ExtFileNameLen, size_t* SaveLen, byte** Origin);
+boolean P_LoadGameEx(const char* FileName, char* ExtFileName, size_t ExtFileNameLen, size_t* SaveLen, byte** Origin);
+boolean P_SaveGameEx(const char* Desc, char* ExtFileName, size_t ExtFileNameLen, size_t* SaveLen, byte** Origin);
 
 extern byte *save_p;
 

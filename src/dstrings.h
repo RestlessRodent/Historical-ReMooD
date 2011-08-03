@@ -333,7 +333,7 @@ typedef enum
 
 typedef struct StringGroupEX_s
 {
-	CONST char* CONST id;
+	const char* const id;
 	char* wcharstr;
 } StringGroupEX_t;
 

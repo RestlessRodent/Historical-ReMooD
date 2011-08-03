@@ -84,7 +84,7 @@ boolean P_CheckSizeEx(size_t Need)
 }
 
 /* P_SaveGameEx() -- Extended savegame */
-boolean P_SaveGameEx(CONST char* SaveName, char* ExtFileName, size_t ExtFileNameLen, size_t* SaveLen, byte** Origin)
+boolean P_SaveGameEx(const char* SaveName, char* ExtFileName, size_t ExtFileNameLen, size_t* SaveLen, byte** Origin)
 {
 	size_t i;
 	time_t Date = time(NULL);
@@ -186,7 +186,7 @@ boolean P_SaveGameEx(CONST char* SaveName, char* ExtFileName, size_t ExtFileName
 }
 
 /* P_LoadGameEx() -- Load an extended save game */
-boolean P_LoadGameEx(CONST char* FileName, char* ExtFileName, size_t ExtFileNameLen, size_t* SaveLen, byte** Origin)
+boolean P_LoadGameEx(const char* FileName, char* ExtFileName, size_t ExtFileNameLen, size_t* SaveLen, byte** Origin)
 {
 	return false;
 }
