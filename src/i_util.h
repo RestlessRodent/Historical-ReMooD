@@ -47,6 +47,24 @@ typedef enum I_KeyBoardKey_e
 	IKBK_DOWN,
 	IKBK_LEFT,
 	IKBK_RIGHT,
+	IKBK_CTRL,
+	IKBK_SHIFT,
+	IKBK_ALT,
+	IKBK_SPACE,
+	
+	// Function keys
+	IKBK_F1,
+	IKBK_F2,
+	IKBK_F3,
+	IKBK_F4,
+	IKBK_F5,
+	IKBK_F6,
+	IKBK_F7,
+	IKBK_F8,
+	IKBK_F9,
+	IKBK_F10,
+	IKBK_F11,
+	IKBK_F12,
 	
 	// Letters
 	IKBK_A = 'A',

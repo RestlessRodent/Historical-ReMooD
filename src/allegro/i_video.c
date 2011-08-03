@@ -98,16 +98,16 @@ const uint8_t c_AllegroToReMooDKey[KEY_MAX] =				// Converts an Allegro key to a
 	IKBK_X,	//	KEY_X	
 	IKBK_Y,	//	KEY_Y	
 	IKBK_Z,	//	KEY_Z	
-	IKBK_NULL,	//	KEY_0	
-	IKBK_NULL,	//	KEY_1	
-	IKBK_NULL,	//	KEY_2	
-	IKBK_NULL,	//	KEY_3	
-	IKBK_NULL,	//	KEY_4	
-	IKBK_NULL,	//	KEY_5	
-	IKBK_NULL,	//	KEY_6	
-	IKBK_NULL,	//	KEY_7	
-	IKBK_NULL,	//	KEY_8	
-	IKBK_NULL,	//	KEY_9	
+	IKBK_0,	//	KEY_0	
+	IKBK_1,	//	KEY_1	
+	IKBK_2,	//	KEY_2	
+	IKBK_3,	//	KEY_3	
+	IKBK_4,	//	KEY_4	
+	IKBK_5,	//	KEY_5	
+	IKBK_6,	//	KEY_6	
+	IKBK_7,	//	KEY_7	
+	IKBK_8,	//	KEY_8	
+	IKBK_9,	//	KEY_9	
 	IKBK_NULL,	//	KEY_0_PAD	
 	IKBK_NULL,	//	KEY_1_PAD	
 	IKBK_NULL,	//	KEY_2_PAD	
@@ -118,18 +118,18 @@ const uint8_t c_AllegroToReMooDKey[KEY_MAX] =				// Converts an Allegro key to a
 	IKBK_NULL,	//	KEY_7_PAD	
 	IKBK_NULL,	//	KEY_8_PAD	
 	IKBK_NULL,	//	KEY_9_PAD	
-	IKBK_NULL,	//	KEY_F1	
-	IKBK_NULL,	//	KEY_F2	
-	IKBK_NULL,	//	KEY_F3	
-	IKBK_NULL,	//	KEY_F4	
-	IKBK_NULL,	//	KEY_F5	
-	IKBK_NULL,	//	KEY_F6	
-	IKBK_NULL,	//	KEY_F7	
-	IKBK_NULL,	//	KEY_F8	
-	IKBK_NULL,	//	KEY_F9	
-	IKBK_NULL,	//	KEY_F10	
-	IKBK_NULL,	//	KEY_F11	
-	IKBK_NULL,	//	KEY_F12	
+	IKBK_F1,	//	KEY_F1	
+	IKBK_F2,	//	KEY_F2	
+	IKBK_F3,	//	KEY_F3	
+	IKBK_F4,	//	KEY_F4	
+	IKBK_F5,	//	KEY_F5	
+	IKBK_F6,	//	KEY_F6	
+	IKBK_F7,	//	KEY_F7	
+	IKBK_F8,	//	KEY_F8	
+	IKBK_F9,	//	KEY_F9	
+	IKBK_F10,	//	KEY_F10	
+	IKBK_F11,	//	KEY_F11	
+	IKBK_F12,	//	KEY_F12	
 	IKBK_ESCAPE,	//	KEY_ESC	
 	IKBK_NULL,	//	KEY_TILDE	
 	IKBK_NULL,	//	KEY_MINUS	
@@ -146,7 +146,7 @@ const uint8_t c_AllegroToReMooDKey[KEY_MAX] =				// Converts an Allegro key to a
 	IKBK_NULL,	//	KEY_COMMA	
 	IKBK_NULL,	//	KEY_STOP	
 	IKBK_NULL,	//	KEY_SLASH	
-	IKBK_NULL,	//	KEY_SPACE	
+	IKBK_SPACE,	//	KEY_SPACE	
 	IKBK_NULL,	//	KEY_INSERT	
 	IKBK_NULL,	//	KEY_DEL	
 	IKBK_NULL,	//	KEY_HOME	
@@ -186,12 +186,12 @@ const uint8_t c_AllegroToReMooDKey[KEY_MAX] =				// Converts an Allegro key to a
 	IKBK_NULL,	//	KEY_UNKNOWN6	
 	IKBK_NULL,	//	KEY_UNKNOWN7	
 	IKBK_NULL,	//	KEY_UNKNOWN8	
-	IKBK_NULL,	//	KEY_LSHIFT	
-	IKBK_NULL,	//	KEY_RSHIFT	
-	IKBK_NULL,	//	KEY_LCONTROL	
-	IKBK_NULL,	//	KEY_RCONTROL	
-	IKBK_NULL,	//	KEY_ALT	
-	IKBK_NULL,	//	KEY_ALTGR	
+	IKBK_SHIFT,	//	KEY_LSHIFT	
+	IKBK_SHIFT,	//	KEY_RSHIFT	
+	IKBK_CTRL,	//	KEY_LCONTROL	
+	IKBK_CTRL,	//	KEY_RCONTROL	
+	IKBK_ALT,	//	KEY_ALT	
+	IKBK_ALT,	//	KEY_ALTGR	
 	IKBK_NULL,	//	KEY_LWIN	
 	IKBK_NULL,	//	KEY_RWIN	
 	IKBK_NULL,	//	KEY_MENU	
@@ -233,20 +233,43 @@ void I_GetEvent(void)
 	{
 		// Get key
 		Key = readkey();
+		i = (Key & 0x7F00) >> 8;
 		
 		// If the key is already pressed, set it as repeated
-		Repeat = !!Shifties[(Key & 0xFF00) >> 8];
+		Repeat = !!Shifties[i];
 		
-		// Set to 1 in Shifites (always presses here)
-		Shifties[(Key & 0xFF00) >> 8] = 1;
+		// Set to 1 in Shifties (always presses here)
+		Shifties[i] = 1;
 		
 		// Create event
 		memset(&ExEvent, 0, sizeof(&ExEvent));
 		ExEvent.Type = IET_KEYBOARD;
 		ExEvent.Data.Keyboard.Down = 1;
 		ExEvent.Data.Keyboard.Repeat = Repeat;
-		ExEvent.Data.Keyboard.KeyCode = IS_ConvertKey((Key & 0xFF00) >> 8);
+		ExEvent.Data.Keyboard.KeyCode = IS_ConvertKey(i);
 		ExEvent.Data.Keyboard.Character = Key & 0x7F;	// Char is easy
+		
+		// Send away
+		I_EventExPush(&ExEvent);
+	}
+	
+	// Determine shift states
+	for (i = KEY_MODIFIERS; i < KEY_MAX; i++)
+	{
+		// Only check if a key is pressed
+		if (!(!Shifties[i] && key[i]))
+			continue;
+		
+		// Mark it as up
+		Shifties[i] = 1;
+		
+		// Create event
+		memset(&ExEvent, 0, sizeof(&ExEvent));
+		ExEvent.Type = IET_KEYBOARD;
+		ExEvent.Data.Keyboard.Down = 1;
+		ExEvent.Data.Keyboard.Repeat = 0;
+		ExEvent.Data.Keyboard.KeyCode = IS_ConvertKey(i);
+		ExEvent.Data.Keyboard.Character = 0;
 		
 		// Send away
 		I_EventExPush(&ExEvent);
@@ -329,10 +352,6 @@ void I_FinishUpdate(void)
 	// Screen selection no longer needed
 	bmp_unwrite_line(screen);
 	release_screen();
-}
-
-void I_ReadScreen(byte* scr)
-{
 }
 
 /* I_SetPalette() -- Sets the current palette */

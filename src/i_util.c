@@ -99,7 +99,7 @@ void I_EventExPush(const I_EventEx_t* const a_Event)
 {
 	/* Check */
 	if (!a_Event)
-		return 0;
+		return;
 	
 	/* Write at current write pos */
 	l_EventQ[l_EQWrite++] = *a_Event;
@@ -171,11 +171,24 @@ static int IS_NewKeyToOldKey(const uint8_t a_New)
 		case IKBK_DOWN:		return KEY_DOWNARROW;
 		case IKBK_LEFT:		return KEY_LEFTARROW;
 		case IKBK_RIGHT:	return KEY_RIGHTARROW;
+		case IKBK_SHIFT:	return KEY_SHIFT;
+		case IKBK_CTRL:		return KEY_CTRL;
+		case IKBK_ALT:		return KEY_ALT;
+		case IKBK_SPACE:	return KEY_SPACE;
 		
 			// Ranges
 		default:
+			// Letters
 			if (a_New >= IKBK_A && a_New <= IKBK_Z)
 				return 'a' + (a_New - IKBK_A);
+			
+			// Numbers
+			else if (a_New >= IKBK_0 && a_New <= IKBK_9)
+				return '0' + (a_New - IKBK_0);
+			
+			// Function keys
+			else if (a_New >= IKBK_F1 && a_New <= IKBK_F12)
+				return KEY_F1 + (a_New - IKBK_F1);
 			break;
 	}
 	
@@ -417,5 +430,17 @@ uint8_t* I_VideoSoftBuffer(uint32_t* const a_WidthP, uint32_t* const a_HeightP)
 	
 	/* Return soft buffer */
 	return vid.buffer;
+}
+
+/* I_ReadScreen() -- Reads the screen into pointer */
+// This is enough to make the code work as it shoulde
+void I_ReadScreen(byte* scr)
+{
+	/* Check */
+	if (!scr)
+		return;
+	
+	/* Blind copy */
+	memcpy(scr, vid.buffer, vid.width * vid.height * vid.bpp);
 }
 
