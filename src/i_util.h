@@ -44,6 +44,12 @@ boolean VID_AddMode(const int a_Width, const int a_Height, const boolean a_Fulls
 int VID_SetMode(int a_ModeNum);
 
 boolean I_UtilWinArgToUNIXArg(int* const a_argc, char*** const a_argv, const char* const a_Win);
+boolean I_VideoPreInit(void);
+boolean I_VideoBefore320200Init(void);
+boolean I_VideoPostInit(void);
+void I_VideoSetBuffer(const uint32_t a_Width, const uint32_t a_Height, const uint32_t a_Pitch, uint8_t* const a_Direct);
+void I_VideoUnsetBuffer(void);
+uint8_t* I_VideoSoftBuffer(uint32_t* const a_WidthP, uint32_t* const a_HeightP);
 
 #endif /* __I_UTIL_H__ */
 

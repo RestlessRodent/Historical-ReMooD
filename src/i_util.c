@@ -30,6 +30,7 @@
 #include "i_util.h"
 #include "i_joy.h"
 #include "command.h"
+#include "screen.h"
 
 /**************
 *** GLOBALS ***
@@ -115,5 +116,79 @@ boolean I_UtilWinArgToUNIXArg(int* const a_argc, char*** const a_argv, const cha
 		return false;
 	
 	return true;
+}
+
+/* I_VideoPreInit() -- Common nitialization before everything */
+boolean I_VideoPreInit(void)
+{
+	/* If graphics are already started, do not start again */
+	if (graphics_started)
+		return false;
+	
+	/* Reset vid structure fields */
+	vid.bpp = 1;
+	vid.width = BASEVIDWIDTH;
+	vid.height = BASEVIDHEIGHT;
+	vid.rowbytes = vid.width * vid.bpp;
+	vid.recalc = true;
+	return true;
+}
+
+/* I_VideoBefore320200Init() -- Initialization before initial 320x200 set */
+boolean I_VideoBefore320200Init(void)
+{
+	return true;
+}
+
+/* I_VideoPostInit() -- Initialization before end of function */
+boolean I_VideoPostInit(void)
+{
+	graphics_started = 1;
+	return true;
+}
+
+/* I_VideoSetBuffer() -- Sets the video buffer */
+// This is here so I do not constantly repeat code in I_SetVideoMode()
+void I_VideoSetBuffer(const uint32_t a_Width, const uint32_t a_Height, const uint32_t a_Pitch, uint8_t* const a_Direct)
+{
+	/* Set direct video buffer */
+	vid.rowbytes = a_Pitch;	// Set rowbytes to pitch
+	vid.direct = a_Direct;	// Set direct, if it is passed (if not, direct access not supported)
+	
+	/* Allocate buffer for mode */
+	vid.buffer = I_SysAlloc(a_Width * a_Height);
+	
+	// Oops!
+	if (!vid.buffer)
+		return;
+	
+	// Clear buffer
+	memset(vid.buffer, 0, a_Width * a_Height);
+}
+
+/* I_VideoUnsetBuffer() -- Unsets the video buffer */
+void I_VideoUnsetBuffer(void)
+{
+	/* Clear direct */
+	vid.rowbytes = 0;
+	vid.direct = NULL;
+	
+	/* Free */
+	if (vid.buffer)
+		I_SysFree(vid.buffer);
+	vid.buffer = NULL;
+}
+
+/* I_VideoSoftBuffer() -- Returns the soft buffer */
+uint8_t* I_VideoSoftBuffer(uint32_t* const a_WidthP, uint32_t* const a_HeightP)
+{
+	/* Set sizes */
+	if (a_WidthP)
+		*a_WidthP = vid.width;
+	if (a_HeightP)
+		*a_HeightP = vid.height;
+	
+	/* Return soft buffer */
+	return vid.buffer;
 }
 
