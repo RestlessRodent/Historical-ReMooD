@@ -372,6 +372,8 @@ void D_RegisterClientCommands(void)
 	CV_RegisterVar(&cv_mousemove);
 	CV_RegisterVar(&cv_showmessages);
 	CV_RegisterVar(&cv_disabledemos);
+	CV_RegisterVar(&cv_blinkingrate);
+	CV_RegisterVar(&cv_cons_blinkingrate);
 
 	//g_input.c
 	CV_RegisterVar(&cv_usemouse2);
@@ -768,7 +770,7 @@ void Command_Map_f(void)
 	localgame = true;
 	G_StopDemo();
 	
-	//M_UnLockGameCVARS();
+	M_UnLockGameCVARS();
 	DC_SetMenuGameOptions(0);
 
 	gamestate = wipegamestate = GS_NULL;

@@ -69,7 +69,6 @@ void DC_RegisterDemoCompVars(void)
 
 void DC_SetMenuGameOptions(int SetDemo)
 {
-#if 0
 	int i, j;
 	
 	if (SetDemo > 1)
@@ -82,7 +81,6 @@ void DC_SetMenuGameOptions(int SetDemo)
 			for (j = 0; j < sizeof(DemoPair) / sizeof(consvar_t***); j++)
 				if (GameOptionsDef.menuitems[i].itemaction == (void*)DemoPair[j][-(SetDemo - 1)])
 					GameOptionsDef.menuitems[i].itemaction = (void*)DemoPair[j][SetDemo];
-#endif
 }
 
 void DC_SetDemoOptions(int VerToSet)

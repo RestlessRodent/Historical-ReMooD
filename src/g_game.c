@@ -1776,7 +1776,7 @@ void G_DeferedInitNew(skill_t skill, char *mapname, int StartSplitScreenGame)
 		players[i].profile = NULL;
 	
 	// Enable End Game option
-	//MainDef.menuitems[1].status &= ~IT_DISABLED2;
+	MainDef.menuitems[1].status &= ~IT_DISABLED2;
 	
 	CV_Set(&cv_splitscreen, va("%d", StartSplitScreenGame));
 

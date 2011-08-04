@@ -781,7 +781,7 @@ void D_StartTitle(void)
 	for (i = 0; i < MAXPLAYERS; i++)
 		players[i].profile = NULL;
 	
-	//MainDef.menuitems[1].status |= IT_DISABLED2;
+	MainDef.menuitems[1].status |= IT_DISABLED2;
 	
 	gameaction = ga_nothing;
 	playerdeadview = false;

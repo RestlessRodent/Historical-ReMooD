@@ -45,6 +45,8 @@ CV_PossibleValue_t onecontrolperkey_cons_t[] = { {1, "One"}
 , {0, NULL}
 };
 
+void M_MouseModeChange(void);
+
 // mouse values are used once
 consvar_t cv_mousesens = { "mousesens", "10", CV_ALIAS | CV_DEPRECATED, mousesens_cons_t, NULL, "m_xsensitivity" };
 consvar_t cv_mousesensy = { "mousesensy", "10", CV_ALIAS | CV_DEPRECATED, mousesens_cons_t, NULL, "m_ysensitivity" };
@@ -55,7 +57,7 @@ consvar_t cv_legacymouse = { "legacymouse", "1", CV_ALIAS | CV_DEPRECATED, CV_Ye
 
 consvar_t cv_m_xsensitivity = { "m_xsensitivity", "10", CV_SAVE, mousesens_cons_t };
 consvar_t cv_m_ysensitivity = { "m_ysensitivity", "10", CV_SAVE, mousesens_cons_t };
-consvar_t cv_m_legacymouse = { "m_legacymouse", "1", CV_SAVE, CV_YesNo, NULL};
+consvar_t cv_m_legacymouse = { "m_legacymouse", "1", CV_SAVE | CV_CALL, CV_YesNo, M_MouseModeChange };
 
 // GhostlyDeath <December 11, 2008> -- Fun Stuff :)
 CV_PossibleValue_t mouseaxismode_cons_t[] =
