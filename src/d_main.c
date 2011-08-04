@@ -1353,6 +1353,9 @@ void D_DoomMain(void)
 	PROF_Init();
 	CV_RegisterVar(&cv_screenslink);
 
+	CONS_Printf(text[M_INIT_NUM]);
+	M_Init();
+
 	//Fab:29-04-98: do some dirty chatmacros strings initialisation
 	HU_HackChatmacros();
 	//--------------------------------------------------------- CONFIG.CFG
