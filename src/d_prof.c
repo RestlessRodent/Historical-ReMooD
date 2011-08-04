@@ -451,18 +451,22 @@ void M_DrawProfileMenu(void)
 		PROF_GetNumber(((consvar_t*)(currentMenu->menuitems[1].itemaction))->value)->cvars[PC_SKIN].string)
 		].spritedef;
 	sprframe = &sprdef->spriteframes[((gametic % 16) >> 2) & FF_FRAMEMASK];
-	lump = sprframe->lumppat[0];
-	patch = W_CachePatchNum(lump, PU_CACHE);
 	
-	if (((consvar_t*)(currentMenu->menuitems[4].itemaction))->value == 0)
-		colormap = colormaps;
-	else
-		colormap = (byte *) translationtables - 256 + (((consvar_t*)(currentMenu->menuitems[4].itemaction))->value << 8);
+	if (sprframe)
+	{
+		lump = sprframe->lumppat[0];
+		patch = W_CachePatchNum(lump, PU_CACHE);
+	
+		if (((consvar_t*)(currentMenu->menuitems[4].itemaction))->value == 0)
+			colormap = colormaps;
+		else
+			colormap = (byte *) translationtables - 256 + (((consvar_t*)(currentMenu->menuitems[4].itemaction))->value << 8);
 
-	V_DrawMappedPatch(
-		((currentMenu->x + currentMenu->width) - patch->width) + patch->leftoffset,
-		((currentMenu->y + currentMenu->height) - patch->height) + patch->topoffset,
-		0, patch, colormap);
+		V_DrawMappedPatch(
+			((currentMenu->x + currentMenu->width) - patch->width) + patch->leftoffset,
+			((currentMenu->y + currentMenu->height) - patch->height) + patch->topoffset,
+			0, patch, colormap);
+	}
 		
 	M_DrawGenericMenu();
 	

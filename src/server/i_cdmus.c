@@ -30,10 +30,8 @@
 #include "command.h"
 #include "m_argv.h"
 
-#ifdef GAMECLIENT
 consvar_t cd_volume = { "cd_volume", "31", CV_SAVE};
 consvar_t cdUpdate = { "cd_update", "1", CV_SAVE };
-#endif
 
 void I_StopCD(void)
 {

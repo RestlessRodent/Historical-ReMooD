@@ -30,10 +30,6 @@
 
 #include "d_event.h"
 
-#ifdef GAMESERVER
-	/*** SERVER DOES NOT USE THE AUTOMAP ***/
-#else
-
 typedef struct
 {
 	int x, y;
@@ -68,6 +64,5 @@ void AM_Drawer(void);
 // if the level is completed while it is up.
 void AM_Stop(void);
 
-#endif
 #endif
 

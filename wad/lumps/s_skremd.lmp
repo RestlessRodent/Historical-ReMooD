@@ -1,0 +1,5 @@
+// Default marine skin in ReMooD (nothing special)
+name = marine
+sprite = PLAY
+face = STF
+

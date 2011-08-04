@@ -139,5 +139,8 @@ void R_ClearColormaps();
 int R_ColormapNumForName(char *name);
 int R_CreateColormap(char *p1, char *p2, char *p3);
 char *R_ColormapNameForNum(int num);
+
+void R_SetSpriteLumpCount(const size_t a_Count);
+
 #endif
 

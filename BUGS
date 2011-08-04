@@ -1,0 +1,4 @@
+Problems with ReMooD that are critical:
+
+ * In R_InitColormaps(), colormaps should be 256 * NUMCOLORMAPS, this is completely ignored and the COLORMAP lump is loaded in an array of size lump. Although there is no corruption, if the COLORMAP is too small then array accesses will run off the array and cause strange colors.
+

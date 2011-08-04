@@ -36,6 +36,7 @@
 #include "w_wad.h"
 #include "z_zone.h"
 #include "m_argv.h"
+#include "r_data.h"
 
 #include "i_video.h"
 
@@ -100,7 +101,9 @@ short* screenheightarray = NULL;
 spritedef_t *sprites;
 int numsprites;
 
-spriteframe_t sprtemp[29];
+#define MAXSPRITEFRAMES 29
+
+spriteframe_t sprtemp[MAXSPRITEFRAMES];
 int maxframe;
 char *spritename;
 
@@ -119,7 +122,7 @@ void R_InstallSpriteLump(int lumppat,	// graphics patch
 {
 	int r;
 
-	if (frame >= 29 || rotation > 8)
+	if (frame >= MAXSPRITEFRAMES || rotation > 8)
 	{
 		CONS_Printf("R_InstallSpriteLump: Bad frame characters in lump %i\n", lumpid);
 		return;
@@ -200,7 +203,7 @@ boolean R_AddSingleSpriteDef(char *sprname, spritedef_t * spritedef, int wadnum,
 	wad = W_GetWadForNum(wadnum);
 
 	intname = *(int *)sprname;
-
+	
 	memset(sprtemp, -1, sizeof(sprtemp));
 	maxframe = -1;
 
@@ -228,6 +231,9 @@ boolean R_AddSingleSpriteDef(char *sprname, spritedef_t * spritedef, int wadnum,
 			// skip NULL sprites from very old dmadds pwads
 			if (W_LumpLength(W_LumpsSoFar(wad) + l) <= 8)
 				continue;
+			
+			// GhostlyDeath <July 24, 2011> -- Add more sprite room
+			R_SetSpriteLumpCount(numspritelumps + 1);
 
 			// store sprite info in lookup tables
 			//FIXME:numspritelumps do not duplicate sprite replacements
@@ -247,12 +253,11 @@ boolean R_AddSingleSpriteDef(char *sprname, spritedef_t * spritedef, int wadnum,
 				rotation = wad->Index[l].Name[7] - '0';
 				R_InstallSpriteLump(W_LumpsSoFar(wad) + l, numspritelumps, frame, rotation, true);
 			}
-
-			if (++numspritelumps >= MAXSPRITELUMPS)
-				I_Error("R_AddSingleSpriteDef: too much sprite replacements (numspritelumps)\n");
+			
+			numspritelumps++;
 		}
 	}
-
+	
 	//
 	// if no frames found for this sprite
 	//
@@ -306,7 +311,7 @@ boolean R_AddSingleSpriteDef(char *sprname, spritedef_t * spritedef, int wadnum,
 				break;
 		}
 	}
-
+	
 	// allocate space for the frames present and copy sprtemp to it
 	if (spritedef->numframes &&	// has been allocated
 		spritedef->numframes < maxframe)	// more frames are defined ?
@@ -318,7 +323,7 @@ boolean R_AddSingleSpriteDef(char *sprname, spritedef_t * spritedef, int wadnum,
 	// allocate this sprite's frames
 	if (spritedef->spriteframes == NULL)
 		spritedef->spriteframes = Z_Malloc(maxframe * sizeof(spriteframe_t), PU_STATIC, NULL);
-
+	
 	spritedef->numframes = maxframe;
 	memcpy(spritedef->spriteframes, sprtemp, maxframe * sizeof(spriteframe_t));
 
@@ -400,8 +405,7 @@ void R_InitSprites(char **namelist)
 	if (!numsprites)
 		I_Error("R_AddSpriteDefs: no sprites in namelist\n");
 
-	sprites = Z_Malloc(numsprites * sizeof(spritedef_t), PU_STATIC, NULL);
-	memset(sprites, 0, numsprites * sizeof(spritedef_t));
+	sprites = Z_Malloc(numsprites * sizeof(*sprites), PU_STATIC, NULL);
 
 	// find sprites in each -file added pwad
 	for (i = 0; i < W_NumWadFiles(); i++)
@@ -765,7 +769,7 @@ static void R_ProjectSprite(mobj_t * thing)
 
 	//Fab:02-08-98: 'skin' override spritedef currently used for skin
 	if (thing->skin)
-		sprdef = &((skin_t *) thing->skin)->spritedef;
+		sprdef = &(skins[thing->skin]).spritedef;
 	else
 		sprdef = &sprites[thing->sprite];
 
@@ -1786,7 +1790,7 @@ void R_DrawMasked(void)
 // ==========================================================================
 
 int numskins = 0;
-skin_t skins[MAXSKINS + 1];
+skin_t* skins;
 // don't work because it must be inistilised before the config load
 //#define SKINVALUES
 #ifdef SKINVALUES
@@ -1829,13 +1833,13 @@ void R_InitSkins(void)
 	S_InitRuntimeSounds();
 
 	// skin[0] = marine skin
-	Sk_SetDefaultValue(&skins[0]);
+	//Sk_SetDefaultValue(&skins[0]);	// GhostlyDeath <July 24, 2011> -- now in S_SKREMD
 #ifdef SKINVALUES
 	skin_cons_t[0].strvalue = skins[0].name;
 #endif
 
 	// make the standard Doom2 marine as the default skin
-	numskins = 1;
+	numskins = 0;		// GhostlyDeath <July 24, 2011> -- now in S_SKREMD so it is loaded when it comes around
 }
 
 // returns true if the skin name is found (loaded from pwad)
@@ -1846,7 +1850,7 @@ int R_SkinAvailable(char *name)
 
 	for (i = 0; i < numskins; i++)
 	{
-		if (stricmp(skins[i].name, name) == 0)
+		if (strcasecmp(skins[i].name, name) == 0)
 			return i;
 	}
 	return 0;
@@ -1873,7 +1877,7 @@ void SetPlayerSkin(int playernum, char *skinname)
 
 			players[playernum].skin = i;
 			if (players[playernum].mo)
-				players[playernum].mo->skin = &skins[i];
+				players[playernum].mo->skin = i;
 
 			return;
 		}
@@ -1885,7 +1889,7 @@ void SetPlayerSkin(int playernum, char *skinname)
 	// a copy of the skin value
 	// so that dead body detached from respawning player keeps the skin
 	if (players[playernum].mo)
-		players[playernum].mo->skin = &skins[0];
+		players[playernum].mo->skin = 0;
 }
 
 //
@@ -1941,17 +1945,14 @@ void R_AddSkins(int wadnum)
 	char* Token = NULL;
 	char* Value = NULL;
 	char* SprName = NULL;
+	size_t SoundSlot;
 	
 	for (i = 0; i < WAD->NumLumps; i++)
 	{
 		if (strncmp(WAD->Index[i].Name, "S_SK", 4) == 0)
 		{
-			/* Check to see if we expired free skin spots */
-			if (numskins > MAXSKINS)
-			{
-				CONS_Printf("R_AddSkins: Too many skins! (Max is %i)\n", MAXSKINS);
-				return;	// Before it just kept going! why do that because it's going to fail anyway?
-			}
+			/* GhostlyDeath <July 24, 2010> -- Remove skin limit */
+			Z_ResizeArray(&skins, sizeof(*skins), numskins, numskins + 1);
 			
 			/* Create Token Buffer */
 			TokenBuf = Z_Malloc(WAD->Index[i].Size + 1, PU_STATIC, NULL);
@@ -2039,8 +2040,12 @@ void R_AddSkins(int wadnum)
 							if ((S_sfx[j].skinsound != -1) &&
 								(strcasecmp(S_sfx[j].name, Token + 2) == 0))
 							{
-								skins[numskins].soundsid[S_sfx[j].skinsound] =
-									S_AddSoundFx(Value + 2, S_sfx[j].singularity);
+								SoundSlot = S_AddSoundFx(Value + 2, S_sfx[j].singularity);
+								
+								// GhostlyDeath <July 25, 2011> -- Due to skin limit removal, not all sounds may be added yet
+								if (SoundSlot)
+									skins[numskins].soundsid[S_sfx[j].skinsound] = SoundSlot;
+								
 								addedsound = 1;
 								break;
 							}
@@ -2092,7 +2097,7 @@ void R_AddSkins(int wadnum)
 				Z_Free(SprName);
 			}
 			
-			CONS_Printf("R_AddSkins: Added skin \"%s\"!\n", skins[numskins].name);
+			CONS_Printf("R_AddSkins: Added skin \"%s\" (%i)!\n", skins[numskins].name, numskins);
 			numskins++;
 			Z_Free(TokenBuf);
 			TokenBuf = NULL;

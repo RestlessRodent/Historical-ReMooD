@@ -408,7 +408,7 @@ void S_StartSoundAtVolume(void *origin_p, int sfx_id, int volume)
 	if (sfx->skinsound != -1 && origin && origin->skin)
 	{
 		// it redirect player sound to the sound in the skin table
-		sfx_id = ((skin_t *) origin->skin)->soundsid[sfx->skinsound];
+		sfx_id = (skins[origin->skin]).soundsid[sfx->skinsound];
 		sfx = &S_sfx[sfx_id];
 	}
 

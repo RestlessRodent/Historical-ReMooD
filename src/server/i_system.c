@@ -61,12 +61,10 @@
 
 #include "endtxt.h"
 
-#ifdef GAMECLIENT
 #include "i_video.h"
 #include "i_sound.h"
 #include "i_joy.h"
 JoyType_t Joystick;
-#endif
 
 extern void D_PostEvent(event_t *);
 
