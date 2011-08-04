@@ -326,7 +326,6 @@ void M_DrawProfileMenu(void);
 void M_HandleSkinChanger(int choice);
 void M_CreateProfile(int choice);
 
-#if 0
 menuitem_t ProfileItems[] =
 {
 	{IT_WHITESTRING | IT_CALL, NULL,			PTROFUNICODESTRING(DSTR_MENUPROFILES_CREATEPROFILE), M_CreateProfile},
@@ -451,22 +450,18 @@ void M_DrawProfileMenu(void)
 		PROF_GetNumber(((consvar_t*)(currentMenu->menuitems[1].itemaction))->value)->cvars[PC_SKIN].string)
 		].spritedef;
 	sprframe = &sprdef->spriteframes[((gametic % 16) >> 2) & FF_FRAMEMASK];
+	lump = sprframe->lumppat[0];
+	patch = W_CachePatchNum(lump, PU_CACHE);
 	
-	if (sprframe)
-	{
-		lump = sprframe->lumppat[0];
-		patch = W_CachePatchNum(lump, PU_CACHE);
-	
-		if (((consvar_t*)(currentMenu->menuitems[4].itemaction))->value == 0)
-			colormap = colormaps;
-		else
-			colormap = (byte *) translationtables - 256 + (((consvar_t*)(currentMenu->menuitems[4].itemaction))->value << 8);
+	if (((consvar_t*)(currentMenu->menuitems[4].itemaction))->value == 0)
+		colormap = colormaps;
+	else
+		colormap = (byte *) translationtables - 256 + (((consvar_t*)(currentMenu->menuitems[4].itemaction))->value << 8);
 
-		V_DrawMappedPatch(
-			((currentMenu->x + currentMenu->width) - patch->width) + patch->leftoffset,
-			((currentMenu->y + currentMenu->height) - patch->height) + patch->topoffset,
-			0, patch, colormap);
-	}
+	V_DrawMappedPatch(
+		((currentMenu->x + currentMenu->width) - patch->width) + patch->leftoffset,
+		((currentMenu->y + currentMenu->height) - patch->height) + patch->topoffset,
+		0, patch, colormap);
 		
 	M_DrawGenericMenu();
 	
@@ -477,11 +472,9 @@ void M_DrawProfileMenu(void)
 		(currentMenu->x + currentMenu->width) - V_StringWidthA(VFONT_SMALL, 0, skinchar),
 		(currentMenu->y + (5 * STRINGHEIGHT)));
 }
-#endif
 
 void M_StartProfiler(int choice)
 {
-#if 0
 	CV_Set(&DynProfileChooser, "default");
 	currentMenu->lastOn = itemOn;
 	M_SetupNextMenu(&ProfileDef);
@@ -492,12 +485,10 @@ void M_StartProfiler(int choice)
 			PROF_GetNumber(((consvar_t*)(currentMenu->menuitems[1].itemaction))->value)->cvars[PC_SKIN].name,
 			"marine"));
 	}
-#endif
 }
 
 void PROF_M_ChangeProfile(void)
 {
-#if 0
 	ProfileInfo_t* Prof = PROF_FindProfile(DynProfileChooser.string);
 	
 	if (!Prof)
@@ -507,12 +498,10 @@ void PROF_M_ChangeProfile(void)
 	ProfileItems[4].itemaction = &(Prof->cvars[PC_COLOR]);
 	ProfileItems[6].itemaction = &(Prof->cvars[PC_AUTOAIM]);
 	//ProfileItems[5].itemaction = &(Prof->cvars[PC_SKIN]);
-#endif
 }
 
 void M_HandleSkinChanger(int choice)
 {
-#if 0
 	int l;
 	boolean exitmenu = false;	// exit to previous menu and send name change
 	int myskin;
@@ -582,7 +571,6 @@ void M_HandleSkinChanger(int choice)
 		else
 			M_ClearMenus(true);
 	}
-#endif
 }
 
 /******************************************************************************/
@@ -601,7 +589,6 @@ char* PP_P2of4 = "for Player 2 (Top-Right Screen).";
 char* PP_P3of4 = "for Player 3 (Bottom-Left Screen).";
 char* PP_P4of4 = "for Player 4 (Bottom-Right Screen).";
 
-#if 0
 menuitem_t ProfileChooserItems[] =
 {
 	{IT_SPACE | IT_STRING | IT_CENTERSTRING, NULL,
@@ -627,7 +614,6 @@ menu_t ProfileChooser =
 	STRINGHEIGHT << 2,	// H
 	1,
 };
-#endif
 
 player_t* ModPlayer = NULL;
 
@@ -652,8 +638,7 @@ void M_ProfilePrompt(int player)
 	// Nope
 	if (!OK || !Player)
 		return;
-	
-	#if 0	
+		
 	// Variable Message
 	if (cv_splitscreen.value == 1)
 	{
@@ -681,11 +666,6 @@ void M_ProfilePrompt(int player)
 		currentMenu->lastOn = itemOn;
 	itemOn = 1;
 	M_SetupNextMenu(&ProfileChooser);
-	#endif
-	
-	CONS_Printf("M_ProfilePrompt: Code kinda removed, autochoosing default...");
-	CV_Set(&InGameProfileChooser, "default");
-	M_ProfAccept(1);
 }
 
 void M_ProfAccept(int choice)
@@ -730,6 +710,6 @@ void M_ProfAccept(int choice)
 			Rover = Rover->next;
 	}
 	
-	//M_ClearMenus(NULL);
+	M_ClearMenus(NULL);
 }
 

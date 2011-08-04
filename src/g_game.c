@@ -863,7 +863,7 @@ boolean G_Responder(event_t * ev)
 	{
 		if (ev->type == ev_keydown)
 		{
-			M_SpawnMenu("root", 0);
+			M_StartControlPanel();
 			return true;
 		}
 		return false;

@@ -32,6 +32,7 @@
 #include "p_local.h"
 #include "z_zone.h"
 #include "t_script.h"
+#include "m_menu.h"
 
 tic_t leveltime;
 
@@ -123,7 +124,7 @@ void P_Ticker(void)
 	int i;
 
 	// run the tic
-	if (paused || (!netgame && M_ActiveMenu() && !demoplayback))
+	if (paused || (!netgame && menuactive && !demoplayback))
 		return;
 
 	for (i = 0; i < MAXPLAYERS; i++)

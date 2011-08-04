@@ -37,6 +37,7 @@
 #include "p_setup.h"
 #include "p_inter.h"
 #include "m_random.h"
+#include "m_menu.h"
 
 // Index of the special effects (INVUL inverse) map.
 #define INVERSECOLORMAP         32
@@ -701,7 +702,7 @@ void P_PlayerThink(player_t * player)
 #endif
 
 	// GhostlyDeath <July 10, 2008> -- Profile Check
-	if (!player->profile && !demoplayback && !M_ActiveMenu())
+	if (!player->profile && !demoplayback && !menuactive)
 		for (i = 0; i < cv_splitscreen.value + 1; i++)
 			if (playeringame[consoleplayer[i]] && player == &players[consoleplayer[i]])
 			{

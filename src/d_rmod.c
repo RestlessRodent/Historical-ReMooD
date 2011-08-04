@@ -225,7 +225,7 @@ static boolean DS_RMODTableHandler(Z_Table_t* const a_Sub, void* const a_Data)
 		boolean (*Handler)(Z_Table_t* const a_Table, const char* const a_ID, void* const a_Data);
 	} Handlers[] =
 	{
-		{"menu#", M_LoadMenuTable},
+		//{"menu#", M_LoadMenuTable},
 		{"", NULL}
 	};
 	
