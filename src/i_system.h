@@ -45,13 +45,7 @@ extern byte sound_started;
 //extern byte music_installed;
 
 /* flag for 'win-friendly' mode used by interface code */
-extern int i_love_bill;
 extern volatile tic_t ticcount;
-
-#ifdef _WIN32
-extern boolean winnt;
-extern BOOL bDX0300;
-#endif
 
 // Called by DoomMain.
 void I_InitJoystick(void);
@@ -121,9 +115,6 @@ void I_StartupTimer(void);
 
 // Setup signal handler, plus stuff for trapping errors and cleanly exit.
 int I_StartupSystem(void);
-
-void I_GetDiskFreeSpace(uint64_t * freespace);
-char *I_GetUserName(void);
 
 #ifdef LINUX
 void I_LocateWad(void);

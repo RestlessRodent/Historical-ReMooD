@@ -27,6 +27,18 @@
 *** INCLUDES ***
 ***************/
 
+/* System */
+// On UNIX include the standard header
+#if defined(__unix__)
+	#include <unistd.h>			// Standard Stuff
+#endif
+
+// On Windows include windows.h
+#if defined(_WIN32)
+	#include <windows.h>
+#endif
+
+/* Local */
 #include "i_util.h"
 #include "i_joy.h"
 #include "i_system.h"
@@ -505,5 +517,90 @@ void I_ShutdownSystem(void)
 	
 	/* Post exit func */
 	I_SystemPostExit();
+}
+
+/* I_GetUserName() -- Returns the current username */
+const char* I_GetUserName(void)
+{
+#define MAXUSERNAME 32	// Username limit (youch)
+	static char RememberName[MAXUSERNAME];
+	const char* p;
+#if defined(_WIN32)
+	TCHAR Buf[MAXUSERNAME];
+	DWORD Size;
+	size_t i;
+#endif
+
+	/* Try system specific username getting */
+	// Under UNIX, use getlogin	
+#if defined(__unix__)
+	// prefer getlogin_r if it exists
+	#if _REENTRANT || _POSIX_C_SOURCE >= 199506L
+	if (getlogin_r(RememberName, MAXUSERNAME))
+		return RememberName;
+	
+	// Otherwise use getlogin
+	#else
+	p = getlogin();
+	
+	if (p)
+	{
+		// Dupe string
+		strncpy(RememberName, p, MAXUSERNAME);
+		return RememberName;
+	}
+	#endif
+	
+	// Under Win32, use GetUserName
+#elif defined(_WIN32)
+	Size = MAXUSERNAME;
+	if (GetUserName(Buf, &Size))
+	{
+		// Cheap copy
+		for (i = 0; i <= Size; i++)
+			RememberName[i] = Buf[i] & 0x7F;
+		return RememberName;
+	}
+	
+	// Otherwise whoops!
+#else
+#endif
+
+	/* Try environment variables that usually exist */
+	// USER, USERNAME, LOGNAME
+	p = getenv("USER");
+	
+	// Nope
+	if (!p)
+	{
+		p = getenv("USERNAME");
+		
+		// Nope
+		if (!p)
+		{
+			p = getenv("LOGNAME");
+			
+			// Nope
+			if (!p)
+				return NULL;
+		}
+	}
+	
+	// Copy p to buffer and return the buffer
+	strncpy(RememberName, p, MAXUSERNAME);
+	return RememberName;
+
+#undef MAXUSERNAME
+}
+
+/* I_GetDiskFreeSpace() -- Returns space being used */
+uint64_t I_GetDiskFreeSpace(const char* const a_Path)
+{
+	/* Check */
+	if (!a_Path)
+		return 0;
+	
+	// TODO
+	return 2 << 30;
 }
 

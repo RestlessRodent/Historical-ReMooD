@@ -168,5 +168,8 @@ void I_AddExitFunc(void (*func) ());
 void I_RemoveExitFunc(void (*func) ());
 void I_ShutdownSystem(void);
 
+const char* I_GetUserName(void);
+uint64_t I_GetDiskFreeSpace(const char* const a_Path);
+
 #endif /* __I_UTIL_H__ */
 
