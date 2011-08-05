@@ -34,10 +34,6 @@
 #include "d_ticcmd.h"
 #include "d_event.h"
 
-#ifdef __GNUG__
-#pragma interface
-#endif
-
 // See Shutdown_xxx() routines.
 extern byte graphics_started;
 extern byte keyboard_started;

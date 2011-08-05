@@ -32,10 +32,6 @@
 #include "r_state.h"
 #include "w_wad.h"
 
-#ifdef __GNUG__
-#pragma interface
-#endif
-
 // moved here for r_sky.c (texture_t is used)
 
 //

@@ -30,10 +30,6 @@
 
 #include "doomdef.h"
 
-#ifdef __GNUG__
-#pragma interface
-#endif
-
 // ==================================
 // Difficulty/skill settings/filters.
 // ==================================

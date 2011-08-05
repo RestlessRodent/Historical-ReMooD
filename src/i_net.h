@@ -28,10 +28,6 @@
 #ifndef __I_NET__
 #define __I_NET__
 
-#ifdef __GNUG__
-#pragma interface
-#endif
-
 #include "doomtype.h"
 
 #define MAXPACKETLENGTH  1450	// For use in a LAN

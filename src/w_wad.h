@@ -33,10 +33,6 @@
 #include <stdlib.h>
 #include "z_zone.h"
 
-#ifdef __GNUG__
-#pragma interface
-#endif
-
 #define MAX_WADPATH   128
 #define MAX_WADFILES  32
 

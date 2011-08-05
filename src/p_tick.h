@@ -28,10 +28,6 @@
 #ifndef __P_TICK__
 #define __P_TICK__
 
-#ifdef __GNUG__
-#pragma interface
-#endif
-
 extern tic_t leveltime;
 
 // Called by C_Ticker,

@@ -28,10 +28,6 @@
 #ifndef __P_INTER__
 #define __P_INTER__
 
-#ifdef __GNUG__
-#pragma interface
-#endif
-
 extern consvar_t cv_fragsweaponfalling;
 extern consvar_t cv_infiniteammo;
 

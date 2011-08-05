@@ -31,10 +31,6 @@
 #include "m_fixed.h"
 #include "doomtype.h"
 
-#ifdef __GNUG__
-#pragma interface
-#endif
-
 //
 // Button/action code definitions.
 //

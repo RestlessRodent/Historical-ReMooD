@@ -30,13 +30,8 @@
 
 #include "doomtype.h"
 
-#ifdef __GNUG__
-#pragma interface
-#endif
-
 void I_StartupGraphics(void);	//setup video mode
 void I_ShutdownGraphics(void);	//restore old video mode
-boolean I_SetVideoMode(const uint32_t a_Width, const uint32_t a_Height, const boolean a_Fullscreen);
 
 // Takes full 8 bit values.
 void I_SetPalette(RGBA_t * palette);
@@ -46,10 +41,6 @@ void macConfigureInput(void);
 
 void VID_Pause(int pause);
 #endif
-
-int VID_NumModes(void);
-char __REMOOD_DEPRECATED *VID_GetModeName(int modenum);
-void VID_PrepareModeList(void);	// FIXME: hack, we should avoid those #ifdef LINUX
 
 void I_UpdateNoBlit(void);
 void I_FinishUpdate(void);
@@ -62,4 +53,12 @@ void I_ReadScreen(byte * scr);
 void I_BeginRead(void);
 void I_EndRead(void);
 
+/****************
+*** FUNCTIONS ***
+****************/
+
+void VID_PrepareModeList(void);
+boolean I_SetVideoMode(const uint32_t a_Width, const uint32_t a_Height, const boolean a_Fullscreen);
+
 #endif
+
