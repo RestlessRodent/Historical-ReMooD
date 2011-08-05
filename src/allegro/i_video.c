@@ -488,5 +488,23 @@ void I_StartupGraphics(void)
 /* I_ShutdownGraphics() -- Turns off graphics */
 void I_ShutdownGraphics(void)
 {
+	/* Go back to text mode */
+	set_gfx_mode(GFX_TEXT, 0, 0, 0, 0);
+}
+
+/* I_TextMode() -- Enter and leaves text mode */
+boolean I_TextMode(const boolean a_OnOff)
+{
+	/* On */
+	if (a_OnOff)
+	{
+		return true;
+	}
+	
+	/* Off */
+	else
+	{
+		return true;
+	}
 }
 

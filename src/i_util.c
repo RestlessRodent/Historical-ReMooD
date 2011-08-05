@@ -38,13 +38,21 @@
 	#include <windows.h>
 #endif
 
+// On DOS include dos.h (and conio.h for colors)
+#if defined(__MSDOS__)
+	#include <dos.h>
+	#include <conio.h>
+#endif
+
 /* Local */
 #include "i_util.h"
 #include "i_joy.h"
 #include "i_system.h"
+#include "i_video.h"
 #include "command.h"
 #include "screen.h"
 #include "g_input.h"
+#include "w_wad.h"
 
 /****************
 *** CONSTANTS ***
@@ -385,7 +393,12 @@ boolean I_VideoBefore320200Init(void)
 /* I_VideoPostInit() -- Initialization before end of function */
 boolean I_VideoPostInit(void)
 {
+	/* Set started */
 	graphics_started = 1;
+	
+	/* Add exit function */
+	I_AddExitFunc(I_ShutdownGraphics);
+	
 	return true;
 }
 
@@ -466,16 +479,126 @@ void I_ReadScreen(byte* scr)
 	memcpy(scr, vid.buffer, vid.width * vid.height * vid.bpp);
 }
 
-/* ShowEndTxt() -- Shows the ending text screen */
-void ShowEndTxt(void)
+/* I_ShowEndTxt() -- Shows the ending text screen */
+void I_ShowEndTxt(const uint8_t* const a_TextData)
 {
+	size_t i, c, Cols;
+	const char* p;
+	
+	/* Check */
+	if (!a_TextData)
+		return;
+	
+	/* Get environment */
+	// Columns?
+	if ((p = getenv("COLUMNS")))
+		Cols = atoi(p);
+	else
+		Cols = 80;
+	
+	/* Load ENDTXT */
+	for (i = 0; i < 4000; i += 2)
+	{
+		// Get logical column number
+		c = (i >> 1) % 80;
+		
+		// Print character
+		if (c < Cols)	// but only if it fits!
+			I_TextModeChar(a_TextData[i], a_TextData[i + 1]);
+		
+		// Add a newline if Cols > 80 and c == 79
+		if (c == 79 && Cols > 80)
+			printf("\n");
+	}
+	
+	/* Leave text mode */
+	I_TextMode(false);
+}
+
+/* I_TextModeChar() -- Prints a text mode character */
+void I_TextModeChar(const uint8_t a_Char, const uint8_t Attr)
+{
+	uint8_t BG, FG;
+	boolean Blink;
+	static const char c_ColorToVT[8] =
+	{
+		0, 4, 2, 6, 1, 5, 3, 7
+	};	// Colors to VT
+	
+	/* Get common attribute colors */
+	FG = Attr & 0xF;
+	BG = (Attr >> 4) & 0x7;
+	Blink = (Attr >> 7) & 1;
+	
+	/* Create attribute */
+	// Use DOS color functions
+#if defined(__MSDOS__)
+	// ENDOOM uses DOS attributes
+	textattr(Attr);
+
+	// Use Win32 console color functions
+#elif defined(_WIN32)
+
+	// Use VT escape characters
+#elif defined(__unix__)
+	if (FG & 8)
+		printf("%c[1m", 0x1B);
+	printf("%c[%i;%im", 0x1B, 30 + c_ColorToVT[FG & 7], 40 + c_ColorToVT[BG]);
+
+	// Don't bother with formatting
+#else
+
+	//
+#endif
+	
+	/* Print character */
+	if (a_Char < ' ' || a_Char >= 0x7F)
+#if defined(__MSDOS__)
+		cprintf(" ");
+#else
+		printf(" ");
+#endif
+	else
+#if defined(__MSDOS__)
+		cprintf("%c", a_Char);
+#else
+		printf("%c", a_Char);
+#endif
+	
+	/* Reset attributes */
+	// Use DOS color functions
+#if defined(__MSDOS__)
+	textattr(1);
+
+	// Use Win32 console color functions
+#elif defined(_WIN32)
+
+	// Use VT escape characters
+#elif defined(__unix__)
+	printf("%c[0m", 0x1B);
+
+	// Don't bother with formatting
+#else
+
+	//
+#endif
 }
 
 /* I_AddExitFunc() -- Adds an exit function */
 void I_AddExitFunc(void (*func) ())
 {
 	int c;
-
+	
+	/* Check */
+	if (!func)
+		return;
+	
+	/* Do not add function twice */
+	for (c = 0; c < MAX_QUIT_FUNCS; c++)
+		if (quit_funcs[c] == func)
+			return;
+	
+	/* Look in array */
 	for (c = 0; c < MAX_QUIT_FUNCS; c++)
 		if (!quit_funcs[c])
 		{
@@ -506,6 +629,38 @@ void I_RemoveExitFunc(void (*func) ())
 void I_ShutdownSystem(void)
 {
 	int c;
+	uint8_t* EDData[2] = {0, 0};
+	
+	WX_WADEntry_t* Entry;
+	uint8_t* Temp;
+	size_t Size;
+	
+	/* Before we start exiting, load ENDOOM, ENREMOOD */
+	for (c = 0; c < 2; c++)
+	{
+		// Get it
+		Entry = WX_EntryForName(NULL, (c ? "ENREMOOD" : "ENDOOM"), false);
+		
+		// Check
+		if (!Entry)
+			continue;
+		
+		// Get size and data
+		Temp = WX_CacheEntry(Entry, WXCT_RAW, WXCT_RAW);
+		Size = WX_GetEntrySize(Entry);
+		
+		// Duplicate
+		EDData[c] = I_SysAlloc(4000);
+		
+		if (EDData[c])
+		{
+			memset(EDData[c], 0, 4000);
+			memmove(EDData[c], Temp, (Size <= 4000 ? Size : 4000));
+		}
+		
+		// Unuse the entry (not needed any more)
+		WX_UseEntry(Entry, WXCT_RAW, false);
+	}
 	
 	/* Pre exit func */
 	I_SystemPreExit();
@@ -517,6 +672,14 @@ void I_ShutdownSystem(void)
 	
 	/* Post exit func */
 	I_SystemPostExit();
+	
+	/* Show the end text */
+	for (c = 0; c < 2; c++)
+		if (EDData[c])
+		{
+			I_ShowEndTxt(EDData[c]);
+			I_SysFree(EDData[c]);
+		}
 }
 
 /* I_GetUserName() -- Returns the current username */

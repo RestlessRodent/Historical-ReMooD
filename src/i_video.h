@@ -30,9 +30,6 @@
 
 #include "doomtype.h"
 
-void I_StartupGraphics(void);	//setup video mode
-void I_ShutdownGraphics(void);	//restore old video mode
-
 // Takes full 8 bit values.
 void I_SetPalette(RGBA_t * palette);
 
@@ -59,6 +56,9 @@ void I_EndRead(void);
 
 void VID_PrepareModeList(void);
 boolean I_SetVideoMode(const uint32_t a_Width, const uint32_t a_Height, const boolean a_Fullscreen);
+void I_StartupGraphics(void);
+void I_ShutdownGraphics(void);
+boolean I_TextMode(const boolean a_OnOff);
 
 #endif
 

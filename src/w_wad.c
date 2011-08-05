@@ -2139,7 +2139,7 @@ WX_WADEntry_t*		WX_EntryForName(WX_WADFile_t* const a_WAD, const char* const a_N
 			return Found;
 		
 		// Go to the next list
-		if (a_WAD)
+		if (!a_WAD)
 			Rover = (a_Forwards ? Rover->VNextWAD : Rover->VPrevWAD);
 		
 		// Nothing else to do here
@@ -2308,7 +2308,7 @@ boolean				WX_VirtualPushPop(WX_WADFile_t* const a_WAD, const boolean a_Pop, con
 	else if (a_WAD && a_Pop)
 	{
 		// Do not pop if we are unlinked
-		if (!a_WAD->VPrevWAD || !a_WAD->VNextWAD)
+		if (!a_WAD->VPrevWAD && !a_WAD->VNextWAD)
 			return false;
 		
 		// Fix chain if this is first or last
@@ -2376,5 +2376,16 @@ size_t				WX_GetEntryName(WX_WADEntry_t* const a_Entry, char* const a_OutBuf, co
 	
 	/* Slap into buffer */
 	return strncpy(a_OutBuf, a_Entry->Name, a_OutSize);
+}
+
+/* WX_GetEntrySize() -- Returns the size of an entry */
+size_t				WX_GetEntrySize(WX_WADEntry_t* const a_Entry)
+{
+	/* Check */
+	if (!a_Entry)
+		return NULL;
+	
+	/* Return size here */
+	return a_Entry->Size;
 }
 

@@ -162,7 +162,8 @@ uint8_t* I_VideoSoftBuffer(uint32_t* const a_WidthP, uint32_t* const a_HeightP);
 
 uint32_t I_GetTime(void);
 
-void ShowEndTxt(void);
+void I_ShowEndTxt(const uint8_t* const a_TextData);
+void I_TextModeChar(const uint8_t a_Char, const uint8_t Attr);
 
 void I_AddExitFunc(void (*func) ());
 void I_RemoveExitFunc(void (*func) ());

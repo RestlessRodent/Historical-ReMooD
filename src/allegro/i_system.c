@@ -206,7 +206,6 @@ void I_Quit(void)
 	// use this for 1.28 19990220 by Kin
 	M_SaveConfig(NULL);
 	I_ShutdownSystem();
-	printf("\r");
 	exit(0);
 }
 
