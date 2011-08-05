@@ -77,7 +77,7 @@
 #include "d_net.h"
 #include "g_game.h"
 
-#include "endtxt.h"
+#include "i_util.h"
 
 #include "i_joy.h"
 

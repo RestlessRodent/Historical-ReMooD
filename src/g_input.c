@@ -443,7 +443,7 @@ int G_KeyStringtoNum(char *keystr)
 {
 	int j;
 
-//    strupr(keystr);
+//    C_strupr(keystr);
 
 	if (keystr[1] == 0 && keystr[0] > ' ' && keystr[0] <= 'z')
 		return keystr[0];
