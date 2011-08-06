@@ -1,0 +1,122 @@
+        :oCCCCOCoc.
+    .cCO8OOOOOOOOO8Oo:
+  .oOO8OOOOOOOOOOOOOOOCc
+ cO8888:         .:oOOOOC.                                                  TM
+:888888:   :CCCc    oOOOOC.     COOC   cOOO:                    .OOOOOCCc
+C888888:   .ooo:   .COOOCocc:   8@8@c .888@c  .:ccc.    .ccc:.  .@@:..:o@O
+O888888:    .    .oO88O: coo8O  8@c88 C@c8@c o@OccC@C  C@CccO8c .@@.    O@c
+C888888:   :8O.   .C88C .cooCO: 8@:o@O@8 8@c.@@:   O@:c@O   :@@..@@.    O@:
+:8@@@@8:   :888c    o88:.occOo  8@:.8@@c 8@c o@Oc:o@O .O@o:cO@o .@@ooooO8c
+ :8@@@@CoooC@@@@Coooo8@8ccooc   cc. :cc  cc.  .cooc:    :cooc.  .cccccc:.
+   cO@@@@@@@@@@@@@@@@@Oc0
+     :oO8@@@@@@@@@@Oo.                               1.0a "Stuffed Cabbage"
+        .oCOOOOOCc.                                      http://remood.org/
+
+ ReMooD is a source port of Doom Legacy 1.42. It aims to provide the classic
+ Legacy Experience with new features and more stability.
+ 
+ Copyright (C) 2011 GhostlyDeath <ghostlydeath@remood.org>
+ 
+ This program is free software; you can redistribute it and/or
+ modify it under the terms of the GNU General Public License
+ as published by the Free Software Foundation; either version 3
+ of the License, or (at your option) any later version.
+ 
+ This program is distributed in the hope that it will be useful,
+ but WITHOUT ANY WARRANTY; without even the implied warranty of
+ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ GNU General Public License for more details.
+ 
+-------------------------------------------------------------------------------
+
+This file is a work in progress for ReMooD compatibility.
+
+===============================================================================
+========[ FEATURE COMPATIBILITY ]==============================================
+===============================================================================
+
+This is a list of features ReMooD is compatible with.
+
+===============================================================================
+========[ WAD COMPATIBILITY ]==================================================
+===============================================================================
+
+These are WAD files ReMooD will support at levels nearly 100%. These are the
+most popular WADs and as such they should be supported.
+
+~~~~~~~~{ WAD LIST }~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+ * BLOODPENT.WAD     -
+ * BOOMEDIT.WAD      - Boom Editing Specification
+ * DEMNSNCRY2.WAD    -
+ * DEMON2.WAD        -
+ * DOTVOID.WAD       - .Void
+ * DSCIENCE.WAD      -
+ * DS_MAP01L.WAD     -
+ * DSV4_RVLTINL.WAD  -
+ * DUELKEEP.WAD      -
+ * GZLIGHTS.WAD      -
+ * H20-3DFL.WAD      -
+ * HTH2.WAD          -
+ * ICERIAL2.WAD      -
+ * IMP_2.WAD         -
+ * LEGCLOCK.WAD      -
+ * LEGFAN.WAD        -
+ * MASTER.WAD        -
+ * NIMROD.WAD        -
+ * PHOBIATA.WAD      -
+ * SEKKUSU.WAD       -
+ * SPONE.WAD         -
+ * THEDUEL.WAD       -
+ * TOXDM1.WAD        -
+ * TUNNEL.WAD        -
+ * ULTFOREVER.WAD    -
+ * ZOMBIE2.WAD       -
+
+
+~~~~~~~~{ BOOMEDIT.WAD }~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~{ BOOMEDIT.WAD }~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~{ BOOMEDIT.WAD }~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~{ BOOMEDIT.WAD }~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~{ BOOMEDIT.WAD }~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~{ BOOMEDIT.WAD }~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~{ BOOMEDIT.WAD }~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~{ BOOMEDIT.WAD }~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~{ BOOMEDIT.WAD }~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~{ BOOMEDIT.WAD }~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+===============================================================================
+========[ VERSION COMPATIBILITY ]==============================================
+===============================================================================
+
+When ReMooD is placed in compatibility mode (when playing back demos) or forced
+in game options, it will attempt at best to support demos and WADs from these
+versions of Source Ports.
+
+Compatibility will be replaced entirely by cvars and no longer using the 
+variable named "demoversion". Therefor if you play a WAD that worked in Doom
+Legacy but was later broken by a later version of it (or ReMooD) you would still
+be able to play it.
+
+~~~~~~~~{ Vanilla Doom 1.2 }~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~{ Vanilla Doom 1.666 }~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~{ Vanilla Doom 1.7 }~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~{ Vanilla Doom 1.8 }~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~{ Vanilla Doom 1.9 }~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~{ Doom Legacy 1.29 }~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~{ Doom Legacy 1.30 }~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~{ Doom Legacy 1.32 }~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~{ Doom Legacy 1.40 }~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~{ Doom Legacy 1.41 }~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~{ Doom Legacy 1.42 }~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+ReMooD's Base Version.
+
+~~~~~~~~{ ReMooD 1.0 Alpha }~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Ancient test version of ReMooD, long gone. Features CTF.
+
+~~~~~~~~{ Doom Legacy 1.43 Beta }~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~{ Doom Legacy 1.43 }~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~{ Doom Legacy 1.44 }~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
