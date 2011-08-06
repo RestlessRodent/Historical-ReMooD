@@ -54,7 +54,7 @@
 ******************/
 
 /* Just check for big endian */
-#if !defined(__REMOOD_BIG_ENDIAN)
+#if !defined(__REMOOD_BIG_ENDIAN) && !defined(__REMOOD_LITTLE_ENDIAN)
 	// GCC has endian.h
 	#if defined(__GNUC__)
 		#include <endian.h>
@@ -67,7 +67,14 @@
 	#endif
 	
 	// Known Big endian systems
-	// TODO
+	#if defined(__MIPSEB__)
+		#define __REMOOD_BIG_ENDIAN
+	#endif
+	
+	// Otherwise it is little
+	#if !defined(__REMOOD_LITTLE_ENDIAN)
+		#define __REMOOD_LITTLE_ENDIAN
+	#endif
 #endif
 
 /***********************

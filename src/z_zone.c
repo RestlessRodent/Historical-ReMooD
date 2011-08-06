@@ -411,6 +411,19 @@ void Z_Init(void)
 	size_t FreeMem = 0, TotalMem;
 	size_t LoopSize, i;
 	boolean Ok = false;
+	uint32_t Sanity = 0;
+	
+	/* Sanity check */
+	// Place in byte
+	*((uint8_t*)&Sanity) = 1;
+	
+	// Check
+#if defined(__REMOOD_BIG_ENDIAN)
+	if (Sanity != 1)
+#else
+	if (Sanity != 0x01000000)
+#endif
+		CONS_Printf("Z_Init: ReMooD was compiled with the wrong byte order!\n");
 	
 	/* Create new zone in a loop */
 	// Check free memory
