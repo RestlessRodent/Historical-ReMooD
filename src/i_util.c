@@ -135,6 +135,90 @@ static size_t l_NumMusicDrivers;				// Number of music drivers
 static I_LocalMusic_t* l_LocalSongs;			// Local songs
 static size_t l_NumLocalSongs;					// Number of local songs
 
+/*****************************
+*** MUS2MID VIRTUAL DRIVER ***
+*****************************/
+
+/* I_MUS2MID_Init() -- Initializes the MUS2MID Driver */
+bool_t I_MUS2MID_Init(struct I_MusicDriver_s* const a_Driver)
+{
+	return false;
+}
+
+/* I_MUS2MID_Destroy() -- Destroys a driver */
+bool_t I_MUS2MID_Destroy(struct I_MusicDriver_s* const a_Driver)
+{
+	return false;
+}
+
+/* I_MUS2MID_Success() -- Success */
+void I_MUS2MID_Success(struct I_MusicDriver_s* const a_Driver)
+{
+}
+
+/* I_MUS2MID_Pause() -- Pauses a song (pause ||) */
+void I_MUS2MID_Pause(struct I_MusicDriver_s* const a_Driver, const int a_Handle)
+{
+}
+
+/* I_MUS2MID_Resume() -- Resumes a song (play >) */
+void I_MUS2MID_Resume(struct I_MusicDriver_s* const a_Driver, const int a_Handle)
+{
+}
+
+/* I_MUS2MID_Stop() -- Stops a song from playing and seeks to start (stop []) */
+void I_MUS2MID_Stop(struct I_MusicDriver_s* const a_Driver, const int a_Handle)
+{
+}
+
+/* I_MUS2MID_Lengt() -- Length of song */
+uint32_t I_MUS2MID_Length(struct I_MusicDriver_s* const a_Driver, const int a_Handle)
+{
+}
+
+/* I_MUS2MID_Seek() -- Seeks to a new position */
+void I_MUS2MID_Seek(struct I_MusicDriver_s* const a_Driver, const int a_Handle, const uint32_t a_Pos)
+{
+}
+
+/* I_MUS2MID_Play() -- Plays a song */
+int I_MUS2MID_Play(struct I_MusicDriver_s* const a_Driver, const void* const a_Data, const bool_t Loop)
+{
+	return 0;
+}
+
+/* I_MUS2MID_Volume() -- Changes volume */
+void I_MUS2MID_Volume(struct I_MusicDriver_s* const a_Driver, const int a_Handle, const uint8_t Vol)
+{
+}
+
+/* I_MusicDriver_t -- Driver for playing Music */
+static I_MusicDriver_t l_MUS2MIDDriver =
+{
+	/* Data */
+	"ReMooD MUS2MID",
+	1 << IMT_MUS,
+	false,
+	50,
+	
+	/* Dynamic */
+	NULL,
+	0,
+	
+	/* Handlers */
+	I_MUS2MID_Init,
+	I_MUS2MID_Destroy,
+	I_MUS2MID_Success,
+	I_MUS2MID_Pause,
+	I_MUS2MID_Resume,
+	I_MUS2MID_Stop,
+	I_MUS2MID_Length,
+	I_MUS2MID_Seek,
+	I_MUS2MID_Play,
+	I_MUS2MID_Volume,
+	NULL
+};
+
 /****************
 *** FUNCTIONS ***
 ****************/
@@ -486,6 +570,44 @@ uint8_t* I_VideoSoftBuffer(uint32_t* const a_WidthP, uint32_t* const a_HeightP)
 uint32_t I_GetTime(void)
 {
 	return (I_GetTimeMS() * TICRATE) / 1000;
+}
+
+/* I_DumpTemporary() -- Creates a temporary file with data inside of it */
+bool_t I_DumpTemporary(char* const a_PathBuf, const size_t a_PathSize, const uint8_t* const a_Data, const size_t a_Size)
+{
+#if defined(__unix__)
+	int fd;
+#elif defined(_WIN32)
+	TCHAR Buf[PATH_MAX];
+#endif
+	
+	/* Check */
+	if (!a_PathBuf || !a_PathSize || !a_Data || !a_Size)
+		return false;
+	
+	/* Under UNIX, use mkstemp() */
+#if defined(__unix__)
+	// Create it
+	snprintf(a_PathBuf, a_PathSize, "/tmp/rmXXXXXX");
+	if ((fd = mkstemp(a_PathBuf)) == -1)
+		return false;
+	
+	// Place data in fd
+	write(fd, a_Data, a_Size);
+	close(fd);
+	return true;
+
+	/* Under Windows, use GetTempPath()/GetTempFileName() */
+#elif defined(_WIN32)
+	
+	/* For everything else, just guess */
+#else
+
+	/* */
+#endif
+	
+	/* Failure */
+	return false;
 }
 
 /* I_ReadScreen() -- Reads the screen into pointer */
@@ -869,6 +991,8 @@ void I_InitMusic(void)
 	// Native MOD Support
 	
 	// ReMooD MUS2MID Driver
+	if (!I_AddMusicDriver(&l_MUS2MIDDriver))
+		CONS_Printf("I_InitMusic: Failed to add the MUS2MID driver, you will not hear MUS music.\n");
 }
 
 /* I_ShutdownMusic() -- Shuts down the music system */
@@ -897,23 +1021,6 @@ void I_SetMusicVolume(int volume)
 {
 }
 
-#if 0
-static I_LocalMusic_t** l_LocalSongs;			// Local songs
-static size_t I_NumLocalSongs;					// Number of local songs
-
-/* I_LocalMusic_t -- Local music data */
-typedef struct I_LocalMusic_s
-{
-	I_MusicType_t Type;							// Type of song this is
-	int Handle;									// Song handle
-	I_MusicDriver_t* Driver;					// Driver to play with
-	int DriverHandle;							// Handle known by driver
-	uint32_t Length;							// Length of song in tics
-	WX_WADEntry_t* Entry;						// Entry of song
-	size_t EntryLength;							// Length of entry
-} I_LocalMusic_t;
-#endif
-
 /* I_DetectMusicType() -- Detects the type of music */
 I_MusicType_t I_DetectMusicType(const uint8_t* const a_Data, const size_t a_Size)
 {
@@ -929,6 +1036,10 @@ I_MusicType_t I_DetectMusicType(const uint8_t* const a_Data, const size_t a_Size
 	if (a_Data[0] == 'M' && a_Data[1] == 'T' && a_Data[2] == 'h' && a_Data[3] == 'd')
 		return IMT_MIDI;
 	
+	/* Check for MUS format */
+	if (a_Data[0] == 'M' && a_Data[1] == 'U' && a_Data[2] == 'S' && a_Data[3] == 0x1A)
+		return IMT_MUS;
+	
 	/* Fell through, not known */
 	return IMT_UNKNOWN;
 }
@@ -936,13 +1047,14 @@ I_MusicType_t I_DetectMusicType(const uint8_t* const a_Data, const size_t a_Size
 /* I_RegisterSong() -- Loads a song for future playing */
 int I_RegisterSong(const char* const a_Lump)
 {
+#define BUFSIZE 512
 	WX_WADEntry_t* Entry;
 	I_LocalMusic_t New;
 	FILE* f;
 	int Fails;
 	size_t i;
-	static char TempSongFileName[13];
 	static int TempSongID = 1;
+	char SongPath[BUFSIZE];
 	
 	/* Check */
 	if (!a_Lump)
@@ -950,10 +1062,6 @@ int I_RegisterSong(const char* const a_Lump)
 		
 	/* Clear */
 	memset(&New, 0, sizeof(New));
-	
-	// Init TempSongFileName
-	if (!TempSongFileName[0])
-		snprintf(TempSongFileName, 13, "rmid%04.4d.mid", TempSongID);
 	
 	/* Find lump */
 	Entry = WX_EntryForName(NULL, a_Lump, false);
@@ -996,36 +1104,16 @@ int I_RegisterSong(const char* const a_Lump)
 		if (devparm)
 			CONS_Printf("I_RegisterSong: Driver \"%s\" requires external files.\n", New.Driver->Name);
 		
-		// Attempt open of file
-		for (Fails = 0; Fails < 25; Fails++)
+		// Create temporary file with data
+		if (!I_DumpTemporary(SongPath, BUFSIZE, New.Data, New.EntryLength))
 		{
-			// Create name
-			snprintf(TempSongFileName, 13, "rmid%04.4d.mid", TempSongID++);
-			
-			// Attempt open now
-			f = fopen(TempSongFileName, "wb");
-			
-			if (f)
-			{
-				// Write all the WAD data
-				fwrite(New.Data, 1, New.EntryLength, f);
-				
-				// Worked!
-				fclose(f);
-				break;
-			}
-		}
-		
-		// Failed?
-		if (Fails == 25)
-		{
-			CONS_Printf("I_RegisterSong: Failed to file to disk (tried %i times)!\n", Fails);
+			CONS_Printf("I_RegisterSong: Failed to file to disk!\n");
 			WX_UseEntry(New.Entry, WXCT_RAW, false);
 			return 0;
 		}
 		
 		// Copy pathname
-		New.PathName = Z_StrDup(TempSongFileName, PU_STATIC, NULL);
+		New.PathName = Z_StrDup(SongPath, PU_STATIC, NULL);
 	}
 	
 	/* Add to the song list */
@@ -1046,6 +1134,7 @@ int I_RegisterSong(const char* const a_Lump)
 	
 	/* Return handle of new freshly loaded song */
 	return New.Handle;
+#undef BUFSIZE
 }
 
 /* I_UnRegisterSong() -- Unloads a song */
