@@ -52,65 +52,53 @@ typedef int32_t fixed_t;
 //#define FIXEDBREAKVANILLA
 
 /* FixedMul() -- Multiply two fixed numbers */
-static fixed_t ATTRIB_FORCEINLINE ATTRIB_UNUSED FixedMul(fixed_t a, fixed_t b)
+static fixed_t __REMOOD_FORCEINLINE __REMOOD_UNUSED FixedMul(fixed_t a, fixed_t b)
 {
+#if defined(__x86_64__) || defined(__amd64__) || defined(_M_X64)
+	return ((int64_t)a * (int64_t)b) >> _FIXED_FRACBITS;
+
+#else
 	// Copyright (C) 2010 GhostlyDeath (ghostlydeath@gmail.com / ghostlydeath@remood.org)
 	register uint32_t w, x, y, z;
-	uint32_t A, B;
-	fixed_t Res;
-	uint8_t Bits;
+	register uint32_t Af, Ai, Bf, Bi;
 	
-	/* Short circuit */
-	// These comparisons may be cheaper!
-	if (b == _FIXED_ONE)
-		return a;
-	else if (b == _FIXED_NEGONE)
-		return -a;
-	else if (b == 0)
-		return 0;
-	
-	/* Long math */
+	if (a & _FIXED_SIGN)
+	{
+		Af = ((-a) & _FIXED_FRAC);
+		Ai = ((-a) & _FIXED_INT) >> _FIXED_FRACBITS;
+	}
 	else
 	{
-		// Clear bits
-		Bits = 0;
-		
-		// Get A and B
-		if (a & _FIXED_SIGN)
-		{
-			Bits |= 1;
-			A = -a;
-		}
-		else
-			A = a;
-			
-		if (b & _FIXED_SIGN)
-		{
-			Bits |= 2;
-			B = -b;
-		}
-		else
-			B = b;
-		
-		// Multiply sections of the numbers (Standard math)
-		w = ((A & _FIXED_FRAC) * (B & _FIXED_FRAC)) >> _FIXED_FRACBITS;
-		x = ((A & _FIXED_INT) >> _FIXED_FRACBITS) * (B & _FIXED_FRAC);
-		y = (A & _FIXED_FRAC) * ((B & _FIXED_INT) >> _FIXED_FRACBITS);
-		z = (((A & _FIXED_INT) >> _FIXED_FRACBITS) * ((B & _FIXED_INT) >> _FIXED_FRACBITS)) << _FIXED_FRACBITS;
-		
-		// Get result
-		Res = (w + x + y + z);
-		
-		// Return additions
-		if (Bits == 2 || Bits == 1)
-			Res = -(Res);	// + * - or - * +
-		
-		return Res;
+		Af = (a & _FIXED_FRAC);
+		Ai = (a & _FIXED_INT) >> _FIXED_FRACBITS;
 	}
+	
+	if (b & _FIXED_SIGN)
+	{
+		Bf = ((-b) & _FIXED_FRAC);
+		Bi = ((-b) & _FIXED_INT) >> _FIXED_FRACBITS;
+	}
+	else
+	{
+		Bf = (b & _FIXED_FRAC);
+		Bi = (b & _FIXED_INT) >> _FIXED_FRACBITS;
+	}
+	
+	// Multiply portions
+	w = (Af * Bf) >> _FIXED_FRACBITS;
+	x = Ai * Bf;
+	y = Af * Bi;
+	z = (Ai * Bi) << _FIXED_FRACBITS;
+
+	// Return result
+	if ((a ^ b) & _FIXED_SIGN)	// Only negative result if pos/neg
+		return -((int32_t)(w + x + y + z));
+	return (w + x + y + z);
+#endif
 }
 
 /* FixedPtInv() -- Inverse of fixed point */
-static fixed_t ATTRIB_FORCEINLINE ATTRIB_UNUSED FixedInv(const fixed_t a)
+static fixed_t __REMOOD_FORCEINLINE __REMOOD_UNUSED FixedInv(const fixed_t a)
 {
 	// Copyright (C) 2010 GhostlyDeath (ghostlydeath@gmail.com / ghostlydeath@remood.org)
 	register uint32_t A, SDiv, Res;
@@ -169,7 +157,7 @@ static fixed_t ATTRIB_FORCEINLINE ATTRIB_UNUSED FixedInv(const fixed_t a)
 }
 
 /* FixedDiv() -- Divide two fixed numbers */
-static fixed_t ATTRIB_FORCEINLINE ATTRIB_UNUSED FixedDiv(fixed_t a, fixed_t b)
+static fixed_t __REMOOD_FORCEINLINE __REMOOD_UNUSED FixedDiv(fixed_t a, fixed_t b)
 {
 	// Copyright (C) 2010 GhostlyDeath (ghostlydeath@gmail.com / ghostlydeath@remood.org)
 #ifdef FIXEDBREAKVANILLA
@@ -186,13 +174,13 @@ static fixed_t ATTRIB_FORCEINLINE ATTRIB_UNUSED FixedDiv(fixed_t a, fixed_t b)
 }
 
 /* FixedMulSlow() -- Multiply two fixed numbers (slowly) */
-static fixed_t ATTRIB_FORCEINLINE ATTRIB_UNUSED FixedMulSlow(fixed_t a, fixed_t b)
+static fixed_t __REMOOD_FORCEINLINE __REMOOD_UNUSED FixedMulSlow(fixed_t a, fixed_t b)
 {
 	return ((int64_t)a * (int64_t)b) >> FRACBITS;
 }
 
 /* FixedDivSlow() -- Divide two fixed numbers (slowly) */
-static fixed_t ATTRIB_FORCEINLINE ATTRIB_UNUSED FixedDivSlow(fixed_t a, fixed_t b)
+static fixed_t __REMOOD_FORCEINLINE __REMOOD_UNUSED FixedDivSlow(fixed_t a, fixed_t b)
 {
 	return (((int64_t)a) << (int64_t)FRACBITS) / ((int64_t)b);
 }

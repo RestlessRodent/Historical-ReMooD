@@ -33,7 +33,7 @@
 
 /* Set the system to Windows 98/NT */
 // But only for 32-bit targets
-#if !defined(_WIN32)
+#if !defined(_WIN64)
 //#undef NTDDI_VERSION
 #undef WINVER
 #undef _WIN32_WINDOWS

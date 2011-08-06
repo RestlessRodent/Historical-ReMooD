@@ -55,8 +55,8 @@
 
 /* Just check for big endian */
 #if !defined(__REMOOD_BIG_ENDIAN) && !defined(__REMOOD_LITTLE_ENDIAN)
-	// GCC has endian.h
-	#if defined(__GNUC__)
+	// GCC has endian.h (but only on linux)
+	#if defined(__GNUC__) && defined(__linux__)
 		#include <endian.h>
 		
 		#if defined(BYTE_ORDER) && (BYTE_ORDER == BIG_ENDIAN)
@@ -67,8 +67,10 @@
 	#endif
 	
 	// Known Big endian systems
-	#if defined(__MIPSEB__)
-		#define __REMOOD_BIG_ENDIAN
+	#if !defined(__REMOOD_BIG_ENDIAN)
+		#if defined(__MIPSEB__)
+			#define __REMOOD_BIG_ENDIAN
+		#endif
 	#endif
 	
 	// Otherwise it is little
@@ -499,18 +501,6 @@ typedef union FColorRGBA RGBA_t;
 #define UINT2RGBA(a) a
 #else
 #define UINT2RGBA(a) ((a&0xff)<<24)|((a&0xff00)<<8)|((a&0xff0000)>>8)|(((ULONG)a&0xff000000)>>24)
-#endif
-
-#if defined(__GNUC__)
-	#define ATTRIB_FORCEINLINE	__attribute__((always_inline))
-	#define ATTRIB_HOT			__attribute__((hot))
-	#define ATTRIB_COLD			__attribute__((cold))
-	#define ATTRIB_UNUSED		__attribute__((unused))
-#else
-	#define ATTRIB_FORCEINLINE
-	#define ATTRIB_HOT
-	#define ATTRIB_COLD
-	#define ATTRIB_UNUSED
 #endif
 
 #endif /* __DOOMTYPE_H__ */
