@@ -2033,18 +2033,18 @@ void CON_DrawBackpic(pic_t * pic, int startx, int destwidth)
 	for (y = 0; y < con_curlines; y++, dest += vid.width)
 	{
 		// scale the picture to the resolution
-		v = SHORT(pic->height) - ((con_curlines - y) * (BASEVIDHEIGHT - 1) / vid.height) - 1;
+		v = LittleSwapInt16(pic->height) - ((con_curlines - y) * (BASEVIDHEIGHT - 1) / vid.height) - 1;
 
-		src = pic->data + v * SHORT(pic->width);
+		src = pic->data + v * LittleSwapInt16(pic->width);
 
 		// in case of the console backpic, simplify
-		if (SHORT(pic->width) == destwidth)
+		if (LittleSwapInt16(pic->width) == destwidth)
 			memcpy(dest, src, destwidth);
 		else
 		{
 			// scale pic to screen width
 			frac = 0;
-			fracstep = (SHORT(pic->width) << 16) / destwidth;
+			fracstep = (LittleSwapInt16(pic->width) << 16) / destwidth;
 			for (x = 0; x < destwidth; x += 4)
 			{
 				dest[x] = src[frac >> 16];

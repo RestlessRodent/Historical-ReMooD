@@ -69,7 +69,7 @@
 
 // NET GAME STUFF
 #define NG_STATSY               50
-#define NG_STATSX               (32 + SHORT(star->width)/2 + 32*!dofrags)
+#define NG_STATSX               (32 + LittleSwapInt16(star->width)/2 + 32*!dofrags)
 
 #define NG_SPACINGX             64
 
@@ -434,11 +434,11 @@ static void WI_drawLF(void)
 	}
 	else
 	{
-		V_DrawScaledPatch((BASEVIDWIDTH - SHORT(lnames[wbs->last]->width)) / 2,
+		V_DrawScaledPatch((BASEVIDWIDTH - LittleSwapInt16(lnames[wbs->last]->width)) / 2,
 						  y, FB, lnames[wbs->last]);
-		y += (5 * SHORT(lnames[wbs->last]->height)) / 4;
+		y += (5 * LittleSwapInt16(lnames[wbs->last]->height)) / 4;
 		// draw "Finished!"
-		V_DrawScaledPatch((BASEVIDWIDTH - SHORT(finished->width)) / 2, y, FB, finished);
+		V_DrawScaledPatch((BASEVIDWIDTH - LittleSwapInt16(finished->width)) / 2, y, FB, finished);
 	}
 }
 
@@ -458,12 +458,12 @@ static void WI_drawEL(void)
 	}
 	else
 	{
-		V_DrawScaledPatch((BASEVIDWIDTH - SHORT(entering->width)) / 2, y, FB, entering);
+		V_DrawScaledPatch((BASEVIDWIDTH - LittleSwapInt16(entering->width)) / 2, y, FB, entering);
 
 		// draw level
-		y += (5 * SHORT(lnames[wbs->next]->height)) / 4;
+		y += (5 * LittleSwapInt16(lnames[wbs->next]->height)) / 4;
 
-		V_DrawScaledPatch((BASEVIDWIDTH - SHORT(lnames[wbs->next]->width)) / 2,
+		V_DrawScaledPatch((BASEVIDWIDTH - LittleSwapInt16(lnames[wbs->next]->width)) / 2,
 						  y, FB, lnames[wbs->next]);
 	}
 
@@ -486,10 +486,10 @@ static void WI_drawOnLnode(int n, patch_t * c[])
 	i = 0;
 	do
 	{
-		left = lnodes->x - SHORT(c[i]->leftoffset);
-		top = lnodes->y - SHORT(c[i]->topoffset);
-		right = left + SHORT(c[i]->width);
-		bottom = top + SHORT(c[i]->height);
+		left = lnodes->x - LittleSwapInt16(c[i]->leftoffset);
+		top = lnodes->y - LittleSwapInt16(c[i]->topoffset);
+		right = left + LittleSwapInt16(c[i]->width);
+		bottom = top + LittleSwapInt16(c[i]->height);
 
 		if (left >= 0 && right < BASEVIDWIDTH && top >= 0 && bottom < BASEVIDHEIGHT)
 		{
@@ -654,7 +654,7 @@ static void WI_drawAnimatedBack(void)
 static int WI_drawNum(int x, int y, int n, int digits)
 {
 
-	int fontwidth = SHORT(num[0]->width);
+	int fontwidth = LittleSwapInt16(num[0]->width);
 	int neg;
 	int temp;
 
@@ -732,7 +732,7 @@ static void WI_drawTime(int x, int y, int t)
 		do
 		{
 			n = (t / div) % 60;
-			x = WI_drawNum(x, y, n, 2) - SHORT(colon->width);
+			x = WI_drawNum(x, y, n, 2) - LittleSwapInt16(colon->width);
 			div *= 60;
 
 			// draw
@@ -745,7 +745,7 @@ static void WI_drawTime(int x, int y, int t)
 	else
 	{
 		// "sucks"
-		V_DrawScaledPatch(x - SHORT(sucks->width), y, FB, sucks);
+		V_DrawScaledPatch(x - LittleSwapInt16(sucks->width), y, FB, sucks);
 	}
 }
 
@@ -1164,7 +1164,7 @@ static void WI_ddrawDeathmatchStats(void)
     WI_drawLF();
 
     // draw stat titles (top line)
-    V_DrawScaledPatch(DM_TOTALSX-SHORT(total->width)/2,
+    V_DrawScaledPatch(DM_TOTALSX-LittleSwapInt16(total->width)/2,
                 DM_MATRIXY-WI_SPACINGY+10,
                 FB,
                 total);
@@ -1188,13 +1188,13 @@ static void WI_ddrawDeathmatchStats(void)
             else
                 colormap = (byte *) translationtables - 256 + (players[i].skincolor<<8);
 
-            V_DrawMappedPatch(x-SHORT(stpb->width)/2,
+            V_DrawMappedPatch(x-LittleSwapInt16(stpb->width)/2,
                         DM_MATRIXY - WI_SPACINGY,
                         FB,
                         stpb,      //p[i], now uses a common STPB0 translated
                         colormap); //      to the right colors
 
-            V_DrawMappedPatch(DM_MATRIXX-SHORT(stpb->width)/2,
+            V_DrawMappedPatch(DM_MATRIXX-LittleSwapInt16(stpb->width)/2,
                         y,
                         FB,
                         stpb,      //p[i]
@@ -1202,12 +1202,12 @@ static void WI_ddrawDeathmatchStats(void)
 
             if (i == me)
             {
-                V_DrawScaledPatch(x-SHORT(stpb->width)/2,
+                V_DrawScaledPatch(x-LittleSwapInt16(stpb->width)/2,
                             DM_MATRIXY - WI_SPACINGY,
                             FB,
                             bstar);
 
-                V_DrawScaledPatch(DM_MATRIXX-SHORT(stpb->width)/2,
+                V_DrawScaledPatch(DM_MATRIXX-LittleSwapInt16(stpb->width)/2,
                             y,
                             FB,
                             star);
@@ -1215,9 +1215,9 @@ static void WI_ddrawDeathmatchStats(void)
         }
         else
         {
-            // V_DrawPatch(x-SHORT(bp[i]->width)/2,
+            // V_DrawPatch(x-LittleSwapInt16(bp[i]->width)/2,
             //   DM_MATRIXY - WI_SPACINGY, FB, bp[i]);
-            // V_DrawPatch(DM_MATRIXX-SHORT(bp[i]->width)/2,
+            // V_DrawPatch(DM_MATRIXX-LittleSwapInt16(bp[i]->width)/2,
             //   y, FB, bp[i]);
         }
         x += DM_SPACINGX;
@@ -1226,7 +1226,7 @@ static void WI_ddrawDeathmatchStats(void)
 
     // draw stats
     y = DM_MATRIXY+10;
-    w = SHORT(num[0]->width);
+    w = LittleSwapInt16(num[0]->width);
 
     for (i=0 ; i<MAXPLAYERS ; i++)
     {
@@ -1437,7 +1437,7 @@ static void WI_drawNetgameStats(void)
 	int i;
 	int x;
 	int y;
-	int pwidth = SHORT(percent->width);
+	int pwidth = LittleSwapInt16(percent->width);
 
 	byte *colormap;				//added:08-02-98: remap STBP0 to player color
 
@@ -1467,17 +1467,17 @@ static void WI_drawNetgameStats(void)
 	}
 	else
 	{
-		V_DrawScaledPatch(NG_STATSX + NG_SPACINGX - SHORT(kills->width), NG_STATSY, FB, kills);
+		V_DrawScaledPatch(NG_STATSX + NG_SPACINGX - LittleSwapInt16(kills->width), NG_STATSY, FB, kills);
 
-		V_DrawScaledPatch(NG_STATSX + 2 * NG_SPACINGX - SHORT(items->width), NG_STATSY, FB, items);
+		V_DrawScaledPatch(NG_STATSX + 2 * NG_SPACINGX - LittleSwapInt16(items->width), NG_STATSY, FB, items);
 
-		V_DrawScaledPatch(NG_STATSX + 3 * NG_SPACINGX - SHORT(secret->width),
+		V_DrawScaledPatch(NG_STATSX + 3 * NG_SPACINGX - LittleSwapInt16(secret->width),
 						  NG_STATSY, FB, secret);
 		if (dofrags)
-			V_DrawScaledPatch(NG_STATSX + 4 * NG_SPACINGX - SHORT(frags->width),
+			V_DrawScaledPatch(NG_STATSX + 4 * NG_SPACINGX - LittleSwapInt16(frags->width),
 							  NG_STATSY, FB, frags);
 		// draw stats
-		y = NG_STATSY + SHORT(kills->height);
+		y = NG_STATSY + LittleSwapInt16(kills->height);
 	}
 
 	//added:08-02-98: p[i] replaced by stpb (see WI_loadData for more)
@@ -1492,10 +1492,10 @@ static void WI_drawNetgameStats(void)
 		else
 			colormap = (byte *) translationtables - 256 + (players[i].skincolor << 8);
 
-		V_DrawMappedPatch(x - SHORT(stpb->width), y, FB, stpb, colormap);
+		V_DrawMappedPatch(x - LittleSwapInt16(stpb->width), y, FB, stpb, colormap);
 
 		if (i == me)
-			V_DrawScaledPatch(x - SHORT(stpb->width), y, FB, star);
+			V_DrawScaledPatch(x - LittleSwapInt16(stpb->width), y, FB, star);
 
 		x += NG_SPACINGX;
 		WI_drawPercent(x - pwidth, y + 10, cnt_kills[i]);
@@ -1638,7 +1638,7 @@ static void WI_drawStats(void)
 	// line height
 	int lh;
 
-	lh = (3 * SHORT(num[0]->height)) / 2;
+	lh = (3 * LittleSwapInt16(num[0]->height)) / 2;
 
 	WI_slamBackground();
 

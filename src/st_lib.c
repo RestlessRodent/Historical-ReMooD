@@ -71,8 +71,8 @@ void STlib_drawNum(st_number_t * n, boolean refresh)
 	int numdigits = n->width;
 	int num = *n->num;
 
-	int w = SHORT(n->p[0]->width);
-	int h = SHORT(n->p[0]->height);
+	int w = LittleSwapInt16(n->p[0]->width);
+	int h = LittleSwapInt16(n->p[0]->height);
 	int x = n->x;
 
 	int neg;
@@ -169,10 +169,10 @@ void STlib_updateMultIcon(st_multicon_t * mi, boolean refresh)
 	{
 		if (mi->oldinum != -1)
 		{
-			x = mi->x - SHORT(mi->p[mi->oldinum]->leftoffset);
-			y = mi->y - SHORT(mi->p[mi->oldinum]->topoffset);
-			w = SHORT(mi->p[mi->oldinum]->width);
-			h = SHORT(mi->p[mi->oldinum]->height);
+			x = mi->x - LittleSwapInt16(mi->p[mi->oldinum]->leftoffset);
+			y = mi->y - LittleSwapInt16(mi->p[mi->oldinum]->topoffset);
+			w = LittleSwapInt16(mi->p[mi->oldinum]->width);
+			h = LittleSwapInt16(mi->p[mi->oldinum]->height);
 
 #ifdef DEBUG
 			CONS_Printf("V_CopyRect2: %d %d %d %d %d %d %d %d\n", x, y, BG, w, h, x, y, STTRANSPARENTSCREEN);
@@ -205,10 +205,10 @@ void STlib_updateBinIcon(st_binicon_t * bi, boolean refresh)
 
 	if (*bi->on && (bi->oldval != *bi->val || refresh))
 	{
-		x = bi->x - SHORT(bi->p->leftoffset);
-		y = bi->y - SHORT(bi->p->topoffset);
-		w = SHORT(bi->p->width);
-		h = SHORT(bi->p->height);
+		x = bi->x - LittleSwapInt16(bi->p->leftoffset);
+		y = bi->y - LittleSwapInt16(bi->p->topoffset);
+		w = LittleSwapInt16(bi->p->width);
+		h = LittleSwapInt16(bi->p->height);
 
 		if (*bi->val)
 			V_DrawScaledPatch(bi->x, bi->y, STTRANSPARENTSCREEN, bi->p);

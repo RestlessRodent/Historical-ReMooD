@@ -201,7 +201,7 @@ void P_InitPicAnims(void)
 			I_Error("P_InitPicAnims: bad cycle from %s to %s",
 					animdefs[i].startname, animdefs[i].endname);
 
-		lastanim->speed = LONG(animdefs[i].speed) * NEWTICRATERATIO;
+		lastanim->speed = LittleSwapInt32(animdefs[i].speed) * NEWTICRATERATIO;
 		lastanim++;
 	}
 	lastanim->istexture = -1;

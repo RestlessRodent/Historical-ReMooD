@@ -86,7 +86,7 @@ void R_SetupSkyDraw(void)
 	for (height = 0, i = 0; i < count; i++, patches++)
 	{
 		W_ReadLumpHeader(patches->patch, &wpatch, sizeof(patch_t));
-		wpatch.height = SHORT(wpatch.height);
+		wpatch.height = LittleSwapInt16(wpatch.height);
 		if (wpatch.height > height)
 			height = wpatch.height;
 	}

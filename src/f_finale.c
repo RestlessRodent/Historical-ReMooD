@@ -569,7 +569,7 @@ static void F_DrawPatchCol(int x, patch_t * patch, int col)
 	byte *desttop;
 	int count;
 
-	column = (column_t *) ((byte *) patch + LONG(patch->columnofs[col]));
+	column = (column_t *) ((byte *) patch + LittleSwapInt32(patch->columnofs[col]));
 	desttop = screens[0] + x * vid.dupx;
 
 	// step through the posts in a column

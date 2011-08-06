@@ -523,7 +523,7 @@ int W_LoadWadFile(char *filename)
 				case METHOD_WAD:	// WAD File
 					/* NumLumps */
 					if ((readcount = fread(&NumLumps, sizeof(NumLumps), 1, tFile)))
-						n->NumLumps = LITTLESWAP32(NumLumps);
+						n->NumLumps = LittleSwapUInt32(NumLumps);
 					else
 					{
 						if (devparm)
@@ -546,7 +546,7 @@ int W_LoadWadFile(char *filename)
 						uint32_t pos = 0;
 						
 						// GhostlyDeath <November 5, 2010> -- Swap for BE
-						IndexOffset = LITTLESWAP32(IndexOffset);
+						IndexOffset = LittleSwapUInt32(IndexOffset);
 
 						n->WADNameHack = Z_Malloc((NumLumps * 9) + 1, PU_STATIC, NULL);
 						memset(n->WADNameHack, 0, (NumLumps * 9) + 1);
@@ -1195,8 +1195,8 @@ void *W_CacheRawAsPic(WadIndex_t lump, int width, int height, size_t tag)
 		{
 			we->Cache[WETYPE_PICT] = Z_Malloc(W_LumpLength(lump) + sizeof(pic_t), tag, &we->Cache[WETYPE_PICT]);
 			W_ReadLumpHeader(lump, ((pic_t*)we->Cache[WETYPE_PICT])->data, 0);
-			((pic_t*)we->Cache[WETYPE_PICT])->width = SHORT(width);
-			((pic_t*)we->Cache[WETYPE_PICT])->height = SHORT(height);
+			((pic_t*)we->Cache[WETYPE_PICT])->width = LittleSwapInt16(width);
+			((pic_t*)we->Cache[WETYPE_PICT])->height = LittleSwapInt16(height);
 			((pic_t*)we->Cache[WETYPE_PICT])->mode = PALETTE;
 		}
 		else

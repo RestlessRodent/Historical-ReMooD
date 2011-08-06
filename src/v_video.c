@@ -523,8 +523,8 @@ static void V_BlitScalePic(int x1, int y1, int scrn, pic_t * pic)
 	if (!graphics_started)
 		return;
 
-	width = SHORT(pic->width);
-	height = SHORT(pic->height);
+	width = LittleSwapInt16(pic->width);
+	height = LittleSwapInt16(pic->height);
 	scrn &= 0xffff;
 
 	if (pic->mode != 0)

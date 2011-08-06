@@ -232,10 +232,10 @@ boolean R_AddSingleSpriteDef(char *sprname, spritedef_t * spritedef, int wadnum,
 			// store sprite info in lookup tables
 			//FIXME:numspritelumps do not duplicate sprite replacements
 			W_ReadLumpHeader(W_LumpsSoFar(wad) + l, &patch, sizeof(patch_t));
-			spritewidth[numspritelumps] = SHORT(patch.width) << FRACBITS;
-			spriteoffset[numspritelumps] = SHORT(patch.leftoffset) << FRACBITS;
-			spritetopoffset[numspritelumps] = SHORT(patch.topoffset) << FRACBITS;
-			spriteheight[numspritelumps] = SHORT(patch.height) << FRACBITS;
+			spritewidth[numspritelumps] = LittleSwapInt16(patch.width) << FRACBITS;
+			spriteoffset[numspritelumps] = LittleSwapInt16(patch.leftoffset) << FRACBITS;
+			spritetopoffset[numspritelumps] = LittleSwapInt16(patch.topoffset) << FRACBITS;
+			spriteheight[numspritelumps] = LittleSwapInt16(patch.height) << FRACBITS;
 
 			//----------------------------------------------------
 
@@ -596,10 +596,10 @@ static void R_DrawVisSprite(vissprite_t * vis, int x1, int x2)
 	{
 		texturecolumn = frac >> FRACBITS;
 #ifdef RANGECHECK
-		if (texturecolumn < 0 || texturecolumn >= SHORT(patch->width))
+		if (texturecolumn < 0 || texturecolumn >= LittleSwapInt16(patch->width))
 			I_Error("R_DrawSpriteRange: bad texturecolumn");
 #endif
-		column = (column_t *) (((byte *) patch) + LONG(patch->columnofs[texturecolumn]));
+		column = (column_t *) (((byte *) patch) + LittleSwapInt32(patch->columnofs[texturecolumn]));
 		R_DrawMaskedColumn(column);
 	}
 

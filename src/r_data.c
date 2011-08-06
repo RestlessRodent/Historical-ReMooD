@@ -241,7 +241,7 @@ byte *R_GenerateTexture(int texnum)
 		{
 			realpatch = W_CacheLumpNum(patch->patch, PU_CACHE);
 			x1 = patch->originx;
-			x2 = x1 + SHORT(realpatch->width);
+			x2 = x1 + LittleSwapInt16(realpatch->width);
 
 			if (x1 < 0)
 				x = 0;
@@ -253,7 +253,7 @@ byte *R_GenerateTexture(int texnum)
 
 			for (; x < x2; x++)
 			{
-				patchcol = (column_t *) ((byte *) realpatch + LONG(realpatch->columnofs[x - x1]));
+				patchcol = (column_t *) ((byte *) realpatch + LittleSwapInt32(realpatch->columnofs[x - x1]));
 
 				// generate column ofset lookup
 				colofs[x] = (x * texture->height) + (texture->width * 4);
@@ -398,7 +398,7 @@ void R_LoadTextures(void)
 	// Load the patch names from pnames.lmp.
 	name[8] = 0;
 	pnames = W_CacheLumpName("PNAMES", PU_STATIC);
-	nummappatches = LONG(*((uint32_t *) pnames));
+	nummappatches = LittleSwapInt32(*((uint32_t *) pnames));
 	name_p = pnames + 4;
 	patchlookup = Z_Malloc(nummappatches * sizeof(*patchlookup), PU_STATIC, NULL);
 
@@ -583,9 +583,9 @@ void R_LoadTextures(void)
 
 		texture = textures[i];
 
-		texture->width = SHORT(mtexture->width);
-		texture->height = SHORT(mtexture->height);
-		texture->patchcount = SHORT(mtexture->patchcount);
+		texture->width = LittleSwapInt16(mtexture->width);
+		texture->height = LittleSwapInt16(mtexture->height);
+		texture->patchcount = LittleSwapInt16(mtexture->patchcount);
 
 		// Sparc requires memmove, becuz gcc doesn't know mtexture is not aligned.
 		// gcc will replace memcpy with two 4-byte read/writes, which will bus error.
@@ -595,9 +595,9 @@ void R_LoadTextures(void)
 
 		for (j = 0; j < texture->patchcount; j++, mpatch++, patch++)
 		{
-			patch->originx = SHORT(mpatch->originx);
-			patch->originy = SHORT(mpatch->originy);
-			patch->patch = patchlookup[SHORT(mpatch->patch)];
+			patch->originx = LittleSwapInt16(mpatch->originx);
+			patch->originy = LittleSwapInt16(mpatch->originy);
+			patch->patch = patchlookup[LittleSwapInt16(mpatch->patch)];
 			if (patch->patch == -1)
 			{
 				I_Error

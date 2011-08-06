@@ -322,7 +322,7 @@ void M_DrawThermo(int x, int y, consvar_t * cv)
 	centerlump[1] = W_GetNumForName("M_THERMM");
 	cursorlump = W_GetNumForName("M_THERMO");
 	V_DrawScaledPatch(xx, y, 0, p = W_CachePatchNum(leftlump, PU_CACHE));
-	xx += SHORT(p->width) - SHORT(p->leftoffset);
+	xx += LittleSwapInt16(p->width) - LittleSwapInt16(p->leftoffset);
 	for (i = 0; i < 16; i++)
 	{
 		V_DrawScaledPatch(xx, y, 0, W_CachePatchNum(centerlump[i & 1], PU_CACHE));
@@ -560,7 +560,7 @@ void M_DrawMessageMenu(void)
 		}
 
 		V_DrawStringA(VFONT_SMALL, 0, string, (BASEVIDWIDTH - V_StringWidthA(VFONT_SMALL, 0, string)) / 2, y);
-		y += 8;					//SHORT(hu_font[0]->height);
+		y += 8;					//LittleSwapInt16(hu_font[0]->height);
 	}
 }
 

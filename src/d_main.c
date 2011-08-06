@@ -409,7 +409,7 @@ void D_Display(void)
 		else
 			y = viewwindowy + 4;
 		patch = W_CachePatchName("M_PAUSE", PU_CACHE);
-		V_DrawScaledPatch(viewwindowx + (BASEVIDWIDTH - SHORT(patch->width)) / 2, y, 0, patch);
+		V_DrawScaledPatch(viewwindowx + (BASEVIDWIDTH - LittleSwapInt16(patch->width)) / 2, y, 0, patch);
 	}
 
 	//added:24-01-98:vid size change is now finished if it was on...
@@ -819,7 +819,7 @@ gamemode_t GetDoomVersion(char *wadfile)
 	}
 	
 	// GhostlyDeath <July 11, 2008> -- Only have the retail one on me now...
-	if ((LONG(NumLumps) == 2306) && (LONG(IndexOffset) == 12371396))
+	if ((LittleSwapInt32(NumLumps) == 2306) && (LittleSwapInt32(IndexOffset) == 12371396))
 		return retail;
 	else
 		return registered;

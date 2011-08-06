@@ -167,7 +167,7 @@ void P_InitSwitchList(void)
 		alphSwitchList = (switchlist_t *) W_CacheLumpName("SWITCHES", PU_STATIC);
 		// endian conversion only when loading from extra lump
 		for (i = 0; alphSwitchList[i].episode != 0; i++)
-			alphSwitchList[i].episode = SHORT(alphSwitchList[i].episode);
+			alphSwitchList[i].episode = LittleSwapInt16(alphSwitchList[i].episode);
 	}
 	else
 		alphSwitchList = oldalphSwitchList;

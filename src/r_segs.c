@@ -231,7 +231,7 @@ static void R_DrawWallSplats()
 		// SoM: This is set allready. THIS IS WHAT WAS CAUSING PROBLEMS WITH
 		// BOOM WATER!
 		// frontsector = ds_p->curline->frontsector;
-		dc_texturemid = splat->top + (SHORT(patch->height) << (FRACBITS - 1)) - viewz;
+		dc_texturemid = splat->top + (LittleSwapInt16(patch->height) << (FRACBITS - 1)) - viewz;
 		if (splat->yoffset)
 			dc_texturemid += *splat->yoffset;
 
@@ -296,14 +296,14 @@ static void R_DrawWallSplats()
 
 			// FIXME !
 //            CONS_Printf ("%.2f width %d, %d[x], %.1f[off]-%.1f[soff]-tg(%d)=%.1f*%.1f[d] = %.1f\n", 
-//                         FIXED_TO_FLOAT(texturecolumn), SHORT(patch->width),
+//                         FIXED_TO_FLOAT(texturecolumn), LittleSwapInt16(patch->width),
 //                         dc_x,FIXED_TO_FLOAT(rw_offset2),FIXED_TO_FLOAT(splat->offset),angle,FIXED_TO_FLOAT(finetangent[angle]),FIXED_TO_FLOAT(rw_distance),FIXED_TO_FLOAT(FixedMul(finetangent[angle],rw_distance)));
 			texturecolumn >>= FRACBITS;
-			if (texturecolumn < 0 || texturecolumn >= SHORT(patch->width))
+			if (texturecolumn < 0 || texturecolumn >= LittleSwapInt16(patch->width))
 				continue;
 
 			// draw the texture
-			col = (column_t *) ((byte *) patch + LONG(patch->columnofs[texturecolumn]));
+			col = (column_t *) ((byte *) patch + LittleSwapInt32(patch->columnofs[texturecolumn]));
 			R_DrawSplatColumn(col);
 
 		}
