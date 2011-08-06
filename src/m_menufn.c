@@ -111,10 +111,10 @@ void M_DrawVideoOptions(void)
 	// Draw Cursor
 	if (itemOn == 0)
 	{
-		if (skullAnimCounter < 4 * NEWTICRATERATIO)	//blink cursor
+		if (skullAnimCounter < 4)	//blink cursor
 			V_DrawCharacterA(VFONT_SMALL, VEX_MAP_WHITE, '*', cursorx, cursory);
 			
-		if (!(skullAnimCounter < 4 * NEWTICRATERATIO))	//blink cursor
+		if (!(skullAnimCounter < 4))	//blink cursor
 			V_DrawCharacterA(VFONT_SMALL, VEX_MAP_WHITE, '*', currentMenu->x - 10, currentMenu->y + (itemOn * STRINGHEIGHT));
 	}
 }
@@ -1096,7 +1096,7 @@ void M_Ticker(void)
 	if (--skullAnimCounter <= 0)
 	{
 		whichSkull ^= 1;
-		skullAnimCounter = 8 * NEWTICRATERATIO;
+		skullAnimCounter = 8;
 	}
 }
 

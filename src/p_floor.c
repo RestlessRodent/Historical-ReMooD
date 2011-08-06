@@ -236,7 +236,7 @@ void T_MoveFloor(floormove_t * floor)
 	res = T_MovePlane(floor->sector,
 					  floor->speed, floor->floordestheight, floor->crush, 0, floor->direction);
 
-	if (!(leveltime % (8 * NEWTICRATERATIO)))
+	if (!(leveltime % (8)))
 		S_StartSound((mobj_t *) & floor->sector->soundorg, ceilmovesound);
 
 	if (res == pastdest)
@@ -358,7 +358,7 @@ void T_MoveElevator(elevator_t * elevator)
 	}
 
 	// make floor move sound
-	if (!(leveltime % (8 * NEWTICRATERATIO)))
+	if (!(leveltime % (8)))
 		S_StartSound((mobj_t *) & elevator->sector->soundorg, sfx_stnmov);
 
 	if (res == pastdest)		// if destination height acheived

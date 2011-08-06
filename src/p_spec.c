@@ -201,7 +201,7 @@ void P_InitPicAnims(void)
 			I_Error("P_InitPicAnims: bad cycle from %s to %s",
 					animdefs[i].startname, animdefs[i].endname);
 
-		lastanim->speed = LittleSwapInt32(animdefs[i].speed) * NEWTICRATERATIO;
+		lastanim->speed = LittleSwapInt32(animdefs[i].speed);
 		lastanim++;
 	}
 	lastanim->istexture = -1;
@@ -2229,10 +2229,10 @@ void P_PlayerOnSpecial3DFloor(player_t * player)
 			if (player->mo->z != *rover->topheight)
 				continue;
 
-			if (demoversion >= 125 && (player->mo->eflags & MF_JUSTHITFLOOR) && sector->heightsec == -1 && (leveltime % (2 * NEWTICRATERATIO)))	//SoM: penalize jumping less.
+			if (demoversion >= 125 && (player->mo->eflags & MF_JUSTHITFLOOR) && sector->heightsec == -1 && (leveltime % (2)))	//SoM: penalize jumping less.
 				instantdamage = true;
 			else
-				instantdamage = !(leveltime % (32 * NEWTICRATERATIO));
+				instantdamage = !(leveltime % (32));
 		}
 		else
 		{
@@ -2240,7 +2240,7 @@ void P_PlayerOnSpecial3DFloor(player_t * player)
 			if (player->mo->z > *rover->topheight ||
 				(player->mo->z + player->mo->height) < *rover->bottomheight)
 				continue;
-			instantdamage = !(leveltime % (32 * NEWTICRATERATIO));
+			instantdamage = !(leveltime % (32));
 		}
 
 		P_ProcessSpecialSector(player, rover->master->frontsector, instantdamage);
@@ -2279,10 +2279,10 @@ void P_PlayerInSpecialSector(player_t * player)
 		return;
 
 	//Fab: jumping in lava/slime does instant damage (no jump cheat)
-	if (demoversion >= 125 && (player->mo->eflags & MF_JUSTHITFLOOR) && sector->heightsec == -1 && (leveltime % (2 * NEWTICRATERATIO)))	//SoM: penalize jumping less.
+	if (demoversion >= 125 && (player->mo->eflags & MF_JUSTHITFLOOR) && sector->heightsec == -1 && (leveltime % (2)))	//SoM: penalize jumping less.
 		instantdamage = true;
 	else
-		instantdamage = !(leveltime % (32 * NEWTICRATERATIO));
+		instantdamage = !(leveltime % (32));
 
 	P_ProcessSpecialSector(player, sector, instantdamage);
 }

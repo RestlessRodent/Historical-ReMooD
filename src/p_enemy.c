@@ -983,7 +983,7 @@ void A_Tracer(mobj_t * actor)
 	mobj_t *th;
 
 	// TODO: Demo Desync!
-	if (gametic % (4 * NEWTICRATERATIO))
+	if (gametic % (4))
 		return;
 
 	// spawn a puff of smoke behind the rocket

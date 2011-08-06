@@ -330,7 +330,7 @@ void A_WeaponReady(player_t * player, pspdef_t * psp)
 	{
 		int angle;
 		// bob the weapon based on movement speed
-		angle = (128 * leveltime / NEWTICRATERATIO) & FINEMASK;
+		angle = (128 * leveltime) & FINEMASK;
 		psp->sx = FRACUNIT + FixedMul(player->bob, finecosine[angle]);
 		angle &= FINEANGLES / 2 - 1;
 		psp->sy = WEAPONTOP + FixedMul(player->bob, finesine[angle]);
@@ -345,7 +345,7 @@ void A_TicWeapon(player_t * player, pspdef_t * psp)
 		int angle;
 
 		// bob the weapon based on movement speed
-		angle = (128 * localgametic / NEWTICRATERATIO) & FINEMASK;
+		angle = (128 * localgametic) & FINEMASK;
 		psp->sx = FRACUNIT + FixedMul(player->bob, finecosine[angle]);
 		angle &= FINEANGLES / 2 - 1;
 		psp->sy = WEAPONTOP + FixedMul(player->bob, finesine[angle]);

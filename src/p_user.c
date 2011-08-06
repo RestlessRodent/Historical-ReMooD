@@ -89,7 +89,7 @@ void P_CalcHeight(player_t * player)
 	ViewHeight = cv_viewheight.value << FRACBITS;
 	
 	// Calculate bobbing
-	player->bob = ((FixedMul(player->mo->momx, player->mo->momx) + FixedMul(player->mo->momy, player->mo->momy)) * NEWTICRATERATIO) >> 2;
+	player->bob = ((FixedMul(player->mo->momx, player->mo->momx) + FixedMul(player->mo->momy, player->mo->momy))) >> 2;
 
 	if (player->bob > MAXBOB)
 		player->bob = MAXBOB;
@@ -97,7 +97,7 @@ void P_CalcHeight(player_t * player)
 	if (player->mo->flags2 & MF2_FLY && !onground)
 		player->bob = FRACUNIT / 2;
 
-	angle = (FINEANGLES / 20 * localgametic / NEWTICRATERATIO) & FINEMASK;
+	angle = (FINEANGLES / 20 * localgametic) & FINEMASK;
 	bob = FixedMul(player->bob / 2, finesine[angle]);
 	
 	/* Set target */
@@ -164,7 +164,7 @@ void P_CalcHeight(player_t * player)
 
 	mo = player->mo;
 
-	player->bob = ((FixedMul(mo->momx, mo->momx) + FixedMul(mo->momy, mo->momy)) * NEWTICRATERATIO) >> 2;
+	player->bob = ((FixedMul(mo->momx, mo->momx) + FixedMul(mo->momy, mo->momy))) >> 2;
 	//player->bob = FixedMul(player->MoveMom, player->MoveMom) >> 2;
 
 	if (player->bob > MAXBOB)
@@ -184,7 +184,7 @@ void P_CalcHeight(player_t * player)
 		return;
 	}
 
-	angle = (FINEANGLES / 20 * localgametic / NEWTICRATERATIO) & FINEMASK;
+	angle = (FINEANGLES / 20 * localgametic) & FINEMASK;
 	bob = FixedMul(player->bob / 2, finesine[angle]);
 	
 	// move viewheight
@@ -781,7 +781,7 @@ void P_PlayerThink(player_t * player)
 	if (demoversion >= 125 && player->specialsector >= 887 && player->specialsector <= 888)
 	{
 		if ((player->mo->momx > (2 * FRACUNIT) || player->mo->momx < (-2 * FRACUNIT) || player->mo->momy > (2 * FRACUNIT) || player->mo->momy < (-2 * FRACUNIT) || player->mo->momz > (2 * FRACUNIT)) &&	// jump out of water
-			!(gametic % (32 * NEWTICRATERATIO)))
+			!(gametic % (32)))
 		{
 			//
 			// make sur we disturb the surface of water (we touch it)

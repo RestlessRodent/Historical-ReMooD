@@ -81,10 +81,7 @@ extern uint8_t demoversion;
 #define SAVESTRINGSIZE          24
 
 // State updates, number of tics / second.
-// NOTE: used to setup the timer rate, see I_StartupTimer().
-#define OLDTICRATE       35
-#define NEWTICRATERATIO   1		// try 4 for 140 fps :)
-#define TICRATE         (OLDTICRATE*NEWTICRATERATIO)
+#define TICRATE				35
 
 // Name of local directory for config files and savegames
 #ifdef LINUX
@@ -118,9 +115,6 @@ extern bool_t devparm;			// development mode (-devparm)
 // =======================
 // Misc stuff for later...
 // =======================
-
-// debug me in color (v_video.c)
-void IO_Color(unsigned char color, unsigned char r, unsigned char g, unsigned char b);
 
 // i_system.c, replace getchar() once the keyboard has been appropriated
 int I_GetKey(void);

@@ -325,10 +325,10 @@ angle_t localangle[MAXSPLITSCREENPLAYERS];
 #define KB_LOOKSPEED    (1<<25)
 #define MAXPLMOVE       (forwardmove[1])
 #define TURBOTHRESHOLD  0x32
-#define SLOWTURNTICS    (6*NEWTICRATERATIO)
+#define SLOWTURNTICS    (6)
 
-static fixed_t forwardmove[2] = { 25 / NEWTICRATERATIO, 50 / NEWTICRATERATIO };
-static fixed_t sidemove[2] = { 24 / NEWTICRATERATIO, 40 / NEWTICRATERATIO };
+static fixed_t forwardmove[2] = { 25, 50 };
+static fixed_t sidemove[2] = { 24, 40 };
 static fixed_t angleturn[3] = { 640, 1280, 320 };	// + slow turn
 
 // for change this table change also nextweapon func in g_game and P_PlayerThink
@@ -978,8 +978,8 @@ void G_Ticker(void)
 
 			// check for turbo cheats
 			if (cmd->forwardmove > TURBOTHRESHOLD
-				&& !(gametic % (32 * NEWTICRATERATIO)) &&
-				((gametic / (32 * NEWTICRATERATIO)) & 3) == i)
+				&& !(gametic % (32)) &&
+				((gametic / (32)) & 3) == i)
 			{
 				static char turbomessage[80];
 				sprintf(turbomessage, "%s is turbo!", player_names[i]);
@@ -992,9 +992,7 @@ void G_Ticker(void)
 	switch (gamestate)
 	{
 		case GS_LEVEL:
-			//IO_Color(0,255,0,0);
 			P_Ticker();			// tic the game
-			//IO_Color(0,0,255,0);
 			ST_Ticker();
 			AM_Ticker();
 			HU_Ticker();

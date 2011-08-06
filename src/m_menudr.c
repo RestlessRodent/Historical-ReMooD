@@ -289,7 +289,7 @@ void M_DrawGenericMenu(void)
 			V_DrawScaledPatch(currentMenu->x + SKULLXOFF,
 							  cursory - 5, 0, W_CachePatchName(skullName[whichSkull], PU_CACHE));
 		}
-		else if (skullAnimCounter < cv_cons_blinkingrate.value * NEWTICRATERATIO)	//blink cursor
+		else if (skullAnimCounter < cv_cons_blinkingrate.value)	//blink cursor
 		{
 			if (currentMenu->menuitems[itemOn].status & IT_CENTERSTRING)
 			{
