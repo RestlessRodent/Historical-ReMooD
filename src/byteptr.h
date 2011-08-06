@@ -42,7 +42,7 @@
 *** REMOVE THIS GARBAGE, SERIOUSLY! ***
 **************************************/
 
-#if defined(_REMOOD_BIG_ENDIAN)
+#if defined(__REMOOD_BIG_ENDIAN)
 	#define writeshort(p,b)     *(int16_t*)  (p)   = LITTLESWAP32(b)
 	#define writelong(p,b)      *(int32_t *)  (p)   = LITTLESWAP32(b)
 
@@ -111,11 +111,11 @@
 
 	/* MUST ALWAYS DO THIS! */
 	// Confusing GCC Stuff...
-	#if !defined(_REMOOD_BIG_ENDIAN) && !defined(_REMOOD_LITTLE_ENDIAN)
+	#if !defined(__REMOOD_BIG_ENDIAN) && !defined(_REMOOD_LITTLE_ENDIAN)
 		#if defined(__BYTE_ORDER) && (__BYTE_ORDER == __BIG_ENDIAN)
-			#define _REMOOD_BIG_ENDIAN 1
-		#elif defined(__BYTE_ORDER__) && (__BYTE_ORDER__ == __BIG_ENDIAN__)
-			#define _REMOOD_BIG_ENDIAN 1
+			#define __REMOOD_BIG_ENDIAN 1
+		#elif defined(__BYTE_ORDER__) && (__BYTE_ORDER__ == __REMOOD_BIG_ENDIAN)
+			#define __REMOOD_BIG_ENDIAN 1
 		#endif
 	#endif
 #endif
@@ -141,7 +141,7 @@
 				((((n) & 0xFFFFFFFFFFFFFFFFLL) << 56) & 0xFF00000000000000LL)) & 0xFFFFFFFFFFFFFFFFLL)
 #endif
 
-#if defined(_REMOOD_BIG_ENDIAN)
+#if defined(__REMOOD_BIG_ENDIAN)
 	#define BIGSWAP16(n) (n)
 	#define BIGSWAP32(n) (n)
 	#define LITTLESWAP16(n) SWAP16((n))
@@ -170,7 +170,7 @@
 #define LONGU(x)	(x)//((uint32_t)LITTLESWAP32((uint32_t)(x)))
 #define SIZET(x)	(x)//((size_t)((sizeof(size_t) == 8 ? (LITTLESWAP64((size_t)(x))) : (LITTLESWAP32((size_t)(x))))))
 
-#if defined(_REMOOD_BIG_ENDIAN)
+#if defined(__REMOOD_BIG_ENDIAN)
 	#define SwapSHORT(n)	(n)//SWAP16((uint16_t)(n))
 	#define SwapLONG(n)		(n)//SWAP32((uint32_t)(n))
 #endif

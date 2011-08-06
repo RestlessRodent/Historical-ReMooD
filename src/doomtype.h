@@ -49,6 +49,27 @@
 	#define vsnprintf g_vsnprintf
 #endif
 
+/******************
+*** BIG ENDIAN? ***
+******************/
+
+/* Just check for big endian */
+#if !defined(__REMOOD_BIG_ENDIAN)
+	// GCC has endian.h
+	#if defined(__GNUC__)
+		#include <endian.h>
+		
+		#if defined(BYTE_ORDER) && (BYTE_ORDER == BIG_ENDIAN)
+			#define __REMOOD_BIG_ENDIAN
+		#elif defined(__BYTE_ORDER) && (__BYTE_ORDER == __BIG_ENDIAN)
+			#define __REMOOD_BIG_ENDIAN
+		#endif
+	#endif
+	
+	// Known Big endian systems
+	// TODO
+#endif
+
 /***********************
 *** FIXED SIZE TYPES ***
 ***********************/
@@ -263,7 +284,7 @@ static inline int32_t __REMOOD_FORCEINLINE SwapInt64(const int64_t In)
 }
 
 /* Little swapping */
-#if defined(__BIG_ENDIAN__)
+#if defined(__REMOOD_BIG_ENDIAN)
 	#define LS_x(w,x) static inline x __REMOOD_FORCEINLINE BP_MERGE(LittleSwap,w)(const x In)\
 	{\
 		return BP_MERGE(Swap,w)(In);\
@@ -285,7 +306,7 @@ LS_x(UInt64,uint64_t)
 #undef LS_x
 
 /* Big swapping */
-#if defined(__BIG_ENDIAN__)
+#if defined(__REMOOD_BIG_ENDIAN)
 	#define BS_x(w,x) static inline x __REMOOD_FORCEINLINE BP_MERGE(BigSwap,w)(const x In)\
 	{\
 		return In;\
@@ -307,7 +328,7 @@ BS_x(UInt64,uint64_t)
 #undef BS_x
 
 /*** Reading/Writing Little Endian Data ***/
-#if defined(__BIG_ENDIAN__)
+#if defined(__REMOOD_BIG_ENDIAN)
 	#define BPLREAD_x(w,x) static inline x __REMOOD_FORCEINLINE BP_MERGE(LittleRead,w)(const x** const Ptr)\
 	{\
 		return BP_MERGE(Swap,w)(BP_MERGE(Read,w)(Ptr));\
@@ -319,7 +340,7 @@ BS_x(UInt64,uint64_t)
 	}
 #endif
 
-#if defined(__BIG_ENDIAN__)
+#if defined(__REMOOD_BIG_ENDIAN)
 	#define BPLWRITE_x(w,x) static inline void __REMOOD_FORCEINLINE BP_MERGE(LittleWrite,w)(x** const Ptr, const x Val)\
 	{\
 		BP_MERGE(Write,w)(Ptr, BP_MERGE(Swap,w)(Val));\
@@ -467,7 +488,7 @@ union FColorRGBA
 };
 typedef union FColorRGBA RGBA_t;
 
-#ifdef __BIG_ENDIAN__
+#ifdef __REMOOD_BIG_ENDIAN
 #define UINT2RGBA(a) a
 #else
 #define UINT2RGBA(a) ((a&0xff)<<24)|((a&0xff00)<<8)|((a&0xff0000)>>8)|(((ULONG)a&0xff000000)>>24)
