@@ -100,6 +100,21 @@ typedef struct I_VideoMode_s
 	char Name[MODENAMELENGTH];					// Mode name
 } I_VideoMode_t;
 
+/* I_LocalMusic_t -- Local music data */
+typedef struct I_LocalMusic_s
+{
+	I_MusicType_t Type;							// Type of song this is
+	int Handle;									// Song handle
+	I_MusicDriver_t* Driver;					// Driver to play with
+	int DriverHandle;							// Handle known by driver
+	uint32_t Length;							// Length of song in tics
+	WX_WADEntry_t* Entry;						// Entry of song
+	size_t EntryLength;							// Length of entry
+	uint8_t* Data;								// Loaded Data
+	char* PathName;								// Path to file on disk (if it exists)
+	bool_t Playing;								// Is the song playing?
+} I_LocalMusic_t;
+
 /*************
 *** LOCALS ***
 *************/
@@ -116,6 +131,9 @@ static quitfuncptr quit_funcs[MAX_QUIT_FUNCS];
 
 static I_MusicDriver_t** l_MusicDrivers;		// Music drivers
 static size_t l_NumMusicDrivers;				// Number of music drivers
+
+static I_LocalMusic_t* l_LocalSongs;			// Local songs
+static size_t l_NumLocalSongs;					// Number of local songs
 
 /****************
 *** FUNCTIONS ***
@@ -773,23 +791,70 @@ uint64_t I_GetDiskFreeSpace(const char* const a_Path)
 /* I_AddMusicDriver() -- Adds a new music driver */
 bool_t I_AddMusicDriver(I_MusicDriver_t* const a_Driver)
 {
+	size_t i;
+	
 	/* Check */
 	if (!a_Driver)
 		return false;
+	
+	/* Attempt driver initialization */
+	if (a_Driver->Init && !a_Driver->Init(a_Driver))
+		return false;
+	
+	/* Find a blank spot */
+	for (i = 0; i < l_NumMusicDrivers; i++)
+		if (!l_MusicDrivers[i])
+		{
+			l_MusicDrivers[i] = a_Driver;
+			break;
+		}
+	
+	// did not find one
+	if (i == l_NumMusicDrivers)
+	{
+		// Resize the list
+		Z_ResizeArray(&l_MusicDrivers, sizeof(*l_MusicDrivers), l_NumMusicDrivers, l_NumMusicDrivers + 1);
+		l_MusicDrivers[l_NumMusicDrivers++] = a_Driver;
+	}
+	
+	/* Call the success routine, if it exists */
+	if (a_Driver->Success)
+		a_Driver->Success(a_Driver);
+	
+	/* Success */	
 	return true;
 }
 
 /* I_RemoveMusicDriver() -- Removes a music driver */
 bool_t I_RemoveMusicDriver(I_MusicDriver_t* const a_Driver)
 {
+	size_t i;
+	
 	/* Check */
 	if (!a_Driver)
 		return false;
+	
+	/* Find driver */
+	
 	return true;
 }
 
-/*static I_MusicDriver_t** l_MusicDrivers;		// Music drivers
-static size_t l_NumMusicDrivers;				// Number of music drivers*/
+/* I_FindMusicDriver() -- Find a music driver that can play this format */
+I_MusicDriver_t* I_FindMusicDriver(const I_MusicType_t a_Type)
+{
+	I_MusicDriver_t* Best = NULL;
+	size_t i;
+	
+	/* Go through every driver */
+	for (i = 0; i < l_NumMusicDrivers; i++)
+		if (l_MusicDrivers[i])
+			if (l_MusicDrivers[i]->MusicType & (1 << a_Type))
+				if (!Best || (Best && l_MusicDrivers[i]->Priority > Best->Priority))
+					Best = l_MusicDrivers[i];
+	
+	/* Return the best driver, if any */
+	return Best;
+}
 
 /* I_InitMusic() -- Initializes the music system */
 void I_InitMusic(void)
@@ -802,6 +867,8 @@ void I_InitMusic(void)
 	// OPL Emulation!
 	
 	// Native MOD Support
+	
+	// ReMooD MUS2MID Driver
 }
 
 /* I_ShutdownMusic() -- Shuts down the music system */
@@ -830,10 +897,155 @@ void I_SetMusicVolume(int volume)
 {
 }
 
+#if 0
+static I_LocalMusic_t** l_LocalSongs;			// Local songs
+static size_t I_NumLocalSongs;					// Number of local songs
+
+/* I_LocalMusic_t -- Local music data */
+typedef struct I_LocalMusic_s
+{
+	I_MusicType_t Type;							// Type of song this is
+	int Handle;									// Song handle
+	I_MusicDriver_t* Driver;					// Driver to play with
+	int DriverHandle;							// Handle known by driver
+	uint32_t Length;							// Length of song in tics
+	WX_WADEntry_t* Entry;						// Entry of song
+	size_t EntryLength;							// Length of entry
+} I_LocalMusic_t;
+#endif
+
+/* I_DetectMusicType() -- Detects the type of music */
+I_MusicType_t I_DetectMusicType(const uint8_t* const a_Data, const size_t a_Size)
+{
+	/* Check */
+	if (!a_Data || a_Size < 4)
+		return IMT_UNKNOWN;
+		
+	/* Print magic number */
+	if (devparm)
+		CONS_Printf("I_DetectMusicType: Magic \"%c%c%c%c\".\n", a_Data[0], a_Data[1], a_Data[2], a_Data[3]);
+	
+	/* Check for MIDI format */
+	if (a_Data[0] == 'M' && a_Data[1] == 'T' && a_Data[2] == 'h' && a_Data[3] == 'd')
+		return IMT_MIDI;
+	
+	/* Fell through, not known */
+	return IMT_UNKNOWN;
+}
+
 /* I_RegisterSong() -- Loads a song for future playing */
 int I_RegisterSong(const char* const a_Lump)
 {
-	return 0;
+	WX_WADEntry_t* Entry;
+	I_LocalMusic_t New;
+	FILE* f;
+	int Fails;
+	size_t i;
+	static char TempSongFileName[13];
+	static int TempSongID = 1;
+	
+	/* Check */
+	if (!a_Lump)
+		return 0;
+		
+	/* Clear */
+	memset(&New, 0, sizeof(New));
+	
+	// Init TempSongFileName
+	if (!TempSongFileName[0])
+		snprintf(TempSongFileName, 13, "rmid%04.4d.mid", TempSongID);
+	
+	/* Find lump */
+	Entry = WX_EntryForName(NULL, a_Lump, false);
+	
+	// Not found?
+	if (!Entry)
+		return 0;
+	
+	/* Find if it already is registered */
+	// If it is, then return the ID!
+	for (i = 0; i < l_NumLocalSongs; i++)
+		if (l_LocalSongs[i].Entry == Entry)
+			return l_LocalSongs[i].Handle;
+	
+	/* Get data and detect */
+	New.Handle = TempSongID;
+	New.Entry = Entry;
+	New.EntryLength = WX_GetEntrySize(Entry);
+	New.Data = WX_CacheEntry(Entry, WXCT_RAW, WXCT_RAW);
+	New.Type = I_DetectMusicType(New.Data, New.EntryLength);
+	
+	// Get the driver it belongs to
+	New.Driver = I_FindMusicDriver(New.Type);
+	
+	/* Could not find driver? */
+	if (!New.Driver)
+	{
+		// Debug
+		CONS_Printf("I_RegisterSong: Song format is not supported (Type = %i)!\n", New.Type);
+		
+		// Unuse the data (so it gets freed)
+		WX_UseEntry(New.Entry, WXCT_RAW, false);
+		return 0;
+	}
+	
+	/* Does the driver require an external file? */
+	if (New.Driver->ExternalData)
+	{
+		// Debug
+		if (devparm)
+			CONS_Printf("I_RegisterSong: Driver \"%s\" requires external files.\n", New.Driver->Name);
+		
+		// Attempt open of file
+		for (Fails = 0; Fails < 25; Fails++)
+		{
+			// Create name
+			snprintf(TempSongFileName, 13, "rmid%04.4d.mid", TempSongID++);
+			
+			// Attempt open now
+			f = fopen(TempSongFileName, "wb");
+			
+			if (f)
+			{
+				// Write all the WAD data
+				fwrite(New.Data, 1, New.EntryLength, f);
+				
+				// Worked!
+				fclose(f);
+				break;
+			}
+		}
+		
+		// Failed?
+		if (Fails == 25)
+		{
+			CONS_Printf("I_RegisterSong: Failed to file to disk (tried %i times)!\n", Fails);
+			WX_UseEntry(New.Entry, WXCT_RAW, false);
+			return 0;
+		}
+		
+		// Copy pathname
+		New.PathName = Z_StrDup(TempSongFileName, PU_STATIC, NULL);
+	}
+	
+	/* Add to the song list */
+	for (i = 0; i < l_NumLocalSongs; i++)
+		if (!l_LocalSongs[i].Handle)
+		{
+			l_LocalSongs[i] = New;
+			break;
+		}
+	
+	// did not find one
+	if (i == l_NumLocalSongs)
+	{
+		// Resize the list
+		Z_ResizeArray(&l_LocalSongs, sizeof(*l_LocalSongs), l_NumLocalSongs, l_NumLocalSongs + 1);
+		l_LocalSongs[l_NumLocalSongs++] = New;
+	}
+	
+	/* Return handle of new freshly loaded song */
+	return New.Handle;
 }
 
 /* I_UnRegisterSong() -- Unloads a song */
@@ -854,10 +1066,57 @@ void I_ResumeSong(int handle)
 /* I_PlaySong() -- Plays a song with optional looping */
 void I_PlaySong(int handle, int looping)
 {
+	size_t i, j;
+	
+	/* Find song in song list */
+	for (i = 0; i < l_NumLocalSongs; i++)
+		if (l_LocalSongs[i].Handle == handle)
+			break;
+	
+	// Not found?
+	if (i == l_NumLocalSongs)
+		return;
+		
+	/* Song already playing? */
+	if (l_LocalSongs[i].Playing)
+		return;
+	
+	/* If another song is playing stop it from playing */
+	for (j = 0; j < l_NumLocalSongs; j++)
+		if (l_LocalSongs[j].Playing)
+			I_StopSong(l_LocalSongs[j].Handle);
+	
+	/* Send to driver */
+	if (l_LocalSongs[i].Driver->Play)
+		l_LocalSongs[i].DriverHandle = l_LocalSongs[i].Driver->Play(
+												l_LocalSongs[i].Driver,
+												(l_LocalSongs[i].Driver->ExternalData ? l_LocalSongs[i].PathName : l_LocalSongs[i].Data),
+												looping
+											);
+	
+	/* Set song to playing */
+	l_LocalSongs[i].Playing = true;
 }
 
 /* I_StopSong() -- Stops a song */
 void I_StopSong(int handle)
 {
+	size_t i;
+	
+	/* Find song in song list */
+	for (i = 0; i < l_NumLocalSongs; i++)
+		if (l_LocalSongs[i].Handle == handle)
+			break;
+	
+	// Not found?
+	if (i == l_NumLocalSongs)
+		return;
+	
+	/* Send to driver */
+	if (l_LocalSongs[i].Driver->Stop)
+		l_LocalSongs[i].Driver->Stop(l_LocalSongs[i].Driver, l_LocalSongs[i].DriverHandle);
+	
+	/* No longer playing */
+	l_LocalSongs[i].Playing = false;
 }
 

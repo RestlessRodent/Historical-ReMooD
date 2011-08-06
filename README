@@ -1,0 +1,55 @@
+        :oCCCCOCoc.
+    .cCO8OOOOOOOOO8Oo:
+  .oOO8OOOOOOOOOOOOOOOCc
+ cO8888:         .:oOOOOC.                                                  TM
+:888888:   :CCCc    oOOOOC.     COOC   cOOO:                    .OOOOOCCc
+C888888:   .ooo:   .COOOCocc:   8@8@c .888@c  .:ccc.    .ccc:.  .@@:..:o@O
+O888888:    .    .oO88O: coo8O  8@c88 C@c8@c o@OccC@C  C@CccO8c .@@.    O@c
+C888888:   :8O.   .C88C .cooCO: 8@:o@O@8 8@c.@@:   O@:c@O   :@@..@@.    O@:
+:8@@@@8:   :888c    o88:.occOo  8@:.8@@c 8@c o@Oc:o@O .O@o:cO@o .@@ooooO8c
+ :8@@@@CoooC@@@@Coooo8@8ccooc   cc. :cc  cc.  .cooc:    :cooc.  .cccccc:.
+   cO@@@@@@@@@@@@@@@@@Oc0
+     :oO8@@@@@@@@@@Oo.                               1.0a "Stuffed Cabbage"
+        .oCOOOOOCc.                                      http://remood.org/
+
+ ReMooD is a source port of Doom Legacy 1.42. It aims to provide the classic
+ Legacy Experience with new features and more stability.
+ 
+ Copyright (C) 2011 GhostlyDeath <ghostlydeath@remood.org>
+ 
+ This program is free software; you can redistribute it and/or
+ modify it under the terms of the GNU General Public License
+ as published by the Free Software Foundation; either version 3
+ of the License, or (at your option) any later version.
+ 
+ This program is distributed in the hope that it will be useful,
+ but WITHOUT ANY WARRANTY; without even the implied warranty of
+ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ GNU General Public License for more details.
+ 
+-------------------------------------------------------------------------------
+
+===============================================================================
+========[ ALLEGRO SPECIFICS ]==================================================
+===============================================================================
+
+When using the Allegro interface, there a few things you need to know. If you
+are on a UNIX based system you should have a .allegrorc file in your home
+directory which is for settings the game will use when things are autodetected.
+This is mostly the case for music and sound, if Allegro incorrectly chooses the
+wrong sound card you want to use (ALSA, OSS, etc.).
+
+If on Linux and you notice you have no music at all, you may try adding the
+following to your .allegrorc:
+
+ > [sound]
+ > midi_card = DIGI
+ > patches = /home/steven/digmid.dat
+
+This is is the DIGMIDI driver, which essentialy loads instruments from the dat
+file printed there. DIGMIDI is like Timidity++ and FluidSynth. You can find
+some Allegro patches available at http://alleg.sourceforge.net/digmid.html at
+the bottom of the page.  Note that the patches field will vary from system to
+system (if you are using Linux you should be knowledgable enough to know what
+to put here).
+

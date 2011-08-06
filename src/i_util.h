@@ -123,6 +123,8 @@ typedef enum I_MusicType_e
 	IMT_MIDI,									// MIDI File
 	IMT_MOD,									// MOD Tracker	
 	
+	IMT_UNKNOWN,								// Not in any known format!
+	
 	NUMIMUSICTYPES
 } I_MusicType_t;
 
@@ -168,6 +170,8 @@ typedef struct I_MusicDriver_s
 	bool_t (*Init)(struct I_MusicDriver_s* const a_Driver);
 		// Destroys a driver
 	bool_t (*Destroy)(struct I_MusicDriver_s* const a_Driver);
+		// Success
+	void (*Success)(struct I_MusicDriver_s* const a_Driver);
 		// Pauses a song (pause ||)
 	void (*Pause)(struct I_MusicDriver_s* const a_Driver, const int a_Handle);
 		// Resumes a song (play >)
@@ -223,6 +227,7 @@ uint64_t I_GetDiskFreeSpace(const char* const a_Path);
 
 bool_t I_AddMusicDriver(I_MusicDriver_t* const a_Driver);
 bool_t I_RemoveMusicDriver(I_MusicDriver_t* const a_Driver);
+I_MusicDriver_t* I_FindMusicDriver(const I_MusicType_t a_Type);
 void I_InitMusic(void);
 void I_ShutdownMusic(void);
 void I_UpdateMusic(void);

@@ -37,10 +37,15 @@
 #include "doomdef.h"
 #include "i_video.h"
 #include "i_util.h"
+#include "../remood.xpm"	// For allegro
 
 /****************
 *** CONSTANTS ***
 ****************/
+
+#if defined(ALLEGRO_WITH_XWINDOWS)
+void* allegro_icon = remood_xpm;
+#endif
 
 /* c_AllegroCards -- Cards used by allegro */
 static const uint32_t c_AllegroCards[] =

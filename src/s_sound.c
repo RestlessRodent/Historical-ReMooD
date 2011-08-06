@@ -851,7 +851,7 @@ void S_ChangeMusic(int music_num, int looping)
 	if (mus_playing == music)
 		return;
 	
-	I_RegisterSong(va("d_%s", music->name));
+	I_PlaySong(I_RegisterSong(va("d_%s", music->name)));
 	
 	mus_playing = music;
 	

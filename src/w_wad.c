@@ -377,7 +377,7 @@ int W_LoadWadFile(char *filename)
 	bool_t Swapped = false;
 	
 	/* Send to extended code */
-	WX_VirtualPushPop(WX_LoadWAD(filename), false, false);
+	WX_VirtualPushPop(WX_LoadWAD(filename), false, true);
 
 	/* Scan! -- Don't open a WAD twice yknow! */
 	n = WADFiles;
