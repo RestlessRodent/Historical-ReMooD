@@ -489,7 +489,6 @@ void P_ZMovement(mobj_t * mo)
 	fixed_t dist;
 	fixed_t delta;
 
-#ifdef FIXROVERBUGS
 // Intercept the stupid 'fall through 3dfloors' bug SSNTails 06-13-2002
 	if (mo->subsector->sector->ffloors)
 	{
@@ -514,8 +513,6 @@ void P_ZMovement(mobj_t * mo)
 				mo->ceilingz = *rover->bottomheight;
 		}
 	}
-#endif
-
 	
 	if (mo->player)
 	{

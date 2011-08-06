@@ -59,9 +59,7 @@ extern int logstream;
 // some tests, enable or desable it if it run or not
 #define SPLITSCREEN
 #define ABSOLUTEANGLE			// work fine, soon #ifdef and old code remove
-#define NEWLIGHT				// compute lighting with bsp (in construction)
 #define FRAGGLESCRIPT			// SoM: Activate FraggleScript
-#define FIXROVERBUGS			// Fix some 3dfloor bugs. SSNTails 06-13-2002
 
 // =========================================================================
 
