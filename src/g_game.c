@@ -923,7 +923,7 @@ bool_t G_Responder(event_t * ev)
 //
 void G_Ticker(void)
 {
-	ULONG i;
+	uint32_t i;
 	int buf;
 	ticcmd_t *cmd;
 
@@ -1092,11 +1092,11 @@ void G_PlayerReborn(int player)
 {
 	player_t *p;
 	int i;
-	USHORT frags[MAXPLAYERS];
+	uint16_t frags[MAXPLAYERS];
 	int killcount;
 	int itemcount;
 	int secretcount;
-	USHORT addfrags;
+	uint16_t addfrags;
 	ProfileInfo_t* prof;
 
 	//from Boris

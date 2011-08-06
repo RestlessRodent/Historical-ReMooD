@@ -445,15 +445,15 @@ typedef struct msecnode_s
 //                     that's why it's moved here
 typedef struct light_s
 {
-	USHORT type;				// light,... (cfr #define in hwr_light.c)
+	uint16_t type;				// light,... (cfr #define in hwr_light.c)
 
 	float light_xoffset;
 	float light_yoffset;		// y offset to adjust corona's height
 
-	ULONG corona_color;			// color of the light for static lighting
+	uint32_t corona_color;			// color of the light for static lighting
 	float corona_radius;		// radius of the coronas
 
-	ULONG dynamic_color;		// color of the light for dynamic lighting
+	uint32_t dynamic_color;		// color of the light for dynamic lighting
 	float dynamic_radius;		// radius of the light ball
 	float dynamic_sqrradius;	// radius^2 of the light ball
 

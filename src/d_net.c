@@ -58,7 +58,7 @@ bool_t(*I_NetOpenSocket) (void);
 // network stats
 tic_t statstarttic;
 int getbytes = 0;
-INT64 sendbytes = 0;
+uint64_t sendbytes = 0;
 int retransmit = 0, duppacket = 0;
 int sendackpacket = 0, getackpacket = 0;
 int ticruned = 0, ticmiss = 0;
@@ -82,8 +82,8 @@ typedef struct
 	uint8_t nextacknum;
 	uint8_t destinationnode;
 	tic_t senttime;
-	USHORT length;
-	USHORT resentnum;
+	uint16_t length;
+	uint16_t resentnum;
 	char pak[MAXPACKETLENGTH];
 } ackpak_t;
 

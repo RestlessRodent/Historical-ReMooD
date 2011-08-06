@@ -414,13 +414,6 @@ typedef int32_t ssize_t;
 #endif
 #endif
 
-// Win32 :(
-#define ULONG uint32_t
-#define USHORT uint16_t
-
-// Legacy Compat
-#define INT64 uint64_t
-
 #ifdef _MSC_VER
 #define strncasecmp strnicmp
 #define strcasecmp stricmp

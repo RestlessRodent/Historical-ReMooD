@@ -965,7 +965,7 @@ void FragLimit_OnChange(void)
 	}
 }
 
-ULONG timelimitintics = 0;
+uint32_t timelimitintics = 0;
 
 void TimeLimit_OnChange(void)
 {

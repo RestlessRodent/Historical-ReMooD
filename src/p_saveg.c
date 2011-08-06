@@ -656,7 +656,7 @@ void P_ArchivePlayers(void)
 {
 	int i, j;
 	int flags;
-	ULONG diff;
+	uint32_t diff;
 
 	for (i = 0; i < MAXPLAYERS; i++)
 	{
@@ -765,7 +765,7 @@ void P_UnArchivePlayers(void)
 {
 	int i, j;
 	int flags;
-	ULONG diff;
+	uint32_t diff;
 
 	for (i = 0; i < MAXPLAYERS; i++)
 	{
@@ -1257,7 +1257,7 @@ void P_ArchiveThinkers(void)
 {
 	thinker_t *th;
 	mobj_t *mobj;
-	ULONG diff;
+	uint32_t diff;
 //    int                 i; //SoM: 3/16/2000: Removed. Not used any more.
 
 	// save off the current thinkers
@@ -1348,7 +1348,7 @@ void P_ArchiveThinkers(void)
 			WRITEBYTE(save_p, tc_mobj);
 			WRITEULONG(save_p, diff);
 			// save pointer, at load time we will search this pointer to reinitilize pointers
-			WRITEULONG(save_p, (ULONG) mobj);
+			WRITEULONG(save_p, (uint32_t) mobj);
 
 			WRITEFIXED(save_p, mobj->z);	// Force this so 3dfloor problems don't arise. SSNTails 03-17-2002
 			WRITEFIXED(save_p, mobj->floorz);
@@ -1402,9 +1402,9 @@ void P_ArchiveThinkers(void)
 			if (diff & MD_LASTLOOK)
 				WRITELONG(save_p, mobj->lastlook);
 			if (diff & MD_TARGET)
-				WRITEULONG(save_p, (ULONG) mobj->target);
+				WRITEULONG(save_p, (uint32_t) mobj->target);
 			if (diff & MD_TRACER)
-				WRITEULONG(save_p, (ULONG) mobj->tracer);
+				WRITEULONG(save_p, (uint32_t) mobj->tracer);
 			if (diff & MD_FRICTION)
 				WRITELONG(save_p, mobj->friction);
 			if (diff & MD_MOVEFACTOR)
@@ -1599,7 +1599,7 @@ void P_UnArchiveThinkers(void)
 	thinker_t *currentthinker;
 	thinker_t *next;
 	mobj_t *mobj;
-	ULONG diff;
+	uint32_t diff;
 	int i;
 	uint8_t tclass;
 	ceiling_t *ceiling;
@@ -2169,7 +2169,7 @@ void P_UnArchiveLevelScript()
 				}
 			case svt_mobj:
 				{
-					ULONG *long_p = (ULONG *) save_p;
+					uint32_t *long_p = (uint32_t *) save_p;
 					sv->value.mobj = FindNewPosition((mobj_t *) long_p);
 					long_p++;
 					save_p = (char *)long_p;
@@ -2211,7 +2211,7 @@ void P_ArchiveRunningScript(runningscript_t * rs)
 	WRITESHORT(save_p, rs->wait_data);
 
 	// save pointer to trigger using prev
-	WRITEULONG(save_p, (ULONG) rs->trigger);
+	WRITEULONG(save_p, (uint32_t) rs->trigger);
 
 	// count number of variables
 	num_variables = 0;
@@ -2268,7 +2268,7 @@ void P_ArchiveRunningScript(runningscript_t * rs)
 				case svt_mobj:
 					{
 						//CheckSaveGame(sizeof(long)+4); 
-						WRITEULONG(save_p, (ULONG) sv->value.mobj);
+						WRITEULONG(save_p, (uint32_t) sv->value.mobj);
 						break;
 					}
 				case svt_fixed:
@@ -2436,7 +2436,7 @@ void P_ArchiveScripts()
 
 	// Archive the script camera.
 	WRITELONG(save_p, (long)script_camera_on);
-	WRITEULONG(save_p, (ULONG) script_camera.mo);
+	WRITEULONG(save_p, (uint32_t) script_camera.mo);
 	WRITEANGLE(save_p, script_camera.aiming);
 	WRITEFIXED(save_p, script_camera.viewheight);
 	WRITEANGLE(save_p, script_camera.startangle);
@@ -2467,7 +2467,7 @@ void P_UnArchiveScripts()
 // =======================================================================
 void P_ArchiveMisc()
 {
-	ULONG pig = 0;
+	uint32_t pig = 0;
 	int i;
 
 	WRITEBYTE(save_p, gameskill);
@@ -2485,7 +2485,7 @@ void P_ArchiveMisc()
 
 bool_t P_UnArchiveMisc()
 {
-	ULONG pig;
+	uint32_t pig;
 	int i;
 
 	gameskill = READBYTE(save_p);

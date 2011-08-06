@@ -223,7 +223,7 @@ void F_Ticker(void)
 
 			if (gamemode != commercial)
 			{
-				ULONG f = finalecount;
+				uint32_t f = finalecount;
 				if (f >= MAXINT / 2)
 					f -= MAXINT / 2;
 

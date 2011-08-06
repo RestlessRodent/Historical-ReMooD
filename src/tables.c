@@ -62,8 +62,8 @@ int SlopeDiv(unsigned num, unsigned den)
 	//
 int SlopeDiv(unsigned num, unsigned den)
 {
-	ULONG ans;
-	INT64 t;
+	uint32_t ans;
+	uint64_t t;
 
 	if (den < 512)
 		return SLOPERANGE;

@@ -51,7 +51,7 @@ extern int getbps, sendbps;
 extern float lostpercent, duppercent, gamelostpercent;
 extern int packetheaderlength;
 extern int getbytes;
-extern INT64 sendbytes;			// realtime updated 
+extern uint64_t sendbytes;			// realtime updated 
 
 // if reliable return true if packet sent, 0 else
 bool_t D_CheckNetGame(void);

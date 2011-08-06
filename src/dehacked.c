@@ -91,7 +91,7 @@ size_t myfread(char *buf, size_t size, size_t count, MYFILE * f)
 		byteread = size * count;
 	if (byteread > 0)
 	{
-		ULONG i;
+		uint32_t i;
 		for (i = 0; i < byteread; i++)
 		{
 			char c = *f->curpos++;

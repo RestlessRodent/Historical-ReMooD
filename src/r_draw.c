@@ -1307,8 +1307,8 @@ void R_DrawTranslatedColumn_8(void)
 #ifndef USEBOOMFUNC
 void R_DrawSpan_8(void)
 {
-	register ULONG xfrac;
-	register ULONG yfrac;
+	register uint32_t xfrac;
+	register uint32_t yfrac;
 	register uint8_t *dest;
 	register int count;
 
@@ -1343,8 +1343,8 @@ void R_DrawSpan_8(void)
 #else
 void R_DrawSpan_8(void)
 {
-	register ULONG xfrac;
-	register ULONG yfrac;
+	register uint32_t xfrac;
+	register uint32_t yfrac;
 	register uint8_t *dest;
 	register int count;
 
