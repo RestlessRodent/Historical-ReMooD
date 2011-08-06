@@ -23,51 +23,21 @@
 // -----------------------------------------------------------------------------
 // DESCRIPTION: Music
 
+/***************
+*** INCLUDES ***
+***************/
+
 #include "i_sound.h"
 #include "m_argv.h"
 
-void I_InitMusic(void)
-{
-}
+/****************
+*** FUNCTIONS ***
+****************/
 
-void I_ShutdownMusic(void)
+/* I_MusicDriverInit() -- Initialize all music drivers */
+bool_t I_MusicDriverInit(void)
 {
-}
-
-void I_UpdateMusic(void)
-{
-}
-
-void I_SetMusicVolume(int volume)
-{
-}
-
-void I_SetFMODVolume(int volume)
-{
-}
-
-int I_RegisterSong(char* lumpname)
-{
-	return 0;
-}
-
-void I_UnRegisterSong(int handle)
-{
-}
-
-void I_PauseSong(int handle)
-{
-}
-
-void I_ResumeSong(int handle)
-{
-}
-
-void I_PlaySong(int handle, int looping)
-{
-}
-
-void I_StopSong(int handle)
-{
+	/* Success */
+	return true;
 }
 

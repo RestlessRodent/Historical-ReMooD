@@ -114,6 +114,9 @@ static size_t l_EQWrite = 0;					// Write position in queue
 typedef void (*quitfuncptr) ();
 static quitfuncptr quit_funcs[MAX_QUIT_FUNCS];
 
+static I_MusicDriver_t** l_MusicDrivers;		// Music drivers
+static size_t l_NumMusicDrivers;				// Number of music drivers
+
 /****************
 *** FUNCTIONS ***
 ****************/
@@ -765,5 +768,96 @@ uint64_t I_GetDiskFreeSpace(const char* const a_Path)
 	
 	// TODO
 	return 2 << 30;
+}
+
+/* I_AddMusicDriver() -- Adds a new music driver */
+bool_t I_AddMusicDriver(I_MusicDriver_t* const a_Driver)
+{
+	/* Check */
+	if (!a_Driver)
+		return false;
+	return true;
+}
+
+/* I_RemoveMusicDriver() -- Removes a music driver */
+bool_t I_RemoveMusicDriver(I_MusicDriver_t* const a_Driver)
+{
+	/* Check */
+	if (!a_Driver)
+		return false;
+	return true;
+}
+
+/*static I_MusicDriver_t** l_MusicDrivers;		// Music drivers
+static size_t l_NumMusicDrivers;				// Number of music drivers*/
+
+/* I_InitMusic() -- Initializes the music system */
+void I_InitMusic(void)
+{
+	/* Add interface specific stuff */
+	if (!I_MusicDriverInit())
+		CONS_Printf("I_InitMusic: Failed to add interface specific drivers.\n");
+	
+	/* Add our own virtual drivers that always work */
+	// OPL Emulation!
+	
+	// Native MOD Support
+}
+
+/* I_ShutdownMusic() -- Shuts down the music system */
+void I_ShutdownMusic(void)
+{
+	size_t i;
+	
+	/* Destroy all drivers */
+	for (i = 0; i < l_NumMusicDrivers; i++)
+		if (!I_RemoveMusicDriver(l_MusicDrivers[i]))
+			CONS_Printf("I_ShutdownMusic: Failed to remove driver.\n");
+	
+	/* Destroy array */
+	Z_Free(l_MusicDrivers);
+	l_MusicDrivers = NULL;
+	l_NumMusicDrivers = 0;
+}
+
+/* I_UpdateMusic() -- Updates playing music */
+void I_UpdateMusic(void)
+{
+}
+
+/* I_SetMusicVolume() -- Sets music volume */
+void I_SetMusicVolume(int volume)
+{
+}
+
+/* I_RegisterSong() -- Loads a song for future playing */
+int I_RegisterSong(const char* const a_Lump)
+{
+	return 0;
+}
+
+/* I_UnRegisterSong() -- Unloads a song */
+void I_UnRegisterSong(int handle)
+{
+}
+
+/* I_PauseSong() -- Pauses a song */
+void I_PauseSong(int handle)
+{
+}
+
+/* I_ResumeSong() -- Resumes a song */
+void I_ResumeSong(int handle)
+{
+}
+
+/* I_PlaySong() -- Plays a song with optional looping */
+void I_PlaySong(int handle, int looping)
+{
+}
+
+/* I_StopSong() -- Stops a song */
+void I_StopSong(int handle)
+{
 }
 

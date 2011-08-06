@@ -42,7 +42,9 @@ This is a list of features ReMooD is compatible with.
 ===============================================================================
 
 These are WAD files ReMooD will support at levels nearly 100%. These are the
-most popular WADs and as such they should be supported.
+most popular WADs and as such they should be supported. When playing these WADs
+there should be nearly no problems at all and they should run better than when
+used with Doom Legacy (hopefully).
 
 ~~~~~~~~{ WAD LIST }~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -60,8 +62,8 @@ most popular WADs and as such they should be supported.
  * HTH2.WAD          -
  * ICERIAL2.WAD      -
  * IMP_2.WAD         -
- * LEGCLOCK.WAD      -
- * LEGFAN.WAD        -
+ * LEGCLOCK.WAD      - Clock in LegacyScript and 3D Floors
+ * LEGFAN.WAD        - Fan in LegacyScript and 3D Floors
  * MASTER.WAD        -
  * NIMROD.WAD        -
  * PHOBIATA.WAD      -
@@ -72,7 +74,6 @@ most popular WADs and as such they should be supported.
  * TUNNEL.WAD        -
  * ULTFOREVER.WAD    -
  * ZOMBIE2.WAD       -
-
 
 ~~~~~~~~{ BOOMEDIT.WAD }~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 ~~~~~~~~{ BOOMEDIT.WAD }~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -119,4 +120,14 @@ Ancient test version of ReMooD, long gone. Features CTF.
 ~~~~~~~~{ Doom Legacy 1.43 Beta }~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 ~~~~~~~~{ Doom Legacy 1.43 }~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 ~~~~~~~~{ Doom Legacy 1.44 }~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+===============================================================================
+========[ MISC NOTES ]=========================================================
+===============================================================================
+
+This section contains notes, most likely senseless ones.
+
+editing.html states "The old linedef codes for line translucency have been
+taken by Boom support, so I have shifted the types.", determine the Legacy
+version make compatibility.
 

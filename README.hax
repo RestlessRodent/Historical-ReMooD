@@ -1,0 +1,77 @@
+        :oCCCCOCoc.
+    .cCO8OOOOOOOOO8Oo:
+  .oOO8OOOOOOOOOOOOOOOCc
+ cO8888:         .:oOOOOC.                                                  TM
+:888888:   :CCCc    oOOOOC.     COOC   cOOO:                    .OOOOOCCc
+C888888:   .ooo:   .COOOCocc:   8@8@c .888@c  .:ccc.    .ccc:.  .@@:..:o@O
+O888888:    .    .oO88O: coo8O  8@c88 C@c8@c o@OccC@C  C@CccO8c .@@.    O@c
+C888888:   :8O.   .C88C .cooCO: 8@:o@O@8 8@c.@@:   O@:c@O   :@@..@@.    O@:
+:8@@@@8:   :888c    o88:.occOo  8@:.8@@c 8@c o@Oc:o@O .O@o:cO@o .@@ooooO8c
+ :8@@@@CoooC@@@@Coooo8@8ccooc   cc. :cc  cc.  .cooc:    :cooc.  .cccccc:.
+   cO@@@@@@@@@@@@@@@@@Oc0
+     :oO8@@@@@@@@@@Oo.                               1.0a "Stuffed Cabbage"
+        .oCOOOOOCc.                                      http://remood.org/
+
+ ReMooD is a source port of Doom Legacy 1.42. It aims to provide the classic
+ Legacy Experience with new features and more stability.
+ 
+ Copyright (C) 2011 GhostlyDeath <ghostlydeath@remood.org>
+ 
+ This program is free software; you can redistribute it and/or
+ modify it under the terms of the GNU General Public License
+ as published by the Free Software Foundation; either version 3
+ of the License, or (at your option) any later version.
+ 
+ This program is distributed in the hope that it will be useful,
+ but WITHOUT ANY WARRANTY; without even the implied warranty of
+ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ GNU General Public License for more details.
+ 
+-------------------------------------------------------------------------------
+
+Stuff to hack in:
+
+ * ReMooD Script with ReMooD Assembly
+ * CTF
+ * OnAction Scripts, called when something happens
+   - OnLightBlink() -- Called whenever a light blinks (heh)
+   - OnDeath() -- Object dies
+   - OnRevive() -- Object is revived
+   - OnStopMoving() -- Sector stops moving
+   - etc.
+ * Spectators
+ * Advanced Menu
+ * RMOD Config File
+ * Secondary Weapon Fire
+ * Weapon Reloading
+ * 70 FPS
+ * ex...() LegacyScript functions (ReMooD exclusives)
+ * RMD_DBXS, sin((double)fixed_t) table for LegacyScript
+   - exrealnumclients() -- Number of players + spectators
+ * Savegames
+ * VM state saving (for perfect virtual machine restoration and preservation)
+ * Multiplayer
+ * Joysticks
+ * MOD Music
+ * Spectators
+ * Thing sprite scaling, fliping, cropping
+ * Palettes in Splitscreen (fake COLORMAP-like thing?)
+ * New Menu System
+ * 50,000 lines of code
+ * Save games
+ * Network WAD bursting (upload and download of WADs)
+ * ReMooD Online (a whole online experience)
+ * Full Documentation
+ * New fancy renderer with super solids and sortage (for max speed)
+ * Clean up the code
+ * Switch everything to the new virtual WAD system for dynamic wad change
+ * Skinning monsters with player skins
+ * Slopes (easy)
+ * Golf (hard)
+ * Bouncing mobjs
+ * Water density (rate of falling in water, < 0 = float up)
+ * Weight (modification of fall rate in gravity, despite being wrong)
+ * Hover names with stats
+ * Compass (with thin automap lines)
+ * Health/armor on scoreboard
+

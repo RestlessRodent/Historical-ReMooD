@@ -782,10 +782,7 @@ void S_SetMusicVolume(int volume)
 	CV_SetValue(&cv_musicvolume, volume & 31);
 	actualmusicvolume = cv_musicvolume.value;	//check for change of var
 
-	/*if (digmusic)
-		I_SetFMODVolume(volume);
-	else*/
-		I_SetMusicVolume(volume & 31);
+	I_SetMusicVolume(volume & 31);
 }
 
 void S_SetSfxVolume(int volume)

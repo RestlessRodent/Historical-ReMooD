@@ -116,6 +116,18 @@ typedef enum I_EventType_e
 	NUMIEVENTTYPES
 } I_EventType_t;
 
+/* I_MusicType_t -- Types of music to play */
+typedef enum I_MusicType_e
+{
+	IMT_MUS,									// Doom MUS
+	IMT_MIDI,									// MIDI File
+	IMT_MOD,									// MOD Tracker	
+	
+	NUMIMUSICTYPES
+} I_MusicType_t;
+
+#define MAXDRIVERNAME						32	// Driver name limit
+
 /*****************
 *** STRUCTURES ***
 *****************/
@@ -136,6 +148,43 @@ typedef struct I_EventEx_s
 		} Keyboard;								// Keyboard event
 	} Data;										// Event data
 } I_EventEx_t;
+
+/* I_MusicDriver_t -- Driver for playing Music */
+typedef struct I_MusicDriver_s
+{
+	/* Data */
+	char Name[MAXDRIVERNAME];					// Name of driver
+	uint32_t MusicType;							// Music types supported (<< I_MusicTypes_t)
+	bool_t ExternalData;						// If true, player requires external MID/MUS/MOD/etc. (on disk)
+												// The play func will be passed a pathname instead of raw data
+	uint8_t Priority;							// Priority of the driver
+	
+	/* Dynamic */
+	void* Data;									// Driver personal data
+	size_t Size;								// Size of personal data
+	
+	/* Handlers */
+		// Initializes a driver
+	bool_t (*Init)(struct I_MusicDriver_s* const a_Driver);
+		// Destroys a driver
+	bool_t (*Destroy)(struct I_MusicDriver_s* const a_Driver);
+		// Pauses a song (pause ||)
+	void (*Pause)(struct I_MusicDriver_s* const a_Driver, const int a_Handle);
+		// Resumes a song (play >)
+	void (*Resume)(struct I_MusicDriver_s* const a_Driver, const int a_Handle);
+		// Stops a song from playing and seeks to start (stop [])
+	void (*Stop)(struct I_MusicDriver_s* const a_Driver, const int a_Handle);
+		// Length of song
+	uint32_t (*Length)(struct I_MusicDriver_s* const a_Driver, const int a_Handle);
+		// Seeks to a new position
+	void (*Seek)(struct I_MusicDriver_s* const a_Driver, const int a_Handle, const uint32_t a_Pos);
+		// Plays a song
+	int (*Play)(struct I_MusicDriver_s* const a_Driver, const void* const a_Data, const bool_t Loop);
+		// Changes volume
+	void (*Volume)(struct I_MusicDriver_s* const a_Driver, const int a_Handle, const uint8_t Vol);
+		// Raw MIDI Data
+	void (*RawMIDI)(struct I_MusicDriver_s* const a_Driver, const uint32_t a_Msg);
+} I_MusicDriver_t;
 
 /****************
 *** FUNCTIONS ***
@@ -171,6 +220,19 @@ void I_ShutdownSystem(void);
 
 const char* I_GetUserName(void);
 uint64_t I_GetDiskFreeSpace(const char* const a_Path);
+
+bool_t I_AddMusicDriver(I_MusicDriver_t* const a_Driver);
+bool_t I_RemoveMusicDriver(I_MusicDriver_t* const a_Driver);
+void I_InitMusic(void);
+void I_ShutdownMusic(void);
+void I_UpdateMusic(void);
+void I_SetMusicVolume(int volume);
+int I_RegisterSong(const char* const a_Lump);
+void I_UnRegisterSong(int handle);
+void I_PauseSong(int handle);
+void I_ResumeSong(int handle);
+void I_PlaySong(int handle, int looping);
+void I_StopSong(int handle);
 
 #endif /* __I_UTIL_H__ */
 
