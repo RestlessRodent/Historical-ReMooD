@@ -37,7 +37,7 @@
 
 CV_PossibleValue_t mousesens_cons_t[] = { {1, "MIN"}
 , {MAXMOUSESENSITIVITY, "MAXCURSOR"}
-, {MAXINT, "MAX"}
+, {INT_MAX, "MAX"}
 , {0, NULL}
 };
 CV_PossibleValue_t onecontrolperkey_cons_t[] = { {1, "One"}

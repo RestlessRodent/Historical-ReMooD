@@ -337,7 +337,7 @@ void R_Render2sidedMultiPatchColumn(column_t * column)
 	dc_yl = (sprtopscreen + FRACUNIT - 1) >> FRACBITS;
 	dc_yh = (bottomscreen - 1) >> FRACBITS;
 
-	if (windowtop != MAXINT && windowbottom != MAXINT)
+	if (windowtop != INT_MAX && windowbottom != INT_MAX)
 	{
 		dc_yl = ((windowtop + FRACUNIT) >> FRACBITS);
 		dc_yh = (windowbottom - 1) >> FRACBITS;
@@ -384,7 +384,7 @@ void R_RenderMaskedSegRange(drawseg_t * ds, int x1, int x2)
 	frontsector = curline->frontsector;
 	backsector = curline->backsector;
 	texnum = texturetranslation[curline->sidedef->midtexture];
-	windowbottom = windowtop = sprbotscreen = MAXINT;
+	windowbottom = windowtop = sprbotscreen = INT_MAX;
 
 	//faB: hack translucent linedef types (201-205 for transtables 1-5)
 	//SoM: 201-205 are taken... So I'm switching to 284 - 288
@@ -517,13 +517,13 @@ void R_RenderMaskedSegRange(drawseg_t * ds, int x1, int x2)
 	for (dc_x = x1; dc_x <= x2; dc_x++)
 	{
 		// calculate lighting
-		if (maskedtexturecol[dc_x] != MAXSHORT)
+		if (maskedtexturecol[dc_x] != SHRT_MAX)
 		{
 			if (dc_numlights)
 			{
 				lighttable_t **xwalllights;
 
-				sprbotscreen = MAXINT;
+				sprbotscreen = INT_MAX;
 				sprtopscreen = windowtop = (centeryfrac - FixedMul(dc_texturemid, spryscale));
 				realbot = windowbottom = FixedMul(textureheight[texnum], spryscale) + sprtopscreen;
 				dc_iscale = 0xffffffffu / (unsigned)spryscale;
@@ -793,7 +793,7 @@ void R_RenderThickSideRange(drawseg_t * ds, int x1, int x2, ffloor_t * ffloor)
 	// draw the columns
 	for (dc_x = x1; dc_x <= x2; dc_x++)
 	{
-		if (maskedtexturecol[dc_x] != MAXSHORT)
+		if (maskedtexturecol[dc_x] != SHRT_MAX)
 		{
 			// SoM: New code does not rely on r_drawColumnShadowed_8 which
 			// will (hopefully) put less strain on the stack.
@@ -1475,8 +1475,8 @@ void R_StoreWallRange(int start, int stop)
 		ds_p->silhouette = SIL_BOTH;
 		ds_p->sprtopclip = screenheightarray;
 		ds_p->sprbottomclip = negonearray;
-		ds_p->bsilheight = MAXINT;
-		ds_p->tsilheight = MININT;
+		ds_p->bsilheight = INT_MAX;
+		ds_p->tsilheight = INT_MIN;
 	}
 	else
 	{
@@ -1492,7 +1492,7 @@ void R_StoreWallRange(int start, int stop)
 		else if (backsector->floorheight > viewz)
 		{
 			ds_p->silhouette = SIL_BOTTOM;
-			ds_p->bsilheight = MAXINT;
+			ds_p->bsilheight = INT_MAX;
 			// ds_p->sprbottomclip = negonearray;
 		}
 
@@ -1504,21 +1504,21 @@ void R_StoreWallRange(int start, int stop)
 		else if (backsector->ceilingheight < viewz)
 		{
 			ds_p->silhouette |= SIL_TOP;
-			ds_p->tsilheight = MININT;
+			ds_p->tsilheight = INT_MIN;
 			// ds_p->sprtopclip = screenheightarray;
 		}
 
 		if (backsector->ceilingheight <= frontsector->floorheight)
 		{
 			ds_p->sprbottomclip = negonearray;
-			ds_p->bsilheight = MAXINT;
+			ds_p->bsilheight = INT_MAX;
 			ds_p->silhouette |= SIL_BOTTOM;
 		}
 
 		if (backsector->floorheight >= frontsector->ceilingheight)
 		{
 			ds_p->sprtopclip = screenheightarray;
-			ds_p->tsilheight = MININT;
+			ds_p->tsilheight = INT_MIN;
 			ds_p->silhouette |= SIL_TOP;
 		}
 
@@ -1530,13 +1530,13 @@ void R_StoreWallRange(int start, int stop)
 			if (doorclosed || backsector->ceilingheight <= frontsector->floorheight)
 			{
 				ds_p->sprbottomclip = negonearray;
-				ds_p->bsilheight = MAXINT;
+				ds_p->bsilheight = INT_MAX;
 				ds_p->silhouette |= SIL_BOTTOM;
 			}
 			if (doorclosed || backsector->floorheight >= frontsector->ceilingheight)
 			{					// killough 1/17/98, 2/8/98
 				ds_p->sprtopclip = screenheightarray;
-				ds_p->tsilheight = MININT;
+				ds_p->tsilheight = INT_MIN;
 				ds_p->silhouette |= SIL_TOP;
 			}
 		}
@@ -2115,12 +2115,12 @@ void R_StoreWallRange(int start, int stop)
 	if (maskedtexture && !(ds_p->silhouette & SIL_TOP))
 	{
 		ds_p->silhouette |= SIL_TOP;
-		ds_p->tsilheight = sidedef->midtexture ? MININT : MAXINT;
+		ds_p->tsilheight = sidedef->midtexture ? INT_MIN : INT_MAX;
 	}
 	if (maskedtexture && !(ds_p->silhouette & SIL_BOTTOM))
 	{
 		ds_p->silhouette |= SIL_BOTTOM;
-		ds_p->bsilheight = sidedef->midtexture ? MAXINT : MININT;
+		ds_p->bsilheight = sidedef->midtexture ? INT_MAX : INT_MIN;
 	}
 	ds_p++;
 }

@@ -689,7 +689,7 @@ bool_t R_CheckBBox(fixed_t * bspcoord)
 //
 
 //Fab: hack, until water is finished
-fixed_t dev_waterheight = MININT;
+fixed_t dev_waterheight = INT_MIN;
 void Command_Water_f(void)
 {
 	if (COM_Argc() < 2)
@@ -899,10 +899,10 @@ void R_Prep3DFloors(sector_t * sector)
 	sector->lightlist[0].extra_colormap = sector->extra_colormap;
 	sector->lightlist[0].flags = 0;
 
-	maxheight = MAXINT;
+	maxheight = INT_MAX;
 	for (i = 1; i < count; i++)
 	{
-		bestheight = MAXINT * -1;
+		bestheight = INT_MAX * -1;
 		best = NULL;
 		for (rover = sector->ffloors; rover; rover = rover->next)
 		{

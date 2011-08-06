@@ -29,52 +29,6 @@
 #ifndef __DOOMDEF__
 #define __DOOMDEF__
 
-#if defined(_WIN32)
-
-/* Set the system to Windows 98/NT */
-// But only for 32-bit targets
-#if !defined(_WIN64)
-//#undef NTDDI_VERSION
-#undef WINVER
-#undef _WIN32_WINDOWS
-#undef _WIN32_IE
-
-#define WINVER 0x0410
-#define _WIN32_WINDOWS 0x0410
-#define _WIN32_IE 0x0400
-#endif
-
-/* Now include windows.h */
-#include <windows.h>
-#define ASMCALL __cdecl
-
-#else
-
-#define ASMCALL
-#define min(x,y) ( ((x)<(y)) ? (x) : (y) )
-#define max(x,y) ( ((x)>(y)) ? (x) : (y) )
-
-#endif
-
-#include <stdarg.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-
-#include <math.h>
-
-#include <sys/types.h>
-#include <sys/stat.h>
-#include <ctype.h>
-
-#if defined( _WIN32)
-#include <io.h>
-#endif
-
-#ifdef PC_DOS
-#include <conio.h>
-#endif
-
 #include "doomtype.h"
 
 // Uncheck this to compile debugging code

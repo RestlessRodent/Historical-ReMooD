@@ -502,7 +502,7 @@ fixed_t P_FindLowestCeilingSurrounding(sector_t * sec)
 	int i;
 	line_t *check;
 	sector_t *other;
-	fixed_t height = MAXINT;
+	fixed_t height = INT_MAX;
 	int foundsector = 0;
 
 	if (boomsupport)
@@ -562,7 +562,7 @@ fixed_t P_FindHighestCeilingSurrounding(sector_t * sec)
 //
 fixed_t P_FindShortestTextureAround(int secnum)
 {
-	int minsize = MAXINT;
+	int minsize = INT_MAX;
 	side_t *side;
 	int i;
 	sector_t *sec = &sectors[secnum];
@@ -596,7 +596,7 @@ fixed_t P_FindShortestTextureAround(int secnum)
 //
 fixed_t P_FindShortestUpperAround(int secnum)
 {
-	int minsize = MAXINT;
+	int minsize = INT_MAX;
 	side_t *side;
 	int i;
 	sector_t *sec = &sectors[secnum];
@@ -2768,7 +2768,7 @@ void T_Scroll(scroll_t * s)
 			height = sec->floorheight;
 			waterheight = sec->heightsec != -1 &&
 				sectors[sec->heightsec].floorheight > height ?
-				sectors[sec->heightsec].floorheight : MININT;
+				sectors[sec->heightsec].floorheight : INT_MIN;
 
 			for (node = sec->touching_thinglist; node; node = node->m_snext)
 				if (!((thing = node->m_thing)->flags & MF_NOCLIP) &&

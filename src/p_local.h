@@ -141,8 +141,8 @@ void P_MoveSpirit(player_t * p, ticcmd_t * cmd, int realtics);
 //
 // P_MOBJ
 //
-#define ONFLOORZ        MININT
-#define ONCEILINGZ      MAXINT
+#define ONFLOORZ        INT_MIN
+#define ONCEILINGZ      INT_MAX
 
 // Time interval for item respawning.
 // WARING MUST be a power of 2
@@ -291,7 +291,7 @@ extern mobjtype_t PuffType;
 #define FLIGHTTICS      (60*TICRATE)
 
 #define CHICKENTICS     (40*TICRATE)
-#define FLOATRANDZ      (MAXINT-1)
+#define FLOATRANDZ      (INT_MAX-1)
 
 void P_RepositionMace(mobj_t * mo);
 void P_ActivateBeak(player_t * player);

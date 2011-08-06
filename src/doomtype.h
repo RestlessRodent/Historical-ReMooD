@@ -9,9 +9,7 @@
 // ##      ## ###### ##         ##  ######   ######  ######
 //                      http://remood.org/
 // -----------------------------------------------------------------------------
-// Copyright (C) 1993-1996 by id Software, Inc.
-// Copyright (C) 1998-2000 by DooM Legacy Team.
-// Copyright (C) 2008-2011 GhostlyDeath (ghostlydeath@gmail.com)
+// Copyright (C) 2011 GhostlyDeath <ghostlydeath@remood.org>
 // -----------------------------------------------------------------------------
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
@@ -32,19 +30,51 @@
 #ifndef __DOOMTYPE_H__
 #define __DOOMTYPE_H__
 
+/***************
+*** INCLUDES ***
+***************/
+
+/* Required Stuff */
+#include <stdarg.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <limits.h>
+#include <stddef.h>
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <ctype.h>
+#include <math.h>
+
+/* Windows */
+// windows.h is huge as hell and slows down the compile, maybe it can be removed?
 #ifdef _WIN32
-#include <windows.h>
+	// Provided we aren't on Win64, target Windows 98!
+	#if !defined(_WIN64)
+		#undef WINVER
+		#undef _WIN32_WINDOWS
+		#undef _WIN32_IE
+
+		#define WINVER 0x0410
+		#define _WIN32_WINDOWS 0x0410
+		#define _WIN32_IE 0x0400
+	#endif
+	
+	// Lean and mean!
+	#define WIN32_LEAN_AND_MEAN
+
+	// Now include
+	#include <windows.h>
+	#include <io.h>
 #endif
 
-#include <stddef.h>
-
+/* UNIX */
 #if defined(__unix__)
 	#include <unistd.h>
 #endif
 
+/* DJGPP */
 #if defined(__REMOOD_SYSTEM_DOS) && defined(__DJGPP__)
-	//#include <glib.h>
-
 	#define snprintf g_snprintf
 	#define vsnprintf g_vsnprintf
 #endif
@@ -424,42 +454,6 @@ typedef int32_t ssize_t;
 #ifndef __MINGW32__
 #define lstrlen(x) strlen(x)
 #endif
-#endif
-
-#ifndef MAXCHAR
-#define MAXCHAR   ((int8_t)0x7f)
-#endif
-
-#ifndef MAXSHORT
-#define MAXSHORT  ((int16_t)0x7fff)
-#endif
-
-#ifndef MAXINT
-#define MAXINT    ((int32_t)0x7fffffff)
-#endif
-
-#ifndef MAXLONG
-#define MAXLONG	MAXINT			// ((long)0x7fffffff)
-#endif
-
-#ifndef MAXINT64
-#define MAXINT64   ((int64_t)0x7fffffffffffffffL)
-#endif
-
-#ifndef MINCHAR
-#define MINCHAR   ((int8_t)0x80)
-#endif
-
-#ifndef MINSHORT
-#define MINSHORT  ((int16_t)0x8000)
-#endif
-
-#ifndef MININT
-#define MININT    ((int32_t)0x80000000)
-#endif
-
-#ifndef MINLONG
-#define MINLONG   MININT		//((long)0x80000000)
 #endif
 
 #ifndef MININT64

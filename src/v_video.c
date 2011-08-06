@@ -532,14 +532,14 @@ static void V_BlitScalePic(int x1, int y1, int scrn, pic_t * pic)
 		CONS_Printf("pic mode %d not supported in Software\n", pic->mode);
 		return;
 	}
-
-	dest = screens[scrn] + max(0, y1 * vid.width) + max(0, x1);
+	
+	
+	dest = screens[scrn] + /*max*/(y1 * vid.width > 0 ? y1 * vid.width : 0) + /*max*/(x1 > 0 ? x1 : 0);
 	// y cliping to the screen
 	if (y1 + QuickRound(height * vid.fdupy) >= vid.width)
 		height = QuickRound((vid.width - y1) / vid.fdupy) - 1;
 	// WARNING no x clipping (not needed for the moment)
-
-	for (y = max(0, QuickRound(-y1 / vid.fdupy)); y < height; y++)
+	for (y = /*max*/(QuickRound(-y1 / vid.fdupy) > 0 ? QuickRound(-y1 / vid.fdupy) : 0); y < height; y++)
 	{
 		for (dupy = 0; QuickRound(vid.fdupy - dupy) > 0; dupy++)
 		{

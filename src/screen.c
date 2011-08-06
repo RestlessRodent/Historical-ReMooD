@@ -99,9 +99,6 @@ uint8_t *scr_borderpatch;			// flat used to fill the reduced view borders
 
 // =========================================================================
 
-//added:27-01-98: tell asm code the new rowbytes value.
-void ASMCALL ASM_PatchRowBytes(int rowbytes);
-
 //  Set the video mode right now,
 //  the video mode change is delayed until the start of the next refresh
 //  by setting the setmodeneeded to a value >0

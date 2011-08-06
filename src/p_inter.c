@@ -1486,7 +1486,7 @@ bool_t P_DamageMobj(mobj_t * target, mobj_t * inflictor, mobj_t * source, int da
 
 			//added:22-02-98: force feedback ??? electro-shock???
 			if (player == &players[consoleplayer[0]])
-				I_Tactile(40, 10, 40 + min(damage, 100) * 2);
+				I_Tactile(40, 10, 40 + (damage < 100 ? damage : 100) * 2);
 		}
 		player->attacker = source;
 	}

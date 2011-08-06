@@ -136,14 +136,14 @@ void R_DrawViewBorder(void);
 void R_DrawHColumn_8(void);
 #endif
 
-void ASMCALL R_DrawColumn_8(void);
-void ASMCALL R_DrawSkyColumn_8(void);
-void ASMCALL R_DrawShadeColumn_8(void);	//smokie test..
-void ASMCALL R_DrawFuzzColumn_8(void);
-void ASMCALL R_DrawTranslucentColumn_8(void);
-void ASMCALL R_DrawTranslatedColumn_8(void);
-void ASMCALL R_DrawSpan_8(void);
-void ASMCALL R_DrawPaintballColumn_8(void);
+void  R_DrawColumn_8(void);
+void  R_DrawSkyColumn_8(void);
+void  R_DrawShadeColumn_8(void);	//smokie test..
+void  R_DrawFuzzColumn_8(void);
+void  R_DrawTranslucentColumn_8(void);
+void  R_DrawTranslatedColumn_8(void);
+void  R_DrawSpan_8(void);
+void  R_DrawPaintballColumn_8(void);
 
 // SSNTails 11-11-2002
 void R_DrawTranslatedTranslucentColumn_8(void);
@@ -158,12 +158,12 @@ void R_DrawPortalColumn_8(void);
 // 16bpp DRAWING CODE
 // ------------------
 
-void ASMCALL R_DrawColumn_16(void);
-void ASMCALL R_DrawSkyColumn_16(void);
-void ASMCALL R_DrawFuzzColumn_16(void);
-void ASMCALL R_DrawTranslucentColumn_16(void);
-void ASMCALL R_DrawTranslatedColumn_16(void);
-void ASMCALL R_DrawSpan_16(void);
+void  R_DrawColumn_16(void);
+void  R_DrawSkyColumn_16(void);
+void  R_DrawFuzzColumn_16(void);
+void  R_DrawTranslucentColumn_16(void);
+void  R_DrawTranslatedColumn_16(void);
+void  R_DrawSpan_16(void);
 
 // =========================================================================
 #endif							// __R_DRAW__

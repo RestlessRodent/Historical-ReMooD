@@ -227,7 +227,7 @@ void R_ClearPlanes(player_t * player)
 	{
 		floorclip[i] = viewheight;
 		ceilingclip[i] = con_clipviewtop;	//Fab:26-04-98: was -1
-		frontscale[i] = MAXINT;
+		frontscale[i] = INT_MAX;
 		for (p = 0; p < MAXFFLOORS; p++)
 		{
 			ffloor[p].f_clip[i] = viewheight;

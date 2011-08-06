@@ -479,13 +479,13 @@ void R_DrawMaskedColumn(column_t * column)
 		topscreen = sprtopscreen + spryscale * column->topdelta;
 		bottomscreen =
 			sprbotscreen ==
-			MAXINT ? topscreen + spryscale * column->length : sprbotscreen +
+			INT_MAX ? topscreen + spryscale * column->length : sprbotscreen +
 			spryscale * column->length;
 
 		dc_yl = (topscreen + FRACUNIT - 1) >> FRACBITS;
 		dc_yh = (bottomscreen - 1) >> FRACBITS;
 
-		if (windowtop != MAXINT && windowbottom != MAXINT)
+		if (windowtop != INT_MAX && windowbottom != INT_MAX)
 		{
 			if (windowtop > topscreen)
 				dc_yl = (windowtop + FRACUNIT - 1) >> FRACBITS;
@@ -590,7 +590,7 @@ static void R_DrawVisSprite(vissprite_t * vis, int x1, int x2)
 	frac = vis->startfrac;
 	spryscale = vis->scale;
 	sprtopscreen = centeryfrac - FixedMul(dc_texturemid, spryscale);
-	windowtop = windowbottom = sprbotscreen = MAXINT;
+	windowtop = windowbottom = sprbotscreen = INT_MAX;
 
 	for (dc_x = vis->x1; dc_x <= vis->x2; dc_x++, frac += vis->xiscale)
 	{
@@ -1246,7 +1246,7 @@ void R_SortVisSprites(void)
 	vsprsortedhead.next = vsprsortedhead.prev = &vsprsortedhead;
 	for (i = 0; i < count; i++)
 	{
-		bestscale = MAXINT;
+		bestscale = INT_MAX;
 		for (ds = unsorted.next; ds != &unsorted; ds = ds->next)
 		{
 			if (ds->scale < bestscale)
@@ -2087,7 +2087,7 @@ void R_AddSkins(int wadnum)
 					}
 				
 				if (!Found)
-					R_AddSingleSpriteDef(SprName, &skins[numskins].spritedef, wadnum, 0, MAXINT);
+					R_AddSingleSpriteDef(SprName, &skins[numskins].spritedef, wadnum, 0, INT_MAX);
 					
 				Z_Free(SprName);
 			}

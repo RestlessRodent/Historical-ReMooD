@@ -29,21 +29,10 @@
 #include "doomtype.h"
 #include "m_bbox.h"
 
-// faB: getting sick of windows includes errors,
-//     I'm supposed to clean that up later.. sure
-#ifdef _WIN32
-#ifndef MAXINT
-#define MAXINT    ((int)0x7fffffff)
-#endif
-#ifndef MININT
-#define MININT    ((int)0x80000000)
-#endif
-#endif
-
 void M_ClearBox(fixed_t * box)
 {
-	box[BOXTOP] = box[BOXRIGHT] = MININT;
-	box[BOXBOTTOM] = box[BOXLEFT] = MAXINT;
+	box[BOXTOP] = box[BOXRIGHT] = INT_MIN;
+	box[BOXBOTTOM] = box[BOXLEFT] = INT_MAX;
 }
 
 void M_AddToBox(fixed_t * box, fixed_t x, fixed_t y)
