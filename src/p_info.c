@@ -340,7 +340,7 @@ void P_ParseInterText(char *line)
 // Setup/Misc. Functions
 //
 
-boolean default_weaponowned[NUMWEAPONS];
+bool_t default_weaponowned[NUMWEAPONS];
 
 void P_InitWeapons()
 {

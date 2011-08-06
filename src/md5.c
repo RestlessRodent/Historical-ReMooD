@@ -54,7 +54,7 @@
 #endif
 
 /* This array contains the bytes used to pad the buffer to the next
-   64-byte boundary.  (RFC 1321, 3.1: Step 1)  */
+   64-uint8_t boundary.  (RFC 1321, 3.1: Step 1)  */
 static const unsigned char fillbuf[64] = { 0x80, 0 /* , 0, 0, ...  */  };
 
 /* Initialize structure containing state of computation.
@@ -72,7 +72,7 @@ struct md5_ctx *ctx;
 }
 
 /* Put result from CTX in first 16 bytes following RESBUF.  The result
-   must be in little endian byte order.
+   must be in little endian uint8_t order.
 
    IMPORTANT: On some systems it is required that RESBUF is correctly
    aligned for a 32 bits value.  */
@@ -176,7 +176,7 @@ void *resblock;
 }
 
 /* Compute MD5 message digest for LEN bytes beginning at BUFFER.  The
-   result is always in little endian byte order, so that a byte-wise
+   result is always in little endian uint8_t order, so that a uint8_t-wise
    output yields to the wanted ASCII representation of the message
    digest.  */
 void *md5_buffer(buffer, len, resblock)
@@ -265,7 +265,7 @@ struct md5_ctx *ctx;
 	md5_uint32 C = ctx->C;
 	md5_uint32 D = ctx->D;
 
-	/* First increment the byte count.  RFC 1321 specifies the possible
+	/* First increment the uint8_t count.  RFC 1321 specifies the possible
 	   length of the file up to 2^64 bits.  Here we only compute the
 	   number of bytes.  Do a double word increment.  */
 	ctx->total[0] += len;
@@ -285,7 +285,7 @@ struct md5_ctx *ctx;
 		/* First round: using the given function, the context and a constant
 		   the next context is computed.  Because the algorithms processing
 		   unit is a 32-bit word and it is determined to work on words in
-		   little endian byte order we perhaps have to change the byte order
+		   little endian uint8_t order we perhaps have to change the uint8_t order
 		   before the computation.  To reduce the work for the next steps
 		   we store the swapped words in the array CORRECT_WORDS.  */
 

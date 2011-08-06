@@ -45,7 +45,7 @@
 //                     COMMON DATA FOR 8bpp AND 16bpp
 // ==========================================================================
 
-byte *viewimage;
+uint8_t *viewimage;
 int viewwidth;
 int scaledviewwidth;
 int viewheight;
@@ -53,13 +53,13 @@ int viewwindowx;
 int viewwindowy;
 
 				// pointer to the start of each line of the screen,
-byte** activeylookup;	// Active ylookup table (for 4 way splits)
-byte **ylookup;
-byte **ylookup1;	// for view1 (splitscreen)
-byte **ylookup2;	// for view2 (splitscreen)
-byte **ylookup4[MAXSPLITSCREENPLAYERS];	// for 4 way split screen
+uint8_t** activeylookup;	// Active ylookup table (for 4 way splits)
+uint8_t **ylookup;
+uint8_t **ylookup1;	// for view1 (splitscreen)
+uint8_t **ylookup2;	// for view2 (splitscreen)
+uint8_t **ylookup4[MAXSPLITSCREENPLAYERS];	// for 4 way split screen
 
-				 // x byte offset for columns inside the viewwindow
+				 // x uint8_t offset for columns inside the viewwindow
 				// so the first column starts at (SCRWIDTH-VIEWWIDTH)/2
 int* columnofs;
 
@@ -79,26 +79,26 @@ lighttable_t *dc_wcolormap;		//added:24-02-98:WATER!
 fixed_t dc_iscale;
 fixed_t dc_texturemid;
 
-byte *dc_source;
+uint8_t *dc_source;
 
 // -----------------------
 // translucency stuff here
 // -----------------------
 #define NUMTRANSTABLES  5		// how many translucency tables are used
 
-byte *transtables;				// translucency tables
+uint8_t *transtables;				// translucency tables
 
 // R_DrawTransColumn uses this
-byte *dc_transmap;				// one of the translucency tables
+uint8_t *dc_transmap;				// one of the translucency tables
 
 // ----------------------
 // translation stuff here
 // ----------------------
 
-byte *translationtables;
+uint8_t *translationtables;
 
 // R_DrawTranslatedColumn uses this
-byte *dc_translation;
+uint8_t *dc_translation;
 
 struct r_lightlist_s *dc_lightlist = NULL;
 int dc_numlights = 0;
@@ -121,8 +121,8 @@ fixed_t ds_yfrac;
 fixed_t ds_xstep;
 fixed_t ds_ystep;
 
-byte *ds_source;				// start of a 64*64 tile image
-byte *ds_transmap;				// one of the translucency tables
+uint8_t *ds_source;				// start of a 64*64 tile image
+uint8_t *ds_transmap;				// one of the translucency tables
 
 // Variable flat sizes SSNTails 06-10-2003
 int flatsize;
@@ -494,8 +494,8 @@ void R_InitViewBorder(void)
 //
 void R_FillBackScreen(void)
 {
-	byte *src;
-	byte *dest;
+	uint8_t *src;
+	uint8_t *dest;
 	int x;
 	int y;
 	patch_t *patch;
@@ -568,7 +568,7 @@ void R_VideoErase(unsigned ofs, int count)
 {
 	// LFB copy.
 	// This might not be a good idea if memcpy
-	//  is not optiomal, e.g. byte by byte on
+	//  is not optiomal, e.g. uint8_t by uint8_t on
 	//  a 32bit CPU, as GNU GCC/Linux libc did
 	//  at one point.
 	memcpy(screens[0] + ofs, screens[1] + ofs, count);
@@ -651,7 +651,7 @@ void R_DrawViewBorder(void)
 void R_DrawColumn_8(void)
 {
 	register int count;
-	register byte *dest;
+	register uint8_t *dest;
 	register fixed_t frac;
 	register fixed_t fracstep;
 
@@ -696,7 +696,7 @@ void R_DrawColumn_8(void)
 void R_DrawColumn_8(void)
 {
 	int count, ccount;
-	register byte *dest;
+	register uint8_t *dest;
 	register fixed_t frac;
 	fixed_t fracstep;
 
@@ -731,7 +731,7 @@ void R_DrawColumn_8(void)
 	// This is as fast as it gets.
 
 	{
-		register const byte *source = dc_source;
+		register const uint8_t *source = dc_source;
 		register const lighttable_t *colormap = dc_colormap;
 		register int heightmask = dc_texheight - 1;
 		if (dc_texheight & heightmask)
@@ -780,7 +780,7 @@ void R_DrawColumn_8(void)
 void R_DrawSkyColumn_8(void)
 {
 	register int count;
-	register byte *dest;
+	register uint8_t *dest;
 	register fixed_t frac;
 	register fixed_t fracstep;
 
@@ -824,7 +824,7 @@ void R_DrawSkyColumn_8(void)
 void R_DrawSkyColumn_8(void)
 {
 	int count;
-	register byte *dest;
+	register uint8_t *dest;
 	register fixed_t frac;
 	fixed_t fracstep;
 
@@ -857,7 +857,7 @@ void R_DrawSkyColumn_8(void)
 	// This is as fast as it gets.
 
 	{
-		register const byte *source = dc_source;
+		register const uint8_t *source = dc_source;
 		register const lighttable_t *colormap = dc_colormap;
 		register int heightmask = 255;
 		if (dc_texheight & heightmask)
@@ -908,7 +908,7 @@ void R_DrawSkyColumn_8(void)
 void R_DrawFuzzColumn_8(void)
 {
 	register int count;
-	register byte *dest;
+	register uint8_t *dest;
 	register fixed_t frac;
 	register fixed_t fracstep;
 
@@ -964,13 +964,13 @@ void R_DrawSpanNoWrap(void)
 {
 }
 
-boolean g_PaintBallMode = false;
+bool_t g_PaintBallMode = false;
 uint8_t g_PBColor = 0;
 
 /* R_DrawPaintballColumn_8() -- Paintball mode! */
 void R_DrawPaintballColumn_8(void)
 {	register int count;
-	register byte *dest;
+	register uint8_t *dest;
 	register fixed_t frac;
 	register fixed_t fracstep;
 	
@@ -1006,7 +1006,7 @@ void R_DrawPaintballColumn_8(void)
 void R_DrawShadeColumn_8(void)
 {
 	register int count;
-	register byte *dest;
+	register uint8_t *dest;
 	register fixed_t frac;
 	register fixed_t fracstep;
 
@@ -1048,7 +1048,7 @@ void R_DrawShadeColumn_8(void)
 void R_DrawTranslucentColumn_8(void)
 {
 	register int count;
-	register byte *dest;
+	register uint8_t *dest;
 	register fixed_t frac;
 	register fixed_t fracstep;
 
@@ -1083,7 +1083,7 @@ void R_DrawTranslucentColumn_8(void)
 void R_DrawTranslucentColumn_8(void)
 {
 	register int count;
-	register byte *dest;
+	register uint8_t *dest;
 	register fixed_t frac;
 	register fixed_t fracstep;
 
@@ -1114,7 +1114,7 @@ void R_DrawTranslucentColumn_8(void)
 	// This is as fast as it gets.
 
 	{
-		register const byte *source = dc_source;
+		register const uint8_t *source = dc_source;
 		//register const lighttable_t *colormap = dc_colormap;
 		register int heightmask = dc_texheight - 1;
 		if (dc_texheight & heightmask)
@@ -1168,7 +1168,7 @@ void R_DrawTranslucentColumn_8(void)
 void R_DrawTranslatedTranslucentColumn_8(void)
 {
 	register int count;
-	register byte *dest;
+	register uint8_t *dest;
 	register fixed_t frac;
 	register fixed_t fracstep;
 
@@ -1190,7 +1190,7 @@ void R_DrawTranslatedTranslucentColumn_8(void)
 	// This is as fast as it gets.
 
 	{
-		register const byte *source = dc_source;
+		register const uint8_t *source = dc_source;
 		//register const lighttable_t *colormap = dc_colormap;
 		register int heightmask = dc_texheight - 1;
 		if (dc_texheight & heightmask)
@@ -1259,7 +1259,7 @@ void R_DrawTranslatedTranslucentColumn_8(void)
 void R_DrawTranslatedColumn_8(void)
 {
 	register int count;
-	register byte *dest;
+	register uint8_t *dest;
 	register fixed_t frac;
 	register fixed_t fracstep;
 
@@ -1309,7 +1309,7 @@ void R_DrawSpan_8(void)
 {
 	register ULONG xfrac;
 	register ULONG yfrac;
-	register byte *dest;
+	register uint8_t *dest;
 	register int count;
 
 #ifdef RANGECHECK
@@ -1345,7 +1345,7 @@ void R_DrawSpan_8(void)
 {
 	register ULONG xfrac;
 	register ULONG yfrac;
-	register byte *dest;
+	register uint8_t *dest;
 	register int count;
 
 #ifdef RANGECHECK
@@ -1386,7 +1386,7 @@ void R_DrawTranslucentSpan_8(void)
 	fixed_t yfrac;
 	fixed_t xstep;
 	fixed_t ystep;
-	byte *dest;
+	uint8_t *dest;
 	int count;
 
 #ifdef RANGECHECK
@@ -1436,10 +1436,10 @@ void R_DrawTranslucentSpan_8(void)
 	   register unsigned position;
 	   unsigned step;
 
-	   byte *source;
-	   byte *colormap;
-	   byte *transmap;
-	   byte *dest;
+	   uint8_t *source;
+	   uint8_t *colormap;
+	   uint8_t *transmap;
+	   uint8_t *dest;
 
 	   unsigned count;
 	   unsigned spot; 
@@ -1504,9 +1504,9 @@ void R_DrawTranslucentSpan_8(void)
 
 void R_DrawFogSpan_8(void)
 {
-	byte *colormap;
-	byte *transmap;
-	byte *dest;
+	uint8_t *colormap;
+	uint8_t *transmap;
+	uint8_t *dest;
 
 	unsigned count;
 
@@ -1537,7 +1537,7 @@ void R_DrawFogSpan_8(void)
 void R_DrawFogColumn_8(void)
 {
 	int count;
-	byte *dest;
+	uint8_t *dest;
 
 	count = dc_yh - dc_yl;
 

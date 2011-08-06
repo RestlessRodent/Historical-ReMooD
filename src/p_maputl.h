@@ -46,7 +46,7 @@ typedef struct
 typedef struct
 {
 	fixed_t frac;				// along trace line
-	boolean isaline;
+	bool_t isaline;
 	union
 	{
 		mobj_t *thing;
@@ -66,9 +66,9 @@ extern intercept_t *intercept_p;
 
 void P_CheckIntercepts();
 
-typedef boolean(*traverser_t) (intercept_t * in);
+typedef bool_t(*traverser_t) (intercept_t * in);
 
-boolean P_PathTraverse(fixed_t x1, fixed_t y1, fixed_t x2, fixed_t y2, int flags, traverser_t trav);
+bool_t P_PathTraverse(fixed_t x1, fixed_t y1, fixed_t x2, fixed_t y2, int flags, traverser_t trav);
 
 fixed_t P_AproxDistance(fixed_t dx, fixed_t dy);
 int P_PointOnLineSide(fixed_t x, fixed_t y, line_t * line);
@@ -84,8 +84,8 @@ extern fixed_t lowfloor;
 
 void P_LineOpening(line_t * linedef);
 
-boolean P_BlockLinesIterator(int x, int y, boolean(*func) (line_t *));
-boolean P_BlockThingsIterator(int x, int y, boolean(*func) (mobj_t *));
+bool_t P_BlockLinesIterator(int x, int y, bool_t(*func) (line_t *));
+bool_t P_BlockThingsIterator(int x, int y, bool_t(*func) (mobj_t *));
 
 #define PT_ADDLINES     1
 #define PT_ADDTHINGS    2
@@ -96,9 +96,9 @@ extern divline_t trace;
 extern fixed_t tmbbox[4];		//p_map.c
 
 // call your user function for each line of the blockmap in the bbox defined by the radius
-/*boolean P_RadiusLinesCheck (  fixed_t    radius,
+/*bool_t P_RadiusLinesCheck (  fixed_t    radius,
                               fixed_t    x,
                               fixed_t    y,
-                              boolean   (*func)(line_t*));*/
+                              bool_t   (*func)(line_t*));*/
 #endif							// __P_MAPUTL__
 

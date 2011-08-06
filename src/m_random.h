@@ -32,26 +32,26 @@
 
 // Returns a number from 0 to 255,
 // from a lookup table.
-byte M_Random(void);
+uint8_t M_Random(void);
 
 //#define DEBUGRANDOM
 
 #ifdef DEBUGRANDOM
 #define P_Random() P_Random2(__FILE__,__LINE__)
 #define P_SignedRandom() P_SignedRandom2(__FILE__,__LINE__)
-byte P_Random2(char *a, int b);
+uint8_t P_Random2(char *a, int b);
 int P_SignedRandom2(char *a, int b);
 #else
 // As M_Random, but used only by the play simulation.
-byte P_Random(void);
+uint8_t P_Random(void);
 int P_SignedRandom();
 #endif
 
 // Fix randoms for demos.
 void M_ClearRandom(void);
 
-byte P_GetRandIndex(void);
+uint8_t P_GetRandIndex(void);
 
-void P_SetRandIndex(byte rindex);
+void P_SetRandIndex(uint8_t rindex);
 
 #endif

@@ -178,7 +178,7 @@ extern int joyxmove;
 extern int joyymove;
 
 // current state of the keys : true if pushed
-extern byte gamekeydown[NUMINPUTS];
+extern uint8_t gamekeydown[NUMINPUTS];
 
 // two key codes (or virtual key) per game control
 extern int gamecontrol[MAXSPLITSCREENPLAYERS][num_gamecontrols][2];
@@ -203,7 +203,7 @@ void G_CheckDoubleUsage(int keynum);
 
 void G_InitKeys(void);
 
-extern boolean shiftdown;
+extern bool_t shiftdown;
 
 /* GhostlyDeath <December 11, 2008> -- Joysticks */
 // For Axes Binding:

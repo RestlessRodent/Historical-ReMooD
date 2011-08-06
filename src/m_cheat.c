@@ -59,54 +59,54 @@
 ****************/
 
 #else
-static boolean HandleCheats(byte key);
+static bool_t HandleCheats(uint8_t key);
 
 // ==========================================================================
 //                             CHEAT Structures
 // ==========================================================================
 
-byte cheat_mus_seq[] = {
+uint8_t cheat_mus_seq[] = {
 	0xb2, 0x26, 0xb6, 0xae, 0xea, 1, 0, 0, 0xff
 };
 
 //Fab:19-07-98: idcd xx : change cd track
-byte cheat_cd_seq[] = {
+uint8_t cheat_cd_seq[] = {
 	0xb2, 0x26, 0xe2, 0x26, 1, 0, 0, 0xff
 };
 
-byte cheat_choppers_seq[] = {
+uint8_t cheat_choppers_seq[] = {
 	0xb2, 0x26, 0xe2, 0x32, 0xf6, 0x2a, 0x2a, 0xa6, 0x6a, 0xea, 0xff	// id...
 };
 
-byte cheat_god_seq[] = {
+uint8_t cheat_god_seq[] = {
 	0xb2, 0x26, 0x26, 0xaa, 0x26, 0xff	// iddqd
 };
 
-byte cheat_ammo_seq[] = {
+uint8_t cheat_ammo_seq[] = {
 	0xb2, 0x26, 0xf2, 0x66, 0xa2, 0xff	// idkfa
 };
 
-byte cheat_ammonokey_seq[] = {
+uint8_t cheat_ammonokey_seq[] = {
 	0xb2, 0x26, 0x66, 0xa2, 0xff	// idfa
 };
 
 // Smashing Pumpkins Into Small Pieces Of Putrid Debris.
-byte cheat_noclip_seq[] = {
+uint8_t cheat_noclip_seq[] = {
 	0xb2, 0x26, 0xea, 0x2a, 0xb2,	// idspispopd
 	0xea, 0x2a, 0xf6, 0x2a, 0x26, 0xff
 };
 
 //
-byte cheat_commercial_noclip_seq[] = {
+uint8_t cheat_commercial_noclip_seq[] = {
 	0xb2, 0x26, 0xe2, 0x36, 0xb2, 0x2a, 0xff	// idclip
 };
 
 //added:28-02-98: new cheat to fly around levels using jump !!
-byte cheat_fly_around_seq[] = {
+uint8_t cheat_fly_around_seq[] = {
 	0xb2, 0x26, SCRAMBLE('f'), SCRAMBLE('l'), SCRAMBLE('y'), 0xff	// idfly
 };
 
-byte cheat_powerup_seq[7][10] = {
+uint8_t cheat_powerup_seq[7][10] = {
 	{0xb2, 0x26, 0x62, 0xa6, 0x32, 0xf6, 0x36, 0x26, 0x6e, 0xff},	// beholdv
 	{0xb2, 0x26, 0x62, 0xa6, 0x32, 0xf6, 0x36, 0x26, 0xea, 0xff},	// beholds
 	{0xb2, 0x26, 0x62, 0xa6, 0x32, 0xf6, 0x36, 0x26, 0xb2, 0xff},	// beholdi
@@ -116,16 +116,16 @@ byte cheat_powerup_seq[7][10] = {
 	{0xb2, 0x26, 0x62, 0xa6, 0x32, 0xf6, 0x36, 0x26, 0xff}	// behold
 };
 
-byte cheat_clev_seq[] = {
+uint8_t cheat_clev_seq[] = {
 	0xb2, 0x26, 0xe2, 0x36, 0xa6, 0x6e, 1, 0, 0, 0xff	// idclev
 };
 
 // my position cheat
-byte cheat_mypos_seq[] = {
+uint8_t cheat_mypos_seq[] = {
 	0xb2, 0x26, 0xb6, 0xba, 0x2a, 0xf6, 0xea, 0xff	// idmypos
 };
 
-byte cheat_amap_seq[] = { 0xb2, 0x26, 0x26, 0x2e, 0xff };
+uint8_t cheat_amap_seq[] = { 0xb2, 0x26, 0x26, 0x2e, 0xff };
 cheatseq_t cheat_amap = { cheat_amap_seq, 0 };
 
 // Now what?
@@ -158,7 +158,7 @@ cheatseq_t cheat_mypos = { cheat_mypos_seq, 0 };
 //                        CHEAT SEQUENCE PACKAGE
 // ==========================================================================
 
-static byte cheat_xlate_table[256];
+static uint8_t cheat_xlate_table[256];
 
 void cht_Init()
 {
@@ -180,7 +180,7 @@ int cht_CheckCheat(cheatseq_t * cht, char key)
 
 	if (*cht->p == 0)
 		*(cht->p++) = key;
-	else if (cheat_xlate_table[(byte) key] == *cht->p)
+	else if (cheat_xlate_table[(uint8_t) key] == *cht->p)
 		cht->p++;
 	else
 		cht->p = cht->sequence;
@@ -199,7 +199,7 @@ int cht_CheckCheat(cheatseq_t * cht, char key)
 void cht_GetParam(cheatseq_t * cht, char *buffer)
 {
 
-	byte *p, c;
+	uint8_t *p, c;
 
 	p = cht->sequence;
 	while (*(p++) != 1);
@@ -226,7 +226,7 @@ int god_health = 100;
 
 static player_t *plyr;
 
-boolean cht_Responder(event_t * ev)
+bool_t cht_Responder(event_t * ev)
 {
 	int i;
 	char *msg;
@@ -709,7 +709,7 @@ void Command_CheatGimme_f(void)
 // PTR_SummonTraverse
 // Summons an object if possible
 //
-boolean PTR_SummonTraverse(intercept_t * in)
+bool_t PTR_SummonTraverse(intercept_t * in)
 {
 	return false;
 }

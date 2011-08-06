@@ -58,7 +58,7 @@ typedef struct viddef_s
 {
 	int modenum;				// vidmode num indexes videomodes list
 
-	byte *buffer;				// invisible screens buffer
+	uint8_t *buffer;				// invisible screens buffer
 	unsigned rowbytes;			// bytes per scanline of the VIDEO mode
 	int width;					// PIXELS per scanline
 	int height;
@@ -69,7 +69,7 @@ typedef struct viddef_s
 		int windowed;			// windowed or fullscren mode ?
 	} u;						//BP: name it please soo it work with gcc
 	int recalc;					// if true, recalc vid-based stuff
-	byte *direct;				// linear frame buffer, or vga base mem.
+	uint8_t *direct;				// linear frame buffer, or vga base mem.
 	int dupx, dupy;				// scale 1,2,3 value for menus & overlays
 	fixed_t fxdupx;				// GhostlyDeath <November 5, 2010> -- Fixed scaling
 	fixed_t fxdupy;				// GhostlyDeath <November 5, 2010> -- Fixed scaling
@@ -131,10 +131,10 @@ extern void (*transtransfunc) (void);	// SSNTails 11-11-2002
 extern viddef_t vid;
 extern int setmodeneeded;		// mode number to set if needed, or 0
 
-extern boolean fuzzymode;
+extern bool_t fuzzymode;
 
 extern int scr_bpp;
-extern byte *scr_borderpatch;	// patch used to fill the view borders
+extern uint8_t *scr_borderpatch;	// patch used to fill the view borders
 
 extern consvar_t cv_scr_width;
 extern consvar_t cv_scr_height;

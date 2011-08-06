@@ -1726,7 +1726,7 @@ void SF_PointToDist()
 /************* Camera functions ***************/
 
 camera_t script_camera = { false, 0, 0, 0, 0, NULL };
-boolean script_camera_on;
+bool_t script_camera_on;
 
 // setcamera(obj, [angle], [viewheight], [aiming])
 void SF_SetCamera()
@@ -2058,7 +2058,7 @@ void SF_FloorHeight()
 	if (t_argc > 1)				// > 1: set floorheight
 	{
 		int i = -1;
-		boolean crush = t_argc == 3 ? intvalue(t_argv[2]) : false;
+		bool_t crush = t_argc == 3 ? intvalue(t_argv[2]) : false;
 
 		// set all sectors with tag
 		while ((i = P_FindSectorFromTag(tagnum, i)) >= 0)
@@ -2152,7 +2152,7 @@ void SF_CeilingHeight()
 	if (t_argc > 1)				// > 1: set ceilheight
 	{
 		int i = -1;
-		boolean crush = t_argc == 3 ? intvalue(t_argv[2]) : false;
+		bool_t crush = t_argc == 3 ? intvalue(t_argv[2]) : false;
 
 		// set all sectors with tag
 		while ((i = P_FindSectorFromTag(tagnum, i)) >= 0)
@@ -2933,7 +2933,7 @@ void SF_Pow()
 int HU_GetFSPic(int lumpnum, int xpos, int ypos);
 int HU_DeleteFSPic(int handle);
 int HU_ModifyFSPic(int handle, int lumpnum, int xpos, int ypos);
-int HU_FSDisplay(int handle, boolean newval);
+int HU_FSDisplay(int handle, bool_t newval);
 
 void SF_NewHUPic()
 {

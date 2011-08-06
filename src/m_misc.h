@@ -42,16 +42,16 @@
 //
 //===========================================================================
 
-boolean FIL_WriteFile(char const *name, void *source, int length);
+bool_t FIL_WriteFile(char const *name, void *source, int length);
 
-int FIL_ReadFile(char const *name, byte ** buffer);
+int FIL_ReadFile(char const *name, uint8_t ** buffer);
 
 void FIL_DefaultExtension(char *path, char *extension);
 
 //added:11-01-98:now declared here for use by G_DoPlayDemo(), see there...
 void FIL_ExtractFileBase(char *path, char *dest);
 
-boolean FIL_CheckExtension(char *in);
+bool_t FIL_CheckExtension(char *in);
 
 //===========================================================================
 

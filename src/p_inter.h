@@ -36,11 +36,11 @@ void VerifFavoritWeapon(player_t * player);
 
 int FindBestWeapon(player_t * player);
 
-boolean P_GivePower(player_t *, int);
+bool_t P_GivePower(player_t *, int);
 void P_CheckFragLimit(player_t * p);
 
 void P_KillMobj(mobj_t * target, mobj_t * inflictor, mobj_t * source);
-boolean P_GiveBody(player_t * player, int num);
+bool_t P_GiveBody(player_t * player, int num);
 
 //added:28-02-98: boooring handling of thing(s) on top of thing(s)
 /* BUGGY CODE

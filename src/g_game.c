@@ -162,10 +162,10 @@ consvar_t cv_newdeathmatch = { "newdeathmatch", "3", CV_HIDEN, deathmatch_cons_t
 #define SAVEGAMESIZE    (512*1024)
 #define SAVESTRINGSIZE  24
 
-boolean G_CheckDemoStatus(void);
+bool_t G_CheckDemoStatus(void);
 void G_ReadDemoTiccmd(ticcmd_t * cmd, int playernum);
 void G_WriteDemoTiccmd(ticcmd_t * cmd, int playernum);
-void G_InitNew(skill_t skill, char *mapname, boolean resetplayer);
+void G_InitNew(skill_t skill, char *mapname, bool_t resetplayer);
 
 void G_DoCompleted(void);
 void G_DoVictory(void);
@@ -177,29 +177,29 @@ void G_DoWorldDone(void);
 // the game version, if it's older, the changes are not done, and the older
 // code is used for compatibility.
 //
-byte demoversion = VERSION;
+uint8_t demoversion = VERSION;
 
-byte gameepisode;
-byte gamemap;
+uint8_t gameepisode;
+uint8_t gamemap;
 char gamemapname[MAX_WADPATH];	// an external wad filename
 
 gamemode_t gamemode = indetermined;	// Game Mode - identify IWAD as shareware, retail etc.
 gamemission_t gamemission = doom;
-boolean raven = false;
+bool_t raven = false;
 language_t language = english;	// Language.
-boolean modifiedgame;			// Set if homebrew PWAD stuff has been added.
+bool_t modifiedgame;			// Set if homebrew PWAD stuff has been added.
 
-boolean paused;
+bool_t paused;
 
-boolean timingdemo;				// if true, exit with report on completion
-boolean nodrawers;				// for comparative timing purposes
-boolean noblit;					// for comparative timing purposes
+bool_t timingdemo;				// if true, exit with report on completion
+bool_t nodrawers;				// for comparative timing purposes
+bool_t noblit;					// for comparative timing purposes
 tic_t demostarttime;			// for comparative timing purposes
 
-boolean netgame;				// only true if packets are broadcast
-boolean multiplayer;
-boolean serverside;
-boolean playeringame[MAXPLAYERS];
+bool_t netgame;				// only true if packets are broadcast
+bool_t multiplayer;
+bool_t serverside;
+bool_t playeringame[MAXPLAYERS];
 player_t players[MAXPLAYERS];
 
 int consoleplayer[MAXSPLITSCREENPLAYERS];				// player taking events and displaying
@@ -213,18 +213,18 @@ tic_t levelstarttic;			// gametic at level start
 int totalkills, totalitems, totalsecret;	// for intermission
 
 char demoname[32];
-boolean demorecording;
-boolean demoplayback;
-byte *demobuffer;
-byte *demo_p;
-byte *demoend;
-boolean singledemo;				// quit after playing a demo from cmdline
+bool_t demorecording;
+bool_t demoplayback;
+uint8_t *demobuffer;
+uint8_t *demo_p;
+uint8_t *demoend;
+bool_t singledemo;				// quit after playing a demo from cmdline
 
-boolean precache = false;		// if true, load all graphics at start
+bool_t precache = false;		// if true, load all graphics at start
 
 wbstartstruct_t wminfo;			// parms for world map / intermission
 
-byte *savebuffer;
+uint8_t *savebuffer;
 
 void ShowMessage_OnChange(void);
 void AllowTurbo_OnChange(void);
@@ -332,13 +332,13 @@ static fixed_t sidemove[2] = { 24 / NEWTICRATERATIO, 40 / NEWTICRATERATIO };
 static fixed_t angleturn[3] = { 640, 1280, 320 };	// + slow turn
 
 // for change this table change also nextweapon func in g_game and P_PlayerThink
-byte nextweaponorder[NUMWEAPONS] = { wp_fist, wp_chainsaw, wp_pistol,
+uint8_t nextweaponorder[NUMWEAPONS] = { wp_fist, wp_chainsaw, wp_pistol,
 	wp_shotgun, wp_supershotgun, wp_chaingun, wp_missile, wp_plasma, wp_bfg
 };
 
-byte NextWeapon(player_t * player, int step)
+uint8_t NextWeapon(player_t * player, int step)
 {
-	byte w;
+	uint8_t w;
 	int i;
 	for (i = 0; i < NUMWEAPONS; i++)
 		if (player->readyweapon == nextweaponorder[i])
@@ -371,7 +371,7 @@ byte NextWeapon(player_t * player, int step)
 	return 0;
 }
 
-byte BestWeapon(player_t * player)
+uint8_t BestWeapon(player_t * player)
 {
 	int newweapon = FindBestWeapon(player);
 
@@ -392,18 +392,18 @@ byte BestWeapon(player_t * player)
 void G_BuildTiccmd(ticcmd_t * cmd, int realtics, int player)
 {
 	int i, j;
-	boolean strafe;
+	bool_t strafe;
 	int speed;
 	int tspeed;
 	int forward;
 	int side;
 	ticcmd_t *base;
 	//added:14-02-98: these ones used for multiple conditions
-	boolean turnleft, turnright, mouseaiming, analogjoystickmove, gamepadjoystickmove;
+	bool_t turnleft, turnright, mouseaiming, analogjoystickmove, gamepadjoystickmove;
 	player_t* ply = &players[consoleplayer[player]];
 
 	static int turnheld[MAXSPLITSCREENPLAYERS];		// for accelerative turning
-	static boolean keyboard_look;	// true if lookup/down using keyboard
+	static bool_t keyboard_look;	// true if lookup/down using keyboard
 
 	base = I_BaseTiccmd();		// empty, or external driver
 	memcpy(cmd, base, sizeof(*cmd));
@@ -770,7 +770,7 @@ void Command_Turbo_f(void)
 //
 // G_DoLoadLevel
 //
-void G_DoLoadLevel(boolean resetplayer)
+void G_DoLoadLevel(bool_t resetplayer)
 {
 	int i;
 	int j = 0;
@@ -832,7 +832,7 @@ void G_DoLoadLevel(boolean resetplayer)
 // G_Responder
 //  Get info needed to make ticcmd_ts for the players.
 //
-boolean G_Responder(event_t * ev)
+bool_t G_Responder(event_t * ev)
 {
 	// allow spy mode changes even during the demo
 	if (gamestate == GS_LEVEL && ev->type == ev_keydown
@@ -1102,8 +1102,8 @@ void G_PlayerReborn(int player)
 	//from Boris
 	int skincolor;
 	char favoritweapon[NUMWEAPONS];
-	boolean originalweaponswitch;
-	boolean autoaim;
+	bool_t originalweaponswitch;
+	bool_t autoaim;
 	int skin;					//Fab: keep same skin
 
 	prof = players[player].profile;
@@ -1164,7 +1164,7 @@ void G_PlayerReborn(int player)
 // at the given mapthing_t spot
 // because something is occupying it
 //
-boolean G_CheckSpot(int playernum, mapthing_t * mthing)
+bool_t G_CheckSpot(int playernum, mapthing_t * mthing)
 {
 	fixed_t x;
 	fixed_t y;
@@ -1238,7 +1238,7 @@ boolean G_CheckSpot(int playernum, mapthing_t * mthing)
 // Spawns a player at one of the random death match spots
 // called at level load and each death
 //
-boolean G_DeathMatchSpawnPlayer(int playernum)
+bool_t G_DeathMatchSpawnPlayer(int playernum)
 {
 	int i, j, n;
 
@@ -1375,7 +1375,7 @@ static const int cpars[32] = {
 //
 // G_DoCompleted
 //
-boolean secretexit;
+bool_t secretexit;
 
 void G_ExitLevel(void)
 {
@@ -1671,7 +1671,7 @@ void G_DoLoadGame(int slot)
 //
 // G_SaveGame
 // Called by the menu task.
-// Description is a 24 byte text string
+// Description is a 24 uint8_t text string
 //
 void G_SaveGame(int slot, char *description)
 {
@@ -1693,7 +1693,7 @@ void G_DoSaveGame(int savegameslot, char *savedescription)
 
 	gameaction = ga_nothing;
 
-	save_p = savebuffer = (byte *) malloc(SAVEGAMESIZE);
+	save_p = savebuffer = (uint8_t *) malloc(SAVEGAMESIZE);
 	if (!save_p)
 	{
 		CONS_Printf("No More free memory for savegame\n");
@@ -1786,7 +1786,7 @@ void G_DeferedInitNew(skill_t skill, char *mapname, int StartSplitScreenGame)
 // This is the map command interpretation something like Command_Map_f
 //
 // called at : map cmd execution, doloadgame, doplaydemo
-void G_InitNew(skill_t skill, char *mapname, boolean resetplayer)
+void G_InitNew(skill_t skill, char *mapname, bool_t resetplayer)
 {
 	//added:27-02-98: disable selected features for compatibility with
 	//                older demos, plus reset new features as default
@@ -1863,7 +1863,7 @@ void G_InitNew(skill_t skill, char *mapname, boolean resetplayer)
 //   'feature' that we add to the game. This will stay until it cannot
 //   be done a 'clean' way, then we'll have to forget about old demos..
 //
-boolean G_Downgrade(int version)
+bool_t G_Downgrade(int version)
 {
 	int i;
 
@@ -2257,7 +2257,7 @@ void G_StopDemo(void)
 	gamestate = wipegamestate = GS_NULL;
 }
 
-boolean G_CheckDemoStatus(void)
+bool_t G_CheckDemoStatus(void)
 {
 	if (timingdemo)
 	{

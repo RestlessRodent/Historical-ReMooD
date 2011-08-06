@@ -115,7 +115,7 @@ char *spritename;
 //
 void R_InstallSpriteLump(int lumppat,	// graphics patch
 						 int lumpid,	// identifier
-						 unsigned frame, unsigned rotation, boolean flipped)
+						 unsigned frame, unsigned rotation, bool_t flipped)
 {
 	int r;
 
@@ -146,7 +146,7 @@ void R_InstallSpriteLump(int lumppat,	// graphics patch
 		{
 			sprtemp[frame].lumppat[r] = lumppat;
 			sprtemp[frame].lumpid[r] = lumpid;
-			sprtemp[frame].flip[r] = (byte) flipped;
+			sprtemp[frame].flip[r] = (uint8_t) flipped;
 		}
 		return;
 	}
@@ -169,7 +169,7 @@ void R_InstallSpriteLump(int lumppat,	// graphics patch
 	// when using sprites in pwad : the lumppat points the new graphics
 	sprtemp[frame].lumppat[rotation] = lumppat;
 	sprtemp[frame].lumpid[rotation] = lumpid;
-	sprtemp[frame].flip[rotation] = (byte) flipped;
+	sprtemp[frame].flip[rotation] = (uint8_t) flipped;
 }
 
 // Install a single sprite, given its identifying name (4 chars)
@@ -185,7 +185,7 @@ void R_InstallSpriteLump(int lumppat,	// graphics patch
 //
 // Returns true if the sprite was succesfully added
 //
-boolean R_AddSingleSpriteDef(char *sprname, spritedef_t * spritedef, int wadnum,
+bool_t R_AddSingleSpriteDef(char *sprname, spritedef_t * spritedef, int wadnum,
 							 int startlump, int endlump)
 {
 	int l;
@@ -500,9 +500,9 @@ void R_DrawMaskedColumn(column_t * column)
 
 		if (dc_yl <= dc_yh && dc_yl < vid.height && dc_yh > 0)
 		{
-			dc_source = (byte *) column + 3;
+			dc_source = (uint8_t *) column + 3;
 			dc_texturemid = basetexturemid - (column->topdelta << FRACBITS);
-			// dc_source = (byte *)column + 3 - column->topdelta;
+			// dc_source = (uint8_t *)column + 3 - column->topdelta;
 
 			// Drawn by either R_DrawColumn
 			//  or (SHADOW) R_DrawFuzzColumn.
@@ -519,7 +519,7 @@ void R_DrawMaskedColumn(column_t * column)
 			else
 				colfunc();
 		}
-		column = (column_t *) ((byte *) column + column->length + 4);
+		column = (column_t *) ((uint8_t *) column + column->length + 4);
 	}
 
 	dc_texturemid = basetexturemid;
@@ -599,7 +599,7 @@ static void R_DrawVisSprite(vissprite_t * vis, int x1, int x2)
 		if (texturecolumn < 0 || texturecolumn >= LittleSwapInt16(patch->width))
 			I_Error("R_DrawSpriteRange: bad texturecolumn");
 #endif
-		column = (column_t *) (((byte *) patch) + LittleSwapInt32(patch->columnofs[texturecolumn]));
+		column = (column_t *) (((uint8_t *) patch) + LittleSwapInt32(patch->columnofs[texturecolumn]));
 		R_DrawMaskedColumn(column);
 	}
 
@@ -722,7 +722,7 @@ static void R_ProjectSprite(mobj_t * thing)
 	spriteframe_t *sprframe;
 	int lump;
 	unsigned rot;
-	boolean flip;
+	bool_t flip;
 	int index;
 	vissprite_t *vis;
 	angle_t ang;
@@ -793,14 +793,14 @@ static void R_ProjectSprite(mobj_t * thing)
 		rot = (ang - thing->angle + (unsigned)(ANG45 / 2) * 9) >> 29;
 		//Fab: lumpid is the index for spritewidth,spriteoffset... tables
 		lump = sprframe->lumpid[rot];
-		flip = (boolean) sprframe->flip[rot];
+		flip = (bool_t) sprframe->flip[rot];
 	}
 	else
 	{
 		// use single rotation for all views
 		rot = 0;				//Fab: for vis->patch below
 		lump = sprframe->lumpid[0];	//Fab: see note above
-		flip = (boolean) sprframe->flip[0];
+		flip = (bool_t) sprframe->flip[0];
 	}
 
 	// calculate edges of the shape
@@ -1021,7 +1021,7 @@ void R_DrawPSprite(pspdef_t * psp)
 	spritedef_t *sprdef;
 	spriteframe_t *sprframe;
 	int lump;
-	boolean flip;
+	bool_t flip;
 	vissprite_t *vis;
 	vissprite_t avis;
 	
@@ -1046,7 +1046,7 @@ void R_DrawPSprite(pspdef_t * psp)
 
 	//Fab: see the notes in R_ProjectSprite about lumpid,lumppat
 	lump = sprframe->lumpid[0];
-	flip = (boolean) sprframe->flip[0];
+	flip = (bool_t) sprframe->flip[0];
 
 	// calculate edges of the shape
 

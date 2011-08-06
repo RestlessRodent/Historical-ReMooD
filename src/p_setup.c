@@ -67,8 +67,8 @@
 // MAP related Lookup tables.
 // Store VERTEXES, LINEDEFS, SIDEDEFS, etc.
 //
-boolean newlevel = false;
-boolean doom1level = false;		// doom 1 level running under doom 2
+bool_t newlevel = false;
+bool_t doom1level = false;		// doom 1 level running under doom 2
 char *levelmapname = NULL;
 
 int numvertexes;
@@ -142,7 +142,7 @@ mobj_t **blocklinks;
 // Without special effect, this could be
 //  used as a PVS lookup as well.
 //
-byte *rejectmatrix;
+uint8_t *rejectmatrix;
 
 // Maintain single and multi player starting spots.
 mapthing_t *deathmatchstarts[MAX_DM_STARTS];
@@ -155,7 +155,7 @@ mapthing_t *playerstarts[MAXPLAYERS];
 //
 void P_LoadVertexes(int lump)
 {
-	byte *data;
+	uint8_t *data;
 	int i;
 	mapvertex_t *ml;
 	vertex_t *li;
@@ -206,7 +206,7 @@ float P_SegLength(seg_t * seg)
 //
 void P_LoadSegs(int lump)
 {
-	byte *data;
+	uint8_t *data;
 	int i;
 	mapseg_t *ml;
 	seg_t *li;
@@ -250,7 +250,7 @@ void P_LoadSegs(int lump)
 //
 void P_LoadSubsectors(int lump)
 {
-	byte *data;
+	uint8_t *data;
 	int i;
 	mapsubsector_t *ms;
 	subsector_t *ss;
@@ -370,7 +370,7 @@ char *P_FlatNameForNum(int num)
 
 void P_LoadSectors(int lump)
 {
-	byte *data;
+	uint8_t *data;
 	int i, j;
 	mapsector_t *ms;
 	sector_t *ss;
@@ -512,7 +512,7 @@ void P_LoadSectors(int lump)
 //
 void P_LoadNodes(int lump)
 {
-	byte *data;
+	uint8_t *data;
 	int i;
 	int j;
 	int k;
@@ -550,7 +550,7 @@ void P_LoadThings(int lump)
 {
 	int i;
 	mapthing_t *mt;
-	boolean spawn;
+	bool_t spawn;
 	int16_t *data, *datastart;
 
 	data = datastart = W_CacheLumpNum(lump, PU_LEVEL);
@@ -592,7 +592,7 @@ void P_LoadThings(int lump)
 //
 void P_LoadLineDefs(int lump)
 {
-	byte *data;
+	uint8_t *data;
 	int i;
 	maplinedef_t *mld;
 	line_t *ld;
@@ -684,7 +684,7 @@ void P_LoadLineDefs2()
 //
 /*void P_LoadSideDefs (int lump)
 {
-    byte*               data;
+    uint8_t*               data;
     int                 i;
     mapsidedef_t*       msd;
     side_t*             sd;
@@ -724,7 +724,7 @@ int R_ColormapNumForName(char *name);
 
 void P_LoadSideDefs2(int lump)
 {
-	byte *data = W_CacheLumpNum(lump, PU_STATIC);
+	uint8_t *data = W_CacheLumpNum(lump, PU_STATIC);
 	int i;
 	int num;
 	int mapnum;
@@ -1021,7 +1021,7 @@ char *levellumps[] = {
 //
 // P_CheckLevel
 // Checks a lump and returns weather or not it is a level header lump.
-boolean P_CheckLevel(int lumpnum)
+bool_t P_CheckLevel(int lumpnum)
 {
 	int i = 0;
 	WadEntry_t *Entry = W_GetEntry(lumpnum);
@@ -1103,7 +1103,7 @@ extern int numtextures;
 char *maplumpname;
 
 int lastloadedmaplumpnum;		// for comparative savegame
-boolean P_SetupLevel(int episode, int map, skill_t skill, char *wadname)	// for wad files
+bool_t P_SetupLevel(int episode, int map, skill_t skill, char *wadname)	// for wad files
 {
 	int i;
 	WadEntry_t* HexenACS = NULL;
@@ -1291,7 +1291,7 @@ boolean P_SetupLevel(int episode, int map, skill_t skill, char *wadname)	// for 
 // Add a wadfile to the active wad files,
 // replace sounds, musics, patches, textures, sprites and maps
 //
-boolean P_AddWadFile(char *wadfilename, char **firstmapname)
+bool_t P_AddWadFile(char *wadfilename, char **firstmapname)
 {
 	WadEntry_t *LumpEntry = NULL;
 	WadFile_t *WAD = W_GetWadForName(wadfilename);
@@ -1301,7 +1301,7 @@ boolean P_AddWadFile(char *wadfilename, char **firstmapname)
 	int firstmapreplaced;
 	uint32_t SoundReplacements;
 	uint32_t MusicReplacements;
-	boolean TextChange;
+	bool_t TextChange;
 
 	/******************
 	 SOUND REPLACEMENTS
@@ -1419,7 +1419,7 @@ boolean P_AddWadFile(char *wadfilename, char **firstmapname)
 	   int         i,j,num,wadfilenum;
 	   lumpinfo_t* lumpinfo;
 	   int         replaces;
-	   boolean     texturechange;
+	   bool_t     texturechange;
 
 	   if ((wadfilenum = W_LoadWadFile (wadfilename))==-1)
 	   {

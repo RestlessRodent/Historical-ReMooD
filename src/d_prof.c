@@ -457,7 +457,7 @@ void M_DrawProfileMenu(void)
 	spriteframe_t *sprframe;
 	int lump;
 	patch_t *patch;
-	byte *colormap;
+	uint8_t *colormap;
 	char* skinchar;
 	
 	// Draw player sprite
@@ -471,7 +471,7 @@ void M_DrawProfileMenu(void)
 	if (((consvar_t*)(currentMenu->menuitems[4].itemaction))->value == 0)
 		colormap = colormaps;
 	else
-		colormap = (byte *) translationtables - 256 + (((consvar_t*)(currentMenu->menuitems[4].itemaction))->value << 8);
+		colormap = (uint8_t *) translationtables - 256 + (((consvar_t*)(currentMenu->menuitems[4].itemaction))->value << 8);
 
 	V_DrawMappedPatch(
 		((currentMenu->x + currentMenu->width) - patch->width) + patch->leftoffset,
@@ -518,7 +518,7 @@ void PROF_M_ChangeProfile(void)
 void M_HandleSkinChanger(int choice)
 {
 	int l;
-	boolean exitmenu = false;	// exit to previous menu and send name change
+	bool_t exitmenu = false;	// exit to previous menu and send name change
 	int myskin;
 
 	myskin = R_SkinAvailable(PROF_GetNumber(((consvar_t*)(currentMenu->menuitems[1].itemaction))->value)->cvars[PC_SKIN].string);
@@ -732,6 +732,6 @@ void M_ProfAccept(int choice)
 			Rover = Rover->next;
 	}
 	
-	M_ClearMenus(NULL);
+	M_ClearMenus(false);
 }
 

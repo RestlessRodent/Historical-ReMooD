@@ -34,17 +34,17 @@
 #include "dstrings.h"
 #include "p_chex.h"
 
-extern byte cheat_mus_seq[];
-extern byte cheat_choppers_seq[];
-extern byte cheat_god_seq[];
-extern byte cheat_ammo_seq[];
-extern byte cheat_ammonokey_seq[];
-extern byte cheat_noclip_seq[];
-extern byte cheat_commercial_noclip_seq[];
-extern byte cheat_powerup_seq[7][10];
-extern byte cheat_clev_seq[];
-extern byte cheat_mypos_seq[];
-extern byte cheat_amap_seq[];
+extern uint8_t cheat_mus_seq[];
+extern uint8_t cheat_choppers_seq[];
+extern uint8_t cheat_god_seq[];
+extern uint8_t cheat_ammo_seq[];
+extern uint8_t cheat_ammonokey_seq[];
+extern uint8_t cheat_noclip_seq[];
+extern uint8_t cheat_commercial_noclip_seq[];
+extern uint8_t cheat_powerup_seq[7][10];
+extern uint8_t cheat_clev_seq[];
+extern uint8_t cheat_mypos_seq[];
+extern uint8_t cheat_amap_seq[];
 
 void Chex1PatchEngine(void)
 {

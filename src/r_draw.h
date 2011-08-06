@@ -33,11 +33,11 @@
 // -------------------------------
 // COMMON STUFF FOR 8bpp AND 16bpp
 // -------------------------------
-extern byte** activeylookup;
-extern byte **ylookup;
-extern byte **ylookup1;
-extern byte **ylookup2;
-extern byte **ylookup4[MAXSPLITSCREENPLAYERS];
+extern uint8_t** activeylookup;
+extern uint8_t **ylookup;
+extern uint8_t **ylookup1;
+extern uint8_t **ylookup2;
+extern uint8_t **ylookup4[MAXSPLITSCREENPLAYERS];
 extern int* columnofs;
 
 // -------------------------
@@ -53,11 +53,11 @@ extern int dc_yw;				//added:24-02-98:WATER!
 extern fixed_t dc_iscale;
 extern fixed_t dc_texturemid;
 
-extern byte *dc_source;			// first pixel in a column
+extern uint8_t *dc_source;			// first pixel in a column
 
 // translucency stuff here
-extern byte *transtables;		// translucency tables, should be (*transtables)[5][256][256]
-extern byte *dc_transmap;
+extern uint8_t *transtables;		// translucency tables, should be (*transtables)[5][256][256]
+extern uint8_t *dc_transmap;
 
 // Variable flat sizes SSNTails 06-10-2003
 extern int flatsize;
@@ -66,8 +66,8 @@ extern int flatsubtract;
 
 // translation stuff here
 
-extern byte *translationtables;
-extern byte *dc_translation;
+extern uint8_t *translationtables;
+extern uint8_t *dc_translation;
 
 extern struct r_lightlist_s *dc_lightlist;
 extern int dc_numlights;
@@ -91,8 +91,8 @@ extern fixed_t ds_yfrac;
 extern fixed_t ds_xstep;
 extern fixed_t ds_ystep;
 
-extern byte *ds_source;			// start of a 64*64 tile image
-extern byte *ds_transmap;
+extern uint8_t *ds_source;			// start of a 64*64 tile image
+extern uint8_t *ds_transmap;
 
 // viewborder patches lump numbers
 #define BRDR_T      0

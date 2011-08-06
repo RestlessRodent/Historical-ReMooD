@@ -34,7 +34,7 @@
 
 #include "r_main.h"				//SoM: 3/16/2000
 
-boolean P_Teleport(mobj_t * thing, fixed_t x, fixed_t y, angle_t angle)
+bool_t P_Teleport(mobj_t * thing, fixed_t x, fixed_t y, angle_t angle)
 {
 	mobj_t *fog;
 	fixed_t oldx;
@@ -245,7 +245,7 @@ int EV_SilentTeleport(line_t * line, int side, mobj_t * thing)
 // maximum fixed_t units to move object to avoid hiccups
 #define FUDGEFACTOR 10
 
-int EV_SilentLineTeleport(line_t * line, int side, mobj_t * thing, boolean reverse)
+int EV_SilentLineTeleport(line_t * line, int side, mobj_t * thing, bool_t reverse)
 {
 	int i;
 	line_t *l;

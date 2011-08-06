@@ -475,7 +475,7 @@ void R_MakeSpans(int x, int t1, int b1, int t2, int b2)
 	}
 }
 
-byte *R_GetFlat(int flatnum);
+uint8_t *R_GetFlat(int flatnum);
 
 void R_DrawPlanes(void)
 {
@@ -537,7 +537,7 @@ void R_DrawPlanes(void)
 		}
 }
 
-void R_DrawSinglePlane(visplane_t * pl, boolean handlesource)
+void R_DrawSinglePlane(visplane_t * pl, bool_t handlesource)
 {
 	int light = 0;
 	int x;
@@ -601,7 +601,7 @@ void R_DrawSinglePlane(visplane_t * pl, boolean handlesource)
 	if (handlesource)
 	{
 		int size;
-		ds_source = (byte *) R_GetFlat(levelflats[pl->picnum].lumpnum);
+		ds_source = (uint8_t *) R_GetFlat(levelflats[pl->picnum].lumpnum);
 
 		size = W_LumpLength(levelflats[pl->picnum].lumpnum);
 

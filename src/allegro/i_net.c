@@ -40,7 +40,7 @@
 // I_InitNetwork
 // Only required for DOS, so this is more a dummy
 //
-boolean I_InitNetwork(void)
+bool_t I_InitNetwork(void)
 {
 	if (M_CheckParm("-net"))
 	{

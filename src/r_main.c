@@ -687,7 +687,7 @@ void R_InitLightTables(void)
 //  because it might be in the middle of a refresh.
 // The change will take effect next refresh.
 //
-boolean setsizeneeded;
+bool_t setsizeneeded;
 
 void R_SetViewSize(void)
 {
@@ -1085,7 +1085,7 @@ void R_DrawPlayerSprites(void);
 
 void R_RenderPlayerViewEx(player_t * player, int quarter)
 {
-	register byte* dest;
+	register uint8_t* dest;
 	int x, y, a, b, c, d;
 	
 	R_SetupFrame(player);

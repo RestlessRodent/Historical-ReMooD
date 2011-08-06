@@ -86,7 +86,7 @@ static const fixed_t FloatBobOffsets[64] = {
 // Returns true if the mobj is still present.
 //
 //SoM: 4/7/2000: Boom code...
-boolean P_SetMobjState(mobj_t * mobj, statenum_t state)
+bool_t P_SetMobjState(mobj_t * mobj, statenum_t state)
 {
 	state_t *st;
 
@@ -96,7 +96,7 @@ boolean P_SetMobjState(mobj_t * mobj, statenum_t state)
 	statenum_t *seenstate = seenstate_tab;	// pointer to table
 	static int recursion;		// detects recursion
 	statenum_t i = state;		// initial state
-	boolean ret = true;			// return value
+	bool_t ret = true;			// return value
 	statenum_t tempstate[NUMSTATES];	// for use with recursion
 
 	if (recursion++)			// if recursion detected,
@@ -148,7 +148,7 @@ boolean P_SetMobjState(mobj_t * mobj, statenum_t state)
 //
 //----------------------------------------------------------------------------
 
-boolean P_SetMobjStateNF(mobj_t * mobj, statenum_t state)
+bool_t P_SetMobjStateNF(mobj_t * mobj, statenum_t state)
 {
 	state_t *st;
 
@@ -219,7 +219,7 @@ void P_ThrustMobj(mobj_t * mo, angle_t angle, fixed_t move)
 #define FRICTION_FLY            0xeb00
 
 //added:22-02-98: adds friction on the xy plane
-void P_XYFriction(mobj_t * mo, fixed_t oldx, fixed_t oldy, boolean oldfriction)
+void P_XYFriction(mobj_t * mo, fixed_t oldx, fixed_t oldy, bool_t oldfriction)
 {
 	//valid only if player avatar
 	player_t *player = mo->player;
@@ -888,7 +888,7 @@ static void PlayerLandedOnThing(mobj_t * mo, mobj_t * onmobj)
 //
 void P_MobjThinker(mobj_t * mobj)
 {
-	boolean checkedpos = false;	//added:22-02-98:
+	bool_t checkedpos = false;	//added:22-02-98:
 
 	// check mobj against possible water content, before movement code
 	P_MobjCheckWater(mobj);
@@ -1378,7 +1378,7 @@ void P_RespawnWeapons(void)
 	iquehead = freeslot;
 }
 
-extern byte weapontobutton[NUMWEAPONS];
+extern uint8_t weapontobutton[NUMWEAPONS];
 
 //
 // P_SpawnPlayer
@@ -1488,7 +1488,7 @@ void P_SpawnPlayer(mapthing_t * mthing)
 //
 // P_SpawnMapThing
 // The fields of the mapthing should
-// already be in host byte order.
+// already be in host uint8_t order.
 //
 void P_SpawnMapThing(mapthing_t * mthing)
 {
@@ -1724,7 +1724,7 @@ static mobj_t *bloodthing;
 static fixed_t bloodspawnpointx, bloodspawnpointy;
 
 #ifdef WALLSPLATS
-boolean PTR_BloodTraverse(intercept_t * in)
+bool_t PTR_BloodTraverse(intercept_t * in)
 {
 	line_t *li;
 	divline_t divl;
@@ -1895,7 +1895,7 @@ int P_HitFloor(mobj_t * thing)
 // Moves the missile forward a bit
 //  and possibly explodes it right there.
 //
-boolean P_CheckMissileSpawn(mobj_t * th)
+bool_t P_CheckMissileSpawn(mobj_t * th)
 {
 	th->tics -= P_Random() & 3;
 	if (th->tics < 1)
@@ -1950,7 +1950,7 @@ mobj_t *P_SpawnMissile(mobj_t * source, mobj_t * dest, mobjtype_t type)
 
 	if (DEMOCVAR(predictingmonsters).value)	//added by AC for predmonsters
 	{
-		boolean canHit;
+		bool_t canHit;
 		fixed_t px, py, pz;
 		int time, t;
 		subsector_t *sec;
@@ -2188,7 +2188,7 @@ int P_FaceMobj(mobj_t * source, mobj_t * target, angle_t * delta)
 //
 //----------------------------------------------------------------------------
 
-boolean P_SeekerMissile(mobj_t * actor, angle_t thresh, angle_t turnMax)
+bool_t P_SeekerMissile(mobj_t * actor, angle_t thresh, angle_t turnMax)
 {
 	int dir;
 	int dist;
@@ -2276,7 +2276,7 @@ mobj_t *P_SpawnMissileAngle(mobj_t * source, mobjtype_t type, angle_t angle, fix
 	return (P_CheckMissileSpawn(mo) ? mo : NULL);
 }
 
-boolean inventory = false;
+bool_t inventory = false;
 
 /******************************************************************************/
 /******************************************************************************/

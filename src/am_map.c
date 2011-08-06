@@ -49,20 +49,20 @@
 #include "d_main.h"
 
 // For use if I do walls with outsides/insides
-static byte REDS = (256 - 5 * 16);
-static byte REDRANGE = 16;
-static byte BLUES = (256 - 4 * 16 + 8);
-static byte BLUERANGE = 8;
-static byte GREENS = (7 * 16);
-static byte GREENRANGE = 16;
-static byte GRAYS = (6 * 16);
-static byte GRAYSRANGE = 16;
-static byte BROWNS = (4 * 16);
-static byte BROWNRANGE = 16;
-static byte YELLOWS = (256 - 32);
-static byte YELLOWRANGE = 8;
-static byte DBLACK = 0;
-static byte DWHITE = (256 - 47);
+static uint8_t REDS = (256 - 5 * 16);
+static uint8_t REDRANGE = 16;
+static uint8_t BLUES = (256 - 4 * 16 + 8);
+static uint8_t BLUERANGE = 8;
+static uint8_t GREENS = (7 * 16);
+static uint8_t GREENRANGE = 16;
+static uint8_t GRAYS = (6 * 16);
+static uint8_t GRAYSRANGE = 16;
+static uint8_t BROWNS = (4 * 16);
+static uint8_t BROWNRANGE = 16;
+static uint8_t YELLOWS = (256 - 32);
+static uint8_t YELLOWRANGE = 8;
+static uint8_t DBLACK = 0;
+static uint8_t DWHITE = (256 - 47);
 
 // Automap colors
 #define BACKGROUND      DBLACK
@@ -207,9 +207,9 @@ static int grid = 0;
 
 static int leveljuststarted = 1;	// kluge until AM_LevelInit() is called
 
-boolean automapactive = false;
-boolean automapoverlay = false;
-boolean am_recalc = false;		//added:05-02-98:true when screen size
+bool_t automapactive = false;
+bool_t automapoverlay = false;
+bool_t am_recalc = false;		//added:05-02-98:true when screen size
 									   //               changes
 
 // location of window on screen
@@ -221,7 +221,7 @@ static int f_w;
 static int f_h;
 
 static int lightlev;			// used for funky strobing effect
-static byte *fb;				// pseudo-frame buffer
+static uint8_t *fb;				// pseudo-frame buffer
 static int amclock;
 
 static mpoint_t m_paninc;		// how far the window pans each tic (map coords)
@@ -273,11 +273,11 @@ static int markpointnum = 0;	// next point to be assigned
 
 static int followplayer = 1;	// specifies whether to follow the player around
 
-static boolean stopped = true;
+static bool_t stopped = true;
 
-static byte BLUEKEYCOLOR;
-static byte YELLOWKEYCOLOR;
-static byte REDKEYCOLOR;
+static uint8_t BLUEKEYCOLOR;
+static uint8_t YELLOWKEYCOLOR;
+static uint8_t REDKEYCOLOR;
 
 // function for drawing lines, depends on rendermode
 typedef void (*AMDRAWFLINEFUNC) (fline_t * fl, int color);
@@ -479,7 +479,7 @@ static void AM_initVariables(void)
 
 }
 
-static byte *maplump;			// pointer to the raw data for the automap background.
+static uint8_t *maplump;			// pointer to the raw data for the automap background.
 
 //
 static void AM_loadPics(void)
@@ -595,7 +595,7 @@ void AM_maxOutWindowScale(void)
 //
 // Handle events (user inputs) in automap mode
 //
-boolean AM_Responder(event_t * ev)
+bool_t AM_Responder(event_t * ev)
 {
 
 	int rc;
@@ -838,7 +838,7 @@ void AM_clearFB(int color)
 		int dmapy;
 		static int mapxstart;
 		static int mapystart;
-		byte *dest = screens[0], *src;
+		uint8_t *dest = screens[0], *src;
 #define MAPLUMPHEIGHT (200-SBARHEIGHT)
 
 		if (followplayer)
@@ -899,7 +899,7 @@ void AM_clearFB(int color)
 // faster reject and precalculated slopes.  If the speed is needed,
 // use a hash algorithm to handle  the common cases.
 //
-boolean AM_clipMline(mline_t * ml, fline_t * fl)
+bool_t AM_clipMline(mline_t * ml, fline_t * fl)
 {
 	enum
 	{

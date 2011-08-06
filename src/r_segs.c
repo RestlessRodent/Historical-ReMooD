@@ -42,11 +42,11 @@
 // OPTIMIZE: closed two sided lines as single sided
 
 // True if any of the segs textures might be visible.
-static boolean segtextured;
-static boolean markfloor;		// False if the back side is the same plane.
-static boolean markceiling;
+static bool_t segtextured;
+static bool_t markfloor;		// False if the back side is the same plane.
+static bool_t markceiling;
 
-static boolean maskedtexture;
+static bool_t maskedtexture;
 static int toptexture;
 static int bottomtexture;
 static int midtexture;
@@ -135,7 +135,7 @@ static void R_DrawSplatColumn(column_t * column)
 #endif
 		if (dc_yl <= dc_yh)
 		{
-			dc_source = (byte *) column + 3;
+			dc_source = (uint8_t *) column + 3;
 			dc_texturemid = basetexturemid - (column->topdelta << FRACBITS);
 
 			//CONS_Printf("l %d h %d %d\n",dc_yl,dc_yh, column->length);
@@ -143,13 +143,13 @@ static void R_DrawSplatColumn(column_t * column)
 			//  or (SHADOW) R_DrawFuzzColumn.
 			colfunc();
 		}
-		column = (column_t *) ((byte *) column + column->length + 4);
+		column = (column_t *) ((uint8_t *) column + column->length + 4);
 	}
 
 	dc_texturemid = basetexturemid;
 }
 
-extern boolean g_PaintBallMode;
+extern bool_t g_PaintBallMode;
 extern uint8_t g_PBColor;
 
 static void R_DrawWallSplats()
@@ -303,7 +303,7 @@ static void R_DrawWallSplats()
 				continue;
 
 			// draw the texture
-			col = (column_t *) ((byte *) patch + LittleSwapInt32(patch->columnofs[texturecolumn]));
+			col = (column_t *) ((uint8_t *) patch + LittleSwapInt32(patch->columnofs[texturecolumn]));
 			R_DrawSplatColumn(col);
 
 		}
@@ -355,7 +355,7 @@ void R_Render2sidedMultiPatchColumn(column_t * column)
 
 	if (dc_yl <= dc_yh)
 	{
-		dc_source = (byte *) column + 3;
+		dc_source = (uint8_t *) column + 3;
 		colfunc();
 	}
 }
@@ -529,7 +529,7 @@ void R_RenderMaskedSegRange(drawseg_t * ds, int x1, int x2)
 				dc_iscale = 0xffffffffu / (unsigned)spryscale;
 
 				// draw the texture
-				col = (column_t *) ((byte *) R_GetColumn(texnum, maskedtexturecol[dc_x]) - 3);
+				col = (column_t *) ((uint8_t *) R_GetColumn(texnum, maskedtexturecol[dc_x]) - 3);
 
 				for (i = 0; i < dc_numlights; i++)
 				{
@@ -609,7 +609,7 @@ void R_RenderMaskedSegRange(drawseg_t * ds, int x1, int x2)
 			dc_iscale = 0xffffffffu / (unsigned)spryscale;
 
 			// draw the texture
-			col = (column_t *) ((byte *) R_GetColumn(texnum, maskedtexturecol[dc_x]) - 3);
+			col = (column_t *) ((uint8_t *) R_GetColumn(texnum, maskedtexturecol[dc_x]) - 3);
 
 			colfunc_2s(col);
 		}
@@ -827,7 +827,7 @@ void R_RenderThickSideRange(drawseg_t * ds, int x1, int x2, ffloor_t * ffloor)
 				dc_iscale = 0xffffffffu / (unsigned)spryscale;
 
 				// draw the texture
-				col = (column_t *) ((byte *) R_GetColumn(texnum, maskedtexturecol[dc_x]) - 3);
+				col = (column_t *) ((uint8_t *) R_GetColumn(texnum, maskedtexturecol[dc_x]) - 3);
 
 				for (i = 0; i < dc_numlights; i++)
 				{
@@ -963,7 +963,7 @@ void R_RenderThickSideRange(drawseg_t * ds, int x1, int x2, ffloor_t * ffloor)
 			dc_iscale = 0xffffffffu / (unsigned)spryscale;
 
 			// draw the texture
-			col = (column_t *) ((byte *) R_GetColumn(texnum, maskedtexturecol[dc_x]) - 3);
+			col = (column_t *) ((uint8_t *) R_GetColumn(texnum, maskedtexturecol[dc_x]) - 3);
 
 			colfunc_2s(col);
 			spryscale += rw_scalestep;

@@ -28,6 +28,7 @@
 #ifndef __D_MAIN__
 #define __D_MAIN__
 
+#include "doomtype.h"
 #include "d_event.h"
 #include "w_wad.h"				// for MAX_WADFILES
 
@@ -37,7 +38,7 @@
 extern tic_t rendergametic;
 
 // for dedicated server
-extern boolean dedicated;
+extern bool_t dedicated;
 
 // the infinite loop of D_DoomLoop() called from win_main for windows version
 void D_DoomLoop(void);

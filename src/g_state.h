@@ -72,6 +72,6 @@ extern gamestate_t gamestate;
 extern gameaction_t gameaction;
 extern skill_t gameskill;
 
-extern boolean demoplayback;
+extern bool_t demoplayback;
 
 #endif							//__G_STATE__

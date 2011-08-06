@@ -173,7 +173,7 @@ void P_BringUpWeapon(player_t * player)
 // Returns true if there is enough ammo to shoot.
 // If not, selects the next weapon to use.
 //
-boolean P_CheckAmmo(player_t * player)
+bool_t P_CheckAmmo(player_t * player)
 {
 	ammotype_t ammo;
 	int count;
@@ -696,7 +696,7 @@ void P_BulletSlope(mobj_t * mo)
 //
 //added:16-02-98: used only for player (pistol,shotgun,chaingun)
 //                supershotgun use p_lineattack directely
-void P_GunShot(mobj_t * mo, boolean accurate)
+void P_GunShot(mobj_t * mo, bool_t accurate)
 {
 	angle_t angle;
 	int damage;

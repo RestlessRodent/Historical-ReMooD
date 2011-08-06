@@ -108,7 +108,7 @@ int spec_if()
 	return (intvalue(eval));
 }
 
-int spec_elseif(boolean lastif)
+int spec_elseif(bool_t lastif)
 {
 	int endtoken;
 	svalue_t eval;
@@ -145,7 +145,7 @@ int spec_elseif(boolean lastif)
 	return (intvalue(eval));
 }
 
-void spec_else(boolean lastif)
+void spec_else(bool_t lastif)
 {
 	if (lastif)
 		rover = current_section->end + 1;
@@ -275,7 +275,7 @@ static void parse_var_line(int start)
 	create_variable(starttoken, num_tokens - 1);
 }
 
-boolean spec_variable()
+bool_t spec_variable()
 {
 	int start = 0;
 

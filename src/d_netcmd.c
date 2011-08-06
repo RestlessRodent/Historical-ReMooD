@@ -649,7 +649,7 @@ void D_SendPlayerConfig(void)
 //  play a demo, add .lmp for external demos
 //  eg: playdemo demo1 plays the internal game demo
 //
-// byte*   demofile;       //demo file buffer
+// uint8_t*   demofile;       //demo file buffer
 
 void Command_Playdemo_f(void)
 {
@@ -1017,7 +1017,7 @@ void Command_Load_f(void)
 
 void Got_LoadGamecmd(char **cp, int playernum)
 {
-	byte slot = *(*cp)++;
+	uint8_t slot = *(*cp)++;
 	G_DoLoadGame(slot);
 }
 
@@ -1034,7 +1034,7 @@ void Command_Save_f(void)
 
 void Got_SaveGamecmd(char **cp, int playernum)
 {
-	byte slot;
+	uint8_t slot;
 	char description[SAVESTRINGSIZE];
 
 	slot = *(*cp)++;

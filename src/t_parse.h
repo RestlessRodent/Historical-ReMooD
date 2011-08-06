@@ -110,7 +110,7 @@ struct script_s
 	mobj_t *trigger;			// object which triggered this script
 
 	//SoM: Used for if/elseif/else statements
-	boolean lastiftrue;
+	bool_t lastiftrue;
 };
 
 struct operator_s

@@ -65,7 +65,7 @@ void A_SmokeTrailer(mobj_t * actor)
 		th->tics = 1;
 }
 
-static boolean resettrans = false;
+static bool_t resettrans = false;
 //  Set the translucency map for each frame state of mobj
 //
 void R_SetTrans(statenum_t state1, statenum_t state2, transnum_t transmap)
@@ -81,7 +81,7 @@ void R_SetTrans(statenum_t state1, statenum_t state2, transnum_t transmap)
 	while (state1++ < state2);
 }
 
-void R_SetSmokeShade(statenum_t state1, statenum_t state2, boolean smoke)
+void R_SetSmokeShade(statenum_t state1, statenum_t state2, bool_t smoke)
 {
 	state_t *state = &states[state1];
 	do

@@ -49,11 +49,11 @@
 
 void (*I_NetGet) (void);
 void (*I_NetSend) (void);
-boolean(*I_NetCanSend) (void);
+bool_t(*I_NetCanSend) (void);
 void (*I_NetCloseSocket) (void);
 void (*I_NetFreeNodenum) (int nodenum);
 int (*I_NetMakeNode) (char *address);
-boolean(*I_NetOpenSocket) (void);
+bool_t(*I_NetOpenSocket) (void);
 
 // network stats
 tic_t statstarttic;
@@ -78,9 +78,9 @@ int packetheaderlength;
 
 typedef struct
 {
-	byte acknum;
-	byte nextacknum;
-	byte destinationnode;
+	uint8_t acknum;
+	uint8_t nextacknum;
+	uint8_t destinationnode;
 	tic_t senttime;
 	USHORT length;
 	USHORT resentnum;
@@ -98,13 +98,13 @@ static ackpak_t ackpak[MAXACKPACKETS];
 typedef struct
 {
 	// ack return to send (like slinding window protocol)
-	byte firstacktosend;
+	uint8_t firstacktosend;
 
 	// when no consecutive packet are received we keep in mind what packet 
 	// we already received in a queu 
-	byte acktosend_head;
-	byte acktosend_tail;
-	byte acktosend[MAXACKTOSEND];
+	uint8_t acktosend_head;
+	uint8_t acktosend_tail;
+	uint8_t acktosend[MAXACKTOSEND];
 
 	// automaticaly send keep alive packet when not enought trafic
 	tic_t lasttimeacktosend_sent;
@@ -112,10 +112,10 @@ typedef struct
 	tic_t lasttimepacketreceived;
 
 	// flow control : do not sent to mush packet with ack 
-	byte remotefirstack;
-	byte nextacknum;
+	uint8_t remotefirstack;
+	uint8_t nextacknum;
 
-	byte flags;
+	uint8_t flags;
 // jacobson tcp timeout evaluation algorithm (Karn variation)
 	fixed_t ping;
 	fixed_t varping;
@@ -144,9 +144,9 @@ void Internal_FreeNodenum(int nodenum)
 // D_CheckNetGame
 // Works out player numbers among the net participants
 //
-extern boolean D_CheckNetGame(void)
+extern bool_t D_CheckNetGame(void)
 {
-	boolean ret = false;
+	bool_t ret = false;
 
 	statstarttic = I_GetTime();
 

@@ -252,14 +252,14 @@ extern fixed_t waterheight;
 #define ST_MAPHEIGHT            1
 
 //added:02-02-98: set true if widgets coords need to be recalculated
-boolean st_recalc;
+bool_t st_recalc;
 
 // main player in game
 //Hurdler: no not static!
 player_t *plyr;
 
 // ST_Start() has just been called
-boolean st_firsttime;
+bool_t st_firsttime;
 
 // used to execute ST_Init() only once
 static int veryfirsttime = 1;
@@ -274,25 +274,25 @@ static int st_msgcounter = 0;
 static st_chatstateenum_t st_chatstate;
 
 // whether left-side main status bar is active
-boolean st_statusbaron;
+bool_t st_statusbaron;
 
 // whether status bar chat is active
-static boolean st_chat;
+static bool_t st_chat;
 
 // value of st_chat before message popped up
-static boolean st_oldchat;
+static bool_t st_oldchat;
 
 // whether chat window has the cursor on
-static boolean st_cursoron;
+static bool_t st_cursoron;
 
 // !deathmatch
-static boolean st_notdeathmatch;
+static bool_t st_notdeathmatch;
 
 // !deathmatch && st_statusbaron
-static boolean st_armson;
+static bool_t st_armson;
 
 // !deathmatch
-static boolean st_fragson;
+static bool_t st_fragson;
 
 // main bar left
 static patch_t *sbar;
@@ -358,7 +358,7 @@ static int st_fragscount;
 static int st_oldhealth = -1;
 
 // used for evil grin
-static boolean oldweaponsowned[NUMWEAPONS];
+static bool_t oldweaponsowned[NUMWEAPONS];
 
  // count until face changes
 static int st_facecount = 0;
@@ -409,7 +409,7 @@ consvar_t cv_transparentstatusbarmode = {"st_transparentmode", "0", CV_SAVE, Tra
 //
 static void ST_refreshBackground(void)
 {
-	byte *colormap;
+	uint8_t *colormap;
 
 	if (st_statusbaron)
 	{
@@ -441,7 +441,7 @@ void ST_ExternrefreshBackground(void)
 
 // Respond to keyboard input events,
 //  intercept cheats.
-boolean ST_Responder(event_t * ev)
+bool_t ST_Responder(event_t * ev)
 {
 
 	if (ev->type == ev_keyup)
@@ -493,7 +493,7 @@ static void ST_updateFaceWidget(void)
 	angle_t diffang;
 	static int lastattackdown = -1;
 	static int priority = 0;
-	boolean doevilgrin;
+	bool_t doevilgrin;
 
 	if (priority < 10)
 	{
@@ -652,7 +652,7 @@ static void ST_updateFaceWidget(void)
 
 }
 
-boolean ST_SameTeam(player_t * a, player_t * b)
+bool_t ST_SameTeam(player_t * a, player_t * b)
 {
 	switch (cv_teamplay.value)
 	{
@@ -757,7 +757,7 @@ static void ST_updateWidgets(void)
 
 }
 
-static boolean st_stopped = true;
+static bool_t st_stopped = true;
 
 void ST_Ticker(void)
 {
@@ -828,7 +828,7 @@ void ST_doPaletteStuff(void)
 	}
 }
 
-static void ST_drawWidgets(boolean refresh)
+static void ST_drawWidgets(bool_t refresh)
 {
 	int i;
 
@@ -911,7 +911,7 @@ void ST_Invalidate(void)
 
 void ST_overlayDrawer(void);
 
-void ST_Drawer(boolean refresh)
+void ST_Drawer(bool_t refresh)
 {
 	int i;
 	
@@ -1356,7 +1356,7 @@ void ST_changeDemoView(void)
 
 consvar_t cv_stbaroverlay = { "overlay", "kahmf", CV_SAVE, NULL };
 
-boolean st_overlay;
+bool_t st_overlay;
 
 void ST_AddCommands(void)
 {
@@ -1370,7 +1370,7 @@ void ST_drawOverlayNum(int x,	// right border!
 					   int y, int num, patch_t ** numpat, patch_t * percent)
 {
 	int w = (numpat[0]->width);
-	boolean neg;
+	bool_t neg;
 
 	// in the special case of 0, you draw 0
 	if (!num)

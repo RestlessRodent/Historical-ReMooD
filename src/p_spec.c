@@ -64,7 +64,7 @@ void P_FindAnimatedFlat(int i);
 //
 typedef struct
 {
-	boolean istexture;
+	bool_t istexture;
 	int picnum;
 	int basepic;
 	int numpics;
@@ -194,7 +194,7 @@ void P_InitPicAnims(void)
 			lastanim->basepic = R_FlatNumForName(animdefs[i].startname);
 		}
 
-		lastanim->istexture = (boolean) animdefs[i].istexture;
+		lastanim->istexture = (bool_t) animdefs[i].istexture;
 		lastanim->numpics = lastanim->picnum - lastanim->basepic + 1;
 
 		if (lastanim->numpics < 2)
@@ -795,7 +795,7 @@ int P_FindMinSurroundingLight(sector_t * sector, int max)
 // Note: The linedef passed MUST be a generalized locked door type
 //       or results are undefined.
 //
-boolean P_CanUnlockGenDoor(line_t * line, player_t * player)
+bool_t P_CanUnlockGenDoor(line_t * line, player_t * player)
 {
 	// does this line special distinguish between skulls and keys?
 	int skulliscard = (line->special & LockedNKeys) >> LockedNKeysShift;
@@ -1015,7 +1015,7 @@ int P_CheckTag(line_t * line)
 // Passed a sector, returns if the sector secret type is still active, i.e.
 // secret type is set and the secret has not yet been obtained.
 //
-boolean P_IsSecret(sector_t * sec)
+bool_t P_IsSecret(sector_t * sec)
 {
 	return (sec->special == 9 || (sec->special & SECRET_MASK));
 }
@@ -1026,7 +1026,7 @@ boolean P_IsSecret(sector_t * sec)
 // Passed a sector, returns if the sector secret type is was active, i.e.
 // secret type was set and the secret has been obtained already.
 //
-boolean P_WasSecret(sector_t * sec)
+bool_t P_WasSecret(sector_t * sec)
 {
 	return (sec->oldspecial == 9 || (sec->oldspecial & SECRET_MASK));
 }
@@ -2100,7 +2100,7 @@ void P_ShootSpecialLine(mobj_t * thing, line_t * line)
 //
 // P_ProcessSpecialSector
 // Function that actually applies the sector special to the player.
-void P_ProcessSpecialSector(player_t * player, sector_t * sector, boolean instantdamage)
+void P_ProcessSpecialSector(player_t * player, sector_t * sector, bool_t instantdamage)
 {
 	if (sector->special < 32)
 	{
@@ -2210,7 +2210,7 @@ void P_ProcessSpecialSector(player_t * player, sector_t * sector, boolean instan
 void P_PlayerOnSpecial3DFloor(player_t * player)
 {
 	sector_t *sector;
-	boolean instantdamage = false;
+	bool_t instantdamage = false;
 	ffloor_t *rover;
 
 	sector = player->mo->subsector->sector;
@@ -2255,7 +2255,7 @@ void P_PlayerOnSpecial3DFloor(player_t * player)
 void P_PlayerInSpecialSector(player_t * player)
 {
 	sector_t *sector;
-	boolean instantdamage = false;
+	bool_t instantdamage = false;
 
 	// SoM: Check 3D floors...
 	P_PlayerOnSpecial3DFloor(player);
@@ -2947,7 +2947,7 @@ void T_Friction(friction_t * f)
 	sector_t *sec;
 	mobj_t *thing;
 	msecnode_t *node;
-	boolean foundfloor = false;
+	bool_t foundfloor = false;
 
 	if (!boomsupport || !variable_friction)
 		return;
@@ -3089,7 +3089,7 @@ static void Add_Pusher(int type, int x_mag, int y_mag, mobj_t * source, int affe
 
 pusher_t *tmpusher;				// pusher structure for blockmap searches
 
-boolean PIT_PushThing(mobj_t * thing)
+bool_t PIT_PushThing(mobj_t * thing)
 {
 	if (thing->player && !(thing->flags & (MF_NOGRAVITY | MF_NOCLIP)))
 	{
@@ -3131,8 +3131,8 @@ void T_Pusher(pusher_t * p)
 	int xl, xh, yl, yh, bx, by;
 	int radius;
 	int ht = 0;
-	boolean inwater;
-	boolean touching;
+	bool_t inwater;
+	bool_t touching;
 	fixed_t z;
 
 	inwater = touching = false;
@@ -3154,7 +3154,7 @@ void T_Pusher(pusher_t * p)
 	{
 		if (!(sec->special & PUSH_MASK))	// Main sector doesn't have one, so let's check the rovers.
 		{
-			boolean foundfloor;
+			bool_t foundfloor;
 			foundfloor = false;
 
 			if (sec->ffloors)
@@ -3315,7 +3315,7 @@ void T_Pusher(pusher_t * p)
 			// SSNTails 09-25-2002
 			if (sec->heightsec > -1 && sec->altheightsec == 1)
 			{
-				boolean water;
+				bool_t water;
 				water = false;
 
 				if (sec->heightsec > -1)	//water hack

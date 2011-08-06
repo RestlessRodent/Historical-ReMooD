@@ -254,7 +254,7 @@ int R_DoorClosed(void)
 //
 
 sector_t *R_FakeFlat(sector_t * sec, sector_t * tempsec,
-					 int *floorlightlevel, int *ceilinglightlevel, boolean back)
+					 int *floorlightlevel, int *ceilinglightlevel, bool_t back)
 {
 	int mapnum = -1;			//SoM: 4/4/2000
 	mobj_t *viewmobj = camera.chase ? camera.mo : viewplayer->mo;
@@ -578,7 +578,7 @@ int checkcoord[12][4] = {
 	{2, 1, 3, 0}
 };
 
-boolean R_CheckBBox(fixed_t * bspcoord)
+bool_t R_CheckBBox(fixed_t * bspcoord)
 {
 	int boxpos;
 
@@ -968,7 +968,7 @@ void R_Prep3DFloors(sector_t * sector)
 	}
 }
 
-int R_GetPlaneLight(sector_t * sector, fixed_t planeheight, boolean underside)
+int R_GetPlaneLight(sector_t * sector, fixed_t planeheight, bool_t underside)
 {
 	int i;
 

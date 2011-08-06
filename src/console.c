@@ -69,7 +69,7 @@
 *** GLOBALS ***
 **************/
 
-boolean g_QuietConsole = false;								// Mute startup console
+bool_t g_QuietConsole = false;								// Mute startup console
 
 /*************
 *** LOCALS ***
@@ -80,10 +80,10 @@ CONEx_Console_t* l_RootConsole = NULL;
 
 /* Drawing parms */
 CONEx_Console_t* l_ActiveConsole = NULL;
-boolean l_ExConsoleOn = false;
+bool_t l_ExConsoleOn = false;
 int8_t l_ExConsoleLines = 0;
 void* l_BackPic = NULL;
-boolean l_BackPicIsPicT = false;
+bool_t l_BackPicIsPicT = false;
 
 /* Command Control */;
 char l_ExInputBuffer[CON_MAXPROMPTCHARS] = "";
@@ -473,9 +473,9 @@ static char CONEx_CorrectChar(int EventKey)
 };
 
 /* CONEx_Responder() -- Respond to active console */
-boolean CONEx_Responder(event_t* const Event)
+bool_t CONEx_Responder(event_t* const Event)
 {
-	static boolean ShiftDown;
+	static bool_t ShiftDown;
 	char MBIn[5];
 	char c;
 	size_t len;
@@ -641,8 +641,8 @@ void CONEx_Drawer(void)
 	int n, m, k, i, j, z;
 	uint32_t ColorBits;
 	int8_t ConsoleLines;
-	boolean DoPrompt;
-	boolean FadeBack;
+	bool_t DoPrompt;
+	bool_t FadeBack;
 	
 	/* Check */
 	if (!l_RootConsole)
@@ -1019,17 +1019,17 @@ void CONEx_Init(void)
 ********************************************************************************
 *******************************************************************************/
 
-boolean con_started = false;	// console has been initialised
-boolean con_startup = false;	// true at game startup, screen need refreshing
-boolean con_forcepic = true;	// at startup toggle console transulcency when
+bool_t con_started = false;	// console has been initialised
+bool_t con_startup = false;	// true at game startup, screen need refreshing
+bool_t con_forcepic = true;	// at startup toggle console transulcency when
 							 // first off
-boolean con_recalc;				// set true when screen size has changed
+bool_t con_recalc;				// set true when screen size has changed
 
 int con_tick;					// console ticker for anim or blinking prompt cursor
 						 // con_scrollup should use time (currenttime - lasttime)..
 
-boolean consoletoggle;			// true when console key pushed, ticker will handle
-boolean consoleready;			// console prompt is ready
+bool_t consoletoggle;			// true when console key pushed, ticker will handle
+bool_t consoleready;			// console prompt is ready
 
 int con_destlines;				// vid lines used by console at final position
 int con_curlines;				// vid lines currently used by console
@@ -1043,7 +1043,7 @@ int con_hudlines;		// number of console heads up message lines
 int con_hudtime[5];				// remaining time of display for hud msg lines
 
 int con_clearlines;				// top screen lines to refresh when view reduced
-boolean con_hudupdate;			// when messages scroll, we need a backgrnd refresh
+bool_t con_hudupdate;			// when messages scroll, we need a backgrnd refresh
 
 // console text output
 char *con_line;					// console text output current line
@@ -1187,10 +1187,10 @@ void CONS_Bind_f(void)
 
 // Prepare a colormap for GREEN ONLY translucency over background
 // GhostlyDeath - Red in ReMooD
-byte *whitemap;
-byte *greenmap;
-byte *graymap;
-byte* orangemap;
+uint8_t *whitemap;
+uint8_t *greenmap;
+uint8_t *graymap;
+uint8_t* orangemap;
 
 /* CON_SetupBackColormap() -- Deprecated handler for old colormaps */
 void CON_SetupBackColormap(void)
@@ -1201,10 +1201,10 @@ void CON_SetupBackColormap(void)
 	
 	/* Wrap old arrays */
 	// Allocate
-	greenmap = (byte *) Z_Malloc(256, PU_STATIC, NULL);
-	whitemap = (byte *) Z_Malloc(256, PU_STATIC, NULL);
-	graymap = (byte *) Z_Malloc(256, PU_STATIC, NULL);
-	orangemap = (byte *) Z_Malloc(256, PU_STATIC, NULL);
+	greenmap = (uint8_t *) Z_Malloc(256, PU_STATIC, NULL);
+	whitemap = (uint8_t *) Z_Malloc(256, PU_STATIC, NULL);
+	graymap = (uint8_t *) Z_Malloc(256, PU_STATIC, NULL);
+	orangemap = (uint8_t *) Z_Malloc(256, PU_STATIC, NULL);
 	
 	// Copy in
 	memmove(greenmap, V_ReturnColormapPtr(VEX_MAP_RED), sizeof(uint8_t) * 256);
@@ -1403,7 +1403,7 @@ void CONS_Printf(char *fmt, ...)
 {
 	va_list argptr;
 	char txt[512];
-	static boolean AlreadyDrawn;	// Draw once
+	static bool_t AlreadyDrawn;	// Draw once
 
 	va_start(argptr, fmt);
 #if _MSC_VER >= 1400
@@ -1638,10 +1638,10 @@ void CON_Ticker(void)
 
 //  Handles console key input
 //
-boolean CON_Responder(event_t * ev)
+bool_t CON_Responder(event_t * ev)
 {
-//boolean altdown;
-	boolean shiftdown;
+//bool_t altdown;
+	bool_t shiftdown;
 	int i;
 
 // sequential completions a la 4dos
@@ -1900,7 +1900,7 @@ boolean CON_Responder(event_t * ev)
 	else if (key == KEY_KPADSLASH)
 		key = '/';
 	else if (con_keymap == french)
-		key = ForeignTranslation((byte) key);
+		key = ForeignTranslation((uint8_t) key);
 
 	if (shiftdown)
 		key = shiftxform[key];
@@ -2025,7 +2025,7 @@ void CON_DrawBackpic(pic_t * pic, int startx, int destwidth)
 {
 	int x, y;
 	int v;
-	byte *src, *dest;
+	uint8_t *src, *dest;
 	int frac, fracstep;
 
 	dest = vid.buffer + startx;

@@ -107,10 +107,10 @@ void I_PauseCD(void);
 void I_ResumeCD(void);
 void I_ShutdownCD(void);
 void I_UpdateCD(void);
-void I_PlayCD(int track, boolean looping);
+void I_PlayCD(int track, bool_t looping);
 int I_SetVolumeCD(int volume);	// return 0 on failure
 
-extern byte cdaudio_started;
+extern uint8_t cdaudio_started;
 extern consvar_t cv_snd_speakersetup;
 extern consvar_t cv_snd_soundquality;
 extern consvar_t cv_snd_pcspeakerwave;

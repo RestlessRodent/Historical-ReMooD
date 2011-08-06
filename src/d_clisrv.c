@@ -50,7 +50,7 @@
 //   firstticstosend is used to optimize a condition
 // normaly maketic>=gametic>0,
 
-boolean server = false;			// true or false but !server=client
+bool_t server = false;			// true or false but !server=client
 
 // server specific vars
 static tic_t firstticstosend;	// min of the nettics
@@ -97,12 +97,12 @@ void D_QuitNetGame(void)
 }
 
 // is there a game running
-boolean Playing(void)
+bool_t Playing(void)
 {
 	return ((playeringame[0] == 1) && !demoplayback);
 }
 
-// Copy an array of ticcmd_t, swapping between host and network byte order.
+// Copy an array of ticcmd_t, swapping between host and network uint8_t order.
 //
 static void TicCmdCopy(ticcmd_t * dst, ticcmd_t * src, int n)
 {
@@ -145,7 +145,7 @@ static void Local_Maketic(int realtics)
 	netcmds[maketic%BACKUPTICS][consoleplayer[0]].angleturn |= TICCMD_RECEIVED;
 }
 
-extern boolean advancedemo;
+extern bool_t advancedemo;
 static int load;
 
 void TryRunTics(tic_t realtics)

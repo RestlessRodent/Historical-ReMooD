@@ -46,9 +46,9 @@
 #include "z_zone.h"
 #include "w_wad.h"
 
-extern boolean infight;			//DarkWolf95:November 21, 2003: Monsters Infight!
+extern bool_t infight;			//DarkWolf95:November 21, 2003: Monsters Infight!
 
-boolean deh_loaded = false;
+bool_t deh_loaded = false;
 
 #define MAXLINELEN  200
 
@@ -68,7 +68,7 @@ char *myfgets(char *buf, int bufsize, MYFILE * f)
 	int i = 0;
 	if (myfeof(f))
 		return NULL;
-	// we need on byte for null terminated string
+	// we need on uint8_t for null terminated string
 	bufsize--;
 	while (i < bufsize && !myfeof(f))
 	{
@@ -622,17 +622,17 @@ static void readmisc(MYFILE * f)
 	while (s[0] != '\n' && !myfeof(f));
 }
 
-extern byte cheat_mus_seq[];
-extern byte cheat_choppers_seq[];
-extern byte cheat_god_seq[];
-extern byte cheat_ammo_seq[];
-extern byte cheat_ammonokey_seq[];
-extern byte cheat_noclip_seq[];
-extern byte cheat_commercial_noclip_seq[];
-extern byte cheat_powerup_seq[7][10];
-extern byte cheat_clev_seq[];
-extern byte cheat_mypos_seq[];
-extern byte cheat_amap_seq[];
+extern uint8_t cheat_mus_seq[];
+extern uint8_t cheat_choppers_seq[];
+extern uint8_t cheat_god_seq[];
+extern uint8_t cheat_ammo_seq[];
+extern uint8_t cheat_ammonokey_seq[];
+extern uint8_t cheat_noclip_seq[];
+extern uint8_t cheat_commercial_noclip_seq[];
+extern uint8_t cheat_powerup_seq[7][10];
+extern uint8_t cheat_clev_seq[];
+extern uint8_t cheat_mypos_seq[];
+extern uint8_t cheat_amap_seq[];
 
 static void change_cheat_code(char *cheatseq, char *newcheat)
 {

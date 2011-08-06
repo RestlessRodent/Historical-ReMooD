@@ -33,7 +33,7 @@
 // M_Random
 // Returns a 0-255 number
 //
-byte rndtable[256] = {
+uint8_t rndtable[256] = {
 	0, 8, 109, 220, 222, 241, 149, 107, 75, 248, 254, 140, 16, 66,
 	74, 21, 211, 47, 80, 242, 154, 27, 205, 128, 161, 89, 77, 36,
 	95, 110, 85, 48, 212, 140, 211, 249, 22, 79, 200, 50, 28, 188,
@@ -55,13 +55,13 @@ byte rndtable[256] = {
 	120, 163, 236, 249
 };
 
-static byte rndindex = 0;
-static byte prndindex = 0;
+static uint8_t rndindex = 0;
+static uint8_t prndindex = 0;
 
 #ifndef DEBUGRANDOM
 
 // P_Random is used throughout all the p_xxx game code.
-byte P_Random()
+uint8_t P_Random()
 {
 	return rndtable[++prndindex];
 }
@@ -81,7 +81,7 @@ int P_SignedRandom()
 
 FILE* RandFile = NULL;
 
-byte P_Random2(char *a, int b)
+uint8_t P_Random2(char *a, int b)
 {
 	RandFile = fopen("prandom", "at");
 	fprintf(RandFile, "P_Random at (gt = %i)\t%sp %d\n", gametic, a, b);
@@ -101,7 +101,7 @@ int P_SignedRandom2(char *a, int b)
 
 #endif
 
-byte M_Random(void)
+uint8_t M_Random(void)
 {
 	return rndtable[++rndindex];
 }
@@ -112,13 +112,13 @@ void M_ClearRandom(void)
 }
 
 // for savegame and join in game
-byte P_GetRandIndex(void)
+uint8_t P_GetRandIndex(void)
 {
 	return prndindex;
 }
 
 // load game
-void P_SetRandIndex(byte rindex)
+void P_SetRandIndex(uint8_t rindex)
 {
 	prndindex = rindex;
 }

@@ -61,9 +61,9 @@ int MAXHEALTH = 100;
 //
 //--------------------------------------------------------------------------
 
-boolean ultimatemsg;
+bool_t ultimatemsg;
 
-void P_SetMessage(player_t * player, char *message, boolean ultmsg)
+void P_SetMessage(player_t * player, char *message, bool_t ultmsg)
 {
 	if ((ultimatemsg || !cv_showmessages.value) && !ultmsg)
 		return;
@@ -127,7 +127,7 @@ int FindBestWeapon(player_t * player)
 // Returns false if the ammo can't be picked up at all
 //
 
-boolean P_GiveAmmo(player_t * player, ammotype_t ammo, int count)
+bool_t P_GiveAmmo(player_t * player, ammotype_t ammo, int count)
 {
 	int oldammo;
 
@@ -239,10 +239,10 @@ static int has_ammo_dropped = 0;
 // P_GiveWeapon
 // The weapon name may have a MF_DROPPED flag ored in.
 //
-boolean P_GiveWeapon(player_t * player, weapontype_t weapon, boolean dropped)
+bool_t P_GiveWeapon(player_t * player, weapontype_t weapon, bool_t dropped)
 {
-	boolean gaveammo;
-	boolean gaveweapon;
+	bool_t gaveammo;
+	bool_t gaveweapon;
 	int ammo_count;
 	int i;
 
@@ -313,7 +313,7 @@ boolean P_GiveWeapon(player_t * player, weapontype_t weapon, boolean dropped)
 // P_GiveBody
 // Returns false if the body isn't needed at all
 //
-boolean P_GiveBody(player_t * player, int num)
+bool_t P_GiveBody(player_t * player, int num)
 {
 	int max;
 
@@ -338,7 +338,7 @@ boolean P_GiveBody(player_t * player, int num)
 // Returns false if the armor is worse
 // than the current armor.
 //
-boolean P_GiveArmor(player_t * player, int armortype)
+bool_t P_GiveArmor(player_t * player, int armortype)
 {
 	int hits;
 
@@ -355,7 +355,7 @@ boolean P_GiveArmor(player_t * player, int armortype)
 //
 // P_GiveCard
 //
-static boolean P_GiveCard(player_t * player, card_t card)
+static bool_t P_GiveCard(player_t * player, card_t card)
 {
 	if (player->cards & card)
 		return false;
@@ -368,7 +368,7 @@ static boolean P_GiveCard(player_t * player, card_t card)
 //
 // P_GivePower
 //
-boolean P_GivePower(player_t * player, int /*powertype_t */ power)
+bool_t P_GivePower(player_t * player, int /*powertype_t */ power)
 {
 	if (power == pw_invulnerability)
 	{
@@ -1321,13 +1321,13 @@ void P_KillMobj(mobj_t * target, mobj_t * inflictor, mobj_t * source)
 // Source can be NULL for slime, barrel explosions
 // and other environmental stuff.
 //
-boolean P_DamageMobj(mobj_t * target, mobj_t * inflictor, mobj_t * source, int damage)
+bool_t P_DamageMobj(mobj_t * target, mobj_t * inflictor, mobj_t * source, int damage)
 {
 	unsigned ang;
 	int saved;
 	player_t *player;
 	fixed_t thrust;
-	boolean takedamage;			// false on some case in teamplay
+	bool_t takedamage;			// false on some case in teamplay
 
 	if (!(target->flags & MF_SHOOTABLE))
 		return false;			// shouldn't happen...

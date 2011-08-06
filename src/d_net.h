@@ -54,7 +54,7 @@ extern int getbytes;
 extern INT64 sendbytes;			// realtime updated 
 
 // if reliable return true if packet sent, 0 else
-boolean D_CheckNetGame(void);
+bool_t D_CheckNetGame(void);
 void D_CloseConnection(void);
 
 /*******************************************************************************
@@ -108,7 +108,7 @@ typedef enum
 	RNPF_ERRORCHECKING          = 0x00000200,		// Contains error checking to a certain extent
 	RNPF_NOTIMPORTANT			= 0x00000400,		// Packet can be dropped without consequence (shit happens)
 	RNPF_PADDING				= 0x00000800,		// Packet is padded to a multiple of 4 bytes
-	RNPF_FORCEBYTESWAP			= 0x00001000,		// Packet deliberately violates it's specified byte order
+	RNPF_FORCEBYTESWAP			= 0x00001000,		// Packet deliberately violates it's specified uint8_t order
 	RNPF_DONTQUEUE				= 0x00002000,		// Don't Queue packet for Client/Server Sync
 	RNPF_FORCEORDER				= 0x00004000,		// Forces ordered packet
 	RNPF_TRYNORESPONSE			= 0x00008000,		// If it's viable, the client/server tries not to respond back
@@ -142,10 +142,10 @@ typedef struct RNPPacketBase_s
 	
 	/* Data */
 	// No Data exists if MARKER is set, otherwise there is data of a certain size
-	// If there is error checking, after every 8 bytes there is a byte that indicates checking and stuff
+	// If there is error checking, after every 8 bytes there is a uint8_t that indicates checking and stuff
 	// The first bit in the first 8 bytes will determine the error check bits
 	// 0000 0001 + 0101 0100 + 1001 0010 + 1010 0111 + 0101 0010 + 1001 0101 + 0010 1000 + 0100 1001
-	// will add an extra byte with the value of 10010101
+	// will add an extra uint8_t with the value of 10010101
 	
 } RNPPacketBase_t;
 

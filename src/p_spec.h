@@ -47,7 +47,7 @@ void P_SpawnSpecials(void);
 void P_UpdateSpecials(void);
 
 // when needed
-boolean P_UseSpecialLine(mobj_t * thing, line_t * line, int side);
+bool_t P_UseSpecialLine(mobj_t * thing, line_t * line, int side);
 
 void P_ShootSpecialLine(mobj_t * thing, line_t * line);
 
@@ -96,7 +96,7 @@ fixed_t P_FindNextLowestCeiling(sector_t * sec, int currentheight);
 fixed_t P_FindShortestUpperAround(int secnum);
 fixed_t P_FindShortestTextureAround(int secnum);
 sector_t *P_FindModelCeilingSector(fixed_t ceildestheight, int secnum);
-boolean P_CanUnlockGenDoor(line_t * line, player_t * player);
+bool_t P_CanUnlockGenDoor(line_t * line, player_t * player);
 int P_CheckTag(line_t * line);
 
 //
@@ -285,7 +285,7 @@ typedef struct
 	int count;
 	plat_e status;
 	plat_e oldstatus;
-	boolean crush;
+	bool_t crush;
 	int tag;
 	plattype_e type;
 
@@ -485,7 +485,7 @@ typedef struct
 	fixed_t topheight;
 	fixed_t speed;
 	fixed_t oldspeed;			//SoM: 3/6/2000
-	boolean crush;
+	bool_t crush;
 
 	//SoM: 3/6/2000: Support ceiling changers
 	int newspecial;
@@ -605,7 +605,7 @@ typedef struct
 {
 	thinker_t thinker;
 	floor_e type;
-	boolean crush;
+	bool_t crush;
 	sector_t *sector;
 	int direction;
 	int newspecial;
@@ -640,7 +640,7 @@ typedef enum
 result_e
 	T_MovePlane
 	(sector_t * sector,
-	 fixed_t speed, fixed_t dest, boolean crush, int floorOrCeiling, int direction);
+	 fixed_t speed, fixed_t dest, bool_t crush, int floorOrCeiling, int direction);
 
 int EV_BuildStairs(line_t * line, stair_e type);
 
@@ -662,7 +662,7 @@ int EV_Teleport(line_t * line, int side, mobj_t * thing);
 
 //SoM: 3/15/2000: Boom silent teleport functions
 int EV_SilentTeleport(line_t * line, int side, mobj_t * thing);
-int EV_SilentLineTeleport(line_t * line, int side, mobj_t * thing, boolean reverse);
+int EV_SilentLineTeleport(line_t * line, int side, mobj_t * thing, bool_t reverse);
 int EV_PortalTeleport(line_t * line, mobj_t * thing, int side);
 
 /* SoM: 3/4/2000: This is a large section of copied code. Sorry if this offends people, but
@@ -993,7 +993,7 @@ typedef struct
 } pusher_t;
 
 //SoM: 3/9/2000: Prototype functions for pushers
-boolean PIT_PushThing(mobj_t * thing);
+bool_t PIT_PushThing(mobj_t * thing);
 void T_Pusher(pusher_t * p);
 mobj_t *P_GetPushThing(int s);
 

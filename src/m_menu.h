@@ -40,7 +40,7 @@
 // Even when the menu is not displayed,
 // this can resize the view and change game parameters.
 // Does all the real work of the menu interaction.
-boolean M_Responder(event_t * ev);
+bool_t M_Responder(event_t * ev);
 
 // Called by main loop,
 // only used for menu (skull cursor) animation.
@@ -156,7 +156,7 @@ typedef struct menuitem_s
 
 	// hotkey in menu
 	// or y of the item 
-	byte alphaKey;
+	uint8_t alphaKey;
 } menuitem_t;
 
 #define MENUFLAG_OPTIMALSPACE	1			// Use automatic spacing!
@@ -182,7 +182,7 @@ typedef struct menu_s
 	short menutitlex;			// X Position to draw menutitle
 	short menutitley;			// Y position to draw menutitle
 	short lastOn;				// last item user was on in menu
-	 boolean(*quitroutine) (void);	// called before quit a menu return true if we can
+	 bool_t(*quitroutine) (void);	// called before quit a menu return true if we can
 	 
 	// GhostlyDeath <July 6, 2008> -- For scrolling menus
 	short itemsperpage;
@@ -203,7 +203,7 @@ void M_CentreText(int y, char *string);	//added:30-01-98:writetext centered
 
 void M_StartControlPanel(void);
 void M_StopMessage(int choice);
-void M_ClearMenus(boolean callexitmenufunc);
+void M_ClearMenus(bool_t callexitmenufunc);
 int M_StringHeight(char *string);
 void M_GameOption(int choice);
 void M_NetOption(int choice);
@@ -213,7 +213,7 @@ void M_ChangeControl(int choice);
 
 /* From m_menu.c */
 extern int quickSaveSlot;
-extern boolean menuactive;
+extern bool_t menuactive;
 extern int saveStringEnter;
 extern int saveSlot;
 extern int saveCharIndex;

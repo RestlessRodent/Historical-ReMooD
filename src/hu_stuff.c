@@ -66,13 +66,13 @@
 patch_t *hu_font[HU_FONTSIZE];
 
 static player_t *plr;
-boolean chat_on;
+bool_t chat_on;
 
 static char w_chat[HU_MAXMSGLEN];
 
-static boolean headsupactive = false;
+static bool_t headsupactive = false;
 
-boolean hu_showscores;			// draw deathmatch rankings
+bool_t hu_showscores;			// draw deathmatch rankings
 
 static char hu_tick;
 
@@ -210,7 +210,7 @@ typedef struct
 	int xpos;
 	int ypos;
 	patch_t *data;
-	boolean draw;
+	bool_t draw;
 } fspic_t;
 
 fspic_t *piclist = NULL;
@@ -384,7 +384,7 @@ void Command_Sayteam_f(void)
 	}
 }
 
-// netsyntax : to : byte  1->32  player 1 to 32
+// netsyntax : to : uint8_t  1->32  player 1 to 32
 //                        0      all
 //                       -1->-32 say team -numplayer of the sender
 
@@ -402,7 +402,7 @@ void Got_Saycmd(char **p, int playernum)
 
 //  Handles key input and string input
 //
-boolean HU_keyInChatString(char *s, char ch)
+bool_t HU_keyInChatString(char *s, char ch)
 {
 	int l;
 
@@ -549,12 +549,12 @@ extern int con_keymap;
 //
 //  Returns true if key eaten
 //
-boolean HU_Responder(event_t * ev)
+bool_t HU_Responder(event_t * ev)
 {
-	static boolean shiftdown = false;
-	static boolean altdown = false;
+	static bool_t shiftdown = false;
+	static bool_t altdown = false;
 
-	boolean eatkey = false;
+	bool_t eatkey = false;
 	char *macromessage;
 	unsigned char c;
 
@@ -915,7 +915,7 @@ int HU_ModifyFSPic(int handle, int lumpnum, int xpos, int ypos)
 	return 0;
 }
 
-int HU_FSDisplay(int handle, boolean newval)
+int HU_FSDisplay(int handle, bool_t newval)
 {
 	if (handle < 0 || handle > maxpicsize)
 		return -1;
@@ -975,7 +975,7 @@ void HU_Erase(void)
 	int y, yoffset;
 
 	//faB: clear hud msgs on double buffer (Glide mode)
-	boolean secondframe;
+	bool_t secondframe;
 	static int secondframelines;
 
 	if (con_clearlines == oldclearlines && !con_hudupdate && !chat_on)
@@ -1097,7 +1097,7 @@ void HU_drawDeathmatchRankings(void)
 	int whiteplayer;
 	int y;
 	char *title;
-	boolean large;
+	bool_t large;
 
 	// draw the ranking title panel
 	if (!cv_splitscreen.value)

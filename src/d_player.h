@@ -114,12 +114,12 @@ typedef struct player_s
 	int health;
 	int armorpoints;
 	// Armor type is 0-2.
-	byte armortype;
+	uint8_t armortype;
 
 	// Power ups. invinc and invis are tic counters.
 	int powers[NUMPOWERS];
-	byte cards;					// bit field see declration of card_t
-	boolean backpack;
+	uint8_t cards;					// bit field see declration of card_t
+	bool_t backpack;
 
 	// Frags, kills of other players.
 	USHORT addfrags;			// player have killed a player but is gone
@@ -129,19 +129,19 @@ typedef struct player_s
 	// Is wp_nochange if not changing.
 	weapontype_t pendingweapon;
 
-	boolean weaponowned[NUMWEAPONS];
+	bool_t weaponowned[NUMWEAPONS];
 	int ammo[NUMAMMO];
 	int maxammo[NUMAMMO];
 	// added by Boris : preferred weapons order stuff
 	char favoritweapon[NUMWEAPONS];
-	boolean originalweaponswitch;
+	bool_t originalweaponswitch;
 	//added:28-02-98:
-	boolean autoaim_toggle;
+	bool_t autoaim_toggle;
 
 	// True if button down last tic.
-	boolean attackdown;
-	boolean usedown;
-	boolean jumpdown;			//added:19-03-98:dont jump like a monkey!
+	bool_t attackdown;
+	bool_t usedown;
+	bool_t jumpdown;			//added:19-03-98:dont jump like a monkey!
 
 	// Bit flags, for cheats and debug.
 	// See cheat_t, above.
@@ -185,7 +185,7 @@ typedef struct player_s
 	pspdef_t psprites[NUMPSPRITES];
 
 	// True if secret level has been done.
-	boolean didsecret;
+	bool_t didsecret;
 	
 	// heretic
 	int chickenTics;			// player is a chicken if > 0
@@ -218,7 +218,7 @@ typedef struct player_s
 //
 typedef struct
 {
-	boolean in;					// whether the player is in game
+	bool_t in;					// whether the player is in game
 
 	// Player stats, kills, collected items etc.
 	int skills;
@@ -237,7 +237,7 @@ typedef struct
 	int epsd;					// episode # (0-2)
 
 	// if true, splash the secret level
-	boolean didsecret;
+	bool_t didsecret;
 
 	// previous and next levels, origin 0
 	int last;

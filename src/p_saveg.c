@@ -42,11 +42,11 @@
 #include <time.h>
 
 #define VERSIONSIZE 16
-byte *save_p = NULL;	// Pointer to the data
+uint8_t *save_p = NULL;	// Pointer to the data
 
 /*** REAL STUFF ***/
-byte* SaveBlock = NULL;
-byte* SaveStart = NULL;
+uint8_t* SaveBlock = NULL;
+uint8_t* SaveStart = NULL;
 size_t SaveLimit = 0;
 
 /*** PROTOTYPES ***/
@@ -61,9 +61,9 @@ void P_SAVE_MapObjects(void);
 /*** SAVING AND LOADING ***/
 
 /* P_CheckSizeEx() -- Resize buffer */
-boolean P_CheckSizeEx(size_t Need)
+bool_t P_CheckSizeEx(size_t Need)
 {
-	byte* T = NULL;
+	uint8_t* T = NULL;
 	size_t Offs = 0;
 	
 	// Resize?
@@ -84,7 +84,7 @@ boolean P_CheckSizeEx(size_t Need)
 }
 
 /* P_SaveGameEx() -- Extended savegame */
-boolean P_SaveGameEx(const char* SaveName, char* ExtFileName, size_t ExtFileNameLen, size_t* SaveLen, byte** Origin)
+bool_t P_SaveGameEx(const char* SaveName, char* ExtFileName, size_t ExtFileNameLen, size_t* SaveLen, uint8_t** Origin)
 {
 	size_t i;
 	time_t Date = time(NULL);
@@ -186,7 +186,7 @@ boolean P_SaveGameEx(const char* SaveName, char* ExtFileName, size_t ExtFileName
 }
 
 /* P_LoadGameEx() -- Load an extended save game */
-boolean P_LoadGameEx(const char* FileName, char* ExtFileName, size_t ExtFileNameLen, size_t* SaveLen, byte** Origin)
+bool_t P_LoadGameEx(const char* FileName, char* ExtFileName, size_t ExtFileNameLen, size_t* SaveLen, uint8_t** Origin)
 {
 	return false;
 }
@@ -243,7 +243,7 @@ void P_SAVE_Console(void)
 	size_t TrueLen = 0;
 	consvar_t* TheVars = CV_Export();
 	consvar_t* cvar = NULL;
-	byte* T;
+	uint8_t* T;
 	int x, y;
 	
 	// Check size
@@ -280,7 +280,7 @@ void P_SAVE_LevelState(void)
 {
 	size_t Off = 0;
 	size_t TrueLen = 0;
-	byte* T;
+	uint8_t* T;
 	
 	// Check size
 	P_CheckSizeEx(8);
@@ -449,7 +449,7 @@ void P_SAVE_MapObjects(void)
 {
 	size_t Off = 0;
 	size_t TrueLen = 0;
-	byte* T;
+	uint8_t* T;
 	thinker_t *currentthinker;
 	mobj_t *mobj;
 	int y;
@@ -594,7 +594,7 @@ void P_SaveGame(void)
 }
 
 /* P_LoadGame() -- Loads a game */
-boolean P_LoadGame(void)
+bool_t P_LoadGame(void)
 {
 	return false;
 }
@@ -605,7 +605,7 @@ boolean P_LoadGame(void)
 
 #if 0
 
-// Pads save_p to a 4-byte boundary
+// Pads save_p to a 4-uint8_t boundary
 //  so that the load/save works on SGI&Gecko.
 #ifdef SGI
 // BP: this stuff isn't be removed but i think it will no more work
@@ -888,15 +888,15 @@ void P_ArchiveWorld(void)
 	int statsec = 0, statline = 0;
 	line_t *li;
 	side_t *si;
-	byte *put;
+	uint8_t *put;
 
 	// reload the map just to see difference
 	mapsector_t *ms;
 	mapsidedef_t *msd;
 	maplinedef_t *mld;
 	sector_t *ss;
-	byte diff;
-	byte diff2;
+	uint8_t diff;
+	uint8_t diff2;
 
 	ms = W_CacheLumpNum(lastloadedmaplumpnum + ML_SECTORS, PU_CACHE);
 	ss = sectors;
@@ -1084,8 +1084,8 @@ void P_UnArchiveWorld(void)
 	int i;
 	line_t *li;
 	side_t *si;
-	byte *get;
-	byte diff, diff2;
+	uint8_t *get;
+	uint8_t diff, diff2;
 
 	get = save_p;
 
@@ -1601,7 +1601,7 @@ void P_UnArchiveThinkers(void)
 	mobj_t *mobj;
 	ULONG diff;
 	int i;
-	byte tclass;
+	uint8_t tclass;
 	ceiling_t *ceiling;
 	vldoor_t *door;
 	floormove_t *floor;
@@ -2453,7 +2453,7 @@ void P_UnArchiveScripts()
 	P_UnArchiveRunningScripts();
 
 	// Unarchive the script camera
-	script_camera_on = (boolean) READLONG(save_p);
+	script_camera_on = (bool_t) READLONG(save_p);
 	script_camera.mo = FindNewPosition((mobj_t *) (READULONG(save_p)));
 	script_camera.aiming = READANGLE(save_p);
 	script_camera.viewheight = READFIXED(save_p);
@@ -2483,7 +2483,7 @@ void P_ArchiveMisc()
 	WRITEBYTE(save_p, P_GetRandIndex());
 }
 
-boolean P_UnArchiveMisc()
+bool_t P_UnArchiveMisc()
 {
 	ULONG pig;
 	int i;
@@ -2522,7 +2522,7 @@ void P_SaveGame(void)
 	WRITEBYTE(save_p, 0x1d);	// consistancy marker
 }
 
-boolean P_LoadGame(void)
+bool_t P_LoadGame(void)
 {
 	if (!P_UnArchiveMisc())
 		return false;

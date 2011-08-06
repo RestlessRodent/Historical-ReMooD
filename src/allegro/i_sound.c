@@ -73,7 +73,7 @@ void I_ShutdownSound(void)
 {
 }
 
-boolean I_UpdateSoundCache(void)
+bool_t I_UpdateSoundCache(void)
 {
 }
 

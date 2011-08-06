@@ -94,7 +94,7 @@ typedef struct CONEx_Variable_s
 /* CONEx_VarTypeList_t -- Command/variable union */
 typedef struct CONEx_VarTypeList_s
 {
-	boolean IsVariable;									// Is this a variable?
+	bool_t IsVariable;									// Is this a variable?
 	struct CONEx_VarTypeList_s* Prev;					// Previous link
 	struct CONEx_VarTypeList_s* Next;					// Next link
 	
@@ -137,7 +137,7 @@ typedef struct CONEx_Console_s
 *** GLOBALS ***
 **************/
 
-extern boolean g_QuietConsole;							// Mute startup console
+extern bool_t g_QuietConsole;							// Mute startup console
 
 /****************
 *** FUNCTIONS ***
@@ -165,7 +165,7 @@ void CONEx_AddCommand(CONEx_Console_t* const Console, const CONEx_Command_t* con
 void CONEx_AddVariable(CONEx_Console_t* const Console, const CONEx_Variable_t* const Variable);
 
 void CONEx_Init(void);
-boolean CONEx_Responder(event_t* const Event);
+bool_t CONEx_Responder(event_t* const Event);
 void CONEx_Ticker(void);
 void CONEx_Drawer(void);
 
@@ -178,7 +178,7 @@ void CONEx_Drawer(void);
 
 void CON_Init(void);
 
-boolean CON_Responder(event_t * ev);
+bool_t CON_Responder(event_t * ev);
 
 #ifdef __MACOS__
 #define  CON_BUFFERSIZE   4096	//my compiler cant handle local vars >32k
@@ -193,20 +193,20 @@ boolean CON_Responder(event_t * ev);
 #define  CON_MAXPROMPTCHARS    256
 #define  CON_PROMPTCHAR        '>'
 
-extern boolean con_started;
-extern boolean con_startup;
-extern boolean con_forcepic;
-extern boolean con_recalc;
+extern bool_t con_started;
+extern bool_t con_startup;
+extern bool_t con_forcepic;
+extern bool_t con_recalc;
 extern int con_tick;
-extern boolean consoletoggle;
-extern boolean consoleready;
+extern bool_t consoletoggle;
+extern bool_t consoleready;
 extern int con_destlines;
 extern int con_curlines;
 extern int con_clipviewtop;
 extern int con_hudlines;
 extern int con_hudtime[5];
 extern int con_clearlines;
-extern boolean con_hudupdate;
+extern bool_t con_hudupdate;
 extern char *con_line;
 extern int con_cx;
 extern int con_cy;
@@ -224,10 +224,10 @@ extern struct pic_s *con_bordright;
 extern char con_buffer[CON_BUFFERSIZE];
 extern char *bindtable[NUMINPUTS];
 // set true when screen size has changed, to adapt console
-extern boolean con_recalc;
-extern boolean con_startup;
+extern bool_t con_recalc;
+extern bool_t con_startup;
 
-extern boolean consoleready;	// GhostlyDeath -- extern this here
+extern bool_t consoleready;	// GhostlyDeath -- extern this here
 // top clip value for view render: do not draw part of view hidden by console
 extern int con_clipviewtop;
 
@@ -235,14 +235,14 @@ extern int con_clipviewtop;
 extern int con_destlines;
 
 extern int con_clearlines;		// lines of top of screen to refresh
-extern boolean con_hudupdate;	// hud messages have changed, need refresh
+extern bool_t con_hudupdate;	// hud messages have changed, need refresh
 extern int con_keymap;			//0 english, 1 french
 
-extern byte* redmap;
-extern byte *whitemap;
-extern byte *greenmap;
-extern byte *graymap;
-extern byte* orangemap;
+extern uint8_t* redmap;
+extern uint8_t *whitemap;
+extern uint8_t *greenmap;
+extern uint8_t *graymap;
+extern uint8_t* orangemap;
 
 extern consvar_t cons_msgtimeout;
 extern consvar_t cons_speed;

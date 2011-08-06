@@ -99,6 +99,17 @@
 	#include <stdint.h>
 #endif
 
+/***********
+*** BOOL ***
+***********/
+
+/* bool_t -- Boolean, true or false */
+typedef enum bool_e
+{
+	false,
+	true
+} bool_t;
+
 /*****************
 *** C KEYWORDS ***
 *****************/
@@ -381,6 +392,13 @@ BPLWRITE_x(UInt64,uint64_t)
 /* End */
 #undef BP_MERGE
 
+/************
+*** TIC_T ***
+************/
+
+// A valid tic
+typedef uint32_t tic_t;
+
 /******************************************
 *** REMOVE ALL THIS GARBAGE, SERIOUSLY! ***
 ******************************************/
@@ -393,19 +411,6 @@ typedef int64_t ssize_t;
 typedef int32_t ssize_t;
 #endif
 #define __ssize_t_defined
-#endif
-#endif
-
-#if (_MSC_VER > 1200) || !defined(_MSC_VER)
-typedef uint8_t byte;
-#endif
-
-typedef uint32_t tic_t;
-#ifndef _WIN32
-typedef int32_t boolean;
-#else
-#ifndef boolean
-#define boolean BOOL
 #endif
 #endif
 
@@ -426,22 +431,6 @@ typedef int32_t boolean;
 #ifndef __MINGW32__
 #define lstrlen(x) strlen(x)
 #endif
-#endif
-
-#ifndef FALSE
-#define FALSE 0
-#endif
-
-#ifndef TRUE
-#define TRUE 1
-#endif
-
-#ifndef false
-#define false FALSE
-#endif
-
-#ifndef true
-#define true TRUE
 #endif
 
 #ifndef MAXCHAR
@@ -486,13 +475,14 @@ typedef int32_t boolean;
 
 union FColorRGBA
 {
-	ULONG rgba;
+	uint32_t rgba;
+	
 	struct
 	{
-		byte red;
-		byte green;
-		byte blue;
-		byte alpha;
+		uint8_t red;
+		uint8_t green;
+		uint8_t blue;
+		uint8_t alpha;
 	} s;
 };
 typedef union FColorRGBA RGBA_t;

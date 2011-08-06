@@ -292,7 +292,7 @@ static void free_runningscript(runningscript_t * runscr)
 	freelist = runscr;
 }
 
-static boolean wait_finished(runningscript_t * script)
+static bool_t wait_finished(runningscript_t * script)
 {
 	switch (script->wait_type)
 	{

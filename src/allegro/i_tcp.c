@@ -34,7 +34,7 @@ void LOCAL_NetSend(void)
 {
 }
 
-boolean LOCAL_NetCanSend(void)
+bool_t LOCAL_NetCanSend(void)
 {
 	return true;
 }
@@ -48,7 +48,7 @@ int LOCAL_NetMakeNode(char *address)
 	return 0;
 }
 
-boolean LOCAL_NetOpenSocket(void)
+bool_t LOCAL_NetOpenSocket(void)
 {
 	return true;
 }

@@ -1275,7 +1275,7 @@ void M_ChangeCvar(int choise)
 		CV_AddValue(cv, choise * 2 - 1);
 }
 
-boolean M_ChangeStringCvar(int choise)
+bool_t M_ChangeStringCvar(int choise)
 {
 	consvar_t *cv = (consvar_t *) currentMenu->menuitems[itemOn].itemaction;
 	char buf[255];
@@ -1350,7 +1350,7 @@ boolean M_ChangeStringCvar(int choise)
 //
 // M_Responder
 //
-boolean M_Responder(event_t * ev)
+bool_t M_Responder(event_t * ev)
 {
 	int ch;
 	int i;

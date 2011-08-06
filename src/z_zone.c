@@ -58,7 +58,7 @@ typedef struct Z_MemPartition_s
 		size_t Start;							// Partition start
 		size_t End;								// Partition end
 		size_t Size;							// Partition size
-		boolean Used;							// Partition used
+		bool_t Used;							// Partition used
 	} Part;										// Partition Info
 	
 	/* Block Data */
@@ -101,7 +101,7 @@ static Z_MemZone_t* l_MainZone = NULL;			// Memory zones
 ************************/
 
 /* ZP_NewZone() -- Creates a new memory zone */
-boolean ZP_NewZone(size_t* const SizePtr, Z_MemZone_t** const ZoneRef)
+bool_t ZP_NewZone(size_t* const SizePtr, Z_MemZone_t** const ZoneRef)
 {
 	size_t ShiftSize;
 	Z_MemZone_t* NewZone;
@@ -182,7 +182,7 @@ boolean ZP_NewZone(size_t* const SizePtr, Z_MemZone_t** const ZoneRef)
 }
 
 /* ZP_PartitionSplit() -- Splits a partition into two new pieces */
-void ZP_PartitionSplit(Z_MemPartition_t* const ToSplit, Z_MemPartition_t** const ResLeftPtr, Z_MemPartition_t** const ResRightPtr, const size_t Pos, const boolean AtEnd)
+void ZP_PartitionSplit(Z_MemPartition_t* const ToSplit, Z_MemPartition_t** const ResLeftPtr, Z_MemPartition_t** const ResRightPtr, const size_t Pos, const bool_t AtEnd)
 {
 	size_t pI, SplitPos;
 	Z_MemPartition_t Copy;
@@ -289,7 +289,7 @@ void* ZP_PointerForPartition(Z_MemPartition_t* const Part)
 }
 
 /* ZP_FindPointerForPartition() -- Finds a pointer that was found in a partition (if any) */
-boolean ZP_FindPointerForPartition(void* const Ptr, Z_MemPartition_t** const PartPtr)
+bool_t ZP_FindPointerForPartition(void* const Ptr, Z_MemPartition_t** const PartPtr)
 {
 	size_t i;
 	Z_MemPartition_t* Part;
@@ -410,7 +410,7 @@ void Z_Init(void)
 {
 	size_t FreeMem = 0, TotalMem;
 	size_t LoopSize, i;
-	boolean Ok = false;
+	bool_t Ok = false;
 	uint32_t Sanity = 0;
 	
 	/* Sanity check */
@@ -423,7 +423,7 @@ void Z_Init(void)
 #else
 	if (Sanity != 0x01000000)
 #endif
-		CONS_Printf("Z_Init: ReMooD was compiled with the wrong byte order!\n");
+		CONS_Printf("Z_Init: ReMooD was compiled with the wrong uint8_t order!\n");
 	
 	/* Create new zone in a loop */
 	// Check free memory
@@ -467,7 +467,7 @@ void* Z_MallocWrappee(const size_t Size, const Z_MemoryTag_t Tag, void** const R
 	size_t i, ShiftSize, iBase, iEnd;
 	Z_MemPartition_t* ResLeft, *ResRight, *New, *Free;
 	void* RetVal;
-	boolean AtEnd;
+	bool_t AtEnd;
 	
 	/* Clear some */
 	RetVal = NULL;
@@ -810,12 +810,12 @@ struct Z_HashTable_s
 {
 	Z_HashKey_t* KeyList[256];								// Key list
 	size_t KeySize[256];							// Keys in list
-	boolean (*CompareFunc)(void* const a_A, void* const a_B);
+	bool_t (*CompareFunc)(void* const a_A, void* const a_B);
 };
 
 /*** FUNCTIONS ***/
 /* Z_HashCreateTable() -- Creates a new hashing table */
-Z_HashTable_t* Z_HashCreateTable(boolean (*a_CompareFunc)(void* const a_A, void* const a_B))
+Z_HashTable_t* Z_HashCreateTable(bool_t (*a_CompareFunc)(void* const a_A, void* const a_B))
 {
 	Z_HashTable_t* New;
 	
@@ -844,7 +844,7 @@ void Z_HashDeleteTable(Z_HashTable_t* const a_HashTable)
 }
 
 /* Z_HashAddEntry() -- Adds a single entry to the hash table */
-boolean Z_HashAddEntry(Z_HashTable_t* const a_HashTable, const uint32_t a_Key, void* const a_Data)
+bool_t Z_HashAddEntry(Z_HashTable_t* const a_HashTable, const uint32_t a_Key, void* const a_Data)
 {
 	uint32_t Nub;
 	size_t i;
@@ -869,7 +869,7 @@ boolean Z_HashAddEntry(Z_HashTable_t* const a_HashTable, const uint32_t a_Key, v
 }
 
 /* Z_HashFindEntry() -- Finds an entry in the hash table */
-void* Z_HashFindEntry(Z_HashTable_t* const a_HashTable, const uint32_t a_Key, void* const a_DataSim, const boolean a_BackRun)
+void* Z_HashFindEntry(Z_HashTable_t* const a_HashTable, const uint32_t a_Key, void* const a_DataSim, const bool_t a_BackRun)
 {
 	uint32_t Nub;
 	size_t i;

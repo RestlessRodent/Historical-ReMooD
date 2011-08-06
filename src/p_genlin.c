@@ -52,7 +52,7 @@ int EV_DoGenFloor(line_t * line)
 {
 	int secnum;
 	int rtn;
-	boolean manual;
+	bool_t manual;
 	sector_t *sec;
 	floormove_t *floor;
 	unsigned value = (unsigned)line->special - GenFloorBase;
@@ -244,7 +244,7 @@ int EV_DoGenCeiling(line_t * line)
 {
 	int secnum;
 	int rtn;
-	boolean manual;
+	bool_t manual;
 	fixed_t targheight;
 	sector_t *sec;
 	ceiling_t *ceiling;
@@ -445,7 +445,7 @@ int EV_DoGenLift(line_t * line)
 	plat_t *plat;
 	int secnum;
 	int rtn;
-	boolean manual;
+	bool_t manual;
 	sector_t *sec;
 	unsigned value = (unsigned)line->special - GenLiftBase;
 
@@ -598,7 +598,7 @@ int EV_DoGenStairs(line_t * line)
 	int texture;
 	int ok;
 	int rtn;
-	boolean manual;
+	bool_t manual;
 
 	sector_t *sec;
 	sector_t *tsec;
@@ -787,7 +787,7 @@ int EV_DoGenCrusher(line_t * line)
 {
 	int secnum;
 	int rtn;
-	boolean manual;
+	bool_t manual;
 	sector_t *sec;
 	ceiling_t *ceiling;
 	unsigned value = (unsigned)line->special - GenCrusherBase;
@@ -883,7 +883,7 @@ int EV_DoGenLockedDoor(line_t * line)
 	int secnum, rtn;
 	sector_t *sec;
 	vldoor_t *door;
-	boolean manual;
+	bool_t manual;
 	unsigned value = (unsigned)line->special - GenLockedBase;
 
 	// parse the bit fields in the line's special type
@@ -983,7 +983,7 @@ int EV_DoGenDoor(line_t * line)
 {
 	int secnum, rtn;
 	sector_t *sec;
-	boolean manual;
+	bool_t manual;
 	vldoor_t *door;
 	unsigned value = (unsigned)line->special - GenDoorBase;
 

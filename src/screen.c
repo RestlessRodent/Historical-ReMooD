@@ -46,7 +46,7 @@ void VID_PrepareModeList(void);	// from i_video_xshm.c
 
 #ifdef DIRECTFULLSCREEN
 // allow_fullscreen is set in VID_PrepareModeList
-extern boolean allow_fullscreen;
+extern bool_t allow_fullscreen;
 #endif
 
 // --------------------------------------------
@@ -74,7 +74,7 @@ int setmodeneeded;				//video mode change needed if > 0
 							 // (the mode number to set + 1)
 
 // TO DO!!! make it a console variable !!
-boolean fuzzymode = false;		// use original Doom fuzzy effect instead
+bool_t fuzzymode = false;		// use original Doom fuzzy effect instead
 							 // of translucency
 
 CV_PossibleValue_t scr_depth_cons_t[] =
@@ -94,7 +94,7 @@ consvar_t cv_fullscreen =
 // =========================================================================
 
 int scr_bpp;					// current video mode bytes per pixel
-byte *scr_borderpatch;			// flat used to fill the reduced view borders
+uint8_t *scr_borderpatch;			// flat used to fill the reduced view borders
 						   // set at ST_Init ()
 
 // =========================================================================
@@ -399,11 +399,11 @@ void SCR_ReclassBuffers(void)
 	solidsegs = Z_Malloc(sizeof(cliprange_t) * MAXSEGS, PU_STATIC, NULL);
 	
 	// Height
-	ylookup = Z_Malloc(sizeof(byte*) * vid.height, PU_STATIC, NULL);
-	ylookup1 = Z_Malloc(sizeof(byte*) * vid.height, PU_STATIC, NULL);
-	ylookup2 = Z_Malloc(sizeof(byte*) * vid.height, PU_STATIC, NULL);
+	ylookup = Z_Malloc(sizeof(uint8_t*) * vid.height, PU_STATIC, NULL);
+	ylookup1 = Z_Malloc(sizeof(uint8_t*) * vid.height, PU_STATIC, NULL);
+	ylookup2 = Z_Malloc(sizeof(uint8_t*) * vid.height, PU_STATIC, NULL);
 	for (i = 0; i < MAXSPLITSCREENPLAYERS; i++)
-		ylookup4[i] = Z_Malloc(sizeof(byte*) * vid.height, PU_STATIC, NULL);
+		ylookup4[i] = Z_Malloc(sizeof(uint8_t*) * vid.height, PU_STATIC, NULL);
 	yslopetab = Z_Malloc(sizeof(fixed_t) * (vid.height * 4), PU_STATIC, NULL);
 	
 	cachedheight = Z_Malloc(sizeof(fixed_t) * vid.height, PU_STATIC, NULL);

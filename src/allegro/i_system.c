@@ -145,7 +145,7 @@ void I_StartupMouse2(void)
 {
 }
 
-byte mb_used = 6 + 2;			// 2 more for caching sound
+uint8_t mb_used = 6 + 2;			// 2 more for caching sound
 static int quiting = 0;			/* prevent recursive I_Quit() */
 
 //
@@ -228,11 +228,11 @@ void I_EndRead(void)
 {
 }
 
-byte *I_AllocLow(int length)
+uint8_t *I_AllocLow(int length)
 {
-	byte *mem;
+	uint8_t *mem;
 
-	mem = (byte *) malloc(length);
+	mem = (uint8_t *) malloc(length);
 	memset(mem, 0, length);
 	return mem;
 }
@@ -240,7 +240,7 @@ byte *I_AllocLow(int length)
 //
 // I_Error
 //
-extern boolean demorecording;
+extern bool_t demorecording;
 
 void I_Error(char *error, ...)
 {

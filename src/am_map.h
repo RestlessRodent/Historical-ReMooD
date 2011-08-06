@@ -45,13 +45,13 @@ typedef struct
 #define AM_MSGENTERED (AM_MSGHEADER | ('e'<<8))
 #define AM_MSGEXITED (AM_MSGHEADER | ('x'<<8))
 
-extern boolean am_recalc;		//added:05-02-98:true if screen size changes
-extern boolean automapactive;	// In AutoMap mode?
-extern boolean automapoverlay;	// Overlayed automap
+extern bool_t am_recalc;		//added:05-02-98:true if screen size changes
+extern bool_t automapactive;	// In AutoMap mode?
+extern bool_t automapoverlay;	// Overlayed automap
 extern int am_cheating;
 
 // Called by main loop.
-boolean AM_Responder(event_t * ev);
+bool_t AM_Responder(event_t * ev);
 
 // Called by main loop.
 void AM_Ticker(void);

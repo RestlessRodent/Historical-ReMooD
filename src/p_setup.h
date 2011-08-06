@@ -62,14 +62,14 @@ extern int nummapthings;
 extern mapthing_t *mapthings;
 
 // NOT called by W_Ticker. Fixme.
-boolean P_SetupLevel(int episode, int map, skill_t skill, char *mapname);
+bool_t P_SetupLevel(int episode, int map, skill_t skill, char *mapname);
 
-boolean P_AddWadFile(char *wadfilename, char **firstmapname);
+bool_t P_AddWadFile(char *wadfilename, char **firstmapname);
 
 subsector_t *R_PointInSubsector(fixed_t x, fixed_t y);
 
-extern boolean newlevel;
-extern boolean doom1level;
+extern bool_t newlevel;
+extern bool_t doom1level;
 extern char *levelmapname;
 
 #endif

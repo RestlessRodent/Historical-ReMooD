@@ -77,7 +77,7 @@ void A_Fall(mobj_t * actor);
 
 void FastMonster_OnChange(void)
 {
-	static boolean fast = false;
+	static bool_t fast = false;
 	static const struct
 	{
 		mobjtype_t type;
@@ -199,7 +199,7 @@ consvar_t cv_classicmeleerange = { "classicmeleerange", "0", CV_NETVAR, CV_YesNo
 //
 // P_CheckMeleeRange
 //
-static boolean P_CheckMeleeRange(mobj_t * actor)
+static bool_t P_CheckMeleeRange(mobj_t * actor)
 {
 	mobj_t *pl;
 	fixed_t dist;
@@ -228,7 +228,7 @@ static boolean P_CheckMeleeRange(mobj_t * actor)
 //
 // P_CheckMissileRange
 //
-static boolean P_CheckMissileRange(mobj_t * actor)
+static bool_t P_CheckMissileRange(mobj_t * actor)
 {
 	fixed_t dist;
 
@@ -293,14 +293,14 @@ static boolean P_CheckMissileRange(mobj_t * actor)
 static const fixed_t xspeed[8] = { FRACUNIT, 47000, 0, -47000, -FRACUNIT, -47000, 0, 47000 };
 static const fixed_t yspeed[8] = { 0, 47000, FRACUNIT, 47000, 0, -47000, -FRACUNIT, -47000 };
 
-static boolean P_Move(mobj_t * actor)
+static bool_t P_Move(mobj_t * actor)
 {
 	fixed_t tryx;
 	fixed_t tryy;
 
 	line_t *ld;
 
-	boolean good;
+	bool_t good;
 
 	if (actor->movedir == DI_NODIR)
 		return false;
@@ -369,7 +369,7 @@ static boolean P_Move(mobj_t * actor)
 // If a door is in the way,
 // an OpenDoor call is made to start it opening.
 //
-static boolean P_TryWalk(mobj_t * actor)
+static bool_t P_TryWalk(mobj_t * actor)
 {
 	if (!P_Move(actor))
 	{
@@ -506,7 +506,7 @@ static void P_NewChaseDir(mobj_t * actor)
 // If allaround is false, only look 180 degrees in front.
 // Returns true if a player is targeted.
 //
-static boolean P_LookForPlayers(mobj_t * actor, boolean allaround)
+static bool_t P_LookForPlayers(mobj_t * actor, bool_t allaround)
 {
 	int c;
 	int stop;
@@ -1077,10 +1077,10 @@ mobj_t *vileobj;
 fixed_t viletryx;
 fixed_t viletryy;
 
-boolean PIT_VileCheck(mobj_t * thing)
+bool_t PIT_VileCheck(mobj_t * thing)
 {
 	int maxdist;
-	boolean check;
+	bool_t check;
 
 	if (!(thing->flags & MF_CORPSE))
 		return true;			// not a monster
@@ -1384,7 +1384,7 @@ void A_SkullAttack(mobj_t * actor)
 	if (cv_predictingmonsters.value)	//added by AC for predmonsters
 	{
 
-		boolean canHit;
+		bool_t canHit;
 		fixed_t px, py, pz;
 		int t, time;
 		subsector_t *sec;

@@ -54,7 +54,7 @@ void I_UpdateCD(void)
 {
 }
 
-void I_PlayCD(int track, boolean looping)
+void I_PlayCD(int track, bool_t looping)
 {
 }
 

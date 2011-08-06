@@ -646,7 +646,7 @@ void M_StartControlPanel(void)
 //
 // M_ClearMenus
 //
-void M_ClearMenus(boolean callexitmenufunc)
+void M_ClearMenus(bool_t callexitmenufunc)
 {
 	if (!menuactive)
 		return;

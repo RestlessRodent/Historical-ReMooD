@@ -59,7 +59,7 @@ void M_AddToBox(fixed_t * box, fixed_t x, fixed_t y)
 		box[BOXTOP] = y;
 }
 
-boolean M_PointInBox(fixed_t * box, fixed_t x, fixed_t y)
+bool_t M_PointInBox(fixed_t * box, fixed_t x, fixed_t y)
 {
 	if (x < box[BOXLEFT])
 		return false;
@@ -73,7 +73,7 @@ boolean M_PointInBox(fixed_t * box, fixed_t x, fixed_t y)
 	return true;
 }
 
-boolean M_CircleTouchBox(fixed_t * box, fixed_t circlex, fixed_t circley, fixed_t circleradius)
+bool_t M_CircleTouchBox(fixed_t * box, fixed_t circlex, fixed_t circley, fixed_t circleradius)
 {
 	if (box[BOXLEFT] - circleradius > circlex)
 		return false;

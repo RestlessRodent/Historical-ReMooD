@@ -35,14 +35,14 @@
 #define BACKUPTICS            32
 
 /* Externals */
-extern boolean server;
+extern bool_t server;
 extern consvar_t cv_playdemospeed;
 extern consvar_t cv_allownewplayer;
 extern consvar_t cv_maxplayers;
 
 /* Functions */
 void NetUpdate(void);			// Create any new ticcmds and broadcast to other players.
-boolean Playing(void);			// is there a game running
+bool_t Playing(void);			// is there a game running
 void D_QuitNetGame(void);		// Broadcasts special packets to other players to notify of game exit
 void TryRunTics(tic_t realtic);	// how many ticks to run
 

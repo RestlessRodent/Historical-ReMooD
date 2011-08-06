@@ -48,7 +48,7 @@
 // 16 pixels of bob
 #define MAXBOB  0x100000
 
-boolean onground;
+bool_t onground;
 
 /* P_Thrust() -- Moves the given origin along a given angle. */
 void P_Thrust(player_t * player, angle_t angle, fixed_t move)
@@ -265,7 +265,7 @@ void P_MovePlayer(player_t * player)
 
 	if (demoversion < 128)
 	{
-		boolean jumpover = player->cheats & CF_JUMPOVER;
+		bool_t jumpover = player->cheats & CF_JUMPOVER;
 		if (cmd->forwardmove && (onground || jumpover))
 		{
 			// dirty hack to let the player avatar walk over a small wall
@@ -554,7 +554,7 @@ void P_ResetCamera(player_t * player)
 	camera.aiming = 0;
 }
 
-boolean PTR_FindCameraPoint(intercept_t * in)
+bool_t PTR_FindCameraPoint(intercept_t * in)
 {
 /*    int         side;
     fixed_t             slope;
@@ -669,7 +669,7 @@ void P_MoveChaseCamera(player_t * player)
 	camera.aiming -= (dist >> 3);
 }
 
-byte weapontobutton[NUMWEAPONS] = { wp_fist << BT_WEAPONSHIFT,
+uint8_t weapontobutton[NUMWEAPONS] = { wp_fist << BT_WEAPONSHIFT,
 	wp_pistol << BT_WEAPONSHIFT,
 	wp_shotgun << BT_WEAPONSHIFT,
 	wp_chaingun << BT_WEAPONSHIFT,
@@ -684,7 +684,7 @@ byte weapontobutton[NUMWEAPONS] = { wp_fist << BT_WEAPONSHIFT,
 // P_PlayerThink
 //
 
-boolean playerdeadview;			//Fab:25-04-98:show dm rankings while in death view
+bool_t playerdeadview;			//Fab:25-04-98:show dm rankings while in death view
 
 void P_PlayerThink(player_t * player)
 {

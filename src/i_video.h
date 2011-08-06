@@ -45,7 +45,7 @@ void I_FinishUpdate(void);
 // Wait for vertical retrace or pause a bit.
 void I_WaitVBL(int count);
 
-void I_ReadScreen(byte * scr);
+void I_ReadScreen(uint8_t * scr);
 
 void I_BeginRead(void);
 void I_EndRead(void);
@@ -55,10 +55,10 @@ void I_EndRead(void);
 ****************/
 
 void VID_PrepareModeList(void);
-boolean I_SetVideoMode(const uint32_t a_Width, const uint32_t a_Height, const boolean a_Fullscreen);
+bool_t I_SetVideoMode(const uint32_t a_Width, const uint32_t a_Height, const bool_t a_Fullscreen);
 void I_StartupGraphics(void);
 void I_ShutdownGraphics(void);
-boolean I_TextMode(const boolean a_OnOff);
+bool_t I_TextMode(const bool_t a_OnOff);
 
 #endif
 

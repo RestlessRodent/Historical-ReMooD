@@ -77,7 +77,7 @@ typedef struct
 	// SAVED AS A BYTE into demos
 	signed short aiming;		//added:16-02-98:mouse aiming, see G_BuildTicCmd
 	uint16_t buttons;
-	byte artifact;				// For Heretic
+	uint8_t artifact;				// For Heretic
 } ticcmd_t;
 
 #endif

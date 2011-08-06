@@ -129,8 +129,8 @@ typedef struct I_EventEx_s
 	{
 		struct
 		{
-			boolean Down;						// Key pressed down
-			boolean Repeat;						// Is the key repeated?
+			bool_t Down;						// Key pressed down
+			bool_t Repeat;						// Is the key repeated?
 			uint8_t KeyCode;					// Code for key
 			uint16_t Character;					// Character pressed
 		} Keyboard;								// Keyboard event
@@ -142,20 +142,20 @@ typedef struct I_EventEx_s
 ****************/
 
 void I_EventExPush(const I_EventEx_t* const a_Event);
-boolean I_EventExPop(I_EventEx_t* const a_Event);
+bool_t I_EventExPop(I_EventEx_t* const a_Event);
 void I_EventToOldDoom(const I_EventEx_t* const a_Event);
 
 int VID_NumModes(void);
 char* __REMOOD_DEPRECATED VID_GetModeName(int a_ModeNum);
-int VID_ClosestMode(int* const a_WidthP, int* const a_HeightP, const boolean a_Fullscreen);
+int VID_ClosestMode(int* const a_WidthP, int* const a_HeightP, const bool_t a_Fullscreen);
 int __REMOOD_DEPRECATED VID_GetModeForSize(int a_Width, int a_Height);
-boolean VID_AddMode(const int a_Width, const int a_Height, const boolean a_Fullscreen);
+bool_t VID_AddMode(const int a_Width, const int a_Height, const bool_t a_Fullscreen);
 int VID_SetMode(int a_ModeNum);
 
-boolean I_UtilWinArgToUNIXArg(int* const a_argc, char*** const a_argv, const char* const a_Win);
-boolean I_VideoPreInit(void);
-boolean I_VideoBefore320200Init(void);
-boolean I_VideoPostInit(void);
+bool_t I_UtilWinArgToUNIXArg(int* const a_argc, char*** const a_argv, const char* const a_Win);
+bool_t I_VideoPreInit(void);
+bool_t I_VideoBefore320200Init(void);
+bool_t I_VideoPostInit(void);
 void I_VideoSetBuffer(const uint32_t a_Width, const uint32_t a_Height, const uint32_t a_Pitch, uint8_t* const a_Direct);
 void I_VideoUnsetBuffer(void);
 uint8_t* I_VideoSoftBuffer(uint32_t* const a_WidthP, uint32_t* const a_HeightP);

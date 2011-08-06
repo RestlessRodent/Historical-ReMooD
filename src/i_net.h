@@ -34,18 +34,18 @@
 #define INETPACKETLENGTH 512	// For use on the internet
 
 extern short hardware_MAXPACKETLENGTH;
-extern int net_bandwidth;		// in byte/s
+extern int net_bandwidth;		// in uint8_t/s
 
 // to be defined by the network driver
 extern void (*I_NetGet) (void);	// return packet in doomcom struct
 extern void (*I_NetSend) (void);	// send packet within doomcom struct
-extern boolean(*I_NetCanSend) (void);	// ask to driver if all is ok to send data now
+extern bool_t(*I_NetCanSend) (void);	// ask to driver if all is ok to send data now
 extern void (*I_NetFreeNodenum) (int nodenum);	// close a connection 
 extern int (*I_NetMakeNode) (char *address);	// open a connection with specified address
-extern boolean(*I_NetOpenSocket) (void);	// opend all connections
+extern bool_t(*I_NetOpenSocket) (void);	// opend all connections
 extern void (*I_NetCloseSocket) (void);	// close all connections no more allow geting any packet
 
-boolean I_InitNetwork(void);
+bool_t I_InitNetwork(void);
 
 #endif
 

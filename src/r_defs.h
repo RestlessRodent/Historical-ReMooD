@@ -57,7 +57,7 @@
 //  precalculating 24bpp lightmap/colormap LUT.
 //  from darkening PLAYPAL to all black.
 // Could even us emore than 32 levels.
-typedef byte lighttable_t;
+typedef uint8_t lighttable_t;
 
 // SoM: ExtraColormap type. Use for extra_colormaps from now on.
 typedef struct
@@ -284,19 +284,19 @@ typedef struct sector_s
 	int numattached;
 	lightlist_t *lightlist;
 	int numlights;
-	boolean moved;
+	bool_t moved;
 
 	int validsort;				//if == validsort allready been sorted
-	boolean added;
+	bool_t added;
 
 	// SoM: 4/3/2000: per-sector colormaps!
 	extracolormap_t *extra_colormap;
 
 	// ----- for special tricks with HW renderer -----
-	boolean pseudoSector;
-	boolean virtualFloor;
+	bool_t pseudoSector;
+	bool_t virtualFloor;
 	fixed_t virtualFloorheight;
-	boolean virtualCeiling;
+	bool_t virtualCeiling;
 	fixed_t virtualCeilingheight;
 	linechain_t *sectorLines;
 	struct sector_s **stackList;
@@ -437,7 +437,7 @@ typedef struct msecnode_s
 	struct msecnode_s *m_tnext;	// next msecnode_t for this thing
 	struct msecnode_s *m_sprev;	// prev msecnode_t for this sector
 	struct msecnode_s *m_snext;	// next msecnode_t for this sector
-	boolean visited;			// killough 4/4/98, 4/7/98: used in search algorithms
+	bool_t visited;			// killough 4/4/98, 4/7/98: used in search algorithms
 } msecnode_t;
 
 //Hurdler: 04/12/2000: for now, only used in hardware mode
@@ -523,12 +523,12 @@ typedef struct
 // posts are runs of non masked source pixels
 typedef struct
 {
-	byte topdelta;				// -1 is the last post in a column
-	// BP: humf, -1 with byte ! (unsigned char) test WARNING
-	byte length;				// length data bytes follows
+	uint8_t topdelta;				// -1 is the last post in a column
+	// BP: humf, -1 with uint8_t ! (unsigned char) test WARNING
+	uint8_t length;				// length data bytes follows
 } post_t;
 
-// column_t is a list of 0 or more post_t, (byte)-1 terminated
+// column_t is a list of 0 or more post_t, (uint8_t)-1 terminated
 typedef post_t column_t;
 
 //
@@ -594,9 +594,9 @@ typedef struct patch_s patch_t;
 
 typedef enum
 {
-	PALETTE = 0,				// 1 byte is the index in the doom palette (as usual)
-	INTENSITY = 1,				// 1 byte intensity
-	INTENSITY_ALPHA = 2,		// 2 byte : alpha then intensity
+	PALETTE = 0,				// 1 uint8_t is the index in the doom palette (as usual)
+	INTENSITY = 1,				// 1 uint8_t intensity
+	INTENSITY_ALPHA = 2,		// 2 uint8_t : alpha then intensity
 	RGB24 = 3,					// 24 bit rgb
 	RGBA32 = 4,					// 32 bit rgba
 } pic_mode_t;
@@ -605,12 +605,12 @@ typedef enum
 typedef struct
 {
 	short width;
-	byte zero;					// set to 0 allow autodetection of pic_t 
+	uint8_t zero;					// set to 0 allow autodetection of pic_t 
 	// mode instead of patch or raw
-	byte mode;					// see pic_mode_t above
+	uint8_t mode;					// see pic_mode_t above
 	short height;
 	short reserved1;			// set to 0
-	byte data[0];
+	uint8_t data[0];
 } pic_t;
 
 typedef enum
@@ -660,7 +660,7 @@ typedef struct vissprite_s
 	lighttable_t *colormap;
 
 	//Fab:29-04-98: for MF_SHADOW sprites, which translucency table to use
-	byte *transmap;
+	uint8_t *transmap;
 
 	int mobjflags;
 
@@ -700,14 +700,14 @@ typedef struct
 	// If false use 0 for any position.
 	// Note: as eight entries are available,
 	//  we might as well insert the same name eight times.
-	boolean rotate;
+	bool_t rotate;
 
 	// Lump to use for view angles 0-7.
 	int lumppat[8];				// lump number 16:16 wad:lump
 	short lumpid[8];			// id in the spriteoffset,spritewidth.. tables
 
 	// Flip bit (1 = flip) to use for view angles 0-7.
-	byte flip[8];
+	uint8_t flip[8];
 
 } spriteframe_t;
 

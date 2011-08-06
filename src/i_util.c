@@ -70,8 +70,8 @@ JoyType_t Joystick;
 
 /* i_video.c -- Remove this garbage */
 consvar_t cv_vidwait = {"vid_wait","1",CV_SAVE,CV_OnOff};
-byte graphics_started = 0;
-boolean allow_fullscreen = false;
+uint8_t graphics_started = 0;
+bool_t allow_fullscreen = false;
 
 /* i_sound.c -- Remove this garbage */
 consvar_t cv_snd_speakersetup = {"snd_speakersetup", "2", CV_SAVE};
@@ -145,7 +145,7 @@ void I_EventExPush(const I_EventEx_t* const a_Event)
 }
 
 /* I_EventExPop() -- Pops event from the queue */
-boolean I_EventExPop(I_EventEx_t* const a_Event)
+bool_t I_EventExPop(I_EventEx_t* const a_Event)
 {
 	/* Determine whether something is in the queue currently */
 	if (l_EQRead == l_EQWrite)
@@ -273,7 +273,7 @@ char* __REMOOD_DEPRECATED VID_GetModeName(int a_ModeNum)
 
 /* VID_ClosestMode() -- Returns the closest mode against width and height */
 // Ignore fullscreen for now
-int VID_ClosestMode(int* const a_WidthP, int* const a_HeightP, const boolean a_Fullscreen)
+int VID_ClosestMode(int* const a_WidthP, int* const a_HeightP, const bool_t a_Fullscreen)
 {
 	size_t i, BestMode;
 	
@@ -319,7 +319,7 @@ int __REMOOD_DEPRECATED VID_GetModeForSize(int a_Width, int a_Height)
 
 /* VID_AddMode() -- Add video mode to the list, either being fullscreen or not */
 // Ignore fullscreen for now
-boolean VID_AddMode(const int a_Width, const int a_Height, const boolean a_Fullscreen)
+bool_t VID_AddMode(const int a_Width, const int a_Height, const bool_t a_Fullscreen)
 {
 	size_t i;
 	
@@ -359,7 +359,7 @@ int VID_SetMode(int a_ModeNum)
 }
 
 /* I_UtilWinArgToUNIXArg() -- Converts Windows-style command line to a UNIX one */
-boolean I_UtilWinArgToUNIXArg(int* const a_argc, char*** const a_argv, const char* const a_Win)
+bool_t I_UtilWinArgToUNIXArg(int* const a_argc, char*** const a_argv, const char* const a_Win)
 {
 	/* Check */
 	if (!a_argc || !a_argv || !a_Win)
@@ -369,7 +369,7 @@ boolean I_UtilWinArgToUNIXArg(int* const a_argc, char*** const a_argv, const cha
 }
 
 /* I_VideoPreInit() -- Common nitialization before everything */
-boolean I_VideoPreInit(void)
+bool_t I_VideoPreInit(void)
 {
 	/* If graphics are already started, do not start again */
 	if (graphics_started)
@@ -385,13 +385,13 @@ boolean I_VideoPreInit(void)
 }
 
 /* I_VideoBefore320200Init() -- Initialization before initial 320x200 set */
-boolean I_VideoBefore320200Init(void)
+bool_t I_VideoBefore320200Init(void)
 {
 	return true;
 }
 
 /* I_VideoPostInit() -- Initialization before end of function */
-boolean I_VideoPostInit(void)
+bool_t I_VideoPostInit(void)
 {
 	/* Set started */
 	graphics_started = 1;
@@ -469,7 +469,7 @@ uint32_t I_GetTime(void)
 
 /* I_ReadScreen() -- Reads the screen into pointer */
 // This is enough to make the code work as it should
-void I_ReadScreen(byte* scr)
+void I_ReadScreen(uint8_t* scr)
 {
 	/* Check */
 	if (!scr)
@@ -519,7 +519,7 @@ void I_ShowEndTxt(const uint8_t* const a_TextData)
 void I_TextModeChar(const uint8_t a_Char, const uint8_t Attr)
 {
 	uint8_t BG, FG;
-	boolean Blink;
+	bool_t Blink;
 	static const char c_ColorToVT[8] =
 	{
 		0, 4, 2, 6, 1, 5, 3, 7

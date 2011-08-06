@@ -228,7 +228,7 @@ void I_GetEvent(void)
 	static uint8_t Shifties[KEY_MAX];
 	I_EventEx_t ExEvent;
 	int Key;
-	boolean Repeat;
+	bool_t Repeat;
 	
 	/* Keyboard getting */
 	// Poll the keyboard
@@ -423,7 +423,7 @@ void VID_PrepareModeList(void)
 }
 
 /* I_SetVideoMode() -- Sets the current video mode */
-boolean I_SetVideoMode(const uint32_t a_Width, const uint32_t a_Height, const boolean a_Fullscreen)
+bool_t I_SetVideoMode(const uint32_t a_Width, const uint32_t a_Height, const bool_t a_Fullscreen)
 {
 	/* Check */
 	if (!a_Width || !a_Height)
@@ -493,7 +493,7 @@ void I_ShutdownGraphics(void)
 }
 
 /* I_TextMode() -- Enter and leaves text mode */
-boolean I_TextMode(const boolean a_OnOff)
+bool_t I_TextMode(const bool_t a_OnOff)
 {
 	/* On */
 	if (a_OnOff)

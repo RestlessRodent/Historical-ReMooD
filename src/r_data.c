@@ -53,7 +53,7 @@ int numtextures = 0;			// total number of textures found,
 
 texture_t **textures = NULL;
 uint32_t **texturecolumnofs;		// column offset lookup table for each texture
-byte **texturecache;			// graphics data for each generated full-size texture
+uint8_t **texturecache;			// graphics data for each generated full-size texture
 int *texturewidthmask;			// texture width is a power of 2, so it
 									// can easily repeat along sidedefs using
 									// a simple mask
@@ -93,19 +93,19 @@ int texturememory;
 //  from a patch into a cached post.
 //
 
-void R_DrawColumnInCache(column_t * patch, byte * cache, int originy, int cacheheight)
+void R_DrawColumnInCache(column_t * patch, uint8_t * cache, int originy, int cacheheight)
 {
 	int count;
 	int position;
-	byte *source;
-	byte *dest;
+	uint8_t *source;
+	uint8_t *dest;
 	int i;
 
-	dest = (byte *) cache;		// + 3;
+	dest = (uint8_t *) cache;		// + 3;
 
 	while (patch->topdelta != 0xff)
 	{
-		source = (byte *) patch + 3;
+		source = (uint8_t *) patch + 3;
 		count = patch->length;
 		position = originy + patch->topdelta;
 
@@ -121,18 +121,18 @@ void R_DrawColumnInCache(column_t * patch, byte * cache, int originy, int cacheh
 		if (count > 0)
 			memcpy(cache + position, source, count);
 
-		patch = (column_t *) ((byte *) patch + patch->length + 4);
+		patch = (column_t *) ((uint8_t *) patch + patch->length + 4);
 	}
 }
 
-byte *R_GenerateTexture(int texnum);
+uint8_t *R_GenerateTexture(int texnum);
 
 //
 // R_GetColumn
 //
-byte *R_GetColumn(int tex, size_t col)
+uint8_t *R_GetColumn(int tex, size_t col)
 {
-	byte *data;
+	uint8_t *data;
 
 	col &= texturewidthmask[tex];
 	data = texturecache[tex];
@@ -158,10 +158,10 @@ byte *R_GetColumn(int tex, size_t col)
 //   This is not optimised, but it's supposed to be executed only once
 //   per level, when enough memory is available.
 //
-byte *R_GenerateTexture(int texnum)
+uint8_t *R_GenerateTexture(int texnum)
 {
-	byte *block;
-	byte *blocktex;
+	uint8_t *block;
+	uint8_t *blocktex;
 	texture_t *texture;
 	texpatch_t *patch;
 	patch_t *realpatch;
@@ -253,7 +253,7 @@ byte *R_GenerateTexture(int texnum)
 
 			for (; x < x2; x++)
 			{
-				patchcol = (column_t *) ((byte *) realpatch + LittleSwapInt32(realpatch->columnofs[x - x1]));
+				patchcol = (column_t *) ((uint8_t *) realpatch + LittleSwapInt32(realpatch->columnofs[x - x1]));
 
 				// generate column ofset lookup
 				colofs[x] = (x * texture->height) + (texture->width * 4);
@@ -272,14 +272,14 @@ byte *R_GenerateTexture(int texnum)
 
 //  convert flat to hicolor as they are requested
 //
-//byte**  flatcache;
+//uint8_t**  flatcache;
 
-byte *R_GetFlat(int flatlumpnum)
+uint8_t *R_GetFlat(int flatlumpnum)
 {
 	return W_CacheLumpNum(flatlumpnum, PU_CACHE);
 
 /*  // this code work but is useless
-    byte*    data;
+    uint8_t*    data;
     short*   wput;
     int      i,j;
 
@@ -301,7 +301,7 @@ byte *R_GetFlat(int flatlumpnum)
     if ((data = flatcache[flatlumpnum-firstflat])!=0)
        return data;
 
-    data = (byte *) W_CacheLumpNum(flatlumpnum,PU_LEVEL);
+    data = (uint8_t *) W_CacheLumpNum(flatlumpnum,PU_LEVEL);
     flatcache[flatlumpnum-firstflat] = data;
     return data;
 
@@ -316,7 +316,7 @@ byte *R_GetFlat(int flatlumpnum)
     // allocate and convert to high color
 
     wput = (short*) Z_Malloc (64*64*2,PU_STATIC,&flatcache[flatlumpnum]);
-    //flatcache[flatlumpnum] =(byte*) wput;
+    //flatcache[flatlumpnum] =(uint8_t*) wput;
 
     for (i=0; i<64; i++)
        for (j=0; j<64; j++)
@@ -324,7 +324,7 @@ byte *R_GetFlat(int flatlumpnum)
 
                 //Z_ChangeTag (data, PU_CACHE);
 
-                return (byte*) wput;
+                return (uint8_t*) wput;
 */
 }
 
@@ -533,7 +533,7 @@ void R_LoadTextures(void)
 
 	   texture_t** textures=NULL;
 	   uint32_t** texturecolumnofs;   // column offset lookup table for each texture
-	   byte** texturecache;       // graphics data for each generated full-size texture
+	   uint8_t** texturecache;       // graphics data for each generated full-size texture
 	   int* texturewidthmask;   // texture width is a power of 2, so it can easily repeat along sidedefs using a simple mask
 	   fixed_t* textureheight;      // needed for texture pegging
 	 */
@@ -541,8 +541,8 @@ void R_LoadTextures(void)
 	memset(textures, 0, numtextures * sizeof(texture_t *));
 	texturecolumnofs = Z_Malloc(numtextures * sizeof(uint32_t *), PU_STATIC, 0);
 	memset(textures, 0, numtextures * sizeof(uint32_t *));
-	texturecache = Z_Malloc(numtextures * sizeof(byte *), PU_STATIC, 0);
-	memset(textures, 0, numtextures * sizeof(byte *));
+	texturecache = Z_Malloc(numtextures * sizeof(uint8_t *), PU_STATIC, 0);
+	memset(textures, 0, numtextures * sizeof(uint8_t *));
 	texturewidthmask = Z_Malloc(numtextures * sizeof(int), PU_STATIC, 0);
 	memset(textures, 0, numtextures * sizeof(int));
 	textureheight = Z_Malloc(numtextures * sizeof(fixed_t), PU_STATIC, 0);
@@ -570,7 +570,7 @@ void R_LoadTextures(void)
 
 		// maptexture describes texture name, size, and
 		// used patches in z order from bottom to top
-		mtexture = (maptexture_t *) ((byte *) maptex + offset);
+		mtexture = (maptexture_t *) ((uint8_t *) maptex + offset);
 
 		if (!mtexture && devparm)
 			CONS_Printf("R_LoadTextures: Warning mtexture is NULL!");
@@ -588,7 +588,7 @@ void R_LoadTextures(void)
 		texture->patchcount = LittleSwapInt16(mtexture->patchcount);
 
 		// Sparc requires memmove, becuz gcc doesn't know mtexture is not aligned.
-		// gcc will replace memcpy with two 4-byte read/writes, which will bus error.
+		// gcc will replace memcpy with two 4-uint8_t read/writes, which will bus error.
 		memmove(texture->name, mtexture->name, sizeof(texture->name));
 		mpatch = &mtexture->patches[0];
 		patch = &texture->patches[0];

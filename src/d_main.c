@@ -103,7 +103,7 @@
 int demosequence;
 int pagetic;
 char *pagename = "TITLEPIC";
-boolean novideo = false;
+bool_t novideo = false;
 
 //  PROTOS
 void D_PageDrawer(char *lumpname);
@@ -115,19 +115,19 @@ void VID_PrepareModeList(void);	// FIXME: very dirty; will use a proper include 
 
 char *startupwadfiles[MAX_WADFILES];
 
-boolean devparm;				// started game with -devparm
-boolean nomonsters;				// checkparm of -nomonsters
-boolean infight = false;		//DarkWolf95:November 21, 2003: Monsters Infight!
+bool_t devparm;				// started game with -devparm
+bool_t nomonsters;				// checkparm of -nomonsters
+bool_t infight = false;		//DarkWolf95:November 21, 2003: Monsters Infight!
 
-boolean singletics = false;		// timedemo
+bool_t singletics = false;		// timedemo
 
-boolean nomusic;
-boolean nosound;
-boolean digmusic;				// OGG/MP3 Music SSNTails 12-13-2002
-boolean newnet_use = false;
-boolean newnet_solo = false;
+bool_t nomusic;
+bool_t nosound;
+bool_t digmusic;				// OGG/MP3 Music SSNTails 12-13-2002
+bool_t newnet_use = false;
+bool_t newnet_solo = false;
 
-boolean advancedemo;
+bool_t advancedemo;
 
 char wadfile[1024];				// primary wad file
 char mapdir[1024];				// directory of development maps
@@ -143,7 +143,7 @@ event_t events[MAXEVENTS];
 int eventhead = 0;
 int eventtail;
 
-boolean dedicated;
+bool_t dedicated;
 
 //
 // D_PostEvent
@@ -162,7 +162,7 @@ void D_PostEvent_end(void)
 };
 #endif
 
-boolean shiftdown = false;
+bool_t shiftdown = false;
 
 //
 // D_ProcessEvents
@@ -220,7 +220,7 @@ consvar_t cv_screenslink = { "screenlink", "2", CV_SAVE, screenslink_cons_t };
 
 void D_Display(void)
 {
-	static boolean menuactivestate = false;
+	static bool_t menuactivestate = false;
 	static gamestate_t oldgamestate = -1;
 	static int borderdrawcount;
 	tic_t nowtime;
@@ -230,10 +230,10 @@ void D_Display(void)
 	int y;
 	int a,b;
 	int oldviewwidth;
-	boolean done;
-	boolean wipe;
-	boolean redrawsbar;
-	boolean viewactivestate = false;
+	bool_t done;
+	bool_t wipe;
+	bool_t redrawsbar;
+	bool_t viewactivestate = false;
 
 	if (dedicated)
 		return;
@@ -473,7 +473,7 @@ void D_Display(void)
 // =========================================================================
 
 tic_t rendergametic, oldentertics;
-boolean supdate;
+bool_t supdate;
 
 //#define SAVECPU_EXPERIMENTAL
 
@@ -581,8 +581,8 @@ void D_PageTicker(void)
 //
 void D_PageDrawer(char *lumpname)
 {
-	byte *src;
-	byte *dest;
+	uint8_t *src;
+	uint8_t *dest;
 	int x;
 	int y;
 
@@ -889,9 +889,9 @@ void IdentifyVersion(void)
 {
 	char WADPath[256];
 	char* IWADArg = NULL;
-	boolean IWADOk = false;
+	bool_t IWADOk = false;
 	char* RMDArg = NULL;
-	boolean RMDOk = false;
+	bool_t RMDOk = false;
 	char* BaseName;
 	int i;
 	
@@ -1025,7 +1025,7 @@ void D_CheckWadVersion()
 	}
 }
 
-extern boolean g_PaintBallMode;
+extern bool_t g_PaintBallMode;
 
 //
 // D_DoomMain
@@ -1040,7 +1040,7 @@ void D_DoomMain(void)
 
 	int startepisode;
 	int startmap;
-	boolean autostart;
+	bool_t autostart;
 	
 	// GhostlyDeath <November 18, 2008> -- Move devparm up here
 	devparm = M_CheckParm("-devparm");

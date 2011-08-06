@@ -151,7 +151,7 @@ typedef struct
 static channel_t *channels;
 
 // whether songs are mus_paused
-static boolean mus_paused;
+static bool_t mus_paused;
 
 // music currently being played
 static musicinfo_t *mus_playing = 0;

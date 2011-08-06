@@ -108,7 +108,7 @@ int joyxmove;
 int joyymove;
 
 // current state of the keys : true if pushed
-byte gamekeydown[NUMINPUTS];
+uint8_t gamekeydown[NUMINPUTS];
 
 // two key codes (or virtual key) per game control
 int gamecontrol[MAXSPLITSCREENPLAYERS][num_gamecontrols][2];
@@ -125,7 +125,7 @@ dclick_t joydclicks[MAXSPLITSCREENPLAYERS][JOYBUTTONS];
 //
 //  General double-click detection routine for any kind of input.
 //
-static boolean G_CheckDoubleClick(int state, dclick_t * dt)
+static bool_t G_CheckDoubleClick(int state, dclick_t * dt)
 {
 	if (state != dt->state && dt->time > 1)
 	{

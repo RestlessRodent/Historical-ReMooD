@@ -57,7 +57,7 @@ int M_CheckParm(char *check)
 }
 
 // return true if there is available parameters
-boolean M_IsNextParm(void)
+bool_t M_IsNextParm(void)
 {
 	if (found > 0 && found + 1 < myargc && myargv[found + 1][0] != '-' &&
 		myargv[found + 1][0] != '+')
@@ -82,7 +82,7 @@ void M_PushSpecialParameters(void)
 {
 	int i;
 	char s[256];
-	boolean onetime = false;
+	bool_t onetime = false;
 
 	for (i = 1; i < myargc; i++)
 	{
@@ -132,8 +132,8 @@ void M_FindResponseFile(void)
 			int k;
 			int index;
 			int indexinfile;
-			boolean inquote = false;
-			byte *infile;
+			bool_t inquote = false;
+			uint8_t *infile;
 			char *file;
 			char *moreargs[20];
 			char *firstargv;

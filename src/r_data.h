@@ -59,7 +59,7 @@ typedef struct
 typedef struct
 {
 	char name[8];
-	boolean masked;
+	bool_t masked;
 	short width;
 	short height;
 
@@ -111,9 +111,9 @@ void R_LoadTextures(void);
 void R_FlushTextureCache(void);
 
 // Retrieve column data for span blitting.
-byte *R_GetColumn(int tex, size_t col);
+uint8_t *R_GetColumn(int tex, size_t col);
 
-byte *R_GetFlat(int flatnum);
+uint8_t *R_GetFlat(int flatnum);
 
 // I/O, setting up the stuff.
 void R_InitData(void);

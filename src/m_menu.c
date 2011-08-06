@@ -74,11 +74,11 @@
 #include "p_inter.h"
 #include "d_prof.h"
 
-boolean localgame;
+bool_t localgame;
 
 // -1 = no quicksave slot picked!
 int quickSaveSlot;
-boolean menuactive;
+bool_t menuactive;
 
 // we are going to be entering a savegame string
 int saveStringEnter;

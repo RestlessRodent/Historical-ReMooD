@@ -37,23 +37,23 @@
 extern char player_names[MAXPLAYERS][MAXPLAYERNAME];
 extern char team_names[MAXPLAYERS][MAXPLAYERNAME*2];
 
-extern boolean nomonsters;		// checkparm of -nomonsters
+extern bool_t nomonsters;		// checkparm of -nomonsters
 extern char gamemapname[128];
 
 extern player_t players[MAXPLAYERS];
-extern boolean playeringame[MAXPLAYERS];
+extern bool_t playeringame[MAXPLAYERS];
 
 // ======================================
 // DEMO playback/recording related stuff.
 // ======================================
 
 // demoplaying back and demo recording
-extern boolean demoplayback;
-extern boolean demorecording;
-extern boolean timingdemo;
+extern bool_t demoplayback;
+extern bool_t demorecording;
+extern bool_t timingdemo;
 
 // Quit after playing a demo from cmdline.
-extern boolean singledemo;
+extern bool_t singledemo;
 
 // gametic at level start
 extern tic_t levelstarttic;
@@ -84,12 +84,12 @@ char *G_BuildMapName(int episode, int map);
 void G_BuildTiccmd(ticcmd_t * cmd, int realtics, int player);
 short G_ClipAimingPitch(int *aiming);
 void G_DoReborn(int playernum);
-boolean G_DeathMatchSpawnPlayer(int playernum);
+bool_t G_DeathMatchSpawnPlayer(int playernum);
 void G_CoopSpawnPlayer(int playernum);
 void G_PlayerReborn(int player);
-void G_InitNew(skill_t skill, char *mapname, boolean resetplayer);
+void G_InitNew(skill_t skill, char *mapname, bool_t resetplayer);
 void G_DeferedInitNew(skill_t skill, char *mapname, int StartSplitScreenGame);
-void G_DoLoadLevel(boolean resetplayer);
+void G_DoLoadLevel(bool_t resetplayer);
 void G_DeferedPlayDemo(char *demo);
 void G_LoadGame(int slot);		// Can be called by the startup code or M_Responder
 void G_DoLoadGame(int slot);	// Can be called by the startup code or M_Responder
@@ -101,24 +101,24 @@ void G_DoPlayDemo(char *defdemoname);
 void G_TimeDemo(char *name);
 void G_DoneLevelLoad(void);
 void G_StopDemo(void);
-boolean G_CheckDemoStatus(void);
+bool_t G_CheckDemoStatus(void);
 void G_ExitLevel(void);
 void G_SecretExitLevel(void);
 void G_NextLevel(void);
 void G_Ticker(void);
-boolean G_Responder(event_t * ev);
-boolean G_Downgrade(int version);
+bool_t G_Responder(event_t * ev);
+bool_t G_Downgrade(int version);
 void G_AddPlayer(int playernum);
-boolean G_CheckDemoStatus(void);
+bool_t G_CheckDemoStatus(void);
 void G_ReadDemoTiccmd(ticcmd_t * cmd, int playernum);
 void G_WriteDemoTiccmd(ticcmd_t * cmd, int playernum);
-void G_InitNew(skill_t skill, char *mapname, boolean resetplayer);
+void G_InitNew(skill_t skill, char *mapname, bool_t resetplayer);
 void G_DoCompleted(void);
 void G_DoVictory(void);
 void G_DoWorldDone(void);
 
-extern byte *demo_p;
-extern byte *demoend;
+extern uint8_t *demo_p;
+extern uint8_t *demoend;
 
 #endif							/* __G_GAME_H__ */
 

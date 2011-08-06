@@ -52,7 +52,7 @@ fixed_t tmy;
 
 // If "floatok" true, move would be ok
 // if within "tmfloorz - tmceilingz".
-boolean floatok;
+bool_t floatok;
 
 fixed_t tmfloorz;
 fixed_t tmceilingz;
@@ -87,7 +87,7 @@ static int pe_y;				// Pain Elemental position for Lost Soul checks
 static int ls_x;				// Lost Soul position for Lost Soul checks
 static int ls_y;				// Lost Soul position for Lost Soul checks
 
-extern boolean infight;			//DarkWolf95:November 21, 2003: Monsters Infight!
+extern bool_t infight;			//DarkWolf95:November 21, 2003: Monsters Infight!
 
 //
 // TELEPORT MOVE
@@ -96,7 +96,7 @@ extern boolean infight;			//DarkWolf95:November 21, 2003: Monsters Infight!
 //
 // PIT_StompThing
 //
-static boolean PIT_StompThing(mobj_t * thing)
+static bool_t PIT_StompThing(mobj_t * thing)
 {
 	fixed_t blockdist;
 
@@ -179,7 +179,7 @@ int P_GetMoveFactor(mobj_t * mo)
 //
 // P_TeleportMove
 //
-boolean P_TeleportMove(mobj_t * thing, fixed_t x, fixed_t y)
+bool_t P_TeleportMove(mobj_t * thing, fixed_t x, fixed_t y)
 {
 	int xl;
 	int xh;
@@ -262,10 +262,10 @@ static void add_spechit(line_t * ld)
 //
 // PIT_CheckThing
 //
-static boolean PIT_CheckThing(mobj_t * thing)
+static bool_t PIT_CheckThing(mobj_t * thing)
 {
 	fixed_t blockdist;
-	boolean solid;
+	bool_t solid;
 	int damage;
 
 	//added:22-02-98:
@@ -465,7 +465,7 @@ static boolean PIT_CheckThing(mobj_t * thing)
 // intersection of the trajectory and the line, but that takes
 // longer and probably really isn't worth the effort.
 //
-static boolean PIT_CrossLine(line_t * ld)
+static bool_t PIT_CrossLine(line_t * ld)
 {
 	if (!(ld->flags & ML_TWOSIDED) || (ld->flags & (ML_BLOCKING | ML_BLOCKMONSTERS)))
 		if (!(tmbbox[BOXLEFT] > ld->bbox[BOXRIGHT] ||
@@ -480,7 +480,7 @@ static boolean PIT_CrossLine(line_t * ld)
 // PIT_CheckLine
 // Adjusts tmfloorz and tmceilingz as lines are contacted
 //
-boolean PIT_CheckLine(line_t * ld)
+bool_t PIT_CheckLine(line_t * ld)
 {
 	if (tmbbox[BOXRIGHT] <= ld->bbox[BOXLEFT]
 		|| tmbbox[BOXLEFT] >= ld->bbox[BOXRIGHT]
@@ -581,7 +581,7 @@ boolean PIT_CheckLine(line_t * ld)
 // tmceilingz
 //     the nearest ceiling or thing's bottom over tmthing
 //
-boolean P_CheckPosition(mobj_t * thing, fixed_t x, fixed_t y)
+bool_t P_CheckPosition(mobj_t * thing, fixed_t x, fixed_t y)
 {
 	int xl;
 	int xh;
@@ -708,7 +708,7 @@ static void CheckMissileImpact(mobj_t * mobj)
 // Attempt to move to a new position,
 // crossing special lines unless MF_TELEPORT is set.
 //
-boolean P_TryMove(mobj_t * thing, fixed_t x, fixed_t y, boolean allowdropoff)
+bool_t P_TryMove(mobj_t * thing, fixed_t x, fixed_t y, bool_t allowdropoff)
 {
 	fixed_t oldx;
 	fixed_t oldy;
@@ -839,9 +839,9 @@ boolean P_TryMove(mobj_t * thing, fixed_t x, fixed_t y, boolean allowdropoff)
 // the z will be set to the lowest value
 // and false will be returned.
 //
-boolean P_ThingHeightClip(mobj_t * thing)
+bool_t P_ThingHeightClip(mobj_t * thing)
 {
-	boolean onfloor;
+	bool_t onfloor;
 
 	onfloor = (thing->z <= thing->floorz);
 
@@ -958,7 +958,7 @@ void P_HitSlideLine(line_t * ld)
 //
 // PTR_SlideTraverse
 //
-boolean PTR_SlideTraverse(intercept_t * in)
+bool_t PTR_SlideTraverse(intercept_t * in)
 {
 	line_t *li;
 	
@@ -1130,7 +1130,7 @@ fixed_t aimslope;
 //added:15-02-98: comment
 // Returns true if the thing is not shootable, else continue through..
 //
-boolean PTR_AimTraverse(intercept_t * in)
+bool_t PTR_AimTraverse(intercept_t * in)
 {
 	line_t *li;
 	mobj_t *th;
@@ -1283,7 +1283,7 @@ boolean PTR_AimTraverse(intercept_t * in)
 //
 //added:18-02-98: added clipping the shots on the floor and ceiling.
 //
-boolean PTR_ShootTraverse(intercept_t * in)
+bool_t PTR_ShootTraverse(intercept_t * in)
 {
 	fixed_t x;
 	fixed_t y;
@@ -1305,8 +1305,8 @@ boolean PTR_ShootTraverse(intercept_t * in)
 	//added:18-02-98:
 	fixed_t distz;				//dist between hit z on wall       and gun z
 	fixed_t clipz;				//dist between hit z on floor/ceil and gun z
-	boolean hitplane;			//true if we clipped z on floor/ceil plane
-	boolean diffheights;		//check for sky hacks with different ceil heights
+	bool_t hitplane;			//true if we clipped z on floor/ceil plane
+	bool_t diffheights;		//check for sky hacks with different ceil heights
 
 	int sectorside;
 	int dir;
@@ -1730,7 +1730,7 @@ void P_LineAttack(mobj_t * t1, angle_t angle, fixed_t distance, fixed_t slope, i
 //
 mobj_t *usething;
 
-boolean PTR_UseTraverse(intercept_t * in)
+bool_t PTR_UseTraverse(intercept_t * in)
 {
 	int side;
 
@@ -1802,7 +1802,7 @@ int bombdamage;
 // "bombsource" is the creature
 // that caused the explosion at "bombspot".
 //
-boolean PIT_RadiusAttack(mobj_t * thing)
+bool_t PIT_RadiusAttack(mobj_t * thing)
 {
 	fixed_t dx;
 	fixed_t dy;
@@ -1906,14 +1906,14 @@ void P_RadiusAttack(mobj_t * spot, mobj_t * source, int damage)
 //  the way it was and call P_ChangeSector again
 //  to undo the changes.
 //
-boolean crushchange;
-boolean nofit;
+bool_t crushchange;
+bool_t nofit;
 sector_t *sectorchecked;
 
 //
 // PIT_ChangeSector
 //
-boolean PIT_ChangeSector(mobj_t * thing)
+bool_t PIT_ChangeSector(mobj_t * thing)
 {
 	mobj_t *mo;
 
@@ -1994,7 +1994,7 @@ boolean PIT_ChangeSector(mobj_t * thing)
 //
 // P_ChangeSector
 //
-boolean P_ChangeSector(sector_t * sector, boolean crunch)
+bool_t P_ChangeSector(sector_t * sector, bool_t crunch)
 {
 	int x;
 	int y;
@@ -2012,7 +2012,7 @@ boolean P_ChangeSector(sector_t * sector, boolean crunch)
 }
 
 //SoM: 3/15/2000: New function. Much faster.
-boolean P_CheckSector(sector_t * sector, boolean crunch)
+bool_t P_CheckSector(sector_t * sector, bool_t crunch)
 {
 	msecnode_t *n;
 
@@ -2218,7 +2218,7 @@ void P_DelSeclist(msecnode_t * node)
 // at this location, so don't bother with checking impassable or
 // blocking lines.
 
-boolean PIT_GetSectors(line_t * ld)
+bool_t PIT_GetSectors(line_t * ld)
 {
 	if (tmbbox[BOXRIGHT] <= ld->bbox[BOXLEFT] ||
 		tmbbox[BOXLEFT] >= ld->bbox[BOXRIGHT] ||
@@ -2326,7 +2326,7 @@ void P_CreateSecNodeList(mobj_t * thing, fixed_t x, fixed_t y)
 //---------------------------------------------------------------------------
 mobj_t *onmobj;					//generic global onmobj...used for landing on pods/players
 
-static boolean PIT_CheckOnmobjZ(mobj_t * thing)
+static bool_t PIT_CheckOnmobjZ(mobj_t * thing)
 {
 	fixed_t blockdist;
 
@@ -2514,7 +2514,7 @@ mobj_t *P_CheckOnmobj(mobj_t * thing)
 //
 //----------------------------------------------------------------------------
 
-boolean P_TestMobjLocation(mobj_t * mobj)
+bool_t P_TestMobjLocation(mobj_t * mobj)
 {
 	int flags;
 

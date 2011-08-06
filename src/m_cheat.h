@@ -73,8 +73,8 @@ typedef struct M_Cheat_s
 
 typedef struct
 {
-	byte *sequence;
-	byte *p;
+	uint8_t *sequence;
+	uint8_t *p;
 
 } cheatseq_t;
 
@@ -82,7 +82,7 @@ int cht_CheckCheat(cheatseq_t * cht, char key);
 
 void cht_GetParam(cheatseq_t * cht, char *buffer);
 
-boolean cht_Responder(event_t * ev);
+bool_t cht_Responder(event_t * ev);
 void cht_Init();
 
 void Command_CheatNoClip_f(void);

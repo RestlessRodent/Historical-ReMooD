@@ -523,7 +523,7 @@ void P_SetThingPosition(mobj_t * thing)
 // to P_BlockLinesIterator, then make one or more calls
 // to it.
 //
-boolean P_BlockLinesIterator(int x, int y, boolean(*func) (line_t *))
+bool_t P_BlockLinesIterator(int x, int y, bool_t(*func) (line_t *))
 {
 	int offset;
 	const long *list;			// Big blockmap Tails
@@ -568,7 +568,7 @@ boolean P_BlockLinesIterator(int x, int y, boolean(*func) (line_t *))
 //
 // P_BlockThingsIterator
 //
-boolean P_BlockThingsIterator(int x, int y, boolean(*func) (mobj_t *))
+bool_t P_BlockThingsIterator(int x, int y, bool_t(*func) (mobj_t *))
 {
 	mobj_t *mobj;
 
@@ -596,7 +596,7 @@ intercept_t *intercepts = NULL;
 intercept_t *intercept_p = NULL;
 
 divline_t trace;
-boolean earlyout;
+bool_t earlyout;
 int ptflags;
 
 //SoM: 4/6/2000: Remove limit on intercepts.
@@ -627,7 +627,7 @@ void P_CheckIntercepts()
 // are on opposite sides of the trace.
 // Returns true if earlyout and a solid line hit.
 //
-boolean PIT_AddLineIntercepts(line_t * ld)
+bool_t PIT_AddLineIntercepts(line_t * ld)
 {
 	int s1;
 	int s2;
@@ -679,7 +679,7 @@ boolean PIT_AddLineIntercepts(line_t * ld)
 //
 // PIT_AddThingIntercepts
 //
-boolean PIT_AddThingIntercepts(mobj_t * thing)
+bool_t PIT_AddThingIntercepts(mobj_t * thing)
 {
 	fixed_t x1;
 	fixed_t y1;
@@ -689,7 +689,7 @@ boolean PIT_AddThingIntercepts(mobj_t * thing)
 	int s1;
 	int s2;
 
-	boolean tracepositive;
+	bool_t tracepositive;
 
 	divline_t dl;
 
@@ -746,7 +746,7 @@ boolean PIT_AddThingIntercepts(mobj_t * thing)
 // Returns true if the traverser function returns true
 // for all lines.
 //
-boolean P_TraverseIntercepts(traverser_t func, fixed_t maxfrac)
+bool_t P_TraverseIntercepts(traverser_t func, fixed_t maxfrac)
 {
 	int count;
 	fixed_t dist;
@@ -802,7 +802,7 @@ boolean P_TraverseIntercepts(traverser_t func, fixed_t maxfrac)
 // Returns true if the traverser function returns true
 // for all lines.
 //
-boolean P_PathTraverse(fixed_t x1, fixed_t y1, fixed_t x2, fixed_t y2, int flags, traverser_t trav)
+bool_t P_PathTraverse(fixed_t x1, fixed_t y1, fixed_t x2, fixed_t y2, int flags, traverser_t trav)
 {
 	fixed_t xt1;
 	fixed_t yt1;
@@ -944,10 +944,10 @@ boolean P_PathTraverse(fixed_t x1, fixed_t y1, fixed_t x2, fixed_t y2, int flags
 
 //abandoned, maybe I'll need it someday..  
 /*
-boolean P_RadiusLinesCheck (  fixed_t    radius,
+bool_t P_RadiusLinesCheck (  fixed_t    radius,
                               fixed_t    x,
                               fixed_t    y,
-                              boolean   (*func)(line_t*))
+                              bool_t   (*func)(line_t*))
 {
     int   xl, xh, yl, yh;
     int   bx, by;

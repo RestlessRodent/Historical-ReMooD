@@ -49,8 +49,8 @@ typedef enum TLS_BlockType_e
 *** LOCALS ***
 *************/
 
-boolean l_DoCompile = false;
-boolean l_ScriptDebug = false;									// Debug scripts
+bool_t l_DoCompile = false;
+bool_t l_ScriptDebug = false;									// Debug scripts
 
 /****************
 *** FUNCTIONS ***
@@ -58,16 +58,16 @@ boolean l_ScriptDebug = false;									// Debug scripts
 
 static int Deepness;	// Deepness brace wise
 static TLS_BlockType_t PushBlockType;	// Block type to push next
-static boolean HubVar;		// Make hub variable?
-static boolean BoostHubVar;	// Boosted hub variable
+static bool_t HubVar;		// Make hub variable?
+static bool_t BoostHubVar;	// Boosted hub variable
 static TLS_VariableType_t NextVar;	// next variable type
-static boolean Skip = false;		// Skip token
+static bool_t Skip = false;		// Skip token
 static char Blocks[512];
 static char LastBlock[2] = {'A', 'A'};
 static int Deeps[64];
 
 /* TLS_ClearScripts() -- Clear old scripts */
-boolean TLS_ClearScripts(void)
+bool_t TLS_ClearScripts(void)
 {
 	/* Clear flags */
 	// Compiling a [scripts] section
@@ -90,8 +90,8 @@ char* TLS_TokenData(const char* const Data, const size_t Size, void** const TokD
 	char** Seek;
 	size_t i;
 	int Mode;
-	boolean Break;
-	boolean Escaped;
+	bool_t Break;
+	bool_t Escaped;
 	char c;
 	
 	/* Check */
@@ -313,7 +313,7 @@ char* TLS_TokenData(const char* const Data, const size_t Size, void** const TokD
 }
 
 /* TLS_ValidIdent() -- Valid identifier? */
-boolean TLS_ValidIdent(char* Ident)
+bool_t TLS_ValidIdent(char* Ident)
 {
 	int i;
 	
@@ -355,7 +355,7 @@ boolean TLS_ValidIdent(char* Ident)
 }
 
 /* TLS_ValidUInt() -- Valid unsigned number */
-boolean TLS_ValidUInt(char* Ident)
+bool_t TLS_ValidUInt(char* Ident)
 {
 	int i;
 	
@@ -433,7 +433,7 @@ void TLD_FillStatement(char* Tokens, char* FinalRes)
 }
 
 /* TLS_IncrementalCompile() -- Compile recursive */
-boolean TLS_IncrementalCompile(const WadIndex_t Index)
+bool_t TLS_IncrementalCompile(const WadIndex_t Index)
 {
 #define BUFSIZE 512
 	char* Data = NULL;
@@ -443,7 +443,7 @@ boolean TLS_IncrementalCompile(const WadIndex_t Index)
 	char Buf2[BUFSIZE];
 	size_t Len = 0;
 	size_t RecCount = 0;
-	boolean Ok;
+	bool_t Ok;
 	int i, j, k;
 	
 	/* Cache lump data */
@@ -939,7 +939,7 @@ boolean TLS_IncrementalCompile(const WadIndex_t Index)
 }
 
 /* TLS_CompileLump() -- Compile lump script */
-boolean TLS_CompileLump(const WadIndex_t Index)
+bool_t TLS_CompileLump(const WadIndex_t Index)
 {
 	/* Debug? */
 	l_ScriptDebug = !!M_CheckParm("-tlsdebug");

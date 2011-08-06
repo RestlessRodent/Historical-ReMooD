@@ -35,10 +35,10 @@
 #include "d_event.h"
 
 // See Shutdown_xxx() routines.
-extern byte graphics_started;
-extern byte keyboard_started;
-extern byte sound_started;
-//extern byte music_installed;
+extern uint8_t graphics_started;
+extern uint8_t keyboard_started;
+extern uint8_t sound_started;
+//extern uint8_t music_installed;
 
 /* flag for 'win-friendly' mode used by interface code */
 extern volatile tic_t ticcount;
@@ -88,7 +88,7 @@ void I_Error(char *error, ...);
 
 // Allocates from low memory under dos,
 // just mallocs under unix
-byte *I_AllocLow(int length);
+uint8_t *I_AllocLow(int length);
 
 void I_Tactile(int on, int off, int total);
 

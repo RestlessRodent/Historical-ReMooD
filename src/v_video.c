@@ -42,7 +42,7 @@
 #include "i_system.h"
 
 // Each screen is [vid.width*vid.height];
-byte *screens[5];
+uint8_t *screens[5];
 
 CV_PossibleValue_t gamma_cons_t[] = { {0, "MIN"}
 , {4, "MAX"}
@@ -54,7 +54,7 @@ consvar_t cv_ticrate = { "vid_ticrate", "0", 0, CV_OnOff, NULL };
 consvar_t cv_usegamma = { "gamma", "0", CV_SAVE | CV_CALL, gamma_cons_t, CV_usegamma_OnChange };
 
 // Now where did these came from?
-byte gammatable[5][256] = {
+uint8_t gammatable[5][256] = {
 	{1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16,
 	 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32,
 	 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47, 48,
@@ -211,8 +211,8 @@ RGBA_t *pLocalPalette = NULL;
 void LoadPalette(char *lumpname)
 {
 	int i, palsize;
-	byte *usegamma = gammatable[cv_usegamma.value];
-	byte *pal;
+	uint8_t *usegamma = gammatable[cv_usegamma.value];
+	uint8_t *pal;
 
 	i = W_GetNumForName(lumpname);
 	palsize = W_LumpLength(i) / 3;
@@ -294,8 +294,8 @@ static int QuickRound(float x)
 void V_CopyRect(int srcx, int srcy, int srcscrn, int width, int height,
 				int destx, int desty, int destscrn)
 {
-	byte *src;
-	byte *dest;
+	uint8_t *src;
+	uint8_t *dest;
 
 	if (!graphics_started)
 		return;
@@ -361,8 +361,8 @@ void V_CopyRect(int srcx, int srcy, int srcscrn, int width, int height,
 void V_CopyRectTrans(int srcx, int srcy, int srcscrn, int width, int height,
 				int destx, int desty, int destscrn, int trans)
 {
-	byte *src;
-	byte *dest;
+	uint8_t *src;
+	uint8_t *dest;
 	int i;
 	
 	if (!graphics_started)
@@ -437,7 +437,7 @@ void V_CopyRectTrans(int srcx, int srcy, int srcscrn, int width, int height,
 // Copy a rectangular area from one bitmap to another (8bpp)
 // srcPitch, destPitch : width of source and destination bitmaps
 // --------------------------------------------------------------------------
-void VID_BlitLinearScreen(byte * srcptr, byte * destptr, int width, int height,
+void VID_BlitLinearScreen(uint8_t * srcptr, uint8_t * destptr, int width, int height,
 						  int srcrowbytes, int destrowbytes)
 {
 	if (srcrowbytes == destrowbytes)
@@ -458,9 +458,9 @@ void VID_BlitLinearScreen(byte * srcptr, byte * destptr, int width, int height,
 // V_DrawBlock
 // Draw a linear block of pixels into the view buffer.
 //
-void V_DrawBlock(int x, int y, int scrn, int width, int height, byte * src)
+void V_DrawBlock(int x, int y, int scrn, int width, int height, uint8_t * src)
 {
-	byte *dest;
+	uint8_t *dest;
 	
 	if (!graphics_started)
 		return;
@@ -489,9 +489,9 @@ void V_DrawBlock(int x, int y, int scrn, int width, int height, byte * src)
 // V_GetBlock
 // Gets a linear block of pixels from the view buffer.
 //
-void V_GetBlock(int x, int y, int scrn, int width, int height, byte * dest)
+void V_GetBlock(int x, int y, int scrn, int width, int height, uint8_t * dest)
 {
-	byte *src;
+	uint8_t *src;
 	
 	if (!graphics_started)
 		return;
@@ -517,7 +517,7 @@ static void V_BlitScalePic(int x1, int y1, int scrn, pic_t * pic)
 {	// QuickRound
 	int dupx, dupy;
 	int x, y;
-	byte *src, *dest;
+	uint8_t *src, *dest;
 	int width, height;
 	
 	if (!graphics_started)
@@ -582,7 +582,7 @@ void V_DrawRawScreen(int x1, int y1, int lumpnum, int width, int height)
 //added:05-02-98:
 void V_DrawFill(int x, int y, int w, int h, int c)
 {
-	byte *dest;
+	uint8_t *dest;
 	int u, v;
 	float dupx, dupy;
 	
@@ -604,7 +604,7 @@ void V_DrawFill(int x, int y, int w, int h, int c)
 
 void V_DrawScreenFill(int x, int y, int w, int h, int c)
 {
-	byte *dest;
+	uint8_t *dest;
 	int u, v;
 	
 	if (!graphics_started)
@@ -639,12 +639,12 @@ void V_DrawFlatFill(int x, int y, int w, int h, int flatnum)
 	
 	
 #else
-	byte *dest;
+	uint8_t *dest;
 	int u, v;
 	float dupx, dupy;
 	fixed_t dx, dy, xfrac, yfrac;
-	byte *src;
-	byte *flat;
+	uint8_t *src;
+	uint8_t *flat;
 	int size;
 	int flatsize, flatshift;
 	
@@ -720,7 +720,7 @@ void V_DrawFadeScreen(void)
 	int* buf;
 	int* buf2;
 	int c;
-	byte *fadetable = (byte *) colormaps + 16 * 256;
+	uint8_t *fadetable = (uint8_t *) colormaps + 16 * 256;
 	
 	// Speed
 	w = (vid.width >> 2);
@@ -760,7 +760,7 @@ void V_DrawFadeScreen(void)
 void V_Init(void)
 {
 	int i;
-	byte *base;
+	uint8_t *base;
 	int screensize;
 
 	LoadPalette("PLAYPAL");
@@ -800,10 +800,10 @@ void R_DrawSpanNoWrap(void);	//tmap.S
 // Test 'scrunch perspective correction' tm (c) ect.
 //
 //added:05-04-98:
-void V_DrawPerspView(byte * viewbuffer, int aiming)
+void V_DrawPerspView(uint8_t * viewbuffer, int aiming)
 {
-	byte *source;
-	byte *dest;
+	uint8_t *source;
+	uint8_t *dest;
 	int y;
 	int x1, w;
 	int offs;
@@ -825,7 +825,7 @@ void V_DrawPerspView(byte * viewbuffer, int aiming)
 	for (y = 0; y < vid.height; y++)
 	{
 		x1 = ((vid.width << 16) - scale) >> 17;
-		dest = ((byte *) vid.direct) + (vid.rowbytes * y) + x1;
+		dest = ((uint8_t *) vid.direct) + (vid.rowbytes * y) + x1;
 
 		xfrac = (20 << FRACBITS) + ((!x1) & 0xFFFF);
 		xfracstep = FixedDiv((vid.width << FRACBITS) - (xfrac << 1), scale);
@@ -1476,7 +1476,7 @@ void V_DrawPatch(const int x, const int y, const int scrn, const patch_t* const 
 }
 
 /* V_DrawMappedPatch() -- Draws colormapped patch scaled */
-void V_DrawMappedPatch(const int x, const int y, const int scrn, const patch_t* const patch, const byte* const colormap)
+void V_DrawMappedPatch(const int x, const int y, const int scrn, const patch_t* const patch, const uint8_t* const colormap)
 {
 	uint32_t Flags = 0;
 	
@@ -1620,7 +1620,7 @@ static void V_WCharToMB(const uint16_t WChar, char* const MB)
 		MBx[3] = 0;
 	}
 	
-	// Quad-byte (Requires 32-bit uint16_t)
+	// Quad-uint8_t (Requires 32-bit uint16_t)
 	else if (sizeof(uint16_t) >= 4 && (WChar >= 0x010000 && WChar <= 0x10FFFF))
 	{
 		MBx[0] = 0xF0 | (WChar >> 18);
@@ -2329,7 +2329,7 @@ static uint16_t V_MBToWChar(const char* MBChar, size_t* const BSkip)
 		return Feed;
 	}
 		
-	// Quad byte (requires 32-bit uint16_t)
+	// Quad uint8_t (requires 32-bit uint16_t)
 	else if (sizeof(uint16_t) >= 4 && (n == 4 || (*MBChar & 0xF8) == 0xF0))
 	{
 		Feed = (*MBChar & 0x07);

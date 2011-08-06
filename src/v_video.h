@@ -47,11 +47,11 @@ extern int scaledofs;
 // Screen 0 is the screen updated by I_Update screen.
 // Screen 1 is an extra buffer.
 
-extern byte *screens[5];
+extern uint8_t *screens[5];
 
 extern int dirtybox[4];
 
-extern byte gammatable[5][256];
+extern uint8_t gammatable[5][256];
 extern consvar_t cv_ticrate;
 extern consvar_t cv_usegamma;
 
@@ -93,10 +93,10 @@ void V_CopyRectTrans
 //added:16-02-98: like V_DrawScaledPatch, plus translucency
 
 // Draw a linear block of pixels into the view buffer.
-void V_DrawBlock(int x, int y, int scrn, int width, int height, byte * src);
+void V_DrawBlock(int x, int y, int scrn, int width, int height, uint8_t * src);
 
 // Reads a linear block of pixels into the view buffer.
-void V_GetBlock(int x, int y, int scrn, int width, int height, byte * dest);
+void V_GetBlock(int x, int y, int scrn, int width, int height, uint8_t * dest);
 
 // draw a pic_t, SCALED
 void V_DrawScalePic(int x1, int y1, int scrn, int lumpnum /*pic_t*        pic */ );
@@ -116,12 +116,12 @@ void V_DrawFlatFill(int x, int y, int w, int h, int flatnum);
 void V_DrawFadeScreen(void);
 
 //added:12-02-98:
-void V_DrawTiltView(byte * viewbuffer);
+void V_DrawTiltView(uint8_t * viewbuffer);
 
 //added:05-04-98: test persp. correction !!
-void V_DrawPerspView(byte * viewbuffer, int aiming);
+void V_DrawPerspView(uint8_t * viewbuffer, int aiming);
 
-void VID_BlitLinearScreen(byte * srcptr, byte * destptr, int width,
+void VID_BlitLinearScreen(uint8_t * srcptr, uint8_t * destptr, int width,
 						  int height, int srcrowbytes, int destrowbytes);
 
 /*******************************************************************************
@@ -226,7 +226,7 @@ void V_DrawPatchEx(const uint32_t Flags, const int x, const int y, const patch_t
 
 /* Compatability */
 void V_DrawPatch(const int x, const int y, const int scrn, const patch_t* const patch);
-void V_DrawMappedPatch(const int x, const int y, const int scrn, const patch_t* const patch, const byte* const colormap);
+void V_DrawMappedPatch(const int x, const int y, const int scrn, const patch_t* const patch, const uint8_t* const colormap);
 void V_DrawScaledPatch(const int x, const int y, const int scrn, const patch_t* const patch);
 void V_DrawTransPatch(const int x, const int y, const int scrn, const patch_t* const patch);
 void V_DrawTranslucentPatch(const int x, const int y, const int scrn, const patch_t* const patch);

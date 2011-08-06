@@ -70,8 +70,8 @@ typedef enum
 #define MAXARTECONT        16
 typedef struct
 {
-	byte type;
-	byte count;
+	uint8_t type;
+	uint8_t count;
 } inventory_t;
 
 // Power up artifacts.

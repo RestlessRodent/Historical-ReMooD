@@ -116,7 +116,7 @@ const char* W_BaseName(const char* Name)
 }
 
 /* W_FindWad() -- Finds a WAD File */
-boolean W_FindWad(const char* Name, const char* MD5, char* OutPath, const size_t OutSize)
+bool_t W_FindWad(const char* Name, const char* MD5, char* OutPath, const size_t OutSize)
 {
 	#define MAXSEARCHPATH 32
 	#define PATHSIZE 512//PATH_MAX
@@ -374,7 +374,7 @@ int W_LoadWadFile(char *filename)
 	int err;
 	int y, z;
 	char tName[9];
-	boolean Swapped = false;
+	bool_t Swapped = false;
 	
 	/* Send to extended code */
 	WX_VirtualPushPop(WX_LoadWAD(filename), false, false);
@@ -1265,11 +1265,11 @@ struct WX_WADFile_s
 	
 	/* Virtual Handler Functions */
 		// FuncLoadWAD -- Load WAD File
-	boolean (*FuncLoadWAD)(WX_WADFile_t* const a_WAD);
+	bool_t (*FuncLoadWAD)(WX_WADFile_t* const a_WAD);
 		// FuncUnLoadWAD -- Unloads a WAD File
-	boolean (*FuncUnLoadWAD)(WX_WADFile_t* const a_WAD);
+	bool_t (*FuncUnLoadWAD)(WX_WADFile_t* const a_WAD);
 		// FuncReadEntryData -- Reads a single entry from the wad (for cache)
-	boolean (*FuncReadEntryData)(WX_WADFile_t* const a_WAD, WX_WADEntry_t* const a_Entry);
+	bool_t (*FuncReadEntryData)(WX_WADFile_t* const a_WAD, WX_WADEntry_t* const a_Entry);
 	
 	/* Chains */
 	WX_WADFile_t* PrevWAD;						// Previous WAD in link
@@ -1301,7 +1301,7 @@ struct WX_WADEntry_s
 
 /*** LMP ***/
 /* WX_P_LMP_LoadWAD() -- Load a format */
-boolean WX_P_LMP_LoadWAD(WX_WADFile_t* const a_WAD)
+bool_t WX_P_LMP_LoadWAD(WX_WADFile_t* const a_WAD)
 {
 	WX_WADEntry_t* SoloEntry;
 	char* p;
@@ -1333,7 +1333,7 @@ boolean WX_P_LMP_LoadWAD(WX_WADFile_t* const a_WAD)
 }
 
 /* WX_P_LMP_UnLoadWAD() -- Unload format */
-boolean WX_P_LMP_UnLoadWAD(WX_WADFile_t* const a_WAD)
+bool_t WX_P_LMP_UnLoadWAD(WX_WADFile_t* const a_WAD)
 {
 	/* Check */
 	if (!a_WAD)
@@ -1346,7 +1346,7 @@ boolean WX_P_LMP_UnLoadWAD(WX_WADFile_t* const a_WAD)
 }
 
 /* WX_P_LMP_ReadEntryData() -- Reads a single entry in format */
-boolean WX_P_LMP_ReadEntryData(WX_WADFile_t* const a_WAD, WX_WADEntry_t* const a_Entry)
+bool_t WX_P_LMP_ReadEntryData(WX_WADFile_t* const a_WAD, WX_WADEntry_t* const a_Entry)
 {
 	/* Check */
 	if (!a_WAD || !a_Entry)
@@ -1370,7 +1370,7 @@ boolean WX_P_LMP_ReadEntryData(WX_WADFile_t* const a_WAD, WX_WADEntry_t* const a
 /*** DEH ***/
 /* WX_P_DEH_LoadWAD() -- Load a format */
 // Same as LMP, but use DEHACKED instead
-boolean WX_P_DEH_LoadWAD(WX_WADFile_t* const a_WAD)
+bool_t WX_P_DEH_LoadWAD(WX_WADFile_t* const a_WAD)
 {
 	/* LMP Call */
 	if (!WX_P_LMP_LoadWAD(a_WAD))
@@ -1385,14 +1385,14 @@ boolean WX_P_DEH_LoadWAD(WX_WADFile_t* const a_WAD)
 }
 
 /* WX_P_DEH_UnLoadWAD() -- Unload format */
-boolean WX_P_DEH_UnLoadWAD(WX_WADFile_t* const a_WAD)
+bool_t WX_P_DEH_UnLoadWAD(WX_WADFile_t* const a_WAD)
 {
 	/* LMP Call */
 	return WX_P_LMP_UnLoadWAD(a_WAD);
 }
 
 /* WX_P_DEH_ReadEntryData() -- Reads a single entry in format */
-boolean WX_P_DEH_ReadEntryData(WX_WADFile_t* const a_WAD, WX_WADEntry_t* const a_Entry)
+bool_t WX_P_DEH_ReadEntryData(WX_WADFile_t* const a_WAD, WX_WADEntry_t* const a_Entry)
 {
 	/* LMP Call */
 	return WX_P_LMP_ReadEntryData(a_WAD, a_Entry);
@@ -1400,7 +1400,7 @@ boolean WX_P_DEH_ReadEntryData(WX_WADFile_t* const a_WAD, WX_WADEntry_t* const a
 
 /*** WAD ***/
 /* WX_P_WAD_LoadWAD() -- Load a format */
-boolean WX_P_WAD_LoadWAD(WX_WADFile_t* const a_WAD)
+bool_t WX_P_WAD_LoadWAD(WX_WADFile_t* const a_WAD)
 {
 	uint32_t HeaderSet[3];
 	uint32_t Temp;
@@ -1518,7 +1518,7 @@ boolean WX_P_WAD_LoadWAD(WX_WADFile_t* const a_WAD)
 }
 
 /* WX_P_WAD_UnLoadWAD() -- Unload format */
-boolean WX_P_WAD_UnLoadWAD(WX_WADFile_t* const a_WAD)
+bool_t WX_P_WAD_UnLoadWAD(WX_WADFile_t* const a_WAD)
 {
 	size_t i;
 	
@@ -1538,7 +1538,7 @@ boolean WX_P_WAD_UnLoadWAD(WX_WADFile_t* const a_WAD)
 }
 
 /* WX_P_WAD_ReadEntryData() -- Reads a single entry in format */
-boolean WX_P_WAD_ReadEntryData(WX_WADFile_t* const a_WAD, WX_WADEntry_t* const a_Entry)
+bool_t WX_P_WAD_ReadEntryData(WX_WADFile_t* const a_WAD, WX_WADEntry_t* const a_Entry)
 {
 	/* Check */
 	if (!a_WAD || !a_Entry)
@@ -1563,9 +1563,9 @@ boolean WX_P_WAD_ReadEntryData(WX_WADFile_t* const a_WAD, WX_WADEntry_t* const a
 /* WX_Handlers_t -- List of function pointers */
 typedef struct WX_Handlers_s
 {
-	boolean (*FuncLoadWAD)(WX_WADFile_t* const a_WAD);
-	boolean (*FuncUnLoadWAD)(WX_WADFile_t* const a_WAD);
-	boolean (*FuncReadEntryData)(WX_WADFile_t* const a_WAD, WX_WADEntry_t* const a_Entry);
+	bool_t (*FuncLoadWAD)(WX_WADFile_t* const a_WAD);
+	bool_t (*FuncUnLoadWAD)(WX_WADFile_t* const a_WAD);
+	bool_t (*FuncReadEntryData)(WX_WADFile_t* const a_WAD, WX_WADEntry_t* const a_Entry);
 } WX_Handlers_t;
 
 /* l_WXHandlers -- Handlers for file formats */
@@ -1680,7 +1680,7 @@ const char*			WX_BaseExtension(const char* const a_File)
 }
 
 /* WX_Init() -- Initializes the extended WAD Code */
-boolean				WX_Init(void)
+bool_t				WX_Init(void)
 {
 	size_t i;
 	char* DirArg;
@@ -1728,7 +1728,7 @@ boolean				WX_Init(void)
 /* WX_LocateWAD() -- Locates an IWAD that matches the name (and optionally) its sum */
 // This is alot better than the former W_FindWad() which wasted many CPU cycles calculating the same thing for
 // every single WAD we want to find.
-boolean				WX_LocateWAD(const char* const a_Name, const char* const a_MD5, char* const a_OutPath, const size_t a_OutSize)
+bool_t				WX_LocateWAD(const char* const a_Name, const char* const a_MD5, char* const a_OutPath, const size_t a_OutSize)
 {
 	char CheckBuffer[PATH_MAX];
 	char BaseWAD[PATH_MAX];
@@ -1785,7 +1785,7 @@ boolean				WX_LocateWAD(const char* const a_Name, const char* const a_MD5, char*
 /* ZP_EntryHashCompare() -- Compares entry hash */
 // A = const char*
 // B = WX_WADEntry_t*
-static boolean ZP_EntryHashCompare(void* const a_A, void* const a_B)
+static bool_t ZP_EntryHashCompare(void* const a_A, void* const a_B)
 {
 	const char* A;
 	WX_WADEntry_t* B;
@@ -2109,7 +2109,7 @@ WX_WADEntry_t*		WX_GetNumEntry(WX_WADFile_t* const a_WAD, const size_t a_Index)
 
 /* WX_EntryForName() -- Finds an entry based on name */
 // If a_WAD is NULL, then all virtual wads are checked in said order
-WX_WADEntry_t*		WX_EntryForName(WX_WADFile_t* const a_WAD, const char* const a_Name, const boolean a_Forwards)
+WX_WADEntry_t*		WX_EntryForName(WX_WADFile_t* const a_WAD, const char* const a_Name, const bool_t a_Forwards)
 {
 	uint32_t SeekHash;
 	WX_WADFile_t* Rover;
@@ -2255,7 +2255,7 @@ void*				WX_CacheEntry(WX_WADEntry_t* const a_Entry, const WX_ConvType_t a_From,
 }
 
 /* WX_UseEntry() -- Uses an entry to prevent its free */
-void*				WX_UseEntry(WX_WADEntry_t* const a_Entry, const WX_ConvType_t a_Type, const boolean a_Use)
+void*				WX_UseEntry(WX_WADEntry_t* const a_Entry, const WX_ConvType_t a_Type, const bool_t a_Use)
 {
 	/* Check */
 	if (!a_Entry || (size_t)a_Type >= (size_t)NUMWXCONVTYPES)
@@ -2269,7 +2269,7 @@ void*				WX_UseEntry(WX_WADEntry_t* const a_Entry, const WX_ConvType_t a_Type, c
 }
 
 /* WX_VirtualPushPop() -- Pushes or pops a WAD on the virtual stack */
-boolean				WX_VirtualPushPop(WX_WADFile_t* const a_WAD, const boolean a_Pop, const boolean a_Back)
+bool_t				WX_VirtualPushPop(WX_WADFile_t* const a_WAD, const bool_t a_Pop, const bool_t a_Back)
 {
 	/* A WAD, and pushing -- Add to front or back */
 	if (a_WAD && !a_Pop)
@@ -2342,7 +2342,7 @@ boolean				WX_VirtualPushPop(WX_WADFile_t* const a_WAD, const boolean a_Pop, con
 }
 
 /* WX_GetVirtualPrivateData() -- Return private data in a WAD */
-boolean				WX_GetVirtualPrivateData(WX_WADFile_t* const a_WAD, const WX_DataPrivateID_t a_ID, void*** const a_PPPtr, size_t** const a_PPSize)
+bool_t				WX_GetVirtualPrivateData(WX_WADFile_t* const a_WAD, const WX_DataPrivateID_t a_ID, void*** const a_PPPtr, size_t** const a_PPSize)
 {
 	/* Check */
 	if (!a_WAD || !a_PPPtr || !a_PPSize || (size_t)a_ID >= (size_t)NUMWXDATAPRIVATEIDS)

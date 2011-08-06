@@ -58,11 +58,11 @@ extern char french_shiftxform[];
 extern patch_t *hu_font[HU_FONTSIZE];
 
 //set true by hu_ when entering a chat message
-extern boolean chat_on;
+extern bool_t chat_on;
 
 // P_DeathThink set this true to show scores while dead, in dmatch
-extern boolean hu_showscores;
-extern boolean playerdeadview;
+extern bool_t hu_showscores;
+extern bool_t playerdeadview;
 
 // init heads up data at game startup.
 void HU_Init(void);
@@ -71,7 +71,7 @@ void HU_Init(void);
 void HU_Start(void);
 
 //
-boolean HU_Responder(event_t * ev);
+bool_t HU_Responder(event_t * ev);
 
 //
 void HU_Ticker(void);

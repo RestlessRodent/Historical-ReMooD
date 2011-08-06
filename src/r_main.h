@@ -132,7 +132,7 @@ extern consvar_t cv_grtranslucenthud;
 void R_Init(void);
 
 // just sets setsizeneeded true
-extern boolean setsizeneeded;
+extern bool_t setsizeneeded;
 void R_SetViewSize(void);
 
 // do it (sometimes explicitly called)

@@ -415,7 +415,7 @@ static void WI_slamBackground(void)
 
 // The ticker is used to detect keys
 //  because of timing issues in netgames.
-boolean WI_Responder(event_t * ev)
+bool_t WI_Responder(event_t * ev)
 {
 	return false;
 }
@@ -477,7 +477,7 @@ static void WI_drawOnLnode(int n, patch_t * c[])
 	int top;
 	int right;
 	int bottom;
-	boolean fits = false;
+	bool_t fits = false;
 
 	point_t *lnodes;
 
@@ -777,7 +777,7 @@ static void WI_updateNoState(void)
 
 }
 
-static boolean snl_pointeron = false;
+static bool_t snl_pointeron = false;
 
 static void WI_initShowNextLoc(void)
 {
@@ -887,7 +887,7 @@ static void WI_updateDeathmatchStats(void)
 //  Quick-patch for the Cave party 19-04-1998 !!
 //
 void WI_drawRancking(char *title, int x, int y, fragsort_t * fragtable,
-					 int scorelines, boolean large, int white)
+					 int scorelines, bool_t large, int white)
 {
 	int i, j;
 	int color;
@@ -921,9 +921,9 @@ void WI_drawRancking(char *title, int x, int y, fragsort_t * fragtable,
 		// draw color background
 		color = fragtable[i].color;
 		if (!color)
-			color = *((byte *) colormaps + colornum);
+			color = *((uint8_t *) colormaps + colornum);
 		else
-			color = *((byte *) translationtables - 256 + (color << 8) + colornum);
+			color = *((uint8_t *) translationtables - 256 + (color << 8) + colornum);
 		V_DrawFill(x - 1, y - 1, large ? 40 : 26, 9, color);
 
 		// draw frags count
@@ -1038,7 +1038,7 @@ static void WI_drawDeathmatchStats(void)
 	V_DrawStringA(VFONT_SMALL, VEX_MAP_WHITE, timeleft, 200, 30);
 }
 
-boolean teamingame(int teamnum)
+bool_t teamingame(int teamnum)
 {
 	int i;
 
@@ -1153,7 +1153,7 @@ static void WI_ddrawDeathmatchStats(void)
 
     int         lh;     // line height
 
-    byte*       colormap;       //added:08-02-98:see below
+    uint8_t*       colormap;       //added:08-02-98:see below
 
     lh = WI_SPACINGY;
 
@@ -1186,7 +1186,7 @@ static void WI_ddrawDeathmatchStats(void)
             if (players[i].skincolor==0)
                 colormap = colormaps;
             else
-                colormap = (byte *) translationtables - 256 + (players[i].skincolor<<8);
+                colormap = (uint8_t *) translationtables - 256 + (players[i].skincolor<<8);
 
             V_DrawMappedPatch(x-LittleSwapInt16(stpb->width)/2,
                         DM_MATRIXY - WI_SPACINGY,
@@ -1285,7 +1285,7 @@ static void WI_updateNetgameStats(void)
 	int i;
 	int fsum;
 
-	boolean stillticking;
+	bool_t stillticking;
 
 	WI_updateAnimatedBack();
 
@@ -1439,7 +1439,7 @@ static void WI_drawNetgameStats(void)
 	int y;
 	int pwidth = LittleSwapInt16(percent->width);
 
-	byte *colormap;				//added:08-02-98: remap STBP0 to player color
+	uint8_t *colormap;				//added:08-02-98: remap STBP0 to player color
 
 	WI_slamBackground();
 
@@ -1490,7 +1490,7 @@ static void WI_drawNetgameStats(void)
 		if (players[i].skincolor == 0)
 			colormap = colormaps;	//no translation table for green guy
 		else
-			colormap = (byte *) translationtables - 256 + (players[i].skincolor << 8);
+			colormap = (uint8_t *) translationtables - 256 + (players[i].skincolor << 8);
 
 		V_DrawMappedPatch(x - LittleSwapInt16(stpb->width), y, FB, stpb, colormap);
 

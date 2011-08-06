@@ -114,7 +114,7 @@ extern int logstream;
 // demo version when playback demo, or the current VERSION
 // used to enable/disable selected features for backward compatibility
 // (where possible)
-extern byte demoversion;
+extern uint8_t demoversion;
 
 // The maximum number of players, multiplayer/networking.
 // NOTE: it needs more than this to increase the number of players...
@@ -157,7 +157,7 @@ void CONS_Printf(char *fmt, ...);
 char *va(char *format, ...);
 
 // g_game.h
-extern boolean devparm;			// development mode (-devparm)
+extern bool_t devparm;			// development mode (-devparm)
 
 #ifdef _MSC_VER
 #define snprintf _snprintf

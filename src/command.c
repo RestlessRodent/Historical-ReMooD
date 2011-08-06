@@ -46,7 +46,7 @@
 //========
 // protos.
 //========
-static boolean COM_Exists(char *com_name);
+static bool_t COM_Exists(char *com_name);
 static void COM_ExecuteString(char *text);
 
 static void COM_Alias_f(void);
@@ -58,7 +58,7 @@ static void COM_commandlist_f(void);
 static void COM_cvarlist_f(void);
 static void COM_Toggle_f(void);
 
-static boolean CV_Command(void);
+static bool_t CV_Command(void);
 static char *CV_StringValue(char *var_name);
 static consvar_t *consvar_vars;	// list of registered console variables
 
@@ -427,7 +427,7 @@ void COM_AddCommand(char *name, com_func_t func)
 
 //  Returns true if a command by the name given exists
 //
-static boolean COM_Exists(char *com_name)
+static bool_t COM_Exists(char *com_name)
 {
 	xcommand_t *cmd;
 
@@ -565,7 +565,7 @@ static void COM_Echo_f(void)
 static void COM_Exec_f(void)
 {
 	int length;
-	byte *buf = NULL;
+	uint8_t *buf = NULL;
 
 	if (COM_Argc() != 2)
 	{
@@ -837,9 +837,9 @@ void VS_Print(vsbuf_t * buf, char *data)
 	len = strlen(data) + 1;
 
 	if (buf->data[buf->cursize - 1])
-		memcpy((byte *) VS_GetSpace(buf, len), data, len);	// no trailing 0
+		memcpy((uint8_t *) VS_GetSpace(buf, len), data, len);	// no trailing 0
 	else
-		memcpy((byte *) VS_GetSpace(buf, len - 1) - 1, data, len);	// write over trailing 0
+		memcpy((uint8_t *) VS_GetSpace(buf, len - 1) - 1, data, len);	// write over trailing 0
 }
 
 // =========================================================================
@@ -1276,7 +1276,7 @@ void CV_AddValue(consvar_t * var, int increment)
 //  Returns false if the passed command was not recognised as
 //  console variable.
 //
-static boolean CV_Command(void)
+static bool_t CV_Command(void)
 {
 	consvar_t *v;
 

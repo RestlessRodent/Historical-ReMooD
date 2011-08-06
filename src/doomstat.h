@@ -85,10 +85,10 @@ typedef enum
 //
 extern gamemode_t gamemode;
 extern gamemission_t gamemission;
-extern boolean inventory;		// true with heretic and hexen
+extern bool_t inventory;		// true with heretic and hexen
 
 // Set if homebrew PWAD stuff has been added.
-extern boolean modifiedgame;
+extern bool_t modifiedgame;
 
 // =========
 // Language.
@@ -102,22 +102,22 @@ extern language_t language;
 
 // Selected by user.
 extern skill_t gameskill;
-extern byte gameepisode;
-extern byte gamemap;
+extern uint8_t gameepisode;
+extern uint8_t gamemap;
 
 // Nightmare mode flag, single player.
-// extern  boolean         respawnmonsters;
+// extern  bool_t         respawnmonsters;
 
 // GhostlyDeath -- Currently optional new network code
-extern boolean newnet_use;
-extern boolean newnet_solo;
+extern bool_t newnet_use;
+extern bool_t newnet_solo;
 
 // Netgame? only true in a netgame
-extern boolean netgame;
-extern boolean serverside;
-extern boolean localgame;
+extern bool_t netgame;
+extern bool_t serverside;
+extern bool_t localgame;
 // Only true if >1 player. netgame => multiplayer but not (multiplayer=>netgame)
-extern boolean multiplayer;
+extern bool_t multiplayer;
 
 // Flag: true only if started as net deathmatch.
 // An enum might handle altdeath/cooperative better.
@@ -127,9 +127,9 @@ extern consvar_t cv_deathmatch;
 // Internal parameters for sound rendering.
 // ========================================
 
-extern boolean nomusic;			//defined in d_main.c
-extern boolean nosound;
-extern boolean digmusic;		// SSNTails 12-13-2002
+extern bool_t nomusic;			//defined in d_main.c
+extern bool_t nosound;
+extern bool_t digmusic;		// SSNTails 12-13-2002
 
 // =========================
 // Status flags for refresh.
@@ -139,13 +139,13 @@ extern boolean digmusic;		// SSNTails 12-13-2002
 // Depending on view size - no status bar?
 // Note that there is no way to disable the
 //  status bar explicitely.
-extern boolean statusbaractive;
+extern bool_t statusbaractive;
 
-extern boolean menuactive;		// Menu overlayed?
-extern boolean paused;			// Game Pause?
+extern bool_t menuactive;		// Menu overlayed?
+extern bool_t paused;			// Game Pause?
 
-extern boolean nodrawers;
-extern boolean noblit;
+extern bool_t nodrawers;
+extern bool_t noblit;
 
 extern int viewwindowx;
 extern int viewwindowy;
@@ -202,7 +202,7 @@ extern int maxammo[NUMAMMO];
 extern char basedefault[1024];
 
 // if true, load all graphics at level load
-extern boolean precache;
+extern bool_t precache;
 
 // wipegamestate can be set to -1
 //  to force a wipe on the next draw
@@ -210,7 +210,7 @@ extern gamestate_t wipegamestate;
 
 //?
 // debug flag to cancel adaptiveness
-extern boolean singletics;
+extern bool_t singletics;
 
 #define   BODYQUESIZE     32
 
@@ -225,7 +225,7 @@ extern int bodyqueslot;
 
 extern ticcmd_t netcmds[BACKUPTICS][MAXPLAYERS];
 
-extern boolean novideo;
+extern bool_t novideo;
 
 #endif							//__D_STATE__
 

@@ -64,7 +64,7 @@
 #define O_BINARY 0
 #endif
 
-boolean FIL_WriteFile(char const *name, void *source, int length)
+bool_t FIL_WriteFile(char const *name, void *source, int length)
 {
 	int handle;
 	int count;
@@ -87,12 +87,12 @@ boolean FIL_WriteFile(char const *name, void *source, int length)
 // FIL_ReadFile : return length, 0 on error
 //
 //Fab:26-04-98:
-//  appends a zero byte at the end
-int FIL_ReadFile(char const *name, byte ** buffer)
+//  appends a zero uint8_t at the end
+int FIL_ReadFile(char const *name, uint8_t ** buffer)
 {
 	int handle, count, length;
 	struct stat fileinfo;
-	byte *buf;
+	uint8_t *buf;
 
 	handle = open(name, O_RDONLY | O_BINARY, 0666);
 	if (handle == -1)
@@ -109,7 +109,7 @@ int FIL_ReadFile(char const *name, byte ** buffer)
 	if (count < length)
 		return 0;
 
-	//Fab:26-04-98:append 0 byte for script text files
+	//Fab:26-04-98:append 0 uint8_t for script text files
 	buf[length] = 0;
 
 	*buffer = buf;
@@ -167,7 +167,7 @@ void FIL_ExtractFileBase(char *path, char *dest)
 //  Returns true if a filename extension is found
 //  There are no '.' in wad resource name
 //
-boolean FIL_CheckExtension(char *in)
+bool_t FIL_CheckExtension(char *in)
 {
 	while (*in++)
 		if (*in == '.')
@@ -190,7 +190,7 @@ char SaveGameLocation[MAX_WADPATH];
 // ==========================================================================
 //                          CONFIGURATION
 // ==========================================================================
-boolean gameconfig_loaded = false;	// true once config.cfg loaded
+bool_t gameconfig_loaded = false;	// true once config.cfg loaded
 												//  AND executed
 
 void Command_SaveConfig_f(void)
@@ -523,12 +523,12 @@ typedef struct
 //
 // WritePCXfile
 //
-boolean WritePCXfile(char *filename, byte * data, int width, int height, byte * palette)
+bool_t WritePCXfile(char *filename, uint8_t * data, int width, int height, uint8_t * palette)
 {
 	int i;
 	int length;
 	pcx_t *pcx;
-	byte *pack;
+	uint8_t *pack;
 
 	pcx = Z_Malloc(width * height * 2 + 1000, PU_STATIC, NULL);
 
@@ -568,7 +568,7 @@ boolean WritePCXfile(char *filename, byte * data, int width, int height, byte * 
 		*pack++ = *palette++;
 
 	// write output file
-	length = pack - (byte *) pcx;
+	length = pack - (uint8_t *) pcx;
 	i = FIL_WriteFile(filename, pcx, length);
 
 	Z_Free(pcx);
@@ -581,9 +581,9 @@ boolean WritePCXfile(char *filename, byte * data, int width, int height, byte * 
 void M_ScreenShot(void)
 {
 	int i;
-	byte *linear;
+	uint8_t *linear;
 	char lbmname[MAX_WADPATH];
-	boolean ret = false;
+	bool_t ret = false;
 
 	// munge planar buffer to linear
 	linear = screens[2];
