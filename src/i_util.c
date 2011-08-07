@@ -1077,11 +1077,12 @@ int I_RegisterSong(const char* const a_Lump)
 			return l_LocalSongs[i].Handle;
 	
 	/* Get data and detect */
-	New.Handle = TempSongID;
+	New.Handle = ++TempSongID;
 	New.Entry = Entry;
 	New.EntryLength = WX_GetEntrySize(Entry);
 	New.Data = WX_CacheEntry(Entry, WXCT_RAW, WXCT_RAW);
 	New.Type = I_DetectMusicType(New.Data, New.EntryLength);
+	New.Playing = false;
 	
 	// Get the driver it belongs to
 	New.Driver = I_FindMusicDriver(New.Type);
@@ -1199,6 +1200,10 @@ void I_StopSong(int handle)
 	
 	// Not found?
 	if (i == l_NumLocalSongs)
+		return;
+	
+	/* Only stop if it is actually playing */
+	if (!l_LocalSongs[i].Playing)
 		return;
 	
 	/* Send to driver */

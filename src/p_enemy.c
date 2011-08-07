@@ -508,6 +508,48 @@ static void P_NewChaseDir(mobj_t * actor)
 //
 static bool_t P_LookForPlayers(mobj_t * actor, bool_t allaround)
 {
+	// GhostlyDeath <August 7, 2011> -- Chaos mode, for fun!
+#if 1	// CHAOS MODE!
+	mobj_t* mo;
+    thinker_t*  currentthinker;
+    
+    /* Only on some tics */
+    //if ((gametic % TICRATE) != 0)
+    //	return false;
+    
+    /* Look through thinkers */
+    for (currentthinker = thinkercap.next; currentthinker != &thinkercap; currentthinker = currentthinker->next)
+    {
+    	// Not a mobj?
+    	if (!((currentthinker->function.acp1 == (actionf_p1)P_MobjThinker)))
+    		continue;
+    	
+    	// Make mo
+    	mo = currentthinker;
+    	
+    	// Ourself?
+    	if (actor == mo)
+    		continue;
+    	
+    	// Not Shootable?
+    	if (!(mo->flags & MF_SHOOTABLE))
+    		continue;
+    	
+    	// Dead?
+    	if (mo->health <= 0)
+    		continue;
+    	
+    	// Is it in view?
+    	if (!P_CheckSight(actor, mo))
+    		continue;
+    	
+    	// Target it! heheheh
+    	actor->target = mo;
+    	return true;
+    }
+    
+	return false;
+#else
 	int c;
 	int stop;
 	player_t *player;
@@ -562,6 +604,7 @@ static bool_t P_LookForPlayers(mobj_t * actor, bool_t allaround)
 	}
 
 	return false;
+#endif
 }
 
 //
