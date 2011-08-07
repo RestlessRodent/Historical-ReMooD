@@ -115,6 +115,13 @@ typedef struct I_LocalMusic_s
 	bool_t Playing;								// Is the song playing?
 } I_LocalMusic_t;
 
+/* I_MUS2MIDData_t -- MIDI Data */
+typedef struct I_MUS2MIDData_s
+{
+	I_MusicDriver_t* RealDriver;
+	int RealHandle;
+} I_MUS2MIDData_t;
+
 /*************
 *** LOCALS ***
 *************/
@@ -142,54 +149,120 @@ static size_t l_NumLocalSongs;					// Number of local songs
 /* I_MUS2MID_Init() -- Initializes the MUS2MID Driver */
 bool_t I_MUS2MID_Init(struct I_MusicDriver_s* const a_Driver)
 {
-	return false;
+	I_MusicDriver_t* MIDIDriver;
+	I_MUS2MIDData_t* Local;
+	
+	/* Check */
+	if (!a_Driver)
+		return false;
+	
+	/* Try to find a driver that can handle MIDI */
+	MIDIDriver = I_FindMusicDriver(IMT_MIDI);
+	
+	// Not found?
+	if (!MIDIDriver)
+		return false;
+	
+	/* Otherwise allocate data for MUS2MID converter */
+	a_Driver->Size = sizeof(*Local);
+	Local = a_Driver->Data = Z_Malloc(a_Driver->Size, PU_STATIC, NULL);
+	
+	// Set the driver
+	Local->RealDriver = MIDIDriver;
+	
+	return true;
 }
 
 /* I_MUS2MID_Destroy() -- Destroys a driver */
 bool_t I_MUS2MID_Destroy(struct I_MusicDriver_s* const a_Driver)
 {
-	return false;
+	/* Check */
+	if (!a_Driver)
+		return false;
+	
+	/* Clear allocation */
+	if (a_Driver->Data)
+		Z_Free(a_Driver->Data);
+	a_Driver->Data = NULL;
+	a_Driver->Size = 0;
+	
+	return true;
 }
 
 /* I_MUS2MID_Success() -- Success */
 void I_MUS2MID_Success(struct I_MusicDriver_s* const a_Driver)
 {
+	/* Check */
+	if (!a_Driver)
+		return;
 }
 
 /* I_MUS2MID_Pause() -- Pauses a song (pause ||) */
 void I_MUS2MID_Pause(struct I_MusicDriver_s* const a_Driver, const int a_Handle)
 {
+	/* Check */
+	if (!a_Driver)
+		return;
+	
 }
 
 /* I_MUS2MID_Resume() -- Resumes a song (play >) */
 void I_MUS2MID_Resume(struct I_MusicDriver_s* const a_Driver, const int a_Handle)
 {
+	/* Check */
+	if (!a_Driver)
+		return;
+	
 }
 
 /* I_MUS2MID_Stop() -- Stops a song from playing and seeks to start (stop []) */
 void I_MUS2MID_Stop(struct I_MusicDriver_s* const a_Driver, const int a_Handle)
 {
+	/* Check */
+	if (!a_Driver)
+		return;
+	
 }
 
 /* I_MUS2MID_Lengt() -- Length of song */
 uint32_t I_MUS2MID_Length(struct I_MusicDriver_s* const a_Driver, const int a_Handle)
 {
+	/* Check */
+	if (!a_Driver)
+		return 0;
+	
+	return 0;
 }
 
 /* I_MUS2MID_Seek() -- Seeks to a new position */
 void I_MUS2MID_Seek(struct I_MusicDriver_s* const a_Driver, const int a_Handle, const uint32_t a_Pos)
 {
+	/* Check */
+	if (!a_Driver)
+		return;
+	
 }
 
 /* I_MUS2MID_Play() -- Plays a song */
 int I_MUS2MID_Play(struct I_MusicDriver_s* const a_Driver, const void* const a_Data, const bool_t Loop)
 {
+	/* Check */
+	if (!a_Driver)
+		return 0;
+	
+	if (devparm)
+		CONS_Printf("I_MUS2MID_Play: Converting MUS to MIDI.\n");
+	
 	return 0;
 }
 
 /* I_MUS2MID_Volume() -- Changes volume */
 void I_MUS2MID_Volume(struct I_MusicDriver_s* const a_Driver, const int a_Handle, const uint8_t Vol)
 {
+	/* Check */
+	if (!a_Driver)
+		return;
+	
 }
 
 /* I_MusicDriver_t -- Driver for playing Music */
@@ -197,6 +270,7 @@ static I_MusicDriver_t l_MUS2MIDDriver =
 {
 	/* Data */
 	"ReMooD MUS2MID",
+	"mustomid",
 	1 << IMT_MUS,
 	false,
 	50,
@@ -294,26 +368,58 @@ static int IS_NewKeyToOldKey(const uint8_t a_New)
 	/* Giant Switch */
 	switch (a_New)
 	{
-		case IKBK_ESCAPE:	return KEY_ESCAPE;
-		case IKBK_ENTER:	return KEY_ENTER;
-		case IKBK_UP:		return KEY_UPARROW;
-		case IKBK_DOWN:		return KEY_DOWNARROW;
-		case IKBK_LEFT:		return KEY_LEFTARROW;
-		case IKBK_RIGHT:	return KEY_RIGHTARROW;
-		case IKBK_SHIFT:	return KEY_SHIFT;
-		case IKBK_CTRL:		return KEY_CTRL;
-		case IKBK_ALT:		return KEY_ALT;
-		case IKBK_SPACE:	return KEY_SPACE;
+		case IKBK_NULL:			return 0;
+		case IKBK_BACKSPACE:	return KEY_BACKSPACE;
+		case IKBK_TAB:			return KEY_TAB;
+		case IKBK_RETURN:		return KEY_ENTER;
+		case IKBK_SHIFT:		return KEY_SHIFT;
+		case IKBK_CTRL:			return KEY_CTRL;
+		case IKBK_ALT:			return KEY_ALT;
+		case IKBK_ESCAPE:		return KEY_ESCAPE;
+		case IKBK_UP:			return KEY_UPARROW;
+		case IKBK_DOWN:			return KEY_DOWNARROW;
+		case IKBK_LEFT:			return KEY_LEFTARROW;
+		case IKBK_RIGHT:		return KEY_RIGHTARROW;
+		case IKBK_DELETE:		return KEY_DEL;
+		case IKBK_HOME:			return KEY_HOME;
+		case IKBK_END:			return KEY_END;
+		case IKBK_INSERT:		return KEY_INS;
+		case IKBK_PAGEUP:		return KEY_PGUP;
+		case IKBK_PAGEDOWN:		return KEY_PGDN;
+		//case IKBK_PRINTSCREEN:	return KEY_;
+		case IKBK_NUMLOCK:		return KEY_NUMLOCK;
+		case IKBK_CAPSLOCK:		return KEY_CAPSLOCK;
+		case IKBK_SCROLLLOCK:	return KEY_SCROLLLOCK;
+		case IKBK_PAUSE:		return KEY_PAUSE;
+		case IKBK_NUM0:			return KEY_KEYPAD0;
+		case IKBK_NUM1:			return KEY_KEYPAD1;
+		case IKBK_NUM2:			return KEY_KEYPAD2;
+		case IKBK_NUM3:			return KEY_KEYPAD3;
+		case IKBK_NUM4:			return KEY_KEYPAD4;
+		case IKBK_NUM5:			return KEY_KEYPAD5;
+		case IKBK_NUM6:			return KEY_KEYPAD6;
+		case IKBK_NUM7:			return KEY_KEYPAD7;
+		case IKBK_NUM8:			return KEY_KEYPAD8;
+		case IKBK_NUM9:			return KEY_KEYPAD9;
+		case IKBK_NUMDIVIDE:	return KEY_KPADSLASH;
+		case IKBK_NUMMULTIPLY:	return '*';
+		case IKBK_NUMSUBTRACT:	return KEY_MINUSPAD;
+		case IKBK_NUMADD:		return KEY_PLUSPAD;
+		case IKBK_NUMENTER:		return KEY_ENTER;
+		case IKBK_NUMPERIOD:	return '.';
+		case IKBK_NUMDELETE:	return KEY_KPADDEL;
+		case IKBK_WINDOWSKEY:	return KEY_LEFTWIN;
+		case IKBK_MENUKEY:		return KEY_MENU;
 		
 			// Ranges
 		default:
-			// Letters
+			// Letters (The game uses lowercase here)
 			if (a_New >= IKBK_A && a_New <= IKBK_Z)
 				return 'a' + (a_New - IKBK_A);
 			
-			// Numbers
-			else if (a_New >= IKBK_0 && a_New <= IKBK_9)
-				return '0' + (a_New - IKBK_0);
+			// Normal ASCII
+			else if (a_New >= IKBK_SPACE && a_New <= IKBK_TILDE)
+				return ' ' + (a_New - IKBK_SPACE);
 			
 			// Function keys
 			else if (a_New >= IKBK_F1 && a_New <= IKBK_F12)

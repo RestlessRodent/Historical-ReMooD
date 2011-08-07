@@ -162,6 +162,7 @@ static I_MusicDriver_t l_AllegroDriver =
 {
 	/* Data */
 	"Allegro MIDI Driver",
+	"allegromidi",
 	(1 << IMT_MIDI),
 	true,
 	100,
