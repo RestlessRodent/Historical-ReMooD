@@ -509,7 +509,7 @@ static void P_NewChaseDir(mobj_t * actor)
 static bool_t P_LookForPlayers(mobj_t * actor, bool_t allaround)
 {
 	// GhostlyDeath <August 7, 2011> -- Chaos mode, for fun!
-#if 1	// CHAOS MODE!
+#if 0	// CHAOS MODE!
 	mobj_t* mo;
     thinker_t*  currentthinker;
     
