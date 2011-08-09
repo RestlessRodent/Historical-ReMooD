@@ -75,17 +75,10 @@ static bool_t I_AllegroMD_Init(struct I_MusicDriver_s* const a_Driver)
 	if (install_sound(DIGI_AUTODETECT, MIDI_AUTODETECT, NULL) == -1)
 		CONS_Printf("I_AllegroMD_Init: Failed to install sound (once).\n");
 	
-	/* test */
-#if 0
-	mid = load_midi("map01.mid");
-	
-	if (mid)
-	{
-		CONS_Printf("Playing MAP01!\n");
-		if (play_midi(mid, true))
-			CONS_Printf("Error with MIDI?\n");
-	}
-#endif
+	/* Force load of all MIDI patches */
+	// This is so midi_out works!
+	// Took me awhile to figure out why
+	load_midi_patches();
 	
 	/* Success */
 	CONS_Printf("I_AllegroMD_Init: Success!\n");
@@ -122,7 +115,7 @@ static void I_AllegroMD_Stop(struct I_MusicDriver_s* const a_Driver, const int a
 }
 
 /* I_AllegroMD_Play() -- Plays a MIDI */
-static int I_AllegroMD_Play(struct I_MusicDriver_s* const a_Driver, const void* const a_Data, const bool_t Loop)
+static int I_AllegroMD_Play(struct I_MusicDriver_s* const a_Driver, const void* const a_Data, const size_t a_Size, const bool_t Loop)
 {
 	I_AllegroMIDILocal_t* Local;
 	
@@ -157,6 +150,17 @@ static int I_AllegroMD_Play(struct I_MusicDriver_s* const a_Driver, const void* 
 	return Local->CurrentHandle;
 }
 
+/* I_AllegroMD_RawMIDI() -- Send a raw MIDI message */
+void I_AllegroMD_RawMIDI(struct I_MusicDriver_s* const a_Driver, const uint32_t a_Msg, const uint32_t a_BitLength)
+{
+	/* Check */
+	if (!a_Driver || !a_BitLength)
+		return;
+	
+	/* Use Allegro MIDI out */
+	midi_out(&a_Msg, (a_BitLength < sizeof(a_Msg) ? a_BitLength : sizeof(a_Msg)));
+}
+
 /* l_AllegroDriver -- Allegro Music driver */
 static I_MusicDriver_t l_AllegroDriver =
 {
@@ -182,6 +186,7 @@ static I_MusicDriver_t l_AllegroDriver =
 	NULL,
 	I_AllegroMD_Play,
 	NULL,
+	I_AllegroMD_RawMIDI,
 	NULL,
 };
 

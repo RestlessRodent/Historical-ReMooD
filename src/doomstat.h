@@ -180,6 +180,7 @@ extern int totalsecret;
 //  WAD, partly set at startup time.
 
 extern tic_t gametic;
+extern tic_t g_ProgramTic;
 #define localgametic  leveltime
 
 // Player spawn spots.

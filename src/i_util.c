@@ -53,6 +53,7 @@
 #include "screen.h"
 #include "g_input.h"
 #include "w_wad.h"
+#include "doomstat.h"
 
 /****************
 *** CONSTANTS ***
@@ -120,6 +121,24 @@ typedef struct I_MUS2MIDData_s
 {
 	I_MusicDriver_t* RealDriver;
 	int RealHandle;
+	bool_t FeedMessages;
+	uint8_t* Data;
+	size_t Size;
+	size_t Pos;
+	uint8_t* MIDIData;
+	size_t MIDISize;
+	uint32_t DeltaTotal;
+	uint32_t LocalDelta;
+	bool_t Playing;
+	bool_t PausePlay;
+	int Special;
+	tic_t LocalTime;
+	tic_t NextRun;
+	tic_t BaseTime;
+	uint8_t Vols[16];
+	
+	size_t MusStart;
+	size_t MusLen;
 } I_MUS2MIDData_t;
 
 /*************
@@ -146,6 +165,171 @@ static size_t l_NumLocalSongs;					// Number of local songs
 *** MUS2MID VIRTUAL DRIVER ***
 *****************************/
 
+/* I_MUS2MID_MUSReadNextMessage() -- Reads the next message from a MIDI */
+// a_OutData: The 4 byte midi message
+// a_OutSize: How many bytes of the 4 byte message used
+// a_Delta: Milliseconds to not do anything after this message
+bool_t I_MUS2MID_MUSReadNextMessage(I_MUS2MIDData_t* const a_Local, uint32_t* const a_OutData, size_t* const a_OutSize, uint32_t* const a_Delta)
+{
+	void* p;
+	uint8_t NoteBit[4];
+	bool_t Last;
+	uint8_t Channel;
+	uint8_t Event;
+	size_t i;
+	
+	union
+	{
+		uint32_t u;
+		uint8_t b[4];
+	} MIDIMsg;
+	
+	/* Check */
+	if (!a_Local || !a_OutData || !a_OutSize || !a_Delta)
+		return false;
+	
+	/* Clear */
+	*a_OutData = 0;
+	*a_OutSize = 0;
+	*a_Delta = 0;
+	MIDIMsg.u = 0;
+	
+	/* If the current location is 0x0, init MUS */
+	if (a_Local->Pos == 0)
+	{
+		// Prepare
+		p = a_Local->Data;
+		ReadUInt32((uint32_t** const)&p);	// skip header
+		a_Local->MusLen = LittleReadUInt16((uint16_t** const)&p);
+		a_Local->MusStart = LittleReadUInt16((uint16_t** const)&p);
+		
+		// Jump to start location
+		a_Local->Pos = a_Local->MusStart;
+	}
+	
+	/* If we exceeded MIDI bounds */
+	if (a_Local->Pos >= a_Local->Size)
+	{
+		// Reset to start
+		a_Local->Pos = a_Local->MusStart;
+		*a_Delta = 1;
+		return true;
+	}
+	
+	/* Otherwise read the current note */
+	NoteBit[0] = a_Local->Data[a_Local->Pos++];
+	
+	// Is this the last event?
+	if (NoteBit[0] & 0x80)
+		Last = true;
+	else
+		Last = false;
+		
+	// Which channel are we operating on?
+	Channel = NoteBit[0] & 0xF;
+	
+	// Switch channels 9 and 15
+	if (Channel == 9)
+		Channel = 15;
+	else if (Channel == 15)
+		Channel = 9;
+	
+	// Which type of event is this?
+	Event = (NoteBit[0] & 0x70) >> 4;
+	
+	/* Read more bits */
+	if (Event < 5)	// Every event has all the stuff
+		NoteBit[1] = a_Local->Data[a_Local->Pos++];
+	
+	if (Event == 4)	// note on and controller are 3-bytes
+		NoteBit[2] = a_Local->Data[a_Local->Pos++];
+	
+	/* Now handle event */
+	switch (Event)
+	{
+			// Release a note
+		case 0:
+			MIDIMsg.b[0] = 0x80 | Channel;
+			MIDIMsg.b[1] = NoteBit[1] & 0x7F;
+			MIDIMsg.b[2] = 127;	// always 127 (note off)
+			*a_OutSize = 3;
+			break;
+			
+			// Plays a note
+		case 1:
+			MIDIMsg.b[0] = 0x90 | Channel;
+			MIDIMsg.b[1] = NoteBit[1] & 0x7F;
+			
+			// Volume set?
+			if (NoteBit[1] & 0x80)
+			{
+				NoteBit[2] = a_Local->Data[a_Local->Pos++];
+				a_Local->Vols[Channel] = MIDIMsg.b[2] = NoteBit[2] & 0x7F;
+			}
+			else
+				MIDIMsg.b[2] = a_Local->Vols[Channel];	// use last volume
+			*a_OutSize = 3;
+			break;
+			
+			// Pitch wheel
+		case 2:
+			MIDIMsg.b[0] = 0xE0 | Channel;
+			MIDIMsg.b[1] = NoteBit[1] & 0x7F;
+			MIDIMsg.b[2] = 0;
+			*a_OutSize = 3;
+			break;
+			
+			// System Event
+		case 3:
+			break;
+			
+			// Change controller
+		case 4:
+			// Program change
+			if ((NoteBit[1] & 0x7F) == 0)
+			{
+				MIDIMsg.b[0] = 0xC0 | Channel;
+				MIDIMsg.b[1] = NoteBit[2] & 0x7F;
+				*a_OutSize = 2;
+			}
+			
+			// Everything but program change
+			else
+			{
+			}
+			break;
+			
+			// Reset song
+		case 6:
+			break;
+		
+			// Unknown
+		default:
+			CONS_Printf("I_MUS2MID_MUSReadNextMessage: Unknown %i\n", Event);
+			break;
+	}
+	
+	/* If this is the last event */
+	while (Last)
+	{
+		// Read in byte
+		NoteBit[0] = a_Local->Data[a_Local->Pos++];
+		
+		// Is there last?
+		Last = (NoteBit[0] & 0x80);
+		
+		// Add the current time to delay
+		*a_Delta *= 128;
+		*a_Delta += NoteBit[0] & 0x7F;
+		
+		*a_Delta *= 140;
+	}
+	
+	/* Success */
+	*a_OutData = MIDIMsg.u;
+	return true;
+}
+
 /* I_MUS2MID_Init() -- Initializes the MUS2MID Driver */
 bool_t I_MUS2MID_Init(struct I_MusicDriver_s* const a_Driver)
 {
@@ -170,15 +354,38 @@ bool_t I_MUS2MID_Init(struct I_MusicDriver_s* const a_Driver)
 	// Set the driver
 	Local->RealDriver = MIDIDriver;
 	
+	/* If the driver supports messaging, we can just play MUSes as it */
+	if (Local->RealDriver->RawMIDI)
+		Local->FeedMessages = true;
+	
+	// Otherwise we have to convert to a full MIDI then pipe it through
+	else
+		Local->FeedMessages = false;
+	
+	/* Feeding? */
+	if (Local->FeedMessages)
+		CONS_Printf("I_MUS2MID_Init: Feeding messages into %s.\n", Local->RealDriver->Name);
+	
 	return true;
 }
 
 /* I_MUS2MID_Destroy() -- Destroys a driver */
 bool_t I_MUS2MID_Destroy(struct I_MusicDriver_s* const a_Driver)
 {
+	I_MUS2MIDData_t* Local;
+	
 	/* Check */
 	if (!a_Driver)
 		return false;
+	
+	/* Get local */
+	Local = a_Driver->Data;
+	
+	// Check
+	if (!Local)
+		return false;
+	
+	/* Clear local stuff */
 	
 	/* Clear allocation */
 	if (a_Driver->Data)
@@ -192,44 +399,129 @@ bool_t I_MUS2MID_Destroy(struct I_MusicDriver_s* const a_Driver)
 /* I_MUS2MID_Success() -- Success */
 void I_MUS2MID_Success(struct I_MusicDriver_s* const a_Driver)
 {
+	I_MUS2MIDData_t* Local;
+	
 	/* Check */
 	if (!a_Driver)
+		return;
+	
+	/* Get local */
+	Local = a_Driver->Data;
+	
+	// Check
+	if (!Local)
 		return;
 }
 
 /* I_MUS2MID_Pause() -- Pauses a song (pause ||) */
 void I_MUS2MID_Pause(struct I_MusicDriver_s* const a_Driver, const int a_Handle)
 {
+	I_MUS2MIDData_t* Local;
+	
 	/* Check */
 	if (!a_Driver)
 		return;
 	
+	/* Get local */
+	Local = a_Driver->Data;
+	
+	// Check
+	if (!Local)
+		return;
+	
+	/* Feeder mode */
+	if (Local->FeedMessages)
+	{
+	}
+	
+	/* Full convert mode */
+	else
+	{
+	}
 }
 
 /* I_MUS2MID_Resume() -- Resumes a song (play >) */
 void I_MUS2MID_Resume(struct I_MusicDriver_s* const a_Driver, const int a_Handle)
 {
+	I_MUS2MIDData_t* Local;
+	
 	/* Check */
 	if (!a_Driver)
 		return;
 	
+	/* Get local */
+	Local = a_Driver->Data;
+	
+	// Check
+	if (!Local)
+		return;
+	
+	/* Feeder mode */
+	if (Local->FeedMessages)
+	{
+	}
+	
+	/* Full convert mode */
+	else
+	{
+	}
 }
 
 /* I_MUS2MID_Stop() -- Stops a song from playing and seeks to start (stop []) */
 void I_MUS2MID_Stop(struct I_MusicDriver_s* const a_Driver, const int a_Handle)
 {
+	I_MUS2MIDData_t* Local;
+	
 	/* Check */
 	if (!a_Driver)
 		return;
 	
+	/* Get local */
+	Local = a_Driver->Data;
+	
+	// Check
+	if (!Local)
+		return;
+	
+	/* Feeder mode */
+	if (Local->FeedMessages)
+	{
+	}
+	
+	/* Full convert mode */
+	else
+	{
+	}
+	
+	/* No longer playing */
+	Local->Playing = false;
 }
 
 /* I_MUS2MID_Lengt() -- Length of song */
 uint32_t I_MUS2MID_Length(struct I_MusicDriver_s* const a_Driver, const int a_Handle)
 {
+	I_MUS2MIDData_t* Local;
+	
 	/* Check */
 	if (!a_Driver)
 		return 0;
+	
+	/* Get local */
+	Local = a_Driver->Data;
+	
+	// Check
+	if (!Local)
+		return 0;
+	
+	/* Feeder mode */
+	if (Local->FeedMessages)
+	{
+	}
+	
+	/* Full convert mode */
+	else
+	{
+	}
 	
 	return 0;
 }
@@ -237,21 +529,81 @@ uint32_t I_MUS2MID_Length(struct I_MusicDriver_s* const a_Driver, const int a_Ha
 /* I_MUS2MID_Seek() -- Seeks to a new position */
 void I_MUS2MID_Seek(struct I_MusicDriver_s* const a_Driver, const int a_Handle, const uint32_t a_Pos)
 {
+	I_MUS2MIDData_t* Local;
+	
 	/* Check */
 	if (!a_Driver)
 		return;
 	
+	/* Get local */
+	Local = a_Driver->Data;
+	
+	// Check
+	if (!Local)
+		return;
+	
+	/* Feeder mode */
+	if (Local->FeedMessages)
+	{
+	}
+	
+	/* Full convert mode */
+	else
+	{
+	}
 }
 
 /* I_MUS2MID_Play() -- Plays a song */
-int I_MUS2MID_Play(struct I_MusicDriver_s* const a_Driver, const void* const a_Data, const bool_t Loop)
+int I_MUS2MID_Play(struct I_MusicDriver_s* const a_Driver, const void* const a_Data, const size_t a_Size, const bool_t Loop)
 {
+	I_MUS2MIDData_t* Local;
+	size_t i;
+	
 	/* Check */
 	if (!a_Driver)
 		return 0;
 	
+	/* Get local */
+	Local = a_Driver->Data;
+	
+	// Check
+	if (!Local)
+		return;
+	
 	if (devparm)
 		CONS_Printf("I_MUS2MID_Play: Converting MUS to MIDI.\n");
+	
+	/* Basic Init */
+	Local->LocalDelta = 0;
+	if (Local->MIDIData)
+		Z_Free(Local->MIDIData);
+	Local->MIDIData = NULL;
+	Local->MIDISize = 0;
+	Local->DeltaTotal = 0;
+	Local->Special = 0;
+	Local->LocalTime = 0;
+	Local->NextRun = 0;
+	Local->BaseTime = 0;
+	
+	// remember volumes
+	for (i = 0; i < 16; i++)
+		Local->Vols[i] = 127;
+	
+	/* Feeder mode */
+	if (Local->FeedMessages)
+	{
+		// Set data and size
+		Local->Data = a_Data;
+		Local->Size = a_Size;
+	}
+	
+	/* Full convert mode */
+	else
+	{
+	}
+	
+	/* Playing */
+	Local->Playing = true;
 	
 	return 0;
 }
@@ -259,10 +611,134 @@ int I_MUS2MID_Play(struct I_MusicDriver_s* const a_Driver, const void* const a_D
 /* I_MUS2MID_Volume() -- Changes volume */
 void I_MUS2MID_Volume(struct I_MusicDriver_s* const a_Driver, const int a_Handle, const uint8_t Vol)
 {
+	I_MUS2MIDData_t* Local;
+	
 	/* Check */
 	if (!a_Driver)
 		return;
 	
+	/* Get local */
+	Local = a_Driver->Data;
+	
+	// Check
+	if (!Local)
+		return;
+	
+	/* Feeder mode */
+	if (Local->FeedMessages)
+	{
+	}
+	
+	/* Full convert mode */
+	else
+	{
+	}
+}
+
+/* I_MUS2MID_Update() -- Updates playing music */
+void I_MUS2MID_Update(struct I_MusicDriver_s* const a_Driver, const tic_t a_Tics)
+{
+	I_MUS2MIDData_t* Local;
+	uint32_t Out;
+	size_t OutSize;
+	uint32_t Delta;
+	uint32_t PassedTime;
+	
+	/* Check */
+	if (!a_Driver)
+		return;
+	
+	/* Get local */
+	Local = a_Driver->Data;
+	
+	// Check
+	if (!Local)
+		return;
+		
+	/* Not playing or paused? */
+	if (!Local->Playing || Local->PausePlay)
+		return;
+	
+	/* Set stuff */
+	if (!Local->BaseTime)
+	{
+		Local->BaseTime = a_Tics;
+		Local->NextRun = 3;
+	}
+	
+	/* Feeder mode */
+	if (Local->FeedMessages)
+	{
+		if (Local->NextRun)
+			Local->NextRun--;
+		else
+		{
+			while (I_MUS2MID_MUSReadNextMessage(Local, &Out, &OutSize, &Delta))
+			{
+				// Send message to driver
+				Local->RealDriver->RawMIDI(Local->RealDriver, Out, OutSize);
+				
+				if (Delta)
+					break;
+			}
+			Local->NextRun = 3;
+		}
+#if 0
+		// Keep reading messages over and over, only as long as we should play notes
+		if (a_Tics >= Local->NextRun)
+		{
+			// Endless loop
+			while (I_MUS2MID_MUSReadNextMessage(Local, &Out, &OutSize, &Delta))
+			{
+				// Send message to driver
+				Local->RealDriver->RawMIDI(Local->RealDriver, Out, OutSize);
+				
+				// If we must wait, then wait
+				if (Delta)
+					break;
+			}
+			
+			// Modify the next time
+			Local->BaseTime = a_Tics;
+			Local->NextRun = Local->BaseTime + (Delta / 70);
+		}
+#endif
+		
+		/*	I_MusicDriver_t* RealDriver;
+	int RealHandle;
+	bool_t FeedMessages;
+	uint8_t* Data;
+	size_t Pos;
+	uint8_t* MIDIData;
+	size_t MIDISize;
+	uint32_t DeltaTotal;
+	uint32_t LocalDelta;
+	bool_t Playing;
+	bool_t PausePlay;
+	int Special;
+	tic_t LocalTime;
+	tic_t NextRun;*/
+		
+		
+		
+#if 0
+		if (!Local->Special)
+		{
+			I_MUS2MID_MsgNoteOn(Local->RealDriver, 0, 75, 127);
+		}
+		else
+		{
+			I_MUS2MID_MsgNoteOff(Local->RealDriver, 0, 75, 127);
+		}
+		
+		Local->Special = !Local->Special;
+#endif
+	}
+	
+	/* Full convert mode */
+	else
+	{
+	}
 }
 
 /* I_MusicDriver_t -- Driver for playing Music */
@@ -290,7 +766,8 @@ static I_MusicDriver_t l_MUS2MIDDriver =
 	I_MUS2MID_Seek,
 	I_MUS2MID_Play,
 	I_MUS2MID_Volume,
-	NULL
+	NULL,
+	I_MUS2MID_Update
 };
 
 /****************
@@ -694,7 +1171,13 @@ bool_t I_DumpTemporary(char* const a_PathBuf, const size_t a_PathSize, const uin
 	/* Under UNIX, use mkstemp() */
 #if defined(__unix__)
 	// Create it
-	snprintf(a_PathBuf, a_PathSize, "/tmp/rmXXXXXX");
+	snprintf(a_PathBuf, a_PathSize, 
+#if defined(__MSDOS__)
+			"rmXXXXXX"	// On DJGPP with DOS, don't place in /tmp/ because that will always fail!
+#else
+			"/tmp/rmXXXXXX"
+#endif
+		);
 	if ((fd = mkstemp(a_PathBuf)) == -1)
 		return false;
 	
@@ -1120,6 +1603,12 @@ void I_ShutdownMusic(void)
 /* I_UpdateMusic() -- Updates playing music */
 void I_UpdateMusic(void)
 {
+	size_t i;
+	
+	/* Update all drivers */
+	for (i = 0; i < l_NumMusicDrivers; i++)
+		if (l_MusicDrivers[i]->Update)
+			l_MusicDrivers[i]->Update(l_MusicDrivers[i], g_ProgramTic);
 }
 
 /* I_SetMusicVolume() -- Sets music volume */
@@ -1287,6 +1776,7 @@ void I_PlaySong(int handle, int looping)
 		l_LocalSongs[i].DriverHandle = l_LocalSongs[i].Driver->Play(
 												l_LocalSongs[i].Driver,
 												(l_LocalSongs[i].Driver->ExternalData ? l_LocalSongs[i].PathName : l_LocalSongs[i].Data),
+												l_LocalSongs[i].EntryLength,
 												looping
 											);
 	

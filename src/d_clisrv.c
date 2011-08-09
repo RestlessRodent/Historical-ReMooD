@@ -181,7 +181,7 @@ void TryRunTics(tic_t realtics)
 			while (neededtic > gametic)
 			{
 
-				if (gametic % 5 == 0)
+				//if (gametic % 5 == 0)
 					I_UpdateMusic();
 				G_Ticker();
 				gametic++;
@@ -211,6 +211,7 @@ void NetUpdate(void)
 
 	nowtime = I_GetTime();
 	realtics = nowtime - gametime;
+	g_ProgramTic = I_GetTimeMS() / TICRATE;
 
 	if (realtics <= 0)			// nothing new to update
 		return;

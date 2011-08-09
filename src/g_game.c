@@ -209,6 +209,7 @@ int statusbarplayer;			// player who's statusbar is displayed
 										// (for spying with F12)
 
 tic_t gametic;
+tic_t g_ProgramTic = 0;
 tic_t levelstarttic;			// gametic at level start
 int totalkills, totalitems, totalsecret;	// for intermission
 

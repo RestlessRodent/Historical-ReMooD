@@ -248,11 +248,13 @@ typedef struct I_MusicDriver_s
 		// Seeks to a new position
 	void (*Seek)(struct I_MusicDriver_s* const a_Driver, const int a_Handle, const uint32_t a_Pos);
 		// Plays a song
-	int (*Play)(struct I_MusicDriver_s* const a_Driver, const void* const a_Data, const bool_t Loop);
+	int (*Play)(struct I_MusicDriver_s* const a_Driver, const void* const a_Data, const size_t a_Size, const bool_t Loop);
 		// Changes volume
 	void (*Volume)(struct I_MusicDriver_s* const a_Driver, const int a_Handle, const uint8_t Vol);
 		// Raw MIDI Data
-	void (*RawMIDI)(struct I_MusicDriver_s* const a_Driver, const uint32_t a_Msg);
+	void (*RawMIDI)(struct I_MusicDriver_s* const a_Driver, const uint32_t a_Msg, const uint32_t a_BitLength);
+		// Update MIDI
+	void (*Update)(struct I_MusicDriver_s* const a_Driver, const tic_t a_Tics);
 } I_MusicDriver_t;
 
 /****************

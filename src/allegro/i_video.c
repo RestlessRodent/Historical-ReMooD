@@ -193,7 +193,7 @@ const uint8_t c_AllegroToReMooDKey[KEY_MAX] =				// Converts an Allegro key to a
 	IKBK_NULL,	//	KEY_UNKNOWN8	
 	IKBK_SHIFT,	//	KEY_LSHIFT	
 	IKBK_SHIFT,	//	KEY_RSHIFT	
-	IKBK_CTRL,	//	KEY_LCONTROL	
+	IKBK_CTRL,	//	KEY_LCONTROL
 	IKBK_CTRL,	//	KEY_RCONTROL	
 	IKBK_ALT,	//	KEY_ALT	
 	IKBK_ALT,	//	KEY_ALTGR	
