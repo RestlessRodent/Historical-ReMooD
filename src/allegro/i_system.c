@@ -170,8 +170,8 @@ int g_RefreshRate = 0;
 /* I_GetTimeMS() -- Returns time since the game started (in MS) */
 uint64_t I_GetTimeMS(void)
 {
-	uint32_t ThisTime;
-	static uint32_t LastTime;
+	register uint32_t ThisTime;
+	static uint32_t FirstTime;
 	static uint64_t ShiftTime;
 	
 	/* Is the refresh rate known? */
@@ -185,22 +185,22 @@ uint64_t I_GetTimeMS(void)
 		ThisTime = (retrace_count * 1000) / 70;
 	
 	/* Last time not set? */
-	if (!LastTime)
-		LastTime = ThisTime;
+	if (!FirstTime)
+		FirstTime = ThisTime;
 	
 	/* This time less than last time? */
 	// An overflow occured, so we shift
-	if (ThisTime < LastTime)
+	if (ThisTime < FirstTime)
 	{
 		// Add to shift time the lost time
-		ShiftTime += LastTime;
+		ShiftTime += FirstTime;
 		
 		// Reset last (since it will be the new base)
-		LastTime = ThisTime;
+		FirstTime = ThisTime;
 	}
 	
-	/* Return shift + this */
-	return ShiftTime + (ThisTime - LastTime);
+	/* Return shift + (this - first) */
+	return ShiftTime + (ThisTime - FirstTime);
 }
 
 //
