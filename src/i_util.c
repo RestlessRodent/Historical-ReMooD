@@ -325,9 +325,11 @@ bool_t I_MUS2MID_MUSReadNextMessage(I_MUS2MIDData_t* const a_Local, uint32_t* co
 		// Add the current time to delay
 		*a_Delta *= 128;
 		*a_Delta += NoteBit[0] & 0x7F;
-		
-		*a_Delta *= 140;
 	}
+	
+	/* Convert to MS time */
+	// 1000 / 140 = 7.142857143
+	*a_Delta = *a_Delta * 7;//(*a_Delta * 1000) / 140;
 	
 	/* Success */
 	*a_OutData = MIDIMsg.u;
@@ -421,6 +423,12 @@ void I_MUS2MID_Success(struct I_MusicDriver_s* const a_Driver)
 void I_MUS2MID_Pause(struct I_MusicDriver_s* const a_Driver, const int a_Handle)
 {
 	I_MUS2MIDData_t* Local;
+	size_t i;
+	union
+	{
+		uint32_t u;
+		uint8_t b[4];
+	} MIDIMsg;
 	
 	/* Check */
 	if (!a_Driver)
@@ -436,6 +444,20 @@ void I_MUS2MID_Pause(struct I_MusicDriver_s* const a_Driver, const int a_Handle)
 	/* Feeder mode */
 	if (Local->FeedMessages)
 	{
+		// Reset base time and set paused
+		Local->BaseTime = 0;
+		Local->PausePlay = true;
+		
+		// End everything pretty much
+		for (i = 0; i < 16; i++)
+		{
+			// Turn off all notes
+			MIDIMsg.u = 0;
+			MIDIMsg.b[0] = 0xB0 | i;
+			MIDIMsg.b[1] = 0x7B;
+			MIDIMsg.b[2] = 0;
+			Local->RealDriver->RawMIDI(Local->RealDriver, MIDIMsg.u, 3);
+		}
 	}
 	
 	/* Full convert mode */
@@ -463,6 +485,8 @@ void I_MUS2MID_Resume(struct I_MusicDriver_s* const a_Driver, const int a_Handle
 	/* Feeder mode */
 	if (Local->FeedMessages)
 	{
+		Local->BaseTime = 0;
+		Local->PausePlay = false;
 	}
 	
 	/* Full convert mode */
@@ -496,6 +520,9 @@ void I_MUS2MID_Stop(struct I_MusicDriver_s* const a_Driver, const int a_Handle)
 	/* Feeder mode */
 	if (Local->FeedMessages)
 	{
+		// Clear time
+		Local->BaseTime = 0;
+		
 		// End everything pretty much
 		for (i = 0; i < 16; i++)
 		{
@@ -707,6 +734,8 @@ void I_MUS2MID_Update(struct I_MusicDriver_s* const a_Driver, const tic_t a_Tics
 	size_t OutSize;
 	uint32_t Delta;
 	uint32_t PassedTime;
+	tic_t Distance;
+	uint32_t MSTime;
 	
 	/* Check */
 	if (!a_Driver)
@@ -726,77 +755,31 @@ void I_MUS2MID_Update(struct I_MusicDriver_s* const a_Driver, const tic_t a_Tics
 	/* Set stuff */
 	if (!Local->BaseTime)
 	{
+		Local->LocalTime = a_Tics * TICRATE;
 		Local->BaseTime = a_Tics;
-		Local->NextRun = 3;
 	}
 	
 	/* Feeder mode */
 	if (Local->FeedMessages)
 	{
-		if (Local->NextRun)
-			Local->NextRun--;
-		else
+		// Get time in millis
+		MSTime = a_Tics * TICRATE;
+		
+		// Constant play loop
+		while (Local->LocalTime <= MSTime)
 		{
-			while (I_MUS2MID_MUSReadNextMessage(Local, &Out, &OutSize, &Delta))
+			// Read a message
+			if (I_MUS2MID_MUSReadNextMessage(Local, &Out, &OutSize, &Delta))
 			{
-				// Send message to driver
+				// Send message
 				Local->RealDriver->RawMIDI(Local->RealDriver, Out, OutSize);
 				
-				if (Delta)
-					break;
+				// Add Delta to the local time
+				Local->LocalTime += Delta;
 			}
-			Local->NextRun = 3;
+			else	// Something went bad =(
+				Local->LocalTime = MSTime;
 		}
-#if 0
-		// Keep reading messages over and over, only as long as we should play notes
-		if (a_Tics >= Local->NextRun)
-		{
-			// Endless loop
-			while (I_MUS2MID_MUSReadNextMessage(Local, &Out, &OutSize, &Delta))
-			{
-				// Send message to driver
-				Local->RealDriver->RawMIDI(Local->RealDriver, Out, OutSize);
-				
-				// If we must wait, then wait
-				if (Delta)
-					break;
-			}
-			
-			// Modify the next time
-			Local->BaseTime = a_Tics;
-			Local->NextRun = Local->BaseTime + (Delta / 70);
-		}
-#endif
-		
-		/*	I_MusicDriver_t* RealDriver;
-	int RealHandle;
-	bool_t FeedMessages;
-	uint8_t* Data;
-	size_t Pos;
-	uint8_t* MIDIData;
-	size_t MIDISize;
-	uint32_t DeltaTotal;
-	uint32_t LocalDelta;
-	bool_t Playing;
-	bool_t PausePlay;
-	int Special;
-	tic_t LocalTime;
-	tic_t NextRun;*/
-		
-		
-		
-#if 0
-		if (!Local->Special)
-		{
-			I_MUS2MID_MsgNoteOn(Local->RealDriver, 0, 75, 127);
-		}
-		else
-		{
-			I_MUS2MID_MsgNoteOff(Local->RealDriver, 0, 75, 127);
-		}
-		
-		Local->Special = !Local->Special;
-#endif
 	}
 	
 	/* Full convert mode */
