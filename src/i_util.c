@@ -1315,7 +1315,7 @@ uint8_t* I_VideoSoftBuffer(uint32_t* const a_WidthP, uint32_t* const a_HeightP)
 }
 
 /* I_GetTime() -- Returns time since the game started */
-uint64_t I_GetTime(void)
+uint32_t I_GetTime(void)
 {
 	return (I_GetTimeMS() * TICRATE) / 1000;
 }

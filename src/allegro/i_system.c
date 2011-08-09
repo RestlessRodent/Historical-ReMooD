@@ -168,39 +168,17 @@ uint32_t LastTime = 0;
 int g_RefreshRate = 0;
 
 /* I_GetTimeMS() -- Returns time since the game started (in MS) */
-uint64_t I_GetTimeMS(void)
+uint32_t I_GetTimeMS(void)
 {
-	register uint32_t ThisTime;
-	static uint32_t FirstTime;
-	static uint64_t ShiftTime;
-	
 	/* Is the refresh rate known? */
 	// retrace_count will match it
 	if (g_RefreshRate)
-		ThisTime = (retrace_count * 1000) / g_RefreshRate;
+		return (retrace_count * 1000) / g_RefreshRate;
 	
 	/* It isn't */
 	// Otherwise retrace_count will be simulated at 70
 	else
-		ThisTime = (retrace_count * 1000) / 70;
-	
-	/* Last time not set? */
-	if (!FirstTime)
-		FirstTime = ThisTime;
-	
-	/* This time less than last time? */
-	// An overflow occured, so we shift
-	if (ThisTime < FirstTime)
-	{
-		// Add to shift time the lost time
-		ShiftTime += FirstTime;
-		
-		// Reset last (since it will be the new base)
-		FirstTime = ThisTime;
-	}
-	
-	/* Return shift + (this - first) */
-	return ShiftTime + (ThisTime - FirstTime);
+		return (retrace_count * 1000) / 70;
 }
 
 //
@@ -235,7 +213,7 @@ void I_Quit(void)
 void I_WaitVBL(int count)
 {
 	/* Use rest() */
-	//rest(count);
+	rest(count);
 }
 
 /* I_BeginRead() -- Before a file is read */

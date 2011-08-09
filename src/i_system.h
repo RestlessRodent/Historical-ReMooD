@@ -125,7 +125,7 @@ void* I_SysRealloc(void* const a_Ptr, const size_t a_NewSize);
 void I_SysFree(void* const a_Ptr);
 void I_SystemPreExit(void);
 void I_SystemPostExit(void);
-uint64_t I_GetTimeMS(void);
+uint32_t I_GetTimeMS(void);
 
 #endif
 

@@ -192,14 +192,43 @@ void TryRunTics(tic_t realtics)
 					if (paused)
 					{
 						neededtic++;
-						I_WaitVBL(26);
+						//I_WaitVBL(20);
 					}
 				}
 			}
 		}
 	}
-	else
-		I_WaitVBL(26);
+	/*else
+		I_WaitVBL(20);*/
+}
+
+/* D_GetTics() -- Returns wrap capable time in tics */
+static tic_t D_GetTics(void)
+{
+	register uint32_t ThisTime;
+	static uint32_t FirstTime;
+	static tic_t ShiftTime;
+	
+	/* Get the current time */
+	ThisTime = I_GetTime();
+	
+	/* Last time not set? */
+	if (!FirstTime)
+		FirstTime = ThisTime;
+	
+	/* This time less than last time? */
+	// An overflow occured, so we shift
+	if (ThisTime < FirstTime)
+	{
+		// Add to shift time the lost time
+		ShiftTime += FirstTime;
+		
+		// Reset last (since it will be the new base)
+		FirstTime = ThisTime;
+	}
+	
+	/* Return shift + (this - first) */
+	return ShiftTime + (ThisTime - FirstTime);
 }
 
 void NetUpdate(void)
@@ -209,9 +238,9 @@ void NetUpdate(void)
 	int i;
 	int realtics;
 
-	nowtime = I_GetTime();
+	nowtime = D_GetTics();//I_GetTime();
 	realtics = nowtime - gametime;
-	g_ProgramTic = I_GetTimeMS() / TICRATE;
+	g_ProgramTic = I_GetTimeMS() / TICRATE;//nowtime;
 
 	if (realtics <= 0)			// nothing new to update
 		return;

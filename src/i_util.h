@@ -280,7 +280,7 @@ void I_VideoSetBuffer(const uint32_t a_Width, const uint32_t a_Height, const uin
 void I_VideoUnsetBuffer(void);
 uint8_t* I_VideoSoftBuffer(uint32_t* const a_WidthP, uint32_t* const a_HeightP);
 
-uint64_t I_GetTime(void);
+uint32_t I_GetTime(void);
 bool_t I_DumpTemporary(char* const a_PathBuf, const size_t a_PathSize, const uint8_t* const a_Data, const size_t a_Size);
 
 void I_ShowEndTxt(const uint8_t* const a_TextData);
