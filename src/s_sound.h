@@ -42,15 +42,6 @@ extern consvar_t cv_rndsoundpitch;
 
 extern consvar_t precachesound;
 
-#ifdef SNDSERV
-extern consvar_t sndserver_cmd;
-extern consvar_t sndserver_arg;
-#endif
-#ifdef MUSSERV
-extern consvar_t musserver_cmd;
-extern consvar_t musserver_arg;
-#endif
-
 extern CV_PossibleValue_t soundvolume_cons_t[];
 //part of i_cdmus.c
 extern consvar_t cd_volume;

@@ -226,10 +226,6 @@ typedef struct I_MusicDriver_s
 												// The play func will be passed a pathname instead of raw data
 	uint8_t Priority;							// Priority of the driver
 	
-	/* Dynamic */
-	void* Data;									// Driver personal data
-	size_t Size;								// Size of personal data
-	
 	/* Handlers */
 		// Initializes a driver
 	bool_t (*Init)(struct I_MusicDriver_s* const a_Driver);
@@ -255,7 +251,33 @@ typedef struct I_MusicDriver_s
 	void (*RawMIDI)(struct I_MusicDriver_s* const a_Driver, const uint32_t a_Msg, const uint32_t a_BitLength);
 		// Update MIDI
 	void (*Update)(struct I_MusicDriver_s* const a_Driver, const tic_t a_Tics);
+	
+	/* Dynamic */
+	void* Data;									// Driver personal data
+	size_t Size;								// Size of personal data
 } I_MusicDriver_t;
+
+/* I_SoundDriver_t -- Sound driver (plays sound, kinda) */
+typedef struct I_SoundDriver_s
+{
+	/* Info */
+	char Name[MAXDRIVERNAME];					// Name of driver
+	char ShortName[MAXDRIVERNAME];				// Short driver name
+	bool_t PCBeeping;							// Does this driver beep at you?
+	uint8_t Priority;							// Priority of the driver
+	
+	/* Functions */
+		// Initializes a driver
+	bool_t (*Init)(struct I_MusicDriver_s* const a_Driver);
+		// Destroys a driver
+	bool_t (*Destroy)(struct I_MusicDriver_s* const a_Driver);
+		// Success
+	void (*Success)(struct I_MusicDriver_s* const a_Driver);
+	
+	/* Dynamic */
+	void* Data;									// Private data
+	size_t Size;								// Private size
+} I_SoundDriver_t;
 
 /****************
 *** FUNCTIONS ***
@@ -306,6 +328,19 @@ void I_PauseSong(int handle);
 void I_ResumeSong(int handle);
 void I_PlaySong(int handle, int looping);
 void I_StopSong(int handle);
+
+void *I_GetSfx(struct sfxinfo_struct* sfx);
+void I_FreeSfx(struct sfxinfo_struct* sfx);
+void I_StartupSound();
+void I_UpdateSound(void);
+void I_SubmitSound(void);
+void I_ShutdownSound(void);
+int I_StartSound(int id, int vol, int sep, int pitch, int priority, struct mobj_s* origin);
+void I_StopSound(int handle);
+void I_CutOrigonator(void *origin);	// Stops a sound originating from something
+int I_SoundIsPlaying(int handle);
+void I_UpdateSoundParams(int handle, int vol, int sep, int pitch);
+int I_StartSoundEx(int id, int vol, int sep, int pitch, int priority, struct mobj_s* origin, int orientation, int front, int center);
 
 #endif /* __I_UTIL_H__ */
 

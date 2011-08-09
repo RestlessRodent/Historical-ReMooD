@@ -171,10 +171,6 @@ static I_MusicDriver_t l_AllegroDriver =
 	true,
 	100,
 	
-	/* Dynamic */
-	NULL,
-	0,
-	
 	/* Handlers */
 	I_AllegroMD_Init,
 	NULL,

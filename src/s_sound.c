@@ -25,16 +25,6 @@
 // -----------------------------------------------------------------------------
 // DESCRIPTION:  
 
-#ifdef MUSSERV
-#include <sys/msg.h>
-struct musmsg
-{
-	long msg_type;
-	char msg_text[12];
-};
-extern int msg_id;
-#endif
-
 #include "doomdef.h"
 #include "doomstat.h"
 #include "command.h"
@@ -58,16 +48,6 @@ void Command_SoundReset_f(void)
 	I_ShutdownSound();
 	I_StartupSound();
 }
-
-// commands for music and sound servers
-#ifdef MUSSERV
-consvar_t musserver_cmd = { "musserver_cmd", "musserver", CV_SAVE };
-consvar_t musserver_arg = { "musserver_arg", "-t 20 -f -u 0", CV_SAVE };
-#endif
-#ifdef SNDSERV
-consvar_t sndserver_cmd = { "sndserver_cmd", "llsndserv", CV_SAVE };
-consvar_t sndserver_arg = { "sndserver_arg", "-quiet", CV_SAVE };
-#endif
 
 #if defined (_WIN32) && !defined (SURROUND)
 #define SURROUND
@@ -176,14 +156,6 @@ void S_RegisterSoundStuff(void)
 	CV_RegisterVar(&stereoreverse);
 	CV_RegisterVar(&precachesound);
 
-#ifdef SNDSERV
-	CV_RegisterVar(&sndserver_cmd);
-	CV_RegisterVar(&sndserver_arg);
-#endif
-#ifdef MUSSERV
-	CV_RegisterVar(&musserver_cmd);
-	CV_RegisterVar(&musserver_arg);
-#endif
 #ifdef SURROUND
 	CV_RegisterVar(&surround);
 #endif
@@ -909,19 +881,6 @@ void S_ChangeMusic(int music_num, int looping)
 	music->handle = I_RegisterSong(music->data, W_LumpLength(music->lumpnum));
 #endif
 
-#ifdef MUSSERV
-
-	if (msg_id != -1)
-	{
-		struct musmsg msg_buffer;
-
-		msg_buffer.msg_type = 6;
-		memset(msg_buffer.msg_text, 0, sizeof(msg_buffer.msg_text));
-		sprintf(msg_buffer.msg_text, "d_%s", music->name);
-		msgsnd(msg_id, (struct msgbuf *)&msg_buffer, sizeof(msg_buffer.msg_text), IPC_NOWAIT);
-	}
-
-#endif
 
 	// play it
 	I_PlaySong(music->handle, looping);

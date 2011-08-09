@@ -159,6 +159,9 @@ static quitfuncptr quit_funcs[MAX_QUIT_FUNCS];
 static I_MusicDriver_t** l_MusicDrivers;		// Music drivers
 static size_t l_NumMusicDrivers;				// Number of music drivers
 
+static I_SoundDriver_t** l_SoundDrivers;		// Sound drivers
+static size_t l_NumSoundDrivers;				// Number of sound drivers
+
 static I_LocalMusic_t* l_LocalSongs;			// Local songs
 static size_t l_NumLocalSongs;					// Number of local songs
 
@@ -915,10 +918,6 @@ static I_MusicDriver_t l_MUS2MIDDriver =
 	1 << IMT_MUS,
 	false,
 	50,
-	
-	/* Dynamic */
-	NULL,
-	0,
 	
 	/* Handlers */
 	I_MUS2MID_Init,
