@@ -121,6 +121,7 @@ typedef struct I_MUS2MIDData_s
 {
 	I_MusicDriver_t* RealDriver;
 	int RealHandle;
+	int LocalHandle;
 	bool_t FeedMessages;
 	uint8_t* Data;
 	size_t Size;
@@ -441,6 +442,10 @@ void I_MUS2MID_Pause(struct I_MusicDriver_s* const a_Driver, const int a_Handle)
 	if (!Local)
 		return;
 	
+	// Check handle
+	if (a_Handle != Local->LocalHandle)
+		return;
+	
 	/* Feeder mode */
 	if (Local->FeedMessages)
 	{
@@ -482,6 +487,14 @@ void I_MUS2MID_Resume(struct I_MusicDriver_s* const a_Driver, const int a_Handle
 	if (!Local)
 		return;
 	
+	// Check handle
+	if (a_Handle != Local->LocalHandle)
+		return;
+	
+	// Not playing?
+	if (!Local->Playing)
+		return;
+	
 	/* Feeder mode */
 	if (Local->FeedMessages)
 	{
@@ -515,6 +528,10 @@ void I_MUS2MID_Stop(struct I_MusicDriver_s* const a_Driver, const int a_Handle)
 	
 	// Check
 	if (!Local)
+		return;
+	
+	// Check handle
+	if (a_Handle != Local->LocalHandle)
 		return;
 	
 	/* Feeder mode */
@@ -574,6 +591,10 @@ uint32_t I_MUS2MID_Length(struct I_MusicDriver_s* const a_Driver, const int a_Ha
 	if (!Local)
 		return 0;
 	
+	// Check handle
+	if (a_Handle != Local->LocalHandle)
+		return;
+	
 	/* Feeder mode */
 	if (Local->FeedMessages)
 	{
@@ -601,6 +622,10 @@ void I_MUS2MID_Seek(struct I_MusicDriver_s* const a_Driver, const int a_Handle, 
 	
 	// Check
 	if (!Local)
+		return;
+	
+	// Check handle
+	if (a_Handle != Local->LocalHandle)
 		return;
 	
 	/* Feeder mode */
@@ -648,8 +673,11 @@ int I_MUS2MID_Play(struct I_MusicDriver_s* const a_Driver, const void* const a_D
 	Local->DeltaTotal = 0;
 	Local->Special = 0;
 	Local->LocalTime = 0;
-	Local->NextRun = 0;
 	Local->BaseTime = 0;
+	Local->NextRun = 0;
+	Local->Pos = 0;
+		Local->Data = a_Data;
+		Local->Size = a_Size;
 	
 	// remember volumes
 	for (i = 0; i < 16; i++)
@@ -658,10 +686,6 @@ int I_MUS2MID_Play(struct I_MusicDriver_s* const a_Driver, const void* const a_D
 	/* Feeder mode */
 	if (Local->FeedMessages)
 	{
-		// Set data and size
-		Local->Data = a_Data;
-		Local->Size = a_Size;
-		
 		// End everything pretty much
 		for (i = 0; i < 16; i++)
 		{
@@ -696,7 +720,7 @@ int I_MUS2MID_Play(struct I_MusicDriver_s* const a_Driver, const void* const a_D
 	/* Playing */
 	Local->Playing = true;
 	
-	return 0;
+	return ++Local->LocalHandle;
 }
 
 /* I_MUS2MID_Volume() -- Changes volume */
@@ -713,6 +737,10 @@ void I_MUS2MID_Volume(struct I_MusicDriver_s* const a_Driver, const int a_Handle
 	
 	// Check
 	if (!Local)
+		return;
+	
+	// Check handle
+	if (a_Handle != Local->LocalHandle)
 		return;
 	
 	/* Feeder mode */
