@@ -301,11 +301,15 @@ bool_t I_MUS2MID_MUSReadNextMessage(I_MUS2MIDData_t* const a_Local, uint32_t* co
 			
 			// Reset song
 		case 6:
+			Last = false;						// Clear last, don't want to handle it
+			*a_Delta = 1;						// Break from loop, kinda
+			a_Local->Pos = a_Local->MusStart;	// Back to start
 			break;
 		
 			// Unknown
 		default:
-			CONS_Printf("I_MUS2MID_MUSReadNextMessage: Unknown %i\n", Event);
+			if (devparm)
+				CONS_Printf("I_MUS2MID_MUSReadNextMessage: Unknown %i\n", Event);
 			break;
 	}
 	
