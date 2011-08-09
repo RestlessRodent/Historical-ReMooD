@@ -178,6 +178,7 @@ bool_t I_MUS2MID_MUSReadNextMessage(I_MUS2MIDData_t* const a_Local, uint32_t* co
 	uint8_t Channel;
 	uint8_t Event;
 	size_t i;
+	uint8_t Key;
 	
 	union
 	{
@@ -282,12 +283,48 @@ bool_t I_MUS2MID_MUSReadNextMessage(I_MUS2MIDData_t* const a_Local, uint32_t* co
 			
 			// System Event
 		case 3:
+			Key = (NoteBit[1] & 0x7F);
+			
+			// Always set this, it is always the same
+			MIDIMsg.b[0] = 0xB0 | Channel;
+			*a_OutSize = 3;
+			
+			// Depending on which event
+			switch (Key)
+			{
+					// All sounds off
+				case 10:
+					MIDIMsg.b[1] = 0x78;
+					break;
+					
+					// All notes off
+				case 11:
+					MIDIMsg.b[1] = 0x7B;
+					break;
+					
+					// Mono
+				case 12:
+					MIDIMsg.b[1] = 0x7E;
+					break;
+					
+					// Poly
+				case 13:
+					MIDIMsg.b[1] = 0x7F;
+					break;
+					
+					// Reset all controllers
+				case 14:
+					MIDIMsg.b[1] = 0x79;
+					break;
+			}
 			break;
 			
 			// Change controller
 		case 4:
+			Key = (NoteBit[1] & 0x7F);
+			
 			// Program change
-			if ((NoteBit[1] & 0x7F) == 0)
+			if (Key == 0)
 			{
 				MIDIMsg.b[0] = 0xC0 | Channel;
 				MIDIMsg.b[1] = NoteBit[2] & 0x7F;
@@ -297,6 +334,59 @@ bool_t I_MUS2MID_MUSReadNextMessage(I_MUS2MIDData_t* const a_Local, uint32_t* co
 			// Everything but program change
 			else
 			{
+				// Always set this, it is always the same
+				MIDIMsg.b[0] = 0xB0 | Channel;
+				MIDIMsg.b[2] = NoteBit[2] & 0x7F;
+				*a_OutSize = 3;
+				
+				// Which?
+				switch (Key)
+				{
+						// Bank select
+					case 1:
+						MIDIMsg.b[1] = 0x00;
+						break;
+						
+						// Vibrato
+					case 2:
+						MIDIMsg.b[1] = 0x01;
+						break;
+					
+						// Volume
+					case 3:
+						MIDIMsg.b[1] = 0x07;
+						break;
+					
+						// Pan
+					case 4:
+						MIDIMsg.b[1] = 0x0A;
+						break;
+					
+						// Expression
+					case 5:
+						MIDIMsg.b[1] = 0x0B;
+						break;
+					
+						// Reverb
+					case 6:
+						MIDIMsg.b[1] = 0x5B;
+						break;
+					
+						// Chorus
+					case 7:
+						MIDIMsg.b[1] = 0x5D;
+						break;
+						
+						// Sustain
+					case 8:
+						MIDIMsg.b[1] = 0x40;
+						break;
+					
+						// Soft pedal
+					case 9:
+						MIDIMsg.b[1] = 0x43;
+						break;
+				}
 			}
 			break;
 			
