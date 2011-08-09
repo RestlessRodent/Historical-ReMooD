@@ -475,6 +475,12 @@ void I_MUS2MID_Resume(struct I_MusicDriver_s* const a_Driver, const int a_Handle
 void I_MUS2MID_Stop(struct I_MusicDriver_s* const a_Driver, const int a_Handle)
 {
 	I_MUS2MIDData_t* Local;
+	size_t i;
+	union
+	{
+		uint32_t u;
+		uint8_t b[4];
+	} MIDIMsg;
 	
 	/* Check */
 	if (!a_Driver)
@@ -490,6 +496,30 @@ void I_MUS2MID_Stop(struct I_MusicDriver_s* const a_Driver, const int a_Handle)
 	/* Feeder mode */
 	if (Local->FeedMessages)
 	{
+		// End everything pretty much
+		for (i = 0; i < 16; i++)
+		{
+			// Turn off all notes
+			MIDIMsg.u = 0;
+			MIDIMsg.b[0] = 0xB0 | i;
+			MIDIMsg.b[1] = 0x7B;
+			MIDIMsg.b[2] = 0;
+			Local->RealDriver->RawMIDI(Local->RealDriver, MIDIMsg.u, 3);
+			
+			// Turn off sustain
+			MIDIMsg.u = 0;
+			MIDIMsg.b[0] = 0xB0 | i;
+			MIDIMsg.b[1] = 0x40;
+			MIDIMsg.b[2] = 0;
+			Local->RealDriver->RawMIDI(Local->RealDriver, MIDIMsg.u, 3);
+			
+			// Reset all controllers
+			MIDIMsg.u = 0;
+			MIDIMsg.b[0] = 0xB0 | i;
+			MIDIMsg.b[1] = 0x79;
+			MIDIMsg.b[2] = 0;
+			Local->RealDriver->RawMIDI(Local->RealDriver, MIDIMsg.u, 3);
+		}
 	}
 	
 	/* Full convert mode */
@@ -562,6 +592,11 @@ int I_MUS2MID_Play(struct I_MusicDriver_s* const a_Driver, const void* const a_D
 {
 	I_MUS2MIDData_t* Local;
 	size_t i;
+	union
+	{
+		uint32_t u;
+		uint8_t b[4];
+	} MIDIMsg;
 	
 	/* Check */
 	if (!a_Driver)
@@ -599,6 +634,31 @@ int I_MUS2MID_Play(struct I_MusicDriver_s* const a_Driver, const void* const a_D
 		// Set data and size
 		Local->Data = a_Data;
 		Local->Size = a_Size;
+		
+		// End everything pretty much
+		for (i = 0; i < 16; i++)
+		{
+			// Turn off all notes
+			MIDIMsg.u = 0;
+			MIDIMsg.b[0] = 0xB0 | i;
+			MIDIMsg.b[1] = 0x7B;
+			MIDIMsg.b[2] = 0;
+			Local->RealDriver->RawMIDI(Local->RealDriver, MIDIMsg.u, 3);
+			
+			// Turn off sustain
+			MIDIMsg.u = 0;
+			MIDIMsg.b[0] = 0xB0 | i;
+			MIDIMsg.b[1] = 0x40;
+			MIDIMsg.b[2] = 0;
+			Local->RealDriver->RawMIDI(Local->RealDriver, MIDIMsg.u, 3);
+			
+			// Reset all controllers
+			MIDIMsg.u = 0;
+			MIDIMsg.b[0] = 0xB0 | i;
+			MIDIMsg.b[1] = 0x79;
+			MIDIMsg.b[2] = 0;
+			Local->RealDriver->RawMIDI(Local->RealDriver, MIDIMsg.u, 3);
+		}
 	}
 	
 	/* Full convert mode */
