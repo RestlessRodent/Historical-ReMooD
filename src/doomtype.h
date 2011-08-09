@@ -427,7 +427,7 @@ BPLWRITE_x(UInt64,uint64_t)
 ************/
 
 // A valid tic
-typedef uint32_t tic_t;
+typedef uint64_t tic_t;
 
 /******************************************
 *** REMOVE ALL THIS GARBAGE, SERIOUSLY! ***

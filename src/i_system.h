@@ -49,9 +49,6 @@ void I_InitJoystick(void);
 // return free and total physical memory in the system
 size_t I_GetFreeMem(size_t * total);
 
-// Called by D_DoomLoop,
-uint32_t I_GetTimeMS(void);
-
 void I_GetEvent(void);
 
 //
@@ -128,6 +125,7 @@ void* I_SysRealloc(void* const a_Ptr, const size_t a_NewSize);
 void I_SysFree(void* const a_Ptr);
 void I_SystemPreExit(void);
 void I_SystemPostExit(void);
+uint64_t I_GetTimeMS(void);
 
 #endif
 
