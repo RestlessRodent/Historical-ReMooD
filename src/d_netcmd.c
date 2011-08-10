@@ -865,10 +865,10 @@ void Got_Pause(char **cp, int playernum)
 		if (paused)
 		{
 			if (!menuactive || netgame)
-				S_PauseSound();
+				S_PauseMusic();
 		}
 		else
-			S_ResumeSound();
+			S_ResumeMusic();
 	}
 }
 

@@ -656,12 +656,12 @@ void D_DoAdvanceDemo(void)
 					case commercial:
 						pagename = "TITLEPIC";
 						pagetic = TICRATE * 11;
-						S_StartMusic(mus_dm2ttl);
+						S_ChangeMusic(mus_dm2ttl, false);
 						break;
 					default:
 						pagename = "TITLEPIC";
 						pagetic = 170;
-						S_StartMusic(mus_intro);
+						S_ChangeMusic(mus_intro, false);
 						break;
 				}
 				gamestate = GS_DEMOSCREEN;
@@ -677,7 +677,7 @@ void D_DoAdvanceDemo(void)
 				{
 					pagetic = TICRATE * 11;
 					pagename = "CREDIT";
-					S_StartMusic(mus_dm2ttl);
+					S_ChangeMusic(mus_dm2ttl, false);
 				}
 				else
 				{
@@ -697,12 +697,12 @@ void D_DoAdvanceDemo(void)
 					case commercial:
 						pagename = "TITLEPIC";
 						pagetic = TICRATE * 11;
-						S_StartMusic(mus_dm2ttl);
+						S_ChangeMusic(mus_dm2ttl, false);
 						break;
 					default:
 						pagename = "TITLEPIC";
 						pagetic = 170;
-						S_StartMusic(mus_intro);
+						S_ChangeMusic(mus_intro, false);
 						break;
 				}
 				gamestate = GS_DEMOSCREEN;
@@ -726,7 +726,7 @@ void D_DoAdvanceDemo(void)
 				{
 					pagetic = TICRATE * 11;
 					pagename = "CREDIT";
-					S_StartMusic(mus_dm2ttl);
+					S_ChangeMusic(mus_dm2ttl, false);
 				}
 				else
 				{

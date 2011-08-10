@@ -1799,7 +1799,7 @@ void G_InitNew(skill_t skill, char *mapname, bool_t resetplayer)
 	if (paused)
 	{
 		paused = false;
-		S_ResumeSound();
+		S_ResumeMusic();
 	}
 
 	if (skill > sk_nightmare)

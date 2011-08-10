@@ -65,7 +65,7 @@ void I_SOUND_DestroyAnalog(void)
 {
 }
 
-void I_StartupSound()
+bool_t I_StartupSound()
 {
 }
 

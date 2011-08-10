@@ -318,7 +318,7 @@ uint64_t I_GetDiskFreeSpace(const char* const a_Path);
 bool_t I_AddMusicDriver(I_MusicDriver_t* const a_Driver);
 bool_t I_RemoveMusicDriver(I_MusicDriver_t* const a_Driver);
 I_MusicDriver_t* I_FindMusicDriver(const I_MusicType_t a_Type);
-void I_InitMusic(void);
+bool_t I_InitMusic(void);
 void I_ShutdownMusic(void);
 void I_UpdateMusic(void);
 void I_SetMusicVolume(int volume);
@@ -331,7 +331,7 @@ void I_StopSong(int handle);
 
 void *I_GetSfx(struct sfxinfo_struct* sfx);
 void I_FreeSfx(struct sfxinfo_struct* sfx);
-void I_StartupSound();
+bool_t I_StartupSound();
 void I_UpdateSound(void);
 void I_SubmitSound(void);
 void I_ShutdownSound(void);

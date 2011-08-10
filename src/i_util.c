@@ -1732,7 +1732,7 @@ I_MusicDriver_t* I_FindMusicDriver(const I_MusicType_t a_Type)
 }
 
 /* I_InitMusic() -- Initializes the music system */
-void I_InitMusic(void)
+bool_t I_InitMusic(void)
 {
 	/* Add interface specific stuff */
 	if (!I_MusicDriverInit())
@@ -1746,6 +1746,9 @@ void I_InitMusic(void)
 	// ReMooD MUS2MID Driver
 	if (!I_AddMusicDriver(&l_MUS2MIDDriver))
 		CONS_Printf("I_InitMusic: Failed to add the MUS2MID driver, you will not hear MUS music.\n");
+	
+	/* Return only if music drivers were loaded */
+	return !!l_NumMusicDrivers;
 }
 
 /* I_ShutdownMusic() -- Shuts down the music system */
@@ -1905,11 +1908,47 @@ void I_UnRegisterSong(int handle)
 /* I_PauseSong() -- Pauses a song */
 void I_PauseSong(int handle)
 {
+	size_t i, j;
+	
+	/* Find song in song list */
+	for (i = 0; i < l_NumLocalSongs; i++)
+		if (l_LocalSongs[i].Handle == handle)
+			break;
+	
+	// Not found?
+	if (i == l_NumLocalSongs)
+		return;
+		
+	/* Song not playing? */
+	if (!l_LocalSongs[i].Playing)
+		return;
+	
+	/* Send pause */
+	if (l_LocalSongs[i].Driver->Pause)
+		l_LocalSongs[i].Driver->Pause(l_LocalSongs[i].Driver, l_LocalSongs[i].DriverHandle);
 }
 
 /* I_ResumeSong() -- Resumes a song */
 void I_ResumeSong(int handle)
 {
+	size_t i, j;
+	
+	/* Find song in song list */
+	for (i = 0; i < l_NumLocalSongs; i++)
+		if (l_LocalSongs[i].Handle == handle)
+			break;
+	
+	// Not found?
+	if (i == l_NumLocalSongs)
+		return;
+		
+	/* Song not playing? */
+	if (!l_LocalSongs[i].Playing)
+		return;
+	
+	/* Send resume */
+	if (l_LocalSongs[i].Driver->Resume)
+		l_LocalSongs[i].Driver->Resume(l_LocalSongs[i].Driver, l_LocalSongs[i].DriverHandle);
 }
 
 /* I_PlaySong() -- Plays a song with optional looping */

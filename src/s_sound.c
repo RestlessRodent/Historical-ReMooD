@@ -33,6 +33,8 @@
 #include "s_sound.h"
 #include "z_zone.h"
 #include "console.h"
+#include "doomstat.h"
+#include "sounds.h"
 
 /*****************
 *** PROTOTYPES ***
@@ -53,6 +55,14 @@ consvar_t cv_rndsoundpitch = { "rndsoundpitch", "Off", CV_SAVE, CV_OnOff };
 consvar_t cv_numChannels = { "snd_channels", "16", CV_SAVE | CV_CALL, CV_Unsigned, SetChannelsNum };
 consvar_t surround = { "surround", "0", CV_SAVE, CV_OnOff };
 
+/*************
+*** LOCALS ***
+*************/
+
+static bool_t l_SoundOK = false;					// Did the sound start OK?
+static bool_t l_MusicOK = true;						// Same but for Music
+static int l_CurrentSong = 0;						// Current playing song handle
+
 /****************
 *** FUNCTIONS ***
 ****************/
@@ -61,24 +71,74 @@ void SetChannelsNum(void)
 {
 }
 
+/* S_RegisterSoundStuff() -- Register the sound console variables */
 void S_RegisterSoundStuff(void)
 {
 }
 
+/* S_Init() -- Initializes the sound subsystem */
 void S_Init(int sfxVolume, int musicVolume)
 {
+	/* Initialize both sound and music */
+	// Sound
+	if (!M_CheckParm("-nosfx"))
+		if (I_StartupSound())
+			l_SoundOK = true;
+	
+	// Music
+	if (!M_CheckParm("-nomusic"))
+		if (I_InitMusic())
+			l_MusicOK = true;
+	
+	/* Always register sound stuff */
+	// So the menu doesn't crash on us
+	S_RegisterSoundStuff();
 }
 
 void S_StopSounds(void)
 {
 }
 
+/* S_Start() -- Change song based on level */
+// YUCK! When RMOD comes fix level music stuff
 void S_Start(void)
 {
-}
+	int mnum;
+	
+	if (gamemode == commercial)
+		mnum = mus_runnin + gamemap - 1;
+	else
+	{
+		int spmus[] = {
+			// Song - Who? - Where?
 
-int S_GetSfxLumpNum(sfxinfo_t * sfx)
-{
+			mus_e3m4,			// American     e4m1
+			mus_e3m2,			// Romero       e4m2
+			mus_e3m3,			// Shawn        e4m3
+			mus_e1m5,			// American     e4m4
+			mus_e2m7,			// Tim  e4m5
+			mus_e2m4,			// Romero       e4m6
+			mus_e2m6,			// J.Anderson   e4m7 CHIRON.WAD
+			mus_e2m5,			// Shawn        e4m8
+			mus_e1m9			// Tim          e4m9
+		};
+
+		if (gameepisode < 4)
+			mnum = mus_e1m1 + (gameepisode - 1) * 9 + gamemap - 1;
+		else
+			mnum = spmus[gamemap - 1];
+	}
+
+	// HACK FOR COMMERCIAL
+	//  if (commercial && mnum > mus_e3m9)
+	//      mnum -= mus_e3m9;
+
+	/*if (info_music && *info_music)
+		S_ChangeMusicName(info_music, true);
+	else*/
+		S_ChangeMusic(mnum, true);
+
+	//nextcleanup = 15;
 }
 
 void S_StartSound(void *origin, int sound_id)
@@ -93,28 +153,77 @@ void S_StopSound(void *origin)
 {
 }
 
-void S_StartMusic(int music_id)
-{
-}
-
+/* S_ChangeMusic() -- Changes the current song that is playing */
 void S_ChangeMusic(int music_num, int looping)
 {
+	/* Check */
+	if (!l_MusicOK || music_num < 0 || music_num >= NUMMUSIC)
+		return;
+	
+	/* Short circuit to change music name */
+	S_ChangeMusicName(S_music[music_num].name, looping);
 }
 
+/* S_ChangeMusicName() -- Change song by its name */
 void S_ChangeMusicName(char *name, int looping)
 {
+#define BUFSIZE 12
+	char NameBuf[BUFSIZE];
+	
+	/* Check */
+	if (!l_MusicOK || !name)
+		return;
+	
+	/* Prepend the D_ prefix */
+	snprintf(NameBuf, BUFSIZE, "D_%s", name);
+	C_strupr(NameBuf);
+	
+	/* If a song is already playing */
+	if (l_CurrentSong)
+		S_StopMusic();
+	
+	/* Call the interface */
+	l_CurrentSong = I_RegisterSong(NameBuf);
+	
+	// Failed?
+	if (!l_CurrentSong)
+		return;
+	
+	/* Start playing the song */
+	I_PlaySong(l_CurrentSong, looping);
+#undef BUFSIZE
 }
 
 void S_StopMusic(void)
 {
+	/* Check */
+	if (!l_MusicOK || !l_CurrentSong)
+		return;
+	
+	/* Call interface code */
+	I_StopSong(l_CurrentSong);
+	l_CurrentSong = 0;
 }
 
-void S_PauseSound(void)
+/* S_PauseMusic() -- Pause playing music */
+void S_PauseMusic(void)
 {
+	/* Check */
+	if (!l_MusicOK || !l_CurrentSong)
+		return;
+	
+	/* Call interface code */
+	I_PauseSong(l_CurrentSong);
 }
 
-void S_ResumeSound(void)
+void S_ResumeMusic(void)
 {
+	/* Check */
+	if (!l_MusicOK || !l_CurrentSong)
+		return;
+	
+	/* Call interface code */
+	I_ResumeSong(l_CurrentSong);
 }
 
 void S_UpdateSounds(void)
