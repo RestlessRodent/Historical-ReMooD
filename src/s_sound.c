@@ -9,9 +9,7 @@
 // ##      ## ###### ##         ##  ######   ######  ######
 //                      http://remood.org/
 // -----------------------------------------------------------------------------
-// Copyright (C) 1993-1996 by id Software, Inc.
-// Copyright (C) 1998-2000 by DooM Legacy Team.
-// Copyright (C) 2008-2011 GhostlyDeath (ghostlydeath@gmail.com)
+// Copyright (C) 2011 GhostlyDeath <ghostlydeath@gmail.com>
 // -----------------------------------------------------------------------------
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
@@ -23,8 +21,141 @@
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 // GNU General Public License for more details.
 // -----------------------------------------------------------------------------
-// DESCRIPTION:  
+// DESCRIPTION:
 
+/***************
+*** INCLUDES ***
+***************/
+
+#include "doomtype.h"
+#include "doomdef.h"
+#include "command.h"
+#include "s_sound.h"
+#include "z_zone.h"
+#include "console.h"
+
+/*****************
+*** PROTOTYPES ***
+*****************/
+
+void SetChannelsNum(void);
+
+/**************
+*** GLOBALS ***
+**************/
+
+consvar_t stereoreverse = { "stereoreverse", "0", CV_SAVE, CV_OnOff };
+consvar_t precachesound = { "precachesound", "0", CV_SAVE, CV_OnOff };
+CV_PossibleValue_t soundvolume_cons_t[] = { {0, "MIN"}, {31, "MAX"}, {0, NULL} };
+consvar_t cv_soundvolume = { "soundvolume", "15", CV_SAVE, soundvolume_cons_t };
+consvar_t cv_musicvolume = { "musicvolume", "15", CV_SAVE, soundvolume_cons_t };
+consvar_t cv_rndsoundpitch = { "rndsoundpitch", "Off", CV_SAVE, CV_OnOff };
+consvar_t cv_numChannels = { "snd_channels", "16", CV_SAVE | CV_CALL, CV_Unsigned, SetChannelsNum };
+consvar_t surround = { "surround", "0", CV_SAVE, CV_OnOff };
+
+/****************
+*** FUNCTIONS ***
+****************/
+
+void SetChannelsNum(void)
+{
+}
+
+void S_RegisterSoundStuff(void)
+{
+}
+
+void S_Init(int sfxVolume, int musicVolume)
+{
+}
+
+void S_StopSounds(void)
+{
+}
+
+void S_Start(void)
+{
+}
+
+int S_GetSfxLumpNum(sfxinfo_t * sfx)
+{
+}
+
+void S_StartSound(void *origin, int sound_id)
+{
+}
+
+void S_StartSoundAtVolume(void *origin, int sound_id, int volume)
+{
+}
+
+void S_StopSound(void *origin)
+{
+}
+
+void S_StartMusic(int music_id)
+{
+}
+
+void S_ChangeMusic(int music_num, int looping)
+{
+}
+
+void S_ChangeMusicName(char *name, int looping)
+{
+}
+
+void S_StopMusic(void)
+{
+}
+
+void S_PauseSound(void)
+{
+}
+
+void S_ResumeSound(void)
+{
+}
+
+void S_UpdateSounds(void)
+{
+}
+
+void S_SetMusicVolume(int volume)
+{
+}
+
+void S_SetSfxVolume(int volume)
+{
+}
+
+int S_SoundPlaying(void *origin, int id)
+{
+	return 0;
+}
+
+void S_StartSoundName(void *mo, char *soundname)
+{
+}
+
+void Command_SoundReset_f(void)
+{
+}
+
+int S_AdjustSoundParamsEx(struct mobj_s* Listener, struct mobj_s* Source,
+	int32_t* Volume,		// Volume of the sound (Distance) [Mono]
+	int32_t* Balance,		// Balance of the sound (left/right) [Stereo + Surround + Full Surround]
+	int32_t* Pitch,		// Change in pitch (Doppler!?!?) [All]
+	int32_t* Orientation,	// Balance of the sound (front/back) [Surround + Full Surround]
+	int32_t* FrontVolume	// How loud to play a sound for the front speaker [Full Surround]
+	)
+{
+	return -1;
+}
+
+
+
+#if 0
 #include "doomdef.h"
 #include "doomstat.h"
 #include "command.h"
@@ -59,26 +190,15 @@ consvar_t play_mode = { "play_mode", "0", CV_SAVE, CV_Unsigned };
 
 void I_StartFMODSong(char *musicname, int looping);
 
-// stereo reverse 1=true, 0=false
 consvar_t stereoreverse = { "stereoreverse", "0", CV_SAVE, CV_OnOff };
-
-// if true, all sounds are loaded at game startup
 consvar_t precachesound = { "precachesound", "0", CV_SAVE, CV_OnOff };
-
 CV_PossibleValue_t soundvolume_cons_t[] = { {0, "MIN"}, {31, "MAX"}, {0, NULL} };
-
-// actual general (maximum) sound & music volume, saved into the config
 consvar_t cv_soundvolume = { "soundvolume", "15", CV_SAVE, soundvolume_cons_t };
 consvar_t cv_musicvolume = { "musicvolume", "15", CV_SAVE, soundvolume_cons_t };
 consvar_t cv_rndsoundpitch = { "rndsoundpitch", "Off", CV_SAVE, CV_OnOff };
-
-// number of channels available
 void SetChannelsNum(void);
 consvar_t cv_numChannels = { "snd_channels", "16", CV_SAVE | CV_CALL, CV_Unsigned, SetChannelsNum };
-
-#ifdef SURROUND
 consvar_t surround = { "surround", "0", CV_SAVE, CV_OnOff };
-#endif
 
 #define S_MAX_VOLUME            127
 
@@ -1242,3 +1362,5 @@ void S_StartSoundName(void *mo, char *soundname)
 
 	S_StartSound(mo, soundnum);
 }
+
+#endif

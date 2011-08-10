@@ -151,7 +151,7 @@ void P_BringUpWeapon(player_t * player)
 		player->pendingweapon = player->readyweapon;
 
 	if (player->pendingweapon == wp_chainsaw)
-		S_StartAttackSound(player->mo, sfx_sawup);
+		S_StartSound(player->mo, sfx_sawup);
 
 	// GhostlyDeath <November 3, 2010> -- PARANOIA removal
 	if (player->pendingweapon >= NUMWEAPONS)
@@ -300,7 +300,7 @@ void A_WeaponReady(player_t * player, pspdef_t * psp)
 
 	if (player->readyweapon == wp_chainsaw && psp->state == &states[S_SAW])
 	{
-		S_StartAttackSound(player->mo, sfx_sawidl);
+		S_StartSound(player->mo, sfx_sawidl);
 	}
 
 	// check for change
@@ -479,7 +479,7 @@ void A_Punch(player_t * player, pspdef_t * psp)
 	// turn to face target
 	if (linetarget)
 	{
-		S_StartAttackSound(player->mo, sfx_punch);
+		S_StartSound(player->mo, sfx_punch);
 		player->mo->angle = R_PointToAngle2(player->mo->x,
 											player->mo->y, linetarget->x, linetarget->y);
 	
@@ -547,10 +547,10 @@ void A_Saw(player_t * player, pspdef_t * psp)
 
 	if (!linetarget)
 	{
-		S_StartAttackSound(player->mo, sfx_sawful);
+		S_StartSound(player->mo, sfx_sawful);
 		return;
 	}
-	S_StartAttackSound(player->mo, sfx_sawhit);
+	S_StartSound(player->mo, sfx_sawhit);
 
 	// turn to face target
 	angle = R_PointToAngle2(player->mo->x, player->mo->y, linetarget->x, linetarget->y);
@@ -718,7 +718,7 @@ void P_GunShot(mobj_t * mo, bool_t accurate)
 //
 void A_FirePistol(player_t * player, pspdef_t * psp)
 {
-	S_StartAttackSound(player->mo, sfx_pistol);
+	S_StartSound(player->mo, sfx_pistol);
 
 	PuffType = MT_PUFF;
 	P_SetMobjState(player->mo, S_PLAY_ATK2);
@@ -740,7 +740,7 @@ void A_FireShotgun(player_t * player, pspdef_t * psp)
 	int i;
 
 	PuffType = MT_PUFF;
-	S_StartAttackSound(player->mo, sfx_shotgn);
+	S_StartSound(player->mo, sfx_shotgn);
 	P_SetMobjState(player->mo, S_PLAY_ATK2);
 
 	if (!cv_infiniteammo.value)
@@ -762,7 +762,7 @@ void A_FireShotgun2(player_t * player, pspdef_t * psp)
 	int damage;
 
 	PuffType = MT_PUFF;
-	S_StartAttackSound(player->mo, sfx_dshtgn);
+	S_StartSound(player->mo, sfx_dshtgn);
 	P_SetMobjState(player->mo, S_PLAY_ATK2);
 
 	if (!cv_infiniteammo.value)
@@ -786,7 +786,7 @@ void A_FireShotgun2(player_t * player, pspdef_t * psp)
 //
 void A_FireCGun(player_t * player, pspdef_t * psp)
 {
-	S_StartAttackSound(player->mo, sfx_pistol);
+	S_StartSound(player->mo, sfx_pistol);
 
 	if (!cv_infiniteammo.value)
 		if (!player->ammo[player->weaponinfo[player->readyweapon].ammo])
@@ -868,7 +868,7 @@ void A_BFGSpray(mobj_t * mo)
 //
 void A_BFGsound(player_t * player, pspdef_t * psp)
 {
-	S_StartAttackSound(player->mo, sfx_bfg);
+	S_StartSound(player->mo, sfx_bfg);
 }
 
 //

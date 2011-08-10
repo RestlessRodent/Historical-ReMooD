@@ -668,7 +668,7 @@ void A_Look(mobj_t * actor)
 			S_StartSound(NULL, sound);
 		}
 		else
-			S_StartScreamSound(actor, sound);
+			S_StartSound(actor, sound);
 
 	}
 
@@ -736,7 +736,7 @@ void A_Chase(mobj_t * actor)
 	if (actor->info->meleestate && P_CheckMeleeRange(actor))
 	{
 		if (actor->info->attacksound)
-			S_StartAttackSound(actor, actor->info->attacksound);
+			S_StartSound(actor, actor->info->attacksound);
 
 		P_SetMobjState(actor, actor->info->meleestate);
 		return;
@@ -776,7 +776,7 @@ void A_Chase(mobj_t * actor)
 	// make active sound
 	if (actor->info->activesound && P_Random() < 3)
 	{
-		S_StartScreamSound(actor, actor->info->activesound);
+		S_StartSound(actor, actor->info->activesound);
 	}
 }
 
@@ -813,7 +813,7 @@ void A_PosAttack(mobj_t * actor)
 	angle = actor->angle;
 	slope = P_AimLineAttack(actor, angle, MISSILERANGE);
 
-	S_StartAttackSound(actor, sfx_pistol);
+	S_StartSound(actor, sfx_pistol);
 	angle += P_SignedRandom() << 20;
 	damage = ((P_Random() % 5) + 1) * 3;
 	P_LineAttack(actor, angle, MISSILERANGE, slope, damage);
@@ -830,7 +830,7 @@ void A_SPosAttack(mobj_t * actor)
 	if (!actor->target)
 		return;
 	PuffType = MT_PUFF;
-	S_StartAttackSound(actor, sfx_shotgn);
+	S_StartSound(actor, sfx_shotgn);
 	A_FaceTarget(actor);
 	bangle = actor->angle;
 	slope = P_AimLineAttack(actor, bangle, MISSILERANGE);
@@ -853,7 +853,7 @@ void A_CPosAttack(mobj_t * actor)
 	if (!actor->target)
 		return;
 	PuffType = MT_PUFF;
-	S_StartAttackSound(actor, sfx_shotgn);
+	S_StartSound(actor, sfx_shotgn);
 	A_FaceTarget(actor);
 	bangle = actor->angle;
 	slope = P_AimLineAttack(actor, bangle, MISSILERANGE);
@@ -920,7 +920,7 @@ void A_TroopAttack(mobj_t * actor)
 	A_FaceTarget(actor);
 	if (P_CheckMeleeRange(actor))
 	{
-		S_StartAttackSound(actor, sfx_claw);
+		S_StartSound(actor, sfx_claw);
 		damage = (P_Random() % 8 + 1) * 3;
 		P_DamageMobj(actor->target, actor, actor, damage);
 		return;
@@ -982,7 +982,7 @@ void A_BruisAttack(mobj_t * actor)
 
 	if (P_CheckMeleeRange(actor))
 	{
-		S_StartAttackSound(actor, sfx_claw);
+		S_StartSound(actor, sfx_claw);
 		damage = (P_Random() % 8 + 1) * 10;
 		P_DamageMobj(actor->target, actor, actor, damage);
 		return;
@@ -1091,7 +1091,7 @@ void A_SkelWhoosh(mobj_t * actor)
 	A_FaceTarget(actor);
 	// judgecutor:
 	// CHECK ME!
-	S_StartAttackSound(actor, sfx_skeswg);
+	S_StartSound(actor, sfx_skeswg);
 }
 
 void A_SkelFist(mobj_t * actor)
@@ -1106,7 +1106,7 @@ void A_SkelFist(mobj_t * actor)
 	if (P_CheckMeleeRange(actor))
 	{
 		damage = ((P_Random() % 10) + 1) * 6;
-		S_StartAttackSound(actor, sfx_skepch);
+		S_StartSound(actor, sfx_skepch);
 		P_DamageMobj(actor->target, actor, actor, damage);
 	}
 }
@@ -1226,7 +1226,7 @@ void A_VileChase(mobj_t * actor)
 //
 void A_VileStart(mobj_t * actor)
 {
-	S_StartAttackSound(actor, sfx_vilatk);
+	S_StartSound(actor, sfx_vilatk);
 }
 
 //
@@ -1335,7 +1335,7 @@ void A_VileAttack(mobj_t * actor)
 void A_FatRaise(mobj_t * actor)
 {
 	A_FaceTarget(actor);
-	S_StartAttackSound(actor, sfx_manatk);
+	S_StartSound(actor, sfx_manatk);
 }
 
 void A_FatAttack1(mobj_t * actor)
@@ -1421,7 +1421,7 @@ void A_SkullAttack(mobj_t * actor)
 
 	dest = actor->target;
 	actor->flags |= MF_SKULLFLY;
-	S_StartScreamSound(actor, actor->info->attacksound);
+	S_StartSound(actor, actor->info->attacksound);
 	A_FaceTarget(actor);
 
 	if (cv_predictingmonsters.value)	//added by AC for predmonsters
@@ -1602,18 +1602,18 @@ void A_Scream(mobj_t * actor)
 		S_StartSound(NULL, sound);
 	}
 	else
-		S_StartScreamSound(actor, sound);
+		S_StartSound(actor, sound);
 }
 
 void A_XScream(mobj_t * actor)
 {
-	S_StartScreamSound(actor, sfx_slop);
+	S_StartSound(actor, sfx_slop);
 }
 
 void A_Pain(mobj_t * actor)
 {
 	if (actor->info->painsound)
-		S_StartScreamSound(actor, actor->info->painsound);
+		S_StartSound(actor, actor->info->painsound);
 }
 
 //
@@ -1858,19 +1858,19 @@ void A_BabyMetal(mobj_t * mo)
 
 void A_OpenShotgun2(player_t * player, pspdef_t * psp)
 {
-	S_StartAttackSound(player->mo, sfx_dbopn);
+	S_StartSound(player->mo, sfx_dbopn);
 }
 
 void A_LoadShotgun2(player_t * player, pspdef_t * psp)
 {
-	S_StartAttackSound(player->mo, sfx_dbload);
+	S_StartSound(player->mo, sfx_dbload);
 }
 
 void A_ReFire(player_t * player, pspdef_t * psp);
 
 void A_CloseShotgun2(player_t * player, pspdef_t * psp)
 {
-	S_StartAttackSound(player->mo, sfx_dbcls);
+	S_StartSound(player->mo, sfx_dbcls);
 	A_ReFire(player, psp);
 }
 
@@ -2068,6 +2068,6 @@ void A_PlayerScream(mobj_t * mo)
 		// LESS THAN -50% WITHOUT GIBBING
 		sound = sfx_pdiehi;
 	}
-	S_StartScreamSound(mo, sound);
+	S_StartSound(mo, sound);
 }
 

@@ -288,7 +288,7 @@ int EV_DoLockedDoor(line_t * line, vldoor_e type, mobj_t * thing, fixed_t speed)
 			if (((!(p->cards & it_bluecard) && !(p->cards & it_blueskull))))
 			{
 				p->message = PD_BLUEO;
-				S_StartScreamSound(p->mo, sfx_oof);	//SoM: 3/6/200: killough's idea
+				S_StartSound(p->mo, sfx_oof);	//SoM: 3/6/200: killough's idea
 				return 0;
 			}
 			break;
@@ -298,7 +298,7 @@ int EV_DoLockedDoor(line_t * line, vldoor_e type, mobj_t * thing, fixed_t speed)
 			if (((!(p->cards & it_redcard) && !(p->cards & it_redskull))))
 			{
 				p->message = PD_REDO;
-				S_StartScreamSound(p->mo, sfx_oof);	//SoM: 3/6/200: killough's idea
+				S_StartSound(p->mo, sfx_oof);	//SoM: 3/6/200: killough's idea
 				return 0;
 			}
 			break;
@@ -308,7 +308,7 @@ int EV_DoLockedDoor(line_t * line, vldoor_e type, mobj_t * thing, fixed_t speed)
 			if (((!(p->cards & it_yellowcard) && !(p->cards & it_yellowskull))))
 			{
 				p->message = PD_YELLOWO;
-				S_StartScreamSound(p->mo, sfx_oof);	//SoM: 3/6/200: killough's idea
+				S_StartSound(p->mo, sfx_oof);	//SoM: 3/6/200: killough's idea
 				return 0;
 			}
 			break;
@@ -524,7 +524,7 @@ int EV_VerticalDoor(line_t * line, mobj_t * thing)
 			if (((!(player->cards & it_bluecard) && !(player->cards & it_blueskull))))
 			{
 				player->message = PD_BLUEK;
-				S_StartScreamSound(player->mo, sfx_oof);	//SoM: 3/6/2000: Killough's idea
+				S_StartSound(player->mo, sfx_oof);	//SoM: 3/6/2000: Killough's idea
 				return 0;
 			}
 			break;
@@ -537,7 +537,7 @@ int EV_VerticalDoor(line_t * line, mobj_t * thing)
 			if (((!(player->cards & it_yellowcard) && !(player->cards & it_yellowskull))))
 			{
 				player->message = PD_YELLOWK;
-				S_StartScreamSound(player->mo, sfx_oof);	//SoM: 3/6/2000: Killough's idea
+				S_StartSound(player->mo, sfx_oof);	//SoM: 3/6/2000: Killough's idea
 				return 0;
 			}
 			break;
@@ -550,7 +550,7 @@ int EV_VerticalDoor(line_t * line, mobj_t * thing)
 			if (((!(player->cards & it_redcard) && !(player->cards & it_redskull))))
 			{
 				player->message = PD_REDK;
-				S_StartScreamSound(player->mo, sfx_oof);	//SoM: 3/6/2000: Killough's idea
+				S_StartSound(player->mo, sfx_oof);	//SoM: 3/6/2000: Killough's idea
 				return 0;
 			}
 			break;
@@ -559,7 +559,7 @@ int EV_VerticalDoor(line_t * line, mobj_t * thing)
 	// if the wrong side of door is pushed, give oof sound
 	if (line->sidenum[1] == -1)	// killough
 	{
-		S_StartScreamSound(player->mo, sfx_oof);	// killough 3/20/98
+		S_StartSound(player->mo, sfx_oof);	// killough 3/20/98
 		return 0;
 	}
 

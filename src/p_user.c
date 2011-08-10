@@ -309,7 +309,7 @@ void P_MovePlayer(player_t * player)
 
 				if (gametic > player->flushdelay + TICRATE)
 				{
-					S_StartScreamSound(player->mo, sfx_floush);
+					S_StartSound(player->mo, sfx_floush);
 					player->flushdelay = gametic;
 				}
 			}
@@ -335,7 +335,7 @@ void P_MovePlayer(player_t * player)
 
 				if (gametic > player->flushdelay + TICRATE)
 				{
-					S_StartScreamSound(player->mo, sfx_floush);
+					S_StartSound(player->mo, sfx_floush);
 					player->flushdelay = gametic;
 				}
 			}
@@ -375,7 +375,7 @@ void P_MovePlayer(player_t * player)
 			player->mo->momz = JUMPGRAVITY / 2;
 			if (gametic > player->flushdelay + TICRATE)
 			{
-				S_StartScreamSound(player->mo, sfx_floush);
+				S_StartSound(player->mo, sfx_floush);
 				player->flushdelay = gametic;
 			}
 		}
@@ -386,7 +386,7 @@ void P_MovePlayer(player_t * player)
 			player->mo->momz = JUMPGRAVITY;
 			if (!(player->cheats & CF_FLYAROUND))
 			{
-				S_StartScreamSound(player->mo, sfx_jump);
+				S_StartSound(player->mo, sfx_jump);
 				// keep jumping ok if FLY mode.
 				player->jumpdown |= 1;
 			}
