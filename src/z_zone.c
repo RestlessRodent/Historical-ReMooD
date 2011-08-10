@@ -814,6 +814,24 @@ struct Z_HashTable_s
 };
 
 /*** FUNCTIONS ***/
+/* Z_Hash() -- Hashes a string */
+uint32_t Z_Hash(const char* const a_Str)
+{
+	uint32_t Ret = 0;
+	size_t i;
+	
+	/* Check */
+	if (!a_Str)
+		return 0;
+	
+	/* Hash loop */
+	for (i = 0; a_Str[i]; i++)
+		Ret ^= (uint32_t)((toupper(a_Str[i]) - 32) & 0x3F) << (6 * (i % 5));
+	
+	/* Return */
+	return Ret;
+}
+
 /* Z_HashCreateTable() -- Creates a new hashing table */
 Z_HashTable_t* Z_HashCreateTable(bool_t (*a_CompareFunc)(void* const a_A, void* const a_B))
 {
@@ -902,4 +920,397 @@ void* Z_HashFindEntry(Z_HashTable_t* const a_HashTable, const uint32_t a_Key, vo
 	/* Found nothing */
 	return NULL;
 }
+
+
+/********************
+*** TABLE UTILITY ***
+********************/
+
+/*** STRUCTURES ***/
+/* Z_TableIndex_t -- Table properties */
+typedef struct Z_TableIndex_s
+{
+	char* SubKey;									// Key for index
+	uint32_t SubHash;								// Hash for subkey
+	char* Value;									// Value for index
+} Z_TableIndex_t;
+
+/* Z_TableEntry_t -- A single entry in a table */
+typedef struct Z_TableEntry_s
+{
+	bool_t IsTable;								// Is a table link
+	union
+	{
+		Z_TableIndex_t Index;						// Key index
+		Z_Table_t* TableLink;						// Link to another table
+	} Data;											// Data for entry
+} Z_TableEntry_t;
+
+/* Z_Table_t -- A table */
+struct Z_Table_s
+{
+	char* Key;										// Table key
+	uint32_t Hash;									// Hash for table key
+	Z_TableEntry_t** Entries;						// Entries as pointers to
+	size_t NumEntries;								// Number of entries
+	Z_HashTable_t* EntryHashes;						// Subentry hash lookup
+	Z_Table_t* ParentTable;							// Owner table
+};
+
+/*** FUNCTIONS ***/
+/* Z_TableCompareFunc() -- Compares passed data */
+static bool_t Z_TableCompareFunc(void* const a_A, void* const a_B)
+{
+	Z_TableEntry_t* B;
+	
+	/* Check */
+	if (!a_A || !a_B)
+		return false;
+		
+	/* Get B */
+	B = a_B;
+	
+	/* Is a table? */
+	if (B->IsTable)
+	{
+		if (strcasecmp(a_A, B->Data.TableLink->Key) == 0)
+			return true;
+	}
+	
+	/* Is an index */
+	else
+	{
+		if (strcasecmp(a_A, B->Data.Index.SubKey) == 0)
+			return true;
+	}
+	
+	/* No match */
+	return false;
+}
+
+/* Z_TableCreate() -- Creates a new table */
+Z_Table_t* Z_TableCreate(const char* const a_Key)
+{
+	Z_Table_t* NewTable;
+	
+	/* Allocate */
+	NewTable = Z_Malloc(sizeof(*NewTable), PU_STATIC, NULL);
+	
+	// Set key
+	NewTable->Key = Z_StrDup(a_Key, PU_STATIC, NULL);
+	NewTable->Hash = Z_Hash(NewTable->Key);
+	
+	// Create hashing table
+	NewTable->EntryHashes = Z_HashCreateTable(Z_TableCompareFunc);
+	
+	/* Return table */
+	return NewTable;
+}
+
+/* Z_TableDestroy() -- Destroys an existing table */
+void Z_TableDestroy(Z_Table_t* const a_Table)
+{
+	size_t i, j;
+	Z_TableEntry_t* Ref;
+	Z_Table_t* SubTable, *UpTable;
+	
+	/* Check */
+	if (!a_Table)
+		return;
+	
+	/* If we have a parent, unlink us from them */
+	if (a_Table->ParentTable)
+	{
+		UpTable = a_Table->ParentTable;
+	}
+	
+	/* Go through everything */
+	for (i = 0; i < a_Table->NumEntries; i++)
+	{
+		// Get reference
+		Ref = a_Table->Entries[i];
+		
+		// Is this a table?
+		if (Ref->IsTable)
+		{
+			// Obtain subtable
+			SubTable = Ref->Data.TableLink;
+			
+			// Clear parent
+			SubTable->ParentTable = NULL;
+			
+			// Now delete that table
+			Z_TableDestroy(SubTable);
+		}
+		
+		// Otherwise it is an index
+		else
+		{
+			Z_Free(Ref->Data.Index.SubKey);
+			Z_Free(Ref->Data.Index.Value);
+		}
+		
+		// Finished with entry, so destroy it
+		Z_Free(Ref);
+	}
+	
+	/* Destroy the remainder of the stuff */
+	Z_Free(a_Table->Entries);
+	Z_HashDeleteTable(a_Table->EntryHashes);
+	
+	// Now self
+	Z_Free(a_Table);
+}
+
+/* Z_TableUp() -- Returns the parent of the table */
+Z_Table_t* Z_TableUp(Z_Table_t* const a_Table)
+{
+	/* Check */
+	if (!a_Table)
+		return NULL;
+	
+	/* Easy */
+	return a_Table->ParentTable;
+}
+
+/* Z_TableName() -- Returns the name of the table */
+const char* Z_TableName(Z_Table_t* const a_Table)
+{
+	/* Check */
+	if (!a_Table)
+		return NULL;
+	
+	/* Easy */
+	return a_Table->Key;
+}
+
+/* Z_PushNewEntry() -- Adds new entry to end of entries (prevents dup code) */
+static Z_TableEntry_t* Z_PushNewEntry(Z_Table_t* const a_Table, const char* const a_Key)
+{
+	size_t Num;
+	Z_TableEntry_t* Ref;
+	
+	/* Check */
+	if (!a_Table || !a_Key)
+		return NULL;
+	
+	/* Resize ptr list */
+	Num = a_Table->NumEntries;
+	Z_ResizeArray(&a_Table->Entries, sizeof(*a_Table->Entries), Num, Num + 1);
+	a_Table->Entries[Num] = Z_Malloc(sizeof(*a_Table->Entries[Num]), PU_STATIC, NULL);
+	Ref = a_Table->Entries[Num];
+	a_Table->NumEntries = Num + 1;
+	
+	/* Push to hashes */
+	Z_HashAddEntry(a_Table->EntryHashes, Z_Hash(a_Key), Ref);
+	
+	/* Return reference */
+	return Ref;
+}
+
+/* Z_FindTableEntry() -- Finds a table entry */
+static Z_TableEntry_t* Z_FindTableEntry(Z_Table_t* const a_Table, const char* const a_Key, const bool_t a_Create, bool_t* const a_Created)
+{
+	uint32_t Hash;
+	Z_TableEntry_t* Entry;
+	
+	/* Check */
+	if (!a_Table || !a_Key)
+		return NULL;
+	
+	/* Get hash from key */
+	Hash = Z_Hash(a_Key);
+	
+	/* Find actual entry */
+	Entry = Z_HashFindEntry(a_Table->EntryHashes, Hash, a_Key, false);
+	
+	// Found? return the entry
+	if (Entry)
+	{
+		if (a_Created)
+			*a_Created = false;
+		return Entry;
+	}
+	
+	// Create entry?
+	if (!a_Create)
+		return NULL;
+	
+	// It was not found to push it
+	Entry = Z_PushNewEntry(a_Table, a_Key);
+	
+	if (a_Created)
+		*a_Created = true;
+	
+	/* Return new entry */
+	return Entry;
+}
+
+/* Z_FindSubTable() -- Finds subtable (and quite possibly creates it) */
+Z_Table_t* Z_FindSubTable(Z_Table_t* const a_Table, const char* const a_Key, const bool_t a_Create)
+{
+	Z_TableEntry_t* Entry;
+	bool_t Created;
+	
+	/* Check */
+	if (!a_Table || !a_Key)
+		return NULL;
+	
+	/* Find entry */
+	Entry = Z_FindTableEntry(a_Table, a_Key, a_Create, &Created);
+	
+	// If we found the entry, it must be a table
+	if (Entry && !Created)
+		if (Entry->IsTable)
+			return Entry->Data.TableLink;
+		else
+			return NULL;	// Entry so return NULL here
+	
+	// Otherwise if we are creating something
+	if (a_Create && Created)
+	{
+		// Mess around with fresh entry
+		Entry->IsTable = true;
+		Entry->Data.TableLink = Z_TableCreate(a_Key);
+		Entry->Data.TableLink->ParentTable = a_Table;
+		
+		// Return new table
+		return Entry->Data.TableLink;
+	}
+	
+	/* Failure */
+	return NULL;
+}
+
+/* Z_TableGetValue() -- Get a value from a subkey */
+const char* Z_TableGetValue(Z_Table_t* const a_Table, const char* const a_SubKey)
+{
+	Z_TableEntry_t* Entry;
+	
+	/* Check */
+	if (!a_Table || !a_SubKey)
+		return NULL;
+	
+	/* Find entry */
+	Entry = Z_FindTableEntry(a_Table, a_SubKey, false, NULL);
+	
+	// If we found the entry it must be an entry
+	if (Entry)
+		if (!Entry->IsTable)
+			// Get Value
+			return Entry->Data.Index.Value;
+	
+	/* Was either not found or was a table */
+	return NULL;
+}
+
+/* Z_TableSetValue() -- Set a value for a subkey */
+bool_t Z_TableSetValue(Z_Table_t* const a_Table, const char* const a_SubKey, const char* const a_NewValue)
+{
+	Z_TableEntry_t* Entry;
+	bool_t Created;
+	
+	/* Check */
+	if (!a_Table || !a_SubKey)
+		return false;
+	
+	/* Find entry */
+	Entry = Z_FindTableEntry(a_Table, a_SubKey, true, &Created);
+	
+	/* Key not in table, or is in table and isn't a table */
+	if (Created || (Entry && !Created && !Entry->IsTable))
+	{
+		// As long as the entry was created, does memory get allocated
+		if (Created)
+		{
+			Entry->Data.Index.SubKey = Z_StrDup(a_SubKey, PU_STATIC, NULL);
+			Entry->Data.Index.SubHash = Z_Hash(Entry->Data.Index.SubKey);
+		}
+		
+		// if an old value exists, clear it
+		if (Entry->Data.Index.Value)
+			Z_Free(Entry->Data.Index.Value);
+		
+		Entry->Data.Index.Value = Z_StrDup(a_NewValue, PU_STATIC, NULL);
+		
+		// Success!
+		return true;
+	}
+	
+	/* Failure */
+	return false;
+}
+
+/* Z_TablePrint() -- Prints table to console */
+void Z_TablePrint(Z_Table_t* const a_Table, const char* const a_Prefix)
+{
+#define BUFSIZE 32
+	size_t i;
+	char Prefix[BUFSIZE];
+	Z_TableEntry_t* Entry;
+	
+	/* Check */
+	if (!a_Table)
+		return;
+	
+	/* Slap on prefix */
+	memset(Prefix, 0, sizeof(Prefix));
+	if (a_Prefix)
+		strncpy(Prefix, a_Prefix, BUFSIZE);
+	
+	/* Print Table key */
+	CONS_Printf("%s \"%s\" (%i)\n", Prefix, a_Table->Key, (int)a_Table->NumEntries);
+	
+	/* For every entry */
+	// Slap a > on it
+	strncat(Prefix, ">", BUFSIZE);
+	
+	// Rove
+	for (i = 0; i < a_Table->NumEntries; i++)
+	{
+		// Reference
+		Entry = a_Table->Entries[i];
+		
+		// If it is a table, go in it
+		if (Entry->IsTable)
+			Z_TablePrint(Entry->Data.TableLink, Prefix);
+		
+		// Otherwise it is an entry, print it's value
+		else
+			CONS_Printf("%s @\"%s\" = \"%s\"\n", Prefix, Entry->Data.Index.SubKey, Entry->Data.Index.Value);
+	}
+#undef BUFSIZE
+}
+
+/* Z_TableMergeInto() -- Merges one table into another table */
+bool_t Z_TableMergeInto(Z_Table_t* const a_Target, const Z_Table_t* const a_Source)
+{
+	/* Check */
+	if (!a_Target || !a_Source)
+		return false;
+	
+	return true;
+}
+
+/* Z_TableSuperCallback() -- Goes through a table and sends a found table to a callback */
+bool_t Z_TableSuperCallback(Z_Table_t* const a_Table, bool_t (*a_Callback)(Z_Table_t* const a_Sub, void* const a_Data), void* const a_Data)
+{
+	size_t i;	
+	
+	/* Check */
+	if (!a_Table || !a_Callback)
+		return false;
+
+	/* Rove */
+	for (i = 0; i < a_Table->NumEntries; i++)
+		// Exists and is a table?
+		if (a_Table->Entries[i] && a_Table->Entries[i]->IsTable)
+			if (!a_Callback(a_Table->Entries[i]->Data.TableLink, a_Data))
+				// Callback function returned false, so return false here
+				return false;
+	
+	/* Success */
+	return true;
+}
+
 

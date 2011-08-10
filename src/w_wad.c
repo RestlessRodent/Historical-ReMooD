@@ -56,6 +56,7 @@
 // WAD DATA
 #include "m_argv.h"
 #include "hu_stuff.h"
+#include "d_info.h"
 
 /* W_UnloadData() -- Unload all WAD attached data */
 void W_UnloadData(void)
@@ -2061,6 +2062,7 @@ void				WX_LoadWADStuff(WX_WADFile_t* const a_WAD)
 		return;
 	
 	V_WXMapGraphicCharsWAD(a_WAD);
+	D_WXBuildInfos(DILT_BUILDONE, a_WAD);
 }
 
 /* WX_ClearWADStuff() -- Clear stuff from WAD that will soon be part of a composite */
@@ -2071,18 +2073,21 @@ void				WX_ClearWADStuff(WX_WADFile_t* const a_WAD)
 		return;
 	
 	V_WXClearGraphicCharsWAD(a_WAD);
+	D_WXBuildInfos(DILT_CLEARONE, a_WAD);
 }
 
 /* WX_CompileComposite() -- Merge all the loaded WAD Data and create a composite of it */
 void				WX_CompileComposite(void)
 {
 	V_WXMapGraphicCharsComposite(l_FirstVWAD);
+	D_WXBuildInfos(DILT_BUILDALL, l_FirstVWAD);
 }
 
 /* WX_ClearComposite() -- Clear all of the compositied WAD data */
 void				WX_ClearComposite(void)
 {
 	V_WXClearGraphicCharsComposite();
+	D_WXBuildInfos(DILT_CLEARALL, NULL);
 }
 
 /* WX_GetNumEntry() -- Gets entry in WAD by lump number */

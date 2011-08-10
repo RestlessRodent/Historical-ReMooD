@@ -279,8 +279,8 @@ bool_t I_MUS2MID_MUSReadNextMessage(I_MUS2MIDData_t* const a_Local, uint32_t* co
 			// Pitch wheel
 		case 2:
 			MIDIMsg.b[0] = 0xE0 | Channel;
-			MIDIMsg.b[1] = NoteBit[1] & 0x7F;
-			MIDIMsg.b[2] = 0;
+			MIDIMsg.b[1] = (NoteBit[1] & 0x01) << 6;
+			MIDIMsg.b[2] = (NoteBit[1] & 0xFE) >> 1;
 			*a_OutSize = 3;
 			break;
 			
