@@ -466,7 +466,7 @@ size_t				WX_ClearUnused(void);
 /* Z_MallocWrappee() -- Allocate memory */
 void* Z_MallocWrappee(const size_t Size, const Z_MemoryTag_t Tag, void** const Ref _ZMGD_WRAPPEE)
 {
-	size_t i, ShiftSize, iBase, iEnd;
+	size_t i, ShiftSize, iBase, iEnd, j;
 	Z_MemPartition_t* ResLeft, *ResRight, *New, *Free;
 	void* RetVal;
 	bool_t AtEnd;
@@ -579,10 +579,10 @@ void* Z_MallocWrappee(const size_t Size, const Z_MemoryTag_t Tag, void** const R
 	{
 		// Clear cache blocks and unused lumps
 		i = Z_FreeTags(PU_PURGELEVEL, NUMZTAGS);
-		i += WX_ClearUnused();
+		j = WX_ClearUnused();
 		
 		if (devparm)
-			CONS_Printf("Z_MallocReal: Nearly out of memory, freed %u lumps/blocks.\n", i);
+			CONS_Printf("Z_MallocReal: Nearly out of memory, freed %u lumps, %u blocks.\n", j, i);
 		
 		// Now try re-allocation
 		DeferLevel = 1;

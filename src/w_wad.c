@@ -2417,6 +2417,29 @@ size_t				WX_GetEntrySize(WX_WADEntry_t* const a_Entry)
 /* WX_ClearUnused() -- Clears unused lump data */
 size_t				WX_ClearUnused(void)
 {
-	return 0;
+	size_t i, j, r;
+	WX_WADFile_t* Rover;
+	
+	/* Rove */
+	r = 0;
+	Rover = l_FirstWAD;
+	while (Rover)
+	{
+		// For every entry and conversion type
+		for (i = 0; i < Rover->NumLumps; i++)
+			for (j = 0; j < NUMWXCONVTYPES; j++)
+				if (!Rover->Entries[i].UsageCount[j])
+					if (Rover->Entries[i].Cache[j])
+					{
+						Z_Free(Rover->Entries[i].Cache[j]);
+						Rover->Entries[i].Cache[j] = NULL;
+						r++;
+					}
+		
+		// Next
+		Rover = Rover->NextWAD;
+	}
+	
+	return r;
 }
 
