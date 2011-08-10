@@ -40,6 +40,10 @@ void D_WXBuildInfos(const D_InfoLoadType_t a_Type, WX_WADFile_t* const a_WAD)
 	/* What are we doing? */
 	switch (a_Type)
 	{
+			// Load all the INFOs for a single WAD
+		case DILT_BUILDONE:
+			break;
+		
 			// Nothing
 		default:
 			break;

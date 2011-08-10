@@ -2160,6 +2160,7 @@ WX_WADEntry_t*		WX_EntryForName(WX_WADFile_t* const a_WAD, const char* const a_N
 void*				WX_CacheEntry(WX_WADEntry_t* const a_Entry, const WX_ConvType_t a_From, const WX_ConvType_t a_To)
 {
 	void* RawData;
+	void* RetVal;
 	size_t From, To;
 	
 	/* Check */
@@ -2201,7 +2202,8 @@ void*				WX_CacheEntry(WX_WADEntry_t* const a_Entry, const WX_ConvType_t a_From,
 			{
 				// To RAW
 				case WXCT_RAW:
-					return RawData;
+					RetVal = RawData;
+					break;
 	
 				// To patch_t
 				case WXCT_PATCH:
@@ -2211,8 +2213,10 @@ void*				WX_CacheEntry(WX_WADEntry_t* const a_Entry, const WX_ConvType_t a_From,
 	
 				// To Unhandled
 				default:
-					return NULL;
+					RetVal = NULL;
+					break;
 			}
+			break;
 		
 		/* From patch_t */
 		case WXCT_PATCH:
@@ -2220,19 +2224,23 @@ void*				WX_CacheEntry(WX_WADEntry_t* const a_Entry, const WX_ConvType_t a_From,
 			{
 				// To RAW
 				case WXCT_RAW:
-					return RawData;
+					RetVal = RawData;
+					break;
 	
 				// To patch_t -- TODO: Implement Propers
 				case WXCT_PATCH:
-					return RawData;
+					RetVal = RawData;
+					break;
 	
 				// To pic_t
 				case WXCT_PIC:
 	
 				// To Unhandled
 				default:
-					return NULL;
+					RetVal = NULL;
+					break;
 			}
+			break;
 		
 		/* From pic_t */
 		case WXCT_PIC:
@@ -2240,7 +2248,8 @@ void*				WX_CacheEntry(WX_WADEntry_t* const a_Entry, const WX_ConvType_t a_From,
 			{
 				// To RAW
 				case WXCT_RAW:
-					return RawData;
+					RetVal = RawData;
+					break;
 	
 				// To patch_t
 				case WXCT_PATCH:
@@ -2250,27 +2259,38 @@ void*				WX_CacheEntry(WX_WADEntry_t* const a_Entry, const WX_ConvType_t a_From,
 	
 				// To Unhandled
 				default:
-					return NULL;
+					RetVal = NULL;
+					break;
 			}
+			break;
 		
 		/* Unhandled */
 		default:
-			return NULL;
+			break;
 	}
+	
+	/* Use it? */
+	if (RetVal)
+		WX_UseEntry(a_Entry, a_To, true);
+	
+	return RetVal;
 }
 
 /* WX_UseEntry() -- Uses an entry to prevent its free */
-void*				WX_UseEntry(WX_WADEntry_t* const a_Entry, const WX_ConvType_t a_Type, const bool_t a_Use)
+size_t				WX_UseEntry(WX_WADEntry_t* const a_Entry, const WX_ConvType_t a_Type, const bool_t a_Use)
 {
 	/* Check */
 	if (!a_Entry || (size_t)a_Type >= (size_t)NUMWXCONVTYPES)
-		return NULL;
+		return 0;
 	
 	/* Do we use it or not? */
 	if (a_Use)
 		a_Entry->UsageCount[a_Type]++;
 	else
 		a_Entry->UsageCount[a_Type]--;
+	
+	/* Now return the count */
+	return a_Entry->UsageCount[a_Type];
 }
 
 /* WX_VirtualPushPop() -- Pushes or pops a WAD on the virtual stack */
@@ -2392,5 +2412,11 @@ size_t				WX_GetEntrySize(WX_WADEntry_t* const a_Entry)
 	
 	/* Return size here */
 	return a_Entry->Size;
+}
+
+/* WX_ClearUnused() -- Clears unused lump data */
+size_t				WX_ClearUnused(void)
+{
+	return 0;
 }
 

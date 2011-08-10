@@ -461,6 +461,8 @@ void Z_Init(void)
 		LoopSize -= LoopSize >> 2;	// Cut down by 1/4th
 }
 
+size_t				WX_ClearUnused(void);
+
 /* Z_MallocWrappee() -- Allocate memory */
 void* Z_MallocWrappee(const size_t Size, const Z_MemoryTag_t Tag, void** const Ref _ZMGD_WRAPPEE)
 {
@@ -468,6 +470,7 @@ void* Z_MallocWrappee(const size_t Size, const Z_MemoryTag_t Tag, void** const R
 	Z_MemPartition_t* ResLeft, *ResRight, *New, *Free;
 	void* RetVal;
 	bool_t AtEnd;
+	static int DeferLevel;
 	
 	/* Clear some */
 	RetVal = NULL;
@@ -564,8 +567,29 @@ void* Z_MallocWrappee(const size_t Size, const Z_MemoryTag_t Tag, void** const R
 	}
 	
 	/* Failure? */
-	I_Error("Z_MallocReal: Failed to allocate %zu bytes.\n", Size);
-	return NULL;
+	// If we double looped, fail
+	if (DeferLevel)
+	{
+		I_Error("Z_MallocReal: Failed to allocate %zu bytes.\n", Size);
+		return NULL;
+	}
+	
+	// Run another loop
+	else
+	{
+		// Clear cache blocks and unused lumps
+		i = Z_FreeTags(PU_PURGELEVEL, NUMZTAGS);
+		i += WX_ClearUnused();
+		
+		if (devparm)
+			CONS_Printf("Z_MallocReal: Nearly out of memory, freed %u lumps/blocks.\n", i);
+		
+		// Now try re-allocation
+		DeferLevel = 1;
+		RetVal = Z_Malloc(Size, Tag, Ref);
+		DeferLevel = 0;
+		return RetVal;
+	}
 }
 
 /* Z_FreeWrappee() -- Free memory */

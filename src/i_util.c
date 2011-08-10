@@ -1877,6 +1877,7 @@ int I_RegisterSong(const char* const a_Lump)
 		
 		// Copy pathname
 		New.PathName = Z_StrDup(SongPath, PU_STATIC, NULL);
+		WX_CacheEntry(Entry, WXCT_RAW, false);	// Always unuse the enrty once in a file
 	}
 	
 	/* Add to the song list */
@@ -2011,5 +2012,8 @@ void I_StopSong(int handle)
 	
 	/* No longer playing */
 	l_LocalSongs[i].Playing = false;
+	
+	/* Free song data */
+	// TODO
 }
 

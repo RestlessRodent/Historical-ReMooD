@@ -215,12 +215,13 @@ void				WX_ClearComposite(void);
 WX_WADEntry_t*		WX_GetNumEntry(WX_WADFile_t* const a_WAD, const size_t a_Index);
 WX_WADEntry_t*		WX_EntryForName(WX_WADFile_t* const a_WAD, const char* const a_Name, const bool_t a_Forwards);
 void*				WX_CacheEntry(WX_WADEntry_t* const a_Entry, const WX_ConvType_t a_From, const WX_ConvType_t a_To);
-void*				WX_UseEntry(WX_WADEntry_t* const a_Entry, const WX_ConvType_t a_Type, const bool_t a_Use);
+size_t				WX_UseEntry(WX_WADEntry_t* const a_Entry, const WX_ConvType_t a_Type, const bool_t a_Use);
 bool_t				WX_VirtualPushPop(WX_WADFile_t* const a_WAD, const bool_t a_Pop, const bool_t a_Back);
 bool_t				WX_GetVirtualPrivateData(WX_WADFile_t* const a_WAD, const WX_DataPrivateID_t a_ID, void*** const a_PPPtr, size_t** const a_PPSize);
 WX_WADEntry_t*		WX_RoveEntry(WX_WADEntry_t* const a_Entry, const ssize_t a_Next);
 size_t				WX_GetEntryName(WX_WADEntry_t* const a_Entry, char* const a_OutBuf, const size_t a_OutSize);
 size_t				WX_GetEntrySize(WX_WADEntry_t* const a_Entry);
+size_t				WX_ClearUnused(void);
 
 #endif							/* __W_WAD__ */
 
