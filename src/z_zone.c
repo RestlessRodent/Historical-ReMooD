@@ -334,7 +334,7 @@ size_t ZP_FreePartitionInZone(Z_MemPartition_t* const Part)
 	Z_MemPartition_t LP, RP;
 	
 	/* Check */
-	if (!!Part)
+	if (!Part)
 		return 0;
 	
 	/* Partition free? */
@@ -343,6 +343,9 @@ size_t ZP_FreePartitionInZone(Z_MemPartition_t* const Part)
 		I_Error("ZP_FreePartitionInZone: Freeing a partition already free?");
 		return 0;
 	}
+	
+	// Add free memory
+	l_MainZone->FreeMemory += Part->Part.Size;
 	
 	/* Lazy fragment freeing */
 	// Is there a reference set?
@@ -466,7 +469,7 @@ size_t				WX_ClearUnused(void);
 /* Z_MallocWrappee() -- Allocate memory */
 void* Z_MallocWrappee(const size_t Size, const Z_MemoryTag_t Tag, void** const Ref _ZMGD_WRAPPEE)
 {
-	size_t i, ShiftSize, iBase, iEnd, j;
+	size_t i, ShiftSize, iBase, iEnd, j, k;
 	Z_MemPartition_t* ResLeft, *ResRight, *New, *Free;
 	void* RetVal;
 	bool_t AtEnd;
@@ -562,6 +565,9 @@ void* Z_MallocWrappee(const size_t Size, const Z_MemoryTag_t Tag, void** const R
 		// Complementary memset
 		memset(RetVal, 0, Size);
 		
+		// Subtract free memory
+		l_MainZone->FreeMemory -= New->Part.Size;
+		
 		// Return pointer
 		return RetVal;
 	}
@@ -578,11 +584,12 @@ void* Z_MallocWrappee(const size_t Size, const Z_MemoryTag_t Tag, void** const R
 	else
 	{
 		// Clear cache blocks and unused lumps
+		k = l_MainZone->FreeMemory;
 		i = Z_FreeTags(PU_PURGELEVEL, NUMZTAGS);
 		j = WX_ClearUnused();
 		
 		if (devparm)
-			CONS_Printf("Z_MallocReal: Nearly out of memory, freed %u lumps, %u blocks.\n", j, i);
+			CONS_Printf("Z_MallocReal: Nearly out of memory, freed %u lumps, %u blocks (Freed %u bytes).\n", j, i, l_MainZone->FreeMemory - k);
 		
 		// Now try re-allocation
 		DeferLevel = 1;
