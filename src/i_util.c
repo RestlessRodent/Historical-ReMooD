@@ -1904,12 +1904,55 @@ int I_RegisterSong(const char* const a_Lump)
 /* I_UnRegisterSong() -- Unloads a song */
 void I_UnRegisterSong(int handle)
 {
+	size_t i, j;
+	
+	/* Check */
+	if (!handle)
+		return;
+	
+	/* Find song in song list */
+	for (i = 0; i < l_NumLocalSongs; i++)
+		if (l_LocalSongs[i].Handle == handle)
+			break;
+	
+	// Not found?
+	if (i == l_NumLocalSongs)
+		return;
+	
+	/* Make sure the song is stopped */
+	if (l_LocalSongs[i].Driver->Stop)
+		l_LocalSongs[i].Driver->Stop(l_LocalSongs[i].Driver, l_LocalSongs[i].DriverHandle);
+	
+	/* Clear away some stuff */
+	// If the driver does not have external data, it relies on an entry, unuse it (not needed)
+	if (!l_LocalSongs[i].Driver->ExternalData)
+		WX_UseEntry(l_LocalSongs[i].Entry, WXCT_RAW, false);
+	
+	// File name
+	if (l_LocalSongs[i].PathName)
+		Z_Free(l_LocalSongs[i].PathName);
+	l_LocalSongs[i].PathName = NULL;
+	
+	// remaining, null
+	l_LocalSongs[i].Type = 0;
+	l_LocalSongs[i].Handle = 0;
+	l_LocalSongs[i].Driver = NULL;
+	l_LocalSongs[i].DriverHandle = NULL;
+	l_LocalSongs[i].Length = 0;
+	l_LocalSongs[i].Entry = NULL;
+	l_LocalSongs[i].EntryLength = NULL;
+	l_LocalSongs[i].Playing = false;
+	l_LocalSongs[i].Data = NULL;
 }
 
 /* I_PauseSong() -- Pauses a song */
 void I_PauseSong(int handle)
 {
 	size_t i, j;
+	
+	/* Check */
+	if (!handle)
+		return;
 	
 	/* Find song in song list */
 	for (i = 0; i < l_NumLocalSongs; i++)
@@ -1934,6 +1977,10 @@ void I_ResumeSong(int handle)
 {
 	size_t i, j;
 	
+	/* Check */
+	if (!handle)
+		return;
+	
 	/* Find song in song list */
 	for (i = 0; i < l_NumLocalSongs; i++)
 		if (l_LocalSongs[i].Handle == handle)
@@ -1956,6 +2003,10 @@ void I_ResumeSong(int handle)
 void I_PlaySong(int handle, int looping)
 {
 	size_t i, j;
+	
+	/* Check */
+	if (!handle)
+		return;
 	
 	/* Find song in song list */
 	for (i = 0; i < l_NumLocalSongs; i++)
@@ -1992,6 +2043,10 @@ void I_PlaySong(int handle, int looping)
 void I_StopSong(int handle)
 {
 	size_t i;
+	
+	/* Check */
+	if (!handle)
+		return;
 	
 	/* Find song in song list */
 	for (i = 0; i < l_NumLocalSongs; i++)

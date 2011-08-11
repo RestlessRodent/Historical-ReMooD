@@ -202,6 +202,7 @@ void S_StopMusic(void)
 	
 	/* Call interface code */
 	I_StopSong(l_CurrentSong);
+	I_UnRegisterSong(l_CurrentSong);
 	l_CurrentSong = 0;
 }
 
