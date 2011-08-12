@@ -1542,7 +1542,7 @@ void I_ShutdownSystem(void)
 			continue;
 		
 		// Get size and data
-		Temp = WX_CacheEntry(Entry, WXCT_RAW, WXCT_RAW);
+		Temp = WX_CacheEntry(Entry);
 		Size = WX_GetEntrySize(Entry);
 		
 		// Duplicate
@@ -1555,7 +1555,7 @@ void I_ShutdownSystem(void)
 		}
 		
 		// Unuse the entry (not needed any more)
-		WX_UseEntry(Entry, WXCT_RAW, false);
+		WX_UseEntry(Entry, false);
 	}
 	
 	/* Pre exit func */
@@ -1842,7 +1842,7 @@ int I_RegisterSong(const char* const a_Lump)
 	New.Handle = ++TempSongID;
 	New.Entry = Entry;
 	New.EntryLength = WX_GetEntrySize(Entry);
-	New.Data = WX_CacheEntry(Entry, WXCT_RAW, WXCT_RAW);
+	New.Data = WX_CacheEntry(Entry);
 	New.Type = I_DetectMusicType(New.Data, New.EntryLength);
 	New.Playing = false;
 	
@@ -1856,7 +1856,7 @@ int I_RegisterSong(const char* const a_Lump)
 		CONS_Printf("I_RegisterSong: Song format is not supported (Type = %i)!\n", New.Type);
 		
 		// Unuse the data (so it gets freed)
-		WX_UseEntry(New.Entry, WXCT_RAW, false);
+		WX_UseEntry(New.Entry, false);
 		return 0;
 	}
 	
@@ -1871,13 +1871,13 @@ int I_RegisterSong(const char* const a_Lump)
 		if (!I_DumpTemporary(SongPath, BUFSIZE, New.Data, New.EntryLength))
 		{
 			CONS_Printf("I_RegisterSong: Failed to file to disk!\n");
-			WX_UseEntry(New.Entry, WXCT_RAW, false);
+			WX_UseEntry(New.Entry, false);
 			return 0;
 		}
 		
 		// Copy pathname
 		New.PathName = Z_StrDup(SongPath, PU_STATIC, NULL);
-		WX_CacheEntry(Entry, WXCT_RAW, false);	// Always unuse the enrty once in a file
+		WX_UseEntry(Entry, false);	// Always unuse the enrty once in a file
 	}
 	
 	/* Add to the song list */
@@ -1926,7 +1926,7 @@ void I_UnRegisterSong(int handle)
 	/* Clear away some stuff */
 	// If the driver does not have external data, it relies on an entry, unuse it (not needed)
 	if (!l_LocalSongs[i].Driver->ExternalData)
-		WX_UseEntry(l_LocalSongs[i].Entry, WXCT_RAW, false);
+		WX_UseEntry(l_LocalSongs[i].Entry, false);
 	
 	// File name
 	if (l_LocalSongs[i].PathName)

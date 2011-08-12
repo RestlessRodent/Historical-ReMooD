@@ -1690,7 +1690,7 @@ static void V_WXAddCharacter(UniChar_t**** CharacterGroupsRef, const VideoFont_t
 	// Place in and/or overwrite
 	(*CharacterGroupsRef)[Font][Group][Local].Char = Char;
 	(*CharacterGroupsRef)[Font][Group][Local].XEntry = Entry;
-	(*CharacterGroupsRef)[Font][Group][Local].Patch = WX_CacheEntry(Entry, WXCT_PATCH, WXCT_PATCH);
+	(*CharacterGroupsRef)[Font][Group][Local].Patch = WX_CacheEntry(Entry);
 	
 	// Multibyte
 	V_WCharToMB((*CharacterGroupsRef)[Font][Group][Local].Char, (*CharacterGroupsRef)[Font][Group][Local].MB);

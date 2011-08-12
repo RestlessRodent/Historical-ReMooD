@@ -81,11 +81,13 @@ void S_Init(int sfxVolume, int musicVolume)
 {
 	/* Initialize both sound and music */
 	// Sound
+	l_SoundOK = false;
 	if (!M_CheckParm("-nosfx"))
 		if (I_StartupSound())
 			l_SoundOK = true;
 	
 	// Music
+	l_MusicOK = false;
 	if (!M_CheckParm("-nomusic"))
 		if (I_InitMusic())
 			l_MusicOK = true;

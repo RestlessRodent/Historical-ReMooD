@@ -1,0 +1,7 @@
+map MAP01
+name "Entryway"
+author "Sandy Petersen"
+levelnum 1
+next MAP02
+secretnext MAP01
+

@@ -1292,8 +1292,8 @@ struct WX_WADEntry_s
 	WX_WADEntry_t* SymLink;						// Symbolic link to another entry
 	
 	/* Cache Data */
-	void* Cache[NUMWXCONVTYPES];				// Cached Data
-	int32_t UsageCount[NUMWXCONVTYPES];			// Times this entry is being used
+	void* Cache;								// Cached Data
+	int32_t UsageCount;							// Times this entry is being used
 };
 
 /***************************
@@ -1360,8 +1360,8 @@ bool_t WX_P_LMP_ReadEntryData(WX_WADFile_t* const a_WAD, WX_WADEntry_t* const a_
 		fseek(a_WAD->CFile, a_Entry->Position, SEEK_SET);
 		
 		// Direct read
-		if (a_Entry->Cache[WXCT_RAW])
-			fread(a_Entry->Cache[WXCT_RAW], a_Entry->Size, 1, a_WAD->CFile);
+		if (a_Entry->Cache)
+			fread(a_Entry->Cache, a_Entry->Size, 1, a_WAD->CFile);
 	}
 	
 	/* Success! */
@@ -1552,8 +1552,8 @@ bool_t WX_P_WAD_ReadEntryData(WX_WADFile_t* const a_WAD, WX_WADEntry_t* const a_
 		fseek(a_WAD->CFile, a_Entry->Position, SEEK_SET);
 		
 		// Direct read
-		if (a_Entry->Cache[WXCT_RAW])
-			fread(a_Entry->Cache[WXCT_RAW], a_Entry->Size, 1, a_WAD->CFile);
+		if (a_Entry->Cache)
+			fread(a_Entry->Cache, a_Entry->Size, 1, a_WAD->CFile);
 	}
 	
 	/* Success! */
@@ -2032,17 +2032,13 @@ void				WX_WipeEntryTable(WX_WADFile_t* const a_WAD)
 		// Go through every entry
 		for (i = 0; i < a_WAD->NumLumps; i++)
 		{
-			// Clear data
-			for (j = 0; j < NUMWXCONVTYPES; j++)
-			{
-				// Warn if cache still in use
-				if (devparm && a_WAD->Entries[i].UsageCount[j])
-					CONS_Printf("WX_WipeEntryTable: Warning, \"%s\" still in use!\n", a_WAD->Entries[i].Name);
-			
-				// Clear cache
-				if (a_WAD->Entries[i].Cache[j])
-					Z_Free(a_WAD->Entries[i].Cache[j]);
-			}
+			// Warn if cache still in use
+			if (devparm && a_WAD->Entries[i].UsageCount)
+				CONS_Printf("WX_WipeEntryTable: Warning, \"%s\" still in use!\n", a_WAD->Entries[i].Name);
+		
+			// Clear cache
+			if (a_WAD->Entries[i].Cache)
+				Z_Free(a_WAD->Entries[i].Cache);
 			
 			// Delete Name
 			Z_Free(a_WAD->Entries[i].Name);
@@ -2157,140 +2153,57 @@ WX_WADEntry_t*		WX_EntryForName(WX_WADFile_t* const a_WAD, const char* const a_N
 }
 
 /* WX_CacheEntry() -- Caches a single entry */
-void*				WX_CacheEntry(WX_WADEntry_t* const a_Entry, const WX_ConvType_t a_From, const WX_ConvType_t a_To)
+void*				WX_CacheEntry(WX_WADEntry_t* const a_Entry)
 {
 	void* RawData;
 	void* RetVal;
-	size_t From, To;
 	
 	/* Check */
 	if (!a_Entry)
 		return NULL;
 	
-	/* Map From/To */
-	From = a_From;
-	To = a_To;
-	
-	if (From >= NUMWXCONVTYPES)
-		From = WXCT_RAW;
-	if (To >= NUMWXCONVTYPES)
-		To = WXCT_RAW;
-	
 	/* Cache the raw data */
 	// Already cached
-	if (a_Entry->Cache[WXCT_RAW])
-		RawData = a_Entry->Cache[WXCT_RAW];
+	if (a_Entry->Cache)
+		RawData = a_Entry->Cache;
 	
 	// Not cached
 	else
 	{
 		// Allocate size needed for cache
-		a_Entry->Cache[WXCT_RAW] = Z_Malloc(a_Entry->Size, PU_STATIC, NULL);
+		a_Entry->Cache = Z_Malloc(a_Entry->Size, PU_STATIC, NULL);
 		
 		// Load in data
 		if (!a_Entry->ParentWAD->FuncReadEntryData(a_Entry->ParentWAD, a_Entry))
 			return NULL;
-		RawData = a_Entry->Cache[WXCT_RAW];
+		RawData = a_Entry->Cache;
 	}
 	
-	/* Conversion Matrix */
-	switch (From)
-	{
-		/* From RAW */
-		case WXCT_RAW:
-			switch (To)
-			{
-				// To RAW
-				case WXCT_RAW:
-					RetVal = RawData;
-					break;
-	
-				// To patch_t
-				case WXCT_PATCH:
-	
-				// To pic_t
-				case WXCT_PIC:
-	
-				// To Unhandled
-				default:
-					RetVal = NULL;
-					break;
-			}
-			break;
-		
-		/* From patch_t */
-		case WXCT_PATCH:
-			switch (To)
-			{
-				// To RAW
-				case WXCT_RAW:
-					RetVal = RawData;
-					break;
-	
-				// To patch_t -- TODO: Implement Propers
-				case WXCT_PATCH:
-					RetVal = RawData;
-					break;
-	
-				// To pic_t
-				case WXCT_PIC:
-	
-				// To Unhandled
-				default:
-					RetVal = NULL;
-					break;
-			}
-			break;
-		
-		/* From pic_t */
-		case WXCT_PIC:
-			switch (To)
-			{
-				// To RAW
-				case WXCT_RAW:
-					RetVal = RawData;
-					break;
-	
-				// To patch_t
-				case WXCT_PATCH:
-	
-				// To pic_t
-				case WXCT_PIC:
-	
-				// To Unhandled
-				default:
-					RetVal = NULL;
-					break;
-			}
-			break;
-		
-		/* Unhandled */
-		default:
-			break;
-	}
+	// Return value is the raw data
+	RetVal = RawData;
 	
 	/* Use it? */
 	if (RetVal)
-		WX_UseEntry(a_Entry, a_To, true);
+		WX_UseEntry(a_Entry, true);
 	
 	return RetVal;
 }
 
 /* WX_UseEntry() -- Uses an entry to prevent its free */
-size_t				WX_UseEntry(WX_WADEntry_t* const a_Entry, const WX_ConvType_t a_Type, const bool_t a_Use)
+size_t				WX_UseEntry(WX_WADEntry_t* const a_Entry, const bool_t a_Use)
 {
 	/* Check */
-	if (!a_Entry || (size_t)a_Type >= (size_t)NUMWXCONVTYPES)
+	if (!a_Entry)
 		return 0;
 	
 	/* Do we use it or not? */
 	if (a_Use)
-		a_Entry->UsageCount[a_Type]++;
+		a_Entry->UsageCount++;
 	else
-		a_Entry->UsageCount[a_Type]--;
+		a_Entry->UsageCount--;
 	
 	/* Now return the count */
-	return a_Entry->UsageCount[a_Type];
+	return a_Entry->UsageCount;
 }
 
 /* WX_VirtualPushPop() -- Pushes or pops a WAD on the virtual stack */
@@ -2427,14 +2340,13 @@ size_t				WX_ClearUnused(void)
 	{
 		// For every entry and conversion type
 		for (i = 0; i < Rover->NumLumps; i++)
-			for (j = 0; j < NUMWXCONVTYPES; j++)
-				if (!Rover->Entries[i].UsageCount[j])
-					if (Rover->Entries[i].Cache[j])
-					{
-						Z_Free(Rover->Entries[i].Cache[j]);
-						Rover->Entries[i].Cache[j] = NULL;
-						r++;
-					}
+			if (!Rover->Entries[i].UsageCount)
+				if (Rover->Entries[i].Cache)
+				{
+					Z_Free(Rover->Entries[i].Cache);
+					Rover->Entries[i].Cache = NULL;
+					r++;
+				}
 		
 		// Next
 		Rover = Rover->NextWAD;
