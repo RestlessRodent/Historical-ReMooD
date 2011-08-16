@@ -33,6 +33,11 @@
 #include <stdint.h>
 #include <allegro.h>
 
+// Include winalleg on Windows since it conflicts!
+#if defined(_WIN32)
+	#include <winalleg.h>
+#endif
+
 #if !defined(__REMOOD_SYSTEM_WINDOWS)
 	#include <sys/stat.h>
 #endif

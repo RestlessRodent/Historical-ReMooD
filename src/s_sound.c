@@ -219,6 +219,7 @@ void S_PauseMusic(void)
 	I_PauseSong(l_CurrentSong);
 }
 
+/* S_ResumeMusic() -- Resumes paused music */
 void S_ResumeMusic(void)
 {
 	/* Check */

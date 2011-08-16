@@ -30,8 +30,13 @@
 *** INCLUDES ***
 ***************/
 
-#include <stdint.h>
 #include <allegro.h>
+
+// Include winalleg on Windows since it conflicts!
+#if defined(_WIN32)
+	#include <winalleg.h>
+#endif
+
 #include "doomdef.h"
 #include "m_argv.h"
 #include "d_main.h"

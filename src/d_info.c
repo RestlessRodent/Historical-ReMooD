@@ -43,6 +43,10 @@ void D_WXBuildInfos(const D_InfoLoadType_t a_Type, WX_WADFile_t* const a_WAD)
 			// Load all the INFOs for a single WAD
 		case DILT_BUILDONE:
 			break;
+			
+			// Compile all the stuff together
+		case DILT_BUILDALL:
+			break;
 		
 			// Nothing
 		default:

@@ -27,13 +27,16 @@
 *** INCLUDES ***
 ***************/
 
-/* Include Doomtype first */
-#include "doomtype.h"
-
 /* System */
 #include <allegro.h>
 
+// Include winalleg on Windows since it conflicts!
+#if defined(_WIN32)
+	#include <winalleg.h>
+#endif
+
 /* Local */
+#include "doomtype.h"
 #include "i_util.h"
 #include "i_sound.h"
 #include "m_argv.h"
