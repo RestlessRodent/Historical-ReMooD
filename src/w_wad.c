@@ -407,7 +407,7 @@ int W_LoadWadFile(char *filename)
 	else
 	{
 		/* Determine Opening Method or return 0 */
-		if (stricmp(&filename[strlen(filename) - 3], "deh") == 0)
+		if (strcasecmp(&filename[strlen(filename) - 3], "deh") == 0)
 			OpenMethod = METHOD_DEHACKED;
 		else
 		{

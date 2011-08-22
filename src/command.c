@@ -631,10 +631,10 @@ static void COM_Help_f(void)
 			CONS_Printf("\n");
 			if (cvar->PossibleValue)
 			{
-				if (stricmp(cvar->PossibleValue[0].strvalue, "MIN") == 0)
+				if (strcasecmp(cvar->PossibleValue[0].strvalue, "MIN") == 0)
 				{
 					for (i = 1; cvar->PossibleValue[i].strvalue != NULL; i++)
-						if (!stricmp(cvar->PossibleValue[i].strvalue, "MAX"))
+						if (!strcasecmp(cvar->PossibleValue[i].strvalue, "MAX"))
 							break;
 					CONS_Printf("  range from %d to %d\n",
 								cvar->PossibleValue[0].value, cvar->PossibleValue[i].value);
@@ -1104,12 +1104,12 @@ void Setvalue(consvar_t * var, char *valstr)
 	{
 		int v = atoi(valstr);
 
-		if (!stricmp(ActualVar->PossibleValue[0].strvalue, "MIN"))
+		if (!strcasecmp(ActualVar->PossibleValue[0].strvalue, "MIN"))
 		{						// bounded cvar
 			int i;
 			// search for maximum
 			for (i = 1; ActualVar->PossibleValue[i].strvalue != NULL; i++)
-				if (!stricmp(ActualVar->PossibleValue[i].strvalue, "MAX"))
+				if (!strcasecmp(ActualVar->PossibleValue[i].strvalue, "MAX"))
 					break;
 #ifdef PARANOIA
 			if (ActualVar->PossibleValue[i].strvalue == NULL)
@@ -1132,7 +1132,7 @@ void Setvalue(consvar_t * var, char *valstr)
 			
 			// check first strings
 			for (i = 0; ActualVar->PossibleValue[i].strvalue != NULL; i++)
-				if (!stricmp(ActualVar->PossibleValue[i].strvalue, valstr))
+				if (!strcasecmp(ActualVar->PossibleValue[i].strvalue, valstr))
 					goto found;
 			if (!v)
 				if (strcmp(valstr, "0") != 0)	// !=0 if valstr!="0"
@@ -1211,7 +1211,7 @@ void CV_Set(consvar_t * var, char *value)
 	if (!var->string)
 		I_Error("cv_Set : %s no string set ?!\n", var->name);
 #endif
-	if (stricmp(var->string, value) == 0)
+	if (strcasecmp(var->string, value) == 0)
 		return;					// no changes*/
 
 	Setvalue(var, value);

@@ -44,6 +44,9 @@ export __INT_CC := $(__INT_CC)$(CC)
 ### COMPILE FLAGS ###
 #####################
 
+__INT_COMMONCFLAGS  := -fno-strict-aliasing
+__INT_COMMONLDFLAGS :=
+
 # Debugging?
 ifdef DEBUG
 	__INT_MCFLAGS := -g3 -O0

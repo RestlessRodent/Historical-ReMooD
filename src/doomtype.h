@@ -429,6 +429,16 @@ BPLWRITE_x(UInt64,uint64_t)
 // A valid tic
 typedef uint64_t tic_t;
 
+/*****************************
+*** COMPILER COMPATIBILITY ***
+*****************************/
+
+/* Microsoft Visual C++ */
+#if defined(_MSC_VER)
+	#define strncasecmp strnicmp
+	#define strcasecmp stricmp
+#endif
+
 /******************************************
 *** REMOVE ALL THIS GARBAGE, SERIOUSLY! ***
 ******************************************/
@@ -442,22 +452,6 @@ typedef int32_t ssize_t;
 #endif
 #define __ssize_t_defined
 #endif
-#endif
-
-#ifdef _MSC_VER
-#define strncasecmp strnicmp
-#define strcasecmp stricmp
-#define inline __inline
-#else
-#define stricmp strcasecmp
-#define strnicmp strncasecmp
-#ifndef __MINGW32__
-#define lstrlen(x) strlen(x)
-#endif
-#endif
-
-#ifndef MININT64
-#define MININT64   ((int64_t)0x8000000000000000L)
 #endif
 
 union FColorRGBA

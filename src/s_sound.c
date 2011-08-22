@@ -1443,7 +1443,7 @@ void S_StartSoundName(void *mo, char *soundname)
 	{
 		if (!S_sfx[i].name)
 			continue;
-		if (!stricmp(S_sfx[i].name, soundname))
+		if (!strcasecmp(S_sfx[i].name, soundname))
 		{
 			soundnum = i;
 			break;

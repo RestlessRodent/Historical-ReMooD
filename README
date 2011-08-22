@@ -70,3 +70,13 @@ the bottom of the page.  Note that the patches field will vary from system to
 system (if you are using Linux you should be knowledgable enough to know what
 to put here).
 
+========[ SOURCE CODE STYLE ]==================================================
+
+If you want to submit patches (which I will take a look at and determine their
+coolness factor), you must match my coding style. If you didn't then your patch
+will be applied ran through GNU indent:
+
+ * indent -kr -bad -bap -c60 -bl -bli0 -nce -cdw -cli4 -cbi0 -nss -npcs -ncs\
+          -nprs -saf -sai -nsaw -di1 -nbc -nbfda -nbfde -bls -blf -i4 -lp\
+          -l160 -nbbo -ts4 -sob
+

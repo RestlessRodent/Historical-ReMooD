@@ -449,7 +449,7 @@ int G_KeyStringtoNum(char *keystr)
 		return keystr[0];
 
 	for (j = 0; j < NUMKEYNAMES; j++)
-		if (stricmp(keynames[j].name, keystr) == 0)
+		if (strcasecmp(keynames[j].name, keystr) == 0)
 			return keynames[j].keynum;
 
 	if (strlen(keystr) > 3)
@@ -544,7 +544,7 @@ void setcontrol(int (*gc)[2], int na)
 
 	namectrl = COM_Argv(1);
 	for (numctrl = 0; numctrl < num_gamecontrols
-		 && stricmp(namectrl, gamecontrolname[numctrl]); numctrl++);
+		 && strcasecmp(namectrl, gamecontrolname[numctrl]); numctrl++);
 	if (numctrl == num_gamecontrols)
 	{
 		CONS_Printf("Control '%s' unknown\n", namectrl);

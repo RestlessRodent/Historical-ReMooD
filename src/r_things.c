@@ -1846,7 +1846,7 @@ int R_SkinAvailable(char *name)
 
 	for (i = 0; i < numskins; i++)
 	{
-		if (stricmp(skins[i].name, name) == 0)
+		if (strcasecmp(skins[i].name, name) == 0)
 			return i;
 	}
 	return 0;
@@ -1860,7 +1860,7 @@ void SetPlayerSkin(int playernum, char *skinname)
 	for (i = 0; i < numskins; i++)
 	{
 		// search in the skin list
-		if (stricmp(skins[i].name, skinname) == 0)
+		if (strcasecmp(skins[i].name, skinname) == 0)
 		{
 			// change the face graphics
 			if (playernum == statusbarplayer &&
@@ -1979,7 +1979,7 @@ void R_AddSkins(int wadnum)
 					}
 					
 					/* Seems safe for now... */
-					if (stricmp(Token, "name") == 0)
+					if (strcasecmp(Token, "name") == 0)
 					{	// Skin Name
 						int MangleSkin = R_SkinAvailable(Value);
 						char* X;

@@ -402,14 +402,14 @@ void P_LoadSectors(int lump)
 		//
 		//  flats
 		//
-		if (strnicmp(ms->floorpic, "FWATER", 6) == 0 ||
-			strnicmp(ms->floorpic, "FLTWAWA1", 8) == 0 ||
-			strnicmp(ms->floorpic, "FLTFLWW1", 8) == 0)
+		if (strncasecmp(ms->floorpic, "FWATER", 6) == 0 ||
+			strncasecmp(ms->floorpic, "FLTWAWA1", 8) == 0 ||
+			strncasecmp(ms->floorpic, "FLTFLWW1", 8) == 0)
 			ss->floortype = FLOOR_WATER;
-		else if (strnicmp(ms->floorpic, "FLTLAVA1", 8) == 0 ||
-				 strnicmp(ms->floorpic, "FLATHUH1", 8) == 0)
+		else if (strncasecmp(ms->floorpic, "FLTLAVA1", 8) == 0 ||
+				 strncasecmp(ms->floorpic, "FLATHUH1", 8) == 0)
 			ss->floortype = FLOOR_LAVA;
-		else if (strnicmp(ms->floorpic, "FLTSLUD1", 8) == 0)
+		else if (strncasecmp(ms->floorpic, "FLTSLUD1", 8) == 0)
 			ss->floortype = FLOOR_SLUDGE;
 		else
 			ss->floortype = FLOOR_SOLID;
@@ -1443,7 +1443,7 @@ bool_t P_AddWadFile(char *wadfilename, char **firstmapname)
 	   {
 	   if ( S_sfx[j].name &&
 	   !S_sfx[j].link &&
-	   !strnicmp(S_sfx[j].name,name+2,6) )
+	   !strncasecmp(S_sfx[j].name,name+2,6) )
 	   {
 	   // the sound will be reloaded when needed,
 	   // since sfx->data will be NULL

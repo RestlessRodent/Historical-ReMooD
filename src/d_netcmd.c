@@ -602,7 +602,7 @@ void Got_NameAndcolor(char **cp, int playernum)
 	// name
 	if (demoversion >= 128)
 	{
-		if (stricmp(player_names[playernum], *cp))
+		if (strcasecmp(player_names[playernum], *cp))
 			CONS_Printf("%s renamed to %s\n", player_names[playernum], *cp);
 		READSTRING(*cp, player_names[playernum]);
 	}
