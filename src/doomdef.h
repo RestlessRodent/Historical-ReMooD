@@ -51,11 +51,6 @@
 #define VERSION		((((REMOOD_MAJORVERSION % 10) * 100) + ((REMOOD_MINORVERSION % 10) * 10) + (((REMOOD_RELEASEVERSION - 'a') % 10))) + 100)
 #define VERSIONSTRING  " \""REMOOD_VERSIONCODESTRING"\""
 
-#if defined (LOGMESSAGES) && defined(LINUX)
-#define INVALID_HANDLE_VALUE -1
-extern int logstream;
-#endif
-
 // some tests, enable or desable it if it run or not
 #define SPLITSCREEN
 #define ABSOLUTEANGLE			// work fine, soon #ifdef and old code remove
