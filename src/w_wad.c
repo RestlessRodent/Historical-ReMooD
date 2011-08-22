@@ -2295,7 +2295,7 @@ bool_t				WX_GetVirtualPrivateData(WX_WADFile_t* const a_WAD, const WX_DataPriva
 }
 
 /* WX_RoveEntry() -- Changes entries */
-WX_WADEntry_t*		WX_RoveEntry(WX_WADEntry_t* const a_Entry, const ssize_t a_Next)
+WX_WADEntry_t*		WX_RoveEntry(WX_WADEntry_t* const a_Entry, const int32_t a_Next)
 {
 	/* Check */
 	if (!a_Entry)

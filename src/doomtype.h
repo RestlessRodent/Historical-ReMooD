@@ -443,17 +443,6 @@ typedef uint64_t tic_t;
 *** REMOVE ALL THIS GARBAGE, SERIOUSLY! ***
 ******************************************/
 
-#ifdef _MSC_VER
-#ifndef __ssize_t_defined
-#if defined(_M_IA64) || defined(_M_X64) || defined(_WIN64)
-typedef int64_t ssize_t;
-#else
-typedef int32_t ssize_t;
-#endif
-#define __ssize_t_defined
-#endif
-#endif
-
 union FColorRGBA
 {
 	uint32_t rgba;
