@@ -91,7 +91,10 @@ __INT_LCOMSPEC := $(call __INT_LOWERJUNK,$(COMSPEC))
 ifeq (,$(strip $(__INT_LCOMSPEC)))
 	__INT_HCOMSPEC := $(strip $(shell ____spec))
 	__INT_LCOMSPEC := $(call __INT_LOWERJUNK,$(__INT_HCOMSPEC))
-	__INT_CHECKREALSH := yes
+	
+	ifneq (,$(strip $(__INT_LCOMSPEC)))
+		__INT_CHECKREALSH := yes
+	endif
 endif
 
 # Another thing to check on GNUWin32 is that SHELL is set to sh.exe (which in
