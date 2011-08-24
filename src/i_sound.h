@@ -35,6 +35,9 @@
 #include "p_mobj.h"
 #include "g_game.h"
 
+/* Sound Stuff */
+bool_t I_SoundDriverInit(void);
+
 //
 //  MUSIC I/O
 //
