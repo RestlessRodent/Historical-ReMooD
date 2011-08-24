@@ -30,98 +30,72 @@
 *** INCLUDES ***
 ***************/
 
-#include "i_thread.h"
-#include "i_sound.h"
-#include "z_zone.h"
-#include "m_swap.h"
-#include "i_system.h"
-#include "i_sound.h"
-#include "m_argv.h"
-#include "m_misc.h"
-#include "w_wad.h"
-#include "doomdef.h"
-#include "doomstat.h"
-#include "s_sound.h"
 #include "doomtype.h"
-#include "d_main.h"
+#include "i_sound.h"
+#include "i_util.h"
 
-void I_UpdateSound_sdl(void *unused, int8_t* stream, int len)
+/**********************************
+*** ALLEGRO SOUND STREAM DRIVER ***
+**********************************/
+
+/* I_AllegroSD_Init() -- Initializes a driver */
+bool_t I_AllegroSD_Init(struct I_SoundDriver_s* const a_Driver)
 {
+	/* Check */
+	if (!a_Driver)
+		return false;
+	
+	/* Success */
+	return true;
 }
 
-void I_SOUND_MakeDigital(void)
+/* I_AllegroSD_Destroy() -- Destroys a driver */
+bool_t I_AllegroSD_Destroy(struct I_SoundDriver_s* const a_Driver)
 {
+	/* Check */
+	if (!a_Driver)
+		return false;
+	
+	/* Success */
+	return true;
 }
 
-void I_SOUND_MakeAnalog(void)
+/* I_AllegroSD_Success() -- Success */
+void I_AllegroSD_Success(struct I_SoundDriver_s* const a_Driver)
 {
+	/* Check */
+	if (!a_Driver)
+		return;
 }
 
-void I_SOUND_DestroyDigital(void)
-{
-}
 
-void I_SOUND_DestroyAnalog(void)
+/* l_AllegroSound -- Allegro sound driver */
+static const I_SoundDriver_t l_AllegroSoundDriver =
 {
-}
+	/* Info */
+	"Allegro SoundStream",
+	"allegrosnd",
+	(1 << IST_WAVEFORM),
+	127,
+	
+	/* Functions */
+	I_AllegroSD_Init,
+	I_AllegroSD_Destroy,
+	I_AllegroSD_Success,
+};
 
-bool_t I_StartupSound()
-{
-}
+/****************
+*** FUNCTIONS ***
+****************/
 
-void I_ShutdownSound(void)
+/* I_SoundDriverInit() -- Initializes sound */
+bool_t I_SoundDriverInit(void)
 {
-}
-
-bool_t I_UpdateSoundCache(void)
-{
-}
-
-void *I_GetSfx(sfxinfo_t* sfx)
-{
-	return NULL;
-}
-
-void I_FreeSfx(sfxinfo_t* sfx)
-{
-}
-
-void I_SetSfxVolume(int volume)
-{
-}
-
-void I_UpdateSound(void)
-{
-}
-
-void I_UpdateSoundParams(int handle, int vol, int sep, int pitch)
-{
-}
-
-int I_StartSoundEx(int id, int vol, int sep, int pitch, int priority, mobj_t * origin, int orientation, int front, int center)
-{
-	return -1;
-}
-
-int I_StartSound(int id, int vol, int sep, int pitch, int priority, mobj_t * origin)
-{
-	return I_StartSoundEx(id, vol, sep, pitch, priority, origin, 128, 0, 0);
-}
-
-void I_StopSound(int handle)
-{
-}
-
-void I_CutOrigonator(void *origin)
-{
-}
-
-int I_SoundIsPlaying(int handle)
-{
-	return 0;
-}
-
-void I_SubmitSound(void)
-{
+	/* Add Allegro MIDI Driver */
+	if (!I_AddSoundDriver(&l_AllegroSoundDriver))
+		CONS_Printf("I_SoundDriverInit: Failed to add Allegro Driver\n");
+	
+	/* Success */
+	return true;
 }
 

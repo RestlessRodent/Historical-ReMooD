@@ -909,9 +909,9 @@ static I_MusicDriver_t l_MUS2MIDDriver =
 	I_MUS2MID_Update
 };
 
-/****************
-*** FUNCTIONS ***
-****************/
+/**********************
+*** MUSIC FUNCTIONS ***
+**********************/
 
 /* I_AddMusicDriver() -- Adds a new music driver */
 bool_t I_AddMusicDriver(I_MusicDriver_t* const a_Driver)
@@ -1320,5 +1320,113 @@ void I_StopSong(int handle)
 	
 	/* Free song data */
 	// TODO
+}
+
+/**********************
+*** SOUND FUNCTIONS ***
+**********************/
+
+/* I_AddSoundDriver() -- Adds a new sound driver */
+bool_t I_AddSoundDriver(I_SoundDriver_t* const a_Driver)
+{
+	size_t i;
+	
+	/* Check */
+	if (!a_Driver)
+		return false;
+	
+	/* Attempt driver initialization */
+	if (a_Driver->Init && !a_Driver->Init(a_Driver))
+		return false;
+	
+	/* Find a blank spot */
+	for (i = 0; i < l_NumSoundDrivers; i++)
+		if (!l_SoundDrivers[i])
+		{
+			l_SoundDrivers[i] = a_Driver;
+			break;
+		}
+	
+	// did not find one
+	if (i == l_NumSoundDrivers)
+	{
+		// Resize the list
+		Z_ResizeArray(&l_SoundDrivers, sizeof(*l_SoundDrivers), l_NumSoundDrivers, l_NumSoundDrivers + 1);
+		l_SoundDrivers[l_NumSoundDrivers++] = a_Driver;
+	}
+	
+	/* Call the success routine, if it exists */
+	if (a_Driver->Success)
+		a_Driver->Success(a_Driver);
+	
+	/* Success */	
+	return true;
+}
+
+/* I_RemoveSoundDriver() -- Removes a sound driver */
+bool_t I_RemoveSoundDriver(I_SoundDriver_t* const a_Driver)
+{
+	size_t i;
+	
+	/* Check */
+	if (!a_Driver)
+		return false;
+	
+	/* Find driver */
+	
+	return true;
+}
+
+/* I_FindSoundDriver() -- Find a music driver that can play this format */
+I_SoundDriver_t* I_FindSoundDriver(const I_SoundType_t a_Type)
+{
+	I_MusicDriver_t* Best = NULL;
+	size_t i;
+	
+	/* Go through every driver */
+	for (i = 0; i < l_NumSoundDrivers; i++)
+		if (l_SoundDrivers[i])
+			if (!Best || (Best && l_SoundDrivers[i]->Priority > Best->Priority))
+				Best = l_SoundDrivers[i];
+	
+	/* Return the best driver, if any */
+	return Best;
+}
+
+/* I_StartupSound() -- Initializes the sound system */
+bool_t I_StartupSound(void)
+{
+	/* Add interface specific stuff */
+	if (!I_SoundDriverInit())
+		CONS_Printf("I_StartupSound: Failed to add interface specific drivers.\n");
+	
+	/* Return only if sound drivers were loaded */
+	return !!l_NumSoundDrivers;
+}
+
+/* I_ShutdownSound() -- Shuts down the sound system */
+void I_ShutdownSound(void)
+{
+	size_t i;
+	
+	/* Destroy all drivers */
+	for (i = 0; i < l_NumSoundDrivers; i++)
+		if (!I_RemoveSoundDriver(l_SoundDrivers[i]))
+			CONS_Printf("I_ShutdownSound: Failed to remove driver.\n");
+	
+	/* Destroy array */
+	Z_Free(l_SoundDrivers);
+	l_SoundDrivers = NULL;
+	l_NumSoundDrivers = 0;
+}
+
+/* I_UpdateSound() -- Updates all playing sounds */
+void I_UpdateSound(void)
+{
+}
+
+/* I_SubmitSound() -- Submits all sounds for playing */
+void I_SubmitSound(void)
+{
 }
 

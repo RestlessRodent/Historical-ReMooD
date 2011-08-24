@@ -79,6 +79,10 @@ void S_RegisterSoundStuff(void)
 /* S_Init() -- Initializes the sound subsystem */
 void S_Init(int sfxVolume, int musicVolume)
 {
+	// No sound at all?
+	if (M_CheckParm("-nosound"))
+		return;
+	
 	/* Initialize both sound and music */
 	// Sound
 	l_SoundOK = false;
@@ -234,8 +238,15 @@ void S_UpdateSounds(void)
 {
 }
 
+/* S_SetMusicVolume() -- Sets music volume */
 void S_SetMusicVolume(int volume)
 {
+	/* Check */
+	if (!l_MusicOK || !l_CurrentSong)
+		return;
+	
+	/* Set volume */
+	I_SetMusicVolume(volume);
 }
 
 void S_SetSfxVolume(int volume)
@@ -266,6 +277,9 @@ int S_AdjustSoundParamsEx(struct mobj_s* Listener, struct mobj_s* Source,
 	return -1;
 }
 
+void S_FreeSfx(sfxinfo_t * sfx)
+{
+}
 
 
 #if 0

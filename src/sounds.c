@@ -296,7 +296,7 @@ void S_RemoveSoundFx(int id)
 		Z_Free(S_sfx[id].name);
 		S_sfx[id].name = NULL;
 		S_sfx[id].lumpnum = -1;
-		I_FreeSfx(&S_sfx[id]);
+		S_FreeSfx(&S_sfx[id]);
 	}
 }
 

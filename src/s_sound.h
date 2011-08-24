@@ -69,6 +69,7 @@ void S_Init(int sfxVolume, int musicVolume);
 void S_StopSounds(void);
 void S_Start(void);
 int S_GetSfxLumpNum(sfxinfo_t * sfx);
+void S_FreeSfx(sfxinfo_t * sfx);
 
 void S_StartSound(void *origin, int sound_id);
 void S_StartSoundAtVolume(void *origin, int sound_id, int volume);

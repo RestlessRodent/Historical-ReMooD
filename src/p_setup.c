@@ -1321,7 +1321,7 @@ bool_t P_AddWadFile(char *wadfilename, char **firstmapname)
 				if ((S_sfx[j].name) && !(S_sfx[j].link) &&
 					(strncasecmp(Name[2], S_sfx[j].name, 6) == 0))
 				{
-					I_FreeSfx(&S_sfx[j]);
+					S_FreeSfx(&S_sfx[j]);
 					SoundReplacements++;
 				}
 			}

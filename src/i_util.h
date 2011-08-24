@@ -192,6 +192,17 @@ typedef enum I_MusicType_e
 	NUMIMUSICTYPES
 } I_MusicType_t;
 
+/* I_SoundType_t -- Types of sound to play */
+typedef enum I_SoundType_e
+{
+	IST_WAVEFORM,								// Waveform
+	IST_BEEPY,									// PC Beeps
+	
+	IST_UNKNOWN,								// Not in any known format!
+	
+	NUMISOUNDTYPES
+} I_SoundType_t;
+
 #define MAXDRIVERNAME						32	// Driver name limit
 
 /*****************
@@ -263,16 +274,16 @@ typedef struct I_SoundDriver_s
 	/* Info */
 	char Name[MAXDRIVERNAME];					// Name of driver
 	char ShortName[MAXDRIVERNAME];				// Short driver name
-	bool_t PCBeeping;							// Does this driver beep at you?
+	uint32_t SoundType;							// type of sound
 	uint8_t Priority;							// Priority of the driver
 	
 	/* Functions */
 		// Initializes a driver
-	bool_t (*Init)(struct I_MusicDriver_s* const a_Driver);
+	bool_t (*Init)(struct I_SoundDriver_s* const a_Driver);
 		// Destroys a driver
-	bool_t (*Destroy)(struct I_MusicDriver_s* const a_Driver);
+	bool_t (*Destroy)(struct I_SoundDriver_s* const a_Driver);
 		// Success
-	void (*Success)(struct I_MusicDriver_s* const a_Driver);
+	void (*Success)(struct I_SoundDriver_s* const a_Driver);
 	
 	/* Dynamic */
 	void* Data;									// Private data
@@ -329,18 +340,13 @@ void I_ResumeSong(int handle);
 void I_PlaySong(int handle, int looping);
 void I_StopSong(int handle);
 
-void *I_GetSfx(struct sfxinfo_struct* sfx);
-void I_FreeSfx(struct sfxinfo_struct* sfx);
-bool_t I_StartupSound();
+bool_t I_AddSoundDriver(I_SoundDriver_t* const a_Driver);
+bool_t I_RemoveSoundDriver(I_SoundDriver_t* const a_Driver);
+I_SoundDriver_t* I_FindSoundDriver(const I_SoundType_t a_Type);
+bool_t I_StartupSound(void);
+void I_ShutdownSound(void);
 void I_UpdateSound(void);
 void I_SubmitSound(void);
-void I_ShutdownSound(void);
-int I_StartSound(int id, int vol, int sep, int pitch, int priority, struct mobj_s* origin);
-void I_StopSound(int handle);
-void I_CutOrigonator(void *origin);	// Stops a sound originating from something
-int I_SoundIsPlaying(int handle);
-void I_UpdateSoundParams(int handle, int vol, int sep, int pitch);
-int I_StartSoundEx(int id, int vol, int sep, int pitch, int priority, struct mobj_s* origin, int orientation, int front, int center);
 
 #endif /* __I_UTIL_H__ */
 
