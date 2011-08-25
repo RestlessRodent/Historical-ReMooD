@@ -132,7 +132,6 @@ S_SoundChannel_t* S_PlayEntryOnChannel(const uint32_t a_Channel, WX_WADEntry_t* 
 	
 	// Determine the play rate, which is by default the ratio of the sound freq and the card freq
 	l_DoomChannels[a_Channel].MoveRate = FixedDiv((fixed_t)Freq << FRACBITS, (fixed_t)l_Freq << FRACBITS);
-	fprintf(stderr, "%i %i %i (%i) %f\n", Header, Freq, Length, l_Freq, FIXED_TO_FLOAT(l_DoomChannels[a_Channel].MoveRate));
 	
 	/* Return channel */
 	return &l_DoomChannels[a_Channel];
@@ -203,6 +202,7 @@ void S_StartSoundAtVolume(S_NoiseThinker_t* a_Origin, int sound_id, int volume)
 #define BUFSIZE 24
 	char Buf[BUFSIZE];
 	int OnChannel, i;
+	fixed_t RPA;
 	WX_WADEntry_t* Entry;
 	S_SoundChannel_t* Target;
 	
@@ -251,8 +251,25 @@ void S_StartSoundAtVolume(S_NoiseThinker_t* a_Origin, int sound_id, int volume)
 	/* Set extra stuff */
 	Target->Origin = a_Origin;
 	Target->SoundID = sound_id;
-	Target->MoveRate = 1 << FRACBITS;
+	//Target->MoveRate = 1 << FRACBITS;	// Don't set this due to freq inbalance
 	Target->Volume = 1 << FRACBITS;
+	
+	// Random sound pitch?
+	if (cv_rndsoundpitch.value)
+	{
+		// Get value to adjust
+		RPA = FixedDiv((fixed_t)M_Random() << FRACBITS, 127 << FRACBITS);
+		
+		// Cap to 0.75 .. 1.25
+		if (RPA <= 49152)
+			RPA = 49152;
+		else if (RPA >= 81920)
+			RPA = 81920;
+		
+		// Modify move rate to random pitch change
+		Target->MoveRate = FixedMul(Target->MoveRate, RPA);
+	}
+	
 #undef BUFSIZE
 }
 
@@ -278,11 +295,18 @@ void S_StartSoundName(S_NoiseThinker_t* a_Origin, char *soundname)
 /* S_StopSound() -- Stop sound being played by this object */
 void S_StopSound(S_NoiseThinker_t* a_Origin)
 {
+	int Found;
+	
 	/* Check */
-	if (!l_SoundOK)
+	if (!l_SoundOK || !a_Origin)
 		return;
 	
+	/* Find channel playing sound */
+	if (!(Found = S_SoundPlaying(a_Origin, 0)))
+		return;
 	
+	/* Stop channel */
+	S_StopChannel(Found - 1);
 }
 
 int S_AdjustSoundParamsEx(struct mobj_s* Listener, struct mobj_s* Source,
@@ -533,18 +557,6 @@ static void S_WriteMixSample(void** Buf, uint8_t Value)
 	if (l_Bits == 16)
 	{
 		// Read current value (I hope the buffer is aligned!)
-#if defined(__REMOOD_SIGNEDSOUND)
-		v = **((int16_t**)Buf);
-		v = (v) + (s * 256);
-		
-		if (v > 32767)
-			v = 32767;
-		else if (v < -32768)
-			v = -32768;
-		
-		// Mix into buffer
-		WriteInt16(Buf, v);
-#else
 		v = **((uint16_t**)Buf);
 		v = (v - 32768) + (s * 256);
 		
@@ -556,24 +568,11 @@ static void S_WriteMixSample(void** Buf, uint8_t Value)
 		
 		// Mix into buffer
 		WriteUInt16(Buf, v);
-#endif
 	}
 	
 	/* Write Narrow */
 	else
 	{
-#if defined(__REMOOD_SIGNEDSOUND)
-		v = **((int8_t**)Buf);
-		v = (v) + (s);
-		
-		if (v > 127)
-			v = 127;
-		else if (v < -128)
-			v = -128;
-		
-		// Mix into buffer
-		WriteInt8(Buf, v);
-#else
 		// Read current value and add to it
 		v = **((uint8_t**)Buf);
 		v = (v - 128) + s;
@@ -586,7 +585,6 @@ static void S_WriteMixSample(void** Buf, uint8_t Value)
 		
 		// Mix into buffer
 		WriteUInt8(Buf, v);
-#endif
 	}
 }
 
