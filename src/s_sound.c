@@ -533,30 +533,60 @@ static void S_WriteMixSample(void** Buf, uint8_t Value)
 	if (l_Bits == 16)
 	{
 		// Read current value (I hope the buffer is aligned!)
+#if defined(__REMOOD_SIGNEDSOUND)
+		v = **((int16_t**)Buf);
+		v = (v) + (s * 256);
+		
+		if (v > 32767)
+			v = 32767;
+		else if (v < -32768)
+			v = -32768;
+		
+		// Mix into buffer
+		WriteInt16(Buf, v);
+#else
 		v = **((uint16_t**)Buf);
 		v = (v - 32768) + (s * 256);
 		
 		if (v > 32767)
 			v = 32767;
+		else if (v < -32768)
+			v = -32768;
 		v += 32768;
 		
 		// Mix into buffer
 		WriteUInt16(Buf, v);
+#endif
 	}
 	
-	/* Write Short */
+	/* Write Narrow */
 	else
 	{
+#if defined(__REMOOD_SIGNEDSOUND)
+		v = **((int8_t**)Buf);
+		v = (v) + (s);
+		
+		if (v > 127)
+			v = 127;
+		else if (v < -128)
+			v = -128;
+		
+		// Mix into buffer
+		WriteInt8(Buf, v);
+#else
 		// Read current value and add to it
 		v = **((uint8_t**)Buf);
 		v = (v - 128) + s;
 		
 		if (v > 127)
 			v = 127;
+		else if (v < -128)
+			v = -128;
 		v += 128;
 		
 		// Mix into buffer
 		WriteUInt8(Buf, v);
+#endif
 	}
 }
 
