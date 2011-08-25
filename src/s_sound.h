@@ -35,6 +35,7 @@
 #include "doomtype.h"
 #include "sounds.h"
 #include "command.h"
+#include "m_fixed.h"
 
 /****************
 *** CONSTANTS ***
@@ -45,6 +46,27 @@
 *****************/
 
 struct mobj_s;
+
+/* S_NoiseThinker_t -- A thinker that makes noise */
+typedef struct S_NoiseThinker_s
+{
+	uint32_t Flags;								// Sound flags
+	
+	/* World Position */
+	fixed_t x;
+	fixed_t y;
+	fixed_t z;
+	
+	/* Momenntum */
+	// This is for doppler and such
+	fixed_t momx;
+	fixed_t momy;
+	fixed_t momz;
+	
+	/* Other things */
+	fixed_t Pitch;								// Pitch modification
+	fixed_t Volume;								// Volume modification
+} S_NoiseThinker_t;
 
 /**************
 *** GLOBALS ***
@@ -71,9 +93,12 @@ void S_Start(void);
 int S_GetSfxLumpNum(sfxinfo_t * sfx);
 void S_FreeSfx(sfxinfo_t * sfx);
 
-void S_StartSound(void *origin, int sound_id);
-void S_StartSoundAtVolume(void *origin, int sound_id, int volume);
-void S_StopSound(void *origin);
+void S_StartSound(S_NoiseThinker_t* a_Origin, int sound_id);
+void S_StartSoundAtVolume(S_NoiseThinker_t* a_Origin, int sound_id, int volume);
+void S_StartSoundName(S_NoiseThinker_t* a_Origin, char *soundname);
+void S_StopSound(S_NoiseThinker_t* a_Origin);
+int S_SoundPlaying(S_NoiseThinker_t* a_Origin, int id);
+
 void S_ChangeMusic(int music_num, int looping);
 void S_ChangeMusicName(char *name, int looping);
 void S_StopMusic(void);
@@ -82,8 +107,6 @@ void S_ResumeMusic(void);
 void S_UpdateSounds(void);
 void S_SetMusicVolume(int volume);
 void S_SetSfxVolume(int volume);
-int S_SoundPlaying(void *origin, int id);
-void S_StartSoundName(void *mo, char *soundname);
 void Command_SoundReset_f(void);
 
 int S_AdjustSoundParamsEx(struct mobj_s* Listener, struct mobj_s* Source,

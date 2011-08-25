@@ -442,6 +442,14 @@ void P_SetThingPosition(mobj_t * thing)
 	int blockx;
 	int blocky;
 	mobj_t **link;
+	
+	/* Update sound origin */
+	thing->NoiseThinker.x = thing->x;
+	thing->NoiseThinker.y = thing->y;
+	thing->NoiseThinker.z = thing->z;
+	thing->NoiseThinker.momx = thing->momx;
+	thing->NoiseThinker.momy = thing->momy;
+	thing->NoiseThinker.momz = thing->momz;
 
 	// link into subsector
 	ss = R_PointInSubsector(thing->x, thing->y);

@@ -309,7 +309,7 @@ void P_MovePlayer(player_t * player)
 
 				if (gametic > player->flushdelay + TICRATE)
 				{
-					S_StartSound(player->mo, sfx_floush);
+					S_StartSound(&player->mo->NoiseThinker, sfx_floush);
 					player->flushdelay = gametic;
 				}
 			}
@@ -335,7 +335,7 @@ void P_MovePlayer(player_t * player)
 
 				if (gametic > player->flushdelay + TICRATE)
 				{
-					S_StartSound(player->mo, sfx_floush);
+					S_StartSound(&player->mo->NoiseThinker, sfx_floush);
 					player->flushdelay = gametic;
 				}
 			}
@@ -375,7 +375,7 @@ void P_MovePlayer(player_t * player)
 			player->mo->momz = JUMPGRAVITY / 2;
 			if (gametic > player->flushdelay + TICRATE)
 			{
-				S_StartSound(player->mo, sfx_floush);
+				S_StartSound(&player->mo->NoiseThinker, sfx_floush);
 				player->flushdelay = gametic;
 			}
 		}
@@ -386,7 +386,7 @@ void P_MovePlayer(player_t * player)
 			player->mo->momz = JUMPGRAVITY;
 			if (!(player->cheats & CF_FLYAROUND))
 			{
-				S_StartSound(player->mo, sfx_jump);
+				S_StartSound(&player->mo->NoiseThinker, sfx_jump);
 				// keep jumping ok if FLY mode.
 				player->jumpdown |= 1;
 			}
@@ -801,12 +801,12 @@ void P_PlayerThink(player_t * player)
 					fixed_t whater_height = waterz - player->mo->subsector->sector->floorheight;
 
 					if (whater_height < (player->mo->height >> 2))
-						S_StartSound(player->mo, sfx_splash);
+						S_StartSound(&player->mo->NoiseThinker, sfx_splash);
 					else
-						S_StartSound(player->mo, sfx_floush);
+						S_StartSound(&player->mo->NoiseThinker, sfx_floush);
 				}
 				else
-					S_StartSound(player->mo, sfx_floush);
+					S_StartSound(&player->mo->NoiseThinker, sfx_floush);
 			}
 		}
 	}

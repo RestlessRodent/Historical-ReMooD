@@ -239,7 +239,7 @@ typedef struct sector_s
 	int blockbox[4];
 
 	// origin for any sounds played by the sector
-	degenmobj_t soundorg;
+	S_NoiseThinker_t soundorg;
 
 	// if == validcount, already checked
 	int validcount;

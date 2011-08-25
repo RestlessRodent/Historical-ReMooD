@@ -211,7 +211,7 @@ typedef struct
 	bwhere_e where;
 	int btexture;
 	int btimer;
-	mobj_t *soundorg;
+	S_NoiseThinker_t* soundorg;
 
 } button_t;
 

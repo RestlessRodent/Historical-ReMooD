@@ -1740,7 +1740,7 @@ bool_t PTR_UseTraverse(intercept_t * in)
 		P_LineOpening(in->d.line);
 		if (openrange <= 0)
 		{
-			S_StartSound(usething, sfx_noway);
+			S_StartSound(&usething->NoiseThinker, sfx_noway);
 			// can't use through a wall
 			return false;
 		}
@@ -1929,7 +1929,7 @@ bool_t PIT_ChangeSector(mobj_t * thing)
 		P_SetMobjState(thing, S_GIBS);
 		thing->flags &= ~MF_SOLID;
 		//added:22-02-98: lets have a neat 'crunch' sound!
-		S_StartSound(thing, sfx_slop);
+		S_StartSound(&thing->NoiseThinker, sfx_slop);
 		
 		thing->height = 0;
 		thing->radius = 0;

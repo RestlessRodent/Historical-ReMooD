@@ -668,7 +668,7 @@ void A_Look(mobj_t * actor)
 			S_StartSound(NULL, sound);
 		}
 		else
-			S_StartSound(actor, sound);
+			S_StartSound(&actor->NoiseThinker, sound);
 
 	}
 
@@ -736,7 +736,7 @@ void A_Chase(mobj_t * actor)
 	if (actor->info->meleestate && P_CheckMeleeRange(actor))
 	{
 		if (actor->info->attacksound)
-			S_StartSound(actor, actor->info->attacksound);
+			S_StartSound(&actor->NoiseThinker, actor->info->attacksound);
 
 		P_SetMobjState(actor, actor->info->meleestate);
 		return;
@@ -776,7 +776,7 @@ void A_Chase(mobj_t * actor)
 	// make active sound
 	if (actor->info->activesound && P_Random() < 3)
 	{
-		S_StartSound(actor, actor->info->activesound);
+		S_StartSound(&actor->NoiseThinker, actor->info->activesound);
 	}
 }
 
@@ -813,7 +813,7 @@ void A_PosAttack(mobj_t * actor)
 	angle = actor->angle;
 	slope = P_AimLineAttack(actor, angle, MISSILERANGE);
 
-	S_StartSound(actor, sfx_pistol);
+	S_StartSound(&actor->NoiseThinker, sfx_pistol);
 	angle += P_SignedRandom() << 20;
 	damage = ((P_Random() % 5) + 1) * 3;
 	P_LineAttack(actor, angle, MISSILERANGE, slope, damage);
@@ -830,7 +830,7 @@ void A_SPosAttack(mobj_t * actor)
 	if (!actor->target)
 		return;
 	PuffType = MT_PUFF;
-	S_StartSound(actor, sfx_shotgn);
+	S_StartSound(&actor->NoiseThinker, sfx_shotgn);
 	A_FaceTarget(actor);
 	bangle = actor->angle;
 	slope = P_AimLineAttack(actor, bangle, MISSILERANGE);
@@ -853,7 +853,7 @@ void A_CPosAttack(mobj_t * actor)
 	if (!actor->target)
 		return;
 	PuffType = MT_PUFF;
-	S_StartSound(actor, sfx_shotgn);
+	S_StartSound(&actor->NoiseThinker, sfx_shotgn);
 	A_FaceTarget(actor);
 	bangle = actor->angle;
 	slope = P_AimLineAttack(actor, bangle, MISSILERANGE);
@@ -920,7 +920,7 @@ void A_TroopAttack(mobj_t * actor)
 	A_FaceTarget(actor);
 	if (P_CheckMeleeRange(actor))
 	{
-		S_StartSound(actor, sfx_claw);
+		S_StartSound(&actor->NoiseThinker, sfx_claw);
 		damage = (P_Random() % 8 + 1) * 3;
 		P_DamageMobj(actor->target, actor, actor, damage);
 		return;
@@ -982,7 +982,7 @@ void A_BruisAttack(mobj_t * actor)
 
 	if (P_CheckMeleeRange(actor))
 	{
-		S_StartSound(actor, sfx_claw);
+		S_StartSound(&actor->NoiseThinker, sfx_claw);
 		damage = (P_Random() % 8 + 1) * 10;
 		P_DamageMobj(actor->target, actor, actor, damage);
 		return;
@@ -1091,7 +1091,7 @@ void A_SkelWhoosh(mobj_t * actor)
 	A_FaceTarget(actor);
 	// judgecutor:
 	// CHECK ME!
-	S_StartSound(actor, sfx_skeswg);
+	S_StartSound(&actor->NoiseThinker, sfx_skeswg);
 }
 
 void A_SkelFist(mobj_t * actor)
@@ -1106,7 +1106,7 @@ void A_SkelFist(mobj_t * actor)
 	if (P_CheckMeleeRange(actor))
 	{
 		damage = ((P_Random() % 10) + 1) * 6;
-		S_StartSound(actor, sfx_skepch);
+		S_StartSound(&actor->NoiseThinker, sfx_skepch);
 		P_DamageMobj(actor->target, actor, actor, damage);
 	}
 }
@@ -1196,7 +1196,7 @@ void A_VileChase(mobj_t * actor)
 					actor->target = temp;
 
 					P_SetMobjState(actor, S_VILE_HEAL1);
-					S_StartSound(corpsehit, sfx_slop);
+					S_StartSound(&corpsehit->NoiseThinker, sfx_slop);
 					info = corpsehit->info;
 
 					P_SetMobjState(corpsehit, info->raisestate);
@@ -1226,7 +1226,7 @@ void A_VileChase(mobj_t * actor)
 //
 void A_VileStart(mobj_t * actor)
 {
-	S_StartSound(actor, sfx_vilatk);
+	S_StartSound(&actor->NoiseThinker, sfx_vilatk);
 }
 
 //
@@ -1237,13 +1237,13 @@ void A_Fire(mobj_t * actor);
 
 void A_StartFire(mobj_t * actor)
 {
-	S_StartSound(actor, sfx_flamst);
+	S_StartSound(&actor->NoiseThinker, sfx_flamst);
 	A_Fire(actor);
 }
 
 void A_FireCrackle(mobj_t * actor)
 {
-	S_StartSound(actor, sfx_flame);
+	S_StartSound(&actor->NoiseThinker, sfx_flame);
 	A_Fire(actor);
 }
 
@@ -1307,7 +1307,7 @@ void A_VileAttack(mobj_t * actor)
 	if (!P_CheckSight(actor, actor->target))
 		return;
 
-	S_StartSound(actor, sfx_barexp);
+	S_StartSound(&actor->NoiseThinker, sfx_barexp);
 	P_DamageMobj(actor->target, actor, actor, 20);
 	actor->target->momz = 1000 * FRACUNIT / actor->target->info->mass;
 
@@ -1335,7 +1335,7 @@ void A_VileAttack(mobj_t * actor)
 void A_FatRaise(mobj_t * actor)
 {
 	A_FaceTarget(actor);
-	S_StartSound(actor, sfx_manatk);
+	S_StartSound(&actor->NoiseThinker, sfx_manatk);
 }
 
 void A_FatAttack1(mobj_t * actor)
@@ -1421,7 +1421,7 @@ void A_SkullAttack(mobj_t * actor)
 
 	dest = actor->target;
 	actor->flags |= MF_SKULLFLY;
-	S_StartSound(actor, actor->info->attacksound);
+	S_StartSound(&actor->NoiseThinker, actor->info->attacksound);
 	A_FaceTarget(actor);
 
 	if (cv_predictingmonsters.value)	//added by AC for predmonsters
@@ -1602,18 +1602,18 @@ void A_Scream(mobj_t * actor)
 		S_StartSound(NULL, sound);
 	}
 	else
-		S_StartSound(actor, sound);
+		S_StartSound(&actor->NoiseThinker, sound);
 }
 
 void A_XScream(mobj_t * actor)
 {
-	S_StartSound(actor, sfx_slop);
+	S_StartSound(&actor->NoiseThinker, sfx_slop);
 }
 
 void A_Pain(mobj_t * actor)
 {
 	if (actor->info->painsound)
-		S_StartSound(actor, actor->info->painsound);
+		S_StartSound(&actor->NoiseThinker, actor->info->painsound);
 }
 
 //
@@ -1840,37 +1840,37 @@ void A_KeenDie(mobj_t * mo)
 
 void A_Hoof(mobj_t * mo)
 {
-	S_StartSound(mo, sfx_hoof);
+	S_StartSound(&mo->NoiseThinker, sfx_hoof);
 	A_Chase(mo);
 }
 
 void A_Metal(mobj_t * mo)
 {
-	S_StartSound(mo, sfx_metal);
+	S_StartSound(&mo->NoiseThinker, sfx_metal);
 	A_Chase(mo);
 }
 
 void A_BabyMetal(mobj_t * mo)
 {
-	S_StartSound(mo, sfx_bspwlk);
+	S_StartSound(&mo->NoiseThinker, sfx_bspwlk);
 	A_Chase(mo);
 }
 
 void A_OpenShotgun2(player_t * player, pspdef_t * psp)
 {
-	S_StartSound(player->mo, sfx_dbopn);
+	S_StartSound(&player->mo->NoiseThinker, sfx_dbopn);
 }
 
 void A_LoadShotgun2(player_t * player, pspdef_t * psp)
 {
-	S_StartSound(player->mo, sfx_dbload);
+	S_StartSound(&player->mo->NoiseThinker, sfx_dbload);
 }
 
 void A_ReFire(player_t * player, pspdef_t * psp);
 
 void A_CloseShotgun2(player_t * player, pspdef_t * psp)
 {
-	S_StartSound(player->mo, sfx_dbcls);
+	S_StartSound(&player->mo->NoiseThinker, sfx_dbcls);
 	A_ReFire(player, psp);
 }
 
@@ -1997,7 +1997,7 @@ void A_SpawnFly(mobj_t * mo);
 // travelling cube sound
 void A_SpawnSound(mobj_t * mo)
 {
-	S_StartSound(mo, sfx_boscub);
+	S_StartSound(&mo->NoiseThinker, sfx_boscub);
 	A_SpawnFly(mo);
 }
 
@@ -2016,7 +2016,7 @@ void A_SpawnFly(mobj_t * mo)
 
 	// First spawn teleport fog.
 	fog = P_SpawnMobj(targ->x, targ->y, targ->z, MT_SPAWNFIRE);
-	S_StartSound(fog, sfx_telept);
+	S_StartSound(&fog->NoiseThinker, sfx_telept);
 
 	// Randomly select monster to spawn.
 	r = P_Random();
@@ -2068,6 +2068,6 @@ void A_PlayerScream(mobj_t * mo)
 		// LESS THAN -50% WITHOUT GIBBING
 		sound = sfx_pdiehi;
 	}
-	S_StartSound(mo, sound);
+	S_StartSound(&mo->NoiseThinker, sound);
 }
 

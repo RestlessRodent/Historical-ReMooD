@@ -1156,7 +1156,7 @@ void P_KillMobj(mobj_t * target, mobj_t * inflictor, mobj_t * source)
 		target->skin = 0;
 
 		//added:22-02-98: lets have a neat 'crunch' sound!
-		S_StartSound(target, sfx_slop);
+		S_StartSound(&target->NoiseThinker, sfx_slop);
 		return;
 	}
 

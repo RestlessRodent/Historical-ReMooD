@@ -44,6 +44,8 @@
 // Needs precompiled tables/data structures.
 #include "info.h"
 
+#include "s_sound.h"
+
 //
 // NOTES: mobj_t
 //
@@ -421,6 +423,8 @@ typedef struct mobj_s
 {
 	// List: thinker links.
 	thinker_t thinker;
+	
+	S_NoiseThinker_t NoiseThinker;						// Info for noise generation
 
 	// Info for drawing: position.
 	fixed_t x;

@@ -81,6 +81,53 @@ static int l_Bits, l_Freq, l_Channels, l_Len;
 *** FUNCTIONS ***
 ****************/
 
+/* S_StartSoundAtVolume() -- Starts playing a sound */
+void S_StartSoundAtVolume(S_NoiseThinker_t* a_Origin, int sound_id, int volume)
+{
+}
+
+/* S_StartSound() -- Play a sound at full volume */
+void S_StartSound(S_NoiseThinker_t* a_Origin, int sound_id)
+{
+	/* Just call other function */
+	S_StartSoundAtVolume(a_Origin, sound_id, 255);
+}
+
+/* S_StartSoundName() -- Start a sound based on name */
+void S_StartSoundName(S_NoiseThinker_t* a_Origin, char *soundname)
+{
+}
+
+/* S_StopSound() -- Stop sound being played by this object */
+void S_StopSound(S_NoiseThinker_t* a_Origin)
+{
+}
+
+/* S_SoundPlaying() -- Checks whether a sound is being played by the object */
+int S_SoundPlaying(S_NoiseThinker_t* a_Origin, int id)
+{
+	return 0;
+}
+
+int S_AdjustSoundParamsEx(struct mobj_s* Listener, struct mobj_s* Source,
+	int32_t* Volume,		// Volume of the sound (Distance) [Mono]
+	int32_t* Balance,		// Balance of the sound (left/right) [Stereo + Surround + Full Surround]
+	int32_t* Pitch,		// Change in pitch (Doppler!?!?) [All]
+	int32_t* Orientation,	// Balance of the sound (front/back) [Surround + Full Surround]
+	int32_t* FrontVolume	// How loud to play a sound for the front speaker [Full Surround]
+	)
+{
+	return -1;
+}
+
+/* S_RepositionSounds() -- Repositions all sounds */
+void S_RepositionSounds(void)
+{
+	/* Check */
+	if (!l_SoundOK)
+		return;
+}
+
 void SetChannelsNum(void)
 {
 }
@@ -202,18 +249,6 @@ void S_Start(void)
 	//nextcleanup = 15;
 }
 
-void S_StartSound(void *origin, int sound_id)
-{
-}
-
-void S_StartSoundAtVolume(void *origin, int sound_id, int volume)
-{
-}
-
-void S_StopSound(void *origin)
-{
-}
-
 /* S_ChangeMusic() -- Changes the current song that is playing */
 void S_ChangeMusic(int music_num, int looping)
 {
@@ -320,6 +355,7 @@ void S_UpdateSounds(void)
 		return;
 	
 	/* Update all playing sounds */
+	S_RepositionSounds();
 	
 	/* Obtain Buffer */
 	SoundBuf = p = I_SoundBufferObtain();
@@ -368,28 +404,8 @@ void S_UpdateCVARVolumes(void)
 	// of sounds being mixed.
 }
 
-int S_SoundPlaying(void *origin, int id)
-{
-	return 0;
-}
-
-void S_StartSoundName(void *mo, char *soundname)
-{
-}
-
 void Command_SoundReset_f(void)
 {
-}
-
-int S_AdjustSoundParamsEx(struct mobj_s* Listener, struct mobj_s* Source,
-	int32_t* Volume,		// Volume of the sound (Distance) [Mono]
-	int32_t* Balance,		// Balance of the sound (left/right) [Stereo + Surround + Full Surround]
-	int32_t* Pitch,		// Change in pitch (Doppler!?!?) [All]
-	int32_t* Orientation,	// Balance of the sound (front/back) [Surround + Full Surround]
-	int32_t* FrontVolume	// How loud to play a sound for the front speaker [Full Surround]
-	)
-{
-	return -1;
 }
 
 void S_FreeSfx(sfxinfo_t * sfx)

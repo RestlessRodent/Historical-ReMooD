@@ -182,7 +182,7 @@ void P_ExplodeMissile(mobj_t * mo)
 	mo->flags &= ~MF_MISSILE;
 
 	if (mo->info->deathsound)
-		S_StartSound(mo, mo->info->deathsound);
+		S_StartSound(&mo->NoiseThinker, mo->info->deathsound);
 }
 
 //----------------------------------------------------------------------------
@@ -604,7 +604,7 @@ void P_ZMovement(mobj_t * mo)
 				// after hitting the ground (hard),
 				// and utter appropriate sound.
 				mo->player->deltaviewheight = mo->momz >> 3;
-				S_StartSound(mo, sfx_oof);
+				S_StartSound(&mo->NoiseThinker, sfx_oof);
 			}
 
 			// set it once and not continuously
@@ -661,7 +661,7 @@ void P_ZMovement(mobj_t * mo)
 		if (mo->player && (demoversion >= 112) &&
 			!(mo->player->cheats & CF_FLYAROUND) && !(mo->flags2 & MF2_FLY) &&
 			mo->momz > 8 * FRACUNIT)
-			S_StartSound(mo, sfx_ouch);
+			S_StartSound(&mo->NoiseThinker, sfx_ouch);
 
 		// hit the ceiling
 		if (mo->momz > 0)
@@ -737,14 +737,14 @@ void P_NightmareRespawn(mobj_t * mobj)
 						 mobj->subsector->sector->floorheight + ( 0),
 						 MT_TFOG);
 	// initiate teleport sound
-	S_StartSound(mo, sfx_telept);
+	S_StartSound(&mo->NoiseThinker, sfx_telept);
 
 	// spawn a teleport fog at the new spot
 	ss = R_PointInSubsector(x, y);
 
 	mo = P_SpawnMobj(x, y, ss->sector->floorheight + (0), MT_TFOG);
 
-	S_StartSound(mo, sfx_telept);
+	S_StartSound(&mo->NoiseThinker, sfx_telept);
 
 	// spawn it
 	if (mobj->info->flags & MF_SPAWNCEILING)
@@ -876,7 +876,7 @@ static void PlayerLandedOnThing(mobj_t * mo, mobj_t * onmobj)
 	}
 	else if (mo->momz < -8 * FRACUNIT && !mo->player->chickenTics)
 	{
-		S_StartSound(mo, sfx_oof);
+		S_StartSound(&mo->NoiseThinker, sfx_oof);
 	}
 }
 
@@ -1215,7 +1215,7 @@ void P_RemoveMobj(mobj_t * mobj)
 	}
 
 	// stop any playing sound
-	S_StopSound(mobj);
+	S_StopSound(&mobj->NoiseThinker);
 
 	// free block
 	P_RemoveThinker((thinker_t *) mobj);
@@ -1272,7 +1272,7 @@ void P_RespawnSpecials(void)
 		mo = P_SpawnMobj(x, y, mthing->z << FRACBITS, MT_IFOG);
 	else
 		mo = P_SpawnMobj(x, y, ss->sector->floorheight, MT_IFOG);
-	S_StartSound(mo, sfx_itmbk);
+	S_StartSound(&mo->NoiseThinker, sfx_itmbk);
 
 	// find which type to spawn
 	for (i = 0; i < NUMMOBJTYPES; i++)
@@ -1357,7 +1357,7 @@ void P_RespawnWeapons(void)
 			mo = P_SpawnMobj(x, y, mthing->z << FRACBITS, MT_IFOG);
 		else
 			mo = P_SpawnMobj(x, y, ss->sector->floorheight, MT_IFOG);
-		S_StartSound(mo, sfx_itmbk);
+		S_StartSound(&mo->NoiseThinker, sfx_itmbk);
 
 		// spawn it
 		if (mobjinfo[i].flags & MF_SPAWNCEILING)
@@ -1640,7 +1640,7 @@ void P_SpawnSplash(mobj_t * mo, fixed_t z)
 	// note pos +1 +1 so it doesn't eat the sound of the player..
 	th = P_SpawnMobj(mo->x + 1, mo->y + 1, z, MT_SPLASH);
 	//if( z - mo->subsector->sector->floorheight > 4*FRACUNIT)
-	S_StartSound(th, sfx_gloop);
+	S_StartSound(&th->NoiseThinker, sfx_gloop);
 	//else
 	//    S_StartSound (th,sfx_splash);
 	th->tics -= P_Random() & 3;
@@ -1941,7 +1941,7 @@ mobj_t *P_SpawnMissile(mobj_t * source, mobj_t * dest, mobjtype_t type)
 	th = P_SpawnMobj(source->x, source->y, z, type);
 
 	if (th->info->seesound)
-		S_StartSound(th, th->info->seesound);
+		S_StartSound(&th->NoiseThinker, th->info->seesound);
 
 	th->target = source;		// where it came from
 
@@ -2091,7 +2091,7 @@ mobj_t *P_SPMAngle(mobj_t * source, mobjtype_t type, angle_t angle)
 	th = P_SpawnMobj(x, y, z, type);
 
 	if (th->info->seesound)
-		S_StartSound(th, th->info->seesound);
+		S_StartSound(&th->NoiseThinker, th->info->seesound);
 
 	th->target = source;
 
@@ -2262,7 +2262,7 @@ mobj_t *P_SpawnMissileAngle(mobj_t * source, mobjtype_t type, angle_t angle, fix
 	mo = P_SpawnMobj(source->x, source->y, z, type);
 	if (mo->info->seesound)
 	{
-		S_StartSound(mo, mo->info->seesound);
+		S_StartSound(&mo->NoiseThinker, mo->info->seesound);
 	}
 	mo->target = source;		// Originator
 	mo->angle = angle;
