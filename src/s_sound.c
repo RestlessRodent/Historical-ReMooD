@@ -523,7 +523,7 @@ void S_ResumeMusic(void)
 
 /* S_WriteMixSample() -- Writes a single sample */
 static void S_WriteMixSample(void** Buf, uint8_t Value)
-{	
+{
 	int32_t v, s;
 	
 	/* Get shift */
@@ -534,9 +534,9 @@ static void S_WriteMixSample(void** Buf, uint8_t Value)
 	{
 		// Read current value (I hope the buffer is aligned!)
 		v = **((uint16_t**)Buf);
-		v += s << 8;
+		v = (v - 32768) + (s * 256);
 		
-		if (v >= 32768)
+		if (v > 32767)
 			v = 32767;
 		v += 32768;
 		
@@ -549,9 +549,9 @@ static void S_WriteMixSample(void** Buf, uint8_t Value)
 	{
 		// Read current value and add to it
 		v = **((uint8_t**)Buf);
-		v += s;
+		v = (v - 128) + s;
 		
-		if (v >= 128)
+		if (v > 127)
 			v = 127;
 		v += 128;
 		
