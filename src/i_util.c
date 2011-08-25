@@ -600,6 +600,7 @@ void I_TextModeChar(const uint8_t a_Char, const uint8_t Attr)
 
 	// Use Win32 console color functions
 #elif defined(_WIN32)
+	// GetConsoleScreenBufferInfo
 
 	// Use VT escape characters
 #elif defined(__unix__)

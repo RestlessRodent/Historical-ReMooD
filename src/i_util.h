@@ -285,13 +285,15 @@ typedef struct I_SoundDriver_s
 		// Success
 	void (*Success)(struct I_SoundDriver_s* const a_Driver);
 		// Requests a buffer for this driver
-	bool_t (*Request)(struct I_SoundDriver_s* const a_Driver, const uint8_t a_Bits, const uint16_t a_Freq, const uint8_t a_Channels);
+	bool_t (*Request)(struct I_SoundDriver_s* const a_Driver, const uint8_t a_Bits, const uint16_t a_Freq, const uint8_t a_Channels, const uint32_t a_Samples);
 		// Obtains a buffer that was requested
 	void* (*Obtain)(struct I_SoundDriver_s* const a_Driver);
 		// Checks if the buffer is finished playing
 	bool_t (*IsFinished)(struct I_SoundDriver_s* const a_Driver);
 		// Done streaming into buffer
 	void (*WriteOut)(struct I_SoundDriver_s* const a_Driver);
+		// Unrequest buffer
+	void (*UnRequest)(struct I_SoundDriver_s* const a_Driver);
 	
 	/* Dynamic */
 	void* Data;									// Private data
@@ -355,6 +357,10 @@ bool_t I_StartupSound(void);
 void I_ShutdownSound(void);
 void I_UpdateSound(void);
 void I_SubmitSound(void);
+bool_t I_SoundBufferRequest(const I_SoundType_t a_Type, const uint8_t a_Bits, const uint16_t a_Freq, const uint8_t a_Channels, const uint32_t a_Samples);
+void* I_SoundBufferObtain(void);
+bool_t I_SoundBufferIsFinished(void);
+void I_SoundBufferWriteOut(void);
 
 #endif /* __I_UTIL_H__ */
 

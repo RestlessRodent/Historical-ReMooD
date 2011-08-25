@@ -162,31 +162,6 @@ typedef enum bool_e
 	#define __REMOOD_DEPRECATED
 #endif
 
-// Visual C++ does not like inline in C
-#if defined(_MSC_VER)
-	#define inline _inline
-#endif
-
-// String comparison
-#if defined(_MSC_VER)
-	#define strcasecmp stricmp
-	#define strncasecmp strnicmp
-	#define snprintf _snprintf
-	#define alloca _alloca
-#else
-	#define stricmp strcasecmp
-	#define strnicmp strncasecmp
-#endif
-
-// PATH_MAX/MAX_PATH
-#ifndef PATH_MAX
-	#ifdef MAX_PATH
-		#define PATH_MAX MAX_PATH
-	#else
-		#define PATH_MAX 4096
-	#endif
-#endif
-
 /***************************
 *** DATA READING/WRITING ***
 ***************************/
@@ -437,6 +412,20 @@ typedef uint64_t tic_t;
 #if defined(_MSC_VER)
 	#define strncasecmp strnicmp
 	#define strcasecmp stricmp
+	#define snprintf _snprintf
+	#define alloca _alloca
+	
+	// Visual C++ does not like inline in C
+	#define inline _inline
+#endif
+
+// PATH_MAX/MAX_PATH
+#ifndef PATH_MAX
+	#ifdef MAX_PATH
+		#define PATH_MAX MAX_PATH
+	#else
+		#define PATH_MAX 4096
+	#endif
 #endif
 
 /******************************************

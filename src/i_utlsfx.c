@@ -130,6 +130,8 @@ static size_t l_NumSoundDrivers;				// Number of sound drivers
 static I_LocalMusic_t* l_LocalSongs;			// Local songs
 static size_t l_NumLocalSongs;					// Number of local songs
 
+static I_SoundDriver_t* l_CurSoundDriver;		// Current sound driver
+
 /*****************************
 *** MUS2MID VIRTUAL DRIVER ***
 *****************************/
@@ -1396,7 +1398,7 @@ bool_t I_RemoveSoundDriver(I_SoundDriver_t* const a_Driver)
 /* I_FindSoundDriver() -- Find a music driver that can play this format */
 I_SoundDriver_t* I_FindSoundDriver(const I_SoundType_t a_Type)
 {
-	I_MusicDriver_t* Best = NULL;
+	I_SoundDriver_t* Best = NULL;
 	size_t i;
 	
 	/* Go through every driver */
@@ -1444,5 +1446,81 @@ void I_UpdateSound(void)
 /* I_SubmitSound() -- Submits all sounds for playing */
 void I_SubmitSound(void)
 {
+}
+
+bool_t I_SoundBufferRequest(const I_SoundType_t a_Type, const uint8_t a_Bits, const uint16_t a_Freq, const uint8_t a_Channels, const uint32_t a_Samples)
+{
+	I_SoundDriver_t* Found;
+	
+	/* Check */
+	if (!a_Bits || !a_Freq || !a_Channels || !a_Samples)
+		return false;
+		
+	/* Find driver that can play what I want */
+	Found = I_FindSoundDriver(a_Type);
+	
+	// Check
+	if (!Found)
+		return false;
+	
+	/* Check to see if there already is an active buffer */
+	if (l_CurSoundDriver)
+	{
+		if (l_CurSoundDriver->UnRequest)
+			l_CurSoundDriver->UnRequest(l_CurSoundDriver);
+		
+		// NULL out
+		l_CurSoundDriver = NULL;
+	}
+	
+	/* Request Buffer */
+	// Make sure there is a request func
+	if (!Found->Request)
+		return false;
+	
+	// Try requesting it
+	if (Found->Request(Found, a_Bits, a_Freq, a_Channels, a_Samples))
+		l_CurSoundDriver = Found;
+	
+	/* Return if found */
+	return !!l_CurSoundDriver;
+}
+
+/* I_SoundBufferObtain() -- Obtain sound buffer */
+void* I_SoundBufferObtain(void)
+{
+	/* Check */
+	if (!l_CurSoundDriver)
+		return NULL;
+	
+	/* Obtain it */
+	if (l_CurSoundDriver->Obtain)
+		return l_CurSoundDriver->Obtain(l_CurSoundDriver);
+	return NULL;
+}
+
+/* I_SoundBufferIsFinished() -- Check if the buffer is finished playing */
+bool_t I_SoundBufferIsFinished(void)
+{
+	/* Check */
+	if (!l_CurSoundDriver)
+		return false;
+	
+	/* Obtain it */
+	if (l_CurSoundDriver->IsFinished)
+		return l_CurSoundDriver->IsFinished(l_CurSoundDriver);
+	return false;
+}
+
+/* I_SoundBufferWriteOut() -- Writes out the buffer */
+void I_SoundBufferWriteOut(void)
+{
+	/* Check */
+	if (!l_CurSoundDriver)
+		return;
+	
+	/* Obtain it */
+	if (l_CurSoundDriver->WriteOut)
+		l_CurSoundDriver->WriteOut(l_CurSoundDriver);
 }
 

@@ -35,6 +35,7 @@
 #include "console.h"
 #include "doomstat.h"
 #include "sounds.h"
+#include "i_util.h"
 
 /*****************
 *** PROTOTYPES ***
@@ -74,6 +75,7 @@ consvar_t cv_musicvolume = { "snd_musicvolume", "15", CV_SAVE | CV_CALL, soundvo
 static bool_t l_SoundOK = false;					// Did the sound start OK?
 static bool_t l_MusicOK = true;						// Same but for Music
 static int l_CurrentSong = 0;						// Current playing song handle
+static int l_Bits, l_Freq, l_Channels, l_Len;
 
 /****************
 *** FUNCTIONS ***
@@ -86,11 +88,34 @@ void SetChannelsNum(void)
 /* S_RegisterSoundStuff() -- Register the sound console variables */
 void S_RegisterSoundStuff(void)
 {
+	static bool_t cvRegged = false;
+	
+	/* Check */
+	if (cvRegged)
+		return;
+	
+	/* Register Variables */
+	CV_RegisterVar(&cv_snd_speakersetup);
+	CV_RegisterVar(&cv_snd_soundquality);
+	CV_RegisterVar(&cv_snd_sounddensity);
+	CV_RegisterVar(&cv_snd_pcspeakerwave);
+	CV_RegisterVar(&cv_snd_channels);
+	CV_RegisterVar(&cv_snd_reservedchannels);
+	CV_RegisterVar(&cv_snd_multithreaded);
+	CV_RegisterVar(&cv_snd_output);
+	CV_RegisterVar(&cv_snd_device);
+	
+	// Everything was registered
+	cvRegged = true;
 }
 
 /* S_Init() -- Initializes the sound subsystem */
 void S_Init(int sfxVolume, int musicVolume)
 {
+	/* Always register sound stuff */
+	// So the menu doesn't crash on us
+	S_RegisterSoundStuff();
+	
 	// No sound at all?
 	if (M_CheckParm("-nosound"))
 		return;
@@ -108,12 +133,27 @@ void S_Init(int sfxVolume, int musicVolume)
 		if (I_InitMusic())
 			l_MusicOK = true;
 	
-	/* Always register sound stuff */
-	// So the menu doesn't crash on us
-	S_RegisterSoundStuff();
-	
 	// Set volumes based on CVARs
 	S_UpdateCVARVolumes();
+	
+	/* Try getting a buffer */
+	if (l_SoundOK)
+	{
+		if (!I_SoundBufferRequest(IST_WAVEFORM, cv_snd_sounddensity.value * 8, cv_snd_soundquality.value, cv_snd_speakersetup.value, 512))
+		{
+			l_Bits = l_Freq = l_Channels = l_Len = 0;
+			CONS_Printf("S_Init: Failed to obtain a sound buffer.\n");
+		}
+		
+		// Remember buffer info
+		else
+		{
+			l_Bits = cv_snd_sounddensity.value * 8;
+			l_Freq = cv_snd_soundquality.value;
+			l_Channels = cv_snd_speakersetup.value;
+			l_Len = 512;
+		}
+	}
 }
 
 void S_StopSounds(void)
@@ -218,6 +258,7 @@ void S_ChangeMusicName(char *name, int looping)
 #undef BUFSIZE
 }
 
+/* S_StopMusic() -- Stops playing music */
 void S_StopMusic(void)
 {
 	/* Check */
@@ -252,8 +293,50 @@ void S_ResumeMusic(void)
 	I_ResumeSong(l_CurrentSong);
 }
 
+/* S_WriteSample() -- Writes a single sample */
+static void S_WriteSample(void** Buf, uint16_t Value)
+{
+	/* Write Wide */
+	if (l_Bits == 16)
+		WriteUInt16(Buf, Value);
+	
+	/* Write Short */
+	else
+		WriteUInt8(Buf, (Value >> 8) & 0xFF);
+}
+
+/* S_UpdateSounds() -- Updates all playing sounds */
 void S_UpdateSounds(void)
 {
+	void* SoundBuf, *p;
+	size_t SoundLen, i, j;
+	
+	/* Check */
+	if (!l_Bits || !l_SoundOK)
+		return;
+	
+	/* Is the buffer finished? */
+	if (!I_SoundBufferIsFinished())
+		return;
+	
+	/* Update all playing sounds */
+	
+	/* Obtain Buffer */
+	SoundBuf = p = I_SoundBufferObtain();
+	SoundLen = l_Len * (l_Bits / 8) * (l_Channels) * l_Freq;
+	
+	// Check
+	if (!SoundBuf)
+		return;
+	
+	/* Write Sound Data */
+	/*for (i = 0; i < l_Len >> 1; i++)
+		S_WriteSample(&p, 65535);
+	for (i = 0; i < l_Len; i++)
+		S_WriteSample(&p, 0);*/
+	
+	/* Write to driver */
+	I_SoundBufferWriteOut();
 }
 
 /* S_SetMusicVolume() -- Sets music volume */
