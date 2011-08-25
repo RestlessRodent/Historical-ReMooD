@@ -112,11 +112,14 @@ bool_t I_AllegroSD_Request(struct I_SoundDriver_s* const a_Driver, const uint8_t
 		return false;
 	
 	/* Try getting the buffer */
-	Local->Stream = play_audio_stream(a_Samples, a_Bits, a_Channels, a_Freq, 255, 127);
+	Local->Stream = play_audio_stream(a_Samples, a_Bits, (a_Channels == 2 ? TRUE : FALSE), a_Freq, 255, 127);
 	
 	// Check
 	if (!Local->Stream)
 		return false;
+	
+	/* Set local parms */
+	Local->Freq = a_Freq;//voice_get_frequency(Local->Stream);
 	
 	/* Success */
 	return true;
@@ -218,6 +221,26 @@ void I_AllegroSD_UnRequest(struct I_SoundDriver_s* const a_Driver)
 	Local->Buffer = NULL;
 }
 
+/* I_AllegroSD_GetFreq() -- Get frequency of driver */
+uint16_t I_AllegroSD_GetFreq(struct I_SoundDriver_s* const a_Driver)
+{
+	I_AllegroSoundLocal_t* Local;
+	
+	/* Check */
+	if (!a_Driver)
+		return 0;
+	
+	/* Get Local */
+	Local = (I_AllegroSoundLocal_t*)a_Driver->Data;
+	
+	// Check
+	if (!Local)
+		return 0;
+	
+	/* Return frequency */
+	return Local->Freq;
+}
+
 /* l_AllegroSound -- Allegro sound driver */
 static I_SoundDriver_t l_AllegroSoundDriver =
 {
@@ -236,6 +259,7 @@ static I_SoundDriver_t l_AllegroSoundDriver =
 	I_AllegroSD_IsFinished,
 	I_AllegroSD_WriteOut,
 	I_AllegroSD_UnRequest,
+	I_AllegroSD_GetFreq,
 };
 
 /****************

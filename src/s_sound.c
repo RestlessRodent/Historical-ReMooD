@@ -53,6 +53,8 @@ void S_UpdateCVARVolumes(void);
 typedef struct S_SoundChannel_s
 {
 	S_NoiseThinker_t* Origin;							// Source sound
+	fixed_t Position;									// Stream position
+	fixed_t Stop;										// When to stop
 	fixed_t MoveRate;									// Rate at which to copy
 	fixed_t Volume;										// Volume adjust
 	WX_WADEntry_t* Entry;								// WAD entry being played
@@ -103,6 +105,9 @@ static size_t l_NumDoomChannels;					// Number of possible sound channels
 /* S_PlayEntryOnChannel() -- Plays a WAD entry on a channel */
 S_SoundChannel_t* S_PlayEntryOnChannel(const uint32_t a_Channel, WX_WADEntry_t* const a_Entry)
 {
+	uint16_t* p;
+	uint16_t Header, Freq, Length;
+	
 	/* Check */
 	if (a_Channel >= l_NumDoomChannels || !a_Entry)
 		return NULL;
@@ -114,6 +119,20 @@ S_SoundChannel_t* S_PlayEntryOnChannel(const uint32_t a_Channel, WX_WADEntry_t* 
 	l_DoomChannels[a_Channel].Entry = a_Entry;
 	l_DoomChannels[a_Channel].Data = WX_CacheEntry(a_Entry);
 	l_DoomChannels[a_Channel].Used = true;
+	l_DoomChannels[a_Channel].Position = 8 << FRACBITS;
+	
+	/* Read basic stuff */
+	p = l_DoomChannels[a_Channel].Data;
+	Header = ReadUInt16(&p);
+	Freq = ReadUInt16(&p);
+	Length = ReadUInt16(&p);
+	
+	// Set basic stuff
+	l_DoomChannels[a_Channel].Stop = l_DoomChannels[a_Channel].Position + ((fixed_t)Length << FRACBITS);
+	
+	// Determine the play rate, which is by default the ratio of the sound freq and the card freq
+	l_DoomChannels[a_Channel].MoveRate = FixedDiv((fixed_t)Freq << FRACBITS, (fixed_t)l_Freq << FRACBITS);
+	fprintf(stderr, "%i %i %i (%i) %f\n", Header, Freq, Length, l_Freq, FIXED_TO_FLOAT(l_DoomChannels[a_Channel].MoveRate));
 	
 	/* Return channel */
 	return &l_DoomChannels[a_Channel];
@@ -143,6 +162,7 @@ void S_StopChannel(const uint32_t a_Channel)
 	l_DoomChannels[a_Channel].Data = NULL;
 	l_DoomChannels[a_Channel].SoundID = 0;
 	l_DoomChannels[a_Channel].Used = false;
+	l_DoomChannels[a_Channel].Position = 0;
 }
 
 /* S_SoundPlaying() -- Checks whether a sound is being played by the object */
@@ -180,6 +200,8 @@ int S_SoundPlaying(S_NoiseThinker_t* a_Origin, int id)
 /* S_StartSoundAtVolume() -- Starts playing a sound */
 void S_StartSoundAtVolume(S_NoiseThinker_t* a_Origin, int sound_id, int volume)
 {
+#define BUFSIZE 24
+	char Buf[BUFSIZE];
 	int OnChannel, i;
 	WX_WADEntry_t* Entry;
 	S_SoundChannel_t* Target;
@@ -213,7 +235,13 @@ void S_StartSoundAtVolume(S_NoiseThinker_t* a_Origin, int sound_id, int volume)
 		OnChannel--;
 	
 	/* Obtain entry then play on said channel */
-	Entry = NULL;
+	// Prefix with ds
+	snprintf(Buf, BUFSIZE, "ds%.6s", S_sfx[sound_id].name);
+	Entry = WX_EntryForName(NULL, Buf, false);
+		
+	// Try direct name
+	if (!Entry)
+		Entry = WX_EntryForName(NULL, S_sfx[sound_id].name, false);
 	Target = S_PlayEntryOnChannel(OnChannel, Entry);
 	
 	// Failed?
@@ -225,6 +253,7 @@ void S_StartSoundAtVolume(S_NoiseThinker_t* a_Origin, int sound_id, int volume)
 	Target->SoundID = sound_id;
 	Target->MoveRate = 1 << FRACBITS;
 	Target->Volume = 1 << FRACBITS;
+#undef BUFSIZE
 }
 
 /* S_StartSound() -- Play a sound at full volume */
@@ -348,9 +377,13 @@ void S_Init(int sfxVolume, int musicVolume)
 		{
 			// Remember settings
 			l_Bits = cv_snd_sounddensity.value * 8;
-			l_Freq = cv_snd_soundquality.value;
+			l_Freq = I_SoundGetFreq();
 			l_Channels = cv_snd_speakersetup.value;
 			l_Len = 512;
+			
+			// Frequency did not match
+			if (l_Freq != cv_snd_soundquality.value)
+				CONS_Printf("S_Init: Requested %iHz but got %iHz\n", cv_snd_soundquality.value, l_Freq);
 			
 			// Create channels
 			l_NumDoomChannels = cv_numChannels.value;
@@ -488,23 +521,51 @@ void S_ResumeMusic(void)
 	I_ResumeSong(l_CurrentSong);
 }
 
-/* S_WriteSample() -- Writes a single sample */
-static void S_WriteSample(void** Buf, uint16_t Value)
-{
+/* S_WriteMixSample() -- Writes a single sample */
+static void S_WriteMixSample(void** Buf, uint8_t Value)
+{	
+	int32_t v, s;
+	
+	/* Get shift */
+	s = (int32_t)Value - 127;
+	
 	/* Write Wide */
 	if (l_Bits == 16)
-		WriteUInt16(Buf, Value);
+	{
+		// Read current value (I hope the buffer is aligned!)
+		v = **((uint16_t**)Buf);
+		v += s << 8;
+		
+		if (v >= 32768)
+			v = 32767;
+		v += 32768;
+		
+		// Mix into buffer
+		WriteUInt16(Buf, v);
+	}
 	
 	/* Write Short */
 	else
-		WriteUInt8(Buf, (Value >> 8) & 0xFF);
+	{
+		// Read current value and add to it
+		v = **((uint8_t**)Buf);
+		v += s;
+		
+		if (v >= 128)
+			v = 127;
+		v += 128;
+		
+		// Mix into buffer
+		WriteUInt8(Buf, v);
+	}
 }
 
 /* S_UpdateSounds() -- Updates all playing sounds */
 void S_UpdateSounds(void)
 {
-	void* SoundBuf, *p;
+	void* SoundBuf, *p, *End;
 	size_t SoundLen, i, j;
+	uint8_t ReadSample;
 	
 	/* Check */
 	if (!l_Bits || !l_SoundOK)
@@ -518,14 +579,55 @@ void S_UpdateSounds(void)
 	S_RepositionSounds();
 	
 	/* Obtain Buffer */
-	SoundBuf = p = I_SoundBufferObtain();
-	SoundLen = l_Len * (l_Bits / 8) * (l_Channels) * l_Freq;
+	SoundBuf = I_SoundBufferObtain();
+	SoundLen = l_Len * (l_Bits / 8) * l_Channels;
+	End = (uint8_t*)SoundBuf + SoundLen;
 	
 	// Check
 	if (!SoundBuf)
 		return;
 	
+	/* Clear buffer completely */
+	memset(SoundBuf, 0, SoundLen);
+	
 	/* Write Sound Data */
+	for (i = 0; i < l_NumDoomChannels; i++)
+	{
+		// Only play channels being used
+		if (!l_DoomChannels[i].Used)
+			continue;
+		
+		// Set p to start of buffer
+		p = SoundBuf;
+		
+		// Keep reading and mixing
+		for (; p < End && l_DoomChannels[i].Position < l_DoomChannels[i].Stop; l_DoomChannels[i].Position += l_DoomChannels[i].MoveRate)
+		{
+			// Read sample bit from data
+			ReadSample = ((uint8_t*)l_DoomChannels[i].Data)[l_DoomChannels[i].Position >> FRACBITS];
+			
+			// Write in
+			for (j = 0; j < l_Channels; j++)
+				S_WriteMixSample(&p, ReadSample);
+		}
+		
+		// Did the sound stop?
+		if (l_DoomChannels[i].Position >= l_DoomChannels[i].Stop)
+			S_StopChannel(i);
+	}
+	
+#if 0
+S_NoiseThinker_t* Origin;							// Source sound
+fixed_t Position;									// Stream position
+fixed_t Stop;										// When to stop
+fixed_t MoveRate;									// Rate at which to copy
+fixed_t Volume;										// Volume adjust
+WX_WADEntry_t* Entry;								// WAD entry being played
+void* Data;											// Sound data being played
+int SoundID;										// Sound being played
+bool_t Used;										// Channel is being used
+#endif
+	
 	/*for (i = 0; i < l_Len >> 1; i++)
 		S_WriteSample(&p, 65535);
 	for (i = 0; i < l_Len; i++)

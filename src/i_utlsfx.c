@@ -1524,3 +1524,16 @@ void I_SoundBufferWriteOut(void)
 		l_CurSoundDriver->WriteOut(l_CurSoundDriver);
 }
 
+/* I_SoundGetFreq() -- Returns frequency in Hz */
+uint16_t I_SoundGetFreq(void)
+{
+	/* Check */
+	if (!l_CurSoundDriver)
+		return 0;
+	
+	/* Obtain it */
+	if (l_CurSoundDriver->GetFreq)
+		return l_CurSoundDriver->GetFreq(l_CurSoundDriver);
+	return 0;
+}
+

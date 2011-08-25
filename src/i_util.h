@@ -294,6 +294,8 @@ typedef struct I_SoundDriver_s
 	void (*WriteOut)(struct I_SoundDriver_s* const a_Driver);
 		// Unrequest buffer
 	void (*UnRequest)(struct I_SoundDriver_s* const a_Driver);
+		// Get frequency
+	uint16_t (*GetFreq)(struct I_SoundDriver_s* const a_Driver);
 	
 	/* Dynamic */
 	void* Data;									// Private data
@@ -361,6 +363,7 @@ bool_t I_SoundBufferRequest(const I_SoundType_t a_Type, const uint8_t a_Bits, co
 void* I_SoundBufferObtain(void);
 bool_t I_SoundBufferIsFinished(void);
 void I_SoundBufferWriteOut(void);
+uint16_t I_SoundGetFreq(void);
 
 #endif /* __I_UTIL_H__ */
 
