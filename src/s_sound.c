@@ -36,6 +36,7 @@
 #include "doomstat.h"
 #include "sounds.h"
 #include "i_util.h"
+#include "w_wad.h"
 
 /*****************
 *** PROTOTYPES ***
@@ -43,6 +44,22 @@
 
 void SetChannelsNum(void);
 void S_UpdateCVARVolumes(void);
+
+/*****************
+*** STRUCTURES ***
+*****************/
+
+/* S_SoundChannel_t -- A playing sound in a channel */
+typedef struct S_SoundChannel_s
+{
+	S_NoiseThinker_t* Origin;							// Source sound
+	fixed_t MoveRate;									// Rate at which to copy
+	fixed_t Volume;										// Volume adjust
+	WX_WADEntry_t* Entry;								// WAD entry being played
+	void* Data;											// Sound data being played
+	int SoundID;										// Sound being played
+	bool_t Used;										// Channel is being used
+} S_SoundChannel_t;
 
 /**************
 *** GLOBALS ***
@@ -53,7 +70,7 @@ consvar_t cv_snd_soundquality = {"snd_soundquality", "11025", CV_SAVE};
 consvar_t cv_snd_sounddensity = {"snd_sounddensity", "1", CV_SAVE};
 consvar_t cv_snd_pcspeakerwave = {"snd_pcspeakerwave", "1", CV_SAVE};
 consvar_t cv_snd_channels = {"snd_numchannels", "16", CV_SAVE};
-consvar_t cv_snd_reservedchannels = {"snd_reservedchannels", "4", CV_SAVE};
+consvar_t cv_snd_reservedchannels = {"snd_reservedchannels", "2", CV_SAVE};
 consvar_t cv_snd_multithreaded = {"snd_multithreaded", "1", CV_SAVE};
 consvar_t cv_snd_output = {"snd_output", "Default", CV_SAVE};
 consvar_t cv_snd_device = {"snd_device", "auto", CV_SAVE};
@@ -76,19 +93,147 @@ static bool_t l_SoundOK = false;					// Did the sound start OK?
 static bool_t l_MusicOK = true;						// Same but for Music
 static int l_CurrentSong = 0;						// Current playing song handle
 static int l_Bits, l_Freq, l_Channels, l_Len;
+static S_SoundChannel_t* l_DoomChannels;			// Sound channels
+static size_t l_NumDoomChannels;					// Number of possible sound channels
 
 /****************
 *** FUNCTIONS ***
 ****************/
 
+/* S_PlayEntryOnChannel() -- Plays a WAD entry on a channel */
+S_SoundChannel_t* S_PlayEntryOnChannel(const uint32_t a_Channel, WX_WADEntry_t* const a_Entry)
+{
+	/* Check */
+	if (a_Channel >= l_NumDoomChannels || !a_Entry)
+		return NULL;
+	
+	/* Use entry */
+	WX_UseEntry(a_Entry, true);
+	
+	/* Set channel info */
+	l_DoomChannels[a_Channel].Entry = a_Entry;
+	l_DoomChannels[a_Channel].Data = WX_CacheEntry(a_Entry);
+	l_DoomChannels[a_Channel].Used = true;
+	
+	/* Return channel */
+	return &l_DoomChannels[a_Channel];
+}
+
+/* S_StopChannel() -- Stop channel from playing */
+void S_StopChannel(const uint32_t a_Channel)
+{
+	/* Check */
+	if (!l_SoundOK)
+		return;
+	
+	/* Check */
+	if (a_Channel >= l_NumDoomChannels)
+		return;
+	
+	/* Clear channel out */
+	// Check for entry
+	if (l_DoomChannels[a_Channel].Entry)
+		WX_UseEntry(l_DoomChannels[a_Channel].Entry, false);
+	
+	// Clear stuff
+	l_DoomChannels[a_Channel].Origin = NULL;
+	l_DoomChannels[a_Channel].MoveRate = 1 << FRACBITS;
+	l_DoomChannels[a_Channel].Volume = 1 << FRACBITS;
+	l_DoomChannels[a_Channel].Entry = NULL;
+	l_DoomChannels[a_Channel].Data = NULL;
+	l_DoomChannels[a_Channel].SoundID = 0;
+	l_DoomChannels[a_Channel].Used = false;
+}
+
+/* S_SoundPlaying() -- Checks whether a sound is being played by the object */
+// Returns the current channel + 1
+int S_SoundPlaying(S_NoiseThinker_t* a_Origin, int id)
+{
+	size_t i;
+	
+	/* Check */
+	if (!l_SoundOK)
+		return;
+	
+	/* Origin is set */
+	// Return channel that mobj is emitting on
+	if (a_Origin)
+	{
+		// Find it
+		for (i = 0; i < l_NumDoomChannels; i++)
+			if (l_DoomChannels[i].Origin == a_Origin)
+				return i + 1;
+	}
+	
+	/* Origin is not set */
+	else
+	{
+		for (i = 0; i < l_NumDoomChannels; i++)
+			if (!l_DoomChannels[i].Origin && l_DoomChannels[i].SoundID == id)
+				return i + 1;
+	}
+	
+	/* No sound found */
+	return 0;
+}
+
 /* S_StartSoundAtVolume() -- Starts playing a sound */
 void S_StartSoundAtVolume(S_NoiseThinker_t* a_Origin, int sound_id, int volume)
 {
+	int OnChannel, i;
+	WX_WADEntry_t* Entry;
+	S_SoundChannel_t* Target;
+	
+	/* Check */
+	if (!l_SoundOK)
+		return;
+	
+	/* Check if sound is already on a channel */
+	OnChannel = S_SoundPlaying(a_Origin, sound_id);
+	
+	// Not playing on a channel
+	if (!OnChannel)
+	{
+		// Find first free channel
+		for (OnChannel = 0; OnChannel < l_NumDoomChannels; OnChannel++)
+			if (!l_DoomChannels[OnChannel].Used)
+				break;
+		
+		// No channel found
+		if (OnChannel == l_NumDoomChannels)
+		{
+			// Choose a random channel
+			OnChannel = M_Random() % l_NumDoomChannels;
+			
+			// Stop sound on this channel
+			S_StopChannel(OnChannel);
+		}
+	}
+	else
+		OnChannel--;
+	
+	/* Obtain entry then play on said channel */
+	Entry = NULL;
+	Target = S_PlayEntryOnChannel(OnChannel, Entry);
+	
+	// Failed?
+	if (!Target)
+		return;
+	
+	/* Set extra stuff */
+	Target->Origin = a_Origin;
+	Target->SoundID = sound_id;
+	Target->MoveRate = 1 << FRACBITS;
+	Target->Volume = 1 << FRACBITS;
 }
 
 /* S_StartSound() -- Play a sound at full volume */
 void S_StartSound(S_NoiseThinker_t* a_Origin, int sound_id)
 {
+	/* Check */
+	if (!l_SoundOK)
+		return;
+	
 	/* Just call other function */
 	S_StartSoundAtVolume(a_Origin, sound_id, 255);
 }
@@ -96,17 +241,19 @@ void S_StartSound(S_NoiseThinker_t* a_Origin, int sound_id)
 /* S_StartSoundName() -- Start a sound based on name */
 void S_StartSoundName(S_NoiseThinker_t* a_Origin, char *soundname)
 {
+	/* Check */
+	if (!l_SoundOK)
+		return;
 }
 
 /* S_StopSound() -- Stop sound being played by this object */
 void S_StopSound(S_NoiseThinker_t* a_Origin)
 {
-}
-
-/* S_SoundPlaying() -- Checks whether a sound is being played by the object */
-int S_SoundPlaying(S_NoiseThinker_t* a_Origin, int id)
-{
-	return 0;
+	/* Check */
+	if (!l_SoundOK)
+		return;
+	
+	
 }
 
 int S_AdjustSoundParamsEx(struct mobj_s* Listener, struct mobj_s* Source,
@@ -117,6 +264,10 @@ int S_AdjustSoundParamsEx(struct mobj_s* Listener, struct mobj_s* Source,
 	int32_t* FrontVolume	// How loud to play a sound for the front speaker [Full Surround]
 	)
 {
+	/* Check */
+	if (!l_SoundOK)
+		return -1;
+	
 	return -1;
 }
 
@@ -192,13 +343,22 @@ void S_Init(int sfxVolume, int musicVolume)
 			CONS_Printf("S_Init: Failed to obtain a sound buffer.\n");
 		}
 		
-		// Remember buffer info
+		// Setup buffer
 		else
 		{
+			// Remember settings
 			l_Bits = cv_snd_sounddensity.value * 8;
 			l_Freq = cv_snd_soundquality.value;
 			l_Channels = cv_snd_speakersetup.value;
 			l_Len = 512;
+			
+			// Create channels
+			l_NumDoomChannels = cv_numChannels.value;
+			
+			if (!l_NumDoomChannels)
+				l_NumDoomChannels = 1;
+			
+			l_DoomChannels = Z_Malloc(sizeof(*l_DoomChannels) * l_NumDoomChannels, PU_STATIC, NULL);
 		}
 	}
 }
