@@ -56,6 +56,7 @@ typedef struct S_SoundChannel_s
 	fixed_t Position;									// Stream position
 	fixed_t Stop;										// When to stop
 	fixed_t MoveRate;									// Rate at which to copy
+	fixed_t RateAdjust;									// Adjust the rate, somewhat
 	fixed_t Volume;										// Volume adjust
 	WX_WADEntry_t* Entry;								// WAD entry being played
 	void* Data;											// Sound data being played
@@ -97,6 +98,7 @@ static int l_CurrentSong = 0;						// Current playing song handle
 static int l_Bits, l_Freq, l_Channels, l_Len;
 static S_SoundChannel_t* l_DoomChannels;			// Sound channels
 static size_t l_NumDoomChannels;					// Number of possible sound channels
+static fixed_t l_GlobalSoundVolume;					// Global sound volume
 
 /****************
 *** FUNCTIONS ***
@@ -120,6 +122,7 @@ S_SoundChannel_t* S_PlayEntryOnChannel(const uint32_t a_Channel, WX_WADEntry_t* 
 	l_DoomChannels[a_Channel].Data = WX_CacheEntry(a_Entry);
 	l_DoomChannels[a_Channel].Used = true;
 	l_DoomChannels[a_Channel].Position = 8 << FRACBITS;
+	l_DoomChannels[a_Channel].RateAdjust = 1 << FRACBITS;
 	
 	/* Read basic stuff */
 	p = l_DoomChannels[a_Channel].Data;
@@ -162,6 +165,7 @@ void S_StopChannel(const uint32_t a_Channel)
 	l_DoomChannels[a_Channel].SoundID = 0;
 	l_DoomChannels[a_Channel].Used = false;
 	l_DoomChannels[a_Channel].Position = 0;
+	l_DoomChannels[a_Channel].RateAdjust = 1 << FRACBITS;
 }
 
 /* S_SoundPlaying() -- Checks whether a sound is being played by the object */
@@ -324,12 +328,33 @@ int S_AdjustSoundParamsEx(struct mobj_s* Listener, struct mobj_s* Source,
 	return -1;
 }
 
+/* S_UpdateSingleChannel() -- Updates a single channel */
+void S_UpdateSingleChannel(S_SoundChannel_t* const a_Channel)
+{
+	/* Check */
+	if (!a_Channel)
+		return;
+}
+
 /* S_RepositionSounds() -- Repositions all sounds */
 void S_RepositionSounds(void)
 {
+	size_t i;
+	
 	/* Check */
 	if (!l_SoundOK)
 		return;
+	
+	/* Go through all playing sounds */
+	for (i = 0; i < l_NumDoomChannels; i++)
+	{
+		// Skip unused channels
+		if (!l_DoomChannels[i].Used)
+			continue;
+		
+		// Update single channel
+		S_UpdateSingleChannel(&l_DoomChannels[i]);
+	}
 }
 
 void SetChannelsNum(void)
@@ -545,6 +570,18 @@ void S_ResumeMusic(void)
 	I_ResumeSong(l_CurrentSong);
 }
 
+/* S_ApplySampleVol() -- Apply volume to sample */
+static uint8_t S_ApplySampleVol(const uint8_t a_Byte, const fixed_t a_ModVolume)
+{
+	fixed_t Normed;
+	
+	/* Normalize a bit */
+	Normed = ((fixed_t)a_Byte - 128) << FRACBITS;
+	
+	/* Apply volume */
+	return (FixedMul(Normed, a_ModVolume) >> FRACBITS) + 128;
+}
+
 /* S_WriteMixSample() -- Writes a single sample */
 static void S_WriteMixSample(void** Buf, uint8_t Value)
 {
@@ -594,6 +631,7 @@ void S_UpdateSounds(void)
 	void* SoundBuf, *p, *End;
 	size_t SoundLen, i, j;
 	uint8_t ReadSample;
+	fixed_t ActualRate, ModVolume;
 	
 	/* Check */
 	if (!l_Bits || !l_SoundOK)
@@ -629,10 +667,12 @@ void S_UpdateSounds(void)
 		p = SoundBuf;
 		
 		// Keep reading and mixing
-		for (; p < End && l_DoomChannels[i].Position < l_DoomChannels[i].Stop; l_DoomChannels[i].Position += l_DoomChannels[i].MoveRate)
+		ActualRate = FixedMul(l_DoomChannels[i].MoveRate, l_DoomChannels[i].RateAdjust);
+		ModVolume = FixedMul(l_DoomChannels[i].Volume, l_GlobalSoundVolume);
+		for (; p < End && l_DoomChannels[i].Position < l_DoomChannels[i].Stop; l_DoomChannels[i].Position += ActualRate)
 		{
 			// Read sample bit from data
-			ReadSample = ((uint8_t*)l_DoomChannels[i].Data)[l_DoomChannels[i].Position >> FRACBITS];
+			ReadSample = S_ApplySampleVol(((uint8_t*)l_DoomChannels[i].Data)[l_DoomChannels[i].Position >> FRACBITS], ModVolume);
 			
 			// Write in
 			for (j = 0; j < l_Channels; j++)
@@ -643,23 +683,6 @@ void S_UpdateSounds(void)
 		if (l_DoomChannels[i].Position >= l_DoomChannels[i].Stop)
 			S_StopChannel(i);
 	}
-	
-#if 0
-S_NoiseThinker_t* Origin;							// Source sound
-fixed_t Position;									// Stream position
-fixed_t Stop;										// When to stop
-fixed_t MoveRate;									// Rate at which to copy
-fixed_t Volume;										// Volume adjust
-WX_WADEntry_t* Entry;								// WAD entry being played
-void* Data;											// Sound data being played
-int SoundID;										// Sound being played
-bool_t Used;										// Channel is being used
-#endif
-	
-	/*for (i = 0; i < l_Len >> 1; i++)
-		S_WriteSample(&p, 65535);
-	for (i = 0; i < l_Len; i++)
-		S_WriteSample(&p, 0);*/
 	
 	/* Write to driver */
 	I_SoundBufferWriteOut();
@@ -692,6 +715,8 @@ void S_UpdateCVARVolumes(void)
 	// Sound is not sent because it is dynamically modified by ReMooD.
 	// So instead of messing with mixer values, I can just lower the amplitude
 	// of sounds being mixed.
+	if (l_SoundOK)
+		l_GlobalSoundVolume = FixedDiv(cv_soundvolume.value << FRACBITS, 31 << FRACBITS);
 }
 
 void Command_SoundReset_f(void)
