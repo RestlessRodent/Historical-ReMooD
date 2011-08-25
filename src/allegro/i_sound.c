@@ -68,9 +68,46 @@ void I_AllegroSD_Success(struct I_SoundDriver_s* const a_Driver)
 		return;
 }
 
+/* I_AllegroSD_Request() -- Requests a buffer for this driver */
+bool_t I_AllegroSD_Request(struct I_SoundDriver_s* const a_Driver, const uint8_t a_Bits, const uint16_t a_Freq, const uint8_t a_Channels)
+{
+	/* Check */
+	if (!a_Driver)
+		return;
+	
+	return false;
+}
+
+/* I_AllegroSD_Obtain() -- Obtains a buffer that was requested */
+void* I_AllegroSD_Obtain(struct I_SoundDriver_s* const a_Driver)
+{
+	/* Check */
+	if (!a_Driver)
+		return;
+	
+	return NULL;
+}
+
+/* I_AllegroSD_IsFinished() -- Checks if the buffer is finished playing */
+bool_t I_AllegroSD_IsFinished(struct I_SoundDriver_s* const a_Driver)
+{
+	/* Check */
+	if (!a_Driver)
+		return;
+	
+	return false;
+}
+
+/* I_AllegroSD_WriteOut() -- Done streaming into buffer */
+void I_AllegroSD_WriteOut(struct I_SoundDriver_s* const a_Driver)
+{
+	/* Check */
+	if (!a_Driver)
+		return;
+}
 
 /* l_AllegroSound -- Allegro sound driver */
-static const I_SoundDriver_t l_AllegroSoundDriver =
+static I_SoundDriver_t l_AllegroSoundDriver =
 {
 	/* Info */
 	"Allegro SoundStream",
@@ -82,6 +119,10 @@ static const I_SoundDriver_t l_AllegroSoundDriver =
 	I_AllegroSD_Init,
 	I_AllegroSD_Destroy,
 	I_AllegroSD_Success,
+	I_AllegroSD_Request,
+	I_AllegroSD_Obtain,
+	I_AllegroSD_IsFinished,
+	I_AllegroSD_WriteOut,
 };
 
 /****************

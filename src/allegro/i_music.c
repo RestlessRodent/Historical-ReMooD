@@ -153,6 +153,18 @@ static int I_AllegroMD_Play(struct I_MusicDriver_s* const a_Driver, const void* 
 	return Local->CurrentHandle;
 }
 
+/* I_AllegroMD_Volume() -- Changes volume */
+void I_AllegroMD_Volume(struct I_MusicDriver_s* const a_Driver, const int a_Handle, const uint8_t Vol)
+{
+	/* Check */
+	if (!a_Driver)
+		return;
+	
+	/* Set mixer volume */
+	// Change MIDI volume
+	set_volume(-1, Vol);
+}
+
 /* I_AllegroMD_RawMIDI() -- Send a raw MIDI message */
 void I_AllegroMD_RawMIDI(struct I_MusicDriver_s* const a_Driver, const uint32_t a_Msg, const uint32_t a_BitLength)
 {
@@ -184,7 +196,7 @@ static I_MusicDriver_t l_AllegroDriver =
 	NULL,
 	NULL,
 	I_AllegroMD_Play,
-	NULL,
+	I_AllegroMD_Volume,
 	I_AllegroMD_RawMIDI,
 	NULL,
 };

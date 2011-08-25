@@ -67,17 +67,6 @@
 *** GLOBALS ***
 **************/
 
-/* i_sound.c -- Remove this garbage */
-consvar_t cv_snd_speakersetup = {"snd_speakersetup", "2", CV_SAVE};
-consvar_t cv_snd_soundquality = {"snd_soundquality", "11025", CV_SAVE};
-consvar_t cv_snd_sounddensity = {"snd_sounddensity", "1", CV_SAVE};
-consvar_t cv_snd_pcspeakerwave = {"snd_pcspeakerwave", "1", CV_SAVE};
-consvar_t cv_snd_channels = {"snd_numchannels", "16", CV_SAVE};
-consvar_t cv_snd_reservedchannels = {"snd_reservedchannels", "4", CV_SAVE};
-consvar_t cv_snd_multithreaded = {"snd_multithreaded", "1", CV_SAVE};
-consvar_t cv_snd_output = {"snd_output", "Default", CV_SAVE};
-consvar_t cv_snd_device = {"snd_device", "auto", CV_SAVE};
-
 /* i_cdmus.c -- Remove this garbage */
 consvar_t cd_volume = { "cd_volume", "31", CV_SAVE};
 consvar_t cdUpdate = { "cd_update", "1", CV_SAVE };
@@ -122,6 +111,7 @@ typedef struct I_MUS2MIDData_s
 	tic_t NextRun;
 	tic_t BaseTime;
 	uint8_t Vols[16];
+	fixed_t VolScale;
 	
 	size_t MusStart;
 	size_t MusLen;
@@ -156,7 +146,7 @@ bool_t I_MUS2MID_MUSReadNextMessage(I_MUS2MIDData_t* const a_Local, uint32_t* co
 	uint8_t Channel;
 	uint8_t Event;
 	size_t i;
-	uint8_t Key;
+	uint8_t Key, VolUse;
 	
 	union
 	{
@@ -244,10 +234,17 @@ bool_t I_MUS2MID_MUSReadNextMessage(I_MUS2MIDData_t* const a_Local, uint32_t* co
 			if (NoteBit[1] & 0x80)
 			{
 				NoteBit[2] = a_Local->Data[a_Local->Pos++];
-				a_Local->Vols[Channel] = MIDIMsg.b[2] = NoteBit[2] & 0x7F;
+				a_Local->Vols[Channel] = VolUse = NoteBit[2] & 0x7F;
 			}
 			else
-				MIDIMsg.b[2] = a_Local->Vols[Channel];	// use last volume
+				VolUse = a_Local->Vols[Channel];	// use last volume
+			
+			// Scale volume
+			VolUse = FixedMul((fixed_t)VolUse << FRACBITS, a_Local->VolScale) >> FRACBITS;
+			
+			// Use volume determined
+			MIDIMsg.b[2] = VolUse;
+			
 			*a_OutSize = 3;
 			break;
 			
@@ -486,6 +483,9 @@ void I_MUS2MID_Success(struct I_MusicDriver_s* const a_Driver)
 	// Check
 	if (!Local)
 		return;
+	
+	/* Set Initial volume */
+	Local->VolScale = 1 << FRACBITS;
 }
 
 /* I_MUS2MID_Pause() -- Pauses a song (pause ||) */
@@ -744,8 +744,8 @@ int I_MUS2MID_Play(struct I_MusicDriver_s* const a_Driver, const void* const a_D
 	Local->BaseTime = 0;
 	Local->NextRun = 0;
 	Local->Pos = 0;
-		Local->Data = a_Data;
-		Local->Size = a_Size;
+	Local->Data = a_Data;
+	Local->Size = a_Size;
 	
 	// remember volumes
 	for (i = 0; i < 16; i++)
@@ -814,11 +814,20 @@ void I_MUS2MID_Volume(struct I_MusicDriver_s* const a_Driver, const int a_Handle
 	/* Feeder mode */
 	if (Local->FeedMessages)
 	{
+		// Always tell driver to be at full volume
+		if (Local->RealDriver->Volume)
+			Local->RealDriver->Volume(Local->RealDriver, Local->RealHandle, 255);
+		
+		// Set volume scale
+		Local->VolScale = FixedDiv((fixed_t)Vol << FRACBITS, 255 << FRACBITS);
 	}
 	
 	/* Full convert mode */
 	else
 	{
+		// Tell driver the volume I want
+		if (Local->RealDriver->Volume)
+			Local->RealDriver->Volume(Local->RealDriver, Local->RealHandle, Vol);
 	}
 }
 
@@ -1031,6 +1040,13 @@ void I_UpdateMusic(void)
 /* I_SetMusicVolume() -- Sets music volume */
 void I_SetMusicVolume(int volume)
 {
+	size_t i, j;
+	
+	/* Find drivers playing music */
+	for (i = 0; i < l_NumLocalSongs; i++)
+		if (l_LocalSongs[i].Playing && l_LocalSongs[i].Driver)
+			if (l_LocalSongs[i].Driver->Volume)
+				l_LocalSongs[i].Driver->Volume(l_LocalSongs[i].Driver, l_LocalSongs[i].DriverHandle, volume);
 }
 
 /* I_DetectMusicType() -- Detects the type of music */

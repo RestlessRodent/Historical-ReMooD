@@ -41,19 +41,31 @@
 *****************/
 
 void SetChannelsNum(void);
+void S_UpdateCVARVolumes(void);
 
 /**************
 *** GLOBALS ***
 **************/
 
+consvar_t cv_snd_speakersetup = {"snd_speakersetup", "2", CV_SAVE};
+consvar_t cv_snd_soundquality = {"snd_soundquality", "11025", CV_SAVE};
+consvar_t cv_snd_sounddensity = {"snd_sounddensity", "1", CV_SAVE};
+consvar_t cv_snd_pcspeakerwave = {"snd_pcspeakerwave", "1", CV_SAVE};
+consvar_t cv_snd_channels = {"snd_numchannels", "16", CV_SAVE};
+consvar_t cv_snd_reservedchannels = {"snd_reservedchannels", "4", CV_SAVE};
+consvar_t cv_snd_multithreaded = {"snd_multithreaded", "1", CV_SAVE};
+consvar_t cv_snd_output = {"snd_output", "Default", CV_SAVE};
+consvar_t cv_snd_device = {"snd_device", "auto", CV_SAVE};
+
 consvar_t stereoreverse = { "stereoreverse", "0", CV_SAVE, CV_OnOff };
 consvar_t precachesound = { "precachesound", "0", CV_SAVE, CV_OnOff };
-CV_PossibleValue_t soundvolume_cons_t[] = { {0, "MIN"}, {31, "MAX"}, {0, NULL} };
-consvar_t cv_soundvolume = { "soundvolume", "15", CV_SAVE, soundvolume_cons_t };
-consvar_t cv_musicvolume = { "musicvolume", "15", CV_SAVE, soundvolume_cons_t };
 consvar_t cv_rndsoundpitch = { "rndsoundpitch", "Off", CV_SAVE, CV_OnOff };
 consvar_t cv_numChannels = { "snd_channels", "16", CV_SAVE | CV_CALL, CV_Unsigned, SetChannelsNum };
 consvar_t surround = { "surround", "0", CV_SAVE, CV_OnOff };
+
+CV_PossibleValue_t soundvolume_cons_t[] = { {0, "MIN"}, {31, "MAX"}, {0, NULL} };
+consvar_t cv_soundvolume = { "snd_soundvolume", "15", CV_SAVE | CV_CALL, soundvolume_cons_t, S_UpdateCVARVolumes };
+consvar_t cv_musicvolume = { "snd_musicvolume", "15", CV_SAVE | CV_CALL, soundvolume_cons_t, S_UpdateCVARVolumes };
 
 /*************
 *** LOCALS ***
@@ -99,6 +111,9 @@ void S_Init(int sfxVolume, int musicVolume)
 	/* Always register sound stuff */
 	// So the menu doesn't crash on us
 	S_RegisterSoundStuff();
+	
+	// Set volumes based on CVARs
+	S_UpdateCVARVolumes();
 }
 
 void S_StopSounds(void)
@@ -197,6 +212,9 @@ void S_ChangeMusicName(char *name, int looping)
 	
 	/* Start playing the song */
 	I_PlaySong(l_CurrentSong, looping);
+	
+	// Change volume (in case of new driver, volume will be lost)
+	S_UpdateCVARVolumes();
 #undef BUFSIZE
 }
 
@@ -241,16 +259,30 @@ void S_UpdateSounds(void)
 /* S_SetMusicVolume() -- Sets music volume */
 void S_SetMusicVolume(int volume)
 {
-	/* Check */
-	if (!l_MusicOK || !l_CurrentSong)
-		return;
-	
-	/* Set volume */
-	I_SetMusicVolume(volume);
+	/* Set variable */
+	if (l_MusicOK)
+		CV_SetValue(&cv_musicvolume, volume);
 }
 
+/* S_SetSfxVolume() -- Sets sound volume */
 void S_SetSfxVolume(int volume)
 {
+	/* Set variable */
+	if (l_SoundOK)
+		CV_SetValue(&cv_soundvolume, volume);
+}
+
+/* S_UpdateCVARVolumes() -- CVAR Volumes changed */
+void S_UpdateCVARVolumes(void)
+{
+	/* Send values to interfaces */
+	// Music
+	if (l_MusicOK)
+		I_SetMusicVolume(cv_musicvolume.value * 8);
+	
+	// Sound is not sent because it is dynamically modified by ReMooD.
+	// So instead of messing with mixer values, I can just lower the amplitude
+	// of sounds being mixed.
 }
 
 int S_SoundPlaying(void *origin, int id)
