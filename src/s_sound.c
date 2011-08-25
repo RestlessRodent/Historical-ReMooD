@@ -37,6 +37,7 @@
 #include "sounds.h"
 #include "i_util.h"
 #include "w_wad.h"
+#include "g_game.h"
 
 /*****************
 *** PROTOTYPES ***
@@ -200,6 +201,8 @@ int S_SoundPlaying(S_NoiseThinker_t* a_Origin, int id)
 	return 0;
 }
 
+void S_UpdateSingleChannel(S_SoundChannel_t* const a_Channel);
+
 /* S_StartSoundAtVolume() -- Starts playing a sound */
 void S_StartSoundAtVolume(S_NoiseThinker_t* a_Origin, int sound_id, int volume)
 {
@@ -274,6 +277,9 @@ void S_StartSoundAtVolume(S_NoiseThinker_t* a_Origin, int sound_id, int volume)
 		Target->MoveRate = FixedMul(Target->MoveRate, RPA);
 	}
 	
+	/* Update channel the sound is playing on */
+	S_UpdateSingleChannel(Target);
+	
 #undef BUFSIZE
 }
 
@@ -328,12 +334,46 @@ int S_AdjustSoundParamsEx(struct mobj_s* Listener, struct mobj_s* Source,
 	return -1;
 }
 
+fixed_t P_AproxDistance(fixed_t dx, fixed_t dy);
+
 /* S_UpdateSingleChannel() -- Updates a single channel */
 void S_UpdateSingleChannel(S_SoundChannel_t* const a_Channel)
 {
+	S_NoiseThinker_t* Listener;
+	S_NoiseThinker_t* Emitter;
+	fixed_t ApproxDist;
+	
 	/* Check */
 	if (!a_Channel)
 		return;
+	
+	/* The emitting thing is the channel */
+	Emitter = a_Channel->Origin;
+	
+	// No emitter? This is the case for HUD sounds
+	if (!Emitter)
+		return NULL;
+	
+	/* Find the thing that is listening */
+	Listener = NULL;
+	
+	// Just use displayplayer for now!
+	if (players[displayplayer[0]].mo)
+		Listener = &players[displayplayer[0]].mo->NoiseThinker;
+	
+	// Listener not set (so can't hear sounds much really)
+	if (!Listener)
+		return;
+	
+	/* Approximate the distance between the map object and the listener */
+	ApproxDist = P_AproxDistance(Listener->x - Emitter->x, Listener->y - Emitter->y);
+	
+	// Too far to hear?
+	if (ApproxDist >= (1200 << FRACBITS))
+		ApproxDist = (1200 << FRACBITS);
+	
+	// The volume of the sound is somewhere within 1,200 map units
+	a_Channel->Volume = (1 << FRACBITS) - FixedMul(ApproxDist, 54);
 }
 
 /* S_RepositionSounds() -- Repositions all sounds */
