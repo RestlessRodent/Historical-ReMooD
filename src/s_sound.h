@@ -36,6 +36,7 @@
 #include "sounds.h"
 #include "command.h"
 #include "m_fixed.h"
+#include "tables.h"
 
 /****************
 *** CONSTANTS ***

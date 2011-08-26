@@ -255,6 +255,9 @@ void P_MovePlayer(player_t * player)
 		player->mo->angle = (cmd->angleturn << 16);
 #endif
 
+	// GhostlyDeath <August 26, 2011> -- Update listener angle (for sounds)
+	player->mo->NoiseThinker.Angle = player->mo->angle;
+
 	ticruned++;
 	if ((cmd->angleturn & TICCMD_RECEIVED) == 0)
 		ticmiss++;
