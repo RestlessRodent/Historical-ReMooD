@@ -28,6 +28,12 @@
 *** INCLUDES ***
 ***************/
 
+/* System */
+// DJGPP's Allegro explodes if this isn't included first
+#if defined(__DJGPP__)
+	#include <stdint.h>
+#endif
+
 #include <allegro.h>
 
 // Include winalleg on Windows since it conflicts!
