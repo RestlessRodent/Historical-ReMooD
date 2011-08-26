@@ -450,6 +450,7 @@ void P_SetThingPosition(mobj_t * thing)
 	thing->NoiseThinker.momx = thing->momx;
 	thing->NoiseThinker.momy = thing->momy;
 	thing->NoiseThinker.momz = thing->momz;
+	thing->NoiseThinker.Angle = thing->angle;
 
 	// link into subsector
 	ss = R_PointInSubsector(thing->x, thing->y);

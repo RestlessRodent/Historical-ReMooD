@@ -59,6 +59,7 @@ typedef struct S_SoundChannel_s
 	fixed_t MoveRate;									// Rate at which to copy
 	fixed_t RateAdjust;									// Adjust the rate, somewhat
 	fixed_t Volume;										// Volume adjust
+	fixed_t ChanVolume[16];								// Per channel volume
 	WX_WADEntry_t* Entry;								// WAD entry being played
 	void* Data;											// Sound data being played
 	int SoundID;										// Sound being played
@@ -341,7 +342,8 @@ void S_UpdateSingleChannel(S_SoundChannel_t* const a_Channel)
 {
 	S_NoiseThinker_t* Listener;
 	S_NoiseThinker_t* Emitter;
-	fixed_t ApproxDist;
+	fixed_t ApproxDist, DistVol, Fine;
+	angle_t Angle;
 	
 	/* Check */
 	if (!a_Channel)
@@ -373,7 +375,49 @@ void S_UpdateSingleChannel(S_SoundChannel_t* const a_Channel)
 		ApproxDist = (1200 << FRACBITS);
 	
 	// The volume of the sound is somewhere within 1,200 map units
-	a_Channel->Volume = (1 << FRACBITS) - FixedMul(ApproxDist, 54);
+	DistVol = (1 << FRACBITS) - FixedMul(ApproxDist, 54);
+	
+	/* Get balance swing between left and right */
+	Angle = R_PointToAngle2(Listener->x, Listener->y, Emitter->x, Emitter->y);
+	
+	// Convert angle to local angle
+	Angle -= Listener->Angle;
+	Fine = finesine[Angle >> ANGLETOFINESHIFT];
+	
+#if 0
+	// Correct Listener Angle
+	if (Angle > Listener->Angle)
+		Angle -= Listener->Angle;
+	else
+		Angle += 0xFFFFFFFF - Listener.Angle;
+	
+	// Shift
+	Angle >>= ANGLETOFINESHIFT;
+	Pan = FixedMul(finesine[Angle], 6291456);
+#endif
+
+#if 0
+		if (angle > Listener->angle)
+			angle = angle - Listener->angle;
+		else
+			angle = angle + (0xffffffff - Listener->angle);
+		
+		angle >>= ANGLETOFINESHIFT;
+		*Balance = NORM_SEP - (FixedMul(S_STEREO_SWING, finesine[angle]) >> FRACBITS);
+#endif
+	
+	/* Set final parameters based on the channel count */
+	switch (l_Channel)
+	{
+			// Mono -- Distance only
+		case 1:
+			a_Channel->ChanVolume[0] = DistVol;
+			break;
+			
+			// Stereo -- Left/right based on angle
+		case 2:
+			break;
+	}
 }
 
 /* S_RepositionSounds() -- Repositions all sounds */
@@ -671,7 +715,7 @@ void S_UpdateSounds(void)
 	void* SoundBuf, *p, *End;
 	size_t SoundLen, i, j;
 	uint8_t ReadSample;
-	fixed_t ActualRate, ModVolume;
+	fixed_t ActualRate, ModVolume[16];
 	
 	/* Check */
 	if (!l_Bits || !l_SoundOK)
@@ -706,17 +750,20 @@ void S_UpdateSounds(void)
 		// Set p to start of buffer
 		p = SoundBuf;
 		
+		// Determine volume for all channels
+		for (j = 0; j < l_Channels; j++)
+			ModVolume[j] = FixedMul(FixedMul(l_DoomChannels[i].Volume, l_DoomChannels[i].ChanVolume[j]), l_GlobalSoundVolume);
+		
 		// Keep reading and mixing
 		ActualRate = FixedMul(l_DoomChannels[i].MoveRate, l_DoomChannels[i].RateAdjust);
-		ModVolume = FixedMul(l_DoomChannels[i].Volume, l_GlobalSoundVolume);
 		for (; p < End && l_DoomChannels[i].Position < l_DoomChannels[i].Stop; l_DoomChannels[i].Position += ActualRate)
 		{
 			// Read sample bit from data
-			ReadSample = S_ApplySampleVol(((uint8_t*)l_DoomChannels[i].Data)[l_DoomChannels[i].Position >> FRACBITS], ModVolume);
+			ReadSample = ((uint8_t*)l_DoomChannels[i].Data)[l_DoomChannels[i].Position >> FRACBITS];
 			
 			// Write in
 			for (j = 0; j < l_Channels; j++)
-				S_WriteMixSample(&p, ReadSample);
+				S_WriteMixSample(&p, S_ApplySampleVol(ReadSample, ModVolume[j]));
 		}
 		
 		// Did the sound stop?

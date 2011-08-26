@@ -66,6 +66,7 @@ typedef struct S_NoiseThinker_s
 	/* Other things */
 	fixed_t Pitch;								// Pitch modification
 	fixed_t Volume;								// Volume modification
+	angle_t Angle;								// Angle
 } S_NoiseThinker_t;
 
 /**************
