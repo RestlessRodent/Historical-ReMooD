@@ -435,9 +435,6 @@ void S_UpdateSingleChannel(S_SoundChannel_t* const a_Channel)
 				a_Channel->ChanVolume[0] = FixedMul(FixedMul(a_Channel->ChanVolume[0], DistVol), (1 << FRACBITS) + Fine);
 				a_Channel->ChanVolume[1] = FixedMul(a_Channel->ChanVolume[1], DistVol);
 			}
-			
-			//a_Channel->ChanVolume[0] = FixedMul(FixedMul(a_Channel->ChanVolume[0], DistVol), Fine);
-			//a_Channel->ChanVolume[1] = FixedMul(FixedMul(a_Channel->ChanVolume[1], DistVol), -Fine);
 			break;
 	}
 }
@@ -551,8 +548,19 @@ void S_Init(int sfxVolume, int musicVolume)
 	}
 }
 
+/* S_StopSounds() -- Stops all playing sounds */
 void S_StopSounds(void)
 {
+	size_t i;
+	
+	/* Check */
+	if (!l_SoundOK)
+		return;
+	
+	/* Stop all sounds on every channel */
+	for (i = 0; i < l_NumDoomChannels; i++)
+		if (l_DoomChannels[i].Used)
+			S_StopChannel(i);
 }
 
 /* S_Start() -- Change song based on level */
@@ -694,7 +702,7 @@ static void S_WriteMixSample(void** Buf, uint8_t Value)
 	int32_t v, s;
 	
 	/* Get shift */
-	s = (int32_t)Value - 128;
+	s = ((int32_t)Value) - 128;
 	
 	/* Write Wide */
 	if (l_Bits == 16)
@@ -737,12 +745,8 @@ void S_UpdateSounds(void)
 	void* SoundBuf, *p, *End;
 	size_t SoundLen, i, j;
 	uint8_t ReadSample;
+	uint16_t Mod;
 	fixed_t ActualRate, ModVolume[16];
-	
-	static FILE* f;
-	
-	if (!f)
-		f = fopen("/tmp/rawsound.raw", "wb"); 
 	
 	/* Check */
 	if (!l_Bits || !l_SoundOK)
@@ -765,7 +769,11 @@ void S_UpdateSounds(void)
 		return;
 	
 	/* Clear buffer completely */
-	memset(SoundBuf, 0, SoundLen);
+	if (l_Bits == 16)
+		for (Mod = 0x8000, i = 0, p = SoundBuf; i < (SoundLen >> 1); i++)
+			WriteUInt16(&p, Mod);
+	else
+		memset(SoundBuf, 0x80, SoundLen);
 	
 	/* Write Sound Data */
 	for (i = 0; i < l_NumDoomChannels; i++)
@@ -796,12 +804,6 @@ void S_UpdateSounds(void)
 		// Did the sound stop?
 		if (l_DoomChannels[i].Position >= l_DoomChannels[i].Stop)
 			S_StopChannel(i);
-	}
-	
-	for (p = SoundBuf; p < End; p)
-	{
-		ReadSample = ReadUInt8(&p);
-		fwrite(&ReadSample, 1, 1, f);
 	}
 	
 	/* Write to driver */
