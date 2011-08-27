@@ -77,7 +77,6 @@ typedef struct S_NoiseThinker_s
 extern consvar_t stereoreverse;
 extern consvar_t cv_soundvolume;
 extern consvar_t cv_musicvolume;
-extern consvar_t cv_numChannels;
 extern consvar_t cv_rndsoundpitch;
 extern consvar_t precachesound;
 extern CV_PossibleValue_t soundvolume_cons_t[];
@@ -110,14 +109,6 @@ void S_UpdateSounds(void);
 void S_SetMusicVolume(int volume);
 void S_SetSfxVolume(int volume);
 void Command_SoundReset_f(void);
-
-int S_AdjustSoundParamsEx(struct mobj_s* Listener, struct mobj_s* Source,
-	int32_t* Volume,		// Volume of the sound (Distance) [Mono]
-	int32_t* Balance,		// Balance of the sound (left/right) [Stereo + Surround + Full Surround]
-	int32_t* Pitch,		// Change in pitch (Doppler!?!?) [All]
-	int32_t* Orientation,	// Balance of the sound (front/back) [Surround + Full Surround]
-	int32_t* FrontVolume	// How loud to play a sound for the front speaker [Full Surround]
-	);
 
 #endif /* __S_SOUND_H__ */
 

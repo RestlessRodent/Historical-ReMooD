@@ -420,7 +420,6 @@ void D_RegisterClientCommands(void)
 	//s_sound.c
 	CV_RegisterVar(&cv_soundvolume);
 	CV_RegisterVar(&cv_musicvolume);
-	CV_RegisterVar(&cv_numChannels);
 	CV_RegisterVar(&cv_rndsoundpitch);
 	
 	CV_RegisterVar(&cv_snd_speakersetup);

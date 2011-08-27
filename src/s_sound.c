@@ -70,21 +70,20 @@ typedef struct S_SoundChannel_s
 *** GLOBALS ***
 **************/
 
-consvar_t cv_snd_speakersetup = {"snd_speakersetup", "2", CV_SAVE};
-consvar_t cv_snd_soundquality = {"snd_soundquality", "11025", CV_SAVE};
-consvar_t cv_snd_sounddensity = {"snd_sounddensity", "1", CV_SAVE};
-consvar_t cv_snd_pcspeakerwave = {"snd_pcspeakerwave", "1", CV_SAVE};
-consvar_t cv_snd_channels = {"snd_numchannels", "16", CV_SAVE};
-consvar_t cv_snd_reservedchannels = {"snd_reservedchannels", "2", CV_SAVE};
-consvar_t cv_snd_multithreaded = {"snd_multithreaded", "1", CV_SAVE};
+consvar_t cv_snd_speakersetup = {"snd_speakersetup", "2", CV_SAVE, CV_Unsigned};
+consvar_t cv_snd_soundquality = {"snd_soundquality", "11025", CV_SAVE, CV_Unsigned};
+consvar_t cv_snd_sounddensity = {"snd_sounddensity", "1", CV_SAVE, CV_Unsigned};
+consvar_t cv_snd_buffersize = {"snd_buffersize", "1024", CV_SAVE, CV_Unsigned};
+consvar_t cv_snd_pcspeakerwave = {"snd_pcspeakerwave", "1", CV_SAVE, CV_Unsigned};
+consvar_t cv_snd_channels = {"snd_channels", "12", CV_SAVE, CV_Unsigned};
+consvar_t cv_snd_reservedchannels = {"snd_reservedchannels", "2", CV_SAVE, CV_Unsigned};
+consvar_t cv_snd_multithreaded = {"snd_multithreaded", "1", CV_SAVE, CV_OnOff};
 consvar_t cv_snd_output = {"snd_output", "Default", CV_SAVE};
 consvar_t cv_snd_device = {"snd_device", "auto", CV_SAVE};
 
 consvar_t stereoreverse = { "stereoreverse", "0", CV_SAVE, CV_OnOff };
 consvar_t precachesound = { "precachesound", "0", CV_SAVE, CV_OnOff };
 consvar_t cv_rndsoundpitch = { "rndsoundpitch", "Off", CV_SAVE, CV_OnOff };
-consvar_t cv_numChannels = { "snd_channels", "16", CV_SAVE | CV_CALL, CV_Unsigned, SetChannelsNum };
-consvar_t surround = { "surround", "0", CV_SAVE, CV_OnOff };
 
 CV_PossibleValue_t soundvolume_cons_t[] = { {0, "MIN"}, {31, "MAX"}, {0, NULL} };
 consvar_t cv_soundvolume = { "snd_soundvolume", "15", CV_SAVE | CV_CALL, soundvolume_cons_t, S_UpdateCVARVolumes };
@@ -328,21 +327,6 @@ void S_StopSound(S_NoiseThinker_t* a_Origin)
 	S_StopChannel(Found - 1);
 }
 
-int S_AdjustSoundParamsEx(struct mobj_s* Listener, struct mobj_s* Source,
-	int32_t* Volume,		// Volume of the sound (Distance) [Mono]
-	int32_t* Balance,		// Balance of the sound (left/right) [Stereo + Surround + Full Surround]
-	int32_t* Pitch,		// Change in pitch (Doppler!?!?) [All]
-	int32_t* Orientation,	// Balance of the sound (front/back) [Surround + Full Surround]
-	int32_t* FrontVolume	// How loud to play a sound for the front speaker [Full Surround]
-	)
-{
-	/* Check */
-	if (!l_SoundOK)
-		return -1;
-	
-	return -1;
-}
-
 fixed_t P_AproxDistance(fixed_t dx, fixed_t dy);
 
 /* S_UpdateSingleChannel() -- Updates a single channel */
@@ -484,6 +468,8 @@ void S_RegisterSoundStuff(void)
 	CV_RegisterVar(&cv_snd_output);
 	CV_RegisterVar(&cv_snd_device);
 	
+	CV_RegisterVar(&cv_snd_buffersize);
+	
 	// Everything was registered
 	cvRegged = true;
 }
@@ -518,7 +504,7 @@ void S_Init(int sfxVolume, int musicVolume)
 	/* Try getting a buffer */
 	if (l_SoundOK)
 	{
-		if (!I_SoundBufferRequest(IST_WAVEFORM, cv_snd_sounddensity.value * 8, cv_snd_soundquality.value, cv_snd_speakersetup.value, 512))
+		if (!I_SoundBufferRequest(IST_WAVEFORM, cv_snd_sounddensity.value * 8, cv_snd_soundquality.value, cv_snd_speakersetup.value, cv_snd_buffersize.value))
 		{
 			l_Bits = l_Freq = l_Channels = l_Len = 0;
 			CONS_Printf("S_Init: Failed to obtain a sound buffer.\n");
@@ -531,14 +517,14 @@ void S_Init(int sfxVolume, int musicVolume)
 			l_Bits = cv_snd_sounddensity.value * 8;
 			l_Freq = I_SoundGetFreq();
 			l_Channels = cv_snd_speakersetup.value;
-			l_Len = 512;
+			l_Len = cv_snd_buffersize.value;
 			
 			// Frequency did not match
 			if (l_Freq != cv_snd_soundquality.value)
 				CONS_Printf("S_Init: Requested %iHz but got %iHz\n", cv_snd_soundquality.value, l_Freq);
 			
 			// Create channels
-			l_NumDoomChannels = cv_numChannels.value;
+			l_NumDoomChannels = cv_snd_channels.value;
 			
 			if (!l_NumDoomChannels)
 				l_NumDoomChannels = 1;
