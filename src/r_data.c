@@ -659,21 +659,24 @@ void R_LoadTextures(void)
 		texturetranslation[i] = i;
 }
 
-int R_CheckNumForNameList(char *name, lumplist_t * list, int listsize)
+/* R_CheckNumForNameList() -- Find flat */
+WadIndex_t R_CheckNumForNameList(char *name, lumplist_t * list, int listsize)
 {
 	int i;
-	int lump;
+	WadIndex_t lump = INVALIDLUMP;
+	
 	for (i = listsize - 1; i > -1; i--)
 	{
 		lump = W_CheckNumForNamePwadPtr(name, list[i].WadFile, list[i].firstlump);
 
-		if (lump > (list[i].firstlump + list[i].numlumps) || lump == -1)
+		// TODO -- GhostlyDeath <June 21, 2009> -- Check this validity here
+		if ((lump - W_LumpsSoFar(list[i].WadFile)) > (list[i].firstlump + list[i].numlumps) || lump == INVALIDLUMP)
 			continue;
 		else
 			return lump;
 	}
 
-	return -1;
+	return INVALIDLUMP;
 }
 
 lumplist_t *colormaplumps;
@@ -746,54 +749,51 @@ int numflatlists;
 
 extern int numwadfiles;
 
+/* R_InitFlats() -- Initialize flats */
 void R_InitFlats()
 {
-	int startnum;
-	int endnum;
-	int cfile;
-	int clump;
+	WadIndex_t startnum;
+	WadIndex_t endnum;
+	int onef;
 	WadFile_t *wad;
 	uint32_t i;
 
 	numflatlists = 0;
 	flats = NULL;
-	cfile = clump = 0;
 
-	for (i = 0; i < W_NumWadFiles(); i++, clump = 0)
+	for (i = 0; i < W_NumWadFiles(); i++)
 	{
 		wad = W_GetWadForNum(i);
 
-		startnum = W_CheckNumForNamePwadPtr("F_START", wad, clump);
+		startnum = endnum = INVALIDLUMP;
+		
+		onef = 0;
+		startnum = W_CheckNumForNamePwadPtr("F_START", wad, 0);
 
-		if (startnum == -1)
+		if (startnum == INVALIDLUMP)
+			startnum = W_CheckNumForNamePwadPtr("FF_START", wad, 0);
+		else
+			onef = 1;
+
+		// GhostlyDeath <June 21, 2009> -- Deutex and such does not use FF_END, it uses F_END! wtf!
+		if (startnum != INVALIDLUMP)
 		{
-			clump = 0;
-			startnum = W_CheckNumForNamePwadPtr("FF_START", wad, clump);
-
-			if (startnum == -1)	// Nothing? Search everything
-			{
-				flats = (lumplist_t *) realloc(flats, sizeof(lumplist_t) * (numflatlists + 1));
-				flats[numflatlists].WadFile = wad;
-				flats[numflatlists].firstlump = 0;
-				flats[numflatlists].numlumps = 65535;
-				numflatlists++;
-				continue;
-			}
+			// F_START never ends in FF_END!
+			if (!onef)
+				endnum = W_CheckNumForNamePwadPtr("FF_END", wad, 0);
+			
+			if (onef || endnum == INVALIDLUMP)
+				endnum = W_CheckNumForNamePwadPtr("F_END", wad, 0);
 		}
-
-		endnum = W_CheckNumForNamePwadPtr("F_END", wad, clump);
-
-		if (endnum == -1)
-			endnum = W_CheckNumForNamePwadPtr("FF_END", wad, clump);
-
-		if (endnum == -1 || startnum > endnum)
+		
+		if (startnum != INVALIDLUMP && endnum != INVALIDLUMP && endnum > startnum)
 		{
+			CONS_Printf("R_InitFlats: Registered %i flats in %s.\n", endnum - startnum - 1, wad->FileName);
 			flats = (lumplist_t *) realloc(flats, sizeof(lumplist_t) * (numflatlists + 1));
 			flats[numflatlists].WadFile = wad;
-			flats[numflatlists].firstlump = 0;
-			flats[numflatlists].numlumps = 65535;
+			flats[numflatlists].firstlump = startnum - W_LumpsSoFar(wad);
+			flats[numflatlists].numlumps = (endnum - startnum);
 			numflatlists++;
-			continue;
 		}
 	}
 
@@ -801,17 +801,24 @@ void R_InitFlats()
 		I_Error("R_InitFlats: No flats found!\n");
 }
 
+/* R_GetFlatNumForName() -- Find flat by it's name */
 int R_GetFlatNumForName(char *name)
 {
-	// BP: don't work with gothic2.wad
-	//return R_CheckNumForNameList(name, flats, numflatlists);
-
-	WadIndex_t lump = W_CheckNumForName(name);
-
-	if (lump == INVALIDLUMP)
-		I_Error("R_GetFlatNumForName: Could not find flat %.8s\n", name);
-
-	return lump;
+	// GhostlyDeath <Sunday, June 21, 2009> -- B Pierra said that R_CheckNumForNameList()
+	//     does not work with gothic2.wad...
+	WadIndex_t Lump = INVALIDLUMP;
+	
+	Lump = R_CheckNumForNameList(name, flats, numflatlists);
+	
+	if (Lump == INVALIDLUMP)
+		Lump = W_CheckNumForName(name);
+	
+	// Instead of exploding, why don't we load an "invalid" flat like a checker pattern?
+	if (Lump == INVALIDLUMP)
+		Lump = R_CheckNumForNameList("-NOFLAT-", flats, numflatlists);
+		//I_Error("R_GetFlatNumForName: Could not find flat \"%.8s\".\n");
+		
+	return Lump;
 }
 
 //
