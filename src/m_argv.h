@@ -38,8 +38,9 @@ extern char **myargv;
 // in the arg list (0 if not found).
 int M_CheckParm(char *check);
 
-// push all parameters bigining by a +, ex : +map map01
+// GhostlyDeath <August 27, 2011> -- + and ++ via command line
 void M_PushSpecialParameters(void);
+void M_PushSpecialPlusParameters(void);
 
 // return true if there is available parameters
 // use it befor M_GetNext 

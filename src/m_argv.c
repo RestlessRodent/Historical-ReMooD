@@ -77,43 +77,71 @@ char *M_GetNextParm(void)
 	return NULL;
 }
 
-// push all parameters begining by '+'
-void M_PushSpecialParameters(void)
+/* M_PushSpecialParametersAsOne() -- To prevent code repeation between M_PushSpecialParameters and M_PushSpecialPlusParameters */
+void M_PushSpecialParametersAsOne(const bool_t plusplus)
 {
+#define BUFSIZE 256
 	int i;
-	char s[256];
+	char s[BUFSIZE];
 	bool_t onetime = false;
 
 	for (i = 1; i < myargc; i++)
 	{
-		if (myargv[i][0] == '+')
+		if ((!plusplus && (myargv[i][0] == '+' && myargv[i][1] != '+')) ||
+			(plusplus && (myargv[i][0] == '+' && myargv[i][1] == '+')))
 		{
-			strcpy(s, &myargv[i][1]);
+			
+			if (plusplus)
+				strncpy(s, &myargv[i][2], BUFSIZE);
+			else
+				strncpy(s, &myargv[i][1], BUFSIZE);
 			i++;
 
 			// get the parameter of the command too
 			for (; i < myargc && myargv[i][0] != '+' && myargv[i][0] != '-'; i++)
 			{
-				strcat(s, " ");
+				strncat(s, " ", BUFSIZE);
 				if (!onetime)
 				{
-					strcat(s, "\"");
+					strncat(s, "\"", BUFSIZE);
 					onetime = true;
 				}
-				strcat(s, myargv[i]);
+				strncat(s, myargv[i], BUFSIZE);
 			}
 			if (onetime)
 			{
-				strcat(s, "\"");
+				strncat(s, "\"", BUFSIZE);
 				onetime = false;
 			}
-			strcat(s, "\n");
+			strncat(s, "\n", BUFSIZE);
 
 			// push it
+#if 0
+			if (devparm)
+			{
+				if (plusplus)
+					CONS_PrintfUL(SRCSTR__M_ARGV_C__EXECPP, L"%s", s);
+				else
+					CONS_PrintfUL(SRCSTR__M_ARGV_C__EXECP, L"%s", s);
+			}
+#endif
 			COM_BufAddText(s);
 			i--;
 		}
 	}
+#undef BUFSIZE
+}
+
+/* M_PushSpecialParameters() -- Push all + parameters */
+void M_PushSpecialParameters(void)
+{
+	M_PushSpecialParametersAsOne(false);
+}
+
+/* M_PushSpecialPlusParameters() -- Push all ++ parameters */
+void M_PushSpecialPlusParameters(void)
+{
+	M_PushSpecialParametersAsOne(true);
 }
 
 //

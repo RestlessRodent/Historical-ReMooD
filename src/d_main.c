@@ -622,6 +622,7 @@ void D_AdvanceDemo(void)
 //
 void D_DoAdvanceDemo(void)
 {
+	static bool_t RanPlusPlus = false;
 	players[consoleplayer[0]].playerstate = PST_LIVE;	// not reborn
 	advancedemo = false;
 	gameaction = ga_nothing;
@@ -733,6 +734,13 @@ void D_DoAdvanceDemo(void)
 				G_DeferedPlayDemo("demo4");
 				break;
 		}
+	}
+	
+	// GhostlyDeath <August 27, 2011> -- Push all "++" parameter to the command buffer
+	if (!RanPlusPlus)
+	{
+		M_PushSpecialPlusParameters();
+		RanPlusPlus = true;
 	}
 }
 
