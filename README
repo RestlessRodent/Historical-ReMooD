@@ -45,6 +45,21 @@ C888888:   :8O.   .C88C .cooCO: 8@:o@O@8 8@c.@@:   O@:c@O   :@@..@@.    O@:
  Q: I am playing on DOS and ReMooD crashed, now my screen is messed up.
  A: If the game crashes the screen mode cannot be restored, therefor you must
     type in "MODE CO80" which will set a color 80x25 mode.
+   
+ Q: The framerate suffers in certain areas.
+ A: Try turning off decals, disabling transparency effects (including the
+    transparent status bar), and possibly decrease the screen size. You can
+    also try switching to a lower resolution. 320x200 will render the fastest
+    at the cost of view quality.
+ 
+ Q: The sound skips when playing the game normally.
+ A: Try increasing the sound buffer size to a higher number, this will require
+    less sound updates. However, it may delay sound a bit depending on how high
+    the value is.
+   
+ Q: Sounds are delayed
+ A: The sound buffer size is too large, try lowering the value to a reasonable
+    amount.
 
 ===============================================================================
 ========[ ALLEGRO SPECIFICS ]==================================================
