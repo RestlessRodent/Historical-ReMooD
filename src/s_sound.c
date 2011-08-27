@@ -64,6 +64,7 @@ typedef struct S_SoundChannel_s
 	void* Data;											// Sound data being played
 	int SoundID;										// Sound being played
 	int Priority;										// Priority of the sound being played
+	int BasePriority;									// Priority of the original sound
 	bool_t Used;										// Channel is being used
 } S_SoundChannel_t;
 
@@ -164,6 +165,7 @@ S_SoundChannel_t* S_PlayEntryOnChannel(const uint32_t a_Channel, WX_WADEntry_t* 
 	l_DoomChannels[a_Channel].Position = 8 << FRACBITS;
 	l_DoomChannels[a_Channel].RateAdjust = 1 << FRACBITS;
 	l_DoomChannels[a_Channel].Priority = 127;
+	l_DoomChannels[a_Channel].BasePriority = 127;
 	
 	/* Read basic stuff */
 	p = l_DoomChannels[a_Channel].Data;
@@ -210,6 +212,7 @@ void S_StopChannel(const uint32_t a_Channel)
 	l_DoomChannels[a_Channel].Position = 0;
 	l_DoomChannels[a_Channel].RateAdjust = 1 << FRACBITS;
 	l_DoomChannels[a_Channel].Priority = 0;
+	l_DoomChannels[a_Channel].BasePriority = 0;
 	
 	for (i = 0; i < 16; i++)
 		l_DoomChannels[a_Channel].ChanVolume[i] = 1 << FRACBITS;
@@ -328,7 +331,8 @@ void S_StartSoundAtVolume(S_NoiseThinker_t* a_Origin, int sound_id, int volume)
 	Target->Origin = a_Origin;
 	Target->SoundID = sound_id;
 	Target->Volume = 1 << FRACBITS;
-	Target->Priority = MyP;//S_sfx[sound_id].priority;
+	Target->Priority = MyP;
+	Target->Priority = S_sfx[sound_id].priority;
 	
 	// Original volumes
 	for (i = 0; i < 16; i++)
@@ -448,6 +452,9 @@ void S_UpdateSingleChannel(S_SoundChannel_t* const a_Channel, S_NoiseThinker_t* 
 	
 	// The volume of the sound is somewhere within 120-1,200 map units
 	DistVol = (1 << FRACBITS) - FixedMul(ApproxDist, 60);
+	
+	// GhostlyDeath <August 27, 2011> -- Modify sound priority (before I trash DistVol)
+	a_Channel->Priority = FixedMul(a_Channel->BasePriority << FRACBITS, DistVol) >> FRACBITS;
 	
 	if (DistVol < 0)
 		DistVol = 0;
