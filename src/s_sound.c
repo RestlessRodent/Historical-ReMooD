@@ -300,8 +300,6 @@ void S_StartSoundAtVolume(S_NoiseThinker_t* a_Origin, int sound_id, int volume)
 			if (LowestP == -1)
 				return;
 			
-			fprintf(stderr, "Replace %i (p = %i) with p = %i\n", LowestP, l_DoomChannels[LowestP].Priority, MyP);
-			
 			// Choose a random channel
 			OnChannel = LowestP;
 			
