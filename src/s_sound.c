@@ -63,6 +63,7 @@ typedef struct S_SoundChannel_s
 	WX_WADEntry_t* Entry;								// WAD entry being played
 	void* Data;											// Sound data being played
 	int SoundID;										// Sound being played
+	int Priority;										// Priority of the sound being played
 	bool_t Used;										// Channel is being used
 } S_SoundChannel_t;
 
@@ -105,6 +106,44 @@ static fixed_t l_GlobalSoundVolume;					// Global sound volume
 *** FUNCTIONS ***
 ****************/
 
+/* S_GetListenerEmitterWithDist() -- Gets the listener for the sound, the emiter and the distance */
+fixed_t S_GetListenerEmitterWithDist(S_SoundChannel_t* const a_Channel, S_NoiseThinker_t* const a_Origin, S_NoiseThinker_t** const a_Listen, S_NoiseThinker_t** const a_Emit)
+{
+	fixed_t ApproxDist;
+	
+	/* Check */
+	if (!a_Listen || !a_Emit)
+		return 0;
+	
+	/* Find emitter of object */
+	if (a_Channel)
+		*a_Emit = a_Channel->Origin;	// Emitter is the channel origin
+	else
+		*a_Emit = a_Origin;				// Emitter is the object origin
+	
+	/* Find the listener */
+	// Just player 1's displayplayer for now
+	if (players[displayplayer[0]].mo)
+		*a_Listen = &players[displayplayer[0]].mo->NoiseThinker;
+	
+	/* If there is no listener or distance, don't bother getting distance */
+	if (!*a_Emit || !*a_Listen)
+		return 0;
+	
+	/* Finish with the distance */
+	ApproxDist = P_AproxDistance((*a_Listen)->x - (*a_Emit)->x, (*a_Listen)->y - (*a_Emit)->y);
+
+	// Close sounds are always full blast
+	ApproxDist -= 120 << FRACBITS;
+
+	// Very close?
+	if (ApproxDist < 0)
+		ApproxDist = 0;
+	
+	// Return
+	return ApproxDist;
+}
+
 /* S_PlayEntryOnChannel() -- Plays a WAD entry on a channel */
 S_SoundChannel_t* S_PlayEntryOnChannel(const uint32_t a_Channel, WX_WADEntry_t* const a_Entry)
 {
@@ -124,6 +163,7 @@ S_SoundChannel_t* S_PlayEntryOnChannel(const uint32_t a_Channel, WX_WADEntry_t* 
 	l_DoomChannels[a_Channel].Used = true;
 	l_DoomChannels[a_Channel].Position = 8 << FRACBITS;
 	l_DoomChannels[a_Channel].RateAdjust = 1 << FRACBITS;
+	l_DoomChannels[a_Channel].Priority = 127;
 	
 	/* Read basic stuff */
 	p = l_DoomChannels[a_Channel].Data;
@@ -169,6 +209,7 @@ void S_StopChannel(const uint32_t a_Channel)
 	l_DoomChannels[a_Channel].Used = false;
 	l_DoomChannels[a_Channel].Position = 0;
 	l_DoomChannels[a_Channel].RateAdjust = 1 << FRACBITS;
+	l_DoomChannels[a_Channel].Priority = 0;
 	
 	for (i = 0; i < 16; i++)
 		l_DoomChannels[a_Channel].ChanVolume[i] = 1 << FRACBITS;
@@ -206,21 +247,30 @@ int S_SoundPlaying(S_NoiseThinker_t* a_Origin, int id)
 	return 0;
 }
 
-void S_UpdateSingleChannel(S_SoundChannel_t* const a_Channel);
+void S_UpdateSingleChannel(S_SoundChannel_t* const a_Channel, S_NoiseThinker_t* const a_Listen, S_NoiseThinker_t* const a_Emit, const fixed_t a_Dist);
 
 /* S_StartSoundAtVolume() -- Starts playing a sound */
 void S_StartSoundAtVolume(S_NoiseThinker_t* a_Origin, int sound_id, int volume)
 {
 #define BUFSIZE 24
 	char Buf[BUFSIZE];
-	int OnChannel, i;
-	fixed_t RPA;
+	int OnChannel, i, LowestP, MyP;
+	fixed_t RPA, Dist;
 	WX_WADEntry_t* Entry;
 	S_SoundChannel_t* Target;
+	S_NoiseThinker_t* Listener;
+	S_NoiseThinker_t* Emitter;
 	
 	/* Check */
-	if (!l_SoundOK)
+	if (!l_SoundOK || sound_id < 0 || sound_id >= NUMSFX)
 		return;
+	
+	/* Get closest listener, emitter, and distance */
+	Dist = S_GetListenerEmitterWithDist(NULL, a_Origin, &Listener, &Emitter);
+	
+	// The further the sound is the lower the priority
+	MyP = S_sfx[sound_id].priority;
+	MyP = FixedMul(MyP << FRACBITS, (1 << FRACBITS) - FixedMul(Dist, 60)) >> FRACBITS;
 	
 	/* Check if sound is already on a channel */
 	OnChannel = S_SoundPlaying(a_Origin, sound_id);
@@ -236,8 +286,24 @@ void S_StartSoundAtVolume(S_NoiseThinker_t* a_Origin, int sound_id, int volume)
 		// No channel found
 		if (OnChannel == l_NumDoomChannels)
 		{
+			// Find the channel with the lowest priority
+			LowestP = -1;
+			
+			for (OnChannel = 0; OnChannel < l_NumDoomChannels; OnChannel++)
+				// Only care about used channels (check anyway, despite always being true)
+				if (l_DoomChannels[OnChannel].Used)
+					// Replace a channel with a lower priority
+					if (l_DoomChannels[OnChannel].Priority <= MyP && ((LowestP == -1) || (LowestP >= 0 && l_DoomChannels[OnChannel].Priority <= l_DoomChannels[LowestP].Priority)))
+						LowestP = OnChannel;
+			
+			// Don't play the sound, not worth it!
+			if (LowestP == -1)
+				return;
+			
+			fprintf(stderr, "Replace %i (p = %i) with p = %i\n", LowestP, l_DoomChannels[LowestP].Priority, MyP);
+			
 			// Choose a random channel
-			OnChannel = M_Random() % l_NumDoomChannels;
+			OnChannel = LowestP;
 			
 			// Stop sound on this channel
 			S_StopChannel(OnChannel);
@@ -264,6 +330,7 @@ void S_StartSoundAtVolume(S_NoiseThinker_t* a_Origin, int sound_id, int volume)
 	Target->Origin = a_Origin;
 	Target->SoundID = sound_id;
 	Target->Volume = 1 << FRACBITS;
+	Target->Priority = MyP;//S_sfx[sound_id].priority;
 	
 	// Original volumes
 	for (i = 0; i < 16; i++)
@@ -286,8 +353,7 @@ void S_StartSoundAtVolume(S_NoiseThinker_t* a_Origin, int sound_id, int volume)
 	}
 	
 	/* Update channel the sound is playing on */
-	S_UpdateSingleChannel(Target);
-	
+	S_UpdateSingleChannel(Target, Listener, Emitter, Dist);
 #undef BUFSIZE
 }
 
@@ -330,34 +396,33 @@ void S_StopSound(S_NoiseThinker_t* a_Origin)
 fixed_t P_AproxDistance(fixed_t dx, fixed_t dy);
 
 /* S_UpdateSingleChannel() -- Updates a single channel */
-void S_UpdateSingleChannel(S_SoundChannel_t* const a_Channel)
+void S_UpdateSingleChannel(S_SoundChannel_t* const a_Channel, S_NoiseThinker_t* const a_Listen, S_NoiseThinker_t* const a_Emit, const fixed_t a_Dist)
 {
 	S_NoiseThinker_t* Listener;
 	S_NoiseThinker_t* Emitter;
 	fixed_t ApproxDist, DistVol, Fine;
 	angle_t Angle;
 	size_t i;
+	fixed_t Dist;
 	
 	/* Check */
 	if (!a_Channel)
 		return;
 	
-	/* The emitting thing is the channel */
-	Emitter = a_Channel->Origin;
-	
-	// No emitter? This is the case for HUD sounds
-	if (!Emitter)
-		return NULL;
-	
-	/* Find the thing that is listening */
-	Listener = NULL;
-	
-	// Just use displayplayer for now!
-	if (players[displayplayer[0]].mo)
-		Listener = &players[displayplayer[0]].mo->NoiseThinker;
+	/* Need to get listeners? */
+	if (!a_Listen || !a_Emit)
+		Dist = S_GetListenerEmitterWithDist(a_Channel, NULL, &Listener, &Emitter);
+		
+	// Use passed variables
+	else
+	{
+		Listener = a_Listen;
+		Emitter = a_Emit;
+		Dist = a_Dist;
+	}
 	
 	// Listener not set (so can't hear sounds much really)
-	if (!Listener)
+	if (!Listener || !Emitter)
 		return;
 	
 	/* Reset Channel volumes, since all of them will be wiped */
@@ -370,18 +435,18 @@ void S_UpdateSingleChannel(S_SoundChannel_t* const a_Channel)
 		return;
 	
 	/* Approximate the distance between the map object and the listener */
+#if 1
+	ApproxDist = Dist;
+#else
 	ApproxDist = P_AproxDistance(Listener->x - Emitter->x, Listener->y - Emitter->y);
 	
 	// Close sounds are always full blast
 	ApproxDist -= 120 << FRACBITS;
 	
-	// Too far to hear?
-	/*if (ApproxDist >= (1080 << FRACBITS))
-		ApproxDist = (1080 << FRACBITS);*/
-	
 	// Very close?
 	if (ApproxDist < 0)
 		ApproxDist = 0;
+#endif
 	
 	// The volume of the sound is somewhere within 120-1,200 map units
 	DistVol = (1 << FRACBITS) - FixedMul(ApproxDist, 60);
@@ -440,7 +505,7 @@ void S_RepositionSounds(void)
 			continue;
 		
 		// Update single channel
-		S_UpdateSingleChannel(&l_DoomChannels[i]);
+		S_UpdateSingleChannel(&l_DoomChannels[i], NULL, NULL, 0);
 	}
 }
 

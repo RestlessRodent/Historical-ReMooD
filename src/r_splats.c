@@ -60,7 +60,7 @@ void R_ClearLevelSplats(void)
 // Return a pointer to a splat free for use, or NULL if no more splats are
 // available
 // --------------------------------------------------------------------------
-static wallsplat_t *R_AllocWallSplat(void)
+static wallsplat_t* R_AllocWallSplat(void)
 {
 	wallsplat_t *splat;
 	wallsplat_t *p_splat;
@@ -122,6 +122,10 @@ void R_AddWallSplat(line_t * wallline,
 	/* Check */
 	// Proper arguments
 	if (!wallline || !patchname)
+		return;
+	
+	// Splats are actually enabled
+	if (!cv_splats.value)
 		return;
 	
 	// Demo version
