@@ -538,23 +538,13 @@ void D_DoomLoop(void)
 		}
 		else if (rendertimeout < entertic)	// in case the server hang or netsplit
 			D_Display();
-
-		// Win32 exe uses DirectSound..
-#if !defined( _WIN32) && !defined( __OS2__)
-		//
-		//Other implementations might need to update the sound here.
-		//
-#ifndef SNDSERV
+		
 		// Sound mixing for the buffer is snychronous.
 		I_UpdateSound();
-#endif
-		// Synchronous sound output is explicitly called.
-#ifndef SNDINTR
+		
 		// Update sound output.
 		I_SubmitSound();
-#endif
-
-#endif							//_WIN32
+		
 		// check for media change, loop music..
 		I_UpdateCD();
 	}

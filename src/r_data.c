@@ -383,6 +383,8 @@ void R_LoadTextures(void)
 	WadIndex_t PStart, PEnd;
 	WadIndex_t v;
 	WadFile_t* CurWad = NULL;
+	WadIndex_t Potential, Found;
+	int PotentialW;
 
 	// free previous memory before numtextures change
 
@@ -409,6 +411,8 @@ void R_LoadTextures(void)
 		// GhostlyDeath <December 20, 2008> -- USE what's between the P_ etc.!
 		// instead of: patchlookup[i] = W_CheckNumForName(name);
 		patchlookup[i] = INVALIDLUMP;
+		Potential = Found = INVALIDLUMP;
+		PotentialW = -1;
 		
 		// P1_, P2_, P3_, PP_
 		
@@ -454,7 +458,7 @@ void R_LoadTextures(void)
 						break;
 					}
 			
-				for (l = 0; l < CurWad->NumLumps; l++)
+				for (; l < CurWad->NumLumps; l++)
 					if (strncasecmp(CurWad->Index[l].Name, PE, 8) == 0)
 					{
 						PEnd = l;
@@ -466,22 +470,44 @@ void R_LoadTextures(void)
 					for (v = (PStart + 1); v <= (PEnd - 1); v++)
 						if (strncasecmp(CurWad->Index[v].Name, name, 8) == 0)
 						{
-							patchlookup[i] = W_LumpsSoFar(CurWad) + v;
+							if (PotentialW > -1 && PotentialW >= W_GetNumForWad(CurWad))
+								Found = Potential;
+							else
+								Found = W_LumpsSoFar(CurWad) + v;
 							break;
 						}
 						
-				if (patchlookup[i] != INVALIDLUMP)
+				if (Found != INVALIDLUMP)
 					break;
 			}
 			
-			if (patchlookup[i] != INVALIDLUMP)
+			if (Found != INVALIDLUMP)
 				break;
+			
+			// GhostlyDeath <August 27, 2011> -- Potential lump
+			// This fixes patches in DWANGO5.WAD that are set
+			if (Potential == INVALIDLUMP)
+			{
+				Potential = W_CheckNumForNamePwadPtr(name, CurWad, 0);
+				
+				if (Potential != INVALIDLUMP)
+					PotentialW = W_GetNumForWad(CurWad);
+				break;
+			}
 		}
 		
 		// IF Nothing was found... resort to Legacy mode...
-		if (patchlookup[i] == INVALIDLUMP)
-			patchlookup[i] = W_CheckNumForName(name);
+		if (Found == INVALIDLUMP)
+			// GhostlyDeath <August 27, 2011> -- Is there potential?
+			if (Potential != INVALIDLUMP)
+				patchlookup[i] = Potential;
+			else
+				patchlookup[i] = W_CheckNumForName(name);
+		else
+			patchlookup[i] = Found;
 	}
+	
+	// Free temporary (ouch here!)
 	Z_Free(pnames);
 
 	// Load the map texture definitions from textures.lmp.
