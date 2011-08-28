@@ -821,6 +821,30 @@ int R_GetFlatNumForName(char *name)
 	return Lump;
 }
 
+size_t g_SpritesBufferSize = 0;			// GhostlyDeath <July 24, 2011> -- Unlimited sprites! not really
+
+/* R_SetSpriteLumpCount() -- Sets a nice size for the sprite buffer */
+void R_SetSpriteLumpCount(const size_t a_Count)
+{
+	size_t BufferMul;
+	
+	/* Obtain buffer multiple */
+	BufferMul = (a_Count / NUMSPRITEBUMPS) + 1;
+	
+	// No resize needed?
+	if (BufferMul <= g_SpritesBufferSize)
+		return;
+	
+	/* Resize all arrays */
+	Z_ResizeArray(&spritewidth, sizeof(*spritewidth) * NUMSPRITEBUMPS, g_SpritesBufferSize, BufferMul);
+	Z_ResizeArray(&spriteoffset, sizeof(*spriteoffset) * NUMSPRITEBUMPS, g_SpritesBufferSize, BufferMul);
+	Z_ResizeArray(&spritetopoffset, sizeof(*spritetopoffset) * NUMSPRITEBUMPS, g_SpritesBufferSize, BufferMul);
+	Z_ResizeArray(&spriteheight, sizeof(*spriteheight) * NUMSPRITEBUMPS, g_SpritesBufferSize, BufferMul);
+	
+	/* Recount total */
+	g_SpritesBufferSize = BufferMul;
+}
+
 //
 // R_InitSpriteLumps
 // Finds the width and hoffset of all sprites in the wad,
@@ -838,10 +862,9 @@ void R_InitSpriteLumps(void)
 	//Fab:FIXME: find a better solution for adding new sprites dynamically
 	numspritelumps = 0;
 
-	spritewidth = Z_Malloc(MAXSPRITELUMPS * sizeof(fixed_t *), PU_STATIC, 0);
-	spriteoffset = Z_Malloc(MAXSPRITELUMPS * sizeof(fixed_t *), PU_STATIC, 0);
-	spritetopoffset = Z_Malloc(MAXSPRITELUMPS * sizeof(fixed_t *), PU_STATIC, 0);
-	spriteheight = Z_Malloc(MAXSPRITELUMPS * sizeof(fixed_t *), PU_STATIC, 0);
+	spritewidth = spriteoffset = spritetopoffset = spriteheight = NULL;
+	
+	R_SetSpriteLumpCount(1);	// Just to bump it a bit
 }
 
 void R_InitExtraColormaps();

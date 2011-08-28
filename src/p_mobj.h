@@ -441,7 +441,8 @@ typedef struct mobj_s
 	int frame;					// frame number, plus bits see p_pspr.h
 
 	//Fab:02-08-98
-	void *skin;					// this one overrides 'sprite' when
+	int skin;					// GhostlyDeath <Jult 16, 2011> -- Make this an integer instead
+	// this one overrides 'sprite' when
 	// non NULL (currently hack for player
 	// bodies so they 'remember' the skin)
 	//

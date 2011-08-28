@@ -1435,7 +1435,7 @@ void P_SpawnPlayer(mapthing_t * mthing)
 	// set 'spritedef' override in mobj for player skins.. (see ProjectSprite)
 	// (usefulness : when body mobj is detached from player (who respawns),
 	//  the dead body mobj retain the skin through the 'spritedef' override).
-	mobj->skin = &skins[p->skin];
+	mobj->skin = p->skin;
 
 	mobj->angle = ANG45 * (mthing->angle / 45);
 	for (i = 0; i < MAXSPLITSCREENPLAYERS; i++)
