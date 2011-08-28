@@ -1400,8 +1400,6 @@ void D_DoomMain(void)
 	nosound = M_CheckParm("-nosound");
 	nomusic = M_CheckParm("-nomusic");	// WARNING: DOS version initmusic in I_StartupSound
 	digmusic = M_CheckParm("-digmusic");	// SSNTails 12-13-2002
-	I_StartupSound();
-	I_InitMusic();				// setup music buffer for quick mus2mid
 	S_Init(cv_soundvolume.value, cv_musicvolume.value);
 
 	CONS_Printf(text[ST_INIT_NUM]);
