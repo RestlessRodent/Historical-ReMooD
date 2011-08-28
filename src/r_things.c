@@ -442,11 +442,16 @@ static vissprite_t overflowsprite;
 
 /* R_NewVisSprite() -- Finds a vis sprite */
 // If there are no more vis sprites available, find one based on distance
-static vissprite_t* R_NewVisSprite(const fixed_t a_Dist, vissprite_t* const a_Protect)
+static vissprite_t* R_NewVisSprite(const fixed_t a_Dist, vissprite_t* const a_Protect, const int a_BasePr)
 {
 	vissprite_t* Found = NULL;
 	vissprite_t* p, *n;
 	size_t i;
+	int ThisPr;
+	
+	/* Get current priority of state */
+	// Within distance 4096 (
+	ThisPr = FixedMul(a_BasePr << FRACBITS, (1 << FRACBITS) - FixedMul(a_Dist, 16)) >> FRACBITS;
 	
 	/* No more vissprites? */
 	// If this is the case, find a free sprite
@@ -454,7 +459,7 @@ static vissprite_t* R_NewVisSprite(const fixed_t a_Dist, vissprite_t* const a_Pr
 	{
 		// Go through all sprites
 		for (i = 0; i < MAXVISSPRITES; i++)
-			if (&vissprites[i] != a_Protect && a_Dist < vissprites[i].Distance && (!Found || (Found && vissprites[i].Distance > Found->Distance)))
+			if (&vissprites[i] != a_Protect && ThisPr > vissprites[i].Priority && (!Found || (Found && vissprites[i].Priority < Found->Priority)))
 				Found = &vissprites[i];
 		
 		// Still not found? -- Use overflow sprite
@@ -473,6 +478,12 @@ static vissprite_t* R_NewVisSprite(const fixed_t a_Dist, vissprite_t* const a_Pr
 	memset(Found, 0, sizeof(*Found));
 	Found->prev = p;
 	Found->next = n;
+	
+	// Set priorities
+	Found->Priority = ThisPr;
+	Found->BasePriority = a_BasePr;
+	
+	// Return
 	return Found;
 }
 
@@ -663,7 +674,7 @@ static void R_SplitSprite(vissprite_t * sprite, mobj_t * thing)
 
 		// Found a split! Make a new sprite, copy the old sprite to it, and
 		// adjust the heights.
-		newsprite = R_NewVisSprite(sprite->Distance, sprite);
+		newsprite = R_NewVisSprite(sprite->Distance, sprite, sprite->BasePriority);
 		memcpy(newsprite, sprite, sizeof(vissprite_t));
 
 		sprite->cut |= SC_BOTTOM;
@@ -887,7 +898,7 @@ static void R_ProjectSprite(mobj_t * thing)
 	TDist = P_AproxDistance(viewplayer->mo->x - thing->x, viewplayer->mo->y - thing->y);
 
 	// store information in a vissprite
-	vis = R_NewVisSprite(TDist, NULL);
+	vis = R_NewVisSprite(TDist, NULL, thing->state->Priority);
 	vis->Distance = TDist;
 	vis->heightsec = heightsec;	//SoM: 3/17/2000
 	vis->mobjflags = thing->flags;

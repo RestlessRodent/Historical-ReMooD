@@ -681,6 +681,8 @@ typedef struct vissprite_s
 	
 	/* Render Optimization */
 	fixed_t Distance;					// Distance of sprite
+	int Priority;						// Priority of object to be seen
+	int BasePriority;					// Base Priority of object
 	
 } vissprite_t;
 
