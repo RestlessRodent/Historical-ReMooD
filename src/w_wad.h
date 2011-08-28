@@ -175,10 +175,23 @@ extern WadFile_t *WADFiles;
 ****************************/
 
 /*** CONSTANTS ***/
+/* WX_BuildAction_t -- Build action for WAD */
+typedef enum WX_BuildAction_e
+{
+	WXBA_BUILDWAD,									// Build single WAD
+	WXBA_CLEARWAD,									// Clear single WAD
+	WXBA_BUILDCOMPOSITE,							// Build WAD composite
+	WXBA_CLEARCOMPOSITE,							// Clear WAD composite
+	
+	NUMWXBUILDACTIONS
+} WX_BuildAction_t;
+
 /* WX_DataPrivateID_t -- Private DATA ID Tag */
 typedef enum WX_DataPrivateID_e
 {
 	WXDPID_GCHARS,									// Graphic characters
+	WXDPID_MENU,									// Menu Junk
+	WXDPID_RMOD,									// RMOD Table
 	
 	NUMWXDATAPRIVATEIDS
 }  WX_DataPrivateID_t;
@@ -195,6 +208,7 @@ bool_t				WX_Init(void);
 bool_t				WX_LocateWAD(const char* const a_Name, const char* const a_MD5, char* const a_OutPath, const size_t a_OutSize);
 WX_WADFile_t*		WX_LoadWAD(const char* const a_AutoPath);
 void				WX_UnLoadWAD(WX_WADFile_t* const a_WAD);
+WX_WADFile_t*		WX_RoveWAD(WX_WADFile_t* const a_WAD, const bool_t a_Virtual, const int32_t a_Next);
 void				WX_PreEntryTable(WX_WADFile_t* const a_WAD, const size_t a_Count);
 WX_WADEntry_t*		WX_AddEntry(WX_WADFile_t* const a_WAD);
 void				WX_WipeEntryTable(WX_WADFile_t* const a_WAD);
