@@ -1461,7 +1461,7 @@ void ST_overlayDrawer(void)
 					ST_drawOverlayNum(SCX(50) + NOTINTWOSPLIT(8 * vid.fdupx), SCY(198) - (16 * vid.fdupy), plyr->health, tallnum, NULL);
 				else
 				{
-					sprintf(buf2, sizeof(buf2) / sizeof(char), "%i", plyr->health);
+					snprintf(buf2, sizeof(buf2) / sizeof(char), "%i", plyr->health);
 					V_DrawStringA(VFONT_SMALL, VFO_NOSCALESTART, buf2,
 						SCX(45 - V_StringWidthA(VFONT_SMALL, 0, buf2)),
 						SCY(198) - 12 * vid.fdupy);
@@ -1497,7 +1497,7 @@ void ST_overlayDrawer(void)
 						}
 						else
 						{
-							sprintf(buf2, sizeof(buf2) / sizeof(char), "%i", plyr->ammo[plyr->weaponinfo[plyr->readyweapon].ammo]);
+							snprintf(buf2, sizeof(buf2) / sizeof(char), "%i", plyr->ammo[plyr->weaponinfo[plyr->readyweapon].ammo]);
 							V_DrawStringA(VFONT_SMALL, VFO_NOSCALESTART, buf2,
 								SCX(145 - V_StringWidthA(VFONT_SMALL, 0, buf2)),
 								SCY(198) - 12 * vid.fdupy);
@@ -1537,7 +1537,7 @@ void ST_overlayDrawer(void)
 				}
 				else
 				{
-					sprintf(buf2, sizeof(buf2), "%i", plyr->armorpoints);
+					snprintf(buf2, sizeof(buf2), "%i", plyr->armorpoints);
 					V_DrawStringA(VFONT_SMALL, VFO_NOSCALESTART, buf2,
 						SCX(250 - V_StringWidthA(VFONT_SMALL, 0, buf2)),
 						SCY(198) - 12 * vid.fdupy);
@@ -1551,7 +1551,7 @@ void ST_overlayDrawer(void)
 				if ((!cv_deathmatch.value) && (!cv_splitscreen.value))
 				{
 					char buf[16];
-					sprintf(buf, sizeof(buf), "%d/%d", plyr->killcount, totalkills);
+					snprintf(buf, sizeof(buf), "%d/%d", plyr->killcount, totalkills);
 					V_DrawStringA(VFONT_SMALL, VFO_NOSCALESTART, buf,
 						SCX(318 - V_StringWidthA(VFONT_SMALL, 0, buf)),
 						SCY(1));
@@ -1563,7 +1563,7 @@ void ST_overlayDrawer(void)
 				if ((!cv_deathmatch.value) && (!cv_splitscreen.value))
 				{
 					char buf[16];
-					sprintf(buf, sizeof(buf), "%d/%d", plyr->secretcount, totalsecret);
+					snprintf(buf, sizeof(buf), "%d/%d", plyr->secretcount, totalsecret);
 					V_DrawStringA(VFONT_SMALL, VFO_NOSCALESTART, buf,
 						SCX(318 - V_StringWidthA(VFONT_SMALL, 0, buf)),
 						SCY(11));

@@ -1168,7 +1168,7 @@ bool_t G_CheckSpot(int playernum, mapthing_t * mthing)
 	fixed_t x;
 	fixed_t y;
 	subsector_t *ss;
-	uint32_t an;
+	angle_t an;
 	mobj_t *mo;
 	int i;
 
@@ -1219,7 +1219,9 @@ bool_t G_CheckSpot(int playernum, mapthing_t * mthing)
 	bodyqueslot++;
 
 	// spawn a teleport fog
-	an = (ANG45 * (mthing->angle / 45)) >> ANGLETOFINESHIFT;
+	// TODO: Vanilla comp: an = (ANG45 * (mthing->angle / 45)) >> ANGLETOFINESHIFT;
+	an = (ANG45 * (mthing->angle / 45));
+	an >>= ANGLETOFINESHIFT;
 
 	mo = P_SpawnMobj(x + 20 * finecosine[an], y + 20 * finesine[an],
 					 ss->sector->floorheight, MT_TFOG);

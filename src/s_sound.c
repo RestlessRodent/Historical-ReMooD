@@ -110,7 +110,9 @@ static fixed_t l_GlobalSoundVolume;					// Global sound volume
 /* S_GetListenerEmitterWithDist() -- Gets the listener for the sound, the emiter and the distance */
 fixed_t S_GetListenerEmitterWithDist(S_SoundChannel_t* const a_Channel, S_NoiseThinker_t* const a_Origin, S_NoiseThinker_t** const a_Listen, S_NoiseThinker_t** const a_Emit)
 {
-	fixed_t ApproxDist;
+	fixed_t ApproxDist, NewDist = 0;
+	size_t i;
+	S_NoiseThinker_t* Attempt;
 	
 	/* Check */
 	if (!a_Listen || !a_Emit)
@@ -121,22 +123,44 @@ fixed_t S_GetListenerEmitterWithDist(S_SoundChannel_t* const a_Channel, S_NoiseT
 		*a_Emit = a_Channel->Origin;	// Emitter is the channel origin
 	else
 		*a_Emit = a_Origin;				// Emitter is the object origin
-	
-	/* Find the listener */
-	// Just player 1's displayplayer for now
-	if (players[displayplayer[0]].mo)
-		*a_Listen = &players[displayplayer[0]].mo->NoiseThinker;
-	
-	/* If there is no listener or distance, don't bother getting distance */
-	if (!*a_Emit || !*a_Listen)
+		
+	/* If there is no emitter, don't bother going on */
+	if (!*a_Emit)
 		return 0;
 	
-	/* Finish with the distance */
-	ApproxDist = P_AproxDistance((*a_Listen)->x - (*a_Emit)->x, (*a_Listen)->y - (*a_Emit)->y);
-
-	// Close sounds are always full blast
+	/* Find the closest listener */
+	*a_Listen = NULL;
+	ApproxDist = 32000 << FRACBITS;
+	for (i = 0; i < cv_splitscreen.value; i++)
+	{
+		// Check to see if the player is in game (if not ignore)
+		if (!playeringame[displayplayer[i]])
+			continue;
+		
+		// Attempt getting listener
+		if (players[displayplayer[i]].mo)
+			Attempt = &players[displayplayer[i]].mo->NoiseThinker;
+		
+		if (!Attempt)
+			continue;
+		
+		// Get distance
+		NewDist = P_AproxDistance(Attempt->x - (*a_Emit)->x, Attempt->y - (*a_Emit)->y);
+		
+		// Better?
+		if (NewDist < ApproxDist)
+		{
+			// Set distance over
+			ApproxDist = NewDist;
+			
+			// Set listener
+			*a_Listen = Attempt;
+		}
+	}
+	
+	/* Normalize distance */
 	ApproxDist -= 120 << FRACBITS;
-
+	
 	// Very close?
 	if (ApproxDist < 0)
 		ApproxDist = 0;
