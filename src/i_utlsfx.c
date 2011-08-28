@@ -971,8 +971,19 @@ bool_t I_RemoveMusicDriver(I_MusicDriver_t* const a_Driver)
 		return false;
 	
 	/* Find driver */
+	for (i = 0; i < l_NumMusicDrivers; i++)
+		if (l_MusicDrivers[i] == a_Driver)
+		{
+			// Call destroy function
+			if (l_MusicDrivers[i]->Destroy)
+				l_MusicDrivers[i]->Destroy(a_Driver);
+			l_MusicDrivers[i] = NULL;
+			
+			return true;
+		}
 	
-	return true;
+	/* Driver not loaded */
+	return false;
 }
 
 /* I_FindMusicDriver() -- Find a music driver that can play this format */
@@ -1391,8 +1402,19 @@ bool_t I_RemoveSoundDriver(I_SoundDriver_t* const a_Driver)
 		return false;
 	
 	/* Find driver */
+	for (i = 0; i < l_NumSoundDrivers; i++)
+		if (l_SoundDrivers[i] == a_Driver)
+		{
+			// Call destroy function
+			if (l_SoundDrivers[i]->Destroy)
+				l_SoundDrivers[i]->Destroy(a_Driver);
+			l_SoundDrivers[i] = NULL;
+			
+			return true;
+		}
 	
-	return true;
+	/* Driver not loaded */
+	return false;
 }
 
 /* I_FindSoundDriver() -- Find a music driver that can play this format */

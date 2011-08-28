@@ -207,6 +207,8 @@ typedef enum I_SoundType_e
 } I_SoundType_t;
 
 #define MAXDRIVERNAME						32	// Driver name limit
+#define MAXPROTOCOLNAMES					128	// Maximum protocols permitted (name wise)
+#define MAXHOSTNAME							256	// Maximum size for a hostname
 
 /*****************
 *** STRUCTURES ***
@@ -310,6 +312,66 @@ typedef struct I_SoundDriver_s
 	size_t Size;								// Private size
 } I_SoundDriver_t;
 
+struct I_NetDriver_s;
+
+/* I_NetHost_t -- A network host */
+typedef struct I_NetHost_s
+{
+	/* Easy Stuff */
+	char Hostname[MAXHOSTNAME];					// Hostname of this nethost
+	
+	/* IP Addresses */
+	uint8_t IPAddr[16];							// IP Address
+	uint16_t IPPort;							// IP Port
+} I_NetHost_t;
+
+/* I_NetSocket_t -- A network socket */
+typedef struct I_NetSocket_s
+{
+	/* Driver Stuff */
+	struct I_NetDriver_s* Driver;				// Driver for socket
+	uint8_t ProtocolID;							// Driver related protocol
+	I_NetHost_t* Bind;							// Bind to host
+	
+	/* Private per driver */
+	int FD;										// File Descriptor
+	void* CFile;								// C File
+} I_NetSocket_t;
+
+/* I_NetDriver_t -- Network drivers, for network communication */
+typedef struct I_NetDriver_s
+{
+	/* Info */
+	char Name[MAXDRIVERNAME];					// Name of driver
+	char ShortName[MAXDRIVERNAME];				// Short driver name
+	char Protocols[MAXPROTOCOLNAMES];			// Protocols
+	uint8_t Priority;							// Priority of the driver
+	
+	/* Functions */
+		// Initializes a driver
+	bool_t (*Init)(struct I_NetDriver_s* const a_Driver);
+		// Destroys a driver
+	bool_t (*Destroy)(struct I_NetDriver_s* const a_Driver);
+		// Success
+	void (*Success)(struct I_NetDriver_s* const a_Driver);
+		
+		// Convert name to host
+	I_NetHost_t* (*NameToHost)(struct I_NetDriver_s* const a_Driver, const char* const a_Name);
+		// Convert host to name
+	size_t (*HostToName)(struct I_NetDriver_s* const a_Driver, I_NetHost_t* const a_Host, char* const a_Out, const size_t a_OutSize);
+	
+		// Creates a new socket
+	I_NetSocket_t* (*NewSocket)(struct I_NetDriver_s* const a_Driver, const char* const a_Protocol);
+		// Destroys a socket
+	void* (*DestroySocket)(struct I_NetDriver_s* const a_Driver, I_NetSocket_t* const a_Socket);
+		// Bind socket to address
+	bool_t (*BindSocket)(struct I_NetDriver_s* const a_Driver, I_NetSocket_t* const a_Socket, I_NetHost_t* const a_Host);
+	
+	/* Dynamic */
+	void* Data;									// Private data
+	size_t Size;								// Private size
+} I_NetDriver_t;
+
 /****************
 *** FUNCTIONS ***
 ****************/
@@ -354,6 +416,10 @@ const char* I_GetUserName(void);
 uint64_t I_GetDiskFreeSpace(const char* const a_Path);
 
 /*** i_utlnet.c ***/
+bool_t I_AddNetDriver(I_NetDriver_t* const a_Driver);
+bool_t I_RemoveNetDriver(I_NetDriver_t* const a_Driver);
+I_NetDriver_t* I_FindNetDriver(const char* const a_Protocol);
+
 bool_t I_InitNetwork(void);
 
 /*** i_utlsfx.c ***/
