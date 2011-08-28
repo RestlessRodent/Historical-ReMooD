@@ -678,6 +678,10 @@ typedef struct vissprite_s
 	fixed_t szt;
 
 	int cut;					//0 for none, bit 1 for top, bit 2 for bottom
+	
+	/* Render Optimization */
+	fixed_t Distance;					// Distance of sprite
+	
 } vissprite_t;
 
 //

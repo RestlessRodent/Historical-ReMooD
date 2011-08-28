@@ -274,6 +274,42 @@ void I_EventToOldDoom(const I_EventEx_t* const a_Event)
 	D_PostEvent(&SendEvent);
 }
 
+/* I_StartupMouse() -- Initializes the mouse */
+void I_StartupMouse(void)
+{
+	/* Enabling the mouse */
+	
+	/* Disabling the mouse */
+}
+
+/* I_StartupMouse2() -- Initializes the second mouse */
+void I_StartupMouse2(void)
+{
+	/* Enabling the mouse */
+	
+	/* Disabling the mouse */
+}
+
+/* I_InitJoystick() -- Initialize the joystick */
+void I_InitJoystick(void)
+{
+	/* Enabling the mouse */
+	
+	/* Disabling the mouse */
+}
+
+/* I_ShutdownJoystick() -- Stops using the joystick */
+void I_ShutdownJoystick(void)
+{
+}
+
+/* I_BaseTiccmd() -- Obtain driver based tic command */
+ticcmd_t* I_BaseTiccmd(void)
+{
+	static ticcmd_t emptycmd;
+	return &emptycmd;
+}
+
 /* VID_NumModes() -- Returns the number of video modes */
 int VID_NumModes(void)
 {

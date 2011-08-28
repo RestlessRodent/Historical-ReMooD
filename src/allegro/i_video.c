@@ -313,10 +313,6 @@ void I_GetEvent(void)
 	}
 }
 
-void I_StartupMouse(void)
-{
-}
-
 void I_UpdateJoysticks(void)
 {
 }

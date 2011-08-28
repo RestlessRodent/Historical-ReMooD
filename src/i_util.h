@@ -31,6 +31,7 @@
 ***************/
 
 #include "doomtype.h"
+#include "d_ticcmd.h"
 
 /****************
 *** CONSTANTS ***
@@ -176,6 +177,7 @@ typedef enum I_EventType_e
 {
 	IET_NULL,									// Blank event
 	IET_KEYBOARD,								// Keyboard event
+	IET_MOUSE,									// Mouse event
 	
 	NUMIEVENTTYPES
 } I_EventType_t;
@@ -306,9 +308,16 @@ typedef struct I_SoundDriver_s
 *** FUNCTIONS ***
 ****************/
 
+/*** i_util.c ***/
 void I_EventExPush(const I_EventEx_t* const a_Event);
 bool_t I_EventExPop(I_EventEx_t* const a_Event);
 void I_EventToOldDoom(const I_EventEx_t* const a_Event);
+void I_StartupMouse(void);
+void I_StartupMouse2(void);
+void I_InitJoystick(void);
+void I_ShutdownJoystick(void);
+void I_GetEvent(void);
+ticcmd_t* I_BaseTiccmd(void);
 
 int VID_NumModes(void);
 char* __REMOOD_DEPRECATED VID_GetModeName(int a_ModeNum);
@@ -338,6 +347,7 @@ void I_ShutdownSystem(void);
 const char* I_GetUserName(void);
 uint64_t I_GetDiskFreeSpace(const char* const a_Path);
 
+/*** i_utlsfx.c ***/
 bool_t I_AddMusicDriver(I_MusicDriver_t* const a_Driver);
 bool_t I_RemoveMusicDriver(I_MusicDriver_t* const a_Driver);
 I_MusicDriver_t* I_FindMusicDriver(const I_MusicType_t a_Type);

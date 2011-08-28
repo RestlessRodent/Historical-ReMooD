@@ -440,13 +440,40 @@ void R_ClearSprites(void)
 //
 static vissprite_t overflowsprite;
 
-static vissprite_t *R_NewVisSprite(void)
+/* R_NewVisSprite() -- Finds a vis sprite */
+// If there are no more vis sprites available, find one based on distance
+static vissprite_t* R_NewVisSprite(const fixed_t a_Dist, vissprite_t* const a_Protect)
 {
+	vissprite_t* Found = NULL;
+	vissprite_t* p, *n;
+	size_t i;
+	
+	/* No more vissprites? */
+	// If this is the case, find a free sprite
 	if (vissprite_p == &vissprites[MAXVISSPRITES])
-		return &overflowsprite;
-
-	vissprite_p++;
-	return vissprite_p - 1;
+	{
+		// Go through all sprites
+		for (i = 0; i < MAXVISSPRITES; i++)
+			if (&vissprites[i] != a_Protect && a_Dist < vissprites[i].Distance && (!Found || (Found && vissprites[i].Distance > Found->Distance)))
+				Found = &vissprites[i];
+		
+		// Still not found? -- Use overflow sprite
+		if (!Found)
+			Found = &overflowsprite;
+	}
+	
+	/* Get next off the chain */
+	if (!Found)
+		Found = vissprite_p++;
+	
+	/* Clear sprite */
+	// So nothing from before stains the new sprite (just in case)
+	p = Found->prev;
+	n = Found->next;
+	memset(Found, 0, sizeof(*Found));
+	Found->prev = p;
+	Found->next = n;
+	return Found;
 }
 
 //
@@ -636,7 +663,7 @@ static void R_SplitSprite(vissprite_t * sprite, mobj_t * thing)
 
 		// Found a split! Make a new sprite, copy the old sprite to it, and
 		// adjust the heights.
-		newsprite = R_NewVisSprite();
+		newsprite = R_NewVisSprite(sprite->Distance, sprite);
 		memcpy(newsprite, sprite, sizeof(vissprite_t));
 
 		sprite->cut |= SC_BOTTOM;
@@ -708,7 +735,7 @@ static void R_SplitSprite(vissprite_t * sprite, mobj_t * thing)
 //
 static void R_ProjectSprite(mobj_t * thing)
 {
-	fixed_t tr_x;
+	fixed_t TDist, tr_x;
 	fixed_t tr_y;
 	fixed_t gxt;
 	fixed_t gyt;
@@ -855,9 +882,13 @@ static void R_ProjectSprite(mobj_t * thing)
 			thing->z >= sectors[heightsec].ceilingheight)
 			return;
 	}
+	
+	// GhostlyDeath <August 28, 2011> -- Get distance to sprite
+	TDist = P_AproxDistance(viewplayer->mo->x - thing->x, viewplayer->mo->y - thing->y);
 
 	// store information in a vissprite
-	vis = R_NewVisSprite();
+	vis = R_NewVisSprite(TDist, NULL);
+	vis->Distance = TDist;
 	vis->heightsec = heightsec;	//SoM: 3/17/2000
 	vis->mobjflags = thing->flags;
 	vis->scale = yscale;		//<<detailshift;

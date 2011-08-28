@@ -71,11 +71,11 @@ typedef enum
 #define BT_FLYDOWN      4
 typedef struct
 {
-	char forwardmove;			// *2048 for move
-	char sidemove;				// *2048 for move
-	short angleturn;			// <<16 for angle delta
+	int8_t forwardmove;			// *2048 for move
+	int8_t sidemove;				// *2048 for move
+	int16_t angleturn;			// <<16 for angle delta
 	// SAVED AS A BYTE into demos
-	signed short aiming;		//added:16-02-98:mouse aiming, see G_BuildTicCmd
+	uint16_t aiming;		//added:16-02-98:mouse aiming, see G_BuildTicCmd
 	uint16_t buttons;
 	uint8_t artifact;				// For Heretic
 } ticcmd_t;

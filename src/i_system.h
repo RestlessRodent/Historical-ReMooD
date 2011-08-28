@@ -43,13 +43,8 @@ extern uint8_t sound_started;
 /* flag for 'win-friendly' mode used by interface code */
 extern volatile tic_t ticcount;
 
-// Called by DoomMain.
-void I_InitJoystick(void);
-
 // return free and total physical memory in the system
 size_t I_GetFreeMem(size_t * total);
-
-void I_GetEvent(void);
 
 //
 // Called by D_DoomLoop,
@@ -72,12 +67,6 @@ void I_OsPolling(void);
 // that are read by the synchronous functions
 // to be converted into events.
 
-// Either returns a null ticcmd,
-// or calls a loadable driver to build it.
-// This ticcmd will then be modified by the gameloop
-// for normal input.
-ticcmd_t *I_BaseTiccmd(void);
-
 // Called by M_Responder when quit is selected, return code 0.
 void I_Quit(void);
 
@@ -93,9 +82,6 @@ void I_Tactile(int on, int off, int total);
 //                for when you need to quit with a msg, but need
 //                the return code 0 of I_Quit();
 void I_OutputMsg(char *error, ...);
-
-void I_StartupMouse(void);
-void I_StartupMouse2(void);
 
 // keyboard startup,shutdown,handler
 void I_StartupKeyboard(void);

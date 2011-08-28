@@ -57,6 +57,7 @@
 #include "d_main.h"
 #include "p_demcmp.h"
 #include "i_sound.h"
+#include "i_util.h"
 
 // ------
 // protos

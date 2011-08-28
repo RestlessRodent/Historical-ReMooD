@@ -1186,7 +1186,8 @@ typedef struct
 	// void       (*action) ();
 	actionf_t action;
 	statenum_t nextstate;
-//  long          misc1, misc2;
+	
+	int Priority;					// View priority of the state
 } state_t;
 
 extern state_t states[NUMSTATES];

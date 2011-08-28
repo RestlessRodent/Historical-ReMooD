@@ -129,22 +129,7 @@ void I_GetJoyEvent()
 {
 }
 
-void I_ShutdownJoystick()
-{
-}
-
 int joy_open(char *fname)
-{
-}
-
-void I_InitJoystick(void)
-{
-}
-
-//
-// I_StartupMouse2
-// 
-void I_StartupMouse2(void)
 {
 }
 
@@ -158,12 +143,6 @@ void I_Tactile(int on, int off, int total)
 {
 	// UNUSED.
 	on = off = total = 0;
-}
-
-ticcmd_t emptycmd;
-ticcmd_t *I_BaseTiccmd(void)
-{
-	return &emptycmd;
 }
 
 uint32_t LastTime = 0;
