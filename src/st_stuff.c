@@ -63,12 +63,12 @@ extern fixed_t waterheight;
 
 // Palette indices.
 // For damage/bonus red-/gold-shifts
-#define STARTREDPALS            1
-#define STARTBONUSPALS          9
-#define NUMREDPALS              8
-#define NUMBONUSPALS            4
+#define STARTREDPALS            (1 * VPALSMOOTHCOUNT)
+#define STARTBONUSPALS          (9 * VPALSMOOTHCOUNT)
+#define NUMREDPALS              (8 * VPALSMOOTHCOUNT)
+#define NUMBONUSPALS            (4 * VPALSMOOTHCOUNT)
 // Radiation suit, green shift.
-#define RADIATIONPAL            13
+#define RADIATIONPAL            (13 * VPALSMOOTHCOUNT)
 
 // N/256*100% probability
 //  that the normal face state will change
@@ -773,59 +773,64 @@ void ST_Ticker(void)
 
 static int st_palette = 0;
 
+/* ST_doPaletteStuff() -- Changes the current palette */
+// GhostlyDeath <July 30, 2011> -- Redone for smoothing
 void ST_doPaletteStuff(void)
 {
-
-	int palette;
-	int cnt;
-	int bzc;
-
-	cnt = plyr->damagecount;
-
+	int ChosePal = 0;
+	int BaseDam = 0, BzFade;
+	
+	/* Berserker fade */
+	BaseDam = plyr->damagecount;
+	
 	if (plyr->powers[pw_strength])
 	{
-		// slowly fade the berzerk out
-		bzc = 12 - (plyr->powers[pw_strength] >> 6);
-
-		if (bzc > cnt)
-			cnt = bzc;
+		BzFade = 12 - (plyr->powers[pw_strength] >> 6);
+		
+		if (BzFade > BaseDam)
+			BaseDam = BzFade;
 	}
-
-	if (cnt)
+	
+	/* Player is hurt? */
+	if (BaseDam)
 	{
-		palette = (cnt + 7) >> 3;
-
-		if (palette >= NUMREDPALS)
-			palette = NUMREDPALS - 1;
-
-		palette += STARTREDPALS;
+		// Division is number of palettes
+		ChosePal = FixedMul(NUMREDPALS << FRACBITS, FixedDiv((BaseDam) << FRACBITS, 100 << FRACBITS)) >> FRACBITS;
+		ChosePal++;	// +7
+		//ChosePal = (plyr->damagecount * (10000 / NUMREDPALS) ) / 100;
+		
+		// Don't exceed
+		if (ChosePal >= NUMREDPALS)
+			ChosePal = NUMREDPALS - 1;
+		
+		// Offset
+		ChosePal += STARTREDPALS;
 	}
+	
+	/* Player got an item */
 	else if (plyr->bonuscount)
 	{
-		palette = (plyr->bonuscount + 7) >> 3;
-
-		if (palette >= NUMBONUSPALS)
-			palette = NUMBONUSPALS - 1;
-
-		palette += STARTBONUSPALS;
+		// Division is number of palettes
+		ChosePal = FixedMul(NUMBONUSPALS << FRACBITS, FixedDiv((plyr->bonuscount) << FRACBITS, 100 << FRACBITS)) >> FRACBITS;
+		ChosePal++;	// +7
+		
+		// Don't exceed
+		if (ChosePal >= NUMBONUSPALS)
+			ChosePal = NUMBONUSPALS - 1;
+		
+		// Offset
+		ChosePal += STARTBONUSPALS;
 	}
+	
+	/* Player has radiation suit */
 	else if (plyr->powers[pw_ironfeet] > 4 * 32 || plyr->powers[pw_ironfeet] & 8)
-		palette = RADIATIONPAL;
-	else
-		palette = 0;
-
-	//added:28-02-98:quick hack underwater palette
-	/*if (plyr->mo &&
-	   (plyr->mo->z + (cv_viewheight.value<<FRACBITS) < plyr->mo->waterz) )
-	   palette = RADIATIONPAL; */
-
-	if (palette != st_palette)
 	{
-		st_palette = palette;
-
-		if (!cv_splitscreen.value || !palette)
-			V_SetPalette(palette);
+		ChosePal = RADIATIONPAL;
 	}
+	
+	/* Set palette */
+	if (!cv_splitscreen.value)
+		V_SetPalette(ChosePal);
 }
 
 static void ST_drawWidgets(bool_t refresh)

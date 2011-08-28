@@ -203,53 +203,143 @@ uint8_t gammatable[5][256] = {
 	 251, 252, 252, 253, 254, 254, 255, 255}
 };
 
+// keep a copy of the palette so that we can get the RGB
+// value for a color index at any time.
 // local copy of the palette for V_GetColor()
 RGBA_t *pLocalPalette = NULL;
 
-// keep a copy of the palette so that we can get the RGB
-// value for a color index at any time.
+RGBA_t** l_DoomPals = NULL;
+size_t l_NumDoomPals = 0;
+
+/* LoadPalette() -- yucky name, loads a palette for usage */
 void LoadPalette(char *lumpname)
 {
-	int i, palsize;
-	uint8_t *usegamma = gammatable[cv_usegamma.value];
-	uint8_t *pal;
-
-	i = W_GetNumForName(lumpname);
-	palsize = W_LumpLength(i) / 3;
-	if (pLocalPalette)
-		Z_Free(pLocalPalette);
-
-	pLocalPalette = Z_Malloc(sizeof(RGBA_t) * palsize, PU_STATIC, NULL);
-
-	pal = W_CacheLumpNum(i, PU_CACHE);
-
-	for (i = 0; i < palsize; i++)
+	WadIndex_t Idx;
+	size_t NumBasePals, BasePal, Len;
+	size_t i, j, k, l, m;
+	uint8_t* PlayPal;
+	fixed_t pR[256], pG[256], pB[256];
+	
+	/* Get index of lump */
+	// Get lump
+	Idx = W_GetNumForName(lumpname);
+	PlayPal = W_CacheLumpNum(Idx, PU_STATIC);
+	
+	// Get number of base palettes
+	Len = W_LumpLength(Idx) / 3;
+	NumBasePals = Len / 256;
+	Len = NumBasePals * 256;	// Back again (for chunked off palettes)
+	
+	/* Free any old palettes */
+	if (l_DoomPals)
 	{
-		pLocalPalette[i].s.red = usegamma[*pal++];
-		pLocalPalette[i].s.green = usegamma[*pal++];
-		pLocalPalette[i].s.blue = usegamma[*pal++];
-//        if( (i&0xff) == HWR_PATCHES_CHROMAKEY_COLORINDEX )
-//            pLocalPalette[i].s.alpha = 0;
-//        else
-		pLocalPalette[i].s.alpha = 0xff;
+		for (i = 0; i < l_NumDoomPals; i++)
+			Z_Free(l_DoomPals[i]);
+		Z_Free(l_DoomPals);
 	}
+	
+	/* Allocate new palettes */
+	l_DoomPals = Z_Malloc(sizeof(*l_DoomPals) * (NumBasePals * VPALSMOOTHCOUNT), PU_STATIC, NULL);
+	
+	/* Now load the base palettes into memory */
+	for (j = 0, i = 0; i < NumBasePals; i++)
+	{
+		// Remember for easy usage
+		k = i * VPALSMOOTHCOUNT;
+		// Allocate base palette area
+		l_DoomPals[k] = Z_Malloc(sizeof(RGBA_t) * 256, PU_STATIC, NULL);
+		
+		// Load in from lump
+		for (l = 0; l < 256; l++, j += 3) 
+		{
+			l_DoomPals[k][l].s.red = PlayPal[j];
+			l_DoomPals[k][l].s.green = PlayPal[j + 1];
+			l_DoomPals[k][l].s.blue = PlayPal[j + 2];
+			l_DoomPals[k][l].s.alpha = 0xFF;
+		}
+	}
+	
+	/* Set palette count */
+	l_NumDoomPals = NumBasePals * VPALSMOOTHCOUNT;
+	
+	/* Start smoothing palettes */
+	for (i = 0; i < l_NumDoomPals; i++)
+	{
+		// Get Base number
+		BasePal = i / VPALSMOOTHCOUNT;
+		
+		// Base palette for interpolation
+		if ((i % VPALSMOOTHCOUNT) == 0)
+		{
+			// Reset l and set m to i
+			l = 0;
+			m = i;
+			
+			// The next actual color
+			k = (i + (VPALSMOOTHCOUNT));
+			
+			// There is a valid palette here
+			if ((BasePal != 8 && BasePal != 12) && (k < l_NumDoomPals && l_DoomPals[k]))
+			{
+				for (j = 0; j < 256; j++)
+				{
+					pR[j] = ((l_DoomPals[k][j].s.red - l_DoomPals[i][j].s.red) << FRACBITS) / VPALSMOOTHCOUNT;
+					pG[j] = ((l_DoomPals[k][j].s.green - l_DoomPals[i][j].s.green) << FRACBITS) / VPALSMOOTHCOUNT;
+					pB[j] = ((l_DoomPals[k][j].s.blue - l_DoomPals[i][j].s.blue) << FRACBITS) / VPALSMOOTHCOUNT;
+				}
+			}
+			
+			// It is invalid
+			else
+			{
+				// No interpolation
+				memset(pR, 0, sizeof(pR));
+				memset(pG, 0, sizeof(pG));
+				memset(pB, 0, sizeof(pB));
+			}
+		}
+		
+		// Interpolate with colors
+		else
+		{
+			// Increment l
+			l++;
+			
+			// Create here if it does not already exist
+			if (!l_DoomPals[i])
+				l_DoomPals[i] = Z_Malloc(sizeof(RGBA_t) * 256, PU_STATIC, NULL);
+			
+			// Fancy loop
+			for (j = 0; j < 256; j++)
+			{
+				l_DoomPals[i][j].s.red = ((l_DoomPals[m][j].s.red << FRACBITS) + (pR[j] * l)) >> FRACBITS;
+				l_DoomPals[i][j].s.green = ((l_DoomPals[m][j].s.green << FRACBITS) + (pG[j] * l)) >> FRACBITS;
+				l_DoomPals[i][j].s.blue = ((l_DoomPals[m][j].s.blue << FRACBITS) + (pB[j] * l)) >> FRACBITS;
+			}
+		}
+	} 
+	
+	/* For existing COLORMAP compat in r_data.c, set pLocalPalette */
+	pLocalPalette = l_DoomPals[0];
 }
 
-// -------------+
-// V_SetPalette : Set the current palette to use for palettized graphics
-//              : (that is, most if not all of Doom's original graphics)
-// -------------+
+/* V_SetPalette() -- Set the current palette */
 void V_SetPalette(int palettenum)
 {
-	if (!pLocalPalette)
+	if (!l_DoomPals)
 		LoadPalette("PLAYPAL");
-	I_SetPalette(&pLocalPalette[palettenum * 256]);
+	
+	if (palettenum < 0 || palettenum >= l_NumDoomPals || !l_DoomPals[palettenum])
+		I_SetPalette(l_DoomPals[0]);
+	else
+		I_SetPalette(l_DoomPals[palettenum]);
 }
 
+/* V_SetPaletteLump -- Set the current palette based on the lump */
 void V_SetPaletteLump(char *pal)
 {
 	LoadPalette(pal);
-	I_SetPalette(pLocalPalette);
+	I_SetPalette(l_DoomPals);
 }
 
 void CV_usegamma_OnChange(void)
