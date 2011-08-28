@@ -1291,6 +1291,9 @@ void D_DoomMain(void)
 
 	CONS_Printf("I_StartupTimer...\n");
 	I_StartupTimer();
+	
+	CONS_Printf("I_InitNetwork...\n");
+	I_InitNetwork();
 
 	// now initted automatically by use_mouse var code
 	//CONS_Printf("I_StartupMouse...\n");

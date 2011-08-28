@@ -278,29 +278,42 @@ void I_EventToOldDoom(const I_EventEx_t* const a_Event)
 void I_StartupMouse(void)
 {
 	/* Enabling the mouse */
+	if (cv_use_mouse.value)
+	{
+	}
 	
 	/* Disabling the mouse */
+	else
+	{
+	}
 }
 
 /* I_StartupMouse2() -- Initializes the second mouse */
 void I_StartupMouse2(void)
 {
 	/* Enabling the mouse */
+	if (cv_use_mouse2.value)
+	{
+	}
 	
 	/* Disabling the mouse */
+	else
+	{
+	}
 }
 
 /* I_InitJoystick() -- Initialize the joystick */
 void I_InitJoystick(void)
 {
-	/* Enabling the mouse */
+	/* Enabling the joystick */
+	if (cv_use_joystick.value)
+	{
+	}
 	
-	/* Disabling the mouse */
-}
-
-/* I_ShutdownJoystick() -- Stops using the joystick */
-void I_ShutdownJoystick(void)
-{
+	/* Disabling the joystick */
+	else
+	{
+	}
 }
 
 /* I_BaseTiccmd() -- Obtain driver based tic command */

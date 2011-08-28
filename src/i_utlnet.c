@@ -9,7 +9,7 @@
 // ##      ## ###### ##         ##  ######   ######  ######
 //                      http://remood.org/
 // -----------------------------------------------------------------------------
-// Copyright (C) 2011 GhostlyDeath <ghostlydeath@remood.org>
+// Copyright (C) 2011 GhostlyDeath <ghostlydeath@gmail.com>
 // -----------------------------------------------------------------------------
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
@@ -21,32 +21,27 @@
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 // GNU General Public License for more details.
 // -----------------------------------------------------------------------------
-// DESCRIPTION:
-//      network interface
+// DESCRIPTION: Common Network Stuff
 
-/*********************
-*** HACKY INCLUDES ***
-*********************/
+/***************
+*** INCLUDES ***
+***************/
 
-// Use WinSocks
-#if defined(_WIN32)
-	#include "../x_nets/xx_winsk.c"
-
-#elif defined(__MSDOS__)
-	#include "../x_nets/xx_dos.c"
-
-// Otherwise use BSD Sockets
-#else
-	#include "../x_nets/xx_bsd.c"
-#endif
+#include "i_util.h"
+#include "i_net.h"
 
 /****************
 *** FUNCTIONS ***
 ****************/
 
-/* I_NetDriverInit() -- Initialize network drivers */
-bool_t I_NetDriverInit(void)
+/* I_InitNetwork() -- Initializes the network */
+bool_t I_InitNetwork(void)
 {
-	return false;
+	/* Add interface specific network drivers */
+	if (!I_NetDriverInit())
+		CONS_Printf("I_InitNetwork: Failed to initialize interface network drivers.\n");
+	
+	/* Success! */
+	return true;
 }
 

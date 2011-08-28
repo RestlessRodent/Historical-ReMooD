@@ -233,8 +233,6 @@ void P_CalcHeight(player_t * player)
 #endif
 }
 
-extern int ticruned, ticmiss;
-
 //
 // P_MovePlayer
 //
@@ -257,10 +255,7 @@ void P_MovePlayer(player_t * player)
 
 	// GhostlyDeath <August 26, 2011> -- Update listener angle (for sounds)
 	player->mo->NoiseThinker.Angle = player->mo->angle;
-
-	ticruned++;
-	if ((cmd->angleturn & TICCMD_RECEIVED) == 0)
-		ticmiss++;
+	
 	// Do not let the player control movement
 	//  if not onground.
 	onground = (player->mo->z <= player->mo->floorz)

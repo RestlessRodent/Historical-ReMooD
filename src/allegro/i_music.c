@@ -66,6 +66,8 @@ typedef struct I_AllegroMIDILocal_s
 *** ALLEGRO DRIVER ***
 *********************/
 
+extern bool_t l_AllegroSDMDInitted;				// Was install_sound called?
+
 /* I_AllegroMD_Init() -- Initialize music */
 static bool_t I_AllegroMD_Init(struct I_MusicDriver_s* const a_Driver)
 {
@@ -75,13 +77,26 @@ static bool_t I_AllegroMD_Init(struct I_MusicDriver_s* const a_Driver)
 	if (!a_Driver)
 		return false;
 	
-	/* Attempt detection of MIDI Driver */
-	if (detect_midi_driver(MIDI_AUTODETECT) == 0)
-		return false;
-	
 	/* Initialize sound */
-	if (install_sound(DIGI_AUTODETECT, MIDI_AUTODETECT, NULL) == -1)
-		CONS_Printf("I_AllegroMD_Init: Failed to install sound (once).\n");
+	if (!l_AllegroSDMDInitted)
+	{
+		// Attempt detection of Sound Driver
+		if (detect_digi_driver(DIGI_AUTODETECT) == 0)
+			return false;
+			
+		// Attempt detection of Music Driver
+		if (detect_midi_driver(MIDI_AUTODETECT) == 0)
+			return false;
+		
+		// Install Sound
+		if (install_sound(DIGI_AUTODETECT, MIDI_AUTODETECT, NULL) == -1)
+		{
+			CONS_Printf("I_AllegroMD_Init: Failed to install sound (sound).\n");
+			return false;
+		}
+		
+		l_AllegroSDMDInitted = true;
+	}
 	
 	/* Force load of all MIDI patches */
 	// This is so midi_out works!

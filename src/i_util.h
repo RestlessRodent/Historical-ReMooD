@@ -9,7 +9,7 @@
 // ##      ## ###### ##         ##  ######   ######  ######
 //                      http://remood.org/
 // -----------------------------------------------------------------------------
-// Copyright (C) 2011 GhostlyDeath <ghostlydeath@gmail.com>
+// Copyright (C) 2011 GhostlyDeath <ghostlydeath@remood.org>
 // -----------------------------------------------------------------------------
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
@@ -178,6 +178,7 @@ typedef enum I_EventType_e
 	IET_NULL,									// Blank event
 	IET_KEYBOARD,								// Keyboard event
 	IET_MOUSE,									// Mouse event
+	IET_JOYSTICK,								// Joystick event
 	
 	NUMIEVENTTYPES
 } I_EventType_t;
@@ -225,6 +226,11 @@ typedef struct I_EventEx_s
 			uint8_t KeyCode;					// Code for key
 			uint16_t Character;					// Character pressed
 		} Keyboard;								// Keyboard event
+		
+		struct
+		{
+			uint8_t JoyID;						// ID of the joystick
+		} Joystick;								// Joystick action
 	} Data;										// Event data
 } I_EventEx_t;
 
@@ -346,6 +352,9 @@ void I_ShutdownSystem(void);
 
 const char* I_GetUserName(void);
 uint64_t I_GetDiskFreeSpace(const char* const a_Path);
+
+/*** i_utlnet.c ***/
+bool_t I_InitNetwork(void);
 
 /*** i_utlsfx.c ***/
 bool_t I_AddMusicDriver(I_MusicDriver_t* const a_Driver);

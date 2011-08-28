@@ -176,32 +176,11 @@ CV_PossibleValue_t mouse2port_cons_t[] =
 	{ {1, "COM1"}, {2, "COM2"}, {3, "COM3"}, {4, "COM4"}, {0, NULL} };
 #endif
 
-#ifdef LJOYSTICK
-CV_PossibleValue_t joyport_cons_t[] =
-	{ {1, "/dev/js0"}, {2, "/dev/js1"}, {3, "/dev/js2"}, {4, "/dev/js3"}, {0,
-																		   NULL}
-};
-#endif
+consvar_t cv_use_mouse = { "use_mouse", "1", CV_SAVE | CV_CALL, usemouse_cons_t, I_StartupMouse };
+consvar_t cv_use_mouse2 = { "use_mouse2", "0", CV_SAVE | CV_CALL, usemouse_cons_t, I_StartupMouse2 };
+consvar_t cv_use_joystick = { "use_joystick", "1", CV_SAVE | CV_CALL, usemouse_cons_t, I_InitJoystick };
+consvar_t cv_use_joyids = { "use_joyids", "", CV_SAVE, NULL, NULL };
 
-#ifdef _WIN32
-#define usejoystick_cons_t  NULL	// accept whatever value
-										// it is in fact the joystick device number
-#else
-#define usejoystick_cons_t  NULL
-//#error "cv_usejoystick don't have possible value for this OS !"
-#endif
-
-consvar_t cv_usemouse = { "use_mouse", "1", CV_SAVE | CV_CALL, usemouse_cons_t, I_StartupMouse };
-consvar_t cv_usemouse2 = { "use_mouse2", "0", CV_SAVE | CV_CALL, usemouse_cons_t, I_StartupMouse2 };
-consvar_t cv_usejoystick = { "use_joystick", "0", CV_SAVE | CV_CALL, usejoystick_cons_t,
-	I_InitJoystick
-};
-
-#ifdef LJOYSTICK
-extern void I_JoyScale();
-consvar_t cv_joyport = { "joyport", "/dev/js0", CV_SAVE, joyport_cons_t };
-consvar_t cv_joyscale = { "joyscale", "0", CV_SAVE | CV_CALL, NULL, I_JoyScale };
-#endif
 #ifdef LMOUSE2
 consvar_t cv_mouse2port = { "mouse2port", "/dev/gpmdata", CV_SAVE, mouse2port_cons_t };
 consvar_t cv_mouse2opt = { "mouse2opt", "0", CV_SAVE, NULL };
@@ -377,7 +356,7 @@ void D_RegisterClientCommands(void)
 	CV_RegisterVar(&cv_cons_blinkingrate);
 
 	//g_input.c
-	CV_RegisterVar(&cv_usemouse2);
+	CV_RegisterVar(&cv_use_mouse2);
 	CV_RegisterVar(&cv_invertmouse2);
 	CV_RegisterVar(&cv_alwaysfreelook2);
 	CV_RegisterVar(&cv_mousemove2);
@@ -405,12 +384,9 @@ void D_RegisterClientCommands(void)
 	CV_RegisterVar(&cv_m_xaxissecmode);
 	CV_RegisterVar(&cv_m_yaxissecmode);
 
-	CV_RegisterVar(&cv_usemouse);
-	CV_RegisterVar(&cv_usejoystick);
-#ifdef LJOYSTICK
-	CV_RegisterVar(&cv_joyport);
-	CV_RegisterVar(&cv_joyscale);
-#endif
+	CV_RegisterVar(&cv_use_mouse);
+	CV_RegisterVar(&cv_use_joystick);
+	CV_RegisterVar(&cv_use_joyids);
 	CV_RegisterVar(&cv_allowjump);
 	CV_RegisterVar(&cv_allowrocketjump);
 	CV_RegisterVar(&cv_allowautoaim);

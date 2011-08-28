@@ -416,8 +416,8 @@ void G_BuildTiccmd(ticcmd_t * cmd, int realtics, int player)
 	turnright = GAMEKEYDOWN(gc_turnright);
 	turnleft = GAMEKEYDOWN(gc_turnleft);
 	mouseaiming = GAMEKEYDOWN(gc_mouseaiming) ^ cv_alwaysfreelook.value;
-	analogjoystickmove = cv_usejoystick.value && !Joystick.bGamepadStyle && !cv_splitscreen.value;
-	gamepadjoystickmove = cv_usejoystick.value && Joystick.bGamepadStyle && !cv_splitscreen.value;
+	analogjoystickmove = cv_use_joystick.value && !Joystick.bGamepadStyle && !cv_splitscreen.value;
+	gamepadjoystickmove = cv_use_joystick.value && Joystick.bGamepadStyle && !cv_splitscreen.value;
 
 	if (gamepadjoystickmove)
 	{
@@ -551,7 +551,7 @@ void G_BuildTiccmd(ticcmd_t * cmd, int realtics, int player)
 			localaiming[player] -= mousey << 19;
 	}
 	
-	if (cv_usejoystick.value && analogjoystickmove && cv_joystickfreelook.value)
+	if (cv_use_joystick.value && analogjoystickmove && cv_joystickfreelook.value)
 		localaiming[player] += joyymove << 16;
 
 	// spring back if not using keyboard neither mouselookin'

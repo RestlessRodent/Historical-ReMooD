@@ -66,12 +66,35 @@ typedef struct I_AllegroSoundLocal_s
 *** ALLEGRO SOUND STREAM DRIVER ***
 **********************************/
 
+bool_t l_AllegroSDMDInitted = false;			// Was install_sound called?
+
 /* I_AllegroSD_Init() -- Initializes a driver */
 bool_t I_AllegroSD_Init(struct I_SoundDriver_s* const a_Driver)
 {
 	/* Check */
 	if (!a_Driver)
 		return false;
+	
+	/* Initialize sound */
+	if (!l_AllegroSDMDInitted)
+	{
+		// Attempt detection of Sound Driver
+		if (detect_digi_driver(DIGI_AUTODETECT) == 0)
+			return false;
+			
+		// Attempt detection of Music Driver
+		if (detect_midi_driver(MIDI_AUTODETECT) == 0)
+			return false;
+		
+		// Install Sound
+		if (install_sound(DIGI_AUTODETECT, MIDI_AUTODETECT, NULL) == -1)
+		{
+			CONS_Printf("I_AllegroMD_Init: Failed to install sound (sound).\n");
+			return false;
+		}
+		
+		l_AllegroSDMDInitted = true;
+	}
 	
 	/* Success */
 	return true;

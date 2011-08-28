@@ -21,52 +21,17 @@
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 // GNU General Public License for more details.
 // -----------------------------------------------------------------------------
-// DESCRIPTION:
+// DESCRIPTION: BSD Sockets TCPv4, UDPv4, TCPv6, and UDPv6 Code
 
-#include "i_net.h"
-#include "doomstat.h"
+/***************
+*** INCLUDES ***
+***************/
 
-void LOCAL_NetGet(void)
-{
-}
+#include "i_util.h"
 
-void LOCAL_NetSend(void)
-{
-}
+/****************
+*** FUNCTIONS ***
+****************/
 
-bool_t LOCAL_NetCanSend(void)
-{
-	return true;
-}
 
-void LOCAL_NetFreeNodenum(int nodenum)
-{
-}
-
-int LOCAL_NetMakeNode(char *address)
-{
-	return 0;
-}
-
-bool_t LOCAL_NetOpenSocket(void)
-{
-	return true;
-}
-
-void LOCAL_NetCloseSocket(void)
-{
-}
-
-int I_InitTcpNetwork(void)
-{
-	I_NetGet = &LOCAL_NetGet;
-	I_NetSend = &LOCAL_NetSend;
-	I_NetCanSend = &LOCAL_NetCanSend;
-	I_NetFreeNodenum = &LOCAL_NetFreeNodenum;
-	I_NetMakeNode = &LOCAL_NetMakeNode;
-	I_NetOpenSocket = &LOCAL_NetOpenSocket;
-	I_NetCloseSocket = &LOCAL_NetCloseSocket;
-
-	return 0;
-}
 

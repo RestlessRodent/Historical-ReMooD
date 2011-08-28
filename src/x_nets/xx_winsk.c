@@ -21,32 +21,17 @@
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 // GNU General Public License for more details.
 // -----------------------------------------------------------------------------
-// DESCRIPTION:
-//      network interface
+// DESCRIPTION: BSD Sockets TCPv4, UDPv4, TCPv6, and UDPv6 Code
 
-/*********************
-*** HACKY INCLUDES ***
-*********************/
+/***************
+*** INCLUDES ***
+***************/
 
-// Use WinSocks
-#if defined(_WIN32)
-	#include "../x_nets/xx_winsk.c"
-
-#elif defined(__MSDOS__)
-	#include "../x_nets/xx_dos.c"
-
-// Otherwise use BSD Sockets
-#else
-	#include "../x_nets/xx_bsd.c"
-#endif
+#include "i_util.h"
 
 /****************
 *** FUNCTIONS ***
 ****************/
 
-/* I_NetDriverInit() -- Initialize network drivers */
-bool_t I_NetDriverInit(void)
-{
-	return false;
-}
+
 

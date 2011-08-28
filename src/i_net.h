@@ -25,27 +25,20 @@
 // -----------------------------------------------------------------------------
 // DESCRIPTION: System specific network interface stuff.
 
-#ifndef __I_NET__
-#define __I_NET__
+#ifndef __I_NET_H__
+#define __I_NET_H__
+
+/***************
+*** INCLUDES ***
+***************/
 
 #include "doomtype.h"
 
-#define MAXPACKETLENGTH  1450	// For use in a LAN
-#define INETPACKETLENGTH 512	// For use on the internet
+/****************
+*** FUNCTIONS ***
+****************/
 
-extern short hardware_MAXPACKETLENGTH;
-extern int net_bandwidth;		// in uint8_t/s
+bool_t I_NetDriverInit(void);
 
-// to be defined by the network driver
-extern void (*I_NetGet) (void);	// return packet in doomcom struct
-extern void (*I_NetSend) (void);	// send packet within doomcom struct
-extern bool_t(*I_NetCanSend) (void);	// ask to driver if all is ok to send data now
-extern void (*I_NetFreeNodenum) (int nodenum);	// close a connection 
-extern int (*I_NetMakeNode) (char *address);	// open a connection with specified address
-extern bool_t(*I_NetOpenSocket) (void);	// opend all connections
-extern void (*I_NetCloseSocket) (void);	// close all connections no more allow geting any packet
-
-bool_t I_InitNetwork(void);
-
-#endif
+#endif /* __I_NET_H__ */
 
