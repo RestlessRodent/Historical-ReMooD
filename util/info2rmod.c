@@ -9,11 +9,7 @@
 // ##      ## ###### ##         ##  ######   ######  ######
 //                      http://remood.org/
 // -----------------------------------------------------------------------------
-// Project Leader:    GhostlyDeath           (ghostlydeath@gmail.com)
-// Project Co-Leader: RedZTag                (jostol27@gmail.com)
-// Members:           TetrisMaster512        (tetrismaster512@hotmail.com)
-// -----------------------------------------------------------------------------
-// Copyright (C) 2009-2010 The ReMooD Team.
+// Copyright (C) 2010 GhostlyDeath <ghostlydeath@remood.org>
 // -----------------------------------------------------------------------------
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License

@@ -604,12 +604,12 @@ typedef enum
 //
 typedef struct
 {
-	short width;
+	int16_t width;
 	uint8_t zero;					// set to 0 allow autodetection of pic_t 
 	// mode instead of patch or raw
 	uint8_t mode;					// see pic_mode_t above
-	short height;
-	short reserved1;			// set to 0
+	int16_t height;
+	int16_t reserved1;			// set to 0
 	uint8_t data[0];
 } pic_t;
 
