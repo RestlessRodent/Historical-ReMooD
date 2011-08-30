@@ -51,7 +51,7 @@ export __INT_HOSTCC := $(__INT_HOSTPREFIX)gcc
 #####################
 
 __INT_COMMONCFLAGS  := -fno-strict-aliasing
-__INT_COMMONLDFLAGS :=
+__INT_COMMONLDFLAGS := -lm
 
 # Debugging?
 ifdef DEBUG
@@ -67,10 +67,10 @@ else
 endif
 
 # CC Flags
-export __INT_CFLAGS := $(CFLAGS) $(__INT_MCFLAGS)
+export __INT_CFLAGS := $(CFLAGS) $(__INT_COMMONCFLAGS) $(__INT_MCFLAGS)
 
 # Linker Flags
-export __INT_LDFLAGS := $(LDFLAGS) $(__INT_MLDFLAGS)
+export __INT_LDFLAGS := $(LDFLAGS) $(__INT_COMMONLDFLAGS) $(__INT_MLDFLAGS)
 
 # Interface?
 export __INT_INTERFACE := $(USEINTERFACE)

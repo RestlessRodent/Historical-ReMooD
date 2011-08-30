@@ -29,12 +29,6 @@
 
 /* System */
 #include <stdint.h>
-#include <allegro.h>
-
-// Include winalleg on Windows since it conflicts!
-#if defined(_WIN32)
-	#include <winalleg.h>
-#endif
 
 #if !defined(__REMOOD_SYSTEM_WINDOWS)
 	#include <sys/stat.h>
@@ -82,11 +76,6 @@
 
 extern void D_PostEvent(event_t *);
 
-#ifdef _WIN32
-typedef BOOL(WINAPI * MyFunc) (LPCSTR RootName, PULARGE_INTEGER pulA,
-							   PULARGE_INTEGER pulB, PULARGE_INTEGER pulFreeBytes);
-#endif
-
 //
 //I_OutputMsg
 //
@@ -101,15 +90,11 @@ void I_OutputMsg(char *fmt, ...)
 
 void I_StartupKeyboard(void)
 {
-	/* Start Allegro keyboard stuff */
-	install_keyboard();
 }
 
 /* I_StartupTimer() -- Timer startup */
 void I_StartupTimer(void)
 {
-	/* Start Allegro Timer stuff */
-	install_timer();
 }
 
 int I_GetKey(void)
@@ -130,7 +115,6 @@ int joy_open(char *fname)
 }
 
 uint8_t mb_used = 6 + 2;			// 2 more for caching sound
-static int quiting = 0;			/* prevent recursive I_Quit() */
 
 //
 // I_Tactile
@@ -141,22 +125,21 @@ void I_Tactile(int on, int off, int total)
 	on = off = total = 0;
 }
 
-uint32_t LastTime = 0;
-
-int g_RefreshRate = 0;
-
 /* I_GetTimeMS() -- Returns time since the game started (in MS) */
 uint32_t I_GetTimeMS(void)
 {
-	/* Is the refresh rate known? */
-	// retrace_count will match it
-	if (g_RefreshRate)
-		return (retrace_count * 1000) / g_RefreshRate;
+	static clock_t FirstClock;
+	clock_t ThisClock = 0;
 	
-	/* It isn't */
-	// Otherwise retrace_count will be simulated at 70
-	else
-		return (retrace_count * 1000) / 70;
+	/* Get current clock */
+	ThisClock = clock();
+	
+	// FirstClock not set?
+	if (!FirstClock)
+		FirstClock = ThisClock;
+	
+	/* Return time passed */
+	return ((ThisClock - FirstClock) * 1000) / CLOCKS_PER_SEC;
 }
 
 //
@@ -169,8 +152,6 @@ void I_Init(void)
 /* I_WaitVBL() -- Wait for vertical blank */
 void I_WaitVBL(int count)
 {
-	/* Use rest() */
-	rest(count);
 }
 
 uint8_t *I_AllocLow(int length)
@@ -185,8 +166,6 @@ uint8_t *I_AllocLow(int length)
 //
 // I_Error
 //
-extern bool_t demorecording;
-
 void I_Error(char *error, ...)
 {
 	va_list argptr;
@@ -203,13 +182,6 @@ void I_Error(char *error, ...)
 	va_end(argptr);
 
 	fflush(stderr);
-
-#ifdef _WIN32
-	va_start(argptr, error);
-	wvsprintf(txt, error, argptr);
-	va_end(argptr);
-	MessageBox(NULL, txt, "ReMooD Error", MB_OK | MB_ICONERROR);
-#endif
 
 	// Shutdown. Here might be other errors.
 	if (demorecording)
@@ -376,7 +348,5 @@ void I_SystemPreExit(void)
 /* I_SystemPostExit() -- Called after functions are exited */
 void I_SystemPostExit(void)
 {
-	/* Quit Allegro */
-	allegro_exit();
 }
 

@@ -55,6 +55,7 @@
 #include "doomstat.h"
 #include "d_main.h"
 #include "m_argv.h"
+#include "g_game.h"
 
 /****************
 *** CONSTANTS ***
@@ -1101,5 +1102,25 @@ void I_CommonCommandLine(int* const a_argc, char*** const a_argv, const char* co
 	else if (a_Long)
 	{
 	}
+}
+
+/* I_Quit() -- Quits the game */
+void I_Quit(void)
+{
+	static bool_t quiting;
+	
+	/* prevent recursive I_Quit() */
+	if (quiting)
+		return;
+	quiting = 1;
+	//added:16-02-98: when recording a demo, should exit using 'q' key,
+	//        but sometimes we forget and use 'F10'.. so save here too.
+	if (demorecording)
+		G_CheckDemoStatus();
+	D_QuitNetGame();
+	// use this for 1.28 19990220 by Kin
+	M_SaveConfig(NULL);
+	I_ShutdownSystem();
+	exit(0);
 }
 

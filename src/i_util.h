@@ -437,6 +437,7 @@ void I_ShutdownSystem(void);
 const char* I_GetUserName(void);
 uint64_t I_GetDiskFreeSpace(const char* const a_Path);
 void I_CommonCommandLine(int* const a_argc, char*** const a_argv, const char* const a_Long);
+void I_Quit(void);
 
 /*** i_utlnet.c ***/
 bool_t I_AddNetDriver(I_NetDriver_t* const a_Driver);
