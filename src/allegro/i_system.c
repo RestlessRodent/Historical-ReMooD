@@ -194,18 +194,6 @@ void I_WaitVBL(int count)
 	rest(count);
 }
 
-/* I_BeginRead() -- Before a file is read */
-// Flashes floppy disk (or CD)
-void I_BeginRead(void)
-{
-}
-
-/* I_EndRead() -- When a file is no longer being read */
-// Flashes floppy disk (or CD)
-void I_EndRead(void)
-{
-}
-
 uint8_t *I_AllocLow(int length)
 {
 	uint8_t *mem;

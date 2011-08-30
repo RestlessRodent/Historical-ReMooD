@@ -421,6 +421,8 @@ bool_t I_VideoPostInit(void);
 void I_VideoSetBuffer(const uint32_t a_Width, const uint32_t a_Height, const uint32_t a_Pitch, uint8_t* const a_Direct);
 void I_VideoUnsetBuffer(void);
 uint8_t* I_VideoSoftBuffer(uint32_t* const a_WidthP, uint32_t* const a_HeightP);
+void I_BeginRead(void);
+void I_EndRead(void);
 
 uint32_t I_GetTime(void);
 bool_t I_DumpTemporary(char* const a_PathBuf, const size_t a_PathSize, const uint8_t* const a_Data, const size_t a_Size);
@@ -434,6 +436,7 @@ void I_ShutdownSystem(void);
 
 const char* I_GetUserName(void);
 uint64_t I_GetDiskFreeSpace(const char* const a_Path);
+void I_CommonCommandLine(int* const a_argc, char*** const a_argv, const char* const a_Long);
 
 /*** i_utlnet.c ***/
 bool_t I_AddNetDriver(I_NetDriver_t* const a_Driver);

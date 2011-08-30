@@ -33,12 +33,6 @@
 // Takes full 8 bit values.
 void I_SetPalette(RGBA_t * palette);
 
-#ifdef __MACOS__
-void macConfigureInput(void);
-
-void VID_Pause(int pause);
-#endif
-
 void I_UpdateNoBlit(void);
 void I_FinishUpdate(void);
 
@@ -46,9 +40,6 @@ void I_FinishUpdate(void);
 void I_WaitVBL(int count);
 
 void I_ReadScreen(uint8_t * scr);
-
-void I_BeginRead(void);
-void I_EndRead(void);
 
 /****************
 *** FUNCTIONS ***

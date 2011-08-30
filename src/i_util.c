@@ -54,6 +54,7 @@
 #include "w_wad.h"
 #include "doomstat.h"
 #include "d_main.h"
+#include "m_argv.h"
 
 /****************
 *** CONSTANTS ***
@@ -709,6 +710,18 @@ uint8_t* I_VideoSoftBuffer(uint32_t* const a_WidthP, uint32_t* const a_HeightP)
 	return vid.buffer;
 }
 
+/* I_BeginRead() -- Before a file is read */
+// Flashes floppy disk (or CD)
+void I_BeginRead(void)
+{
+}
+
+/* I_EndRead() -- When a file is no longer being read */
+// Flashes floppy disk (or CD)
+void I_EndRead(void)
+{
+}
+
 /* I_GetTime() -- Returns time since the game started */
 uint32_t I_GetTime(void)
 {
@@ -1072,5 +1085,21 @@ uint64_t I_GetDiskFreeSpace(const char* const a_Path)
 	
 	// TODO
 	return 2 << 30;
+}
+
+/* I_CommonCommandLine() -- Common command line stuff */
+void I_CommonCommandLine(int* const a_argc, char*** const a_argv, const char* const a_Long)
+{
+	/* argc and argv */
+	if (a_argc && a_argv)
+	{
+		myargc = *a_argc;
+		myargv = *a_argv;
+	}
+	
+	/* Windows command line (long format) */
+	else if (a_Long)
+	{
+	}
 }
 

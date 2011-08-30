@@ -53,8 +53,7 @@
 int main(int argc, char** argv)
 {
 	/* Set command line */
-	myargc = argc;
-	myargv = argv;
+	I_CommonCommandLine(&argc, &argv, NULL);
 	
 	/* Initialize Allegro */
 	if (allegro_init())
