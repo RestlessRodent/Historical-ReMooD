@@ -43,6 +43,7 @@
 #include "i_video.h"
 #include "i_util.h"
 #include "../remood.xpm"	// For allegro
+#include "console.h"
 
 /****************
 *** CONSTANTS ***
@@ -180,14 +181,14 @@ const uint8_t c_AllegroToReMooDKey[KEY_MAX] =				// Converts an Allegro key to a
 	IKBK_NULL,	//	KEY_KANA	
 	IKBK_NULL,	//	KEY_CONVERT	
 	IKBK_NULL,	//	KEY_NOCONVERT	
-	IKBK_NULL,	//	KEY_AT	
-	IKBK_NULL,	//	KEY_CIRCUMFLEX	
-	IKBK_NULL,	//	KEY_COLON2	
+	IKBK_AT,	//	KEY_AT	
+	IKBK_CARET,	//	KEY_CIRCUMFLEX	
+	IKBK_COLON,	//	KEY_COLON2	
 	IKBK_NULL,	//	KEY_KANJI	
-	IKBK_NULL,	//	KEY_EQUALS_PAD	
-	IKBK_NULL,	//	KEY_BACKQUOTE	
-	IKBK_NULL,	//	KEY_SEMICOLON	
-	IKBK_NULL,	//	KEY_COMMAND	
+	IKBK_NUMENTER,	//	KEY_EQUALS_PAD	
+	IKBK_GRAVE,	//	KEY_BACKQUOTE	
+	IKBK_SEMICOLON,	//	KEY_SEMICOLON	
+	IKBK_WINDOWSKEY,	//	KEY_COMMAND	
 	IKBK_NULL,	//	KEY_UNKNOWN1	
 	IKBK_NULL,	//	KEY_UNKNOWN2	
 	IKBK_NULL,	//	KEY_UNKNOWN3	
@@ -233,8 +234,9 @@ static uint8_t IS_ConvertKey(const size_t a_AKey)
 /* I_GetEvent() -- Gets an event and adds it to the queue */
 void I_GetEvent(void)
 {
-	size_t i;
+	size_t i, j, z;
 	static uint8_t Shifties[KEY_MAX];
+	static uint32_t JoyButtons[MAXJOYSTICKS];
 	I_EventEx_t ExEvent;
 	int Key;
 	bool_t Repeat;
@@ -311,10 +313,59 @@ void I_GetEvent(void)
 		// Send away
 		I_EventExPush(&ExEvent);
 	}
-}
-
-void I_UpdateJoysticks(void)
-{
+	
+	/* Joystick Getting */
+	poll_joystick();
+	
+	// For every single joystick
+	for (i = 0; i < num_joysticks; i++)
+	{
+		z = joy[i].num_buttons;
+		if (z >= JOYBUTTONS)
+			z = JOYBUTTONS;
+		
+		// Check for button changes
+		for (j = 0; j < z; j++)
+		{
+			// Reuse Repeat
+			Repeat = false;
+			
+			// Clear event
+			memset(&ExEvent, 0, sizeof(&ExEvent));
+			ExEvent.Type = IET_JOYSTICK;
+			ExEvent.Data.Joystick.JoyID = i;
+			
+			// If button is on and our array is off, then button was pressed
+			if (joy[i].button[j].b && !(JoyButtons[i] & (1 << j)))
+			{
+				Repeat = true;
+				ExEvent.Data.Joystick.Down = 1;
+			}
+			
+			// If button is off and our array is on, then button was released
+			else if (!joy[i].button[j].b && (JoyButtons[i] & (1 << j)))
+			{
+				Repeat = true;
+				ExEvent.Data.Joystick.Down = 0;
+			}
+			
+			// Button not changed
+			if (!Repeat)
+				continue;
+			
+			// Set array info
+			JoyButtons[i] &= (~(1 << j));
+			JoyButtons[i] |= (joy[i].button[j].b ? (1 << j) : 0);
+			
+			fprintf(stderr, "Joy %i %s %i\n", i, (ExEvent.Data.Joystick.Down ? "Down" : "Up"), j);
+			
+			// Set event stuff
+			ExEvent.Data.Joystick.Button = j + 1;
+			
+			// Send away
+			I_EventExPush(&ExEvent);
+		}
+	}
 }
 
 void I_UpdateNoBlit(void)
@@ -511,5 +562,71 @@ bool_t I_TextMode(const bool_t a_OnOff)
 	{
 		return true;
 	}
+}
+
+/* I_ProbeJoysticks() -- Probes all joysticks */
+size_t I_ProbeJoysticks(void)
+{
+	size_t i;
+	char* CalMsg;
+	bool_t Cal = false;
+	
+	/* Try installing joysticks */
+	if (install_joystick(JOY_TYPE_AUTODETECT) != 0)
+		return 0;
+	
+	/* No joysticks? */
+	if (!num_joysticks)
+		return 0;
+	
+	/* Joystick calibration is possibly required */
+	for (i = 0; i < num_joysticks; i++)
+		if (joy[i].flags & JOYFLAG_CALIBRATE)
+		{
+			// Try loading joystick data
+			if (Cal || (!Cal && load_joystick_data(NULL) == 0))
+			{
+				Cal = true;
+				continue;
+			}
+			
+			if (!(joy[i].flags & JOYFLAG_CALIBRATE))
+				continue;
+			
+			// Turn off loading screen
+			g_QuietConsole = false;
+			
+			// While the sticks need calibration
+			while (joy[i].flags & JOYFLAG_CALIBRATE)
+			{
+				// Get what needs calibration
+				CalMsg = calibrate_joystick_name(i);
+		
+				// Print message
+				CONS_Printf("I_ProbeJoysticks: %s, then press any key.\n", CalMsg);
+				readkey();
+			
+				// Do calibration
+				if (calibrate_joystick(i) != 0)
+				{
+					CONS_Printf("I_ProbeJoysticks: Messed up calibrating joystick %i.\n", i);
+					break;
+				}
+			}
+		}
+	
+	/* Save calibration data */
+	if (save_joystick_data(NULL) != 0)
+		CONS_Printf("I_ProbeJoysticks: Could not save joystick data.\n");
+	
+	/* Return number of found joys */
+	return num_joysticks;
+}
+
+/* I_RemoveJoysticks() -- Removes all joysticks */
+void I_RemoveJoysticks(void)
+{
+	/* Just remove the joysticks */
+	remove_joystick();
 }
 

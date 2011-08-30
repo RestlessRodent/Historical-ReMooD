@@ -39,7 +39,11 @@
 #define NUMKEYS         256
 
 #define MOUSEBUTTONS    8
-#define JOYBUTTONS      32		// 10 bases + 4 hat
+
+// In i_util.h and g_input.h
+#ifndef JOYBUTTONS
+	#define JOYBUTTONS      32
+#endif
 
 //
 // mouse and joystick buttons are handled as 'virtual' keys

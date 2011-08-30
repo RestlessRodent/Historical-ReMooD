@@ -60,5 +60,8 @@ void I_StartupGraphics(void);
 void I_ShutdownGraphics(void);
 bool_t I_TextMode(const bool_t a_OnOff);
 
+size_t I_ProbeJoysticks(void);
+void I_RemoveJoysticks(void);
+
 #endif
 

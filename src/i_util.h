@@ -209,6 +209,12 @@ typedef enum I_SoundType_e
 #define MAXDRIVERNAME						32	// Driver name limit
 #define MAXPROTOCOLNAMES					128	// Maximum protocols permitted (name wise)
 #define MAXHOSTNAME							256	// Maximum size for a hostname
+#define MAXJOYSTICKS						8	// Maximum number of joysticks allowed
+
+// In i_util.h and g_input.h
+#ifndef JOYBUTTONS
+	#define JOYBUTTONS      32
+#endif
 
 /*****************
 *** STRUCTURES ***
@@ -232,6 +238,10 @@ typedef struct I_EventEx_s
 		struct
 		{
 			uint8_t JoyID;						// ID of the joystick
+			bool_t Down;						// Button pressed down
+			uint8_t Button;						// Which button was pressed
+			uint8_t Axis;						// Which axis was moved
+			int16_t Value;						// Axis position
 		} Joystick;								// Joystick action
 	} Data;										// Event data
 } I_EventEx_t;
@@ -382,8 +392,8 @@ bool_t I_EventExPop(I_EventEx_t* const a_Event);
 void I_EventToOldDoom(const I_EventEx_t* const a_Event);
 void I_StartupMouse(void);
 void I_StartupMouse2(void);
+void I_UpdateJoysticks(void);
 void I_InitJoystick(void);
-void I_ShutdownJoystick(void);
 void I_GetEvent(void);
 ticcmd_t* I_BaseTiccmd(void);
 

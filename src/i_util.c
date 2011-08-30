@@ -100,6 +100,9 @@ static size_t l_EQWrite = 0;					// Write position in queue
 typedef void (*quitfuncptr) ();
 static quitfuncptr quit_funcs[MAX_QUIT_FUNCS];
 
+static uint8_t l_NumJoys;						// Number of joysticks
+static uint8_t l_RealJoyMap[MAXJOYSTICKS];		// Joystick mappings
+
 /****************
 *** FUNCTIONS ***
 ****************/
@@ -160,6 +163,10 @@ bool_t I_EventExPop(I_EventEx_t* const a_Event)
 void I_OsPolling(void)
 {
 	I_EventEx_t Event;
+	
+	/* Update things */
+	// Joysticks need updating before being able to be used
+	I_UpdateJoysticks();
 	
 	/* Just read all events */
 	I_GetEvent();
@@ -242,6 +249,10 @@ static int IS_NewKeyToOldKey(const uint8_t a_New)
 void I_EventToOldDoom(const I_EventEx_t* const a_Event)
 {
 	event_t SendEvent;
+	static const int c_LocalJoys[4] = 
+	{
+		KEY_JOY1B1, KEY_JOY2B1, KEY_JOY3B1, KEY_JOY4B1
+	};
 	
 	/* Check */
 	if (!a_Event)
@@ -263,6 +274,27 @@ void I_EventToOldDoom(const I_EventEx_t* const a_Event)
 			
 			if (!SendEvent.data1)
 				return;
+			break;
+			
+			// Joystick
+		case IET_JOYSTICK:
+			// Joystick out of range?
+			if (a_Event->Data.Joystick.JoyID >= l_NumJoys || l_RealJoyMap[a_Event->Data.Joystick.JoyID] >= 4)
+				return;
+			
+			// Button event?
+			if (a_Event->Data.Joystick.Button)
+			{
+				// Buttons are the same as keys
+				SendEvent.type = (a_Event->Data.Joystick.Down ? ev_keydown : ev_keyup);
+				SendEvent.data1 = c_LocalJoys[l_RealJoyMap[a_Event->Data.Joystick.JoyID]] + (a_Event->Data.Joystick.Button - 1);
+				SendEvent.typekey = 0;
+			}
+			
+			// Axis event?
+			else if (a_Event->Data.Joystick.Axis)
+			{
+			}
 			break;
 			
 			// Unknown
@@ -302,17 +334,35 @@ void I_StartupMouse2(void)
 	}
 }
 
+/* I_UpdateJoysticks() -- Updates joysticks */
+void I_UpdateJoysticks(void)
+{
+}
+
 /* I_InitJoystick() -- Initialize the joystick */
 void I_InitJoystick(void)
 {
+	size_t i;
+	
 	/* Enabling the joystick */
 	if (cv_use_joystick.value)
 	{
+		// Probe joysticks
+		l_NumJoys = I_ProbeJoysticks();
+		
+		// Print number of sticks
+		CONS_Printf("I_InitJoystick: There are %i joysticks.\n", l_NumJoys);
+		
+		// Map base joysticks
+		for (i = 0; i < MAXJOYSTICKS; i++)
+			l_RealJoyMap[i] = i;
 	}
 	
 	/* Disabling the joystick */
 	else
 	{
+		// Destroy joysticks
+		I_RemoveJoysticks();
 	}
 }
 
