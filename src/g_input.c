@@ -181,8 +181,8 @@ void G_MapEventsToControls(event_t * ev)
 		case ev_mouse:			// buttons are virtual keys
 			if (cv_m_legacymouse.value)
 			{
-				mousex = ev->data2 * ((cv_m_xsensitivity.value * cv_m_xsensitivity.value) / 110.0 + 0.1);
-				mousey = ev->data3 * ((cv_m_ysensitivity.value * cv_m_ysensitivity.value) / 110.0 + 0.1);
+				mousex += ev->data2 * ((cv_m_xsensitivity.value * cv_m_xsensitivity.value) / 110.0 + 0.1);
+				mousey += ev->data3 * ((cv_m_ysensitivity.value * cv_m_ysensitivity.value) / 110.0 + 0.1);
 
 				//added:10-02-98:
 				// for now I use the mlook sensitivity just for mlook,
@@ -191,8 +191,8 @@ void G_MapEventsToControls(event_t * ev)
 			}
 			else
 			{
-				mousex = ev->data2 * ((cv_m_xsensitivity.value * cv_m_xsensitivity.value) / 110.0 + 0.1);
-				mousey = ev->data3 * ((cv_m_ysensitivity.value * cv_m_ysensitivity.value) / 110.0 + 0.1);
+				mousex += ev->data2 * ((cv_m_xsensitivity.value * cv_m_xsensitivity.value) / 110.0 + 0.1);
+				mousey += ev->data3 * ((cv_m_ysensitivity.value * cv_m_ysensitivity.value) / 110.0 + 0.1);
 			}
 			break;
 

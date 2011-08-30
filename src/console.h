@@ -222,7 +222,6 @@ extern struct pic_s *con_backpic;
 extern struct pic_s *con_bordleft;
 extern struct pic_s *con_bordright;
 extern char con_buffer[CON_BUFFERSIZE];
-extern char *bindtable[NUMINPUTS];
 // set true when screen size has changed, to adapt console
 extern bool_t con_recalc;
 extern bool_t con_startup;

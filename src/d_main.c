@@ -519,6 +519,9 @@ void D_DoomLoop(void)
 		}
 #endif
 
+		// GhostlyDeath <August 30, 2011> -- Mouse grabbing
+		I_DoMouseGrabbing();
+
 		// frame syncronous IO operations
 		// UNUSED for the moment (18/12/98)
 		I_StartFrame();
@@ -1333,9 +1336,6 @@ void D_DoomMain(void)
 	S_RegisterSoundStuff();
 	PROF_Init();
 	CV_RegisterVar(&cv_screenslink);
-	
-	if (devparm)
-		M_DumpMenuXML();
 	
 	CONS_Printf(text[M_INIT_NUM]);
 	M_Init();

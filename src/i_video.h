@@ -63,5 +63,9 @@ bool_t I_TextMode(const bool_t a_OnOff);
 size_t I_ProbeJoysticks(void);
 void I_RemoveJoysticks(void);
 
+bool_t I_ProbeMouse(const size_t a_ID);
+bool_t I_RemoveMouse(const size_t a_ID);
+void I_MouseGrab(const bool_t a_Grab);
+
 #endif
 

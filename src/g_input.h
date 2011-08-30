@@ -25,8 +25,8 @@
 // DESCRIPTION: handle mouse/keyboard/joystick inputs,
 //              maps inputs to game controls (forward,use,open...)
 
-#ifndef __G_INPUT__
-#define __G_INPUT__
+#ifndef __G_INPUT_H__
+#define __G_INPUT_H__
 
 #include "d_event.h"
 #include "keys.h"
@@ -233,5 +233,5 @@ extern consvar_t cv_joy_xmove1;		// X Axis Movement (Strafing)
 extern consvar_t cv_joy_ymove1;		// Y Axis Movement (Forward/Backwards)
 extern consvar_t cv_joy_zmove1;		// Z Axis Movement (Swimming/Flying)
 
-#endif
+#endif /* __G_INPUT_H__ */
 

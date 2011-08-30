@@ -43,6 +43,8 @@
 #include "i_video.h"
 #include "i_util.h"
 #include "../remood.xpm"	// For allegro
+
+#define __G_INPUT_H__
 #include "console.h"
 
 /****************
@@ -217,6 +219,13 @@ const uint8_t c_AllegroToReMooDKey[KEY_MAX] =				// Converts an Allegro key to a
 
 extern int g_RefreshRate;
 
+/*************
+*** LOCALS ***
+*************/
+
+static int32_t l_OldMousePos[2];					// Old mouse position on the screen
+static bool_t l_DoGrab = false;						// Do mouse grabbing
+
 /****************
 *** FUNCTIONS ***
 ****************/
@@ -237,9 +246,140 @@ void I_GetEvent(void)
 	size_t i, j, z;
 	static uint8_t Shifties[KEY_MAX];
 	static uint32_t JoyButtons[MAXJOYSTICKS];
+	static uint32_t MouseButtons;
 	I_EventEx_t ExEvent;
+	int32_t MousePos[2];
 	int Key;
 	bool_t Repeat;
+	
+	/* Mouse Getting */
+	if (poll_mouse() != -1)
+	{
+		// Remember position
+		MousePos[0] = l_OldMousePos[0];
+		MousePos[1] = l_OldMousePos[1];
+		
+		// Handle position (but only if it changed)
+		if (mouse_x != l_OldMousePos[0] || mouse_y != l_OldMousePos[1])
+		{
+			memset(&ExEvent, 0, sizeof(&ExEvent));
+			ExEvent.Type = IET_MOUSE;
+			ExEvent.Data.Mouse.Pos[0] = mouse_x;
+			ExEvent.Data.Mouse.Pos[1] = mouse_y;
+			ExEvent.Data.Mouse.Move[0] = ExEvent.Data.Mouse.Pos[0] - l_OldMousePos[0];
+			ExEvent.Data.Mouse.Move[1] = l_OldMousePos[1] - ExEvent.Data.Mouse.Pos[1];
+			l_OldMousePos[0] = ExEvent.Data.Mouse.Pos[0];
+			l_OldMousePos[1] = ExEvent.Data.Mouse.Pos[1];
+			
+			// Update position
+			MousePos[0] = l_OldMousePos[0];
+			MousePos[1] = l_OldMousePos[1];
+		
+			// Send away
+			I_EventExPush(&ExEvent);
+			
+			// Revert mouse position
+			if (l_DoGrab)
+			{
+				position_mouse(SCREEN_W >> 1, SCREEN_H >> 1);
+				l_OldMousePos[0] = SCREEN_W >> 1;
+				l_OldMousePos[1] = SCREEN_H >> 1;
+			}
+		}
+		
+		// Handle Buttons
+		for (i = 0; i < 32; i++)
+		{
+			// Use repeat
+			Repeat = false;
+			
+			// Clear event
+			memset(&ExEvent, 0, sizeof(&ExEvent));
+			ExEvent.Type = IET_MOUSE;
+		
+			// If button is on and our array is off, then button was pressed
+			if ((mouse_b & (1 << i)) && !(MouseButtons & (1 << i)))
+			{
+				Repeat = true;
+				ExEvent.Data.Mouse.Down = 1;
+			}
+		
+			// If button is off and our array is on, then button was released
+			else if (!(mouse_b & (1 << i)) && (MouseButtons & (1 << i)))
+			{
+				Repeat = true;
+				ExEvent.Data.Mouse.Down = 0;
+			}
+		
+			// Button not changed
+			if (!Repeat)
+				continue;
+		
+			// Set array info
+			MouseButtons &= (~(1 << i));
+			MouseButtons |= (ExEvent.Data.Mouse.Down ? (1 << i) : 0);
+			
+			// Set event stuff
+			ExEvent.Data.Mouse.Button = i + 1;
+			ExEvent.Data.Mouse.Pos[0] = MousePos[0];
+			ExEvent.Data.Mouse.Pos[1] = MousePos[1];
+		
+			// Send away
+			I_EventExPush(&ExEvent);
+		}
+	}
+	
+	/* Joystick Getting */
+	if (poll_joystick() == 0)
+	{
+		// For every single joystick
+		for (i = 0; i < num_joysticks; i++)
+		{
+			z = joy[i].num_buttons;
+			if (z >= JOYBUTTONS)
+				z = JOYBUTTONS;
+		
+			// Check for button changes
+			for (j = 0; j < z; j++)
+			{
+				// Reuse Repeat
+				Repeat = false;
+				
+				// Clear event
+				memset(&ExEvent, 0, sizeof(&ExEvent));
+				ExEvent.Type = IET_JOYSTICK;
+				ExEvent.Data.Joystick.JoyID = i;
+			
+				// If button is on and our array is off, then button was pressed
+				if (joy[i].button[j].b && !(JoyButtons[i] & (1 << j)))
+				{
+					Repeat = true;
+					ExEvent.Data.Joystick.Down = 1;
+				}
+			
+				// If button is off and our array is on, then button was released
+				else if (!joy[i].button[j].b && (JoyButtons[i] & (1 << j)))
+				{
+					Repeat = true;
+					ExEvent.Data.Joystick.Down = 0;
+				}
+			
+				// Button not changed
+				if (!Repeat)
+					continue;
+			
+				// Set array info
+				JoyButtons[i] &= (~(1 << j));
+				JoyButtons[i] |= (ExEvent.Data.Joystick.Down ? (1 << j) : 0);
+				
+				// Set event stuff
+				ExEvent.Data.Joystick.Button = j + 1;
+			
+				// Send away
+				I_EventExPush(&ExEvent);
+			}
+		}
+	}
 	
 	/* Keyboard getting */
 	// Poll the keyboard
@@ -313,59 +453,6 @@ void I_GetEvent(void)
 		// Send away
 		I_EventExPush(&ExEvent);
 	}
-	
-	/* Joystick Getting */
-	poll_joystick();
-	
-	// For every single joystick
-	for (i = 0; i < num_joysticks; i++)
-	{
-		z = joy[i].num_buttons;
-		if (z >= JOYBUTTONS)
-			z = JOYBUTTONS;
-		
-		// Check for button changes
-		for (j = 0; j < z; j++)
-		{
-			// Reuse Repeat
-			Repeat = false;
-			
-			// Clear event
-			memset(&ExEvent, 0, sizeof(&ExEvent));
-			ExEvent.Type = IET_JOYSTICK;
-			ExEvent.Data.Joystick.JoyID = i;
-			
-			// If button is on and our array is off, then button was pressed
-			if (joy[i].button[j].b && !(JoyButtons[i] & (1 << j)))
-			{
-				Repeat = true;
-				ExEvent.Data.Joystick.Down = 1;
-			}
-			
-			// If button is off and our array is on, then button was released
-			else if (!joy[i].button[j].b && (JoyButtons[i] & (1 << j)))
-			{
-				Repeat = true;
-				ExEvent.Data.Joystick.Down = 0;
-			}
-			
-			// Button not changed
-			if (!Repeat)
-				continue;
-			
-			// Set array info
-			JoyButtons[i] &= (~(1 << j));
-			JoyButtons[i] |= (joy[i].button[j].b ? (1 << j) : 0);
-			
-			fprintf(stderr, "Joy %i %s %i\n", i, (ExEvent.Data.Joystick.Down ? "Down" : "Up"), j);
-			
-			// Set event stuff
-			ExEvent.Data.Joystick.Button = j + 1;
-			
-			// Send away
-			I_EventExPush(&ExEvent);
-		}
-	}
 }
 
 void I_UpdateNoBlit(void)
@@ -391,6 +478,10 @@ void I_FinishUpdate(void)
 	// Failed?
 	if (!Buffer)
 		return;
+		
+	/* Remove the pointer */
+	// Otherwise bad things will happen
+	scare_mouse();
 	
 	/* Copy buffer to screen */
 	// Select the screen
@@ -414,6 +505,9 @@ void I_FinishUpdate(void)
 	// Screen selection no longer needed
 	bmp_unwrite_line(screen);
 	release_screen();
+	
+	/* Restore the pointer */
+	unscare_mouse();
 }
 
 /* I_SetPalette() -- Sets the current palette */
@@ -628,5 +722,77 @@ void I_RemoveJoysticks(void)
 {
 	/* Just remove the joysticks */
 	remove_joystick();
+}
+
+/* I_ProbeMouse() -- Probes Mice */
+bool_t I_ProbeMouse(const size_t a_ID)
+{
+	int i;
+	
+	/* Only Support a primary mouse */
+	if (a_ID != 0)
+		return false;
+	
+	/* Install mouse */
+	if ((i = install_mouse()) >= 0)
+	{
+		CONS_Printf("I_ProbeMouse: Allegro says there are %i buttons.\n", i);
+		
+		if (poll_mouse() == -1)
+			CONS_Printf("I_ProbeMouse: First poll is -1!\n");
+		return true;
+	}
+	
+	/* Failed */
+	return false;
+}
+
+/* I_RemoveMouse() -- Removes mice */
+bool_t I_RemoveMouse(const size_t a_ID)
+{
+	/* Only Support a primary mouse */
+	if (a_ID != 0)
+		return false;
+	
+	/* Remove mouse handler */
+	remove_mouse();
+	return true;
+}
+
+/* I_MouseGrab() -- Sets mouse grabbing */
+void I_MouseGrab(const bool_t a_Grab)
+{
+	l_DoGrab = a_Grab;
+	
+	/* Not being grabbed */
+	if (!a_Grab)
+	{
+		// Use hardware cursor
+		enable_hardware_cursor();
+		
+		// Show default cursor
+		select_mouse_cursor(MOUSE_CURSOR_ARROW);
+		
+		// Show it
+		show_mouse(screen);
+		
+		// Reposition mouse
+		position_mouse(SCREEN_W >> 1, SCREEN_H >> 1);
+		l_OldMousePos[0] = SCREEN_W >> 1;
+		l_OldMousePos[1] = SCREEN_H >> 1;
+	}
+	
+	/* Being Grabbed */
+	else
+	{
+		// Hide it
+		show_mouse(NULL);
+		
+		// Unshow the cursor
+		select_mouse_cursor(NULL);
+		
+		// Use software cursor
+		disable_hardware_cursor();
+	}
 }
 

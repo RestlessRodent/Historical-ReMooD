@@ -54,6 +54,7 @@
 #include "g_input.h"
 #include "w_wad.h"
 #include "doomstat.h"
+#include "d_main.h"
 
 /****************
 *** CONSTANTS ***
@@ -73,6 +74,9 @@ JoyType_t Joystick;
 consvar_t cv_vidwait = {"vid_wait","1",CV_SAVE,CV_OnOff};
 uint8_t graphics_started = 0;
 bool_t allow_fullscreen = false;
+
+/* My stuff */
+static bool_t l_MouseOK = false;				// OK to use the mouse code?
 
 /*****************
 *** STRUCTURES ***
@@ -124,6 +128,10 @@ void I_EventExPush(const I_EventEx_t* const a_Event)
 	// Got too many events in Q?
 	if (l_EQWrite == l_EQRead)
 	{
+		// Indicate overflow
+		if (devparm)
+			CONS_Printf("I_EventExPush: Event overflow (%i)!\n", (int)l_EQWrite);
+		
 		// Increment reader
 		l_EQRead++;
 		
@@ -276,6 +284,31 @@ void I_EventToOldDoom(const I_EventEx_t* const a_Event)
 				return;
 			break;
 			
+			// Mouse
+		case IET_MOUSE:
+			// Button event?
+			if (a_Event->Data.Mouse.Button)
+			{
+				// Buttons are the same as keys
+				SendEvent.type = (a_Event->Data.Mouse.Down ? ev_keydown : ev_keyup);
+				SendEvent.data1 = KEY_MOUSE1B1 + (a_Event->Data.Mouse.Button - 1);
+				SendEvent.data2 = 0;
+				SendEvent.data3 = 0;
+				SendEvent.typekey = 0;
+			}
+			
+			// Motion event
+			else
+			{
+				// Send relative motion
+				SendEvent.type = ev_mouse;
+				SendEvent.data1 = 0;
+				SendEvent.data2 = a_Event->Data.Mouse.Move[0];
+				SendEvent.data3 = a_Event->Data.Mouse.Move[1];
+				SendEvent.typekey = 0;
+			}
+			break;
+			
 			// Joystick
 		case IET_JOYSTICK:
 			// Joystick out of range?
@@ -306,31 +339,104 @@ void I_EventToOldDoom(const I_EventEx_t* const a_Event)
 	D_PostEvent(&SendEvent);
 }
 
+/* I_DoMouseGrabbing() -- Does grabbing if the mouse should be grabbed */
+void I_DoMouseGrabbing(void)
+{
+	static bool_t Grabbed = false;
+	bool_t New = false;
+	
+	/* If the mouse is not OK, don't touch grabbing */
+	if (!l_MouseOK)
+		return;
+	
+	/* Don't grab if... */
+	// Dedicated Server, Watching demo, not playing, in a menu, in the console
+	New = !(dedicated || demoplayback || menuactive);
+	
+	if (New != Grabbed)
+	{
+		// Change grab
+		I_MouseGrab(New);
+		
+		// Set grabbed to new
+		Grabbed = New;
+	}
+}
+
 /* I_StartupMouse() -- Initializes the mouse */
 void I_StartupMouse(void)
-{
+{	
+	/* Check parameter */
+	if (M_CheckParm("-nomouse"))
+	{
+		CONS_Printf("I_StartupMouse: -nomouse is preventing mice from being used.\n");
+		return;
+	}
+	
 	/* Enabling the mouse */
 	if (cv_use_mouse.value)
 	{
+		// Enabled?
+		if (l_MouseOK)
+			return;
+		
+		// Probe the mouse
+		if (!I_ProbeMouse(0))
+		{
+			CONS_Printf("I_StartupMouse: There is no mouse\n");
+			return;
+		}
+		
+		// Enable
+		CONS_Printf("I_StartupMouse: Mouse enabled.\n");
+		l_MouseOK = true;
 	}
 	
 	/* Disabling the mouse */
 	else
 	{
+		// Not enabled?
+		if (!l_MouseOK)
+			return;
+			
+		// Ungrab the mouse before removal
+		I_MouseGrab(false);
+		
+		// Remove the mouse
+		I_RemoveMouse(0);
+		
+		// Disable
+		CONS_Printf("I_StartupMouse: Mouse disabled.\n");
+		l_MouseOK = false;
 	}
 }
 
 /* I_StartupMouse2() -- Initializes the second mouse */
 void I_StartupMouse2(void)
 {
+	/* Check parameter */
+	if (M_CheckParm("-nomouse"))
+	{
+		CONS_Printf("I_StartupMouse: -nomouse is preventing mice from being used.\n");
+		return;
+	}
+	
 	/* Enabling the mouse */
 	if (cv_use_mouse2.value)
 	{
+		// Probe the mouse
+		if (!I_ProbeMouse(1))
+		{
+			CONS_Printf("I_StartupMouse: There is no secondary mouse\n");
+			return;
+		}
 	}
 	
 	/* Disabling the mouse */
 	else
 	{
+		// Remove the mouse
+		I_RemoveMouse(1);
 	}
 }
 
@@ -342,13 +448,31 @@ void I_UpdateJoysticks(void)
 /* I_InitJoystick() -- Initialize the joystick */
 void I_InitJoystick(void)
 {
+	static bool_t Enabled = false;
 	size_t i;
+	
+	/* Check parameter */
+	if (M_CheckParm("-nojoy"))
+	{
+		CONS_Printf("I_InitJoystick: -nojoy is preventing joysticks from being used.\n");
+		return;
+	}
 	
 	/* Enabling the joystick */
 	if (cv_use_joystick.value)
 	{
+		// Enabled?
+		if (Enabled)
+			return;
+		
 		// Probe joysticks
 		l_NumJoys = I_ProbeJoysticks();
+		
+		if (!l_NumJoys)
+		{
+			CONS_Printf("I_InitJoystick: There are no joysticks.\n");
+			return;
+		}
 		
 		// Print number of sticks
 		CONS_Printf("I_InitJoystick: There are %i joysticks.\n", l_NumJoys);
@@ -356,13 +480,23 @@ void I_InitJoystick(void)
 		// Map base joysticks
 		for (i = 0; i < MAXJOYSTICKS; i++)
 			l_RealJoyMap[i] = i;
+		
+		// Enable
+		Enabled = true;
 	}
 	
 	/* Disabling the joystick */
 	else
 	{
+		// Not enabled?
+		if (!Enabled)
+			return;
+		
 		// Destroy joysticks
 		I_RemoveJoysticks();
+		
+		// Disable
+		Enabled = false;
 	}
 }
 

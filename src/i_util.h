@@ -237,6 +237,15 @@ typedef struct I_EventEx_s
 		
 		struct
 		{
+			uint8_t MouseID;					// ID of the mouse
+			bool_t Down;						// Button down
+			uint8_t Button;						// Which button
+			int32_t Pos[2];						// Position of cursor
+			int32_t Move[2];					// Movement of cursor
+		} Mouse;
+		
+		struct
+		{
 			uint8_t JoyID;						// ID of the joystick
 			bool_t Down;						// Button pressed down
 			uint8_t Button;						// Which button was pressed
@@ -390,6 +399,7 @@ typedef struct I_NetDriver_s
 void I_EventExPush(const I_EventEx_t* const a_Event);
 bool_t I_EventExPop(I_EventEx_t* const a_Event);
 void I_EventToOldDoom(const I_EventEx_t* const a_Event);
+void I_DoMouseGrabbing(void);
 void I_StartupMouse(void);
 void I_StartupMouse2(void);
 void I_UpdateJoysticks(void);
