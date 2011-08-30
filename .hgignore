@@ -44,3 +44,6 @@ glob:remood16
 glob:cwsdpmi.doc
 glob:cwsparam.doc
 glob:a.out
+glob:\.svn
+glob:bin/remood
+glob:bin/remood-dbg

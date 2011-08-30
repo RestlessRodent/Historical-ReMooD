@@ -131,18 +131,15 @@ fixed_t S_GetListenerEmitterWithDist(S_SoundChannel_t* const a_Channel, S_NoiseT
 	/* Find the closest listener */
 	*a_Listen = NULL;
 	ApproxDist = 32000 << FRACBITS;
-	for (i = 0; i < cv_splitscreen.value; i++)
+	for (i = 0; i <= cv_splitscreen.value; i++)
 	{
 		// Check to see if the player is in game (if not ignore)
-		if (!playeringame[displayplayer[i]])
+		if (displayplayer[i] < 0 || displayplayer[i] >= MAXPLAYERS || !playeringame[displayplayer[i]])
 			continue;
 		
 		// Attempt getting listener
 		if (players[displayplayer[i]].mo)
 			Attempt = &players[displayplayer[i]].mo->NoiseThinker;
-		
-		if (!Attempt)
-			continue;
 		
 		// Get distance
 		NewDist = P_AproxDistance(Attempt->x - (*a_Emit)->x, Attempt->y - (*a_Emit)->y);
@@ -173,32 +170,47 @@ fixed_t S_GetListenerEmitterWithDist(S_SoundChannel_t* const a_Channel, S_NoiseT
 S_SoundChannel_t* S_PlayEntryOnChannel(const uint32_t a_Channel, WX_WADEntry_t* const a_Entry)
 {
 	uint16_t* p;
-	uint16_t Header, Freq, Length;
+	void* Data;
+	int32_t Header, Freq, Length;
+	size_t LumpLen;
 	
 	/* Check */
 	if (a_Channel >= l_NumDoomChannels || !a_Entry)
 		return NULL;
 	
+	/* Check length */
+	LumpLen = WX_GetEntrySize(a_Entry);
+	
+	if (LumpLen < 9)
+		return NULL;
+	
 	/* Use entry */
 	WX_UseEntry(a_Entry, true);
-	
-	/* Set channel info */
-	l_DoomChannels[a_Channel].Entry = a_Entry;
-	l_DoomChannels[a_Channel].Data = WX_CacheEntry(a_Entry);
-	l_DoomChannels[a_Channel].Used = true;
-	l_DoomChannels[a_Channel].Position = 8 << FRACBITS;
-	l_DoomChannels[a_Channel].RateAdjust = 1 << FRACBITS;
-	l_DoomChannels[a_Channel].Priority = 127;
-	l_DoomChannels[a_Channel].BasePriority = 127;
+	Data = WX_CacheEntry(a_Entry);
 	
 	/* Read basic stuff */
-	p = l_DoomChannels[a_Channel].Data;
+	p = Data;
 	Header = ReadUInt16(&p);
 	Freq = ReadUInt16(&p);
 	Length = ReadUInt16(&p);
 	
+	if (!Freq || !Length || Header != 3)
+	{
+		WX_UseEntry(a_Entry, false);
+		return NULL;
+	}
+	
+	/* Set channel info */
+	l_DoomChannels[a_Channel].Entry = a_Entry;
+	l_DoomChannels[a_Channel].Data = Data;
+	l_DoomChannels[a_Channel].Used = true;
+	l_DoomChannels[a_Channel].Position = -32760 << FRACBITS;
+	l_DoomChannels[a_Channel].RateAdjust = 1 << FRACBITS;
+	l_DoomChannels[a_Channel].Priority = 127;
+	l_DoomChannels[a_Channel].BasePriority = 127;
+	
 	// Set basic stuff
-	l_DoomChannels[a_Channel].Stop = l_DoomChannels[a_Channel].Position + ((fixed_t)Length << FRACBITS);
+	l_DoomChannels[a_Channel].Stop = ((l_DoomChannels[a_Channel].Position >> FRACBITS) + (fixed_t)Length) << FRACBITS;
 	
 	// Determine the play rate, which is by default the ratio of the sound freq and the card freq
 	l_DoomChannels[a_Channel].MoveRate = FixedDiv((fixed_t)Freq << FRACBITS, (fixed_t)l_Freq << FRACBITS);
@@ -874,7 +886,7 @@ void S_UpdateSounds(void)
 		for (; p < End && l_DoomChannels[i].Position < l_DoomChannels[i].Stop; l_DoomChannels[i].Position += ActualRate)
 		{
 			// Read sample bit from data
-			ReadSample = ((uint8_t*)l_DoomChannels[i].Data)[l_DoomChannels[i].Position >> FRACBITS];
+			ReadSample = ((uint8_t*)l_DoomChannels[i].Data)[(l_DoomChannels[i].Position >> FRACBITS) + 32768];
 			
 			// Write in
 			for (j = 0; j < l_Channels; j++)

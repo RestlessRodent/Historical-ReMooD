@@ -38,7 +38,5 @@
 *** FUNCTIONS ***
 ****************/
 
-bool_t I_NetDriverInit(void);
-
 #endif /* __I_NET_H__ */
 

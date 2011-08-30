@@ -44,9 +44,3 @@
 *** FUNCTIONS ***
 ****************/
 
-/* I_NetDriverInit() -- Initialize network drivers */
-bool_t I_NetDriverInit(void)
-{
-	return false;
-}
-

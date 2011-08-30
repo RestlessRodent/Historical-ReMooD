@@ -21,27 +21,24 @@
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 // GNU General Public License for more details.
 // -----------------------------------------------------------------------------
-// DESCRIPTION: Common Network Stuff
+// DESCRIPTION: ReMooD `deutex` Clone, for what ReMooD uses and bonus stuff
 
 /***************
 *** INCLUDES ***
 ***************/
 
-#include "i_util.h"
-#include "i_net.h"
-
-/*************
-*** LOCALS ***
-*************/
+#include <stdio.h>
+#include <stdlib.h>
+#include <stdint.h>
 
 /****************
 *** FUNCTIONS ***
 ****************/
 
-/* I_InitNetwork() -- Initializes the network */
-bool_t I_InitNetwork(void)
+/* main() -- Main entry point */
+int main(int argc, char** argv)
 {
 	/* Success! */
-	return true;
+	return EXIT_SUCCESS;
 }
 
