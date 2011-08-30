@@ -454,7 +454,7 @@ void M_StartMessage(const char *string, void *routine, menumessagetype_t itemtyp
 	
 	// GhostlyDeath <November 3, 2010> -- Do not infinite loop in message windows
 	// As long as the previous menu wasn't a message
-	if (MessageDef.prevMenu && MessageDef.prevMenu != &MessageDef)
+	if (!MessageDef.prevMenu || (MessageDef.prevMenu && MessageDef.prevMenu != &MessageDef))
 		MessageDef.prevMenu = currentMenu;
 	
 	*(MessageDef.menuitems[0].WItemTextPtr) = message;
