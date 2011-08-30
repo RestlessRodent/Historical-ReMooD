@@ -470,5 +470,14 @@ bool_t I_SoundBufferIsFinished(void);
 void I_SoundBufferWriteOut(void);
 uint16_t I_SoundGetFreq(void);
 
+void I_StopCD(void);
+void I_PauseCD(void);
+void I_ResumeCD(void);
+void I_ShutdownCD(void);
+void I_InitCD(void);
+void I_UpdateCD(void);
+void I_PlayCD(int track, bool_t looping);
+int I_SetVolumeCD(int volume);
+
 #endif /* __I_UTIL_H__ */
 

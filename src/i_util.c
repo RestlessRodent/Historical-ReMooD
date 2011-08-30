@@ -46,7 +46,6 @@
 
 /* Local */
 #include "i_util.h"
-#include "i_joy.h"
 #include "i_system.h"
 #include "i_video.h"
 #include "command.h"
@@ -67,8 +66,6 @@
 /**************
 *** GLOBALS ***
 **************/
-
-JoyType_t Joystick;
 
 /* i_video.c -- Remove this garbage */
 consvar_t cv_vidwait = {"vid_wait","1",CV_SAVE,CV_OnOff};

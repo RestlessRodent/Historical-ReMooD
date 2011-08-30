@@ -28,6 +28,7 @@
 #ifndef __G_INPUT_H__
 #define __G_INPUT_H__
 
+#include "doomstat.h"
 #include "d_event.h"
 #include "keys.h"
 #include "command.h"

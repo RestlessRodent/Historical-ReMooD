@@ -198,6 +198,9 @@ void TryRunTics(tic_t realtics)
 			}
 		}
 	}
+	else if (neededtic == gametic)
+		I_WaitVBL(20);
+	
 	/*else
 		I_WaitVBL(20);*/
 }

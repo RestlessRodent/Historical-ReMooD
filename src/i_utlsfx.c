@@ -46,12 +46,8 @@
 
 /* Local */
 #include "i_util.h"
-#include "i_joy.h"
 #include "i_system.h"
-#include "i_video.h"
 #include "command.h"
-#include "screen.h"
-#include "g_input.h"
 #include "w_wad.h"
 #include "doomstat.h"
 
@@ -1556,6 +1552,39 @@ uint16_t I_SoundGetFreq(void)
 	/* Obtain it */
 	if (l_CurSoundDriver->GetFreq)
 		return l_CurSoundDriver->GetFreq(l_CurSoundDriver);
+	return 0;
+}
+
+void I_StopCD(void)
+{
+}
+
+void I_PauseCD(void)
+{
+}
+
+void I_ResumeCD(void)
+{
+}
+
+void I_ShutdownCD(void)
+{
+}
+
+void I_InitCD(void)
+{
+}
+
+void I_UpdateCD(void)
+{
+}
+
+void I_PlayCD(int track, bool_t looping)
+{
+}
+
+int I_SetVolumeCD(int volume)
+{
 	return 0;
 }
 

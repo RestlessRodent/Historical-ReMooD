@@ -65,7 +65,6 @@
 #include "p_inter.h"
 #include "p_info.h"
 #include "byteptr.h"
-#include "i_joy.h"
 #include "p_demcmp.h"
 #include "d_rdf.h"
 
@@ -416,8 +415,8 @@ void G_BuildTiccmd(ticcmd_t * cmd, int realtics, int player)
 	turnright = GAMEKEYDOWN(gc_turnright);
 	turnleft = GAMEKEYDOWN(gc_turnleft);
 	mouseaiming = GAMEKEYDOWN(gc_mouseaiming) ^ cv_alwaysfreelook.value;
-	analogjoystickmove = cv_use_joystick.value && !Joystick.bGamepadStyle && !cv_splitscreen.value;
-	gamepadjoystickmove = cv_use_joystick.value && Joystick.bGamepadStyle && !cv_splitscreen.value;
+	analogjoystickmove = cv_use_joystick.value && !cv_splitscreen.value;
+	gamepadjoystickmove = cv_use_joystick.value && !cv_splitscreen.value;
 
 	if (gamepadjoystickmove)
 	{
