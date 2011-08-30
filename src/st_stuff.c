@@ -398,6 +398,8 @@ CV_PossibleValue_t TransMode[] =
 {
 	{0, "Medium"},
 	{1, "High"},
+	{2, "Extreme"},
+	{3, "Bright"},
 	{0, NULL},
 };
 
@@ -899,7 +901,7 @@ static void ST_doRefresh(void)
 				stbarheight,		// H
 				(vid.width >> 1) - (ST_WIDTH >> 1),// X
 				vid.height - stbarheight,// Y
-				FG, (cv_transparentstatusbarmode.value ? 2 : 0));
+				FG, cv_transparentstatusbarmode.value);
 	}
 }
 
