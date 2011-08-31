@@ -72,9 +72,39 @@ typedef struct S_SoundChannel_s
 *** GLOBALS ***
 **************/
 
-consvar_t cv_snd_speakersetup = {"snd_speakersetup", "2", CV_SAVE, CV_Unsigned};
-consvar_t cv_snd_soundquality = {"snd_soundquality", "11025", CV_SAVE, CV_Unsigned};
-consvar_t cv_snd_sounddensity = {"snd_sounddensity", "1", CV_SAVE, CV_Unsigned};
+CV_PossibleValue_t SpeakerSetup_cons_t[] =
+{
+	{1, "Monaural"},
+	{2, "Stereo"},
+	{4, "Surround"},
+	{6, "Full Surround"},
+	
+	{0, NULL}
+};
+
+consvar_t cv_snd_speakersetup = {"snd_speakersetup", "2", CV_SAVE, SpeakerSetup_cons_t};
+
+CV_PossibleValue_t SoundQuality_cons_t[] =
+{
+	{5512, "5 KHz"},
+	{11025, "11 KHz"},
+	{22050, "22 KHz"},
+	{44100, "44 KHz"},
+	
+	{0, NULL}
+};
+
+consvar_t cv_snd_soundquality = {"snd_soundquality", "11025", CV_SAVE, SoundQuality_cons_t};
+
+CV_PossibleValue_t SoundDensity_cons_t[] =
+{
+	{8, "8-bit"},
+	{16, "16-bit"},
+	
+	{0, NULL}
+};
+
+consvar_t cv_snd_sounddensity = {"snd_sounddensity", "8", CV_SAVE, SoundDensity_cons_t};
 consvar_t cv_snd_buffersize = {"snd_buffersize", "1024", CV_SAVE, CV_Unsigned};
 consvar_t cv_snd_pcspeakerwave = {"snd_pcspeakerwave", "1", CV_SAVE, CV_Unsigned};
 consvar_t cv_snd_channels = {"snd_channels", "12", CV_SAVE, CV_Unsigned};
@@ -610,7 +640,7 @@ void S_Init(int sfxVolume, int musicVolume)
 	/* Try getting a buffer */
 	if (l_SoundOK)
 	{
-		if (!I_SoundBufferRequest(IST_WAVEFORM, cv_snd_sounddensity.value * 8, cv_snd_soundquality.value, cv_snd_speakersetup.value, cv_snd_buffersize.value))
+		if (!I_SoundBufferRequest(IST_WAVEFORM, cv_snd_sounddensity.value, cv_snd_soundquality.value, cv_snd_speakersetup.value, cv_snd_buffersize.value))
 		{
 			l_Bits = l_Freq = l_Channels = l_Len = 0;
 			CONS_Printf("S_Init: Failed to obtain a sound buffer.\n");
@@ -620,7 +650,7 @@ void S_Init(int sfxVolume, int musicVolume)
 		else
 		{
 			// Remember settings
-			l_Bits = cv_snd_sounddensity.value * 8;
+			l_Bits = cv_snd_sounddensity.value;
 			l_Freq = I_SoundGetFreq();
 			l_Channels = cv_snd_speakersetup.value;
 			l_Len = cv_snd_buffersize.value;
