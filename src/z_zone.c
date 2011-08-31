@@ -34,6 +34,7 @@
 #include "i_system.h"
 #include "m_misc.h"
 #include "doomdef.h"
+#include "m_argv.h"
 
 /****************
 *** CONSTANTS ***
@@ -906,7 +907,7 @@ bool_t Z_HashAddEntry(Z_HashTable_t* const a_HashTable, const uint32_t a_Key, vo
 	Nub = a_Key & 0xFF;
 	
 	/* Resize list */
-	Z_ResizeArray(&a_HashTable->KeyList[Nub], sizeof(Z_HashKey_t), a_HashTable->KeySize[Nub], a_HashTable->KeySize[Nub] + 1);
+	Z_ResizeArray((void**)&a_HashTable->KeyList[Nub], sizeof(Z_HashKey_t), a_HashTable->KeySize[Nub], a_HashTable->KeySize[Nub] + 1);
 	
 	// Slap at end
 	i = a_HashTable->KeySize[Nub]++;
@@ -1127,7 +1128,7 @@ static Z_TableEntry_t* Z_PushNewEntry(Z_Table_t* const a_Table, const char* cons
 	
 	/* Resize ptr list */
 	Num = a_Table->NumEntries;
-	Z_ResizeArray(&a_Table->Entries, sizeof(*a_Table->Entries), Num, Num + 1);
+	Z_ResizeArray((void**)&a_Table->Entries, sizeof(*a_Table->Entries), Num, Num + 1);
 	a_Table->Entries[Num] = Z_Malloc(sizeof(*a_Table->Entries[Num]), PU_STATIC, NULL);
 	Ref = a_Table->Entries[Num];
 	a_Table->NumEntries = Num + 1;
