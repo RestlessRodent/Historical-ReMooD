@@ -28,6 +28,7 @@
 ***************/
 
 /* System */
+#include <SDL.h>
 #include <stdlib.h>
 #include <stdint.h>
 
@@ -43,6 +44,12 @@
 /****************
 *** CONSTANTS ***
 ****************/
+
+/*************
+*** LOCALS ***
+*************/
+
+static SDL_Surface* l_SDLSurface = NULL;				// SDL Video plane
 
 /****************
 *** FUNCTIONS ***
@@ -65,11 +72,59 @@ void I_StartFrame(void)
 /* I_FinishUpdate() -- Called after drawing a frame */
 void I_FinishUpdate(void)
 {
+	register uint32_t y;
+	uint32_t w, h;
+	uint8_t* Buffer;
+	void* Dest, *Src;
+	
+	/* Obtain pointer to buffer */
+	Buffer = I_VideoSoftBuffer(&w, &h);
+	
+	// Failed?
+	if (!Buffer)
+		return;
+	
+	/* Lock surface */
+	SDL_LockSurface(l_SDLSurface);
+		
+	/* Copy row by row */
+	for (y = 0; y < h; y++)
+	{
+		// Get pixels to copy and overwrite
+		Src = &Buffer[(y * w)];
+		Dest = &((uint8_t*)l_SDLSurface->pixels)[(y * l_SDLSurface->pitch)];
+		
+		// Mem copy!
+		memcpy(Dest, Src, w);
+	}
+	
+	/* Unlock Surface */
+	SDL_UnlockSurface(l_SDLSurface);
+	
+	/* Update Rectangle */
+	SDL_Flip(l_SDLSurface);
 }
 
 /* I_SetPalette() -- Sets the current palette */
 void I_SetPalette(RGBA_t* palette)
 {
+	size_t i;
+	SDL_Color Colors[256];
+	
+	/* No surface or palette? */
+	if (!l_SDLSurface || !palette)
+		return;
+	
+	/* Copy colors as is */
+	for (i = 0; i < 256; i++)
+	{
+		Colors[i].r = palette[i].s.red;
+		Colors[i].g = palette[i].s.green;
+		Colors[i].b = palette[i].s.blue;
+	}
+	
+	/* Set colors away */
+	SDL_SetPalette(l_SDLSurface, SDL_PHYSPAL, Colors, 0, 256);
 }
 
 /* VID_PrepareModeList() -- Adds video modes to the mode list */
@@ -87,12 +142,36 @@ void VID_PrepareModeList(void)
 /* I_SetVideoMode() -- Sets the current video mode */
 bool_t I_SetVideoMode(const uint32_t a_Width, const uint32_t a_Height, const bool_t a_Fullscreen)
 {
+	uint32_t SDLFlags = 0;
+	
 	/* Check */
 	if (!a_Width || !a_Height)
 		return false;
 	
 	/* Destroy old buffer */
 	I_VideoUnsetBuffer();	// Remove old buffer if any
+	
+	/* Destroy old surface */
+	if (l_SDLSurface)
+		SDL_FreeSurface(l_SDLSurface);
+	l_SDLSurface = NULL;
+	
+	/* Find flags to set */
+	SDLFlags = SDL_HWPALETTE | SDL_DOUBLEBUF;
+	if (a_Fullscreen)
+		SDLFlags |= SDL_FULLSCREEN | SDL_HWSURFACE;
+	else
+		SDLFlags |= SDL_SWSURFACE;
+	
+	/* Create SDL surface */
+	l_SDLSurface = SDL_SetVideoMode(a_Width, a_Height, 8, SDLFlags);
+	
+	// Failed?
+	if (!l_SDLSurface)
+		return false;
+	
+	/* Set Title */
+	SDL_WM_SetCaption("ReMooD "REMOOD_FULLVERSIONSTRING, "ReMooD");
 	
 	/* Allocate Buffer */
 	I_VideoSetBuffer(a_Width, a_Height, a_Width, NULL);
@@ -107,6 +186,13 @@ void I_StartupGraphics(void)
 	/* Pre-initialize video */
 	if (!I_VideoPreInit())
 		return;
+	
+	/* Initialize SDL */
+	if (SDL_Init(SDL_INIT_VIDEO) == -1)
+	{
+		CONS_Printf("I_StartupGraphics: Failed to initialize SDL graphics.\n");
+		return;
+	}
 	
 	/* Initialize before mode set */
 	if (!I_VideoBefore320200Init())

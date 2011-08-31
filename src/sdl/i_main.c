@@ -28,6 +28,7 @@
 *** INCLUDES ***
 ***************/
 
+#include <SDL.h>
 #include "doomdef.h"
 #include "m_argv.h"
 #include "d_main.h"
@@ -41,6 +42,10 @@ int main(int argc, char** argv)
 {
 	/* Set command line */
 	I_CommonCommandLine(&argc, &argv, NULL);
+	
+	/* Initial SDL Start */
+	if (SDL_Init(SDL_INIT_NOPARACHUTE) == -1)
+		I_Error("main: Failed to initialize SDL.");
 	
 	/* Run the game */
 	D_DoomMain();

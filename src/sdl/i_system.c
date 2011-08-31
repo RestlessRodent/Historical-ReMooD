@@ -28,6 +28,7 @@
 ***************/
 
 /* System */
+#include <SDL.h>
 #include <stdint.h>
 
 #if !defined(__REMOOD_SYSTEM_WINDOWS)
@@ -95,6 +96,8 @@ void I_StartupKeyboard(void)
 /* I_StartupTimer() -- Timer startup */
 void I_StartupTimer(void)
 {
+	if (SDL_InitSubSystem(SDL_INIT_TIMER) == -1)
+		I_Error("I_StartupTimer: Failed to initialize timer.\n");
 }
 
 int I_GetKey(void)
@@ -128,18 +131,18 @@ void I_Tactile(int on, int off, int total)
 /* I_GetTimeMS() -- Returns time since the game started (in MS) */
 uint32_t I_GetTimeMS(void)
 {
-	static clock_t FirstClock;
-	clock_t ThisClock = 0;
+	static uint32_t FirstTick;
+	uint32_t ThisTick = 0;
 	
-	/* Get current clock */
-	ThisClock = clock();
+	/* Get current tick */
+	ThisTick = SDL_GetTicks();
 	
-	// FirstClock not set?
-	if (!FirstClock)
-		FirstClock = ThisClock;
+	// FirstTick not set?
+	if (!FirstTick)
+		FirstTick = ThisTick;
 	
 	/* Return time passed */
-	return ((ThisClock - FirstClock) * 1000) / CLOCKS_PER_SEC;
+	return ThisTick - FirstTick;
 }
 
 //
@@ -152,6 +155,7 @@ void I_Init(void)
 /* I_WaitVBL() -- Wait for vertical blank */
 void I_WaitVBL(int count)
 {
+	SDL_Delay(count);
 }
 
 uint8_t *I_AllocLow(int length)
