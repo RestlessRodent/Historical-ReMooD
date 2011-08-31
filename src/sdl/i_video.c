@@ -610,6 +610,8 @@ void I_GetEvent(void)
 {
 	SDL_Event Event;
 	I_EventEx_t ExEvent;
+	static bool_t Focused = true;
+	static bool_t DidWarp = false;
 	static bool_t DownKeys[SDLK_LAST];
 	static uint16_t LastUnic[SDLK_LAST];
 	SDLKey Key;
@@ -623,6 +625,11 @@ void I_GetEvent(void)
 		// Which event is this now?
 		switch (Event.type)
 		{
+				// Focus of the window changes
+			case SDL_ACTIVEEVENT:
+				Focused = !!Event.active.gain;
+				continue;
+				
 				// Key event
 			case SDL_KEYDOWN:
 				ExEvent.Data.Keyboard.Down = true;
@@ -654,6 +661,33 @@ void I_GetEvent(void)
 				DownKeys[Key] = ExEvent.Data.Keyboard.Down;
 				break;
 				
+				// Mouse Motion:
+			case SDL_MOUSEMOTION:
+				// If there was a warp, ignore
+				if (DidWarp)
+				{
+					DidWarp = false;
+					continue;
+				}
+			
+				ExEvent.Type = IET_MOUSE;
+				ExEvent.Data.Mouse.MouseID = 0;		// Always mouse Zero
+				ExEvent.Data.Mouse.Pos[0] = Event.motion.x;
+				ExEvent.Data.Mouse.Pos[1] = Event.motion.y;
+				ExEvent.Data.Mouse.Move[0] = Event.motion.xrel;
+				ExEvent.Data.Mouse.Move[1] = -Event.motion.yrel;	// Negative because SDL is swapped
+				break;
+				
+				// Mouse button
+			case SDL_MOUSEBUTTONDOWN:
+				ExEvent.Data.Mouse.Down = 1;
+			case SDL_MOUSEBUTTONUP:
+				ExEvent.Type = IET_MOUSE;
+				ExEvent.Data.Mouse.Button = Event.button.button;
+				ExEvent.Data.Mouse.Pos[0] = Event.button.x;
+				ExEvent.Data.Mouse.Pos[1] = Event.button.y;
+				break;
+				
 				// Unknown
 			default:
 				break;
@@ -662,6 +696,17 @@ void I_GetEvent(void)
 		// Send event away
 		if (ExEvent.Type != IET_NULL)
 			I_EventExPush(&ExEvent);
+	}
+	
+	/* Warp the mouse */
+	// But not if we are not focused
+	if (Focused && l_DoGrab)
+	{
+		SDL_WarpMouse(l_SDLSurface->w >> 1, l_SDLSurface->h >> 1);
+		// Normally one would poll this even but who knows if some other event
+		// was handled after warp mouse was handled and before the event was polled?
+		//SDL_PollEvent(&Event);
+		DidWarp = true;
 	}
 }
 
@@ -966,7 +1011,7 @@ void I_MouseGrab(const bool_t a_Grab)
 	/* Grabbing? */
 	if (a_Grab)
 		// Hide the cursor
-		SDL_ShowCursor(SDL_ENABLE);
+		SDL_ShowCursor(SDL_DISABLE);
 	
 	/* Not Grabbing */
 	else
