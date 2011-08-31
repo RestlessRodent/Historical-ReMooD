@@ -64,8 +64,8 @@ typedef enum I_KeyBoardKey_e
 	IKBK_PERCENT,
 	IKBK_AMPERSAND,
 	IKBK_APOSTROPHE,
-	IKBK_LEFTPARENTHESIS,
-	IKBK_RIGHTPERENTHESIS,
+	IKBK_LEFTPARENTHESES,
+	IKBK_RIGHTPARENTHESES,
 	IKBK_ASTERISK,
 	IKBK_PLUS,
 	IKBK_COMMA,
@@ -170,6 +170,7 @@ typedef enum I_KeyBoardKey_e
 	
 	IKBK_WINDOWSKEY,
 	IKBK_MENUKEY,
+	IKBK_EVILEURO,
 } I_KeyBoardKey_t;
 
 /* I_EventType_t -- Event type */
@@ -179,6 +180,7 @@ typedef enum I_EventType_e
 	IET_KEYBOARD,								// Keyboard event
 	IET_MOUSE,									// Mouse event
 	IET_JOYSTICK,								// Joystick event
+	IET_QUIT,									// X button was pressed
 	
 	NUMIEVENTTYPES
 } I_EventType_t;

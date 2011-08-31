@@ -270,8 +270,8 @@ void I_EventToOldDoom(const I_EventEx_t* const a_Event)
 	{
 			// Keyboard
 		case IET_KEYBOARD:
-			// Ignore repeated keys
-			if (a_Event->Data.Keyboard.Repeat)
+			// Ignore repeated keys and NULL keys
+			if (a_Event->Data.Keyboard.Repeat || a_Event->Data.Keyboard.KeyCode == IKBK_NULL)
 				return;
 			
 			// Convert

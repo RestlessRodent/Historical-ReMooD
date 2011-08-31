@@ -60,6 +60,14 @@ C888888:   :8O.   .C88C .cooCO: 8@:o@O@8 8@c.@@:   O@:c@O   :@@..@@.    O@:
  Q: Sounds are delayed
  A: The sound buffer size is too large, try lowering the value to a reasonable
     amount.
+    
+ Q: I want the game to be aspect ratio correct, how do I do that?
+ A: ReMooD always assumes a 4:3 aspect ratio. That is, the game will be aspect
+    correct provided you choose a resolution that fits your entire screen for
+    the correct ratio that you want. If you have a 1:1 screen (such as a LCD
+    panel) then choose 320x240 or 640x480. Otherwise if you have a 4:3 screen
+    (such as most CRTs) then choose 320x200 or 640x400. This of course presumes
+    you are playing the game fullscreen.
 
 ===============================================================================
 ========[ ALLEGRO SPECIFICS ]==================================================
