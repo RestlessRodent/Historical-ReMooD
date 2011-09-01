@@ -754,6 +754,14 @@ typedef struct IS_JoystickInfo_s
 				
 				// Joystick Axis
 			case SDL_JOYAXISMOTION:
+				if (Event.jaxis.which >= l_NumJoys || Event.jaxis.axis >= ISJOYMAXMAPS)
+					continue;
+				
+				// Change axis
+				ExEvent[0].Type = IET_JOYSTICK;
+				ExEvent[0].Data.Joystick.JoyID = Event.jaxis.which;
+				ExEvent[0].Data.Joystick.Axis = l_Joys[Event.jaxis.which].AxisMap[Event.jaxis.axis] + 1;
+				ExEvent[0].Data.Joystick.Value = Event.jaxis.value;
 				break;
 				
 				// Joystick Ball

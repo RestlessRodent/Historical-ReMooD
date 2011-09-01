@@ -404,6 +404,7 @@ void I_EventToOldDoom(const I_EventEx_t* const a_Event)
 			// Axis event?
 			else if (a_Event->Data.Joystick.Axis)
 			{
+				return;
 			}
 			break;
 			
