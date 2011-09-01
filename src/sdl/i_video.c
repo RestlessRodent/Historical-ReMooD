@@ -605,6 +605,7 @@ typedef struct IS_JoystickInfo_s
 	/* Mappings to axis and/or buttons */
 	size_t AxisMap[ISJOYMAXMAPS];						// Axis to axis
 	size_t BallMap[ISJOYMAXMAPS][2];					// Balls [x, y] to axis
+	int16_t BallOld[ISJOYMAXMAPS][2];					// Old ball values [x, y]
 	size_t HatMapA[ISJOYMAXMAPS][2];					// Hats [x, y] to axis
 	size_t HatMapB[ISJOYMAXMAPS][5];					// Hats [c, u, d, l, r] to buttons
 	int8_t HatCenter[ISJOYMAXMAPS];						// Hat center status
@@ -745,6 +746,7 @@ typedef struct IS_JoystickInfo_s
 	/* Mappings to axis and/or buttons */
 	size_t AxisMap[ISJOYMAXMAPS];						// Axis to axis
 	size_t BallMap[ISJOYMAXMAPS][2];					// Balls [x, y] to axis
+	int16_t BallOld[ISJOYMAXMAPS][2];					// Old ball values [x, y]
 	size_t HatMapA[ISJOYMAXMAPS][2];					// Hats [x, y] to axis
 	size_t HatMapB[ISJOYMAXMAPS][5];					// Hats [c, u, d, l, r] to buttons
 	int8_t HatCenter[ISJOYMAXMAPS];						// Hat center status
@@ -766,6 +768,29 @@ typedef struct IS_JoystickInfo_s
 				
 				// Joystick Ball
 			case SDL_JOYBALLMOTION:
+				if (Event.jball.which >= l_NumJoys || Event.jball.ball >= ISJOYMAXMAPS)
+					continue;
+				
+				a = 0;
+				
+				// X axis changed?
+				if (Event.jball.xrel != 0)
+				{
+					ExEvent[a].Type = IET_JOYSTICK;
+					ExEvent[a].Data.Joystick.JoyID = Event.jball.which;
+					ExEvent[a].Data.Joystick.Axis = l_Joys[Event.jball.which].BallMap[Event.jball.ball][0] + 1;
+					ExEvent[a].Data.Joystick.Value = Event.jball.xrel;
+					a++;
+				}
+				
+				// Y axis changed?
+				if (Event.jball.yrel != 0)
+				{
+					ExEvent[a].Type = IET_JOYSTICK;
+					ExEvent[a].Data.Joystick.JoyID = Event.jball.which;
+					ExEvent[a].Data.Joystick.Axis = l_Joys[Event.jball.which].BallMap[Event.jball.ball][1] + 1;
+					ExEvent[a].Data.Joystick.Value = Event.jball.yrel;
+				}
 				break;
 				
 				// Joystick Hat
