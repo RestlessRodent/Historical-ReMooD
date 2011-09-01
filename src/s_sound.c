@@ -132,6 +132,7 @@ static int l_Bits, l_Freq, l_Channels, l_Len;
 static S_SoundChannel_t* l_DoomChannels;			// Sound channels
 static size_t l_NumDoomChannels;					// Number of possible sound channels
 static fixed_t l_GlobalSoundVolume;					// Global sound volume
+static bool_t l_ThreadedSound = false;				// Threaded sound
 
 /****************
 *** FUNCTIONS ***
@@ -649,6 +650,13 @@ void S_Init(int sfxVolume, int musicVolume)
 		// Setup buffer
 		else
 		{
+			// Set threaded function (if possible)
+			l_ThreadedSound = I_SoundSetThreaded(S_UpdateSounds);
+			
+			// Is multi-thread?
+			if (l_ThreadedSound)
+				CONS_Printf("S_Init: Sound is multi-threaded!\n");
+			
 			// Remember settings
 			l_Bits = cv_snd_sounddensity.value;
 			l_Freq = I_SoundGetFreq();
@@ -861,7 +869,7 @@ static void S_WriteMixSample(void** Buf, uint8_t Value)
 }
 
 /* S_UpdateSounds() -- Updates all playing sounds */
-void S_UpdateSounds(void)
+void S_UpdateSounds(const bool_t a_Threaded)
 {
 	void* SoundBuf, *p, *End;
 	size_t SoundLen, i, j;
@@ -871,6 +879,10 @@ void S_UpdateSounds(void)
 	
 	/* Check */
 	if (!l_Bits || !l_SoundOK)
+		return;
+	
+	/* Check for thread match */
+	if (a_Threaded != l_ThreadedSound)
 		return;
 	
 	/* Is the buffer finished? */

@@ -327,6 +327,8 @@ typedef struct I_SoundDriver_s
 	void (*UnRequest)(struct I_SoundDriver_s* const a_Driver);
 		// Get frequency
 	uint16_t (*GetFreq)(struct I_SoundDriver_s* const a_Driver);
+		// Is sound threaded?
+	bool_t (*Thread)(struct I_SoundDriver_s* const a_Driver, void (*a_ThreadFunc)(const bool_t a_Threaded));
 	
 	/* Dynamic */
 	void* Data;									// Private data
@@ -358,40 +360,6 @@ typedef struct I_NetSocket_s
 	int FD;										// File Descriptor
 	void* CFile;								// C File
 } I_NetSocket_t;
-
-/* I_NetDriver_t -- Network drivers, for network communication */
-typedef struct I_NetDriver_s
-{
-	/* Info */
-	char Name[MAXDRIVERNAME];					// Name of driver
-	char ShortName[MAXDRIVERNAME];				// Short driver name
-	char Protocols[MAXPROTOCOLNAMES];			// Protocols
-	uint8_t Priority;							// Priority of the driver
-	
-	/* Functions */
-		// Initializes a driver
-	bool_t (*Init)(struct I_NetDriver_s* const a_Driver);
-		// Destroys a driver
-	bool_t (*Destroy)(struct I_NetDriver_s* const a_Driver);
-		// Success
-	void (*Success)(struct I_NetDriver_s* const a_Driver);
-		
-		// Convert name to host
-	I_NetHost_t* (*NameToHost)(struct I_NetDriver_s* const a_Driver, const char* const a_Name);
-		// Convert host to name
-	size_t (*HostToName)(struct I_NetDriver_s* const a_Driver, I_NetHost_t* const a_Host, char* const a_Out, const size_t a_OutSize);
-	
-		// Creates a new socket
-	I_NetSocket_t* (*NewSocket)(struct I_NetDriver_s* const a_Driver, const char* const a_Protocol);
-		// Destroys a socket
-	void* (*DestroySocket)(struct I_NetDriver_s* const a_Driver, I_NetSocket_t* const a_Socket);
-		// Bind socket to address
-	bool_t (*BindSocket)(struct I_NetDriver_s* const a_Driver, I_NetSocket_t* const a_Socket, I_NetHost_t* const a_Host);
-	
-	/* Dynamic */
-	void* Data;									// Private data
-	size_t Size;								// Private size
-} I_NetDriver_t;
 
 /****************
 *** FUNCTIONS ***
@@ -442,10 +410,6 @@ void I_CommonCommandLine(int* const a_argc, char*** const a_argv, const char* co
 void I_Quit(void);
 
 /*** i_utlnet.c ***/
-bool_t I_AddNetDriver(I_NetDriver_t* const a_Driver);
-bool_t I_RemoveNetDriver(I_NetDriver_t* const a_Driver);
-I_NetDriver_t* I_FindNetDriver(const char* const a_Protocol);
-
 bool_t I_InitNetwork(void);
 
 /*** i_utlsfx.c ***/
@@ -471,6 +435,7 @@ void I_ShutdownSound(void);
 void I_UpdateSound(void);
 void I_SubmitSound(void);
 size_t I_SoundBufferRequest(const I_SoundType_t a_Type, const uint8_t a_Bits, const uint16_t a_Freq, const uint8_t a_Channels, const uint32_t a_Samples);
+bool_t I_SoundSetThreaded(void (*a_ThreadFunc)(const bool_t a_Threaded));
 void* I_SoundBufferObtain(void);
 bool_t I_SoundBufferIsFinished(void);
 void I_SoundBufferWriteOut(void);

@@ -1436,6 +1436,9 @@ bool_t I_StartupSound(void)
 	if (!I_SoundDriverInit())
 		CONS_Printf("I_StartupSound: Failed to add interface specific drivers.\n");
 	
+	/* Add exit function */
+	I_AddExitFunc(I_ShutdownSound);
+	
 	/* Return only if sound drivers were loaded */
 	return !!l_NumSoundDrivers;
 }
@@ -1504,6 +1507,19 @@ size_t I_SoundBufferRequest(const I_SoundType_t a_Type, const uint8_t a_Bits, co
 	
 	/* Return if found */
 	return RetVal;
+}
+
+/* I_SoundSetThreaded() -- Attempts setting threaded sound */
+bool_t I_SoundSetThreaded(void (*a_ThreadFunc)(const bool_t a_Threaded))
+{
+	/* Check */
+	if (!l_CurSoundDriver)
+		return false;
+	
+	/* Try threading it */
+	if (l_CurSoundDriver->Thread)
+		return l_CurSoundDriver->Thread(l_CurSoundDriver, a_ThreadFunc);
+	return false;
 }
 
 /* I_SoundBufferObtain() -- Obtain sound buffer */

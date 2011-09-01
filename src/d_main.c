@@ -534,7 +534,7 @@ void D_DoomLoop(void)
 			rendertimeout = entertic + TICRATE / 17;
 
 			//added:16-01-98:consoleplayer -> displayplayer (hear sounds from viewpoint)
-			S_UpdateSounds();	// move positional sounds
+			S_UpdateSounds(false);	// move positional sounds
 			// Update display, next frame, with current state.
 			D_Display();
 			supdate = false;

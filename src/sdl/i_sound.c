@@ -36,6 +36,12 @@
 #include "i_sound.h"
 #include "i_util.h"
 
+/****************
+*** CONSTANTS ***
+****************/
+
+#define SDLSLIPCOUNT 2
+
 /*****************
 *** STRUCTURES ***
 *****************/
@@ -45,13 +51,8 @@ typedef struct I_SDLSoundLocal_s
 {
 	int RetVal;
 	SDL_AudioSpec Spec;
-	void* DoubleBuffer;
-	volatile bool_t DoWrite, IsFinished;
-	volatile size_t CopyStreamCount;
-	
-	SDL_mutex* Mutex;
-	SDL_mutex* SecureLock;
-	SDL_cond* Condition;
+	void (*ThreadFunc)(const bool_t a_Threaded);
+	void* Buffer;
 } I_SDLSoundLocal_t;
 
 /**********************************
@@ -62,6 +63,7 @@ typedef struct I_SDLSoundLocal_s
 static void I_SDLSD_Callback(struct I_SoundDriver_s* a_Driver, uint8_t* a_Stream, int a_Length)
 {
 	I_SDLSoundLocal_t* Local;
+	size_t Src;
 	
 	/* Check */
 	if (!a_Driver || !a_Stream || !a_Length)
@@ -74,12 +76,10 @@ static void I_SDLSD_Callback(struct I_SoundDriver_s* a_Driver, uint8_t* a_Stream
 	if (!Local)
 		return;
 		
-	/* Copy the buffer? */
-	// Pause audio buffer
-	SDL_PauseAudio(1);
-	
-	// Do actual copy
-	memmove(a_Stream, Local->DoubleBuffer, (a_Length < Local->Spec.size ? a_Length : Local->Spec.size));
+	/* Set local stuff for threaded operation */
+	Local->Buffer = a_Stream;
+	Local->ThreadFunc(true);
+	Local->Buffer = NULL;
 }
 
 /* I_SDLSD_Init() -- Initializes a driver */
@@ -130,9 +130,6 @@ void I_SDLSD_Success(struct I_SoundDriver_s* const a_Driver)
 	// Check
 	if (!Local)
 		return;
-	
-	/* Set return value */
-	Local->RetVal = -1;
 }
 
 /* I_SDLSD_Request() -- Requests a buffer for this driver */
@@ -168,9 +165,6 @@ size_t I_SDLSD_Request(struct I_SoundDriver_s* const a_Driver, const uint8_t a_B
 	if (Local->RetVal != 0)
 		return 0;
 	
-	/* Allocate double buffer */
-	Local->DoubleBuffer = Z_Malloc(Local->Spec.size, PU_STATIC, NULL);
-	
 	/* Success */
 	return Local->Spec.samples;
 }
@@ -191,8 +185,8 @@ void* I_SDLSD_Obtain(struct I_SoundDriver_s* const a_Driver)
 	if (!Local)
 		return NULL;
 	
-	/* Return double buffer */
-	return Local->DoubleBuffer;
+	/* Return buffer */
+	return Local->Buffer;
 }
 
 /* I_SDLSD_IsFinished() -- Checks if the buffer is finished playing */
@@ -212,28 +206,14 @@ bool_t I_SDLSD_IsFinished(struct I_SoundDriver_s* const a_Driver)
 	if (!Local)
 		return;
 	
-	/* Return finished status */
-	return SDL_GetAudioStatus() == SDL_AUDIO_PAUSED;
+	/* Always returns true for threaded enable */
+	return true;
 }
 
 /* I_SDLSD_WriteOut() -- Done streaming into buffer */
 void I_SDLSD_WriteOut(struct I_SoundDriver_s* const a_Driver)
 {
-	I_SDLSoundLocal_t* Local;
-	
-	/* Check */
-	if (!a_Driver)
-		return;
-	
-	/* Get Local */
-	Local = (I_SDLSoundLocal_t*)a_Driver->Data;
-	
-	// Check
-	if (!Local)
-		return;
-	
-	/* Unpause audio, the buffer is full */
-	SDL_PauseAudio(0);
+	// Does nothing, due to threaded nature
 }
 
 /* I_SDLSD_UnRequest() -- Unrequests a buffer previously obtained */
@@ -258,12 +238,6 @@ void I_SDLSD_UnRequest(struct I_SoundDriver_s* const a_Driver)
 		
 	/* Free the stream */
 	SDL_CloseAudio();
-	
-	// Clear out
-	Local->RetVal = -1;
-	if (Local->DoubleBuffer)
-		Z_Free(Local->DoubleBuffer);
-	Local->DoubleBuffer = NULL;
 }
 
 /* I_SDLSD_GetFreq() -- Get frequency of driver */
@@ -286,6 +260,30 @@ uint16_t I_SDLSD_GetFreq(struct I_SoundDriver_s* const a_Driver)
 	return Local->Spec.freq;
 }
 
+/* I_SDLSD_Thread() -- Thread SDL music */
+bool_t I_SDLSD_Thread(struct I_SoundDriver_s* const a_Driver, void (*a_ThreadFunc)(const bool_t a_Threaded))
+{
+	I_SDLSoundLocal_t* Local;
+	
+	/* Check */
+	if (!a_Driver || !a_ThreadFunc)
+		return false;
+	
+	/* Get Local */
+	Local = (I_SDLSoundLocal_t*)a_Driver->Data;
+	
+	// Check
+	if (!Local)
+		return false;
+	
+	/* Set function */
+	Local->ThreadFunc = a_ThreadFunc;
+	SDL_PauseAudio(0);
+	
+	/* Success */
+	return true;
+}
+
 /* l_SDLSound -- SDL sound driver */
 static I_SoundDriver_t l_SDLSoundDriver =
 {
@@ -305,6 +303,7 @@ static I_SoundDriver_t l_SDLSoundDriver =
 	I_SDLSD_WriteOut,
 	I_SDLSD_UnRequest,
 	I_SDLSD_GetFreq,
+	I_SDLSD_Thread,
 };
 
 /****************
