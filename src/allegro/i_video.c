@@ -724,6 +724,68 @@ void I_RemoveJoysticks(void)
 	remove_joystick();
 }
 
+/* I_GetJoystickID() -- Gets name of the joysticks */
+bool_t I_GetJoystickID(const size_t a_JoyID, uint32_t* const a_Code, char* const a_Text, const size_t a_TextSize, char* const a_Cool, const size_t a_CoolSize)
+{
+	/* Check */
+	if (!a_Code || (!a_Text && !a_TextSize) || (!a_Cool && !a_CoolSize))
+		return false;
+	
+	/* No joysticks? */
+	if (!num_joysticks || a_JoyID >= (size_t)num_joysticks)
+		return false;
+	
+	/* Send Code */
+	if (a_Code)
+	{
+		// Allegro has no real method of identifying sticks at all
+		*a_Code = a_JoyID;
+	}
+	
+	/* Send Name */
+	if (a_Text && a_TextSize)
+	{
+		// Same as above
+		snprintf(a_Text, a_TextSize, "allegrojoy%i", (int)a_JoyID);
+	}
+	
+	/* Send Cool Name */
+	if (a_Cool && a_CoolSize)
+	{
+		// Same as above
+		snprintf(a_Cool, a_CoolSize, "allegrojoy%i", (int)a_JoyID);
+	}
+	
+	/* Success */
+	return true;
+}
+
+/* I_GetJoystickCounts() -- Get joystick counts */
+bool_t I_GetJoystickCounts(const size_t a_JoyID, uint32_t* const a_NumAxis, uint32_t* const a_NumButtons)
+{
+	size_t i;
+	
+	/* Check */
+	if (!a_NumAxis && !a_NumButtons)
+		return false;
+	
+	/* No joysticks? */
+	if (!num_joysticks || a_JoyID >= (size_t)num_joysticks)
+		return false;
+	
+	/* Return axis */
+	if (a_NumAxis)
+		for (*a_NumAxis = 0, i = 0; i < joy[a_JoyID].num_sticks; i++)
+			*a_NumAxis = joy[a_JoyID].stick[i].num_axis;
+	
+	/* Return buttons */
+	if (a_NumButtons)
+		*a_NumButtons = joy[a_JoyID].num_buttons;
+	
+	/* Success */
+	return true;
+}
+
 /* I_ProbeMouse() -- Probes Mice */
 bool_t I_ProbeMouse(const size_t a_ID)
 {

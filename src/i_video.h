@@ -53,6 +53,8 @@ bool_t I_TextMode(const bool_t a_OnOff);
 
 size_t I_ProbeJoysticks(void);
 void I_RemoveJoysticks(void);
+bool_t I_GetJoystickID(const size_t a_JoyID, uint32_t* const a_Code, char* const a_Text, const size_t a_TextSize, char* const a_Cool, const size_t a_CoolSize);
+bool_t I_GetJoystickCounts(const size_t a_JoyID, uint32_t* const a_NumAxis, uint32_t* const a_NumButtons);
 
 bool_t I_ProbeMouse(const size_t a_ID);
 bool_t I_RemoveMouse(const size_t a_ID);

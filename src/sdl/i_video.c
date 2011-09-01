@@ -37,6 +37,7 @@
 #include "doomdef.h"
 #include "i_video.h"
 #include "i_util.h"
+#include "z_zone.h"
 
 #define __G_INPUT_H__
 #include "console.h"
@@ -582,6 +583,34 @@ const uint8_t c_SDLToReMooDKey[SDLK_LAST] =				// Converts an SDL key to a ReMoo
 	IKBK_NULL,	// SDLK_UNDO
 };
 
+#define ISJOYSTRINGSIZE		256							// String size of joy data
+#define ISJOYMAXMAPS		32							// Maximum mappings allowed
+
+/*****************
+*** STRUCTURES ***
+*****************/
+
+/* IS_JoystickInfo_t -- SDL joys get a bit complex */
+typedef struct IS_JoystickInfo_s
+{
+	size_t LinearID;									// Linear ID
+	size_t CodeID;										// Hashed ID
+	char FullName[ISJOYSTRINGSIZE];						// Full name of joystick
+	char ShortName[ISJOYSTRINGSIZE];					// Short name of joystick
+	SDL_Joystick* JoyPtr;								// Joystick pointer
+	
+	size_t NumButtons;									// Number of Buttons
+	size_t NumAxis;										// Number of axis
+	
+	/* Mappings to axis and/or buttons */
+	size_t AxisMap[ISJOYMAXMAPS];						// Axis to axis
+	size_t BallMap[ISJOYMAXMAPS][2];					// Balls [x, y] to axis
+	size_t HatMapA[ISJOYMAXMAPS][2];					// Hats [x, y] to axis
+	size_t HatMapB[ISJOYMAXMAPS][5];					// Hats [c, u, d, l, r] to buttons
+	int8_t HatCenter[ISJOYMAXMAPS];						// Hat center status
+	size_t ButtonMap[ISJOYMAXMAPS];						// Buttons to buttons
+} IS_JoystickInfo_t;
+
 /*************
 *** LOCALS ***
 *************/
@@ -590,6 +619,8 @@ static SDL_Surface* l_SDLSurface = NULL;				// SDL Video plane
 static SDL_Surface* l_Icon = NULL;						// ReMooD Icon
 static bool_t l_MouseOn = false;						// Is the mouse on?
 static bool_t l_DoGrab = false;							// Grab mouse?
+static IS_JoystickInfo_t* l_Joys = NULL;				// Joystick Info
+static size_t l_NumJoys = 0;							// Joystick Count
 
 /****************
 *** FUNCTIONS ***
@@ -609,7 +640,8 @@ static uint8_t IS_ConvertKey(const SDLKey a_SKey)
 void I_GetEvent(void)
 {
 	SDL_Event Event;
-	I_EventEx_t ExEvent;
+	I_EventEx_t ExEvent[4];
+	size_t i, j, a, d, o, dc, oc, dir;
 	static bool_t Focused = true;
 	static bool_t DidWarp = false;
 	static bool_t DownKeys[SDLK_LAST];
@@ -625,6 +657,11 @@ void I_GetEvent(void)
 		// Which event is this now?
 		switch (Event.type)
 		{
+				// Quite Event
+			case SDL_QUIT:
+				ExEvent[0].Type = IET_QUIT;
+				continue;
+				
 				// Focus of the window changes
 			case SDL_ACTIVEEVENT:
 				Focused = !!Event.active.gain;
@@ -632,7 +669,7 @@ void I_GetEvent(void)
 				
 				// Key event
 			case SDL_KEYDOWN:
-				ExEvent.Data.Keyboard.Down = true;
+				ExEvent[0].Data.Keyboard.Down = true;
 			case SDL_KEYUP:
 				Key = Event.key.keysym.sym;
 				
@@ -641,24 +678,24 @@ void I_GetEvent(void)
 					continue;
 			
 				// Repeated event?
-				if (ExEvent.Data.Keyboard.Down && DownKeys[Key])
-					ExEvent.Data.Keyboard.Repeat = true;
+				if (ExEvent[0].Data.Keyboard.Down && DownKeys[Key])
+					ExEvent[0].Data.Keyboard.Repeat = true;
 				
 				// Actual data
-				ExEvent.Type = IET_KEYBOARD;
-				ExEvent.Data.Keyboard.KeyCode = IS_ConvertKey(Key);
+				ExEvent[0].Type = IET_KEYBOARD;
+				ExEvent[0].Data.Keyboard.KeyCode = IS_ConvertKey(Key);
 				
-				if (ExEvent.Data.Keyboard.Down)
-					LastUnic[Key] = ExEvent.Data.Keyboard.Character = Event.key.keysym.unicode;
+				if (ExEvent[0].Data.Keyboard.Down)
+					LastUnic[Key] = ExEvent[0].Data.Keyboard.Character = Event.key.keysym.unicode;
 				else
 				{
 					// Remeber unicode key (hack)
-					ExEvent.Data.Keyboard.Character = LastUnic[Key];
+					ExEvent[0].Data.Keyboard.Character = LastUnic[Key];
 					LastUnic[Key];
 				}
 				
 				// Set down state
-				DownKeys[Key] = ExEvent.Data.Keyboard.Down;
+				DownKeys[Key] = ExEvent[0].Data.Keyboard.Down;
 				break;
 				
 				// Mouse Motion:
@@ -670,22 +707,146 @@ void I_GetEvent(void)
 					continue;
 				}
 			
-				ExEvent.Type = IET_MOUSE;
-				ExEvent.Data.Mouse.MouseID = 0;		// Always mouse Zero
-				ExEvent.Data.Mouse.Pos[0] = Event.motion.x;
-				ExEvent.Data.Mouse.Pos[1] = Event.motion.y;
-				ExEvent.Data.Mouse.Move[0] = Event.motion.xrel;
-				ExEvent.Data.Mouse.Move[1] = -Event.motion.yrel;	// Negative because SDL is swapped
+				ExEvent[0].Type = IET_MOUSE;
+				ExEvent[0].Data.Mouse.MouseID = 0;		// Always mouse Zero
+				ExEvent[0].Data.Mouse.Pos[0] = Event.motion.x;
+				ExEvent[0].Data.Mouse.Pos[1] = Event.motion.y;
+				ExEvent[0].Data.Mouse.Move[0] = Event.motion.xrel;
+				ExEvent[0].Data.Mouse.Move[1] = -Event.motion.yrel;	// Negative because SDL is swapped
 				break;
 				
 				// Mouse button
 			case SDL_MOUSEBUTTONDOWN:
-				ExEvent.Data.Mouse.Down = 1;
+				ExEvent[0].Data.Mouse.Down = 1;
 			case SDL_MOUSEBUTTONUP:
-				ExEvent.Type = IET_MOUSE;
-				ExEvent.Data.Mouse.Button = Event.button.button;
-				ExEvent.Data.Mouse.Pos[0] = Event.button.x;
-				ExEvent.Data.Mouse.Pos[1] = Event.button.y;
+				ExEvent[0].Type = IET_MOUSE;
+				ExEvent[0].Data.Mouse.Button = Event.button.button;
+				ExEvent[0].Data.Mouse.Pos[0] = Event.button.x;
+				ExEvent[0].Data.Mouse.Pos[1] = Event.button.y;
+				break;
+				
+				
+#if 0
+static IS_JoystickInfo_t* l_Joys = NULL;				// Joystick Info
+static size_t l_NumJoys = 0;							// Joystick Count
+
+/* IS_JoystickInfo_t -- SDL joys get a bit complex */
+typedef struct IS_JoystickInfo_s
+{
+	size_t LinearID;									// Linear ID
+	size_t CodeID;										// Hashed ID
+	char FullName[ISJOYSTRINGSIZE];						// Full name of joystick
+	char ShortName[ISJOYSTRINGSIZE];					// Short name of joystick
+	SDL_Joystick* JoyPtr;								// Joystick pointer
+	
+	size_t NumButtons;									// Number of Buttons
+	size_t NumAxis;										// Number of axis
+	
+	/* Mappings to axis and/or buttons */
+	size_t AxisMap[ISJOYMAXMAPS];						// Axis to axis
+	size_t BallMap[ISJOYMAXMAPS][2];					// Balls [x, y] to axis
+	size_t HatMapA[ISJOYMAXMAPS][2];					// Hats [x, y] to axis
+	size_t HatMapB[ISJOYMAXMAPS][5];					// Hats [c, u, d, l, r] to buttons
+	int8_t HatCenter[ISJOYMAXMAPS];						// Hat center status
+	size_t ButtonMap[ISJOYMAXMAPS];						// Buttons to buttons
+} IS_JoystickInfo_t;
+#endif
+				
+				// Joystick Axis
+			case SDL_JOYAXISMOTION:
+				break;
+				
+				// Joystick Ball
+			case SDL_JOYBALLMOTION:
+				break;
+				
+				// Joystick Hat
+			case SDL_JOYHATMOTION:
+				if (Event.jhat.which >= l_NumJoys || Event.jhat.hat >= ISJOYMAXMAPS)
+					continue;
+				
+				a = 0;
+				
+				// Hat has not changed
+				if (l_Joys[Event.jhat.which].HatCenter[Event.jhat.hat] == Event.jhat.value)
+					continue;
+				
+				// X Axis Change
+				if ((l_Joys[Event.jhat.which].HatCenter[Event.jhat.hat] & (SDL_HAT_LEFT | SDL_HAT_RIGHT)) != (Event.jhat.value & (SDL_HAT_LEFT | SDL_HAT_RIGHT)))
+				{
+					// Quick direction (old and difference)
+					oc = !(l_Joys[Event.jhat.which].HatCenter[Event.jhat.hat] & (SDL_HAT_LEFT | SDL_HAT_RIGHT));
+					dc = !(Event.jhat.value & (SDL_HAT_LEFT | SDL_HAT_RIGHT));
+					o = ((l_Joys[Event.jhat.which].HatCenter[Event.jhat.hat] & SDL_HAT_RIGHT) ? 2 : oc);
+					d = ((Event.jhat.value & SDL_HAT_RIGHT) ? 2 : dc);
+					
+					// Release old direction button
+					dir = (o == 0 ? 0 : (o == 2 ? 1 : 4));
+					ExEvent[a].Type = IET_JOYSTICK;
+					ExEvent[a].Data.Joystick.JoyID = Event.jhat.which;
+					ExEvent[a].Data.Joystick.Button = l_Joys[Event.jhat.which].HatMapB[Event.jhat.hat][dir] + 1;
+					a++;
+					
+					// Hold new direction button
+					dir = (d == 0 ? 0 : (d == 2 ? 1 : 4));
+					ExEvent[a].Type = IET_JOYSTICK;
+					ExEvent[a].Data.Joystick.JoyID = Event.jhat.which;
+					ExEvent[a].Data.Joystick.Down = 1;
+					ExEvent[a].Data.Joystick.Button = l_Joys[Event.jhat.which].HatMapB[Event.jhat.hat][dir] + 1;
+					a++;
+					
+					// Reorient X axis
+					ExEvent[a].Type = IET_JOYSTICK;
+					ExEvent[a].Data.Joystick.JoyID = Event.jhat.which;
+					ExEvent[a].Data.Joystick.Axis = l_Joys[Event.jhat.which].HatMapA[Event.jhat.hat][0] + 1;
+					ExEvent[a].Data.Joystick.Value = (d == 0 ? -32768 : (d == 2 ? 32767 : 0));
+				}
+				
+				// Y Axis Change
+				if ((l_Joys[Event.jhat.which].HatCenter[Event.jhat.hat] & (SDL_HAT_UP | SDL_HAT_DOWN)) != (Event.jhat.value & (SDL_HAT_UP | SDL_HAT_DOWN)))
+				{
+					// Quick direction (old and difference)
+					oc = !(l_Joys[Event.jhat.which].HatCenter[Event.jhat.hat] & (SDL_HAT_UP | SDL_HAT_DOWN));
+					dc = !(Event.jhat.value & (SDL_HAT_UP | SDL_HAT_DOWN));
+					o = ((l_Joys[Event.jhat.which].HatCenter[Event.jhat.hat] & SDL_HAT_DOWN) ? 2 : oc);
+					d = ((Event.jhat.value & SDL_HAT_DOWN) ? 2 : dc);
+					
+					// Release old direction button
+					dir = (o == 0 ? 2 : (o == 2 ? 3 : 4));
+					ExEvent[a].Type = IET_JOYSTICK;
+					ExEvent[a].Data.Joystick.JoyID = Event.jhat.which;
+					ExEvent[a].Data.Joystick.Button = l_Joys[Event.jhat.which].HatMapB[Event.jhat.hat][dir] + 1;
+					a++;
+					
+					// Hold new direction button
+					dir = (d == 0 ? 2 : (d == 2 ? 3 : 4));
+					ExEvent[a].Type = IET_JOYSTICK;
+					ExEvent[a].Data.Joystick.JoyID = Event.jhat.which;
+					ExEvent[a].Data.Joystick.Down = 1;
+					ExEvent[a].Data.Joystick.Button = l_Joys[Event.jhat.which].HatMapB[Event.jhat.hat][dir] + 1;
+					a++;
+					
+					// Reorient X axis
+					ExEvent[a].Type = IET_JOYSTICK;
+					ExEvent[a].Data.Joystick.JoyID = Event.jhat.which;
+					ExEvent[a].Data.Joystick.Axis = l_Joys[Event.jhat.which].HatMapA[Event.jhat.hat][1] + 1;
+					ExEvent[a].Data.Joystick.Value = (d == 0 ? -32768 : (d == 2 ? 32767 : 0));
+				}
+				
+				// Set new center
+				l_Joys[Event.jhat.which].HatCenter[Event.jhat.hat] = Event.jhat.value;
+				break;
+				
+				// Joystick Button
+			case SDL_JOYBUTTONDOWN:
+				ExEvent[0].Data.Joystick.Down = 1;
+			case SDL_JOYBUTTONUP:
+				// Out of range?
+				if (Event.jbutton.which >= l_NumJoys || Event.jbutton.button >= ISJOYMAXMAPS)
+					continue;
+				
+				ExEvent[0].Type = IET_JOYSTICK;
+				ExEvent[0].Data.Joystick.Button = l_Joys[Event.jbutton.which].ButtonMap[Event.jbutton.button] + 1;
 				break;
 				
 				// Unknown
@@ -694,8 +855,9 @@ void I_GetEvent(void)
 		}
 		
 		// Send event away
-		if (ExEvent.Type != IET_NULL)
-			I_EventExPush(&ExEvent);
+		for (i = 0; i < 4; i++)
+			if (ExEvent[i].Type != IET_NULL)
+				I_EventExPush(&ExEvent[i]);
 	}
 	
 	/* Warp the mouse */
@@ -951,6 +1113,9 @@ bool_t I_TextMode(const bool_t a_OnOff)
 /* I_ProbeJoysticks() -- Probes all joysticks */
 size_t I_ProbeJoysticks(void)
 {
+	size_t i, j, n, z, y, a, b;
+	const char* NameID;
+	
 	/* Init Joysticks */
 	if (SDL_InitSubSystem(SDL_INIT_JOYSTICK) == -1)
 		return 0;
@@ -958,19 +1123,166 @@ size_t I_ProbeJoysticks(void)
 	// Enable event states
 	SDL_JoystickEventState(SDL_ENABLE);
 	
+	/* Obtain joystick info */
+	// Count of joysticks
+	l_NumJoys = SDL_NumJoysticks();
+	
+	if (!l_NumJoys)
+		return 0;
+	
+	// Allocate array
+	l_Joys = Z_Malloc(sizeof(*l_Joys), PU_STATIC, NULL);
+	
+	// Go through each array filling in info
+	for (i = 0; i < l_NumJoys; i++)
+	{
+		// Open stick
+		l_Joys[i].JoyPtr = SDL_JoystickOpen(i);
+		
+		// Failed
+		if (!l_Joys[i].JoyPtr)
+			continue;
+		
+		// Get name and IDs
+		NameID = SDL_JoystickName(i);
+		if (!NameID)
+			NameID = "Unknown";
+		
+		// Copy full name directly
+		strncpy(l_Joys[i].FullName, NameID, ISJOYSTRINGSIZE);
+		
+		// Copy name but only good characters
+		for (z = 0, j = 0, n = strlen(NameID); z < n && j < ISJOYSTRINGSIZE - 1; z++)
+			if (isalnum(NameID[z]))
+				l_Joys[i].ShortName[j++] = tolower(NameID[z]);
+		l_Joys[i].ShortName[j++] = 0;
+		
+		// Copy Code work -- SDL lacks unique IDs, so try name
+		l_Joys[i].CodeID = Z_Hash(NameID) ^ i + i;
+		
+		// Prepare for major mapping
+		a = b = 0;
+		
+		// Map axis to axis
+		n = SDL_JoystickNumAxes(l_Joys[i].JoyPtr);
+		for (z = 0, j = 0; j < n; j++, z++)
+			if (z < ISJOYMAXMAPS)
+				l_Joys[i].AxisMap[z] = a++;
+			
+		// Map balls to axis
+		n = SDL_JoystickNumBalls(l_Joys[i].JoyPtr);
+		for (z = 0, j = 0; j < n; j++, z++)
+			for (y = 0; y < 2; y++)
+				if (z < ISJOYMAXMAPS)
+					l_Joys[i].BallMap[z][y] = a++;
+		
+		// Map hats to axis
+		n = SDL_JoystickNumHats(l_Joys[i].JoyPtr);
+		for (z = 0, j = 0; j < n; j++, z++)
+			for (y = 0; y < 2; y++)
+				if (z < ISJOYMAXMAPS)
+					l_Joys[i].HatMapA[z][y] = a++;
+		
+		// Map Buttons to buttons
+		n = SDL_JoystickNumButtons(l_Joys[i].JoyPtr);
+		for (z = 0, j = 0; j < n; j++, z++)
+			if (z < ISJOYMAXMAPS)
+				l_Joys[i].ButtonMap[z] = b++;
+				
+		// Map hats to buttons (5 of them)
+		n = SDL_JoystickNumHats(l_Joys[i].JoyPtr);
+		for (z = 0, j = 0; j < n; j++, z++)
+			for (y = 0; y < 5; y++)
+				if (z < ISJOYMAXMAPS)
+					l_Joys[i].HatMapB[z][y] = b++;
+			
+		// Axis and button totals
+		l_Joys[i].NumAxis = a;
+		l_Joys[i].NumButtons = b;
+	}
+	
 	// Return joystick count
-	return SDL_NumJoysticks();
+	return l_NumJoys;
 }
 
 /* I_RemoveJoysticks() -- Removes all joysticks */
 void I_RemoveJoysticks(void)
 {
+	size_t i;
+	
 	/* Stop the joystick */
 	// Ignore events from them now
 	SDL_JoystickEventState(SDL_IGNORE);
 	
+	// Close all joysticks
+	for (i = 0; i < l_Joys; i++)
+		SDL_JoystickClose(l_Joys[i].JoyPtr);
+	
+	// Free array
+	if (l_Joys)
+		Z_Free(l_Joys);
+	l_Joys = NULL;
+	l_NumJoys = 0;
+	
 	// Quit
 	SDL_QuitSubSystem(SDL_INIT_JOYSTICK);
+}
+
+/* I_GetJoystickID() -- Gets name of the joysticks */
+bool_t I_GetJoystickID(const size_t a_JoyID, uint32_t* const a_Code, char* const a_Text, const size_t a_TextSize, char* const a_Cool, const size_t a_CoolSize)
+{
+	size_t JoyCount, i, j, n;
+	const char* NameID;
+	
+	/* Check */
+	if (!a_Code || (!a_Text && !a_TextSize) || (!a_Cool && !a_CoolSize))
+		return false;
+	
+	/* No joysticks? */
+	if (!l_NumJoys || a_JoyID >= l_NumJoys)
+		return false;
+	
+	/* Send Code */
+	if (a_Code)
+		*a_Code = l_Joys[a_JoyID].CodeID;
+	
+	/* Send Name */
+	if (a_Text && a_TextSize)
+		// Copy name as is
+		strncpy(a_Text, l_Joys[a_JoyID].FullName, a_TextSize);
+	
+	/* Send Cool Name */
+	if (a_Cool && a_CoolSize)
+		// Copy name as is
+		strncpy(a_Cool, l_Joys[a_JoyID].ShortName, a_CoolSize);
+	
+	/* Success! */
+	return true;
+}
+
+/* I_GetJoystickCounts() -- Get joystick counts */
+bool_t I_GetJoystickCounts(const size_t a_JoyID, uint32_t* const a_NumAxis, uint32_t* const a_NumButtons)
+{
+	size_t JoyCount;
+	
+	/* Check */
+	if (!a_NumAxis && !a_NumButtons)
+		return false;
+	
+	/* No joysticks? */
+	if (!l_NumJoys || a_JoyID >= l_NumJoys)
+		return false;
+	
+	/* Return axis */
+	if (a_NumAxis)
+		*a_NumAxis = l_Joys[a_JoyID].NumAxis;
+	
+	/* Return buttons */
+	if (a_NumButtons)
+		*a_NumButtons = l_Joys[a_JoyID].NumButtons;
+	
+	/* Success */
+	return true;
 }
 
 /* I_ProbeMouse() -- Probes Mice */

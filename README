@@ -68,6 +68,13 @@ C888888:   :8O.   .C88C .cooCO: 8@:o@O@8 8@c.@@:   O@:c@O   :@@..@@.    O@:
     panel) then choose 320x240 or 640x480. Otherwise if you have a 4:3 screen
     (such as most CRTs) then choose 320x200 or 640x400. This of course presumes
     you are playing the game fullscreen.
+ 
+ Q: I'm playing on my laptop and sometimes the Doom Guy randomly moves his
+    position, but he only does it when I move my laptop.
+ A: Your laptop may have an accelerometer which may be exposed to the system
+    as a joystick. An example would be the "ST LIS3LV02DL Accelerometer" on my
+    laptop for example. It usually is best to not use an accelerometer as a
+    joystick unless you want to play by tossing your laptop across a room.
 
 ===============================================================================
 ========[ ALLEGRO SPECIFICS ]==================================================

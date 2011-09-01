@@ -170,6 +170,11 @@ bool_t I_EventExPop(I_EventEx_t* const a_Event)
 void I_OsPolling(void)
 {
 	I_EventEx_t Event;
+	static int DevEvents;
+	
+	/* Check for event debugging */
+	if (!DevEvents)
+		DevEvents = (!!M_CheckParm("-devevent")) + 1;
 	
 	/* Update things */
 	// Joysticks need updating before being able to be used
@@ -180,7 +185,80 @@ void I_OsPolling(void)
 	
 	/* Translate events to old Doom events */
 	while (I_EventExPop(&Event))
+	{
+		// Debug
+		if (DevEvents == 2)
+		{
+			// Which type of event?
+			switch (Event.Type)
+			{
+					// Quit
+				case IET_QUIT:
+					CONS_Printf("Event: QUIT!!\n");
+					break;
+					
+					// Keyboard
+				case IET_KEYBOARD:
+					CONS_Printf("Event: KEYBRD St:%2s Rp:%2s Kc:%03X Ch:%c\n",
+							(Event.Data.Keyboard.Down ? "Dn" : "Up"),
+							(Event.Data.Keyboard.Repeat ? "Re" : "--"),
+							Event.Data.Keyboard.KeyCode,
+							(Event.Data.Keyboard.Character & 0x7F ? Event.Data.Keyboard.Character & 0x7F : ' ')
+						);
+					break;
+					
+					// Mouse
+				case IET_MOUSE:
+					CONS_Printf("Event: MOUSE_ Id:%2i Ps:(%5i, %5i)",
+							Event.Data.Mouse.MouseID,
+							Event.Data.Mouse.Pos[0], Event.Data.Mouse.Pos[1]
+						);
+					
+					// Button
+					if (Event.Data.Mouse.Button)
+						CONS_Printf(" St:%2s Bt:%2i\n",
+								(Event.Data.Mouse.Down ? "Dn" : "Up"),
+								Event.Data.Mouse.Button
+							);
+					
+					// Movement
+					else
+						CONS_Printf(" Mv:(%+4i, %+4i)\n",
+								Event.Data.Mouse.Move[0], Event.Data.Mouse.Move[1]
+							);
+					break;
+					
+					// Joystick
+				case IET_JOYSTICK:
+					CONS_Printf("Event: JOYSTK Id:%2i",
+							Event.Data.Joystick.JoyID
+						);
+					
+					// Button
+					if (Event.Data.Joystick.Button)
+						CONS_Printf(" St:%2s Bt:%2i\n",
+								(Event.Data.Joystick.Down ? "Dn" : "Up"),
+								Event.Data.Joystick.Button
+							);
+					
+					// Axis
+					else
+						CONS_Printf(" Ax:%2i Vl:%+6i\n",
+								Event.Data.Joystick.Axis,
+								Event.Data.Joystick.Value
+							);
+					break;
+				
+					// Unknown
+				default:
+					CONS_Printf("Event: UNKNWN\n");
+					break;
+			}
+		}
+	
+		// Translate
 		I_EventToOldDoom(&Event);
+	}
 }
 
 /* IS_NewKeyToOldKey() -- Converts a new key to an old key */
@@ -447,6 +525,10 @@ void I_UpdateJoysticks(void)
 /* I_InitJoystick() -- Initialize the joystick */
 void I_InitJoystick(void)
 {
+#define BUFSIZE 256
+	char Buf[BUFSIZE];
+	char CoolBuf[BUFSIZE];
+	uint32_t ID, NumAxis, NumButtons;
 	static bool_t Enabled = false;
 	size_t i;
 	
@@ -474,12 +556,21 @@ void I_InitJoystick(void)
 		}
 		
 		// Print number of sticks
-		CONS_Printf("I_InitJoystick: There are %i joysticks.\n", l_NumJoys);
+		CONS_Printf("I_InitJoystick: There are %i joystick(s).\n", (int)l_NumJoys);
 		
 		// Map base joysticks
 		for (i = 0; i < MAXJOYSTICKS; i++)
 			l_RealJoyMap[i] = i;
 		
+		// Print name of joysticks
+		for (i = 0; i < l_NumJoys; i++)
+		{
+			if (I_GetJoystickID(i, &ID, Buf, BUFSIZE, CoolBuf, BUFSIZE))
+				CONS_Printf("I_InitJoystick: Joystick ID %08x is called \"%s\" (Full name \"%s\").\n", ID, CoolBuf, Buf);
+			if (I_GetJoystickCounts(i, &NumAxis, &NumButtons))
+				CONS_Printf("I_InitJoystick: Has %u axis and %u buttons.\n", NumAxis, NumButtons);
+		}
+				
 		// Enable
 		Enabled = true;
 	}
@@ -497,6 +588,7 @@ void I_InitJoystick(void)
 		// Disable
 		Enabled = false;
 	}
+#undef BUFSIZE
 }
 
 /* I_BaseTiccmd() -- Obtain driver based tic command */
