@@ -243,9 +243,12 @@ static uint8_t IS_ConvertKey(const size_t a_AKey)
 /* I_GetEvent() -- Gets an event and adds it to the queue */
 void I_GetEvent(void)
 {
-	size_t i, j, z;
+#define MAXJOYAXIS 8
+	size_t i, j, k, z, a, m;
 	static uint8_t Shifties[KEY_MAX];
+	static uint16_t LastUnic[KEY_MAX];
 	static uint32_t JoyButtons[MAXJOYSTICKS];
+	static int32_t JoyAxis[MAXJOYSTICKS][MAXJOYAXIS];
 	static uint32_t MouseButtons;
 	I_EventEx_t ExEvent;
 	int32_t MousePos[2];
@@ -262,8 +265,9 @@ void I_GetEvent(void)
 		// Handle position (but only if it changed)
 		if (mouse_x != l_OldMousePos[0] || mouse_y != l_OldMousePos[1])
 		{
-			memset(&ExEvent, 0, sizeof(&ExEvent));
+			memset(&ExEvent, 0, sizeof(ExEvent));
 			ExEvent.Type = IET_MOUSE;
+			ExEvent.Data.Mouse.Button = 0;
 			ExEvent.Data.Mouse.Pos[0] = mouse_x;
 			ExEvent.Data.Mouse.Pos[1] = mouse_y;
 			ExEvent.Data.Mouse.Move[0] = ExEvent.Data.Mouse.Pos[0] - l_OldMousePos[0];
@@ -288,13 +292,13 @@ void I_GetEvent(void)
 		}
 		
 		// Handle Buttons
-		for (i = 0; i < 32; i++)
+		for (i = 0; i < 15; i++)
 		{
 			// Use repeat
 			Repeat = false;
 			
 			// Clear event
-			memset(&ExEvent, 0, sizeof(&ExEvent));
+			memset(&ExEvent, 0, sizeof(ExEvent));
 			ExEvent.Type = IET_MOUSE;
 		
 			// If button is on and our array is off, then button was pressed
@@ -332,8 +336,12 @@ void I_GetEvent(void)
 	/* Joystick Getting */
 	if (poll_joystick() == 0)
 	{
+		m = num_joysticks;
+		if (m >= MAXJOYSTICKS)
+			m = MAXJOYSTICKS;
+		
 		// For every single joystick
-		for (i = 0; i < num_joysticks; i++)
+		for (i = 0; i < m; i++)
 		{
 			z = joy[i].num_buttons;
 			if (z >= JOYBUTTONS)
@@ -346,9 +354,10 @@ void I_GetEvent(void)
 				Repeat = false;
 				
 				// Clear event
-				memset(&ExEvent, 0, sizeof(&ExEvent));
+				memset(&ExEvent, 0, sizeof(ExEvent));
 				ExEvent.Type = IET_JOYSTICK;
 				ExEvent.Data.Joystick.JoyID = i;
+				ExEvent.Data.Joystick.Button = 0;
 			
 				// If button is on and our array is off, then button was pressed
 				if (joy[i].button[j].b && !(JoyButtons[i] & (1 << j)))
@@ -378,6 +387,39 @@ void I_GetEvent(void)
 				// Send away
 				I_EventExPush(&ExEvent);
 			}
+			
+			// Check for axis changes
+			z = joy[i].num_sticks;
+			
+			for (a = 0, j = 0; j < z; j++)
+				// For every stick's axis
+				for (k = 0; k < joy[i].stick[j].num_axis; k++, a++)
+					// Only if changed
+					if (JoyAxis[i][a] != joy[i].stick[j].axis[k].pos)
+						// Only if axis is not overflowed
+						if (a < MAXJOYAXIS)
+						{
+							// Send event
+							memset(&ExEvent, 0, sizeof(ExEvent));
+							ExEvent.Type = IET_JOYSTICK;
+							ExEvent.Data.Joystick.JoyID = i;
+							ExEvent.Data.Joystick.Button = 0;
+							ExEvent.Data.Joystick.Axis = a + 1;
+							ExEvent.Data.Joystick.Value = joy[i].stick[j].axis[k].pos;
+							
+							// Map -127 to 127 and then make it -32768 to 32767
+							ExEvent.Data.Joystick.Value *= 258;
+							
+							if (ExEvent.Data.Joystick.Value < 0)
+								ExEvent.Data.Joystick.Value -= 2;
+							else if (ExEvent.Data.Joystick.Value > 0)
+								ExEvent.Data.Joystick.Value++;
+							
+							I_EventExPush(&ExEvent);
+						
+							// Update old position
+							JoyAxis[i][a] = joy[i].stick[j].axis[k].pos;
+						}
 		}
 	}
 	
@@ -399,12 +441,12 @@ void I_GetEvent(void)
 		Shifties[i] = 1;
 		
 		// Create event
-		memset(&ExEvent, 0, sizeof(&ExEvent));
+		memset(&ExEvent, 0, sizeof(ExEvent));
 		ExEvent.Type = IET_KEYBOARD;
 		ExEvent.Data.Keyboard.Down = 1;
 		ExEvent.Data.Keyboard.Repeat = Repeat;
 		ExEvent.Data.Keyboard.KeyCode = IS_ConvertKey(i);
-		ExEvent.Data.Keyboard.Character = Key & 0x7F;	// Char is easy
+		LastUnic[i] = ExEvent.Data.Keyboard.Character = Key & 0x7F;	// Char is easy
 		
 		// Send away
 		I_EventExPush(&ExEvent);
@@ -421,7 +463,7 @@ void I_GetEvent(void)
 		Shifties[i] = 1;
 		
 		// Create event
-		memset(&ExEvent, 0, sizeof(&ExEvent));
+		memset(&ExEvent, 0, sizeof(ExEvent));
 		ExEvent.Type = IET_KEYBOARD;
 		ExEvent.Data.Keyboard.Down = 1;
 		ExEvent.Data.Keyboard.Repeat = 0;
@@ -443,16 +485,18 @@ void I_GetEvent(void)
 		Shifties[i] = 0;
 		
 		// Create event
-		memset(&ExEvent, 0, sizeof(&ExEvent));
+		memset(&ExEvent, 0, sizeof(ExEvent));
 		ExEvent.Type = IET_KEYBOARD;
 		ExEvent.Data.Keyboard.Down = 0;
 		ExEvent.Data.Keyboard.Repeat = false;
 		ExEvent.Data.Keyboard.KeyCode = IS_ConvertKey(i);
-		ExEvent.Data.Keyboard.Character = 0;	// Ignore character
+		ExEvent.Data.Keyboard.Character = LastUnic[i];	// Use last inputted char
 		
 		// Send away
 		I_EventExPush(&ExEvent);
 	}
+
+#undef MAXJOYAXIS
 }
 
 void I_UpdateNoBlit(void)
@@ -667,7 +711,10 @@ size_t I_ProbeJoysticks(void)
 	
 	/* Try installing joysticks */
 	if (install_joystick(JOY_TYPE_AUTODETECT) != 0)
+	{
+		CONS_Printf("I_ProbeJoysticks: Failed to install Allegro joystick handler.\n");
 		return 0;
+	}
 	
 	/* No joysticks? */
 	if (!num_joysticks)

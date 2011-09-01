@@ -726,34 +726,6 @@ void I_GetEvent(void)
 				ExEvent[0].Data.Mouse.Pos[1] = Event.button.y;
 				break;
 				
-				
-#if 0
-static IS_JoystickInfo_t* l_Joys = NULL;				// Joystick Info
-static size_t l_NumJoys = 0;							// Joystick Count
-
-/* IS_JoystickInfo_t -- SDL joys get a bit complex */
-typedef struct IS_JoystickInfo_s
-{
-	size_t LinearID;									// Linear ID
-	size_t CodeID;										// Hashed ID
-	char FullName[ISJOYSTRINGSIZE];						// Full name of joystick
-	char ShortName[ISJOYSTRINGSIZE];					// Short name of joystick
-	SDL_Joystick* JoyPtr;								// Joystick pointer
-	
-	size_t NumButtons;									// Number of Buttons
-	size_t NumAxis;										// Number of axis
-	
-	/* Mappings to axis and/or buttons */
-	size_t AxisMap[ISJOYMAXMAPS];						// Axis to axis
-	size_t BallMap[ISJOYMAXMAPS][2];					// Balls [x, y] to axis
-	int16_t BallOld[ISJOYMAXMAPS][2];					// Old ball values [x, y]
-	size_t HatMapA[ISJOYMAXMAPS][2];					// Hats [x, y] to axis
-	size_t HatMapB[ISJOYMAXMAPS][5];					// Hats [c, u, d, l, r] to buttons
-	int8_t HatCenter[ISJOYMAXMAPS];						// Hat center status
-	size_t ButtonMap[ISJOYMAXMAPS];						// Buttons to buttons
-} IS_JoystickInfo_t;
-#endif
-				
 				// Joystick Axis
 			case SDL_JOYAXISMOTION:
 				if (Event.jaxis.which >= l_NumJoys || Event.jaxis.axis >= ISJOYMAXMAPS)
