@@ -33,34 +33,3 @@
 *** BSD SOCKET LIBRARY ***
 *************************/
 
-/* XX_BSDNet -- BSD Network driver */
-static I_NetDriver_t XX_BSDNet =
-{
-	"BSD Sockets",								// Name
-	"bsd",										// Short
-	"udp\0udp6\0udp4\0\0",						// Use both UDPv4 and UDPv6
-			// Specifying "udp" uses both UDPv4 and UDPv6 (if possible)
-	100,
-	
-#if 0
-	/* Info */
-	char Name[MAXDRIVERNAME];					// Name of driver
-	char ShortName[MAXDRIVERNAME];				// Short driver name
-	char Protocols[MAXPROTOCOLNAMES];			// Protocols
-	uint8_t Priority;							// Priority of the driver
-	
-	/* Functions */
-		// Initializes a driver
-	bool_t (*Init)(struct I_NetDriver_s* const a_Driver);
-		// Destroys a driver
-	bool_t (*Destroy)(struct I_NetDriver_s* const a_Driver);
-		// Success
-	void (*Success)(struct I_NetDriver_s* const a_Driver);
-	
-	/* Dynamic */
-	void* Data;									// Private data
-	size_t Size;								// Private size
-#endif
-};
-
-
