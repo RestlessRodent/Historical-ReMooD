@@ -1466,20 +1466,21 @@ void I_SubmitSound(void)
 {
 }
 
-bool_t I_SoundBufferRequest(const I_SoundType_t a_Type, const uint8_t a_Bits, const uint16_t a_Freq, const uint8_t a_Channels, const uint32_t a_Samples)
+size_t I_SoundBufferRequest(const I_SoundType_t a_Type, const uint8_t a_Bits, const uint16_t a_Freq, const uint8_t a_Channels, const uint32_t a_Samples)
 {
 	I_SoundDriver_t* Found;
+	size_t RetVal;
 	
 	/* Check */
 	if (!a_Bits || !a_Freq || !a_Channels || !a_Samples)
-		return false;
+		return 0;
 		
 	/* Find driver that can play what I want */
 	Found = I_FindSoundDriver(a_Type);
 	
 	// Check
 	if (!Found)
-		return false;
+		return 0;
 	
 	/* Check to see if there already is an active buffer */
 	if (l_CurSoundDriver)
@@ -1494,14 +1495,15 @@ bool_t I_SoundBufferRequest(const I_SoundType_t a_Type, const uint8_t a_Bits, co
 	/* Request Buffer */
 	// Make sure there is a request func
 	if (!Found->Request)
-		return false;
+		return 0;
 	
 	// Try requesting it
-	if (Found->Request(Found, a_Bits, a_Freq, a_Channels, a_Samples))
+	RetVal = 0;
+	if ((RetVal = Found->Request(Found, a_Bits, a_Freq, a_Channels, a_Samples)))
 		l_CurSoundDriver = Found;
 	
 	/* Return if found */
-	return !!l_CurSoundDriver;
+	return RetVal;
 }
 
 /* I_SoundBufferObtain() -- Obtain sound buffer */

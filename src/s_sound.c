@@ -640,7 +640,7 @@ void S_Init(int sfxVolume, int musicVolume)
 	/* Try getting a buffer */
 	if (l_SoundOK)
 	{
-		if (!I_SoundBufferRequest(IST_WAVEFORM, cv_snd_sounddensity.value, cv_snd_soundquality.value, cv_snd_speakersetup.value, cv_snd_buffersize.value))
+		if (!(l_Len = I_SoundBufferRequest(IST_WAVEFORM, cv_snd_sounddensity.value, cv_snd_soundquality.value, cv_snd_speakersetup.value, cv_snd_buffersize.value)))
 		{
 			l_Bits = l_Freq = l_Channels = l_Len = 0;
 			CONS_Printf("S_Init: Failed to obtain a sound buffer.\n");
@@ -653,7 +653,6 @@ void S_Init(int sfxVolume, int musicVolume)
 			l_Bits = cv_snd_sounddensity.value;
 			l_Freq = I_SoundGetFreq();
 			l_Channels = cv_snd_speakersetup.value;
-			l_Len = cv_snd_buffersize.value;
 			
 			// Frequency did not match
 			if (l_Freq != cv_snd_soundquality.value)

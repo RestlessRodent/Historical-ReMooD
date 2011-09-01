@@ -124,20 +124,20 @@ void I_AllegroSD_Success(struct I_SoundDriver_s* const a_Driver)
 }
 
 /* I_AllegroSD_Request() -- Requests a buffer for this driver */
-bool_t I_AllegroSD_Request(struct I_SoundDriver_s* const a_Driver, const uint8_t a_Bits, const uint16_t a_Freq, const uint8_t a_Channels, const uint32_t a_Samples)
+size_t I_AllegroSD_Request(struct I_SoundDriver_s* const a_Driver, const uint8_t a_Bits, const uint16_t a_Freq, const uint8_t a_Channels, const uint32_t a_Samples)
 {
 	I_AllegroSoundLocal_t* Local;
 	
 	/* Check */
 	if (!a_Driver || !a_Bits || !a_Freq || a_Channels > 2 || !a_Samples)
-		return false;
+		return 0;
 	
 	/* Get Local */
 	Local = (I_AllegroSoundLocal_t*)a_Driver->Data;
 	
 	// Check
 	if (!Local)
-		return false;
+		return 0;
 	
 	/* Try getting the buffer */
 	Local->Stream = play_audio_stream(a_Samples, a_Bits, (a_Channels == 2 ? TRUE : FALSE), a_Freq, 255, 127);
@@ -150,7 +150,7 @@ bool_t I_AllegroSD_Request(struct I_SoundDriver_s* const a_Driver, const uint8_t
 	Local->Freq = a_Freq;//voice_get_frequency(Local->Stream);
 	
 	/* Success */
-	return true;
+	return a_Samples;
 }
 
 /* I_AllegroSD_Obtain() -- Obtains a buffer that was requested */
@@ -297,7 +297,7 @@ static I_SoundDriver_t l_AllegroSoundDriver =
 /* I_SoundDriverInit() -- Initializes sound */
 bool_t I_SoundDriverInit(void)
 {
-	/* Add Allegro MIDI Driver */
+	/* Add Allegro Sound Driver */
 	if (!I_AddSoundDriver(&l_AllegroSoundDriver))
 		CONS_Printf("I_SoundDriverInit: Failed to add Allegro Driver\n");
 	
