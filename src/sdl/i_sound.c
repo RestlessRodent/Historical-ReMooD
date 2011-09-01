@@ -62,7 +62,6 @@ typedef struct I_SDLSoundLocal_s
 static void I_SDLSD_Callback(struct I_SoundDriver_s* a_Driver, uint8_t* a_Stream, int a_Length)
 {
 	I_SDLSoundLocal_t* Local;
-	bool_t Drop;
 	
 	/* Check */
 	if (!a_Driver || !a_Stream || !a_Length)
@@ -76,47 +75,11 @@ static void I_SDLSD_Callback(struct I_SoundDriver_s* a_Driver, uint8_t* a_Stream
 		return;
 		
 	/* Copy the buffer? */
-	// Use condition, if possible
-	if (Local->Condition)
-	{
-		for (Drop = false; !Drop;)
-		{
-			SDL_mutexP(Local->SecureLock);
-			Drop = Local->DoWrite;
-			
-			if (!Drop)
-				Local->IsFinished = true;
-			else
-				Local->DoWrite = false;
-			
-			SDL_mutexV(Local->SecureLock);
-		}
-	}
-	
-	// Bad Buffer Mode
-	else
-		if (!Local->DoWrite)
-			return;
+	// Pause audio buffer
+	SDL_PauseAudio(1);
 	
 	// Do actual copy
 	memmove(a_Stream, Local->DoubleBuffer, (a_Length < Local->Spec.size ? a_Length : Local->Spec.size));
-
-#if 0
-	/* Finished writing */
-	// Use condition, if possible
-	if (Local->Condition)
-	{
-		SDL_mutexP(Local->SecureLock);
-		Local->IsFinished = true;	// Pretty much nothing I can do really
-		SDL_mutexV(Local->SecureLock);
-		
-		SDL_mutexP(Local->Mutex);
-	}
-	
-	// Bad Buffer Mode
-	else
-		Local->IsFinished = true;
-#endif
 }
 
 /* I_SDLSD_Init() -- Initializes a driver */
@@ -170,18 +133,6 @@ void I_SDLSD_Success(struct I_SoundDriver_s* const a_Driver)
 	
 	/* Set return value */
 	Local->RetVal = -1;
-	
-	/* Create condition to prevent echo */
-	Local->Mutex = SDL_CreateMutex();
-	Local->SecureLock = SDL_CreateMutex();
-	
-	if (Local->Mutex)
-	{
-		Local->Condition = SDL_CreateCond();
-	
-		// Lock mutex initially
-		SDL_mutexP(Local->Mutex);
-	}
 }
 
 /* I_SDLSD_Request() -- Requests a buffer for this driver */
@@ -219,11 +170,6 @@ size_t I_SDLSD_Request(struct I_SoundDriver_s* const a_Driver, const uint8_t a_B
 	
 	/* Allocate double buffer */
 	Local->DoubleBuffer = Z_Malloc(Local->Spec.size, PU_STATIC, NULL);
-	Local->IsFinished = true;
-	Local->DoWrite = false;
-	
-	/* Unpause audio, it is ready for playing */
-	SDL_PauseAudio(0);
 	
 	/* Success */
 	return Local->Spec.samples;
@@ -267,24 +213,7 @@ bool_t I_SDLSD_IsFinished(struct I_SoundDriver_s* const a_Driver)
 		return;
 	
 	/* Return finished status */
-	// Condition
-	if (Local->Condition)
-	{
-		// Lock access mutex
-		SDL_mutexP(Local->SecureLock);
-		RetVal = Local->IsFinished;
-		SDL_mutexV(Local->SecureLock);
-	}
-	
-	// Bad Buffer Mode
-	else
-	{
-		SDL_LockAudio();
-		RetVal = Local->IsFinished;
-		SDL_UnlockAudio();
-	}
-	
-	return RetVal;
+	return SDL_GetAudioStatus() == SDL_AUDIO_PAUSED;
 }
 
 /* I_SDLSD_WriteOut() -- Done streaming into buffer */
@@ -303,27 +232,8 @@ void I_SDLSD_WriteOut(struct I_SoundDriver_s* const a_Driver)
 	if (!Local)
 		return;
 	
-	/* Clear finished, and set DoWrite */
-	// Condition
-	if (Local->Condition)
-	{
-		// Trigger condition
-		SDL_mutexP(Local->SecureLock);
-		Local->DoWrite = true;
-		Local->IsFinished = false;
-		SDL_mutexV(Local->SecureLock);
-	}
-	
-	// Bad Buffer Mode
-	else
-	{
-		// Lock buffer, unpause, and unlock
-		SDL_LockAudio();
-		Local->IsFinished = false;
-		Local->DoWrite = true;
-		SDL_PauseAudio(0);
-		SDL_UnlockAudio();
-	}
+	/* Unpause audio, the buffer is full */
+	SDL_PauseAudio(0);
 }
 
 /* I_SDLSD_UnRequest() -- Unrequests a buffer previously obtained */
