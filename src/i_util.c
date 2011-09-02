@@ -919,6 +919,33 @@ void I_TextModeChar(const uint8_t a_Char, const uint8_t Attr)
 {
 	uint8_t BG, FG;
 	bool_t Blink;
+#if defined(_WIN32)
+	HANDLE* StdOut;
+	
+	static const uint32_t c_BGColorToWin32[8] =
+	{
+		0,
+		BACKGROUND_BLUE,
+		BACKGROUND_GREEN,
+		BACKGROUND_BLUE | BACKGROUND_GREEN,
+		BACKGROUND_RED,
+		BACKGROUND_RED | BACKGROUND_BLUE,
+		BACKGROUND_RED | BACKGROUND_GREEN,
+		BACKGROUND_GREEN | BACKGROUND_RED | BACKGROUND_BLUE,
+	};
+	static const uint32_t c_FGColorToWin32[8] =
+	{
+		0,
+		FOREGROUND_BLUE,
+		FOREGROUND_GREEN,
+		FOREGROUND_BLUE | FOREGROUND_GREEN,
+		FOREGROUND_RED,
+		FOREGROUND_RED | FOREGROUND_BLUE,
+		FOREGROUND_RED | FOREGROUND_GREEN,
+		FOREGROUND_GREEN | FOREGROUND_RED | FOREGROUND_BLUE,
+	};
+#endif
+	
 	static const char c_ColorToVT[8] =
 	{
 		0, 4, 2, 6, 1, 5, 3, 7
@@ -958,6 +985,8 @@ void I_TextModeChar(const uint8_t a_Char, const uint8_t Attr)
 	// Use Win32 console color functions
 #elif defined(_WIN32)
 	// GetConsoleScreenBufferInfo
+	StdOut = GetStdHandle(STD_OUTPUT_HANDLE);
+	SetConsoleTextAttribute(StdOut, c_BGColorToWin32[BG] | c_FGColorToWin32[FG & 7] | ((FG & 8) ? FOREGROUND_INTENSITY : 0));
 
 	// Use VT escape characters
 #elif defined(__unix__)
