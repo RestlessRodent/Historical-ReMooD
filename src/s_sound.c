@@ -105,7 +105,7 @@ CV_PossibleValue_t SoundDensity_cons_t[] =
 };
 
 consvar_t cv_snd_sounddensity = {"snd_sounddensity", "8", CV_SAVE, SoundDensity_cons_t};
-consvar_t cv_snd_buffersize = {"snd_buffersize", "1024", CV_SAVE, CV_Unsigned};
+consvar_t cv_snd_buffersize = {"snd_buffersize", "512", CV_SAVE, CV_Unsigned};
 consvar_t cv_snd_pcspeakerwave = {"snd_pcspeakerwave", "1", CV_SAVE, CV_Unsigned};
 consvar_t cv_snd_channels = {"snd_channels", "12", CV_SAVE, CV_Unsigned};
 consvar_t cv_snd_reservedchannels = {"snd_reservedchannels", "2", CV_SAVE, CV_Unsigned};

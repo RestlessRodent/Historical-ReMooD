@@ -29,7 +29,10 @@
 
 /* System */
 #include <SDL.h>
-#include <stdint.h>
+
+#if !defined(_MSC_VER)
+	#include <stdint.h>
+#endif
 
 #if !defined(__REMOOD_SYSTEM_WINDOWS)
 	#include <sys/stat.h>

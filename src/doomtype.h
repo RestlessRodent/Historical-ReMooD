@@ -113,20 +113,22 @@
 *** FIXED SIZE TYPES ***
 ***********************/
 
-/* Microsoft Visual C++ */
-#if defined(_MSC_VER)
-	typedef signed __int8 int8_t;
-	typedef signed __int16 int16_t;
-	typedef signed __int32 int32_t;
-	typedef signed __int64 int64_t;
-	typedef unsigned __int8 uint8_t;
-	typedef unsigned __int16 uint16_t;
-	typedef unsigned __int32 uint32_t;
-	typedef unsigned __int64 uint64_t;
+#if !defined(__REMOOD_IGNORE_FIXEDTYPES)
+	/* Microsoft Visual C++ */
+	#if defined(_MSC_VER)
+		typedef signed __int8 int8_t;
+		typedef signed __int16 int16_t;
+		typedef signed __int32 int32_t;
+		typedef signed __int64 int64_t;
+		typedef unsigned __int8 uint8_t;
+		typedef unsigned __int16 uint16_t;
+		typedef unsigned __int32 uint32_t;
+		typedef unsigned __int64 uint64_t;
 
-/* Everything else */
-#elif (__STDC_VERSION__ >= 199901L) || defined(__GNUC__) || defined(__WATCOMC__)
-	#include <stdint.h>
+	/* Everything else */
+	#elif (__STDC_VERSION__ >= 199901L) || defined(__GNUC__) || defined(__WATCOMC__)
+		#include <stdint.h>
+	#endif
 #endif
 
 /***********
@@ -161,6 +163,31 @@ typedef enum bool_e
 	#define __REMOOD_UNUSED
 	#define __REMOOD_DEPRECATED
 #endif
+
+/*****************************
+*** COMPILER COMPATIBILITY ***
+*****************************/
+
+/* Microsoft Visual C++ */
+#if defined(_MSC_VER)
+	#define strncasecmp strnicmp
+	#define strcasecmp stricmp
+	#define snprintf _snprintf
+	#define alloca _alloca
+	
+	// Visual C++ does not like inline in C
+	#define inline _inline
+#endif
+
+// PATH_MAX/MAX_PATH
+#ifndef PATH_MAX
+	#ifdef MAX_PATH
+		#define PATH_MAX MAX_PATH
+	#else
+		#define PATH_MAX 4096
+	#endif
+#endif
+
 
 /***************************
 *** DATA READING/WRITING ***
@@ -310,12 +337,12 @@ static inline int32_t __REMOOD_FORCEINLINE SwapInt64(const int64_t In)
 
 /* Little swapping */
 #if defined(__REMOOD_BIG_ENDIAN)
-	#define LS_x(w,x) static inline x __REMOOD_FORCEINLINE BP_MERGE(LittleSwap,w)(const x In)\
+	#define LS_x(w,x) static __REMOOD_INLINE x __REMOOD_FORCEINLINE BP_MERGE(LittleSwap,w)(const x In)\
 	{\
 		return BP_MERGE(Swap,w)(In);\
 	}
 #else
-	#define LS_x(w,x) static inline x __REMOOD_FORCEINLINE BP_MERGE(LittleSwap,w)(const x In)\
+	#define LS_x(w,x) static __REMOOD_INLINE x __REMOOD_FORCEINLINE BP_MERGE(LittleSwap,w)(const x In)\
 	{\
 		return In;\
 	}
@@ -332,12 +359,12 @@ LS_x(UInt64,uint64_t)
 
 /* Big swapping */
 #if defined(__REMOOD_BIG_ENDIAN)
-	#define BS_x(w,x) static inline x __REMOOD_FORCEINLINE BP_MERGE(BigSwap,w)(const x In)\
+	#define BS_x(w,x) static __REMOOD_INLINE x __REMOOD_FORCEINLINE BP_MERGE(BigSwap,w)(const x In)\
 	{\
 		return In;\
 	}
 #else
-	#define BS_x(w,x) static inline x __REMOOD_FORCEINLINE BP_MERGE(BigSwap,w)(const x In)\
+	#define BS_x(w,x) static __REMOOD_INLINE x __REMOOD_FORCEINLINE BP_MERGE(BigSwap,w)(const x In)\
 	{\
 		return BP_MERGE(Swap,w)(In);\
 	}
@@ -354,24 +381,24 @@ BS_x(UInt64,uint64_t)
 
 /*** Reading/Writing Little Endian Data ***/
 #if defined(__REMOOD_BIG_ENDIAN)
-	#define BPLREAD_x(w,x) static inline x __REMOOD_FORCEINLINE BP_MERGE(LittleRead,w)(const x** const Ptr)\
+	#define BPLREAD_x(w,x) static __REMOOD_INLINE x __REMOOD_FORCEINLINE BP_MERGE(LittleRead,w)(const x** const Ptr)\
 	{\
 		return BP_MERGE(Swap,w)(BP_MERGE(Read,w)(Ptr));\
 	}
 #else
-	#define BPLREAD_x(w,x) static inline x __REMOOD_FORCEINLINE BP_MERGE(LittleRead,w)(const x** const Ptr)\
+	#define BPLREAD_x(w,x) static __REMOOD_INLINE x __REMOOD_FORCEINLINE BP_MERGE(LittleRead,w)(const x** const Ptr)\
 	{\
 		return BP_MERGE(Read,w)(Ptr);\
 	}
 #endif
 
 #if defined(__REMOOD_BIG_ENDIAN)
-	#define BPLWRITE_x(w,x) static inline void __REMOOD_FORCEINLINE BP_MERGE(LittleWrite,w)(x** const Ptr, const x Val)\
+	#define BPLWRITE_x(w,x) static __REMOOD_INLINE void __REMOOD_FORCEINLINE BP_MERGE(LittleWrite,w)(x** const Ptr, const x Val)\
 	{\
 		BP_MERGE(Write,w)(Ptr, BP_MERGE(Swap,w)(Val));\
 	}
 #else
-	#define BPLWRITE_x(w,x) static inline void __REMOOD_FORCEINLINE BP_MERGE(LittleWrite,w)(x** const Ptr, const x Val)\
+	#define BPLWRITE_x(w,x) static __REMOOD_INLINE void __REMOOD_FORCEINLINE BP_MERGE(LittleWrite,w)(x** const Ptr, const x Val)\
 	{\
 		BP_MERGE(Write,w)(Ptr, Val);\
 	}
@@ -403,30 +430,6 @@ BPLWRITE_x(UInt64,uint64_t)
 
 // A valid tic
 typedef uint64_t tic_t;
-
-/*****************************
-*** COMPILER COMPATIBILITY ***
-*****************************/
-
-/* Microsoft Visual C++ */
-#if defined(_MSC_VER)
-	#define strncasecmp strnicmp
-	#define strcasecmp stricmp
-	#define snprintf _snprintf
-	#define alloca _alloca
-	
-	// Visual C++ does not like inline in C
-	#define inline _inline
-#endif
-
-// PATH_MAX/MAX_PATH
-#ifndef PATH_MAX
-	#ifdef MAX_PATH
-		#define PATH_MAX MAX_PATH
-	#else
-		#define PATH_MAX 4096
-	#endif
-#endif
 
 /******************************************
 *** REMOVE ALL THIS GARBAGE, SERIOUSLY! ***

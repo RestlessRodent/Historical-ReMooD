@@ -29,7 +29,9 @@
 
 /* System */
 #include <stdlib.h>
-#include <stdint.h>
+#if defined(__DJGPP__)
+	#include <stdint.h>
+#endif
 #include <allegro.h>
 
 // Include winalleg on Windows since it conflicts!
@@ -38,6 +40,7 @@
 #endif
 
 /* Local */
+#define __REMOOD_IGNORE_FIXEDTYPES
 #include "doomtype.h"
 #include "doomdef.h"
 #include "i_video.h"
@@ -619,6 +622,11 @@ void VID_PrepareModeList(void)
 /* I_SetVideoMode() -- Sets the current video mode */
 bool_t I_SetVideoMode(const uint32_t a_Width, const uint32_t a_Height, const bool_t a_Fullscreen)
 {
+#if defined(_WIN32)
+	HWND hWnd;
+	HICON icoBig, icoSmall;
+#endif
+
 	/* Check */
 	if (!a_Width || !a_Height)
 		return false;
@@ -648,8 +656,31 @@ bool_t I_SetVideoMode(const uint32_t a_Width, const uint32_t a_Height, const boo
 	/* Allocate Buffer */
 	I_VideoSetBuffer(a_Width, a_Height, a_Width, NULL);
 	
-	/* Set title */
+	/* Set title and icon */
+	// Set Title
 	set_window_title("ReMooD "REMOOD_FULLVERSIONSTRING);
+
+	// Set Icon (on Win32)
+#if defined(_WIN32)
+	hWnd = win_get_window();
+
+	// Now attempt getting the class and updating the window
+	if (hWnd)
+	{
+		// Get Icons
+		icoBig = LoadIcon(GetModuleHandle(NULL), MAKEINTRESOURCE(1));
+		icoSmall = LoadIcon(GetModuleHandle(NULL), MAKEINTRESOURCE(2));
+
+		// Set window classes
+#ifdef _WIN64
+		SetClassLongPtr(hWnd, GCLP_HICON, (LONG_PTR)icoBig);
+		SetClassLongPtr(hWnd, GCLP_HICONSM, (LONG_PTR)icoSmall);
+#else
+		SetClassLong(hWnd, GCL_HICON, (LONG)icoBig);
+		SetClassLong(hWnd, GCL_HICONSM, (LONG)icoSmall);
+#endif
+	}
+#endif
 	
 	/* Get refresh rate */
 	g_RefreshRate = get_refresh_rate();
@@ -666,7 +697,7 @@ void I_StartupGraphics(void)
 		return;
 	
 	/* Set allegro stuff */
-	set_display_switch_mode(SWITCH_BACKGROUND);
+	set_display_switch_mode(SWITCH_BACKAMNESIA);
 	
 	/* Initialize before mode set */
 	if (!I_VideoBefore320200Init())
@@ -877,13 +908,14 @@ void I_MouseGrab(const bool_t a_Grab)
 	if (!a_Grab)
 	{
 		// Use hardware cursor
-		enable_hardware_cursor();
+		disable_hardware_cursor();
+		//enable_hardware_cursor();
 		
 		// Show default cursor
 		select_mouse_cursor(MOUSE_CURSOR_ARROW);
 		
 		// Show it
-		show_mouse(screen);
+ 		show_mouse(screen);
 		
 		// Reposition mouse
 		position_mouse(SCREEN_W >> 1, SCREEN_H >> 1);

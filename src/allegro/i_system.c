@@ -28,7 +28,9 @@
 ***************/
 
 /* System */
-#include <stdint.h>
+#if defined(__DJGPP__)
+	#include <stdint.h>
+#endif
 #include <allegro.h>
 
 // Include winalleg on Windows since it conflicts!
@@ -41,6 +43,7 @@
 #endif
 
 /* Local */
+#define __REMOOD_IGNORE_FIXEDTYPES
 #include "doomtype.h"
 
 #include <stdio.h>

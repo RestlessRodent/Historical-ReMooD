@@ -30,7 +30,10 @@
 /* System */
 #include <SDL.h>
 #include <stdlib.h>
-#include <stdint.h>
+
+#if !defined(_MSC_VER)
+	#include <stdint.h>
+#endif
 
 /* Local */
 #include "doomtype.h"

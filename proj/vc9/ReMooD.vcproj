@@ -19,7 +19,7 @@
 	</ToolFiles>
 	<Configurations>
 		<Configuration
-			Name="Debug|Win32"
+			Name="Debug (SDL)|Win32"
 			OutputDirectory="..\..\bin"
 			IntermediateDirectory="$(ConfigurationName)"
 			ConfigurationType="1"
@@ -44,18 +44,21 @@
 				Name="VCCLCompilerTool"
 				UseUnicodeResponseFiles="false"
 				Optimization="0"
+				FavorSizeOrSpeed="0"
 				AdditionalIncludeDirectories="..\..\src\;..\..\src\sdl\;..\..\src\"
-				PreprocessorDefinitions="WIN32;_WIN32;_DEBUG;_CRT_SECURE_NO_WARNINGS;GAMECLIENT;SDL;ENABLEMULTITHREADING;HIGHMEMORYUNICODE;GAMECLIENT"
+				PreprocessorDefinitions="WIN32;_WIN32;_DEBUG;_CRT_SECURE_NO_WARNINGS,__REMOOD_SYSTEM_WINDOWS,__REMOOD_INTERFACE_SDL"
 				KeepComments="true"
+				StringPooling="false"
 				MinimalRebuild="false"
 				ExceptionHandling="0"
 				BasicRuntimeChecks="3"
 				RuntimeLibrary="3"
-				EnableFunctionLevelLinking="true"
+				EnableFunctionLevelLinking="false"
+				FloatingPointModel="0"
 				FloatingPointExceptions="true"
 				ExpandAttributedSource="true"
 				AssemblerOutput="2"
-				WarningLevel="0"
+				WarningLevel="4"
 				DebugInformationFormat="3"
 				CompileAs="1"
 			/>
@@ -71,12 +74,13 @@
 			<Tool
 				Name="VCLinkerTool"
 				UseUnicodeResponseFiles="false"
-				AdditionalDependencies="winmm.lib wsock32.lib kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib SDL.lib shell32.lib"
+				AdditionalDependencies="winmm.lib wsock32.lib kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib SDL.lib shell32.lib SDLmain.lib"
 				OutputFile="$(OutDir)\remood-dbg.exe"
 				GenerateDebugInformation="true"
 				AssemblyDebug="1"
 				GenerateMapFile="true"
 				SubSystem="1"
+				OptimizeForWindows98="1"
 				TargetMachine="1"
 			/>
 			<Tool
@@ -102,7 +106,7 @@
 			/>
 		</Configuration>
 		<Configuration
-			Name="Release|Win32"
+			Name="Release (SDL)|Win32"
 			OutputDirectory="..\..\bin"
 			IntermediateDirectory="$(ConfigurationName)"
 			ConfigurationType="1"
@@ -131,12 +135,12 @@
 				EnableIntrinsicFunctions="true"
 				FavorSizeOrSpeed="1"
 				AdditionalIncludeDirectories="..\..\src\;..\..\src\sdl\"
-				PreprocessorDefinitions="WIN32,_WIN32,NDEBUG,_CRT_SECURE_NO_WARNINGS,GAMECLIENT,SDL,ENABLEMULTITHREADING"
+				PreprocessorDefinitions="WIN32,_WIN32,NDEBUG,_CRT_SECURE_NO_WARNINGS,__REMOOD_SYSTEM_WINDOWS,__REMOOD_INTERFACE_SDL"
 				StringPooling="true"
 				RuntimeLibrary="2"
 				EnableFunctionLevelLinking="false"
 				FloatingPointModel="2"
-				WarningLevel="3"
+				WarningLevel="4"
 				DebugInformationFormat="0"
 				CompileAs="1"
 			/>
@@ -151,7 +155,177 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="winmm.lib wsock32.lib kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib SDL.lib shell32.lib"
+				AdditionalDependencies="winmm.lib wsock32.lib kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib SDL.lib shell32.lib SDLmain.lib"
+				OutputFile="$(OutDir)\remood.exe"
+				IgnoreAllDefaultLibraries="false"
+				GenerateDebugInformation="true"
+				SubSystem="2"
+				OptimizeReferences="2"
+				EnableCOMDATFolding="2"
+				OptimizeForWindows98="0"
+				RandomizedBaseAddress="1"
+				TargetMachine="1"
+			/>
+			<Tool
+				Name="VCALinkTool"
+			/>
+			<Tool
+				Name="VCManifestTool"
+			/>
+			<Tool
+				Name="VCXDCMakeTool"
+			/>
+			<Tool
+				Name="VCBscMakeTool"
+			/>
+			<Tool
+				Name="VCFxCopTool"
+			/>
+			<Tool
+				Name="VCAppVerifierTool"
+			/>
+			<Tool
+				Name="VCPostBuildEventTool"
+			/>
+		</Configuration>
+		<Configuration
+			Name="Debug (Allegro)|Win32"
+			OutputDirectory="$(ConfigurationName)"
+			IntermediateDirectory="$(ConfigurationName)"
+			ConfigurationType="1"
+			CharacterSet="0"
+			WholeProgramOptimization="0"
+			>
+			<Tool
+				Name="VCPreBuildEventTool"
+			/>
+			<Tool
+				Name="VCCustomBuildTool"
+			/>
+			<Tool
+				Name="VCXMLDataGeneratorTool"
+			/>
+			<Tool
+				Name="VCWebServiceProxyGeneratorTool"
+			/>
+			<Tool
+				Name="VCMIDLTool"
+			/>
+			<Tool
+				Name="VCCLCompilerTool"
+				UseUnicodeResponseFiles="false"
+				Optimization="0"
+				EnableIntrinsicFunctions="true"
+				FavorSizeOrSpeed="0"
+				AdditionalIncludeDirectories="..\..\src\;..\..\src\sdl\"
+				PreprocessorDefinitions="WIN32,_WIN32,_DEBUG,_CRT_SECURE_NO_WARNINGS,__REMOOD_SYSTEM_WINDOWS,__REMOOD_INTERFACE_ALLEGRO"
+				StringPooling="false"
+				ExceptionHandling="0"
+				BasicRuntimeChecks="3"
+				RuntimeLibrary="3"
+				EnableFunctionLevelLinking="false"
+				FloatingPointModel="0"
+				FloatingPointExceptions="true"
+				AssemblerOutput="2"
+				WarningLevel="4"
+				DebugInformationFormat="3"
+				CompileAs="1"
+			/>
+			<Tool
+				Name="VCManagedResourceCompilerTool"
+			/>
+			<Tool
+				Name="VCResourceCompilerTool"
+			/>
+			<Tool
+				Name="VCPreLinkEventTool"
+			/>
+			<Tool
+				Name="VCLinkerTool"
+				AdditionalDependencies="winmm.lib wsock32.lib kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib shell32.lib alleg.lib"
+				OutputFile="$(OutDir)\remood.exe"
+				IgnoreAllDefaultLibraries="false"
+				GenerateDebugInformation="true"
+				SubSystem="2"
+				OptimizeReferences="2"
+				EnableCOMDATFolding="2"
+				OptimizeForWindows98="1"
+				RandomizedBaseAddress="1"
+				TargetMachine="1"
+			/>
+			<Tool
+				Name="VCALinkTool"
+			/>
+			<Tool
+				Name="VCManifestTool"
+			/>
+			<Tool
+				Name="VCXDCMakeTool"
+			/>
+			<Tool
+				Name="VCBscMakeTool"
+			/>
+			<Tool
+				Name="VCFxCopTool"
+			/>
+			<Tool
+				Name="VCAppVerifierTool"
+			/>
+			<Tool
+				Name="VCPostBuildEventTool"
+			/>
+		</Configuration>
+		<Configuration
+			Name="Release (Allegro)|Win32"
+			OutputDirectory="$(ConfigurationName)"
+			IntermediateDirectory="$(ConfigurationName)"
+			ConfigurationType="1"
+			CharacterSet="0"
+			WholeProgramOptimization="0"
+			>
+			<Tool
+				Name="VCPreBuildEventTool"
+			/>
+			<Tool
+				Name="VCCustomBuildTool"
+			/>
+			<Tool
+				Name="VCXMLDataGeneratorTool"
+			/>
+			<Tool
+				Name="VCWebServiceProxyGeneratorTool"
+			/>
+			<Tool
+				Name="VCMIDLTool"
+			/>
+			<Tool
+				Name="VCCLCompilerTool"
+				UseUnicodeResponseFiles="false"
+				Optimization="2"
+				EnableIntrinsicFunctions="true"
+				FavorSizeOrSpeed="1"
+				AdditionalIncludeDirectories="..\..\src\;..\..\src\sdl\"
+				PreprocessorDefinitions="WIN32,_WIN32,NDEBUG,_CRT_SECURE_NO_WARNINGS,__REMOOD_SYSTEM_WINDOWS,__REMOOD_INTERFACE_ALLEGRO"
+				StringPooling="true"
+				RuntimeLibrary="2"
+				EnableFunctionLevelLinking="false"
+				FloatingPointModel="2"
+				WarningLevel="4"
+				DebugInformationFormat="0"
+				CompileAs="1"
+			/>
+			<Tool
+				Name="VCManagedResourceCompilerTool"
+			/>
+			<Tool
+				Name="VCResourceCompilerTool"
+			/>
+			<Tool
+				Name="VCPreLinkEventTool"
+			/>
+			<Tool
+				Name="VCLinkerTool"
+				AdditionalDependencies="winmm.lib wsock32.lib kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib shell32.lib alleg.lib"
 				OutputFile="$(OutDir)\remood.exe"
 				IgnoreAllDefaultLibraries="false"
 				GenerateDebugInformation="true"
@@ -357,554 +531,10 @@
 	</References>
 	<Files>
 		<Filter
-			Name="g_ (Game)"
+			Name="Interfaces"
 			>
-			<File
-				RelativePath="..\..\src\g_game.c"
-				>
-			</File>
-			<File
-				RelativePath="..\..\src\g_game.h"
-				>
-			</File>
-			<File
-				RelativePath="..\..\src\g_input.c"
-				>
-			</File>
-			<File
-				RelativePath="..\..\src\g_input.h"
-				>
-			</File>
-			<File
-				RelativePath="..\..\src\g_state.c"
-				>
-			</File>
-			<File
-				RelativePath="..\..\src\g_state.h"
-				>
-			</File>
-		</Filter>
-		<Filter
-			Name="m_ (Misc)"
-			>
-			<File
-				RelativePath="..\..\src\m_argv.c"
-				>
-			</File>
-			<File
-				RelativePath="..\..\src\m_argv.h"
-				>
-			</File>
-			<File
-				RelativePath="..\..\src\m_bbox.c"
-				>
-			</File>
-			<File
-				RelativePath="..\..\src\m_bbox.h"
-				>
-			</File>
-			<File
-				RelativePath="..\..\src\m_cheat.c"
-				>
-			</File>
-			<File
-				RelativePath="..\..\src\m_cheat.h"
-				>
-			</File>
-			<File
-				RelativePath="..\..\src\m_fixed.c"
-				>
-			</File>
-			<File
-				RelativePath="..\..\src\m_fixed.h"
-				>
-			</File>
-			<File
-				RelativePath="..\..\src\m_menu.c"
-				>
-			</File>
-			<File
-				RelativePath="..\..\src\m_menu.h"
-				>
-			</File>
-			<File
-				RelativePath="..\..\src\m_menudr.c"
-				>
-			</File>
-			<File
-				RelativePath="..\..\src\m_menufn.c"
-				>
-			</File>
-			<File
-				RelativePath="..\..\src\m_misc.c"
-				>
-			</File>
-			<File
-				RelativePath="..\..\src\m_misc.h"
-				>
-			</File>
-			<File
-				RelativePath="..\..\src\m_random.c"
-				>
-			</File>
-			<File
-				RelativePath="..\..\src\m_random.h"
-				>
-			</File>
-			<File
-				RelativePath="..\..\src\m_swap.h"
-				>
-			</File>
-		</Filter>
-		<Filter
-			Name="am_ (Automap)"
-			>
-			<File
-				RelativePath="..\..\src\am_map.c"
-				>
-			</File>
-			<File
-				RelativePath="..\..\src\am_map.h"
-				>
-			</File>
-		</Filter>
-		<Filter
-			Name="d_ (Doom)"
-			>
-			<File
-				RelativePath="..\..\src\d_clisrv.c"
-				>
-			</File>
-			<File
-				RelativePath="..\..\src\d_clisrv.h"
-				>
-			</File>
-			<File
-				RelativePath="..\..\src\d_englsh.h"
-				>
-			</File>
-			<File
-				RelativePath="..\..\src\d_event.h"
-				>
-			</File>
-			<File
-				RelativePath="..\..\src\d_french.h"
-				>
-			</File>
-			<File
-				RelativePath="..\..\src\d_items.c"
-				>
-			</File>
-			<File
-				RelativePath="..\..\src\d_items.h"
-				>
-			</File>
-			<File
-				RelativePath="..\..\src\d_main.c"
-				>
-			</File>
-			<File
-				RelativePath="..\..\src\d_main.h"
-				>
-			</File>
-			<File
-				RelativePath="..\..\src\d_net.c"
-				>
-			</File>
-			<File
-				RelativePath="..\..\src\d_net.h"
-				>
-			</File>
-			<File
-				RelativePath="..\..\src\d_netcmd.c"
-				>
-			</File>
-			<File
-				RelativePath="..\..\src\d_netcmd.h"
-				>
-			</File>
-			<File
-				RelativePath="..\..\src\d_player.h"
-				>
-			</File>
-			<File
-				RelativePath="..\..\src\d_prof.c"
-				>
-			</File>
-			<File
-				RelativePath="..\..\src\d_prof.h"
-				>
-			</File>
-			<File
-				RelativePath="..\..\src\d_rdf.c"
-				>
-			</File>
-			<File
-				RelativePath="..\..\src\d_rdf.h"
-				>
-			</File>
-			<File
-				RelativePath="..\..\src\d_think.h"
-				>
-			</File>
-			<File
-				RelativePath="..\..\src\d_ticcmd.h"
-				>
-			</File>
-		</Filter>
-		<Filter
-			Name="p_ (Logic)"
-			>
-			<File
-				RelativePath="..\..\src\p_ceilng.c"
-				>
-			</File>
-			<File
-				RelativePath="..\..\src\p_chex.c"
-				>
-			</File>
-			<File
-				RelativePath="..\..\src\p_chex.h"
-				>
-			</File>
-			<File
-				RelativePath="..\..\src\p_demcmp.c"
-				>
-			</File>
-			<File
-				RelativePath="..\..\src\p_demcmp.h"
-				>
-			</File>
-			<File
-				RelativePath="..\..\src\p_doors.c"
-				>
-			</File>
-			<File
-				RelativePath="..\..\src\p_enemy.c"
-				>
-			</File>
-			<File
-				RelativePath="..\..\src\p_fab.c"
-				>
-			</File>
-			<File
-				RelativePath="..\..\src\p_fab.h"
-				>
-			</File>
-			<File
-				RelativePath="..\..\src\p_floor.c"
-				>
-			</File>
-			<File
-				RelativePath="..\..\src\p_genlin.c"
-				>
-			</File>
-			<File
-				RelativePath="..\..\src\p_info.c"
-				>
-			</File>
-			<File
-				RelativePath="..\..\src\p_info.h"
-				>
-			</File>
-			<File
-				RelativePath="..\..\src\p_inter.c"
-				>
-			</File>
-			<File
-				RelativePath="..\..\src\p_inter.h"
-				>
-			</File>
-			<File
-				RelativePath="..\..\src\p_lights.c"
-				>
-			</File>
-			<File
-				RelativePath="..\..\src\p_local.h"
-				>
-			</File>
-			<File
-				RelativePath="..\..\src\p_map.c"
-				>
-			</File>
-			<File
-				RelativePath="..\..\src\p_maputl.c"
-				>
-			</File>
-			<File
-				RelativePath="..\..\src\p_maputl.h"
-				>
-			</File>
-			<File
-				RelativePath="..\..\src\p_mobj.c"
-				>
-			</File>
-			<File
-				RelativePath="..\..\src\p_mobj.h"
-				>
-			</File>
-			<File
-				RelativePath="..\..\src\p_plats.c"
-				>
-			</File>
-			<File
-				RelativePath="..\..\src\p_pspr.c"
-				>
-			</File>
-			<File
-				RelativePath="..\..\src\p_pspr.h"
-				>
-			</File>
-			<File
-				RelativePath="..\..\src\p_saveg.c"
-				>
-			</File>
-			<File
-				RelativePath="..\..\src\p_saveg.h"
-				>
-			</File>
-			<File
-				RelativePath="..\..\src\p_setup.c"
-				>
-			</File>
-			<File
-				RelativePath="..\..\src\p_setup.h"
-				>
-			</File>
-			<File
-				RelativePath="..\..\src\p_sight.c"
-				>
-			</File>
-			<File
-				RelativePath="..\..\src\p_spec.c"
-				>
-			</File>
-			<File
-				RelativePath="..\..\src\p_spec.h"
-				>
-			</File>
-			<File
-				RelativePath="..\..\src\p_switch.c"
-				>
-			</File>
-			<File
-				RelativePath="..\..\src\p_telept.c"
-				>
-			</File>
-			<File
-				RelativePath="..\..\src\p_tick.c"
-				>
-			</File>
-			<File
-				RelativePath="..\..\src\p_tick.h"
-				>
-			</File>
-			<File
-				RelativePath="..\..\src\p_user.c"
-				>
-			</File>
-		</Filter>
-		<Filter
-			Name="r_ (Renderer)"
-			>
-			<File
-				RelativePath="..\..\src\r_bsp.c"
-				>
-			</File>
-			<File
-				RelativePath="..\..\src\r_bsp.h"
-				>
-			</File>
-			<File
-				RelativePath="..\..\src\r_data.c"
-				>
-			</File>
-			<File
-				RelativePath="..\..\src\r_data.h"
-				>
-			</File>
-			<File
-				RelativePath="..\..\src\r_defs.h"
-				>
-			</File>
-			<File
-				RelativePath="..\..\src\r_draw.c"
-				>
-			</File>
-			<File
-				RelativePath="..\..\src\r_draw.h"
-				>
-			</File>
-			<File
-				RelativePath="..\..\src\r_local.h"
-				>
-			</File>
-			<File
-				RelativePath="..\..\src\r_main.c"
-				>
-			</File>
-			<File
-				RelativePath="..\..\src\r_main.h"
-				>
-			</File>
-			<File
-				RelativePath="..\..\src\r_plane.c"
-				>
-			</File>
-			<File
-				RelativePath="..\..\src\r_plane.h"
-				>
-			</File>
-			<File
-				RelativePath="..\..\src\r_segs.c"
-				>
-			</File>
-			<File
-				RelativePath="..\..\src\r_segs.h"
-				>
-			</File>
-			<File
-				RelativePath="..\..\src\r_sky.c"
-				>
-			</File>
-			<File
-				RelativePath="..\..\src\r_sky.h"
-				>
-			</File>
-			<File
-				RelativePath="..\..\src\r_splats.c"
-				>
-			</File>
-			<File
-				RelativePath="..\..\src\r_splats.h"
-				>
-			</File>
-			<File
-				RelativePath="..\..\src\r_state.h"
-				>
-			</File>
-			<File
-				RelativePath="..\..\src\r_things.c"
-				>
-			</File>
-			<File
-				RelativePath="..\..\src\r_things.h"
-				>
-			</File>
-		</Filter>
-		<Filter
-			Name="t_ (FraggleScript/ReMooD Script)"
-			>
-			<File
-				RelativePath="..\..\src\t_comp.c"
-				>
-			</File>
-			<File
-				RelativePath="..\..\src\t_func.c"
-				>
-			</File>
-			<File
-				RelativePath="..\..\src\t_func.h"
-				>
-			</File>
-			<File
-				RelativePath="..\..\src\t_oper.c"
-				>
-			</File>
-			<File
-				RelativePath="..\..\src\t_oper.h"
-				>
-			</File>
-			<File
-				RelativePath="..\..\src\t_parse.c"
-				>
-			</File>
-			<File
-				RelativePath="..\..\src\t_parse.h"
-				>
-			</File>
-			<File
-				RelativePath="..\..\src\t_prepro.c"
-				>
-			</File>
-			<File
-				RelativePath="..\..\src\t_prepro.h"
-				>
-			</File>
-			<File
-				RelativePath="..\..\src\t_script.c"
-				>
-			</File>
-			<File
-				RelativePath="..\..\src\t_script.h"
-				>
-			</File>
-			<File
-				RelativePath="..\..\src\t_spec.c"
-				>
-			</File>
-			<File
-				RelativePath="..\..\src\t_spec.h"
-				>
-			</File>
-			<File
-				RelativePath="..\..\src\t_vari.c"
-				>
-			</File>
-			<File
-				RelativePath="..\..\src\t_vari.h"
-				>
-			</File>
-		</Filter>
-		<Filter
-			Name="f_ (Finale)"
-			>
-			<File
-				RelativePath="..\..\src\f_finale.c"
-				>
-			</File>
-			<File
-				RelativePath="..\..\src\f_finale.h"
-				>
-			</File>
-			<File
-				RelativePath="..\..\src\f_wipe.c"
-				>
-			</File>
-			<File
-				RelativePath="..\..\src\f_wipe.h"
-				>
-			</File>
-		</Filter>
-		<Filter
-			Name="i_ (Interface)"
-			>
-			<File
-				RelativePath="..\..\src\sdl\i_cdmus.c"
-				>
-			</File>
-			<File
-				RelativePath="..\..\src\i_joy.h"
-				>
-			</File>
-			<File
-				RelativePath="..\..\src\sdl\i_main.c"
-				>
-			</File>
-			<File
-				RelativePath="..\..\src\sdl\i_music.c"
-				>
-			</File>
-			<File
-				RelativePath="..\..\src\sdl\i_net.c"
-				>
-			</File>
 			<File
 				RelativePath="..\..\src\i_net.h"
-				>
-			</File>
-			<File
-				RelativePath="..\..\src\sdl\i_sound.c"
 				>
 			</File>
 			<File
@@ -912,81 +542,361 @@
 				>
 			</File>
 			<File
-				RelativePath="..\..\src\sdl\i_system.c"
-				>
-			</File>
-			<File
 				RelativePath="..\..\src\i_system.h"
 				>
 			</File>
 			<File
-				RelativePath="..\..\src\sdl\i_tcp.c"
+				RelativePath="..\..\src\i_util.c"
 				>
 			</File>
 			<File
-				RelativePath="..\..\src\i_tcp.h"
+				RelativePath="..\..\src\i_util.h"
 				>
 			</File>
 			<File
-				RelativePath="..\..\src\sdl\i_thread.c"
+				RelativePath="..\..\src\i_utlnet.c"
 				>
 			</File>
 			<File
-				RelativePath="..\..\src\i_thread.h"
-				>
-			</File>
-			<File
-				RelativePath="..\..\src\sdl\i_video.c"
+				RelativePath="..\..\src\i_utlsfx.c"
 				>
 			</File>
 			<File
 				RelativePath="..\..\src\i_video.h"
 				>
 			</File>
-		</Filter>
-		<Filter
-			Name="hu_ (HUD)"
-			>
-			<File
-				RelativePath="..\..\src\hu_stuff.c"
+			<Filter
+				Name="SDL"
 				>
-			</File>
-			<File
-				RelativePath="..\..\src\hu_stuff.h"
+				<File
+					RelativePath="..\..\src\sdl\i_main.c"
+					>
+					<FileConfiguration
+						Name="Debug (Allegro)|Win32"
+						ExcludedFromBuild="true"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Release (Allegro)|Win32"
+						ExcludedFromBuild="true"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+						/>
+					</FileConfiguration>
+				</File>
+				<File
+					RelativePath="..\..\src\sdl\i_music.c"
+					>
+					<FileConfiguration
+						Name="Debug (Allegro)|Win32"
+						ExcludedFromBuild="true"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Release (Allegro)|Win32"
+						ExcludedFromBuild="true"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+						/>
+					</FileConfiguration>
+				</File>
+				<File
+					RelativePath="..\..\src\sdl\i_net.c"
+					>
+					<FileConfiguration
+						Name="Debug (Allegro)|Win32"
+						ExcludedFromBuild="true"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Release (Allegro)|Win32"
+						ExcludedFromBuild="true"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+						/>
+					</FileConfiguration>
+				</File>
+				<File
+					RelativePath="..\..\src\sdl\i_sound.c"
+					>
+					<FileConfiguration
+						Name="Debug (Allegro)|Win32"
+						ExcludedFromBuild="true"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Release (Allegro)|Win32"
+						ExcludedFromBuild="true"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+						/>
+					</FileConfiguration>
+				</File>
+				<File
+					RelativePath="..\..\src\sdl\i_system.c"
+					>
+					<FileConfiguration
+						Name="Debug (Allegro)|Win32"
+						ExcludedFromBuild="true"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Release (Allegro)|Win32"
+						ExcludedFromBuild="true"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+						/>
+					</FileConfiguration>
+				</File>
+				<File
+					RelativePath="..\..\src\sdl\i_video.c"
+					>
+					<FileConfiguration
+						Name="Debug (Allegro)|Win32"
+						ExcludedFromBuild="true"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Release (Allegro)|Win32"
+						ExcludedFromBuild="true"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+						/>
+					</FileConfiguration>
+				</File>
+			</Filter>
+			<Filter
+				Name="Allegro"
 				>
-			</File>
-		</Filter>
-		<Filter
-			Name="s_ (Sound)"
-			>
-			<File
-				RelativePath="..\..\src\s_sound.c"
-				>
-			</File>
-			<File
-				RelativePath="..\..\src\s_sound.h"
-				>
-			</File>
-		</Filter>
-		<Filter
-			Name="st_ (Status Bar)"
-			>
-			<File
-				RelativePath="..\..\src\st_lib.c"
-				>
-			</File>
-			<File
-				RelativePath="..\..\src\st_lib.h"
-				>
-			</File>
-			<File
-				RelativePath="..\..\src\st_stuff.c"
-				>
-			</File>
-			<File
-				RelativePath="..\..\src\st_stuff.h"
-				>
-			</File>
+				<File
+					RelativePath="..\..\src\allegro\i_main.c"
+					>
+					<FileConfiguration
+						Name="Debug (SDL)|Win32"
+						ExcludedFromBuild="true"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Release (SDL)|Win32"
+						ExcludedFromBuild="true"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Debug (Allegro)|Win32"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Release (Allegro)|Win32"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+						/>
+					</FileConfiguration>
+				</File>
+				<File
+					RelativePath="..\..\src\allegro\i_music.c"
+					>
+					<FileConfiguration
+						Name="Debug (SDL)|Win32"
+						ExcludedFromBuild="true"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Release (SDL)|Win32"
+						ExcludedFromBuild="true"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Debug (Allegro)|Win32"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Release (Allegro)|Win32"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+						/>
+					</FileConfiguration>
+				</File>
+				<File
+					RelativePath="..\..\src\allegro\i_net.c"
+					>
+					<FileConfiguration
+						Name="Debug (SDL)|Win32"
+						ExcludedFromBuild="true"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Release (SDL)|Win32"
+						ExcludedFromBuild="true"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Debug (Allegro)|Win32"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Release (Allegro)|Win32"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+						/>
+					</FileConfiguration>
+				</File>
+				<File
+					RelativePath="..\..\src\allegro\i_sound.c"
+					>
+					<FileConfiguration
+						Name="Debug (SDL)|Win32"
+						ExcludedFromBuild="true"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Release (SDL)|Win32"
+						ExcludedFromBuild="true"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Debug (Allegro)|Win32"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Release (Allegro)|Win32"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+						/>
+					</FileConfiguration>
+				</File>
+				<File
+					RelativePath="..\..\src\allegro\i_system.c"
+					>
+					<FileConfiguration
+						Name="Debug (SDL)|Win32"
+						ExcludedFromBuild="true"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Release (SDL)|Win32"
+						ExcludedFromBuild="true"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Debug (Allegro)|Win32"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Release (Allegro)|Win32"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+						/>
+					</FileConfiguration>
+				</File>
+				<File
+					RelativePath="..\..\src\allegro\i_video.c"
+					>
+					<FileConfiguration
+						Name="Debug (SDL)|Win32"
+						ExcludedFromBuild="true"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Release (SDL)|Win32"
+						ExcludedFromBuild="true"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Debug (Allegro)|Win32"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Release (Allegro)|Win32"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+						/>
+					</FileConfiguration>
+				</File>
+			</Filter>
 		</Filter>
 		<Filter
 			Name="v_ (Video)"
@@ -1035,6 +945,590 @@
 				RelativePath="..\..\src\z_zone.h"
 				>
 			</File>
+		</Filter>
+		<Filter
+			Name="Doom"
+			>
+			<Filter
+				Name="r_ (Renderer)"
+				>
+				<File
+					RelativePath="..\..\src\r_bsp.c"
+					>
+				</File>
+				<File
+					RelativePath="..\..\src\r_bsp.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\src\r_data.c"
+					>
+				</File>
+				<File
+					RelativePath="..\..\src\r_data.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\src\r_defs.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\src\r_draw.c"
+					>
+				</File>
+				<File
+					RelativePath="..\..\src\r_draw.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\src\r_local.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\src\r_main.c"
+					>
+				</File>
+				<File
+					RelativePath="..\..\src\r_main.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\src\r_plane.c"
+					>
+				</File>
+				<File
+					RelativePath="..\..\src\r_plane.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\src\r_segs.c"
+					>
+				</File>
+				<File
+					RelativePath="..\..\src\r_segs.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\src\r_sky.c"
+					>
+				</File>
+				<File
+					RelativePath="..\..\src\r_sky.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\src\r_splats.c"
+					>
+				</File>
+				<File
+					RelativePath="..\..\src\r_splats.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\src\r_state.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\src\r_things.c"
+					>
+				</File>
+				<File
+					RelativePath="..\..\src\r_things.h"
+					>
+				</File>
+			</Filter>
+			<Filter
+				Name="s_ (Sound)"
+				>
+				<File
+					RelativePath="..\..\src\s_sound.c"
+					>
+				</File>
+				<File
+					RelativePath="..\..\src\s_sound.h"
+					>
+				</File>
+			</Filter>
+			<Filter
+				Name="p_ (Logic)"
+				>
+				<File
+					RelativePath="..\..\src\p_ceilng.c"
+					>
+				</File>
+				<File
+					RelativePath="..\..\src\p_chex.c"
+					>
+				</File>
+				<File
+					RelativePath="..\..\src\p_chex.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\src\p_demcmp.c"
+					>
+				</File>
+				<File
+					RelativePath="..\..\src\p_demcmp.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\src\p_doors.c"
+					>
+				</File>
+				<File
+					RelativePath="..\..\src\p_enemy.c"
+					>
+				</File>
+				<File
+					RelativePath="..\..\src\p_fab.c"
+					>
+				</File>
+				<File
+					RelativePath="..\..\src\p_fab.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\src\p_floor.c"
+					>
+				</File>
+				<File
+					RelativePath="..\..\src\p_genlin.c"
+					>
+				</File>
+				<File
+					RelativePath="..\..\src\p_info.c"
+					>
+				</File>
+				<File
+					RelativePath="..\..\src\p_info.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\src\p_inter.c"
+					>
+				</File>
+				<File
+					RelativePath="..\..\src\p_inter.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\src\p_lights.c"
+					>
+				</File>
+				<File
+					RelativePath="..\..\src\p_local.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\src\p_map.c"
+					>
+				</File>
+				<File
+					RelativePath="..\..\src\p_maputl.c"
+					>
+				</File>
+				<File
+					RelativePath="..\..\src\p_maputl.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\src\p_mobj.c"
+					>
+				</File>
+				<File
+					RelativePath="..\..\src\p_mobj.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\src\p_plats.c"
+					>
+				</File>
+				<File
+					RelativePath="..\..\src\p_pspr.c"
+					>
+				</File>
+				<File
+					RelativePath="..\..\src\p_pspr.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\src\p_saveg.c"
+					>
+				</File>
+				<File
+					RelativePath="..\..\src\p_saveg.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\src\p_setup.c"
+					>
+				</File>
+				<File
+					RelativePath="..\..\src\p_setup.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\src\p_sight.c"
+					>
+				</File>
+				<File
+					RelativePath="..\..\src\p_spec.c"
+					>
+				</File>
+				<File
+					RelativePath="..\..\src\p_spec.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\src\p_switch.c"
+					>
+				</File>
+				<File
+					RelativePath="..\..\src\p_telept.c"
+					>
+				</File>
+				<File
+					RelativePath="..\..\src\p_tick.c"
+					>
+				</File>
+				<File
+					RelativePath="..\..\src\p_tick.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\src\p_user.c"
+					>
+				</File>
+			</Filter>
+			<Filter
+				Name="st_ (Status Bar)"
+				>
+				<File
+					RelativePath="..\..\src\st_lib.c"
+					>
+				</File>
+				<File
+					RelativePath="..\..\src\st_lib.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\src\st_stuff.c"
+					>
+				</File>
+				<File
+					RelativePath="..\..\src\st_stuff.h"
+					>
+				</File>
+			</Filter>
+			<Filter
+				Name="t_ (FraggleScript/ReMooD Script)"
+				>
+				<File
+					RelativePath="..\..\src\t_comp.c"
+					>
+				</File>
+				<File
+					RelativePath="..\..\src\t_func.c"
+					>
+				</File>
+				<File
+					RelativePath="..\..\src\t_func.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\src\t_oper.c"
+					>
+				</File>
+				<File
+					RelativePath="..\..\src\t_oper.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\src\t_parse.c"
+					>
+				</File>
+				<File
+					RelativePath="..\..\src\t_parse.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\src\t_prepro.c"
+					>
+				</File>
+				<File
+					RelativePath="..\..\src\t_prepro.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\src\t_script.c"
+					>
+				</File>
+				<File
+					RelativePath="..\..\src\t_script.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\src\t_spec.c"
+					>
+				</File>
+				<File
+					RelativePath="..\..\src\t_spec.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\src\t_vari.c"
+					>
+				</File>
+				<File
+					RelativePath="..\..\src\t_vari.h"
+					>
+				</File>
+			</Filter>
+			<Filter
+				Name="m_ (Misc)"
+				>
+				<File
+					RelativePath="..\..\src\m_argv.c"
+					>
+				</File>
+				<File
+					RelativePath="..\..\src\m_argv.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\src\m_bbox.c"
+					>
+				</File>
+				<File
+					RelativePath="..\..\src\m_bbox.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\src\m_cheat.c"
+					>
+				</File>
+				<File
+					RelativePath="..\..\src\m_cheat.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\src\m_fixed.c"
+					>
+				</File>
+				<File
+					RelativePath="..\..\src\m_fixed.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\src\m_menu.c"
+					>
+				</File>
+				<File
+					RelativePath="..\..\src\m_menu.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\src\m_menudr.c"
+					>
+				</File>
+				<File
+					RelativePath="..\..\src\m_menufn.c"
+					>
+				</File>
+				<File
+					RelativePath="..\..\src\m_misc.c"
+					>
+				</File>
+				<File
+					RelativePath="..\..\src\m_misc.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\src\m_random.c"
+					>
+				</File>
+				<File
+					RelativePath="..\..\src\m_random.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\src\m_swap.h"
+					>
+				</File>
+			</Filter>
+			<Filter
+				Name="hu_ (HUD)"
+				>
+				<File
+					RelativePath="..\..\src\hu_stuff.c"
+					>
+				</File>
+				<File
+					RelativePath="..\..\src\hu_stuff.h"
+					>
+				</File>
+			</Filter>
+			<Filter
+				Name="g_ (Game)"
+				>
+				<File
+					RelativePath="..\..\src\g_game.c"
+					>
+				</File>
+				<File
+					RelativePath="..\..\src\g_game.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\src\g_input.c"
+					>
+				</File>
+				<File
+					RelativePath="..\..\src\g_input.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\src\g_state.c"
+					>
+				</File>
+				<File
+					RelativePath="..\..\src\g_state.h"
+					>
+				</File>
+			</Filter>
+			<Filter
+				Name="f_ (Finale)"
+				>
+				<File
+					RelativePath="..\..\src\f_finale.c"
+					>
+				</File>
+				<File
+					RelativePath="..\..\src\f_finale.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\src\f_wipe.c"
+					>
+				</File>
+				<File
+					RelativePath="..\..\src\f_wipe.h"
+					>
+				</File>
+			</Filter>
+			<Filter
+				Name="d_ (Doom)"
+				>
+				<File
+					RelativePath="..\..\src\d_clisrv.c"
+					>
+				</File>
+				<File
+					RelativePath="..\..\src\d_clisrv.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\src\d_englsh.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\src\d_event.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\src\d_french.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\src\d_info.c"
+					>
+				</File>
+				<File
+					RelativePath="..\..\src\d_info.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\src\d_items.c"
+					>
+				</File>
+				<File
+					RelativePath="..\..\src\d_items.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\src\d_main.c"
+					>
+				</File>
+				<File
+					RelativePath="..\..\src\d_main.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\src\d_net.c"
+					>
+				</File>
+				<File
+					RelativePath="..\..\src\d_net.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\src\d_netcmd.c"
+					>
+				</File>
+				<File
+					RelativePath="..\..\src\d_netcmd.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\src\d_player.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\src\d_prof.c"
+					>
+				</File>
+				<File
+					RelativePath="..\..\src\d_prof.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\src\d_rdf.c"
+					>
+				</File>
+				<File
+					RelativePath="..\..\src\d_rdf.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\src\d_rmod.c"
+					>
+				</File>
+				<File
+					RelativePath="..\..\src\d_rmod.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\src\d_think.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\src\d_ticcmd.h"
+					>
+				</File>
+			</Filter>
+			<Filter
+				Name="am_ (Automap)"
+				>
+				<File
+					RelativePath="..\..\src\am_map.c"
+					>
+				</File>
+				<File
+					RelativePath="..\..\src\am_map.h"
+					>
+				</File>
+			</Filter>
 		</Filter>
 		<File
 			RelativePath="..\..\src\byteptr.h"
@@ -1089,23 +1583,11 @@
 			>
 		</File>
 		<File
-			RelativePath="..\..\src\sdl\dosstr.c"
-			>
-		</File>
-		<File
 			RelativePath="..\..\src\dstrings.c"
 			>
 		</File>
 		<File
 			RelativePath="..\..\src\dstrings.h"
-			>
-		</File>
-		<File
-			RelativePath="..\..\src\sdl\endtxt.c"
-			>
-		</File>
-		<File
-			RelativePath="..\..\src\sdl\endtxt.h"
 			>
 		</File>
 		<File

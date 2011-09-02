@@ -41,6 +41,7 @@
 	#include <winalleg.h>
 #endif
 
+#define __REMOOD_IGNORE_FIXEDTYPES
 #include "doomdef.h"
 #include "m_argv.h"
 #include "d_main.h"

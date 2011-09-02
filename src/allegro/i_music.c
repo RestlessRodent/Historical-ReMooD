@@ -41,6 +41,7 @@
 #endif
 
 /* Local */
+#define __REMOOD_IGNORE_FIXEDTYPES
 #include "doomtype.h"
 #include "i_util.h"
 #include "i_sound.h"
