@@ -150,6 +150,8 @@ static int load;
 
 void TryRunTics(tic_t realtics)
 {
+	tic_t LocalTic, TargetTic;
+	
 	// the machine have laged but is not so bad
 	if (realtics > TICRATE / 7)	// FIXME: consistency failure!!
 		realtics = TICRATE / 7;
@@ -170,7 +172,40 @@ void TryRunTics(tic_t realtics)
 		firstticstosend = maketic;
 		tictoclear = firstticstosend;
 	}
-
+	
+	/* While the client is behind, update it to catch up */
+	do
+	{
+		// Set local time and target time
+		LocalTic = D_SyncNetMapTime();
+		TargetTic = D_SyncNetAllReady();
+		
+		// Update the client if it is needed
+		if (LocalTic < TargetTic)
+		{
+			// Run game ticker and increment the gametic
+			G_Ticker();
+			gametic++;
+			
+			// Set map time to be closer
+			D_SyncNetSetMapTime(++LocalTic);
+			
+			// If the target was reached, update useless stuff
+			if (LocalTic == TargetTic)
+			{
+				// Update music
+				I_UpdateMusic();
+			}
+		}
+		
+		// Otherwise no updating is needed
+		else
+		{
+			I_WaitVBL(20);
+		}
+	} while (D_SyncNetMapTime() < TargetTic);
+	
+#if 0
 	if (neededtic > gametic)
 	{
 		if (advancedemo)
@@ -203,6 +238,7 @@ void TryRunTics(tic_t realtics)
 	
 	/*else
 		I_WaitVBL(20);*/
+#endif
 }
 
 /* D_GetTics() -- Returns wrap capable time in tics */
