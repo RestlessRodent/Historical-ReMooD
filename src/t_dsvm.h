@@ -9,9 +9,7 @@
 // ##      ## ###### ##         ##  ######   ######  ######
 //                      http://remood.org/
 // -----------------------------------------------------------------------------
-// Copyright (C) 1993-1996 by id Software, Inc.
-// Copyright (C) 1998-2000 by DooM Legacy Team.
-// Copyright (C) 2008-2011 GhostlyDeath (ghostlydeath@gmail.com)
+// Copyright (C) 2011 GhostlyDeath <ghostlydeath@remood.org>
 // -----------------------------------------------------------------------------
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
@@ -23,32 +21,23 @@
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 // GNU General Public License for more details.
 // -----------------------------------------------------------------------------
-// DESCRIPTION: Networking stuff.
-//              part of layer 4 (transport) (tp4) of the osi model
-//              assure the reception of packet and proceed a checksums
-
-#ifndef __D_NET_H__
-#define __D_NET_H__
+// DESCRIPTION: ReMooD Scripting Virtual Machine
 
 /***************
 *** INCLUDES ***
 ***************/
 
-#include "i_net.h"
+#include "doomtype.h"
+#include "w_wad.h"
 
 /*****************
 *** PROTOTYPES ***
 *****************/
 
-void D_SyncNetDebugMessage(const char* const a_Format, ...);
-bool_t D_SyncNetIsArbiter(void);
-void D_SyncNetSetMapTime(const tic_t a_Time);
-tic_t D_SyncNetMapTime(void);
-tic_t D_SyncNetAllReady(void);
-bool_t D_SyncNetUpdate(void);
+/* t_dsvm.c -- Core Machine */
+void T_DSVMDebugMessage(const char* const a_Format, ...);
 
-bool_t D_CheckNetGame(void);
-
-#endif /* __D_NET_H__ */
+/* t_dscc.c -- Script Compiler */
+int32_t T_DSVMCompileScript(const WadIndex_t a_Index, WX_WADEntry_t* const a_Entry);
 
 

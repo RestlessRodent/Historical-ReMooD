@@ -9,9 +9,7 @@
 // ##      ## ###### ##         ##  ######   ######  ######
 //                      http://remood.org/
 // -----------------------------------------------------------------------------
-// Copyright (C) 1993-1996 by id Software, Inc.
-// Copyright (C) 1998-2000 by DooM Legacy Team.
-// Copyright (C) 2008-2011 GhostlyDeath (ghostlydeath@gmail.com)
+// Copyright (C) 2011 GhostlyDeath <ghostlydeath@remood.org>
 // -----------------------------------------------------------------------------
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
@@ -23,32 +21,38 @@
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 // GNU General Public License for more details.
 // -----------------------------------------------------------------------------
-// DESCRIPTION: Networking stuff.
-//              part of layer 4 (transport) (tp4) of the osi model
-//              assure the reception of packet and proceed a checksums
+// DESCRIPTION: ReMooD Scripting Virtual Machine (Core Machine Execution)
 
-#ifndef __D_NET_H__
-#define __D_NET_H__
 
 /***************
 *** INCLUDES ***
 ***************/
 
-#include "i_net.h"
+#include "doomtype.h"
+#include "t_dsvm.h"
 
-/*****************
-*** PROTOTYPES ***
-*****************/
+/****************
+*** FUNCTIONS ***
+****************/
 
-void D_SyncNetDebugMessage(const char* const a_Format, ...);
-bool_t D_SyncNetIsArbiter(void);
-void D_SyncNetSetMapTime(const tic_t a_Time);
-tic_t D_SyncNetMapTime(void);
-tic_t D_SyncNetAllReady(void);
-bool_t D_SyncNetUpdate(void);
-
-bool_t D_CheckNetGame(void);
-
-#endif /* __D_NET_H__ */
-
+/* T_DSVMDebugMessage() -- Debug message for scripting */
+void T_DSVMDebugMessage(const char* const a_Format, ...)
+{
+#define BUFSIZE 512
+	va_list ArgPtr;
+	char Text[BUFSIZE];
+	
+	/* Check */
+	if (!M_CheckParm("-devscript"))
+		return;
+	
+	// Make
+	va_start(ArgPtr, a_Format);
+	vsnprintf(Text, BUFSIZE, a_Format, ArgPtr);
+	va_end(ArgPtr);
+	
+	// Print
+	fprintf(stderr, "%s\n", Text);
+#undef BUFSIZE
+}
 

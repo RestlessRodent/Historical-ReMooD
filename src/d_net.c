@@ -117,6 +117,15 @@ tic_t D_SyncNetAllReady(void)
 	}
 }
 
+/* D_SyncNetUpdate() -- Update synchronized networking */
+bool_t D_SyncNetUpdate(void)
+{
+	D_SyncNetDebugMessage("Update...\n");
+	
+	/* Success */
+	return true;
+}
+
 /* D_CheckNetGame() -- Checks whether the game was started on the network */
 bool_t D_CheckNetGame(void)
 {

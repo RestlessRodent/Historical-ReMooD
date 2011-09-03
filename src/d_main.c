@@ -423,6 +423,7 @@ void D_Display(void)
 	else
 		CONEx_Drawer();
 	
+	D_SyncNetUpdate();
 	NetUpdate();				// send out any new accumulation
 
 //

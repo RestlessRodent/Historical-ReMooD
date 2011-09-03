@@ -199,31 +199,153 @@ typedef struct WX_WADFile_s WX_WADFile_t;
 typedef struct WX_WADEntry_s WX_WADEntry_t;
 
 /*** PROTOTYPES ***/
-uint32_t			WX_Hash(const char* const a_Str);
-const char*			WX_BaseName(const char* const a_File);
-const char*			WX_BaseExtension(const char* const a_File);
-bool_t				WX_Init(void);
-bool_t				WX_LocateWAD(const char* const a_Name, const char* const a_MD5, char* const a_OutPath, const size_t a_OutSize);
-WX_WADFile_t*		WX_LoadWAD(const char* const a_AutoPath);
-void				WX_UnLoadWAD(WX_WADFile_t* const a_WAD);
-WX_WADFile_t*		WX_RoveWAD(WX_WADFile_t* const a_WAD, const bool_t a_Virtual, const int32_t a_Next);
-void				WX_PreEntryTable(WX_WADFile_t* const a_WAD, const size_t a_Count);
-WX_WADEntry_t*		WX_AddEntry(WX_WADFile_t* const a_WAD);
-void				WX_WipeEntryTable(WX_WADFile_t* const a_WAD);
-void				WX_LoadWADStuff(WX_WADFile_t* const a_WAD);
-void				WX_ClearWADStuff(WX_WADFile_t* const a_WAD);
-void				WX_CompileComposite(void);
-void				WX_ClearComposite(void);
-WX_WADEntry_t*		WX_GetNumEntry(WX_WADFile_t* const a_WAD, const size_t a_Index);
-WX_WADEntry_t*		WX_EntryForName(WX_WADFile_t* const a_WAD, const char* const a_Name, const bool_t a_Forwards);
-void*				WX_CacheEntry(WX_WADEntry_t* const a_Entry);
-size_t				WX_UseEntry(WX_WADEntry_t* const a_Entry, const bool_t a_Use);
-bool_t				WX_VirtualPushPop(WX_WADFile_t* const a_WAD, const bool_t a_Pop, const bool_t a_Back);
-bool_t				WX_GetVirtualPrivateData(WX_WADFile_t* const a_WAD, const WX_DataPrivateID_t a_ID, void*** const a_PPPtr, size_t** const a_PPSize);
-WX_WADEntry_t*		WX_RoveEntry(WX_WADEntry_t* const a_Entry, const int32_t a_Next);
-size_t				WX_GetEntryName(WX_WADEntry_t* const a_Entry, char* const a_OutBuf, const size_t a_OutSize);
-size_t				WX_GetEntrySize(WX_WADEntry_t* const a_Entry);
-size_t				WX_ClearUnused(void);
+uint32_t			__REMOOD_DEPRECATED WX_Hash(const char* const a_Str);
+const char*			__REMOOD_DEPRECATED WX_BaseName(const char* const a_File);
+const char*			__REMOOD_DEPRECATED WX_BaseExtension(const char* const a_File);
+bool_t				__REMOOD_DEPRECATED WX_Init(void);
+bool_t				__REMOOD_DEPRECATED WX_LocateWAD(const char* const a_Name, const char* const a_MD5, char* const a_OutPath, const size_t a_OutSize);
+WX_WADFile_t*		__REMOOD_DEPRECATED WX_LoadWAD(const char* const a_AutoPath);
+void				__REMOOD_DEPRECATED WX_UnLoadWAD(WX_WADFile_t* const a_WAD);
+WX_WADFile_t*		__REMOOD_DEPRECATED WX_RoveWAD(WX_WADFile_t* const a_WAD, const bool_t a_Virtual, const int32_t a_Next);
+void				__REMOOD_DEPRECATED WX_PreEntryTable(WX_WADFile_t* const a_WAD, const size_t a_Count);
+WX_WADEntry_t*		__REMOOD_DEPRECATED WX_AddEntry(WX_WADFile_t* const a_WAD);
+void				__REMOOD_DEPRECATED WX_WipeEntryTable(WX_WADFile_t* const a_WAD);
+void				__REMOOD_DEPRECATED WX_LoadWADStuff(WX_WADFile_t* const a_WAD);
+void				__REMOOD_DEPRECATED WX_ClearWADStuff(WX_WADFile_t* const a_WAD);
+void				__REMOOD_DEPRECATED WX_CompileComposite(void);
+void				__REMOOD_DEPRECATED WX_ClearComposite(void);
+WX_WADEntry_t*		__REMOOD_DEPRECATED WX_GetNumEntry(WX_WADFile_t* const a_WAD, const size_t a_Index);
+WX_WADEntry_t*		__REMOOD_DEPRECATED WX_EntryForName(WX_WADFile_t* const a_WAD, const char* const a_Name, const bool_t a_Forwards);
+void*				__REMOOD_DEPRECATED WX_CacheEntry(WX_WADEntry_t* const a_Entry);
+size_t				__REMOOD_DEPRECATED WX_UseEntry(WX_WADEntry_t* const a_Entry, const bool_t a_Use);
+bool_t				__REMOOD_DEPRECATED WX_VirtualPushPop(WX_WADFile_t* const a_WAD, const bool_t a_Pop, const bool_t a_Back);
+bool_t				__REMOOD_DEPRECATED WX_GetVirtualPrivateData(WX_WADFile_t* const a_WAD, const WX_DataPrivateID_t a_ID, void*** const a_PPPtr, size_t** const a_PPSize);
+WX_WADEntry_t*		__REMOOD_DEPRECATED WX_RoveEntry(WX_WADEntry_t* const a_Entry, const int32_t a_Next);
+size_t				__REMOOD_DEPRECATED WX_GetEntryName(WX_WADEntry_t* const a_Entry, char* const a_OutBuf, const size_t a_OutSize);
+size_t				__REMOOD_DEPRECATED WX_GetEntrySize(WX_WADEntry_t* const a_Entry);
+size_t				__REMOOD_DEPRECATED WX_ClearUnused(void);
+
+/************************
+*** LITE WAD HANDLING ***
+************************/
+
+/*** CONSTANTS ***/
+#define WLMAXENTRYNAME			24				// Max characters in entry name 
+#define WLMAXPRIVATEWADSTUFF	64				// Maximum number of private WAD Stuffs
+
+/* WL_FindFlags_t -- Flags when finding things */
+typedef enum WL_FindFlags_e
+{
+	WLFF_DEFAULTS				= 0,			// Default stuff
+	WLFF_FORWARDS				= 0x0001,		// Search forwards instead of backwards
+	WLFF_SINGLEWAD				= 0x0002,		// Only search in this WAD (instead of bleeding)
+	WLFF_REALCHAINS				= 0x0004,		// Use real chains (DEBUG USE ONLY!)
+	WLFF_UNLINKED				= 0x0008,		// Search non-linked WADs, i.e. not in virtual chain (DEBUG USE ONLY!)
+	WLFF_IMPORTANT				= 0x0010,		// I_Error if not found (not recommended!)
+} WL_FindFlags_t;
+
+/*** STRUCTURES ***/
+struct WL_WADEntry_s;
+struct WL_WADFile_s;
+
+/* WL_WADEntry_t -- A lite WAD entry */
+typedef struct WL_WADEntry_s
+{
+	/* Private Stuff You Don't Touch */
+	struct
+	{
+		bool_t __Compressed;					// Entry is compressed
+		int32_t __UsageCount;					// Times entry used
+		void* __Data;							// Loaded Data (cached)
+		size_t __Offset;						// Offset of the internal data
+		size_t __InternalSize;					// Internal size (could be compressed)
+	} __Private;								// Don't mess with me
+	
+	/* Public Stuff You Read From */
+	// Normal Stuff
+	char Name[WLMAXENTRYNAME];					// Name of entry
+	uint32_t Hash;								// Hash for this entry
+	WadIndex_t Index;							// Index for this entry (WAD Local)
+	WadIndex_t GlobalIndex;						// Global Index for this entry (of all WADs)
+	
+	// Data Related
+	size_t Size;								// Size of the data
+	
+	// Owner
+	struct WL_WADFile_s* Owner;					// WAD that owns this
+	
+	// Linkage
+	struct WL_WADEntry_s* PrevEntry;			// Previous Entry
+	struct WL_WADEntry_s* NextEntry;			// Next Entry
+} WL_WADEntry_t;
+
+/* WL_WADFile_t -- A lite WAD file */
+typedef struct WL_WADFile_s
+{
+	/* Private Stuff You Don't Touch */
+	struct
+	{
+		// File related stuff
+		char __PathName[PATH_MAX];				// Path to WAD File
+		char __FileName[PATH_MAX];				// File name of WAD
+		void* __CFile;							// File on disk
+		size_t __IndexOff;						// Offset of index
+		size_t __Size;							// Size of WAD
+		
+		// Entries
+		uint32_t __TopHash;						// Top 8-bits of hash (indexes)
+		Z_HashTable_t* __EntryHashes;			// Hash table for find speed
+		
+		// Public Data (per WAD basis)
+		struct
+		{
+			size_t __NumStuffs;						// Amount of stuff there is
+			struct
+			{
+				uint32_t __Key;						// Key to the data
+				void* __DataPtr;					// Pointer to data
+				size_t __Size;						// Size of data
+					// Function that removes the data loaded (when WAD unloaded)
+				void (*__RemoveFunc)(const struct WL_WADFile_s* a_WAD);
+			} __Stuff[WLMAXPRIVATEWADSTUFF];		// Private Stuff
+		} __PublicData;								// Public data for perWAD data storage
+		
+		// Linkage
+		struct WL_WADFile_s* __PrevWAD;			// Previous WAD
+		struct WL_WADFile_s* __NextWAD;			// Next WAD
+	} __Private;								// Don't mess with me
+	
+	/* Public Stuff You Read From */
+	// Data Related Stuff
+	size_t TotalSize;							// Size of all entries added together
+	uint32_t CheckSum[4];						// MD5 Sum
+	uint8_t CheckSumChars[33];					// MD5 Sum (As hex characters)
+	
+	// Entries
+	WL_WADEntry_t* Entries;						// Entries in the WAD
+	WadIndex_t NumEntries;						// Number of entries
+	
+	// Virtual Linkage
+	struct WL_WADFile_s* PrevVWAD;				// Previous virtual WAD
+	struct WL_WADFile_s* NextVWAD;				// Next virtual WAD
+} WL_WADFile_t;
+
+/*** PROTOTYPES ***/
+// WAD Handling
+const WL_WADFile_t*		WL_OpenWAD(const char* const a_PathName);
+void					WL_CloseWAD(const WL_WADFile_t* const a_WAD);
+
+void					WL_PushWAD(const WL_WADFile_t* const a_WAD);
+const WL_WADFile_t*		WL_PopWAD(void);
+
+void*					WL_SetPrivateData(const WL_WADFile_t* const a_WAD, const uint32_t a_Key, const size_t a_Size, void (*a_RemoveFunc)(const struct WL_WADFile_s* a_WAD));
+void*					WL_GetPrivateData(const WL_WADFile_t* const a_WAD, const uint32_t a_Key, size_t* const a_Size);
+void					WL_ClearPrivateData(const WL_WADFile_t* const a_WAD, const uint32_t a_Key);
+
+// Entry Handling
+const WL_WADEntry_t*	WL_FindEntry(const WL_WADFile_t* const a_BaseSearch, const uint32_t a_Flags, const char* const a_Name);
+uintptr_t				WL_TranslateEntry(const WadIndex_t a_GlobalIndex, const WL_WADFile_t* const a_Entry);
+size_t					WL_ReadData(const WL_WADEntry_t* const a_Entry, const size_t a_Offset, void* const a_Out, const size_t a_OutSize);
 
 #endif							/* __W_WAD__ */
 

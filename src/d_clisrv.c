@@ -162,6 +162,7 @@ void TryRunTics(tic_t realtics)
 	if (realtics >= 1)
 		COM_BufExecute();
 
+	D_SyncNetUpdate();
 	NetUpdate();
 
 	if (demoplayback)

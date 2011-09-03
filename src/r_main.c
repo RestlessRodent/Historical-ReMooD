@@ -1098,6 +1098,7 @@ void R_RenderPlayerViewEx(player_t * player, int quarter)
 	R_ClearSprites();
 
 	// check for new console commands.
+	D_SyncNetUpdate();
 	NetUpdate();
 
 	// The head node is the last node output.
@@ -1105,12 +1106,14 @@ void R_RenderPlayerViewEx(player_t * player, int quarter)
 	R_RenderBSPNode(numnodes - 1);
 
 	// Check for new console commands.
+	D_SyncNetUpdate();
 	NetUpdate();
 
 	//R_DrawPortals ();
 	R_DrawPlanes();
 
 	// Check for new console commands.
+	D_SyncNetUpdate();
 	NetUpdate();
 
 	// draw mid texture and sprite
@@ -1181,6 +1184,7 @@ void R_RenderPlayerViewEx(player_t * player, int quarter)
 #endif
 
 	// Check for new console commands.
+	D_SyncNetUpdate();
 	NetUpdate();
 	player->mo->flags &= ~MF_NOSECTOR;	// don't show self (uninit) clientprediction code
 }

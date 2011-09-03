@@ -2390,3 +2390,64 @@ size_t				WX_ClearUnused(void)
 	return r;
 }
 
+/************************
+*** LITE WAD HANDLING ***
+************************/
+
+/* WL_OpenWAD() -- Opens a WAD File */
+const WL_WADFile_t*		WL_OpenWAD(const char* const a_PathName)
+{
+	return NULL;
+}
+
+/* WL_CloseWAD() -- Closes a WAD File */
+void					WL_CloseWAD(const WL_WADFile_t* const a_WAD)
+{
+}
+
+/* WL_PushWAD() -- Pushes a WAD to the end of the virtual stack */
+void					WL_PushWAD(const WL_WADFile_t* const a_WAD)
+{
+}
+
+/* WL_PopWAD() -- Pops a WAD from the end of the virtual stack */
+const WL_WADFile_t*		WL_PopWAD(void)
+{
+	return NULL;
+}
+
+/* WL_SetPrivateData() -- Sets private data for the WAD */
+void*					WL_SetPrivateData(const WL_WADFile_t* const a_WAD, const uint32_t a_Key, const size_t a_Size, void (*a_RemoveFunc)(const struct WL_WADFile_s* a_WAD))
+{
+	return NULL;
+}
+
+/* WL_GetPrivateData() -- Retrieves existing private data */
+void*					WL_GetPrivateData(const WL_WADFile_t* const a_WAD, const uint32_t a_Key, size_t* const a_Size)
+{
+	return NULL;
+}
+
+/* WL_ClearPrivateData() -- Clears private data in the WAD */
+void					WL_ClearPrivateData(const WL_WADFile_t* const a_WAD, const uint32_t a_Key)
+{
+}
+
+/* WL_FindEntry() -- Find an entry by name */
+const WL_WADEntry_t*	WL_FindEntry(const WL_WADFile_t* const a_BaseSearch, const uint32_t a_Flags, const char* const a_Name)
+{
+	return NULL;
+}
+
+/* WL_TranslateEntry() -- Translate a Global Index to/from Entry pointer */
+uintptr_t				WL_TranslateEntry(const WadIndex_t a_GlobalIndex, const WL_WADFile_t* const a_Entry)
+{
+	return 0;
+}
+
+/* WL_ReadData() -- Read WAD data into memory */
+size_t					WL_ReadData(const WL_WADEntry_t* const a_Entry, const size_t a_Offset, void* const a_Out, const size_t a_OutSize)
+{
+	return 0;
+}
+
