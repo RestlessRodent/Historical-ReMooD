@@ -16,112 +16,112 @@ Lumps Copyright (C) id Software <http://idsoftware.com/>
 Lumps Copyright (C) Raven Software <
 
 Lumps Copyright (C) 2006-2011 GhostlyDeath <ghostly@remood.org>
-	graphics/rankings.gif [DFSG, DRAWN USING LARGE FONT]
-	graphics/ufna0300.gif [DRAWN FROM SCRATCH]
-	graphics/ufna0301.gif [DRAWN FROM SCRATCH]
-	graphics/ufna0302.gif [DRAWN FROM SCRATCH]
-	graphics/ufna0303.gif [DRAWN FROM SCRATCH]
-	graphics/ufna0306.gif [DRAWN FROM SCRATCH]
-	graphics/ufna030a.gif [DRAWN FROM SCRATCH]
-	graphics/ufna030c.gif [DRAWN FROM SCRATCH]
-	graphics/ufna0411.gif [DRAWN FROM SCRATCH]
-	graphics/ufna0413.gif [DRAWN FROM SCRATCH]
-	graphics/ufna0414.gif [DRAWN FROM SCRATCH]
-	graphics/ufna0416.gif [DRAWN FROM SCRATCH]
-	graphics/ufna0418.gif [DRAWN FROM SCRATCH]
-	graphics/ufna041b.gif [DRAWN FROM SCRATCH]
-	graphics/ufna041f.gif [DRAWN FROM SCRATCH]
-	graphics/ufna0424.gif [DRAWN FROM SCRATCH]
-	graphics/ufna0426.gif [DRAWN FROM SCRATCH]
-	graphics/ufna0427.gif [DRAWN FROM SCRATCH]
-	graphics/ufna0428.gif [DRAWN FROM SCRATCH]
-	graphics/ufna0429.gif [DRAWN FROM SCRATCH]
-	graphics/ufna042b.gif [DRAWN FROM SCRATCH]
-	graphics/ufna042c.gif [DRAWN FROM SCRATCH]
-	graphics/ufna042d.gif [DRAWN FROM SCRATCH]
-	graphics/ufna042e.gif [DRAWN FROM SCRATCH]
-	graphics/ufna042f.gif [DRAWN FROM SCRATCH]
-	graphics/ufnafffd.gif [DRAWN FROM SCRATCH]
-	graphics/ufnb0306.gif
-	graphics/ufnb0411.gif
-	graphics/ufnb0418.gif
-	graphics/ufnb041b.gif
-	graphics/ufnb041f.gif
-	graphics/ufnb042c.gif
-	graphics/ufnb042f.gif
-	graphics/ufnb30aa.gif
-	graphics/ufnb30c4.gif
-	graphics/ufnb30d7.gif
-	graphics/ufnb30e8.gif
-	graphics/ufnb30f3.gif
-	graphics/ufnbfffd.gif
-	graphics/ufncfffd.gif [DRAWN FROM SCRATCH]
-	graphics/ufndfffd.gif [DRAWN FROM SCRATCH]
-	graphics/ufnefffd.gif [DRAWN FROM SCRATCH]
-	graphics/ufnffffd.gif [DRAWN FROM SCRATCH]
-	graphics/ufngfffd.gif [DRAWN FROM SCRATCH]
-	graphics/ufnjfffd.gif [DRAWN FROM SCRATCH]
-	graphics/ufnk0041.gif [DRAWN FROM SCRATCH]
-	graphics/ufnk0042.gif [DRAWN FROM SCRATCH]
-	graphics/ufnk0043.gif [DRAWN FROM SCRATCH]
-	graphics/ufnk0044.gif [DRAWN FROM SCRATCH]
-	graphics/ufnk0045.gif [DRAWN FROM SCRATCH]
-	graphics/ufnk0046.gif [DRAWN FROM SCRATCH]
-	graphics/ufnk0047.gif [DRAWN FROM SCRATCH]
-	graphics/ufnkfffd.gif [DRAWN FROM SCRATCH]
-	graphics/ufnr002a.gif [DRAWN FROM SCRATCH]
-	graphics/ufnr002e.gif [DRAWN FROM SCRATCH]
-	graphics/ufnr0030.gif [DRAWN FROM SCRATCH]
-	graphics/ufnr0031.gif [DRAWN FROM SCRATCH]
-	graphics/ufnr0032.gif [DRAWN FROM SCRATCH]
-	graphics/ufnr0033.gif [DRAWN FROM SCRATCH]
-	graphics/ufnr0034.gif [DRAWN FROM SCRATCH]
-	graphics/ufnr0035.gif [DRAWN FROM SCRATCH]
-	graphics/ufnr0036.gif [DRAWN FROM SCRATCH]
-	graphics/ufnr0037.gif [DRAWN FROM SCRATCH]
-	graphics/ufnr0038.gif [DRAWN FROM SCRATCH]
-	graphics/ufnr0039.gif [DRAWN FROM SCRATCH]
-	graphics/ufnr003a.gif [DRAWN FROM SCRATCH]
-	graphics/ufnr0041.gif [DRAWN FROM SCRATCH]
-	graphics/ufnr0042.gif [DRAWN FROM SCRATCH]
-	graphics/ufnr0043.gif [DRAWN FROM SCRATCH]
-	graphics/ufnr0044.gif [DRAWN FROM SCRATCH]
-	graphics/ufnr0045.gif [DRAWN FROM SCRATCH]
-	graphics/ufnr0046.gif [DRAWN FROM SCRATCH]
-	graphics/ufnr0047.gif [DRAWN FROM SCRATCH]
-	graphics/ufnr0048.gif [DRAWN FROM SCRATCH]
-	graphics/ufnr0049.gif [DRAWN FROM SCRATCH]
-	graphics/ufnr004a.gif [DRAWN FROM SCRATCH]
-	graphics/ufnr004b.gif [DRAWN FROM SCRATCH]
-	graphics/ufnr004c.gif [DRAWN FROM SCRATCH]
-	graphics/ufnr004d.gif [DRAWN FROM SCRATCH]
-	graphics/ufnr004e.gif [DRAWN FROM SCRATCH]
-	graphics/ufnr004f.gif [DRAWN FROM SCRATCH]
-	graphics/ufnr0050.gif [DRAWN FROM SCRATCH]
-	graphics/ufnr0051.gif [DRAWN FROM SCRATCH]
-	graphics/ufnr0052.gif [DRAWN FROM SCRATCH]
-	graphics/ufnr0053.gif [DRAWN FROM SCRATCH]
-	graphics/ufnr0054.gif [DRAWN FROM SCRATCH]
-	graphics/ufnr0055.gif [DRAWN FROM SCRATCH]
-	graphics/ufnr0056.gif [DRAWN FROM SCRATCH]
-	graphics/ufnr0057.gif [DRAWN FROM SCRATCH]
-	graphics/ufnr0058.gif [DRAWN FROM SCRATCH]
-	graphics/ufnr0059.gif [DRAWN FROM SCRATCH]
-	graphics/ufnr005a.gif [DRAWN FROM SCRATCH]
-	graphics/ufnr005b.gif [DRAWN FROM SCRATCH]
-	graphics/ufnr005c.gif [DRAWN FROM SCRATCH]
-	graphics/ufnr005d.gif [DRAWN FROM SCRATCH]
-	graphics/ufnr00a9.gif [DRAWN FROM SCRATCH]
-	graphics/ufnr2122.gif [DRAWN FROM SCRATCH]
-	graphics/ufnr2591.gif [DRAWN FROM SCRATCH]
-	graphics/ufnr2592.gif [DRAWN FROM SCRATCH]
-	graphics/ufnr2593.gif [DRAWN FROM SCRATCH]
-	graphics/ufnr2603.gif [DRAWN FROM SCRATCH]
-	graphics/ufnr2669.gif [DRAWN FROM SCRATCH]
-	graphics/ufnr266a.gif [DRAWN FROM SCRATCH]
-	graphics/ufnr2690.gif [DRAWN FROM SCRATCH]
-	graphics/ufnr2691.gif [DRAWN FROM SCRATCH]
-	graphics/ufnrfffd.gif [DRAWN FROM SCRATCH]
+	graphics/rankings.ppm [DFSG, DRAWN USING LARGE FONT]
+	graphics/ufna0300.ppm [DRAWN FROM SCRATCH]
+	graphics/ufna0301.ppm [DRAWN FROM SCRATCH]
+	graphics/ufna0302.ppm [DRAWN FROM SCRATCH]
+	graphics/ufna0303.ppm [DRAWN FROM SCRATCH]
+	graphics/ufna0306.ppm [DRAWN FROM SCRATCH]
+	graphics/ufna030a.ppm [DRAWN FROM SCRATCH]
+	graphics/ufna030c.ppm [DRAWN FROM SCRATCH]
+	graphics/ufna0411.ppm [DRAWN FROM SCRATCH]
+	graphics/ufna0413.ppm [DRAWN FROM SCRATCH]
+	graphics/ufna0414.ppm [DRAWN FROM SCRATCH]
+	graphics/ufna0416.ppm [DRAWN FROM SCRATCH]
+	graphics/ufna0418.ppm [DRAWN FROM SCRATCH]
+	graphics/ufna041b.ppm [DRAWN FROM SCRATCH]
+	graphics/ufna041f.ppm [DRAWN FROM SCRATCH]
+	graphics/ufna0424.ppm [DRAWN FROM SCRATCH]
+	graphics/ufna0426.ppm [DRAWN FROM SCRATCH]
+	graphics/ufna0427.ppm [DRAWN FROM SCRATCH]
+	graphics/ufna0428.ppm [DRAWN FROM SCRATCH]
+	graphics/ufna0429.ppm [DRAWN FROM SCRATCH]
+	graphics/ufna042b.ppm [DRAWN FROM SCRATCH]
+	graphics/ufna042c.ppm [DRAWN FROM SCRATCH]
+	graphics/ufna042d.ppm [DRAWN FROM SCRATCH]
+	graphics/ufna042e.ppm [DRAWN FROM SCRATCH]
+	graphics/ufna042f.ppm [DRAWN FROM SCRATCH]
+	graphics/ufnafffd.ppm [DRAWN FROM SCRATCH]
+	graphics/ufnb0306.ppm
+	graphics/ufnb0411.ppm
+	graphics/ufnb0418.ppm
+	graphics/ufnb041b.ppm
+	graphics/ufnb041f.ppm
+	graphics/ufnb042c.ppm
+	graphics/ufnb042f.ppm
+	graphics/ufnb30aa.ppm
+	graphics/ufnb30c4.ppm
+	graphics/ufnb30d7.ppm
+	graphics/ufnb30e8.ppm
+	graphics/ufnb30f3.ppm
+	graphics/ufnbfffd.ppm
+	graphics/ufncfffd.ppm [DRAWN FROM SCRATCH]
+	graphics/ufndfffd.ppm [DRAWN FROM SCRATCH]
+	graphics/ufnefffd.ppm [DRAWN FROM SCRATCH]
+	graphics/ufnffffd.ppm [DRAWN FROM SCRATCH]
+	graphics/ufngfffd.ppm [DRAWN FROM SCRATCH]
+	graphics/ufnjfffd.ppm [DRAWN FROM SCRATCH]
+	graphics/ufnk0041.ppm [DRAWN FROM SCRATCH]
+	graphics/ufnk0042.ppm [DRAWN FROM SCRATCH]
+	graphics/ufnk0043.ppm [DRAWN FROM SCRATCH]
+	graphics/ufnk0044.ppm [DRAWN FROM SCRATCH]
+	graphics/ufnk0045.ppm [DRAWN FROM SCRATCH]
+	graphics/ufnk0046.ppm [DRAWN FROM SCRATCH]
+	graphics/ufnk0047.ppm [DRAWN FROM SCRATCH]
+	graphics/ufnkfffd.ppm [DRAWN FROM SCRATCH]
+	graphics/ufnr002a.ppm [DRAWN FROM SCRATCH]
+	graphics/ufnr002e.ppm [DRAWN FROM SCRATCH]
+	graphics/ufnr0030.ppm [DRAWN FROM SCRATCH]
+	graphics/ufnr0031.ppm [DRAWN FROM SCRATCH]
+	graphics/ufnr0032.ppm [DRAWN FROM SCRATCH]
+	graphics/ufnr0033.ppm [DRAWN FROM SCRATCH]
+	graphics/ufnr0034.ppm [DRAWN FROM SCRATCH]
+	graphics/ufnr0035.ppm [DRAWN FROM SCRATCH]
+	graphics/ufnr0036.ppm [DRAWN FROM SCRATCH]
+	graphics/ufnr0037.ppm [DRAWN FROM SCRATCH]
+	graphics/ufnr0038.ppm [DRAWN FROM SCRATCH]
+	graphics/ufnr0039.ppm [DRAWN FROM SCRATCH]
+	graphics/ufnr003a.ppm [DRAWN FROM SCRATCH]
+	graphics/ufnr0041.ppm [DRAWN FROM SCRATCH]
+	graphics/ufnr0042.ppm [DRAWN FROM SCRATCH]
+	graphics/ufnr0043.ppm [DRAWN FROM SCRATCH]
+	graphics/ufnr0044.ppm [DRAWN FROM SCRATCH]
+	graphics/ufnr0045.ppm [DRAWN FROM SCRATCH]
+	graphics/ufnr0046.ppm [DRAWN FROM SCRATCH]
+	graphics/ufnr0047.ppm [DRAWN FROM SCRATCH]
+	graphics/ufnr0048.ppm [DRAWN FROM SCRATCH]
+	graphics/ufnr0049.ppm [DRAWN FROM SCRATCH]
+	graphics/ufnr004a.ppm [DRAWN FROM SCRATCH]
+	graphics/ufnr004b.ppm [DRAWN FROM SCRATCH]
+	graphics/ufnr004c.ppm [DRAWN FROM SCRATCH]
+	graphics/ufnr004d.ppm [DRAWN FROM SCRATCH]
+	graphics/ufnr004e.ppm [DRAWN FROM SCRATCH]
+	graphics/ufnr004f.ppm [DRAWN FROM SCRATCH]
+	graphics/ufnr0050.ppm [DRAWN FROM SCRATCH]
+	graphics/ufnr0051.ppm [DRAWN FROM SCRATCH]
+	graphics/ufnr0052.ppm [DRAWN FROM SCRATCH]
+	graphics/ufnr0053.ppm [DRAWN FROM SCRATCH]
+	graphics/ufnr0054.ppm [DRAWN FROM SCRATCH]
+	graphics/ufnr0055.ppm [DRAWN FROM SCRATCH]
+	graphics/ufnr0056.ppm [DRAWN FROM SCRATCH]
+	graphics/ufnr0057.ppm [DRAWN FROM SCRATCH]
+	graphics/ufnr0058.ppm [DRAWN FROM SCRATCH]
+	graphics/ufnr0059.ppm [DRAWN FROM SCRATCH]
+	graphics/ufnr005a.ppm [DRAWN FROM SCRATCH]
+	graphics/ufnr005b.ppm [DRAWN FROM SCRATCH]
+	graphics/ufnr005c.ppm [DRAWN FROM SCRATCH]
+	graphics/ufnr005d.ppm [DRAWN FROM SCRATCH]
+	graphics/ufnr00a9.ppm [DRAWN FROM SCRATCH]
+	graphics/ufnr2122.ppm [DRAWN FROM SCRATCH]
+	graphics/ufnr2591.ppm [DRAWN FROM SCRATCH]
+	graphics/ufnr2592.ppm [DRAWN FROM SCRATCH]
+	graphics/ufnr2593.ppm [DRAWN FROM SCRATCH]
+	graphics/ufnr2603.ppm [DRAWN FROM SCRATCH]
+	graphics/ufnr2669.ppm [DRAWN FROM SCRATCH]
+	graphics/ufnr266a.ppm [DRAWN FROM SCRATCH]
+	graphics/ufnr2690.ppm [DRAWN FROM SCRATCH]
+	graphics/ufnr2691.ppm [DRAWN FROM SCRATCH]
+	graphics/ufnrfffd.ppm [DRAWN FROM SCRATCH]
 	lumps/__e_rmd.lmp
 	lumps/__e_rmx.lmp
 	lumps/rmd_cb_d.lmp
@@ -132,38 +132,52 @@ Lumps Copyright (C) 2006-2011 GhostlyDeath <ghostly@remood.org>
 	lumps/rmd_cr_h.lmp
 	lumps/rmd_pd2h.lmp [!!!, USES NON-FREE DOOM PLAYPAL AND HERETIC PLAYPAL]
 	lumps/rmd_ph2d.lmp [!!!, USES NON-FREE DOOM PLAYPAL AND HERETIC PLAYPAL]
+	lumps/rmd_tr10.lmp
+	lumps/rmd_tr20.lmp
+	lumps/rmd_tr50.lmp
+	lumps/rmd_trfr.lmp
 	lumps/rmd_uttt.lmp
 	lumps/rscripts.lmp
 	lumps/__s_rmd.lmp
 	lumps/__s_rmx.lmp
 	lumps/version.lmp
 	lumps/wadident.lmp
+	picts/sboammo1.ppm [DRAWN FROM SCRATCH]
+	picts/sboammo2.ppm [DRAWN FROM SCRATCH]
+	picts/sboammo3.ppm [DRAWN FROM SCRATCH]
+	picts/sboammo4.ppm [DRAWN FROM SCRATCH]
+	picts/sboammo5.ppm [DRAWN FROM SCRATCH]
+	picts/sboammo6.ppm [DRAWN FROM SCRATCH]
+	picts/sboammo8.ppm [DRAWN FROM SCRATCH]
+	picts/sboarmor.ppm [DRAWN FROM SCRATCH]
+	picts/sboempty.ppm [DRAWN FROM SCRATCH]
+	picts/sbofrags.ppm [DRAWN FROM SCRATCH]
 	sounds/dpgloop.txt
 	sounds/dpjump.txt
 	sounds/dpsplash.txt
 	sounds/dslotime.wav [FROM SCRATCH]
 	sounds/dsspawna.wav [FROM SCRATCH]
 	sounds/dsspawnb.wav [FROM SCRATCH]
-	sprites/flaga0.gif [DRAWN FROM SCRATCH]
-	sprites/flagb0.gif [DRAWN FROM SCRATCH]
-	sprites/flagc0.gif [DRAWN FROM SCRATCH]
-	sprites/flagd0.gif [DRAWN FROM SCRATCH]
-	sprites/flage0.gif [DRAWN FROM SCRATCH]
-	sprites/flagf0.gif [DRAWN FROM SCRATCH]
-	sprites/flagg0.gif [DRAWN FROM SCRATCH]
-	sprites/flagh0.gif [DRAWN FROM SCRATCH]
-	sprites/flgpa0.gif [DRAWN FROM SCRATCH]
-	sprites/smoka0.gif [DFSG, DRAWN FROM SCRATCH]
-	sprites/smokb0.gif [DFSG, DRAWN FROM SCRATCH]
-	sprites/smokc0.gif [DFSG, DRAWN FROM SCRATCH]
-	sprites/smokd0.gif [DFSG, DRAWN FROM SCRATCH]
-	sprites/smoke0.gif [DFSG, DRAWN FROM SCRATCH]
+	sprites/flaga0.ppm [DRAWN FROM SCRATCH]
+	sprites/flagb0.ppm [DRAWN FROM SCRATCH]
+	sprites/flagc0.ppm [DRAWN FROM SCRATCH]
+	sprites/flagd0.ppm [DRAWN FROM SCRATCH]
+	sprites/flage0.ppm [DRAWN FROM SCRATCH]
+	sprites/flagf0.ppm [DRAWN FROM SCRATCH]
+	sprites/flagg0.ppm [DRAWN FROM SCRATCH]
+	sprites/flagh0.ppm [DRAWN FROM SCRATCH]
+	sprites/flgpa0.ppm [DRAWN FROM SCRATCH]
+	sprites/smoka0.ppm [DFSG, DRAWN FROM SCRATCH]
+	sprites/smokb0.ppm [DFSG, DRAWN FROM SCRATCH]
+	sprites/smokc0.ppm [DFSG, DRAWN FROM SCRATCH]
+	sprites/smokd0.ppm [DFSG, DRAWN FROM SCRATCH]
+	sprites/smoke0.ppm [DFSG, DRAWN FROM SCRATCH]
 
 Lumps Copyright (C) 2001-2004 Doom Legacy Team <http://doomlegacy.sourceforge.net/>
-	graphics/m_slidec.gif
-	graphics/m_slidel.gif
-	graphics/m_slidem.gif
-	graphics/m_slider.gif
+	graphics/m_slidec.ppm
+	graphics/m_slidel.ppm
+	graphics/m_slidem.ppm
+	graphics/m_slider.ppm
 	lumps/a_dmg1.lmp
 	lumps/a_dmg2.lmp
 	lumps/a_dmg3.lmp
@@ -172,148 +186,140 @@ Lumps Copyright (C) 2001-2004 Doom Legacy Team <http://doomlegacy.sourceforge.ne
 	lumps/croshai1.lmp
 	lumps/croshai2.lmp
 	lumps/croshai3.lmp
-	lumps/rmd_thhi.lmp [!!!, BASED OFF NON-FREE PLAYPAL]
-	lumps/rmd_thmo.lmp [!!!, BASED OFF NON-FREE PLAYPAL]
-	lumps/rmd_trnf.lmp [!!!, BASED OFF NON-FREE PLAYPAL]
-	lumps/rmd_trno.lmp [!!!, BASED OFF NON-FREE PLAYPAL]
-	lumps/sboammo1.lmp
-	lumps/sboammo2.lmp
-	lumps/sboammo3.lmp
-	lumps/sboammo4.lmp
-	lumps/sboammo5.lmp
-	lumps/sboammo6.lmp
-	lumps/sboammo8.lmp
+	lumps/sboammo1.lmp [!!!]
+	lumps/sboammo2.lmp [!!!]
+	lumps/sboammo3.lmp [!!!]
+	lumps/sboammo4.lmp [!!!]
+	lumps/sboammo5.lmp [!!!]
+	lumps/sboammo6.lmp [!!!]
+	lumps/sboammo8.lmp [!!!]
 	lumps/sboarmor.lmp
 	lumps/sboempty.lmp
 	lumps/sbofrags.lmp
 	lumps/sbohealt.lmp
 	lumps/things_h.lmp
-	lumps/transfir.lmp [!!!, BASED OFF NON-FREE PLAYPAL]
 	lumps/transfx1.lmp [!!!, BASED OFF NON-FREE PLAYPAL]
-	lumps/transhi.lmp [!!!, BASED OFF NON-FREE PLAYPAL]
-	lumps/transmed.lmp [!!!, BASED OFF NON-FREE PLAYPAL]
-	lumps/transmor.lmp [!!!, BASED OFF NON-FREE PLAYPAL]
 	lumps/watermap.lmp [!!!, UNVERIFIED SOURCE]
 	sounds/dsjump.wav [!!!, UNVERIFIED SOURCE]
 	sounds/dsouch.wav [!!!, UNVERIFIED SOURCE]
-	sprites/bluda0.gif
-	sprites/bludb0.gif
-	sprites/splaa0.gif
-	sprites/splab0.gif
-	sprites/splac0.gif
+	sprites/bluda0.ppm
+	sprites/bludb0.ppm
+	sprites/splaa0.ppm
+	sprites/splab0.ppm
+	sprites/splac0.ppm
 
 Lumps Copyright (C) PrBoom Team <http://prboom.sourceforge.net/>
-	graphics/stbr123.gif
-	graphics/stbr124.gif
-	graphics/stbr125.gif
-	graphics/stbr126.gif
-	graphics/stkeys6.gif [VERIFIED FREE, BOOM CREDIT]
-	graphics/stkeys7.gif [VERIFIED FREE, BOOM CREDIT]
-	graphics/stkeys8.gif [VERIFIED FREE, BOOM CREDIT]
-	graphics/ufnj002d.gif
-	graphics/ufnj002f.gif
-	graphics/ufnj0030.gif
-	graphics/ufnj0031.gif
-	graphics/ufnj0032.gif
-	graphics/ufnj0033.gif
-	graphics/ufnj0034.gif
-	graphics/ufnj0035.gif
-	graphics/ufnj0036.gif
-	graphics/ufnj0037.gif
-	graphics/ufnj0038.gif
-	graphics/ufnj0039.gif
-	graphics/ufnj003a.gif
-	graphics/ufnj0041.gif
-	graphics/ufnj0042.gif
-	graphics/ufnj0043.gif
-	graphics/ufnj0044.gif
-	graphics/ufnj0045.gif
-	graphics/ufnj0046.gif
-	graphics/ufnj0047.gif
-	graphics/ufnj0048.gif
-	graphics/ufnj0049.gif
-	graphics/ufnj004a.gif
-	graphics/ufnj004b.gif
-	graphics/ufnj004c.gif
-	graphics/ufnj004d.gif
-	graphics/ufnj004e.gif
-	graphics/ufnj004f.gif
-	graphics/ufnj0050.gif
-	graphics/ufnj0051.gif
-	graphics/ufnj0052.gif
-	graphics/ufnj0053.gif
-	graphics/ufnj0054.gif
-	graphics/ufnj0055.gif
-	graphics/ufnj0056.gif
-	graphics/ufnj0057.gif
-	graphics/ufnj0058.gif
-	graphics/ufnj0059.gif
-	graphics/ufnj005a.gif
-	graphics/ufnj005b.gif
-	graphics/ufnj005d.gif
-	sprites/tnt1a0.gif
+	graphics/stbr123.ppm
+	graphics/stbr124.ppm
+	graphics/stbr125.ppm
+	graphics/stbr126.ppm
+	graphics/stkeys6.ppm [VERIFIED FREE, BOOM CREDIT]
+	graphics/stkeys7.ppm [VERIFIED FREE, BOOM CREDIT]
+	graphics/stkeys8.ppm [VERIFIED FREE, BOOM CREDIT]
+	graphics/ufnj002d.ppm
+	graphics/ufnj002f.ppm
+	graphics/ufnj0030.ppm
+	graphics/ufnj0031.ppm
+	graphics/ufnj0032.ppm
+	graphics/ufnj0033.ppm
+	graphics/ufnj0034.ppm
+	graphics/ufnj0035.ppm
+	graphics/ufnj0036.ppm
+	graphics/ufnj0037.ppm
+	graphics/ufnj0038.ppm
+	graphics/ufnj0039.ppm
+	graphics/ufnj003a.ppm
+	graphics/ufnj0041.ppm
+	graphics/ufnj0042.ppm
+	graphics/ufnj0043.ppm
+	graphics/ufnj0044.ppm
+	graphics/ufnj0045.ppm
+	graphics/ufnj0046.ppm
+	graphics/ufnj0047.ppm
+	graphics/ufnj0048.ppm
+	graphics/ufnj0049.ppm
+	graphics/ufnj004a.ppm
+	graphics/ufnj004b.ppm
+	graphics/ufnj004c.ppm
+	graphics/ufnj004d.ppm
+	graphics/ufnj004e.ppm
+	graphics/ufnj004f.ppm
+	graphics/ufnj0050.ppm
+	graphics/ufnj0051.ppm
+	graphics/ufnj0052.ppm
+	graphics/ufnj0053.ppm
+	graphics/ufnj0054.ppm
+	graphics/ufnj0055.ppm
+	graphics/ufnj0056.ppm
+	graphics/ufnj0057.ppm
+	graphics/ufnj0058.ppm
+	graphics/ufnj0059.ppm
+	graphics/ufnj005a.ppm
+	graphics/ufnj005b.ppm
+	graphics/ufnj005d.ppm
+	sprites/tnt1a0.ppm
 
 Lumps Copyright (C) Odamex Development Team <http://odamex.net/>
 	bootstrap/doom2.wad [VERIFIED FREE, SEE README]
 	bootstrap/README
-	graphics/ufnb0021.gif
-	graphics/ufnb0022.gif
-	graphics/ufnb0023.gif
-	graphics/ufnb0024.gif
-	graphics/ufnb0025.gif
-	graphics/ufnb0026.gif
-	graphics/ufnb0027.gif
-	graphics/ufnb0028.gif
-	graphics/ufnb0029.gif
-	graphics/ufnb002a.gif
-	graphics/ufnb002b.gif
-	graphics/ufnb002c.gif
-	graphics/ufnb002d.gif
-	graphics/ufnb002e.gif
-	graphics/ufnb002f.gif
-	graphics/ufnb0030.gif
-	graphics/ufnb0031.gif
-	graphics/ufnb0032.gif
-	graphics/ufnb0033.gif
-	graphics/ufnb0034.gif
-	graphics/ufnb0035.gif
-	graphics/ufnb0036.gif
-	graphics/ufnb0037.gif
-	graphics/ufnb0038.gif
-	graphics/ufnb0039.gif
-	graphics/ufnb003a.gif
-	graphics/ufnb003b.gif
-	graphics/ufnb003c.gif
-	graphics/ufnb003d.gif
-	graphics/ufnb003e.gif
-	graphics/ufnb003f.gif
-	graphics/ufnb0040.gif
-	graphics/ufnb0041.gif
-	graphics/ufnb0042.gif
-	graphics/ufnb0043.gif
-	graphics/ufnb0044.gif
-	graphics/ufnb0045.gif
-	graphics/ufnb0046.gif
-	graphics/ufnb0047.gif
-	graphics/ufnb0048.gif
-	graphics/ufnb0049.gif
-	graphics/ufnb004a.gif
-	graphics/ufnb004b.gif
-	graphics/ufnb004c.gif
-	graphics/ufnb004d.gif
-	graphics/ufnb004e.gif
-	graphics/ufnb004f.gif
-	graphics/ufnb0050.gif
-	graphics/ufnb0051.gif
-	graphics/ufnb0052.gif
-	graphics/ufnb0053.gif
-	graphics/ufnb0054.gif
-	graphics/ufnb0055.gif
-	graphics/ufnb0056.gif
-	graphics/ufnb0057.gif
-	graphics/ufnb0058.gif
-	graphics/ufnb0059.gif
-	graphics/ufnb005a.gif
+	graphics/ufnb0021.ppm
+	graphics/ufnb0022.ppm
+	graphics/ufnb0023.ppm
+	graphics/ufnb0024.ppm
+	graphics/ufnb0025.ppm
+	graphics/ufnb0026.ppm
+	graphics/ufnb0027.ppm
+	graphics/ufnb0028.ppm
+	graphics/ufnb0029.ppm
+	graphics/ufnb002a.ppm
+	graphics/ufnb002b.ppm
+	graphics/ufnb002c.ppm
+	graphics/ufnb002d.ppm
+	graphics/ufnb002e.ppm
+	graphics/ufnb002f.ppm
+	graphics/ufnb0030.ppm
+	graphics/ufnb0031.ppm
+	graphics/ufnb0032.ppm
+	graphics/ufnb0033.ppm
+	graphics/ufnb0034.ppm
+	graphics/ufnb0035.ppm
+	graphics/ufnb0036.ppm
+	graphics/ufnb0037.ppm
+	graphics/ufnb0038.ppm
+	graphics/ufnb0039.ppm
+	graphics/ufnb003a.ppm
+	graphics/ufnb003b.ppm
+	graphics/ufnb003c.ppm
+	graphics/ufnb003d.ppm
+	graphics/ufnb003e.ppm
+	graphics/ufnb003f.ppm
+	graphics/ufnb0040.ppm
+	graphics/ufnb0041.ppm
+	graphics/ufnb0042.ppm
+	graphics/ufnb0043.ppm
+	graphics/ufnb0044.ppm
+	graphics/ufnb0045.ppm
+	graphics/ufnb0046.ppm
+	graphics/ufnb0047.ppm
+	graphics/ufnb0048.ppm
+	graphics/ufnb0049.ppm
+	graphics/ufnb004a.ppm
+	graphics/ufnb004b.ppm
+	graphics/ufnb004c.ppm
+	graphics/ufnb004d.ppm
+	graphics/ufnb004e.ppm
+	graphics/ufnb004f.ppm
+	graphics/ufnb0050.ppm
+	graphics/ufnb0051.ppm
+	graphics/ufnb0052.ppm
+	graphics/ufnb0053.ppm
+	graphics/ufnb0054.ppm
+	graphics/ufnb0055.ppm
+	graphics/ufnb0056.ppm
+	graphics/ufnb0057.ppm
+	graphics/ufnb0058.ppm
+	graphics/ufnb0059.ppm
+	graphics/ufnb005a.ppm
 
 Copyright (c) 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010 Contributors to the Freedoom project. <http://www.nongnu.org/freedoom/>
 

@@ -307,6 +307,9 @@ typedef struct WL_WADFile_s
 	/* Private Stuff You Don't Touch */
 	struct
 	{
+		// Validity
+		bool_t __IsValid;						// Is this WAD valid?
+		
 		// File related stuff
 		char __PathName[PATH_MAX];				// Path to WAD File
 		char __FileName[PATH_MAX];				// File name of WAD
@@ -322,15 +325,15 @@ typedef struct WL_WADFile_s
 		// Public Data (per WAD basis)
 		struct
 		{
-			size_t __NumStuffs;						// Amount of stuff there is
+			size_t __NumStuffs;					// Amount of stuff there is
 			struct
 			{
-				uint32_t __Key;						// Key to the data
-				void* __DataPtr;					// Pointer to data
-				size_t __Size;						// Size of data
-				WL_RemoveFunc_t __RemoveFunc;		// Function that removes the data loaded (when WAD unloaded)
-			} __Stuff[WLMAXPRIVATEWADSTUFF];		// Private Stuff
-		} __PublicData;								// Public data for perWAD data storage
+				uint32_t __Key;					// Key to the data
+				void* __DataPtr;				// Pointer to data
+				size_t __Size;					// Size of data
+				WL_RemoveFunc_t __RemoveFunc;	// Function that removes the data loaded (when WAD unloaded)
+			} __Stuff[WLMAXPRIVATEWADSTUFF];	// Private Stuff
+		} __PublicData;							// Public data for perWAD data storage
 		
 		// Linkage
 		bool_t __Linked;						// Is the WAD virtually linked?

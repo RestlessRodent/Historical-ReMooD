@@ -123,6 +123,7 @@ static void TicCmdCopy(ticcmd_t * dst, ticcmd_t * src, int n)
 static void Local_Maketic(int realtics)
 {
 	int i;
+	int Use;
 	
 	if (dedicated)
 		return;
@@ -137,12 +138,15 @@ static void Local_Maketic(int realtics)
 
 	rendergametic = gametic;
 	
+	//Use = maketic % BACKUPTICS;
+	Use = D_SyncNetMapTime() % BACKUPTICS;
+	
 	for (i = 0; i < cv_splitscreen.value+1; i++)
 		if (playeringame[consoleplayer[i]])
-			G_BuildTiccmd(&netcmds[maketic%BACKUPTICS][consoleplayer[i]], realtics, i);
+			G_BuildTiccmd(&netcmds[Use][consoleplayer[i]], realtics, i);
 	maketic++;
 	
-	netcmds[maketic%BACKUPTICS][consoleplayer[0]].angleturn |= TICCMD_RECEIVED;
+	//netcmds[Use][consoleplayer[0]].angleturn |= TICCMD_RECEIVED;
 }
 
 extern bool_t advancedemo;

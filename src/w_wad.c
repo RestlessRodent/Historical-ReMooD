@@ -2568,6 +2568,9 @@ const WL_WADFile_t*		WL_OpenWAD(const char* const a_PathName)
 	/* Run Data Registration */
 	
 	/* Success */
+	NewWAD->__Private.__IsValid = true;
+	
+	// Debug
 	if (devparm)
 		CONS_Printf("WL_OpenWAD: Loaded \"%s\"\n", NewWAD->__Private.__DOSName);
 	

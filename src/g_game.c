@@ -958,7 +958,7 @@ void G_Ticker(void)
 				I_Error("gameaction = %d\n", gameaction);
 		}
 
-	buf = gametic % BACKUPTICS;
+	buf = D_SyncNetMapTime() % BACKUPTICS;
 
 	// read/write demo and check turbo cheat
 	for (i = 0; i < MAXPLAYERS; i++)
