@@ -28,7 +28,7 @@
 #ifndef __R_PLANE__
 #define __R_PLANE__
 
-#include "screen.h"				//needs MAXVIDWIDTH/MAXVIDHEIGHT
+#include "screen.h"
 #include "r_data.h"
 
 //

@@ -38,7 +38,7 @@
 // SECTORS do store MObjs anyway.
 #include "p_mobj.h"
 
-#include "screen.h"				//added:26-01-98:MAXVIDWIDTH, MAXVIDHEIGHT
+#include "screen.h"
 
 // Silhouette, needed for clipping Segs (mainly)
 // and sprites representing things.

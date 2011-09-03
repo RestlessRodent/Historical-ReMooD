@@ -74,9 +74,6 @@ int numffloors;
   ((unsigned)((picnum)*3+(lightlevel)+(height)*7) & (MAXVISPLANES-1))
 
 // ?
-/*#define MAXOPENINGS     MAXVIDWIDTH*128
-short                   openings[MAXOPENINGS];
-short*                  lastopening;*/
 
 //SoM: 3/23/2000: Use boom opening limit removal
 size_t maxopenings;
@@ -96,7 +93,6 @@ fixed_t* frontscale = NULL;
 // initialized to 0 at start
 //
 int* spanstart = NULL;
-//int                     spanstop[MAXVIDHEIGHT]; //added:08-02-98: Unused!!
 
 //
 // texture mapping

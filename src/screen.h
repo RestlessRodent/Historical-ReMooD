@@ -41,9 +41,6 @@
 
 extern int stbarheight;			// when scaled
 
-#define MAXVIDWIDTH 1280
-#define MAXVIDHEIGHT 1024
-
 #define BASEVIDWIDTH    320		//NEVER CHANGE THIS! this is the original
 #define BASEVIDHEIGHT   200		// resolution of the graphics.
 
