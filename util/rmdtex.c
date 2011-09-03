@@ -38,6 +38,13 @@
 /* main() -- Main entry point */
 int main(int argc, char** argv)
 {
+	/* Check */
+	if (argc < 3)
+	{
+		fprintf(stderr, "Usage: %s <wadinfo.txt> <output.wad>\n", argv[0]);
+		return EXIT_FAILURE;
+	}
+	
 	/* Success! */
 	return EXIT_SUCCESS;
 }
