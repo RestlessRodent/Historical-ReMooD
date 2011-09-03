@@ -379,6 +379,7 @@ int W_LoadWadFile(char *filename)
 	
 	/* Send to extended code */
 	WX_VirtualPushPop(WX_LoadWAD(filename), false, true);
+	WL_PushWAD(WL_OpenWAD(filename));
 
 	/* Scan! -- Don't open a WAD twice yknow! */
 	n = WADFiles;
@@ -2394,10 +2395,182 @@ size_t				WX_ClearUnused(void)
 *** LITE WAD HANDLING ***
 ************************/
 
+/*** CONSTANTS ***/
+#if defined(_WIN32)
+	#define WLPATHDIRSEP ';'
+#else
+	#define WLPATHDIRSEP ':'
+#endif
+
+/*** LOCALS ***/
+static WL_WADFile_t* l_LFirstWAD = NULL;				// First WAD in the chain
+
+/*** FUNCTIONS ***/
+/* WL_BaseName() -- Returns the base name of the passed filename */
+static const char*		WL_BaseName(const char* const a_File)
+{
+	const char* TempX = NULL;
+	const char* OldTempX = NULL;
+	
+	/* Check */
+	if (!a_File)
+		return NULL;
+		
+	/* Get last occurence */
+	// Find last slash
+	TempX = strrchr(a_File, '/');
+	
+#if defined(_WIN32)
+	// Find last backslash if we found no slashes
+	if (!TempX)
+		TempX = strrchr(a_File, '\\');
+	
+	// Otherwise find the last backslash but revert to last slash if not found
+	else
+	{
+		OldTempX = TempX;
+		TempX = strrchr(OldTempX, '\\');
+		
+		if (!TempX)
+			TempX = OldTempX;
+	}
+#endif
+	
+	// Found nothing at all
+	if (!TempX)
+		TempX = a_File;
+	
+	/* Check if we landed on a slash */
+	while (*TempX == '/'
+#if defined(_WIN32)
+			|| *TempX == '\\'
+#endif
+		)
+		TempX++;
+	
+	/* Return pointer */
+	return TempX;
+}
+
 /* WL_OpenWAD() -- Opens a WAD File */
 const WL_WADFile_t*		WL_OpenWAD(const char* const a_PathName)
 {
-	return NULL;
+	char FoundWAD[PATH_MAX];
+	FILE* CFile;
+	WL_WADFile_t* NewWAD;
+	uint32_t Magic;
+	bool_t IsWAD;
+	char* FileName;
+	char* Chunk;
+	size_t i, j, k, n;
+	char c;
+	bool_t Dot;
+	
+	/* Check */
+	if (!a_PathName)
+		return NULL;
+	
+	/* First locate the WAD */
+	if (!WL_LocateWAD(a_PathName, NULL, FoundWAD, PATH_MAX))
+		return NULL;
+	
+	// Debug
+	if (devparm)
+		CONS_Printf("WL_OpenWAD: Opening \"%s\".\n", FoundWAD);
+	
+	/* Attempt opening of the file */
+	CFile = fopen(FoundWAD, "rb");
+	
+	// Failed?
+	if (!CFile)
+		return NULL;
+	
+	/* Read the first 4 bytes, it is the magic number */
+	Magic = 0;
+	if (!fread(&Magic, 4, 1, CFile))
+	{
+		// Failed to read magic number
+		fclose(CFile);
+		return NULL;
+	}
+	
+	// Is it a WAD file? If not threat it as a lump instead
+	IsWAD = false;
+	if (Magic == 0x44415749U || Magic == 0x44415749U)
+		IsWAD = true;
+	
+	/* Allocate Fresh WAD and pump it to the chain */
+	NewWAD = Z_Malloc(sizeof(*NewWAD), PU_STATIC, NULL);
+	
+	// Add to the beginning of the chain (faster)
+	if (!l_LFirstWAD)
+		l_LFirstWAD = NewWAD;
+	else
+	{
+		NewWAD->__Private.__PrevWAD = l_LFirstWAD;
+		l_LFirstWAD->__Private.__NextWAD = NewWAD;
+		l_LFirstWAD = NewWAD;
+	}
+	
+	/* Set initial data */
+	strncpy(NewWAD->__Private.__PathName, FoundWAD, PATH_MAX);
+	strncpy(NewWAD->__Private.__FileName, WL_BaseName(NewWAD->__Private.__PathName), PATH_MAX);
+	NewWAD->__Private.__CFile = CFile;
+	
+	// Determine the DOS name (kinda)
+	n = strlen(NewWAD->__Private.__FileName);
+	for (i = 0, j = 0, k = 0; i < n; i++)
+	{
+		c = NewWAD->__Private.__FileName[i];
+		
+		// A valid enough character
+		if (isalnum(c) || c == '_' || c == '~')
+		{	
+			// Normal Name
+			if (!Dot)
+			{
+				if (j < 8)
+					NewWAD->__Private.__DOSName[j++] = toupper(c);
+			}
+			
+			// Extension
+			else
+			{
+				if (k < 3)
+					NewWAD->__Private.__DOSName[j + (k++)] = toupper(c);
+			}
+		}
+		
+		// Is the character a dot?
+		if (c == '.')
+		{
+			Dot = true;
+			NewWAD->__Private.__DOSName[j++] = '.';
+		}
+	}
+	
+	// Find size
+	fseek(CFile, 0, SEEK_END);
+	NewWAD->__Private.__Size = ftell(CFile);
+	fseek(CFile, 4, SEEK_SET);
+	
+	/* Read type specific data */
+	// This is a WAD File (Load entries from WAD)
+	if (IsWAD)
+	{
+	}
+	
+	// This is a standard lump (make WAD a single entry containing the entire file)
+	else
+	{
+	}
+	
+	/* Success */
+	if (devparm)
+		CONS_Printf("WL_OpenWAD: Loaded \"%s\"\n", NewWAD->__Private.__DOSName);
+	
+	/* Return the generated WAD */
+	return NewWAD;
 }
 
 /* WL_CloseWAD() -- Closes a WAD File */
@@ -2410,27 +2583,149 @@ void					WL_PushWAD(const WL_WADFile_t* const a_WAD)
 {
 }
 
+/* WL_LocateWAD() -- Finds WAD on the disk */
+bool_t					WL_LocateWAD(const char* const a_Name, const char* const a_MD5, char* const a_OutPath, const size_t a_OutSize)
+{
+	char CheckBuffer[PATH_MAX];
+	char BaseWAD[PATH_MAX];
+	const char* p;
+	size_t i, j;
+	char* DirArg;
+	char* End;
+
+	/* Initialize the search list */
+	if (!l_SearchCount)
+	{
+		// Clear it
+		memset(l_SearchList, 0, sizeof(l_SearchList));
+	
+		// Add implicit nothing, current dir, bin/
+		strncpy(l_SearchList[l_SearchCount++], "", PATH_MAX);
+		strncpy(l_SearchList[l_SearchCount++], "./", PATH_MAX);
+		strncpy(l_SearchList[l_SearchCount++], "bin/", PATH_MAX);
+	
+		// -waddir argument
+		if (M_CheckParm("-waddir"))
+			while (M_IsNextParm())
+			{
+				// Get directory argument
+				DirArg = M_GetNextParm();
+			
+				// Add to Search
+				if (l_SearchCount < MAXSEARCHBUFFER)
+					// Copy
+					strncpy(l_SearchList[l_SearchCount], DirArg, PATH_MAX);
+			}
+		
+		// $DOOMWADDIR
+		if ((DirArg = getenv("DOOMWADDIR")))
+		{
+			// Add to search
+			if (l_SearchCount < MAXSEARCHBUFFER)
+				// Copy
+				strncpy(l_SearchList[l_SearchCount], DirArg, PATH_MAX);
+		}
+		
+		// $DOOMWADPATH
+		if ((DirArg = getenv("DOOMWADPATH")))
+		{
+			do
+			{
+				// Find target (the next : or ;)
+				End = strchr(DirArg, WLPATHDIRSEP);
+				
+				// Get size, from End to DirArg or just strlen if this is the end
+				if (End)
+					j = End - DirArg;
+				else
+					j = strlen(DirArg);
+				
+				// Add to search
+				if (l_SearchCount < MAXSEARCHBUFFER)
+					// Copy only up to j characters (excludes : or ;)
+					strncpy(l_SearchList[l_SearchCount], DirArg, (j < PATH_MAX ? j : PATH_MAX));
+				
+				// Go to end
+				if (End)
+					DirArg = End + 1;
+				else
+					DirArg = NULL;
+			} while (DirArg);
+		}
+		
+		// Add trailing / to the end of all the searches
+		for (i = 0; i < l_SearchCount; i++)
+			strncat(l_SearchList[i], "/", PATH_MAX);
+		
+		// Debug
+		if (devparm)
+			for (i = 0; i < l_SearchCount; i++)
+				CONS_Printf("WL_LocateWAD: Searching \"%s\".\n", l_SearchList[i]);
+	}
+	
+	/* Name is required and a size must be given if a_OutPath is set */
+	if (!a_Name || (a_OutPath && !a_OutSize))
+		return false;
+	
+	/* Look in the search buffer for said WADs */
+	for (j = 0; j < 2; j++)
+	{
+		// Search the exact given name, then the basename
+		if (!j)
+			p = a_Name;
+		else
+		{
+			memset(BaseWAD, 0, sizeof(BaseWAD));
+			strncpy(BaseWAD, WX_BaseName(a_Name), PATH_MAX);
+			p = BaseWAD;
+		}
+		
+		// Now search
+		for (i = 0; i < l_SearchCount; i++)
+		{	
+			// Clear the check buffer
+			memset(CheckBuffer, 0, sizeof(CheckBuffer));
+		
+			// Append the current search path along with the name of the WAD
+				// Do not add trailing slash here since we already do it as needed in WX_Init()
+			strncpy(CheckBuffer, l_SearchList[i], PATH_MAX);
+			strncat(CheckBuffer, p, PATH_MAX);
+		
+			// Check whether we can read it
+			if (!access(CheckBuffer, R_OK))
+			{
+				// TODO: Check MD5
+				
+				// Send to output buffer (if it was passed)
+				if (a_OutPath)
+					strncpy(a_OutPath, CheckBuffer, a_OutSize);
+				
+				// Success
+				return true;
+			}
+		}
+	}
+	
+	/* Failed */
+	return false;
+}
+
 /* WL_PopWAD() -- Pops a WAD from the end of the virtual stack */
 const WL_WADFile_t*		WL_PopWAD(void)
 {
 	return NULL;
 }
 
-/* WL_SetPrivateData() -- Sets private data for the WAD */
-void*					WL_SetPrivateData(const WL_WADFile_t* const a_WAD, const uint32_t a_Key, const size_t a_Size, void (*a_RemoveFunc)(const struct WL_WADFile_s* a_WAD))
+/* WL_RegisterPDC() -- Registers a data handler */
+bool_t					WL_RegisterPDC(const uint32_t a_Key, const uint8_t a_Order, WL_PCCreatorFunc_t const a_CreatorFunc)
 {
-	return NULL;
+	return false;
 }
 
 /* WL_GetPrivateData() -- Retrieves existing private data */
-void*					WL_GetPrivateData(const WL_WADFile_t* const a_WAD, const uint32_t a_Key, size_t* const a_Size)
+void*					WL_GetPrivateData(const WL_WADFile_t* const a_WAD, const uint32_t a_Key, size_t* const a_SizePtr)
 {
 	return NULL;
-}
-
-/* WL_ClearPrivateData() -- Clears private data in the WAD */
-void					WL_ClearPrivateData(const WL_WADFile_t* const a_WAD, const uint32_t a_Key)
-{
 }
 
 /* WL_FindEntry() -- Find an entry by name */

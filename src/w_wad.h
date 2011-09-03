@@ -232,6 +232,25 @@ size_t				__REMOOD_DEPRECATED WX_ClearUnused(void);
 /*** CONSTANTS ***/
 #define WLMAXENTRYNAME			24				// Max characters in entry name 
 #define WLMAXPRIVATEWADSTUFF	64				// Maximum number of private WAD Stuffs
+#define WLMAXDOSNAME			13				// nnnnnnnn.xxx\0
+
+/* WL_DataKeys_t -- Keys for data handling, shortcuts */
+// Helps prevent magic
+typedef enum WL_DataKeys_e
+{
+	WLDK_RMOD					= 0x00000000U,	// ReMooD Map Object Data
+	WLDK_FLATS					= 0x00000000U,	// Floor Textures (Flats)
+	WLDK_TEXTURES				= 0x00000000U,	// Wall Textures
+	WLDK_PATCHES				= 0x00000000U,	// Wall Patches
+	WLDK_SPRITES				= 0x00000000U,	// Sprites
+	WLDK_SKINS					= 0x00000000U,	// Skins
+	WLDK_SOUNDS					= 0x00000000U,	// Sounds
+	WLDK_MUSIC					= 0x00000000U,	// Music
+	WLDK_UNICODE				= 0x00000000U,	// Unicode Related Data
+	WLDK_LANGUAGE				= 0x00000000U,	// Language Translations
+	WLDK_SCRIPTS				= 0x00000000U,	// Virtual Machine Scripts
+	WLDK_MAPINFO				= 0x00000000U,	// Map Info
+} WL_DataKeys_t;
 
 /* WL_FindFlags_t -- Flags when finding things */
 typedef enum WL_FindFlags_e
@@ -247,6 +266,9 @@ typedef enum WL_FindFlags_e
 /*** STRUCTURES ***/
 struct WL_WADEntry_s;
 struct WL_WADFile_s;
+
+typedef void (*WL_RemoveFunc_t)(const struct WL_WADFile_s* a_WAD);
+typedef bool_t (*WL_PCCreatorFunc_t)(const struct WL_WADFile_s* const a_WAD, const uint32_t a_Key, void** const a_DataPtr, size_t** const a_SizePtr, WL_RemoveFunc_t* const a_RemoveFuncPtr);
 
 /* WL_WADEntry_t -- A lite WAD entry */
 typedef struct WL_WADEntry_s
@@ -288,6 +310,7 @@ typedef struct WL_WADFile_s
 		// File related stuff
 		char __PathName[PATH_MAX];				// Path to WAD File
 		char __FileName[PATH_MAX];				// File name of WAD
+		char __DOSName[WLMAXDOSNAME];			// DOS Name of the WAD
 		void* __CFile;							// File on disk
 		size_t __IndexOff;						// Offset of index
 		size_t __Size;							// Size of WAD
@@ -305,12 +328,12 @@ typedef struct WL_WADFile_s
 				uint32_t __Key;						// Key to the data
 				void* __DataPtr;					// Pointer to data
 				size_t __Size;						// Size of data
-					// Function that removes the data loaded (when WAD unloaded)
-				void (*__RemoveFunc)(const struct WL_WADFile_s* a_WAD);
+				WL_RemoveFunc_t __RemoveFunc;		// Function that removes the data loaded (when WAD unloaded)
 			} __Stuff[WLMAXPRIVATEWADSTUFF];		// Private Stuff
 		} __PublicData;								// Public data for perWAD data storage
 		
 		// Linkage
+		bool_t __Linked;						// Is the WAD virtually linked?
 		struct WL_WADFile_s* __PrevWAD;			// Previous WAD
 		struct WL_WADFile_s* __NextWAD;			// Next WAD
 	} __Private;								// Don't mess with me
@@ -334,13 +357,13 @@ typedef struct WL_WADFile_s
 // WAD Handling
 const WL_WADFile_t*		WL_OpenWAD(const char* const a_PathName);
 void					WL_CloseWAD(const WL_WADFile_t* const a_WAD);
+bool_t					WL_LocateWAD(const char* const a_Name, const char* const a_MD5, char* const a_OutPath, const size_t a_OutSize);
 
 void					WL_PushWAD(const WL_WADFile_t* const a_WAD);
 const WL_WADFile_t*		WL_PopWAD(void);
 
-void*					WL_SetPrivateData(const WL_WADFile_t* const a_WAD, const uint32_t a_Key, const size_t a_Size, void (*a_RemoveFunc)(const struct WL_WADFile_s* a_WAD));
-void*					WL_GetPrivateData(const WL_WADFile_t* const a_WAD, const uint32_t a_Key, size_t* const a_Size);
-void					WL_ClearPrivateData(const WL_WADFile_t* const a_WAD, const uint32_t a_Key);
+bool_t					WL_RegisterPDC(const uint32_t a_Key, const uint8_t a_Order, WL_PCCreatorFunc_t const a_CreatorFunc);
+void*					WL_GetPrivateData(const WL_WADFile_t* const a_WAD, const uint32_t a_Key, size_t* const a_SizePtr);
 
 // Entry Handling
 const WL_WADEntry_t*	WL_FindEntry(const WL_WADFile_t* const a_BaseSearch, const uint32_t a_Flags, const char* const a_Name);
