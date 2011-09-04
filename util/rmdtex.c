@@ -267,7 +267,10 @@ static const V_ColorEntry_t c_Colors[256] =
 /* Handler_Lump() -- Handles lumps */
 static int Handler_Lump(struct LumpDir_s* const a_LumpDir, FILE* const File, const size_t Size, const char* const Ext, const char** const Args, PushyData_t* const Pushy)
 {
-	return 1;
+	/* Very simple */
+	Pushy->Size = Size;
+	Pushy->Data = malloc(Pushy->Size);
+	return fread(Pushy->Data, Size, 1, File);
 }
 
 /* V_HSVtoRGB() -- Convert HSV to RGB */
@@ -602,7 +605,7 @@ int main(int argc, char** argv)
 			
 			if (c_LumpDirs[ld].Handler)
 				if (!c_LumpDirs[ld].Handler(&c_LumpDirs[ld], LumpFile, LumpSize, Ext, Arg, &Push))
-					fprintf(stderr, "Err: Handler had trouble with %s\n", Arg[0]);
+					fprintf(stderr, "Err: Handler had trouble with %s \"%s\"\n", c_LumpDirs[ld].NoteName, Arg[0]);
 				else
 				{
 					// Push `Data` and `Size` in WAD
