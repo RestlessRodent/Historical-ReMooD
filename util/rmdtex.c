@@ -120,15 +120,16 @@ typedef struct Image_s
 
 static int Handler_Lump(struct LumpDir_s* const a_LumpDir, FILE* const File, const size_t Size, const char* const Ext, const char** const Args, PushyData_t* const Pushy);
 static int Handler_PicT(struct LumpDir_s* const a_LumpDir, FILE* const File, const size_t Size, const char* const Ext, const char** const Args, PushyData_t* const Pushy);
+static int Handler_RawPic(struct LumpDir_s* const a_LumpDir, FILE* const File, const size_t Size, const char* const Ext, const char** const Args, PushyData_t* const Pushy);
 
 /* c_LumpDirs -- Directory where stuff is located */
 static const LumpDir_t c_LumpDirs[NUMLUMPTYPES] =
 {
 	{WT_LUMP, "lumps", {"lmp"}, Handler_Lump, "lump"},
-	{WT_FLAT, "flats", {"ppm"}, NULL, "flat"},
+	{WT_FLAT, "flats", {"ppm"}, Handler_RawPic, "flat"},
 	{WT_GRAPHIC, "graphics", {"ppm"}, NULL, "patch_t"},
 	{WT_PICT, "picts", {"ppm"}, Handler_PicT, "pic_t"},
-	{WT_RAWPIC, "rawpics", {"ppm"}, NULL, "raw image"},
+	{WT_RAWPIC, "rawpics", {"ppm"}, Handler_RawPic, "raw image"},
 	{WT_SOUND, "sounds", {"wav", "txt"}, NULL, "sound"},
 	{WT_SPRITE, "sprites", {"ppm"}, NULL, "sprite"},
 };
@@ -447,10 +448,6 @@ static Image_t* LoadPPM(FILE* const File)
 			Create->Pixels[(y * Width) + x] = V_BestRGBMatch(c_Colors, Color);
 		}
 	
-	/*for (x = 0; x < Width * Height; x++)
-		fprintf(stderr, "%2x ", Create->Pixels[x]);
-	fprintf(stderr, "\n");*/
-	
 	/* Return created image */
 	return Create;
 #undef BUFSIZE
@@ -495,6 +492,36 @@ static int Handler_PicT(struct LumpDir_s* const a_LumpDir, FILE* const File, con
 	
 	for (i = 0; i < Image->Width * Image->Height; i++)
 		Pushy->Data[8 + i] = Image->Pixels[i];
+	
+	/* Success */
+	return 1;
+}
+
+/* Handler_RawPic() -- Raw picture */
+static int Handler_RawPic(struct LumpDir_s* const a_LumpDir, FILE* const File, const size_t Size, const char* const Ext, const char** const Args, PushyData_t* const Pushy)
+{
+	Image_t* Image = NULL;
+	size_t i;
+	
+	/* Is this a PPM? */
+	if (strcasecmp(Ext, "ppm") == 0)
+		Image = LoadPPM(File);
+		
+	// No Image?
+	if (!Image)
+	{
+		fprintf(stderr, "Err: Failed to create image.\n");
+		return 0;
+	}
+	
+	/* Create pic_t structure */
+	Pushy->Size = (Image->Width * Image->Height);
+	Pushy->Data = malloc(Pushy->Size);
+	memset(Pushy->Data, 0, Pushy->Size);
+	
+	/* Write Data to pic_t */
+	for (i = 0; i < Image->Width * Image->Height; i++)
+		Pushy->Data[i] = Image->Pixels[i];
 	
 	/* Success */
 	return 1;
