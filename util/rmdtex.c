@@ -80,12 +80,9 @@ typedef struct V_ColorEntry_s
 typedef struct WADEntry_s
 {
 	char Name[9];							// Name of the entry
-	char FileName[PATH_MAX];				// File name for data
-	uint32_t FileSize;						// Size of the file
-	LumpType_t Type;						// Type of lump
-	
-	void* Data;								// Data to write to WAD
-	size_t Size;							// Size to write to WAD
+	uint8_t* Data;							// Data to write to WAD
+	uint32_t Offset;						// Offset to the data
+	uint32_t Size;							// Size to write to WAD
 } WADEntry_t;
 
 struct LumpDir_s;
@@ -93,7 +90,7 @@ struct LumpDir_s;
 /* PushyData_t -- Data to push to WAD */
 typedef struct PushyData_s
 {
-	void* Data;
+	uint8_t* Data;
 	size_t Size;
 } PushyData_t;
 
@@ -109,11 +106,20 @@ typedef struct LumpDir_s
 	const char NoteName[32];
 } LumpDir_t;
 
+/* Image_t -- An image */
+typedef struct Image_s
+{
+	uint16_t Width;
+	uint16_t Height;
+	uint8_t* Pixels;
+} Image_t;
+
 /**********************
 *** LOWER CONSTANTS ***
 **********************/
 
 static int Handler_Lump(struct LumpDir_s* const a_LumpDir, FILE* const File, const size_t Size, const char* const Ext, const char** const Args, PushyData_t* const Pushy);
+static int Handler_PicT(struct LumpDir_s* const a_LumpDir, FILE* const File, const size_t Size, const char* const Ext, const char** const Args, PushyData_t* const Pushy);
 
 /* c_LumpDirs -- Directory where stuff is located */
 static const LumpDir_t c_LumpDirs[NUMLUMPTYPES] =
@@ -121,7 +127,7 @@ static const LumpDir_t c_LumpDirs[NUMLUMPTYPES] =
 	{WT_LUMP, "lumps", {"lmp"}, Handler_Lump, "lump"},
 	{WT_FLAT, "flats", {"ppm"}, NULL, "flat"},
 	{WT_GRAPHIC, "graphics", {"ppm"}, NULL, "patch_t"},
-	{WT_PICT, "picts", {"ppm"}, NULL, "pic_t"},
+	{WT_PICT, "picts", {"ppm"}, Handler_PicT, "pic_t"},
 	{WT_RAWPIC, "rawpics", {"ppm"}, NULL, "raw image"},
 	{WT_SOUND, "sounds", {"wav", "txt"}, NULL, "sound"},
 	{WT_SPRITE, "sprites", {"ppm"}, NULL, "sprite"},
@@ -253,16 +259,202 @@ static const V_ColorEntry_t c_Colors[256] =
 	{{0000, 0000, 0x53}, {0000, 0000, 0x53}},	{{0000, 0000, 0x47}, {0000, 0000, 0x47}},
 	{{0000, 0000, 0x3b}, {0000, 0000, 0x3b}},	{{0000, 0000, 0x2f}, {0000, 0000, 0x2f}},
 	{{0000, 0000, 0x23}, {0000, 0000, 0x23}},	{{0000, 0000, 0x17}, {0000, 0000, 0x17}},
-	{{0000, 0000, 0x0b}, {0000, 0000, 0x0b}},	{{0000, 0000, 0000}, {0000, 0000, 0000}},
+	{{0000, 0000, 0x0b}, {0000, 0000, 0x0b}},	{{0xff, 0xff, 0000}, {0x7f, 0xff, 0xff}},	// 247 == TRANSPARENT!
 	{{0xff, 0x9f, 0x43}, {0xff, 0x9f, 0x43}},	{{0xff, 0xe7, 0x4b}, {0xff, 0xe7, 0x4b}},
 	{{0xff, 0x7b, 0xff}, {0xff, 0x7b, 0xff}},	{{0xff, 0000, 0xff}, {0xff, 0000, 0xff}},
 	{{0xcf, 0000, 0xcf}, {0xcf, 0000, 0xcf}},	{{0x9f, 0000, 0x9b}, {0x9f, 0000, 0x9b}},
 	{{0x6f, 0000, 0x6b}, {0x6f, 0000, 0x6b}},	{{0xa7, 0x6b, 0x6b}, {0xa7, 0x6b, 0x6b}},
 };
 
+/*************
+*** LOCALS ***
+*************/
+
+static WADEntry_t* l_Entries = NULL;						// WAD Entries
+static uint32_t l_NumEntries = 0;								// Number of entries
+static uint32_t l_TableSpot = 0;								// Location of the lump table
+
 /****************
 *** FUNCTIONS ***
 ****************/
+
+/* AddLump() -- Adds a lump to the WAD */
+static void AddLump(const char* const Name, void* const Data, const size_t Size)
+{
+	size_t i;
+	
+	l_Entries = realloc(l_Entries, sizeof(*l_Entries) * (l_NumEntries + 1));
+	
+	memset(&l_Entries[l_NumEntries], 0, sizeof(l_Entries[l_NumEntries]));
+	strncpy(l_Entries[l_NumEntries].Name, Name, 9);
+	l_Entries[l_NumEntries].Data = Data;
+	l_Entries[l_NumEntries].Size = Size;
+	
+	// Uppercase name
+	for (i = 0; i <= 8; i++)
+		l_Entries[l_NumEntries].Name[i] = toupper(l_Entries[l_NumEntries].Name[i]);
+	
+	// If this is the first entry then set the offset to the base, 12
+	if (!l_NumEntries)
+		l_Entries[l_NumEntries].Offset = 12;
+	
+	// Otherwise it starts after the last lump
+	else
+		l_Entries[l_NumEntries].Offset = l_Entries[l_NumEntries - 1].Offset + l_Entries[l_NumEntries - 1].Size;
+	
+	// Move table ahead
+	l_TableSpot = l_Entries[l_NumEntries].Offset + l_Entries[l_NumEntries].Size;
+	
+	l_NumEntries++;
+}
+
+/* AddMarker() -- Adds a marker to the WAD */
+static void AddMarker(const char* const Name)
+{
+	static uint8_t Marker;
+	AddLump(Name, &Marker, 0);
+}
+
+/* ReadPPMToken() -- Reads a PPM Token */
+static void ReadPPMTokem(FILE* const File, uint8_t* const OutBuf, const size_t OutSize)
+{
+	size_t i;
+	fpos_t Pos;
+	uint8_t Byte;
+	int ReadSomething, InComment;
+	
+	/* Reset */
+	i = 0;
+	ReadSomething = 0;
+	memset(OutBuf, 0, OutSize);
+	InComment = 0;
+	
+	/* Read bytes */
+	while (fread(&Byte, 1, 1, File))
+	{
+		// Whitespace?
+		if (isspace(Byte))
+		{
+			// If a comment is being read, only stop at \n
+			if (InComment && Byte == '\n')
+				return;
+			
+			// If not in a comment and something was read, stop
+			else if (!InComment && ReadSomething)
+				return;
+			
+			// Otherwise just continue on
+			continue;
+		}
+		
+		// Otherwise, read the data
+		if (i < OutSize)
+			OutBuf[i++] = Byte;
+			
+		// If it was a comment, set as comment (Stop at \n)
+		if (Byte == '#')
+			InComment = 1;
+		
+		// indicate that something was read
+		ReadSomething = 1;
+	}
+}
+
+static size_t V_BestHSVMatch(const V_ColorEntry_t* const Table, const V_ColorEntry_t HSV);
+static V_ColorEntry_t V_RGBtoHSV(const V_ColorEntry_t RGB);
+static size_t V_BestRGBMatch(const V_ColorEntry_t* const Table, const V_ColorEntry_t RGB);
+
+/* LoadPPM() -- Loads a PPM */
+static Image_t* LoadPPM(FILE* const File)
+{
+#define BUFSIZE 512
+	Image_t* Create;
+	uint8_t Buf[BUFSIZE];
+	uint32_t Width, Height;
+	uint32_t Depth;
+	size_t Tokey, x, y;
+	char* Tok;
+	V_ColorEntry_t Color;
+	
+	/* Read header */
+	// Check for P6
+	ReadPPMTokem(File, Buf, BUFSIZE);
+	
+	if (strcmp(Buf, "P6") != 0)
+	{
+		fprintf(stderr, "Err: .ppm is not P6 (is \"%s\").\n", Buf);
+		return NULL;
+	}
+	
+	/* Constantly read data */
+	Tokey = 0;
+	while (Tokey < 3)
+	{
+		// Read another token
+		ReadPPMTokem(File, Buf, BUFSIZE);
+		
+		// If it starts with #, skip it (a comment)
+		if (Buf[0] == '#')
+			continue;
+		
+		// Image Width
+		if (Tokey == 0)
+		{
+			Width = atoi(Buf);
+		}
+		
+		// Image height
+		else if (Tokey == 1)
+		{
+			Height = atoi(Buf);
+		}
+		
+		// File depth (bits)
+		else if (Tokey == 2)
+		{
+			Depth = atoi(Buf);
+		}
+		
+		// Increment
+		Tokey++;
+	}
+	
+	/* Create blank image */
+	Create = malloc(sizeof(*Create) + (Width * Height));
+	
+	if (!Create)
+		return NULL;
+	
+	memset(Create, 0, sizeof(*Create) + (Width * Height));
+	Create->Width = Width;
+	Create->Height = Height;
+	Create->Pixels = ((uint8_t*)Create) + sizeof(*Create);
+	
+	/* Read image data */
+	for (y = 0; y < Height; y++)
+		for (x = 0; x < Width; x++)
+		{
+			// Clear color
+			memset(&Color, 0, sizeof(Color));
+			
+			// Read color
+			fread(&Color.RGB.R, 1, 1, File);
+			fread(&Color.RGB.G, 1, 1, File);
+			fread(&Color.RGB.B, 1, 1, File);
+			
+			// Find closest color
+			Color = V_RGBtoHSV(Color);
+			Create->Pixels[(y * Width) + x] = V_BestRGBMatch(c_Colors, Color);
+		}
+	
+	/*for (x = 0; x < Width * Height; x++)
+		fprintf(stderr, "%2x ", Create->Pixels[x]);
+	fprintf(stderr, "\n");*/
+	
+	/* Return created image */
+	return Create;
+#undef BUFSIZE
+}
 
 /* Handler_Lump() -- Handles lumps */
 static int Handler_Lump(struct LumpDir_s* const a_LumpDir, FILE* const File, const size_t Size, const char* const Ext, const char** const Args, PushyData_t* const Pushy)
@@ -273,6 +465,41 @@ static int Handler_Lump(struct LumpDir_s* const a_LumpDir, FILE* const File, con
 	return fread(Pushy->Data, Size, 1, File);
 }
 
+/* Handler_PicT() -- Handles pic_ts */
+static int Handler_PicT(struct LumpDir_s* const a_LumpDir, FILE* const File, const size_t Size, const char* const Ext, const char** const Args, PushyData_t* const Pushy)
+{
+	Image_t* Image = NULL;
+	size_t i;
+	
+	/* Is this a PPM? */
+	if (strcasecmp(Ext, "ppm") == 0)
+		Image = LoadPPM(File);
+		
+	// No Image?
+	if (!Image)
+	{
+		fprintf(stderr, "Err: Failed to create image.\n");
+		return 0;
+	}
+	
+	/* Create pic_t structure */
+	Pushy->Size = 8 + (Image->Width * Image->Height);
+	Pushy->Data = malloc(Pushy->Size);
+	memset(Pushy->Data, 0, Pushy->Size);
+	
+	/* Write Data to pic_t */
+	((uint16_t*)Pushy->Data)[0] = Image->Width;
+	((uint16_t*)Pushy->Data)[1] = 0;
+	((uint16_t*)Pushy->Data)[2] = Image->Height;
+	((uint16_t*)Pushy->Data)[3] = 0;
+	
+	for (i = 0; i < Image->Width * Image->Height; i++)
+		Pushy->Data[8 + i] = Image->Pixels[i];
+	
+	/* Success */
+	return 1;
+}
+
 /* V_HSVtoRGB() -- Convert HSV to RGB */
 static V_ColorEntry_t V_HSVtoRGB(const V_ColorEntry_t HSV)
 {
@@ -280,9 +507,9 @@ static V_ColorEntry_t V_HSVtoRGB(const V_ColorEntry_t HSV)
 	V_ColorEntry_t Ret;
 	
 	/* Get inital values */
-	H = HSV.HSV.H;
-	S = HSV.HSV.S;
-	V = HSV.HSV.V;
+	Ret.HSV.H = H = HSV.HSV.H;
+	Ret.HSV.S = S = HSV.HSV.S;
+	Ret.HSV.V = V = HSV.HSV.V;
 	
 	/* Gray Color? */
 	if (!S)
@@ -357,6 +584,11 @@ static V_ColorEntry_t V_RGBtoHSV(const V_ColorEntry_t RGB)
 	V_ColorEntry_t Ret;
 	uint8_t rMin, rMax, rDif;
 	
+	/* Copy original */
+	Ret.RGB.R = RGB.RGB.R;
+	Ret.RGB.G = RGB.RGB.G;
+	Ret.RGB.B = RGB.RGB.B;
+	
 	// Get min/max
 	rMin = 255;
 	rMax = 0;
@@ -409,6 +641,49 @@ static V_ColorEntry_t V_RGBtoHSV(const V_ColorEntry_t RGB)
 		Ret.HSV.H = 171 + (43 * (RGB.RGB.R - RGB.RGB.G) / rMax);
 	
 	return Ret;
+}
+
+/* V_BestRGBMatch() -- Best match between RGB for tables */
+static size_t V_BestRGBMatch(const V_ColorEntry_t* const Table, const V_ColorEntry_t RGB)
+{
+	size_t i, Best;
+	V_ColorEntry_t tRGB, iRGB;
+	int32_t BestSqr, ThisSqr, Dr, Dg, Db;
+	FILE* LumpFile;
+	
+	/* Check */
+	if (!Table)
+		return 0;
+	
+	/* Convert input to RGB */
+	iRGB = RGB;
+	
+	/* Loop colors */
+	for (Best = 0, BestSqr = 0x7FFFFFFFUL, i = 0; i < 256; i++)
+	{
+		// Convert table entry to RGB
+		tRGB = Table[i];
+		
+		// Perfect match?
+		if (iRGB.RGB.R == tRGB.RGB.R && iRGB.RGB.B == tRGB.RGB.B && iRGB.RGB.G == tRGB.RGB.G)
+			return i;
+		
+		// Distance of colors
+		Dr = tRGB.RGB.R - iRGB.RGB.R;
+		Dg = tRGB.RGB.G - iRGB.RGB.G;
+		Db = tRGB.RGB.B - iRGB.RGB.B;
+		ThisSqr = (Dr * Dr) + (Dg * Dg) + (Db * Db);
+		
+		// Closer?
+		if (ThisSqr < BestSqr)
+		{
+			Best = i;
+			BestSqr = ThisSqr;
+		}
+	}
+	
+	/* Fail */
+	return Best;
 }
 
 /* V_BestHSVMatch() -- Best match between HSV for tables */
@@ -468,7 +743,7 @@ int main(int argc, char** argv)
 	FILE* InTXT;
 	FILE* OutWAD;
 	FILE* LumpFile;
-	LumpType_t Type = 0;
+	LumpType_t Type = 0, NewType;
 	size_t LumpSize;
 	PushyData_t Push;
 	
@@ -529,14 +804,37 @@ int main(int argc, char** argv)
 			p[strlen(p) - 1] = '\0';
 			
 			// Find type
-			Type = WT_LUMP;
+			NewType = WT_LUMP;
 			for (ld = 0; ld < NUMLUMPTYPES; ld++)
 				if (strcasecmp(c_LumpDirs[ld].Dir, p) == 0)
 				{
 					fprintf(stderr, "Not: Loading %s\n", c_LumpDirs[ld].Dir);
-					Type = c_LumpDirs[ld].Type;
+					NewType = c_LumpDirs[ld].Type;
 					break;
 				}
+			
+			// Change of type?
+			if (NewType != Type)
+			{
+				// Start of Sprites
+				if (NewType == WT_SPRITE)
+					AddMarker("SS_START");
+				
+				// End of sprites
+				if (Type == WT_SPRITE)
+					AddMarker("SS_END");
+					
+				// Start of flats
+				if (NewType == WT_FLAT)
+					AddMarker("FF_START");
+				
+				// End of flats
+				if (Type == WT_FLAT)
+					AddMarker("FF_END");
+			}
+			
+			// Update
+			Type = NewType;
 		}
 		
 		// A normal lump
@@ -609,6 +907,7 @@ int main(int argc, char** argv)
 				else
 				{
 					// Push `Data` and `Size` in WAD
+					AddLump(Arg[0], Push.Data, Push.Size);
 					fprintf(stderr, "Not: Added %s \"%s\"\n", c_LumpDirs[ld].NoteName, Arg[0]);
 				}
 			else
@@ -618,6 +917,24 @@ int main(int argc, char** argv)
 			fclose(LumpFile);
 			LumpFile = NULL;
 		}
+	}
+	
+	/* Create WAD */
+	// Create header
+	fwrite("PWAD", 4, 1, OutWAD);
+	fwrite(&l_NumEntries, 4, 1, OutWAD);
+	fwrite(&l_TableSpot, 4, 1, OutWAD);
+	
+	// Write entry data
+	for (i = 0; i < l_NumEntries; i++)
+		fwrite(l_Entries[i].Data, l_Entries[i].Size, 1, OutWAD);
+	
+	// Write table
+	for (i = 0; i < l_NumEntries; i++)
+	{
+		fwrite(&l_Entries[i].Offset, 4, 1, OutWAD);
+		fwrite(&l_Entries[i].Size, 4, 1, OutWAD);
+		fwrite(l_Entries[i].Name, 8, 1, OutWAD);
 	}
 	
 	/* Close */
