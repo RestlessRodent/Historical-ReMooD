@@ -34,6 +34,10 @@
 #include <limits.h>
 #include <string.h>
 
+/********************
+*** BYTE SWAPPING ***
+********************/
+
 /****************
 *** CONSTANTS ***
 ****************/
@@ -114,6 +118,16 @@ typedef struct Image_s
 	uint8_t* Pixels;
 } Image_t;
 
+/* Post_t -- A Post in a patch */
+typedef struct Post_s
+{
+	uint16_t Offset;
+	uint16_t Size;
+	
+	uint8_t* Ptr;
+	int Trans;
+} Post_t;
+
 /**********************
 *** LOWER CONSTANTS ***
 **********************/
@@ -121,17 +135,18 @@ typedef struct Image_s
 static int Handler_Lump(struct LumpDir_s* const a_LumpDir, FILE* const File, const size_t Size, const char* const Ext, const char** const Args, PushyData_t* const Pushy);
 static int Handler_PicT(struct LumpDir_s* const a_LumpDir, FILE* const File, const size_t Size, const char* const Ext, const char** const Args, PushyData_t* const Pushy);
 static int Handler_RawPic(struct LumpDir_s* const a_LumpDir, FILE* const File, const size_t Size, const char* const Ext, const char** const Args, PushyData_t* const Pushy);
+static int Handler_PatchT(struct LumpDir_s* const a_LumpDir, FILE* const File, const size_t Size, const char* const Ext, const char** const Args, PushyData_t* const Pushy);
 
 /* c_LumpDirs -- Directory where stuff is located */
 static const LumpDir_t c_LumpDirs[NUMLUMPTYPES] =
 {
 	{WT_LUMP, "lumps", {"lmp"}, Handler_Lump, "lump"},
 	{WT_FLAT, "flats", {"ppm"}, Handler_RawPic, "flat"},
-	{WT_GRAPHIC, "graphics", {"ppm"}, NULL, "patch_t"},
+	{WT_GRAPHIC, "graphics", {"ppm"}, Handler_PatchT, "patch_t"},
 	{WT_PICT, "picts", {"ppm"}, Handler_PicT, "pic_t"},
 	{WT_RAWPIC, "rawpics", {"ppm"}, Handler_RawPic, "raw image"},
 	{WT_SOUND, "sounds", {"wav", "txt"}, NULL, "sound"},
-	{WT_SPRITE, "sprites", {"ppm"}, NULL, "sprite"},
+	{WT_SPRITE, "sprites", {"ppm"}, Handler_PatchT, "sprite"},
 };
 
 /* c_Colors -- FreeDOOM's Palette */
@@ -260,12 +275,14 @@ static const V_ColorEntry_t c_Colors[256] =
 	{{0000, 0000, 0x53}, {0000, 0000, 0x53}},	{{0000, 0000, 0x47}, {0000, 0000, 0x47}},
 	{{0000, 0000, 0x3b}, {0000, 0000, 0x3b}},	{{0000, 0000, 0x2f}, {0000, 0000, 0x2f}},
 	{{0000, 0000, 0x23}, {0000, 0000, 0x23}},	{{0000, 0000, 0x17}, {0000, 0000, 0x17}},
-	{{0000, 0000, 0x0b}, {0000, 0000, 0x0b}},	{{0xff, 0xff, 0000}, {0x7f, 0xff, 0xff}},	// 247 == TRANSPARENT!
+	{{0000, 0000, 0x0b}, {0000, 0000, 0x0b}},	{{0000, 0000, 0000}, {0000, 0000, 0000}},	// 247 == TRANSPARENT!
 	{{0xff, 0x9f, 0x43}, {0xff, 0x9f, 0x43}},	{{0xff, 0xe7, 0x4b}, {0xff, 0xe7, 0x4b}},
 	{{0xff, 0x7b, 0xff}, {0xff, 0x7b, 0xff}},	{{0xff, 0000, 0xff}, {0xff, 0000, 0xff}},
 	{{0xcf, 0000, 0xcf}, {0xcf, 0000, 0xcf}},	{{0x9f, 0000, 0x9b}, {0x9f, 0000, 0x9b}},
 	{{0x6f, 0000, 0x6b}, {0x6f, 0000, 0x6b}},	{{0xa7, 0x6b, 0x6b}, {0xa7, 0x6b, 0x6b}},
 };
+
+#define TRANSPX 247
 
 /*************
 *** LOCALS ***
@@ -493,6 +510,9 @@ static int Handler_PicT(struct LumpDir_s* const a_LumpDir, FILE* const File, con
 	for (i = 0; i < Image->Width * Image->Height; i++)
 		Pushy->Data[8 + i] = Image->Pixels[i];
 	
+	/* Free Image */
+	free(Image);
+	
 	/* Success */
 	return 1;
 }
@@ -523,8 +543,184 @@ static int Handler_RawPic(struct LumpDir_s* const a_LumpDir, FILE* const File, c
 	for (i = 0; i < Image->Width * Image->Height; i++)
 		Pushy->Data[i] = Image->Pixels[i];
 	
+	/* Free Image */
+	free(Image);
+	
 	/* Success */
 	return 1;
+}
+
+/* Handler_PatchT() -- handles patch_ts */
+static int Handler_PatchT(struct LumpDir_s* const a_LumpDir, FILE* const File, const size_t Size, const char* const Ext, const char** const Args, PushyData_t* const Pushy)
+{
+#define BUFJUMP 1024
+	Image_t* Image = NULL;
+	size_t i, j, x, y;
+	Post_t** Posts = NULL;
+	uint16_t* NumPosts = NULL;
+	uint8_t p;
+	uint32_t* ColOffs;
+	uint8_t* PostBuf;
+	size_t PostSz, PostSpot, Bar;
+	
+	/* Is this a PPM? */
+	if (strcasecmp(Ext, "ppm") == 0)
+		Image = LoadPPM(File);
+		
+	// No Image?
+	if (!Image)
+	{
+		fprintf(stderr, "Err: Failed to create image.\n");
+		return 0;
+	}
+	
+	/* Get posts */
+	Posts = malloc(sizeof(*Posts) * Image->Width);
+	NumPosts = malloc(sizeof(*NumPosts) * Image->Width);
+	memset(Posts, 0, sizeof(Posts));
+	memset(NumPosts, 0, sizeof(NumPosts));
+	
+	// go through each columns
+	for (x = 0; x < Image->Width; x++)
+	{
+		// Create initial post
+		Posts[x] = malloc(sizeof(*Posts[x]));
+		memset(Posts[x], 0, sizeof(*Posts[x]));
+		NumPosts[x] = 1;
+		
+		// Is the first pixel transparent?
+		Posts[x][NumPosts[x] - 1].Trans = (Image->Pixels[x] == TRANSPX);
+		Posts[x][NumPosts[x] - 1].Offset = 0;
+		Posts[x][NumPosts[x] - 1].Size = 1;
+		Posts[x][NumPosts[x] - 1].Ptr = &Image->Pixels[x];
+		
+		// Go through each columns
+		for (y = 1; y < Image->Height; y++)
+		{
+			// Get pixel
+			p = Image->Pixels[(y * Image->Width) + x];
+			
+			// Change in transparency?
+			if ((p == TRANSPX && Posts[x][NumPosts[x] - 1].Trans == 0) || (p != TRANSPX && Posts[x][NumPosts[x] - 1].Trans == 1))
+			{
+				// Increase Add a new post
+				Posts[x] = realloc(Posts[x], sizeof(*Posts[x]) * (NumPosts[x] + 1));
+				Posts[x][NumPosts[x]].Offset = y;//Posts[x][NumPosts[x] - 1].Offset + Posts[x][NumPosts[x] - 1].Size;
+				Posts[x][NumPosts[x]].Size = 1;
+				Posts[x][NumPosts[x]].Ptr = &Image->Pixels[(y * Image->Width) + x];
+				Posts[x][NumPosts[x]].Trans = (p == TRANSPX);
+				NumPosts[x]++;
+			}
+			
+			// Normal
+			else
+			{
+#if 0
+				// Transparent?
+				if (Posts[x][NumPosts[x] - 1].Trans)
+					Posts[x][NumPosts[x] - 1].Offset++;
+				
+				// Not transparent
+				else
+#endif
+					Posts[x][NumPosts[x] - 1].Size++;
+			}
+		}
+		
+		// Debug
+		/*for (i = 0; i < NumPosts[x]; i++)
+			fprintf(stderr, "C %2i P %2i: Off %4u Sz %4u %s\n", x, i, Posts[x][i].Offset, Posts[x][i].Size, (Posts[x][i].Trans ? "TRANS" : "OPAQ"));*/
+	}
+	
+	/* Setup offsets */
+	ColOffs = malloc(sizeof(*ColOffs) * Image->Width);
+	memset(ColOffs, 0, sizeof(*ColOffs) * Image->Width);
+	
+	/* Draw posts into a buffer of sorts */
+	PostBuf = NULL;
+	PostSpot = PostSz = 0;
+	for (x = 0; x < Image->Width; x++)
+	{
+		// Buffer too small?
+		if (!PostSz || PostSpot >= PostSz - (BUFJUMP >> 1))
+		{
+			PostBuf = realloc(PostBuf, sizeof(*PostBuf) * (PostSz + BUFJUMP));
+			PostSz += BUFJUMP;
+		}
+		
+		// Set offset here
+		ColOffs[x] = PostSpot;
+		
+		// Go through all the posts and draw into buffer (PostSz could be exceeded)
+		if (NumPosts[x] > 1 || (NumPosts[x] == 1 && !Posts[x][0].Trans))
+			for (i = 0; i < NumPosts[x]; i++)
+			{
+				// Skip transparent posts
+				if (Posts[x][i].Trans)
+					continue;
+			
+				// Draw post info into buffer
+				//fprintf(stderr, "%x %i %i\n", i, Posts[x][i].Offset, Posts[x][i].Size);
+				PostBuf[PostSpot++] = Posts[x][i].Offset;
+				PostBuf[PostSpot++] = Posts[x][i].Size;
+				PostBuf[PostSpot++] = 0;
+			
+				// Draw data
+				for (j = 0; j < Posts[x][i].Size; j++)
+					PostBuf[PostSpot++] = Posts[x][i].Ptr[j * Image->Width];
+			
+				// Cap off
+				PostBuf[PostSpot++] = 0;
+			}
+		
+		// column contains a single post, and it is completely transparent
+		else if (Posts[x][0].Trans)
+		{
+			// Draw post info into buffer
+			PostBuf[PostSpot++] = 0;
+			PostBuf[PostSpot++] = 0;
+			PostBuf[PostSpot++] = 0;
+			PostBuf[PostSpot++] = 0;
+		}
+		
+		// Done drawing posts, end it
+		PostBuf[PostSpot++] = 0xFF;
+	}
+	
+	/* Write Data into lump */
+	//fprintf(stderr, "image data: %i\n", PostSpot);
+	
+	Pushy->Size = 8 + (4 * Image->Width) + PostSpot + 1;
+	Pushy->Data = malloc(Pushy->Size);
+	memset(Pushy->Data, 0, Pushy->Size);
+	
+	//fprintf(stderr, "%s a: %i %i\n", Args[0], atoi(Args[1]), atoi(Args[2]));
+	// Write Header
+	((int16_t*)Pushy->Data)[0] = Image->Width;
+	((int16_t*)Pushy->Data)[1] = Image->Height;
+	((int16_t*)Pushy->Data)[2] = atoi(Args[1]);
+	((int16_t*)Pushy->Data)[3] = atoi(Args[2]);
+	
+	// Write Column offsets
+	Bar = 8 + (4 * Image->Width);
+	for (i = 0; i < Image->Width; i++)
+		((int32_t*)Pushy->Data)[2 + i] = Bar + ColOffs[i];
+	
+	// Write Image data here
+	memmove(&Pushy->Data[Bar], PostBuf, PostSpot);
+	
+	/* Free Image */
+	// Free stuff left over
+	for (i = 0; i < Image->Width; i++)
+		free(Posts[i]);
+	free(ColOffs);
+	free(Posts);
+	free(NumPosts);
+	free(PostBuf);
+	free(Image);
+	
+	return 1;
+#undef BUFJUMP
 }
 
 /* V_HSVtoRGB() -- Convert HSV to RGB */
@@ -685,11 +881,19 @@ static size_t V_BestRGBMatch(const V_ColorEntry_t* const Table, const V_ColorEnt
 	/* Convert input to RGB */
 	iRGB = RGB;
 	
+	/* Transparent color? */
+	if (iRGB.RGB.R == 0 && iRGB.RGB.G == 255 && iRGB.RGB.B == 255)
+		return TRANSPX;
+	
 	/* Loop colors */
 	for (Best = 0, BestSqr = 0x7FFFFFFFUL, i = 0; i < 256; i++)
 	{
 		// Convert table entry to RGB
 		tRGB = Table[i];
+		
+		// Ignore transparent pixel
+		if (i == TRANSPX)
+			continue;
 		
 		// Perfect match?
 		if (iRGB.RGB.R == tRGB.RGB.R && iRGB.RGB.B == tRGB.RGB.B && iRGB.RGB.G == tRGB.RGB.G)
@@ -763,6 +967,7 @@ int main(int argc, char** argv)
 #define MAXARGS 4
 	char Buf[BUFSIZE];
 	char Arg[MAXARGS][BUFSIZE];
+	char* Args[MAXARGS];
 	char Ext[5];
 	char* p;
 	char* Tok;
@@ -794,6 +999,10 @@ int main(int argc, char** argv)
 			fclose(OutWAD);
 		return EXIT_FAILURE;
 	}
+	
+	/* Prepare arg pointers */
+	for (i = 0; i < MAXARGS; i++)
+		Args[i] = Arg[i];
 	
 	/* Read inputs */
 	ld = 0;
@@ -929,7 +1138,7 @@ int main(int argc, char** argv)
 			memset(&Push, 0, sizeof(Push));
 			
 			if (c_LumpDirs[ld].Handler)
-				if (!c_LumpDirs[ld].Handler(&c_LumpDirs[ld], LumpFile, LumpSize, Ext, Arg, &Push))
+				if (!c_LumpDirs[ld].Handler(&c_LumpDirs[ld], LumpFile, LumpSize, Ext, Args, &Push))
 					fprintf(stderr, "Err: Handler had trouble with %s \"%s\"\n", c_LumpDirs[ld].NoteName, Arg[0]);
 				else
 				{

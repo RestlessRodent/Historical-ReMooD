@@ -121,7 +121,7 @@ ifeq ($(strip $(__INT_LSHELL)),$(strip $(__INT_LCOMSPEC)))
 	__INT_RUNCOMMAND = $(COMSPEC) /C $1
 	export __INT_ISONDOS = yes
 
-# Otherwise assume a UNIX shell, or at least a compatible on
+# Otherwise assume a UNIX shell, or at least a compatible one
 else
 	__INT_RUNCURDIR  = ./
 	__INT_DELETE     = rm -f
