@@ -136,6 +136,7 @@ static int Handler_Lump(struct LumpDir_s* const a_LumpDir, FILE* const File, con
 static int Handler_PicT(struct LumpDir_s* const a_LumpDir, FILE* const File, const size_t Size, const char* const Ext, const char** const Args, PushyData_t* const Pushy);
 static int Handler_RawPic(struct LumpDir_s* const a_LumpDir, FILE* const File, const size_t Size, const char* const Ext, const char** const Args, PushyData_t* const Pushy);
 static int Handler_PatchT(struct LumpDir_s* const a_LumpDir, FILE* const File, const size_t Size, const char* const Ext, const char** const Args, PushyData_t* const Pushy);
+static int Handler_Sound(struct LumpDir_s* const a_LumpDir, FILE* const File, const size_t Size, const char* const Ext, const char** const Args, PushyData_t* const Pushy);
 
 /* c_LumpDirs -- Directory where stuff is located */
 static const LumpDir_t c_LumpDirs[NUMLUMPTYPES] =
@@ -145,7 +146,7 @@ static const LumpDir_t c_LumpDirs[NUMLUMPTYPES] =
 	{WT_GRAPHIC, "graphics", {"ppm"}, Handler_PatchT, "patch_t"},
 	{WT_PICT, "picts", {"ppm"}, Handler_PicT, "pic_t"},
 	{WT_RAWPIC, "rawpics", {"ppm"}, Handler_RawPic, "raw image"},
-	{WT_SOUND, "sounds", {"wav", "txt"}, NULL, "sound"},
+	{WT_SOUND, "sounds", {"wav", "txt"}, Handler_Sound, "sound"},
 	{WT_SPRITE, "sprites", {"ppm"}, Handler_PatchT, "sprite"},
 };
 
@@ -721,6 +722,12 @@ static int Handler_PatchT(struct LumpDir_s* const a_LumpDir, FILE* const File, c
 	
 	return 1;
 #undef BUFJUMP
+}
+
+/* Handler_Sound() -- Handles sounds */
+static int Handler_Sound(struct LumpDir_s* const a_LumpDir, FILE* const File, const size_t Size, const char* const Ext, const char** const Args, PushyData_t* const Pushy)
+{
+	return 0;
 }
 
 /* V_HSVtoRGB() -- Convert HSV to RGB */
