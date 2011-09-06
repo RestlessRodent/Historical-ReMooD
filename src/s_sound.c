@@ -342,6 +342,9 @@ void S_StartSoundAtVolume(S_NoiseThinker_t* a_Origin, int sound_id, int volume)
 	MyP = S_sfx[sound_id].priority;
 	MyP = FixedMul(MyP << FRACBITS, (1 << FRACBITS) - FixedMul(Dist, 60)) >> FRACBITS;
 	
+	/* Lock sound thread */
+	I_SoundLockThread(true);
+	
 	/* Check if sound is already on a channel */
 	OnChannel = S_SoundPlaying(a_Origin, sound_id);
 	
@@ -368,7 +371,11 @@ void S_StartSoundAtVolume(S_NoiseThinker_t* a_Origin, int sound_id, int volume)
 			
 			// Don't play the sound, not worth it!
 			if (LowestP == -1)
+			{
+				// Unlock sound thread, if this ever returns
+				I_SoundLockThread(false);
 				return;
+			}
 			
 			// Choose a random channel
 			OnChannel = LowestP;
@@ -392,7 +399,11 @@ void S_StartSoundAtVolume(S_NoiseThinker_t* a_Origin, int sound_id, int volume)
 	
 	// Failed?
 	if (!Target)
+	{
+		// If this fails, always unlock just in case
+		I_SoundLockThread(false);
 		return;
+	}
 	
 	/* Set extra stuff */
 	Target->Origin = a_Origin;
@@ -421,8 +432,12 @@ void S_StartSoundAtVolume(S_NoiseThinker_t* a_Origin, int sound_id, int volume)
 		Target->MoveRate = FixedMul(Target->MoveRate, RPA);
 	}
 	
+	/* Unlock sound */
+	I_SoundLockThread(false);
+	
 	/* Update channel the sound is playing on */
 	S_UpdateSingleChannel(Target, Listener, Emitter, Dist);
+	
 #undef BUFSIZE
 }
 

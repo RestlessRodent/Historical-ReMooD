@@ -290,6 +290,7 @@ static I_SoundDriver_t l_AllegroSoundDriver =
 	I_AllegroSD_UnRequest,
 	I_AllegroSD_GetFreq,
 	NULL,
+	NULL,
 };
 
 /****************

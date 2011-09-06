@@ -978,7 +978,7 @@ int main(int argc, char** argv)
 	char Ext[5];
 	char* p;
 	char* Tok;
-	size_t i, j, n, ld;
+	size_t i, j, n, ld, q;
 	FILE* InTXT;
 	FILE* OutWAD;
 	FILE* LumpFile;
@@ -1097,6 +1097,25 @@ int main(int argc, char** argv)
 				
 				// Get next
 				Tok = strtok(NULL, " ");
+			}
+			
+			// Symlink?
+			if (Arg[1][0] == '~')
+			{
+				for (q = 0; q < l_NumEntries; q++)
+					if (strcasecmp(l_Entries[q].Name, Arg[2]) == 0)
+						break;
+				
+				// Found?
+				if (q < l_NumEntries)
+				{
+					AddLump(Arg[0], l_Entries[q].Data, l_Entries[q].Size);
+					fprintf(stderr, "Symlinked \"%s\" >> \"%s\"\n", Arg[0], Arg[2]);
+					continue;
+				}
+				
+				// Not found, erase
+				Arg[1][0] = Arg[2][0] = '\0';
 			}
 			
 			// Determine filename to load

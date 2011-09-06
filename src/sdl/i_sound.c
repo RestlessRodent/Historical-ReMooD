@@ -284,6 +284,29 @@ bool_t I_SDLSD_Thread(struct I_SoundDriver_s* const a_Driver, void (*a_ThreadFun
 	return true;
 }
 
+/* I_SDLSD_LockThread() -- Stops the sound thread from running */
+void I_SDLSD_LockThread(struct I_SoundDriver_s* const a_Driver, const bool_t a_Lock)
+{
+	I_SDLSoundLocal_t* Local;
+	
+	/* Check */
+	if (!a_Driver)
+		return false;
+	
+	/* Get Local */
+	Local = (I_SDLSoundLocal_t*)a_Driver->Data;
+	
+	// Check
+	if (!Local)
+		return false;
+	
+	/* Lock or unlock? */
+	if (a_Lock)
+		SDL_LockAudio();
+	else
+		SDL_UnlockAudio();
+}
+
 /* l_SDLSound -- SDL sound driver */
 static I_SoundDriver_t l_SDLSoundDriver =
 {
@@ -304,6 +327,7 @@ static I_SoundDriver_t l_SDLSoundDriver =
 	I_SDLSD_UnRequest,
 	I_SDLSD_GetFreq,
 	I_SDLSD_Thread,
+	I_SDLSD_LockThread,
 };
 
 /****************

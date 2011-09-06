@@ -1573,6 +1573,18 @@ uint16_t I_SoundGetFreq(void)
 	return 0;
 }
 
+/* I_SoundLockThread() -- Locks or unlock sound thread */
+void I_SoundLockThread(const bool_t a_Lock)
+{
+	/* Check */
+	if (!l_CurSoundDriver)
+		return;
+	
+	/* Change lock */
+	if (l_CurSoundDriver->LockThread)
+		l_CurSoundDriver->LockThread(l_CurSoundDriver, a_Lock);
+}
+
 void I_StopCD(void)
 {
 }

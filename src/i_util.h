@@ -329,6 +329,8 @@ typedef struct I_SoundDriver_s
 	uint16_t (*GetFreq)(struct I_SoundDriver_s* const a_Driver);
 		// Is sound threaded?
 	bool_t (*Thread)(struct I_SoundDriver_s* const a_Driver, void (*a_ThreadFunc)(const bool_t a_Threaded));
+		// Locks thread
+	void (*LockThread)(struct I_SoundDriver_s* const a_Driver, const bool_t a_Lock);
 	
 	/* Dynamic */
 	void* Data;									// Private data
@@ -440,6 +442,7 @@ void* I_SoundBufferObtain(void);
 bool_t I_SoundBufferIsFinished(void);
 void I_SoundBufferWriteOut(void);
 uint16_t I_SoundGetFreq(void);
+void I_SoundLockThread(const bool_t a_Lock);
 
 void I_StopCD(void);
 void I_PauseCD(void);
