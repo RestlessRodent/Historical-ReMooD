@@ -1021,6 +1021,10 @@ bool_t I_SetVideoMode(const uint32_t a_Width, const uint32_t a_Height, const boo
 		SDLFlags |= SDL_FULLSCREEN | SDL_HWSURFACE;
 	else
 		SDLFlags |= SDL_SWSURFACE;
+		
+	/* Set Title */
+	SDL_WM_SetIcon(l_Icon, NULL);
+	SDL_WM_SetCaption("ReMooD "REMOOD_FULLVERSIONSTRING, "ReMooD");
 	
 	/* Create SDL surface */
 	l_SDLSurface = SDL_SetVideoMode(a_Width, a_Height, 8, SDLFlags);
@@ -1028,10 +1032,6 @@ bool_t I_SetVideoMode(const uint32_t a_Width, const uint32_t a_Height, const boo
 	// Failed?
 	if (!l_SDLSurface)
 		return false;
-	
-	/* Set Title */
-	SDL_WM_SetCaption("ReMooD "REMOOD_FULLVERSIONSTRING, "ReMooD");
-	SDL_WM_SetIcon(l_Icon, NULL);
 	
 	/* Allocate Buffer */
 	I_VideoSetBuffer(a_Width, a_Height, a_Width, NULL);
