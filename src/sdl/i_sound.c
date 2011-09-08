@@ -209,7 +209,7 @@ bool_t I_SDLSD_IsFinished(struct I_SoundDriver_s* const a_Driver)
 	
 	// Check
 	if (!Local)
-		return;
+		return false;
 	
 	/* Always returns true for threaded enable */
 	return true;
@@ -296,14 +296,14 @@ void I_SDLSD_LockThread(struct I_SoundDriver_s* const a_Driver, const bool_t a_L
 	
 	/* Check */
 	if (!a_Driver)
-		return false;
+		return;
 	
 	/* Get Local */
 	Local = (I_SDLSoundLocal_t*)a_Driver->Data;
 	
 	// Check
 	if (!Local)
-		return false;
+		return;
 	
 	/* Lock or unlock? */
 	if (a_Lock)

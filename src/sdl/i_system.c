@@ -34,18 +34,6 @@
 
 /* System */
 #include <SDL.h>
-
-#if !defined(_MSC_VER)
-	#include <stdint.h>
-#endif
-
-#if !defined(__REMOOD_SYSTEM_WINDOWS)
-	#include <sys/stat.h>
-#endif
-
-/* Local */
-#include "doomtype.h"
-
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -72,6 +60,18 @@
 #include <fcntl.h>
 #endif
 #endif
+
+#if !defined(_MSC_VER)
+	#include <stdint.h>
+#endif
+
+#if !defined(__REMOOD_SYSTEM_WINDOWS)
+	#include <sys/stat.h>
+#endif
+
+/* Local */
+#include "doomtype.h"
+#include "i_util.h"
 
 #include "doomdef.h"
 #include "m_misc.h"
@@ -118,10 +118,6 @@ void I_JoyScale()
 }
 
 void I_GetJoyEvent()
-{
-}
-
-int joy_open(char *fname)
 {
 }
 
@@ -327,10 +323,10 @@ size_t I_GetFreeMem(size_t * total)
 int I_mkdir(const char* a_Path, int a_UNIXPowers)
 {
 #if defined(__REMOOD_SYSTEM_WINDOWS)
-	mkdir(a_Path);
+	return mkdir(a_Path);
 #else
 	// Ignore UNIX Powers
-	mkdir(a_Path, S_IWUSR);
+	return mkdir(a_Path, S_IWUSR);
 #endif
 }
 
