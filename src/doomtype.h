@@ -293,6 +293,47 @@ static inline void __REMOOD_FORCEINLINE WriteStringN(uint8_t** const Out, uint8_
 		WriteUInt8(Out, 0);
 }
 
+/* ReadCompressedUInt16() -- Reads a "compressed" uint16_t */
+// Numerical Range: 0 - 32767
+__REMOOD_FORCEINLINE uint16_t ReadCompressedUInt16(const void** const p)
+{
+	uint16_t ReadVal;
+	
+	/* Check */
+	if (!p || !*p)
+		return 0;
+	
+	/* Read in first value */
+	ReadVal = ReadUInt8((const uint8_t** const)p);
+	
+	// Compressed?
+	if (ReadVal & 0x80U)
+	{
+		ReadVal &= 0x7FU;	// Don't remember upper bit
+		ReadVal <<= 8;
+		ReadVal |= ReadUInt8((const uint8_t** const)p);
+	}
+	
+	/* Return result */
+	return ReadVal;
+}
+
+/* WriteCompressedUInt16() -- Writes a "compressed" uint16_t */
+// Numerical Range: 0 - 32767
+__REMOOD_FORCEINLINE void WriteCompressedUInt16(void** const p, const uint16_t Value)
+{
+	/* Check */
+	if (!p || !*p)
+		return;
+	
+	/* Write in high value */
+	if (Value > 0x7FU)
+		WriteUInt8((uint8_t** const)p, ((Value & 0x7F00) >> 8) | 0x80U);
+	
+	/* Write in low value */
+	WriteUInt8((uint8_t** const)p, Value & 0xFFU);
+}
+
 /********************
 *** BYTE SWAPPING ***
 ********************/
