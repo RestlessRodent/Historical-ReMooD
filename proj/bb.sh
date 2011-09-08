@@ -110,7 +110,7 @@ do
 			# tar source
 		source_tar)
 			TARGETNAME="$REMOODBASESOURCE.tar"
-			echo "$COOLPREFIX Building $TARGETNAME"
+			echo "$COOLPREFIX Building $TARGETNAME" 1>&2
 			
 			# If hg exists, use that instead
 			if [ "$HG" = "ok" ]
@@ -127,7 +127,7 @@ do
 			# tar.gz source code
 		source_tgz)
 			TARGETNAME="$REMOODBASESOURCE.tgz"
-			echo "$COOLPREFIX Building $TARGETNAME"
+			echo "$COOLPREFIX Building $TARGETNAME" 1>&2
 			
 			# If hg exists, use that instead
 			if [ "$HG" = "ok" ]
@@ -144,7 +144,7 @@ do
 			# tar.bz2 source code
 		source_tbz)
 			TARGETNAME="$REMOODBASESOURCE.tbz"
-			echo "$COOLPREFIX Building $TARGETNAME"
+			echo "$COOLPREFIX Building $TARGETNAME" 1>&2
 			
 			# If hg exists, use that instead
 			if [ "$HG" = "ok" ]
@@ -161,7 +161,7 @@ do
 			# tar.xz source code
 		source_txz)
 			TARGETNAME="$REMOODBASESOURCE.txz"
-			echo "$COOLPREFIX Building $TARGETNAME"
+			echo "$COOLPREFIX Building $TARGETNAME" 1>&2
 			
 			# If hg exists, use that instead
 			if [ "$HG" = "ok" ]
@@ -183,6 +183,17 @@ do
 		source_zip)
 			TARGETNAME="$REMOODBASESOURCE.zip"
 			echo "$COOLPREFIX Building $TARGETNAME" 1>&2
+			
+			# If hg exists, use that instead
+			if [ "$HG" = "ok" ]
+			then
+				hg archive -p "$REMOODBASESOURCE/" -t zip "$TARGETNAME" 1>&2
+			
+			# Otherwise, use harder method
+			else
+				# Oops
+				echo "$COOLPREFIX ZIP wihtout hg not yet supported." 1>&2 
+			fi
 			;;
 	esac
 	
