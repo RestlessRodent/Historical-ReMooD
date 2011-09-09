@@ -41,27 +41,32 @@
 #include "d_event.h"
 #include "command.h"
 #include "g_input.h"
+#include "dstrings.h"
 
 /****************
 *** CONSTANTS ***
 ****************/
 
-/* CONL_BufferID_t -- 
-typedef enum CONL_BufferID_e
-{
-} CONL_BufferID_t; */
-
 /*****************
 *** PROTOTYPES ***
 *****************/
 
+/*** Base Console ***/
 bool_t CONL_Init(const uintmax_t a_OutBS, const uintmax_t a_InBS);
 void CONL_Stop(void);
 
-const bool_t CONL_IsActive(void);
-const bool_t CONL_SetActive(void);
+const size_t CONL_RawPrint(const bool_t a_InBuf, const char* const a_Text);
+const size_t CONL_PrintV(const bool_t a_InBuf, const char* const a_Format, va_list a_ArgPtr);
+const size_t CONL_UnicodePrintV(const bool_t a_InBuf, const UnicodeStringID_t a_StrID, const char* const a_Format, va_list a_ArgPtr);
 
-//const size_t CONL_RawPrint(const bool_t a_inBu, 
+const size_t CONL_OutputF(const char* const a_Format, ...);
+const size_t CONL_InputF(const char* const a_Format, ...);
+const size_t CONL_OutputU(const UnicodeStringID_t a_StrID, const char* const a_Format, ...);
+const size_t CONL_InputU(const UnicodeStringID_t a_StrID, const char* const a_Format, ...);
+
+/*** Client Drawing ***/
+const bool_t CONL_IsActive(void);
+const bool_t CONL_SetActive(const bool_t a_Set);
 
 /******************************************************************************/
 

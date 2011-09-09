@@ -323,6 +323,7 @@ int S_SoundPlaying(S_NoiseThinker_t* a_Origin, int id)
 }
 
 void S_UpdateSingleChannel(S_SoundChannel_t* const a_Channel, S_NoiseThinker_t* const a_Listen, S_NoiseThinker_t* const a_Emit, const fixed_t a_Dist);
+extern consvar_t cv_g_gamespeed;
 
 /* S_StartSoundAtVolume() -- Starts playing a sound */
 void S_StartSoundAtVolume(S_NoiseThinker_t* a_Origin, int sound_id, int volume)
@@ -330,7 +331,7 @@ void S_StartSoundAtVolume(S_NoiseThinker_t* a_Origin, int sound_id, int volume)
 #define BUFSIZE 24
 	char Buf[BUFSIZE];
 	int OnChannel, i, LowestP, MyP;
-	fixed_t RPA, Dist;
+	fixed_t RPA, Dist, GS;
 	WX_WADEntry_t* Entry;
 	S_SoundChannel_t* Target;
 	S_NoiseThinker_t* Listener;
@@ -339,6 +340,12 @@ void S_StartSoundAtVolume(S_NoiseThinker_t* a_Origin, int sound_id, int volume)
 	/* Check */
 	if (!l_SoundOK || sound_id < 0 || sound_id >= NUMSFX)
 		return;
+	
+	/* Get gamespeed */
+	// For slow motioning, cap to 0.25
+	GS = cv_g_gamespeed.value;
+	if (GS < 16384)
+		GS = 16384;
 	
 	/* Get closest listener, emitter, and distance */
 	Dist = S_GetListenerEmitterWithDist(NULL, a_Origin, &Listener, &Emitter);
@@ -436,6 +443,9 @@ void S_StartSoundAtVolume(S_NoiseThinker_t* a_Origin, int sound_id, int volume)
 		// Modify move rate to random pitch change
 		Target->MoveRate = FixedMul(Target->MoveRate, RPA);
 	}
+	
+	// Game Speed modifier
+	Target->MoveRate = FixedMul(Target->MoveRate, GS);
 	
 	/* Unlock sound */
 	I_SoundLockThread(false);

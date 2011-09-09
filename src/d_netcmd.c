@@ -223,6 +223,8 @@ consvar_t cv_allowexitlevel = { "allowexitlevel", "1", CV_NETVAR, CV_YesNo, NULL
 
 consvar_t cv_netstat = { "netstat", "0", 0, CV_OnOff };
 
+consvar_t cv_g_gamespeed = { "g_gamespeed", "1", CV_NETVAR | CV_FLOAT};
+
 // =========================================================================
 //                           CLIENT STARTUP
 // =========================================================================
@@ -274,6 +276,9 @@ void D_RegisterClientCommands(void)
 	
 	/* GhostlyDeath <June 6, 2008> -- Register demo compatibility variables */
 	DC_RegisterDemoCompVars();
+	
+	// Slow mo
+	CV_RegisterVar(&cv_g_gamespeed);
 
 	// p_mobj.c
 	CV_RegisterVar(&cv_itemrespawntime);

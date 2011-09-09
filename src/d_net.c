@@ -92,6 +92,15 @@ tic_t D_SyncNetMapTime(void)
 	return l_MapTime;
 }
 
+/* D_SyncNetRealTime() -- Returns the real game time */
+tic_t D_SyncNetRealTime(void)
+{
+	/* Just return the number of tics that has passed */
+	return I_GetTimeMS() / TICSPERMS;
+}
+
+extern consvar_t cv_g_gamespeed;
+
 /* D_SyncNetAllReady() -- Inidicates that all parties are ready to move to the next tic */
 // It returns the tics in the future that everyone is ready to move to
 tic_t D_SyncNetAllReady(void)
@@ -99,11 +108,31 @@ tic_t D_SyncNetAllReady(void)
 	static tic_t LocalTime;
 	tic_t ThisTime, DiffTime;
 	
+	/*** START BIG HACK AREA ***/
+	static fixed_t CurVal, ModVal, TicsPerMS = TICSPERMS;
+	
+	/* Slow */
+	if (CurVal != cv_g_gamespeed.value)
+	{
+		ModVal = CurVal = cv_g_gamespeed.value;
+		if (ModVal < 16384)	// limit to 0.25 speed
+			ModVal = 16384;
+		
+		ModVal = FixedDiv(1 << FRACBITS, cv_g_gamespeed.value);
+		
+		// Calculate new speed
+		TicsPerMS = FixedMul((TICSPERMS << FRACBITS), ModVal) >> FRACBITS;
+		
+		if (TicsPerMS < 1)
+			TicsPerMS = 1;
+	}
+	/*** END BIG HACK AREA ***/
+	
 	/* If we are the server, we dictate time */
 	if (D_SyncNetIsArbiter())
 	{
 		// The map time is determined by the framerate
-		ThisTime = I_GetTimeMS() / TICSPERMS;
+		ThisTime = I_GetTimeMS() / TicsPerMS;
 		DiffTime = ThisTime - LocalTime;
 		
 		if (DiffTime > 0)

@@ -54,6 +54,7 @@ void D_SyncNetDebugMessage(const char* const a_Format, ...);
 bool_t D_SyncNetIsArbiter(void);
 void D_SyncNetSetMapTime(const tic_t a_Time);
 tic_t D_SyncNetMapTime(void);
+tic_t D_SyncNetRealTime(void);
 tic_t D_SyncNetAllReady(void);
 bool_t D_SyncNetUpdate(void);
 

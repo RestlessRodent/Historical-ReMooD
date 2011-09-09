@@ -70,6 +70,139 @@
 #include <unistd.h>
 #endif
 
+/*****************
+*** STRUCTURES ***
+*****************/
+
+typedef void (*CONL_FlushFunc_t)(const char* const a_Buf);
+
+/* CONL_BasicBuffer_t -- A basic buffer for the console */
+typedef struct CONL_BasicBuffer_s
+{
+	char* Buffer;									// Actual buffer
+	char** Lines;									// Lines in buffer
+	size_t Size;									// Size of the buffer
+	size_t NumLines;								// Number of lines in buffer
+	
+	size_t StartPos;								// Start position of buffer
+	size_t EndPos;									// End position of buffer
+	size_t StartLine;								// First line in buffer
+	size_t EndLine;									// Last line in buffer
+	
+	CONL_FlushFunc_t FlushFunc;						// Function to call on '\n'
+} CONL_BasicBuffer_t;
+
+/*************
+*** LOCALS ***
+*************/
+
+static CONL_BasicBuffer_t l_CONLBuffers[2];			// Input/Output Buffer
+
+/****************
+*** FUNCTIONS ***
+****************/
+
+/*** Static Stuff ***/
+/* CONLS_InitConsole() -- Initializes a buffer */
+static bool_t CONLS_InitConsole(CONL_BasicBuffer_t* const a_Buffer, const uintmax_t a_Size, const CONL_FlushFunc_t a_FlushFunc)
+{
+	/* Check */
+	if (!a_Buffer || !a_Size)
+		return false;
+}
+
+/* CONLS_DestroyConsole() -- Destroys a console */
+static void CONLS_DestroyConsole(CONL_BasicBuffer_t* const a_Buffer)
+{
+	/* Check */
+	if (!a_Buffer)
+		return;
+}
+
+/*** Flush Functions ***/
+/* CONLFF_OutputFF() -- Line is flushed from the output buffer */
+void CONLFF_OutputFF(const char* const a_Buf)
+{
+}
+
+/* CONLFF_InputFF() -- Line is flushed from the input buffer */
+void CONLFF_InputFF(const char* const a_Buf)
+{
+}
+
+/*** Base Console ***/
+/* CONL_Init() -- Initializes the light console */
+bool_t CONL_Init(const uintmax_t a_OutBS, const uintmax_t a_InBS)
+{
+	/* Initialize output */
+	if (!CONLS_InitConsole)
+	
+	return false;
+}
+
+/* CONL_Stop() -- Stops the console */
+void CONL_Stop(void)
+{
+}
+
+/* CONL_RawPrint() -- Prints text directly to buffer */
+const size_t CONL_RawPrint(const bool_t a_InBuf, const char* const a_Text)
+{
+	return 0;
+}
+
+/* CONL_PrintV() -- Prints formatted text to buffer */
+const size_t CONL_PrintV(const bool_t a_InBuf, const char* const a_Format, va_list a_ArgPtr)
+{
+	return 0;
+}
+
+/* CONL_UnicodePrintV() -- Prints localized text to a buffer */
+const size_t CONL_UnicodePrintV(const bool_t a_InBuf, const UnicodeStringID_t a_StrID, const char* const a_Format, va_list a_ArgPtr)
+{
+	return 0;
+}
+
+/* CONL_OutputF() -- Prints formatted text to the output buffer */
+const size_t CONL_OutputF(const char* const a_Format, ...)
+{
+	return 0;
+}
+
+/* CONL_InputF() -- Prints formatted text to the input buffer */
+const size_t CONL_InputF(const char* const a_Format, ...)
+{
+	return 0;
+}
+
+/* CONL_OutputU() -- Prints localized text to the output buffer */
+const size_t CONL_OutputU(const UnicodeStringID_t a_StrID, const char* const a_Format, ...)
+{
+	return 0;
+}
+
+/* CONL_InputU() -- Prints localized text to the input buffer */
+const size_t CONL_InputU(const UnicodeStringID_t a_StrID, const char* const a_Format, ...)
+{
+	return 0;
+}
+
+/*** Client Drawing ***/
+/* CONL_IsActive() -- Returns true if the console is active */
+const bool_t CONL_IsActive(void)
+{
+	return false;
+}
+
+/* CONL_SetActive() -- Sets whether the console is active or not */
+// Returns the old flag
+const bool_t CONL_SetActive(const bool_t a_Set)
+{
+	return false;
+}
+
+/*****************************************************************************/
+
 /**************
 *** GLOBALS ***
 **************/
