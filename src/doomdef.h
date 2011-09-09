@@ -82,6 +82,7 @@ extern uint8_t demoversion;
 
 // State updates, number of tics / second.
 #define TICRATE				35
+#define TICSPERMS			29	// 28.5, but the benefit of the doubt
 
 // Name of local directory for config files and savegames
 #ifdef LINUX

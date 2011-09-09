@@ -103,7 +103,7 @@ tic_t D_SyncNetAllReady(void)
 	if (D_SyncNetIsArbiter())
 	{
 		// The map time is determined by the framerate
-		ThisTime = I_GetTimeMS() / TICRATE;
+		ThisTime = I_GetTimeMS() / TICSPERMS;
 		DiffTime = ThisTime - LocalTime;
 		
 		if (DiffTime > 0)
