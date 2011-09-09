@@ -31,8 +31,11 @@
 // DESCRIPTION:
 //      Mission begin melt/wipe screen special effect.
 
-#include "doomdef.h"
+/***************
+*** INCLUDES ***
+***************/
 
+#include "doomdef.h"
 #include "m_random.h"
 #include "f_wipe.h"
 #include "i_system.h"
@@ -42,16 +45,28 @@
 #include "p_pspr.h"				// tr_transxxx
 #include "z_zone.h"
 
-//--------------------------------------------------------------------------
-//                        SCREEN WIPE PACKAGE
-//--------------------------------------------------------------------------
+/*****************
+*** PROTOTYPES ***
+*****************/
+
+/**************
+*** GLOBALS ***
+**************/
 
 // when zero, stop the wipe
 static bool_t go = 0;
 
-static uint8_t *wipe_scr_start;
-static uint8_t *wipe_scr_end;
+static uint8_t *wipe_scr_start = NULL;
+static uint8_t *wipe_scr_end = NULL;
 static uint8_t *wipe_scr;
+
+/************************
+*** CONSOLE VARIABLES ***
+************************/
+
+/****************
+*** FUNCTIONS ***
+****************/
 
 void wipe_shittyColMajorXform(short *array, int width, int height)
 {
@@ -71,58 +86,63 @@ void wipe_shittyColMajorXform(short *array, int width, int height)
 
 }
 
+static bool_t* BlindMarks;
+static int BlindDone = 0;
+
+/* wipe_initBlindsXForm() -- GhostlyDeath <June 4, 2010> -- Speckle Effect */
+int wipe_initBlindsXForm(int width, int height, int ticks)
+{
+	BlindDone = 0;
+	BlindMarks = Z_Malloc(sizeof(bool_t) * vid.width, PU_STATIC, &BlindMarks);
+	memcpy(wipe_scr, wipe_scr_start, width * height * scr_bpp);
+	return 0;
+}
+
+/* wipe_doBlindsXForm() -- GhostlyDeath <June 4, 2010> -- Speckle Effect */
+int wipe_doBlindsXForm(int width, int height, int ticks)
+{
+	int i, j;
+	int x, y;
+	
+	for (i = M_Random() & 31; i < width; i += M_Random() & 63)
+	{
+		if (BlindMarks[i])
+		{
+			while (i < width && BlindMarks[i])
+				i++;
+			
+			if (i == width)
+				break;
+		}
+			
+		// Get position
+		x = i;//(M_Random() * M_Random()) % width;
+		
+		// replace column
+		for (j = 0; j < height; j++)
+			wipe_scr[(j * width) + x] = wipe_scr_end[(j * width) + x];
+		BlindDone++;
+		BlindMarks[i] = true;
+	}
+	
+	if (BlindDone >= width)
+		return true;
+		
+	return false;
+}
+
+/* wipe_exitBlindsXForm() -- GhostlyDeath <June 4, 2010> -- Speckle Effect */
+int wipe_exitBlindsXForm(int width, int height, int ticks)
+{
+	Z_Free(BlindMarks);
+	return 0;
+}
+
 int wipe_initColorXForm(int width, int height, int ticks)
 {
 	memcpy(wipe_scr, wipe_scr_start, width * height * scr_bpp);
 	return 0;
 }
-
-/* BP:the original one, work only in hicolor
-int wipe_doColorXForm ( int   width,
-                        int   height,
-                        int   ticks )
-
-{
-    bool_t     changed;
-    uint8_t*       w;
-    uint8_t*       e;
-    int         newval;
-
-    changed = false;
-    w = wipe_scr;
-    e = wipe_scr_end;
-
-    while (w!=wipe_scr+width*height)
-    {
-        if (*w != *e)
-        {
-            if (*w > *e)
-            {
-                newval = *w - ticks;
-                if (newval < *e)
-                    *w = *e;
-                else
-                    *w = newval;
-                changed = true;
-            }
-            else if (*w < *e)
-            {
-                newval = *w + ticks;
-                if (newval > *e)
-                    *w = *e;
-                else
-                    *w = newval;
-                changed = true;
-            }
-        }
-        w++;
-        e++;
-    }
-
-    return !changed;
-
-}
-*/
 
 int wipe_doColorXForm(int width, int height, int ticks)
 {
@@ -262,7 +282,9 @@ int wipe_doMelt(int width, int height, int ticks)
 
 int wipe_exitMelt(int width, int height, int ticks)
 {
-	Z_Free(y);
+	if (y)
+		Z_Free(y);
+	y = NULL;
 	return 0;
 }
 
@@ -270,7 +292,10 @@ int wipe_exitMelt(int width, int height, int ticks)
 //
 int wipe_StartScreen(int x, int y, int width, int height)
 {
-	wipe_scr_start = screens[2];
+	// GhostlyDeath <June 4, 2010> -- Dynamically allocate wipe stuff
+	wipe_scr_start = Z_Malloc(vid.width * vid.height * vid.bpp, PU_STATIC, &wipe_scr_start);
+	//wipe_scr_start = screens[2];
+	
 	I_ReadScreen(wipe_scr_start);
 	return 0;
 }
@@ -279,7 +304,10 @@ int wipe_StartScreen(int x, int y, int width, int height)
 //
 int wipe_EndScreen(int x, int y, int width, int height)
 {
-	wipe_scr_end = screens[3];
+	// GhostlyDeath <June 4, 2010> -- Dynamically allocate wipe stuff
+	wipe_scr_end = Z_Malloc(vid.width * vid.height * vid.bpp, PU_STATIC, &wipe_scr_end);
+	//wipe_scr_end = screens[3];
+	
 	I_ReadScreen(wipe_scr_end);
 	V_DrawBlock(x, y, 0, width, height, wipe_scr_start);	// restore start scr.
 	return 0;
@@ -290,33 +318,54 @@ int wipe_ScreenWipe(int wipeno, int x, int y, int width, int height, int ticks)
 	int rc;
 	static int (*wipes[]) (int, int, int) =
 	{
-	wipe_initColorXForm,
-			wipe_doColorXForm, wipe_exitColorXForm, wipe_initMelt, wipe_doMelt, wipe_exitMelt};
+		wipe_initColorXForm, wipe_doColorXForm, wipe_exitColorXForm,
+		wipe_initMelt, wipe_doMelt, wipe_exitMelt,
+		wipe_initBlindsXForm, wipe_doBlindsXForm, wipe_exitBlindsXForm,
+	};
 
-	//Fab: obsolete (we don't use dirty-rectangles type of refresh)
-	//void V_MarkRect(int, int, int, int);
-
-	// initial stuff
-	if (!go)
+	// GhostlyDeath <June 4, 2010> -- Force done?
+	if (ticks >= 0)
 	{
-		go = 1;
-		// wipe_scr = (uint8_t *) Z_Malloc(width*height*scr_bpp, PU_STATIC, 0); // DEBUG
-		wipe_scr = screens[0];
-		(*wipes[wipeno * 3]) (width, height, ticks);
+		//Fab: obsolete (we don't use dirty-rectangles type of refresh)
+		//void V_MarkRect(int, int, int, int);
+
+		// initial stuff
+		if (!go)
+		{
+			go = 1;
+			// wipe_scr = (uint8_t *) Z_Malloc(width*height*scr_bpp, PU_STATIC, 0); // DEBUG
+			wipe_scr = screens[0];
+			(*wipes[wipeno * 3]) (width, height, ticks);
+		}
+
+		// do a piece of wipe-in
+		//V_MarkRect(0, 0, width, height);
+		rc = (*wipes[wipeno * 3 + 1]) (width, height, ticks);
+		//  V_DrawBlock(x, y, 0, width, height, wipe_scr); // DEBUG
+
+		// final stuff
+		if (rc)
+		{
+			go = 0;
+			(*wipes[wipeno * 3 + 2]) (width, height, ticks);
+		
+			// GhostlyDeath <June 4, 2010> -- Free wipe buffers
+			Z_Free(wipe_scr_start);
+			Z_Free(wipe_scr_end);
+		}
 	}
-
-	// do a piece of wipe-in
-	//V_MarkRect(0, 0, width, height);
-	rc = (*wipes[wipeno * 3 + 1]) (width, height, ticks);
-	//  V_DrawBlock(x, y, 0, width, height, wipe_scr); // DEBUG
-
-	// final stuff
-	if (rc)
+	else
 	{
 		go = 0;
-		(*wipes[wipeno * 3 + 2]) (width, height, ticks);
+		(*wipes[wipeno * 3 + 2]) (width, height, -ticks);
+	
+		// GhostlyDeath <June 4, 2010> -- Free wipe buffers
+		Z_Free(wipe_scr_start);
+		Z_Free(wipe_scr_end);
+		return true;
 	}
 
 	return !go;
 
 }
+

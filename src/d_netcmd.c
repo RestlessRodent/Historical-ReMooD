@@ -428,6 +428,9 @@ void D_RegisterClientCommands(void)
 	CV_RegisterVar(&cv_classicrocketblast);
 	CV_RegisterVar(&cv_classicmeleerange);
 	CV_RegisterVar(&cv_classicmonsterlogic);
+	
+	// GhostlyDeath <July 8, 2009> -- Add FPS Counter
+	CV_RegisterVar(&cv_vid_drawfps);
 
 	// add cheat commands, I'm bored of deh patches renaming the idclev ! :-)
 	COM_AddCommand("noclip", Command_CheatNoClip_f);

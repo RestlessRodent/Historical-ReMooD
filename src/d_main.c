@@ -150,6 +150,12 @@ int eventtail;
 
 bool_t dedicated;
 
+/* FPS */
+static int l_FPSFrameFPGS = 0;
+static int l_FPSTimePerGS = 0;
+static int l_FPSTrueFPS = 0;
+static int l_FPSRanFPS = 0;
+
 //
 // D_PostEvent
 // Called by the I/O functions when input is detected
@@ -216,12 +222,17 @@ void I_DoStartupMouse(void);    //win_sys.c
 // wipegamestate can be set to -1 to force a wipe on the next draw
 // added comment : there is a wipe eatch change of the gamestate
 gamestate_t wipegamestate = GS_DEMOSCREEN;
-CV_PossibleValue_t screenslink_cons_t[] = { {0, "None"}
-, {wipe_ColorXForm + 1, "Color"}
-, {wipe_Melt + 1, "Melt"}
-, {0, NULL}
+CV_PossibleValue_t screenslink_cons_t[] = {
+	{0, "None"},
+	{wipe_ColorXForm + 1, "Color"},
+	{wipe_Melt + 1, "Melt"},
+	{wipe_Blinds + 1, "Blinds"},
+	{0, NULL}
 };
 consvar_t cv_screenslink = { "screenlink", "2", CV_SAVE, screenslink_cons_t };
+
+// GhostlyDeath <July 8, 2009> -- Add FPS Counter
+consvar_t cv_vid_drawfps = {"vid_drawfps", "0", CV_SAVE, CV_YesNo, NULL};
 
 void D_Display(void)
 {
@@ -265,8 +276,9 @@ void D_Display(void)
 		redrawsbar = true;
 	}
 
+	// GhostlyDeath <June 16, 2010> -- Only wipe if we set screen link (otherwise cleanup is never done)
 	// save the current screen if about to wipe
-	if (gamestate != wipegamestate)
+	if (cv_screenslink.value && gamestate != wipegamestate)
 	{
 		wipe = true;
 		wipe_StartScreen(0, 0, vid.width, vid.height);
@@ -430,19 +442,43 @@ void D_Display(void)
 	
 	D_SyncNetUpdate();
 	NetUpdate();				// send out any new accumulation
-
-//
-// normal update
-//
-	if (!wipe)
+	
+	// GhostlyDeath <July 8, 2009> -- Add FPS Counter
+	if (cv_vid_drawfps.value)
 	{
-		{
-			//I_BeginProfile();
-			I_FinishUpdate();	// page flip or blit buffer
-			//CONS_Printf ("last frame update took %d\n", I_EndProfile());
-		}
-		return;
+		// GhostlyDeath <july 8, 2009> -- Draw FPS
+		V_DrawCharacterA(VFONT_LARGE, 0, '0' + ((l_FPSTrueFPS / 100) % 10), 320 - 70, 0);
+		V_DrawCharacterA(VFONT_LARGE, 0, '0' + ((l_FPSTrueFPS / 10) % 10), 320 - 60, 0);
+		V_DrawCharacterA(VFONT_LARGE, 0, '.', 320 - 50, 0);
+		V_DrawCharacterA(VFONT_LARGE, 0, '0' + (l_FPSTrueFPS % 10), 320 - 40, 0);
+		V_DrawCharacterA(VFONT_LARGE, 0, 'F', 320 - 30, 0);
+		V_DrawCharacterA(VFONT_LARGE, 0, 'P', 320 - 20, 0);
+		V_DrawCharacterA(VFONT_LARGE, 0, 'S', 320 - 10, 0);
+
+		V_DrawCharacterA(VFONT_OEM, 0, '0' + ((l_FPSFrameFPGS / 10) % 10),		320 - 48, 15);
+		V_DrawCharacterA(VFONT_OEM, 0, '0' + (l_FPSFrameFPGS % 10),			320 - 40, 15);
+		V_DrawCharacterA(VFONT_OEM, 0, 'F',								320 - 32, 15);
+		V_DrawCharacterA(VFONT_OEM, 0, 'P',								320 - 24, 15);
+		V_DrawCharacterA(VFONT_OEM, 0, 'G',								320 - 16, 15);
+		V_DrawCharacterA(VFONT_OEM, 0, 'S',								320 - 8, 15);
+
+		V_DrawCharacterA(VFONT_OEM, 0, '0' + ((l_FPSTimePerGS / 1000) % 10),	320 - 72, 24);
+		V_DrawCharacterA(VFONT_OEM, 0, '.',								320 - 64, 24);
+		V_DrawCharacterA(VFONT_OEM, 0, '0' + ((l_FPSTimePerGS / 100) % 10),	320 - 56, 24);
+		V_DrawCharacterA(VFONT_OEM, 0, '0' + ((l_FPSTimePerGS / 10) % 10),		320 - 48, 24);
+		V_DrawCharacterA(VFONT_OEM, 0, '0' + (l_FPSTimePerGS % 10),			320 - 40, 24);
+		V_DrawCharacterA(VFONT_OEM, 0, 'S',								320 - 32, 24);
+		V_DrawCharacterA(VFONT_OEM, 0, ':',								320 - 24, 24);
+		V_DrawCharacterA(VFONT_OEM, 0, 'G',								320 - 16, 24);
+		V_DrawCharacterA(VFONT_OEM, 0, 'S',								320 - 8, 24);
 	}
+	
+	//I_BeginProfile();
+	I_FinishUpdate();	// page flip or blit buffer
+	//CONS_Printf ("last frame update took %d\n", I_EndProfile());
+	
+	if (!wipe)
+		return;
 
 //
 // wipe update
@@ -470,6 +506,16 @@ void D_Display(void)
 		I_FinishUpdate();		// page flip or blit buffer
 	}
 	while (!done && I_GetTime() < (unsigned)y);
+	
+	// GhostlyDeath <June 4, 2010> -- If a wipe never finished 100% we must end if
+	if (!done)
+	{
+		//if (devparm)
+		//	CONS_PrintfUL(SRCSTR__D_MAIN_C__WIPENEVERDONE, L"");
+		
+		// Force an end
+		wipe_ScreenWipe(cv_screenslink.value - 1, 0, 0, vid.width, vid.height, -tics);
+	}
 
 	ST_Invalidate();
 }
@@ -486,6 +532,7 @@ bool_t supdate;
 void D_DoomLoop(void)
 {
 	tic_t oldentertics, entertic, realtics, rendertimeout = -1;
+	uint32_t FPSNowTime, FPSLastTime, FPSLastTic = 0;
 
 	if (demorecording)
 		G_BeginRecording();
@@ -509,6 +556,8 @@ void D_DoomLoop(void)
 	// make sure to do a d_display to init mode _before_ load a level
 	SCR_SetMode();				// change video mode
 	SCR_Recalc();
+	
+	FPSLastTime = I_GetTimeMS();
 
 	for (;;)
 	{
@@ -536,6 +585,8 @@ void D_DoomLoop(void)
 		TryRunTics(realtics);
 		if (singletics || gametic > rendergametic)
 		{
+			l_FPSRanFPS++;
+			
 			rendergametic = gametic;
 			rendertimeout = entertic + TICRATE / 17;
 
@@ -546,7 +597,10 @@ void D_DoomLoop(void)
 			supdate = false;
 		}
 		else if (rendertimeout < entertic)	// in case the server hang or netsplit
+		{
+			l_FPSRanFPS++;
 			D_Display();
+		}
 		
 		// Sound mixing for the buffer is snychronous.
 		I_UpdateSound();
@@ -556,6 +610,30 @@ void D_DoomLoop(void)
 		
 		// check for media change, loop music..
 		I_UpdateCD();
+		
+		// GhostlyDeath <July 8, 2009> -- Add FPS Counter
+		if (gametic % TICRATE == 0 && FPSLastTic != gametic)
+		{
+			FPSNowTime = I_GetTimeMS();
+			
+			l_FPSTimePerGS = FPSNowTime - FPSLastTime;
+			l_FPSFrameFPGS = TICRATE - ((l_FPSRanFPS) % TICRATE);
+			// GhostlyDeath <July 9, 2009> -- Floating point is more accurate but fixed may be faster
+			l_FPSTrueFPS = //((double)l_FPSFrameFPGS / ((double)l_FPSTimePerGS / 1000.0)) * 10.0;
+				FixedMul(
+					FixedDiv(l_FPSFrameFPGS << FRACBITS, FixedDiv(l_FPSTimePerGS << FRACBITS, 1000 << FRACBITS)),
+						10 << FRACBITS) >> FRACBITS;
+			
+			l_FPSRanFPS = 0;
+			FPSLastTime = FPSNowTime;
+			
+			FPSLastTic = gametic;
+			
+			if (l_FPSTrueFPS > 999)
+				l_FPSTrueFPS = 999;
+			else if (l_FPSTrueFPS < 0)
+				l_FPSTrueFPS = 0;			// This can happen with fixed point numbers
+		}
 	}
 }
 

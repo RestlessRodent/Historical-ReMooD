@@ -46,6 +46,29 @@
 *** CONSTANTS ***
 ****************/
 
+/* CONL_BufferID_t -- 
+typedef enum CONL_BufferID_e
+{
+} CONL_BufferID_t; */
+
+/*****************
+*** PROTOTYPES ***
+*****************/
+
+bool_t CONL_Init(const uintmax_t a_OutBS, const uintmax_t a_InBS);
+void CONL_Stop(void);
+
+const bool_t CONL_IsActive(void);
+const bool_t CONL_SetActive(void);
+
+//const size_t CONL_RawPrint(const bool_t a_inBu, 
+
+/******************************************************************************/
+
+/****************
+*** CONSTANTS ***
+****************/
+
 #define CONEX_MAXVARIABLENAME		32					// Size limit of var name
 
 /*****************
