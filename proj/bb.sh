@@ -53,6 +53,10 @@ do
 	# Which package is being built?
 	case $target
 	in
+			# Standard release (tar.gz)
+		release)
+			;;
+			
 			# Update sys/tarfiles.txt
 		system_tarfiles)
 			# Print message

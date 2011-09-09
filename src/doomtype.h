@@ -282,7 +282,7 @@ static inline void __REMOOD_FORCEINLINE WriteString(uint8_t** const Out, uint8_t
 }
 
 /* WriteStringN() -- Write a string of n length */
-static inline void __REMOOD_FORCEINLINE WriteStringN(uint8_t** const Out, uint8_t* const String, const size_t Count)
+static void __REMOOD_FORCEINLINE WriteStringN(uint8_t** const Out, uint8_t* const String, const size_t Count)
 {
 	size_t i;
 	
@@ -295,7 +295,7 @@ static inline void __REMOOD_FORCEINLINE WriteStringN(uint8_t** const Out, uint8_
 
 /* ReadCompressedUInt16() -- Reads a "compressed" uint16_t */
 // Numerical Range: 0 - 32767
-__REMOOD_FORCEINLINE uint16_t ReadCompressedUInt16(const void** const p)
+static __REMOOD_FORCEINLINE uint16_t ReadCompressedUInt16(const void** const p)
 {
 	uint16_t ReadVal;
 	
@@ -320,7 +320,7 @@ __REMOOD_FORCEINLINE uint16_t ReadCompressedUInt16(const void** const p)
 
 /* WriteCompressedUInt16() -- Writes a "compressed" uint16_t */
 // Numerical Range: 0 - 32767
-__REMOOD_FORCEINLINE void WriteCompressedUInt16(void** const p, const uint16_t Value)
+static __REMOOD_FORCEINLINE void WriteCompressedUInt16(void** const p, const uint16_t Value)
 {
 	/* Check */
 	if (!p || !*p)

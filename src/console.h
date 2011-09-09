@@ -198,9 +198,7 @@ bool_t CON_Responder(event_t * ev);
 #define  CON_MAXPROMPTCHARS    256
 #define  CON_PROMPTCHAR        '>'
 
-extern bool_t con_started;
 extern bool_t con_startup;
-extern bool_t con_forcepic;
 extern bool_t con_recalc;
 extern int con_tick;
 extern bool_t consoletoggle;
@@ -227,9 +225,6 @@ extern struct pic_s *con_backpic;
 extern struct pic_s *con_bordleft;
 extern struct pic_s *con_bordright;
 extern char con_buffer[CON_BUFFERSIZE];
-// set true when screen size has changed, to adapt console
-extern bool_t con_recalc;
-extern bool_t con_startup;
 
 extern bool_t consoleready;	// GhostlyDeath -- extern this here
 // top clip value for view render: do not draw part of view hidden by console

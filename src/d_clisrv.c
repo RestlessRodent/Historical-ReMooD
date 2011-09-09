@@ -186,6 +186,13 @@ void TryRunTics(tic_t realtics)
 	/* While the client is behind, update it to catch up */
 	do
 	{
+		// If demo needs advancing
+		if (advancedemo)
+		{
+			D_DoAdvanceDemo();
+			continue;
+		}
+		
 		// Set local time and target time
 		LocalTic = D_SyncNetMapTime();
 		TargetTic = D_SyncNetAllReady();

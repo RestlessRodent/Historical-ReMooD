@@ -108,6 +108,7 @@ static size_t l_EQWrite = 0;					// Write position in queue
 typedef void (*quitfuncptr) ();
 static quitfuncptr quit_funcs[MAX_QUIT_FUNCS];
 
+static bool_t l_JoyOK = false;					// Joysticks OK
 static uint8_t l_NumJoys;						// Number of joysticks
 static uint8_t l_RealJoyMap[MAXJOYSTICKS];		// Joystick mappings
 
@@ -120,6 +121,12 @@ void I_EventExPush(const I_EventEx_t* const a_Event)
 {
 	/* Check */
 	if (!a_Event)
+		return;
+	
+	/* Mouse/Joystick event and they are not OK */
+	// I know this seems kinda bad, but some interfaces always handle mouse inputs
+	// and whatnot, so it should just be ignored here.
+	if ((a_Event->Type == IET_MOUSE && !l_MouseOK) || (a_Event->Type == IET_JOYSTICK && !l_JoyOK))
 		return;
 	
 	/* Write at current write pos */
@@ -535,7 +542,6 @@ void I_InitJoystick(void)
 	char Buf[BUFSIZE];
 	char CoolBuf[BUFSIZE];
 	uint32_t ID, NumAxis, NumButtons;
-	static bool_t Enabled = false;
 	size_t i;
 	
 	/* Check parameter */
@@ -549,7 +555,7 @@ void I_InitJoystick(void)
 	if (cv_use_joystick.value)
 	{
 		// Enabled?
-		if (Enabled)
+		if (l_JoyOK)
 			return;
 		
 		// Probe joysticks
@@ -578,21 +584,21 @@ void I_InitJoystick(void)
 		}
 				
 		// Enable
-		Enabled = true;
+		l_JoyOK = true;
 	}
 	
 	/* Disabling the joystick */
 	else
 	{
 		// Not enabled?
-		if (!Enabled)
+		if (!l_JoyOK)
 			return;
 		
 		// Destroy joysticks
 		I_RemoveJoysticks();
 		
 		// Disable
-		Enabled = false;
+		l_JoyOK = false;
 	}
 #undef BUFSIZE
 }
