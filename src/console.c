@@ -84,10 +84,12 @@ typedef struct CONL_BasicBuffer_s
 	size_t Size;									// Size of the buffer
 	size_t NumLines;								// Number of lines in buffer
 	
-	size_t StartPos;								// Start position of buffer
-	size_t EndPos;									// End position of buffer
-	size_t StartLine;								// First line in buffer
-	size_t EndLine;									// Last line in buffer
+	uintmax_t MaskPos;								// Position mask
+	uintmax_t StartPos;								// Start position of buffer
+	uintmax_t EndPos;								// End position of buffer
+	uintmax_t MaskLine;								// Line mask
+	uintmax_t StartLine;							// First line in buffer
+	uintmax_t EndLine;								// Last line in buffer
 	
 	CONL_FlushFunc_t FlushFunc;						// Function to call on '\n'
 } CONL_BasicBuffer_t;
@@ -106,9 +108,39 @@ static CONL_BasicBuffer_t l_CONLBuffers[2];			// Input/Output Buffer
 /* CONLS_InitConsole() -- Initializes a buffer */
 static bool_t CONLS_InitConsole(CONL_BasicBuffer_t* const a_Buffer, const uintmax_t a_Size, const CONL_FlushFunc_t a_FlushFunc)
 {
+	uintmax_t Size, i;
+	
 	/* Check */
 	if (!a_Buffer || !a_Size)
 		return false;
+		
+	/* Clear */
+	memset(a_Buffer, 0, sizeof(*a_Buffer));
+	
+	/* Limit size to power of 2 */
+	for (i = (sizeof(a_Size) * CHAR_BIT) - 1; i > 0 && !(a_Size & (1 << i)); i--)
+		;
+	Size = 1 << i;
+	
+	/* Allocate */
+	// Buffer
+	a_Buffer->Size = Size;
+	a_Buffer->MaskPos = a_Buffer->Size - 1;
+	a_Buffer->Buffer = Z_Malloc(sizeof(*a_Buffer->Buffer) * a_Buffer->Size, PU_STATIC, NULL);
+	
+	// Lines
+	a_Buffer->NumLines = 128;
+	a_Buffer->MaskLine = a_Buffer->NumLines - 1;
+	a_Buffer->Lines = Z_Malloc(sizeof(*a_Buffer->Lines) * a_Buffer->NumLines, PU_STATIC, NULL);
+	
+	// Extra
+	a_Buffer->FlushFunc = a_FlushFunc;
+	
+	// Create initial line
+	a_Buffer->Lines[a_Buffer->EndLine++] = a_Buffer->Buffer;
+	
+	/* Success */
+	return true;
 }
 
 /* CONLS_DestroyConsole() -- Destroys a console */
@@ -117,17 +149,35 @@ static void CONLS_DestroyConsole(CONL_BasicBuffer_t* const a_Buffer)
 	/* Check */
 	if (!a_Buffer)
 		return;
+	
+	/* Free Everything */
+	// Buffer
+	if (a_Buffer->Buffer)
+		Z_Free(a_Buffer->Buffer);
+	
+	// Lines
+	if (a_Buffer->Lines)
+		Z_Free(a_Buffer->Lines);
+	
+	/* Final memset */
+	memset(a_Buffer, 0, sizeof(*a_Buffer));
 }
 
 /*** Flush Functions ***/
 /* CONLFF_OutputFF() -- Line is flushed from the output buffer */
-void CONLFF_OutputFF(const char* const a_Buf)
+static void CONLFF_OutputFF(const char* const a_Buf)
 {
+	/* Check */
+	if (!a_Buf)
+		return;
 }
 
 /* CONLFF_InputFF() -- Line is flushed from the input buffer */
-void CONLFF_InputFF(const char* const a_Buf)
+static void CONLFF_InputFF(const char* const a_Buf)
 {
+	/* Check */
+	if (!a_Buf)
+		return;
 }
 
 /*** Base Console ***/
@@ -135,9 +185,18 @@ void CONLFF_InputFF(const char* const a_Buf)
 bool_t CONL_Init(const uintmax_t a_OutBS, const uintmax_t a_InBS)
 {
 	/* Initialize output */
-	if (!CONLS_InitConsole)
+	if (!CONLS_InitConsole(&l_CONLBuffers[0], a_OutBS, CONLFF_OutputFF))
+		return false;
 	
-	return false;
+	/* Initialize input */
+	if (!CONLS_InitConsole(&l_CONLBuffers[1], a_InBS, CONLFF_InputFF))
+	{
+		CONLS_DestroyConsole(&l_CONLBuffers[0]);
+		return false;
+	}
+	
+	/* Success! */
+	return true;
 }
 
 /* CONL_Stop() -- Stops the console */
@@ -146,15 +205,102 @@ void CONL_Stop(void)
 }
 
 /* CONL_RawPrint() -- Prints text directly to buffer */
-const size_t CONL_RawPrint(const bool_t a_InBuf, const char* const a_Text)
+const size_t CONL_RawPrint(CONL_BasicBuffer_t* const a_Buffer, const char* const a_Text)
 {
-	return 0;
+#define POSMASK(x) ((x) & a_Buffer->MaskPos)
+#define LINEMASK(x) ((x) & a_Buffer->MaskLine)
+	size_t RetVal;
+	const char* p;
+	
+	/* Check */
+	if (!a_Buffer || !a_Text || !a_Buffer->Buffer || !a_Buffer->Lines)
+		return 0;
+	
+	/* Splatter into buffer */
+	for (RetVal = 0, p = a_Text; *p; p++, RetVal++)
+	{
+		// If the character is a carraige return, go back to start of line
+		if (*p == '\r')
+		{
+			// Go to the start of the line, if possible
+			if (a_Buffer->Lines[LINEMASK(a_Buffer->EndLine - 1)])
+				a_Buffer->EndLine = a_Buffer->Lines[LINEMASK(a_Buffer->EndLine - 1)] - a_Buffer->Buffer;
+			
+			// Don't add it to the buffer
+			continue;
+		}
+		
+		// Put character in last spot
+		a_Buffer->Buffer[POSMASK(a_Buffer->EndPos++)] = *p;
+		
+		// Unset character in current spot
+		a_Buffer->Buffer[POSMASK(a_Buffer->EndPos)] = 0;
+		
+		// Start collision?
+		if (POSMASK(a_Buffer->EndPos) == POSMASK(a_Buffer->StartPos))
+		{
+			a_Buffer->StartPos = POSMASK(a_Buffer->StartPos + 1);
+			
+			// Does this new position surpass the first line in the buffer?
+			if (a_Buffer->Lines[LINEMASK(a_Buffer->StartLine)] && &a_Buffer->Buffer[POSMASK(a_Buffer->StartPos)] >= a_Buffer->Lines[LINEMASK(a_Buffer->StartLine)])
+				// Set current line to NULL and move up
+				a_Buffer->Lines[LINEMASK(a_Buffer->StartLine++)] = NULL;
+			
+			&a_Buffer->Buffer[a_Buffer->StartPos] >= a_Buffer->Lines[a_Buffer->StartLine];
+		}
+		
+		// Newline?
+		if (*p == '\n')
+		{
+			// Write current line to buffer
+			a_Buffer->Lines[LINEMASK(a_Buffer->EndLine++)] = &a_Buffer->Buffer[POSMASK(a_Buffer->EndPos)];
+			
+			// Unset current line to prevent old corruption
+			a_Buffer->Lines[LINEMASK(a_Buffer->EndLine)] = NULL;
+			
+			// Start collision?
+			if (LINEMASK(a_Buffer->EndLine) == LINEMASK(a_Buffer->StartLine))
+				a_Buffer->StartLine = LINEMASK(a_Buffer->StartLine + 1);
+		}
+	}
+
+#if 0
+	char* Buffer;									// Actual buffer
+	char** Lines;									// Lines in buffer
+	size_t Size;									// Size of the buffer
+	size_t NumLines;								// Number of lines in buffer
+	
+	size_t StartPos;								// Start position of buffer
+	size_t EndPos;									// End position of buffer
+	size_t StartLine;								// First line in buffer
+	size_t EndLine;									// Last line in buffer
+	
+	CONL_FlushFunc_t FlushFunc;						// Function to call on '\n'
+#endif
+	return RetVal;
+#undef POSMASK
+#undef LINEMASK
 }
 
 /* CONL_PrintV() -- Prints formatted text to buffer */
 const size_t CONL_PrintV(const bool_t a_InBuf, const char* const a_Format, va_list a_ArgPtr)
 {
-	return 0;
+#define BUFSIZE 512
+	size_t RetVal;
+	char Buf[BUFSIZE];
+	
+	/* Check */
+	if (!a_Format)
+		return 0;
+	
+	/* Print to buffer */
+	memset(Buf, 0, sizeof(Buf));
+	vsnprintf(Buf, BUFSIZE, a_Format, a_ArgPtr);
+	RetVal = CONL_RawPrint(&l_CONLBuffers[(a_InBuf ? 1 : 0)], Buf);
+
+	/* Return */
+	return RetVal;
+#undef BUFSIZE
 }
 
 /* CONL_UnicodePrintV() -- Prints localized text to a buffer */
@@ -166,25 +312,61 @@ const size_t CONL_UnicodePrintV(const bool_t a_InBuf, const UnicodeStringID_t a_
 /* CONL_OutputF() -- Prints formatted text to the output buffer */
 const size_t CONL_OutputF(const char* const a_Format, ...)
 {
-	return 0;
+	size_t RetVal;
+	va_list ArgPtr;
+	
+	/* Send to PrintV() */
+	va_start(ArgPtr, a_Format);
+	RetVal = CONL_PrintV(false, a_Format, ArgPtr);
+	va_end(ArgPtr);
+	
+	/* Return */
+	return RetVal;
 }
 
 /* CONL_InputF() -- Prints formatted text to the input buffer */
 const size_t CONL_InputF(const char* const a_Format, ...)
 {
-	return 0;
+	size_t RetVal;
+	va_list ArgPtr;
+	
+	/* Send to PrintV() */
+	va_start(ArgPtr, a_Format);
+	RetVal = CONL_PrintV(true, a_Format, ArgPtr);
+	va_end(ArgPtr);
+	
+	/* Return */
+	return RetVal;
 }
 
 /* CONL_OutputU() -- Prints localized text to the output buffer */
 const size_t CONL_OutputU(const UnicodeStringID_t a_StrID, const char* const a_Format, ...)
 {
-	return 0;
+	size_t RetVal;
+	va_list ArgPtr;
+	
+	/* Send to PrintV() */
+	va_start(ArgPtr, a_Format);
+	RetVal = CONL_UnicodePrintV(false, a_StrID, a_Format, ArgPtr);
+	va_end(ArgPtr);
+	
+	/* Return */
+	return RetVal;
 }
 
 /* CONL_InputU() -- Prints localized text to the input buffer */
 const size_t CONL_InputU(const UnicodeStringID_t a_StrID, const char* const a_Format, ...)
 {
-	return 0;
+	size_t RetVal;
+	va_list ArgPtr;
+	
+	/* Send to PrintV() */
+	va_start(ArgPtr, a_Format);
+	RetVal = CONL_UnicodePrintV(true, a_StrID, a_Format, ArgPtr);
+	va_end(ArgPtr);
+	
+	/* Return */
+	return RetVal;
 }
 
 /*** Client Drawing ***/
@@ -1565,6 +1747,9 @@ void CONS_Printf(char *fmt, ...)
 	// GhostlyDeath <November 2, 2010> -- CONS_Printf is global to extended console
 	if (l_RootConsole)
 		CONEx_BufferWrite(l_RootConsole->Output, txt);
+	
+	// GhostlyDeath <September 10, 2011> -- Write to light console
+	CONL_RawPrint(&l_CONLBuffers[0], txt);
 
 	// write message in con text buffer
 	CON_Print(txt);

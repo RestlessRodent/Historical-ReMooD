@@ -920,7 +920,7 @@ void S_UpdateSounds(const bool_t a_Threaded)
 		return;
 	
 	/* Update all playing sounds */
-	S_RepositionSounds();
+	//S_RepositionSounds();
 	
 	/* Obtain Buffer */
 	SoundBuf = I_SoundBufferObtain();

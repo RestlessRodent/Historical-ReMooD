@@ -85,7 +85,7 @@ static wallsplat_t* R_AllocWallSplat(void)
 			if (!li->splats)
 			{
 				CONS_Printf("WARNING - R_AllocWallSplat: Line has no splats (%s:%i).\n", __FILE__, __LINE__);
-				return;
+				return NULL;
 			}
 			
 			// GhostlyDeath <November 3, 2010> -- Remove NULL dereference
@@ -196,6 +196,9 @@ void R_AddWallSplat(line_t * wallline,
 		return;
 	
 	/* Set splat properties */
+	// GhostlyDeath <September 10, 2011> -- Clear temporary splat (this should fix SIGSEGVs)
+	memset(&Temp, 0, sizeof(Temp));
+	
 	// Basic
 	Temp.patch = PatchId;
 	Temp.top = top;
@@ -267,7 +270,8 @@ void R_AddWallSplat(line_t * wallline,
 		
 				// Clone Data
 				*(Rover->next) = Temp;
-				Rover->next->next = NULL;
+				if (Rover->next->next)	// Probably always false
+					Rover->next->next = NULL;
 				break;
 			}
 		}

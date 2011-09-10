@@ -55,7 +55,6 @@
 bool_t CONL_Init(const uintmax_t a_OutBS, const uintmax_t a_InBS);
 void CONL_Stop(void);
 
-const size_t CONL_RawPrint(const bool_t a_InBuf, const char* const a_Text);
 const size_t CONL_PrintV(const bool_t a_InBuf, const char* const a_Format, va_list a_ArgPtr);
 const size_t CONL_UnicodePrintV(const bool_t a_InBuf, const UnicodeStringID_t a_StrID, const char* const a_Format, va_list a_ArgPtr);
 

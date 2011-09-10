@@ -105,6 +105,8 @@ void S_StartSoundName(S_NoiseThinker_t* a_Origin, char *soundname);
 void S_StopSound(S_NoiseThinker_t* a_Origin);
 int S_SoundPlaying(S_NoiseThinker_t* a_Origin, int id);
 
+void S_RepositionSounds(void);
+
 void S_ChangeMusic(int music_num, int looping);
 void S_ChangeMusicName(char *name, int looping);
 void S_StopMusic(void);

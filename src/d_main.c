@@ -529,10 +529,19 @@ bool_t supdate;
 
 //#define SAVECPU_EXPERIMENTAL
 
+static bool_t l_FPSPanic = false;
+
+/* D_SetFPSPanicMode() -- Try to get more FPS */
+void D_SetFPSPanicMode(const bool_t a_Set)
+{
+	l_FPSPanic = a_Set;
+}
+
 void D_DoomLoop(void)
 {
 	tic_t oldentertics, entertic, realtics, rendertimeout = -1;
 	uint32_t FPSNowTime, FPSLastTime, FPSLastTic = 0;
+	int32_t MissedRenders = 0;
 
 	if (demorecording)
 		G_BeginRecording();
@@ -591,7 +600,12 @@ void D_DoomLoop(void)
 			rendertimeout = entertic + TICRATE / 17;
 
 			//added:16-01-98:consoleplayer -> displayplayer (hear sounds from viewpoint)
-			S_UpdateSounds(false);	// move positional sounds
+			if (!l_FPSPanic)
+			{
+				S_RepositionSounds();
+				S_UpdateSounds(false);	// move positional sounds
+			}
+			
 			// Update display, next frame, with current state.
 			D_Display();
 			supdate = false;
@@ -1297,6 +1311,7 @@ void D_DoomMain(void)
 
 	CONS_Printf(text[Z_INIT_NUM]);
 	Z_Init();
+	CONL_Init(1024, 1024);
 	
 	G_InitKeys();
 
