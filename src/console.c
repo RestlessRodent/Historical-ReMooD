@@ -90,6 +90,7 @@ typedef struct CONL_BasicBuffer_s
 	uintmax_t MaskLine;								// Line mask
 	uintmax_t StartLine;							// First line in buffer
 	uintmax_t EndLine;								// Last line in buffer
+	uintmax_t DataLine;								// Line for the flush function
 	
 	CONL_FlushFunc_t FlushFunc;						// Function to call on '\n'
 } CONL_BasicBuffer_t;
@@ -165,11 +166,27 @@ static void CONLS_DestroyConsole(CONL_BasicBuffer_t* const a_Buffer)
 
 /*** Flush Functions ***/
 /* CONLFF_OutputFF() -- Line is flushed from the output buffer */
+// Parsing of all the lines should be done here, that is, if it starts with
+// the following:
+//   \1 = Beep
+//   \2 = White
+//   \3 = White + Beep
+//   \4 = Player 2 Screen
+//   \5 = Player 3 Screen (ReMooD)
+//   \6 = Player 4 Screen (ReMooD)
+//   \7 = All Screens (ReMooD) (\a)
+// So if there are any screen modifiers, they are sent to screen specific
+// buffers
 static void CONLFF_OutputFF(const char* const a_Buf)
 {
 	/* Check */
 	if (!a_Buf)
 		return;
+	
+	/* Print text */
+	extern bool_t con_started;
+	if (devparm || !con_started)
+		I_OutputMsg("%s\n", a_Buf);
 }
 
 /* CONLFF_InputFF() -- Line is flushed from the input buffer */
@@ -178,6 +195,11 @@ static void CONLFF_InputFF(const char* const a_Buf)
 	/* Check */
 	if (!a_Buf)
 		return;
+	
+	/* Create command line like stuff here */
+	// Tokenize between space and single/double quotes
+	// This makes command processing hell of alot easier
+	// So calling console functions is like main(argc, argv)
 }
 
 /*** Base Console ***/
@@ -209,14 +231,18 @@ const size_t CONL_RawPrint(CONL_BasicBuffer_t* const a_Buffer, const char* const
 {
 #define POSMASK(x) ((x) & a_Buffer->MaskPos)
 #define LINEMASK(x) ((x) & a_Buffer->MaskLine)
-	size_t RetVal;
+	char** Que;
+	size_t RetVal, i, j, k, Q, NumQ;
 	const char* p;
+	char* z, *w;
 	
 	/* Check */
 	if (!a_Buffer || !a_Text || !a_Buffer->Buffer || !a_Buffer->Lines)
 		return 0;
 	
 	/* Splatter into buffer */
+	Q = NumQ = 0;
+	Que = NULL;
 	for (RetVal = 0, p = a_Text; *p; p++, RetVal++)
 	{
 		// If the character is a carraige return, go back to start of line
@@ -231,7 +257,8 @@ const size_t CONL_RawPrint(CONL_BasicBuffer_t* const a_Buffer, const char* const
 		}
 		
 		// Put character in last spot
-		a_Buffer->Buffer[POSMASK(a_Buffer->EndPos++)] = *p;
+		a_Buffer->Buffer[POSMASK(a_Buffer->EndPos)] = *p;
+		a_Buffer->EndPos = POSMASK(a_Buffer->EndPos + 1);
 		
 		// Unset character in current spot
 		a_Buffer->Buffer[POSMASK(a_Buffer->EndPos)] = 0;
@@ -243,8 +270,14 @@ const size_t CONL_RawPrint(CONL_BasicBuffer_t* const a_Buffer, const char* const
 			
 			// Does this new position surpass the first line in the buffer?
 			if (a_Buffer->Lines[LINEMASK(a_Buffer->StartLine)] && &a_Buffer->Buffer[POSMASK(a_Buffer->StartPos)] >= a_Buffer->Lines[LINEMASK(a_Buffer->StartLine)])
+			{
+				// Ignore data line on collision
+				if (LINEMASK(a_Buffer->DataLine) == LINEMASK(a_Buffer->StartLine))
+					a_Buffer->DataLine = LINEMASK(a_Buffer->DataLine + 1);
+					
 				// Set current line to NULL and move up
 				a_Buffer->Lines[LINEMASK(a_Buffer->StartLine++)] = NULL;
+			}
 			
 			&a_Buffer->Buffer[a_Buffer->StartPos] >= a_Buffer->Lines[a_Buffer->StartLine];
 		}
@@ -252,31 +285,81 @@ const size_t CONL_RawPrint(CONL_BasicBuffer_t* const a_Buffer, const char* const
 		// Newline?
 		if (*p == '\n')
 		{
+			// Add to Q (Formerly, sending to the flush was done later but the
+				// lines sent to it must be remembered now. This prevents any
+				// overflows (deliberate or not) in the console code that would
+				// disallow early commands to be executed or when mass console
+				// is printed)
+			if (a_Buffer->FlushFunc)
+			{	
+				// Resize BigQ
+				Z_ResizeArray((void**)&Que, sizeof(Que), NumQ, NumQ + 1);
+				NumQ = Q + 1;
+				
+				// Find size of line to write
+				z = &a_Buffer->Buffer[POSMASK(a_Buffer->EndPos)];	// EOL
+				w = a_Buffer->Lines[LINEMASK(a_Buffer->EndLine - 1)];	// SOL
+				
+				if (!w)	// Just use first character (ouch)
+					w = &a_Buffer->Buffer[0];
+				
+					// Wrapped
+				if (z < w)
+					j = (z + a_Buffer->Size) - w;
+					// Not wrapped
+				else
+					j = z - w;
+				
+				// Allocate buffer
+				Que[Q] = Z_Malloc(j + 2, PU_STATIC, NULL);
+				
+				// Copy chars into buffer
+				i = POSMASK(w - a_Buffer->Buffer);
+				for (k = 0; k < j - 1; i = POSMASK(i + 1))
+					Que[Q][k++] = a_Buffer->Buffer[POSMASK(i)];
+				
+				// Increase Q
+				Q++;
+			}
+			
 			// Write current line to buffer
-			a_Buffer->Lines[LINEMASK(a_Buffer->EndLine++)] = &a_Buffer->Buffer[POSMASK(a_Buffer->EndPos)];
+			a_Buffer->Lines[LINEMASK(a_Buffer->EndLine)] = &a_Buffer->Buffer[POSMASK(a_Buffer->EndPos)];
+			a_Buffer->EndLine = LINEMASK(a_Buffer->EndLine + 1);
 			
 			// Unset current line to prevent old corruption
 			a_Buffer->Lines[LINEMASK(a_Buffer->EndLine)] = NULL;
 			
 			// Start collision?
 			if (LINEMASK(a_Buffer->EndLine) == LINEMASK(a_Buffer->StartLine))
+			{
+				if (LINEMASK(a_Buffer->DataLine) == LINEMASK(a_Buffer->StartLine))
+					a_Buffer->DataLine = LINEMASK(a_Buffer->DataLine + 1);
+				
 				a_Buffer->StartLine = LINEMASK(a_Buffer->StartLine + 1);
+			}
 		}
 	}
-
-#if 0
-	char* Buffer;									// Actual buffer
-	char** Lines;									// Lines in buffer
-	size_t Size;									// Size of the buffer
-	size_t NumLines;								// Number of lines in buffer
 	
-	size_t StartPos;								// Start position of buffer
-	size_t EndPos;									// End position of buffer
-	size_t StartLine;								// First line in buffer
-	size_t EndLine;									// Last line in buffer
+	/* print Q */
+	if (a_Buffer->FlushFunc)
+		if (Que)
+		{
+			for (i = 0; i < Q; i++)
+			{
+				// Check
+				if (!Que[i])
+					continue;
+				
+				a_Buffer->FlushFunc(Que[i]);
+			
+				// Free character buffer
+				Z_Free(Que[i]);
+			}
+		
+			// Free ques
+			Z_Free(Que);
+		}
 	
-	CONL_FlushFunc_t FlushFunc;						// Function to call on '\n'
-#endif
 	return RetVal;
 #undef POSMASK
 #undef LINEMASK
@@ -381,6 +464,11 @@ const bool_t CONL_IsActive(void)
 const bool_t CONL_SetActive(const bool_t a_Set)
 {
 	return false;
+}
+
+/* CONL_DrawConsole() -- Draws the console */
+void CONL_DrawConsole(void)
+{
 }
 
 /*****************************************************************************/
@@ -1773,6 +1861,7 @@ void CONS_Printf(char *fmt, ...)
 		if ((devparm && !g_QuietConsole) || ((!devparm || g_QuietConsole) && !AlreadyDrawn))
 		{
 			CONEx_Drawer();
+			CONL_DrawConsole();
 		
 			//CON_Drawer();
 			I_FinishUpdate();		// page flip or blit buffer
