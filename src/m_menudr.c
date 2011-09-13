@@ -74,23 +74,6 @@
 #include "dstrings.h"
 #include "v_video.h"
 
-// Demyx -- Only here temporary, this needs a new home!
-CV_PossibleValue_t blinkingrate_cons_t[] = {
-	//{1, "1 (No cursor)"},
-	{2, "2 (Very Fast)"},
-	{3, "3 (Fast)"},
-	{4, "4 (Default)"},
-	{5, "5 (Slow)"},
-	{6, "6 (Slower)"},
-	{7, "7 (Very Slow)"},
-	{8, "8 (Slowest)"},
-	{9, "9 (No blinking)"},
-	{0, NULL}
-};
-
-consvar_t cv_blinkingrate = {"blinkingrate", "4", CV_ALIAS | CV_DEPRECATED, blinkingrate_cons_t, NULL, "cons_blinkingrate"};
-consvar_t cv_cons_blinkingrate = {"cons_blinkingrate", "4", CV_SAVE, blinkingrate_cons_t};
-
 //===========================================================================
 //Generic Stuffs (more easy to create menus :))
 //===========================================================================
@@ -294,7 +277,7 @@ void M_DrawGenericMenu(void)
 			V_DrawScaledPatch(currentMenu->x + SKULLXOFF,
 							  cursory - 5, 0, W_CachePatchName(skullName[whichSkull], PU_CACHE));
 		}
-		else if (skullAnimCounter < cv_cons_blinkingrate.value)	//blink cursor
+		else if (skullAnimCounter < 4)	//blink cursor
 		{
 			if (currentMenu->menuitems[itemOn].status & IT_CENTERSTRING)
 			{

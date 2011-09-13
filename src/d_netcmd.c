@@ -362,8 +362,6 @@ void D_RegisterClientCommands(void)
 	CV_RegisterVar(&cv_mousemove);
 	CV_RegisterVar(&cv_showmessages);
 	CV_RegisterVar(&cv_disabledemos);
-	CV_RegisterVar(&cv_blinkingrate);
-	CV_RegisterVar(&cv_cons_blinkingrate);
 
 	//g_input.c
 	CV_RegisterVar(&cv_use_mouse2);

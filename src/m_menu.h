@@ -230,8 +230,6 @@ extern short skullAnimCounter;
 extern short whichSkull;
 extern int SkullBaseLump;
 extern char skullName[2][9];
-extern consvar_t cv_blinkingrate;
-extern consvar_t cv_cons_blinkingrate;
 
 extern menu_t
 	MainDef,					// Main Menu
