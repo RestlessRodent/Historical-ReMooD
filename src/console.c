@@ -188,7 +188,10 @@ static void CONLFF_OutputFF(const char* const a_Buf)
 	/* Print text */
 	extern bool_t con_started;
 	if (devparm || !con_started)
-		I_OutputMsg("%s\n", a_Buf);
+	{
+		I_OutputText(a_Buf);
+		I_OutputText("\n");
+	}
 }
 
 /* CONLFF_InputFF() -- Line is flushed from the input buffer */
@@ -1828,7 +1831,7 @@ void CONS_Printf(char *fmt, ...)
 	if (devparm || !con_started /* || !graphics_started */ )
 	{
 //#if !defined( _WIN32) && !defined( __OS2__)
-		I_OutputMsg("%s", txt);
+		I_OutputText(txt);
 //#endif
 		if (!devparm)
 			return;
