@@ -107,6 +107,12 @@ void I_OutputMsg(char *fmt, ...)
 	va_end(argptr);
 }
 
+/* I_OutputText() -- Output text to console */
+void I_OutputText(const char* const a_Text)
+{
+	fputs(a_Text, stderr);
+}
+
 void I_StartupKeyboard(void)
 {
 	/* Start Allegro keyboard stuff */

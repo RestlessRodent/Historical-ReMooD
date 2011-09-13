@@ -87,6 +87,7 @@ void I_Tactile(int on, int off, int total);
 //                for when you need to quit with a msg, but need
 //                the return code 0 of I_Quit();
 void I_OutputMsg(char *error, ...);
+void I_OutputText(const char* const a_Text);
 
 // keyboard startup,shutdown,handler
 void I_StartupKeyboard(void);

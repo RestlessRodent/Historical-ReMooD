@@ -179,6 +179,8 @@ static void CONLS_DestroyConsole(CONL_BasicBuffer_t* const a_Buffer)
 // buffers
 static void CONLFF_OutputFF(const char* const a_Buf)
 {
+	const char* const p;
+	
 	/* Check */
 	if (!a_Buf)
 		return;
