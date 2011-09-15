@@ -291,6 +291,7 @@ void D_RegisterClientCommands(void)
 	CV_RegisterVar(&cv_splats);
 	CV_RegisterVar(&cv_maxsplats);
 	CV_RegisterVar(&cv_infiniteammo);
+	CV_RegisterVar(&cv_g_gibrules);
 
 	//
 	// register main variables

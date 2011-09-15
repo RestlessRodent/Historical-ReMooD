@@ -1127,6 +1127,18 @@ static int P_AmmoInWeapon(player_t * player)
 	return ammo == am_noammo ? 0 : ammo_count ? ammo_count : -1;
 }
 
+// Rule for gibbing
+CV_PossibleValue_t GibRules_cons_t[] =
+{
+	{0, "Doom"},		// < 100% health required for gibbing
+	{1, "Heretic"},		// < 50% health required for gibbing
+	
+	{0, NULL}
+};
+
+consvar_t cv_g_gibrules = {"g_gibrules", "1", CV_SAVE, GibRules_cons_t};
+
+
 // P_KillMobj
 //
 //      source is the attacker,
@@ -1229,7 +1241,7 @@ void P_KillMobj(mobj_t * target, mobj_t * inflictor, mobj_t * source)
 				localaiming[i] = 0;
 	}
 
-	if (((target->health < -(target->info->spawnhealth >> 1)))
+	if (((target->health < -(target->info->spawnhealth >> cv_g_gibrules.value)))
 		&& target->info->xdeathstate)
 		P_SetMobjState(target, target->info->xdeathstate);
 	else

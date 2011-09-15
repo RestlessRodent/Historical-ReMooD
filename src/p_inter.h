@@ -35,6 +35,7 @@
 
 extern consvar_t cv_fragsweaponfalling;
 extern consvar_t cv_infiniteammo;
+extern consvar_t cv_g_gibrules;
 
 // Boris hack : preferred weapons order
 void VerifFavoritWeapon(player_t * player);
