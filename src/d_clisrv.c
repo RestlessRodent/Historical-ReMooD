@@ -144,7 +144,8 @@ static void Local_Maketic(int realtics)
 	rendergametic = gametic;
 	
 	//Use = maketic % BACKUPTICS;
-	Use = D_SyncNetMapTime() % BACKUPTICS;
+	//Use = D_SyncNetMapTime() % BACKUPTICS;
+	Use = gametic % BACKUPTICS;
 	
 	for (i = 0; i < cv_splitscreen.value+1; i++)
 		if (playeringame[consoleplayer[i]])
@@ -159,7 +160,12 @@ static int load;
 
 void TryRunTics(tic_t realtics)
 {
+	static tic_t LastTic;
 	tic_t LocalTic, TargetTic;
+	
+	// Last tic not set?
+	if (!LastTic)
+		LastTic = I_GetTime();
 	
 	// the machine have laged but is not so bad
 	if (realtics > TICRATE / 7)	// FIXME: consistency failure!!
@@ -194,18 +200,14 @@ void TryRunTics(tic_t realtics)
 		}
 		
 		// Set local time and target time
-		LocalTic = D_SyncNetMapTime();
-		TargetTic = D_SyncNetAllReady();
+		LocalTic = I_GetTime();
 		
 		// Update the client if it is needed
-		if (LocalTic < TargetTic)
+		if (LocalTic > LastTic)
 		{
 			// Run game ticker and increment the gametic
 			G_Ticker();
 			gametic++;
-			
-			// Set map time to be closer
-			D_SyncNetSetMapTime(++LocalTic);
 			
 			// If the target was reached, update useless stuff
 			if (LocalTic == TargetTic)
@@ -213,6 +215,9 @@ void TryRunTics(tic_t realtics)
 				// Update music
 				I_UpdateMusic();
 			}
+			
+			// Set last tic
+			LastTic++;
 		}
 		
 		// Otherwise no updating is needed
@@ -220,7 +225,7 @@ void TryRunTics(tic_t realtics)
 		{
 			I_WaitVBL(20);
 		}
-	} while (D_SyncNetMapTime() < TargetTic);
+	} while (LocalTic < LastTic);
 	
 #if 0
 	if (neededtic > gametic)

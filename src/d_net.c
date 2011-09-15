@@ -101,6 +101,14 @@ tic_t D_SyncNetRealTime(void)
 
 extern consvar_t cv_g_gamespeed;
 
+/* D_SyncNetIsPaused() -- Returns true if the game is paused */
+bool_t D_SyncNetIsPaused(void)
+{
+	if (paused || (!netgame && menuactive && !demoplayback))
+		return true;
+	return false;
+}
+
 /* D_SyncNetAllReady() -- Inidicates that all parties are ready to move to the next tic */
 // It returns the tics in the future that everyone is ready to move to
 tic_t D_SyncNetAllReady(void)

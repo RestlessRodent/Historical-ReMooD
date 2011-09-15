@@ -125,25 +125,33 @@ void P_RunThinkers(void)
 
 void P_Ticker(void)
 {
+	tic_t LocalTic;
 	int i;
 
-	// run the tic
-	if (paused || (!netgame && menuactive && !demoplayback))
+	/* If the game is paused, don't do anything */
+	if (D_SyncNetIsPaused())
 		return;
 
-	for (i = 0; i < MAXPLAYERS; i++)
-		if (playeringame[i])
-			P_PlayerThink(&players[i]);
+	/* While the game is behind, update it */
+	while ((LocalTic = D_SyncNetMapTime()) < D_SyncNetAllReady())
+	{
+		for (i = 0; i < MAXPLAYERS; i++)
+			if (playeringame[i])
+				P_PlayerThink(&players[i]);
 
-	P_RunThinkers();
-	P_UpdateSpecials();
-	P_RespawnSpecials();
+		P_RunThinkers();
+		P_UpdateSpecials();
+		P_RespawnSpecials();
 
-	// for par times
-	leveltime++;
+		// for par times
+		leveltime++;
 
 #ifdef FRAGGLESCRIPT
-	// SoM: Update FraggleScript...
-	T_DelayedScripts();
+		// SoM: Update FraggleScript...
+		T_DelayedScripts();
 #endif
+		
+		// Increase local time
+		D_SyncNetSetMapTime(++LocalTic);
+	}
 }
