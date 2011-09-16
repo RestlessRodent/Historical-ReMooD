@@ -2371,7 +2371,7 @@ void V_MapGraphicalCharacters(void)
 static uint16_t V_MBToWChar(const char* MBChar, size_t* const BSkip)
 {
 	size_t n;
-	uint16_t Feed = 0;
+	uint16_t Feed = 0, Safe;
 	
 	/* Check */
 	if (!MBChar)
@@ -2390,7 +2390,34 @@ static uint16_t V_MBToWChar(const char* MBChar, size_t* const BSkip)
 	{
 		if (BSkip)
 			*BSkip = 1;
-		return *MBChar & 0x7F;
+		
+		// Get safe character
+		Safe = *MBChar & 0x7F;
+		
+		// Special '{' Sequence?
+		if (n > 1 && *MBChar == '{')
+		{
+			// Get next character
+			MBChar++;
+			Feed = tolower(*MBChar);
+			
+			// Between 0-9 a-z?
+			if ((Feed >= '0' && Feed <= '9') || (Feed >= 'a' && Feed <= 'z'))
+			{
+				if (Feed >= '0' && Feed <= '9')
+					Feed = 0xF100U | (Feed - '0');
+				else
+					Feed = 0xF100U | (10 + (Feed - 'a'));
+				
+				if (BSkip)
+					*BSkip = 2;
+				
+				return Feed;
+			}
+		}
+		
+		// Normal	
+		return Safe;
 	}
 	
 	// Double byte
@@ -2425,7 +2452,7 @@ static uint16_t V_MBToWChar(const char* MBChar, size_t* const BSkip)
 		return Feed;
 	}
 		
-	// Quad uint8_t (requires 32-bit uint16_t)
+	// Quad uint8_t (requires 32-bit wchar_t)
 	else if (sizeof(uint16_t) >= 4 && (n == 4 || (*MBChar & 0xF8) == 0xF0))
 	{
 		Feed = (*MBChar & 0x07);
@@ -2541,7 +2568,7 @@ int V_FontWidth(const VideoFont_t xFont)
 /* V_DrawCharacterMB() -- Draw multibyte character */
 // Returns: Width of drawn character
 // *BSkip : Characters to skip after drawing (optional)
-int V_DrawCharacterMB(const VideoFont_t xFont, const uint32_t Options, const char* const MBChar, const int x, const int y, size_t* const BSkip)
+int V_DrawCharacterMB(const VideoFont_t xFont, const uint32_t Options, const char* const MBChar, const int x, const int y, size_t* const BSkip, uint32_t* a_OptionsMod)
 {
 	const UniChar_t* D = NULL;
 	uint16_t WC = 0;
@@ -2563,6 +2590,26 @@ int V_DrawCharacterMB(const VideoFont_t xFont, const uint32_t Options, const cha
 	/* Find character */
 	// uint16_t
 	WC = V_MBToWChar(MBChar, BSkip);
+	
+	// Is this a special '{' sequence?
+	if (WC >= 0xF100U && WC <= 0xF1FFU)
+	{
+		// Get base setting
+		WC -= 0xF100U;
+		
+		// Color?
+		if (WC >= 0 && WC < 16)
+		{
+			if (!a_OptionsMod)
+				return 0;
+			
+			*a_OptionsMod &= ~VFO_COLORMASK;
+			*a_OptionsMod |= WC & 0xF;
+		}
+		
+		// These always have no space to them
+		return 0;
+	}
 	
 	// Graphic
 	D = V_BestWChar(Font, WC);
@@ -2590,10 +2637,10 @@ int V_DrawCharacterMB(const VideoFont_t xFont, const uint32_t Options, const cha
 	
 	// Draw top and/or bottom glyph (and ignore bskip)
 	if (D->BuildTop)
-		V_DrawCharacterMB(Font, Options, D->BuildTop->MB, x, y - (D->BuildTop->Patch->height), NULL);
+		V_DrawCharacterMB(Font, Options, D->BuildTop->MB, x, y - (D->BuildTop->Patch->height), NULL, NULL);
 	
 	if (D->BuildBottom)
-		V_DrawCharacterMB(Font, Options, D->BuildTop->MB, x, y + (D->Patch->height), NULL);
+		V_DrawCharacterMB(Font, Options, D->BuildTop->MB, x, y + (D->Patch->height), NULL, NULL);
 	
 	/* Return graphic width */
 	return D->Patch->width;
@@ -2610,7 +2657,7 @@ int V_DrawCharacterA(const VideoFont_t xFont, const uint32_t Options, const char
 	MB[1] = 0;
 	
 	/* Draw and return */
-	return V_DrawCharacterMB(Font, Options, MB, x, y, NULL);
+	return V_DrawCharacterMB(Font, Options, MB, x, y, NULL, NULL);
 }
 
 /* V_DrawStringA() -- Draw ASCII String */
@@ -2700,7 +2747,7 @@ int V_DrawStringA(const VideoFont_t xFont, const uint32_t Options, const char* c
 		else
 		{
 			// Send character to screen
-			k = V_DrawCharacterMB(Font, Options, c, X + LS, Y + NL, &MBSkip);
+			k = V_DrawCharacterMB(Font, Options, c, X + LS, Y + NL, &MBSkip, &Options);
 			
 			// Scale?
 			if (Options & VFO_NOSCALESTART && !(Options & VFO_NOSCALEPATCH))

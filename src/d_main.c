@@ -438,7 +438,10 @@ void D_Display(void)
 	if (menuactive)
 		M_Drawer();
 	else
-		CONEx_Drawer();
+	{
+		//CONEx_Drawer();
+		CONL_DrawConsole();
+	}
 	
 	D_SyncNetUpdate();
 	NetUpdate();				// send out any new accumulation

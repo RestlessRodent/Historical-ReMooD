@@ -317,7 +317,7 @@ int V_FontHeight(const VideoFont_t Font);
 int V_FontWidth(const VideoFont_t Font);
 
 /* Multibyte ASCII */
-int V_DrawCharacterMB(const VideoFont_t Font, const uint32_t Options, const char* const MBChar, const int x, const int y, size_t* const BSkip);
+int V_DrawCharacterMB(const VideoFont_t Font, const uint32_t Options, const char* const MBChar, const int x, const int y, size_t* const BSkip, uint32_t* a_OptionsMod);
 
 /* ASCII */
 int V_DrawCharacterA(const VideoFont_t Font, const uint32_t Options, const char Char, const int x, const int y);

@@ -95,10 +95,18 @@ typedef struct CONL_BasicBuffer_s
 	CONL_FlushFunc_t FlushFunc;						// Function to call on '\n'
 } CONL_BasicBuffer_t;
 
+/* CONL_PlayerMessage_t -- Message for player */
+typedef struct CONL_PlayerMessage_s
+{
+	uint32_t Flags;									// Flags for this message
+	char* Text;										// Message Text
+} CONL_PlayerMessage_t;
+
 /*************
 *** LOCALS ***
 *************/
 
+static bool_t l_CONLActive = false;					// Console active?
 static CONL_BasicBuffer_t l_CONLBuffers[2];			// Input/Output Buffer
 
 /****************
@@ -179,11 +187,16 @@ static void CONLS_DestroyConsole(CONL_BasicBuffer_t* const a_Buffer)
 // buffers
 static void CONLFF_OutputFF(const char* const a_Buf)
 {
-	const char* const p;
+	const char* p;
 	
 	/* Check */
 	if (!a_Buf)
 		return;
+	
+	/* Parse string */
+	for (p = a_Buf; *p; p++)
+	{
+	}
 	
 	/* Print text */
 	extern bool_t con_started;
@@ -471,7 +484,7 @@ const size_t CONL_InputU(const UnicodeStringID_t a_StrID, const char* const a_Fo
 /* CONL_IsActive() -- Returns true if the console is active */
 const bool_t CONL_IsActive(void)
 {
-	return false;
+	return (l_CONLActive && !menuactive);
 }
 
 /* CONL_SetActive() -- Sets whether the console is active or not */
@@ -484,6 +497,21 @@ const bool_t CONL_SetActive(const bool_t a_Set)
 /* CONL_DrawConsole() -- Draws the console */
 void CONL_DrawConsole(void)
 {
+	/* Console is active (draw the console) */
+	if (CONL_IsActive())
+	{
+	}
+	
+	/* Not active, draw per player messages */
+	else
+	{
+	}
+	
+	V_DrawStringA(VFONT_SMALL, 0, "{0Y{1a{2y {3C{4o{5l{6o{7r{8s{9!{a!{b!{c!{d1{e1", 100, 80);
+	V_DrawStringA(VFONT_LARGE, 0, "{0Y{1a{2y {3C{4o{5l{6o{7r{8s{9!{a!{b!{c!{d1{e1", 100, 100);
+	V_DrawStringA(VFONT_STATUSBARSMALL, 0, "{0Y{1a{2y {3C{4o{5l{6o{7r{8s{9!{a!{b!{c!{d1{e1", 100, 120);
+	V_DrawStringA(VFONT_PRBOOMHUD, 0, "{0Y{1a{2y {3C{4o{5l{6o{7r{8s{9!{a!{b!{c!{d1{e1", 100, 140);
+	V_DrawStringA(VFONT_OEM, 0, "{0Y{1a{2y {3C{4o{5l{6o{7r{8s{9!{a!{b!{c!{d1{e1", 100, 160);
 }
 
 /*****************************************************************************/
@@ -1127,7 +1155,8 @@ void CONEx_Drawer(void)
 								b,
 								4 + (w * m),
 								(-(i - 5)) * h,
-								&MBSkip
+								&MBSkip,
+								NULL
 							);
 				}
 			}
@@ -1241,7 +1270,8 @@ void CONEx_Drawer(void)
 								b,
 								4 + (w * m),
 								(n + 1) * h,
-								&MBSkip
+								&MBSkip,
+								NULL
 							);
 				}
 			}
@@ -1272,7 +1302,8 @@ void CONEx_Drawer(void)
 						b,
 						n,
 						BottomCon - h - 4,
-						&MBSkip
+						&MBSkip,
+						NULL
 					);
 				
 				// Increment now
@@ -1291,6 +1322,7 @@ void CONEx_Drawer(void)
 						"_",
 						n,
 						BottomCon - h - 4,
+						NULL,
 						NULL
 					);
 		}
@@ -2544,7 +2576,8 @@ void CON_DrawConsole(void)
 					&p[x],
 					(lx + 1) << 3,	// require logical x
 					y,
-					&MBSkip
+					&MBSkip,
+					NULL
 				);
 			
 			// Just in case
