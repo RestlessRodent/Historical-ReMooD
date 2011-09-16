@@ -56,6 +56,24 @@ typedef int32_t fixed_t;
 
 //#define FIXEDBREAKVANILLA
 
+/* FixedRound() -- Round a fixed point number */
+static fixed_t __REMOOD_FORCEINLINE __REMOOD_UNUSED FixedRound(const fixed_t a)
+{
+	/* Negative */
+	if (a & _FIXED_SIGN)
+		if (!(a & _FIXED_ROUND))
+			return (a & _FIXED_INT) - 1;
+		else
+			return (a & _FIXED_INT);
+	
+	/* Positive */
+	else
+		if (a & _FIXED_ROUND)
+			return (a & _FIXED_INT) + 1;
+		else
+			return (a & _FIXED_INT);
+}
+
 /* FixedMul() -- Multiply two fixed numbers */
 static fixed_t __REMOOD_FORCEINLINE __REMOOD_UNUSED FixedMul(fixed_t a, fixed_t b)
 {

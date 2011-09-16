@@ -164,10 +164,12 @@ void P_CalcHeight(player_t * player)
 	
 	/* Clip viewz */
 	// Real world
-	if (player->viewz > player->mo->ceilingz - 4 * FRACUNIT)
-		player->viewz = player->mo->ceilingz - 4 * FRACUNIT;
-	if (player->viewz < player->mo->floorz + 4 * FRACUNIT)
-		player->viewz = player->mo->floorz + 4 * FRACUNIT;
+	if (player->viewz > player->mo->ceilingz - 6 * FRACUNIT)
+		player->viewz = player->mo->ceilingz - 6 * FRACUNIT;
+	if (player->viewz < player->mo->floorz + 6 * FRACUNIT)
+		player->viewz = player->mo->floorz + 6 * FRACUNIT;
+	if (player->viewz < player->mo->z + 6 * FRACUNIT)
+		player->viewz = player->mo->z + 6 * FRACUNIT;
 	
 	/* Translate back to height for death */
 	player->viewheight = player->viewz - player->mo->z;
