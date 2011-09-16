@@ -189,8 +189,9 @@ static void CONLFF_OutputFF(const char* const a_Buf)
 	extern bool_t con_started;
 	if (devparm || !con_started)
 	{
+		I_OutputText(">>`\n");
 		I_OutputText(a_Buf);
-		I_OutputText("\n");
+		I_OutputText("`\n");
 	}
 }
 
@@ -273,15 +274,21 @@ const size_t CONL_RawPrint(CONL_BasicBuffer_t* const a_Buffer, const char* const
 		{
 			a_Buffer->StartPos = POSMASK(a_Buffer->StartPos + 1);
 			
+#if 1
+			// Check for line overflow
+			if (a_Buffer->Lines[LINEMASK(a_Buffer->StartLine)] == &a_Buffer->Buffer[POSMASK(a_Buffer->StartPos)])
+#else
 			// Does this new position surpass the first line in the buffer?
 			if (a_Buffer->Lines[LINEMASK(a_Buffer->StartLine)] && &a_Buffer->Buffer[POSMASK(a_Buffer->StartPos)] >= a_Buffer->Lines[LINEMASK(a_Buffer->StartLine)])
+#endif
 			{
 				// Ignore data line on collision
 				if (LINEMASK(a_Buffer->DataLine) == LINEMASK(a_Buffer->StartLine))
 					a_Buffer->DataLine = LINEMASK(a_Buffer->DataLine + 1);
 					
 				// Set current line to NULL and move up
-				a_Buffer->Lines[LINEMASK(a_Buffer->StartLine++)] = NULL;
+				a_Buffer->Lines[LINEMASK(a_Buffer->StartLine)] = NULL;
+				a_Buffer->StartLine = LINEMASK(a_Buffer->StartLine + 1);
 			}
 			
 			&a_Buffer->Buffer[a_Buffer->StartPos] >= a_Buffer->Lines[a_Buffer->StartLine];
@@ -315,16 +322,20 @@ const size_t CONL_RawPrint(CONL_BasicBuffer_t* const a_Buffer, const char* const
 				else
 					j = z - w;
 				
-				// Allocate buffer
-				Que[Q] = Z_Malloc(j + 2, PU_STATIC, NULL);
+				// Only queue strings if they have length
+				if (j > 1)
+				{
+					// Allocate buffer
+					Que[Q] = Z_Malloc(j + 2, PU_STATIC, NULL);
 				
-				// Copy chars into buffer
-				i = POSMASK(w - a_Buffer->Buffer);
-				for (k = 0; k < j - 1; i = POSMASK(i + 1))
-					Que[Q][k++] = a_Buffer->Buffer[POSMASK(i)];
+					// Copy chars into buffer
+					i = POSMASK(w - a_Buffer->Buffer);
+					for (k = 0; k < j - 1; i = POSMASK(i + 1))
+						Que[Q][k++] = a_Buffer->Buffer[POSMASK(i)];
 				
-				// Increase Q
-				Q++;
+					// Increase Q
+					Q++;
+				}
 			}
 			
 			// Write current line to buffer
