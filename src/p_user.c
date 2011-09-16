@@ -153,6 +153,9 @@ void P_CalcHeight(player_t * player)
 		player->viewz = player->mo->ceilingz - 4 * FRACUNIT;
 	if (player->viewz < player->mo->floorz + 4 * FRACUNIT)
 		player->viewz = player->mo->floorz + 4 * FRACUNIT;
+	
+	/* Translate back to height for death */
+	player->viewheight = player->viewz - player->mo->z;
 #if 0
 	int angle;
 	fixed_t bob;
@@ -457,14 +460,24 @@ void P_DeathThink(player_t * player)
 	P_MovePsprites(player);
 
 	// fall to the ground
-	if (player->viewheight > 6 * FRACUNIT)
+	/*if (player->viewheight > 6 * FRACUNIT)
 		player->viewheight -= FRACUNIT;
 
 	if (player->viewheight < 6 * FRACUNIT)
-		player->viewheight = 6 * FRACUNIT;
+		player->viewheight = 6 * FRACUNIT;*/
 
 	player->deltaviewheight = 0;
 	onground = player->mo->z <= player->mo->floorz;
+
+	// GhostlyDeath <September 15, 2011> -- Only lower view if on the floor
+	if (onground)
+	{
+		if (player->viewheight > 6 * FRACUNIT)
+			player->viewheight -= FRACUNIT;
+
+		if (player->viewheight < 6 * FRACUNIT)
+			player->viewheight = 6 * FRACUNIT;
+	}
 
 	P_CalcHeight(player);
 
