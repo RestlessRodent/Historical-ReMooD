@@ -214,6 +214,9 @@ typedef struct player_s
 	// GhostlyDeath <October 23, 2010> -- Player inflicted momentum
 	fixed_t MoveMom;
 	fixed_t TargetViewZ;
+	
+	// GhostlyDeath <September 16, 2011> -- "Effort" based bobbing
+	fixed_t FakeMom[3];
 
 } player_t;
 

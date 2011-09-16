@@ -189,9 +189,8 @@ static void CONLFF_OutputFF(const char* const a_Buf)
 	extern bool_t con_started;
 	if (devparm || !con_started)
 	{
-		I_OutputText(">>`\n");
 		I_OutputText(a_Buf);
-		I_OutputText("`\n");
+		I_OutputText("\n");
 	}
 }
 

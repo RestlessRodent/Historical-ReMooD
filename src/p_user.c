@@ -78,6 +78,21 @@ void P_Thrust(player_t * player, angle_t angle, fixed_t move)
 	player->mo->momy += cY;
 }
 
+/* P_FakeThrust() -- Sets fake momentum */
+void P_FakeThrust(player_t * player, angle_t angle, fixed_t move)
+{
+	fixed_t cX, cY;
+	
+	/* Use normal momentum */
+	angle >>= ANGLETOFINESHIFT;
+	cX = FixedMul(move, finecosine[angle]);
+	cY = FixedMul(move, finesine[angle]);
+	
+	/* Change momentum */
+	player->FakeMom[0] += cX;
+	player->FakeMom[1] += cY;
+}
+
 //
 // P_CalcHeight
 // Calculate the walking / running height adjustment
@@ -94,7 +109,7 @@ void P_CalcHeight(player_t * player)
 	ViewHeight = cv_viewheight.value << FRACBITS;
 	
 	// Calculate bobbing
-	player->bob = ((FixedMul(player->mo->momx, player->mo->momx) + FixedMul(player->mo->momy, player->mo->momy))) >> 2;
+	player->bob = ((FixedMul(player->FakeMom[0], player->FakeMom[0]) + FixedMul(player->FakeMom[1], player->FakeMom[1]))) >> 2;
 
 	if (player->bob > MAXBOB)
 		player->bob = MAXBOB;
@@ -249,6 +264,7 @@ void P_MovePlayer(player_t * player)
 	ticcmd_t *cmd;
 	int movefactor = 2048;		//For Boom friction
 	int fly = 0;
+	fixed_t MoveAmount;
 
 	cmd = &player->cmd;
 
@@ -264,6 +280,12 @@ void P_MovePlayer(player_t * player)
 	// GhostlyDeath <August 26, 2011> -- Update listener angle (for sounds)
 	player->mo->NoiseThinker.Angle = player->mo->angle;
 	
+	// GhostlyDeath <August 26, 2011> -- "Effort" bobbing
+	if (cmd->forwardmove)
+		P_FakeThrust(player, player->mo->angle, cmd->forwardmove * 2048);
+	if (cmd->sidemove)
+		P_FakeThrust(player, player->mo->angle - ANG90, cmd->sidemove * 2048);
+	
 	// Do not let the player control movement
 	//  if not onground.
 	onground = (player->mo->z <= player->mo->floorz)
@@ -277,13 +299,17 @@ void P_MovePlayer(player_t * player)
 			// dirty hack to let the player avatar walk over a small wall
 			// while in the air
 			if (jumpover && player->mo->momz > 0)
-				P_Thrust(player, player->mo->angle, 5 * 2048);
+				MoveAmount = 5 * 2048;
 			else if (!jumpover)
-				P_Thrust(player, player->mo->angle, cmd->forwardmove * 2048);
+				MoveAmount = cmd->forwardmove * 2048;
+			
+			P_Thrust(player, player->mo->angle, MoveAmount);
 		}
 
 		if (cmd->sidemove && onground)
+		{
 			P_Thrust(player, player->mo->angle - ANG90, cmd->sidemove * 2048);
+		}
 
 		player->aiming = (signed char)cmd->aiming;
 	}
@@ -779,11 +805,15 @@ void P_PlayerThink(player_t * player)
 		player->mo->reactiontime--;
 	else
 		P_MovePlayer(player);
+		
+	// GhostlyDeath <September 16, 2011> -- Apply fake friction to "effort" bobbing
+	player->FakeMom[0] = FixedMul(player->FakeMom[0], ORIG_FRICTION);
+	player->FakeMom[1] = 	FixedMul(player->FakeMom[1], ORIG_FRICTION);
 
 	//added:22-02-98: bob view only if looking by the marine's eyes
 	if (!camera.chase)
 		P_CalcHeight(player);
-
+	
 	//added:26-02-98: calculate the camera movement
 	if (camera.chase && player == &players[displayplayer[0]])
 		P_MoveChaseCamera(&players[displayplayer[0]]);
