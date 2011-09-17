@@ -37,6 +37,7 @@
 // Needs fixed point, and BAM angles.
 #include "m_fixed.h"
 #include "tables.h"
+#include "v_video.h"
 
 //
 // Needs to include the precompiled
@@ -67,26 +68,25 @@
 // Note:
 //  MF_SHADOW still affects the targeting for monsters (they miss more)
 
-#define FF_TRANSMASK   0x70000	// 0 = no trans(opaque), 1-7 = transl. table
+#define FF_TRANSMASK   0x0F0000	// 0 = no trans(opaque), 1-7 = transl. table
 #define FF_TRANSSHIFT       16
 
 // faB: new 'alpha' shade effect, for smoke..
 
-#define FF_SMOKESHADE  0x80000	// sprite is an alpha channel
+#define FF_SMOKESHADE  0x800000	// sprite is an alpha channel
 
 // translucency tables
 
 // TODO: add another asm routine which use the fg and bg indexes in the
 //       inverse order so the 20-80 becomes 80-20 translucency, no need
 //       for other tables (thus 1090,2080,5050,8020,9010, and fire special)
-
 typedef enum
 {
-	tr_transmed = 1,			//sprite 50 backg 50  most shots
-	tr_transmor = 2,			//       20       80  puffs
-	tr_transhi = 3,				//       10       90  blur effect
-	tr_transfir = 4,			// 50 50 but brighter for fireballs, shots..
-	tr_transfx1 = 5,				// 50 50 brighter some colors, else opaque for torches
+	tr_transmed = VEX_TRANS50,			//sprite 50 backg 50  most shots
+	tr_transmor = VEX_TRANS80,			//       20       80  puffs
+	tr_transhi = VEX_TRANS90,				//       10       90  blur effect
+	tr_transfir = VEX_TRANSFIRE,			// 50 50 but brighter for fireballs, shots..
+	tr_transfx1 = VEX_TRANSFX1,				// 50 50 brighter some colors, else opaque for torches
 } transnum_t;
 
 //

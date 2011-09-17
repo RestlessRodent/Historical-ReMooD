@@ -1339,9 +1339,12 @@ void V_DrawPatchEx(const uint32_t Flags, const int x, const int y, const patch_t
 	
 	/* Handle Flags */
 	// Transparency
-	TransMap = NULL;
+	vW = ((Flags & VEX_FILLTRANSMASK) >> VEX_FILLTRANSSHIFT);
+	if (vW >= NUMVEXTRANSPARENCIES)
+		vW = 0;
+	TransMap = transtables + (0x10000 * vW);
 	
-	/*switch ((Flags & VEX_FILLTRANSMASK) >> VEX_FILLTRANSSHIFT)
+	/*switch 
 	{
 		case VEX_BASETRANSMED:
 		case VEX_BASETRANSHIGH:
@@ -1428,7 +1431,8 @@ void V_DrawPatchEx(const uint32_t Flags, const int x, const int y, const patch_t
 		
 		// GhostlyDeath <September 17, 2011> -- Don't run off screen (overflow wrap around)
 		if ((X + (Width >> FRACBITS)) >= vid.width)
-			return;
+			Width -= ((vid.width - (Width >> FRACBITS)) + 1) << FRACBITS;
+			//return;
 	}
 	
 	// With vertical flipping
@@ -1464,8 +1468,6 @@ void V_DrawPatchEx(const uint32_t Flags, const int x, const int y, const patch_t
 			
 			// Get offset from top
 			Off = (FixedMul(Column->topdelta, DupY) * vid.width);
-			//Off = (FixedMul(((fixed_t)Column->topdelta) << FRACBITS, DupY) >> FRACBITS) * vid.width;
-			//Off = FixedMul(FixedMul(((fixed_t)Column->topdelta) << FRACBITS, DupY), ((fixed_t)vid.width) << FRACBITS) >> FRACBITS;
 			
 			if (Flags & VEX_VERTFLIPPED)
 				Dest = DestTop - Off;
@@ -1475,7 +1477,12 @@ void V_DrawPatchEx(const uint32_t Flags, const int x, const int y, const patch_t
 			// Draw column
 			for (Offset = 0, Count = ((FixedMul(Column->length << FRACBITS, DupY) >> FRACBITS) - 1);
 					Count >= 0; Count--, Dest += vW, Offset += RowFrac)
-				*Dest = ColorMap[ColorMap2[Source[Offset >> FRACBITS]]];
+			{
+				if (transtables)
+					*Dest = TransMap[(ColorMap[ColorMap2[Source[Offset >> FRACBITS]]] * 256) + (*Dest)];
+				else
+					*Dest = ColorMap[ColorMap2[Source[Offset >> FRACBITS]]];
+			}
 			
 			// Go to next column
 			Column = (column_t*)((uint8_t*)Column + Column->length + 4);
@@ -2583,6 +2590,9 @@ int V_DrawCharacterMB(const VideoFont_t xFont, const uint32_t Options, const cha
 	
 	// Colors
 	VDrawOpt |= (Options & VFO_COLORMASK) << VEX_COLORMAPSHIFT;
+	
+	// Transparency
+	VDrawOpt |= VEX_FILLTRANS((Options & VFO_TRANSMASK) >> VFO_TRANSSHIFT);
 	
 	// Do the drawing
 	V_DrawPatchEx(VDrawOpt, x, y, D->Patch, NULL);

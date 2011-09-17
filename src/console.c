@@ -76,7 +76,8 @@
 
 #define MAXCONLPLAYERMQ		5						// Max messages in player queue
 #define DEFPRCONLPLAYERMQ	127						// Default priority in queue
-#define DEFTOCONPLAYERMQ	4000					// Default timeout in queue
+#define DEFTOCONPLAYERMQ	(TICRATE * 4)			// Default timeout in queue
+#define MAXCONLPMQBUFSIZE	128						// Length of the message buffer
 
 /*****************
 *** STRUCTURES ***
@@ -107,8 +108,8 @@ typedef struct CONL_BasicBuffer_s
 typedef struct CONL_PlayerMessage_s
 {
 	uint32_t Flags;									// Flags for this message
-	char* Text;										// Message Text
-	uint32_t Timeout;								// When the message times out
+	char Text[MAXCONLPMQBUFSIZE];					// Message Text
+	tic_t Timeout;									// When the message times out
 	uint8_t Priority;								// Priority of the message
 } CONL_PlayerMessage_t;
 
@@ -200,32 +201,102 @@ static void CONLS_DestroyConsole(CONL_BasicBuffer_t* const a_Buffer)
 static void CONLFF_OutputFF(const char* const a_Buf)
 {
 	const char* p;
+	char* d;
+	char Buf[MAXCONLPMQBUFSIZE];
+	size_t i, j, pNum, n;
+	tic_t CurrentTime;
 	
 	/* Check */
 	if (!a_Buf)
 		return;
+	
+	/* Default destination is player 1's buffer */
+	pNum = 1;
+	memset(Buf, 0, sizeof(Buf));
+	n = 0;
 	
 	/* Parse string */
 	for (p = a_Buf; *p; p++)
 	{
 		// Annoying beep?
 		if (*p == 1 || *p == 3)
+		{
 			S_StartSound(0, (commercial ? sfx_radio : sfx_tink));
+			
+			// Beep only
+			if (*p == 1)
+				continue;
+		}
+		
+		// Adding white?
+		if (*p == 2 || *p == 3)
+		{
+			strncat(Buf, "{9", MAXCONLPMQBUFSIZE);
+			n += 2;
+			continue;
+		}
+		
+		// Only player x's screen
+		if (*p >= 4 && *p <= 6)
+		{
+			pNum = 1 << ((*p - 4) + 1);
+			continue;
+		}
+		
+		// Every player's screen
+		if (*p == 7)
+		{
+			pNum = 0xF;
+			continue;
+		}
+		
+		// Output normal text
+		if (n < MAXCONLPMQBUFSIZE)
+			Buf[n++] = *p;
 	}
-
-#if 0
-/* CONL_PlayerMessage_t -- Message for player */
-typedef struct CONL_PlayerMessage_s
-{
-	uint32_t Flags;									// Flags for this message
-	char* Text;										// Message Text
-	uint32_t Timeout;								// When the message times out
-	uint8_t Priority;								// Priority of the message
-} CONL_PlayerMessage_t;
-
-static CONL_PlayerMessage_t l_CONLMessageQ			// Player message queue
-	[MAXSPLITSCREENPLAYERS][MAXCONLPLAYERMQ];
-#endif
+	
+	// Always add \0 at end (just in case!)
+	Buf[MAXCONLPMQBUFSIZE - 1] = 0;
+	
+	/* Print text to console */
+	extern bool_t con_started;
+	if (devparm || !con_started)
+	{
+		I_OutputText(Buf);
+		I_OutputText("\n");
+	}
+	
+	/* Add messages to queues */
+	CurrentTime = I_GetTime();
+	for (i = 0; i < MAXSPLITSCREENPLAYERS; i++)
+		if (pNum & (1 << i))	// Only if selected
+		{
+			// Find blank spot
+			for (j = 0; j < MAXCONLPLAYERMQ; j++)
+				if (!l_CONLMessageQ[i][j].Text[0])
+					break;
+			
+			// No more room?
+			if (j == MAXCONLPLAYERMQ)
+			{
+				// Shove everything over, clear last, take last spot
+				memmove(
+						&l_CONLMessageQ[i][0],
+						&l_CONLMessageQ[i][1],
+						sizeof(CONL_PlayerMessage_t) * (MAXCONLPLAYERMQ - 1)
+					);
+				memset(&l_CONLMessageQ[i][MAXCONLPLAYERMQ - 1], 0, sizeof(CONL_PlayerMessage_t));
+				j = MAXCONLPLAYERMQ - 1;
+			}
+			
+			// Set timeout to default (4 secs) and priority to default
+			l_CONLMessageQ[i][j].Timeout = CurrentTime + DEFTOCONPLAYERMQ;
+			l_CONLMessageQ[i][j].Priority = DEFPRCONLPLAYERMQ;
+			
+			// Append text
+			l_CONLMessageQ[i][j].Flags = VFO_NOSCALEPATCH | VFO_NOSCALESTART | VFO_NOSCALELORES;
+			strncat(l_CONLMessageQ[i][j].Text, Buf, MAXCONLPMQBUFSIZE);
+		}
 	
 	/* Print text */
 	extern bool_t con_started;
@@ -523,9 +594,71 @@ const bool_t CONL_SetActive(const bool_t a_Set)
 	return false;
 }
 
+/* CONL_Ticker() -- Tick the console */
+void CONL_Ticker(void)
+{
+	const static uint8_t Faders[TICRATE] =
+	{
+		VEX_TRANS90, VEX_TRANS90, VEX_TRANS90, VEX_TRANS80, VEX_TRANS80, VEX_TRANS80,
+		VEX_TRANS80, VEX_TRANS70, VEX_TRANS70, VEX_TRANS70, VEX_TRANS70, VEX_TRANS60,
+		VEX_TRANS60, VEX_TRANS60, VEX_TRANS60, VEX_TRANS50, VEX_TRANS50, VEX_TRANS50,
+		VEX_TRANS50, VEX_TRANS40, VEX_TRANS40, VEX_TRANS40, VEX_TRANS40, VEX_TRANS30,
+		VEX_TRANS30, VEX_TRANS30, VEX_TRANS30, VEX_TRANS20, VEX_TRANS20, VEX_TRANS20,
+		VEX_TRANS20, VEX_TRANS10, VEX_TRANS10, VEX_TRANS10, VEX_TRANSNONE
+	};
+	size_t i, j;
+	tic_t CurrentTime, Left;
+	uint8_t v;
+	
+	/* Remove old messages */
+	CurrentTime = I_GetTime();
+	for (i = 0; i < MAXSPLITSCREENPLAYERS; i++)
+		for (j = 0; j < MAXCONLPLAYERMQ; j++)
+			if (l_CONLMessageQ[i][j].Text[0])
+			{
+				// Expired?
+				if (CurrentTime >= l_CONLMessageQ[i][j].Timeout)
+				{
+					// Wipe ahead back
+					memmove(
+							&l_CONLMessageQ[i][j],
+							&l_CONLMessageQ[i][j + 1],
+							sizeof(CONL_PlayerMessage_t) * (MAXCONLPLAYERMQ - (j + 1))
+						);
+					
+					// Clear back
+					memset(&l_CONLMessageQ[i][MAXCONLPLAYERMQ - 1], 0, sizeof(CONL_PlayerMessage_t));
+				}
+				
+				// Soon to expire? Transparent fade away
+				else if ((Left = (l_CONLMessageQ[i][j].Timeout - CurrentTime)) <= TICRATE)
+				{
+					l_CONLMessageQ[i][j].Flags &= ~VFO_TRANSMASK;
+					l_CONLMessageQ[i][j].Flags |= VFO_TRANS((uint32_t)Faders[Left]);
+				}
+			}
+#if 0
+/* CONL_PlayerMessage_t -- Message for player */
+typedef struct CONL_PlayerMessage_s
+{
+	uint32_t Flags;									// Flags for this message
+	char Text[MAXCONLPMQBUFSIZE];					// Message Text
+	tic_t Timeout;									// When the message times out
+	uint8_t Priority;								// Priority of the message
+} CONL_PlayerMessage_t;
+
+static CONL_PlayerMessage_t l_CONLMessageQ			// Player message queue
+	[MAXSPLITSCREENPLAYERS][MAXCONLPLAYERMQ];
+#endif
+}
+
 /* CONL_DrawConsole() -- Draws the console */
 void CONL_DrawConsole(void)
 {
+	size_t i, n, j, BSkip;
+	uint32_t bx, x, by, y, bw, bh, Options;
+	const char* p;
+	
 	/* Console is active (draw the console) */
 	if (CONL_IsActive())
 	{
@@ -534,14 +667,82 @@ void CONL_DrawConsole(void)
 	/* Not active, draw per player messages */
 	else
 	{
+		n = cv_splitscreen.value + 1;
+		for (i = 0; i < n; i++)
+		{
+			// Obtain bounding box
+			switch (n)
+			{
+				case 2:
+					bx = 0;
+					by = ((i & 1)) * (vid.height >> 1);
+					bw = vid.width;
+					bh = by + (vid.height >> 1);
+					break;
+				
+				case 3:
+				case 4:
+					bx = ((i & 1)) * (vid.width >> 1);
+					by = (((i & 2) >> 1)) * (vid.height >> 1);
+					bw = bw + (vid.width >> 1);
+					bh = bh + (vid.height >> 1);
+					break;
+				
+				case 1:
+				default:
+					bx = 0;
+					by = 0;
+					bw = vid.width;
+					bh = vid.height;
+					break;
+			}
+			
+			// Reset y
+			y = by;
+			
+			// Draw messages from first to last
+			for (j = 0; j < MAXCONLPLAYERMQ; j++)
+			{
+				// If there is a message here, draw it
+				if (l_CONLMessageQ[i][j].Text[0])
+				{
+					// Reset everything
+					x = bx;
+					p = &l_CONLMessageQ[i][j].Text[0];
+					Options = l_CONLMessageQ[i][j].Flags;
+					
+					// Draw single character
+					while (*p)
+					{
+						// Draw
+						x += V_DrawCharacterMB(VFONT_SMALL, Options, p, x, y, &BSkip, &Options);
+						
+						// Skip char
+						p += BSkip;
+						
+						// Over edge?
+						if (x >= bw)
+						{
+							// Reset x and increase y some
+							x = bx;
+							y += V_FontHeight(VFONT_SMALL);
+						}
+					}
+					
+					// Done drawing line
+					y += V_FontHeight(VFONT_SMALL);
+				}
+			}
+		}
 	}
 
+	/*
 #define YAYTEXT "{{1X {{{2Y {{{{3Z {0Y{1a{2y {3C{4o{5l{6o{7r{8s{9!{a!{b!{c!{d1{e1{f#"
 	V_DrawStringA(VFONT_SMALL, 0, YAYTEXT, 100, 80);
 	V_DrawStringA(VFONT_LARGE, 0, YAYTEXT, 100, 100);
 	V_DrawStringA(VFONT_STATUSBARSMALL, 0, YAYTEXT, 100, 120);
 	V_DrawStringA(VFONT_PRBOOMHUD, 0, YAYTEXT, 100, 140);
-	V_DrawStringA(VFONT_OEM, 0, YAYTEXT, 100, 160);
+	V_DrawStringA(VFONT_OEM, 0, YAYTEXT, 100, 160);*/
 }
 
 /*****************************************************************************/

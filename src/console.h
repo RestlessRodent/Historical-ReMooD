@@ -66,6 +66,7 @@ const size_t CONL_InputU(const UnicodeStringID_t a_StrID, const char* const a_Fo
 /*** Client Drawing ***/
 const bool_t CONL_IsActive(void);
 const bool_t CONL_SetActive(const bool_t a_Set);
+void CONL_Ticker(void);
 void CONL_DrawConsole(void);
 
 /******************************************************************************/

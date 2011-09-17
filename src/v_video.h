@@ -161,24 +161,24 @@ extern consvar_t cv_vid_drawfps;
 /* Color mapping */
 typedef enum VEX_ColorList_s
 {
-	VEX_MAP_NONE,								// No Color mapping
-	VEX_MAP_RED,								// Red
-	VEX_MAP_ORANGE,								// Orange
-	VEX_MAP_YELLOW,								// Yellow
-	VEX_MAP_GREEN,								// Green
-	VEX_MAP_CYAN,								// Cyan
-	VEX_MAP_BLUE,								// Blue
-	VEX_MAP_MAGENTA,							// Magenta
+	VEX_MAP_NONE,								// 0 No Color mapping
+	VEX_MAP_RED,								// 1 Red
+	VEX_MAP_ORANGE,								// 2 Orange
+	VEX_MAP_YELLOW,								// 3 Yellow
+	VEX_MAP_GREEN,								// 4 Green
+	VEX_MAP_CYAN,								// 5 Cyan
+	VEX_MAP_BLUE,								// 6 Blue
+	VEX_MAP_MAGENTA,							// 7 Magenta
 	
-	VEX_MAP_BROWN,								// Brown
-	VEX_MAP_BRIGHTWHITE,						// Bright white
-	VEX_MAP_WHITE,								// White
-	VEX_MAP_GRAY,								// Gray
-	VEX_MAP_BLACK,								// Black
+	VEX_MAP_BROWN,								// 8 Brown
+	VEX_MAP_BRIGHTWHITE,						// 9 Bright white
+	VEX_MAP_WHITE,								// a White
+	VEX_MAP_GRAY,								// b Gray
+	VEX_MAP_BLACK,								// c Black
 	
-	VEX_MAP_FUSCIA,								// Yuck
-	VEX_MAP_GOLD,								// Gold
-	VEX_MAP_TEKGREEN,							// Technical Green
+	VEX_MAP_FUSCIA,								// d Yuck
+	VEX_MAP_GOLD,								// e Gold
+	VEX_MAP_TEKGREEN,							// f Technical Green
 	
 	NUMVEXCOLORS
 } VEX_ColorList_t;
@@ -301,6 +301,9 @@ extern UniChar_t* UnknownLink[NUMVIDEOFONTS];
 
 // Ordering
 #define VFO_COLORMASK		0x0000000F
+#define VFO_TRANSMASK		0x000000F0
+#define VFO_TRANSSHIFT		4
+#define VFO_TRANS(x)		(((x) << VFO_TRANSSHIFT) & VFO_TRANSMASK)
 #define VFO_RIGHTTOLEFT		0x00010000
 #define VFO_CENTERED		0x00020000
 #define VFO_NOSCALESTART	0x00040000

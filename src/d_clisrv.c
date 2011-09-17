@@ -318,6 +318,7 @@ void NetUpdate(void)
 		neededtic = maketic;
 
 	M_Ticker();
+	CONL_Ticker();
 	CONEx_Ticker();
 	CON_Ticker();
 }

@@ -401,10 +401,18 @@ void ST_TransSTChange(void)
 
 CV_PossibleValue_t TransMode[] =
 {
-	{0, "Medium"},
-	{1, "High"},
-	{2, "Extreme"},
-	{3, "Bright"},
+	{VEX_TRANSNONE, "0%"},
+	{VEX_TRANS10, "10%"},
+	{VEX_TRANS20, "20%"},
+	{VEX_TRANS30, "30%"},
+	{VEX_TRANS40, "40%"},
+	{VEX_TRANS50, "50%"},
+	{VEX_TRANS60, "60%"},
+	{VEX_TRANS70, "70%"},
+	{VEX_TRANS80, "80%"},
+	{VEX_TRANS90, "90%"},
+	{VEX_TRANSFULL, "100%"},
+	{VEX_TRANSFIRE, "Bright"},
 	{0, NULL},
 };
 

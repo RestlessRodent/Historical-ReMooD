@@ -89,7 +89,7 @@ uint8_t *dc_source;
 // -----------------------
 // translucency stuff here
 // -----------------------
-#define NUMTRANSTABLES  5		// how many translucency tables are used
+#define NUMTRANSTABLES  NUMVEXTRANSPARENCIES		// how many translucency tables are used
 
 uint8_t *transtables;				// translucency tables
 
@@ -204,12 +204,74 @@ CV_PossibleValue_t Color_cons_t[] = { {0, NULL}, {1, NULL}, {2, NULL}, {3, NULL}
 //
 void R_InitTranslationTables(void)
 {
-	int i, j;
+	int i, j, x, y, n;
+	uint8_t* Data, *p, *s;
+	bool_t Flip;
+	WadIndex_t LumpNum;
+	static struct
+	{
+		char Name[9];
+		bool_t Flip;
+	} TransLumps[NUMVEXTRANSPARENCIES] =
+	{
+		{"RMD_TRFF", true},
+		{"RMD_TR10", false},
+		{"RMD_TR20", false},
+		{"RMD_TR30", false},
+		{"RMD_TR40", false},
+		{"RMD_TR50", false},
+		{"RMD_TR40", true},
+		{"RMD_TR30", true},
+		{"RMD_TR20", true},
+		{"RMD_TR10", true},
+		{"RMD_TRFF", false},
+		{"RMD_TRFR", false},
+		{"TRANSFX1", false},
+	};
+	
+	/* Load transparency tables, with possible flipping */
+	// GhostlyDeath <September 17, 2011> -- Improved, greatly
+	transtables = Z_Malloc(NUMTRANSTABLES * 0x10000, PU_STATIC, &transtables);
+	
+	// Go through loop, loading each lump
+	for (i = 0; i < NUMVEXTRANSPARENCIES; i++)
+	{
+		// Load lump data
+		LumpNum = W_GetNumForName(TransLumps[i].Name);
+		Data = W_CacheLumpNum(LumpNum, PU_STATIC);
+		n = W_LumpLength(LumpNum);
+		Flip = TransLumps[i].Flip;
+		
+		// Copy data to and from
+		p = transtables + (0x10000 * i);
+		for (x = 0; x < 256; x++)
+			for (y = 0; y < 256; y++)
+			{
+				// Which are we getting?
+				if (Flip)
+					j = (x * 256) + y;
+				else
+					j = (y * 256) + x; 
+				
+				// Only if it is valid
+				if (j < n)
+				{
+					*p = Data[j];
+					p++;
+				}
+			}
+		
+		// No longer needed
+		Z_ChangeTag(Data, PU_CACHE);
+	}
 
+#if 0
 	//added:11-01-98: load here the transparency lookup tables 'TINTTAB'
 	// NOTE: the TINTTAB resource MUST BE aligned on 64k for the asm optimised
 	//       (in other words, transtables pointer low word is 0)
 	transtables = Z_MallocAlign(NUMTRANSTABLES * 0x10000, PU_STATIC, 0, 16);
+	
+	// GhostlyDeath <September 17, 2011> -- 
 
 	// load in translucency tables
 	W_ReadLump(W_GetNumForName("TRANSMED"), transtables);
@@ -217,6 +279,7 @@ void R_InitTranslationTables(void)
 	W_ReadLump(W_GetNumForName("TRANSHI"), transtables + 0x20000);
 	W_ReadLump(W_GetNumForName("TRANSFIR"), transtables + 0x30000);
 	W_ReadLump(W_GetNumForName("TRANSFX1"), transtables + 0x40000);
+#endif
 
 	translationtables = Z_MallocAlign(256 * (MAXSKINCOLORS - 1), PU_STATIC, 0, 8);
 
