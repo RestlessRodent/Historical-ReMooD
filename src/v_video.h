@@ -176,6 +176,10 @@ typedef enum VEX_ColorList_s
 	VEX_MAP_GRAY,								// Gray
 	VEX_MAP_BLACK,								// Black
 	
+	VEX_MAP_FUSCIA,								// Yuck
+	VEX_MAP_GOLD,								// Gold
+	VEX_MAP_TEKGREEN,							// Technical Green
+	
 	NUMVEXCOLORS
 } VEX_ColorList_t;
 

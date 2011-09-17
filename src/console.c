@@ -506,12 +506,13 @@ void CONL_DrawConsole(void)
 	else
 	{
 	}
-	
-	V_DrawStringA(VFONT_SMALL, 0, "{0Y{1a{2y {3C{4o{5l{6o{7r{8s{9!{a!{b!{c!{d1{e1", 100, 80);
-	V_DrawStringA(VFONT_LARGE, 0, "{0Y{1a{2y {3C{4o{5l{6o{7r{8s{9!{a!{b!{c!{d1{e1", 100, 100);
-	V_DrawStringA(VFONT_STATUSBARSMALL, 0, "{0Y{1a{2y {3C{4o{5l{6o{7r{8s{9!{a!{b!{c!{d1{e1", 100, 120);
-	V_DrawStringA(VFONT_PRBOOMHUD, 0, "{0Y{1a{2y {3C{4o{5l{6o{7r{8s{9!{a!{b!{c!{d1{e1", 100, 140);
-	V_DrawStringA(VFONT_OEM, 0, "{0Y{1a{2y {3C{4o{5l{6o{7r{8s{9!{a!{b!{c!{d1{e1", 100, 160);
+
+#define YAYTEXT "{0Y{1a{2y {3C{4o{5l{6o{7r{8s{9!{a!{b!{c!{d1{e1{f#"
+	V_DrawStringA(VFONT_SMALL, 0, YAYTEXT, 100, 80);
+	V_DrawStringA(VFONT_LARGE, 0, YAYTEXT, 100, 100);
+	V_DrawStringA(VFONT_STATUSBARSMALL, 0, YAYTEXT, 100, 120);
+	V_DrawStringA(VFONT_PRBOOMHUD, 0, YAYTEXT, 100, 140);
+	V_DrawStringA(VFONT_OEM, 0, YAYTEXT, 100, 160);
 }
 
 /*****************************************************************************/

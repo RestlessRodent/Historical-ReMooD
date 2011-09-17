@@ -1169,18 +1169,13 @@ static size_t V_BestHSVMatch(const V_ColorEntry_t* const Table, const V_ColorEnt
 }
 
 /* V_InitializeColormaps() -- Initialize Spectrum colormaps */
+// GhostlyDeath <September 16, 2011> -- Rewritten for RMD_CMAP instead of
+// dynamically creating the colors at run time.
 void V_InitializeColormaps(void)
 {
-	size_t i, j;
-	int32_t k;
-	V_ColorEntry_t Base[256];
-	V_ColorEntry_t First[256];
-	V_ColorEntry_t Temp;
-	uint16_t Additive[256];
-	uint8_t* PlayPal;
-	
-	// BaseHue -- Base for spectrum colors
-	const uint8_t BaseHue[NUMVEXCOLORS] = {0, 30, 42, 85, 128, 170, 213};
+	size_t i, j, m, n;
+	uint8_t* Maps;
+	WadIndex_t LumpNum;
 	
 	/* Destroy old maps */
 	for (i = 0; i < NUMVEXCOLORS; i++)
@@ -1190,103 +1185,31 @@ void V_InitializeColormaps(void)
 			l_ColorMaps[i] = NULL;
 		}
 	
-	/* Initialize the base map */
-	PlayPal = W_CacheLumpName("PLAYPAL", PU_CACHE);
-	
-	// Load initial
-	for (i = 0; i < 256; i++)
+	/* Allocate maps, and initialize */
+	for (i = 0; i < NUMVEXCOLORS; i++)
 	{
-		// Get RGBs
-		Base[i].RGB.R = PlayPal[i * 3];
-		Base[i].RGB.G = PlayPal[(i * 3) + 1];
-		Base[i].RGB.B = PlayPal[(i * 3) + 2];
+		// Does not exist?
+		if (!l_ColorMaps[i])
+			l_ColorMaps[i] = Z_Malloc(sizeof(*l_ColorMaps[i]) * 256, PU_STATIC, NULL);
 		
-		// Get Additive Color
-		Additive[i] = Base[i].RGB.R + Base[i].RGB.G + Base[i].RGB.B;
-		
-		// Get HSV
-		First[i] = V_RGBtoHSV(Base[i]);
-		
-	}
-	
-	/* Loop through none color */
-	l_ColorMaps[0] = Z_Malloc(sizeof(uint8_t) * 256, PU_STATIC, (void**)&l_ColorMaps[0]);
-	for (j = 0; j < 256; j++)
-		l_ColorMaps[0][j] = j;
-	
-	/* Loop through all spectrum colors */
-	for (i = VEX_MAP_RED; i <= VEX_MAP_MAGENTA; i++)
-	{
-		// Create color table
-		l_ColorMaps[i] = Z_Malloc(sizeof(uint8_t) * 256, PU_STATIC, (void**)&l_ColorMaps[i]);
-		
-		// Loop through colors
+		// Initialize
 		for (j = 0; j < 256; j++)
-		{
-			Temp = First[j];
-			
-			// Change hue to match color
-			Temp.HSV.H = BaseHue[i - VEX_MAP_RED];
-			
-			// Max out saturation to make it colorful
-			Temp.HSV.S = 255;
-			
-			// Use additive for value
-			if (i == VEX_MAP_ORANGE || i == VEX_MAP_YELLOW || i == VEX_MAP_CYAN)
-			{
-				k = (Temp.HSV.V * Temp.HSV.V) >> 8;
-				Temp.HSV.V = (k < 255 ? k : 255);
-			}
-			else
-			{
-				k = (int32_t)167 - (int32_t)((Additive[j] / 64) * 12);
-				Temp.HSV.V = k;
-				Temp.HSV.V = -((int32_t)Temp.HSV.V - (int32_t)256);	// flip
-			}
-			
-			// Find color
-			l_ColorMaps[i][j] = V_BestHSVMatch(First, Temp);
-		}
+			l_ColorMaps[i][j] = j;
 	}
 	
-	/* Brown */
-	l_ColorMaps[VEX_MAP_BROWN] = Z_Malloc(sizeof(uint8_t) * 256, PU_STATIC, (void**)&l_ColorMaps[0]);
-	for (j = 0; j < 256; j++)
-		l_ColorMaps[VEX_MAP_BROWN][j] = j;
+	/* Obtain maps */
+	LumpNum = W_GetNumForName("RMD_CMAP");
+	Maps = W_CacheLumpNum(LumpNum, PU_CACHE);
+	n = W_LumpLength(LumpNum);
 	
-	/* Loop through gray colors */
-	for (i = VEX_MAP_BRIGHTWHITE; i <= VEX_MAP_BLACK; i++)
-	{
-		// Create color table
-		l_ColorMaps[i] = Z_Malloc(sizeof(uint8_t) * 256, PU_STATIC, (void**)&l_ColorMaps[i]);
-		
-		// Loop through colors
-		for (j = 0; j < 256; j++)
-		{
-			Temp = First[j];
-			
-			// Remove both hue and saturation
-			Temp.HSV.H = Temp.HSV.S = 0;
-			
-			// Increase/decrease value on some shades
-			if (i == VEX_MAP_BRIGHTWHITE)
-			{
-				if (Temp.HSV.V >= 192)
-					Temp.HSV.V = 255;
-				else if (Temp.HSV.V >= 64)
-					Temp.HSV.V += 32;
-				else if (Temp.HSV.V >= 32)
-					Temp.HSV.V += 16;
-			}
-			else if (i == VEX_MAP_GRAY)
-				Temp.HSV.V >>= 1;
-			else if (i == VEX_MAP_BLACK)
-				Temp.HSV.V >>= 2;
-			
-			// Find color
-			l_ColorMaps[i][j] = V_BestHSVMatch(First, Temp);
-		}
-	}
+	// Failed?
+	if (!Maps)
+		return;
+	
+	/* Constant read in the lump and set the translation stuff */
+	for (m = 0, i = 0; i < NUMVEXCOLORS; i++)
+		for (j = 0; j < 256 && m < n; j++, m++)
+			l_ColorMaps[i][j] = Maps[m];
 }
 
 /* V_DrawFadeConsBackEx() -- Pixelate and add red tint */
@@ -1400,6 +1323,7 @@ void V_DrawPatchEx(const uint32_t Flags, const int x, const int y, const patch_t
 	const uint8_t* ColorMap;
 	const uint8_t* ColorMap2;
 	int8_t Color, Screen;
+	fixed_t LostFrac;
 	
 	/* Check */
 	if (!Patch)
@@ -1512,7 +1436,7 @@ void V_DrawPatchEx(const uint32_t Flags, const int x, const int y, const patch_t
 	}
 	
 	/* Start Drawing Patch */
-	for (ColNum = 0;
+	for (ColNum = 0, LostFrac = 0;
 			ColNum < ColLimit; Col += ColFrac, DestTop++, ColNum++)
 	{
 		// GhostlyDeath <December 10, 2010> -- Check column bounds

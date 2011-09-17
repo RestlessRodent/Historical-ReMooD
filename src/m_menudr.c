@@ -196,7 +196,7 @@ void M_DrawGenericMenu(void)
 					if ((currentMenu->menuitems[i].status & IT_DISPLAY) == IT_STRING)
 						V_DrawStringA(VFONT_SMALL, BaseFlags, *(currentMenu->menuitems[i].WItemTextPtr), fixedx, fixedy);
 					else
-						V_DrawStringA(VFONT_SMALL, VEX_MAP_WHITE, *(currentMenu->menuitems[i].WItemTextPtr), fixedx, fixedy);
+						V_DrawStringA(VFONT_SMALL, VEX_MAP_BRIGHTWHITE, *(currentMenu->menuitems[i].WItemTextPtr), fixedx, fixedy);
 				}
 
 				// Cvar specific handling
@@ -225,16 +225,16 @@ void M_DrawGenericMenu(void)
 								V_StringWidthA(VFONT_SMALL, 0, cv->string) - (i == itemOn ? USSizeW : 0) - 1,
 									y - 1, V_StringWidthA(VFONT_SMALL, 0, cv->string) + (i == itemOn ? USSizeW : 0) + 2,
 									USSizeH + 2, 0);
-								V_DrawStringA(VFONT_SMALL, VEX_MAP_WHITE, cv->string,
+								V_DrawStringA(VFONT_SMALL, VEX_MAP_BRIGHTWHITE, cv->string,
 									V_StringWidthA(VFONT_SMALL, 0, cv->string) - (i == itemOn ? USSizeW : 0),
 									y);
 								if (skullAnimCounter < 4 && i == itemOn)
-									V_DrawCharacterA(VFONT_SMALL, VEX_MAP_WHITE, '_',
+									V_DrawCharacterA(VFONT_SMALL, VEX_MAP_BRIGHTWHITE, '_',
 										(currentMenu->x + currentMenu->width) -
 										USSizeW, y);
 								break;
 							default:
-								V_DrawStringA(VFONT_SMALL, (currentMenu->menuitems[i].status & IT_DISABLED2 || currentMenu->menuitems[i].status & IT_CVARREADONLY? VEX_MAP_GRAY : VEX_MAP_WHITE),
+								V_DrawStringA(VFONT_SMALL, (currentMenu->menuitems[i].status & IT_DISABLED2 || currentMenu->menuitems[i].status & IT_CVARREADONLY? VEX_MAP_GRAY : VEX_MAP_BRIGHTWHITE),
 									cv->string,
 									((currentMenu->x + currentMenu->width)) - V_StringWidthA(VFONT_SMALL, 0, cv->string),
 									y);
@@ -281,11 +281,11 @@ void M_DrawGenericMenu(void)
 		{
 			if (currentMenu->menuitems[itemOn].status & IT_CENTERSTRING)
 			{
-				V_DrawCharacterA(VFONT_SMALL, VEX_MAP_WHITE, '*', cursorx1, cursory);
-				V_DrawCharacterA(VFONT_SMALL, VEX_MAP_WHITE, '*', cursorx2, cursory);
+				V_DrawCharacterA(VFONT_SMALL, VEX_MAP_BRIGHTWHITE, '*', cursorx1, cursory);
+				V_DrawCharacterA(VFONT_SMALL, VEX_MAP_BRIGHTWHITE, '*', cursorx2, cursory);
 			}
 			else
-				V_DrawCharacterA(VFONT_SMALL, VEX_MAP_WHITE, '*', currentMenu->x - 10, cursory);
+				V_DrawCharacterA(VFONT_SMALL, VEX_MAP_BRIGHTWHITE, '*', currentMenu->x - 10, cursory);
 		}
 	}
 }
@@ -361,7 +361,7 @@ void M_DrawTextBox(int x, int y, int width, int lines)
 	x2 = vid.width - 1;
 	y2 = y1 + (lines * 8);
 	
-	V_DrawFadeConsBackEx((VEX_MAP_WHITE << VEX_COLORMAPSHIFT), x1, y1, x2, y2);
+	V_DrawFadeConsBackEx((VEX_MAP_BRIGHTWHITE << VEX_COLORMAPSHIFT), x1, y1, x2, y2);
 #else
 	// draw left side
 	cx = x;
@@ -728,7 +728,7 @@ void M_DrawControl(void)
 
 		}
 		
-		V_DrawStringA(VFONT_SMALL, VEX_MAP_WHITE, tmp,
+		V_DrawStringA(VFONT_SMALL, VEX_MAP_BRIGHTWHITE, tmp,
 			(DefaultKeyBindDef.x + DefaultKeyBindDef.width) - V_StringWidthA(VFONT_SMALL, 0, tmp),
 			DefaultKeyBindDef.y + (i - currentMenu->firstdraw) * STRINGHEIGHT);
 	}
