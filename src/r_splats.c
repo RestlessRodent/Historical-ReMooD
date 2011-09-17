@@ -270,7 +270,7 @@ void R_AddWallSplat(line_t * wallline,
 		
 				// Clone Data
 				*(Rover->next) = Temp;
-				if (Rover->next->next)	// Probably always false
+				if (Rover->next)	// Probably always false
 					Rover->next->next = NULL;
 				break;
 			}

@@ -435,6 +435,42 @@ int mega_health = 200;
 CustomTouch_t* NewTouchThings = NULL;
 size_t NumTouchThings = 0;
 
+/* PS_PickupMessage() -- Handles pickup messages */
+void PS_PickupMessage(mobj_t* const a_Picker, mobj_t* const a_Upper, const char* const a_Message)
+{
+#define BUFSIZE 128
+	int LocalPlayer, i;
+	char Buf[BUFSIZE];
+	
+	/* Check */
+	if (!a_Picker || !a_Upper)
+		return;
+	
+	/* If the object picking it up is not a player... */
+	if (!a_Picker->player)
+		return;
+	
+	/* Find player that is picking this up */
+	for (i = 0; i < MAXSPLITSCREENPLAYERS; i++)
+		if (playeringame[displayplayer[i]] && &players[displayplayer[i]] == a_Picker->player)
+			break;
+	
+	// Nobody on these screens
+	if (i == MAXSPLITSCREENPLAYERS)
+		return;
+	
+	/* Find message to print */
+	memset(Buf, 0, sizeof(Buf));
+	if (a_Message)
+		strncpy(Buf, a_Message, BUFSIZE);
+	
+	/* Print to console (to that player only) */
+	if (i >= 1)
+		CONS_Printf("%c", 4 + (i - 1));
+	CONS_Printf("%s\n", Buf);
+#undef BUFSIZE
+}
+
 //
 // P_TouchSpecialThing
 //
@@ -478,13 +514,13 @@ void P_TouchSpecialThing(mobj_t * special, mobj_t * toucher)
 		case SPR_ARM1:
 			if (!P_GiveArmor(player, green_armor_class))
 				return;
-			player->message = GOTARMOR;
+			PS_PickupMessage(toucher, special, GOTARMOR);
 			break;
 
 		case SPR_ARM2:
 			if (!P_GiveArmor(player, blue_armor_class))
 				return;
-			player->message = GOTMEGA;
+			PS_PickupMessage(toucher, special, GOTMEGA);
 			break;
 
 			// bonus items
@@ -494,7 +530,7 @@ void P_TouchSpecialThing(mobj_t * special, mobj_t * toucher)
 				player->health = 2 * MAXHEALTH;
 			player->mo->health = player->health;
 			if (cv_showmessages.value == 1)
-				player->message = GOTHTHBONUS;
+				PS_PickupMessage(toucher, special, GOTHTHBONUS);
 			break;
 
 		case SPR_BON2:
@@ -503,8 +539,7 @@ void P_TouchSpecialThing(mobj_t * special, mobj_t * toucher)
 				player->armorpoints = max_armor;
 			if (!player->armortype)
 				player->armortype = 1;
-			if (cv_showmessages.value == 1)
-				player->message = GOTARMBONUS;
+			PS_PickupMessage(toucher, special, GOTARMBONUS);
 			break;
 
 		case SPR_SOUL:
@@ -512,7 +547,7 @@ void P_TouchSpecialThing(mobj_t * special, mobj_t * toucher)
 			if (player->health > maxsoul)
 				player->health = maxsoul;
 			player->mo->health = player->health;
-			player->message = GOTSUPER;
+			PS_PickupMessage(toucher, special, GOTSUPER);
 			sound = sfx_getpow;
 			break;
 
@@ -522,7 +557,7 @@ void P_TouchSpecialThing(mobj_t * special, mobj_t * toucher)
 			player->health = mega_health;
 			player->mo->health = player->health;
 			P_GiveArmor(player, 2);
-			player->message = GOTMSPHERE;
+			PS_PickupMessage(toucher, special, GOTMSPHERE);
 			sound = sfx_getpow;
 			break;
 			// cards
@@ -530,7 +565,7 @@ void P_TouchSpecialThing(mobj_t * special, mobj_t * toucher)
 		case SPR_BKEY:
 			if (P_GiveCard(player, it_bluecard))
 			{
-				player->message = GOTBLUECARD;
+				PS_PickupMessage(toucher, special, GOTBLUECARD);
 			}
 			if (!multiplayer)
 				break;
@@ -539,7 +574,7 @@ void P_TouchSpecialThing(mobj_t * special, mobj_t * toucher)
 		case SPR_YKEY:
 			if (P_GiveCard(player, it_yellowcard))
 			{
-				player->message = GOTYELWCARD;
+				PS_PickupMessage(toucher, special, GOTYELWCARD);
 			}
 			if (!multiplayer)
 				break;
@@ -548,7 +583,7 @@ void P_TouchSpecialThing(mobj_t * special, mobj_t * toucher)
 		case SPR_RKEY:
 			if (P_GiveCard(player, it_redcard))
 			{
-				player->message = GOTREDCARD;
+				PS_PickupMessage(toucher, special, GOTREDCARD);
 			}
 			if (!multiplayer)
 				break;
@@ -557,7 +592,7 @@ void P_TouchSpecialThing(mobj_t * special, mobj_t * toucher)
 		case SPR_BSKU:
 			if (P_GiveCard(player, it_blueskull))
 			{
-				player->message = GOTBLUESKUL;
+				PS_PickupMessage(toucher, special, GOTBLUESKUL);
 			}
 			if (!multiplayer)
 				break;
@@ -566,7 +601,7 @@ void P_TouchSpecialThing(mobj_t * special, mobj_t * toucher)
 		case SPR_YSKU:
 			if (P_GiveCard(player, it_yellowskull))
 			{
-				player->message = GOTYELWSKUL;
+				PS_PickupMessage(toucher, special, GOTYELWSKUL);
 			}
 			if (!multiplayer)
 				break;
@@ -575,7 +610,7 @@ void P_TouchSpecialThing(mobj_t * special, mobj_t * toucher)
 		case SPR_RSKU:
 			if (P_GiveCard(player, it_redskull))
 			{
-				player->message = GOTREDSKULL;
+				PS_PickupMessage(toucher, special, GOTREDSKULL);
 			}
 			if (!multiplayer)
 				break;
@@ -585,34 +620,30 @@ void P_TouchSpecialThing(mobj_t * special, mobj_t * toucher)
 		case SPR_STIM:
 			if (!P_GiveBody(player, 10))
 				return;
-			if (cv_showmessages.value == 1)
-				player->message = GOTSTIM;	// TODO
+			PS_PickupMessage(toucher, special, GOTSTIM);	// TODO
 			break;
 
 		case SPR_MEDI:
 			if (!P_GiveBody(player, 25))
 				return;
-			if (cv_showmessages.value == 1)
-			{
-				if (player->health < 25)
-					player->message = GOTMEDINEED;
-				else
-					player->message = GOTMEDIKIT;
-			}
+			if (player->health < 25)
+				PS_PickupMessage(toucher, special, GOTMEDINEED);
+			else
+				PS_PickupMessage(toucher, special, GOTMEDIKIT);
 			break;
 		
 			// power ups
 		case SPR_PINV:
 			if (!P_GivePower(player, pw_invulnerability))
 				return;
-			player->message = GOTINVUL;
+			PS_PickupMessage(toucher, special, GOTINVUL);
 			sound = sfx_getpow;
 			break;
 
 		case SPR_PSTR:
 			if (!P_GivePower(player, pw_strength))
 				return;
-			player->message = GOTBERSERK;
+			PS_PickupMessage(toucher, special, GOTBERSERK);
 			if (player->readyweapon != wp_fist)
 				player->pendingweapon = wp_fist;
 			sound = sfx_getpow;
@@ -621,28 +652,28 @@ void P_TouchSpecialThing(mobj_t * special, mobj_t * toucher)
 		case SPR_PINS:
 			if (!P_GivePower(player, pw_invisibility))
 				return;
-			player->message = GOTINVIS;
+			PS_PickupMessage(toucher, special, GOTINVIS);
 			sound = sfx_getpow;
 			break;
 
 		case SPR_SUIT:
 			if (!P_GivePower(player, pw_ironfeet))
 				return;
-			player->message = GOTSUIT;
+			PS_PickupMessage(toucher, special, GOTSUIT);
 			sound = sfx_getpow;
 			break;
 
 		case SPR_PMAP:
 			if (!P_GivePower(player, pw_allmap))
 				return;
-			player->message = GOTMAP;
+			PS_PickupMessage(toucher, special, GOTMAP);
 				sound = sfx_getpow;
 			break;
 
 		case SPR_PVIS:
 			if (!P_GivePower(player, pw_infrared))
 				return;
-			player->message = GOTVISOR;
+			PS_PickupMessage(toucher, special, GOTVISOR);
 			sound = sfx_getpow;
 			break;
 			
@@ -658,57 +689,49 @@ void P_TouchSpecialThing(mobj_t * special, mobj_t * toucher)
 				if (!P_GiveAmmo(player, am_clip, clipammo[am_clip]))
 					return;
 			}
-			if (cv_showmessages.value == 1)
-				player->message = GOTCLIP;
+			PS_PickupMessage(toucher, special, GOTCLIP);
 			break;
 
 		case SPR_AMMO:
 			if (!P_GiveAmmo(player, am_clip, 5 * clipammo[am_clip]))
 				return;
-			if (cv_showmessages.value == 1)
-				player->message = GOTCLIPBOX;
+			PS_PickupMessage(toucher, special, GOTCLIPBOX);
 			break;
 
 		case SPR_ROCK:
 			if (!P_GiveAmmo(player, am_misl, clipammo[am_misl]))
 				return;
-			if (cv_showmessages.value == 1)
-				player->message = GOTROCKET;
+			PS_PickupMessage(toucher, special, GOTROCKET);
 			break;
 
 		case SPR_BROK:
 			if (!P_GiveAmmo(player, am_misl, 5 * clipammo[am_misl]))
 				return;
-			if (cv_showmessages.value == 1)
-				player->message = GOTROCKBOX;
+			PS_PickupMessage(toucher, special, GOTROCKBOX);
 			break;
 
 		case SPR_CELL:
 			if (!P_GiveAmmo(player, am_cell, clipammo[am_cell]))
 				return;
-			if (cv_showmessages.value == 1)
-				player->message = GOTCELL;
+			PS_PickupMessage(toucher, special, GOTCELL);
 			break;
 
 		case SPR_CELP:
 			if (!P_GiveAmmo(player, am_cell, 5 * clipammo[am_cell]))
 				return;
-			if (cv_showmessages.value == 1)
-				player->message = GOTCELLBOX;
+			PS_PickupMessage(toucher, special, GOTCELLBOX);
 			break;
 
 		case SPR_SHEL:
 			if (!P_GiveAmmo(player, am_shell, clipammo[am_shell]))
 				return;
-			if (cv_showmessages.value == 1)
-				player->message = GOTSHELLS;
+			PS_PickupMessage(toucher, special, GOTSHELLS);
 			break;
 
 		case SPR_SBOX:
 			if (!P_GiveAmmo(player, am_shell, 5 * clipammo[am_shell]))
 				return;
-			if (cv_showmessages.value == 1)
-				player->message = GOTSHELLBOX;
+			PS_PickupMessage(toucher, special, GOTSHELLBOX);
 			break;
 
 		case SPR_BPAK:
@@ -720,56 +743,56 @@ void P_TouchSpecialThing(mobj_t * special, mobj_t * toucher)
 			}
 			for (i = 0; i < NUMAMMO; i++)
 				P_GiveAmmo(player, i, clipammo[i]);
-			player->message = GOTBACKPACK;
+			PS_PickupMessage(toucher, special, GOTBACKPACK);
 			break;
 			
 			// weapons
 		case SPR_BFUG:
 			if (!P_GiveWeapon(player, wp_bfg, special->flags & MF_DROPPED))
 				return;
-			player->message = GOTBFG9000;
+			PS_PickupMessage(toucher, special, GOTBFG9000);
 			sound = sfx_wpnup;
 			break;
 
 		case SPR_MGUN:
 			if (!P_GiveWeapon(player, wp_chaingun, special->flags & MF_DROPPED))
 				return;
-			player->message = GOTCHAINGUN;
+			PS_PickupMessage(toucher, special, GOTCHAINGUN);
 			sound = sfx_wpnup;
 			break;
 
 		case SPR_CSAW:
 			if (!P_GiveWeapon(player, wp_chainsaw, false))
 				return;
-			player->message = GOTCHAINSAW;
+			PS_PickupMessage(toucher, special, GOTCHAINSAW);
 			sound = sfx_wpnup;
 			break;
 
 		case SPR_LAUN:
 			if (!P_GiveWeapon(player, wp_missile, special->flags & MF_DROPPED))
 				return;
-			player->message = GOTLAUNCHER;
+			PS_PickupMessage(toucher, special, GOTLAUNCHER);
 			sound = sfx_wpnup;
 			break;
 
 		case SPR_PLAS:
 			if (!P_GiveWeapon(player, wp_plasma, special->flags & MF_DROPPED))
 				return;
-			player->message = GOTPLASMA;
+			PS_PickupMessage(toucher, special, GOTPLASMA);
 			sound = sfx_wpnup;
 			break;
 
 		case SPR_SHOT:
 			if (!P_GiveWeapon(player, wp_shotgun, special->flags & MF_DROPPED))
 				return;
-			player->message = GOTSHOTGUN;
+			PS_PickupMessage(toucher, special, GOTSHOTGUN);
 			sound = sfx_wpnup;
 			break;
 
 		case SPR_SGN2:
 			if (!P_GiveWeapon(player, wp_supershotgun, special->flags & MF_DROPPED))
 				return;
-			player->message = GOTSHOTGUN2;
+			PS_PickupMessage(toucher, special, GOTSHOTGUN2);
 			sound = sfx_wpnup;
 			break;
 
@@ -895,10 +918,68 @@ void P_UnlinkFloorThing(mobj_t * mobj)
 }
 #endif
 
-// Death messages relating to the target (dying) player
-//
+/* PS_GetMobjNoun() -- Gets the noun of the object */
+static const char* PS_GetMobjNoun(mobj_t* const a_Mobj, bool_t* const a_Special)
+{
+	/* If there is no object */
+	if (!a_Mobj)
+	{
+		// Nothing special here
+		if (a_Special)
+			*a_Special = false;
+		return "Nothing";
+	}
+	
+	/* If there is an object */
+	else
+	{
+		// If the mobj is a player, use that player's name
+		if (a_Mobj->player)
+		{
+			// Special
+			if (a_Special)
+				*a_Special = true;
+			
+			// Return the player's name
+			return player_names[a_Mobj->player - players];
+		}
+		
+		// Otherwise it is a monster or otherwise
+		else
+		{
+			// Not Special
+			if (a_Special)
+				*a_Special = true;
+			
+			// Return object name
+			return MT2ReMooDClass[a_Mobj->type];
+		}
+	}
+}
+
+/* P_DeathMessages() -- Display message of thing dying */
 static void P_DeathMessages(mobj_t * target, mobj_t * inflictor, mobj_t * source)
 {
+#define BUFSIZE 128
+	char Message[BUFSIZE];
+	const char* tNoun, *iNoun, *sNoun;
+	bool_t tSpecial, iSpecial, sSpecial;
+	
+	/* Determine nouns of objects */
+	tNoun = PS_GetMobjNoun(target, &tSpecial);
+	iNoun = PS_GetMobjNoun(inflictor, &iSpecial);
+	sNoun = PS_GetMobjNoun(source, &sSpecial);
+	
+	/* If neither side is special, who cares? */
+	/*if (!(tSpecial | sSpecial))
+		return;*/
+	
+	/* Print message */
+	CONS_Printf("\x7{4%s{0 -> {5%s {2({3%s{2)\n", sNoun, tNoun, iNoun);
+
+#undef BUFSIZE
+	
+#if 0
 	int w;
 	char *str;
 
@@ -1090,6 +1171,7 @@ static void P_DeathMessages(mobj_t * target, mobj_t * inflictor, mobj_t * source
 		}
 		CONS_Printf(str, player_names[target->player - players]);
 	}
+#endif
 }
 
 // WARNING : check cv_fraglimit>0 before call this function !
@@ -1193,13 +1275,11 @@ void P_KillMobj(mobj_t * target, mobj_t * inflictor, mobj_t * source)
 		if (demoversion >= 112)
 			target->radius -= (target->radius >> 4);	//for solid corpses
 	}
-	// show death messages, only if it concern the console player
-	// (be it an attacker or a target)
-	if (target->player && (target->player == &players[consoleplayer[0]]))
-		P_DeathMessages(target, inflictor, source);
-	else if (source && source->player && (source->player == &players[consoleplayer[0]]))
-		P_DeathMessages(target, inflictor, source);
-
+	
+	// GhostlyDeath <September 17, 2011> -- Change the way obituaries are done
+	// Legacy only did it if the target/source was the first console player
+	P_DeathMessages(target, inflictor, source);
+	
 	// if killed by a player
 	if (source && source->player)
 	{
