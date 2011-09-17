@@ -597,6 +597,7 @@ struct patch_s
 };
 typedef struct patch_s patch_t;
 
+#if 0
 typedef enum
 {
 	PALETTE = 0,				// 1 uint8_t is the index in the doom palette (as usual)
@@ -605,6 +606,7 @@ typedef enum
 	RGB24 = 3,					// 24 bit rgb
 	RGBA32 = 4,					// 32 bit rgba
 } pic_mode_t;
+#endif
 // a pic is an unmasked block of pixels, stored in horizontal way
 //
 typedef struct

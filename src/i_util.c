@@ -54,6 +54,7 @@
 #include "i_system.h"
 #include "i_video.h"
 #include "command.h"
+#include "console.h"
 #include "screen.h"
 #include "g_input.h"
 #include "w_wad.h"
@@ -269,7 +270,8 @@ void I_OsPolling(void)
 		}
 	
 		// Translate
-		I_EventToOldDoom(&Event);
+		if (!CONL_HandleEvent(&Event))
+			I_EventToOldDoom(&Event);
 	}
 }
 

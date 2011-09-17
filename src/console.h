@@ -42,6 +42,7 @@
 #include "command.h"
 #include "g_input.h"
 #include "dstrings.h"
+#include "i_util.h"
 
 /****************
 *** CONSTANTS ***
@@ -55,17 +56,18 @@
 bool_t CONL_Init(const uintmax_t a_OutBS, const uintmax_t a_InBS);
 void CONL_Stop(void);
 
-const size_t CONL_PrintV(const bool_t a_InBuf, const char* const a_Format, va_list a_ArgPtr);
-const size_t CONL_UnicodePrintV(const bool_t a_InBuf, const UnicodeStringID_t a_StrID, const char* const a_Format, va_list a_ArgPtr);
+size_t CONL_PrintV(const bool_t a_InBuf, const char* const a_Format, va_list a_ArgPtr);
+size_t CONL_UnicodePrintV(const bool_t a_InBuf, const UnicodeStringID_t a_StrID, const char* const a_Format, va_list a_ArgPtr);
 
-const size_t CONL_OutputF(const char* const a_Format, ...);
-const size_t CONL_InputF(const char* const a_Format, ...);
-const size_t CONL_OutputU(const UnicodeStringID_t a_StrID, const char* const a_Format, ...);
-const size_t CONL_InputU(const UnicodeStringID_t a_StrID, const char* const a_Format, ...);
+size_t CONL_OutputF(const char* const a_Format, ...);
+size_t CONL_InputF(const char* const a_Format, ...);
+size_t CONL_OutputU(const UnicodeStringID_t a_StrID, const char* const a_Format, ...);
+size_t CONL_InputU(const UnicodeStringID_t a_StrID, const char* const a_Format, ...);
 
 /*** Client Drawing ***/
-const bool_t CONL_IsActive(void);
-const bool_t CONL_SetActive(const bool_t a_Set);
+bool_t CONL_IsActive(void);
+bool_t CONL_SetActive(const bool_t a_Set);
+bool_t CONL_HandleEvent(const I_EventEx_t* const a_Event);
 void CONL_Ticker(void);
 void CONL_DrawConsole(void);
 
@@ -75,97 +77,9 @@ void CONL_DrawConsole(void);
 *** CONSTANTS ***
 ****************/
 
-#define CONEX_MAXVARIABLENAME		32					// Size limit of var name
-
 /*****************
 *** STRUCTURES ***
 *****************/
-
-struct CONEx_Console_s;
-
-/* CONEx_Buffer_t -- Extended Console Buffer */
-typedef struct CONEx_Buffer_s
-{
-	/* Circular Buffer Data */
-	char* Buffer;										// Text in buffer
-	size_t BufferSize;									// Size of buffer
-	size_t BufferStart;									// Start of buffer
-	size_t BufferWrite;									// Write position of buffer
-	
-	/* Line Buffer Data */
-	char** Lines;										// Lines in buffer
-	size_t LineSize;									// Size of lines
-	size_t LineStart;									// Start of lines (first line)
-	size_t LineWrite;									// Write position of buffer
-	
-	/* Owner */
-	struct CONEx_Console_s* Parent;						// Parent console
-	void (*WroteLineFunc)(struct CONEx_Console_s* const Parent, struct CONEx_Buffer_s* const This, const char* const Line);
-} CONEx_Buffer_t;
-
-/* CONEx_Command_t -- Console command */
-typedef struct CONEx_Command_s
-{
-	/* Basic */
-	char Name[CONEX_MAXVARIABLENAME];					// Command name
-	uint32_t Hash;										// Hash ID
-	uint32_t Flags;										// Command flags
-	void (*Func)(struct CONEx_Console_s* Console, struct CONEx_Command_s* Command, const int ArgC, const char* const* const ArgV);
-	
-	/* Deprecated */
-	void (*DepFunc)(void);								// Deprecated function
-} CONEx_Command_t;
-
-/* CONEx_Variable_t -- Console variable */
-typedef struct CONEx_Variable_s
-{
-	char Name[CONEX_MAXVARIABLENAME];					// Variable name
-	uint32_t Hash;										// Hash ID
-	uint32_t Flags;										// Command flags
-	void (*Func)(struct CONEx_Console_s* Console, struct CONEx_Variable_s* Command, const int ArgC, const char* const* const ArgV);
-} CONEx_Variable_t;
-
-/* CONEx_VarTypeList_t -- Command/variable union */
-typedef struct CONEx_VarTypeList_s
-{
-	bool_t IsVariable;									// Is this a variable?
-	struct CONEx_VarTypeList_s* Prev;					// Previous link
-	struct CONEx_VarTypeList_s* Next;					// Next link
-	
-	union
-	{
-		CONEx_Command_t Command;						// A command
-		CONEx_Variable_t Variable;						// A variable
-	} Data;
-} CONEx_VarTypeList_t;
-
-/* CONEx_VarTypeHash_t -- Variable and hash holder */
-typedef struct CONEx_VarTypeHash_s
-{
-	CONEx_VarTypeList_t* VarType;						// Associated variable type
-	uint32_t Hash;										// Hash
-} CONEx_VarTypeHash_t;
-
-/* CONEx_Console_t -- Extended console interface */
-typedef struct CONEx_Console_s
-{
-	/* Identification */
-	uint32_t UUID;										// Console ID
-	
-	/* Buffers */
-	CONEx_Buffer_t* Output;								// Text output buffer
-	CONEx_Buffer_t* Command;							// Command buffer
-	
-	/* Commands and variables */
-	CONEx_VarTypeList_t* ComVarList;					// List of commands and variables
-	CONEx_VarTypeHash_t* ComVarHash[256];				// Hash list for variables
-	size_t NumComVarHash[256];							// Number of console variable hashes
-	
-	/* Siblings */
-	struct CONEx_Console_s* Parent;						// Parent console (attachment)
-	struct CONEx_Console_s** Kids;						// Attached consoles
-	size_t NumKids;										// Attached console count
-} CONEx_Console_t;
 
 /**************
 *** GLOBALS ***
@@ -176,32 +90,6 @@ extern bool_t g_QuietConsole;							// Mute startup console
 /****************
 *** FUNCTIONS ***
 ****************/
-
-CONEx_Buffer_t* CONEx_CreateBuffer(const size_t Size);
-void CONEx_DestroyBuffer(CONEx_Buffer_t* const Buffer);
-void CONEx_BufferWrite(CONEx_Buffer_t* const Buffer, const char* const Text);
-
-CONEx_Console_t* CONEx_CreateConsole(void);
-void CONEx_DestroyConsole(CONEx_Console_t* const Console);
-
-CONEx_Console_t* CONEx_GetRootConsole(void);
-CONEx_Console_t* CONEx_GetActiveConsole(void);
-
-void CONEx_AttachConsole(CONEx_Console_t* const ToThis, CONEx_Console_t* const Attacher);
-void CONEx_DetachConsole(CONEx_Console_t* const FromThis, CONEx_Console_t* const Detacher);
-
-CONEx_VarTypeList_t* CONEx_FindComVar(CONEx_Console_t* const Console, const char* const String);
-CONEx_VarTypeList_t* CONEx_FindComVarHash(CONEx_Console_t* const Console, const uint32_t Hash);
-
-uint32_t CONEx_HashString(const char* const Name);
-
-void CONEx_AddCommand(CONEx_Console_t* const Console, const CONEx_Command_t* const Command);
-void CONEx_AddVariable(CONEx_Console_t* const Console, const CONEx_Variable_t* const Variable);
-
-void CONEx_Init(void);
-bool_t CONEx_Responder(event_t* const Event);
-void CONEx_Ticker(void);
-void CONEx_Drawer(void);
 
 /*******************************************************************************
 ********************************************************************************

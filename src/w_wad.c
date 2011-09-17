@@ -1204,7 +1204,7 @@ void *W_CacheRawAsPic(WadIndex_t lump, int width, int height, size_t tag)
 			W_ReadLumpHeader(lump, ((pic_t*)we->Cache[WETYPE_PICT])->data, 0);
 			((pic_t*)we->Cache[WETYPE_PICT])->width = LittleSwapInt16(width);
 			((pic_t*)we->Cache[WETYPE_PICT])->height = LittleSwapInt16(height);
-			((pic_t*)we->Cache[WETYPE_PICT])->mode = PALETTE;
+			((pic_t*)we->Cache[WETYPE_PICT])->mode = 0;
 		}
 		else
 			Z_ChangeTag(we->Cache[WETYPE_PICT], tag);

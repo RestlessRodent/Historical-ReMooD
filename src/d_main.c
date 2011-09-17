@@ -192,12 +192,6 @@ void D_ProcessEvents(void)
 		else if (ev->type == ev_keyup && ev->data1 == KEY_SHIFT)
 			shiftdown = false;
 		
-		// GhostlyDeath <November 2, 2010> -- Only respond to console if menu is not active
-		if (!menuactive)
-			// GhostlyDeath <November 2, 2010> -- Extended console
-			if (CONEx_Responder(ev))
-				continue;
-		
 		// Menu input
 		if (M_Responder(ev))
 			continue;			// menu ate the event
@@ -438,10 +432,7 @@ void D_Display(void)
 	if (menuactive)
 		M_Drawer();
 	else
-	{
-		//CONEx_Drawer();
 		CONL_DrawConsole();
-	}
 	
 	D_SyncNetUpdate();
 	NetUpdate();				// send out any new accumulation

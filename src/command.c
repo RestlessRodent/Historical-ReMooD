@@ -331,78 +331,27 @@ static void COM_TokenizeString(char *text)
 
 }
 
-/* COMEx_DeprCommandFunc() -- Deprecated handler for old command */
-void COMEx_DeprCommandFunc(struct CONEx_Console_s* Console, struct CONEx_Command_s* Command, const int ArgC, const char* const* const ArgV)
-{
-#define BUFSIZE 512
-	size_t i;
-	
-	/* Check */
-	if (!Console || !Command || !ArgC || !ArgV)
-		return;
-	
-	/* Clear old globals */
-	com_argc = 0;
-	com_args = NULL;
-	
-	/* Copy pre-tokenized string */
-	com_argc = ArgC;
-	
-	// Argument string
-	com_args = Z_Malloc(sizeof(char) * BUFSIZE, PU_STATIC, NULL);
-	for (i = 0; i < (ArgC < MAX_ARGS ? ArgC : MAX_ARGS); i++)
-		strncat(com_args, ArgV[i], BUFSIZE - 1);
-	
-	// Arguments
-	for (i = 0; i < (ArgC < MAX_ARGS ? ArgC : MAX_ARGS); i++)
-	{
-		com_argv[i] = Z_Malloc(sizeof(char) * (strlen(ArgV[i]) + 1), PU_STATIC, NULL);
-		strcpy(com_argv[i], ArgV[i]);
-	}
-	
-	/* Call old function */
-	if (Command->DepFunc)
-		Command->DepFunc();
-	
-	/* Cleanup old globals */
-	// Free insides
-	for (i = 0; i < (ArgC < MAX_ARGS ? ArgC : MAX_ARGS); i++)
-	{
-		if (com_argv[i])
-			Z_Free(com_argv[i]);
-		com_argv[i] = NULL;
-	}
-	
-	// NULL out
-	com_argc = 0;
-	
-	if (com_args)
-		Z_Free(com_args);
-	com_args = NULL;
-#undef BUFSIZE
-}
-
 // Add a command before existing ones.
 //
 void COM_AddCommand(char *name, com_func_t func)
 {
 	xcommand_t *cmd;
-	CONEx_Command_t Command;
+	//CONEx_Command_t Command;
 	
 	/* Check */
 	if (!name || !func)
 		return;
 	
 	/* Clear */
-	memset(&Command, 0, sizeof(Command));
+	//memset(&Command, 0, sizeof(Command));
 	
 	/* Set */
-	strncpy(Command.Name, name, CONEX_MAXVARIABLENAME);
-	Command.Func = COMEx_DeprCommandFunc;
-	Command.DepFunc = func;
+	//strncpy(Command.Name, name, CONEX_MAXVARIABLENAME);
+	//Command.Func = COMEx_DeprCommandFunc;
+	//Command.DepFunc = func;
 	
 	/* Send */
-	CONEx_AddCommand(CONEx_GetRootConsole(), &Command);
+	//CONEx_AddCommand(CONEx_GetRootConsole(), &Command);
 
 	// GhostlyDeath <November 10, 2010> -- Deprecated code follows
 		

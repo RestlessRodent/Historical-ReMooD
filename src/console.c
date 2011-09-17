@@ -297,14 +297,6 @@ static void CONLFF_OutputFF(const char* const a_Buf)
 			l_CONLMessageQ[i][j].Flags = VFO_NOSCALEPATCH | VFO_NOSCALESTART | VFO_NOSCALELORES;
 			strncat(l_CONLMessageQ[i][j].Text, Buf, MAXCONLPMQBUFSIZE);
 		}
-	
-	/* Print text */
-	extern bool_t con_started;
-	if (devparm || !con_started)
-	{
-		I_OutputText(a_Buf);
-		I_OutputText("\n");
-	}
 }
 
 /* CONLFF_InputFF() -- Line is flushed from the input buffer */
@@ -345,7 +337,7 @@ void CONL_Stop(void)
 }
 
 /* CONL_RawPrint() -- Prints text directly to buffer */
-const size_t CONL_RawPrint(CONL_BasicBuffer_t* const a_Buffer, const char* const a_Text)
+size_t CONL_RawPrint(CONL_BasicBuffer_t* const a_Buffer, const char* const a_Text)
 {
 #define POSMASK(x) ((x) & a_Buffer->MaskPos)
 #define LINEMASK(x) ((x) & a_Buffer->MaskLine)
@@ -494,7 +486,7 @@ const size_t CONL_RawPrint(CONL_BasicBuffer_t* const a_Buffer, const char* const
 }
 
 /* CONL_PrintV() -- Prints formatted text to buffer */
-const size_t CONL_PrintV(const bool_t a_InBuf, const char* const a_Format, va_list a_ArgPtr)
+size_t CONL_PrintV(const bool_t a_InBuf, const char* const a_Format, va_list a_ArgPtr)
 {
 #define BUFSIZE 512
 	size_t RetVal;
@@ -515,13 +507,13 @@ const size_t CONL_PrintV(const bool_t a_InBuf, const char* const a_Format, va_li
 }
 
 /* CONL_UnicodePrintV() -- Prints localized text to a buffer */
-const size_t CONL_UnicodePrintV(const bool_t a_InBuf, const UnicodeStringID_t a_StrID, const char* const a_Format, va_list a_ArgPtr)
+size_t CONL_UnicodePrintV(const bool_t a_InBuf, const UnicodeStringID_t a_StrID, const char* const a_Format, va_list a_ArgPtr)
 {
 	return 0;
 }
 
 /* CONL_OutputF() -- Prints formatted text to the output buffer */
-const size_t CONL_OutputF(const char* const a_Format, ...)
+size_t CONL_OutputF(const char* const a_Format, ...)
 {
 	size_t RetVal;
 	va_list ArgPtr;
@@ -536,7 +528,7 @@ const size_t CONL_OutputF(const char* const a_Format, ...)
 }
 
 /* CONL_InputF() -- Prints formatted text to the input buffer */
-const size_t CONL_InputF(const char* const a_Format, ...)
+size_t CONL_InputF(const char* const a_Format, ...)
 {
 	size_t RetVal;
 	va_list ArgPtr;
@@ -551,7 +543,7 @@ const size_t CONL_InputF(const char* const a_Format, ...)
 }
 
 /* CONL_OutputU() -- Prints localized text to the output buffer */
-const size_t CONL_OutputU(const UnicodeStringID_t a_StrID, const char* const a_Format, ...)
+size_t CONL_OutputU(const UnicodeStringID_t a_StrID, const char* const a_Format, ...)
 {
 	size_t RetVal;
 	va_list ArgPtr;
@@ -566,7 +558,7 @@ const size_t CONL_OutputU(const UnicodeStringID_t a_StrID, const char* const a_F
 }
 
 /* CONL_InputU() -- Prints localized text to the input buffer */
-const size_t CONL_InputU(const UnicodeStringID_t a_StrID, const char* const a_Format, ...)
+size_t CONL_InputU(const UnicodeStringID_t a_StrID, const char* const a_Format, ...)
 {
 	size_t RetVal;
 	va_list ArgPtr;
@@ -582,16 +574,19 @@ const size_t CONL_InputU(const UnicodeStringID_t a_StrID, const char* const a_Fo
 
 /*** Client Drawing ***/
 /* CONL_IsActive() -- Returns true if the console is active */
-const bool_t CONL_IsActive(void)
+bool_t CONL_IsActive(void)
 {
 	return (l_CONLActive && !menuactive);
 }
 
 /* CONL_SetActive() -- Sets whether the console is active or not */
 // Returns the old flag
-const bool_t CONL_SetActive(const bool_t a_Set)
+bool_t CONL_SetActive(const bool_t a_Set)
 {
-	return false;
+	bool_t Ret;
+	Ret = l_CONLActive;
+	l_CONLActive = a_Set;
+	return Ret;
 }
 
 /* CONL_Ticker() -- Tick the console */
@@ -650,6 +645,51 @@ typedef struct CONL_PlayerMessage_s
 static CONL_PlayerMessage_t l_CONLMessageQ			// Player message queue
 	[MAXSPLITSCREENPLAYERS][MAXCONLPLAYERMQ];
 #endif
+}
+
+/* CONL_HandleEvent() -- Handles extended event for the console */
+bool_t CONL_HandleEvent(const I_EventEx_t* const a_Event)
+{
+	uint8_t Code;
+	uint16_t Char;
+	
+	/* Check */
+	if (!a_Event)
+		return false;
+	
+	/* Only handle keyboard events */
+	if (a_Event->Type != IET_KEYBOARD)
+		return false;
+	
+	// Remember key code and character
+	Code = a_Event->Data.Keyboard.KeyCode;
+	Char = a_Event->Data.Keyboard.Character;
+	
+	/* Console is not active */
+	if (!CONL_IsActive() && (Code == IKBK_TILDE || Code == IKBK_GRAVE))
+	{
+		CONL_SetActive(true);
+		return true;
+	}
+	
+	/* Console is active */
+	else if (CONL_IsActive())
+	{
+		// Deactivate
+		if (Code == IKBK_ESCAPE)
+		{
+			CONL_SetActive(false);
+			return true;
+		}
+		
+		// Handle key presses
+		
+		// Always eat everything
+		return true;
+	}
+	
+	/* Fell through */
+	return false;
 }
 
 /* CONL_DrawConsole() -- Draws the console */
@@ -752,950 +792,6 @@ void CONL_DrawConsole(void)
 **************/
 
 bool_t g_QuietConsole = false;								// Mute startup console
-
-/*************
-*** LOCALS ***
-*************/
-
-/* Root Console */
-CONEx_Console_t* l_RootConsole = NULL;
-
-/* Drawing parms */
-CONEx_Console_t* l_ActiveConsole = NULL;
-bool_t l_ExConsoleOn = false;
-int8_t l_ExConsoleLines = 0;
-void* l_BackPic = NULL;
-bool_t l_BackPicIsPicT = false;
-
-/* Command Control */;
-char l_ExInputBuffer[CON_MAXPROMPTCHARS] = "";
-size_t l_ExInputCursor = 0;
-
-/****************
-*** FUNCTIONS ***
-****************/
-
-/* CONEx_CreateBuffer() -- Creates a buffer of size */
-CONEx_Buffer_t* CONEx_CreateBuffer(const size_t Size)
-{
-	CONEx_Buffer_t* Temp;
-	
-	/* Check */
-	if (Size < 1024)
-		return CONEx_CreateBuffer(1024);	// Recursive fix
-		
-	/* Allocate */
-	Temp = Z_Malloc(sizeof(CONEx_Buffer_t), PU_STATIC, NULL);
-	
-	if (!Temp)
-		return NULL;
-	
-	/* Clear */
-	memset(Temp, 0, sizeof(CONEx_Buffer_t));
-	
-	/* Create mini buffers */
-	// Sizes
-	Temp->BufferSize = Size;
-	Temp->LineSize = (((Size >> 4) < 500) ? (Size >> 4) : 500);
-	
-	// Allocate
-	Temp->Buffer = Z_Malloc(sizeof(char) * Temp->BufferSize, PU_STATIC, NULL);
-	Temp->Lines = Z_Malloc(sizeof(char*) * Temp->LineSize, PU_STATIC, NULL);
-	
-	// Check
-	if (!Temp->Buffer || !Temp->Lines)
-	{
-		if (Temp->Buffer)
-			Z_Free(Temp->Buffer);
-		if (Temp->Lines)
-			Z_Free(Temp->Lines);
-		Z_Free(Temp);
-		return NULL;
-	}
-	
-	/* Return */
-	return Temp;
-}
-
-/* CONEx_DestroyBuffer() -- Destroys a buffer */
-void CONEx_DestroyBuffer(CONEx_Buffer_t* const Buffer)
-{
-	char* Former;
-	char** Former2;
-	
-	/* Check */
-	if (!Buffer)
-		return;
-	
-	/* Free data */
-	// Remember former (in case Z_Free uses this buffer!)
-	Former = Buffer->Buffer;
-	Buffer->Buffer = NULL;
-	if (Former)
-		Z_Free(Former);
-		
-	Former2 = Buffer->Lines;
-	Buffer->Lines = NULL;
-	if (Former2)
-		Z_Free(Former2);
-	
-	/* Clear */
-	memset(Buffer, 0, sizeof(CONEx_Buffer_t));
-	
-	/* Free self */
-	Z_Free(Buffer);
-}
-
-/* CONEx_BufferWrite() -- Write to a buffer */
-void CONEx_BufferWrite(CONEx_Buffer_t* const Buffer, const char* const Text)
-{
-	const char* p;
-	size_t LastLine;
-	
-	/* Check */
-	if (!Buffer || !Text)
-		return;
-	
-	/* Set */
-	p = Text;
-	
-	/* Loop write into buffer */
-	while (*p)
-	{
-		// Current line is empty
-		if (!Buffer->Lines[Buffer->LineWrite])
-			Buffer->Lines[Buffer->LineWrite] = &Buffer->Buffer[Buffer->BufferWrite];
-		
-		// Write to current buffer position
-		Buffer->Buffer[Buffer->BufferWrite++] = *p;
-		
-		// Reached end of buffer?
-		if (Buffer->BufferWrite == Buffer->BufferSize)
-			Buffer->BufferWrite = 0;
-		
-		// Ensure zero
-		Buffer->Buffer[Buffer->BufferWrite] = 0;
-		
-		// Write position hit start position
-		if (Buffer->BufferWrite == Buffer->BufferStart)
-			Buffer->BufferStart++;
-		
-		// Start is at end of buffer
-		if (Buffer->BufferStart == Buffer->BufferSize)
-			Buffer->BufferStart = 0;
-		
-		// Newline?
-		if (*p == '\n')
-		{
-			// Increase written line
-			LastLine = Buffer->LineWrite++;
-			
-			// Write hit end?
-			if (Buffer->LineWrite == Buffer->LineSize)
-				Buffer->LineWrite = 0;
-			
-			// Write hit start?
-			if (Buffer->LineWrite == Buffer->LineStart)
-				Buffer->LineStart++;
-			
-			// Start hit end?
-			if (Buffer->LineStart == Buffer->LineSize)
-				Buffer->LineStart = 0;
-			
-			// Ensure NULL
-			Buffer->Lines[Buffer->LineWrite] = NULL;
-			
-			// Execute line
-			if (Buffer->WroteLineFunc)
-				Buffer->WroteLineFunc(Buffer->Parent, Buffer, Buffer->Lines[LastLine]);
-		}
-		
-		// Carriage return?
-		else if (*p == '\r')
-		{
-			// If the current line is non-null (that is a line with text)
-			if (Buffer->Lines[Buffer->LineWrite])
-				// Move write position to start
-				Buffer->BufferWrite = Buffer->Lines[Buffer->LineWrite] - Buffer->Buffer;
-		}
-		
-		// Increment p
-		p++;
-	}
-}
-
-/* CONEx_CreateConsole() -- Create a new console */
-CONEx_Console_t* CONEx_CreateConsole(void)
-{
-	static uint32_t BaseUUID;
-	CONEx_Console_t* Temp;
-	
-	/* Allocate */
-	Temp = Z_Malloc(sizeof(CONEx_Console_t), PU_STATIC, NULL);
-	
-	if (!Temp)
-		return NULL;
-	
-	/* Clear */
-	memset(Temp, 0, sizeof(CONEx_Console_t));
-	
-	/* Create buffers */
-	Temp->Output = CONEx_CreateBuffer(CON_BUFFERSIZE);
-	Temp->Command = CONEx_CreateBuffer(CON_BUFFERSIZE);
-	
-	// Set parent
-	if (Temp->Output)
-		Temp->Output->Parent = Temp;
-	
-	// Set parent
-	if (Temp->Command)
-		Temp->Command->Parent = Temp;
-	
-	/* Settings */
-	Temp->UUID = ++BaseUUID;
-	
-	return Temp;
-}
-
-/* CONEx_DestroyConsole() -- Destroys a console */
-void CONEx_DestroyConsole(CONEx_Console_t* const Console)
-{
-	size_t i;
-	
-	/* Check */
-	if (!Console)
-		return;
-	
-	/* First detach all child consoles */
-	while (Console->NumKids)
-		CONEx_DetachConsole(Console, Console->Kids[0]);
-	
-	/* Destroy buffers */
-	// Output
-	if (Console->Output)
-		CONEx_DestroyBuffer(Console->Output);
-	Console->Output = NULL;
-	
-	// Commands
-	if (Console->Command)
-		CONEx_DestroyBuffer(Console->Command);
-	Console->Command = NULL;
-	
-	/* Free self */
-	Z_Free(Console);
-}
-
-/* CONEx_GetRootConsole() -- Return root console */
-CONEx_Console_t* CONEx_GetRootConsole(void)
-{
-	return l_RootConsole;
-}
-
-/* CONEx_GetActiveConsole() -- Get the current active console */
-CONEx_Console_t* CONEx_GetActiveConsole(void)
-{
-	return l_ActiveConsole;
-}
-
-/* CONEx_FindComVar() -- Find variable by name */
-CONEx_VarTypeList_t* CONEx_FindComVar(CONEx_Console_t* const Console, const char* const String)
-{
-	/* Check */
-	// Basic
-	if (!Console || !String)
-		return;
-	
-	// Sanity
-	if (strlen(String) >= CONEX_MAXVARIABLENAME)
-		return;
-	
-	/* Return */
-	return CONEx_FindComVarHash(Console, CONEx_HashString(String));
-}
-
-/* CONEx_FindComVarHash() -- Find command or variable by hash */
-CONEx_VarTypeList_t* CONEx_FindComVarHash(CONEx_Console_t* const Console, const uint32_t Hash)
-{
-	CONEx_VarTypeList_t* Rover;
-	
-	/* Check */
-	if (!Console)
-		return;
-	
-	/* Search Hash List */
-	
-	/* Long search since the hash list failed us? */
-	for (Rover = Console->ComVarList; Rover; Rover = Rover->Next)
-	{
-		// Command?
-		if (!Rover->IsVariable)
-			if (Rover->Data.Command.Hash == Hash)
-				return Rover;
-			else
-				continue;
-		
-		// Variable?
-		else
-			if (Rover->Data.Variable.Hash == Hash)
-				return Rover;
-			else
-				continue;
-	}
-	
-	/* Failed */
-	return NULL;
-}
-
-/* CONEx_HashString() -- Converts string to a hashcode */
-uint32_t CONEx_HashString(const char* const Name)
-{
-	size_t i, n;
-	uint32_t Ret = 0;
-	
-	/* Check */
-	if (!Name)
-		return 0;
-	
-	/* Hash */
-	n = strlen(Name);
-	for (i = 0; i < n; i++)
-		Ret ^= (uint32_t)((toupper(Name[i]) - 32) & 0x3F) << (6 * (i % 5));
-	
-	// Don't make zero hashes
-	if (!Ret)
-		Ret++;
-	
-	/* Return */
-	return Ret;
-}
-
-/* CONEx_AddCommand() -- Add command to the console */
-void CONEx_AddCommand(CONEx_Console_t* const Console, const CONEx_Command_t* const Command)
-{
-	uint32_t Hash;
-	uint8_t HashBit;
-	CONEx_VarTypeList_t* New;
-	
-	/* Check */
-	// Basic
-	if (!Console || !Command)
-		return;
-	
-	// Sanity
-	if (!strlen(Command->Name) || strlen(Command->Name) >= CONEX_MAXVARIABLENAME || !Command->Func)
-		return;
-		
-	/* Search console for existing command or variable */
-	if (CONEx_FindComVar(Console, Command->Name))
-		return;
-	
-	/* Allocate */
-	New = Z_Malloc(sizeof(CONEx_VarTypeList_t), PU_STATIC, NULL);
-	
-	/* Copy Data */
-	strncpy(New->Data.Command.Name, Command->Name, CONEX_MAXVARIABLENAME);
-	New->Data.Command.Hash = CONEx_HashString(New->Data.Command.Name);
-	New->Data.Command.Flags = Command->Flags;
-	New->Data.Command.Func = Command->Func;
-	New->Data.Command.DepFunc = Command->DepFunc;
-	
-	/* Link to console */
-	if (!Console->ComVarList)
-		Console->ComVarList = New;
-	else
-	{
-		// Link to start
-		New->Next = Console->ComVarList;
-		New->Next->Prev = New;
-		Console->ComVarList = New;
-		
-		// Add to hash list
-		HashBit = New->Data.Command.Hash & 0xFF;
-	}
-}
-
-/* CONEx_AddVariable() -- Add variable to the console */
-void CONEx_AddVariable(CONEx_Console_t* const Console, const CONEx_Variable_t* const Variable)
-{
-}
-
-/* CONEx_AttachConsole() -- Attach sub console to another console */
-void CONEx_AttachConsole(CONEx_Console_t* const ToThis, CONEx_Console_t* const Attacher)
-{
-	/* Check */
-	if (!ToThis || !Attacher)
-		return;
-}
-
-/* CONEx_DetachConsole() -- Detach sub console from another console */
-void CONEx_DetachConsole(CONEx_Console_t* const FromThis, CONEx_Console_t* const Detacher)
-{
-	/* Check */
-	if (!FromThis || !Detacher)
-		return;
-}
-
-/* CONEx_CorrectChar() -- Correct Character */
-static char CONEx_CorrectChar(int EventKey)
-{
-	switch (EventKey)
-	{
-		case KEY_EQUALS:
-			return '=';
-		
-		case KEY_MINUS:
-			return '-';
-			
-			// Fallback
-		default:
-			if (EventKey >= 0x20 && EventKey <= 0x7F)
-				return EventKey;
-			return 0;
-	}
-};
-
-/* CONEx_Responder() -- Respond to active console */
-bool_t CONEx_Responder(event_t* const Event)
-{
-	static bool_t ShiftDown;
-	char MBIn[5];
-	char c;
-	size_t len;
-	
-	/* Check */
-	if (!Event || !l_RootConsole)
-		return false;
-	
-	/* Check shift */
-	if (Event->type == ev_keydown && Event->data1 == KEY_SHIFT)
-		ShiftDown = 1;
-	else if (Event->type == ev_keyup && Event->data1 == KEY_SHIFT)
-		ShiftDown = 0;
-	
-	/* Disabled console */
-	if (!l_ExConsoleOn)
-	{
-		if (Event->type == ev_keydown)
-		{
-			// Console key shuts down console
-			if (Event->data1 == gamecontrol[0][gc_console][0] ||
-				Event->data1 == gamecontrol[0][gc_console][1])
-			{
-				l_ExConsoleOn = true;
-				return true;
-			}
-		}
-	}
-	
-	/* Enabled console */
-	else
-	{
-		if (Event->type == ev_keydown)
-		{
-			// Console key shuts down console
-			if (Event->data1 == gamecontrol[0][gc_console][0] ||
-				Event->data1 == gamecontrol[0][gc_console][1])
-			{
-				l_ExConsoleOn = false;
-				return true;
-			}
-		
-			// Based on key
-			switch (Event->data1)
-			{
-					// Backspace multibyte characters
-				case KEY_BACKSPACE:
-					len = strlen(l_ExInputBuffer);
-					
-					if (!(l_ExInputBuffer[len - 1] & 0x80))		// Single
-						l_ExInputBuffer[len - 1] = 0;
-					else							// Multi
-						do
-						{
-							c = l_ExInputBuffer[len - 1];
-							l_ExInputBuffer[len - 1] = 0;
-							len--;
-						} while (len > 1 && (c & 0xC0) != 0xC0);
-					return true;
-					
-					// Enter command
-				case KEY_ENTER:
-					// Only if it has length
-					if (!strlen(l_ExInputBuffer))
-						return true;
-					
-					// Send to write of active console
-					if (l_ActiveConsole->Command)
-					{
-						// Append \n at end
-						strncat(l_ExInputBuffer, "\n", CON_MAXPROMPTCHARS);
-						
-						// Dirty hack \n at end
-						l_ExInputBuffer[CON_MAXPROMPTCHARS - 1] = 0;
-						l_ExInputBuffer[CON_MAXPROMPTCHARS - 2] = '\n';
-						
-						// Write to command buffer
-						CONEx_BufferWrite(l_ActiveConsole->Command, l_ExInputBuffer);
-					}
-					
-					// Clear
-					memset(l_ExInputBuffer, 0, sizeof(l_ExInputBuffer));
-					return true;
-					
-					// Close console
-				case KEY_ESCAPE:
-					l_ExConsoleOn = false;
-					return true;
-					
-				default:
-					break;
-			}
-		
-			// Unicode handled input (recommended)
-			if (Event->typekey)
-			{
-				// Convert to multibyte
-				V_ExtWCharToMB(Event->typekey, MBIn);
-		
-				// Add to buffer
-				strncat(l_ExInputBuffer, MBIn, CON_MAXPROMPTCHARS);
-				
-				return true;
-			}
-			
-			// ASCII handled input (not recommended for foreigners)
-			else if (CONEx_CorrectChar(Event->data1) >= 0x20 && CONEx_CorrectChar(Event->data1) <= 0x7E)
-			{
-				if (ShiftDown)
-					MBIn[0] = shiftxform[CONEx_CorrectChar(Event->data1)];
-				else
-					MBIn[0] = CONEx_CorrectChar(Event->data1);
-				MBIn[1] = 0;
-				
-				strncat(l_ExInputBuffer, MBIn, CON_MAXPROMPTCHARS);
-				
-				return true;
-			}
-		}
-	}
-	
-	/* Not handled so return */
-	return false;
-}
-
-/* CONEx_Ticker() -- Tick primary console */
-void CONEx_Ticker(void)
-{
-	/* Check */
-	if (!l_RootConsole)
-		return;
-	
-	/* No active console? */
-	if (!l_ActiveConsole)
-		l_ActiveConsole = l_RootConsole;
-	
-	/* Console off? */
-	if (!l_ExConsoleOn)
-	{
-		// Draw console up
-		if (l_ExConsoleLines > 0)
-			l_ExConsoleLines--;
-	}
-	
-	/* Console on? */
-	else
-	{
-		// Draw console down
-		if (l_ExConsoleLines < 25)
-			l_ExConsoleLines++;
-	}
-}
-
-/* CONEx_Drawer() -- Draw current console */
-void CONEx_Drawer(void)
-{
-#define BUFSIZE 512
-	int32_t BottomCon, w, h;
-	char Buf[BUFSIZE];
-	char* b;
-	char* Line;
-	size_t MBSkip;
-	int n, m, k, i, j, z;
-	uint32_t ColorBits;
-	int8_t ConsoleLines;
-	bool_t DoPrompt;
-	bool_t FadeBack;
-	
-	/* Check */
-	if (!l_RootConsole)
-		return;
-		
-	/* No active console? */
-	if (!l_ActiveConsole)
-		l_ActiveConsole = l_RootConsole;
-	
-	/* Console off? -- draw last few lines as hud text */
-	if (!l_ExConsoleOn && !con_startup)
-	{
-		// Get height of small font
-		h = V_FontHeight(VFONT_SMALL);
-		w = V_FontWidth(VFONT_SMALL);
-		
-		// Draw last lines in buffer
-		if (l_ActiveConsole && l_ActiveConsole->Output && l_ActiveConsole->Output->Lines)
-			//for (i = 1, n = 5; n >= 0; n--, i++)
-			for (i = 1, n = 0; n < 5; n++, i++)
-			{
-				// Get line
-				j = l_ActiveConsole->Output->LineWrite - i;
-				
-				while (j < 0)	// Don't allow below zero
-					j += l_ActiveConsole->Output->LineSize;
-				while (j >= l_ActiveConsole->Output->LineSize)	// Don't allow above size
-					j -= l_ActiveConsole->Output->LineSize;
-				
-				Line = l_ActiveConsole->Output->Lines[j];
-				ColorBits = 0;
-				
-				// No line?
-				if (!Line)
-					break;
-				
-				b = Line;
-				for (MBSkip = 1, m = 0, b = Line; *b && *b != '\n'; b += MBSkip, m++)
-				{
-					// Standard White Value
-					if (*b == 0x02)
-					{
-						ColorBits = VEX_MAP_WHITE;
-						MBSkip = 1;
-					}
-					
-					// Beep (but don't beep, just blink)
-					else if (*b == 0x03)
-					{
-						ColorBits = ((gametic & 0x08) ? VEX_MAP_WHITE : 0);
-						MBSkip = 1;
-					}
-					
-					// Draw character
-					else
-						V_DrawCharacterMB(
-								VFONT_SMALL,
-								VFO_NOSCALEPATCH | VFO_NOSCALESTART | VFO_NOSCALELORES,
-								b,
-								4 + (w * m),
-								(-(i - 5)) * h,
-								&MBSkip,
-								NULL
-							);
-				}
-			}
-	}
-	
-	/* Console on? -- draw background */
-	else
-	{
-		// Force full lines when starting
-		if (con_startup)
-		{
-			ConsoleLines = (vid.height / V_FontHeight(VFONT_SMALL)) + 1;
-			DoPrompt = false;
-			FadeBack = false;
-		}
-		
-		// Normal operation
-		else
-		{
-			ConsoleLines = l_ExConsoleLines;
-			DoPrompt = true;
-			FadeBack = true;
-		}
-		
-		// Find bottom of console
-		BottomCon = ConsoleLines * V_FontHeight(VFONT_SMALL);
-		
-		// Draw background (either fade or image)
-		if (FadeBack)
-			V_DrawFadeConsBackEx(
-					(VEX_MAP_RED << VEX_COLORMAPSHIFT) | VEX_NOSCALESTART | VEX_NOSCALESCREEN,
-					0,
-					0,
-					vid.width, BottomCon
-				);
-		// Draw as pic_t
-		else if (l_BackPicIsPicT)
-			V_BlitScalePicExtern(0, 0, 0, l_BackPic);
-			
-		// Draw as patch_t
-		else
-		{
-			// TODO
-		}
-		
-		// Draw ReMooD version
-		V_StringDimensionsA(VFONT_OEM, VFO_NOSCALESTART | VFO_NOSCALEPATCH, REMOOD_FULLVERSIONSTRING, &w, &h);
-		
-		if (BottomCon - h - 4 > 0)
-			V_DrawStringA(
-					VFONT_OEM,
-					VEX_MAP_ORANGE | VFO_NOSCALESTART | VFO_NOSCALEPATCH,
-					REMOOD_FULLVERSIONSTRING,
-					vid.width - w - 4,
-					BottomCon - h - 4
-				);
-		
-		// If console startup and we aren't devparming, don't draw text at all
-		if (con_startup && (!devparm || g_QuietConsole))
-		{
-			// Just say "LOADING..."
-			V_DrawStringA(VFONT_LARGE, VFO_CENTERED, "Loading...", 160, 100);
-			return;
-		}
-			
-		// Get height of small font
-		h = V_FontHeight(VFONT_SMALL);
-		w = V_FontWidth(VFONT_SMALL);
-		
-		// Draw last lines in buffer
-		if (l_ActiveConsole && l_ActiveConsole->Output && l_ActiveConsole->Output->Lines)
-			for (i = 1, n = ConsoleLines - 4; n >= 0; n--, i++)
-			{
-				// Get line
-				j = l_ActiveConsole->Output->LineWrite - i;
-				
-				while (j < 0)	// Don't allow below zero
-					j += l_ActiveConsole->Output->LineSize;
-				while (j >= l_ActiveConsole->Output->LineSize)	// Don't allow above size
-					j -= l_ActiveConsole->Output->LineSize;
-				
-				Line = l_ActiveConsole->Output->Lines[j];
-				ColorBits = 0;
-				
-				// No line?
-				if (!Line)
-					break;
-				
-				b = Line;
-				for (MBSkip = 1, m = 0, b = Line; *b && *b != '\n'; b += MBSkip, m++)
-				{
-					// Standard White Value
-					if (*b == 0x02)
-					{
-						ColorBits = VEX_MAP_WHITE;
-						MBSkip = 1;
-					}
-					
-					// Beep (but don't beep, just blink)
-					else if (*b == 0x03)
-					{
-						ColorBits = ((gametic & 0x08) ? VEX_MAP_WHITE : 0);
-						MBSkip = 1;
-					}
-					
-					// Draw character
-					else
-						V_DrawCharacterMB(
-								VFONT_SMALL,
-								VFO_NOSCALEPATCH | VFO_NOSCALESTART | VFO_NOSCALELORES,
-								b,
-								4 + (w * m),
-								(n + 1) * h,
-								&MBSkip,
-								NULL
-							);
-				}
-			}
-		
-		// Everything after is prompt
-		if (!DoPrompt)
-			return;
-		
-		// Draw current command buffer
-		if (BottomCon - h - 4 > 0)
-		{
-			// Draw dollar prompt
-			n = V_DrawStringA(
-						VFONT_SMALL,
-						VEX_MAP_ORANGE | VFO_NOSCALEPATCH | VFO_NOSCALESTART | VFO_NOSCALELORES,
-						"$ ",
-						0,
-						BottomCon - h - 4
-					);
-			
-			// Draw input buffer
-			for (MBSkip = 1, m = 0, b = l_ExInputBuffer; *b; b += MBSkip, m++)
-			{
-				// Draw input character
-				k = V_DrawCharacterMB(
-						VFONT_SMALL,
-						VEX_MAP_ORANGE | VFO_NOSCALEPATCH | VFO_NOSCALESTART | VFO_NOSCALELORES,
-						b,
-						n,
-						BottomCon - h - 4,
-						&MBSkip,
-						NULL
-					);
-				
-				// Increment now
-				n += k;
-			
-				// Just in case
-				if (!MBSkip)
-					MBSkip = 1;
-			}
-		
-			// Draw cursor
-			if ((gametic & 0x10))
-				V_DrawCharacterMB(
-						VFONT_SMALL,
-						VEX_MAP_WHITE | VFO_NOSCALEPATCH | VFO_NOSCALESTART | VFO_NOSCALELORES,
-						"_",
-						n,
-						BottomCon - h - 4,
-						NULL,
-						NULL
-					);
-		}
-	}
-#undef BUFSIZE
-}
-
-/* CONS_ConExtended_f() -- Old interface to access new console */
-void CONS_ConExtended_f(void)
-{
-	/* Shutdown old console */
-	consoletoggle = true;
-	
-	/* Startup extended console */
-	l_ExConsoleOn = true;
-}
-
-/* CONEx_CommandWriteLine() -- Default action when line is written to execution buffer */
-void CONEx_CommandWriteLine(struct CONEx_Console_s* const Parent, struct CONEx_Buffer_s* const This, const char* const Line)
-{
-#define BUFSIZE 512
-	size_t i, j, k;
-	int Quoted = 0;
-	char* q;
-	int ArgC = 0;
-	char** ArgV = NULL;
-	CONEx_VarTypeList_t* Found = NULL;
-	
-	/* Check */
-	if (!Parent || !This || !Line)
-		return;
-	
-	/* Tokenize command */
-	// Get ArgC and ArgV
-	ArgC = j = k = 0;
-	ArgV = NULL;
-	Quoted = 0;
-	
-	// Create ArgV
-	ArgV = Z_Malloc(sizeof(char*) * BUFSIZE, PU_STATIC, NULL);
-	
-	q = Line;
-	while (*q && *q != '\n')
-	{
-		// If we hit a whitespace character in non-quoted mode
-		// then we make some more args.
-		if (!Quoted && (*q == ' ' || *q == '\t'))
-		{
-			// Only bother if the current argv has something
-			if (ArgV[j])
-				j++;
-			
-			// Hit arg limit?
-			if (j == BUFSIZE - 1)
-				break;
-		}
-		
-		// normal
-		else
-		{
-			// Start quoting
-			if (!Quoted && *q == '\"')
-				Quoted = *q;
-			
-			// End quoting
-			else if (Quoted == *q)
-				Quoted = 0;
-			
-			// Write into ArgV
-			else
-			{
-				// If no ArgV exists, create it
-				if (!ArgV[j])
-				{
-					ArgV[j] = Z_Malloc(sizeof(char) * BUFSIZE, PU_STATIC, NULL);
-					k = 0;
-				}
-				
-				// Fill in buffer
-				if (k < BUFSIZE)
-					ArgV[j][k++] = *q;
-			}
-		}
-		
-		// Increment
-		q++;
-	}
-	
-	ArgC = j + (ArgV[j] != NULL ? 1 : 0);
-	
-	/* Find command */
-	Found = CONEx_FindComVar(Parent, ArgV[0]);
-	
-	// Execute if found, there is no unterminated quote, arguments exist, and first argument exists
-	if (Found && !Quoted && ArgV && ArgV[0])
-	{
-		// Command?
-		if (!Found->IsVariable)
-			Found->Data.Command.Func(Parent, &Found->Data.Command, ArgC, (const char* const* const)ArgV);
-		
-		// Variable?
-		else
-		{
-		}
-	}
-	
-	/* Cleanup */
-	if (ArgV)
-	{
-		// Free members
-		for (i = 0; i < ArgC; i++)
-		{
-			if (ArgV[i])
-				Z_Free(ArgV[i]);
-			ArgV[i] = 0;
-		}
-		
-		// Free holder
-		Z_Free(ArgV);
-	}
-	ArgV = NULL;
-
-#undef BUFSIZE
-}
-
-/* CONEx_Init() -- Initialize extended console */
-void CONEx_Init(void)
-{
-	/* Create root console */
-	l_RootConsole = CONEx_CreateConsole();
-	l_RootConsole->Command->WroteLineFunc = CONEx_CommandWriteLine;
-	
-	/* Make Pictures */
-	if (!l_BackPic)
-	{
-		// Cache
-		l_BackPic = W_CacheLumpName("RMD_CB_D", PU_STATIC);
-		
-		// Determine if it's pic_t or not...
-		l_BackPicIsPicT = true;	// TODO
-	}
-}
 
 /***************************
 *** DEPRECATED FUNCTIONS ***
@@ -1904,9 +1000,6 @@ void CON_SetupBackColormap(void)
 void CON_Init(void)
 {
 	int i;
-	
-	// GhostlyDeath <November 2, 2010> -- Extended console
-	CONEx_Init();
 
 	if (dedicated)
 		return;
@@ -1957,7 +1050,7 @@ void CON_Init(void)
 	con_startup = true;			// need explicit screen refresh
 	// until we are in Doomloop
 	
-	COM_AddCommand("conextended", CONS_ConExtended_f);
+	//COM_AddCommand("conextended", CONS_ConExtended_f);
 }
 
 //  Console input initialization
@@ -2109,10 +1202,6 @@ void CONS_Printf(char *fmt, ...)
 		if (!devparm)
 			return;
 	}
-
-	// GhostlyDeath <November 2, 2010> -- CONS_Printf is global to extended console
-	if (l_RootConsole)
-		CONEx_BufferWrite(l_RootConsole->Output, txt);
 	
 	// GhostlyDeath <September 10, 2011> -- Write to light console
 	CONL_RawPrint(&l_CONLBuffers[0], txt);
@@ -2138,7 +1227,6 @@ void CONS_Printf(char *fmt, ...)
 		// GhostlyDeath <November 4, 2010> -- If we aren't devparming, draw once
 		if ((devparm && !g_QuietConsole) || ((!devparm || g_QuietConsole) && !AlreadyDrawn))
 		{
-			CONEx_Drawer();
 			CONL_DrawConsole();
 		
 			//CON_Drawer();

@@ -319,7 +319,6 @@ void NetUpdate(void)
 
 	M_Ticker();
 	CONL_Ticker();
-	CONEx_Ticker();
-	CON_Ticker();
+	//CON_Ticker();
 }
 
