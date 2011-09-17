@@ -207,7 +207,7 @@ typedef enum VEX_TransparencyList_e
 	VEX_TRANS90,								// 90%
 	
 	VEX_TRANSFULL,								// Invisible
-	VEX_TRANSFIRE,
+	VEX_TRANSFIRE,								// Bright Effect
 	VEX_TRANSFX1,
 	
 	NUMVEXTRANSPARENCIES,

@@ -968,7 +968,7 @@ static void R_ProjectSprite(mobj_t * thing)
 	else
 	{
 		if (thing->frame & FF_TRANSMASK)
-			vis->transmap = (thing->frame & FF_TRANSMASK) - 0x10000 + transtables;
+			vis->transmap = transtables + (((thing->frame & FF_TRANSMASK) >> FF_TRANSSHIFT) * 0x10000);
 		else if (thing->flags & MF_SHADOW)
 			// actually only the player should use this (temporary invisibility)
 			// because now the translucency is set through FF_TRANSMASK
