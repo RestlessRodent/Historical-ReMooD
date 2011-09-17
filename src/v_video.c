@@ -2338,6 +2338,24 @@ static uint16_t V_MBToWChar(const char* MBChar, size_t* const BSkip)
 				
 				return Feed;
 			}
+			
+			// Is it another {? semi-scape
+			else if (n > 2 && *MBChar == '{')
+			{
+				MBChar++;
+				Feed = tolower(*MBChar);
+				
+				// Between 0-9 a-z?
+				if ((Feed >= '0' && Feed <= '9') || (Feed >= 'a' && Feed <= 'z'))
+				{
+					// Skip to letter after
+					if (BSkip)
+						*BSkip = 2;
+					
+					// Return explicit '{'
+					return '{';
+				}
+			}
 		}
 		
 		// Normal	

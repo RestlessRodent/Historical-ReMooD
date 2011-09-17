@@ -70,6 +70,10 @@
 #include <unistd.h>
 #endif
 
+/****************
+*** CONSTANTS ***
+****************/
+
 /*****************
 *** STRUCTURES ***
 *****************/
@@ -100,6 +104,8 @@ typedef struct CONL_PlayerMessage_s
 {
 	uint32_t Flags;									// Flags for this message
 	char* Text;										// Message Text
+	uint32_t Timeout;								// When the message times out
+	uint8_t Priority;								// Priority of the message
 } CONL_PlayerMessage_t;
 
 /*************
@@ -507,7 +513,7 @@ void CONL_DrawConsole(void)
 	{
 	}
 
-#define YAYTEXT "{0Y{1a{2y {3C{4o{5l{6o{7r{8s{9!{a!{b!{c!{d1{e1{f#"
+#define YAYTEXT "{{1X {{{2Y {{{{3Z {0Y{1a{2y {3C{4o{5l{6o{7r{8s{9!{a!{b!{c!{d1{e1{f#"
 	V_DrawStringA(VFONT_SMALL, 0, YAYTEXT, 100, 80);
 	V_DrawStringA(VFONT_LARGE, 0, YAYTEXT, 100, 100);
 	V_DrawStringA(VFONT_STATUSBARSMALL, 0, YAYTEXT, 100, 120);
