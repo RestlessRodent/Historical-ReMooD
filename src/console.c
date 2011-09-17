@@ -74,6 +74,10 @@
 *** CONSTANTS ***
 ****************/
 
+#define MAXCONLPLAYERMQ		5						// Max messages in player queue
+#define DEFPRCONLPLAYERMQ	127						// Default priority in queue
+#define DEFTOCONPLAYERMQ	4000					// Default timeout in queue
+
 /*****************
 *** STRUCTURES ***
 *****************/
@@ -114,6 +118,8 @@ typedef struct CONL_PlayerMessage_s
 
 static bool_t l_CONLActive = false;					// Console active?
 static CONL_BasicBuffer_t l_CONLBuffers[2];			// Input/Output Buffer
+static CONL_PlayerMessage_t l_CONLMessageQ			// Player message queue
+	[MAXSPLITSCREENPLAYERS][MAXCONLPLAYERMQ];
 
 /****************
 *** FUNCTIONS ***
@@ -202,7 +208,24 @@ static void CONLFF_OutputFF(const char* const a_Buf)
 	/* Parse string */
 	for (p = a_Buf; *p; p++)
 	{
+		// Annoying beep?
+		if (*p == 1 || *p == 3)
+			S_StartSound(0, (commercial ? sfx_radio : sfx_tink));
 	}
+
+#if 0
+/* CONL_PlayerMessage_t -- Message for player */
+typedef struct CONL_PlayerMessage_s
+{
+	uint32_t Flags;									// Flags for this message
+	char* Text;										// Message Text
+	uint32_t Timeout;								// When the message times out
+	uint8_t Priority;								// Priority of the message
+} CONL_PlayerMessage_t;
+
+static CONL_PlayerMessage_t l_CONLMessageQ			// Player message queue
+	[MAXSPLITSCREENPLAYERS][MAXCONLPLAYERMQ];
+#endif
 	
 	/* Print text */
 	extern bool_t con_started;
