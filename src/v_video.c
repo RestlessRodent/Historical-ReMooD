@@ -1312,7 +1312,7 @@ void V_DrawFadeConsBackEx(const uint32_t Flags, const int x1, const int y1, cons
 // GhostlyDeath <March 3, 2011> -- Take V_DrawPatchEx() from NewReMooD (improved version)
 void V_DrawPatchEx(const uint32_t Flags, const int x, const int y, const patch_t* const Patch, const uint8_t* const ExtraMap)
 {
-	int X, Y, Count, ColNum, ColLimit, vW, Off;
+	int X, 	Y, Count, ColNum, ColLimit, vW, Off;
 	fixed_t RowFrac, ColFrac, Col, Width, Offset, DupX, DupY;
 	column_t* Column;
 	uint8_t* Dest;
@@ -1415,11 +1415,21 @@ void V_DrawPatchEx(const uint32_t Flags, const int x, const int y, const patch_t
 	{
 		Col = Width - FRACUNIT;			// Start at end
 		ColFrac = -ColFrac;				// Reverse column frac
+		
+		// GhostlyDeath <September 17, 2011> -- Don't run off screen (overflow wrap around)
+		if ((X + (Width >> FRACBITS)) < 0)
+			return;
 	}
 	
 	// Without horizontal flipping
 	else
+	{
 		Col = 0;						// Start at beginning
+		
+		// GhostlyDeath <September 17, 2011> -- Don't run off screen (overflow wrap around)
+		if ((X + (Width >> FRACBITS)) >= vid.width)
+			return;
+	}
 	
 	// With vertical flipping
 	if (Flags & VEX_VERTFLIPPED)
