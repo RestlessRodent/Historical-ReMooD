@@ -1216,9 +1216,9 @@ void V_DrawFadeConsBackEx(const uint32_t Flags, const int x1, const int y1, cons
 {
 	int X1, Y1, X2, Y2;
 	int x, y, i, w;
-	int* buf;
-	int* buf2;
-	int c;
+	uint8_t* buf;
+	uint32_t* buf2;
+	uint32_t c;
 	uint8_t* Map;
 	
 	/* Flags */
@@ -1272,7 +1272,7 @@ void V_DrawFadeConsBackEx(const uint32_t Flags, const int x1, const int y1, cons
 	if (((Flags & VEX_COLORMAPMASK) >> VEX_COLORMAPSHIFT) < NUMVEXCOLORS)
 		Map = l_ColorMaps[(Flags & VEX_COLORMAPMASK) >> VEX_COLORMAPSHIFT];
 	else
-		Map = l_ColorMaps[VEX_MAP_RED];
+		Map = l_ColorMaps[0];
 		
 	/* Actual Drawing */
 	// Speed
@@ -1282,24 +1282,28 @@ void V_DrawFadeConsBackEx(const uint32_t Flags, const int x1, const int y1, cons
 	for (y = Y1; y < Y2; y += 8)
 	{
 		// Set buf
-		buf = (int*)(screens[0] + vid.width * y);
+		buf = (int*)(screens[0] + (vid.width * y) + X1);
 		
 		// Loop
-		for (x = (X1 >> 2); x < w - 1; x += 2)
+		c = Map[buf[X1] & 0xFF];
+		x = 0;
+		for (; x < (X2 - X1) - 8; x += 8)
 		{
-			c = Map[buf[x] & 0xFF];
-			buf[x] = c | (c << 8) | (c << 16) | (c << 24);
-			buf[x + 1] = buf[x];
+			c = Map[((uint8_t*)buf)[x]];
+			c |= c << 8;
+			c |= c << 16;
+			*((uint32_t*)(&buf[x])) = c;
+			*((uint32_t*)(&buf[x + 4])) = c;
 		}
 		
 		// Final bits
-		for (x = x << 2; x < w; x++)
-			((uint8_t*)buf)[x] = c & 0xFF;
+		for (; x < (X2 - X1); x++)
+			((uint8_t*)buf)[x] = c;
 			
 		// Inner second loop
 		for (i = 1; i < 8 && (y + i) < Y2; i++)
 		{
-			buf2 = (int*)(screens[0] + vid.width * (y + i));
+			buf2 = (int*)(screens[0] + (vid.width * (y + i)) + X1);
 			memcpy(buf2, buf, X2 - X1);
 		}
 	}
@@ -2610,6 +2614,7 @@ int V_DrawStringA(const VideoFont_t xFont, const uint32_t Options, const char* c
 	int NL = 0;
 	int Ret = 0;
 	VideoFont_t Font = V_WXAliasFont(xFont);
+	uint32_t XOptions;
 	
 	/* Check */
 	if (!String || !CharacterGroups[Font])
@@ -2618,6 +2623,7 @@ int V_DrawStringA(const VideoFont_t xFont, const uint32_t Options, const char* c
 	/* Find position */
 	X = x;
 	Y = y;
+	XOptions = Options;
 	
 	// Centered?
 	if (Options & VFO_CENTERED)
@@ -2646,7 +2652,7 @@ int V_DrawStringA(const VideoFont_t xFont, const uint32_t Options, const char* c
 		// Check for space
 		if (*c == ' ')
 		{
-			LS += ((Options & VFO_RIGHTTOLEFT) ? -4 : 4);
+			LS += ((XOptions & VFO_RIGHTTOLEFT) ? -4 : 4);
 			MBSkip = 1;
 		}
 		// Check for newline
@@ -2683,14 +2689,14 @@ int V_DrawStringA(const VideoFont_t xFont, const uint32_t Options, const char* c
 		else
 		{
 			// Send character to screen
-			k = V_DrawCharacterMB(Font, Options, c, X + LS, Y + NL, &MBSkip, &Options);
+			k = V_DrawCharacterMB(Font, XOptions, c, X + LS, Y + NL, &MBSkip, &XOptions);
 			
 			// Scale?
-			if (Options & VFO_NOSCALESTART && !(Options & VFO_NOSCALEPATCH))
+			if ((XOptions & VFO_NOSCALESTART) && !(XOptions & VFO_NOSCALEPATCH))
 				k *= vid.fdupx;
 				
 			// RtL?
-			LS += ((Options & VFO_RIGHTTOLEFT) ? -k : k);
+			LS += ((XOptions & VFO_RIGHTTOLEFT) ? -k : k);
 			
 			// MBSkip failure?
 			if (!MBSkip)

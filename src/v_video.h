@@ -183,6 +183,7 @@ typedef enum VEX_ColorList_s
 
 #define VEX_COLORMAPMASK		0x000F0000	// Mask of the colormap
 #define VEX_COLORMAPSHIFT		16	// Color shift
+#define VEX_COLORMAP(x)			(((x) << VEX_COLORMAPSHIFT) & VEX_COLORMAPMASK)
 
 /* Color masking (Matches skin colors) */
 #define VEX_COLORMASK			0x00F00000	// Mask of the colors
@@ -299,6 +300,7 @@ extern UniChar_t* UnknownLink[NUMVIDEOFONTS];
 
 // Ordering
 #define VFO_COLORMASK		0x0000000F
+#define VFO_COLOR(x)		((x) & VFO_COLORMASK)
 #define VFO_TRANSMASK		0x000000F0
 #define VFO_TRANSSHIFT		4
 #define VFO_TRANS(x)		(((x) << VFO_TRANSSHIFT) & VFO_TRANSMASK)

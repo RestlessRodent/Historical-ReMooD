@@ -49,6 +49,7 @@
 ****************/
 
 #define CONLCONSOLEFONT VFONT_SMALL		// Font used to draw console
+#define CONLPADDING 5					// Pad the console
 
 /*****************
 *** PROTOTYPES ***

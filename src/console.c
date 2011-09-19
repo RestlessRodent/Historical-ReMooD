@@ -99,6 +99,7 @@ typedef struct CONL_BasicBuffer_s
 	uintmax_t MaskLine;			// Line mask
 	uintmax_t StartLine;		// First line in buffer
 	uintmax_t EndLine;			// Last line in buffer
+	uintmax_t CountLine;		// Line count
 	
 	CONL_FlushFunc_t FlushFunc;	// Function to call on '\n'
 } CONL_BasicBuffer_t;
@@ -444,6 +445,14 @@ size_t CONL_RawPrint(CONL_BasicBuffer_t* const a_Buffer, const char* const a_Tex
 		}
 	}
 	
+	/* Normalize line count */
+	a_Buffer->StartLine = LINEMASK(a_Buffer->StartLine);
+	a_Buffer->EndLine = LINEMASK(a_Buffer->EndLine);
+	if (a_Buffer->EndLine < a_Buffer->StartLine)
+		a_Buffer->CountLine = (a_Buffer->EndLine + a_Buffer->NumLines) - a_Buffer->StartLine;
+	else
+		a_Buffer->CountLine = a_Buffer->EndLine - a_Buffer->StartLine;
+	
 	/* print Q */
 	if (a_Buffer->FlushFunc)
 		if (Que)
@@ -624,11 +633,15 @@ bool_t CONL_HandleEvent(const I_EventEx_t* const a_Event)
 	/* Check */
 	if (!a_Event)
 		return false;
+	
+	/* Don't handle events during startup */
+	if (con_startup)
+		return false;
 		
 	/* Only handle keyboard events */
 	if (a_Event->Type != IET_KEYBOARD)
 		return false;
-		
+	
 	// Remember key code and character
 	Code = a_Event->Data.Keyboard.KeyCode;
 	Char = a_Event->Data.Keyboard.Character;
@@ -666,7 +679,7 @@ void CONL_DrawConsole(void)
 	bool_t FullCon;
 	size_t i, n, j, k, BSkip;
 	int32_t NumLines;
-	uint32_t bx, x, by, y, bw, bh, Options;
+	uint32_t bx, x, by, y, bw, bh, Options, conX, conY, conW, conH;
 	const char* p;
 	char TempFill[6];
 	static pic_t* BackPic;
@@ -683,6 +696,11 @@ void CONL_DrawConsole(void)
 		// Fullscreen console?
 		FullCon = con_startup;
 		
+		// Console x and y
+		conX = CONLPADDING;
+		conY = CONLPADDING;
+		conW = vid.width - (CONLPADDING * 2);
+		
 		// Get character dimensions
 		bw = V_FontWidth(CONLCONSOLEFONT);
 		bh = V_FontHeight(CONLCONSOLEFONT);
@@ -697,17 +715,29 @@ void CONL_DrawConsole(void)
 			// Blit to entire screen
 			V_BlitScalePicExtern(0, 0, 0, BackPic);
 			
-			// Determine line count
-			NumLines = vid.height / bh;
+			// Get height of console
+			conH = vid.height;
 		}
 		
 		else
-		{	
-			NumLines = (vid.height >> 0) / bh;
+		{
+			// Height of console is...
+			conH = (vid.height >> 1);
+			
+			// Draw box
+			V_DrawFadeConsBackEx(
+					VEX_COLORMAP(VEX_MAP_RED) | VEX_NOSCALESTART | VEX_NOSCALESCREEN,
+					0,
+					0,
+					vid.width, conH
+				);
 		}
 		
+		// Determine line count
+		NumLines = conH / bh; 
+		
 		// Draw every line
-		y = bh * NumLines;
+		y = bh * (NumLines - (con_startup ? 0 : 1));
 		for (i = 0, j = ((Out->EndLine - 1)  & Out->MaskLine); i < NumLines; i++, j = ((j - 1) & Out->MaskLine))
 		{
 			// Lines out of range?
@@ -715,12 +745,12 @@ void CONL_DrawConsole(void)
 				continue;
 			
 			// Get line to draw
-			x = 0;
+			x = conX;
 			p = Out->Lines[j];
 			
 			// Draw each character
 			Options = VFO_NOSCALEPATCH | VFO_NOSCALESTART | VFO_NOSCALELORES;
-			while (*p && *p != '\n' && x < vid.width)
+			while (*p && *p != '\n' && x < conW && y > conY)
 			{
 				// Reget n
 				n = p - Out->Buffer;
@@ -730,8 +760,15 @@ void CONL_DrawConsole(void)
 					TempFill[k] = Out->Buffer[(n + k) & Out->MaskPos];
 				TempFill[k] = 0; // is 6
 				
+				// Make tab special (keep output even)
+				if (*p == '\t')
+				{
+					x += bw * 4;
+					x -= (x % (bw * 4));
+				}
+					
 				// Non console special control (Legacy)
-				if (*p > 7)
+				else if (*p > 7)
 					bx = V_DrawCharacterMB(CONLCONSOLEFONT, Options, TempFill, x, y, &BSkip, &Options);
 				
 				// Normal character
@@ -746,29 +783,25 @@ void CONL_DrawConsole(void)
 				n = (n + BSkip) & Out->MaskPos;
 				p = &Out->Buffer[n];
 			}
-#if 0
-			n = p - Out->Buffer;
-			while (*p && *p != '\n' && x < vid.width)
-			{
-				// Non console special control (Legacy)
-				if (*p > 7)
-					bx = V_DrawCharacterMB(CONLCONSOLEFONT, Options, p, x, y, &BSkip, &Options);
-				
-				// Normal character
-				else
-				{
-					bx = 0;
-					BSkip = 1;
-				}
-				
-				if (bx)			// Some characters may return zero
-					x += bw;	// Monospaced instead of variable
-				p += BSkip;
-			}
-#endif
 			
 			// Go down
 			y -= bh;
+		}
+		
+		// Draw console input line (as long as it is not startup)
+		if (!con_startup)
+		{
+			y = conH - bh - CONLPADDING;
+			x = conX;
+			x += V_DrawStringA(CONLCONSOLEFONT, VFO_COLOR(VEX_MAP_BRIGHTWHITE) | VFO_NOSCALEPATCH | VFO_NOSCALESTART | VFO_NOSCALELORES, "#>", x, y);
+			V_DrawStringA(CONLCONSOLEFONT, VFO_COLOR(VEX_MAP_BLUE) | VFO_NOSCALEPATCH | VFO_NOSCALESTART | VFO_NOSCALELORES, "Command here", x, y);
+		}
+		
+		// Draw scrollbar
+		if (true/*NumLines < Out->CountLine*/)
+		{
+			// Draw filled area
+			V_DrawFadeConsBackEx(VEX_COLORMAP(VEX_MAP_BRIGHTWHITE) | VEX_NOSCALESTART | VEX_NOSCALESCREEN, 1, CONLPADDING, CONLPADDING - 1, conH - CONLPADDING);
 		}
 	
 #if 0

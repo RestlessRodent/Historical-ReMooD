@@ -143,8 +143,7 @@ void P_SetTranslucencies(void)
 	//respawn item fog
 	R_SetTrans(S_IFOG, S_IFOG5, tr_transmed);
 	
-	//
-	soulsphere
+	//soulsphere
 	R_SetTrans(S_SOUL, S_SOUL6, tr_transmed);
 	//invulnerability
 	R_SetTrans(S_PINV, S_PINV4, tr_transmed);
