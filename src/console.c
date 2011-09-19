@@ -99,7 +99,6 @@ typedef struct CONL_BasicBuffer_s
 	uintmax_t MaskLine;			// Line mask
 	uintmax_t StartLine;		// First line in buffer
 	uintmax_t EndLine;			// Last line in buffer
-	uintmax_t DataLine;			// Line for the flush function
 	
 	CONL_FlushFunc_t FlushFunc;	// Function to call on '\n'
 } CONL_BasicBuffer_t;
@@ -370,8 +369,6 @@ size_t CONL_RawPrint(CONL_BasicBuffer_t* const a_Buffer, const char* const a_Tex
 		// Start collision?
 		if (POSMASK(a_Buffer->EndPos) == POSMASK(a_Buffer->StartPos))
 		{
-			a_Buffer->StartPos = POSMASK(a_Buffer->StartPos + 1);
-			
 #if 1
 			// Check for line overflow
 			if (a_Buffer->Lines[LINEMASK(a_Buffer->StartLine)] == &a_Buffer->Buffer[POSMASK(a_Buffer->StartPos)])
@@ -381,16 +378,13 @@ size_t CONL_RawPrint(CONL_BasicBuffer_t* const a_Buffer, const char* const a_Tex
 			        &a_Buffer->Buffer[POSMASK(a_Buffer->StartPos)] >= a_Buffer->Lines[LINEMASK(a_Buffer->StartLine)])
 #endif
 			{
-				// Ignore data line on collision
-				if (LINEMASK(a_Buffer->DataLine) == LINEMASK(a_Buffer->StartLine))
-					a_Buffer->DataLine = LINEMASK(a_Buffer->DataLine + 1);
-					
 				// Set current line to NULL and move up
 				a_Buffer->Lines[LINEMASK(a_Buffer->StartLine)] = NULL;
 				a_Buffer->StartLine = LINEMASK(a_Buffer->StartLine + 1);
 			}
 			
-			&a_Buffer->Buffer[a_Buffer->StartPos] >= a_Buffer->Lines[a_Buffer->StartLine];
+			a_Buffer->StartPos = POSMASK(a_Buffer->StartPos + 1);
+			//&a_Buffer->Buffer[a_Buffer->StartPos] >= a_Buffer->Lines[a_Buffer->StartLine];
 		}
 		// Newline?
 		if (*p == '\n')
@@ -445,9 +439,6 @@ size_t CONL_RawPrint(CONL_BasicBuffer_t* const a_Buffer, const char* const a_Tex
 			// Start collision?
 			if (LINEMASK(a_Buffer->EndLine) == LINEMASK(a_Buffer->StartLine))
 			{
-				if (LINEMASK(a_Buffer->DataLine) == LINEMASK(a_Buffer->StartLine))
-					a_Buffer->DataLine = LINEMASK(a_Buffer->DataLine + 1);
-					
 				a_Buffer->StartLine = LINEMASK(a_Buffer->StartLine + 1);
 			}
 		}
@@ -570,7 +561,7 @@ size_t CONL_InputU(const UnicodeStringID_t a_StrID, const char* const a_Format, 
 /* CONL_IsActive() -- Returns true if the console is active */
 bool_t CONL_IsActive(void)
 {
-	return (l_CONLActive && !menuactive);
+	return (l_CONLActive && !menuactive) || con_startup;
 }
 
 /* CONL_SetActive() -- Sets whether the console is active or not */
@@ -658,6 +649,7 @@ bool_t CONL_HandleEvent(const I_EventEx_t* const a_Event)
 			CONL_SetActive(false);
 			return true;
 		}
+		
 		// Handle key presses
 		
 		// Always eat everything
@@ -671,13 +663,133 @@ bool_t CONL_HandleEvent(const I_EventEx_t* const a_Event)
 /* CONL_DrawConsole() -- Draws the console */
 void CONL_DrawConsole(void)
 {
-	size_t i, n, j, BSkip;
+	bool_t FullCon;
+	size_t i, n, j, k, BSkip;
+	int32_t NumLines;
 	uint32_t bx, x, by, y, bw, bh, Options;
 	const char* p;
+	char TempFill[6];
+	static pic_t* BackPic;
+	CONL_BasicBuffer_t* Out;
+	
+	/* Get output buffer */
+	Out = &l_CONLBuffers[0];
 	
 	/* Console is active (draw the console) */
 	if (CONL_IsActive())
 	{
+		//V_DrawStringA(VFONT_STATUSBARSMALL, 0, "The console is {1Active{0!", 100, 100);
+		
+		// Fullscreen console?
+		FullCon = con_startup;
+		
+		// Get character dimensions
+		bw = V_FontWidth(CONLCONSOLEFONT);
+		bh = V_FontHeight(CONLCONSOLEFONT);
+		
+		// Draw back picture and determines lines to draw
+		if (FullCon)
+		{
+			// Load background?
+			if (!BackPic)
+				BackPic = W_CacheLumpName("RMD_CB_D", PU_STATIC);
+			
+			// Blit to entire screen
+			V_BlitScalePicExtern(0, 0, 0, BackPic);
+			
+			// Determine line count
+			NumLines = vid.height / bh;
+		}
+		
+		else
+		{	
+			NumLines = (vid.height >> 0) / bh;
+		}
+		
+		// Draw every line
+		y = bh * NumLines;
+		for (i = 0, j = ((Out->EndLine - 1)  & Out->MaskLine); i < NumLines; i++, j = ((j - 1) & Out->MaskLine))
+		{
+			// Lines out of range?
+			if (!Out->Lines[j])
+				continue;
+			
+			// Get line to draw
+			x = 0;
+			p = Out->Lines[j];
+			
+			// Draw each character
+			Options = VFO_NOSCALEPATCH | VFO_NOSCALESTART | VFO_NOSCALELORES;
+			while (*p && *p != '\n' && x < vid.width)
+			{
+				// Reget n
+				n = p - Out->Buffer;
+				
+				// Fill into temporary (for MB overchunking)
+				for (k = 0; k < 5; k++)
+					TempFill[k] = Out->Buffer[(n + k) & Out->MaskPos];
+				TempFill[k] = 0; // is 6
+				
+				// Non console special control (Legacy)
+				if (*p > 7)
+					bx = V_DrawCharacterMB(CONLCONSOLEFONT, Options, TempFill, x, y, &BSkip, &Options);
+				
+				// Normal character
+				else
+				{
+					bx = 0;
+					BSkip = 1;
+				}
+				
+				if (bx)			// Some characters may return zero
+					x += bw;	// Monospaced instead of variable
+				n = (n + BSkip) & Out->MaskPos;
+				p = &Out->Buffer[n];
+			}
+#if 0
+			n = p - Out->Buffer;
+			while (*p && *p != '\n' && x < vid.width)
+			{
+				// Non console special control (Legacy)
+				if (*p > 7)
+					bx = V_DrawCharacterMB(CONLCONSOLEFONT, Options, p, x, y, &BSkip, &Options);
+				
+				// Normal character
+				else
+				{
+					bx = 0;
+					BSkip = 1;
+				}
+				
+				if (bx)			// Some characters may return zero
+					x += bw;	// Monospaced instead of variable
+				p += BSkip;
+			}
+#endif
+			
+			// Go down
+			y -= bh;
+		}
+	
+#if 0
+		/* CONL_BasicBuffer_t -- A basic buffer for the console */
+typedef struct CONL_BasicBuffer_s
+{
+	char* Buffer;				// Actual buffer
+	char** Lines;				// Lines in buffer
+	size_t Size;				// Size of the buffer
+	size_t NumLines;			// Number of lines in buffer
+	
+	uintmax_t MaskPos;			// Position mask
+	uintmax_t StartPos;			// Start position of buffer
+	uintmax_t EndPos;			// End position of buffer
+	uintmax_t MaskLine;			// Line mask
+	uintmax_t StartLine;		// First line in buffer
+	uintmax_t EndLine;			// Last line in buffer
+	
+	CONL_FlushFunc_t FlushFunc;	// Function to call on '\n'
+} CONL_BasicBuffer_t;
+#endif
 	}
 	
 	/* Not active, draw per player messages */

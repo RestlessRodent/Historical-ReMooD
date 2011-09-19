@@ -143,7 +143,8 @@ void P_SetTranslucencies(void)
 	//respawn item fog
 	R_SetTrans(S_IFOG, S_IFOG5, tr_transmed);
 	
-	//soulsphere
+	//
+	soulsphere
 	R_SetTrans(S_SOUL, S_SOUL6, tr_transmed);
 	//invulnerability
 	R_SetTrans(S_PINV, S_PINV4, tr_transmed);
@@ -159,7 +160,7 @@ void P_SetTranslucencies(void)
 	R_SetTrans(S_BBAR1, S_BBAR3, tr_transfx1);
 	
 	//lost soul
-	R_SetTrans(S_SKULL_STND, S_SKULL_DIE6, tr_transfx1);
+	R_SetTrans(S_SKULL_STND, S_SKULL_DIE6, tr_transmed/*tr_transfx1*/);
 	//baron shot
 	R_SetTrans(S_BRBALL1, S_BRBALL2, tr_transfir);
 	R_SetTrans(S_BRBALLX1, S_BRBALLX3, tr_transmed);

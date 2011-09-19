@@ -48,6 +48,8 @@
 *** CONSTANTS ***
 ****************/
 
+#define CONLCONSOLEFONT VFONT_SMALL		// Font used to draw console
+
 /*****************
 *** PROTOTYPES ***
 *****************/

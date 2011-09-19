@@ -1295,7 +1295,7 @@ void D_DoomMain(void)
 	
 	CONS_Printf(text[Z_INIT_NUM]);
 	Z_Init();
-	CONL_Init(1024, 1024);
+	CONL_Init(4096, 1024);
 	
 	G_InitKeys();
 	
