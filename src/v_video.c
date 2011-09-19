@@ -47,177 +47,189 @@
 #include "i_system.h"
 
 // Each screen is [vid.width*vid.height];
-uint8_t *screens[5];
+uint8_t* screens[5];
 
 CV_PossibleValue_t gamma_cons_t[] = { {0, "MIN"}
-, {4, "MAX"}
-, {0, NULL}
+	, {4, "MAX"}
+	, {0, NULL}
 };
+
 void CV_usegamma_OnChange(void);
 
 consvar_t cv_ticrate = { "vid_ticrate", "0", 0, CV_OnOff, NULL };
 consvar_t cv_usegamma = { "gamma", "0", CV_SAVE | CV_CALL, gamma_cons_t, CV_usegamma_OnChange };
 
 // Now where did these came from?
-uint8_t gammatable[5][256] = {
-	{1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16,
-	 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32,
-	 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47, 48,
-	 49, 50, 51, 52, 53, 54, 55, 56, 57, 58, 59, 60, 61, 62, 63, 64,
-	 65, 66, 67, 68, 69, 70, 71, 72, 73, 74, 75, 76, 77, 78, 79, 80,
-	 81, 82, 83, 84, 85, 86, 87, 88, 89, 90, 91, 92, 93, 94, 95, 96,
-	 97, 98, 99, 100, 101, 102, 103, 104, 105, 106, 107, 108, 109, 110, 111,
-	 112,
-	 113, 114, 115, 116, 117, 118, 119, 120, 121, 122, 123, 124, 125, 126, 127,
-	 128,
-	 128, 129, 130, 131, 132, 133, 134, 135, 136, 137, 138, 139, 140, 141, 142,
-	 143,
-	 144, 145, 146, 147, 148, 149, 150, 151, 152, 153, 154, 155, 156, 157, 158,
-	 159,
-	 160, 161, 162, 163, 164, 165, 166, 167, 168, 169, 170, 171, 172, 173, 174,
-	 175,
-	 176, 177, 178, 179, 180, 181, 182, 183, 184, 185, 186, 187, 188, 189, 190,
-	 191,
-	 192, 193, 194, 195, 196, 197, 198, 199, 200, 201, 202, 203, 204, 205, 206,
-	 207,
-	 208, 209, 210, 211, 212, 213, 214, 215, 216, 217, 218, 219, 220, 221, 222,
-	 223,
-	 224, 225, 226, 227, 228, 229, 230, 231, 232, 233, 234, 235, 236, 237, 238,
-	 239,
-	 240, 241, 242, 243, 244, 245, 246, 247, 248, 249, 250, 251, 252, 253, 254,
-	 255},
-
-	{2, 4, 5, 7, 8, 10, 11, 12, 14, 15, 16, 18, 19, 20, 21, 23, 24, 25, 26, 27,
-	 29, 30, 31,
-	 32, 33, 34, 36, 37, 38, 39, 40, 41, 42, 44, 45, 46, 47, 48, 49, 50, 51, 52,
-	 54, 55,
-	 56, 57, 58, 59, 60, 61, 62, 63, 64, 65, 66, 67, 69, 70, 71, 72, 73, 74, 75,
-	 76, 77,
-	 78, 79, 80, 81, 82, 83, 84, 85, 86, 87, 88, 89, 90, 91, 92, 93, 94, 95, 96,
-	 97, 98,
-	 99, 100, 101, 102, 103, 104, 105, 106, 107, 108, 109, 110, 111, 112, 113,
-	 114,
-	 115, 116, 117, 118, 119, 120, 121, 122, 123, 124, 125, 126, 127, 128, 129,
-	 129,
-	 130, 131, 132, 133, 134, 135, 136, 137, 138, 139, 140, 141, 142, 143, 144,
-	 145,
-	 146, 147, 148, 148, 149, 150, 151, 152, 153, 154, 155, 156, 157, 158, 159,
-	 160,
-	 161, 162, 163, 163, 164, 165, 166, 167, 168, 169, 170, 171, 172, 173, 174,
-	 175,
-	 175, 176, 177, 178, 179, 180, 181, 182, 183, 184, 185, 186, 186, 187, 188,
-	 189,
-	 190, 191, 192, 193, 194, 195, 196, 196, 197, 198, 199, 200, 201, 202, 203,
-	 204,
-	 205, 205, 206, 207, 208, 209, 210, 211, 212, 213, 214, 214, 215, 216, 217,
-	 218,
-	 219, 220, 221, 222, 222, 223, 224, 225, 226, 227, 228, 229, 230, 230, 231,
-	 232,
-	 233, 234, 235, 236, 237, 237, 238, 239, 240, 241, 242, 243, 244, 245, 245,
-	 246,
-	 247, 248, 249, 250, 251, 252, 252, 253, 254, 255},
-
-	{4, 7, 9, 11, 13, 15, 17, 19, 21, 22, 24, 26, 27, 29, 30, 32, 33, 35, 36,
-	 38, 39, 40, 42,
-	 43, 45, 46, 47, 48, 50, 51, 52, 54, 55, 56, 57, 59, 60, 61, 62, 63, 65, 66,
-	 67, 68, 69,
-	 70, 72, 73, 74, 75, 76, 77, 78, 79, 80, 82, 83, 84, 85, 86, 87, 88, 89, 90,
-	 91, 92, 93,
-	 94, 95, 96, 97, 98, 100, 101, 102, 103, 104, 105, 106, 107, 108, 109, 110,
-	 111, 112,
-	 113, 114, 114, 115, 116, 117, 118, 119, 120, 121, 122, 123, 124, 125, 126,
-	 127, 128,
-	 129, 130, 131, 132, 133, 133, 134, 135, 136, 137, 138, 139, 140, 141, 142,
-	 143, 144,
-	 144, 145, 146, 147, 148, 149, 150, 151, 152, 153, 153, 154, 155, 156, 157,
-	 158, 159,
-	 160, 160, 161, 162, 163, 164, 165, 166, 166, 167, 168, 169, 170, 171, 172,
-	 172, 173,
-	 174, 175, 176, 177, 178, 178, 179, 180, 181, 182, 183, 183, 184, 185, 186,
-	 187, 188,
-	 188, 189, 190, 191, 192, 193, 193, 194, 195, 196, 197, 197, 198, 199, 200,
-	 201, 201,
-	 202, 203, 204, 205, 206, 206, 207, 208, 209, 210, 210, 211, 212, 213, 213,
-	 214, 215,
-	 216, 217, 217, 218, 219, 220, 221, 221, 222, 223, 224, 224, 225, 226, 227,
-	 228, 228,
-	 229, 230, 231, 231, 232, 233, 234, 235, 235, 236, 237, 238, 238, 239, 240,
-	 241, 241,
-	 242, 243, 244, 244, 245, 246, 247, 247, 248, 249, 250, 251, 251, 252, 253,
-	 254, 254,
-	 255},
-
-	{8, 12, 16, 19, 22, 24, 27, 29, 31, 34, 36, 38, 40, 41, 43, 45, 47, 49, 50,
-	 52, 53, 55,
-	 57, 58, 60, 61, 63, 64, 65, 67, 68, 70, 71, 72, 74, 75, 76, 77, 79, 80, 81,
-	 82, 84, 85,
-	 86, 87, 88, 90, 91, 92, 93, 94, 95, 96, 98, 99, 100, 101, 102, 103, 104,
-	 105, 106, 107,
-	 108, 109, 110, 111, 112, 113, 114, 115, 116, 117, 118, 119, 120, 121, 122,
-	 123, 124,
-	 125, 126, 127, 128, 129, 130, 131, 132, 133, 134, 135, 135, 136, 137, 138,
-	 139, 140,
-	 141, 142, 143, 143, 144, 145, 146, 147, 148, 149, 150, 150, 151, 152, 153,
-	 154, 155,
-	 155, 156, 157, 158, 159, 160, 160, 161, 162, 163, 164, 165, 165, 166, 167,
-	 168, 169,
-	 169, 170, 171, 172, 173, 173, 174, 175, 176, 176, 177, 178, 179, 180, 180,
-	 181, 182,
-	 183, 183, 184, 185, 186, 186, 187, 188, 189, 189, 190, 191, 192, 192, 193,
-	 194, 195,
-	 195, 196, 197, 197, 198, 199, 200, 200, 201, 202, 202, 203, 204, 205, 205,
-	 206, 207,
-	 207, 208, 209, 210, 210, 211, 212, 212, 213, 214, 214, 215, 216, 216, 217,
-	 218, 219,
-	 219, 220, 221, 221, 222, 223, 223, 224, 225, 225, 226, 227, 227, 228, 229,
-	 229, 230,
-	 231, 231, 232, 233, 233, 234, 235, 235, 236, 237, 237, 238, 238, 239, 240,
-	 240, 241,
-	 242, 242, 243, 244, 244, 245, 246, 246, 247, 247, 248, 249, 249, 250, 251,
-	 251, 252,
-	 253, 253, 254, 254, 255},
-
-	{16, 23, 28, 32, 36, 39, 42, 45, 48, 50, 53, 55, 57, 60, 62, 64, 66, 68, 69,
-	 71, 73, 75, 76,
-	 78, 80, 81, 83, 84, 86, 87, 89, 90, 92, 93, 94, 96, 97, 98, 100, 101, 102,
-	 103, 105, 106,
-	 107, 108, 109, 110, 112, 113, 114, 115, 116, 117, 118, 119, 120, 121, 122,
-	 123, 124,
-	 125, 126, 128, 128, 129, 130, 131, 132, 133, 134, 135, 136, 137, 138, 139,
-	 140, 141,
-	 142, 143, 143, 144, 145, 146, 147, 148, 149, 150, 150, 151, 152, 153, 154,
-	 155, 155,
-	 156, 157, 158, 159, 159, 160, 161, 162, 163, 163, 164, 165, 166, 166, 167,
-	 168, 169,
-	 169, 170, 171, 172, 172, 173, 174, 175, 175, 176, 177, 177, 178, 179, 180,
-	 180, 181,
-	 182, 182, 183, 184, 184, 185, 186, 187, 187, 188, 189, 189, 190, 191, 191,
-	 192, 193,
-	 193, 194, 195, 195, 196, 196, 197, 198, 198, 199, 200, 200, 201, 202, 202,
-	 203, 203,
-	 204, 205, 205, 206, 207, 207, 208, 208, 209, 210, 210, 211, 211, 212, 213,
-	 213, 214,
-	 214, 215, 216, 216, 217, 217, 218, 219, 219, 220, 220, 221, 221, 222, 223,
-	 223, 224,
-	 224, 225, 225, 226, 227, 227, 228, 228, 229, 229, 230, 230, 231, 232, 232,
-	 233, 233,
-	 234, 234, 235, 235, 236, 236, 237, 237, 238, 239, 239, 240, 240, 241, 241,
-	 242, 242,
-	 243, 243, 244, 244, 245, 245, 246, 246, 247, 247, 248, 248, 249, 249, 250,
-	 250, 251,
-	 251, 252, 252, 253, 254, 254, 255, 255}
+uint8_t gammatable[5][256] =
+{
+	{
+		1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16,
+		17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32,
+		33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47, 48,
+		49, 50, 51, 52, 53, 54, 55, 56, 57, 58, 59, 60, 61, 62, 63, 64,
+		65, 66, 67, 68, 69, 70, 71, 72, 73, 74, 75, 76, 77, 78, 79, 80,
+		81, 82, 83, 84, 85, 86, 87, 88, 89, 90, 91, 92, 93, 94, 95, 96,
+		97, 98, 99, 100, 101, 102, 103, 104, 105, 106, 107, 108, 109, 110, 111,
+		112,
+		113, 114, 115, 116, 117, 118, 119, 120, 121, 122, 123, 124, 125, 126, 127,
+		128,
+		128, 129, 130, 131, 132, 133, 134, 135, 136, 137, 138, 139, 140, 141, 142,
+		143,
+		144, 145, 146, 147, 148, 149, 150, 151, 152, 153, 154, 155, 156, 157, 158,
+		159,
+		160, 161, 162, 163, 164, 165, 166, 167, 168, 169, 170, 171, 172, 173, 174,
+		175,
+		176, 177, 178, 179, 180, 181, 182, 183, 184, 185, 186, 187, 188, 189, 190,
+		191,
+		192, 193, 194, 195, 196, 197, 198, 199, 200, 201, 202, 203, 204, 205, 206,
+		207,
+		208, 209, 210, 211, 212, 213, 214, 215, 216, 217, 218, 219, 220, 221, 222,
+		223,
+		224, 225, 226, 227, 228, 229, 230, 231, 232, 233, 234, 235, 236, 237, 238,
+		239,
+		240, 241, 242, 243, 244, 245, 246, 247, 248, 249, 250, 251, 252, 253, 254,
+		255
+	},
+	
+	{
+		2, 4, 5, 7, 8, 10, 11, 12, 14, 15, 16, 18, 19, 20, 21, 23, 24, 25, 26, 27,
+		29, 30, 31,
+		32, 33, 34, 36, 37, 38, 39, 40, 41, 42, 44, 45, 46, 47, 48, 49, 50, 51, 52,
+		54, 55,
+		56, 57, 58, 59, 60, 61, 62, 63, 64, 65, 66, 67, 69, 70, 71, 72, 73, 74, 75,
+		76, 77,
+		78, 79, 80, 81, 82, 83, 84, 85, 86, 87, 88, 89, 90, 91, 92, 93, 94, 95, 96,
+		97, 98,
+		99, 100, 101, 102, 103, 104, 105, 106, 107, 108, 109, 110, 111, 112, 113,
+		114,
+		115, 116, 117, 118, 119, 120, 121, 122, 123, 124, 125, 126, 127, 128, 129,
+		129,
+		130, 131, 132, 133, 134, 135, 136, 137, 138, 139, 140, 141, 142, 143, 144,
+		145,
+		146, 147, 148, 148, 149, 150, 151, 152, 153, 154, 155, 156, 157, 158, 159,
+		160,
+		161, 162, 163, 163, 164, 165, 166, 167, 168, 169, 170, 171, 172, 173, 174,
+		175,
+		175, 176, 177, 178, 179, 180, 181, 182, 183, 184, 185, 186, 186, 187, 188,
+		189,
+		190, 191, 192, 193, 194, 195, 196, 196, 197, 198, 199, 200, 201, 202, 203,
+		204,
+		205, 205, 206, 207, 208, 209, 210, 211, 212, 213, 214, 214, 215, 216, 217,
+		218,
+		219, 220, 221, 222, 222, 223, 224, 225, 226, 227, 228, 229, 230, 230, 231,
+		232,
+		233, 234, 235, 236, 237, 237, 238, 239, 240, 241, 242, 243, 244, 245, 245,
+		246,
+		247, 248, 249, 250, 251, 252, 252, 253, 254, 255
+	},
+	
+	{
+		4, 7, 9, 11, 13, 15, 17, 19, 21, 22, 24, 26, 27, 29, 30, 32, 33, 35, 36,
+		38, 39, 40, 42,
+		43, 45, 46, 47, 48, 50, 51, 52, 54, 55, 56, 57, 59, 60, 61, 62, 63, 65, 66,
+		67, 68, 69,
+		70, 72, 73, 74, 75, 76, 77, 78, 79, 80, 82, 83, 84, 85, 86, 87, 88, 89, 90,
+		91, 92, 93,
+		94, 95, 96, 97, 98, 100, 101, 102, 103, 104, 105, 106, 107, 108, 109, 110,
+		111, 112,
+		113, 114, 114, 115, 116, 117, 118, 119, 120, 121, 122, 123, 124, 125, 126,
+		127, 128,
+		129, 130, 131, 132, 133, 133, 134, 135, 136, 137, 138, 139, 140, 141, 142,
+		143, 144,
+		144, 145, 146, 147, 148, 149, 150, 151, 152, 153, 153, 154, 155, 156, 157,
+		158, 159,
+		160, 160, 161, 162, 163, 164, 165, 166, 166, 167, 168, 169, 170, 171, 172,
+		172, 173,
+		174, 175, 176, 177, 178, 178, 179, 180, 181, 182, 183, 183, 184, 185, 186,
+		187, 188,
+		188, 189, 190, 191, 192, 193, 193, 194, 195, 196, 197, 197, 198, 199, 200,
+		201, 201,
+		202, 203, 204, 205, 206, 206, 207, 208, 209, 210, 210, 211, 212, 213, 213,
+		214, 215,
+		216, 217, 217, 218, 219, 220, 221, 221, 222, 223, 224, 224, 225, 226, 227,
+		228, 228,
+		229, 230, 231, 231, 232, 233, 234, 235, 235, 236, 237, 238, 238, 239, 240,
+		241, 241,
+		242, 243, 244, 244, 245, 246, 247, 247, 248, 249, 250, 251, 251, 252, 253,
+		254, 254,
+		255
+	},
+	
+	{
+		8, 12, 16, 19, 22, 24, 27, 29, 31, 34, 36, 38, 40, 41, 43, 45, 47, 49, 50,
+		52, 53, 55,
+		57, 58, 60, 61, 63, 64, 65, 67, 68, 70, 71, 72, 74, 75, 76, 77, 79, 80, 81,
+		82, 84, 85,
+		86, 87, 88, 90, 91, 92, 93, 94, 95, 96, 98, 99, 100, 101, 102, 103, 104,
+		105, 106, 107,
+		108, 109, 110, 111, 112, 113, 114, 115, 116, 117, 118, 119, 120, 121, 122,
+		123, 124,
+		125, 126, 127, 128, 129, 130, 131, 132, 133, 134, 135, 135, 136, 137, 138,
+		139, 140,
+		141, 142, 143, 143, 144, 145, 146, 147, 148, 149, 150, 150, 151, 152, 153,
+		154, 155,
+		155, 156, 157, 158, 159, 160, 160, 161, 162, 163, 164, 165, 165, 166, 167,
+		168, 169,
+		169, 170, 171, 172, 173, 173, 174, 175, 176, 176, 177, 178, 179, 180, 180,
+		181, 182,
+		183, 183, 184, 185, 186, 186, 187, 188, 189, 189, 190, 191, 192, 192, 193,
+		194, 195,
+		195, 196, 197, 197, 198, 199, 200, 200, 201, 202, 202, 203, 204, 205, 205,
+		206, 207,
+		207, 208, 209, 210, 210, 211, 212, 212, 213, 214, 214, 215, 216, 216, 217,
+		218, 219,
+		219, 220, 221, 221, 222, 223, 223, 224, 225, 225, 226, 227, 227, 228, 229,
+		229, 230,
+		231, 231, 232, 233, 233, 234, 235, 235, 236, 237, 237, 238, 238, 239, 240,
+		240, 241,
+		242, 242, 243, 244, 244, 245, 246, 246, 247, 247, 248, 249, 249, 250, 251,
+		251, 252,
+		253, 253, 254, 254, 255
+	},
+	
+	{
+		16, 23, 28, 32, 36, 39, 42, 45, 48, 50, 53, 55, 57, 60, 62, 64, 66, 68, 69,
+		71, 73, 75, 76,
+		78, 80, 81, 83, 84, 86, 87, 89, 90, 92, 93, 94, 96, 97, 98, 100, 101, 102,
+		103, 105, 106,
+		107, 108, 109, 110, 112, 113, 114, 115, 116, 117, 118, 119, 120, 121, 122,
+		123, 124,
+		125, 126, 128, 128, 129, 130, 131, 132, 133, 134, 135, 136, 137, 138, 139,
+		140, 141,
+		142, 143, 143, 144, 145, 146, 147, 148, 149, 150, 150, 151, 152, 153, 154,
+		155, 155,
+		156, 157, 158, 159, 159, 160, 161, 162, 163, 163, 164, 165, 166, 166, 167,
+		168, 169,
+		169, 170, 171, 172, 172, 173, 174, 175, 175, 176, 177, 177, 178, 179, 180,
+		180, 181,
+		182, 182, 183, 184, 184, 185, 186, 187, 187, 188, 189, 189, 190, 191, 191,
+		192, 193,
+		193, 194, 195, 195, 196, 196, 197, 198, 198, 199, 200, 200, 201, 202, 202,
+		203, 203,
+		204, 205, 205, 206, 207, 207, 208, 208, 209, 210, 210, 211, 211, 212, 213,
+		213, 214,
+		214, 215, 216, 216, 217, 217, 218, 219, 219, 220, 220, 221, 221, 222, 223,
+		223, 224,
+		224, 225, 225, 226, 227, 227, 228, 228, 229, 229, 230, 230, 231, 232, 232,
+		233, 233,
+		234, 234, 235, 235, 236, 236, 237, 237, 238, 239, 239, 240, 240, 241, 241,
+		242, 242,
+		243, 243, 244, 244, 245, 245, 246, 246, 247, 247, 248, 248, 249, 249, 250,
+		250, 251,
+		251, 252, 252, 253, 254, 254, 255, 255
+	}
 };
 
 // keep a copy of the palette so that we can get the RGB
 // value for a color index at any time.
 // local copy of the palette for V_GetColor()
-RGBA_t *pLocalPalette = NULL;
+RGBA_t* pLocalPalette = NULL;
 
 RGBA_t** l_DoomPals = NULL;
 size_t l_NumDoomPals = 0;
 
 /* LoadPalette() -- yucky name, loads a palette for usage */
-void LoadPalette(char *lumpname)
+void LoadPalette(char* lumpname)
 {
 	WadIndex_t Idx;
 	size_t NumBasePals, BasePal, Len;
@@ -255,7 +267,7 @@ void LoadPalette(char *lumpname)
 		l_DoomPals[k] = Z_Malloc(sizeof(RGBA_t) * 256, PU_STATIC, NULL);
 		
 		// Load in from lump
-		for (l = 0; l < 256; l++, j += 3) 
+		for (l = 0; l < 256; l++, j += 3)
 		{
 			l_DoomPals[k][l].s.red = PlayPal[j];
 			l_DoomPals[k][l].s.green = PlayPal[j + 1];
@@ -293,7 +305,6 @@ void LoadPalette(char *lumpname)
 					pB[j] = ((l_DoomPals[k][j].s.blue - l_DoomPals[i][j].s.blue) << FRACBITS) / VPALSMOOTHCOUNT;
 				}
 			}
-			
 			// It is invalid
 			else
 			{
@@ -303,7 +314,6 @@ void LoadPalette(char *lumpname)
 				memset(pB, 0, sizeof(pB));
 			}
 		}
-		
 		// Interpolate with colors
 		else
 		{
@@ -313,7 +323,7 @@ void LoadPalette(char *lumpname)
 			// Create here if it does not already exist
 			if (!l_DoomPals[i])
 				l_DoomPals[i] = Z_Malloc(sizeof(RGBA_t) * 256, PU_STATIC, NULL);
-			
+				
 			// Fancy loop
 			for (j = 0; j < 256; j++)
 			{
@@ -322,7 +332,7 @@ void LoadPalette(char *lumpname)
 				l_DoomPals[i][j].s.blue = ((l_DoomPals[m][j].s.blue << FRACBITS) + (pB[j] * l)) >> FRACBITS;
 			}
 		}
-	} 
+	}
 	
 	/* For existing COLORMAP compat in r_data.c, set pLocalPalette */
 	pLocalPalette = l_DoomPals[0];
@@ -333,7 +343,7 @@ void V_SetPalette(int palettenum)
 {
 	if (!l_DoomPals)
 		LoadPalette("PLAYPAL");
-	
+		
 	if (palettenum < 0 || palettenum >= l_NumDoomPals || !l_DoomPals[palettenum])
 		I_SetPalette(l_DoomPals[0]);
 	else
@@ -341,7 +351,7 @@ void V_SetPalette(int palettenum)
 }
 
 /* V_SetPaletteLump -- Set the current palette based on the lump */
-void V_SetPaletteLump(char *pal)
+void V_SetPaletteLump(char* pal)
 {
 	LoadPalette(pal);
 	I_SetPalette(l_DoomPals);
@@ -386,12 +396,11 @@ static int QuickRound(float x)
 //
 // V_CopyRect
 //
-void V_CopyRect(int srcx, int srcy, int srcscrn, int width, int height,
-				int destx, int desty, int destscrn)
+void V_CopyRect(int srcx, int srcy, int srcscrn, int width, int height, int destx, int desty, int destscrn)
 {
-	uint8_t *src;
-	uint8_t *dest;
-
+	uint8_t* src;
+	uint8_t* dest;
+	
 	if (!graphics_started)
 		return;
 		
@@ -419,29 +428,25 @@ void V_CopyRect(int srcx, int srcy, int srcscrn, int width, int height,
 	}
 	srcscrn &= 0xffff;
 	destscrn &= 0xffff;
-
+	
 #ifdef RANGECHECK
 	if (srcx < 0 || srcx + width > vid.width || srcy < 0 ||
-		srcy + height > vid.height || destx < 0 || destx + width > vid.width ||
-		desty < 0 || desty + height > vid.height || (unsigned)srcscrn > 4 || (unsigned)destscrn > 4)
+	        srcy + height > vid.height || destx < 0 || destx + width > vid.width ||
+	        desty < 0 || desty + height > vid.height || (unsigned)srcscrn > 4 || (unsigned)destscrn > 4)
 	{
-		I_Error("Bad V_CopyRect %d %d %d %d %d %d %d %d", srcx, srcy, srcscrn,
-				width, height, destx, desty, destscrn);
+		I_Error("Bad V_CopyRect %d %d %d %d %d %d %d %d", srcx, srcy, srcscrn, width, height, destx, desty, destscrn);
 	}
 #endif
 	V_MarkRect(destx, desty, width, height);
-
+	
 #ifdef DEBUG
-	CONS_Printf("V_CopyRect: vidwidth %d screen[%d]=%x to screen[%d]=%x\n",
-				vid.width, srcscrn, screens[srcscrn], destscrn, screens[destscrn]);
-	CONS_Printf
-		("..........: srcx %d srcy %d width %d height %d destx %d desty %d\n",
-		 srcx, srcy, width, height, destx, desty);
+	CONS_Printf("V_CopyRect: vidwidth %d screen[%d]=%x to screen[%d]=%x\n", vid.width, srcscrn, screens[srcscrn], destscrn, screens[destscrn]);
+	CONS_Printf("..........: srcx %d srcy %d width %d height %d destx %d desty %d\n", srcx, srcy, width, height, destx, desty);
 #endif
-
+	
 	src = screens[srcscrn] + vid.width * srcy + srcx;
 	dest = screens[destscrn] + vid.width * desty + destx;
-
+	
 	for (; height > 0; height--)
 	{
 		memcpy(dest, src, width);
@@ -453,16 +458,15 @@ void V_CopyRect(int srcx, int srcy, int srcscrn, int width, int height,
 //
 // V_CopyRectTrans (GhostlyDeath --transparent copy)
 //
-void V_CopyRectTrans(int srcx, int srcy, int srcscrn, int width, int height,
-				int destx, int desty, int destscrn, int trans)
+void V_CopyRectTrans(int srcx, int srcy, int srcscrn, int width, int height, int destx, int desty, int destscrn, int trans)
 {
-	uint8_t *src;
-	uint8_t *dest;
+	uint8_t* src;
+	uint8_t* dest;
 	int i;
 	
 	if (!graphics_started)
 		return;
-
+		
 	// WARNING don't mix
 	if ((srcscrn & V_SCALESTART) || (destscrn & V_SCALESTART))
 	{
@@ -487,31 +491,27 @@ void V_CopyRectTrans(int srcx, int srcy, int srcscrn, int width, int height,
 	}
 	srcscrn &= 0xffff;
 	destscrn &= 0xffff;
-
+	
 #ifdef RANGECHECK
 	if (srcx < 0 || srcx + width > vid.width || srcy < 0 ||
-		srcy + height > vid.height || destx < 0 || destx + width > vid.width ||
-		desty < 0 || desty + height > vid.height || (unsigned)srcscrn > 4 || (unsigned)destscrn > 4)
+	        srcy + height > vid.height || destx < 0 || destx + width > vid.width ||
+	        desty < 0 || desty + height > vid.height || (unsigned)srcscrn > 4 || (unsigned)destscrn > 4)
 	{
-		I_Error("Bad V_CopyRect %d %d %d %d %d %d %d %d", srcx, srcy, srcscrn,
-				width, height, destx, desty, destscrn);
+		I_Error("Bad V_CopyRect %d %d %d %d %d %d %d %d", srcx, srcy, srcscrn, width, height, destx, desty, destscrn);
 	}
 #endif
 	V_MarkRect(destx, desty, width, height);
-
+	
 #ifdef DEBUG
-	CONS_Printf("V_CopyRect: vidwidth %d screen[%d]=%x to screen[%d]=%x\n",
-				vid.width, srcscrn, screens[srcscrn], destscrn, screens[destscrn]);
-	CONS_Printf
-		("..........: srcx %d srcy %d width %d height %d destx %d desty %d\n",
-		 srcx, srcy, width, height, destx, desty);
+	CONS_Printf("V_CopyRect: vidwidth %d screen[%d]=%x to screen[%d]=%x\n", vid.width, srcscrn, screens[srcscrn], destscrn, screens[destscrn]);
+	CONS_Printf("..........: srcx %d srcy %d width %d height %d destx %d desty %d\n", srcx, srcy, width, height, destx, desty);
 #endif
-
+	
 	src = screens[srcscrn] + vid.width * srcy + srcx;
 	dest = screens[destscrn] + vid.width * desty + destx;
-
+	
 	for (; height > 0; height--)
-	{	
+	{
 		for (i = 0; i < width; i++)
 		{
 			*dest = *((transtables + (trans * 0x10000)) + ((src[srcx >> FRACBITS] << 8) & 0xFF00) + (*dest & 0xFF));
@@ -532,8 +532,7 @@ void V_CopyRectTrans(int srcx, int srcy, int srcscrn, int width, int height,
 // Copy a rectangular area from one bitmap to another (8bpp)
 // srcPitch, destPitch : width of source and destination bitmaps
 // --------------------------------------------------------------------------
-void VID_BlitLinearScreen(uint8_t * srcptr, uint8_t * destptr, int width, int height,
-						  int srcrowbytes, int destrowbytes)
+void VID_BlitLinearScreen(uint8_t* srcptr, uint8_t* destptr, int width, int height, int srcrowbytes, int destrowbytes)
 {
 	if (srcrowbytes == destrowbytes)
 		memcpy(destptr, srcptr, srcrowbytes * height);
@@ -542,7 +541,7 @@ void VID_BlitLinearScreen(uint8_t * srcptr, uint8_t * destptr, int width, int he
 		while (height--)
 		{
 			memcpy(destptr, srcptr, width);
-
+			
 			destptr += destrowbytes;
 			srcptr += srcrowbytes;
 		}
@@ -553,28 +552,28 @@ void VID_BlitLinearScreen(uint8_t * srcptr, uint8_t * destptr, int width, int he
 // V_DrawBlock
 // Draw a linear block of pixels into the view buffer.
 //
-void V_DrawBlock(int x, int y, int scrn, int width, int height, uint8_t * src)
+void V_DrawBlock(int x, int y, int scrn, int width, int height, uint8_t* src)
 {
-	uint8_t *dest;
+	uint8_t* dest;
 	
 	if (!graphics_started)
 		return;
-
+		
 #ifdef RANGECHECK
 	if (x < 0 || x + width > vid.width || y < 0 || y + height > vid.height || (unsigned)scrn > 4)
 	{
 		I_Error("Bad V_DrawBlock");
 	}
 #endif
-
+	
 	//V_MarkRect (x, y, width, height);
-
+	
 	dest = screens[scrn] + y * vid.width + x;
-
+	
 	while (height--)
 	{
 		memcpy(dest, src, width);
-
+		
 		src += width;
 		dest += vid.width;
 	}
@@ -584,22 +583,22 @@ void V_DrawBlock(int x, int y, int scrn, int width, int height, uint8_t * src)
 // V_GetBlock
 // Gets a linear block of pixels from the view buffer.
 //
-void V_GetBlock(int x, int y, int scrn, int width, int height, uint8_t * dest)
+void V_GetBlock(int x, int y, int scrn, int width, int height, uint8_t* dest)
 {
-	uint8_t *src;
+	uint8_t* src;
 	
 	if (!graphics_started)
 		return;
-
+		
 #ifdef RANGECHECK
 	if (x < 0 || x + width > vid.width || y < 0 || y + height > vid.height || (unsigned)scrn > 4)
 	{
 		I_Error("Bad V_GetBlock");
 	}
 #endif
-
+	
 	src = screens[scrn] + y * vid.width + x;
-
+	
 	while (height--)
 	{
 		memcpy(dest, src, width);
@@ -608,20 +607,21 @@ void V_GetBlock(int x, int y, int scrn, int width, int height, uint8_t * dest)
 	}
 }
 
-static void V_BlitScalePic(int x1, int y1, int scrn, pic_t * pic)
-{	// QuickRound
+static void V_BlitScalePic(int x1, int y1, int scrn, pic_t* pic)
+{
+	// QuickRound
 	int dupx, dupy;
 	int x, y;
-	uint8_t *src, *dest;
+	uint8_t* src, *dest;
 	int width, height;
 	
 	if (!graphics_started)
 		return;
-
+		
 	width = LittleSwapInt16(pic->width);
 	height = LittleSwapInt16(pic->height);
 	scrn &= 0xffff;
-
+	
 	if (pic->mode != 0)
 	{
 		CONS_Printf("pic mode %d not supported in Software\n", pic->mode);
@@ -629,12 +629,12 @@ static void V_BlitScalePic(int x1, int y1, int scrn, pic_t * pic)
 	}
 	
 	
-	dest = screens[scrn] + /*max*/(y1 * vid.width > 0 ? y1 * vid.width : 0) + /*max*/(x1 > 0 ? x1 : 0);
+	dest = screens[scrn] + /*max */ (y1 * vid.width > 0 ? y1 * vid.width : 0) + /*max */ (x1 > 0 ? x1 : 0);
 	// y cliping to the screen
 	if (y1 + QuickRound(height * vid.fdupy) >= vid.width)
 		height = QuickRound((vid.width - y1) / vid.fdupy) - 1;
 	// WARNING no x clipping (not needed for the moment)
-	for (y = /*max*/(QuickRound(-y1 / vid.fdupy) > 0 ? QuickRound(-y1 / vid.fdupy) : 0); y < height; y++)
+	for (y = /*max */ (QuickRound(-y1 / vid.fdupy) > 0 ? QuickRound(-y1 / vid.fdupy) : 0); y < height; y++)
 	{
 		for (dupy = 0; QuickRound(vid.fdupy - dupy) > 0; dupy++)
 		{
@@ -655,7 +655,7 @@ static void V_BlitScalePic(int x1, int y1, int scrn, pic_t * pic)
 //  CURRENTLY USED FOR StatusBarOverlay, scale pic but not starting coords
 //
 void V_DrawScalePic(int x1, int y1, int scrn,	// hack flag
-					int lumpnum)
+                    int lumpnum)
 {
 	V_BlitScalePic(x1, y1, scrn, W_CacheLumpNum(lumpnum, PU_CACHE));
 }
@@ -677,21 +677,21 @@ void V_DrawRawScreen(int x1, int y1, int lumpnum, int width, int height)
 //added:05-02-98:
 void V_DrawFill(int x, int y, int w, int h, int c)
 {
-	uint8_t *dest;
+	uint8_t* dest;
 	int u, v;
 	float dupx, dupy;
 	
 	if (!graphics_started)
 		return;
-	
+		
 	dupx = vid.fdupx;
 	dupy = vid.fdupy;
-
+	
 	dest = screens[0] + QuickRound(y * dupy) * vid.width + QuickRound(x * dupx) + scaledofs;
-
+	
 	w *= dupx;
 	h *= dupy;
-
+	
 	for (v = 0; v < h; v++, dest += vid.width)
 		for (u = 0; u < w; u++)
 			dest[u] = c;
@@ -699,14 +699,14 @@ void V_DrawFill(int x, int y, int w, int h, int c)
 
 void V_DrawScreenFill(int x, int y, int w, int h, int c)
 {
-	uint8_t *dest;
+	uint8_t* dest;
 	int u, v;
 	
 	if (!graphics_started)
 		return;
-
+		
 	dest = screens[0] + y * vid.width + x;
-
+	
 	for (v = 0; v < h; v++, dest += vid.width)
 		for (u = 0; u < w; u++)
 			dest[u] = c;
@@ -734,20 +734,20 @@ void V_DrawFlatFill(int x, int y, int w, int h, int flatnum)
 	
 	
 #else
-	uint8_t *dest;
+	uint8_t* dest;
 	int u, v;
 	float dupx, dupy;
 	fixed_t dx, dy, xfrac, yfrac;
-	uint8_t *src;
-	uint8_t *flat;
+	uint8_t* src;
+	uint8_t* flat;
 	int size;
 	int flatsize, flatshift;
 	
 	if (!graphics_started)
 		return;
-
+	
 	size = W_LumpLength(flatnum);
-
+	
 	switch (size)
 	{
 		case 4194304:			// 2048x2048 lump
@@ -779,20 +779,20 @@ void V_DrawFlatFill(int x, int y, int w, int h, int flatnum)
 			flatshift = 6;
 			break;
 	}
-
+	
 	flat = W_CacheLumpNum(flatnum, PU_CACHE);
-
+	
 	dupx = vid.fdupx;
 	dupy = vid.fdupy;
-
+	
 	dest = screens[0] + QuickRound(y * dupy) * vid.width + QuickRound(x * dupx) + scaledofs;
-
+	
 	w *= dupx;
 	h *= dupy;
-
+	
 	dx = FixedDiv(FRACUNIT, dupx * 65535.0);
 	dy = FixedDiv(FRACUNIT, dupy * 65535.0);
-
+	
 	yfrac = 0;
 	for (v = 0; v < h; v++, dest += vid.width)
 	{
@@ -815,7 +815,7 @@ void V_DrawFadeScreen(void)
 	int* buf;
 	int* buf2;
 	int c;
-	uint8_t *fadetable = (uint8_t *) colormaps + 16 * 256;
+	uint8_t* fadetable = (uint8_t*)colormaps + 16 * 256;
 	
 	// Speed
 	w = (vid.width >> 2);
@@ -824,7 +824,7 @@ void V_DrawFadeScreen(void)
 	for (y = 0; y < vid.height; y += 8)
 	{
 		// Set buf
-		buf = (int *)(screens[0] + vid.width * y);
+		buf = (int*)(screens[0] + vid.width * y);
 		
 		// Loop
 		for (x = 0; x < w; x += 2)
@@ -837,7 +837,7 @@ void V_DrawFadeScreen(void)
 		// Inner second loop
 		for (i = 1; i < 8 && (y + i) < vid.height; i++)
 		{
-			buf2 = (int *)(screens[0] + vid.width * (y + i));
+			buf2 = (int*)(screens[0] + vid.width * (y + i));
 			memcpy(buf2, buf, vid.width);
 		}
 	}
@@ -855,29 +855,29 @@ void V_DrawFadeScreen(void)
 void V_Init(void)
 {
 	int i;
-	uint8_t *base;
+	uint8_t* base;
 	int screensize;
-
+	
 	LoadPalette("PLAYPAL");
-
+	
 	//added:26-01-98:start address of NUMSCREENS * width*height vidbuffers
 	base = vid.buffer;
-
+	
 	screensize = vid.width * vid.height * vid.bpp;
-
+	
 	for (i = 0; i < NUMSCREENS; i++)
 		screens[i] = base + i * screensize;
-
+		
 	//added:26-01-98: statusbar buffer
 	screens[4] = base + NUMSCREENS * screensize;
-
+	
 	//!debug
 #ifdef DEBUG
 	CONS_Printf("V_Init done:\n");
 	for (i = 0; i < NUMSCREENS + 1; i++)
 		CONS_Printf(" screens[%d] = %x\n", i, screens[i]);
 #endif
-
+		
 }
 
 //
@@ -895,33 +895,33 @@ void R_DrawSpanNoWrap(void);	//tmap.S
 // Test 'scrunch perspective correction' tm (c) ect.
 //
 //added:05-04-98:
-void V_DrawPerspView(uint8_t * viewbuffer, int aiming)
+void V_DrawPerspView(uint8_t* viewbuffer, int aiming)
 {
-	uint8_t *source;
-	uint8_t *dest;
+	uint8_t* source;
+	uint8_t* dest;
 	int y;
 	int x1, w;
 	int offs;
-
+	
 	fixed_t topfrac, bottomfrac, scale, scalestep;
 	fixed_t xfrac, xfracstep;
-
+	
 	source = viewbuffer;
-
+	
 	//+16 to -16 fixed
 	offs = ((aiming * 20) << 16) / 100;
-
+	
 	topfrac = ((vid.width - 40) << 16) - (offs * 2);
 	bottomfrac = ((vid.width - 40) << 16) + (offs * 2);
-
+	
 	scalestep = (bottomfrac - topfrac) / vid.height;
 	scale = topfrac;
-
+	
 	for (y = 0; y < vid.height; y++)
 	{
 		x1 = ((vid.width << 16) - scale) >> 17;
-		dest = ((uint8_t *) vid.direct) + (vid.rowbytes * y) + x1;
-
+		dest = ((uint8_t*)vid.direct) + (vid.rowbytes * y) + x1;
+		
 		xfrac = (20 << FRACBITS) + ((!x1) & 0xFFFF);
 		xfracstep = FixedDiv((vid.width << FRACBITS) - (xfrac << 1), scale);
 		w = scale >> 16;
@@ -933,7 +933,7 @@ void V_DrawPerspView(uint8_t * viewbuffer, int aiming)
 		scale += scalestep;
 		source += vid.width;
 	}
-
+	
 }
 
 // =============================================================================
@@ -951,7 +951,7 @@ void V_DrawPerspView(uint8_t * viewbuffer, int aiming)
 *** LOCALS ***
 *************/
 
-static uint8_t* l_ColorMaps[NUMVEXCOLORS];					// Local colors
+static uint8_t* l_ColorMaps[NUMVEXCOLORS];	// Local colors
 
 /*****************
 *** STRUCTURES ***
@@ -1024,31 +1024,31 @@ static V_ColorEntry_t V_HSVtoRGB(const V_ColorEntry_t HSV)
 				G = T;
 				B = P;
 				break;
-			
+				
 			case 1:
 				R = Q;
 				G = V;
 				B = P;
 				break;
-			
+				
 			case 2:
 				R = P;
 				G = V;
 				B = T;
 				break;
-			
+				
 			case 3:
 				R = P;
 				G = Q;
 				B = V;
 				break;
-			
+				
 			case 4:
 				R = T;
 				G = P;
 				B = V;
 				break;
-			
+				
 			default:
 				R = V;
 				G = P;
@@ -1075,7 +1075,7 @@ static V_ColorEntry_t V_RGBtoHSV(const V_ColorEntry_t RGB)
 	// Get min/max
 	rMin = 255;
 	rMax = 0;
-
+	
 	// Get RGB minimum
 	if (RGB.RGB.R < rMin)
 		rMin = RGB.RGB.R;
@@ -1083,7 +1083,7 @@ static V_ColorEntry_t V_RGBtoHSV(const V_ColorEntry_t RGB)
 		rMin = RGB.RGB.G;
 	if (RGB.RGB.B < rMin)
 		rMin = RGB.RGB.B;
-
+		
 	// Get RGB maximum
 	if (RGB.RGB.R > rMax)
 		rMax = RGB.RGB.R;
@@ -1091,30 +1091,29 @@ static V_ColorEntry_t V_RGBtoHSV(const V_ColorEntry_t RGB)
 		rMax = RGB.RGB.G;
 	if (RGB.RGB.B > rMax)
 		rMax = RGB.RGB.B;
-
+		
 	// Obtain value
 	Ret.HSV.V = rMax;
-
+	
 	// Short circuit?
 	if (Ret.HSV.V == 0)
 	{
 		Ret.HSV.H = Ret.HSV.S = 0;
 		return Ret;
 	}
-
 	// Obtain difference
 	rDif = rMax - rMin;
-
+	
 	// Obtain saturation
 	Ret.HSV.S = (uint8_t)(((uint32_t)255 * (uint32_t)rDif) / (uint32_t)Ret.HSV.V);
-
+	
 	// Short circuit?
 	if (Ret.HSV.S == 0)
 	{
 		Ret.HSV.H = 0;
 		return Ret;
 	}
-
+	
 	/* Obtain hue */
 	if (rMax == RGB.RGB.R)
 		Ret.HSV.H = 43 * (RGB.RGB.G - RGB.RGB.B) / rMax;
@@ -1122,7 +1121,7 @@ static V_ColorEntry_t V_RGBtoHSV(const V_ColorEntry_t RGB)
 		Ret.HSV.H = 85 + (43 * (RGB.RGB.B - RGB.RGB.R) / rMax);
 	else
 		Ret.HSV.H = 171 + (43 * (RGB.RGB.R - RGB.RGB.G) / rMax);
-	
+		
 	return Ret;
 }
 
@@ -1136,7 +1135,7 @@ static size_t V_BestHSVMatch(const V_ColorEntry_t* const Table, const V_ColorEnt
 	/* Check */
 	if (!Table)
 		return 0;
-	
+		
 	/* Convert input to RGB */
 	iRGB = V_HSVtoRGB(HSV);
 	
@@ -1149,7 +1148,7 @@ static size_t V_BestHSVMatch(const V_ColorEntry_t* const Table, const V_ColorEnt
 		// Perfect match?
 		if (iRGB.RGB.R == tRGB.RGB.R && iRGB.RGB.B == tRGB.RGB.B && iRGB.RGB.G == tRGB.RGB.G)
 			return i;
-		
+			
 		// Distance of colors
 		Dr = tRGB.RGB.R - iRGB.RGB.R;
 		Dg = tRGB.RGB.G - iRGB.RGB.G;
@@ -1184,14 +1183,14 @@ void V_InitializeColormaps(void)
 			Z_Free(l_ColorMaps[i]);
 			l_ColorMaps[i] = NULL;
 		}
-	
+		
 	/* Allocate maps, and initialize */
 	for (i = 0; i < NUMVEXCOLORS; i++)
 	{
 		// Does not exist?
 		if (!l_ColorMaps[i])
 			l_ColorMaps[i] = Z_Malloc(sizeof(*l_ColorMaps[i]) * 256, PU_STATIC, NULL);
-		
+			
 		// Initialize
 		for (j = 0; j < 256; j++)
 			l_ColorMaps[i][j] = j;
@@ -1205,7 +1204,7 @@ void V_InitializeColormaps(void)
 	// Failed?
 	if (!Maps)
 		return;
-	
+		
 	/* Constant read in the lump and set the translation stuff */
 	for (m = 0, i = 0; i < NUMVEXCOLORS; i++)
 		for (j = 0; j < 256 && m < n; j++, m++)
@@ -1231,14 +1230,13 @@ void V_DrawFadeConsBackEx(const uint32_t Flags, const int x1, const int y1, cons
 		X2 = x2;
 		Y2 = y2;
 	}
-	
 	// Scaled
 	else
 	{
-		X1 = (float)x1 * (float)vid.fdupx;
-		Y1 = (float)y1 * (float)vid.fdupy;
-		X2 = (float)x2 * (float)vid.fdupx;
-		Y2 = (float)y2 * (float)vid.fdupy;
+		X1 = (float)x1 *(float)vid.fdupx;
+		Y1 = (float)y1 *(float)vid.fdupy;
+		X2 = (float)x2 *(float)vid.fdupx;
+		Y2 = (float)y2 *(float)vid.fdupy;
 	}
 	
 	/* Normalize */
@@ -1256,7 +1254,6 @@ void V_DrawFadeConsBackEx(const uint32_t Flags, const int x1, const int y1, cons
 		Y2 = Y1;
 		Y1 = x;
 	}
-	
 	// Squash off screen
 	if (X1 < 0)
 		X1 = 0;
@@ -1266,17 +1263,17 @@ void V_DrawFadeConsBackEx(const uint32_t Flags, const int x1, const int y1, cons
 		Y1 = 0;
 	if (Y2 >= vid.height)
 		Y2 = vid.height;
-	
+		
 	// Not visible?
 	if (X1 == X2 || Y1 == Y2 || X1 >= vid.width || X2 < 0 || Y1 >= vid.height || Y2 < 0)
 		return;
-	
+		
 	/* Mapping */
 	if (((Flags & VEX_COLORMAPMASK) >> VEX_COLORMAPSHIFT) < NUMVEXCOLORS)
 		Map = l_ColorMaps[(Flags & VEX_COLORMAPMASK) >> VEX_COLORMAPSHIFT];
 	else
 		Map = l_ColorMaps[VEX_MAP_RED];
-	
+		
 	/* Actual Drawing */
 	// Speed
 	w = (X2 >> 2);
@@ -1285,7 +1282,7 @@ void V_DrawFadeConsBackEx(const uint32_t Flags, const int x1, const int y1, cons
 	for (y = Y1; y < Y2; y += 8)
 	{
 		// Set buf
-		buf = (int *)(screens[0] + vid.width * y);
+		buf = (int*)(screens[0] + vid.width * y);
 		
 		// Loop
 		for (x = (X1 >> 2); x < w - 1; x += 2)
@@ -1298,11 +1295,11 @@ void V_DrawFadeConsBackEx(const uint32_t Flags, const int x1, const int y1, cons
 		// Final bits
 		for (x = x << 2; x < w; x++)
 			((uint8_t*)buf)[x] = c & 0xFF;
-		
+			
 		// Inner second loop
 		for (i = 1; i < 8 && (y + i) < Y2; i++)
 		{
-			buf2 = (int *)(screens[0] + vid.width * (y + i));
+			buf2 = (int*)(screens[0] + vid.width * (y + i));
 			memcpy(buf2, buf, X2 - X1);
 		}
 	}
@@ -1312,7 +1309,7 @@ void V_DrawFadeConsBackEx(const uint32_t Flags, const int x1, const int y1, cons
 // GhostlyDeath <March 3, 2011> -- Take V_DrawPatchEx() from NewReMooD (improved version)
 void V_DrawPatchEx(const uint32_t Flags, const int x, const int y, const patch_t* const Patch, const uint8_t* const ExtraMap)
 {
-	int X, 	Y, Count, ColNum, ColLimit, vW, Off;
+	int X, Y, Count, ColNum, ColLimit, vW, Off;
 	fixed_t RowFrac, ColFrac, Col, Width, Offset, DupX, DupY;
 	column_t* Column;
 	uint8_t* Dest;
@@ -1328,7 +1325,7 @@ void V_DrawPatchEx(const uint32_t Flags, const int x, const int y, const patch_t
 	/* Check */
 	if (!Patch)
 		return;
-	
+		
 	/* Init */
 	X = x - Patch->leftoffset;
 	Y = y - Patch->topoffset;
@@ -1344,35 +1341,35 @@ void V_DrawPatchEx(const uint32_t Flags, const int x, const int y, const patch_t
 		vW = 0;
 	TransMap = transtables + (0x10000 * vW);
 	
-	/*switch 
-	{
-		case VEX_BASETRANSMED:
-		case VEX_BASETRANSHIGH:
-		case VEX_BASETRANSMORE:
-		case VEX_BASETRANSFIRE:
-		case VEX_BASETRANSFX1:
-		case VEX_BASETRANSFULL:
-		default:
-			break;
-	}	// TODO!
-	*/
+	/*switch
+	   {
+	   case VEX_BASETRANSMED:
+	   case VEX_BASETRANSHIGH:
+	   case VEX_BASETRANSMORE:
+	   case VEX_BASETRANSFIRE:
+	   case VEX_BASETRANSFX1:
+	   case VEX_BASETRANSFULL:
+	   default:
+	   break;
+	   }    // TODO!
+	 */
 	
 	// Mapping
 	Color = (Flags & VEX_COLORMAPMASK) >> VEX_COLORMAPSHIFT;
 	
 	if (Color < 0 || Color >= NUMVEXCOLORS)
 		Color = 0;
-	
+		
 	ColorMap = V_ReturnColormapPtr(Color);
 	
 	// Extra mapping
 	if (ExtraMap)
 		ColorMap2 = ExtraMap;
-	
+		
 	// No extra mapping
 	else
 		ColorMap2 = V_ReturnColormapPtr(VEX_MAP_NONE);
-	
+		
 	// Scaled picture
 	if (!(Flags & VEX_NOSCALESCREEN))
 	{
@@ -1385,24 +1382,22 @@ void V_DrawPatchEx(const uint32_t Flags, const int x, const int y, const patch_t
 		ColFrac = FixedDiv(ColFrac, DupX);
 		Width = FixedMul(Width, DupX);
 	}
-	
 	// Scaled Start
 	if (!(Flags & VEX_NOSCALESTART))
 	{
 		X = FixedMul(X << FRACBITS, DupX) >> FRACBITS;
 		Y = FixedMul(Y << FRACBITS, DupY) >> FRACBITS;
 	}
-	
 	// Alternate screen
 	if (Flags & VEX_SECONDBUFFER)
 		Screen = 1;
 	else
 		Screen = 0;
-	
+		
 	/* Offscreen? */
 	if (X < 0 || Y < 0 || X >= vid.width || Y >= vid.height)
 		return;
-	
+		
 	/* Update dirty rectangle */
 	if (!Screen)
 		V_MarkRect(X, Y, Width >> FRACBITS, FixedMul(Patch->height << FRACBITS, DupY) >> FRACBITS);
@@ -1416,23 +1411,22 @@ void V_DrawPatchEx(const uint32_t Flags, const int x, const int y, const patch_t
 	// With horizontal flipping
 	if (Flags & VEX_HORIZFLIPPED)
 	{
-		Col = Width - FRACUNIT;			// Start at end
-		ColFrac = -ColFrac;				// Reverse column frac
+		Col = Width - FRACUNIT;	// Start at end
+		ColFrac = -ColFrac;		// Reverse column frac
 		
 		// GhostlyDeath <September 17, 2011> -- Don't run off screen (overflow wrap around)
 		if ((X + (Width >> FRACBITS)) < 0)
 			return;
 	}
-	
 	// Without horizontal flipping
 	else
 	{
-		Col = 0;						// Start at beginning
+		Col = 0;				// Start at beginning
 		
 		// GhostlyDeath <September 17, 2011> -- Don't run off screen (overflow wrap around)
 		if ((X + (Width >> FRACBITS)) >= vid.width)
 			Width -= ((vid.width - (Width >> FRACBITS)) + 1) << FRACBITS;
-			//return;
+		//return;
 	}
 	
 	// With vertical flipping
@@ -1441,7 +1435,6 @@ void V_DrawPatchEx(const uint32_t Flags, const int x, const int y, const patch_t
 		DestTop = screens[Screen] + (Y + (FixedMul(Patch->height << FRACBITS, DupY) >> FRACBITS) * vid.width) + X;
 		vW = -((int32_t)vid.width);	// Move back by width size (go up)
 	}
-	
 	// Without vertical flipping
 	else
 	{
@@ -1450,15 +1443,14 @@ void V_DrawPatchEx(const uint32_t Flags, const int x, const int y, const patch_t
 	}
 	
 	/* Start Drawing Patch */
-	for (ColNum = 0, LostFrac = 0;
-			ColNum < ColLimit; Col += ColFrac, DestTop++, ColNum++)
+	for (ColNum = 0, LostFrac = 0; ColNum < ColLimit; Col += ColFrac, DestTop++, ColNum++)
 	{
 		// GhostlyDeath <December 10, 2010> -- Check column bounds
 		if ((Col >> FRACBITS) < 0 || (Col >> FRACBITS) >= Patch->width)
 			break;
-		
+			
 		// Get source column
-		Column = (column_t*)((uint8_t*)Patch + Patch->columnofs[Col >> FRACBITS]);
+		Column = (column_t*) ((uint8_t*)Patch + Patch->columnofs[Col >> FRACBITS]);
 		
 		// Draw column
 		while (Column->topdelta != 0xFF)
@@ -1473,10 +1465,9 @@ void V_DrawPatchEx(const uint32_t Flags, const int x, const int y, const patch_t
 				Dest = DestTop - Off;
 			else
 				Dest = DestTop + Off;
-			
+				
 			// Draw column
-			for (Offset = 0, Count = ((FixedMul(Column->length << FRACBITS, DupY) >> FRACBITS) - 1);
-					Count >= 0; Count--, Dest += vW, Offset += RowFrac)
+			for (Offset = 0, Count = ((FixedMul(Column->length << FRACBITS, DupY) >> FRACBITS) - 1); Count >= 0; Count--, Dest += vW, Offset += RowFrac)
 			{
 				if (transtables)
 					*Dest = TransMap[(ColorMap[ColorMap2[Source[Offset >> FRACBITS]]] * 256) + (*Dest)];
@@ -1485,7 +1476,7 @@ void V_DrawPatchEx(const uint32_t Flags, const int x, const int y, const patch_t
 			}
 			
 			// Go to next column
-			Column = (column_t*)((uint8_t*)Column + Column->length + 4);
+			Column = (column_t*) ((uint8_t*)Column + Column->length + 4);
 		}
 	}
 }
@@ -1508,7 +1499,7 @@ void V_DrawPatch(const int x, const int y, const int scrn, const patch_t* const 
 	/* Handle */
 	if (scrn & 0xFFFF)
 		Flags |= VEX_SECONDBUFFER;
-	
+		
 	V_DrawPatchEx(Flags, x, y, patch, NULL);
 }
 
@@ -1524,7 +1515,7 @@ void V_DrawMappedPatch(const int x, const int y, const int scrn, const patch_t* 
 		Flags |= VEX_NOSCALESCREEN;
 	if (scrn & V_NOSCALESTART)
 		Flags |= VEX_NOSCALESTART;
-	
+		
 	/* Color */
 	if (colormap == greenmap)
 		Flags |= VEX_MAP_RED << VEX_COLORMAPSHIFT;
@@ -1534,7 +1525,7 @@ void V_DrawMappedPatch(const int x, const int y, const int scrn, const patch_t* 
 		Flags |= VEX_MAP_GRAY << VEX_COLORMAPSHIFT;
 	else if (colormap == orangemap)
 		Flags |= VEX_MAP_ORANGE << VEX_COLORMAPSHIFT;
-	
+		
 	/* Now Draw */
 	V_DrawPatchEx(Flags, x, y, patch, colormap);
 }
@@ -1551,7 +1542,7 @@ void V_DrawScaledPatch(const int x, const int y, const int scrn, const patch_t* 
 		Flags |= VEX_NOSCALESCREEN;
 	if (scrn & V_NOSCALESTART)
 		Flags |= VEX_NOSCALESTART;
-	
+		
 	/* Now Draw */
 	V_DrawPatchEx(Flags, x, y, patch, NULL);
 }
@@ -1564,7 +1555,7 @@ void V_DrawTransPatch(const int x, const int y, const int scrn, const patch_t* c
 	/* Handle */
 	if (scrn & 0xFFFF)
 		Flags |= VEX_SECONDBUFFER;
-	
+		
 	V_DrawPatchEx(Flags, x, y, patch, NULL);
 }
 
@@ -1576,7 +1567,7 @@ void V_DrawTranslucentPatch(const int x, const int y, const int scrn, const patc
 	/* Handle */
 	if (scrn & 0xFFFF)
 		Flags |= VEX_SECONDBUFFER;
-	
+		
 	V_DrawPatchEx(Flags, x, y, patch, NULL);
 }
 
@@ -1591,8 +1582,8 @@ void V_DrawTranslucentPatch(const int x, const int y, const int scrn, const patc
 //    ++ Groups 1-256
 //       .. Individual Characters (256)
 // Wasteful but more speedy
-UniChar_t** CharacterGroups[NUMVIDEOFONTS] = {NULL, NULL, NULL, NULL, NULL};
-UniChar_t* UnknownLink[NUMVIDEOFONTS] = {NULL, NULL, NULL, NULL, NULL};
+UniChar_t** CharacterGroups[NUMVIDEOFONTS] = { NULL, NULL, NULL, NULL, NULL };
+UniChar_t* UnknownLink[NUMVIDEOFONTS] = { NULL, NULL, NULL, NULL, NULL };
 
 char* FontName[NUMVIDEOFONTS][2] =	/* Nice Name and ReMooD Script Name */
 {
@@ -1609,15 +1600,15 @@ char* FontName[NUMVIDEOFONTS][2] =	/* Nice Name and ReMooD Script Name */
 
 char Font[NUMVIDEOFONTS][4][9] =	/* Doom, Doom (Alt), Heretic, Heretic (Alt) */
 {
-	{"UFNA", "STCFN", "UFNC", "FONTA"}, // VFONT_SMALL
+	{"UFNA", "STCFN", "UFNC", "FONTA"},	// VFONT_SMALL
 	{"UFNB", "FONTC", "UFND", "FONTB"},	// VFONT_LARGE
-	{"UFNK", "", "UFNK", ""},			// VFONT_STATUSBARSMALL
-	{"UFNJ", "DIG", "UFNJ", "DIG"},		// VFONT_PRBOOMHUD
-	{"UFNR", "", "UFNR", ""},			// VFONT_OEM
-	{"UFNW", "", "UFNW", ""},			// VFONT_USERSPACEA
-	{"UFNX", "", "UFNX", ""},			// VFONT_USERSPACEB
-	{"UFNY", "", "UFNY", ""},			// VFONT_USERSPACEC
-	{"UFNZ", "", "UFNZ", ""}			// VFONT_USERSPACED
+	{"UFNK", "", "UFNK", ""},	// VFONT_STATUSBARSMALL
+	{"UFNJ", "DIG", "UFNJ", "DIG"},	// VFONT_PRBOOMHUD
+	{"UFNR", "", "UFNR", ""},	// VFONT_OEM
+	{"UFNW", "", "UFNW", ""},	// VFONT_USERSPACEA
+	{"UFNX", "", "UFNX", ""},	// VFONT_USERSPACEB
+	{"UFNY", "", "UFNY", ""},	// VFONT_USERSPACEC
+	{"UFNZ", "", "UFNZ", ""}	// VFONT_USERSPACED
 };
 
 /* V_WCharToMB() -- Convert wide character to multibyte */
@@ -1639,7 +1630,6 @@ static void V_WCharToMB(const uint16_t WChar, char* const MB)
 		MBx[0] = WChar & 0x7F;
 		MBx[1] = 0;
 	}
-	
 	// Double byte
 	else if (WChar >= 0x0080 && WChar <= 0x07FF)
 	{
@@ -1647,7 +1637,6 @@ static void V_WCharToMB(const uint16_t WChar, char* const MB)
 		MBx[1] = 0x80 | (WChar & 0x3F);
 		MBx[2] = 0;
 	}
-	
 	// Triple byte
 	else if (WChar >= 0x8000 && WChar <= 0xFFFF)
 	{
@@ -1656,7 +1645,6 @@ static void V_WCharToMB(const uint16_t WChar, char* const MB)
 		MBx[2] = 0x80 | (WChar & 0x3F);
 		MBx[3] = 0;
 	}
-	
 	// Quad-uint8_t (Requires 32-bit uint16_t)
 	else if (sizeof(uint16_t) >= 4 && (WChar >= 0x010000 && WChar <= 0x10FFFF))
 	{
@@ -1706,7 +1694,8 @@ static VideoFont_t V_WXAliasFont(const VideoFont_t a_InFont)
 }
 
 /* V_WXAddCharacter() -- Add single character (extended WAD capable) */
-static void V_WXAddCharacter(UniChar_t**** CharacterGroupsRef, const VideoFont_t xFont, WX_WADEntry_t* const Entry, const uint16_t Char, const uint16_t Top, const uint16_t Bottom)
+static void V_WXAddCharacter(UniChar_t****  CharacterGroupsRef, const VideoFont_t xFont, WX_WADEntry_t* const Entry, const uint16_t Char, const uint16_t Top,
+                             const uint16_t Bottom)
 {
 	int Group = (Char >> 8) & 0xFF;
 	int Local = Char & 0x00FF;
@@ -1723,7 +1712,7 @@ static void V_WXAddCharacter(UniChar_t**** CharacterGroupsRef, const VideoFont_t
 	// Check if local group exists
 	if (!(*CharacterGroupsRef)[Font][Group])
 		(*CharacterGroupsRef)[Font][Group] = Z_Malloc(sizeof(UniChar_t) * 256, PU_STATIC, NULL);
-	
+		
 	// Place in and/or overwrite
 	(*CharacterGroupsRef)[Font][Group][Local].Char = Char;
 	(*CharacterGroupsRef)[Font][Group][Local].XEntry = Entry;
@@ -1738,7 +1727,7 @@ static void V_WXAddCharacter(UniChar_t**** CharacterGroupsRef, const VideoFont_t
 		if ((*CharacterGroupsRef)[Font][TG])
 			if ((*CharacterGroupsRef)[Font][TG][TL].Char)
 				(*CharacterGroupsRef)[Font][Group][Local].BuildTop = &(*CharacterGroupsRef)[Font][TG][TL];
-
+				
 	(*CharacterGroupsRef)[Font][Group][Local].BuildBottom = NULL;
 	if (Bottom)
 		if ((*CharacterGroupsRef)[Font][BG])
@@ -1760,11 +1749,11 @@ void V_WXMapGraphicCharsWAD(WX_WADFile_t* const a_WAD)
 	/* Check */
 	if (!a_WAD)
 		return;
-	
+		
 	/* Get Private data */
 	if (!WX_GetVirtualPrivateData(a_WAD, WXDPID_GCHARS, &PrivateD, &PrivateSZ))
 		return;
-	
+		
 	/* If data is not allocated then allocate it */
 	if (!*PrivateD)
 	{
@@ -1774,7 +1763,7 @@ void V_WXMapGraphicCharsWAD(WX_WADFile_t* const a_WAD)
 	
 	/* Get rover pointers */
 	Rover = WX_GetNumEntry(a_WAD, 0);
-	Last = WX_GetNumEntry(a_WAD, (size_t)-2);
+	Last = WX_GetNumEntry(a_WAD, (size_t) - 2);
 	
 	/* Go through */
 	for (; Rover < Last; Rover = WX_RoveEntry(Rover, 1))
@@ -1788,28 +1777,28 @@ void V_WXMapGraphicCharsWAD(WX_WADFile_t* const a_WAD)
 		FontID = 0;
 		
 		// Universal Font Name? [UFNxhhhh]
-			// UFNxhhhh
-			// A = Small Doom
-			// B = Large Doom
-			// C = Small Heretic
-			// D = Large Heretic
-			// K = Small Doom Statusbar
-			// J = PrBoom HUD
-			// R = OEM
-			// W X Y Z = User
+		// UFNxhhhh
+		// A = Small Doom
+		// B = Large Doom
+		// C = Small Heretic
+		// D = Large Heretic
+		// K = Small Doom Statusbar
+		// J = PrBoom HUD
+		// R = OEM
+		// W X Y Z = User
 		if (strncasecmp(NameBuf, "UFN", 3) == 0)
 		{
 			// Validate Font: Font Letter ID
 			if (NameBuf[3] < 'A' || NameBuf[3] > 'Z')
 				continue;
-			
+				
 			// Validate Font: Font UTF-16 Hex
 			for (i = 0; i < 4; i++)
 				if (!((NameBuf[4 + i] >= '0' && NameBuf[4 + i] <= '9') || (NameBuf[4 + i] >= 'A' && NameBuf[4 + i] <= 'F')))
 					break;
 			if (i != 4)
 				continue;
-			
+				
 			// Translare name to ID
 			for (i = 0; i < 4; i++)
 			{
@@ -1817,13 +1806,12 @@ void V_WXMapGraphicCharsWAD(WX_WADFile_t* const a_WAD)
 					CharID |= (NameBuf[4 + i] - 'A') + 10;
 				else
 					CharID |= NameBuf[4 + i] - '0';
-				
+					
 				// Need to shift?
 				if (i < 3)
 					CharID <<= 4;
 			}
 		}
-		
 		// Doom Standard Font [STCFNddd]
 		else if (strncasecmp(NameBuf, "STCFN", 5) == 0)
 		{
@@ -1833,7 +1821,7 @@ void V_WXMapGraphicCharsWAD(WX_WADFile_t* const a_WAD)
 					break;
 			if (i != 3)
 				continue;
-			
+				
 			// Translate name to ID
 			for (i = 0; i < 3; i++)
 			{
@@ -1844,23 +1832,21 @@ void V_WXMapGraphicCharsWAD(WX_WADFile_t* const a_WAD)
 					CharID *= 10;
 			}
 		}
-		
 		// PrBoom HUD Font
 		else if (strncasecmp(NameBuf, "DIG", 3) == 0)
 		{
 		}
-		
 		// Font Class
-			// FONTa
-			// A = Small Heretic
-			// B = Large Heretic
-			// C = Large Doom
+		// FONTa
+		// A = Small Heretic
+		// B = Large Heretic
+		// C = Large Doom
 		else if (strncasecmp(NameBuf, "FONT", 4) == 0)
 		{
 			// Validate Font: Class Letter
 			if (NameBuf[3] < 'A' || NameBuf[3] > 'C')
 				continue;
-			
+				
 			// Validate Font: Character Number
 			for (i = 0; i < 2; i++)
 				if (NameBuf[5 + i] < '0' || NameBuf[5 + i] > '9')
@@ -1868,16 +1854,15 @@ void V_WXMapGraphicCharsWAD(WX_WADFile_t* const a_WAD)
 			if (i != 2)
 				continue;
 		}
-		
 		// Not defined
 		else
 			continue;
-		
+			
 		// Check to see if the character is valid
 		if (!CharID)
 			continue;
-		
-		
+			
+			
 	}
 #undef BUFSIZE
 }
@@ -1891,7 +1876,7 @@ void V_WXClearGraphicCharsWAD(WX_WADFile_t* const a_WAD)
 	/* Check */
 	if (!a_WAD)
 		return;
-	
+		
 	/* Get Private data */
 	if (!WX_GetVirtualPrivateData(a_WAD, WXDPID_GCHARS, &PrivateD, &PrivateSZ))
 		return;
@@ -1930,7 +1915,7 @@ void V_AddCharacter(VideoFont_t xFont, WadEntry_t* Entry, uint16_t Char, uint16_
 	// Check if local group exists
 	if (!CharacterGroups[Font][Group])
 		CharacterGroups[Font][Group] = Z_Malloc(sizeof(UniChar_t) * 256, PU_STATIC, NULL);
-	
+		
 	// Place in and/or overwrite
 	CharacterGroups[Font][Group][Local].Char = Char;
 	CharacterGroups[Font][Group][Local].Entry = Entry;
@@ -1945,7 +1930,7 @@ void V_AddCharacter(VideoFont_t xFont, WadEntry_t* Entry, uint16_t Char, uint16_
 		if (CharacterGroups[Font][TG])
 			if (CharacterGroups[Font][TG][TL].Char)
 				CharacterGroups[Font][Group][Local].BuildTop = &CharacterGroups[Font][TG][TL];
-
+				
 	CharacterGroups[Font][Group][Local].BuildBottom = NULL;
 	if (Bottom)
 		if (CharacterGroups[Font][BG])
@@ -1986,7 +1971,6 @@ void V_MapGraphicalCharacters(void)
 					Z_Free(CharacterGroups[i][j]);
 					CharacterGroups[i][j] = NULL;
 				}
-			
 			// Free entire set
 			Z_Free(CharacterGroups[i]);
 			CharacterGroups[i] = NULL;
@@ -2008,14 +1992,14 @@ void V_MapGraphicalCharacters(void)
 			
 			/* Check for a match */
 			for (k = 0; k < NUMVIDEOFONTS; k++)
-				if ((/*gamemode != heretic &&*/ strlen(Font[k][0]) && (!strncasecmp(Font[k][0], CurWad->Index[j].Name, strlen(Font[k][0]))))/* ||
-					(gamemode == heretic && strlen(Font[k][2]) && (!strncasecmp(Font[k][2], CurWad->Index[j].Name, strlen(Font[k][2]))))*/)
+				if (( /*gamemode != heretic && */ strlen(Font[k][0]) && (!strncasecmp(Font[k][0], CurWad->Index[j].Name, strlen(Font[k][0]))))	/* ||
+																																				   (gamemode == heretic && strlen(Font[k][2]) && (!strncasecmp(Font[k][2], CurWad->Index[j].Name, strlen(Font[k][2])))) */ )
 				{
 					Mode = 0;
 					break;
 				}
-				else if ((/*gamemode != heretic &&*/ strlen(Font[k][1]) && (!strncasecmp(Font[k][1], CurWad->Index[j].Name, strlen(Font[k][1]))))/* ||
-					(gamemode == heretic && strlen(Font[k][3]) && (!strncasecmp(Font[k][3], CurWad->Index[j].Name, strlen(Font[k][3]))))*/)
+				else if (( /*gamemode != heretic && */ strlen(Font[k][1]) && (!strncasecmp(Font[k][1], CurWad->Index[j].Name, strlen(Font[k][1]))))	/* ||
+																																						   (gamemode == heretic && strlen(Font[k][3]) && (!strncasecmp(Font[k][3], CurWad->Index[j].Name, strlen(Font[k][3])))) */ )
 				{
 					Mode = 1;
 					
@@ -2023,17 +2007,17 @@ void V_MapGraphicalCharacters(void)
 						Mode += 1;
 					else if (CurWad->Index[j].Name[0] == 'D')
 						Mode += 2;
-					
+						
 					break;
 				}
-			
+				
 			/* No Match? */
 			if (k == NUMVIDEOFONTS)
 				continue;
 				
 			/* Match found, check validity */
 			// Checks every letter essentially
-			if (!Mode)					// UFNxhhhh Hex
+			if (!Mode)			// UFNxhhhh Hex
 			{
 				for (l = 0; l < 4; l++)
 				{
@@ -2042,11 +2026,11 @@ void V_MapGraphicalCharacters(void)
 					if (!((x >= 'a' && x <= 'f') || (x >= 'A' && x <= 'F') || (x >= '0' && x <= '9')))
 						break;
 				}
-					
-				if (l != 4)	// woo, yeah, this is nice
+				
+				if (l != 4)		// woo, yeah, this is nice
 					continue;
 			}
-			else if	(Mode == 1)			// FONTdd
+			else if (Mode == 1)	// FONTdd
 			{
 				for (l = 0; l < 2; l++)
 				{
@@ -2059,7 +2043,7 @@ void V_MapGraphicalCharacters(void)
 				if (l != 2)
 					continue;
 			}
-			else if (Mode == 2)			// STCFNddd
+			else if (Mode == 2)	// STCFNddd
 			{
 				for (l = 0; l < 3; l++)
 				{
@@ -2080,7 +2064,7 @@ void V_MapGraphicalCharacters(void)
 				if (l != 3)
 					continue;
 			}
-			else if (Mode == 3)			// DIGan
+			else if (Mode == 3)	// DIGan
 			{
 				for (l = 0; l < 2; l++)
 				{
@@ -2175,21 +2159,19 @@ void V_MapGraphicalCharacters(void)
 			}
 			
 			/* Now add it */
-			if (NewChar == 0x0000 ||			// Non-printing chars, like spaces
-				NewChar == '\r' ||
-				NewChar == '\n' ||
-				NewChar == '\t' ||
-				NewChar == '\a' ||
-				NewChar == '\b' ||
-				NewChar == ' ' ||
-				NewChar == 0x00A0 ||
-				(NewChar >= 0x2000 && NewChar <= 0x200F) ||
-				(NewChar >= 0x2028 && NewChar <= 0x202F) ||
-				(NewChar >= 0x205F && NewChar <= 0x2063) ||
-				(NewChar >= 0x206A && NewChar <= 0x206F) ||
-				(NewChar >= 0xFFF9 && NewChar <= 0xFFFB))
+			if (NewChar == 0x0000 ||	// Non-printing chars, like spaces
+			        NewChar == '\r' ||
+			        NewChar == '\n' ||
+			        NewChar == '\t' ||
+			        NewChar == '\a' ||
+			        NewChar == '\b' ||
+			        NewChar == ' ' ||
+			        NewChar == 0x00A0 ||
+			        (NewChar >= 0x2000 && NewChar <= 0x200F) ||
+			        (NewChar >= 0x2028 && NewChar <= 0x202F) ||
+			        (NewChar >= 0x205F && NewChar <= 0x2063) || (NewChar >= 0x206A && NewChar <= 0x206F) || (NewChar >= 0xFFF9 && NewChar <= 0xFFFB))
 				continue;
-			
+				
 			V_AddCharacter(k, &CurWad->Index[j], NewChar, 0, 0);
 			Totals[k]++;
 		}
@@ -2200,13 +2182,13 @@ void V_MapGraphicalCharacters(void)
 	{
 		if (!CharacterGroups[i])
 			continue;
-		
+			
 		if (!CharacterGroups[i][(int)(0xFFFD / 256)])
 			continue;
 			
 		if (!CharacterGroups[i][(int)(0xFFFD / 256)][0xFFFD % 256].Char)
 			continue;
-		
+			
 		UnknownLink[i] = &CharacterGroups[i][(int)(0xFFFD / 256)][0xFFFD % 256];
 	}
 	
@@ -2218,7 +2200,7 @@ void V_MapGraphicalCharacters(void)
 	{
 		if (devparm)
 			CONS_Printf("V_MapGraphicalCharacters: Parsing RMD_UTTT...\n");
-		
+			
 		// Read in the data
 		utttLump = W_CacheLumpNum(utttNum, PU_STATIC);
 		utttSize = W_LumpLength(utttNum);
@@ -2227,7 +2209,7 @@ void V_MapGraphicalCharacters(void)
 		p = utttLump;
 		e = utttLump + utttSize;
 		
-		/* Read slowly */		
+		/* Read slowly */
 		for (; p < e;)
 		{
 			// Read marker
@@ -2241,30 +2223,30 @@ void V_MapGraphicalCharacters(void)
 					// Debug info
 					if (devparm)
 						CONS_Printf("V_MapGraphicalCharacters: Case mapping...\n");
-					
+						
 					// Run through file
 					for (j = 0;;)
 					{
 						// Read first character (small)
 						k = ReadUInt16((uint16_t**)&p);
-					
+						
 						// end of sequence
 						if (!k)
 							break;
-						
+							
 						// Read second character (cap)
 						l = ReadUInt16((uint16_t**)&p);
 						
 						if (!l)
 							break;
-						
+							
 						// Do unicode mapping (for every font)
 						for (i = 0; i < NUMVIDEOFONTS; i++)
 						{
 							// Check if the font set exists
 							if (!CharacterGroups[i])
 								continue;
-							
+								
 							// Get Groups and IDs
 							groups = ((l) >> 8) & 0xFF;
 							ids = (l) & 0xFF;
@@ -2272,9 +2254,10 @@ void V_MapGraphicalCharacters(void)
 							idd = (k) & 0xFF;
 							
 							// Check group and local existence of source capital; Source char does not exist; Do not replace dest if it already exists
-							if (!CharacterGroups[i][groups] || !CharacterGroups[i][groups][ids].Char || (CharacterGroups[i][groupd] && CharacterGroups[i][groupd][idd].Char))
+							if (!CharacterGroups[i][groups] || !CharacterGroups[i][groups][ids].Char ||
+							        (CharacterGroups[i][groupd] && CharacterGroups[i][groupd][idd].Char))
 								continue;
-							
+								
 							// Add single character
 							V_AddCharacter(i, CharacterGroups[i][groups][ids].Entry, k, 0, 0);
 							
@@ -2288,7 +2271,7 @@ void V_MapGraphicalCharacters(void)
 					if (devparm)
 						CONS_Printf("V_MapGraphicalCharacters: Case mapped %i glyphs...\n", j);
 					break;
-				
+					
 					// Stop or unknown
 				default:
 					p = e;
@@ -2317,21 +2300,21 @@ static uint16_t V_MBToWChar(const char* MBChar, size_t* const BSkip)
 	/* Check */
 	if (!MBChar)
 		return 0xFFFD;
-	
+		
 	/* Get length of character */
 	n = strlen(MBChar);
 	
 	// Double check
 	if (!n)
 		return 0;
-	
+		
 	/* Convert in stages (I think) */
 	// Single byte
 	if (n == 1 || !(*MBChar & 0x80))
 	{
 		if (BSkip)
 			*BSkip = 1;
-		
+			
 		// Get safe character
 		Safe = *MBChar & 0x7F;
 		
@@ -2349,13 +2332,12 @@ static uint16_t V_MBToWChar(const char* MBChar, size_t* const BSkip)
 					Feed = 0xF100U | (Feed - '0');
 				else
 					Feed = 0xF100U | (10 + (Feed - 'a'));
-				
+					
 				if (BSkip)
 					*BSkip = 2;
-				
+					
 				return Feed;
 			}
-			
 			// Is it another {? semi-scape
 			else if (n > 2 && *MBChar == '{')
 			{
@@ -2368,17 +2350,15 @@ static uint16_t V_MBToWChar(const char* MBChar, size_t* const BSkip)
 					// Skip to letter after
 					if (BSkip)
 						*BSkip = 2;
-					
+						
 					// Return explicit '{'
 					return '{';
 				}
 			}
 		}
-		
-		// Normal	
+		// Normal
 		return Safe;
 	}
-	
 	// Double byte
 	else if (n == 2 || (*MBChar & 0xE0) == 0xC0)
 	{
@@ -2392,7 +2372,6 @@ static uint16_t V_MBToWChar(const char* MBChar, size_t* const BSkip)
 			*BSkip = 2;
 		return Feed;
 	}
-	
 	// Triple byte
 	else if (n == 3 || (*MBChar & 0xF0) == 0xE0)
 	{
@@ -2410,7 +2389,6 @@ static uint16_t V_MBToWChar(const char* MBChar, size_t* const BSkip)
 			*BSkip = 3;
 		return Feed;
 	}
-		
 	// Quad uint8_t (requires 32-bit wchar_t)
 	else if (sizeof(uint16_t) >= 4 && (n == 4 || (*MBChar & 0xF8) == 0xF0))
 	{
@@ -2432,7 +2410,6 @@ static uint16_t V_MBToWChar(const char* MBChar, size_t* const BSkip)
 			*BSkip = 4;
 		return Feed;
 	}
-	
 	// Fail
 	else
 	{
@@ -2455,7 +2432,7 @@ static const UniChar_t* V_BestWChar(const VideoFont_t xFont, const uint16_t WCha
 	/* Check group (if it even exists) */
 	if (!CharacterGroups[Font])
 		return NULL;
-	
+		
 	/* Find character */
 	// Get group and id
 	group = (WChar >> 8) & 0xFF;
@@ -2484,7 +2461,7 @@ int V_FontHeight(const VideoFont_t xFont)
 	/* Check */
 	if (Font < 0 || Font >= NUMVIDEOFONTS)
 		return 12;
-	
+		
 	/* Return */
 	if (UnknownLink[Font] && UnknownLink[Font]->Patch)
 		return UnknownLink[Font]->Patch->height;
@@ -2516,7 +2493,7 @@ int V_FontWidth(const VideoFont_t xFont)
 	/* Check */
 	if (Font < 0 || Font >= NUMVIDEOFONTS)
 		return 4;
-	
+		
 	/* Return */
 	if (UnknownLink[Font] && UnknownLink[Font]->Patch)
 		return UnknownLink[Font]->Patch->width;
@@ -2527,7 +2504,8 @@ int V_FontWidth(const VideoFont_t xFont)
 /* V_DrawCharacterMB() -- Draw multibyte character */
 // Returns: Width of drawn character
 // *BSkip : Characters to skip after drawing (optional)
-int V_DrawCharacterMB(const VideoFont_t xFont, const uint32_t Options, const char* const MBChar, const int x, const int y, size_t* const BSkip, uint32_t* a_OptionsMod)
+int V_DrawCharacterMB(const VideoFont_t xFont, const uint32_t Options, const char* const MBChar, const int x, const int y, size_t* const BSkip,
+                      uint32_t* a_OptionsMod)
 {
 	const UniChar_t* D = NULL;
 	uint16_t WC = 0;
@@ -2561,22 +2539,20 @@ int V_DrawCharacterMB(const VideoFont_t xFont, const uint32_t Options, const cha
 		{
 			if (!a_OptionsMod)
 				return 0;
-			
+				
 			*a_OptionsMod &= ~VFO_COLORMASK;
 			*a_OptionsMod |= WC & 0xF;
 		}
-		
 		// These always have no space to them
 		return 0;
 	}
-	
 	// Graphic
 	D = V_BestWChar(Font, WC);
 	
 	/* Missing graphic or bad drawing parms? */
 	if (!D || !D->Patch || x + D->Patch->width > vid.width)
 		return 0;
-	
+		
 	/* Draw extended */
 	// Flags
 	if (Options & VFO_NOSCALESTART)
@@ -2587,7 +2563,7 @@ int V_DrawCharacterMB(const VideoFont_t xFont, const uint32_t Options, const cha
 		VDrawOpt |= VEX_NOFLOATSCALE;
 	if (Options & VFO_NOSCALELORES)
 		VDrawOpt |= VEX_NOSCALE160160;
-	
+		
 	// Colors
 	VDrawOpt |= (Options & VFO_COLORMASK) << VEX_COLORMAPSHIFT;
 	
@@ -2600,10 +2576,10 @@ int V_DrawCharacterMB(const VideoFont_t xFont, const uint32_t Options, const cha
 	// Draw top and/or bottom glyph (and ignore bskip)
 	if (D->BuildTop)
 		V_DrawCharacterMB(Font, Options, D->BuildTop->MB, x, y - (D->BuildTop->Patch->height), NULL, NULL);
-	
+		
 	if (D->BuildBottom)
 		V_DrawCharacterMB(Font, Options, D->BuildTop->MB, x, y + (D->Patch->height), NULL, NULL);
-	
+		
 	/* Return graphic width */
 	return D->Patch->width;
 }
@@ -2638,7 +2614,7 @@ int V_DrawStringA(const VideoFont_t xFont, const uint32_t Options, const char* c
 	/* Check */
 	if (!String || !CharacterGroups[Font])
 		return 0;
-	
+		
 	/* Find position */
 	X = x;
 	Y = y;
@@ -2673,7 +2649,6 @@ int V_DrawStringA(const VideoFont_t xFont, const uint32_t Options, const char* c
 			LS += ((Options & VFO_RIGHTTOLEFT) ? -4 : 4);
 			MBSkip = 1;
 		}
-		
 		// Check for newline
 		else if (*c == '\n')
 		{
@@ -2704,7 +2679,6 @@ int V_DrawStringA(const VideoFont_t xFont, const uint32_t Options, const char* c
 				
 			MBSkip = 1;
 		}
-		
 		// Otherwise draw the character
 		else
 		{
@@ -2714,7 +2688,7 @@ int V_DrawStringA(const VideoFont_t xFont, const uint32_t Options, const char* c
 			// Scale?
 			if (Options & VFO_NOSCALESTART && !(Options & VFO_NOSCALEPATCH))
 				k *= vid.fdupx;
-			
+				
 			// RtL?
 			LS += ((Options & VFO_RIGHTTOLEFT) ? -k : k);
 			
@@ -2729,7 +2703,7 @@ int V_DrawStringA(const VideoFont_t xFont, const uint32_t Options, const char* c
 	// Normalize (in case of RTL)
 	if (Ret < 0)
 		Ret = -Ret;
-	
+		
 	return Ret;
 }
 
@@ -2751,7 +2725,7 @@ void V_StringDimensionsA(const VideoFont_t xFont, const uint32_t Options, const 
 	{
 		if (Width)
 			*Width = 0;
-		
+			
 		if (Height)
 			*Height = 0;
 		return;
@@ -2779,11 +2753,11 @@ void V_StringDimensionsA(const VideoFont_t xFont, const uint32_t Options, const 
 				LineHeight = 12;
 				break;
 		}
-	
+		
 	// Now set
 	XHeight = LineHeight;
 	
-	/* Parse String */	
+	/* Parse String */
 	for (MBSkip = 1, c = String; *c; c += MBSkip)
 	{
 		// Space
@@ -2792,7 +2766,6 @@ void V_StringDimensionsA(const VideoFont_t xFont, const uint32_t Options, const 
 			CLine += 4;
 			MBSkip = 1;
 		}
-		
 		// Newline
 		else if (*c == '\n')
 		{
@@ -2800,13 +2773,12 @@ void V_StringDimensionsA(const VideoFont_t xFont, const uint32_t Options, const 
 			CLine = 0;
 			MBSkip = 1;
 		}
-		
 		// Normal character
 		else
 		{
 			// uint16_t
 			wc = V_MBToWChar(c, &MBSkip);
-	
+			
 			// Graphic
 			D = V_BestWChar(Font, wc);
 			
@@ -2818,7 +2790,7 @@ void V_StringDimensionsA(const VideoFont_t xFont, const uint32_t Options, const 
 		// Just in case
 		if (!MBSkip)
 			MBSkip = 1;
-		
+			
 		if (CLine > XWidth)
 			XWidth = CLine;
 	}
@@ -2833,6 +2805,7 @@ void V_StringDimensionsA(const VideoFont_t xFont, const uint32_t Options, const 
 int V_StringWidthA(const VideoFont_t Font, const uint32_t Options, const char* const String)
 {
 	int n = 0;
+	
 	V_StringDimensionsA(Font, Options, String, &n, NULL);
 	return n;
 }
@@ -2841,6 +2814,7 @@ int V_StringWidthA(const VideoFont_t Font, const uint32_t Options, const char* c
 int V_StringHeightA(const VideoFont_t Font, const uint32_t Options, const char* const String)
 {
 	int n = 0;
+	
 	V_StringDimensionsA(Font, Options, String, NULL, &n);
 	return n;
 }
@@ -2865,4 +2839,3 @@ void V_InvalidatePD(V_PDString_t* const PDStr);
 void V_InvalidateAllPD(void);
 void V_UpdatePD(V_PDString_t* const PDStr);
 void V_RenderPD(V_PDString_t* const PDStr);
-

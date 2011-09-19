@@ -91,12 +91,12 @@ void M_DrawMenuTitle(void)
 			xtitle = 0;
 		if (ytitle < 0)
 			ytitle = 0;
-
+			
 		V_DrawStringA(VFONT_LARGE, 0, *(currentMenu->WMenuTitlePtr), xtitle, ytitle);
 	}
 	else if (currentMenu->menutitlepic)
 	{
-		patch_t *p = W_CachePatchName(currentMenu->menutitlepic, PU_CACHE);
+		patch_t* p = W_CachePatchName(currentMenu->menutitlepic, PU_CACHE);
 		
 		if (currentMenu->menutitlex <= -1)
 			xtitle = 94;
@@ -107,7 +107,7 @@ void M_DrawMenuTitle(void)
 			ytitle = 2;
 		else
 			ytitle = currentMenu->menutitley;
-
+			
 		if (xtitle < 0)
 			xtitle = 0;
 		if (ytitle < 0)
@@ -126,18 +126,18 @@ void M_DrawGenericMenu(void)
 	int USSizeW = V_StringWidthA(VFONT_SMALL, 0, "_");
 	int USSizeH = V_StringHeightA(VFONT_SMALL, 0, "_");
 	uint8_t BaseFlags;
-
+	
 	// DRAW MENU
 	x = currentMenu->x;
 	y = currentMenu->y;
-
+	
 	// draw title (or big pic)
 	M_DrawMenuTitle();
 	
 	// Check itemsperpage
 	if (!currentMenu->itemsperpage)
 		currentMenu->itemsperpage = 500;
-
+		
 	for (i = currentMenu->firstdraw; i < currentMenu->numitems && i < (currentMenu->firstdraw + currentMenu->itemsperpage); i++)
 	{
 		if (i == itemOn)
@@ -147,7 +147,7 @@ void M_DrawGenericMenu(void)
 		}
 		else
 			BaseFlags = 0;
-		
+			
 		switch (currentMenu->menuitems[i].status & IT_DISPLAY)
 		{
 			case IT_PATCH:
@@ -157,14 +157,13 @@ void M_DrawGenericMenu(void)
 					y += FONTBHEIGHT - LINEHEIGHT;
 				}
 				else if (currentMenu->menuitems[i].patch && currentMenu->menuitems[i].patch[0])
-					V_DrawScaledPatch(x, y, 0,
-									  W_CachePatchName(currentMenu->menuitems[i].patch, PU_CACHE));
+					V_DrawScaledPatch(x, y, 0, W_CachePatchName(currentMenu->menuitems[i].patch, PU_CACHE));
 			case IT_NOTHING:
 			case IT_DYBIGSPACE:
 				y += LINEHEIGHT;
 				break;
 			case IT_BIGSLIDER:
-				M_DrawThermo(x, y, (consvar_t *) currentMenu->menuitems[i].itemaction);
+				M_DrawThermo(x, y, (consvar_t*) currentMenu->menuitems[i].itemaction);
 				y += LINEHEIGHT;
 				break;
 			case IT_STRING:
@@ -176,9 +175,8 @@ void M_DrawGenericMenu(void)
 					
 				if (currentMenu->menuitems[i].status & IT_CENTERSTRING)
 				{
-					fixedx = ((currentMenu->width + currentMenu->x) >> 1) -
-						(V_StringWidthA(VFONT_SMALL, 0, *(currentMenu->menuitems[i].WItemTextPtr)) >> 1);
-						
+					fixedx = ((currentMenu->width + currentMenu->x) >> 1) - (V_StringWidthA(VFONT_SMALL, 0, *(currentMenu->menuitems[i].WItemTextPtr)) >> 1);
+					
 					if (i == itemOn)
 					{
 						cursorx1 = fixedx - 10;
@@ -188,7 +186,7 @@ void M_DrawGenericMenu(void)
 				else
 					fixedx = x;
 				fixedy = y;
-
+				
 				if (currentMenu->menuitems[i].status & IT_DISABLED2)
 					V_DrawStringA(VFONT_SMALL, VEX_MAP_GRAY, *(currentMenu->menuitems[i].WItemTextPtr), fixedx, fixedy);
 				else
@@ -198,50 +196,48 @@ void M_DrawGenericMenu(void)
 					else
 						V_DrawStringA(VFONT_SMALL, VEX_MAP_BRIGHTWHITE, *(currentMenu->menuitems[i].WItemTextPtr), fixedx, fixedy);
 				}
-
+				
 				// Cvar specific handling
 				switch (currentMenu->menuitems[i].status & IT_TYPE)
-					case IT_CVAR:
+				case IT_CVAR:
+				{
+					consvar_t* cv = (consvar_t*) currentMenu->menuitems[i].itemaction;
+					
+					switch (currentMenu->menuitems[i].status & IT_CVARTYPE)
 					{
-						consvar_t *cv = (consvar_t *) currentMenu->menuitems[i].itemaction;
-						switch (currentMenu->menuitems[i].status & IT_CVARTYPE)
-						{
-							case IT_CV_SLIDER:
-								M_DrawSlider((currentMenu->x + currentMenu->width) - SLIDER_WIDTH,
-											 y,
-											 ((cv->value -
-											   cv->PossibleValue[0].value) *
-											  100 /
-											  (cv->PossibleValue[1].value -
-											   cv->PossibleValue[0].value)),
-											   (currentMenu->menuitems[i].status & IT_DISABLED2 || currentMenu->menuitems[i].status &  IT_CVARREADONLY ? graymap : 0));
-								//y += STRINGHEIGHT;
-							case IT_CV_NOPRINT:	// color use this 
-								//y += STRINGHEIGHT;
-								break;
-							case IT_CV_STRING:
-									/* TODO: WHY constantly check the size of a single char? */
-								V_DrawFill((currentMenu->x + currentMenu->width) -
-								V_StringWidthA(VFONT_SMALL, 0, cv->string) - (i == itemOn ? USSizeW : 0) - 1,
-									y - 1, V_StringWidthA(VFONT_SMALL, 0, cv->string) + (i == itemOn ? USSizeW : 0) + 2,
-									USSizeH + 2, 0);
-								V_DrawStringA(VFONT_SMALL, VEX_MAP_BRIGHTWHITE, cv->string,
-									V_StringWidthA(VFONT_SMALL, 0, cv->string) - (i == itemOn ? USSizeW : 0),
-									y);
-								if (skullAnimCounter < 4 && i == itemOn)
-									V_DrawCharacterA(VFONT_SMALL, VEX_MAP_BRIGHTWHITE, '_',
-										(currentMenu->x + currentMenu->width) -
-										USSizeW, y);
-								break;
-							default:
-								V_DrawStringA(VFONT_SMALL, (currentMenu->menuitems[i].status & IT_DISABLED2 || currentMenu->menuitems[i].status & IT_CVARREADONLY? VEX_MAP_GRAY : VEX_MAP_BRIGHTWHITE),
-									cv->string,
-									((currentMenu->x + currentMenu->width)) - V_StringWidthA(VFONT_SMALL, 0, cv->string),
-									y);
-								break;
-						}
-						break;
+						case IT_CV_SLIDER:
+							M_DrawSlider((currentMenu->x + currentMenu->width) - SLIDER_WIDTH,
+							             y,
+							             ((cv->value -
+							               cv->PossibleValue[0].value) *
+							              100 /
+							              (cv->PossibleValue[1].value -
+							               cv->PossibleValue[0].value)),
+							             (currentMenu->menuitems[i].status & IT_DISABLED2 ||
+							              currentMenu->menuitems[i].status & IT_CVARREADONLY ? graymap : 0));
+							//y += STRINGHEIGHT;
+						case IT_CV_NOPRINT:	// color use this
+							//y += STRINGHEIGHT;
+							break;
+						case IT_CV_STRING:
+							/* TODO: WHY constantly check the size of a single char? */
+							V_DrawFill((currentMenu->x + currentMenu->width) -
+							           V_StringWidthA(VFONT_SMALL, 0, cv->string) - (i == itemOn ? USSizeW : 0) - 1,
+							           y - 1, V_StringWidthA(VFONT_SMALL, 0, cv->string) + (i == itemOn ? USSizeW : 0) + 2, USSizeH + 2, 0);
+							V_DrawStringA(VFONT_SMALL, VEX_MAP_BRIGHTWHITE, cv->string,
+							              V_StringWidthA(VFONT_SMALL, 0, cv->string) - (i == itemOn ? USSizeW : 0), y);
+							if (skullAnimCounter < 4 && i == itemOn)
+								V_DrawCharacterA(VFONT_SMALL, VEX_MAP_BRIGHTWHITE, '_', (currentMenu->x + currentMenu->width) - USSizeW, y);
+							break;
+						default:
+							V_DrawStringA(VFONT_SMALL,
+							              (currentMenu->menuitems[i].status & IT_DISABLED2 ||
+							               currentMenu->menuitems[i].status & IT_CVARREADONLY ? VEX_MAP_GRAY : VEX_MAP_BRIGHTWHITE), cv->string,
+							              ((currentMenu->x + currentMenu->width)) - V_StringWidthA(VFONT_SMALL, 0, cv->string), y);
+							break;
 					}
+					break;
+				}
 				y += STRINGHEIGHT;
 				break;
 			case IT_STRING2:
@@ -258,24 +254,20 @@ void M_DrawGenericMenu(void)
 						y += FONTBHEIGHT - LINEHEIGHT;
 					}
 					else if (currentMenu->menuitems[i].patch && currentMenu->menuitems[i].patch[0])
-						V_DrawMappedPatch(x, y, 0,
-										  W_CachePatchName(currentMenu->
-														   menuitems[i].patch, PU_CACHE), graymap);
+						V_DrawMappedPatch(x, y, 0, W_CachePatchName(currentMenu->menuitems[i].patch, PU_CACHE), graymap);
 					y += LINEHEIGHT;
 				}
 				break;
-
+				
 		}
 	}
-
+	
 	// DRAW THE SKULL CURSOR
 	if (!(currentMenu->extraflags & MENUFLAG_HIDECURSOR))
 	{
-		if (((currentMenu->menuitems[itemOn].status & IT_DISPLAY) == IT_PATCH)
-			|| ((currentMenu->menuitems[itemOn].status & IT_DISPLAY) == IT_NOTHING))
+		if (((currentMenu->menuitems[itemOn].status & IT_DISPLAY) == IT_PATCH) || ((currentMenu->menuitems[itemOn].status & IT_DISPLAY) == IT_NOTHING))
 		{
-			V_DrawScaledPatch(currentMenu->x + SKULLXOFF,
-							  cursory - 5, 0, W_CachePatchName(skullName[whichSkull], PU_CACHE));
+			V_DrawScaledPatch(currentMenu->x + SKULLXOFF, cursory - 5, 0, W_CachePatchName(skullName[whichSkull], PU_CACHE));
 		}
 		else if (skullAnimCounter < 4)	//blink cursor
 		{
@@ -297,12 +289,12 @@ void M_DrawGenericMenu(void)
 //
 //      Menu Functions
 //
-void M_DrawThermo(int x, int y, consvar_t * cv)
+void M_DrawThermo(int x, int y, consvar_t* cv)
 {
 	int xx, i;
 	int leftlump, rightlump, centerlump[2], cursorlump;
-	patch_t *p;
-
+	patch_t* p;
+	
 	xx = x;
 	leftlump = W_GetNumForName("M_THERML");
 	rightlump = W_GetNumForName("M_THERMR");
@@ -317,23 +309,20 @@ void M_DrawThermo(int x, int y, consvar_t * cv)
 		xx += 8;
 	}
 	V_DrawScaledPatch(xx, y, 0, W_CachePatchNum(rightlump, PU_CACHE));
-
-	xx = (cv->value - cv->PossibleValue[0].value) * (15 * 8) /
-		(cv->PossibleValue[1].value - cv->PossibleValue[0].value);
-
+	
+	xx = (cv->value - cv->PossibleValue[0].value) * (15 * 8) / (cv->PossibleValue[1].value - cv->PossibleValue[0].value);
+	
 	V_DrawScaledPatch((x + 8) + xx, y, 0, W_CachePatchNum(cursorlump, PU_CACHE));
 }
 
-void M_DrawEmptyCell(menu_t * menu, int item)
+void M_DrawEmptyCell(menu_t* menu, int item)
 {
-	V_DrawScaledPatch(menu->x - 10, menu->y + item * LINEHEIGHT - 1, 0,
-					  W_CachePatchName("M_CELL1", PU_CACHE));
+	V_DrawScaledPatch(menu->x - 10, menu->y + item * LINEHEIGHT - 1, 0, W_CachePatchName("M_CELL1", PU_CACHE));
 }
 
-void M_DrawSelCell(menu_t * menu, int item)
+void M_DrawSelCell(menu_t* menu, int item)
 {
-	V_DrawScaledPatch(menu->x - 10, menu->y + item * LINEHEIGHT - 1, 0,
-					  W_CachePatchName("M_CELL2", PU_CACHE));
+	V_DrawScaledPatch(menu->x - 10, menu->y + item * LINEHEIGHT - 1, 0, W_CachePatchName("M_CELL2", PU_CACHE));
 }
 
 //
@@ -344,16 +333,16 @@ void M_DrawSelCell(menu_t * menu, int item)
 extern int st_borderpatchnum;	//st_stuff.c (for Glide)
 void M_DrawTextBox(int x, int y, int width, int lines)
 {
-	patch_t *p;
+	patch_t* p;
 	int cx, cy;
 	int n;
 	int step, boff;
 	
 	fixed_t x1, y1, x2, y2;
-
+	
 	step = 8;
 	boff = 8;
-
+	
 #if 1
 	// GhostlyDeath <November 3, 2010> -- Banded message (gray band)
 	x1 = 1;
@@ -375,22 +364,21 @@ void M_DrawTextBox(int x, int y, int width, int lines)
 		cy += step;
 	}
 	V_DrawScaledPatch(cx, cy, 0, W_CachePatchNum(viewborderlump[BRDR_BL], PU_CACHE));
-
+	
 	// draw middle
 	V_DrawFlatFill(x + boff, y + boff, width * step, lines * step, st_borderpatchnum);
-
+	
 	cx += boff;
 	cy = y;
 	while (width > 0)
 	{
 		V_DrawScaledPatch(cx, cy, 0, W_CachePatchNum(viewborderlump[BRDR_T], PU_CACHE));
-
-		V_DrawScaledPatch(cx, y + boff + lines * step, 0,
-						  W_CachePatchNum(viewborderlump[BRDR_B], PU_CACHE));
+	
+		V_DrawScaledPatch(cx, y + boff + lines * step, 0, W_CachePatchNum(viewborderlump[BRDR_B], PU_CACHE));
 		width--;
 		cx += step;
 	}
-
+	
 	// draw right side
 	cy = y;
 	V_DrawScaledPatch(cx, cy, 0, W_CachePatchNum(viewborderlump[BRDR_TR], PU_CACHE));
@@ -413,12 +401,14 @@ void M_DrawMessageMenu(void);
 char* MessageWStuff = NULL;
 char* MessageItemWStuff = NULL;
 
-menuitem_t MessageMenu[] = {
+menuitem_t MessageMenu[] =
+{
 	// TO HACK
 	{0, NULL, &MessageItemWStuff, NULL, 0}
 };
 
-menu_t MessageDef = {
+menu_t MessageDef =
+{
 	0,
 	NULL,						// titlepic
 	&MessageWStuff,				// title text
@@ -430,9 +420,10 @@ menu_t MessageDef = {
 	0							// lastOn, flags       (TO HACK)
 };
 
-void M_StartMessage(const char *string, void *routine, menumessagetype_t itemtype)
+void M_StartMessage(const char* string, void* routine, menumessagetype_t itemtype)
 {
 	int max, start, i, lines;
+	
 #define message (*(MessageDef.menuitems[0].WItemTextPtr))
 	if (message)
 		Z_Free(message);
@@ -444,7 +435,7 @@ void M_StartMessage(const char *string, void *routine, menumessagetype_t itemtyp
 	// As long as the previous menu wasn't a message
 	if (!MessageDef.prevMenu || (MessageDef.prevMenu && MessageDef.prevMenu != &MessageDef))
 		MessageDef.prevMenu = currentMenu;
-	
+		
 	*(MessageDef.menuitems[0].WItemTextPtr) = message;
 	MessageDef.menuitems[0].alphaKey = itemtype;
 	switch (itemtype)
@@ -479,16 +470,16 @@ void M_StartMessage(const char *string, void *routine, menumessagetype_t itemtyp
 				break;
 			}
 		}
-
+		
 		if (i == (int)strlen(message + start))
 			start += i;
 	}
-
+	
 	MessageDef.x = (BASEVIDWIDTH - 8 * max - 16) / 2;
 	MessageDef.y = (BASEVIDHEIGHT - M_StringHeight(message)) / 2;
-
+	
 	MessageDef.lastOn = (lines << 8) + max;
-
+	
 //    M_SetupNextMenu();
 	currentMenu = &MessageDef;
 	itemOn = 0;
@@ -502,14 +493,14 @@ void M_DrawMessageMenu(void)
 	short i, max;
 	char string[MAXMSGLINELEN];
 	int start, lines;
-	char *msg = *(currentMenu->menuitems[0].WItemTextPtr);
-
+	char* msg = *(currentMenu->menuitems[0].WItemTextPtr);
+	
 	y = currentMenu->y;
 	start = 0;
 	lines = currentMenu->lastOn >> 8;
 	max = (currentMenu->lastOn & 0xFF) * 8;
 	M_DrawTextBox(currentMenu->x, y - 8, (max + 7) >> 3, lines);
-
+	
 	while (*(msg + start))
 	{
 		for (i = 0; i < (int)strlen(msg + start); i++)
@@ -528,11 +519,11 @@ void M_DrawMessageMenu(void)
 					start += i + 1;
 					i = -1;		//added:07-02-98:damned!
 				}
-
+				
 				break;
 			}
 		}
-
+		
 		if (i == (int)strlen(msg + start))
 		{
 			if (i >= MAXMSGLINELEN)
@@ -546,7 +537,7 @@ void M_DrawMessageMenu(void)
 				start += i;
 			}
 		}
-
+		
 		V_DrawStringA(VFONT_SMALL, 0, string, (BASEVIDWIDTH - V_StringWidthA(VFONT_SMALL, 0, string)) / 2, y);
 		y += 8;					//LittleSwapInt16(hu_font[0]->height);
 	}
@@ -567,7 +558,7 @@ void M_StopMessage(int choice)
 //
 //  Write a string centered using the hu_font
 //
-void M_CentreText(int y, char *string)
+void M_CentreText(int y, char* string)
 {
 	V_DrawStringA(VFONT_SMALL, VFO_CENTERED, string, 0, y);
 }
@@ -575,17 +566,17 @@ void M_CentreText(int y, char *string)
 //
 //      Find string height from hu_font chars
 //
-int M_StringHeight(char *string)
+int M_StringHeight(char* string)
 {
 	int i;
 	int h;
 	int height = 8;				//(hu_font[0]->height);
-
+	
 	h = height;
 	for (i = 0; i < (int)strlen(string); i++)
 		if (string[i] == '\n')
 			h += height;
-
+			
 	return h;
 }
 
@@ -598,7 +589,7 @@ void M_Drawer(void)
 {
 	if (!menuactive)
 		return;
-
+		
 	//added:18-02-98:
 	// center the scaled graphics for the menu,
 	//  set it 0 again before return!!!
@@ -610,7 +601,6 @@ void M_Drawer(void)
 			V_DrawFadeScreen();
 		currentMenu->drawroutine();	// call current menu Draw routine
 	}
-
 	//added:18-02-98: it should always be 0 for non-menu scaled graphics.
 	scaledofs = 0;
 }
@@ -623,11 +613,11 @@ void M_StartControlPanel(void)
 	// intro might call this repeatedly
 	if (menuactive)
 		return;
-
+		
 	menuactive = 1;
 	currentMenu = &MainDef;		// JDC
 	itemOn = currentMenu->lastOn;	// JDC
-
+	
 	CON_ToggleOff();			// dirty hack : move away console
 }
 
@@ -638,13 +628,13 @@ void M_ClearMenus(bool_t callexitmenufunc)
 {
 	if (!menuactive)
 		return;
-
+		
 	if (currentMenu->quitroutine && callexitmenufunc)
 	{
 		if (!currentMenu->quitroutine())
 			return;				// we can't quit this menu (also used to set parameter from the menu)
 	}
-
+	
 	menuactive = 0;
 }
 
@@ -654,37 +644,35 @@ void M_ClearMenus(bool_t callexitmenufunc)
 void M_DrawSlider(int x, int y, int range, void* extra)
 {
 	int i;
-
+	
 	if (range < 0)
 		range = 0;
 	if (range > 100)
 		range = 100;
-
+		
 	if (extra)
 	{
 		V_DrawMappedPatch(x - 8, y, 0, W_CachePatchName("M_SLIDEL", PU_CACHE), extra);
-
+		
 		for (i = 0; i < SLIDER_RANGE; i++)
 			V_DrawMappedPatch(x + i * 8, y, 0, W_CachePatchName("M_SLIDEM", PU_CACHE), extra);
-
+			
 		V_DrawMappedPatch(x + SLIDER_RANGE * 8, y, 0, W_CachePatchName("M_SLIDER", PU_CACHE), extra);
-
+		
 		// draw the slider cursor
-		V_DrawMappedPatch(x + ((SLIDER_RANGE - 1) * 8 * range) / 100, y, 0,
-						  W_CachePatchName("M_SLIDEC", PU_CACHE), extra);
+		V_DrawMappedPatch(x + ((SLIDER_RANGE - 1) * 8 * range) / 100, y, 0, W_CachePatchName("M_SLIDEC", PU_CACHE), extra);
 	}
 	else
 	{
 		V_DrawScaledPatch(x - 8, y, 0, W_CachePatchName("M_SLIDEL", PU_CACHE));
-
+		
 		for (i = 0; i < SLIDER_RANGE; i++)
 			V_DrawScaledPatch(x + i * 8, y, 0, W_CachePatchName("M_SLIDEM", PU_CACHE));
-
+			
 		V_DrawScaledPatch(x + SLIDER_RANGE * 8, y, 0, W_CachePatchName("M_SLIDER", PU_CACHE));
-
+		
 		// draw the slider cursor
-		V_DrawScaledPatch(x + ((SLIDER_RANGE - 1) * 8 * range) / 100, y, 0,
-						  W_CachePatchName("M_SLIDEC", PU_CACHE));
+		V_DrawScaledPatch(x + ((SLIDER_RANGE - 1) * 8 * range) / 100, y, 0, W_CachePatchName("M_SLIDEC", PU_CACHE));
 	}
 }
 
@@ -698,18 +686,18 @@ void M_DrawControl(void)
 	char tmp[50];
 	int i;
 	int keys[2];
-
+	
 	// draw title, strings and submenu
 	M_DrawGenericMenu();
-
+	
 	for (i = currentMenu->firstdraw; i < currentMenu->numitems && i < (currentMenu->firstdraw + currentMenu->itemsperpage); i++)
 	{
 		if (currentMenu->menuitems[i].status != IT_CONTROL)
 			continue;
-
+			
 		keys[0] = setupcontrols[currentMenu->menuitems[i].alphaKey][0];
 		keys[1] = setupcontrols[currentMenu->menuitems[i].alphaKey][1];
-
+		
 		tmp[0] = '\0';
 		if (keys[0] == KEY_NULL && keys[1] == KEY_NULL)
 		{
@@ -719,18 +707,17 @@ void M_DrawControl(void)
 		{
 			if (keys[0] != KEY_NULL)
 				strcat(tmp, G_KeynumToString(keys[0]));
-
+				
 			if (keys[0] != KEY_NULL && keys[1] != KEY_NULL)
 				strcat(tmp, " or ");
-
+				
 			if (keys[1] != KEY_NULL)
 				strcat(tmp, G_KeynumToString(keys[1]));
-
+				
 		}
 		
 		V_DrawStringA(VFONT_SMALL, VEX_MAP_BRIGHTWHITE, tmp,
-			(DefaultKeyBindDef.x + DefaultKeyBindDef.width) - V_StringWidthA(VFONT_SMALL, 0, tmp),
-			DefaultKeyBindDef.y + (i - currentMenu->firstdraw) * STRINGHEIGHT);
+		              (DefaultKeyBindDef.x + DefaultKeyBindDef.width) - V_StringWidthA(VFONT_SMALL, 0, tmp),
+		              DefaultKeyBindDef.y + (i - currentMenu->firstdraw) * STRINGHEIGHT);
 	}
 }
-

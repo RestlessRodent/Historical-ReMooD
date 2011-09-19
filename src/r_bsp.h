@@ -33,25 +33,25 @@
 #ifndef __R_BSP__
 #define __R_BSP__
 
-extern seg_t *curline;
-extern side_t *sidedef;
-extern line_t *linedef;
-extern sector_t *frontsector;
-extern sector_t *backsector;
+extern seg_t* curline;
+extern side_t* sidedef;
+extern line_t* linedef;
+extern sector_t* frontsector;
+extern sector_t* backsector;
 
 extern bool_t skymap;
 
 // faB: drawsegs are now allocated on the fly ... see r_segs.c
 // extern drawseg_t*       drawsegs;
 //SoM: 3/26/2000: Use boom code.
-extern drawseg_t *drawsegs;
+extern drawseg_t* drawsegs;
 extern size_t maxdrawsegs;
-extern drawseg_t *ds_p;
-extern drawseg_t *firstnewseg;
+extern drawseg_t* ds_p;
+extern drawseg_t* firstnewseg;
 
-extern lighttable_t **hscalelight;
-extern lighttable_t **vscalelight;
-extern lighttable_t **dscalelight;
+extern lighttable_t** hscalelight;
+extern lighttable_t** vscalelight;
+extern lighttable_t** dscalelight;
 
 typedef void (*drawfunc_t) (int start, int stop);
 
@@ -62,9 +62,8 @@ void R_ClearDrawSegs(void);
 
 void R_RenderBSPNode(int bspnum);
 
-sector_t *R_FakeFlat(sector_t * sec, sector_t * tempsec,
-					 int *floorlightlevel, int *ceilinglightlevel, bool_t back);
+sector_t* R_FakeFlat(sector_t* sec, sector_t* tempsec, int* floorlightlevel, int* ceilinglightlevel, bool_t back);
 
-int R_GetPlaneLight(sector_t * sector, fixed_t planeheight, bool_t underside);
-void R_Prep3DFloors(sector_t * sector);
+int R_GetPlaneLight(sector_t* sector, fixed_t planeheight, bool_t underside);
+void R_Prep3DFloors(sector_t* sector);
 #endif

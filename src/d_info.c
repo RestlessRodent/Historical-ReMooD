@@ -52,11 +52,9 @@ void D_WXBuildInfos(const D_InfoLoadType_t a_Type, WX_WADFile_t* const a_WAD)
 			// Compile all the stuff together
 		case DILT_BUILDALL:
 			break;
-		
+			
 			// Nothing
 		default:
 			break;
 	}
 }
-
-

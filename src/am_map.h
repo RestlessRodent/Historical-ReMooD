@@ -56,7 +56,7 @@ extern bool_t automapoverlay;	// Overlayed automap
 extern int am_cheating;
 
 // Called by main loop.
-bool_t AM_Responder(event_t * ev);
+bool_t AM_Responder(event_t* ev);
 
 // Called by main loop.
 void AM_Ticker(void);
@@ -70,4 +70,3 @@ void AM_Drawer(void);
 void AM_Stop(void);
 
 #endif
-

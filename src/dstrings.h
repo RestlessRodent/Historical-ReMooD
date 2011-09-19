@@ -61,13 +61,15 @@ extern char savegamename[256];
 // Not done in french?
 
 // QuitDOOM messages
-  //added:02-01-98: "22 messages - 7 fucking messages = 15 cool messages" !
+//added:02-01-98: "22 messages - 7 fucking messages = 15 cool messages" !
 #define NUM_QUITMESSAGES   15
 
-extern char *endmsg[];
+extern char* endmsg[];
 
 /******************************************************************************/
+
 /******************************************************************************/
+
 /******************************************************************************/
 
 typedef enum
@@ -350,5 +352,4 @@ StringGroupEX_t UnicodeStrings[NUMUNICODESTRINGS];
 
 const char* DS_NameOfString(char** const WCharStr);
 
-#endif /* __DSTRINGS_H__ */
-
+#endif							/* __DSTRINGS_H__ */

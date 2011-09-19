@@ -185,7 +185,7 @@ typedef enum
 	SPR_TNT1,					// 140  SoM: 3/8/2000: add invisible sprite
 	
 	SPR_FLAG,
-
+	
 	NUMSPRITES
 } spritenum_t;
 
@@ -1178,25 +1178,25 @@ typedef enum
 	S_FLAG_6,
 	S_FLAG_7,
 	S_FLAG_8,
-
+	
 	NUMSTATES
 } statenum_t;
 
 typedef struct
 {
 	spritenum_t sprite;
-	int32_t frame;					//faB: we use the upper 16bits for translucency
+	int32_t frame;				//faB: we use the upper 16bits for translucency
 	//     and other shade effects
 	int32_t tics;
 	// void       (*action) ();
 	actionf_t action;
 	statenum_t nextstate;
 	
-	uint8_t Priority;					// View priority of the state
+	uint8_t Priority;			// View priority of the state
 } state_t;
 
 extern state_t states[NUMSTATES];
-extern char *sprnames[NUMSPRITES + 1];
+extern char* sprnames[NUMSPRITES + 1];
 
 typedef enum
 {
@@ -1390,8 +1390,8 @@ typedef struct
 } mobjinfo_t;
 
 extern mobjinfo_t mobjinfo[NUMMOBJTYPES];
-extern char *MT2ReMooDClass[NUMMOBJTYPES];
-extern char *MT2MTString[NUMMOBJTYPES];
+extern char* MT2ReMooDClass[NUMMOBJTYPES];
+extern char* MT2MTString[NUMMOBJTYPES];
 
 void P_PatchInfoTables(void);
 

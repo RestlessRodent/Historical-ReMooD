@@ -56,7 +56,7 @@ struct mobj_s;
 /* S_NoiseThinker_t -- A thinker that makes noise */
 typedef struct S_NoiseThinker_s
 {
-	uint32_t Flags;								// Sound flags
+	uint32_t Flags;				// Sound flags
 	
 	/* World Position */
 	fixed_t x;
@@ -70,9 +70,9 @@ typedef struct S_NoiseThinker_s
 	fixed_t momz;
 	
 	/* Other things */
-	fixed_t Pitch;								// Pitch modification
-	fixed_t Volume;								// Volume modification
-	angle_t Angle;								// Angle
+	fixed_t Pitch;				// Pitch modification
+	fixed_t Volume;				// Volume modification
+	angle_t Angle;				// Angle
 } S_NoiseThinker_t;
 
 /**************
@@ -96,19 +96,19 @@ void S_RegisterSoundStuff(void);
 void S_Init(int sfxVolume, int musicVolume);
 void S_StopSounds(void);
 void S_Start(void);
-int S_GetSfxLumpNum(sfxinfo_t * sfx);
-void S_FreeSfx(sfxinfo_t * sfx);
+int S_GetSfxLumpNum(sfxinfo_t* sfx);
+void S_FreeSfx(sfxinfo_t* sfx);
 
 void S_StartSound(S_NoiseThinker_t* a_Origin, int sound_id);
 void S_StartSoundAtVolume(S_NoiseThinker_t* a_Origin, int sound_id, int volume);
-void S_StartSoundName(S_NoiseThinker_t* a_Origin, char *soundname);
+void S_StartSoundName(S_NoiseThinker_t* a_Origin, char* soundname);
 void S_StopSound(S_NoiseThinker_t* a_Origin);
 int S_SoundPlaying(S_NoiseThinker_t* a_Origin, int id);
 
 void S_RepositionSounds(void);
 
 void S_ChangeMusic(int music_num, int looping);
-void S_ChangeMusicName(char *name, int looping);
+void S_ChangeMusicName(char* name, int looping);
 void S_StopMusic(void);
 void S_PauseMusic(void);
 void S_ResumeMusic(void);
@@ -117,5 +117,4 @@ void S_SetMusicVolume(int volume);
 void S_SetSfxVolume(int volume);
 void Command_SoundReset_f(void);
 
-#endif /* __S_SOUND_H__ */
-
+#endif							/* __S_SOUND_H__ */

@@ -74,31 +74,31 @@
 //
 bool_t newlevel = false;
 bool_t doom1level = false;		// doom 1 level running under doom 2
-char *levelmapname = NULL;
+char* levelmapname = NULL;
 
 int numvertexes;
-vertex_t *vertexes;
+vertex_t* vertexes;
 
 int numsegs;
-seg_t *segs;
+seg_t* segs;
 
 int numsectors;
-sector_t *sectors;
+sector_t* sectors;
 
 int numsubsectors;
-subsector_t *subsectors;
+subsector_t* subsectors;
 
 int numnodes;
-node_t *nodes;
+node_t* nodes;
 
 int numlines;
-line_t *lines;
+line_t* lines;
 
 int numsides;
-side_t *sides;
+side_t* sides;
 
 int nummapthings;
-mapthing_t *mapthings;
+mapthing_t* mapthings;
 
 /*
 typedef struct mapdata_s {
@@ -130,15 +130,17 @@ typedef struct mapdata_s {
 int bmapwidth;
 int bmapheight;					// size in mapblocks
 
-long *blockmap;					// int for large maps
+long* blockmap;					// int for large maps
+
 // offsets in blockmap are from here
-long *blockmaplump;				// Big blockmap SSNTails
+long* blockmaplump;				// Big blockmap SSNTails
 
 // origin of block map
 fixed_t bmaporgx;
 fixed_t bmaporgy;
+
 // for thing chains
-mobj_t **blocklinks;
+mobj_t** blocklinks;
 
 // REJECT
 // For fast sight rejection.
@@ -147,37 +149,38 @@ mobj_t **blocklinks;
 // Without special effect, this could be
 //  used as a PVS lookup as well.
 //
-uint8_t *rejectmatrix;
+uint8_t* rejectmatrix;
 
 // Maintain single and multi player starting spots.
-mapthing_t *deathmatchstarts[MAX_DM_STARTS];
+mapthing_t* deathmatchstarts[MAX_DM_STARTS];
 int numdmstarts;
+
 //mapthing_t**    deathmatch_p;
-mapthing_t *playerstarts[MAXPLAYERS];
+mapthing_t* playerstarts[MAXPLAYERS];
 
 //
 // P_LoadVertexes
 //
 void P_LoadVertexes(int lump)
 {
-	uint8_t *data;
+	uint8_t* data;
 	int i;
-	mapvertex_t *ml;
-	vertex_t *li;
-
+	mapvertex_t* ml;
+	vertex_t* li;
+	
 	// Determine number of lumps:
 	//  total lump length / vertex record length.
 	numvertexes = W_LumpLength(lump) / sizeof(mapvertex_t);
-
+	
 	// Allocate zone memory for buffer.
 	vertexes = Z_Malloc(numvertexes * sizeof(vertex_t), PU_LEVEL, 0);
-
+	
 	// Load data into cache.
 	data = W_CacheLumpNum(lump, PU_STATIC);
-
-	ml = (mapvertex_t *) data;
+	
+	ml = (mapvertex_t*) data;
 	li = vertexes;
-
+	
 	// Copy and convert vertex coordinates,
 	// internal representation as fixed.
 	for (i = 0; i < numvertexes; i++, li++, ml++)
@@ -185,7 +188,7 @@ void P_LoadVertexes(int lump)
 		li->x = LittleSwapInt16(ml->x) << FRACBITS;
 		li->y = LittleSwapInt16(ml->y) << FRACBITS;
 	}
-
+	
 	// Free buffer memory.
 	Z_Free(data);
 }
@@ -195,14 +198,14 @@ void P_LoadVertexes(int lump)
 //
 #define crapmul (1.0f / 65536.0f)
 
-float P_SegLength(seg_t * seg)
+float P_SegLength(seg_t* seg)
 {
 	double dx, dy;
-
+	
 	// make a vector (start at origin)
 	dx = (seg->v2->x - seg->v1->x) * crapmul;
 	dy = (seg->v2->y - seg->v1->y) * crapmul;
-
+	
 	return sqrt(dx * dx + dy * dy) * FRACUNIT;
 }
 
@@ -211,20 +214,20 @@ float P_SegLength(seg_t * seg)
 //
 void P_LoadSegs(int lump)
 {
-	uint8_t *data;
+	uint8_t* data;
 	int i;
-	mapseg_t *ml;
-	seg_t *li;
-	line_t *ldef;
+	mapseg_t* ml;
+	seg_t* li;
+	line_t* ldef;
 	int linedef;
 	int side;
-
+	
 	numsegs = W_LumpLength(lump) / sizeof(mapseg_t);
 	segs = Z_Malloc(numsegs * sizeof(seg_t), PU_LEVEL, 0);
 	memset(segs, 0, numsegs * sizeof(seg_t));
 	data = W_CacheLumpNum(lump, PU_STATIC);
-
-	ml = (mapseg_t *) data;
+	
+	ml = (mapseg_t*) data;
 	li = segs;
 	for (i = 0; i < numsegs; i++, li++, ml++)
 	{
@@ -242,11 +245,11 @@ void P_LoadSegs(int lump)
 			li->backsector = sides[ldef->sidenum[side ^ 1]].sector;
 		else
 			li->backsector = 0;
-
+			
 		li->numlights = 0;
 		li->rlights = NULL;
 	}
-
+	
 	Z_Free(data);
 }
 
@@ -255,25 +258,25 @@ void P_LoadSegs(int lump)
 //
 void P_LoadSubsectors(int lump)
 {
-	uint8_t *data;
+	uint8_t* data;
 	int i;
-	mapsubsector_t *ms;
-	subsector_t *ss;
-
+	mapsubsector_t* ms;
+	subsector_t* ss;
+	
 	numsubsectors = W_LumpLength(lump) / sizeof(mapsubsector_t);
 	subsectors = Z_Malloc(numsubsectors * sizeof(subsector_t), PU_LEVEL, 0);
 	data = W_CacheLumpNum(lump, PU_STATIC);
-
-	ms = (mapsubsector_t *) data;
+	
+	ms = (mapsubsector_t*) data;
 	memset(subsectors, 0, numsubsectors * sizeof(subsector_t));
 	ss = subsectors;
-
+	
 	for (i = 0; i < numsubsectors; i++, ss++, ms++)
 	{
 		ss->numlines = LittleSwapInt16(ms->numsegs);
 		ss->firstline = LittleSwapInt16(ms->firstseg);
 	}
-
+	
 	Z_Free(data);
 }
 
@@ -287,7 +290,7 @@ void P_LoadSubsectors(int lump)
 #define MAXLEVELFLATS   512
 
 int numlevelflats;
-levelflat_t *levelflats;
+levelflat_t* levelflats;
 
 //SoM: Other files want this info.
 int P_PrecacheLevelFlats()
@@ -295,7 +298,7 @@ int P_PrecacheLevelFlats()
 	int flatmemory = 0;
 	int i;
 	int lump;
-
+	
 	//SoM: 4/18/2000: New flat code to make use of levelflats.
 	for (i = 0; i < numlevelflats; i++)
 	{
@@ -307,7 +310,7 @@ int P_PrecacheLevelFlats()
 	return flatmemory;
 }
 
-int P_FlatNumForName(char *flatname)
+int P_FlatNumForName(char* flatname)
 {
 	return P_AddLevelFlat(flatname, levelflats);
 }
@@ -315,123 +318,119 @@ int P_FlatNumForName(char *flatname)
 // help function for P_LoadSectors, find a flat in the active wad files,
 // allocate an id for it, and set the levelflat (to speedup search)
 //
-int P_AddLevelFlat(char *flatname, levelflat_t * levelflat)
+int P_AddLevelFlat(char* flatname, levelflat_t* levelflat)
 {
 	union
 	{
 		char s[9];
 		int x[2];
 	} name8;
-
+	
 	int i;
 	uint32_t v1, v2;
-
+	
 	strncpy(name8.s, flatname, 8);	// make it two ints for fast compares
 	name8.s[8] = 0;				// in case the name was a fill 8 chars
 	C_strupr(name8.s);			// case insensitive
 	v1 = name8.x[0];
 	v2 = name8.x[1];
-
+	
 	// TODO - GhostlyDeath: Apparently the already scanning stuff doesn't work!
 	//
 	//  first scan through the already found flats
 	//
 	for (i = 0; i < numlevelflats; i++, levelflat++)
 	{
-		if (*(uint32_t *) levelflat->name == v1 && *(uint32_t *) & levelflat->name[4] == v2)
+		if (*(uint32_t*)levelflat->name == v1 && *(uint32_t*)&levelflat->name[4] == v2)
 		{
 			break;
 		}
 	}
-
+	
 	// that flat was already found in the level, return the id
 	if (i == numlevelflats)
 	{
 		// store the name
-		*((size_t *) levelflat->name) = v1;
-		*((size_t *) & levelflat->name[4]) = v2;
-
+		*((size_t*) levelflat->name) = v1;
+		*((size_t*) & levelflat->name[4]) = v2;
+		
 		// store the flat lump number
 		levelflat->lumpnum = R_GetFlatNumForName(flatname);
-
+		
 		numlevelflats++;
-
+		
 		if (numlevelflats >= MAXLEVELFLATS)
 			I_Error("P_LoadSectors: too many flats in level\n");
 	}
-
 	// level flat id
 	return i;
 }
 
 // SoM: Do I really need to comment this?
-char *P_FlatNameForNum(int num)
+char* P_FlatNameForNum(int num)
 {
 	if (num < 0 || num > numlevelflats)
 		I_Error("P_FlatNameForNum: Invalid flatnum\n");
-
+		
 	return Z_Strdup(va("%.8s", levelflats[num].name), PU_STATIC, 0);
 }
 
 void P_LoadSectors(int lump)
 {
-	uint8_t *data;
+	uint8_t* data;
 	int i, j;
-	mapsector_t *ms;
-	sector_t *ss;
+	mapsector_t* ms;
+	sector_t* ss;
 	char newflat1[10];
 	char newflat2[10];
-	char *buf;
-
-	levelflat_t *foundflats;
-
+	char* buf;
+	
+	levelflat_t* foundflats;
+	
 	numsectors = W_LumpLength(lump) / sizeof(mapsector_t);
 	sectors = Z_Malloc(numsectors * sizeof(sector_t), PU_LEVEL, &sectors);
 	memset(sectors, 0, numsectors * sizeof(sector_t));
 	data = W_CacheLumpNum(lump, PU_STATIC);
-
+	
 	//Fab:FIXME: allocate for whatever number of flats
 	//           512 different flats per level should be plenty
 	foundflats = Z_Malloc(sizeof(levelflat_t) * MAXLEVELFLATS, PU_LEVEL, &foundflats);
 	memset(foundflats, 0, sizeof(levelflat_t) * MAXLEVELFLATS);
-
+	
 	numlevelflats = 0;
-
-	ms = (mapsector_t *) data;
+	
+	ms = (mapsector_t*) data;
 	ss = sectors;
 	for (i = 0; i < numsectors; i++, ss++, ms++)
 	{
 		ss->floorheight = LittleSwapInt16(ms->floorheight) << FRACBITS;
 		ss->ceilingheight = LittleSwapInt16(ms->ceilingheight) << FRACBITS;
-
+		
 		//
 		//  flats
 		//
-		if (strncasecmp(ms->floorpic, "FWATER", 6) == 0 ||
-			strncasecmp(ms->floorpic, "FLTWAWA1", 8) == 0 ||
-			strncasecmp(ms->floorpic, "FLTFLWW1", 8) == 0)
+		if (strncasecmp(ms->floorpic, "FWATER", 6) == 0 || strncasecmp(ms->floorpic, "FLTWAWA1", 8) == 0 || strncasecmp(ms->floorpic, "FLTFLWW1", 8) == 0)
 			ss->floortype = FLOOR_WATER;
-		else if (strncasecmp(ms->floorpic, "FLTLAVA1", 8) == 0 ||
-				 strncasecmp(ms->floorpic, "FLATHUH1", 8) == 0)
+		else if (strncasecmp(ms->floorpic, "FLTLAVA1", 8) == 0 || strncasecmp(ms->floorpic, "FLATHUH1", 8) == 0)
 			ss->floortype = FLOOR_LAVA;
 		else if (strncasecmp(ms->floorpic, "FLTSLUD1", 8) == 0)
 			ss->floortype = FLOOR_SLUDGE;
 		else
 			ss->floortype = FLOOR_SOLID;
-
+			
 		for (j = 0; j < 8; j++)
 		{
 			newflat1[j] = 0;
 			newflat2[j] = 0;
 		}
-
-/*#ifdef _MSC_VER >= 1400
-		_strncpy(newflat1, 8, ms->floorpic); //snprintf(newflat1, 9, "%s", ms->floorpic);
-		_strncpy(newflat1, 8, ms->floorpic); //snprintf(newflat2, 9, "%s", ms->ceilingpic);
-#elif defined(__GNUC__)
-		strncpy(newflat1, 8, ms->floorpic); //snprintf(newflat1, 9, "%s", ms->floorpic);
-		strncpy(newflat1, 8, ms->floorpic); //snprintf(newflat2, 9, "%s", ms->ceilingpic);
-#else*/
+		
+		/*#ifdef _MSC_VER >= 1400
+				_strncpy(newflat1, 8, ms->floorpic); //snprintf(newflat1, 9, "%s", ms->floorpic);
+				_strncpy(newflat1, 8, ms->floorpic); //snprintf(newflat2, 9, "%s", ms->ceilingpic);
+		#elif defined(__GNUC__)
+				strncpy(newflat1, 8, ms->floorpic); //snprintf(newflat1, 9, "%s", ms->floorpic);
+				strncpy(newflat1, 8, ms->floorpic); //snprintf(newflat2, 9, "%s", ms->ceilingpic);
+		#else*/
 		// Insecure "Safe" strncpy -- Self implementation
 		buf = ms->floorpic;
 		j = 0;
@@ -442,7 +441,7 @@ void P_LoadSectors(int lump)
 			buf++;
 		}
 		newflat1[8] = 0;
-
+		
 		buf = ms->ceilingpic;
 		j = 0;
 		while (*buf && j < 8)
@@ -456,22 +455,23 @@ void P_LoadSectors(int lump)
 
 		ss->floorpic = P_AddLevelFlat(newflat1, foundflats);
 		ss->ceilingpic = P_AddLevelFlat(newflat2, foundflats);
-
+		
 		ss->lightlevel = LittleSwapInt16(ms->lightlevel);
 		ss->special = LittleSwapInt16(ms->special);
 		ss->tag = LittleSwapInt16(ms->tag);
-
+		
 		//added:31-03-98: quick hack to test water with DCK
-/*        if (ss->tag < 0)
-            CONS_Printf("Level uses dck-water-hack\n");*/
-
+		
+		/*        if (ss->tag < 0)
+		            CONS_Printf("Level uses dck-water-hack\n");*/
+		
 		ss->thinglist = NULL;
 		ss->touching_thinglist = NULL;	//SoM: 4/7/2000
-
+		
 		ss->stairlock = 0;
 		ss->nextsec = -1;
 		ss->prevsec = -1;
-
+		
 		ss->heightsec = -1;		//SoM: 3/17/2000: This causes some real problems
 		ss->altheightsec = 0;	//SoM: 3/20/2000
 		ss->floorlightsec = -1;
@@ -484,7 +484,7 @@ void P_LoadSectors(int lump)
 		ss->moved = true;
 		ss->floor_xoffs = ss->ceiling_xoffs = ss->floor_yoffs = ss->ceiling_yoffs = 0;
 		ss->bottommap = ss->midmap = ss->topmap = -1;
-
+		
 		// ----- for special tricks with HW renderer -----
 		ss->pseudoSector = false;
 		ss->virtualFloor = false;
@@ -493,21 +493,21 @@ void P_LoadSectors(int lump)
 		ss->stackList = NULL;
 		ss->lineoutLength = -1.0;
 		// ----- end special tricks -----
-
+		
 	}
-
+	
 	Z_Free(data);
-
+	
 	// whoa! there is usually no more than 25 different flats used per level!!
 	//CONS_Printf ("%d flats found\n", numlevelflats);
-
+	
 	// set the sky flat num
 	skyflatnum = P_AddLevelFlat("F_SKY1", foundflats);
-
+	
 	// copy table for global usage
 	levelflats = Z_Malloc(numlevelflats * sizeof(levelflat_t), PU_LEVEL, 0);
 	memcpy(levelflats, foundflats, numlevelflats * sizeof(levelflat_t));
-
+	
 	// search for animated flats and set up
 	P_SetupLevelFlatAnims();
 }
@@ -517,20 +517,20 @@ void P_LoadSectors(int lump)
 //
 void P_LoadNodes(int lump)
 {
-	uint8_t *data;
+	uint8_t* data;
 	int i;
 	int j;
 	int k;
-	mapnode_t *mn;
-	node_t *no;
-
+	mapnode_t* mn;
+	node_t* no;
+	
 	numnodes = W_LumpLength(lump) / sizeof(mapnode_t);
 	nodes = Z_Malloc(numnodes * sizeof(node_t), PU_LEVEL, 0);
 	data = W_CacheLumpNum(lump, PU_STATIC);
-
-	mn = (mapnode_t *) data;
+	
+	mn = (mapnode_t*) data;
 	no = nodes;
-
+	
 	for (i = 0; i < numnodes; i++, no++, mn++)
 	{
 		no->x = LittleSwapInt16(mn->x) << FRACBITS;
@@ -544,7 +544,7 @@ void P_LoadNodes(int lump)
 				no->bbox[j][k] = LittleSwapInt16(mn->bbox[j][k]) << FRACBITS;
 		}
 	}
-
+	
 	Z_Free(data);
 }
 
@@ -554,23 +554,23 @@ void P_LoadNodes(int lump)
 void P_LoadThings(int lump)
 {
 	int i;
-	mapthing_t *mt;
+	mapthing_t* mt;
 	bool_t spawn;
-	int16_t *data, *datastart;
-
+	int16_t* data, *datastart;
+	
 	data = datastart = W_CacheLumpNum(lump, PU_LEVEL);
 	nummapthings = W_LumpLength(lump) / (5 * sizeof(short));
 	mapthings = Z_Malloc(nummapthings * sizeof(mapthing_t), PU_LEVEL, NULL);
-
+	
 	//SoM: Because I put a new member into the mapthing_t for use with
 	//fragglescript, the format has changed and things won't load correctly
 	//using the old method.
-
+	
 	mt = mapthings;
 	for (i = 0; i < nummapthings; i++, mt++)
 	{
 		spawn = true;
-
+		
 		// Do spawn all other stuff.
 		// SoM: Do this first so all the mapthing slots are filled!
 		mt->x = *data;
@@ -584,10 +584,10 @@ void P_LoadThings(int lump)
 		mt->options = *data;
 		data++;
 		mt->mobj = NULL;		//SoM:
-
+		
 		P_SpawnMapThing(mt);
 	}
-
+	
 	Z_Free(datastart);
 }
 
@@ -597,19 +597,19 @@ void P_LoadThings(int lump)
 //
 void P_LoadLineDefs(int lump)
 {
-	uint8_t *data;
+	uint8_t* data;
 	int i;
-	maplinedef_t *mld;
-	line_t *ld;
-	vertex_t *v1;
-	vertex_t *v2;
-
+	maplinedef_t* mld;
+	line_t* ld;
+	vertex_t* v1;
+	vertex_t* v2;
+	
 	numlines = W_LumpLength(lump) / sizeof(maplinedef_t);
 	lines = Z_Malloc(numlines * sizeof(line_t), PU_LEVEL, 0);
 	memset(lines, 0, numlines * sizeof(line_t));
 	data = W_CacheLumpNum(lump, PU_STATIC);
-
-	mld = (maplinedef_t *) data;
+	
+	mld = (maplinedef_t*) data;
 	ld = lines;
 	for (i = 0; i < numlines; i++, mld++, ld++)
 	{
@@ -620,7 +620,7 @@ void P_LoadLineDefs(int lump)
 		v2 = ld->v2 = &vertexes[LittleSwapInt16(mld->v2)];
 		ld->dx = v2->x - v1->x;
 		ld->dy = v2->y - v1->y;
-
+		
 		if (!ld->dx)
 			ld->slopetype = ST_VERTICAL;
 		else if (!ld->dy)
@@ -632,7 +632,7 @@ void P_LoadLineDefs(int lump)
 			else
 				ld->slopetype = ST_NEGATIVE;
 		}
-
+		
 		if (v1->x < v2->x)
 		{
 			ld->bbox[BOXLEFT] = v1->x;
@@ -643,7 +643,7 @@ void P_LoadLineDefs(int lump)
 			ld->bbox[BOXLEFT] = v2->x;
 			ld->bbox[BOXRIGHT] = v1->x;
 		}
-
+		
 		if (v1->y < v2->y)
 		{
 			ld->bbox[BOXBOTTOM] = v1->y;
@@ -654,29 +654,30 @@ void P_LoadLineDefs(int lump)
 			ld->bbox[BOXBOTTOM] = v2->y;
 			ld->bbox[BOXTOP] = v1->y;
 		}
-
+		
 		ld->sidenum[0] = LittleSwapInt16(mld->sidenum[0]);
 		ld->sidenum[1] = LittleSwapInt16(mld->sidenum[1]);
-
+		
 		if (ld->sidenum[0] != -1 && ld->special)
 			sides[ld->sidenum[0]].special = ld->special;
-
+			
 	}
-
+	
 	Z_Free(data);
 }
 
 void P_LoadLineDefs2()
 {
 	int i;
-	line_t *ld = lines;
+	line_t* ld = lines;
+	
 	for (i = 0; i < numlines; i++, ld++)
 	{
 		if (ld->sidenum[0] != -1)
 			ld->frontsector = sides[ld->sidenum[0]].sector;
 		else
 			ld->frontsector = 0;
-
+			
 		if (ld->sidenum[1] != -1)
 			ld->backsector = sides[ld->sidenum[1]].sector;
 		else
@@ -687,6 +688,7 @@ void P_LoadLineDefs2()
 //
 // P_LoadSideDefs
 //
+
 /*void P_LoadSideDefs (int lump)
 {
     uint8_t*               data;
@@ -725,34 +727,34 @@ void P_LoadSideDefs(int lump)
 // SoM: 3/22/2000: Delay loading texture names until after loaded linedefs.
 
 //Hurdler: 04/04/2000: proto added
-int R_ColormapNumForName(char *name);
+int R_ColormapNumForName(char* name);
 
 void P_LoadSideDefs2(int lump)
 {
-	uint8_t *data = W_CacheLumpNum(lump, PU_STATIC);
+	uint8_t* data = W_CacheLumpNum(lump, PU_STATIC);
 	int i;
 	int num;
 	int mapnum;
-
+	
 	for (i = 0; i < numsides; i++)
 	{
-		register mapsidedef_t *msd = (mapsidedef_t *) data + i;
-		register side_t *sd = sides + i;
-		register sector_t *sec;
-
+		register mapsidedef_t* msd = (mapsidedef_t*) data + i;
+		register side_t* sd = sides + i;
+		register sector_t* sec;
+		
 		sd->textureoffset = LittleSwapInt16(msd->textureoffset) << FRACBITS;
 		sd->rowoffset = LittleSwapInt16(msd->rowoffset) << FRACBITS;
-
+		
 		// refined to allow colormaps to work as wall
 		// textures if invalid as colormaps but valid as textures.
-
+		
 		sd->sector = sec = &sectors[LittleSwapInt16(msd->sector)];
 		switch (sd->special)
 		{
 			case 242:			// variable colormap via 242 linedef
 			case 280:			//SoM: 3/22/2000: New water type.
 				num = R_CheckTextureNumForName(msd->toptexture);
-
+				
 				if (num == -1)
 				{
 					sec->topmap = mapnum = R_ColormapNumForName(msd->toptexture);
@@ -760,7 +762,7 @@ void P_LoadSideDefs2(int lump)
 				}
 				else
 					sd->toptexture = num;
-
+					
 				num = R_CheckTextureNumForName(msd->midtexture);
 				if (num == -1)
 				{
@@ -769,7 +771,7 @@ void P_LoadSideDefs2(int lump)
 				}
 				else
 					sd->midtexture = num;
-
+					
 				num = R_CheckTextureNumForName(msd->bottomtexture);
 				if (num == -1)
 				{
@@ -784,8 +786,7 @@ void P_LoadSideDefs2(int lump)
 // Perhaps we should just call it instead of doing the calculations here.
 				if (msd->toptexture[0] == '#' || msd->bottomtexture[0] == '#')
 				{
-					sec->midmap =
-						R_CreateColormap(msd->toptexture, msd->midtexture, msd->bottomtexture);
+					sec->midmap = R_CreateColormap(msd->toptexture, msd->midtexture, msd->bottomtexture);
 					sd->toptexture = sd->bottomtexture = 0;
 				}
 				else
@@ -809,46 +810,46 @@ void P_LoadSideDefs2(int lump)
 					sd->midtexture = 1;
 				else
 					sd->midtexture = num;
-
+					
 				num = R_CheckTextureNumForName(msd->toptexture);
 				if (num == -1)
 					sd->toptexture = 1;
 				else
 					sd->toptexture = num;
-
+					
 				num = R_CheckTextureNumForName(msd->bottomtexture);
 				if (num == -1)
 					sd->bottomtexture = 1;
 				else
 					sd->bottomtexture = num;
 				break;
-
-/*        case 260: // killough 4/11/98: apply translucency to 2s normal texture
-          sd->midtexture = strncasecmp("TRANMAP", msd->midtexture, 8) ?
-            (sd->special = W_CheckNumForName(msd->midtexture)) < 0 ||
-            W_LumpLength(sd->special) != 65536 ?
-            sd->special=0, R_TextureNumForName(msd->midtexture) :
-              (sd->special++, 0) : (sd->special=0);
-          sd->toptexture = R_TextureNumForName(msd->toptexture);
-          sd->bottomtexture = R_TextureNumForName(msd->bottomtexture);
-																												          break;*///This code is replaced.. I need to fix this though
-
+				
+				/*        case 260: // killough 4/11/98: apply translucency to 2s normal texture
+				          sd->midtexture = strncasecmp("TRANMAP", msd->midtexture, 8) ?
+				            (sd->special = W_CheckNumForName(msd->midtexture)) < 0 ||
+				            W_LumpLength(sd->special) != 65536 ?
+				            sd->special=0, R_TextureNumForName(msd->midtexture) :
+				              (sd->special++, 0) : (sd->special=0);
+				          sd->toptexture = R_TextureNumForName(msd->toptexture);
+				          sd->bottomtexture = R_TextureNumForName(msd->bottomtexture);
+																																				          break;*///This code is replaced.. I need to fix this though
+				
 				//Hurdler: added for alpha value with translucent 3D-floors/water
 			case 300:
 			case 301:
 				if (msd->toptexture[0] == '#')
 				{
-					char *col = msd->toptexture;
-					sd->toptexture = sd->bottomtexture =
-						((col[1] - '0') * 100 + (col[2] - '0') * 10 + col[3] - '0') + 1;
+					char* col = msd->toptexture;
+					
+					sd->toptexture = sd->bottomtexture = ((col[1] - '0') * 100 + (col[2] - '0') * 10 + col[3] - '0') + 1;
 				}
 				else
 					sd->toptexture = sd->bottomtexture = 0;
 				sd->midtexture = R_TextureNumForName(msd->midtexture);
 				break;
-
+				
 			default:			// normal cases
-				// SoM: Lots of people are sick of texture errors. 
+				// SoM: Lots of people are sick of texture errors.
 				// Hurdler: see r_data.c for my suggestion
 				sd->midtexture = R_TextureNumForName(msd->midtexture);
 				sd->toptexture = R_TextureNumForName(msd->toptexture);
@@ -865,61 +866,63 @@ void P_LoadSideDefs2(int lump)
 void P_LoadBlockMap(int lump)
 {
 	int32_t count;
-
+	
 	count = W_LumpLength(lump) / 2;
 	{
 		int32_t i;
-		int16_t *wadblockmaplump = W_CacheLumpNum(lump, PU_LEVEL);
+		int16_t* wadblockmaplump = W_CacheLumpNum(lump, PU_LEVEL);
+		
 		blockmaplump = Z_Malloc(sizeof(*blockmaplump) * count, PU_LEVEL, 0);
-
+		
 		// killough 3/1/98: Expand wad blockmap into larger internal one,
 		// by treating all offsets except -1 as unsigned and zero-extending
 		// them. This potentially doubles the size of blockmaps allowed,
 		// because Doom originally considered the offsets as always signed.
-
+		
 		blockmaplump[0] = LittleSwapInt16(wadblockmaplump[0]);
 		blockmaplump[1] = LittleSwapInt16(wadblockmaplump[1]);
-		blockmaplump[2] = (int32_t) (LittleSwapInt16(wadblockmaplump[2])) & 0xffff;
-		blockmaplump[3] = (int32_t) (LittleSwapInt16(wadblockmaplump[3])) & 0xffff;
-
+		blockmaplump[2] = (int32_t)(LittleSwapInt16(wadblockmaplump[2])) & 0xffff;
+		blockmaplump[3] = (int32_t)(LittleSwapInt16(wadblockmaplump[3])) & 0xffff;
+		
 		for (i = 4; i < count; i++)
 		{
 			int16_t t = LittleSwapInt16(wadblockmaplump[i]);	// killough 3/1/98
-			blockmaplump[i] = t == -1 ? -1l : (int32_t) t & 0xffff;
+			
+			blockmaplump[i] = t == -1 ? -1l : (int32_t)t & 0xffff;
 		}
-
+		
 		Z_Free(wadblockmaplump);
-
+		
 		bmaporgx = blockmaplump[0] << FRACBITS;
 		bmaporgy = blockmaplump[1] << FRACBITS;
 		bmapwidth = blockmaplump[2];
 		bmapheight = blockmaplump[3];
 	}
-
+	
 	// clear out mobj chains
 	count = sizeof(*blocklinks) * bmapwidth * bmapheight;
 	blocklinks = Z_Malloc(count, PU_LEVEL, 0);
 	memset(blocklinks, 0, count);
 	blockmap = blockmaplump + 4;
-
-/* Original
-		blockmaplump = W_CacheLumpNum (lump,PU_LEVEL);
-		blockmap = blockmaplump+4;
-		count = W_LumpLength (lump)/2;
-
-		for (i=0 ; i<count ; i++)
-			blockmaplump[i] = LittleSwapInt16(blockmaplump[i]);
-
-		bmaporgx = blockmaplump[0]<<FRACBITS;
-		bmaporgy = blockmaplump[1]<<FRACBITS;
-		bmapwidth = blockmaplump[2];
-		bmapheight = blockmaplump[3];
-	}
-
-	// clear out mobj chains
-	count = sizeof(*blocklinks)*bmapwidth*bmapheight;
-	blocklinks = Z_Malloc (count,PU_LEVEL, 0);
-	memset (blocklinks, 0, count);*/
+	
+	/* Original
+			blockmaplump = W_CacheLumpNum (lump,PU_LEVEL);
+			blockmap = blockmaplump+4;
+			count = W_LumpLength (lump)/2;
+	
+			for (i=0 ; i<count ; i++)
+				blockmaplump[i] = LittleSwapInt16(blockmaplump[i]);
+	
+			bmaporgx = blockmaplump[0]<<FRACBITS;
+			bmaporgy = blockmaplump[1]<<FRACBITS;
+			bmapwidth = blockmaplump[2];
+			bmapheight = blockmaplump[3];
+		}
+	
+		// clear out mobj chains
+		count = sizeof(*blocklinks)*bmapwidth*bmapheight;
+		blocklinks = Z_Malloc (count,PU_LEVEL, 0);
+		memset (blocklinks, 0, count);*/
 }
 
 //
@@ -929,17 +932,17 @@ void P_LoadBlockMap(int lump)
 //
 void P_GroupLines(void)
 {
-	line_t **linebuffer;
+	line_t** linebuffer;
 	int i;
 	int j;
 	int total;
-	line_t *li;
-	sector_t *sector;
-	subsector_t *ss;
-	seg_t *seg;
+	line_t* li;
+	sector_t* sector;
+	subsector_t* ss;
+	seg_t* seg;
 	fixed_t bbox[4];
 	int block;
-
+	
 	// look up sector number for each subsector
 	ss = subsectors;
 	for (i = 0; i < numsubsectors; i++, ss++)
@@ -947,7 +950,7 @@ void P_GroupLines(void)
 		seg = &segs[ss->firstline];
 		ss->sector = seg->sidedef->sector;
 	}
-
+	
 	// count number of lines in each sector
 	li = lines;
 	total = 0;
@@ -955,16 +958,16 @@ void P_GroupLines(void)
 	{
 		total++;
 		li->frontsector->linecount++;
-
+		
 		if (li->backsector && li->backsector != li->frontsector)
 		{
 			li->backsector->linecount++;
 			total++;
 		}
 	}
-
+	
 	// build line tables for each sector
-	linebuffer = Z_Malloc(total * sizeof(void *), PU_LEVEL, 0);
+	linebuffer = Z_Malloc(total * sizeof(void*), PU_LEVEL, 0);
 	sector = sectors;
 	for (i = 0; i < numsectors; i++, sector++)
 	{
@@ -983,33 +986,34 @@ void P_GroupLines(void)
 		}
 		if (linebuffer - sector->lines != sector->linecount)
 			I_Error("P_GroupLines: miscounted");
-
+			
 		// set the degenmobj_t to the middle of the bounding box
 		sector->soundorg.x = (bbox[BOXRIGHT] + bbox[BOXLEFT]) / 2;
 		sector->soundorg.y = (bbox[BOXTOP] + bbox[BOXBOTTOM]) / 2;
-
+		
 		// adjust bounding box to map blocks
 		block = (bbox[BOXTOP] - bmaporgy + MAXRADIUS) >> MAPBLOCKSHIFT;
 		block = block >= bmapheight ? bmapheight - 1 : block;
 		sector->blockbox[BOXTOP] = block;
-
+		
 		block = (bbox[BOXBOTTOM] - bmaporgy - MAXRADIUS) >> MAPBLOCKSHIFT;
 		block = block < 0 ? 0 : block;
 		sector->blockbox[BOXBOTTOM] = block;
-
+		
 		block = (bbox[BOXRIGHT] - bmaporgx + MAXRADIUS) >> MAPBLOCKSHIFT;
 		block = block >= bmapwidth ? bmapwidth - 1 : block;
 		sector->blockbox[BOXRIGHT] = block;
-
+		
 		block = (bbox[BOXLEFT] - bmaporgx - MAXRADIUS) >> MAPBLOCKSHIFT;
 		block = block < 0 ? 0 : block;
 		sector->blockbox[BOXLEFT] = block;
 	}
-
+	
 }
 
 // SoM: 6/27: Don't restrict maps to MAPxx/ExMx any more!
-char *levellumps[] = {
+char* levellumps[] =
+{
 	"label",					// ML_LABEL,    A separator, name, ExMx or MAPxx
 	"THINGS",					// ML_THINGS,   Monsters, items..
 	"LINEDEFS",					// ML_LINEDEFS, LineDefs, from editing
@@ -1029,24 +1033,24 @@ char *levellumps[] = {
 bool_t P_CheckLevel(int lumpnum)
 {
 	int i = 0;
-	WadEntry_t *Entry = W_GetEntry(lumpnum);
-
+	WadEntry_t* Entry = W_GetEntry(lumpnum);
+	
 	if (Entry == NULL)
 		return false;
-
+		
 	for (i = ML_THINGS; i <= ML_BLOCKMAP; i++)
 	{
 		Entry = W_GetEntry(lumpnum + i);
-
+		
 		if (strncmp(Entry->Name, levellumps[i], 8) != 0)
 			return false;
 	}
-
+	
 	return true;
-
+	
 	/*int  i;
 	   int  file, lump;
-
+	
 	   for(i=ML_THINGS; i<=ML_BLOCKMAP; i++)
 	   {
 	   file = lumpnum >> 16;
@@ -1068,10 +1072,10 @@ bool_t P_CheckLevel(int lumpnum)
 void P_SetupLevelSky(void)
 {
 	char skytexname[12];
-
+	
 	// DOOM determines the sky texture to be used
 	// depending on the current episode, and the game version.
-
+	
 	if (*info_skyname)
 		skytexture = R_TextureNumForName(info_skyname);
 	else if ((gamemode == commercial))
@@ -1089,13 +1093,13 @@ void P_SetupLevelSky(void)
 	{
 		if (gameepisode < 1 || gameepisode > 4)	// useful??
 			gameepisode = 1;
-
+			
 		sprintf(skytexname, "SKY%d", gameepisode);
 		skytexture = R_TextureNumForName(skytexname);
 	}
 	else
 		skytexture = R_TextureNumForName("SKY1");
-
+		
 	// scale up the old skies, if needed
 	R_SetupSkyDraw();
 }
@@ -1105,20 +1109,20 @@ void P_SetupLevelSky(void)
 //
 // added comment : load the level from a lump file or from a external wad !
 extern int numtextures;
-char *maplumpname;
+char* maplumpname;
 
 int lastloadedmaplumpnum;		// for comparative savegame
-bool_t P_SetupLevel(int episode, int map, skill_t skill, char *wadname)	// for wad files
+bool_t P_SetupLevel(int episode, int map, skill_t skill, char* wadname)	// for wad files
 {
 	int i;
 	WadEntry_t* HexenACS = NULL;
-
+	
 	CON_Drawer();				// let the user know what we are going to do
 	I_FinishUpdate();			// page flip or blit buffer
-
+	
 	//Initialize sector node list.
 	P_Initsecnode();
-
+	
 	totalkills = totalitems = totalsecret = wminfo.maxfrags = 0;
 	wminfo.partime = 180;
 	for (i = 0; i < MAXPLAYERS; i++)
@@ -1126,48 +1130,47 @@ bool_t P_SetupLevel(int episode, int map, skill_t skill, char *wadname)	// for w
 		players[i].killcount = players[i].secretcount = players[i].itemcount = 0;
 		players[i].mo = NULL;
 	}
-
+	
 	// Initial height of PointOfView
 	// will be set by player think.
-
+	
 	players[consoleplayer[0]].viewz = 1;
-
+	
 	// Make sure all sounds are stopped before Z_FreeTags.
 	S_StopSounds();
 	
 	Z_FreeTags(PU_LEVEL, PU_PURGELEVEL - 1);
-
+	
 #ifdef WALLSPLATS
 	// clear the splats from previous level
 	R_ClearLevelSplats();
 #endif
-
+	
 	script_camera_on = false;
 	HU_ClearTips();
-
+	
 	if (camera.chase)
 		camera.mo = NULL;
-
+		
 	// UNUSED W_Profile ();
-
+	
 	P_InitThinkers();
-
+	
 	// if working with a devlopment map, reload it
 	W_Reload();
-
+	
 	//
 	//  load the map from internal game resource or external wad file
 	//
 	if (wadname)
 	{
-		char *firstmap = NULL;
-
+		char* firstmap = NULL;
+		
 		// go back to title screen if no map is loaded
 		if (!P_AddWadFile(wadname, &firstmap) || firstmap == NULL)	// no maps were found
 		{
 			return false;
 		}
-
 		// P_AddWadFile() sets lumpname
 		lastloadedmaplumpnum = W_GetNumForName(firstmap);
 		maplumpname = firstmap;
@@ -1177,13 +1180,13 @@ bool_t P_SetupLevel(int episode, int map, skill_t skill, char *wadname)	// for w
 		// internal game map
 		lastloadedmaplumpnum = W_GetNumForName(maplumpname = G_BuildMapName(episode, map));
 	}
-
+	
 	if (levelmapname)
 		Z_Free(levelmapname);
 	levelmapname = Z_Strdup(maplumpname, PU_STATIC, 0);
-
+	
 	leveltime = 0;
-
+	
 	// textures are needed first
 //    R_LoadTextures ();
 //    R_FlushTextureCache();
@@ -1197,30 +1200,29 @@ bool_t P_SetupLevel(int episode, int map, skill_t skill, char *wadname)	// for w
 		CONS_Printf("P_SetupLevel: HeXeN maps are NOT supported!\n");
 		return false;
 	}
-	
 #ifdef FRAGGLESCRIPT
 	P_LoadLevelInfo(lastloadedmaplumpnum);	// load level lump info(level name etc)
 #endif
-
+	
 	//SoM: We've loaded the music lump, start the music.
 	S_Start();
-
+	
 	//faB: now part of level loading since in future each level may have
 	//     its own anim texture sequences, switches etc.
 	P_InitSwitchList();
 	P_InitPicAnims();
 	P_SetupLevelSky();
-
+	
 	// SoM: WOO HOO!
 	// SoM: DOH!
 	//R_InitPortals ();
-
+	
 	// note: most of this ordering is important
 	P_LoadBlockMap(lastloadedmaplumpnum + ML_BLOCKMAP);
 	P_LoadVertexes(lastloadedmaplumpnum + ML_VERTEXES);
 	P_LoadSectors(lastloadedmaplumpnum + ML_SECTORS);
 	P_LoadSideDefs(lastloadedmaplumpnum + ML_SIDEDEFS);
-
+	
 	P_LoadLineDefs(lastloadedmaplumpnum + ML_LINEDEFS);
 	P_LoadSideDefs2(lastloadedmaplumpnum + ML_SIDEDEFS);
 	P_LoadLineDefs2();
@@ -1229,21 +1231,21 @@ bool_t P_SetupLevel(int episode, int map, skill_t skill, char *wadname)	// for w
 	P_LoadSegs(lastloadedmaplumpnum + ML_SEGS);
 	rejectmatrix = W_CacheLumpNum(lastloadedmaplumpnum + ML_REJECT, PU_LEVEL);
 	P_GroupLines();
-
+	
 	bodyqueslot = 0;
-
+	
 	numdmstarts = 0;
 	// added 25-4-98 : reset the players starts
 	//SoM: Set pointers to NULL
 	for (i = 0; i < MAXPLAYERS; i++)
 		playerstarts[i] = NULL;
-
+		
 	P_LoadThings(lastloadedmaplumpnum + ML_THINGS);
-
+	
 	// set up world state
 	P_SpawnSpecials();
 	P_InitBrainTarget();
-
+	
 	//BP: spawnplayers now (beffor all structure are not inititialized)
 	for (i = 0; i < MAXPLAYERS; i++)
 		if (playeringame[i])
@@ -1259,24 +1261,23 @@ bool_t P_SetupLevel(int episode, int map, skill_t skill, char *wadname)	// for w
 				G_CoopSpawnPlayer(i);
 			}
 		}
-
 	// clear special respawning que
 	iquehead = iquetail = 0;
-
+	
 	// build subsector connect matrix
 	//  UNUSED P_ConnectSubsectors ();
-
+	
 	//Fab:19-07-98:start cd music for this level (note: can be remapped)
 	if (gamemode == commercial)
 		I_PlayCD(map, true);	// Doom2, 32 maps
 	else
 		I_PlayCD((episode - 1) * 9 + map, true);	// Doom1, 9maps per episode
-
+		
 	// preload graphics
-
+	
 	if (precache)
 		R_PrecacheLevel();
-
+		
 	// TODO: First attempt to load ReMooD scripts, if that fails do Legacy Script
 	if (M_CheckParm("-tls"))
 	{
@@ -1284,10 +1285,10 @@ bool_t P_SetupLevel(int episode, int map, skill_t skill, char *wadname)	// for w
 		TLS_CompileLump(lastloadedmaplumpnum);
 	}
 	else
-		T_PreprocessScripts();		// preprocess FraggleScript scripts
-
+		T_PreprocessScripts();	// preprocess FraggleScript scripts
+		
 	script_camera_on = false;
-
+	
 	//CONS_Printf("%d vertexs %d segs %d subsector\n",numvertexes,numsegs,numsubsectors);
 	return true;
 }
@@ -1296,35 +1297,34 @@ bool_t P_SetupLevel(int episode, int map, skill_t skill, char *wadname)	// for w
 // Add a wadfile to the active wad files,
 // replace sounds, musics, patches, textures, sprites and maps
 //
-bool_t P_AddWadFile(char *wadfilename, char **firstmapname)
+bool_t P_AddWadFile(char* wadfilename, char** firstmapname)
 {
-	WadEntry_t *LumpEntry = NULL;
-	WadFile_t *WAD = W_GetWadForName(wadfilename);
-	char *Name;
-	char *name;
+	WadEntry_t* LumpEntry = NULL;
+	WadFile_t* WAD = W_GetWadForName(wadfilename);
+	char* Name;
+	char* name;
 	size_t i, j, k, num;
 	int firstmapreplaced;
 	uint32_t SoundReplacements;
 	uint32_t MusicReplacements;
 	bool_t TextChange;
-
+	
 	/******************
 	 SOUND REPLACEMENTS
 	 ******************/
 	SoundReplacements = 0;
 	MusicReplacements = 0;
-
+	
 	// Search for sound replacements
 	for (i = 0; i < WAD->NumLumps; i++)
 	{
 		Name = WAD->Index[i].Name;
-
+		
 		if (strncasecmp("DS", Name, 2) == 0)
 		{
 			for (j = 0; j < NUMSFX; j++)
 			{
-				if ((S_sfx[j].name) && !(S_sfx[j].link) &&
-					(strncasecmp(Name[2], S_sfx[j].name, 6) == 0))
+				if ((S_sfx[j].name) && !(S_sfx[j].link) && (strncasecmp(Name[2], S_sfx[j].name, 6) == 0))
 				{
 					S_FreeSfx(&S_sfx[j]);
 					SoundReplacements++;
@@ -1336,46 +1336,46 @@ bool_t P_AddWadFile(char *wadfilename, char **firstmapname)
 			MusicReplacements++;
 		}
 		else if ((strncasecmp("TEXTURE1", Name, 8) == 0) ||	// Sneak in textures
-				 (strncasecmp("TEXTURE2", Name, 8) == 0) || (strncasecmp("PNAMES", Name, 6) == 0))
+		         (strncasecmp("TEXTURE2", Name, 8) == 0) || (strncasecmp("PNAMES", Name, 6) == 0))
 			TextChange = true;
 	}
-
+	
 	CONS_Printf("P_AddWadFile: %i sounds replaced\n", SoundReplacements);
 	CONS_Printf("P_AddWadFile: %i songs replaced\n", MusicReplacements);
-
+	
 	/******************
 	 MUSIC REPLACEMENTS
 	 ******************/
-
+	
 	/*******************
 	 SPRITE REPLACEMENTS
 	 *******************/
 	R_AddSpriteDefs(sprnames, W_NumWadFiles());
-
+	
 	/***************
 	 TEXTURE CHANGES
 	 ***************/
-
+	
 	if (TextChange)				// inited in the sound check
 		R_LoadTextures();		// numtexture changes
 	else
 		R_FlushTextureCache();	// just reload it from file
-
+		
 	/*****
 	 SKINS
 	 *****/
-
+	
 	/****
 	 MAPS
 	 ****/
-
+	
 	firstmapreplaced = 0;
-
+	
 	for (i = 0; i < WAD->NumLumps; i++)
 	{
 		num = firstmapreplaced;
 		name = WAD->Index[i].Name;
-
+		
 		if (gamemode == commercial)	// Doom II
 		{
 			if (name[0] == 'M' && name[1] == 'A' && name[2] == 'P')
@@ -1387,22 +1387,22 @@ bool_t P_AddWadFile(char *wadfilename, char **firstmapname)
 		else					// Something else
 		{
 			if (name[0] == 'E' && ((unsigned)name[1] - '0') <= '9' &&	// a digit
-				name[2] == 'M' && ((unsigned)name[3] - '0') <= '9' && name[4] == 0)
+			        name[2] == 'M' && ((unsigned)name[3] - '0') <= '9' && name[4] == 0)
 			{
 				num = ((name[1] - '0') << 16) + (name[3] - '0');
 				CONS_Printf("Episode %d map %d\n", name[1] - '0', name[3] - '0');
 			}
 		}
-
+		
 		if (num && (num < firstmapreplaced || !firstmapreplaced))
 		{
 			firstmapreplaced = num;
-
+			
 			if (firstmapname)
 				*firstmapname = name;
 		}
 	}
-
+	
 	if (!firstmapreplaced)
 		CONS_Printf("no maps added\n");
 		
@@ -1411,13 +1411,13 @@ bool_t P_AddWadFile(char *wadfilename, char **firstmapname)
 	 ****/
 	
 	//DEH_LoadDehackedLump();
-
+	
 	// Load the status bar!
 	if (gamestate == GS_LEVEL)
 		ST_Start();
-
+		
 	return true;
-
+	
 	/*int         firstmapreplaced;
 	   wadfile_t*  wadfile;
 	   char*       name;
@@ -1425,14 +1425,14 @@ bool_t P_AddWadFile(char *wadfilename, char **firstmapname)
 	   lumpinfo_t* lumpinfo;
 	   int         replaces;
 	   bool_t     texturechange;
-
+	
 	   if ((wadfilenum = W_LoadWadFile (wadfilename))==-1)
 	   {
 	   CONS_Printf ("couldn't load wad file %s\n", wadfilename);
 	   return false;
 	   }
 	   wadfile = wadfiles[wadfilenum];
-
+	
 	   //
 	   // search for sound replacements
 	   //
@@ -1454,9 +1454,9 @@ bool_t P_AddWadFile(char *wadfilename, char **firstmapname)
 	   // since sfx->data will be NULL
 	   if (devparm)
 	   CONS_Printf ("Sound %.8s replaced\n", name);
-
+	
 	   I_FreeSfx (&S_sfx[j]);
-
+	
 	   replaces++;
 	   }
 	   }
@@ -1469,7 +1469,7 @@ bool_t P_AddWadFile(char *wadfilename, char **firstmapname)
 	   }
 	   if (!devparm && replaces)
 	   CONS_Printf ("%d sounds replaced\n", replaces);
-
+	
 	   //
 	   // search for music replacements
 	   //
@@ -1487,21 +1487,21 @@ bool_t P_AddWadFile(char *wadfilename, char **firstmapname)
 	   }
 	   if (!devparm && replaces)
 	   CONS_Printf ("%d musics replaced\n", replaces);
-
+	
 	   //
 	   // search for sprite replacements
 	   //
 	   R_AddSpriteDefs (sprnames, numwadfiles-1);
-
+	
 	   //
 	   // search for texturechange replacements
 	   //
-
+	
 	   //
 	   // look for skins
 	   //
 	   R_AddSkins (wadfilenum);      //faB: wadfile index in wadfiles[]
-
+	
 	   //
 	   // search for maps
 	   //
@@ -1542,12 +1542,10 @@ bool_t P_AddWadFile(char *wadfilename, char **firstmapname)
 	   }
 	   if (!firstmapreplaced)
 	   CONS_Printf ("no maps added\n");
-
+	
 	   // reload status bar (warning should have valide player !)
 	   if( gamestate == GS_LEVEL )
 	   ST_Start();
-
+	
 	   return true; */
 }
-
-

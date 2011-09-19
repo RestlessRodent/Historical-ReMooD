@@ -130,7 +130,7 @@ typedef enum
 	MF_NOSECTOR = 0x0008,
 	// Don't use the blocklinks (inert but displayable)
 	MF_NOBLOCKMAP = 0x0010,
-
+	
 	// Not to be activated by sound, deaf monster.
 	MF_AMBUSH = 0x0020,
 	// Will try to attack right back.
@@ -144,7 +144,7 @@ typedef enum
 	//  that is, object will float, keeping current height
 	//  or changing it actively.
 	MF_NOGRAVITY = 0x0200,
-
+	
 	// Movement flags.
 	// This allows jumps from high places.
 	MF_DROPOFF = 0x0400,
@@ -179,36 +179,36 @@ typedef enum
 	// Floating to a height for a move, ???
 	//  don't auto float to target's height.
 	MF_INFLOAT = 0x200000,
-
+	
 	// On kill, count this enemy object
 	//  towards intermission kill total.
 	// Happy gathering.
 	MF_COUNTKILL = 0x400000,
-
+	
 	// On picking up, count this item object
 	//  towards intermission item total.
 	MF_COUNTITEM = 0x800000,
-
+	
 	// Special handling: skull in flight.
 	// Neither a cacodemon nor a missile.
 	MF_SKULLFLY = 0x1000000,
-
+	
 	// Don't spawn this object
 	//  in death match mode (e.g. key cards).
 	MF_NOTDMATCH = 0x2000000,
-
+	
 	// Player sprites in multiplayer modes are modified
 	//  using an internal color lookup table for re-indexing.
 	// If 0x4 0x8 or 0xc,
 	//  use a translation table for player colormaps
 	MF_TRANSLATION = 0x3C000000,	// 0xc000000, original 4color
-
+	
 	// Hmm ???.
 	MF_TRANSSHIFT = 26,
-
+	
 	// for chase camera, don't be blocked by things (parsial cliping)
 	MF_NOCLIPTHING = 0x40000000,
-
+	
 	MF_FLOORHUGGER = 0x80000000
 } mobjflag_t;
 
@@ -238,11 +238,11 @@ typedef enum
 	MF2_BOSS = 0x00008000,		// mobj is a major boss
 	MF2_FIREDAMAGE = 0x00010000,	// does fire damage
 	MF2_NODMGTHRUST = 0x00020000,	// does not thrust target when
-	// damaging        
+	// damaging
 	MF2_TELESTOMP = 0x00040000,	// mobj can stomp another
 	MF2_FLOATBOB = 0x00080000,	// use float bobbing z movement
 	MF2_DONTDRAW = 0X00100000,	// don't generate a vissprite
-
+	
 	// GhostlyDeath
 	MF2_BOUNCES = 0x00200000,	// Bounces off walls and floors
 	MF2_FRIENDLY = 0x00400000,	// On the players' side
@@ -275,136 +275,136 @@ typedef enum
 
 typedef enum
 {
-	MFXA_AREFEETCLIPPED				= 0x00000001,
-	MFXA_AUDIBLEPICKUPSOUND			= 0x00000002,
-	MFXA_CANBOUNCE					= 0x00000004,
-	MFXA_CANDROPOFF					= 0x00000008,
-	MFXA_CANFEETCLIP				= 0x00000010,
-	MFXA_CANFLOORBOUNCE				= 0x00000020,
-	MFXA_CANGATHER					= 0x00000040,
-	MFXA_CANJUMP					= 0x00000080,
-	MFXA_CANMINOTAURSLAM			= 0x00000100,
-	MFXA_CANOPENDOORS				= 0x00000200,
-	MFXA_CANSLIDE					= 0x00000400,
-	MFXA_CANSWIM					= 0x00000800,
-	MFXA_CANTELEPORTSTOMP			= 0x00001000,
-	MFXA_CANWALLBOUNCE				= 0x00002000,
-	MFXA_CARRYKILLER				= 0x00004000,
-	MFXA_ENABLEZCHECK				= 0x00008000,
-	MFXA_FLOATBOB					= 0x00010000,
-	MFXA_FORCEDSPARILTELEPORT		= 0x00020000,
-	MFXA_ISBOSS						= 0x00040000,
-	MFXA_ISBOSSCUBESPAWNABLE		= 0x00080000,
-	MFXA_ISCORPSE					= 0x00100000,
-	MFXA_ISDEAF						= 0x00200000,
-	MFXA_ISDOOMITEMFOG				= 0x00400000,
-	MFXA_ISDOOMPLAYER				= 0x00800000,
-	MFXA_ISDOOMTELEPORTFOG			= 0x01000000,
-	MFXA_ISDROPPED					= 0x02000000,
-	MFXA_ISDSPARIL					= 0x04000000,
-	MFXA_ISEXPLOSIONIMMUNE			= 0x08000000,
-	MFXA_ISFLOATABLE				= 0x10000000,
-	MFXA_ISFLOORHUGGER				= 0x20000000,
-	MFXA_ISFLYING					= 0x40000000,
-	MFXA_ISFLYINGSKULL				= 0x80000000,
+	MFXA_AREFEETCLIPPED = 0x00000001,
+	MFXA_AUDIBLEPICKUPSOUND = 0x00000002,
+	MFXA_CANBOUNCE = 0x00000004,
+	MFXA_CANDROPOFF = 0x00000008,
+	MFXA_CANFEETCLIP = 0x00000010,
+	MFXA_CANFLOORBOUNCE = 0x00000020,
+	MFXA_CANGATHER = 0x00000040,
+	MFXA_CANJUMP = 0x00000080,
+	MFXA_CANMINOTAURSLAM = 0x00000100,
+	MFXA_CANOPENDOORS = 0x00000200,
+	MFXA_CANSLIDE = 0x00000400,
+	MFXA_CANSWIM = 0x00000800,
+	MFXA_CANTELEPORTSTOMP = 0x00001000,
+	MFXA_CANWALLBOUNCE = 0x00002000,
+	MFXA_CARRYKILLER = 0x00004000,
+	MFXA_ENABLEZCHECK = 0x00008000,
+	MFXA_FLOATBOB = 0x00010000,
+	MFXA_FORCEDSPARILTELEPORT = 0x00020000,
+	MFXA_ISBOSS = 0x00040000,
+	MFXA_ISBOSSCUBESPAWNABLE = 0x00080000,
+	MFXA_ISCORPSE = 0x00100000,
+	MFXA_ISDEAF = 0x00200000,
+	MFXA_ISDOOMITEMFOG = 0x00400000,
+	MFXA_ISDOOMPLAYER = 0x00800000,
+	MFXA_ISDOOMTELEPORTFOG = 0x01000000,
+	MFXA_ISDROPPED = 0x02000000,
+	MFXA_ISDSPARIL = 0x04000000,
+	MFXA_ISEXPLOSIONIMMUNE = 0x08000000,
+	MFXA_ISFLOATABLE = 0x10000000,
+	MFXA_ISFLOORHUGGER = 0x20000000,
+	MFXA_ISFLYING = 0x40000000,
+	MFXA_ISFLYINGSKULL = 0x80000000,
 } mobjflagexa_t;
 
 typedef enum
 {
-	MFXB_ISFRIENDLY					= 0x00000001,
-	MFXB_ISGATHERABLE				= 0x00000002,
-	MFXB_ISHERETICITEMFOG			= 0x00000004,
-	MFXB_ISHERETICPLAYER			= 0x00000008,
-	MFXB_ISHERETICTELEPORTFOG		= 0x00000010,
-	MFXB_ISINSTANTKILLIMMUNE		= 0x00000020,
-	MFXB_ISITEMCOUNTABLE			= 0x00000040,
-	MFXB_ISKILLCOUNTABLE			= 0x00000080,
-	MFXB_ISLOWGRAVITY				= 0x00000100,
-	MFXB_ISMISSILE					= 0x00000200,
-	MFXB_ISMISSILEINSTANTKILL		= 0x00000400,
-	MFXB_ISMONSTER					= 0x00000800,
-	MFXB_ISONGROUND					= 0x00001000,
-	MFXB_ISONMOBJ					= 0x00002000,
-	MFXB_ISPUSHABLE					= 0x00004000,
-	MFXB_ISSHADOW					= 0x00008000,
-	MFXB_ISSHOOTABLE				= 0x00010000,
-	MFXB_ISSOLID					= 0x00020000,
-	MFXB_ISSWIMMING					= 0x00040000,
-	MFXB_ISTRANSPARENT				= 0x00080000,
-	MFXB_ISTOUCHINGWATER			= 0x00100000,
-	MFXB_ISUNDERWATER				= 0x00200000,
-	MFXB_ISUNIQUE					= 0x00400000,
-	MFXB_ISWINDPUSHABLE				= 0x00800000,
-	MFXB_JUSTATTACKED				= 0x01000000,
-	MFXB_JUSTHIT					= 0x02000000,
-	MFXB_JUSTHITFLOOR				= 0x04000000,
-	MFXB_KEEPSLIDE					= 0x08000000,
-	MFXB_NOALTDEATHMATCH			= 0x10000000,
-	MFXB_NOAUTOFLOAT				= 0x20000000,
-	MFXB_NOBLOCKMAP					= 0x40000000,
-	MFXB_NOBLOOD					= 0x80000000,
+	MFXB_ISFRIENDLY = 0x00000001,
+	MFXB_ISGATHERABLE = 0x00000002,
+	MFXB_ISHERETICITEMFOG = 0x00000004,
+	MFXB_ISHERETICPLAYER = 0x00000008,
+	MFXB_ISHERETICTELEPORTFOG = 0x00000010,
+	MFXB_ISINSTANTKILLIMMUNE = 0x00000020,
+	MFXB_ISITEMCOUNTABLE = 0x00000040,
+	MFXB_ISKILLCOUNTABLE = 0x00000080,
+	MFXB_ISLOWGRAVITY = 0x00000100,
+	MFXB_ISMISSILE = 0x00000200,
+	MFXB_ISMISSILEINSTANTKILL = 0x00000400,
+	MFXB_ISMONSTER = 0x00000800,
+	MFXB_ISONGROUND = 0x00001000,
+	MFXB_ISONMOBJ = 0x00002000,
+	MFXB_ISPUSHABLE = 0x00004000,
+	MFXB_ISSHADOW = 0x00008000,
+	MFXB_ISSHOOTABLE = 0x00010000,
+	MFXB_ISSOLID = 0x00020000,
+	MFXB_ISSWIMMING = 0x00040000,
+	MFXB_ISTRANSPARENT = 0x00080000,
+	MFXB_ISTOUCHINGWATER = 0x00100000,
+	MFXB_ISUNDERWATER = 0x00200000,
+	MFXB_ISUNIQUE = 0x00400000,
+	MFXB_ISWINDPUSHABLE = 0x00800000,
+	MFXB_JUSTATTACKED = 0x01000000,
+	MFXB_JUSTHIT = 0x02000000,
+	MFXB_JUSTHITFLOOR = 0x04000000,
+	MFXB_KEEPSLIDE = 0x08000000,
+	MFXB_NOALTDEATHMATCH = 0x10000000,
+	MFXB_NOAUTOFLOAT = 0x20000000,
+	MFXB_NOBLOCKMAP = 0x40000000,
+	MFXB_NOBLOOD = 0x80000000,
 } mobjflagexb_t;
 
 typedef enum
 {
-	MFXC_NOCHICKENMORPH				= 0x00000001,
-	MFXC_NOCLIP						= 0x00000002,
-	MFXC_NOCOOP						= 0x00000004,
-	MFXC_NOCTF						= 0x00000008,
-	MFXC_NODAMAGETHRUST				= 0x00000010,
-	MFXC_NODEATHMATCH				= 0x00000020,
-	MFXC_NODRAW						= 0x00000040,
-	MFXC_NOGRAVITY					= 0x00000080,
-	MFXC_NOHITGHOST					= 0x00000100,
-	MFXC_NOHITSOLID					= 0x00000200,
-	MFXC_NOMISSILEHURTSAMETYPE		= 0x00000400,
-	MFXC_NOLINEACTIVATE				= 0x00000800,
-	MFXC_NOLINECLIPPING				= 0x00001000,
-	MFXC_NOMOVEOVERSAMETYPE			= 0x00002000,
-	MFXC_NONEWDEATHMATCH			= 0x00004000,
-	MFXC_NOPUSHING					= 0x00008000,
-	MFXC_NOSINGLEPLAYER				= 0x00010000,
-	MFXC_NOSECTORLINKS				= 0x00020000,
-	MFXC_NOTARGET					= 0x00040000,
-	MFXC_NOTELEPORT					= 0x00080000,
-	MFXC_NOTHINGCLIPPING			= 0x00100000,
-	MFXC_NOZCHECKING				= 0x00200000,
-	MFXC_REDUCEDBOSSDAMAGE			= 0x00400000,
-	MFXC_SLOWSPLAYER				= 0x00800000,
-	MFXC_SPAWNATRANDOMZ				= 0x01000000,
-	MFXC_SPAWNONCEILING				= 0x02000000,
-	MFXC_FULLBLASTWAKESOUND			= 0x04000000,
-	MFXC_FULLBLASTDEATHSOUND		= 0x08000000,
-	MFXC_VILEMISSILERANGE			= 0x10000000,
-	MFXC_REVENANTMISSILERANGE		= 0x20000000,
-	MFXC_HALFMISSILERANGE			= 0x40000000,
-	MFXC_CYBERDEMONMISSILERANGE		= 0x80000000,
+	MFXC_NOCHICKENMORPH = 0x00000001,
+	MFXC_NOCLIP = 0x00000002,
+	MFXC_NOCOOP = 0x00000004,
+	MFXC_NOCTF = 0x00000008,
+	MFXC_NODAMAGETHRUST = 0x00000010,
+	MFXC_NODEATHMATCH = 0x00000020,
+	MFXC_NODRAW = 0x00000040,
+	MFXC_NOGRAVITY = 0x00000080,
+	MFXC_NOHITGHOST = 0x00000100,
+	MFXC_NOHITSOLID = 0x00000200,
+	MFXC_NOMISSILEHURTSAMETYPE = 0x00000400,
+	MFXC_NOLINEACTIVATE = 0x00000800,
+	MFXC_NOLINECLIPPING = 0x00001000,
+	MFXC_NOMOVEOVERSAMETYPE = 0x00002000,
+	MFXC_NONEWDEATHMATCH = 0x00004000,
+	MFXC_NOPUSHING = 0x00008000,
+	MFXC_NOSINGLEPLAYER = 0x00010000,
+	MFXC_NOSECTORLINKS = 0x00020000,
+	MFXC_NOTARGET = 0x00040000,
+	MFXC_NOTELEPORT = 0x00080000,
+	MFXC_NOTHINGCLIPPING = 0x00100000,
+	MFXC_NOZCHECKING = 0x00200000,
+	MFXC_REDUCEDBOSSDAMAGE = 0x00400000,
+	MFXC_SLOWSPLAYER = 0x00800000,
+	MFXC_SPAWNATRANDOMZ = 0x01000000,
+	MFXC_SPAWNONCEILING = 0x02000000,
+	MFXC_FULLBLASTWAKESOUND = 0x04000000,
+	MFXC_FULLBLASTDEATHSOUND = 0x08000000,
+	MFXC_VILEMISSILERANGE = 0x10000000,
+	MFXC_REVENANTMISSILERANGE = 0x20000000,
+	MFXC_HALFMISSILERANGE = 0x40000000,
+	MFXC_CYBERDEMONMISSILERANGE = 0x80000000,
 } mobjflagexc_t;
 
 typedef enum
 {
-	MFXD_ROAMSOUNDISSEESOUND		= 0x00000001,
-	MFXD_FULLBLASTROAMSOUND			= 0x00000002,
-	MFXD_MINOTAUREXPLOSION			= 0x00000004,
-	MFXD_FIREBOMBEXPLOSION			= 0x00000008,
-	MFXD_DSPARILEXPLOSION			= 0x00000010,
-	MFXD_MAPSEVENSIXSIXSIX			= 0x00000020,
-	MFXD_MAPSEVENSIXSIXSEVEN		= 0x00000040,
-	MFXD_COMMERCIALSIXSIXSIX		= 0x00000080,
-	MFXD_EPISODEONESIXSIXSIX		= 0x00000100,
-	MFXD_EPISODETWOEXITLEVEL		= 0x00000200,
-	MFXD_EPISODETHREEEXITLEVEL		= 0x00000400,
-	MFXD_EPISODEFOURASIXSIXSIX		= 0x00000800,
-	MFXD_EPISODEFOURBSIXSIXSIX		= 0x00001000,
-	MFXD_BOSSBRAINTARGET			= 0x00002000,
-	MFXD_HERETICEPISODEONESPECIAL	= 0x00004000,
-	MFXD_HERETICEPISODETWOSPECIAL	= 0x00008000,
-	MFXD_HERETICEPISODETHREESPECIAL	= 0x00010000,
-	MFXD_HERETICEPISODEFOURSPECIAL	= 0x00020000,
-	MFXD_HERETICEPISODEFIVESPECIAL	= 0x00040000,
-	MFXD_SLIDESALONGWALLS			= 0x00080000,
+	MFXD_ROAMSOUNDISSEESOUND = 0x00000001,
+	MFXD_FULLBLASTROAMSOUND = 0x00000002,
+	MFXD_MINOTAUREXPLOSION = 0x00000004,
+	MFXD_FIREBOMBEXPLOSION = 0x00000008,
+	MFXD_DSPARILEXPLOSION = 0x00000010,
+	MFXD_MAPSEVENSIXSIXSIX = 0x00000020,
+	MFXD_MAPSEVENSIXSIXSEVEN = 0x00000040,
+	MFXD_COMMERCIALSIXSIXSIX = 0x00000080,
+	MFXD_EPISODEONESIXSIXSIX = 0x00000100,
+	MFXD_EPISODETWOEXITLEVEL = 0x00000200,
+	MFXD_EPISODETHREEEXITLEVEL = 0x00000400,
+	MFXD_EPISODEFOURASIXSIXSIX = 0x00000800,
+	MFXD_EPISODEFOURBSIXSIXSIX = 0x00001000,
+	MFXD_BOSSBRAINTARGET = 0x00002000,
+	MFXD_HERETICEPISODEONESPECIAL = 0x00004000,
+	MFXD_HERETICEPISODETWOSPECIAL = 0x00008000,
+	MFXD_HERETICEPISODETHREESPECIAL = 0x00010000,
+	MFXD_HERETICEPISODEFOURSPECIAL = 0x00020000,
+	MFXD_HERETICEPISODEFIVESPECIAL = 0x00040000,
+	MFXD_SLIDESALONGWALLS = 0x00080000,
 	
-	MFXD_LEGACYCOMPATIBILITY		= 0x80000000,
+	MFXD_LEGACYCOMPATIBILITY = 0x80000000,
 } mobjflagexd_t;
 
 #if MAXSKINCOLOR > 16
@@ -429,22 +429,22 @@ typedef struct mobj_s
 	// List: thinker links.
 	thinker_t thinker;
 	
-	S_NoiseThinker_t NoiseThinker;						// Info for noise generation
-
+	S_NoiseThinker_t NoiseThinker;	// Info for noise generation
+	
 	// Info for drawing: position.
 	fixed_t x;
 	fixed_t y;
 	fixed_t z;
-
+	
 	// More list: links in sector (if needed)
-	struct mobj_s *snext;
-	struct mobj_s *sprev;
-
+	struct mobj_s* snext;
+	struct mobj_s* sprev;
+	
 	//More drawing info: to determine current sprite.
 	angle_t angle;				// orientation
 	spritenum_t sprite;			// used to find patch_t and flip value
 	int frame;					// frame number, plus bits see p_pspr.h
-
+	
 	//Fab:02-08-98
 	int skin;					// GhostlyDeath <Jult 16, 2011> -- Make this an integer instead
 	// this one overrides 'sprite' when
@@ -455,87 +455,88 @@ typedef struct mobj_s
 	// play the die sound problem is he is
 	// already respawn and the corps play
 	// the sound !!! (he yeah it happens :\)
-
+	
 	// Interaction info, by BLOCKMAP.
 	// Links in blocks (if needed).
-	struct mobj_s *bnext;
-	struct mobj_s *bprev;
-
-	struct subsector_s *subsector;
-
+	struct mobj_s* bnext;
+	struct mobj_s* bprev;
+	
+	struct subsector_s* subsector;
+	
 	// The closest interval over all contacted Sectors (or Things).
 	fixed_t floorz;
 	fixed_t ceilingz;
-
+	
 	// For movement checking.
 	fixed_t radius;
 	fixed_t height;
-
+	
 	// Momentums, used to update position.
 	fixed_t momx;
 	fixed_t momy;
 	fixed_t momz;
-
+	
 	// If == validcount, already checked.
 	//int                 validcount;
-
+	
 	mobjtype_t type;
-	mobjinfo_t *info;			// &mobjinfo[mobj->type]
-
+	mobjinfo_t* info;			// &mobjinfo[mobj->type]
+	
 	int tics;					// state tic counter
-	state_t *state;
+	state_t* state;
 	
 	/*** DEPRECATED ***/
 	int flags;
 	int eflags;					//added:28-02-98: extra flags see above
 	int flags2;					// heretic stuff
+	
 	/******************/
 	
 	int special1;
 	int special2;
 	int health;
-
+	
 	// Movement direction, movement generation (zig-zagging).
 	int movedir;				// 0-7
 	int movecount;				// when 0, select a new dir
-
+	
 	// Thing being chased/attacked (or NULL),
 	// also the originator for missiles.
-	struct mobj_s *target;
-
+	struct mobj_s* target;
+	
 	// Reaction time: if non 0, don't attack yet.
 	// Used by player to freeze a bit after teleporting.
 	int reactiontime;
-
+	
 	// If >0, the target will be chased
 	// no matter what (even if shot)
 	int threshold;
-
+	
 	// Additional info record for player avatars only.
 	// Only valid if type == MT_PLAYER
-	struct player_s *player;
-
+	struct player_s* player;
+	
 	// Player number last looked for.
 	int lastlook;
-
+	
 	// For nightmare and itemrespawn respawn.
-	mapthing_t *spawnpoint;
-
+	mapthing_t* spawnpoint;
+	
 	// Thing being chased/attacked for tracers.
-	struct mobj_s *tracer;
-
+	struct mobj_s* tracer;
+	
 	//SoM: Friction.
 	int friction;
 	int movefactor;
-
+	
 	// a linked list of sectors where this object appears
-	struct msecnode_s *touching_sectorlist;
-
+	struct msecnode_s* touching_sectorlist;
+	
 	// Support for Frag Weapon Falling
 	// This field valid only for MF_DROPPED ammo and weapn objects
 	int dropped_ammo_count;
-
-	// WARNING : new field are not automaticely added to save game 
+	
+	// WARNING : new field are not automaticely added to save game
 	struct ffloor_s* ChildFloor;
 	
 	/*** EXTENDED OBJECT DATA ***/
@@ -547,9 +548,9 @@ typedef struct mobj_s
 	
 	// Owners
 #if 0
-	struct mobj_s* RootOwner;								// Root owner of this object (first mobj in owner chain)
-	struct mobj_s* Owner;									// Owner of this object
-	KidList_t* Kids;										// Kid objects
+	struct mobj_s* RootOwner;	// Root owner of this object (first mobj in owner chain)
+	struct mobj_s* Owner;		// Owner of this object
+	KidList_t* Kids;			// Kid objects
 #endif
 } mobj_t;
 
@@ -558,11 +559,10 @@ int P_MobjFlagsNaturalToExtended(mobj_t* MObj);
 int P_MobjFlagsExtendedToNatural(mobj_t* MObj);
 
 // check mobj against water content, before movement code
-void P_MobjCheckWater(mobj_t * mobj);
+void P_MobjCheckWater(mobj_t* mobj);
 
-void P_SpawnMapThing(mapthing_t * mthing);
-void P_SpawnPlayer(mapthing_t * mthing);
-int P_HitFloor(mobj_t * thing);
+void P_SpawnMapThing(mapthing_t* mthing);
+void P_SpawnPlayer(mapthing_t* mthing);
+int P_HitFloor(mobj_t* thing);
 
 #endif
-

@@ -74,59 +74,60 @@
 *** CONSTANTS ***
 ****************/
 
-#define MAXCONLPLAYERMQ		5						// Max messages in player queue
-#define DEFPRCONLPLAYERMQ	127						// Default priority in queue
-#define DEFTOCONPLAYERMQ	(TICRATE * 4)			// Default timeout in queue
-#define MAXCONLPMQBUFSIZE	128						// Length of the message buffer
+#define MAXCONLPLAYERMQ		5	// Max messages in player queue
+#define DEFPRCONLPLAYERMQ	127	// Default priority in queue
+#define DEFTOCONPLAYERMQ	(TICRATE * 4)	// Default timeout in queue
+#define MAXCONLPMQBUFSIZE	128	// Length of the message buffer
 
 /*****************
 *** STRUCTURES ***
 *****************/
 
-typedef void (*CONL_FlushFunc_t)(const char* const a_Buf);
+typedef void (*CONL_FlushFunc_t) (const char* const a_Buf);
 
 /* CONL_BasicBuffer_t -- A basic buffer for the console */
 typedef struct CONL_BasicBuffer_s
 {
-	char* Buffer;									// Actual buffer
-	char** Lines;									// Lines in buffer
-	size_t Size;									// Size of the buffer
-	size_t NumLines;								// Number of lines in buffer
+	char* Buffer;				// Actual buffer
+	char** Lines;				// Lines in buffer
+	size_t Size;				// Size of the buffer
+	size_t NumLines;			// Number of lines in buffer
 	
-	uintmax_t MaskPos;								// Position mask
-	uintmax_t StartPos;								// Start position of buffer
-	uintmax_t EndPos;								// End position of buffer
-	uintmax_t MaskLine;								// Line mask
-	uintmax_t StartLine;							// First line in buffer
-	uintmax_t EndLine;								// Last line in buffer
-	uintmax_t DataLine;								// Line for the flush function
+	uintmax_t MaskPos;			// Position mask
+	uintmax_t StartPos;			// Start position of buffer
+	uintmax_t EndPos;			// End position of buffer
+	uintmax_t MaskLine;			// Line mask
+	uintmax_t StartLine;		// First line in buffer
+	uintmax_t EndLine;			// Last line in buffer
+	uintmax_t DataLine;			// Line for the flush function
 	
-	CONL_FlushFunc_t FlushFunc;						// Function to call on '\n'
+	CONL_FlushFunc_t FlushFunc;	// Function to call on '\n'
 } CONL_BasicBuffer_t;
 
 /* CONL_PlayerMessage_t -- Message for player */
 typedef struct CONL_PlayerMessage_s
 {
-	uint32_t Flags;									// Flags for this message
-	char Text[MAXCONLPMQBUFSIZE];					// Message Text
-	tic_t Timeout;									// When the message times out
-	uint8_t Priority;								// Priority of the message
+	uint32_t Flags;				// Flags for this message
+	char Text[MAXCONLPMQBUFSIZE];	// Message Text
+	tic_t Timeout;				// When the message times out
+	uint8_t Priority;			// Priority of the message
 } CONL_PlayerMessage_t;
 
 /*************
 *** LOCALS ***
 *************/
 
-static bool_t l_CONLActive = false;					// Console active?
-static CONL_BasicBuffer_t l_CONLBuffers[2];			// Input/Output Buffer
-static CONL_PlayerMessage_t l_CONLMessageQ			// Player message queue
-	[MAXSPLITSCREENPLAYERS][MAXCONLPLAYERMQ];
+static bool_t l_CONLActive = false;	// Console active?
+static CONL_BasicBuffer_t l_CONLBuffers[2];	// Input/Output Buffer
+static CONL_PlayerMessage_t l_CONLMessageQ	// Player message queue
+[MAXSPLITSCREENPLAYERS][MAXCONLPLAYERMQ];
 
 /****************
 *** FUNCTIONS ***
 ****************/
 
 /*** Static Stuff ***/
+
 /* CONLS_InitConsole() -- Initializes a buffer */
 static bool_t CONLS_InitConsole(CONL_BasicBuffer_t* const a_Buffer, const uintmax_t a_Size, const CONL_FlushFunc_t a_FlushFunc)
 {
@@ -171,21 +172,22 @@ static void CONLS_DestroyConsole(CONL_BasicBuffer_t* const a_Buffer)
 	/* Check */
 	if (!a_Buffer)
 		return;
-	
+		
 	/* Free Everything */
 	// Buffer
 	if (a_Buffer->Buffer)
 		Z_Free(a_Buffer->Buffer);
-	
+		
 	// Lines
 	if (a_Buffer->Lines)
 		Z_Free(a_Buffer->Lines);
-	
+		
 	/* Final memset */
 	memset(a_Buffer, 0, sizeof(*a_Buffer));
 }
 
 /*** Flush Functions ***/
+
 /* CONLFF_OutputFF() -- Line is flushed from the output buffer */
 // Parsing of all the lines should be done here, that is, if it starts with
 // the following:
@@ -209,7 +211,7 @@ static void CONLFF_OutputFF(const char* const a_Buf)
 	/* Check */
 	if (!a_Buf)
 		return;
-	
+		
 	/* Default destination is player 1's buffer */
 	pNum = 1;
 	memset(Buf, 0, sizeof(Buf));
@@ -227,7 +229,6 @@ static void CONLFF_OutputFF(const char* const a_Buf)
 			if (*p == 1)
 				continue;
 		}
-		
 		// Adding white?
 		if (*p == 2 || *p == 3)
 		{
@@ -235,21 +236,18 @@ static void CONLFF_OutputFF(const char* const a_Buf)
 			n += 2;
 			continue;
 		}
-		
 		// Only player x's screen
 		if (*p >= 4 && *p <= 6)
 		{
 			pNum = 1 << ((*p - 4) + 1);
 			continue;
 		}
-		
 		// Every player's screen
 		if (*p == 7)
 		{
 			pNum = 0xF;
 			continue;
 		}
-		
 		// Output normal text
 		if (n < MAXCONLPMQBUFSIZE)
 			Buf[n++] = *p;
@@ -260,6 +258,7 @@ static void CONLFF_OutputFF(const char* const a_Buf)
 	
 	/* Print text to console */
 	extern bool_t con_started;
+	
 	if (devparm || !con_started)
 	{
 		I_OutputText(Buf);
@@ -275,20 +274,15 @@ static void CONLFF_OutputFF(const char* const a_Buf)
 			for (j = 0; j < MAXCONLPLAYERMQ; j++)
 				if (!l_CONLMessageQ[i][j].Text[0])
 					break;
-			
+					
 			// No more room?
 			if (j == MAXCONLPLAYERMQ)
 			{
 				// Shove everything over, clear last, take last spot
-				memmove(
-						&l_CONLMessageQ[i][0],
-						&l_CONLMessageQ[i][1],
-						sizeof(CONL_PlayerMessage_t) * (MAXCONLPLAYERMQ - 1)
-					);
+				memmove(&l_CONLMessageQ[i][0], &l_CONLMessageQ[i][1], sizeof(CONL_PlayerMessage_t) * (MAXCONLPLAYERMQ - 1));
 				memset(&l_CONLMessageQ[i][MAXCONLPLAYERMQ - 1], 0, sizeof(CONL_PlayerMessage_t));
 				j = MAXCONLPLAYERMQ - 1;
 			}
-			
 			// Set timeout to default (4 secs) and priority to default
 			l_CONLMessageQ[i][j].Timeout = CurrentTime + DEFTOCONPLAYERMQ;
 			l_CONLMessageQ[i][j].Priority = DEFPRCONLPLAYERMQ;
@@ -305,7 +299,7 @@ static void CONLFF_InputFF(const char* const a_Buf)
 	/* Check */
 	if (!a_Buf)
 		return;
-	
+		
 	/* Create command line like stuff here */
 	// Tokenize between space and single/double quotes
 	// This makes command processing hell of alot easier
@@ -313,13 +307,14 @@ static void CONLFF_InputFF(const char* const a_Buf)
 }
 
 /*** Base Console ***/
+
 /* CONL_Init() -- Initializes the light console */
 bool_t CONL_Init(const uintmax_t a_OutBS, const uintmax_t a_InBS)
 {
 	/* Initialize output */
 	if (!CONLS_InitConsole(&l_CONLBuffers[0], a_OutBS, CONLFF_OutputFF))
 		return false;
-	
+		
 	/* Initialize input */
 	if (!CONLS_InitConsole(&l_CONLBuffers[1], a_InBS, CONLFF_InputFF))
 	{
@@ -349,7 +344,7 @@ size_t CONL_RawPrint(CONL_BasicBuffer_t* const a_Buffer, const char* const a_Tex
 	/* Check */
 	if (!a_Buffer || !a_Text || !a_Buffer->Buffer || !a_Buffer->Lines)
 		return 0;
-	
+		
 	/* Splatter into buffer */
 	Q = NumQ = 0;
 	Que = NULL;
@@ -361,11 +356,10 @@ size_t CONL_RawPrint(CONL_BasicBuffer_t* const a_Buffer, const char* const a_Tex
 			// Go to the start of the line, if possible
 			if (a_Buffer->Lines[LINEMASK(a_Buffer->EndLine - 1)])
 				a_Buffer->EndLine = a_Buffer->Lines[LINEMASK(a_Buffer->EndLine - 1)] - a_Buffer->Buffer;
-			
+				
 			// Don't add it to the buffer
 			continue;
 		}
-		
 		// Put character in last spot
 		a_Buffer->Buffer[POSMASK(a_Buffer->EndPos)] = *p;
 		a_Buffer->EndPos = POSMASK(a_Buffer->EndPos + 1);
@@ -383,7 +377,8 @@ size_t CONL_RawPrint(CONL_BasicBuffer_t* const a_Buffer, const char* const a_Tex
 			if (a_Buffer->Lines[LINEMASK(a_Buffer->StartLine)] == &a_Buffer->Buffer[POSMASK(a_Buffer->StartPos)])
 #else
 			// Does this new position surpass the first line in the buffer?
-			if (a_Buffer->Lines[LINEMASK(a_Buffer->StartLine)] && &a_Buffer->Buffer[POSMASK(a_Buffer->StartPos)] >= a_Buffer->Lines[LINEMASK(a_Buffer->StartLine)])
+			if (a_Buffer->Lines[LINEMASK(a_Buffer->StartLine)] &&
+			        &a_Buffer->Buffer[POSMASK(a_Buffer->StartPos)] >= a_Buffer->Lines[LINEMASK(a_Buffer->StartLine)])
 #endif
 			{
 				// Ignore data line on collision
@@ -397,17 +392,16 @@ size_t CONL_RawPrint(CONL_BasicBuffer_t* const a_Buffer, const char* const a_Tex
 			
 			&a_Buffer->Buffer[a_Buffer->StartPos] >= a_Buffer->Lines[a_Buffer->StartLine];
 		}
-		
 		// Newline?
 		if (*p == '\n')
 		{
 			// Add to Q (Formerly, sending to the flush was done later but the
-				// lines sent to it must be remembered now. This prevents any
-				// overflows (deliberate or not) in the console code that would
-				// disallow early commands to be executed or when mass console
-				// is printed)
+			// lines sent to it must be remembered now. This prevents any
+			// overflows (deliberate or not) in the console code that would
+			// disallow early commands to be executed or when mass console
+			// is printed)
 			if (a_Buffer->FlushFunc)
-			{	
+			{
 				// Resize BigQ
 				Z_ResizeArray((void**)&Que, sizeof(Que), NumQ, NumQ + 1);
 				NumQ = Q + 1;
@@ -416,32 +410,31 @@ size_t CONL_RawPrint(CONL_BasicBuffer_t* const a_Buffer, const char* const a_Tex
 				z = &a_Buffer->Buffer[POSMASK(a_Buffer->EndPos)];	// EOL
 				w = a_Buffer->Lines[LINEMASK(a_Buffer->EndLine - 1)];	// SOL
 				
-				if (!w)	// Just use first character (ouch)
+				if (!w)			// Just use first character (ouch)
 					w = &a_Buffer->Buffer[0];
-				
-					// Wrapped
+					
+				// Wrapped
 				if (z < w)
 					j = (z + a_Buffer->Size) - w;
-					// Not wrapped
+				// Not wrapped
 				else
 					j = z - w;
-				
+					
 				// Only queue strings if they have length
 				if (j > 1)
 				{
 					// Allocate buffer
 					Que[Q] = Z_Malloc(j + 2, PU_STATIC, NULL);
-				
+					
 					// Copy chars into buffer
 					i = POSMASK(w - a_Buffer->Buffer);
 					for (k = 0; k < j - 1; i = POSMASK(i + 1))
 						Que[Q][k++] = a_Buffer->Buffer[POSMASK(i)];
-				
+						
 					// Increase Q
 					Q++;
 				}
 			}
-			
 			// Write current line to buffer
 			a_Buffer->Lines[LINEMASK(a_Buffer->EndLine)] = &a_Buffer->Buffer[POSMASK(a_Buffer->EndPos)];
 			a_Buffer->EndLine = LINEMASK(a_Buffer->EndLine + 1);
@@ -454,7 +447,7 @@ size_t CONL_RawPrint(CONL_BasicBuffer_t* const a_Buffer, const char* const a_Tex
 			{
 				if (LINEMASK(a_Buffer->DataLine) == LINEMASK(a_Buffer->StartLine))
 					a_Buffer->DataLine = LINEMASK(a_Buffer->DataLine + 1);
-				
+					
 				a_Buffer->StartLine = LINEMASK(a_Buffer->StartLine + 1);
 			}
 		}
@@ -469,17 +462,17 @@ size_t CONL_RawPrint(CONL_BasicBuffer_t* const a_Buffer, const char* const a_Tex
 				// Check
 				if (!Que[i])
 					continue;
-				
+					
 				a_Buffer->FlushFunc(Que[i]);
-			
+				
 				// Free character buffer
 				Z_Free(Que[i]);
 			}
-		
+			
 			// Free ques
 			Z_Free(Que);
 		}
-	
+		
 	return RetVal;
 #undef POSMASK
 #undef LINEMASK
@@ -495,12 +488,12 @@ size_t CONL_PrintV(const bool_t a_InBuf, const char* const a_Format, va_list a_A
 	/* Check */
 	if (!a_Format)
 		return 0;
-	
+		
 	/* Print to buffer */
 	memset(Buf, 0, sizeof(Buf));
 	vsnprintf(Buf, BUFSIZE, a_Format, a_ArgPtr);
 	RetVal = CONL_RawPrint(&l_CONLBuffers[(a_InBuf ? 1 : 0)], Buf);
-
+	
 	/* Return */
 	return RetVal;
 #undef BUFSIZE
@@ -573,6 +566,7 @@ size_t CONL_InputU(const UnicodeStringID_t a_StrID, const char* const a_Format, 
 }
 
 /*** Client Drawing ***/
+
 /* CONL_IsActive() -- Returns true if the console is active */
 bool_t CONL_IsActive(void)
 {
@@ -584,6 +578,7 @@ bool_t CONL_IsActive(void)
 bool_t CONL_SetActive(const bool_t a_Set)
 {
 	bool_t Ret;
+	
 	Ret = l_CONLActive;
 	l_CONLActive = a_Set;
 	return Ret;
@@ -615,16 +610,11 @@ void CONL_Ticker(void)
 				if (CurrentTime >= l_CONLMessageQ[i][j].Timeout)
 				{
 					// Wipe ahead back
-					memmove(
-							&l_CONLMessageQ[i][j],
-							&l_CONLMessageQ[i][j + 1],
-							sizeof(CONL_PlayerMessage_t) * (MAXCONLPLAYERMQ - (j + 1))
-						);
+					memmove(&l_CONLMessageQ[i][j], &l_CONLMessageQ[i][j + 1], sizeof(CONL_PlayerMessage_t) * (MAXCONLPLAYERMQ - (j + 1)));
 					
 					// Clear back
 					memset(&l_CONLMessageQ[i][MAXCONLPLAYERMQ - 1], 0, sizeof(CONL_PlayerMessage_t));
 				}
-				
 				// Soon to expire? Transparent fade away
 				else if ((Left = (l_CONLMessageQ[i][j].Timeout - CurrentTime)) <= TICRATE)
 				{
@@ -633,16 +623,17 @@ void CONL_Ticker(void)
 				}
 			}
 #if 0
-/* CONL_PlayerMessage_t -- Message for player */
-typedef struct CONL_PlayerMessage_s
-{
-	uint32_t Flags;									// Flags for this message
-	char Text[MAXCONLPMQBUFSIZE];					// Message Text
-	tic_t Timeout;									// When the message times out
-	uint8_t Priority;								// Priority of the message
-} CONL_PlayerMessage_t;
-
-static CONL_PlayerMessage_t l_CONLMessageQ			// Player message queue
+			
+	/* CONL_PlayerMessage_t -- Message for player */
+	typedef struct CONL_PlayerMessage_s
+	{
+		uint32_t Flags;			// Flags for this message
+		char Text[MAXCONLPMQBUFSIZE];	// Message Text
+		tic_t Timeout;			// When the message times out
+		uint8_t Priority;		// Priority of the message
+	} CONL_PlayerMessage_t;
+	
+	static CONL_PlayerMessage_t l_CONLMessageQ	// Player message queue
 	[MAXSPLITSCREENPLAYERS][MAXCONLPLAYERMQ];
 #endif
 }
@@ -656,11 +647,11 @@ bool_t CONL_HandleEvent(const I_EventEx_t* const a_Event)
 	/* Check */
 	if (!a_Event)
 		return false;
-	
+		
 	/* Only handle keyboard events */
 	if (a_Event->Type != IET_KEYBOARD)
 		return false;
-	
+		
 	// Remember key code and character
 	Code = a_Event->Data.Keyboard.KeyCode;
 	Char = a_Event->Data.Keyboard.Character;
@@ -681,7 +672,6 @@ bool_t CONL_HandleEvent(const I_EventEx_t* const a_Event)
 			CONL_SetActive(false);
 			return true;
 		}
-		
 		// Handle key presses
 		
 		// Always eat everything
@@ -719,7 +709,7 @@ void CONL_DrawConsole(void)
 					bw = vid.width;
 					bh = by + (vid.height >> 1);
 					break;
-				
+					
 				case 3:
 				case 4:
 					bx = ((i & 1)) * (vid.width >> 1);
@@ -727,7 +717,7 @@ void CONL_DrawConsole(void)
 					bw = bw + (vid.width >> 1);
 					bh = bh + (vid.height >> 1);
 					break;
-				
+					
 				case 1:
 				default:
 					bx = 0;
@@ -775,14 +765,14 @@ void CONL_DrawConsole(void)
 			}
 		}
 	}
-
+	
 	/*
-#define YAYTEXT "{{1X {{{2Y {{{{3Z {0Y{1a{2y {3C{4o{5l{6o{7r{8s{9!{a!{b!{c!{d1{e1{f#"
-	V_DrawStringA(VFONT_SMALL, 0, YAYTEXT, 100, 80);
-	V_DrawStringA(VFONT_LARGE, 0, YAYTEXT, 100, 100);
-	V_DrawStringA(VFONT_STATUSBARSMALL, 0, YAYTEXT, 100, 120);
-	V_DrawStringA(VFONT_PRBOOMHUD, 0, YAYTEXT, 100, 140);
-	V_DrawStringA(VFONT_OEM, 0, YAYTEXT, 100, 160);*/
+	   #define YAYTEXT "{{1X {{{2Y {{{{3Z {0Y{1a{2y {3C{4o{5l{6o{7r{8s{9!{a!{b!{c!{d1{e1{f#"
+	   V_DrawStringA(VFONT_SMALL, 0, YAYTEXT, 100, 80);
+	   V_DrawStringA(VFONT_LARGE, 0, YAYTEXT, 100, 100);
+	   V_DrawStringA(VFONT_STATUSBARSMALL, 0, YAYTEXT, 100, 120);
+	   V_DrawStringA(VFONT_PRBOOMHUD, 0, YAYTEXT, 100, 140);
+	   V_DrawStringA(VFONT_OEM, 0, YAYTEXT, 100, 160); */
 }
 
 /*****************************************************************************/
@@ -791,7 +781,7 @@ void CONL_DrawConsole(void)
 *** GLOBALS ***
 **************/
 
-bool_t g_QuietConsole = false;								// Mute startup console
+bool_t g_QuietConsole = false;	// Mute startup console
 
 /***************************
 *** DEPRECATED FUNCTIONS ***
@@ -801,14 +791,16 @@ bool_t g_QuietConsole = false;								// Mute startup console
 ********************************************************************************
 *******************************************************************************/
 
-bool_t con_started = false;	// console has been initialised
-bool_t con_startup = false;	// true at game startup, screen need refreshing
-bool_t con_forcepic = true;	// at startup toggle console transulcency when
-							 // first off
+bool_t con_started = false;		// console has been initialised
+bool_t con_startup = false;		// true at game startup, screen need refreshing
+bool_t con_forcepic = true;		// at startup toggle console transulcency when
+
+// first off
 bool_t con_recalc;				// set true when screen size has changed
 
 int con_tick;					// console ticker for anim or blinking prompt cursor
-						 // con_scrollup should use time (currenttime - lasttime)..
+
+// con_scrollup should use time (currenttime - lasttime)..
 
 bool_t consoletoggle;			// true when console key pushed, ticker will handle
 bool_t consoleready;			// console prompt is ready
@@ -817,22 +809,24 @@ int con_destlines;				// vid lines used by console at final position
 int con_curlines;				// vid lines currently used by console
 
 int con_clipviewtop;			// clip value for planes & sprites, so that the
-						 // part of the view covered by the console is not
-						 // drawn when not needed, this must be -1 when
-						 // console is off
 
-int con_hudlines;		// number of console heads up message lines
+// part of the view covered by the console is not
+// drawn when not needed, this must be -1 when
+// console is off
+
+int con_hudlines;				// number of console heads up message lines
 int con_hudtime[5];				// remaining time of display for hud msg lines
 
 int con_clearlines;				// top screen lines to refresh when view reduced
 bool_t con_hudupdate;			// when messages scroll, we need a backgrnd refresh
 
 // console text output
-char *con_line;					// console text output current line
+char* con_line;					// console text output current line
 int con_cx;						// cursor position in current line
 int con_cy;						// cursor line number in con_buffer, is always
-						 //  increasing, and wrapped around in the text
-						 //  buffer using modulo.
+
+//  increasing, and wrapped around in the text
+//  buffer using modulo.
 
 int con_totallines;				// lines of console text into the console buffer
 int con_width;					// columns of chars, depend on vid mode width
@@ -840,7 +834,8 @@ int con_width;					// columns of chars, depend on vid mode width
 int con_scrollup;				// how many rows of text to scroll up (pgup/pgdn)
 
 int con_lineowner[CON_MAXHUDLINES];	//In splitscreen, which player gets this line of text
-										 //0 or 1 is player 1, 2 is player 2
+
+//0 or 1 is player 1, 2 is player 2
 
 char inputlines[32][CON_MAXPROMPTCHARS];	// hold last 32 prompt lines
 
@@ -848,10 +843,10 @@ int inputline;					// current input line number
 int inputhist;					// line number of history input line to restore
 int input_cx;					// position in current input line
 
-// GhostlyDeath <April 26, 2009> -- 
-struct pic_s *con_backpic;				// console background picture, loaded static
-struct pic_s *con_bordleft;
-struct pic_s *con_bordright;			// console borders in translucent mode
+// GhostlyDeath <April 26, 2009> --
+struct pic_s* con_backpic;		// console background picture, loaded static
+struct pic_s* con_bordleft;
+struct pic_s* con_bordright;	// console borders in translucent mode
 
 // protos.
 void CON_InputInit(void);
@@ -876,10 +871,11 @@ consvar_t cons_speed = { "con_speed", "8", CV_CALL | CV_SAVE, CV_Unsigned, &CONS
 consvar_t cons_height = { "con_height", "50", CV_SAVE, CV_Unsigned };
 
 CV_PossibleValue_t backpic_cons_t[] = { {0, "translucent"}, {1, "picture"}, {2, "Nothing"}, {0, NULL} };
+
 // whether to use console background picture, or translucent mode
 consvar_t cons_backpic = { "con_backpic", "0", CV_SAVE, backpic_cons_t };
 
-void CON_Print(char *msg);
+void CON_Print(char* msg);
 
 //  Check CONS_speed value (must be positive and >0)
 //
@@ -895,7 +891,7 @@ void CONS_Clear_f(void)
 {
 	if (con_buffer)
 		memset(con_buffer, 0, CON_BUFFERSIZE);
-
+		
 	con_cx = 0;
 	con_cy = con_totallines - 1;
 	con_line = &con_buffer[con_cy * con_width];
@@ -922,14 +918,14 @@ void CONS_French_f(void)
 	CONS_Printf("French keymap.\n");
 }
 
-char *bindtable[NUMINPUTS];
+char* bindtable[NUMINPUTS];
 
 void CONS_Bind_f(void)
 {
 	int na, key;
-
+	
 	na = COM_Argc();
-
+	
 	if (na != 2 && na != 3)
 	{
 		CONS_Printf("bind <keyname> [<command>]\n");
@@ -945,20 +941,20 @@ void CONS_Bind_f(void)
 			CONS_Printf("Empty\n");
 		return;
 	}
-
+	
 	key = G_KeyStringtoNum(COM_Argv(1));
 	if (!key)
 	{
 		CONS_Printf("Invalid key name\n");
 		return;
 	}
-
+	
 	if (bindtable[key] != NULL)
 	{
 		Z_Free(bindtable[key]);
 		bindtable[key] = NULL;
 	}
-
+	
 	if (na == 3)
 		bindtable[key] = Z_StrDup(COM_Argv(2), PU_STATIC, NULL);
 }
@@ -969,9 +965,9 @@ void CONS_Bind_f(void)
 
 // Prepare a colormap for GREEN ONLY translucency over background
 // GhostlyDeath - Red in ReMooD
-uint8_t *whitemap;
-uint8_t *greenmap;
-uint8_t *graymap;
+uint8_t* whitemap;
+uint8_t* greenmap;
+uint8_t* graymap;
 uint8_t* orangemap;
 
 /* CON_SetupBackColormap() -- Deprecated handler for old colormaps */
@@ -983,10 +979,10 @@ void CON_SetupBackColormap(void)
 	
 	/* Wrap old arrays */
 	// Allocate
-	greenmap = (uint8_t *) Z_Malloc(256, PU_STATIC, NULL);
-	whitemap = (uint8_t *) Z_Malloc(256, PU_STATIC, NULL);
-	graymap = (uint8_t *) Z_Malloc(256, PU_STATIC, NULL);
-	orangemap = (uint8_t *) Z_Malloc(256, PU_STATIC, NULL);
+	greenmap = (uint8_t*)Z_Malloc(256, PU_STATIC, NULL);
+	whitemap = (uint8_t*)Z_Malloc(256, PU_STATIC, NULL);
+	graymap = (uint8_t*)Z_Malloc(256, PU_STATIC, NULL);
+	orangemap = (uint8_t*)Z_Malloc(256, PU_STATIC, NULL);
 	
 	// Copy in
 	memmove(greenmap, V_ReturnColormapPtr(VEX_MAP_RED), sizeof(uint8_t) * 256);
@@ -1000,37 +996,37 @@ void CON_SetupBackColormap(void)
 void CON_Init(void)
 {
 	int i;
-
+	
 	if (dedicated)
 		return;
-
+		
 	for (i = 0; i < NUMINPUTS; i++)
 		bindtable[i] = NULL;
-
+		
 	// clear all lines
 	memset(con_buffer, 0, CON_BUFFERSIZE);
-
+	
 	// make sure it is ready for the loading screen
 	con_width = 0;
 	CON_RecalcSize();
-
+	
 	CON_SetupBackColormap();
-
+	
 	//note: CON_Ticker should always execute at least once before D_Display()
 	con_clipviewtop = -1;		// -1 does not clip
-
+	
 	con_hudlines = CON_MAXHUDLINES;
-
+	
 	// setup console input filtering
 	CON_InputInit();
-
+	
 	// load console background pic
-	con_backpic = (pic_t *) W_CacheLumpName("RMD_CB_D", PU_STATIC);
-
+	con_backpic = (pic_t*)W_CacheLumpName("RMD_CB_D", PU_STATIC);
+	
 	// borders MUST be there
 	//con_bordleft  = (pic_t*) W_CacheLumpName ("CBLEFT",PU_STATIC);
 	//con_bordright = (pic_t*) W_CacheLumpName ("CBRIGHT",PU_STATIC);
-
+	
 	// register our commands
 	//
 	CV_RegisterVar(&cons_msgtimeout);
@@ -1045,7 +1041,7 @@ void CON_Init(void)
 	con_destlines = vid.height;
 	con_curlines = vid.height;
 	consoletoggle = false;
-
+	
 	con_started = true;
 	con_startup = true;			// need explicit screen refresh
 	// until we are in Doomloop
@@ -1058,14 +1054,14 @@ void CON_Init(void)
 void CON_InputInit(void)
 {
 	int i;
-
+	
 	// prepare the first prompt line
 	memset(inputlines, 0, sizeof(inputlines));
 	for (i = 0; i < 32; i++)
 		inputlines[i][0] = CON_PROMPTCHAR;
 	inputline = 0;
 	input_cx = 1;
-
+	
 }
 
 //  Insert a new line in the console text buffer
@@ -1074,18 +1070,18 @@ void CON_Linefeed(int second_player_message)
 {
 	// set time for heads up messages
 	con_hudtime[con_cy % con_hudlines] = cons_msgtimeout.value * TICRATE;
-
+	
 	if (second_player_message == 1)
 		con_lineowner[con_cy % con_hudlines] = 2;	//Msg for second player
 	else
 		con_lineowner[con_cy % con_hudlines] = 1;
-
+		
 	con_cy++;
 	con_cx = 0;
-
+	
 	con_line = &con_buffer[(con_cy % con_totallines) * con_width];
 	memset(con_line, ' ', con_width);
-
+	
 	// make sure the view borders are refreshed if hud messages scroll
 	con_hudupdate = true;		// see HU_Erase()
 }
@@ -1093,15 +1089,15 @@ void CON_Linefeed(int second_player_message)
 //  Outputs text into the console text buffer
 //
 //TODO: fix this mess!!
-void CON_Print(char *msg)
+void CON_Print(char* msg)
 {
 	int l;
 	int mask = 0;
 	int second_player_message = 0;
-
+	
 	if (con_started)
 	{
-
+	
 		//TODO: finish text colors
 		if (*msg < 5)
 		{
@@ -1117,15 +1113,15 @@ void CON_Print(char *msg)
 			}
 			else if (*msg == 0x04)	//Splitscreen: This message is for the second player
 				second_player_message = 1;
-
+				
 		}
-
+		
 		while (*msg)
 		{
 			// skip non-printable characters and white spaces
 			while (*msg && *msg >= 0x00 && *msg <= ' ')
 			{
-
+			
 				// carriage return
 				if (*msg == '\r')
 				{
@@ -1134,56 +1130,56 @@ void CON_Print(char *msg)
 				}
 				else
 					// linefeed
-				if (*msg == '\n')
-					CON_Linefeed(second_player_message);
-				else if (*msg == ' ')
-				{
-					con_line[con_cx++] = ' ';
-					if (con_cx >= con_width)
+					if (*msg == '\n')
 						CON_Linefeed(second_player_message);
-				}
-				else if (*msg == '\t')
-				{
-					//adds tab spaces for nice layout in console
-
-					do
+					else if (*msg == ' ')
 					{
 						con_line[con_cx++] = ' ';
+						if (con_cx >= con_width)
+							CON_Linefeed(second_player_message);
 					}
-					while (con_cx % 4 != 0);
-
-					if (con_cx >= con_width)
-						CON_Linefeed(second_player_message);
-				}
+					else if (*msg == '\t')
+					{
+						//adds tab spaces for nice layout in console
+						
+						do
+						{
+							con_line[con_cx++] = ' ';
+						}
+						while (con_cx % 4 != 0);
+						
+						if (con_cx >= con_width)
+							CON_Linefeed(second_player_message);
+					}
 				msg++;
 			}
-
+			
 			if (*msg == 0)
 				return;
-
+				
 			// printable character
 			for (l = 0; l < con_width && !(msg[l] >= 0x00 && msg[l] <= ' '); l++)
-
-			// word wrap
-			if (con_cx + l > con_width)
-				CON_Linefeed(second_player_message);
-
+			
+				// word wrap
+				if (con_cx + l > con_width)
+					CON_Linefeed(second_player_message);
+					
 			// a word at a time
 			for (; l > 0; l--)
-				con_line[con_cx++] = *(msg++)/* | mask*/;
-
+				con_line[con_cx++] = *(msg++) /* | mask */ ;
+				
 		}
 	}
 }
 
 //  Console print! Wahooo! Lots o fun!
 //
-void CONS_Printf(char *fmt, ...)
+void CONS_Printf(char* fmt, ...)
 {
 	va_list argptr;
 	char txt[512];
 	static bool_t AlreadyDrawn;	// Draw once
-
+	
 	va_start(argptr, fmt);
 #if _MSC_VER >= 1400
 	vsprintf_s(txt, 512, fmt, argptr);
@@ -1193,7 +1189,7 @@ void CONS_Printf(char *fmt, ...)
 	vsprintf(txt, fmt, argptr);
 #endif
 	va_end(argptr);
-
+	
 	if (devparm || !con_started /* || !graphics_started */ )
 	{
 //#if !defined( _WIN32) && !defined( __OS2__)
@@ -1202,25 +1198,25 @@ void CONS_Printf(char *fmt, ...)
 		if (!devparm)
 			return;
 	}
-	
 	// GhostlyDeath <September 10, 2011> -- Write to light console
 	CONL_RawPrint(&l_CONLBuffers[0], txt);
-
+	
 	// write message in con text buffer
 	CON_Print(txt);
-
+	
 	// make sure new text is visible
 	con_scrollup = 0;
-
+	
 	// if not in display loop, force screen update
 	if (con_startup)
 	{
-/*#if defined( _WIN32) || defined( __OS2__) 
-        // show startup screen and message using only 'software' graphics
-        // (rendermode may be hardware accelerated, but the video mode is not set yet)
-        CON_DrawBackpic (con_backpic, 0, vid.width);    // put console background
-        I_LoadingScreen ( txt );
-#else*/
+	
+		/*#if defined( _WIN32) || defined( __OS2__)
+		        // show startup screen and message using only 'software' graphics
+		        // (rendermode may be hardware accelerated, but the video mode is not set yet)
+		        CON_DrawBackpic (con_backpic, 0, vid.width);    // put console background
+		        I_LoadingScreen ( txt );
+		#else*/
 		// here we display the console background and console text
 		// (no hardware accelerated support for these versions)
 		
@@ -1228,9 +1224,9 @@ void CONS_Printf(char *fmt, ...)
 		if ((devparm && !g_QuietConsole) || ((!devparm || g_QuietConsole) && !AlreadyDrawn))
 		{
 			CONL_DrawConsole();
-		
+			
 			//CON_Drawer();
-			I_FinishUpdate();		// page flip or blit buffer
+			I_FinishUpdate();	// page flip or blit buffer
 			
 			AlreadyDrawn = true;
 		}
@@ -1250,39 +1246,38 @@ void CON_RecalcSize(void)
 	int conw, oldcon_width, oldnumlines, i, oldcon_cy;
 	char tmp_buffer[CON_BUFFERSIZE];
 	char string[CON_BUFFERSIZE];	// BP: it is a line but who know
-
+	
 	con_recalc = false;
-
+	
 	conw = (vid.width >> 3) - 2;
-
+	
 	if (con_curlines == 200)	// first init
 	{
 		con_curlines = vid.height;
 		con_destlines = vid.height;
 	}
-
 	// check for change of video width
 	if (conw == con_width)
 		return;					// didnt change
-
+		
 	oldcon_width = con_width;
 	oldnumlines = con_totallines;
 	oldcon_cy = con_cy;
 	memcpy(tmp_buffer, con_buffer, CON_BUFFERSIZE);
-
+	
 	if (conw < 1)
 		con_width = (BASEVIDWIDTH >> 3) - 2;
 	else
 		con_width = conw;
-
+		
 	con_totallines = CON_BUFFERSIZE / con_width;
 	memset(con_buffer, ' ', CON_BUFFERSIZE);
-
+	
 	con_cx = 0;
 	con_cy = con_totallines - 1;
 	con_line = &con_buffer[con_cy * con_width];
 	con_scrollup = 0;
-
+	
 	// re-arrange console text buffer to keep text
 	if (oldcon_width)			// not the first time
 	{
@@ -1319,7 +1314,7 @@ void CON_MoveConsole(void)
 		if (con_curlines < con_destlines)
 			con_curlines = con_destlines;
 	}
-
+	
 }
 
 //  Clear time of console heads up messages
@@ -1327,7 +1322,7 @@ void CON_MoveConsole(void)
 void CON_ClearHUD(void)
 {
 	int i;
-
+	
 	for (i = 0; i < con_hudlines; i++)
 		con_hudtime[i] = 0;
 }
@@ -1338,7 +1333,7 @@ void CON_ToggleOff(void)
 {
 	if (!con_destlines)
 		return;
-
+		
 	con_destlines = 0;
 	con_curlines = 0;
 	CON_ClearHUD();
@@ -1351,19 +1346,19 @@ void CON_ToggleOff(void)
 void CON_Ticker(void)
 {
 	int i;
-
+	
 	if (dedicated)
 		return;
-
+		
 	// cursor blinking
 	con_tick++;
 	con_tick &= 7;
-
+	
 	// console key was pushed
 	if (consoletoggle)
 	{
 		consoletoggle = false;
-
+		
 		// toggle off console
 		if (con_destlines > 0)
 		{
@@ -1378,18 +1373,17 @@ void CON_Ticker(void)
 				con_destlines = 20;
 			else if (con_destlines > vid.height - stbarheight)
 				con_destlines = vid.height - stbarheight;
-
+				
 			con_destlines &= ~0x3;	// multiple of text row height
 		}
 	}
-
 	// console movement
 	if (con_destlines != con_curlines)
 		CON_MoveConsole();
-
+		
 	// clip the view, so that the part under the console is not drawn
 	con_clipviewtop = -1;
-	if (cons_backpic.value == 1)		// clip only when using an opaque background
+	if (cons_backpic.value == 1)	// clip only when using an opaque background
 	{
 		if (con_curlines > 0)
 			con_clipviewtop = con_curlines - viewwindowy - 1 - 10;
@@ -1398,13 +1392,12 @@ void CON_Ticker(void)
 		if (con_clipviewtop < 0)
 			con_clipviewtop = -1;	//maybe not necessary, provided it's <0
 	}
-
 	// check if console ready for prompt
 	if ( /*(con_curlines==con_destlines) && */ (con_destlines >= 20))
 		consoleready = true;
 	else
 		consoleready = false;
-
+		
 	// make overlay messages disappear after a while
 	for (i = 0; i < con_hudlines; i++)
 	{
@@ -1416,22 +1409,22 @@ void CON_Ticker(void)
 
 //  Handles console key input
 //
-bool_t CON_Responder(event_t * ev)
+bool_t CON_Responder(event_t* ev)
 {
 //bool_t altdown;
 	bool_t shiftdown;
 	int i;
-
+	
 // sequential completions a la 4dos
 	char completion[80];
 	int comskips, varskips;
-
-	char *cmd;
+	
+	char* cmd;
 	int key;
-
+	
 	if (chat_on)
 		return false;
-
+		
 	// special keys state
 	if (ev->data1 == KEY_SHIFT && ev->type == ev_keyup)
 	{
@@ -1443,13 +1436,13 @@ bool_t CON_Responder(event_t * ev)
 	//    altdown = (ev->type == ev_keydown);
 	//    return false;
 	//}
-
+	
 	// let go keyup events, don't eat them
 	if (ev->type != ev_keydown)
 		return false;
-
+		
 	key = ev->data1;
-
+	
 //
 //  check for console toggle key
 //
@@ -1458,7 +1451,6 @@ bool_t CON_Responder(event_t * ev)
 		consoletoggle = true;
 		return true;
 	}
-
 //
 //  check other keys only if console prompt is active
 //
@@ -1472,28 +1464,25 @@ bool_t CON_Responder(event_t * ev)
 		}
 		return false;
 	}
-
 	// eat shift only if console active
 	if (key == KEY_SHIFT)
 	{
 		shiftdown = true;
 		return true;
 	}
-
 	// escape key toggle off console
 	if (key == KEY_ESCAPE)
 	{
 		consoletoggle = true;
 		return true;
 	}
-
 	// command completion forward (tab) and backward (shift-tab)
 	if (key == KEY_TAB)
 	{
 		// TOTALLY UTTERLY UGLY NIGHT CODING BY FAB!!! :-)
 		//
 		// sequential command completion forward and backward
-
+		
 		// remember typing for several completions (a-la-4dos)
 		if (inputlines[inputline][input_cx - 1] != ' ')
 		{
@@ -1501,7 +1490,7 @@ bool_t CON_Responder(event_t * ev)
 				strcpy(completion, inputlines[inputline] + 1);
 			else
 				completion[0] = 0;
-
+				
 			comskips = varskips = 0;
 		}
 		else
@@ -1524,7 +1513,7 @@ bool_t CON_Responder(event_t * ev)
 					comskips++;
 			}
 		}
-
+		
 		if (comskips >= 0)
 		{
 			cmd = COM_CompleteCommand(completion, comskips);
@@ -1534,7 +1523,7 @@ bool_t CON_Responder(event_t * ev)
 		}
 		if (comskips < 0)
 			cmd = CV_CompleteVar(completion, varskips);
-
+			
 		if (cmd)
 		{
 			memset(inputlines[inputline] + 1, 0, CON_MAXPROMPTCHARS - 1);
@@ -1551,10 +1540,9 @@ bool_t CON_Responder(event_t * ev)
 			else if (varskips > 0)
 				varskips--;
 		}
-
+		
 		return true;
 	}
-
 	// move up (backward) in console textbuffer
 	if (key == KEY_PGUP)
 	{
@@ -1568,7 +1556,6 @@ bool_t CON_Responder(event_t * ev)
 			con_scrollup--;
 		return true;
 	}
-
 	// oldset text in buffer
 	if (key == KEY_HOME)
 	{
@@ -1577,34 +1564,32 @@ bool_t CON_Responder(event_t * ev)
 	}
 	else
 		// most recent text in buffer
-	if (key == KEY_END)
-	{
-		con_scrollup = 0;
-		return true;
-	}
-
+		if (key == KEY_END)
+		{
+			con_scrollup = 0;
+			return true;
+		}
 	// command enter
 	if (key == KEY_ENTER)
 	{
 		if (input_cx < 2)
 			return true;
-
+			
 		// push the command
 		COM_BufAddText(inputlines[inputline] + 1);
 		COM_BufAddText("\n");
-
+		
 		CONS_Printf("%s\n", inputlines[inputline]);
-
+		
 		inputline = (inputline + 1) & 31;
 		inputhist = inputline;
-
+		
 		memset(inputlines[inputline], 0, CON_MAXPROMPTCHARS);
 		inputlines[inputline][0] = CON_PROMPTCHAR;
 		input_cx = 1;
-
+		
 		return true;
 	}
-
 	// backspace command prompt
 	if (key == KEY_BACKSPACE)
 	{
@@ -1615,7 +1600,6 @@ bool_t CON_Responder(event_t * ev)
 		}
 		return true;
 	}
-
 	// move back in input history
 	if (key == KEY_UPARROW)
 	{
@@ -1625,18 +1609,17 @@ bool_t CON_Responder(event_t * ev)
 			inputhist = (inputhist - 1) & 31;	// cycle back
 		}
 		while (inputhist != inputline && !inputlines[inputhist][1]);
-
+		
 		// stop at the last history input line, which is the
 		// current line + 1 because we cycle through the 32 input lines
 		if (inputhist == inputline)
 			inputhist = (inputline + 1) & 31;
-
+			
 		memcpy(inputlines[inputline], inputlines[inputhist], CON_MAXPROMPTCHARS);
 		input_cx = strlen(inputlines[inputline]);
-
+		
 		return true;
 	}
-
 	// move forward in input history
 	if (key == KEY_DOWNARROW)
 	{
@@ -1647,9 +1630,9 @@ bool_t CON_Responder(event_t * ev)
 			inputhist = (inputhist + 1) & 31;
 		}
 		while (inputhist != inputline && !inputlines[inputhist][1]);
-
+		
 		memset(inputlines[inputline], 0, CON_MAXPROMPTCHARS);
-
+		
 		// back to currentline
 		if (inputhist == inputline)
 		{
@@ -1663,7 +1646,6 @@ bool_t CON_Responder(event_t * ev)
 		}
 		return true;
 	}
-
 	// allow people to use keypad in console (good for typing IP addresses) - Calum
 	if (key >= KEY_KEYPAD7 && key <= KEY_KPADDEL)
 	{
@@ -1672,40 +1654,40 @@ bool_t CON_Responder(event_t * ev)
 			'1', '2', '3',
 			'0', '.'
 		};
-
+		
 		key = keypad_translation[key - KEY_KEYPAD7];
 	}
 	else if (key == KEY_KPADSLASH)
 		key = '/';
 	else if (con_keymap == french)
-		key = ForeignTranslation((uint8_t) key);
-
+		key = ForeignTranslation((uint8_t)key);
+		
 	if (shiftdown)
 		key = shiftxform[key];
-
+		
 	// enter a char into the command prompt
 	if (key < 32 || key > 127)
 		return false;
-
+		
 	// add key to cmd line here
 	if (input_cx < CON_MAXPROMPTCHARS)
 	{
 		// make sure letters are lowercase for commands & cvars
 		if (key >= 'A' && key <= 'Z')
 			key = key + 'a' - 'A';
-
+			
 		inputlines[inputline][input_cx] = key;
 		inputlines[inputline][input_cx + 1] = 0;
 		input_cx++;
 	}
-
+	
 	return true;
 }
 
 //  Print an error message, and wait for ENTER key to continue.
 //  To make sure the user has seen the message
 //
-void CONS_Error(char *msg)
+void CONS_Error(char* msg)
 {
 #ifdef _WIN32
 	if (!graphics_started)
@@ -1716,7 +1698,7 @@ void CONS_Error(char *msg)
 #endif
 	CONS_Printf("\2%s", msg);	// write error msg in different colour
 	CONS_Printf("Press ENTER to continue\n");
-
+	
 	// dirty quick hack, but for the good cause
 	while (I_GetKey() != KEY_ENTER)
 		;
@@ -1730,64 +1712,61 @@ void CONS_Error(char *msg)
 //
 void CON_DrawInput(void)
 {
-	char *p;
+	char* p;
 	int x, y;
-
+	
 	// input line scrolls left if it gets too long
 	//
 	p = inputlines[inputline];
 	if (input_cx >= con_width)
 		p += input_cx - con_width + 1;
-
+		
 	y = con_curlines - 12;
-
+	
 	for (x = 0; x < con_width; x++)
-		V_DrawCharacterA(VFONT_SMALL, VFO_NOSCALESTART | VFO_NOSCALEPATCH | VFO_NOSCALELORES,
-			p[x], (x + 1) << 3, y);
-
+		V_DrawCharacterA(VFONT_SMALL, VFO_NOSCALESTART | VFO_NOSCALEPATCH | VFO_NOSCALELORES, p[x], (x + 1) << 3, y);
+		
 	// draw the blinking cursor
 	//
 	x = (input_cx >= con_width) ? con_width - 1 : input_cx;
 	if (con_tick < 4)
-		V_DrawCharacterA(VFONT_SMALL, VFO_NOSCALESTART | VFO_NOSCALEPATCH | VFO_NOSCALELORES,
-			'_', (x + 1) << 3, y);
+		V_DrawCharacterA(VFONT_SMALL, VFO_NOSCALESTART | VFO_NOSCALEPATCH | VFO_NOSCALELORES, '_', (x + 1) << 3, y);
 }
 
 // draw the last lines of console text to the top of the screen
 //
 void CON_DrawHudlines(void)
 {
-	char *p;
+	char* p;
 	int i, x, y, y2;
-
+	
 	if (con_hudlines <= 0)
 		return;
-
+		
 	if (chat_on)
 		y = 8;					// leave place for chat input in the first row of text
 	else
 		y = 0;
 	y2 = 0;						//player 2's message y in splitscreen
-
+	
 	for (i = con_cy - con_hudlines + 1; i <= con_cy; i++)
 	{
 		if (i < 0)
 			continue;
 		if (con_hudtime[i % con_hudlines] == 0)
 			continue;
-
+			
 		p = &con_buffer[(i % con_totallines) * con_width];
-
+		
 		for (x = 0; x < con_width; x++)
-			V_DrawCharacterA(VFONT_SMALL, VFO_NOSCALESTART | VFO_NOSCALEPATCH | VFO_NOSCALELORES,
-			(p[x] & 0xff), x << 3, y);
-
+			V_DrawCharacterA(VFONT_SMALL, VFO_NOSCALESTART | VFO_NOSCALEPATCH | VFO_NOSCALELORES, (p[x] & 0xff), x << 3, y);
+			
 		if (con_lineowner[i % con_hudlines] == 2)
 			y2 += 8;
 		else
 			y += 8;
 	}
-
+	
 	// top screen lines that might need clearing when view is reduced
 	con_clearlines = y;			// this is handled by HU_Erase ();
 }
@@ -1799,22 +1778,22 @@ void CON_DrawHudlines(void)
 //
 //  TODO: ASM routine!!! lazy Fab!!
 //
-void CON_DrawBackpic(pic_t * pic, int startx, int destwidth)
+void CON_DrawBackpic(pic_t* pic, int startx, int destwidth)
 {
 	int x, y;
 	int v;
-	uint8_t *src, *dest;
+	uint8_t* src, *dest;
 	int frac, fracstep;
-
+	
 	dest = vid.buffer + startx;
-
+	
 	for (y = 0; y < con_curlines; y++, dest += vid.width)
 	{
 		// scale the picture to the resolution
 		v = LittleSwapInt16(pic->height) - ((con_curlines - y) * (BASEVIDHEIGHT - 1) / vid.height) - 1;
-
+		
 		src = pic->data + v * LittleSwapInt16(pic->width);
-
+		
 		// in case of the console backpic, simplify
 		if (LittleSwapInt16(pic->width) == destwidth)
 			memcpy(dest, src, destwidth);
@@ -1836,25 +1815,25 @@ void CON_DrawBackpic(pic_t * pic, int startx, int destwidth)
 			}
 		}
 	}
-
+	
 }
 
 // draw the console background, text, and prompt if enough place
 //
 void CON_DrawConsole(void)
 {
-	char *p;
+	char* p;
 	int i, x, y, lx;
 	int w = 0, x2 = 0;
 	size_t MBSkip;
-
+	
 	if (con_curlines <= 0)
 		return;
-
+		
 	//FIXME: refresh borders only when console bg is translucent
 	con_clearlines = con_curlines;	// clear console draw from view borders
 	con_hudupdate = true;		// always refresh while console is on
-
+	
 	// draw console background
 	if (cons_backpic.value == 1 || con_forcepic)
 		CON_DrawBackpic(con_backpic, 0, vid.width);	// picture as background
@@ -1865,46 +1844,38 @@ void CON_DrawConsole(void)
 		//Hurdler: what's the correct value of w and x2 in hardware mode ???
 		V_DrawFadeConsBack(0, 0, vid.width, con_curlines);	// translucent background
 	}
-
 	// draw console text lines from bottom to top
 	// (going backward in console buffer text)
 	//
 	if (con_curlines < 20)		//8+8+4
 		return;
-
+		
 	i = con_cy - con_scrollup;
-
+	
 	// skip the last empty line due to the cursor being at the start
 	// of a new line
 	if (!con_scrollup && !con_cx)
 		i--;
-
+		
 	for (y = con_curlines - 20; y >= 0; y -= 8, i--)
 	{
 		if (i < 0)
 			i = 0;
-
+			
 		p = &con_buffer[(i % con_totallines) * con_width];
 		
 		// GhostlyDeath <November 2, 2010> -- UTF-8 Console
 		for (MBSkip = 1, x = 0, lx = 0; x < con_width; x += MBSkip, lx++)
 		{
-			V_DrawCharacterMB(
-					VFONT_SMALL,
-					VFO_NOSCALEPATCH | VFO_NOSCALESTART | VFO_NOSCALELORES,
-					&p[x],
-					(lx + 1) << 3,	// require logical x
-					y,
-					&MBSkip,
-					NULL
-				);
+			V_DrawCharacterMB(VFONT_SMALL, VFO_NOSCALEPATCH | VFO_NOSCALESTART | VFO_NOSCALELORES, &p[x], (lx + 1) << 3,	// require logical x
+			y, &MBSkip, NULL);
 			
 			// Just in case
 			if (!MBSkip)
 				MBSkip = 1;
 		}
 	}
-
+	
 	// draw prompt if enough place (not while game startup)
 	//
 	if ((con_curlines == con_destlines) && (con_curlines >= 20) && !con_startup)
@@ -1917,18 +1888,17 @@ void CON_Drawer(void)
 {
 	if (!con_started)
 		return;
-
+		
 	if (con_recalc)
 		CON_RecalcSize();
-
+		
 	//Fab: bighack: patch 'I' letter leftoffset so it centers
 	hu_font['I' - HU_FONTSTART]->leftoffset = -2;
-
+	
 	if (con_curlines > 0)
 		CON_DrawConsole();
 	else if (gamestate == GS_LEVEL)
 		CON_DrawHudlines();
-
+		
 	hu_font['I' - HU_FONTSTART]->leftoffset = 0;
 }
-

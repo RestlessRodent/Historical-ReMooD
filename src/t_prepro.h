@@ -49,6 +49,7 @@
 #endif
 #endif
 typedef struct section_s section_t;
+
 #if !defined(FREEBSD) && !defined(SOLARIS)
 typedef struct label_s label_t;
 #elif __FreeBSD__ > 4
@@ -59,28 +60,28 @@ typedef struct label_s label_t;
 
 #include "t_parse.h"
 
-void preprocess(script_t * script);
+void preprocess(script_t* script);
 
 /***** {} sections **********/
 
-section_t *find_section_start(char *brace);
-section_t *find_section_end(char *brace);
+section_t* find_section_start(char* brace);
+section_t* find_section_end(char* brace);
 
 struct section_s
 {
-	char *start;				// offset of starting brace {
-	char *end;					// offset of ending brace   }
+	char* start;				// offset of starting brace {
+	char* end;					// offset of ending brace   }
 	int type;					// section type: for() loop, while() loop etc
-
+	
 	union
 	{
 		struct
 		{
-			char *loopstart;	// positioned before the while()
+			char* loopstart;	// positioned before the while()
 		} data_loop;
 	} data;						// data for section
-
-	section_t *next;			// for hashing
+	
+	section_t* next;			// for hashing
 };
 
 enum							// section types
@@ -94,7 +95,7 @@ enum							// section types
 
 /****** goto labels ***********/
 
-label_t *labelforname(char *labelname);
+label_t* labelforname(char* labelname);
 
 #endif
 

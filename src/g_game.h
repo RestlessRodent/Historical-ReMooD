@@ -28,7 +28,7 @@
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 // GNU General Public License for more details.
 // -----------------------------------------------------------------------------
-// DESCRIPTION: 
+// DESCRIPTION:
 
 #ifndef __G_GAME__
 #define __G_GAME__
@@ -40,7 +40,7 @@
 //added:11-02-98: yeah now you can change it!
 // changed to 2d array 19990220 by Kin
 extern char player_names[MAXPLAYERS][MAXPLAYERNAME];
-extern char team_names[MAXPLAYERS][MAXPLAYERNAME*2];
+extern char team_names[MAXPLAYERS][MAXPLAYERNAME * 2];
 
 extern bool_t nomonsters;		// checkparm of -nomonsters
 extern char gamemapname[128];
@@ -65,6 +65,7 @@ extern tic_t levelstarttic;
 
 // used in game menu
 extern consvar_t cv_crosshair;
+
 //extern consvar_t  cv_crosshairscale;
 extern consvar_t cv_autorun;
 extern consvar_t cv_autorun2;
@@ -85,25 +86,25 @@ extern CV_PossibleValue_t exmy_cons_t[];
 
 /* Prototypes */
 void Command_Turbo_f(void);
-char *G_BuildMapName(int episode, int map);
-void G_BuildTiccmd(ticcmd_t * cmd, int realtics, int player);
-short G_ClipAimingPitch(int *aiming);
+char* G_BuildMapName(int episode, int map);
+void G_BuildTiccmd(ticcmd_t* cmd, int realtics, int player);
+short G_ClipAimingPitch(int* aiming);
 void G_DoReborn(int playernum);
 bool_t G_DeathMatchSpawnPlayer(int playernum);
 void G_CoopSpawnPlayer(int playernum);
 void G_PlayerReborn(int player);
-void G_InitNew(skill_t skill, char *mapname, bool_t resetplayer);
-void G_DeferedInitNew(skill_t skill, char *mapname, int StartSplitScreenGame);
+void G_InitNew(skill_t skill, char* mapname, bool_t resetplayer);
+void G_DeferedInitNew(skill_t skill, char* mapname, int StartSplitScreenGame);
 void G_DoLoadLevel(bool_t resetplayer);
-void G_DeferedPlayDemo(char *demo);
+void G_DeferedPlayDemo(char* demo);
 void G_LoadGame(int slot);		// Can be called by the startup code or M_Responder
 void G_DoLoadGame(int slot);	// Can be called by the startup code or M_Responder
-void G_DoSaveGame(int slot, char *description);	// Called by M_Responder.
-void G_SaveGame(int slot, char *description);	// Called by M_Responder.
-void G_RecordDemo(char *name);	// Only called by startup code.
+void G_DoSaveGame(int slot, char* description);	// Called by M_Responder.
+void G_SaveGame(int slot, char* description);	// Called by M_Responder.
+void G_RecordDemo(char* name);	// Only called by startup code.
 void G_BeginRecording(void);
-void G_DoPlayDemo(char *defdemoname);
-void G_TimeDemo(char *name);
+void G_DoPlayDemo(char* defdemoname);
+void G_TimeDemo(char* name);
 void G_DoneLevelLoad(void);
 void G_StopDemo(void);
 bool_t G_CheckDemoStatus(void);
@@ -111,19 +112,18 @@ void G_ExitLevel(void);
 void G_SecretExitLevel(void);
 void G_NextLevel(void);
 void G_Ticker(void);
-bool_t G_Responder(event_t * ev);
+bool_t G_Responder(event_t* ev);
 bool_t G_Downgrade(int version);
 void G_AddPlayer(int playernum);
 bool_t G_CheckDemoStatus(void);
-void G_ReadDemoTiccmd(ticcmd_t * cmd, int playernum);
-void G_WriteDemoTiccmd(ticcmd_t * cmd, int playernum);
-void G_InitNew(skill_t skill, char *mapname, bool_t resetplayer);
+void G_ReadDemoTiccmd(ticcmd_t* cmd, int playernum);
+void G_WriteDemoTiccmd(ticcmd_t* cmd, int playernum);
+void G_InitNew(skill_t skill, char* mapname, bool_t resetplayer);
 void G_DoCompleted(void);
 void G_DoVictory(void);
 void G_DoWorldDone(void);
 
-extern uint8_t *demo_p;
-extern uint8_t *demoend;
+extern uint8_t* demo_p;
+extern uint8_t* demoend;
 
 #endif							/* __G_GAME_H__ */
-

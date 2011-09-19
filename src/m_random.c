@@ -38,7 +38,8 @@
 // M_Random
 // Returns a 0-255 number
 //
-uint8_t rndtable[256] = {
+uint8_t rndtable[256] =
+{
 	0, 8, 109, 220, 222, 241, 149, 107, 75, 248, 254, 140, 16, 66,
 	74, 21, 211, 47, 80, 242, 154, 27, 205, 128, 161, 89, 77, 36,
 	95, 110, 85, 48, 212, 140, 211, 249, 22, 79, 200, 50, 28, 188,
@@ -71,12 +72,13 @@ uint8_t P_Random()
 	return rndtable[++prndindex];
 }
 
-// lot of code used P_Random()-P_Random() since C don't define 
-// evaluation order it is compiler depenent so this allow network play 
+// lot of code used P_Random()-P_Random() since C don't define
+// evaluation order it is compiler depenent so this allow network play
 // between different compilers
 int P_SignedRandom()
 {
 	int r = P_Random();
+	
 	return r - P_Random();
 }
 
@@ -86,7 +88,7 @@ int P_SignedRandom()
 
 FILE* RandFile = NULL;
 
-uint8_t P_Random2(char *a, int b)
+uint8_t P_Random2(char* a, int b)
 {
 	RandFile = fopen("prandom", "at");
 	fprintf(RandFile, "P_Random at (gt = %i)\t%sp %d\n", gametic, a, b);
@@ -94,9 +96,10 @@ uint8_t P_Random2(char *a, int b)
 	return rndtable[++prndindex];
 }
 
-int P_SignedRandom2(char *a, int b)
+int P_SignedRandom2(char* a, int b)
 {
 	int r;
+
 	RandFile = fopen("prandom", "at");
 	fprintf(RandFile, "P_Random at (gt = %i)\t%sp %d\n", gametic, a, b);
 	fclose(RandFile);

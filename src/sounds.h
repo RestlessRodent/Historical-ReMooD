@@ -53,7 +53,7 @@ typedef enum
 } skinsound_t;
 
 // free sfx for S_AddSoundFx()
-						 //MAXSKINS
+//MAXSKINS
 #define NUMSFXFREESLOTS    (32*NUMSKINSOUNDS)
 #define NUMMUSICFREESLOTS  64
 
@@ -65,38 +65,38 @@ typedef struct sfxinfo_struct sfxinfo_t;
 struct sfxinfo_struct
 {
 	// up to 6-character name
-	char *name;
-
+	char* name;
+	
 	// Sfx singularity (only one at a time)
 	int singularity;
-
+	
 	// Sfx priority
 	int priority;
-
+	
 	// referenced sound if a link
-	sfxinfo_t *link;
-
+	sfxinfo_t* link;
+	
 	// pitch if a link
 	int pitch;
-
+	
 	// volume if a link
 	int volume;
-
+	
 	// sound data
-	void *data;
-
+	void* data;
+	
 	// sound that can be remapped for a skin, indexes skins[].skinsounds
 	// 0 up to (NUMSKINSOUNDS-1), -1 = not skin specifc
 	int skinsound;
-
+	
 	// this is checked every second to see if sound
 	// can be thrown out (if 0, then decrement, if -1,
 	// then throw out, if > 0, then it is in use)
 	int usefulness;
-
+	
 	// lump number of sfx
 	int lumpnum;
-
+	
 };
 
 //
@@ -105,17 +105,17 @@ struct sfxinfo_struct
 typedef struct
 {
 	// up to 6-character name
-	char *name;
-
+	char* name;
+	
 	// lump number of music
 	WadIndex_t lumpnum;
-
+	
 	// music data
-	void *data;
-
+	void* data;
+	
 	// music handle once registered
 	int handle;
-
+	
 } musicinfo_t;
 
 // the complete set of sound effects
@@ -198,7 +198,7 @@ typedef enum
 	mus_read_m,
 	mus_dm2ttl,
 	mus_dm2int,
-
+	
 	mus_firstfreeslot,
 	// 64 free slots here
 	mus_lastfreeslot = mus_firstfreeslot + NUMMUSICFREESLOTS - 1,
@@ -328,7 +328,7 @@ typedef enum
 	sfx_gloop,
 	sfx_splash,
 	sfx_floush,
-
+	
 	// free slots for S_AddSoundFx() at run-time --------------------
 	sfx_freeslot0,
 	//
@@ -336,14 +336,14 @@ typedef enum
 	//
 	sfx_lastfreeslot = (sfx_freeslot0 + NUMSFXFREESLOTS - 1),
 	// end of freeslots ---------------------------------------------
-
+	
 	NUMSFX
 } sfxenum_t;
 
 void S_InitRuntimeSounds(void);
-int S_AddSoundFx(char *name, int singularity);
+int S_AddSoundFx(char* name, int singularity);
 void S_RemoveSoundFx(int id);
 
-int S_AddMusic(char *name);
-int S_FindMusic(char *name);
+int S_AddMusic(char* name);
+int S_FindMusic(char* name);
 #endif

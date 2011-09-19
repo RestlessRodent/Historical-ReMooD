@@ -56,13 +56,13 @@ int finalecount;
 #define TEXTSPEED       3
 #define TEXTWAIT        250
 
-char *finaletext;
-char *finaleflat;
+char* finaletext;
+char* finaleflat;
 static bool_t keypressed = false;
 
 void F_StartCast(void);
 void F_CastTicker(void);
-bool_t F_CastResponder(event_t * ev);
+bool_t F_CastResponder(event_t* ev);
 void F_CastDrawer(void);
 
 //
@@ -71,7 +71,7 @@ void F_CastDrawer(void);
 void F_StartFinale(void)
 {
 	gamestate = GS_FINALE;
-
+	
 	if (info_intertext)
 	{
 		//SoM: Use FS level info intermission.
@@ -80,25 +80,24 @@ void F_StartFinale(void)
 			finaleflat = info_backdrop;
 		else
 			finaleflat = text[FLOOR4_8_NUM];
-
+			
 		finalestage = 0;
 		finalecount = 0;
 		return;
 	}
-
 	// Okay - IWAD dependend stuff.
 	// This has been changed severly, and
 	//  some stuff might have changed in the process.
 	switch (gamemode)
 	{
-
+	
 			// DOOM 1 - E1, E3 or E4, but each nine missions
 		case shareware:
 		case registered:
 		case retail:
 			{
 				S_ChangeMusic(mus_victor, true);
-
+				
 				switch (gameepisode)
 				{
 					case 1:
@@ -123,12 +122,12 @@ void F_StartFinale(void)
 				}
 				break;
 			}
-
+			
 			// DOOM II and missions packs with E1, M34
 		case commercial:
 			{
 				S_ChangeMusic(mus_read_m, true);
-
+				
 				switch (gamemap)
 				{
 					case 6:
@@ -169,13 +168,13 @@ void F_StartFinale(void)
 			finaletext = C1TEXT;	// FIXME - other text, music?
 			break;
 	}
-
+	
 	finalestage = 0;
 	finalecount = 0;
-
+	
 }
 
-bool_t F_Responder(event_t * event)
+bool_t F_Responder(event_t* event)
 {
 	if (finalestage == 2)
 		return F_CastResponder(event);
@@ -183,10 +182,10 @@ bool_t F_Responder(event_t * event)
 	{
 		if (event->type != ev_keydown)
 			return false;
-
+			
 		if (keypressed)
 			return false;
-
+			
 		keypressed = true;
 		return true;
 	}
@@ -200,7 +199,7 @@ void F_Ticker(void)
 {
 	// advance animation
 	finalecount++;
-
+	
 	switch (finalestage)
 	{
 		case 0:
@@ -209,7 +208,7 @@ void F_Ticker(void)
 			{
 				keypressed = false;
 				if ((unsigned)finalecount < strlen(finaletext) * TEXTSPEED)
-					// force text to be write 
+					// force text to be write
 					finalecount += INT_MAX / 2;
 				else if (gamemode == commercial)
 				{
@@ -225,13 +224,14 @@ void F_Ticker(void)
 					// next animation state (just above)
 					finalecount = INT_MAX;
 			}
-
+			
 			if (gamemode != commercial)
 			{
 				uint32_t f = finalecount;
+				
 				if (f >= INT_MAX / 2)
 					f -= INT_MAX / 2;
-
+					
 				if (f > strlen(finaletext) * TEXTSPEED + TEXTWAIT)
 				{
 					finalecount = 0;
@@ -257,21 +257,21 @@ void F_TextWrite(void)
 {
 	int w;
 	int count;
-	char *ch;
+	char* ch;
 	int c;
 	int cx;
 	int cy;
-
+	
 	// erase the entire screen to a tiled background
 	V_DrawFlatFill(0, 0, vid.width, vid.height, W_GetNumForName(finaleflat));
-
+	
 	V_MarkRect(0, 0, vid.width, vid.height);
-
+	
 	// draw some of the text onto the screen
 	cx = 10;
 	cy = 10;
 	ch = finaletext;
-
+	
 	count = (finalecount - 10) / TEXTSPEED;
 	if (count < 0)
 		count = 0;
@@ -286,21 +286,21 @@ void F_TextWrite(void)
 			cy += 11;
 			continue;
 		}
-
+		
 		c = toupper(c) - HU_FONTSTART;
 		if (c < 0 || c > HU_FONTSIZE)
 		{
 			cx += 4;
 			continue;
 		}
-
+		
 		w = (hu_font[c]->width);
 		if (cx + w > vid.width)
 			break;
 		V_DrawScaledPatch(cx, cy, 0, hu_font[c]);
 		cx += w;
 	}
-
+	
 }
 
 //
@@ -310,11 +310,12 @@ void F_TextWrite(void)
 //
 typedef struct
 {
-	char *name;
+	char* name;
 	mobjtype_t type;
 } castinfo_t;
 
-castinfo_t castorder[] = {
+castinfo_t castorder[] =
+{
 	{NULL, MT_POSSESSED},
 	{NULL, MT_SHOTGUY},
 	{NULL, MT_CHAINGUY},
@@ -332,13 +333,13 @@ castinfo_t castorder[] = {
 	{NULL, MT_SPIDER},
 	{NULL, MT_CYBORG},
 	{NULL, MT_PLAYER},
-
+	
 	{NULL, 0}
 };
 
 int castnum;
 int casttics;
-state_t *caststate;
+state_t* caststate;
 bool_t castdeath;
 int castframes;
 int castonmelee;
@@ -351,10 +352,10 @@ bool_t castattacking;
 void F_StartCast(void)
 {
 	int i;
-
+	
 	for (i = 0; i < 17; i++)
 		castorder[i].name = text[CC_ZOMBIE_NUM + i];
-
+		
 	wipegamestate = -1;			// force a screen wipe
 	castnum = 0;
 	caststate = &states[mobjinfo[castorder[castnum].type].seestate];
@@ -374,10 +375,10 @@ void F_CastTicker(void)
 {
 	int st;
 	int sfx;
-
+	
 	if (--casttics > 0)
 		return;					// not time to change state yet
-
+		
 	if (caststate->tics == -1 || caststate->nextstate == S_NULL)
 	{
 		// switch from deathstate to next monster
@@ -398,7 +399,7 @@ void F_CastTicker(void)
 		st = caststate->nextstate;
 		caststate = &states[st];
 		castframes++;
-
+		
 		// sound hacks....
 		switch (st)
 		{
@@ -466,11 +467,11 @@ void F_CastTicker(void)
 				sfx = 0;
 				break;
 		}
-
+		
 		if (sfx)
 			S_StartSound(NULL, sfx);
 	}
-
+	
 	if (castframes == 12)
 	{
 		// go into attack frame
@@ -488,18 +489,18 @@ void F_CastTicker(void)
 				caststate = &states[mobjinfo[castorder[castnum].type].missilestate];
 		}
 	}
-
+	
 	if (castattacking)
 	{
 		if (castframes == 24 || caststate == &states[mobjinfo[castorder[castnum].type].seestate])
 		{
-		  stopattack:
+stopattack:
 			castattacking = false;
 			castframes = 0;
 			caststate = &states[mobjinfo[castorder[castnum].type].seestate];
 		}
 	}
-
+	
 	casttics = caststate->tics;
 	if (casttics == -1)
 		casttics = 15;
@@ -509,14 +510,14 @@ void F_CastTicker(void)
 // F_CastResponder
 //
 
-bool_t F_CastResponder(event_t * ev)
+bool_t F_CastResponder(event_t* ev)
 {
 	if (ev->type != ev_keydown)
 		return false;
-
+		
 	if (castdeath)
 		return true;			// already in dying frames
-
+		
 	// go into death frame
 	castdeath = true;
 	caststate = &states[mobjinfo[castorder[castnum].type].deathstate];
@@ -525,12 +526,12 @@ bool_t F_CastResponder(event_t * ev)
 	castattacking = false;
 	if (mobjinfo[castorder[castnum].type].deathsound)
 		S_StartSound(NULL, mobjinfo[castorder[castnum].type].deathsound);
-
+		
 	return true;
 }
 
 #define CASTNAME_Y   180		// where the name of actor is drawn
-void F_CastPrint(char *text)
+void F_CastPrint(char* text)
 {
 	V_DrawStringA(VFONT_SMALL, VFO_CENTERED, text, 0, CASTNAME_Y);
 }
@@ -540,65 +541,66 @@ void F_CastPrint(char *text)
 //
 void F_CastDrawer(void)
 {
-	spritedef_t *sprdef;
-	spriteframe_t *sprframe;
+	spritedef_t* sprdef;
+	spriteframe_t* sprframe;
 	int lump;
 	bool_t flip;
-	patch_t *patch;
-
+	patch_t* patch;
+	
 	// erase the entire screen to a background
 	//V_DrawPatch (0,0,0, W_CachePatchName ("BOSSBACK", PU_CACHE));
 	D_PageDrawer("BOSSBACK");
-
+	
 	F_CastPrint(castorder[castnum].name);
-
+	
 	// draw the current frame in the middle of the screen
 	sprdef = &sprites[caststate->sprite];
 	sprframe = &sprdef->spriteframes[caststate->frame & FF_FRAMEMASK];
 	lump = sprframe->lumppat[0];	//Fab: see R_InitSprites for more
-	flip = (bool_t) sprframe->flip[0];
-
+	flip = (bool_t)sprframe->flip[0];
+	
 	patch = W_CachePatchNum(lump, PU_CACHE);
-
+	
 	V_DrawScaledPatch(BASEVIDWIDTH >> 1, 170, flip ? V_FLIPPEDPATCH : 0, patch);
 }
 
 //
 // F_DrawPatchCol
 //
-static void F_DrawPatchCol(int x, patch_t * patch, int col)
+static void F_DrawPatchCol(int x, patch_t* patch, int col)
 {
-	column_t *column;
-	uint8_t *source;
-	uint8_t *dest;
-	uint8_t *desttop;
+	column_t* column;
+	uint8_t* source;
+	uint8_t* dest;
+	uint8_t* desttop;
 	int count;
-
-	column = (column_t *) ((uint8_t *) patch + LittleSwapInt32(patch->columnofs[col]));
+	
+	column = (column_t*) ((uint8_t*)patch + LittleSwapInt32(patch->columnofs[col]));
 	desttop = screens[0] + x * vid.dupx;
-
+	
 	// step through the posts in a column
 	while (column->topdelta != 0xff)
 	{
-		source = (uint8_t *) column + 3;
+		source = (uint8_t*)column + 3;
 		dest = desttop + column->topdelta * vid.width;
 		count = column->length;
-
+		
 		while (count--)
 		{
 			int dupycount = vid.dupy;
-
+			
 			while (dupycount--)
 			{
 				int dupxcount = vid.dupx;
+				
 				while (dupxcount--)
 					*dest++ = *source;
-
+					
 				dest += (vid.width - vid.dupx);
 			}
 			source++;
 		}
-		column = (column_t *) ((uint8_t *) column + column->length + 4);
+		column = (column_t*) ((uint8_t*)column + column->length + 4);
 	}
 }
 
@@ -609,23 +611,23 @@ void F_BunnyScroll(void)
 {
 	int scrolled;
 	int x;
-	patch_t *p1;
-	patch_t *p2;
+	patch_t* p1;
+	patch_t* p2;
 	char name[10];
 	int stage;
 	static int laststage;
-
+	
 	p1 = W_CachePatchName("PFUB2", PU_LEVEL);
 	p2 = W_CachePatchName("PFUB1", PU_LEVEL);
-
+	
 	V_MarkRect(0, 0, vid.width, vid.height);
-
+	
 	scrolled = 320 - (finalecount - 230) / 2;
 	if (scrolled > 320)
 		scrolled = 320;
 	if (scrolled < 0)
 		scrolled = 0;
-
+		
 	for (x = 0; x < 320; x++)
 	{
 		if (x + scrolled < 320)
@@ -633,17 +635,16 @@ void F_BunnyScroll(void)
 		else
 			F_DrawPatchCol(x, p2, x + scrolled - 320);
 	}
-
+	
 	if (finalecount < 1130)
 		return;
 	if (finalecount < 1180)
 	{
-		V_DrawScaledPatch((320 - 13 * 8) / 2,
-						  (200 - 8 * 8) / 2, 0, W_CachePatchName("END0", PU_CACHE));
+		V_DrawScaledPatch((320 - 13 * 8) / 2, (200 - 8 * 8) / 2, 0, W_CachePatchName("END0", PU_CACHE));
 		laststage = 0;
 		return;
 	}
-
+	
 	stage = (finalecount - 1180) / 5;
 	if (stage > 6)
 		stage = 6;
@@ -652,7 +653,7 @@ void F_BunnyScroll(void)
 		S_StartSound(NULL, sfx_pistol);
 		laststage = stage;
 	}
-
+	
 	sprintf(name, "END%i", stage);
 	V_DrawScaledPatch((320 - 13 * 8) / 2, (200 - 8 * 8) / 2, 0, W_CachePatchName(name, PU_CACHE));
 }
@@ -669,13 +670,13 @@ void F_DemonScroll(void)
 {
 
 	int scrolled;
-
+	
 	scrolled = (finalecount - 70) / 3;
 	if (scrolled > 200)
 		scrolled = 200;
 	if (scrolled < 0)
 		scrolled = 0;
-
+		
 	V_DrawRawScreen(0, scrolled * vid.dupy, W_CheckNumForName("FINAL1"), 320, 200);
 	if (scrolled > 0)
 		V_DrawRawScreen(0, (scrolled - 200) * vid.dupy, W_CheckNumForName("FINAL2"), 320, 200);
@@ -692,7 +693,7 @@ void F_DemonScroll(void)
 void F_DrawUnderwater(void)
 {
 	static bool_t underwawa = false;
-
+	
 	switch (finalestage)
 	{
 		case 1:
@@ -720,7 +721,7 @@ void F_Drawer(void)
 		F_CastDrawer();
 		return;
 	}
-
+	
 	if (!finalestage)
 		F_TextWrite();
 	else
@@ -744,5 +745,5 @@ void F_Drawer(void)
 				break;
 		}
 	}
-
+	
 }

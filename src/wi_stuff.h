@@ -44,7 +44,7 @@ typedef struct
 	int count;
 	int num;
 	int color;
-	char *name;
+	char* name;
 } fragsort_t;
 
 // Called by main loop, animate the intermission.
@@ -55,12 +55,11 @@ void WI_Ticker(void);
 void WI_Drawer(void);
 
 // Setup for an intermission screen.
-void WI_Start(wbstartstruct_t * wbstartstruct);
+void WI_Start(wbstartstruct_t* wbstartstruct);
 
 bool_t teamingame(int teamnum);
 
 // draw ranckings
-void WI_drawRancking(char *title, int x, int y, fragsort_t * fragtable,
-					 int scorelines, bool_t large, int white);
+void WI_drawRancking(char* title, int x, int y, fragsort_t* fragtable, int scorelines, bool_t large, int white);
 
 #endif

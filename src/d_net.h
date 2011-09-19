@@ -61,6 +61,4 @@ bool_t D_SyncNetUpdate(void);
 
 bool_t D_CheckNetGame(void);
 
-#endif /* __D_NET_H__ */
-
-
+#endif							/* __D_NET_H__ */

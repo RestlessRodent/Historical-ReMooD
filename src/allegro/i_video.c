@@ -35,13 +35,13 @@
 /* System */
 #include <stdlib.h>
 #if defined(__DJGPP__)
-	#include <stdint.h>
+#include <stdint.h>
 #endif
 #include <allegro.h>
 
 // Include winalleg on Windows since it conflicts!
 #if defined(_WIN32)
-	#include <winalleg.h>
+#include <winalleg.h>
 #endif
 
 /* Local */
@@ -50,7 +50,7 @@
 #include "doomdef.h"
 #include "i_video.h"
 #include "i_util.h"
-#include "../remood.xpm"	// For allegro
+#include "../remood.xpm"		// For allegro
 
 #define __G_INPUT_H__
 #include "console.h"
@@ -69,7 +69,6 @@ static const uint32_t c_AllegroCards[] =
 	// DOS
 #if defined(__MSDOS__)
 	GFX_VGA, GFX_MODEX, GFX_VESA1, GFX_VESA2L, GFX_VESA3, GFX_VBEAF, GFX_XTENDED, 0
-
 	// Windows
 #elif defined(_WIN32)
 	GFX_DIRECTX, GFX_DIRECTX_OVL, GFX_GDI, 0,
@@ -77,148 +76,145 @@ static const uint32_t c_AllegroCards[] =
 	// X11
 #elif defined(ALLEGRO_WITH_XWINDOWS)
 	GFX_XWINDOWS, GFX_XWINDOWS_FULLSCREEN, GFX_XDGA2, GFX_XDGA2_SOFT, 0
-	
 	// Linux
 #elif defined(__linux__)
 	GFX_FBCON, GFX_VBEAF, GFX_SVGALIB, GFX_VGA, GFX_MODEX, 0
-
 	// Unknown
 #else
 	0
-	
 	//
 #endif
 };
 
-const uint8_t c_AllegroToReMooDKey[KEY_MAX] =				// Converts an Allegro key to a ReMooD Key
+const uint8_t c_AllegroToReMooDKey[KEY_MAX] =	// Converts an Allegro key to a ReMooD Key
 {
-	IKBK_NULL,	//	Allegro	starts	at	1,	so	we	don't	want	off
-	IKBK_A,	//	KEY_A	
-	IKBK_B,	//	KEY_B	
-	IKBK_C,	//	KEY_C	
-	IKBK_D,	//	KEY_D	
-	IKBK_E,	//	KEY_E	
-	IKBK_F,	//	KEY_F	
-	IKBK_G,	//	KEY_G	
-	IKBK_H,	//	KEY_H	
-	IKBK_I,	//	KEY_I	
-	IKBK_J,	//	KEY_J	
-	IKBK_K,	//	KEY_K	
-	IKBK_L,	//	KEY_L	
-	IKBK_M,	//	KEY_M	
-	IKBK_N,	//	KEY_N	
-	IKBK_O,	//	KEY_O	
-	IKBK_P,	//	KEY_P	
-	IKBK_Q,	//	KEY_Q	
-	IKBK_R,	//	KEY_R	
-	IKBK_S,	//	KEY_S	
-	IKBK_T,	//	KEY_T	
-	IKBK_U,	//	KEY_U	
-	IKBK_V,	//	KEY_V	
-	IKBK_W,	//	KEY_W	
-	IKBK_X,	//	KEY_X	
-	IKBK_Y,	//	KEY_Y	
-	IKBK_Z,	//	KEY_Z	
-	IKBK_0,	//	KEY_0	
-	IKBK_1,	//	KEY_1	
-	IKBK_2,	//	KEY_2	
-	IKBK_3,	//	KEY_3	
-	IKBK_4,	//	KEY_4	
-	IKBK_5,	//	KEY_5	
-	IKBK_6,	//	KEY_6	
-	IKBK_7,	//	KEY_7	
-	IKBK_8,	//	KEY_8	
-	IKBK_9,	//	KEY_9	
-	IKBK_NUM0,	//	KEY_0_PAD	
-	IKBK_NUM1,	//	KEY_1_PAD	
-	IKBK_NUM2,	//	KEY_2_PAD	
-	IKBK_NUM3,	//	KEY_3_PAD	
-	IKBK_NUM4,	//	KEY_4_PAD	
-	IKBK_NUM5,	//	KEY_5_PAD	
-	IKBK_NUM6,	//	KEY_6_PAD	
-	IKBK_NUM7,	//	KEY_7_PAD	
-	IKBK_NUM8,	//	KEY_8_PAD	
-	IKBK_NUM9,	//	KEY_9_PAD	
-	IKBK_F1,	//	KEY_F1	
-	IKBK_F2,	//	KEY_F2	
-	IKBK_F3,	//	KEY_F3	
-	IKBK_F4,	//	KEY_F4	
-	IKBK_F5,	//	KEY_F5	
-	IKBK_F6,	//	KEY_F6	
-	IKBK_F7,	//	KEY_F7	
-	IKBK_F8,	//	KEY_F8	
-	IKBK_F9,	//	KEY_F9	
-	IKBK_F10,	//	KEY_F10	
-	IKBK_F11,	//	KEY_F11	
-	IKBK_F12,	//	KEY_F12	
-	IKBK_ESCAPE,	//	KEY_ESC	
-	IKBK_TILDE,	//	KEY_TILDE	
-	IKBK_MINUS,	//	KEY_MINUS	
-	IKBK_EQUALS,	//	KEY_EQUALS	
-	IKBK_BACKSPACE,	//	KEY_BACKSPACE	
-	IKBK_TAB,	//	KEY_TAB	
-	IKBK_LEFTBRACE,	//	KEY_OPENBRACE	
-	IKBK_RIGHTBRACE,	//	KEY_CLOSEBRACE	
-	IKBK_RETURN,	//	KEY_ENTER	
-	IKBK_COLON,	//	KEY_COLON	
-	IKBK_QUOTE,	//	KEY_QUOTE	
-	IKBK_BACKSLASH,	//	KEY_BACKSLASH	//	Two	of	the	same	key!?	
-	IKBK_BACKSLASH,	//	KEY_BACKSLASH2	
-	IKBK_COMMA,	//	KEY_COMMA	
-	IKBK_PERIOD,	//	KEY_STOP	
-	IKBK_FORWARDSLASH,	//	KEY_SLASH	
-	IKBK_SPACE,	//	KEY_SPACE	
-	IKBK_INSERT,	//	KEY_INSERT	
-	IKBK_DELETE,	//	KEY_DEL	
-	IKBK_HOME,	//	KEY_HOME	
-	IKBK_END,	//	KEY_END	
-	IKBK_PAGEUP,	//	KEY_PGUP	
-	IKBK_PAGEDOWN,	//	KEY_PGDN	
-	IKBK_LEFT,	//	KEY_LEFT	
-	IKBK_RIGHT,	//	KEY_RIGHT	
-	IKBK_UP,	//	KEY_UP	
-	IKBK_DOWN,	//	KEY_DOWN	
-	IKBK_NUMDIVIDE,	//	KEY_SLASH_PAD	
-	IKBK_NUMMULTIPLY,	//	KEY_ASTERISK	
-	IKBK_NUMSUBTRACT,	//	KEY_MINUS_PAD	
-	IKBK_NUMADD,	//	KEY_PLUS_PAD	
-	IKBK_NUMDELETE,	//	KEY_DEL_PAD	
-	IKBK_NUMENTER,	//	KEY_ENTER_PAD	
-	IKBK_PRINTSCREEN,	//	KEY_PRTSCR	
-	IKBK_PAUSE,	//	KEY_PAUSE	
-	IKBK_NULL,	//	KEY_ABNT_C1	
-	IKBK_NULL,	//	KEY_YEN	
-	IKBK_NULL,	//	KEY_KANA	
-	IKBK_NULL,	//	KEY_CONVERT	
-	IKBK_NULL,	//	KEY_NOCONVERT	
-	IKBK_AT,	//	KEY_AT	
-	IKBK_CARET,	//	KEY_CIRCUMFLEX	
-	IKBK_COLON,	//	KEY_COLON2	
-	IKBK_NULL,	//	KEY_KANJI	
-	IKBK_NUMENTER,	//	KEY_EQUALS_PAD	
-	IKBK_GRAVE,	//	KEY_BACKQUOTE	
-	IKBK_SEMICOLON,	//	KEY_SEMICOLON	
-	IKBK_WINDOWSKEY,	//	KEY_COMMAND	
-	IKBK_NULL,	//	KEY_UNKNOWN1	
-	IKBK_NULL,	//	KEY_UNKNOWN2	
-	IKBK_NULL,	//	KEY_UNKNOWN3	
-	IKBK_NULL,	//	KEY_UNKNOWN4	
-	IKBK_NULL,	//	KEY_UNKNOWN5	
-	IKBK_NULL,	//	KEY_UNKNOWN6	
-	IKBK_NULL,	//	KEY_UNKNOWN7	
-	IKBK_NULL,	//	KEY_UNKNOWN8	
-	IKBK_SHIFT,	//	KEY_LSHIFT	
-	IKBK_SHIFT,	//	KEY_RSHIFT	
-	IKBK_CTRL,	//	KEY_LCONTROL
-	IKBK_CTRL,	//	KEY_RCONTROL	
-	IKBK_ALT,	//	KEY_ALT	
-	IKBK_ALT,	//	KEY_ALTGR	
-	IKBK_WINDOWSKEY,	//	KEY_LWIN	
-	IKBK_WINDOWSKEY,	//	KEY_RWIN	
-	IKBK_MENUKEY,	//	KEY_MENU	
-	IKBK_SCROLLLOCK,	//	KEY_SCRLOCK	
-	IKBK_NUMLOCK,	//	KEY_NUMLOCK	
-	IKBK_CAPSLOCK,	//	KEY_CAPSLOCK
+	IKBK_NULL,					//  Allegro starts  at  1,  so  we  don't   want    off
+	IKBK_A,						//  KEY_A
+	IKBK_B,						//  KEY_B
+	IKBK_C,						//  KEY_C
+	IKBK_D,						//  KEY_D
+	IKBK_E,						//  KEY_E
+	IKBK_F,						//  KEY_F
+	IKBK_G,						//  KEY_G
+	IKBK_H,						//  KEY_H
+	IKBK_I,						//  KEY_I
+	IKBK_J,						//  KEY_J
+	IKBK_K,						//  KEY_K
+	IKBK_L,						//  KEY_L
+	IKBK_M,						//  KEY_M
+	IKBK_N,						//  KEY_N
+	IKBK_O,						//  KEY_O
+	IKBK_P,						//  KEY_P
+	IKBK_Q,						//  KEY_Q
+	IKBK_R,						//  KEY_R
+	IKBK_S,						//  KEY_S
+	IKBK_T,						//  KEY_T
+	IKBK_U,						//  KEY_U
+	IKBK_V,						//  KEY_V
+	IKBK_W,						//  KEY_W
+	IKBK_X,						//  KEY_X
+	IKBK_Y,						//  KEY_Y
+	IKBK_Z,						//  KEY_Z
+	IKBK_0,						//  KEY_0
+	IKBK_1,						//  KEY_1
+	IKBK_2,						//  KEY_2
+	IKBK_3,						//  KEY_3
+	IKBK_4,						//  KEY_4
+	IKBK_5,						//  KEY_5
+	IKBK_6,						//  KEY_6
+	IKBK_7,						//  KEY_7
+	IKBK_8,						//  KEY_8
+	IKBK_9,						//  KEY_9
+	IKBK_NUM0,					//  KEY_0_PAD
+	IKBK_NUM1,					//  KEY_1_PAD
+	IKBK_NUM2,					//  KEY_2_PAD
+	IKBK_NUM3,					//  KEY_3_PAD
+	IKBK_NUM4,					//  KEY_4_PAD
+	IKBK_NUM5,					//  KEY_5_PAD
+	IKBK_NUM6,					//  KEY_6_PAD
+	IKBK_NUM7,					//  KEY_7_PAD
+	IKBK_NUM8,					//  KEY_8_PAD
+	IKBK_NUM9,					//  KEY_9_PAD
+	IKBK_F1,					//  KEY_F1
+	IKBK_F2,					//  KEY_F2
+	IKBK_F3,					//  KEY_F3
+	IKBK_F4,					//  KEY_F4
+	IKBK_F5,					//  KEY_F5
+	IKBK_F6,					//  KEY_F6
+	IKBK_F7,					//  KEY_F7
+	IKBK_F8,					//  KEY_F8
+	IKBK_F9,					//  KEY_F9
+	IKBK_F10,					//  KEY_F10
+	IKBK_F11,					//  KEY_F11
+	IKBK_F12,					//  KEY_F12
+	IKBK_ESCAPE,				//  KEY_ESC
+	IKBK_TILDE,					//  KEY_TILDE
+	IKBK_MINUS,					//  KEY_MINUS
+	IKBK_EQUALS,				//  KEY_EQUALS
+	IKBK_BACKSPACE,				//  KEY_BACKSPACE
+	IKBK_TAB,					//  KEY_TAB
+	IKBK_LEFTBRACE,				//  KEY_OPENBRACE
+	IKBK_RIGHTBRACE,			//  KEY_CLOSEBRACE
+	IKBK_RETURN,				//  KEY_ENTER
+	IKBK_COLON,					//  KEY_COLON
+	IKBK_QUOTE,					//  KEY_QUOTE
+	IKBK_BACKSLASH,				//  KEY_BACKSLASH   //  Two of  the same    key!?
+	IKBK_BACKSLASH,				//  KEY_BACKSLASH2
+	IKBK_COMMA,					//  KEY_COMMA
+	IKBK_PERIOD,				//  KEY_STOP
+	IKBK_FORWARDSLASH,			//  KEY_SLASH
+	IKBK_SPACE,					//  KEY_SPACE
+	IKBK_INSERT,				//  KEY_INSERT
+	IKBK_DELETE,				//  KEY_DEL
+	IKBK_HOME,					//  KEY_HOME
+	IKBK_END,					//  KEY_END
+	IKBK_PAGEUP,				//  KEY_PGUP
+	IKBK_PAGEDOWN,				//  KEY_PGDN
+	IKBK_LEFT,					//  KEY_LEFT
+	IKBK_RIGHT,					//  KEY_RIGHT
+	IKBK_UP,					//  KEY_UP
+	IKBK_DOWN,					//  KEY_DOWN
+	IKBK_NUMDIVIDE,				//  KEY_SLASH_PAD
+	IKBK_NUMMULTIPLY,			//  KEY_ASTERISK
+	IKBK_NUMSUBTRACT,			//  KEY_MINUS_PAD
+	IKBK_NUMADD,				//  KEY_PLUS_PAD
+	IKBK_NUMDELETE,				//  KEY_DEL_PAD
+	IKBK_NUMENTER,				//  KEY_ENTER_PAD
+	IKBK_PRINTSCREEN,			//  KEY_PRTSCR
+	IKBK_PAUSE,					//  KEY_PAUSE
+	IKBK_NULL,					//  KEY_ABNT_C1
+	IKBK_NULL,					//  KEY_YEN
+	IKBK_NULL,					//  KEY_KANA
+	IKBK_NULL,					//  KEY_CONVERT
+	IKBK_NULL,					//  KEY_NOCONVERT
+	IKBK_AT,					//  KEY_AT
+	IKBK_CARET,					//  KEY_CIRCUMFLEX
+	IKBK_COLON,					//  KEY_COLON2
+	IKBK_NULL,					//  KEY_KANJI
+	IKBK_NUMENTER,				//  KEY_EQUALS_PAD
+	IKBK_GRAVE,					//  KEY_BACKQUOTE
+	IKBK_SEMICOLON,				//  KEY_SEMICOLON
+	IKBK_WINDOWSKEY,			//  KEY_COMMAND
+	IKBK_NULL,					//  KEY_UNKNOWN1
+	IKBK_NULL,					//  KEY_UNKNOWN2
+	IKBK_NULL,					//  KEY_UNKNOWN3
+	IKBK_NULL,					//  KEY_UNKNOWN4
+	IKBK_NULL,					//  KEY_UNKNOWN5
+	IKBK_NULL,					//  KEY_UNKNOWN6
+	IKBK_NULL,					//  KEY_UNKNOWN7
+	IKBK_NULL,					//  KEY_UNKNOWN8
+	IKBK_SHIFT,					//  KEY_LSHIFT
+	IKBK_SHIFT,					//  KEY_RSHIFT
+	IKBK_CTRL,					//  KEY_LCONTROL
+	IKBK_CTRL,					//  KEY_RCONTROL
+	IKBK_ALT,					//  KEY_ALT
+	IKBK_ALT,					//  KEY_ALTGR
+	IKBK_WINDOWSKEY,			//  KEY_LWIN
+	IKBK_WINDOWSKEY,			//  KEY_RWIN
+	IKBK_MENUKEY,				//  KEY_MENU
+	IKBK_SCROLLLOCK,			//  KEY_SCRLOCK
+	IKBK_NUMLOCK,				//  KEY_NUMLOCK
+	IKBK_CAPSLOCK,				//  KEY_CAPSLOCK
 };
 
 /**************
@@ -231,8 +227,8 @@ extern int g_RefreshRate;
 *** LOCALS ***
 *************/
 
-static int32_t l_OldMousePos[2];					// Old mouse position on the screen
-static bool_t l_DoGrab = false;						// Do mouse grabbing
+static int32_t l_OldMousePos[2];	// Old mouse position on the screen
+static bool_t l_DoGrab = false;	// Do mouse grabbing
 
 /****************
 *** FUNCTIONS ***
@@ -244,7 +240,7 @@ static uint8_t IS_ConvertKey(const size_t a_AKey)
 	/* Check */
 	if (a_AKey >= KEY_MAX)
 		return 0;
-	
+		
 	return c_AllegroToReMooDKey[a_AKey];
 }
 
@@ -286,7 +282,7 @@ void I_GetEvent(void)
 			// Update position
 			MousePos[0] = l_OldMousePos[0];
 			MousePos[1] = l_OldMousePos[1];
-		
+			
 			// Send away
 			I_EventExPush(&ExEvent);
 			
@@ -298,7 +294,6 @@ void I_GetEvent(void)
 				l_OldMousePos[1] = SCREEN_H >> 1;
 			}
 		}
-		
 		// Handle Buttons
 		for (i = 0; i < 15; i++)
 		{
@@ -308,25 +303,23 @@ void I_GetEvent(void)
 			// Clear event
 			memset(&ExEvent, 0, sizeof(ExEvent));
 			ExEvent.Type = IET_MOUSE;
-		
+			
 			// If button is on and our array is off, then button was pressed
 			if ((mouse_b & (1 << i)) && !(MouseButtons & (1 << i)))
 			{
 				Repeat = true;
 				ExEvent.Data.Mouse.Down = 1;
 			}
-		
 			// If button is off and our array is on, then button was released
 			else if (!(mouse_b & (1 << i)) && (MouseButtons & (1 << i)))
 			{
 				Repeat = true;
 				ExEvent.Data.Mouse.Down = 0;
 			}
-		
 			// Button not changed
 			if (!Repeat)
 				continue;
-		
+				
 			// Set array info
 			MouseButtons &= (~(1 << i));
 			MouseButtons |= (ExEvent.Data.Mouse.Down ? (1 << i) : 0);
@@ -335,7 +328,7 @@ void I_GetEvent(void)
 			ExEvent.Data.Mouse.Button = i + 1;
 			ExEvent.Data.Mouse.Pos[0] = MousePos[0];
 			ExEvent.Data.Mouse.Pos[1] = MousePos[1];
-		
+			
 			// Send away
 			I_EventExPush(&ExEvent);
 		}
@@ -347,14 +340,14 @@ void I_GetEvent(void)
 		m = num_joysticks;
 		if (m >= MAXJOYSTICKS)
 			m = MAXJOYSTICKS;
-		
+			
 		// For every single joystick
 		for (i = 0; i < m; i++)
 		{
 			z = joy[i].num_buttons;
 			if (z >= JOYBUTTONS)
 				z = JOYBUTTONS;
-		
+				
 			// Check for button changes
 			for (j = 0; j < z; j++)
 			{
@@ -366,32 +359,30 @@ void I_GetEvent(void)
 				ExEvent.Type = IET_JOYSTICK;
 				ExEvent.Data.Joystick.JoyID = i;
 				ExEvent.Data.Joystick.Button = 0;
-			
+				
 				// If button is on and our array is off, then button was pressed
 				if (joy[i].button[j].b && !(JoyButtons[i] & (1 << j)))
 				{
 					Repeat = true;
 					ExEvent.Data.Joystick.Down = 1;
 				}
-			
 				// If button is off and our array is on, then button was released
 				else if (!joy[i].button[j].b && (JoyButtons[i] & (1 << j)))
 				{
 					Repeat = true;
 					ExEvent.Data.Joystick.Down = 0;
 				}
-			
 				// Button not changed
 				if (!Repeat)
 					continue;
-			
+					
 				// Set array info
 				JoyButtons[i] &= (~(1 << j));
 				JoyButtons[i] |= (ExEvent.Data.Joystick.Down ? (1 << j) : 0);
 				
 				// Set event stuff
 				ExEvent.Data.Joystick.Button = j + 1;
-			
+				
 				// Send away
 				I_EventExPush(&ExEvent);
 			}
@@ -422,9 +413,9 @@ void I_GetEvent(void)
 								ExEvent.Data.Joystick.Value -= 2;
 							else if (ExEvent.Data.Joystick.Value > 0)
 								ExEvent.Data.Joystick.Value++;
-							
+								
 							I_EventExPush(&ExEvent);
-						
+							
 							// Update old position
 							JoyAxis[i][a] = joy[i].stick[j].axis[k].pos;
 						}
@@ -443,7 +434,7 @@ void I_GetEvent(void)
 		i = (Key & 0x7F00) >> 8;
 		
 		// If the key is already pressed, set it as repeated
-		Repeat = !!Shifties[i];
+		Repeat = ! !Shifties[i];
 		
 		// Set to 1 in Shifties (always presses here)
 		Shifties[i] = 1;
@@ -466,7 +457,7 @@ void I_GetEvent(void)
 		// Only check if a key is pressed
 		if (!(!Shifties[i] && key[i]))
 			continue;
-		
+			
 		// Mark it as up
 		Shifties[i] = 1;
 		
@@ -488,7 +479,7 @@ void I_GetEvent(void)
 		// Only make events for keys that are depressed
 		if (!(Shifties[i] && !key[i]))
 			continue;
-		
+			
 		// Key is no longer up, so clear it
 		Shifties[i] = 0;
 		
@@ -503,7 +494,7 @@ void I_GetEvent(void)
 		// Send away
 		I_EventExPush(&ExEvent);
 	}
-
+	
 #undef MAXJOYAXIS
 }
 
@@ -571,7 +562,7 @@ void I_SetPalette(RGBA_t* palette)
 	/* Check */
 	if (!palette)
 		return;
-	
+		
 	/* Load colors into screen palette */
 	// Now loop
 	for (i = 0; i < 256; i++)
@@ -612,7 +603,7 @@ void VID_PrepareModeList(void)
 			// Only allow 8-bit modes
 			if (Modes->mode[j].bpp == 8)
 				VID_AddMode(Modes->mode[j].width, Modes->mode[j].height, true);
-		
+				
 		// Clear modes
 		destroy_gfx_mode_list(Modes);
 	}
@@ -631,17 +622,17 @@ bool_t I_SetVideoMode(const uint32_t a_Width, const uint32_t a_Height, const boo
 	HWND hWnd;
 	HICON icoBig, icoSmall;
 #endif
-
+	
 	/* Check */
 	if (!a_Width || !a_Height)
 		return false;
-	
+		
 	/* Destroy old buffer */
-	I_VideoUnsetBuffer();	// Remove old buffer if any
+	I_VideoUnsetBuffer();		// Remove old buffer if any
 	
 	/* Set new video mode */
 	request_refresh_rate(70);
-	set_color_depth(8);	// always 8-bit color
+	set_color_depth(8);			// always 8-bit color
 	
 	// Try initial set with a_Fullscreen honored
 	if (set_gfx_mode((a_Fullscreen ? GFX_AUTODETECT_FULLSCREEN : GFX_AUTODETECT_WINDOWED), a_Width, a_Height, 0, 0) < 0)
@@ -663,26 +654,26 @@ bool_t I_SetVideoMode(const uint32_t a_Width, const uint32_t a_Height, const boo
 	
 	/* Set title and icon */
 	// Set Title
-	set_window_title("ReMooD "REMOOD_FULLVERSIONSTRING);
-
+	set_window_title("ReMooD " REMOOD_FULLVERSIONSTRING);
+	
 	// Set Icon (on Win32)
 #if defined(_WIN32)
 	hWnd = win_get_window();
-
+	
 	// Now attempt getting the class and updating the window
 	if (hWnd)
 	{
 		// Get Icons
 		icoBig = LoadIcon(GetModuleHandle(NULL), MAKEINTRESOURCE(1));
 		icoSmall = LoadIcon(GetModuleHandle(NULL), MAKEINTRESOURCE(2));
-
+		
 		// Set window classes
 #ifdef _WIN64
-		SetClassLongPtr(hWnd, GCLP_HICON, (LONG_PTR)icoBig);
-		SetClassLongPtr(hWnd, GCLP_HICONSM, (LONG_PTR)icoSmall);
+		SetClassLongPtr(hWnd, GCLP_HICON, (LONG_PTR) icoBig);
+		SetClassLongPtr(hWnd, GCLP_HICONSM, (LONG_PTR) icoSmall);
 #else
-		SetClassLong(hWnd, GCL_HICON, (LONG)icoBig);
-		SetClassLong(hWnd, GCL_HICONSM, (LONG)icoSmall);
+		SetClassLong(hWnd, GCL_HICON, (LONG) icoBig);
+		SetClassLong(hWnd, GCL_HICONSM, (LONG) icoSmall);
 #endif
 	}
 #endif
@@ -700,7 +691,7 @@ void I_StartupGraphics(void)
 	/* Pre-initialize video */
 	if (!I_VideoPreInit())
 		return;
-	
+		
 	/* Set allegro stuff */
 	set_display_switch_mode(SWITCH_BACKAMNESIA);
 	
@@ -709,7 +700,7 @@ void I_StartupGraphics(void)
 		return;
 	if (!I_SetVideoMode(320, 200, false))	// 320x200 console scroller, never fullscreen
 		return;
-
+		
 	/* Prepare the video mode list */
 	if (!I_VideoPostInit())
 		return;
@@ -755,7 +746,7 @@ size_t I_ProbeJoysticks(void)
 	/* No joysticks? */
 	if (!num_joysticks)
 		return 0;
-	
+		
 	/* Joystick calibration is possibly required */
 	for (i = 0; i < num_joysticks; i++)
 		if (joy[i].flags & JOYFLAG_CALIBRATE)
@@ -769,7 +760,7 @@ size_t I_ProbeJoysticks(void)
 			
 			if (!(joy[i].flags & JOYFLAG_CALIBRATE))
 				continue;
-			
+				
 			// Turn off loading screen
 			g_QuietConsole = false;
 			
@@ -778,11 +769,11 @@ size_t I_ProbeJoysticks(void)
 			{
 				// Get what needs calibration
 				CalMsg = calibrate_joystick_name(i);
-		
+				
 				// Print message
 				CONS_Printf("I_ProbeJoysticks: %s, then press any key.\n", CalMsg);
 				readkey();
-			
+				
 				// Do calibration
 				if (calibrate_joystick(i) != 0)
 				{
@@ -791,11 +782,11 @@ size_t I_ProbeJoysticks(void)
 				}
 			}
 		}
-	
+		
 	/* Save calibration data */
 	if (save_joystick_data(NULL) != 0)
 		CONS_Printf("I_ProbeJoysticks: Could not save joystick data.\n");
-	
+		
 	/* Return number of found joys */
 	return num_joysticks;
 }
@@ -813,11 +804,11 @@ bool_t I_GetJoystickID(const size_t a_JoyID, uint32_t* const a_Code, char* const
 	/* Check */
 	if (!a_Code || (!a_Text && !a_TextSize) || (!a_Cool && !a_CoolSize))
 		return false;
-	
+		
 	/* No joysticks? */
-	if (!num_joysticks || a_JoyID >= (size_t)num_joysticks)
+	if (!num_joysticks || a_JoyID >= (size_t) num_joysticks)
 		return false;
-	
+		
 	/* Send Code */
 	if (a_Code)
 	{
@@ -851,20 +842,20 @@ bool_t I_GetJoystickCounts(const size_t a_JoyID, uint32_t* const a_NumAxis, uint
 	/* Check */
 	if (!a_NumAxis && !a_NumButtons)
 		return false;
-	
+		
 	/* No joysticks? */
-	if (!num_joysticks || a_JoyID >= (size_t)num_joysticks)
+	if (!num_joysticks || a_JoyID >= (size_t) num_joysticks)
 		return false;
-	
+		
 	/* Return axis */
 	if (a_NumAxis)
 		for (*a_NumAxis = 0, i = 0; i < joy[a_JoyID].num_sticks; i++)
 			*a_NumAxis = joy[a_JoyID].stick[i].num_axis;
-	
+			
 	/* Return buttons */
 	if (a_NumButtons)
 		*a_NumButtons = joy[a_JoyID].num_buttons;
-	
+		
 	/* Success */
 	return true;
 }
@@ -877,7 +868,7 @@ bool_t I_ProbeMouse(const size_t a_ID)
 	/* Only Support a primary mouse */
 	if (a_ID != 0)
 		return false;
-	
+		
 	/* Install mouse */
 	if ((i = install_mouse()) >= 0)
 	{
@@ -898,7 +889,7 @@ bool_t I_RemoveMouse(const size_t a_ID)
 	/* Only Support a primary mouse */
 	if (a_ID != 0)
 		return false;
-	
+		
 	/* Remove mouse handler */
 	remove_mouse();
 	return true;
@@ -920,7 +911,7 @@ void I_MouseGrab(const bool_t a_Grab)
 		select_mouse_cursor(MOUSE_CURSOR_ARROW);
 		
 		// Show it
- 		show_mouse(screen);
+		show_mouse(screen);
 		
 		// Reposition mouse
 		position_mouse(SCREEN_W >> 1, SCREEN_H >> 1);
@@ -941,4 +932,3 @@ void I_MouseGrab(const bool_t a_Grab)
 		disable_hardware_cursor();
 	}
 }
-

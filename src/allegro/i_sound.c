@@ -36,14 +36,14 @@
 /* System */
 // DJGPP's Allegro explodes if this isn't included first
 #if defined(__DJGPP__)
-	#include <stdint.h>
+#include <stdint.h>
 #endif
 
 #include <allegro.h>
 
 // Include winalleg on Windows since it conflicts!
 #if defined(_WIN32)
-	#include <winalleg.h>
+#include <winalleg.h>
 #endif
 
 /* Local */
@@ -72,7 +72,7 @@ typedef struct I_AllegroSoundLocal_s
 *** ALLEGRO SOUND STREAM DRIVER ***
 **********************************/
 
-bool_t l_AllegroSDMDInitted = false;			// Was install_sound called?
+bool_t l_AllegroSDMDInitted = false;	// Was install_sound called?
 
 /* I_AllegroSD_Init() -- Initializes a driver */
 bool_t I_AllegroSD_Init(struct I_SoundDriver_s* const a_Driver)
@@ -80,7 +80,7 @@ bool_t I_AllegroSD_Init(struct I_SoundDriver_s* const a_Driver)
 	/* Check */
 	if (!a_Driver)
 		return false;
-	
+		
 	/* Initialize sound */
 	if (!l_AllegroSDMDInitted)
 	{
@@ -91,7 +91,7 @@ bool_t I_AllegroSD_Init(struct I_SoundDriver_s* const a_Driver)
 		// Attempt detection of Music Driver
 		if (detect_midi_driver(MIDI_AUTODETECT) == 0)
 			return false;
-		
+			
 		// Install Sound
 		if (install_sound(DIGI_AUTODETECT, MIDI_AUTODETECT, NULL) == -1)
 		{
@@ -112,7 +112,7 @@ bool_t I_AllegroSD_Destroy(struct I_SoundDriver_s* const a_Driver)
 	/* Check */
 	if (!a_Driver)
 		return false;
-	
+		
 	/* Success */
 	return true;
 }
@@ -130,30 +130,31 @@ void I_AllegroSD_Success(struct I_SoundDriver_s* const a_Driver)
 }
 
 /* I_AllegroSD_Request() -- Requests a buffer for this driver */
-size_t I_AllegroSD_Request(struct I_SoundDriver_s* const a_Driver, const uint8_t a_Bits, const uint16_t a_Freq, const uint8_t a_Channels, const uint32_t a_Samples)
+size_t I_AllegroSD_Request(struct I_SoundDriver_s* const a_Driver, const uint8_t a_Bits, const uint16_t a_Freq, const uint8_t a_Channels,
+                           const uint32_t a_Samples)
 {
 	I_AllegroSoundLocal_t* Local;
 	
 	/* Check */
 	if (!a_Driver || !a_Bits || !a_Freq || a_Channels > 2 || !a_Samples)
 		return 0;
-	
+		
 	/* Get Local */
-	Local = (I_AllegroSoundLocal_t*)a_Driver->Data;
+	Local = (I_AllegroSoundLocal_t*) a_Driver->Data;
 	
 	// Check
 	if (!Local)
 		return 0;
-	
+		
 	/* Try getting the buffer */
 	Local->Stream = play_audio_stream(a_Samples, a_Bits, (a_Channels == 2 ? TRUE : FALSE), a_Freq, 255, 127);
 	
 	// Check
 	if (!Local->Stream)
 		return false;
-	
+		
 	/* Set local parms */
-	Local->Freq = a_Freq;//voice_get_frequency(Local->Stream);
+	Local->Freq = a_Freq;		//voice_get_frequency(Local->Stream);
 	
 	/* Success */
 	return a_Samples;
@@ -167,14 +168,14 @@ void* I_AllegroSD_Obtain(struct I_SoundDriver_s* const a_Driver)
 	/* Check */
 	if (!a_Driver)
 		return NULL;
-	
+		
 	/* Get Local */
-	Local = (I_AllegroSoundLocal_t*)a_Driver->Data;
+	Local = (I_AllegroSoundLocal_t*) a_Driver->Data;
 	
 	// Check
 	if (!Local)
 		return NULL;
-	
+		
 	return Local->Buffer;
 }
 
@@ -186,9 +187,9 @@ bool_t I_AllegroSD_IsFinished(struct I_SoundDriver_s* const a_Driver)
 	/* Check */
 	if (!a_Driver)
 		return false;
-	
+		
 	/* Get Local */
-	Local = (I_AllegroSoundLocal_t*)a_Driver->Data;
+	Local = (I_AllegroSoundLocal_t*) a_Driver->Data;
 	
 	// Check
 	if (!Local)
@@ -197,12 +198,12 @@ bool_t I_AllegroSD_IsFinished(struct I_SoundDriver_s* const a_Driver)
 	// Check again
 	if (!Local->Stream)
 		return false;
-	
+		
 	/* If there is no buffer pointer, ask Allegro for it */
 	if (!Local->Buffer)
 		Local->Buffer = get_audio_stream_buffer(Local->Stream);
-	
-	return !!Local->Buffer;
+		
+	return ! !Local->Buffer;
 }
 
 /* I_AllegroSD_WriteOut() -- Done streaming into buffer */
@@ -213,9 +214,9 @@ void I_AllegroSD_WriteOut(struct I_SoundDriver_s* const a_Driver)
 	/* Check */
 	if (!a_Driver)
 		return;
-	
+		
 	/* Get Local */
-	Local = (I_AllegroSoundLocal_t*)a_Driver->Data;
+	Local = (I_AllegroSoundLocal_t*) a_Driver->Data;
 	
 	// Check
 	if (!Local)
@@ -234,9 +235,9 @@ void I_AllegroSD_UnRequest(struct I_SoundDriver_s* const a_Driver)
 	/* Check */
 	if (!a_Driver)
 		return;
-	
+		
 	/* Get Local */
-	Local = (I_AllegroSoundLocal_t*)a_Driver->Data;
+	Local = (I_AllegroSoundLocal_t*) a_Driver->Data;
 	
 	// Check
 	if (!Local)
@@ -249,7 +250,6 @@ void I_AllegroSD_UnRequest(struct I_SoundDriver_s* const a_Driver)
 		voice_stop(Local->Stream);
 		deallocate_voice(Local->Stream);
 	}
-	
 	// Clear out
 	Local->Stream = NULL;
 	Local->Buffer = NULL;
@@ -263,14 +263,14 @@ uint16_t I_AllegroSD_GetFreq(struct I_SoundDriver_s* const a_Driver)
 	/* Check */
 	if (!a_Driver)
 		return 0;
-	
+		
 	/* Get Local */
-	Local = (I_AllegroSoundLocal_t*)a_Driver->Data;
+	Local = (I_AllegroSoundLocal_t*) a_Driver->Data;
 	
 	// Check
 	if (!Local)
 		return 0;
-	
+		
 	/* Return frequency */
 	return Local->Freq;
 }
@@ -308,8 +308,7 @@ bool_t I_SoundDriverInit(void)
 	/* Add Allegro Sound Driver */
 	if (!I_AddSoundDriver(&l_AllegroSoundDriver))
 		CONS_Printf("I_SoundDriverInit: Failed to add Allegro Driver\n");
-	
+		
 	/* Success */
 	return true;
 }
-

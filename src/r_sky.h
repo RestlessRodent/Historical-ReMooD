@@ -45,7 +45,8 @@ extern int skytexture;
 extern int skytexturemid;
 extern fixed_t skyscale;
 extern int skymode;				//current sky old (0) or new(1),
-								  // see SCR_SetMode
+
+// see SCR_SetMode
 
 // Needed to store the number of the dummy sky flat.
 // Used for rendering, as well as tracking projectiles etc.

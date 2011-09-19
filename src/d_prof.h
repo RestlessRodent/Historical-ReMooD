@@ -63,5 +63,4 @@ void PROF_HandleVAR(char* arg0, char* arg1);
 void M_StartProfiler(int choice);
 void M_ProfilePrompt(int player);
 
-#endif /* __D_PROF_H__ */
-
+#endif							/* __D_PROF_H__ */

@@ -51,6 +51,7 @@
 #include "w_wad.h"
 
 #if defined(NEWCHEATS)
+
 /*****************
 *** STRUCTURES ***
 *****************/
@@ -70,48 +71,58 @@ static bool_t HandleCheats(uint8_t key);
 //                             CHEAT Structures
 // ==========================================================================
 
-uint8_t cheat_mus_seq[] = {
+uint8_t cheat_mus_seq[] =
+{
 	0xb2, 0x26, 0xb6, 0xae, 0xea, 1, 0, 0, 0xff
 };
 
 //Fab:19-07-98: idcd xx : change cd track
-uint8_t cheat_cd_seq[] = {
+uint8_t cheat_cd_seq[] =
+{
 	0xb2, 0x26, 0xe2, 0x26, 1, 0, 0, 0xff
 };
 
-uint8_t cheat_choppers_seq[] = {
+uint8_t cheat_choppers_seq[] =
+{
 	0xb2, 0x26, 0xe2, 0x32, 0xf6, 0x2a, 0x2a, 0xa6, 0x6a, 0xea, 0xff	// id...
 };
 
-uint8_t cheat_god_seq[] = {
+uint8_t cheat_god_seq[] =
+{
 	0xb2, 0x26, 0x26, 0xaa, 0x26, 0xff	// iddqd
 };
 
-uint8_t cheat_ammo_seq[] = {
+uint8_t cheat_ammo_seq[] =
+{
 	0xb2, 0x26, 0xf2, 0x66, 0xa2, 0xff	// idkfa
 };
 
-uint8_t cheat_ammonokey_seq[] = {
+uint8_t cheat_ammonokey_seq[] =
+{
 	0xb2, 0x26, 0x66, 0xa2, 0xff	// idfa
 };
 
 // Smashing Pumpkins Into Small Pieces Of Putrid Debris.
-uint8_t cheat_noclip_seq[] = {
+uint8_t cheat_noclip_seq[] =
+{
 	0xb2, 0x26, 0xea, 0x2a, 0xb2,	// idspispopd
 	0xea, 0x2a, 0xf6, 0x2a, 0x26, 0xff
 };
 
 //
-uint8_t cheat_commercial_noclip_seq[] = {
+uint8_t cheat_commercial_noclip_seq[] =
+{
 	0xb2, 0x26, 0xe2, 0x36, 0xb2, 0x2a, 0xff	// idclip
 };
 
 //added:28-02-98: new cheat to fly around levels using jump !!
-uint8_t cheat_fly_around_seq[] = {
+uint8_t cheat_fly_around_seq[] =
+{
 	0xb2, 0x26, SCRAMBLE('f'), SCRAMBLE('l'), SCRAMBLE('y'), 0xff	// idfly
 };
 
-uint8_t cheat_powerup_seq[7][10] = {
+uint8_t cheat_powerup_seq[7][10] =
+{
 	{0xb2, 0x26, 0x62, 0xa6, 0x32, 0xf6, 0x36, 0x26, 0x6e, 0xff},	// beholdv
 	{0xb2, 0x26, 0x62, 0xa6, 0x32, 0xf6, 0x36, 0x26, 0xea, 0xff},	// beholds
 	{0xb2, 0x26, 0x62, 0xa6, 0x32, 0xf6, 0x36, 0x26, 0xb2, 0xff},	// beholdi
@@ -121,12 +132,14 @@ uint8_t cheat_powerup_seq[7][10] = {
 	{0xb2, 0x26, 0x62, 0xa6, 0x32, 0xf6, 0x36, 0x26, 0xff}	// behold
 };
 
-uint8_t cheat_clev_seq[] = {
+uint8_t cheat_clev_seq[] =
+{
 	0xb2, 0x26, 0xe2, 0x36, 0xa6, 0x6e, 1, 0, 0, 0xff	// idclev
 };
 
 // my position cheat
-uint8_t cheat_mypos_seq[] = {
+uint8_t cheat_mypos_seq[] =
+{
 	0xb2, 0x26, 0xb6, 0xba, 0x2a, 0xf6, 0xea, 0xff	// idmypos
 };
 
@@ -145,7 +158,8 @@ cheatseq_t cheat_commercial_noclip = { cheat_commercial_noclip_seq, 0 };
 //added:28-02-98:
 cheatseq_t cheat_fly_around = { cheat_fly_around_seq, 0 };
 
-cheatseq_t cheat_powerup[7] = {
+cheatseq_t cheat_powerup[7] =
+{
 	{cheat_powerup_seq[0], 0},
 	{cheat_powerup_seq[1], 0},
 	{cheat_powerup_seq[2], 0},
@@ -168,6 +182,7 @@ static uint8_t cheat_xlate_table[256];
 void cht_Init()
 {
 	int i;
+
 	for (i = 0; i < 256; i++)
 		cheat_xlate_table[i] = SCRAMBLE(i);
 }
@@ -176,7 +191,7 @@ void cht_Init()
 // Called in st_stuff module, which handles the input.
 // Returns a 1 if the cheat was successful, 0 if failed.
 //
-int cht_CheckCheat(cheatseq_t * cht, char key)
+int cht_CheckCheat(cheatseq_t* cht, char key)
 {
 	int rc = 0;
 
@@ -185,7 +200,7 @@ int cht_CheckCheat(cheatseq_t * cht, char key)
 
 	if (*cht->p == 0)
 		*(cht->p++) = key;
-	else if (cheat_xlate_table[(uint8_t) key] == *cht->p)
+	else if (cheat_xlate_table[(uint8_t)key] == *cht->p)
 		cht->p++;
 	else
 		cht->p = cht->sequence;
@@ -201,10 +216,10 @@ int cht_CheckCheat(cheatseq_t * cht, char key)
 	return rc;
 }
 
-void cht_GetParam(cheatseq_t * cht, char *buffer)
+void cht_GetParam(cheatseq_t* cht, char* buffer)
 {
 
-	uint8_t *p, c;
+	uint8_t* p, c;
 
 	p = cht->sequence;
 	while (*(p++) != 1);
@@ -229,12 +244,12 @@ int idkfa_armor = 200;
 int idkfa_armor_class = 2;
 int god_health = 100;
 
-static player_t *plyr;
+static player_t* plyr;
 
-bool_t cht_Responder(event_t * ev)
+bool_t cht_Responder(event_t* ev)
 {
 	int i;
-	char *msg;
+	char* msg;
 
 	if (ev->type == ev_keydown)
 	{
@@ -252,130 +267,125 @@ bool_t cht_Responder(event_t * ev)
 			am_cheating = (am_cheating + 1) % 3;
 		else
 			// 'dqd' cheat for toggleable god mode
-		if (cht_CheckCheat(&cheat_god, ev->data1))
-		{
-			plyr->cheats ^= CF_GODMODE;
-			if (plyr->cheats & CF_GODMODE)
+			if (cht_CheckCheat(&cheat_god, ev->data1))
 			{
-				if (plyr->mo)
-					plyr->mo->health = god_health;
+				plyr->cheats ^= CF_GODMODE;
+				if (plyr->cheats & CF_GODMODE)
+				{
+					if (plyr->mo)
+						plyr->mo->health = god_health;
 
-				plyr->health = god_health;
-				//plyr->message = STSTR_DQDON;
-				msg = STSTR_DQDON;
+					plyr->health = god_health;
+					//plyr->message = STSTR_DQDON;
+					msg = STSTR_DQDON;
+				}
+				else
+					//plyr->message = STSTR_DQDOFF;
+					msg = STSTR_DQDOFF;
 			}
-			else
-				//plyr->message = STSTR_DQDOFF;
-				msg = STSTR_DQDOFF;
-		}
 		// 'fa' cheat for killer fucking arsenal
-		else if (cht_CheckCheat(&cheat_ammonokey, ev->data1))
-		{
-			plyr->armorpoints = idfa_armor;
-			plyr->armortype = idfa_armor_class;
-
-			for (i = 0; i < NUMWEAPONS; i++)
-				plyr->weaponowned[i] = true;
-
-			for (i = 0; i < NUMAMMO; i++)
-				plyr->ammo[i] = plyr->maxammo[i];
-				
-			if (gamemode != commercial)
-				plyr->weaponowned[wp_supershotgun] = false;
-				
-			if (gamemode == shareware)
+			else if (cht_CheckCheat(&cheat_ammonokey, ev->data1))
 			{
-				plyr->weaponowned[wp_plasma] = false;
-				plyr->weaponowned[wp_bfg] = false;
-			}
+				plyr->armorpoints = idfa_armor;
+				plyr->armortype = idfa_armor_class;
 
-			//plyr->message = STSTR_FAADDED;
-			msg = STSTR_FAADDED;
-		}
+				for (i = 0; i < NUMWEAPONS; i++)
+					plyr->weaponowned[i] = true;
+
+				for (i = 0; i < NUMAMMO; i++)
+					plyr->ammo[i] = plyr->maxammo[i];
+
+				if (gamemode != commercial)
+					plyr->weaponowned[wp_supershotgun] = false;
+
+				if (gamemode == shareware)
+				{
+					plyr->weaponowned[wp_plasma] = false;
+					plyr->weaponowned[wp_bfg] = false;
+				}
+				//plyr->message = STSTR_FAADDED;
+				msg = STSTR_FAADDED;
+			}
 		// 'kfa' cheat for key full ammo
-		else if (cht_CheckCheat(&cheat_ammo, ev->data1))
-		{
-			plyr->armorpoints = idkfa_armor;
-			plyr->armortype = idkfa_armor_class;
-
-			for (i = 0; i < NUMWEAPONS; i++)
-				plyr->weaponowned[i] = true;
-
-			for (i = 0; i < NUMAMMO; i++)
-				plyr->ammo[i] = plyr->maxammo[i];
-			
-			if (gamemode != commercial)
-				plyr->weaponowned[wp_supershotgun] = false;
-			
-			if (gamemode == shareware)
+			else if (cht_CheckCheat(&cheat_ammo, ev->data1))
 			{
-				plyr->weaponowned[wp_plasma] = false;
-				plyr->weaponowned[wp_bfg] = false;
+				plyr->armorpoints = idkfa_armor;
+				plyr->armortype = idkfa_armor_class;
+
+				for (i = 0; i < NUMWEAPONS; i++)
+					plyr->weaponowned[i] = true;
+
+				for (i = 0; i < NUMAMMO; i++)
+					plyr->ammo[i] = plyr->maxammo[i];
+
+				if (gamemode != commercial)
+					plyr->weaponowned[wp_supershotgun] = false;
+
+				if (gamemode == shareware)
+				{
+					plyr->weaponowned[wp_plasma] = false;
+					plyr->weaponowned[wp_bfg] = false;
+				}
+
+				plyr->cards = it_allkeys;
+
+				//plyr->message = STSTR_KFAADDED;
+				msg = STSTR_KFAADDED;
 			}
-
-			plyr->cards = it_allkeys;
-
-			//plyr->message = STSTR_KFAADDED;
-			msg = STSTR_KFAADDED;
-		}
 		// 'mus' cheat for changing music
-		else if (cht_CheckCheat(&cheat_mus, ev->data1))
-		{
-			char buf[3];
-			int musnum;
-
-			plyr->message = STSTR_MUS;
-			cht_GetParam(&cheat_mus, buf);
-
-			if (gamemode == commercial)
+			else if (cht_CheckCheat(&cheat_mus, ev->data1))
 			{
-				musnum = mus_runnin + (buf[0] - '0') * 10 + buf[1] - '0' - 1;
+				char buf[3];
+				int musnum;
 
-				if (((buf[0] - '0') * 10 + buf[1] - '0') > 35)
-					//plyr->message = STSTR_NOMUS;
-					msg = STSTR_NOMUS;
+				plyr->message = STSTR_MUS;
+				cht_GetParam(&cheat_mus, buf);
+
+				if (gamemode == commercial)
+				{
+					musnum = mus_runnin + (buf[0] - '0') * 10 + buf[1] - '0' - 1;
+
+					if (((buf[0] - '0') * 10 + buf[1] - '0') > 35)
+						//plyr->message = STSTR_NOMUS;
+						msg = STSTR_NOMUS;
+					else
+						S_ChangeMusic(musnum, 1);
+				}
 				else
-					S_ChangeMusic(musnum, 1);
-			}
-			else
-			{
-				musnum = mus_e1m1 + (buf[0] - '1') * 9 + (buf[1] - '1');
+				{
+					musnum = mus_e1m1 + (buf[0] - '1') * 9 + (buf[1] - '1');
 
-				if (((buf[0] - '1') * 9 + buf[1] - '1') > 31)
-					//plyr->message = STSTR_NOMUS;
-					msg = STSTR_NOMUS;
-				else
-					S_ChangeMusic(musnum, 1);
+					if (((buf[0] - '1') * 9 + buf[1] - '1') > 31)
+						//plyr->message = STSTR_NOMUS;
+						msg = STSTR_NOMUS;
+					else
+						S_ChangeMusic(musnum, 1);
+				}
 			}
-		}
-
 		// 'cd' for changing cd track quickly
 		//NOTE: the cheat uses the REAL track numbers, not remapped ones
-		else if (cht_CheckCheat(&cheat_cd, ev->data1))
-		{
-			char buf[3];
+			else if (cht_CheckCheat(&cheat_cd, ev->data1))
+			{
+				char buf[3];
 
-			cht_GetParam(&cheat_cd, buf);
+				cht_GetParam(&cheat_cd, buf);
 
-			plyr->message = "Changing cd track...\n";
-			I_PlayCD((buf[0] - '0') * 10 + (buf[1] - '0'), true);
-		}
-
+				plyr->message = "Changing cd track...\n";
+				I_PlayCD((buf[0] - '0') * 10 + (buf[1] - '0'), true);
+			}
 		// Simplified, accepting both "noclip" and "idspispopd".
 		// no clipping mode ch      eat
-		else if (cht_CheckCheat(&cheat_noclip, ev->data1) ||
-				 cht_CheckCheat(&cheat_commercial_noclip, ev->data1))
-		{
-			plyr->cheats ^= CF_NOCLIP;
+			else if (cht_CheckCheat(&cheat_noclip, ev->data1) || cht_CheckCheat(&cheat_commercial_noclip, ev->data1))
+			{
+				plyr->cheats ^= CF_NOCLIP;
 
-			if (plyr->cheats & CF_NOCLIP)
-				//plyr->message = STSTR_NCON;
-				msg = STSTR_NCON;
-			else
-				//plyr->message = STSTR_NCOFF;
-				msg = STSTR_NCOFF;
-		}
-
+				if (plyr->cheats & CF_NOCLIP)
+					//plyr->message = STSTR_NCON;
+					msg = STSTR_NCON;
+				else
+					//plyr->message = STSTR_NCOFF;
+					msg = STSTR_NCOFF;
+			}
 		// 'behold?' power-up cheats
 		for (i = 0; i < 6; i++)
 		{
@@ -413,25 +423,22 @@ bool_t cht_Responder(event_t * ev)
 		{
 			//plyr->message = buf;
 			CONS_Printf(va
-						("ang=%i;x,y=(%i,%i)\n",
-						 players[statusbarplayer].mo->angle / ANGLE_1,
-						 players[statusbarplayer].mo->x >> FRACBITS,
-						 players[statusbarplayer].mo->y >> FRACBITS));
+			            ("ang=%i;x,y=(%i,%i)\n",
+			             players[statusbarplayer].mo->angle / ANGLE_1, players[statusbarplayer].mo->x >> FRACBITS, players[statusbarplayer].mo->y >> FRACBITS));
 
 		}
 		else
 			//added:28-02-98: new fly cheat using jump key
-		if (cht_CheckCheat(&cheat_fly_around, ev->data1))
-		{
-			plyr->cheats ^= CF_FLYAROUND;
-			if (plyr->cheats & CF_FLYAROUND)
-				//plyr->message = "FLY MODE ON : USE JUMP KEY";
-				msg = "FLY MODE ON : USE JUMP KEY\n";
-			else
-				//plyr->message = "FLY MODE OFF";
-				msg = "FLY MODE OFF\n";
-		}
-
+			if (cht_CheckCheat(&cheat_fly_around, ev->data1))
+			{
+				plyr->cheats ^= CF_FLYAROUND;
+				if (plyr->cheats & CF_FLYAROUND)
+					//plyr->message = "FLY MODE ON : USE JUMP KEY";
+					msg = "FLY MODE ON : USE JUMP KEY\n";
+				else
+					//plyr->message = "FLY MODE OFF";
+					msg = "FLY MODE OFF\n";
+			}
 		// 'clev' change-level cheat
 		if (cht_CheckCheat(&cheat_clev, ev->data1))
 		{
@@ -478,7 +485,6 @@ bool_t cht_Responder(event_t * ev)
 			msg = STSTR_CLEV;
 			G_DeferedInitNew(gameskill, G_BuildMapName(epsd, map), false);
 		}
-
 		// append a newline to the original doom messages
 		if (msg)
 			CONS_Printf("%s\n", msg);
@@ -490,7 +496,7 @@ bool_t cht_Responder(event_t * ev)
 
 void Command_CheatNoClip_f(void)
 {
-	player_t *plyr;
+	player_t* plyr;
 
 	if (gamestate != GS_LEVEL)
 	{
@@ -514,7 +520,7 @@ void Command_CheatNoClip_f(void)
 
 void Command_CheatGod_f(void)
 {
-	player_t *plyr;
+	player_t* plyr;
 
 	if (gamestate != GS_LEVEL)
 	{
@@ -542,9 +548,9 @@ void Command_CheatGod_f(void)
 
 void Command_CheatGimme_f(void)
 {
-	char *s;
+	char* s;
 	int i, j, k;
-	player_t *plyr;
+	player_t* plyr;
 	int all = 0;
 
 	if (gamestate != GS_LEVEL)
@@ -574,7 +580,7 @@ void Command_CheatGimme_f(void)
 		for (i = 1; i < COM_Argc(); i++)
 		{
 			s = COM_Argv(i);
-			
+
 			if (!strncmp(s, "all", 3))
 				all = 1;
 
@@ -618,10 +624,9 @@ void Command_CheatGimme_f(void)
 
 				CONS_Printf("got weapons\n");
 			}
-			
-				//
-				// WEAPONS
-				//
+			//
+			// WEAPONS
+			//
 			if (all || !strncmp(s, "chainsaw", 8))
 			{
 				plyr->weaponowned[wp_chainsaw] = true;
@@ -673,7 +678,7 @@ void Command_CheatGimme_f(void)
 
 				CONS_Printf("got chaingun\n");
 			}
-			
+
 			if (!strncmp(s, "level2weapons", 13))
 			{
 				plyr->weaponinfo = wpnlev2info;
@@ -684,10 +689,9 @@ void Command_CheatGimme_f(void)
 				plyr->weaponinfo = wpnlev1info;
 				CONS_Printf("got level 1 weapons\n");
 			}
-			
-				//
-				// SPECIAL ITEMS
-				//
+			//
+			// SPECIAL ITEMS
+			//
 			if (all || !strncmp(s, "berserk", 7))
 			{
 				if (!plyr->powers[pw_strength])
@@ -714,16 +718,16 @@ void Command_CheatGimme_f(void)
 // PTR_SummonTraverse
 // Summons an object if possible
 //
-bool_t PTR_SummonTraverse(intercept_t * in)
+bool_t PTR_SummonTraverse(intercept_t* in)
 {
 	return false;
 }
 
 void Command_CheatSummon_f(void)
 {
-	char *s;
+	char* s;
 	int i, j, k;
-	player_t *plyr;
+	player_t* plyr;
 	int distance;
 	fixed_t x2;
 	fixed_t y2;
@@ -751,11 +755,7 @@ void Command_CheatSummon_f(void)
 	j = -1;
 
 	if ((s[0] == '0') ||
-		(s[0] == '1') ||
-		(s[0] == '2') ||
-		(s[0] == '3') ||
-		(s[0] == '4') ||
-		(s[0] == '5') || (s[0] == '6') || (s[0] == '7') || (s[0] == '8') || (s[0] == '9'))
+	        (s[0] == '1') || (s[0] == '2') || (s[0] == '3') || (s[0] == '4') || (s[0] == '5') || (s[0] == '6') || (s[0] == '7') || (s[0] == '8') || (s[0] == '9'))
 	{
 		j = atoi(s);
 
@@ -792,7 +792,7 @@ void Command_CheatSummon_f(void)
 					break;
 				}
 			}
-			
+
 			CONS_Printf("Invalid Object Name \"%s\".\n", s);
 			return;
 		}
@@ -802,11 +802,9 @@ void Command_CheatSummon_f(void)
 	distance = (plyr->mo->info->radius * 2) + (mobjinfo[k].radius * 2);
 
 	P_SpawnMobj(plyr->mo->x +
-				FixedMul(distance,
-						 finecosine[plyr->mo->angle >> ANGLETOFINESHIFT]),
-				plyr->mo->y + FixedMul(distance,
-									   finesine[plyr->mo->
-												angle >> ANGLETOFINESHIFT]), plyr->mo->z, j);
+	            FixedMul(distance,
+	                     finecosine[plyr->mo->angle >> ANGLETOFINESHIFT]),
+	            plyr->mo->y + FixedMul(distance, finesine[plyr->mo->angle >> ANGLETOFINESHIFT]), plyr->mo->z, j);
 }
 
 void Command_CheatSummonFriend_f(void)
@@ -818,4 +816,3 @@ void Command_CheatSummonFriend_f(void)
 // heretic cheat
 
 #endif
-

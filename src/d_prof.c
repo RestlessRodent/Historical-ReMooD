@@ -107,7 +107,6 @@ void PROF_CVARWasChanged(void)
 						Player->mo->flags &= ~MF_TRANSLATION;
 						Player->mo->flags |= (Player->skincolor) << MF_TRANSSHIFT;
 					}
-					
 					// Change Skin
 					SetPlayerSkin(consoleplayer[i], Rover->cvars[PC_SKIN].string);
 					
@@ -123,18 +122,22 @@ void PROF_CVARWasChanged(void)
 
 consvar_t BaseProfileCVARS[MAXPROFILECVARS] =
 {
-	{"name", "Player", CV_SAVE | CV_CALL, NULL, PROF_CVARWasChanged},
-	{"color", "0", CV_SAVE | CV_CALL, Color_cons_t, PROF_CVARWasChanged},
-	{"skin", "marine", CV_SAVE | CV_CALL, NULL, PROF_CVARWasChanged},
-	{"autoaim", "1", CV_SAVE | CV_CALL, CV_YesNo, PROF_CVARWasChanged},
+	{"name", "Player", CV_SAVE | CV_CALL, NULL, PROF_CVARWasChanged}
+	,
+	{"color", "0", CV_SAVE | CV_CALL, Color_cons_t, PROF_CVARWasChanged}
+	,
+	{"skin", "marine", CV_SAVE | CV_CALL, NULL, PROF_CVARWasChanged}
+	,
+	{"autoaim", "1", CV_SAVE | CV_CALL, CV_YesNo, PROF_CVARWasChanged}
+	,
 };
 
 void PROF_M_ChangeProfile(void);
 
 CV_PossibleValue_t* DynPossible = NULL;
-consvar_t DynProfileChooser = {"prof_dynchooser", "default", CV_HIDEN | CV_CALL, NULL, PROF_M_ChangeProfile};
-consvar_t InGameProfileChooser = {"prof_ingamechooser", "default", CV_HIDEN, NULL, NULL};
-consvar_t TempProfileName = {"prof_tempname", "", CV_HIDEN, NULL, NULL};
+consvar_t DynProfileChooser = { "prof_dynchooser", "default", CV_HIDEN | CV_CALL, NULL, PROF_M_ChangeProfile };
+consvar_t InGameProfileChooser = { "prof_ingamechooser", "default", CV_HIDEN, NULL, NULL };
+consvar_t TempProfileName = { "prof_tempname", "", CV_HIDEN, NULL, NULL };
 
 char* StrLwr(char* Str)
 {
@@ -180,7 +183,7 @@ static ProfileInfo_t* PROF_CreateProfile(char* Name)
 	
 	if (Temp = PROF_FindProfile(Name))
 		return Temp;
-	
+		
 	if (!Profiles)
 	{
 		Profiles = Z_Malloc(sizeof(ProfileInfo_t), PU_STATIC, NULL);
@@ -233,7 +236,6 @@ static ProfileInfo_t* PROF_CreateProfile(char* Name)
 		Z_Free(DynPossible);
 		DynPossible = NULL;
 	}
-	
 	// Recreate possible value
 	count = 0;
 	Rover = Profiles;
@@ -243,7 +245,7 @@ static ProfileInfo_t* PROF_CreateProfile(char* Name)
 		Rover = Rover->next;
 	}
 	
-	DynPossible = Z_Malloc(sizeof(CV_PossibleValue_t) * (count+1), PU_STATIC, NULL);
+	DynPossible = Z_Malloc(sizeof(CV_PossibleValue_t) * (count + 1), PU_STATIC, NULL);
 	
 	i = 0;
 	Rover = Profiles;
@@ -316,7 +318,7 @@ void PROF_HandleVAR(char* arg0, char* arg1)
 		b++;
 		arg0++;
 	}
-	UserBuf[MAXPLAYERNAME-1] = 0;
+	UserBuf[MAXPLAYERNAME - 1] = 0;
 	
 	StrLwr(UserBuf);
 	
@@ -348,13 +350,13 @@ void M_CreateProfile(int choice);
 
 menuitem_t ProfileItems[] =
 {
-	{IT_WHITESTRING | IT_CALL, NULL,			PTROFUNICODESTRING(DSTR_MENUPROFILES_CREATEPROFILE), M_CreateProfile},
-	{IT_STRING | IT_CVAR, NULL,					PTROFUNICODESTRING(DSTR_MENUPROFILES_CURRENTPROFILE), &DynProfileChooser},
-	{IT_STRING | IT_SPACE, NULL,				PTROFUNICODESTRING(DSTR_MENUNULLSPACE), NULL},
-	{IT_STRING | IT_CVAR | IT_CV_STRING, NULL,	PTROFUNICODESTRING(DSTR_MENUPROFILES_NAME), NULL},
-	{IT_STRING | IT_CVAR, NULL,					PTROFUNICODESTRING(DSTR_MENUPROFILES_COLOR), NULL},
-	{IT_STRING | IT_KEYHANDLER, NULL,			PTROFUNICODESTRING(DSTR_MENUPROFILES_SKIN), M_HandleSkinChanger},
-	{IT_STRING | IT_CVAR, NULL,					PTROFUNICODESTRING(DSTR_MENUPROFILES_AUTOAIM), NULL},
+	{IT_WHITESTRING | IT_CALL, NULL, PTROFUNICODESTRING(DSTR_MENUPROFILES_CREATEPROFILE), M_CreateProfile},
+	{IT_STRING | IT_CVAR, NULL, PTROFUNICODESTRING(DSTR_MENUPROFILES_CURRENTPROFILE), &DynProfileChooser},
+	{IT_STRING | IT_SPACE, NULL, PTROFUNICODESTRING(DSTR_MENUNULLSPACE), NULL},
+	{IT_STRING | IT_CVAR | IT_CV_STRING, NULL, PTROFUNICODESTRING(DSTR_MENUPROFILES_NAME), NULL},
+	{IT_STRING | IT_CVAR, NULL, PTROFUNICODESTRING(DSTR_MENUPROFILES_COLOR), NULL},
+	{IT_STRING | IT_KEYHANDLER, NULL, PTROFUNICODESTRING(DSTR_MENUPROFILES_SKIN), M_HandleSkinChanger},
+	{IT_STRING | IT_CVAR, NULL, PTROFUNICODESTRING(DSTR_MENUPROFILES_AUTOAIM), NULL},
 };
 
 menu_t ProfileDef =
@@ -391,10 +393,10 @@ menu_t CreateProfileDef =
 	CreateProfileItems,
 	&ProfileDef,
 	M_DrawGenericMenu,
-	BASEVIDWIDTH >> 2,	// X
+	BASEVIDWIDTH >> 2,			// X
 	(BASEVIDHEIGHT >> 1) - (STRINGHEIGHT << 1),	// Y
-	BASEVIDWIDTH >> 1,	// W
-	STRINGHEIGHT << 2,	// H
+	BASEVIDWIDTH >> 1,			// W
+	STRINGHEIGHT << 2,			// H
 	1
 };
 
@@ -406,7 +408,7 @@ void M_AcceptNewProfile(int choice)
 	// Check some things
 	if (!TempProfileName.string)
 		return;
-	
+		
 	if (strlen(TempProfileName.string) < 1)
 		return;
 		
@@ -429,13 +431,12 @@ void M_AcceptNewProfile(int choice)
 				b++;
 			}
 		}
-	
+		
 		*a = 0;
 	}
-	
 	// If someone decides they want an empty name, which they can't have...
 	if (*TempProfileName.string == 0 || strlen(TempProfileName.string) < 1)
-		CV_Set(&TempProfileName, "bananacreampie");//TempProfileName.string = BananaCreamPie;
+		CV_Set(&TempProfileName, "bananacreampie");	//TempProfileName.string = BananaCreamPie;
 		
 	// Profile can't already exist
 	if (PROF_FindProfile(TempProfileName.string))
@@ -445,7 +446,7 @@ void M_AcceptNewProfile(int choice)
 	PROF_CreateProfile(TempProfileName.string);
 	
 	currentMenu->lastOn = itemOn;
-	M_SetupNextMenu(&ProfileDef	);
+	M_SetupNextMenu(&ProfileDef);
 }
 
 void M_CreateProfile(int choice)
@@ -458,39 +459,34 @@ void M_CreateProfile(int choice)
 
 void M_DrawProfileMenu(void)
 {
-	spritedef_t *sprdef;
-	spriteframe_t *sprframe;
+	spritedef_t* sprdef;
+	spriteframe_t* sprframe;
 	int lump;
-	patch_t *patch;
-	uint8_t *colormap;
+	patch_t* patch;
+	uint8_t* colormap;
 	char* skinchar;
 	
 	// Draw player sprite
-	sprdef = &skins[R_SkinAvailable(
-		PROF_GetNumber(((consvar_t*)(currentMenu->menuitems[1].itemaction))->value)->cvars[PC_SKIN].string)
-		].spritedef;
+	sprdef = &skins[R_SkinAvailable(PROF_GetNumber(((consvar_t*) (currentMenu->menuitems[1].itemaction))->value)->cvars[PC_SKIN].string)].spritedef;
 	sprframe = &sprdef->spriteframes[((gametic % 16) >> 2) & FF_FRAMEMASK];
 	lump = sprframe->lumppat[0];
 	patch = W_CachePatchNum(lump, PU_CACHE);
 	
-	if (((consvar_t*)(currentMenu->menuitems[4].itemaction))->value == 0)
+	if (((consvar_t*) (currentMenu->menuitems[4].itemaction))->value == 0)
 		colormap = colormaps;
 	else
-		colormap = (uint8_t *) translationtables - 256 + (((consvar_t*)(currentMenu->menuitems[4].itemaction))->value << 8);
-
-	V_DrawMappedPatch(
-		((currentMenu->x + currentMenu->width) - patch->width) + patch->leftoffset,
-		((currentMenu->y + currentMenu->height) - patch->height) + patch->topoffset,
-		0, patch, colormap);
+		colormap = (uint8_t*)translationtables - 256 + (((consvar_t*) (currentMenu->menuitems[4].itemaction))->value << 8);
 		
+	V_DrawMappedPatch(((currentMenu->x + currentMenu->width) - patch->width) + patch->leftoffset,
+	                  ((currentMenu->y + currentMenu->height) - patch->height) + patch->topoffset, 0, patch, colormap);
+	                  
 	M_DrawGenericMenu();
 	
 	// Draw Skin Value
-	skinchar = PROF_GetNumber(((consvar_t*)(currentMenu->menuitems[1].itemaction))->value)->cvars[PC_SKIN].string;
+	skinchar = PROF_GetNumber(((consvar_t*) (currentMenu->menuitems[1].itemaction))->value)->cvars[PC_SKIN].string;
 	
 	V_DrawStringA(VFONT_SMALL, VEX_MAP_WHITE, skinchar,
-		(currentMenu->x + currentMenu->width) - V_StringWidthA(VFONT_SMALL, 0, skinchar),
-		(currentMenu->y + (5 * STRINGHEIGHT)));
+	              (currentMenu->x + currentMenu->width) - V_StringWidthA(VFONT_SMALL, 0, skinchar), (currentMenu->y + (5 * STRINGHEIGHT)));
 }
 
 void M_StartProfiler(int choice)
@@ -499,11 +495,9 @@ void M_StartProfiler(int choice)
 	currentMenu->lastOn = itemOn;
 	M_SetupNextMenu(&ProfileDef);
 	
-	if (!R_SkinAvailable(PROF_GetNumber(((consvar_t*)(currentMenu->menuitems[1].itemaction))->value)->cvars[PC_SKIN].string))
+	if (!R_SkinAvailable(PROF_GetNumber(((consvar_t*) (currentMenu->menuitems[1].itemaction))->value)->cvars[PC_SKIN].string))
 	{
-		COM_BufAddText(va("%s \"%s\"",
-			PROF_GetNumber(((consvar_t*)(currentMenu->menuitems[1].itemaction))->value)->cvars[PC_SKIN].name,
-			"marine"));
+		COM_BufAddText(va("%s \"%s\"", PROF_GetNumber(((consvar_t*) (currentMenu->menuitems[1].itemaction))->value)->cvars[PC_SKIN].name, "marine"));
 	}
 }
 
@@ -513,7 +507,7 @@ void PROF_M_ChangeProfile(void)
 	
 	if (!Prof)
 		Prof = Profiles;
-	
+		
 	ProfileItems[3].itemaction = &(Prof->cvars[PC_NAME]);
 	ProfileItems[4].itemaction = &(Prof->cvars[PC_COLOR]);
 	ProfileItems[6].itemaction = &(Prof->cvars[PC_AUTOAIM]);
@@ -525,9 +519,9 @@ void M_HandleSkinChanger(int choice)
 	int l;
 	bool_t exitmenu = false;	// exit to previous menu and send name change
 	int myskin;
-
-	myskin = R_SkinAvailable(PROF_GetNumber(((consvar_t*)(currentMenu->menuitems[1].itemaction))->value)->cvars[PC_SKIN].string);
-
+	
+	myskin = R_SkinAvailable(PROF_GetNumber(((consvar_t*) (currentMenu->menuitems[1].itemaction))->value)->cvars[PC_SKIN].string);
+	
 	switch (choice)
 	{
 		case KEY_DOWNARROW:
@@ -577,11 +571,9 @@ void M_HandleSkinChanger(int choice)
 			myskin = 0;
 	}
 	
-	if (myskin != R_SkinAvailable(PROF_GetNumber(((consvar_t*)(currentMenu->menuitems[1].itemaction))->value)->cvars[PC_SKIN].string))
+	if (myskin != R_SkinAvailable(PROF_GetNumber(((consvar_t*) (currentMenu->menuitems[1].itemaction))->value)->cvars[PC_SKIN].string))
 	{
-		COM_BufAddText(va("%s \"%s\"",
-			PROF_GetNumber(((consvar_t*)(currentMenu->menuitems[1].itemaction))->value)->cvars[PC_SKIN].name,
-			skins[myskin].name));
+		COM_BufAddText(va("%s \"%s\"", PROF_GetNumber(((consvar_t*) (currentMenu->menuitems[1].itemaction))->value)->cvars[PC_SKIN].name, skins[myskin].name));
 	}
 	
 	if (exitmenu)
@@ -594,7 +586,9 @@ void M_HandleSkinChanger(int choice)
 }
 
 /******************************************************************************/
+
 /*                               PROFILE PROMPT                               */
+
 /******************************************************************************/
 
 //InGameProfileChooser
@@ -611,10 +605,14 @@ char* PP_P4of4 = "for Player 4 (Bottom-Right Screen).";
 
 menuitem_t ProfileChooserItems[] =
 {
-	{IT_SPACE | IT_STRING | IT_CENTERSTRING, NULL,
-		PTROFUNICODESTRING(DSTR_MENUSELECTPROFILE_PLEASESELECT), NULL},
-	{IT_SPACE | IT_STRING | IT_CENTERSTRING, NULL,
-		PTROFUNICODESTRING(DSTR_MENUSELECTPROFILE_PLACEHOLDER), NULL},
+	{
+		IT_SPACE | IT_STRING | IT_CENTERSTRING, NULL,
+		PTROFUNICODESTRING(DSTR_MENUSELECTPROFILE_PLEASESELECT), NULL
+	},
+	{
+		IT_SPACE | IT_STRING | IT_CENTERSTRING, NULL,
+		PTROFUNICODESTRING(DSTR_MENUSELECTPROFILE_PLACEHOLDER), NULL
+	},
 	{IT_STRING | IT_CVAR, NULL, PTROFUNICODESTRING(DSTR_MENUSELECTPROFILE_PROFILE), &InGameProfileChooser},
 	{IT_WHITESTRING | IT_CALL, NULL, PTROFUNICODESTRING(DSTR_MENUSELECTPROFILE_ACCEPT), M_ProfAccept},
 };
@@ -628,10 +626,10 @@ menu_t ProfileChooser =
 	ProfileChooserItems,
 	NULL,
 	M_DrawGenericMenu,
-	BASEVIDWIDTH >> 2,	// X
+	BASEVIDWIDTH >> 2,			// X
 	(BASEVIDHEIGHT >> 1) - (STRINGHEIGHT << 1),	// Y
-	BASEVIDWIDTH >> 1,	// W
-	STRINGHEIGHT << 2,	// H
+	BASEVIDWIDTH >> 1,			// W
+	STRINGHEIGHT << 2,			// H
 	1,
 };
 
@@ -654,7 +652,6 @@ void M_ProfilePrompt(int player)
 			ModPlayer = Player;
 			break;
 		}
-			
 	// Nope
 	if (!OK || !Player)
 		return;
@@ -680,7 +677,7 @@ void M_ProfilePrompt(int player)
 	}
 	else
 		ProfileChooserItems[1].WItemTextPtr = PTROFUNICODESTRING(DSTR_MENUSELECTPROFILE_FORYOU);
-	
+		
 	// GhostlyDeath <August 3, 2011> -- if there is only one profile, autochoose that
 	if (PROF_NumProfiles() == 1)
 	{
@@ -710,13 +707,12 @@ void M_ProfAccept(int choice)
 			ModPlayer->profile = Rover;
 			
 			// Change Name
-			for (i = 0; i < cv_splitscreen.value+1; i++)
+			for (i = 0; i < cv_splitscreen.value + 1; i++)
 				if (playeringame[consoleplayer[i]] && ModPlayer == &players[consoleplayer[i]])
 				{
 					strncpy(player_names[consoleplayer[i]], Rover->cvars[PC_NAME].string, MAXPLAYERNAME);
 					break;
 				}
-			
 			// Change Color
 			ModPlayer->skincolor = Rover->cvars[PC_COLOR].value % MAXSKINCOLORS;
 			
@@ -725,7 +721,6 @@ void M_ProfAccept(int choice)
 				ModPlayer->mo->flags &= ~MF_TRANSLATION;
 				ModPlayer->mo->flags |= (ModPlayer->skincolor) << MF_TRANSSHIFT;
 			}
-			
 			// Change Skin
 			SetPlayerSkin(consoleplayer[i], Rover->cvars[PC_SKIN].string);
 			
@@ -739,4 +734,3 @@ void M_ProfAccept(int choice)
 	
 	M_ClearMenus(false);
 }
-

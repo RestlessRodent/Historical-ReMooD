@@ -107,22 +107,22 @@
 //
 int demosequence;
 int pagetic;
-char *pagename = "TITLEPIC";
+char* pagename = "TITLEPIC";
 bool_t novideo = false;
 
 //  PROTOS
-void D_PageDrawer(char *lumpname);
+void D_PageDrawer(char* lumpname);
 void D_AdvanceDemo(void);
 
 #ifdef LINUX
 void VID_PrepareModeList(void);	// FIXME: very dirty; will use a proper include file
 #endif
 
-char *startupwadfiles[MAX_WADFILES];
+char* startupwadfiles[MAX_WADFILES];
 
-bool_t devparm;				// started game with -devparm
+bool_t devparm;					// started game with -devparm
 bool_t nomonsters;				// checkparm of -nomonsters
-bool_t infight = false;		//DarkWolf95:November 21, 2003: Monsters Infight!
+bool_t infight = false;			//DarkWolf95:November 21, 2003: Monsters Infight!
 
 bool_t singletics = false;		// timedemo
 
@@ -160,7 +160,7 @@ static int l_FPSRanFPS = 0;
 // D_PostEvent
 // Called by the I/O functions when input is detected
 //
-void D_PostEvent(const event_t * ev)
+void D_PostEvent(const event_t* ev)
 {
 	events[eventhead] = *ev;
 	eventhead = (eventhead + 1) & (MAXEVENTS - 1);
@@ -181,8 +181,8 @@ bool_t shiftdown = false;
 //
 void D_ProcessEvents(void)
 {
-	event_t *ev;
-
+	event_t* ev;
+	
 	for (; eventtail != eventhead; eventtail = (++eventtail) & (MAXEVENTS - 1))
 	{
 		ev = &events[eventtail];
@@ -191,15 +191,15 @@ void D_ProcessEvents(void)
 			shiftdown = true;
 		else if (ev->type == ev_keyup && ev->data1 == KEY_SHIFT)
 			shiftdown = false;
-		
+			
 		// Menu input
 		if (M_Responder(ev))
 			continue;			// menu ate the event
-		
+			
 		// console input
 		if (CON_Responder(ev))
 			continue;			// ate the event
-
+			
 		G_Responder(ev);
 	}
 }
@@ -216,17 +216,23 @@ void I_DoStartupMouse(void);    //win_sys.c
 // wipegamestate can be set to -1 to force a wipe on the next draw
 // added comment : there is a wipe eatch change of the gamestate
 gamestate_t wipegamestate = GS_DEMOSCREEN;
-CV_PossibleValue_t screenslink_cons_t[] = {
-	{0, "None"},
-	{wipe_ColorXForm + 1, "Color"},
-	{wipe_Melt + 1, "Melt"},
-	{wipe_Blinds + 1, "Blinds"},
+
+CV_PossibleValue_t screenslink_cons_t[] =
+{
+	{0, "None"}
+	,
+	{wipe_ColorXForm + 1, "Color"}
+	,
+	{wipe_Melt + 1, "Melt"}
+	,
+	{wipe_Blinds + 1, "Blinds"}
+	,
 	{0, NULL}
 };
 consvar_t cv_screenslink = { "screenlink", "2", CV_SAVE, screenslink_cons_t };
 
 // GhostlyDeath <July 8, 2009> -- Add FPS Counter
-consvar_t cv_vid_drawfps = {"vid_drawfps", "0", CV_SAVE, CV_YesNo, NULL};
+consvar_t cv_vid_drawfps = { "vid_drawfps", "0", CV_SAVE, CV_YesNo, NULL };
 
 void D_Display(void)
 {
@@ -238,29 +244,29 @@ void D_Display(void)
 	tic_t wipestart;
 	int i;
 	int y;
-	int a,b;
+	int a, b;
 	int oldviewwidth;
 	bool_t done;
 	bool_t wipe;
 	bool_t redrawsbar;
 	bool_t viewactivestate = false;
-
+	
 	if (dedicated)
 		return;
-
+		
 	if (nodrawers)
 		return;					// for comparative timing / profiling
-
+		
 	redrawsbar = false;
-
+	
 	//added:21-01-98: check for change of screen size (video mode)
 	if (setmodeneeded)
 		SCR_SetMode();			// change video mode
-
+		
 	if (vid.recalc)
 		//added:26-01-98: NOTE! setsizeneeded is set by SCR_Recalc()
 		SCR_Recalc();
-
+		
 	// change the view size if needed
 	if (setsizeneeded)
 	{
@@ -269,7 +275,6 @@ void D_Display(void)
 		borderdrawcount = 3;
 		redrawsbar = true;
 	}
-
 	// GhostlyDeath <June 16, 2010> -- Only wipe if we set screen link (otherwise cleanup is never done)
 	// save the current screen if about to wipe
 	if (cv_screenslink.value && gamestate != wipegamestate)
@@ -279,11 +284,11 @@ void D_Display(void)
 	}
 	else
 		wipe = false;
-
+		
 	// draw buffered stuff to screen
 	// BP: Used only by linux GGI version
 	I_UpdateNoBlit();
-
+	
 	// do buffered drawing
 	switch (gamestate)
 	{
@@ -293,25 +298,24 @@ void D_Display(void)
 			HU_Erase();
 			if (automapactive && !automapoverlay)
 				AM_Drawer();
-			if (wipe || menuactivestate
-				|| vid.recalc)
+			if (wipe || menuactivestate || vid.recalc)
 				redrawsbar = true;
 			break;
-
+			
 		case GS_INTERMISSION:
 			WI_Drawer();
 			break;
-
+			
 		case GS_FINALE:
 			F_Drawer();
 			break;
-
+			
 		case GS_DEMOSCREEN:
 			D_PageDrawer(pagename);
 		case GS_NULL:
 			break;
 	}
-
+	
 	// clean up border stuff
 	// see if the border needs to be initially drawn
 	if (gamestate == GS_LEVEL)
@@ -321,7 +325,6 @@ void D_Display(void)
 			viewactivestate = false;	// view was not active
 			R_FillBackScreen();	// draw the pattern into the back screen
 		}
-
 		// see if the border needs to be updated to the screen
 		if ((!automapactive || automapoverlay) && (scaledviewwidth != vid.width))
 		{
@@ -329,14 +332,13 @@ void D_Display(void)
 			// which are refreshed only when needed
 			if (menuactive || menuactivestate || !viewactivestate)
 				borderdrawcount = 3;
-
+				
 			if (borderdrawcount)
 			{
 				R_DrawViewBorder();	// erase old menu stuff
 				borderdrawcount--;
 			}
 		}
-
 		// draw the view directly
 		if (!automapactive || automapoverlay)
 		{
@@ -350,9 +352,9 @@ void D_Display(void)
 						viewwindowy = vid.height / 2;
 						activeylookup = ylookup;
 						memcpy(ylookup, ylookup2, viewheight * sizeof(ylookup[0]));
-
+						
 						R_RenderPlayerView(&players[displayplayer[1]]);
-
+						
 						viewwindowy = 0;
 						activeylookup = ylookup;
 						memcpy(ylookup, ylookup1, viewheight * sizeof(ylookup[0]));
@@ -371,8 +373,7 @@ void D_Display(void)
 				default:
 					for (i = 0; i < 4; i++)
 					{
-						if (playeringame[displayplayer[i]] && players[displayplayer[i]].mo &&
-							i < cv_splitscreen.value+1)
+						if (playeringame[displayplayer[i]] && players[displayplayer[i]].mo && i < cv_splitscreen.value + 1)
 						{
 							activeylookup = ylookup4[i];
 							
@@ -380,17 +381,15 @@ void D_Display(void)
 								viewwindowx = vid.width / 2;
 							if (cv_splitscreen.value > 1)
 								viewwindowy = vid.height / 2;
-
+								
 							R_RenderPlayerView(&players[displayplayer[i]]);
-
+							
 							viewwindowx = 0;
 							viewwindowy = 0;
 						}
 						else
-							V_DrawScreenFill(
-								((i == 1 || i == 3) ? vid.width >> 1 : 0),
-								((i == 2 || i == 3) ? vid.height >> 1 : 0),
-								vid.width >> 1, vid.height >> 1, 0);
+							V_DrawScreenFill(((i == 1 || i == 3) ? vid.width >> 1 : 0),
+							                 ((i == 2 || i == 3) ? vid.height >> 1 : 0), vid.width >> 1, vid.height >> 1, 0);
 					}
 					break;
 			}
@@ -398,23 +397,23 @@ void D_Display(void)
 		
 		if (automapactive && automapoverlay)
 			AM_Drawer();
-
+			
 		HU_Drawer();
-
+		
 		ST_Drawer(redrawsbar);
 	}
-
 	// change gamma if needed
 	if (gamestate != oldgamestate && gamestate != GS_LEVEL)
 		V_SetPalette(0);
-
+		
 	menuactivestate = menuactive;
 	oldgamestate = wipegamestate = gamestate;
-
+	
 	// draw pause pic
 	if (paused && (!menuactive || netgame) && (gamestate == GS_LEVEL || gamestate == GS_INTERMISSION))
 	{
-		patch_t *patch;
+		patch_t* patch;
+		
 		if (automapactive)
 			y = 4;
 		else
@@ -422,7 +421,6 @@ void D_Display(void)
 		patch = W_CachePatchName("M_PAUSE", PU_CACHE);
 		V_DrawScaledPatch(viewwindowx + (BASEVIDWIDTH - LittleSwapInt16(patch->width)) / 2, y, 0, patch);
 	}
-
 	//added:24-01-98:vid size change is now finished if it was on...
 	vid.recalc = 0;
 	
@@ -433,7 +431,7 @@ void D_Display(void)
 		M_Drawer();
 	else
 		CONL_DrawConsole();
-	
+		
 	D_SyncNetUpdate();
 	NetUpdate();				// send out any new accumulation
 	
@@ -448,40 +446,39 @@ void D_Display(void)
 		V_DrawCharacterA(VFONT_LARGE, 0, 'F', 320 - 30, 0);
 		V_DrawCharacterA(VFONT_LARGE, 0, 'P', 320 - 20, 0);
 		V_DrawCharacterA(VFONT_LARGE, 0, 'S', 320 - 10, 0);
-
-		V_DrawCharacterA(VFONT_OEM, 0, '0' + ((l_FPSFrameFPGS / 10) % 10),		320 - 48, 15);
-		V_DrawCharacterA(VFONT_OEM, 0, '0' + (l_FPSFrameFPGS % 10),			320 - 40, 15);
-		V_DrawCharacterA(VFONT_OEM, 0, 'F',								320 - 32, 15);
-		V_DrawCharacterA(VFONT_OEM, 0, 'P',								320 - 24, 15);
-		V_DrawCharacterA(VFONT_OEM, 0, 'G',								320 - 16, 15);
-		V_DrawCharacterA(VFONT_OEM, 0, 'S',								320 - 8, 15);
-
-		V_DrawCharacterA(VFONT_OEM, 0, '0' + ((l_FPSTimePerGS / 1000) % 10),	320 - 72, 24);
-		V_DrawCharacterA(VFONT_OEM, 0, '.',								320 - 64, 24);
-		V_DrawCharacterA(VFONT_OEM, 0, '0' + ((l_FPSTimePerGS / 100) % 10),	320 - 56, 24);
-		V_DrawCharacterA(VFONT_OEM, 0, '0' + ((l_FPSTimePerGS / 10) % 10),		320 - 48, 24);
-		V_DrawCharacterA(VFONT_OEM, 0, '0' + (l_FPSTimePerGS % 10),			320 - 40, 24);
-		V_DrawCharacterA(VFONT_OEM, 0, 'S',								320 - 32, 24);
-		V_DrawCharacterA(VFONT_OEM, 0, ':',								320 - 24, 24);
-		V_DrawCharacterA(VFONT_OEM, 0, 'G',								320 - 16, 24);
-		V_DrawCharacterA(VFONT_OEM, 0, 'S',								320 - 8, 24);
+		
+		V_DrawCharacterA(VFONT_OEM, 0, '0' + ((l_FPSFrameFPGS / 10) % 10), 320 - 48, 15);
+		V_DrawCharacterA(VFONT_OEM, 0, '0' + (l_FPSFrameFPGS % 10), 320 - 40, 15);
+		V_DrawCharacterA(VFONT_OEM, 0, 'F', 320 - 32, 15);
+		V_DrawCharacterA(VFONT_OEM, 0, 'P', 320 - 24, 15);
+		V_DrawCharacterA(VFONT_OEM, 0, 'G', 320 - 16, 15);
+		V_DrawCharacterA(VFONT_OEM, 0, 'S', 320 - 8, 15);
+		
+		V_DrawCharacterA(VFONT_OEM, 0, '0' + ((l_FPSTimePerGS / 1000) % 10), 320 - 72, 24);
+		V_DrawCharacterA(VFONT_OEM, 0, '.', 320 - 64, 24);
+		V_DrawCharacterA(VFONT_OEM, 0, '0' + ((l_FPSTimePerGS / 100) % 10), 320 - 56, 24);
+		V_DrawCharacterA(VFONT_OEM, 0, '0' + ((l_FPSTimePerGS / 10) % 10), 320 - 48, 24);
+		V_DrawCharacterA(VFONT_OEM, 0, '0' + (l_FPSTimePerGS % 10), 320 - 40, 24);
+		V_DrawCharacterA(VFONT_OEM, 0, 'S', 320 - 32, 24);
+		V_DrawCharacterA(VFONT_OEM, 0, ':', 320 - 24, 24);
+		V_DrawCharacterA(VFONT_OEM, 0, 'G', 320 - 16, 24);
+		V_DrawCharacterA(VFONT_OEM, 0, 'S', 320 - 8, 24);
 	}
-	
 	//I_BeginProfile();
-	I_FinishUpdate();	// page flip or blit buffer
+	I_FinishUpdate();			// page flip or blit buffer
 	//CONS_Printf ("last frame update took %d\n", I_EndProfile());
 	
 	if (!wipe)
 		return;
-
+		
 //
 // wipe update
 //
 	if (!cv_screenslink.value)
 		return;
-
+		
 	wipe_EndScreen(0, 0, vid.width, vid.height);
-
+	
 	wipestart = I_GetTime() - 1;
 	y = wipestart + 2 * TICRATE;	// init a timeout
 	do
@@ -505,12 +502,12 @@ void D_Display(void)
 	if (!done)
 	{
 		//if (devparm)
-		//	CONS_PrintfUL(SRCSTR__D_MAIN_C__WIPENEVERDONE, L"");
+		//  CONS_PrintfUL(SRCSTR__D_MAIN_C__WIPENEVERDONE, L"");
 		
 		// Force an end
 		wipe_ScreenWipe(cv_screenslink.value - 1, 0, 0, vid.width, vid.height, -tics);
 	}
-
+	
 	ST_Invalidate();
 }
 
@@ -536,39 +533,39 @@ void D_DoomLoop(void)
 	tic_t oldentertics, entertic, realtics, rendertimeout = -1;
 	uint32_t FPSNowTime, FPSLastTime, FPSLastTic = 0;
 	int32_t MissedRenders = 0;
-
+	
 	if (demorecording)
 		G_BeginRecording();
-
+		
 	// user settings
 	COM_BufAddText("exec autoexec.cfg\n");
-
+	
 	// end of loading screen: CONS_Printf() will no more call FinishUpdate()
 	con_startup = false;
-
+	
 	CONS_Printf("I_StartupKeyboard...\n");
 	I_StartupKeyboard();
-
-/*#ifdef _WIN32
-    CONS_Printf("I_StartupMouse...\n");
-    I_DoStartupMouse();
-#endif*/
-
+	
+	/*#ifdef _WIN32
+	    CONS_Printf("I_StartupMouse...\n");
+	    I_DoStartupMouse();
+	#endif*/
+	
 	oldentertics = I_GetTime();
-
+	
 	// make sure to do a d_display to init mode _before_ load a level
 	SCR_SetMode();				// change video mode
 	SCR_Recalc();
 	
 	FPSLastTime = I_GetTimeMS();
-
+	
 	for (;;)
 	{
 		// get real tics
 		entertic = I_GetTime();
 		realtics = entertic - oldentertics;
 		oldentertics = entertic;
-
+		
 #ifdef SAVECPU_EXPERIMENTAL
 		if (realtics == 0)
 		{
@@ -576,14 +573,14 @@ void D_DoomLoop(void)
 			continue;
 		}
 #endif
-
+		
 		// GhostlyDeath <August 30, 2011> -- Mouse grabbing
 		I_DoMouseGrabbing();
-
+		
 		// frame syncronous IO operations
 		// UNUSED for the moment (18/12/98)
 		I_StartFrame();
-
+		
 		// process tics (but maybe not if realtic==0)
 		TryRunTics(realtics);
 		if (singletics || gametic > rendergametic)
@@ -592,14 +589,13 @@ void D_DoomLoop(void)
 			
 			rendergametic = gametic;
 			rendertimeout = entertic + TICRATE / 17;
-
+			
 			//added:16-01-98:consoleplayer -> displayplayer (hear sounds from viewpoint)
 			if (!l_FPSPanic)
 			{
 				S_RepositionSounds();
 				S_UpdateSounds(false);	// move positional sounds
 			}
-			
 			// Update display, next frame, with current state.
 			D_Display();
 			supdate = false;
@@ -609,7 +605,6 @@ void D_DoomLoop(void)
 			l_FPSRanFPS++;
 			D_Display();
 		}
-		
 		// Sound mixing for the buffer is snychronous.
 		I_UpdateSound();
 		
@@ -627,11 +622,9 @@ void D_DoomLoop(void)
 			l_FPSTimePerGS = FPSNowTime - FPSLastTime;
 			l_FPSFrameFPGS = TICRATE - ((l_FPSRanFPS) % TICRATE);
 			// GhostlyDeath <July 9, 2009> -- Floating point is more accurate but fixed may be faster
-			l_FPSTrueFPS = //((double)l_FPSFrameFPGS / ((double)l_FPSTimePerGS / 1000.0)) * 10.0;
-				FixedMul(
-					FixedDiv(l_FPSFrameFPGS << FRACBITS, FixedDiv(l_FPSTimePerGS << FRACBITS, 1000 << FRACBITS)),
-						10 << FRACBITS) >> FRACBITS;
-			
+			l_FPSTrueFPS =		//((double)l_FPSFrameFPGS / ((double)l_FPSTimePerGS / 1000.0)) * 10.0;
+			    FixedMul(FixedDiv(l_FPSFrameFPGS << FRACBITS, FixedDiv(l_FPSTimePerGS << FRACBITS, 1000 << FRACBITS)), 10 << FRACBITS) >> FRACBITS;
+			    
 			l_FPSRanFPS = 0;
 			FPSLastTime = FPSNowTime;
 			
@@ -640,7 +633,7 @@ void D_DoomLoop(void)
 			if (l_FPSTrueFPS > 999)
 				l_FPSTrueFPS = 999;
 			else if (l_FPSTrueFPS < 0)
-				l_FPSTrueFPS = 0;			// This can happen with fixed point numbers
+				l_FPSTrueFPS = 0;	// This can happen with fixed point numbers
 		}
 	}
 }
@@ -664,13 +657,13 @@ void D_PageTicker(void)
 //                fill the borders with a background pattern (a flat)
 //                if the patch doesn't fit all the screen.
 //
-void D_PageDrawer(char *lumpname)
+void D_PageDrawer(char* lumpname)
 {
-	uint8_t *src;
-	uint8_t *dest;
+	uint8_t* src;
+	uint8_t* dest;
 	int x;
 	int y;
-
+	
 	// software mode which uses generally lower resolutions doesn't look
 	// good when the pic is scaled, so it fills space aorund with a pattern,
 	// and the pic is only scaled to integer multiples (x2, x3...)
@@ -678,7 +671,7 @@ void D_PageDrawer(char *lumpname)
 	{
 		src = scr_borderpatch;
 		dest = screens[0];
-
+		
 		for (y = 0; y < vid.height; y++)
 		{
 			for (x = 0; x < vid.width / 64; x++)
@@ -695,7 +688,7 @@ void D_PageDrawer(char *lumpname)
 	}
 	
 	V_DrawScaledPatch(0, 0, 0, W_CachePatchName(lumpname, PU_CACHE));
-
+	
 	//added:08-01-98:if you wanna centre the pages it's here.
 	//          I think it's not so beautiful to have the pic centered,
 	//          so I leave it in the upper-left corner for now...
@@ -718,10 +711,11 @@ void D_AdvanceDemo(void)
 void D_DoAdvanceDemo(void)
 {
 	static bool_t RanPlusPlus = false;
+	
 	players[consoleplayer[0]].playerstate = PST_LIVE;	// not reborn
 	advancedemo = false;
 	gameaction = ga_nothing;
-
+	
 	if (cv_disabledemos.value)
 		demosequence = (demosequence + 1) % 3;
 	else
@@ -731,7 +725,7 @@ void D_DoAdvanceDemo(void)
 		else
 			demosequence = (demosequence + 1) % 6;
 	}
-
+	
 	if (cv_disabledemos.value)
 	{
 		switch (demosequence)
@@ -824,7 +818,7 @@ void D_DoAdvanceDemo(void)
 				pagetic = 9999999;
 				G_DeferedPlayDemo("demo3");
 				break;
-			case 6:	// THE DEFINITIVE DOOM Special Edition demo
+			case 6:			// THE DEFINITIVE DOOM Special Edition demo
 				pagetic = 9999999;
 				G_DeferedPlayDemo("demo4");
 				break;
@@ -853,7 +847,7 @@ void D_StartTitle(void)
 	// Clear Profiles
 	for (i = 0; i < MAXPLAYERS; i++)
 		players[i].profile = NULL;
-	
+		
 	MainDef.menuitems[1].status |= IT_DISABLED2;
 	
 	gameaction = ga_nothing;
@@ -870,17 +864,17 @@ void D_StartTitle(void)
 //
 // D_AddFile
 //
-void D_AddFile(char *file)
+void D_AddFile(char* file)
 {
 	int numwadfiles;
-	char *newfile;
-
+	char* newfile;
+	
 	for (numwadfiles = 0; startupwadfiles[numwadfiles]; numwadfiles++)
 		;
-
+		
 	newfile = malloc(strlen(file) + 1);
 	strcpy(newfile, file);
-
+	
 	startupwadfiles[numwadfiles] = newfile;
 }
 
@@ -892,7 +886,7 @@ void D_AddFile(char *file)
 
 // return gamemode for Doom or Ultimate Doom, use size to detect which one
 // GhostlyDeath <July 11, 2008> -- This should work for now...
-gamemode_t GetDoomVersion(char *wadfile)
+gamemode_t GetDoomVersion(char* wadfile)
 {
 	uint32_t Magic, NumLumps, IndexOffset;
 	FILE* IWAD;
@@ -901,13 +895,13 @@ gamemode_t GetDoomVersion(char *wadfile)
 	IWAD = fopen(wadfile, "rb");
 	
 	if (!IWAD)
-		return registered;	// woops!
+		return registered;		// woops!
 	else
 	{
 		fread(&Magic, sizeof(uint32_t), 1, IWAD);
 		fread(&NumLumps, sizeof(uint32_t), 1, IWAD);
 		fread(&IndexOffset, sizeof(uint32_t), 1, IWAD);
-	
+		
 		fclose(IWAD);
 	}
 	
@@ -923,8 +917,8 @@ typedef struct wadinformation_s
 	char filename[13];
 	int mission;
 	int mode;
-	gamemode_t (*check)(char*);
-	gamemission_t (*checkmission)(char*);
+	gamemode_t(*check) (char*);
+	gamemission_t(*checkmission) (char*);
 } wadinformation_t;
 
 /* GhostlyDeath <November 18, 2008> -- Rewritten and IMPROVED! (Smaller and more efficient) */
@@ -969,7 +963,7 @@ void D_AddPWADs(void)
 				{
 					// Add it
 					D_AddFile(WADPath);
-				
+					
 					// Modify Game
 					modifiedgame = true;
 				}
@@ -1009,9 +1003,9 @@ void IdentifyVersion(void)
 			if (W_FindWad(wadinfos[i].filename, NULL, WADPath, 256))
 			{
 				IWADOk = true;
-				break;	// found it so break out
+				break;			// found it so break out
 			}
-	
+			
 	/* Load the WAD if we found it */
 	if (strlen(WADPath))
 	{
@@ -1027,7 +1021,7 @@ void IdentifyVersion(void)
 			{
 				// Set
 				gamemission = wadinfos[i].mission;
-
+				
 				if (wadinfos[i].check)
 					gamemode = wadinfos[i].check(WADPath);
 				else
@@ -1035,7 +1029,7 @@ void IdentifyVersion(void)
 					
 				if (devparm)
 					CONS_Printf("IdentifyVersion: \"%s\" identified as mission %i mode %i\n", BaseName, gamemission, gamemode);
-				
+					
 				// Break
 				break;
 			}
@@ -1057,7 +1051,7 @@ void IdentifyVersion(void)
 	if (!RMDOk)
 		if (W_FindWad("remood.wad", NULL, WADPath, 256))
 			RMDOk = true;
-	
+			
 	/* Load remood.wad */
 	if (strlen(WADPath))
 	{
@@ -1067,35 +1061,37 @@ void IdentifyVersion(void)
 	
 	/* Failure messages */
 	if (!IWADOk)
-		I_Error("ReMooD was unable to find an IWAD (doom.wad, doom2.wad, etc.). To fix this problem: Place the correct IWADs where ReMooD is located; pass -iwad <exact path to IWAD>; pass -waddir <location of WADs>; set the environment variable DOOMWADPATH to locations where WADs exist.");
+		I_Error
+		("ReMooD was unable to find an IWAD (doom.wad, doom2.wad, etc.). To fix this problem: Place the correct IWADs where ReMooD is located; pass -iwad <exact path to IWAD>; pass -waddir <location of WADs>; set the environment variable DOOMWADPATH to locations where WADs exist.");
 	else if (!RMDOk)
-		I_Error("ReMooD was unable to find remood.wad. To fix this problem: Place remood.wad where ReMooD is located; pass -file <exact path to remood.wad>; pass -waddir <location of remood.wad>; set the environment variable DOOMWADPATH to a location where remood.wad exist.");
+		I_Error
+		("ReMooD was unable to find remood.wad. To fix this problem: Place remood.wad where ReMooD is located; pass -file <exact path to remood.wad>; pass -waddir <location of remood.wad>; set the environment variable DOOMWADPATH to a location where remood.wad exist.");
 }
 
 //added:11-01-98:
 //
 //  Center the title string, then add the date and time of compilation.
 //
-void D_MakeTitleString(char *s)
+void D_MakeTitleString(char* s)
 {
 	char temp[82];
-	char *t;
-	char *u;
+	char* t;
+	char* u;
 	int i;
-
+	
 	for (i = 0, t = temp; i < 82; i++)
 		*t++ = ' ';
-
+		
 	for (t = temp + (80 - strlen(s)) / 2, u = s; *u != '\0';)
 		*t++ = *u++;
-
+		
 	u = __DATE__;
 	for (t = temp + 1, i = 11; i--;)
 		*t++ = *u++;
 	u = __TIME__;
 	for (t = temp + 71, i = 8; i--;)
 		*t++ = *u++;
-
+		
 	temp[80] = '\0';
 	strcpy(s, temp);
 }
@@ -1104,16 +1100,16 @@ void D_CheckWadVersion()
 {
 	int wadversion = 0;
 	WadIndex_t lump;
-	char *ver = NULL;
-	char *verx = NULL;
-
+	char* ver = NULL;
+	char* verx = NULL;
+	
 	// more to do - Demyx, GhostlyDeath -- fixed
-
+	
 	lump = W_CheckNumForNameFirst("version");
 	if (lump == INVALIDLUMP)
 	{
 		I_Error
-			("VERSION lump not found! Be sure remood.wad can be accessed or use -file to load it manually.\nYou can also use -nocheckwadversion to ignore this error but it IS NOT recommended!\n");
+		("VERSION lump not found! Be sure remood.wad can be accessed or use -file to load it manually.\nYou can also use -nocheckwadversion to ignore this error but it IS NOT recommended!\n");
 		return;
 	}
 }
@@ -1130,7 +1126,7 @@ void D_DoomMain(void)
 	char file[256];
 	char legacy[82];			//added:18-02-98: legacy title banner
 	char title[82];				//added:11-01-98:moved, doesn't need to be global
-
+	
 	int startepisode;
 	int startmap;
 	bool_t autostart;
@@ -1148,25 +1144,25 @@ void D_DoomMain(void)
 		sprintf(player_names[i], "Player %i", i + 1);
 		sprintf(team_names[i], "Team %i", i + 1);
 	}
-
+	
 	if (M_CheckParm("-novideo"))
 		novideo = true;
-	
+		
 	//added:18-02-98:keep error messages until the final flush(stderr)
 	//if (setvbuf(stderr, NULL, _IOFBF, 1000))
-	//	CONS_Printf("setvbuf didnt work\n");
-
+	//  CONS_Printf("setvbuf didnt work\n");
+	
 	// get parameters from a response file (eg: doom3 @parms.txt)
 	M_FindResponseFile();
-
+	
 	// identify the main IWAD file to use
 	IdentifyVersion();
-
-	//setbuf(stdout, NULL);		// non-buffered output
+	
+	//setbuf(stdout, NULL);     // non-buffered output
 	modifiedgame = false;
-
+	
 	nomonsters = M_CheckParm("-nomonsters");
-
+	
 	//added:11-01-98:removed the repeated spaces in title strings,
 	//               because GCC doesn't expand the TABS from my text editor.
 	//  Now the string is centered in a larger one just before output,
@@ -1186,10 +1182,10 @@ void D_DoomMain(void)
 			switch (gamemission)
 			{
 				case pack_plut:
-					strcpy (title,"DOOM 2: Plutonia Experiment");
+					strcpy(title, "DOOM 2: Plutonia Experiment");
 					break;
 				case pack_tnt:
-					strcpy (title,"DOOM 2: TNT - Evilution");
+					strcpy(title, "DOOM 2: TNT - Evilution");
 					break;
 				default:
 					strcpy(title, "DOOM 2: Hell on Earth");
@@ -1200,23 +1196,19 @@ void D_DoomMain(void)
 			strcpy(title, "Public DOOM");
 			break;
 	}
-
+	
 	//added:11-01-98:center the string, add compilation time and date.
-	sprintf(legacy, "ReMooD v%i.%i%c \"%s\"",
-		REMOOD_MAJORVERSION,
-		REMOOD_MINORVERSION,
-		REMOOD_RELEASEVERSION,
-		REMOOD_VERSIONCODESTRING);
+	sprintf(legacy, "ReMooD v%i.%i%c \"%s\"", REMOOD_MAJORVERSION, REMOOD_MINORVERSION, REMOOD_RELEASEVERSION, REMOOD_VERSIONCODESTRING);
 	D_MakeTitleString(legacy);
-
+	
 	CONS_Printf("%s\n%s\n", legacy, title);
-
+	
 	if (devparm)
 		CONS_Printf(D_DEVSTR);
-
+		
 	// default savegame
 	strcpy(savegamename, text[NORM_SAVEI_NUM]);
-
+	
 	// add any files specified on the command line with -file wadfile
 	// to the wad list
 	//
@@ -1226,7 +1218,7 @@ void D_DoomMain(void)
 	if (p)
 	{
 		myargv[p][4] = 'p';		// big hack, change to -warp
-
+		
 		// Map name handling.
 		switch (gamemode)
 		{
@@ -1236,7 +1228,7 @@ void D_DoomMain(void)
 				sprintf(file, "~" DEVMAPS "E%cM%c.wad", myargv[p + 1][0], myargv[p + 2][0]);
 				CONS_Printf("Warping to Episode %s, Map %s.\n", myargv[p + 1], myargv[p + 2]);
 				break;
-
+				
 			case commercial:
 			default:
 				p = atoi(myargv[p + 1]);
@@ -1248,14 +1240,13 @@ void D_DoomMain(void)
 		}
 		D_AddFile(file);
 	}
-
+	
 	if (M_CheckParm("-file"))
 	{
 		// the parms after p are wadfile/lump names,
 		// until end of parms or another - preceded parm
 		D_AddPWADs();
 	}
-
 	// load dehacked file
 	p = M_CheckParm("-dehacked");
 	if (!p)
@@ -1265,20 +1256,19 @@ void D_DoomMain(void)
 		while (M_IsNextParm())
 			D_AddFile(M_GetNextParm());
 	}
-
 	// get skill / episode / map from parms
 	gameskill = sk_medium;
 	startepisode = 1;
 	startmap = 1;
 	autostart = false;
-
+	
 	p = M_CheckParm("-skill");
 	if (p && p < myargc - 1)
 	{
 		gameskill = myargv[p + 1][0] - '1';
 		autostart = true;
 	}
-
+	
 	p = M_CheckParm("-episode");
 	if (p && p < myargc - 1)
 	{
@@ -1286,7 +1276,7 @@ void D_DoomMain(void)
 		startmap = 1;
 		autostart = true;
 	}
-
+	
 	p = M_CheckParm("-warp");
 	if (p && p < myargc - 1)
 	{
@@ -1302,45 +1292,46 @@ void D_DoomMain(void)
 		}
 		autostart = true;
 	}
-
+	
 	CONS_Printf(text[Z_INIT_NUM]);
 	Z_Init();
 	CONL_Init(1024, 1024);
 	
 	G_InitKeys();
-
+	
 	// adapt tables to legacy needs
 	P_PatchInfoTables();
-
+	
 	if (gamemode == chexquest1)
 		Chex1PatchEngine();
-
+		
 	CONS_Printf(text[W_INIT_NUM]);
 	// load wad, including the main wad file
 	if (W_InitMultipleFiles(startupwadfiles) == 0)
 		I_Error("A WAD file was not found\n");
-
+		
 	if (!M_CheckParm("-nocheckwadversion"))
 		D_CheckWadVersion();
-	
+		
 	// GhostlyDeath <October 24, 2010> -- Load WAD Data
 	W_LoadData();
-
+	
 	//Hurdler: someone wants to keep those lines?
 	//BP: i agree with you why should be registered to play someone wads ?
 	//    unfotunately most addistional wad have more texture and monsters
 	//    that sharware wad do, so there will miss resourse :(
-
+	
 	//added:28-02-98: check for Ultimate doom.
 	//if ( (gamemode==registered) && (W_CheckNumForName("E4M1") > 0) )
 	//    gamemode = retail;
-
+	
 	// Check for -file in shareware
 	if (modifiedgame)
 	{
 		// These are the lumps that will be checked in IWAD,
 		// if any one is not present, execution will be aborted.
-		char name[23][8] = {
+		char name[23][8] =
+		{
 			"e2m1", "e2m2", "e2m3", "e2m4", "e2m5", "e2m6", "e2m7", "e2m8",
 			"e2m9",
 			"e3m1", "e3m3", "e3m3", "e3m4", "e3m5", "e3m6", "e3m7", "e3m8",
@@ -1348,10 +1339,10 @@ void D_DoomMain(void)
 			"dphoof", "bfgga0", "heada1", "cybra1", "spida1d1"
 		};
 		int i;
-
+		
 		if (gamemode == shareware)
 			CONS_Printf("\nYou shouldn't use -file with the shareware version. Register!");
-
+			
 		// Check for fake IWAD with right name,
 		// but w/o all the lumps of the registered version.
 		if (gamemode == registered)
@@ -1359,11 +1350,10 @@ void D_DoomMain(void)
 				if (W_CheckNumForName(name[i]) == INVALIDLUMP)
 					CONS_Printf("\nThis is not the registered version.");
 	}
-
 	// If additonal PWAD files are used, print modified banner
 	if (modifiedgame)
 		CONS_Printf(text[MODIFIED_NUM]);
-
+		
 	// Check and print which version is executed.
 	switch (gamemode)
 	{
@@ -1381,45 +1371,45 @@ void D_DoomMain(void)
 			break;
 	}
 	cht_Init();
-
+	
 	//---------------------------------------------------- READY SCREEN
 	//printf("\nI_StartupComm...");
-
+	
 	CONS_Printf("I_StartupTimer...\n");
 	I_StartupTimer();
 	
 	CONS_Printf("I_InitNetwork...\n");
 	I_InitNetwork();
-
+	
 	// now initted automatically by use_mouse var code
 	//CONS_Printf("I_StartupMouse...\n");
 	//I_StartupMouse ();
-
+	
 	//CONS_Printf ("I_StartupKeyboard...\n");
 	//I_StartupKeyboard (); // FIXME: this is a dummy, we can remove it!
-
+	
 	// now initialised automatically by use_joystick var code
 	//CONS_Printf (text[I_INIT_NUM]);
 	//I_InitJoystick ();
-
+	
 	// we need to check for dedicated before initialization of some subsystems
 	dedicated = M_CheckParm("-dedicated") != 0;
-
+	
 	CONS_Printf("I_StartupGraphics...\n");
 	I_StartupGraphics();
-
+	
 	//--------------------------------------------------------- CONSOLE
 	// setup loading screen
 	SCR_Startup();
 	SCR_ReclassBuffers();
-
+	
 	// we need the font of the console
 	CONS_Printf(text[HU_INIT_NUM]);
 	HU_Init();
-
+	
 	COM_Init();
 	CON_Init();
-
+	
 	D_RegisterClientCommands();	//Hurdler: be sure that this is called before D_CheckNetGame
 	D_AddDeathmatchCommands();
 	ST_AddCommands();
@@ -1432,20 +1422,20 @@ void D_DoomMain(void)
 	
 	CONS_Printf(text[M_INIT_NUM]);
 	M_Init();
-
+	
 	//Fab:29-04-98: do some dirty chatmacros strings initialisation
 	HU_HackChatmacros();
 	//--------------------------------------------------------- CONFIG.CFG
 	M_FirstLoadConfig();		// WARNING : this do a "COM_BufExecute()"
 	
 	VID_PrepareModeList();		// Regenerate Modelist according to cv_fullscreen
-
+	
 	// set user default mode or mode set at cmdline
 	SCR_CheckDefaultMode();
-
+	
 	wipegamestate = gamestate;
 	//------------------------------------------------ COMMAND LINE PARAMS
-
+	
 	// Initialize CD-Audio
 	if (!M_CheckParm("-nocd"))
 		I_InitCD();
@@ -1465,30 +1455,30 @@ void D_DoomMain(void)
 		COM_BufAddText("fastmonsters 1\n");
 	if (M_CheckParm("-predicting"))
 		COM_BufAddText("predictingmonsters 1\n");	//added by AC
-
+		
 	if (M_CheckParm("-timer"))
 	{
-		char *s = M_GetNextParm();
+		char* s = M_GetNextParm();
+		
 		COM_BufAddText(va("timelimit %s\n", s));
 	}
-
+	
 	if (M_CheckParm("-avg"))
 	{
 		COM_BufAddText("timelimit 20\n");
 		CONS_Printf(text[AUSTIN_NUM]);
 	}
-
 	// turbo option, is not meant to be saved in config, still
 	// supported at cmd-line for compatibility
 	if (M_CheckParm("-turbo") && M_IsNextParm())
 		COM_BufAddText(va("turbo %s\n", M_GetNextParm()));
-
+		
 	// push all "+" parameter at the command buffer
 	M_PushSpecialParameters();
-
+	
 	CONS_Printf(text[R_INIT_NUM]);
 	R_Init();
-
+	
 	//
 	// setting up sound
 	//
@@ -1497,20 +1487,20 @@ void D_DoomMain(void)
 	nomusic = M_CheckParm("-nomusic");	// WARNING: DOS version initmusic in I_StartupSound
 	digmusic = M_CheckParm("-digmusic");	// SSNTails 12-13-2002
 	S_Init(cv_soundvolume.value, cv_musicvolume.value);
-
+	
 	CONS_Printf(text[ST_INIT_NUM]);
 	ST_Init();
-
+	
 	////////////////////////////////
 	// SoM: Init FraggleScript
 	////////////////////////////////
 	T_Init();
-
+	
 	// init all NETWORK
 	CONS_Printf(text[D_CHECKNET_NUM]);
 	if (D_CheckNetGame())
 		autostart = true;
-
+		
 	// check for a driver that wants intermission stats
 	p = M_CheckParm("-statcopy");
 	if (p && p < myargc - 1)
@@ -1519,12 +1509,11 @@ void D_DoomMain(void)
 		/*
 		   // for statistics driver
 		   extern  void*   statcopy;
-
+		
 		   statcopy = (void*)atoi(myargv[p+1]);
 		   CONS_Printf (text[STATREG_NUM]);
 		 */
 	}
-
 	// start the apropriate game based on parms
 	p = M_CheckParm("-record");
 	if (p && p < myargc - 1)
@@ -1532,7 +1521,6 @@ void D_DoomMain(void)
 		G_RecordDemo(myargv[p + 1]);
 		autostart = true;
 	}
-
 	// demo doesn't need anymore to be added with D_AddFile()
 	p = M_CheckParm("-playdemo");
 	if (!p)
@@ -1540,8 +1528,9 @@ void D_DoomMain(void)
 	if (p && M_IsNextParm())
 	{
 		char tmp[MAX_WADPATH];
+		
 		// add .lmp to identify the EXTERNAL demo file
-
+		
 		strcpy(tmp, M_GetNextParm());
 		// get spaced filename or directory
 		while (M_IsNextParm())
@@ -1553,9 +1542,9 @@ void D_DoomMain(void)
 		// GhostlyDeath <July 6, 20008> -- Enable playback of internal demos again
 		if (W_CheckNumForName(tmp) == INVALIDLUMP)
 			FIL_DefaultExtension(tmp, ".lmp");
-
+			
 		CONS_Printf("Playing demo %s.\n", tmp);
-
+		
 		if ((p = M_CheckParm("-playdemo")))
 		{
 			singledemo = true;	// quit after one demo
@@ -1564,10 +1553,10 @@ void D_DoomMain(void)
 		else
 			G_TimeDemo(tmp);
 		gamestate = wipegamestate = GS_NULL;
-
+		
 		return;
 	}
-
+	
 	p = M_CheckParm("-loadgame");
 	if (p && p < myargc - 1)
 	{
@@ -1584,7 +1573,6 @@ void D_DoomMain(void)
 		}
 		else
 			D_StartTitle();		// start up intro loop
-
+			
 	}
 }
-

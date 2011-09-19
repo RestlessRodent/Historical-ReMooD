@@ -35,14 +35,14 @@
 /* System */
 // DJGPP's Allegro explodes if this isn't included first
 #if defined(__DJGPP__)
-	#include <stdint.h>
+#include <stdint.h>
 #endif
 
 #include <allegro.h>
 
 // Include winalleg on Windows since it conflicts!
 #if defined(_WIN32)
-	#include <winalleg.h>
+#include <winalleg.h>
 #endif
 
 /* Local */
@@ -64,15 +64,15 @@
 typedef struct I_AllegroMIDILocal_s
 {
 	int HandleSet;
-	MIDI* CurrentMIDI;								// Pointer to current song
-	int CurrentHandle;								// Current song being played
+	MIDI* CurrentMIDI;			// Pointer to current song
+	int CurrentHandle;			// Current song being played
 } I_AllegroMIDILocal_t;
 
 /*********************
 *** ALLEGRO DRIVER ***
 *********************/
 
-extern bool_t l_AllegroSDMDInitted;				// Was install_sound called?
+extern bool_t l_AllegroSDMDInitted;	// Was install_sound called?
 
 /* I_AllegroMD_Init() -- Initialize music */
 static bool_t I_AllegroMD_Init(struct I_MusicDriver_s* const a_Driver)
@@ -82,7 +82,7 @@ static bool_t I_AllegroMD_Init(struct I_MusicDriver_s* const a_Driver)
 	/* Check */
 	if (!a_Driver)
 		return false;
-	
+		
 	/* Initialize sound */
 	if (!l_AllegroSDMDInitted)
 	{
@@ -93,7 +93,7 @@ static bool_t I_AllegroMD_Init(struct I_MusicDriver_s* const a_Driver)
 		// Attempt detection of Music Driver
 		if (detect_midi_driver(MIDI_AUTODETECT) == 0)
 			return false;
-		
+			
 		// Install Sound
 		if (install_sound(DIGI_AUTODETECT, MIDI_AUTODETECT, NULL) == -1)
 		{
@@ -120,7 +120,7 @@ void I_AllegroMD_Success(struct I_MusicDriver_s* const a_Driver)
 	/* Check */
 	if (!a_Driver)
 		return;
-	
+		
 	/* Allocate local data */
 	a_Driver->Size = sizeof(I_AllegroMIDILocal_t);
 	a_Driver->Data = Z_Malloc(a_Driver->Size, PU_STATIC, NULL);
@@ -134,7 +134,7 @@ static void I_AllegroMD_Stop(struct I_MusicDriver_s* const a_Driver, const int a
 	/* Check */
 	if (!a_Driver || !a_Handle)
 		return;
-	
+		
 	/* Get Local */
 	Local = a_Driver->Data;
 	
@@ -151,7 +151,7 @@ static int I_AllegroMD_Play(struct I_MusicDriver_s* const a_Driver, const void* 
 	/* Check */
 	if (!a_Driver || !a_Data)
 		return;
-	
+		
 	/* Get Local */
 	Local = a_Driver->Data;
 	
@@ -169,7 +169,6 @@ static int I_AllegroMD_Play(struct I_MusicDriver_s* const a_Driver, const void* 
 		CONS_Printf("I_AllegroMD_Play: Failed to load MIDI.\n");
 		return 0;
 	}
-	
 	// Boost handle
 	Local->CurrentHandle = ++Local->HandleSet;
 	
@@ -185,7 +184,7 @@ void I_AllegroMD_Volume(struct I_MusicDriver_s* const a_Driver, const int a_Hand
 	/* Check */
 	if (!a_Driver)
 		return;
-	
+		
 	/* Set mixer volume */
 	// Change MIDI volume
 	set_volume(-1, Vol);
@@ -197,7 +196,7 @@ void I_AllegroMD_RawMIDI(struct I_MusicDriver_s* const a_Driver, const uint32_t 
 	/* Check */
 	if (!a_Driver || !a_BitLength)
 		return;
-	
+		
 	/* Use Allegro MIDI out */
 	midi_out(&a_Msg, (a_BitLength < sizeof(a_Msg) ? a_BitLength : sizeof(a_Msg)));
 }
@@ -237,8 +236,7 @@ bool_t I_MusicDriverInit(void)
 	/* Add Allegro MIDI Driver */
 	if (!I_AddMusicDriver(&l_AllegroDriver))
 		CONS_Printf("I_MusicDriverInit: Failed to add Allegro Driver\n");
-	
+		
 	/* Success */
 	return true;
 }
-

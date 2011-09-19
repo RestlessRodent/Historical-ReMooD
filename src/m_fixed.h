@@ -52,6 +52,7 @@
 #define FRACUNIT (1 << _FIXED_FRACBITS)
 
 typedef int32_t fixed_t;
+
 #define FIXED_TO_FLOAT(x) (((float)(x)) / 65536.0)
 
 //#define FIXEDBREAKVANILLA
@@ -65,13 +66,12 @@ static fixed_t __REMOOD_FORCEINLINE __REMOOD_UNUSED FixedRound(const fixed_t a)
 			return (a & _FIXED_INT) - 1;
 		else
 			return (a & _FIXED_INT);
-	
+			
 	/* Positive */
+	else if (a & _FIXED_ROUND)
+		return (a & _FIXED_INT) + 1;
 	else
-		if (a & _FIXED_ROUND)
-			return (a & _FIXED_INT) + 1;
-		else
-			return (a & _FIXED_INT);
+		return (a & _FIXED_INT);
 }
 
 /* FixedMul() -- Multiply two fixed numbers */
@@ -79,7 +79,7 @@ static fixed_t __REMOOD_FORCEINLINE __REMOOD_UNUSED FixedMul(fixed_t a, fixed_t 
 {
 #if defined(__x86_64__) || defined(__amd64__) || defined(_M_X64)
 	return ((int64_t)a * (int64_t)b) >> _FIXED_FRACBITS;
-
+	
 #else
 	// Copyright (C) 2010 GhostlyDeath (ghostlydeath@gmail.com / ghostlydeath@remood.org)
 	register uint32_t w, x, y, z;
@@ -112,7 +112,7 @@ static fixed_t __REMOOD_FORCEINLINE __REMOOD_UNUSED FixedMul(fixed_t a, fixed_t 
 	x = Ai * Bf;
 	y = Af * Bi;
 	z = (Ai * Bi) << _FIXED_FRACBITS;
-
+	
 	// Return result
 	if ((a ^ b) & _FIXED_SIGN)	// Only negative result if pos/neg
 		return -((int32_t)(w + x + y + z));
@@ -130,7 +130,7 @@ static fixed_t __REMOOD_FORCEINLINE __REMOOD_UNUSED FixedInv(const fixed_t a)
 	// These comparisons may be cheaper!
 	if (a == _FIXED_ONE)
 		return _FIXED_ONE;
-	
+		
 	/* Long math */
 	else
 	{
@@ -139,10 +139,10 @@ static fixed_t __REMOOD_FORCEINLINE __REMOOD_UNUSED FixedInv(const fixed_t a)
 			A = -a;
 		else
 			A = a;
-		
+			
 #if 0
 		// 16.16 (x/65536 .. 0xFFFF) -> 15.15 (x/32768 .. 0x7FFF)
-			// 32,768 = 0x8000 (16) = 0x4000 (15)
+		// 32,768 = 0x8000 (16) = 0x4000 (15)
 		Res = 0x1000U >> 1;
 		SDiv = (A >> 1) & 0x7FFFFFFFU;
 		
@@ -171,11 +171,11 @@ static fixed_t __REMOOD_FORCEINLINE __REMOOD_UNUSED FixedInv(const fixed_t a)
 		
 		// If a was originally negative, return negative result
 		if (a & _FIXED_SIGN)
-			return -((fixed_t)Res);
-		
+			return -((fixed_t) Res);
+			
 		// Otherwise it's positive
 		else
-			return (fixed_t)Res;
+			return (fixed_t) Res;
 	}
 }
 

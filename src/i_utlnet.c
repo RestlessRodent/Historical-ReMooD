@@ -49,4 +49,3 @@ bool_t I_InitNetwork(void)
 	/* Success! */
 	return true;
 }
-

@@ -48,7 +48,7 @@
 
 // In i_util.h and g_input.h
 #ifndef JOYBUTTONS
-	#define JOYBUTTONS      32
+#define JOYBUTTONS      32
 #endif
 
 //
@@ -63,6 +63,7 @@
 
 typedef enum
 {
+
 	/*** World ***/
 	KEY_WORLDSTART = NUMKEYS,
 	KEY_WORLDEND = KEY_WORLDSTART + 96,
@@ -82,15 +83,15 @@ typedef enum
 	
 	// Mouse 3
 	/*KEY_MOUSE3B1,
-	KEY_MOUSE3DBL1 = KEY_MOUSE3B1 + MOUSEBUTTONS,
-	KEY_MOUSE3WHEELUP = KEY_MOUSE3DBL1 + MOUSEBUTTONS,
-	KEY_MOUSE3WHEELDOWN,
+	   KEY_MOUSE3DBL1 = KEY_MOUSE3B1 + MOUSEBUTTONS,
+	   KEY_MOUSE3WHEELUP = KEY_MOUSE3DBL1 + MOUSEBUTTONS,
+	   KEY_MOUSE3WHEELDOWN,
 	
-	// Mouse 4
-	KEY_MOUSE4B1,
-	KEY_MOUSE4DBL1 = KEY_MOUSE4B1 + MOUSEBUTTONS,
-	KEY_MOUSE4WHEELUP = KEY_MOUSE4DBL1 + MOUSEBUTTONS,
-	KEY_MOUSE4WHEELDOWN,*/
+	   // Mouse 4
+	   KEY_MOUSE4B1,
+	   KEY_MOUSE4DBL1 = KEY_MOUSE4B1 + MOUSEBUTTONS,
+	   KEY_MOUSE4WHEELUP = KEY_MOUSE4DBL1 + MOUSEBUTTONS,
+	   KEY_MOUSE4WHEELDOWN, */
 	
 	/*** Joystick ***/
 	// Joy 1
@@ -166,7 +167,7 @@ extern consvar_t cv_m_xaxismode;
 extern consvar_t cv_m_yaxismode;
 extern consvar_t cv_m_xaxissecmode;
 extern consvar_t cv_m_yaxissecmode;
-extern consvar_t cv_legacymouse;		// DEPRECATED
+extern consvar_t cv_legacymouse;	// DEPRECATED
 extern consvar_t cv_m_legacymouse;
 extern consvar_t cv_m_classicalt;
 
@@ -197,18 +198,18 @@ extern int gamecontrol[MAXSPLITSCREENPLAYERS][num_gamecontrols][2];
 // check a gamecontrol being active or not
 
 // remaps the input event to a game control.
-void G_MapEventsToControls(event_t * ev);
+void G_MapEventsToControls(event_t* ev);
 
 // returns the name of a key
-char *G_KeynumToString(int keynum);
-int G_KeyStringtoNum(char *keystr);
+char* G_KeynumToString(int keynum);
+int G_KeyStringtoNum(char* keystr);
 
 // detach any keys associated to the given game control
 void G_ClearControlKeys(int (*setupcontrols)[2], int control);
 void Command_Setcontrol_f(void);
 void Command_Setcontrol2_f(void);
 void G_Controldefault(void);
-void G_SaveKeySetting(FILE * f);
+void G_SaveKeySetting(FILE* f);
 void G_CheckDoubleUsage(int keynum);
 
 void G_InitKeys(void);
@@ -217,27 +218,26 @@ extern bool_t shiftdown;
 
 /* GhostlyDeath <December 11, 2008> -- Joysticks */
 // For Axes Binding:
-//	a?#, a = axis, ? = axis usage, # = bound player
-//	If there are 2 Axises (X and Y for example)
-//	Then there are 4 possible values for a?#
-//	Axis 0 = 0, Axis 0 (Inverted) = 2
-//	Axis 1 = 1,	Axis 1 (Inverted) = 3
+//  a?#, a = axis, ? = axis usage, # = bound player
+//  If there are 2 Axises (X and Y for example)
+//  Then there are 4 possible values for a?#
+//  Axis 0 = 0, Axis 0 (Inverted) = 2
+//  Axis 1 = 1, Axis 1 (Inverted) = 3
 
-extern consvar_t cv_joy_enable;		// Enable Joysticks
+extern consvar_t cv_joy_enable;	// Enable Joysticks
 
 /*** Player 1 ***/
 // Basic
-extern consvar_t cv_joy_bind1;		// Joystick ID bound to Player 1
+extern consvar_t cv_joy_bind1;	// Joystick ID bound to Player 1
 
 // Looking
-extern consvar_t cv_joy_xlook1;		// X Axis Binding
-extern consvar_t cv_joy_ylook1;		// Y Axis Binding
-extern consvar_t cv_joy_zlook1;		// Z Axis Binding
+extern consvar_t cv_joy_xlook1;	// X Axis Binding
+extern consvar_t cv_joy_ylook1;	// Y Axis Binding
+extern consvar_t cv_joy_zlook1;	// Z Axis Binding
 
 // Moving
-extern consvar_t cv_joy_xmove1;		// X Axis Movement (Strafing)
-extern consvar_t cv_joy_ymove1;		// Y Axis Movement (Forward/Backwards)
-extern consvar_t cv_joy_zmove1;		// Z Axis Movement (Swimming/Flying)
+extern consvar_t cv_joy_xmove1;	// X Axis Movement (Strafing)
+extern consvar_t cv_joy_ymove1;	// Y Axis Movement (Forward/Backwards)
+extern consvar_t cv_joy_zmove1;	// Z Axis Movement (Swimming/Flying)
 
-#endif /* __G_INPUT_H__ */
-
+#endif							/* __G_INPUT_H__ */

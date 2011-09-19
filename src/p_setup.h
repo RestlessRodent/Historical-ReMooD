@@ -38,11 +38,13 @@
 
 // Player spawn spots for deathmatch.
 #define MAX_DM_STARTS   64
-extern mapthing_t *deathmatchstarts[MAX_DM_STARTS];
+extern mapthing_t* deathmatchstarts[MAX_DM_STARTS];
 extern int numdmstarts;
+
 //extern  mapthing_t**    deathmatch_p;
 
 extern int lastloadedmaplumpnum;	// for comparative savegame
+
 //
 // MAP used flats lookup table
 //
@@ -50,7 +52,7 @@ typedef struct
 {
 	char name[8];				// resource name from wad
 	int lumpnum;				// lump number of the flat
-
+	
 	// for flat animation
 	int baselumpnum;
 	int animseq;				// start pos. in the anim sequence
@@ -59,22 +61,22 @@ typedef struct
 } levelflat_t;
 
 extern int numlevelflats;
-extern levelflat_t *levelflats;
-int P_AddLevelFlat(char *flatname, levelflat_t * levelflat);
-char *P_FlatNameForNum(int num);
+extern levelflat_t* levelflats;
+int P_AddLevelFlat(char* flatname, levelflat_t* levelflat);
+char* P_FlatNameForNum(int num);
 
 extern int nummapthings;
-extern mapthing_t *mapthings;
+extern mapthing_t* mapthings;
 
 // NOT called by W_Ticker. Fixme.
-bool_t P_SetupLevel(int episode, int map, skill_t skill, char *mapname);
+bool_t P_SetupLevel(int episode, int map, skill_t skill, char* mapname);
 
-bool_t P_AddWadFile(char *wadfilename, char **firstmapname);
+bool_t P_AddWadFile(char* wadfilename, char** firstmapname);
 
-subsector_t *R_PointInSubsector(fixed_t x, fixed_t y);
+subsector_t* R_PointInSubsector(fixed_t x, fixed_t y);
 
 extern bool_t newlevel;
 extern bool_t doom1level;
-extern char *levelmapname;
+extern char* levelmapname;
 
 #endif

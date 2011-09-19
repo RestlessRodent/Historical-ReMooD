@@ -36,27 +36,36 @@
 #include "p_local.h"
 #include "g_game.h"
 
-consvar_t cv_dc_allowjump =				{ "dc_allowjump", "1", CV_HIDEN, CV_YesNo };
-consvar_t cv_dc_allowautoaim =			{ "dc_allowautoaim", "1", CV_HIDEN, CV_YesNo };
-consvar_t cv_dc_forceautoaim =			{ "dc_forceautoaim", "1", CV_HIDEN, CV_YesNo };
-consvar_t cv_dc_allowrocketjump =		{ "dc_allowrocketjump", "0", CV_HIDEN, CV_YesNo };
-consvar_t cv_dc_classicblood =			{ "dc_classicblood", "0", CV_HIDEN, CV_YesNo};
-consvar_t cv_dc_predictingmonsters =	{ "dc_predictingmonsters", "0", CV_HIDEN, CV_OnOff };
-consvar_t cv_dc_classicrocketblast = 	{ "dc_classicrocketblast", "0", CV_HIDEN, CV_YesNo };
-consvar_t cv_dc_classicmeleerange =		{ "dc_classicmeleerange", "0", CV_HIDEN, CV_YesNo };
-consvar_t cv_dc_classicmonsterlogic =	{ "dc_classicmonsterlogic", "0", CV_HIDEN, CV_YesNo };
+consvar_t cv_dc_allowjump = { "dc_allowjump", "1", CV_HIDEN, CV_YesNo };
+consvar_t cv_dc_allowautoaim = { "dc_allowautoaim", "1", CV_HIDEN, CV_YesNo };
+consvar_t cv_dc_forceautoaim = { "dc_forceautoaim", "1", CV_HIDEN, CV_YesNo };
+consvar_t cv_dc_allowrocketjump = { "dc_allowrocketjump", "0", CV_HIDEN, CV_YesNo };
+consvar_t cv_dc_classicblood = { "dc_classicblood", "0", CV_HIDEN, CV_YesNo };
+consvar_t cv_dc_predictingmonsters = { "dc_predictingmonsters", "0", CV_HIDEN, CV_OnOff };
+consvar_t cv_dc_classicrocketblast = { "dc_classicrocketblast", "0", CV_HIDEN, CV_YesNo };
+consvar_t cv_dc_classicmeleerange = { "dc_classicmeleerange", "0", CV_HIDEN, CV_YesNo };
+consvar_t cv_dc_classicmonsterlogic = { "dc_classicmonsterlogic", "0", CV_HIDEN, CV_YesNo };
 
 consvar_t* DemoPair[][2] =
 {
-	{&cv_allowjump,					&cv_dc_allowjump},
-	{&cv_allowautoaim,				&cv_dc_allowautoaim},
-	{&cv_forceautoaim,				&cv_dc_forceautoaim},
-	{&cv_allowrocketjump,			&cv_dc_allowrocketjump},
-	{&cv_classicblood,				&cv_dc_classicblood},
-	{&cv_predictingmonsters,		&cv_dc_predictingmonsters},
-	{&cv_classicrocketblast,		&cv_dc_classicrocketblast},
-	{&cv_classicmeleerange,			&cv_dc_classicmeleerange},
-	{&cv_classicmonsterlogic,		&cv_dc_classicmonsterlogic},
+	{&cv_allowjump, &cv_dc_allowjump}
+	,
+	{&cv_allowautoaim, &cv_dc_allowautoaim}
+	,
+	{&cv_forceautoaim, &cv_dc_forceautoaim}
+	,
+	{&cv_allowrocketjump, &cv_dc_allowrocketjump}
+	,
+	{&cv_classicblood, &cv_dc_classicblood}
+	,
+	{&cv_predictingmonsters, &cv_dc_predictingmonsters}
+	,
+	{&cv_classicrocketblast, &cv_dc_classicrocketblast}
+	,
+	{&cv_classicmeleerange, &cv_dc_classicmeleerange}
+	,
+	{&cv_classicmonsterlogic, &cv_dc_classicmonsterlogic}
+	,
 };
 
 void DC_RegisterDemoCompVars(void)
@@ -80,7 +89,7 @@ void DC_SetMenuGameOptions(int SetDemo)
 		SetDemo = 1;
 	else if (SetDemo < 0)
 		SetDemo = 0;
-	
+		
 	for (i = 0; i < GameOptionsDef.numitems; i++)
 		if (GameOptionsDef.menuitems[i].status & IT_CVAR)
 			for (j = 0; j < sizeof(DemoPair) / sizeof(consvar_t***); j++)
@@ -119,4 +128,3 @@ void DC_SetDemoOptions(int VerToSet)
 		CV_Set(&cv_dc_classicrocketblast, "0");
 	}
 }
-

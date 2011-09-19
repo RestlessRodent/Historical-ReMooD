@@ -61,5 +61,4 @@ typedef enum D_InfoLoadType_e
 
 void D_WXBuildInfos(const D_InfoLoadType_t a_Type, WX_WADFile_t* const a_WAD);
 
-#endif /* __D_INFO_H__ */
-
+#endif							/* __D_INFO_H__ */

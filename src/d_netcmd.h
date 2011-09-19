@@ -47,6 +47,7 @@ extern consvar_t cv_controlperkey;
 // splitscreen with seconde mouse
 extern consvar_t cv_mouse2port;
 extern consvar_t cv_use_mouse2;
+
 #ifdef LMOUSE2
 extern consvar_t cv_mouse2opt;
 #endif
@@ -97,4 +98,3 @@ extern CV_PossibleValue_t teamplay_cons_t[];
 extern CV_PossibleValue_t deathmatch_cons_t[];
 
 #endif
-

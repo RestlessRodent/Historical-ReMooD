@@ -43,5 +43,4 @@
 *** FUNCTIONS ***
 ****************/
 
-#endif /* __I_NET_H__ */
-
+#endif							/* __I_NET_H__ */

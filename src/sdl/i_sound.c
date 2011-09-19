@@ -56,7 +56,7 @@ typedef struct I_SDLSoundLocal_s
 {
 	int RetVal;
 	SDL_AudioSpec Spec;
-	void (*ThreadFunc)(const bool_t a_Threaded);
+	void (*ThreadFunc) (const bool_t a_Threaded);
 	void* Buffer;
 } I_SDLSoundLocal_t;
 
@@ -73,9 +73,9 @@ static void I_SDLSD_Callback(struct I_SoundDriver_s* a_Driver, uint8_t* a_Stream
 	/* Check */
 	if (!a_Driver || !a_Stream || !a_Length)
 		return;
-	
+		
 	/* Get Local */
-	Local = (I_SDLSoundLocal_t*)a_Driver->Data;
+	Local = (I_SDLSoundLocal_t*) a_Driver->Data;
 	
 	// Check
 	if (!Local)
@@ -93,11 +93,11 @@ bool_t I_SDLSD_Init(struct I_SoundDriver_s* const a_Driver)
 	/* Check */
 	if (!a_Driver)
 		return false;
-	
+		
 	/* Initialize SDL Audio */
 	if (SDL_InitSubSystem(SDL_INIT_AUDIO) == -1)
 		return false;
-	
+		
 	/* Success */
 	return true;
 }
@@ -108,7 +108,7 @@ bool_t I_SDLSD_Destroy(struct I_SoundDriver_s* const a_Driver)
 	/* Check */
 	if (!a_Driver)
 		return false;
-	
+		
 	/* Quit SDL */
 	SDL_QuitSubSystem(SDL_INIT_AUDIO);
 	
@@ -130,7 +130,7 @@ void I_SDLSD_Success(struct I_SoundDriver_s* const a_Driver)
 	a_Driver->Data = Z_Malloc(a_Driver->Size, PU_STATIC, NULL);
 	
 	/* Get Local */
-	Local = (I_SDLSoundLocal_t*)a_Driver->Data;
+	Local = (I_SDLSoundLocal_t*) a_Driver->Data;
 	
 	// Check
 	if (!Local)
@@ -145,14 +145,14 @@ size_t I_SDLSD_Request(struct I_SoundDriver_s* const a_Driver, const uint8_t a_B
 	/* Check */
 	if (!a_Driver || !a_Bits || !a_Freq || a_Channels > 2 || !a_Samples)
 		return 0;
-	
+		
 	/* Get Local */
-	Local = (I_SDLSoundLocal_t*)a_Driver->Data;
+	Local = (I_SDLSoundLocal_t*) a_Driver->Data;
 	
 	// Check
 	if (!Local)
 		return 0;
-	
+		
 	/* Ask SDL for a buffer */
 	// Say what I want
 	memset(&Local->Spec, 0, sizeof(Local->Spec));
@@ -169,7 +169,7 @@ size_t I_SDLSD_Request(struct I_SoundDriver_s* const a_Driver, const uint8_t a_B
 	// Failed?
 	if (Local->RetVal != 0)
 		return 0;
-	
+		
 	/* Success */
 	return Local->Spec.samples;
 }
@@ -182,14 +182,14 @@ void* I_SDLSD_Obtain(struct I_SoundDriver_s* const a_Driver)
 	/* Check */
 	if (!a_Driver)
 		return NULL;
-	
+		
 	/* Get Local */
-	Local = (I_SDLSoundLocal_t*)a_Driver->Data;
+	Local = (I_SDLSoundLocal_t*) a_Driver->Data;
 	
 	// Check
 	if (!Local)
 		return NULL;
-	
+		
 	/* Return buffer */
 	return Local->Buffer;
 }
@@ -203,14 +203,14 @@ bool_t I_SDLSD_IsFinished(struct I_SoundDriver_s* const a_Driver)
 	/* Check */
 	if (!a_Driver)
 		return false;
-	
+		
 	/* Get Local */
-	Local = (I_SDLSoundLocal_t*)a_Driver->Data;
+	Local = (I_SDLSoundLocal_t*) a_Driver->Data;
 	
 	// Check
 	if (!Local)
 		return false;
-	
+		
 	/* Always returns true for threaded enable */
 	return true;
 }
@@ -229,14 +229,14 @@ void I_SDLSD_UnRequest(struct I_SoundDriver_s* const a_Driver)
 	/* Check */
 	if (!a_Driver)
 		return;
-	
+		
 	/* Get Local */
-	Local = (I_SDLSoundLocal_t*)a_Driver->Data;
+	Local = (I_SDLSoundLocal_t*) a_Driver->Data;
 	
 	// Check
 	if (!Local)
 		return;
-	
+		
 	/* Check if RetVal is non-zero (failure) */
 	if (Local->RetVal != 0)
 		return;
@@ -253,34 +253,34 @@ uint16_t I_SDLSD_GetFreq(struct I_SoundDriver_s* const a_Driver)
 	/* Check */
 	if (!a_Driver)
 		return 0;
-	
+		
 	/* Get Local */
-	Local = (I_SDLSoundLocal_t*)a_Driver->Data;
+	Local = (I_SDLSoundLocal_t*) a_Driver->Data;
 	
 	// Check
 	if (!Local)
 		return 0;
-	
+		
 	/* Return frequency */
 	return Local->Spec.freq;
 }
 
 /* I_SDLSD_Thread() -- Thread SDL music */
-bool_t I_SDLSD_Thread(struct I_SoundDriver_s* const a_Driver, void (*a_ThreadFunc)(const bool_t a_Threaded))
+bool_t I_SDLSD_Thread(struct I_SoundDriver_s* const a_Driver, void (*a_ThreadFunc) (const bool_t a_Threaded))
 {
 	I_SDLSoundLocal_t* Local;
 	
 	/* Check */
 	if (!a_Driver || !a_ThreadFunc)
 		return false;
-	
+		
 	/* Get Local */
-	Local = (I_SDLSoundLocal_t*)a_Driver->Data;
+	Local = (I_SDLSoundLocal_t*) a_Driver->Data;
 	
 	// Check
 	if (!Local)
 		return false;
-	
+		
 	/* Set function */
 	Local->ThreadFunc = a_ThreadFunc;
 	SDL_PauseAudio(0);
@@ -297,14 +297,14 @@ void I_SDLSD_LockThread(struct I_SoundDriver_s* const a_Driver, const bool_t a_L
 	/* Check */
 	if (!a_Driver)
 		return;
-	
+		
 	/* Get Local */
-	Local = (I_SDLSoundLocal_t*)a_Driver->Data;
+	Local = (I_SDLSoundLocal_t*) a_Driver->Data;
 	
 	// Check
 	if (!Local)
 		return;
-	
+		
 	/* Lock or unlock? */
 	if (a_Lock)
 		SDL_LockAudio();
@@ -345,7 +345,7 @@ bool_t I_SoundDriverInit(void)
 	/* Add SDL Sound Driver */
 	if (!I_AddSoundDriver(&l_SDLSoundDriver))
 		CONS_Printf("I_SoundDriverInit: Failed to add SDL Driver\n");
-	
+		
 	/* Success */
 	return true;
 }

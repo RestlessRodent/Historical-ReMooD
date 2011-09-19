@@ -35,4 +35,3 @@
 gameaction_t gameaction;
 gamestate_t gamestate = GS_NULL;
 skill_t gameskill;
-

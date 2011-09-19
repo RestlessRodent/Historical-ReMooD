@@ -72,11 +72,11 @@ typedef struct
 	double maskamt;
 	unsigned short fadestart, fadeend;
 	int fog;
-
+	
 	//Hurdler: rgba is used in hw mode for coloured sector lighting
 	int rgba;					// similar to maskcolor in sw mode
-
-	lighttable_t *colormap;
+	
+	lighttable_t* colormap;
 } extracolormap_t;
 
 //
@@ -93,7 +93,7 @@ typedef struct
 {
 	fixed_t x;
 	fixed_t y;
-
+	
 } vertex_t;
 
 // Forward of LineDefs, for Sectors.
@@ -111,7 +111,7 @@ typedef struct
 	fixed_t x;
 	fixed_t y;
 	fixed_t z;
-
+	
 } degenmobj_t;
 
 //SoM: 3/23/2000: Store fake planes in a resizalbe array insted of just by
@@ -141,29 +141,29 @@ typedef enum
 
 typedef struct ffloor_s
 {
-	fixed_t *topheight;
-	short *toppic;
-	short *toplightlevel;
-	fixed_t *topxoffs;
-	fixed_t *topyoffs;
-
-	fixed_t *bottomheight;
-	short *bottompic;
+	fixed_t* topheight;
+	short* toppic;
+	short* toplightlevel;
+	fixed_t* topxoffs;
+	fixed_t* topyoffs;
+	
+	fixed_t* bottomheight;
+	short* bottompic;
 	//short            *bottomlightlevel;
-	fixed_t *bottomxoffs;
-	fixed_t *bottomyoffs;
-
+	fixed_t* bottomxoffs;
+	fixed_t* bottomyoffs;
+	
 	fixed_t delta;
-
+	
 	int secnum;
 	ffloortype_e flags;
-	struct line_s *master;
-
-	struct sector_s *target;
-
-	struct ffloor_s *next;
-	struct ffloor_s *prev;
-
+	struct line_s* master;
+	
+	struct sector_s* target;
+	
+	struct ffloor_s* next;
+	struct ffloor_s* prev;
+	
 	int lastlight;
 	int alpha;
 	
@@ -176,10 +176,10 @@ typedef struct ffloor_s
 typedef struct lightlist_s
 {
 	fixed_t height;
-	short *lightlevel;
-	extracolormap_t *extra_colormap;
+	short* lightlevel;
+	extracolormap_t* extra_colormap;
 	int flags;
-	ffloor_t *caster;
+	ffloor_t* caster;
 } lightlist_t;
 
 // SoM: This struct is used for rendering walls with shadows casted on them...
@@ -190,8 +190,8 @@ typedef struct r_lightlist_s
 	fixed_t botheight;
 	fixed_t botheightstep;
 	short lightlevel;
-	extracolormap_t *extra_colormap;
-	lighttable_t *rcolormap;
+	extracolormap_t* extra_colormap;
+	lighttable_t* rcolormap;
 	int flags;
 	int lightnum;
 } r_lightlist_t;
@@ -212,9 +212,10 @@ typedef enum
 //
 typedef struct linechain_s
 {
-	struct line_s *line;
-	struct linechain_s *next;
+	struct line_s* line;
+	struct linechain_s* next;
 } linechain_t;
+
 // ----- end special tricks -----
 
 //
@@ -232,79 +233,79 @@ typedef struct sector_s
 	short oldspecial;			//SoM: 3/6/2000: Remember if a sector was secret (for automap)
 	short tag;
 	int nexttag, firsttag;		//SoM: 3/6/2000: by killough: improves searches for tags.
-
+	
 	// 0 = untraversed, 1,2 = sndlines -1
 	short soundtraversed;
-	short floortype;			// see floortype_t beffor 
-
+	short floortype;			// see floortype_t beffor
+	
 	// thing that made a sound (or null)
-	mobj_t *soundtarget;
-
+	mobj_t* soundtarget;
+	
 	// mapblock bounding box for height changes
 	int blockbox[4];
-
+	
 	// origin for any sounds played by the sector
 	S_NoiseThinker_t soundorg;
-
+	
 	// if == validcount, already checked
 	int validcount;
-
+	
 	// list of mobjs in sector
-	mobj_t *thinglist;
-
+	mobj_t* thinglist;
+	
 	//SoM: 3/6/2000: Start boom extra stuff
 	// thinker_t for reversable actions
-	void *floordata;			// make thinkers on
-	void *ceilingdata;			// floors, ceilings, lighting,
-	void *lightingdata;			// independent of one another
-
+	void* floordata;			// make thinkers on
+	void* ceilingdata;			// floors, ceilings, lighting,
+	void* lightingdata;			// independent of one another
+	
 	// lockout machinery for stairbuilding
 	int stairlock;				// -2 on first locked -1 after thinker done 0 normally
 	int prevsec;				// -1 or number of sector for previous step
 	int nextsec;				// -1 or number of next step sector
-
+	
 	// floor and ceiling texture offsets
 	fixed_t floor_xoffs, floor_yoffs;
 	fixed_t ceiling_xoffs, ceiling_yoffs;
-
+	
 	int heightsec;				// other sector, or -1 if no other sector
 	int altheightsec;			// Use old boom model? 1 for no 0 for yes.
-
+	
 	int floorlightsec, ceilinglightsec;
 	int teamstartsec;
-
+	
 	int bottommap, midmap, topmap;	// dynamic colormaps
-
+	
 	// list of mobjs that are at least partially in the sector
 	// thinglist is a subset of touching_thinglist
-	struct msecnode_s *touching_thinglist;	// phares 3/14/98  
+	struct msecnode_s* touching_thinglist;	// phares 3/14/98
 	//SoM: 3/6/2000: end stuff...
-
+	
 	int linecount;
-	struct line_s **lines;		// [linecount] size
-
+	struct line_s** lines;		// [linecount] size
+	
 	//SoM: 2/23/2000: Improved fake floor hack
-	ffloor_t *ffloors;
-	int *attached;
+	ffloor_t* ffloors;
+	int* attached;
 	int numattached;
-	lightlist_t *lightlist;
+	lightlist_t* lightlist;
 	int numlights;
 	bool_t moved;
-
+	
 	int validsort;				//if == validsort allready been sorted
 	bool_t added;
-
+	
 	// SoM: 4/3/2000: per-sector colormaps!
-	extracolormap_t *extra_colormap;
-
+	extracolormap_t* extra_colormap;
+	
 	// ----- for special tricks with HW renderer -----
 	bool_t pseudoSector;
 	bool_t virtualFloor;
 	fixed_t virtualFloorheight;
 	bool_t virtualCeiling;
 	fixed_t virtualCeilingheight;
-	linechain_t *sectorLines;
-	struct sector_s **stackList;
+	linechain_t* sectorLines;
+	struct sector_s** stackList;
 #ifdef SOLARIS
 	// Until we get Z_MallocAlign sorted out, make this a float
 	// so that we don't get alignment problems.
@@ -323,22 +324,22 @@ typedef struct
 {
 	// add this to the calculated texture column
 	fixed_t textureoffset;
-
+	
 	// add this to the calculated texture top
 	fixed_t rowoffset;
-
+	
 	// Texture indices.
 	// We do not maintain names here.
 	short toptexture;
 	short bottomtexture;
 	short midtexture;
-
+	
 	// Sector the SideDef is facing.
-	sector_t *sector;
-
+	sector_t* sector;
+	
 	//SoM: 3/6/2000: This is the special of the linedef this side belongs to.
 	int special;
-
+	
 } side_t;
 
 //
@@ -355,48 +356,48 @@ typedef enum
 typedef struct line_s
 {
 	// Vertices, from v1 to v2.
-	vertex_t *v1;
-	vertex_t *v2;
-
+	vertex_t* v1;
+	vertex_t* v2;
+	
 	// Precalculated v2 - v1 for side checking.
 	fixed_t dx;
 	fixed_t dy;
-
+	
 	// Animation related.
 	short flags;
 	short special;
 	short tag;
-
+	
 	// Visual appearance: SideDefs.
 	//  sidenum[1] will be -1 if one sided
 	short sidenum[2];
-
+	
 	// Neat. Another bounding box, for the extent
 	//  of the LineDef.
 	fixed_t bbox[4];
-
+	
 	// To aid move clipping.
 	slopetype_t slopetype;
-
+	
 	// Front and back sector.
 	// Note: redundant? Can be retrieved from SideDefs.
-	sector_t *frontsector;
-	sector_t *backsector;
-
+	sector_t* frontsector;
+	sector_t* backsector;
+	
 	// if == validcount, already checked
 	int validcount;
-
+	
 	// thinker_t for reversable actions
-	void *specialdata;
-
+	void* specialdata;
+	
 	// wallsplat_t list
-	void *splats;
-
+	void* splats;
+	
 	//SoM: 3/6/2000
-	int tranlump;				// translucency filter, -1 == none 
+	int tranlump;				// translucency filter, -1 == none
 	// (Will have to fix to use with Legacy's Translucency?)
 	int firsttag, nexttag;		// improves searches for tags.
-
+	
 	int ecolormap;				// SoM: Used for 282 linedefs
 } line_t;
 
@@ -409,11 +410,11 @@ typedef struct line_s
 //
 typedef struct subsector_s
 {
-	sector_t *sector;
+	sector_t* sector;
 	short numlines;
 	short firstline;
 	// floorsplat_t list
-	void *splats;
+	void* splats;
 	//Hurdler: added for optimized mlook in hw mode
 	int validcount;
 } subsector_t;
@@ -436,13 +437,13 @@ typedef struct subsector_s
 
 typedef struct msecnode_s
 {
-	sector_t *m_sector;			// a sector containing this object
-	struct mobj_s *m_thing;		// this object
-	struct msecnode_s *m_tprev;	// prev msecnode_t for this thing
-	struct msecnode_s *m_tnext;	// next msecnode_t for this thing
-	struct msecnode_s *m_sprev;	// prev msecnode_t for this sector
-	struct msecnode_s *m_snext;	// next msecnode_t for this sector
-	bool_t visited;			// killough 4/4/98, 4/7/98: used in search algorithms
+	sector_t* m_sector;			// a sector containing this object
+	struct mobj_s* m_thing;		// this object
+	struct msecnode_s* m_tprev;	// prev msecnode_t for this thing
+	struct msecnode_s* m_tnext;	// next msecnode_t for this thing
+	struct msecnode_s* m_sprev;	// prev msecnode_t for this sector
+	struct msecnode_s* m_snext;	// next msecnode_t for this sector
+	bool_t visited;				// killough 4/4/98, 4/7/98: used in search algorithms
 } msecnode_t;
 
 //Hurdler: 04/12/2000: for now, only used in hardware mode
@@ -451,24 +452,24 @@ typedef struct msecnode_s
 typedef struct light_s
 {
 	uint16_t type;				// light,... (cfr #define in hwr_light.c)
-
+	
 	float light_xoffset;
 	float light_yoffset;		// y offset to adjust corona's height
-
-	uint32_t corona_color;			// color of the light for static lighting
+	
+	uint32_t corona_color;		// color of the light for static lighting
 	float corona_radius;		// radius of the coronas
-
+	
 	uint32_t dynamic_color;		// color of the light for dynamic lighting
 	float dynamic_radius;		// radius of the light ball
 	float dynamic_sqrradius;	// radius^2 of the light ball
-
+	
 } light_t;
 
 typedef struct lightmap_s
 {
 	float s[2], t[2];
-	light_t *light;
-	struct lightmap_s *next;
+	light_t* light;
+	struct lightmap_s* next;
 } lightmap_t;
 
 //
@@ -476,34 +477,34 @@ typedef struct lightmap_s
 //
 typedef struct
 {
-	vertex_t *v1;
-	vertex_t *v2;
-
+	vertex_t* v1;
+	vertex_t* v2;
+	
 	int side;
-
+	
 	fixed_t offset;
-
+	
 	angle_t angle;
-
-	side_t *sidedef;
-	line_t *linedef;
-
+	
+	side_t* sidedef;
+	line_t* linedef;
+	
 	// Sector references.
 	// Could be retrieved from linedef, too.
 	// backsector is NULL for one sided lines
-	sector_t *frontsector;
-	sector_t *backsector;
-
+	sector_t* frontsector;
+	sector_t* backsector;
+	
 	// lenght of the seg : used by the hardware renderer
 	float length;
-
+	
 	//Hurdler: 04/12/2000: added for static lightmap
-	lightmap_t *lightmaps;
-
+	lightmap_t* lightmaps;
+	
 	// SoM: Why slow things down by calculating lightlists for every
 	// thick side.
 	int numlights;
-	r_lightlist_t *rlights;
+	r_lightlist_t* rlights;
 } seg_t;
 
 //
@@ -516,19 +517,19 @@ typedef struct
 	fixed_t y;
 	fixed_t dx;
 	fixed_t dy;
-
+	
 	// Bounding box for each child.
 	fixed_t bbox[2][4];
-
+	
 	// If NF_SUBSECTOR its a subsector.
 	unsigned short children[2];
-
+	
 } node_t;
 
 // posts are runs of non masked source pixels
 typedef struct
 {
-	uint8_t topdelta;				// -1 is the last post in a column
+	uint8_t topdelta;			// -1 is the last post in a column
 	// BP: humf, -1 with uint8_t ! (unsigned char) test WARNING
 	uint8_t length;				// length data bytes follows
 } post_t;
@@ -549,33 +550,33 @@ typedef post_t column_t;
 //
 typedef struct drawseg_s
 {
-	seg_t *curline;
+	seg_t* curline;
 	int x1;
 	int x2;
-
+	
 	fixed_t scale1;
 	fixed_t scale2;
 	fixed_t scalestep;
-
+	
 	// 0=none, 1=bottom, 2=top, 3=both
 	int silhouette;
-
+	
 	// do not clip sprites above this
 	fixed_t bsilheight;
-
+	
 	// do not clip sprites below this
 	fixed_t tsilheight;
-
+	
 	// Pointers to lists for sprite clipping,
 	//  all three adjusted so [x1] is first value.
-	short *sprtopclip;
-	short *sprbottomclip;
-	short *maskedtexturecol;
-
-	struct visplane_s *ffloorplanes[MAXFFLOORS];
+	short* sprtopclip;
+	short* sprbottomclip;
+	short* maskedtexturecol;
+	
+	struct visplane_s* ffloorplanes[MAXFFLOORS];
 	int numffloorplanes;
-	struct ffloor_s *thicksides[MAXFFLOORS];
-	short *thicksidecol;
+	struct ffloor_s* thicksides[MAXFFLOORS];
+	short* thicksidecol;
 	int numthicksides;
 	fixed_t* frontscale;
 } drawseg_t;
@@ -612,9 +613,9 @@ typedef enum
 typedef struct
 {
 	int16_t width;
-	uint8_t zero;					// set to 0 allow autodetection of pic_t 
+	uint8_t zero;				// set to 0 allow autodetection of pic_t
 	// mode instead of patch or raw
-	uint8_t mode;					// see pic_mode_t above
+	uint8_t mode;				// see pic_mode_t above
 	int16_t height;
 	int16_t reserved1;			// set to 0
 	uint8_t data[0];
@@ -633,63 +634,63 @@ typedef enum
 typedef struct vissprite_s
 {
 	// Doubly linked list.
-	struct vissprite_s *prev;
-	struct vissprite_s *next;
-
+	struct vissprite_s* prev;
+	struct vissprite_s* next;
+	
 	int x1;
 	int x2;
-
+	
 	// for line side calculation
 	fixed_t gx;
 	fixed_t gy;
-
+	
 	// global bottom / top for silhouette clipping
 	fixed_t gz;
 	fixed_t gzt;
-
+	
 	// Physical bottom / top for sorting with 3D floors.
 	fixed_t pz;
 	fixed_t pzt;
-
+	
 	// horizontal position of x1
 	fixed_t startfrac;
-
+	
 	fixed_t scale;
-
+	
 	// negative if flipped
 	fixed_t xiscale;
-
+	
 	fixed_t texturemid;
 	int patch;
-
+	
 	// for color translation and shadow draw,
 	//  maxbright frames as well
-	lighttable_t *colormap;
-
+	lighttable_t* colormap;
+	
 	//Fab:29-04-98: for MF_SHADOW sprites, which translucency table to use
-	uint8_t *transmap;
-
+	uint8_t* transmap;
+	
 	int mobjflags;
-
+	
 	// SoM: 3/6/2000: height sector for underwater/fake ceiling support
 	int heightsec;
-
+	
 	//SoM: 4/3/2000: Global colormaps!
-	extracolormap_t *extra_colormap;
+	extracolormap_t* extra_colormap;
 	fixed_t xscale;
-
+	
 	//SoM: Precalculated top and bottom screen coords for the sprite.
 	fixed_t thingheight;		//The actual height of the thing (for 3D floors)
-	sector_t *sector;			//The sector containing the thing.
+	sector_t* sector;			//The sector containing the thing.
 	fixed_t sz;
 	fixed_t szt;
-
+	
 	int cut;					//0 for none, bit 1 for top, bit 2 for bottom
 	
 	/* Render Optimization */
-	fixed_t Distance;					// Distance of sprite
-	int Priority;						// Priority of object to be seen
-	int BasePriority;					// Base Priority of object
+	fixed_t Distance;			// Distance of sprite
+	int Priority;				// Priority of object to be seen
+	int BasePriority;			// Base Priority of object
 	
 } vissprite_t;
 
@@ -714,14 +715,14 @@ typedef struct
 	// Note: as eight entries are available,
 	//  we might as well insert the same name eight times.
 	bool_t rotate;
-
+	
 	// Lump to use for view angles 0-7.
 	int lumppat[8];				// lump number 16:16 wad:lump
 	short lumpid[8];			// id in the spriteoffset,spritewidth.. tables
-
+	
 	// Flip bit (1 = flip) to use for view angles 0-7.
 	uint8_t flip[8];
-
+	
 } spriteframe_t;
 
 //
@@ -730,8 +731,8 @@ typedef struct
 typedef struct
 {
 	int numframes;
-	spriteframe_t *spriteframes;
-
+	spriteframe_t* spriteframes;
+	
 } spritedef_t;
 
 #define BORIS_FIX
@@ -744,14 +745,14 @@ typedef struct
 {
 	int first;
 	int last;
-
+	
 } cliprange_t;
 
 //SoM: 3/28/2000: Fix from boom.
 #define MAXSEGS (vid.width/2+1)
 
 extern cliprange_t* solidsegs;
-extern drawseg_t *drawsegs;
+extern drawseg_t* drawsegs;
 
 extern fixed_t* cachedheight;
 extern fixed_t* cacheddistance;
@@ -759,4 +760,3 @@ extern fixed_t* cachedxstep;
 extern fixed_t* cachedystep;
 
 #endif
-

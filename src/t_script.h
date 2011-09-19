@@ -52,11 +52,11 @@ typedef struct runningscript_s runningscript_t;
 
 struct runningscript_s
 {
-	script_t *script;
-
+	script_t* script;
+	
 	// where we are
-	char *savepoint;
-
+	char* savepoint;
+	
 	enum
 	{
 		wt_none,				// not waiting
@@ -65,12 +65,12 @@ struct runningscript_s
 		wt_scriptwait,			// wait for script to finish
 	} wait_type;
 	int wait_data;				// data for wait: tagnum, counter, script number etc
-
+	
 	// saved variables
-	svariable_t *variables[VARIABLESLOTS];
-
-	runningscript_t *prev, *next;	// for chain
-	mobj_t *trigger;
+	svariable_t* variables[VARIABLESLOTS];
+	
+	runningscript_t* prev, *next;	// for chain
+	mobj_t* trigger;
 };
 
 void T_Init();
@@ -79,15 +79,16 @@ void T_RunScript(int n);
 void T_RunThingScript(int);
 void T_PreprocessScripts();
 void T_DelayedScripts();
-mobj_t *MobjForSvalue(svalue_t svalue);
+mobj_t* MobjForSvalue(svalue_t svalue);
 
-		// console commands
+// console commands
 void T_Dump();
 void T_ConsRun();
 
 extern script_t levelscript;
+
 //extern script_t *scripts[MAXSCRIPTS];       // the scripts
-extern mobj_t *t_trigger;
+extern mobj_t* t_trigger;
 
 void T_AddCommands();
 

@@ -51,7 +51,7 @@ int main(int argc, char** argv)
 	/* Initial SDL Start */
 	if (SDL_Init(SDL_INIT_NOPARACHUTE) == -1)
 		I_Error("main: Failed to initialize SDL.");
-	
+		
 	/* Run the game */
 	D_DoomMain();
 	D_DoomLoop();
@@ -59,4 +59,3 @@ int main(int argc, char** argv)
 	/* Success! */
 	return EXIT_SUCCESS;
 }
-

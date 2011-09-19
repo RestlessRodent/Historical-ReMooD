@@ -57,6 +57,7 @@
 int SlopeDiv(unsigned num, unsigned den)
 {
 	unsigned ans;
+	
 	if (den < 512)
 		return SLOPERANGE;
 	ans = (num << 3) / (den >> 8);
@@ -64,7 +65,7 @@ int SlopeDiv(unsigned num, unsigned den)
 }
 #else
 #if METHODE==1
-	//
+//
 int SlopeDiv(unsigned num, unsigned den)
 {
 	uint32_t ans;
@@ -80,22 +81,23 @@ int SlopeDiv(unsigned num, unsigned den)
 	return ans <= SLOPERANGE ? ans : SLOPERANGE;
 }
 #else
-	//
+//
 int SlopeDiv(unsigned num, unsigned den)
 {
 	unsigned ans;
 
-  asm(" xorl  %%edx,%%edx     \n\t " " shldl $11,%%eax,%%edx \n\t " " shll  $11,%%eax       \n\t " " divl  %0                 ":"=a"(ans)
-		// output
-  :	"a"(num), "r"(den)		// input
-  :	"%edx");
+	asm(" xorl  %%edx,%%edx     \n\t " " shldl $11,%%eax,%%edx \n\t " " shll  $11,%%eax       \n\t " " divl  %0                 ":"=a"(ans)
+	    // output
+	    :		"a"(num), "r"(den)		// input
+	    :		"%edx");
 
 	return ans <= SLOPERANGE ? ans : SLOPERANGE;
 }
 #endif
 #endif
 
-int finetangent[4096] = {
+int finetangent[4096] =
+{
 	-170910304, -56965752, -34178904, -24413316, -18988036, -15535599,
 	-13145455, -11392683,
 	-10052327, -8994149, -8137527, -7429880, -6835455, -6329090, -5892567,
@@ -621,7 +623,8 @@ int finetangent[4096] = {
 	170910304
 };
 
-int finesine[10240] = {
+int finesine[10240] =
+{
 	25, 75, 125, 175, 226, 276, 326, 376,
 	427, 477, 527, 578, 628, 678, 728, 779,
 	829, 879, 929, 980, 1030, 1080, 1130, 1181,
@@ -1904,7 +1907,8 @@ int finesine[10240] = {
 	65534, 65535, 65535, 65535, 65535, 65535, 65535, 65535
 };
 
-angle_t tantoangle[2049] = {
+angle_t tantoangle[2049] =
+{
 	0, 333772, 667544, 1001315, 1335086, 1668857, 2002626, 2336395,
 	2670163, 3003929, 3337694, 3671457, 4005219, 4338979, 4672736, 5006492,
 	5340245, 5673995, 6007743, 6341488, 6675230, 7008968, 7342704, 7676435,

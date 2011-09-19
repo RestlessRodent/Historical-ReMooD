@@ -75,10 +75,10 @@ typedef enum
 	CF_GODMODE = 2,
 	// Not really a cheat, just a debug aid.
 	CF_NOMOMENTUM = 4,
-
+	
 	//added:28-02-98: new cheats
 	CF_FLYAROUND = 8,
-
+	
 	//added:28-02-98: NOT REALLY A CHEAT
 	// Allow player avatar to walk in-air
 	//  if trying to get over a small wall (hack for playability)
@@ -94,11 +94,11 @@ typedef struct player_s
 {
 	ProfileInfo_t* profile;
 	
-	mobj_t *mo;
+	mobj_t* mo;
 	// added 1-6-98: for movement prediction
 	playerstate_t playerstate;
 	ticcmd_t cmd;
-
+	
 	// Determine POV,
 	//  including viewpoint bobbing during movement.
 	// Focal origin above r.z
@@ -109,31 +109,31 @@ typedef struct player_s
 	fixed_t deltaviewheight;
 	// bounded/scaled total momentum.
 	fixed_t bob;
-
+	
 	//added:16-02-98: mouse aiming, where the guy is looking at!
 	//                 It is updated with cmd->aiming.
 	angle_t aiming;
-
+	
 	// This is only used between levels,
 	// mo->health is used during levels.
 	int health;
 	int armorpoints;
 	// Armor type is 0-2.
 	uint8_t armortype;
-
+	
 	// Power ups. invinc and invis are tic counters.
 	int powers[NUMPOWERS];
-	uint8_t cards;					// bit field see declration of card_t
+	uint8_t cards;				// bit field see declration of card_t
 	bool_t backpack;
-
+	
 	// Frags, kills of other players.
 	uint16_t addfrags;			// player have killed a player but is gone
 	uint16_t frags[MAXPLAYERS];
 	weapontype_t readyweapon;
-
+	
 	// Is wp_nochange if not changing.
 	weapontype_t pendingweapon;
-
+	
 	bool_t weaponowned[NUMWEAPONS];
 	int ammo[NUMAMMO];
 	int maxammo[NUMAMMO];
@@ -142,72 +142,72 @@ typedef struct player_s
 	bool_t originalweaponswitch;
 	//added:28-02-98:
 	bool_t autoaim_toggle;
-
+	
 	// True if button down last tic.
 	bool_t attackdown;
 	bool_t usedown;
 	bool_t jumpdown;			//added:19-03-98:dont jump like a monkey!
-
+	
 	// Bit flags, for cheats and debug.
 	// See cheat_t, above.
 	int cheats;
-
+	
 	// Refired shots are less accurate.
 	int refire;
-
+	
 	// For intermission stats.
 	int killcount;
 	int itemcount;
 	int secretcount;
-
+	
 	// Hint messages.
-	char *message;
-
+	char* message;
+	
 	// For screen flashing (red or bright).
 	int damagecount;
 	int bonuscount;
-
+	
 	// Who did damage (NULL for floors/ceilings).
-	mobj_t *attacker;
+	mobj_t* attacker;
 	int specialsector;			//lava/slime/water...
-
+	
 	// So gun flashes light up areas.
 	int extralight;
-
+	
 	// Current PLAYPAL, ???
 	//  can be set to REDCOLORMAP for pain, etc.
 	int fixedcolormap;
-
+	
 	// Player skin colorshift,
 	//  0-3 for which color to draw player.
 	// adding 6-2-98 comment : unused by doom2 1.9 now is used
 	int skincolor;
-
+	
 	// added 2/8/98
 	int skin;
-
+	
 	// Overlay view sprites (gun, etc).
 	pspdef_t psprites[NUMPSPRITES];
-
+	
 	// True if secret level has been done.
 	bool_t didsecret;
 	
 	// heretic
 	int chickenTics;			// player is a chicken if > 0
 	int chickenPeck;			// chicken peck countdown
-	mobj_t *rain1;				// active rain maker 1
-	mobj_t *rain2;				// active rain maker 2
+	mobj_t* rain1;				// active rain maker 1
+	mobj_t* rain2;				// active rain maker 2
 	int flamecount;
 	int flyheight;
 	inventory_t inventory[NUMINVENTORYSLOTS];
 	int inventorySlotNum;
-
+	
 	int inv_ptr;
 	int st_curpos;				// position of inventory scroll
 	int st_inventoryTics;		// when >0 show inventory in status bar
-
-	weaponinfo_t *weaponinfo;	// can be changed when use level2 weapons (heretic)
-
+	
+	weaponinfo_t* weaponinfo;	// can be changed when use level2 weapons (heretic)
+	
 	// Sound Info
 	int flushdelay;
 	
@@ -217,7 +217,7 @@ typedef struct player_s
 	
 	// GhostlyDeath <September 16, 2011> -- "Effort" based bobbing
 	fixed_t FakeMom[3];
-
+	
 } player_t;
 
 //
@@ -227,7 +227,7 @@ typedef struct player_s
 typedef struct
 {
 	bool_t in;					// whether the player is in game
-
+	
 	// Player stats, kills, collected items etc.
 	int skills;
 	int sitems;
@@ -237,36 +237,35 @@ typedef struct
 	int score;					// current score on entry, modified on return
 	// BP: unused for now but don't forget....
 	uint16_t addfrags;
-
+	
 } wbplayerstruct_t;
 
 typedef struct
 {
 	int epsd;					// episode # (0-2)
-
+	
 	// if true, splash the secret level
 	bool_t didsecret;
-
+	
 	// previous and next levels, origin 0
 	int last;
 	int next;
-
+	
 	int maxkills;
 	int maxitems;
 	int maxsecret;
 	int maxfrags;
-
+	
 	// the par time
 	int partime;
-
+	
 	// index of this player in game
 	int pnum;
-
+	
 	wbplayerstruct_t plyr[MAXPLAYERS];
-
+	
 } wbstartstruct_t;
 
-void A_TicWeapon(player_t * player, pspdef_t * psp);
+void A_TicWeapon(player_t* player, pspdef_t* psp);
 
 #endif
-

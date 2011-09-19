@@ -48,7 +48,7 @@
 
 #define HU_CROSSHAIRS   3		// maximum 9 see HU_Init();
 
-extern char *shiftxform;		// french/english translation shift table
+extern char* shiftxform;		// french/english translation shift table
 
 extern char english_shiftxform[];
 extern char french_shiftxform[];
@@ -60,7 +60,7 @@ extern char french_shiftxform[];
 
 #define HU_MAXMSGLEN    80
 
-extern patch_t *hu_font[HU_FONTSIZE];
+extern patch_t* hu_font[HU_FONTSIZE];
 
 //set true by hu_ when entering a chat message
 extern bool_t chat_on;
@@ -76,7 +76,7 @@ void HU_Init(void);
 void HU_Start(void);
 
 //
-bool_t HU_Responder(event_t * ev);
+bool_t HU_Responder(event_t* ev);
 
 //
 void HU_Ticker(void);
@@ -94,9 +94,9 @@ void HU_HackChatmacros(void);
 // chatmacro <0-9> "message" console command
 void Command_Chatmacro_f(void);
 
-int HU_CreateTeamFragTbl(fragsort_t * fragtab, int dmtotals[], int fragtbl[MAXPLAYERS][MAXPLAYERS]);
+int HU_CreateTeamFragTbl(fragsort_t* fragtab, int dmtotals[], int fragtbl[MAXPLAYERS][MAXPLAYERS]);
 
-void HU_SetTip(char *tip, int displaytics);
+void HU_SetTip(char* tip, int displaytics);
 void HU_ClearTips();
 int HU_GetFSPic(int lumpnum, int xpos, int ypos);
 int HU_DeleteFSPic(int handle);
@@ -109,4 +109,3 @@ void HU_UnloadWadData(void);
 void HU_LoadWadData(void);
 
 #endif
-

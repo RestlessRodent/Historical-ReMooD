@@ -52,6 +52,7 @@
 #else
 #include <sys/param.h>
 #include <sys/mount.h>
+
 /*For meminfo*/
 #include <sys/types.h>
 #include <kvm.h>
@@ -62,11 +63,11 @@
 #endif
 
 #if !defined(_MSC_VER)
-	#include <stdint.h>
+#include <stdint.h>
 #endif
 
 #if !defined(__REMOOD_SYSTEM_WINDOWS)
-	#include <sys/stat.h>
+#include <sys/stat.h>
 #endif
 
 /* Local */
@@ -83,15 +84,15 @@
 #include "i_video.h"
 #include "i_sound.h"
 
-extern void D_PostEvent(event_t *);
+extern void D_PostEvent(event_t*);
 
 //
 //I_OutputMsg
 //
-void I_OutputMsg(char *fmt, ...)
+void I_OutputMsg(char* fmt, ...)
 {
 	va_list argptr;
-
+	
 	va_start(argptr, fmt);
 	vfprintf(stderr, fmt, argptr);
 	va_end(argptr);
@@ -127,7 +128,7 @@ void I_GetJoyEvent()
 {
 }
 
-uint8_t mb_used = 6 + 2;			// 2 more for caching sound
+uint8_t mb_used = 6 + 2;		// 2 more for caching sound
 
 //
 // I_Tactile
@@ -150,7 +151,7 @@ uint32_t I_GetTimeMS(void)
 	// FirstTick not set?
 	if (!FirstTick)
 		FirstTick = ThisTick;
-	
+		
 	/* Return time passed */
 	return ThisTick - FirstTick;
 }
@@ -168,11 +169,11 @@ void I_WaitVBL(int count)
 	SDL_Delay(count);
 }
 
-uint8_t *I_AllocLow(int length)
+uint8_t* I_AllocLow(int length)
 {
-	uint8_t *mem;
-
-	mem = (uint8_t *) malloc(length);
+	uint8_t* mem;
+	
+	mem = (uint8_t*)malloc(length);
 	memset(mem, 0, length);
 	return mem;
 }
@@ -180,30 +181,30 @@ uint8_t *I_AllocLow(int length)
 //
 // I_Error
 //
-void I_Error(char *error, ...)
+void I_Error(char* error, ...)
 {
 	va_list argptr;
 	char txt[512];
-
+	
 	if (devparm)
 		abort();
-
+		
 	// Message first.
 	va_start(argptr, error);
 	fprintf(stderr, "Error: ");
 	vfprintf(stderr, error, argptr);
 	fprintf(stderr, "\n");
 	va_end(argptr);
-
+	
 	fflush(stderr);
-
+	
 	// Shutdown. Here might be other errors.
 	if (demorecording)
 		G_CheckDemoStatus();
-	
+		
 	// shutdown everything else which was registered
 	I_ShutdownSystem();
-
+	
 	exit(-1);
 }
 
@@ -220,15 +221,17 @@ void I_LocateWad(void)
 #endif
 
 // quick fix for compil
-size_t I_GetFreeMem(size_t * total)
+size_t I_GetFreeMem(size_t* total)
 {
 #ifdef LINUX
 	/* LINUX covers all the unix OS's.
 	 */
 #ifdef FREEBSD
 	struct vmmeter sum;
-	kvm_t *kd;
-	struct nlist namelist[] = {
+	kvm_t* kd;
+	
+	struct nlist namelist[] =
+	{
 #define X_SUM   0
 		{"_cnt"},
 		{NULL}
@@ -251,7 +254,7 @@ size_t I_GetFreeMem(size_t * total)
 		return 0;
 	}
 	kvm_close(kd);
-
+	
 	*total = sum.v_page_count * sum.v_page_size;
 	return sum.v_free_count * sum.v_page_size;
 #else
@@ -262,23 +265,23 @@ size_t I_GetFreeMem(size_t * total)
 #else
 	/* Linux */
 	char buf[1024];
-	char *memTag;
+	char* memTag;
 	size_t freeKBytes;
 	size_t totalKBytes;
 	int n;
 	int meminfo_fd = -1;
-
+	
 	meminfo_fd = open(MEMINFO_FILE, O_RDONLY);
 	n = read(meminfo_fd, buf, 1023);
 	close(meminfo_fd);
-
+	
 	if (n < 0)
 	{
 		// Error
 		*total = 0L;
 		return 0;
 	}
-
+	
 	buf[n] = '\0';
 	if (NULL == (memTag = strstr(buf, MEMTOTAL)))
 	{
@@ -286,20 +289,20 @@ size_t I_GetFreeMem(size_t * total)
 		*total = 0L;
 		return 0;
 	}
-
+	
 	memTag += sizeof(MEMTOTAL);
 	totalKBytes = atoi(memTag);
-
+	
 	if (NULL == (memTag = strstr(buf, MEMFREE)))
 	{
 		// Error
 		*total = 0L;
 		return 0;
 	}
-
+	
 	memTag += sizeof(MEMFREE);
 	freeKBytes = atoi(memTag);
-
+	
 	*total = totalKBytes << 10;
 	return freeKBytes << 10;
 #endif							/* SOLARIS */
@@ -308,13 +311,13 @@ size_t I_GetFreeMem(size_t * total)
 	/*  Not Linux.
 	 */
 #ifdef _WIN32
-    MEMORYSTATUS info;
-
-    info.dwLength = sizeof(MEMORYSTATUS);
-    GlobalMemoryStatus( &info );
-    if( total )
-        *total = info.dwTotalPhys;
-    return info.dwAvailPhys;
+	MEMORYSTATUS info;
+	
+	info.dwLength = sizeof(MEMORYSTATUS);
+	GlobalMemoryStatus(&info);
+	if (total)
+		*total = info.dwTotalPhys;
+	return info.dwAvailPhys;
 #else
 	return 16 << 20;
 #endif
@@ -363,4 +366,3 @@ void I_SystemPreExit(void)
 void I_SystemPostExit(void)
 {
 }
-

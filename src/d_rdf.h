@@ -51,5 +51,4 @@ DemoStatus_t RDF_DEMO_EndRecording(void);
 
 /*** READ FUNCTIONS ***/
 
-#endif /* __D_RDF_H__ */
-
+#endif							/* __D_RDF_H__ */

@@ -46,8 +46,8 @@ extern short* negonearray;
 extern short* screenheightarray;
 
 // vars for R_DrawMaskedColumn
-extern short *mfloorclip;
-extern short *mceilingclip;
+extern short* mfloorclip;
+extern short* mceilingclip;
 extern fixed_t spryscale;
 extern fixed_t sprtopscreen;
 extern fixed_t sprbotscreen;
@@ -60,24 +60,24 @@ extern fixed_t pspriteyscale;	//added:02-02-98:for aspect ratio
 
 extern const int PSpriteSY[];
 
-void R_DrawMaskedColumn(column_t * column);
+void R_DrawMaskedColumn(column_t* column);
 
 void R_SortVisSprites(void);
 
 //faB: find sprites in wadfile, replace existing, add new ones
 //     (only sprites from namelist are added or replaced)
-void R_AddSpriteDefs(char **namelist, int wadnum);
+void R_AddSpriteDefs(char** namelist, int wadnum);
 
 //SoM: 6/5/2000: Light sprites correctly!
-void R_AddSprites(sector_t * sec, int lightlevel);
+void R_AddSprites(sector_t* sec, int lightlevel);
 void R_AddPSprites(void);
-void R_DrawSprite(vissprite_t * spr);
-void R_InitSprites(char **namelist);
+void R_DrawSprite(vissprite_t* spr);
+void R_InitSprites(char** namelist);
 void R_ClearSprites(void);
 void R_DrawSprites(void);		//draw all vissprites
 void R_DrawMasked(void);
 
-void R_ClipVisSprite(vissprite_t * vis, int xl, int xh);
+void R_ClipVisSprite(vissprite_t* vis, int xl, int xh);
 
 // -----------
 // SKINS STUFF
@@ -90,20 +90,21 @@ typedef struct
 	char name[SKINNAMESIZE + 1];	// short descriptive name of the skin
 	spritedef_t spritedef;
 	char faceprefix[4];			// 3 chars+'\0', default is "STF"
-
+	
 	// specific sounds per skin
 	short soundsid[NUMSKINSOUNDS];	// sound # in S_sfx table
-
+	
 } skin_t;
 
 extern int numskins;
 extern skin_t* skins;
+
 //extern CV_PossibleValue_t skin_cons_t[MAXSKINS+1];
 extern consvar_t cv_skin;
 
 //void    R_InitSkins (void);
-void SetPlayerSkin(int playernum, char *skinname);
-int R_SkinAvailable(char *name);
+void SetPlayerSkin(int playernum, char* skinname);
+int R_SkinAvailable(char* name);
 void R_AddSkins(int wadnum);
 
 void R_InitDrawNodes();

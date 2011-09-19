@@ -57,7 +57,7 @@ void ST_CalcPos(void);
 void ST_ExternrefreshBackground(void);
 
 // Called by main loop.
-bool_t ST_Responder(event_t * ev);
+bool_t ST_Responder(event_t* ev);
 
 // Called by main loop.
 void ST_Ticker(void);
@@ -98,14 +98,14 @@ typedef enum
 	GetChatState
 } st_chatstateenum_t;
 
-bool_t ST_Responder(event_t * ev);
+bool_t ST_Responder(event_t* ev);
 
 // face load/unload graphics, called when skin changes
-void ST_loadFaceGraphics(char *facestr);
+void ST_loadFaceGraphics(char* facestr);
 void ST_unloadFaceGraphics(void);
 
 // return if player a is in the same team of the player b
-bool_t ST_SameTeam(player_t * a, player_t * b);
+bool_t ST_SameTeam(player_t* a, player_t* b);
 
 // get the frags of the player
 // only one function for calculation : more simple code
@@ -121,12 +121,11 @@ extern bool_t st_overlay;		// sb overlay on or off when fullscreen
 	((cv_scalestatusbar.value || cv_viewsize.value >= 11) ?\
 	((TRANSPARENTSTATUSBAR ? BG : FG) | V_SCALESTART | V_TRANSLUCENTPATCH) :\
 	((TRANSPARENTSTATUSBAR ? BG : FG) | V_NOSCALEPATCH | V_NOSCALESTART | V_TRANSLUCENTPATCH))
-	
+
 // heretic status bar
 void SB_Ticker(void);
 void SB_Drawer(bool_t refresh);
-bool_t SB_Responder(event_t * event);
+bool_t SB_Responder(event_t* event);
 void SB_Init(void);
 
 #endif
-

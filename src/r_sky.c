@@ -74,18 +74,18 @@ void R_InitSkyMap(void)
 //
 void R_SetupSkyDraw(void)
 {
-	texpatch_t *patches;
+	texpatch_t* patches;
 	patch_t wpatch;
 	int count;
 	int height;
 	int i;
-
+	
 	// parse the patches composing sky texture for the tallest one
 	// patches are usually RSKY1,RSKY2... and unique
-
+	
 	// note: the TEXTURES lump doesn't have the taller size of Legacy
 	//       skies, but the patches it use will give the right size
-
+	
 	count = textures[skytexture]->patchcount;
 	patches = &textures[skytexture]->patches[0];
 	for (height = 0, i = 0; i < count; i++, patches++)
@@ -95,7 +95,7 @@ void R_SetupSkyDraw(void)
 		if (wpatch.height > height)
 			height = wpatch.height;
 	}
-
+	
 	// DIRTY : should set the routine depending on colormode in screen.c
 	if (height > 128)
 	{
@@ -109,11 +109,11 @@ void R_SetupSkyDraw(void)
 		skytexturemid = 100 << FRACBITS;
 		skymode = 0;
 	}
-
+	
 	// get the right drawer, it was set by screen.c, depending on the
 	// current video mode bytes per pixel (quick fix)
 	skycolfunc = skydrawerfunc[skymode];
-
+	
 	R_SetSkyScale();
 }
 

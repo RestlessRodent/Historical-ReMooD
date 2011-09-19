@@ -3,5 +3,4 @@
 
 #include "byteptr.h"
 
-#endif /* __M_SWAP_H__ */
-
+#endif							/* __M_SWAP_H__ */

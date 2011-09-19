@@ -69,22 +69,22 @@
 #define O_BINARY 0
 #endif
 
-bool_t FIL_WriteFile(char const *name, void *source, int length)
+bool_t FIL_WriteFile(char const* name, void* source, int length)
 {
 	int handle;
 	int count;
-
+	
 	handle = open(name, O_WRONLY | O_CREAT | O_TRUNC | O_BINARY, 0666);
-
+	
 	if (handle == -1)
 		return false;
-
+		
 	count = write(handle, source, length);
 	close(handle);
-
+	
 	if (count < length)
 		return false;
-
+		
 	return true;
 }
 
@@ -93,30 +93,30 @@ bool_t FIL_WriteFile(char const *name, void *source, int length)
 //
 //Fab:26-04-98:
 //  appends a zero uint8_t at the end
-int FIL_ReadFile(char const *name, uint8_t ** buffer)
+int FIL_ReadFile(char const* name, uint8_t** buffer)
 {
 	int handle, count, length;
 	struct stat fileinfo;
-	uint8_t *buf;
-
+	uint8_t* buf;
+	
 	handle = open(name, O_RDONLY | O_BINARY, 0666);
 	if (handle == -1)
 		return 0;
-
+		
 	if (fstat(handle, &fileinfo) == -1)
 		return 0;
-
+		
 	length = fileinfo.st_size;
 	buf = Z_Malloc(length + 1, PU_STATIC, 0);
 	count = read(handle, buf, length);
 	close(handle);
-
+	
 	if (count < length)
 		return 0;
-
+		
 	//Fab:26-04-98:append 0 uint8_t for script text files
 	buf[length] = 0;
-
+	
 	*buffer = buf;
 	return length;
 }
@@ -124,47 +124,47 @@ int FIL_ReadFile(char const *name, uint8_t ** buffer)
 //
 // checks if needed, and add default extension to filename
 //
-void FIL_DefaultExtension(char *path, char *extension)
+void FIL_DefaultExtension(char* path, char* extension)
 {
-	char *src;
-
+	char* src;
+	
 	// search for '.' from end to begin, add .EXT only when not found
 	src = path + strlen(path) - 1;
-
+	
 	while (*src != '/' && src != path)
 	{
 		if (*src == '.')
 			return;				// it has an extension
 		src--;
 	}
-
+	
 	strcat(path, extension);
 }
 
 //  Creates a resource name (max 8 chars 0 padded) from a file path
 //
-void FIL_ExtractFileBase(char *path, char *dest)
+void FIL_ExtractFileBase(char* path, char* dest)
 {
-	char *src;
+	char* src;
 	int length;
-
+	
 	src = path + strlen(path) - 1;
-
+	
 	// back up until a \ or the start
 	while (src != path && *(src - 1) != '\\' && *(src - 1) != '/')
 	{
 		src--;
 	}
-
+	
 	// copy up to eight characters
 	memset(dest, 0, 8);
 	length = 0;
-
+	
 	while (*src && *src != '.')
 	{
 		if (++length == 9)
 			I_Error("Filename base of %s >8 chars", path);
-
+			
 		*dest++ = toupper((int)*src++);
 	}
 }
@@ -172,12 +172,12 @@ void FIL_ExtractFileBase(char *path, char *dest)
 //  Returns true if a filename extension is found
 //  There are no '.' in wad resource name
 //
-bool_t FIL_CheckExtension(char *in)
+bool_t FIL_CheckExtension(char* in)
 {
 	while (*in++)
 		if (*in == '.')
 			return true;
-
+			
 	return false;
 }
 
@@ -196,12 +196,13 @@ char SaveGameLocation[MAX_WADPATH];
 //                          CONFIGURATION
 // ==========================================================================
 bool_t gameconfig_loaded = false;	// true once config.cfg loaded
-												//  AND executed
+
+//  AND executed
 
 void Command_SaveConfig_f(void)
 {
 	char tmpstr[MAX_WADPATH];
-
+	
 	if (COM_Argc() != 2)
 	{
 		CONS_Printf("saveconfig <filename[.cfg]> : save config to a file\n");
@@ -210,7 +211,7 @@ void Command_SaveConfig_f(void)
 	strcpy(tmpstr, COM_Argv(1));
 	snprintf(SaveGameLocation, MAX_WADPATH, ".");
 	FIL_DefaultExtension(tmpstr, ".cfg");
-
+	
 	M_SaveConfig(tmpstr);
 	CONS_Printf("config saved as %s\n", configfile);
 }
@@ -222,20 +223,21 @@ void Command_LoadConfig_f(void)
 		CONS_Printf("loadconfig <filename[.cfg]> : load config from a file\n");
 		return;
 	}
-
+	
 	strcpy(configfile, COM_Argv(1));
 	snprintf(SaveGameLocation, MAX_WADPATH, ".");
 	FIL_DefaultExtension(configfile, ".cfg");
-/*  for create, don't check
-
-    if ( access (tmpstr,F_OK) )
-    {
-        CONS_Printf("Error reading file %s (not exist ?)\n",tmpstr);
-        return;
-    }
-*/
+	
+	/*  for create, don't check
+	
+	    if ( access (tmpstr,F_OK) )
+	    {
+	        CONS_Printf("Error reading file %s (not exist ?)\n",tmpstr);
+	        return;
+	    }
+	*/
 	COM_BufInsertText(va("exec \"%s\"\n", configfile));
-
+	
 }
 
 void Command_ChangeConfig_f(void)
@@ -245,7 +247,7 @@ void Command_ChangeConfig_f(void)
 		CONS_Printf("changeconfig <filaname[.cfg]> : save current config and load another\n");
 		return;
 	}
-
+	
 	COM_BufAddText(va("saveconfig \"%s\"\n", configfile));
 	COM_BufAddText(va("loadconfig \"%s\"\n", COM_Argv(1)));
 }
@@ -259,6 +261,7 @@ void M_FirstLoadConfig(void)
 	int ConfigMode = 0;
 	char* DashConfig = NULL;
 	char ReMooDHome[MAX_WADPATH];
+	
 #ifdef _WIN32
 	char Check[MAX_PATH];
 #endif
@@ -283,7 +286,6 @@ void M_FirstLoadConfig(void)
 				CONS_Printf("D_DoomMain: Using %s as the master configuration.\n", DashConfig);
 				ConfigMode = 1;
 			}
-		
 			// Does the file exist but we can't write to it? if so, get the settings
 			else if (!access(DashConfig, R_OK))
 			{
@@ -292,7 +294,6 @@ void M_FirstLoadConfig(void)
 			}
 		}
 	}
-	
 	// 2. Check CDROM
 #if defined(_WIN32) || defined(__MSDOS__)
 	if (!ConfigMode && M_CheckParm("-cdrom"))
@@ -319,7 +320,6 @@ void M_FirstLoadConfig(void)
 			snprintf(SaveGameLocation, MAX_WADPATH, ".");
 			ConfigMode = 1;
 		}
-		
 		// Does the file exist but we can't write to it? if so, get the settings
 		else if (!access(va("./%s", CONFIGFILENAME), R_OK))
 		{
@@ -327,11 +327,10 @@ void M_FirstLoadConfig(void)
 			COM_BufInsertText(va("exec \"./%s\"\n", CONFIGFILENAME));
 		}
 	}
-	
 	// 4. Check ~
 	if (!ConfigMode)
 	{
-#ifdef _WIN32	// Windows
+#ifdef _WIN32					// Windows
 		// NT has this environment variable
 		if (strncasecmp(getenv("OS"), "Windows_NT", 10) == 0)
 			if (getenv("HOMEDRIVE") && getenv("HOMEPATH"))
@@ -345,11 +344,10 @@ void M_FirstLoadConfig(void)
 				snprintf(SaveGameLocation, MAX_WADPATH, "%s", ReMooDHome);
 				ConfigMode = 1;
 			}
-		
-#else			// Other OSes
+#else							// Other OSes
 		if (getenv("HOME"))
-			snprintf(ReMooDHome, MAX_WADPATH,  "%s/.remood", getenv("HOME"));
-		
+			snprintf(ReMooDHome, MAX_WADPATH, "%s/.remood", getenv("HOME"));
+			
 		if (ReMooDHome[0])
 		{
 			I_mkdir(ReMooDHome, 0700);
@@ -361,14 +359,13 @@ void M_FirstLoadConfig(void)
 		}
 #endif
 	}
-	
 	// 5. Check Application Data (Windows Only)
 #ifdef _WIN32
 	if (!ConfigMode)
 	{
 		memset(ReMooDHome, 0, sizeof(ReMooDHome));
 		
-		if (strncasecmp(getenv("OS"), "Windows_NT", 10) == 0)		// All of NT has this
+		if (strncasecmp(getenv("OS"), "Windows_NT", 10) == 0)	// All of NT has this
 		{
 			// It is possible that one may upgrade from XP to Vista...
 			if (getenv("APPDATA"))
@@ -385,7 +382,6 @@ void M_FirstLoadConfig(void)
 				else
 					memset(ReMooDHome, 0, sizeof(ReMooDHome));
 			}
-			
 			// No config exists there, so we go back to LOCALAPPDATA and APPDATA
 			if (!ReMooDHome[0])
 			{
@@ -395,12 +391,12 @@ void M_FirstLoadConfig(void)
 					snprintf(ReMooDHome, MAX_WADPATH, "%s\\ReMooD", getenv("APPDATA"));
 			}
 		}
-		else			// Use SHGetSpecialFolderLocation w/ CSIDL_APPDATA for 9x
+		else					// Use SHGetSpecialFolderLocation w/ CSIDL_APPDATA for 9x
 		{
 			memset(Check, 0, sizeof(Check));
 			
 			if (SHGetSpecialFolderPath(NULL, Check, CSIDL_APPDATA, FALSE))
-			//if (SHGetFolderPath(NULL, CSIDL_APPDATA, NULL, 0, Check) == S_OK)
+				//if (SHGetFolderPath(NULL, CSIDL_APPDATA, NULL, 0, Check) == S_OK)
 				snprintf(ReMooDHome, MAX_WADPATH, "%s\\ReMooD", Check);
 		}
 		
@@ -428,8 +424,8 @@ void M_FirstLoadConfig(void)
 		// load config, make sure those commands doesnt require the screen..
 		CONS_Printf("\n");
 		COM_BufInsertText(va("exec \"%s\"\n", configfile));
-		COM_BufExecute();			// make sure initial settings are done
-
+		COM_BufExecute();		// make sure initial settings are done
+		
 		// make sure I_Quit() will write back the correct config
 		// (do not write back the config if it crash before)
 		gameconfig_loaded = true;
@@ -440,18 +436,18 @@ void M_FirstLoadConfig(void)
 
 //  Save all game config here
 //
-void M_SaveConfig(char *filename)
+void M_SaveConfig(char* filename)
 {
-	FILE *f;
-
+	FILE* f;
+	
 	// make sure not to write back the config until
 	//  it's been correctly loaded
 	/*if (!gameconfig_loaded)
-	{
-		CONS_Printf("M_SaveConfig: Configuration never loaded\n");
-		return;
-	}*/
-
+	   {
+	   CONS_Printf("M_SaveConfig: Configuration never loaded\n");
+	   return;
+	   } */
+	
 	// can change the file name
 	if (filename)
 	{
@@ -474,22 +470,17 @@ void M_SaveConfig(char *filename)
 			return;
 		}
 	}
-
+	
 	// header message
 	fprintf(f, "// ReMooD Configuration File (Version %i.%i%c \"%s\"; Legacy Version %i.%i)\n",
-		REMOOD_MAJORVERSION,
-		REMOOD_MINORVERSION,
-		REMOOD_RELEASEVERSION,
-		REMOOD_VERSIONCODESTRING,
-		VERSION / 100,
-		VERSION % 100);
+	        REMOOD_MAJORVERSION, REMOOD_MINORVERSION, REMOOD_RELEASEVERSION, REMOOD_VERSIONCODESTRING, VERSION / 100, VERSION % 100);
 	fprintf(f, "// See %s for more details.\n", REMOOD_URL);
-
+	
 	//FIXME: save key aliases if ever implemented..
-
+	
 	CV_SaveVariables(f);
 	G_SaveKeySetting(f);
-
+	
 	fclose(f);
 	
 	CONS_Printf("M_SaveConfig: Saved configuration to \"%s\"\n", configfile);
@@ -505,22 +496,22 @@ typedef struct
 	char version;
 	char encoding;
 	char bits_per_pixel;
-
+	
 	unsigned short xmin;
 	unsigned short ymin;
 	unsigned short xmax;
 	unsigned short ymax;
-
+	
 	unsigned short hres;
 	unsigned short vres;
-
+	
 	unsigned char palette[48];
-
+	
 	char reserved;
 	char color_planes;
 	unsigned short bytes_per_line;
 	unsigned short palette_type;
-
+	
 	char filler[58];
 	unsigned char data;			// unbounded
 } pcx_t;
@@ -528,15 +519,15 @@ typedef struct
 //
 // WritePCXfile
 //
-bool_t WritePCXfile(char *filename, uint8_t * data, int width, int height, uint8_t * palette)
+bool_t WritePCXfile(char* filename, uint8_t* data, int width, int height, uint8_t* palette)
 {
 	int i;
 	int length;
-	pcx_t *pcx;
-	uint8_t *pack;
-
+	pcx_t* pcx;
+	uint8_t* pack;
+	
 	pcx = Z_Malloc(width * height * 2 + 1000, PU_STATIC, NULL);
-
+	
 	pcx->manufacturer = 0x0a;	// PCX id
 	pcx->version = 5;			// 256 color
 	pcx->encoding = 1;			// uncompressed
@@ -552,10 +543,10 @@ bool_t WritePCXfile(char *filename, uint8_t * data, int width, int height, uint8
 	pcx->bytes_per_line = LittleSwapInt16(width);
 	pcx->palette_type = LittleSwapInt16(1);	// not a grey scale
 	memset(pcx->filler, 0, sizeof(pcx->filler));
-
+	
 	// pack the image
 	pack = &pcx->data;
-
+	
 	for (i = 0; i < width * height; i++)
 	{
 		if ((*data & 0xc0) != 0xc0)
@@ -566,16 +557,16 @@ bool_t WritePCXfile(char *filename, uint8_t * data, int width, int height, uint8
 			*pack++ = *data++;
 		}
 	}
-
+	
 	// write the palette
 	*pack++ = 0x0c;				// palette ID byte
 	for (i = 0; i < 768; i++)
 		*pack++ = *palette++;
-
+		
 	// write output file
-	length = pack - (uint8_t *) pcx;
+	length = pack - (uint8_t*)pcx;
 	i = FIL_WriteFile(filename, pcx, length);
-
+	
 	Z_Free(pcx);
 	return i;
 }
@@ -586,14 +577,14 @@ bool_t WritePCXfile(char *filename, uint8_t * data, int width, int height, uint8
 void M_ScreenShot(void)
 {
 	int i;
-	uint8_t *linear;
+	uint8_t* linear;
 	char lbmname[MAX_WADPATH];
 	bool_t ret = false;
-
+	
 	// munge planar buffer to linear
 	linear = screens[2];
 	I_ReadScreen(linear);
-
+	
 	// find a file name to save it to
 	strcpy(lbmname, "DOOM0000.pcx");
 	for (i = 0; i < 10000; i++)
@@ -603,15 +594,14 @@ void M_ScreenShot(void)
 		lbmname[6] = '0' + ((i / 10) % 10);
 		lbmname[7] = '0' + ((i / 1) % 10);
 		if (access(lbmname, 0) == -1)
-			break;			// file doesn't exist
+			break;				// file doesn't exist
 	}
 	if (i < 10000)
 	{
 		// save the pcx file
-		ret = WritePCXfile(lbmname, linear,
-						   vid.width, vid.height, W_CacheLumpName("PLAYPAL", PU_CACHE));
+		ret = WritePCXfile(lbmname, linear, vid.width, vid.height, W_CacheLumpName("PLAYPAL", PU_CACHE));
 	}
-
+	
 	if (ret)
 		CONS_Printf("screen shot %s saved\n", lbmname);
 	else
@@ -625,23 +615,23 @@ void M_ScreenShot(void)
 
 //  Temporary varargs CONS_Printf
 //
-char *va(char *format, ...)
+char* va(char* format, ...)
 {
 	va_list argptr;
 	static char string[1024];
-
+	
 	va_start(argptr, format);
 	vsprintf(string, format, argptr);
 	va_end(argptr);
-
+	
 	return string;
 }
 
 // s1=s2+s3+s1
-void strcatbf(char *s1, char *s2, char *s3)
+void strcatbf(char* s1, char* s2, char* s3)
 {
 	char tmp[1024];
-
+	
 	strcpy(tmp, s1);
 	strcpy(s1, s2);
 	strcat(s1, s3);

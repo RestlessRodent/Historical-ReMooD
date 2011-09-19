@@ -45,7 +45,7 @@ typedef struct
 	fixed_t y;
 	fixed_t dx;
 	fixed_t dy;
-
+	
 } divline_t;
 
 typedef struct
@@ -54,8 +54,8 @@ typedef struct
 	bool_t isaline;
 	union
 	{
-		mobj_t *thing;
-		line_t *line;
+		mobj_t* thing;
+		line_t* line;
 	} d;
 } intercept_t;
 
@@ -66,31 +66,31 @@ extern intercept_t*     intercept_p;*/
 
 //SoM: 4/6/2000: Remove limit.
 extern int max_intercepts;
-extern intercept_t *intercepts;
-extern intercept_t *intercept_p;
+extern intercept_t* intercepts;
+extern intercept_t* intercept_p;
 
 void P_CheckIntercepts();
 
-typedef bool_t(*traverser_t) (intercept_t * in);
+typedef bool_t (*traverser_t) (intercept_t* in);
 
 bool_t P_PathTraverse(fixed_t x1, fixed_t y1, fixed_t x2, fixed_t y2, int flags, traverser_t trav);
 
 fixed_t P_AproxDistance(fixed_t dx, fixed_t dy);
-int P_PointOnLineSide(fixed_t x, fixed_t y, line_t * line);
-int P_PointOnDivlineSide(fixed_t x, fixed_t y, divline_t * line);
-void P_MakeDivline(line_t * li, divline_t * dl);
-fixed_t P_InterceptVector(divline_t * v2, divline_t * v1);
-int P_BoxOnLineSide(fixed_t * tmbox, line_t * ld);
+int P_PointOnLineSide(fixed_t x, fixed_t y, line_t* line);
+int P_PointOnDivlineSide(fixed_t x, fixed_t y, divline_t* line);
+void P_MakeDivline(line_t* li, divline_t* dl);
+fixed_t P_InterceptVector(divline_t* v2, divline_t* v1);
+int P_BoxOnLineSide(fixed_t* tmbox, line_t* ld);
 
 extern fixed_t opentop;
 extern fixed_t openbottom;
 extern fixed_t openrange;
 extern fixed_t lowfloor;
 
-void P_LineOpening(line_t * linedef);
+void P_LineOpening(line_t* linedef);
 
-bool_t P_BlockLinesIterator(int x, int y, bool_t(*func) (line_t *));
-bool_t P_BlockThingsIterator(int x, int y, bool_t(*func) (mobj_t *));
+bool_t P_BlockLinesIterator(int x, int y, bool_t (*func) (line_t*));
+bool_t P_BlockThingsIterator(int x, int y, bool_t (*func) (mobj_t*));
 
 #define PT_ADDLINES     1
 #define PT_ADDTHINGS    2
@@ -101,9 +101,9 @@ extern divline_t trace;
 extern fixed_t tmbbox[4];		//p_map.c
 
 // call your user function for each line of the blockmap in the bbox defined by the radius
+
 /*bool_t P_RadiusLinesCheck (  fixed_t    radius,
                               fixed_t    x,
                               fixed_t    y,
                               bool_t   (*func)(line_t*));*/
 #endif							// __P_MAPUTL__
-

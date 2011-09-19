@@ -41,13 +41,13 @@ enum
 {
 	// simple gradual pixel change for 8-bit only
 	wipe_ColorXForm,
-
+	
 	// weird screen melt
 	wipe_Melt,
 	
 	// GhostlyDeath <June 4, 2010> -- Blinds
 	wipe_Blinds,
-
+	
 	wipe_NUMWIPES
 };
 
@@ -58,4 +58,3 @@ int wipe_EndScreen(int x, int y, int width, int height);
 int wipe_ScreenWipe(int wipeno, int x, int y, int width, int height, int ticks);
 
 #endif
-

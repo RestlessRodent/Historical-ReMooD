@@ -46,7 +46,7 @@ char* C_strupr(char* s)
 	/* Check */
 	if (!s)
 		return NULL;
-	
+		
 	/* Run */
 	x = s;
 	while (*x)
@@ -66,7 +66,7 @@ char* C_strlwr(char* s)
 	/* Check */
 	if (!s)
 		return NULL;
-	
+		
 	/* Run */
 	x = s;
 	while (*x)
@@ -77,4 +77,3 @@ char* C_strlwr(char* s)
 	
 	return s;
 }
-

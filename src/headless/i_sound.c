@@ -48,4 +48,3 @@ bool_t I_SoundDriverInit(void)
 	/* Success */
 	return true;
 }
-

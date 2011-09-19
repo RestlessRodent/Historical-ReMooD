@@ -95,9 +95,9 @@ bool_t I_SetVideoMode(const uint32_t a_Width, const uint32_t a_Height, const boo
 	/* Check */
 	if (!a_Width || !a_Height)
 		return false;
-	
+		
 	/* Destroy old buffer */
-	I_VideoUnsetBuffer();	// Remove old buffer if any
+	I_VideoUnsetBuffer();		// Remove old buffer if any
 	
 	/* Allocate Buffer */
 	I_VideoSetBuffer(a_Width, a_Height, a_Width, NULL);
@@ -112,13 +112,13 @@ void I_StartupGraphics(void)
 	/* Pre-initialize video */
 	if (!I_VideoPreInit())
 		return;
-	
+		
 	/* Initialize before mode set */
 	if (!I_VideoBefore320200Init())
 		return;
 	if (!I_SetVideoMode(320, 200, false))	// 320x200 console scroller, never fullscreen
 		return;
-
+		
 	/* Prepare the video mode list */
 	if (!I_VideoPostInit())
 		return;
@@ -172,4 +172,3 @@ bool_t I_RemoveMouse(const size_t a_ID)
 void I_MouseGrab(const bool_t a_Grab)
 {
 }
-

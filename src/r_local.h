@@ -54,6 +54,6 @@
 #include "r_things.h"
 #include "r_draw.h"
 
-extern drawseg_t *firstseg;
+extern drawseg_t* firstseg;
 
 #endif							// __R_LOCAL__

@@ -37,7 +37,7 @@
 #include <stdlib.h>
 
 #if !defined(_MSC_VER)
-	#include <stdint.h>
+#include <stdint.h>
 #endif
 
 /* Local */
@@ -261,338 +261,338 @@ static const uint8_t c_ReMooDLogo[4096] =
 	0x0D, 0x00, 0x00, 0xFF, 0x03, 0x00, 0x00, 0xFF, 0x08, 0x00, 0x00, 0xFF, 0x25, 0x00, 0x00, 0xFF, 0x37, 0x00, 0x00, 0xFF,
 	0x49, 0x00, 0x00, 0xFF, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
 	0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-	0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 
+	0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
 };
 
-const uint8_t c_SDLToReMooDKey[SDLK_LAST] =				// Converts an SDL key to a ReMooD Key
+const uint8_t c_SDLToReMooDKey[SDLK_LAST] =	// Converts an SDL key to a ReMooD Key
 {
-	IKBK_NULL,	// SDLK_UNKNOWN
-	IKBK_NULL,	// EMPTY
-	IKBK_NULL,	// EMPTY
-	IKBK_NULL,	// EMPTY
-	IKBK_NULL,	// EMPTY
-	IKBK_NULL,	// EMPTY
-	IKBK_NULL,	// EMPTY
-	IKBK_NULL,	// EMPTY
-	IKBK_BACKSPACE,	// SDLK_BACKSPACE
-	IKBK_TAB,	// SDLK_TAB
-	IKBK_NULL,	// EMPTY
-	IKBK_NULL,	// EMPTY
-	IKBK_NULL,	// SDLK_CLEAR
-	IKBK_RETURN,	// SDLK_RETURN
-	IKBK_NULL,	// EMPTY
-	IKBK_NULL,	// EMPTY
-	IKBK_NULL,	// EMPTY
-	IKBK_NULL,	// EMPTY
-	IKBK_NULL,	// EMPTY
-	IKBK_PAUSE,	// SDLK_PAUSE
-	IKBK_NULL,	// EMPTY
-	IKBK_NULL,	// EMPTY
-	IKBK_NULL,	// EMPTY
-	IKBK_NULL,	// EMPTY
-	IKBK_NULL,	// EMPTY
-	IKBK_NULL,	// EMPTY
-	IKBK_NULL,	// EMPTY
-	IKBK_ESCAPE,	// SDLK_ESCAPE
-	IKBK_NULL,	// EMPTY
-	IKBK_NULL,	// EMPTY
-	IKBK_NULL,	// EMPTY
-	IKBK_NULL,	// EMPTY
-	IKBK_SPACE,	// SDLK_SPACE
-	IKBK_EXCLAIM,	// SDLK_EXCLAIM
-	IKBK_QUOTE,	// SDLK_QUOTEDBL
-	IKBK_HASH,	// SDLK_HASH
-	IKBK_DOLLAR,	// SDLK_DOLLAR
-	IKBK_PERCENT,	// EMPTY (Percent should be here)
-	IKBK_AMPERSAND,	// SDLK_AMPERSAND
-	IKBK_APOSTROPHE,	// SDLK_QUOTE
-	IKBK_LEFTPARENTHESES,	// SDLK_LEFTPAREN
-	IKBK_RIGHTPARENTHESES,	// SDLK_RIGHTPAREN
-	IKBK_ASTERISK,	// SDLK_ASTERISK
-	IKBK_PLUS,	// SDLK_PLUS
-	IKBK_COMMA,	// SDLK_COMMA
-	IKBK_MINUS,	// SDLK_MINUS
-	IKBK_PERIOD,	// SDLK_PERIOD
-	IKBK_FORWARDSLASH,	// SDLK_SLASH
-	IKBK_0,	// SDLK_0
-	IKBK_1,	// SDLK_1
-	IKBK_2,	// SDLK_2
-	IKBK_3,	// SDLK_3
-	IKBK_4,	// SDLK_4
-	IKBK_5,	// SDLK_5
-	IKBK_6,	// SDLK_6
-	IKBK_7,	// SDLK_7
-	IKBK_8,	// SDLK_8
-	IKBK_9,	// SDLK_9
-	IKBK_COLON,	// SDLK_COLON
-	IKBK_SEMICOLON,	// SDLK_SEMICOLON
-	IKBK_LESSTHAN,	// SDLK_LESS
-	IKBK_EQUALS,	// SDLK_EQUALS
-	IKBK_GREATERTHAN,	// SDLK_GREATER
-	IKBK_QUESTION,	// SDLK_QUESTION
-	IKBK_AT,	// SDLK_AT
-	IKBK_NULL,	// EMPTY
-	IKBK_NULL,	// EMPTY
-	IKBK_NULL,	// EMPTY
-	IKBK_NULL,	// EMPTY
-	IKBK_NULL,	// EMPTY
-	IKBK_NULL,	// EMPTY
-	IKBK_NULL,	// EMPTY
-	IKBK_NULL,	// EMPTY
-	IKBK_NULL,	// EMPTY
-	IKBK_NULL,	// EMPTY
-	IKBK_NULL,	// EMPTY
-	IKBK_NULL,	// EMPTY
-	IKBK_NULL,	// EMPTY
-	IKBK_NULL,	// EMPTY
-	IKBK_NULL,	// EMPTY
-	IKBK_NULL,	// EMPTY
-	IKBK_NULL,	// EMPTY
-	IKBK_NULL,	// EMPTY
-	IKBK_NULL,	// EMPTY
-	IKBK_NULL,	// EMPTY
-	IKBK_NULL,	// EMPTY
-	IKBK_NULL,	// EMPTY
-	IKBK_NULL,	// EMPTY
-	IKBK_NULL,	// EMPTY
-	IKBK_NULL,	// EMPTY
-	IKBK_NULL,	// EMPTY
-	IKBK_LEFTBRACKET,	// SDLK_LEFTBRACKET
-	IKBK_BACKSLASH,	// SDLK_BACKSLASH
-	IKBK_RIGHTBRACKET,	// SDLK_RIGHTBRACKET
-	IKBK_CARET,	// SDLK_CARET
-	IKBK_UNDERSCORE,	// SDLK_UNDERSCORE
-	IKBK_GRAVE,	// SDLK_BACKQUOTE
-	IKBK_A,	// SDLK_a
-	IKBK_B,	// SDLK_b
-	IKBK_C,	// SDLK_c
-	IKBK_D,	// SDLK_d
-	IKBK_E,	// SDLK_e
-	IKBK_F,	// SDLK_f
-	IKBK_G,	// SDLK_g
-	IKBK_H,	// SDLK_h
-	IKBK_I,	// SDLK_i
-	IKBK_J,	// SDLK_j
-	IKBK_K,	// SDLK_k
-	IKBK_L,	// SDLK_l
-	IKBK_M,	// SDLK_m
-	IKBK_N,	// SDLK_n
-	IKBK_O,	// SDLK_o
-	IKBK_P,	// SDLK_p
-	IKBK_Q,	// SDLK_q
-	IKBK_R,	// SDLK_r
-	IKBK_S,	// SDLK_s
-	IKBK_T,	// SDLK_t
-	IKBK_U,	// SDLK_u
-	IKBK_V,	// SDLK_v
-	IKBK_W,	// SDLK_w
-	IKBK_X,	// SDLK_x
-	IKBK_Y,	// SDLK_y
-	IKBK_Z,	// SDLK_z
-	IKBK_NULL,	// EMPTY
-	IKBK_NULL,	// EMPTY
-	IKBK_NULL,	// EMPTY
-	IKBK_NULL,	// EMPTY
-	IKBK_DELETE,	// SDLK_DELETE
-	IKBK_NULL,	// EMPTY
-	IKBK_NULL,	// EMPTY
-	IKBK_NULL,	// EMPTY
-	IKBK_NULL,	// EMPTY
-	IKBK_NULL,	// EMPTY
-	IKBK_NULL,	// EMPTY
-	IKBK_NULL,	// EMPTY
-	IKBK_NULL,	// EMPTY
-	IKBK_NULL,	// EMPTY
-	IKBK_NULL,	// EMPTY
-	IKBK_NULL,	// EMPTY
-	IKBK_NULL,	// EMPTY
-	IKBK_NULL,	// EMPTY
-	IKBK_NULL,	// EMPTY
-	IKBK_NULL,	// EMPTY
-	IKBK_NULL,	// EMPTY
-	IKBK_NULL,	// EMPTY
-	IKBK_NULL,	// EMPTY
-	IKBK_NULL,	// EMPTY
-	IKBK_NULL,	// EMPTY
-	IKBK_NULL,	// EMPTY
-	IKBK_NULL,	// EMPTY
-	IKBK_NULL,	// EMPTY
-	IKBK_NULL,	// EMPTY
-	IKBK_NULL,	// EMPTY
-	IKBK_NULL,	// EMPTY
-	IKBK_NULL,	// EMPTY
-	IKBK_NULL,	// EMPTY
-	IKBK_NULL,	// EMPTY
-	IKBK_NULL,	// EMPTY
-	IKBK_NULL,	// EMPTY
-	IKBK_NULL,	// EMPTY
-	IKBK_NULL,	// SDLK_WORLD_0
-	IKBK_NULL,	// SDLK_WORLD_1
-	IKBK_NULL,	// SDLK_WORLD_2
-	IKBK_NULL,	// SDLK_WORLD_3
-	IKBK_NULL,	// SDLK_WORLD_4
-	IKBK_NULL,	// SDLK_WORLD_5
-	IKBK_NULL,	// SDLK_WORLD_6
-	IKBK_NULL,	// SDLK_WORLD_7
-	IKBK_NULL,	// SDLK_WORLD_8
-	IKBK_NULL,	// SDLK_WORLD_9
-	IKBK_NULL,	// SDLK_WORLD_10
-	IKBK_NULL,	// SDLK_WORLD_11
-	IKBK_NULL,	// SDLK_WORLD_12
-	IKBK_NULL,	// SDLK_WORLD_13
-	IKBK_NULL,	// SDLK_WORLD_14
-	IKBK_NULL,	// SDLK_WORLD_15
-	IKBK_NULL,	// SDLK_WORLD_16
-	IKBK_NULL,	// SDLK_WORLD_17
-	IKBK_NULL,	// SDLK_WORLD_18
-	IKBK_NULL,	// SDLK_WORLD_19
-	IKBK_NULL,	// SDLK_WORLD_20
-	IKBK_NULL,	// SDLK_WORLD_21
-	IKBK_NULL,	// SDLK_WORLD_22
-	IKBK_NULL,	// SDLK_WORLD_23
-	IKBK_NULL,	// SDLK_WORLD_24
-	IKBK_NULL,	// SDLK_WORLD_25
-	IKBK_NULL,	// SDLK_WORLD_26
-	IKBK_NULL,	// SDLK_WORLD_27
-	IKBK_NULL,	// SDLK_WORLD_28
-	IKBK_NULL,	// SDLK_WORLD_29
-	IKBK_NULL,	// SDLK_WORLD_30
-	IKBK_NULL,	// SDLK_WORLD_31
-	IKBK_NULL,	// SDLK_WORLD_32
-	IKBK_NULL,	// SDLK_WORLD_33
-	IKBK_NULL,	// SDLK_WORLD_34
-	IKBK_NULL,	// SDLK_WORLD_35
-	IKBK_NULL,	// SDLK_WORLD_36
-	IKBK_NULL,	// SDLK_WORLD_37
-	IKBK_NULL,	// SDLK_WORLD_38
-	IKBK_NULL,	// SDLK_WORLD_39
-	IKBK_NULL,	// SDLK_WORLD_40
-	IKBK_NULL,	// SDLK_WORLD_41
-	IKBK_NULL,	// SDLK_WORLD_42
-	IKBK_NULL,	// SDLK_WORLD_43
-	IKBK_NULL,	// SDLK_WORLD_44
-	IKBK_NULL,	// SDLK_WORLD_45
-	IKBK_NULL,	// SDLK_WORLD_46
-	IKBK_NULL,	// SDLK_WORLD_47
-	IKBK_NULL,	// SDLK_WORLD_48
-	IKBK_NULL,	// SDLK_WORLD_49
-	IKBK_NULL,	// SDLK_WORLD_50
-	IKBK_NULL,	// SDLK_WORLD_51
-	IKBK_NULL,	// SDLK_WORLD_52
-	IKBK_NULL,	// SDLK_WORLD_53
-	IKBK_NULL,	// SDLK_WORLD_54
-	IKBK_NULL,	// SDLK_WORLD_55
-	IKBK_NULL,	// SDLK_WORLD_56
-	IKBK_NULL,	// SDLK_WORLD_57
-	IKBK_NULL,	// SDLK_WORLD_58
-	IKBK_NULL,	// SDLK_WORLD_59
-	IKBK_NULL,	// SDLK_WORLD_60
-	IKBK_NULL,	// SDLK_WORLD_61
-	IKBK_NULL,	// SDLK_WORLD_62
-	IKBK_NULL,	// SDLK_WORLD_63
-	IKBK_NULL,	// SDLK_WORLD_64
-	IKBK_NULL,	// SDLK_WORLD_65
-	IKBK_NULL,	// SDLK_WORLD_66
-	IKBK_NULL,	// SDLK_WORLD_67
-	IKBK_NULL,	// SDLK_WORLD_68
-	IKBK_NULL,	// SDLK_WORLD_69
-	IKBK_NULL,	// SDLK_WORLD_70
-	IKBK_NULL,	// SDLK_WORLD_71
-	IKBK_NULL,	// SDLK_WORLD_72
-	IKBK_NULL,	// SDLK_WORLD_73
-	IKBK_NULL,	// SDLK_WORLD_74
-	IKBK_NULL,	// SDLK_WORLD_75
-	IKBK_NULL,	// SDLK_WORLD_76
-	IKBK_NULL,	// SDLK_WORLD_77
-	IKBK_NULL,	// SDLK_WORLD_78
-	IKBK_NULL,	// SDLK_WORLD_79
-	IKBK_NULL,	// SDLK_WORLD_80
-	IKBK_NULL,	// SDLK_WORLD_81
-	IKBK_NULL,	// SDLK_WORLD_82
-	IKBK_NULL,	// SDLK_WORLD_83
-	IKBK_NULL,	// SDLK_WORLD_84
-	IKBK_NULL,	// SDLK_WORLD_85
-	IKBK_NULL,	// SDLK_WORLD_86
-	IKBK_NULL,	// SDLK_WORLD_87
-	IKBK_NULL,	// SDLK_WORLD_88
-	IKBK_NULL,	// SDLK_WORLD_89
-	IKBK_NULL,	// SDLK_WORLD_90
-	IKBK_NULL,	// SDLK_WORLD_91
-	IKBK_NULL,	// SDLK_WORLD_92
-	IKBK_NULL,	// SDLK_WORLD_93
-	IKBK_NULL,	// SDLK_WORLD_94
-	IKBK_NULL,	// SDLK_WORLD_95
-	IKBK_NUM0,	// SDLK_KP0
-	IKBK_NUM1,	// SDLK_KP1
-	IKBK_NUM2,	// SDLK_KP2
-	IKBK_NUM3,	// SDLK_KP3
-	IKBK_NUM4,	// SDLK_KP4
-	IKBK_NUM5,	// SDLK_KP5
-	IKBK_NUM6,	// SDLK_KP6
-	IKBK_NUM7,	// SDLK_KP7
-	IKBK_NUM8,	// SDLK_KP8
-	IKBK_NUM9,	// SDLK_KP9
-	IKBK_NUMPERIOD,	// SDLK_KP_PERIOD
-	IKBK_NUMDIVIDE,	// SDLK_KP_DIVIDE
-	IKBK_NUMMULTIPLY,	// SDLK_KP_MULTIPLY
-	IKBK_NUMSUBTRACT,	// SDLK_KP_MINUS
-	IKBK_NUMADD,	// SDLK_KP_PLUS
-	IKBK_NUMENTER,	// SDLK_KP_ENTER
-	IKBK_NUMENTER,	// SDLK_KP_EQUALS
-	IKBK_UP,	// SDLK_UP
-	IKBK_DOWN,	// SDLK_DOWN
-	IKBK_RIGHT,	// SDLK_RIGHT
-	IKBK_LEFT,	// SDLK_LEFT
-	IKBK_INSERT,	// SDLK_INSERT
-	IKBK_HOME,	// SDLK_HOME
-	IKBK_END,	// SDLK_END
-	IKBK_PAGEUP,	// SDLK_PAGEUP
-	IKBK_PAGEDOWN,	// SDLK_PAGEDOWN
-	IKBK_F1,	// SDLK_F1
-	IKBK_F2,	// SDLK_F2
-	IKBK_F3,	// SDLK_F3
-	IKBK_F4,	// SDLK_F4
-	IKBK_F5,	// SDLK_F5
-	IKBK_F6,	// SDLK_F6
-	IKBK_F7,	// SDLK_F7
-	IKBK_F8,	// SDLK_F8
-	IKBK_F9,	// SDLK_F9
-	IKBK_F10,	// SDLK_F10
-	IKBK_F11,	// SDLK_F11
-	IKBK_F12,	// SDLK_F12
-	IKBK_NULL,	// SDLK_F13
-	IKBK_NULL,	// SDLK_F14
-	IKBK_NULL,	// SDLK_F15
-	IKBK_NULL,	// EMPTY
-	IKBK_NULL,	// EMPTY
-	IKBK_NULL,	// EMPTY
-	IKBK_NUMLOCK,	// SDLK_NUMLOCK
-	IKBK_CAPSLOCK,	// SDLK_CAPSLOCK
-	IKBK_SCROLLLOCK,	// SDLK_SCROLLOCK
-	IKBK_SHIFT,	// SDLK_RSHIFT
-	IKBK_SHIFT,	// SDLK_LSHIFT
-	IKBK_CTRL,	// SDLK_RCTRL
-	IKBK_CTRL,	// SDLK_LCTRL
-	IKBK_ALT,	// SDLK_RALT
-	IKBK_ALT,	// SDLK_LALT
-	IKBK_WINDOWSKEY,	// SDLK_RMETA
-	IKBK_WINDOWSKEY,	// SDLK_LMETA
-	IKBK_WINDOWSKEY,	// SDLK_LSUPER
-	IKBK_WINDOWSKEY,	// SDLK_RSUPER
-	IKBK_NULL,	// SDLK_MODE
-	IKBK_NULL,	// SDLK_COMPOSE
-	IKBK_NULL,	// SDLK_HELP
-	IKBK_PRINTSCREEN,	// SDLK_PRINT
-	IKBK_NULL,	// SDLK_SYSREQ
-	IKBK_NULL,	// SDLK_BREAK
-	IKBK_MENUKEY,	// SDLK_MENU
-	IKBK_NULL,	// SDLK_POWER
-	IKBK_EVILEURO,	// SDLK_EURO
-	IKBK_NULL,	// SDLK_UNDO
+	IKBK_NULL,					// SDLK_UNKNOWN
+	IKBK_NULL,					// EMPTY
+	IKBK_NULL,					// EMPTY
+	IKBK_NULL,					// EMPTY
+	IKBK_NULL,					// EMPTY
+	IKBK_NULL,					// EMPTY
+	IKBK_NULL,					// EMPTY
+	IKBK_NULL,					// EMPTY
+	IKBK_BACKSPACE,				// SDLK_BACKSPACE
+	IKBK_TAB,					// SDLK_TAB
+	IKBK_NULL,					// EMPTY
+	IKBK_NULL,					// EMPTY
+	IKBK_NULL,					// SDLK_CLEAR
+	IKBK_RETURN,				// SDLK_RETURN
+	IKBK_NULL,					// EMPTY
+	IKBK_NULL,					// EMPTY
+	IKBK_NULL,					// EMPTY
+	IKBK_NULL,					// EMPTY
+	IKBK_NULL,					// EMPTY
+	IKBK_PAUSE,					// SDLK_PAUSE
+	IKBK_NULL,					// EMPTY
+	IKBK_NULL,					// EMPTY
+	IKBK_NULL,					// EMPTY
+	IKBK_NULL,					// EMPTY
+	IKBK_NULL,					// EMPTY
+	IKBK_NULL,					// EMPTY
+	IKBK_NULL,					// EMPTY
+	IKBK_ESCAPE,				// SDLK_ESCAPE
+	IKBK_NULL,					// EMPTY
+	IKBK_NULL,					// EMPTY
+	IKBK_NULL,					// EMPTY
+	IKBK_NULL,					// EMPTY
+	IKBK_SPACE,					// SDLK_SPACE
+	IKBK_EXCLAIM,				// SDLK_EXCLAIM
+	IKBK_QUOTE,					// SDLK_QUOTEDBL
+	IKBK_HASH,					// SDLK_HASH
+	IKBK_DOLLAR,				// SDLK_DOLLAR
+	IKBK_PERCENT,				// EMPTY (Percent should be here)
+	IKBK_AMPERSAND,				// SDLK_AMPERSAND
+	IKBK_APOSTROPHE,			// SDLK_QUOTE
+	IKBK_LEFTPARENTHESES,		// SDLK_LEFTPAREN
+	IKBK_RIGHTPARENTHESES,		// SDLK_RIGHTPAREN
+	IKBK_ASTERISK,				// SDLK_ASTERISK
+	IKBK_PLUS,					// SDLK_PLUS
+	IKBK_COMMA,					// SDLK_COMMA
+	IKBK_MINUS,					// SDLK_MINUS
+	IKBK_PERIOD,				// SDLK_PERIOD
+	IKBK_FORWARDSLASH,			// SDLK_SLASH
+	IKBK_0,						// SDLK_0
+	IKBK_1,						// SDLK_1
+	IKBK_2,						// SDLK_2
+	IKBK_3,						// SDLK_3
+	IKBK_4,						// SDLK_4
+	IKBK_5,						// SDLK_5
+	IKBK_6,						// SDLK_6
+	IKBK_7,						// SDLK_7
+	IKBK_8,						// SDLK_8
+	IKBK_9,						// SDLK_9
+	IKBK_COLON,					// SDLK_COLON
+	IKBK_SEMICOLON,				// SDLK_SEMICOLON
+	IKBK_LESSTHAN,				// SDLK_LESS
+	IKBK_EQUALS,				// SDLK_EQUALS
+	IKBK_GREATERTHAN,			// SDLK_GREATER
+	IKBK_QUESTION,				// SDLK_QUESTION
+	IKBK_AT,					// SDLK_AT
+	IKBK_NULL,					// EMPTY
+	IKBK_NULL,					// EMPTY
+	IKBK_NULL,					// EMPTY
+	IKBK_NULL,					// EMPTY
+	IKBK_NULL,					// EMPTY
+	IKBK_NULL,					// EMPTY
+	IKBK_NULL,					// EMPTY
+	IKBK_NULL,					// EMPTY
+	IKBK_NULL,					// EMPTY
+	IKBK_NULL,					// EMPTY
+	IKBK_NULL,					// EMPTY
+	IKBK_NULL,					// EMPTY
+	IKBK_NULL,					// EMPTY
+	IKBK_NULL,					// EMPTY
+	IKBK_NULL,					// EMPTY
+	IKBK_NULL,					// EMPTY
+	IKBK_NULL,					// EMPTY
+	IKBK_NULL,					// EMPTY
+	IKBK_NULL,					// EMPTY
+	IKBK_NULL,					// EMPTY
+	IKBK_NULL,					// EMPTY
+	IKBK_NULL,					// EMPTY
+	IKBK_NULL,					// EMPTY
+	IKBK_NULL,					// EMPTY
+	IKBK_NULL,					// EMPTY
+	IKBK_NULL,					// EMPTY
+	IKBK_LEFTBRACKET,			// SDLK_LEFTBRACKET
+	IKBK_BACKSLASH,				// SDLK_BACKSLASH
+	IKBK_RIGHTBRACKET,			// SDLK_RIGHTBRACKET
+	IKBK_CARET,					// SDLK_CARET
+	IKBK_UNDERSCORE,			// SDLK_UNDERSCORE
+	IKBK_GRAVE,					// SDLK_BACKQUOTE
+	IKBK_A,						// SDLK_a
+	IKBK_B,						// SDLK_b
+	IKBK_C,						// SDLK_c
+	IKBK_D,						// SDLK_d
+	IKBK_E,						// SDLK_e
+	IKBK_F,						// SDLK_f
+	IKBK_G,						// SDLK_g
+	IKBK_H,						// SDLK_h
+	IKBK_I,						// SDLK_i
+	IKBK_J,						// SDLK_j
+	IKBK_K,						// SDLK_k
+	IKBK_L,						// SDLK_l
+	IKBK_M,						// SDLK_m
+	IKBK_N,						// SDLK_n
+	IKBK_O,						// SDLK_o
+	IKBK_P,						// SDLK_p
+	IKBK_Q,						// SDLK_q
+	IKBK_R,						// SDLK_r
+	IKBK_S,						// SDLK_s
+	IKBK_T,						// SDLK_t
+	IKBK_U,						// SDLK_u
+	IKBK_V,						// SDLK_v
+	IKBK_W,						// SDLK_w
+	IKBK_X,						// SDLK_x
+	IKBK_Y,						// SDLK_y
+	IKBK_Z,						// SDLK_z
+	IKBK_NULL,					// EMPTY
+	IKBK_NULL,					// EMPTY
+	IKBK_NULL,					// EMPTY
+	IKBK_NULL,					// EMPTY
+	IKBK_DELETE,				// SDLK_DELETE
+	IKBK_NULL,					// EMPTY
+	IKBK_NULL,					// EMPTY
+	IKBK_NULL,					// EMPTY
+	IKBK_NULL,					// EMPTY
+	IKBK_NULL,					// EMPTY
+	IKBK_NULL,					// EMPTY
+	IKBK_NULL,					// EMPTY
+	IKBK_NULL,					// EMPTY
+	IKBK_NULL,					// EMPTY
+	IKBK_NULL,					// EMPTY
+	IKBK_NULL,					// EMPTY
+	IKBK_NULL,					// EMPTY
+	IKBK_NULL,					// EMPTY
+	IKBK_NULL,					// EMPTY
+	IKBK_NULL,					// EMPTY
+	IKBK_NULL,					// EMPTY
+	IKBK_NULL,					// EMPTY
+	IKBK_NULL,					// EMPTY
+	IKBK_NULL,					// EMPTY
+	IKBK_NULL,					// EMPTY
+	IKBK_NULL,					// EMPTY
+	IKBK_NULL,					// EMPTY
+	IKBK_NULL,					// EMPTY
+	IKBK_NULL,					// EMPTY
+	IKBK_NULL,					// EMPTY
+	IKBK_NULL,					// EMPTY
+	IKBK_NULL,					// EMPTY
+	IKBK_NULL,					// EMPTY
+	IKBK_NULL,					// EMPTY
+	IKBK_NULL,					// EMPTY
+	IKBK_NULL,					// EMPTY
+	IKBK_NULL,					// EMPTY
+	IKBK_NULL,					// SDLK_WORLD_0
+	IKBK_NULL,					// SDLK_WORLD_1
+	IKBK_NULL,					// SDLK_WORLD_2
+	IKBK_NULL,					// SDLK_WORLD_3
+	IKBK_NULL,					// SDLK_WORLD_4
+	IKBK_NULL,					// SDLK_WORLD_5
+	IKBK_NULL,					// SDLK_WORLD_6
+	IKBK_NULL,					// SDLK_WORLD_7
+	IKBK_NULL,					// SDLK_WORLD_8
+	IKBK_NULL,					// SDLK_WORLD_9
+	IKBK_NULL,					// SDLK_WORLD_10
+	IKBK_NULL,					// SDLK_WORLD_11
+	IKBK_NULL,					// SDLK_WORLD_12
+	IKBK_NULL,					// SDLK_WORLD_13
+	IKBK_NULL,					// SDLK_WORLD_14
+	IKBK_NULL,					// SDLK_WORLD_15
+	IKBK_NULL,					// SDLK_WORLD_16
+	IKBK_NULL,					// SDLK_WORLD_17
+	IKBK_NULL,					// SDLK_WORLD_18
+	IKBK_NULL,					// SDLK_WORLD_19
+	IKBK_NULL,					// SDLK_WORLD_20
+	IKBK_NULL,					// SDLK_WORLD_21
+	IKBK_NULL,					// SDLK_WORLD_22
+	IKBK_NULL,					// SDLK_WORLD_23
+	IKBK_NULL,					// SDLK_WORLD_24
+	IKBK_NULL,					// SDLK_WORLD_25
+	IKBK_NULL,					// SDLK_WORLD_26
+	IKBK_NULL,					// SDLK_WORLD_27
+	IKBK_NULL,					// SDLK_WORLD_28
+	IKBK_NULL,					// SDLK_WORLD_29
+	IKBK_NULL,					// SDLK_WORLD_30
+	IKBK_NULL,					// SDLK_WORLD_31
+	IKBK_NULL,					// SDLK_WORLD_32
+	IKBK_NULL,					// SDLK_WORLD_33
+	IKBK_NULL,					// SDLK_WORLD_34
+	IKBK_NULL,					// SDLK_WORLD_35
+	IKBK_NULL,					// SDLK_WORLD_36
+	IKBK_NULL,					// SDLK_WORLD_37
+	IKBK_NULL,					// SDLK_WORLD_38
+	IKBK_NULL,					// SDLK_WORLD_39
+	IKBK_NULL,					// SDLK_WORLD_40
+	IKBK_NULL,					// SDLK_WORLD_41
+	IKBK_NULL,					// SDLK_WORLD_42
+	IKBK_NULL,					// SDLK_WORLD_43
+	IKBK_NULL,					// SDLK_WORLD_44
+	IKBK_NULL,					// SDLK_WORLD_45
+	IKBK_NULL,					// SDLK_WORLD_46
+	IKBK_NULL,					// SDLK_WORLD_47
+	IKBK_NULL,					// SDLK_WORLD_48
+	IKBK_NULL,					// SDLK_WORLD_49
+	IKBK_NULL,					// SDLK_WORLD_50
+	IKBK_NULL,					// SDLK_WORLD_51
+	IKBK_NULL,					// SDLK_WORLD_52
+	IKBK_NULL,					// SDLK_WORLD_53
+	IKBK_NULL,					// SDLK_WORLD_54
+	IKBK_NULL,					// SDLK_WORLD_55
+	IKBK_NULL,					// SDLK_WORLD_56
+	IKBK_NULL,					// SDLK_WORLD_57
+	IKBK_NULL,					// SDLK_WORLD_58
+	IKBK_NULL,					// SDLK_WORLD_59
+	IKBK_NULL,					// SDLK_WORLD_60
+	IKBK_NULL,					// SDLK_WORLD_61
+	IKBK_NULL,					// SDLK_WORLD_62
+	IKBK_NULL,					// SDLK_WORLD_63
+	IKBK_NULL,					// SDLK_WORLD_64
+	IKBK_NULL,					// SDLK_WORLD_65
+	IKBK_NULL,					// SDLK_WORLD_66
+	IKBK_NULL,					// SDLK_WORLD_67
+	IKBK_NULL,					// SDLK_WORLD_68
+	IKBK_NULL,					// SDLK_WORLD_69
+	IKBK_NULL,					// SDLK_WORLD_70
+	IKBK_NULL,					// SDLK_WORLD_71
+	IKBK_NULL,					// SDLK_WORLD_72
+	IKBK_NULL,					// SDLK_WORLD_73
+	IKBK_NULL,					// SDLK_WORLD_74
+	IKBK_NULL,					// SDLK_WORLD_75
+	IKBK_NULL,					// SDLK_WORLD_76
+	IKBK_NULL,					// SDLK_WORLD_77
+	IKBK_NULL,					// SDLK_WORLD_78
+	IKBK_NULL,					// SDLK_WORLD_79
+	IKBK_NULL,					// SDLK_WORLD_80
+	IKBK_NULL,					// SDLK_WORLD_81
+	IKBK_NULL,					// SDLK_WORLD_82
+	IKBK_NULL,					// SDLK_WORLD_83
+	IKBK_NULL,					// SDLK_WORLD_84
+	IKBK_NULL,					// SDLK_WORLD_85
+	IKBK_NULL,					// SDLK_WORLD_86
+	IKBK_NULL,					// SDLK_WORLD_87
+	IKBK_NULL,					// SDLK_WORLD_88
+	IKBK_NULL,					// SDLK_WORLD_89
+	IKBK_NULL,					// SDLK_WORLD_90
+	IKBK_NULL,					// SDLK_WORLD_91
+	IKBK_NULL,					// SDLK_WORLD_92
+	IKBK_NULL,					// SDLK_WORLD_93
+	IKBK_NULL,					// SDLK_WORLD_94
+	IKBK_NULL,					// SDLK_WORLD_95
+	IKBK_NUM0,					// SDLK_KP0
+	IKBK_NUM1,					// SDLK_KP1
+	IKBK_NUM2,					// SDLK_KP2
+	IKBK_NUM3,					// SDLK_KP3
+	IKBK_NUM4,					// SDLK_KP4
+	IKBK_NUM5,					// SDLK_KP5
+	IKBK_NUM6,					// SDLK_KP6
+	IKBK_NUM7,					// SDLK_KP7
+	IKBK_NUM8,					// SDLK_KP8
+	IKBK_NUM9,					// SDLK_KP9
+	IKBK_NUMPERIOD,				// SDLK_KP_PERIOD
+	IKBK_NUMDIVIDE,				// SDLK_KP_DIVIDE
+	IKBK_NUMMULTIPLY,			// SDLK_KP_MULTIPLY
+	IKBK_NUMSUBTRACT,			// SDLK_KP_MINUS
+	IKBK_NUMADD,				// SDLK_KP_PLUS
+	IKBK_NUMENTER,				// SDLK_KP_ENTER
+	IKBK_NUMENTER,				// SDLK_KP_EQUALS
+	IKBK_UP,					// SDLK_UP
+	IKBK_DOWN,					// SDLK_DOWN
+	IKBK_RIGHT,					// SDLK_RIGHT
+	IKBK_LEFT,					// SDLK_LEFT
+	IKBK_INSERT,				// SDLK_INSERT
+	IKBK_HOME,					// SDLK_HOME
+	IKBK_END,					// SDLK_END
+	IKBK_PAGEUP,				// SDLK_PAGEUP
+	IKBK_PAGEDOWN,				// SDLK_PAGEDOWN
+	IKBK_F1,					// SDLK_F1
+	IKBK_F2,					// SDLK_F2
+	IKBK_F3,					// SDLK_F3
+	IKBK_F4,					// SDLK_F4
+	IKBK_F5,					// SDLK_F5
+	IKBK_F6,					// SDLK_F6
+	IKBK_F7,					// SDLK_F7
+	IKBK_F8,					// SDLK_F8
+	IKBK_F9,					// SDLK_F9
+	IKBK_F10,					// SDLK_F10
+	IKBK_F11,					// SDLK_F11
+	IKBK_F12,					// SDLK_F12
+	IKBK_NULL,					// SDLK_F13
+	IKBK_NULL,					// SDLK_F14
+	IKBK_NULL,					// SDLK_F15
+	IKBK_NULL,					// EMPTY
+	IKBK_NULL,					// EMPTY
+	IKBK_NULL,					// EMPTY
+	IKBK_NUMLOCK,				// SDLK_NUMLOCK
+	IKBK_CAPSLOCK,				// SDLK_CAPSLOCK
+	IKBK_SCROLLLOCK,			// SDLK_SCROLLOCK
+	IKBK_SHIFT,					// SDLK_RSHIFT
+	IKBK_SHIFT,					// SDLK_LSHIFT
+	IKBK_CTRL,					// SDLK_RCTRL
+	IKBK_CTRL,					// SDLK_LCTRL
+	IKBK_ALT,					// SDLK_RALT
+	IKBK_ALT,					// SDLK_LALT
+	IKBK_WINDOWSKEY,			// SDLK_RMETA
+	IKBK_WINDOWSKEY,			// SDLK_LMETA
+	IKBK_WINDOWSKEY,			// SDLK_LSUPER
+	IKBK_WINDOWSKEY,			// SDLK_RSUPER
+	IKBK_NULL,					// SDLK_MODE
+	IKBK_NULL,					// SDLK_COMPOSE
+	IKBK_NULL,					// SDLK_HELP
+	IKBK_PRINTSCREEN,			// SDLK_PRINT
+	IKBK_NULL,					// SDLK_SYSREQ
+	IKBK_NULL,					// SDLK_BREAK
+	IKBK_MENUKEY,				// SDLK_MENU
+	IKBK_NULL,					// SDLK_POWER
+	IKBK_EVILEURO,				// SDLK_EURO
+	IKBK_NULL,					// SDLK_UNDO
 };
 
-#define ISJOYSTRINGSIZE		256							// String size of joy data
-#define ISJOYMAXMAPS		32							// Maximum mappings allowed
+#define ISJOYSTRINGSIZE		256	// String size of joy data
+#define ISJOYMAXMAPS		32	// Maximum mappings allowed
 
 /*****************
 *** STRUCTURES ***
@@ -601,35 +601,35 @@ const uint8_t c_SDLToReMooDKey[SDLK_LAST] =				// Converts an SDL key to a ReMoo
 /* IS_JoystickInfo_t -- SDL joys get a bit complex */
 typedef struct IS_JoystickInfo_s
 {
-	size_t LinearID;									// Linear ID
-	size_t CodeID;										// Hashed ID
-	char FullName[ISJOYSTRINGSIZE];						// Full name of joystick
-	char ShortName[ISJOYSTRINGSIZE];					// Short name of joystick
-	SDL_Joystick* JoyPtr;								// Joystick pointer
+	size_t LinearID;			// Linear ID
+	size_t CodeID;				// Hashed ID
+	char FullName[ISJOYSTRINGSIZE];	// Full name of joystick
+	char ShortName[ISJOYSTRINGSIZE];	// Short name of joystick
+	SDL_Joystick* JoyPtr;		// Joystick pointer
 	
-	size_t NumButtons;									// Number of Buttons
-	size_t NumAxis;										// Number of axis
+	size_t NumButtons;			// Number of Buttons
+	size_t NumAxis;				// Number of axis
 	
 	/* Mappings to axis and/or buttons */
-	size_t AxisMap[ISJOYMAXMAPS];						// Axis to axis
-	size_t BallMap[ISJOYMAXMAPS][2];					// Balls [x, y] to axis
-	int16_t BallOld[ISJOYMAXMAPS][2];					// Old ball values [x, y]
-	size_t HatMapA[ISJOYMAXMAPS][2];					// Hats [x, y] to axis
-	size_t HatMapB[ISJOYMAXMAPS][5];					// Hats [c, u, d, l, r] to buttons
-	int8_t HatCenter[ISJOYMAXMAPS];						// Hat center status
-	size_t ButtonMap[ISJOYMAXMAPS];						// Buttons to buttons
+	size_t AxisMap[ISJOYMAXMAPS];	// Axis to axis
+	size_t BallMap[ISJOYMAXMAPS][2];	// Balls [x, y] to axis
+	int16_t BallOld[ISJOYMAXMAPS][2];	// Old ball values [x, y]
+	size_t HatMapA[ISJOYMAXMAPS][2];	// Hats [x, y] to axis
+	size_t HatMapB[ISJOYMAXMAPS][5];	// Hats [c, u, d, l, r] to buttons
+	int8_t HatCenter[ISJOYMAXMAPS];	// Hat center status
+	size_t ButtonMap[ISJOYMAXMAPS];	// Buttons to buttons
 } IS_JoystickInfo_t;
 
 /*************
 *** LOCALS ***
 *************/
 
-static SDL_Surface* l_SDLSurface = NULL;				// SDL Video plane
-static SDL_Surface* l_Icon = NULL;						// ReMooD Icon
-static bool_t l_MouseOn = false;						// Is the mouse on?
-static bool_t l_DoGrab = false;							// Grab mouse?
-static IS_JoystickInfo_t* l_Joys = NULL;				// Joystick Info
-static size_t l_NumJoys = 0;							// Joystick Count
+static SDL_Surface* l_SDLSurface = NULL;	// SDL Video plane
+static SDL_Surface* l_Icon = NULL;	// ReMooD Icon
+static bool_t l_MouseOn = false;	// Is the mouse on?
+static bool_t l_DoGrab = false;	// Grab mouse?
+static IS_JoystickInfo_t* l_Joys = NULL;	// Joystick Info
+static size_t l_NumJoys = 0;	// Joystick Count
 
 /****************
 *** FUNCTIONS ***
@@ -641,7 +641,7 @@ static uint8_t IS_ConvertKey(const SDLKey a_SKey)
 	/* Check */
 	if (a_SKey >= SDLK_LAST)
 		return 0;
-	
+		
 	return c_SDLToReMooDKey[a_SKey];
 }
 
@@ -662,7 +662,7 @@ void I_GetEvent(void)
 	{
 		// Clear event
 		memset(&ExEvent, 0, sizeof(ExEvent));
-			
+		
 		// Which event is this now?
 		switch (Event.type)
 		{
@@ -673,7 +673,7 @@ void I_GetEvent(void)
 				
 				// Focus of the window changes
 			case SDL_ACTIVEEVENT:
-				Focused = !!Event.active.gain;
+				Focused = ! !Event.active.gain;
 				continue;
 				
 				// Key event
@@ -685,11 +685,11 @@ void I_GetEvent(void)
 				// Keyed data out of range?
 				if (Key >= SDLK_LAST)
 					continue;
-			
+					
 				// Repeated event?
 				if (ExEvent[0].Data.Keyboard.Down && DownKeys[Key])
 					ExEvent[0].Data.Keyboard.Repeat = true;
-				
+					
 				// Actual data
 				ExEvent[0].Type = IET_KEYBOARD;
 				ExEvent[0].Data.Keyboard.KeyCode = IS_ConvertKey(Key);
@@ -715,9 +715,9 @@ void I_GetEvent(void)
 					DidWarp = false;
 					continue;
 				}
-			
+				
 				ExEvent[0].Type = IET_MOUSE;
-				ExEvent[0].Data.Mouse.MouseID = 0;		// Always mouse Zero
+				ExEvent[0].Data.Mouse.MouseID = 0;	// Always mouse Zero
 				ExEvent[0].Data.Mouse.Pos[0] = Event.motion.x;
 				ExEvent[0].Data.Mouse.Pos[1] = Event.motion.y;
 				ExEvent[0].Data.Mouse.Move[0] = Event.motion.xrel;
@@ -738,7 +738,7 @@ void I_GetEvent(void)
 			case SDL_JOYAXISMOTION:
 				if (Event.jaxis.which >= l_NumJoys || Event.jaxis.axis >= ISJOYMAXMAPS)
 					continue;
-				
+					
 				// Change axis
 				ExEvent[0].Type = IET_JOYSTICK;
 				ExEvent[0].Data.Joystick.JoyID = Event.jaxis.which;
@@ -750,7 +750,7 @@ void I_GetEvent(void)
 			case SDL_JOYBALLMOTION:
 				if (Event.jball.which >= l_NumJoys || Event.jball.ball >= ISJOYMAXMAPS)
 					continue;
-				
+					
 				a = 0;
 				
 				// X axis changed?
@@ -762,7 +762,6 @@ void I_GetEvent(void)
 					ExEvent[a].Data.Joystick.Value = Event.jball.xrel;
 					a++;
 				}
-				
 				// Y axis changed?
 				if (Event.jball.yrel != 0)
 				{
@@ -777,15 +776,16 @@ void I_GetEvent(void)
 			case SDL_JOYHATMOTION:
 				if (Event.jhat.which >= l_NumJoys || Event.jhat.hat >= ISJOYMAXMAPS)
 					continue;
-				
+					
 				a = 0;
 				
 				// Hat has not changed
 				if (l_Joys[Event.jhat.which].HatCenter[Event.jhat.hat] == Event.jhat.value)
 					continue;
-				
+					
 				// X Axis Change
-				if ((l_Joys[Event.jhat.which].HatCenter[Event.jhat.hat] & (SDL_HAT_LEFT | SDL_HAT_RIGHT)) != (Event.jhat.value & (SDL_HAT_LEFT | SDL_HAT_RIGHT)))
+				if ((l_Joys[Event.jhat.which].HatCenter[Event.jhat.hat] & (SDL_HAT_LEFT | SDL_HAT_RIGHT)) !=
+				        (Event.jhat.value & (SDL_HAT_LEFT | SDL_HAT_RIGHT)))
 				{
 					// Quick direction (old and difference)
 					oc = !(l_Joys[Event.jhat.which].HatCenter[Event.jhat.hat] & (SDL_HAT_LEFT | SDL_HAT_RIGHT));
@@ -814,7 +814,6 @@ void I_GetEvent(void)
 					ExEvent[a].Data.Joystick.Axis = l_Joys[Event.jhat.which].HatMapA[Event.jhat.hat][0] + 1;
 					ExEvent[a].Data.Joystick.Value = (d == 0 ? -32768 : (d == 2 ? 32767 : 0));
 				}
-				
 				// Y Axis Change
 				if ((l_Joys[Event.jhat.which].HatCenter[Event.jhat.hat] & (SDL_HAT_UP | SDL_HAT_DOWN)) != (Event.jhat.value & (SDL_HAT_UP | SDL_HAT_DOWN)))
 				{
@@ -845,7 +844,6 @@ void I_GetEvent(void)
 					ExEvent[a].Data.Joystick.Axis = l_Joys[Event.jhat.which].HatMapA[Event.jhat.hat][1] + 1;
 					ExEvent[a].Data.Joystick.Value = (d == 0 ? -32768 : (d == 2 ? 32767 : 0));
 				}
-				
 				// Set new center
 				l_Joys[Event.jhat.which].HatCenter[Event.jhat.hat] = Event.jhat.value;
 				break;
@@ -857,7 +855,7 @@ void I_GetEvent(void)
 				// Out of range?
 				if (Event.jbutton.which >= l_NumJoys || Event.jbutton.button >= ISJOYMAXMAPS)
 					continue;
-				
+					
 				ExEvent[0].Type = IET_JOYSTICK;
 				ExEvent[0].Data.Joystick.Button = l_Joys[Event.jbutton.which].ButtonMap[Event.jbutton.button] + 1;
 				break;
@@ -908,10 +906,10 @@ void I_FinishUpdate(void)
 	// Failed?
 	if (!Buffer)
 		return;
-	
+		
 	/* Lock surface */
 	SDL_LockSurface(l_SDLSurface);
-		
+	
 	/* Copy row by row */
 	for (y = 0; y < h; y++)
 	{
@@ -939,7 +937,7 @@ void I_SetPalette(RGBA_t* palette)
 	/* No surface or palette? */
 	if (!l_SDLSurface || !palette)
 		return;
-	
+		
 	/* Copy colors as is */
 	for (i = 0; i < 256; i++)
 	{
@@ -971,7 +969,7 @@ void VID_PrepareModeList(void)
 	pf.BytesPerPixel = 1;
 	
 	// Get modes
-	Modes = SDL_ListModes(NULL/*&pf*/, SDL_FULLSCREEN);
+	Modes = SDL_ListModes(NULL /*&pf */ , SDL_FULLSCREEN);
 	
 	// No modes possible?
 	if (Modes == NULL)
@@ -979,9 +977,8 @@ void VID_PrepareModeList(void)
 		VID_AddMode(320, 200, true);
 		return;
 	}
-	
 	// Any mode is possible (so add generic modes)
-	if (Modes == (SDL_Rect**)-1)
+	if (Modes == (SDL_Rect**) - 1)
 	{
 		VID_AddMode(320, 200, true);
 		VID_AddMode(320, 240, true);
@@ -997,7 +994,6 @@ void VID_PrepareModeList(void)
 		VID_AddMode(1600, 1200, true);
 		return;
 	}
-	
 	// Go through modes list for valid modes
 	for (i = 0; Modes[i]; i++)
 		VID_AddMode(Modes[i]->w, Modes[i]->h, true);
@@ -1011,9 +1007,9 @@ bool_t I_SetVideoMode(const uint32_t a_Width, const uint32_t a_Height, const boo
 	/* Check */
 	if (!a_Width || !a_Height)
 		return false;
-	
+		
 	/* Destroy old buffer */
-	I_VideoUnsetBuffer();	// Remove old buffer if any
+	I_VideoUnsetBuffer();		// Remove old buffer if any
 	
 	/* Destroy old surface */
 	if (l_SDLSurface)
@@ -1029,7 +1025,7 @@ bool_t I_SetVideoMode(const uint32_t a_Width, const uint32_t a_Height, const boo
 		
 	/* Set Title */
 	SDL_WM_SetIcon(l_Icon, NULL);
-	SDL_WM_SetCaption("ReMooD "REMOOD_FULLVERSIONSTRING, "ReMooD");
+	SDL_WM_SetCaption("ReMooD " REMOOD_FULLVERSIONSTRING, "ReMooD");
 	
 	/* Create SDL surface */
 	l_SDLSurface = SDL_SetVideoMode(a_Width, a_Height, 8, SDLFlags);
@@ -1037,7 +1033,7 @@ bool_t I_SetVideoMode(const uint32_t a_Width, const uint32_t a_Height, const boo
 	// Failed?
 	if (!l_SDLSurface)
 		return false;
-	
+		
 	/* Allocate Buffer */
 	I_VideoSetBuffer(a_Width, a_Height, a_Width, NULL);
 	
@@ -1054,23 +1050,30 @@ void I_StartupGraphics(void)
 		uint32_t u32;
 	} IcoMasks[4] =
 	{
-		{255, 0, 0, 0},
-		{0, 255, 0, 0},
-		{0, 0, 255, 0},
-		{0, 0, 0, 255}
+		{
+			255, 0, 0, 0
+		},
+		{
+			0, 255, 0, 0
+		},
+		{
+			0, 0, 255, 0
+		},
+		{
+			0, 0, 0, 255
+		}
 	};
 	
 	/* Pre-initialize video */
 	if (!I_VideoPreInit())
 		return;
-	
+		
 	/* Initialize SDL */
 	if (SDL_Init(SDL_INIT_VIDEO) == -1)
 	{
 		CONS_Printf("I_StartupGraphics: Failed to initialize SDL graphics.\n");
 		return;
 	}
-	
 	// Set unicode mode and key repeating
 	SDL_EnableUNICODE(1);
 	SDL_EnableKeyRepeat(SDL_DEFAULT_REPEAT_DELAY, SDL_DEFAULT_REPEAT_INTERVAL);
@@ -1078,13 +1081,13 @@ void I_StartupGraphics(void)
 	/* Create Icon */
 	if (!l_Icon)
 		l_Icon = SDL_CreateRGBSurfaceFrom(c_ReMooDLogo, 32, 32, 32, 4 * 32, IcoMasks[0].u32, IcoMasks[1].u32, IcoMasks[2].u32, IcoMasks[3].u32);
-	
+		
 	/* Initialize before mode set */
 	if (!I_VideoBefore320200Init())
 		return;
 	if (!I_SetVideoMode(320, 200, false))	// 320x200 console scroller, never fullscreen
 		return;
-
+		
 	/* Prepare the video mode list */
 	if (!I_VideoPostInit())
 		return;
@@ -1132,7 +1135,7 @@ size_t I_ProbeJoysticks(void)
 	/* Init Joysticks */
 	if (SDL_InitSubSystem(SDL_INIT_JOYSTICK) == -1)
 		return 0;
-	
+		
 	// Enable event states
 	SDL_JoystickEventState(SDL_ENABLE);
 	
@@ -1142,7 +1145,7 @@ size_t I_ProbeJoysticks(void)
 	
 	if (!l_NumJoys)
 		return 0;
-	
+		
 	// Allocate array
 	l_Joys = Z_Malloc(sizeof(*l_Joys), PU_STATIC, NULL);
 	
@@ -1155,12 +1158,12 @@ size_t I_ProbeJoysticks(void)
 		// Failed
 		if (!l_Joys[i].JoyPtr)
 			continue;
-		
+			
 		// Get name and IDs
 		NameID = SDL_JoystickName(i);
 		if (!NameID)
 			NameID = "Unknown";
-		
+			
 		// Copy full name directly
 		strncpy(l_Joys[i].FullName, NameID, ISJOYSTRINGSIZE);
 		
@@ -1181,21 +1184,21 @@ size_t I_ProbeJoysticks(void)
 		for (z = 0, j = 0; j < n; j++, z++)
 			if (z < ISJOYMAXMAPS)
 				l_Joys[i].AxisMap[z] = a++;
-			
+				
 		// Map balls to axis
 		n = SDL_JoystickNumBalls(l_Joys[i].JoyPtr);
 		for (z = 0, j = 0; j < n; j++, z++)
 			for (y = 0; y < 2; y++)
 				if (z < ISJOYMAXMAPS)
 					l_Joys[i].BallMap[z][y] = a++;
-		
+					
 		// Map hats to axis
 		n = SDL_JoystickNumHats(l_Joys[i].JoyPtr);
 		for (z = 0, j = 0; j < n; j++, z++)
 			for (y = 0; y < 2; y++)
 				if (z < ISJOYMAXMAPS)
 					l_Joys[i].HatMapA[z][y] = a++;
-		
+					
 		// Map Buttons to buttons
 		n = SDL_JoystickNumButtons(l_Joys[i].JoyPtr);
 		for (z = 0, j = 0; j < n; j++, z++)
@@ -1208,7 +1211,7 @@ size_t I_ProbeJoysticks(void)
 			for (y = 0; y < 5; y++)
 				if (z < ISJOYMAXMAPS)
 					l_Joys[i].HatMapB[z][y] = b++;
-			
+					
 		// Axis and button totals
 		l_Joys[i].NumAxis = a;
 		l_Joys[i].NumButtons = b;
@@ -1230,7 +1233,7 @@ void I_RemoveJoysticks(void)
 	// Close all joysticks
 	for (i = 0; i < l_Joys; i++)
 		SDL_JoystickClose(l_Joys[i].JoyPtr);
-	
+		
 	// Free array
 	if (l_Joys)
 		Z_Free(l_Joys);
@@ -1250,25 +1253,25 @@ bool_t I_GetJoystickID(const size_t a_JoyID, uint32_t* const a_Code, char* const
 	/* Check */
 	if (!a_Code || (!a_Text && !a_TextSize) || (!a_Cool && !a_CoolSize))
 		return false;
-	
+		
 	/* No joysticks? */
 	if (!l_NumJoys || a_JoyID >= l_NumJoys)
 		return false;
-	
+		
 	/* Send Code */
 	if (a_Code)
 		*a_Code = l_Joys[a_JoyID].CodeID;
-	
+		
 	/* Send Name */
 	if (a_Text && a_TextSize)
 		// Copy name as is
 		strncpy(a_Text, l_Joys[a_JoyID].FullName, a_TextSize);
-	
+		
 	/* Send Cool Name */
 	if (a_Cool && a_CoolSize)
 		// Copy name as is
 		strncpy(a_Cool, l_Joys[a_JoyID].ShortName, a_CoolSize);
-	
+		
 	/* Success! */
 	return true;
 }
@@ -1281,19 +1284,19 @@ bool_t I_GetJoystickCounts(const size_t a_JoyID, uint32_t* const a_NumAxis, uint
 	/* Check */
 	if (!a_NumAxis && !a_NumButtons)
 		return false;
-	
+		
 	/* No joysticks? */
 	if (!l_NumJoys || a_JoyID >= l_NumJoys)
 		return false;
-	
+		
 	/* Return axis */
 	if (a_NumAxis)
 		*a_NumAxis = l_Joys[a_JoyID].NumAxis;
-	
+		
 	/* Return buttons */
 	if (a_NumButtons)
 		*a_NumButtons = l_Joys[a_JoyID].NumButtons;
-	
+		
 	/* Success */
 	return true;
 }
@@ -1304,7 +1307,7 @@ bool_t I_ProbeMouse(const size_t a_ID)
 	/* Only allow a single mouse */
 	if (a_ID != 0 || l_MouseOn)
 		return false;
-	
+		
 	/* Success */
 	l_MouseOn = true;
 	return true;
@@ -1316,7 +1319,7 @@ bool_t I_RemoveMouse(const size_t a_ID)
 	/* Only allow a single mouse */
 	if (a_ID != 0 || !l_MouseOn)
 		return false;
-	
+		
 	/* Success */
 	l_MouseOn = false;
 	return true;
@@ -1328,22 +1331,21 @@ void I_MouseGrab(const bool_t a_Grab)
 	/* Check */
 	if (!l_MouseOn)
 		return;
-	
+		
 	/* Only if changed */
 	if (a_Grab == l_DoGrab)
 		return;
-	
+		
 	/* Grabbing? */
 	if (a_Grab)
 		// Hide the cursor
 		SDL_ShowCursor(SDL_DISABLE);
-	
+		
 	/* Not Grabbing */
 	else
 		// Show the cursor
 		SDL_ShowCursor(SDL_ENABLE);
-	
+		
 	/* Set new grabbing */
 	l_DoGrab = a_Grab;
 }
-

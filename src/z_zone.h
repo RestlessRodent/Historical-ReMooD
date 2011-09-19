@@ -46,10 +46,10 @@
 /* Z_Tag_t -- Memory tag type */
 typedef enum Z_MemoryTag_e
 {
-	PU_FREE											= 0,	// Not used
+	PU_FREE = 0,				// Not used
 	
 	/* Static */
-	PU_STATIC										= 1,	// Never freed
+	PU_STATIC = 1,				// Never freed
 	PU_SOUND,
 	PU_MUSIC,
 	PU_DAVE,
@@ -60,7 +60,7 @@ typedef enum Z_MemoryTag_e
 	PU_HWRPLANE,
 	
 	/* Cache */
-	PU_PURGELEVEL									= 100,	// Freed when needed
+	PU_PURGELEVEL = 100,		// Freed when needed
 	PU_CACHE,
 	PU_HWRCACHE,
 	
@@ -70,8 +70,8 @@ typedef enum Z_MemoryTag_e
 /* Z_LockBackAction_t -- Action being performed */
 typedef enum Z_LockBackAction_e
 {
-	ZLBA_CHANGETAG,								// Tag is being changed
-	ZLBA_FREE,									// Being freed
+	ZLBA_CHANGETAG,				// Tag is being changed
+	ZLBA_FREE,					// Being freed
 	
 	NUMZLOCKBACKACTIONS
 } Z_LockBackAction_t;
@@ -86,35 +86,35 @@ size_t Z_TagUsage(const Z_MemoryTag_t TagNum);
 void Z_CheckHeap(const int Code);
 
 /* Misc */
-char __REMOOD_DEPRECATED *Z_Strdup(const char* const String, const Z_MemoryTag_t Tag, void** Ref);
-char *Z_StrDup(const char* const String, const Z_MemoryTag_t Tag, void** Ref);
+char __REMOOD_DEPRECATED* Z_Strdup(const char* const String, const Z_MemoryTag_t Tag, void** Ref);
+char* Z_StrDup(const char* const String, const Z_MemoryTag_t Tag, void** Ref);
 void Z_DebugMarkBlock(void* const Ptr, const char* const String);
 void Z_ResizeArray(void** const PtrPtr, const size_t ElemSize, const size_t OldSize, const size_t NewSize);
-void Z_SetLockBack(void* const Ptr, bool_t (*LockBack)(void* const, const Z_LockBackAction_t, const uintptr_t, const uintptr_t));
+void Z_SetLockBack(void* const Ptr, bool_t (*LockBack) (void* const, const Z_LockBackAction_t, const uintptr_t, const uintptr_t));
 
 /* Memory */
-#if defined(_DEBUG)		// DEBUG
-	#define _ZMGD_WRAPPEE , const char* const File, const int Line
-	
-	#define Z_Malloc(s,t,r) Z_MallocWrappee((s),(t),(r),__FILE__,__LINE__)
-	#define Z_MallocAlign(s,t,r,a) Z_MallocWrappee((s),(t),(r),__FILE__,__LINE__)
-	#define Z_Free(p) Z_FreeWrappee((p),__FILE__,__LINE__)
-	#define Z_FreeTags(l,h) Z_FreeTagsWrappee((l),(h),__FILE__,__LINE__)
-	#define Z_ChangeTag(p,t) Z_ChangeTagWrappee((p),(t),__FILE__,__LINE__)
-	#define Z_GetTagFromPtr(p) Z_GetTagFromPtrWrappee((p),__FILE__,__LINE__)
-#else					// NOT DEBUGGING
-	#define _ZMGD_WRAPPEE
-	
-	#define Z_Malloc(s,t,r) Z_MallocWrappee((s),(t),(r))
-	#define Z_MallocAlign(s,t,r,a) Z_MallocWrappee((s),(t),(r))
-	#define Z_Free(p) Z_FreeWrappee((p))
-	#define Z_FreeTags(l,h) Z_FreeTagsWrappee((l),(h))
-	#define Z_ChangeTag(p,t) Z_ChangeTagWrappee((p),(t))
-	#define Z_GetTagFromPtr(p) Z_GetTagFromPtrWrappee((p))
+#if defined(_DEBUG)				// DEBUG
+#define _ZMGD_WRAPPEE , const char* const File, const int Line
+
+#define Z_Malloc(s,t,r) Z_MallocWrappee((s),(t),(r),__FILE__,__LINE__)
+#define Z_MallocAlign(s,t,r,a) Z_MallocWrappee((s),(t),(r),__FILE__,__LINE__)
+#define Z_Free(p) Z_FreeWrappee((p),__FILE__,__LINE__)
+#define Z_FreeTags(l,h) Z_FreeTagsWrappee((l),(h),__FILE__,__LINE__)
+#define Z_ChangeTag(p,t) Z_ChangeTagWrappee((p),(t),__FILE__,__LINE__)
+#define Z_GetTagFromPtr(p) Z_GetTagFromPtrWrappee((p),__FILE__,__LINE__)
+#else							// NOT DEBUGGING
+#define _ZMGD_WRAPPEE
+
+#define Z_Malloc(s,t,r) Z_MallocWrappee((s),(t),(r))
+#define Z_MallocAlign(s,t,r,a) Z_MallocWrappee((s),(t),(r))
+#define Z_Free(p) Z_FreeWrappee((p))
+#define Z_FreeTags(l,h) Z_FreeTagsWrappee((l),(h))
+#define Z_ChangeTag(p,t) Z_ChangeTagWrappee((p),(t))
+#define Z_GetTagFromPtr(p) Z_GetTagFromPtrWrappee((p))
 #endif
 
 // Prototypes
-void *Z_MallocWrappee(const size_t Size, const Z_MemoryTag_t Tag, void** Ref _ZMGD_WRAPPEE);
+void* Z_MallocWrappee(const size_t Size, const Z_MemoryTag_t Tag, void** Ref _ZMGD_WRAPPEE);
 void Z_FreeWrappee(void* const Ptr _ZMGD_WRAPPEE);
 size_t Z_FreeTagsWrappee(const Z_MemoryTag_t LowTag, const Z_MemoryTag_t HighTag _ZMGD_WRAPPEE);
 Z_MemoryTag_t Z_GetTagFromPtrWrappee(void* const Ptr _ZMGD_WRAPPEE);
@@ -127,7 +127,7 @@ typedef struct Z_HashTable_s Z_HashTable_t;
 
 /* Prototypes */
 uint32_t Z_Hash(const char* const a_Str);
-Z_HashTable_t* Z_HashCreateTable(bool_t (*a_CompareFunc)(void* const a_A, void* const a_B));
+Z_HashTable_t* Z_HashCreateTable(bool_t (*a_CompareFunc) (void* const a_A, void* const a_B));
 void Z_HashDeleteTable(Z_HashTable_t* const a_HashTable);
 bool_t Z_HashAddEntry(Z_HashTable_t* const a_HashTable, const uint32_t a_Key, void* const a_Data);
 void* Z_HashFindEntry(Z_HashTable_t* const a_HashTable, const uint32_t a_Key, void* const a_DataSim, const bool_t a_BackRun);
@@ -148,10 +148,9 @@ bool_t Z_TableSetValue(Z_Table_t* const a_Table, const char* const a_SubKey, con
 void Z_TableClearValue(Z_Table_t* const a_Table, const char* const a_SubKey);
 void Z_TablePrint(Z_Table_t* const a_Table, const char* const a_Prefix);
 bool_t Z_TableMergeInto(Z_Table_t* const a_Target, const Z_Table_t* const a_Source);
-bool_t Z_TableSuperCallback(Z_Table_t* const a_Table, bool_t (*a_Callback)(Z_Table_t* const a_Sub, void* const a_Data), void* const a_Data);
+bool_t Z_TableSuperCallback(Z_Table_t* const a_Table, bool_t (*a_Callback) (Z_Table_t* const a_Sub, void* const a_Data), void* const a_Data);
 
 
 /*****************************************************************************/
 
-#endif /* __Z_ZONE_H__ */
-
+#endif							/* __Z_ZONE_H__ */

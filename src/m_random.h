@@ -28,7 +28,7 @@
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 // GNU General Public License for more details.
 // -----------------------------------------------------------------------------
-// DESCRIPTION: 
+// DESCRIPTION:
 
 #ifndef __M_RANDOM__
 #define __M_RANDOM__
@@ -44,8 +44,8 @@ uint8_t M_Random(void);
 #ifdef DEBUGRANDOM
 #define P_Random() P_Random2(__FILE__,__LINE__)
 #define P_SignedRandom() P_SignedRandom2(__FILE__,__LINE__)
-uint8_t P_Random2(char *a, int b);
-int P_SignedRandom2(char *a, int b);
+uint8_t P_Random2(char* a, int b);
+int P_SignedRandom2(char* a, int b);
 #else
 // As M_Random, but used only by the play simulation.
 uint8_t P_Random(void);

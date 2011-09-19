@@ -27,7 +27,7 @@
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 // GNU General Public License for more details.
 // -----------------------------------------------------------------------------
-// DESCRIPTION: 
+// DESCRIPTION:
 
 #ifndef __P_INFO_H__
 #define __P_INFO_H__
@@ -36,20 +36,20 @@
 
 void P_LoadLevelInfo(int lumpnum);
 
-void P_CleanLine(char *line);
+void P_CleanLine(char* line);
 
-extern char *info_interpic;
-extern char *info_levelname;
-extern char *info_levelpic;
-extern char *info_music;
+extern char* info_interpic;
+extern char* info_levelname;
+extern char* info_levelpic;
+extern char* info_music;
 extern int info_partime;
-extern char *info_levelcmd[128];
-extern char *info_skyname;
-extern char *info_creator;
-extern char *info_nextlevel;
-extern char *info_nextsecret;
-extern char *info_intertext;
-extern char *info_backdrop;
+extern char* info_levelcmd[128];
+extern char* info_skyname;
+extern char* info_creator;
+extern char* info_nextlevel;
+extern char* info_nextsecret;
+extern char* info_intertext;
+extern char* info_backdrop;
 extern int info_scripts;		// whether the current level has scripts
 
 extern bool_t default_weaponowned[NUMWEAPONS];
@@ -60,13 +60,14 @@ extern bool_t default_weaponowned[NUMWEAPONS];
 
 typedef struct
 {
-	char *description;
+	char* description;
 	int scriptnum;
 } levelmenuitem_t;
 
 #define isnumchar(c) ( (c) >= '0' && (c) <= '9')
-int isExMy(char *name);
-int isMAPxy(char *name);
+int isExMy(char* name);
+int isMAPxy(char* name);
+
 /*#define isExMy(s) ( (tolower((s)[0]) == 'e') && \
                     (isnumchar((s)[1])) &&      \
                     (tolower((s)[2]) == 'm') && \
@@ -81,7 +82,7 @@ int isMAPxy(char *name);
                      ((s)[5] == '\0'))*/
 
 void P_Info_AddCommands();
-char *P_LevelName();
-char *P_LevelNameByNum(int episode, int map);
+char* P_LevelName();
+char* P_LevelNameByNum(int episode, int map);
 
 #endif

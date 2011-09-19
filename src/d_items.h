@@ -88,7 +88,7 @@ typedef enum
 	pw_ironfeet,
 	pw_allmap,
 	pw_infrared,
-
+	
 	NUMPOWERS
 } powertype_t;
 
@@ -119,9 +119,9 @@ typedef enum
 	wp_bfg,
 	wp_chainsaw,
 	wp_supershotgun,
-
+	
 	NUMWEAPONS,
-
+	
 	// No pending weapon change.
 	wp_nochange
 } weapontype_t;
@@ -133,7 +133,7 @@ typedef enum
 	am_shell,					// Shotgun / double barreled shotgun.
 	am_cell,					// Plasma rifle, BFG.
 	am_misl,					// Missile launcher.
-
+	
 	NUMAMMO,
 	am_noammo					// Unlimited for chainsaw / fist.
 } ammotype_t;
@@ -149,11 +149,10 @@ typedef struct
 	int atkstate;
 	int holdatkstate;
 	int flashstate;
-
+	
 } weaponinfo_t;
 
 extern weaponinfo_t wpnlev1info[NUMWEAPONS];
 extern weaponinfo_t wpnlev2info[NUMWEAPONS];
 
 #endif
-

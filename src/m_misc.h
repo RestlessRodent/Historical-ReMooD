@@ -47,16 +47,16 @@
 //
 //===========================================================================
 
-bool_t FIL_WriteFile(char const *name, void *source, int length);
+bool_t FIL_WriteFile(char const* name, void* source, int length);
 
-int FIL_ReadFile(char const *name, uint8_t ** buffer);
+int FIL_ReadFile(char const* name, uint8_t** buffer);
 
-void FIL_DefaultExtension(char *path, char *extension);
+void FIL_DefaultExtension(char* path, char* extension);
 
 //added:11-01-98:now declared here for use by G_DoPlayDemo(), see there...
-void FIL_ExtractFileBase(char *path, char *dest);
+void FIL_ExtractFileBase(char* path, char* dest);
 
-bool_t FIL_CheckExtension(char *in);
+bool_t FIL_CheckExtension(char* in);
 
 //===========================================================================
 
@@ -71,15 +71,15 @@ void Command_LoadConfig_f(void);
 void Command_ChangeConfig_f(void);
 
 void M_FirstLoadConfig(void);
+
 //Fab:26-04-98: save game config : cvars, aliases..
-void M_SaveConfig(char *filename);
+void M_SaveConfig(char* filename);
 
 //===========================================================================
 
 // s1=s2+s3+s1 (1024 lenghtmax)
-void strcatbf(char *s1, char *s2, char *s3);
+void strcatbf(char* s1, char* s2, char* s3);
 
 extern char SaveGameLocation[MAX_WADPATH];
 
 #endif
-

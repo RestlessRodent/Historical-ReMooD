@@ -46,15 +46,15 @@
 // Hack display negative frags.
 //  Loads and store the stminus lump.
 //
-patch_t *sttminus;
+patch_t* sttminus;
 
 void STlib_init(void)
 {
-	sttminus = (patch_t *) W_CachePatchName("STTMINUS", PU_STATIC);
+	sttminus = (patch_t*)W_CachePatchName("STTMINUS", PU_STATIC);
 }
 
 // Initialize number widget
-void STlib_initNum(st_number_t * n, int x, int y, patch_t ** pl, int *num, bool_t * on, int width)
+void STlib_initNum(st_number_t* n, int x, int y, patch_t** pl, int* num, bool_t* on, int width)
 {
 	n->x = x;
 	n->y = y;
@@ -70,53 +70,51 @@ void STlib_initNum(st_number_t * n, int x, int y, patch_t ** pl, int *num, bool_
 //  based on differences from the old number.
 // Note: worth the trouble?
 //
-void STlib_drawNum(st_number_t * n, bool_t refresh)
+void STlib_drawNum(st_number_t* n, bool_t refresh)
 {
 
 	int numdigits = n->width;
 	int num = *n->num;
-
+	
 	int w = LittleSwapInt16(n->p[0]->width);
 	int h = LittleSwapInt16(n->p[0]->height);
 	int x = n->x;
-
+	
 	int neg;
-
+	
 	n->oldnum = *n->num;
-
+	
 	neg = num < 0;
-
+	
 	if (neg)
 	{
 		if (numdigits == 2 && num < -9)
 			num = -9;
 		else if (numdigits == 3 && num < -99)
 			num = -99;
-
+			
 		num = -num;
 	}
-
 	// clear the area
 	x = n->x - numdigits * w;
-
+	
 #ifdef DEBUG
-	CONS_Printf("V_CopyRect1: %d %d %d %d %d %d %d %d val: %d\n",
-				x, n->y, BG, w * numdigits, h, x, n->y, STTRANSPARENTSCREEN, num);
+	CONS_Printf("V_CopyRect1: %d %d %d %d %d %d %d %d val: %d\n", x, n->y, BG, w * numdigits, h, x, n->y, STTRANSPARENTSCREEN, num);
 #endif
 	// dont clear background in overlay
-	if (!st_overlay)	//faB:current hardware mode always refresh the statusbar
+	if (!st_overlay)			//faB:current hardware mode always refresh the statusbar
 		V_CopyRect(x, n->y, BG, w * numdigits, h, x, n->y, STTRANSPARENTSCREEN);
-
+		
 	// if non-number, do not draw it
 	if (num == 1994)
 		return;
-
+		
 	x = n->x;
-
+	
 	// in the special case of 0, you draw 0
 	if (!num)
 		V_DrawScaledPatch(x - w, n->y, STTRANSPARENTSCREEN, n->p[0]);
-
+		
 	// draw the new number
 	while (num && numdigits--)
 	{
@@ -124,36 +122,35 @@ void STlib_drawNum(st_number_t * n, bool_t refresh)
 		V_DrawScaledPatch(x, n->y, STTRANSPARENTSCREEN, n->p[num % 10]);
 		num /= 10;
 	}
-
+	
 	// draw a minus sign if necessary
 	if (neg)
 		V_DrawScaledPatch(x - 8, n->y, STTRANSPARENTSCREEN, sttminus);
 }
 
 //
-void STlib_updateNum(st_number_t * n, bool_t refresh)
+void STlib_updateNum(st_number_t* n, bool_t refresh)
 {
 	if (*n->on)
 		STlib_drawNum(n, refresh);
 }
 
 //
-void STlib_initPercent(st_percent_t * p,
-					   int x, int y, patch_t ** pl, int *num, bool_t * on, patch_t * percent)
+void STlib_initPercent(st_percent_t* p, int x, int y, patch_t** pl, int* num, bool_t* on, patch_t* percent)
 {
 	STlib_initNum(&p->n, x, y, pl, num, on, 3);
 	p->p = percent;
 }
 
-void STlib_updatePercent(st_percent_t * per, int refresh)
+void STlib_updatePercent(st_percent_t* per, int refresh)
 {
 	if (refresh && *per->n.on)
 		V_DrawScaledPatch(per->n.x, per->n.y, STTRANSPARENTSCREEN, per->p);
-
+		
 	STlib_updateNum(&per->n, refresh);
 }
 
-void STlib_initMultIcon(st_multicon_t * i, int x, int y, patch_t ** il, int *inum, bool_t * on)
+void STlib_initMultIcon(st_multicon_t* i, int x, int y, patch_t** il, int* inum, bool_t* on)
 {
 	i->x = x;
 	i->y = y;
@@ -163,13 +160,13 @@ void STlib_initMultIcon(st_multicon_t * i, int x, int y, patch_t ** il, int *inu
 	i->p = il;
 }
 
-void STlib_updateMultIcon(st_multicon_t * mi, bool_t refresh)
+void STlib_updateMultIcon(st_multicon_t* mi, bool_t refresh)
 {
 	int w;
 	int h;
 	int x;
 	int y;
-
+	
 	if (*mi->on && (mi->oldinum != *mi->inum || refresh) && (*mi->inum != -1))
 	{
 		if (mi->oldinum != -1)
@@ -178,7 +175,7 @@ void STlib_updateMultIcon(st_multicon_t * mi, bool_t refresh)
 			y = mi->y - LittleSwapInt16(mi->p[mi->oldinum]->topoffset);
 			w = LittleSwapInt16(mi->p[mi->oldinum]->width);
 			h = LittleSwapInt16(mi->p[mi->oldinum]->height);
-
+			
 #ifdef DEBUG
 			CONS_Printf("V_CopyRect2: %d %d %d %d %d %d %d %d\n", x, y, BG, w, h, x, y, STTRANSPARENTSCREEN);
 #endif
@@ -191,7 +188,7 @@ void STlib_updateMultIcon(st_multicon_t * mi, bool_t refresh)
 	}
 }
 
-void STlib_initBinIcon(st_binicon_t * b, int x, int y, patch_t * i, bool_t * val, bool_t * on)
+void STlib_initBinIcon(st_binicon_t* b, int x, int y, patch_t* i, bool_t* val, bool_t* on)
 {
 	b->x = x;
 	b->y = y;
@@ -201,20 +198,20 @@ void STlib_initBinIcon(st_binicon_t * b, int x, int y, patch_t * i, bool_t * val
 	b->p = i;
 }
 
-void STlib_updateBinIcon(st_binicon_t * bi, bool_t refresh)
+void STlib_updateBinIcon(st_binicon_t* bi, bool_t refresh)
 {
 	int x;
 	int y;
 	int w;
 	int h;
-
+	
 	if (*bi->on && (bi->oldval != *bi->val || refresh))
 	{
 		x = bi->x - LittleSwapInt16(bi->p->leftoffset);
 		y = bi->y - LittleSwapInt16(bi->p->topoffset);
 		w = LittleSwapInt16(bi->p->width);
 		h = LittleSwapInt16(bi->p->height);
-
+		
 		if (*bi->val)
 			V_DrawScaledPatch(bi->x, bi->y, STTRANSPARENTSCREEN, bi->p);
 		else
@@ -225,8 +222,8 @@ void STlib_updateBinIcon(st_binicon_t * bi, bool_t refresh)
 			if (!st_overlay)	//faB:current hardware mode always refresh the statusbar
 				V_CopyRect(x, y, BG, w, h, x, y, STTRANSPARENTSCREEN);
 		}
-
+		
 		bi->oldval = *bi->val;
 	}
-
+	
 }

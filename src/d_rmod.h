@@ -59,5 +59,4 @@ void D_WX_RMODClearBuild(WX_WADFile_t* const a_WAD);
 void D_WX_RMODComposite(WX_WADFile_t* const a_WAD);
 void D_WX_RMODClearComposite(void);
 
-#endif /* __D_RMOD_H__ */
-
+#endif							/* __D_RMOD_H__ */

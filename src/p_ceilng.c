@@ -28,7 +28,7 @@
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 // GNU General Public License for more details.
 // -----------------------------------------------------------------------------
-// DESCRIPTION:  
+// DESCRIPTION:
 //      Ceiling aninmation (lowering, crushing, raising)
 
 #include "doomdef.h"
@@ -42,7 +42,8 @@
 // ==========================================================================
 
 // SoM: 3/6/2000: the list of ceilings moving currently, including crushers
-ceilinglist_t *activeceilings;
+ceilinglist_t* activeceilings;
+
 //ceiling_t*      activeceilings[MAXCEILINGS];
 int ceilmovesound = sfx_stnmov;
 
@@ -50,10 +51,10 @@ int ceilmovesound = sfx_stnmov;
 // T_MoveCeiling
 //
 
-void T_MoveCeiling(ceiling_t * ceiling)
+void T_MoveCeiling(ceiling_t* ceiling)
 {
 	result_e res;
-
+	
 	switch (ceiling->direction)
 	{
 		case 0:
@@ -61,9 +62,8 @@ void T_MoveCeiling(ceiling_t * ceiling)
 			break;
 		case 1:
 			// UP
-			res = T_MovePlane(ceiling->sector,
-							  ceiling->speed, ceiling->topheight, false, 1, ceiling->direction);
-
+			res = T_MovePlane(ceiling->sector, ceiling->speed, ceiling->topheight, false, 1, ceiling->direction);
+			
 			if (!(leveltime % (8)))
 			{
 				switch (ceiling->type)
@@ -72,22 +72,22 @@ void T_MoveCeiling(ceiling_t * ceiling)
 					case genSilentCrusher:
 						break;
 					default:
-						S_StartSound((mobj_t *) & ceiling->sector->soundorg, ceilmovesound);
+						S_StartSound((mobj_t*)&ceiling->sector->soundorg, ceilmovesound);
 						// ?
 						break;
 				}
 			}
-
+			
 			if (res == pastdest)
 			{
 				switch (ceiling->type)
 				{
-
+				
 					case raiseToHighest:
 					case genCeiling:	//SoM: 3/6/2000
 						P_RemoveActiveCeiling(ceiling);
 						break;
-
+						
 						// SoM: 3/6/2000: movers with texture change, change the texture then get removed
 					case genCeilingChgT:
 					case genCeilingChg0:
@@ -97,28 +97,26 @@ void T_MoveCeiling(ceiling_t * ceiling)
 						ceiling->sector->ceilingpic = ceiling->texture;
 						P_RemoveActiveCeiling(ceiling);
 						break;
-
+						
 					case silentCrushAndRaise:
-						S_StartSound((mobj_t *) & ceiling->sector->soundorg, sfx_pstop);
+						S_StartSound((mobj_t*)&ceiling->sector->soundorg, sfx_pstop);
 					case fastCrushAndRaise:
 					case genCrusher:	// SoM: 3/6/2000
 					case genSilentCrusher:
 					case crushAndRaise:
 						ceiling->direction = -1;
 						break;
-
+						
 					default:
 						break;
 				}
 			}
 			break;
-
+			
 		case -1:
 			// DOWN
-			res = T_MovePlane(ceiling->sector,
-							  ceiling->speed,
-							  ceiling->bottomheight, ceiling->crush, 1, ceiling->direction);
-
+			res = T_MovePlane(ceiling->sector, ceiling->speed, ceiling->bottomheight, ceiling->crush, 1, ceiling->direction);
+			
 			if (!(leveltime % (8)))
 			{
 				switch (ceiling->type)
@@ -127,10 +125,10 @@ void T_MoveCeiling(ceiling_t * ceiling)
 					case genSilentCrusher:
 						break;
 					default:
-						S_StartSound((mobj_t *) & ceiling->sector->soundorg, ceilmovesound);
+						S_StartSound((mobj_t*)&ceiling->sector->soundorg, ceilmovesound);
 				}
 			}
-
+			
 			if (res == pastdest)
 			{
 				switch (ceiling->type)	//SoM: 3/6/2000: Use boom code
@@ -141,17 +139,17 @@ void T_MoveCeiling(ceiling_t * ceiling)
 							ceiling->speed = ceiling->oldspeed;
 						ceiling->direction = 1;
 						break;
-
+						
 						// make platform stop at bottom of all crusher strokes
 						// except generalized ones, reset speed, start back up
 					case silentCrushAndRaise:
-						S_StartSound((mobj_t *) & ceiling->sector->soundorg, sfx_pstop);
+						S_StartSound((mobj_t*)&ceiling->sector->soundorg, sfx_pstop);
 					case crushAndRaise:
 						ceiling->speed = CEILSPEED;
 					case fastCrushAndRaise:
 						ceiling->direction = 1;
 						break;
-
+						
 						// in the case of ceiling mover/changer, change the texture
 						// then remove the active ceiling
 					case genCeilingChgT:
@@ -163,7 +161,7 @@ void T_MoveCeiling(ceiling_t * ceiling)
 						ceiling->sector->ceilingpic = ceiling->texture;
 						P_RemoveActiveCeiling(ceiling);
 						break;
-
+						
 						// all other case, just remove the active ceiling
 					case lowerAndCrush:
 					case lowerToFloor:
@@ -172,7 +170,7 @@ void T_MoveCeiling(ceiling_t * ceiling)
 					case genCeiling:
 						P_RemoveActiveCeiling(ceiling);
 						break;
-
+						
 					default:
 						break;
 				}
@@ -190,13 +188,13 @@ void T_MoveCeiling(ceiling_t * ceiling)
 							if (ceiling->oldspeed < CEILSPEED * 3)
 								ceiling->speed = CEILSPEED / 8;
 							break;
-
+							
 						case silentCrushAndRaise:
 						case crushAndRaise:
 						case lowerAndCrush:
 							ceiling->speed = CEILSPEED / 8;
 							break;
-
+							
 						default:
 							break;
 					}
@@ -210,16 +208,16 @@ void T_MoveCeiling(ceiling_t * ceiling)
 // EV_DoCeiling
 // Move a ceiling up/down and all around!
 //
-int EV_DoCeiling(line_t * line, ceiling_e type)
+int EV_DoCeiling(line_t* line, ceiling_e type)
 {
 	int secnum;
 	int rtn;
-	sector_t *sec;
-	ceiling_t *ceiling;
-
+	sector_t* sec;
+	ceiling_t* ceiling;
+	
 	secnum = -1;
 	rtn = 0;
-
+	
 	//  Reactivate in-stasis ceilings...for certain types.
 	// This restarts a crusher after it has been stopped
 	switch (type)
@@ -231,14 +229,14 @@ int EV_DoCeiling(line_t * line, ceiling_e type)
 		default:
 			break;
 	}
-
+	
 	while ((secnum = P_FindSectorFromLineTag(line, secnum)) >= 0)
 	{
 		sec = &sectors[secnum];
-
+		
 		if (P_SectorActive(ceiling_special, sec))	//SoM: 3/6/2000
 			continue;
-
+			
 		// new door thinker
 		rtn = 1;
 		ceiling = Z_Malloc(sizeof(*ceiling), PU_LEVSPEC, 0);
@@ -247,7 +245,7 @@ int EV_DoCeiling(line_t * line, ceiling_e type)
 		ceiling->thinker.function.acp1 = (actionf_p1) T_MoveCeiling;
 		ceiling->sector = sec;
 		ceiling->crush = false;
-
+		
 		switch (type)
 		{
 			case fastCrushAndRaise:
@@ -257,7 +255,7 @@ int EV_DoCeiling(line_t * line, ceiling_e type)
 				ceiling->direction = -1;
 				ceiling->speed = CEILSPEED * 2;
 				break;
-
+				
 			case silentCrushAndRaise:
 			case crushAndRaise:
 				ceiling->crush = true;
@@ -270,38 +268,38 @@ int EV_DoCeiling(line_t * line, ceiling_e type)
 				ceiling->direction = -1;
 				ceiling->speed = CEILSPEED;
 				break;
-
+				
 			case raiseToHighest:
 				ceiling->topheight = P_FindHighestCeilingSurrounding(sec);
 				ceiling->direction = 1;
 				ceiling->speed = CEILSPEED;
 				break;
-
+				
 				//SoM: 3/6/2000: Added Boom types
 			case lowerToLowest:
 				ceiling->bottomheight = P_FindLowestCeilingSurrounding(sec);
 				ceiling->direction = -1;
 				ceiling->speed = CEILSPEED;
 				break;
-
+				
 			case lowerToMaxFloor:
 				ceiling->bottomheight = P_FindHighestFloorSurrounding(sec);
 				ceiling->direction = -1;
 				ceiling->speed = CEILSPEED;
 				break;
-
+				
 				// Instant-raise SSNTails 06-13-2002
 			case instantRaise:
 				ceiling->topheight = P_FindHighestCeilingSurrounding(sec);
 				ceiling->direction = 1;
 				ceiling->speed = INT_MAX / 2;	// Go too fast and you'll cause problems...
 				break;
-
+				
 			default:
 				break;
-
+				
 		}
-
+		
 		ceiling->tag = sec->tag;
 		ceiling->type = type;
 		P_AddActiveCeiling(ceiling);
@@ -313,9 +311,10 @@ int EV_DoCeiling(line_t * line, ceiling_e type)
 // Add an active ceiling
 //
 //SoM: 3/6/2000: Take advantage of the new Boom method for active ceilings.
-void P_AddActiveCeiling(ceiling_t * ceiling)
+void P_AddActiveCeiling(ceiling_t* ceiling)
 {
-	ceilinglist_t *list = malloc(sizeof *list);
+	ceilinglist_t* list = malloc(sizeof *list);
+	
 	list->ceiling = ceiling;
 	ceiling->list = list;
 	if ((list->next = activeceilings))
@@ -328,9 +327,10 @@ void P_AddActiveCeiling(ceiling_t * ceiling)
 // Remove a ceiling's thinker
 //
 // SoM: 3/6/2000 :Use improved Boom code.
-void P_RemoveActiveCeiling(ceiling_t * ceiling)
+void P_RemoveActiveCeiling(ceiling_t* ceiling)
 {
-	ceilinglist_t *list = ceiling->list;
+	ceilinglist_t* list = ceiling->list;
+	
 	ceiling->sector->ceilingdata = NULL;	//jff 2/22/98
 	P_RemoveThinker(&ceiling->thinker);
 	if ((*list->prev = list->next))
@@ -342,14 +342,15 @@ void P_RemoveActiveCeiling(ceiling_t * ceiling)
 // Restart a ceiling that's in-stasis
 //
 //SoM: 3/6/2000: Use improved boom code
-int P_ActivateInStasisCeiling(line_t * line)
+int P_ActivateInStasisCeiling(line_t* line)
 {
-	ceilinglist_t *cl;
+	ceilinglist_t* cl;
 	int rtn = 0;
-
+	
 	for (cl = activeceilings; cl; cl = cl->next)
 	{
-		ceiling_t *ceiling = cl->ceiling;
+		ceiling_t* ceiling = cl->ceiling;
+		
 		if (ceiling->tag == line->tag && ceiling->direction == 0)
 		{
 			ceiling->direction = ceiling->olddirection;
@@ -365,14 +366,16 @@ int P_ActivateInStasisCeiling(line_t * line)
 // Stop a ceiling from crushing!
 //
 //SoM: 3/6/2000: use improved Boom code
-int EV_CeilingCrushStop(line_t * line)
+int EV_CeilingCrushStop(line_t* line)
 {
 	int rtn = 0;
-
-	ceilinglist_t *cl;
+	
+	ceilinglist_t* cl;
+	
 	for (cl = activeceilings; cl; cl = cl->next)
 	{
-		ceiling_t *ceiling = cl->ceiling;
+		ceiling_t* ceiling = cl->ceiling;
+		
 		if (ceiling->direction != 0 && ceiling->tag == line->tag)
 		{
 			ceiling->olddirection = ceiling->direction;
@@ -396,7 +399,8 @@ void P_RemoveAllActiveCeilings(void)
 {
 	while (activeceilings)
 	{
-		ceilinglist_t *next = activeceilings->next;
+		ceilinglist_t* next = activeceilings->next;
+		
 		free(activeceilings);
 		activeceilings = next;
 	}

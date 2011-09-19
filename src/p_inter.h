@@ -28,7 +28,7 @@
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 // GNU General Public License for more details.
 // -----------------------------------------------------------------------------
-// DESCRIPTION: 
+// DESCRIPTION:
 
 #ifndef __P_INTER__
 #define __P_INTER__
@@ -38,17 +38,18 @@ extern consvar_t cv_infiniteammo;
 extern consvar_t cv_g_gibrules;
 
 // Boris hack : preferred weapons order
-void VerifFavoritWeapon(player_t * player);
+void VerifFavoritWeapon(player_t* player);
 
-int FindBestWeapon(player_t * player);
+int FindBestWeapon(player_t* player);
 
-bool_t P_GivePower(player_t *, int);
-void P_CheckFragLimit(player_t * p);
+bool_t P_GivePower(player_t*, int);
+void P_CheckFragLimit(player_t* p);
 
-void P_KillMobj(mobj_t * target, mobj_t * inflictor, mobj_t * source);
-bool_t P_GiveBody(player_t * player, int num);
+void P_KillMobj(mobj_t* target, mobj_t* inflictor, mobj_t* source);
+bool_t P_GiveBody(player_t* player, int num);
 
 //added:28-02-98: boooring handling of thing(s) on top of thing(s)
+
 /* BUGGY CODE
 void P_CheckSupportThings (mobj_t* mobj);
 void P_MoveSupportThings (mobj_t* mobj, fixed_t xmove,

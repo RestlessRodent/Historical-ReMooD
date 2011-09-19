@@ -47,7 +47,7 @@
 *** LOCALS ***
 *************/
 
-static tic_t l_MapTime = 0;									// Map local time
+static tic_t l_MapTime = 0;		// Map local time
 
 /****************
 *** FUNCTIONS ***
@@ -63,7 +63,7 @@ void D_SyncNetDebugMessage(const char* const a_Format, ...)
 	/* Check */
 	if (!M_CheckParm("-devnet"))
 		return;
-	
+		
 	// Make
 	va_start(ArgPtr, a_Format);
 	vsnprintf(Text, BUFSIZE, a_Format, ArgPtr);
@@ -123,9 +123,9 @@ tic_t D_SyncNetAllReady(void)
 	if (CurVal != cv_g_gamespeed.value)
 	{
 		ModVal = CurVal = cv_g_gamespeed.value;
-		if (ModVal < 16384)	// limit to 0.25 speed
+		if (ModVal < 16384)		// limit to 0.25 speed
 			ModVal = 16384;
-		
+			
 		ModVal = FixedDiv(1 << FRACBITS, cv_g_gamespeed.value);
 		
 		// Calculate new speed
@@ -134,6 +134,7 @@ tic_t D_SyncNetAllReady(void)
 		if (TicsPerMS < 1)
 			TicsPerMS = 1;
 	}
+	
 	/*** END BIG HACK AREA ***/
 	
 	/* If we are the server, we dictate time */
@@ -172,15 +173,15 @@ bool_t D_SyncNetUpdate(void)
 bool_t D_CheckNetGame(void)
 {
 	bool_t ret = false;
+	
 	// I_InitNetwork sets doomcom and netgame
 	// check and initialize the network driver
 	
 	multiplayer = false;
-
+	
 	// only dos version with external driver will return true
 	netgame = false;
 	if (netgame)
 		netgame = false;
 	return ret;
 }
-

@@ -44,7 +44,7 @@ static int freewallsplat;
 #endif
 
 // for floorsplats, accessed by asm code
-struct rastery_s *prastertab;
+struct rastery_s* prastertab;
 
 // --------------------------------------------------------------------------
 // setup splat cache
@@ -67,10 +67,10 @@ void R_ClearLevelSplats(void)
 // --------------------------------------------------------------------------
 static wallsplat_t* R_AllocWallSplat(void)
 {
-	wallsplat_t *splat;
-	wallsplat_t *p_splat;
-	line_t *li;
-
+	wallsplat_t* splat;
+	wallsplat_t* p_splat;
+	line_t* li;
+	
 	// clear the splat from the line if it was in use
 	splat = &wallsplats[freewallsplat];
 	li = splat->line;
@@ -87,7 +87,6 @@ static wallsplat_t* R_AllocWallSplat(void)
 				CONS_Printf("WARNING - R_AllocWallSplat: Line has no splats (%s:%i).\n", __FILE__, __LINE__);
 				return NULL;
 			}
-			
 			// GhostlyDeath <November 3, 2010> -- Remove NULL dereference
 			for (p_splat = li->splats; p_splat && p_splat->next; p_splat = p_splat->next)
 				if (p_splat->next == splat)
@@ -97,21 +96,20 @@ static wallsplat_t* R_AllocWallSplat(void)
 				}
 		}
 	}
-
+	
 	memset(splat, 0, sizeof(wallsplat_t));
-
+	
 	// for next allocation
 	freewallsplat++;
 	if (freewallsplat >= cv_maxsplats.value)
 		freewallsplat = 0;
-
+		
 	return splat;
 }
 
 /* R_AddWallSplat() -- Adds a splat to a wall */
 // GhostlyDeath <Octover 23, 2010> -- Rewritten. If a splat is near another splat replace that splat.
-void R_AddWallSplat(line_t * wallline,
-					int sectorside, char *patchname, fixed_t top, fixed_t wallfrac, int flags)
+void R_AddWallSplat(line_t* wallline, int sectorside, char* patchname, fixed_t top, fixed_t wallfrac, int flags)
 {
 	fixed_t LineLength;
 	fixed_t FracSplat;
@@ -120,7 +118,7 @@ void R_AddWallSplat(line_t * wallline,
 	patch_t* Patch;
 	wallsplat_t* Rover;
 	wallsplat_t* Next;
-	sector_t *BackSector = NULL;
+	sector_t* BackSector = NULL;
 	int* yOffset = NULL;
 	wallsplat_t Temp;
 	
@@ -128,15 +126,15 @@ void R_AddWallSplat(line_t * wallline,
 	// Proper arguments
 	if (!wallline || !patchname)
 		return;
-	
+		
 	// Splats are actually enabled
 	if (!cv_splats.value)
 		return;
-	
+		
 	// Demo version
 	if (demoversion < 128)
 		return;
-	
+		
 	/* Pre-init some variables */
 	// Get ID
 	PatchId = W_CheckNumForName(patchname);
@@ -144,7 +142,7 @@ void R_AddWallSplat(line_t * wallline,
 	// See if the patch really exists
 	if (PatchId == INVALIDLUMP)
 		return;
-	
+		
 	// Allocate patch
 	Patch = W_CachePatchNum(PatchId, PU_CACHE);
 	
@@ -153,7 +151,7 @@ void R_AddWallSplat(line_t * wallline,
 	if (wallline->sidenum[sectorside] != -1)
 	{
 		BackSector = sides[wallline->sidenum[sectorside]].sector;
-
+		
 		if (top < BackSector->floorheight)
 		{
 			yOffset = &BackSector->floorheight;
@@ -165,9 +163,8 @@ void R_AddWallSplat(line_t * wallline,
 			top -= BackSector->ceilingheight;
 		}
 	}
-	
 	// Get offset of splat along the line
-	LineLength = P_SegLength((seg_t *)wallline);
+	LineLength = P_SegLength((seg_t*) wallline);
 	Offset = FixedMul(wallfrac, LineLength) - (Patch->width << (FRACBITS - 1));
 	FracSplat = FixedDiv(((Patch->width << FRACBITS) >> 1), LineLength);
 	wallfrac -= FracSplat;
@@ -175,7 +172,7 @@ void R_AddWallSplat(line_t * wallline,
 	// Splat off wall?
 	if (wallfrac > LineLength)
 		return;
-	
+		
 	/* Replace an existing splat */
 	// Start on line
 	Rover = wallline->splats;
@@ -190,11 +187,11 @@ void R_AddWallSplat(line_t * wallline,
 	// Ran out of Rover
 	if (!Rover)
 		Rover = R_AllocWallSplat();
-	
+		
 	// Double-check
 	if (!Rover)
 		return;
-	
+		
 	/* Set splat properties */
 	// GhostlyDeath <September 10, 2011> -- Clear temporary splat (this should fix SIGSEGVs)
 	memset(&Temp, 0, sizeof(Temp));
@@ -215,13 +212,13 @@ void R_AddWallSplat(line_t * wallline,
 	// Off left of wall?
 	if (wallfrac < 0)
 		return;
-	
+		
 	Temp.v2.x = wallline->v1->x + FixedMul(wallline->dx, wallfrac);
 	Temp.v2.y = wallline->v1->y + FixedMul(wallline->dy, wallfrac);
-
+	
 	if (wallline->frontsector && wallline->frontsector == BackSector)
 		return;
-	
+		
 	/* Insert splat into wall */
 	// Wall has no splats
 	if (!wallline->splats)
@@ -234,7 +231,6 @@ void R_AddWallSplat(line_t * wallline,
 		*Rover = Temp;
 		Rover->next = NULL;
 	}
-	
 	// Wall has splats
 	else
 	{
@@ -247,8 +243,7 @@ void R_AddWallSplat(line_t * wallline,
 			// Same patch id?
 			if (Rover->patch == PatchId)
 				// Near offset?
-				if ((abs((Rover->offset >> FRACBITS) - (Offset >> FRACBITS)) < 8) &&
-					(abs((Rover->top >> FRACBITS) - (top >> FRACBITS)) < 8))
+				if ((abs((Rover->offset >> FRACBITS) - (Offset >> FRACBITS)) < 8) && (abs((Rover->top >> FRACBITS) - (top >> FRACBITS)) < 8))
 				{
 					// Copy
 					Next = Rover->next;
@@ -258,16 +253,15 @@ void R_AddWallSplat(line_t * wallline,
 					// Break out
 					break;
 				}
-			
 			// Next?
 			if (Rover->next)
 				Rover = Rover->next;
-			
+				
 			// Create next and break out (new)
 			else
 			{
 				Rover->next = R_AllocWallSplat();
-		
+				
 				// Clone Data
 				*(Rover->next) = Temp;
 				if (Rover->next)	// Probably always false
@@ -278,4 +272,3 @@ void R_AddWallSplat(line_t * wallline,
 	}
 }
 #endif							// WALLSPLATS
-

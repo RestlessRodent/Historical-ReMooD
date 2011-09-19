@@ -28,7 +28,7 @@
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 // GNU General Public License for more details.
 // -----------------------------------------------------------------------------
-// DESCRIPTION: 
+// DESCRIPTION:
 
 #ifndef __F_FINALE__
 #define __F_FINALE__
@@ -40,7 +40,7 @@
 //
 
 // Called by main loop.
-bool_t F_Responder(event_t * ev);
+bool_t F_Responder(event_t* ev);
 
 // Called by main loop.
 void F_Ticker(void);

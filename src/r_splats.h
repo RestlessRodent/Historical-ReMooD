@@ -44,6 +44,7 @@
 #define SPLATDRAWMODE_OPAQUE 0x00
 #define SPLATDRAWMODE_SHADE  0x01
 #define SPLATDRAWMODE_TRANS  0x02
+
 /*
 #define SPLATUPPER           0x04
 #define SPLATLOWER           0x08
@@ -55,28 +56,26 @@
 // WALL SPLATS are patches drawn on top of wall segs
 struct wallsplat_s
 {
-	WadIndex_t patch;					// lump id.
+	WadIndex_t patch;			// lump id.
 	vertex_t v1;				// vertices along the linedef
 	vertex_t v2;
 	fixed_t top;
 	fixed_t offset;				// offset in columns<<FRACBITS from start of linedef to start of splat
 	int flags;
-	int *yoffset;
+	int* yoffset;
 	//short       xofs, yofs;
 	//int         tictime;
-	line_t *line;				// the parent line of the splat seg
-	struct wallsplat_s *next;
+	line_t* line;				// the parent line of the splat seg
+	struct wallsplat_s* next;
 };
 typedef struct wallsplat_s wallsplat_t;
 
 //p_setup.c
-extern float P_SegLength(seg_t * seg);
+extern float P_SegLength(seg_t* seg);
 
 // call at P_SetupLevel()
 void R_ClearLevelSplats(void);
 
-void R_AddWallSplat(line_t * wallline, int sectorside, char *patchname,
-					fixed_t top, fixed_t wallfrac, int flags);
+void R_AddWallSplat(line_t* wallline, int sectorside, char* patchname, fixed_t top, fixed_t wallfrac, int flags);
 
 #endif /*__R_SPLATS_H__*/
-

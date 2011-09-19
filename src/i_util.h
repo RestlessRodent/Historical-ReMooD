@@ -181,11 +181,11 @@ typedef enum I_KeyBoardKey_e
 /* I_EventType_t -- Event type */
 typedef enum I_EventType_e
 {
-	IET_NULL,									// Blank event
-	IET_KEYBOARD,								// Keyboard event
-	IET_MOUSE,									// Mouse event
-	IET_JOYSTICK,								// Joystick event
-	IET_QUIT,									// X button was pressed
+	IET_NULL,					// Blank event
+	IET_KEYBOARD,				// Keyboard event
+	IET_MOUSE,					// Mouse event
+	IET_JOYSTICK,				// Joystick event
+	IET_QUIT,					// X button was pressed
 	
 	NUMIEVENTTYPES
 } I_EventType_t;
@@ -193,11 +193,11 @@ typedef enum I_EventType_e
 /* I_MusicType_t -- Types of music to play */
 typedef enum I_MusicType_e
 {
-	IMT_MUS,									// Doom MUS
-	IMT_MIDI,									// MIDI File
-	IMT_MOD,									// MOD Tracker	
+	IMT_MUS,					// Doom MUS
+	IMT_MIDI,					// MIDI File
+	IMT_MOD,					// MOD Tracker
 	
-	IMT_UNKNOWN,								// Not in any known format!
+	IMT_UNKNOWN,				// Not in any known format!
 	
 	NUMIMUSICTYPES
 } I_MusicType_t;
@@ -205,10 +205,10 @@ typedef enum I_MusicType_e
 /* I_SoundType_t -- Types of sound to play */
 typedef enum I_SoundType_e
 {
-	IST_WAVEFORM,								// Waveform
-	IST_BEEPY,									// PC Beeps
+	IST_WAVEFORM,				// Waveform
+	IST_BEEPY,					// PC Beeps
 	
-	IST_UNKNOWN,								// Not in any known format!
+	IST_UNKNOWN,				// Not in any known format!
 	
 	NUMISOUNDTYPES
 } I_SoundType_t;
@@ -220,7 +220,7 @@ typedef enum I_SoundType_e
 
 // In i_util.h and g_input.h
 #ifndef JOYBUTTONS
-	#define JOYBUTTONS      32
+#define JOYBUTTONS      32
 #endif
 
 /*****************
@@ -230,116 +230,117 @@ typedef enum I_SoundType_e
 /* I_EventEx_t -- Extended event */
 typedef struct I_EventEx_s
 {
-	I_EventType_t Type;							// Type of event
+	I_EventType_t Type;			// Type of event
 	
 	union
 	{
 		struct
 		{
-			bool_t Down;						// Key pressed down
-			bool_t Repeat;						// Is the key repeated?
-			uint8_t KeyCode;					// Code for key
-			uint16_t Character;					// Character pressed
-		} Keyboard;								// Keyboard event
+			bool_t Down;		// Key pressed down
+			bool_t Repeat;		// Is the key repeated?
+			uint8_t KeyCode;	// Code for key
+			uint16_t Character;	// Character pressed
+		} Keyboard;				// Keyboard event
 		
 		struct
 		{
-			uint8_t MouseID;					// ID of the mouse
-			bool_t Down;						// Button down
-			uint8_t Button;						// Which button
-			int32_t Pos[2];						// Position of cursor
-			int32_t Move[2];					// Movement of cursor
+			uint8_t MouseID;	// ID of the mouse
+			bool_t Down;		// Button down
+			uint8_t Button;		// Which button
+			int32_t Pos[2];		// Position of cursor
+			int32_t Move[2];	// Movement of cursor
 		} Mouse;
 		
 		struct
 		{
-			uint8_t JoyID;						// ID of the joystick
-			bool_t Down;						// Button pressed down
-			uint8_t Button;						// Which button was pressed
-			uint8_t Axis;						// Which axis was moved
-			int16_t Value;						// Axis position
-		} Joystick;								// Joystick action
-	} Data;										// Event data
+			uint8_t JoyID;		// ID of the joystick
+			bool_t Down;		// Button pressed down
+			uint8_t Button;		// Which button was pressed
+			uint8_t Axis;		// Which axis was moved
+			int16_t Value;		// Axis position
+		} Joystick;				// Joystick action
+	} Data;						// Event data
 } I_EventEx_t;
 
 /* I_MusicDriver_t -- Driver for playing Music */
 typedef struct I_MusicDriver_s
 {
 	/* Data */
-	char Name[MAXDRIVERNAME];					// Name of driver
-	char ShortName[MAXDRIVERNAME];				// Short driver name
-	uint32_t MusicType;							// Music types supported (<< I_MusicTypes_t)
-	bool_t ExternalData;						// If true, player requires external MID/MUS/MOD/etc. (on disk)
-												// The play func will be passed a pathname instead of raw data
-	uint8_t Priority;							// Priority of the driver
+	char Name[MAXDRIVERNAME];	// Name of driver
+	char ShortName[MAXDRIVERNAME];	// Short driver name
+	uint32_t MusicType;			// Music types supported (<< I_MusicTypes_t)
+	bool_t ExternalData;		// If true, player requires external MID/MUS/MOD/etc. (on disk)
+	// The play func will be passed a pathname instead of raw data
+	uint8_t Priority;			// Priority of the driver
 	
 	/* Handlers */
-		// Initializes a driver
-	bool_t (*Init)(struct I_MusicDriver_s* const a_Driver);
-		// Destroys a driver
-	bool_t (*Destroy)(struct I_MusicDriver_s* const a_Driver);
-		// Success
-	void (*Success)(struct I_MusicDriver_s* const a_Driver);
-		// Pauses a song (pause ||)
-	void (*Pause)(struct I_MusicDriver_s* const a_Driver, const int a_Handle);
-		// Resumes a song (play >)
-	void (*Resume)(struct I_MusicDriver_s* const a_Driver, const int a_Handle);
-		// Stops a song from playing and seeks to start (stop [])
-	void (*Stop)(struct I_MusicDriver_s* const a_Driver, const int a_Handle);
-		// Length of song
-	uint32_t (*Length)(struct I_MusicDriver_s* const a_Driver, const int a_Handle);
-		// Seeks to a new position
-	void (*Seek)(struct I_MusicDriver_s* const a_Driver, const int a_Handle, const uint32_t a_Pos);
-		// Plays a song
-	int (*Play)(struct I_MusicDriver_s* const a_Driver, const void* const a_Data, const size_t a_Size, const bool_t Loop);
-		// Changes volume
-	void (*Volume)(struct I_MusicDriver_s* const a_Driver, const int a_Handle, const uint8_t Vol);
-		// Raw MIDI Data
-	void (*RawMIDI)(struct I_MusicDriver_s* const a_Driver, const uint32_t a_Msg, const uint32_t a_BitLength);
-		// Update MIDI
-	void (*Update)(struct I_MusicDriver_s* const a_Driver, const tic_t a_Tics);
+	// Initializes a driver
+	bool_t (*Init) (struct I_MusicDriver_s* const a_Driver);
+	// Destroys a driver
+	bool_t (*Destroy) (struct I_MusicDriver_s* const a_Driver);
+	// Success
+	void (*Success) (struct I_MusicDriver_s* const a_Driver);
+	// Pauses a song (pause ||)
+	void (*Pause) (struct I_MusicDriver_s* const a_Driver, const int a_Handle);
+	// Resumes a song (play >)
+	void (*Resume) (struct I_MusicDriver_s* const a_Driver, const int a_Handle);
+	// Stops a song from playing and seeks to start (stop [])
+	void (*Stop) (struct I_MusicDriver_s* const a_Driver, const int a_Handle);
+	// Length of song
+	uint32_t (*Length) (struct I_MusicDriver_s* const a_Driver, const int a_Handle);
+	// Seeks to a new position
+	void (*Seek) (struct I_MusicDriver_s* const a_Driver, const int a_Handle, const uint32_t a_Pos);
+	// Plays a song
+	int (*Play) (struct I_MusicDriver_s* const a_Driver, const void* const a_Data, const size_t a_Size, const bool_t Loop);
+	// Changes volume
+	void (*Volume) (struct I_MusicDriver_s* const a_Driver, const int a_Handle, const uint8_t Vol);
+	// Raw MIDI Data
+	void (*RawMIDI) (struct I_MusicDriver_s* const a_Driver, const uint32_t a_Msg, const uint32_t a_BitLength);
+	// Update MIDI
+	void (*Update) (struct I_MusicDriver_s* const a_Driver, const tic_t a_Tics);
 	
 	/* Dynamic */
-	void* Data;									// Driver personal data
-	size_t Size;								// Size of personal data
+	void* Data;					// Driver personal data
+	size_t Size;				// Size of personal data
 } I_MusicDriver_t;
 
 /* I_SoundDriver_t -- Sound driver (plays sound, kinda) */
 typedef struct I_SoundDriver_s
 {
 	/* Info */
-	char Name[MAXDRIVERNAME];					// Name of driver
-	char ShortName[MAXDRIVERNAME];				// Short driver name
-	uint32_t SoundType;							// type of sound
-	uint8_t Priority;							// Priority of the driver
+	char Name[MAXDRIVERNAME];	// Name of driver
+	char ShortName[MAXDRIVERNAME];	// Short driver name
+	uint32_t SoundType;			// type of sound
+	uint8_t Priority;			// Priority of the driver
 	
 	/* Functions */
-		// Initializes a driver
-	bool_t (*Init)(struct I_SoundDriver_s* const a_Driver);
-		// Destroys a driver
-	bool_t (*Destroy)(struct I_SoundDriver_s* const a_Driver);
-		// Success
-	void (*Success)(struct I_SoundDriver_s* const a_Driver);
-		// Requests a buffer for this driver
-	size_t (*Request)(struct I_SoundDriver_s* const a_Driver, const uint8_t a_Bits, const uint16_t a_Freq, const uint8_t a_Channels, const uint32_t a_Samples);
-		// Obtains a buffer that was requested
-	void* (*Obtain)(struct I_SoundDriver_s* const a_Driver);
-		// Checks if the buffer is finished playing
-	bool_t (*IsFinished)(struct I_SoundDriver_s* const a_Driver);
-		// Done streaming into buffer
-	void (*WriteOut)(struct I_SoundDriver_s* const a_Driver);
-		// Unrequest buffer
-	void (*UnRequest)(struct I_SoundDriver_s* const a_Driver);
-		// Get frequency
-	uint16_t (*GetFreq)(struct I_SoundDriver_s* const a_Driver);
-		// Is sound threaded?
-	bool_t (*Thread)(struct I_SoundDriver_s* const a_Driver, void (*a_ThreadFunc)(const bool_t a_Threaded));
-		// Locks thread
-	void (*LockThread)(struct I_SoundDriver_s* const a_Driver, const bool_t a_Lock);
+	// Initializes a driver
+	bool_t (*Init) (struct I_SoundDriver_s* const a_Driver);
+	// Destroys a driver
+	bool_t (*Destroy) (struct I_SoundDriver_s* const a_Driver);
+	// Success
+	void (*Success) (struct I_SoundDriver_s* const a_Driver);
+	// Requests a buffer for this driver
+	size_t(*Request) (struct I_SoundDriver_s* const a_Driver, const uint8_t a_Bits, const uint16_t a_Freq, const uint8_t a_Channels,
+	                  const uint32_t a_Samples);
+	// Obtains a buffer that was requested
+	void *(*Obtain) (struct I_SoundDriver_s* const a_Driver);
+	// Checks if the buffer is finished playing
+	bool_t (*IsFinished) (struct I_SoundDriver_s* const a_Driver);
+	// Done streaming into buffer
+	void (*WriteOut) (struct I_SoundDriver_s* const a_Driver);
+	// Unrequest buffer
+	void (*UnRequest) (struct I_SoundDriver_s* const a_Driver);
+	// Get frequency
+	uint16_t (*GetFreq) (struct I_SoundDriver_s* const a_Driver);
+	// Is sound threaded?
+	bool_t (*Thread) (struct I_SoundDriver_s* const a_Driver, void (*a_ThreadFunc) (const bool_t a_Threaded));
+	// Locks thread
+	void (*LockThread) (struct I_SoundDriver_s* const a_Driver, const bool_t a_Lock);
 	
 	/* Dynamic */
-	void* Data;									// Private data
-	size_t Size;								// Private size
+	void* Data;					// Private data
+	size_t Size;				// Private size
 } I_SoundDriver_t;
 
 struct I_NetDriver_s;
@@ -348,24 +349,24 @@ struct I_NetDriver_s;
 typedef struct I_NetHost_s
 {
 	/* Easy Stuff */
-	char Hostname[MAXHOSTNAME];					// Hostname of this nethost
+	char Hostname[MAXHOSTNAME];	// Hostname of this nethost
 	
 	/* IP Addresses */
-	uint8_t IPAddr[16];							// IP Address
-	uint16_t IPPort;							// IP Port
+	uint8_t IPAddr[16];			// IP Address
+	uint16_t IPPort;			// IP Port
 } I_NetHost_t;
 
 /* I_NetSocket_t -- A network socket */
 typedef struct I_NetSocket_s
 {
 	/* Driver Stuff */
-	struct I_NetDriver_s* Driver;				// Driver for socket
-	uint8_t ProtocolID;							// Driver related protocol
-	I_NetHost_t* Bind;							// Bind to host
+	struct I_NetDriver_s* Driver;	// Driver for socket
+	uint8_t ProtocolID;			// Driver related protocol
+	I_NetHost_t* Bind;			// Bind to host
 	
 	/* Private per driver */
-	int FD;										// File Descriptor
-	void* CFile;								// C File
+	int FD;						// File Descriptor
+	void* CFile;				// C File
 } I_NetSocket_t;
 
 /****************
@@ -391,7 +392,7 @@ int __REMOOD_DEPRECATED VID_GetModeForSize(int a_Width, int a_Height);
 bool_t VID_AddMode(const int a_Width, const int a_Height, const bool_t a_Fullscreen);
 int VID_SetMode(int a_ModeNum);
 
-bool_t I_UtilWinArgToUNIXArg(int* const a_argc, char*** const a_argv, const char* const a_Win);
+bool_t I_UtilWinArgToUNIXArg(int* const a_argc, char** *const a_argv, const char* const a_Win);
 bool_t I_VideoPreInit(void);
 bool_t I_VideoBefore320200Init(void);
 bool_t I_VideoPostInit(void);
@@ -413,7 +414,7 @@ void I_ShutdownSystem(void);
 
 const char* I_GetUserName(void);
 uint64_t I_GetDiskFreeSpace(const char* const a_Path);
-void I_CommonCommandLine(int* const a_argc, char*** const a_argv, const char* const a_Long);
+void I_CommonCommandLine(int* const a_argc, char** *const a_argv, const char* const a_Long);
 void I_Quit(void);
 
 /*** i_utlnet.c ***/
@@ -442,7 +443,7 @@ void I_ShutdownSound(void);
 void I_UpdateSound(void);
 void I_SubmitSound(void);
 size_t I_SoundBufferRequest(const I_SoundType_t a_Type, const uint8_t a_Bits, const uint16_t a_Freq, const uint8_t a_Channels, const uint32_t a_Samples);
-bool_t I_SoundSetThreaded(void (*a_ThreadFunc)(const bool_t a_Threaded));
+bool_t I_SoundSetThreaded(void (*a_ThreadFunc) (const bool_t a_Threaded));
 void* I_SoundBufferObtain(void);
 bool_t I_SoundBufferIsFinished(void);
 void I_SoundBufferWriteOut(void);
@@ -458,5 +459,4 @@ void I_UpdateCD(void);
 void I_PlayCD(int track, bool_t looping);
 int I_SetVolumeCD(int volume);
 
-#endif /* __I_UTIL_H__ */
-
+#endif							/* __I_UTIL_H__ */

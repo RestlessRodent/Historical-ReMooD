@@ -30,7 +30,7 @@
 // -----------------------------------------------------------------------------
 // DESCRIPTION: Lookup tables.
 //              Do not try to look them up :-).
-//              In the order of appearance: 
+//              In the order of appearance:
 //              int finetangent[4096]   - Tangens LUT.
 //              Should work with BAM fairly well (12 of 16bit,
 //              effectively, by shifting).
@@ -57,7 +57,7 @@
 extern fixed_t finesine[5 * FINEANGLES / 4];
 
 // Re-use data, is just PI/2 phase shift.
-extern fixed_t *finecosine;
+extern fixed_t* finecosine;
 
 // Effective size is 4096.
 extern fixed_t finetangent[FINEANGLES / 2];

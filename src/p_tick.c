@@ -63,7 +63,7 @@ void P_InitThinkers(void)
 // P_AddThinker
 // Adds a new thinker at the end of the list.
 //
-void P_AddThinker(thinker_t * thinker)
+void P_AddThinker(thinker_t* thinker)
 {
 	thinkercap.prev->next = thinker;
 	thinker->next = &thinkercap;
@@ -76,7 +76,7 @@ void P_AddThinker(thinker_t * thinker)
 // Deallocation is lazy -- it will not actually be freed
 // until its thinking turn comes up.
 //
-void P_RemoveThinker(thinker_t * thinker)
+void P_RemoveThinker(thinker_t* thinker)
 {
 	// FIXME: NOP.
 	thinker->function.acv = (actionf_v) (-1);
@@ -86,7 +86,7 @@ void P_RemoveThinker(thinker_t * thinker)
 // P_AllocateThinker
 // Allocates memory and adds a new thinker at the end of the list.
 //
-void P_AllocateThinker(thinker_t * thinker)
+void P_AllocateThinker(thinker_t* thinker)
 {
 }
 
@@ -95,14 +95,15 @@ void P_AllocateThinker(thinker_t * thinker)
 //
 void P_RunThinkers(void)
 {
-	thinker_t *currentthinker;
-
+	thinker_t* currentthinker;
+	
 	currentthinker = thinkercap.next;
 	while (currentthinker != &thinkercap)
 	{
 		if (currentthinker->function.acv == (actionf_v) (-1))
 		{
-			void *removeit;
+			void* removeit;
+			
 			// time to remove it
 			currentthinker->next->prev = currentthinker->prev;
 			currentthinker->prev->next = currentthinker->next;
@@ -127,25 +128,25 @@ void P_Ticker(void)
 {
 	tic_t LocalTic;
 	int i;
-
+	
 	/* If the game is paused, don't do anything */
 	if (D_SyncNetIsPaused())
 		return;
-
+		
 	/* While the game is behind, update it */
 	while ((LocalTic = D_SyncNetMapTime()) < D_SyncNetAllReady())
 	{
 		for (i = 0; i < MAXPLAYERS; i++)
 			if (playeringame[i])
 				P_PlayerThink(&players[i]);
-
+				
 		P_RunThinkers();
 		P_UpdateSpecials();
 		P_RespawnSpecials();
-
+		
 		// for par times
 		leveltime++;
-
+		
 #ifdef FRAGGLESCRIPT
 		// SoM: Update FraggleScript...
 		T_DelayedScripts();

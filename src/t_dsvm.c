@@ -50,7 +50,7 @@ void T_DSVMDebugMessage(const char* const a_Format, ...)
 	/* Check */
 	if (!M_CheckParm("-devscript"))
 		return;
-	
+		
 	// Make
 	va_start(ArgPtr, a_Format);
 	vsnprintf(Text, BUFSIZE, a_Format, ArgPtr);
@@ -60,4 +60,3 @@ void T_DSVMDebugMessage(const char* const a_Format, ...)
 	fprintf(stderr, "%s\n", Text);
 #undef BUFSIZE
 }
-

@@ -42,17 +42,17 @@
 *** UPPER CONSTANTS ***
 **********************/
 
-#define TLS_MAXCODESIZE		65536						// Only 65536 bytes for execution
+#define TLS_MAXCODESIZE		65536	// Only 65536 bytes for execution
 
 /* TLS_VariableType_t -- Type of variable available */
 typedef enum TLS_VariableType_e
 {
-	TLSVT_NULL,											// Nothing
-	TLSVT_CONST,										// Constant
-	TLSVT_INT,											// int
-	TLSVT_FIXED,										// Fixed point
-	TLSVT_MOBJ,											// Map object
-	TLSVT_STRING,										// String
+	TLSVT_NULL,					// Nothing
+	TLSVT_CONST,				// Constant
+	TLSVT_INT,					// int
+	TLSVT_FIXED,				// Fixed point
+	TLSVT_MOBJ,					// Map object
+	TLSVT_STRING,				// String
 	
 	NUMTLSVARIABLETYPES
 } TLS_VariableType_t;
@@ -76,5 +76,4 @@ typedef enum TLS_VariableType_e
 bool_t TLS_ClearScripts(void);
 bool_t TLS_CompileLump(const WadIndex_t Index);
 
-#endif /* __T_COMP_H__ */
-
+#endif							/* __T_COMP_H__ */

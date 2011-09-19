@@ -40,6 +40,7 @@
 #include "d_event.h"
 
 #if defined(NEWCHEATS)
+
 /****************
 *** CONSTANTS ***
 ****************/
@@ -52,11 +53,11 @@
 typedef struct M_Cheat_s
 {
 	/* Static */
-	char* OldSeq;									// Letters to activate cheat
-	uint8_t Games;									// Doom, Doom 2, Heretic?
+	char* OldSeq;				// Letters to activate cheat
+	uint8_t Games;				// Doom, Doom 2, Heretic?
 	
 	/* Dynamic */
-	char* Seq;										// Sequence set by dehacked
+	char* Seq;					// Sequence set by dehacked
 } M_Cheat_t;
 
 /**************
@@ -78,16 +79,16 @@ typedef struct M_Cheat_s
 
 typedef struct
 {
-	uint8_t *sequence;
-	uint8_t *p;
+	uint8_t* sequence;
+	uint8_t* p;
 
 } cheatseq_t;
 
-int cht_CheckCheat(cheatseq_t * cht, char key);
+int cht_CheckCheat(cheatseq_t* cht, char key);
 
-void cht_GetParam(cheatseq_t * cht, char *buffer);
+void cht_GetParam(cheatseq_t* cht, char* buffer);
 
-bool_t cht_Responder(event_t * ev);
+bool_t cht_Responder(event_t* ev);
 void cht_Init();
 
 void Command_CheatNoClip_f(void);
@@ -99,5 +100,4 @@ void Command_CheatSummon_f(void);
 void Command_CheatSummonFriend_f(void);
 #endif
 
-#endif /* __M_CHEAT_H__ */
-
+#endif							/* __M_CHEAT_H__ */

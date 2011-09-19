@@ -45,7 +45,7 @@
 // Even when the menu is not displayed,
 // this can resize the view and change game parameters.
 // Does all the real work of the menu interaction.
-bool_t M_Responder(event_t * ev);
+bool_t M_Responder(event_t* ev);
 
 // Called by main loop,
 // only used for menu (skull cursor) animation.
@@ -65,6 +65,7 @@ void M_StartControlPanel(void);
 
 // Draws a box with a texture inside as background for messages
 void M_DrawTextBox(int x, int y, int width, int lines);
+
 // show or hide the setup for player 2 (called at splitscreen change)
 void M_SwitchSplitscreen(void);
 
@@ -76,9 +77,9 @@ typedef enum
 	MM_NOTHING = 0,				// is just displayed until the user do someting
 	MM_YESNO,					// routine is called with only 'y' or 'n' in param
 	MM_EVENTHANDLER				// the same of above but without 'y' or 'n' restriction
-		// and routine is void routine(event_t *) (ex: set control)
+	// and routine is void routine(event_t *) (ex: set control)
 } menumessagetype_t;
-void M_StartMessage(const char *string, void *routine, menumessagetype_t itemtype);
+void M_StartMessage(const char* string, void* routine, menumessagetype_t itemtype);
 
 // Called by linux_x/i_video_xshm.c
 void M_QuitResponse(int ch);
@@ -139,8 +140,8 @@ void M_QuitResponse(int ch);
 
 typedef union
 {
-	struct menu_s *submenu;		// IT_SUBMENU
-	consvar_t *cvar;			// IT_CVAR
+	struct menu_s* submenu;		// IT_SUBMENU
+	consvar_t* cvar;			// IT_CVAR
 	void (*routine) (int choice);	// IT_CALL, IT_KEYHANDLER, IT_ARROWS
 } itemaction_t;
 
@@ -151,33 +152,33 @@ typedef struct menuitem_s
 {
 	// show IT_xxx
 	int status;
-
-	char *patch;
+	
+	char* patch;
 	char** WItemTextPtr;
-	//char *text;					// used when FONTBxx lump is found
-
+	//char *text;                   // used when FONTBxx lump is found
+	
 	// FIXME: should be itemaction_t !!!
-	void *itemaction;
-
+	void* itemaction;
+	
 	// hotkey in menu
-	// or y of the item 
+	// or y of the item
 	uint8_t alphaKey;
 } menuitem_t;
 
-#define MENUFLAG_OPTIMALSPACE	1			// Use automatic spacing!
-#define MENUFLAG_HIDECURSOR		2			// Don't show the cursor
+#define MENUFLAG_OPTIMALSPACE	1	// Use automatic spacing!
+#define MENUFLAG_HIDECURSOR		2	// Don't show the cursor
 
 #define MENUPADDING 10
 
 typedef struct menu_s
 {
 	int extraflags;				// Flags if we ever need them
-	char *menutitlepic;
-	char** WMenuTitlePtr;	// Pointer to string specification
-	//char *menutitle;			// title as string for display with fontb if present
+	char* menutitlepic;
+	char** WMenuTitlePtr;		// Pointer to string specification
+	//char *menutitle;          // title as string for display with fontb if present
 	short numitems;				// # of menu items
-	menuitem_t *menuitems;		// menu items
-	struct menu_s *prevMenu;	// previous menu
+	menuitem_t* menuitems;		// menu items
+	struct menu_s* prevMenu;	// previous menu
 	void (*drawroutine) (void);	// draw routine
 	short x;
 	short y;					// x,y of menu (of the draw spot)
@@ -187,31 +188,32 @@ typedef struct menu_s
 	short menutitlex;			// X Position to draw menutitle
 	short menutitley;			// Y position to draw menutitle
 	short lastOn;				// last item user was on in menu
-	 bool_t(*quitroutine) (void);	// called before quit a menu return true if we can
-	 
+	bool_t (*quitroutine) (void);	// called before quit a menu return true if we can
+	
 	// GhostlyDeath <July 6, 2008> -- For scrolling menus
 	short itemsperpage;
 	short firstdraw;
 } menu_t;
 
 void M_DrawSaveLoadBorder(int x, int y);
-void M_SetupNextMenu(menu_t * menudef);
+void M_SetupNextMenu(menu_t* menudef);
 
 void M_DrawGenericMenu(void);
 void M_DrawControl(void);
 void M_DrawTextBox(int x, int y, int width, int lines);	//added:06-02-98:
-void M_DrawThermo(int x, int y, consvar_t * cv);
-void M_DrawEmptyCell(menu_t * menu, int item);
-void M_DrawSelCell(menu_t * menu, int item);
+void M_DrawThermo(int x, int y, consvar_t* cv);
+void M_DrawEmptyCell(menu_t* menu, int item);
+void M_DrawSelCell(menu_t* menu, int item);
 void M_DrawSlider(int x, int y, int range, void* extra);
-void M_CentreText(int y, char *string);	//added:30-01-98:writetext centered
+void M_CentreText(int y, char* string);	//added:30-01-98:writetext centered
 
 void M_StartControlPanel(void);
 void M_StopMessage(int choice);
 void M_ClearMenus(bool_t callexitmenufunc);
-int M_StringHeight(char *string);
+int M_StringHeight(char* string);
 void M_GameOption(int choice);
 void M_NetOption(int choice);
+
 //28/08/99: added by Hurdler
 void M_OpenGLOption(int choice);
 void M_ChangeControl(int choice);
@@ -224,37 +226,29 @@ extern int saveSlot;
 extern int saveCharIndex;
 extern char saveOldString[SAVESTRINGSIZE];
 extern char savegamestrings[10][SAVESTRINGSIZE];
-extern menu_t *currentMenu;
+extern menu_t* currentMenu;
 extern short itemOn;
 extern short skullAnimCounter;
 extern short whichSkull;
 extern int SkullBaseLump;
 extern char skullName[2][9];
 
-extern menu_t
-	MainDef,					// Main Menu
-	OptionsDef,					// Options Menu
-	DefaultKeyBindDef,			// Key Binds
-	GameOptionsDef,				// Game Options
-	NewGameDef,					// New Game
-	NewGameClassicDef,			// New Game -> Create Game
-	SoundsDef,					// Options -> Sound
-	VideoDef,					// Options -> Video
-	CreateLocalGameDef,			// New Game -> Local
-	NewGameOptionsDef,			// New Game -> Options
-	NewGameCCSkillDef,
-	NewGameCCEpiDef,
-	
-	ControlSettingsDef,
-	GraphicalSettingsDef,
-	
-	LASTMENU
-	;
-	
+extern menu_t MainDef,			// Main Menu
+       OptionsDef,					// Options Menu
+       DefaultKeyBindDef,				// Key Binds
+       GameOptionsDef,				// Game Options
+       NewGameDef,					// New Game
+       NewGameClassicDef,				// New Game -> Create Game
+       SoundsDef,						// Options -> Sound
+       VideoDef,						// Options -> Video
+       CreateLocalGameDef,			// New Game -> Local
+       NewGameOptionsDef,				// New Game -> Options
+       NewGameCCSkillDef, NewGameCCEpiDef, ControlSettingsDef, GraphicalSettingsDef, LASTMENU;
+
 extern menu_t ProfileDef;
-	
+
 extern menu_t* MenuPtrList[];
-	
+
 // Menu Functions
 void M_QuitDOOM(int choice);
 void M_QuitResponse(int ch);
@@ -330,4 +324,3 @@ extern consvar_t cv_ng_bloodtime;
 extern consvar_t cv_ng_infiniteammo;
 
 #endif
-

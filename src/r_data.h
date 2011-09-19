@@ -67,10 +67,10 @@ typedef struct
 	bool_t masked;
 	short width;
 	short height;
-
-	uint32_t columndirectory;		// JUST IN CASE! but they say it's obsolete so..
+	
+	uint32_t columndirectory;	// JUST IN CASE! but they say it's obsolete so..
 	//void                **columndirectory;      // OBSOLETE
-
+	
 	short patchcount;
 	mappatch_t patches[1];
 } maptexture_t;
@@ -97,16 +97,16 @@ typedef struct
 	char name[9];
 	short width;
 	short height;
-
+	
 	// All the patches[patchcount]
 	//  are drawn back to front into the cached texture.
 	short patchcount;
 	texpatch_t patches[1];
-
+	
 } texture_t;
 
 // all loaded and prepared textures from the start of the game
-extern texture_t **textures;
+extern texture_t** textures;
 
 //extern lighttable_t    *colormaps;
 extern CV_PossibleValue_t Color_cons_t[];
@@ -116,9 +116,9 @@ void R_LoadTextures(void);
 void R_FlushTextureCache(void);
 
 // Retrieve column data for span blitting.
-uint8_t *R_GetColumn(int tex, size_t col);
+uint8_t* R_GetColumn(int tex, size_t col);
 
-uint8_t *R_GetFlat(int flatnum);
+uint8_t* R_GetFlat(int flatnum);
 
 // I/O, setting up the stuff.
 void R_InitData(void);
@@ -127,21 +127,21 @@ void R_PrecacheLevel(void);
 // Retrieval.
 // Floor/ceiling opaque texture tiles,
 // lookup by name. For animation?
-int R_GetFlatNumForName(char *name);
-int P_FlagNumForName(char *flatname);
+int R_GetFlatNumForName(char* name);
+int P_FlagNumForName(char* flatname);
+
 #define R_FlatNumForName(x)    R_GetFlatNumForName(x)
 
 // Called by P_Ticker for switches and animations,
 // returns the texture number for the texture name.
-int R_TextureNumForName(char *name);
-int R_CheckTextureNumForName(char *name);
+int R_TextureNumForName(char* name);
+int R_CheckTextureNumForName(char* name);
 
 void R_ClearColormaps();
-int R_ColormapNumForName(char *name);
-int R_CreateColormap(char *p1, char *p2, char *p3);
-char *R_ColormapNameForNum(int num);
+int R_ColormapNumForName(char* name);
+int R_CreateColormap(char* p1, char* p2, char* p3);
+char* R_ColormapNameForNum(int num);
 
 void R_SetSpriteLumpCount(const size_t a_Count);
 
 #endif
-

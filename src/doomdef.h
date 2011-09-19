@@ -96,15 +96,15 @@ extern uint8_t demoversion;
 // commonly used routines - moved here for include convenience
 
 // i_system.h
-void I_Error(char *error, ...);
+void I_Error(char* error, ...);
 
 // console.h
-void CONS_Printf(char *fmt, ...);
+void CONS_Printf(char* fmt, ...);
 
 #include "m_swap.h"
 
 // m_misc.h
-char *va(char *format, ...);
+char* va(char* format, ...);
 
 // g_game.h
 extern bool_t devparm;			// development mode (-devparm)
@@ -132,4 +132,3 @@ int I_GetKey(void);
 #endif
 
 #endif							// __DOOMDEF__
-

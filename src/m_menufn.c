@@ -101,7 +101,6 @@ void M_DrawVideoOptions(void)
 		cursorx = currentMenu->x + ((currentMenu->width / 3) * (vidMenu_itemOn % 3)) - 10;
 		cursory = currentMenu->y + (STRINGHEIGHT << 1) + ((vidMenu_itemOn / 3) * STRINGHEIGHT);
 	}
-	
 	// Draw video modes and stuff
 	for (i = 0; i < NumModes; i++)
 	{
@@ -128,7 +127,7 @@ void M_HandleVideoKey(int choice)
 {
 	switch (choice)
 	{
-		// Handle Keys
+			// Handle Keys
 		case KEY_UPARROW:
 			vidMenu_itemOn -= 3;
 			S_StartSound(NULL, sfx_pstop);
@@ -154,21 +153,21 @@ void M_HandleVideoKey(int choice)
 		case 'd':
 		case 'D':
 			SCR_SetDefaultMode();
-			break;			
+			break;
 			
-		// Don't ask me (GhostlyDeath)
+			// Don't ask me (GhostlyDeath)
 		case KEY_BACKSPACE:
 			S_StartSound(NULL, GAMESWITCHN);
 		case KEY_ESCAPE:
 			if (choice == KEY_ESCAPE)
 				S_StartSound(NULL, GAMESWITCHX);
-
+				
 			if (currentMenu->prevMenu)
 				M_SetupNextMenu(currentMenu->prevMenu);
 			else
 				M_ClearMenus(true);
 			break;
-		
+			
 		default:
 			break;
 	}
@@ -188,7 +187,7 @@ void M_HandleVideoKey(int choice)
 
 void M_StartVideoOptions(int choice)
 {
-	
+
 	currentMenu->lastOn = itemOn;
 	M_SetupNextMenu(&VideoDef);
 }
@@ -197,7 +196,8 @@ void M_StartVideoOptions(int choice)
 //                                 Quit Game
 // =============================================================================
 
-int quitsounds[16] = {
+int quitsounds[16] =
+{
 	sfx_pldeth,
 	sfx_dmpain,
 	sfx_popain,
@@ -219,20 +219,21 @@ int quitsounds[16] = {
 void M_QuitResponse(int ch)
 {
 	tic_t time;
+	
 	if (ch != 'y')
 		return;
-	
+		
 	if (gamemission != commercial)
 		S_StartSound(NULL, quitsounds[(gametic >> 2) % 8]);
 	else
 		S_StartSound(NULL, quitsounds[(gametic >> 2) % 16]);
-
+		
 	if (!nosound)
 	{
 		time = I_GetTime() + TICRATE * 2;
 		while (time > I_GetTime());
 	}
-
+	
 	I_Quit();
 }
 
@@ -242,6 +243,7 @@ void M_QuitDOOM(int choice)
 	// We pick index 0 which is language sensitive,
 	//  or one at random, between 1 and maximum number.
 	static char s[200];
+	
 	sprintf(s, text[DOSY_NUM], text[QUITMSG_NUM + (gametic % NUM_QUITMESSAGES)]);
 	M_StartMessage(s, M_QuitResponse, MM_YESNO);
 }
@@ -250,7 +252,7 @@ void M_EndGameResponse(int ch)
 {
 	if (ch != 'y')
 		return;
-
+		
 	currentMenu->lastOn = itemOn;
 	M_ClearMenus(true);
 	COM_BufAddText("exitgame\n");
@@ -260,7 +262,7 @@ void M_EndGame(int choice)
 {
 	if (demorecording || demoplayback)
 		return;
-	
+		
 	if ((gamestate >= GS_LEVEL) && (gamestate <= GS_FINALE))
 		M_StartMessage("Would you like to end the current game?\npress y or n", M_EndGameResponse, MM_YESNO);
 }
@@ -309,10 +311,10 @@ CV_PossibleValue_t NGSkillHeretic[] =
 
 CV_PossibleValue_t NGOptions[] =
 {
-	{0, "Classic Doom"},	// As close as EXE as possible
-	{1, "Legacy"},			// Like Legacy's Defaults (kinda)
-	{2, "ReMooD"},			// ReMooD's Defaults
-	{3, "Custom"},			// Custom (i.e. don't touch them)
+	{0, "Classic Doom"},		// As close as EXE as possible
+	{1, "Legacy"},				// Like Legacy's Defaults (kinda)
+	{2, "ReMooD"},				// ReMooD's Defaults
+	{3, "Custom"},				// Custom (i.e. don't touch them)
 	
 	{0, NULL},
 };
@@ -349,18 +351,18 @@ CV_PossibleValue_t NGMaxPlayers[] =
 	{0, NULL}
 };
 
-consvar_t cv_ng_map = {"ng_map", "0", CV_SAVE, CV_YesNo};
-consvar_t cv_ng_skill = {"ng_skill", "3", CV_SAVE, NGSkill};
-consvar_t cv_ng_options = {"ng_options", "2", CV_SAVE | CV_CALL, NGOptions, M_NGOptionChange};
-consvar_t cv_ng_splitscreen = {"ng_splitscreen", "1", CV_SAVE, NGSplitScreenValue};
-consvar_t cv_ng_splitscreen2 = {"ng_splitscreen2", "1", CV_SAVE, NGSplitScreenValue2};
-consvar_t cv_ng_maxplayers = {"ng_maxplayers", _ASDF(MAXPLAYERS), CV_SAVE, NGMaxPlayers};
-consvar_t cv_ng_maxclients = {"ng_maxclients", _ASDF(MAXPLAYERS), CV_SAVE, NGMaxPlayers};
-consvar_t cv_ng_deathmatch = {"ng_deathmatch", "0", CV_SAVE, deathmatch_cons_t, NULL};
-consvar_t cv_ng_teamplay = {"ng_teamplay", "0", CV_SAVE, teamplay_cons_t, NULL};
-consvar_t cv_ng_teamdamage = {"ng_teamdamage", "0", CV_SAVE, CV_OnOff};
-consvar_t cv_ng_fraglimit = {"ng_fraglimit", "0", CV_SAVE, fraglimit_cons_t, NULL};
-consvar_t cv_ng_timelimit = {"ng_timelimit", "0", CV_SAVE, CV_Unsigned, NULL};
+consvar_t cv_ng_map = { "ng_map", "0", CV_SAVE, CV_YesNo };
+consvar_t cv_ng_skill = { "ng_skill", "3", CV_SAVE, NGSkill };
+consvar_t cv_ng_options = { "ng_options", "2", CV_SAVE | CV_CALL, NGOptions, M_NGOptionChange };
+consvar_t cv_ng_splitscreen = { "ng_splitscreen", "1", CV_SAVE, NGSplitScreenValue };
+consvar_t cv_ng_splitscreen2 = { "ng_splitscreen2", "1", CV_SAVE, NGSplitScreenValue2 };
+consvar_t cv_ng_maxplayers = { "ng_maxplayers", _ASDF(MAXPLAYERS), CV_SAVE, NGMaxPlayers };
+consvar_t cv_ng_maxclients = { "ng_maxclients", _ASDF(MAXPLAYERS), CV_SAVE, NGMaxPlayers };
+consvar_t cv_ng_deathmatch = { "ng_deathmatch", "0", CV_SAVE, deathmatch_cons_t, NULL };
+consvar_t cv_ng_teamplay = { "ng_teamplay", "0", CV_SAVE, teamplay_cons_t, NULL };
+consvar_t cv_ng_teamdamage = { "ng_teamdamage", "0", CV_SAVE, CV_OnOff };
+consvar_t cv_ng_fraglimit = { "ng_fraglimit", "0", CV_SAVE, fraglimit_cons_t, NULL };
+consvar_t cv_ng_timelimit = { "ng_timelimit", "0", CV_SAVE, CV_Unsigned, NULL };
 consvar_t cv_ng_allowexitlevel = { "ng_allowexitlevel", "1", CV_SAVE, CV_YesNo, NULL };
 consvar_t cv_ng_allowjump = { "ng_allowjump", "1", CV_SAVE, CV_YesNo };
 consvar_t cv_ng_allowautoaim = { "ng_allowautoaim", "1", CV_SAVE, CV_YesNo };
@@ -374,14 +376,14 @@ consvar_t cv_ng_spawnmonsters = { "ng_spawnmonsters", "1", CV_SAVE, CV_YesNo };
 consvar_t cv_ng_respawnmonsters = { "ng_respawnmonsters", "0", CV_SAVE, CV_OnOff };
 consvar_t cv_ng_respawnmonsterstime = { "ng_respawnmonsterstime", "12", CV_SAVE, CV_Unsigned };
 consvar_t cv_ng_solidcorpse = { "ng_solidcorpse", "0", CV_SAVE, CV_OnOff };
-consvar_t cv_ng_fastmonsters = { "ng_fastmonsters", "0", CV_SAVE, CV_OnOff, NULL};
+consvar_t cv_ng_fastmonsters = { "ng_fastmonsters", "0", CV_SAVE, CV_OnOff, NULL };
 consvar_t cv_ng_predictingmonsters = { "ng_predictingmonsters", "0", CV_SAVE, CV_OnOff };
 consvar_t cv_ng_classicmonsterlogic = { "ng_classicmonsterlogic", "0", CV_SAVE, CV_YesNo };
-consvar_t cv_ng_gravity = { "ng_gravity", "1", CV_SAVE | CV_FLOAT};
-consvar_t cv_ng_classicblood = {"ng_classicblood", "0", CV_SAVE, CV_YesNo, NULL};
+consvar_t cv_ng_gravity = { "ng_gravity", "1", CV_SAVE | CV_FLOAT };
+consvar_t cv_ng_classicblood = { "ng_classicblood", "0", CV_SAVE, CV_YesNo, NULL };
 consvar_t cv_ng_classicmeleerange = { "ng_classicmeleerange", "0", CV_SAVE, CV_YesNo };
 consvar_t cv_ng_fragsweaponfalling = { "ng_fragsweaponfalling", "0", CV_SAVE, CV_YesNo };
-consvar_t cv_ng_bloodtime = { "ng_bloodtime", "20", CV_SAVE, bloodtime_cons_t,};
+consvar_t cv_ng_bloodtime = { "ng_bloodtime", "20", CV_SAVE, bloodtime_cons_t, };
 consvar_t cv_ng_infiniteammo = { "ng_infiniteammo", "0", CV_SAVE, CV_YesNo };
 
 void M_NGOptionChange(void)
@@ -403,21 +405,21 @@ int lastgamemode = -1, lastgamemission = -1;
 
 int NumMaps[numgamemodes] =
 {
-	9,	// shareware
-	27,	// registered
-	32,	// commercial
-	36,	// retail
-	1,	// indetermined
-	5,	// chexquest1
+	9,							// shareware
+	27,							// registered
+	32,							// commercial
+	36,							// retail
+	1,							// indetermined
+	5,							// chexquest1
 };
 
 int MissionTXTStart[numgamemissions] =
 {
-	HUSTR_E1M1_NUM, // doom
-	HUSTR_1_NUM,	//doom2
-	THUSTR_1_NUM,	// pack_tnt
-	PHUSTR_1_NUM,	// pack_plut
-	HUSTR_E1M1_NUM,	// pack_chex -- TODO: Use Chex Quest level names
+	HUSTR_E1M1_NUM,				// doom
+	HUSTR_1_NUM,				//doom2
+	THUSTR_1_NUM,				// pack_tnt
+	PHUSTR_1_NUM,				// pack_plut
+	HUSTR_E1M1_NUM,				// pack_chex -- TODO: Use Chex Quest level names
 };
 
 static void M_GenerateLevelPossible(void)
@@ -448,18 +450,17 @@ static void M_GenerateLevelPossible(void)
 		Z_Free(DynMaps);
 		DynMaps = NULL;
 	}
-	
 	// Create map list
 	NewCount = (NumMaps[gamemode] + 2);
 	
 	// Random Map (or Episode 1, 2, 3, 4)
-	NewCount++;		// Random Map (All Maps)
+	NewCount++;					// Random Map (All Maps)
 	if (gamemode != shareware && gamemode != chexquest1 && gamemode != commercial)
 	{
 		if (gamemode == registered || gamemode == retail)
-			NewCount += 2;	// TSOH + I
+			NewCount += 2;		// TSOH + I
 		if (gamemode == retail)
-			NewCount++;		// TFC
+			NewCount++;			// TFC
 	}
 	
 	DynMaps = Z_Malloc(NewCount * sizeof(CV_PossibleValue_t), PU_STATIC, 0);
@@ -490,14 +491,14 @@ static void M_GenerateLevelPossible(void)
 	
 	switch (gamemode)
 	{
-		case chexquest1:	/* DOOM */
+		case chexquest1:		/* DOOM */
 		case shareware:
 		case registered:
 		case retail:
 			for (j = 0; j < NumMaps[gamemode]; j++)
 			{
 				DynMaps[j].value = (((j / 9) + 1) * 10) + ((j % 9) + 1);
-				bx = text[MissionTXTStart[gamemission]+j];
+				bx = text[MissionTXTStart[gamemission] + j];
 				while (*bx && *bx != ':')
 					bx++;
 				if (*bx == ':')
@@ -508,17 +509,17 @@ static void M_GenerateLevelPossible(void)
 					bx++;
 				}
 				else
-					bx = text[MissionTXTStart[gamemission]+j];
+					bx = text[MissionTXTStart[gamemission] + j];
 				DynMaps[j].strvalue = Z_Malloc(8 + strlen(bx) + 1, PU_STATIC, 0);
 				sprintf(DynMaps[j].strvalue, "E%iM%i - %s", (j / 9) + 1, (j % 9) + 1, bx);
 			}
 			break;
 			
-		case commercial:	/* DOOM 2 */
+		case commercial:		/* DOOM 2 */
 			for (j = 0; j < NumMaps[gamemode]; j++)
 			{
 				DynMaps[j].value = j + 1;
-				bx = text[MissionTXTStart[gamemission]+j];
+				bx = text[MissionTXTStart[gamemission] + j];
 				while (*bx && *bx != ':')
 					bx++;
 				if (*bx == ':')
@@ -529,7 +530,7 @@ static void M_GenerateLevelPossible(void)
 					bx++;
 				}
 				else
-					bx = text[MissionTXTStart[gamemission]+j];
+					bx = text[MissionTXTStart[gamemission] + j];
 				DynMaps[j].strvalue = Z_Malloc(9 + strlen(bx) + 1, PU_STATIC, 0);
 				sprintf(DynMaps[j].strvalue, "MAP%02i - %s", j + 1, bx);
 			}
@@ -554,7 +555,7 @@ void M_DoNewGameClassicClassic(int choice)
 	
 	// Heretic?
 	cv_ng_skill.PossibleValue = NGSkill;
-		
+	
 	// Skill?
 	NewGameCCSkillDef.menuitems[0].WItemTextPtr = PTROFUNICODESTRING(DSTR_MENUCLASSICGAME_DOOMSKILLA);
 	NewGameCCSkillDef.menuitems[1].WItemTextPtr = PTROFUNICODESTRING(DSTR_MENUCLASSICGAME_DOOMSKILLB);
@@ -582,12 +583,12 @@ void M_DoNewGameClassicClassic(int choice)
 		
 		NewGameCCEpiDef.menuitems[4].status |= IT_DISABLED2;
 		NewGameCCEpiDef.menuitems[5].status |= IT_DISABLED2;
-	
+		
 		if (gamemode != retail)
 			NewGameCCEpiDef.menuitems[3].status |= IT_DISABLED2;
 		else
 			NewGameCCEpiDef.menuitems[3].status &= ~IT_DISABLED2;
-		
+			
 		if (gamemode == shareware)
 		{
 			NewGameCCEpiDef.menuitems[1].status |= IT_DISABLED2;
@@ -613,13 +614,13 @@ void M_SelectSkill(int choice)
 {
 	/* Demyx -- For nightmare verification. */
 	if (choice == sk_nightmare)
-    {
-        M_StartMessage(NIGHTMARE,M_VerifyNightmare,MM_YESNO);
-        return;
-    }
-
+	{
+		M_StartMessage(NIGHTMARE, M_VerifyNightmare, MM_YESNO);
+		return;
+	}
+	
 	ccskill = choice;
-
+	
 	currentMenu->lastOn = itemOn;
 	
 	M_SetupGameOptionsNow(&NewGameCCSkillDef);
@@ -637,21 +638,21 @@ void M_SelectEpisode(int choice)
 
 void M_VerifyNightmare(int ch)
 {
-	if(ch != 'y')
+	if (ch != 'y')
 		return;
-
-	G_DeferedInitNew (sk_nightmare, G_BuildMapName(epi+1,1),0);
-
-	M_ClearMenus(true);	//Whoops forgot about this one.
+		
+	G_DeferedInitNew(sk_nightmare, G_BuildMapName(epi + 1, 1), 0);
+	
+	M_ClearMenus(true);			//Whoops forgot about this one.
 }
 
 void M_DoNewGameClassic(int choice)
 {
 	if (!DynMaps || lastgamemode != gamemode || lastgamemission != gamemission)
 		M_GenerateLevelPossible();
-	
-	M_NGOptionChange();
 		
+	M_NGOptionChange();
+	
 	currentMenu->lastOn = itemOn;
 	M_SetupNextMenu(&NewGameClassicDef);
 }
@@ -660,9 +661,9 @@ void M_DoNewGameLocal(int choice)
 {
 	if (!DynMaps || lastgamemode != gamemode || lastgamemission != gamemission)
 		M_GenerateLevelPossible();
-	
-	M_NGOptionChange();
 		
+	M_NGOptionChange();
+	
 	currentMenu->lastOn = itemOn;
 	M_SetupNextMenu(&CreateLocalGameDef);
 }
@@ -688,7 +689,7 @@ void M_SetupGameOptionsNow(menu_t* Orig)
 			CV_Set(&cv_deathmatch, "0");
 		else
 			CV_Set(&cv_deathmatch, va("%d", cv_ng_deathmatch.value));
-		
+			
 		CV_Set(&cv_teamplay, cv_ng_teamplay.string);
 		CV_Set(&cv_fraglimit, cv_ng_fraglimit.string);
 		CV_Set(&cv_timelimit, cv_ng_timelimit.string);
@@ -696,7 +697,7 @@ void M_SetupGameOptionsNow(menu_t* Orig)
 			CV_Set(&cv_spawnmonsters, "1");
 		else
 			CV_Set(&cv_spawnmonsters, cv_ng_spawnmonsters.string);
-		
+			
 		switch (cv_ng_deathmatch.value)
 		{
 			case 1:
@@ -724,10 +725,8 @@ void M_SetupGameOptionsNow(menu_t* Orig)
 			CV_Set(&cv_fastmonsters, cv_ng_fastmonsters.string);
 		}
 	}
-	
 	// CLASSIC
-	if ((Orig == &CreateLocalGameDef || Orig == &NewGameClassicDef) &&
-		cv_ng_options.value == 0)
+	if ((Orig == &CreateLocalGameDef || Orig == &NewGameClassicDef) && cv_ng_options.value == 0)
 	{
 		CV_Set(&cv_teamdamage, "1");
 		CV_Set(&cv_allowexitlevel, "1");
@@ -746,10 +745,8 @@ void M_SetupGameOptionsNow(menu_t* Orig)
 		CV_Set(&cv_fragsweaponfalling, "0");
 		CV_Set(&cv_bloodtime, "5");
 	}
-	
 	// LEGACY
-	else if ((Orig == &CreateLocalGameDef || Orig == &NewGameClassicDef) &&
-		cv_ng_options.value == 1)
+	else if ((Orig == &CreateLocalGameDef || Orig == &NewGameClassicDef) && cv_ng_options.value == 1)
 	{
 		CV_Set(&cv_teamdamage, "0");
 		CV_Set(&cv_allowexitlevel, "1");
@@ -768,10 +765,8 @@ void M_SetupGameOptionsNow(menu_t* Orig)
 		CV_Set(&cv_fragsweaponfalling, "0");
 		CV_Set(&cv_bloodtime, "20");
 	}
-	
 	// REMOOD
-	else if (((Orig == &CreateLocalGameDef || Orig == &NewGameClassicDef) &&
-		cv_ng_options.value == 2) || (Orig == &NewGameCCSkillDef))
+	else if (((Orig == &CreateLocalGameDef || Orig == &NewGameClassicDef) && cv_ng_options.value == 2) || (Orig == &NewGameCCSkillDef))
 	{
 		CV_Set(&cv_teamdamage, "0");
 		CV_Set(&cv_allowexitlevel, "1");
@@ -790,10 +785,9 @@ void M_SetupGameOptionsNow(menu_t* Orig)
 		CV_Set(&cv_fragsweaponfalling, "1");
 		CV_Set(&cv_bloodtime, "10");
 	}
-		
 	// CUSTOM
-	else/*if ((Orig == &CreateLocalGameDef || Orig == &NewGameClassicDef) &&
-		cv_ng_options.value == 3)*/
+	else						/*if ((Orig == &CreateLocalGameDef || Orig == &NewGameClassicDef) &&
+								   cv_ng_options.value == 3) */
 	{
 		CV_Set(&cv_teamdamage, cv_ng_teamdamage.string);
 		CV_Set(&cv_allowexitlevel, cv_ng_allowexitlevel.string);
@@ -826,7 +820,7 @@ void M_WarpToMap(menu_t* Orig)
 		split = cv_ng_splitscreen.value;
 	else
 		split = 0;
-	
+		
 	// Skill
 	if (Orig == &NewGameCCSkillDef)
 		Skill = ccskill;
@@ -847,7 +841,7 @@ void M_WarpToMap(menu_t* Orig)
 	else
 		switch (cv_ng_map.value)
 		{
-			case 90:	// All Maps
+			case 90:			// All Maps
 				switch (gamemode)
 				{
 					case chexquest1:
@@ -875,31 +869,31 @@ void M_WarpToMap(menu_t* Orig)
 						break;
 				}
 				break;
-			case 91:	// Episode 1 Maps
+			case 91:			// Episode 1 Maps
 				GameEp = 1;
 				GameMap = (M_Random() % 9) + 1;
 				break;
-			case 92:	// Episode 2 Maps
+			case 92:			// Episode 2 Maps
 				GameEp = 2;
 				GameMap = (M_Random() % 9) + 1;
 				break;
-			case 93:	// Episode 3 Maps
+			case 93:			// Episode 3 Maps
 				GameEp = 3;
 				GameMap = (M_Random() % 9) + 1;
 				break;
-			case 94:	// Episode 4 Maps
+			case 94:			// Episode 4 Maps
 				GameEp = 4;
 				GameMap = (M_Random() % 9) + 1;
 				break;
-			case 95:	// Episode 5
+			case 95:			// Episode 5
 				GameEp = 5;
 				GameMap = (M_Random() % 9) + 1;
 				break;
-			case 96:	// Episode 6
+			case 96:			// Episode 6
 				GameEp = 6;
 				GameMap = (M_Random() % 9) + 1;
 				break;
-			default:	// Not Random
+			default:			// Not Random
 				if (gamemode == commercial)
 				{
 					GameEp = 1;
@@ -912,7 +906,7 @@ void M_WarpToMap(menu_t* Orig)
 				}
 				break;
 		}
-	
+		
 	// Start the map
 	G_DeferedInitNew(Skill, G_BuildMapName(GameEp, GameMap), split);
 	
@@ -932,20 +926,20 @@ void M_Init(void)
 	int i;
 	int j;
 	menu_t* glob = NULL;
-	patch_t *tpatch = NULL;
-
+	patch_t* tpatch = NULL;
+	
 	if (dedicated)
 		return;
-
+		
 	currentMenu = &MainDef;
 	menuactive = 0;
 	itemOn = currentMenu->lastOn;
-
+	
 	whichSkull = 0;
 	skullAnimCounter = 10;
-
+	
 	quickSaveSlot = -1;
-
+	
 	switch (gamemode)
 	{
 		case commercial:
@@ -1024,7 +1018,6 @@ void M_Init(void)
 			{
 				glob->menutitlepic = "M_DOOM";
 			}
-			
 			// First determine how big our title will be
 			if (CharacterGroups[VFONT_LARGE] && glob->WMenuTitlePtr && strlen(*(glob->WMenuTitlePtr)) > 0)
 			{
@@ -1063,7 +1056,6 @@ void M_Init(void)
 					glob->height = BASEVIDHEIGHT - (MENUPADDING * 2);
 				}
 			}
-			
 			// Get Items per page
 			glob->itemsperpage = 0;
 			glob->firstdraw = 0;
@@ -1097,7 +1089,7 @@ void M_Ticker(void)
 {
 	if (dedicated)
 		return;
-
+		
 	if (--skullAnimCounter <= 0)
 	{
 		whichSkull ^= 1;
@@ -1108,7 +1100,7 @@ void M_Ticker(void)
 //
 // M_SetupNextMenu
 //
-void M_SetupNextMenu(menu_t * menudef)
+void M_SetupNextMenu(menu_t* menudef)
 {
 	int status = 0;
 	int cont = 1;
@@ -1132,14 +1124,13 @@ void M_SetupNextMenu(menu_t * menudef)
 	
 	// GhostlyDeath <July 11, 2008> -- Never park on an item that can't be selected
 	status = currentMenu->menuitems[itemOn].status;
-	while (((status & IT_TYPE) == IT_SPACE) ||
-		(((status & IT_TYPE) != IT_SPACE) && (status & IT_DISABLED2)))
+	while (((status & IT_TYPE) == IT_SPACE) || (((status & IT_TYPE) != IT_SPACE) && (status & IT_DISABLED2)))
 	{
 		itemOn++;
-	
+		
 		if (itemOn >= currentMenu->numitems)
 			itemOn = 0;
-	
+			
 		status = currentMenu->menuitems[itemOn].status;
 	}
 }
@@ -1147,16 +1138,16 @@ void M_SetupNextMenu(menu_t * menudef)
 static int controltochange;
 extern int (*setupcontrols)[2];
 
-void M_ChangecontrolResponse(event_t * ev)
+void M_ChangecontrolResponse(event_t* ev)
 {
 	int control;
 	int found;
 	int ch = ev->data1;
-
+	
 	// ESCAPE cancels
 	if (ch != KEY_ESCAPE && ch != KEY_PAUSE)
 	{
-
+	
 		switch (ev->type)
 		{
 				// ignore mouse/joy movements, just get buttons
@@ -1166,19 +1157,19 @@ void M_ChangecontrolResponse(event_t * ev)
 			case ev_joystick:
 				ch = KEY_NULL;	// no key
 				break;
-
+				
 				// keypad arrows are converted for the menu in cursor arrows
 				// so use the event instead of ch
 			case ev_keydown:
 				ch = ev->data1;
 				break;
-
+				
 			default:
 				break;
 		}
-
+		
 		control = controltochange;
-
+		
 		// check if we already entered this key
 		found = -1;
 		if (setupcontrols[control][0] == ch)
@@ -1209,19 +1200,19 @@ void M_ChangecontrolResponse(event_t * ev)
 			G_CheckDoubleUsage(ch);
 			setupcontrols[control][found] = ch;
 		}
-
+		
 	}
-
+	
 	M_StopMessage(0);
 }
 
 void M_ChangeControl(int choice)
 {
 	static char tmp[55];
-
+	
 	controltochange = currentMenu->menuitems[choice].alphaKey;
 	snprintf(tmp, 55, "Hit the new key for\n%s\nESC for Cancel", *(currentMenu->menuitems[choice].WItemTextPtr));
-
+	
 	M_StartMessage(tmp, M_ChangecontrolResponse, MM_EVENTHANDLER);
 }
 
@@ -1232,6 +1223,7 @@ void M_ControlsDoPlayer1(int choice)
 	DefaultKeyBindDef.WMenuTitlePtr = PTROFUNICODESTRING(DSTR_MENUOTHER_PLAYERACONTROLS);
 	M_SetupNextMenu(&DefaultKeyBindDef);
 }
+
 void M_ControlsDoPlayer2(int choice)
 {
 	setupcontrols = gamecontrol[1];
@@ -1239,6 +1231,7 @@ void M_ControlsDoPlayer2(int choice)
 	DefaultKeyBindDef.WMenuTitlePtr = PTROFUNICODESTRING(DSTR_MENUOTHER_PLAYERBCONTROLS);
 	M_SetupNextMenu(&DefaultKeyBindDef);
 }
+
 void M_ControlsDoPlayer3(int choice)
 {
 	setupcontrols = gamecontrol[2];
@@ -1246,6 +1239,7 @@ void M_ControlsDoPlayer3(int choice)
 	DefaultKeyBindDef.WMenuTitlePtr = PTROFUNICODESTRING(DSTR_MENUOTHER_PLAYERCCONTROLS);
 	M_SetupNextMenu(&DefaultKeyBindDef);
 }
+
 void M_ControlsDoPlayer4(int choice)
 {
 	setupcontrols = gamecontrol[3];
@@ -1260,19 +1254,19 @@ void M_ControlsDoPlayer4(int choice)
 
 void M_ChangeCvar(int choise)
 {
-	consvar_t *cv = (consvar_t *) currentMenu->menuitems[itemOn].itemaction;
+	consvar_t* cv = (consvar_t*) currentMenu->menuitems[itemOn].itemaction;
 	
 	if (currentMenu->menuitems[itemOn].status & IT_CVARREADONLY)
 		return;
-
-	if (((currentMenu->menuitems[itemOn].status & IT_CVARTYPE) == IT_CV_SLIDER)
-		|| ((currentMenu->menuitems[itemOn].status & IT_CVARTYPE) == IT_CV_NOMOD))
+		
+	if (((currentMenu->menuitems[itemOn].status & IT_CVARTYPE) == IT_CV_SLIDER) || ((currentMenu->menuitems[itemOn].status & IT_CVARTYPE) == IT_CV_NOMOD))
 	{
 		CV_SetValue(cv, cv->value + choise * 2 - 1);
 	}
 	else if (cv->flags & CV_FLOAT)
 	{
 		char s[20];
+		
 		sprintf(s, "%f", (float)cv->value / FRACUNIT + (choise * 2 - 1) * (1.0 / 16.0));
 		CV_Set(cv, s);
 	}
@@ -1282,14 +1276,14 @@ void M_ChangeCvar(int choise)
 
 bool_t M_ChangeStringCvar(int choise)
 {
-	consvar_t *cv = (consvar_t *) currentMenu->menuitems[itemOn].itemaction;
+	consvar_t* cv = (consvar_t*) currentMenu->menuitems[itemOn].itemaction;
 	char buf[255];
 	char c;
 	int len;
 	
 	if (currentMenu->menuitems[itemOn].status & IT_CVARREADONLY)
 		return;
-
+		
 	switch (choise)
 	{
 		case KEY_BACKSPACE:
@@ -1299,15 +1293,16 @@ bool_t M_ChangeStringCvar(int choise)
 				// GhostlyDeath <November 2, 2010> -- Backspace must clear multibyte chars also
 				memcpy(buf, cv->string, len);
 				
-				if (!(buf[len - 1] & 0x80))		// Single
+				if (!(buf[len - 1] & 0x80))	// Single
 					buf[len - 1] = 0;
-				else							// Multi
+				else			// Multi
 					do
 					{
 						c = buf[len - 1];
 						buf[len - 1] = 0;
 						len--;
-					} while (len > 1 && (c & 0xC0) != 0xC0);
+					}
+					while (len > 1 && (c & 0xC0) != 0xC0);
 				CV_Set(cv, buf);
 			}
 			return true;
@@ -1321,23 +1316,57 @@ bool_t M_ChangeStringCvar(int choise)
 					{
 						switch (choise)
 						{
-							case '-': choise = '_'; break;
-							case '=': choise = '+'; break;
-							case ';': choise = ':'; break;
-							case '\"': choise = '\''; break;
-							case ',': choise = '<'; break;
-							case '.': choise = '>'; break;
-							case '/': choise = '?'; break;
-							case '1': choise = '!'; break;
-							case '2': choise = '@'; break;
-							case '3': choise = '#'; break;
-							case '4': choise = '$'; break;
-							case '5': choise = '%'; break;
-							case '6': choise = '^'; break;
-							case '7': choise = '&'; break;
-							case '8': choise = '*'; break;
-							case '9': choise = '('; break;
-							case '0': choise = ')'; break;
+							case '-':
+								choise = '_';
+								break;
+							case '=':
+								choise = '+';
+								break;
+							case ';':
+								choise = ':';
+								break;
+							case '\"':
+								choise = '\'';
+								break;
+							case ',':
+								choise = '<';
+								break;
+							case '.':
+								choise = '>';
+								break;
+							case '/':
+								choise = '?';
+								break;
+							case '1':
+								choise = '!';
+								break;
+							case '2':
+								choise = '@';
+								break;
+							case '3':
+								choise = '#';
+								break;
+							case '4':
+								choise = '$';
+								break;
+							case '5':
+								choise = '%';
+								break;
+							case '6':
+								choise = '^';
+								break;
+							case '7':
+								choise = '&';
+								break;
+							case '8':
+								choise = '*';
+								break;
+							case '9':
+								choise = '(';
+								break;
+							case '0':
+								choise = ')';
+								break;
 						}
 					}
 					memcpy(buf, cv->string, len);
@@ -1355,7 +1384,7 @@ bool_t M_ChangeStringCvar(int choise)
 //
 // M_Responder
 //
-bool_t M_Responder(event_t * ev)
+bool_t M_Responder(event_t* ev)
 {
 	int ch;
 	int i;
@@ -1367,13 +1396,13 @@ bool_t M_Responder(event_t * ev)
 	static int mousex = 0;
 	static int lastx = 0;
 	void (*routine) (int choice);	// for some casting problem
-
+	
 	ch = -1;
-
+	
 	if (ev->type == ev_keydown)
 	{
 		ch = ev->data1;
-
+		
 		// added 5-2-98 remap virtual keys (mouse & joystick buttons)
 		switch (ch)
 		{
@@ -1407,7 +1436,7 @@ bool_t M_Responder(event_t * ev)
 				ch = KEY_DOWNARROW;
 				joywait = I_GetTime() + TICRATE / 7;
 			}
-
+			
 			if (ev->data2 == -1)
 			{
 				ch = KEY_LEFTARROW;
@@ -1436,7 +1465,7 @@ bool_t M_Responder(event_t * ev)
 					mousewait = I_GetTime() + TICRATE / 7;
 					mousey = lasty += 30;
 				}
-
+				
 				mousex += ev->data2;
 				if (mousex < lastx - 30)
 				{
@@ -1453,57 +1482,56 @@ bool_t M_Responder(event_t * ev)
 			}
 		}
 	}
-
+	
 	if (ch == -1)
 		return false;
-
+		
 	// Save Game string input
 	/*if (saveStringEnter)
-	{
-		switch (ch)
-		{
-			case KEY_BACKSPACE:
-				if (saveCharIndex > 0)
-				{
-					saveCharIndex--;
-					savegamestrings[saveSlot][saveCharIndex] = 0;
-				}
-				break;
-
-			case KEY_ESCAPE:
-				saveStringEnter = 0;
-				strcpy(&savegamestrings[saveSlot][0], saveOldString);
-				break;
-
-			case KEY_ENTER:
-				saveStringEnter = 0;
-				if (savegamestrings[saveSlot][0])
-					M_DoSave(saveSlot);
-				break;
-
-			default:
-				ch = toupper(ch);
-				if (ch != 32)
-					if (ch - HU_FONTSTART < 0 || ch - HU_FONTSTART >= HU_FONTSIZE)
-						break;
-				if (ch >= 32 && ch <= 127 &&
-					saveCharIndex < SAVESTRINGSIZE - 1 &&
-					V_StringWidth(savegamestrings[saveSlot]) < (SAVESTRINGSIZE - 2) * 8)
-				{
-					savegamestrings[saveSlot][saveCharIndex++] = ch;
-					savegamestrings[saveSlot][saveCharIndex] = 0;
-				}
-				break;
-		}
-		return true;
-	}*/
-
+	   {
+	   switch (ch)
+	   {
+	   case KEY_BACKSPACE:
+	   if (saveCharIndex > 0)
+	   {
+	   saveCharIndex--;
+	   savegamestrings[saveSlot][saveCharIndex] = 0;
+	   }
+	   break;
+	
+	   case KEY_ESCAPE:
+	   saveStringEnter = 0;
+	   strcpy(&savegamestrings[saveSlot][0], saveOldString);
+	   break;
+	
+	   case KEY_ENTER:
+	   saveStringEnter = 0;
+	   if (savegamestrings[saveSlot][0])
+	   M_DoSave(saveSlot);
+	   break;
+	
+	   default:
+	   ch = toupper(ch);
+	   if (ch != 32)
+	   if (ch - HU_FONTSTART < 0 || ch - HU_FONTSTART >= HU_FONTSIZE)
+	   break;
+	   if (ch >= 32 && ch <= 127 &&
+	   saveCharIndex < SAVESTRINGSIZE - 1 &&
+	   V_StringWidth(savegamestrings[saveSlot]) < (SAVESTRINGSIZE - 2) * 8)
+	   {
+	   savegamestrings[saveSlot][saveCharIndex++] = ch;
+	   savegamestrings[saveSlot][saveCharIndex] = 0;
+	   }
+	   break;
+	   }
+	   return true;
+	   } */
+	
 	if (devparm && ch == KEY_F1)
 	{
 		COM_BufAddText("screenshot\n");
 		return true;
 	}
-
 	// F-Keys
 	if (!menuactive)
 	{
@@ -1515,87 +1543,88 @@ bool_t M_Responder(event_t * ev)
 				CV_SetValue(&cv_viewsize, cv_viewsize.value - 1);
 				S_StartSound(NULL, GAMESTNMOV);
 				return true;
-
+				
 			case KEY_EQUALS:	// Screen size up
 				if (automapactive || chat_on || con_destlines)	// DIRTY !!!
 					return false;
 				CV_SetValue(&cv_viewsize, cv_viewsize.value + 1);
 				S_StartSound(NULL, GAMESTNMOV);
 				return true;
-
-/*			case KEY_F1:		// Help key
-				M_StartControlPanel();
-
-				if (gamemode == retail)
-					currentMenu = &ReadDef2;
-				else
-					currentMenu = &ReadDef1;
-
-				itemOn = 0;
-				S_StartSound(NULL, sfx_swtchn);
-				return true;
-
-			case KEY_F2:		// Save
-				M_StartControlPanel();
-				S_StartSound(NULL, sfx_swtchn);
-				M_SaveGame(0);
-				return true;
-
-			case KEY_F3:		// Load
-				M_StartControlPanel();
-				S_StartSound(NULL, sfx_swtchn);
-				M_LoadGame(0);
-				return true;
-
-			case KEY_F4:		// Sound Volume
-				M_StartControlPanel();
-				currentMenu = &SoundDef;
-				itemOn = sfx_vol;
-				S_StartSound(NULL, sfx_swtchn);
-				return true;
-
-				//added:26-02-98: now F5 calls the Video Menu
-			case KEY_F5:
-				S_StartSound(NULL, sfx_swtchn);
-				M_StartControlPanel();
-				M_SetupNextMenu(&VidModeDef);
-				//M_ChangeDetail(0);
-				return true;
-
-			case KEY_F6:		// Quicksave
-				S_StartSound(NULL, sfx_swtchn);
-				M_QuickSave();
-				return true;
-
-				//added:26-02-98: F7 changed to Options menu
-			case KEY_F7:		// End game
-				S_StartSound(NULL, sfx_swtchn);
-				M_StartControlPanel();
-				M_SetupNextMenu(&OptionsDef);
-				//M_EndGame(0);
-				return true;
-*/
+				
+				/*			case KEY_F1:		// Help key
+								M_StartControlPanel();
+				
+								if (gamemode == retail)
+									currentMenu = &ReadDef2;
+								else
+									currentMenu = &ReadDef1;
+				
+								itemOn = 0;
+								S_StartSound(NULL, sfx_swtchn);
+								return true;
+				
+							case KEY_F2:		// Save
+								M_StartControlPanel();
+								S_StartSound(NULL, sfx_swtchn);
+								M_SaveGame(0);
+								return true;
+				
+							case KEY_F3:		// Load
+								M_StartControlPanel();
+								S_StartSound(NULL, sfx_swtchn);
+								M_LoadGame(0);
+								return true;
+				
+							case KEY_F4:		// Sound Volume
+								M_StartControlPanel();
+								currentMenu = &SoundDef;
+								itemOn = sfx_vol;
+								S_StartSound(NULL, sfx_swtchn);
+								return true;
+				
+								//added:26-02-98: now F5 calls the Video Menu
+							case KEY_F5:
+								S_StartSound(NULL, sfx_swtchn);
+								M_StartControlPanel();
+								M_SetupNextMenu(&VidModeDef);
+								//M_ChangeDetail(0);
+								return true;
+				
+							case KEY_F6:		// Quicksave
+								S_StartSound(NULL, sfx_swtchn);
+								M_QuickSave();
+								return true;
+				
+								//added:26-02-98: F7 changed to Options menu
+							case KEY_F7:		// End game
+								S_StartSound(NULL, sfx_swtchn);
+								M_StartControlPanel();
+								M_SetupNextMenu(&OptionsDef);
+								//M_EndGame(0);
+								return true;
+				*/
 			case KEY_F8:		// Toggle messages
 				CV_AddValue(&cv_showmessages, +1);
 				S_StartSound(NULL, GAMESWITCHN);
 				return true;
-/*
-			case KEY_F9:		// Quickload
-				S_StartSound(NULL, GAMESWITCHN);
-				M_QuickLoad();
-				return true;*/
-
+				
+				/*
+							case KEY_F9:		// Quickload
+								S_StartSound(NULL, GAMESWITCHN);
+								M_QuickLoad();
+								return true;*/
+				
 			case KEY_F10:		// Quit DOOM
 				S_StartSound(NULL, GAMESWITCHN);
 				M_QuitDOOM(0);
 				return true;
-
+				
 				//added:10-02-98: the gamma toggle is now also in the Options menu
 			case KEY_F11:
 				S_StartSound(NULL, GAMESWITCHN);
 				CV_AddValue(&cv_usegamma, +1);
 				return true;
-
+				
 				// Pop-up menu
 			case KEY_ESCAPE:
 				M_StartControlPanel();
@@ -1604,9 +1633,9 @@ bool_t M_Responder(event_t * ev)
 		}
 		return false;
 	}
-
+	
 	routine = currentMenu->menuitems[itemOn].itemaction;
-
+	
 	//added:30-01-98:
 	// Handle menuitems which need a specific key handling
 	if (routine && (currentMenu->menuitems[itemOn].status & IT_TYPE) == IT_KEYHANDLER)
@@ -1614,7 +1643,7 @@ bool_t M_Responder(event_t * ev)
 		routine(ch);
 		return true;
 	}
-
+	
 	if (currentMenu->menuitems[itemOn].status == IT_MSGHANDLER)
 	{
 		if (currentMenu->menuitems[itemOn].alphaKey == true)
@@ -1639,7 +1668,6 @@ bool_t M_Responder(event_t * ev)
 			return true;
 		}
 	}
-
 	// BP: one of the more big hack i have never made
 	if (routine && (currentMenu->menuitems[itemOn].status & IT_TYPE) == IT_CVAR)
 	{
@@ -1664,11 +1692,10 @@ bool_t M_Responder(event_t * ev)
 				else
 					itemOn++;
 			}
-			while (((currentMenu->menuitems[itemOn].status & IT_TYPE) == IT_SPACE) ||
-					(currentMenu->menuitems[itemOn].status & IT_DISABLED2));
+			while (((currentMenu->menuitems[itemOn].status & IT_TYPE) == IT_SPACE) || (currentMenu->menuitems[itemOn].status & IT_DISABLED2));
 			S_StartSound(NULL, sfx_pstop);
 			goto adjustfirstdraw;;
-
+			
 		case KEY_UPARROW:
 			do
 			{
@@ -1677,32 +1704,27 @@ bool_t M_Responder(event_t * ev)
 				else
 					itemOn--;
 			}
-			while (((currentMenu->menuitems[itemOn].status & IT_TYPE) == IT_SPACE) ||
-					(currentMenu->menuitems[itemOn].status & IT_DISABLED2));
+			while (((currentMenu->menuitems[itemOn].status & IT_TYPE) == IT_SPACE) || (currentMenu->menuitems[itemOn].status & IT_DISABLED2));
 			S_StartSound(NULL, sfx_pstop);
 			goto adjustfirstdraw;
-
+			
 		case KEY_LEFTARROW:
-			if (routine &&
-				((currentMenu->menuitems[itemOn].status & IT_TYPE) == IT_ARROWS
-				 || (currentMenu->menuitems[itemOn].status & IT_TYPE) == IT_CVAR))
+			if (routine && ((currentMenu->menuitems[itemOn].status & IT_TYPE) == IT_ARROWS || (currentMenu->menuitems[itemOn].status & IT_TYPE) == IT_CVAR))
 			{
 				S_StartSound(NULL, GAMESTNMOV);
 				routine(0);
 			}
 			adjustfirstdraw = 1;
 			break;
-
+			
 		case KEY_RIGHTARROW:
-			if (routine &&
-				((currentMenu->menuitems[itemOn].status & IT_TYPE) == IT_ARROWS
-				 || (currentMenu->menuitems[itemOn].status & IT_TYPE) == IT_CVAR))
+			if (routine && ((currentMenu->menuitems[itemOn].status & IT_TYPE) == IT_ARROWS || (currentMenu->menuitems[itemOn].status & IT_TYPE) == IT_CVAR))
 			{
 				S_StartSound(NULL, GAMESTNMOV);
 				routine(1);
 			}
 			return true;
-
+			
 		case KEY_ENTER:
 			currentMenu->lastOn = itemOn;
 			if (routine)
@@ -1720,13 +1742,13 @@ bool_t M_Responder(event_t * ev)
 						break;
 					case IT_SUBMENU:
 						currentMenu->lastOn = itemOn;
-						M_SetupNextMenu((menu_t *) currentMenu->menuitems[itemOn].itemaction);
+						M_SetupNextMenu((menu_t*) currentMenu->menuitems[itemOn].itemaction);
 						S_StartSound(NULL, GAMEPISTOL);
 						break;
 				}
 			}
 			return true;
-
+			
 		case KEY_ESCAPE:
 			currentMenu->lastOn = itemOn;
 			if (currentMenu->prevMenu)
@@ -1741,7 +1763,7 @@ bool_t M_Responder(event_t * ev)
 				M_ClearMenus(true);
 				S_StartSound(NULL, GAMESWITCHX);
 			}
-
+			
 			return true;
 		case KEY_BACKSPACE:
 			if ((currentMenu->menuitems[itemOn].status) == IT_CONTROL)
@@ -1759,7 +1781,7 @@ bool_t M_Responder(event_t * ev)
 				S_StartSound(NULL, GAMESWITCHN);
 			}
 			return true;
-
+			
 		default:
 			for (i = itemOn + 1; i < currentMenu->numitems; i++)
 				if (currentMenu->menuitems[i].alphaKey == ch)
@@ -1776,7 +1798,7 @@ bool_t M_Responder(event_t * ev)
 					goto adjustfirstdraw;
 				}
 			break;
-
+			
 	}
 	
 adjustfirstdraw:
@@ -1786,18 +1808,17 @@ adjustfirstdraw:
 		// itemOn < first
 		if (itemOn < currentMenu->firstdraw + 2)
 			currentMenu->firstdraw = itemOn - 2;
-		
+			
 		// More than a page
 		if (itemOn > (currentMenu->firstdraw + currentMenu->itemsperpage) - 3)
 			currentMenu->firstdraw += itemOn - ((currentMenu->firstdraw + currentMenu->itemsperpage) - 3);
-		
+			
 		// More than numitems
 		if (currentMenu->firstdraw > currentMenu->numitems - 3)
 			currentMenu->firstdraw = currentMenu->numitems - 3;
-	
-		// Never leave a gap from the bottom to the items	
-		if (currentMenu->numitems - currentMenu->itemsperpage > 0 &&
-			currentMenu->firstdraw > currentMenu->numitems - currentMenu->itemsperpage)
+			
+		// Never leave a gap from the bottom to the items
+		if (currentMenu->numitems - currentMenu->itemsperpage > 0 && currentMenu->firstdraw > currentMenu->numitems - currentMenu->itemsperpage)
 			currentMenu->firstdraw = currentMenu->numitems - currentMenu->itemsperpage;
 	}
 	else
@@ -1805,18 +1826,17 @@ adjustfirstdraw:
 		// itemOn < first
 		if (itemOn < currentMenu->firstdraw)
 			currentMenu->firstdraw = itemOn;
-		
+			
 		// More than a page
 		if (itemOn > (currentMenu->firstdraw + currentMenu->itemsperpage) - 1)
 			currentMenu->firstdraw += itemOn - ((currentMenu->firstdraw + currentMenu->itemsperpage) - 1);
-		
+			
 		// More than numitems
 		if (currentMenu->firstdraw > currentMenu->numitems - 1)
 			currentMenu->firstdraw = currentMenu->numitems - 1;
-	
-		// Never leave a gap from the bottom to the items	
-		if (currentMenu->numitems - currentMenu->itemsperpage > 0 &&
-			currentMenu->firstdraw > currentMenu->numitems - currentMenu->itemsperpage)
+			
+		// Never leave a gap from the bottom to the items
+		if (currentMenu->numitems - currentMenu->itemsperpage > 0 && currentMenu->firstdraw > currentMenu->numitems - currentMenu->itemsperpage)
 			currentMenu->firstdraw = currentMenu->numitems - currentMenu->itemsperpage;
 	}
 	
@@ -1855,4 +1875,3 @@ void M_ResetSound(int choice)
 void M_MouseModeChange(void)
 {
 }
-

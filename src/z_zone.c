@@ -45,11 +45,11 @@
 *** CONSTANTS ***
 ****************/
 
-#define PARTSHIFT		5						// >>/<< for partition sizes
-#define MINZONESIZE		(512 << 10)				// Minimum zone size: 512KiB
-#define INITPARTCOUNT	256						// Initial partition count
-#define RIGHTSIZE		8						// Minimum size to allocate on right
-#define FORCEDMEMORYSIZE	(4U << 20)			// Minimum allowed auto memory
+#define PARTSHIFT		5		// >>/<< for partition sizes
+#define MINZONESIZE		(512 << 10)	// Minimum zone size: 512KiB
+#define INITPARTCOUNT	256		// Initial partition count
+#define RIGHTSIZE		8		// Minimum size to allocate on right
+#define FORCEDMEMORYSIZE	(4U << 20)	// Minimum allowed auto memory
 
 /*****************
 *** STRUCTURES ***
@@ -61,19 +61,19 @@ typedef struct Z_MemPartition_s
 	/* Partition Data */
 	struct
 	{
-		size_t Start;							// Partition start
-		size_t End;								// Partition end
-		size_t Size;							// Partition size
-		bool_t Used;							// Partition used
-	} Part;										// Partition Info
+		size_t Start;			// Partition start
+		size_t End;				// Partition end
+		size_t Size;			// Partition size
+		bool_t Used;			// Partition used
+	} Part;						// Partition Info
 	
 	/* Block Data */
 	struct
 	{
-		void* Ptr;								// Pointer to block
-		void** Ref;								// Reference
-		Z_MemoryTag_t Tag;						// Tag
-		size_t Size;							// Allocation size
+		void* Ptr;				// Pointer to block
+		void** Ref;				// Reference
+		Z_MemoryTag_t Tag;		// Tag
+		size_t Size;			// Allocation size
 	} Block;
 } Z_MemPartition_t;
 
@@ -81,26 +81,26 @@ typedef struct Z_MemPartition_s
 typedef struct Z_MemZone_s
 {
 	/* Partitions */
-	Z_MemPartition_t* PartitionList;			// List of partitions
-	size_t NumPartitions;						// Number of partitions
-	size_t MaxPartitions;						// Max partitions for list
+	Z_MemPartition_t* PartitionList;	// List of partitions
+	size_t NumPartitions;		// Number of partitions
+	size_t MaxPartitions;		// Max partitions for list
 	
 	/* Data */
-	uint8_t* DataChunk;							// Where all the data is stored
-	size_t AllocSize;							// Allocated size
-	size_t TotalMemory;							// Allocated memory (in shifts)
-	size_t FreeMemory;							// Free memory (in shifts)
+	uint8_t* DataChunk;			// Where all the data is stored
+	size_t AllocSize;			// Allocated size
+	size_t TotalMemory;			// Allocated memory (in shifts)
+	size_t FreeMemory;			// Free memory (in shifts)
 	
 	/* Speed */
-	size_t FirstFree;							// First free partition
-	size_t LastFree;							// Last free partition
+	size_t FirstFree;			// First free partition
+	size_t LastFree;			// Last free partition
 } Z_MemZone_t;
 
 /*************
 *** LOCALS ***
 *************/
 
-static Z_MemZone_t* l_MainZone = NULL;			// Memory zones
+static Z_MemZone_t* l_MainZone = NULL;	// Memory zones
 
 /************************
 *** PRIVATE FUNCTIONS ***
@@ -116,7 +116,7 @@ bool_t ZP_NewZone(size_t* const SizePtr, Z_MemZone_t** const ZoneRef)
 	/* Check */
 	if (!SizePtr)
 		return false;
-	
+		
 	/* Obtain the shift size */
 	ShiftSize = *SizePtr >> PARTSHIFT;
 	
@@ -126,7 +126,7 @@ bool_t ZP_NewZone(size_t* const SizePtr, Z_MemZone_t** const ZoneRef)
 	// Failed?
 	if (!NewZone)
 		return false;
-	
+		
 	// Clear it out
 	memset(NewZone, 0, sizeof(*NewZone));
 	
@@ -139,7 +139,6 @@ bool_t ZP_NewZone(size_t* const SizePtr, Z_MemZone_t** const ZoneRef)
 		free(NewZone);
 		return false;
 	}
-	
 	// Clear it out
 	memset(NewZone->DataChunk, 0, ShiftSize << PARTSHIFT);
 	
@@ -153,7 +152,6 @@ bool_t ZP_NewZone(size_t* const SizePtr, Z_MemZone_t** const ZoneRef)
 		free(NewZone);
 		return false;
 	}
-	
 	// Clear it out
 	memset(NewZone->PartitionList, 0, sizeof(*NewZone->PartitionList) * INITPARTCOUNT);
 	
@@ -180,7 +178,7 @@ bool_t ZP_NewZone(size_t* const SizePtr, Z_MemZone_t** const ZoneRef)
 	/* Set return values */
 	if (ZoneRef)
 		*ZoneRef = NewZone;
-	
+		
 	*SizePtr = ShiftSize << PARTSHIFT;
 	
 	/* Return success */
@@ -188,7 +186,8 @@ bool_t ZP_NewZone(size_t* const SizePtr, Z_MemZone_t** const ZoneRef)
 }
 
 /* ZP_PartitionSplit() -- Splits a partition into two new pieces */
-void ZP_PartitionSplit(Z_MemPartition_t* const ToSplit, Z_MemPartition_t** const ResLeftPtr, Z_MemPartition_t** const ResRightPtr, const size_t Pos, const bool_t AtEnd)
+void ZP_PartitionSplit(Z_MemPartition_t* const ToSplit, Z_MemPartition_t** const ResLeftPtr, Z_MemPartition_t** const ResRightPtr, const size_t Pos,
+                       const bool_t AtEnd)
 {
 	size_t pI, SplitPos;
 	Z_MemPartition_t Copy;
@@ -197,18 +196,18 @@ void ZP_PartitionSplit(Z_MemPartition_t* const ToSplit, Z_MemPartition_t** const
 	/* Check */
 	if (!l_MainZone || !ToSplit || !ResLeftPtr || !ResRightPtr || !Pos)
 		return;
-	
+		
 	/* Partition cannot be used */
 	if (ToSplit->Part.Used)
 		return;
-	
+		
 	/* Get location of partition in zone */
 	pI = ToSplit - l_MainZone->PartitionList;
 	
 	// Check that
 	if (pI >= l_MainZone->NumPartitions)
 		return;
-	
+		
 	/* Determine split point */
 	// Base position is the partition start
 	SplitPos = ToSplit->Part.Start;
@@ -218,7 +217,7 @@ void ZP_PartitionSplit(Z_MemPartition_t* const ToSplit, Z_MemPartition_t** const
 		SplitPos += Pos;
 	else
 		SplitPos += (ToSplit->Part.End - ToSplit->Part.Start) - Pos;
-	
+		
 	/* Copy base partition before we lose it */
 	Copy = *ToSplit;
 	
@@ -247,7 +246,6 @@ void ZP_PartitionSplit(Z_MemPartition_t* const ToSplit, Z_MemPartition_t** const
 			// Increment with the new max
 			l_MainZone->MaxPartitions += INITPARTCOUNT;
 		}
-		
 		// Failure
 		else
 		{
@@ -256,13 +254,8 @@ void ZP_PartitionSplit(Z_MemPartition_t* const ToSplit, Z_MemPartition_t** const
 				I_Error("ZP_PartitionSplit: Needed more partitions but ran out of memory.");
 		}
 	}
-	
 	// Move everything over
-	memmove(
-			&l_MainZone->PartitionList[pI + 1],
-			&l_MainZone->PartitionList[pI],
-			sizeof(Z_MemPartition_t) * (l_MainZone->NumPartitions - pI)
-		);
+	memmove(&l_MainZone->PartitionList[pI + 1], &l_MainZone->PartitionList[pI], sizeof(Z_MemPartition_t) * (l_MainZone->NumPartitions - pI));
 	l_MainZone->NumPartitions++;
 	
 	// Set left and right
@@ -289,9 +282,9 @@ void* ZP_PointerForPartition(Z_MemPartition_t* const Part)
 	/* Check */
 	if (!l_MainZone || !Part)
 		return NULL;
-	
+		
 	/* Return base zone plus the shifted size of partition */
-	return (void*)(((uintptr_t)l_MainZone->DataChunk) + (Part->Part.Start << PARTSHIFT));
+	return (void*)(((uintptr_t) l_MainZone->DataChunk) + (Part->Part.Start << PARTSHIFT));
 }
 
 /* ZP_FindPointerForPartition() -- Finds a pointer that was found in a partition (if any) */
@@ -303,7 +296,7 @@ bool_t ZP_FindPointerForPartition(void* const Ptr, Z_MemPartition_t** const Part
 	/* Check */
 	if (!Ptr || !l_MainZone || !PartPtr)
 		return false;
-	
+		
 	/* Did we grab a zone? */
 	// Search the zone partition by partition for this pointer
 	for (i = 0; i < l_MainZone->NumPartitions; i++)
@@ -314,11 +307,11 @@ bool_t ZP_FindPointerForPartition(void* const Ptr, Z_MemPartition_t** const Part
 		// Partition not used? (pointers only for freeed blocks)
 		if (!Part->Part.Used)
 			continue;
-		
+			
 		// Partition pointer does not match?
 		if (Part->Block.Ptr != Ptr)
 			continue;
-		
+			
 		// A match! So set the zone and part
 		*PartPtr = Part;
 		
@@ -342,14 +335,13 @@ size_t ZP_FreePartitionInZone(Z_MemPartition_t* const Part)
 	/* Check */
 	if (!Part)
 		return 0;
-	
+		
 	/* Partition free? */
 	if (!Part->Part.Used)
 	{
 		I_Error("ZP_FreePartitionInZone: Freeing a partition already free?");
 		return 0;
 	}
-	
 	// Add free memory
 	l_MainZone->FreeMemory += Part->Part.Size;
 	
@@ -357,7 +349,7 @@ size_t ZP_FreePartitionInZone(Z_MemPartition_t* const Part)
 	// Is there a reference set?
 	if (Part->Block.Ref)
 		*Part->Block.Ref = NULL;
-	
+		
 	// Clear out data with a simple sweep
 	memset(&Part->Block, 0, sizeof(Part->Block));
 	
@@ -373,7 +365,7 @@ size_t ZP_FreePartitionInZone(Z_MemPartition_t* const Part)
 	
 	while (i > 0 && !l_MainZone->PartitionList[i - 1].Part.Used)
 	{
-		Mergee--;	// Pointers are fun
+		Mergee--;				// Pointers are fun
 		i--;
 	}
 	
@@ -385,11 +377,7 @@ size_t ZP_FreePartitionInZone(Z_MemPartition_t* const Part)
 		RP = l_MainZone->PartitionList[i + 1];
 		
 		// Slap back zones
-		memmove(
-				&l_MainZone->PartitionList[i],
-				&l_MainZone->PartitionList[i + 1],
-				sizeof(Z_MemPartition_t) * (l_MainZone->NumPartitions - i)
-			);
+		memmove(&l_MainZone->PartitionList[i], &l_MainZone->PartitionList[i + 1], sizeof(Z_MemPartition_t) * (l_MainZone->NumPartitions - i));
 		
 		// Decrement partition count
 		l_MainZone->NumPartitions--;
@@ -433,7 +421,7 @@ void Z_Init(void)
 	if (Sanity != 0x01000000)
 #endif
 		CONS_Printf("Z_Init: ReMooD was compiled with the wrong uint8_t order!\n");
-	
+		
 	/* Create new zone in a loop */
 	// Check free memory
 	FreeMem = I_GetFreeMem(&TotalMem);
@@ -443,20 +431,19 @@ void Z_Init(void)
 	{
 		if (devparm)
 			CONS_Printf("Z_Init: Reported value below %iMiB, capping.\n", FORCEDMEMORYSIZE >> 20);
-		
+			
 		FreeMem = FORCEDMEMORYSIZE;
 	}
-	
 	// Initial size
 	if (M_CheckParm("-mb") && M_IsNextParm())
 		LoopSize = atoi(M_GetNextParm()) << 20;
 	else
 		LoopSize = (FreeMem < (32 << 20) ? FreeMem : (32 << 20));
-	
+		
 	// Size cap?
 	if (LoopSize < MINZONESIZE)
 		LoopSize = MINZONESIZE;
-	
+		
 	// Cap to power of two
 	for (i = (sizeof(size_t) * 8) - 1; i > 0; i--)
 		if (LoopSize & (1 << i))
@@ -464,13 +451,12 @@ void Z_Init(void)
 			LoopSize = 1 << i;
 			break;
 		}
-	
 	// Creation loop
 	while (LoopSize > MINZONESIZE && !(Ok = ZP_NewZone(&LoopSize, NULL)))
 		LoopSize -= LoopSize >> 2;	// Cut down by 1/4th
 }
 
-size_t				WX_ClearUnused(void);
+size_t WX_ClearUnused(void);
 
 /* Z_MallocWrappee() -- Allocate memory */
 void* Z_MallocWrappee(const size_t Size, const Z_MemoryTag_t Tag, void** const Ref _ZMGD_WRAPPEE)
@@ -493,21 +479,20 @@ void* Z_MallocWrappee(const size_t Size, const Z_MemoryTag_t Tag, void** const R
 		AtEnd = true;
 	else
 		AtEnd = false;
-	
+		
 	// Determine the base and end
-		// At the start
+	// At the start
 	if (!AtEnd)
 	{
 		iBase = 0;
 		iEnd = l_MainZone->NumPartitions;
 	}
-	
-		// At the end
+	// At the end
 	else
 	{
 		iBase = l_MainZone->NumPartitions - 1;
-		iEnd = (size_t)-1;
-	}	
+		iEnd = (size_t) - 1;
+	}
 	
 	// Search every partition
 	for (i = iBase; i != iEnd; (AtEnd ? i-- : i++))
@@ -515,11 +500,11 @@ void* Z_MallocWrappee(const size_t Size, const Z_MemoryTag_t Tag, void** const R
 		// Partition used?
 		if (l_MainZone->PartitionList[i].Part.Used)
 			continue;
-
+			
 		// Paritition too small?
 		if (l_MainZone->PartitionList[i].Part.Size < ShiftSize)
 			continue;
-		
+			
 		// Not a perfect fit? Then we need to split
 		if (l_MainZone->PartitionList[i].Part.Size != ShiftSize)
 		{
@@ -535,7 +520,6 @@ void* Z_MallocWrappee(const size_t Size, const Z_MemoryTag_t Tag, void** const R
 				New = ResLeft;
 				Free = ResRight;
 			}
-			
 			// Tiny Block?
 			else
 			{
@@ -543,7 +527,6 @@ void* Z_MallocWrappee(const size_t Size, const Z_MemoryTag_t Tag, void** const R
 				Free = ResLeft;
 			}
 		}
-		
 		// A perfect fit so just use the entire block
 		else
 		{
@@ -560,11 +543,11 @@ void* Z_MallocWrappee(const size_t Size, const Z_MemoryTag_t Tag, void** const R
 		New->Block.Size = Size;
 		
 		// Block Tag (if it is invalid, just make it static to be sure)
-		if ((size_t)Tag >= NUMZTAGS)
+		if ((size_t) Tag >= NUMZTAGS)
 			New->Block.Tag = PU_STATIC;
 		else
 			New->Block.Tag = Tag;
-		
+			
 		// Set return value
 		RetVal = New->Block.Ptr;
 		
@@ -585,7 +568,6 @@ void* Z_MallocWrappee(const size_t Size, const Z_MemoryTag_t Tag, void** const R
 		I_Error("Z_MallocReal: Failed to allocate %zu bytes.\n", Size);
 		return NULL;
 	}
-	
 	// Run another loop
 	else
 	{
@@ -596,7 +578,7 @@ void* Z_MallocWrappee(const size_t Size, const Z_MemoryTag_t Tag, void** const R
 		
 		if (devparm)
 			CONS_Printf("Z_MallocReal: Nearly out of memory, freed %u lumps, %u blocks (Freed %u bytes).\n", j, i, l_MainZone->FreeMemory - k);
-		
+			
 		// Now try re-allocation
 		DeferLevel = 1;
 		RetVal = Z_Malloc(Size, Tag, Ref);
@@ -613,15 +595,15 @@ void Z_FreeWrappee(void* const Ptr _ZMGD_WRAPPEE)
 	/* Check */
 	if (!Ptr)
 		return;
-	
+		
 	/* Find zone and partition relating to pointer */
 	// Clear
 	Part = NULL;
 	
 	// Now call
 	if (!ZP_FindPointerForPartition(Ptr, &Part))
-		return;	// not found
-	
+		return;					// not found
+		
 	/* Send zone along with partition to my free function */
 	ZP_FreePartitionInZone(Part);
 }
@@ -634,25 +616,25 @@ Z_MemoryTag_t Z_ChangeTagWrappee(void* const Ptr, const Z_MemoryTag_t NewTag _ZM
 	
 	/* Check */
 	if (!Ptr)
-		return ((Z_MemoryTag_t)-1);
-	
+		return ((Z_MemoryTag_t) - 1);
+		
 	/* Find zone and partition relating to pointer */
 	// Clear
 	Part = NULL;
 	
 	// Now call
 	if (!ZP_FindPointerForPartition(Ptr, &Part))
-		return ((Z_MemoryTag_t)-1);	// not found
-	
+		return ((Z_MemoryTag_t) - 1);	// not found
+		
 	/* Remember old tag */
 	OldTag = Part->Block.Tag;
 	
 	// Validate new tag (if it is invalid, just make it static)
-	if ((size_t)NewTag >= NUMZTAGS)
+	if ((size_t) NewTag >= NUMZTAGS)
 		Part->Block.Tag = PU_STATIC;
 	else
 		Part->Block.Tag = NewTag;
-
+		
 	// Return the old tag
 	return OldTag;
 }
@@ -665,19 +647,19 @@ Z_MemoryTag_t Z_GetTagFromPtrWrappee(void* const Ptr _ZMGD_WRAPPEE)
 	
 	/* Check */
 	if (!Ptr)
-		return ((Z_MemoryTag_t)-1);
-	
+		return ((Z_MemoryTag_t) - 1);
+		
 	/* Find zone and partition relating to pointer */
 	// Clear
 	Part = NULL;
 	
 	// Now call
 	if (!ZP_FindPointerForPartition(Ptr, &Part))
-		return ((Z_MemoryTag_t)-1);	// not found
-	
+		return ((Z_MemoryTag_t) - 1);	// not found
+		
 	/* Remember the tag */
 	RetVal = Part->Block.Tag;
-
+	
 	// Return the tag
 	return RetVal;
 }
@@ -691,18 +673,18 @@ void** Z_GetRefFromPtrWrappee(void* const Ptr _ZMGD_WRAPPEE)
 	/* Check */
 	if (!Ptr)
 		return NULL;
-	
+		
 	/* Find zone and partition relating to pointer */
 	// Clear
 	Part = NULL;
 	
 	// Now call
 	if (!ZP_FindPointerForPartition(Ptr, &Part))
-		return NULL;	// not found
-	
+		return NULL;			// not found
+		
 	/* Remember the reference */
 	RetVal = Part->Block.Ref;
-
+	
 	// Return the tag
 	return RetVal;
 }
@@ -719,7 +701,7 @@ size_t Z_FreeTagsWrappee(const Z_MemoryTag_t LowTag, const Z_MemoryTag_t HighTag
 	// Zone does not exist?
 	if (!l_MainZone)
 		return 0;
-	
+		
 	// Go through each partition in the zone
 	for (j = 0; j < l_MainZone->NumPartitions; j++)
 	{
@@ -729,11 +711,11 @@ size_t Z_FreeTagsWrappee(const Z_MemoryTag_t LowTag, const Z_MemoryTag_t HighTag
 		// Partition not used?
 		if (!Part->Part.Used)
 			continue;
-		
+			
 		// Tags not in bounds?
 		if (Part->Block.Tag < LowTag || Part->Block.Tag > HighTag)
 			continue;
-		
+			
 		// Free this partition
 		Lost = ZP_FreePartitionInZone(Part);
 		
@@ -741,9 +723,9 @@ size_t Z_FreeTagsWrappee(const Z_MemoryTag_t LowTag, const Z_MemoryTag_t HighTag
 		FreeCount++;
 		
 		// Subtract lost partitions
-		if (j - Lost > j)	// Negative
+		if (j - Lost > j)		// Negative
 			j = 0;
-		else				// Backtrace to said partition (leftmost free)
+		else					// Backtrace to said partition (leftmost free)
 			j -= Lost;
 	}
 	
@@ -764,7 +746,7 @@ void Z_ResizeArray(void** const PtrPtr, const size_t ElemSize, const size_t OldS
 	/* Check */
 	if (!PtrPtr || !ElemSize || OldSize == NewSize)
 		return;
-	
+		
 	/* Free? */
 	// Only if the newsize is zero
 	if (!NewSize)
@@ -785,7 +767,7 @@ void Z_ResizeArray(void** const PtrPtr, const size_t ElemSize, const size_t OldS
 	}
 	else
 		OldTag = PU_STATIC;
-	
+		
 	/* Allocate temp for new size */
 	Temp = Z_Malloc(ElemSize * NewSize, PU_STATIC, NULL);
 	
@@ -806,20 +788,20 @@ void Z_ResizeArray(void** const PtrPtr, const size_t ElemSize, const size_t OldS
 	Z_ChangeTag(*PtrPtr, OldTag);
 }
 
-char *Z_StrDup(const char* const String, const Z_MemoryTag_t Tag, void** Ref)
+char* Z_StrDup(const char* const String, const Z_MemoryTag_t Tag, void** Ref)
 {
 	size_t n;
 	char* Ptr;
-
+	
 	/* Check */
 	if (!String)
 		return NULL;
-
+		
 	/* Copy */
 	n = strlen(String);
 	Ptr = Z_Malloc(sizeof(char) * (n + 1), Tag, Ref);
 	strcpy(Ptr, String);
-
+	
 	/* Return */
 	return Ptr;
 }
@@ -835,6 +817,7 @@ char* Z_Strdup(const char* const String, const Z_MemoryTag_t Tag, void** Ref)
 *******************/
 
 /*** STRUCTURES ***/
+
 /* Z_HashKey_t -- A single key in a hash table */
 typedef struct Z_HashKey_s
 {
@@ -845,12 +828,13 @@ typedef struct Z_HashKey_s
 /* Z_HashTable_s -- A hash table */
 struct Z_HashTable_s
 {
-	Z_HashKey_t* KeyList[256];								// Key list
-	size_t KeySize[256];							// Keys in list
-	bool_t (*CompareFunc)(void* const a_A, void* const a_B);
+	Z_HashKey_t* KeyList[256];	// Key list
+	size_t KeySize[256];		// Keys in list
+	bool_t (*CompareFunc) (void* const a_A, void* const a_B);
 };
 
 /*** FUNCTIONS ***/
+
 /* Z_Hash() -- Hashes a string */
 uint32_t Z_Hash(const char* const a_Str)
 {
@@ -860,17 +844,17 @@ uint32_t Z_Hash(const char* const a_Str)
 	/* Check */
 	if (!a_Str)
 		return 0;
-	
+		
 	/* Hash loop */
 	for (i = 0; a_Str[i]; i++)
 		Ret ^= (uint32_t)((toupper(a_Str[i]) - 32) & 0x3F) << (6 * (i % 5));
-	
+		
 	/* Return */
 	return Ret;
 }
 
 /* Z_HashCreateTable() -- Creates a new hashing table */
-Z_HashTable_t* Z_HashCreateTable(bool_t (*a_CompareFunc)(void* const a_A, void* const a_B))
+Z_HashTable_t* Z_HashCreateTable(bool_t (*a_CompareFunc) (void* const a_A, void* const a_B))
 {
 	Z_HashTable_t* New;
 	
@@ -890,7 +874,7 @@ void Z_HashDeleteTable(Z_HashTable_t* const a_HashTable)
 	/* Check */
 	if (!a_HashTable)
 		return;
-	
+		
 	/* Free it */
 	for (i = 0; i < 256; i++)
 		if (a_HashTable->KeyList[i])
@@ -907,7 +891,7 @@ bool_t Z_HashAddEntry(Z_HashTable_t* const a_HashTable, const uint32_t a_Key, vo
 	/* Check */
 	if (!a_HashTable || !a_Data)
 		return false;
-	
+		
 	/* Get nub of key */
 	Nub = a_Key & 0xFF;
 	
@@ -932,14 +916,12 @@ void* Z_HashFindEntry(Z_HashTable_t* const a_HashTable, const uint32_t a_Key, vo
 	/* Check */
 	if (!a_HashTable)
 		return NULL;
-	
+		
 	/* Get nub */
 	Nub = a_Key & 0xFF;
 	
 	/* Seek based on direction */
-	for (i = (a_BackRun ? a_HashTable->KeySize[Nub] - 1 : 0);
-		i != (a_BackRun ? (size_t)-1 : a_HashTable->KeySize[Nub]);
-		i = (a_BackRun ? i - 1 : i + 1))
+	for (i = (a_BackRun ? a_HashTable->KeySize[Nub] - 1 : 0); i != (a_BackRun ? (size_t) - 1 : a_HashTable->KeySize[Nub]); i = (a_BackRun ? i - 1 : i + 1))
 	{
 		// Compare for key equality
 		if (a_Key == a_HashTable->KeyList[Nub][i].Key)
@@ -948,7 +930,7 @@ void* Z_HashFindEntry(Z_HashTable_t* const a_HashTable, const uint32_t a_Key, vo
 			if (a_HashTable->CompareFunc && a_DataSim)
 				if (!a_HashTable->CompareFunc(a_DataSim, a_HashTable->KeyList[Nub][i].Data))
 					continue;
-			
+					
 			// Found it!
 			return a_HashTable->KeyList[Nub][i].Data;
 		}
@@ -964,37 +946,39 @@ void* Z_HashFindEntry(Z_HashTable_t* const a_HashTable, const uint32_t a_Key, vo
 ********************/
 
 /*** STRUCTURES ***/
+
 /* Z_TableIndex_t -- Table properties */
 typedef struct Z_TableIndex_s
 {
-	char* SubKey;									// Key for index
-	uint32_t SubHash;								// Hash for subkey
-	char* Value;									// Value for index
+	char* SubKey;				// Key for index
+	uint32_t SubHash;			// Hash for subkey
+	char* Value;				// Value for index
 } Z_TableIndex_t;
 
 /* Z_TableEntry_t -- A single entry in a table */
 typedef struct Z_TableEntry_s
 {
-	bool_t IsTable;								// Is a table link
+	bool_t IsTable;				// Is a table link
 	union
 	{
-		Z_TableIndex_t Index;						// Key index
-		Z_Table_t* TableLink;						// Link to another table
-	} Data;											// Data for entry
+		Z_TableIndex_t Index;	// Key index
+		Z_Table_t* TableLink;	// Link to another table
+	} Data;						// Data for entry
 } Z_TableEntry_t;
 
 /* Z_Table_t -- A table */
 struct Z_Table_s
 {
-	char* Key;										// Table key
-	uint32_t Hash;									// Hash for table key
-	Z_TableEntry_t** Entries;						// Entries as pointers to
-	size_t NumEntries;								// Number of entries
-	Z_HashTable_t* EntryHashes;						// Subentry hash lookup
-	Z_Table_t* ParentTable;							// Owner table
+	char* Key;					// Table key
+	uint32_t Hash;				// Hash for table key
+	Z_TableEntry_t** Entries;	// Entries as pointers to
+	size_t NumEntries;			// Number of entries
+	Z_HashTable_t* EntryHashes;	// Subentry hash lookup
+	Z_Table_t* ParentTable;		// Owner table
 };
 
 /*** FUNCTIONS ***/
+
 /* Z_TableCompareFunc() -- Compares passed data */
 static bool_t Z_TableCompareFunc(void* const a_A, void* const a_B)
 {
@@ -1054,7 +1038,7 @@ void Z_TableDestroy(Z_Table_t* const a_Table)
 	/* Check */
 	if (!a_Table)
 		return;
-	
+		
 	/* If we have a parent, unlink us from them */
 	if (a_Table->ParentTable)
 	{
@@ -1079,7 +1063,6 @@ void Z_TableDestroy(Z_Table_t* const a_Table)
 			// Now delete that table
 			Z_TableDestroy(SubTable);
 		}
-		
 		// Otherwise it is an index
 		else
 		{
@@ -1105,7 +1088,7 @@ Z_Table_t* Z_TableUp(Z_Table_t* const a_Table)
 	/* Check */
 	if (!a_Table)
 		return NULL;
-	
+		
 	/* Easy */
 	return a_Table->ParentTable;
 }
@@ -1116,7 +1099,7 @@ const char* Z_TableName(Z_Table_t* const a_Table)
 	/* Check */
 	if (!a_Table)
 		return NULL;
-	
+		
 	/* Easy */
 	return a_Table->Key;
 }
@@ -1130,7 +1113,7 @@ static Z_TableEntry_t* Z_PushNewEntry(Z_Table_t* const a_Table, const char* cons
 	/* Check */
 	if (!a_Table || !a_Key)
 		return NULL;
-	
+		
 	/* Resize ptr list */
 	Num = a_Table->NumEntries;
 	Z_ResizeArray((void**)&a_Table->Entries, sizeof(*a_Table->Entries), Num, Num + 1);
@@ -1154,7 +1137,7 @@ static Z_TableEntry_t* Z_FindTableEntry(Z_Table_t* const a_Table, const char* co
 	/* Check */
 	if (!a_Table || !a_Key)
 		return NULL;
-	
+		
 	/* Get hash from key */
 	Hash = Z_Hash(a_Key);
 	
@@ -1168,17 +1151,16 @@ static Z_TableEntry_t* Z_FindTableEntry(Z_Table_t* const a_Table, const char* co
 			*a_Created = false;
 		return Entry;
 	}
-	
 	// Create entry?
 	if (!a_Create)
 		return NULL;
-	
+		
 	// It was not found to push it
 	Entry = Z_PushNewEntry(a_Table, a_Key);
 	
 	if (a_Created)
 		*a_Created = true;
-	
+		
 	/* Return new entry */
 	return Entry;
 }
@@ -1192,7 +1174,7 @@ Z_Table_t* Z_FindSubTable(Z_Table_t* const a_Table, const char* const a_Key, con
 	/* Check */
 	if (!a_Table || !a_Key)
 		return NULL;
-	
+		
 	/* Find entry */
 	Entry = Z_FindTableEntry(a_Table, a_Key, a_Create, &Created);
 	
@@ -1201,8 +1183,8 @@ Z_Table_t* Z_FindSubTable(Z_Table_t* const a_Table, const char* const a_Key, con
 		if (Entry->IsTable)
 			return Entry->Data.TableLink;
 		else
-			return NULL;	// Entry so return NULL here
-	
+			return NULL;		// Entry so return NULL here
+			
 	// Otherwise if we are creating something
 	if (a_Create && Created)
 	{
@@ -1227,7 +1209,7 @@ const char* Z_TableGetValue(Z_Table_t* const a_Table, const char* const a_SubKey
 	/* Check */
 	if (!a_Table || !a_SubKey)
 		return NULL;
-	
+		
 	/* Find entry */
 	Entry = Z_FindTableEntry(a_Table, a_SubKey, false, NULL);
 	
@@ -1236,7 +1218,7 @@ const char* Z_TableGetValue(Z_Table_t* const a_Table, const char* const a_SubKey
 		if (!Entry->IsTable)
 			// Get Value
 			return Entry->Data.Index.Value;
-	
+			
 	/* Was either not found or was a table */
 	return NULL;
 }
@@ -1250,7 +1232,7 @@ bool_t Z_TableSetValue(Z_Table_t* const a_Table, const char* const a_SubKey, con
 	/* Check */
 	if (!a_Table || !a_SubKey)
 		return false;
-	
+		
 	/* Find entry */
 	Entry = Z_FindTableEntry(a_Table, a_SubKey, true, &Created);
 	
@@ -1263,11 +1245,10 @@ bool_t Z_TableSetValue(Z_Table_t* const a_Table, const char* const a_SubKey, con
 			Entry->Data.Index.SubKey = Z_StrDup(a_SubKey, PU_STATIC, NULL);
 			Entry->Data.Index.SubHash = Z_Hash(Entry->Data.Index.SubKey);
 		}
-		
 		// if an old value exists, clear it
 		if (Entry->Data.Index.Value)
 			Z_Free(Entry->Data.Index.Value);
-		
+			
 		Entry->Data.Index.Value = Z_StrDup(a_NewValue, PU_STATIC, NULL);
 		
 		// Success!
@@ -1289,12 +1270,12 @@ void Z_TablePrint(Z_Table_t* const a_Table, const char* const a_Prefix)
 	/* Check */
 	if (!a_Table)
 		return;
-	
+		
 	/* Slap on prefix */
 	memset(Prefix, 0, sizeof(Prefix));
 	if (a_Prefix)
 		strncpy(Prefix, a_Prefix, BUFSIZE);
-	
+		
 	/* Print Table key */
 	CONS_Printf("%s \"%s\" (%i)\n", Prefix, a_Table->Key, (int)a_Table->NumEntries);
 	
@@ -1311,7 +1292,7 @@ void Z_TablePrint(Z_Table_t* const a_Table, const char* const a_Prefix)
 		// If it is a table, go in it
 		if (Entry->IsTable)
 			Z_TablePrint(Entry->Data.TableLink, Prefix);
-		
+			
 		// Otherwise it is an entry, print it's value
 		else
 			CONS_Printf("%s @\"%s\" = \"%s\"\n", Prefix, Entry->Data.Index.SubKey, Entry->Data.Index.Value);
@@ -1325,19 +1306,19 @@ bool_t Z_TableMergeInto(Z_Table_t* const a_Target, const Z_Table_t* const a_Sour
 	/* Check */
 	if (!a_Target || !a_Source)
 		return false;
-	
+		
 	return true;
 }
 
 /* Z_TableSuperCallback() -- Goes through a table and sends a found table to a callback */
-bool_t Z_TableSuperCallback(Z_Table_t* const a_Table, bool_t (*a_Callback)(Z_Table_t* const a_Sub, void* const a_Data), void* const a_Data)
+bool_t Z_TableSuperCallback(Z_Table_t* const a_Table, bool_t (*a_Callback) (Z_Table_t* const a_Sub, void* const a_Data), void* const a_Data)
 {
-	size_t i;	
+	size_t i;
 	
 	/* Check */
 	if (!a_Table || !a_Callback)
 		return false;
-
+		
 	/* Rove */
 	for (i = 0; i < a_Table->NumEntries; i++)
 		// Exists and is a table?
@@ -1345,9 +1326,7 @@ bool_t Z_TableSuperCallback(Z_Table_t* const a_Table, bool_t (*a_Callback)(Z_Tab
 			if (!a_Callback(a_Table->Entries[i]->Data.TableLink, a_Data))
 				// Callback function returned false, so return false here
 				return false;
-	
+				
 	/* Success */
 	return true;
 }
-
-

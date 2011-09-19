@@ -53,17 +53,17 @@
 // Passed the line activating the generalized floor function
 // Returns true if a thinker is created
 //
-int EV_DoGenFloor(line_t * line)
+int EV_DoGenFloor(line_t* line)
 {
 	int secnum;
 	int rtn;
 	bool_t manual;
-	sector_t *sec;
-	floormove_t *floor;
+	sector_t* sec;
+	floormove_t* floor;
 	unsigned value = (unsigned)line->special - GenFloorBase;
-
+	
 	// parse the bit fields in the line's special type
-
+	
 	int Crsh = (value & FloorCrush) >> FloorCrushShift;
 	int ChgT = (value & FloorChange) >> FloorChangeShift;
 	int Targ = (value & FloorTarget) >> FloorTargetShift;
@@ -71,9 +71,9 @@ int EV_DoGenFloor(line_t * line)
 	int ChgM = (value & FloorModel) >> FloorModelShift;
 	int Sped = (value & FloorSpeed) >> FloorSpeedShift;
 	int Trig = (value & TriggerType) >> TriggerTypeShift;
-
+	
 	rtn = 0;
-
+	
 	// check if a manual trigger, if so do just the sector on the backside
 	manual = false;
 	if (Trig == PushOnce || Trig == PushMany)
@@ -84,14 +84,14 @@ int EV_DoGenFloor(line_t * line)
 		manual = true;
 		goto manual_floor;
 	}
-
+	
 	secnum = -1;
 	// if not manual do all sectors tagged the same as the line
 	while ((secnum = P_FindSectorFromLineTag(line, secnum)) >= 0)
 	{
 		sec = &sectors[secnum];
-
-	  manual_floor:
+		
+manual_floor:
 		// Do not start another function if floor already moving
 		if (P_SectorActive(floor_special, sec))
 		{
@@ -100,7 +100,6 @@ int EV_DoGenFloor(line_t * line)
 			else
 				return rtn;
 		}
-
 		// new floor thinker
 		rtn = 1;
 		floor = Z_Malloc(sizeof(floormove_t), PU_LEVSPEC, 0);
@@ -114,7 +113,7 @@ int EV_DoGenFloor(line_t * line)
 		floor->newspecial = sec->special;
 		floor->oldspecial = sec->oldspecial;
 		floor->type = genFloor;
-
+		
 		// set the speed of motion
 		switch (Sped)
 		{
@@ -133,7 +132,7 @@ int EV_DoGenFloor(line_t * line)
 			default:
 				break;
 		}
-
+		
 		// set the destination height
 		switch (Targ)
 		{
@@ -144,9 +143,7 @@ int EV_DoGenFloor(line_t * line)
 				floor->floordestheight = P_FindLowestFloorSurrounding(sec);
 				break;
 			case FtoNnF:
-				floor->floordestheight = Dirn ?
-					P_FindNextHighestFloor(sec, sec->floorheight) :
-					P_FindNextLowestFloor(sec, sec->floorheight);
+				floor->floordestheight = Dirn ? P_FindNextHighestFloor(sec, sec->floorheight) : P_FindNextLowestFloor(sec, sec->floorheight);
 				break;
 			case FtoLnC:
 				floor->floordestheight = P_FindLowestCeilingSurrounding(sec);
@@ -155,9 +152,7 @@ int EV_DoGenFloor(line_t * line)
 				floor->floordestheight = sec->ceilingheight;
 				break;
 			case FbyST:
-				floor->floordestheight =
-					(floor->sector->floorheight >> FRACBITS) +
-					floor->direction * (P_FindShortestTextureAround(secnum) >> FRACBITS);
+				floor->floordestheight = (floor->sector->floorheight >> FRACBITS) + floor->direction * (P_FindShortestTextureAround(secnum) >> FRACBITS);
 				if (floor->floordestheight > 32000)
 					floor->floordestheight = 32000;
 				if (floor->floordestheight < -32000)
@@ -165,27 +160,24 @@ int EV_DoGenFloor(line_t * line)
 				floor->floordestheight <<= FRACBITS;
 				break;
 			case Fby24:
-				floor->floordestheight = floor->sector->floorheight +
-					floor->direction * 24 * FRACUNIT;
+				floor->floordestheight = floor->sector->floorheight + floor->direction * 24 * FRACUNIT;
 				break;
 			case Fby32:
-				floor->floordestheight = floor->sector->floorheight +
-					floor->direction * 32 * FRACUNIT;
+				floor->floordestheight = floor->sector->floorheight + floor->direction * 32 * FRACUNIT;
 				break;
 			default:
 				break;
 		}
-
+		
 		// set texture/type change properties
 		if (ChgT)				// if a texture change is indicated
 		{
 			if (ChgM)			// if a numeric model change
 			{
-				sector_t *sec;
-
+				sector_t* sec;
+				
 				sec = (Targ == FtoLnC || Targ == FtoC) ?
-					P_FindModelCeilingSector(floor->floordestheight, secnum) :
-					P_FindModelFloorSector(floor->floordestheight, secnum);
+				      P_FindModelCeilingSector(floor->floordestheight, secnum) : P_FindModelFloorSector(floor->floordestheight, secnum);
 				if (sec)
 				{
 					floor->texture = sec->floorpic;
@@ -245,18 +237,18 @@ int EV_DoGenFloor(line_t * line)
 // Passed the linedef activating the ceiling function
 // Returns true if a thinker created
 //
-int EV_DoGenCeiling(line_t * line)
+int EV_DoGenCeiling(line_t* line)
 {
 	int secnum;
 	int rtn;
 	bool_t manual;
 	fixed_t targheight;
-	sector_t *sec;
-	ceiling_t *ceiling;
+	sector_t* sec;
+	ceiling_t* ceiling;
 	unsigned value = (unsigned)line->special - GenCeilingBase;
-
+	
 	// parse the bit fields in the line's special type
-
+	
 	int Crsh = (value & CeilingCrush) >> CeilingCrushShift;
 	int ChgT = (value & CeilingChange) >> CeilingChangeShift;
 	int Targ = (value & CeilingTarget) >> CeilingTargetShift;
@@ -264,9 +256,9 @@ int EV_DoGenCeiling(line_t * line)
 	int ChgM = (value & CeilingModel) >> CeilingModelShift;
 	int Sped = (value & CeilingSpeed) >> CeilingSpeedShift;
 	int Trig = (value & TriggerType) >> TriggerTypeShift;
-
+	
 	rtn = 0;
-
+	
 	// check if a manual trigger, if so do just the sector on the backside
 	manual = false;
 	if (Trig == PushOnce || Trig == PushMany)
@@ -277,14 +269,14 @@ int EV_DoGenCeiling(line_t * line)
 		manual = true;
 		goto manual_ceiling;
 	}
-
+	
 	secnum = -1;
 	// if not manual do all sectors tagged the same as the line
 	while ((secnum = P_FindSectorFromLineTag(line, secnum)) >= 0)
 	{
 		sec = &sectors[secnum];
-
-	  manual_ceiling:
+		
+manual_ceiling:
 		// Do not start another function if ceiling already moving
 		if (P_SectorActive(ceiling_special, sec))
 		{
@@ -293,7 +285,6 @@ int EV_DoGenCeiling(line_t * line)
 			else
 				return rtn;
 		}
-
 		// new ceiling thinker
 		rtn = 1;
 		ceiling = Z_Malloc(sizeof(ceiling_t), PU_LEVSPEC, 0);
@@ -308,7 +299,7 @@ int EV_DoGenCeiling(line_t * line)
 		ceiling->oldspecial = sec->oldspecial;
 		ceiling->tag = sec->tag;
 		ceiling->type = genCeiling;
-
+		
 		// set speed of motion
 		switch (Sped)
 		{
@@ -327,7 +318,7 @@ int EV_DoGenCeiling(line_t * line)
 			default:
 				break;
 		}
-
+		
 		// set destination target height
 		targheight = sec->ceilingheight;
 		switch (Targ)
@@ -339,9 +330,7 @@ int EV_DoGenCeiling(line_t * line)
 				targheight = P_FindLowestCeilingSurrounding(sec);
 				break;
 			case CtoNnC:
-				targheight = Dirn ?
-					P_FindNextHighestCeiling(sec, sec->ceilingheight) :
-					P_FindNextLowestCeiling(sec, sec->ceilingheight);
+				targheight = Dirn ? P_FindNextHighestCeiling(sec, sec->ceilingheight) : P_FindNextLowestCeiling(sec, sec->ceilingheight);
 				break;
 			case CtoHnF:
 				targheight = P_FindHighestFloorSurrounding(sec);
@@ -350,8 +339,7 @@ int EV_DoGenCeiling(line_t * line)
 				targheight = sec->floorheight;
 				break;
 			case CbyST:
-				targheight = (ceiling->sector->ceilingheight >> FRACBITS) +
-					ceiling->direction * (P_FindShortestUpperAround(secnum) >> FRACBITS);
+				targheight = (ceiling->sector->ceilingheight >> FRACBITS) + ceiling->direction * (P_FindShortestUpperAround(secnum) >> FRACBITS);
 				if (targheight > 32000)
 					targheight = 32000;
 				if (targheight < -32000)
@@ -373,17 +361,15 @@ int EV_DoGenCeiling(line_t * line)
 			ceiling->topheight = targheight;
 		else
 			ceiling->bottomheight = targheight;
-
+			
 		// set texture/type change properties
 		if (ChgT)				// if a texture change is indicated
 		{
 			if (ChgM)			// if a numeric model change
 			{
-				sector_t *sec;
-
-				sec = (Targ == CtoHnF || Targ == CtoF) ?
-					P_FindModelFloorSector(targheight, secnum) :
-					P_FindModelCeilingSector(targheight, secnum);
+				sector_t* sec;
+				
+				sec = (Targ == CtoHnF || Targ == CtoF) ? P_FindModelFloorSector(targheight, secnum) : P_FindModelCeilingSector(targheight, secnum);
 				if (sec)
 				{
 					ceiling->texture = sec->ceilingpic;
@@ -445,30 +431,30 @@ int EV_DoGenCeiling(line_t * line)
 // Passed the linedef activating the lift
 // Returns true if a thinker is created
 //
-int EV_DoGenLift(line_t * line)
+int EV_DoGenLift(line_t* line)
 {
-	plat_t *plat;
+	plat_t* plat;
 	int secnum;
 	int rtn;
 	bool_t manual;
-	sector_t *sec;
+	sector_t* sec;
 	unsigned value = (unsigned)line->special - GenLiftBase;
-
+	
 	// parse the bit fields in the line's special type
-
+	
 	int Targ = (value & LiftTarget) >> LiftTargetShift;
 	int Dely = (value & LiftDelay) >> LiftDelayShift;
 	int Sped = (value & LiftSpeed) >> LiftSpeedShift;
 	int Trig = (value & TriggerType) >> TriggerTypeShift;
-
+	
 	secnum = -1;
 	rtn = 0;
-
+	
 	// Activate all <type> plats that are in_stasis
-
+	
 	if (Targ == LnF2HnF)
 		P_ActivateInStasis(line->tag);
-
+		
 	// check if a manual trigger, if so do just the sector on the backside
 	manual = false;
 	if (Trig == PushOnce || Trig == PushMany)
@@ -479,13 +465,12 @@ int EV_DoGenLift(line_t * line)
 		manual = true;
 		goto manual_lift;
 	}
-
 	// if not manual do all sectors tagged the same as the line
 	while ((secnum = P_FindSectorFromLineTag(line, secnum)) >= 0)
 	{
 		sec = &sectors[secnum];
-
-	  manual_lift:
+		
+manual_lift:
 		// Do not start another function if floor already moving
 		if (P_SectorActive(floor_special, sec))
 		{
@@ -494,22 +479,21 @@ int EV_DoGenLift(line_t * line)
 			else
 				return rtn;
 		}
-
 		// Setup the plat thinker
 		rtn = 1;
 		plat = Z_Malloc(sizeof(*plat), PU_LEVSPEC, 0);
 		P_AddThinker(&plat->thinker);
-
+		
 		plat->sector = sec;
 		plat->sector->floordata = plat;
 		plat->thinker.function.acp1 = (actionf_p1) T_PlatRaise;
 		plat->crush = false;
 		plat->tag = line->tag;
-
+		
 		plat->type = genLift;
 		plat->high = sec->floorheight;
 		plat->status = down;
-
+		
 		// setup the target destination height
 		switch (Targ)
 		{
@@ -539,7 +523,7 @@ int EV_DoGenLift(line_t * line)
 			default:
 				break;
 		}
-
+		
 		// setup the speed of motion
 		switch (Sped)
 		{
@@ -558,7 +542,7 @@ int EV_DoGenLift(line_t * line)
 			default:
 				break;
 		}
-
+		
 		// setup the delay time before the floor returns
 		switch (Dely)
 		{
@@ -575,10 +559,10 @@ int EV_DoGenLift(line_t * line)
 				plat->wait = 10 * 35;
 				break;
 		}
-
-		S_StartSound((mobj_t *) & sec->soundorg, sfx_pstart);
+		
+		S_StartSound((mobj_t*)&sec->soundorg, sfx_pstart);
 		P_AddActivePlat(plat);	// add this plat to the list of active plats
-
+		
 		if (manual)
 			return rtn;
 	}
@@ -593,7 +577,7 @@ int EV_DoGenLift(line_t * line)
 // Passed the linedef activating the stairs
 // Returns true if a thinker is created
 //
-int EV_DoGenStairs(line_t * line)
+int EV_DoGenStairs(line_t* line)
 {
 	int secnum;
 	int osecnum;
@@ -604,27 +588,27 @@ int EV_DoGenStairs(line_t * line)
 	int ok;
 	int rtn;
 	bool_t manual;
-
-	sector_t *sec;
-	sector_t *tsec;
-
-	floormove_t *floor;
-
+	
+	sector_t* sec;
+	sector_t* tsec;
+	
+	floormove_t* floor;
+	
 	fixed_t stairsize;
 	fixed_t speed;
-
+	
 	unsigned value = (unsigned)line->special - GenStairsBase;
-
+	
 	// parse the bit fields in the line's special type
-
+	
 	int Igno = (value & StairIgnore) >> StairIgnoreShift;
 	int Dirn = (value & StairDirection) >> StairDirectionShift;
 	int Step = (value & StairStep) >> StairStepShift;
 	int Sped = (value & StairSpeed) >> StairSpeedShift;
 	int Trig = (value & TriggerType) >> TriggerTypeShift;
-
+	
 	rtn = 0;
-
+	
 	// check if a manual trigger, if so do just the sector on the backside
 	manual = false;
 	if (Trig == PushOnce || Trig == PushMany)
@@ -635,14 +619,14 @@ int EV_DoGenStairs(line_t * line)
 		manual = true;
 		goto manual_stair;
 	}
-
+	
 	secnum = -1;
 	// if not manual do all sectors tagged the same as the line
 	while ((secnum = P_FindSectorFromLineTag(line, secnum)) >= 0)
 	{
 		sec = &sectors[secnum];
-
-	  manual_stair:
+		
+manual_stair:
 		//Do not start another function if floor already moving
 		//Add special lockout condition to wait for entire
 		//staircase to build before retriggering
@@ -653,7 +637,6 @@ int EV_DoGenStairs(line_t * line)
 			else
 				return rtn;
 		}
-
 		// new floor thinker
 		rtn = 1;
 		floor = Z_Malloc(sizeof(*floor), PU_LEVSPEC, 0);
@@ -662,7 +645,7 @@ int EV_DoGenStairs(line_t * line)
 		floor->thinker.function.acp1 = (actionf_p1) T_MoveFloor;
 		floor->direction = Dirn ? 1 : -1;
 		floor->sector = sec;
-
+		
 		// setup speed of stair building
 		switch (Sped)
 		{
@@ -680,7 +663,7 @@ int EV_DoGenStairs(line_t * line)
 				floor->speed = FLOORSPEED * 4;
 				break;
 		}
-
+		
 		// setup stepsize for stairs
 		switch (Step)
 		{
@@ -698,18 +681,18 @@ int EV_DoGenStairs(line_t * line)
 				stairsize = 24 * FRACUNIT;
 				break;
 		}
-
+		
 		speed = floor->speed;
 		height = sec->floorheight + floor->direction * stairsize;
 		floor->floordestheight = height;
 		texture = sec->floorpic;
 		floor->crush = false;
 		floor->type = genBuildStair;
-
+		
 		sec->stairlock = -2;
 		sec->nextsec = -1;
 		sec->prevsec = -1;
-
+		
 		osecnum = secnum;
 		// Find next sector to raise
 		// 1.     Find 2-sided line with same sector side[0]
@@ -721,41 +704,41 @@ int EV_DoGenStairs(line_t * line)
 			{
 				if (!((sec->lines[i])->backsector))
 					continue;
-
+					
 				tsec = (sec->lines[i])->frontsector;
 				newsecnum = tsec - sectors;
-
+				
 				if (secnum != newsecnum)
 					continue;
-
+					
 				tsec = (sec->lines[i])->backsector;
 				newsecnum = tsec - sectors;
-
+				
 				if (!Igno && tsec->floorpic != texture)
 					continue;
-
+					
 				if (!boomsupport)
 					height += floor->direction * stairsize;
-
+					
 				if (P_SectorActive(floor_special, tsec) || tsec->stairlock)
 					continue;
-
+					
 				if (boomsupport)
 					height += floor->direction * stairsize;
-
+					
 				// link the stair chain in both directions
 				// lock the stair sector until building complete
 				sec->nextsec = newsecnum;	// link step to next
 				tsec->prevsec = secnum;	// link next back
 				tsec->nextsec = -1;	// set next forward link as end
 				tsec->stairlock = -2;	// lock the step
-
+				
 				sec = tsec;
 				secnum = newsecnum;
 				floor = Z_Malloc(sizeof(*floor), PU_LEVSPEC, 0);
-
+				
 				P_AddThinker(&floor->thinker);
-
+				
 				sec->floordata = floor;
 				floor->thinker.function.acp1 = (actionf_p1) T_MoveFloor;
 				floor->direction = Dirn ? 1 : -1;
@@ -764,7 +747,7 @@ int EV_DoGenStairs(line_t * line)
 				floor->floordestheight = height;
 				floor->crush = false;
 				floor->type = genBuildStair;
-
+				
 				ok = 1;
 				break;
 			}
@@ -788,23 +771,23 @@ int EV_DoGenStairs(line_t * line)
 // Passed the linedef activating the crusher
 // Returns true if a thinker created
 //
-int EV_DoGenCrusher(line_t * line)
+int EV_DoGenCrusher(line_t* line)
 {
 	int secnum;
 	int rtn;
 	bool_t manual;
-	sector_t *sec;
-	ceiling_t *ceiling;
+	sector_t* sec;
+	ceiling_t* ceiling;
 	unsigned value = (unsigned)line->special - GenCrusherBase;
-
+	
 	// parse the bit fields in the line's special type
-
+	
 	int Slnt = (value & CrusherSilent) >> CrusherSilentShift;
 	int Sped = (value & CrusherSpeed) >> CrusherSpeedShift;
 	int Trig = (value & TriggerType) >> TriggerTypeShift;
-
+	
 	rtn = P_ActivateInStasisCeiling(line);
-
+	
 	// check if a manual trigger, if so do just the sector on the backside
 	manual = false;
 	if (Trig == PushOnce || Trig == PushMany)
@@ -815,14 +798,14 @@ int EV_DoGenCrusher(line_t * line)
 		manual = true;
 		goto manual_crusher;
 	}
-
+	
 	secnum = -1;
 	// if not manual do all sectors tagged the same as the line
 	while ((secnum = P_FindSectorFromLineTag(line, secnum)) >= 0)
 	{
 		sec = &sectors[secnum];
-
-	  manual_crusher:
+		
+manual_crusher:
 		// Do not start another function if ceiling already moving
 		if (P_SectorActive(ceiling_special, sec))
 		{
@@ -831,7 +814,6 @@ int EV_DoGenCrusher(line_t * line)
 			else
 				return rtn;
 		}
-
 		// new ceiling thinker
 		rtn = 1;
 		ceiling = Z_Malloc(sizeof(*ceiling), PU_LEVSPEC, 0);
@@ -847,7 +829,7 @@ int EV_DoGenCrusher(line_t * line)
 		ceiling->type = Slnt ? genSilentCrusher : genCrusher;
 		ceiling->topheight = sec->ceilingheight;
 		ceiling->bottomheight = sec->floorheight + (8 * FRACUNIT);
-
+		
 		// setup ceiling motion speed
 		switch (Sped)
 		{
@@ -867,7 +849,7 @@ int EV_DoGenCrusher(line_t * line)
 				break;
 		}
 		ceiling->oldspeed = ceiling->speed;
-
+		
 		P_AddActiveCeiling(ceiling);	// add to list of active ceilings
 		if (manual)
 			return rtn;
@@ -883,22 +865,22 @@ int EV_DoGenCrusher(line_t * line)
 // Passed the linedef activating the generalized locked door
 // Returns true if a thinker created
 //
-int EV_DoGenLockedDoor(line_t * line)
+int EV_DoGenLockedDoor(line_t* line)
 {
 	int secnum, rtn;
-	sector_t *sec;
-	vldoor_t *door;
+	sector_t* sec;
+	vldoor_t* door;
 	bool_t manual;
 	unsigned value = (unsigned)line->special - GenLockedBase;
-
+	
 	// parse the bit fields in the line's special type
-
+	
 	int Kind = (value & LockedKind) >> LockedKindShift;
 	int Sped = (value & LockedSpeed) >> LockedSpeedShift;
 	int Trig = (value & TriggerType) >> TriggerTypeShift;
-
+	
 	rtn = 0;
-
+	
 	// check if a manual trigger, if so do just the sector on the backside
 	manual = false;
 	if (Trig == PushOnce || Trig == PushMany)
@@ -909,15 +891,15 @@ int EV_DoGenLockedDoor(line_t * line)
 		manual = true;
 		goto manual_locked;
 	}
-
+	
 	secnum = -1;
 	rtn = 0;
-
+	
 	// if not manual do all sectors tagged the same as the line
 	while ((secnum = P_FindSectorFromLineTag(line, secnum)) >= 0)
 	{
 		sec = &sectors[secnum];
-	  manual_locked:
+manual_locked:
 		// Do not start another function if ceiling already moving
 		if (P_SectorActive(ceiling_special, sec))
 		{
@@ -926,13 +908,12 @@ int EV_DoGenLockedDoor(line_t * line)
 			else
 				return rtn;
 		}
-
 		// new door thinker
 		rtn = 1;
 		door = Z_Malloc(sizeof(*door), PU_LEVSPEC, 0);
 		P_AddThinker(&door->thinker);
 		sec->ceilingdata = door;
-
+		
 		door->thinker.function.acp1 = (actionf_p1) T_VerticalDoor;
 		door->sector = sec;
 		door->topwait = VDOORWAIT;
@@ -940,7 +921,7 @@ int EV_DoGenLockedDoor(line_t * line)
 		door->topheight = P_FindLowestCeilingSurrounding(sec);
 		door->topheight -= 4 * FRACUNIT;
 		door->direction = 1;
-
+		
 		// setup speed of door motion
 		switch (Sped)
 		{
@@ -960,16 +941,16 @@ int EV_DoGenLockedDoor(line_t * line)
 			case SpeedTurbo:
 				door->type = Kind ? genBlazeOpen : genBlazeRaise;
 				door->speed = VDOORSPEED * 8;
-
+				
 				break;
 		}
-
+		
 		// killough 4/15/98: fix generalized door opening sounds
 		// (previously they always had the blazing door close sound)
-
-		S_StartSound((mobj_t *) & door->sector->soundorg,	// killough 4/15/98
-					 door->speed >= VDOORSPEED * 4 ? sfx_bdopn : sfx_doropn);
-
+		
+		S_StartSound((mobj_t*)&door->sector->soundorg,	// killough 4/15/98
+		             door->speed >= VDOORSPEED * 4 ? sfx_bdopn : sfx_doropn);
+		             
 		if (manual)
 			return rtn;
 	}
@@ -984,23 +965,23 @@ int EV_DoGenLockedDoor(line_t * line)
 // Passed the linedef activating the generalized door
 // Returns true if a thinker created
 //
-int EV_DoGenDoor(line_t * line)
+int EV_DoGenDoor(line_t* line)
 {
 	int secnum, rtn;
-	sector_t *sec;
+	sector_t* sec;
 	bool_t manual;
-	vldoor_t *door;
+	vldoor_t* door;
 	unsigned value = (unsigned)line->special - GenDoorBase;
-
+	
 	// parse the bit fields in the line's special type
-
+	
 	int Dely = (value & DoorDelay) >> DoorDelayShift;
 	int Kind = (value & DoorKind) >> DoorKindShift;
 	int Sped = (value & DoorSpeed) >> DoorSpeedShift;
 	int Trig = (value & TriggerType) >> TriggerTypeShift;
-
+	
 	rtn = 0;
-
+	
 	// check if a manual trigger, if so do just the sector on the backside
 	manual = false;
 	if (Trig == PushOnce || Trig == PushMany)
@@ -1011,15 +992,15 @@ int EV_DoGenDoor(line_t * line)
 		manual = true;
 		goto manual_door;
 	}
-
+	
 	secnum = -1;
 	rtn = 0;
-
+	
 	// if not manual do all sectors tagged the same as the line
 	while ((secnum = P_FindSectorFromLineTag(line, secnum)) >= 0)
 	{
 		sec = &sectors[secnum];
-	  manual_door:
+manual_door:
 		// Do not start another function if ceiling already moving
 		if (P_SectorActive(ceiling_special, sec))
 		{
@@ -1028,13 +1009,12 @@ int EV_DoGenDoor(line_t * line)
 			else
 				return rtn;
 		}
-
 		// new door thinker
 		rtn = 1;
 		door = Z_Malloc(sizeof(*door), PU_LEVSPEC, 0);
 		P_AddThinker(&door->thinker);
 		sec->ceilingdata = door;
-
+		
 		door->thinker.function.acp1 = (actionf_p1) T_VerticalDoor;
 		door->sector = sec;
 		// setup delay for door remaining open/closed
@@ -1054,7 +1034,7 @@ int EV_DoGenDoor(line_t * line)
 				door->topwait = 7 * VDOORWAIT;
 				break;
 		}
-
+		
 		// setup speed of door motion
 		switch (Sped)
 		{
@@ -1073,7 +1053,7 @@ int EV_DoGenDoor(line_t * line)
 				break;
 		}
 		door->line = line;
-
+		
 		// set kind of door, whether it opens then close, opens, closes etc.
 		// assign target heights accordingly
 		switch (Kind)
@@ -1083,7 +1063,7 @@ int EV_DoGenDoor(line_t * line)
 				door->topheight = P_FindLowestCeilingSurrounding(sec);
 				door->topheight -= 4 * FRACUNIT;
 				if (door->topheight != sec->ceilingheight)
-					S_StartSound((mobj_t *) & door->sector->soundorg, sfx_bdopn);
+					S_StartSound((mobj_t*)&door->sector->soundorg, sfx_bdopn);
 				door->type = Sped >= SpeedFast ? genBlazeRaise : genRaise;
 				break;
 			case ODoor:
@@ -1091,20 +1071,20 @@ int EV_DoGenDoor(line_t * line)
 				door->topheight = P_FindLowestCeilingSurrounding(sec);
 				door->topheight -= 4 * FRACUNIT;
 				if (door->topheight != sec->ceilingheight)
-					S_StartSound((mobj_t *) & door->sector->soundorg, sfx_bdopn);
+					S_StartSound((mobj_t*)&door->sector->soundorg, sfx_bdopn);
 				door->type = Sped >= SpeedFast ? genBlazeOpen : genOpen;
 				break;
 			case CdODoor:
 				door->topheight = sec->ceilingheight;
 				door->direction = -1;
-				S_StartSound((mobj_t *) & door->sector->soundorg, sfx_dorcls);
+				S_StartSound((mobj_t*)&door->sector->soundorg, sfx_dorcls);
 				door->type = Sped >= SpeedFast ? genBlazeCdO : genCdO;
 				break;
 			case CDoor:
 				door->topheight = P_FindLowestCeilingSurrounding(sec);
 				door->topheight -= 4 * FRACUNIT;
 				door->direction = -1;
-				S_StartSound((mobj_t *) & door->sector->soundorg, sfx_dorcls);
+				S_StartSound((mobj_t*)&door->sector->soundorg, sfx_dorcls);
 				door->type = Sped >= SpeedFast ? genBlazeClose : genClose;
 				break;
 			default:

@@ -41,21 +41,21 @@
 
 typedef void (*com_func_t) (void);
 
-void COM_AddCommand(char *name, com_func_t func);
+void COM_AddCommand(char* name, com_func_t func);
 
 int COM_Argc(void);
-char *COM_Argv(int arg);		// if argv>argc, returns empty string
-char *COM_Args(void);
-int COM_CheckParm(char *check);	// like M_CheckParm :)
+char* COM_Argv(int arg);		// if argv>argc, returns empty string
+char* COM_Args(void);
+int COM_CheckParm(char* check);	// like M_CheckParm :)
 
 // match existing command or NULL
-char *COM_CompleteCommand(char *partial, int skips);
+char* COM_CompleteCommand(char* partial, int skips);
 
 // insert at queu (at end of other command)
-void COM_BufAddText(char *text);
+void COM_BufAddText(char* text);
 
 // insert in head (before other command)
-void COM_BufInsertText(char *text);
+void COM_BufInsertText(char* text);
 
 // Execute commands in buffer, flush them
 void COM_BufExecute(void);
@@ -71,17 +71,17 @@ typedef struct vsbuf_s
 {
 	bool_t allowoverflow;		// if false, do a I_Error
 	bool_t overflowed;			// set to true if the buffer size failed
-	uint8_t *data;
+	uint8_t* data;
 	int maxsize;
 	int cursize;
 } vsbuf_t;
 
-void VS_Alloc(vsbuf_t * buf, int initsize);
-void VS_Free(vsbuf_t * buf);
-void VS_Clear(vsbuf_t * buf);
-void *VS_GetSpace(vsbuf_t * buf, int length);
-void VS_Write(vsbuf_t * buf, void *data, int length);
-void VS_Print(vsbuf_t * buf, char *data);	// strcats onto the sizebuf
+void VS_Alloc(vsbuf_t* buf, int initsize);
+void VS_Free(vsbuf_t* buf);
+void VS_Clear(vsbuf_t* buf);
+void* VS_GetSpace(vsbuf_t* buf, int length);
+void VS_Write(vsbuf_t* buf, void* data, int length);
+void VS_Print(vsbuf_t* buf, char* data);	// strcats onto the sizebuf
 
 // ======================
 
@@ -109,7 +109,7 @@ typedef enum
 	CV_SHOWMODIF = 128,			// say something when modified
 	CV_SHOWMODIFONETIME = 256,	// same but will be reset to 0 when modified, set in toggle
 	CV_HIDEN = 1024,			// variable is not part of the cvar list so cannot be accessed by the console
-	// can only be set when we have the pointer to hit 
+	// can only be set when we have the pointer to hit
 	// used on the menu
 	
 	CV_HIDDEN = 1024,			// They can't spell
@@ -124,62 +124,62 @@ typedef enum
 struct CV_PossibleValue_s
 {
 	int value;
-	char *strvalue;
+	char* strvalue;
 };
 
 typedef struct CV_PossibleValue_s CV_PossibleValue_t;
 
 typedef struct consvar_s
 {
-	char *name;
-	char *defaultvalue;
+	char* name;
+	char* defaultvalue;
 	int flags;					// flags see cvflags_t above
-	CV_PossibleValue_t *PossibleValue;	// table of possible values
+	CV_PossibleValue_t* PossibleValue;	// table of possible values
 	void (*func) (void);		// called on change, if CV_CALL set
-	char *aliasto;				// Alias to...
+	char* aliasto;				// Alias to...
 	
 	size_t ACount;				// Alias Count
 	struct consvar_s** ALink;	// Alias Links
 	
 	int value;					// for int and fixed_t
-	char *string;				// value in string
+	char* string;				// value in string
 	uint16_t* wstring;			// value in wide string (Menus)
 	unsigned short netid;		// used internaly : netid for send end receive
 	// used only with CV_NETVAR
-	struct consvar_s *next;
+	struct consvar_s* next;
 } consvar_t;
 
 extern CV_PossibleValue_t CV_OnOff[];
 extern CV_PossibleValue_t CV_YesNo[];
 extern CV_PossibleValue_t CV_Unsigned[];
+
 // register a variable for use at the console
-void CV_RegisterVar(consvar_t * variable);
+void CV_RegisterVar(consvar_t* variable);
 
 // GhostlyDeath <July 8, 2008> -- Unregisters a variable (reverse of CV_RegisterVar)
 void CV_UnRegisterVar(consvar_t* var);
 
 // returns the name of the nearest console variable name found
-char *CV_CompleteVar(char *partial, int skips);
+char* CV_CompleteVar(char* partial, int skips);
 
 // equivalent to "<varname> <value>" typed at the console
-void CV_Set(consvar_t * var, char *value);
+void CV_Set(consvar_t* var, char* value);
 
 // expands value to a string and calls CV_Set
-void CV_SetValue(consvar_t * var, int value);
+void CV_SetValue(consvar_t* var, int value);
 
 // it a setvalue but with a modulo at the maximum
-void CV_AddValue(consvar_t * var, int increment);
+void CV_AddValue(consvar_t* var, int increment);
 
 // write all CV_SAVE variables to config file
-void CV_SaveVariables(FILE * f);
+void CV_SaveVariables(FILE* f);
 
 // load/save gamesate (load and save option and for network join in game)
-void CV_SaveNetVars(char **p);
-void CV_LoadNetVars(char **p);
+void CV_SaveNetVars(char** p);
+void CV_LoadNetVars(char** p);
 
 consvar_t* CV_Export(void);
 
-consvar_t *CV_FindVar(char *name);
+consvar_t* CV_FindVar(char* name);
 
 #endif							// __COMMAND_H__
-

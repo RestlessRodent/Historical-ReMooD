@@ -75,14 +75,14 @@ consvar_t cv_playdemospeed = { "playdemospeed", "0", 0, CV_Unsigned };
 static void D_Clearticcmd(int tic)
 {
 	int i;
-
+	
 	for (i = 0; i < MAXPLAYERS; i++)
 		netcmds[tic % BACKUPTICS][i].angleturn = 0;	//&= ~TICCMD_RECEIVED;
 }
 
 CV_PossibleValue_t maxplayers_cons_t[] = { {1, "MIN"}
-, {MAXPLAYERS, "MAX"}
-, {0, NULL}
+	, {MAXPLAYERS, "MAX"}
+	, {0, NULL}
 };
 
 #define ___STRINGIZE(x) #x
@@ -109,9 +109,10 @@ bool_t Playing(void)
 
 // Copy an array of ticcmd_t, swapping between host and network uint8_t order.
 //
-static void TicCmdCopy(ticcmd_t * dst, ticcmd_t * src, int n)
+static void TicCmdCopy(ticcmd_t* dst, ticcmd_t* src, int n)
 {
 	int i;
+	
 	for (i = 0; i < n; src++, dst++, i++)
 	{
 		dst->forwardmove = src->forwardmove;
@@ -132,7 +133,7 @@ static void Local_Maketic(int realtics)
 	
 	if (dedicated)
 		return;
-
+		
 	I_OsPolling();				// i_getevent
 	D_ProcessEvents();			// menu responder ???!!!
 	// Cons responder
@@ -140,14 +141,14 @@ static void Local_Maketic(int realtics)
 	//    HU_responder,St_responder, Am_responder
 	//    F_responder (final)
 	//    and G_MapEventsToControls
-
+	
 	rendergametic = gametic;
 	
 	//Use = maketic % BACKUPTICS;
 	//Use = D_SyncNetMapTime() % BACKUPTICS;
 	Use = gametic % BACKUPTICS;
 	
-	for (i = 0; i < cv_splitscreen.value+1; i++)
+	for (i = 0; i < cv_splitscreen.value + 1; i++)
 		if (playeringame[consoleplayer[i]])
 			G_BuildTiccmd(&netcmds[Use][consoleplayer[i]], realtics, i);
 	maketic++;
@@ -166,20 +167,20 @@ void TryRunTics(tic_t realtics)
 	// Last tic not set?
 	if (!LastTic)
 		LastTic = I_GetTime();
-	
+		
 	// the machine have laged but is not so bad
 	if (realtics > TICRATE / 7)	// FIXME: consistency failure!!
 		realtics = TICRATE / 7;
-
+		
 	if (singletics)
 		realtics = 1;
-
+		
 	if (realtics >= 1)
 		COM_BufExecute();
-
+		
 	D_SyncNetUpdate();
 	NetUpdate();
-
+	
 	if (demoplayback)
 	{
 		neededtic = gametic + realtics + cv_playdemospeed.value;
@@ -198,7 +199,6 @@ void TryRunTics(tic_t realtics)
 			D_DoAdvanceDemo();
 			continue;
 		}
-		
 		// Set local time and target time
 		LocalTic = I_GetTime();
 		
@@ -215,17 +215,16 @@ void TryRunTics(tic_t realtics)
 				// Update music
 				I_UpdateMusic();
 			}
-			
 			// Set last tic
 			LastTic++;
 		}
-		
 		// Otherwise no updating is needed
 		else
 		{
 			I_WaitVBL(20);
 		}
-	} while (LocalTic < LastTic);
+	}
+	while (LocalTic < LastTic);
 	
 #if 0
 	if (neededtic > gametic)
@@ -237,12 +236,12 @@ void TryRunTics(tic_t realtics)
 			// run the count * tics
 			while (neededtic > gametic)
 			{
-
+			
 				//if (gametic % 5 == 0)
-					I_UpdateMusic();
+				I_UpdateMusic();
 				G_Ticker();
 				gametic++;
-			
+				
 				// skip paused tic in a demo
 				if (demoplayback)
 				{
@@ -257,9 +256,9 @@ void TryRunTics(tic_t realtics)
 	}
 	else if (neededtic == gametic)
 		I_WaitVBL(20);
-	
+		
 	/*else
-		I_WaitVBL(20);*/
+	   I_WaitVBL(20); */
 #endif
 }
 
@@ -276,7 +275,7 @@ static tic_t D_GetTics(void)
 	/* Last time not set? */
 	if (!FirstTime)
 		FirstTime = ThisTime;
-	
+		
 	/* This time less than last time? */
 	// An overflow occured, so we shift
 	if (ThisTime < FirstTime)
@@ -298,27 +297,26 @@ void NetUpdate(void)
 	tic_t nowtime;
 	int i;
 	int realtics;
-
-	nowtime = D_GetTics();//I_GetTime();
+	
+	nowtime = D_GetTics();		//I_GetTime();
 	realtics = nowtime - gametime;
-	g_ProgramTic = I_GetTimeMS() / TICRATE;//nowtime;
-
+	g_ProgramTic = I_GetTimeMS() / TICRATE;	//nowtime;
+	
 	if (realtics <= 0)			// nothing new to update
 		return;
 	if (realtics > 5)
 	{
 		realtics = 5;
 	}
-
+	
 	gametime = nowtime;
-
+	
 	Local_Maketic(realtics);	// make local tic, and call menu ?!
 	
 	if (!demoplayback)
 		neededtic = maketic;
-
+		
 	M_Ticker();
 	CONL_Ticker();
 	//CON_Ticker();
 }
-

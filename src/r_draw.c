@@ -50,62 +50,62 @@
 //                     COMMON DATA FOR 8bpp AND 16bpp
 // ==========================================================================
 
-uint8_t *viewimage;
+uint8_t* viewimage;
 int viewwidth;
 int scaledviewwidth;
 int viewheight;
 int viewwindowx;
 int viewwindowy;
 
-				// pointer to the start of each line of the screen,
-uint8_t** activeylookup;	// Active ylookup table (for 4 way splits)
-uint8_t **ylookup;
-uint8_t **ylookup1;	// for view1 (splitscreen)
-uint8_t **ylookup2;	// for view2 (splitscreen)
-uint8_t **ylookup4[MAXSPLITSCREENPLAYERS];	// for 4 way split screen
+// pointer to the start of each line of the screen,
+uint8_t** activeylookup;		// Active ylookup table (for 4 way splits)
+uint8_t** ylookup;
+uint8_t** ylookup1;				// for view1 (splitscreen)
+uint8_t** ylookup2;				// for view2 (splitscreen)
+uint8_t** ylookup4[MAXSPLITSCREENPLAYERS];	// for 4 way split screen
 
-				 // x uint8_t offset for columns inside the viewwindow
-				// so the first column starts at (SCRWIDTH-VIEWWIDTH)/2
+// x uint8_t offset for columns inside the viewwindow
+// so the first column starts at (SCRWIDTH-VIEWWIDTH)/2
 int* columnofs;
 
 // =========================================================================
 //                      COLUMN DRAWING CODE STUFF
 // =========================================================================
 
-lighttable_t *dc_colormap;
+lighttable_t* dc_colormap;
 int dc_x;
 int dc_yl;
 int dc_yh;
 
 //Hurdler: 04/06/2000: asm code still use it
 int dc_yw;						//added:24-02-98: WATER!
-lighttable_t *dc_wcolormap;		//added:24-02-98:WATER!
+lighttable_t* dc_wcolormap;		//added:24-02-98:WATER!
 
 fixed_t dc_iscale;
 fixed_t dc_texturemid;
 
-uint8_t *dc_source;
+uint8_t* dc_source;
 
 // -----------------------
 // translucency stuff here
 // -----------------------
-#define NUMTRANSTABLES  NUMVEXTRANSPARENCIES		// how many translucency tables are used
+#define NUMTRANSTABLES  NUMVEXTRANSPARENCIES	// how many translucency tables are used
 
-uint8_t *transtables;				// translucency tables
+uint8_t* transtables;			// translucency tables
 
 // R_DrawTransColumn uses this
-uint8_t *dc_transmap;				// one of the translucency tables
+uint8_t* dc_transmap;			// one of the translucency tables
 
 // ----------------------
 // translation stuff here
 // ----------------------
 
-uint8_t *translationtables;
+uint8_t* translationtables;
 
 // R_DrawTranslatedColumn uses this
-uint8_t *dc_translation;
+uint8_t* dc_translation;
 
-struct r_lightlist_s *dc_lightlist = NULL;
+struct r_lightlist_s* dc_lightlist = NULL;
 int dc_numlights = 0;
 int dc_maxlights;
 
@@ -119,15 +119,15 @@ int ds_y;
 int ds_x1;
 int ds_x2;
 
-lighttable_t *ds_colormap;
+lighttable_t* ds_colormap;
 
 fixed_t ds_xfrac;
 fixed_t ds_yfrac;
 fixed_t ds_xstep;
 fixed_t ds_ystep;
 
-uint8_t *ds_source;				// start of a 64*64 tile image
-uint8_t *ds_transmap;				// one of the translucency tables
+uint8_t* ds_source;				// start of a 64*64 tile image
+uint8_t* ds_transmap;			// one of the translucency tables
 
 // Variable flat sizes SSNTails 06-10-2003
 int flatsize;
@@ -144,7 +144,8 @@ int flatsubtract;
 #define FUZZTABLE     50
 #define FUZZOFF       (1)
 
-static int fuzzoffset[FUZZTABLE] = {
+static int fuzzoffset[FUZZTABLE] =
+{
 	FUZZOFF, -FUZZOFF, FUZZOFF, -FUZZOFF, FUZZOFF, FUZZOFF, -FUZZOFF,
 	FUZZOFF, FUZZOFF, -FUZZOFF, FUZZOFF, FUZZOFF, FUZZOFF, -FUZZOFF,
 	FUZZOFF, FUZZOFF, FUZZOFF, -FUZZOFF, -FUZZOFF, -FUZZOFF, -FUZZOFF,
@@ -162,6 +163,7 @@ static int fuzzpos = 0;			// move through the fuzz table
 void R_RecalcFuzzOffsets(void)
 {
 	int i;
+	
 	for (i = 0; i < FUZZTABLE; i++)
 	{
 		fuzzoffset[i] = (fuzzoffset[i] < 0) ? -vid.width : vid.width;
@@ -172,28 +174,29 @@ void R_RecalcFuzzOffsets(void)
 //                   TRANSLATION COLORMAP CODE
 // =========================================================================
 
-char *Color_Names[MAXSKINCOLORS]={
+char* Color_Names[MAXSKINCOLORS] =
+{
 	"Green",
-	"Gray" ,
+	"Gray",
 	"Brown",
-	"Red"  ,
-	"light gray" ,
+	"Red",
+	"light gray",
 	"light brown",
-	"light red"  ,
-	"light blue" ,
-	"Blue"       ,
-	"Yellow"     ,
-	"Beige"		,
-	"White"	,		// NEW COLORS
-	"Orange"	,
-	"Tan"	,
-	"Black"	,
-	"Pink"	,
+	"light red",
+	"light blue",
+	"Blue",
+	"Yellow",
+	"Beige",
+	"White",					// NEW COLORS
+	"Orange",
+	"Tan",
+	"Black",
+	"Pink",
 };
 
 CV_PossibleValue_t Color_cons_t[] = { {0, NULL}, {1, NULL}, {2, NULL}, {3, NULL},
-{4, NULL}, {5, NULL}, {6, NULL}, {7, NULL},
-{8, NULL}, {9, NULL}, {10, NULL}, {11, NULL}, {12, NULL}, {13, NULL}, {14, NULL}, {15, NULL}, {0, NULL}
+	{4, NULL}, {5, NULL}, {6, NULL}, {7, NULL},
+	{8, NULL}, {9, NULL}, {10, NULL}, {11, NULL}, {12, NULL}, {13, NULL}, {14, NULL}, {15, NULL}, {0, NULL}
 };
 
 //  Creates the translation tables to map the green color ramp to
@@ -214,19 +217,45 @@ void R_InitTranslationTables(void)
 		bool_t Flip;
 	} TransLumps[NUMVEXTRANSPARENCIES] =
 	{
-		{"RMD_TRFF", true},
-		{"RMD_TR10", false},
-		{"RMD_TR20", false},
-		{"RMD_TR30", false},
-		{"RMD_TR40", false},
-		{"RMD_TR50", false},
-		{"RMD_TR40", true},
-		{"RMD_TR30", true},
-		{"RMD_TR20", true},
-		{"RMD_TR10", true},
-		{"RMD_TRFF", false},
-		{"RMD_TRFR", false},
-		{"TRANSFX1", false},
+		{
+			"RMD_TRFF", true
+		},
+		{
+			"RMD_TR10", false
+		},
+		{
+			"RMD_TR20", false
+		},
+		{
+			"RMD_TR30", false
+		},
+		{
+			"RMD_TR40", false
+		},
+		{
+			"RMD_TR50", false
+		},
+		{
+			"RMD_TR40", true
+		},
+		{
+			"RMD_TR30", true
+		},
+		{
+			"RMD_TR20", true
+		},
+		{
+			"RMD_TR10", true
+		},
+		{
+			"RMD_TRFF", false
+		},
+		{
+			"RMD_TRFR", false
+		},
+		{
+			"TRANSFX1", false
+		},
 	};
 	
 	/* Load transparency tables, with possible flipping */
@@ -251,8 +280,8 @@ void R_InitTranslationTables(void)
 				if (Flip)
 					j = (x * 256) + y;
 				else
-					j = (y * 256) + x; 
-				
+					j = (y * 256) + x;
+					
 				// Only if it is valid
 				if (j < n)
 				{
@@ -260,19 +289,19 @@ void R_InitTranslationTables(void)
 					p++;
 				}
 			}
-		
+			
 		// No longer needed
 		Z_ChangeTag(Data, PU_CACHE);
 	}
-
+	
 #if 0
 	//added:11-01-98: load here the transparency lookup tables 'TINTTAB'
 	// NOTE: the TINTTAB resource MUST BE aligned on 64k for the asm optimised
 	//       (in other words, transtables pointer low word is 0)
 	transtables = Z_MallocAlign(NUMTRANSTABLES * 0x10000, PU_STATIC, 0, 16);
 	
-	// GhostlyDeath <September 17, 2011> -- 
-
+	// GhostlyDeath <September 17, 2011> --
+	
 	// load in translucency tables
 	W_ReadLump(W_GetNumForName("TRANSMED"), transtables);
 	W_ReadLump(W_GetNumForName("TRANSMOR"), transtables + 0x10000);
@@ -280,15 +309,14 @@ void R_InitTranslationTables(void)
 	W_ReadLump(W_GetNumForName("TRANSFIR"), transtables + 0x30000);
 	W_ReadLump(W_GetNumForName("TRANSFX1"), transtables + 0x40000);
 #endif
-
+	
 	translationtables = Z_MallocAlign(256 * (MAXSKINCOLORS - 1), PU_STATIC, 0, 8);
-
+	
 #if 0
 	// translate just the 16 green colors
 	for (i = 0; i < 256; i++)
 	{
-		if ((i >= 0x70 && i <= 0x7f && gamemode != heretic) ||
-			(i >= 225 && i <= 240 && gamemode == heretic))
+		if ((i >= 0x70 && i <= 0x7f && gamemode != heretic) || (i >= 225 && i <= 240 && gamemode == heretic))
 		{
 			if (gamemode == heretic)
 			{
@@ -309,26 +337,26 @@ void R_InitTranslationTables(void)
 				translationtables[i] = 0x60 + (i & 0xf);
 				translationtables[i + 256] = 0x40 + (i & 0xf);
 				translationtables[i + 2 * 256] = 0x20 + (i & 0xf);
-
+				
 				// added 9-2-98
 				translationtables[i + 3 * 256] = 0x58 + (i & 0xf);	// light gray
 				translationtables[i + 4 * 256] = 0x38 + (i & 0xf);	// light brown
 				translationtables[i + 5 * 256] = 0xb0 + (i & 0xf);	// light red
 				translationtables[i + 6 * 256] = 0xc0 + (i & 0xf);	// light blue
-
+				
 				if ((i & 0xf) < 9)
 					translationtables[i + 7 * 256] = 0xc7 + (i & 0xf);	// dark blue
 				else
 					translationtables[i + 7 * 256] = 0xf0 - 9 + (i & 0xf);
-
+					
 				if ((i & 0xf) < 8)
 					translationtables[i + 8 * 256] = 0xe0 + (i & 0xf);	// yellow
 				else
 					translationtables[i + 8 * 256] = 0xa0 - 8 + (i & 0xf);
-
+					
 				translationtables[i + 9 * 256] = 0x80 + (i & 0xf);	// beige
 			}
-
+			
 		}
 		else
 		{
@@ -338,135 +366,134 @@ void R_InitTranslationTables(void)
 		}
 	}
 #else
-	for (i=0 ; i<256 ; i++)
+	for (i = 0; i < 256; i++)
 	{
-		if ((i >= 0x70 && i <= 0x7f && gamemode != heretic) || 
-			(i >=  225 && i <=  240 && gamemode == heretic))
+		if ((i >= 0x70 && i <= 0x7f && gamemode != heretic) || (i >= 225 && i <= 240 && gamemode == heretic))
 		{
 			/*if( gamemode == heretic )
-			{
-				translationtables[i+ 0*256] =   0+(i-225); // dark gray
-				translationtables[i+ 1*256] =  67+(i-225); // brown
-				translationtables[i+ 2*256] = 145+(i-225); // red
-				translationtables[i+ 3*256] =   9+(i-225); // light gray
-				translationtables[i+ 4*256] =  74+(i-225); // light brown
-				translationtables[i+ 5*256] = 150+(i-225); // light red
-				translationtables[i+ 6*256] = 192+(i-225); // light blue
-				translationtables[i+ 7*256] = 185+(i-225); // dark blue
-				translationtables[i+ 8*256] = 114+(i-225); // yellow
-				translationtables[i+ 9*256] =  95+(i-225); // beige
-
-				// ORANGE AND BLACK (TODO: not true colors yet)
-				translationtables[i+ 10*256] =  20+(i-225); // dark gray
-				translationtables[i+ 11*256] =  67+(i-225); // ornage
-				translationtables[i+ 12*256] =  67+(i-225); // tan
-				translationtables[i+ 13*256] =  67+(i-255); // black
-				switch (i)	// pink?
-				{
-				case 1: translationtables[i+ 14*256] =  168+(i-225); break;
-				case 2: translationtables[i+ 14*256] =  168+(i-225); break;
-				case 3: translationtables[i+ 14*256] =  167+(i-225); break;
-				case 4: translationtables[i+ 14*256] =  167+(i-225); break;
-				case 5: translationtables[i+ 14*256] =  166+(i-225); break;
-				case 6: translationtables[i+ 14*256] =  166+(i-225); break;
-				case 7: translationtables[i+ 14*256] =  165+(i-225); break;
-				case 8: translationtables[i+ 14*256] =  165+(i-225); break;
-				case 9: translationtables[i+ 14*256] =  164+(i-225); break;
-				case 10: translationtables[i+ 14*256] =  164+(i-225); break;
-				case 11: translationtables[i+ 14*256] =  163+(i-225); break;
-				case 12: translationtables[i+ 14*256] =  163+(i-225); break;
-				case 13: translationtables[i+ 14*256] =  162+(i-225); break;
-				case 14: translationtables[i+ 14*256] =  162+(i-225); break;
-				case 15: translationtables[i+ 14*256] =  161+(i-225); break;
-				}
-				
-			}
-			else*/
+			   {
+			   translationtables[i+ 0*256] =   0+(i-225); // dark gray
+			   translationtables[i+ 1*256] =  67+(i-225); // brown
+			   translationtables[i+ 2*256] = 145+(i-225); // red
+			   translationtables[i+ 3*256] =   9+(i-225); // light gray
+			   translationtables[i+ 4*256] =  74+(i-225); // light brown
+			   translationtables[i+ 5*256] = 150+(i-225); // light red
+			   translationtables[i+ 6*256] = 192+(i-225); // light blue
+			   translationtables[i+ 7*256] = 185+(i-225); // dark blue
+			   translationtables[i+ 8*256] = 114+(i-225); // yellow
+			   translationtables[i+ 9*256] =  95+(i-225); // beige
+	
+			   // ORANGE AND BLACK (TODO: not true colors yet)
+			   translationtables[i+ 10*256] =  20+(i-225); // dark gray
+			   translationtables[i+ 11*256] =  67+(i-225); // ornage
+			   translationtables[i+ 12*256] =  67+(i-225); // tan
+			   translationtables[i+ 13*256] =  67+(i-255); // black
+			   switch (i)   // pink?
+			   {
+			   case 1: translationtables[i+ 14*256] =  168+(i-225); break;
+			   case 2: translationtables[i+ 14*256] =  168+(i-225); break;
+			   case 3: translationtables[i+ 14*256] =  167+(i-225); break;
+			   case 4: translationtables[i+ 14*256] =  167+(i-225); break;
+			   case 5: translationtables[i+ 14*256] =  166+(i-225); break;
+			   case 6: translationtables[i+ 14*256] =  166+(i-225); break;
+			   case 7: translationtables[i+ 14*256] =  165+(i-225); break;
+			   case 8: translationtables[i+ 14*256] =  165+(i-225); break;
+			   case 9: translationtables[i+ 14*256] =  164+(i-225); break;
+			   case 10: translationtables[i+ 14*256] =  164+(i-225); break;
+			   case 11: translationtables[i+ 14*256] =  163+(i-225); break;
+			   case 12: translationtables[i+ 14*256] =  163+(i-225); break;
+			   case 13: translationtables[i+ 14*256] =  162+(i-225); break;
+			   case 14: translationtables[i+ 14*256] =  162+(i-225); break;
+			   case 15: translationtables[i+ 14*256] =  161+(i-225); break;
+			   }
+	
+			   }
+			   else */
 			{
 				// map green ramp to gray, brown, red
-				translationtables [i	  ] = 0x60 + (i&0xf);
-				translationtables [i+  256] = 0x40 + (i&0xf);
-				translationtables [i+2*256] = 0x20 + (i&0xf);
-				
+				translationtables[i] = 0x60 + (i & 0xf);
+				translationtables[i + 256] = 0x40 + (i & 0xf);
+				translationtables[i + 2 * 256] = 0x20 + (i & 0xf);
+	
 				// added 9-2-98
-				translationtables [i+3*256] = 0x58 + (i&0xf); // light gray
-				translationtables [i+4*256] = 0x38 + (i&0xf); // light brown
-				translationtables [i+5*256] = 0xb0 + (i&0xf); // light red
-				translationtables [i+6*256] = 0xc0 + (i&0xf); // light blue
-				
-				if ((i&0xf) <9)
-					translationtables [i+7*256] = 0xc7 + (i&0xf);   // dark blue
+				translationtables[i + 3 * 256] = 0x58 + (i & 0xf);	// light gray
+				translationtables[i + 4 * 256] = 0x38 + (i & 0xf);	// light brown
+				translationtables[i + 5 * 256] = 0xb0 + (i & 0xf);	// light red
+				translationtables[i + 6 * 256] = 0xc0 + (i & 0xf);	// light blue
+	
+				if ((i & 0xf) < 9)
+					translationtables[i + 7 * 256] = 0xc7 + (i & 0xf);	// dark blue
 				else
-					translationtables [i+7*256] = 0xf0-9 + (i&0xf);
-				
-				if ((i&0xf) <8)
-					translationtables [i+8*256] = 0xe0 + (i&0xf);   // yellow
+					translationtables[i + 7 * 256] = 0xf0 - 9 + (i & 0xf);
+	
+				if ((i & 0xf) < 8)
+					translationtables[i + 8 * 256] = 0xe0 + (i & 0xf);	// yellow
 				else
-					translationtables [i+8*256] = 0xa0-8 + (i&0xf);
-				
-				translationtables [i+9*256] = 0x80 + (i&0xf);	 // beige
-
-				if ((i&0xf) < 1)
-					translationtables [i+10*256] = 0x04 + (i&0xf); // White
+					translationtables[i + 8 * 256] = 0xa0 - 8 + (i & 0xf);
+	
+				translationtables[i + 9 * 256] = 0x80 + (i & 0xf);	// beige
+	
+				if ((i & 0xf) < 1)
+					translationtables[i + 10 * 256] = 0x04 + (i & 0xf);	// White
 				else
-					translationtables [i+10*256] = 0x50-1 + (i&0xf);
-
-				translationtables [i+11*256] = 0xd0 + (i&0xf); // orange
-				translationtables [i+12*256] = 0x30 + (i&0xf); // Tan
-
-				if ((i&0xf) < 1)
-					translationtables [i+13*256] = 0x05 + (i&0xf); // Black
-				else if ((i&0xf) < 2)
-					translationtables [i+13*256] = 0x05-1 + (i&0xf);
-				else if ((i&0xf) < 3)
-					translationtables [i+13*256] = 0x05-2 + (i&0xf);
-				else if ((i&0xf) < 4)
-					translationtables [i+13*256] = 0x05-3 + (i&0xf);
-				else if ((i&0xf) < 5)
-					translationtables [i+13*256] = 0x06-4 + (i&0xf);
-				else if ((i&0xf) < 6)
-					translationtables [i+13*256] = 0x06-5 + (i&0xf);
-				else if ((i&0xf) < 7)
-					translationtables [i+13*256] = 0x06-6 + (i&0xf);
-				else if ((i&0xf) < 8)
-					translationtables [i+13*256] = 0x06-7 + (i&0xf);
-				else if ((i&0xf) < 9)
-					translationtables [i+13*256] = 0x07-8 + (i&0xf);
-				else if ((i&0xf) < 10)
-					translationtables [i+13*256] = 0x07-9 + (i&0xf);
-				else if ((i&0xf) < 11)
-					translationtables [i+13*256] = 0x07-10 + (i&0xf);
-				else if ((i&0xf) < 12)
-					translationtables [i+13*256] = 0x07-11 + (i&0xf);
-				else if ((i&0xf) < 12)
-					translationtables [i+13*256] = 0x08-12 + (i&0xf);
-				else if ((i&0xf) < 12)
-					translationtables [i+13*256] = 0x08-13 + (i&0xf);
-				else if ((i&0xf) < 12)
-					translationtables [i+13*256] = 0x08-14 + (i&0xf);
+					translationtables[i + 10 * 256] = 0x50 - 1 + (i & 0xf);
+	
+				translationtables[i + 11 * 256] = 0xd0 + (i & 0xf);	// orange
+				translationtables[i + 12 * 256] = 0x30 + (i & 0xf);	// Tan
+	
+				if ((i & 0xf) < 1)
+					translationtables[i + 13 * 256] = 0x05 + (i & 0xf);	// Black
+				else if ((i & 0xf) < 2)
+					translationtables[i + 13 * 256] = 0x05 - 1 + (i & 0xf);
+				else if ((i & 0xf) < 3)
+					translationtables[i + 13 * 256] = 0x05 - 2 + (i & 0xf);
+				else if ((i & 0xf) < 4)
+					translationtables[i + 13 * 256] = 0x05 - 3 + (i & 0xf);
+				else if ((i & 0xf) < 5)
+					translationtables[i + 13 * 256] = 0x06 - 4 + (i & 0xf);
+				else if ((i & 0xf) < 6)
+					translationtables[i + 13 * 256] = 0x06 - 5 + (i & 0xf);
+				else if ((i & 0xf) < 7)
+					translationtables[i + 13 * 256] = 0x06 - 6 + (i & 0xf);
+				else if ((i & 0xf) < 8)
+					translationtables[i + 13 * 256] = 0x06 - 7 + (i & 0xf);
+				else if ((i & 0xf) < 9)
+					translationtables[i + 13 * 256] = 0x07 - 8 + (i & 0xf);
+				else if ((i & 0xf) < 10)
+					translationtables[i + 13 * 256] = 0x07 - 9 + (i & 0xf);
+				else if ((i & 0xf) < 11)
+					translationtables[i + 13 * 256] = 0x07 - 10 + (i & 0xf);
+				else if ((i & 0xf) < 12)
+					translationtables[i + 13 * 256] = 0x07 - 11 + (i & 0xf);
+				else if ((i & 0xf) < 12)
+					translationtables[i + 13 * 256] = 0x08 - 12 + (i & 0xf);
+				else if ((i & 0xf) < 12)
+					translationtables[i + 13 * 256] = 0x08 - 13 + (i & 0xf);
+				else if ((i & 0xf) < 12)
+					translationtables[i + 13 * 256] = 0x08 - 14 + (i & 0xf);
 				else
-					translationtables [i+13*256] = 0x08-15 + (i&0xf);
-				
-				translationtables [i+14*256] = 0x10 + (i&0xf); // Pink
-
+					translationtables[i + 13 * 256] = 0x08 - 15 + (i & 0xf);
+	
+				translationtables[i + 14 * 256] = 0x10 + (i & 0xf);	// Pink
+	
 				/*if ((i&0xf) < 4)
-					translationtables [i+8*256] = 0x05 + (i&0xf); // Black
-				else if ((i&0xf) < 8)
-					translationtables [i+8*256] = 0x05-4 + (i&0xf); // Black
-				else
-					translationtables [i+8*256] = 0x05-8 + (i&0xf); // Black*/
+				   translationtables [i+8*256] = 0x05 + (i&0xf); // Black
+				   else if ((i&0xf) < 8)
+				   translationtables [i+8*256] = 0x05-4 + (i&0xf); // Black
+				   else
+				   translationtables [i+8*256] = 0x05-8 + (i&0xf); // Black */
 				// Gotta do light gray
 			}
-
+	
 		}
 		else
 		{
 			// Keep all other colors as is.
-			for (j=0;j<(MAXSKINCOLORS-1)*256;j+=256)
-				translationtables [i+j] = i;
+			for (j = 0; j < (MAXSKINCOLORS - 1) * 256; j += 256)
+				translationtables[i + j] = i;
 		}
 	}
-
+	
 #endif
 }
 
@@ -489,10 +516,10 @@ void R_InitViewBuffer(int width, int height)
 	int i;
 	int j;
 	int bytesperpixel = vid.bpp;
-
+	
 	if (bytesperpixel < 1 || bytesperpixel > 4)
 		I_Error("R_InitViewBuffer : wrong bytesperpixel value %d\n", bytesperpixel);
-
+		
 	// Handle resize,
 	//  e.g. smaller view windows
 	//  with border and/or status bar.
@@ -500,12 +527,12 @@ void R_InitViewBuffer(int width, int height)
 		viewwindowx = (vid.width - width) >> 1;
 	else
 		viewwindowx = 0;
-
+		
 	// Column offset for those columns of the view window, but
 	// relative to the entire screen
 	for (i = 0; i < width; i++)
 		columnofs[i] = (viewwindowx + i) * bytesperpixel;
-
+		
 	// Same with base row offset.
 	if (width == vid.width)
 		viewwindowy = 0;
@@ -516,7 +543,7 @@ void R_InitViewBuffer(int width, int height)
 		else
 			viewwindowy = 0;
 	}
-
+	
 	// Precalculate all row offsets.
 	for (i = 0; i < height; i++)
 	{
@@ -524,18 +551,10 @@ void R_InitViewBuffer(int width, int height)
 		ylookup2[i] = vid.buffer + (i + (vid.height >> 1)) * vid.width * bytesperpixel;	// for splitscreen
 		
 		// 4 way split screen
-		ylookup4[0][i] = vid.buffer +
-			(i * vid.width * bytesperpixel);
-		ylookup4[1][i] = vid.buffer +
-			((vid.width / 2) * bytesperpixel) +
-			(i * vid.width * bytesperpixel);
-		ylookup4[2][i] = vid.buffer +
-			(vid.width * (vid.height / 2) * bytesperpixel) +
-			(i * vid.width * bytesperpixel);
-		ylookup4[3][i] = vid.buffer +
-			(vid.width * (vid.height / 2) * bytesperpixel) +
-			((vid.width / 2) * bytesperpixel) +
-			(i * vid.width * bytesperpixel);
+		ylookup4[0][i] = vid.buffer + (i * vid.width * bytesperpixel);
+		ylookup4[1][i] = vid.buffer + ((vid.width / 2) * bytesperpixel) + (i * vid.width * bytesperpixel);
+		ylookup4[2][i] = vid.buffer + (vid.width * (vid.height / 2) * bytesperpixel) + (i * vid.width * bytesperpixel);
+		ylookup4[3][i] = vid.buffer + (vid.width * (vid.height / 2) * bytesperpixel) + ((vid.width / 2) * bytesperpixel) + (i * vid.width * bytesperpixel);
 	}
 }
 
@@ -562,24 +581,24 @@ void R_InitViewBorder(void)
 //
 void R_FillBackScreen(void)
 {
-	uint8_t *src;
-	uint8_t *dest;
+	uint8_t* src;
+	uint8_t* dest;
 	int x;
 	int y;
-	patch_t *patch;
+	patch_t* patch;
 	int step, boff;
 	
 	if (cv_splitscreen.value)
 		return;
-
+		
 	//added:08-01-98:draw pattern around the status bar too (when hires),
 	//                so return only when in full-screen without status bar.
 	if ((scaledviewwidth == vid.width) && (viewheight == vid.height))
 		return;
-
+		
 	src = scr_borderpatch;
 	dest = screens[1];
-
+	
 	for (y = 0; y < vid.height; y++)
 	{
 		for (x = 0; x < vid.width / 64; x++)
@@ -587,21 +606,21 @@ void R_FillBackScreen(void)
 			memcpy(dest, src + ((y & 63) << 6), 64);
 			dest += 64;
 		}
-
+		
 		if (vid.width & 63)
 		{
 			memcpy(dest, src + ((y & 63) << 6), vid.width & 63);
 			dest += (vid.width & 63);
 		}
 	}
-
+	
 	//added:08-01-98:dont draw the borders when viewwidth is full vid.width.
 	if (scaledviewwidth == vid.width)
 		return;
-	
+		
 	step = 8;
 	boff = 8;
-
+	
 	patch = W_CacheLumpNum(viewborderlump[BRDR_T], PU_CACHE);
 	for (x = 0; x < scaledviewwidth; x += step)
 		V_DrawPatch(viewwindowx + x, viewwindowy - boff, 1, patch);
@@ -614,19 +633,15 @@ void R_FillBackScreen(void)
 	patch = W_CacheLumpNum(viewborderlump[BRDR_R], PU_CACHE);
 	for (y = 0; y < viewheight; y += step)
 		V_DrawPatch(viewwindowx + scaledviewwidth, viewwindowy + y, 1, patch);
-
+		
 	// Draw beveled corners.
-	V_DrawPatch(viewwindowx - boff,
-				viewwindowy - boff, 1, W_CacheLumpNum(viewborderlump[BRDR_TL], PU_CACHE));
-
-	V_DrawPatch(viewwindowx + scaledviewwidth,
-				viewwindowy - boff, 1, W_CacheLumpNum(viewborderlump[BRDR_TR], PU_CACHE));
-
-	V_DrawPatch(viewwindowx - boff,
-				viewwindowy + viewheight, 1, W_CacheLumpNum(viewborderlump[BRDR_BL], PU_CACHE));
-
-	V_DrawPatch(viewwindowx + scaledviewwidth,
-				viewwindowy + viewheight, 1, W_CacheLumpNum(viewborderlump[BRDR_BR], PU_CACHE));
+	V_DrawPatch(viewwindowx - boff, viewwindowy - boff, 1, W_CacheLumpNum(viewborderlump[BRDR_TL], PU_CACHE));
+	
+	V_DrawPatch(viewwindowx + scaledviewwidth, viewwindowy - boff, 1, W_CacheLumpNum(viewborderlump[BRDR_TR], PU_CACHE));
+	
+	V_DrawPatch(viewwindowx - boff, viewwindowy + viewheight, 1, W_CacheLumpNum(viewborderlump[BRDR_BL], PU_CACHE));
+	
+	V_DrawPatch(viewwindowx + scaledviewwidth, viewwindowy + viewheight, 1, W_CacheLumpNum(viewborderlump[BRDR_BR], PU_CACHE));
 }
 
 //
@@ -652,13 +667,11 @@ void R_DrawViewBorder(void)
 	int top;
 	int side;
 	int ofs;
-
+	
 #ifdef DEBUG
-	fprintf(stderr,
-			"RDVB: vidwidth %d vidheight %d scaledviewwidth %d viewheight %d\n",
-			vid.width, vid.height, scaledviewwidth, viewheight);
+	fprintf(stderr, "RDVB: vidwidth %d vidheight %d scaledviewwidth %d viewheight %d\n", vid.width, vid.height, scaledviewwidth, viewheight);
 #endif
-
+	
 	//added:08-01-98: draw the backtile pattern around the status bar too
 	//                 (when statusbar width is shorter than vid.width)
 	/*
@@ -667,7 +680,7 @@ void R_DrawViewBorder(void)
 	   ofs  = (vid.height-stbarheight)*vid.width;
 	   side = (vid.width-ST_WIDTH)>>1;
 	   R_VideoErase(ofs,side);
-
+	
 	   ofs += (vid.width-side);
 	   for (i=1;i<stbarheight;i++)
 	   {
@@ -676,28 +689,27 @@ void R_DrawViewBorder(void)
 	   }
 	   R_VideoErase(ofs,side);
 	   } */
-
+	
 	if (scaledviewwidth == vid.width)
 		return;
-
+		
 	top = (vid.height - stbarheight - viewheight) >> 1;
 	side = (vid.width - scaledviewwidth) >> 1;
-
+	
 	// copy top and one line of left side
 	R_VideoErase(0, top * vid.width + side);
-
+	
 	// copy one line of right side and bottom
 	ofs = (viewheight + top) * vid.width - side;
 	R_VideoErase(ofs, top * vid.width + side);
-
+	
 	// copy sides using wraparound
 	ofs = top * vid.width + vid.width - side;
 	side <<= 1;
-
+	
 	//added:05-02-98:simpler using our new VID_Blit routine
-	VID_BlitLinearScreen(screens[1] + ofs, screens[0] + ofs,
-						 side, viewheight - 1, vid.width, vid.width);
-
+	VID_BlitLinearScreen(screens[1] + ofs, screens[0] + ofs, side, viewheight - 1, vid.width, vid.width);
+	
 	// useless, old dirty rectangle stuff
 	//V_MarkRect (0,0,vid.width, vid.height-stbarheight);
 }
@@ -719,31 +731,31 @@ void R_DrawViewBorder(void)
 void R_DrawColumn_8(void)
 {
 	register int count;
-	register uint8_t *dest;
+	register uint8_t* dest;
 	register fixed_t frac;
 	register fixed_t fracstep;
-
+	
 	count = dc_yh - dc_yl + 1;
-
+	
 	// Zero length, column does not exceed a pixel.
 	if (count <= 0)
 		return;
-
+		
 #ifdef RANGECHECK
 	if ((unsigned)dc_x >= vid.width || dc_yl < 0 || dc_yh >= vid.height)
 		I_Error("R_DrawColumn: %i to %i at %i", dc_yl, dc_yh, dc_x);
 #endif
-
+		
 	// Framebuffer destination address.
 	// Use ylookup LUT to avoid multiply with ScreenWidth.
 	// Use columnofs LUT for subwindows?
 	dest = activeylookup[dc_yl] + columnofs[dc_x];
-
+	
 	// Determine scaling,
 	//  which is the only mapping to be done.
 	fracstep = dc_iscale;
 	frac = dc_texturemid + (dc_yl - centery) * fracstep;
-
+	
 	// Inner loop that does the actual texture mapping,
 	//  e.g. a DDA-lile scaling.
 	// This is as fast as it gets.
@@ -752,10 +764,10 @@ void R_DrawColumn_8(void)
 		// Re-map color indices from wall texture column
 		//  using a lighting/special effects LUT.
 		*dest = dc_colormap[dc_source[(frac >> FRACBITS) & 127]];
-
+		
 		dest += vid.width;
 		frac += fracstep;
-
+		
 	}
 	while (--count);
 }
@@ -764,12 +776,12 @@ void R_DrawColumn_8(void)
 void R_DrawColumn_8(void)
 {
 	int count, ccount;
-	register uint8_t *dest;
+	register uint8_t* dest;
 	register fixed_t frac;
 	fixed_t fracstep;
 
 	count = dc_yh - dc_yl + 1;
-	
+
 	if (count <= 0)				// Zero length, column does not exceed a pixel.
 		return;
 
@@ -780,12 +792,12 @@ void R_DrawColumn_8(void)
 		I_Error("R_DrawColumn: %i to %i at %i", dc_yl, dc_yh, dc_x);
 #endif
 
-	if ((unsigned)dc_x >= vid.width || dc_yl < 0 || dc_yl > viewheight|| dc_yh >= vid.height)
+	if ((unsigned)dc_x >= vid.width || dc_yl < 0 || dc_yl > viewheight || dc_yh >= vid.height)
 		return;
 
 	// Framebuffer destination address.
 	// Use ylookup LUT to avoid multiply with ScreenWidth.
-	// Use columnofs LUT for subwindows? 
+	// Use columnofs LUT for subwindows?
 
 	dest = activeylookup[dc_yl] + columnofs[dc_x];
 
@@ -799,9 +811,10 @@ void R_DrawColumn_8(void)
 	// This is as fast as it gets.
 
 	{
-		register const uint8_t *source = dc_source;
-		register const lighttable_t *colormap = dc_colormap;
+		register const uint8_t* source = dc_source;
+		register const lighttable_t* colormap = dc_colormap;
 		register int heightmask = dc_texheight - 1;
+
 		if (dc_texheight & heightmask)
 		{
 			heightmask++;
@@ -848,31 +861,31 @@ void R_DrawColumn_8(void)
 void R_DrawSkyColumn_8(void)
 {
 	register int count;
-	register uint8_t *dest;
+	register uint8_t* dest;
 	register fixed_t frac;
 	register fixed_t fracstep;
-
+	
 	count = dc_yh - dc_yl;
-
+	
 	// Zero length, column does not exceed a pixel.
 	if (count < 0)
 		return;
-
+		
 #ifdef RANGECHECK
 	if ((unsigned)dc_x >= vid.width || dc_yl < 0 || dc_yh >= vid.height)
 		I_Error("R_DrawColumn: %i to %i at %i", dc_yl, dc_yh, dc_x);
 #endif
-
+		
 	// Framebuffer destination address.
 	// Use ylookup LUT to avoid multiply with ScreenWidth.
 	// Use columnofs LUT for subwindows?
 	dest = activeylookup[dc_yl] + columnofs[dc_x];
-
+	
 	// Determine scaling,
 	//  which is the only mapping to be done.
 	fracstep = dc_iscale;
 	frac = dc_texturemid + (dc_yl - centery) * fracstep;
-
+	
 	// Inner loop that does the actual texture mapping,
 	//  e.g. a DDA-lile scaling.
 	// This is as fast as it gets.
@@ -881,10 +894,10 @@ void R_DrawSkyColumn_8(void)
 		// Re-map color indices from wall texture column
 		//  using a lighting/special effects LUT.
 		*dest = dc_colormap[dc_source[(frac >> FRACBITS) & 255]];
-
+		
 		dest += vid.width;
 		frac += fracstep;
-
+		
 	}
 	while (count--);
 }
@@ -892,7 +905,7 @@ void R_DrawSkyColumn_8(void)
 void R_DrawSkyColumn_8(void)
 {
 	int count;
-	register uint8_t *dest;
+	register uint8_t* dest;
 	register fixed_t frac;
 	fixed_t fracstep;
 
@@ -911,7 +924,7 @@ void R_DrawSkyColumn_8(void)
 
 	// Framebuffer destination address.
 	// Use ylookup LUT to avoid multiply with ScreenWidth.
-	// Use columnofs LUT for subwindows? 
+	// Use columnofs LUT for subwindows?
 
 	dest = activeylookup[dc_yl] + columnofs[dc_x];
 
@@ -925,9 +938,10 @@ void R_DrawSkyColumn_8(void)
 	// This is as fast as it gets.
 
 	{
-		register const uint8_t *source = dc_source;
-		register const lighttable_t *colormap = dc_colormap;
+		register const uint8_t* source = dc_source;
+		register const lighttable_t* colormap = dc_colormap;
 		register int heightmask = 255;
+
 		if (dc_texheight & heightmask)
 		{
 			heightmask++;
@@ -976,38 +990,38 @@ void R_DrawSkyColumn_8(void)
 void R_DrawFuzzColumn_8(void)
 {
 	register int count;
-	register uint8_t *dest;
+	register uint8_t* dest;
 	register fixed_t frac;
 	register fixed_t fracstep;
-
+	
 	// Adjust borders. Low...
 	if (!dc_yl)
 		dc_yl = 1;
-
+		
 	// .. and high.
 	if (dc_yh == viewheight - 1)
 		dc_yh = viewheight - 2;
-
+		
 	count = dc_yh - dc_yl;
-
+	
 	// Zero length.
 	if (count < 0)
 		return;
-
+		
 #ifdef RANGECHECK
 	if ((unsigned)dc_x >= vid.width || dc_yl < 0 || dc_yh >= vid.height)
 	{
 		I_Error("R_DrawFuzzColumn: %i to %i at %i", dc_yl, dc_yh, dc_x);
 	}
 #endif
-
+	
 	// Does not work with blocky mode.
 	dest = activeylookup[dc_yl] + columnofs[dc_x];
-
+	
 	// Looks familiar.
 	fracstep = dc_iscale;
 	frac = dc_texturemid + (dc_yl - centery) * fracstep;
-
+	
 	do
 	{
 		// Lookup framebuffer, and retrieve
@@ -1015,13 +1029,13 @@ void R_DrawFuzzColumn_8(void)
 		//  left or right of the current one.
 		// Add index from colormap to index.
 		*dest = colormaps[6 * 256 + dest[fuzzoffset[fuzzpos]]];
-
+		
 		// Clamp table lookup index.
 		if (++fuzzpos == FUZZTABLE)
 			fuzzpos = 0;
-
+			
 		dest += vid.width;
-
+		
 		frac += fracstep;
 	}
 	while (count--);
@@ -1037,30 +1051,31 @@ uint8_t g_PBColor = 0;
 
 /* R_DrawPaintballColumn_8() -- Paintball mode! */
 void R_DrawPaintballColumn_8(void)
-{	register int count;
-	register uint8_t *dest;
+{
+	register int count;
+	register uint8_t* dest;
 	register fixed_t frac;
 	register fixed_t fracstep;
 	
 	// check out coords for src*
 	if ((dc_yl < 0) || (dc_x >= vid.width))
 		return;
-	
+		
 	count = dc_yh - dc_yl;
 	if (count < 0)
 		return;
-	
+		
 	if ((unsigned)dc_x >= vid.width || dc_yl < 0 || dc_yh >= vid.height)
 		return;
-
+		
 	// FIXME. As above.
 	//src  = ylookup[dc_yl] + columnofs[dc_x+2];
 	dest = activeylookup[dc_yl] + columnofs[dc_x];
-
+	
 	// Looks familiar.
 	fracstep = dc_iscale;
 	frac = dc_texturemid + (dc_yl - centery) * fracstep;
-
+	
 	// Here we do an additional index re-mapping.
 	do
 	{
@@ -1074,34 +1089,33 @@ void R_DrawPaintballColumn_8(void)
 void R_DrawShadeColumn_8(void)
 {
 	register int count;
-	register uint8_t *dest;
+	register uint8_t* dest;
 	register fixed_t frac;
 	register fixed_t fracstep;
-
+	
 	// check out coords for src*
 	if ((dc_yl < 0) || (dc_x >= vid.width))
 		return;
-
+		
 	count = dc_yh - dc_yl;
 	if (count < 0)
 		return;
-
+		
 #ifdef RANGECHECK
 	if ((unsigned)dc_x >= vid.width || dc_yl < 0 || dc_yh >= vid.height)
 	{
 		I_Error("R_DrawColumn: %i to %i at %i", dc_yl, dc_yh, dc_x);
 	}
-
 #endif
-
+	
 	// FIXME. As above.
 	//src  = ylookup[dc_yl] + columnofs[dc_x+2];
 	dest = activeylookup[dc_yl] + columnofs[dc_x];
-
+	
 	// Looks familiar.
 	fracstep = dc_iscale;
 	frac = dc_texturemid + (dc_yl - centery) * fracstep;
-
+	
 	// Here we do an additional index re-mapping.
 	do
 	{
@@ -1116,28 +1130,28 @@ void R_DrawShadeColumn_8(void)
 void R_DrawTranslucentColumn_8(void)
 {
 	register int count;
-	register uint8_t *dest;
+	register uint8_t* dest;
 	register fixed_t frac;
 	register fixed_t fracstep;
-
+	
 	// check out coords for src*
 	if ((dc_yl < 0) || (dc_x >= vid.width) || (dc_yh >= vid.height) || (dc_yl < 0) || ((unsigned)dc_x >= vid.width) || activeylookup[dc_yl] == NULL)
 		return;
-
+		
 	count = dc_yh - dc_yl;
 	
 	if (count < 0)
 		return;
-
+		
 	// FIXME. As above.
 	//src  = ylookup[dc_yl] + columnofs[dc_x+2];
-
+	
 	dest = activeylookup[dc_yl] + columnofs[dc_x];
-
+	
 	// Looks familiar.
 	fracstep = dc_iscale;
 	frac = dc_texturemid + (dc_yl - centery) * fracstep;
-
+	
 	// Here we do an additional index re-mapping.
 	do
 	{
@@ -1151,7 +1165,7 @@ void R_DrawTranslucentColumn_8(void)
 void R_DrawTranslucentColumn_8(void)
 {
 	register int count;
-	register uint8_t *dest;
+	register uint8_t* dest;
 	register fixed_t frac;
 	register fixed_t fracstep;
 
@@ -1165,7 +1179,7 @@ void R_DrawTranslucentColumn_8(void)
 
 	// Framebuffer destination address.
 	// Use ylookup LUT to avoid multiply with ScreenWidth.
-	// Use columnofs LUT for subwindows? 
+	// Use columnofs LUT for subwindows?
 
 	if (activeylookup[dc_yl] == NULL)
 		return;
@@ -1182,9 +1196,11 @@ void R_DrawTranslucentColumn_8(void)
 	// This is as fast as it gets.
 
 	{
-		register const uint8_t *source = dc_source;
+		register const uint8_t* source = dc_source;
+
 		//register const lighttable_t *colormap = dc_colormap;
 		register int heightmask = dc_texheight - 1;
+
 		if (dc_texheight & heightmask)
 		{
 			heightmask++;
@@ -1236,54 +1252,52 @@ void R_DrawTranslucentColumn_8(void)
 void R_DrawTranslatedTranslucentColumn_8(void)
 {
 	register int count;
-	register uint8_t *dest;
+	register uint8_t* dest;
 	register fixed_t frac;
 	register fixed_t fracstep;
-
+	
 	count = dc_yh - dc_yl + 1;
-
+	
 	if (count <= 0)				// Zero length, column does not exceed a pixel.
 		return;
-
+		
 	// FIXME. As above.
 	//src  = ylookup[dc_yl] + columnofs[dc_x+2];
 	dest = activeylookup[dc_yl] + columnofs[dc_x];
-
+	
 	// Looks familiar.
 	fracstep = dc_iscale;
 	frac = dc_texturemid + (dc_yl - centery) * fracstep;
-
+	
 	// Inner loop that does the actual texture mapping,
 	//  e.g. a DDA-lile scaling.
 	// This is as fast as it gets.
-
+	
 	{
-		register const uint8_t *source = dc_source;
+		register const uint8_t* source = dc_source;
+		
 		//register const lighttable_t *colormap = dc_colormap;
 		register int heightmask = dc_texheight - 1;
+		
 		if (dc_texheight & heightmask)
 		{
 			heightmask++;
 			heightmask <<= FRACBITS;
-
+			
 			if (frac < 0)
 				while ((frac += heightmask) < 0);
 			else
 				while (frac >= heightmask)
 					frac -= heightmask;
-
+					
 			do
 			{
 				// Re-map color indices from wall texture column
 				//  using a lighting/special effects LUT.
 				// heightmask is the Tutti-Frutti fix -- killough
-
-				*dest =
-					dc_colormap[*
-								(dc_transmap +
-								 (dc_colormap
-								  [dc_translation[dc_source[frac >> FRACBITS]]] << 8) + (*dest))];
-
+				
+				*dest = dc_colormap[*(dc_transmap + (dc_colormap[dc_translation[dc_source[frac >> FRACBITS]]] << 8) + (*dest))];
+				
 				dest += vid.width;
 				if ((frac += fracstep) >= heightmask)
 					frac -= heightmask;
@@ -1294,28 +1308,16 @@ void R_DrawTranslatedTranslucentColumn_8(void)
 		{
 			while ((count -= 2) >= 0)	// texture height is a power of 2 -- killough
 			{
-				*dest =
-					dc_colormap[*
-								(dc_transmap +
-								 (dc_colormap
-								  [dc_translation[dc_source[frac >> FRACBITS]]] << 8) + (*dest))];
+				*dest = dc_colormap[*(dc_transmap + (dc_colormap[dc_translation[dc_source[frac >> FRACBITS]]] << 8) + (*dest))];
 				dest += vid.width;
 				frac += fracstep;
-				*dest =
-					dc_colormap[*
-								(dc_transmap +
-								 (dc_colormap
-								  [dc_translation[dc_source[frac >> FRACBITS]]] << 8) + (*dest))];
+				*dest = dc_colormap[*(dc_transmap + (dc_colormap[dc_translation[dc_source[frac >> FRACBITS]]] << 8) + (*dest))];
 				dest += vid.width;
 				frac += fracstep;
 			}
 			if (count & 1)
 			{
-				*dest =
-					dc_colormap[*
-								(dc_transmap +
-								 (dc_colormap
-								  [dc_translation[dc_source[frac >> FRACBITS]]] << 8) + (*dest))];
+				*dest = dc_colormap[*(dc_transmap + (dc_colormap[dc_translation[dc_source[frac >> FRACBITS]]] << 8) + (*dest))];
 			}
 		}
 	}
@@ -1327,28 +1329,27 @@ void R_DrawTranslatedTranslucentColumn_8(void)
 void R_DrawTranslatedColumn_8(void)
 {
 	register int count;
-	register uint8_t *dest;
+	register uint8_t* dest;
 	register fixed_t frac;
 	register fixed_t fracstep;
-
+	
 	count = dc_yh - dc_yl;
 	if (count < 0)
 		return;
-
+		
 #ifdef RANGECHECK
 	if ((unsigned)dc_x >= vid.width || dc_yl < 0 || dc_yh >= vid.height)
 	{
 		I_Error("R_DrawColumn: %i to %i at %i", dc_yl, dc_yh, dc_x);
 	}
-
 #endif
 	// FIXME. As above.
 	dest = activeylookup[dc_yl] + columnofs[dc_x];
-
+	
 	// Looks familiar.
 	fracstep = dc_iscale;
 	frac = dc_texturemid + (dc_yl - centery) * fracstep;
-
+	
 	// Here we do an additional index re-mapping.
 	do
 	{
@@ -1358,9 +1359,9 @@ void R_DrawTranslatedColumn_8(void)
 		// Thus the "green" ramp of the player 0 sprite
 		//  is mapped to gray, red, black/indigo.
 		*dest = dc_colormap[dc_translation[dc_source[frac >> FRACBITS]]];
-
+		
 		dest += vid.width;
-
+		
 		frac += fracstep;
 	}
 	while (count--);
@@ -1377,30 +1378,30 @@ void R_DrawSpan_8(void)
 {
 	register uint32_t xfrac;
 	register uint32_t yfrac;
-	register uint8_t *dest;
+	register uint8_t* dest;
 	register int count;
-
+	
 #ifdef RANGECHECK
 	if (ds_x2 < ds_x1 || ds_x1 < 0 || ds_x2 >= vid.width || (unsigned)ds_y > vid.height)
 	{
 		I_Error("R_DrawSpan: %i to %i at %i", ds_x1, ds_x2, ds_y);
 	}
 #endif
-
+	
 	xfrac = ds_xfrac & 0x3fFFff;
 	yfrac = ds_yfrac;
-
+	
 	dest = activeylookup[ds_y] + columnofs[ds_x1];
-
+	
 	// We do not check for zero spans here?
 	count = ds_x2 - ds_x1;
-
+	
 	do
 	{
 		// Lookup pixel from flat texture tile,
 		//  re-index using light/colormap.
 		*dest++ = ds_colormap[ds_source[((yfrac >> (16 - 6)) & (0x3f << 6)) | (xfrac >> 16)]];
-
+		
 		// Next step in u,v.
 		xfrac += ds_xstep;
 		yfrac += ds_ystep;
@@ -1413,7 +1414,7 @@ void R_DrawSpan_8(void)
 {
 	register uint32_t xfrac;
 	register uint32_t yfrac;
-	register uint8_t *dest;
+	register uint8_t* dest;
 	register int count;
 
 #ifdef RANGECHECK
@@ -1436,8 +1437,7 @@ void R_DrawSpan_8(void)
 		count = count;
 		// Lookup pixel from flat texture tile,
 		//  re-index using light/colormap.
-		*dest++ =
-			ds_colormap[ds_source[((yfrac >> (16 - flatsubtract)) & (flatmask)) | (xfrac >> 16)]];
+		*dest++ = ds_colormap[ds_source[((yfrac >> (16 - flatsubtract)) & (flatmask)) | (xfrac >> 16)]];
 
 		// Next step in u,v.
 		xfrac += ds_xstep;
@@ -1454,9 +1454,9 @@ void R_DrawTranslucentSpan_8(void)
 	fixed_t yfrac;
 	fixed_t xstep;
 	fixed_t ystep;
-	uint8_t *dest;
+	uint8_t* dest;
 	int count;
-
+	
 #ifdef RANGECHECK
 	if (ds_x2 < ds_x1 || ds_x1 < 0 || ds_x2 >= screen->width || ds_y > screen->height)
 	{
@@ -1467,19 +1467,19 @@ void R_DrawTranslucentSpan_8(void)
 
 	xfrac = ds_xfrac & ((flatsize << FRACBITS) - 1);
 	yfrac = ds_yfrac;
-
+	
 	dest = activeylookup[ds_y] + columnofs[ds_x1];
-
+	
 	// We do not check for zero spans here?
 	count = ds_x2 - ds_x1 + 1;
-
+	
 	xstep = ds_xstep;
 	ystep = ds_ystep;
-
+	
 	do
 	{
 		// Current texture index in u,v.
-
+		
 		// Awesome! 256x256 flats!
 //              spot = ((yfrac>>(16-8))&(0xff00)) + (xfrac>>(16));
 
@@ -1487,13 +1487,8 @@ void R_DrawTranslucentSpan_8(void)
 		//  re-index using light/colormap.
 		//      *dest++ = ds_colormap[ds_source[spot]];
 //              *dest++ = ds_colormap[*(ds_transmap + (ds_source[spot] << 8) + (*dest))];
-		*dest++ =
-			ds_colormap[*
-						(ds_transmap +
-						 (ds_source
-						  [((yfrac >> (16 - flatsubtract)) & (flatmask)) |
-						   (xfrac >> 16)] << 8) + (*dest))];
-
+		*dest++ = ds_colormap[*(ds_transmap + (ds_source[((yfrac >> (16 - flatsubtract)) & (flatmask)) | (xfrac >> 16)] << 8) + (*dest))];
+		
 		// Next step in u,v.
 		xfrac += xstep;
 		yfrac += ystep;
@@ -1503,26 +1498,26 @@ void R_DrawTranslucentSpan_8(void)
 	/*
 	   register unsigned position;
 	   unsigned step;
-
+	
 	   uint8_t *source;
 	   uint8_t *colormap;
 	   uint8_t *transmap;
 	   uint8_t *dest;
-
+	
 	   unsigned count;
-	   unsigned spot; 
+	   unsigned spot;
 	   unsigned xtemp;
 	   unsigned ytemp;
-
+	
 	   position = ((ds_xfrac<<10)&0xffff0000) | ((ds_yfrac>>6)&0xffff);
 	   step = ((ds_xstep<<10)&0xffff0000) | ((ds_ystep>>6)&0xffff);
-
+	
 	   source = ds_source;
 	   colormap = ds_colormap;
 	   transmap = ds_transmap;
 	   dest = ylookup[ds_y] + columnofs[ds_x1];
-	   count = ds_x2 - ds_x1 + 1; 
-
+	   count = ds_x2 - ds_x1 + 1;
+	
 	   while (count >= 4)
 	   {
 	   ytemp = position>>4;
@@ -1531,34 +1526,34 @@ void R_DrawTranslucentSpan_8(void)
 	   spot = xtemp | ytemp;
 	   position += step;
 	   dest[0] = colormap[*(transmap + (source[spot] << 8) + (dest[0]))];
-
+	
 	   ytemp = position>>4;
 	   ytemp = ytemp & 0xff00;
 	   xtemp = position>>26;
 	   spot = xtemp | ytemp;
 	   position += step;
 	   dest[1] = colormap[*(transmap + (source[spot] << 8) + (dest[1]))];
-
+	
 	   ytemp = position>>4;
 	   ytemp = ytemp & 0xff00;
 	   xtemp = position>>26;
 	   spot = xtemp | ytemp;
 	   position += step;
 	   dest[2] = colormap[*(transmap + (source[spot] << 8) + (dest[2]))];
-
+	
 	   ytemp = position>>4;
 	   ytemp = ytemp & 0xff00;
 	   xtemp = position>>26;
 	   spot = xtemp | ytemp;
 	   position += step;
 	   dest[3] = colormap[*(transmap + (source[spot] << 8) + (dest[3]))];
-
+	
 	   dest += 4;
 	   count -= 4;
 	   }
-
+	
 	   while (count--)
-	   { 
+	   {
 	   ytemp = position>>4;
 	   ytemp = ytemp & 0xff00;
 	   xtemp = position>>26;
@@ -1566,37 +1561,37 @@ void R_DrawTranslucentSpan_8(void)
 	   position += step;
 	   *dest++ = colormap[*(transmap + (source[spot] << 8) + (*dest))];
 	   //count--;
-	   } 
+	   }
 	 */
 }
 
 void R_DrawFogSpan_8(void)
 {
-	uint8_t *colormap;
-	uint8_t *transmap;
-	uint8_t *dest;
-
+	uint8_t* colormap;
+	uint8_t* transmap;
+	uint8_t* dest;
+	
 	unsigned count;
-
+	
 	colormap = ds_colormap;
 	transmap = ds_transmap;
 	dest = activeylookup[ds_y] + columnofs[ds_x1];
 	count = ds_x2 - ds_x1 + 1;
-
+	
 	while (count >= 4)
 	{
 		dest[0] = colormap[dest[0]];
-
+		
 		dest[1] = colormap[dest[1]];
-
+		
 		dest[2] = colormap[dest[2]];
-
+		
 		dest[3] = colormap[dest[3]];
-
+		
 		dest += 4;
 		count -= 4;
 	}
-
+	
 	while (count--)
 		*dest++ = colormap[*dest];
 }
@@ -1605,27 +1600,27 @@ void R_DrawFogSpan_8(void)
 void R_DrawFogColumn_8(void)
 {
 	int count;
-	uint8_t *dest;
-
+	uint8_t* dest;
+	
 	count = dc_yh - dc_yl;
-
+	
 	// Zero length, column does not exceed a pixel.
 	if (count < 0)
 		return;
-
+		
 #ifdef RANGECHECK
 	if ((unsigned)dc_x >= vid.width || dc_yl < 0 || dc_yh >= vid.height)
 		I_Error("R_DrawColumn: %i to %i at %i", dc_yl, dc_yh, dc_x);
 #endif
-
+		
 	// Framebuffer destination address.
 	// Use ylookup LUT to avoid multiply with ScreenWidth.
 	// Use columnofs LUT for subwindows?
 	dest = activeylookup[dc_yl] + columnofs[dc_x];
-
+	
 	// Determine scaling,
 	//  which is the only mapping to be done.
-
+	
 	do
 	{
 		//Simple. Apply the colormap to what's allready on the screen.
@@ -1645,21 +1640,21 @@ void R_DrawColumnShadowed_8(void)
 	int i;
 	int height, bheight = 0;
 	int solid = 0;
-
+	
 	realyh = dc_yh;
 	realyl = dc_yl;
-
+	
 	count = dc_yh - dc_yl;
-
+	
 	// Zero length, column does not exceed a pixel.
 	if (count < 0)
 		return;
-
+		
 #ifdef RANGECHECK
 	if ((unsigned)dc_x >= vid.width || dc_yl < 0 || dc_yh >= vid.height)
 		I_Error("R_DrawColumn: %i to %i at %i", dc_yl, dc_yh, dc_x);
 #endif
-
+		
 	// SoM: This runs through the lightlist from top to bottom and cuts up
 	// the column accordingly.
 	for (i = 0; i < dc_numlights; i++)
@@ -1667,7 +1662,7 @@ void R_DrawColumnShadowed_8(void)
 		// If the height of the light is above the column, get the colormap
 		// anyway because the lighting of the top should be effected.
 		solid = dc_lightlist[i].flags & FF_CUTSOLIDS;
-
+		
 		height = dc_lightlist[i].height >> 12;
 		if (solid)
 			bheight = dc_lightlist[i].botheight >> 12;
@@ -1680,7 +1675,7 @@ void R_DrawColumnShadowed_8(void)
 		}
 		// Found a break in the column!
 		dc_yh = height;
-
+		
 		if (dc_yh > realyh)
 			dc_yh = realyh;
 		R_DrawColumn_8();
@@ -1688,11 +1683,10 @@ void R_DrawColumnShadowed_8(void)
 			dc_yl = bheight;
 		else
 			dc_yl = dc_yh + 1;
-
+			
 		dc_colormap = dc_lightlist[i].rcolormap;
 	}
 	dc_yh = realyh;
 	if (dc_yl <= realyh)
 		R_DrawColumn_8();
 }
-

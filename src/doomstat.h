@@ -121,6 +121,7 @@ extern bool_t newnet_solo;
 extern bool_t netgame;
 extern bool_t serverside;
 extern bool_t localgame;
+
 // Only true if >1 player. netgame => multiplayer but not (multiplayer=>netgame)
 extern bool_t multiplayer;
 
@@ -134,7 +135,7 @@ extern consvar_t cv_deathmatch;
 
 extern bool_t nomusic;			//defined in d_main.c
 extern bool_t nosound;
-extern bool_t digmusic;		// SSNTails 12-13-2002
+extern bool_t digmusic;			// SSNTails 12-13-2002
 
 // =========================
 // Status flags for refresh.
@@ -186,10 +187,11 @@ extern int totalsecret;
 
 extern tic_t gametic;
 extern tic_t g_ProgramTic;
+
 #define localgametic  leveltime
 
 // Player spawn spots.
-extern mapthing_t *playerstarts[MAXPLAYERS];
+extern mapthing_t* playerstarts[MAXPLAYERS];
 
 // Intermission stats.
 // Parameters for world map / intermission.
@@ -220,7 +222,7 @@ extern bool_t singletics;
 
 #define   BODYQUESIZE     32
 
-extern mobj_t *bodyque[BODYQUESIZE];
+extern mobj_t* bodyque[BODYQUESIZE];
 extern int bodyqueslot;
 
 // =============
@@ -234,4 +236,3 @@ extern ticcmd_t netcmds[BACKUPTICS][MAXPLAYERS];
 extern bool_t novideo;
 
 #endif							//__D_STATE__
-

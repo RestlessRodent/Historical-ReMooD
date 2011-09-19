@@ -51,8 +51,8 @@
 //========
 // protos.
 //========
-static bool_t COM_Exists(char *com_name);
-static void COM_ExecuteString(char *text);
+static bool_t COM_Exists(char* com_name);
+static void COM_ExecuteString(char* text);
 
 static void COM_Alias_f(void);
 static void COM_Echo_f(void);
@@ -64,11 +64,11 @@ static void COM_cvarlist_f(void);
 static void COM_Toggle_f(void);
 
 static bool_t CV_Command(void);
-static char *CV_StringValue(char *var_name);
-static consvar_t *consvar_vars;	// list of registered console variables
+static char* CV_StringValue(char* var_name);
+static consvar_t* consvar_vars;	// list of registered console variables
 
 static char com_token[1024];
-static char *COM_Parse(char *data);
+static char* COM_Parse(char* data);
 
 CV_PossibleValue_t CV_OnOff[] = { {0, "Off"}, {1, "On"}, {0, NULL} };
 CV_PossibleValue_t CV_YesNo[] = { {0, "No"}, {1, "Yes"}, {0, NULL} };
@@ -82,12 +82,12 @@ int com_wait;					// one command per frame (for cmd sequences)
 //
 typedef struct cmdalias_s
 {
-	struct cmdalias_s *next;
-	char *name;
-	char *value;				// the command string to replace the alias
+	struct cmdalias_s* next;
+	char* name;
+	char* value;				// the command string to replace the alias
 } cmdalias_t;
 
-cmdalias_t *com_alias;			// aliases list
+cmdalias_t* com_alias;			// aliases list
 
 consvar_t* CV_Export(void)
 {
@@ -102,12 +102,12 @@ vsbuf_t com_text;				// variable sized buffer
 
 //  Add text in the command buffer (for later execution)
 //
-void COM_BufAddText(char *text)
+void COM_BufAddText(char* text)
 {
 	int l;
-
+	
 	l = strlen(text);
-
+	
 	if (com_text.cursize + l >= com_text.maxsize)
 	{
 		CONS_Printf("Command buffer full!\n");
@@ -119,11 +119,11 @@ void COM_BufAddText(char *text)
 // Adds command text immediately after the current command
 // Adds a \n to the text
 //
-void COM_BufInsertText(char *text)
+void COM_BufInsertText(char* text)
 {
-	char *temp;
+	char* temp;
 	int templen;
-
+	
 	// copy off any commands still remaining in the exec buffer
 	templen = com_text.cursize;
 	if (templen)
@@ -134,10 +134,10 @@ void COM_BufInsertText(char *text)
 	}
 	else
 		temp = NULL;			// shut up compiler
-
+		
 	// add the entire text of the file (or alias)
 	COM_BufAddText(text);
-
+	
 	// add the copied off data
 	if (templen)
 	{
@@ -152,21 +152,21 @@ void COM_BufInsertText(char *text)
 void COM_BufExecute(void)
 {
 	int i;
-	char *text;
+	char* text;
 	char line[1024];
 	int quotes;
-
+	
 	if (com_wait)
 	{
 		com_wait--;
 		return;
 	}
-
+	
 	while (com_text.cursize)
 	{
 		// find a '\n' or ; line break
-		text = (char *)com_text.data;
-
+		text = (char*)com_text.data;
+		
 		quotes = 0;
 		for (i = 0; i < com_text.cursize; i++)
 		{
@@ -177,10 +177,10 @@ void COM_BufExecute(void)
 			if (text[i] == '\n' || text[i] == '\r')
 				break;
 		}
-
+		
 		memcpy(line, text, i);
 		line[i] = 0;
-
+		
 		// flush the command text from the command buffer, _BEFORE_
 		// executing, to avoid that 'recursive' aliases overflow the
 		// command text buffer, in that case, new commands are inserted
@@ -195,10 +195,10 @@ void COM_BufExecute(void)
 			com_text.cursize -= i;
 			memcpy(text, text + i, com_text.cursize);
 		}
-
+		
 		// execute the command line
 		COM_ExecuteString(line);
-
+		
 		// delay following commands if a wait was encountered
 		if (com_wait)
 		{
@@ -214,18 +214,18 @@ void COM_BufExecute(void)
 
 typedef struct xcommand_s
 {
-	char *name;
-	struct xcommand_s *next;
+	char* name;
+	struct xcommand_s* next;
 	com_func_t function;
 } xcommand_t;
 
-static xcommand_t *com_commands = NULL;	// current commands
+static xcommand_t* com_commands = NULL;	// current commands
 
 #define MAX_ARGS        80
 static int com_argc;
-static char *com_argv[MAX_ARGS];
-static char *com_null_string = "";
-static char *com_args = NULL;	// current command args or NULL
+static char* com_argv[MAX_ARGS];
+static char* com_null_string = "";
+static char* com_args = NULL;	// current command args or NULL
 
 //  Initialise command buffer and add basic commands
 //
@@ -233,7 +233,7 @@ void COM_Init(void)
 {
 	// allocate command buffer
 	VS_Alloc(&com_text, COM_BUF_SIZE);
-
+	
 	// add standard commands
 	COM_AddCommand("alias", COM_Alias_f);
 	COM_AddCommand("echo", COM_Echo_f);
@@ -256,7 +256,7 @@ int COM_Argc(void)
 
 // Returns string pointer for given argument number
 //
-char *COM_Argv(int arg)
+char* COM_Argv(int arg)
 {
 	if (arg >= com_argc || arg < 0)
 		return com_null_string;
@@ -265,15 +265,15 @@ char *COM_Argv(int arg)
 
 // Returns string pointer of all command args
 //
-char *COM_Args(void)
+char* COM_Args(void)
 {
 	return com_args;
 }
 
-int COM_CheckParm(char *check)
+int COM_CheckParm(char* check)
 {
 	int i;
-
+	
 	for (i = 1; i < com_argc; i++)
 	{
 		if (!strcasecmp(check, com_argv[i]))
@@ -286,40 +286,41 @@ int COM_CheckParm(char *check)
 //
 // Takes a null terminated string.  Does not need to be /n terminated.
 // breaks the string up into arg tokens.
-static void COM_TokenizeString(char *text)
+static void COM_TokenizeString(char* text)
 {
 	int i, n;
-
+	
 // clear the args from the last string
 	for (i = 0; i < com_argc; i++)
 		Z_Free(com_argv[i]);
-
+		
 	com_argc = 0;
 	com_args = NULL;
-
+	
 	for (;;)
 	{
 // skip whitespace up to a /n
 		while (*text && *text <= ' ' && *text != '\n')
 			text++;
-
+			
 		if (*text == '\n')
-		{						// a newline means end of command in buffer,
+		{
+			// a newline means end of command in buffer,
 			// thus end of this command's args too
 			text++;
 			break;
 		}
-
+		
 		if (!*text)
 			return;
-
+			
 		if (com_argc == 1)
 			com_args = text;
-
+			
 		text = COM_Parse(text);
 		if (!text)
 			return;
-
+			
 		if (com_argc < MAX_ARGS)
 		{
 			n = strlen(com_token) + 1;
@@ -328,20 +329,21 @@ static void COM_TokenizeString(char *text)
 			com_argc++;
 		}
 	}
-
+	
 }
 
 // Add a command before existing ones.
 //
-void COM_AddCommand(char *name, com_func_t func)
+void COM_AddCommand(char* name, com_func_t func)
 {
-	xcommand_t *cmd;
+	xcommand_t* cmd;
+	
 	//CONEx_Command_t Command;
 	
 	/* Check */
 	if (!name || !func)
 		return;
-	
+		
 	/* Clear */
 	//memset(&Command, 0, sizeof(Command));
 	
@@ -352,16 +354,15 @@ void COM_AddCommand(char *name, com_func_t func)
 	
 	/* Send */
 	//CONEx_AddCommand(CONEx_GetRootConsole(), &Command);
-
+	
 	// GhostlyDeath <November 10, 2010> -- Deprecated code follows
-		
+	
 	// fail if the command is a variable name
 	if (CV_StringValue(name)[0])
 	{
 		CONS_Printf("%s is a variable name\n", name);
 		return;
 	}
-
 	// fail if the command already exists
 	for (cmd = com_commands; cmd; cmd = cmd->next)
 	{
@@ -371,7 +372,7 @@ void COM_AddCommand(char *name, com_func_t func)
 			return;
 		}
 	}
-
+	
 	cmd = Z_Malloc(sizeof(xcommand_t), PU_STATIC, NULL);
 	cmd->name = name;
 	cmd->function = func;
@@ -381,55 +382,55 @@ void COM_AddCommand(char *name, com_func_t func)
 
 //  Returns true if a command by the name given exists
 //
-static bool_t COM_Exists(char *com_name)
+static bool_t COM_Exists(char* com_name)
 {
-	xcommand_t *cmd;
-
+	xcommand_t* cmd;
+	
 	for (cmd = com_commands; cmd; cmd = cmd->next)
 	{
 		if (!strcmp(com_name, cmd->name))
 			return true;
 	}
-
+	
 	return false;
 }
 
 //  Command completion using TAB key like '4dos'
 //  Will skip 'skips' commands
 //
-char *COM_CompleteCommand(char *partial, int skips)
+char* COM_CompleteCommand(char* partial, int skips)
 {
-	xcommand_t *cmd;
+	xcommand_t* cmd;
 	int len;
-
+	
 	len = strlen(partial);
-
+	
 	if (!len)
 		return NULL;
-
+		
 // check functions
 	for (cmd = com_commands; cmd; cmd = cmd->next)
 		if (!strncmp(partial, cmd->name, len))
 			if (!skips--)
 				return cmd->name;
-
+				
 	return NULL;
 }
 
 // Parses a single line of text into arguments and tries to execute it.
 // The text can come from the command buffer, a remote client, or stdin.
 //
-static void COM_ExecuteString(char *text)
+static void COM_ExecuteString(char* text)
 {
-	xcommand_t *cmd;
-	cmdalias_t *a;
-
+	xcommand_t* cmd;
+	cmdalias_t* a;
+	
 	COM_TokenizeString(text);
-
+	
 // execute the command line
 	if (!COM_Argc())
 		return;					// no tokens
-
+		
 // check functions
 	for (cmd = com_commands; cmd; cmd = cmd->next)
 	{
@@ -439,7 +440,7 @@ static void COM_ExecuteString(char *text)
 			return;
 		}
 	}
-
+	
 // check aliases
 	for (a = com_alias; a; a = a->next)
 	{
@@ -456,11 +457,9 @@ static void COM_ExecuteString(char *text)
 	else
 	{
 		// check cvars
-		// Hurdler: added at Ebola's request ;) 
+		// Hurdler: added at Ebola's request ;)
 		// (don't flood the console in software mode with bad gr_xxx command)
-		if (!CV_Command()
-			 && con_destlines
-			 )
+		if (!CV_Command() && con_destlines)
 			CONS_Printf("Unknown command '%s'\n", COM_Argv(0));
 	}
 }
@@ -473,22 +472,22 @@ static void COM_ExecuteString(char *text)
 //
 static void COM_Alias_f(void)
 {
-	cmdalias_t *a;
+	cmdalias_t* a;
 	char cmd[1024];
 	int i, c;
-
+	
 	if (COM_Argc() < 3)
 	{
 		CONS_Printf("alias <name> <command>\n");
 		return;
 	}
-
+	
 	a = Z_Malloc(sizeof(cmdalias_t), PU_STATIC, NULL);
 	a->next = com_alias;
 	com_alias = a;
-
+	
 	a->name = Z_StrDup(COM_Argv(1), PU_STATIC, NULL);
-
+	
 // copy the rest of the command line
 	cmd[0] = 0;					// start out with a null string
 	c = COM_Argc();
@@ -499,7 +498,7 @@ static void COM_Alias_f(void)
 			strcat(cmd, " ");
 	}
 	strcat(cmd, "\n");
-
+	
 	a->value = Z_StrDup(cmd, PU_STATIC, NULL);
 }
 
@@ -508,7 +507,7 @@ static void COM_Alias_f(void)
 static void COM_Echo_f(void)
 {
 	int i;
-
+	
 	for (i = 1; i < COM_Argc(); i++)
 		CONS_Printf("%s ", COM_Argv(i));
 	CONS_Printf("\n");
@@ -519,35 +518,34 @@ static void COM_Echo_f(void)
 static void COM_Exec_f(void)
 {
 	int length;
-	uint8_t *buf = NULL;
-
+	uint8_t* buf = NULL;
+	
 	if (COM_Argc() != 2)
 	{
 		CONS_Printf("exec <filename> : run a script file\n");
 		return;
 	}
-
 // load file
 
 	length = FIL_ReadFile(COM_Argv(1), &buf);
 	//CONS_Printf ("debug file length : %d\n",length);
-
+	
 	if (!buf)
 	{
 		CONS_Printf("couldn't execute file %s\n", COM_Argv(1));
 		return;
 	}
-
+	
 	CONS_Printf("executing %s\n", COM_Argv(1));
-
+	
 // insert text file into the command buffer
 
 	COM_BufInsertText(buf);
-
+	
 // free buffer
 
 	Z_Free(buf);
-
+	
 }
 
 // Delay execution of the rest of the commands to the next frame,
@@ -563,10 +561,10 @@ static void COM_Wait_f(void)
 
 static void COM_Help_f(void)
 {
-	xcommand_t *cmd;
-	consvar_t *cvar;
+	xcommand_t* cmd;
+	consvar_t* cvar;
 	int i = 0;
-
+	
 	if (COM_Argc() > 1)
 	{
 		cvar = CV_FindVar(COM_Argv(1));
@@ -590,16 +588,14 @@ static void COM_Help_f(void)
 					for (i = 1; cvar->PossibleValue[i].strvalue != NULL; i++)
 						if (!strcasecmp(cvar->PossibleValue[i].strvalue, "MAX"))
 							break;
-					CONS_Printf("  range from %d to %d\n",
-								cvar->PossibleValue[0].value, cvar->PossibleValue[i].value);
+					CONS_Printf("  range from %d to %d\n", cvar->PossibleValue[0].value, cvar->PossibleValue[i].value);
 				}
 				else
 				{
 					CONS_Printf("  possible value :\n", cvar->name);
 					while (cvar->PossibleValue[i].strvalue)
 					{
-						CONS_Printf("    %-2d : %s\n",
-									cvar->PossibleValue[i].value, cvar->PossibleValue[i].strvalue);
+						CONS_Printf("    %-2d : %s\n", cvar->PossibleValue[i].value, cvar->PossibleValue[i].strvalue);
 						i++;
 					}
 				}
@@ -612,33 +608,33 @@ static void COM_Help_f(void)
 	{
 		// commands
 		/*CONS_Printf("\2Commands\n");
-		for (cmd = com_commands; cmd; cmd = cmd->next)
-		{
-			CONS_Printf("%s ", cmd->name);
-			i++;
-		}
-
-		// varibale
-		CONS_Printf("\2\nVariable\n");
-		for (cvar = consvar_vars; cvar; cvar = cvar->next)
-		{
-			CONS_Printf("%s ", cvar->name);
-			i++;
-		}*/
-
+		   for (cmd = com_commands; cmd; cmd = cmd->next)
+		   {
+		   CONS_Printf("%s ", cmd->name);
+		   i++;
+		   }
+		
+		   // varibale
+		   CONS_Printf("\2\nVariable\n");
+		   for (cvar = consvar_vars; cvar; cvar = cvar->next)
+		   {
+		   CONS_Printf("%s ", cvar->name);
+		   i++;
+		   } */
+		
 		CONS_Printf("\2\nType \"commandlist\" or \"cvarlist\" for more or type help <command or variable>\n");
-
+		
 		//if (devparm)
-		//	CONS_Printf("\2Total : %d\n", i);
+		//  CONS_Printf("\2Total : %d\n", i);
 	}
 }
 
 static void COM_commandlist_f(void)
 {
-	xcommand_t *cmd;
+	xcommand_t* cmd;
 	int i = 0;
 	
-	if (COM_Argc() > 1 && strncasecmp(COM_Argv(1)+1, "short", 5))
+	if (COM_Argc() > 1 && strncasecmp(COM_Argv(1) + 1, "short", 5))
 		for (cmd = com_commands; cmd; cmd = cmd->next)
 		{
 			CONS_Printf("%s ", cmd->name);
@@ -650,18 +646,18 @@ static void COM_commandlist_f(void)
 			CONS_Printf("%s\n", cmd->name);
 			i++;
 		}
-	
+		
 	CONS_Printf("\2\nTotal of %i Commands\n", i);
 }
 
 static void COM_cvarlist_f(void)
 {
-	consvar_t *cvar;
+	consvar_t* cvar;
 	int i = 0;
 	int j;
 	char chars[8];
 	
-	if (COM_Argc() > 1 && strncasecmp(COM_Argv(1)+1, "short", 5))
+	if (COM_Argc() > 1 && strncasecmp(COM_Argv(1) + 1, "short", 5))
 		for (cvar = consvar_vars; cvar; cvar = cvar->next)
 		{
 			CONS_Printf("%s ", cvar->name);
@@ -688,7 +684,7 @@ static void COM_cvarlist_f(void)
 				chars[6] = 'D';
 			if (cvar->flags & CV_INVERTEDALIAS)
 				chars[7] = 'I';
-			
+				
 			for (j = 0; j < sizeof(chars); j++)
 				CONS_Printf("%c", chars[j]);
 				
@@ -698,14 +694,14 @@ static void COM_cvarlist_f(void)
 				CONS_Printf("\t%s\n", cvar->name);
 			i++;
 		}
-	
+		
 	CONS_Printf("\2\nTotal of %i Variables\n", i);
 }
 
 static void COM_Toggle_f(void)
 {
-	consvar_t *cvar;
-
+	consvar_t* cvar;
+	
 	if (COM_Argc() != 2 && COM_Argc() != 3)
 	{
 		CONS_Printf("Toggle <cvar_name> [-1]\n" "Toggle the value of a cvar\n");
@@ -717,7 +713,6 @@ static void COM_Toggle_f(void)
 		CONS_Printf("%s is not a cvar\n", COM_Argv(1));
 		return;
 	}
-
 	// netcvar don't change imediately
 	cvar->flags |= CV_SHOWMODIFONETIME;
 	if (COM_Argc() == 3)
@@ -732,7 +727,7 @@ static void COM_Toggle_f(void)
 
 #define VSBUFMINSIZE   256
 
-void VS_Alloc(vsbuf_t * buf, int initsize)
+void VS_Alloc(vsbuf_t* buf, int initsize)
 {
 	if (initsize < VSBUFMINSIZE)
 		initsize = VSBUFMINSIZE;
@@ -741,59 +736,59 @@ void VS_Alloc(vsbuf_t * buf, int initsize)
 	buf->cursize = 0;
 }
 
-void VS_Free(vsbuf_t * buf)
+void VS_Free(vsbuf_t* buf)
 {
 //  Z_Free (buf->data);
 	buf->cursize = 0;
 }
 
-void VS_Clear(vsbuf_t * buf)
+void VS_Clear(vsbuf_t* buf)
 {
 	buf->cursize = 0;
 }
 
-void *VS_GetSpace(vsbuf_t * buf, int length)
+void* VS_GetSpace(vsbuf_t* buf, int length)
 {
-	void *data;
-
+	void* data;
+	
 	if (buf->cursize + length > buf->maxsize)
 	{
 		if (!buf->allowoverflow)
 			I_Error("overflow 111");
-
+			
 		if (length > buf->maxsize)
 			I_Error("overflow l%i 112", length);
-
+			
 		buf->overflowed = true;
 		CONS_Printf("VS buffer overflow");
 		VS_Clear(buf);
 	}
-
+	
 	data = buf->data + buf->cursize;
 	buf->cursize += length;
-
+	
 	return data;
 }
 
 //  Copy data at end of variable sized buffer
 //
-void VS_Write(vsbuf_t * buf, void *data, int length)
+void VS_Write(vsbuf_t* buf, void* data, int length)
 {
 	memcpy(VS_GetSpace(buf, length), data, length);
 }
 
 //  Print text in variable size buffer, like VS_Write + trailing 0
 //
-void VS_Print(vsbuf_t * buf, char *data)
+void VS_Print(vsbuf_t* buf, char* data)
 {
 	int len;
-
+	
 	len = strlen(data) + 1;
-
+	
 	if (buf->data[buf->cursize - 1])
-		memcpy((uint8_t *) VS_GetSpace(buf, len), data, len);	// no trailing 0
+		memcpy((uint8_t*)VS_GetSpace(buf, len), data, len);	// no trailing 0
 	else
-		memcpy((uint8_t *) VS_GetSpace(buf, len - 1) - 1, data, len);	// write over trailing 0
+		memcpy((uint8_t*)VS_GetSpace(buf, len - 1) - 1, data, len);	// write over trailing 0
 }
 
 // =========================================================================
@@ -808,31 +803,31 @@ void VS_Print(vsbuf_t * buf, char *data)
 //
 // =========================================================================
 
-static char *cv_null_string = "";
+static char* cv_null_string = "";
 
 //  Search if a variable has been registered
 //  returns true if given variable has been registered
 //
-consvar_t *CV_FindVar(char *name)
+consvar_t* CV_FindVar(char* name)
 {
-	consvar_t *cvar;
-
+	consvar_t* cvar;
+	
 	for (cvar = consvar_vars; cvar; cvar = cvar->next)
 		if (!strcmp(name, cvar->name))
 			return cvar;
-
+			
 	return NULL;
 }
 
 //  Build a unique Net Variable identifier number, that is used
 //  in network packets instead of the fullname
 //
-unsigned short CV_ComputeNetid(char *s)
+unsigned short CV_ComputeNetid(char* s)
 {
 	unsigned short ret;
 	static int premiers[16] = { 2, 3, 5, 7, 11, 13, 17, 19, 23, 29, 31, 37, 41, 43, 47, 53 };
 	int i;
-
+	
 	ret = 0;
 	i = 0;
 	while (*s)
@@ -846,24 +841,24 @@ unsigned short CV_ComputeNetid(char *s)
 
 //  Return the Net Variable, from it's identifier number
 //
-static consvar_t *CV_FindNetVar(unsigned short netid)
+static consvar_t* CV_FindNetVar(unsigned short netid)
 {
-	consvar_t *cvar;
-
+	consvar_t* cvar;
+	
 	for (cvar = consvar_vars; cvar; cvar = cvar->next)
 		if (cvar->netid == netid)
 			return cvar;
-
+			
 	return NULL;
 }
 
-void Setvalue(consvar_t * var, char *valstr);
+void Setvalue(consvar_t* var, char* valstr);
 
 //  Register a variable, that can be used later at the console
 //
-void CV_RegisterVar(consvar_t * variable)
+void CV_RegisterVar(consvar_t* variable)
 {
-	consvar_t *cvar = NULL;
+	consvar_t* cvar = NULL;
 	int i, j;
 	consvar_t** temp = NULL;
 	
@@ -873,14 +868,12 @@ void CV_RegisterVar(consvar_t * variable)
 		CONS_Printf("Variable %s is already defined\n", variable->name);
 		return;
 	}
-
 	// check for overlap with a command
 	if (COM_Exists(variable->name))
 	{
 		CONS_Printf("%s is a command name\n", variable->name);
 		return;
 	}
-
 	// check net variables
 	if (variable->flags & CV_NETVAR)
 	{
@@ -888,7 +881,6 @@ void CV_RegisterVar(consvar_t * variable)
 		if (CV_FindNetVar(variable->netid))
 			I_Error("Variable %s have same netid\n", variable->name);
 	}
-
 	// link the variable in
 	if (!(variable->flags & CV_HIDEN))
 	{
@@ -896,10 +888,10 @@ void CV_RegisterVar(consvar_t * variable)
 		consvar_vars = variable;
 	}
 	variable->string = NULL;
-
+	
 	// copy the value off, because future sets will Z_Free it
 	//variable->string = Z_StrDup (variable->string);
-
+	
 #ifdef PARANOIA
 	if ((variable->flags & CV_NOINIT) && !(variable->flags & CV_CALL))
 		I_Error("variable %s have CV_NOINIT without CV_CALL\n");
@@ -908,12 +900,12 @@ void CV_RegisterVar(consvar_t * variable)
 #endif
 	if (variable->flags & CV_NOINIT)
 		variable->flags &= ~CV_CALL;
-
+		
 	Setvalue(variable, variable->defaultvalue);
-
+	
 	if (variable->flags & CV_NOINIT)
 		variable->flags |= CV_CALL;
-
+		
 	// the SetValue will set this bit
 	variable->flags &= ~CV_MODIFIED;
 	
@@ -922,7 +914,7 @@ void CV_RegisterVar(consvar_t * variable)
 	{
 		if (cvar == variable)
 			continue;
-		
+			
 		if (cvar->flags & CV_ALIAS && cvar->aliasto)
 			if (!strcmp(variable->name, cvar->aliasto))
 			{
@@ -939,7 +931,7 @@ void CV_RegisterVar(consvar_t * variable)
 					for (i = 0; i < variable->ACount; i++)
 						if (variable->ALink[i] == cvar)
 							j = 1;
-					
+							
 					// Didn't find it
 					if (!j)
 					{
@@ -965,7 +957,7 @@ void CV_RegisterVar(consvar_t * variable)
 					for (i = 0; i < cvar->ACount; i++)
 						if (cvar->ALink[i] == variable)
 							j = 1;
-					
+							
 					// Didn't find it
 					if (!j)
 					{
@@ -985,6 +977,7 @@ void CV_UnRegisterVar(consvar_t* var)
 {
 	consvar_t* rover = NULL;
 	consvar_t* brover = NULL;
+	
 	// Return if NULL
 	if (!var)
 		return;
@@ -992,7 +985,7 @@ void CV_UnRegisterVar(consvar_t* var)
 	for (rover = consvar_vars; rover; brover = rover, rover = rover->next)
 		if (rover == var)
 		{
-			if (brover)	// might be the first CVAR!
+			if (brover)			// might be the first CVAR!
 				brover->next = rover->next;
 			if (rover == consvar_vars)
 				consvar_vars = rover->next;
@@ -1005,10 +998,10 @@ void CV_UnRegisterVar(consvar_t* var)
 
 //  Returns the string value of a console var
 //
-static char *CV_StringValue(char *var_name)
+static char* CV_StringValue(char* var_name)
 {
-	consvar_t *var;
-
+	consvar_t* var;
+	
 	var = CV_FindVar(var_name);
 	if (!var)
 		return cv_null_string;
@@ -1017,28 +1010,28 @@ static char *CV_StringValue(char *var_name)
 
 //  Completes the name of a console var
 //
-char *CV_CompleteVar(char *partial, int skips)
+char* CV_CompleteVar(char* partial, int skips)
 {
-	consvar_t *cvar;
+	consvar_t* cvar;
 	int len;
-
+	
 	len = strlen(partial);
-
+	
 	if (!len)
 		return NULL;
-
+		
 	// check functions
 	for (cvar = consvar_vars; cvar; cvar = cvar->next)
 		if (!strncmp(partial, cvar->name, len))
 			if (!skips--)
 				return cvar->name;
-
+				
 	return NULL;
 }
 
 // set value to the variable, no check only for internal use
 //
-void Setvalue(consvar_t * var, char *valstr)
+void Setvalue(consvar_t* var, char* valstr)
 {
 	int i;
 	
@@ -1052,15 +1045,16 @@ void Setvalue(consvar_t * var, char *valstr)
 		if (!ActualVar)
 			return;
 	}
-	
 	// All normal
 	if (ActualVar->PossibleValue)
 	{
 		int v = atoi(valstr);
-
+		
 		if (!strcasecmp(ActualVar->PossibleValue[0].strvalue, "MIN"))
-		{						// bounded cvar
+		{
+			// bounded cvar
 			int i;
+			
 			// search for maximum
 			for (i = 1; ActualVar->PossibleValue[i].strvalue != NULL; i++)
 				if (!strcasecmp(ActualVar->PossibleValue[i].strvalue, "MAX"))
@@ -1095,39 +1089,37 @@ void Setvalue(consvar_t * var, char *valstr)
 			for (i = 0; ActualVar->PossibleValue[i].strvalue != NULL; i++)
 				if (v == ActualVar->PossibleValue[i].value)
 					goto found;
-
-		  error:				// not found
+					
+error:							// not found
 			CONS_Printf("\"%s\" is not a possible value for \"%s\"\n", valstr, ActualVar->name);
 			if (ActualVar->defaultvalue == valstr)
-				I_Error
-					("Variable %s default value \"%s\" is not a possible value\n",
-					 ActualVar->name, ActualVar->defaultvalue);
+				I_Error("Variable %s default value \"%s\" is not a possible value\n", ActualVar->name, ActualVar->defaultvalue);
 			return;
-		  found:
+found:
 			ActualVar->value = ActualVar->PossibleValue[i].value;
 			ActualVar->string = ActualVar->PossibleValue[i].strvalue;
 			
 			goto finish;
 		}
 	}
-
 	// free the old value string
 	if (var->string)
 		Z_Free(ActualVar->string);
-
+		
 	ActualVar->string = Z_StrDup(valstr, PU_STATIC, NULL);
-
+	
 	if (ActualVar->flags & CV_FLOAT)
 	{
 		double d;
+		
 		d = atof(ActualVar->string);
 		ActualVar->value = d * FRACUNIT;
 	}
 	else
 		ActualVar->value = atoi(ActualVar->string);
-	
-  finish:
-  	/* Match Aliases to value */
+		
+finish:
+	/* Match Aliases to value */
 	if (ActualVar->ALink && ActualVar->ACount)
 	{
 		for (i = 0; i < ActualVar->ACount; i++)
@@ -1138,13 +1130,14 @@ void Setvalue(consvar_t * var, char *valstr)
 		}
 	}
 	
-	if (ActualVar->flags & CV_SHOWMODIFONETIME || ActualVar->flags & CV_SHOWMODIF || (var->flags & CV_ALIAS && var->flags & CV_DEPRECATED) || var->flags & CV_DEPRECATED)
+	if (ActualVar->flags & CV_SHOWMODIFONETIME || ActualVar->flags & CV_SHOWMODIF || (var->flags & CV_ALIAS && var->flags & CV_DEPRECATED) ||
+	var->flags & CV_DEPRECATED)
 	{
 		if (var->flags & CV_ALIAS && var->flags & CV_DEPRECATED)
 			CONS_Printf("Please use \"%s\" instead of \"%s\", as the latter will be removed.\n", var->aliasto, var->name);
 		else if (var->flags & CV_DEPRECATED)
 			CONS_Printf("%s is deprecated and will be removed in a future version.\n", var->name);
-		
+			
 		CONS_Printf("%s set to %s\n", ActualVar->name, ActualVar->string);
 		ActualVar->flags &= ~CV_SHOWMODIFONETIME;
 	}
@@ -1156,58 +1149,59 @@ void Setvalue(consvar_t * var, char *valstr)
 
 //  does as if "<varname> <value>" is entered at the console
 //
-void CV_Set(consvar_t * var, char *value)
+void CV_Set(consvar_t* var, char* value)
 {
 	//changed = strcmp(var->string, value);
-/*#ifdef PARANOIA
-	if (!var)
-		I_Error("CV_Set : no variable\n");
-	if (!var->string)
-		I_Error("cv_Set : %s no string set ?!\n", var->name);
-#endif
-	if (strcasecmp(var->string, value) == 0)
-		return;					// no changes*/
-
+	
+	/*#ifdef PARANOIA
+		if (!var)
+			I_Error("CV_Set : no variable\n");
+		if (!var->string)
+			I_Error("cv_Set : %s no string set ?!\n", var->name);
+	#endif
+		if (strcasecmp(var->string, value) == 0)
+			return;					// no changes*/
+	
 	Setvalue(var, value);
 }
 
 //  Expands value to string before calling CV_Set ()
 //
-void CV_SetValue(consvar_t * var, int value)
+void CV_SetValue(consvar_t* var, int value)
 {
 	char val[32];
-
+	
 	sprintf(val, "%d", value);
 	CV_Set(var, val);
 }
 
-void CV_AddValue(consvar_t * var, int increment)
+void CV_AddValue(consvar_t* var, int increment)
 {
 	int newvalue = var->value + increment;
-
+	
 	if (var->PossibleValue)
 	{
 #define MIN 0
-
+	
 		if (strcmp(var->PossibleValue[MIN].strvalue, "MIN") == 0)
 		{
 			int max;
+			
 			// seach the next to last
 			for (max = 0; var->PossibleValue[max + 1].strvalue != NULL; max++)
 				;
-
+				
 			if (newvalue < var->PossibleValue[MIN].value)
 				newvalue += var->PossibleValue[max].value - var->PossibleValue[MIN].value + 1;	// add the max+1
 			newvalue = var->PossibleValue[MIN].value +
-				(newvalue - var->PossibleValue[MIN].value) %
-				(var->PossibleValue[max].value - var->PossibleValue[MIN].value + 1);
-
+			(newvalue - var->PossibleValue[MIN].value) % (var->PossibleValue[max].value - var->PossibleValue[MIN].value + 1);
+			
 			CV_SetValue(var, newvalue);
 		}
 		else
 		{
 			int max, currentindice = -1, newindice;
-
+			
 			// this code do not support more than same value for differant PossibleValue
 			for (max = 0; var->PossibleValue[max].strvalue != NULL; max++)
 				if (var->PossibleValue[max].value == var->value)
@@ -1232,29 +1226,30 @@ void CV_AddValue(consvar_t * var, int increment)
 //
 static bool_t CV_Command(void)
 {
-	consvar_t *v;
-
+	consvar_t* v;
+	
 	// check variables
 	v = CV_FindVar(COM_Argv(0));
 	if (!v)
 		return false;
-
+		
 	// perform a variable print or set
 	if (COM_Argc() == 1)
 	{
 		CONS_Printf("\"%s\" is \"%s\" default is \"%s\"\n", v->name, v->string, v->defaultvalue);
 		return true;
 	}
-
+	
 	CV_Set(v, COM_Argv(1));
 	return true;
 }
 
 //  Save console variables that have the CV_SAVE flag set but not CV_ALIAS
 //
-void CV_SaveVariables(FILE * f)
+void CV_SaveVariables(FILE* f)
 {
-	consvar_t *cvar;
+	consvar_t* cvar;
+	
 	for (cvar = consvar_vars; cvar; cvar = cvar->next)
 		if (cvar->flags & CV_SAVE & !(cvar->flags & CV_ALIAS))
 			fprintf(f, "%s \"%s\"\n", cvar->name, cvar->string);
@@ -1266,26 +1261,26 @@ void CV_SaveVariables(FILE * f)
 
 //  Parse a token out of a string, handles script files too
 //  returns the data pointer after the token
-static char *COM_Parse(char *data)
+static char* COM_Parse(char* data)
 {
 	int c;
 	int len;
-
+	
 	len = 0;
 	com_token[0] = 0;
-
+	
 	if (!data)
 		return NULL;
-
+		
 // skip whitespace
-  skipwhite:
+skipwhite:
 	while ((c = *data) <= ' ')
 	{
 		if (c == 0)
 			return NULL;		// end of file;
 		data++;
 	}
-
+	
 // skip // comments
 	if (c == '/' && data[1] == '/')
 	{
@@ -1293,7 +1288,6 @@ static char *COM_Parse(char *data)
 			data++;
 		goto skipwhite;
 	}
-
 // handle quoted strings specially
 	if (c == '\"')
 	{
@@ -1310,7 +1304,6 @@ static char *COM_Parse(char *data)
 			len++;
 		}
 	}
-
 // parse single characters
 	if (c == '{' || c == '}' || c == ')' || c == '(' || c == '\'' || c == ':')
 	{
@@ -1319,7 +1312,6 @@ static char *COM_Parse(char *data)
 		com_token[len] = 0;
 		return data + 1;
 	}
-
 // parse a regular word
 	do
 	{
@@ -1331,8 +1323,7 @@ static char *COM_Parse(char *data)
 			break;
 	}
 	while (c > 32);
-
+	
 	com_token[len] = 0;
 	return data;
 }
-

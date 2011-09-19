@@ -56,5 +56,4 @@ extern consvar_t cv_dc_classicrocketblast;
 extern consvar_t cv_dc_classicmeleerange;
 extern consvar_t cv_dc_classicmonsterlogic;
 
-#endif /* __P_DEMCMP_H__ */
-
+#endif							/* __P_DEMCMP_H__ */

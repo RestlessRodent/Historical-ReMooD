@@ -63,7 +63,7 @@ typedef enum
 	GAMMALVL3_NUM,				//Gamma correction level 3
 	GAMMALVL4_NUM,				//Gamma correction level 4
 	EMPTYSTRING_NUM,			//empty slot
-
+	
 	/* Powerups/armor/health/keys */
 	GOTARMOR_NUM,				//Picked up the armor.
 	GOTMEGA_NUM,				//Picked up the MegaArmor!
@@ -86,7 +86,7 @@ typedef enum
 	GOTMAP_NUM,					//Computer Area Map
 	GOTVISOR_NUM,				//Light Amplification Visor
 	GOTMSPHERE_NUM,				//MegaSphere!
-
+	
 	/* Ammo */
 	GOTCLIP_NUM,				//Picked up a clip.
 	GOTCLIPBOX_NUM,				//Picked up a box of bullets.
@@ -97,7 +97,7 @@ typedef enum
 	GOTSHELLS_NUM,				//Picked up 4 shotgun shells.
 	GOTSHELLBOX_NUM,			//Picked up a box of shotgun shells.
 	GOTBACKPACK_NUM,			//Picked up a backpack full of ammo!
-
+	
 	/* Weapons */
 	GOTBFG9000_NUM,				//You got the BFG9000!  Oh, yes.
 	GOTCHAINGUN_NUM,			//You got the chaingun!
@@ -106,7 +106,7 @@ typedef enum
 	GOTPLASMA_NUM,				//You got the plasma gun!
 	GOTSHOTGUN_NUM,				//You got the shotgun!
 	GOTSHOTGUN2_NUM,			//You got the super shotgun!
-
+	
 	/* Misc */
 	PD_BLUEO_NUM,				//You need a blue key to activate this object
 	PD_REDO_NUM,				//You need a red key to activate this object
@@ -116,7 +116,7 @@ typedef enum
 	PD_YELLOWK_NUM,				//You need a yellow key to open this door
 	GGSAVED_NUM,				//game saved.
 	HUSTR_MSGU_NUM,				//[Message unsent]
-
+	
 	/* Ultimate Doom Maps */
 	HUSTR_E1M1_NUM,				//E1M1: Hangar
 	HUSTR_E1M2_NUM,				//E1M2: Nuclear Plant
@@ -154,7 +154,7 @@ typedef enum
 	HUSTR_E4M7_NUM,				//E4M7: And Hell Followed
 	HUSTR_E4M8_NUM,				//E4M8: Unto The Cruel
 	HUSTR_E4M9_NUM,				//E4M9: Fear
-
+	
 	/* Doom2 Maps */
 	HUSTR_1_NUM,				//level 1: entryway
 	HUSTR_2_NUM,				//level 2: underhalls
@@ -188,7 +188,7 @@ typedef enum
 	HUSTR_30_NUM,				//level 30: icon of sin
 	HUSTR_31_NUM,				//level 31: wolfenstein
 	HUSTR_32_NUM,				//level 32: grosse
-
+	
 	/* Plutonia Maps */
 	PHUSTR_1_NUM,				//level 1: congo
 	PHUSTR_2_NUM,				//level 2: well of souls
@@ -222,7 +222,7 @@ typedef enum
 	PHUSTR_30_NUM,				//level 30: the gateway of hell
 	PHUSTR_31_NUM,				//level 31: cyberden
 	PHUSTR_32_NUM,				//level 32: go 2 it
-
+	
 	/* TNT Maps */
 	THUSTR_1_NUM,				//level 1: system control
 	THUSTR_2_NUM,				//level 2: human bbq
@@ -256,7 +256,7 @@ typedef enum
 	THUSTR_30_NUM,				//level 30: last call
 	THUSTR_31_NUM,				//level 31: pharaoh
 	THUSTR_32_NUM,				//level 32: caribbean
-
+	
 	/* Chat Macros */
 	HUSTR_CHATMACRO1_NUM,		//I'm ready to kick butt!
 	HUSTR_CHATMACRO2_NUM,		//I'm OK.
@@ -274,7 +274,7 @@ typedef enum
 	HUSTR_TALKTOSELF4_NUM,		//You start to rave
 	HUSTR_TALKTOSELF5_NUM,		//You've lost it...
 	HUSTR_MESSAGESENT_NUM,		//[Message Sent]
-
+	
 	/* Automap */
 	AMSTR_FOLLOWON_NUM,			//Follow Mode ON
 	AMSTR_FOLLOWOFF_NUM,		//Follow Mode OFF
@@ -282,7 +282,7 @@ typedef enum
 	AMSTR_GRIDOFF_NUM,			//Grid OFF
 	AMSTR_MARKEDSPOT_NUM,		//Marked Spot
 	AMSTR_MARKSCLEARED_NUM,		//All Marks Cleared
-
+	
 	/* Cheats */
 	STSTR_MUS_NUM,				//Music Change
 	STSTR_NOMUS_NUM,			//IMPOSSIBLE SELECTION
@@ -296,7 +296,7 @@ typedef enum
 	STSTR_BEHOLDX_NUM,			//Power-up Toggled
 	STSTR_CHOPPERS_NUM,			//... doesn't suck - GM
 	STSTR_CLEV_NUM,				//Changing Level...
-
+	
 	/* End Text */
 	E1TEXT_NUM,
 	E2TEXT_NUM,
@@ -314,7 +314,7 @@ typedef enum
 	T4TEXT_NUM,
 	T5TEXT_NUM,
 	T6TEXT_NUM,
-
+	
 	/* Finale Cast */
 	CC_ZOMBIE_NUM,				//ZOMBIEMAN
 	CC_SHOTGUN_NUM,				//SHOTGUN GUY
@@ -333,7 +333,7 @@ typedef enum
 	CC_SPIDER_NUM,				//THE SPIDER MASTERMIND
 	CC_CYBER_NUM,				//THE CYBERDEMON
 	CC_HERO_NUM,				//OUR HERO
-
+	
 	/* Quit Messages - Doom1 */
 	QUITMSG_NUM,				//are you sure you want to quit this great game?
 	QUITMSG1_NUM,				//please don't leave, there's more demons to toast!
@@ -343,7 +343,7 @@ typedef enum
 	QUITMSG5_NUM,				//don't leave yet -- there's a demon around that corner!
 	QUITMSG6_NUM,				//ya know, next time you come in here i'm gonna toast ya.
 	QUITMSG7_NUM,				//go ahead and leave. see if i care.
-
+	
 	/* Quit Messages - Doom2 */
 	QUIT2MSG_NUM,				//you want to quit? then, thou hast lost an eighth!
 	QUIT2MSG1_NUM,				//don't go now, there's a dimensional shambler waiting at the dos prompt!
@@ -352,7 +352,7 @@ typedef enum
 	QUIT2MSG4_NUM,				//look, bud. you leave now and you forfeit your body count!
 	QUIT2MSG5_NUM,				//just leave. when you come back, i'll be waiting with a bat.
 	QUIT2MSG6_NUM,				//you're lucky i don't smack you for thinking about leaving.
-
+	
 	/* Flats */
 	FLOOR4_8_NUM,				//FLOOR4_8
 	SFLR6_1_NUM,				//SFLR6_1
@@ -364,24 +364,24 @@ typedef enum
 	RROCK17_NUM,				//RROCK17
 	RROCK13_NUM,				//RROCK13
 	RROCK19_NUM,				//RROCK19
-
+	
 	CREDIT_NUM,					//CREDIT
 	HELP2_NUM,					//HELP2
 	VICTORY2_NUM,				//VICTORY2
 	ENDPIC_NUM,					//ENDPIC
-
+	
 	/* Dos screen */
 	MODIFIED_NUM,
 	SHAREWARE_NUM,
 	COMERCIAL_NUM,
-
+	
 	/* Startup messages */
 	AUSTIN_NUM,					//Austin Virtual Gaming: Levels will end after 20 minutes
 	M_LOAD_NUM,					//M_LoadDefaults: Load system defaults.
 	Z_INIT_NUM,					//Z_Init: Init zone memory allocation daemon.
 	W_INIT_NUM,					//W_Init: Init WADfiles.
 	M_INIT_NUM,					//M_Init: Init miscellaneous info.
-	R_INIT_NUM,					//R_Init: Init DOOM refresh daemon - 
+	R_INIT_NUM,					//R_Init: Init DOOM refresh daemon -
 	P_INIT_NUM,					//P_Init: Init Playloop state.
 	I_INIT_NUM,					//I_Init: Setting up machine state.
 	D_CHECKNET_NUM,				//D_CheckNetGame: Checking network game status.
@@ -389,23 +389,23 @@ typedef enum
 	HU_INIT_NUM,				//HU_Init: Setting up heads up display.
 	ST_INIT_NUM,				//ST_Init: Init status bar.
 	STATREG_NUM,				//External statistics registered.
-
+	
 	/* IWADS */
 	DOOM2WAD_NUM,				//doom2.wad
 	DOOMUWAD_NUM,				//doomu.wad
 	DOOMWAD_NUM,				//doom.wad
 	DOOM1WAD_NUM,				//doom1.wad
-
+	
 	/* Unused */
 	CDROM_DIR_NUM,				//c:\\doomdata
 	CDROM_DEF_NUM,				//c:/doomdata/default.cfg
 	CDROM_SAVE_NUM,				//c:\\doomdata\\" SAVEGAMENAME "%c.dsg
 	NORM_SAVE_NUM,				//SAVEGAMENAME "%c.dsg"
-
+	
 	/* CDROM misc */
 	CDROM_SAVEI_NUM,			//c:\\doomdata\\" SAVEGAMENAME "%d.dsg
 	NORM_SAVEI_NUM,				//SAVEGAMENAME "%d.dsg"
-
+	
 	//SoM: 3/9/2000: Add boom messages.
 	PD_BLUEC_NUM,				//You need a blue card to open this door
 	PD_REDC_NUM,				//You need a red card to open this door
@@ -418,7 +418,7 @@ typedef enum
 	PD_ALL6_NUM,				//You need all six keys to open this door
 	
 	// heretic stuff
-
+	
 	TXT_ARTIHEALTH_NUM,
 	TXT_ARTIFLY_NUM,
 	TXT_ARTIINVULNERABILITY_NUM,
@@ -429,7 +429,7 @@ typedef enum
 	TXT_ARTITORCH_NUM,
 	TXT_ARTIFIREBOMB_NUM,
 	TXT_ARTITELEPORT_NUM,
-
+	
 	TXT_AMMOGOLDWAND1_NUM,
 	TXT_AMMOGOLDWAND2_NUM,
 	TXT_AMMOMACE1_NUM,
@@ -442,16 +442,16 @@ typedef enum
 	TXT_AMMOSKULLROD2_NUM,
 	TXT_AMMOPHOENIXROD1_NUM,
 	TXT_AMMOPHOENIXROD2_NUM,
-
+	
 	TXT_WPNMACE_NUM,
 	TXT_WPNCROSSBOW_NUM,
 	TXT_WPNBLASTER_NUM,
 	TXT_WPNSKULLROD_NUM,
 	TXT_WPNPHOENIXROD_NUM,
 	TXT_WPNGAUNTLETS_NUM,
-
+	
 	TXT_ITEMBAGOFHOLDING_NUM,
-
+	
 	TXT_CHEATGODON_NUM,
 	TXT_CHEATGODOFF_NUM,
 	TXT_CHEATNOCLIPON_NUM,
@@ -478,7 +478,7 @@ typedef enum
 	TXT_CHEATMASSACRE_NUM,
 	TXT_CHEATIDDQD_NUM,
 	TXT_CHEATIDKFA_NUM,
-
+	
 	HERETIC_E1M1_NUM,
 	HERETIC_E1M2_NUM,
 	HERETIC_E1M3_NUM,
@@ -527,13 +527,13 @@ typedef enum
 	HERETIC_E6M1_NUM,
 	HERETIC_E6M2_NUM,
 	HERETIC_E6M3_NUM,
-
+	
 	HERETIC_E1TEXT,
 	HERETIC_E2TEXT,
 	HERETIC_E3TEXT,
 	HERETIC_E4TEXT,
 	HERETIC_E5TEXT,
-
+	
 	DEATHMSG_SUICIDE,
 	DEATHMSG_TELEFRAG,
 	DEATHMSG_FIST,
@@ -611,18 +611,18 @@ typedef enum
 	DEATHMSG_UNDEADWARRIOR,
 	DEATHMSG_GHOSTUNDEADWARRIOR,
 	DEATHMSG_WEREDRAGON,
-
+	
 	SPECIALDEHACKED,
-
+	
 	DOOM2TITLE_NUM = SPECIALDEHACKED,	//DOOM 2: Hell on Earth
 	DOOMUTITLE_NUM,				//The Ultimate DOOM Startup
 	DOOMTITLE_NUM,				//DOOM Registered Startup
 	DOOM1TITLE_NUM,				//DOOM Shareware Startup
-
+	
 	NUMTEXT
 } text_enum;
 
-extern char *text[];
+extern char* text[];
 
 //
 //      Printed strings for translation
@@ -1036,4 +1036,3 @@ extern char *text[];
 #define TXT_CHEATIDKFA           text[TXT_CHEATIDKFA_NUM]
 
 #endif
-

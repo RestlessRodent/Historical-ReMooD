@@ -82,11 +82,11 @@
 //       for other tables (thus 1090,2080,5050,8020,9010, and fire special)
 typedef enum
 {
-	tr_transmed = VEX_TRANS50,			//sprite 50 backg 50  most shots
-	tr_transmor = VEX_TRANS80,			//       20       80  puffs
-	tr_transhi = VEX_TRANS90,				//       10       90  blur effect
-	tr_transfir = VEX_TRANSFIRE,			// 50 50 but brighter for fireballs, shots..
-	tr_transfx1 = VEX_TRANSFX1,				// 50 50 brighter some colors, else opaque for torches
+	tr_transmed = VEX_TRANS50,	//sprite 50 backg 50  most shots
+	tr_transmor = VEX_TRANS80,	//       20       80  puffs
+	tr_transhi = VEX_TRANS90,	//       10       90  blur effect
+	tr_transfir = VEX_TRANSFIRE,	// 50 50 but brighter for fireballs, shots..
+	tr_transfx1 = VEX_TRANSFX1,	// 50 50 brighter some colors, else opaque for torches
 } transnum_t;
 
 //
@@ -103,11 +103,11 @@ typedef enum
 
 typedef struct
 {
-	state_t *state;				// a NULL state means not active
+	state_t* state;				// a NULL state means not active
 	int tics;
 	fixed_t sx;
 	fixed_t sy;
-
+	
 } pspdef_t;
 
 void P_OpenWeapons(void);

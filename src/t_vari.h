@@ -44,6 +44,7 @@
 #define __VARIABLE_H__
 
 typedef struct svariable_s svariable_t;
+
 #define VARIABLESLOTS 16
 
 #include "t_parse.h"
@@ -57,28 +58,28 @@ typedef struct svariable_s svariable_t;
                    ((n)[1] ? (n)[2] +   \
                    ((n)[2] ? (n)[3]  : 0) : 0) ) % VARIABLESLOTS )
 
-	 // svariable_t
+// svariable_t
 struct svariable_s
 {
-	char *name;
+	char* name;
 	int type;					// vt_string or vt_int: same as in svalue_t
 	union
 	{
-		char *s;
+		char* s;
 		long i;
-		mobj_t *mobj;
+		mobj_t* mobj;
 		fixed_t fixed;
-
-		char **pS;				// pointer to game string
-		int *pI;				// pointer to game int
-		fixed_t *pFixed;
-		mobj_t **pMobj;			// pointer to game obj
-		double *pf;
-
+		
+		char** pS;				// pointer to game string
+		int* pI;				// pointer to game int
+		fixed_t* pFixed;
+		mobj_t** pMobj;			// pointer to game obj
+		double* pf;
+		
 		void (*handler) ();		// for functions
-		char *labelptr;			// for labels
+		char* labelptr;			// for labels
 	} value;
-	svariable_t *next;			// for hashing
+	svariable_t* next;			// for hashing
 };
 
 // variable types
@@ -103,27 +104,27 @@ enum
 void T_ClearHubScript();
 
 void init_variables();
-svariable_t *new_variable(script_t * script, char *name, int vtype);
-svariable_t *find_variable(char *name);
-svariable_t *variableforname(script_t * script, char *name);
-svalue_t getvariablevalue(svariable_t * v);
-void setvariablevalue(svariable_t * v, svalue_t newvalue);
-void clear_variables(script_t * script);
+svariable_t* new_variable(script_t* script, char* name, int vtype);
+svariable_t* find_variable(char* name);
+svariable_t* variableforname(script_t* script, char* name);
+svalue_t getvariablevalue(svariable_t* v);
+void setvariablevalue(svariable_t* v, svalue_t newvalue);
+void clear_variables(script_t* script);
 
-svariable_t *add_game_int(char *name, int *var);
-svariable_t *add_game_string(char *name, char **var);
-svariable_t *add_game_mobj(char *name, mobj_t ** mo);
+svariable_t* add_game_int(char* name, int* var);
+svariable_t* add_game_string(char* name, char** var);
+svariable_t* add_game_mobj(char* name, mobj_t** mo);
 
 // functions
 
 svalue_t evaluate_function(int start, int stop);	// actually run a function
-svariable_t *new_function(char *name, void (*handler) ());
+svariable_t* new_function(char* name, void (*handler) ());
 
 // arguments to handler functions
 
 #define MAXARGS 128
 extern int t_argc;
-extern svalue_t *t_argv;
+extern svalue_t* t_argv;
 extern svalue_t t_return;
 
 #endif

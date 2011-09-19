@@ -36,7 +36,7 @@
 #include "doomtype.h"
 
 // Takes full 8 bit values.
-void I_SetPalette(RGBA_t * palette);
+void I_SetPalette(RGBA_t* palette);
 
 void I_UpdateNoBlit(void);
 void I_FinishUpdate(void);
@@ -44,7 +44,7 @@ void I_FinishUpdate(void);
 // Wait for vertical retrace or pause a bit.
 void I_WaitVBL(int count);
 
-void I_ReadScreen(uint8_t * scr);
+void I_ReadScreen(uint8_t* scr);
 
 /****************
 *** FUNCTIONS ***
@@ -66,4 +66,3 @@ bool_t I_RemoveMouse(const size_t a_ID);
 void I_MouseGrab(const bool_t a_Grab);
 
 #endif
-

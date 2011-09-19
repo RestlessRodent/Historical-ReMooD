@@ -39,18 +39,18 @@
 // COMMON STUFF FOR 8bpp AND 16bpp
 // -------------------------------
 extern uint8_t** activeylookup;
-extern uint8_t **ylookup;
-extern uint8_t **ylookup1;
-extern uint8_t **ylookup2;
-extern uint8_t **ylookup4[MAXSPLITSCREENPLAYERS];
+extern uint8_t** ylookup;
+extern uint8_t** ylookup1;
+extern uint8_t** ylookup2;
+extern uint8_t** ylookup4[MAXSPLITSCREENPLAYERS];
 extern int* columnofs;
 
 // -------------------------
 // COLUMN DRAWING CODE STUFF
 // -------------------------
 
-extern lighttable_t *dc_colormap;
-extern lighttable_t *dc_wcolormap;	//added:24-02-98:WATER!
+extern lighttable_t* dc_colormap;
+extern lighttable_t* dc_wcolormap;	//added:24-02-98:WATER!
 extern int dc_x;
 extern int dc_yl;
 extern int dc_yh;
@@ -58,11 +58,11 @@ extern int dc_yw;				//added:24-02-98:WATER!
 extern fixed_t dc_iscale;
 extern fixed_t dc_texturemid;
 
-extern uint8_t *dc_source;			// first pixel in a column
+extern uint8_t* dc_source;		// first pixel in a column
 
 // translucency stuff here
-extern uint8_t *transtables;		// translucency tables, should be (*transtables)[5][256][256]
-extern uint8_t *dc_transmap;
+extern uint8_t* transtables;	// translucency tables, should be (*transtables)[5][256][256]
+extern uint8_t* dc_transmap;
 
 // Variable flat sizes SSNTails 06-10-2003
 extern int flatsize;
@@ -71,10 +71,10 @@ extern int flatsubtract;
 
 // translation stuff here
 
-extern uint8_t *translationtables;
-extern uint8_t *dc_translation;
+extern uint8_t* translationtables;
+extern uint8_t* dc_translation;
 
-extern struct r_lightlist_s *dc_lightlist;
+extern struct r_lightlist_s* dc_lightlist;
 extern int dc_numlights;
 extern int dc_maxlights;
 
@@ -89,15 +89,15 @@ extern int ds_y;
 extern int ds_x1;
 extern int ds_x2;
 
-extern lighttable_t *ds_colormap;
+extern lighttable_t* ds_colormap;
 
 extern fixed_t ds_xfrac;
 extern fixed_t ds_yfrac;
 extern fixed_t ds_xstep;
 extern fixed_t ds_ystep;
 
-extern uint8_t *ds_source;			// start of a 64*64 tile image
-extern uint8_t *ds_transmap;
+extern uint8_t* ds_source;		// start of a 64*64 tile image
+extern uint8_t* ds_transmap;
 
 // viewborder patches lump numbers
 #define BRDR_T      0
@@ -117,6 +117,7 @@ extern int viewborderlump[8];
 
 //added:26-01-98: called by SCR_Recalc() when video mode changes
 void R_RecalcFuzzOffsets(void);
+
 // Initialize color translation tables, for player rendering etc.
 void R_InitTranslationTables(void);
 
@@ -141,14 +142,14 @@ void R_DrawViewBorder(void);
 void R_DrawHColumn_8(void);
 #endif
 
-void  R_DrawColumn_8(void);
-void  R_DrawSkyColumn_8(void);
-void  R_DrawShadeColumn_8(void);	//smokie test..
-void  R_DrawFuzzColumn_8(void);
-void  R_DrawTranslucentColumn_8(void);
-void  R_DrawTranslatedColumn_8(void);
-void  R_DrawSpan_8(void);
-void  R_DrawPaintballColumn_8(void);
+void R_DrawColumn_8(void);
+void R_DrawSkyColumn_8(void);
+void R_DrawShadeColumn_8(void);	//smokie test..
+void R_DrawFuzzColumn_8(void);
+void R_DrawTranslucentColumn_8(void);
+void R_DrawTranslatedColumn_8(void);
+void R_DrawSpan_8(void);
+void R_DrawPaintballColumn_8(void);
 
 // SSNTails 11-11-2002
 void R_DrawTranslatedTranslucentColumn_8(void);
@@ -163,12 +164,12 @@ void R_DrawPortalColumn_8(void);
 // 16bpp DRAWING CODE
 // ------------------
 
-void  R_DrawColumn_16(void);
-void  R_DrawSkyColumn_16(void);
-void  R_DrawFuzzColumn_16(void);
-void  R_DrawTranslucentColumn_16(void);
-void  R_DrawTranslatedColumn_16(void);
-void  R_DrawSpan_16(void);
+void R_DrawColumn_16(void);
+void R_DrawSkyColumn_16(void);
+void R_DrawFuzzColumn_16(void);
+void R_DrawTranslucentColumn_16(void);
+void R_DrawTranslatedColumn_16(void);
+void R_DrawSpan_16(void);
 
 // =========================================================================
 #endif							// __R_DRAW__

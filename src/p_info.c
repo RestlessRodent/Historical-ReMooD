@@ -52,20 +52,20 @@
 // Helper functions
 //
 
-void P_LowerCase(char *line)
+void P_LowerCase(char* line)
 {
-	char *temp;
-
+	char* temp;
+	
 	for (temp = line; *temp; temp++)
 		*temp = tolower(*temp);
 }
 
-void P_StripSpaces(char *line)
+void P_StripSpaces(char* line)
 {
-	char *temp;
-
+	char* temp;
+	
 	temp = line + strlen(line) - 1;
-
+	
 	while (*temp == ' ')
 	{
 		*temp = '\0';
@@ -73,10 +73,10 @@ void P_StripSpaces(char *line)
 	}
 }
 
-static void P_RemoveComments(char *line)
+static void P_RemoveComments(char* line)
 {
-	char *temp = line;
-
+	char* temp = line;
+	
 	while (*temp)
 	{
 		if (*temp == '/' && *(temp + 1) == '/')
@@ -88,12 +88,12 @@ static void P_RemoveComments(char *line)
 	}
 }
 
-static void P_RemoveEqualses(char *line)
+static void P_RemoveEqualses(char* line)
 {
-	char *temp;
-
+	char* temp;
+	
 	temp = line;
-
+	
 	while (*temp)
 	{
 		if (*temp == '=')
@@ -114,18 +114,18 @@ static void P_RemoveEqualses(char *line)
 //  '=' sign is optional: all equals signs are internally turned to spaces
 //
 
-char *info_interpic;
-char *info_levelname;
+char* info_interpic;
+char* info_levelname;
 int info_partime;
-char *info_music;
-char *info_skyname;
-char *info_creator;
-char *info_levelpic;
-char *info_nextlevel;
-char *info_nextsecret;
-char *info_intertext = NULL;
-char *info_backdrop;
-char *info_weapons;
+char* info_music;
+char* info_skyname;
+char* info_creator;
+char* info_levelpic;
+char* info_nextlevel;
+char* info_nextsecret;
+char* info_intertext = NULL;
+char* info_backdrop;
+char* info_weapons;
 int info_scripts;				// has the current level got scripts?
 int gravity;
 
@@ -140,11 +140,12 @@ enum
 typedef struct
 {
 	int type;
-	char *name;
-	void *variable;
+	char* name;
+	void* variable;
 } levelvar_t;
 
-levelvar_t levelvars[] = {
+levelvar_t levelvars[] =
+{
 	{IVT_STRING, "levelpic", &info_levelpic},
 	{IVT_STRING, "levelname", &info_levelname},
 	{IVT_INT, "partime", &info_partime},
@@ -161,28 +162,28 @@ levelvar_t levelvars[] = {
 	{IVT_END, 0, 0}
 };
 
-void P_ParseLevelVar(char *cmd)
+void P_ParseLevelVar(char* cmd)
 {
 	char varname[50];
-	char *equals;
-	levelvar_t *current;
-
+	char* equals;
+	levelvar_t* current;
+	
 	if (!*cmd)
 		return;
-
+		
 	P_RemoveEqualses(cmd);
-
+	
 	// right, first find the variable name
-
+	
 	sscanf(cmd, "%s", varname);
-
+	
 	// find what it equals
 	equals = cmd + strlen(varname);
 	while (*equals == ' ')
 		equals++;				// cut off the leading spaces
-
+		
 	current = levelvars;
-
+	
 	while (current->type != IVT_END)
 	{
 		if (!strcasecmp(current->name, varname))
@@ -190,17 +191,18 @@ void P_ParseLevelVar(char *cmd)
 			switch (current->type)
 			{
 				case IVT_STRING:
-					*(char **)current->variable	// +5 for safety
-						= Z_Malloc(strlen(equals) + 5, PU_LEVEL, NULL);
-					strcpy(*(char **)current->variable, equals);
+					*(char**)current->variable	// +5 for safety
+					= Z_Malloc(strlen(equals) + 5, PU_LEVEL, NULL);
+					strcpy(*(char**)current->variable, equals);
 					break;
-
+					
 				case IVT_INT:
-					*(int *)current->variable = atoi(equals);
+					*(int*)current->variable = atoi(equals);
 					break;
 				case IVT_CONSOLECMD:
 					{
 						char t[256];
+						
 						sprintf(t, "%s\n", equals);
 						COM_BufAddText(t);
 					}
@@ -214,24 +216,22 @@ void P_ParseLevelVar(char *cmd)
 // clear all the level variables so that none are left over from a
 // previous level
 
-int isExMy(char *name)
+int isExMy(char* name)
 {
 	if (strlen(name) != 4)
 		return 0;
-
-	if (toupper(name[0]) != 'E' || toupper(name[2]) != 'M' ||
-		!isnumchar(name[1]) || !isnumchar(name[3]) || name[4] != '\0')
+		
+	if (toupper(name[0]) != 'E' || toupper(name[2]) != 'M' || !isnumchar(name[1]) || !isnumchar(name[3]) || name[4] != '\0')
 		return 0;
 	return 1;
 }
 
-int isMAPxy(char *name)
+int isMAPxy(char* name)
 {
 	if (strlen(name) != 5)
 		return 0;
-
-	if (toupper(name[0]) != 'M' || toupper(name[1]) != 'A' ||
-		toupper(name[2]) != 'P' || !isnumchar(name[3]) || !isnumchar(name[4]) || name[5] != '\0')
+		
+	if (toupper(name[0]) != 'M' || toupper(name[1]) != 'A' || toupper(name[2]) != 'P' || !isnumchar(name[3]) || !isnumchar(name[4]) || name[5] != '\0')
 		return 0;
 	return 1;
 }
@@ -242,12 +242,13 @@ void P_ClearLevelVars()
 	info_music = "";
 	info_creator = "unknown";
 	info_partime = -1;
-
+	
 	if (gamemode == commercial && isExMy(levelmapname))
 	{
 		static char nextlevel[10];
+		
 		info_nextlevel = nextlevel;
-
+		
 		// set the next episode
 		strcpy(nextlevel, levelmapname);
 		nextlevel[3]++;
@@ -256,25 +257,25 @@ void P_ClearLevelVars()
 			nextlevel[3] = '1';
 			nextlevel[1]++;
 		}
-
+		
 		info_music = levelmapname;
 	}
 	else
 		info_nextlevel = "";
-
+		
 	info_nextsecret = "";
-
+	
 	info_weapons = "";
 	gravity = FRACUNIT;			// default gravity
-
+	
 	if (info_intertext)
 	{
 		Z_Free(info_intertext);
 		info_intertext = NULL;
 	}
-
+	
 	info_backdrop = NULL;
-
+	
 	T_ClearScripts();
 	info_scripts = false;
 }
@@ -290,7 +291,7 @@ void P_ClearLevelVars()
 //SoM: Dynamic limit set by lumpsize...
 int maxscriptsize = -1;
 
-void P_ParseScriptLine(char *line)
+void P_ParseScriptLine(char* line)
 {
 	if (levelscript.data[0] == 0)
 	{
@@ -298,10 +299,10 @@ void P_ParseScriptLine(char *line)
 		levelscript.data = Z_Malloc(maxscriptsize, PU_LEVEL, 0);
 		levelscript.data[0] = '\0';
 	}
-
+	
 	if ((int)(strlen(levelscript.data) + strlen(line)) > maxscriptsize)
 		I_Error("Script larger than script lump???\n");
-
+		
 	// add the new line to the current data using sprintf (ugh)
 	sprintf(levelscript.data, "%s%s\n", levelscript.data, line);
 }
@@ -313,23 +314,23 @@ void P_ParseScriptLine(char *line)
 // Add line to the custom intertext
 //
 
-void P_ParseInterText(char *line)
+void P_ParseInterText(char* line)
 {
 	while (*line == ' ')
 		line++;
 	if (!*line)
 		return;
-
+		
 	if (info_intertext)
 	{
 		int textlen = strlen(info_intertext);
-
+		
 		if (textlen + 1 > maxscriptsize)
 			I_Error("Intermission text bigger than LUMP?\n");
-
+			
 		// newline
 		info_intertext[textlen] = '\n';
-
+		
 		// add line to end
 		sprintf(info_intertext, "%s\n%s", info_intertext, line);
 	}
@@ -349,12 +350,12 @@ bool_t default_weaponowned[NUMWEAPONS];
 
 void P_InitWeapons()
 {
-	char *s;
-
+	char* s;
+	
 	memset(default_weaponowned, 0, sizeof(default_weaponowned));
-
+	
 	s = info_weapons;
-
+	
 	while (*s)
 	{
 		switch (*s)
@@ -391,25 +392,24 @@ void P_InitWeapons()
 #define HU_TITLET (text[THUSTR_1_NUM + gamemap-1])
 #define HU_TITLEH (text[HERETIC_E1M1_NUM + (gameepisode-1)*9+gamemap-1])
 
-unsigned char *levelname;
+unsigned char* levelname;
 
 void P_FindLevelName()
 {
-	extern char *maplumpname;
-
+	extern char* maplumpname;
+	
 	// determine the level name
 	// there are a number of sources from which it can come from,
 	// getting the right one is the tricky bit =)
 	// info level name from level lump (p_info.c) ?
-
+	
 	if (*info_levelname)
 		levelname = info_levelname;
 	// not a new level or dehacked level names ?
 	else if (!newlevel || deh_loaded)
 	{
 		if (isMAPxy(maplumpname))
-			levelname = gamemission == pack_tnt ? HU_TITLET :
-				gamemission == pack_plut ? HU_TITLEP : HU_TITLE2;
+			levelname = gamemission == pack_tnt ? HU_TITLET : gamemission == pack_plut ? HU_TITLEP : HU_TITLE2;
 		else if (isExMy(maplumpname))
 			levelname = HU_TITLE;
 		else
@@ -418,7 +418,7 @@ void P_FindLevelName()
 	else						//  otherwise just put "new level"
 	{
 		static char newlevelstr[50];
-
+		
 		sprintf(newlevelstr, "%s: new level", maplumpname);
 		levelname = newlevelstr;
 	}
@@ -441,11 +441,11 @@ enum
 	RT_INTERTEXT
 } readtype;
 
-void P_ParseInfoCmd(char *line)
+void P_ParseInfoCmd(char* line)
 {
 	if (!*line)
 		return;
-
+		
 	if (readtype != RT_SCRIPT)	// not for scripts
 	{
 		//      P_LowerCase(line);
@@ -454,10 +454,10 @@ void P_ParseInfoCmd(char *line)
 		if (!*line)
 			return;
 		if ((line[0] == '/' && line[1] == '/') ||	// comment
-			line[0] == '#' || line[0] == ';')
+		        line[0] == '#' || line[0] == ';')
 			return;
 	}
-
+	
 	if (*line == '[')			// a new section seperator
 	{
 		line++;
@@ -472,21 +472,21 @@ void P_ParseInfoCmd(char *line)
 			readtype = RT_INTERTEXT;
 		return;
 	}
-
+	
 	switch (readtype)
 	{
 		case RT_LEVELINFO:
 			P_ParseLevelVar(line);
 			break;
-
+			
 		case RT_SCRIPT:
 			P_ParseScriptLine(line);
 			break;
-
+			
 		case RT_INTERTEXT:
 			P_ParseInterText(line);
 			break;
-
+			
 		case RT_OTHER:
 			break;
 	}
@@ -501,17 +501,17 @@ void P_ParseInfoCmd(char *line)
 
 void P_LoadLevelInfo(int lumpnum)
 {
-	char *lump;
-	char *readline;
+	char* lump;
+	char* readline;
 	int lumpsize;
-
+	
 	readtype = RT_OTHER;
 	P_ClearLevelVars();
-
+	
 	lumpsize = maxscriptsize = W_LumpLength(lumpnum);
 	readline = Z_Malloc(lumpsize + 1, PU_STATIC, 0);
 	readline[0] = '\0';
-
+	
 	if (lumpsize > 0)
 	{
 		rover = lump = W_CacheLumpNum(lumpnum, PU_STATIC);
@@ -524,25 +524,25 @@ void P_LoadLevelInfo(int lumpnum)
 			}
 			else
 				// add to line if valid char
-			if (isprint(*rover) || *rover == '{' || *rover == '}')
-			{
-				// add char
-				readline[strlen(readline) + 1] = '\0';
-				readline[strlen(readline)] = *rover;
-			}
-
+				if (isprint(*rover) || *rover == '{' || *rover == '}')
+				{
+					// add char
+					readline[strlen(readline) + 1] = '\0';
+					readline[strlen(readline)] = *rover;
+				}
+				
 			rover++;
 		}
-
+		
 		// parse last line
 		P_ParseInfoCmd(readline);
 		Z_Free(lump);
 	}
 	Z_Free(readline);
-
+	
 	P_InitWeapons();
 	P_FindLevelName();
-
+	
 	//Set the gravity for the level!
 	if (cv_gravity.value != gravity)
 	{
@@ -551,7 +551,7 @@ void P_LoadLevelInfo(int lumpnum)
 		else
 			COM_BufAddText(va("gravity %f\n", ((double)gravity) / FRACUNIT));
 	}
-
+	
 	COM_BufExecute();			//Hurdler: flush the command buffer
 	return;
 }
@@ -565,6 +565,7 @@ void COM_Creator_f(void)
 {
 	CONS_Printf("%s\n", info_creator);
 }
+
 void COM_Levelname_f(void)
 {
 	CONS_Printf("%s\n", levelname);
@@ -576,13 +577,13 @@ void P_Info_AddCommands()
 	COM_AddCommand("levelname", COM_Levelname_f);
 }
 
-char *P_LevelName()
+char* P_LevelName()
 {
 	return levelname;
 }
 
 // todo : make this use mapinfo lump
-char *P_LevelNameByNum(int episode, int map)
+char* P_LevelNameByNum(int episode, int map)
 {
 	switch (gamemode)
 	{

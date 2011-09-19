@@ -49,7 +49,7 @@ typedef enum
 	BT_ATTACK = 1,
 	// Use button, to open doors, activate switches.
 	BT_USE = 2,
-
+	
 	// Flag, weapon change pending.
 	// If true, the next 3 bits hold weapon num.
 	BT_CHANGE = 4,
@@ -77,12 +77,12 @@ typedef enum
 typedef struct
 {
 	int8_t forwardmove;			// *2048 for move
-	int8_t sidemove;				// *2048 for move
+	int8_t sidemove;			// *2048 for move
 	int16_t angleturn;			// <<16 for angle delta
 	// SAVED AS A BYTE into demos
-	uint16_t aiming;		//added:16-02-98:mouse aiming, see G_BuildTicCmd
+	uint16_t aiming;			//added:16-02-98:mouse aiming, see G_BuildTicCmd
 	uint16_t buttons;
-	uint8_t artifact;				// For Heretic
+	uint8_t artifact;			// For Heretic
 } ticcmd_t;
 
 #endif

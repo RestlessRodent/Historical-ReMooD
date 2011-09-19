@@ -43,16 +43,16 @@
 //
 
 // needed for texture pegging
-extern fixed_t *textureheight;
+extern fixed_t* textureheight;
 
 // needed for pre rendering (fracs)
-extern fixed_t *spritewidth;
-extern fixed_t *spriteoffset;
-extern fixed_t *spritetopoffset;
-extern fixed_t *spriteheight;
-extern size_t g_SpritesBufferSize;			// GhostlyDeath <July 24, 2011> -- Unlimited sprites! not really
+extern fixed_t* spritewidth;
+extern fixed_t* spriteoffset;
+extern fixed_t* spritetopoffset;
+extern fixed_t* spriteheight;
+extern size_t g_SpritesBufferSize;	// GhostlyDeath <July 24, 2011> -- Unlimited sprites! not really
 
-extern lighttable_t *colormaps;
+extern lighttable_t* colormaps;
 
 //SoM: 3/30/2000: Boom colormaps.
 //SoM: 4/7/2000: Had to put a limit on colormaps :(
@@ -69,8 +69,8 @@ extern int firstflat;
 extern int firstwaterflat;		//added:18-02-98:WATER!
 
 // for global animation
-extern int *flattranslation;
-extern int *texturetranslation;
+extern int* flattranslation;
+extern int* texturetranslation;
 
 // Sprite....
 extern int firstspritelump;
@@ -81,28 +81,28 @@ extern int numspritelumps;
 // Lookup tables for map data.
 //
 extern int numsprites;
-extern spritedef_t *sprites;
+extern spritedef_t* sprites;
 
 extern int numvertexes;
-extern vertex_t *vertexes;
+extern vertex_t* vertexes;
 
 extern int numsegs;
-extern seg_t *segs;
+extern seg_t* segs;
 
 extern int numsectors;
-extern sector_t *sectors;
+extern sector_t* sectors;
 
 extern int numsubsectors;
-extern subsector_t *subsectors;
+extern subsector_t* subsectors;
 
 extern int numnodes;
-extern node_t *nodes;
+extern node_t* nodes;
 
 extern int numlines;
-extern line_t *lines;
+extern line_t* lines;
 
 extern int numsides;
-extern side_t *sides;
+extern side_t* sides;
 
 //
 // POV data.
@@ -119,7 +119,7 @@ extern fixed_t bspy;
 extern angle_t viewangle;
 extern angle_t aimingangle;
 extern angle_t bspangle;
-extern player_t *viewplayer;
+extern player_t* viewplayer;
 
 extern consvar_t cv_allowmlook;
 
@@ -128,6 +128,7 @@ extern angle_t clipangle;
 
 extern int viewangletox[FINEANGLES / 2];
 extern angle_t* xtoviewangle;
+
 //extern fixed_t                finetangent[FINEANGLES/2];
 
 extern fixed_t rw_distance;

@@ -47,7 +47,7 @@
 #include <time.h>
 
 #define VERSIONSIZE 16
-uint8_t *save_p = NULL;	// Pointer to the data
+uint8_t* save_p = NULL;			// Pointer to the data
 
 /*** REAL STUFF ***/
 uint8_t* SaveBlock = NULL;
@@ -72,7 +72,7 @@ bool_t P_CheckSizeEx(size_t Need)
 	size_t Offs = 0;
 	
 	// Resize?
-	if (((size_t)(SaveBlock - SaveStart) + Need) > SaveLimit)
+	if (((size_t) (SaveBlock - SaveStart) + Need) > SaveLimit)
 	{
 		Offs = SaveBlock - SaveStart;
 		
@@ -118,48 +118,33 @@ bool_t P_SaveGameEx(const char* SaveName, char* ExtFileName, size_t ExtFileNameL
 	}
 	
 	// Make the file and add the date and the ReMooD Version
-										// yyyy  mm  dd  hh mm
-	snprintf(ExtFileName, ExtFileNameLen, "%s%c%04d%02d%02d%02d%02d_%s_%i%i%c.rsv",
-		SaveGameLocation,
+	// yyyy  mm  dd  hh mm
+	snprintf(ExtFileName, ExtFileNameLen, "%s%c%04d%02d%02d%02d%02d_%s_%i%i%c.rsv", SaveGameLocation,
 #if defined(_WIN32) || defined(__MSDOS__)
-		'\\',
+	         '\\',
 #else
-		'/',
+	         '/',
 #endif
-		// TIME
-		TM->tm_year + 1900,
-		TM->tm_mon + 1,
-		TM->tm_mday,
-		TM->tm_hour + 1,
-		TM->tm_min + 1,
-		// CLEANED UP DESCRIPTION
-		CleanDesc,
-		// VERSION
-		REMOOD_MAJORVERSION,
-		REMOOD_MINORVERSION,
-		REMOOD_RELEASEVERSION
-		);
-	
+	         // TIME
+	         TM->tm_year + 1900, TM->tm_mon + 1, TM->tm_mday, TM->tm_hour + 1, TM->tm_min + 1,
+	         // CLEANED UP DESCRIPTION
+	         CleanDesc,
+	         // VERSION
+	         REMOOD_MAJORVERSION, REMOOD_MINORVERSION, REMOOD_RELEASEVERSION);
+	         
 	/* Create Buffer with an initial size */
 	SaveStart = Z_Malloc(512, PU_STATIC, NULL);
 	SaveBlock = SaveStart;
 	SaveLimit = 512;
 	
 	/* Doom Legacy Compatibility */
-	WriteStringN(&SaveBlock, va("ReMooD %i.%i%c Save Game",
-		REMOOD_MAJORVERSION, REMOOD_MINORVERSION, REMOOD_RELEASEVERSION),
-		SAVESTRINGSIZE);
+	WriteStringN(&SaveBlock, va("ReMooD %i.%i%c Save Game", REMOOD_MAJORVERSION, REMOOD_MINORVERSION, REMOOD_RELEASEVERSION), SAVESTRINGSIZE);
 	WriteStringN(&SaveBlock, va("version %i", VERSION), VERSIONSIZE);
 	
 	/* ReMooD Header */
 	P_CheckSizeEx(64 + 4);
 	WriteStringN(&SaveBlock, va("ReMooD %i.%i%c \"%s\" (%s)",
-		REMOOD_MAJORVERSION,
-		REMOOD_MINORVERSION,
-		REMOOD_RELEASEVERSION,
-		REMOOD_VERSIONCODESTRING,
-		REMOOD_URL),
-		64);
+	                            REMOOD_MAJORVERSION, REMOOD_MINORVERSION, REMOOD_RELEASEVERSION, REMOOD_VERSIONCODESTRING, REMOOD_URL), 64);
 	WriteUInt8(&SaveBlock, REMOOD_MAJORVERSION);
 	WriteUInt8(&SaveBlock, REMOOD_MINORVERSION);
 	WriteUInt8(&SaveBlock, REMOOD_RELEASEVERSION);
@@ -197,6 +182,7 @@ bool_t P_LoadGameEx(const char* FileName, char* ExtFileName, size_t ExtFileNameL
 }
 
 /*** MISC ***/
+
 /* P_SAVE_WadState() -- Saves WAD Information */
 void P_SAVE_WadState(void)
 {
@@ -220,7 +206,7 @@ void P_SAVE_WadState(void)
 			continue;
 			
 		WAD = W_GetWadForNum(i);
-			
+		
 		// Print the WAD's name in snipped 8.3
 		memset(Base, 0, sizeof(Base));
 		FIL_ExtractFileBase(WAD->FileName, Base);
@@ -229,13 +215,27 @@ void P_SAVE_WadState(void)
 		WriteStringN(&SaveBlock, Base, 8);
 		switch (WAD->Method)
 		{
-			case METHOD_DEHACKED:	WriteStringN(&SaveBlock, ".deh", 4); break;
-			case METHOD_WAD:		WriteStringN(&SaveBlock, ".wad", 4); break;
-			case METHOD_RLEWAD:		WriteStringN(&SaveBlock, ".wad", 4); break;
-			case METHOD_PKZIP:		WriteStringN(&SaveBlock, ".pk3", 4); break;
-			case METHOD_SEVENZIP:	WriteStringN(&SaveBlock, ".7z", 4); break;
-			case METHOD_TAR:		WriteStringN(&SaveBlock, ".tar", 4); break;
-			default: 				WriteStringN(&SaveBlock, ".", 4); break;
+			case METHOD_DEHACKED:
+				WriteStringN(&SaveBlock, ".deh", 4);
+				break;
+			case METHOD_WAD:
+				WriteStringN(&SaveBlock, ".wad", 4);
+				break;
+			case METHOD_RLEWAD:
+				WriteStringN(&SaveBlock, ".wad", 4);
+				break;
+			case METHOD_PKZIP:
+				WriteStringN(&SaveBlock, ".pk3", 4);
+				break;
+			case METHOD_SEVENZIP:
+				WriteStringN(&SaveBlock, ".7z", 4);
+				break;
+			case METHOD_TAR:
+				WriteStringN(&SaveBlock, ".tar", 4);
+				break;
+			default:
+				WriteStringN(&SaveBlock, ".", 4);
+				break;
 		}
 		WriteStringN(&SaveBlock, WAD->MD5Sum, 16);
 	}
@@ -303,7 +303,6 @@ void P_SAVE_LevelState(void)
 		WriteUInt32(&SaveBlock, 8);
 		WriteStringN(&SaveBlock, levelmapname, 8);
 	}
-	
 	// The Map List
 #if 0
 	P_CheckSizeEx(8);
@@ -311,7 +310,7 @@ void P_SAVE_LevelState(void)
 	WriteStringN(&SaveBlock, "mMPL", 4);
 	/* ... */
 #endif
-
+	
 	// Game tic and such
 	P_CheckSizeEx(12);
 	TrueLen += 12;
@@ -333,7 +332,7 @@ void P_SAVE_LevelState(void)
 	WriteUInt32(&SaveBlock, 8);
 	WriteUInt32(&SaveBlock, gameepisode);
 	WriteUInt32(&SaveBlock, gamemap);
-
+	
 	// Random Number Index
 	P_CheckSizeEx(9);
 	TrueLen += 9;
@@ -350,7 +349,6 @@ void P_SAVE_LevelState(void)
 	else if (gamestate == GS_INTERMISSION)
 	{
 	}
-	
 	// Hack!
 	T = SaveStart + Off;
 	WriteUInt32(&T, TrueLen);
@@ -409,31 +407,31 @@ void P_SAVE_Players(void)
 			WriteInt32(&SaveBlock, players[i].powers[j]);
 		for (; j < 32; j++)
 			WriteInt32(&SaveBlock, 0);
-		
+			
 		WriteUInt8(&SaveBlock, 32);
 		for (j = 0; j < NUMAMMO; j++)
 			WriteInt32(&SaveBlock, players[i].ammo[j]);
 		for (; j < 32; j++)
 			WriteInt32(&SaveBlock, 0);
-		
+			
 		WriteUInt8(&SaveBlock, 32);
 		for (j = 0; j < NUMAMMO; j++)
 			WriteInt32(&SaveBlock, players[i].maxammo[j]);
 		for (; j < 32; j++)
 			WriteInt32(&SaveBlock, 0);
-		
+			
 		WriteUInt8(&SaveBlock, 32);
 		for (j = 0; j < NUMWEAPONS; j++)
 			WriteUInt8(&SaveBlock, players[i].weaponowned[j]);
 		for (; j < 32; j++)
 			WriteUInt8(&SaveBlock, 0);
-		
+			
 		WriteUInt8(&SaveBlock, 32);
 		for (j = 0; j < NUMWEAPONS; j++)
 			WriteUInt8(&SaveBlock, players[i].favoritweapon[j]);
 		for (; j < 32; j++)
 			WriteUInt8(&SaveBlock, 0);
-		
+			
 		// Orientation
 		WriteInt32(&SaveBlock, players[i].viewz);
 		WriteInt32(&SaveBlock, players[i].viewheight);
@@ -448,15 +446,17 @@ void P_SAVE_Players(void)
 }
 
 /*** SECTORS ***/
+
 /*** LINES ***/
+
 /*** THINGS ***/
 void P_SAVE_MapObjects(void)
 {
 	size_t Off = 0;
 	size_t TrueLen = 0;
 	uint8_t* T;
-	thinker_t *currentthinker;
-	mobj_t *mobj;
+	thinker_t* currentthinker;
+	mobj_t* mobj;
 	int y;
 	
 	// Header
@@ -466,25 +466,24 @@ void P_SAVE_MapObjects(void)
 	WriteUInt32(&SaveBlock, 0);
 	
 	/* Place down everything about every MObj */
-	for (currentthinker = thinkercap.next; currentthinker != &thinkercap;
-		 currentthinker = currentthinker->next)
+	for (currentthinker = thinkercap.next; currentthinker != &thinkercap; currentthinker = currentthinker->next)
 		// Is it a MObj?
 		if (currentthinker->function.acp1 == (actionf_p1) P_MobjThinker)
 		{
-			mobj = (mobj_t *) currentthinker;
+			mobj = (mobj_t*)currentthinker;
 			
 #define MOPZ(n) P_CheckSizeEx((n)); TrueLen += (n)
 			
 			/* Save it's information */
 			// Local Pointer!
 			MOPZ(8);
-			WriteUInt64(&SaveBlock, mobj);		// This will be used to determine stuff when relinking, etc.
+			WriteUInt64(&SaveBlock, mobj);	// This will be used to determine stuff when relinking, etc.
 			
 			// Class Information
 			MOPZ(24 * 3);
-			WriteStringN(&SaveBlock, MT2ReMooDClass[mobj->type], 24);			// RMOD Class Name
-			WriteStringN(&SaveBlock, MT2MTString[mobj->type], 24);				// MT_ Compatible Name
-			if (mobj->skin)														// Skin Name
+			WriteStringN(&SaveBlock, MT2ReMooDClass[mobj->type], 24);	// RMOD Class Name
+			WriteStringN(&SaveBlock, MT2MTString[mobj->type], 24);	// MT_ Compatible Name
+			if (mobj->skin)		// Skin Name
 				WriteStringN(&SaveBlock, mobj->skin, 24);
 			else
 				WriteStringN(&SaveBlock, "", 24);
@@ -494,23 +493,23 @@ void P_SAVE_MapObjects(void)
 			WriteInt32(&SaveBlock, mobj->health);
 			WriteInt32(&SaveBlock, mobj->special1);
 			WriteInt32(&SaveBlock, mobj->special2);
-			WriteInt32(&SaveBlock, 0);					// Reserved for 3
-			WriteInt32(&SaveBlock, 0);					// Reserved for 4
+			WriteInt32(&SaveBlock, 0);	// Reserved for 3
+			WriteInt32(&SaveBlock, 0);	// Reserved for 4
 			WriteInt32(&SaveBlock, mobj->player - players);
-				
+			
 			// States and sprites, etc.
 			MOPZ(24 + 4 + 8);
 			WriteStringN(&SaveBlock, va("#%i", mobj->state - states), 24);
 			WriteStringN(&SaveBlock, sprnames[mobj->sprite], 4);
 			WriteInt32(&SaveBlock, mobj->frame);
 			WriteInt32(&SaveBlock, mobj->tics);
-				
+			
 			// Old Flags (DEPRECATED) (3)
 			MOPZ(12);
 			WriteUInt32(&SaveBlock, mobj->flags);
 			WriteUInt32(&SaveBlock, mobj->flags2);
 			WriteUInt32(&SaveBlock, mobj->eflags);
-				
+			
 			// X Flags
 			MOPZ(20);
 			P_MobjFlagsNaturalToExtended(mobj);
@@ -518,7 +517,7 @@ void P_SAVE_MapObjects(void)
 			WriteUInt32(&SaveBlock, mobj->XFlagsB);
 			WriteUInt32(&SaveBlock, mobj->XFlagsC);
 			WriteUInt32(&SaveBlock, mobj->XFlagsD);
-			WriteUInt32(&SaveBlock, 0);					// RESERVED FOR E
+			WriteUInt32(&SaveBlock, 0);	// RESERVED FOR E
 			P_MobjFlagsExtendedToNatural(mobj);
 			
 			// Position and Orientation (6)
@@ -581,7 +580,6 @@ void P_SAVE_MapObjects(void)
 			WriteUInt32(&SaveBlock, 0);
 			WriteUInt32(&SaveBlock, 0);
 		}
-		
 	// Hack!
 	T = SaveStart + Off;
 	WriteUInt32(&T, TrueLen);
@@ -590,7 +588,9 @@ void P_SAVE_MapObjects(void)
 /*** SCRIPTS ***/
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
+
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
+
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 
 /* P_SaveGame() -- Saves a game */
@@ -605,7 +605,9 @@ bool_t P_LoadGame(void)
 }
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
+
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
+
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 
 #if 0
@@ -662,14 +664,14 @@ void P_ArchivePlayers(void)
 	int i, j;
 	int flags;
 	uint32_t diff;
-
+	
 	for (i = 0; i < MAXPLAYERS; i++)
 	{
 		if (!playeringame[i])
 			continue;
-
+			
 		PADSAVEP();
-
+		
 		flags = 0;
 		diff = 0;
 		for (j = 0; j < NUMPOWERS; j++)
@@ -687,14 +689,14 @@ void P_ArchivePlayers(void)
 			diff |= PD_DAMAGECOUNT;
 		if (players[i].bonuscount)
 			diff |= PD_BONUSCOUNT;
-
+			
 		WRITEULONG(save_p, diff);
-
+		
 		WRITEANGLE(save_p, players[i].aiming);
 		WRITEUSHORT(save_p, players[i].health);
 		WRITEUSHORT(save_p, players[i].armorpoints);
 		WRITEBYTE(save_p, players[i].armortype);
-
+		
 		for (j = 0; j < NUMPOWERS; j++)
 			if (diff & (1 << j))
 				WRITELONG(save_p, players[i].powers[j]);
@@ -702,12 +704,12 @@ void P_ArchivePlayers(void)
 		WRITEBYTE(save_p, players[i].readyweapon);
 		WRITEBYTE(save_p, players[i].pendingweapon);
 		WRITEBYTE(save_p, players[i].playerstate);
-
+		
 		WRITEUSHORT(save_p, players[i].addfrags);
 		for (j = 0; j < MAXPLAYERS; j++)
 			if (playeringame[i])
 				WRITEUSHORT(save_p, players[i].frags[j]);
-
+				
 		for (j = 0; j < NUMWEAPONS; j++)
 		{
 			WRITEBYTE(save_p, players[i].favoritweapon[j]);
@@ -733,7 +735,7 @@ void P_ArchivePlayers(void)
 			flags |= JMPDWN;
 		if (players[i].didsecret)
 			flags |= DIDSECRET;
-
+			
 		if (diff & PD_REFIRE)
 			WRITELONG(save_p, players[i].refire);
 		if (diff & PD_KILLCOUNT)
@@ -746,9 +748,9 @@ void P_ArchivePlayers(void)
 			WRITELONG(save_p, players[i].damagecount);
 		if (diff & PD_BONUSCOUNT)
 			WRITELONG(save_p, players[i].bonuscount);
-
+			
 		WRITEBYTE(save_p, players[i].skincolor);
-
+		
 		for (j = 0; j < NUMPSPRITES; j++)
 		{
 			if (players[i].psprites[j].state)
@@ -771,35 +773,35 @@ void P_UnArchivePlayers(void)
 	int i, j;
 	int flags;
 	uint32_t diff;
-
+	
 	for (i = 0; i < MAXPLAYERS; i++)
 	{
 		memset(&players[i], 0, sizeof(player_t));
 		if (!playeringame[i])
 			continue;
-
+			
 		PADSAVEP();
 		diff = READULONG(save_p);
-
+		
 		players[i].aiming = READANGLE(save_p);
 		players[i].health = READUSHORT(save_p);
 		players[i].armorpoints = READUSHORT(save_p);
 		players[i].armortype = READBYTE(save_p);
-
+		
 		for (j = 0; j < NUMPOWERS; j++)
 			if (diff & (1 << j))
 				players[i].powers[j] = READLONG(save_p);
-
+				
 		players[i].cards = READBYTE(save_p);
 		players[i].readyweapon = READBYTE(save_p);
 		players[i].pendingweapon = READBYTE(save_p);
 		players[i].playerstate = READBYTE(save_p);
-
+		
 		players[i].addfrags = READUSHORT(save_p);
 		for (j = 0; j < MAXPLAYERS; j++)
 			if (playeringame[i])
 				players[i].frags[j] = READUSHORT(save_p);
-
+				
 		for (j = 0; j < NUMWEAPONS; j++)
 			players[i].favoritweapon[j] = READBYTE(save_p);
 		for (j = 0; j < NUMAMMO; j++)
@@ -819,25 +821,25 @@ void P_UnArchivePlayers(void)
 			players[i].damagecount = READLONG(save_p);
 		if (diff & PD_BONUSCOUNT)
 			players[i].bonuscount = READLONG(save_p);
-
+			
 		players[i].skincolor = READBYTE(save_p);
-
+		
 		for (j = 0; j < NUMPSPRITES; j++)
 		{
 			flags = READUSHORT(save_p);
 			if (flags)
 				players[i].psprites[j].state = &states[flags - 1];
-
+				
 			players[i].psprites[j].tics = READLONG(save_p);
 			players[i].psprites[j].sx = READFIXED(save_p);
 			players[i].psprites[j].sy = READFIXED(save_p);
 		}
-
+		
 		flags = READUSHORT(save_p);
-
+		
 		for (j = 0; j < NUMWEAPONS; j++)
 			players[i].weaponowned[j] = (flags & (1 << j)) != 0;
-
+			
 		players[i].backpack = (flags & BACKPACK) != 0;
 		players[i].originalweaponswitch = (flags & ORIGNWEAP) != 0;
 		players[i].autoaim_toggle = (flags & AUTOAIM) != 0;
@@ -845,7 +847,7 @@ void P_UnArchivePlayers(void)
 		players[i].usedown = (flags & USEDWN) != 0;
 		players[i].jumpdown = (flags & JMPDWN) != 0;
 		players[i].didsecret = (flags & DIDSECRET) != 0;
-
+		
 		players[i].viewheight = cv_viewheight.value << FRACBITS;
 		players[i].weaponinfo = wpnlev1info;
 	}
@@ -891,22 +893,22 @@ void P_ArchiveWorld(void)
 {
 	int i;
 	int statsec = 0, statline = 0;
-	line_t *li;
-	side_t *si;
-	uint8_t *put;
-
+	line_t* li;
+	side_t* si;
+	uint8_t* put;
+	
 	// reload the map just to see difference
-	mapsector_t *ms;
-	mapsidedef_t *msd;
-	maplinedef_t *mld;
-	sector_t *ss;
+	mapsector_t* ms;
+	mapsidedef_t* msd;
+	maplinedef_t* mld;
+	sector_t* ss;
 	uint8_t diff;
 	uint8_t diff2;
-
+	
 	ms = W_CacheLumpNum(lastloadedmaplumpnum + ML_SECTORS, PU_CACHE);
 	ss = sectors;
 	put = save_p;
-
+	
 	for (i = 0; i < numsectors; i++, ss++, ms++)
 	{
 		diff = 0;
@@ -923,12 +925,12 @@ void P_ArchiveWorld(void)
 			diff |= SD_FLOORPIC;
 		if (ss->ceilingpic != P_AddLevelFlat(ms->ceilingpic, levelflats))
 			diff |= SD_CEILPIC;
-
+			
 		if (ss->lightlevel != LittleSwapInt16(ms->lightlevel))
 			diff |= SD_LIGHT;
 		if (ss->special != LittleSwapInt16(ms->special))
 			diff |= SD_SPECIAL;
-
+			
 		if (ss->floor_xoffs != 0)
 			diff2 |= SD_FXOFFS;
 		if (ss->floor_yoffs != 0)
@@ -945,11 +947,11 @@ void P_ArchiveWorld(void)
 			diff2 |= SD_PREVSEC;
 		if (diff2)
 			diff |= SD_DIFF2;
-
+			
 		if (diff)
 		{
 			statsec++;
-
+			
 			WRITESHORT(put, i);
 			WRITEBYTE(put, diff);
 			if (diff & SD_DIFF2)
@@ -972,7 +974,7 @@ void P_ArchiveWorld(void)
 				WRITESHORT(put, (short)ss->lightlevel);
 			if (diff & SD_SPECIAL)
 				WRITESHORT(put, (short)ss->special);
-
+				
 			if (diff2 & SD_FXOFFS)
 				WRITEFIXED(put, ss->floor_xoffs);
 			if (diff2 & SD_FYOFFS)
@@ -990,7 +992,7 @@ void P_ArchiveWorld(void)
 		}
 	}
 	WRITEUSHORT(put, 0xffff);
-
+	
 	mld = W_CacheLumpNum(lastloadedmaplumpnum + ML_LINEDEFS, PU_CACHE);
 	msd = W_CacheLumpNum(lastloadedmaplumpnum + ML_SIDEDEFS, PU_CACHE);
 	li = lines;
@@ -999,14 +1001,14 @@ void P_ArchiveWorld(void)
 	{
 		diff = 0;
 		diff2 = 0;
-
+		
 		// we don't care of map in deathmatch !
 		if (((cv_deathmatch.value == 0) && (li->flags != LittleSwapInt16(mld->flags))) ||
-			((cv_deathmatch.value != 0) && ((li->flags & ~ML_MAPPED) != LittleSwapInt16(mld->flags))))
+		        ((cv_deathmatch.value != 0) && ((li->flags & ~ML_MAPPED) != LittleSwapInt16(mld->flags))))
 			diff |= LD_FLAG;
 		if (li->special != LittleSwapInt16(mld->special))
 			diff |= LD_SPECIAL;
-
+			
 		if (li->sidenum[0] != -1)
 		{
 			si = &sides[li->sidenum[0]];
@@ -1039,9 +1041,9 @@ void P_ArchiveWorld(void)
 					diff2 |= LD_S2MIDTEX;
 			if (diff2)
 				diff |= LD_DIFF2;
-
+				
 		}
-
+		
 		if (diff)
 		{
 			statline++;
@@ -1053,7 +1055,7 @@ void P_ArchiveWorld(void)
 				WRITESHORT(put, li->flags);
 			if (diff & LD_SPECIAL)
 				WRITESHORT(put, li->special);
-
+				
 			si = &sides[li->sidenum[0]];
 			if (diff & LD_S1TEXOFF)
 				WRITEFIXED(put, si->textureoffset);
@@ -1063,7 +1065,7 @@ void P_ArchiveWorld(void)
 				WRITESHORT(put, si->bottomtexture);
 			if (diff & LD_S1MIDTEX)
 				WRITESHORT(put, si->midtexture);
-
+				
 			si = &sides[li->sidenum[1]];
 			if (diff2 & LD_S2TEXOFF)
 				WRITEFIXED(put, si->textureoffset);
@@ -1076,7 +1078,7 @@ void P_ArchiveWorld(void)
 		}
 	}
 	WRITEUSHORT(put, 0xffff);
-
+	
 	//CONS_Printf("sector saved %d/%d, line saved %d/%d\n",statsec,numsectors,statline,numlines);
 	save_p = put;
 }
@@ -1087,20 +1089,20 @@ void P_ArchiveWorld(void)
 void P_UnArchiveWorld(void)
 {
 	int i;
-	line_t *li;
-	side_t *si;
-	uint8_t *get;
+	line_t* li;
+	side_t* si;
+	uint8_t* get;
 	uint8_t diff, diff2;
-
+	
 	get = save_p;
-
+	
 	for (;;)
 	{
 		i = READUSHORT(get);
-
+		
 		if (i == 0xffff)
 			break;
-
+			
 		diff = READBYTE(get);
 		if (diff & SD_DIFF2)
 			diff2 = READBYTE(get);
@@ -1124,7 +1126,7 @@ void P_UnArchiveWorld(void)
 			sectors[i].lightlevel = READSHORT(get);
 		if (diff & SD_SPECIAL)
 			sectors[i].special = READSHORT(get);
-
+			
 		if (diff2 & SD_FXOFFS)
 			sectors[i].floor_xoffs = READFIXED(get);
 		if (diff2 & SD_FYOFFS)
@@ -1146,16 +1148,16 @@ void P_UnArchiveWorld(void)
 		else
 			sectors[i].prevsec = -1;
 	}
-
+	
 	for (;;)
 	{
 		i = READUSHORT(get);
-
+		
 		if (i == 0xffff)
 			break;
 		diff = READBYTE(get);
 		li = &lines[i];
-
+		
 		if (diff & LD_DIFF2)
 			diff2 = READBYTE(get);
 		else
@@ -1164,7 +1166,7 @@ void P_UnArchiveWorld(void)
 			li->flags = READSHORT(get);
 		if (diff & LD_SPECIAL)
 			li->special = READSHORT(get);
-
+			
 		si = &sides[li->sidenum[0]];
 		if (diff & LD_S1TEXOFF)
 			si->textureoffset = READFIXED(get);
@@ -1174,7 +1176,7 @@ void P_UnArchiveWorld(void)
 			si->bottomtexture = READSHORT(get);
 		if (diff & LD_S1MIDTEX)
 			si->midtexture = READSHORT(get);
-
+			
 		si = &sides[li->sidenum[1]];
 		if (diff2 & LD_S2TEXOFF)
 			si->textureoffset = READFIXED(get);
@@ -1185,7 +1187,7 @@ void P_UnArchiveWorld(void)
 		if (diff2 & LD_S2MIDTEX)
 			si->midtexture = READSHORT(get);
 	}
-
+	
 	save_p = get;
 }
 
@@ -1260,9 +1262,10 @@ enum
 //
 void P_ArchiveThinkers(void)
 {
-	thinker_t *th;
-	mobj_t *mobj;
+	thinker_t* th;
+	mobj_t* mobj;
 	uint32_t diff;
+	
 //    int                 i; //SoM: 3/16/2000: Removed. Not used any more.
 
 	// save off the current thinkers
@@ -1270,24 +1273,23 @@ void P_ArchiveThinkers(void)
 	{
 		if (th->function.acp1 == (actionf_p1) P_MobjThinker)
 		{
-			mobj = (mobj_t *) th;
-/*
-            // not a monster nor a picable item so don't save it
-            if( (((mobj->flags & (MF_COUNTKILL | MF_PICKUP | MF_SHOOTABLE )) == 0)
-                 && (mobj->flags & MF_MISSILE)
-                 && (mobj->info->doomednum !=-1) )
-                || (mobj->type == MT_BLOOD) )
-                continue;
-*/
-			if (mobj->spawnpoint &&
-				(!(mobj->spawnpoint->options & MTF_FS_SPAWNED)) && (mobj->info->doomednum != -1))
+			mobj = (mobj_t*)th;
+			
+			/*
+			            // not a monster nor a picable item so don't save it
+			            if( (((mobj->flags & (MF_COUNTKILL | MF_PICKUP | MF_SHOOTABLE )) == 0)
+			                 && (mobj->flags & MF_MISSILE)
+			                 && (mobj->info->doomednum !=-1) )
+			                || (mobj->type == MT_BLOOD) )
+			                continue;
+			*/
+			if (mobj->spawnpoint && (!(mobj->spawnpoint->options & MTF_FS_SPAWNED)) && (mobj->info->doomednum != -1))
 			{
 				// spawnpoint is not moddified but we must save it since it is a indentifier
 				diff = MD_SPAWNPOINT;
-
+				
 				if ((mobj->x != mobj->spawnpoint->x << FRACBITS) ||
-					(mobj->y != mobj->spawnpoint->y << FRACBITS) ||
-					(mobj->angle != (unsigned)(ANG45 * (mobj->spawnpoint->angle / 45))))
+				        (mobj->y != mobj->spawnpoint->y << FRACBITS) || (mobj->angle != (unsigned)(ANG45 * (mobj->spawnpoint->angle / 45))))
 					diff |= MD_POS;
 				if (mobj->info->doomednum != mobj->spawnpoint->type)
 					diff |= MD_TYPE;
@@ -1297,7 +1299,7 @@ void P_ArchiveThinkers(void)
 				// not a map spawned thing so make it from scratch
 				diff = MD_POS | MD_TYPE;
 			}
-
+			
 			// not the default but the most probable
 			if ((mobj->momx != 0) || (mobj->momy != 0) || (mobj->momz != 0))
 				diff |= MD_MOM;
@@ -1325,7 +1327,7 @@ void P_ArchiveThinkers(void)
 				diff |= MD_EFLAGS;
 			if (mobj->player)
 				diff |= MD_PLAYER;
-
+				
 			if (mobj->movedir)
 				diff |= MD_MOVEDIR;
 			if (mobj->movecount)
@@ -1348,16 +1350,16 @@ void P_ArchiveThinkers(void)
 				diff |= MD_SPECIAL2;
 			if (mobj->dropped_ammo_count)
 				diff |= MD_AMMO;
-
+				
 			PADSAVEP();
 			WRITEBYTE(save_p, tc_mobj);
 			WRITEULONG(save_p, diff);
 			// save pointer, at load time we will search this pointer to reinitilize pointers
-			WRITEULONG(save_p, (uint32_t) mobj);
-
+			WRITEULONG(save_p, (uint32_t)mobj);
+			
 			WRITEFIXED(save_p, mobj->z);	// Force this so 3dfloor problems don't arise. SSNTails 03-17-2002
 			WRITEFIXED(save_p, mobj->floorz);
-
+			
 			if (diff & MD_SPAWNPOINT)
 				WRITESHORT(save_p, mobj->spawnpoint - mapthings);
 			if (diff & MD_TYPE)
@@ -1407,9 +1409,9 @@ void P_ArchiveThinkers(void)
 			if (diff & MD_LASTLOOK)
 				WRITELONG(save_p, mobj->lastlook);
 			if (diff & MD_TARGET)
-				WRITEULONG(save_p, (uint32_t) mobj->target);
+				WRITEULONG(save_p, (uint32_t)mobj->target);
 			if (diff & MD_TRACER)
-				WRITEULONG(save_p, (uint32_t) mobj->tracer);
+				WRITEULONG(save_p, (uint32_t)mobj->tracer);
 			if (diff & MD_FRICTION)
 				WRITELONG(save_p, mobj->friction);
 			if (diff & MD_MOVEFACTOR)
@@ -1424,154 +1426,164 @@ void P_ArchiveThinkers(void)
 		else if (th->function.acv == (actionf_v) NULL)
 		{
 			//SoM: 3/15/2000: Boom stuff...
-			ceilinglist_t *cl;
-
+			ceilinglist_t* cl;
+			
 			for (cl = activeceilings; cl; cl = cl->next)
-				if (cl->ceiling == (ceiling_t *) th)
+				if (cl->ceiling == (ceiling_t*) th)
 				{
-					ceiling_t *ceiling;
+					ceiling_t* ceiling;
+					
 					WRITEBYTE(save_p, tc_ceiling);
 					PADSAVEP();
-					ceiling = (ceiling_t *) save_p;
+					ceiling = (ceiling_t*) save_p;
 					memcpy(save_p, th, sizeof(*ceiling));
 					save_p += sizeof(*ceiling);
-					writelong(&ceiling->sector, ((ceiling_t *) th)->sector - sectors);
+					writelong(&ceiling->sector, ((ceiling_t*) th)->sector - sectors);
 				}
-
+				
 			continue;
 		}
 		else if (th->function.acp1 == (actionf_p1) T_MoveCeiling)
 		{
-			ceiling_t *ceiling;
+			ceiling_t* ceiling;
+			
 			WRITEBYTE(save_p, tc_ceiling);
 			PADSAVEP();
-			ceiling = (ceiling_t *) save_p;
+			ceiling = (ceiling_t*) save_p;
 			memcpy(save_p, th, sizeof(*ceiling));
 			save_p += sizeof(*ceiling);
-			writelong(&ceiling->sector, ((ceiling_t *) th)->sector - sectors);
+			writelong(&ceiling->sector, ((ceiling_t*) th)->sector - sectors);
 			continue;
 		}
 		else if (th->function.acp1 == (actionf_p1) T_VerticalDoor)
 		{
-			vldoor_t *door;
+			vldoor_t* door;
+			
 			WRITEBYTE(save_p, tc_door);
 			PADSAVEP();
-			door = (vldoor_t *) save_p;
+			door = (vldoor_t*) save_p;
 			memcpy(save_p, th, sizeof(*door));
 			save_p += sizeof(*door);
-			writelong(&door->sector, ((vldoor_t *) th)->sector - sectors);
-			writelong(&door->line, ((vldoor_t *) th)->line - lines);
+			writelong(&door->sector, ((vldoor_t*) th)->sector - sectors);
+			writelong(&door->line, ((vldoor_t*) th)->line - lines);
 			continue;
 		}
 		else if (th->function.acp1 == (actionf_p1) T_MoveFloor)
 		{
-			floormove_t *floor;
+			floormove_t* floor;
+			
 			WRITEBYTE(save_p, tc_floor);
 			PADSAVEP();
-			floor = (floormove_t *) save_p;
+			floor = (floormove_t*) save_p;
 			memcpy(save_p, th, sizeof(*floor));
 			save_p += sizeof(*floor);
-			writelong(&floor->sector, ((floormove_t *) th)->sector - sectors);
+			writelong(&floor->sector, ((floormove_t*) th)->sector - sectors);
 			continue;
 		}
 		else if (th->function.acp1 == (actionf_p1) T_PlatRaise)
 		{
-			plat_t *plat;
+			plat_t* plat;
+			
 			WRITEBYTE(save_p, tc_plat);
 			PADSAVEP();
-			plat = (plat_t *) save_p;
+			plat = (plat_t*) save_p;
 			memcpy(save_p, th, sizeof(*plat));
 			save_p += sizeof(*plat);
-			writelong(&plat->sector, ((plat_t *) th)->sector - sectors);
+			writelong(&plat->sector, ((plat_t*) th)->sector - sectors);
 			continue;
 		}
 		else if (th->function.acp1 == (actionf_p1) T_LightFlash)
 		{
-			lightflash_t *flash;
+			lightflash_t* flash;
+			
 			WRITEBYTE(save_p, tc_flash);
 			PADSAVEP();
-			flash = (lightflash_t *) save_p;
+			flash = (lightflash_t*) save_p;
 			memcpy(save_p, th, sizeof(*flash));
 			save_p += sizeof(*flash);
-			writelong(&flash->sector, ((lightflash_t *) th)->sector - sectors);
+			writelong(&flash->sector, ((lightflash_t*) th)->sector - sectors);
 			continue;
 		}
 		else if (th->function.acp1 == (actionf_p1) T_StrobeFlash)
 		{
-			strobe_t *strobe;
+			strobe_t* strobe;
+			
 			WRITEBYTE(save_p, tc_strobe);
 			PADSAVEP();
-			strobe = (strobe_t *) save_p;
+			strobe = (strobe_t*) save_p;
 			memcpy(save_p, th, sizeof(*strobe));
 			save_p += sizeof(*strobe);
-			writelong(&strobe->sector, ((strobe_t *) th)->sector - sectors);
+			writelong(&strobe->sector, ((strobe_t*) th)->sector - sectors);
 			continue;
 		}
 		else if (th->function.acp1 == (actionf_p1) T_Glow)
 		{
-			glow_t *glow;
+			glow_t* glow;
+			
 			WRITEBYTE(save_p, tc_glow);
 			PADSAVEP();
-			glow = (glow_t *) save_p;
+			glow = (glow_t*) save_p;
 			memcpy(save_p, th, sizeof(*glow));
 			save_p += sizeof(*glow);
-			writelong(&glow->sector, ((glow_t *) th)->sector - sectors);
+			writelong(&glow->sector, ((glow_t*) th)->sector - sectors);
 			continue;
 		}
 		else
 			// BP added T_FireFlicker
-		if (th->function.acp1 == (actionf_p1) T_FireFlicker)
-		{
-			fireflicker_t *fireflicker;
-			WRITEBYTE(save_p, tc_fireflicker);
-			PADSAVEP();
-			fireflicker = (fireflicker_t *) save_p;
-			memcpy(save_p, th, sizeof(*fireflicker));
-			save_p += sizeof(*fireflicker);
-			writelong(&fireflicker->sector, ((fireflicker_t *) th)->sector - sectors);
-			continue;
-		}
-		else
-			//SoM: 3/15/2000: Added extra Boom thinker types.
-		if (th->function.acp1 == (actionf_p1) T_MoveElevator)
-		{
-			elevator_t *elevator;
-			WRITEBYTE(save_p, tc_elevator);
-			PADSAVEP();
-			elevator = (elevator_t *) save_p;
-			memcpy(save_p, th, sizeof(*elevator));
-			save_p += sizeof(*elevator);
-			writelong(&elevator->sector, ((elevator_t *) th)->sector - sectors);
-			continue;
-		}
-		else if (th->function.acp1 == (actionf_p1) T_Scroll)
-		{
-			WRITEBYTE(save_p, tc_scroll);
-			memcpy(save_p, th, sizeof(scroll_t));
-			save_p += sizeof(scroll_t);
-			continue;
-		}
-		else if (th->function.acp1 == (actionf_p1) T_Friction)
-		{
-			WRITEBYTE(save_p, tc_friction);
-			memcpy(save_p, th, sizeof(friction_t));
-			save_p += sizeof(friction_t);
-			continue;
-		}
-		else if (th->function.acp1 == (actionf_p1) T_Pusher)
-		{
-			WRITEBYTE(save_p, tc_pusher);
-			memcpy(save_p, th, sizeof(pusher_t));
-			save_p += sizeof(pusher_t);
-			continue;
-		}
+			if (th->function.acp1 == (actionf_p1) T_FireFlicker)
+			{
+				fireflicker_t* fireflicker;
+				
+				WRITEBYTE(save_p, tc_fireflicker);
+				PADSAVEP();
+				fireflicker = (fireflicker_t*) save_p;
+				memcpy(save_p, th, sizeof(*fireflicker));
+				save_p += sizeof(*fireflicker);
+				writelong(&fireflicker->sector, ((fireflicker_t*) th)->sector - sectors);
+				continue;
+			}
+			else
+				//SoM: 3/15/2000: Added extra Boom thinker types.
+				if (th->function.acp1 == (actionf_p1) T_MoveElevator)
+				{
+					elevator_t* elevator;
+					
+					WRITEBYTE(save_p, tc_elevator);
+					PADSAVEP();
+					elevator = (elevator_t*) save_p;
+					memcpy(save_p, th, sizeof(*elevator));
+					save_p += sizeof(*elevator);
+					writelong(&elevator->sector, ((elevator_t*) th)->sector - sectors);
+					continue;
+				}
+				else if (th->function.acp1 == (actionf_p1) T_Scroll)
+				{
+					WRITEBYTE(save_p, tc_scroll);
+					memcpy(save_p, th, sizeof(scroll_t));
+					save_p += sizeof(scroll_t);
+					continue;
+				}
+				else if (th->function.acp1 == (actionf_p1) T_Friction)
+				{
+					WRITEBYTE(save_p, tc_friction);
+					memcpy(save_p, th, sizeof(friction_t));
+					save_p += sizeof(friction_t);
+					continue;
+				}
+				else if (th->function.acp1 == (actionf_p1) T_Pusher)
+				{
+					WRITEBYTE(save_p, tc_pusher);
+					memcpy(save_p, th, sizeof(pusher_t));
+					save_p += sizeof(pusher_t);
+					continue;
+				}
 #ifdef PARANOIA
-		else if ((int)th->function.acp1 != -1)	// wait garbage colection
-			I_Error("unknow thinker type 0x%X", th->function.acp1);
+				else if ((int)th->function.acp1 != -1)	// wait garbage colection
+					I_Error("unknow thinker type 0x%X", th->function.acp1);
 #endif
-
+					
 	}
-
+	
 	WRITEBYTE(save_p, tc_end);
 }
 
@@ -1579,15 +1591,15 @@ void P_ArchiveThinkers(void)
 // relink to this, the savegame contain the old position in the pointer
 // field copyed in the info field temporarely, but finaly we just search
 // for to old postion and relink to
-static mobj_t *FindNewPosition(void *oldposition)
+static mobj_t* FindNewPosition(void* oldposition)
 {
-	thinker_t *th;
-	mobj_t *mobj;
-
+	thinker_t* th;
+	mobj_t* mobj;
+	
 	for (th = thinkercap.next; th != &thinkercap; th = th->next)
 	{
-		mobj = (mobj_t *) th;
-		if ((void *)mobj->info == oldposition)
+		mobj = (mobj_t*)th;
+		if ((void*)mobj->info == oldposition)
 			return mobj;
 	}
 	if (devparm)
@@ -1601,50 +1613,51 @@ static mobj_t *FindNewPosition(void *oldposition)
 //
 void P_UnArchiveThinkers(void)
 {
-	thinker_t *currentthinker;
-	thinker_t *next;
-	mobj_t *mobj;
+	thinker_t* currentthinker;
+	thinker_t* next;
+	mobj_t* mobj;
 	uint32_t diff;
 	int i;
 	uint8_t tclass;
-	ceiling_t *ceiling;
-	vldoor_t *door;
-	floormove_t *floor;
-	plat_t *plat;
-	lightflash_t *flash;
-	strobe_t *strobe;
-	glow_t *glow;
-	fireflicker_t *fireflicker;
-	elevator_t *elevator;		//SoM: 3/15/2000
-	scroll_t *scroll;
-	friction_t *friction;
-	pusher_t *pusher;
+	ceiling_t* ceiling;
+	vldoor_t* door;
+	floormove_t* floor;
+	plat_t* plat;
+	lightflash_t* flash;
+	strobe_t* strobe;
+	glow_t* glow;
+	fireflicker_t* fireflicker;
+	elevator_t* elevator;		//SoM: 3/15/2000
+	scroll_t* scroll;
+	friction_t* friction;
+	pusher_t* pusher;
 	int j;
-
+	
 	// remove all the current thinkers
 	currentthinker = thinkercap.next;
 	while (currentthinker != &thinkercap)
 	{
 		next = currentthinker->next;
-
-		mobj = (mobj_t *) currentthinker;
+		
+		mobj = (mobj_t*)currentthinker;
 		if (currentthinker->function.acp1 == (actionf_p1) P_MobjThinker)
 			// since this item isn't save don't remove it
-/*            if( !((((mobj->flags & (MF_COUNTKILL | MF_PICKUP | MF_SHOOTABLE )) == 0)
-                   && (mobj->flags & MF_MISSILE)
-                   && (mobj->info->doomednum !=-1) )
-                  || (mobj->type == MT_BLOOD) ) )
-*/
-			P_RemoveMobj((mobj_t *) currentthinker);
+			
+			/*            if( !((((mobj->flags & (MF_COUNTKILL | MF_PICKUP | MF_SHOOTABLE )) == 0)
+			                   && (mobj->flags & MF_MISSILE)
+			                   && (mobj->info->doomednum !=-1) )
+			                  || (mobj->type == MT_BLOOD) ) )
+			*/
+			P_RemoveMobj((mobj_t*)currentthinker);
 		else
 			Z_Free(currentthinker);
-
+			
 		currentthinker = next;
 	}
 	// BP: we don't want the removed mobj come back !!!
 	iquetail = iquehead = 0;
 	P_InitThinkers();
-
+	
 	// read in saved thinkers
 	for (;;)
 	{
@@ -1655,19 +1668,20 @@ void P_UnArchiveThinkers(void)
 		{
 			case tc_mobj:
 				PADSAVEP();
-
+				
 				diff = READULONG(save_p);
-				next = (void *)READULONG(save_p);	// &mobj in the old system
-
+				next = (void*)READULONG(save_p);	// &mobj in the old system
+				
 				mobj = Z_Malloc(sizeof(mobj_t), PU_LEVEL, NULL);
 				memset(mobj, 0, sizeof(mobj_t));
-
+				
 				mobj->z = READFIXED(save_p);	// Force this so 3dfloor problems don't arise. SSNTails 03-17-2002
 				mobj->floorz = READFIXED(save_p);
-
+				
 				if (diff & MD_SPAWNPOINT)
 				{
 					short spawnpointnum = READSHORT(save_p);
+					
 					mobj->spawnpoint = &mapthings[spawnpointnum];
 					mapthings[spawnpointnum].mobj = mobj;
 				}
@@ -1705,7 +1719,7 @@ void P_UnArchiveThinkers(void)
 					mobj->momy = READFIXED(save_p);
 					mobj->momz = READFIXED(save_p);
 				}				// else null (memset)
-
+				
 				if (diff & MD_RADIUS)
 					mobj->radius = READFIXED(save_p);
 				else
@@ -1730,7 +1744,7 @@ void P_UnArchiveThinkers(void)
 					mobj->reactiontime = READLONG(save_p);
 				else
 					mobj->reactiontime = mobj->info->reactiontime;
-
+					
 				if (diff & MD_STATE)
 					mobj->state = &states[READUSHORT(save_p)];
 				else
@@ -1769,9 +1783,9 @@ void P_UnArchiveThinkers(void)
 				else
 					mobj->lastlook = -1;
 				if (diff & MD_TARGET)
-					mobj->target = (mobj_t *) READULONG(save_p);
+					mobj->target = (mobj_t*)READULONG(save_p);
 				if (diff & MD_TRACER)
-					mobj->tracer = (mobj_t *) READULONG(save_p);
+					mobj->tracer = (mobj_t*)READULONG(save_p);
 				if (diff & MD_FRICTION)
 					mobj->friction = READLONG(save_p);
 				else
@@ -1786,14 +1800,14 @@ void P_UnArchiveThinkers(void)
 					mobj->special2 = READLONG(save_p);
 				if (diff & MD_AMMO)
 					mobj->dropped_ammo_count = READLONG(save_p);
-
+					
 				// now set deductable field
 				// TODO : save this too
 				mobj->skin = NULL;
-
+				
 				// set sprev, snext, bprev, bnext, subsector
 				P_SetThingPosition(mobj);
-
+				
 				/*
 				   mobj->floorz = mobj->subsector->sector->floorheight;
 				   if( (diff & MD_Z) == 0 )
@@ -1807,10 +1821,10 @@ void P_UnArchiveThinkers(void)
 				mobj->ceilingz = mobj->subsector->sector->ceilingheight;
 				mobj->thinker.function.acp1 = (actionf_p1) P_MobjThinker;
 				P_AddThinker(&mobj->thinker);
-
-				mobj->info = (mobjinfo_t *) next;	// temporarely, set when leave this function
+				
+				mobj->info = (mobjinfo_t*) next;	// temporarely, set when leave this function
 				break;
-
+				
 			case tc_ceiling:
 				PADSAVEP();
 				ceiling = Z_Malloc(sizeof(*ceiling), PU_LEVEL, NULL);
@@ -1818,14 +1832,14 @@ void P_UnArchiveThinkers(void)
 				save_p += sizeof(*ceiling);
 				ceiling->sector = &sectors[LittleSwapInt32(ceiling->sector)];
 				ceiling->sector->ceilingdata = ceiling;
-
+				
 				if (ceiling->thinker.function.acp1)
 					ceiling->thinker.function.acp1 = (actionf_p1) T_MoveCeiling;
-
+					
 				P_AddThinker(&ceiling->thinker);
 				P_AddActiveCeiling(ceiling);
 				break;
-
+				
 			case tc_door:
 				PADSAVEP();
 				door = Z_Malloc(sizeof(*door), PU_LEVEL, NULL);
@@ -1837,7 +1851,7 @@ void P_UnArchiveThinkers(void)
 				door->thinker.function.acp1 = (actionf_p1) T_VerticalDoor;
 				P_AddThinker(&door->thinker);
 				break;
-
+				
 			case tc_floor:
 				PADSAVEP();
 				floor = Z_Malloc(sizeof(*floor), PU_LEVEL, NULL);
@@ -1848,7 +1862,7 @@ void P_UnArchiveThinkers(void)
 				floor->thinker.function.acp1 = (actionf_p1) T_MoveFloor;
 				P_AddThinker(&floor->thinker);
 				break;
-
+				
 			case tc_plat:
 				PADSAVEP();
 				plat = Z_Malloc(sizeof(*plat), PU_LEVEL, NULL);
@@ -1856,14 +1870,14 @@ void P_UnArchiveThinkers(void)
 				save_p += sizeof(*plat);
 				plat->sector = &sectors[LittleSwapInt32(plat->sector)];
 				plat->sector->floordata = plat;
-
+				
 				if (plat->thinker.function.acp1)
 					plat->thinker.function.acp1 = (actionf_p1) T_PlatRaise;
-
+					
 				P_AddThinker(&plat->thinker);
 				P_AddActivePlat(plat);
 				break;
-
+				
 			case tc_flash:
 				PADSAVEP();
 				flash = Z_Malloc(sizeof(*flash), PU_LEVEL, NULL);
@@ -1873,7 +1887,7 @@ void P_UnArchiveThinkers(void)
 				flash->thinker.function.acp1 = (actionf_p1) T_LightFlash;
 				P_AddThinker(&flash->thinker);
 				break;
-
+				
 			case tc_strobe:
 				PADSAVEP();
 				strobe = Z_Malloc(sizeof(*strobe), PU_LEVEL, NULL);
@@ -1883,7 +1897,7 @@ void P_UnArchiveThinkers(void)
 				strobe->thinker.function.acp1 = (actionf_p1) T_StrobeFlash;
 				P_AddThinker(&strobe->thinker);
 				break;
-
+				
 			case tc_glow:
 				PADSAVEP();
 				glow = Z_Malloc(sizeof(*glow), PU_LEVEL, NULL);
@@ -1893,7 +1907,7 @@ void P_UnArchiveThinkers(void)
 				glow->thinker.function.acp1 = (actionf_p1) T_Glow;
 				P_AddThinker(&glow->thinker);
 				break;
-
+				
 			case tc_fireflicker:
 				PADSAVEP();
 				fireflicker = Z_Malloc(sizeof(*fireflicker), PU_LEVEL, NULL);
@@ -1903,7 +1917,7 @@ void P_UnArchiveThinkers(void)
 				fireflicker->thinker.function.acp1 = (actionf_p1) T_FireFlicker;
 				P_AddThinker(&fireflicker->thinker);
 				break;
-
+				
 			case tc_elevator:
 				PADSAVEP();
 				elevator = Z_Malloc(sizeof(elevator_t), PU_LEVEL, NULL);
@@ -1915,7 +1929,7 @@ void P_UnArchiveThinkers(void)
 				elevator->thinker.function.acp1 = (actionf_p1) T_MoveElevator;
 				P_AddThinker(&elevator->thinker);
 				break;
-
+				
 			case tc_scroll:
 				scroll = Z_Malloc(sizeof(scroll_t), PU_LEVEL, NULL);
 				memcpy(scroll, save_p, sizeof(scroll_t));
@@ -1923,7 +1937,7 @@ void P_UnArchiveThinkers(void)
 				scroll->thinker.function.acp1 = (actionf_p1) T_Scroll;
 				P_AddThinker(&scroll->thinker);
 				break;
-
+				
 			case tc_friction:
 				friction = Z_Malloc(sizeof(friction_t), PU_LEVEL, NULL);
 				memcpy(friction, save_p, sizeof(friction_t));
@@ -1931,7 +1945,7 @@ void P_UnArchiveThinkers(void)
 				friction->thinker.function.acp1 = (actionf_p1) T_Friction;
 				P_AddThinker(&friction->thinker);
 				break;
-
+				
 			case tc_pusher:
 				pusher = Z_Malloc(sizeof(pusher_t), PU_LEVEL, NULL);
 				memcpy(pusher, save_p, sizeof(pusher_t));
@@ -1940,19 +1954,18 @@ void P_UnArchiveThinkers(void)
 				pusher->source = P_GetPushThing(pusher->affectee);
 				P_AddThinker(&pusher->thinker);
 				break;
-
+				
 			default:
 				I_Error("P_UnarchiveSpecials:Unknown tclass %i " "in savegame", tclass);
 		}
 	}
-
+	
 	// use info field (value = oldposition) to relink mobjs
-	for (currentthinker = thinkercap.next; currentthinker != &thinkercap;
-		 currentthinker = currentthinker->next)
+	for (currentthinker = thinkercap.next; currentthinker != &thinkercap; currentthinker = currentthinker->next)
 	{
 		if (currentthinker->function.acp1 == (actionf_p1) P_MobjThinker)
 		{
-			mobj = (mobj_t *) currentthinker;
+			mobj = (mobj_t*)currentthinker;
 			if (mobj->tracer)
 			{
 				mobj->tracer = FindNewPosition(mobj->tracer);
@@ -1964,11 +1977,11 @@ void P_UnArchiveThinkers(void)
 				mobj->target = FindNewPosition(mobj->target);
 				if (!mobj->target)
 					DEBFILE(va("target not found on %d\n", mobj->target));
-
+					
 			}
 		}
 	}
-
+	
 }
 
 //
@@ -1977,16 +1990,15 @@ void P_UnArchiveThinkers(void)
 // data!
 void P_FinishMobjs()
 {
-	thinker_t *currentthinker;
-	mobj_t *mobj;
-
+	thinker_t* currentthinker;
+	mobj_t* mobj;
+	
 	// put info field there real value
-	for (currentthinker = thinkercap.next; currentthinker != &thinkercap;
-		 currentthinker = currentthinker->next)
+	for (currentthinker = thinkercap.next; currentthinker != &thinkercap; currentthinker = currentthinker->next)
 	{
 		if (currentthinker->function.acp1 == (actionf_p1) P_MobjThinker)
 		{
-			mobj = (mobj_t *) currentthinker;
+			mobj = (mobj_t*)currentthinker;
 			mobj->info = &mobjinfo[mobj->type];
 		}
 	}
@@ -2001,7 +2013,7 @@ void P_FinishMobjs()
 void P_ArchiveSpecials(void)
 {
 	int i;
-
+	
 	// BP: added save itemrespawn queue for deathmatch
 	i = iquetail;
 	while (iquehead != i)
@@ -2010,7 +2022,7 @@ void P_ArchiveSpecials(void)
 		WRITELONG(save_p, itemrespawntime[i]);
 		i = (i + 1) & (ITEMQUESIZE - 1);
 	}
-
+	
 	// end delimiter
 	WRITELONG(save_p, 0xffffffff);
 }
@@ -2021,7 +2033,7 @@ void P_ArchiveSpecials(void)
 void P_UnArchiveSpecials(void)
 {
 	int i;
-
+	
 	// BP: added save itemrespawn queue for deathmatch
 	iquetail = iquehead = 0;
 	while ((i = READLONG(save_p)) != 0xffffffff)
@@ -2053,46 +2065,47 @@ void P_ArchiveLevelScript()
 {
 	int num_variables = 0;
 	int i;
-
+	
 	// all we really need to do is save the variables
 	// count the variables first
-
+	
 	// count number of variables
 	num_variables = 0;
 	for (i = 0; i < VARIABLESLOTS; i++)
 	{
-		svariable_t *sv = levelscript.variables[i];
+		svariable_t* sv = levelscript.variables[i];
+		
 		while (sv && sv->type != svt_label)
 		{
 			num_variables++;
 			sv = sv->next;
 		}
 	}
-
+	
 	//CheckSaveGame(sizeof(short));
 	WRITESHORT(save_p, num_variables);	// write num_variables
-
+	
 	// go thru hash chains, store each variable
 	for (i = 0; i < VARIABLESLOTS; i++)
 	{
 		// go thru this hashchain
-		svariable_t *sv = levelscript.variables[i];
-
+		svariable_t* sv = levelscript.variables[i];
+		
 		// once we get to a label there can be no more actual
 		// variables in the list to store
 		while (sv && sv->type != svt_label)
 		{
-
+		
 			//CheckSaveGame(strlen(sv->name)+10); // 10 for type and safety
-
+			
 			// write svariable: name
-
+			
 			strcpy(save_p, sv->name);
 			save_p += strlen(sv->name) + 1;	// 1 extra for ending NULL
-
+			
 			// type
 			*save_p++ = sv->type;	// store type;
-
+			
 			switch (sv->type)	// store depending on type
 			{
 				case svt_string:
@@ -2104,13 +2117,13 @@ void P_ArchiveLevelScript()
 					}
 				case svt_int:
 					{
-						//CheckSaveGame(sizeof(long)); 
+						//CheckSaveGame(sizeof(long));
 						WRITELONG(save_p, sv->value.i);
 						break;
 					}
 				case svt_mobj:
 					{
-						//CheckSaveGame(sizeof(long)); 
+						//CheckSaveGame(sizeof(long));
 						WRITEULONG(save_p, sv->value.mobj);
 						break;
 					}
@@ -2129,36 +2142,37 @@ void P_UnArchiveLevelScript()
 {
 	int i;
 	int num_variables;
-
+	
 	// free all the variables in the current levelscript first
-
+	
 	for (i = 0; i < VARIABLESLOTS; i++)
 	{
-		svariable_t *sv = levelscript.variables[i];
-
+		svariable_t* sv = levelscript.variables[i];
+		
 		while (sv && sv->type != svt_label)
 		{
-			svariable_t *next = sv->next;
+			svariable_t* next = sv->next;
+			
 			Z_Free(sv);
 			sv = next;
 		}
 		levelscript.variables[i] = sv;	// null or label
 	}
-
+	
 	// now read the number of variables from the savegame file
 	num_variables = READSHORT(save_p);
-
+	
 	for (i = 0; i < num_variables; i++)
 	{
-		svariable_t *sv = Z_Malloc(sizeof(svariable_t), PU_LEVEL, 0);
+		svariable_t* sv = Z_Malloc(sizeof(svariable_t), PU_LEVEL, 0);
 		int hashkey;
-
+		
 		// name
 		sv->name = Z_Strdup(save_p, PU_LEVEL, 0);
 		save_p += strlen(sv->name) + 1;
-
+		
 		sv->type = *save_p++;
-
+		
 		switch (sv->type)		// read depending on type
 		{
 			case svt_string:
@@ -2174,10 +2188,11 @@ void P_UnArchiveLevelScript()
 				}
 			case svt_mobj:
 				{
-					uint32_t *long_p = (uint32_t *) save_p;
-					sv->value.mobj = FindNewPosition((mobj_t *) long_p);
+					uint32_t* long_p = (uint32_t*)save_p;
+					
+					sv->value.mobj = FindNewPosition((mobj_t*)long_p);
 					long_p++;
-					save_p = (char *)long_p;
+					save_p = (char*)long_p;
 					break;
 				}
 			case svt_fixed:
@@ -2188,41 +2203,42 @@ void P_UnArchiveLevelScript()
 			default:
 				break;
 		}
-
+		
 		// link in the new variable
 		hashkey = variable_hash(sv->name);
 		sv->next = levelscript.variables[hashkey];
 		levelscript.variables[hashkey] = sv;
 	}
-
+	
 }
 
 /**************** save the runningscripts ***************/
 
 extern runningscript_t runningscripts;	// t_script.c
-runningscript_t *new_runningscript();	// t_script.c
+runningscript_t* new_runningscript();	// t_script.c
 void clear_runningscripts();	// t_script.c
 
 // save a given runningscript
-void P_ArchiveRunningScript(runningscript_t * rs)
+void P_ArchiveRunningScript(runningscript_t* rs)
 {
 	int i;
 	int num_variables;
-
+	
 	//CheckSaveGame(sizeof(short) * 8); // room for 8 shorts
 	WRITESHORT(save_p, rs->script->scriptnum);	// save scriptnum
 	WRITESHORT(save_p, rs->savepoint - rs->script->data);	// offset
 	WRITESHORT(save_p, rs->wait_type);
 	WRITESHORT(save_p, rs->wait_data);
-
+	
 	// save pointer to trigger using prev
-	WRITEULONG(save_p, (uint32_t) rs->trigger);
-
+	WRITEULONG(save_p, (uint32_t)rs->trigger);
+	
 	// count number of variables
 	num_variables = 0;
 	for (i = 0; i < VARIABLESLOTS; i++)
 	{
-		svariable_t *sv = rs->variables[i];
+		svariable_t* sv = rs->variables[i];
+		
 		while (sv && sv->type != svt_label)
 		{
 			num_variables++;
@@ -2230,31 +2246,31 @@ void P_ArchiveRunningScript(runningscript_t * rs)
 		}
 	}
 	WRITESHORT(save_p, num_variables);
-
+	
 	// save num_variables
-
+	
 	// store variables
 	// go thru hash chains, store each variable
 	for (i = 0; i < VARIABLESLOTS; i++)
 	{
 		// go thru this hashchain
-		svariable_t *sv = rs->variables[i];
-
+		svariable_t* sv = rs->variables[i];
+		
 		// once we get to a label there can be no more actual
 		// variables in the list to store
 		while (sv && sv->type != svt_label)
 		{
-
+		
 			//CheckSaveGame(strlen(sv->name)+10); // 10 for type and safety
-
+			
 			// write svariable: name
-
+			
 			strcpy(save_p, sv->name);
 			save_p += strlen(sv->name) + 1;	// 1 extra for ending NULL
-
+			
 			// type
 			*save_p++ = sv->type;	// store type;
-
+			
 			switch (sv->type)	// store depending on type
 			{
 				case svt_string:
@@ -2266,14 +2282,14 @@ void P_ArchiveRunningScript(runningscript_t * rs)
 					}
 				case svt_int:
 					{
-						//CheckSaveGame(sizeof(long)+4); 
+						//CheckSaveGame(sizeof(long)+4);
 						WRITELONG(save_p, sv->value.i);
 						break;
 					}
 				case svt_mobj:
 					{
-						//CheckSaveGame(sizeof(long)+4); 
-						WRITEULONG(save_p, (uint32_t) sv->value.mobj);
+						//CheckSaveGame(sizeof(long)+4);
+						WRITEULONG(save_p, (uint32_t)sv->value.mobj);
 						break;
 					}
 				case svt_fixed:
@@ -2282,65 +2298,65 @@ void P_ArchiveRunningScript(runningscript_t * rs)
 						break;
 					}
 					// others do not appear in user scripts
-
+					
 				default:
 					break;
 			}
-
+			
 			sv = sv->next;
 		}
 	}
 }
 
 // get the next runningscript
-runningscript_t *P_UnArchiveRunningScript()
+runningscript_t* P_UnArchiveRunningScript()
 {
 	int i;
 	int scriptnum;
 	int num_variables;
-	runningscript_t *rs;
-
+	runningscript_t* rs;
+	
 	// create a new runningscript
 	rs = new_runningscript();
-
+	
 	scriptnum = READSHORT(save_p);	// get scriptnum
-
+	
 	// levelscript?
-
+	
 	if (scriptnum == -1)
 		rs->script = &levelscript;
 	else
 		rs->script = levelscript.children[scriptnum];
-
+		
 	// read out offset from save
 	rs->savepoint = rs->script->data + READSHORT(save_p);
 	rs->wait_type = READSHORT(save_p);
 	rs->wait_data = READSHORT(save_p);
-
+	
 	// read out trigger thing
-	rs->trigger = FindNewPosition((mobj_t *) (READULONG(save_p)));
-
+	rs->trigger = FindNewPosition((mobj_t*)(READULONG(save_p)));
+	
 	// get number of variables
 	num_variables = READSHORT(save_p);
-
+	
 	// read out the variables now (fun!)
-
+	
 	// start with basic script slots/labels
-
+	
 	for (i = 0; i < VARIABLESLOTS; i++)
 		rs->variables[i] = rs->script->variables[i];
-
+		
 	for (i = 0; i < num_variables; i++)
 	{
-		svariable_t *sv = Z_Malloc(sizeof(svariable_t), PU_LEVEL, 0);
+		svariable_t* sv = Z_Malloc(sizeof(svariable_t), PU_LEVEL, 0);
 		int hashkey;
-
+		
 		// name
 		sv->name = Z_Strdup(save_p, PU_LEVEL, 0);
 		save_p += strlen(sv->name) + 1;
-
+		
 		sv->type = *save_p++;
-
+		
 		switch (sv->type)		// read depending on type
 		{
 			case svt_string:
@@ -2356,7 +2372,7 @@ runningscript_t *P_UnArchiveRunningScript()
 				}
 			case svt_mobj:
 				{
-					sv->value.mobj = FindNewPosition((mobj_t *) READULONG(save_p));
+					sv->value.mobj = FindNewPosition((mobj_t*)READULONG(save_p));
 					break;
 				}
 			case svt_fixed:
@@ -2367,31 +2383,31 @@ runningscript_t *P_UnArchiveRunningScript()
 			default:
 				break;
 		}
-
+		
 		// link in the new variable
 		hashkey = variable_hash(sv->name);
 		sv->next = rs->variables[hashkey];
 		rs->variables[hashkey] = sv;
 	}
-
+	
 	return rs;
 }
 
 // archive all runningscripts in chain
 void P_ArchiveRunningScripts()
 {
-	runningscript_t *rs;
+	runningscript_t* rs;
 	int num_runningscripts = 0;
-
+	
 	// count runningscripts
 	for (rs = runningscripts.next; rs; rs = rs->next)
 		num_runningscripts++;
-
+		
 	//CheckSaveGame(sizeof(long));
-
+	
 	// store num_runningscripts
 	WRITEULONG(save_p, num_runningscripts);
-
+	
 	// now archive them
 	rs = runningscripts.next;
 	while (rs)
@@ -2404,23 +2420,23 @@ void P_ArchiveRunningScripts()
 // restore all runningscripts from save_p
 void P_UnArchiveRunningScripts()
 {
-	runningscript_t *rs;
+	runningscript_t* rs;
 	int num_runningscripts;
 	int i;
-
+	
 	// remove all runningscripts first : may have been started
 	// by levelscript on level load
-
+	
 	clear_runningscripts();
-
+	
 	// get num_runningscripts
 	num_runningscripts = READULONG(save_p);
-
+	
 	for (i = 0; i < num_runningscripts; i++)
 	{
 		// get next runningscript
 		rs = P_UnArchiveRunningScript();
-
+		
 		// hook into chain
 		rs->next = runningscripts.next;
 		rs->prev = &runningscripts;
@@ -2435,13 +2451,13 @@ void P_ArchiveScripts()
 #ifdef FRAGGLESCRIPT
 	// save levelscript
 	P_ArchiveLevelScript();
-
+	
 	// save runningscripts
 	P_ArchiveRunningScripts();
-
+	
 	// Archive the script camera.
 	WRITELONG(save_p, (long)script_camera_on);
-	WRITEULONG(save_p, (uint32_t) script_camera.mo);
+	WRITEULONG(save_p, (uint32_t)script_camera.mo);
 	WRITEANGLE(save_p, script_camera.aiming);
 	WRITEFIXED(save_p, script_camera.viewheight);
 	WRITEANGLE(save_p, script_camera.startangle);
@@ -2453,13 +2469,13 @@ void P_UnArchiveScripts()
 #ifdef FRAGGLESCRIPT
 	// restore levelscript
 	P_UnArchiveLevelScript();
-
+	
 	// restore runningscripts
 	P_UnArchiveRunningScripts();
-
+	
 	// Unarchive the script camera
-	script_camera_on = (bool_t) READLONG(save_p);
-	script_camera.mo = FindNewPosition((mobj_t *) (READULONG(save_p)));
+	script_camera_on = (bool_t)READLONG(save_p);
+	script_camera.mo = FindNewPosition((mobj_t*)(READULONG(save_p)));
 	script_camera.aiming = READANGLE(save_p);
 	script_camera.viewheight = READFIXED(save_p);
 	script_camera.startangle = READANGLE(save_p);
@@ -2474,16 +2490,16 @@ void P_ArchiveMisc()
 {
 	uint32_t pig = 0;
 	int i;
-
+	
 	WRITEBYTE(save_p, gameskill);
 	WRITEBYTE(save_p, gameepisode);
 	WRITEBYTE(save_p, gamemap);
-
+	
 	for (i = 0; i < MAXPLAYERS; i++)
 		pig |= (playeringame[i] != 0) << i;
-
+		
 	WRITEULONG(save_p, pig);
-
+	
 	WRITEULONG(save_p, leveltime);
 	WRITEBYTE(save_p, P_GetRandIndex());
 }
@@ -2492,26 +2508,26 @@ bool_t P_UnArchiveMisc()
 {
 	uint32_t pig;
 	int i;
-
+	
 	gameskill = READBYTE(save_p);
 	gameepisode = READBYTE(save_p);
 	gamemap = READBYTE(save_p);
-
+	
 	pig = READULONG(save_p);
-
+	
 	for (i = 0; i < MAXPLAYERS; i++)
 	{
 		playeringame[i] = (pig & (1 << i)) != 0;
 		players[i].playerstate = PST_REBORN;
 	}
-
+	
 	if (!P_SetupLevel(gameepisode, gamemap, gameskill, NULL))
 		return false;
-
+		
 	// get the time
 	leveltime = READULONG(save_p);
 	P_SetRandIndex(READBYTE(save_p));
-
+	
 	return true;
 }
 
@@ -2523,7 +2539,7 @@ void P_SaveGame(void)
 	P_ArchiveThinkers();
 	P_ArchiveSpecials();
 	P_ArchiveScripts();
-
+	
 	WRITEBYTE(save_p, 0x1d);	// consistancy marker
 }
 
@@ -2536,9 +2552,8 @@ bool_t P_LoadGame(void)
 	P_UnArchiveThinkers();
 	P_UnArchiveSpecials();
 	P_UnArchiveScripts();
-
+	
 	return READBYTE(save_p) == 0x1d;
 }
 
 #endif
-

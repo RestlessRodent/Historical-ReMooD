@@ -85,7 +85,7 @@ void CONL_DrawConsole(void);
 *** GLOBALS ***
 **************/
 
-extern bool_t g_QuietConsole;							// Mute startup console
+extern bool_t g_QuietConsole;	// Mute startup console
 
 /****************
 *** FUNCTIONS ***
@@ -100,7 +100,7 @@ extern bool_t g_QuietConsole;							// Mute startup console
 
 void CON_Init(void);
 
-bool_t CON_Responder(event_t * ev);
+bool_t CON_Responder(event_t* ev);
 
 #ifdef __MACOS__
 #define  CON_BUFFERSIZE   4096	//my compiler cant handle local vars >32k
@@ -127,7 +127,7 @@ extern int con_hudlines;
 extern int con_hudtime[5];
 extern int con_clearlines;
 extern bool_t con_hudupdate;
-extern char *con_line;
+extern char* con_line;
 extern int con_cx;
 extern int con_cy;
 extern int con_totallines;
@@ -138,12 +138,13 @@ extern char inputlines[32][CON_MAXPROMPTCHARS];
 extern int inputline;
 extern int inputhist;
 extern int input_cx;
-extern struct pic_s *con_backpic;
-extern struct pic_s *con_bordleft;
-extern struct pic_s *con_bordright;
+extern struct pic_s* con_backpic;
+extern struct pic_s* con_bordleft;
+extern struct pic_s* con_bordright;
 extern char con_buffer[CON_BUFFERSIZE];
 
-extern bool_t consoleready;	// GhostlyDeath -- extern this here
+extern bool_t consoleready;		// GhostlyDeath -- extern this here
+
 // top clip value for view render: do not draw part of view hidden by console
 extern int con_clipviewtop;
 
@@ -155,9 +156,9 @@ extern bool_t con_hudupdate;	// hud messages have changed, need refresh
 extern int con_keymap;			//0 english, 1 french
 
 extern uint8_t* redmap;
-extern uint8_t *whitemap;
-extern uint8_t *greenmap;
-extern uint8_t *graymap;
+extern uint8_t* whitemap;
+extern uint8_t* greenmap;
+extern uint8_t* graymap;
 extern uint8_t* orangemap;
 
 extern consvar_t cons_msgtimeout;
@@ -169,12 +170,11 @@ void CON_ClearHUD(void);		// clear heads up messages
 
 void CON_Ticker(void);
 void CON_Drawer(void);
-void CONS_Error(char *msg);		// print out error msg, and wait a key
+void CONS_Error(char* msg);		// print out error msg, and wait a key
 
 // force console to move out
 void CON_ToggleOff(void);
 
 /******************************************************************************/
 
-#endif /* __CONSOLE_H__ */
-
+#endif							/* __CONSOLE_H__ */

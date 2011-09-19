@@ -55,9 +55,9 @@ void Chex1PatchEngine(void)
 {
 
 	//patch new text
-	char *NEW_QUIT1 = "Don't give up now...do\nyou still wish to quit?";
-	char *NEW_QUIT2 = "please don't leave we\nneed your help!";
-
+	char* NEW_QUIT1 = "Don't give up now...do\nyou still wish to quit?";
+	char* NEW_QUIT2 = "please don't leave we\nneed your help!";
+	
 	text[QUITMSG_NUM] = NEW_QUIT1;
 	text[QUITMSG1_NUM] = NEW_QUIT2;
 	text[QUITMSG2_NUM] = NEW_QUIT2;
@@ -66,7 +66,7 @@ void Chex1PatchEngine(void)
 	text[QUITMSG5_NUM] = NEW_QUIT2;
 	text[QUITMSG6_NUM] = NEW_QUIT2;
 	text[QUITMSG7_NUM] = NEW_QUIT2;
-
+	
 	text[QUIT2MSG_NUM] = NEW_QUIT1;
 	text[QUIT2MSG1_NUM] = NEW_QUIT2;
 	text[QUIT2MSG2_NUM] = NEW_QUIT2;
@@ -74,13 +74,13 @@ void Chex1PatchEngine(void)
 	text[QUIT2MSG4_NUM] = NEW_QUIT2;
 	text[QUIT2MSG5_NUM] = NEW_QUIT2;
 	text[QUIT2MSG6_NUM] = NEW_QUIT2;
-
+	
 	text[HUSTR_E1M1_NUM] = "E1M1: Landing Zone";
 	text[HUSTR_E1M2_NUM] = "E1M2: Storage Facility";
 	text[HUSTR_E1M3_NUM] = "E1M3: Experimental Lab";
 	text[HUSTR_E1M4_NUM] = "E1M4: Arboretum";
 	text[HUSTR_E1M5_NUM] = "E1M5: Caverns of Bazoik";
-
+	
 	text[GOTCLIP_NUM] = "picked up mini zorch recharge.";
 	text[GOTCLIPBOX_NUM] = "Picked up a mini zorch pack.";
 	text[GOTARMBONUS_NUM] = "picked up slime repellant.";
@@ -92,11 +92,11 @@ void Chex1PatchEngine(void)
 	text[GOTMEGA_NUM] = "Picked up the Super Chex(R) Armor!";
 	text[GOTSUPER_NUM] = "Supercharge Breakfast!";
 	text[GOTSUIT_NUM] = "Slimeproof Suit";
-
+	
 	//patch monster changes
 	mobjinfo[MT_POSSESSED].missilestate = 0;
 	mobjinfo[MT_POSSESSED].meleestate = S_POSS_ATK1;
-
+	
 	mobjinfo[MT_SHOTGUY].missilestate = 0;
 	mobjinfo[MT_SHOTGUY].meleestate = S_SPOS_ATK1;
 }

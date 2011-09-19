@@ -41,13 +41,13 @@
 /* TLD_BlockType_t -- Type of block */
 typedef enum TLS_BlockType_e
 {
-	BT_STANDARD,												// Global or local
-	BT_SCRIPT,													// script ## { }
-	BT_IF,														// if() { }
-	BT_ELSEIF,													// elseif() { }
-	BT_ELSE,													// else() { }
-	BT_WHILE,													// while() { }
-	BT_FOR,														// for() { }
+	BT_STANDARD,				// Global or local
+	BT_SCRIPT,					// script ## { }
+	BT_IF,						// if() { }
+	BT_ELSEIF,					// elseif() { }
+	BT_ELSE,					// else() { }
+	BT_WHILE,					// while() { }
+	BT_FOR,						// for() { }
 } TLS_BlockType_t;
 
 /*************
@@ -55,20 +55,21 @@ typedef enum TLS_BlockType_e
 *************/
 
 bool_t l_DoCompile = false;
-bool_t l_ScriptDebug = false;									// Debug scripts
+bool_t l_ScriptDebug = false;	// Debug scripts
 
 /****************
 *** FUNCTIONS ***
 ****************/
 
-static int Deepness;	// Deepness brace wise
+static int Deepness;			// Deepness brace wise
 static TLS_BlockType_t PushBlockType;	// Block type to push next
-static bool_t HubVar;		// Make hub variable?
-static bool_t BoostHubVar;	// Boosted hub variable
+static bool_t HubVar;			// Make hub variable?
+static bool_t BoostHubVar;		// Boosted hub variable
 static TLS_VariableType_t NextVar;	// next variable type
 static bool_t Skip = false;		// Skip token
 static char Blocks[512];
-static char LastBlock[2] = {'A', 'A'};
+static char LastBlock[2] = { 'A', 'A' };
+
 static int Deeps[64];
 
 /* TLS_ClearScripts() -- Clear old scripts */
@@ -102,7 +103,7 @@ char* TLS_TokenData(const char* const Data, const size_t Size, void** const TokD
 	/* Check */
 	if (!Data || !TokData)
 		return NULL;
-	
+		
 	/* No token data? */
 	if (!(*TokData))
 	{
@@ -110,19 +111,18 @@ char* TLS_TokenData(const char* const Data, const size_t Size, void** const TokD
 		*TokData = Z_Malloc(sizeof(char*), PU_STATIC, NULL);
 		*TokData = Data;
 	}
-	
 	// Set seek
 	Seek = TokData;
 	
 	/* Reached end? */
 	if (*Seek - Data >= Size)
 		return NULL;
-	
+		
 	/* Clear data */
 	i = 0;
 	Mode = 0;
 	Break = false;
-	Escaped = true;	// skip first "
+	Escaped = true;				// skip first "
 	memset(BeefBuf, 0, sizeof(BeefBuf));
 	
 	/* Read in some characters */
@@ -133,39 +133,36 @@ char* TLS_TokenData(const char* const Data, const size_t Size, void** const TokD
 		if (**Seek == '/' && *(*Seek + 1) == '/')
 			while (**Seek != '\n')
 				(*Seek)++;
-		
+				
 		// No mode set
 		if (!Mode)
 		{
 			// Skip whitespace
-			if (**Seek == ' ' || **Seek == '\t' || **Seek == '\r' || **Seek == '\n')
+			if (**Seek == ' ' ||** Seek == '\t' ||** Seek == '\r' ||** Seek == '\n')
 			{
 				(*Seek)++;
 				continue;
 			}
-			
 			// Alpha-numeric identifier ('[A-Za-z][A-Za-z0-9_]*')
-			if ((**Seek >= 'a' && **Seek <= 'z') || (**Seek >= 'A' && **Seek <= 'Z'))
+			if ((**Seek >= 'a' &&** Seek <= 'z') || (**Seek >= 'A' &&** Seek <= 'Z'))
 				Mode = 1;
-			
+				
 			// String ('".*[^\\]"')
 			else if (**Seek == '\"')
 				Mode = 2;
-			
+				
 			// Number
-			else if (**Seek >= '0' && **Seek <= '9')
+			else if (**Seek >= '0' &&** Seek <= '9')
 				Mode = 3;
-			
+				
 			// Double type
-			else if (**Seek == '=' || **Seek == '<' || **Seek == '>' || **Seek == '-' || **Seek == '+' ||
-				*Seek == '!' || *Seek == '&' || *Seek == '|')
+			else if (**Seek == '=' ||** Seek == '<' ||** Seek == '>' ||** Seek == '-' ||** Seek == '+' || *Seek == '!' || *Seek == '&' || *Seek == '|')
 				Mode = 4;
-		
+				
 			// Other single symbol
 			else
 				Mode = 999;
 		}
-		
 		// Mode is set
 		else
 		{
@@ -173,8 +170,7 @@ char* TLS_TokenData(const char* const Data, const size_t Size, void** const TokD
 			{
 					// Alpha-numeric identifier ('[A-Za-z][A-Za-z0-9_]*')
 				case 1:
-					if ((**Seek >= 'a' && **Seek <= 'z') || (**Seek >= 'A' && **Seek <= 'Z') ||
-						(**Seek >= '0' && **Seek <= '9') || **Seek == '_')
+					if ((**Seek >= 'a' &&** Seek <= 'z') || (**Seek >= 'A' &&** Seek <= 'Z') || (**Seek >= '0' &&** Seek <= '9') ||** Seek == '_')
 					{
 						// Copy to buffer
 						if (i < BUFSIZE - 1)
@@ -192,7 +188,7 @@ char* TLS_TokenData(const char* const Data, const size_t Size, void** const TokD
 					// String ('".*[^\\]"')
 				case 2:
 					// End of string and no escaped
-					if (!Escaped && **Seek == '\"')
+					if (!Escaped &&** Seek == '\"')
 					{
 						if (i < BUFSIZE - 1)
 							BeefBuf[i++] = **Seek;
@@ -200,7 +196,6 @@ char* TLS_TokenData(const char* const Data, const size_t Size, void** const TokD
 						Break = true;
 						Escaped = false;
 					}
-					
 					// Normal
 					else
 					{
@@ -210,7 +205,7 @@ char* TLS_TokenData(const char* const Data, const size_t Size, void** const TokD
 						// Set escape?
 						if (**Seek == '\\')
 							Escaped = true;
-						
+							
 						// Copy
 						if (i < BUFSIZE - 1)
 							BeefBuf[i++] = **Seek;
@@ -220,7 +215,7 @@ char* TLS_TokenData(const char* const Data, const size_t Size, void** const TokD
 					
 					// Number
 				case 3:
-					if ((**Seek >= '0' && **Seek <= '9') || **Seek == '.')
+					if ((**Seek >= '0' &&** Seek <= '9') ||** Seek == '.')
 					{
 						// Copy to buffer
 						if (i < BUFSIZE - 1)
@@ -257,12 +252,11 @@ char* TLS_TokenData(const char* const Data, const size_t Size, void** const TokD
 								BeefBuf[i++] = **Seek;
 								(*Seek)++;
 							}
-							
 							// End off
 							BeefBuf[i++] = 0;
 							Break = true;
 							break;
-						
+							
 							// Non-Double
 						default:
 							switch (**Seek)
@@ -274,14 +268,13 @@ char* TLS_TokenData(const char* const Data, const size_t Size, void** const TokD
 									// Get first
 									BeefBuf[i++] = **Seek;
 									(*Seek)++;
-							
+									
 									// If second is a =, merge
 									if (**Seek == '=')
 									{
 										BeefBuf[i++] = **Seek;
 										(*Seek)++;
 									}
-							
 									// End off
 									BeefBuf[i++] = 0;
 									Break = true;
@@ -298,7 +291,7 @@ char* TLS_TokenData(const char* const Data, const size_t Size, void** const TokD
 							break;
 					}
 					break;
-				
+					
 					// Single-character
 				default:
 					BeefBuf[0] = **Seek;
@@ -325,23 +318,20 @@ bool_t TLS_ValidIdent(char* Ident)
 	/* Check */
 	if (!Ident)
 		return false;
-	
+		
 	/* Reserved? */
-	if (strcasecmp(Ident, "const") == 0 || 
-		strcasecmp(Ident, "else") == 0 || 
-		strcasecmp(Ident, "elseif") == 0 || 
-		strcasecmp(Ident, "fixed") == 0 || 
-		strcasecmp(Ident, "float") == 0 || 
-		strcasecmp(Ident, "for") == 0 || 
-		strcasecmp(Ident, "hub") == 0 || 
-		strcasecmp(Ident, "if") == 0 || 
-		strcasecmp(Ident, "int") == 0 || 
-		strcasecmp(Ident, "mobj") == 0 || 
-		strcasecmp(Ident, "script") == 0 || 
-		strcasecmp(Ident, "string") == 0 || 
-		strcasecmp(Ident, "while") == 0)
+	if (strcasecmp(Ident, "const") == 0 ||
+	        strcasecmp(Ident, "else") == 0 ||
+	        strcasecmp(Ident, "elseif") == 0 ||
+	        strcasecmp(Ident, "fixed") == 0 ||
+	        strcasecmp(Ident, "float") == 0 ||
+	        strcasecmp(Ident, "for") == 0 ||
+	        strcasecmp(Ident, "hub") == 0 ||
+	        strcasecmp(Ident, "if") == 0 ||
+	        strcasecmp(Ident, "int") == 0 ||
+	        strcasecmp(Ident, "mobj") == 0 || strcasecmp(Ident, "script") == 0 || strcasecmp(Ident, "string") == 0 || strcasecmp(Ident, "while") == 0)
 		return false;
-	
+		
 	/* Valid characters */
 	for (i = 0; i < strlen(Ident); i++)
 		if (!i)
@@ -354,7 +344,7 @@ bool_t TLS_ValidIdent(char* Ident)
 			if (!((Ident[i] >= 'a' && Ident[i] <= 'z') || (Ident[i] >= 'A' && Ident[i] <= 'Z') || (Ident[i] >= '0' && Ident[i] <= '9') || Ident[i] == '_'))
 				return false;
 		}
-	
+		
 	/* Otherwise */
 	return true;
 }
@@ -367,12 +357,12 @@ bool_t TLS_ValidUInt(char* Ident)
 	/* Check */
 	if (!Ident || !strlen(Ident))
 		return false;
-	
+		
 	/* Loop */
 	for (i = 0; i < strlen(Ident); i++)
 		if (!(Ident[i] >= '0' && Ident[i] <= '9'))
 			return false;
-	
+			
 	return true;
 }
 
@@ -386,10 +376,10 @@ int TLS_Deepen(int Dir, int Deep)
 		Blocks[strlen(Blocks)] = LastBlock[1]++;
 		
 		/*if (LastBlock[1] > 'Z')
-		{
-			LastBlock[0]++;
-			LastBlock[1] = 'A';
-		}*/
+		   {
+		   LastBlock[0]++;
+		   LastBlock[1] = 'A';
+		   } */
 		LastBlock[0] = 'A';
 		LastBlock[1] = 'A';
 		
@@ -466,9 +456,9 @@ bool_t TLS_IncrementalCompile(const WadIndex_t Index)
 	// Too much?
 	if (RecCount >= 8)
 		return false;
-	
-	RecCount++;
 		
+	RecCount++;
+	
 	/* Token loop */
 	Ok = true;
 	Len = W_LumpLength(Index);
@@ -485,13 +475,13 @@ bool_t TLS_IncrementalCompile(const WadIndex_t Index)
 			
 			if (!Token)
 				break;
-			
+				
 			// "scripts"?
 			if (strcasecmp(Token, "scripts") == 0)
 				l_DoCompile = true;
 			else
 				l_DoCompile = false;
-			
+				
 			// Find until ]
 			while ((Token = TLS_TokenData(Data, Len, &TokData)))
 				if (strcasecmp(Token, "]") == 0)
@@ -500,7 +490,7 @@ bool_t TLS_IncrementalCompile(const WadIndex_t Index)
 					Token = TLS_TokenData(Data, Len, &TokData);
 					break;
 				}
-			
+				
 			if (!Token)
 				break;
 		}
@@ -525,7 +515,6 @@ bool_t TLS_IncrementalCompile(const WadIndex_t Index)
 					CONS_Printf("TLSD: Expected \'(\' after include (got \"%s\").\n", Token);
 				break;
 			}
-			
 			// Get next token
 			Token = TLS_TokenData(Data, Len, &TokData);
 			
@@ -536,7 +525,6 @@ bool_t TLS_IncrementalCompile(const WadIndex_t Index)
 					CONS_Printf("TLSD: Expected string constant in include (got \"%s\").\n", Token);
 				break;
 			}
-			
 			// Copy
 			strncpy(Buf, Token, BUFSIZE);
 			
@@ -546,7 +534,7 @@ bool_t TLS_IncrementalCompile(const WadIndex_t Index)
 			
 			if (l_ScriptDebug)
 				CONS_Printf("TLSD: Including \"%s\".\n", Buf);
-			
+				
 			// Check if lump exists and if not, 's/\./_/g'
 			if (W_CheckNumForName(Buf) == INVALIDLUMP)
 			{
@@ -558,12 +546,11 @@ bool_t TLS_IncrementalCompile(const WadIndex_t Index)
 					if (Buf[i] == '.')
 						Buf[i] = '_';
 			}
-			
 			// Run recursive
 			if (!TLS_IncrementalCompile(W_CheckNumForName(Buf)))
 				if (l_ScriptDebug)
 					CONS_Printf("TLSD: Include failed.\n");
-			
+					
 			// Get next token
 			Token = TLS_TokenData(Data, Len, &TokData);
 			
@@ -574,7 +561,6 @@ bool_t TLS_IncrementalCompile(const WadIndex_t Index)
 					CONS_Printf("TLSD: Expected \')\' after include (got \"%s\").\n", Token);
 				break;
 			}
-			
 			// Get next token
 			Token = TLS_TokenData(Data, Len, &TokData);
 			
@@ -585,7 +571,6 @@ bool_t TLS_IncrementalCompile(const WadIndex_t Index)
 					CONS_Printf("TLSD: Expected \';\' after include (got \"%s\").\n", Token);
 				break;
 			}
-				
 			// Continue
 			Ok = true;
 			continue;
@@ -607,15 +592,12 @@ bool_t TLS_IncrementalCompile(const WadIndex_t Index)
 					CONS_Printf("TLSD: Invalid script id \"%s\".\n", Token);
 				break;
 			}
-			
 			// Print label
 			CONS_Printf("%%%% LABEL \"_SCRIPT_%04X\"\n", atoi(Token));
 		}
-		
 		// Variable
 		else if (strcasecmp(Token, "int") == 0 || strcasecmp(Token, "fixed") == 0 ||
-			strcasecmp(Token, "string") == 0 || strcasecmp(Token, "mobj") == 0 ||
-			strcasecmp(Token, "const") == 0 || strcasecmp(Token, "float") == 0)
+		         strcasecmp(Token, "string") == 0 || strcasecmp(Token, "mobj") == 0 || strcasecmp(Token, "const") == 0 || strcasecmp(Token, "float") == 0)
 		{
 			// Copy type
 			strcpy(Buf, Token);
@@ -638,7 +620,6 @@ bool_t TLS_IncrementalCompile(const WadIndex_t Index)
 			// Instruction
 			CONS_Printf("%%%% DECL \"%s\", \"_%s_%s\"\n", Buf, Blocks, Buf2);
 		}
-		
 		// Begin block
 		else if (strcasecmp(Token, "{") == 0)
 		{
@@ -647,7 +628,6 @@ bool_t TLS_IncrementalCompile(const WadIndex_t Index)
 			
 			TLS_Deepen(1, 0);
 		}
-		
 		// End block
 		else if (strcasecmp(Token, "}") == 0)
 		{
@@ -656,7 +636,6 @@ bool_t TLS_IncrementalCompile(const WadIndex_t Index)
 			
 			i = TLS_Deepen(-1, 0);
 		}
-		
 		// Conditional
 		else if (strcasecmp(Token, "if") == 0 || strcasecmp(Token, "elseif") == 0 || strcasecmp(Token, "else") == 0)
 		{
@@ -687,11 +666,11 @@ bool_t TLS_IncrementalCompile(const WadIndex_t Index)
 					k++;
 				if (strcasecmp(Token, ")"))
 					k--;
-				
+					
 				// Copy token over
 				for (j = 0; j < strlen(Token) + 1; j++)
 					Buf[i++] = Token[j];
-				
+					
 				// Next token
 				Token = TLS_TokenData(Data, Len, &TokData);
 			}
@@ -704,7 +683,6 @@ bool_t TLS_IncrementalCompile(const WadIndex_t Index)
 			CONS_Printf("%%%% IF \"_%s\"\n", Buf2);
 			Skip = true;
 		}
-		
 		// Loop
 		else if (strcasecmp(Token, "for") == 0 || strcasecmp(Token, "while") == 0)
 		{
@@ -722,7 +700,6 @@ bool_t TLS_IncrementalCompile(const WadIndex_t Index)
 			// Undeep
 			//TLS_Deepen(-1, 0);
 		}
-		
 		// Standard Statement
 		else
 		{
@@ -740,7 +717,7 @@ bool_t TLS_IncrementalCompile(const WadIndex_t Index)
 				// Copy token over
 				for (j = 0; j < strlen(Token) + 1; j++)
 					Buf[i++] = Token[j];
-				
+					
 				// Next token
 				Token = TLS_TokenData(Data, Len, &TokData);
 			}
@@ -760,7 +737,6 @@ bool_t TLS_IncrementalCompile(const WadIndex_t Index)
 					CONS_Printf("TLSD: Attempted to use script as a variable.\n");
 				break;
 			}
-			
 			// Get next token
 			Token = TLS_TokenData(Data, Len, &TokData);
 			
@@ -771,7 +747,6 @@ bool_t TLS_IncrementalCompile(const WadIndex_t Index)
 					CONS_Printf("TLSD: Expected positive integer constant after script (got \"%s\").\n", Token);
 				break;
 			}
-			
 			// Push script block
 			PushBlockType = BT_SCRIPT;
 		}
@@ -786,14 +761,13 @@ bool_t TLS_IncrementalCompile(const WadIndex_t Index)
 					CONS_Printf("TLSD: Attempted to brace as a variable.\n");
 				break;
 			}
-			
 			// Increment
 			Deepness++;
 			
 			// Print
 			if (l_ScriptDebug)
 				CONS_Printf("TLSD: Now %i deep.\n", Deepness);
-			
+				
 			// Reset block type
 			PushBlockType = 0;
 		}
@@ -808,14 +782,13 @@ bool_t TLS_IncrementalCompile(const WadIndex_t Index)
 					CONS_Printf("TLSD: Attempted to brace as a variable.\n");
 				break;
 			}
-			
 			// Decrement
 			Deepness--;
 			
 			// Print
 			if (l_ScriptDebug)
 				CONS_Printf("TLSD: Now %i deep.\n", Deepness);
-			
+				
 			// Check
 			if (Deepness < 0)
 			{
@@ -835,7 +808,6 @@ bool_t TLS_IncrementalCompile(const WadIndex_t Index)
 					CONS_Printf("TLSD: hub hub is too hubby for ReMooD.\n");
 				break;
 			}
-			
 			// Check var
 			if (NextVar)
 			{
@@ -843,7 +815,6 @@ bool_t TLS_IncrementalCompile(const WadIndex_t Index)
 					CONS_Printf("TLSD: hub is a reserved word.\n");
 				break;
 			}
-			
 			// Now set
 			HubVar = true;
 			
@@ -853,8 +824,7 @@ bool_t TLS_IncrementalCompile(const WadIndex_t Index)
 		
 		/* Declare variable */
 		else if (strcasecmp(Token, "int") == 0 || strcasecmp(Token, "fixed") == 0 ||
-			strcasecmp(Token, "string") == 0 || strcasecmp(Token, "mobj") == 0 ||
-			strcasecmp(Token, "const") == 0 || strcasecmp(Token, "float") == 0)
+		         strcasecmp(Token, "string") == 0 || strcasecmp(Token, "mobj") == 0 || strcasecmp(Token, "const") == 0 || strcasecmp(Token, "float") == 0)
 		{
 			// Check var
 			if (NextVar)
@@ -863,7 +833,6 @@ bool_t TLS_IncrementalCompile(const WadIndex_t Index)
 					CONS_Printf("TLSD: %s is a reserved word.\n", Token);
 				break;
 			}
-			
 			// Unset hub
 			BoostHubVar = HubVar;
 			HubVar = false;
@@ -879,15 +848,14 @@ bool_t TLS_IncrementalCompile(const WadIndex_t Index)
 				NextVar = TLSVT_STRING;
 			else if (strcasecmp(Token, "fixed") == 0 || strcasecmp(Token, "float") == 0)
 				NextVar = TLSVT_FIXED;
-			
+				
 			if (l_ScriptDebug)
 				CONS_Printf("TLSD: Next statement declares a variable (%i).\n", NextVar);
 		}
 		
 		/* Loops and branches */
 		else if (strcasecmp(Token, "if") == 0 || strcasecmp(Token, "elseif") == 0 ||
-			strcasecmp(Token, "else") == 0 || strcasecmp(Token, "while") == 0 ||
-			strcasecmp(Token, "for") == 0)
+		         strcasecmp(Token, "else") == 0 || strcasecmp(Token, "while") == 0 || strcasecmp(Token, "for") == 0)
 		{
 		}
 		
@@ -901,7 +869,6 @@ bool_t TLS_IncrementalCompile(const WadIndex_t Index)
 					CONS_Printf("TLSD: Attempted to hub a non variable.\n");
 				break;
 			}
-			
 			// Wait until ;
 			while (Token && strcasecmp(Token, ";") != 0)
 			{
@@ -922,7 +889,7 @@ bool_t TLS_IncrementalCompile(const WadIndex_t Index)
 	
 	if (l_ScriptDebug)
 		CONS_Printf("\n");
-	
+		
 	/* Someone forget braces or whatever? */
 	if (RecCount == 0 && Deepness > 0)
 	{
@@ -935,10 +902,10 @@ bool_t TLS_IncrementalCompile(const WadIndex_t Index)
 	/* Free token data */
 	if (TokData)
 		Z_Free(TokData);
-	
+		
 	/* Unrecursive */
 	RecCount--;
-
+	
 	return Ok;
 #undef BUFSIZE
 }
@@ -947,11 +914,10 @@ bool_t TLS_IncrementalCompile(const WadIndex_t Index)
 bool_t TLS_CompileLump(const WadIndex_t Index)
 {
 	/* Debug? */
-	l_ScriptDebug = !!M_CheckParm("-tlsdebug");
+	l_ScriptDebug = ! !M_CheckParm("-tlsdebug");
 	
 	if (l_ScriptDebug)
 		CONS_Printf("TLS_CompileLump: Debugging %i.\n", Index);
-	
+		
 	return TLS_IncrementalCompile(Index);
 }
-

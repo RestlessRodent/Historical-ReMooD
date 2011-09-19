@@ -27,7 +27,7 @@
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 // GNU General Public License for more details.
 // -----------------------------------------------------------------------------
-// DESCRIPTION: 
+// DESCRIPTION:
 
 #ifndef __SCREEN_H__
 #define __SCREEN_H__
@@ -53,28 +53,30 @@ extern int stbarheight;			// when scaled
 typedef struct viddef_s
 {
 	int modenum;				// vidmode num indexes videomodes list
-
-	uint8_t *buffer;				// invisible screens buffer
+	
+	uint8_t* buffer;			// invisible screens buffer
 	unsigned rowbytes;			// bytes per scanline of the VIDEO mode
 	int width;					// PIXELS per scanline
 	int height;
 	union
-	{							// hurdler: don't need numpages for OpenGL, so we can
+	{
+		// hurdler: don't need numpages for OpenGL, so we can
 		// 15/10/99 use it for fullscreen / windowed mode
 		int numpages;			// always 1, PAGE FLIPPING TODO!!!
 		int windowed;			// windowed or fullscren mode ?
 	} u;						//BP: name it please soo it work with gcc
 	int recalc;					// if true, recalc vid-based stuff
-	uint8_t *direct;				// linear frame buffer, or vga base mem.
+	uint8_t* direct;			// linear frame buffer, or vga base mem.
 	int dupx, dupy;				// scale 1,2,3 value for menus & overlays
 	fixed_t fxdupx;				// GhostlyDeath <November 5, 2010> -- Fixed scaling
 	fixed_t fxdupy;				// GhostlyDeath <November 5, 2010> -- Fixed scaling
 	float fdupx, fdupy;			// same as dupx,dupy but exact value when aspect ratio isn't 320/200
 	int centerofs;				// centering for the scaled menu gfx
 	int bpp;					// BYTES per pixel: 1=256color
-
+	
 	int baseratio;				// SoM: Used to get the correct value for lighting walls
 } viddef_t;
+
 #define VIDWIDTH    vid.width
 #define VIDHEIGHT   vid.height
 
@@ -82,23 +84,24 @@ typedef struct viddef_s
 typedef struct
 {
 	int vesamode;				// vesa mode number plus LINEAR_MODE bit
-	void *plinearmem;			// linear address of start of frame buffer
+	void* plinearmem;			// linear address of start of frame buffer
 } vesa_extra_t;
+
 // a video modes from the video modes list,
 // note: video mode 0 is always standard VGA320x200.
 typedef struct vmode_s
 {
 
-	struct vmode_s *pnext;
-	char *name;
+	struct vmode_s* pnext;
+	char* name;
 	unsigned int width;
 	unsigned int height;
 	unsigned int rowbytes;		//bytes per scanline
 	unsigned int bytesperpixel;	// 1 for 256c
 	int windowed;				// if true this is a windowed mode
 	int numpages;
-	vesa_extra_t *pextradata;	//vesa mode extra data
-	int (*setmode) (viddef_t * lvid, struct vmode_s * pcurrentmode);
+	vesa_extra_t* pextradata;	//vesa mode extra data
+	int (*setmode) (viddef_t* lvid, struct vmode_s* pcurrentmode);
 	int misc;					//misc for display driver (r_glide.dll etc)
 } vmode_t;
 
@@ -110,7 +113,7 @@ extern void (*skycolfunc) (void);
 extern void (*colfunc) (void);
 extern void (*basecolfunc) (void);
 extern void (*fuzzcolfunc) (void);
-extern void (*oldfuzzcolfunc)(void);
+extern void (*oldfuzzcolfunc) (void);
 extern void (*transcolfunc) (void);
 extern void (*shadecolfunc) (void);
 extern void (*paintballcolfunc) (void);	// GhostlyDeath <July 6, 2011> -- Paintball mode!
@@ -127,12 +130,13 @@ extern int setmodeneeded;		// mode number to set if needed, or 0
 extern bool_t fuzzymode;
 
 extern int scr_bpp;
-extern uint8_t *scr_borderpatch;	// patch used to fill the view borders
+extern uint8_t* scr_borderpatch;	// patch used to fill the view borders
 
 extern consvar_t cv_scr_width;
 extern consvar_t cv_scr_height;
 extern consvar_t cv_scr_depth;
 extern consvar_t cv_fullscreen;
+
 // wait for page flipping to end or not
 extern consvar_t cv_vidwait;
 
@@ -144,10 +148,13 @@ extern int vid_modenum;
 
 // Change video mode, only at the start of a refresh.
 void SCR_SetMode(void);
+
 // Recalc screen size dependent stuff
 void SCR_Recalc(void);
+
 // Check parms once at startup
 void SCR_CheckDefaultMode(void);
+
 // Set the mode number which is saved in the config
 void SCR_SetDefaultMode(void);
 
@@ -158,4 +165,3 @@ void SCR_ChangeFullscreen(void);
 void SCR_ReclassBuffers(void);
 
 #endif							//__SCREEN_H__
-

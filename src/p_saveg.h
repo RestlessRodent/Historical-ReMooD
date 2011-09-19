@@ -42,7 +42,6 @@ bool_t P_LoadGame(void);
 bool_t P_LoadGameEx(const char* FileName, char* ExtFileName, size_t ExtFileNameLen, size_t* SaveLen, uint8_t** Origin);
 bool_t P_SaveGameEx(const char* Desc, char* ExtFileName, size_t ExtFileNameLen, size_t* SaveLen, uint8_t** Origin);
 
-extern uint8_t *save_p;
+extern uint8_t* save_p;
 
 #endif
-

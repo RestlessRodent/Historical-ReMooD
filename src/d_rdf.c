@@ -64,7 +64,7 @@ typedef struct DEMOPack_s
 #define TOID(a,b,c,d) ((a) | ((b) << 8) | ((c) << 16) | ((d) << 24))
 
 typedef struct DEMOHeader_s
-{	
+{
 	// Compiler Info
 	uint32_t DeadBeef;
 	uint32_t SizeShort;
@@ -120,7 +120,9 @@ FILE* DemoFile = NULL;
 DEMOPack_t PackStore;
 
 /******************************************************************************/
+
 /*********************************** GLOBAL ***********************************/
+
 /******************************************************************************/
 
 DemoStatus_t RDF_DEMO_PrepareRecording(char* name)
@@ -159,7 +161,7 @@ DemoStatus_t RDF_DEMO_StartRecording(void)
 	
 	if (!DemoFile)
 		return DST_NOTRECORDING;
-	
+		
 	/*** WRITE DATA ***/
 	// Actual Data
 	memset(&Header, 0, sizeof(Header));
@@ -188,7 +190,7 @@ DemoStatus_t RDF_DEMO_StartRecording(void)
 	Header.SizeFloat = sizeof(float);
 	Header.SizeDouble = sizeof(double);
 	Header.SizeEightS = sizeof(EightStruct_t);
-	Header.SizeSixteenS = sizeof(SixteenStruct_t);	
+	Header.SizeSixteenS = sizeof(SixteenStruct_t);
 	Header.SizeThirtyS = sizeof(ThirtyStruct_t);
 	Header.SizeSixtyS = sizeof(SixtyStruct_t);
 	
@@ -216,10 +218,13 @@ DemoStatus_t RDF_DEMO_EndRecording(void)
 }
 
 /******************************************************************************/
+
 /************************************ WRITE ***********************************/
+
 /******************************************************************************/
 
 /******************************************************************************/
+
 /************************************* READ ***********************************/
-/******************************************************************************/
 
+/******************************************************************************/

@@ -61,7 +61,7 @@ void (*skycolfunc) (void);		//new sky column drawer draw posts >128 high
 void (*colfunc) (void);			// standard column upto 128 high posts
 void (*basecolfunc) (void);
 void (*fuzzcolfunc) (void);		// standard fuzzy effect column drawer (Actually it's transparency)
-void (*oldfuzzcolfunc)(void);	// Oldschool fuzzy 
+void (*oldfuzzcolfunc) (void);	// Oldschool fuzzy
 void (*transcolfunc) (void);	// translucent column drawer
 void (*shadecolfunc) (void);	// smokie test..
 void (*paintballcolfunc) (void);	// GhostlyDeath <July 6, 2011> -- Paintball mode!
@@ -76,31 +76,34 @@ void (*transtransfunc) (void);
 // ------------------
 viddef_t vid;
 int setmodeneeded;				//video mode change needed if > 0
-							 // (the mode number to set + 1)
+
+// (the mode number to set + 1)
 
 // TO DO!!! make it a console variable !!
 bool_t fuzzymode = false;		// use original Doom fuzzy effect instead
-							 // of translucency
 
-CV_PossibleValue_t scr_depth_cons_t[] =
-	{ {8, "8 bits"}, {16, "16 bits"}, {24, "24 bits"}, {32, "32 bits"}, {0,
-																		 NULL}
+// of translucency
+
+CV_PossibleValue_t scr_depth_cons_t[] = { {8, "8 bits"}, {16, "16 bits"}, {24, "24 bits"}, {32, "32 bits"}, {
+		0,
+		NULL
+	}
 };
 
 //added:03-02-98: default screen mode, as loaded/saved in config
 consvar_t cv_scr_width = { "scr_width", "640", CV_SAVE, CV_Unsigned };
 consvar_t cv_scr_height = { "scr_height", "400", CV_SAVE, CV_Unsigned };
 consvar_t cv_scr_depth = { "scr_depth", "8 bits", CV_SAVE, scr_depth_cons_t };
-consvar_t cv_fullscreen =
-	{ "fullscreen", "No", CV_SAVE | CV_CALL, CV_YesNo, SCR_ChangeFullscreen };
+consvar_t cv_fullscreen = { "fullscreen", "No", CV_SAVE | CV_CALL, CV_YesNo, SCR_ChangeFullscreen };
 
 // =========================================================================
 //                           SCREEN VARIABLES
 // =========================================================================
 
 int scr_bpp;					// current video mode bytes per pixel
-uint8_t *scr_borderpatch;			// flat used to fill the reduced view borders
-						   // set at ST_Init ()
+uint8_t* scr_borderpatch;		// flat used to fill the reduced view borders
+
+// set at ST_Init ()
 
 // =========================================================================
 
@@ -120,44 +123,44 @@ void SCR_SetMode(void)
 		
 	if (!graphics_started)
 		return;
-
+		
 	if (!setmodeneeded)
 		return;					//should never happen
 		
 	if (devparm)
 		CONS_Printf("SCR_SetMode: Changing resolution.\n");
-
+		
 	VID_SetMode(--setmodeneeded);
-
+	
 	V_SetPalette(0);
 	//CONS_Printf ("SCR_SetMode : vid.bpp is %d\n", vid.bpp);
-
+	
 	//
 	//  setup the right draw routines for either 8bpp or 16bpp
 	//
 	if (vid.bpp == 1)
 	{
 		colfunc = basecolfunc = R_DrawColumn_8;
-
+		
 		fuzzcolfunc = (fuzzymode) ? R_DrawFuzzColumn_8 : R_DrawTranslucentColumn_8;
 		oldfuzzcolfunc = R_DrawFuzzColumn_8;
 		transcolfunc = R_DrawTranslatedColumn_8;
 		shadecolfunc = R_DrawShadeColumn_8;	//R_DrawColumn_8;
 		spanfunc = basespanfunc = R_DrawSpan_8;
 		paintballcolfunc = R_DrawPaintballColumn_8;
-
+		
 		// SSNTails 11-11-2002
 		transtransfunc = R_DrawTranslatedTranslucentColumn_8;
-
+		
 		// FIXME: quick fix
 		skydrawerfunc[0] = R_DrawColumn_8;	//old skies
 		skydrawerfunc[1] = R_DrawSkyColumn_8;	//tall sky
 	}
 	else
 		I_Error("unknown bytes per pixel mode %d\n", vid.bpp);
-
+		
 	// set the apprpriate drawer for the sky (tall or short)
-
+	
 	setmodeneeded = 0;
 }
 
@@ -170,7 +173,7 @@ void SCR_Startup(void)
 		
 	if (!graphics_started)
 		return;
-
+		
 	vid.modenum = 0;
 	
 	// GhostlyDeath <November 5, 2010> -- Fixed point scale
@@ -182,15 +185,15 @@ void SCR_Startup(void)
 	vid.fdupy = FIXED_TO_FLOAT(vid.fxdupy);
 	vid.dupx = vid.fxdupx >> FRACBITS;
 	vid.dupy = vid.fxdupy >> FRACBITS;
-
+	
 	vid.baseratio = FRACUNIT;
-
+	
 	scaledofs = 0;
 	vid.centerofs = 0;
-
+	
 	V_Init();
 	CV_RegisterVar(&cv_ticrate);
-
+	
 	V_SetPalette(0);
 }
 
@@ -208,10 +211,10 @@ void SCR_Recalc(void)
 		
 	if (devparm)
 		CONS_Printf("SCR_Recalc: Recalculating Screen\n");
-
+		
 	// bytes per pixel quick access
 	scr_bpp = vid.bpp;
-
+	
 	//added:18-02-98: scale 1,2,3 times in x and y the patches for the
 	//                menus and overlays... calculated once and for all
 	//                used by routines in v_video.c
@@ -225,39 +228,38 @@ void SCR_Recalc(void)
 	vid.dupx = vid.fxdupx >> FRACBITS;
 	vid.dupy = vid.fxdupy >> FRACBITS;
 	vid.baseratio = FixedDiv(vid.height << FRACBITS, BASEVIDHEIGHT << FRACBITS);
-
+	
 	//added:18-02-98: calculate centering offset for the scaled menu
 	scaledofs = 0;				//see v_video.c
-	vid.centerofs = (((vid.height % BASEVIDHEIGHT) / 2) * vid.width) +
-		(vid.width % BASEVIDWIDTH) / 2;
-		
+	vid.centerofs = (((vid.height % BASEVIDHEIGHT) / 2) * vid.width) + (vid.width % BASEVIDWIDTH) / 2;
+	
 	SCR_ReclassBuffers();
-
+	
 	// toggle off automap because some screensize-dependent values will
 	// be calculated next time the automap is activated.
 	if (automapactive)
 		AM_Stop();
-
+		
 	// fuzzoffsets for the 'spectre' effect,... this is a quick hack for
 	// compatibility, because I don't use it anymore since transparency
 	// looks much better.
 	R_RecalcFuzzOffsets();
-
+	
 	// r_plane stuff : visplanes, openings, floorclip, ceilingclip, spanstart,
 	//                 spanstop, yslope, distscale, cachedheight, cacheddistance,
 	//                 cachedxstep, cachedystep
 	//              -> allocated at the maximum vidsize, static.
-
+	
 	// r_main : xtoviewangle, allocated at the maximum size.
 	// r_things : negonearray, screenheightarray allocated max. size.
-
-		// set the screen[x] ptrs on the new vidbuffers
+	
+	// set the screen[x] ptrs on the new vidbuffers
 	V_Init();
-
+	
 	// scr_viewsize doesn't change, neither detailLevel, but the pixels
 	// per screenblock is different now, since we've changed resolution.
 	R_SetViewSize();			//just set setsizeneeded true now ..
-
+	
 	// vid.recalc lasts only for the next refresh...
 	con_recalc = true;
 //    CON_ToggleOff ();  // make sure con height is right for new screen height
@@ -277,25 +279,25 @@ void SCR_CheckDefaultMode(void)
 	int p;
 	int scr_forcex;				// resolution asked from the cmd-line
 	int scr_forcey;
-
+	
 	if (dedicated)
 		return;
-	
+		
 	if (!graphics_started)
 		return;
-
+		
 	// 0 means not set at the cmd-line
 	scr_forcex = 0;
 	scr_forcey = 0;
-
+	
 	p = M_CheckParm("-width");
 	if (p && p < myargc - 1)
 		scr_forcex = atoi(myargv[p + 1]);
-
+		
 	p = M_CheckParm("-height");
 	if (p && p < myargc - 1)
 		scr_forcey = atoi(myargv[p + 1]);
-
+		
 	if (scr_forcex && scr_forcey)
 	{
 		CONS_Printf("Using resolution: %d x %d\n", scr_forcex, scr_forcey);
@@ -305,8 +307,7 @@ void SCR_CheckDefaultMode(void)
 	}
 	else
 	{
-		CONS_Printf("Default resolution: %d x %d (%d bits)\n",
-					cv_scr_width.value, cv_scr_height.value, cv_scr_depth.value);
+		CONS_Printf("Default resolution: %d x %d (%d bits)\n", cv_scr_width.value, cv_scr_height.value, cv_scr_depth.value);
 		// see note above
 		setmodeneeded = VID_GetModeForSize(cv_scr_width.value, cv_scr_height.value) + 1;
 	}
@@ -320,12 +321,12 @@ void SCR_SetDefaultMode(void)
 	CV_SetValue(&cv_scr_width, vid.width);
 	CV_SetValue(&cv_scr_height, vid.height);
 	CV_SetValue(&cv_scr_depth, vid.bpp * 8);
-
+	
 	if (M_CheckParm("-window"))
 		CV_SetValue(&cv_fullscreen, 0);
 	else if (M_CheckParm("-fullscreen"))
 		CV_SetValue(&cv_fullscreen, 1);
-
+		
 	//    CV_SetValue (&cv_fullscreen, !vid.u.windowed); metzgermeister: unnecessary?
 }
 
@@ -335,12 +336,12 @@ void SCR_ChangeFullscreen(void)
 {
 #ifdef DIRECTFULLSCREEN
 	int modenum;
-
+	
 	// allow_fullscreen is set by VID_PrepareModeList
 	// it is used to prevent switching to fullscreen during startup
 	if (!allow_fullscreen)
 		return;
-
+		
 	if (graphics_started)
 	{
 		VID_PrepareModeList();
@@ -354,11 +355,11 @@ void SCR_ChangeFullscreen(void)
 void SCR_ReclassBuffers(void)
 {
 	int i;
-	visplane_t *pl;
+	visplane_t* pl;
 	
 	if (devparm)
 		CONS_Printf("SCR_ReclassBuffers: Reclassing buffers.\n");
-	
+		
 	/* IF The old stuff exists... */
 #define SCRFREE(x) if (x) { Z_Free(x); x = NULL; }
 	// Width
@@ -422,7 +423,7 @@ void SCR_ReclassBuffers(void)
 				SCRFREE(drawsegs[i].frontscale);
 			drawsegs[i].frontscale = Z_Malloc(sizeof(fixed_t) * MAXSEGS, PU_STATIC, NULL);
 		}
-			
+		
 	if (visplane_ptr)
 		for (i = 0; i < MAXVISPLANES; i++)
 			if (visplane_ptr[i])
@@ -436,7 +437,7 @@ void SCR_ReclassBuffers(void)
 					
 					pl->top = Z_Malloc(sizeof(unsigned short) * (vid.width + 2), PU_STATIC, NULL);
 					pl->top = &pl->top[1];
-				
+					
 					if (pl->bottom)
 					{
 						Z_Free(&pl->bottom[-1]);
@@ -458,4 +459,3 @@ void SCR_ReclassBuffers(void)
 		ffloor[i].c_clip = Z_Malloc(sizeof(short) * vid.width, PU_STATIC, NULL);
 	}
 }
-

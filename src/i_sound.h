@@ -69,4 +69,3 @@ extern consvar_t cv_snd_multithreaded;
 extern consvar_t cv_snd_sounddensity;
 
 #endif
-

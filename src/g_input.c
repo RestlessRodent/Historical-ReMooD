@@ -41,13 +41,13 @@
 #include "console.h"
 
 CV_PossibleValue_t mousesens_cons_t[] = { {1, "MIN"}
-, {MAXMOUSESENSITIVITY, "MAXCURSOR"}
-, {INT_MAX, "MAX"}
-, {0, NULL}
+	, {MAXMOUSESENSITIVITY, "MAXCURSOR"}
+	, {INT_MAX, "MAX"}
+	, {0, NULL}
 };
 CV_PossibleValue_t onecontrolperkey_cons_t[] = { {1, "One"}
-, {2, "Several"}
-, {0, NULL}
+	, {2, "Several"}
+	, {0, NULL}
 };
 
 void M_MouseModeChange(void);
@@ -58,7 +58,7 @@ consvar_t cv_mousesensy = { "mousesensy", "10", CV_ALIAS | CV_DEPRECATED, mouses
 consvar_t cv_mlooksens = { "mlooksens", "10", CV_SAVE, mousesens_cons_t };
 consvar_t cv_mousesens2 = { "mousesens2", "10", CV_SAVE, mousesens_cons_t };
 consvar_t cv_mlooksens2 = { "mlooksens2", "10", CV_SAVE, mousesens_cons_t };
-consvar_t cv_legacymouse = { "legacymouse", "1", CV_ALIAS | CV_DEPRECATED, CV_YesNo, NULL, "m_legacymouse"};
+consvar_t cv_legacymouse = { "legacymouse", "1", CV_ALIAS | CV_DEPRECATED, CV_YesNo, NULL, "m_legacymouse" };
 
 consvar_t cv_m_xsensitivity = { "m_xsensitivity", "10", CV_SAVE, mousesens_cons_t };
 consvar_t cv_m_ysensitivity = { "m_ysensitivity", "10", CV_SAVE, mousesens_cons_t };
@@ -68,34 +68,35 @@ consvar_t cv_m_legacymouse = { "m_legacymouse", "1", CV_SAVE | CV_CALL, CV_YesNo
 CV_PossibleValue_t mouseaxismode_cons_t[] =
 {
 	// Standard
-	{0, "xmove"},			// Strafing
-	{1, "xlook"},			// Turning left and right
-	{2, "ymove"},			// Moving Forward and Backwards
-	{3, "ylook"},			// Looking up and down
-	{4, "zmove"},			// Vertical Movement
-	//{5, "zlook"},			// Rolling the view
+	{0, "xmove"},				// Strafing
+	{1, "xlook"},				// Turning left and right
+	{2, "ymove"},				// Moving Forward and Backwards
+	{3, "ylook"},				// Looking up and down
+	{4, "zmove"},				// Vertical Movement
+	//{5, "zlook"},         // Rolling the view
 	
 	// Inverted
-	{6, "invertedxmove"},	// Strafing
-	{7, "invertedxlook"},	// Turning left and right
-	{8, "invertedymove"},	// Moving Forward and Backwards
-	{9, "invertedylook"},	// Looking up and down
-	{10, "invertedzmove"},	// Vertical Movement
+	{6, "invertedxmove"},		// Strafing
+	{7, "invertedxlook"},		// Turning left and right
+	{8, "invertedymove"},		// Moving Forward and Backwards
+	{9, "invertedylook"},		// Looking up and down
+	{10, "invertedzmove"},		// Vertical Movement
 	//{11, "invertedzlook"},// Rolling the view
 	
-	{12, "disabled"},		// Does Nothing
+	{12, "disabled"},			// Does Nothing
 	{0, NULL}
 };
-consvar_t cv_m_xaxismode = {"m_xaxismode", "xlook", CV_SAVE, mouseaxismode_cons_t};
-consvar_t cv_m_yaxismode = {"m_yaxismode", "ymove", CV_SAVE, mouseaxismode_cons_t};
-consvar_t cv_m_xaxissecmode = {"m_xaxissecmode", "xlook", CV_SAVE, mouseaxismode_cons_t};
-consvar_t cv_m_yaxissecmode = {"m_yaxissecmode", "ylook", CV_SAVE, mouseaxismode_cons_t};
-consvar_t cv_m_classicalt = {"m_classicalt", "1", CV_SAVE, CV_YesNo};
+consvar_t cv_m_xaxismode = { "m_xaxismode", "xlook", CV_SAVE, mouseaxismode_cons_t };
+consvar_t cv_m_yaxismode = { "m_yaxismode", "ymove", CV_SAVE, mouseaxismode_cons_t };
+consvar_t cv_m_xaxissecmode = { "m_xaxissecmode", "xlook", CV_SAVE, mouseaxismode_cons_t };
+consvar_t cv_m_yaxissecmode = { "m_yaxissecmode", "ylook", CV_SAVE, mouseaxismode_cons_t };
+consvar_t cv_m_classicalt = { "m_classicalt", "1", CV_SAVE, CV_YesNo };
 
 consvar_t cv_allowjump = { "allowjump", "1", CV_NETVAR, CV_YesNo };
 consvar_t cv_allowautoaim = { "allowautoaim", "1", CV_NETVAR, CV_YesNo };
 consvar_t cv_forceautoaim = { "forceautoaim", "1", CV_NETVAR, CV_YesNo };
 consvar_t cv_controlperkey = { "controlperkey", "1", CV_SAVE, onecontrolperkey_cons_t };
+
 //SoM: 3/28/2000: Working rocket jumping.
 consvar_t cv_allowrocketjump = { "allowrocketjump", "0", CV_NETVAR, CV_YesNo };
 consvar_t cv_classicrocketblast = { "classicrocketblast", "0", CV_NETVAR, CV_YesNo };
@@ -103,7 +104,8 @@ consvar_t cv_classicrocketblast = { "classicrocketblast", "0", CV_NETVAR, CV_Yes
 int mousex;
 int mousey;
 int mlooky;						//like mousey but with a custom sensitivity
-								//for mlook
+
+//for mlook
 int mouse2x;
 int mouse2y;
 int mlook2y;
@@ -130,7 +132,7 @@ dclick_t joydclicks[MAXSPLITSCREENPLAYERS][JOYBUTTONS];
 //
 //  General double-click detection routine for any kind of input.
 //
-static bool_t G_CheckDoubleClick(int state, dclick_t * dt)
+static bool_t G_CheckDoubleClick(int state, dclick_t* dt)
 {
 	if (state != dt->state && dt->time > 1)
 	{
@@ -165,30 +167,30 @@ static bool_t G_CheckDoubleClick(int state, dclick_t * dt)
 //
 //  Each key/mousebutton/joybutton triggers ONLY ONE game control.
 //
-void G_MapEventsToControls(event_t * ev)
+void G_MapEventsToControls(event_t* ev)
 {
 	int i = 0;
 	int j = 0;
 	int flag = 0;
-
+	
 	switch (ev->type)
 	{
 		case ev_keydown:
 			if (ev->data1 < NUMINPUTS)
 				gamekeydown[ev->data1] = 1;
 			break;
-
+			
 		case ev_keyup:
 			if (ev->data1 < NUMINPUTS)
 				gamekeydown[ev->data1] = 0;
 			break;
-
+			
 		case ev_mouse:			// buttons are virtual keys
 			if (cv_m_legacymouse.value)
 			{
 				mousex += ev->data2 * ((cv_m_xsensitivity.value * cv_m_xsensitivity.value) / 110.0 + 0.1);
 				mousey += ev->data3 * ((cv_m_ysensitivity.value * cv_m_ysensitivity.value) / 110.0 + 0.1);
-
+				
 				//added:10-02-98:
 				// for now I use the mlook sensitivity just for mlook,
 				// instead of having a general mouse y sensitivity.
@@ -200,27 +202,27 @@ void G_MapEventsToControls(event_t * ev)
 				mousey += ev->data3 * ((cv_m_ysensitivity.value * cv_m_ysensitivity.value) / 110.0 + 0.1);
 			}
 			break;
-
+			
 		case ev_joystick:		// buttons are virtual keys
 			joyxmove = ev->data2;
 			joyymove = ev->data3;
 			break;
-
+			
 		case ev_mouse2:		// buttons hare virtual keys
 			mouse2x = ev->data2 * ((cv_mousesens2.value * cv_mousesens2.value) / 110.0f + 0.1);
 			mouse2y = ev->data3 * ((cv_mousesens2.value * cv_mousesens2.value) / 110.0f + 0.1);
-
+			
 			//added:10-02-98:
 			// for now I use the mlook sensitivity just for mlook,
 			// instead of having a general mouse y sensitivity.
 			mlook2y = ev->data3 * ((cv_mlooksens.value * cv_mlooksens.value) / 110.0f + 0.1);
 			break;
-
+			
 		default:
 			break;
-
+			
 	}
-
+	
 	// ALWAYS check for mouse & joystick double-clicks
 	// even if no mouse event
 #if 0
@@ -252,35 +254,36 @@ typedef struct
 
 #define KEYNAMEEXTRAS (((((((MOUSEBUTTONS << 1) + 2) * 2) + ((JOYBUTTONS << 1))) * 4)) + (KEY_WORLDSTART - KEY_WORLDEND))
 
-static keyname_t keynames[54 + KEYNAMEEXTRAS + 90] = {	// FIXME: +90 because there's an overflow somewhere
-		// FIXME: Overflows in G_InitKeys(), 441 keys are named but this array is only 359 in size
-
+static keyname_t keynames[54 + KEYNAMEEXTRAS + 90] =  	// FIXME: +90 because there's an overflow somewhere
+{
+	// FIXME: Overflows in G_InitKeys(), 441 keys are named but this array is only 359 in size
+	
 	{KEY_SPACE, "SPACE"},
 	{KEY_CAPSLOCK, "CAPS LOCK"},
 	{KEY_ENTER, "ENTER"},
 	{KEY_TAB, "TAB"},
 	{KEY_ESCAPE, "ESCAPE"},
 	{KEY_BACKSPACE, "BACKSPACE"},
-
+	
 	{KEY_NUMLOCK, "NUMLOCK"},
 	{KEY_SCROLLLOCK, "SCROLLLOCK"},
-
+	
 	// bill gates keys
-
+	
 	{KEY_LEFTWIN, "LEFTWIN"},
 	{KEY_RIGHTWIN, "RIGHTWIN"},
 	{KEY_MENU, "MENU"},
-
+	
 	// shift,ctrl,alt are not distinguished between left & right
-
+	
 	{KEY_SHIFT, "SHIFT"},
 	{KEY_CTRL, "CTRL"},
 	{KEY_ALT, "ALT"},
-
+	
 	// keypad keys
-
+	
 	{KEY_KPADSLASH, "KEYPAD /"},
-
+	
 	{KEY_KEYPAD7, "KEYPAD 7"},
 	{KEY_KEYPAD8, "KEYPAD 8"},
 	{KEY_KEYPAD9, "KEYPAD 9"},
@@ -294,9 +297,9 @@ static keyname_t keynames[54 + KEYNAMEEXTRAS + 90] = {	// FIXME: +90 because the
 	{KEY_KEYPAD3, "KEYPAD 3"},
 	{KEY_KEYPAD0, "KEYPAD 0"},
 	{KEY_KPADDEL, "KEYPAD ."},
-
+	
 	// extended keys (not keypad)
-
+	
 	{KEY_HOME, "HOME"},
 	{KEY_UPARROW, "UP ARROW"},
 	{KEY_PGUP, "PGUP"},
@@ -307,9 +310,9 @@ static keyname_t keynames[54 + KEYNAMEEXTRAS + 90] = {	// FIXME: +90 because the
 	{KEY_PGDN, "PGDN"},
 	{KEY_INS, "INS"},
 	{KEY_DEL, "DEL"},
-
+	
 	// other keys
-
+	
 	{KEY_F1, "F1"},
 	{KEY_F2, "F2"},
 	{KEY_F3, "F3"},
@@ -331,7 +334,8 @@ static keyname_t keynames[54 + KEYNAMEEXTRAS + 90] = {	// FIXME: +90 because the
 	
 };
 
-char *gamecontrolname[num_gamecontrols] = {
+char* gamecontrolname[num_gamecontrols] =
+{
 	"nothing",					//a key/button mapped to gc_null has no effect
 	"forward",
 	"backward",
@@ -380,17 +384,17 @@ void G_InitKeys(void)
 	// World Keys
 	for (j = KEY_WORLDSTART; j <= KEY_WORLDEND; j++, i++)
 		sprintf(keynames[i].name, "WORLD%02d", j - KEY_WORLDSTART);
-	
+		
 	// Mouse First
 	for (j = 0; j < 2; j++)
 	{
 		for (k = 0; k < MOUSEBUTTONS; k++, i++)
-			sprintf(keynames[i].name, "MOUSE%dB%01d", j+1, k+1);
+			sprintf(keynames[i].name, "MOUSE%dB%01d", j + 1, k + 1);
 		for (k = 0; k < MOUSEBUTTONS; k++, i++)
-			sprintf(keynames[i].name, "MOUSE%dDBL%01d", j+1, k+1);
-		sprintf(keynames[i].name, "MOUSE%dWHEELUP", j+1);
+			sprintf(keynames[i].name, "MOUSE%dDBL%01d", j + 1, k + 1);
+		sprintf(keynames[i].name, "MOUSE%dWHEELUP", j + 1);
 		i++;
-		sprintf(keynames[i].name, "MOUSE%dWHEELDOWN", j+1);
+		sprintf(keynames[i].name, "MOUSE%dWHEELDOWN", j + 1);
 		i++;
 	}
 	
@@ -398,9 +402,9 @@ void G_InitKeys(void)
 	for (j = 0; j < 4; j++)
 	{
 		for (k = 0; k < JOYBUTTONS; k++, i++)
-			sprintf(keynames[i].name, "JOY%dB%02d", j+1, k+1);
+			sprintf(keynames[i].name, "JOY%dB%02d", j + 1, k + 1);
 		for (k = 0; k < JOYBUTTONS; k++, i++)
-			sprintf(keynames[i].name, "JOY%dDBL%02d", j+1, k+1);
+			sprintf(keynames[i].name, "JOY%dDBL%02d", j + 1, k + 1);
 	}
 	
 	for (i = 54; i < NUMKEYNAMES; i++)
@@ -420,12 +424,12 @@ void G_ClearControlKeys(int (*setupcontrols)[2], int control)
 //  Returns the name of a key (or virtual key for mouse and joy)
 //  the input value being an keynum
 //
-char *G_KeynumToString(int keynum)
+char* G_KeynumToString(int keynum)
 {
 	static char keynamestr[8];
-
+	
 	int j;
-
+	
 	// return a string with the ascii char if displayable
 	if (keynum > ' ' && keynum <= 'z' && keynum != KEY_CONSOLE)
 	{
@@ -433,33 +437,32 @@ char *G_KeynumToString(int keynum)
 		keynamestr[1] = '\0';
 		return keynamestr;
 	}
-
 	// find a description for special keys
 	for (j = 0; j < NUMKEYNAMES; j++)
 		if (keynames[j].keynum == keynum)
 			return keynames[j].name;
-
+			
 	// create a name for Unknown key
 	sprintf(keynamestr, "KEY%d", keynum);
 	return keynamestr;
 }
 
-int G_KeyStringtoNum(char *keystr)
+int G_KeyStringtoNum(char* keystr)
 {
 	int j;
-
+	
 //    C_strupr(keystr);
 
 	if (keystr[1] == 0 && keystr[0] > ' ' && keystr[0] <= 'z')
 		return keystr[0];
-
+		
 	for (j = 0; j < NUMKEYNAMES; j++)
 		if (strcasecmp(keynames[j].name, keystr) == 0)
 			return keynames[j].keynum;
-
+			
 	if (strlen(keystr) > 3)
 		return atoi(&keystr[3]);
-
+		
 	return 0;
 }
 
@@ -496,7 +499,7 @@ void G_Controldefault(void)
 	gamecontrol[0][gc_console][0] = KEY_CONSOLE;
 	gamecontrol[0][gc_nextweapon][1] = KEY_JOY1B1 + 4;
 	gamecontrol[0][gc_prevweapon][1] = KEY_JOY1B1 + 5;
-
+	
 	gamecontrol[0][gc_invnext][0] = '\'';
 	gamecontrol[0][gc_invprev][0] = ';';
 	gamecontrol[0][gc_nextweapon][0] = ']';
@@ -505,17 +508,16 @@ void G_Controldefault(void)
 	gamecontrol[0][gc_flydown][0] = KEY_DEL;
 }
 
-void G_SaveKeySetting(FILE * f)
+void G_SaveKeySetting(FILE* f)
 {
 	int i;
 	int j;
-
+	
 	for (j = 0; j < MAXSPLITSCREENPLAYERS; j++)
 		for (i = 1; i < num_gamecontrols; i++)
 		{
-			fprintf(f, "setcontrol%i \"%s\" \"%s\"", j+1, gamecontrolname[i],
-					G_KeynumToString(gamecontrol[j][i][0]));
-
+			fprintf(f, "setcontrol%i \"%s\" \"%s\"", j + 1, gamecontrolname[i], G_KeynumToString(gamecontrol[j][i][0]));
+			
 			if (gamecontrol[j][i][1])
 				fprintf(f, " \"%s\"\n", G_KeynumToString(gamecontrol[j][i][1]));
 			else
@@ -544,12 +546,11 @@ void G_CheckDoubleUsage(int keynum)
 void setcontrol(int (*gc)[2], int na)
 {
 	int numctrl;
-	char *namectrl;
+	char* namectrl;
 	int keynum;
-
+	
 	namectrl = COM_Argv(1);
-	for (numctrl = 0; numctrl < num_gamecontrols
-		 && strcasecmp(namectrl, gamecontrolname[numctrl]); numctrl++);
+	for (numctrl = 0; numctrl < num_gamecontrols && strcasecmp(namectrl, gamecontrolname[numctrl]); numctrl++);
 	if (numctrl == num_gamecontrols)
 	{
 		CONS_Printf("Control '%s' unknown\n", namectrl);
@@ -558,7 +559,7 @@ void setcontrol(int (*gc)[2], int na)
 	keynum = G_KeyStringtoNum(COM_Argv(2));
 	G_CheckDoubleUsage(keynum);
 	gc[numctrl][0] = keynum;
-
+	
 	if (na == 4)
 		gc[numctrl][1] = G_KeyStringtoNum(COM_Argv(3));
 	else
@@ -569,18 +570,17 @@ void Command_Setcontrol_f(void)
 {
 	int na;
 	int j;
-
+	
 	na = COM_Argc();
 	
 	j = ((COM_Argv(0))[10]) - '1';
-
+	
 	if (na != 3 && na != 4)
 	{
 		CONS_Printf("%s <controlname> <keyname> [<2nd keyname>]\n", COM_Argv(0));
-		CONS_Printf("# is a value between 1 and %i.\n", MAXSPLITSCREENPLAYERS+1);
+		CONS_Printf("# is a value between 1 and %i.\n", MAXSPLITSCREENPLAYERS + 1);
 		return;
 	}
-
+	
 	setcontrol(gamecontrol[j], na);
 }
-

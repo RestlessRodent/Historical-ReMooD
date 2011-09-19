@@ -48,4 +48,3 @@ bool_t I_MusicDriverInit(void)
 	/* Success */
 	return true;
 }
-

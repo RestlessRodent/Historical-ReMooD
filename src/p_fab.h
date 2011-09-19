@@ -27,7 +27,7 @@
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 // GNU General Public License for more details.
 // -----------------------------------------------------------------------------
-// DESCRIPTION: 
+// DESCRIPTION:
 
 #ifndef __P_FAB__
 #define __P_FAB__
@@ -40,7 +40,7 @@ extern consvar_t cv_solidcorpse;	//p_enemy
 extern consvar_t cv_bloodtime;
 
 // spawn smoke trails behind rockets and skull head attacks
-void A_SmokeTrailer(mobj_t * actor);
+void A_SmokeTrailer(mobj_t* actor);
 
 // hack the states table to set Doom Legacy's default translucency on sprites
 void P_SetTranslucencies(void);

@@ -57,7 +57,7 @@
 #include "t_spec.h"
 #include "t_vari.h"
 
-int find_operator(int start, int stop, char *value);
+int find_operator(int start, int stop, char* value);
 
 // ending brace found in parsing
 
@@ -65,14 +65,14 @@ void spec_brace()
 {
 	if (script_debug)
 		CONS_Printf("brace\n");
-
+		
 	if (bracetype != bracket_close)	// only deal with closing } braces
 		return;
-
+		
 	// if() requires nothing to be done
 	if (current_section->type == st_if || current_section->type == st_else)
 		return;
-
+		
 	// if a loop, jump back to the start of the loop
 	if (current_section->type == st_loop)
 	{
@@ -81,21 +81,20 @@ void spec_brace()
 	}
 }
 
-		// 'if' statement
+// 'if' statement
 int spec_if()
 {
 	int endtoken;
 	svalue_t eval;
-
+	
 	if ((endtoken = find_operator(0, num_tokens - 1, ")")) == -1)
 	{
 		script_error("parse error in if statement\n");
 		return 0;
 	}
-
 	// 2 to skip past the 'if' and '('
 	eval = evaluate_expression(2, endtoken - 1);
-
+	
 	if (current_section && bracetype == bracket_open && endtoken == num_tokens - 1)
 	{
 		// {} braces
@@ -109,7 +108,7 @@ int spec_if()
 			return (intvalue(eval));
 		evaluate_expression(endtoken + 1, num_tokens - 1);
 	}
-
+	
 	return (intvalue(eval));
 }
 
@@ -117,13 +116,13 @@ int spec_elseif(bool_t lastif)
 {
 	int endtoken;
 	svalue_t eval;
-
+	
 	if ((endtoken = find_operator(0, num_tokens - 1, ")")) == -1)
 	{
 		script_error("parse error in elseif statement\n");
 		return 0;
 	}
-
+	
 	if (lastif)
 	{
 		rover = current_section->end + 1;
@@ -131,7 +130,7 @@ int spec_elseif(bool_t lastif)
 	}
 	// 2 to skip past the 'elseif' and '('
 	eval = evaluate_expression(2, endtoken - 1);
-
+	
 	if (current_section && bracetype == bracket_open && endtoken == num_tokens - 1)
 	{
 		// {} braces
@@ -139,14 +138,14 @@ int spec_elseif(bool_t lastif)
 			rover = current_section->end + 1;
 	}
 	else						// elseif() without {} braces
-	if (intvalue(eval))
-	{
-		// nothing to do ?
-		if (endtoken == num_tokens - 1)
-			return (intvalue(eval));
-		evaluate_expression(endtoken + 1, num_tokens - 1);
-	}
-
+		if (intvalue(eval))
+		{
+			// nothing to do ?
+			if (endtoken == num_tokens - 1)
+				return (intvalue(eval));
+			evaluate_expression(endtoken + 1, num_tokens - 1);
+		}
+		
 	return (intvalue(eval));
 }
 
@@ -162,21 +161,21 @@ void spec_while()
 {
 	int endtoken;
 	svalue_t eval;
-
+	
 	if (!current_section)
 	{
 		script_error("no {} section given for loop\n");
 		return;
 	}
-
+	
 	if ((endtoken = find_operator(0, num_tokens - 1, ")")) == -1)
 	{
 		script_error("parse error in loop statement\n");
 		return;
 	}
-
+	
 	eval = evaluate_expression(2, endtoken - 1);
-
+	
 	// skip if no longer valid
 	if (!intvalue(eval))
 		rover = current_section->end + 1;
@@ -187,32 +186,29 @@ void spec_for()					// for() loop
 	svalue_t eval;
 	int start;
 	int comma1, comma2;			// token numbers of the seperating commas
-
+	
 	if (!current_section)
 	{
 		script_error("need {} delimiters for for()\n");
 		return;
 	}
-
 	// is a valid section
-
+	
 	start = 2;					// skip "for" and "(": start on third token(2)
-
+	
 	// find the seperating commas first
-
-	if ((comma1 = find_operator(start, num_tokens - 1, ",")) == -1
-		|| (comma2 = find_operator(comma1 + 1, num_tokens - 1, ",")) == -1)
+	
+	if ((comma1 = find_operator(start, num_tokens - 1, ",")) == -1 || (comma2 = find_operator(comma1 + 1, num_tokens - 1, ",")) == -1)
 	{
 		script_error("incorrect arguments to if()\n");
 		return;
 	}
-
 	// are we looping back from a previous loop?
 	if (current_section == prev_section)
 	{
 		// do the loop 'action' (third argument)
 		evaluate_expression(comma2 + 1, num_tokens - 2);
-
+		
 		// check if we should run the loop again (second argument)
 		eval = evaluate_expression(comma1 + 1, comma2 - 1);
 		if (!intvalue(eval))
@@ -232,7 +228,7 @@ void spec_for()					// for() loop
 /**************************** Variable Creation ****************************/
 
 int newvar_type;
-script_t *newvar_script;
+script_t* newvar_script;
 
 // called for each individual variable in a statement
 //  newvar_type must be set
@@ -241,20 +237,19 @@ static void create_variable(int start, int stop)
 {
 	if (killscript)
 		return;
-
+		
 	if (tokentype[start] != name)
 	{
 		script_error("invalid name for variable: '%s'\n", tokens[start + 1]);
 		return;
 	}
-
 	// check if already exists, only checking
 	// the current script
 	if (variableforname(newvar_script, tokens[start]))
 		return;					// already one
-
+		
 	new_variable(newvar_script, tokens[start], newvar_type);
-
+	
 	if (stop != start)
 		evaluate_expression(start, stop);
 }
@@ -265,7 +260,7 @@ static void create_variable(int start, int stop)
 static void parse_var_line(int start)
 {
 	int starttoken = start, endtoken;
-
+	
 	for (;;)
 	{
 		if (killscript)
@@ -283,17 +278,16 @@ static void parse_var_line(int start)
 bool_t spec_variable()
 {
 	int start = 0;
-
+	
 	newvar_type = -1;			// init to -1
 	newvar_script = current_script;	// use current script
-
+	
 	// check for 'hub' keyword to make a hub variable
 	if (!strcmp(tokens[start], "hub"))
 	{
 		newvar_script = &hub_script;
 		start++;				// skip first token
 	}
-
 	// now find variable type
 	if (!strcmp(tokens[start], "const"))
 	{
@@ -325,17 +319,16 @@ bool_t spec_variable()
 		newvar_type = svt_fixed;
 		start++;
 	}
-
 	// other variable types could be added: eg float
-
+	
 	// are we creating a new variable?
-
+	
 	if (newvar_type != -1)
 	{
 		parse_var_line(start);
 		return true;			// used tokens
 	}
-
+	
 	return false;				// not used: try normal parsing
 }
 

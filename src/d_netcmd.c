@@ -72,14 +72,14 @@ void Command_Name_f(void);
 
 void Command_WeaponPref(void);
 
-void Got_NameAndcolor(char **cp, int playernum);
-void Got_WeaponPref(char **cp, int playernum);
-void Got_Mapcmd(char **cp, int playernum);
-void Got_ExitLevelcmd(char **cp, int playernum);
-void Got_LoadGamecmd(char **cp, int playernum);
-void Got_SaveGamecmd(char **cp, int playernum);
-void Got_Pause(char **cp, int playernum);
-void Got_UseArtefact(char **cp, int playernum);
+void Got_NameAndcolor(char** cp, int playernum);
+void Got_WeaponPref(char** cp, int playernum);
+void Got_Mapcmd(char** cp, int playernum);
+void Got_ExitLevelcmd(char** cp, int playernum);
+void Got_LoadGamecmd(char** cp, int playernum);
+void Got_SaveGamecmd(char** cp, int playernum);
+void Got_Pause(char** cp, int playernum);
+void Got_UseArtefact(char** cp, int playernum);
 
 void TeamPlay_OnChange(void);
 void FragLimit_OnChange(void);
@@ -118,67 +118,74 @@ void CL_Player3Change(void);
 void CL_Player4Change(void);
 
 /****** MULTIPLAYER CONFIGURATIONS ******/
+
 /*** PLAYER 1 ***/
 // these two are just meant to be saved to the config
 consvar_t cv_playername1 = { "cl1_name", NULL, CV_SAVE | CV_CALL | CV_NOINIT, NULL, CL_Player1Change };
+
 consvar_t cv_playercolor1 = { "cl1_color", "0", CV_SAVE | CV_CALL | CV_NOINIT, Color_cons_t,
-	CL_Player1Change
-};
+                              CL_Player1Change
+                            };
+
 // player's skin, saved for commodity, when using a favorite skins wad..
 consvar_t cv_skin1 = { "cl1_skin", DEFAULTSKIN, CV_SAVE | CV_CALL | CV_NOINIT,
-	NULL /*skin_cons_t */ , CL_Player1Change
-};
+                       NULL /*skin_cons_t */ , CL_Player1Change
+                     };
+
 consvar_t cv_weaponpref1 = { "cl1_weaponpref", "014576328", CV_SAVE | CV_CALL | CV_NOINIT, NULL,
-	CL_Player1Change
-};
+                             CL_Player1Change
+                           };
 consvar_t cv_autoaim1 = { "cl1_autoaim", "1", CV_SAVE | CV_CALL | CV_NOINIT, CV_OnOff, CL_Player1Change };
 
 /*** PLAYER 2 ***/
 // these two are just meant to be saved to the config
 consvar_t cv_playername2 = { "cl2_name", NULL, CV_SAVE | CV_CALL | CV_NOINIT, NULL, CL_Player2Change };
+
 consvar_t cv_playercolor2 = { "cl2_color", "0", CV_SAVE | CV_CALL | CV_NOINIT, Color_cons_t,
-	CL_Player2Change
-};
+                              CL_Player2Change
+                            };
+
 // player's skin, saved for commodity, when using a favorite skins wad..
 consvar_t cv_skin2 = { "cl2_skin", DEFAULTSKIN, CV_SAVE | CV_CALL | CV_NOINIT,
-	NULL /*skin_cons_t */ , CL_Player2Change
-};
+                       NULL /*skin_cons_t */ , CL_Player2Change
+                     };
+
 consvar_t cv_weaponpref2 = { "cl2_weaponpref", "014576328", CV_SAVE | CV_CALL | CV_NOINIT, NULL,
-	CL_Player2Change
-};
+                             CL_Player2Change
+                           };
 consvar_t cv_autoaim2 = { "cl2_autoaim", "1", CV_SAVE | CV_CALL | CV_NOINIT, CV_OnOff, CL_Player2Change };
 
 /*** PLAYER 3 ***/
 consvar_t cv_playername3 = { "cl3_name", NULL, CV_SAVE | CV_CALL | CV_NOINIT, NULL, CL_Player3Change };
-consvar_t cv_playercolor3 = { "cl3_color", "0", CV_SAVE | CV_CALL | CV_NOINIT, Color_cons_t, CL_Player3Change};
-consvar_t cv_skin3 = { "cl3_skin", DEFAULTSKIN, CV_SAVE | CV_CALL | CV_NOINIT, NULL /*skin_cons_t */ , CL_Player3Change};
-consvar_t cv_weaponpref3 = { "cl3_weaponpref", "014576328", CV_SAVE | CV_CALL | CV_NOINIT, NULL, CL_Player3Change};
+consvar_t cv_playercolor3 = { "cl3_color", "0", CV_SAVE | CV_CALL | CV_NOINIT, Color_cons_t, CL_Player3Change };
+consvar_t cv_skin3 = { "cl3_skin", DEFAULTSKIN, CV_SAVE | CV_CALL | CV_NOINIT, NULL /*skin_cons_t */ , CL_Player3Change };
+consvar_t cv_weaponpref3 = { "cl3_weaponpref", "014576328", CV_SAVE | CV_CALL | CV_NOINIT, NULL, CL_Player3Change };
 consvar_t cv_autoaim3 = { "cl3_autoaim", "1", CV_SAVE | CV_CALL | CV_NOINIT, CV_OnOff, CL_Player3Change };
 
 /*** PLAYER 1 ***/
 consvar_t cv_playername4 = { "cl4_name", NULL, CV_SAVE | CV_CALL | CV_NOINIT, NULL, CL_Player4Change };
-consvar_t cv_playercolor4 = { "cl4_color", "0", CV_SAVE | CV_CALL | CV_NOINIT, Color_cons_t, CL_Player4Change};
-consvar_t cv_skin4 = { "cl4_skin", DEFAULTSKIN, CV_SAVE | CV_CALL | CV_NOINIT, NULL /*skin_cons_t */ , CL_Player4Change};
-consvar_t cv_weaponpref4 = { "cl4_weaponpref", "014576328", CV_SAVE | CV_CALL | CV_NOINIT, NULL, CL_Player4Change};
+consvar_t cv_playercolor4 = { "cl4_color", "0", CV_SAVE | CV_CALL | CV_NOINIT, Color_cons_t, CL_Player4Change };
+consvar_t cv_skin4 = { "cl4_skin", DEFAULTSKIN, CV_SAVE | CV_CALL | CV_NOINIT, NULL /*skin_cons_t */ , CL_Player4Change };
+consvar_t cv_weaponpref4 = { "cl4_weaponpref", "014576328", CV_SAVE | CV_CALL | CV_NOINIT, NULL, CL_Player4Change };
 consvar_t cv_autoaim4 = { "cl4_autoaim", "1", CV_SAVE | CV_CALL | CV_NOINIT, CV_OnOff, CL_Player4Change };
+
 /****************************************/
 
-consvar_t cv_originalweaponswitch =
-	{ "originalweaponswitch", "0", CV_SAVE, CV_OnOff,
-	NULL
-};
+consvar_t cv_originalweaponswitch = { "originalweaponswitch", "0", CV_SAVE, CV_OnOff,
+                                      NULL
+                                    };
 
 CV_PossibleValue_t usemouse_cons_t[] = { {0, "Off"}, {1, "On"}, {2, "Force"}, {0, NULL} };
 
 #ifdef LMOUSE2
-CV_PossibleValue_t mouse2port_cons_t[] =
-	{ {0, "/dev/gpmdata"}, {1, "/dev/ttyS0"}, {2, "/dev/ttyS1"}, {3,
-																  "/dev/ttyS2"},
-{4, "/dev/ttyS3"}, {0, NULL}
+CV_PossibleValue_t mouse2port_cons_t[] = { {0, "/dev/gpmdata"}, {1, "/dev/ttyS0"}, {2, "/dev/ttyS1"}, {
+		3,
+		"/dev/ttyS2"
+	},
+	{4, "/dev/ttyS3"}, {0, NULL}
 };
 #else
-CV_PossibleValue_t mouse2port_cons_t[] =
-	{ {1, "COM1"}, {2, "COM2"}, {3, "COM3"}, {4, "COM4"}, {0, NULL} };
+CV_PossibleValue_t mouse2port_cons_t[] = { {1, "COM1"}, {2, "COM2"}, {3, "COM3"}, {4, "COM4"}, {0, NULL} };
 #endif
 
 consvar_t cv_use_mouse = { "use_mouse", "1", CV_SAVE | CV_CALL, usemouse_cons_t, I_StartupMouse };
@@ -193,6 +200,7 @@ consvar_t cv_mouse2opt = { "mouse2opt", "0", CV_SAVE, NULL };
 consvar_t cv_mouse2port = { "mouse2port", "COM2", CV_SAVE, mouse2port_cons_t };
 #endif
 CV_PossibleValue_t teamplay_cons_t[] = { {0, "Off"}, {1, "Color"}, {2, "Skin"}, {3, NULL} };
+
 CV_PossibleValue_t deathmatch_cons_t[] =
 {
 	{0, "Cooperative"},
@@ -213,9 +221,11 @@ consvar_t cv_teamdamage = { "teamdamage", "0", CV_NETVAR, CV_OnOff };
 consvar_t cv_fraglimit = { "fraglimit", "0", CV_NETVAR | CV_CALL | CV_NOINIT, fraglimit_cons_t,
 	FragLimit_OnChange
 };
+
 consvar_t cv_timelimit = { "timelimit", "0", CV_NETVAR | CV_CALL | CV_NOINIT, CV_Unsigned,
 	TimeLimit_OnChange
 };
+
 consvar_t cv_deathmatch = { "deathmatch", "0", CV_NETVAR | CV_CALL, deathmatch_cons_t,
 	Deahtmatch_OnChange
 };
@@ -223,7 +233,7 @@ consvar_t cv_allowexitlevel = { "allowexitlevel", "1", CV_NETVAR, CV_YesNo, NULL
 
 consvar_t cv_netstat = { "netstat", "0", 0, CV_OnOff };
 
-consvar_t cv_g_gamespeed = { "g_gamespeed", "1", CV_NETVAR | CV_FLOAT};
+consvar_t cv_g_gamespeed = { "g_gamespeed", "1", CV_NETVAR | CV_FLOAT };
 
 // =========================================================================
 //                           CLIENT STARTUP
@@ -235,10 +245,10 @@ void D_RegisterClientCommands(void)
 {
 	int i;
 	char buf[20];
-
+	
 	for (i = 0; i < MAXSKINCOLORS; i++)
 		Color_cons_t[i].strvalue = Color_Names[i];
-
+		
 	//
 	// register commands
 	//
@@ -249,29 +259,29 @@ void D_RegisterClientCommands(void)
 	COM_AddCommand("restartlevel", Command_Restart_f);
 	COM_AddCommand("exitgame", Command_ExitGame_f);
 	COM_AddCommand("exitlevel", Command_ExitLevel_f);
-
+	
 	COM_AddCommand("addfile", Command_Addfile);
 	COM_AddCommand("pause", Command_Pause);
-
+	
 	COM_AddCommand("turbo", Command_Turbo_f);	// turbo speed
 	COM_AddCommand("version", Command_Version_f);
 	COM_AddCommand("quit", Command_Quit_f);
-
+	
 	COM_AddCommand("chatmacro", Command_Chatmacro_f);	// hu_stuff.c
 	
 	COM_AddCommand("setcontrol1", Command_Setcontrol_f);
 	COM_AddCommand("setcontrol2", Command_Setcontrol_f);
 	COM_AddCommand("setcontrol3", Command_Setcontrol_f);
 	COM_AddCommand("setcontrol4", Command_Setcontrol_f);
-
+	
 	COM_AddCommand("frags", Command_Frags_f);
 	COM_AddCommand("teamfrags", Command_TeamFrags_f);
-
+	
 	COM_AddCommand("saveconfig", Command_SaveConfig_f);
 	COM_AddCommand("loadconfig", Command_LoadConfig_f);
 	COM_AddCommand("changeconfig", Command_ChangeConfig_f);
 	COM_AddCommand("screenshot", M_ScreenShot);
-
+	
 	COM_AddCommand("kill", Command_Kill);
 	
 	/* GhostlyDeath <June 6, 2008> -- Register demo compatibility variables */
@@ -279,7 +289,7 @@ void D_RegisterClientCommands(void)
 	
 	// Slow mo
 	CV_RegisterVar(&cv_g_gamespeed);
-
+	
 	// p_mobj.c
 	CV_RegisterVar(&cv_itemrespawntime);
 	CV_RegisterVar(&cv_itemrespawn);
@@ -292,7 +302,7 @@ void D_RegisterClientCommands(void)
 	CV_RegisterVar(&cv_maxsplats);
 	CV_RegisterVar(&cv_infiniteammo);
 	CV_RegisterVar(&cv_g_gibrules);
-
+	
 	//
 	// register main variables
 	//
@@ -306,27 +316,31 @@ void D_RegisterClientCommands(void)
 		cv_playername3.defaultvalue = "devil dog";
 	if (cv_playername4.defaultvalue == NULL)
 		cv_playername4.defaultvalue = "grunt";
-	
+		
 		
 	/****** SPLIT SCREEN ******/
+	
 	/*** PLAYER 1 ***/
 	CV_RegisterVar(&cv_playername1);
 	CV_RegisterVar(&cv_playercolor1);
 	CV_RegisterVar(&cv_weaponpref1);
 	CV_RegisterVar(&cv_autoaim1);
 	CV_RegisterVar(&cv_skin1);
+	
 	/*** PLAYER 2 ***/
 	CV_RegisterVar(&cv_playername2);
 	CV_RegisterVar(&cv_playercolor2);
 	CV_RegisterVar(&cv_weaponpref2);
 	CV_RegisterVar(&cv_autoaim2);
 	CV_RegisterVar(&cv_skin2);
+	
 	/*** PLAYER 3 ***/
 	CV_RegisterVar(&cv_playername3);
 	CV_RegisterVar(&cv_playercolor3);
 	CV_RegisterVar(&cv_weaponpref3);
 	CV_RegisterVar(&cv_autoaim3);
 	CV_RegisterVar(&cv_skin3);
+	
 	/*** PLAYER 4 ***/
 	CV_RegisterVar(&cv_playername4);
 	CV_RegisterVar(&cv_playercolor4);
@@ -335,10 +349,10 @@ void D_RegisterClientCommands(void)
 	CV_RegisterVar(&cv_skin4);
 	
 	CV_RegisterVar(&cv_originalweaponswitch);
-
+	
 	// WATER HACK TEST UNTIL FULLY FINISHED
 	COM_AddCommand("dev_water", Command_Water_f);
-
+	
 	//misc
 	CV_RegisterVar(&cv_teamplay);
 	CV_RegisterVar(&cv_teamdamage);
@@ -347,13 +361,13 @@ void D_RegisterClientCommands(void)
 	CV_RegisterVar(&cv_timelimit);
 	CV_RegisterVar(&cv_playdemospeed);
 	CV_RegisterVar(&cv_netstat);
-
+	
 	COM_AddCommand("load", Command_Load_f);
 	COM_AddCommand("save", Command_Save_f);
-
+	
 	//FIXME: not to be here.. but needs be done for config loading
 	CV_RegisterVar(&cv_usegamma);
-
+	
 	//m_menu.c
 	CV_RegisterVar(&cv_crosshair);
 	//CV_RegisterVar (&cv_crosshairscale); // doesn't work for now
@@ -363,7 +377,7 @@ void D_RegisterClientCommands(void)
 	CV_RegisterVar(&cv_mousemove);
 	CV_RegisterVar(&cv_showmessages);
 	CV_RegisterVar(&cv_disabledemos);
-
+	
 	//g_input.c
 	CV_RegisterVar(&cv_use_mouse2);
 	CV_RegisterVar(&cv_invertmouse2);
@@ -372,8 +386,8 @@ void D_RegisterClientCommands(void)
 	CV_RegisterVar(&cv_mousesens2);
 	CV_RegisterVar(&cv_mlooksens2);
 	CV_RegisterVar(&cv_joystickfreelook);
-
-	// WARNING : the order is important when inititing mouse2 
+	
+	// WARNING : the order is important when inititing mouse2
 	//           we need the mouse2port
 	CV_RegisterVar(&cv_mouse2port);
 #ifdef LMOUSE2
@@ -392,7 +406,7 @@ void D_RegisterClientCommands(void)
 	CV_RegisterVar(&cv_m_yaxismode);
 	CV_RegisterVar(&cv_m_xaxissecmode);
 	CV_RegisterVar(&cv_m_yaxissecmode);
-
+	
 	CV_RegisterVar(&cv_use_mouse);
 	CV_RegisterVar(&cv_use_joystick);
 	CV_RegisterVar(&cv_use_joyids);
@@ -402,7 +416,7 @@ void D_RegisterClientCommands(void)
 	CV_RegisterVar(&cv_forceautoaim);
 	CV_RegisterVar(&cv_allowturbo);
 	CV_RegisterVar(&cv_allowexitlevel);
-
+	
 	//s_sound.c
 	CV_RegisterVar(&cv_soundvolume);
 	CV_RegisterVar(&cv_musicvolume);
@@ -417,11 +431,11 @@ void D_RegisterClientCommands(void)
 	CV_RegisterVar(&cv_snd_reservedchannels);
 	CV_RegisterVar(&cv_snd_multithreaded);
 	CV_RegisterVar(&cv_snd_sounddensity);
-
+	
 	//i_cdmus.c
 	CV_RegisterVar(&cd_volume);
 	CV_RegisterVar(&cdUpdate);
-
+	
 	// screen.c ?
 	CV_RegisterVar(&cv_fullscreen);	// only for opengl so use differant name please and move it to differant place
 	CV_RegisterVar(&cv_scr_depth);
@@ -435,7 +449,7 @@ void D_RegisterClientCommands(void)
 	
 	// GhostlyDeath <July 8, 2009> -- Add FPS Counter
 	CV_RegisterVar(&cv_vid_drawfps);
-
+	
 	// add cheat commands, I'm bored of deh patches renaming the idclev ! :-)
 	COM_AddCommand("noclip", Command_CheatNoClip_f);
 	COM_AddCommand("god", Command_CheatGod_f);
@@ -445,36 +459,32 @@ void D_RegisterClientCommands(void)
 	COM_AddCommand("summonfriend", Command_CheatSummonFriend_f);
 	
 	COM_AddCommand("snd_reset", Command_SoundReset_f);
-/* ideas of commands names from Quake
-    "status"
-    "notarget"
-    "fly"
-    "changelevel"
-    "reconnect"
-    "tell"
-    "kill"
-    "spawn"
-    "begin"
-    "prespawn"
-    "ping"
-
-    "startdemos"
-    "demos"
-    "stopdemo"
-*/
-
+	
+	/* ideas of commands names from Quake
+	    "status"
+	    "notarget"
+	    "fly"
+	    "changelevel"
+	    "reconnect"
+	    "tell"
+	    "kill"
+	    "spawn"
+	    "begin"
+	    "prespawn"
+	    "ping"
+	
+	    "startdemos"
+	    "demos"
+	    "stopdemo"
+	*/
+	
 }
 
 // =========================================================================
 //                            CLIENT STUFF
 // =========================================================================
 
-void CL_DynPlayerChange(player_t* Player,
-	consvar_t* name,
-	consvar_t* color,
-	consvar_t* skin,
-	consvar_t* weaponpref,
-	consvar_t* autoaim);
+void CL_DynPlayerChange(player_t* Player, consvar_t* name, consvar_t* color, consvar_t* skin, consvar_t* weaponpref, consvar_t* autoaim);
 
 void CL_Player1Change(void)
 {
@@ -484,12 +494,7 @@ void CL_Player1Change(void)
 	if (!playeringame[consoleplayer[0]])
 		return;
 		
-	CL_DynPlayerChange(&players[consoleplayer[0]],
-		&cv_playername1,
-		&cv_playercolor1,
-		&cv_skin1,
-		&cv_weaponpref1,
-		&cv_autoaim1);
+	CL_DynPlayerChange(&players[consoleplayer[0]], &cv_playername1, &cv_playercolor1, &cv_skin1, &cv_weaponpref1, &cv_autoaim1);
 }
 
 void CL_Player2Change(void)
@@ -500,12 +505,7 @@ void CL_Player2Change(void)
 	if (!playeringame[consoleplayer[1]])
 		return;
 		
-	CL_DynPlayerChange(&players[consoleplayer[1]],
-		&cv_playername2,
-		&cv_playercolor2,
-		&cv_skin2,
-		&cv_weaponpref2,
-		&cv_autoaim2);
+	CL_DynPlayerChange(&players[consoleplayer[1]], &cv_playername2, &cv_playercolor2, &cv_skin2, &cv_weaponpref2, &cv_autoaim2);
 }
 
 void CL_Player3Change(void)
@@ -516,12 +516,7 @@ void CL_Player3Change(void)
 	if (!playeringame[consoleplayer[2]])
 		return;
 		
-	CL_DynPlayerChange(&players[consoleplayer[2]],
-		&cv_playername3,
-		&cv_playercolor3,
-		&cv_skin3,
-		&cv_weaponpref3,
-		&cv_autoaim3);
+	CL_DynPlayerChange(&players[consoleplayer[2]], &cv_playername3, &cv_playercolor3, &cv_skin3, &cv_weaponpref3, &cv_autoaim3);
 }
 
 void CL_Player4Change(void)
@@ -532,20 +527,10 @@ void CL_Player4Change(void)
 	if (!playeringame[consoleplayer[3]])
 		return;
 		
-	CL_DynPlayerChange(&players[consoleplayer[3]],
-		&cv_playername4,
-		&cv_playercolor4,
-		&cv_skin4,
-		&cv_weaponpref4,
-		&cv_autoaim4);
+	CL_DynPlayerChange(&players[consoleplayer[3]], &cv_playername4, &cv_playercolor4, &cv_skin4, &cv_weaponpref4, &cv_autoaim4);
 }
 
-void CL_DynPlayerChange(player_t* Player,
-	consvar_t* name,
-	consvar_t* color,
-	consvar_t* skin,
-	consvar_t* weaponpref,
-	consvar_t* autoaim)
+void CL_DynPlayerChange(player_t* Player, consvar_t* name, consvar_t* color, consvar_t* skin, consvar_t* weaponpref, consvar_t* autoaim)
 {
 	int i;
 	
@@ -557,7 +542,6 @@ void CL_DynPlayerChange(player_t* Player,
 			player_names[i][MAXPLAYERNAME - 1] = 0;
 			break;
 		}
-		
 	// Change Color
 	Player->skincolor = color->value % MAXSKINCOLORS;
 	if (Player->mo)
@@ -565,7 +549,6 @@ void CL_DynPlayerChange(player_t* Player,
 		Player->mo->flags &= ~MF_TRANSLATION;
 		Player->mo->flags |= (Player->skincolor) << MF_TRANSSHIFT;
 	}
-	
 	// Change Skin
 	SetPlayerSkin(i, skin->string);
 	
@@ -576,17 +559,17 @@ void CL_DynPlayerChange(player_t* Player,
 	players[consoleplayer[i]].autoaim_toggle = autoaim->value;
 }
 
-void Got_NameAndcolor(char **cp, int playernum)
+void Got_NameAndcolor(char** cp, int playernum)
 {
-	player_t *p = &players[playernum];
-
+	player_t* p = &players[playernum];
+	
 	// color
 	p->skincolor = READBYTE(*cp) % MAXSKINCOLORS;
-
+	
 	// a copy of color
 	if (p->mo)
 		p->mo->flags = (p->mo->flags & ~MF_TRANSLATION) | ((p->skincolor) << MF_TRANSSHIFT);
-
+		
 	// name
 	if (demoversion >= 128)
 	{
@@ -599,7 +582,7 @@ void Got_NameAndcolor(char **cp, int playernum)
 		memcpy(player_names[playernum], *cp, MAXPLAYERNAME);
 		*cp += MAXPLAYERNAME;
 	}
-
+	
 	// skin
 	if (demoversion < 120 || demoversion >= 125)
 	{
@@ -620,7 +603,7 @@ void SendWeaponPref(void)
 {
 }
 
-void Got_WeaponPref(char **cp, int playernum)
+void Got_WeaponPref(char** cp, int playernum)
 {
 	players[playernum].originalweaponswitch = *(*cp)++;
 	memcpy(players[playernum].favoritweapon, *cp, NUMWEAPONS);
@@ -642,13 +625,12 @@ void D_SendPlayerConfig(void)
 void Command_Playdemo_f(void)
 {
 	char name[256];
-
+	
 	if (COM_Argc() != 2)
 	{
 		CONS_Printf("playdemo <demoname> : playback a demo\n");
 		return;
 	}
-
 	// disconnect from server here ?
 	if (demoplayback)
 		G_StopDemo();
@@ -657,27 +639,25 @@ void Command_Playdemo_f(void)
 		CONS_Printf("\nYou can't play a demo while in net game\n");
 		return;
 	}
-
 	// open the demo file
 	strcpy(name, COM_Argv(1));
 	// dont add .lmp so internal game demos can be played
 	//FIL_DefaultExtension (name, ".lmp");
-
+	
 	CONS_Printf("Playing back demo '%s'.\n", name);
-
+	
 	G_DoPlayDemo(name);
 }
 
 void Command_Timedemo_f(void)
 {
 	char name[256];
-
+	
 	if (COM_Argc() != 2)
 	{
 		CONS_Printf("timedemo <demoname> : time a demo\n");
 		return;
 	}
-
 	// disconnect from server here ?
 	if (demoplayback)
 		G_StopDemo();
@@ -686,14 +666,13 @@ void Command_Timedemo_f(void)
 		CONS_Printf("\nYou can't play a demo while in net game\n");
 		return;
 	}
-
 	// open the demo file
 	strcpy(name, COM_Argv(1));
 	// dont add .lmp so internal game demos can be played
 	//FIL_DefaultExtension (name, ".lmp");
-
+	
 	CONS_Printf("Timing demo '%s'.\n", name);
-
+	
 	G_TimeDemo(name);
 }
 
@@ -711,32 +690,31 @@ void Command_Stopdemo_f(void)
 void Command_Map_f(void)
 {
 	char buf[MAX_WADPATH + 3];
+	
 #define MAPNAME &buf[2]
 	int i;
 	int skill;
-
+	
 	if (COM_Argc() < 2 || COM_Argc() > 7)
 	{
-		CONS_Printf
-			("map <mapname> [-skill <1..5>] [-monsters <0/1>] [-noresetplayers]: warp to map\n");
+		CONS_Printf("map <mapname> [-skill <1..5>] [-monsters <0/1>] [-noresetplayers]: warp to map\n");
 		return;
 	}
-
+	
 	strncpy(MAPNAME, COM_Argv(1), MAX_WADPATH);
-
+	
 	// internal wad lump
 	if (W_CheckNumForName(MAPNAME) == -1)
 	{
-		CONS_Printf("\2Internal game map '%s' not found\n"
-					"(use .wad extension for external maps)\n", MAPNAME);
+		CONS_Printf("\2Internal game map '%s' not found\n" "(use .wad extension for external maps)\n", MAPNAME);
 		return;
 	}
-
+	
 	if ((i = COM_CheckParm("-skill")) != 0)
 		skill = atoi(COM_Argv(i + 1)) - 1;
 	else
 		skill = gameskill;
-
+		
 	if ((i = COM_CheckParm("-monsters")) != 0)
 		nomonsters = (atoi(COM_Argv(i + 1)) == 0);
 	else
@@ -744,7 +722,7 @@ void Command_Map_f(void)
 		
 	if (demoplayback)
 		COM_BufAddText("stopdemo\n");
-
+		
 	// this leave the actual game if needed
 	server = false;
 	netgame = false;
@@ -757,7 +735,7 @@ void Command_Map_f(void)
 	
 	M_UnLockGameCVARS();
 	DC_SetMenuGameOptions(0);
-
+	
 	gamestate = wipegamestate = GS_NULL;
 	for (i = 0; i < MAXSPLITSCREENPLAYERS; i++)
 	{
@@ -769,22 +747,22 @@ void Command_Map_f(void)
 		
 	for (i = 0; i < cv_splitscreen.value + 1; i++)
 		playeringame[i] = 1;
-	
-
+		
+		
 	precache = false;
 	G_InitNew(skill, MAPNAME, 1);
 	precache = false;
 }
 
-void Got_Mapcmd(char **cp, int playernum)
+void Got_Mapcmd(char** cp, int playernum)
 {
 	char mapname[MAX_WADPATH];
 	int skill, resetplayer = 1;
-
+	
 	skill = READBYTE(*cp);
 	if (demoversion >= 128)
 		nomonsters = READBYTE(*cp);
-
+		
 	if (demoversion >= 129)
 	{
 		resetplayer = ((nomonsters & 2) == 0);
@@ -792,7 +770,7 @@ void Got_Mapcmd(char **cp, int playernum)
 	}
 	strcpy(mapname, *cp);
 	*cp += strlen(mapname) + 1;
-
+	
 	CONS_Printf("Warping to map...\n");
 	if (demoplayback && !timingdemo)
 		precache = false;
@@ -815,7 +793,7 @@ void Command_Restart_f(void)
 		CONS_Printf("Restartlevel don't work in network\n");
 		return;
 	}
-
+	
 	/* Demyx -- Don't allow restarting in demo's */
 	if (!demoplayback && gamestate == GS_LEVEL)
 		G_DoLoadLevel(true);
@@ -827,14 +805,14 @@ void Command_Pause(void)
 {
 	paused = ~paused;
 	
-	/* Demyx -- Don't allow pausing anywhere but the level and intermission.*/
+	/* Demyx -- Don't allow pausing anywhere but the level and intermission. */
 	if (paused && (gamestate == GS_LEVEL || gamestate == GS_INTERMISSION))
 		I_PauseSong(0);
 	else
 		I_ResumeSong(0);
 }
 
-void Got_Pause(char **cp, int playernum)
+void Got_Pause(char** cp, int playernum)
 {
 	if (demoversion < 131)
 		paused ^= 1;
@@ -849,7 +827,7 @@ void Got_Pause(char **cp, int playernum)
 			else
 				CONS_Printf("Game unpaused by %s\n", player_names[playernum]);
 		}
-
+		
 		if (paused)
 		{
 			if (!menuactive || netgame)
@@ -870,7 +848,7 @@ void Command_Addfile(void)
 		CONS_Printf("addfile <wadfile.wad> : load wad file\n");
 		return;
 	}
-
+	
 	P_AddWadFile(COM_Argv(1), NULL);
 }
 
@@ -881,14 +859,14 @@ void Command_Addfile(void)
 void Command_Frags_f(void)
 {
 	int i, j;
-
+	
 	if (!cv_deathmatch.value)
 	{
 		CONS_Printf("Frags : show the frag table\n");
 		CONS_Printf("Only for deathmatch games\n");
 		return;
 	}
-
+	
 	for (i = 0; i < MAXPLAYERS; i++)
 		if (playeringame[i])
 		{
@@ -906,16 +884,16 @@ void Command_TeamFrags_f(void)
 	fragsort_t unused[MAXPLAYERS];
 	int frags[MAXPLAYERS];
 	int fragtbl[MAXPLAYERS][MAXPLAYERS];
-
+	
 	if (!cv_deathmatch.value && !cv_teamplay.value)
 	{
 		CONS_Printf("teamfrags : show the frag table for teams\n");
 		CONS_Printf("Only for deathmatch teamplay games\n");
 		return;
 	}
-
+	
 	HU_CreateTeamFragTbl(unused, frags, fragtbl);
-
+	
 	for (i = 0; i < 11; i++)
 		if (teamingame(i))
 		{
@@ -931,8 +909,7 @@ void Command_TeamFrags_f(void)
 //
 void Command_Version_f(void)
 {
-	CONS_Printf("ReMooD %s \"%s\" (Compiled: %s %s)\n", 
-		REMOOD_VERSIONSTRING, REMOOD_VERSIONCODESTRING, __DATE__, __TIME__);
+	CONS_Printf("ReMooD %s \"%s\" (Compiled: %s %s)\n", REMOOD_VERSIONSTRING, REMOOD_VERSIONCODESTRING, __DATE__, __TIME__);
 }
 
 //  Quit the game immediately
@@ -945,7 +922,7 @@ void Command_Quit_f(void)
 void FragLimit_OnChange(void)
 {
 	int i;
-
+	
 	if (cv_fraglimit.value > 0)
 	{
 		for (i = 0; i < MAXPLAYERS; i++)
@@ -975,11 +952,12 @@ void Deahtmatch_OnChange(void)
 		CV_SetValue(&cv_itemrespawn, 0);
 	if (cv_deathmatch.value == 1 || cv_deathmatch.value == 3)
 		P_RespawnWeapons();
-
+		
 	// give all key to the players
 	if (cv_deathmatch.value)
 	{
 		int j;
+		
 		for (j = 0; j < MAXPLAYERS; j++)
 			if (playeringame[j])
 				players[j].cards = it_allkeys;
@@ -994,7 +972,7 @@ void Command_ExitLevel_f(void)
 		G_ExitLevel();
 }
 
-void Got_ExitLevelcmd(char **cp, int playernum)
+void Got_ExitLevelcmd(char** cp, int playernum)
 {
 	G_ExitLevel();
 }
@@ -1003,37 +981,38 @@ void Command_Load_f(void)
 {
 }
 
-void Got_LoadGamecmd(char **cp, int playernum)
+void Got_LoadGamecmd(char** cp, int playernum)
 {
 	uint8_t slot = *(*cp)++;
+	
 	G_DoLoadGame(slot);
 }
 
 void Command_Save_f(void)
 {
-	 if (COM_Argc() != 3)
-	 {
-		 CONS_Printf("save <slot> <desciption>: save game\n");
-		 return;
-	 }
-	 
-	 G_DoSaveGame(atoi(COM_Argv(1)), COM_Argv(2));
+	if (COM_Argc() != 3)
+	{
+		CONS_Printf("save <slot> <desciption>: save game\n");
+		return;
+	}
+	
+	G_DoSaveGame(atoi(COM_Argv(1)), COM_Argv(2));
 }
 
-void Got_SaveGamecmd(char **cp, int playernum)
+void Got_SaveGamecmd(char** cp, int playernum)
 {
 	uint8_t slot;
 	char description[SAVESTRINGSIZE];
-
+	
 	slot = *(*cp)++;
 	strcpy(description, *cp);
 	*cp += strlen(description) + 1;
-
+	
 	G_DoSaveGame(slot, description);
 }
 
 void Command_ExitGame_f(void)
-{	
+{
 	/* Demyx -- Precaution: Don't allow Exitgame when you arent playing. */
 	if (!demoplayback && gamestate == GS_LEVEL || gamestate == GS_INTERMISSION || gamestate == GS_FINALE)
 	{

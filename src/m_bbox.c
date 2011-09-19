@@ -34,26 +34,26 @@
 #include "doomtype.h"
 #include "m_bbox.h"
 
-void M_ClearBox(fixed_t * box)
+void M_ClearBox(fixed_t* box)
 {
 	box[BOXTOP] = box[BOXRIGHT] = INT_MIN;
 	box[BOXBOTTOM] = box[BOXLEFT] = INT_MAX;
 }
 
-void M_AddToBox(fixed_t * box, fixed_t x, fixed_t y)
+void M_AddToBox(fixed_t* box, fixed_t x, fixed_t y)
 {
 	if (x < box[BOXLEFT])
 		box[BOXLEFT] = x;
 	if (x > box[BOXRIGHT])
 		box[BOXRIGHT] = x;
-
+		
 	if (y < box[BOXBOTTOM])
 		box[BOXBOTTOM] = y;
 	if (y > box[BOXTOP])
 		box[BOXTOP] = y;
 }
 
-bool_t M_PointInBox(fixed_t * box, fixed_t x, fixed_t y)
+bool_t M_PointInBox(fixed_t* box, fixed_t x, fixed_t y)
 {
 	if (x < box[BOXLEFT])
 		return false;
@@ -63,11 +63,11 @@ bool_t M_PointInBox(fixed_t * box, fixed_t x, fixed_t y)
 		return false;
 	if (y > box[BOXTOP])
 		return false;
-
+		
 	return true;
 }
 
-bool_t M_CircleTouchBox(fixed_t * box, fixed_t circlex, fixed_t circley, fixed_t circleradius)
+bool_t M_CircleTouchBox(fixed_t* box, fixed_t circlex, fixed_t circley, fixed_t circleradius)
 {
 	if (box[BOXLEFT] - circleradius > circlex)
 		return false;

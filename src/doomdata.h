@@ -61,7 +61,7 @@ enum
 	ML_SSECTORS,				// SubSectors, list of LineSegs
 	ML_NODES,					// BSP nodes
 	ML_SECTORS,					// Sectors, from editing
-	ML_REJECT,					// LUT, sector-sector visibility        
+	ML_REJECT,					// LUT, sector-sector visibility
 	ML_BLOCKMAP,				// LUT, motion clipping, walls/grid element
 	
 	ML_BEHAVIOR,				// Hexen
@@ -191,15 +191,15 @@ typedef struct
 	short y;
 	short dx;
 	short dy;
-
+	
 	// Bounding box for each child,
 	// clip against view frustum.
 	short bbox[2][4];
-
+	
 	// If NF_SUBSECTOR its a subsector,
 	// else it's a node of another subtree.
 	unsigned short children[2];
-
+	
 } mapnode_t;
 
 // Thing definition, position, orientation and type,
@@ -212,9 +212,9 @@ typedef struct
 	short angle;
 	short type;
 	short options;
-	struct mobj_s *mobj;
+	struct mobj_s* mobj;
 } mapthing_t;
 
-extern char *Color_Names[MAXSKINCOLORS];
+extern char* Color_Names[MAXSKINCOLORS];
 
 #endif							// __DOOMDATA__

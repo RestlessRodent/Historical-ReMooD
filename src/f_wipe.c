@@ -56,9 +56,9 @@
 // when zero, stop the wipe
 static bool_t go = 0;
 
-static uint8_t *wipe_scr_start = NULL;
-static uint8_t *wipe_scr_end = NULL;
-static uint8_t *wipe_scr;
+static uint8_t* wipe_scr_start = NULL;
+static uint8_t* wipe_scr_end = NULL;
+static uint8_t* wipe_scr;
 
 /************************
 *** CONSOLE VARIABLES ***
@@ -68,22 +68,22 @@ static uint8_t *wipe_scr;
 *** FUNCTIONS ***
 ****************/
 
-void wipe_shittyColMajorXform(short *array, int width, int height)
+void wipe_shittyColMajorXform(short* array, int width, int height)
 {
 	int x;
 	int y;
-	short *dest;
-
-	dest = (short *)Z_Malloc(width * height * 2, PU_STATIC, 0);
-
+	short* dest;
+	
+	dest = (short*)Z_Malloc(width * height * 2, PU_STATIC, 0);
+	
 	for (y = 0; y < height; y++)
 		for (x = 0; x < width; x++)
-			dest[x * height + y] = array[y * width + x];
-
+			dest[x* height + y] = array[y * width + x];
+			
 	memcpy(array, dest, width * height * 2);
-
+	
 	Z_Free(dest);
-
+	
 }
 
 static bool_t* BlindMarks;
@@ -110,13 +110,12 @@ int wipe_doBlindsXForm(int width, int height, int ticks)
 		{
 			while (i < width && BlindMarks[i])
 				i++;
-			
+				
 			if (i == width)
 				break;
 		}
-			
 		// Get position
-		x = i;//(M_Random() * M_Random()) % width;
+		x = i;					//(M_Random() * M_Random()) % width;
 		
 		// replace column
 		for (j = 0; j < height; j++)
@@ -147,12 +146,13 @@ int wipe_initColorXForm(int width, int height, int ticks)
 int wipe_doColorXForm(int width, int height, int ticks)
 {
 	bool_t changed;
-	uint8_t *w;
-	uint8_t *e;
+	uint8_t* w;
+	uint8_t* e;
 	uint8_t newval;
 	static int slowdown = 0;
+	
 	changed = false;
-
+	
 	while (ticks--)
 	{
 		// slowdown
@@ -161,21 +161,17 @@ int wipe_doColorXForm(int width, int height, int ticks)
 			slowdown = 0;
 			return false;
 		}
-
+		
 		w = wipe_scr;
 		e = wipe_scr_end;
-
+		
 		while (w != wipe_scr + width * height)
 		{
 			if (*w != *e)
 			{
-				if ((newval =
-					 transtables[(*e << 8) + *w + ((tr_transmor - 1) << FF_TRANSSHIFT)]) == *w)
-					if ((newval =
-						 transtables[(*e << 8) + *w + ((tr_transmed - 1) << FF_TRANSSHIFT)]) == *w)
-						if ((newval =
-							 transtables[(*w << 8) + *e +
-										 ((tr_transmor - 1) << FF_TRANSSHIFT)]) == *w)
+				if ((newval = transtables[(*e << 8) + *w + ((tr_transmor - 1) << FF_TRANSSHIFT)]) == *w)
+					if ((newval = transtables[(*e << 8) + *w + ((tr_transmed - 1) << FF_TRANSSHIFT)]) == *w)
+						if ((newval = transtables[(*w << 8) + *e + ((tr_transmor - 1) << FF_TRANSSHIFT)]) == *w)
 							newval = *e;
 				*w = newval;
 				changed = true;
@@ -192,23 +188,23 @@ int wipe_exitColorXForm(int width, int height, int ticks)
 	return 0;
 }
 
-static int *y;
+static int* y;
 
 int wipe_initMelt(int width, int height, int ticks)
 {
 	int i, r;
-
+	
 	// copy start screen to main screen
 	memcpy(wipe_scr, wipe_scr_start, width * height * scr_bpp);
-
+	
 	// makes this wipe faster (in theory)
 	// to have stuff in column-major format
-	wipe_shittyColMajorXform((short *)wipe_scr_start, width * scr_bpp / 2, height);
-	wipe_shittyColMajorXform((short *)wipe_scr_end, width * scr_bpp / 2, height);
-
+	wipe_shittyColMajorXform((short*)wipe_scr_start, width * scr_bpp / 2, height);
+	wipe_shittyColMajorXform((short*)wipe_scr_end, width * scr_bpp / 2, height);
+	
 	// setup initial column positions
 	// (y<0 => not ready to scroll yet)
-	y = (int *)Z_Malloc(width * sizeof(int), PU_STATIC, 0);
+	y = (int*)Z_Malloc(width * sizeof(int), PU_STATIC, 0);
 	y[0] = -(M_Random() % 16);
 	for (i = 1; i < width; i++)
 	{
@@ -222,7 +218,7 @@ int wipe_initMelt(int width, int height, int ticks)
 	// dup for normal speed in high res
 	for (i = 0; i < width; i++)
 		y[i] *= vid.dupy;
-
+		
 	return 0;
 }
 
@@ -232,13 +228,13 @@ int wipe_doMelt(int width, int height, int ticks)
 	int j;
 	int dy;
 	int idx;
-
-	short *s;
-	short *d;
+	
+	short* s;
+	short* d;
 	bool_t done = true;
-
+	
 	width = (width * scr_bpp) / 2;
-
+	
 	while (ticks--)
 	{
 		for (i = 0; i < width; i++)
@@ -254,8 +250,8 @@ int wipe_doMelt(int width, int height, int ticks)
 				dy *= vid.dupy;
 				if (y[i] + dy >= height)
 					dy = height - y[i];
-				s = &((short *)wipe_scr_end)[i * height + y[i]];
-				d = &((short *)wipe_scr)[y[i] * width + i];
+				s = &((short*)wipe_scr_end)[i * height + y[i]];
+				d = &((short*)wipe_scr)[y[i] * width + i];
 				idx = 0;
 				for (j = dy; j; j--)
 				{
@@ -263,8 +259,8 @@ int wipe_doMelt(int width, int height, int ticks)
 					idx += width;
 				}
 				y[i] += dy;
-				s = &((short *)wipe_scr_start)[i * height];
-				d = &((short *)wipe_scr)[y[i] * width + i];
+				s = &((short*)wipe_scr_start)[i * height];
+				d = &((short*)wipe_scr)[y[i] * width + i];
 				idx = 0;
 				for (j = height - y[i]; j; j--)
 				{
@@ -275,9 +271,9 @@ int wipe_doMelt(int width, int height, int ticks)
 			}
 		}
 	}
-
+	
 	return done;
-
+	
 }
 
 int wipe_exitMelt(int width, int height, int ticks)
@@ -319,16 +315,15 @@ int wipe_ScreenWipe(int wipeno, int x, int y, int width, int height, int ticks)
 	static int (*wipes[]) (int, int, int) =
 	{
 		wipe_initColorXForm, wipe_doColorXForm, wipe_exitColorXForm,
-		wipe_initMelt, wipe_doMelt, wipe_exitMelt,
-		wipe_initBlindsXForm, wipe_doBlindsXForm, wipe_exitBlindsXForm,
+		wipe_initMelt, wipe_doMelt, wipe_exitMelt, wipe_initBlindsXForm, wipe_doBlindsXForm, wipe_exitBlindsXForm,
 	};
-
+	
 	// GhostlyDeath <June 4, 2010> -- Force done?
 	if (ticks >= 0)
 	{
 		//Fab: obsolete (we don't use dirty-rectangles type of refresh)
 		//void V_MarkRect(int, int, int, int);
-
+		
 		// initial stuff
 		if (!go)
 		{
@@ -337,18 +332,17 @@ int wipe_ScreenWipe(int wipeno, int x, int y, int width, int height, int ticks)
 			wipe_scr = screens[0];
 			(*wipes[wipeno * 3]) (width, height, ticks);
 		}
-
 		// do a piece of wipe-in
 		//V_MarkRect(0, 0, width, height);
 		rc = (*wipes[wipeno * 3 + 1]) (width, height, ticks);
 		//  V_DrawBlock(x, y, 0, width, height, wipe_scr); // DEBUG
-
+		
 		// final stuff
 		if (rc)
 		{
 			go = 0;
 			(*wipes[wipeno * 3 + 2]) (width, height, ticks);
-		
+			
 			// GhostlyDeath <June 4, 2010> -- Free wipe buffers
 			Z_Free(wipe_scr_start);
 			Z_Free(wipe_scr_end);
@@ -358,14 +352,13 @@ int wipe_ScreenWipe(int wipeno, int x, int y, int width, int height, int ticks)
 	{
 		go = 0;
 		(*wipes[wipeno * 3 + 2]) (width, height, -ticks);
-	
+		
 		// GhostlyDeath <June 4, 2010> -- Free wipe buffers
 		Z_Free(wipe_scr_start);
 		Z_Free(wipe_scr_end);
 		return true;
 	}
-
+	
 	return !go;
-
+	
 }
-

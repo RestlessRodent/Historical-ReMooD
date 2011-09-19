@@ -80,12 +80,12 @@ extern int framecount;
 #define MAXLIGHTZ              128
 #define LIGHTZSHIFT             20
 
-extern lighttable_t *scalelight[LIGHTLEVELS][MAXLIGHTSCALE];
-extern lighttable_t *scalelightfixed[MAXLIGHTSCALE];
-extern lighttable_t *zlight[LIGHTLEVELS][MAXLIGHTZ];
+extern lighttable_t* scalelight[LIGHTLEVELS][MAXLIGHTSCALE];
+extern lighttable_t* scalelightfixed[MAXLIGHTSCALE];
+extern lighttable_t* zlight[LIGHTLEVELS][MAXLIGHTZ];
 
 extern int extralight;
-extern lighttable_t *fixedcolormap;
+extern lighttable_t* fixedcolormap;
 
 // Number of diminishing brightness levels.
 // There a 0-31, i.e. 32 LUT in the COLORMAP lump.
@@ -98,9 +98,9 @@ extern int detailshift;
 
 //
 // Utility functions.
-int R_PointOnSide(fixed_t x, fixed_t y, node_t * node);
+int R_PointOnSide(fixed_t x, fixed_t y, node_t* node);
 
-int R_PointOnSegSide(fixed_t x, fixed_t y, seg_t * line);
+int R_PointOnSegSide(fixed_t x, fixed_t y, seg_t* line);
 
 angle_t R_PointToAngle(fixed_t x, fixed_t y);
 
@@ -113,11 +113,11 @@ fixed_t R_PointToDist2(fixed_t x2, fixed_t y2, fixed_t x1, fixed_t y1);
 
 fixed_t R_ScaleFromGlobalAngle(angle_t visangle);
 
-subsector_t *R_PointInSubsector(fixed_t x, fixed_t y);
+subsector_t* R_PointInSubsector(fixed_t x, fixed_t y);
 
-subsector_t *R_IsPointInSubsector(fixed_t x, fixed_t y);
+subsector_t* R_IsPointInSubsector(fixed_t x, fixed_t y);
 
-void R_AddPointToBox(int x, int y, fixed_t * box);
+void R_AddPointToBox(int x, int y, fixed_t* box);
 
 //
 // REFRESH - the actual rendering functions.
@@ -143,10 +143,11 @@ void R_SetViewSize(void);
 // do it (sometimes explicitly called)
 void R_ExecuteSetViewSize(void);
 
-void R_SetupFrame(player_t * player);
+void R_SetupFrame(player_t* player);
+
 // Called by G_Drawer.
-void R_RenderPlayerView(player_t * player);
-void R_RenderPlayerQuarter(player_t * player);
+void R_RenderPlayerView(player_t* player);
+void R_RenderPlayerQuarter(player_t* player);
 
 // add commands related to engine, at game startup
 void R_RegisterEngineStuff(void);

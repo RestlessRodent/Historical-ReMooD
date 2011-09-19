@@ -57,7 +57,7 @@ void D_DoomLoop(void);
 void D_DoomMain(void);
 
 // Called by IO functions when input is detected.
-void D_PostEvent(const event_t * ev);
+void D_PostEvent(const event_t* ev);
 void D_PostEvent_end(void);		// delimiter for locking memory
 
 void D_ProcessEvents(void);
@@ -67,10 +67,10 @@ void D_DoAdvanceDemo(void);
 // BASE LEVEL
 //
 void D_PageTicker(void);
+
 // pagename is lumpname of a 320x200 patch to fill the screen
-void D_PageDrawer(char *pagename);
+void D_PageDrawer(char* pagename);
 void D_AdvanceDemo(void);
 void D_StartTitle(void);
 
 #endif							//__D_MAIN__
-

@@ -44,5 +44,3 @@ void T_DSVMDebugMessage(const char* const a_Format, ...);
 
 /* t_dscc.c -- Script Compiler */
 int32_t T_DSVMCompileScript(const WadIndex_t a_Index, WX_WADEntry_t* const a_Entry);
-
-

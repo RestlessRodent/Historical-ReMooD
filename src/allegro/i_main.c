@@ -36,14 +36,14 @@
 /* System */
 // DJGPP's Allegro explodes if this isn't included first
 #if defined(__DJGPP__)
-	#include <stdint.h>
+#include <stdint.h>
 #endif
 
 #include <allegro.h>
 
 // Include winalleg on Windows since it conflicts!
 #if defined(_WIN32)
-	#include <winalleg.h>
+#include <winalleg.h>
 #endif
 
 #define __REMOOD_IGNORE_FIXEDTYPES
@@ -64,7 +64,7 @@ int main(int argc, char** argv)
 	/* Initialize Allegro */
 	if (allegro_init())
 		return EXIT_FAILURE;
-	
+		
 	/* Run the game */
 	D_DoomMain();
 	D_DoomLoop();
@@ -72,5 +72,5 @@ int main(int argc, char** argv)
 	/* Success! */
 	return EXIT_SUCCESS;
 }
-END_OF_MAIN()
 
+END_OF_MAIN()
