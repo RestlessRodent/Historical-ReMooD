@@ -167,7 +167,7 @@ static bool_t CONLS_InitConsole(CONL_BasicBuffer_t* const a_Buffer, const uintma
 }
 
 /* CONLS_DestroyConsole() -- Destroys a console */
-static void CONLS_DestroyConsole(CONL_BasicBuffer_t* const a_Buffer)
+static void CONLS_DestroyConsole(CONL_BasicBuffer_t *const a_Buffer)
 {
 	/* Check */
 	if (!a_Buffer)
@@ -622,20 +622,6 @@ void CONL_Ticker(void)
 					l_CONLMessageQ[i][j].Flags |= VFO_TRANS((uint32_t)Faders[Left]);
 				}
 			}
-#if 0
-			
-	/* CONL_PlayerMessage_t -- Message for player */
-	typedef struct CONL_PlayerMessage_s
-	{
-		uint32_t Flags;			// Flags for this message
-		char Text[MAXCONLPMQBUFSIZE];	// Message Text
-		tic_t Timeout;			// When the message times out
-		uint8_t Priority;		// Priority of the message
-	} CONL_PlayerMessage_t;
-	
-	static CONL_PlayerMessage_t l_CONLMessageQ	// Player message queue
-	[MAXSPLITSCREENPLAYERS][MAXCONLPLAYERMQ];
-#endif
 }
 
 /* CONL_HandleEvent() -- Handles extended event for the console */
