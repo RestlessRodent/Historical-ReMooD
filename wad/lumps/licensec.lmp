@@ -13,7 +13,7 @@ Lumps No Copyright
 
 Lumps Copyright (C) id Software <http://idsoftware.com/>
 
-Lumps Copyright (C) Raven Software <
+Lumps Copyright (C) Raven Software <>
 
 Lumps Copyright (C) 2006-2011 GhostlyDeath <ghostly@remood.org>
 	graphics/rankings.ppm [DFSG, DRAWN USING LARGE FONT]
@@ -124,12 +124,8 @@ Lumps Copyright (C) 2006-2011 GhostlyDeath <ghostly@remood.org>
 	graphics/ufnrfffd.ppm [DRAWN FROM SCRATCH]
 	lumps/__e_rmd.lmp
 	lumps/__e_rmx.lmp
-	lumps/rmd_cb_d.lmp
-	lumps/rmd_cb_h.lmp
 	lumps/rmd_cmpd.lmp
 	lumps/rmd_cmph.lmp
-	lumps/rmd_cr_d.lmp
-	lumps/rmd_cr_h.lmp
 	lumps/rmd_pd2h.lmp [!!!, USES NON-FREE DOOM PLAYPAL AND HERETIC PLAYPAL]
 	lumps/rmd_ph2d.lmp [!!!, USES NON-FREE DOOM PLAYPAL AND HERETIC PLAYPAL]
 	lumps/rmd_tr10.lmp
@@ -140,8 +136,15 @@ Lumps Copyright (C) 2006-2011 GhostlyDeath <ghostly@remood.org>
 	lumps/rscripts.lmp
 	lumps/__s_rmd.lmp
 	lumps/__s_rmx.lmp
+	lumps/things_h.lmp
 	lumps/version.lmp
 	lumps/wadident.lmp
+	picts/rmd_cb_d.ppm
+	picts/rmd_cb_h.ppm
+	picts/rmd_cr_d.ppm
+	picts/rmd_cr_h.ppm
+	picts/cbleft.ppm
+	picts/cbright.ppm
 	picts/sboammo1.ppm [DRAWN FROM SCRATCH]
 	picts/sboammo2.ppm [DRAWN FROM SCRATCH]
 	picts/sboammo3.ppm [DRAWN FROM SCRATCH]
@@ -183,23 +186,22 @@ Lumps Copyright (C) 2001-2004 Doom Legacy Team <http://doomlegacy.sourceforge.ne
 	lumps/a_dmg3.lmp
 	lumps/brdr_mm.lmp
 	lumps/brdr_mt.lmp
+	lumps/corona.lmp
 	lumps/croshai1.lmp
 	lumps/croshai2.lmp
 	lumps/croshai3.lmp
-	lumps/sboammo1.lmp [!!!]
-	lumps/sboammo2.lmp [!!!]
-	lumps/sboammo3.lmp [!!!]
-	lumps/sboammo4.lmp [!!!]
-	lumps/sboammo5.lmp [!!!]
-	lumps/sboammo6.lmp [!!!]
-	lumps/sboammo8.lmp [!!!]
-	lumps/sboarmor.lmp
-	lumps/sboempty.lmp
-	lumps/sbofrags.lmp
-	lumps/sbohealt.lmp
 	lumps/things_h.lmp
 	lumps/transfx1.lmp [!!!, BASED OFF NON-FREE PLAYPAL]
-	lumps/watermap.lmp [!!!, UNVERIFIED SOURCE]
+	lumps/things_h.lmp
+	lumps/water0.lmp
+	lumps/water1.lmp
+	lumps/water2.lmp
+	lumps/water3.lmp
+	lumps/water4.lmp
+	lumps/water5.lmp
+	lumps/water6.lmp
+	lumps/water7.lmp
+	lumps/watermap.lmp [!!!, BASED OFF NON-FREE COLORMAP]
 	sounds/dsjump.wav [!!!, UNVERIFIED SOURCE]
 	sounds/dsouch.wav [!!!, UNVERIFIED SOURCE]
 	sprites/bluda0.ppm
