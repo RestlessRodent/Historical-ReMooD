@@ -147,11 +147,11 @@ bool_t P_GiveAmmo(player_t* player, ammotype_t ammo, int count)
 		return false;
 		
 	/*
-	    if (num)
-	        num *= clipammo[ammo];
-	    else
-	        num = clipammo[ammo]/2;
-	*/
+	   if (num)
+	   num *= clipammo[ammo];
+	   else
+	   num = clipammo[ammo]/2;
+	 */
 	if (gameskill == sk_baby || gameskill == sk_nightmare)
 	{
 		// give double ammo in trainer mode,

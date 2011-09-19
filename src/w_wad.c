@@ -1175,7 +1175,7 @@ void* W_CacheLumpName(char* name, size_t PU)
 	}
 	else
 		return NULL;
-   }*/// Dont use this yet...
+	     }*/// Dont use this yet...
 
 /* W_CachePatchNum() -- Cache's a patch from a raw patch */
 void* W_CachePatchNum(const WadIndex_t Lump, size_t PU)

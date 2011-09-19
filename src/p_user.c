@@ -434,31 +434,31 @@ void P_MovePlayer(player_t* player)
 	}
 	
 	/* HERETODO
-	    fly = cmd->lookfly>>4;
-	    if(fly > 7)
-	        fly -= 16;
-	    if(fly && player->powers[pw_flight])
-	    {
-	        if(fly != TOCENTER)
-	        {
-	            player->flyheight = fly*2;
-	            if(!(player->mo->flags2&MF2_FLY))
-	            {
-	                player->mo->flags2 |= MF2_FLY;
-	                player->mo->flags |= MF_NOGRAVITY;
-	            }
-	        }
-	        else
-	        {
-	            player->mo->flags2 &= ~MF2_FLY;
-	            player->mo->flags &= ~MF_NOGRAVITY;
-	        }
-	    }
-	    else if(fly > 0)
-	    {
-	        P_PlayerUseArtifact(player, arti_fly);
-	    }
-	*/
+	   fly = cmd->lookfly>>4;
+	   if(fly > 7)
+	   fly -= 16;
+	   if(fly && player->powers[pw_flight])
+	   {
+	   if(fly != TOCENTER)
+	   {
+	   player->flyheight = fly*2;
+	   if(!(player->mo->flags2&MF2_FLY))
+	   {
+	   player->mo->flags2 |= MF2_FLY;
+	   player->mo->flags |= MF_NOGRAVITY;
+	   }
+	   }
+	   else
+	   {
+	   player->mo->flags2 &= ~MF2_FLY;
+	   player->mo->flags &= ~MF_NOGRAVITY;
+	   }
+	   }
+	   else if(fly > 0)
+	   {
+	   P_PlayerUseArtifact(player, arti_fly);
+	   }
+	 */
 	
 	if (player->mo->flags2 & MF2_FLY)
 	{
@@ -599,43 +599,43 @@ bool_t PTR_FindCameraPoint(intercept_t* in)
 {
 
 	/*    int         side;
-	    fixed_t             slope;
-	    fixed_t             dist;
-	    line_t*             li;
+	   fixed_t             slope;
+	   fixed_t             dist;
+	   line_t*             li;
 	
-	    li = in->d.line;
+	   li = in->d.line;
 	
-	    if ( !(li->flags & ML_TWOSIDED) )
-	        return false;
+	   if ( !(li->flags & ML_TWOSIDED) )
+	   return false;
 	
-	    // crosses a two sided line
-	    //added:16-02-98: Fab comments : sets opentop, openbottom, openrange
-	    //                lowfloor is the height of the lowest floor
-	    //                         (be it front or back)
-	    P_LineOpening (li);
+	   // crosses a two sided line
+	   //added:16-02-98: Fab comments : sets opentop, openbottom, openrange
+	   //                lowfloor is the height of the lowest floor
+	   //                         (be it front or back)
+	   P_LineOpening (li);
 	
-	    dist = FixedMul (attackrange, in->frac);
+	   dist = FixedMul (attackrange, in->frac);
 	
-	    if (li->frontsector->floorheight != li->backsector->floorheight)
-	    {
-	        //added:18-02-98: comments :
-	        // find the slope aiming on the border between the two floors
-	        slope = FixedDiv (openbottom - cameraz , dist);
-	        if (slope > aimslope)
-	            return false;
-	    }
+	   if (li->frontsector->floorheight != li->backsector->floorheight)
+	   {
+	   //added:18-02-98: comments :
+	   // find the slope aiming on the border between the two floors
+	   slope = FixedDiv (openbottom - cameraz , dist);
+	   if (slope > aimslope)
+	   return false;
+	   }
 	
-	    if (li->frontsector->ceilingheight != li->backsector->ceilingheight)
-	    {
-	        slope = FixedDiv (opentop - shootz , dist);
-	        if (slope < aimslope)
-	            goto hitline;
-	    }
+	   if (li->frontsector->ceilingheight != li->backsector->ceilingheight)
+	   {
+	   slope = FixedDiv (opentop - shootz , dist);
+	   if (slope < aimslope)
+	   goto hitline;
+	   }
 	
-	    return true;
+	   return true;
 	
-	    // hit line
-	  hitline:*/
+	   // hit line
+	   hitline: */
 	// stop the search
 	return false;
 }
@@ -663,7 +663,7 @@ void P_MoveChaseCamera(player_t* player)
 	y = mo->y - FixedMul(finesine[(angle >> ANGLETOFINESHIFT) & FINEMASK], dist);
 	z = mo->z + (cv_viewheight.value << FRACBITS) + cv_cam_height.value;
 	
-	/*    P_PathTraverse ( mo->x, mo->y, x, y, PT_ADDLINES, PTR_UseTraverse );*/
+	/*    P_PathTraverse ( mo->x, mo->y, x, y, PT_ADDLINES, PTR_UseTraverse ); */
 	
 	// move camera down to move under lower ceilings
 	newsubsec = R_IsPointInSubsector((mo->x + camera.mo->x) >> 1, (mo->y + camera.mo->y) >> 1);

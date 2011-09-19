@@ -116,7 +116,7 @@ void FastMonster_OnChange(void)
 			{
 				-1, -1
 			}
-		}				// Terminator
+		}						// Terminator
 	};
 	
 	int i;
@@ -1501,27 +1501,27 @@ void A_PainShootSkull(mobj_t* actor, angle_t angle)
 	int prestep;
 	
 	/*  --------------- SKULL LIMITE CODE -----------------
-	    int         count;
-	    thinker_t*  currentthinker;
+	   int         count;
+	   thinker_t*  currentthinker;
 	
-	    // count total number of skull currently on the level
-	    count = 0;
+	   // count total number of skull currently on the level
+	   count = 0;
 	
-	    currentthinker = thinkercap.next;
-	    while (currentthinker != &thinkercap)
-	    {
-	        if (   (currentthinker->function.acp1 == (actionf_p1)P_MobjThinker)
-	            && ((mobj_t *)currentthinker)->type == MT_SKULL)
-	            count++;
-	        currentthinker = currentthinker->next;
-	    }
+	   currentthinker = thinkercap.next;
+	   while (currentthinker != &thinkercap)
+	   {
+	   if (   (currentthinker->function.acp1 == (actionf_p1)P_MobjThinker)
+	   && ((mobj_t *)currentthinker)->type == MT_SKULL)
+	   count++;
+	   currentthinker = currentthinker->next;
+	   }
 	
-	    // if there are allready 20 skulls on the level,
-	    // don't spit another one
-	    if (count > 20)
-	        return;
-	    ---------------------------------------------------
-	*/
+	   // if there are allready 20 skulls on the level,
+	   // don't spit another one
+	   if (count > 20)
+	   return;
+	   ---------------------------------------------------
+	 */
 	
 	// okay, there's place for another one
 	an = angle >> ANGLETOFINESHIFT;

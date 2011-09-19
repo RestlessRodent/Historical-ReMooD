@@ -73,6 +73,7 @@ typedef unsigned short md5_uint32;
 #if ULONG_MAX == UINT_MAX_32_BITS
 typedef unsigned long md5_uint32;
 #else
+
 /* The following line is intended to evoke an error.
    Using #error is not portable enough.  */
 "Cannot determine unsigned 32-bit data type."

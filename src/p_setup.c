@@ -425,12 +425,12 @@ void P_LoadSectors(int lump)
 		}
 		
 		/*#ifdef _MSC_VER >= 1400
-				_strncpy(newflat1, 8, ms->floorpic); //snprintf(newflat1, 9, "%s", ms->floorpic);
-				_strncpy(newflat1, 8, ms->floorpic); //snprintf(newflat2, 9, "%s", ms->ceilingpic);
-		#elif defined(__GNUC__)
-				strncpy(newflat1, 8, ms->floorpic); //snprintf(newflat1, 9, "%s", ms->floorpic);
-				strncpy(newflat1, 8, ms->floorpic); //snprintf(newflat2, 9, "%s", ms->ceilingpic);
-		#else*/
+		   _strncpy(newflat1, 8, ms->floorpic); //snprintf(newflat1, 9, "%s", ms->floorpic);
+		   _strncpy(newflat1, 8, ms->floorpic); //snprintf(newflat2, 9, "%s", ms->ceilingpic);
+		   #elif defined(__GNUC__)
+		   strncpy(newflat1, 8, ms->floorpic); //snprintf(newflat1, 9, "%s", ms->floorpic);
+		   strncpy(newflat1, 8, ms->floorpic); //snprintf(newflat2, 9, "%s", ms->ceilingpic);
+		   #else */
 		// Insecure "Safe" strncpy -- Self implementation
 		buf = ms->floorpic;
 		j = 0;
@@ -463,7 +463,7 @@ void P_LoadSectors(int lump)
 		//added:31-03-98: quick hack to test water with DCK
 		
 		/*        if (ss->tag < 0)
-		            CONS_Printf("Level uses dck-water-hack\n");*/
+		   CONS_Printf("Level uses dck-water-hack\n"); */
 		
 		ss->thinglist = NULL;
 		ss->touching_thinglist = NULL;	//SoM: 4/7/2000
@@ -825,14 +825,14 @@ void P_LoadSideDefs2(int lump)
 				break;
 				
 				/*        case 260: // killough 4/11/98: apply translucency to 2s normal texture
-				          sd->midtexture = strncasecmp("TRANMAP", msd->midtexture, 8) ?
-				            (sd->special = W_CheckNumForName(msd->midtexture)) < 0 ||
-				            W_LumpLength(sd->special) != 65536 ?
-				            sd->special=0, R_TextureNumForName(msd->midtexture) :
-				              (sd->special++, 0) : (sd->special=0);
-				          sd->toptexture = R_TextureNumForName(msd->toptexture);
-				          sd->bottomtexture = R_TextureNumForName(msd->bottomtexture);
-																																				          break;*///This code is replaced.. I need to fix this though
+				   sd->midtexture = strncasecmp("TRANMAP", msd->midtexture, 8) ?
+				   (sd->special = W_CheckNumForName(msd->midtexture)) < 0 ||
+				   W_LumpLength(sd->special) != 65536 ?
+				   sd->special=0, R_TextureNumForName(msd->midtexture) :
+				   (sd->special++, 0) : (sd->special=0);
+				   sd->toptexture = R_TextureNumForName(msd->toptexture);
+				   sd->bottomtexture = R_TextureNumForName(msd->bottomtexture);
+				   break; *///This code is replaced.. I need to fix this though
 				
 				//Hurdler: added for alpha value with translucent 3D-floors/water
 			case 300:
@@ -906,23 +906,23 @@ void P_LoadBlockMap(int lump)
 	blockmap = blockmaplump + 4;
 	
 	/* Original
-			blockmaplump = W_CacheLumpNum (lump,PU_LEVEL);
-			blockmap = blockmaplump+4;
-			count = W_LumpLength (lump)/2;
+	   blockmaplump = W_CacheLumpNum (lump,PU_LEVEL);
+	   blockmap = blockmaplump+4;
+	   count = W_LumpLength (lump)/2;
 	
-			for (i=0 ; i<count ; i++)
-				blockmaplump[i] = LittleSwapInt16(blockmaplump[i]);
+	   for (i=0 ; i<count ; i++)
+	   blockmaplump[i] = LittleSwapInt16(blockmaplump[i]);
 	
-			bmaporgx = blockmaplump[0]<<FRACBITS;
-			bmaporgy = blockmaplump[1]<<FRACBITS;
-			bmapwidth = blockmaplump[2];
-			bmapheight = blockmaplump[3];
-		}
+	   bmaporgx = blockmaplump[0]<<FRACBITS;
+	   bmaporgy = blockmaplump[1]<<FRACBITS;
+	   bmapwidth = blockmaplump[2];
+	   bmapheight = blockmaplump[3];
+	   }
 	
-		// clear out mobj chains
-		count = sizeof(*blocklinks)*bmapwidth*bmapheight;
-		blocklinks = Z_Malloc (count,PU_LEVEL, 0);
-		memset (blocklinks, 0, count);*/
+	   // clear out mobj chains
+	   count = sizeof(*blocklinks)*bmapwidth*bmapheight;
+	   blocklinks = Z_Malloc (count,PU_LEVEL, 0);
+	   memset (blocklinks, 0, count); */
 }
 
 //

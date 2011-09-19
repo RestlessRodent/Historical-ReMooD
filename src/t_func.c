@@ -247,11 +247,11 @@ void SF_Input()
 
 	/*        static char inputstr[128];
 	
-	                gets(inputstr);
+	   gets(inputstr);
 	
-	        t_return.type = svt_string;
-	        t_return.value.s = inputstr;
-	*/
+	   t_return.type = svt_string;
+	   t_return.value.s = inputstr;
+	 */
 	CONS_Printf("input() function not available in doom\a\n");
 }
 
@@ -2422,25 +2422,25 @@ void SF_ChangeHubLevel()
 
 	/*  int tagnum;
 	
-	  if(!t_argc)
-	    {
-	      script_error("hub level to go to not specified!\n");
-	      return;
-	    }
-	  if(t_argv[0].type != svt_string)
-	    {
-	      script_error("level argument is not a string!\n");
-	      return;
-	    }
+	   if(!t_argc)
+	   {
+	   script_error("hub level to go to not specified!\n");
+	   return;
+	   }
+	   if(t_argv[0].type != svt_string)
+	   {
+	   script_error("level argument is not a string!\n");
+	   return;
+	   }
 	
-	  // second argument is tag num for 'seamless' travel
-	  if(t_argc > 1)
-	    tagnum = intvalue(t_argv[1]);
-	  else
-	    tagnum = -1;
+	   // second argument is tag num for 'seamless' travel
+	   if(t_argc > 1)
+	   tagnum = intvalue(t_argv[1]);
+	   else
+	   tagnum = -1;
 	
-	  P_SavePlayerPosition(current_script->trigger->player, tagnum);
-	  P_ChangeHubLevel(t_argv[0].value.s);*/
+	   P_SavePlayerPosition(current_script->trigger->player, tagnum);
+	   P_ChangeHubLevel(t_argv[0].value.s); */
 }
 
 // for start map: start new game on a particular skill

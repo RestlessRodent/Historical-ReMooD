@@ -1172,9 +1172,9 @@ void HU_drawCrosshair(void)
 		
 	y = viewwindowy + (viewheight >> 1);
 	
-	/*	if (cv_crosshairscale.value)
-			V_DrawTranslucentPatch (vid.width>>1, y, 0, crosshair[i-1]);
-		else*/
+	/*  if (cv_crosshairscale.value)
+	   V_DrawTranslucentPatch (vid.width>>1, y, 0, crosshair[i-1]);
+	   else */
 	
 	if (cv_splitscreen.value == 1)
 	{

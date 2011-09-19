@@ -461,22 +461,22 @@ void D_RegisterClientCommands(void)
 	COM_AddCommand("snd_reset", Command_SoundReset_f);
 	
 	/* ideas of commands names from Quake
-	    "status"
-	    "notarget"
-	    "fly"
-	    "changelevel"
-	    "reconnect"
-	    "tell"
-	    "kill"
-	    "spawn"
-	    "begin"
-	    "prespawn"
-	    "ping"
+	   "status"
+	   "notarget"
+	   "fly"
+	   "changelevel"
+	   "reconnect"
+	   "tell"
+	   "kill"
+	   "spawn"
+	   "begin"
+	   "prespawn"
+	   "ping"
 	
-	    "startdemos"
-	    "demos"
-	    "stopdemo"
-	*/
+	   "startdemos"
+	   "demos"
+	   "stopdemo"
+	 */
 	
 }
 

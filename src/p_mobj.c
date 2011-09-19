@@ -831,11 +831,11 @@ void P_MobjCheckWater(mobj_t* mobj)
 		mobj->eflags &= ~(MF_UNDERWATER | MF_TOUCHWATER);
 		
 	/*
-	    if( (mobj->eflags ^ oldeflags) & MF_TOUCHWATER)
-	        CONS_Printf("touchewater %d\n",mobj->eflags & MF_TOUCHWATER ? 1 : 0);
-	    if( (mobj->eflags ^ oldeflags) & MF_UNDERWATER)
-	        CONS_Printf("underwater %d\n",mobj->eflags & MF_UNDERWATER ? 1 : 0);
-	*/
+	   if( (mobj->eflags ^ oldeflags) & MF_TOUCHWATER)
+	   CONS_Printf("touchewater %d\n",mobj->eflags & MF_TOUCHWATER ? 1 : 0);
+	   if( (mobj->eflags ^ oldeflags) & MF_UNDERWATER)
+	   CONS_Printf("underwater %d\n",mobj->eflags & MF_UNDERWATER ? 1 : 0);
+	 */
 	// blood doesnt make noise when it falls in water
 	if (!(oldeflags & (MF_TOUCHWATER | MF_UNDERWATER)) &&
 	        ((mobj->eflags & MF_TOUCHWATER) || (mobj->eflags & MF_UNDERWATER)) && mobj->type != MT_BLOOD && demoversion < 132)

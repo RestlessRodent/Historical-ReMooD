@@ -134,40 +134,40 @@ void T_LoadThingScript()
 {
 
 	/*  char *scriptlump;
-	  int lumpnum, lumplen;
+	   int lumpnum, lumplen;
 	
-	  if(thingscript.data)
-	    Z_Free(thingscript.data);
+	   if(thingscript.data)
+	   Z_Free(thingscript.data);
 	
-	  // load lump into thingscript.data
+	   // load lump into thingscript.data
 	
-	  // get lumpnum, lumplen
+	   // get lumpnum, lumplen
 	
-	  lumpnum = W_CheckNumForName("THINGSCR");
-	  if(lumpnum == -1)
-	    return;
+	   lumpnum = W_CheckNumForName("THINGSCR");
+	   if(lumpnum == -1)
+	   return;
 	
-	  lumplen = W_LumpLength(lumpnum);
+	   lumplen = W_LumpLength(lumpnum);
 	
-	  // alloc space for lump and copy lump data into it
+	   // alloc space for lump and copy lump data into it
 	
-	  thingscript.data = Z_Malloc(lumplen+10, PU_STATIC, 0);
-	  scriptlump = W_CacheLumpNum(lumpnum, PU_CACHE);
+	   thingscript.data = Z_Malloc(lumplen+10, PU_STATIC, 0);
+	   scriptlump = W_CacheLumpNum(lumpnum, PU_CACHE);
 	
-	  memcpy(thingscript.data, scriptlump, lumplen);
+	   memcpy(thingscript.data, scriptlump, lumplen);
 	
-	  // add '\0' to end of string
+	   // add '\0' to end of string
 	
-	  thingscript.data[lumplen] = '\0';
+	   thingscript.data[lumplen] = '\0';
 	
-	  // preprocess script
+	   // preprocess script
 	
-	  preprocess(&thingscript);
+	   preprocess(&thingscript);
 	
-	  // run script
+	   // run script
 	
-	  thingscript.trigger = players[0].mo;
-	  run_script(&thingscript);  */
+	   thingscript.trigger = players[0].mo;
+	   run_script(&thingscript);  */
 }
 
 void T_PreprocessScripts()
@@ -213,15 +213,15 @@ void T_RunThingScript(int n)
 
 	/*  script_t *script;
 	
-	  if(n<0 || n>=MAXSCRIPTS) return;
+	   if(n<0 || n>=MAXSCRIPTS) return;
 	
-	  // use the level's child script script n
-	  script = thingscript.children[n];
-	  if(!script) return;
+	   // use the level's child script script n
+	   script = thingscript.children[n];
+	   if(!script) return;
 	
-	  script->trigger = t_trigger;    // save trigger in script
+	   script->trigger = t_trigger;    // save trigger in script
 	
-	  run_script(script);*/
+	   run_script(script); */
 }
 
 // console scripting debugging commands

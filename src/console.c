@@ -167,7 +167,7 @@ static bool_t CONLS_InitConsole(CONL_BasicBuffer_t* const a_Buffer, const uintma
 }
 
 /* CONLS_DestroyConsole() -- Destroys a console */
-static void CONLS_DestroyConsole(CONL_BasicBuffer_t *const a_Buffer)
+static void CONLS_DestroyConsole(CONL_BasicBuffer_t* const a_Buffer)
 {
 	/* Check */
 	if (!a_Buffer)
@@ -1198,11 +1198,11 @@ void CONS_Printf(char* fmt, ...)
 	{
 	
 		/*#if defined( _WIN32) || defined( __OS2__)
-		        // show startup screen and message using only 'software' graphics
-		        // (rendermode may be hardware accelerated, but the video mode is not set yet)
-		        CON_DrawBackpic (con_backpic, 0, vid.width);    // put console background
-		        I_LoadingScreen ( txt );
-		#else*/
+		   // show startup screen and message using only 'software' graphics
+		   // (rendermode may be hardware accelerated, but the video mode is not set yet)
+		   CON_DrawBackpic (con_backpic, 0, vid.width);    // put console background
+		   I_LoadingScreen ( txt );
+		   #else */
 		// here we display the console background and console text
 		// (no hardware accelerated support for these versions)
 		

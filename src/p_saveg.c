@@ -1276,13 +1276,13 @@ void P_ArchiveThinkers(void)
 			mobj = (mobj_t*)th;
 			
 			/*
-			            // not a monster nor a picable item so don't save it
-			            if( (((mobj->flags & (MF_COUNTKILL | MF_PICKUP | MF_SHOOTABLE )) == 0)
-			                 && (mobj->flags & MF_MISSILE)
-			                 && (mobj->info->doomednum !=-1) )
-			                || (mobj->type == MT_BLOOD) )
-			                continue;
-			*/
+			   // not a monster nor a picable item so don't save it
+			   if( (((mobj->flags & (MF_COUNTKILL | MF_PICKUP | MF_SHOOTABLE )) == 0)
+			   && (mobj->flags & MF_MISSILE)
+			   && (mobj->info->doomednum !=-1) )
+			   || (mobj->type == MT_BLOOD) )
+			   continue;
+			 */
 			if (mobj->spawnpoint && (!(mobj->spawnpoint->options & MTF_FS_SPAWNED)) && (mobj->info->doomednum != -1))
 			{
 				// spawnpoint is not moddified but we must save it since it is a indentifier
@@ -1644,10 +1644,10 @@ void P_UnArchiveThinkers(void)
 			// since this item isn't save don't remove it
 			
 			/*            if( !((((mobj->flags & (MF_COUNTKILL | MF_PICKUP | MF_SHOOTABLE )) == 0)
-			                   && (mobj->flags & MF_MISSILE)
-			                   && (mobj->info->doomednum !=-1) )
-			                  || (mobj->type == MT_BLOOD) ) )
-			*/
+			   && (mobj->flags & MF_MISSILE)
+			   && (mobj->info->doomednum !=-1) )
+			   || (mobj->type == MT_BLOOD) ) )
+			 */
 			P_RemoveMobj((mobj_t*)currentthinker);
 		else
 			Z_Free(currentthinker);

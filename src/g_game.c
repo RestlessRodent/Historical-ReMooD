@@ -339,7 +339,8 @@ static fixed_t sidemove[2] = { 24, 40 };
 static fixed_t angleturn[3] = { 640, 1280, 320 };	// + slow turn
 
 // for change this table change also nextweapon func in g_game and P_PlayerThink
-uint8_t nextweaponorder[NUMWEAPONS] = {
+uint8_t nextweaponorder[NUMWEAPONS] =
+{
 	wp_fist, wp_chainsaw, wp_pistol,
 	wp_shotgun, wp_supershotgun, wp_chaingun, wp_missile, wp_plasma, wp_bfg
 };

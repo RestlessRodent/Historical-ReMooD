@@ -390,17 +390,17 @@ svalue_t OPdivide(int start, int n, int stop)
 	}
 	
 	/*  else
-	    {
-	      int ir;
+	   {
+	   int ir;
 	
-	      if(!(ir = intvalue(right)))
-	        script_error("divide by zero\n");
-	      else
-		{
-	          returnvar.type = svt_int;
-	          returnvar.value.i = intvalue(left) / ir;
-		}
-	    }*/
+	   if(!(ir = intvalue(right)))
+	   script_error("divide by zero\n");
+	   else
+	   {
+	   returnvar.type = svt_int;
+	   returnvar.value.i = intvalue(left) / ir;
+	   }
+	   } */
 	
 	return returnvar;
 }

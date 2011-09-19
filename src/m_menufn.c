@@ -1551,68 +1551,68 @@ bool_t M_Responder(event_t* ev)
 				S_StartSound(NULL, GAMESTNMOV);
 				return true;
 				
-				/*			case KEY_F1:		// Help key
-								M_StartControlPanel();
+				/*          case KEY_F1:        // Help key
+				   M_StartControlPanel();
 				
-								if (gamemode == retail)
-									currentMenu = &ReadDef2;
-								else
-									currentMenu = &ReadDef1;
+				   if (gamemode == retail)
+				   currentMenu = &ReadDef2;
+				   else
+				   currentMenu = &ReadDef1;
 				
-								itemOn = 0;
-								S_StartSound(NULL, sfx_swtchn);
-								return true;
+				   itemOn = 0;
+				   S_StartSound(NULL, sfx_swtchn);
+				   return true;
 				
-							case KEY_F2:		// Save
-								M_StartControlPanel();
-								S_StartSound(NULL, sfx_swtchn);
-								M_SaveGame(0);
-								return true;
+				   case KEY_F2:     // Save
+				   M_StartControlPanel();
+				   S_StartSound(NULL, sfx_swtchn);
+				   M_SaveGame(0);
+				   return true;
 				
-							case KEY_F3:		// Load
-								M_StartControlPanel();
-								S_StartSound(NULL, sfx_swtchn);
-								M_LoadGame(0);
-								return true;
+				   case KEY_F3:     // Load
+				   M_StartControlPanel();
+				   S_StartSound(NULL, sfx_swtchn);
+				   M_LoadGame(0);
+				   return true;
 				
-							case KEY_F4:		// Sound Volume
-								M_StartControlPanel();
-								currentMenu = &SoundDef;
-								itemOn = sfx_vol;
-								S_StartSound(NULL, sfx_swtchn);
-								return true;
+				   case KEY_F4:     // Sound Volume
+				   M_StartControlPanel();
+				   currentMenu = &SoundDef;
+				   itemOn = sfx_vol;
+				   S_StartSound(NULL, sfx_swtchn);
+				   return true;
 				
-								//added:26-02-98: now F5 calls the Video Menu
-							case KEY_F5:
-								S_StartSound(NULL, sfx_swtchn);
-								M_StartControlPanel();
-								M_SetupNextMenu(&VidModeDef);
-								//M_ChangeDetail(0);
-								return true;
+				   //added:26-02-98: now F5 calls the Video Menu
+				   case KEY_F5:
+				   S_StartSound(NULL, sfx_swtchn);
+				   M_StartControlPanel();
+				   M_SetupNextMenu(&VidModeDef);
+				   //M_ChangeDetail(0);
+				   return true;
 				
-							case KEY_F6:		// Quicksave
-								S_StartSound(NULL, sfx_swtchn);
-								M_QuickSave();
-								return true;
+				   case KEY_F6:     // Quicksave
+				   S_StartSound(NULL, sfx_swtchn);
+				   M_QuickSave();
+				   return true;
 				
-								//added:26-02-98: F7 changed to Options menu
-							case KEY_F7:		// End game
-								S_StartSound(NULL, sfx_swtchn);
-								M_StartControlPanel();
-								M_SetupNextMenu(&OptionsDef);
-								//M_EndGame(0);
-								return true;
-				*/
+				   //added:26-02-98: F7 changed to Options menu
+				   case KEY_F7:     // End game
+				   S_StartSound(NULL, sfx_swtchn);
+				   M_StartControlPanel();
+				   M_SetupNextMenu(&OptionsDef);
+				   //M_EndGame(0);
+				   return true;
+				 */
 			case KEY_F8:		// Toggle messages
 				CV_AddValue(&cv_showmessages, +1);
 				S_StartSound(NULL, GAMESWITCHN);
 				return true;
 				
 				/*
-							case KEY_F9:		// Quickload
-								S_StartSound(NULL, GAMESWITCHN);
-								M_QuickLoad();
-								return true;*/
+				   case KEY_F9:     // Quickload
+				   S_StartSound(NULL, GAMESWITCHN);
+				   M_QuickLoad();
+				   return true; */
 				
 			case KEY_F10:		// Quit DOOM
 				S_StartSound(NULL, GAMESWITCHN);

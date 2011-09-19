@@ -547,9 +547,9 @@ void D_DoomLoop(void)
 	I_StartupKeyboard();
 	
 	/*#ifdef _WIN32
-	    CONS_Printf("I_StartupMouse...\n");
-	    I_DoStartupMouse();
-	#endif*/
+	   CONS_Printf("I_StartupMouse...\n");
+	   I_DoStartupMouse();
+	   #endif */
 	
 	oldentertics = I_GetTime();
 	

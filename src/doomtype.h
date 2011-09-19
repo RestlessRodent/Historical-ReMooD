@@ -119,6 +119,7 @@
 ***********************/
 
 #if !defined(__REMOOD_IGNORE_FIXEDTYPES)
+
 /* Microsoft Visual C++ */
 #if defined(_MSC_VER)
 typedef signed __int8 int8_t;
@@ -201,6 +202,7 @@ typedef enum bool_e
 #define BP_MERGE(a,b) a##b
 
 #if defined(__arm__) || defined(_M_ARM) || defined(__sparc__) || defined(__sparc)
+
 /* Access to pointer data for system that can't handle unaligned access */
 // Lets say we have the following data:
 // { 01  23  45  67  |  89  AB  CD  EF }
@@ -227,6 +229,7 @@ typedef enum bool_e
 		return Ret;\
 	}
 #else
+
 /* Normal Pointer Access */
 #define BP_READ(w,x) static inline x __REMOOD_FORCEINLINE BP_MERGE(Read,w)(const x** const Ptr)\
 	{\

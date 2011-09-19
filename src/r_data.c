@@ -286,53 +286,53 @@ uint8_t* R_GetFlat(int flatlumpnum)
 	return W_CacheLumpNum(flatlumpnum, PU_CACHE);
 	
 	/*  // this code work but is useless
-	    uint8_t*    data;
-	    short*   wput;
-	    int      i,j;
+	   uint8_t*    data;
+	   short*   wput;
+	   int      i,j;
 	
-	    //FIXME: work with run time pwads, flats may be added
-	    // lumpnum to flatnum in flatcache
-	    if ((data = flatcache[flatlumpnum-firstflat])!=0)
-	                return data;
+	   //FIXME: work with run time pwads, flats may be added
+	   // lumpnum to flatnum in flatcache
+	   if ((data = flatcache[flatlumpnum-firstflat])!=0)
+	   return data;
 	
-	    data = W_CacheLumpNum (flatlumpnum, PU_CACHE);
-	    i=W_LumpLength(flatlumpnum);
+	   data = W_CacheLumpNum (flatlumpnum, PU_CACHE);
+	   i=W_LumpLength(flatlumpnum);
 	
-	    Z_Malloc (i,PU_STATIC,&flatcache[flatlumpnum-firstflat]);
-	    memcpy (flatcache[flatlumpnum-firstflat], data, i);
+	   Z_Malloc (i,PU_STATIC,&flatcache[flatlumpnum-firstflat]);
+	   memcpy (flatcache[flatlumpnum-firstflat], data, i);
 	
-	    return flatcache[flatlumpnum-firstflat];
-	*/
+	   return flatcache[flatlumpnum-firstflat];
+	 */
 	
 	/*  // this code don't work because it don't put a proper user in the z_block
-	    if ((data = flatcache[flatlumpnum-firstflat])!=0)
-	       return data;
+	   if ((data = flatcache[flatlumpnum-firstflat])!=0)
+	   return data;
 	
-	    data = (uint8_t *) W_CacheLumpNum(flatlumpnum,PU_LEVEL);
-	    flatcache[flatlumpnum-firstflat] = data;
-	    return data;
+	   data = (uint8_t *) W_CacheLumpNum(flatlumpnum,PU_LEVEL);
+	   flatcache[flatlumpnum-firstflat] = data;
+	   return data;
 	
-	    flatlumpnum -= firstflat;
+	   flatlumpnum -= firstflat;
 	
-	    if (scr_bpp==1)
-	    {
-	                flatcache[flatlumpnum] = data;
-	                return data;
-	    }
+	   if (scr_bpp==1)
+	   {
+	   flatcache[flatlumpnum] = data;
+	   return data;
+	   }
 	
-	    // allocate and convert to high color
+	   // allocate and convert to high color
 	
-	    wput = (short*) Z_Malloc (64*64*2,PU_STATIC,&flatcache[flatlumpnum]);
-	    //flatcache[flatlumpnum] =(uint8_t*) wput;
+	   wput = (short*) Z_Malloc (64*64*2,PU_STATIC,&flatcache[flatlumpnum]);
+	   //flatcache[flatlumpnum] =(uint8_t*) wput;
 	
-	    for (i=0; i<64; i++)
-	       for (j=0; j<64; j++)
-	                        wput[i*64+j] = ((color8to16[*data++]&0x7bde) + ((i<<9|j<<4)&0x7bde))>>1;
+	   for (i=0; i<64; i++)
+	   for (j=0; j<64; j++)
+	   wput[i*64+j] = ((color8to16[*data++]&0x7bde) + ((i<<9|j<<4)&0x7bde))>>1;
 	
-	                //Z_ChangeTag (data, PU_CACHE);
+	   //Z_ChangeTag (data, PU_CACHE);
 	
-	                return (uint8_t*) wput;
-	*/
+	   return (uint8_t*) wput;
+	 */
 }
 
 //

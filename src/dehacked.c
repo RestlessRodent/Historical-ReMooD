@@ -900,14 +900,14 @@ void DEH_LoadDehackedFile(MYFILE* f)
 				//SoM: Support for Boom Extras (BEX)
 				
 				/*        else if(!strcmp(word, "[STRINGS]"))
-				             {
-				             }
-				        else if(!strcmp(word, "[PARS]"))
-				             {
-				             }
-				        else if(!strcmp(word, "[CODEPTR]"))
-				             {
-				             }*/
+				   {
+				   }
+				   else if(!strcmp(word, "[PARS]"))
+				   {
+				   }
+				   else if(!strcmp(word, "[CODEPTR]"))
+				   {
+				   } */
 				else
 					deh_error("Unknow word : %s\n", word);
 			}

@@ -254,7 +254,7 @@ typedef struct
 
 #define KEYNAMEEXTRAS (((((((MOUSEBUTTONS << 1) + 2) * 2) + ((JOYBUTTONS << 1))) * 4)) + (KEY_WORLDSTART - KEY_WORLDEND))
 
-static keyname_t keynames[54 + KEYNAMEEXTRAS + 90] =  	// FIXME: +90 because there's an overflow somewhere
+static keyname_t keynames[54 + KEYNAMEEXTRAS + 90] =	// FIXME: +90 because there's an overflow somewhere
 {
 	// FIXME: Overflows in G_InitKeys(), 441 keys are named but this array is only 359 in size
 	

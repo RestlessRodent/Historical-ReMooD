@@ -107,14 +107,14 @@ const char* ALLREADYPLAYING = "You are already playing\n\nLeave this game first\
 
 menu_t MainDef,					// Main Menu
        OptionsDef,					// Options Menu
-       DefaultKeyBindDef,			// Key Binds
+       DefaultKeyBindDef,				// Key Binds
        GameOptionsDef,				// Game Options
        NewGameDef,					// New Game
-       NewGameClassicDef,			// New Game -> Classic
-       SoundsDef,					// Sound Options
-       VideoDef,					// Video Options
+       NewGameClassicDef,				// New Game -> Classic
+       SoundsDef,						// Sound Options
+       VideoDef,						// Video Options
        CreateLocalGameDef,			// New Game -> Local
-       NewGameOptionsDef,			// New Game -> Options
+       NewGameOptionsDef,				// New Game -> Options
        NewGameCCSkillDef, NewGameCCEpiDef, ControlSettingsDef, GraphicalSettingsDef, LASTMENU;
 
 menu_t* MenuPtrList[] =

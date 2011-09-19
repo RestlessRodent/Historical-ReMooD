@@ -708,9 +708,9 @@ static void R_SplitSprite(vissprite_t* sprite, mobj_t* thing)
 			{
 			
 				/*        if (thing->frame & FF_TRANSMASK)
-				          ;
-				        else if (thing->flags & MF_SHADOW)
-				          ;*/
+				   ;
+				   else if (thing->flags & MF_SHADOW)
+				   ; */
 				
 				if (fixedcolormap)
 					;

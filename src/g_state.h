@@ -65,13 +65,13 @@ typedef enum
 	//HeXen
 	
 	/*
-	    ga_initnew,
-	    ga_newgame,
-	    ga_loadgame,
-	    ga_savegame,
-	    ga_leavemap,
-	    ga_singlereborn
-	*/
+	   ga_initnew,
+	   ga_newgame,
+	   ga_loadgame,
+	   ga_savegame,
+	   ga_leavemap,
+	   ga_singlereborn
+	 */
 } gameaction_t;
 
 extern gamestate_t gamestate;

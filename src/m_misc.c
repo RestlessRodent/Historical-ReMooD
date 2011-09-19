@@ -230,12 +230,12 @@ void Command_LoadConfig_f(void)
 	
 	/*  for create, don't check
 	
-	    if ( access (tmpstr,F_OK) )
-	    {
-	        CONS_Printf("Error reading file %s (not exist ?)\n",tmpstr);
-	        return;
-	    }
-	*/
+	   if ( access (tmpstr,F_OK) )
+	   {
+	   CONS_Printf("Error reading file %s (not exist ?)\n",tmpstr);
+	   return;
+	   }
+	 */
 	COM_BufInsertText(va("exec \"%s\"\n", configfile));
 	
 }

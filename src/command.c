@@ -1154,13 +1154,13 @@ void CV_Set(consvar_t* var, char* value)
 	//changed = strcmp(var->string, value);
 	
 	/*#ifdef PARANOIA
-		if (!var)
-			I_Error("CV_Set : no variable\n");
-		if (!var->string)
-			I_Error("cv_Set : %s no string set ?!\n", var->name);
-	#endif
-		if (strcasecmp(var->string, value) == 0)
-			return;					// no changes*/
+	   if (!var)
+	   I_Error("CV_Set : no variable\n");
+	   if (!var->string)
+	   I_Error("cv_Set : %s no string set ?!\n", var->name);
+	   #endif
+	   if (strcasecmp(var->string, value) == 0)
+	   return;                  // no changes */
 	
 	Setvalue(var, value);
 }
