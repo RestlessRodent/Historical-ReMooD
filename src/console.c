@@ -119,8 +119,8 @@ typedef struct CONL_PlayerMessage_s
 
 static bool_t l_CONLActive = false;	// Console active?
 static CONL_BasicBuffer_t l_CONLBuffers[2];	// Input/Output Buffer
-static CONL_PlayerMessage_t l_CONLMessageQ	// Player message queue
-[MAXSPLITSCREENPLAYERS][MAXCONLPLAYERMQ];
+static CONL_PlayerMessage_t l_CONLMessageQ[MAXSPLITSCREENPLAYERS][MAXCONLPLAYERMQ];	// Player message queue
+static uint32_t l_CONLLineOff = 0;	// Line offset
 
 /****************
 *** FUNCTIONS ***
@@ -642,6 +642,10 @@ bool_t CONL_HandleEvent(const I_EventEx_t* const a_Event)
 	if (a_Event->Type != IET_KEYBOARD)
 		return false;
 	
+	// Ignore release/up events
+	if (!a_Event->Data.Keyboard.Down)
+		return false;
+	
 	// Remember key code and character
 	Code = a_Event->Data.Keyboard.KeyCode;
 	Char = a_Event->Data.Keyboard.Character;
@@ -663,7 +667,19 @@ bool_t CONL_HandleEvent(const I_EventEx_t* const a_Event)
 			return true;
 		}
 		
-		// Handle key presses
+		// Scroll console up
+		else if (Code == IKBK_PAGEUP)
+		{
+			if (l_CONLLineOff < l_CONLBuffers[0].NumLines)
+				l_CONLLineOff++;
+		}
+		
+		// Scroll console down
+		else if (Code == IKBK_PAGEDOWN)
+		{
+			if (l_CONLLineOff > 0)
+				l_CONLLineOff--;
+		}
 		
 		// Always eat everything
 		return true;
@@ -677,8 +693,8 @@ bool_t CONL_HandleEvent(const I_EventEx_t* const a_Event)
 void CONL_DrawConsole(void)
 {
 	bool_t FullCon;
-	size_t i, n, j, k, BSkip;
-	int32_t NumLines;
+	size_t i, n, j, k, l, BSkip;
+	int32_t NumLines, Limit;
 	uint32_t bx, x, by, y, bw, bh, Options, conX, conY, conW, conH;
 	const char* p;
 	char TempFill[6];
@@ -737,12 +753,21 @@ void CONL_DrawConsole(void)
 		NumLines = conH / bh; 
 		
 		// Draw every line
-		y = bh * (NumLines - (con_startup ? 0 : 1));
-		for (i = 0, j = ((Out->EndLine - 1)  & Out->MaskLine); i < NumLines; i++, j = ((j - 1) & Out->MaskLine))
+		y = bh * (NumLines - (con_startup ? 0 : 2));
+		for (l = 0, i = 0, j = ((Out->EndLine - 1) & Out->MaskLine); i < NumLines; j = ((j - 1) & Out->MaskLine))
 		{
-			// Lines out of range?
-			if (!Out->Lines[j])
+			// Lines out of range? Or this is the first line?
+			if (!Out->Lines[j] || j == ((Out->StartLine) & Out->MaskLine))
+				break;
+			
+			// Skip drawing this line
+			if (l < l_CONLLineOff)
+			{
+				l++;
 				continue;
+			}
+			else
+				i++;
 			
 			// Get line to draw
 			x = conX;
@@ -800,8 +825,10 @@ void CONL_DrawConsole(void)
 		// Draw scrollbar
 		if (true/*NumLines < Out->CountLine*/)
 		{
+			y = Out->CountLine - NumLines;
+			
 			// Draw filled area
-			V_DrawFadeConsBackEx(VEX_COLORMAP(VEX_MAP_BRIGHTWHITE) | VEX_NOSCALESTART | VEX_NOSCALESCREEN, 1, CONLPADDING, CONLPADDING - 1, conH - CONLPADDING);
+			V_DrawFadeConsBackEx(VEX_COLORMAP(VEX_MAP_BRIGHTWHITE) | VEX_NOSCALESTART | VEX_NOSCALESCREEN, 1, CONLPADDING + y, CONLPADDING - 1, conH - CONLPADDING);
 		}
 	
 #if 0

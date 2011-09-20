@@ -1405,8 +1405,12 @@ void V_DrawPatchEx(const uint32_t Flags, const int x, const int y, const patch_t
 	/* Update dirty rectangle */
 	if (!Screen)
 		V_MarkRect(X, Y, Width >> FRACBITS, FixedMul(Patch->height << FRACBITS, DupY) >> FRACBITS);
-		
+	
 	/* Setup column limit */
+	// GhostlyDeath <September 17, 2011> -- Don't run off screen (overflow wrap around)
+	if ((X + (Width >> FRACBITS)) >= vid.width)
+		Width -= ((Width >> FRACBITS) - (vid.width)) << FRACBITS;
+		
 	// GhostlyDeath <December 10, 2010> -- Column limit is the Width / ColFrac
 	ColLimit = FixedDiv(Width, ColFrac) >> FRACBITS;	// lose the decimal also
 	
@@ -1417,20 +1421,11 @@ void V_DrawPatchEx(const uint32_t Flags, const int x, const int y, const patch_t
 	{
 		Col = Width - FRACUNIT;	// Start at end
 		ColFrac = -ColFrac;		// Reverse column frac
-		
-		// GhostlyDeath <September 17, 2011> -- Don't run off screen (overflow wrap around)
-		if ((X + (Width >> FRACBITS)) < 0)
-			return;
 	}
 	// Without horizontal flipping
 	else
 	{
 		Col = 0;				// Start at beginning
-		
-		// GhostlyDeath <September 17, 2011> -- Don't run off screen (overflow wrap around)
-		if ((X + (Width >> FRACBITS)) >= vid.width)
-			Width -= ((vid.width - (Width >> FRACBITS)) + 1) << FRACBITS;
-		//return;
 	}
 	
 	// With vertical flipping
