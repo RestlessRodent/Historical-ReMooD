@@ -1309,6 +1309,105 @@ void V_DrawFadeConsBackEx(const uint32_t Flags, const int x1, const int y1, cons
 	}
 }
 
+/* V_DrawColorBoxEx() -- Draws a colorbox */
+// GhostlyDeath <September 20, 2011> -- Based off V_DrawFadeConsBackEx() but with only a single solid color
+void V_DrawColorBoxEx(const uint32_t a_Flags, const int8_t a_Color, const int32_t a_x1, const int32_t a_y1, const int32_t a_x2, const int32_t a_y2)
+{
+	int X1, Y1, X2, Y2;
+	int x, y, i, w;
+	uint8_t* buf, *buf2;
+	uint32_t c;
+	uint8_t* Map;
+	
+	/* Flags */
+	// Unscaled
+	if (a_Flags & VEX_NOSCALESTART)
+	{
+		X1 = a_x1;
+		Y1 = a_y1;
+		X2 = a_x2;
+		Y2 = a_y2;
+	}
+	// Scaled
+	else
+	{
+		X1 = (float)a_x1 *(float)vid.fdupx;
+		Y1 = (float)a_y1 *(float)vid.fdupy;
+		X2 = (float)a_x2 *(float)vid.fdupx;
+		Y2 = (float)a_y2 *(float)vid.fdupy;
+	}
+	
+	/* Normalize */
+	// Other way
+	if (X2 < X1)
+	{
+		x = X2;
+		X2 = X1;
+		X1 = x;
+	}
+	
+	if (Y2 < Y1)
+	{
+		x = Y2;
+		Y2 = Y1;
+		Y1 = x;
+	}
+	// Squash off screen
+	if (X1 < 0)
+		X1 = 0;
+	if (X2 >= vid.width)
+		X2 = vid.width;
+	if (Y1 < 0)
+		Y1 = 0;
+	if (Y2 >= vid.height)
+		Y2 = vid.height;
+		
+	// Not visible?
+	if (X1 == X2 || Y1 == Y2 || X1 >= vid.width || X2 < 0 || Y1 >= vid.height || Y2 < 0)
+		return;
+		
+	/* Mapping */
+	if (((a_Flags & VEX_COLORMAPMASK) >> VEX_COLORMAPSHIFT) < NUMVEXCOLORS)
+		Map = l_ColorMaps[(a_Flags & VEX_COLORMAPMASK) >> VEX_COLORMAPSHIFT];
+	else
+		Map = l_ColorMaps[0];
+	
+	/* Same Color all the way */
+	c = Map[a_Color];
+	c |= c << 8;
+	c |= c << 16;
+		
+	/* Actual Drawing */
+	// Speed
+	w = (X2 >> 2);
+	
+	// Loop
+	for (y = Y1; y < Y2; y += 8)
+	{
+		// Set buf
+		buf = (int*)(screens[0] + (vid.width * y) + X1);
+		
+		// Loop
+		x = 0;
+		for (; x < (X2 - X1) - 8; x += 8)
+		{
+			*((uint32_t*)(&buf[x])) = c;
+			*((uint32_t*)(&buf[x + 4])) = c;
+		}
+		
+		// Final bits
+		for (; x < (X2 - X1); x++)
+			((uint8_t*)buf)[x] = c;
+			
+		// Inner second loop
+		for (i = 1; i < 8 && (y + i) < Y2; i++)
+		{
+			buf2 = (int*)(screens[0] + (vid.width * (y + i)) + X1);
+			memcpy(buf2, buf, X2 - X1);
+		}
+	}
+}
+
 /* V_DrawPatchEx() -- Extended patch drawing function */
 // GhostlyDeath <March 3, 2011> -- Take V_DrawPatchEx() from NewReMooD (improved version)
 void V_DrawPatchEx(const uint32_t Flags, const int x, const int y, const patch_t* const Patch, const uint8_t* const ExtraMap)

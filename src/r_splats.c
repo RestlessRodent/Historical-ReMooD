@@ -105,7 +105,7 @@ static wallsplat_t* R_AllocWallSplat(void)
 	
 	// for next allocation
 	freewallsplat++;
-	if (freewallsplat >= cv_maxsplats.value)
+	if ((freewallsplat >= cv_maxsplats.value) || (freewallsplat >= MAXLEVELSPLATS))
 		freewallsplat = 0;
 		
 	return splat;
@@ -266,10 +266,12 @@ void R_AddWallSplat(line_t* wallline, int sectorside, char* patchname, fixed_t t
 			{
 				Rover->next = R_AllocWallSplat();
 				
-				// Clone Data
-				*(Rover->next) = Temp;
+				// Clone Data -- R_AWS() should return something
 				if (Rover->next)	// Probably always false
+				{
+					*(Rover->next) = Temp;
 					Rover->next->next = NULL;
+				}
 				break;
 			}
 		}

@@ -78,6 +78,7 @@
 #define DEFPRCONLPLAYERMQ	127	// Default priority in queue
 #define DEFTOCONPLAYERMQ	(TICRATE * 4)	// Default timeout in queue
 #define MAXCONLPMQBUFSIZE	128	// Length of the message buffer
+#define CONLMAXCOMBUFSIZE	160	// Length of input command
 
 /*****************
 *** STRUCTURES ***
@@ -121,6 +122,8 @@ static bool_t l_CONLActive = false;	// Console active?
 static CONL_BasicBuffer_t l_CONLBuffers[2];	// Input/Output Buffer
 static CONL_PlayerMessage_t l_CONLMessageQ[MAXSPLITSCREENPLAYERS][MAXCONLPLAYERMQ];	// Player message queue
 static uint32_t l_CONLLineOff = 0;	// Line offset
+static char l_CONLTypeCommand[CONLMAXCOMBUFSIZE];	// Command being typed
+static uint32_t l_CONLTypeSpot = 0;	// Spot to type in
 
 /****************
 *** FUNCTIONS ***
@@ -629,6 +632,9 @@ bool_t CONL_HandleEvent(const I_EventEx_t* const a_Event)
 {
 	uint8_t Code;
 	uint16_t Char;
+	uint32_t Old;
+	static uint32_t HistorySpot;
+	size_t i, j, k;
 	
 	/* Check */
 	if (!a_Event)
@@ -681,7 +687,45 @@ bool_t CONL_HandleEvent(const I_EventEx_t* const a_Event)
 				l_CONLLineOff--;
 		}
 		
+		// Go up/down in history
+		else if (Code == IKBK_UP || Code == IKBK_DOWN)
+		{
+			// remember old spot
+			Old = HistorySpot;
+			
+			// Move around
+			if (Code == IKBK_UP)	// back
+			{
+				if (HistorySpot < l_CONLBuffers[1].NumLines)
+					HistorySpot++;
+			}
+			else						// forwards
+			{
+				if (HistorySpot > 0)
+					HistorySpot--;
+			}
+			
+			// Not the same?
+			if (Old != HistorySpot)
+			{
+				// Find message to set (do not wrap around)
+				for (i = 0; i < HistorySpot; i++)
+					if (!l_CONLBuffers[1].Lines[(l_CONLBuffers[1].EndLine - i) & l_CONLBuffers[1].MaskLine])
+						break;
+				
+				// If i is history, then there is history we got
+				if (i == HistorySpot)
+				{
+				}
+			}
+		}
+		
 		// Always eat everything
+#if 0
+static char l_CONLTypeCommand[CONLMAXCOMBUFSIZE];	// Command being typed
+static uint32_t l_CONLTypeSpot = 0;	// Spot to type in
+#endif
+		
 		return true;
 	}
 	
@@ -695,7 +739,7 @@ void CONL_DrawConsole(void)
 	bool_t FullCon;
 	size_t i, n, j, k, l, BSkip;
 	int32_t NumLines, Limit;
-	uint32_t bx, x, by, y, bw, bh, Options, conX, conY, conW, conH;
+	uint32_t bx, x, by, y, bw, bh, Options, conX, conY, conW, conH, DrawCount;
 	const char* p;
 	char TempFill[6];
 	static pic_t* BackPic;
@@ -753,6 +797,7 @@ void CONL_DrawConsole(void)
 		NumLines = conH / bh; 
 		
 		// Draw every line
+		DrawCount = 0;
 		y = bh * (NumLines - (con_startup ? 0 : 2));
 		for (l = 0, i = 0, j = ((Out->EndLine - 1) & Out->MaskLine); i < NumLines; j = ((j - 1) & Out->MaskLine))
 		{
@@ -822,6 +867,7 @@ void CONL_DrawConsole(void)
 			
 			// Go down
 			y -= bh;
+			DrawCount++;
 		}
 		
 		// Draw console input line (as long as it is not startup)
@@ -830,37 +876,38 @@ void CONL_DrawConsole(void)
 			y = conH - bh - CONLPADDING;
 			x = conX;
 			x += V_DrawStringA(CONLCONSOLEFONT, VFO_COLOR(VEX_MAP_BRIGHTWHITE) | VFO_NOSCALEPATCH | VFO_NOSCALESTART | VFO_NOSCALELORES, "#>", x, y);
-			V_DrawStringA(CONLCONSOLEFONT, VFO_COLOR(VEX_MAP_BLUE) | VFO_NOSCALEPATCH | VFO_NOSCALESTART | VFO_NOSCALELORES, "Command here", x, y);
+			V_DrawStringA(CONLCONSOLEFONT, VFO_COLOR(VEX_MAP_BLUE) | VFO_NOSCALEPATCH | VFO_NOSCALESTART | VFO_NOSCALELORES, l_CONLTypeCommand, x, y);
 		}
 		
 		// Draw scrollbar
-		if (true/*NumLines < Out->CountLine*/)
+		if (!con_startup)
 		{
-			y = Out->CountLine - NumLines;
+			// Pixels per line (of all the console lines)
+			by = conH / Out->CountLine;
+			bw = conH - 1;
+			bh = bw - (by * l_CONLLineOff);
 			
-			// Draw filled area
-			V_DrawFadeConsBackEx(VEX_COLORMAP(VEX_MAP_BRIGHTWHITE) | VEX_NOSCALESTART | VEX_NOSCALESCREEN, 1, CONLPADDING + y, CONLPADDING - 1, conH - CONLPADDING);
+			// Draw skipped lines (from bottom)
+			V_DrawColorBoxEx(VEX_COLORMAP(VEX_MAP_BLACK) | VEX_NOSCALESTART | VEX_NOSCALESCREEN, CONLSCROLLBACK, 1, bw, CONLPADDING - 1, bh);
+			
+			// Draw lines being seen (in current view)
+			bw = bh;
+			bh = bw - (by * (DrawCount < NumLines ? DrawCount : NumLines));
+			
+			V_DrawColorBoxEx(VEX_COLORMAP(VEX_MAP_WHITE) | VEX_NOSCALESTART | VEX_NOSCALESCREEN, CONLSCROLLFORE, 1, bw, CONLPADDING - 1, bh);
+			
+			// Draw lines you should see but you cant
+			bw = bh;
+			bh = bw - (by * (DrawCount < NumLines ? NumLines - DrawCount : DrawCount - NumLines));
+			
+			V_DrawColorBoxEx(VEX_COLORMAP(VEX_MAP_GRAY) | VEX_NOSCALESTART | VEX_NOSCALESCREEN, CONLSCROLLMISS, 1, bw, CONLPADDING - 1, bh);
+			
+			// Draw remaining black
+			bw = bh;
+			bh = 1;
+			
+			V_DrawColorBoxEx(VEX_COLORMAP(VEX_MAP_BLACK) | VEX_NOSCALESTART | VEX_NOSCALESCREEN, CONLSCROLLBACK, 1, bw, CONLPADDING - 1, bh);
 		}
-	
-#if 0
-		/* CONL_BasicBuffer_t -- A basic buffer for the console */
-typedef struct CONL_BasicBuffer_s
-{
-	char* Buffer;				// Actual buffer
-	char** Lines;				// Lines in buffer
-	size_t Size;				// Size of the buffer
-	size_t NumLines;			// Number of lines in buffer
-	
-	uintmax_t MaskPos;			// Position mask
-	uintmax_t StartPos;			// Start position of buffer
-	uintmax_t EndPos;			// End position of buffer
-	uintmax_t MaskLine;			// Line mask
-	uintmax_t StartLine;		// First line in buffer
-	uintmax_t EndLine;			// Last line in buffer
-	
-	CONL_FlushFunc_t FlushFunc;	// Function to call on '\n'
-} CONL_BasicBuffer_t;
-#endif
 	}
 	
 	/* Not active, draw per player messages */
@@ -934,14 +981,6 @@ typedef struct CONL_BasicBuffer_s
 			}
 		}
 	}
-	
-	/*
-	   #define YAYTEXT "{{1X {{{2Y {{{{3Z {0Y{1a{2y {3C{4o{5l{6o{7r{8s{9!{a!{b!{c!{d1{e1{f#"
-	   V_DrawStringA(VFONT_SMALL, 0, YAYTEXT, 100, 80);
-	   V_DrawStringA(VFONT_LARGE, 0, YAYTEXT, 100, 100);
-	   V_DrawStringA(VFONT_STATUSBARSMALL, 0, YAYTEXT, 100, 120);
-	   V_DrawStringA(VFONT_PRBOOMHUD, 0, YAYTEXT, 100, 140);
-	   V_DrawStringA(VFONT_OEM, 0, YAYTEXT, 100, 160); */
 }
 
 /*****************************************************************************/

@@ -58,6 +58,7 @@ typedef struct I_SDLSoundLocal_s
 	SDL_AudioSpec Spec;
 	void (*ThreadFunc) (const bool_t a_Threaded);
 	void* Buffer;
+	SDL_mutex* Mutex;
 } I_SDLSoundLocal_t;
 
 /**********************************
@@ -105,9 +106,22 @@ bool_t I_SDLSD_Init(struct I_SoundDriver_s* const a_Driver)
 /* I_SDLSD_Destroy() -- Destroys a driver */
 bool_t I_SDLSD_Destroy(struct I_SoundDriver_s* const a_Driver)
 {
+	I_SDLSoundLocal_t* Local;
+	
 	/* Check */
 	if (!a_Driver)
 		return false;
+	
+	/* Get Local */
+	Local = (I_SDLSoundLocal_t*) a_Driver->Data;
+	
+	// Check
+	if (Local)
+	{
+		// Destroy mutex
+		SDL_DestroyMutex(Local->Mutex);
+		Local->Mutex = NULL;
+	}
 		
 	/* Quit SDL */
 	SDL_QuitSubSystem(SDL_INIT_AUDIO);
@@ -135,6 +149,9 @@ void I_SDLSD_Success(struct I_SoundDriver_s* const a_Driver)
 	// Check
 	if (!Local)
 		return;
+	
+	/* Create mutex */
+	Local->Mutex = SDL_CreateMutex();
 }
 
 /* I_SDLSD_Request() -- Requests a buffer for this driver */
@@ -307,9 +324,19 @@ void I_SDLSD_LockThread(struct I_SoundDriver_s* const a_Driver, const bool_t a_L
 		
 	/* Lock or unlock? */
 	if (a_Lock)
-		SDL_LockAudio();
+	{
+		//SDL_LockAudio();
+		// GhostlyDeath <September 20, 2011> -- Use mutexes instead
+		// Can be called from audio update thread
+		SDL_LockMutex(Local->Mutex);
+	}
 	else
-		SDL_UnlockAudio();
+	{
+		//SDL_UnlockAudio();
+		// GhostlyDeath <September 20, 2011> -- Use mutexes instead
+		// Can be called from audio update thread
+		SDL_UnlockMutex(Local->Mutex);
+	}
 }
 
 /* l_SDLSound -- SDL sound driver */

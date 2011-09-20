@@ -50,6 +50,9 @@
 
 #define CONLCONSOLEFONT VFONT_SMALL		// Font used to draw console
 #define CONLPADDING 5					// Pad the console
+#define CONLSCROLLFORE 4				// Forecolor of the scrollbar
+#define CONLSCROLLBACK 0				// Backcolor of the scrollbar
+#define CONLSCROLLMISS 200				// Missed color for scrollbar
 
 /*****************
 *** PROTOTYPES ***

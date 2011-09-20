@@ -597,6 +597,9 @@ void S_RepositionSounds(void)
 	/* Check */
 	if (!l_SoundOK)
 		return;
+	
+	/* Lock sound */
+	I_SoundLockThread(true);
 		
 	/* Go through all playing sounds */
 	for (i = 0; i < l_NumDoomChannels; i++)
@@ -608,6 +611,9 @@ void S_RepositionSounds(void)
 		// Update single channel
 		S_UpdateSingleChannel(&l_DoomChannels[i], NULL, NULL, 0);
 	}
+	
+	/* Unlock sound */
+	I_SoundLockThread(false);
 }
 
 void SetChannelsNum(void)
@@ -919,6 +925,9 @@ void S_UpdateSounds(const bool_t a_Threaded)
 	/* Is the buffer finished? */
 	if (!I_SoundBufferIsFinished())
 		return;
+	
+	/* If this is threaded, lock! */
+	I_SoundLockThread(true);
 		
 	/* Update all playing sounds */
 	//S_RepositionSounds();
@@ -972,6 +981,9 @@ void S_UpdateSounds(const bool_t a_Threaded)
 	
 	/* Write to driver */
 	I_SoundBufferWriteOut();
+	
+	/* Unlock thread */
+	I_SoundLockThread(false);
 }
 
 /* S_SetMusicVolume() -- Sets music volume */
