@@ -788,8 +788,19 @@ void CONL_DrawConsole(void)
 				// Make tab special (keep output even)
 				if (*p == '\t')
 				{
+					bx = 0;
 					x += bw * 4;
 					x -= (x % (bw * 4));
+					BSkip = 1;
+				}
+				
+				// Make \1 and \3 special (white)
+				else if (*p == '\1' || *p == '\2')
+				{
+					Options &= ~VFO_COLORMASK;
+					Options |= VFO_COLOR(VEX_MAP_BRIGHTWHITE);
+					bx = 0;
+					BSkip = 1;
 				}
 					
 				// Non console special control (Legacy)
