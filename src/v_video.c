@@ -1710,13 +1710,13 @@ char Font[NUMVIDEOFONTS][4][9] =	/* Doom, Doom (Alt), Heretic, Heretic (Alt) */
 };
 
 /* V_WCharToMB() -- Convert wide character to multibyte */
-static void V_WCharToMB(const uint16_t WChar, char* const MB)
+static size_t V_WCharToMB(const uint16_t WChar, char* const MB)
 {
 	unsigned char* MBx;
 	
 	/* Check */
 	if (!MB)
-		return;
+		return 0;
 		
 	/* Set */
 	MBx = (unsigned char*)MB;
@@ -1727,6 +1727,8 @@ static void V_WCharToMB(const uint16_t WChar, char* const MB)
 	{
 		MBx[0] = WChar & 0x7F;
 		MBx[1] = 0;
+		
+		return 1;
 	}
 	// Double byte
 	else if (WChar >= 0x0080 && WChar <= 0x07FF)
@@ -1734,6 +1736,8 @@ static void V_WCharToMB(const uint16_t WChar, char* const MB)
 		MBx[0] = 0xC0 | (WChar >> 6);
 		MBx[1] = 0x80 | (WChar & 0x3F);
 		MBx[2] = 0;
+		
+		return 2;
 	}
 	// Triple byte
 	else if (WChar >= 0x8000 && WChar <= 0xFFFF)
@@ -1742,6 +1746,8 @@ static void V_WCharToMB(const uint16_t WChar, char* const MB)
 		MBx[1] = 0x80 | ((WChar >> 6) & 0x3F);
 		MBx[2] = 0x80 | (WChar & 0x3F);
 		MBx[3] = 0;
+		
+		return 3;
 	}
 	// Quad-uint8_t (Requires 32-bit uint16_t)
 	else if (sizeof(uint16_t) >= 4 && (WChar >= 0x010000 && WChar <= 0x10FFFF))
@@ -1751,13 +1757,15 @@ static void V_WCharToMB(const uint16_t WChar, char* const MB)
 		MBx[2] = 0x80 | ((WChar >> 6) & 0x3F);
 		MBx[3] = 0x80 | (WChar & 0x3F);
 		MBx[4] = 0;
+		
+		return 4;
 	}
 }
 
 /* V_ExtWCharToMB() -- Convert wide character to multibyte */
-void V_ExtWCharToMB(const uint16_t WChar, char* const MB)
+size_t V_ExtWCharToMB(const uint16_t WChar, char* const MB)
 {
-	V_WCharToMB(WChar, MB);
+	return V_WCharToMB(WChar, MB);
 }
 
 /*----------------------------------------------------------------------------*/
@@ -2515,6 +2523,12 @@ static uint16_t V_MBToWChar(const char* MBChar, size_t* const BSkip)
 			*BSkip = 1;
 		return 0;
 	}
+}
+
+/* V_ExtMBToWChar() -- External to V_MBToWChar() */
+uint16_t V_ExtMBToWChar(const char* MBChar, size_t* const BSkip)
+{
+	return V_MBToWChar(MBChar, BSkip);
 }
 
 /* V_BestWChar() -- Find best uint16_t for a character */
