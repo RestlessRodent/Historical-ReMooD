@@ -97,7 +97,7 @@ static bool_t I_AllegroMD_Init(struct I_MusicDriver_s* const a_Driver)
 		// Install Sound
 		if (install_sound(DIGI_AUTODETECT, MIDI_AUTODETECT, NULL) == -1)
 		{
-			CONS_Printf("I_AllegroMD_Init: Failed to install sound (sound).\n");
+			CONS_Printf("I_AllegroMD_Init: Failed to install sound (music).\n");
 			return false;
 		}
 		

@@ -34,10 +34,6 @@ void I_ShutdownMusic(void)
 {
 }
 
-void I_UpdateMusic(void)
-{
-}
-
 void I_SetMusicVolume(int volume)
 {
 }

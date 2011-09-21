@@ -531,7 +531,9 @@ void I_MUS2MID_Pause(struct I_MusicDriver_s* const a_Driver, const int a_Handle)
 			MIDIMsg.b[0] = 0xB0 | i;
 			MIDIMsg.b[1] = 0x7B;
 			MIDIMsg.b[2] = 0;
-			Local->RealDriver->RawMIDI(Local->RealDriver, MIDIMsg.u, 3);
+			
+			if (Local->RealDriver->RawMIDI)
+				Local->RealDriver->RawMIDI(Local->RealDriver, MIDIMsg.u, 3);
 		}
 	}
 	
@@ -821,7 +823,7 @@ void I_MUS2MID_Volume(struct I_MusicDriver_s* const a_Driver, const int a_Handle
 			Local->RealDriver->Volume(Local->RealDriver, Local->RealHandle, 255);
 			
 		// Set volume scale
-		Local->VolScale = FixedDiv((fixed_t) Vol << FRACBITS, 255 << FRACBITS);
+		Local->VolScale = FixedDiv(((fixed_t)Vol) << FRACBITS, 255 << FRACBITS);
 	}
 	
 	/* Full convert mode */

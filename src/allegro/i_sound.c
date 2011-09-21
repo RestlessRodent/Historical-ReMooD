@@ -95,14 +95,20 @@ bool_t I_AllegroSD_Init(struct I_SoundDriver_s* const a_Driver)
 		// Install Sound
 		if (install_sound(DIGI_AUTODETECT, MIDI_AUTODETECT, NULL) == -1)
 		{
-			CONS_Printf("I_AllegroMD_Init: Failed to install sound (sound).\n");
+			CONS_Printf("I_AllegroSD_Init: Failed to install sound (sound).\n");
 			return false;
 		}
 		
 		l_AllegroSDMDInitted = true;
 	}
 	
+	/* Force load of all MIDI patches */
+	// This is so midi_out works!
+	// Took me awhile to figure out why
+	load_midi_patches();
+	
 	/* Success */
+	CONS_Printf("I_AllegroSD_Init: Success!\n");
 	return true;
 }
 

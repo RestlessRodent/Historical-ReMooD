@@ -380,8 +380,9 @@ bool_t CONCTI_HandleEvent(CONCTI_Inputter_t* const a_Input, const I_EventEx_t* c
 			}
 			
 			// Set character info
-			V_ExtWCharToMB(Char, MB);
-			strncpy(MBRover->MB, MB, 5);
+			i = V_ExtWCharToMB(Char, MB);
+			memset(MBRover->MB, 0, sizeof(MBRover->MB));
+			strncpy(MBRover->MB, MB, i);
 			a_Input->CursorPos++;	// Always increment
 			
 			// Eat this event
@@ -616,6 +617,12 @@ static void CONLFF_OutputFF(const char* const a_Buf)
 /* CONLFF_InputFF() -- Line is flushed from the input buffer */
 static void CONLFF_InputFF(const char* const a_Buf)
 {
+#define MAXARGV 128
+	const char* p;
+	int ArgC, Current, i, j;
+	char** ArgV;
+	char Quote;
+	
 	/* Check */
 	if (!a_Buf)
 		return;
@@ -624,9 +631,70 @@ static void CONLFF_InputFF(const char* const a_Buf)
 	// Tokenize between space and single/double quotes
 	// This makes command processing hell of alot easier
 	// So calling console functions is like main(argc, argv)
-	I_OutputText("Exec >> ");
-	I_OutputText(a_Buf);
-	I_OutputText("\n");
+	ArgC = Current = 0;
+	ArgV = NULL;
+	
+	for (Quote = 0, p = a_Buf; *p; p++)
+	{
+		// Check if a new thing needs to be created
+		if (Current == ArgC)
+		{
+			// Resize
+			Z_ResizeArray((void**)&ArgV, sizeof(*ArgV), ArgC, ArgC + 1);
+			ArgC++;
+			
+			// Create text here
+			j = 0;
+			ArgV[Current] = Z_Malloc(sizeof(*ArgV[Current]) * MAXARGV, PU_STATIC, NULL);
+			Quote = 0;
+		}
+		
+		// Whitespace adds to current
+		if (!Quote && (*p == 0 || *p == ' ' || *p == '\t'))
+		{
+			// But only if there is j
+			if (j > 0)
+				Current++;
+		}
+		
+		// Quote?
+		else if ((!Quote && (*p == '\"' || *p == '\'')) || (Quote && *p == Quote))
+		{
+			// Toggle quote
+			if (Quote)
+				Quote = 0;
+			else
+				Quote = *p;
+		}
+		
+		// Normal character?
+		else
+		{
+			if (j < MAXARGV - 1)
+				ArgV[Current][j++] = *p;
+		}
+	}
+	
+	/* Send to execution handler */
+#if 0
+	fprintf(stderr, "%i: ", ArgC);
+	for (i = 0; i < ArgC; i++)
+		fprintf(stderr, "`%s`", ArgV[i]);
+	fprintf(stderr, "\n");
+#endif
+	
+	/* Clear */
+	if (ArgV)
+	{
+		for (i = 0; i < ArgC; i++)
+			Z_Free(ArgV[i]);
+		Z_Free(ArgV);
+	}
+	
+	//I_OutputText("Exec >> ");
+	//I_OutputText(a_Buf);
+	//I_OutputText("\n");
+#undef MAXARGV
 }
 
 /*** Base Console ***/
@@ -761,6 +829,7 @@ size_t CONL_RawPrint(CONL_BasicBuffer_t* const a_Buffer, const char* const a_Tex
 					i = POSMASK(w - a_Buffer->Buffer);
 					for (k = 0; k < j - 1; i = POSMASK(i + 1))
 						Que[Q][k++] = a_Buffer->Buffer[POSMASK(i)];
+					Que[Q][k++] = 0;
 						
 					// Increase Q
 					Q++;
@@ -775,9 +844,7 @@ size_t CONL_RawPrint(CONL_BasicBuffer_t* const a_Buffer, const char* const a_Tex
 			
 			// Start collision?
 			if (LINEMASK(a_Buffer->EndLine) == LINEMASK(a_Buffer->StartLine))
-			{
 				a_Buffer->StartLine = LINEMASK(a_Buffer->StartLine + 1);
-			}
 		}
 	}
 	

@@ -1760,6 +1760,9 @@ static size_t V_WCharToMB(const uint16_t WChar, char* const MB)
 		
 		return 4;
 	}
+	
+	/* Failed */
+	return 0;
 }
 
 /* V_ExtWCharToMB() -- Convert wide character to multibyte */

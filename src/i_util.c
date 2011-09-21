@@ -735,7 +735,7 @@ int VID_SetMode(int a_ModeNum)
 }
 
 /* I_UtilWinArgToUNIXArg() -- Converts Windows-style command line to a UNIX one */
-bool_t I_UtilWinArgToUNIXArg(int* const a_argc, char** *const a_argv, const char* const a_Win)
+bool_t I_UtilWinArgToUNIXArg(int* const a_argc, char*** const a_argv, const char* const a_Win)
 {
 	/* Check */
 	if (!a_argc || !a_argv || !a_Win)
