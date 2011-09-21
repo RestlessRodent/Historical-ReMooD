@@ -91,14 +91,25 @@ typedef struct
 // to the BSP builder.
 typedef struct
 {
-	short v1;
-	short v2;
-	short flags;
-	short special;
-	short tag;
+	int16_t v1;
+	int16_t v2;
+	int16_t flags;
+	int16_t special;
+	int16_t tag;
 	// sidenum[1] will be -1 if one sided
-	short sidenum[2];
+	int16_t sidenum[2];
 } maplinedef_t;
+
+/* HexenMapLineDef_t -- Hexen linedef */
+typedef struct HexenMapLineDef_s
+{
+	int16_t v1;
+	int16_t v2;
+	int16_t flags;
+	uint8_t special;
+	uint8_t Args[5];
+	int16_t sidenum[2];
+} HexenMapLineDef_t;
 
 //
 // LineDef attributes.
@@ -214,6 +225,22 @@ typedef struct
 	short options;
 	struct mobj_s* mobj;
 } mapthing_t;
+
+/* HexenMapThingDef_t -- Hexen map thing */
+typedef struct HexenMapThingDef_s
+{
+	int16_t ID;
+	int16_t x;
+	int16_t y;
+	int16_t z;					// Z support for objects SSNTails 07-24-2002
+	int16_t angle;
+	int16_t type;
+	int16_t options;
+	uint8_t Special;
+	uint8_t Args[5];
+	
+	struct mobj_s* mobj;
+} HexenMapThingDef_t;
 
 extern char* Color_Names[MAXSKINCOLORS];
 

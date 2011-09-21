@@ -591,6 +591,54 @@ void P_LoadThings(int lump)
 	Z_Free(datastart);
 }
 
+/* P_LoadThingsHexen() -- Load hexen thing data */
+void P_LoadThingsHexen(int lump)
+{
+	int i;
+	mapthing_t* mt;
+	bool_t spawn;
+	int16_t* data, *datastart;
+	
+	data = datastart = W_CacheLumpNum(lump, PU_LEVEL);
+	nummapthings = W_LumpLength(lump) / (5 * sizeof(short));
+	mapthings = Z_Malloc(nummapthings * sizeof(mapthing_t), PU_LEVEL, NULL);
+	
+	//SoM: Because I put a new member into the mapthing_t for use with
+	//fragglescript, the format has changed and things won't load correctly
+	//using the old method.
+	
+	mt = mapthings;
+	for (i = 0; i < nummapthings; i++, mt++)
+	{
+		spawn = true;
+		
+		// Do spawn all other stuff.
+		// SoM: Do this first so all the mapthing slots are filled!
+		data++;	// hexen ID
+		mt->x = *data;
+		data++;
+		mt->y = *data;
+		data++;
+		mt->z = *data;
+		data++;
+		mt->angle = *data;
+		data++;
+		mt->type = *data;
+		data++;
+		mt->options = *data;
+		data++;
+		
+		// Ignore hexen specials
+		data += 3;
+		
+		mt->mobj = NULL;		//SoM:
+		
+		P_SpawnMapThing(mt);
+	}
+	
+	Z_Free(datastart);
+}
+
 //
 // P_LoadLineDefs
 // Also counts secret lines for intermissions.
@@ -616,6 +664,81 @@ void P_LoadLineDefs(int lump)
 		ld->flags = LittleSwapInt16(mld->flags);
 		ld->special = LittleSwapInt16(mld->special);
 		ld->tag = LittleSwapInt16(mld->tag);
+		v1 = ld->v1 = &vertexes[LittleSwapInt16(mld->v1)];
+		v2 = ld->v2 = &vertexes[LittleSwapInt16(mld->v2)];
+		ld->dx = v2->x - v1->x;
+		ld->dy = v2->y - v1->y;
+		
+		if (!ld->dx)
+			ld->slopetype = ST_VERTICAL;
+		else if (!ld->dy)
+			ld->slopetype = ST_HORIZONTAL;
+		else
+		{
+			if (FixedDiv(ld->dy, ld->dx) > 0)
+				ld->slopetype = ST_POSITIVE;
+			else
+				ld->slopetype = ST_NEGATIVE;
+		}
+		
+		if (v1->x < v2->x)
+		{
+			ld->bbox[BOXLEFT] = v1->x;
+			ld->bbox[BOXRIGHT] = v2->x;
+		}
+		else
+		{
+			ld->bbox[BOXLEFT] = v2->x;
+			ld->bbox[BOXRIGHT] = v1->x;
+		}
+		
+		if (v1->y < v2->y)
+		{
+			ld->bbox[BOXBOTTOM] = v1->y;
+			ld->bbox[BOXTOP] = v2->y;
+		}
+		else
+		{
+			ld->bbox[BOXBOTTOM] = v2->y;
+			ld->bbox[BOXTOP] = v1->y;
+		}
+		
+		ld->sidenum[0] = LittleSwapInt16(mld->sidenum[0]);
+		ld->sidenum[1] = LittleSwapInt16(mld->sidenum[1]);
+		
+		if (ld->sidenum[0] != -1 && ld->special)
+			sides[ld->sidenum[0]].special = ld->special;
+			
+	}
+	
+	Z_Free(data);
+}
+
+/* P_LoadLineDefsHexen() -- Load hexen data */
+void P_LoadLineDefsHexen(int lump)
+{
+	uint8_t* data;
+	int i;
+	HexenMapLineDef_t* mld;
+	line_t* ld;
+	vertex_t* v1;
+	vertex_t* v2;
+	
+	numlines = W_LumpLength(lump) / sizeof(HexenMapLineDef_t);
+	lines = Z_Malloc(numlines * sizeof(line_t), PU_LEVEL, 0);
+	memset(lines, 0, numlines * sizeof(line_t));
+	data = W_CacheLumpNum(lump, PU_STATIC);
+	
+	mld = (HexenMapLineDef_t*) data;
+	ld = lines;
+	for (i = 0; i < numlines; i++, mld++, ld++)
+	{
+		ld->flags = LittleSwapInt16(mld->flags);
+		
+		// Ignore hexen specials (not supported, yet!)
+		ld->special = 0;//LittleSwapInt16(mld->special);
+		ld->tag = 0;//LittleSwapInt16(mld->tag);
+		
 		v1 = ld->v1 = &vertexes[LittleSwapInt16(mld->v1)];
 		v2 = ld->v2 = &vertexes[LittleSwapInt16(mld->v2)];
 		ld->dx = v2->x - v1->x;
@@ -1197,8 +1320,8 @@ bool_t P_SetupLevel(int episode, int map, skill_t skill, char* wadname)	// for w
 	HexenACS = W_GetEntry(lastloadedmaplumpnum + ML_BEHAVIOR);
 	if (HexenACS && strncasecmp(HexenACS->Name, "BEHAVIOR", 8) == 0)
 	{
-		CONS_Printf("P_SetupLevel: HeXeN maps are NOT supported!\n");
-		return false;
+		CONS_Printf("P_SetupLevel: HeXeN maps are NOT fully supported!\n");
+		//return false;
 	}
 #ifdef FRAGGLESCRIPT
 	P_LoadLevelInfo(lastloadedmaplumpnum);	// load level lump info(level name etc)
@@ -1223,7 +1346,11 @@ bool_t P_SetupLevel(int episode, int map, skill_t skill, char* wadname)	// for w
 	P_LoadSectors(lastloadedmaplumpnum + ML_SECTORS);
 	P_LoadSideDefs(lastloadedmaplumpnum + ML_SIDEDEFS);
 	
-	P_LoadLineDefs(lastloadedmaplumpnum + ML_LINEDEFS);
+	if (HexenACS)
+		P_LoadLineDefsHexen(lastloadedmaplumpnum + ML_LINEDEFS);
+	else
+		P_LoadLineDefs(lastloadedmaplumpnum + ML_LINEDEFS);
+	
 	P_LoadSideDefs2(lastloadedmaplumpnum + ML_SIDEDEFS);
 	P_LoadLineDefs2();
 	P_LoadSubsectors(lastloadedmaplumpnum + ML_SSECTORS);
@@ -1239,8 +1366,11 @@ bool_t P_SetupLevel(int episode, int map, skill_t skill, char* wadname)	// for w
 	//SoM: Set pointers to NULL
 	for (i = 0; i < MAXPLAYERS; i++)
 		playerstarts[i] = NULL;
-		
-	P_LoadThings(lastloadedmaplumpnum + ML_THINGS);
+	
+	if (HexenACS)
+		P_LoadThingsHexen(lastloadedmaplumpnum + ML_THINGS);
+	else
+		P_LoadThings(lastloadedmaplumpnum + ML_THINGS);
 	
 	// set up world state
 	P_SpawnSpecials();
