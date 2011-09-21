@@ -99,7 +99,7 @@ void CONCTI_SetText(CONCTI_Inputter_t* const a_Input, const char* const a_Text);
 int32_t CONCTI_DrawInput(CONCTI_Inputter_t* const a_Input, const uint32_t a_Options, const int32_t a_x, const int32_t a_y, const int32_t a_x2);
 
 /*** Base Console ***/
-bool_t CONL_Init(const uintmax_t a_OutBS, const uintmax_t a_InBS);
+bool_t CONL_Init(const uint32_t a_OutBS, const uint32_t a_InBS);
 void CONL_Stop(void);
 
 size_t CONL_PrintV(const bool_t a_InBuf, const char* const a_Format, va_list a_ArgPtr);

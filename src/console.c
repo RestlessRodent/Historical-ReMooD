@@ -94,13 +94,13 @@ typedef struct CONL_BasicBuffer_s
 	size_t Size;				// Size of the buffer
 	size_t NumLines;			// Number of lines in buffer
 	
-	uintmax_t MaskPos;			// Position mask
-	uintmax_t StartPos;			// Start position of buffer
-	uintmax_t EndPos;			// End position of buffer
-	uintmax_t MaskLine;			// Line mask
-	uintmax_t StartLine;		// First line in buffer
-	uintmax_t EndLine;			// Last line in buffer
-	uintmax_t CountLine;		// Line count
+	uint32_t MaskPos;			// Position mask
+	uint32_t StartPos;			// Start position of buffer
+	uint32_t EndPos;			// End position of buffer
+	uint32_t MaskLine;			// Line mask
+	uint32_t StartLine;		// First line in buffer
+	uint32_t EndLine;			// Last line in buffer
+	uint32_t CountLine;		// Line count
 	
 	CONL_FlushFunc_t FlushFunc;	// Function to call on '\n'
 } CONL_BasicBuffer_t;
@@ -403,8 +403,7 @@ int32_t CONCTI_DrawInput(CONCTI_Inputter_t* const a_Input, const uint32_t a_Opti
 {
 	CONCTI_MBChain_t* MBRover;
 	uint32_t Options;
-	int32_t bx, x;
-	size_t j;
+	int32_t bx, x, j;
 	bool_t GotCur;
 	
 	/* Check */
@@ -451,9 +450,9 @@ int32_t CONCTI_DrawInput(CONCTI_Inputter_t* const a_Input, const uint32_t a_Opti
 /*** Static Stuff ***/
 
 /* CONLS_InitConsole() -- Initializes a buffer */
-static bool_t CONLS_InitConsole(CONL_BasicBuffer_t* const a_Buffer, const uintmax_t a_Size, const CONL_FlushFunc_t a_FlushFunc)
+static bool_t CONLS_InitConsole(CONL_BasicBuffer_t* const a_Buffer, const uint32_t a_Size, const CONL_FlushFunc_t a_FlushFunc)
 {
-	uintmax_t Size, i;
+	uint32_t Size, i;
 	
 	/* Check */
 	if (!a_Buffer || !a_Size)
@@ -522,6 +521,7 @@ static void CONLS_DestroyConsole(CONL_BasicBuffer_t* const a_Buffer)
 //   \7 = All Screens (ReMooD) (\a)
 // So if there are any screen modifiers, they are sent to screen specific
 // buffers
+extern bool_t con_started;
 static void CONLFF_OutputFF(const char* const a_Buf)
 {
 	const char* p;
@@ -579,8 +579,6 @@ static void CONLFF_OutputFF(const char* const a_Buf)
 	Buf[MAXCONLPMQBUFSIZE - 1] = 0;
 	
 	/* Print text to console */
-	extern bool_t con_started;
-	
 	if (devparm || !con_started)
 	{
 		I_OutputText(Buf);
@@ -647,7 +645,7 @@ static bool_t CONL_OutBack(struct CONCTI_Inputter_s* a_Input, const char* const 
 }
 
 /* CONL_Init() -- Initializes the light console */
-bool_t CONL_Init(const uintmax_t a_OutBS, const uintmax_t a_InBS)
+bool_t CONL_Init(const uint32_t a_OutBS, const uint32_t a_InBS)
 {
 	/* Initialize output */
 	if (!CONLS_InitConsole(&l_CONLBuffers[0], a_OutBS, CONLFF_OutputFF))

@@ -191,6 +191,7 @@ void TryRunTics(tic_t realtics)
 	}
 	
 	/* While the client is behind, update it to catch up */
+	LocalTic = 0;
 	do
 	{
 		// If demo needs advancing
@@ -209,12 +210,9 @@ void TryRunTics(tic_t realtics)
 			G_Ticker();
 			gametic++;
 			
-			// If the target was reached, update useless stuff
-			if (LocalTic == TargetTic)
-			{
-				// Update music
-				I_UpdateMusic();
-			}
+			// Update music
+			I_UpdateMusic();
+
 			// Set last tic
 			LastTic++;
 		}

@@ -444,14 +444,14 @@ void V_CopyRect(int srcx, int srcy, int srcscrn, int width, int height, int dest
 	CONS_Printf("..........: srcx %d srcy %d width %d height %d destx %d desty %d\n", srcx, srcy, width, height, destx, desty);
 #endif
 	
-	src = screens[srcscrn] + vid.width * srcy + srcx;
-	dest = screens[destscrn] + vid.width * desty + destx;
+	src = screens[srcscrn] + vid.rowbytes * srcy + srcx;
+	dest = screens[destscrn] + vid.rowbytes * desty + destx;
 	
 	for (; height > 0; height--)
 	{
 		memcpy(dest, src, width);
-		src += vid.width;
-		dest += vid.width;
+		src += vid.rowbytes;
+		dest += vid.rowbytes;
 	}
 }
 

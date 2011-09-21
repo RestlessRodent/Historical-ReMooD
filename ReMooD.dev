@@ -1,7 +1,7 @@
 [Project]
 FileName=ReMooD.dev
 Name=ReMooD
-UnitCount=186
+UnitCount=179
 Type=0
 Ver=1
 ObjFiles=
@@ -30,16 +30,6 @@ CompilerSet=0
 CompilerSettings=0000000001100000000000
 
 [Unit1]
-FileName=src\allegro\i_cdmus.c
-CompileCpp=0
-Folder=Allegro
-Compile=1
-Link=1
-Priority=1000
-OverrideBuildCmd=0
-BuildCmd=
-
-[Unit2]
 FileName=src\allegro\i_music.c
 CompileCpp=0
 Folder=Allegro
@@ -49,7 +39,7 @@ Priority=1000
 OverrideBuildCmd=0
 BuildCmd=
 
-[Unit3]
+[Unit2]
 FileName=src\allegro\i_system.c
 CompileCpp=0
 Folder=Allegro
@@ -59,7 +49,7 @@ Priority=1000
 OverrideBuildCmd=0
 BuildCmd=
 
-[Unit4]
+[Unit3]
 FileName=src\allegro\i_video.c
 CompileCpp=0
 Folder=Allegro
@@ -69,17 +59,7 @@ Priority=1000
 OverrideBuildCmd=0
 BuildCmd=
 
-[Unit5]
-FileName=src\allegro\i_crash.c
-CompileCpp=0
-Folder=Allegro
-Compile=1
-Link=1
-Priority=1000
-OverrideBuildCmd=0
-BuildCmd=
-
-[Unit6]
+[Unit4]
 FileName=src\allegro\i_net.c
 CompileCpp=0
 Folder=Allegro
@@ -89,17 +69,7 @@ Priority=1000
 OverrideBuildCmd=0
 BuildCmd=
 
-[Unit7]
-FileName=src\allegro\i_tcp.c
-CompileCpp=0
-Folder=Allegro
-Compile=1
-Link=1
-Priority=1000
-OverrideBuildCmd=0
-BuildCmd=
-
-[Unit8]
+[Unit5]
 FileName=src\allegro\i_main.c
 CompileCpp=0
 Folder=Allegro
@@ -109,7 +79,7 @@ Priority=1000
 OverrideBuildCmd=0
 BuildCmd=
 
-[Unit9]
+[Unit6]
 FileName=src\allegro\i_sound.c
 CompileCpp=0
 Folder=Allegro
@@ -119,17 +89,7 @@ Priority=1000
 OverrideBuildCmd=0
 BuildCmd=
 
-[Unit10]
-FileName=src\allegro\i_thread.c
-CompileCpp=0
-Folder=Allegro
-Compile=1
-Link=1
-Priority=1000
-OverrideBuildCmd=0
-BuildCmd=
-
-[Unit11]
+[Unit7]
 FileName=src\am_map.c
 CompileCpp=0
 Folder=Doom/Sources
@@ -139,7 +99,7 @@ Priority=1000
 OverrideBuildCmd=0
 BuildCmd=
 
-[Unit12]
+[Unit8]
 FileName=src\c_lib.c
 CompileCpp=0
 Folder=Doom/Sources
@@ -149,7 +109,7 @@ Priority=1000
 OverrideBuildCmd=0
 BuildCmd=
 
-[Unit13]
+[Unit9]
 FileName=src\command.c
 CompileCpp=0
 Folder=Doom/Sources
@@ -159,7 +119,7 @@ Priority=1000
 OverrideBuildCmd=0
 BuildCmd=
 
-[Unit14]
+[Unit10]
 FileName=src\console.c
 CompileCpp=0
 Folder=Doom/Sources
@@ -169,7 +129,7 @@ Priority=1000
 OverrideBuildCmd=0
 BuildCmd=
 
-[Unit15]
+[Unit11]
 FileName=src\d_clisrv.c
 CompileCpp=0
 Folder=Doom/Sources
@@ -179,7 +139,7 @@ Priority=1000
 OverrideBuildCmd=0
 BuildCmd=
 
-[Unit16]
+[Unit12]
 FileName=src\d_info.c
 CompileCpp=0
 Folder=Doom/Sources
@@ -189,7 +149,7 @@ Priority=1000
 OverrideBuildCmd=0
 BuildCmd=
 
-[Unit17]
+[Unit13]
 FileName=src\d_items.c
 CompileCpp=0
 Folder=Doom/Sources
@@ -199,7 +159,7 @@ Priority=1000
 OverrideBuildCmd=0
 BuildCmd=
 
-[Unit18]
+[Unit14]
 FileName=src\d_main.c
 CompileCpp=0
 Folder=Doom/Sources
@@ -209,7 +169,7 @@ Priority=1000
 OverrideBuildCmd=0
 BuildCmd=
 
-[Unit19]
+[Unit15]
 FileName=src\d_net.c
 CompileCpp=0
 Folder=Doom/Sources
@@ -219,7 +179,7 @@ Priority=1000
 OverrideBuildCmd=0
 BuildCmd=
 
-[Unit20]
+[Unit16]
 FileName=src\d_netcmd.c
 CompileCpp=0
 Folder=Doom/Sources
@@ -229,7 +189,7 @@ Priority=1000
 OverrideBuildCmd=0
 BuildCmd=
 
-[Unit21]
+[Unit17]
 FileName=src\d_prof.c
 CompileCpp=0
 Folder=Doom/Sources
@@ -239,7 +199,7 @@ Priority=1000
 OverrideBuildCmd=0
 BuildCmd=
 
-[Unit22]
+[Unit18]
 FileName=src\d_rdf.c
 CompileCpp=0
 Folder=Doom/Sources
@@ -249,7 +209,7 @@ Priority=1000
 OverrideBuildCmd=0
 BuildCmd=
 
-[Unit23]
+[Unit19]
 FileName=src\dehacked.c
 CompileCpp=0
 Folder=Doom/Sources
@@ -259,7 +219,7 @@ Priority=1000
 OverrideBuildCmd=0
 BuildCmd=
 
-[Unit24]
+[Unit20]
 FileName=src\dstrings.c
 CompileCpp=0
 Folder=Doom/Sources
@@ -269,7 +229,7 @@ Priority=1000
 OverrideBuildCmd=0
 BuildCmd=
 
-[Unit25]
+[Unit21]
 FileName=src\f_finale.c
 CompileCpp=0
 Folder=Doom/Sources
@@ -279,7 +239,7 @@ Priority=1000
 OverrideBuildCmd=0
 BuildCmd=
 
-[Unit26]
+[Unit22]
 FileName=src\f_wipe.c
 CompileCpp=0
 Folder=Doom/Sources
@@ -289,7 +249,7 @@ Priority=1000
 OverrideBuildCmd=0
 BuildCmd=
 
-[Unit27]
+[Unit23]
 FileName=src\g_game.c
 CompileCpp=0
 Folder=Doom/Sources
@@ -299,7 +259,7 @@ Priority=1000
 OverrideBuildCmd=0
 BuildCmd=
 
-[Unit28]
+[Unit24]
 FileName=src\g_input.c
 CompileCpp=0
 Folder=Doom/Sources
@@ -309,7 +269,7 @@ Priority=1000
 OverrideBuildCmd=0
 BuildCmd=
 
-[Unit29]
+[Unit25]
 FileName=src\g_state.c
 CompileCpp=0
 Folder=Doom/Sources
@@ -319,7 +279,7 @@ Priority=1000
 OverrideBuildCmd=0
 BuildCmd=
 
-[Unit30]
+[Unit26]
 FileName=src\hu_stuff.c
 CompileCpp=0
 Folder=Doom/Sources
@@ -329,7 +289,7 @@ Priority=1000
 OverrideBuildCmd=0
 BuildCmd=
 
-[Unit31]
+[Unit27]
 FileName=src\i_util.c
 CompileCpp=0
 Folder=Doom/Sources
@@ -339,7 +299,7 @@ Priority=1000
 OverrideBuildCmd=0
 BuildCmd=
 
-[Unit32]
+[Unit28]
 FileName=src\info.c
 CompileCpp=0
 Folder=Doom/Sources
@@ -349,7 +309,7 @@ Priority=1000
 OverrideBuildCmd=0
 BuildCmd=
 
-[Unit33]
+[Unit29]
 FileName=src\m_argv.c
 CompileCpp=0
 Folder=Doom/Sources
@@ -359,7 +319,7 @@ Priority=1000
 OverrideBuildCmd=0
 BuildCmd=
 
-[Unit34]
+[Unit30]
 FileName=src\m_bbox.c
 CompileCpp=0
 Folder=Doom/Sources
@@ -369,7 +329,7 @@ Priority=1000
 OverrideBuildCmd=0
 BuildCmd=
 
-[Unit35]
+[Unit31]
 FileName=src\m_cheat.c
 CompileCpp=0
 Folder=Doom/Sources
@@ -379,7 +339,7 @@ Priority=1000
 OverrideBuildCmd=0
 BuildCmd=
 
-[Unit36]
+[Unit32]
 FileName=src\m_fixed.c
 CompileCpp=0
 Folder=Doom/Sources
@@ -389,7 +349,7 @@ Priority=1000
 OverrideBuildCmd=0
 BuildCmd=
 
-[Unit37]
+[Unit33]
 FileName=src\m_menu.c
 CompileCpp=0
 Folder=Doom/Sources
@@ -399,7 +359,7 @@ Priority=1000
 OverrideBuildCmd=0
 BuildCmd=
 
-[Unit38]
+[Unit34]
 FileName=src\m_menudr.c
 CompileCpp=0
 Folder=Doom/Sources
@@ -409,7 +369,7 @@ Priority=1000
 OverrideBuildCmd=0
 BuildCmd=
 
-[Unit39]
+[Unit35]
 FileName=src\m_menufn.c
 CompileCpp=0
 Folder=Doom/Sources
@@ -419,7 +379,7 @@ Priority=1000
 OverrideBuildCmd=0
 BuildCmd=
 
-[Unit40]
+[Unit36]
 FileName=src\m_misc.c
 CompileCpp=0
 Folder=Doom/Sources
@@ -429,7 +389,7 @@ Priority=1000
 OverrideBuildCmd=0
 BuildCmd=
 
-[Unit41]
+[Unit37]
 FileName=src\m_random.c
 CompileCpp=0
 Folder=Doom/Sources
@@ -439,7 +399,7 @@ Priority=1000
 OverrideBuildCmd=0
 BuildCmd=
 
-[Unit42]
+[Unit38]
 FileName=src\md5.c
 CompileCpp=0
 Folder=Doom/Sources
@@ -449,7 +409,7 @@ Priority=1000
 OverrideBuildCmd=0
 BuildCmd=
 
-[Unit43]
+[Unit39]
 FileName=src\p_ceilng.c
 CompileCpp=0
 Folder=Doom/Sources
@@ -459,7 +419,7 @@ Priority=1000
 OverrideBuildCmd=0
 BuildCmd=
 
-[Unit44]
+[Unit40]
 FileName=src\p_chex.c
 CompileCpp=0
 Folder=Doom/Sources
@@ -469,7 +429,7 @@ Priority=1000
 OverrideBuildCmd=0
 BuildCmd=
 
-[Unit45]
+[Unit41]
 FileName=src\p_demcmp.c
 CompileCpp=0
 Folder=Doom/Sources
@@ -479,7 +439,7 @@ Priority=1000
 OverrideBuildCmd=0
 BuildCmd=
 
-[Unit46]
+[Unit42]
 FileName=src\p_doors.c
 CompileCpp=0
 Folder=Doom/Sources
@@ -489,7 +449,7 @@ Priority=1000
 OverrideBuildCmd=0
 BuildCmd=
 
-[Unit47]
+[Unit43]
 FileName=src\p_enemy.c
 CompileCpp=0
 Folder=Doom/Sources
@@ -499,7 +459,7 @@ Priority=1000
 OverrideBuildCmd=0
 BuildCmd=
 
-[Unit48]
+[Unit44]
 FileName=src\p_fab.c
 CompileCpp=0
 Folder=Doom/Sources
@@ -509,7 +469,7 @@ Priority=1000
 OverrideBuildCmd=0
 BuildCmd=
 
-[Unit49]
+[Unit45]
 FileName=src\p_floor.c
 CompileCpp=0
 Folder=Doom/Sources
@@ -519,7 +479,7 @@ Priority=1000
 OverrideBuildCmd=0
 BuildCmd=
 
-[Unit50]
+[Unit46]
 FileName=src\p_genlin.c
 CompileCpp=0
 Folder=Doom/Sources
@@ -529,7 +489,7 @@ Priority=1000
 OverrideBuildCmd=0
 BuildCmd=
 
-[Unit51]
+[Unit47]
 FileName=src\p_info.c
 CompileCpp=0
 Folder=Doom/Sources
@@ -539,7 +499,7 @@ Priority=1000
 OverrideBuildCmd=0
 BuildCmd=
 
-[Unit52]
+[Unit48]
 FileName=src\p_inter.c
 CompileCpp=0
 Folder=Doom/Sources
@@ -549,7 +509,7 @@ Priority=1000
 OverrideBuildCmd=0
 BuildCmd=
 
-[Unit53]
+[Unit49]
 FileName=src\p_lights.c
 CompileCpp=0
 Folder=Doom/Sources
@@ -559,7 +519,7 @@ Priority=1000
 OverrideBuildCmd=0
 BuildCmd=
 
-[Unit54]
+[Unit50]
 FileName=src\p_map.c
 CompileCpp=0
 Folder=Doom/Sources
@@ -569,7 +529,7 @@ Priority=1000
 OverrideBuildCmd=0
 BuildCmd=
 
-[Unit55]
+[Unit51]
 FileName=src\p_maputl.c
 CompileCpp=0
 Folder=Doom/Sources
@@ -579,7 +539,7 @@ Priority=1000
 OverrideBuildCmd=0
 BuildCmd=
 
-[Unit56]
+[Unit52]
 FileName=src\p_mobj.c
 CompileCpp=0
 Folder=Doom/Sources
@@ -589,7 +549,7 @@ Priority=1000
 OverrideBuildCmd=0
 BuildCmd=
 
-[Unit57]
+[Unit53]
 FileName=src\p_plats.c
 CompileCpp=0
 Folder=Doom/Sources
@@ -599,7 +559,7 @@ Priority=1000
 OverrideBuildCmd=0
 BuildCmd=
 
-[Unit58]
+[Unit54]
 FileName=src\p_pspr.c
 CompileCpp=0
 Folder=Doom/Sources
@@ -609,7 +569,7 @@ Priority=1000
 OverrideBuildCmd=0
 BuildCmd=
 
-[Unit59]
+[Unit55]
 FileName=src\p_saveg.c
 CompileCpp=0
 Folder=Doom/Sources
@@ -619,7 +579,7 @@ Priority=1000
 OverrideBuildCmd=0
 BuildCmd=
 
-[Unit60]
+[Unit56]
 FileName=src\p_setup.c
 CompileCpp=0
 Folder=Doom/Sources
@@ -629,7 +589,7 @@ Priority=1000
 OverrideBuildCmd=0
 BuildCmd=
 
-[Unit61]
+[Unit57]
 FileName=src\p_sight.c
 CompileCpp=0
 Folder=Doom/Sources
@@ -639,7 +599,7 @@ Priority=1000
 OverrideBuildCmd=0
 BuildCmd=
 
-[Unit62]
+[Unit58]
 FileName=src\p_spec.c
 CompileCpp=0
 Folder=Doom/Sources
@@ -649,7 +609,7 @@ Priority=1000
 OverrideBuildCmd=0
 BuildCmd=
 
-[Unit63]
+[Unit59]
 FileName=src\p_switch.c
 CompileCpp=0
 Folder=Doom/Sources
@@ -659,7 +619,7 @@ Priority=1000
 OverrideBuildCmd=0
 BuildCmd=
 
-[Unit64]
+[Unit60]
 FileName=src\p_telept.c
 CompileCpp=0
 Folder=Doom/Sources
@@ -669,7 +629,7 @@ Priority=1000
 OverrideBuildCmd=0
 BuildCmd=
 
-[Unit65]
+[Unit61]
 FileName=src\p_tick.c
 CompileCpp=0
 Folder=Doom/Sources
@@ -679,7 +639,7 @@ Priority=1000
 OverrideBuildCmd=0
 BuildCmd=
 
-[Unit66]
+[Unit62]
 FileName=src\p_user.c
 CompileCpp=0
 Folder=Doom/Sources
@@ -689,7 +649,7 @@ Priority=1000
 OverrideBuildCmd=0
 BuildCmd=
 
-[Unit67]
+[Unit63]
 FileName=src\r_bsp.c
 CompileCpp=0
 Folder=Doom/Sources
@@ -699,7 +659,7 @@ Priority=1000
 OverrideBuildCmd=0
 BuildCmd=
 
-[Unit68]
+[Unit64]
 FileName=src\r_data.c
 CompileCpp=0
 Folder=Doom/Sources
@@ -709,7 +669,7 @@ Priority=1000
 OverrideBuildCmd=0
 BuildCmd=
 
-[Unit69]
+[Unit65]
 FileName=src\r_draw.c
 CompileCpp=0
 Folder=Doom/Sources
@@ -719,7 +679,7 @@ Priority=1000
 OverrideBuildCmd=0
 BuildCmd=
 
-[Unit70]
+[Unit66]
 FileName=src\r_main.c
 CompileCpp=0
 Folder=Doom/Sources
@@ -729,7 +689,7 @@ Priority=1000
 OverrideBuildCmd=0
 BuildCmd=
 
-[Unit71]
+[Unit67]
 FileName=src\r_plane.c
 CompileCpp=0
 Folder=Doom/Sources
@@ -739,7 +699,7 @@ Priority=1000
 OverrideBuildCmd=0
 BuildCmd=
 
-[Unit72]
+[Unit68]
 FileName=src\r_segs.c
 CompileCpp=0
 Folder=Doom/Sources
@@ -749,7 +709,7 @@ Priority=1000
 OverrideBuildCmd=0
 BuildCmd=
 
-[Unit73]
+[Unit69]
 FileName=src\r_sky.c
 CompileCpp=0
 Folder=Doom/Sources
@@ -759,7 +719,7 @@ Priority=1000
 OverrideBuildCmd=0
 BuildCmd=
 
-[Unit74]
+[Unit70]
 FileName=src\r_splats.c
 CompileCpp=0
 Folder=Doom/Sources
@@ -769,7 +729,7 @@ Priority=1000
 OverrideBuildCmd=0
 BuildCmd=
 
-[Unit75]
+[Unit71]
 FileName=src\r_things.c
 CompileCpp=0
 Folder=Doom/Sources
@@ -779,7 +739,7 @@ Priority=1000
 OverrideBuildCmd=0
 BuildCmd=
 
-[Unit76]
+[Unit72]
 FileName=src\s_sound.c
 CompileCpp=0
 Folder=Doom/Sources
@@ -789,7 +749,7 @@ Priority=1000
 OverrideBuildCmd=0
 BuildCmd=
 
-[Unit77]
+[Unit73]
 FileName=src\screen.c
 CompileCpp=0
 Folder=Doom/Sources
@@ -799,7 +759,7 @@ Priority=1000
 OverrideBuildCmd=0
 BuildCmd=
 
-[Unit78]
+[Unit74]
 FileName=src\sounds.c
 CompileCpp=0
 Folder=Doom/Sources
@@ -809,7 +769,7 @@ Priority=1000
 OverrideBuildCmd=0
 BuildCmd=
 
-[Unit79]
+[Unit75]
 FileName=src\st_lib.c
 CompileCpp=0
 Folder=Doom/Sources
@@ -819,7 +779,7 @@ Priority=1000
 OverrideBuildCmd=0
 BuildCmd=
 
-[Unit80]
+[Unit76]
 FileName=src\st_stuff.c
 CompileCpp=0
 Folder=Doom/Sources
@@ -829,7 +789,7 @@ Priority=1000
 OverrideBuildCmd=0
 BuildCmd=
 
-[Unit81]
+[Unit77]
 FileName=src\t_comp.c
 CompileCpp=0
 Folder=Doom/Sources
@@ -839,7 +799,7 @@ Priority=1000
 OverrideBuildCmd=0
 BuildCmd=
 
-[Unit82]
+[Unit78]
 FileName=src\t_func.c
 CompileCpp=0
 Folder=Doom/Sources
@@ -849,7 +809,7 @@ Priority=1000
 OverrideBuildCmd=0
 BuildCmd=
 
-[Unit83]
+[Unit79]
 FileName=src\t_oper.c
 CompileCpp=0
 Folder=Doom/Sources
@@ -859,7 +819,7 @@ Priority=1000
 OverrideBuildCmd=0
 BuildCmd=
 
-[Unit84]
+[Unit80]
 FileName=src\t_parse.c
 CompileCpp=0
 Folder=Doom/Sources
@@ -869,7 +829,7 @@ Priority=1000
 OverrideBuildCmd=0
 BuildCmd=
 
-[Unit85]
+[Unit81]
 FileName=src\t_prepro.c
 CompileCpp=0
 Folder=Doom/Sources
@@ -879,7 +839,7 @@ Priority=1000
 OverrideBuildCmd=0
 BuildCmd=
 
-[Unit86]
+[Unit82]
 FileName=src\t_script.c
 CompileCpp=0
 Folder=Doom/Sources
@@ -889,7 +849,7 @@ Priority=1000
 OverrideBuildCmd=0
 BuildCmd=
 
-[Unit87]
+[Unit83]
 FileName=src\t_spec.c
 CompileCpp=0
 Folder=Doom/Sources
@@ -899,7 +859,7 @@ Priority=1000
 OverrideBuildCmd=0
 BuildCmd=
 
-[Unit88]
+[Unit84]
 FileName=src\t_vari.c
 CompileCpp=0
 Folder=Doom/Sources
@@ -909,7 +869,7 @@ Priority=1000
 OverrideBuildCmd=0
 BuildCmd=
 
-[Unit89]
+[Unit85]
 FileName=src\tables.c
 CompileCpp=0
 Folder=Doom/Sources
@@ -919,7 +879,7 @@ Priority=1000
 OverrideBuildCmd=0
 BuildCmd=
 
-[Unit90]
+[Unit86]
 FileName=src\v_video.c
 CompileCpp=0
 Folder=Doom/Sources
@@ -929,7 +889,7 @@ Priority=1000
 OverrideBuildCmd=0
 BuildCmd=
 
-[Unit91]
+[Unit87]
 FileName=src\w_wad.c
 CompileCpp=0
 Folder=Doom/Sources
@@ -939,7 +899,7 @@ Priority=1000
 OverrideBuildCmd=0
 BuildCmd=
 
-[Unit92]
+[Unit88]
 FileName=src\wi_stuff.c
 CompileCpp=0
 Folder=Doom/Sources
@@ -949,7 +909,7 @@ Priority=1000
 OverrideBuildCmd=0
 BuildCmd=
 
-[Unit93]
+[Unit89]
 FileName=src\z_zone.c
 CompileCpp=0
 Folder=Doom/Sources
@@ -959,7 +919,7 @@ Priority=1000
 OverrideBuildCmd=0
 BuildCmd=
 
-[Unit94]
+[Unit90]
 FileName=src\am_map.h
 CompileCpp=0
 Folder=Doom/Includes
@@ -969,7 +929,7 @@ Priority=1000
 OverrideBuildCmd=0
 BuildCmd=
 
-[Unit95]
+[Unit91]
 FileName=src\byteptr.h
 CompileCpp=0
 Folder=Doom/Includes
@@ -979,7 +939,7 @@ Priority=1000
 OverrideBuildCmd=0
 BuildCmd=
 
-[Unit96]
+[Unit92]
 FileName=src\c_lib.h
 CompileCpp=0
 Folder=Doom/Includes
@@ -989,7 +949,7 @@ Priority=1000
 OverrideBuildCmd=0
 BuildCmd=
 
-[Unit97]
+[Unit93]
 FileName=src\command.h
 CompileCpp=0
 Folder=Doom/Includes
@@ -999,7 +959,7 @@ Priority=1000
 OverrideBuildCmd=0
 BuildCmd=
 
-[Unit98]
+[Unit94]
 FileName=src\console.h
 CompileCpp=0
 Folder=Doom/Includes
@@ -1009,7 +969,7 @@ Priority=1000
 OverrideBuildCmd=0
 BuildCmd=
 
-[Unit99]
+[Unit95]
 FileName=src\d_clisrv.h
 CompileCpp=0
 Folder=Doom/Includes
@@ -1019,7 +979,7 @@ Priority=1000
 OverrideBuildCmd=0
 BuildCmd=
 
-[Unit100]
+[Unit96]
 FileName=src\d_englsh.h
 CompileCpp=0
 Folder=Doom/Includes
@@ -1029,7 +989,7 @@ Priority=1000
 OverrideBuildCmd=0
 BuildCmd=
 
-[Unit101]
+[Unit97]
 FileName=src\d_event.h
 CompileCpp=0
 Folder=Doom/Includes
@@ -1039,7 +999,7 @@ Priority=1000
 OverrideBuildCmd=0
 BuildCmd=
 
-[Unit102]
+[Unit98]
 FileName=src\d_french.h
 CompileCpp=0
 Folder=Doom/Includes
@@ -1049,7 +1009,7 @@ Priority=1000
 OverrideBuildCmd=0
 BuildCmd=
 
-[Unit103]
+[Unit99]
 FileName=src\d_info.h
 CompileCpp=0
 Folder=Doom/Includes
@@ -1059,7 +1019,7 @@ Priority=1000
 OverrideBuildCmd=0
 BuildCmd=
 
-[Unit104]
+[Unit100]
 FileName=src\d_items.h
 CompileCpp=0
 Folder=Doom/Includes
@@ -1069,7 +1029,7 @@ Priority=1000
 OverrideBuildCmd=0
 BuildCmd=
 
-[Unit105]
+[Unit101]
 FileName=src\d_main.h
 CompileCpp=0
 Folder=Doom/Includes
@@ -1079,7 +1039,7 @@ Priority=1000
 OverrideBuildCmd=0
 BuildCmd=
 
-[Unit106]
+[Unit102]
 FileName=src\d_net.h
 CompileCpp=0
 Folder=Doom/Includes
@@ -1089,7 +1049,7 @@ Priority=1000
 OverrideBuildCmd=0
 BuildCmd=
 
-[Unit107]
+[Unit103]
 FileName=src\d_netcmd.h
 CompileCpp=0
 Folder=Doom/Includes
@@ -1099,7 +1059,7 @@ Priority=1000
 OverrideBuildCmd=0
 BuildCmd=
 
-[Unit108]
+[Unit104]
 FileName=src\d_player.h
 CompileCpp=0
 Folder=Doom/Includes
@@ -1109,7 +1069,7 @@ Priority=1000
 OverrideBuildCmd=0
 BuildCmd=
 
-[Unit109]
+[Unit105]
 FileName=src\d_prof.h
 CompileCpp=0
 Folder=Doom/Includes
@@ -1119,7 +1079,7 @@ Priority=1000
 OverrideBuildCmd=0
 BuildCmd=
 
-[Unit110]
+[Unit106]
 FileName=src\d_rdf.h
 CompileCpp=0
 Folder=Doom/Includes
@@ -1129,7 +1089,7 @@ Priority=1000
 OverrideBuildCmd=0
 BuildCmd=
 
-[Unit111]
+[Unit107]
 FileName=src\d_think.h
 CompileCpp=0
 Folder=Doom/Includes
@@ -1139,7 +1099,7 @@ Priority=1000
 OverrideBuildCmd=0
 BuildCmd=
 
-[Unit112]
+[Unit108]
 FileName=src\d_ticcmd.h
 CompileCpp=0
 Folder=Doom/Includes
@@ -1149,7 +1109,7 @@ Priority=1000
 OverrideBuildCmd=0
 BuildCmd=
 
-[Unit113]
+[Unit109]
 FileName=src\dehacked.h
 CompileCpp=0
 Folder=Doom/Includes
@@ -1159,7 +1119,7 @@ Priority=1000
 OverrideBuildCmd=0
 BuildCmd=
 
-[Unit114]
+[Unit110]
 FileName=src\doomdata.h
 CompileCpp=0
 Folder=Doom/Includes
@@ -1169,7 +1129,7 @@ Priority=1000
 OverrideBuildCmd=0
 BuildCmd=
 
-[Unit115]
+[Unit111]
 FileName=src\doomdef.h
 CompileCpp=0
 Folder=Doom/Includes
@@ -1179,7 +1139,7 @@ Priority=1000
 OverrideBuildCmd=0
 BuildCmd=
 
-[Unit116]
+[Unit112]
 FileName=src\doomstat.h
 CompileCpp=0
 Folder=Doom/Includes
@@ -1189,7 +1149,7 @@ Priority=1000
 OverrideBuildCmd=0
 BuildCmd=
 
-[Unit117]
+[Unit113]
 FileName=src\doomtype.h
 CompileCpp=0
 Folder=Doom/Includes
@@ -1199,7 +1159,7 @@ Priority=1000
 OverrideBuildCmd=0
 BuildCmd=
 
-[Unit118]
+[Unit114]
 FileName=src\dstrings.h
 CompileCpp=0
 Folder=Doom/Includes
@@ -1209,7 +1169,7 @@ Priority=1000
 OverrideBuildCmd=0
 BuildCmd=
 
-[Unit119]
+[Unit115]
 FileName=src\f_finale.h
 CompileCpp=0
 Folder=Doom/Includes
@@ -1219,7 +1179,7 @@ Priority=1000
 OverrideBuildCmd=0
 BuildCmd=
 
-[Unit120]
+[Unit116]
 FileName=src\f_wipe.h
 CompileCpp=0
 Folder=Doom/Includes
@@ -1229,7 +1189,7 @@ Priority=1000
 OverrideBuildCmd=0
 BuildCmd=
 
-[Unit121]
+[Unit117]
 FileName=src\g_game.h
 CompileCpp=0
 Folder=Doom/Includes
@@ -1239,7 +1199,7 @@ Priority=1000
 OverrideBuildCmd=0
 BuildCmd=
 
-[Unit122]
+[Unit118]
 FileName=src\g_input.h
 CompileCpp=0
 Folder=Doom/Includes
@@ -1249,7 +1209,7 @@ Priority=1000
 OverrideBuildCmd=0
 BuildCmd=
 
-[Unit123]
+[Unit119]
 FileName=src\g_state.h
 CompileCpp=0
 Folder=Doom/Includes
@@ -1259,7 +1219,7 @@ Priority=1000
 OverrideBuildCmd=0
 BuildCmd=
 
-[Unit124]
+[Unit120]
 FileName=src\hu_stuff.h
 CompileCpp=0
 Folder=Doom/Includes
@@ -1269,17 +1229,7 @@ Priority=1000
 OverrideBuildCmd=0
 BuildCmd=
 
-[Unit125]
-FileName=src\i_joy.h
-CompileCpp=0
-Folder=Doom/Includes
-Compile=1
-Link=1
-Priority=1000
-OverrideBuildCmd=0
-BuildCmd=
-
-[Unit126]
+[Unit121]
 FileName=src\i_net.h
 CompileCpp=0
 Folder=Doom/Includes
@@ -1289,7 +1239,7 @@ Priority=1000
 OverrideBuildCmd=0
 BuildCmd=
 
-[Unit127]
+[Unit122]
 FileName=src\i_sound.h
 CompileCpp=0
 Folder=Doom/Includes
@@ -1299,7 +1249,7 @@ Priority=1000
 OverrideBuildCmd=0
 BuildCmd=
 
-[Unit128]
+[Unit123]
 FileName=src\i_system.h
 CompileCpp=0
 Folder=Doom/Includes
@@ -1309,27 +1259,7 @@ Priority=1000
 OverrideBuildCmd=0
 BuildCmd=
 
-[Unit129]
-FileName=src\i_tcp.h
-CompileCpp=0
-Folder=Doom/Includes
-Compile=1
-Link=1
-Priority=1000
-OverrideBuildCmd=0
-BuildCmd=
-
-[Unit130]
-FileName=src\i_thread.h
-CompileCpp=0
-Folder=Doom/Includes
-Compile=1
-Link=1
-Priority=1000
-OverrideBuildCmd=0
-BuildCmd=
-
-[Unit131]
+[Unit124]
 FileName=src\i_util.h
 CompileCpp=0
 Folder=Doom/Includes
@@ -1339,7 +1269,7 @@ Priority=1000
 OverrideBuildCmd=0
 BuildCmd=
 
-[Unit132]
+[Unit125]
 FileName=src\i_video.h
 CompileCpp=0
 Folder=Doom/Includes
@@ -1349,7 +1279,7 @@ Priority=1000
 OverrideBuildCmd=0
 BuildCmd=
 
-[Unit133]
+[Unit126]
 FileName=src\info.h
 CompileCpp=0
 Folder=Doom/Includes
@@ -1359,7 +1289,7 @@ Priority=1000
 OverrideBuildCmd=0
 BuildCmd=
 
-[Unit134]
+[Unit127]
 FileName=src\keys.h
 CompileCpp=0
 Folder=Doom/Includes
@@ -1369,7 +1299,7 @@ Priority=1000
 OverrideBuildCmd=0
 BuildCmd=
 
-[Unit135]
+[Unit128]
 FileName=src\m_argv.h
 CompileCpp=0
 Folder=Doom/Includes
@@ -1379,7 +1309,7 @@ Priority=1000
 OverrideBuildCmd=0
 BuildCmd=
 
-[Unit136]
+[Unit129]
 FileName=src\m_bbox.h
 CompileCpp=0
 Folder=Doom/Includes
@@ -1389,7 +1319,7 @@ Priority=1000
 OverrideBuildCmd=0
 BuildCmd=
 
-[Unit137]
+[Unit130]
 FileName=src\m_cheat.h
 CompileCpp=0
 Folder=Doom/Includes
@@ -1399,7 +1329,7 @@ Priority=1000
 OverrideBuildCmd=0
 BuildCmd=
 
-[Unit138]
+[Unit131]
 FileName=src\m_fixed.h
 CompileCpp=0
 Folder=Doom/Includes
@@ -1409,7 +1339,7 @@ Priority=1000
 OverrideBuildCmd=0
 BuildCmd=
 
-[Unit139]
+[Unit132]
 FileName=src\m_menu.h
 CompileCpp=0
 Folder=Doom/Includes
@@ -1419,7 +1349,7 @@ Priority=1000
 OverrideBuildCmd=0
 BuildCmd=
 
-[Unit140]
+[Unit133]
 FileName=src\m_misc.h
 CompileCpp=0
 Folder=Doom/Includes
@@ -1429,7 +1359,7 @@ Priority=1000
 OverrideBuildCmd=0
 BuildCmd=
 
-[Unit141]
+[Unit134]
 FileName=src\m_random.h
 CompileCpp=0
 Folder=Doom/Includes
@@ -1439,7 +1369,7 @@ Priority=1000
 OverrideBuildCmd=0
 BuildCmd=
 
-[Unit142]
+[Unit135]
 FileName=src\m_swap.h
 CompileCpp=0
 Folder=Doom/Includes
@@ -1449,7 +1379,7 @@ Priority=1000
 OverrideBuildCmd=0
 BuildCmd=
 
-[Unit143]
+[Unit136]
 FileName=src\md5.h
 CompileCpp=0
 Folder=Doom/Includes
@@ -1459,7 +1389,7 @@ Priority=1000
 OverrideBuildCmd=0
 BuildCmd=
 
-[Unit144]
+[Unit137]
 FileName=src\p_chex.h
 CompileCpp=0
 Folder=Doom/Includes
@@ -1469,7 +1399,7 @@ Priority=1000
 OverrideBuildCmd=0
 BuildCmd=
 
-[Unit145]
+[Unit138]
 FileName=src\p_demcmp.h
 CompileCpp=0
 Folder=Doom/Includes
@@ -1479,7 +1409,7 @@ Priority=1000
 OverrideBuildCmd=0
 BuildCmd=
 
-[Unit146]
+[Unit139]
 FileName=src\p_fab.h
 CompileCpp=0
 Folder=Doom/Includes
@@ -1489,7 +1419,7 @@ Priority=1000
 OverrideBuildCmd=0
 BuildCmd=
 
-[Unit147]
+[Unit140]
 FileName=src\p_info.h
 CompileCpp=0
 Folder=Doom/Includes
@@ -1499,7 +1429,7 @@ Priority=1000
 OverrideBuildCmd=0
 BuildCmd=
 
-[Unit148]
+[Unit141]
 FileName=src\p_inter.h
 CompileCpp=0
 Folder=Doom/Includes
@@ -1509,7 +1439,7 @@ Priority=1000
 OverrideBuildCmd=0
 BuildCmd=
 
-[Unit149]
+[Unit142]
 FileName=src\p_local.h
 CompileCpp=0
 Folder=Doom/Includes
@@ -1519,7 +1449,7 @@ Priority=1000
 OverrideBuildCmd=0
 BuildCmd=
 
-[Unit150]
+[Unit143]
 FileName=src\p_maputl.h
 CompileCpp=0
 Folder=Doom/Includes
@@ -1529,7 +1459,7 @@ Priority=1000
 OverrideBuildCmd=0
 BuildCmd=
 
-[Unit151]
+[Unit144]
 FileName=src\p_mobj.h
 CompileCpp=0
 Folder=Doom/Includes
@@ -1539,7 +1469,7 @@ Priority=1000
 OverrideBuildCmd=0
 BuildCmd=
 
-[Unit152]
+[Unit145]
 FileName=src\p_pspr.h
 CompileCpp=0
 Folder=Doom/Includes
@@ -1549,7 +1479,7 @@ Priority=1000
 OverrideBuildCmd=0
 BuildCmd=
 
-[Unit153]
+[Unit146]
 FileName=src\p_saveg.h
 CompileCpp=0
 Folder=Doom/Includes
@@ -1559,7 +1489,7 @@ Priority=1000
 OverrideBuildCmd=0
 BuildCmd=
 
-[Unit154]
+[Unit147]
 FileName=src\p_setup.h
 CompileCpp=0
 Folder=Doom/Includes
@@ -1569,7 +1499,7 @@ Priority=1000
 OverrideBuildCmd=0
 BuildCmd=
 
-[Unit155]
+[Unit148]
 FileName=src\p_spec.h
 CompileCpp=0
 Folder=Doom/Includes
@@ -1579,7 +1509,7 @@ Priority=1000
 OverrideBuildCmd=0
 BuildCmd=
 
-[Unit156]
+[Unit149]
 FileName=src\p_tick.h
 CompileCpp=0
 Folder=Doom/Includes
@@ -1589,7 +1519,7 @@ Priority=1000
 OverrideBuildCmd=0
 BuildCmd=
 
-[Unit157]
+[Unit150]
 FileName=src\r_bsp.h
 CompileCpp=0
 Folder=Doom/Includes
@@ -1599,7 +1529,7 @@ Priority=1000
 OverrideBuildCmd=0
 BuildCmd=
 
-[Unit158]
+[Unit151]
 FileName=src\r_data.h
 CompileCpp=0
 Folder=Doom/Includes
@@ -1609,7 +1539,7 @@ Priority=1000
 OverrideBuildCmd=0
 BuildCmd=
 
-[Unit159]
+[Unit152]
 FileName=src\r_defs.h
 CompileCpp=0
 Folder=Doom/Includes
@@ -1619,7 +1549,7 @@ Priority=1000
 OverrideBuildCmd=0
 BuildCmd=
 
-[Unit160]
+[Unit153]
 FileName=src\r_draw.h
 CompileCpp=0
 Folder=Doom/Includes
@@ -1629,7 +1559,7 @@ Priority=1000
 OverrideBuildCmd=0
 BuildCmd=
 
-[Unit161]
+[Unit154]
 FileName=src\r_local.h
 CompileCpp=0
 Folder=Doom/Includes
@@ -1639,7 +1569,7 @@ Priority=1000
 OverrideBuildCmd=0
 BuildCmd=
 
-[Unit162]
+[Unit155]
 FileName=src\r_main.h
 CompileCpp=0
 Folder=Doom/Includes
@@ -1649,7 +1579,7 @@ Priority=1000
 OverrideBuildCmd=0
 BuildCmd=
 
-[Unit163]
+[Unit156]
 FileName=src\r_plane.h
 CompileCpp=0
 Folder=Doom/Includes
@@ -1659,7 +1589,7 @@ Priority=1000
 OverrideBuildCmd=0
 BuildCmd=
 
-[Unit164]
+[Unit157]
 FileName=src\r_segs.h
 CompileCpp=0
 Folder=Doom/Includes
@@ -1669,7 +1599,7 @@ Priority=1000
 OverrideBuildCmd=0
 BuildCmd=
 
-[Unit165]
+[Unit158]
 FileName=src\r_sky.h
 CompileCpp=0
 Folder=Doom/Includes
@@ -1679,7 +1609,7 @@ Priority=1000
 OverrideBuildCmd=0
 BuildCmd=
 
-[Unit166]
+[Unit159]
 FileName=src\r_splats.h
 CompileCpp=0
 Folder=Doom/Includes
@@ -1689,7 +1619,7 @@ Priority=1000
 OverrideBuildCmd=0
 BuildCmd=
 
-[Unit167]
+[Unit160]
 FileName=src\r_state.h
 CompileCpp=0
 Folder=Doom/Includes
@@ -1699,7 +1629,7 @@ Priority=1000
 OverrideBuildCmd=0
 BuildCmd=
 
-[Unit168]
+[Unit161]
 FileName=src\r_things.h
 CompileCpp=0
 Folder=Doom/Includes
@@ -1709,7 +1639,7 @@ Priority=1000
 OverrideBuildCmd=0
 BuildCmd=
 
-[Unit169]
+[Unit162]
 FileName=src\s_sound.h
 CompileCpp=0
 Folder=Doom/Includes
@@ -1719,7 +1649,7 @@ Priority=1000
 OverrideBuildCmd=0
 BuildCmd=
 
-[Unit170]
+[Unit163]
 FileName=src\screen.h
 CompileCpp=0
 Folder=Doom/Includes
@@ -1729,7 +1659,7 @@ Priority=1000
 OverrideBuildCmd=0
 BuildCmd=
 
-[Unit171]
+[Unit164]
 FileName=src\sounds.h
 CompileCpp=0
 Folder=Doom/Includes
@@ -1739,7 +1669,7 @@ Priority=1000
 OverrideBuildCmd=0
 BuildCmd=
 
-[Unit172]
+[Unit165]
 FileName=src\st_lib.h
 CompileCpp=0
 Folder=Doom/Includes
@@ -1749,7 +1679,7 @@ Priority=1000
 OverrideBuildCmd=0
 BuildCmd=
 
-[Unit173]
+[Unit166]
 FileName=src\st_stuff.h
 CompileCpp=0
 Folder=Doom/Includes
@@ -1759,7 +1689,7 @@ Priority=1000
 OverrideBuildCmd=0
 BuildCmd=
 
-[Unit174]
+[Unit167]
 FileName=src\t_comp.h
 CompileCpp=0
 Folder=Doom/Includes
@@ -1769,7 +1699,7 @@ Priority=1000
 OverrideBuildCmd=0
 BuildCmd=
 
-[Unit175]
+[Unit168]
 FileName=src\t_func.h
 CompileCpp=0
 Folder=Doom/Includes
@@ -1779,7 +1709,7 @@ Priority=1000
 OverrideBuildCmd=0
 BuildCmd=
 
-[Unit176]
+[Unit169]
 FileName=src\t_oper.h
 CompileCpp=0
 Folder=Doom/Includes
@@ -1789,7 +1719,7 @@ Priority=1000
 OverrideBuildCmd=0
 BuildCmd=
 
-[Unit177]
+[Unit170]
 FileName=src\t_parse.h
 CompileCpp=0
 Folder=Doom/Includes
@@ -1799,7 +1729,7 @@ Priority=1000
 OverrideBuildCmd=0
 BuildCmd=
 
-[Unit178]
+[Unit171]
 FileName=src\t_prepro.h
 CompileCpp=0
 Folder=Doom/Includes
@@ -1809,8 +1739,78 @@ Priority=1000
 OverrideBuildCmd=0
 BuildCmd=
 
-[Unit179]
+[Unit172]
 FileName=src\t_script.h
+CompileCpp=0
+Folder=Doom/Includes
+Compile=1
+Link=1
+Priority=1000
+OverrideBuildCmd=0
+BuildCmd=
+
+[Unit173]
+FileName=src\t_spec.h
+CompileCpp=0
+Folder=Doom/Includes
+Compile=1
+Link=1
+Priority=1000
+OverrideBuildCmd=0
+BuildCmd=
+
+[Unit174]
+FileName=src\t_vari.h
+CompileCpp=0
+Folder=Doom/Includes
+Compile=1
+Link=1
+Priority=1000
+OverrideBuildCmd=0
+BuildCmd=
+
+[Unit175]
+FileName=src\tables.h
+CompileCpp=0
+Folder=Doom/Includes
+Compile=1
+Link=1
+Priority=1000
+OverrideBuildCmd=0
+BuildCmd=
+
+[Unit176]
+FileName=src\v_video.h
+CompileCpp=0
+Folder=Doom/Includes
+Compile=1
+Link=1
+Priority=1000
+OverrideBuildCmd=0
+BuildCmd=
+
+[Unit177]
+FileName=src\w_wad.h
+CompileCpp=0
+Folder=Doom/Includes
+Compile=1
+Link=1
+Priority=1000
+OverrideBuildCmd=0
+BuildCmd=
+
+[Unit178]
+FileName=src\wi_stuff.h
+CompileCpp=0
+Folder=Doom/Includes
+Compile=1
+Link=1
+Priority=1000
+OverrideBuildCmd=0
+BuildCmd=
+
+[Unit179]
+FileName=src\z_zone.h
 CompileCpp=0
 Folder=Doom/Includes
 Compile=1
