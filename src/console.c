@@ -114,14 +114,6 @@ typedef struct CONL_PlayerMessage_s
 	uint8_t Priority;			// Priority of the message
 } CONL_PlayerMessage_t;
 
-/* CONL_MBChain_t -- Multibyte chain for character input */
-typedef struct CONL_MBChain_s
-{
-	char MB[6];						// Multibyte data
-	struct CONL_MBChain_s* Prev;	// Previous character
-	struct CONL_MBChain_s* Next;	// Next character
-} CONL_MBChain_t;
-
 /*************
 *** LOCALS ***
 *************/
@@ -130,13 +122,331 @@ static bool_t l_CONLActive = false;	// Console active?
 static CONL_BasicBuffer_t l_CONLBuffers[2];	// Input/Output Buffer
 static CONL_PlayerMessage_t l_CONLMessageQ[MAXSPLITSCREENPLAYERS][MAXCONLPLAYERMQ];	// Player message queue
 static uint32_t l_CONLLineOff = 0;	// Line offset
-static CONL_MBChain_t* l_CONLComRoot = NULL;	// First command in chain
-static int32_t l_CONLComCursor = NULL;			// Position of cursor
-static bool_t l_CONLComOverwrite = false;		// Overwrite character here
+static CONCTI_Inputter_t* l_CONLInputter = NULL;	// Console inputter
 
 /****************
 *** FUNCTIONS ***
 ****************/
+
+/*** Common Text Input ***/
+
+/* CONCTI_CreateInput() -- Creates common inputter */
+CONCTI_Inputter_t* CONCTI_CreateInput(const size_t a_NumHistory, const CONCTI_OutBack_t a_OutBack, CONCTI_Inputter_t** const a_RefPtr)
+{
+	CONCTI_Inputter_t* New;
+	
+	/* Create new */
+	New = Z_Malloc(sizeof(*New), PU_STATIC, NULL);
+	
+	// Set data
+	New->OutFunc = a_OutBack;
+	New->RefPtr = a_RefPtr;
+	
+	// History base
+	New->NumHistory = a_NumHistory;
+	if (New->NumHistory)
+		New->History = Z_Malloc(sizeof(*New->History) * New->NumHistory, PU_STATIC, NULL);
+	
+	return New;
+}
+
+/* CONCTI_DestroyInput() -- Destroys common inputter */
+void CONCTI_DestroyInput(CONCTI_Inputter_t* const a_Input)
+{
+	size_t i;
+	
+	/* Check */
+	if (!a_Input)
+		return;
+	
+	/* Clear reference */
+	if (a_Input->RefPtr)
+		*a_Input->RefPtr = NULL;
+	
+	/* Clear history */
+	if (a_Input->History)
+	{
+		// Clear individual lines
+		for (i = 0; i < a_Input->HistoryCount; i++)
+			if (a_Input->History[i])
+				Z_Free(a_Input->History[i]);
+		
+		// Clear entire buffer
+		Z_Free(a_Input->History);
+	}
+	
+	/* Delete self */
+	Z_Free(a_Input);
+}
+
+/* CONCTI_HandleEvent() -- Handles event for inputter */
+bool_t CONCTI_HandleEvent(CONCTI_Inputter_t* const a_Input, const I_EventEx_t* const a_Event)
+{
+#define BUFSIZE 512
+	uint8_t Code;
+	uint16_t Char;
+	int32_t i, j;
+	char MB[5];
+	char Buf[BUFSIZE];
+	CONCTI_MBChain_t* MBRover, *Last;
+	
+	/* Check */
+	if (!a_Input || !a_Event)
+		return false;
+		
+	/* Only handle keyboard events */
+	if (a_Event->Type != IET_KEYBOARD)
+		return false;
+	
+	// Ignore release/up events
+	if (!a_Event->Data.Keyboard.Down)
+		return false;
+	
+	// Remember key code and character
+	Code = a_Event->Data.Keyboard.KeyCode;
+	Char = a_Event->Data.Keyboard.Character;
+	
+	/* Which event occured? */
+	switch (Code)
+	{
+			// Browse through history (if it exists)
+		case IKBK_UP:
+		case IKBK_DOWN:
+			return true;
+			
+			// Move cursor left
+		case IKBK_LEFT:
+			if (a_Input->CursorPos > 0)
+				a_Input->CursorPos--;
+			return true;
+			
+			// Move cursor right
+		case IKBK_RIGHT:
+			if (a_Input->CursorPos < a_Input->NumMBs)
+				a_Input->CursorPos++;
+			return true;
+			
+			// Go to start of line
+		case IKBK_HOME:
+			a_Input->CursorPos = 0;
+			return true;
+			
+			// Go to end of line
+		case IKBK_END:
+			a_Input->CursorPos = a_Input->NumMBs;
+			return true;
+			
+			// Enter is pressed (send characters to handler)
+		case IKBK_RETURN:
+			// Clear output
+			memset(Buf, 0, sizeof(Buf));
+			
+			// Go through, adding to buffer, then deleting
+			MBRover = a_Input->ChainRoot;
+			
+			while (MBRover)
+			{
+				// Remember next
+				Last = MBRover->Next;
+				
+				// Append
+				strncat(Buf, MBRover->MB, BUFSIZE);
+				
+				// Delete
+				Z_Free(MBRover);
+				
+				// Go to next
+				MBRover = Last;
+			}
+			
+			// Clear
+			a_Input->ChainRoot = NULL;
+			a_Input->CursorPos = a_Input->NumMBs = 0;
+			
+			// Send buffer to handler
+			if (a_Input->OutFunc)
+				if (a_Input->OutFunc(a_Input, Buf))
+					CONCTI_DestroyInput(a_Input);	// Done with this, so destroy
+			return true;
+			
+			// Delete Characters
+		case IKBK_BACKSPACE:
+		case IKBK_DELETE:
+			// Find character to delete
+			j = a_Input->CursorPos - (Code == IKBK_DELETE ? 0 : 1);
+			
+			for (MBRover = a_Input->ChainRoot, i = 0; MBRover; i++)
+			{
+				// Is this it?
+				if (i == j)
+					break;
+				
+				// Next
+				MBRover = MBRover->Next;
+			}
+			
+			// Found it, so unlink it
+			if (MBRover)
+			{
+				// First character?
+				if (MBRover == a_Input->ChainRoot)
+					a_Input->ChainRoot = MBRover->Next;
+				
+				// Unlink from chain
+				if (MBRover->Next)
+					MBRover->Next->Prev = MBRover->Prev;
+				
+				if (MBRover->Prev)
+					MBRover->Prev->Next = MBRover->Next;
+				
+				// Delete rover
+				Z_Free(MBRover);
+				
+				// Change input stuff
+				a_Input->NumMBs--;		// Deleted char
+				a_Input->CursorPos = j;	// Set cursor pos to deleted spot
+			}
+			return true;
+			
+			// Toggle Insertion/Overwrite mode
+		case IKBK_INSERT:
+			a_Input->Overwrite = !a_Input->Overwrite;
+			return true;
+			
+			// Normal character or otherwise
+		default:
+			// Control or non-character key (fall through)
+			if (!Char || (Char < 0x20 && Char != '\t'))
+				return false;
+			
+			// Set to first in chain
+			MBRover = a_Input->ChainRoot;
+			
+			// If there are no characters in the buffer, create one
+			if (!MBRover)
+			{
+				MBRover = a_Input->ChainRoot = Z_Malloc(sizeof(*MBRover), PU_STATIC, NULL);
+				a_Input->NumMBs++;	// Added more
+			}
+			
+			// Append somewhere, somehow
+			else
+			{
+				// Keep running until we hit the spot
+				for (Last = NULL, i = 0; MBRover; i++)
+				{
+					// Did we hit it?
+					if (i == a_Input->CursorPos)
+						break;
+					
+					// Next
+					Last = MBRover;
+					MBRover = MBRover->Next;
+				}
+				
+				// Attach to end?
+				if (!MBRover)
+				{
+					MBRover = Last->Next = Z_Malloc(sizeof(*MBRover), PU_STATIC, NULL);
+					MBRover->Prev = Last;	// link back
+					a_Input->NumMBs++;	// Added
+				}
+				
+				// Not overwriting
+				else if (!a_Input->Overwrite)
+				{
+					Last = Z_Malloc(sizeof(*Last), PU_STATIC, NULL);
+					
+					// Shove current to the next spot
+					Last->Next = MBRover;
+					Last->Prev = MBRover->Prev;
+					
+					// Relink current
+					MBRover->Prev = Last;
+					
+					// Relink before
+					if (Last->Prev)
+						Last->Prev->Next = Last;
+					
+					// This is the first!
+					if (MBRover == a_Input->ChainRoot)
+						a_Input->ChainRoot = Last;
+					
+					// Set to last
+					MBRover = Last;
+					
+					a_Input->NumMBs++;	// Added
+				}
+			}
+			
+			// Set character info
+			V_ExtWCharToMB(Char, MB);
+			strncpy(MBRover->MB, MB, 5);
+			a_Input->CursorPos++;	// Always increment
+			
+			// Eat this event
+			return true;
+	}
+	
+	/* Fell through, do not eat */
+	return false;
+#undef BUFSIZE
+}
+
+/* CONCTI_SetText() -- Sets text for inputter */
+void CONCTI_SetText(CONCTI_Inputter_t* const a_Input, const char* const a_Text)
+{
+}
+
+/* CONCTI_DrawInput() -- Draws input text */
+int32_t CONCTI_DrawInput(CONCTI_Inputter_t* const a_Input, const uint32_t a_Options, const int32_t a_x, const int32_t a_y, const int32_t a_x2)
+{
+	CONCTI_MBChain_t* MBRover;
+	uint32_t Options;
+	int32_t bx, x;
+	size_t j;
+	bool_t GotCur;
+	
+	/* Check */
+	if (!a_Input)
+		return NULL;
+	
+	// Draw command text
+	MBRover = a_Input->ChainRoot;
+	Options = a_Options;
+	x = bx = a_x;
+	j = 0;
+	GotCur = false;
+	
+	// While there is a multibyte char
+	while (MBRover)
+	{
+		// If this is the cursor position, remember it
+		if (a_Input->CursorPos == j)
+		{
+			bx = x;
+			GotCur = true;
+		}
+		
+		// Draw it
+		x += V_DrawCharacterMB(CONLCONSOLEFONT, Options, MBRover->MB, x, a_y, NULL, &Options);
+		
+		// Go to next character in chain
+		MBRover = MBRover->Next;
+		j++;
+	}
+	
+	// Cursor never set?
+	if (!GotCur)
+		bx = x;
+	
+	// Draw box/underscore here (blinked)
+	Options = a_Options;
+	Options &= ~VFO_COLORMASK;
+	Options |= VFO_COLOR(VEX_MAP_BRIGHTWHITE);
+	if ((gametic >> 4) & 1)
+		V_DrawCharacterA(CONLCONSOLEFONT, Options, (a_Input->Overwrite ? 0x7F : '_'), bx, a_y);
+}
 
 /*** Static Stuff ***/
 
@@ -323,6 +633,19 @@ static void CONLFF_InputFF(const char* const a_Buf)
 
 /*** Base Console ***/
 
+size_t CONL_RawPrint(CONL_BasicBuffer_t* const a_Buffer, const char* const a_Text);
+
+/* CONL_OutBack() -- \n is pressed from inputter */
+static bool_t CONL_OutBack(struct CONCTI_Inputter_s* a_Input, const char* const a_Buf)
+{
+	/* Append to execution buffer */
+	CONL_RawPrint(&l_CONLBuffers[1], a_Buf);
+	CONL_RawPrint(&l_CONLBuffers[1], "\n");	// \n is always missing
+	
+	/* Never destroy */
+	return false;
+}
+
 /* CONL_Init() -- Initializes the light console */
 bool_t CONL_Init(const uintmax_t a_OutBS, const uintmax_t a_InBS)
 {
@@ -337,6 +660,9 @@ bool_t CONL_Init(const uintmax_t a_OutBS, const uintmax_t a_InBS)
 		return false;
 	}
 	
+	/* Create input */
+	l_CONLInputter = CONCTI_CreateInput(128, CONL_OutBack, &l_CONLInputter);
+	
 	/* Success! */
 	return true;
 }
@@ -344,6 +670,9 @@ bool_t CONL_Init(const uintmax_t a_OutBS, const uintmax_t a_InBS)
 /* CONL_Stop() -- Stops the console */
 void CONL_Stop(void)
 {
+	/* Destroy console input */
+	CONCTI_DestroyInput(l_CONLInputter);
+	l_CONLInputter = NULL;
 }
 
 /* CONL_RawPrint() -- Prints text directly to buffer */
@@ -385,14 +714,8 @@ size_t CONL_RawPrint(CONL_BasicBuffer_t* const a_Buffer, const char* const a_Tex
 		// Start collision?
 		if (POSMASK(a_Buffer->EndPos) == POSMASK(a_Buffer->StartPos))
 		{
-#if 1
 			// Check for line overflow
 			if (a_Buffer->Lines[LINEMASK(a_Buffer->StartLine)] == &a_Buffer->Buffer[POSMASK(a_Buffer->StartPos)])
-#else
-			// Does this new position surpass the first line in the buffer?
-			if (a_Buffer->Lines[LINEMASK(a_Buffer->StartLine)] &&
-			        &a_Buffer->Buffer[POSMASK(a_Buffer->StartPos)] >= a_Buffer->Lines[LINEMASK(a_Buffer->StartLine)])
-#endif
 			{
 				// Set current line to NULL and move up
 				a_Buffer->Lines[LINEMASK(a_Buffer->StartLine)] = NULL;
@@ -639,163 +962,6 @@ void CONL_Ticker(void)
 			}
 }
 
-/* CONLS_DelType() -- Delete character at position */
-static void CONLS_DelType(const size_t a_Spot)
-{
-	size_t i;
-	CONL_MBChain_t* MBRover;
-	
-	/* Find spot to delete */
-	for (i = 0, MBRover = l_CONLComRoot; MBRover; i++)
-	{
-		// Hit the spot?
-		if (i == a_Spot)
-		{
-			// Unlink from chain
-			if (MBRover->Prev)
-				MBRover->Prev->Next = MBRover->Next;
-			if (MBRover->Next)
-				MBRover->Next->Prev = MBRover->Prev;
-				
-			// Check for root
-			if (MBRover == l_CONLComRoot)
-				l_CONLComRoot = l_CONLComRoot->Next;
-			
-			// Free this character
-			Z_Free(MBRover);
-			return;
-		}
-		
-		// Remember
-		MBRover = MBRover->Next;
-	}
-}
-
-/* CONLS_AddTypeMB() -- Adds multi-byte character to type command text */
-static void CONLS_AddTypeChar(const char* const a_MB, const size_t a_Spot, const bool_t a_Over)
-{
-	size_t i;
-	CONL_MBChain_t* MBRover, *Last;
-	
-	/* Check */
-	if (!a_MB)
-		return;
-	
-	/* Find spot to draw at */
-	for (i = 0, Last = NULL, MBRover = l_CONLComRoot; MBRover; i++)
-	{
-		// Hit the spot?
-		if (i == a_Spot)
-			break;
-		
-		// Remember
-		Last = MBRover;
-		MBRover = MBRover->Next;
-	}
-	
-	/* Nothing here? */
-	if (!MBRover)
-	{
-		// Attach to end?
-		if (Last)
-		{
-			MBRover = Last->Next = Z_Malloc(sizeof(*Last->Next), PU_STATIC, NULL);
-			MBRover->Prev = Last;
-		}
-		
-		// Use first
-		else
-			MBRover = l_CONLComRoot = Z_Malloc(sizeof(*Last->Next), PU_STATIC, NULL);
-	}
-	// Placing with existing char
-	else
-	{
-		if (!a_Over)
-		{
-			Last = Z_Malloc(sizeof(*Last), PU_STATIC, NULL);
-		
-			// Shove current to the next spot
-			Last->Next = MBRover;
-			Last->Prev = MBRover->Prev;
-		
-			// Relink current
-			MBRover->Prev = Last;
-		
-			// Relink before
-			if (Last->Prev)
-				Last->Prev->Next = Last;
-		
-			// Set to last
-			MBRover = Last;
-		}
-	}
-	
-	/* Set character here */
-	strncpy(MBRover->MB, a_MB, 5);
-}
-
-/* CONLS_SetTypeCommand() -- Sets the current type command text */
-static void CONLS_SetTypeCommand(const char* const a_Text)
-{
-	size_t i, j, k;
-	uint16_t Char;
-	const char* p;
-	char MB[6];
-	CONL_MBChain_t* MBRover, *Next;
-	
-	/* Clear all characters */
-	// Write command to command buffer (per MBs)
-	MBRover = l_CONLComRoot;
-	
-	while (MBRover)
-	{
-		// Get next
-		Next = MBRover->Next;
-		
-		// Delete this
-		Z_Free(MBRover);
-		
-		MBRover = Next;
-	}
-	
-	// No longer exists
-	l_CONLComRoot = NULL;
-	
-	/* Add to buffer */
-	p = a_Text;
-	if (p)
-		while (*p && *p != '\n')
-		{
-			Char = V_ExtMBToWChar(p, &j);
-			V_ExtWCharToMB(Char, MB);
-			CONLS_AddTypeChar(MB, l_CONLComCursor, false);
-			p += j;
-			l_CONLComCursor++;
-		}
-}
-
-/* CONLS_MoveCursor() -- Moves cursor to new location */
-static size_t CONLS_MoveCursor(const size_t a_NewSpot)
-{
-	size_t i;
-	CONL_MBChain_t* MBRover, *Last;
-	
-	/* Find spot to draw at */
-	for (i = 0, Last = NULL, MBRover = l_CONLComRoot; MBRover; i++)
-	{
-		// Hit the spot?
-		if (i == a_NewSpot)
-			return i;
-		
-		// Remember
-		Last = MBRover;
-		MBRover = MBRover->Next;
-	}
-	
-	/* Failed, return where it last was */
-	return i;
-}
-
 /* CONL_HandleEvent() -- Handles extended event for the console */
 bool_t CONL_HandleEvent(const I_EventEx_t* const a_Event)
 {
@@ -805,8 +971,6 @@ bool_t CONL_HandleEvent(const I_EventEx_t* const a_Event)
 	static int32_t HistorySpot = -1;
 	size_t i, j, k;
 	const char* p;
-	char MB[6];
-	CONL_MBChain_t* MBRover, *Next;
 	
 	/* Check */
 	if (!a_Event)
@@ -859,160 +1023,9 @@ bool_t CONL_HandleEvent(const I_EventEx_t* const a_Event)
 				l_CONLLineOff--;
 		}
 		
-		// Go up/down in history
-		else if (Code == IKBK_UP || Code == IKBK_DOWN)
-		{
-			// remember old spot
-			Old = HistorySpot;
-			
-			// Move around
-			if (Code == IKBK_UP)	// back
-			{
-				if (HistorySpot < (int32_t)l_CONLBuffers[1].NumLines)	// S-US comp
-					HistorySpot++;
-			}
-			else						// forwards
-			{
-				if (HistorySpot > -1)
-					HistorySpot--;
-			}
-			
-			//fprintf(stderr, "Spotty %i\n", HistorySpot);
-			// Cleared?
-			if (HistorySpot == -1)
-			{
-				// Clear command
-				CONLS_SetTypeCommand("");
-				l_CONLComCursor = 0;
-			}
-			
-			// Not the same?
-			else if (Old != HistorySpot)
-			{
-				// Find message to set (do not wrap around)
-				for (i = 0; i < HistorySpot; i++)
-					if (!l_CONLBuffers[1].Lines[(l_CONLBuffers[1].EndLine - 1 - i) & l_CONLBuffers[1].MaskLine])
-						break;
-				
-				// If i is history, then there is history we got
-				//fprintf(stderr, "Spot %i %i\n", i, HistorySpot);
-				if (i == HistorySpot)
-				{
-					// Clear command
-					CONLS_SetTypeCommand("");
-					l_CONLComCursor = 0;
-					
-					// Add single characters to command
-					p = l_CONLBuffers[1].Lines[(l_CONLBuffers[1].EndLine - 1 - i) & l_CONLBuffers[1].MaskLine];
-					if (p)
-						while (*p && *p != '\n')
-						{
-							Char = V_ExtMBToWChar(p, &j);
-							V_ExtWCharToMB(Char, MB);
-							CONLS_AddTypeChar(MB, l_CONLComCursor, false);
-							p += j;
-							l_CONLComCursor++;
-						}
-				}
-				
-				// Otherwise there is historical overflow
-				else
-				{
-					if (i > 0)
-						HistorySpot = i - 1;
-				}
-			}
-		}
-		
-		// Toggle insert/overwrite mode
-		else if (Code == IKBK_INSERT)
-		{
-			l_CONLComOverwrite = !l_CONLComOverwrite;
-		}
-		
-		// Delete current/previous character
-		else if (Code == IKBK_DELETE || Code == IKBK_BACKSPACE)
-		{
-			CONLS_DelType(l_CONLComCursor - (Code == IKBK_DELETE ? 0 : 1));
-			
-			if (l_CONLComCursor > 0)
-				l_CONLComCursor -= (Code == IKBK_DELETE ? 0 : 1);
-			
-			// Clear history spot (modified)
-			HistorySpot = -1;
-		}
-		
-		// Go to first position
-		else if (Code == IKBK_HOME)
-		{
-			l_CONLComCursor = 0;
-		}
-		
-		// Go to last position
-		else if (Code == IKBK_END)
-		{
-			l_CONLComCursor = CONLS_MoveCursor(l_CONLComCursor + 9999999);
-		}
-		
-		// Enter command
-		else if (Code == IKBK_RETURN)
-		{
-			// Write command to command buffer (per MBs)
-			MBRover = l_CONLComRoot;
-			
-			while (MBRover)
-			{
-				// Write to console input stream
-				CONL_RawPrint(&l_CONLBuffers[1], MBRover->MB);
-				
-				// Get next
-				Next = MBRover->Next;
-				
-				// Delete this
-				Z_Free(MBRover);
-				
-				MBRover = Next;
-			}
-			
-			// No longer exists
-			l_CONLComRoot = NULL;
-			l_CONLComCursor = 0;
-			
-			// Send \n
-			CONL_RawPrint(&l_CONLBuffers[1], "\n");
-		
-			// Increase history (for repeat up)
-			if (HistorySpot < l_CONLBuffers[1].NumLines)
-				HistorySpot++;
-		}
-		
-		// Move cursor left/right
-		else if (Code == IKBK_LEFT || Code == IKBK_RIGHT)
-		{
-			if (Code != IKBK_LEFT || l_CONLComCursor > 0)
-				l_CONLComCursor = CONLS_MoveCursor(l_CONLComCursor + (Code == IKBK_LEFT ? -1 : 1));
-		}
-		
-		// Text is written
-		else
-		{
-			// Only allow non-control (some anyway)
-			if (Char == '\t' || Char >= ' ')
-			{
-				// Convert to multibyte first
-				memset(MB, 0, sizeof(MB));
-				j = V_ExtWCharToMB(Char, MB);
-			
-				if (j)
-				{
-					CONLS_AddTypeChar(MB, l_CONLComCursor, l_CONLComOverwrite);
-					l_CONLComCursor++;
-				}
-			
-				// Clear history spot (modified)
-				HistorySpot = -1;
-			}
-		}
+		// Handle input line
+		else if (CONCTI_HandleEvent(l_CONLInputter, a_Event))
+			return true;	// it ate the event
 		
 		// Always eat everything
 		return true;
@@ -1033,7 +1046,6 @@ void CONL_DrawConsole(void)
 	char TempFill[6];
 	static pic_t* BackPic;
 	CONL_BasicBuffer_t* Out;
-	CONL_MBChain_t* MBRover;
 	
 	/* Get output buffer */
 	Out = &l_CONLBuffers[0];
@@ -1165,42 +1177,12 @@ void CONL_DrawConsole(void)
 		{
 			y = conH - bh - CONLPADDING;
 			x = conX;
+			Options = VFO_COLOR(VEX_MAP_BLUE) | VFO_NOSCALEPATCH | VFO_NOSCALESTART | VFO_NOSCALELORES;
 			
 			// Draw command prompt
 			x += V_DrawStringA(CONLCONSOLEFONT, VFO_COLOR(VEX_MAP_BRIGHTWHITE) | VFO_NOSCALEPATCH | VFO_NOSCALESTART | VFO_NOSCALELORES, "#>", x, y);
-			
-			// Draw command text
-			MBRover = l_CONLComRoot;
-			Options = VFO_COLOR(VEX_MAP_BLUE) | VFO_NOSCALEPATCH | VFO_NOSCALESTART | VFO_NOSCALELORES;
-			bx = x;
-			i = 0;
-			j = 0;
-			
-			// While there is a multibyte char
-			while (MBRover)
-			{
-				// If this is the cursor position, remember it
-				if (l_CONLComCursor == j)
-				{
-					bx = x;
-					i = 1;
-				}
-				
-				// Draw it
-				x += V_DrawCharacterMB(CONLCONSOLEFONT, Options, MBRover->MB, x, y, NULL, &Options);
-				
-				// Go to next character in chain
-				MBRover = MBRover->Next;
-				j++;
-			}
-			
-			// Cursor never set?
-			if (!i)
-				bx = x;
-			
-			// Draw box/underscore here (blinked)
-			if ((gametic >> 4) & 1)
-				V_DrawCharacterA(CONLCONSOLEFONT, VFO_COLOR(VEX_MAP_BLUE) | VFO_NOSCALEPATCH | VFO_NOSCALESTART | VFO_NOSCALELORES, (l_CONLComOverwrite ? 0x7F : '_'), bx, y);
+			// Draw input buffer
+			x += CONCTI_DrawInput(l_CONLInputter, Options, x, y, vid.width);
 		}
 		
 		// Draw scrollbar
@@ -1223,6 +1205,10 @@ void CONL_DrawConsole(void)
 			// Draw lines you should see but you cant
 			bw = bh;
 			bh = bw - (by * (DrawCount < NumLines ? NumLines - DrawCount : DrawCount - NumLines));
+			
+			// Less than 1?
+			if (bh < 1)
+				bh = 1;
 			
 			V_DrawColorBoxEx(VEX_COLORMAP(VEX_MAP_GRAY) | VEX_NOSCALESTART | VEX_NOSCALESCREEN, CONLSCROLLMISS, 1, bw, CONLPADDING - 1, bh);
 			

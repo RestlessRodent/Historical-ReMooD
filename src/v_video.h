@@ -310,6 +310,7 @@ extern UniChar_t* UnknownLink[NUMVIDEOFONTS];
 #define VFO_NOSCALEPATCH	0x00080000
 #define VFO_NOFLOATSCALE	0x00100000
 #define VFO_NOSCALELORES	0x00200000	// NOT IMPLEMENTED!
+#define VFO_LEFTFLOW		0x00400000	// Like RTL but not swapped
 
 void V_MapGraphicalCharacters(void);
 

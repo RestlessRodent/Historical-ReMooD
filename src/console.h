@@ -55,8 +55,48 @@
 #define CONLSCROLLMISS 200				// Missed color for scrollbar
 
 /*****************
+*** STRUCTURES ***
+*****************/
+
+/* CONCTI_MBChain_t -- Multibyte chain for character input */
+typedef struct CONCTI_MBChain_s
+{
+	char MB[6];						// Multibyte data
+	struct CONCTI_MBChain_s* Prev;	// Previous character
+	struct CONCTI_MBChain_s* Next;	// Next character
+} CONCTI_MBChain_t;
+
+struct CONCTI_Inputter_s;
+typedef bool_t (*CONCTI_OutBack_t)(struct CONCTI_Inputter_s*, const char* const);
+
+/* CONCTI_Inputter_t -- Text inputter */
+typedef struct CONCTI_Inputter_s
+{
+	CONCTI_MBChain_t* ChainRoot;	// First link in chain
+	int32_t CursorPos;				// Cursor position
+	int32_t NumMBs;					// Number of multibytes
+	bool_t Overwrite;				// Overwrite character
+	
+	char** History;					// Remembered strings
+	size_t NumHistory;				// Amount of history to preserve
+	size_t HistoryCount;			// Stuff in history
+	size_t HistorySpot;				// Current spot in history
+	
+	CONCTI_OutBack_t OutFunc;		// Function to call when text is entered (\n)
+	
+	struct CONCTI_Inputter_s** RefPtr;	// Reference to this struct
+} CONCTI_Inputter_t;
+
+/*****************
 *** PROTOTYPES ***
 *****************/
+
+/*** Common Text Input ***/
+CONCTI_Inputter_t* CONCTI_CreateInput(const size_t a_NumHistory, const CONCTI_OutBack_t a_OutBack, CONCTI_Inputter_t** const a_RefPtr);
+void CONCTI_DestroyInput(CONCTI_Inputter_t* const a_Input);
+bool_t CONCTI_HandleEvent(CONCTI_Inputter_t* const a_Input, const I_EventEx_t* const a_Event);
+void CONCTI_SetText(CONCTI_Inputter_t* const a_Input, const char* const a_Text);
+int32_t CONCTI_DrawInput(CONCTI_Inputter_t* const a_Input, const uint32_t a_Options, const int32_t a_x, const int32_t a_y, const int32_t a_x2);
 
 /*** Base Console ***/
 bool_t CONL_Init(const uintmax_t a_OutBS, const uintmax_t a_InBS);
