@@ -250,7 +250,8 @@ S_SoundChannel_t* S_PlayEntryOnChannel(const uint32_t a_Channel, WX_WADEntry_t* 
 	l_DoomChannels[a_Channel].Stop = ((l_DoomChannels[a_Channel].Position >> FRACBITS) + (fixed_t) Length) << FRACBITS;
 	
 	// Determine the play rate, which is by default the ratio of the sound freq and the card freq
-	l_DoomChannels[a_Channel].MoveRate = FixedDiv((fixed_t) Freq << FRACBITS, (fixed_t) l_Freq << FRACBITS);
+	//l_DoomChannels[a_Channel].MoveRate = FixedDiv((fixed_t) Freq << FRACBITS, (fixed_t) l_Freq << FRACBITS);
+	l_DoomChannels[a_Channel].MoveRate = ((Freq << 15) / (l_Freq >> 1));
 	
 	/* Return channel */
 	return &l_DoomChannels[a_Channel];
