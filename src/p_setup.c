@@ -600,7 +600,7 @@ void P_LoadThingsHexen(int lump)
 	int16_t* data, *datastart;
 	
 	data = datastart = W_CacheLumpNum(lump, PU_LEVEL);
-	nummapthings = W_LumpLength(lump) / (5 * sizeof(short));
+	nummapthings = W_LumpLength(lump) / (20 * sizeof(short));
 	mapthings = Z_Malloc(nummapthings * sizeof(mapthing_t), PU_LEVEL, NULL);
 	
 	//SoM: Because I put a new member into the mapthing_t for use with
@@ -1323,6 +1323,9 @@ bool_t P_SetupLevel(int episode, int map, skill_t skill, char* wadname)	// for w
 		CONS_Printf("P_SetupLevel: HeXeN maps are NOT fully supported!\n");
 		//return false;
 	}
+	else
+		HexenACS = NULL;
+	
 #ifdef FRAGGLESCRIPT
 	P_LoadLevelInfo(lastloadedmaplumpnum);	// load level lump info(level name etc)
 #endif
