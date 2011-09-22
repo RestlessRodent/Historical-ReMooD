@@ -490,13 +490,17 @@ void S_StopSound(S_NoiseThinker_t* a_Origin)
 	/* Check */
 	if (!l_SoundOK || !a_Origin)
 		return;
+	
+	/* Lock */
+	I_SoundLockThread(true);
 		
 	/* Find channel playing sound */
-	if (!(Found = S_SoundPlaying(a_Origin, 0)))
-		return;
-		
-	/* Stop channel */
-	S_StopChannel(Found - 1);
+	if ((Found = S_SoundPlaying(a_Origin, 0)))
+		// Stop channel
+		S_StopChannel(Found - 1);
+	
+	/* Unlock */
+	I_SoundLockThread(false);
 }
 
 fixed_t P_AproxDistance(fixed_t dx, fixed_t dy);
@@ -728,11 +732,17 @@ void S_StopSounds(void)
 	/* Check */
 	if (!l_SoundOK)
 		return;
+	
+	/* Lock sound */
+	I_SoundLockThread(true);
 		
 	/* Stop all sounds on every channel */
 	for (i = 0; i < l_NumDoomChannels; i++)
 		if (l_DoomChannels[i].Used)
 			S_StopChannel(i);
+			
+	/* Unlock sound */
+	I_SoundLockThread(false);
 }
 
 /* S_Start() -- Change song based on level */
