@@ -39,11 +39,18 @@ ifndef KEEPCC
 	endif
 endif
 
+# Check if $(WINDRES) is set (resource compiler)
+ifndef WINDRES
+	export WINDRES := windres
+endif
+
 # Use toolchain prefix on default $(CC)
 ifneq (,$(TOOLPREFIX))
 	export __INT_CC := $(strip $(TOOLPREFIX))
+	export __INT_WINDRES := $(strip $(TOOLPREFIX))
 endif
 export __INT_CC := $(__INT_CC)$(CC)
+export __INT_WINDRES := $(__INT_WINDRES)$(WINDRES)
 
 # Have a prefix for the host's GCC
 ifneq (,$(HOSTPREFIX))
@@ -60,13 +67,15 @@ __INT_COMMONLDFLAGS := -lm
 
 # Debugging?
 ifdef DEBUG
-	__INT_MCFLAGS := -g3 -O0
+	__INT_MCFLAGS := -g3 -O0 -D_DEBUG
 	__INT_MLDFLAGS := -g3 -O0
+	__INT_RCFLAGS := -D_DEBUG
 	export __INT_OBJPREFIX := d
 	export __INT_EXESUFFIX := -dbg
 else
-	__INT_MCFLAGS := -g0 -O2
+	__INT_MCFLAGS := -g0 -O2 -DNDEBUG
 	__INT_MLDFLAGS := -g0 -O2
+	__INT_RCFLAGS := -DNDEBUG
 	export __INT_OBJPREFIX := r
 	export __INT_EXESUFFIX :=
 endif
@@ -161,9 +170,9 @@ endif
 
 ifeq (,$(strip $(__INT_SDLLDFLAGS)))
 	ifneq (,$(strip $(SDL_LIB)))
-		export __INT_SDLLDFLAGS := -L$(SDL_LIB) -lSDL
+		export __INT_SDLLDFLAGS := -L$(SDL_LIB) -lSDLmain -lSDL
 	else
-		export __INT_SDLLDFLAGS :=  -Llib -lSDL
+		export __INT_SDLLDFLAGS := -Llib -lSDLmain -lSDL
 	endif
 endif
 

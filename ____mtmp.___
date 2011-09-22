@@ -49,6 +49,7 @@ endif
 __XX_BIN = bin
 __XX_SRC = src
 __XX_OBJ = $(__INT_OBJ)
+__XX_RC  = rc
 
 ifneq (,$(strip $(__INT_INTERFACE)))
 	__XX_DEFINTRF := $(__INT_INTERFACE)
@@ -66,6 +67,7 @@ endif
 	__XX_ICFLAGS  = -D__REMOOD_SYSTEM_DOS -Ilib/glib/include
 	__XX_ILDFLAGS = -lglib
 	__XX_DEFINTRF ?= allegro
+	__XX_EXTRAOBJ = 
 
 # Windows CE
 `ei ?_WIN32_WCE
@@ -74,6 +76,7 @@ endif
 	__XX_ICFLAGS  = -D__REMOOD_SYSTEM_WINCE
 	__XX_ILDFLAGS =
 	__XX_DEFINTRF ?= win36c
+	__XX_EXTRAOBJ = 
 
 # Windows 32-bit and 64-bit
 `ei ?_WIN32
@@ -85,8 +88,9 @@ endif
 `en
 	__XX_EXESUFFIX = .exe
 	__XX_ICFLAGS  = -D__REMOOD_SYSTEM_WINDOWS
-	__XX_ILDFLAGS = -mwindows
+	__XX_ILDFLAGS = -lmingw32 -mwindows
 	__XX_DEFINTRF ?= sdl
+	__XX_EXTRAOBJ = $(__XX_RC)/remood.rc
 
 # Linux
 `ei ?__linux__
@@ -95,6 +99,7 @@ endif
 	__XX_ICFLAGS  = -D__REMOOD_SYSTEM_UNIX -D__REMOOD_SYSTEM_LINUX
 	__XX_ILDFLAGS =
 	__XX_DEFINTRF ?= sdl
+	__XX_EXTRAOBJ = 
 
 # Apple
 `ei ?__APPLE__
@@ -105,6 +110,7 @@ endif
 		__XX_ICFLAGS  = -D__REMOOD_SYSTEM_UNIX -D__REMOOD_SYSTEM_MACOSX
 		__XX_ILDFLAGS =
 		__XX_DEFINTRF ?= sdl
+		__XX_EXTRAOBJ = 
 	
 	# Classic
 `el
@@ -113,6 +119,7 @@ endif
 		__XX_ICFLAGS  = -D__REMOOD_SYSTEM_MACOS
 		__XX_ILDFLAGS =
 		__XX_DEFINTRF ?= sdl
+		__XX_EXTRAOBJ = 
 	
 	#
 `en
@@ -126,6 +133,7 @@ endif
 		__XX_ICFLAGS  = -D__REMOOD_SYSTEM_UNIX -D__REMOOD_SYSTEM_CYGWIN
 		__XX_ILDFLAGS =
 		__XX_DEFINTRF ?= sdl
+		__XX_EXTRAOBJ = 
 	
 	# Interix
 `ei ?__INTERIX
@@ -134,6 +142,7 @@ endif
 		__XX_ICFLAGS  = -D__REMOOD_SYSTEM_UNIX -D__REMOOD_SYSTEM_INTERIX
 		__XX_ILDFLAGS =
 		__XX_DEFINTRF ?= sdl
+		__XX_EXTRAOBJ = 
 	
 	# FreeBSD
 `ei ?__FreeBSD__
@@ -142,6 +151,7 @@ endif
 		__XX_ICFLAGS  = -D__REMOOD_SYSTEM_UNIX -D__REMOOD_SYSTEM_BSD
 		__XX_ILDFLAGS =
 		__XX_DEFINTRF ?= sdl
+		__XX_EXTRAOBJ = 
 	
 	# NetBSD
 `ei ?__NetBSD__
@@ -150,6 +160,7 @@ endif
 		__XX_ICFLAGS  = -D__REMOOD_SYSTEM_UNIX -D__REMOOD_SYSTEM_BSD
 		__XX_ILDFLAGS =
 		__XX_DEFINTRF ?= sdl
+		__XX_EXTRAOBJ = 
 	
 	# OpenBSD
 `ei ?__OpenBSD__
@@ -158,6 +169,7 @@ endif
 		__XX_ICFLAGS  = -D__REMOOD_SYSTEM_UNIX -D__REMOOD_SYSTEM_BSD
 		__XX_ILDFLAGS =
 		__XX_DEFINTRF ?= sdl
+		__XX_EXTRAOBJ = 
 	
 	# Solaris
 `ei ?__sun
@@ -166,6 +178,7 @@ endif
 		__XX_ICFLAGS  = -D__REMOOD_SYSTEM_UNIX -D__REMOOD_SYSTEM_SOLARIS
 		__XX_ILDFLAGS =
 		__XX_DEFINTRF ?= sdl
+		__XX_EXTRAOBJ = 
 	
 	# Generic UNIX
 `el
@@ -174,6 +187,7 @@ endif
 		__XX_ICFLAGS  = -D__REMOOD_SYSTEM_UNIX
 		__XX_ILDFLAGS =
 		__XX_DEFINTRF ?= sdl
+		__XX_EXTRAOBJ = 
 	
 	#
 `en
@@ -185,6 +199,7 @@ endif
 	__XX_ICFLAGS  = -D__REMOOD_SYSTEM_AMIGA
 	__XX_ILDFLAGS =
 	__XX_DEFINTRF ?= sdl
+	__XX_EXTRAOBJ = 
 
 # PalmOS
 `ei ?__palmos__
@@ -193,6 +208,7 @@ endif
 	__XX_ICFLAGS  = -D__REMOOD_SYSTEM_PALMOS
 	__XX_ILDFLAGS =
 	__XX_DEFINTRF ?= headless
+	__XX_EXTRAOBJ = 
 	
 # Unknown
 `el
@@ -201,6 +217,7 @@ endif
 	__XX_ICFLAGS  = -D__REMOOD_SYSTEM_UNKNOWN
 	__XX_ILDFLAGS =
 	__XX_DEFINTRF ?= headless
+	__XX_EXTRAOBJ = 
 
 `en
 
@@ -210,6 +227,7 @@ endif
 
 # SDL Interface
 ifeq (sdl,$(strip $(__XX_DEFINTRF)))
+	# Basic Settings
 	__XX_IFACEDIR = sdl
 	__XX_FPREFIX = s
 	__XX_FCFLAGS = -D__REMOOD_INTERFACE_SDL $(__INT_SDLCFLAGS)
@@ -245,14 +263,15 @@ endif
 ##############
 
 __XX_CFLAGS := -I$(__XX_SRC) $(__INT_CFLAGS) $(__XX_ICFLAGS) $(__XX_FCFLAGS)
-__XX_LDFLAGS := $(__INT_LDFLAGS) $(__XX_ILDFLAGS) $(__XX_FLDFLAGS)
+__XX_LDFLAGS := $(__XX_ILDFLAGS) $(__INT_LDFLAGS) $(__XX_FLDFLAGS) 
+__XX_RCFLAGS := -DMINGWMAKED $(__INT_RCFLAGS)
 __XX_OBJPRIME := $(__INT_OBJPREFIX)$(__XX_OBJPREFIX)$(__XX_FPREFIX)
 
 ###############
 ### OBJECTS ###
 ###############
 
-__XX_OBJS := $(foreach __X_SOURCE, $(wildcard $(__XX_SRC)/*.c), $(__XX_OBJ)/$(basename $(notdir $(__X_SOURCE))).$(__XX_OBJPRIME)) $(foreach __X_SOURCE, $(wildcard $(__XX_SRC)/$(__XX_IFACEDIR)/*.c), $(__XX_OBJ)/$(basename $(notdir $(__X_SOURCE))).$(__XX_OBJPRIME))
+__XX_OBJS := $(foreach __X_SOURCE, $(__XX_EXTRAOBJ) $(wildcard $(__XX_SRC)/*.c) $(wildcard $(__XX_SRC)/$(__XX_IFACEDIR)/*.c), $(__XX_OBJ)/$(basename $(notdir $(__X_SOURCE))).$(__XX_OBJPRIME))
 __XX_OBJSCLEAN := $(foreach __X_OBJ, $(__XX_OBJS), __$(notdir $(__X_OBJ)))
 
 ###############
@@ -276,7 +295,7 @@ remood:													$(__XX_BIN)/remood$(__INT_EXESUFFIX)$(__XX_EXESUFFIX)
 
 # The actual binary
 $(__XX_BIN)/remood$(__INT_EXESUFFIX)$(__XX_EXESUFFIX):	$(__XX_OBJS)
-														$(__INT_CC) -o $@ $(__XX_OBJS) $(__XX_LDFLAGS)
+														@$(__INT_CC) -o $@ $(__XX_OBJS) $(__XX_LDFLAGS)
 
 # Source files in src/
 $(__XX_OBJ)/%.$(__XX_OBJPRIME):							$(__XX_SRC)/%.c
@@ -286,10 +305,15 @@ $(__XX_OBJ)/%.$(__XX_OBJPRIME):							$(__XX_SRC)/%.c
 # Source files in interfaces
 $(__XX_OBJ)/%.$(__XX_OBJPRIME):							$(__XX_SRC)/$(__XX_IFACEDIR)/%.c
 														@echo [CC] $(notdir $<)
-														@$(__INT_CC) -c $< -o $@ $(__XX_CFLAGS)
+														@$(__INT_CC) -c $< -o $@ $(__XX_CFLAGS) $(__XX_IXFCFLAGS)
+
+# ReMooD Win32 RC File
+$(__XX_OBJ)/%.$(__XX_OBJPRIME):							$(__XX_RC)/%.rc
+														@echo [RC] $(notdir $<)
+														@$(__INT_WINDRES) --input-format=rc -o $@ $< -O coff $(__XX_RCFLAGS)
 
 # Clean object files built
 __%.$(__XX_OBJPRIME):									
-															@$(if $(wildcard $(__XX_OBJ)/$(subst __,,$@)),echo [RM] $(subst __,,$(basename $@)).o,)
+														@$(if $(wildcard $(__XX_OBJ)/$(subst __,,$@)),echo [RM] $(subst __,,$(basename $@)).o,)
 														@$(if $(wildcard $(__XX_OBJ)/$(subst __,,$@)),$(call __XX_RUNCOMMAND,$(__XX_DELETE) $(call __XX_DOSPATH,$(__XX_OBJ)/$(subst __,,$@))) > $(__XX_DEVNULL),)
 

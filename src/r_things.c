@@ -194,6 +194,7 @@ bool_t R_AddSingleSpriteDef(char* sprname, spritedef_t* spritedef, int wadnum, i
 	int intname;
 	int frame;
 	int rotation;
+	int GoodFrame;
 	
 	//lumpinfo_t* lumpinfo;
 	WadFile_t* wad;
@@ -299,12 +300,25 @@ bool_t R_AddSingleSpriteDef(char* sprname, spritedef_t* spritedef, int wadnum, i
 				break;
 				
 			case 1:
-				// must have all 8 frames
+				// GhostlyDeath <September 21, 2011> -- Prevent missing frames
+				GoodFrame = -1;
+				for (rotation = 0; rotation < 8; rotation++)
+					if (sprtemp[frame].lumppat[rotation] != -1)
+						GoodFrame = sprtemp[frame].lumppat[rotation];
+				
+				// No frames at all should never happen
+				if (GoodFrame == -1)
+					I_Error("R_InitSprites; Sprite %s has frames but does not have frames?\n", sprname);
+				
+				// Use backup frames (do not I_Error()!)
 				for (rotation = 0; rotation < 8; rotation++)
 					// we test the patch lump, or the id lump whatever
 					// if it was not loaded the two are -1
 					if (sprtemp[frame].lumppat[rotation] == -1)
-						I_Error("R_InitSprites: Sprite %s frame %c " "is missing rotations", sprname, frame + 'A');
+					{
+						sprtemp[frame].lumppat[rotation] = GoodFrame;
+						CONS_Printf("R_InitSprites: Sprite %s frame %c " "is missing rotations (using backup)", sprname, frame + 'A');
+					}
 				break;
 		}
 	}
