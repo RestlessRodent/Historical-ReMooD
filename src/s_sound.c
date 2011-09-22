@@ -59,8 +59,6 @@ void S_UpdateCVARVolumes(void);
 typedef struct S_SoundChannel_s
 {
 	S_NoiseThinker_t* Origin;	// Source sound
-	fixed_t Position;			// Stream position
-	fixed_t Stop;				// When to stop
 	fixed_t MoveRate;			// Rate at which to copy
 	fixed_t RateAdjust;			// Adjust the rate, somewhat
 	fixed_t Volume;				// Volume adjust
@@ -71,6 +69,11 @@ typedef struct S_SoundChannel_s
 	int Priority;				// Priority of the sound being played
 	int BasePriority;			// Priority of the original sound
 	bool_t Used;				// Channel is being used
+	
+	// GhostlyDeath <September 21, 2011> -- Any sound length!
+	fixed_t RoveByte;			// Byte movement
+	uint32_t CurrentByte;		// Current byte playing
+	uint32_t StopByte;			// Byte to stop at
 } S_SoundChannel_t;
 
 /**************
@@ -241,17 +244,18 @@ S_SoundChannel_t* S_PlayEntryOnChannel(const uint32_t a_Channel, WX_WADEntry_t* 
 	l_DoomChannels[a_Channel].Entry = a_Entry;
 	l_DoomChannels[a_Channel].Data = Data;
 	l_DoomChannels[a_Channel].Used = true;
-	l_DoomChannels[a_Channel].Position = -32760 << FRACBITS;
 	l_DoomChannels[a_Channel].RateAdjust = 1 << FRACBITS;
 	l_DoomChannels[a_Channel].Priority = 127;
 	l_DoomChannels[a_Channel].BasePriority = 127;
 	
-	// Set basic stuff
-	l_DoomChannels[a_Channel].Stop = ((l_DoomChannels[a_Channel].Position >> FRACBITS) + (fixed_t) Length) << FRACBITS;
-	
 	// Determine the play rate, which is by default the ratio of the sound freq and the card freq
 	//l_DoomChannels[a_Channel].MoveRate = FixedDiv((fixed_t) Freq << FRACBITS, (fixed_t) l_Freq << FRACBITS);
 	l_DoomChannels[a_Channel].MoveRate = ((Freq << 15) / (l_Freq >> 1));
+	
+	/* Long sounds */
+	l_DoomChannels[a_Channel].RoveByte = 0;
+	l_DoomChannels[a_Channel].CurrentByte = 8;
+	l_DoomChannels[a_Channel].StopByte = LumpLen - 9;
 	
 	/* Return channel */
 	return &l_DoomChannels[a_Channel];
@@ -283,10 +287,12 @@ void S_StopChannel(const uint32_t a_Channel)
 	l_DoomChannels[a_Channel].Data = NULL;
 	l_DoomChannels[a_Channel].SoundID = 0;
 	l_DoomChannels[a_Channel].Used = false;
-	l_DoomChannels[a_Channel].Position = 0;
 	l_DoomChannels[a_Channel].RateAdjust = 1 << FRACBITS;
 	l_DoomChannels[a_Channel].Priority = 0;
 	l_DoomChannels[a_Channel].BasePriority = 0;
+	l_DoomChannels[a_Channel].RoveByte = 0;
+	l_DoomChannels[a_Channel].CurrentByte = 0;
+	l_DoomChannels[a_Channel].StopByte = 0;
 	
 	for (i = 0; i < 16; i++)
 		l_DoomChannels[a_Channel].ChanVolume[i] = 1 << FRACBITS;
@@ -965,10 +971,14 @@ void S_UpdateSounds(const bool_t a_Threaded)
 			
 		// Keep reading and mixing
 		ActualRate = FixedMul(l_DoomChannels[i].MoveRate, l_DoomChannels[i].RateAdjust);
-		for (; p < End && l_DoomChannels[i].Position < l_DoomChannels[i].Stop; l_DoomChannels[i].Position += ActualRate)
+		for (; p < End && l_DoomChannels[i].CurrentByte < l_DoomChannels[i].StopByte; l_DoomChannels[i].RoveByte += ActualRate)
 		{
+			// Move byte ahead?
+			l_DoomChannels[i].CurrentByte += l_DoomChannels[i].RoveByte >> FRACBITS;
+			l_DoomChannels[i].RoveByte &= 0xFFFF;	// keep lower
+			
 			// Read sample bit from data
-			ReadSample = ((uint8_t*)l_DoomChannels[i].Data)[(l_DoomChannels[i].Position >> FRACBITS) + 32768];
+			ReadSample = ((uint8_t*)l_DoomChannels[i].Data)[(l_DoomChannels[i].CurrentByte)];
 			
 			// Write in
 			for (j = 0; j < l_Channels; j++)
@@ -976,7 +986,7 @@ void S_UpdateSounds(const bool_t a_Threaded)
 		}
 		
 		// Did the sound stop?
-		if (l_DoomChannels[i].Position >= l_DoomChannels[i].Stop)
+		if (l_DoomChannels[i].CurrentByte >= l_DoomChannels[i].StopByte)
 			S_StopChannel(i);
 	}
 	
