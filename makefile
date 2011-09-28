@@ -39,6 +39,10 @@ ifndef KEEPCC
 	endif
 endif
 
+ifndef AR
+	export AR := ar
+endif
+
 # Check if $(WINDRES) is set (resource compiler)
 ifndef WINDRES
 	export WINDRES := windres
@@ -48,9 +52,11 @@ endif
 ifneq (,$(TOOLPREFIX))
 	export __INT_CC := $(strip $(TOOLPREFIX))
 	export __INT_WINDRES := $(strip $(TOOLPREFIX))
+	export __INT_AR := $(strip $(TOOLPREFIX))
 endif
 export __INT_CC := $(__INT_CC)$(CC)
 export __INT_WINDRES := $(__INT_WINDRES)$(WINDRES)
+export __INT_AR := $(__INT_AR)$(AR)
 
 # Have a prefix for the host's GCC
 ifneq (,$(HOSTPREFIX))
