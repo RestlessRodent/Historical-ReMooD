@@ -38,6 +38,12 @@
 *** BYTE SWAPPING ***
 ********************/
 
+/* SwapUInt32() -- Swap 32-bits */
+static uint32_t SwapUInt32(const uint32_t In)
+{
+	return ((In & 0xFFU) << 24) | ((In & 0xFF00U) << 8) | ((In & 0xFF0000U) >> 8) | ((In & 0xFF000000U) >> 24);
+}
+
 /****************
 *** CONSTANTS ***
 ****************/
@@ -146,7 +152,7 @@ static const LumpDir_t c_LumpDirs[NUMLUMPTYPES] =
 	{WT_GRAPHIC, "graphics", {"ppm"}, Handler_PatchT, "patch_t"},
 	{WT_PICT, "picts", {"ppm"}, Handler_PicT, "pic_t"},
 	{WT_RAWPIC, "rawpics", {"ppm"}, Handler_RawPic, "raw image"},
-	{WT_SOUND, "sounds", {"wav", "txt"}, Handler_Sound, "sound"},
+	{WT_SOUND, "sounds", {"au", "txt"}, Handler_Sound, "sound"},
 	{WT_SPRITE, "sprites", {"ppm"}, Handler_PatchT, "sprite"},
 };
 
@@ -727,8 +733,11 @@ static int Handler_PatchT(struct LumpDir_s* const a_LumpDir, FILE* const File, c
 /* Handler_Sound() -- Handles sounds */
 static int Handler_Sound(struct LumpDir_s* const a_LumpDir, FILE* const File, const size_t Size, const char* const Ext, const char** const Args, PushyData_t* const Pushy)
 {
-	size_t i;
+	size_t i, j, SampleCount;
+	int8_t i8;
 	uint8_t u8;
+	uint32_t u32;
+	uint32_t Offset, AUSize, Mode, Rate, Channels;
 	char Buf[12];
 	
 	/* PC Beep */
@@ -753,9 +762,72 @@ static int Handler_Sound(struct LumpDir_s* const a_LumpDir, FILE* const File, co
 		return 1;
 	}
 	
-	/* Wave File */
+	/* AU File */
 	else
 	{
+		// Read Header
+		fread(Buf, 4, 1, File);
+		
+		// Not an AU file?
+		if (strncmp(".snd", Buf, 4))
+		{
+			fprintf(stderr, "Err: This is not an AU file!\n");
+			return 0;
+		}
+		
+		// Read remaining header
+		fread(&Offset, 4, 1, File);
+		fread(&AUSize, 4, 1, File);
+		fread(&Mode, 4, 1, File);
+		fread(&Rate, 4, 1, File);
+		fread(&Channels, 4, 1, File);
+		
+		// Byte swap
+		Offset = SwapUInt32(Offset);
+		AUSize = SwapUInt32(AUSize);
+		Mode = SwapUInt32(Mode);
+		Rate = SwapUInt32(Rate);
+		Channels = SwapUInt32(Channels);
+		
+		// Check if mode is not 2 (only these are supported)
+		if (Mode != 2)
+		{
+			fprintf(stderr, "Err: Only mode 2 AUs are supported (8-bit, Linear PCM), not %u!\n", Mode);
+			return 0;
+		}
+		
+		// Create Doom Sound Data
+		SampleCount = AUSize / Channels;
+		Pushy->Size = 8 + SampleCount + 16;
+		Pushy->Data = malloc(Pushy->Size);
+		memset(Pushy->Data, 0x80, Pushy->Size);
+		
+		i = 0;
+		((uint16_t*)Pushy->Data)[i++] = 3;
+		((uint16_t*)Pushy->Data)[i++] = Rate;
+		((uint16_t*)Pushy->Data)[i++] = (SampleCount < 65535 ? SampleCount : 65535);
+		((uint16_t*)Pushy->Data)[i++] = 0;
+		
+		i += 4;	// For shorts
+		
+		// Copy AU data
+		fseek(File, Offset, SEEK_SET);
+		fprintf(stderr, "At %u (should be %u)\n", ftell(File), Offset);
+		
+		for (j = 0; j < SampleCount; j++)
+		{
+			// Read signed byte
+			fread(&i8, 1, 1, File);
+			//fprintf(stderr, "Read %hhi\n", i8);
+			
+			// Convert to unsigned
+			u8 = (uint8_t)(((int)i8) + 127);
+			
+			// Write into data
+			((uint8_t*)Pushy->Data)[i++] = u8;
+		}
+		
+		return 1;
 	}
 		
 	return 0;
