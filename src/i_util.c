@@ -939,12 +939,24 @@ void I_ShowEndTxt(const uint8_t* const a_TextData)
 			I_TextModeChar(a_TextData[i], a_TextData[i + 1]);
 			
 		// Add a newline if Cols > 80 and c == 79
-		if (c == 79 && Cols > 80)
-			printf("\n");
+		if (c == (Cols - 1)/* && Cols > 80*/)
+			I_TextModeNextLine();
 	}
 	
 	/* Leave text mode */
 	I_TextMode(false);
+}
+
+/* I_TextModeNextLine() -- Prints a new line */
+void I_TextModeNextLine(void)
+{
+	/* Print character */
+#if defined(__MSDOS__)
+	cprintf
+#else
+	printf
+#endif
+	("\n");
 }
 
 /* I_TextModeChar() -- Prints a text mode character */
