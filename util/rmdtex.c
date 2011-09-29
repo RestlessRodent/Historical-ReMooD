@@ -727,6 +727,37 @@ static int Handler_PatchT(struct LumpDir_s* const a_LumpDir, FILE* const File, c
 /* Handler_Sound() -- Handles sounds */
 static int Handler_Sound(struct LumpDir_s* const a_LumpDir, FILE* const File, const size_t Size, const char* const Ext, const char** const Args, PushyData_t* const Pushy)
 {
+	size_t i;
+	uint8_t u8;
+	char Buf[12];
+	
+	/* PC Beep */
+	if (strcasecmp(Ext, "txt") == 0)
+	{
+		while (!feof(File))
+		{
+			// Get line
+			fgets(Buf, 12, File);
+			
+			if (Buf[0] == '\n' || Buf[0] == '\r')
+				continue;
+			
+			// Convert to integer
+			u8 = atoi(Buf);
+			
+			// Send to pushy
+			Pushy->Data = realloc(Pushy->Data, Pushy->Size + 1);
+			((uint8_t*)Pushy->Data)[Pushy->Size++] = u8;
+		}
+		
+		return 1;
+	}
+	
+	/* Wave File */
+	else
+	{
+	}
+		
 	return 0;
 }
 
