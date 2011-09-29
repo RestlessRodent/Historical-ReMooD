@@ -30,6 +30,7 @@
 
 static uint8_t l_Bits[80 * 25];
 static uint8_t l_Attr[80 * 25];
+static uint8_t l_Mode;
 
 static const uint8_t c_ColorToCurse[8] =
 {
@@ -173,11 +174,16 @@ void DrawChar(int c, int r, int reset, int doreverse)
 	/* Full reverse? */
 	if (doreverse)
 	{
+		attroff(A_REVERSE);
 		if (FullReverse)
 			attron(A_REVERSE);
 		else
 			attroff(A_REVERSE);
 	}
+	
+	attroff(A_BLINK);
+	attroff(A_UNDERLINE);
+	attroff(A_BOLD);
 	
 	/* Do attribute first */
 	x = l_Attr[(r * 80) + c];
@@ -350,6 +356,13 @@ int main(int argc, char** argv)
 			if (ch == '/')
 				FullReverse = !FullReverse;
 			
+			// Change Mode
+			if (ch == KEY_F(2))
+			{
+				l_Mode = !l_Mode;
+				continue;
+			}
+			
 			// Move cursor?
 			if (ch == KEY_DOWN)
 				mY++;
@@ -369,28 +382,39 @@ int main(int argc, char** argv)
 				mY = 0;
 			if (mY >= 25)
 				mY = 24;
-				
-			// Is this a recolor?
-			if ((rc = IsRecolor(ch)) >= 0)
+			
+			// Attribute Mode
+			if (!l_Mode)
 			{
-				// Change FG?
-				if (c_ColorChoice[rc].ModType == 0)
-					l_Attr[(mY * 80) + mX] = (l_Attr[(mY * 80) + mX] & (~0xF)) | c_ColorChoice[rc].Value;
-				
-				// Change BG?
-				else if (c_ColorChoice[rc].ModType == 1)
+				// Is this a recolor?
+				if ((rc = IsRecolor(ch)) >= 0)
 				{
-					l_Attr[(mY * 80) + mX] = (l_Attr[(mY * 80) + mX] & (~(0x7 << 4))) | (c_ColorChoice[rc].Value << 4);
-				}
+					// Change FG?
+					if (c_ColorChoice[rc].ModType == 0)
+						l_Attr[(mY * 80) + mX] = (l_Attr[(mY * 80) + mX] & (~0xF)) | c_ColorChoice[rc].Value;
 				
-				// Change Blink?
-				else if (c_ColorChoice[rc].ModType == 2)
-				{
-					if (c_ColorChoice[rc].Value)
-						l_Attr[(mY * 80) + mX] |= 0x80;
-					else
-						l_Attr[(mY * 80) + mX] &= ~0x80;
+					// Change BG?
+					else if (c_ColorChoice[rc].ModType == 1)
+					{
+						l_Attr[(mY * 80) + mX] = (l_Attr[(mY * 80) + mX] & (~(0x7 << 4))) | (c_ColorChoice[rc].Value << 4);
+					}
+				
+					// Change Blink?
+					else if (c_ColorChoice[rc].ModType == 2)
+					{
+						if (c_ColorChoice[rc].Value)
+							l_Attr[(mY * 80) + mX] |= 0x80;
+						else
+							l_Attr[(mY * 80) + mX] &= ~0x80;
+					}
 				}
+			}
+			
+			// Character Mode
+			else
+			{
+				if (ch >= ' ' && ch <= 0x7F)
+					l_Bits[(mY * 80) + mX] = ch & 0x7F;
 			}
 		}
 		
@@ -405,7 +429,7 @@ int main(int argc, char** argv)
 		DrawChar(mX, mY, 0, 0);
 		attroff(A_REVERSE);
 		standend();	// revert all specials
-		mvprintw(25, 0, "Mouse: %i, %i     ", mX, mY);
+		mvprintw(25, 0, "Pos: %i, %i     %s      ", mX, mY, (l_Mode ? "char" : "attrib"));
 		
 		// Draw instructions
 		DrawInst();
