@@ -68,6 +68,8 @@
 
 #include "command.h"
 
+//#define COOLFLIPLEVELS
+
 //
 // MAP related Lookup tables.
 // Store VERTEXES, LINEDEFS, SIDEDEFS, etc.
@@ -378,12 +380,14 @@ char* P_FlatNameForNum(int num)
 void P_LoadSectors(int lump)
 {
 	uint8_t* data;
-	int i, j;
+	int i, j, Temp;
 	mapsector_t* ms;
 	sector_t* ss;
 	char newflat1[10];
 	char newflat2[10];
 	char* buf;
+	const char* FP;
+	const char* CP;
 	
 	levelflat_t* foundflats;
 	
@@ -404,16 +408,30 @@ void P_LoadSectors(int lump)
 	for (i = 0; i < numsectors; i++, ss++, ms++)
 	{
 		ss->floorheight = LittleSwapInt16(ms->floorheight) << FRACBITS;
-		ss->ceilingheight = LittleSwapInt16(ms->ceilingheight) << FRACBITS;
+		ss->ceilingheight = LittleSwapInt16(ms->ceilingheight) << FRACBITS;	
+
+#ifdef COOLFLIPLEVELS
+		Temp = ss->ceilingheight - ss->floorheight;
+		ss->ceilingheight = -ss->floorheight;
+		ss->floorheight = ss->ceilingheight - Temp;
+#endif
 		
 		//
 		//  flats
 		//
-		if (strncasecmp(ms->floorpic, "FWATER", 6) == 0 || strncasecmp(ms->floorpic, "FLTWAWA1", 8) == 0 || strncasecmp(ms->floorpic, "FLTFLWW1", 8) == 0)
+#ifdef COOLFLIPLEVELS
+		FP = ms->ceilingpic;
+		CP = ms->floorpic;
+#else
+		FP = ms->floorpic;
+		CP = ms->ceilingpic;
+#endif
+		
+		if (strncasecmp(FP, "FWATER", 6) == 0 || strncasecmp(FP, "FLTWAWA1", 8) == 0 || strncasecmp(FP, "FLTFLWW1", 8) == 0)
 			ss->floortype = FLOOR_WATER;
-		else if (strncasecmp(ms->floorpic, "FLTLAVA1", 8) == 0 || strncasecmp(ms->floorpic, "FLATHUH1", 8) == 0)
+		else if (strncasecmp(FP, "FLTLAVA1", 8) == 0 || strncasecmp(FP, "FLATHUH1", 8) == 0)
 			ss->floortype = FLOOR_LAVA;
-		else if (strncasecmp(ms->floorpic, "FLTSLUD1", 8) == 0)
+		else if (strncasecmp(FP, "FLTSLUD1", 8) == 0)
 			ss->floortype = FLOOR_SLUDGE;
 		else
 			ss->floortype = FLOOR_SOLID;
@@ -432,7 +450,7 @@ void P_LoadSectors(int lump)
 		   strncpy(newflat1, 8, ms->floorpic); //snprintf(newflat2, 9, "%s", ms->ceilingpic);
 		   #else */
 		// Insecure "Safe" strncpy -- Self implementation
-		buf = ms->floorpic;
+		buf = FP;
 		j = 0;
 		while (*buf && j < 8)
 		{
@@ -442,7 +460,7 @@ void P_LoadSectors(int lump)
 		}
 		newflat1[8] = 0;
 		
-		buf = ms->ceilingpic;
+		buf = CP;
 		j = 0;
 		while (*buf && j < 8)
 		{
@@ -855,7 +873,7 @@ int R_ColormapNumForName(char* name);
 void P_LoadSideDefs2(int lump)
 {
 	uint8_t* data = W_CacheLumpNum(lump, PU_STATIC);
-	int i;
+	int i, Temp;
 	int num;
 	int mapnum;
 	
@@ -867,6 +885,13 @@ void P_LoadSideDefs2(int lump)
 		
 		sd->textureoffset = LittleSwapInt16(msd->textureoffset) << FRACBITS;
 		sd->rowoffset = LittleSwapInt16(msd->rowoffset) << FRACBITS;
+
+#ifdef COOLFLIPLEVELS
+		sd->textureoffset = -sd->textureoffset;
+		sd->VFlip = true;
+#else
+		sd->VFlip = false;
+#endif
 		
 		// refined to allow colormaps to work as wall
 		// textures if invalid as colormaps but valid as textures.
@@ -977,6 +1002,12 @@ void P_LoadSideDefs2(int lump)
 				sd->midtexture = R_TextureNumForName(msd->midtexture);
 				sd->toptexture = R_TextureNumForName(msd->toptexture);
 				sd->bottomtexture = R_TextureNumForName(msd->bottomtexture);
+				
+#ifdef COOLFLIPLEVELS
+				Temp = sd->toptexture;
+				sd->toptexture = sd->bottomtexture;
+				sd->bottomtexture = Temp;
+#endif
 				break;
 		}
 	}
