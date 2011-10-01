@@ -670,12 +670,9 @@ static void CONLFF_InputFF(const char* const a_Buf)
 	}
 	
 	/* Send to execution handler */
-#if 0
-	fprintf(stderr, "%i: ", ArgC);
-	for (i = 0; i < ArgC; i++)
-		fprintf(stderr, "`%s`", ArgV[i]);
-	fprintf(stderr, "\n");
-#endif
+	if (ArgC)
+		if (!CONL_Exec(ArgC, ArgV))
+			CONL_OutputF("Illegal Command or Variable (\"%s\").\n", ArgV[0]);
 	
 	/* Clear */
 	if (ArgV)
@@ -688,6 +685,104 @@ static void CONLFF_InputFF(const char* const a_Buf)
 	//I_OutputText(a_Buf);
 	//I_OutputText("\n");
 #undef MAXARGV
+}
+
+/*** Console Commands ***/
+#define MAXCONLCOMMANDNAME		128							// Max name for console command
+
+/* CONL_ConCommand_t -- Console command */
+typedef struct CONL_ConCommand_s
+{
+	char Name[MAXCONLCOMMANDNAME];							// Name of command
+	void (*ComFunc)(const uint32_t, const char** const);	// Function to call
+	uint32_t Hash;											// Hash table hash
+} CONL_ConCommand_t;
+
+static CONL_ConCommand_t* l_CONLCommands = NULL;			// Console commands
+static size_t l_CONLNumCommands = 0;						// Number of commands
+static Z_HashTable_t* l_CONLCommandHashes = NULL;			// Speed lookup
+
+/* CONL_CommandHashCompare() -- Compares entry hash */
+// A = const char*
+// B = uintptr_t
+static bool_t CONL_CommandHashCompare(void* const a_A, void* const a_B)
+{
+	/* Check */
+	if (!a_A || (((uintptr_t)a_B) - 1) >= l_CONLNumCommands)
+		return false;
+	
+	/* Caseless compare */
+	if (strcasecmp(a_A, l_CONLCommands[((uintptr_t)a_B) - 1].Name) == 0)
+		return true;
+	
+	/* No match */
+	return false;
+}
+
+/* CONL_AddCommand() -- Add console command */
+bool_t CONL_AddCommand(const char* const a_Name, void (*a_ComFunc)(const uint32_t, const char** const))
+{
+	uintptr_t x;
+	
+	/* Check */
+	if (!a_Name || !a_ComFunc)
+		return false;
+	
+	/* Check if already registered */
+	if (l_CONLCommands)
+		for (x = 0; x < l_CONLNumCommands; x++)
+			if (strcasecmp(l_CONLCommands[x].Name, a_Name) == 0)
+				return false;	// Whoops!
+	
+	/* Resize command structure */
+	Z_ResizeArray((void**)&l_CONLCommands, sizeof(*l_CONLCommands), l_CONLNumCommands, l_CONLNumCommands + 1);
+	
+	/* Set in command structure */
+	strncpy(l_CONLCommands[l_CONLNumCommands].Name, a_Name, MAXCONLCOMMANDNAME);
+	l_CONLCommands[l_CONLNumCommands].ComFunc = a_ComFunc;
+	l_CONLCommands[l_CONLNumCommands].Hash = Z_Hash(l_CONLCommands[l_CONLNumCommands].Name);
+	
+	/* Create hash table */
+	// No table yet created?
+	if (!l_CONLCommandHashes)
+		l_CONLCommandHashes = Z_HashCreateTable(CONL_CommandHashCompare);
+	
+	// Add to hash
+	Z_HashAddEntry(l_CONLCommandHashes, l_CONLCommands[l_CONLNumCommands].Hash, (uintptr_t)(l_CONLNumCommands + 1));
+	
+	/* Increment */
+	l_CONLNumCommands++;
+	
+	/* Success */
+	return true;
+}
+
+/* CONL_Exec() -- Execute command */
+bool_t CONL_Exec(const uint32_t a_ArgC, const char** const a_ArgV)
+{
+	uint32_t Hash;
+	uintptr_t ComNum;
+	
+	/* Check */
+	if (!a_ArgC || !a_ArgV)
+		return false;
+	
+	/* Find hash for command */
+	Hash = Z_Hash(a_ArgV[0]);
+	
+	/* Find command for this hash */
+	ComNum = (uintptr_t)Z_HashFindEntry(l_CONLCommandHashes, Hash, a_ArgV[0], false);
+	ComNum -= 1;
+	
+	// Check
+	if (ComNum >= l_CONLNumCommands)
+		return false;	// not found
+	
+	/* Execute */
+	l_CONLCommands[ComNum].ComFunc(a_ArgC, a_ArgV);
+	
+	/* Success */
+	return true;
 }
 
 /*** Base Console ***/
@@ -721,6 +816,10 @@ bool_t CONL_Init(const uint32_t a_OutBS, const uint32_t a_InBS)
 	
 	/* Create input */
 	l_CONLInputter = CONCTI_CreateInput(128, CONL_OutBack, &l_CONLInputter);
+	
+	/* Add Commands */
+	CONL_AddCommand("version", CLC_Version);
+	CONL_AddCommand("dep", CLC_Dep);
 	
 	/* Success! */
 	return true;
@@ -1338,6 +1437,46 @@ void CONL_DrawConsole(void)
 			}
 		}
 	}
+}
+
+/* CLC_Version() -- ReMooD version info */
+void CLC_Version(const uint32_t a_ArgC, const char** const a_ArgV)
+{
+	CONL_OutputF("ReMooD %i.%i%c \"%s\"\n", REMOOD_MAJORVERSION, REMOOD_MINORVERSION, REMOOD_RELEASEVERSION, REMOOD_VERSIONCODESTRING);
+	CONL_OutputF("  Please visit %s for more information.\n", REMOOD_URL);
+}
+
+/* CLC_Dep() -- Access to deprecated console */
+void CLC_Dep(const uint32_t a_ArgC, const char** const a_ArgV)
+{
+#define BUFSIZE 512
+	char Buf[BUFSIZE];
+	uint32_t i, j, n;
+	
+	/* Clear */
+	memset(Buf, 0, sizeof(Buf));
+	
+	/* Place command in buffer */
+	// The old console code uses a single line
+	// Also, ignore the actual "dep" part
+	for (i = 1; i < a_ArgC; i++)
+	{	
+		// Always quote everything
+		strncat(Buf, "\"", BUFSIZE);
+		strncat(Buf, a_ArgV[i], BUFSIZE);
+		strncat(Buf, "\"", BUFSIZE);
+	}
+	
+	// Add newline
+	strncat(Buf, "\n", BUFSIZE);
+	
+	/* Send command to be executed */
+	COM_BufAddText(Buf);
+
+	/* Flush command (to execute it) */
+	COM_BufExecute();
+
+#undef BUFSIZE
 }
 
 /*****************************************************************************/

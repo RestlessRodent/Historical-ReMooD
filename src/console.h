@@ -98,6 +98,10 @@ bool_t CONCTI_HandleEvent(CONCTI_Inputter_t* const a_Input, const I_EventEx_t* c
 void CONCTI_SetText(CONCTI_Inputter_t* const a_Input, const char* const a_Text);
 int32_t CONCTI_DrawInput(CONCTI_Inputter_t* const a_Input, const uint32_t a_Options, const int32_t a_x, const int32_t a_y, const int32_t a_x2);
 
+/*** Console Commands */
+bool_t CONL_AddCommand(const char* const a_Name, void (*a_ComFunc)(const uint32_t, const char** const));
+bool_t CONL_Exec(const uint32_t a_ArgC, const char** const a_ArgV);
+
 /*** Base Console ***/
 bool_t CONL_Init(const uint32_t a_OutBS, const uint32_t a_InBS);
 void CONL_Stop(void);
@@ -116,6 +120,10 @@ bool_t CONL_SetActive(const bool_t a_Set);
 bool_t CONL_HandleEvent(const I_EventEx_t* const a_Event);
 void CONL_Ticker(void);
 void CONL_DrawConsole(void);
+
+/*** Console Commands ***/
+void CLC_Version(const uint32_t a_ArgC, const char** const a_ArgV);
+void CLC_Dep(const uint32_t a_ArgC, const char** const a_ArgV);
 
 /******************************************************************************/
 
