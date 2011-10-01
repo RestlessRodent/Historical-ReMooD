@@ -80,7 +80,7 @@ static wallsplat_t* R_AllocWallSplat(void)
 		if (li->splats == splat)
 		{
 			li->splats = splat->next;	//remove from head
-			splat->line = NULL;			// Remove reference here
+			splat->line = NULL;	// Remove reference here
 		}
 		else
 		{
@@ -90,7 +90,6 @@ static wallsplat_t* R_AllocWallSplat(void)
 				CONS_Printf("WARNING - R_AllocWallSplat: Line has no splats (%s:%i).\n", __FILE__, __LINE__);
 				return NULL;
 			}
-			
 			// GhostlyDeath <November 3, 2010> -- Remove NULL dereference
 			for (p_splat = li->splats; p_splat && p_splat->next; p_splat = p_splat->next)
 				if (p_splat->next == splat)

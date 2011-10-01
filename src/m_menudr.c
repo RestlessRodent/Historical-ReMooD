@@ -347,7 +347,7 @@ void M_DrawTextBox(int x, int y, int width, int lines)
 	// GhostlyDeath <November 3, 2010> -- Banded message (gray band)
 	x1 = 0;
 	y1 = y + 8;
-	x2 = BASEVIDWIDTH;	// Scaled to screen
+	x2 = BASEVIDWIDTH;			// Scaled to screen
 	y2 = y1 + (lines * 8);
 	
 	V_DrawFadeConsBackEx((VEX_MAP_BRIGHTWHITE << VEX_COLORMAPSHIFT), x1, y1, x2, y2);

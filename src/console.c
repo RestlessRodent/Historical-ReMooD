@@ -98,9 +98,9 @@ typedef struct CONL_BasicBuffer_s
 	uint32_t StartPos;			// Start position of buffer
 	uint32_t EndPos;			// End position of buffer
 	uint32_t MaskLine;			// Line mask
-	uint32_t StartLine;		// First line in buffer
+	uint32_t StartLine;			// First line in buffer
 	uint32_t EndLine;			// Last line in buffer
-	uint32_t CountLine;		// Line count
+	uint32_t CountLine;			// Line count
 	
 	CONL_FlushFunc_t FlushFunc;	// Function to call on '\n'
 } CONL_BasicBuffer_t;
@@ -146,7 +146,7 @@ CONCTI_Inputter_t* CONCTI_CreateInput(const size_t a_NumHistory, const CONCTI_Ou
 	New->NumHistory = a_NumHistory;
 	if (New->NumHistory)
 		New->History = Z_Malloc(sizeof(*New->History) * New->NumHistory, PU_STATIC, NULL);
-	
+		
 	return New;
 }
 
@@ -158,11 +158,11 @@ void CONCTI_DestroyInput(CONCTI_Inputter_t* const a_Input)
 	/* Check */
 	if (!a_Input)
 		return;
-	
+		
 	/* Clear reference */
 	if (a_Input->RefPtr)
 		*a_Input->RefPtr = NULL;
-	
+		
 	/* Clear history */
 	if (a_Input->History)
 	{
@@ -170,7 +170,7 @@ void CONCTI_DestroyInput(CONCTI_Inputter_t* const a_Input)
 		for (i = 0; i < a_Input->HistoryCount; i++)
 			if (a_Input->History[i])
 				Z_Free(a_Input->History[i]);
-		
+				
 		// Clear entire buffer
 		Z_Free(a_Input->History);
 	}
@@ -197,11 +197,11 @@ bool_t CONCTI_HandleEvent(CONCTI_Inputter_t* const a_Input, const I_EventEx_t* c
 	/* Only handle keyboard events */
 	if (a_Event->Type != IET_KEYBOARD)
 		return false;
-	
+		
 	// Ignore release/up events
 	if (!a_Event->Data.Keyboard.Down)
 		return false;
-	
+		
 	// Remember key code and character
 	Code = a_Event->Data.Keyboard.KeyCode;
 	Char = a_Event->Data.Keyboard.Character;
@@ -280,7 +280,7 @@ bool_t CONCTI_HandleEvent(CONCTI_Inputter_t* const a_Input, const I_EventEx_t* c
 				// Is this it?
 				if (i == j)
 					break;
-				
+					
 				// Next
 				MBRover = MBRover->Next;
 			}
@@ -291,19 +291,19 @@ bool_t CONCTI_HandleEvent(CONCTI_Inputter_t* const a_Input, const I_EventEx_t* c
 				// First character?
 				if (MBRover == a_Input->ChainRoot)
 					a_Input->ChainRoot = MBRover->Next;
-				
+					
 				// Unlink from chain
 				if (MBRover->Next)
 					MBRover->Next->Prev = MBRover->Prev;
-				
+					
 				if (MBRover->Prev)
 					MBRover->Prev->Next = MBRover->Next;
-				
+					
 				// Delete rover
 				Z_Free(MBRover);
 				
 				// Change input stuff
-				a_Input->NumMBs--;		// Deleted char
+				a_Input->NumMBs--;	// Deleted char
 				a_Input->CursorPos = j;	// Set cursor pos to deleted spot
 			}
 			return true;
@@ -318,7 +318,7 @@ bool_t CONCTI_HandleEvent(CONCTI_Inputter_t* const a_Input, const I_EventEx_t* c
 			// Control or non-character key (fall through)
 			if (!Char || (Char < 0x20 && Char != '\t'))
 				return false;
-			
+				
 			// Set to first in chain
 			MBRover = a_Input->ChainRoot;
 			
@@ -328,7 +328,6 @@ bool_t CONCTI_HandleEvent(CONCTI_Inputter_t* const a_Input, const I_EventEx_t* c
 				MBRover = a_Input->ChainRoot = Z_Malloc(sizeof(*MBRover), PU_STATIC, NULL);
 				a_Input->NumMBs++;	// Added more
 			}
-			
 			// Append somewhere, somehow
 			else
 			{
@@ -338,7 +337,7 @@ bool_t CONCTI_HandleEvent(CONCTI_Inputter_t* const a_Input, const I_EventEx_t* c
 					// Did we hit it?
 					if (i == a_Input->CursorPos)
 						break;
-					
+						
 					// Next
 					Last = MBRover;
 					MBRover = MBRover->Next;
@@ -351,7 +350,6 @@ bool_t CONCTI_HandleEvent(CONCTI_Inputter_t* const a_Input, const I_EventEx_t* c
 					MBRover->Prev = Last;	// link back
 					a_Input->NumMBs++;	// Added
 				}
-				
 				// Not overwriting
 				else if (!a_Input->Overwrite)
 				{
@@ -367,11 +365,11 @@ bool_t CONCTI_HandleEvent(CONCTI_Inputter_t* const a_Input, const I_EventEx_t* c
 					// Relink before
 					if (Last->Prev)
 						Last->Prev->Next = Last;
-					
+						
 					// This is the first!
 					if (MBRover == a_Input->ChainRoot)
 						a_Input->ChainRoot = Last;
-					
+						
 					// Set to last
 					MBRover = Last;
 					
@@ -410,7 +408,7 @@ int32_t CONCTI_DrawInput(CONCTI_Inputter_t* const a_Input, const uint32_t a_Opti
 	/* Check */
 	if (!a_Input)
 		return NULL;
-	
+		
 	// Draw command text
 	MBRover = a_Input->ChainRoot;
 	Options = a_Options;
@@ -427,7 +425,6 @@ int32_t CONCTI_DrawInput(CONCTI_Inputter_t* const a_Input, const uint32_t a_Opti
 			bx = x;
 			GotCur = true;
 		}
-		
 		// Draw it
 		x += V_DrawCharacterMB(CONLCONSOLEFONT, Options, MBRover->MB, x, a_y, NULL, &Options);
 		
@@ -439,7 +436,7 @@ int32_t CONCTI_DrawInput(CONCTI_Inputter_t* const a_Input, const uint32_t a_Opti
 	// Cursor never set?
 	if (!GotCur)
 		bx = x;
-	
+		
 	// Draw box/underscore here (blinked)
 	Options = a_Options;
 	Options &= ~VFO_COLORMASK;
@@ -648,7 +645,6 @@ static void CONLFF_InputFF(const char* const a_Buf)
 			ArgV[Current] = Z_Malloc(sizeof(*ArgV[Current]) * MAXARGV, PU_STATIC, NULL);
 			Quote = 0;
 		}
-		
 		// Whitespace adds to current
 		if (!Quote && (*p == 0 || *p == ' ' || *p == '\t'))
 		{
@@ -656,7 +652,6 @@ static void CONLFF_InputFF(const char* const a_Buf)
 			if (j > 0)
 				Current++;
 		}
-		
 		// Quote?
 		else if ((!Quote && (*p == '\"' || *p == '\'')) || (Quote && *p == Quote))
 		{
@@ -666,7 +661,6 @@ static void CONLFF_InputFF(const char* const a_Buf)
 			else
 				Quote = *p;
 		}
-		
 		// Normal character?
 		else
 		{
@@ -690,7 +684,6 @@ static void CONLFF_InputFF(const char* const a_Buf)
 			Z_Free(ArgV[i]);
 		Z_Free(ArgV);
 	}
-	
 	//I_OutputText("Exec >> ");
 	//I_OutputText(a_Buf);
 	//I_OutputText("\n");
@@ -830,7 +823,7 @@ size_t CONL_RawPrint(CONL_BasicBuffer_t* const a_Buffer, const char* const a_Tex
 					for (k = 0; k < j - 1; i = POSMASK(i + 1))
 						Que[Q][k++] = a_Buffer->Buffer[POSMASK(i)];
 					Que[Q][k++] = 0;
-						
+					
 					// Increase Q
 					Q++;
 				}
@@ -855,7 +848,7 @@ size_t CONL_RawPrint(CONL_BasicBuffer_t* const a_Buffer, const char* const a_Tex
 		a_Buffer->CountLine = (a_Buffer->EndLine + a_Buffer->NumLines) - a_Buffer->StartLine;
 	else
 		a_Buffer->CountLine = a_Buffer->EndLine - a_Buffer->StartLine;
-	
+		
 	/* print Q */
 	if (a_Buffer->FlushFunc)
 		if (Que)
@@ -1040,7 +1033,7 @@ bool_t CONL_HandleEvent(const I_EventEx_t* const a_Event)
 	/* Check */
 	if (!a_Event)
 		return false;
-	
+		
 	/* Don't handle events during startup */
 	if (con_startup)
 		return false;
@@ -1048,11 +1041,11 @@ bool_t CONL_HandleEvent(const I_EventEx_t* const a_Event)
 	/* Only handle keyboard events */
 	if (a_Event->Type != IET_KEYBOARD)
 		return false;
-	
+		
 	// Ignore release/up events
 	if (!a_Event->Data.Keyboard.Down)
 		return false;
-	
+		
 	// Remember key code and character
 	Code = a_Event->Data.Keyboard.KeyCode;
 	Char = a_Event->Data.Keyboard.Character;
@@ -1073,25 +1066,22 @@ bool_t CONL_HandleEvent(const I_EventEx_t* const a_Event)
 			CONL_SetActive(false);
 			return true;
 		}
-		
 		// Scroll console up
 		else if (Code == IKBK_PAGEUP)
 		{
 			if (l_CONLLineOff < l_CONLBuffers[0].NumLines)
 				l_CONLLineOff++;
 		}
-		
 		// Scroll console down
 		else if (Code == IKBK_PAGEDOWN)
 		{
 			if (l_CONLLineOff > 0)
 				l_CONLLineOff--;
 		}
-		
 		// Handle input line
 		else if (CONCTI_HandleEvent(l_CONLInputter, a_Event))
-			return true;	// it ate the event
-		
+			return true;		// it ate the event
+			
 		// Always eat everything
 		return true;
 	}
@@ -1138,7 +1128,7 @@ void CONL_DrawConsole(void)
 			// Load background?
 			if (!BackPic)
 				BackPic = W_CacheLumpName("RMD_CB_D", PU_STATIC);
-			
+				
 			// Blit to entire screen
 			V_BlitScalePicExtern(0, 0, 0, BackPic);
 			
@@ -1152,16 +1142,11 @@ void CONL_DrawConsole(void)
 			conH = (vid.height >> 1);
 			
 			// Draw box
-			V_DrawFadeConsBackEx(
-					VEX_COLORMAP(VEX_MAP_RED) | VEX_NOSCALESTART | VEX_NOSCALESCREEN,
-					0,
-					0,
-					vid.width, conH
-				);
+			V_DrawFadeConsBackEx(VEX_COLORMAP(VEX_MAP_RED) | VEX_NOSCALESTART | VEX_NOSCALESCREEN, 0, 0, vid.width, conH);
 		}
 		
 		// Determine line count
-		NumLines = conH / bh; 
+		NumLines = conH / bh;
 		
 		// Draw every line
 		DrawCount = 0;
@@ -1171,7 +1156,7 @@ void CONL_DrawConsole(void)
 			// Lines out of range? Or this is the first line?
 			if (!Out->Lines[j] || j == ((Out->StartLine) & Out->MaskLine))
 				break;
-			
+				
 			// Skip drawing this line
 			if (l < l_CONLLineOff)
 			{
@@ -1180,7 +1165,7 @@ void CONL_DrawConsole(void)
 			}
 			else
 				i++;
-			
+				
 			// Get line to draw
 			x = conX;
 			p = Out->Lines[j];
@@ -1195,7 +1180,7 @@ void CONL_DrawConsole(void)
 				// Fill into temporary (for MB overchunking)
 				for (k = 0; k < 5; k++)
 					TempFill[k] = Out->Buffer[(n + k) & Out->MaskPos];
-				TempFill[k] = 0; // is 6
+				TempFill[k] = 0;	// is 6
 				
 				// Make tab special (keep output even)
 				if (*p == '\t')
@@ -1205,7 +1190,6 @@ void CONL_DrawConsole(void)
 					x -= (x % (bw * 4));
 					BSkip = 1;
 				}
-				
 				// Make \1 and \3 special (white)
 				else if (*p == '\1' || *p == '\2')
 				{
@@ -1214,11 +1198,10 @@ void CONL_DrawConsole(void)
 					bx = 0;
 					BSkip = 1;
 				}
-					
 				// Non console special control (Legacy)
 				else if (*p > 7)
 					bx = V_DrawCharacterMB(CONLCONSOLEFONT, Options, TempFill, x, y, &BSkip, &Options);
-				
+					
 				// Normal character
 				else
 				{
@@ -1249,7 +1232,6 @@ void CONL_DrawConsole(void)
 			// Draw input buffer
 			x += CONCTI_DrawInput(l_CONLInputter, Options, x, y, vid.width);
 		}
-		
 		// Draw scrollbar
 		if (!con_startup)
 		{
@@ -1274,7 +1256,7 @@ void CONL_DrawConsole(void)
 			// Less than 1?
 			if (bh < 1)
 				bh = 1;
-			
+				
 			V_DrawColorBoxEx(VEX_COLORMAP(VEX_MAP_GRAY) | VEX_NOSCALESTART | VEX_NOSCALESCREEN, CONLSCROLLMISS, 1, bw, CONLPADDING - 1, bh);
 			
 			// Draw remaining black

@@ -614,7 +614,7 @@ void P_LoadThingsHexen(int lump)
 		
 		// Do spawn all other stuff.
 		// SoM: Do this first so all the mapthing slots are filled!
-		data++;	// hexen ID
+		data++;					// hexen ID
 		mt->x = *data;
 		data++;
 		mt->y = *data;
@@ -736,8 +736,8 @@ void P_LoadLineDefsHexen(int lump)
 		ld->flags = LittleSwapInt16(mld->flags);
 		
 		// Ignore hexen specials (not supported, yet!)
-		ld->special = 0;//LittleSwapInt16(mld->special);
-		ld->tag = 0;//LittleSwapInt16(mld->tag);
+		ld->special = 0;		//LittleSwapInt16(mld->special);
+		ld->tag = 0;			//LittleSwapInt16(mld->tag);
 		
 		v1 = ld->v1 = &vertexes[LittleSwapInt16(mld->v1)];
 		v2 = ld->v2 = &vertexes[LittleSwapInt16(mld->v2)];
@@ -1325,7 +1325,7 @@ bool_t P_SetupLevel(int episode, int map, skill_t skill, char* wadname)	// for w
 	}
 	else
 		HexenACS = NULL;
-	
+		
 #ifdef FRAGGLESCRIPT
 	P_LoadLevelInfo(lastloadedmaplumpnum);	// load level lump info(level name etc)
 #endif
@@ -1353,7 +1353,7 @@ bool_t P_SetupLevel(int episode, int map, skill_t skill, char* wadname)	// for w
 		P_LoadLineDefsHexen(lastloadedmaplumpnum + ML_LINEDEFS);
 	else
 		P_LoadLineDefs(lastloadedmaplumpnum + ML_LINEDEFS);
-	
+		
 	P_LoadSideDefs2(lastloadedmaplumpnum + ML_SIDEDEFS);
 	P_LoadLineDefs2();
 	P_LoadSubsectors(lastloadedmaplumpnum + ML_SSECTORS);
@@ -1369,12 +1369,12 @@ bool_t P_SetupLevel(int episode, int map, skill_t skill, char* wadname)	// for w
 	//SoM: Set pointers to NULL
 	for (i = 0; i < MAXPLAYERS; i++)
 		playerstarts[i] = NULL;
-	
+		
 	if (HexenACS)
 		P_LoadThingsHexen(lastloadedmaplumpnum + ML_THINGS);
 	else
 		P_LoadThings(lastloadedmaplumpnum + ML_THINGS);
-	
+		
 	// set up world state
 	P_SpawnSpecials();
 	P_InitBrainTarget();

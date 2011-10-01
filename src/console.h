@@ -48,11 +48,11 @@
 *** CONSTANTS ***
 ****************/
 
-#define CONLCONSOLEFONT VFONT_OEM		// Font used to draw console
-#define CONLPADDING 5					// Pad the console
-#define CONLSCROLLFORE 4				// Forecolor of the scrollbar
-#define CONLSCROLLBACK 0				// Backcolor of the scrollbar
-#define CONLSCROLLMISS 200				// Missed color for scrollbar
+#define CONLCONSOLEFONT VFONT_OEM	// Font used to draw console
+#define CONLPADDING 5			// Pad the console
+#define CONLSCROLLFORE 4		// Forecolor of the scrollbar
+#define CONLSCROLLBACK 0		// Backcolor of the scrollbar
+#define CONLSCROLLMISS 200		// Missed color for scrollbar
 
 /*****************
 *** STRUCTURES ***
@@ -61,28 +61,28 @@
 /* CONCTI_MBChain_t -- Multibyte chain for character input */
 typedef struct CONCTI_MBChain_s
 {
-	char MB[6];						// Multibyte data
+	char MB[6];					// Multibyte data
 	struct CONCTI_MBChain_s* Prev;	// Previous character
 	struct CONCTI_MBChain_s* Next;	// Next character
 } CONCTI_MBChain_t;
 
 struct CONCTI_Inputter_s;
-typedef bool_t (*CONCTI_OutBack_t)(struct CONCTI_Inputter_s*, const char* const);
+typedef bool_t (*CONCTI_OutBack_t) (struct CONCTI_Inputter_s*, const char* const);
 
 /* CONCTI_Inputter_t -- Text inputter */
 typedef struct CONCTI_Inputter_s
 {
 	CONCTI_MBChain_t* ChainRoot;	// First link in chain
-	int32_t CursorPos;				// Cursor position
-	int32_t NumMBs;					// Number of multibytes
-	bool_t Overwrite;				// Overwrite character
+	int32_t CursorPos;			// Cursor position
+	int32_t NumMBs;				// Number of multibytes
+	bool_t Overwrite;			// Overwrite character
 	
-	char** History;					// Remembered strings
-	size_t NumHistory;				// Amount of history to preserve
-	size_t HistoryCount;			// Stuff in history
-	size_t HistorySpot;				// Current spot in history
+	char** History;				// Remembered strings
+	size_t NumHistory;			// Amount of history to preserve
+	size_t HistoryCount;		// Stuff in history
+	size_t HistorySpot;			// Current spot in history
 	
-	CONCTI_OutBack_t OutFunc;		// Function to call when text is entered (\n)
+	CONCTI_OutBack_t OutFunc;	// Function to call when text is entered (\n)
 	
 	struct CONCTI_Inputter_s** RefPtr;	// Reference to this struct
 } CONCTI_Inputter_t;

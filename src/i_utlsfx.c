@@ -823,7 +823,7 @@ void I_MUS2MID_Volume(struct I_MusicDriver_s* const a_Driver, const int a_Handle
 			Local->RealDriver->Volume(Local->RealDriver, Local->RealHandle, 255);
 			
 		// Set volume scale
-		Local->VolScale = FixedDiv(((fixed_t)Vol) << FRACBITS, 255 << FRACBITS);
+		Local->VolScale = FixedDiv(((fixed_t) Vol) << FRACBITS, 255 << FRACBITS);
 	}
 	
 	/* Full convert mode */

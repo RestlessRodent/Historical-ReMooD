@@ -1371,12 +1371,12 @@ void V_DrawColorBoxEx(const uint32_t a_Flags, const int8_t a_Color, const int32_
 		Map = l_ColorMaps[(a_Flags & VEX_COLORMAPMASK) >> VEX_COLORMAPSHIFT];
 	else
 		Map = l_ColorMaps[0];
-	
+		
 	/* Same Color all the way */
 	c = Map[a_Color];
 	c |= c << 8;
 	c |= c << 16;
-		
+	
 	/* Actual Drawing */
 	// Speed
 	w = (X2 >> 2);
@@ -1504,7 +1504,7 @@ void V_DrawPatchEx(const uint32_t Flags, const int x, const int y, const patch_t
 	/* Update dirty rectangle */
 	if (!Screen)
 		V_MarkRect(X, Y, Width >> FRACBITS, FixedMul(Patch->height << FRACBITS, DupY) >> FRACBITS);
-	
+		
 	/* Setup column limit */
 	// GhostlyDeath <September 17, 2011> -- Don't run off screen (overflow wrap around)
 	if ((X + (Width >> FRACBITS)) >= vid.width)

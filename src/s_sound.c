@@ -490,15 +490,15 @@ void S_StopSound(S_NoiseThinker_t* a_Origin)
 	/* Check */
 	if (!l_SoundOK || !a_Origin)
 		return;
-	
+		
 	/* Lock */
 	I_SoundLockThread(true);
-		
+	
 	/* Find channel playing sound */
 	if ((Found = S_SoundPlaying(a_Origin, 0)))
 		// Stop channel
 		S_StopChannel(Found - 1);
-	
+		
 	/* Unlock */
 	I_SoundLockThread(false);
 }
@@ -608,10 +608,10 @@ void S_RepositionSounds(void)
 	/* Check */
 	if (!l_SoundOK)
 		return;
-	
+		
 	/* Lock sound */
 	I_SoundLockThread(true);
-		
+	
 	/* Go through all playing sounds */
 	for (i = 0; i < l_NumDoomChannels; i++)
 	{
@@ -732,10 +732,10 @@ void S_StopSounds(void)
 	/* Check */
 	if (!l_SoundOK)
 		return;
-	
+		
 	/* Lock sound */
 	I_SoundLockThread(true);
-		
+	
 	/* Stop all sounds on every channel */
 	for (i = 0; i < l_NumDoomChannels; i++)
 		if (l_DoomChannels[i].Used)
@@ -942,10 +942,10 @@ void S_UpdateSounds(const bool_t a_Threaded)
 	/* Is the buffer finished? */
 	if (!I_SoundBufferIsFinished())
 		return;
-	
+		
 	/* If this is threaded, lock! */
 	I_SoundLockThread(true);
-		
+	
 	/* Update all playing sounds */
 	//S_RepositionSounds();
 	

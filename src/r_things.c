@@ -305,11 +305,11 @@ bool_t R_AddSingleSpriteDef(char* sprname, spritedef_t* spritedef, int wadnum, i
 				for (rotation = 0; rotation < 8; rotation++)
 					if (sprtemp[frame].lumppat[rotation] != -1)
 						GoodFrame = sprtemp[frame].lumppat[rotation];
-				
+						
 				// No frames at all should never happen
 				if (GoodFrame == -1)
 					I_Error("R_InitSprites; Sprite %s has frames but does not have frames?\n", sprname);
-				
+					
 				// Use backup frames (do not I_Error()!)
 				for (rotation = 0; rotation < 8; rotation++)
 					// we test the patch lump, or the id lump whatever

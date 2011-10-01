@@ -111,7 +111,7 @@ bool_t I_SDLSD_Destroy(struct I_SoundDriver_s* const a_Driver)
 	/* Check */
 	if (!a_Driver)
 		return false;
-	
+		
 	/* Get Local */
 	Local = (I_SDLSoundLocal_t*) a_Driver->Data;
 	
@@ -122,7 +122,7 @@ bool_t I_SDLSD_Destroy(struct I_SoundDriver_s* const a_Driver)
 		SDL_DestroyMutex(Local->Mutex);
 		Local->Mutex = NULL;
 	}
-		
+	
 	/* Quit SDL */
 	SDL_QuitSubSystem(SDL_INIT_AUDIO);
 	
@@ -149,7 +149,7 @@ void I_SDLSD_Success(struct I_SoundDriver_s* const a_Driver)
 	// Check
 	if (!Local)
 		return;
-	
+		
 	/* Create mutex */
 	Local->Mutex = SDL_CreateMutex();
 }

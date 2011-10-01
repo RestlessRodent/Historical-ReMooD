@@ -175,7 +175,7 @@ static void next_token()
 	}
 	else
 	{
-		tt = isop(*rover) ? operator               : isnum(*rover) ? number : name;
+		tt = isop(*rover) ? operator                : isnum(*rover) ? number : name;
 	}
 }
 
