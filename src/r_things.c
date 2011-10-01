@@ -517,9 +517,14 @@ fixed_t windowbottom;
 
 void R_DrawMaskedColumn(column_t* column)
 {
+	// TODO FIXME: GhostlyDeath <October 1, 2011> -- This function REALLY needs to be fixed
+	// since it causes memory corruption. Also on 3d floors (rainbowstar.wad) sprites are drawn
+	// over the status bar and whatnot.
+	
 	int topscreen;
 	int bottomscreen;
 	fixed_t basetexturemid;
+	bool_t End = false;
 	
 	basetexturemid = dc_texturemid;
 	
@@ -545,29 +550,41 @@ void R_DrawMaskedColumn(column_t* column)
 			dc_yh = mfloorclip[dc_x] - 1;
 		if (dc_yl <= mceilingclip[dc_x])
 			dc_yl = mceilingclip[dc_x] + 1;
-			
-		if (dc_yl <= dc_yh && dc_yl < vid.height && dc_yh > 0)
+		
+		// Clip height, if possible
+		//fprintf(stderr, "%i ", dc_yh);
+		if (dc_yh >= viewheight)	// FIXME
 		{
-			dc_source = (uint8_t*)column + 3;
-			dc_texturemid = basetexturemid - (column->topdelta << FRACBITS);
-			// dc_source = (uint8_t *)column + 3 - column->topdelta;
-			
-			// Drawn by either R_DrawColumn
-			//  or (SHADOW) R_DrawFuzzColumn.
-			//Hurdler: quick fix... something more proper should be done!!!
-			if (!activeylookup[dc_yl] && colfunc == R_DrawColumn_8)
-			{
-				static int first = 1;
-				
-				if (first)
-				{
-					CONS_Printf("WARNING: avoiding a crash in %s %d\n", __FILE__, __LINE__);
-					first = 0;
-				}
-			}
-			else
-				colfunc();
+			End = true;
+			//dc_yh -= ((viewheight) - dc_yh) + 1;
 		}
+		
+		//fprintf(stderr, "%i (%i + %i = %i)\n", dc_yh, viewheight, viewwindowy, (viewheight + viewwindowy));
+		
+		// Bound check
+		if (!(dc_yl < 0 || dc_yl >= viewwidth || dc_yh >= viewheight))	// FIXME
+			if (dc_yl <= dc_yh && dc_yl < vid.height && dc_yh > 0)
+			{
+				dc_source = (uint8_t*)column + 3;
+				dc_texturemid = basetexturemid - (column->topdelta << FRACBITS);
+				// dc_source = (uint8_t *)column + 3 - column->topdelta;
+			
+				// Drawn by either R_DrawColumn
+				//  or (SHADOW) R_DrawFuzzColumn.
+				//Hurdler: quick fix... something more proper should be done!!!
+				if (!activeylookup[dc_yl] && colfunc == R_DrawColumn_8)
+				{
+					static int first = 1;
+				
+					if (first)
+					{
+						CONS_Printf("WARNING: avoiding a crash in %s %d\n", __FILE__, __LINE__);
+						first = 0;
+					}
+				}
+				else
+					colfunc();
+			}
 		column = (column_t*) ((uint8_t*)column + column->length + 4);
 	}
 	
