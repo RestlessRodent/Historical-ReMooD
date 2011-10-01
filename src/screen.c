@@ -201,6 +201,7 @@ void SCR_Startup(void)
 //
 // Called at new frame, if the video mode has changed
 //
+extern int dc_drawymove;
 void SCR_Recalc(void)
 {
 	if (dedicated)
@@ -266,6 +267,8 @@ void SCR_Recalc(void)
 
 	st_recalc = true;
 	am_recalc = true;
+	
+	dc_drawymove = vid.width;
 }
 
 // Check for screen cmd-line parms : to force a resolution.

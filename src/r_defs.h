@@ -340,6 +340,10 @@ typedef struct
 	//SoM: 3/6/2000: This is the special of the linedef this side belongs to.
 	int special;
 	
+	// GhostlyDeath <September 29, 2011> -- Cool Texture Stuff
+	fixed_t ScaleX, ScaleY;
+	bool_t VFlip;				// vertically flip texture
+	
 } side_t;
 
 //

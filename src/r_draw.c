@@ -83,6 +83,7 @@ lighttable_t* dc_wcolormap;		//added:24-02-98:WATER!
 
 fixed_t dc_iscale;
 fixed_t dc_texturemid;
+int dc_drawymove;
 
 uint8_t* dc_source;
 
@@ -765,7 +766,7 @@ void R_DrawColumn_8(void)
 		//  using a lighting/special effects LUT.
 		*dest = dc_colormap[dc_source[(frac >> FRACBITS) & 127]];
 		
-		dest += vid.width;
+		dest += dc_drawymove;
 		frac += fracstep;
 		
 	}
@@ -833,7 +834,7 @@ void R_DrawColumn_8(void)
 				// heightmask is the Tutti-Frutti fix -- killough
 
 				*dest = colormap[source[frac >> FRACBITS]];
-				dest += vid.width;
+				dest += dc_drawymove;
 				if ((frac += fracstep) >= heightmask)
 					frac -= heightmask;
 			}
@@ -844,10 +845,10 @@ void R_DrawColumn_8(void)
 			while ((count -= 2) >= 0)	// texture height is a power of 2 -- killough
 			{
 				*dest = colormap[source[(frac >> FRACBITS) & heightmask]];
-				dest += vid.width;
+				dest += dc_drawymove;
 				frac += fracstep;
 				*dest = colormap[source[(frac >> FRACBITS) & heightmask]];
-				dest += vid.width;
+				dest += dc_drawymove;
 				frac += fracstep;
 			}
 			if (count & 1)
@@ -895,7 +896,7 @@ void R_DrawSkyColumn_8(void)
 		//  using a lighting/special effects LUT.
 		*dest = dc_colormap[dc_source[(frac >> FRACBITS) & 255]];
 		
-		dest += vid.width;
+		dest += dc_drawymove;
 		frac += fracstep;
 		
 	}
@@ -960,7 +961,7 @@ void R_DrawSkyColumn_8(void)
 				// heightmask is the Tutti-Frutti fix -- killough
 
 				*dest = colormap[source[frac >> FRACBITS]];
-				dest += vid.width;
+				dest += dc_drawymove;
 				if ((frac += fracstep) >= heightmask)
 					frac -= heightmask;
 			}
@@ -971,10 +972,10 @@ void R_DrawSkyColumn_8(void)
 			while ((count -= 2) >= 0)	// texture height is a power of 2 -- killough
 			{
 				*dest = colormap[source[(frac >> FRACBITS) & heightmask]];
-				dest += vid.width;
+				dest += dc_drawymove;
 				frac += fracstep;
 				*dest = colormap[source[(frac >> FRACBITS) & heightmask]];
-				dest += vid.width;
+				dest += dc_drawymove;
 				frac += fracstep;
 			}
 			if (count & 1)
@@ -1034,7 +1035,7 @@ void R_DrawFuzzColumn_8(void)
 		if (++fuzzpos == FUZZTABLE)
 			fuzzpos = 0;
 			
-		dest += vid.width;
+		dest += dc_drawymove;
 		
 		frac += fracstep;
 	}
@@ -1080,7 +1081,7 @@ void R_DrawPaintballColumn_8(void)
 	do
 	{
 		*dest = g_PBColor;
-		dest += vid.width;
+		dest += dc_drawymove;
 		frac += fracstep;
 	}
 	while (count--);
@@ -1120,7 +1121,7 @@ void R_DrawShadeColumn_8(void)
 	do
 	{
 		*dest = *(colormaps + (dc_source[frac >> FRACBITS] << 8) + (*dest));
-		dest += vid.width;
+		dest += dc_drawymove;
 		frac += fracstep;
 	}
 	while (count--);
@@ -1156,7 +1157,7 @@ void R_DrawTranslucentColumn_8(void)
 	do
 	{
 		*dest = dc_colormap[*(dc_transmap + (dc_source[frac >> FRACBITS] << 8) + (*dest))];
-		dest += vid.width;
+		dest += dc_drawymove;
 		frac += fracstep;
 	}
 	while (count--);
@@ -1219,7 +1220,7 @@ void R_DrawTranslucentColumn_8(void)
 				// heightmask is the Tutti-Frutti fix -- killough
 
 				*dest = dc_colormap[*(dc_transmap + (source[frac >> FRACBITS] << 8) + (*dest))];
-				dest += vid.width;
+				dest += dc_drawymove;
 				if ((frac += fracstep) >= heightmask)
 					frac -= heightmask;
 			}
@@ -1230,10 +1231,10 @@ void R_DrawTranslucentColumn_8(void)
 			while ((count -= 2) >= 0)	// texture height is a power of 2 -- killough
 			{
 				*dest = dc_colormap[*(dc_transmap + (source[frac >> FRACBITS] << 8) + (*dest))];
-				dest += vid.width;
+				dest += dc_drawymove;
 				frac += fracstep;
 				*dest = dc_colormap[*(dc_transmap + (source[frac >> FRACBITS] << 8) + (*dest))];
-				dest += vid.width;
+				dest += dc_drawymove;
 				frac += fracstep;
 			}
 			if (count & 1)
@@ -1298,7 +1299,7 @@ void R_DrawTranslatedTranslucentColumn_8(void)
 				
 				*dest = dc_colormap[*(dc_transmap + (dc_colormap[dc_translation[dc_source[frac >> FRACBITS]]] << 8) + (*dest))];
 				
-				dest += vid.width;
+				dest += dc_drawymove;
 				if ((frac += fracstep) >= heightmask)
 					frac -= heightmask;
 			}
@@ -1309,10 +1310,10 @@ void R_DrawTranslatedTranslucentColumn_8(void)
 			while ((count -= 2) >= 0)	// texture height is a power of 2 -- killough
 			{
 				*dest = dc_colormap[*(dc_transmap + (dc_colormap[dc_translation[dc_source[frac >> FRACBITS]]] << 8) + (*dest))];
-				dest += vid.width;
+				dest += dc_drawymove;
 				frac += fracstep;
 				*dest = dc_colormap[*(dc_transmap + (dc_colormap[dc_translation[dc_source[frac >> FRACBITS]]] << 8) + (*dest))];
-				dest += vid.width;
+				dest += dc_drawymove;
 				frac += fracstep;
 			}
 			if (count & 1)
@@ -1625,7 +1626,7 @@ void R_DrawFogColumn_8(void)
 	{
 		//Simple. Apply the colormap to what's allready on the screen.
 		*dest = dc_colormap[*dest];
-		dest += vid.width;
+		dest += dc_drawymove;
 	}
 	while (count--);
 }

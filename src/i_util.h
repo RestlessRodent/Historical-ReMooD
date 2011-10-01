@@ -407,6 +407,7 @@ bool_t I_DumpTemporary(char* const a_PathBuf, const size_t a_PathSize, const uin
 
 void I_ShowEndTxt(const uint8_t* const a_TextData);
 void I_TextModeChar(const uint8_t a_Char, const uint8_t Attr);
+void I_TextModeNextLine(void);
 
 void I_AddExitFunc(void (*func) ());
 void I_RemoveExitFunc(void (*func) ());

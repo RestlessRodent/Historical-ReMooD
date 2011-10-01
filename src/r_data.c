@@ -175,7 +175,7 @@ uint8_t* R_GenerateTexture(int texnum)
 	int x;
 	int x1;
 	int x2;
-	int i;
+	int i, j;
 	column_t* patchcol;
 	uint32_t* colofs;
 	size_t blocksize;
@@ -273,6 +273,19 @@ uint8_t* R_GenerateTexture(int texnum)
 		//  it is purgable from zone memory.
 		Z_ChangeTag(block, PU_CACHE);
 	}
+	
+	// GhostlyDeath <September 29, 2011> -- Flip
+#if 0
+	for (x = 0; x < texture->width; x++)
+	{
+		for (j = 0; j < texture->height / 2; j++)
+		{
+			x2 = *((uint8_t*)(texturecache[texnum] + (colofs[x] + (j))));
+			*((uint8_t*)(texturecache[texnum] + (colofs[x] + (j)))) = *((uint8_t*)(texturecache[texnum] + (colofs[x] + (texture->height - j))));
+			*((uint8_t*)(texturecache[texnum] + (colofs[x] + (texture->height - j)))) = x2;
+		}
+	}
+#endif
 	
 	return blocktex;
 }
