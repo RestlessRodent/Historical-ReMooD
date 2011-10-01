@@ -1608,10 +1608,11 @@ void P_SpawnSplash(mobj_t* mo, fixed_t z)
 		
 	// note pos +1 +1 so it doesn't eat the sound of the player..
 	th = P_SpawnMobj(mo->x + 1, mo->y + 1, z, MT_SPLASH);
-	//if( z - mo->subsector->sector->floorheight > 4*FRACUNIT)
-	S_StartSound(&th->NoiseThinker, sfx_gloop);
-	//else
-	//    S_StartSound (th,sfx_splash);
+	
+	if( z - mo->subsector->sector->floorheight > 4*FRACUNIT)
+		S_StartSound(&th->NoiseThinker, sfx_gloop);
+	else
+	    S_StartSound(&th->NoiseThinker, sfx_splash);
 	th->tics -= P_Random() & 3;
 	
 	if (th->tics < 1)

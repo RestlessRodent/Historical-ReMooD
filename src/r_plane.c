@@ -551,6 +551,19 @@ void R_DrawSinglePlane(visplane_t* pl, bool_t handlesource)
 		{
 			spanfunc = R_DrawTranslucentSpan_8;
 			
+#if 1
+			// GhostlyDeath <October 1, 2011> -- Allow all 10 transparencies instead of just 3
+			// 0 = transparent, 255 = opaque
+			x = pl->ffloor->alpha; // Some mappers incrorrectly place alpha (not 0-255)
+			if (x >= 256 || x <= 0)
+				x = 128;
+			x = FixedDiv(x << FRACBITS, 1677568) >> FRACBITS;
+			if (x >= 10)
+				x = 10;
+			
+			// Use this transparency
+			ds_transmap = transtables + ((10 - x) * 0x10000);
+#else		
 			// Hacked up support for alpha value in software mode SSNTails 09-24-2002
 			if (pl->ffloor->alpha < 64)
 				ds_transmap = ((3) << FF_TRANSSHIFT) - 0x10000 + transtables;
@@ -558,6 +571,7 @@ void R_DrawSinglePlane(visplane_t* pl, bool_t handlesource)
 				ds_transmap = ((2) << FF_TRANSSHIFT) - 0x10000 + transtables;
 			else
 				ds_transmap = ((1) << FF_TRANSSHIFT) - 0x10000 + transtables;
+#endif
 				
 			if (pl->extra_colormap && pl->extra_colormap->fog)
 				light = (pl->lightlevel >> LIGHTSEGSHIFT);

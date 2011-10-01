@@ -630,7 +630,7 @@ void R_RenderThickSideRange(drawseg_t* ds, int x1, int x2, ffloor_t* ffloor)
 	int texnum;
 	sector_t tempsec;
 	int templight;
-	int i, p;
+	int i, p, x;
 	fixed_t bottombounds = viewheight << FRACBITS;
 	fixed_t topbounds = (con_clipviewtop - 1) << FRACBITS;
 	fixed_t offsetvalue = 0;
@@ -654,6 +654,19 @@ void R_RenderThickSideRange(drawseg_t* ds, int x1, int x2, ffloor_t* ffloor)
 	
 	if (ffloor->flags & FF_TRANSLUCENT)
 	{
+#if 1
+		// GhostlyDeath <October 1, 2011> -- Allow all 10 transparencies instead of just 3
+		// 0 = transparent, 255 = opaque
+		x = ffloor->alpha; // Some mappers incrorrectly place alpha (not 0-255)
+		if (x >= 256 || x <= 0)
+			x = 128;
+		x = FixedDiv(x << FRACBITS, 1677568) >> FRACBITS;
+		if (x >= 10)
+			x = 10;
+		
+		// Use this transparency
+		ds_transmap = transtables + ((10 - x) * 0x10000);
+#else
 		// Hacked up support for alpha value in software mode SSNTails 09-24-2002
 		if (ffloor->alpha < 64)
 			dc_transmap = ((3) << FF_TRANSSHIFT) - 0x10000 + transtables;
@@ -661,7 +674,8 @@ void R_RenderThickSideRange(drawseg_t* ds, int x1, int x2, ffloor_t* ffloor)
 			dc_transmap = ((2) << FF_TRANSSHIFT) - 0x10000 + transtables;
 		else
 			dc_transmap = ((1) << FF_TRANSSHIFT) - 0x10000 + transtables;
-			
+#endif
+
 		colfunc = fuzzcolfunc;
 	}
 	else if (ffloor->flags & FF_FOG)
