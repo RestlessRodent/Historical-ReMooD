@@ -638,11 +638,7 @@ static void CONLFF_InputFF(const char* const a_Buf)
 		ArgV = NULL;
 		m = n;
 		
-		// Determine ; location
-		/*Quote = 0;
-		while (*n && *n != ';')
-			n++;*/
-		
+		// Determine ; location (but not inside quotes)
 		for (Quote = 0; *n && (Quote || (!Quote && *n != ';')); n++)
 			if (*n == '\"' || *n == '\'')
 				if (Quote)
@@ -692,7 +688,7 @@ static void CONLFF_InputFF(const char* const a_Buf)
 		/* Send to execution handler */
 		if (ArgC)
 			if (!CONL_Exec(ArgC, ArgV))
-				CONL_OutputF("Illegal Command or Variable (\"%s\").\n", ArgV[0]);
+				CONL_OutputF("Illegal Command or Variable (\"{0%s{0\").\n", ArgV[0]);
 	
 		/* Clear */
 		if (ArgV)
@@ -708,9 +704,6 @@ static void CONLFF_InputFF(const char* const a_Buf)
 		if (*n == ';')
 			n++;
 	}
-	//I_OutputText("Exec >> ");
-	//I_OutputText(a_Buf);
-	//I_OutputText("\n");
 #undef MAXARGV
 }
 
@@ -2446,63 +2439,13 @@ void CONS_Error(char* msg)
 //
 void CON_DrawInput(void)
 {
-	char* p;
-	int x, y;
-	
-	// input line scrolls left if it gets too long
-	//
-	p = inputlines[inputline];
-	if (input_cx >= con_width)
-		p += input_cx - con_width + 1;
-		
-	y = con_curlines - 12;
-	
-	for (x = 0; x < con_width; x++)
-		V_DrawCharacterA(VFONT_SMALL, VFO_NOSCALESTART | VFO_NOSCALEPATCH | VFO_NOSCALELORES, p[x], (x + 1) << 3, y);
-		
-	// draw the blinking cursor
-	//
-	x = (input_cx >= con_width) ? con_width - 1 : input_cx;
-	if (con_tick < 4)
-		V_DrawCharacterA(VFONT_SMALL, VFO_NOSCALESTART | VFO_NOSCALEPATCH | VFO_NOSCALELORES, '_', (x + 1) << 3, y);
 }
 
 // draw the last lines of console text to the top of the screen
 //
 void CON_DrawHudlines(void)
 {
-	char* p;
-	int i, x, y, y2;
-	
-	if (con_hudlines <= 0)
-		return;
-		
-	if (chat_on)
-		y = 8;					// leave place for chat input in the first row of text
-	else
-		y = 0;
-	y2 = 0;						//player 2's message y in splitscreen
-	
-	for (i = con_cy - con_hudlines + 1; i <= con_cy; i++)
-	{
-		if (i < 0)
-			continue;
-		if (con_hudtime[i % con_hudlines] == 0)
-			continue;
-			
-		p = &con_buffer[(i % con_totallines) * con_width];
-		
-		for (x = 0; x < con_width; x++)
-			V_DrawCharacterA(VFONT_SMALL, VFO_NOSCALESTART | VFO_NOSCALEPATCH | VFO_NOSCALELORES, (p[x] & 0xff), x << 3, y);
-			
-		if (con_lineowner[i % con_hudlines] == 2)
-			y2 += 8;
-		else
-			y += 8;
-	}
-	
-	// top screen lines that might need clearing when view is reduced
-	con_clearlines = y;			// this is handled by HU_Erase ();
+	con_clearlines = 0;
 }
 
 //  Scale a pic_t at 'startx' pos, to 'destwidth' columns.
