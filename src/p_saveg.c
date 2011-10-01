@@ -91,6 +91,7 @@ bool_t P_CheckSizeEx(size_t Need)
 /* P_SaveGameEx() -- Extended savegame */
 bool_t P_SaveGameEx(const char* SaveName, char* ExtFileName, size_t ExtFileNameLen, size_t* SaveLen, uint8_t** Origin)
 {
+#if 0
 	size_t i;
 	time_t Date = time(NULL);
 	struct tm* TM = localtime(&Date);
@@ -173,6 +174,9 @@ bool_t P_SaveGameEx(const char* SaveName, char* ExtFileName, size_t ExtFileNameL
 	SaveBlock = 0;
 	
 	return true;
+#else
+	return false;
+#endif
 }
 
 /* P_LoadGameEx() -- Load an extended save game */
@@ -186,6 +190,7 @@ bool_t P_LoadGameEx(const char* FileName, char* ExtFileName, size_t ExtFileNameL
 /* P_SAVE_WadState() -- Saves WAD Information */
 void P_SAVE_WadState(void)
 {
+#if 0
 	WadFile_t* WAD = NULL;
 	size_t i, j;
 	size_t NumWADs = W_NumWadFiles();
@@ -239,11 +244,13 @@ void P_SAVE_WadState(void)
 		}
 		WriteStringN(&SaveBlock, WAD->MD5Sum, 16);
 	}
+#endif
 }
 
 /* P_SAVE_Console() -- Saves CVARs */
 void P_SAVE_Console(void)
 {
+#if 0
 	size_t Off = 0;
 	size_t TrueLen = 0;
 	consvar_t* TheVars = CV_Export();
@@ -278,11 +285,13 @@ void P_SAVE_Console(void)
 	// Hack!
 	T = SaveStart + Off;
 	WriteUInt32(&T, TrueLen);
+#endif
 }
 
 /* P_SAVE_LevelState() -- Saves the state of the level */
 void P_SAVE_LevelState(void)
 {
+#if 0
 	size_t Off = 0;
 	size_t TrueLen = 0;
 	uint8_t* T;
@@ -352,11 +361,13 @@ void P_SAVE_LevelState(void)
 	// Hack!
 	T = SaveStart + Off;
 	WriteUInt32(&T, TrueLen);
+#endif
 }
 
 /*** PLAYERS ***/
 void P_SAVE_Players(void)
 {
+#if 0
 	size_t i, j;
 	
 	/*** LOCAL PLAYERS ***/
@@ -443,6 +454,7 @@ void P_SAVE_Players(void)
 	/*** NETWORK PLAYERS ***/
 	
 	/*** CAPTURED PROFILES ***/
+#endif
 }
 
 /*** SECTORS ***/
@@ -452,6 +464,7 @@ void P_SAVE_Players(void)
 /*** THINGS ***/
 void P_SAVE_MapObjects(void)
 {
+#if 0
 	size_t Off = 0;
 	size_t TrueLen = 0;
 	uint8_t* T;
@@ -583,6 +596,7 @@ void P_SAVE_MapObjects(void)
 	// Hack!
 	T = SaveStart + Off;
 	WriteUInt32(&T, TrueLen);
+#endif
 }
 
 /*** SCRIPTS ***/

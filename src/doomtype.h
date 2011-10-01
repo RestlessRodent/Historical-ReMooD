@@ -244,9 +244,9 @@ typedef enum bool_e
 	}
 #endif
 
-BP_READ(Int8, int8_t)
-BP_READ(Int16, int16_t)
-BP_READ(Int32, int32_t) BP_READ(Int64, int64_t) BP_READ(UInt8, uint8_t) BP_READ(UInt16, uint16_t) BP_READ(UInt32, uint32_t) BP_READ(UInt64, uint64_t)
+BP_READ(Int8R, int8_t)
+BP_READ(Int16R, int16_t)
+BP_READ(Int32R, int32_t) BP_READ(Int64R, int64_t) BP_READ(UInt8R, uint8_t) BP_READ(UInt16R, uint16_t) BP_READ(UInt32R, uint32_t) BP_READ(UInt64R, uint64_t)
 #define BP_WRITE(w,x) static inline void __REMOOD_FORCEINLINE BP_MERGE(Write,w)(x** const Ptr, const x Val)\
 {\
 	if (!Ptr || !(*Ptr))\
@@ -254,11 +254,31 @@ BP_READ(Int32, int32_t) BP_READ(Int64, int64_t) BP_READ(UInt8, uint8_t) BP_READ(
 	**Ptr = Val;\
 	(*Ptr)++;\
 }
-BP_WRITE(Int8, int8_t)
-BP_WRITE(Int16, int16_t)
-BP_WRITE(Int32, int32_t) BP_WRITE(Int64, int64_t) BP_WRITE(UInt8, uint8_t) BP_WRITE(UInt16, uint16_t) BP_WRITE(UInt32, uint32_t) BP_WRITE(UInt64, uint64_t)
+BP_WRITE(Int8R, int8_t)
+BP_WRITE(Int16R, int16_t)
+BP_WRITE(Int32R, int32_t) BP_WRITE(Int64R, int64_t) BP_WRITE(UInt8R, uint8_t) BP_WRITE(UInt16R, uint16_t) BP_WRITE(UInt32R, uint32_t) BP_WRITE(UInt64R, uint64_t)
 #undef BP_READ
 #undef BP_WRITE
+
+#define ReadInt8(w) ReadInt8R((const int8_t** const)(w))
+#define ReadInt16(w) ReadInt16R((const int16_t** const)(w))
+#define ReadInt32(w) ReadInt32R((const int32_t** const)(w))
+#define ReadInt64(w) ReadInt64R((const int64_t** const)(w))
+#define ReadUInt8(w) ReadUInt8R((const uint8_t** const)(w))
+#define ReadUInt16(w) ReadUInt16R((const uint16_t** const)(w))
+#define ReadUInt32(w) ReadUInt32R((const uint32_t** const)(w))
+#define ReadUInt64(w) ReadUInt64R((const uint64_t** const)(w))
+
+#define WriteInt8(w,x) WriteInt8R((int8_t** const)(w), (x))
+#define WriteInt16(w,x) WriteInt16R((int16_t** const)(w), (x))
+#define WriteInt32(w,x) WriteInt32R((int32_t** const)(w), (x))
+#define WriteInt64(w,x) WriteInt64R((int64_t** const)(w), (x))
+#define WriteUInt8(w,x) WriteUInt8R((uint8_t** const)(w), (x))
+#define WriteUInt16(w,x) WriteUInt16R((uint16_t** const)(w), (x))
+#define WriteUInt32(w,x) WriteUInt32R((uint32_t** const)(w), (x))
+#define WriteUInt64(w,x) WriteUInt64R((uint64_t** const)(w), (x))
+
+#define BP_READREDO(w,x) static inline x __REMOOD_FORCEINLINE BP_MERGE(Read,w)R(const x** const Ptr)\
 
 /* WriteString() -- Write a string of any length (bad) */
 static inline void __REMOOD_FORCEINLINE WriteString(uint8_t** const Out, uint8_t* const String)

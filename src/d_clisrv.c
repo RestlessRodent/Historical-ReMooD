@@ -117,8 +117,8 @@ static void TicCmdCopy(ticcmd_t* dst, ticcmd_t* src, int n)
 	{
 		dst->forwardmove = src->forwardmove;
 		dst->sidemove = src->sidemove;
-		dst->angleturn = readshort(&src->angleturn);
-		dst->aiming = readshort(&src->aiming);
+		dst->angleturn = src->angleturn;
+		dst->aiming = src->aiming;
 		dst->buttons = src->buttons;
 	}
 }

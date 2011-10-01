@@ -72,15 +72,6 @@ void Command_Name_f(void);
 
 void Command_WeaponPref(void);
 
-void Got_NameAndcolor(char** cp, int playernum);
-void Got_WeaponPref(char** cp, int playernum);
-void Got_Mapcmd(char** cp, int playernum);
-void Got_ExitLevelcmd(char** cp, int playernum);
-void Got_LoadGamecmd(char** cp, int playernum);
-void Got_SaveGamecmd(char** cp, int playernum);
-void Got_Pause(char** cp, int playernum);
-void Got_UseArtefact(char** cp, int playernum);
-
 void TeamPlay_OnChange(void);
 void FragLimit_OnChange(void);
 void Deahtmatch_OnChange(void);
@@ -559,56 +550,8 @@ void CL_DynPlayerChange(player_t* Player, consvar_t* name, consvar_t* color, con
 	players[consoleplayer[i]].autoaim_toggle = autoaim->value;
 }
 
-void Got_NameAndcolor(char** cp, int playernum)
-{
-	player_t* p = &players[playernum];
-	
-	// color
-	p->skincolor = READBYTE(*cp) % MAXSKINCOLORS;
-	
-	// a copy of color
-	if (p->mo)
-		p->mo->flags = (p->mo->flags & ~MF_TRANSLATION) | ((p->skincolor) << MF_TRANSSHIFT);
-		
-	// name
-	if (demoversion >= 128)
-	{
-		if (strcasecmp(player_names[playernum], *cp))
-			CONS_Printf("%s renamed to %s\n", player_names[playernum], *cp);
-		READSTRING(*cp, player_names[playernum]);
-	}
-	else
-	{
-		memcpy(player_names[playernum], *cp, MAXPLAYERNAME);
-		*cp += MAXPLAYERNAME;
-	}
-	
-	// skin
-	if (demoversion < 120 || demoversion >= 125)
-	{
-		if (demoversion >= 128)
-		{
-			SetPlayerSkin(playernum, *cp);
-			SKIPSTRING(*cp);
-		}
-		else
-		{
-			SetPlayerSkin(playernum, *cp);
-			*cp += (SKINNAMESIZE + 1);
-		}
-	}
-}
-
 void SendWeaponPref(void)
 {
-}
-
-void Got_WeaponPref(char** cp, int playernum)
-{
-	players[playernum].originalweaponswitch = *(*cp)++;
-	memcpy(players[playernum].favoritweapon, *cp, NUMWEAPONS);
-	*cp += NUMWEAPONS;
-	players[playernum].autoaim_toggle = *(*cp)++;
 }
 
 void D_SendPlayerConfig(void)
@@ -754,38 +697,6 @@ void Command_Map_f(void)
 	precache = false;
 }
 
-void Got_Mapcmd(char** cp, int playernum)
-{
-	char mapname[MAX_WADPATH];
-	int skill, resetplayer = 1;
-	
-	skill = READBYTE(*cp);
-	if (demoversion >= 128)
-		nomonsters = READBYTE(*cp);
-		
-	if (demoversion >= 129)
-	{
-		resetplayer = ((nomonsters & 2) == 0);
-		nomonsters &= 1;
-	}
-	strcpy(mapname, *cp);
-	*cp += strlen(mapname) + 1;
-	
-	CONS_Printf("Warping to map...\n");
-	if (demoplayback && !timingdemo)
-		precache = false;
-	else
-		precache = false;
-	G_InitNew(skill, mapname, resetplayer);
-	if (demoplayback && !timingdemo)
-		precache = false;		// GhostlyDeath -- was true
-	else
-		precache = false;		// GhostlyDeath -- was true
-	CON_ToggleOff();
-	if (timingdemo)
-		G_DoneLevelLoad();
-}
-
 void Command_Restart_f(void)
 {
 	if (netgame)
@@ -810,32 +721,6 @@ void Command_Pause(void)
 		I_PauseSong(0);
 	else
 		I_ResumeSong(0);
-}
-
-void Got_Pause(char** cp, int playernum)
-{
-	if (demoversion < 131)
-		paused ^= 1;
-	else
-		paused = READBYTE(*cp);
-	if (!demoplayback)
-	{
-		if (netgame)
-		{
-			if (paused)
-				CONS_Printf("Game paused by %s\n", player_names[playernum]);
-			else
-				CONS_Printf("Game unpaused by %s\n", player_names[playernum]);
-		}
-		
-		if (paused)
-		{
-			if (!menuactive || netgame)
-				S_PauseMusic();
-		}
-		else
-			S_ResumeMusic();
-	}
 }
 
 //  Add a pwad at run-time
@@ -972,20 +857,8 @@ void Command_ExitLevel_f(void)
 		G_ExitLevel();
 }
 
-void Got_ExitLevelcmd(char** cp, int playernum)
-{
-	G_ExitLevel();
-}
-
 void Command_Load_f(void)
 {
-}
-
-void Got_LoadGamecmd(char** cp, int playernum)
-{
-	uint8_t slot = *(*cp)++;
-	
-	G_DoLoadGame(slot);
 }
 
 void Command_Save_f(void)
@@ -997,18 +870,6 @@ void Command_Save_f(void)
 	}
 	
 	G_DoSaveGame(atoi(COM_Argv(1)), COM_Argv(2));
-}
-
-void Got_SaveGamecmd(char** cp, int playernum)
-{
-	uint8_t slot;
-	char description[SAVESTRINGSIZE];
-	
-	slot = *(*cp)++;
-	strcpy(description, *cp);
-	*cp += strlen(description) + 1;
-	
-	G_DoSaveGame(slot, description);
 }
 
 void Command_ExitGame_f(void)
@@ -1030,3 +891,4 @@ void Command_Kill(void)
 	else
 		CONS_Printf("The Kill command cannot be used outside a game.\n");
 }
+

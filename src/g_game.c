@@ -1961,6 +1961,7 @@ ticcmd_t oldcmd[MAXPLAYERS];
 
 void G_ReadDemoTiccmd(ticcmd_t* cmd, int playernum)
 {
+#if 0
 	if (*demo_p == DEMOMARKER)
 	{
 		// end of demo data stream
@@ -2004,6 +2005,10 @@ void G_ReadDemoTiccmd(ticcmd_t* cmd, int playernum)
 			
 		memcpy(cmd, &(oldcmd[playernum]), sizeof(ticcmd_t));
 	}
+#else
+	G_CheckDemoStatus();
+	return;
+#endif
 }
 
 void G_WriteDemoTiccmd(ticcmd_t* cmd, int playernum)
