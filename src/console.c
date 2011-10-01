@@ -103,6 +103,7 @@ typedef struct CONL_BasicBuffer_s
 	uint32_t CountLine;			// Line count
 	
 	CONL_FlushFunc_t FlushFunc;	// Function to call on '\n'
+	char ExtraNewLine;			// Extra newline
 } CONL_BasicBuffer_t;
 
 /* CONL_PlayerMessage_t -- Message for player */
@@ -616,6 +617,8 @@ static void CONLFF_InputFF(const char* const a_Buf)
 {
 #define MAXARGV 128
 	const char* p;
+	const char* m;
+	const char* n;
 	int ArgC, Current, i, j;
 	char** ArgV;
 	char Quote;
@@ -628,58 +631,82 @@ static void CONLFF_InputFF(const char* const a_Buf)
 	// Tokenize between space and single/double quotes
 	// This makes command processing hell of alot easier
 	// So calling console functions is like main(argc, argv)
-	ArgC = Current = 0;
-	ArgV = NULL;
-	
-	for (Quote = 0, p = a_Buf; *p; p++)
+	// Handle ; in inputs
+	for (n = a_Buf; *n;)
 	{
-		// Check if a new thing needs to be created
-		if (Current == ArgC)
+		ArgC = Current = 0;
+		ArgV = NULL;
+		m = n;
+		
+		// Determine ; location
+		/*Quote = 0;
+		while (*n && *n != ';')
+			n++;*/
+		
+		for (Quote = 0; *n && (Quote || (!Quote && *n != ';')); n++)
+			if (*n == '\"' || *n == '\'')
+				if (Quote)
+					Quote = 0;
+				else
+					Quote = *n;
+	
+		// Run loop
+		for (Quote = 0, p = m; p != n; p++)
 		{
-			// Resize
-			Z_ResizeArray((void**)&ArgV, sizeof(*ArgV), ArgC, ArgC + 1);
-			ArgC++;
+			// Check if a new thing needs to be created
+			if (Current == ArgC)
+			{
+				// Resize
+				Z_ResizeArray((void**)&ArgV, sizeof(*ArgV), ArgC, ArgC + 1);
+				ArgC++;
 			
-			// Create text here
-			j = 0;
-			ArgV[Current] = Z_Malloc(sizeof(*ArgV[Current]) * MAXARGV, PU_STATIC, NULL);
-			Quote = 0;
-		}
-		// Whitespace adds to current
-		if (!Quote && (*p == 0 || *p == ' ' || *p == '\t'))
-		{
-			// But only if there is j
-			if (j > 0)
-				Current++;
-		}
-		// Quote?
-		else if ((!Quote && (*p == '\"' || *p == '\'')) || (Quote && *p == Quote))
-		{
-			// Toggle quote
-			if (Quote)
+				// Create text here
+				j = 0;
+				ArgV[Current] = Z_Malloc(sizeof(*ArgV[Current]) * MAXARGV, PU_STATIC, NULL);
 				Quote = 0;
+			}
+			// Whitespace adds to current
+			if (!Quote && (*p == 0 || *p == ' ' || *p == '\t'))
+			{
+				// But only if there is j
+				if (j > 0)
+					Current++;
+			}
+			// Quote?
+			else if ((!Quote && (*p == '\"' || *p == '\'')) || (Quote && *p == Quote))
+			{
+				// Toggle quote
+				if (Quote)
+					Quote = 0;
+				else
+					Quote = *p;
+			}
+			// Normal character?
 			else
-				Quote = *p;
+			{
+				if (j < MAXARGV - 1)
+					ArgV[Current][j++] = *p;
+			}
 		}
-		// Normal character?
-		else
+	
+		/* Send to execution handler */
+		if (ArgC)
+			if (!CONL_Exec(ArgC, ArgV))
+				CONL_OutputF("Illegal Command or Variable (\"%s\").\n", ArgV[0]);
+	
+		/* Clear */
+		if (ArgV)
 		{
-			if (j < MAXARGV - 1)
-				ArgV[Current][j++] = *p;
+			for (i = 0; i < ArgC; i++)
+				Z_Free(ArgV[i]);
+			Z_Free(ArgV);
+			ArgV = NULL;
 		}
-	}
-	
-	/* Send to execution handler */
-	if (ArgC)
-		if (!CONL_Exec(ArgC, ArgV))
-			CONL_OutputF("Illegal Command or Variable (\"%s\").\n", ArgV[0]);
-	
-	/* Clear */
-	if (ArgV)
-	{
-		for (i = 0; i < ArgC; i++)
-			Z_Free(ArgV[i]);
-		Z_Free(ArgV);
+		ArgC = 0;
+		
+		// Increment to prevent being stuck
+		if (*n == ';')
+			n++;
 	}
 	//I_OutputText("Exec >> ");
 	//I_OutputText(a_Buf);
@@ -814,6 +841,9 @@ bool_t CONL_Init(const uint32_t a_OutBS, const uint32_t a_InBS)
 		return false;
 	}
 	
+	// Set ; to extra newline
+	l_CONLBuffers[1].ExtraNewLine = ';';
+	
 	/* Create input */
 	l_CONLInputter = CONCTI_CreateInput(128, CONL_OutBack, &l_CONLInputter);
 	
@@ -884,7 +914,7 @@ size_t CONL_RawPrint(CONL_BasicBuffer_t* const a_Buffer, const char* const a_Tex
 			//&a_Buffer->Buffer[a_Buffer->StartPos] >= a_Buffer->Lines[a_Buffer->StartLine];
 		}
 		// Newline?
-		if (*p == '\n')
+		if (*p == '\n'/* || (a_Buffer->ExtraNewLine && *p == a_Buffer->ExtraNewLine)*/)
 		{
 			// Add to Q (Formerly, sending to the flush was done later but the
 			// lines sent to it must be remembered now. This prevents any
