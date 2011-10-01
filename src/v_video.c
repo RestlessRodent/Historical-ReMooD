@@ -1722,8 +1722,24 @@ static size_t V_WCharToMB(const uint16_t WChar, char* const MB)
 	MBx = (unsigned char*)MB;
 	
 	/* Convert in steps */
+	// Special
+	if (WChar >= 0xF100 && WChar <= (0xF100 + 10 + ('z' - 'a')))
+	{
+		MBx[0] = '{';
+		MBx[1] = (WChar - 0xF100);
+		MBx[2] = 0;
+		
+		// Normalize
+		if (MBx[1] > 10)
+			MBx[1] = (MBx[1] - 10) + 'a';
+		else
+			MBx[1] += '0';
+		
+		return 2;
+	}
+	
 	// Single byte
-	if (WChar >= 0x0000 && WChar <= 0x007F)
+	else if (WChar >= 0x0000 && WChar <= 0x007F)
 	{
 		MBx[0] = WChar & 0x7F;
 		MBx[1] = 0;
@@ -2656,8 +2672,28 @@ int V_DrawCharacterMB(const VideoFont_t xFont, const uint32_t Options, const cha
 				return 0;
 				
 			*a_OptionsMod &= ~VFO_COLORMASK;
-			*a_OptionsMod |= WC & 0xF;
+			*a_OptionsMod |= VFO_COLOR(WC & 0xF);
 		}
+		
+		// Transparency?
+		else if (WC >= 16 && WC < 32)
+		{
+			if (!a_OptionsMod)
+				return 0;
+				
+			*a_OptionsMod &= ~VFO_TRANSMASK;
+			*a_OptionsMod |= VFO_TRANS((WC - 16) & 0xF);
+		}
+		
+		// Clear all attributes
+		else if (WC == ('z' - 'a') + 10)
+		{
+			if (!a_OptionsMod)
+				return 0;
+				
+			*a_OptionsMod &= ~(VFO_COLORMASK | VFO_TRANSMASK);
+		}
+		
 		// These always have no space to them
 		return 0;
 	}

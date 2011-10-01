@@ -300,7 +300,8 @@ extern UniChar_t* UnknownLink[NUMVIDEOFONTS];
 
 // Ordering
 #define VFO_COLORMASK		0x0000000F
-#define VFO_COLOR(x)		((x) & VFO_COLORMASK)
+#define VFO_COLORSHIFT		0
+#define VFO_COLOR(x)		(((x) << VFO_COLORSHIFT) & VFO_COLORMASK)
 #define VFO_TRANSMASK		0x000000F0
 #define VFO_TRANSSHIFT		4
 #define VFO_TRANS(x)		(((x) << VFO_TRANSSHIFT) & VFO_TRANSMASK)

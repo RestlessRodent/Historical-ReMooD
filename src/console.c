@@ -268,6 +268,9 @@ bool_t CONCTI_HandleEvent(CONCTI_Inputter_t* const a_Input, const I_EventEx_t* c
 			if (a_Input->OutFunc)
 				if (a_Input->OutFunc(a_Input, Buf))
 					CONCTI_DestroyInput(a_Input);	// Done with this, so destroy
+					
+			// Unmark changed, cleared away
+			a_Input->Changed = false;
 			return true;
 			
 			// Delete Characters
@@ -307,6 +310,9 @@ bool_t CONCTI_HandleEvent(CONCTI_Inputter_t* const a_Input, const I_EventEx_t* c
 				a_Input->NumMBs--;	// Deleted char
 				a_Input->CursorPos = j;	// Set cursor pos to deleted spot
 			}
+			
+			// Changed
+			a_Input->Changed = true;
 			return true;
 			
 			// Toggle Insertion/Overwrite mode
@@ -384,6 +390,9 @@ bool_t CONCTI_HandleEvent(CONCTI_Inputter_t* const a_Input, const I_EventEx_t* c
 			strncpy(MBRover->MB, MB, i);
 			a_Input->CursorPos++;	// Always increment
 			
+			// Changed
+			a_Input->Changed = true;
+			
 			// Eat this event
 			return true;
 	}
@@ -402,20 +411,71 @@ void CONCTI_SetText(CONCTI_Inputter_t* const a_Input, const char* const a_Text)
 int32_t CONCTI_DrawInput(CONCTI_Inputter_t* const a_Input, const uint32_t a_Options, const int32_t a_x, const int32_t a_y, const int32_t a_x2)
 {
 	CONCTI_MBChain_t* MBRover;
-	uint32_t Options;
+	uint32_t Options, DefaultOptions;
 	int32_t bx, x, j;
-	bool_t GotCur;
+	bool_t GotCur, CurVirtual;
+	uint16_t ThisChar, NextChar;
 	
 	/* Check */
 	if (!a_Input)
 		return NULL;
+	
+	/* Default check */
+	DefaultOptions = a_Options & (VFO_COLORMASK | VFO_TRANSMASK);
+	
+	/* Do virtualization of character representations */
+	// This is for displaying actual colorization and effects, etc.
+	if (a_Input->Changed)
+	{
+		MBRover = a_Input->ChainRoot;
 		
-	// Draw command text
+		// While going through it
+		while (MBRover)
+		{
+			// Clear virtual
+			MBRover->EnableVirtual = false;
+			
+			// No character next to it?
+			if (!MBRover->Next)
+				break;
+			
+			// Convert current and next to wchar
+			ThisChar = V_ExtMBToWChar(MBRover->MB, NULL);
+			NextChar = tolower(V_ExtMBToWChar(MBRover->Next->MB, NULL));
+			
+			// Is this character { and the next character legal sequence?
+			if (ThisChar == '{' && ((NextChar >= '0' && NextChar <= '9') || (NextChar >= 'a' && NextChar <= 'z')))
+			{
+				// Convert to code
+				if (NextChar >= '0' && NextChar <= '9')
+					NextChar = 0xF100U | (NextChar - '0');
+				else
+					NextChar = 0xF100U | (10 + (NextChar - 'a'));
+				
+				// Set virtuals
+				MBRover->EnableVirtual = MBRover->Next->EnableVirtual = true;
+				V_ExtWCharToMB(NextChar, MBRover->VirtualMB);
+				V_ExtWCharToMB(0, MBRover->Next->VirtualMB);
+				
+				// Skip next
+				MBRover = MBRover->Next;
+			}
+			
+			// Go to next
+			MBRover = MBRover->Next;
+		}
+		
+		// Unmark changed
+		a_Input->Changed = false;
+	}
+		
+	/* Draw command text */
 	MBRover = a_Input->ChainRoot;
 	Options = a_Options;
 	x = bx = a_x;
 	j = 0;
 	GotCur = false;
+	CurVirtual = false;
 	
 	// While there is a multibyte char
 	while (MBRover)
@@ -425,9 +485,20 @@ int32_t CONCTI_DrawInput(CONCTI_Inputter_t* const a_Input, const uint32_t a_Opti
 		{
 			bx = x;
 			GotCur = true;
+			CurVirtual = MBRover->EnableVirtual;
 		}
+		
 		// Draw it
-		x += V_DrawCharacterMB(CONLCONSOLEFONT, Options, MBRover->MB, x, a_y, NULL, &Options);
+		x += V_DrawCharacterMB(CONLCONSOLEFONT, Options, (MBRover->EnableVirtual ? MBRover->VirtualMB : MBRover->MB), x, a_y, NULL, &Options);
+		
+		// If a virtual character was drawn here, then replace it with a ?
+		if (MBRover->EnableVirtual)
+			x += V_DrawCharacterMB(CONLCONSOLEFONT, Options, "?", x, a_y, NULL, &Options);
+		
+		// If no color/trans is set, set default
+		if (DefaultOptions)
+			if (!(Options & (VFO_COLORMASK | VFO_TRANSMASK)))
+				Options |= DefaultOptions;
 		
 		// Go to next character in chain
 		MBRover = MBRover->Next;
@@ -688,7 +759,7 @@ static void CONLFF_InputFF(const char* const a_Buf)
 		/* Send to execution handler */
 		if (ArgC)
 			if (!CONL_Exec(ArgC, ArgV))
-				CONL_OutputF("Illegal Command or Variable (\"{0%s{0\").\n", ArgV[0]);
+				CONL_OutputF("Illegal Command or Variable (\"{z%s{z\").\n", ArgV[0]);
 	
 		/* Clear */
 		if (ArgV)
@@ -1218,7 +1289,7 @@ void CONL_DrawConsole(void)
 	bool_t FullCon;
 	size_t i, n, j, k, l, BSkip;
 	int32_t NumLines, Limit;
-	uint32_t bx, x, by, y, bw, bh, Options, conX, conY, conW, conH, DrawCount;
+	uint32_t bx, x, by, y, bw, bh, Options, conX, conY, conW, conH, DrawCount, DefaultOptions;
 	const char* p;
 	char TempFill[6];
 	static pic_t* BackPic;
@@ -1230,7 +1301,7 @@ void CONL_DrawConsole(void)
 	/* Console is active (draw the console) */
 	if (CONL_IsActive())
 	{
-		//V_DrawStringA(VFONT_STATUSBARSMALL, 0, "The console is {1Active{0!", 100, 100);
+		//V_DrawStringA(VFONT_STATUSBARSMALL, 0, "The console is {1Active{z!", 100, 100);
 		
 		// Fullscreen console?
 		FullCon = con_startup;
@@ -1434,13 +1505,26 @@ void CONL_DrawConsole(void)
 					// Reset everything
 					x = bx;
 					p = &l_CONLMessageQ[i][j].Text[0];
-					Options = l_CONLMessageQ[i][j].Flags;
+					DefaultOptions = Options = l_CONLMessageQ[i][j].Flags;
+					DefaultOptions &= (VFO_COLORMASK | VFO_TRANSMASK);
 					
 					// Draw single character
 					while (*p)
 					{
 						// Draw
 						x += V_DrawCharacterMB(VFONT_SMALL, Options, p, x, y, &BSkip, &Options);
+						
+						// Reset attributes?
+						if (DefaultOptions)
+							if (!(Options & (VFO_COLORMASK | VFO_TRANSMASK)))
+								Options |= DefaultOptions;
+						
+						// Never over trans
+						if ((Options & VFO_TRANSMASK) < (DefaultOptions & VFO_TRANSMASK))
+						{
+							Options &= ~VFO_TRANSMASK;
+							Options |= (DefaultOptions & VFO_TRANSMASK);
+						}
 						
 						// Skip char
 						p += BSkip;
