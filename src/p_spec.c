@@ -2402,6 +2402,8 @@ void P_AddFakeFloor(sector_t* sec, sector_t* sec2, line_t* master, int flags)
 		else
 			ffloor->alpha = 0x80;	// 127
 	}
+	else
+		ffloor->alpha = 0xFF;	// Not transparent
 	
 	P_AddFFloor(sec, ffloor);
 }
