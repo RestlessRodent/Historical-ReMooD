@@ -557,6 +557,10 @@ void* Z_MallocWrappee(const size_t Size, const Z_MemoryTag_t Tag, void** const R
 		// Subtract free memory
 		l_MainZone->FreeMemory -= New->Part.Size;
 		
+		// Set Ref
+		if (Ref)
+			*Ref = RetVal;
+		
 		// Return pointer
 		return RetVal;
 	}
