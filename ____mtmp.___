@@ -295,6 +295,7 @@ remood:													$(__XX_BIN)/remood$(__INT_EXESUFFIX)$(__XX_EXESUFFIX)
 
 # The actual binary
 $(__XX_BIN)/remood$(__INT_EXESUFFIX)$(__XX_EXESUFFIX):	$(__XX_OBJS)
+														@echo [LD] $(notdir $@)
 														@$(__INT_CC) -o $@ $(__XX_OBJS) $(__XX_LDFLAGS)
 
 # Source files in src/
