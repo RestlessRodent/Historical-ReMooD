@@ -55,6 +55,7 @@
 #include "command.h"
 #include "w_wad.h"
 #include "doomstat.h"
+#include "i_sound.h"
 
 /****************
 *** CONSTANTS ***
@@ -1307,7 +1308,7 @@ void I_PlaySong(int handle, int looping)
 	/* Send to driver */
 	if (l_LocalSongs[i].Driver->Play)
 		l_LocalSongs[i].DriverHandle = l_LocalSongs[i].Driver->Play(l_LocalSongs[i].Driver,
-		                                                            (l_LocalSongs[i].Driver->ExternalData ? l_LocalSongs[i].PathName : l_LocalSongs[i].Data),
+		                                                            (l_LocalSongs[i].Driver->ExternalData ? (void*)l_LocalSongs[i].PathName : (void*)l_LocalSongs[i].Data),
 		                                                            l_LocalSongs[i].EntryLength, looping);
 		                                                            
 	/* Set song to playing */
