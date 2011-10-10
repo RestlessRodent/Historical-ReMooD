@@ -964,7 +964,7 @@ void P_MobjThinker(mobj_t* mobj)
 			
 	// SoM: Floorhuggers stay on the floor allways...
 	// BP: tested here but never set ?!
-	if (mobj->info->flags & MF_FLOORHUGGER)
+	if (mobj->info->flags2 & MF2_FLOORHUGGER)
 	{
 		mobj->z = mobj->floorz;
 	}
@@ -2300,9 +2300,9 @@ XFlagConv_t XFlagConvList[] =
 	{0, 0, 0, MFXA_ISDSPARIL, 0, 0, 0},
 	{0, 0, 0, MFXA_ISEXPLOSIONIMMUNE, 0, 0, 0},
 	{MF_FLOAT, 0, 0, MFXA_ISFLOATABLE, 0, 0, 0},
-	{MF_FLOORHUGGER, 0, 0, MFXA_ISFLOORHUGGER, 0, 0, 0},
+	{0, MF2_FLOORHUGGER, 0, MFXA_ISFLOORHUGGER, 0, 0, 0},
 	{0, MF2_FLY, 0, MFXA_ISFLYING, 0, 0, 0},
-	{MF_SKULLFLY, 0, 0, MFXA_ISFLYINGSKULL, 0, 0, 0},
+	{MF_SKULLFLY, 0, 0, 0, 0, 0, MFXD_ISFLYINGSKULL},
 	{0, MF2_FRIENDLY, 0, 0, MFXB_ISFRIENDLY, 0, 0},
 	{MF_SPECIAL, 0, 0, 0, MFXB_ISGATHERABLE, 0, 0},
 	{0, 0, 0, 0, MFXB_ISHERETICITEMFOG, 0, 0},
@@ -2334,7 +2334,7 @@ XFlagConv_t XFlagConvList[] =
 	{0, 0, 0, 0, MFXB_NOALTDEATHMATCH, 0, 0},
 	{MF_INFLOAT, 0, 0, 0, MFXB_NOAUTOFLOAT, 0, 0},
 	{MF_NOBLOCKMAP, 0, 0, 0, MFXB_NOBLOCKMAP, 0, 0},
-	{MF_NOBLOOD, 0, 0, 0, MFXB_NOBLOOD, 0, 0},
+	{MF_NOBLOOD, 0, 0, 0, 0, 0, MFXD_NOBLOOD},
 	{0, 0, 0, 0, 0, MFXC_NOCHICKENMORPH, 0},
 	{MF_NOCLIP, 0, 0, 0, 0, MFXC_NOCLIP, 0},
 	{0, 0, 0, 0, 0, MFXC_NOCOOP, 0},
@@ -2366,7 +2366,7 @@ XFlagConv_t XFlagConvList[] =
 	{0, 0, 0, 0, 0, MFXC_VILEMISSILERANGE, 0},
 	{0, 0, 0, 0, 0, MFXC_REVENANTMISSILERANGE, 0},
 	{0, 0, 0, 0, 0, MFXC_HALFMISSILERANGE, 0},
-	{0, 0, 0, 0, 0, MFXC_CYBERDEMONMISSILERANGE, 0},
+	{0, 0, 0, 0, 0, 0, MFXD_CYBERDEMONMISSILERANGE},
 	{0, 0, 0, 0, 0, 0, MFXD_ROAMSOUNDISSEESOUND},
 	{0, 0, 0, 0, 0, 0, MFXD_FULLBLASTROAMSOUND},
 	{0, 0, 0, 0, 0, 0, MFXD_MINOTAUREXPLOSION},

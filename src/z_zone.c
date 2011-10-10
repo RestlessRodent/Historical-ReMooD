@@ -1146,7 +1146,7 @@ static Z_TableEntry_t* Z_FindTableEntry(Z_Table_t* const a_Table, const char* co
 	Hash = Z_Hash(a_Key);
 	
 	/* Find actual entry */
-	Entry = Z_HashFindEntry(a_Table->EntryHashes, Hash, a_Key, false);
+	Entry = Z_HashFindEntry(a_Table->EntryHashes, Hash, (void*)a_Key, false);
 	
 	// Found? return the entry
 	if (Entry)

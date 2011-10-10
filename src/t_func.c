@@ -84,6 +84,8 @@
 #include "t_vari.h"
 #include "t_func.h"
 
+#include "d_net.h"
+
 //extern int firstcolormaplump, lastcolormaplump;      // r_data.c
 
 svalue_t evaluate_expression(int start, int stop);
@@ -1051,7 +1053,7 @@ void SF_SpawnExplosion()
 	t_return.type = svt_int;
 	t_return.value.i = P_SetMobjState(spawn, spawn->info->deathstate);
 	if (spawn->info->deathsound)
-		S_StartSound(spawn, spawn->info->deathsound);
+		S_StartSound(&spawn->NoiseThinker, spawn->info->deathsound);
 }
 
 void SF_RadiusAttack()
@@ -1983,7 +1985,7 @@ void SF_StartSound()
 	if (!mo)
 		return;
 		
-	S_StartSoundName(mo, t_argv[1].value.s);
+	S_StartSoundName(&mo->NoiseThinker, t_argv[1].value.s);
 }
 
 // start sound from sector
@@ -2018,7 +2020,7 @@ void SF_StartSectorSound()
 	while ((secnum = P_FindSectorFromTag(tagnum, secnum)) >= 0)
 	{
 		sector = &sectors[secnum];
-		S_StartSoundName((mobj_t*)&sector->soundorg, t_argv[1].value.s);
+		S_StartSoundName(&sector->soundorg, t_argv[1].value.s);
 	}
 }
 
