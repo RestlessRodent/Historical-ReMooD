@@ -31,15 +31,18 @@ COOLERROR=' !> '
 # Versioning
 REMOODVERSION="$(cat version)"
 REMOODVERSIONSTRIP="$(sed 's/\.//g' < version)"
+REMOODARCH="$(dpkg --print-architecture)"
 
 # File names
 REMOODBASENAME="remood"
 REMOODBASESOURCE="remood-src-$REMOODVERSIONSTRIP"
+REMOODDEBIANSHORT="remood_$REMOODVERSIONSTRIP"
+REMOODDEBIANNAME="${REMOODDEBIANSHORT}_$REMOODARCH"
 
 ### CHECK FOR HG ###
 if [ "$HG" != "ignore" ]
 then
-	if ! which hg > /dev/null 2> /dev/null || ! hg status $BBREMOOD > /dev/null 2> /dev/null
+	if ! which hg > /dev/null 2> /dev/null || ! hg status "$BBREMOOD" > /dev/null 2> /dev/null
 	then
 		HG=""
 	else
@@ -124,7 +127,7 @@ do
 			# Otherwise, use harder method
 			else
 				# Read tar from std and make archive
-				$BBROOT/bb.sh source_tar_stdout > "$TARGETNAME"
+				"$BBROOT/bb.sh" source_tar_stdout > "$TARGETNAME"
 			fi
 			;;
 			
@@ -141,7 +144,7 @@ do
 			# Otherwise, use harder method
 			else
 				# Read tar from std and make archive
-				$BBROOT/bb.sh source_tar_stdout | gzip -9 -c - > "$TARGETNAME"
+				"$BBROOT/bb.sh" source_tar_stdout | gzip -9 -c - > "$TARGETNAME"
 			fi
 			;;
 			
@@ -158,7 +161,7 @@ do
 			# Otherwise, use harder method
 			else
 				# Read tar from std and make archive
-				$BBROOT/bb.sh source_tar_stdout | bzip2 -9 -c -  > "$TARGETNAME"
+				"$BBROOT/bb.sh" source_tar_stdout | bzip2 -9 -c -  > "$TARGETNAME"
 			fi
 			;;
 			
@@ -171,7 +174,7 @@ do
 			if [ "$HG" = "ok" ]
 			then
 				# hg lacks xz support so first create tar archive
-				$BBROOT/bb.sh source_tar
+				"$BBROOT/bb.sh" source_tar
 				
 				# Recompress as xz
 				xz -9 -c - < "$REMOODBASESOURCE.tar" > "$TARGETNAME"
@@ -179,7 +182,7 @@ do
 			# Otherwise, use harder method
 			else
 				# Read tar from std and make archive
-				$BBROOT/bb.sh source_tar_stdout | xz -9 -c -  > "$TARGETNAME"
+				"$BBROOT/bb.sh" source_tar_stdout | xz -9 -c -  > "$TARGETNAME"
 			fi
 			;;
 		
@@ -199,9 +202,90 @@ do
 				echo "$COOLPREFIX ZIP wihtout hg not yet supported." 1>&2 
 			fi
 			;;
+			
+			# Debian source package
+		debian_src)
+			echo "$COOLPREFIX Build Debian Source Package" 1>&2
+			"$BBROOT/bb.sh" source_tgz
+			
+			echo "$COOLPREFIX Renaming tgz" 1>&2
+			mv -v "$REMOODBASESOURCE.tgz" "$REMOODDEBIANSHORT.orig.tar.gz"
+			;;
+			
+			# Debian package (UGLY method)
+		debian_ugly)
+			TARGETNAME="$REMOODDEBIANNAME.deb"
+			echo "$COOLPREFIX Building $TARGETNAME" 1>&2
+			
+			echo "$COOLPREFIX Cleaning default source" 1>&2
+			if ! make clean USEINTERFACE=sdl
+			then
+				echo "$COOLPREFIX Failed to clean" 1>&2
+				exit 1
+			fi
+			
+			echo "$COOLPREFIX Building default source" 1>&2
+			if ! make USEINTERFACE=sdl
+			then
+				echo "$COOLPREFIX Failed to build" 1>&2
+				exit 1
+			fi
+			
+			echo "$COOLPREFIX Clearing old debian dir (if any)" 1>&2
+			rm -rvf ./debian/
+			
+			echo "$COOLPREFIX Creating new tree" 1>&2
+			mkdir -p ./debian/DEBIAN
+			mkdir -p ./debian/usr/games/
+			mkdir -p ./debian/usr/share/applications
+			mkdir -p ./debian/usr/share/doc/remood
+			mkdir -p ./debian/usr/share/games/doom
+			mkdir -p ./debian/usr/share/menu
+			mkdir -p ./debian/usr/share/pixmaps
+			
+			echo "$COOLPREFIX Filling binary tree" 1>&2
+			cp -v "$BBREMOOD/sys/remood.desktop" ./debian/usr/share/applications
+			cp -v "./bin/remood" ./debian/usr/games/remood.real
+			cp -v "$BBREMOOD/sys/wrap.sh" ./debian/usr/games/remood
+			cp -v "$BBREMOOD/bin/remood.wad" ./debian/usr/share/games/doom
+			cp -v "$BBREMOOD/sys/xmenu" ./debian/usr/share/menu
+			cp -v "$BBREMOOD/sys/remood.xpm" ./debian/usr/share/pixmaps
+			
+			cp -v "$BBREMOOD/sys/debpostinst" ./debian/DEBIAN/postinst
+			chmod 755 ./debian/DEBIAN/postinst
+			cp -v "$BBREMOOD/sys/debprerm" ./debian/DEBIAN/prerm
+			chmod 755 ./debian/DEBIAN/prerm
+			
+			echo "$COOLPREFIX Creating control file" 1>&2
+			DEBIANCONTROLFILE="./debian/DEBIAN/control"
+			echo "Package: remood" > $DEBIANCONTROLFILE
+			echo "Architecture: $REMOODARCH" >> $DEBIANCONTROLFILE
+			echo "Version: $REMOODVERSION" >> $DEBIANCONTROLFILE
+			echo "Maintainer: GhostlyDeath (ghostlydeath@remood.org)" >> $DEBIANCONTROLFILE
+			# Installed-Size
+			echo "Depends: libc6 (>= `dpkg-query -W libc6 | sed 's/^[^\ \t]*[\ \t]*\(.*\)$/\1/g'`), libsdl1.2debian (>= `dpkg-query -W libsdl1.2debian | sed 's/^[^\ \t]*[\ \t]*\(.*\)$/\1/g'`)" >> $DEBIANCONTROLFILE
+			echo "Provides: doom-engine, boom-engine, heretic-engine" >> $DEBIANCONTROLFILE
+			echo "Recommends: doom-wad | boom-wad | heretic-wad" >> $DEBIANCONTROLFILE
+			echo "Section: games" >> $DEBIANCONTROLFILE
+			echo "Priority: optional" >> $DEBIANCONTROLFILE
+			echo "Homepage: http://remood.org/" >> $DEBIANCONTROLFILE
+			echo "Description: `cat "$BBREMOOD/sys/debinfo"`" >> $DEBIANCONTROLFILE
+			
+			echo "$COOLPREFIX Compiling package" 1>&2
+			dpkg-deb -b debian "$REMOODDEBIANNAME.deb"
+			;;
+			
+			# Debian package
+		debian)
+			TARGETNAME="$REMOODDEBIANNAME.deb"
+			echo "$COOLPREFIX Building $TARGETNAME" 1>&2
+			
+			;;
 	esac
 	
 	# Shift arguments over
 	shift
 done
+
+exit 0
 
