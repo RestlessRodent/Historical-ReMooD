@@ -289,13 +289,13 @@ do
 			do
 				if which "${PREFIX}-gcc" > /dev/null 2> /dev/null
 				then
-					echo "${PREFIX}-gcc"
+					echo "${PREFIX}-"
 					exit 0
 				fi
 			done
 			
 			# Fallback
-			echo "gcc"
+			echo ""
 			;;
 			
 			# Win64 Compiler
@@ -306,13 +306,13 @@ do
 			do
 				if which "${PREFIX}-gcc" > /dev/null 2> /dev/null
 				then
-					echo "${PREFIX}-gcc"
+					echo "${PREFIX}-"
 					exit 0
 				fi
 			done
 			
 			# Fallback
-			echo "gcc"
+			echo ""
 			;;
 			
 			# Win32/Allegro Binary
@@ -339,8 +339,39 @@ do
 			fi
 			
 			# Compile
-			make clean USEINTERFACE=allegro
-			make USEINTERFACE=allegro ALLEGRO_INCLUDE=allegw32/include ALLEGRO_LIB=allegw32/lib
+			make clean USEINTERFACE=allegro TOOLPREFIX="$WINGCC"
+			if ! make USEINTERFACE=allegro TOOLPREFIX="$WINGCC" ALLEGRO_INCLUDE=allegw32/include ALLEGRO_LIB=allegw32/lib
+			then
+				echo "$COOLPREFIX Failed" 1>&2
+				exit 1
+			fi
+			
+			# Zip
+			mkdir -p "$$/"
+			cp -v "bin/remood.exe" "$$/"
+			cp -v "$BBREMOOD/bin/remood.wad" "$$/"
+			cp -v "allegw32/bin/alleg42.dll" "$$/"
+			cp -v "$BBREMOOD/AUTHORS" "$$/"
+			cp -v "$BBREMOOD/INSTALL" "$$/"
+			cp -v "$BBREMOOD/LICENSE" "$$/"
+			cp -v "$BBREMOOD/NEWS" "$$/"
+			cp -v "$BBREMOOD/README" "$$/"
+			cp -v "$BBREMOOD/README.cmp" "$$/"
+			cp -v "$BBREMOOD/version" "$$/"
+			
+			# Go into dir
+			cd "$$/"
+			
+			# Convert to DOS format
+			unix2dos -o AUTHORS INSTALL LICENSE NEWS README README.cmp version
+			
+			# Zip files into an archive
+			rm -f "../remood_${REMOODVERSIONSTRIP}_win32.zip"
+			zip "../remood_${REMOODVERSIONSTRIP}_win32.zip" *
+			
+			# Get back out
+			cd "../"
+			rm -rf "$$"
 			
 			;;
 			
