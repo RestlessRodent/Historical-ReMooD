@@ -281,6 +281,79 @@ do
 			echo "$COOLPREFIX Building $TARGETNAME" 1>&2
 			
 			;;
+			
+			# Win32 Compiler
+		win32_findcc)
+			# Which prefix works?
+			for PREFIX in i686-w64-mingw32 i686-pc-mingw32 i686-mingw32 i586-mingw32msvc i586-pc-mingw32msvc
+			do
+				if which "${PREFIX}-gcc" > /dev/null 2> /dev/null
+				then
+					echo "${PREFIX}-gcc"
+					exit 0
+				fi
+			done
+			
+			# Fallback
+			echo "gcc"
+			;;
+			
+			# Win64 Compiler
+		win64_findcc)
+			# Which prefix works?
+			# These are all the same CCs, second is comp, last is Debian screwy name
+			for PREFIX in x86_64-w64-mingw32 x86_64-pc-mingw32 amd64-mingw32msvc
+			do
+				if which "${PREFIX}-gcc" > /dev/null 2> /dev/null
+				then
+					echo "${PREFIX}-gcc"
+					exit 0
+				fi
+			done
+			
+			# Fallback
+			echo "gcc"
+			;;
+			
+			# Win32/Allegro Binary
+		win32_allegro)
+			echo "$COOLPREFIX Building Win32 Allegro Binary" 1>&2
+			
+			WINGCC="`"$BBROOT/bb.sh" win32_findcc`"
+			echo "$COOLPREFIX Using $WINGCC" 1>&2
+			
+			# Check if allegw32 needs to be extracted
+			if  [ ! -d "allegw32" ]
+			then
+				# Download from remood.org
+				if [ ! -f "allegw32.tar.gz" ]
+				then
+					wget -c http://remood.org/downloads/allegw32.tar.gz -O allegw32.tar.gz
+				fi
+				
+				# Extract
+				if tar -xvvf "allegw32.tar.gz"
+				then
+					break
+				fi
+			fi
+			
+			# Compile
+			make clean USEINTERFACE=allegro
+			make USEINTERFACE=allegro ALLEGRO_INCLUDE=allegw32/include ALLEGRO_LIB=allegw32/lib
+			
+			;;
+			
+			# Win32/SDL Binary
+		win32_sdl)
+			echo "$COOLPREFIX Building Win32 SDL Binary" 1>&2
+			;;
+			
+			# Default Win32 Binary
+		win32)
+			echo "$COOLPREFIX Building Win32 Default Binary" 1>&2
+			"$BBROOT/bb.sh" win32_allegro
+			;;
 	esac
 	
 	# Shift arguments over
