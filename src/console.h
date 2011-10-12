@@ -54,6 +54,8 @@
 #define CONLSCROLLBACK 0		// Backcolor of the scrollbar
 #define CONLSCROLLMISS 200		// Missed color for scrollbar
 
+#define MAXCONLVARIABLENAME		128							// Max name for console command
+
 /*****************
 *** STRUCTURES ***
 *****************/
@@ -91,6 +93,13 @@ typedef struct CONCTI_Inputter_s
 	struct CONCTI_Inputter_s** RefPtr;	// Reference to this struct
 } CONCTI_Inputter_t;
 
+/* CONL_ConVariable_t -- Console variable */
+typedef struct CONL_ConVariable_s
+{
+	char Name[MAXCONLVARIABLENAME];		// Name of variable
+	
+} CONL_ConVariable_t;
+
 /*****************
 *** PROTOTYPES ***
 *****************/
@@ -105,6 +114,9 @@ int32_t CONCTI_DrawInput(CONCTI_Inputter_t* const a_Input, const uint32_t a_Opti
 /*** Console Commands */
 bool_t CONL_AddCommand(const char* const a_Name, void (*a_ComFunc)(const uint32_t, const char** const));
 bool_t CONL_Exec(const uint32_t a_ArgC, const char** const a_ArgV);
+
+/*** Console Variables */
+bool_t CONL_AddVariable(CONL_ConVariable_t* const a_Variable);  
 
 /*** Base Console ***/
 bool_t CONL_Init(const uint32_t a_OutBS, const uint32_t a_InBS);

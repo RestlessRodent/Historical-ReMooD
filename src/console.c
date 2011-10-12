@@ -793,6 +793,10 @@ static CONL_ConCommand_t* l_CONLCommands = NULL;			// Console commands
 static size_t l_CONLNumCommands = 0;						// Number of commands
 static Z_HashTable_t* l_CONLCommandHashes = NULL;			// Speed lookup
 
+static CONL_ConVariable_t** l_CONLVariables = NULL;			// Console variables
+static size_t l_CONLNumVariables = 0;						// Number of variables
+static Z_HashTable_t* l_CONLVariableHashes = NULL;			// Speed lookup
+
 /* CONL_CommandHashCompare() -- Compares entry hash */
 // A = const char*
 // B = uintptr_t
@@ -865,9 +869,11 @@ bool_t CONL_Exec(const uint32_t a_ArgC, const char** const a_ArgV)
 	ComNum = (uintptr_t)Z_HashFindEntry(l_CONLCommandHashes, Hash, a_ArgV[0], false);
 	ComNum -= 1;
 	
-	// Check
+	// Check, if not found try variables
 	if (ComNum >= l_CONLNumCommands)
+	{
 		return false;	// not found
+	}
 	
 	/* Execute */
 	l_CONLCommands[ComNum].ComFunc(a_ArgC, a_ArgV);
