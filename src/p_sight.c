@@ -290,14 +290,6 @@ bool_t P_CheckSight(mobj_t* t1, mobj_t* t2)
 	int pnum;
 	int bytenum;
 	int bitnum;
-
-	// GhostlyDeath <March 21, 2010> -- Sometimes crashes when rapidly reloading level
-	if (s1 < 0 || s1 >= numsectors || s2 < 0 || s2 >= numsectors)
-	{
-		if (devparm)
-			CONS_Printf("P_CheckSight: Quick lookup check found t1's sector to be negative [%i, %i]\n", s1, s2);
-		return false;
-	}
 	
 	// First check for trivial rejection.
 	
@@ -307,6 +299,14 @@ bool_t P_CheckSight(mobj_t* t1, mobj_t* t2)
 	pnum = s1 * numsectors + s2;
 	bytenum = pnum >> 3;
 	bitnum = 1 << (pnum & 7);
+	
+	// GhostlyDeath <March 21, 2010> -- Sometimes crashes when rapidly reloading level
+	if (s1 < 0 || s1 >= numsectors || s2 < 0 || s2 >= numsectors)
+	{
+		if (devparm)
+			CONS_Printf("P_CheckSight: Quick lookup check found t1's sector to be negative [%i, %i]\n", s1, s2);
+		return false;
+	}
 	
 	// Check in REJECT table.
 	if (rejectmatrix[bytenum] & bitnum)

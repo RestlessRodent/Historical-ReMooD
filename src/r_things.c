@@ -591,6 +591,8 @@ void R_DrawMaskedColumn(column_t* column)
 	dc_texturemid = basetexturemid;
 }
 
+extern int dc_drawymove;
+
 //
 // R_DrawVisSprite
 //  mfloorclip and mceilingclip should also be set.
@@ -609,6 +611,7 @@ static void R_DrawVisSprite(vissprite_t* vis, int x1, int x2)
 		return;
 		
 	dc_colormap = vis->colormap;
+	dc_drawymove = vid.rowbytes;
 	
 	// Support for translated and translucent sprites. SSNTails 11-11-2002
 	if (vis->mobjflags & MF_TRANSLATION && vis->transmap)

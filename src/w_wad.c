@@ -2589,6 +2589,12 @@ void WL_PushWAD(const WL_WADFile_t* const a_WAD)
 {
 }
 
+/* WL_PopWAD() -- Pops a WAD from the end of the virtual stack */
+const WL_WADFile_t* WL_PopWAD(void)
+{
+	return NULL;
+}
+
 /* WL_LocateWAD() -- Finds WAD on the disk */
 bool_t WL_LocateWAD(const char* const a_Name, const char* const a_MD5, char* const a_OutPath, const size_t a_OutSize)
 {
@@ -2714,12 +2720,6 @@ bool_t WL_LocateWAD(const char* const a_Name, const char* const a_MD5, char* con
 	return false;
 }
 
-/* WL_PopWAD() -- Pops a WAD from the end of the virtual stack */
-const WL_WADFile_t* WL_PopWAD(void)
-{
-	return NULL;
-}
-
 /* WL_RegisterPDC() -- Registers a data handler */
 bool_t WL_RegisterPDC(const uint32_t a_Key, const uint8_t a_Order, WL_PCCreatorFunc_t const a_CreatorFunc)
 {
@@ -2749,3 +2749,4 @@ size_t WL_ReadData(const WL_WADEntry_t* const a_Entry, const size_t a_Offset, vo
 {
 	return 0;
 }
+
