@@ -934,16 +934,17 @@ void I_ShowEndTxt(const uint8_t* const a_TextData)
 		// Get logical column number
 		c = (i >> 1) % 80;
 		
+		// Add a newline
+		if (c == 0)
+			I_TextModeNextLine();
+		
 		// Print character
 		if (c < Cols)			// but only if it fits!
 			I_TextModeChar(a_TextData[i], a_TextData[i + 1]);
-			
-		// Add a newline if Cols > 80 and c == 79
-		if (c == (Cols - 1)/* && Cols > 80*/)
-			I_TextModeNextLine();
 	}
 	
 	/* Leave text mode */
+	I_TextModeNextLine();
 	I_TextMode(false);
 }
 

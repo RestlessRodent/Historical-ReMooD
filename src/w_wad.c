@@ -1137,7 +1137,7 @@ void* W_CacheLumpNum(WadIndex_t lump, size_t PU)
 			return NULL;
 			
 		// Is it already cached?
-		if (Entry->Cache[WETYPE_RAW] == NULL)
+		if (!Entry->Cache[WETYPE_RAW])
 		{
 			Entry->Cache[WETYPE_RAW] = Z_Malloc(Entry->Size, PU, &(Entry->Cache[WETYPE_RAW]));
 			
