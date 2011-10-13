@@ -43,6 +43,8 @@
 
 // Include winalleg on Windows since it conflicts!
 #if defined(_WIN32)
+#define ALLEGRO_NO_MAGIC_MAIN	// Breaks with mingw-w64
+
 #include <winalleg.h>
 #endif
 
@@ -73,5 +75,22 @@ int main(int argc, char** argv)
 	return EXIT_SUCCESS;
 }
 
+#if !defined(ALLEGRO_NO_MAGIC_MAIN)
+
+// Non-mangled main
 END_OF_MAIN()
+
+#else
+
+/* GhostlyDeath <October 13, 2011> -- Mangle ourself */
+// On mingw-w64 (i686-w64-mingw32-gcc (GCC) 4.7.0 20110831 (experimental)) due
+// to Allegro using generic (probably a GCC 4.7 thing) it causes the build to
+// fail. So instead, this is handled directly in this case. It works for
+// i586-mingw32msvc-gcc (GCC) 4.4.4 so far.
+int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nShowCmd)
+{
+	return _WinMain(main, hInstance, hPrevInstance, lpCmdLine, nShowCmd);
+}
+
+#endif
 
