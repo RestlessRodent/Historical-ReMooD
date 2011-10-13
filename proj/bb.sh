@@ -332,9 +332,10 @@ do
 				fi
 				
 				# Extract
-				if tar -xvvf "allegw32.tar.gz"
+				if ! tar -xvvf "allegw32.tar.gz"
 				then
-					break
+					echo "$COOLPREFIX Failed to extract Allegro/Win32" 1>&2
+					exit 1
 				fi
 			fi
 			
