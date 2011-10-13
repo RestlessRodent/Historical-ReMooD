@@ -39,18 +39,6 @@
 *** INCLUDES ***
 ***************/
 
-/* Required Stuff */
-#include <stdarg.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <limits.h>
-#include <stddef.h>
-#include <sys/types.h>
-#include <sys/stat.h>
-#include <ctype.h>
-#include <math.h>
-
 /* Windows */
 // windows.h is huge as hell and slows down the compile, maybe it can be removed?
 #ifdef _WIN32
@@ -72,6 +60,18 @@
 #include <windows.h>
 #include <io.h>
 #endif
+
+/* Required Stuff */
+#include <stdarg.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <limits.h>
+#include <stddef.h>
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <ctype.h>
+#include <math.h>
 
 /* UNIX */
 #if defined(__unix__)
