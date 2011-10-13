@@ -34,11 +34,11 @@
 //      File i/o
 //      Common used routines
 
-#ifndef _WIN32
+/*#ifndef _WIN32
 #include <unistd.h>
 #else
 #include <windows.h>
-#endif
+#endif*/
 #include <fcntl.h>
 
 #include "doomdef.h"
