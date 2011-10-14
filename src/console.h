@@ -56,6 +56,23 @@
 
 #define MAXCONLVARIABLENAME		128							// Max name for console command
 
+/* CONL_ExitCode_t -- Exit code for console command */
+typedef enum CONL_ExitCode_e
+{
+	CLE_SUCCESS,				// Success.
+	CLE_NOTANERRORSTRING,		// Invalid Error String
+	CLE_CRITICALFAILURE,		// Critical Failure
+	CLE_UNKNOWNCOMMAND,			// Unknown Command
+	CLE_UNKNOWNVARIABLE,		// Unknown Variable
+	CLE_INVALIDARGUMENT,		// Invalid argument
+	CLE_RESOURCENOTFOUND,		// Something was not found (file, wad, lump, url, etc.)
+	CLE_CONNECTIONREFUSED,		// Refused Connection
+	CLE_DISKREADONLY,			// The disk is read only
+	CLE_PERMISSIONDENIED,		// Not allowed to do this
+	
+	NUMCONLEXITCODES
+} CONL_ExitCode_t;
+
 /*****************
 *** STRUCTURES ***
 *****************/
@@ -112,8 +129,9 @@ void CONCTI_SetText(CONCTI_Inputter_t* const a_Input, const char* const a_Text);
 int32_t CONCTI_DrawInput(CONCTI_Inputter_t* const a_Input, const uint32_t a_Options, const int32_t a_x, const int32_t a_y, const int32_t a_x2);
 
 /*** Console Commands */
-bool_t CONL_AddCommand(const char* const a_Name, void (*a_ComFunc)(const uint32_t, const char** const));
-bool_t CONL_Exec(const uint32_t a_ArgC, const char** const a_ArgV);
+const char* CONL_ExitCodeToStr(const CONL_ExitCode_t a_Code);
+bool_t CONL_AddCommand(const char* const a_Name, CONL_ExitCode_t (*a_ComFunc)(const uint32_t, const char** const));
+CONL_ExitCode_t CONL_Exec(const uint32_t a_ArgC, const char** const a_ArgV);
 
 /*** Console Variables */
 bool_t CONL_AddVariable(CONL_ConVariable_t* const a_Variable);  
@@ -138,8 +156,9 @@ void CONL_Ticker(void);
 void CONL_DrawConsole(void);
 
 /*** Console Commands ***/
-void CLC_Version(const uint32_t a_ArgC, const char** const a_ArgV);
-void CLC_Dep(const uint32_t a_ArgC, const char** const a_ArgV);
+CONL_ExitCode_t CLC_Version(const uint32_t a_ArgC, const char** const a_ArgV);
+CONL_ExitCode_t CLC_Dep(const uint32_t a_ArgC, const char** const a_ArgV);
+CONL_ExitCode_t CLC_Exec(const uint32_t a_ArgC, const char** const a_ArgV);
 
 /******************************************************************************/
 

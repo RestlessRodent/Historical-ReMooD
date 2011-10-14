@@ -693,6 +693,7 @@ static void CONLFF_InputFF(const char* const a_Buf)
 	int ArgC, Current, i, j;
 	char** ArgV;
 	char Quote;
+	CONL_ExitCode_t ec;
 	
 	/* Check */
 	if (!a_Buf)
@@ -758,8 +759,12 @@ static void CONLFF_InputFF(const char* const a_Buf)
 	
 		/* Send to execution handler */
 		if (ArgC)
-			if (!CONL_Exec(ArgC, ArgV))
-				CONL_OutputF("Illegal Command or Variable (\"{z%s{z\").\n", ArgV[0]);
+		{
+			ec = CONL_Exec(ArgC, ArgV);
+			
+			if (ec)
+				CONL_OutputF("{b%s{z\n", CONL_ExitCodeToStr(ec));
+		}
 	
 		/* Clear */
 		if (ArgV)
@@ -785,7 +790,7 @@ static void CONLFF_InputFF(const char* const a_Buf)
 typedef struct CONL_ConCommand_s
 {
 	char Name[MAXCONLCOMMANDNAME];							// Name of command
-	void (*ComFunc)(const uint32_t, const char** const);	// Function to call
+	CONL_ExitCode_t (*ComFunc)(const uint32_t, const char** const);	// Function to call
 	uint32_t Hash;											// Hash table hash
 } CONL_ConCommand_t;
 
@@ -815,7 +820,7 @@ static bool_t CONL_CommandHashCompare(void* const a_A, void* const a_B)
 }
 
 /* CONL_AddCommand() -- Add console command */
-bool_t CONL_AddCommand(const char* const a_Name, void (*a_ComFunc)(const uint32_t, const char** const))
+bool_t CONL_AddCommand(const char* const a_Name, CONL_ExitCode_t (*a_ComFunc)(const uint32_t, const char** const))
 {
 	uintptr_t x;
 	
@@ -853,14 +858,14 @@ bool_t CONL_AddCommand(const char* const a_Name, void (*a_ComFunc)(const uint32_
 }
 
 /* CONL_Exec() -- Execute command */
-bool_t CONL_Exec(const uint32_t a_ArgC, const char** const a_ArgV)
+CONL_ExitCode_t CONL_Exec(const uint32_t a_ArgC, const char** const a_ArgV)
 {
 	uint32_t Hash;
 	uintptr_t ComNum;
 	
 	/* Check */
 	if (!a_ArgC || !a_ArgV)
-		return false;
+		return CLE_CRITICALFAILURE;
 	
 	/* Find hash for command */
 	Hash = Z_Hash(a_ArgV[0]);
@@ -872,14 +877,34 @@ bool_t CONL_Exec(const uint32_t a_ArgC, const char** const a_ArgV)
 	// Check, if not found try variables
 	if (ComNum >= l_CONLNumCommands)
 	{
-		return false;	// not found
+		return CLE_UNKNOWNCOMMAND;	// not found
 	}
 	
 	/* Execute */
-	l_CONLCommands[ComNum].ComFunc(a_ArgC, a_ArgV);
+	return l_CONLCommands[ComNum].ComFunc(a_ArgC, a_ArgV);
+}
+
+/* CONL_ExitCodeToStr() -- Converts exit code to string */
+const char* CONL_ExitCodeToStr(const CONL_ExitCode_t a_Code)
+{
+	static const char* const CodeStrs[NUMCONLEXITCODES] =
+	{
+		"Success",				// CLE_SUCCESS
+		"Not An Error String",	// CLE_NOTANERRORSTRING
+		"Critical Failure",		// CLE_CRITICALFAILURE
+		"Unknown Command",		// CLE_UNKNOWNCOMMAND
+		"Unknown Variable",		// CLE_UNKNOWNVARIABLE
+		"Invalid Argument",		// CLE_INVALIDARGUMENT
+		"Resource Not Found",	// CLE_RESOURCENOTFOUND
+		"Connection Refused",	// CLE_CONNECTIONREFUSED
+		"Read-only Medium",		// CLE_DISKREADONLY
+		"Permission Denied",	// CLE_PERMISSIONDENIED
+	};
 	
-	/* Success */
-	return true;
+	/* Return static char */
+	if (a_Code >= NUMCONLEXITCODES || a_Code < 0)
+		return CodeStrs[CLE_NOTANERRORSTRING];
+	return CodeStrs[a_Code];
 }
 
 /*** Base Console ***/
@@ -920,6 +945,7 @@ bool_t CONL_Init(const uint32_t a_OutBS, const uint32_t a_InBS)
 	/* Add Commands */
 	CONL_AddCommand("version", CLC_Version);
 	CONL_AddCommand("dep", CLC_Dep);
+	CONL_AddCommand("exec", CLC_Exec);
 	
 	/* Success! */
 	return true;
@@ -1553,14 +1579,17 @@ void CONL_DrawConsole(void)
 }
 
 /* CLC_Version() -- ReMooD version info */
-void CLC_Version(const uint32_t a_ArgC, const char** const a_ArgV)
+CONL_ExitCode_t CLC_Version(const uint32_t a_ArgC, const char** const a_ArgV)
 {
 	CONL_OutputF("ReMooD %i.%i%c \"%s\"\n", REMOOD_MAJORVERSION, REMOOD_MINORVERSION, REMOOD_RELEASEVERSION, REMOOD_VERSIONCODESTRING);
 	CONL_OutputF("  Please visit %s for more information.\n", REMOOD_URL);
+	
+	/* Return success always */
+	return CLE_SUCCESS;
 }
 
 /* CLC_Dep() -- Access to deprecated console */
-void CLC_Dep(const uint32_t a_ArgC, const char** const a_ArgV)
+CONL_ExitCode_t CLC_Dep(const uint32_t a_ArgC, const char** const a_ArgV)
 {
 #define BUFSIZE 512
 	char Buf[BUFSIZE];
@@ -1588,8 +1617,16 @@ void CLC_Dep(const uint32_t a_ArgC, const char** const a_ArgV)
 
 	/* Flush command (to execute it) */
 	COM_BufExecute();
-
+	
+	/* Always return success, no real way to get it to work */
+	return CLE_SUCCESS;
 #undef BUFSIZE
+}
+
+/* CLC_Exec() -- Execute command */
+CONL_ExitCode_t CLC_Exec(const uint32_t a_ArgC, const char** const a_ArgV)
+{
+	return CONL_Exec(a_ArgC - 1, a_ArgV + 1);
 }
 
 /*****************************************************************************/
