@@ -60,6 +60,7 @@
 typedef enum CONL_ExitCode_e
 {
 	CLE_SUCCESS,				// Success.
+	CLE_FAILURE,				// Failure.
 	CLE_NOTANERRORSTRING,		// Invalid Error String
 	CLE_CRITICALFAILURE,		// Critical Failure
 	CLE_UNKNOWNCOMMAND,			// Unknown Command
@@ -69,6 +70,7 @@ typedef enum CONL_ExitCode_e
 	CLE_CONNECTIONREFUSED,		// Refused Connection
 	CLE_DISKREADONLY,			// The disk is read only
 	CLE_PERMISSIONDENIED,		// Not allowed to do this
+	CLE_UNKNOWNSUBCOMMAND,		// Unknown sub command
 	
 	NUMCONLEXITCODES
 } CONL_ExitCode_t;
@@ -159,6 +161,8 @@ void CONL_DrawConsole(void);
 CONL_ExitCode_t CLC_Version(const uint32_t a_ArgC, const char** const a_ArgV);
 CONL_ExitCode_t CLC_Dep(const uint32_t a_ArgC, const char** const a_ArgV);
 CONL_ExitCode_t CLC_Exec(const uint32_t a_ArgC, const char** const a_ArgV);
+CONL_ExitCode_t CLC_Exclamation(const uint32_t a_ArgC, const char** const a_ArgV);
+CONL_ExitCode_t CLC_Question(const uint32_t a_ArgC, const char** const a_ArgV);
 
 /******************************************************************************/
 

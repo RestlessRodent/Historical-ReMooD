@@ -794,6 +794,8 @@ typedef struct CONL_ConCommand_s
 	uint32_t Hash;											// Hash table hash
 } CONL_ConCommand_t;
 
+static CONL_ExitCode_t g_CONLError = CLE_SUCCESS;			// '? command' Exit Code
+
 static CONL_ConCommand_t* l_CONLCommands = NULL;			// Console commands
 static size_t l_CONLNumCommands = 0;						// Number of commands
 static Z_HashTable_t* l_CONLCommandHashes = NULL;			// Speed lookup
@@ -890,6 +892,7 @@ const char* CONL_ExitCodeToStr(const CONL_ExitCode_t a_Code)
 	static const char* const CodeStrs[NUMCONLEXITCODES] =
 	{
 		"Success",				// CLE_SUCCESS
+		"Failure",				// CLE_FAILURE
 		"Not An Error String",	// CLE_NOTANERRORSTRING
 		"Critical Failure",		// CLE_CRITICALFAILURE
 		"Unknown Command",		// CLE_UNKNOWNCOMMAND
@@ -899,6 +902,7 @@ const char* CONL_ExitCodeToStr(const CONL_ExitCode_t a_Code)
 		"Connection Refused",	// CLE_CONNECTIONREFUSED
 		"Read-only Medium",		// CLE_DISKREADONLY
 		"Permission Denied",	// CLE_PERMISSIONDENIED
+		"Unknown Sub-Command",	// CLE_UNKNOWNSUBCOMMAND
 	};
 	
 	/* Return static char */
@@ -946,6 +950,8 @@ bool_t CONL_Init(const uint32_t a_OutBS, const uint32_t a_InBS)
 	CONL_AddCommand("version", CLC_Version);
 	CONL_AddCommand("dep", CLC_Dep);
 	CONL_AddCommand("exec", CLC_Exec);
+	CONL_AddCommand("!", CLC_Exclamation);
+	CONL_AddCommand("?", CLC_Question);
 	
 	/* Success! */
 	return true;
@@ -1627,6 +1633,36 @@ CONL_ExitCode_t CLC_Dep(const uint32_t a_ArgC, const char** const a_ArgV)
 CONL_ExitCode_t CLC_Exec(const uint32_t a_ArgC, const char** const a_ArgV)
 {
 	return CONL_Exec(a_ArgC - 1, a_ArgV + 1);
+}
+
+/* CLC_Exclamation() -- Runs command and reverses error status */
+CONL_ExitCode_t CLC_Exclamation(const uint32_t a_ArgC, const char** const a_ArgV)
+{
+	CONL_ExitCode_t Code;
+	
+	/* Execute */
+	Code = CONL_Exec(a_ArgC - 1, a_ArgV + 1);
+	
+	/* Which do we return? */
+	if (!Code)
+		return CLE_FAILURE;
+	else
+		return CLE_SUCCESS;
+}
+
+/* CLC_Question() -- Runs command and sets error number */
+CONL_ExitCode_t CLC_Question(const uint32_t a_ArgC, const char** const a_ArgV)
+{
+	CONL_ExitCode_t Code;
+	
+	/* Execute */
+	Code = CONL_Exec(a_ArgC - 1, a_ArgV + 1);
+	
+	/* Set error */
+	g_CONLError = Code;
+	
+	/* Always succeed */
+	return CLE_SUCCESS;
 }
 
 /*****************************************************************************/
