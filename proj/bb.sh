@@ -386,6 +386,30 @@ do
 			echo "$COOLPREFIX Building Win32 Default Binary" 1>&2
 			"$BBROOT/bb.sh" win32_allegro
 			;;
+			
+			# Test Suite
+		test)
+			echo "$COOLPREFIX Prepare test with build" 1>&2
+			make clean USEINTERFACE=headless DEBUG=1 > /dev/null 2> /dev/null
+			
+			if ! make USEINTERFACE=headless DEBUG=1 2> /dev/null
+			then
+				echo "$COOLPREFIX Make failed..." 1>&2
+				exit 1
+			fi
+			
+			echo "$COOLPREFIX Running tests..." 1>&2
+			
+			# Start and quite test
+			echo -n "$COOLPREFIX TEST: START AND QUIT: " 1>&2
+			if ! bin/remood-dbg -devparm ++quit > /dev/null 2> /dev/null
+			then
+				echo "FAILED ($?)" 1>&2
+			else
+				echo "PASSED ($?)" 1>&2
+			fi
+			
+			;;
 	esac
 	
 	# Shift arguments over

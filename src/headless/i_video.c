@@ -156,6 +156,20 @@ void I_RemoveJoysticks(void)
 {
 }
 
+/* I_GetJoystickID() -- Gets name of the joysticks */
+bool_t I_GetJoystickID(const size_t a_JoyID, uint32_t* const a_Code, char* const a_Text, const size_t a_TextSize, char* const a_Cool, const size_t a_CoolSize)
+{
+	/* Always Fail */
+	return false;
+}
+
+/* I_GetJoystickCounts() -- Get joystick counts */
+bool_t I_GetJoystickCounts(const size_t a_JoyID, uint32_t* const a_NumAxis, uint32_t* const a_NumButtons)
+{
+	/* Always Fail */
+	return false;
+}
+
 /* I_ProbeMouse() -- Probes Mice */
 bool_t I_ProbeMouse(const size_t a_ID)
 {
