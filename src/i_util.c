@@ -180,6 +180,8 @@ bool_t I_EventExPop(I_EventEx_t* const a_Event)
 	return true;
 }
 
+void M_QuitDOOM(int choice);
+
 /* I_OsPolling() -- Handles operating system polling (all of it) */
 void I_OsPolling(void)
 {
@@ -251,6 +253,14 @@ void I_OsPolling(void)
 					break;
 			}
 		}
+		
+		// Quit event?
+		if (Event.Type == IET_QUIT)
+		{
+			M_QuitDOOM(0);
+			continue;
+		}
+		
 		// Translate
 		if (!CONL_HandleEvent(&Event))
 			I_EventToOldDoom(&Event);

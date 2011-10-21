@@ -666,10 +666,10 @@ void I_GetEvent(void)
 		// Which event is this now?
 		switch (Event.type)
 		{
-				// Quite Event
+				// Quit Event
 			case SDL_QUIT:
 				ExEvent[0].Type = IET_QUIT;
-				continue;
+				break;
 				
 				// Focus of the window changes
 			case SDL_ACTIVEEVENT:
