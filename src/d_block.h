@@ -55,7 +55,7 @@ typedef enum D_TBlockErr_e
 /* D_TBlockFlags_t -- Block flags */
 typedef enum D_TBlockFlags_e
 {
-	// Compression Setting
+	// Compression (Make data smaller)
 	DTBF_COMPRESSMASK			= 0x00000003,	// Compression Mask
 	DTBF_COMPRESSSHIFT			= 0,			// Compression Shift
 	
@@ -64,7 +64,7 @@ typedef enum D_TBlockFlags_e
 	DTBF_COMPRESS_SPEED			= 2,			// Compress for speed (faster comp/decomp)
 	DTBF_COMPRESS_SIZE			= 3,			// Compress for size (smaller)
 	
-	// Acknowledge
+	// Acknowledge (Make sure block reaches other end, etc.)
 	DTBF_ACKMASK				= 0x000000038,	// Acknoledge Mask
 	DTBF_ACKSHIFT				= 3,			// Shift to mask
 	
@@ -125,6 +125,9 @@ typedef struct D_TStreamSource_s
 /*****************
 *** PROTOTYPES ***
 *****************/
+
+D_TBlockErr_t D_BlockRecv(D_TStreamSource_t* const a_Stream, D_TBlock_t** const a_BlkPtr);
+D_TBlockErr_t D_BlockSend(D_TStreamSource_t* const a_Stream, D_TBlock_t** const a_BlkPtr);
 
 #endif /* __D_BLOCK_H__ */
 
