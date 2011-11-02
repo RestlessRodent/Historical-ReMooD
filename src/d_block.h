@@ -37,9 +37,90 @@
 
 #include "doomtype.h"
 
+/****************
+*** CONSTANTS ***
+****************/
+
+/* D_TBlockErr_t -- Block error */
+typedef enum D_TBlockErr_e
+{
+	DTBE_SUCCESS,								// -+ Transport OK
+	DTBE_NODATA,								// -  No Data to recieve
+	DTBE_GENERALFAIL,							// -+ General Failure
+	DTBE_RESETBYPEER,							// -+ Connection reset on one side
+	DTBE_CONNECTIONREFUSED,						//  + Connection refused (close port?)
+	DTBE_OUTOFMEMORY,							// -+ No more memory available
+} D_TBlockErr_t;
+
+/* D_TBlockFlags_t -- Block flags */
+typedef enum D_TBlockFlags_e
+{
+	// Compression Setting
+	DTBF_COMPRESSMASK			= 0x00000003,	// Compression Mask
+	DTBF_COMPRESSSHIFT			= 0,			// Compression Shift
+	
+	DTBF_COMPRESS_NEVER			= 0,			// Never Compress
+	DTBF_COMPRESS_DEFAULT		= 1,			// Auto-determine compression
+	DTBF_COMPRESS_SPEED			= 2,			// Compress for speed (faster comp/decomp)
+	DTBF_COMPRESS_SIZE			= 3,			// Compress for size (smaller)
+	
+	// Acknowledge
+	DTBF_ACKMASK				= 0x000000038,	// Acknoledge Mask
+	DTBF_ACKSHIFT				= 3,			// Shift to mask
+	
+	DTBF_ACK_NONE				= 0,			// No acknowledge of block
+	DTBF_ACK_QUICK				= 1,			// Try to ack, but if failed ignore
+	DTBF_ACK_ASYNC				= 2,			// Move forward but keep trying to get data
+	DTBF_ACK_SYNC				= 3,			// Do not move until block is fully synced
+} D_TBlockFlags_t;
+
 /*****************
 *** STRUCTURES ***
 *****************/
+
+/* D_TBlock_t -- Transport block */
+typedef struct D_TBlock_s D_TBlock_t;
+
+/* D_TStreamStat_t -- Stream status */
+// 0 = Send, 1 = Receive
+typedef struct D_TStreamStat_s
+{
+	// Time
+	uint32_t LastTime[2];						// Last activity time
+	
+	// Block
+	uint32_t BlkXMit[2];						// Blocks transmitted
+	uint32_t BlkPS[2];							// Blocks per second
+	uint32_t BlkSplit[2];						// Blocks split to fit MTU
+	uint32_t BlkMerge[2];						// Blocks merged to fit MTU (after split)
+	uint32_t BlkMWait[2];						// Blocks waiting to be merged
+	uint32_t BlkBufferCount[2];					// Blocks waiting in buffer
+	
+	// Byte
+	uint32_t ByteXMit[2];						// Bytes transmitted
+	uint32_t BytePS[2];							// Bytes per second
+	uint32_t ByteMTU[2];						// Max transmission unit
+	
+	// Synchronization
+	uint32_t AckFail[2];						// Acknowledge failures
+	uint32_t AckPass[2];						// Acknowledge successes
+	
+	// Compression
+	uint32_t CompressCount[2];					// Compressed blocks
+	uint32_t CompressGain[2];					// Bytes gained with compression
+	uint32_t CompressLoss[2];					// Bytes lost with compression
+} D_TStreamStat_t;
+
+/* D_TStreamSource_t -- Stream source for blocks */
+typedef struct D_TStreamSource_s
+{
+	void* Data;									// Extra data
+	D_TStreamStat_t Stat[2];					// Stream status
+	uint32_t BlockDefFlags;						// Flags (Block match)
+	
+	D_TBlockErr_t (*FuncSend)(D_TBlock_t** const a_BlkPtrIn, const uint32_t a_TFlags, D_TStreamStat_t* const a_StatPtr, void** const a_DataPtr);
+	D_TBlockErr_t (*FuncRecv)(D_TBlock_t** const a_BlkPtrOut, const uint32_t a_TFlags, D_TStreamStat_t* const a_StatPtr, void** const a_DataPtr);
+} D_TStreamSource_t;
 
 /*****************
 *** PROTOTYPES ***
