@@ -31,6 +31,10 @@
 // DESCRIPTION:
 //      Archiving: SaveGame I/O.
 
+/***************
+*** INCLUDES ***
+***************/
+
 #include "doomdef.h"
 #include "g_game.h"
 #include "p_local.h"
@@ -44,7 +48,28 @@
 #include "t_func.h"
 #include "m_random.h"
 #include "m_misc.h"
-#include <time.h>
+#include "p_saveg.h"
+
+/****************
+*** FUNCTIONS ***
+****************/
+
+/* P_SaveGameStream() -- Save game into specified stream */
+bool_t P_SaveGameStream(D_TStreamSource_t* const a_Stream)
+{
+	/* Check */
+	if (!a_Stream)
+		return false;
+}
+
+/* P_LoadGameStream() -- Load game into specified stream */
+bool_t P_LoadGameStream(D_TStreamSource_t* const a_Stream)
+{
+	/* Check */
+	if (!a_Stream)
+		return false;
+}
+
 
 #define VERSIONSIZE 16
 uint8_t* save_p = NULL;			// Pointer to the data

@@ -50,6 +50,9 @@ typedef enum D_TBlockErr_e
 	DTBE_RESETBYPEER,							// -+ Connection reset on one side
 	DTBE_CONNECTIONREFUSED,						//  + Connection refused (close port?)
 	DTBE_OUTOFMEMORY,							// -+ No more memory available
+	DTBE_INVALIDARGUMENT,						// -+ Invalid argument passed
+	DTBE_NOTTHISDIRECTION,						// -+ Wrong direction of stream
+	DTBE_PREMATUREEND,							// -  Premature end of stream
 } D_TBlockErr_t;
 
 /* D_TBlockFlags_t -- Block flags */
@@ -115,17 +118,30 @@ typedef struct D_TStreamStat_s
 typedef struct D_TStreamSource_s
 {
 	void* Data;									// Extra data
-	D_TStreamStat_t Stat[2];					// Stream status
+	D_TStreamStat_t Stat;						// Stream status
 	uint32_t BlockDefFlags;						// Flags (Block match)
 	
-	D_TBlockErr_t (*FuncSend)(D_TBlock_t** const a_BlkPtrIn, const uint32_t a_TFlags, D_TStreamStat_t* const a_StatPtr, void** const a_DataPtr);
-	D_TBlockErr_t (*FuncRecv)(D_TBlock_t** const a_BlkPtrOut, const uint32_t a_TFlags, D_TStreamStat_t* const a_StatPtr, void** const a_DataPtr);
+	void (*FuncDeleteStream)(struct D_TStreamSource_s* const a_Stream);
+	D_TBlockErr_t (*FuncSend)(struct D_TStreamSource_s* const a_Stream, D_TBlock_t** const a_BlkPtrIn, const uint32_t a_TFlags, D_TStreamStat_t* const a_StatPtr, void** const a_DataPtr);
+	D_TBlockErr_t (*FuncRecv)(struct D_TStreamSource_s* const a_Stream, D_TBlock_t** const a_BlkPtrOut, const uint32_t a_TFlags, D_TStreamStat_t* const a_StatPtr, void** const a_DataPtr);
 } D_TStreamSource_t;
 
 /*****************
 *** PROTOTYPES ***
 *****************/
 
+/* Generic File I/O */
+D_TStreamSource_t* D_CreateFileInStream(const char* const a_PathName);
+D_TStreamSource_t* D_CreateFileOutStream(const char* const a_PathName);
+
+/* Generic Stream */
+void D_BlockStreamDelete(D_TStreamSource_t* const a_Stream);
+
+/* Generic Block Info */
+D_TBlock_t* D_BlockNew(const uint32_t a_Magic, const uint32_t a_Flags, const uint32_t a_Size, void** const a_DataPtr);
+void D_BlockFree(D_TBlock_t* const a_Block);
+
+/* Generic Block Send/Recv */
 D_TBlockErr_t D_BlockRecv(D_TStreamSource_t* const a_Stream, D_TBlock_t** const a_BlkPtr);
 D_TBlockErr_t D_BlockSend(D_TStreamSource_t* const a_Stream, D_TBlock_t** const a_BlkPtr);
 

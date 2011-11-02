@@ -32,5 +32,161 @@
 *** INCLUDES ***
 ***************/
 
+#include <stdio.h>
+
 #include "d_block.h"
+#include "z_zone.h"
+
+/*****************
+*** STRUCTURES ***
+*****************/
+
+/* D_TBlock_s -- Transport block */
+struct D_TBlock_s
+{
+	uint32_t Magic;								// Block magic
+	uint32_t Flags;								// Flags for blokc
+	uint32_t DataSize;							// Size of block
+	void* Data;									// Block Data
+};
+
+/**************************
+*** GENERIC FILE STREAM ***
+**************************/
+
+/* D_GFS_DeleteStream() -- Delete file stream */
+void D_GFS_DeleteStream(struct D_TStreamSource_s* const a_Stream)
+{
+}
+
+/* D_GFS_Send() -- Write data to file */
+D_TBlockErr_t D_GFS_Send(struct D_TStreamSource_s* const a_Stream, D_TBlock_t** const a_BlkPtrIn, const uint32_t a_TFlags, D_TStreamStat_t* const a_StatPtr, void** const a_DataPtr)
+{
+}
+
+/* D_GFS_Recv() -- Read data from file */
+D_TBlockErr_t D_GFS_Recv(struct D_TStreamSource_s* const a_Stream, D_TBlock_t** const a_BlkPtrOut, const uint32_t a_TFlags, D_TStreamStat_t* const a_StatPtr, void** const a_DataPtr)
+{
+}
+
+/* D_CreateFileInStream() -- Create file input (read) stream */
+D_TStreamSource_t* D_CreateFileInStream(const char* const a_PathName)
+{
+	return NULL;
+}
+
+/* D_CreateFileOutStream() -- Create file output (write) stream */
+D_TStreamSource_t* D_CreateFileOutStream(const char* const a_PathName)
+{
+	D_TStreamSource_t* New;
+	FILE* f;
+	
+	/* Check */
+	if (!a_PathName)
+		return NULL;
+	
+	/* Try opening the file */
+	f = fopen(a_PathName, "wb");
+	
+	// Check
+	if (!f)
+		return NULL;
+	
+	/* Create */
+	New = Z_Malloc(sizeof(*New), PU_STATIC, NULL);
+	
+	/* Fill */
+	New->Data = f;
+	New->FuncSend = D_GFS_Send;
+	New->FuncDeleteStream = D_GFS_DeleteStream;
+	
+	/* Return */
+	return New;
+}
+
+/****************
+*** FUNCTIONS ***
+****************/
+
+/* D_BlockStreamDelete() -- Delete stream */
+void D_BlockStreamDelete(D_TStreamSource_t* const a_Stream)
+{
+	if (!a_Stream)
+		return;
+}
+
+/* D_BlockNew() -- Creates a new block */
+D_TBlock_t* D_BlockNew(const uint32_t a_Magic, const uint32_t a_Flags, const uint32_t a_Size, void** const a_DataPtr)
+{
+	D_TBlock_t* New;
+	
+	/* Create */
+	New = Z_Malloc(sizeof(*New), PU_STATIC, NULL);
+	
+	/* Fill */
+	New->Magic = a_Magic;
+	New->Flags = a_Flags;
+	
+	// Is there possible data?
+	if (a_DataPtr)
+	{
+		New->DataSize = a_Size;
+		New->Data = Z_Malloc(New->DataSize, PU_STATIC, NULL);
+		
+		*a_DataPtr = New->Data;
+	}
+	
+	/* Return */
+	return New;
+}
+
+/* D_BlockFree() -- Frees an allocated block */
+void D_BlockFree(D_TBlock_t* const a_Block)
+{
+	/* Check */
+	if (!a_Block)
+		return;
+	
+	/* Free data if it exists */
+	if (a_Block->Data)
+		Z_Free(a_Block->Data);
+	a_Block->Data = NULL;
+	
+	/* Clear */
+	a_Block->Magic = 0;
+	a_Block->Flags = 0;
+	a_Block->DataSize = 0;
+	
+	/* Free */
+	Z_Free(a_Block);
+}
+
+/* D_BlockRecv() -- Receive block */
+D_TBlockErr_t D_BlockRecv(D_TStreamSource_t* const a_Stream, D_TBlock_t** const a_BlkPtr)
+{
+	/* Check */
+	if (!a_Stream || !a_BlkPtr)
+		return DTBE_INVALIDARGUMENT;
+	
+	/* Check if there is a recv func */
+	if (!a_Stream->FuncRecv)
+		return DTBE_NOTTHISDIRECTION;
+	
+	/* Use function */
+	return a_Stream->FuncRecv(a_Stream, a_BlkPtr, a_Stream->BlockDefFlags, &a_Stream->Stat, &a_Stream->Data);
+}
+
+/* D_BlockSend() -- Send block */
+D_TBlockErr_t D_BlockSend(D_TStreamSource_t* const a_Stream, D_TBlock_t** const a_BlkPtr)
+{
+	if (!a_Stream || !a_BlkPtr)
+		return DTBE_INVALIDARGUMENT;
+		
+	/* Check if there is a send func */
+	if (!a_Stream->FuncSend)
+		return DTBE_NOTTHISDIRECTION;
+	
+	/* Use function */
+	return a_Stream->FuncSend(a_Stream, a_BlkPtr, a_Stream->BlockDefFlags, &a_Stream->Stat, &a_Stream->Data);
+}
 
