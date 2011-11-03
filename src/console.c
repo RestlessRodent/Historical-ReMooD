@@ -926,6 +926,8 @@ static bool_t CONL_OutBack(struct CONCTI_Inputter_s* a_Input, const char* const 
 	return false;
 }
 
+void P_InitSGConsole(void);
+
 /* CONL_Init() -- Initializes the light console */
 bool_t CONL_Init(const uint32_t a_OutBS, const uint32_t a_InBS)
 {
@@ -952,6 +954,9 @@ bool_t CONL_Init(const uint32_t a_OutBS, const uint32_t a_InBS)
 	CONL_AddCommand("exec", CLC_Exec);
 	CONL_AddCommand("!", CLC_Exclamation);
 	CONL_AddCommand("?", CLC_Question);
+	
+	/* Base init */
+	P_InitSGConsole();
 	
 	/* Success! */
 	return true;

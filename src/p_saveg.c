@@ -49,17 +49,70 @@
 #include "m_random.h"
 #include "m_misc.h"
 #include "p_saveg.h"
+#include "console.h"
 
 /****************
 *** FUNCTIONS ***
 ****************/
 
+/* CLC_SaveGame() -- Saves the game */
+static CONL_ExitCode_t CLC_SaveGame(const uint32_t a_ArgC, const char** const a_ArgV)
+{
+	D_TStreamSource_t* FStream;
+	
+	/* Check */
+	if (a_ArgC < 2)
+	{
+		CONL_OutputF("Usage: %s \"<filename>\"\n", a_ArgV[0]);
+		return CLE_INVALIDARGUMENT;
+	}
+	
+	/* Create stream */
+	FStream = D_CreateFileOutStream(a_ArgV[1]);
+	
+	// Check
+	if (!FStream)
+		return CLE_DISKREADONLY;	// Return read only? heh
+	
+	/* Save the game */
+	P_SaveGameStream(FStream);
+	
+	/* Destroy stream */
+	D_BlockStreamDelete(FStream);
+	
+	/* Return success always */
+	return CLE_SUCCESS;
+}
+
+/* P_InitSGConsole() -- Initialize save command */
+void P_InitSGConsole(void)
+{
+	/* Add command */
+	CONL_AddCommand("save", CLC_SaveGame);
+}
+
 /* P_SaveGameStream() -- Save game into specified stream */
 bool_t P_SaveGameStream(D_TStreamSource_t* const a_Stream)
 {
+	D_TBlock_t* NB;
+	void* d;
+	
 	/* Check */
 	if (!a_Stream)
 		return false;
+	
+	/* Print message */
+	CONL_OutputF("{4Saving game...");
+	
+	/* "HELO" Block */
+	NB = D_BlockNew(D_CharToMagic("HELO"), 0, 256, &d);
+	snprintf(d, 256, "ReMooD %i.%i%c (%s)", REMOOD_MAJORVERSION, REMOOD_MINORVERSION, REMOOD_RELEASEVERSION, REMOOD_VERSIONCODESTRING);
+	D_BlockSend(a_Stream, &NB);
+	
+	/* Print message */
+	CONL_OutputF("done!{z\n");
+	
+	return true;
 }
 
 /* P_LoadGameStream() -- Load game into specified stream */

@@ -139,6 +139,7 @@ void D_BlockStreamDelete(D_TStreamSource_t* const a_Stream);
 
 /* Generic Block Info */
 D_TBlock_t* D_BlockNew(const uint32_t a_Magic, const uint32_t a_Flags, const uint32_t a_Size, void** const a_DataPtr);
+uint32_t D_CharToMagic(const char* const a_CharMagic);
 void D_BlockFree(D_TBlock_t* const a_Block);
 
 /* Generic Block Send/Recv */

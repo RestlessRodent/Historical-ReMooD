@@ -57,11 +57,48 @@ struct D_TBlock_s
 /* D_GFS_DeleteStream() -- Delete file stream */
 void D_GFS_DeleteStream(struct D_TStreamSource_s* const a_Stream)
 {
+	/* Check */
+	if (!a_Stream)
+		return;
+	
+	/* Close file */
+	if (a_Stream->Data)
+		fclose(a_Stream->Data);
 }
 
 /* D_GFS_Send() -- Write data to file */
 D_TBlockErr_t D_GFS_Send(struct D_TStreamSource_s* const a_Stream, D_TBlock_t** const a_BlkPtrIn, const uint32_t a_TFlags, D_TStreamStat_t* const a_StatPtr, void** const a_DataPtr)
 {
+	FILE* f;
+	size_t Total;
+	
+	/* Check */
+	if (!a_Stream || !a_BlkPtrIn || !*a_BlkPtrIn || !a_DataPtr)
+		return DTBE_INVALIDARGUMENT;
+		
+	/* Get origin file */
+	f = (FILE*)a_Stream->Data;
+	
+	/* Write data */
+	Total = 0;
+	
+	if (fwrite(&(*a_BlkPtrIn)->Magic, 4, 1, f) > 0)
+		Total += 4;
+	if (fwrite(&(*a_BlkPtrIn)->DataSize, 4, 1, f) > 0)
+		Total += 4;
+	if (fwrite((*a_BlkPtrIn)->Data, (*a_BlkPtrIn)->DataSize, 1, f) > 0)
+		Total += (*a_BlkPtrIn)->DataSize;
+	
+	/* Stat */
+	if (a_StatPtr)
+	{
+		a_StatPtr->LastTime[0] = I_GetTimeMS();
+		a_StatPtr->BlkXMit[0]++;
+		a_StatPtr->ByteXMit[0] += Total;
+	}
+	
+	/* Success */
+	return DTBE_SUCCESS;
 }
 
 /* D_GFS_Recv() -- Read data from file */
@@ -86,7 +123,7 @@ D_TStreamSource_t* D_CreateFileOutStream(const char* const a_PathName)
 		return NULL;
 	
 	/* Try opening the file */
-	f = fopen(a_PathName, "wb");
+	f = fopen(a_PathName, "w+b");
 	
 	// Check
 	if (!f)
@@ -113,6 +150,13 @@ void D_BlockStreamDelete(D_TStreamSource_t* const a_Stream)
 {
 	if (!a_Stream)
 		return;
+	
+	/* Call delete func */
+	if (a_Stream->FuncDeleteStream)
+		a_Stream->FuncDeleteStream(a_Stream);
+	
+	/* Free */
+	Z_Free(a_Stream);
 }
 
 /* D_BlockNew() -- Creates a new block */
@@ -138,6 +182,26 @@ D_TBlock_t* D_BlockNew(const uint32_t a_Magic, const uint32_t a_Flags, const uin
 	
 	/* Return */
 	return New;
+}
+
+/* D_CharToMagic() -- Character stream to magic */
+uint32_t D_CharToMagic(const char* const a_CharMagic)
+{
+	uint32_t Ret;
+	const char* p;
+	
+	/* Check */
+	if (!a_CharMagic)
+		return 0;
+	
+	/* Run */
+	for (Ret = 0, p = a_CharMagic; *p; p++)
+	{
+		Ret <<= 8;
+		Ret |= *p;
+	}
+	
+	return Ret;
 }
 
 /* D_BlockFree() -- Frees an allocated block */
