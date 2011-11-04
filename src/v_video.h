@@ -362,4 +362,49 @@ void V_InvalidateAllPD(void);
 void V_UpdatePD(V_PDString_t* const PDStr);
 void V_RenderPD(V_PDString_t* const PDStr);
 
+
+/*******************************************************************************
+********************************************************************************
+*******************************************************************************/
+
+/*** UNIVERSAL IMAGE API ***/
+
+/* V_Image_t -- A single image */
+typedef struct V_Image_s
+{
+	/* Info */
+	uint32_t				Width;				// Image width
+	uint32_t				Height;				// Image height
+	uint32_t				PixelCount;			// Number of pixels in image
+	int32_t					UseCount[3];		// Usage count for data (patch, pic, raw)
+	int8_t					NativeType;			// Native image type
+	bool_t					HasTrans;			// Has transprency
+	
+	/* WAD Related */
+	struct WadEntry_s*		wOld;				// Old WAD access (W)
+	struct WX_WADEntry_s*	wDep;				// Deprecated WAD Access (WX)
+	struct WL_WADEntry_s*	wData;				// New WAD Access (WL)
+	
+	/* Data */
+	struct patch_s*			dPatch;				// patch_t Compatible
+	struct pic_s*			dPic;				// pic_t Compatible
+	uint8_t*				dRaw;				// Raw image (flat)
+} V_Image_t;
+
+// Load and Destroy
+V_Image_t* V_LoadImageA(const char* const a_Name);
+V_Image_t* V_LoadImageI(const WadIndex_t a_Index);
+void V_ImageDestroy(V_Image_t* const a_Image);
+
+// Get data for a specific format
+const struct patch_s* V_ImageGetPatch(V_Image_t* const a_Image);
+const struct pic_s* V_ImageGetPic(V_Image_t* const a_Image);
+uint8_t* V_ImageGetRaw(V_Image_t* const a_Image);
+
+// Common Drawers
+void V_ImageDrawTiled(const uint32_t a_Flags, V_Image_t* const a_Image, const int32_t a_X, const int32_t a_Y, const uint32_t a_Width, const uint32_t a_Height, const uint8_t* const a_ExtraMap);
+void V_ImageDrawScaled(const uint32_t a_Flags, V_Image_t* const a_Image, const int32_t a_X, const int32_t a_Y, const fixed_t a_XScale, const fixed_t a_YScale, const uint8_t* const a_ExtraMap);
+void V_ImageDraw(const uint32_t a_Flags, V_Image_t* const a_Image, const int32_t a_X, const int32_t a_Y, const uint8_t* const a_ExtraMap);
+
 #endif
+
