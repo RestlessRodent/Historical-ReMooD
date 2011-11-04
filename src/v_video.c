@@ -2998,5 +2998,74 @@ void V_RenderPD(V_PDString_t* const PDStr);
 ********************************************************************************
 *******************************************************************************/
 
+/* V_ImageLoadA() -- Loads an image based on its name */
+V_Image_t* V_ImageLoadA(const char* const a_Name)
+{
+	return NULL;
+}
 
+/* V_ImageLoadI() -- Loads an image based on the WAD Index */
+V_Image_t* V_ImageLoadI(const WadIndex_t a_Index)
+{
+	return NULL;
+}
+
+/* V_ImageFindA() -- Returns a previously loaded image, if not found load it */
+V_Image_t* V_ImageFindA(const char* const a_Name)
+{
+	return NULL;
+}
+
+/* V_ImageFindI() -- Returns a previously loaded image, if not found load it */
+V_Image_t* V_ImageFindI(const WadIndex_t a_Index)
+{
+	return NULL;
+}
+
+/* V_ImageDestroy() -- Destroys an image and all attached resources */
+void V_ImageDestroy(V_Image_t* const a_Image)
+{
+}
+
+/* V_ImageUsage() -- Modifies image usage */
+// true  = Mark image as being used (and make sure it is PU_STATIC)
+// false = Unmark image as being used and free if possible 
+int32_t V_ImageUsage(const bool_t a_Use)
+{
+	return NULL;
+}
+
+/* V_ImageGetPatch() -- Returns a compatible patch_t of the image */
+const struct patch_s* V_ImageGetPatch(V_Image_t* const a_Image)
+{
+	return NULL;
+}
+
+/* V_ImageGetPic() -- Returns a compatible pic_t of the image */
+const struct pic_s* V_ImageGetPic(V_Image_t* const a_Image)
+{
+	return NULL;
+}
+
+/* V_ImageGetRaw() -- Returns a compatible raw image of the image (flat) */
+uint8_t* V_ImageGetRaw(V_Image_t* const a_Image)
+{
+	return NULL;
+}
+
+/* V_ImageDrawScaled() -- Draws the image with specific scaling */
+// This is the core implementation (all others call this one)
+void V_ImageDrawScaled(const uint32_t a_Flags, V_Image_t* const a_Image, const int32_t a_X, const int32_t a_Y, const fixed_t a_XScale, const fixed_t a_YScale, const uint8_t* const a_ExtraMap)
+{
+}
+
+/* V_ImageDrawTiled() -- Draws the image tiled (i.e. flat fill) */
+void V_ImageDrawTiled(const uint32_t a_Flags, V_Image_t* const a_Image, const int32_t a_X, const int32_t a_Y, const uint32_t a_Width, const uint32_t a_Height, const uint8_t* const a_ExtraMap)
+{
+}
+
+/* V_ImageDraw() -- Draws an image */
+void V_ImageDraw(const uint32_t a_Flags, V_Image_t* const a_Image, const int32_t a_X, const int32_t a_Y, const uint8_t* const a_ExtraMap)
+{
+}
 

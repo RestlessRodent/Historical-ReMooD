@@ -369,6 +369,8 @@ void V_RenderPD(V_PDString_t* const PDStr);
 
 /*** UNIVERSAL IMAGE API ***/
 
+#define MAXUIANAME			12					// Max name for find cache
+
 /* V_Image_t -- A single image */
 typedef struct V_Image_s
 {
@@ -379,6 +381,11 @@ typedef struct V_Image_s
 	int32_t					UseCount[3];		// Usage count for data (patch, pic, raw)
 	int8_t					NativeType;			// Native image type
 	bool_t					HasTrans;			// Has transprency
+	int						PUTagLevel;			// Current PU_ Tag
+	bool_t					DoDelete;			// Do image deletion
+	WADIndex_t				Index;				// Index of this image (for find)
+	char					Name[MAXUIANAME];	// Name of the image (for find)
+	uint32_t				NameHash;			// Hash for the name (if applicable)
 	
 	/* WAD Related */
 	struct WadEntry_s*		wOld;				// Old WAD access (W)
@@ -389,12 +396,21 @@ typedef struct V_Image_s
 	struct patch_s*			dPatch;				// patch_t Compatible
 	struct pic_s*			dPic;				// pic_t Compatible
 	uint8_t*				dRaw;				// Raw image (flat)
+	
+	/* Cache Chain */
+	struct V_Image_s*		iPrev;				// Previous image
+	struct V_Image_s*		iNext;				// Next image
 } V_Image_t;
 
 // Load and Destroy
-V_Image_t* V_LoadImageA(const char* const a_Name);
-V_Image_t* V_LoadImageI(const WadIndex_t a_Index);
+V_Image_t* V_ImageLoadA(const char* const a_Name);
+V_Image_t* V_ImageLoadI(const WadIndex_t a_Index);
+V_Image_t* V_ImageFindA(const char* const a_Name);
+V_Image_t* V_ImageFindI(const WadIndex_t a_Index);
 void V_ImageDestroy(V_Image_t* const a_Image);
+
+// Access
+int32_t V_ImageUsage(const bool_t a_Use);
 
 // Get data for a specific format
 const struct patch_s* V_ImageGetPatch(V_Image_t* const a_Image);
@@ -402,8 +418,8 @@ const struct pic_s* V_ImageGetPic(V_Image_t* const a_Image);
 uint8_t* V_ImageGetRaw(V_Image_t* const a_Image);
 
 // Common Drawers
-void V_ImageDrawTiled(const uint32_t a_Flags, V_Image_t* const a_Image, const int32_t a_X, const int32_t a_Y, const uint32_t a_Width, const uint32_t a_Height, const uint8_t* const a_ExtraMap);
 void V_ImageDrawScaled(const uint32_t a_Flags, V_Image_t* const a_Image, const int32_t a_X, const int32_t a_Y, const fixed_t a_XScale, const fixed_t a_YScale, const uint8_t* const a_ExtraMap);
+void V_ImageDrawTiled(const uint32_t a_Flags, V_Image_t* const a_Image, const int32_t a_X, const int32_t a_Y, const uint32_t a_Width, const uint32_t a_Height, const uint8_t* const a_ExtraMap);
 void V_ImageDraw(const uint32_t a_Flags, V_Image_t* const a_Image, const int32_t a_X, const int32_t a_Y, const uint8_t* const a_ExtraMap);
 
 #endif
