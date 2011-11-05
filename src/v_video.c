@@ -3005,13 +3005,17 @@ void V_RenderPD(V_PDString_t* const PDStr);
 // Does name to index lookup, then calls the index variant
 V_Image_t* V_ImageLoadA(const char* const a_Name)
 {
-	return NULL;
+	return V_ImageLoadI(W_CheckNumForName(a_Name));
 }
 
 /* V_ImageLoadI() -- Loads an image based on the WAD Index */
 // It is recommended for everything to call V_ImageFind?() instead.
 V_Image_t* V_ImageLoadI(const WadIndex_t a_Index)
 {
+	/* Check */
+	if (a_Index == INVALIDLUMP)
+		return NULL;
+	
 	return NULL;
 }
 
