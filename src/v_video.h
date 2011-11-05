@@ -383,7 +383,7 @@ typedef struct V_Image_s
 	bool_t					HasTrans;			// Has transprency
 	int						PUTagLevel;			// Current PU_ Tag
 	bool_t					DoDelete;			// Do image deletion
-	WADIndex_t				Index;				// Index of this image (for find)
+	WadIndex_t				Index;				// Index of this image (for find)
 	char					Name[MAXUIANAME];	// Name of the image (for find)
 	uint32_t				NameHash;			// Hash for the name (if applicable)
 	

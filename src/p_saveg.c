@@ -42,7 +42,6 @@
 #include "z_zone.h"
 #include "w_wad.h"
 #include "p_setup.h"
-#include "byteptr.h"
 #include "t_vari.h"
 #include "t_script.h"
 #include "t_func.h"

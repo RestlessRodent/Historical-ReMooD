@@ -33,7 +33,6 @@
 
 #include "dstrings.h"
 #include "z_zone.h"
-#include "m_swap.h"
 
 char* text[NUMTEXT] =
 {

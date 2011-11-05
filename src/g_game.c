@@ -69,7 +69,6 @@
 #include "i_video.h"
 #include "p_inter.h"
 #include "p_info.h"
-#include "byteptr.h"
 #include "p_demcmp.h"
 #include "d_rdf.h"
 

@@ -101,8 +101,6 @@ void I_Error(char* error, ...);
 // console.h
 void CONS_Printf(char* fmt, ...);
 
-#include "m_swap.h"
-
 // m_misc.h
 char* va(char* format, ...);
 

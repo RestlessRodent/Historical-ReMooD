@@ -35,7 +35,6 @@
 #include "doomdef.h"
 #include "c_lib.h"
 #include "d_main.h"
-#include "byteptr.h"
 #include "g_game.h"
 
 #include "p_local.h"

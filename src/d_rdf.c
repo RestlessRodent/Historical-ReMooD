@@ -29,7 +29,6 @@
 // DESCRIPTION: ReMooD Demo Format
 
 #include "d_rdf.h"
-#include "byteptr.h"
 #include <stdio.h>
 #include <stdlib.h>
 

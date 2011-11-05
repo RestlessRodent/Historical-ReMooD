@@ -54,7 +54,6 @@
 #include "s_sound.h"
 #include "m_misc.h"
 #include "am_map.h"
-#include "byteptr.h"
 #include "p_spec.h"
 #include "m_cheat.h"
 #include "d_clisrv.h"

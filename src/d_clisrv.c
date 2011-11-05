@@ -40,7 +40,6 @@
 #include "g_game.h"
 #include "d_main.h"
 #include "p_tick.h"
-#include "byteptr.h"
 #include "i_system.h"
 #include "i_sound.h"
 #include "i_video.h"

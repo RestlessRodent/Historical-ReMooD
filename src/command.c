@@ -45,7 +45,6 @@
 #include "d_netcmd.h"
 #include "m_misc.h"
 #include "m_fixed.h"
-#include "byteptr.h"
 #include "p_saveg.h"
 
 //========
