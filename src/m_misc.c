@@ -39,7 +39,13 @@
 #else
 #include <windows.h>
 #endif*/
+
 #include <fcntl.h>
+
+#ifdef __APPLE__
+#include <unistd.h>
+#endif
+
 
 #include "doomdef.h"
 #include "g_game.h"
@@ -57,6 +63,7 @@
 #ifdef _WIN32
 #include <shlobj.h>
 #endif
+
 
 // ==========================================================================
 //                         FILE INPUT / OUTPUT

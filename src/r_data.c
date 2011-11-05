@@ -366,7 +366,7 @@ void R_FlushTextureCache(void)
 //
 // R_InitTextures
 // Initializes the texture list with the textures from the world map.
-//
+// -- Need new texture code!!
 void R_LoadTextures(void)
 {
 	maptexture_t* mtexture;
@@ -549,6 +549,11 @@ void R_LoadTextures(void)
 		numtextures2 = 0;
 		maxoff2 = 0;
 	}
+
+	// GhostlyDeath <November 4, 2011> -- Really need new texture code here of sorts
+	numtextures1 = LittleSwapUInt32(numtextures1);
+	numtextures2 = LittleSwapUInt32(numtextures2);
+
 	numtextures = numtextures1 + numtextures2;
 	
 	// GhostlyDeath -- Due to the new code, we clear all the buffers!
@@ -608,6 +613,7 @@ void R_LoadTextures(void)
 		}
 		// offset to the current texture in TEXTURESn lump
 		offset = *directory;
+		offset = LittleSwapUInt32(offset);	// FIXME
 		
 		if (offset > maxoff)
 			I_Error("R_LoadTextures: bad texture directory");

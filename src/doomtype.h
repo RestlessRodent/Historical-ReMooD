@@ -67,6 +67,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <limits.h>
+
 #include <stddef.h>
 #include <sys/types.h>
 #include <sys/stat.h>
@@ -95,23 +96,30 @@
 #include <endian.h>
 
 #if defined(BYTE_ORDER) && (BYTE_ORDER == BIG_ENDIAN)
-#define __REMOOD_BIG_ENDIAN
+#define __REMOOD_BIG_ENDIAN 1
 #elif defined(__BYTE_ORDER) && (__BYTE_ORDER == __BIG_ENDIAN)
-#define __REMOOD_BIG_ENDIAN
+#define __REMOOD_BIG_ENDIAN 1
 #endif
 #endif
 
 // Known Big endian systems
 #if !defined(__REMOOD_BIG_ENDIAN)
-#if defined(__MIPSEB__)
-#define __REMOOD_BIG_ENDIAN
+#if defined(__MIPSEB__) || defined(__BIG_ENDIAN__)
+#define __REMOOD_BIG_ENDIAN 1
 #endif
 #endif
 
 // Otherwise it is little
-#if !defined(__REMOOD_LITTLE_ENDIAN)
-#define __REMOOD_LITTLE_ENDIAN
+#if !defined(__REMOOD_BIG_ENDIAN) && !defined(__REMOOD_LITTLE_ENDIAN)
+#define __REMOOD_LITTLE_ENDIAN 1
 #endif
+#endif
+
+// Doubly be sure
+#if !defined(__REMOOD_BIG_ENDIAN) && !defined(__REMOOD_LITTLE_ENDIAN)
+#error Error No endian set
+#elif defined(__REMOOD_BIG_ENDIAN) && defined(__REMOOD_LITTLE_ENDIAN)
+#error Error Both endians set
 #endif
 
 /***********************
@@ -402,7 +410,12 @@ static inline int32_t __REMOOD_FORCEINLINE SwapInt64(const int64_t In)
 	}
 #endif
 
-LS_x(Int16, int16_t) LS_x(UInt16, uint16_t) LS_x(Int32, int32_t) LS_x(UInt32, uint32_t) LS_x(Int64, int64_t) LS_x(UInt64, uint64_t)
+LS_x(Int16, int16_t);
+LS_x(UInt16, uint16_t);
+LS_x(Int32, int32_t);
+LS_x(UInt32, uint32_t);
+LS_x(Int64, int64_t);
+LS_x(UInt64, uint64_t);
 #undef LS_x
 
 /* Big swapping */
@@ -417,7 +430,9 @@ LS_x(Int16, int16_t) LS_x(UInt16, uint16_t) LS_x(Int32, int32_t) LS_x(UInt32, ui
 		return BP_MERGE(Swap,w)(In);\
 	}
 #endif
-BS_x(Int16, int16_t) BS_x(UInt16, uint16_t) BS_x(Int32, int32_t) BS_x(UInt32, uint32_t) BS_x(Int64, int64_t) BS_x(UInt64, uint64_t)
+BS_x(Int16, int16_t);
+BS_x(UInt16, uint16_t);
+BS_x(Int32, int32_t) BS_x(UInt32, uint32_t) BS_x(Int64, int64_t) BS_x(UInt64, uint64_t)
 #undef BS_x
 
 /*** Reading/Writing Little Endian Data ***/

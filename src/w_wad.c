@@ -550,21 +550,21 @@ int W_LoadWadFile(char* filename)
 						// GhostlyDeath <November 5, 2010> -- Swap for BE
 						IndexOffset = LittleSwapUInt32(IndexOffset);
 						
-						n->WADNameHack = Z_Malloc((NumLumps * 9) + 1, PU_STATIC, NULL);
-						memset(n->WADNameHack, 0, (NumLumps * 9) + 1);
+						n->WADNameHack = Z_Malloc((n->NumLumps * 9) + 1, PU_STATIC, NULL);
+						memset(n->WADNameHack, 0, (n->NumLumps * 9) + 1);
 						
-						n->Index = Z_Malloc(sizeof(WadEntry_t) * NumLumps, PU_STATIC, NULL);
-						memset(n->Index, 0, sizeof(WadEntry_t) * NumLumps);
+						n->Index = Z_Malloc(sizeof(WadEntry_t) * n->NumLumps, PU_STATIC, NULL);
+						memset(n->Index, 0, sizeof(WadEntry_t) * n->NumLumps);
 						
 						fseek(tFile, IndexOffset, SEEK_SET);
 						
-						for (l = 0; l < NumLumps; l++)
+						for (l = 0; l < n->NumLumps; l++)
 						{
 							fread(&pos, sizeof(uint32_t), 1, tFile);
-							n->Index[l].Position = pos;
+							n->Index[l].Position = LittleSwapUInt32(pos);
 							
 							fread(&sz, sizeof(uint32_t), 1, tFile);
-							n->Index[l].Size = sz;
+							n->Index[l].Size = LittleSwapUInt32(sz);
 							
 							/*n->Index[l].Name = Z_Malloc(9, PU_STATIC, NULL);
 							   fread(n->Index[l].Name, 8, 1, tFile);

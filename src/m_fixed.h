@@ -75,9 +75,9 @@ static fixed_t __REMOOD_FORCEINLINE __REMOOD_UNUSED FixedRound(const fixed_t a)
 }
 
 /* FixedMul() -- Multiply two fixed numbers */
-static fixed_t __REMOOD_FORCEINLINE __REMOOD_UNUSED FixedMul(fixed_t a, fixed_t b)
+static fixed_t __REMOOD_INLINE __REMOOD_UNUSED FixedMul(fixed_t a, fixed_t b)
 {
-#if defined(__x86_64__) || defined(__amd64__) || defined(_M_X64)
+#if defined(__x86_64__) || defined(__amd64__) || defined(_M_X64) || defined(__POWERPC__) || defined(_M_PPC)
 	return ((int64_t)a * (int64_t)b) >> _FIXED_FRACBITS;
 	
 #else
@@ -121,7 +121,7 @@ static fixed_t __REMOOD_FORCEINLINE __REMOOD_UNUSED FixedMul(fixed_t a, fixed_t 
 }
 
 /* FixedPtInv() -- Inverse of fixed point */
-static fixed_t __REMOOD_FORCEINLINE __REMOOD_UNUSED FixedInv(const fixed_t a)
+static fixed_t __REMOOD_INLINE __REMOOD_UNUSED FixedInv(const fixed_t a)
 {
 	// Copyright (C) 2010 GhostlyDeath (ghostlydeath@gmail.com / ghostlydeath@remood.org)
 	register uint32_t A, SDiv, Res;
@@ -180,7 +180,7 @@ static fixed_t __REMOOD_FORCEINLINE __REMOOD_UNUSED FixedInv(const fixed_t a)
 }
 
 /* FixedDiv() -- Divide two fixed numbers */
-static fixed_t __REMOOD_FORCEINLINE __REMOOD_UNUSED FixedDiv(fixed_t a, fixed_t b)
+static fixed_t __REMOOD_INLINE __REMOOD_UNUSED FixedDiv(fixed_t a, fixed_t b)
 {
 	// Copyright (C) 2010 GhostlyDeath (ghostlydeath@gmail.com / ghostlydeath@remood.org)
 #ifdef FIXEDBREAKVANILLA
