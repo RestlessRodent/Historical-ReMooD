@@ -2998,19 +2998,26 @@ void V_RenderPD(V_PDString_t* const PDStr);
 ********************************************************************************
 *******************************************************************************/
 
+/*** FUNCTIONS ***/
+
 /* V_ImageLoadA() -- Loads an image based on its name */
+// It is recommended for everything to call V_ImageFind?() instead.
+// Does name to index lookup, then calls the index variant
 V_Image_t* V_ImageLoadA(const char* const a_Name)
 {
 	return NULL;
 }
 
 /* V_ImageLoadI() -- Loads an image based on the WAD Index */
+// It is recommended for everything to call V_ImageFind?() instead.
 V_Image_t* V_ImageLoadI(const WadIndex_t a_Index)
 {
 	return NULL;
 }
 
 /* V_ImageFindA() -- Returns a previously loaded image, if not found load it */
+// Caselessy compares two different images
+// If not found, does name to index lookup, then calls the index variant
 V_Image_t* V_ImageFindA(const char* const a_Name)
 {
 	return NULL;
