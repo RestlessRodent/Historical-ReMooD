@@ -668,7 +668,9 @@ void D_PageDrawer(const char* const a_LumpName)
 		return;
 	
 	/* Draw Image to screen */
+	V_ImageUsage(Image, true);
 	V_ImageDraw(0, Image, 0, 0, NULL);
+	V_ImageUsage(Image, false);
 }
 
 //

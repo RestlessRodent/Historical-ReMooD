@@ -381,7 +381,7 @@ V_Image_t* V_ImageFindI(const WadIndex_t a_Index);
 void V_ImageDestroy(V_Image_t* const a_Image);
 
 // Access
-int32_t V_ImageUsage(const bool_t a_Use);
+int32_t V_ImageUsage(V_Image_t* const a_Image, const bool_t a_Use);
 
 // Get data for a specific format
 const struct patch_s* V_ImageGetPatch(V_Image_t* const a_Image);

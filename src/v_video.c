@@ -3005,6 +3005,7 @@ struct V_Image_s
 	uint32_t				Width;				// Image width
 	uint32_t				Height;				// Image height
 	uint32_t				PixelCount;			// Number of pixels in image
+	int32_t					TotalUsage;			// Total usage
 	int32_t					UseCount[3];		// Usage count for data (patch, pic, raw)
 	int8_t					NativeType;			// Native image type
 	bool_t					HasTrans;			// Has transprency
@@ -3036,6 +3037,36 @@ static Z_HashTable_t* l_ImageAHash = NULL;		// ASCII Hashes
 
 /*** FUNCTIONS ***/
 
+/* VP_ImageHashCompare() -- Compares two hashes in the hash table */
+static bool_t VP_ImageHashCompare(void* const a_A, void* const a_B)
+{
+	const char* RealA;
+	V_Image_t* RealB;
+	
+	/* Check */
+	if (!a_A || !a_B)
+		return false;
+	
+	/* Get real versions */
+	RealA = (const char*)a_A;
+	RealB = (V_Image_t*)a_B;
+	
+	/* Compare name */
+	if (strcasecmp(RealA, RealB->Name))
+		return false;
+	return true;
+}
+
+/* VP_ImageLoadNative() -- Loads native image */
+// This loads the lump data and determines the format of the image, then loads
+// it inside of the specified container.
+static void VP_ImageLoadNative(V_Image_t* const a_Image)
+{
+	/* Check */
+	if (!a_Image)
+		return;
+}
+
 /* V_ImageLoadA() -- Loads an image based on its name */
 // It is recommended for everything to call V_ImageFind?() instead.
 // Does name to index lookup, then calls the index variant
@@ -3060,7 +3091,7 @@ V_Image_t* V_ImageLoadI(const WadIndex_t a_Index)
 	if (!Entry)
 		return NULL;
 	
-	return 1;
+	return NULL;
 }
 
 /* V_ImageFindA() -- Returns a previously loaded image, if not found load it */
@@ -3068,9 +3099,14 @@ V_Image_t* V_ImageLoadI(const WadIndex_t a_Index)
 // If not found, does name to index lookup, then calls the index variant
 V_Image_t* V_ImageFindA(const char* const a_Name)
 {
+	void* x;
+	
 	/* There are no images loaded */
 	if (!l_ImageChain)
 		return V_ImageLoadA(a_Name);
+	
+	/* Find name in hash table */
+	x = Z_HashFindEntry(l_ImageAHash, Z_Hash(a_Name), a_Name, false);
 		
 	/* If in doubt, load */
 	return V_ImageLoadA(a_Name);
@@ -3079,9 +3115,16 @@ V_Image_t* V_ImageFindA(const char* const a_Name)
 /* V_ImageFindI() -- Returns a previously loaded image, if not found load it */
 V_Image_t* V_ImageFindI(const WadIndex_t a_Index)
 {
+	V_Image_t* Rover = NULL;
+	
 	/* There are no images loaded */
 	if (!l_ImageChain)
 		return V_ImageLoadI(a_Index);
+	
+	/* Rove the list */
+	for (Rover = l_ImageChain; Rover; Rover = Rover->iNext)
+		if (Rover->Index == a_Index)
+			return Rover;
 		
 	/* If in doubt, load */
 	return V_ImageLoadI(a_Index);
@@ -3095,9 +3138,14 @@ void V_ImageDestroy(V_Image_t* const a_Image)
 /* V_ImageUsage() -- Modifies image usage */
 // true  = Mark image as being used (and make sure it is PU_STATIC)
 // false = Unmark image as being used and free if possible 
-int32_t V_ImageUsage(const bool_t a_Use)
+int32_t V_ImageUsage(V_Image_t* const a_Image, const bool_t a_Use)
 {
-	return NULL;
+	/* Check */
+	if (!a_Image)
+		return 0;
+	
+	/* Return usage count */
+	return a_Image->TotalUsage;
 }
 
 /* V_ImageGetPatch() -- Returns a compatible patch_t of the image */
@@ -3122,6 +3170,13 @@ uint8_t* V_ImageGetRaw(V_Image_t* const a_Image)
 // This is the core implementation (all others call this one)
 void V_ImageDrawScaled(const uint32_t a_Flags, V_Image_t* const a_Image, const int32_t a_X, const int32_t a_Y, const fixed_t a_XScale, const fixed_t a_YScale, const uint8_t* const a_ExtraMap)
 {
+	/* Check */
+	if (!a_Image)
+		return;
+	
+	/* Check to see if the image needs probing */
+	if (!a_Image->dPatch && !a_Image->dPic && !a_Image->dRaw)
+		VP_ImageLoadNative(a_Image);
 }
 
 /* V_ImageDrawTiled() -- Draws the image tiled (i.e. flat fill) */
