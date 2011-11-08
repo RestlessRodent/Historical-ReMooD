@@ -111,7 +111,6 @@ char* pagename = "TITLEPIC";
 bool_t novideo = false;
 
 //  PROTOS
-void D_PageDrawer(char* lumpname);
 void D_AdvanceDemo(void);
 
 #ifdef LINUX
@@ -652,47 +651,24 @@ void D_PageTicker(void)
 		D_AdvanceDemo();
 }
 
-//
-// D_PageDrawer : draw a patch supposed to fill the screen,
-//                fill the borders with a background pattern (a flat)
-//                if the patch doesn't fit all the screen.
-//
-void D_PageDrawer(char* lumpname)
+/* D_PageDrawer() -- Draws the title screen page */
+void D_PageDrawer(const char* const a_LumpName)
 {
-	uint8_t* src;
-	uint8_t* dest;
-	int x;
-	int y;
+	V_Image_t* Image;
 	
-	// software mode which uses generally lower resolutions doesn't look
-	// good when the pic is scaled, so it fills space aorund with a pattern,
-	// and the pic is only scaled to integer multiples (x2, x3...)
-	if ((vid.width > BASEVIDWIDTH) || (vid.height > BASEVIDHEIGHT))
-	{
-		src = scr_borderpatch;
-		dest = screens[0];
-		
-		for (y = 0; y < vid.height; y++)
-		{
-			for (x = 0; x < vid.width / 64; x++)
-			{
-				memcpy(dest, src + ((y & 63) << 6), 64);
-				dest += 64;
-			}
-			if (vid.width & 63)
-			{
-				memcpy(dest, src + ((y & 63) << 6), vid.width & 63);
-				dest += (vid.width & 63);
-			}
-		}
-	}
+	/* Check */
+	if (!a_LumpName)
+		return;
 	
-	V_DrawScaledPatch(0, 0, 0, W_CachePatchName(lumpname, PU_CACHE));
+	/* Find image */
+	Image = V_ImageFindA(a_LumpName);
 	
-	//added:08-01-98:if you wanna centre the pages it's here.
-	//          I think it's not so beautiful to have the pic centered,
-	//          so I leave it in the upper-left corner for now...
-	//V_DrawPatch (0,0, 0, W_CachePatchName(pagename, PU_CACHE));
+	// Not found?
+	if (!Image)
+		return;
+	
+	/* Draw Image to screen */
+	V_ImageDraw(0, Image, 0, 0, NULL);
 }
 
 //

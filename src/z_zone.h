@@ -132,6 +132,8 @@ void Z_HashDeleteTable(Z_HashTable_t* const a_HashTable);
 bool_t Z_HashAddEntry(Z_HashTable_t* const a_HashTable, const uint32_t a_Key, void* const a_Data);
 void* Z_HashFindEntry(Z_HashTable_t* const a_HashTable, const uint32_t a_Key, void* const a_DataSim, const bool_t a_BackRun);
 
+bool_t Z_HashDeleteEntry(Z_HashTable_t* const a_HashTable, const uint32_t a_Key, void* const a_DataSim, const bool_t a_BackRun);
+
 /*** Table Utility ***/
 
 /* Structures */

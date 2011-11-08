@@ -944,6 +944,46 @@ void* Z_HashFindEntry(Z_HashTable_t* const a_HashTable, const uint32_t a_Key, vo
 	return NULL;
 }
 
+/* Z_HashDeleteEntry() -- Deletes the found entry from the hash table */
+bool_t Z_HashDeleteEntry(Z_HashTable_t* const a_HashTable, const uint32_t a_Key, void* const a_DataSim, const bool_t a_BackRun)
+{
+	uint32_t Nub;
+	size_t i;
+	
+	/* Check */
+	if (!a_HashTable)
+		return true;
+		
+	/* Get nub */
+	Nub = a_Key & 0xFF;
+	
+	/* Seek based on direction */
+	for (i = (a_BackRun ? a_HashTable->KeySize[Nub] - 1 : 0); i != (a_BackRun ? (size_t) - 1 : a_HashTable->KeySize[Nub]); i = (a_BackRun ? i - 1 : i + 1))
+	{
+		// Compare for key equality
+		if (a_Key == a_HashTable->KeyList[Nub][i].Key)
+		{
+			// If there is a compare function and data is being passed
+			if (a_HashTable->CompareFunc && a_DataSim)
+				if (!a_HashTable->CompareFunc(a_DataSim, a_HashTable->KeyList[Nub][i].Data))
+					continue;
+					
+			// Smash the table
+			memmove(&a_HashTable->KeyList[Nub][i], &a_HashTable->KeyList[Nub][i + 1], a_HashTable->KeySize[Nub] - i - 1);
+			
+			// Shrink array
+			Z_ResizeArray((void**)&a_HashTable->KeyList[Nub], sizeof(Z_HashKey_t), a_HashTable->KeySize[Nub], a_HashTable->KeySize[Nub] - 1);
+			
+			// Shrink count
+			a_HashTable->KeySize[Nub]--;
+			
+			return true;
+		}
+	}
+	
+	/* Found nothing */
+	return false;
+}
 
 /********************
 *** TABLE UTILITY ***

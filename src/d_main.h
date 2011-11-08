@@ -69,7 +69,7 @@ void D_DoAdvanceDemo(void);
 void D_PageTicker(void);
 
 // pagename is lumpname of a 320x200 patch to fill the screen
-void D_PageDrawer(char* pagename);
+void D_PageDrawer(const char* const a_LumpName);
 void D_AdvanceDemo(void);
 void D_StartTitle(void);
 

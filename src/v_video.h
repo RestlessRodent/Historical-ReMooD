@@ -371,36 +371,7 @@ void V_RenderPD(V_PDString_t* const PDStr);
 
 #define MAXUIANAME			12					// Max name for find cache
 
-/* V_Image_t -- A single image */
-typedef struct V_Image_s
-{
-	/* Info */
-	uint32_t				Width;				// Image width
-	uint32_t				Height;				// Image height
-	uint32_t				PixelCount;			// Number of pixels in image
-	int32_t					UseCount[3];		// Usage count for data (patch, pic, raw)
-	int8_t					NativeType;			// Native image type
-	bool_t					HasTrans;			// Has transprency
-	int						PUTagLevel;			// Current PU_ Tag
-	bool_t					DoDelete;			// Do image deletion
-	WadIndex_t				Index;				// Index of this image (for find)
-	char					Name[MAXUIANAME];	// Name of the image (for find)
-	uint32_t				NameHash;			// Hash for the name (if applicable)
-	
-	/* WAD Related */
-	struct WadEntry_s*		wOld;				// Old WAD access (W)
-	struct WX_WADEntry_s*	wDep;				// Deprecated WAD Access (WX)
-	struct WL_WADEntry_s*	wData;				// New WAD Access (WL)
-	
-	/* Data */
-	struct patch_s*			dPatch;				// patch_t Compatible
-	struct pic_s*			dPic;				// pic_t Compatible
-	uint8_t*				dRaw;				// Raw image (flat)
-	
-	/* Cache Chain */
-	struct V_Image_s*		iPrev;				// Previous image
-	struct V_Image_s*		iNext;				// Next image
-} V_Image_t;
+typedef struct V_Image_s V_Image_t;
 
 // Load and Destroy
 V_Image_t* V_ImageLoadA(const char* const a_Name);

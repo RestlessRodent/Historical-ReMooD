@@ -2998,6 +2998,42 @@ void V_RenderPD(V_PDString_t* const PDStr);
 ********************************************************************************
 *******************************************************************************/
 
+/* V_Image_t -- A single image */
+struct V_Image_s
+{
+	/* Info */
+	uint32_t				Width;				// Image width
+	uint32_t				Height;				// Image height
+	uint32_t				PixelCount;			// Number of pixels in image
+	int32_t					UseCount[3];		// Usage count for data (patch, pic, raw)
+	int8_t					NativeType;			// Native image type
+	bool_t					HasTrans;			// Has transprency
+	int						PUTagLevel;			// Current PU_ Tag
+	bool_t					DoDelete;			// Do image deletion
+	WadIndex_t				Index;				// Index of this image (for find)
+	char					Name[MAXUIANAME];	// Name of the image (for find)
+	uint32_t				NameHash;			// Hash for the name (if applicable)
+	
+	/* WAD Related */
+	struct WadEntry_s*		wOld;				// Old WAD access (W)
+	struct WX_WADEntry_s*	wDep;				// Deprecated WAD Access (WX)
+	struct WL_WADEntry_s*	wData;				// New WAD Access (WL)
+	
+	/* Data */
+	struct patch_s*			dPatch;				// patch_t Compatible
+	struct pic_s*			dPic;				// pic_t Compatible
+	uint8_t*				dRaw;				// Raw image (flat)
+	
+	/* Cache Chain */
+	struct V_Image_s*		iPrev;				// Previous image
+	struct V_Image_s*		iNext;				// Next image
+};
+
+static V_Image_t* l_ImageChain = NULL;			// Loaded images
+
+// For hashes a delete function is required!
+static Z_HashTable_t* l_ImageAHash = NULL;		// ASCII Hashes
+
 /*** FUNCTIONS ***/
 
 /* V_ImageLoadA() -- Loads an image based on its name */
@@ -3012,11 +3048,19 @@ V_Image_t* V_ImageLoadA(const char* const a_Name)
 // It is recommended for everything to call V_ImageFind?() instead.
 V_Image_t* V_ImageLoadI(const WadIndex_t a_Index)
 {
+	WadEntry_t* Entry;
+	
 	/* Check */
 	if (a_Index == INVALIDLUMP)
 		return NULL;
+		
+	// See if it actually exists
+	Entry = W_GetEntry(a_Index);
 	
-	return NULL;
+	if (!Entry)
+		return NULL;
+	
+	return 1;
 }
 
 /* V_ImageFindA() -- Returns a previously loaded image, if not found load it */
@@ -3024,13 +3068,23 @@ V_Image_t* V_ImageLoadI(const WadIndex_t a_Index)
 // If not found, does name to index lookup, then calls the index variant
 V_Image_t* V_ImageFindA(const char* const a_Name)
 {
-	return NULL;
+	/* There are no images loaded */
+	if (!l_ImageChain)
+		return V_ImageLoadA(a_Name);
+		
+	/* If in doubt, load */
+	return V_ImageLoadA(a_Name);
 }
 
 /* V_ImageFindI() -- Returns a previously loaded image, if not found load it */
 V_Image_t* V_ImageFindI(const WadIndex_t a_Index)
 {
-	return NULL;
+	/* There are no images loaded */
+	if (!l_ImageChain)
+		return V_ImageLoadI(a_Index);
+		
+	/* If in doubt, load */
+	return V_ImageLoadI(a_Index);
 }
 
 /* V_ImageDestroy() -- Destroys an image and all attached resources */
