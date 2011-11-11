@@ -2460,6 +2460,7 @@ static const char* WL_BaseName(const char* const a_File)
 /* WL_OpenWAD() -- Opens a WAD File */
 const WL_WADFile_t* WL_OpenWAD(const char* const a_PathName)
 {
+	static uint32_t BaseTop;
 	char FoundWAD[PATH_MAX];
 	FILE* CFile;
 	WL_WADFile_t* NewWAD;
@@ -2471,6 +2472,8 @@ const WL_WADFile_t* WL_OpenWAD(const char* const a_PathName)
 	char c;
 	bool_t Dot;
 	uint8_t u8;
+	uint32_t u32;
+	WL_WADEntry_t* ThisEntry;
 	
 	/* Check */
 	if (!a_PathName)
@@ -2499,13 +2502,21 @@ const WL_WADFile_t* WL_OpenWAD(const char* const a_PathName)
 		fclose(CFile);
 		return NULL;
 	}
+	Magic = LittleSwapUInt32(Magic);	// Swap for BE
+	
 	// Is it a WAD file? If not threat it as a lump instead
 	IsWAD = false;
-	if (Magic == 0x44415749U || Magic == 0x44415749U)
+	if (Magic == 0x44415749U || Magic == 0x44415750U)
 		IsWAD = true;
 		
 	/* Allocate Fresh WAD and pump it to the chain */
 	NewWAD = Z_Malloc(sizeof(*NewWAD), PU_STATIC, NULL);
+	
+	// Checkers
+	NewWAD->__Private.__IsWAD = IsWAD;
+	
+	if (Magic == 0x44415749U)
+		NewWAD->__Private.__IsIWAD = true;
 	
 	// Add to the beginning of the chain (faster)
 	if (!l_LFirstWAD)
@@ -2524,7 +2535,7 @@ const WL_WADFile_t* WL_OpenWAD(const char* const a_PathName)
 	
 	// Determine the DOS name (kinda)
 	n = strlen(NewWAD->__Private.__FileName);
-	for (i = 0, j = 0, k = 0; i < n; i++)
+	for (Dot = false, i = 0, j = 0, k = 0; i < n; i++)
 	{
 		c = NewWAD->__Private.__FileName[i];
 		
@@ -2537,6 +2548,7 @@ const WL_WADFile_t* WL_OpenWAD(const char* const a_PathName)
 				if (j < 8)
 					NewWAD->__Private.__DOSName[j++] = toupper(c);
 			}
+			
 			// Extension
 			else
 			{
@@ -2544,6 +2556,7 @@ const WL_WADFile_t* WL_OpenWAD(const char* const a_PathName)
 					NewWAD->__Private.__DOSName[j + (k++)] = toupper(c);
 			}
 		}
+		
 		// Is the character a dot?
 		if (c == '.')
 		{
@@ -2584,12 +2597,62 @@ const WL_WADFile_t* WL_OpenWAD(const char* const a_PathName)
 	
 	// MD5
 	
+	/* Top hash ID */
+	BaseTop += (8 << 16);
+	NewWAD->__Private.__TopHash = BaseTop;
+	
 	/* Read type specific data */
 	// This is a WAD File (Load entries from WAD)
 	if (IsWAD)
 	{
 		// Seek to start of info
 		fseek(CFile, 4, SEEK_SET);
+		
+		// Read lump count and swap it
+		fread(&u32, 4, 1, CFile);
+		u32 = LittleSwapUInt32(u32);
+		NewWAD->NumEntries = u32;
+		
+		// Read index offset and swap it
+		fread(&u32, 4, 1, CFile);
+		u32 = LittleSwapUInt32(u32);
+		NewWAD->__Private.__IndexOff = u32;
+		
+		// Index rolls off file? If so, clip number of them
+		if (NewWAD->__Private.__IndexOff + (NewWAD->NumEntries * 16) > NewWAD->__Private.__Size)
+			NewWAD->NumEntries = (NewWAD->__Private.__Size - NewWAD->__Private.__IndexOff) / 16;
+		
+		// Error correction (corrupt WAD?)
+		if (NewWAD->__Private.__IndexOff >= NewWAD->__Private.__Size)
+		{
+			// Clear so it is an empty WAD
+			NewWAD->NumEntries = 0;
+			NewWAD->__Private.__IndexOff = 0;
+		}
+		
+		// Seek to index location
+		fseek(CFile, NewWAD->__Private.__IndexOff, SEEK_SET);
+		
+		// Allocate entries
+		NewWAD->Entries = Z_Malloc(sizeof(WL_WADEntry_t) * NewWAD->NumEntries, PU_STATIC, NULL);
+		
+		// Start reading the index
+		for (i = 0; i < NewWAD->NumEntries; i++)
+		{
+			// Get current entry
+			ThisEntry = &NewWAD->Entries[i];
+			
+			// Initialize Links
+			ThisEntry->Owner = NewWAD;
+			if (i > 1 && i < NewWAD->NumEntries - 1)	// Forward
+				ThisEntry->NextEntry = &NewWAD->Entries[i + 1];
+			if (i > 0)									// Back
+				ThisEntry->PrevEntry = &NewWAD->Entries[i - 1];
+			
+			// Initialize index
+			ThisEntry->Index = i;
+			ThisEntry->GlobalIndex = NewWAD->__Private.__TopHash + ThisEntry->Index;
+		}
 	}
 	// This is a standard lump (make WAD a single entry containing the entire file)
 	else
@@ -2605,7 +2668,10 @@ const WL_WADFile_t* WL_OpenWAD(const char* const a_PathName)
 	
 	// Debug
 	if (devparm)
-		CONS_Printf("WL_OpenWAD: Loaded \"%s\" [%08x%08x%08x%08x]\n", NewWAD->__Private.__DOSName, NewWAD->SimpleSum[0], NewWAD->SimpleSum[1], NewWAD->SimpleSum[2], NewWAD->SimpleSum[3]);
+	{
+		u32 = NewWAD->NumEntries;
+		CONS_Printf("WL_OpenWAD: Loaded \"%s\"%s%s [%u Entries, %08x%08x%08x%08x]\n", NewWAD->__Private.__DOSName, (NewWAD->__Private.__IsIWAD ? "*" : ""), (NewWAD->__Private.__IsWAD ? "" : "+"), u32, NewWAD->SimpleSum[0], NewWAD->SimpleSum[1], NewWAD->SimpleSum[2], NewWAD->SimpleSum[3]);
+	}
 		
 	/* Return the generated WAD */
 	return NewWAD;
@@ -2712,9 +2778,11 @@ bool_t WL_LocateWAD(const char* const a_Name, const char* const a_MD5, char* con
 	/* Look in the search buffer for said WADs */
 	for (j = 0; j < 2; j++)
 	{
-		// Search the exact given name, then the basename
+		// Search the exact given name
 		if (!j)
 			p = a_Name;
+		
+		// If this point is reached, then try the basename (always try to succeed)
 		else
 		{
 			memset(BaseWAD, 0, sizeof(BaseWAD));

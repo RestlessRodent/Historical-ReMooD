@@ -318,6 +318,8 @@ typedef struct WL_WADFile_s
 	{
 		// Validity
 		bool_t __IsValid;		// Is this WAD valid?
+		bool_t __IsWAD;			// Is this a WAD?
+		bool_t __IsIWAD;		// Is this an IWAD?
 		
 		// File related stuff
 		char __PathName[PATH_MAX];	// Path to WAD File
