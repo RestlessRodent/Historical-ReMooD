@@ -355,6 +355,7 @@ typedef struct WL_WADFile_s
 	size_t TotalSize;			// Size of all entries added together
 	uint32_t CheckSum[4];		// MD5 Sum
 	uint8_t CheckSumChars[33];	// MD5 Sum (As hex characters)
+	uint32_t SimpleSum[4];		// Simple Sum
 	
 	// Entries
 	WL_WADEntry_t* Entries;		// Entries in the WAD

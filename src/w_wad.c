@@ -2470,6 +2470,7 @@ const WL_WADFile_t* WL_OpenWAD(const char* const a_PathName)
 	size_t i, j, k, n;
 	char c;
 	bool_t Dot;
+	uint8_t u8;
 	
 	/* Check */
 	if (!a_PathName)
@@ -2554,16 +2555,47 @@ const WL_WADFile_t* WL_OpenWAD(const char* const a_PathName)
 	// Find size
 	fseek(CFile, 0, SEEK_END);
 	NewWAD->__Private.__Size = ftell(CFile);
-	fseek(CFile, 4, SEEK_SET);
+	fseek(CFile, 0, SEEK_SET);
+	
+	/* Determine checksums */
+	// Simple Sum
+	for (i = 0, j = 0, k = 0; i < NewWAD->__Private.__Size; i++)
+	{
+		// Read single byte
+		fread(&u8, 1, 1, CFile);
+		
+		// If even, do XOR
+		if (!(i & 0))
+			NewWAD->SimpleSum[k] ^= (uint32_t)u8 << ((uint32_t)j * 8);
+		
+		// Otherwise, do XNOR
+		else
+			NewWAD->SimpleSum[k] ^= ((uint32_t)(~u8)) << ((uint32_t)j * 8);
+		
+		// Cycle?
+		if (++j >= 4)
+		{
+			j = 0;
+			
+			if (++k >= 4)
+				k = 0;
+		}
+	}
+	
+	// MD5
 	
 	/* Read type specific data */
 	// This is a WAD File (Load entries from WAD)
 	if (IsWAD)
 	{
+		// Seek to start of info
+		fseek(CFile, 4, SEEK_SET);
 	}
 	// This is a standard lump (make WAD a single entry containing the entire file)
 	else
 	{
+		// Seek to start of file
+		fseek(CFile, 0, SEEK_SET);
 	}
 	
 	/* Run Data Registration */
@@ -2573,7 +2605,7 @@ const WL_WADFile_t* WL_OpenWAD(const char* const a_PathName)
 	
 	// Debug
 	if (devparm)
-		CONS_Printf("WL_OpenWAD: Loaded \"%s\"\n", NewWAD->__Private.__DOSName);
+		CONS_Printf("WL_OpenWAD: Loaded \"%s\" [%08x%08x%08x%08x]\n", NewWAD->__Private.__DOSName, NewWAD->SimpleSum[0], NewWAD->SimpleSum[1], NewWAD->SimpleSum[2], NewWAD->SimpleSum[3]);
 		
 	/* Return the generated WAD */
 	return NewWAD;
