@@ -2457,6 +2457,30 @@ static const char* WL_BaseName(const char* const a_File)
 	return TempX;
 }
 
+/* ZLP_EntryHashCheck() -- Compares entry hash */
+// A = const char*
+// B = WL_WADEntry_t*
+static bool_t ZLP_EntryHashCheck(void* const a_A, void* const a_B)
+{
+	const char* A;
+	WL_WADEntry_t* B;
+	
+	/* Check */
+	if (!a_A || !a_B)
+		return false;
+		
+	/* Clone */
+	A = a_A;
+	B = a_B;
+	
+	/* Compare name */
+	if (strcasecmp(A, B->Name) == 0)
+		return true;
+		
+	// Not matched
+	return false;
+}
+
 /* WL_OpenWAD() -- Opens a WAD File */
 const WL_WADFile_t* WL_OpenWAD(const char* const a_PathName)
 {
@@ -2602,6 +2626,9 @@ const WL_WADFile_t* WL_OpenWAD(const char* const a_PathName)
 	NewWAD->__Private.__TopHash = BaseTop;
 	
 	/* Read type specific data */
+	// Create hash table for fast access
+	NewWAD->__Private.__EntryHashes = Z_HashCreateTable(ZLP_EntryHashCheck);
+	
 	// This is a WAD File (Load entries from WAD)
 	if (IsWAD)
 	{
@@ -2652,6 +2679,43 @@ const WL_WADFile_t* WL_OpenWAD(const char* const a_PathName)
 			// Initialize index
 			ThisEntry->Index = i;
 			ThisEntry->GlobalIndex = NewWAD->__Private.__TopHash + ThisEntry->Index;
+			
+			// Read lump position
+			fread(&u32, 4, 1, CFile);
+			u32 = LittleSwapUInt32(u32);
+			ThisEntry->__Private.__Offset = u32;
+			
+			// Read lump internal size
+			fread(&u32, 4, 1, CFile);
+			u32 = LittleSwapUInt32(u32);
+			ThisEntry->__Private.__InternalSize = u32;
+			
+			// Read name
+			for (Dot = false, j = 0; j < 8; j++)
+			{
+				fread(&c, 1, 1, CFile);	
+				
+				if (!Dot)
+					if (c == '\0')
+						Dot = true;
+					else
+						ThisEntry->Name[j] = toupper(c);
+			}
+			
+			// Check for PSX/N64 Compression
+			if (ThisEntry->Name[0] & 0x80)
+			{
+				// Remove bit and set compression flag
+				ThisEntry->Name[0] &= ~0x80;
+				ThisEntry->__Private.__Compressed = true;
+				
+				// TODO: Implement compression
+				ThisEntry->Size = 0;
+			}
+			
+			// Not compressed
+			else
+				ThisEntry->Size = ThisEntry->__Private.__InternalSize;
 		}
 	}
 	// This is a standard lump (make WAD a single entry containing the entire file)
@@ -2659,6 +2723,37 @@ const WL_WADFile_t* WL_OpenWAD(const char* const a_PathName)
 	{
 		// Seek to start of file
 		fseek(CFile, 0, SEEK_SET);
+		
+		// Create single entry
+		NewWAD->NumEntries = 1;
+		ThisEntry = NewWAD->Entries = Z_Malloc(sizeof(WL_WADEntry_t), PU_STATIC, NULL);
+		
+		// Set size and such
+		ThisEntry->__Private.__Offset = 0;
+		ThisEntry->Size = ThisEntry->__Private.__InternalSize = NewWAD->__Private.__Size;
+		
+		// Name is the DOS name
+		for (Dot = false, i = 0; i < WLMAXDOSNAME && i < WLMAXENTRYNAME; i++)
+			if (!Dot)
+				if (NewWAD->__Private.__DOSName[i] == '.')
+					Dot = true;
+				else
+					ThisEntry->Name[i] = NewWAD->__Private.__DOSName[i];
+	}
+	
+	/* Hash everything */
+	// This is done here to allow all formats to use the hash table, it also
+	// reduces code wastage.
+	for (i = 0; i < NewWAD->NumEntries; i++)
+	{
+		// Get current entry
+		ThisEntry = &NewWAD->Entries[i];
+		
+		// Determine hash
+		ThisEntry->Hash = Z_Hash(ThisEntry->Name);
+		
+		// Add to table
+		Z_HashAddEntry(NewWAD->__Private.__EntryHashes, ThisEntry->Hash, ThisEntry);
 	}
 	
 	/* Run Data Registration */
