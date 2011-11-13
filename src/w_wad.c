@@ -2406,8 +2406,23 @@ size_t WX_ClearUnused(void)
 #define WLPATHDIRSEP ':'
 #endif
 
+/*** STRUCTURES ***/
+typedef struct WL_PDC_s
+{
+	uint32_t Key;								// Key for this registrar
+	uint8_t Order;								// Registration Order
+	WL_PCCreatorFunc_t CreatorFunc;				// Function to create data
+	WL_RemoveFunc_t RemoveFunc;					// Function to remove data
+	
+	bool_t Mark;								// Marker
+} WL_PDC_t;
+
 /*** LOCALS ***/
-static WL_WADFile_t* l_LFirstWAD = NULL;	// First WAD in the chain
+static WL_WADFile_t* l_LFirstWAD = NULL;		// First WAD in the chain
+static WL_WADFile_t* l_LFirstVWAD = NULL;		// First Virtual WAD in the chain
+static WL_PDC_t l_PDC[WLMAXPRIVATEWADSTUFF];	// Private WAD Stuff
+static WL_PDC_t* l_PDCp[WLMAXPRIVATEWADSTUFF];	// Sorted variant
+static size_t l_NumPDC = 0;						// Number of PDC
 
 /*** FUNCTIONS ***/
 
@@ -2757,6 +2772,8 @@ const WL_WADFile_t* WL_OpenWAD(const char* const a_PathName)
 	}
 	
 	/* Run Data Registration */
+	for (i = 0; i < l_NumPDC; i++)
+		WL_GetPrivateData(NewWAD, l_PDCp[i]->Key, NULL);
 	
 	/* Success */
 	NewWAD->__Private.__IsValid = true;
@@ -2772,6 +2789,42 @@ const WL_WADFile_t* WL_OpenWAD(const char* const a_PathName)
 	return NewWAD;
 }
 
+/* WL_Iterate() -- Iterates (Virtual) WAD Files */
+const WL_WADFile_t* WL_IterateVWAD(const WL_WADFile_t* const a_WAD, const bool_t a_Forwards)
+{
+	WL_WADFile_t* Rover;
+	
+	/* NULL WAD means the last/first */
+	if (!a_WAD)
+	{
+		// Forwards needs no roving
+		if (a_Forwards)
+			return l_LFirstVWAD;
+		
+		// Backwards, finds the last WAD
+		else
+		{
+			Rover = l_LFirstVWAD;
+			
+			// Keep going
+			while (Rover && Rover->NextVWAD)
+				Rover = Rover->NextVWAD;
+			
+			// Should have found it
+			return Rover;
+		}
+	}
+	
+	/* Non-null means iterate to the next */
+	else
+	{
+		if (a_Forwards)
+			return a_WAD->NextVWAD;
+		else
+			return a_WAD->PrevVWAD;
+	}
+}
+
 /* WL_CloseWAD() -- Closes a WAD File */
 void WL_CloseWAD(const WL_WADFile_t* const a_WAD)
 {
@@ -2780,12 +2833,77 @@ void WL_CloseWAD(const WL_WADFile_t* const a_WAD)
 /* WL_PushWAD() -- Pushes a WAD to the end of the virtual stack */
 void WL_PushWAD(const WL_WADFile_t* const a_WAD)
 {
+	WL_WADFile_t* Rover;	
+	
+	/* Check */
+	if (!a_WAD)
+		return;
+	
+	/* Already attached in the chain? */
+	if (a_WAD->PrevVWAD || a_WAD->NextVWAD)
+	{
+		if (devparm)
+			CONS_Printf("WL_PushWAD: WAD already linked!\n");
+		
+		return;
+	}
+	
+	/* Debug */
+	if (devparm)
+		CONS_Printf("WL_PushWAD: Pushing \"%s\".\n", a_WAD->__Private.__DOSName);
+	
+	/* No chain at all? */
+	if (!l_LFirstVWAD)
+	{
+		l_LFirstVWAD = (WL_WADFile_t*)a_WAD;
+		return;
+	}
+	
+	/* Chain needs linking */
+	Rover = l_LFirstVWAD;
+	
+	while (Rover)
+	{
+		// No next?
+		if (!Rover->NextVWAD)
+		{
+			// Pair and return
+			Rover->NextVWAD = (WL_WADFile_t*)a_WAD;
+			((WL_WADFile_t*)a_WAD)->PrevVWAD = Rover;
+			return;
+		}
+		
+		// Go to next
+		Rover = Rover->NextVWAD;
+	}
 }
 
 /* WL_PopWAD() -- Pops a WAD from the end of the virtual stack */
 const WL_WADFile_t* WL_PopWAD(void)
 {
-	return NULL;
+	WL_WADFile_t* Rover;
+	
+	/* Get first */
+	Rover = l_LFirstVWAD;
+	
+	// Seek to end
+	while (Rover && Rover->NextVWAD)
+		Rover = Rover->NextVWAD;
+	
+	/* Unlink */
+	if (Rover)
+	{
+		if (Rover->PrevVWAD)
+			Rover->PrevVWAD->NextVWAD = NULL;
+		Rover->PrevVWAD = Rover->NextVWAD = NULL;
+	}
+	
+	/* Top of chain? */
+	if (Rover == l_LFirstVWAD)
+		l_LFirstVWAD = NULL;
+	
+	/* Return the popped off WAD */
+	return Rover;
 }
 
 /* WL_LocateWAD() -- Finds WAD on the disk */
@@ -2916,15 +3034,138 @@ bool_t WL_LocateWAD(const char* const a_Name, const char* const a_MD5, char* con
 }
 
 /* WL_RegisterPDC() -- Registers a data handler */
-bool_t WL_RegisterPDC(const uint32_t a_Key, const uint8_t a_Order, WL_PCCreatorFunc_t const a_CreatorFunc)
+bool_t WL_RegisterPDC(const uint32_t a_Key, const uint8_t a_Order, WL_PCCreatorFunc_t const a_CreatorFunc, WL_RemoveFunc_t const a_RemoveFunc)
 {
-	return false;
+	size_t i, j, k, z;
+	WL_PDC_t* Slot;
+	WL_WADFile_t* WAD;
+	
+	/* Check */
+	if (!a_Key || !a_CreatorFunc)
+		return false;
+	
+	/* No more room? */
+	if (l_NumPDC + 1 >= (WLMAXPRIVATEWADSTUFF - 1))
+		return false;
+	
+	/* See if the key is used already */
+	for (i = 0; i < l_NumPDC; i++)
+		if (a_Key == l_PDC[i].Key)
+			return false;
+	
+	/* Add it at the end */
+	Slot = &l_PDC[l_NumPDC++];
+	Slot->Key = a_Key;
+	Slot->Order = a_Order;
+	Slot->CreatorFunc = a_CreatorFunc;
+	Slot->RemoveFunc = a_RemoveFunc;
+	
+	/* Sort */
+	// Clear all markers first
+	for (i = 0; i < l_NumPDC; i++)
+		l_PDC[i].Mark = false;
+	
+	// Use presorted pointers, easy
+	memset(l_PDCp, 0, sizeof(l_PDCp));
+	
+	for (k = 0, z = 0; z < l_NumPDC; z++)
+	{
+		// Get first unmarked
+		for (i = 0; i < l_NumPDC; i++)
+			if (!l_PDC[i].Mark)
+			{
+				j = i;
+				break;
+			}
+		
+		// Find lowest
+		for (i = 0; i < l_NumPDC; i++)
+			if (!l_PDC[i].Mark)
+				if (l_PDC[i].Order < l_PDC[j].Order)
+					j = i;
+		
+		// Put pointer in sort
+		l_PDCp[k++] = &l_PDC[j];
+	}
+	
+	/* Create data for WADs */
+	WAD = l_LFirstWAD;
+	
+	while (WAD)
+	{
+		// Getting private data means creating it
+		WL_GetPrivateData(WAD, a_Key, NULL);
+	
+		// Next
+		WAD = WAD->__Private.__NextWAD;
+	}
+	
+	/* Success! */
+	return true;
 }
 
 /* WL_GetPrivateData() -- Retrieves existing private data */
 void* WL_GetPrivateData(const WL_WADFile_t* const a_WAD, const uint32_t a_Key, size_t* const a_SizePtr)
 {
-	return NULL;
+	size_t i;
+	void* p = NULL;
+	WL_PDC_t* PDC;
+	
+	/* Check */
+	if (!a_WAD)
+		return NULL;
+	
+	/* Find data in the chain */
+	for (i = 0; i < a_WAD->__Private.__PublicData.__NumStuffs; i++)
+		if (a_WAD->__Private.__PublicData.__Stuff[i].__Key == a_Key)
+			return a_WAD->__Private.__PublicData.__Stuff[i].__DataPtr;
+	
+	/* If this point was reached, then it does not exist */
+	// Check for overflow
+	if (a_WAD->__Private.__PublicData.__NumStuffs + 1 >= (WLMAXPRIVATEWADSTUFF - 1))
+	{
+		if (devparm)
+			CONS_Printf("WL_GetPrivateData: Stuff overflow.\n");
+		return NULL;	// Overflow
+	}
+	
+	// Find which creator to use
+	for (PDC = NULL, i = 0; i < l_NumPDC; i++)
+		if (l_PDCp[i]->Key == a_Key)
+		{
+			PDC = l_PDCp[i];
+			break;
+		}
+	
+	// Not found?
+	if (!PDC)
+		return NULL;
+	
+	// Create data here
+	((WL_WADFile_t*)a_WAD)->__Private.__PublicData.__Stuff[a_WAD->__Private.__PublicData.__NumStuffs].__Key = a_Key;
+	((WL_WADFile_t*)a_WAD)->__Private.__PublicData.__Stuff[a_WAD->__Private.__PublicData.__NumStuffs].__RemoveFunc = PDC->RemoveFunc;
+	
+	if (!PDC->CreatorFunc(
+			a_WAD,
+			a_Key,
+			&((WL_WADFile_t*)a_WAD)->__Private.__PublicData.__Stuff[a_WAD->__Private.__PublicData.__NumStuffs].__DataPtr,
+			&((WL_WADFile_t*)a_WAD)->__Private.__PublicData.__Stuff[a_WAD->__Private.__PublicData.__NumStuffs].__Size,
+			&((WL_WADFile_t*)a_WAD)->__Private.__PublicData.__Stuff[a_WAD->__Private.__PublicData.__NumStuffs].__RemoveFunc
+		))
+	{	// Failed?
+		if (devparm)
+			CONS_Printf("WL_GetPrivateData: Private data creation failed!\n");
+		
+		memset(&((WL_WADFile_t*)a_WAD)->__Private.__PublicData.__Stuff[a_WAD->__Private.__PublicData.__NumStuffs], 0, sizeof(a_WAD->__Private.__PublicData.__Stuff[a_WAD->__Private.__PublicData.__NumStuffs]));
+		return NULL;
+	}
+	
+	p = ((WL_WADFile_t*)a_WAD)->__Private.__PublicData.__Stuff[a_WAD->__Private.__PublicData.__NumStuffs].__DataPtr;
+	
+	((WL_WADFile_t*)a_WAD)->__Private.__PublicData.__NumStuffs++;
+	
+	/* Success? */
+	return p;
 }
 
 /* WL_FindEntry() -- Find an entry by name */

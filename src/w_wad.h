@@ -239,7 +239,7 @@ size_t __REMOOD_DEPRECATED WX_ClearUnused(void);
 
 /*** CONSTANTS ***/
 #define WLMAXENTRYNAME			24	// Max characters in entry name
-#define WLMAXPRIVATEWADSTUFF	64	// Maximum number of private WAD Stuffs
+#define WLMAXPRIVATEWADSTUFF	32	// Maximum number of private WAD Stuffs
 #define WLMAXDOSNAME			13	// nnnnnnnn.xxx\0
 
 /* WL_DataKeys_t -- Keys for data handling, shortcuts */
@@ -276,7 +276,7 @@ struct WL_WADEntry_s;
 struct WL_WADFile_s;
 
 typedef void (*WL_RemoveFunc_t) (const struct WL_WADFile_s* a_WAD);
-typedef bool_t (*WL_PCCreatorFunc_t) (const struct WL_WADFile_s* const a_WAD, const uint32_t a_Key, void** const a_DataPtr, size_t** const a_SizePtr,
+typedef bool_t (*WL_PCCreatorFunc_t) (const struct WL_WADFile_s* const a_WAD, const uint32_t a_Key, void** const a_DataPtr, size_t* const a_SizePtr,
                                       WL_RemoveFunc_t* const a_RemoveFuncPtr);
 
 /* WL_WADEntry_t -- A lite WAD entry */
@@ -374,10 +374,12 @@ const WL_WADFile_t* WL_OpenWAD(const char* const a_PathName);
 void WL_CloseWAD(const WL_WADFile_t* const a_WAD);
 bool_t WL_LocateWAD(const char* const a_Name, const char* const a_MD5, char* const a_OutPath, const size_t a_OutSize);
 
+const WL_WADFile_t* WL_IterateVWAD(const WL_WADFile_t* const a_WAD, const bool_t a_Forwards);
+
 void WL_PushWAD(const WL_WADFile_t* const a_WAD);
 const WL_WADFile_t* WL_PopWAD(void);
 
-bool_t WL_RegisterPDC(const uint32_t a_Key, const uint8_t a_Order, WL_PCCreatorFunc_t const a_CreatorFunc);
+bool_t WL_RegisterPDC(const uint32_t a_Key, const uint8_t a_Order, WL_PCCreatorFunc_t const a_CreatorFunc, WL_RemoveFunc_t const a_RemoveFunc);
 void* WL_GetPrivateData(const WL_WADFile_t* const a_WAD, const uint32_t a_Key, size_t* const a_SizePtr);
 
 // Entry Handling
