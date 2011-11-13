@@ -1272,8 +1272,15 @@ void D_DoomMain(void)
 	}
 	
 	CONS_Printf(text[Z_INIT_NUM]);
+	
+	/*** New Initialization ***/
+	/* Core */
 	Z_Init();
 	CONL_Init(4096, 1024);
+	
+	/* Adapters */
+	P_PrepareLevelInfoEx();
+	/**************************/
 	
 	G_InitKeys();
 	

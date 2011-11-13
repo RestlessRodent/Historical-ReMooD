@@ -14,6 +14,7 @@
 //      :oO8@@@@@@@@@@Oo.
 //         .oCOOOOOCc.                                      http://remood.org/
 // -----------------------------------------------------------------------------
+// Copyright (C) 2011 GhostlyDeath <ghostlydeath@remood.org>
 // Copyright(C) 2000 Simon Howard
 // -----------------------------------------------------------------------------
 // This program is free software; you can redistribute it and/or
@@ -46,6 +47,83 @@
 #include "w_wad.h"
 #include "z_zone.h"
 #include "p_local.h"
+
+/*** CONSTANTS ***/
+
+#define WLINFOPDC					0x4F464E49	// "INFO"
+
+/*** FUNCTIONS ***/
+
+/* P_WLInfoRemove() -- Function that removes private data from a WAD */
+static void P_WLInfoRemove(const WL_WADFile_t* a_WAD)
+{
+	/* Check */
+	if (!a_WAD)
+		return;
+}
+
+/* P_WLInfoCreator() -- Function that creates private data for a WAD */
+static bool_t P_WLInfoCreator(const WL_WADFile_t* const a_WAD, const uint32_t a_Key, void** const a_DataPtr, size_t* const a_SizePtr, WL_RemoveFunc_t* const a_RemoveFuncPtr)
+{
+	size_t i;
+	WL_WADEntry_t* Entry;
+	WL_WADEntry_t* Base;
+	
+	/* Check */
+	if (!a_WAD || !a_DataPtr || !a_SizePtr)
+		return false;
+	
+	/* Debug */
+	if (devparm)
+		CONS_Printf("P_WLInfoCreator: Loading level info for \"%s\".\n", WL_GetWADName(a_WAD, false));
+	
+	/* Seek through lumps looking for levels */
+	Base = NULL;
+	for (i = 0; i < a_WAD->NumEntries; i++)
+	{
+		// Get current entry
+		Entry = &a_WAD->Entries[i];
+		
+		// Remember it as the base
+		if (!Base)
+		{
+			Base = Entry;
+			continue;
+		}
+		
+		// Check to see if this entry is called "THINGS" or "TEXTMAP"
+		if (strcasecmp(Entry->Name, "THINGS") == 0)
+			CONS_Printf(">> %s == Doom/Hexen Level\n", Base->Name);
+		else if (strcasecmp(Entry->Name, "TEXTMAP") == 0)
+			CONS_Printf(">> %s == Textual Level\n", Base->Name);
+		
+		// Not of a known format, so just ignore it
+		else
+		{
+			Base = NULL;
+			continue;
+		}
+		
+		// Push entry to queue for later implementation
+		
+		// Clear base (FOR NOT YET IMPLEMENTED)
+		Base = NULL;
+	}
+	
+	return true;
+}
+
+/* P_PrepareLevelInfoEx() -- Prepare extended level info */
+void P_PrepareLevelInfoEx(void)
+{
+	/* Register handler into the light WAD code */
+	if (!WL_RegisterPDC(WLINFOPDC, 127, P_WLInfoCreator, P_WLInfoRemove))
+		CONS_Printf("P_PrepareLevelInfoEx: Failed to register info creator!\n");
+}
+
+/*******************************************************************************
+********************************************************************************
+*******************************************************************************/
 
 //----------------------------------------------------------------------------
 //

@@ -2789,6 +2789,19 @@ const WL_WADFile_t* WL_OpenWAD(const char* const a_PathName)
 	return NewWAD;
 }
 
+/* WL_GetWADName() -- Get the name of a WAD */
+const char* const WL_GetWADName(const WL_WADFile_t* const a_WAD, const bool_t a_NonDOSName)
+{
+	/* Check */
+	if (!a_WAD)
+		return NULL;
+	
+	/* Return the correct name */
+	if (a_NonDOSName)
+		return a_WAD->__Private.__FileName;
+	return a_WAD->__Private.__DOSName;
+}
+
 /* WL_Iterate() -- Iterates (Virtual) WAD Files */
 const WL_WADFile_t* WL_IterateVWAD(const WL_WADFile_t* const a_WAD, const bool_t a_Forwards)
 {

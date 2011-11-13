@@ -28,8 +28,8 @@
 // -----------------------------------------------------------------------------
 // DESCRIPTION: WAD I/O functions, wad resource definitions (some).
 
-#ifndef __W_WAD__
-#define __W_WAD__
+#ifndef __W_WAD_H__
+#define __W_WAD_H__
 
 #include "doomtype.h"
 #include <stdio.h>
@@ -275,9 +275,8 @@ typedef enum WL_FindFlags_e
 struct WL_WADEntry_s;
 struct WL_WADFile_s;
 
-typedef void (*WL_RemoveFunc_t) (const struct WL_WADFile_s* a_WAD);
-typedef bool_t (*WL_PCCreatorFunc_t) (const struct WL_WADFile_s* const a_WAD, const uint32_t a_Key, void** const a_DataPtr, size_t* const a_SizePtr,
-                                      WL_RemoveFunc_t* const a_RemoveFuncPtr);
+typedef void (*WL_RemoveFunc_t)(const struct WL_WADFile_s* a_WAD);
+typedef bool_t (*WL_PCCreatorFunc_t)(const struct WL_WADFile_s* const a_WAD, const uint32_t a_Key, void** const a_DataPtr, size_t* const a_SizePtr, WL_RemoveFunc_t* const a_RemoveFuncPtr);
 
 /* WL_WADEntry_t -- A lite WAD entry */
 typedef struct WL_WADEntry_s
@@ -374,6 +373,7 @@ const WL_WADFile_t* WL_OpenWAD(const char* const a_PathName);
 void WL_CloseWAD(const WL_WADFile_t* const a_WAD);
 bool_t WL_LocateWAD(const char* const a_Name, const char* const a_MD5, char* const a_OutPath, const size_t a_OutSize);
 
+const char* const WL_GetWADName(const WL_WADFile_t* const a_WAD, const bool_t a_NonDOSName);
 const WL_WADFile_t* WL_IterateVWAD(const WL_WADFile_t* const a_WAD, const bool_t a_Forwards);
 
 void WL_PushWAD(const WL_WADFile_t* const a_WAD);
@@ -387,4 +387,5 @@ const WL_WADEntry_t* WL_FindEntry(const WL_WADFile_t* const a_BaseSearch, const 
 uintptr_t WL_TranslateEntry(const WadIndex_t a_GlobalIndex, const WL_WADFile_t* const a_Entry);
 size_t WL_ReadData(const WL_WADEntry_t* const a_Entry, const size_t a_Offset, void* const a_Out, const size_t a_OutSize);
 
-#endif							/* __W_WAD__ */
+#endif							/* __W_WAD_H__ */
+
