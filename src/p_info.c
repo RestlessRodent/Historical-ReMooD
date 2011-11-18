@@ -51,6 +51,57 @@
 /*** CONSTANTS ***/
 
 #define WLINFOPDC					0x4F464E49	// "INFO"
+#define MAXPLIEXFIELDWIDTH			32
+
+typedef enum P_LevelInfoExDataStuff_e
+{
+	PLIEDS_HEADER,								// MAPxx, ExMx
+	PLIEDS_THINGS,								// THINGS
+	PLIEDS_LINEDEFS,							// LINEDEFS
+	PLIEDS_SIDEDEFS,							// SIDEDEFS
+	PLIEDS_VERTEXES,							// VERTEXES
+	PLIEDS_SEGS,								// SEGS
+	PLIEDS_SSECTORS,							// SSECTORS
+	PLIEDS_NODES,								// NODES
+	PLIEDS_SECTORS,								// SECTORS
+	PLIEDS_REJECT,								// REJECT
+	PLIEDS_BLOCKMAP,							// BLOCKMAP
+	PLIEDS_BEHAVIOR,							// BEHAVIOR (Hexen)
+	PLIEDS_TEXTMAP,								// TEXTMAP (UDMF)
+	PLIEDS_ENDMAP,								// ENDMAP (UDMF)
+	PLIEDS_RSCRIPTS,							// ReMooD Scripts (for this level)
+	
+	MAXPLIEDS
+} P_LevelInfoExDataStuff_t;
+
+/*** STRUCTURES ***/
+
+/* P_LevelInfoEx_t -- Extended level info */
+typedef struct P_LevelInfoEx_s
+{
+	/* WAD Related */
+	WL_WADEntry_t* EntryPtr[MAXPLIEDS];			// Pointer to entry
+	struct
+	{
+		bool_t Hexen;							// Hexen level (false = Doom)
+		bool_t Text;							// Text Level
+	} Type;										// Level Type
+	
+	/* Script Related */
+	uint32_t ScriptStart;						// Start of script data
+	uint32_t ScriptEnd;							// End of script data
+	
+	/* Info */
+	char LumpName[MAXPLIEXFIELDWIDTH];			// Name of the lump
+	char Title[MAXPLIEXFIELDWIDTH];				// Level Title
+	char Author[MAXPLIEXFIELDWIDTH];			// Creator of level
+	struct
+	{
+		uint8_t Day;							// Day (of month)
+		uint8_t Month;							// Month
+		uint16_t Year;							// Year
+	} Date;										// Date Created
+} P_LevelInfoEx_t;
 
 /*** FUNCTIONS ***/
 
