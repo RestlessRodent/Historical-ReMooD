@@ -70,6 +70,7 @@ typedef enum P_LevelInfoExDataStuff_e
 	PLIEDS_TEXTMAP,								// TEXTMAP (UDMF)
 	PLIEDS_ENDMAP,								// ENDMAP (UDMF)
 	PLIEDS_RSCRIPTS,							// ReMooD Scripts (for this level)
+	PLIEDS_LPREVIEW,							// Level preview image
 	
 	MAXPLIEDS
 } P_LevelInfoExDataStuff_t;
