@@ -3229,6 +3229,57 @@ uintptr_t WL_TranslateEntry(const WadIndex_t a_GlobalIndex, const WL_WADFile_t* 
 /* WL_ReadData() -- Read WAD data into memory */
 size_t WL_ReadData(const WL_WADEntry_t* const a_Entry, const size_t a_Offset, void* const a_Out, const size_t a_OutSize)
 {
-	return 0;
+	size_t CorrectedSize;
+	
+	/* Check */
+	if (!a_Entry || !a_Out || !a_OutSize)
+		return 0;
+	
+	/* Get corrected size of read */
+	if (a_Offset >= a_Entry->Size)
+		CorrectedSize = 0;
+	else if (a_Offset + a_OutSize > a_Entry->Size)
+		CorrectedSize = a_Entry->Size - a_Offset;
+	else
+		CorrectedSize = a_OutSize;
+	
+	/* Nothing to read? */
+	if (!CorrectedSize)
+		return 0;
+	
+	/* Does the data need cache? */
+	// Load cache
+	if (!a_Entry->__Private.__Data)
+	{
+		// Allocate for all data
+		((WL_WADEntry_t*)a_Entry)->__Private.__Data = Z_Malloc(a_Entry->Size, PU_STATIC, (void**)&a_Entry->__Private.__Data);
+		
+		// Seek to WAD location
+		fseek(
+				((FILE*)((WL_WADEntry_t*)a_Entry)->Owner->__Private.__CFile),
+				a_Entry->__Private.__Offset,
+				SEEK_SET
+			);
+		
+		// Read data
+		fread(
+				((WL_WADEntry_t*)a_Entry)->__Private.__Data,
+				a_Entry->Size,
+				1,
+				((FILE*)((WL_WADEntry_t*)a_Entry)->Owner->__Private.__CFile)
+			);
+	}
+	
+	// Change tag to prevent random free?
+	else
+		Z_ChangeTag(a_Entry->__Private.__Data, PU_STATIC);
+	
+	/* Copy into output area */
+	memmove(a_Out, (void*)(((uintptr_t)a_Entry->__Private.__Data) + a_Offset), CorrectedSize);
+	
+	/* Return former tag */
+	Z_ChangeTag(a_Entry->__Private.__Data, PU_CACHE);
+	
+	return CorrectedSize;
 }
 
