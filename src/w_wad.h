@@ -265,9 +265,6 @@ typedef enum WL_FindFlags_e
 {
 	WLFF_DEFAULTS = 0,			// Default stuff
 	WLFF_FORWARDS = 0x0001,		// Search forwards instead of backwards
-	WLFF_SINGLEWAD = 0x0002,	// Only search in this WAD (instead of bleeding)
-	WLFF_REALCHAINS = 0x0004,	// Use real chains (DEBUG USE ONLY!)
-	WLFF_UNLINKED = 0x0008,		// Search non-linked WADs, i.e. not in virtual chain (DEBUG USE ONLY!)
 	WLFF_IMPORTANT = 0x0010,	// I_Error if not found (not recommended!)
 } WL_FindFlags_t;
 

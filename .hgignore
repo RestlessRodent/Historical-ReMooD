@@ -47,9 +47,11 @@ glob:a.out
 glob:\.svn
 glob:bin/remood
 glob:bin/remood-dbg
-glob:.DS_Store 
-glob:*.xcodeproj/*.pbxuser 
-glob:*.xcodeproj/*.perspective* 
-glob:*.xcodeproj/*.mode* 
+glob:.DS_Store
+glob:*.xcodeproj/*.pbxuser
+glob:*.xcodeproj/*.perspective*
+glob:*.xcodeproj/*.mode*
 relre:^build$
- 
+
+glob:wad (copy)/
+glob:src (copy)/

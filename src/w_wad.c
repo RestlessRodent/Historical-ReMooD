@@ -2420,6 +2420,7 @@ typedef struct WL_PDC_s
 /*** LOCALS ***/
 static WL_WADFile_t* l_LFirstWAD = NULL;		// First WAD in the chain
 static WL_WADFile_t* l_LFirstVWAD = NULL;		// First Virtual WAD in the chain
+static WL_WADFile_t* l_LLastVWAD = NULL;		// First Virtual WAD in the chain
 static WL_PDC_t l_PDC[WLMAXPRIVATEWADSTUFF];	// Private WAD Stuff
 static WL_PDC_t* l_PDCp[WLMAXPRIVATEWADSTUFF];	// Sorted variant
 static size_t l_NumPDC = 0;						// Number of PDC
@@ -2814,18 +2815,9 @@ const WL_WADFile_t* WL_IterateVWAD(const WL_WADFile_t* const a_WAD, const bool_t
 		if (a_Forwards)
 			return l_LFirstVWAD;
 		
-		// Backwards, finds the last WAD
+		// Backwards used to need roving, not anymore (speed!)
 		else
-		{
-			Rover = l_LFirstVWAD;
-			
-			// Keep going
-			while (Rover && Rover->NextVWAD)
-				Rover = Rover->NextVWAD;
-			
-			// Should have found it
-			return Rover;
-		}
+			return l_LLastVWAD;
 	}
 	
 	/* Non-null means iterate to the next */
@@ -2836,6 +2828,9 @@ const WL_WADFile_t* WL_IterateVWAD(const WL_WADFile_t* const a_WAD, const bool_t
 		else
 			return a_WAD->PrevVWAD;
 	}
+	
+	/* ??? */
+	return NULL;
 }
 
 /* WL_CloseWAD() -- Closes a WAD File */
@@ -2868,7 +2863,7 @@ void WL_PushWAD(const WL_WADFile_t* const a_WAD)
 	/* No chain at all? */
 	if (!l_LFirstVWAD)
 	{
-		l_LFirstVWAD = (WL_WADFile_t*)a_WAD;
+		l_LLastVWAD = l_LFirstVWAD = (WL_WADFile_t*)a_WAD;
 		return;
 	}
 	
@@ -2883,6 +2878,9 @@ void WL_PushWAD(const WL_WADFile_t* const a_WAD)
 			// Pair and return
 			Rover->NextVWAD = (WL_WADFile_t*)a_WAD;
 			((WL_WADFile_t*)a_WAD)->PrevVWAD = Rover;
+			
+			// Last virtual WAD is always the justly pushed WAD! simple
+			l_LLastVWAD = ((WL_WADFile_t*)a_WAD);
 			return;
 		}
 		
@@ -2906,6 +2904,10 @@ const WL_WADFile_t* WL_PopWAD(void)
 	/* Unlink */
 	if (Rover)
 	{
+		// Set last WAD to the previous
+		l_LLastVWAD = Rover->PrevVWAD;
+		
+		// Remove from chain
 		if (Rover->PrevVWAD)
 			Rover->PrevVWAD->NextVWAD = NULL;
 		Rover->PrevVWAD = Rover->NextVWAD = NULL;
@@ -3184,6 +3186,37 @@ void* WL_GetPrivateData(const WL_WADFile_t* const a_WAD, const uint32_t a_Key, s
 /* WL_FindEntry() -- Find an entry by name */
 const WL_WADEntry_t* WL_FindEntry(const WL_WADFile_t* const a_BaseSearch, const uint32_t a_Flags, const char* const a_Name)
 {
+	WL_WADFile_t* Rover;
+	const WL_WADEntry_t* Entry;
+	uint32_t Hash;
+	
+	/* Global virtual search */
+	if (!a_BaseSearch)
+	{
+		// To simplify the implementation of this, do recursive calls!
+		for (Rover = (WL_WADFile_t*)WL_IterateVWAD(NULL, ((a_Flags & WLFF_FORWARDS) ? true : false)); Rover; Rover = (WL_WADFile_t*)WL_IterateVWAD((const WL_WADFile_t*)Rover, ((a_Flags & WLFF_FORWARDS) ? true : false)))
+			// Recursive call (simplifies the implementation), make sure IMPORTANT is NOT SET!
+			if ((Entry = WL_FindEntry((const WL_WADFile_t*)Rover, a_Flags & (~(WLFF_IMPORTANT)), a_Name)))
+				return Entry;	// It was found here
+	}
+	
+	/* Specific to this WAD */
+	else
+	{
+		// Look in hash table
+		Hash = Z_Hash(a_Name);
+		Entry = (const WL_WADEntry_t*)Z_HashFindEntry(a_BaseSearch->__Private.__EntryHashes, Hash, (void*)a_Name, ((a_Flags & WLFF_FORWARDS) ? false : true));
+		
+		// If found, return (for IMPORTANT case later on)
+		if (Entry)
+			return Entry;
+	}
+	
+	/* I_Error? */
+	if (a_Flags & WLFF_IMPORTANT)
+		I_Error("WL_FindEntry: Failed to find \"%s\".", a_Name);
+	
+	/* Not found, so return nothing */
 	return NULL;
 }
 
