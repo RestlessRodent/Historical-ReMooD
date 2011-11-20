@@ -36,202 +36,12 @@
 #include <stdlib.h>
 #include "z_zone.h"
 
-#define MAX_WADPATH   128
-#define MAX_WADFILES  32
-
-enum
-{
-	METHOD_DEHACKED,			// DeHackEd!
-	METHOD_WAD,					// WAD!
-	
-	// TODO METHODS
-	METHOD_RLEWAD,				// RWAD
-	METHOD_PKZIP,				// ZIP ARCHIVE
-	METHOD_SEVENZIP,			// 7Z ARCHIVE
-	METHOD_TAR,					// TAR ARCHIVE
-	
-	MAXMETHODS
-};
-
-struct WadFile_s;
-
-typedef enum
-{
-	WETYPE_RAW,
-	
-	/* Image */
-	WETYPE_PICTURETYPESTART,
-	
-	WETYPE_PATCHT = WETYPE_PICTURETYPESTART,
-	WETYPE_PICT,
-	WETYPE_FLAT,
-	
-	WETYPE_PICTURETYPEEND = WETYPE_FLAT,
-	
-	/* Text */
-	WETYPE_TEXTTYPESTART,
-	
-	WETYPE_AUTOTEXT = WETYPE_TEXTTYPESTART,
-	WETYPE_WCHART,
-	
-	WETYPE_TEXTTYPEEND = WETYPE_WCHART,
-	
-	NUMWADENTRYTYPES
-} WadEntryType_t;
-
-typedef struct WadEntry_s
-{
-	/* Basic */
-	char* Name;					// Pointer to a string (for Pk3s later on)
-	size_t Size;
-	size_t Position;
-	WadEntryType_t Type;		// File type
-	
-	/* Cache Info */
-	void* Cache[NUMWADENTRYTYPES];
-	
-	/* Parent */
-	struct WadFile_s* Host;
-	
-} WadEntry_t;
-
-typedef struct WadFile_s
-{
-	/* Filesystem */
-	char* FileName;				// Filename
-	size_t NumLumps;			// Number of Lumps
-	FILE* File;					// File pointer
-	size_t Size;				// Size of the file
-	
-	/* Data */
-	WadEntry_t* Index;			// WAD's Index
-	
-	/* WAD Hack */
-	void* WADNameHack;
-	
-	/* Special */
-	uint32_t Method;			// File Method
-	
-	/* Multiplayer Verification */
-	uint8_t MD5Sum[16];			// MD5 Sum
-	
-	/* WAD Specific Data */
-	void* Specific;				// Specific Data for said WAD
-	
-	/* Links */
-	struct WadFile_s* Prev;
-	struct WadFile_s* Next;
-} WadFile_t;
+/*************
+*** GLOBAL ***
+*************/
 
 #define INVALIDLUMP -1
 typedef int WadIndex_t;
-
-#define MAXLUMPS 2147483647
-#define INDEXSIZET(x) ((int)(x))
-
-size_t __REMOOD_DEPRECATED W_NumWadFiles(void);
-WadFile_t* __REMOOD_DEPRECATED W_GetWadForNum(size_t Num);
-WadFile_t* __REMOOD_DEPRECATED W_GetWadForName(char* Name);
-size_t __REMOOD_DEPRECATED W_GetNumForWad(WadFile_t* WAD);
-WadEntry_t* __REMOOD_DEPRECATED W_GetEntry(WadIndex_t lump);
-WadIndex_t __REMOOD_DEPRECATED W_LumpsSoFar(WadFile_t* wadid);
-WadIndex_t __REMOOD_DEPRECATED W_InitMultipleFiles(char** filenames);
-void __REMOOD_DEPRECATED W_Shutdown(void);
-int __REMOOD_DEPRECATED W_LoadWadFile(char* filename);
-void __REMOOD_DEPRECATED W_Reload(void);
-WadIndex_t __REMOOD_DEPRECATED W_BiCheckNumForName(char* name, int forwards);
-WadIndex_t __REMOOD_DEPRECATED W_CheckNumForName(char* name);
-WadIndex_t __REMOOD_DEPRECATED W_CheckNumForNamePwad(char* name, size_t wadid, WadIndex_t startlump);
-WadIndex_t __REMOOD_DEPRECATED W_CheckNumForNamePwadPtr(char* name, WadFile_t* wadid, WadIndex_t startlump);
-WadIndex_t __REMOOD_DEPRECATED W_GetNumForName(char* name);
-WadIndex_t __REMOOD_DEPRECATED W_CheckNumForNameFirst(char* name);
-WadIndex_t __REMOOD_DEPRECATED W_GetNumForNameFirst(char* name);
-size_t __REMOOD_DEPRECATED W_LumpLength(WadIndex_t lump);
-size_t __REMOOD_DEPRECATED W_ReadLumpHeader(WadIndex_t lump, void* dest, size_t size);
-void __REMOOD_DEPRECATED W_ReadLump(WadIndex_t lump, void* dest);
-void* __REMOOD_DEPRECATED W_CacheLumpNum(WadIndex_t lump, size_t PU);
-void* __REMOOD_DEPRECATED W_CacheLumpName(char* name, size_t PU);
-void* __REMOOD_DEPRECATED W_CachePatchName(char* name, size_t PU);
-void* __REMOOD_DEPRECATED W_CacheRawAsPic(WadIndex_t lump, int width, int height, size_t tag);	// return a pic_t
-void* __REMOOD_DEPRECATED W_CacheAsConvertableType(WadIndex_t Lump, size_t PU, WadEntryType_t Type, WadEntryType_t From);
-void* __REMOOD_DEPRECATED W_CacheAsConvertableTypeName(char* Name, size_t PU, WadEntryType_t Type, WadEntryType_t From);
-WadIndex_t __REMOOD_DEPRECATED W_GetNumForEntry(WadEntry_t* Entry);
-
-void __REMOOD_DEPRECATED W_UnloadData(void);
-void __REMOOD_DEPRECATED W_LoadData(void);
-bool_t __REMOOD_DEPRECATED W_FindWad(const char* Name, const char* MD5, char* OutPath, const size_t OutSize);
-const char* __REMOOD_DEPRECATED W_BaseName(const char* Name);
-
-void* __REMOOD_DEPRECATED W_CachePatchNum(const WadIndex_t Lump, size_t PU);
-
-typedef struct
-{
-	WadFile_t* WadFile;
-	WadIndex_t LumpNum;
-	WadIndex_t firstlump;
-	WadIndex_t numlumps;
-} lumplist_t;
-
-extern WadFile_t* WADFiles;
-
-/****************************
-*** EXTENDED WAD HANDLING ***
-****************************/
-
-/*** CONSTANTS ***/
-
-/* WX_BuildAction_t -- Build action for WAD */
-typedef enum WX_BuildAction_e
-{
-	WXBA_BUILDWAD,				// Build single WAD
-	WXBA_CLEARWAD,				// Clear single WAD
-	WXBA_BUILDCOMPOSITE,		// Build WAD composite
-	WXBA_CLEARCOMPOSITE,		// Clear WAD composite
-	
-	NUMWXBUILDACTIONS
-} WX_BuildAction_t;
-
-/* WX_DataPrivateID_t -- Private DATA ID Tag */
-typedef enum WX_DataPrivateID_e
-{
-	WXDPID_GCHARS,				// Graphic characters
-	WXDPID_MENU,				// Menu Junk
-	WXDPID_RMOD,				// RMOD Table
-	
-	NUMWXDATAPRIVATEIDS
-} WX_DataPrivateID_t;
-
-/*** STRUCTURES ***/
-typedef struct WX_WADFile_s WX_WADFile_t;
-typedef struct WX_WADEntry_s WX_WADEntry_t;
-
-/*** PROTOTYPES ***/
-uint32_t __REMOOD_DEPRECATED WX_Hash(const char* const a_Str);
-const char* __REMOOD_DEPRECATED WX_BaseName(const char* const a_File);
-const char* __REMOOD_DEPRECATED WX_BaseExtension(const char* const a_File);
-bool_t __REMOOD_DEPRECATED WX_Init(void);
-bool_t __REMOOD_DEPRECATED WX_LocateWAD(const char* const a_Name, const char* const a_MD5, char* const a_OutPath, const size_t a_OutSize);
-WX_WADFile_t* __REMOOD_DEPRECATED WX_LoadWAD(const char* const a_AutoPath);
-void __REMOOD_DEPRECATED WX_UnLoadWAD(WX_WADFile_t* const a_WAD);
-WX_WADFile_t* __REMOOD_DEPRECATED WX_RoveWAD(WX_WADFile_t* const a_WAD, const bool_t a_Virtual, const int32_t a_Next);
-void __REMOOD_DEPRECATED WX_PreEntryTable(WX_WADFile_t* const a_WAD, const size_t a_Count);
-WX_WADEntry_t* __REMOOD_DEPRECATED WX_AddEntry(WX_WADFile_t* const a_WAD);
-void __REMOOD_DEPRECATED WX_WipeEntryTable(WX_WADFile_t* const a_WAD);
-void __REMOOD_DEPRECATED WX_LoadWADStuff(WX_WADFile_t* const a_WAD);
-void __REMOOD_DEPRECATED WX_ClearWADStuff(WX_WADFile_t* const a_WAD);
-void __REMOOD_DEPRECATED WX_CompileComposite(void);
-void __REMOOD_DEPRECATED WX_ClearComposite(void);
-WX_WADEntry_t* __REMOOD_DEPRECATED WX_GetNumEntry(WX_WADFile_t* const a_WAD, const size_t a_Index);
-WX_WADEntry_t* __REMOOD_DEPRECATED WX_EntryForName(WX_WADFile_t* const a_WAD, const char* const a_Name, const bool_t a_Forwards);
-void* __REMOOD_DEPRECATED WX_CacheEntry(WX_WADEntry_t* const a_Entry);
-size_t __REMOOD_DEPRECATED WX_UseEntry(WX_WADEntry_t* const a_Entry, const bool_t a_Use);
-bool_t __REMOOD_DEPRECATED WX_VirtualPushPop(WX_WADFile_t* const a_WAD, const bool_t a_Pop, const bool_t a_Back);
-bool_t __REMOOD_DEPRECATED WX_GetVirtualPrivateData(WX_WADFile_t* const a_WAD, const WX_DataPrivateID_t a_ID, void** *const a_PPPtr,
-                                                    size_t** const a_PPSize);
-WX_WADEntry_t* __REMOOD_DEPRECATED WX_RoveEntry(WX_WADEntry_t* const a_Entry, const int32_t a_Next);
-size_t __REMOOD_DEPRECATED WX_GetEntryName(WX_WADEntry_t* const a_Entry, char* const a_OutBuf, const size_t a_OutSize);
-size_t __REMOOD_DEPRECATED WX_GetEntrySize(WX_WADEntry_t* const a_Entry);
-size_t __REMOOD_DEPRECATED WX_ClearUnused(void);
 
 /************************
 *** LITE WAD HANDLING ***
@@ -383,6 +193,196 @@ void* WL_GetPrivateData(const WL_WADFile_t* const a_WAD, const uint32_t a_Key, s
 const WL_WADEntry_t* WL_FindEntry(const WL_WADFile_t* const a_BaseSearch, const uint32_t a_Flags, const char* const a_Name);
 uintptr_t WL_TranslateEntry(const WadIndex_t a_GlobalIndex, const WL_WADFile_t* const a_Entry);
 size_t WL_ReadData(const WL_WADEntry_t* const a_Entry, const size_t a_Offset, void* const a_Out, const size_t a_OutSize);
+
+/******************************
+*** OLD REMOOD WAD HANDLING ***
+******************************/
+
+#define MAX_WADPATH   128
+#define MAX_WADFILES  32
+
+enum
+{
+	METHOD_DEHACKED,			// DeHackEd!
+	METHOD_WAD,					// WAD!
+	
+	// TODO METHODS
+	METHOD_RLEWAD,				// RWAD
+	METHOD_PKZIP,				// ZIP ARCHIVE
+	METHOD_SEVENZIP,			// 7Z ARCHIVE
+	METHOD_TAR,					// TAR ARCHIVE
+	
+	MAXMETHODS
+};
+
+struct WadFile_s;
+
+typedef enum
+{
+	WETYPE_RAW,
+	
+	/* Image */
+	WETYPE_PICTURETYPESTART,
+	
+	WETYPE_PATCHT = WETYPE_PICTURETYPESTART,
+	WETYPE_PICT,
+	WETYPE_FLAT,
+	
+	WETYPE_PICTURETYPEEND = WETYPE_FLAT,
+	
+	/* Text */
+	WETYPE_TEXTTYPESTART,
+	
+	WETYPE_AUTOTEXT = WETYPE_TEXTTYPESTART,
+	WETYPE_WCHART,
+	
+	WETYPE_TEXTTYPEEND = WETYPE_WCHART,
+	
+	NUMWADENTRYTYPES
+} WadEntryType_t;
+
+typedef struct WadEntry_s
+{
+	/* Basic */
+	char* Name;					// Pointer to a string (for Pk3s later on)
+	size_t Size;
+	size_t Position;
+	WadEntryType_t Type;		// File type
+	
+	/* Cache Info */
+	void* Cache[NUMWADENTRYTYPES];
+	
+	/* Parent */
+	struct WadFile_s* Host;
+	
+	/* Deprecation */
+	WL_WADEntry_t* DepEntry;	// Deprecated Entry
+	
+} WadEntry_t;
+
+typedef struct WadFile_s
+{
+	/* Filesystem */
+	char* FileName;				// Filename
+	size_t NumLumps;			// Number of Lumps
+	FILE* File;					// File pointer
+	size_t Size;				// Size of the file
+	
+	/* Data */
+	WadEntry_t* Index;			// WAD's Index
+	
+	/* WAD Hack */
+	void* WADNameHack;
+	
+	/* Special */
+	uint32_t Method;			// File Method
+	
+	/* Multiplayer Verification */
+	uint8_t MD5Sum[16];			// MD5 Sum
+	
+	/* WAD Specific Data */
+	void* Specific;				// Specific Data for said WAD
+	
+	/* Links */
+	struct WadFile_s* Prev;
+	struct WadFile_s* Next;
+	
+	/* Deprecation */
+	WL_WADFile_t* DepWAD;		// Deprecated WAD
+} WadFile_t;
+
+#define MAXLUMPS 2147483647
+#define INDEXSIZET(x) ((int)(x))
+
+size_t __REMOOD_DEPRECATED W_NumWadFiles(void);
+WadFile_t* __REMOOD_DEPRECATED W_GetWadForNum(size_t Num);
+WadFile_t* __REMOOD_DEPRECATED W_GetWadForName(char* Name);
+size_t __REMOOD_DEPRECATED W_GetNumForWad(WadFile_t* WAD);
+WadEntry_t* __REMOOD_DEPRECATED W_GetEntry(WadIndex_t lump);
+WadIndex_t __REMOOD_DEPRECATED W_LumpsSoFar(WadFile_t* wadid);
+WadIndex_t __REMOOD_DEPRECATED W_InitMultipleFiles(char** filenames);
+void __REMOOD_DEPRECATED W_Shutdown(void);
+int __REMOOD_DEPRECATED W_LoadWadFile(char* filename);
+void __REMOOD_DEPRECATED W_Reload(void);
+WadIndex_t __REMOOD_DEPRECATED W_BiCheckNumForName(char* name, int forwards);
+WadIndex_t __REMOOD_DEPRECATED W_CheckNumForName(char* name);
+WadIndex_t __REMOOD_DEPRECATED W_CheckNumForNamePwad(char* name, size_t wadid, WadIndex_t startlump);
+WadIndex_t __REMOOD_DEPRECATED W_CheckNumForNamePwadPtr(char* name, WadFile_t* wadid, WadIndex_t startlump);
+WadIndex_t __REMOOD_DEPRECATED W_GetNumForName(char* name);
+WadIndex_t __REMOOD_DEPRECATED W_CheckNumForNameFirst(char* name);
+WadIndex_t __REMOOD_DEPRECATED W_GetNumForNameFirst(char* name);
+size_t __REMOOD_DEPRECATED W_LumpLength(WadIndex_t lump);
+size_t __REMOOD_DEPRECATED W_ReadLumpHeader(WadIndex_t lump, void* dest, size_t size);
+void __REMOOD_DEPRECATED W_ReadLump(WadIndex_t lump, void* dest);
+void* __REMOOD_DEPRECATED W_CacheLumpNum(WadIndex_t lump, size_t PU);
+void* __REMOOD_DEPRECATED W_CacheLumpName(char* name, size_t PU);
+void* __REMOOD_DEPRECATED W_CachePatchName(char* name, size_t PU);
+void* __REMOOD_DEPRECATED W_CacheRawAsPic(WadIndex_t lump, int width, int height, size_t tag);	// return a pic_t
+WadIndex_t __REMOOD_DEPRECATED W_GetNumForEntry(WadEntry_t* Entry);
+
+void __REMOOD_DEPRECATED W_UnloadData(void);
+void __REMOOD_DEPRECATED W_LoadData(void);
+bool_t __REMOOD_DEPRECATED W_FindWad(const char* Name, const char* MD5, char* OutPath, const size_t OutSize);
+const char* __REMOOD_DEPRECATED W_BaseName(const char* Name);
+
+void* __REMOOD_DEPRECATED W_CachePatchNum(const WadIndex_t Lump, size_t PU);
+
+typedef struct
+{
+	WadFile_t* WadFile;
+	WadIndex_t LumpNum;
+	WadIndex_t firstlump;
+	WadIndex_t numlumps;
+} lumplist_t;
+
+extern WadFile_t* WADFiles;
+
+/****************************
+*** EXTENDED WAD HANDLING ***
+****************************/
+
+/*** CONSTANTS ***/
+
+/* WX_BuildAction_t -- Build action for WAD */
+typedef enum WX_BuildAction_e
+{
+	WXBA_BUILDWAD,				// Build single WAD
+	WXBA_CLEARWAD,				// Clear single WAD
+	WXBA_BUILDCOMPOSITE,		// Build WAD composite
+	WXBA_CLEARCOMPOSITE,		// Clear WAD composite
+	
+	NUMWXBUILDACTIONS
+} WX_BuildAction_t;
+
+/* WX_DataPrivateID_t -- Private DATA ID Tag */
+typedef enum WX_DataPrivateID_e
+{
+	WXDPID_GCHARS,				// Graphic characters
+	WXDPID_MENU,				// Menu Junk
+	WXDPID_RMOD,				// RMOD Table
+	
+	NUMWXDATAPRIVATEIDS
+} WX_DataPrivateID_t;
+
+/*** STRUCTURES ***/
+// Since I hid WX_ from the start, they can easily adapt to WL!
+typedef WL_WADFile_t WX_WADFile_t;
+typedef WL_WADEntry_t WX_WADEntry_t;
+
+/*** PROTOTYPES ***/
+bool_t __REMOOD_DEPRECATED WX_Init(void);
+bool_t __REMOOD_DEPRECATED WX_LocateWAD(const char* const a_Name, const char* const a_MD5, char* const a_OutPath, const size_t a_OutSize);
+WX_WADFile_t* __REMOOD_DEPRECATED WX_RoveWAD(WX_WADFile_t* const a_WAD, const bool_t a_Virtual, const int32_t a_Next);
+WX_WADEntry_t* __REMOOD_DEPRECATED WX_GetNumEntry(WX_WADFile_t* const a_WAD, const size_t a_Index);
+WX_WADEntry_t* __REMOOD_DEPRECATED WX_EntryForName(WX_WADFile_t* const a_WAD, const char* const a_Name, const bool_t a_Forwards);
+void* __REMOOD_DEPRECATED WX_CacheEntry(WX_WADEntry_t* const a_Entry);
+size_t __REMOOD_DEPRECATED WX_UseEntry(WX_WADEntry_t* const a_Entry, const bool_t a_Use);
+bool_t __REMOOD_DEPRECATED WX_GetVirtualPrivateData(WX_WADFile_t* const a_WAD, const WX_DataPrivateID_t a_ID, void** *const a_PPPtr,
+                                                    size_t** const a_PPSize);
+WX_WADEntry_t* __REMOOD_DEPRECATED WX_RoveEntry(WX_WADEntry_t* const a_Entry, const int32_t a_Next);
+size_t __REMOOD_DEPRECATED WX_GetEntryName(WX_WADEntry_t* const a_Entry, char* const a_OutBuf, const size_t a_OutSize);
+size_t __REMOOD_DEPRECATED WX_GetEntrySize(WX_WADEntry_t* const a_Entry);
+size_t __REMOOD_DEPRECATED WX_ClearUnused(void);
 
 #endif							/* __W_WAD_H__ */
 
