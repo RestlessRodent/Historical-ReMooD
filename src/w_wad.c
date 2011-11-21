@@ -1037,7 +1037,6 @@ void* __REMOOD_DEPRECATED W_CacheLumpName(char* name, size_t PU);
 void* __REMOOD_DEPRECATED W_CachePatchName(char* name, size_t PU);
 void* __REMOOD_DEPRECATED W_CacheRawAsPic(WadIndex_t lump, int width, int height, size_t tag);	// return a pic_t
 WadIndex_t __REMOOD_DEPRECATED W_GetNumForEntry(WadEntry_t* Entry);
-void __REMOOD_DEPRECATED W_UnloadData(void);
 void __REMOOD_DEPRECATED W_LoadData(void);
 bool_t __REMOOD_DEPRECATED W_FindWad(const char* Name, const char* MD5, char* OutPath, const size_t OutSize);
 
