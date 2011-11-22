@@ -388,7 +388,7 @@ const WL_WADFile_t* WL_OpenWAD(const char* const a_PathName)
 					if (c == '\0')
 						Dot = true;
 					else
-						ThisEntry->Name[j] = toupper(c);
+						ThisEntry->Name[j] = tolower(c);
 			}
 			
 			// Check for PSX/N64 Compression
@@ -1063,8 +1063,34 @@ size_t __REMOOD_DEPRECATED WX_UseEntry(WX_WADEntry_t* const a_Entry, const bool_
 bool_t __REMOOD_DEPRECATED WX_GetVirtualPrivateData(WX_WADFile_t* const a_WAD, const WX_DataPrivateID_t a_ID, void** *const a_PPPtr,
                                                     size_t** const a_PPSize);
 WX_WADEntry_t* __REMOOD_DEPRECATED WX_RoveEntry(WX_WADEntry_t* const a_Entry, const int32_t a_Next);
-size_t __REMOOD_DEPRECATED WX_GetEntryName(WX_WADEntry_t* const a_Entry, char* const a_OutBuf, const size_t a_OutSize);
-size_t __REMOOD_DEPRECATED WX_GetEntrySize(WX_WADEntry_t* const a_Entry);
+
+/* WX_GetEntryName() -- Return name of entry */
+size_t __REMOOD_DEPRECATED WX_GetEntryName(WX_WADEntry_t* const a_Entry, char* const a_OutBuf, const size_t a_OutSize)
+{
+	size_t s;
+	
+	if (!a_Entry || !a_OutBuf || !a_OutSize)
+		return 0;
+	
+	/* Copy */
+	strncpy(a_OutBuf, a_Entry->Name, a_OutSize);
+	
+	/* Return */
+	s = strlen(a_Entry->Name);
+	
+	if (s < a_OutSize)
+		return s;
+	else
+		return a_OutSize;
+}
+
+/* WX_GetEntrySize() -- Return size of entry */
+size_t __REMOOD_DEPRECATED WX_GetEntrySize(WX_WADEntry_t* const a_Entry)
+{
+	if (!a_Entry)
+		return 0;
+	return a_Entry->Size;
+}
 
 /* WX_ClearUnused() -- Clear unused data */
 size_t __REMOOD_DEPRECATED WX_ClearUnused(void)
