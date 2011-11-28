@@ -1006,9 +1006,36 @@ size_t WL_ReadData(const WL_WADEntry_t* const a_Entry, const size_t a_Offset, vo
 *** W_ DEPRECATION ***
 *********************/
 
+#define OLDWPDCKEY		0x77444C4FU
+
 /* WP_DepCreate() -- Creates old form WadFile_t and WadEntry_t */
 static bool_t WP_DepCreate(const struct WL_WADFile_s* const a_WAD, const uint32_t a_Key, void** const a_DataPtr, size_t* const a_SizePtr, WL_RemoveFunc_t* const a_RemoveFuncPtr)
 {
+	WadFile_t* WAD;
+	
+	/* Check */
+	if (!a_WAD || !a_Key || !a_DataPtr || !a_SizePtr)
+		return;
+		
+	/* Create WAD info on data */
+	*a_SizePtr = sizeof(WadFile_t);
+	WAD = *a_DataPtr = Z_Malloc(*a_SizePtr, PU_STATIC, NULL);
+	
+	/* Fill in WAD Info */
+	WAD->DepWAD = a_WAD;
+	WAD->FileName = a_WAD->__Private.__DOSName;
+	WAD->NumLumps = a_WAD->NumEntries;
+	
+	/* Success */
+	return true;
+}
+
+/* WP_DepRemove() -- Removes the old deprecated WAD Code stuff */
+void WP_DepRemove(const struct WL_WADFile_s* a_WAD)
+{
+	/* Check */
+	if (!a_WAD)
+		return;
 }
 
 
@@ -1023,7 +1050,9 @@ WadIndex_t __REMOOD_DEPRECATED W_LumpsSoFar(WadFile_t* wadid);
 // This is the main code for loading WADs
 WadIndex_t __REMOOD_DEPRECATED W_InitMultipleFiles(char** filenames)
 {
-	/* Register private data for the old WAD Code */	
+	/* Register private data for the old WAD Code */
+	if (!WL_RegisterPDC(OLDWPDCKEY, 25, WP_DepCreate, WP_DepRemove))
+		I_Error("W_InitMultipleFiles: Failed to register PDC.");
 	
 	/* Failure */
 	return 0;
