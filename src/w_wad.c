@@ -1006,13 +1006,29 @@ size_t WL_ReadData(const WL_WADEntry_t* const a_Entry, const size_t a_Offset, vo
 *** W_ DEPRECATION ***
 *********************/
 
+/* WP_DepCreate() -- Creates old form WadFile_t and WadEntry_t */
+static bool_t WP_DepCreate(const struct WL_WADFile_s* const a_WAD, const uint32_t a_Key, void** const a_DataPtr, size_t* const a_SizePtr, WL_RemoveFunc_t* const a_RemoveFuncPtr)
+{
+}
+
+
 size_t __REMOOD_DEPRECATED W_NumWadFiles(void);
 WadFile_t* __REMOOD_DEPRECATED W_GetWadForNum(size_t Num);
 WadFile_t* __REMOOD_DEPRECATED W_GetWadForName(char* Name);
 size_t __REMOOD_DEPRECATED W_GetNumForWad(WadFile_t* WAD);
 WadEntry_t* __REMOOD_DEPRECATED W_GetEntry(WadIndex_t lump);
 WadIndex_t __REMOOD_DEPRECATED W_LumpsSoFar(WadFile_t* wadid);
-WadIndex_t __REMOOD_DEPRECATED W_InitMultipleFiles(char** filenames);
+
+/* W_InitMultipleFiles() -- Initializes multiple file inputs */
+// This is the main code for loading WADs
+WadIndex_t __REMOOD_DEPRECATED W_InitMultipleFiles(char** filenames)
+{
+	/* Register private data for the old WAD Code */	
+	
+	/* Failure */
+	return 0;
+}
+
 void __REMOOD_DEPRECATED W_Shutdown(void);
 int __REMOOD_DEPRECATED W_LoadWadFile(char* filename);
 
