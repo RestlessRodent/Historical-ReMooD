@@ -575,7 +575,9 @@ void WL_PushWAD(const WL_WADFile_t* const a_WAD)
 			while (CB)
 			{
 				if (CB->Func)
-					CB->Func(true, l_LLastVWAD);
+					if (!CB->Func(true, l_LLastVWAD))
+						if (devparm)
+							CONS_Printf("WL_PopWAD: Order callback failed.\n");
 				CB = CB->Next;
 			}
 			
@@ -623,7 +625,9 @@ const WL_WADFile_t* WL_PopWAD(void)
 	while (CB)
 	{
 		if (CB->Func)
-			CB->Func(false, Rover);
+			if (!CB->Func(false, Rover))
+				if (devparm)
+					CONS_Printf("WL_PopWAD: Order callback failed.\n");
 		CB = CB->Next;
 	}
 	
@@ -710,6 +714,7 @@ bool_t WL_LocateWAD(const char* const a_Name, const char* const a_MD5, char* con
 					// Copy
 					strncpy(l_SearchList[l_SearchCount], DirArg, PATH_MAX);
 			}
+		
 		// $DOOMWADDIR
 		if ((DirArg = getenv("DOOMWADDIR")))
 		{
@@ -718,6 +723,7 @@ bool_t WL_LocateWAD(const char* const a_Name, const char* const a_MD5, char* con
 				// Copy
 				strncpy(l_SearchList[l_SearchCount], DirArg, PATH_MAX);
 		}
+		
 		// $DOOMWADPATH
 		if ((DirArg = getenv("DOOMWADPATH")))
 		{
@@ -745,6 +751,7 @@ bool_t WL_LocateWAD(const char* const a_Name, const char* const a_MD5, char* con
 			}
 			while (DirArg);
 		}
+		
 		// Add trailing / to the end of all the searches
 		for (i = 0; i < l_SearchCount; i++)
 			strncat(l_SearchList[i], "/", PATH_MAX);
@@ -1110,6 +1117,21 @@ size_t WL_ReadData(const WL_WADEntry_t* const a_Entry, const size_t a_Offset, vo
 
 #define OLDWPDCKEY		0x77444C4FU
 
+/* WP_DepOrder() -- Deprecated order */
+bool_t WP_DepOrder(const bool_t a_Pushed, const struct WL_WADFile_s* const a_WAD)
+{
+	/* Check */
+	if (!a_WAD)
+		return false;
+	
+	/* Debug */
+	if (devparm)
+		CONS_Printf("WL_DepOrder: \"%s\" %s.\n", a_WAD->__Private.__DOSName, (a_Pushed ? "pushed" : "popped"));
+	
+	/* Success */
+	return true;
+}
+
 /* WP_DepCreate() -- Creates old form WadFile_t and WadEntry_t */
 static bool_t WP_DepCreate(const struct WL_WADFile_s* const a_WAD, const uint32_t a_Key, void** const a_DataPtr, size_t* const a_SizePtr, WL_RemoveFunc_t* const a_RemoveFuncPtr)
 {
@@ -1141,24 +1163,75 @@ void WP_DepRemove(const struct WL_WADFile_s* a_WAD)
 		return;
 }
 
+/* W_NumWadFiles() -- Returns the number of WADs */
+size_t __REMOOD_DEPRECATED W_NumWadFiles(void)
+{
+	return 0;
+}
 
-size_t __REMOOD_DEPRECATED W_NumWadFiles(void);
-WadFile_t* __REMOOD_DEPRECATED W_GetWadForNum(size_t Num);
-WadFile_t* __REMOOD_DEPRECATED W_GetWadForName(char* Name);
-size_t __REMOOD_DEPRECATED W_GetNumForWad(WadFile_t* WAD);
-WadEntry_t* __REMOOD_DEPRECATED W_GetEntry(WadIndex_t lump);
-WadIndex_t __REMOOD_DEPRECATED W_LumpsSoFar(WadFile_t* wadid);
+/* W_GetWadForNum() -- Get WAD for this number */
+WadFile_t* __REMOOD_DEPRECATED W_GetWadForNum(size_t Num)
+{
+	return NULL;
+}
+
+/* W_GetWadForName() -- Returns WAD for this name */
+WadFile_t* __REMOOD_DEPRECATED W_GetWadForName(char* Name)
+{
+	return NULL;
+}
+
+/* W_GetNumForWad() -- Returns the WAD number for this WAD */
+size_t __REMOOD_DEPRECATED W_GetNumForWad(WadFile_t* WAD)
+{
+	return 0;
+}
+
+/* W_GetEntry() -- Translates an index to an entry */
+WadEntry_t* __REMOOD_DEPRECATED W_GetEntry(WadIndex_t lump)
+{
+	return NULL;
+}
+
+/* W_LumpsSoFar() -- Returns the number of lumps passed so far */
+WadIndex_t __REMOOD_DEPRECATED W_LumpsSoFar(WadFile_t* wadid)
+{
+	return 0;
+}
 
 /* W_InitMultipleFiles() -- Initializes multiple file inputs */
 // This is the main code for loading WADs
 WadIndex_t __REMOOD_DEPRECATED W_InitMultipleFiles(char** filenames)
 {
+	size_t i;
+	WadIndex_t OK;
+	const WL_WADFile_t* File;
+	
 	/* Register private data for the old WAD Code */
 	if (!WL_RegisterPDC(OLDWPDCKEY, 25, WP_DepCreate, WP_DepRemove))
 		I_Error("W_InitMultipleFiles: Failed to register PDC.");
 	
-	/* Failure */
-	return 0;
+	/* Register order change for the old WAD Code */
+	if (!WL_RegisterOCCB(WP_DepOrder, 5))
+		I_Error("W_InitMultipleFiles: Failed to register OCCB.");
+	
+	/* Check */
+	if (!filenames)
+		return 0;
+	
+	/* Run through filename list */
+	for (OK = 0, i = 0; filenames[i]; i++)
+		if ((File = WL_OpenWAD(filenames[i])))
+		{
+			// This one worked
+			OK++;
+			
+			// Push to stack
+			WL_PushWAD(File);
+		}
+	
+	/* Return OK count */
+	return OK;
 }
 
 void __REMOOD_DEPRECATED W_Shutdown(void);
@@ -1171,21 +1244,89 @@ void __REMOOD_DEPRECATED W_Reload(void)
 }
 
 WadIndex_t __REMOOD_DEPRECATED W_BiCheckNumForName(char* name, int forwards);
-WadIndex_t __REMOOD_DEPRECATED W_CheckNumForName(char* name);
+
+
+/* W_CheckNumForName() -- Attempts to locate a lump for the given name */
+WadIndex_t __REMOOD_DEPRECATED W_CheckNumForName(char* name)
+{
+	return INVALIDLUMP;
+}
+
 WadIndex_t __REMOOD_DEPRECATED W_CheckNumForNamePwad(char* name, size_t wadid, WadIndex_t startlump);
-WadIndex_t __REMOOD_DEPRECATED W_CheckNumForNamePwadPtr(char* name, WadFile_t* wadid, WadIndex_t startlump);
-WadIndex_t __REMOOD_DEPRECATED W_GetNumForName(char* name);
-WadIndex_t __REMOOD_DEPRECATED W_CheckNumForNameFirst(char* name);
+
+/* W_CheckNumForNamePwadPtr() -- Locates a lump index in this specific WAD only */
+WadIndex_t __REMOOD_DEPRECATED W_CheckNumForNamePwadPtr(char* name, WadFile_t* wadid, WadIndex_t startlump)
+{
+	return INVALIDLUMP;
+}
+
+/* W_GetNumForName() -- Locate lump by name, crash if not found */
+WadIndex_t __REMOOD_DEPRECATED W_GetNumForName(char* name)
+{
+	I_Error("W_GetNumForName: Not impl.");
+	return INVALIDLUMP;
+}
+
+/* W_CheckNumForNameFirst() -- Finds the first lump with this name */
+WadIndex_t __REMOOD_DEPRECATED W_CheckNumForNameFirst(char* name)
+{
+	return INVALIDLUMP;
+}
+
 WadIndex_t __REMOOD_DEPRECATED W_GetNumForNameFirst(char* name);
-size_t __REMOOD_DEPRECATED W_LumpLength(WadIndex_t lump);
-size_t __REMOOD_DEPRECATED W_ReadLumpHeader(WadIndex_t lump, void* dest, size_t size);
-void __REMOOD_DEPRECATED W_ReadLump(WadIndex_t lump, void* dest);
-void* __REMOOD_DEPRECATED W_CacheLumpNum(WadIndex_t lump, size_t PU);
-void* __REMOOD_DEPRECATED W_CacheLumpName(char* name, size_t PU);
-void* __REMOOD_DEPRECATED W_CachePatchName(char* name, size_t PU);
-void* __REMOOD_DEPRECATED W_CacheRawAsPic(WadIndex_t lump, int width, int height, size_t tag);	// return a pic_t
-WadIndex_t __REMOOD_DEPRECATED W_GetNumForEntry(WadEntry_t* Entry);
-void __REMOOD_DEPRECATED W_LoadData(void);
+
+/* W_LumpLength() -- Returns length of lump */
+size_t __REMOOD_DEPRECATED W_LumpLength(WadIndex_t lump)
+{
+	return 0;
+}
+
+/* W_ReadLumpHeader() -- Reads first size bytes of lump */
+size_t __REMOOD_DEPRECATED W_ReadLumpHeader(WadIndex_t lump, void* dest, size_t size)
+{
+	return 0;
+}
+
+/* W_ReadLump() -- Reads entire lump unto dest */
+void __REMOOD_DEPRECATED W_ReadLump(WadIndex_t lump, void* dest)
+{
+}
+
+/* W_CacheLumpNum() -- Caches a lump by number */
+void* __REMOOD_DEPRECATED W_CacheLumpNum(WadIndex_t lump, size_t PU)
+{
+	return NULL;
+}
+
+/* W_CacheLumpName() -- Caches a lump */
+void* __REMOOD_DEPRECATED W_CacheLumpName(char* name, size_t PU)
+{
+	return NULL;
+}
+
+/* W_CachePatchName() -- Caches a lump as a patch */
+void* __REMOOD_DEPRECATED W_CachePatchName(char* name, size_t PU)
+{
+	return NULL;
+}
+
+/* W_CacheRawAsPic() -- Translate entry to pic_t */
+void* __REMOOD_DEPRECATED W_CacheRawAsPic(WadIndex_t lump, int width, int height, size_t tag)
+{
+	return NULL;
+}
+
+/* W_GetNumForEntry() -- Returns index id for this entry */
+WadIndex_t __REMOOD_DEPRECATED W_GetNumForEntry(WadEntry_t* Entry)
+{
+	return INVALIDLUMP;
+}
+
+/* W_LoadData() -- Loads private data */
+void __REMOOD_DEPRECATED W_LoadData(void)
+{
+	// Not to be used at all
+}
 
 /* W_FindWad() -- Locates a WAD File */
 bool_t __REMOOD_DEPRECATED W_FindWad(const char* Name, const char* MD5, char* OutPath, const size_t OutSize)
@@ -1201,7 +1342,11 @@ const char* __REMOOD_DEPRECATED W_BaseName(const char* Name)
 	return WLP_BaseName(Name);
 }
 
-void* __REMOOD_DEPRECATED W_CachePatchNum(const WadIndex_t Lump, size_t PU);
+/* W_CachePatchNum() -- Caches a patch by its number */
+void* __REMOOD_DEPRECATED W_CachePatchNum(const WadIndex_t Lump, size_t PU)
+{
+	return NULL;
+}
 
 /**********************
 *** WX_ DEPRECATION ***
@@ -1209,14 +1354,110 @@ void* __REMOOD_DEPRECATED W_CachePatchNum(const WadIndex_t Lump, size_t PU);
 
 bool_t __REMOOD_DEPRECATED WX_Init(void);
 bool_t __REMOOD_DEPRECATED WX_LocateWAD(const char* const a_Name, const char* const a_MD5, char* const a_OutPath, const size_t a_OutSize);
-WX_WADFile_t* __REMOOD_DEPRECATED WX_RoveWAD(WX_WADFile_t* const a_WAD, const bool_t a_Virtual, const int32_t a_Next);
-WX_WADEntry_t* __REMOOD_DEPRECATED WX_GetNumEntry(WX_WADFile_t* const a_WAD, const size_t a_Index);
-WX_WADEntry_t* __REMOOD_DEPRECATED WX_EntryForName(WX_WADFile_t* const a_WAD, const char* const a_Name, const bool_t a_Forwards);
-void* __REMOOD_DEPRECATED WX_CacheEntry(WX_WADEntry_t* const a_Entry);
-size_t __REMOOD_DEPRECATED WX_UseEntry(WX_WADEntry_t* const a_Entry, const bool_t a_Use);
-bool_t __REMOOD_DEPRECATED WX_GetVirtualPrivateData(WX_WADFile_t* const a_WAD, const WX_DataPrivateID_t a_ID, void** *const a_PPPtr,
-                                                    size_t** const a_PPSize);
-WX_WADEntry_t* __REMOOD_DEPRECATED WX_RoveEntry(WX_WADEntry_t* const a_Entry, const int32_t a_Next);
+
+/* WX_RoveWAD() -- Rove amongst WADs */
+WX_WADFile_t* __REMOOD_DEPRECATED WX_RoveWAD(WX_WADFile_t* const a_WAD, const bool_t a_Virtual, const int32_t a_Next)
+{
+	/* Check */
+	if (!a_WAD)
+		return NULL;
+	
+	/* Not implemented, only done in the RMOD code */
+	if (devparm)
+		CONS_Printf("WX_RoveWAD: Not implemented.\n");
+	return NULL;
+}
+
+/* WX_GetNumEntry() -- Returns an entry by number inside of a WAD */
+WX_WADEntry_t* __REMOOD_DEPRECATED WX_GetNumEntry(WX_WADFile_t* const a_WAD, const size_t a_Index)
+{
+	/* Check */
+	if (!a_WAD)
+		return 0;
+	
+	/* Which entry now? */
+	// After last (force of overflow)
+	if (a_Index == (size_t)-2)
+		return &a_WAD->Entries[a_WAD->NumEntries];
+	
+	// Prevent overflow
+	else if (a_Index >= a_WAD->NumEntries)
+		return &a_WAD->Entries[a_WAD->NumEntries - 1];
+	
+	// Normal
+	else
+		return &a_WAD->Entries[a_Index];
+}
+
+/* WX_EntryForName() -- Returns an entry for a name */
+WX_WADEntry_t* __REMOOD_DEPRECATED WX_EntryForName(WX_WADFile_t* const a_WAD, const char* const a_Name, const bool_t a_Forwards)
+{
+	return WL_FindEntry(a_WAD, (a_Forwards ? WLFF_FORWARDS : 0), a_Name);
+}
+
+/* WX_CacheEntry() -- Caches a WX Entry */
+void* __REMOOD_DEPRECATED WX_CacheEntry(WX_WADEntry_t* const a_Entry)
+{
+	/* Check */
+	if (!a_Entry)
+		return NULL;
+	
+	/* Does WX Data exist? */
+	if (a_Entry->__Private.__WXClone)
+		return a_Entry->__Private.__WXClone;
+	
+	/* Allocate Space in WX area */
+	a_Entry->__Private.__WXClone = Z_Malloc(a_Entry->Size, PU_STATIC, &a_Entry->__Private.__WXClone);
+	
+	// Read data to cloned area
+	WL_ReadData(a_Entry, 0, a_Entry->__Private.__WXClone, a_Entry->Size);
+	
+	/* Return cloned data */
+	return a_Entry->__Private.__WXClone;
+}
+
+/* WX_UseEntry() -- Marks an entry as used */
+size_t __REMOOD_DEPRECATED WX_UseEntry(WX_WADEntry_t* const a_Entry, const bool_t a_Use)
+{
+	return 0;
+}
+
+/* WX_GetVirtualPrivateData() -- Returns a WAD's virtual private data */
+bool_t __REMOOD_DEPRECATED WX_GetVirtualPrivateData(WX_WADFile_t* const a_WAD, const WX_DataPrivateID_t a_ID, void** *const a_PPPtr, size_t** const a_PPSize)
+{
+	return false;
+}
+
+/* WX_RoveEntry() -- Roves entries in the WX entry list */
+WX_WADEntry_t* __REMOOD_DEPRECATED WX_RoveEntry(WX_WADEntry_t* const a_Entry, const int32_t a_Next)
+{
+	WX_WADEntry_t* Rover;
+	int32_t Current;
+	
+	/* Check */
+	if (!a_Entry)
+		return NULL;
+	
+	/* Going Nowhere? */
+	if (!a_Next)
+		return a_Entry;
+	
+	/* Which direction? */
+	Rover = a_Entry;
+	
+	// Back
+	if (a_Next < 0)
+		for (Current = a_Next; Rover && Current < 0; Current++)
+			Rover = Rover->PrevEntry;
+	
+	// Next
+	else
+		for (Current = a_Next; Rover && Current > 0; Current--)
+			Rover = Rover->NextEntry;
+	
+	/* Failed? */
+	return Rover;
+}
 
 /* WX_GetEntryName() -- Return name of entry */
 size_t __REMOOD_DEPRECATED WX_GetEntryName(WX_WADEntry_t* const a_Entry, char* const a_OutBuf, const size_t a_OutSize)

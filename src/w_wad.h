@@ -100,6 +100,8 @@ typedef struct WL_WADEntry_s
 		void* __Data;			// Loaded Data (cached)
 		size_t __Offset;		// Offset of the internal data
 		size_t __InternalSize;	// Internal size (could be compressed)
+		
+		void* __WXClone;		// Cloned data for WX
 	} __Private;				// Don't mess with me
 	
 	/* Public Stuff You Read From */
@@ -263,6 +265,7 @@ typedef struct WadEntry_s
 	
 	/* Deprecation */
 	WL_WADEntry_t* DepEntry;	// Deprecated Entry
+	WadIndex_t DepIndex;		// ID of this entry
 	
 } WadEntry_t;
 
