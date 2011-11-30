@@ -699,8 +699,8 @@ bool_t WL_LocateWAD(const char* const a_Name, const char* const a_MD5, char* con
 		
 		// Add implicit nothing, current dir, bin/
 		strncpy(l_SearchList[l_SearchCount++], "", PATH_MAX);
-		strncpy(l_SearchList[l_SearchCount++], "./", PATH_MAX);
-		strncpy(l_SearchList[l_SearchCount++], "bin/", PATH_MAX);
+		strncpy(l_SearchList[l_SearchCount++], ".", PATH_MAX);
+		strncpy(l_SearchList[l_SearchCount++], "bin", PATH_MAX);
 		
 		// -waddir argument
 		if (M_CheckParm("-waddir"))
@@ -712,7 +712,7 @@ bool_t WL_LocateWAD(const char* const a_Name, const char* const a_MD5, char* con
 				// Add to Search
 				if (l_SearchCount < MAXSEARCHBUFFER)
 					// Copy
-					strncpy(l_SearchList[l_SearchCount], DirArg, PATH_MAX);
+					strncpy(l_SearchList[l_SearchCount++], DirArg, PATH_MAX);
 			}
 		
 		// $DOOMWADDIR
@@ -721,7 +721,7 @@ bool_t WL_LocateWAD(const char* const a_Name, const char* const a_MD5, char* con
 			// Add to search
 			if (l_SearchCount < MAXSEARCHBUFFER)
 				// Copy
-				strncpy(l_SearchList[l_SearchCount], DirArg, PATH_MAX);
+				strncpy(l_SearchList[l_SearchCount++], DirArg, PATH_MAX);
 		}
 		
 		// $DOOMWADPATH
@@ -741,7 +741,7 @@ bool_t WL_LocateWAD(const char* const a_Name, const char* const a_MD5, char* con
 				// Add to search
 				if (l_SearchCount < MAXSEARCHBUFFER)
 					// Copy only up to j characters (excludes : or ;)
-					strncpy(l_SearchList[l_SearchCount], DirArg, (j < PATH_MAX ? j : PATH_MAX));
+					strncpy(l_SearchList[l_SearchCount++], DirArg, (j < PATH_MAX ? j : PATH_MAX));
 					
 				// Go to end
 				if (End)
@@ -752,8 +752,8 @@ bool_t WL_LocateWAD(const char* const a_Name, const char* const a_MD5, char* con
 			while (DirArg);
 		}
 		
-		// Add trailing / to the end of all the searches
-		for (i = 0; i < l_SearchCount; i++)
+		// Add trailing / to the end of all the searches (except for the first)
+		for (i = 1; i < l_SearchCount; i++)
 			strncat(l_SearchList[i], "/", PATH_MAX);
 			
 		// Debug
