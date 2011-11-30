@@ -77,6 +77,7 @@
 #define MAXSEARCHBUFFER					32	// Max Paths to store
 
 /*** STRUCTURES ***/
+/* WL_PDC_t -- Private data creator */
 typedef struct WL_PDC_s
 {
 	uint32_t Key;								// Key for this registrar
@@ -87,6 +88,17 @@ typedef struct WL_PDC_s
 	bool_t Mark;								// Marker
 } WL_PDC_t;
 
+/* WL_OCCB_t -- Order Changed Callback */
+typedef struct WL_OCCB_s
+{
+	WL_OrderCBFunc_t Func;						// Function to call
+	uint8_t Order;								// Callback order
+	
+	/* Used as a linked list */
+	struct WL_OCCB_s* Prev;						// Previous
+	struct WL_OCCB_s* Next;						// Next
+} WL_OCCB_t;
+
 /*** LOCALS ***/
 static WL_WADFile_t* l_LFirstWAD = NULL;		// First WAD in the chain
 static WL_WADFile_t* l_LFirstVWAD = NULL;		// First Virtual WAD in the chain
@@ -94,6 +106,7 @@ static WL_WADFile_t* l_LLastVWAD = NULL;		// First Virtual WAD in the chain
 static WL_PDC_t l_PDC[WLMAXPRIVATEWADSTUFF];	// Private WAD Stuff
 static WL_PDC_t* l_PDCp[WLMAXPRIVATEWADSTUFF];	// Sorted variant
 static size_t l_NumPDC = 0;						// Number of PDC
+static WL_OCCB_t* l_OCCBHead = NULL;			// Head of registrars
 
 static char l_SearchList[MAXSEARCHBUFFER][PATH_MAX];	// Places to look for WADs
 static size_t l_SearchCount = 0;	// Number of places to look
@@ -514,7 +527,8 @@ void WL_CloseWAD(const WL_WADFile_t* const a_WAD)
 /* WL_PushWAD() -- Pushes a WAD to the end of the virtual stack */
 void WL_PushWAD(const WL_WADFile_t* const a_WAD)
 {
-	WL_WADFile_t* Rover;	
+	WL_WADFile_t* Rover;
+	WL_OCCB_t* CB;
 	
 	/* Check */
 	if (!a_WAD)
@@ -554,6 +568,18 @@ void WL_PushWAD(const WL_WADFile_t* const a_WAD)
 			
 			// Last virtual WAD is always the justly pushed WAD! simple
 			l_LLastVWAD = ((WL_WADFile_t*)a_WAD);
+			
+			// Call order change callbacks
+			CB = l_OCCBHead;
+			
+			while (CB)
+			{
+				if (CB->Func)
+					CB->Func(true, l_LLastVWAD);
+				CB = CB->Next;
+			}
+			
+			// Return now
 			return;
 		}
 		
@@ -566,6 +592,7 @@ void WL_PushWAD(const WL_WADFile_t* const a_WAD)
 const WL_WADFile_t* WL_PopWAD(void)
 {
 	WL_WADFile_t* Rover;
+	WL_OCCB_t* CB;
 	
 	/* Get first */
 	Rover = l_LFirstVWAD;
@@ -589,6 +616,16 @@ const WL_WADFile_t* WL_PopWAD(void)
 	/* Top of chain? */
 	if (Rover == l_LFirstVWAD)
 		l_LFirstVWAD = NULL;
+		
+	/* Call order change callbacks */
+	CB = l_OCCBHead;
+	
+	while (CB)
+	{
+		if (CB->Func)
+			CB->Func(false, Rover);
+		CB = CB->Next;
+	}
 	
 	/* Return the popped off WAD */
 	return Rover;
@@ -765,6 +802,71 @@ bool_t WL_LocateWAD(const char* const a_Name, const char* const a_MD5, char* con
 	
 	/* Failed */
 	return false;
+}
+
+/* WL_RegisterOCCB() -- This is called whenever the WAD order changes */
+bool_t WL_RegisterOCCB(WL_OrderCBFunc_t const a_Func, const uint8_t a_Order)
+{
+	WL_OCCB_t* New;
+	WL_OCCB_t* Temp;
+	
+	/* Check */
+	if (!a_Func)
+		return false;
+	
+	/* Attach to tail, in the correct order */
+	// First?
+	if (!l_OCCBHead)
+		l_OCCBHead = New = Z_Malloc(sizeof(*New), PU_STATIC, NULL);
+		
+	// Rover
+	else
+	{
+		// Head
+		Temp = l_OCCBHead;
+		
+		// While there is a current
+		while (Temp)
+		{
+			// Order is lower?
+			if (a_Order < Temp->Order)
+			{
+				// Create and link here
+				New = Z_Malloc(sizeof(*New), PU_STATIC, NULL);
+				
+				// Re-chain
+				New->Prev = Temp->Prev;
+				New->Next = Temp;
+				if (Temp->Prev)
+					Temp->Prev->Next = New;
+				Temp->Prev = New;
+				break;
+			}
+			
+			// There is no next?
+			if (!Temp->Next)
+			{
+				// Create next and break
+				New = Temp->Next = Z_Malloc(sizeof(*New), PU_STATIC, NULL);
+				New->Prev = Temp;
+				break;
+			}
+			
+			// Go to next
+			Temp = New->Next;
+		}
+	}
+	
+	/* No new? */
+	if (!New)
+		return false;	// just in case
+	
+	/* Set info */
+	New->Func = a_Func;
+	New->Order = a_Order;
+	
+	/* Success */
+	return true;
 }
 
 /* WL_RegisterPDC() -- Registers a data handler */
@@ -1025,6 +1127,7 @@ static bool_t WP_DepCreate(const struct WL_WADFile_s* const a_WAD, const uint32_
 	WAD->DepWAD = a_WAD;
 	WAD->FileName = a_WAD->__Private.__DOSName;
 	WAD->NumLumps = a_WAD->NumEntries;
+	WAD->Size = a_WAD->__Private.__Size;
 	
 	/* Success */
 	return true;
@@ -1083,7 +1186,13 @@ void* __REMOOD_DEPRECATED W_CachePatchName(char* name, size_t PU);
 void* __REMOOD_DEPRECATED W_CacheRawAsPic(WadIndex_t lump, int width, int height, size_t tag);	// return a pic_t
 WadIndex_t __REMOOD_DEPRECATED W_GetNumForEntry(WadEntry_t* Entry);
 void __REMOOD_DEPRECATED W_LoadData(void);
-bool_t __REMOOD_DEPRECATED W_FindWad(const char* Name, const char* MD5, char* OutPath, const size_t OutSize);
+
+/* W_FindWad() -- Locates a WAD File */
+bool_t __REMOOD_DEPRECATED W_FindWad(const char* Name, const char* MD5, char* OutPath, const size_t OutSize)
+{
+	/* This function is exactly the same */
+	return WL_LocateWAD(Name, MD5, OutPath, OutSize);
+}
 
 /* W_BaseName() -- Basename of file */
 const char* __REMOOD_DEPRECATED W_BaseName(const char* Name)

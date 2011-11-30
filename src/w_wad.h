@@ -82,8 +82,12 @@ typedef enum WL_FindFlags_e
 struct WL_WADEntry_s;
 struct WL_WADFile_s;
 
+// WAD Data loading
 typedef void (*WL_RemoveFunc_t)(const struct WL_WADFile_s* a_WAD);
 typedef bool_t (*WL_PCCreatorFunc_t)(const struct WL_WADFile_s* const a_WAD, const uint32_t a_Key, void** const a_DataPtr, size_t* const a_SizePtr, WL_RemoveFunc_t* const a_RemoveFuncPtr);
+
+// Order Change
+typedef bool_t (*WL_OrderCBFunc_t)(const bool_t a_Pushed, const struct WL_WADFile_s* const a_WAD);
 
 /* WL_WADEntry_t -- A lite WAD entry */
 typedef struct WL_WADEntry_s
@@ -185,6 +189,8 @@ const WL_WADFile_t* WL_IterateVWAD(const WL_WADFile_t* const a_WAD, const bool_t
 
 void WL_PushWAD(const WL_WADFile_t* const a_WAD);
 const WL_WADFile_t* WL_PopWAD(void);
+
+bool_t WL_RegisterOCCB(WL_OrderCBFunc_t const a_Func, const uint8_t a_Order);
 
 bool_t WL_RegisterPDC(const uint32_t a_Key, const uint8_t a_Order, WL_PCCreatorFunc_t const a_CreatorFunc, WL_RemoveFunc_t const a_RemoveFunc);
 void* WL_GetPrivateData(const WL_WADFile_t* const a_WAD, const uint32_t a_Key, size_t* const a_SizePtr);

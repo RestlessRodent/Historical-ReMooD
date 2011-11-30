@@ -58,3 +58,4 @@ glob:src (copy)/
 glob:wad/sprites/smoka0.raw
 glob:playpal-base.lmp
 relre:.*@.*
+relre:.*~$
