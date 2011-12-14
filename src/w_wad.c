@@ -553,46 +553,49 @@ void WL_PushWAD(const WL_WADFile_t* const a_WAD)
 	if (devparm)
 		CONS_Printf("WL_PushWAD: Pushing \"%s\".\n", a_WAD->__Private.__DOSName);
 	
-	/* No chain at all? */
+	/* Re-link into chain */
+	// No chain at all?
 	if (!l_LFirstVWAD)
 	{
 		l_LLastVWAD = l_LFirstVWAD = (WL_WADFile_t*)a_WAD;
-		return;
 	}
 	
-	/* Chain needs linking */
-	Rover = l_LFirstVWAD;
-	
-	while (Rover)
+	// Chain needs linking
+	else
 	{
-		// No next?
-		if (!Rover->NextVWAD)
+		Rover = l_LFirstVWAD;
+	
+		while (Rover)
 		{
-			// Pair and return
-			Rover->NextVWAD = (WL_WADFile_t*)a_WAD;
-			((WL_WADFile_t*)a_WAD)->PrevVWAD = Rover;
-			
-			// Last virtual WAD is always the justly pushed WAD! simple
-			l_LLastVWAD = ((WL_WADFile_t*)a_WAD);
-			
-			// Call order change callbacks
-			CB = l_OCCBHead;
-			
-			while (CB)
+			// No next?
+			if (!Rover->NextVWAD)
 			{
-				if (CB->Func)
-					if (!CB->Func(true, l_LLastVWAD))
-						if (devparm)
-							CONS_Printf("WL_PopWAD: Order callback failed.\n");
-				CB = CB->Next;
-			}
+				// Pair and return
+				Rover->NextVWAD = (WL_WADFile_t*)a_WAD;
+				((WL_WADFile_t*)a_WAD)->PrevVWAD = Rover;
 			
-			// Return now
-			return;
-		}
+				// Last virtual WAD is always the justly pushed WAD! simple
+				l_LLastVWAD = ((WL_WADFile_t*)a_WAD);
+			
+				// Break out for OCCB
+				break;
+			}
 		
-		// Go to next
-		Rover = Rover->NextVWAD;
+			// Go to next
+			Rover = Rover->NextVWAD;
+		}
+	}
+	
+	/* Call order change callback */
+	CB = l_OCCBHead;
+
+	while (CB)
+	{
+		if (CB->Func)
+			if (!CB->Func(true, l_LLastVWAD))
+				if (devparm)
+					CONS_Printf("WL_PopWAD: Order callback failed.\n");
+		CB = CB->Next;
 	}
 }
 

@@ -919,7 +919,7 @@ static bool_t DS_DetectGameMode(const bool_t a_Pushed, const struct WL_WADFile_s
 	if (devparm)
 		CONS_Printf("DS_DetectGameMode: Detecting game type...\n");
 	
-	return false;
+	return true;
 }
 
 /* D_LoadGameFiles() -- Finds the game data */
@@ -931,6 +931,8 @@ void D_LoadGameFilesEx(void)
 	size_t i;
 	
 	/* Register game identifier, based on pushes */
+	if (devparm)
+		CONS_Printf("D_LoadGameFilesEx: Registering mode detector.\n");
 	if (!WL_RegisterOCCB(DS_DetectGameMode, 1))
 		I_Error("D_LoadGameFilesEx: Failed to register OCCB!");
 	
@@ -984,7 +986,7 @@ void D_LoadGameFilesEx(void)
 	/* Prepare IWAD for loading */
 	// Debug
 	if (devparm)
-		CONS_Printf("D_LoadGameFilesEx: Found IWAD \"%s\".\n");
+		CONS_Printf("D_LoadGameFilesEx: Found IWAD \"%s\".\n", DiscoveredPath);
 	
 	// Add it to the files to load
 	D_AddFile(DiscoveredPath);
