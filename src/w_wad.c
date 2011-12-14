@@ -159,6 +159,12 @@ static const char* WL_BaseName(const char* const a_File)
 	return TempX;
 }
 
+/* WL_BaseNameEx() -- Externalized */
+const char* WL_BaseNameEx(const char* const a_File)
+{
+	return WL_BaseName(a_File);
+}
+
 /* ZLP_EntryHashCheck() -- Compares entry hash */
 // A = const char*
 // B = WL_WADEntry_t*

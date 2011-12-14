@@ -876,6 +876,7 @@ typedef struct D_IWADInfoEx_s
 	
 	/* Game Info */
 	CoreGame_t CoreGame;						// Core Game
+	bool_t CanDistrib;							// Distributable? (Not illegal to give away)
 	
 	int mission;								// Deprecated mission
 	int mode;									// Deprecated mode
@@ -896,6 +897,7 @@ const D_IWADInfoEx_t c_IWADInfos[] =
 		1264,
 		
 		COREGAME_DOOM,
+		true,
 		
 		doom,
 		shareware
@@ -905,11 +907,87 @@ const D_IWADInfoEx_t c_IWADInfos[] =
 	{NULL, NULL, NULL, NULL, NULL, 0, 0, 0, 0, 0}
 };
 
+/*** LOCALS ***/
+
+
 /*** FUNCTIONS ***/
 
-/* D_LoadGameFiles() -- Loads the game data */
+/* DS_DetectGameMode() -- Detects game mode based on pushed WADs */
+static bool_t DS_DetectGameMode(const bool_t a_Pushed, const struct WL_WADFile_s* const a_WAD)
+{
+	/* Debug */
+	if (devparm)
+		CONS_Printf("DS_DetectGameMode: Detecting game type...\n");
+	
+	return false;
+}
+
+/* D_LoadGameFiles() -- Finds the game data */
 void D_LoadGameFilesEx(void)
 {
+	char DiscoveredPath[PATH_MAX];
+	const char* CheckWAD;
+	uint8_t OK;
+	size_t i;
+	
+	/* Register game identifier, based on pushes */
+	if (!WL_RegisterOCCB(DS_DetectGameMode, 1))
+		I_Error("D_LoadGameFilesEx: Failed to register OCCB!");
+	
+	/* Clear */
+	OK = 0;
+	memset(DiscoveredPath, 0, sizeof(DiscoveredPath));
+	
+	/* Discover an IWAD */
+	// Via -iwad
+	if (M_CheckParm("-iwad"))
+	{
+		// Get the WAD
+		CheckWAD = M_GetNextParm();
+		
+		// OK?
+		if (CheckWAD)
+			if (WL_LocateWAD(CheckWAD, NULL, DiscoveredPath, PATH_MAX))
+				OK |= 1;
+			else
+			{
+				// Try the base name of the IWAD
+				CheckWAD = WL_BaseNameEx(CheckWAD);
+				
+				if (WL_LocateWAD(CheckWAD, NULL, DiscoveredPath, PATH_MAX))
+					OK |= 1;
+			}
+		
+		// Debug
+		if (devparm)
+			if (OK)
+				CONS_Printf("D_LoadGameFilesEx: Pass via -iwad not found\n");
+	}
+	
+	// Not found, do standard rotary search
+	if (!OK)
+		// For every WAD in the chain
+		for (i = 0; c_IWADInfos[i].BaseName; i++)
+			if (WL_LocateWAD(c_IWADInfos[i].BaseName, NULL, DiscoveredPath, PATH_MAX))
+			{
+				OK |= 1;
+				break;
+			}
+	
+	// Still not found?
+	if (!OK)
+	{
+		I_Error("D_LoadGameFilesEx: Could not find an IWAD. Please use -iwad to directly locate it, or pass -waddir a path to its location.");
+		return;
+	}
+	
+	/* Prepare IWAD for loading */
+	// Debug
+	if (devparm)
+		CONS_Printf("D_LoadGameFilesEx: Found IWAD \"%s\".\n");
+	
+	// Add it to the files to load
+	D_AddFile(DiscoveredPath);
 }
 
 /***********************************************
@@ -1193,8 +1271,20 @@ void D_DoomMain(void)
 	// get parameters from a response file (eg: doom3 @parms.txt)
 	M_FindResponseFile();
 	
+	/*** New Initialization ***/
+	/* Core */
+	Z_Init();
+	CONL_Init(4096, 1024);
+	
+	/* Adapters */
+	P_PrepareLevelInfoEx();
+	/**************************/
+	
+	// GhostlyDeath <December 14, 2011> -- Use extended identify version
+	D_LoadGameFilesEx();
+	
 	// identify the main IWAD file to use
-	IdentifyVersion();
+	//IdentifyVersion();
 	
 	//setbuf(stdout, NULL);     // non-buffered output
 	modifiedgame = false;
@@ -1332,15 +1422,6 @@ void D_DoomMain(void)
 	}
 	
 	CONS_Printf(text[Z_INIT_NUM]);
-	
-	/*** New Initialization ***/
-	/* Core */
-	Z_Init();
-	CONL_Init(4096, 1024);
-	
-	/* Adapters */
-	P_PrepareLevelInfoEx();
-	/**************************/
 	
 	G_InitKeys();
 	

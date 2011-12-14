@@ -181,6 +181,8 @@ typedef struct WL_WADFile_s
 } WL_WADFile_t;
 
 /*** PROTOTYPES ***/
+const char* WL_BaseNameEx(const char* const a_File);
+
 // WAD Handling
 const WL_WADFile_t* WL_OpenWAD(const char* const a_PathName);
 void WL_CloseWAD(const WL_WADFile_t* const a_WAD);
