@@ -870,6 +870,8 @@ static bool_t VS_VideoWADOrderCB(const bool_t a_Pushed, const struct WL_WADFile_
 {
 	/* Load PLAYPAL */
 	
+	/* Load colormaps */
+	V_InitializeColormaps();
 	
 	return true;
 }
@@ -1198,11 +1200,12 @@ static size_t V_BestHSVMatch(const V_ColorEntry_t* const Table, const V_ColorEnt
 /* V_InitializeColormaps() -- Initialize Spectrum colormaps */
 // GhostlyDeath <September 16, 2011> -- Rewritten for RMD_CMAP instead of
 // dynamically creating the colors at run time.
+// GhostlyDeath <December 14, 2011> -- Modified for WL
 void V_InitializeColormaps(void)
 {
 	size_t i, j, m, n;
 	uint8_t* Maps;
-	WadIndex_t LumpNum;
+	const WL_WADEntry_t* Entry;
 	
 	/* Destroy old maps */
 	for (i = 0; i < NUMVEXCOLORS; i++)
@@ -1225,18 +1228,16 @@ void V_InitializeColormaps(void)
 	}
 	
 	/* Obtain maps */
-	LumpNum = W_GetNumForName("RMD_CMAP");
-	Maps = W_CacheLumpNum(LumpNum, PU_CACHE);
-	n = W_LumpLength(LumpNum);
+	Entry = WL_FindEntry(NULL, 0, "RMD_CMAP");
 	
 	// Failed?
-	if (!Maps)
+	if (!Entry)
 		return;
 		
 	/* Constant read in the lump and set the translation stuff */
 	for (m = 0, i = 0; i < NUMVEXCOLORS; i++)
-		for (j = 0; j < 256 && m < n; j++, m++)
-			l_ColorMaps[i][j] = Maps[m];
+		for (j = 0; j < 256 && m < Entry->Size; j++, m++)
+			WL_ReadData(Entry, m, &l_ColorMaps[i][j], sizeof(l_ColorMaps[i][j]));
 }
 
 /* V_DrawFadeConsBackEx() -- Pixelate and add red tint */
