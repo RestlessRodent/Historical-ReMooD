@@ -842,6 +842,7 @@ bool_t WL_RegisterOCCB(WL_OrderCBFunc_t const a_Func, const uint8_t a_Order)
 	else
 	{
 		// Head
+		New = NULL;
 		Temp = l_OCCBHead;
 		
 		// While there is a current
@@ -872,7 +873,7 @@ bool_t WL_RegisterOCCB(WL_OrderCBFunc_t const a_Func, const uint8_t a_Order)
 			}
 			
 			// Go to next
-			Temp = New->Next;
+			Temp = Temp->Next;
 		}
 	}
 	

@@ -229,21 +229,38 @@ RGBA_t** l_DoomPals = NULL;
 size_t l_NumDoomPals = 0;
 
 /* LoadPalette() -- yucky name, loads a palette for usage */
+// GhostlyDeath <December 14, 2011> -- Updated to WL
 void LoadPalette(char* lumpname)
 {
-	WadIndex_t Idx;
 	size_t NumBasePals, BasePal, Len;
 	size_t i, j, k, l, m;
 	uint8_t* PlayPal;
 	fixed_t pR[256], pG[256], pB[256];
+	const WL_WADEntry_t* PalEntry;
 	
 	/* Get index of lump */
 	// Get lump
-	Idx = W_GetNumForName(lumpname);
-	PlayPal = W_CacheLumpNum(Idx, PU_STATIC);
+	PalEntry = WL_FindEntry(NULL, 0, "PLAYPAL");
+	PlayPal = Z_Malloc(256 * 3 * 14 * sizeof(uint8_t), PU_STATIC, NULL);
+	
+	// Load into PlayPal
+	if (PalEntry)
+	{
+		WL_ReadData(PalEntry, 0, PlayPal, 256 * 3 * 14 * sizeof(uint8_t));
+	}
+	
+	// If not found, use fake yuck palette
+	else
+	{
+		// A nice long big loop for a grayscale palette
+		for (i = 0; i < 14; i++)
+			for (j = 0; j < 256; j++)
+				for (k = 0; k < 3; k++)
+					PlayPal[(768 * i) + (j * 3) + k] = j;
+	}
 	
 	// Get number of base palettes
-	Len = W_LumpLength(Idx) / 3;
+	Len = PalEntry->Size / 3;
 	NumBasePals = Len / 256;
 	Len = NumBasePals * 256;	// Back again (for chunked off palettes)
 	
@@ -336,6 +353,9 @@ void LoadPalette(char* lumpname)
 	
 	/* For existing COLORMAP compat in r_data.c, set pLocalPalette */
 	pLocalPalette = l_DoomPals[0];
+	
+	/* Don't need this local anymore */
+	Z_Free(PlayPal);
 }
 
 /* V_SetPalette() -- Set the current palette */
@@ -844,22 +864,38 @@ void V_DrawFadeScreen(void)
 }
 
 
+/* VS_VideoWADOrderCB() -- Video callback for WAD order changing */
+// This does video related operations (such as loading the palette)
+static bool_t VS_VideoWADOrderCB(const bool_t a_Pushed, const struct WL_WADFile_s* const a_WAD)
+{
+	/* Load PLAYPAL */
+	
+	
+	return true;
+}
 
-
-
-// V_Init
-// olf software stuff, buffers are allocated at video mode setup
-// here we set the screens[x] pointers accordingly
-// WARNING :
-// - called at runtime (don't init cvar here)
+/* V_Init() -- Initializes the video interface */
+// GhostlyDeath <December 14, 2011> -- Refactored for WL
+// This function is called more than once!
 void V_Init(void)
 {
+	static bool_t InitialOK = false;
 	int i;
 	uint8_t* base;
 	int screensize;
 	
-	LoadPalette("PLAYPAL");
+	/* Needs initial setup? */
+	if (!InitialOK)
+	{
+		// Register order change callback
+		if (!WL_RegisterOCCB(VS_VideoWADOrderCB, 100))
+			I_Error("V_Init: Failed to register OCCB.\n");
+		
+		// OK now
+		InitialOK = true;
+	}
 	
+	/* Allocate video buffers */
 	//added:26-01-98:start address of NUMSCREENS * width*height vidbuffers
 	base = vid.buffer;
 	
@@ -870,14 +906,6 @@ void V_Init(void)
 		
 	//added:26-01-98: statusbar buffer
 	screens[4] = base + NUMSCREENS * screensize;
-	
-	//!debug
-#ifdef DEBUG
-	CONS_Printf("V_Init done:\n");
-	for (i = 0; i < NUMSCREENS + 1; i++)
-		CONS_Printf(" screens[%d] = %x\n", i, screens[i]);
-#endif
-		
 }
 
 //
