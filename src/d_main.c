@@ -867,6 +867,7 @@ typedef struct D_IWADInfoEx_s
 {
 	/* Base Info */
 	const char* NiceTitle;						// Nice IWAD Title name
+	const char* ForceNames;						// Names for forcing [conf = 500]
 	const char* BaseName;						// WAD Basename [conf = 5]
 	const char* SimpleSum;						// Simple sum of WAD [conf = 40]
 	const char* MD5Sum;							// MD5 Sum of WAD [conf = 50]
@@ -890,6 +891,7 @@ const D_IWADInfoEx_t c_IWADInfos[] =
 	// Doom II: Hell on Earth
 	{
 		"Doom II: Hell on Earth",
+		"doom2:doomii:doomtwo:commercial:hellonearth",
 		"doom2.wad",
 		"6ff4def4bd24c6943540c790fbfe2642",
 		"25e1459ca71d321525f84628f45ca8cd",
@@ -908,6 +910,7 @@ const D_IWADInfoEx_t c_IWADInfos[] =
 	// The Ultimate Doom
 	{
 		"The Ultimate Doom",
+		"ultimatedoom:udoom:doomu:retail:thyfleshconsumed:tfc",
 		"doom.wad:doomu.wad",
 		"befb2905b2b5df3e43a36e84e920f71f",
 		"c4fe9fd920207691a9f493668e0a2083",
@@ -926,6 +929,7 @@ const D_IWADInfoEx_t c_IWADInfos[] =
 	// Doom Shareware
 	{
 		"Doom Shareware",
+		"sharewaredoom:doomshareware:shareware:doom1:kneedeepinthedead:kditd",
 		"doom1.wad",
 		"b9e51b0a0174fb0f52f0f641a06164d7",
 		"f0cefca49926d00903cf57551d901abe",
@@ -1002,6 +1006,7 @@ static bool_t DS_DetectGameMode(const bool_t a_Pushed, const struct WL_WADFile_s
 	size_t NumConf, i, j, Best;
 	const WL_WADFile_t* BaseWAD;
 	const char* Field;
+	const char* ForceName;
 	bool_t Match;
 	
 	/* Get the first WAD */
@@ -1032,9 +1037,35 @@ static bool_t DS_DetectGameMode(const bool_t a_Pushed, const struct WL_WADFile_s
 	NumConf = (sizeof(c_IWADInfos) / sizeof(D_IWADInfoEx_t)) - 1;
 	Confidence = Z_Malloc(sizeof(*Confidence) * NumConf, PU_STATIC, NULL);
 	
+	/* Get forced name */
+	if (M_CheckParm("-game"))
+		ForceName = M_GetNextParm();
+	else
+		ForceName = NULL;
+	
 	/* Determine confidence levels */
 	for (TotalScore = 0, i = 0; i < NumConf; i++)
 	{
+		// Conf = 500 :: Forced name
+		if (ForceName)
+			for (j = 0;; j++)
+			{
+				// Get field
+				Field = DS_FieldNumber(c_IWADInfos[i].ForceNames, j);
+			
+				// No more?
+				if (!Field)
+					break;
+			
+				// Check based on field
+				else
+					if (strcasecmp(Field, ForceName) == 0)
+					{
+						Confidence[i] += 500;
+						TotalScore += 500;
+					}
+			}
+		
 		// Conf = 5 :: Basename vs DOSName
 		for (j = 0;; j++)
 		{
