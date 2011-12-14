@@ -252,6 +252,7 @@ typedef enum CoreGame_e
 } CoreGame_t;
 
 extern CoreGame_t g_CoreGame;				// Core game mode
+extern const void* g_ReMooDPtr;				// Pointer to remood.wad
 
 #endif							//__D_STATE__
 

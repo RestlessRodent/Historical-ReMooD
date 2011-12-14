@@ -1072,7 +1072,6 @@ size_t WL_ReadData(const WL_WADEntry_t* const a_Entry, const size_t a_Offset, vo
 	size_t CorrectedSize;
 	
 	/* Check */
-	if (!a_Entry || !a_Out || !a_OutSize)
 		return 0;
 	
 	/* Get corrected size of read */
@@ -1219,6 +1218,7 @@ WadIndex_t __REMOOD_DEPRECATED W_InitMultipleFiles(char** filenames)
 	WadIndex_t OK;
 	const WL_WADFile_t* File;
 	
+#if 0
 	/* Register private data for the old WAD Code */
 	if (!WL_RegisterPDC(OLDWPDCKEY, 25, WP_DepCreate, WP_DepRemove))
 		I_Error("W_InitMultipleFiles: Failed to register PDC.");
@@ -1226,6 +1226,7 @@ WadIndex_t __REMOOD_DEPRECATED W_InitMultipleFiles(char** filenames)
 	/* Register order change for the old WAD Code */
 	if (!WL_RegisterOCCB(WP_DepOrder, 5))
 		I_Error("W_InitMultipleFiles: Failed to register OCCB.");
+#endif
 	
 	/* Check */
 	if (!filenames)

@@ -952,6 +952,7 @@ const D_IWADInfoEx_t c_IWADInfos[] =
 /*** LOCALS ***/
 
 CoreGame_t g_CoreGame = COREGAME_UNKNOWN;	// Core game mode
+const void* g_ReMooDPtr = NULL;				// Pointer to remood.wad
 
 /*** FUNCTIONS ***/
 
@@ -998,6 +999,31 @@ static const char* DS_FieldNumber(const char* const a_Str, const size_t a_Num)
 #undef BUFSIZE
 }
 
+/* DS_DetectReMooDWAD() -- Detects for ReMooD.WAD */
+static bool_t DS_DetectReMooDWAD(const bool_t a_Pushed, const struct WL_WADFile_s* const a_WAD)
+{
+	const WL_WADFile_t* Rover;
+	
+	/* Clear always */
+	g_ReMooDPtr = NULL;
+	
+	/* Detect */
+	Rover = NULL;
+	while ((Rover = WL_IterateVWAD(Rover, true)))
+	{
+		/* Check if it contains VERSION and REMOOD */
+		if (WL_FindEntry(Rover, 0, "REMOOD") && WL_FindEntry(Rover, 0, "VERSION"))
+		{
+			// Set to this WAD and return
+			g_ReMooDPtr = Rover;
+			return true;
+		}
+	}
+	
+	/* Success */
+	return true;
+}
+
 /* DS_DetectGameMode() -- Detects game mode based on pushed WADs */
 static bool_t DS_DetectGameMode(const bool_t a_Pushed, const struct WL_WADFile_s* const a_WAD)
 {
@@ -1025,7 +1051,7 @@ static bool_t DS_DetectGameMode(const bool_t a_Pushed, const struct WL_WADFile_s
 	if (g_CoreGame != COREGAME_UNKNOWN)
 	{
 		if (devparm)
-			CONS_Printf("DS_DetectGameMode: Already detected, no need to detect.S\n");
+			CONS_Printf("DS_DetectGameMode: Already detected, no need to detect.\n");
 		return true;
 	}
 	
@@ -1177,7 +1203,9 @@ void D_LoadGameFilesEx(void)
 	if (devparm)
 		CONS_Printf("D_LoadGameFilesEx: Registering mode detector.\n");
 	if (!WL_RegisterOCCB(DS_DetectGameMode, 1))
-		I_Error("D_LoadGameFilesEx: Failed to register OCCB!");
+		I_Error("D_LoadGameFilesEx: Failed to register IWAD OCCB!");
+	if (!WL_RegisterOCCB(DS_DetectReMooDWAD, 2))
+		I_Error("D_LoadGameFilesEx: Failed to register ReMooD OCCB!");
 	
 	/* Clear */
 	OK = 0;
@@ -1252,70 +1280,60 @@ void D_LoadGameFilesEx(void)
 	
 	// Add it to the files to load
 	D_AddFile(DiscoveredPath);
+	
+	/* Discover ReMooD.wad */
+	// Clear OK
+	OK = 0;
+	
+	// Via -remoodwad
+	if (M_CheckParm("-remoodwad"))
+	{
+		// Get the WAD
+		CheckWAD = M_GetNextParm();
+		
+		// OK?
+		if (CheckWAD)
+			if (WL_LocateWAD(CheckWAD, NULL, DiscoveredPath, PATH_MAX))
+				OK |= 1;
+			else
+			{
+				// Try the base name of the IWAD
+				CheckWAD = WL_BaseNameEx(CheckWAD);
+				
+				if (WL_LocateWAD(CheckWAD, NULL, DiscoveredPath, PATH_MAX))
+					OK |= 1;
+			}
+		
+		// Debug
+		if (devparm)
+			if (OK)
+				CONS_Printf("D_LoadGameFilesEx: Pass via -remoodwad not found\n");
+	}
+	
+	// Not found, do standard search
+	if (!OK)
+		if (WL_LocateWAD("remood.wad", NULL, DiscoveredPath, PATH_MAX))
+			OK |= 1;
+	
+	// Still not found?
+	if (!OK)
+	{
+		I_Error("D_LoadGameFilesEx: Could not find a ReMooD.wad. Please use -remoodwad to directly locate it, or pass -waddir a path to its location.");
+		return;
+	}
+	
+	/* Prepare ReMooD.wad for loading */
+	// Debug
+	if (devparm)
+		CONS_Printf("D_LoadGameFilesEx: Found ReMooD.wad \"%s\".\n", DiscoveredPath);
+	
+	// Add it to the files to load
+	D_AddFile(DiscoveredPath);
 }
 
 /***********************************************
 ************************************************
 ***********************************************/
-
-// ==========================================================================
-// Identify the Doom version, and IWAD file to use.
-// Sets 'gamemode' to determine whether registered/commmercial features are
-// available (notable loading PWAD files).
-// ==========================================================================
-
-// return gamemode for Doom or Ultimate Doom, use size to detect which one
-// GhostlyDeath <July 11, 2008> -- This should work for now...
-gamemode_t GetDoomVersion(char* wadfile)
-{
-	uint32_t Magic, NumLumps, IndexOffset;
-	FILE* IWAD;
-	
-	// Cheap but it works
-	IWAD = fopen(wadfile, "rb");
-	
-	if (!IWAD)
-		return registered;		// woops!
-	else
-	{
-		fread(&Magic, sizeof(uint32_t), 1, IWAD);
-		fread(&NumLumps, sizeof(uint32_t), 1, IWAD);
-		fread(&IndexOffset, sizeof(uint32_t), 1, IWAD);
-		
-		fclose(IWAD);
-	}
-	
-	// GhostlyDeath <July 11, 2008> -- Only have the retail one on me now...
-	if ((LittleSwapInt32(NumLumps) == 2306) && (LittleSwapInt32(IndexOffset) == 12371396))
-		return retail;
-	else
-		return registered;
-}
-
-typedef struct wadinformation_s
-{
-	char filename[13];
-	int mission;
-	int mode;
-	gamemode_t(*check) (char*);
-	gamemission_t(*checkmission) (char*);
-} wadinformation_t;
-
-/* GhostlyDeath <November 18, 2008> -- Rewritten and IMPROVED! (Smaller and more efficient) */
-// Also supports DOOMWADDIR and DOOMWADPATH
-wadinformation_t wadinfos[] =
-{
-	{"doom2.wad", doom2, commercial, NULL, NULL},
-	{"doom2f.wad", doom2, commercial, NULL, NULL},
-	{"doomu.wad", doom, retail, NULL, NULL},
-	{"doom.wad", doom, 0, GetDoomVersion, NULL},
-	{"plutonia.wad", pack_plut, commercial, NULL, NULL},
-	{"tnt.wad", pack_tnt, commercial, NULL, NULL},
-	{"chex1.wad", pack_chex, chexquest1, NULL, NULL},
-	{"doom1.wad", doom, shareware, NULL, NULL},
-	{"freedoom.wad", doom2, commercial, NULL, NULL},
-	{"freedm.wad", doom2, commercial, NULL, NULL}
-};
 
 #ifdef _WIN32
 #define PATHDELIM '\\'
@@ -1350,104 +1368,6 @@ void D_AddPWADs(void)
 		}
 }
 
-/* IdentifyVersion() -- Find an IWAD and remood.wad */
-// GhostlyDeath <October 24, 2010> -- Greatly improved
-void IdentifyVersion(void)
-{
-	char WADPath[256];
-	char* IWADArg = NULL;
-	bool_t IWADOk = false;
-	char* RMDArg = NULL;
-	bool_t RMDOk = false;
-	char* BaseName;
-	int i;
-	
-	/* Clear for IWAD */
-	memset(WADPath, 0, sizeof(WADPath));
-	
-	/* -iwad argument set? */
-	if (M_CheckParm("-iwad"))
-	{
-		// Get IWAD
-		IWADArg = M_GetNextParm();
-		
-		// Try finding IWAD
-		if (W_FindWad(IWADArg, NULL, WADPath, 256))
-			// Don't search for a random IWAD
-			IWADOk = true;
-	}
-	
-	/* Search for random IWAD */
-	if (!IWADOk)
-		for (i = 0; i < sizeof(wadinfos) / sizeof(wadinformation_t); i++)
-			if (W_FindWad(wadinfos[i].filename, NULL, WADPath, 256))
-			{
-				IWADOk = true;
-				break;			// found it so break out
-			}
-			
-	/* Load the WAD if we found it */
-	if (strlen(WADPath))
-	{
-		// Get the basename of the WAD to determine mission, etc.
-		BaseName = W_BaseName(WADPath);
-		
-		// Now load it
-		D_AddFile(WADPath);
-		
-		// Set mission
-		for (i = 0; i < sizeof(wadinfos) / sizeof(wadinformation_t); i++)
-			if (strcasecmp(BaseName, wadinfos[i].filename) == 0)
-			{
-				// Set
-				gamemission = wadinfos[i].mission;
-				
-				if (wadinfos[i].check)
-					gamemode = wadinfos[i].check(WADPath);
-				else
-					gamemode = wadinfos[i].mode;
-					
-				if (devparm)
-					CONS_Printf("IdentifyVersion: \"%s\" identified as mission %i mode %i\n", BaseName, gamemission, gamemode);
-					
-				// Break
-				break;
-			}
-	}
-	
-	/* -remoodwad argument set */
-	if (M_CheckParm("-remoodwad"))
-	{
-		// Get IWAD
-		RMDArg = M_GetNextParm();
-		
-		// Try finding IWAD
-		if (W_FindWad(RMDArg, NULL, WADPath, 256))
-			// Don't search for remood.wad
-			RMDOk = true;
-	}
-	
-	/* Search for remood.wad */
-	if (!RMDOk)
-		if (W_FindWad("remood.wad", NULL, WADPath, 256))
-			RMDOk = true;
-			
-	/* Load remood.wad */
-	if (strlen(WADPath))
-	{
-		// Just load it
-		D_AddFile(WADPath);
-	}
-	
-	/* Failure messages */
-	if (!IWADOk)
-		I_Error
-		("ReMooD was unable to find an IWAD (doom.wad, doom2.wad, etc.). To fix this problem: Place the correct IWADs where ReMooD is located; pass -iwad <exact path to IWAD>; pass -waddir <location of WADs>; set the environment variable DOOMWADPATH to locations where WADs exist.");
-	else if (!RMDOk)
-		I_Error
-		("ReMooD was unable to find remood.wad. To fix this problem: Place remood.wad where ReMooD is located; pass -file <exact path to remood.wad>; pass -waddir <location of remood.wad>; set the environment variable DOOMWADPATH to a location where remood.wad exist.");
-}
-
 //added:11-01-98:
 //
 //  Center the title string, then add the date and time of compilation.
@@ -1474,24 +1394,6 @@ void D_MakeTitleString(char* s)
 		
 	temp[80] = '\0';
 	strcpy(s, temp);
-}
-
-void D_CheckWadVersion()
-{
-	int wadversion = 0;
-	WadIndex_t lump;
-	char* ver = NULL;
-	char* verx = NULL;
-	
-	// more to do - Demyx, GhostlyDeath -- fixed
-	
-	lump = W_CheckNumForNameFirst("version");
-	if (lump == INVALIDLUMP)
-	{
-		I_Error
-		("VERSION lump not found! Be sure remood.wad can be accessed or use -file to load it manually.\nYou can also use -nocheckwadversion to ignore this error but it IS NOT recommended!\n");
-		return;
-	}
 }
 
 extern bool_t g_PaintBallMode;
@@ -1699,9 +1601,6 @@ void D_DoomMain(void)
 	// load wad, including the main wad file
 	if (W_InitMultipleFiles(startupwadfiles) == 0)
 		I_Error("A WAD file was not found\n");
-		
-	if (!M_CheckParm("-nocheckwadversion"))
-		D_CheckWadVersion();
 		
 	// GhostlyDeath <October 24, 2010> -- Load WAD Data
 	W_LoadData();
