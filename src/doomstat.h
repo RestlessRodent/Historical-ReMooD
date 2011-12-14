@@ -235,4 +235,22 @@ extern ticcmd_t netcmds[BACKUPTICS][MAXPLAYERS];
 
 extern bool_t novideo;
 
+/*********************
+*** EXTENDED STUFF ***
+*********************/
+
+/* CoreGame_t -- Game being played... */
+typedef enum CoreGame_e
+{
+	COREGAME_DOOM,							// Doom is being played
+	COREGAME_HERETIC,						// Heretic is being played
+	COREGAME_HEXEN,							// Hexen is being played
+	COREGAME_STRIFE,						// Strife is being played
+	
+	NUMCOREGAMES
+} CoreGame_t;
+
+extern CoreGame_t g_CoreGame;				// Core game mode
+
 #endif							//__D_STATE__
+

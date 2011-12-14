@@ -860,6 +860,8 @@ void D_AddFile(char* file)
 *** NEW IWAD IDENTIFICATION AND LOADING CODE ***
 ***********************************************/
 
+/*** STRUCTURES ***/
+
 /* D_IWADInfoEx_t() -- Extended IWAD Info */
 typedef struct D_IWADInfoEx_s
 {
@@ -873,10 +875,42 @@ typedef struct D_IWADInfoEx_s
 	uint32_t NumLumps;							// Number of lumps in WAD [conf = 15]
 	
 	/* Game Info */
+	CoreGame_t CoreGame;						// Core Game
+	
 	int mission;								// Deprecated mission
 	int mode;									// Deprecated mode
 } D_IWADInfoEx_t;
 
+/*** CONSTANTS ***/
+const D_IWADInfoEx_t c_IWADInfos[] =
+{
+	/* In order of most wanted to least wanted */
+	// Doom Shareware
+	{
+		"doom1.wad",
+		"b9e51b0a0174fb0f52f0f641a06164d7",
+		"f0cefca49926d00903cf57551d901abe",
+		"5b2e249b9c5133ec987b3ea77596381dc0d6bc1d",
+		"!E2M1:!E3M1:!E4M1",
+		4196020,
+		1264,
+		
+		COREGAME_DOOM,
+		
+		doom,
+		shareware
+	},
+
+	/* Last */
+	{NULL, NULL, NULL, NULL, NULL, 0, 0, 0, 0, 0}
+};
+
+/*** FUNCTIONS ***/
+
+/* D_LoadGameFiles() -- Loads the game data */
+void D_LoadGameFilesEx(void)
+{
+}
 
 /***********************************************
 ************************************************
