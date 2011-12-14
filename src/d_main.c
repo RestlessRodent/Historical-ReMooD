@@ -866,11 +866,12 @@ void D_AddFile(char* file)
 typedef struct D_IWADInfoEx_s
 {
 	/* Base Info */
+	const char* NiceTitle;						// Nice IWAD Title name
 	const char* BaseName;						// WAD Basename [conf = 5]
 	const char* SimpleSum;						// Simple sum of WAD [conf = 40]
 	const char* MD5Sum;							// MD5 Sum of WAD [conf = 50]
 	const char* SHA1Sum;						// SHA-1 Sum of WAD [conf = 60]
-	const char* Lumps;							// Identifying lumps [conf = 20]
+	const char* Lumps;							// Identifying lumps [conf = 1]
 	uint32_t Size;								// Size of WAD [conf = 15]
 	uint32_t NumLumps;							// Number of lumps in WAD [conf = 15]
 	
@@ -886,13 +887,50 @@ typedef struct D_IWADInfoEx_s
 const D_IWADInfoEx_t c_IWADInfos[] =
 {
 	/* In order of most wanted to least wanted */
+	// Doom II: Hell on Earth
+	{
+		"Doom II: Hell on Earth",
+		"doom2.wad",
+		"6ff4def4bd24c6943540c790fbfe2642",
+		"25e1459ca71d321525f84628f45ca8cd",
+		"7ec7652fcfce8ddc6e801839291f0e28ef1d5ae7",
+		"MAP01:GRASS1:MAP31:MAP32",
+		14604584,
+		2919,
+		
+		COREGAME_DOOM,
+		false,
+		
+		doom2,
+		commercial
+	},
+	
+	// The Ultimate Doom
+	{
+		"The Ultimate Doom",
+		"doom.wad:doomu.wad",
+		"befb2905b2b5df3e43a36e84e920f71f",
+		"c4fe9fd920207691a9f493668e0a2083",
+		"9b07b02ab3c275a6a7570c3f73cc20d63a0e3833",
+		"E1M1:E2M1:E3M1:E4M1",
+		12408292,
+		2306,
+		
+		COREGAME_DOOM,
+		false,
+		
+		doom,
+		retail
+	},
+	
 	// Doom Shareware
 	{
+		"Doom Shareware",
 		"doom1.wad",
 		"b9e51b0a0174fb0f52f0f641a06164d7",
 		"f0cefca49926d00903cf57551d901abe",
 		"5b2e249b9c5133ec987b3ea77596381dc0d6bc1d",
-		"!E2M1:!E3M1:!E4M1",
+		"E1M1:!E2M1:!E3M1:!E4M1",
 		4196020,
 		1264,
 		
@@ -904,20 +942,193 @@ const D_IWADInfoEx_t c_IWADInfos[] =
 	},
 
 	/* Last */
-	{NULL, NULL, NULL, NULL, NULL, 0, 0, 0, 0, 0}
+	{NULL, NULL, NULL, NULL, NULL, NULL, 0, 0, 0, 0, 0}
 };
 
 /*** LOCALS ***/
 
+CoreGame_t g_CoreGame = COREGAME_UNKNOWN;	// Core game mode
 
 /*** FUNCTIONS ***/
+
+/* DS_FieldNumber() -- Get field number from string */
+static const char* DS_FieldNumber(const char* const a_Str, const size_t a_Num)
+{
+#define BUFSIZE 256
+	static char StaticBuf[BUFSIZE];
+	const char* a;
+	const char* b;
+	size_t f;
+	
+	/* Check */
+	if (!a_Str)
+		return NULL;
+		
+	/* Clear */
+	memset(StaticBuf, 0, sizeof(StaticBuf));
+	
+	/* Seek */
+	a = b = a_Str;
+	for (f = 0;; f++)
+	{
+		// Find end of b
+		while (*b != '\0' && *b != ':')
+			b++;
+		
+		// Found end (hopefully)
+		strncpy(StaticBuf, a, ((b - a) < BUFSIZE ? (b - a) : BUFSIZE));
+		
+		if (f == a_Num)
+			return StaticBuf;
+		
+		// Reset
+		if (*b == '\0')	// Last in sequence
+			return NULL;
+		
+		a = b = b + 1;
+		memset(StaticBuf, 0, sizeof(StaticBuf));
+	}
+	
+	/* Oops */
+	return NULL;
+#undef BUFSIZE
+}
 
 /* DS_DetectGameMode() -- Detects game mode based on pushed WADs */
 static bool_t DS_DetectGameMode(const bool_t a_Pushed, const struct WL_WADFile_s* const a_WAD)
 {
+	int32_t* Confidence;
+	int32_t TotalScore;
+	size_t NumConf, i, j, Best;
+	const WL_WADFile_t* BaseWAD;
+	const char* Field;
+	bool_t Match;
+	
+	/* Get the first WAD */
+	BaseWAD = WL_IterateVWAD(NULL, true);
+	
+	// No WAD? -- Must have all been popped off then
+	if (!BaseWAD)
+	{
+		if (devparm)
+			CONS_Printf("DS_DetectGameMode: Stack empty, there is no game.\n");
+		g_CoreGame = COREGAME_UNKNOWN;
+		return true;
+	}
+	
+	// Is the stack already placed?
+	if (g_CoreGame != COREGAME_UNKNOWN)
+	{
+		if (devparm)
+			CONS_Printf("DS_DetectGameMode: Already detected, no need to detect.S\n");
+		return true;
+	}
+	
 	/* Debug */
 	if (devparm)
 		CONS_Printf("DS_DetectGameMode: Detecting game type...\n");
+	
+	/* Allocate Confidence */
+	NumConf = (sizeof(c_IWADInfos) / sizeof(D_IWADInfoEx_t)) - 1;
+	Confidence = Z_Malloc(sizeof(*Confidence) * NumConf, PU_STATIC, NULL);
+	
+	/* Determine confidence levels */
+	for (TotalScore = 0, i = 0; i < NumConf; i++)
+	{
+		// Conf = 5 :: Basename vs DOSName
+		for (j = 0;; j++)
+		{
+			// Get field
+			Field = DS_FieldNumber(c_IWADInfos[i].BaseName, j);
+			
+			// No more?
+			if (!Field)
+				break;
+			
+			// Check based on field
+			else
+				if (strcasecmp(Field, BaseWAD->__Private.__DOSName) == 0)
+				{
+					Confidence[i] += 5;
+					TotalScore += 5;
+				}
+		}
+		
+		// Conf = 40 :: Simple sum matches
+		if (strcasecmp(c_IWADInfos[i].SimpleSum, BaseWAD->SimpleSumChars) == 0)
+		{
+			Confidence[i] += 40;
+			TotalScore += 40;
+		}
+		
+		// Conf = 15 :: Size
+		if (BaseWAD->__Private.__Size == c_IWADInfos[i].Size)
+		{
+			Confidence[i] += 15;
+			TotalScore += 15;
+		}
+		
+		// Conf = 15 :: NumLumps
+		if (BaseWAD->NumEntries == c_IWADInfos[i].NumLumps)
+		{
+			Confidence[i] += 15;
+			TotalScore += 15;
+		}
+		
+		// Conf = 1 :: Lumps in WAD
+		for (j = 0;; j++)
+		{
+			// Get field
+			Field = DS_FieldNumber(c_IWADInfos[i].Lumps, j);
+			
+			// No more?
+			if (!Field)
+				break;
+			
+			// Check based on field
+			else
+			{
+				// If Field starts with !, it is NOT in the WAD
+				Match = true;
+				if (Field[0] == '!')
+				{
+					Match = false;
+					Field++;	// Remove !
+				}
+				
+				// Find in WAD
+				if ((WL_FindEntry(BaseWAD, 0, Field) != NULL) == Match)
+				{
+					Confidence[i] += 1;
+					TotalScore += 1;
+				}
+			}
+		}
+	}
+	
+	/* Find the best match */
+	// Look for the best
+	for (i = 0, Best = 0; i < NumConf; i++)
+	{
+		// A nice message
+		if (devparm)
+			CONS_Printf("DS_DetectGameMode: %3i/%-3i: %s\n", Confidence[i], TotalScore, c_IWADInfos[i].NiceTitle);
+		
+		// Is this the best?
+		if (Confidence[i] > Confidence[Best])
+			Best = i;
+	}
+	
+	// Set the best
+	if (devparm)
+		CONS_Printf("DS_DetectGameMode: Selecting %s.\n", c_IWADInfos[Best].NiceTitle);
+	
+	g_CoreGame = c_IWADInfos[Best].CoreGame;
+	gamemode = c_IWADInfos[Best].mode;
+	gamemission = c_IWADInfos[Best].mission;
+	
+	/* Cleanup */
+	Z_Free(Confidence);
 	
 	return true;
 }
@@ -928,7 +1139,8 @@ void D_LoadGameFilesEx(void)
 	char DiscoveredPath[PATH_MAX];
 	const char* CheckWAD;
 	uint8_t OK;
-	size_t i;
+	size_t i, j;
+	const char* Field;
 	
 	/* Register game identifier, based on pushes */
 	if (devparm)
@@ -970,10 +1182,29 @@ void D_LoadGameFilesEx(void)
 	if (!OK)
 		// For every WAD in the chain
 		for (i = 0; c_IWADInfos[i].BaseName; i++)
-			if (WL_LocateWAD(c_IWADInfos[i].BaseName, NULL, DiscoveredPath, PATH_MAX))
+			for (j = 0;; j++)
 			{
-				OK |= 1;
-				break;
+				// Get field
+				Field = DS_FieldNumber(c_IWADInfos[i].BaseName, j);
+				
+				// No more fields
+				if (!Field)
+					break;
+				
+				// Field was found
+				else
+				{
+					// Devparm here
+					if (devparm)
+						CONS_Printf("D_LoadGameFilesEx: Discovering \"%s\"...\n", Field);
+					
+					// Do the actual check
+					if (WL_LocateWAD(Field, NULL, DiscoveredPath, PATH_MAX))
+					{
+						OK |= 1;
+						break;
+					}
+				}
 			}
 	
 	// Still not found?

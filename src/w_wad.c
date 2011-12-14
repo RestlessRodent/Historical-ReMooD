@@ -471,11 +471,14 @@ const WL_WADFile_t* WL_OpenWAD(const char* const a_PathName)
 	/* Success */
 	NewWAD->__Private.__IsValid = true;
 	
+	// Print simple sum
+	snprintf(NewWAD->SimpleSumChars, 33, "%08x%08x%08x%08x", NewWAD->SimpleSum[0], NewWAD->SimpleSum[1], NewWAD->SimpleSum[2], NewWAD->SimpleSum[3]);
+	
 	// Debug
 	if (devparm)
 	{
 		u32 = NewWAD->NumEntries;
-		CONS_Printf("WL_OpenWAD: Loaded \"%s\"%s%s [%u Entries, %08x%08x%08x%08x]\n", NewWAD->__Private.__DOSName, (NewWAD->__Private.__IsIWAD ? "*" : ""), (NewWAD->__Private.__IsWAD ? "" : "+"), u32, NewWAD->SimpleSum[0], NewWAD->SimpleSum[1], NewWAD->SimpleSum[2], NewWAD->SimpleSum[3]);
+		CONS_Printf("WL_OpenWAD: Loaded \"%s\"%s%s [%u Entries, %s]\n", NewWAD->__Private.__DOSName, (NewWAD->__Private.__IsIWAD ? "*" : ""), (NewWAD->__Private.__IsWAD ? "" : "+"), u32, NewWAD->SimpleSumChars);
 	}
 		
 	/* Return the generated WAD */

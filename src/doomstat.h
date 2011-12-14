@@ -242,6 +242,7 @@ extern bool_t novideo;
 /* CoreGame_t -- Game being played... */
 typedef enum CoreGame_e
 {
+	COREGAME_UNKNOWN,						// Unknown game
 	COREGAME_DOOM,							// Doom is being played
 	COREGAME_HERETIC,						// Heretic is being played
 	COREGAME_HEXEN,							// Hexen is being played
