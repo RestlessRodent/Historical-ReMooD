@@ -1335,8 +1335,9 @@ void CONL_DrawConsole(void)
 	uint32_t bx, x, by, y, bw, bh, Options, conX, conY, conW, conH, DrawCount, DefaultOptions;
 	const char* p;
 	char TempFill[6];
-	static pic_t* BackPic;
 	CONL_BasicBuffer_t* Out;
+	
+	static V_Image_t* BackPic;
 	
 	/* Get output buffer */
 	Out = &l_CONLBuffers[0];
@@ -1363,10 +1364,10 @@ void CONL_DrawConsole(void)
 		{
 			// Load background?
 			if (!BackPic)
-				BackPic = W_CacheLumpName("RMD_CB_D", PU_STATIC);
+				BackPic = V_ImageFindA("RMD_CB_D");
 				
 			// Blit to entire screen
-			V_BlitScalePicExtern(0, 0, 0, BackPic);
+			V_ImageDraw(0, BackPic, 0, 0, NULL);
 			
 			// Get height of console
 			conH = vid.height;
