@@ -92,7 +92,7 @@ uint8_t* dc_source;
 // -----------------------
 #define NUMTRANSTABLES  NUMVEXTRANSPARENCIES	// how many translucency tables are used
 
-uint8_t* transtables;			// translucency tables
+uint8_t* transtables = NULL;			// translucency tables
 
 // R_DrawTransColumn uses this
 uint8_t* dc_transmap;			// one of the translucency tables
@@ -101,7 +101,7 @@ uint8_t* dc_transmap;			// one of the translucency tables
 // translation stuff here
 // ----------------------
 
-uint8_t* translationtables;
+uint8_t* translationtables = NULL;
 
 // R_DrawTranslatedColumn uses this
 uint8_t* dc_translation;
@@ -200,302 +200,125 @@ CV_PossibleValue_t Color_cons_t[] = { {0, NULL}, {1, NULL}, {2, NULL}, {3, NULL}
 	{8, NULL}, {9, NULL}, {10, NULL}, {11, NULL}, {12, NULL}, {13, NULL}, {14, NULL}, {15, NULL}, {0, NULL}
 };
 
-//  Creates the translation tables to map the green color ramp to
-//  another ramp (gray, brown, red, ...)
-//
-//  This is precalculated for drawing the player sprites in the player's
-//  chosen color
-//
-void R_InitTranslationTables(void)
+/* RS_TransTableOCCB() -- Loads new translation tables */
+static bool_t RS_TransTableOCCB(const bool_t a_Pushed, const struct WL_WADFile_s* const a_WAD)
 {
-	int i, j, x, y, n;
-	uint8_t* Data, *p, *s;
+	size_t i, j, x, y;
+	const WL_WADEntry_t* Entry;
+	uint8_t* p;
+	uint8_t* Buffer;
 	bool_t Flip;
-	WadIndex_t LumpNum;
 	static struct
 	{
 		char Name[9];
 		bool_t Flip;
 	} TransLumps[NUMVEXTRANSPARENCIES] =
 	{
-		{
-			"RMD_TRFF", true
-		},
-		{
-			"RMD_TR10", false
-		},
-		{
-			"RMD_TR20", false
-		},
-		{
-			"RMD_TR30", false
-		},
-		{
-			"RMD_TR40", false
-		},
-		{
-			"RMD_TR50", false
-		},
-		{
-			"RMD_TR40", true
-		},
-		{
-			"RMD_TR30", true
-		},
-		{
-			"RMD_TR20", true
-		},
-		{
-			"RMD_TR10", true
-		},
-		{
-			"RMD_TRFF", false
-		},
-		{
-			"RMD_TRFR", false
-		},
-		{
-			"TRANSFX1", false
-		},
+		{"RMD_TRFF", true},
+		{"RMD_TR10", false},
+		{"RMD_TR20", false},
+		{"RMD_TR30", false},
+		{"RMD_TR40", false},
+		{"RMD_TR50", false},
+		{"RMD_TR40", true},
+		{"RMD_TR30", true},
+		{"RMD_TR20", true},
+		{"RMD_TR10", true},
+		{"RMD_TRFF", false},
+		{"RMD_TRFR", false},
+		{"TRANSFX1", false},
 	};
 	
-	/* Load transparency tables, with possible flipping */
-	// GhostlyDeath <September 17, 2011> -- Improved, greatly
+	/* Load transparency tables */
+	// Free old
+	if (transtables)
+		Z_Free(transtables);
+	
+	// Allocate area
 	transtables = Z_Malloc(NUMTRANSTABLES * 0x10000, PU_STATIC, &transtables);
 	
 	// Go through loop, loading each lump
 	for (i = 0; i < NUMVEXTRANSPARENCIES; i++)
 	{
 		// Load lump data
-		LumpNum = W_GetNumForName(TransLumps[i].Name);
-		Data = W_CacheLumpNum(LumpNum, PU_STATIC);
-		n = W_LumpLength(LumpNum);
-		Flip = TransLumps[i].Flip;
-		
-		// Copy data to and from
+		Entry = WL_FindEntry(NULL, 0, TransLumps[i].Name);
 		p = transtables + (0x10000 * i);
-		for (x = 0; x < 256; x++)
-			for (y = 0; y < 256; y++)
-			{
-				// Which are we getting?
-				if (Flip)
-					j = (x * 256) + y;
-				else
-					j = (y * 256) + x;
-					
-				// Only if it is valid
-				if (j < n)
+		
+		// Found?
+		if (Entry)
+		{
+			// Load buffer with data (faster than WL_ReadData over 1 million times)
+			Buffer = Z_Malloc(256 * 256, PU_STATIC, NULL);
+			WL_ReadData(Entry, 0, Buffer, 256 * 256);
+			
+			// Load data into table portion
+			for (x = 0; x < 256; x++)
+				for (y = 0; y < 256; y++)
 				{
-					*p = Data[j];
+					// Determine based on flip
+					if (Flip)
+						j = (x * 256) + y;
+					else
+						j = (y * 256) + x;
+					
+					// Read from lump to here
+					*p = Buffer[j];
 					p++;
 				}
-			}
 			
-		// No longer needed
-		Z_ChangeTag(Data, PU_CACHE);
-	}
-	
-#if 0
-	//added:11-01-98: load here the transparency lookup tables 'TINTTAB'
-	// NOTE: the TINTTAB resource MUST BE aligned on 64k for the asm optimised
-	//       (in other words, transtables pointer low word is 0)
-	transtables = Z_MallocAlign(NUMTRANSTABLES * 0x10000, PU_STATIC, 0, 16);
-	
-	// GhostlyDeath <September 17, 2011> --
-	
-	// load in translucency tables
-	W_ReadLump(W_GetNumForName("TRANSMED"), transtables);
-	W_ReadLump(W_GetNumForName("TRANSMOR"), transtables + 0x10000);
-	W_ReadLump(W_GetNumForName("TRANSHI"), transtables + 0x20000);
-	W_ReadLump(W_GetNumForName("TRANSFIR"), transtables + 0x30000);
-	W_ReadLump(W_GetNumForName("TRANSFX1"), transtables + 0x40000);
-#endif
-	
-	translationtables = Z_MallocAlign(256 * (MAXSKINCOLORS - 1), PU_STATIC, 0, 8);
-	
-#if 0
-	// translate just the 16 green colors
-	for (i = 0; i < 256; i++)
-	{
-		if ((i >= 0x70 && i <= 0x7f && gamemode != heretic) || (i >= 225 && i <= 240 && gamemode == heretic))
-		{
-			if (gamemode == heretic)
-			{
-				translationtables[i + 0 * 256] = 0 + (i - 225);	// dark gray
-				translationtables[i + 1 * 256] = 67 + (i - 225);	// brown
-				translationtables[i + 2 * 256] = 145 + (i - 225);	// red
-				translationtables[i + 3 * 256] = 9 + (i - 225);	// light gray
-				translationtables[i + 4 * 256] = 74 + (i - 225);	// light brown
-				translationtables[i + 5 * 256] = 150 + (i - 225);	// light red
-				translationtables[i + 6 * 256] = 192 + (i - 225);	// light blue
-				translationtables[i + 7 * 256] = 185 + (i - 225);	// dark blue
-				translationtables[i + 8 * 256] = 114 + (i - 225);	// yellow
-				translationtables[i + 9 * 256] = 95 + (i - 225);	// beige
-			}
-			else
-			{
-				// map green ramp to gray, brown, red
-				translationtables[i] = 0x60 + (i & 0xf);
-				translationtables[i + 256] = 0x40 + (i & 0xf);
-				translationtables[i + 2 * 256] = 0x20 + (i & 0xf);
-				
-				// added 9-2-98
-				translationtables[i + 3 * 256] = 0x58 + (i & 0xf);	// light gray
-				translationtables[i + 4 * 256] = 0x38 + (i & 0xf);	// light brown
-				translationtables[i + 5 * 256] = 0xb0 + (i & 0xf);	// light red
-				translationtables[i + 6 * 256] = 0xc0 + (i & 0xf);	// light blue
-				
-				if ((i & 0xf) < 9)
-					translationtables[i + 7 * 256] = 0xc7 + (i & 0xf);	// dark blue
-				else
-					translationtables[i + 7 * 256] = 0xf0 - 9 + (i & 0xf);
-					
-				if ((i & 0xf) < 8)
-					translationtables[i + 8 * 256] = 0xe0 + (i & 0xf);	// yellow
-				else
-					translationtables[i + 8 * 256] = 0xa0 - 8 + (i & 0xf);
-					
-				translationtables[i + 9 * 256] = 0x80 + (i & 0xf);	// beige
-			}
-			
+			// Free Buffer
+			Z_Free(Buffer);
 		}
+		
+		// Not found? Ouch, just keep it normal
 		else
 		{
-			// Keep all other colors as is.
-			for (j = 0; j < (MAXSKINCOLORS - 1) * 256; j += 256)
-				translationtables[i + j] = i;
+			// Not too sure if this actually works!
+			for (x = 0; x < 256; x++)
+				for (y = 0; y < 256; y++)
+				{
+					*p = x;
+					p++;
+				}
 		}
 	}
-#else
-	for (i = 0; i < 256; i++)
+	
+	/* Load player remappings */
+	// Free old stuff
+	if (translationtables)
+		Z_Free(translationtables);
+	
+	// Allocate table area
+	translationtables = Z_Malloc(256 * (MAXSKINCOLORS - 1), PU_STATIC, NULL);
+	
+	// Load lump
+	Entry = WL_FindEntry(NULL, 0, "RMD_PMAP");
+	
+	// Found?
+	if (Entry)
 	{
-		if ((i >= 0x70 && i <= 0x7f && gamemode != heretic) || (i >= 225 && i <= 240 && gamemode == heretic))
-		{
-			/*if( gamemode == heretic )
-			   {
-			   translationtables[i+ 0*256] =   0+(i-225); // dark gray
-			   translationtables[i+ 1*256] =  67+(i-225); // brown
-			   translationtables[i+ 2*256] = 145+(i-225); // red
-			   translationtables[i+ 3*256] =   9+(i-225); // light gray
-			   translationtables[i+ 4*256] =  74+(i-225); // light brown
-			   translationtables[i+ 5*256] = 150+(i-225); // light red
-			   translationtables[i+ 6*256] = 192+(i-225); // light blue
-			   translationtables[i+ 7*256] = 185+(i-225); // dark blue
-			   translationtables[i+ 8*256] = 114+(i-225); // yellow
-			   translationtables[i+ 9*256] =  95+(i-225); // beige
-	
-			   // ORANGE AND BLACK (TODO: not true colors yet)
-			   translationtables[i+ 10*256] =  20+(i-225); // dark gray
-			   translationtables[i+ 11*256] =  67+(i-225); // ornage
-			   translationtables[i+ 12*256] =  67+(i-225); // tan
-			   translationtables[i+ 13*256] =  67+(i-255); // black
-			   switch (i)   // pink?
-			   {
-			   case 1: translationtables[i+ 14*256] =  168+(i-225); break;
-			   case 2: translationtables[i+ 14*256] =  168+(i-225); break;
-			   case 3: translationtables[i+ 14*256] =  167+(i-225); break;
-			   case 4: translationtables[i+ 14*256] =  167+(i-225); break;
-			   case 5: translationtables[i+ 14*256] =  166+(i-225); break;
-			   case 6: translationtables[i+ 14*256] =  166+(i-225); break;
-			   case 7: translationtables[i+ 14*256] =  165+(i-225); break;
-			   case 8: translationtables[i+ 14*256] =  165+(i-225); break;
-			   case 9: translationtables[i+ 14*256] =  164+(i-225); break;
-			   case 10: translationtables[i+ 14*256] =  164+(i-225); break;
-			   case 11: translationtables[i+ 14*256] =  163+(i-225); break;
-			   case 12: translationtables[i+ 14*256] =  163+(i-225); break;
-			   case 13: translationtables[i+ 14*256] =  162+(i-225); break;
-			   case 14: translationtables[i+ 14*256] =  162+(i-225); break;
-			   case 15: translationtables[i+ 14*256] =  161+(i-225); break;
-			   }
-	
-			   }
-			   else */
-			{
-				// map green ramp to gray, brown, red
-				translationtables[i] = 0x60 + (i & 0xf);
-				translationtables[i + 256] = 0x40 + (i & 0xf);
-				translationtables[i + 2 * 256] = 0x20 + (i & 0xf);
-	
-				// added 9-2-98
-				translationtables[i + 3 * 256] = 0x58 + (i & 0xf);	// light gray
-				translationtables[i + 4 * 256] = 0x38 + (i & 0xf);	// light brown
-				translationtables[i + 5 * 256] = 0xb0 + (i & 0xf);	// light red
-				translationtables[i + 6 * 256] = 0xc0 + (i & 0xf);	// light blue
-	
-				if ((i & 0xf) < 9)
-					translationtables[i + 7 * 256] = 0xc7 + (i & 0xf);	// dark blue
-				else
-					translationtables[i + 7 * 256] = 0xf0 - 9 + (i & 0xf);
-	
-				if ((i & 0xf) < 8)
-					translationtables[i + 8 * 256] = 0xe0 + (i & 0xf);	// yellow
-				else
-					translationtables[i + 8 * 256] = 0xa0 - 8 + (i & 0xf);
-	
-				translationtables[i + 9 * 256] = 0x80 + (i & 0xf);	// beige
-	
-				if ((i & 0xf) < 1)
-					translationtables[i + 10 * 256] = 0x04 + (i & 0xf);	// White
-				else
-					translationtables[i + 10 * 256] = 0x50 - 1 + (i & 0xf);
-	
-				translationtables[i + 11 * 256] = 0xd0 + (i & 0xf);	// orange
-				translationtables[i + 12 * 256] = 0x30 + (i & 0xf);	// Tan
-	
-				if ((i & 0xf) < 1)
-					translationtables[i + 13 * 256] = 0x05 + (i & 0xf);	// Black
-				else if ((i & 0xf) < 2)
-					translationtables[i + 13 * 256] = 0x05 - 1 + (i & 0xf);
-				else if ((i & 0xf) < 3)
-					translationtables[i + 13 * 256] = 0x05 - 2 + (i & 0xf);
-				else if ((i & 0xf) < 4)
-					translationtables[i + 13 * 256] = 0x05 - 3 + (i & 0xf);
-				else if ((i & 0xf) < 5)
-					translationtables[i + 13 * 256] = 0x06 - 4 + (i & 0xf);
-				else if ((i & 0xf) < 6)
-					translationtables[i + 13 * 256] = 0x06 - 5 + (i & 0xf);
-				else if ((i & 0xf) < 7)
-					translationtables[i + 13 * 256] = 0x06 - 6 + (i & 0xf);
-				else if ((i & 0xf) < 8)
-					translationtables[i + 13 * 256] = 0x06 - 7 + (i & 0xf);
-				else if ((i & 0xf) < 9)
-					translationtables[i + 13 * 256] = 0x07 - 8 + (i & 0xf);
-				else if ((i & 0xf) < 10)
-					translationtables[i + 13 * 256] = 0x07 - 9 + (i & 0xf);
-				else if ((i & 0xf) < 11)
-					translationtables[i + 13 * 256] = 0x07 - 10 + (i & 0xf);
-				else if ((i & 0xf) < 12)
-					translationtables[i + 13 * 256] = 0x07 - 11 + (i & 0xf);
-				else if ((i & 0xf) < 12)
-					translationtables[i + 13 * 256] = 0x08 - 12 + (i & 0xf);
-				else if ((i & 0xf) < 12)
-					translationtables[i + 13 * 256] = 0x08 - 13 + (i & 0xf);
-				else if ((i & 0xf) < 12)
-					translationtables[i + 13 * 256] = 0x08 - 14 + (i & 0xf);
-				else
-					translationtables[i + 13 * 256] = 0x08 - 15 + (i & 0xf);
-	
-				translationtables[i + 14 * 256] = 0x10 + (i & 0xf);	// Pink
-	
-				/*if ((i&0xf) < 4)
-				   translationtables [i+8*256] = 0x05 + (i&0xf); // Black
-				   else if ((i&0xf) < 8)
-				   translationtables [i+8*256] = 0x05-4 + (i&0xf); // Black
-				   else
-				   translationtables [i+8*256] = 0x05-8 + (i&0xf); // Black */
-				// Gotta do light gray
-			}
-	
-		}
-		else
-		{
-			// Keep all other colors as is.
-			for (j = 0; j < (MAXSKINCOLORS - 1) * 256; j += 256)
-				translationtables[i + j] = i;
-		}
+		// Read data from lump
+		WL_ReadData(Entry, 0, translationtables, 256 * (MAXSKINCOLORS - 1));
 	}
 	
-#endif
+	// Not found, do base translations (ouch)
+	else
+	{
+		// Just don't translate at all!
+		for (i = 0; i < 256 * (MAXSKINCOLORS - 1); i++)
+			translationtables[i] = i & 0xFF;
+	}
+	
+	/* Success */
+	return true;
+}
+
+/* R_InitTranslationTables() -- Loads translations for green and transparency */
+void R_InitTranslationTables(void)
+{
+	/* Register OCCB */
+	if (!WL_RegisterOCCB(RS_TransTableOCCB, 100))
+		I_Error("R_InitTranslationTables: Failed to register OCCB.");
 }
 
 // ==========================================================================
