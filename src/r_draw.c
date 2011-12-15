@@ -565,6 +565,7 @@ void R_InitViewBuffer(int width, int height)
 int viewborderlump[8];
 void R_InitViewBorder(void)
 {
+#if 0
 	viewborderlump[BRDR_T] = W_GetNumForName("brdr_t");
 	viewborderlump[BRDR_B] = W_GetNumForName("brdr_b");
 	viewborderlump[BRDR_L] = W_GetNumForName("brdr_l");
@@ -573,6 +574,7 @@ void R_InitViewBorder(void)
 	viewborderlump[BRDR_BL] = W_GetNumForName("brdr_bl");
 	viewborderlump[BRDR_TR] = W_GetNumForName("brdr_tr");
 	viewborderlump[BRDR_BR] = W_GetNumForName("brdr_br");
+#endif
 }
 
 //
@@ -621,7 +623,8 @@ void R_FillBackScreen(void)
 		
 	step = 8;
 	boff = 8;
-	
+
+#if 0
 	patch = W_CacheLumpNum(viewborderlump[BRDR_T], PU_CACHE);
 	for (x = 0; x < scaledviewwidth; x += step)
 		V_DrawPatch(viewwindowx + x, viewwindowy - boff, 1, patch);
@@ -643,6 +646,7 @@ void R_FillBackScreen(void)
 	V_DrawPatch(viewwindowx - boff, viewwindowy + viewheight, 1, W_CacheLumpNum(viewborderlump[BRDR_BL], PU_CACHE));
 	
 	V_DrawPatch(viewwindowx + scaledviewwidth, viewwindowy + viewheight, 1, W_CacheLumpNum(viewborderlump[BRDR_BR], PU_CACHE));
+#endif
 }
 
 //
