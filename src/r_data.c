@@ -75,7 +75,7 @@ fixed_t* spriteoffset;
 fixed_t* spritetopoffset;
 fixed_t* spriteheight;			//SoM
 
-lighttable_t* colormaps;
+lighttable_t* colormaps = NULL;
 
 //faB: for debugging/info purpose
 int flatmemory;
@@ -798,6 +798,10 @@ extern int numwadfiles;
 /* R_InitFlats() -- Initialize flats */
 void R_InitFlats()
 {
+	// GhostlyDeath <December 14, 2011> -- The flat code will be unified with
+	// the texture code. This will allow textures as flats and vice versa. It
+	// also helps unify it for future OpenGLization.
+#if 0
 	WadIndex_t startnum;
 	WadIndex_t endnum;
 	int onef;
@@ -845,6 +849,7 @@ void R_InitFlats()
 	
 	if (!numflatlists)
 		I_Error("R_InitFlats: No flats found!\n");
+#endif
 }
 
 /* R_GetFlatNumForName() -- Find flat by it's name */
@@ -916,24 +921,41 @@ void R_InitSpriteLumps(void)
 void R_InitExtraColormaps();
 void R_ClearColormaps();
 
-//
-// R_InitColormaps
-//
+/* RS_ColormapOCCB() -- Handles colormaps */
+static bool_t RS_ColormapOCCB(const bool_t a_Pushed, const struct WL_WADFile_s* const a_WAD)
+{
+	WL_WADEntry_t* Entry;
+	
+	/* Load base colormap */
+	Entry = WL_FindEntry(NULL, 0, "COLORMAP");
+	
+	// Found?
+	if (Entry)
+	{
+		// Free old colormap
+		if (colormaps)
+			Z_Free(colormaps);
+		
+		// Allocate new space
+		colormaps = Z_Malloc(Entry->Size, PU_STATIC, NULL);
+		WL_ReadData(Entry, 0, colormaps, Entry->Size);
+	}
+	
+	/* Boom Stuff */
+	R_ClearColormaps();
+	R_InitExtraColormaps();
+	
+	/* Success! */
+	return true;
+}
+
+/* R_InitColormaps() -- Loads all the colormaps */
+// GhostlyDeath <December 14, 2011> -- WLized
 void R_InitColormaps(void)
 {
-	int lump;
-	
-	// Load in the light tables,
-	// now 64k aligned for smokie...
-	lump = W_GetNumForName("COLORMAP");
-	colormaps = Z_MallocAlign(W_LumpLength(lump), PU_STATIC, 0, 16);
-	W_ReadLump(lump, colormaps);
-	
-	//SoM: 3/30/2000: Init Boom colormaps.
-	{
-		R_ClearColormaps();
-		R_InitExtraColormaps();
-	}
+	/* Register OCCB */
+	if (!WL_RegisterOCCB(RS_ColormapOCCB, 100))
+		I_Error("R_InitColormaps: Failed to register OCCB.");
 }
 
 int foundcolormaps[MAXCOLORMAPS];
