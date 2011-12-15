@@ -144,4 +144,6 @@ char* R_ColormapNameForNum(int num);
 
 void R_SetSpriteLumpCount(const size_t a_Count);
 
+#define WLTEXTUREKEY 0x72547854
+
 #endif

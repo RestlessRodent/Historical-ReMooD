@@ -828,6 +828,7 @@ bool_t WL_RegisterOCCB(WL_OrderCBFunc_t const a_Func, const uint8_t a_Order)
 {
 	WL_OCCB_t* New;
 	WL_OCCB_t* Temp;
+	WL_WADFile_t* Rover;
 	
 	/* Check */
 	if (!a_Func)
@@ -884,6 +885,13 @@ bool_t WL_RegisterOCCB(WL_OrderCBFunc_t const a_Func, const uint8_t a_Order)
 	/* Set info */
 	New->Func = a_Func;
 	New->Order = a_Order;
+	
+	// Call order for all WADs (to simulate order changes)
+	Rover = NULL;
+	while ((Rover = WL_IterateVWAD(Rover, true)))
+		if (!New->Func(true, Rover))
+			if (devparm)
+				CONS_Printf("WL_RegisterOCCB: Initial push simulate failed for \"%s\".\n", Rover->__Private.__DOSName);
 	
 	/* Success */
 	return true;
@@ -1073,6 +1081,7 @@ size_t WL_ReadData(const WL_WADEntry_t* const a_Entry, const size_t a_Offset, vo
 	size_t CorrectedSize;
 	
 	/* Check */
+	if (!a_Entry || !a_Out || !a_OutSize)
 		return 0;
 	
 	/* Get corrected size of read */

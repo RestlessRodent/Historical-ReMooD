@@ -363,12 +363,37 @@ void R_FlushTextureCache(void)
 		}
 }
 
-//
-// R_InitTextures
-// Initializes the texture list with the textures from the world map.
-// -- Need new texture code!!
+/* RS_TexturePDRemove() -- Remove loaded texture data */
+static void RS_TexturePDRemove(const struct WL_WADFile_s* a_WAD)
+{
+}
+
+/* RS_TexturePDCreate() -- Create texture data for WADs */
+static bool_t RS_TexturePDCreate(const struct WL_WADFile_s* const a_WAD, const uint32_t a_Key, void** const a_DataPtr, size_t* const a_SizePtr, WL_RemoveFunc_t* const a_RemoveFuncPtr)
+{
+	return false;
+}
+
+/* RS_TextureOrderChange() -- Order changed (rebuild composite) */
+static bool_t RS_TextureOrderChange(const bool_t a_Pushed, const struct WL_WADFile_s* const a_WAD)
+{
+	return false;
+}
+
+/* R_LoadTextures() -- Loads texture data information */
+// GhostlyDeath <December 14, 2011> -- Stubby
 void R_LoadTextures(void)
 {
+	/* Register order callbacks and generators */
+	// Generators first
+	if (!WL_RegisterPDC(WLTEXTUREKEY, 100, RS_TexturePDCreate, RS_TextureOrderChange))
+		I_Error("R_LoadTextures: Failed to register PDC.\n");
+	
+	// Order callback
+	if (!WL_RegisterOCCB(RS_TextureOrderChange, 75))
+		I_Error("R_LoadTextures: Failed to register OCCB.\n");
+
+#if 0
 	maptexture_t* mtexture;
 	texture_t* texture;
 	mappatch_t* mpatch;
@@ -678,6 +703,7 @@ void R_LoadTextures(void)
 	
 	for (i = 0; i < numtextures; i++)
 		texturetranslation[i] = i;
+#endif
 }
 
 /* R_CheckNumForNameList() -- Find flat */

@@ -50,6 +50,7 @@
 #define INITPARTCOUNT	256		// Initial partition count
 #define RIGHTSIZE		8		// Minimum size to allocate on right
 #define FORCEDMEMORYSIZE	(4U << 20)	// Minimum allowed auto memory
+#define ZPARTEXTRASIZE 16		// Extra size to waste on allocation
 
 /*****************
 *** STRUCTURES ***
@@ -65,6 +66,7 @@ typedef struct Z_MemPartition_s
 		size_t End;				// Partition end
 		size_t Size;			// Partition size
 		bool_t Used;			// Partition used
+		uint32_t* SelfRef;		// Self Reference Pointer
 	} Part;						// Partition Info
 	
 	/* Block Data */
@@ -169,6 +171,7 @@ bool_t ZP_NewZone(size_t* const SizePtr, Z_MemZone_t** const ZoneRef)
 	Part->Part.End = NewZone->TotalMemory;
 	Part->Part.Size = Part->Part.End - Part->Part.Start;
 	Part->Part.Used = false;
+	Part->Part.SelfRef = NewZone->DataChunk;
 	
 	memset(&Part->Block, 0, sizeof(Part->Block));	// Quick clear
 	
@@ -185,13 +188,16 @@ bool_t ZP_NewZone(size_t* const SizePtr, Z_MemZone_t** const ZoneRef)
 	return true;
 }
 
+void* ZP_PointerForPartition(Z_MemPartition_t* const Part, void** const a_BasePtrPtr);
+
 /* ZP_PartitionSplit() -- Splits a partition into two new pieces */
 void ZP_PartitionSplit(Z_MemPartition_t* const ToSplit, Z_MemPartition_t** const ResLeftPtr, Z_MemPartition_t** const ResRightPtr, const size_t Pos,
                        const bool_t AtEnd)
 {
-	size_t pI, SplitPos;
+	size_t pI, SplitPos, i;
 	Z_MemPartition_t Copy;
 	Z_MemPartition_t* NewList;
+	void* Base;
 	
 	/* Check */
 	if (!l_MainZone || !ToSplit || !ResLeftPtr || !ResRightPtr || !Pos)
@@ -274,31 +280,67 @@ void ZP_PartitionSplit(Z_MemPartition_t* const ToSplit, Z_MemPartition_t** const
 	(*ResRightPtr)->Part.Start = SplitPos;
 	(*ResRightPtr)->Part.End = Copy.Part.End;
 	(*ResRightPtr)->Part.Size = (*ResRightPtr)->Part.End - (*ResRightPtr)->Part.Start;
+	
+	/* Reset reference pointers */
+	for (i = pI + 1; i < l_MainZone->NumPartitions; i++)
+	{
+		ZP_PointerForPartition(&l_MainZone->PartitionList[i], &Base);
+		//fprintf(stderr, "ss %i -", *((uint32_t*)Base));
+		l_MainZone->PartitionList[i].Part.SelfRef = Base;
+		*((uint32_t*)Base) = i;
+		//fprintf(stderr, " %i\n", *((uint32_t*)Base));
+	}
 }
 
 /* ZP_PointerForPartition() -- Returns the pointer to the start of the partition */
-void* ZP_PointerForPartition(Z_MemPartition_t* const Part)
+// GhostlyDeath <December 14, 2011> -- Account for wasted size
+void* ZP_PointerForPartition(Z_MemPartition_t* const Part, void** const a_BasePtrPtr)
 {
+	uintptr_t Base;
+	
 	/* Check */
 	if (!l_MainZone || !Part)
 		return NULL;
 		
 	/* Return base zone plus the shifted size of partition */
-	return (void*)(((uintptr_t) l_MainZone->DataChunk) + (Part->Part.Start << PARTSHIFT));
+	Base = (((uintptr_t) l_MainZone->DataChunk) + (Part->Part.Start << PARTSHIFT));
+	
+	if (a_BasePtrPtr)
+		*a_BasePtrPtr = (void*)Base;
+	return (void*)Base + ZPARTEXTRASIZE;
 }
 
 /* ZP_FindPointerForPartition() -- Finds a pointer that was found in a partition (if any) */
+// GhostlyDeath <December 14, 2011> -- This function is slow!!!
 bool_t ZP_FindPointerForPartition(void* const Ptr, Z_MemPartition_t** const PartPtr)
 {
 	size_t i;
+	uintptr_t Back;
+	uint32_t* BackP;
 	Z_MemPartition_t* Part;
 	
 	/* Check */
 	if (!Ptr || !l_MainZone || !PartPtr)
 		return false;
 		
-	/* Did we grab a zone? */
-	// Search the zone partition by partition for this pointer
+	/* Search in main zone */
+	// Back slap and see if it works
+	Back = (uintptr_t)Ptr - ZPARTEXTRASIZE;
+	BackP = (uint32_t*)Back;
+	
+	// Check number and see if it is this block
+	if (*BackP < l_MainZone->NumPartitions)
+		if (l_MainZone->PartitionList[*BackP].Part.SelfRef == BackP)
+		{
+			Part = &l_MainZone->PartitionList[*BackP];
+			//fprintf(stderr, "Quickly %x\n", Part);
+			*PartPtr = Part;
+		
+			// Return for success
+			return true;
+		}
+	
+	// Search the zone partition by partition for this pointer (SLOW!)
 	for (i = 0; i < l_MainZone->NumPartitions; i++)
 	{
 		// Get local pointer
@@ -466,13 +508,14 @@ void* Z_MallocWrappee(const size_t Size, const Z_MemoryTag_t Tag, void** const R
 	void* RetVal;
 	bool_t AtEnd;
 	static int DeferLevel;
+	void* BasePtr;
 	
 	/* Clear some */
 	RetVal = NULL;
 	ResLeft = ResRight = New = Free = NULL;
 	
 	/* Size for shift */
-	ShiftSize = (Size >> PARTSHIFT) + 1;
+	ShiftSize = ((Size + ZPARTEXTRASIZE) >> PARTSHIFT) + 1;
 	
 	// Do we allocate at the end?
 	if (ShiftSize < RIGHTSIZE)
@@ -538,7 +581,7 @@ void* Z_MallocWrappee(const size_t Size, const Z_MemoryTag_t Tag, void** const R
 		New->Part.Used = true;
 		
 		// Set block info
-		New->Block.Ptr = ZP_PointerForPartition(New);
+		New->Block.Ptr = ZP_PointerForPartition(New, &BasePtr);
 		New->Block.Ref = Ref;
 		New->Block.Size = Size;
 		
