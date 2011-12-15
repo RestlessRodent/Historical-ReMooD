@@ -44,6 +44,26 @@ static uint32_t SwapUInt32(const uint32_t In)
 	return ((In & 0xFFU) << 24) | ((In & 0xFF00U) << 8) | ((In & 0xFF0000U) >> 8) | ((In & 0xFF000000U) >> 24);
 }
 
+/* LittleSwapuInt16() -- Swap 16-bits for little endien */
+static uint16_t LittleSwapUInt16(const uint16_t In)
+{
+#if defined(__BIG_ENDIAN__)
+	return ((In & 0xFFU) << 8) | ((In & 0xFF00U) >> 8);
+#else
+	return In;
+#endif
+}
+
+/* LittleSwapUInt32() -- Swap 32-bits for little endien */
+static uint32_t LittleSwapUInt32(const uint32_t In)
+{
+#if defined(__BIG_ENDIAN__)
+	return SwapUInt32(In);
+#else
+	return In;
+#endif
+}
+
 /****************
 *** CONSTANTS ***
 ****************/
@@ -509,9 +529,9 @@ static int Handler_PicT(struct LumpDir_s* const a_LumpDir, FILE* const File, con
 	memset(Pushy->Data, 0, Pushy->Size);
 	
 	/* Write Data to pic_t */
-	((uint16_t*)Pushy->Data)[0] = Image->Width;
+	((uint16_t*)Pushy->Data)[0] = LittleSwapUInt16(Image->Width);
 	((uint16_t*)Pushy->Data)[1] = 0;
-	((uint16_t*)Pushy->Data)[2] = Image->Height;
+	((uint16_t*)Pushy->Data)[2] = LittleSwapUInt16(Image->Height);
 	((uint16_t*)Pushy->Data)[3] = 0;
 	
 	for (i = 0; i < Image->Width * Image->Height; i++)
@@ -703,15 +723,15 @@ static int Handler_PatchT(struct LumpDir_s* const a_LumpDir, FILE* const File, c
 	
 	//fprintf(stderr, "%s a: %i %i\n", Args[0], atoi(Args[1]), atoi(Args[2]));
 	// Write Header
-	((int16_t*)Pushy->Data)[0] = Image->Width;
-	((int16_t*)Pushy->Data)[1] = Image->Height;
-	((int16_t*)Pushy->Data)[2] = atoi(Args[1]);
-	((int16_t*)Pushy->Data)[3] = atoi(Args[2]);
+	((int16_t*)Pushy->Data)[0] = LittleSwapUInt16(Image->Width);
+	((int16_t*)Pushy->Data)[1] = LittleSwapUInt16(Image->Height);
+	((int16_t*)Pushy->Data)[2] = LittleSwapUInt16(atoi(Args[1]));
+	((int16_t*)Pushy->Data)[3] = LittleSwapUInt16(atoi(Args[2]));
 	
 	// Write Column offsets
 	Bar = 8 + (4 * Image->Width);
 	for (i = 0; i < Image->Width; i++)
-		((int32_t*)Pushy->Data)[2 + i] = Bar + ColOffs[i];
+		((int32_t*)Pushy->Data)[2 + i] = LittleSwapUInt32(Bar + ColOffs[i]);
 	
 	// Write Image data here
 	memmove(&Pushy->Data[Bar], PostBuf, PostSpot);
@@ -783,11 +803,11 @@ static int Handler_Sound(struct LumpDir_s* const a_LumpDir, FILE* const File, co
 		fread(&Channels, 4, 1, File);
 		
 		// Byte swap
-		Offset = SwapUInt32(Offset);
-		AUSize = SwapUInt32(AUSize);
-		Mode = SwapUInt32(Mode);
-		Rate = SwapUInt32(Rate);
-		Channels = SwapUInt32(Channels);
+		Offset = LittleSwapUInt32(SwapUInt32(Offset));
+		AUSize = LittleSwapUInt32(SwapUInt32(AUSize));
+		Mode = LittleSwapUInt32(SwapUInt32(Mode));
+		Rate = LittleSwapUInt32(SwapUInt32(Rate));
+		Channels = LittleSwapUInt32(SwapUInt32(Channels));
 		
 		// Check if mode is not 2 (only these are supported)
 		if (Mode != 2)
@@ -804,8 +824,8 @@ static int Handler_Sound(struct LumpDir_s* const a_LumpDir, FILE* const File, co
 		
 		i = 0;
 		((uint16_t*)Pushy->Data)[i++] = 3;
-		((uint16_t*)Pushy->Data)[i++] = Rate;
-		((uint16_t*)Pushy->Data)[i++] = (SampleCount < 65535 ? SampleCount : 65535);
+		((uint16_t*)Pushy->Data)[i++] = LittleSwapUInt16(Rate);
+		((uint16_t*)Pushy->Data)[i++] = LittleSwapUInt16((SampleCount < 65535 ? SampleCount : 65535));
 		((uint16_t*)Pushy->Data)[i++] = 0;
 		
 		i += 4;	// For shorts
@@ -1088,6 +1108,7 @@ int main(int argc, char** argv)
 	LumpType_t Type = 0, NewType;
 	size_t LumpSize;
 	PushyData_t Push;
+	uint32_t u32;
 	
 	/* Check */
 	if (argc < 3)
@@ -1287,8 +1308,12 @@ int main(int argc, char** argv)
 	/* Create WAD */
 	// Create header
 	fwrite("PWAD", 4, 1, OutWAD);
-	fwrite(&l_NumEntries, 4, 1, OutWAD);
-	fwrite(&l_TableSpot, 4, 1, OutWAD);
+	
+	u32 = LittleSwapUInt32(l_NumEntries);
+	fwrite(&u32, 4, 1, OutWAD);
+	
+	u32 = LittleSwapUInt32(l_TableSpot);
+	fwrite(&u32, 4, 1, OutWAD);
 	
 	// Write entry data
 	for (i = 0; i < l_NumEntries; i++)
@@ -1297,8 +1322,12 @@ int main(int argc, char** argv)
 	// Write table
 	for (i = 0; i < l_NumEntries; i++)
 	{
-		fwrite(&l_Entries[i].Offset, 4, 1, OutWAD);
-		fwrite(&l_Entries[i].Size, 4, 1, OutWAD);
+		u32 = LittleSwapUInt32(l_Entries[i].Offset);
+		fwrite(&u32, 4, 1, OutWAD);
+		
+		u32 = LittleSwapUInt32(l_Entries[i].Size);
+		fwrite(&u32, 4, 1, OutWAD);
+		
 		fwrite(l_Entries[i].Name, 8, 1, OutWAD);
 	}
 	
