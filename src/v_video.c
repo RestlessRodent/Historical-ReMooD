@@ -3027,6 +3027,10 @@ void V_RenderPD(V_PDString_t* const PDStr);
 ********************************************************************************
 *******************************************************************************/
 
+#define VWLIMAGEKEY	0x8C064303					// Key for private data
+
+/*** STRUCTURES ***/
+
 /* V_Image_t -- A single image */
 struct V_Image_s
 {
@@ -3045,8 +3049,6 @@ struct V_Image_s
 	uint32_t				NameHash;			// Hash for the name (if applicable)
 	
 	/* WAD Related */
-	struct WadEntry_s*		wOld;				// Old WAD access (W)
-	struct WX_WADEntry_s*	wDep;				// Deprecated WAD Access (WX)
 	struct WL_WADEntry_s*	wData;				// New WAD Access (WL)
 	
 	/* Data */
@@ -3059,6 +3061,118 @@ struct V_Image_s
 	struct V_Image_s*		iNext;				// Next image
 };
 
+/* V_WLImageHolder_t -- Holds linked list for images, per WAD */
+typedef struct V_WLImageHolder_s
+{
+	V_Image_t* ImageChain;						// Image changes for this WAD
+	Z_HashTable_t* ImageHashes;					// Quickly find ASCII images
+} V_WLImageHolder_t;
+
+/*** LOCALS ***/
+
+static bool_t l_VSImageBooted = false;
+
+/*** FUNCTIONS ***/
+
+/* VS_HashImageCompare() -- Compares hash with image */
+bool_t VS_HashImageCompare(void* const a_A, void* const a_B)
+{
+	return false;
+}
+
+/* VS_WLImagePDC() -- Creates image containers */
+static bool_t VS_WLImagePDC(const struct WL_WADFile_s* const a_WAD, const uint32_t a_Key, void** const a_DataPtr, size_t* const a_SizePtr, WL_RemoveFunc_t* const a_RemoveFuncPtr)
+{
+	V_WLImageHolder_t* HI;
+	
+	/* Allocate */
+	*a_SizePtr = sizeof(V_WLImageHolder_t);
+	HI = *a_DataPtr = Z_Malloc(*a_SizePtr, PU_STATIC, NULL);
+	
+	/* Create hash table there */
+	HI->ImageHashes = Z_HashCreateTable(VS_HashImageCompare);
+	
+	return true;
+}
+
+/* VS_WLImagePDCRemove() -- Removes image containers */
+static void VS_WLImagePDCRemove(const struct WL_WADFile_s* a_WAD)
+{
+	V_WLImageHolder_t* HI;
+	
+	/* Obtain */
+	HI = WL_GetPrivateData(a_WAD, VWLIMAGEKEY, NULL);
+	
+	/* Check */
+	if (!HI)
+		return;
+		
+	/* Clean up after WAD */
+	// Constant image killing
+	while (HI->ImageChain)
+		V_ImageDestroy(HI->ImageChain);
+	
+	// Delete hash table
+	Z_HashDeleteTable(HI->ImageHashes);
+}
+
+/* VS_InitialBoot() -- Initial startup */
+static void VS_InitialBoot(void)
+{
+	/* Register data loader */
+	if (!WL_RegisterPDC(VWLIMAGEKEY, 125, VS_WLImagePDC, VS_WLImagePDCRemove))
+		I_Error("VS_InitialBoot: Failed to register PDC!");
+	
+	/* Booted up! */
+	l_VSImageBooted = true;
+}
+
+/* V_ImageLoadE() -- Loads a specific entry as an image */
+V_Image_t* V_ImageLoadE(WL_WADEntry_t* const a_Entry)
+{
+	/* Check */
+	if (!a_Entry)
+		return NULL;
+	
+	/* Booted? */
+	if (!l_VSImageBooted)
+		VS_InitialBoot();
+}
+
+/* V_ImageFindA() -- Loads an image by name */
+// Essentially a wrapper around V_ImageLoadE()
+V_Image_t* V_ImageFindA(const char* const a_Name)
+{
+	WL_WADFile_t* Rover;
+	
+	/* Check */
+	if (!a_Name)
+		return NULL;
+		
+	/* Booted? */
+	if (!l_VSImageBooted)
+		VS_InitialBoot();
+	
+	/* Go through each WAD */
+	Rover = NULL;
+	while ((Rover = WL_IterateVWAD(Rover, false)))
+	{
+	}
+}
+
+/* V_ImageDestroy() -- Destroys an image */
+void V_ImageDestroy(V_Image_t* const a_Image)
+{
+}
+
+int32_t V_ImageUsage(V_Image_t* const a_Image, const bool_t a_Use);
+
+// Get data for a specific format
+const struct patch_s* V_ImageGetPatch(V_Image_t* const a_Image);
+const struct pic_s* V_ImageGetPic(V_Image_t* const a_Image);
+uint8_t* V_ImageGetRaw(V_Image_t* const a_Image);
+
+#if 0
 static V_Image_t* l_ImageChain = NULL;			// Loaded images
 
 // For hashes a delete function is required!
@@ -3194,6 +3308,8 @@ uint8_t* V_ImageGetRaw(V_Image_t* const a_Image)
 {
 	return NULL;
 }
+
+#endif
 
 /* V_ImageDrawScaled() -- Draws the image with specific scaling */
 // This is the core implementation (all others call this one)
