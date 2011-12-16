@@ -374,10 +374,8 @@ void V_RenderPD(V_PDString_t* const PDStr);
 typedef struct V_Image_s V_Image_t;
 
 // Load and Destroy
-V_Image_t* V_ImageLoadA(const char* const a_Name);
-V_Image_t* V_ImageLoadI(const WadIndex_t a_Index);
+V_Image_t* V_ImageLoadE(WL_WADEntry_t* const a_Entry);
 V_Image_t* V_ImageFindA(const char* const a_Name);
-V_Image_t* V_ImageFindI(const WadIndex_t a_Index);
 void V_ImageDestroy(V_Image_t* const a_Image);
 
 // Access

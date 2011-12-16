@@ -1,12 +1,17 @@
 // -----------------------------------------------------------------------------
-// ########   ###### #####   #####  ######   ######  ######
-// ##     ##  ##     ##  ## ##  ## ##    ## ##    ## ##   ##
-// ##     ##  ##     ##   ###   ## ##    ## ##    ## ##    ##
-// ########   ####   ##    #    ## ##    ## ##    ## ##    ##
-// ##    ##   ##     ##         ## ##    ## ##    ## ##    ##
-// ##     ##  ##     ##         ## ##    ## ##    ## ##   ##
-// ##      ## ###### ##         ##  ######   ######  ######
-//                      http://remood.org/
+//         :oCCCCOCoc.
+//     .cCO8OOOOOOOOO8Oo:
+//   .oOO8OOOOOOOOOOOOOOOCc
+//  cO8888:         .:oOOOOC.                                                TM
+// :888888:   :CCCc   .oOOOOC.     ###      ###                    #########
+// C888888:   .ooo:   .C########   #####  #####  ######    ######  ##########
+// O888888:         .oO###    ###  #####  ##### ########  ######## ####    ###
+// C888888:   :8O.   .C##########  ### #### ### ##    ##  ##    ## ####    ###
+// :8@@@@8:   :888c   o###         ### #### ### ########  ######## ##########
+//  :8@@@@C   C@@@@   oo########   ###  ##  ###  ######    ######  #########
+//    cO@@@@@@@@@@@@@@@@@Oc0
+//      :oO8@@@@@@@@@@Oo.
+//         .oCOOOOOCc.                                      http://remood.org/
 // -----------------------------------------------------------------------------
 // Copyright (C) 2011 GhostlyDeath <ghostlydeath@remood.org>
 // -----------------------------------------------------------------------------
@@ -39,11 +44,13 @@ WADProperty "Doom2"
 	ReleaseDate "";
 	Type "IWAD";
 	FileName "doom2.wad";
+	CoreGame "doom";
 	GameMode "commercial";
 	GameMission "doom2";
 	MapInfo "MI_DOOM2";
 	
 	// Identification
+	IdSS "6ff4def4bd24c6943540c790fbfe2642";
 	IdSHA512 "32f720c85134da7bee3a7d6cd18c98dae7c6a0cb821a9f05fe28eeb055c97f40cc73fd336b6ba3d9be8fd39072129829e458769b3ed3c2fa298d3ec8b9805c6d";
 	IdSHA384 "2f802064dd58b27a87d77a30597481b89710afa799796c5dd803eb26935c13c1fccecd6dc7de51a897fcc3ac1260d45d";
 	IdSHA256 "10d67824b11025ddd9198e8cfc87ca335ee6e2d3e63af4180fa9b8a471893255";
@@ -99,6 +106,70 @@ Menu "Root"
 		String "MENU_MAIN_QUITGAME";
 		Function "QuitDoom";
 	}
+}
+
+// ******************
+// *** STATUS BAR ***
+// ******************
+
+StatusBar "Doom"
+{
+	// Fonts
+	BigNumberFont "sbnumbers";
+	AmmoFont "statusbar";
+	ArmsFont "statusbar";
+	
+	// Graphical related stuff
+	FaceProbability "0.375";
+	BaseXPos "143";
+	
+	FaceXPos "143";
+	FaceYPos "0";
+	
+	AmmoWidth "3";
+	AmmoXPos "44";
+	AmmoYPos "3";
+	
+	HealthWidth "3";
+	HealthXPos "90";
+	HealthYPos "3";
+	
+	ArmsXPos "111";
+	ArmsYPos "4";
+	ArmsBGXPos "104";
+	ArmsBGYPos "0";
+	ArmsXSpace "12";
+	ArmsYSpace "10";
+	
+	FragsWidth "2";
+	FragsXPos "138";
+	FragsYPos "3";
+	
+	ArmorWidth "3";
+	ArmorXPos "221";
+	ArmorYPos "3";
+	
+	BackpackWidth "3";
+	BackpackHeight "6";
+	Backpack0XPos "288";
+	Backpack0YPos "5";
+	Backpack1XPos "288";
+	Backpack1YPos "11";
+	Backpack2XPos "288";
+	Backpack2YPos "23";
+	Backpack3XPos "288";
+	Backpack3YPos "17";
+	
+	BackpackMaxWidth "3";
+	BackpackMaxHeight "5";
+	BackpackMax0XPos "314";
+	BackpackMax0YPos "5";
+	BackpackMax1XPos "314";
+	BackpackMax1YPos "11";
+	BackpackMax2XPos "314";
+	BackpackMax2YPos "23";
+	BackpackMax3XPos "314";
+	BackpackMax3YPos "17";
 }
 
 // *****************
