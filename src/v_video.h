@@ -304,7 +304,7 @@ void V_WXMapGraphicCharsComposite(WX_WADFile_t* const a_VWAD);
 void V_WXClearGraphicCharsComposite(void);
 
 /* Misc */
-uint16_t V_ExtMBToWChar(const char* a_MBChar, size_t* const a_BSkip);
+uint16_t V_ExtMBToWChar(const char* MBChar, size_t* const BSkip);
 size_t V_ExtWCharToMB(const uint16_t a_WChar, char* const a_MB);
 int V_FontHeight(const VideoFont_t a_Font);
 int V_FontWidth(const VideoFont_t a_Font);

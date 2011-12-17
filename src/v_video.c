@@ -1903,7 +1903,7 @@ static V_FontInfo_t l_LocalFonts[NUMVIDEOFONTS] =
 
 static V_UniChar_t*** l_CGroups[NUMVIDEOFONTS];		// Composite group
 static V_UniChar_t* l_UnknownLink[NUMVIDEOFONTS];	// Unknown character for each font
-static V_FontInfo_t* l_FontRemap[NUMVIDEOFONTS];	// Remaps for each font
+static size_t l_FontRemap[NUMVIDEOFONTS];	// Remaps for each font
 
 /*** FUNCTIONS ***/
 
@@ -2363,6 +2363,25 @@ static bool_t VS_FontOCCB(const bool_t a_Pushed, const struct WL_WADFile_s* cons
 		}
 	}
 	
+	// Create local mapping (most of them are 1:1)
+	for (f = 0; f < NUMVIDEOFONTS; f++)
+		l_FontRemap[f] = f;
+	
+	// However based on the current detected game mode...
+		// Heretic?
+	if (g_CoreGame == COREGAME_HERETIC)
+	{
+		l_FontRemap[VFONT_SMALL] = VFONT_SMALL_HERETIC;
+		l_FontRemap[VFONT_LARGE] = VFONT_LARGE_HERETIC;
+	}
+	
+		// Always assume Doom then
+	else
+	{
+		l_FontRemap[VFONT_SMALL] = VFONT_SMALL_DOOM;
+		l_FontRemap[VFONT_LARGE] = VFONT_LARGE_DOOM;
+	}
+	
 #if 0
 	/* Dynamic */
 	uint32_t NumChars;						// Number of actual characters
@@ -2397,27 +2416,233 @@ void V_MapGraphicalCharacters(void)
 }
 
 /* V_ExtMBToWChar() -- Converts MB to wchar_t */
-uint16_t V_ExtMBToWChar(const char* a_MBChar, size_t* const a_BSkip)
+uint16_t V_ExtMBToWChar(const char* MBChar, size_t* const BSkip)
 {
-	return 0;
+	size_t n;
+	uint16_t Feed = 0, Safe;
+	
+	/* Check */
+	if (!MBChar)
+		return 0xFFFD;
+		
+	/* Get length of character */
+	n = strlen(MBChar);
+	
+	// Double check
+	if (!n)
+		return 0;
+		
+	/* Convert in stages (I think) */
+	// Single byte
+	if (n == 1 || !(*MBChar & 0x80))
+	{
+		if (BSkip)
+			*BSkip = 1;
+			
+		// Get safe character
+		Safe = *MBChar & 0x7F;
+		
+		// Special '{' Sequence?
+		if (n > 1 && *MBChar == '{')
+		{
+			// Get next character
+			MBChar++;
+			Feed = tolower(*MBChar);
+			
+			// Between 0-9 a-z?
+			if ((Feed >= '0' && Feed <= '9') || (Feed >= 'a' && Feed <= 'z'))
+			{
+				if (Feed >= '0' && Feed <= '9')
+					Feed = 0xF100U | (Feed - '0');
+				else
+					Feed = 0xF100U | (10 + (Feed - 'a'));
+					
+				if (BSkip)
+					*BSkip = 2;
+					
+				return Feed;
+			}
+			// Is it another {? semi-scape
+			else if (n > 2 && *MBChar == '{')
+			{
+				MBChar++;
+				Feed = tolower(*MBChar);
+				
+				// Between 0-9 a-z?
+				if ((Feed >= '0' && Feed <= '9') || (Feed >= 'a' && Feed <= 'z'))
+				{
+					// Skip to letter after
+					if (BSkip)
+						*BSkip = 2;
+						
+					// Return explicit '{'
+					return '{';
+				}
+			}
+		}
+		// Normal
+		return Safe;
+	}
+	
+	// Double byte
+	else if (n == 2 || (*MBChar & 0xE0) == 0xC0)
+	{
+		Feed = (*MBChar & 0x1F);
+		Feed <<= 6;
+		MBChar++;
+		
+		Feed |= (*MBChar & 0x3F);
+		
+		if (BSkip)
+			*BSkip = 2;
+		return Feed;
+	}
+	
+	// Triple byte
+	else if (n == 3 || (*MBChar & 0xF0) == 0xE0)
+	{
+		Feed = (*MBChar & 0x0F);
+		Feed <<= 6;
+		MBChar++;
+		
+		Feed |= (*MBChar & 0x3F);
+		Feed <<= 6;
+		MBChar++;
+		
+		Feed |= (*MBChar & 0x3F);
+		
+		if (BSkip)
+			*BSkip = 3;
+		return Feed;
+	}
+	
+	// Quad uint8_t (requires 32-bit wchar_t)
+	else if (sizeof(uint16_t) >= 4 && (n == 4 || (*MBChar & 0xF8) == 0xF0))
+	{
+		Feed = (*MBChar & 0x07);
+		Feed <<= 6;
+		MBChar++;
+		
+		Feed |= (*MBChar & 0x3F);
+		Feed <<= 6;
+		MBChar++;
+		
+		Feed |= (*MBChar & 0x3F);
+		Feed <<= 6;
+		MBChar++;
+		
+		Feed |= (*MBChar & 0x3F);
+		
+		if (BSkip)
+			*BSkip = 4;
+		return Feed;
+	}
+	
+	// Fail
+	else
+	{
+		if (BSkip)
+			*BSkip = 1;
+		return 0;
+	}
 }
 
 /* V_ExtWCharToMB() -- Converts wchar_t to MB */
 size_t V_ExtWCharToMB(const uint16_t a_WChar, char* const a_MB)
 {
+	unsigned char* MBx;
+	uint16_t WChar = a_WChar;
+	
+	/* Check */
+	if (!a_MB)
+		return 0;
+		
+	/* Set */
+	MBx = (unsigned char*)a_MB;
+	
+	/* Convert in steps */
+	// Special
+	if (WChar >= 0xF100 && WChar <= (0xF100 + 10 + ('z' - 'a')))
+	{
+		MBx[0] = '{';
+		MBx[1] = (WChar - 0xF100);
+		MBx[2] = 0;
+		
+		// Normalize
+		if (MBx[1] > 10)
+			MBx[1] = (MBx[1] - 10) + 'a';
+		else
+			MBx[1] += '0';
+		
+		return 2;
+	}
+	
+	// Single byte
+	else if (WChar >= 0x0000 && WChar <= 0x007F)
+	{
+		MBx[0] = WChar & 0x7F;
+		MBx[1] = 0;
+		
+		return 1;
+	}
+	
+	// Double byte
+	else if (WChar >= 0x0080 && WChar <= 0x07FF)
+	{
+		MBx[0] = 0xC0 | (WChar >> 6);
+		MBx[1] = 0x80 | (WChar & 0x3F);
+		MBx[2] = 0;
+		
+		return 2;
+	}
+	
+	// Triple byte
+	else if (WChar >= 0x8000 && WChar <= 0xFFFF)
+	{
+		MBx[0] = 0xE0 | (WChar >> 12);
+		MBx[1] = 0x80 | ((WChar >> 6) & 0x3F);
+		MBx[2] = 0x80 | (WChar & 0x3F);
+		MBx[3] = 0;
+		
+		return 3;
+	}
+	
+	// Quad-uint8_t (Requires 32-bit uint16_t)
+	else if (sizeof(uint16_t) >= 4 && (WChar >= 0x010000 && WChar <= 0x10FFFF))
+	{
+		MBx[0] = 0xF0 | (WChar >> 18);
+		MBx[1] = 0x80 | ((WChar >> 12) & 0x3F);
+		MBx[2] = 0x80 | ((WChar >> 6) & 0x3F);
+		MBx[3] = 0x80 | (WChar & 0x3F);
+		MBx[4] = 0;
+		
+		return 4;
+	}
+	
+	/* Failed */
 	return 0;
 }
 
 /* V_FontHeight() -- Returns the height of the font */
 int V_FontHeight(const VideoFont_t a_Font)
 {
-	return 0;
+	/* Check */
+	if (a_Font < 0 || a_Font >= NUMVIDEOFONTS)
+		return 0;
+	
+	/* Return average height */
+	return l_LocalFonts[l_FontRemap[a_Font]].CharHeight;
 }
 
 /* V_FontWidth() -- Returns the width of the font */
 int V_FontWidth(const VideoFont_t a_Font)
 {
-	return 0;
+	/* Check */
+	if (a_Font < 0 || a_Font >= NUMVIDEOFONTS)
+		return 0;
+	
+	/* Return average height */
+	return l_LocalFonts[l_FontRemap[a_Font]].CharWidth;
 }
 
 /* V_DrawCharacterMB() -- Draws multi-byte character */
@@ -2429,7 +2654,14 @@ int V_DrawCharacterMB(const VideoFont_t a_Font, const uint32_t a_Options, const 
 /* V_DrawCharacterA() -- Draws a single ASCII character */
 int V_DrawCharacterA(const VideoFont_t a_Font, const uint32_t a_Options, const char a_Char, const int a_x, const int a_y)
 {
-	return 0;
+	char MB[2];
+	
+	/* Convert to MB */
+	MB[0] = a_Char;
+	MB[1] = 0;
+	
+	/* Draw and return */
+	return V_DrawCharacterMB(a_Font, a_Options, MB, a_x, a_y, NULL, NULL);
 }
 
 /* V_DrawStringA() -- Draws a string */
