@@ -3403,11 +3403,14 @@ const struct patch_s* V_ImageGetPatch(V_Image_t* const a_Image)
 	// Just load it from the WAD data
 	if (a_Image->NativeType == VIT_PATCH)
 	{
+		// Load the patch_t in an endian friendly and structure size friendly
+		// way. So even if there is structure padding, it still works!
 	} 
 	
 	/* If the image is not a patch_t */
 	else
 	{
+		// Obtain the raw image, then postize it simply
 	}
 	
 	/* Failure */
@@ -3493,11 +3496,20 @@ uint8_t* V_ImageGetRaw(V_Image_t* const a_Image)
 		// If the native type is a pic_t, translation is easy
 		if (a_Image->NativeType == VIT_PIC)
 		{
+			// Allocate buffer
+			a_Image->dRaw = Z_Malloc((a_Image->PixelCount + 1) * sizeof(uint8_t), PU_STATIC, (void**)&a_Image->dRaw);
+		
+			// Load WAD data straight into buffer with offset
+			WL_ReadData(a_Image->wData, 8, a_Image->dRaw, a_Image->PixelCount * sizeof(uint8_t));
+		
+			// Return the raw image
+			return a_Image->dRaw;
 		}
 		
 		// Otherwise if it is a patch_t, translation is required
 		else if ((a_Image->NativeType == VIT_PATCH)
 		{
+			// Draw the patch into a buffer
 		}
 	}
 	
@@ -3648,9 +3660,64 @@ uint8_t* V_ImageGetRaw(V_Image_t* const a_Image)
 // This is the core implementation (all others call this one)
 void V_ImageDrawScaled(const uint32_t a_Flags, V_Image_t* const a_Image, const int32_t a_X, const int32_t a_Y, const fixed_t a_XScale, const fixed_t a_YScale, const uint8_t* const a_ExtraMap)
 {
+	uint8_t* RawData;
+	int32_t x, y, w, h;
+	
+	int32_t sX, sY, tW, tY;
+	uint8_t* dP;
+	uint8_t* sP;
+	
 	/* Check */
 	if (!a_Image)
 		return;
+	
+	/* Determine the position to draw at */
+	// Add image offsets
+	x = a_X + a_Image->Offset[0];
+	y = a_Y + a_Image->Offset[1];
+	
+	// Scale start position?
+	if (!((a_Flags & VEX_NOSCALESTART) ||	// Don't scale at all
+		((a_Flags & VEX_NOSCALE160160) && (vid.width < BASEVIDWIDTH || vid.height < BASEVIDHEIGHT))))	// Don't scale on low-res
+	{
+		// Fixed point scale
+		if (a_Flags & VEX_NOFLOATSCALE)
+		{
+			x = FixedMul(x << FRACBITS, vid.fxdupx) >> FRACBITS;
+			y = FixedMul(y << FRACBITS, vid.fxdupy) >> FRACBITS;
+		}
+		
+		// Floating point scale
+		else
+		{
+			x = (double)x * vid.fdupx;
+			y = (double)y * vid.fdupy;
+		}
+	}
+	
+	/* Determine actual width to draw */
+	tW = FixedMul(a_Image->Width << FRACBITS, a_XScale) >> FRACBITS;
+	tY = FixedMul(a_Image->Height << FRACBITS, a_YScale) >> FRACBITS;
+	
+	/* If the image is a patch_t then draw it as a patch */
+	// Since patches have "holes" for transparency
+	if (a_Image->NativeType == VIT_PATCH)
+	{
+	}
+	
+	/* Otherwise, treat it as a raw image */
+	else
+	{
+		// Load data
+		RawData = V_ImageGetRaw(a_Image);
+		
+		// Check
+		if (!RawData)
+			return;	// oops!
+		
+		// Drawer loop
+		sP = RawData;
+	}
 	
 	/* Check to see if the image needs probing */
 	/*if (!a_Image->dPatch && !a_Image->dPic && !a_Image->dRaw)
@@ -3660,10 +3727,48 @@ void V_ImageDrawScaled(const uint32_t a_Flags, V_Image_t* const a_Image, const i
 /* V_ImageDrawTiled() -- Draws the image tiled (i.e. flat fill) */
 void V_ImageDrawTiled(const uint32_t a_Flags, V_Image_t* const a_Image, const int32_t a_X, const int32_t a_Y, const uint32_t a_Width, const uint32_t a_Height, const uint8_t* const a_ExtraMap)
 {
+	/* Check */
+	if (!a_Image)
+		return;
 }
 
 /* V_ImageDraw() -- Draws an image */
 void V_ImageDraw(const uint32_t a_Flags, V_Image_t* const a_Image, const int32_t a_X, const int32_t a_Y, const uint8_t* const a_ExtraMap)
 {
+	fixed_t xScale, yScale;
+	
+	/* Check */
+	if (!a_Image)
+		return;
+	
+	/* Based on flags, determine how to call V_DrawImageScaled() */
+	// Don't scale to screen
+	if ((a_Flags & VEX_NOSCALESCREEN) ||	// Don't scale at all
+		((a_Flags & VEX_NOSCALE160160) && (vid.width < BASEVIDWIDTH || vid.height < BASEVIDHEIGHT)))	// Don't scale on low-res
+	{
+		xScale = 1 << FRACBITS;
+		yScale = 1 << FRACBITS;
+	}
+	
+	// Scale to screen
+	else
+	{
+		// Fixed point scalar
+		if (a_Flags & VEX_NOFLOATSCALE)
+		{
+			xScale = vid.fxdupx;
+			yScale = vid.fxdupy;
+		}
+		
+		// Floating point scalar
+		else
+		{
+			xScale = vid.fdupx;
+			yScale = vid.fdupy;
+		}
+	}
+	
+	/* That is basically everything */
+	V_ImageDrawScaled(a_Flags, a_Image, a_X, a_Y, xScale, yScale, NULL);
 }
 
