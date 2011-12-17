@@ -3047,8 +3047,10 @@ typedef enum V_ImageType_e
 struct V_Image_s
 {
 	/* Info */
-	uint32_t				Width;				// Image width
-	uint32_t				Height;				// Image height
+	int32_t					Width;				// Image width
+	int32_t					Height;				// Image height
+	int32_t					Offset[2];			// Image offsets
+	
 	uint32_t				PixelCount;			// Number of pixels in image
 	int32_t					TotalUsage;			// Total usage
 	int32_t					UseCount[3];		// Usage count for data (patch, pic, raw)
@@ -3155,7 +3157,13 @@ static void VS_InitialBoot(void)
 V_Image_t* V_ImageLoadE(const WL_WADEntry_t* const a_Entry)
 {
 #define HEADERSIZE 12
-	uint16_t Header[HEADERSIZE];
+	int16_t Header[HEADERSIZE];
+	int32_t Conf[NUMVIMAGETYPES];
+	uint32_t* Offs, TableEnd;
+	size_t i, Best;
+	V_Image_t* New;
+	V_Image_t* Rover;
+	V_WLImageHolder_t* HI;
 	
 	/* Check */
 	if (!a_Entry)
@@ -3172,6 +3180,147 @@ V_Image_t* V_ImageLoadE(const WL_WADEntry_t* const a_Entry)
 	/* Read header from entry */
 	memset(Header, 0, sizeof(Header));
 	WL_ReadData(a_Entry, 0, Header, sizeof(Header));
+	
+	// Byte swap for big endian
+	for (i = 0; i < HEADERSIZE; i++)
+		Header[i] = LittleSwapInt16(Header[i]);
+	
+	/* Attempt to determine which kind of image this is */
+	// Thing is, there is no magic available to detect these kinds of things.
+	// However, images could be detected based on validity.
+	// pic_ts are   {w 0 h 0 data}
+	// patch_ts are {w h x y cols}
+	// Raw pictures such as flats have no descernable header
+	// However, the good thing is that all the header info is signed, so any
+	// negative value would invalidate it.
+	// Like the IWAD finding stuff, this will be confidence based since it
+	// usually is reliable in a chaotic world.
+	memset(Conf, 0, sizeof(Conf));
+	
+	// Determine if the image is a pic_t (this is pretty much it)
+	if ((Header[0] > 0 && Header[2] > 0) &&		// w/h > 0
+		(Header[1] == 0 && Header[3] == 0))		// resv and zero
+		Conf[VIT_PIC] += 75;
+	
+	// Determine if the image is a patch_t
+	if (Header[0] > 0 && Header[1] > 0)			// w/h > 0
+	{
+		// Not as confident as a pic_t
+		Conf[VIT_PATCH] += 50;
+		
+		// However, I can now look at the offset table to see if it is even
+		// valid at all. For every valid offset +5, for every invalid -7.
+		Offs = Z_Malloc(sizeof(*Offs) * Header[0], PU_STATIC, NULL);
+		
+		// Offsets that point at or below the actual place where data is stored
+		// are invalid (would be garbage). So with this, any offset below this
+		// point would be invalid.
+		TableEnd = 8 + (2 * Header[0]);
+		
+		// Read offset table
+		WL_ReadData(a_Entry, 8, Offs, sizeof(uint32_t) * Header[0]);
+		
+		// Byte swap values in table (for BE systems)
+		for (i = 0; i < Header[0]; i++)
+			Offs[i] = LittleSwapUInt32(Offs[i]);
+		
+		// Go through the table
+		for (i = 0; i < Header[0]; i++)
+			// Is it a valid offset?
+			if (Offs[i] < a_Entry->Size && Offs[i] >= TableEnd)
+				Conf[VIT_PATCH] += 5;
+			else
+				Conf[VIT_PATCH] -= 7;
+		
+		// Free offsets
+		Z_Free(Offs);
+	}
+	
+	// Determine if the image is a raw image
+	// The only raw images that ever get accessed would be flats really (ouch)
+	if (a_Entry->Size == 4096)
+		Conf[VIT_RAW] += 25;	// Not really that confident
+	
+	/* Find the most confident match */
+	for (Best = 0, i = 0; i < NUMVIMAGETYPES; i++)
+		// Better than best?
+		if (Conf[i] > Conf[Best])
+			Best = i;
+	
+	/* Based on the most confident version... */
+	// Create blank image
+	New = Z_Malloc(sizeof(*New), PU_STATIC, NULL);
+	
+	// Fill in common data
+	New->NativeType = Best;
+	New->wData = a_Entry;
+	strncpy(New->Name, a_Entry->Name, MAXUIANAME);
+	New->NameHash = Z_Hash(New->Name);
+	
+	// Fill in image data based on type
+	switch (Best)
+	{
+			// patch_t
+		case VIT_PATCH:
+			New->Width = Header[0];
+			New->Height = Header[1];
+			New->Offset[0] = Header[2];
+			New->Offset[1] = Header[3];
+			break;
+			
+			// pic_t
+		case VIT_PIC:
+			New->Width = Header[0];
+			New->Height = Header[2];
+			break;
+			
+			// Raw
+		case VIT_RAW:
+		default:
+			// Need the square root of entry size
+			// I hate relying on floating point in Doom land
+			New->Width = sqrt((double)a_Entry->Size);
+			New->Height = New->Width;
+			break;
+	}
+	
+	// Pixel count is based on image width*height
+	New->PixelCount = New->Width * New->Height;
+	
+	// Link into chain for this WAD
+	HI = WL_GetPrivateData(a_Entry->Owner, VWLIMAGEKEY, NULL);
+	
+	// This better always be true!
+	if (HI)
+	{
+		// No chain exists
+		if (!HI->ImageChain)
+			HI->ImageChain = New;
+		
+		// A chain exists, link to end
+		else
+		{
+			Rover = HI->ImageChain;
+		
+			// Find the end
+			while (Rover && Rover->iNext)
+				Rover = Rover->iNext;
+			
+			// Set next to new and link back
+			Rover->iNext = New;
+			New->iPrev = Rover;
+		}
+		
+		// Link into hash table
+		Z_HashAddEntry(HI->ImageHashes, New->NameHash, New);
+	}
+	
+	// Failure? I hope not!
+	else
+		I_Error("V_ImageLoadE: Loaded an image entry who's owning WAD has no index.");
+	
+	/* Return the freshly created image */
+	return New;
 #undef HEADERSIZE
 }
 
@@ -3203,7 +3352,11 @@ V_Image_t* V_ImageFindA(const char* const a_Name)
 		
 		// Not found?
 		if (!WADImages)
+		{
+			// Oops!
+			I_Error("V_ImageFindA: WAD has no image index.");
 			continue;
+		}
 		
 		// Look in hashes
 		FoundImage = Z_HashFindEntry(WADImages->ImageHashes, Hash, a_Name, false);
