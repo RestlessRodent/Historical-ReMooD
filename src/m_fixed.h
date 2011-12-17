@@ -54,6 +54,7 @@
 typedef int32_t fixed_t;
 
 #define FIXED_TO_FLOAT(x) (((float)(x)) / 65536.0)
+#define FLOAT_TO_FIXED(x) (((fixed_t)((float)(x)) * 65536.0))
 
 //#define FIXEDBREAKVANILLA
 

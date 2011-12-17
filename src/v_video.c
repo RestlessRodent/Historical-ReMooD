@@ -45,6 +45,7 @@
 #include "z_zone.h"
 #include "dstrings.h"
 #include "i_system.h"
+#include "r_defs.h"
 
 // Each screen is [vid.width*vid.height];
 uint8_t* screens[5];
@@ -3440,7 +3441,7 @@ const struct pic_s* V_ImageGetPic(V_Image_t* const a_Image)
 	else
 	{
 		// Raw easily translate to a pic_t, so use that
-		RawImage = V_ImageGetRaw(a_Image)
+		RawImage = V_ImageGetRaw(a_Image);
 		
 		// Failed?
 		if (!RawImage)
@@ -3450,11 +3451,11 @@ const struct pic_s* V_ImageGetPic(V_Image_t* const a_Image)
 		a_Image->dPic = Z_Malloc(sizeof(pic_t) + ((a_Image->PixelCount + 1) * sizeof(uint8_t)), PU_STATIC, (void**)&a_Image->dPic);
 		
 		// Fill in structure
-		a_Image->dPic->width = a_Image->Width;
-		a_Image->dPic->height = a_Image->Height;
+		((pic_t*)a_Image->dPic)->width = a_Image->Width;
+		((pic_t*)a_Image->dPic)->height = a_Image->Height;
 		
 		// Copy raw image data as a whole (real easy!)
-		memmove(&a_Image->dPic->data[0], RawImage, a_Image->PixelCount * sizeof(uint8_t));
+		memmove(&((pic_t*)a_Image->dPic)->data[0], RawImage, a_Image->PixelCount * sizeof(uint8_t));
 		
 		// Return the converted image
 		return a_Image->dPic;
@@ -3507,7 +3508,7 @@ uint8_t* V_ImageGetRaw(V_Image_t* const a_Image)
 		}
 		
 		// Otherwise if it is a patch_t, translation is required
-		else if ((a_Image->NativeType == VIT_PATCH)
+		else if (a_Image->NativeType == VIT_PATCH)
 		{
 			// Draw the patch into a buffer
 		}
@@ -3658,14 +3659,18 @@ uint8_t* V_ImageGetRaw(V_Image_t* const a_Image)
 
 /* V_ImageDrawScaled() -- Draws the image with specific scaling */
 // This is the core implementation (all others call this one)
+// TODO: Reimprove this function
+//  * Make it more secure (prevent overflows)
+//  * Make it faster in some respects (use memcpy when drawing raw images)
 void V_ImageDrawScaled(const uint32_t a_Flags, V_Image_t* const a_Image, const int32_t a_X, const int32_t a_Y, const fixed_t a_XScale, const fixed_t a_YScale, const uint8_t* const a_ExtraMap)
 {
 	uint8_t* RawData;
-	int32_t x, y, w, h;
+	int32_t x, y, w, h, xx, yy;
 	
 	int32_t sX, sY, tW, tY;
 	uint8_t* dP;
 	uint8_t* sP;
+	fixed_t XFrac, YFrac, sxX, sxY, xw, xh, dxY;
 	
 	/* Check */
 	if (!a_Image)
@@ -3675,6 +3680,12 @@ void V_ImageDrawScaled(const uint32_t a_Flags, V_Image_t* const a_Image, const i
 	// Add image offsets
 	x = a_X + a_Image->Offset[0];
 	y = a_Y + a_Image->Offset[1];
+	w = a_Image->Width;
+	h = a_Image->Height;
+	
+	// fixed_t variants
+	xw = w << FRACBITS;
+	xh = h << FRACBITS;
 	
 	// Scale start position?
 	if (!((a_Flags & VEX_NOSCALESTART) ||	// Don't scale at all
@@ -3699,6 +3710,10 @@ void V_ImageDrawScaled(const uint32_t a_Flags, V_Image_t* const a_Image, const i
 	tW = FixedMul(a_Image->Width << FRACBITS, a_XScale) >> FRACBITS;
 	tY = FixedMul(a_Image->Height << FRACBITS, a_YScale) >> FRACBITS;
 	
+	/* Determine draw fraction */
+	XFrac = FixedDiv(1 << FRACBITS, a_XScale);
+	YFrac = FixedDiv(1 << FRACBITS, a_YScale);
+	
 	/* If the image is a patch_t then draw it as a patch */
 	// Since patches have "holes" for transparency
 	if (a_Image->NativeType == VIT_PATCH)
@@ -3715,13 +3730,18 @@ void V_ImageDrawScaled(const uint32_t a_Flags, V_Image_t* const a_Image, const i
 		if (!RawData)
 			return;	// oops!
 		
-		// Drawer loop
-		sP = RawData;
+		// Draw row by row
+		for (sxY = 0, yy = 0; sxY < xh; sxY += YFrac, yy++)
+		{
+			// Obtain source and destination pointers (for row base)
+			sP = RawData + (w * (sxY >> FRACBITS));
+			dP = screens[0] + (vid.width * yy);
+			
+			// Scaled row draw
+			for (sxX = 0; sxX < xw; sxX += XFrac)
+				*(dP++) = sP[sxX >> FRACBITS];
+		}
 	}
-	
-	/* Check to see if the image needs probing */
-	/*if (!a_Image->dPatch && !a_Image->dPic && !a_Image->dRaw)
-		VP_ImageLoadNative(a_Image);*/
 }
 
 /* V_ImageDrawTiled() -- Draws the image tiled (i.e. flat fill) */
@@ -3763,8 +3783,8 @@ void V_ImageDraw(const uint32_t a_Flags, V_Image_t* const a_Image, const int32_t
 		// Floating point scalar
 		else
 		{
-			xScale = vid.fdupx;
-			yScale = vid.fdupy;
+			xScale = FLOAT_TO_FIXED(vid.fdupx);
+			yScale = FLOAT_TO_FIXED(vid.fdupy);
 		}
 	}
 	
