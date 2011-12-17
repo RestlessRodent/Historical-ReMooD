@@ -1705,40 +1705,281 @@ void V_DrawTranslucentPatch(const int x, const int y, const int scrn, const patc
 // #############################################################################
 // #############################################################################
 
+/*** CONSTANTS ***/
+
+#define VWLFONTPDC	0x464F4E54
+
+/* V_FontNameRule_t -- Rule to use for fonts */
+// Instead of hardcoding the formats into the initializer function. I will
+// just create this simple index here, then have a table of functions that
+// will turn a specific name into a UTF-16 character number.
+typedef enum V_FontNameRule_e
+{
+	VFNR_NULL,								// No Rule for this
+	VFNR_UNIVERSAL,							// [UFNnhhhh] Universal Font Number
+	VFNR_STCFN,								// [STCFNddd] Doom STCFN Decimal
+	VFNR_FONTX,								// [FONTnddd] Heretic, Odamex Decimal
+	VFNR_PRBOOM,							// [DIG     ] PrBoom Decimal
+	VFNR_STBARNUM,							// [STTNUMd ] Status bar numbers
+	
+	NUMVFONTNAMERULES
+} V_FontNameRule_t;
+
+/*** STRUCTURES ***/
+
+/* V_FontInfo_t -- Font information */
+typedef struct V_FontInfo_s
+{
+	/* Static */
+	const bool_t LoadThisFont;				// Load this font?
+	const char* NiceName;					// Font's nice name
+	const char* ScriptName;					// Font's scripted name
+	const char* Mappings[4];				// Doom (+Alt), Heretic (+Alt)
+	V_FontNameRule_t MapRule[2];			// Mapping rules
+	
+	/* Dynamic */
+	uint32_t ScriptHash;					// Hash for scripting name
+											// scripts lookup by name!
+	int32_t CharWidth;						// Average character width
+	int32_t CharHeight;						// Average character height
+} V_FontInfo_t;
+
+/*** GLOBALS ***/
+
 // Character Groups
 // -- Font (Small, Large, etc.)
 //    ++ Groups 1-256
 //       .. Individual Characters (256)
 // Wasteful but more speedy
-UniChar_t** CharacterGroups[NUMVIDEOFONTS] = { NULL, NULL, NULL, NULL, NULL };
-UniChar_t* UnknownLink[NUMVIDEOFONTS] = { NULL, NULL, NULL, NULL, NULL };
+UniChar_t** CharacterGroups[NUMVIDEOFONTS] = { NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL };
 
-char* FontName[NUMVIDEOFONTS][2] =	/* Nice Name and ReMooD Script Name */
+/*** LOCALS ***/
+
+/* l_LocalFonts -- Contains info on all the local fonts */
+static V_FontInfo_t l_LocalFonts[NUMVIDEOFONTS] =
 {
-	{"Small Font", "small"},
-	{"Large Font", "large"},
-	{"Status Bar Font", "statusbar"},
-	{"PrBoom HUD", "prboom"},
-	{"OEM Font", "oem"},
-	{"User Font Alpha", "usera"},
-	{"User Font Beta", "userb"},
-	{"User Font Gamma", "userc"},
-	{"User Font Delta", "userd"}
+	// Small Font (Just an alias)
+	{
+		false,
+		"Small",
+		"small",
+		{"", "", "", ""},
+		{VFNR_NULL, VFNR_NULL},
+	},
+	
+	// Large font (Just an alias)
+	{
+		false,
+		"Large",
+		"large",
+		{"", "", "", ""},
+		{VFNR_NULL, VFNR_NULL},
+	},
+	
+	// Small Statusbar Font
+	{
+		true,
+		"Statusbar",
+		"statusbar",
+		{"UFNK", "", "UFNK", ""},
+		{VFNR_UNIVERSAL, VFNR_NULL},
+	},
+	
+	// PrBoom HUD Font
+	{
+		true,
+		"PrBoom HUD",
+		"prboom",
+		{"UFNJ", "DIG", "UFNJ", "DIG"},
+		{VFNR_UNIVERSAL, VFNR_PRBOOM},
+	},
+	
+	// ReMooD Console Font
+	{
+		true,
+		"ReMooD OEM",
+		"oem",
+		{"UFNR", "", "UFNR", ""},
+	},
+	
+	// Userspace Fonts
+	{
+		true,
+		"User Font Alpha",
+		"usera",
+		{"UFNW", "", "UFNW", ""},
+		{VFNR_UNIVERSAL, VFNR_NULL},
+	},
+	{
+		true,
+		"User Font Beta",
+		"userb",
+		{"UFNX", "", "UFNX", ""},
+		{VFNR_UNIVERSAL, VFNR_NULL},
+	},
+	{
+		true,
+		"User Font Gamma",
+		"userc",
+		{"UFNY", "", "UFNY", ""},
+		{VFNR_UNIVERSAL, VFNR_NULL},
+	},
+	{
+		true,
+		"User Font Delta",
+		"userd",
+		{"UFNZ", "", "UFNZ", ""},
+		{VFNR_UNIVERSAL, VFNR_NULL},
+	},
+	
+	// Small Doom Font
+	{
+		true,
+		"Small Doom",
+		"smalldoom",
+		{"UFNA", "STCFN", "UFNA", "STCFN"},
+		{VFNR_UNIVERSAL, VFNR_STCFN},
+	},
+	
+	// Large Doom Font
+	{
+		true,
+		"Large Doom",
+		"largedoom",
+		{"UFNB", "FONTC", "UFNB", "FONTC"},
+		{VFNR_UNIVERSAL, VFNR_FONTX},
+	},
+	
+	// Small Heretic Font
+	{
+		true,
+		"Small Heretic",
+		"smallheretic",
+		{"UFNC", "FONTA", "UFNC", "FONTA"},
+		{VFNR_UNIVERSAL, VFNR_FONTX},
+	},
+	
+	// Large Heretic Font
+	{
+		true,
+		"Large Heretic",
+		"largeheretic",
+		{"UFND", "FONTB", "UFND", "FONTB"},
+		{VFNR_UNIVERSAL, VFNR_FONTX},
+	},
+	
+	// Large Status Bar Font
+	{
+		true,
+		"Large Doom Statusbar",
+		"largestatusbar",
+		{"UFNL", "STTNUM", "UFNL", "STTNUM"},
+		{VFNR_UNIVERSAL, VFNR_STBARNUM},
+	},
 };
 
-char Font[NUMVIDEOFONTS][4][9] =	/* Doom, Doom (Alt), Heretic, Heretic (Alt) */
-{
-	{"UFNA", "STCFN", "UFNC", "FONTA"},	// VFONT_SMALL
-	{"UFNB", "FONTC", "UFND", "FONTB"},	// VFONT_LARGE
-	{"UFNK", "", "UFNK", ""},	// VFONT_STATUSBARSMALL
-	{"UFNJ", "DIG", "UFNJ", "DIG"},	// VFONT_PRBOOMHUD
-	{"UFNR", "", "UFNR", ""},	// VFONT_OEM
-	{"UFNW", "", "UFNW", ""},	// VFONT_USERSPACEA
-	{"UFNX", "", "UFNX", ""},	// VFONT_USERSPACEB
-	{"UFNY", "", "UFNY", ""},	// VFONT_USERSPACEC
-	{"UFNZ", "", "UFNZ", ""}	// VFONT_USERSPACED
-};
+static UniChar_t* l_UnknownLink[NUMVIDEOFONTS];		// Unknown character for each font
+static V_FontInfo_t* l_FontRemap[NUMVIDEOFONTS];	// Remaps for each font
 
+/*** FUNCTIONS ***/
+
+/* VS_FontPDCRemove() -- Removes loaded character data */
+static void VS_FontPDCRemove(const struct WL_WADFile_s* a_WAD)
+{
+}
+
+/* VS_FontPDCCreate() -- Creates a character database from characters inside of a WAD */
+static bool_t VS_FontPDCCreate(const struct WL_WADFile_s* const a_WAD, const uint32_t a_Key, void** const a_DataPtr, size_t* const a_SizePtr, WL_RemoveFunc_t* const a_RemoveFuncPtr)
+{
+	return false;
+}
+
+/* VS_FontOCCB() -- Maps all characters from WADs into tables */
+// This function is very important.
+// I could make it so I can do without this, but that would not be good at all.
+// Not only would it be slow, but it would be really slow. This essentially
+// takes the virtual WAD stuff and plumps it ontop of each other into a
+// composite form. Then after building a raw composite, aliases are created and
+// mapped to characters. Then when character want to be drawn, it then uses this
+// composited table.
+static bool_t VS_FontOCCB(const bool_t a_Pushed, const struct WL_WADFile_s* const a_WAD)
+{
+	return false;
+}
+
+/* V_MapGraphicalCharacters() -- Initializes WL Hooks */
+void V_MapGraphicalCharacters(void)
+{
+	/* Hook WL handlers */
+	// Register PDC
+	if (!WL_RegisterPDC(VWLFONTPDC, 75, VS_FontPDCCreate, VS_FontPDCRemove))
+		I_Error("V_MapGraphicalCharacters: Failed to register PDC.");
+	
+	// Register OCCB (this builds a composite)
+	if (!WL_RegisterOCCB(VS_FontOCCB, 50))
+		I_Error("V_MapGraphicalCharacters: Failed to register OCCB.");
+}
+
+/* V_ExtMBToWChar() -- Converts MB to wchar_t */
+uint16_t V_ExtMBToWChar(const char* a_MBChar, size_t* const a_BSkip)
+{
+	return 0;
+}
+
+/* V_ExtWCharToMB() -- Converts wchar_t to MB */
+size_t V_ExtWCharToMB(const uint16_t a_WChar, char* const a_MB)
+{
+	return 0;
+}
+
+/* V_FontHeight() -- Returns the height of the font */
+int V_FontHeight(const VideoFont_t a_Font)
+{
+	return 0;
+}
+
+/* V_FontWidth() -- Returns the width of the font */
+int V_FontWidth(const VideoFont_t a_Font)
+{
+	return 0;
+}
+
+/* V_DrawCharacterMB() -- Draws multi-byte character */
+int V_DrawCharacterMB(const VideoFont_t a_Font, const uint32_t a_Options, const char* const a_MBChar, const int a_x, const int a_y, size_t* const a_BSkip, uint32_t* a_OptionsMod)
+{
+	return 0;
+}
+
+/* V_DrawCharacterA() -- Draws a single ASCII character */
+int V_DrawCharacterA(const VideoFont_t a_Font, const uint32_t a_Options, const char a_Char, const int a_x, const int a_y)
+{
+	return 0;
+}
+
+/* V_DrawStringA() -- Draws a string */
+int V_DrawStringA(const VideoFont_t a_Font, const uint32_t a_Options, const char* const a_String, const int a_x, const int a_y)
+{
+	return 0;
+}
+
+/* V_StringDimensionsA() -- Returns dimensions of string */
+void V_StringDimensionsA(const VideoFont_t a_Font, const uint32_t a_Options, const char* const a_String, int* const a_Width, int* const a_Height)
+{
+}
+
+/* V_StringWidthA() -- Returns width of string */
+int V_StringWidthA(const VideoFont_t a_Font, const uint32_t a_Options, const char* const a_String)
+{
+	return 0;
+}
+
+/* V_StringHeightA() -- Returns height of string */
+int V_StringHeightA(const VideoFont_t a_Font, const uint32_t a_Options, const char* const a_String)
+{
+	return 0;
+}
+
+#if 0
 /* V_WCharToMB() -- Convert wide character to multibyte */
 static size_t V_WCharToMB(const uint16_t WChar, char* const MB)
 {
@@ -3001,6 +3242,7 @@ int V_StringHeightA(const VideoFont_t Font, const uint32_t Options, const char* 
 	V_StringDimensionsA(Font, Options, String, NULL, &n);
 	return n;
 }
+#endif
 
 /*******************************************************************************
 ********************************************************************************
@@ -3064,7 +3306,7 @@ struct V_Image_s
 	uint32_t				NameHash;			// Hash for the name (if applicable)
 	
 	/* WAD Related */
-	struct WL_WADEntry_s*	wData;				// New WAD Access (WL)
+	const struct WL_WADEntry_s*	wData;			// New WAD Access (WL)
 	
 	/* Data */
 	struct patch_s*			dPatch;				// patch_t Compatible
@@ -3147,7 +3389,7 @@ static void VS_WLImagePDCRemove(const struct WL_WADFile_s* a_WAD)
 static void VS_InitialBoot(void)
 {
 	/* Register data loader */
-	if (!WL_RegisterPDC(VWLIMAGEKEY, 125, VS_WLImagePDC, VS_WLImagePDCRemove))
+	if (!WL_RegisterPDC(VWLIMAGEKEY, 50, VS_WLImagePDC, VS_WLImagePDCRemove))
 		I_Error("VS_InitialBoot: Failed to register PDC!");
 	
 	/* Booted up! */
@@ -3517,145 +3759,6 @@ uint8_t* V_ImageGetRaw(V_Image_t* const a_Image)
 	/* Failure */
 	return NULL;
 }
-
-#if 0
-static V_Image_t* l_ImageChain = NULL;			// Loaded images
-
-// For hashes a delete function is required!
-static Z_HashTable_t* l_ImageAHash = NULL;		// ASCII Hashes
-
-/*** FUNCTIONS ***/
-
-/* VP_ImageHashCompare() -- Compares two hashes in the hash table */
-static bool_t VP_ImageHashCompare(void* const a_A, void* const a_B)
-{
-	const char* RealA;
-	V_Image_t* RealB;
-	
-	/* Check */
-	if (!a_A || !a_B)
-		return false;
-	
-	/* Get real versions */
-	RealA = (const char*)a_A;
-	RealB = (V_Image_t*)a_B;
-	
-	/* Compare name */
-	if (strcasecmp(RealA, RealB->Name))
-		return false;
-	return true;
-}
-
-/* VP_ImageLoadNative() -- Loads native image */
-// This loads the lump data and determines the format of the image, then loads
-// it inside of the specified container.
-static void VP_ImageLoadNative(V_Image_t* const a_Image)
-{
-	/* Check */
-	if (!a_Image)
-		return;
-}
-
-/* V_ImageLoadA() -- Loads an image based on its name */
-// It is recommended for everything to call V_ImageFind?() instead.
-// Does name to index lookup, then calls the index variant
-V_Image_t* V_ImageLoadA(const char* const a_Name)
-{
-	return V_ImageLoadI(W_CheckNumForName(a_Name));
-}
-
-/* V_ImageLoadI() -- Loads an image based on the WAD Index */
-// It is recommended for everything to call V_ImageFind?() instead.
-V_Image_t* V_ImageLoadI(const WadIndex_t a_Index)
-{
-	WadEntry_t* Entry;
-	
-	/* Check */
-	if (a_Index == INVALIDLUMP)
-		return NULL;
-		
-	// See if it actually exists
-	Entry = W_GetEntry(a_Index);
-	
-	if (!Entry)
-		return NULL;
-	
-	return NULL;
-}
-
-/* V_ImageFindA() -- Returns a previously loaded image, if not found load it */
-// Caselessy compares two different images
-// If not found, does name to index lookup, then calls the index variant
-V_Image_t* V_ImageFindA(const char* const a_Name)
-{
-	void* x;
-	
-	/* There are no images loaded */
-	if (!l_ImageChain)
-		return V_ImageLoadA(a_Name);
-	
-	/* Find name in hash table */
-	x = Z_HashFindEntry(l_ImageAHash, Z_Hash(a_Name), a_Name, false);
-		
-	/* If in doubt, load */
-	return V_ImageLoadA(a_Name);
-}
-
-/* V_ImageFindI() -- Returns a previously loaded image, if not found load it */
-V_Image_t* V_ImageFindI(const WadIndex_t a_Index)
-{
-	V_Image_t* Rover = NULL;
-	
-	/* There are no images loaded */
-	if (!l_ImageChain)
-		return V_ImageLoadI(a_Index);
-	
-	/* Rove the list */
-	for (Rover = l_ImageChain; Rover; Rover = Rover->iNext)
-		if (Rover->Index == a_Index)
-			return Rover;
-		
-	/* If in doubt, load */
-	return V_ImageLoadI(a_Index);
-}
-
-/* V_ImageDestroy() -- Destroys an image and all attached resources */
-void V_ImageDestroy(V_Image_t* const a_Image)
-{
-}
-
-/* V_ImageUsage() -- Modifies image usage */
-// true  = Mark image as being used (and make sure it is PU_STATIC)
-// false = Unmark image as being used and free if possible 
-int32_t V_ImageUsage(V_Image_t* const a_Image, const bool_t a_Use)
-{
-	/* Check */
-	if (!a_Image)
-		return 0;
-	
-	/* Return usage count */
-	return a_Image->TotalUsage;
-}
-
-/* V_ImageGetPatch() -- Returns a compatible patch_t of the image */
-const struct patch_s* V_ImageGetPatch(V_Image_t* const a_Image)
-{
-	return NULL;
-}
-
-/* V_ImageGetPic() -- Returns a compatible pic_t of the image */
-const struct pic_s* V_ImageGetPic(V_Image_t* const a_Image)
-{
-	return NULL;
-}
-
-/* V_ImageGetRaw() -- Returns a compatible raw image of the image (flat) */
-uint8_t* V_ImageGetRaw(V_Image_t* const a_Image)
-{
-	return NULL;
-}
-
-#endif
 
 /* V_ImageDrawScaled() -- Draws the image with specific scaling */
 // This is the core implementation (all others call this one)

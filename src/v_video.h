@@ -273,28 +273,26 @@ typedef enum
 	VFONT_LARGE_DOOM,			// Large Doom Font
 	VFONT_SMALL_HERETIC,		// Small Heretic Font
 	VFONT_LARGE_HERETIC,		// Large Heretic Font
-	VFONT_SMALL_STRIFE,			// Small Strife Font
-	VFONT_LARGE_STRIFE,			// Large Strife Font
+	
+	VFONT_STATUSBARLARGE,		// Large Status Bar Font (Numbers)
 	
 	NUMVIDEOFONTS
 } VideoFont_t;
+
+struct V_Image_s;
 
 typedef struct UniChar_s
 {
 	uint16_t Char;
 	char MB[5];
 	
-	struct patch_s* Patch;
-	
-	struct WadEntry_s* Entry;	// DEPRECATED
-	WX_WADEntry_t* XEntry;
+	struct V_Image_s* Image;	// Character image
 	
 	struct UniChar_s* BuildTop;
 	struct UniChar_s* BuildBottom;
 } UniChar_t;
 
 extern UniChar_t** CharacterGroups[NUMVIDEOFONTS];
-extern UniChar_t* UnknownLink[NUMVIDEOFONTS];
 
 /* Options */
 
@@ -321,21 +319,21 @@ void V_WXMapGraphicCharsComposite(WX_WADFile_t* const a_VWAD);
 void V_WXClearGraphicCharsComposite(void);
 
 /* Misc */
-uint16_t V_ExtMBToWChar(const char* MBChar, size_t* const BSkip);
-size_t V_ExtWCharToMB(const uint16_t WChar, char* const MB);
-int V_FontHeight(const VideoFont_t Font);
-int V_FontWidth(const VideoFont_t Font);
+uint16_t V_ExtMBToWChar(const char* a_MBChar, size_t* const a_BSkip);
+size_t V_ExtWCharToMB(const uint16_t a_WChar, char* const a_MB);
+int V_FontHeight(const VideoFont_t a_Font);
+int V_FontWidth(const VideoFont_t a_Font);
 
 /* Multibyte ASCII */
-int V_DrawCharacterMB(const VideoFont_t Font, const uint32_t Options, const char* const MBChar, const int x, const int y, size_t* const BSkip,
+int V_DrawCharacterMB(const VideoFont_t a_Font, const uint32_t a_Options, const char* const a_MBChar, const int a_x, const int a_y, size_t* const a_BSkip,
                       uint32_t* a_OptionsMod);
 
 /* ASCII */
-int V_DrawCharacterA(const VideoFont_t Font, const uint32_t Options, const char Char, const int x, const int y);
-int V_DrawStringA(const VideoFont_t Font, const uint32_t Options, const char* const String, const int x, const int y);
-void V_StringDimensionsA(const VideoFont_t Font, const uint32_t Options, const char* const String, int* const Width, int* const Height);
-int V_StringWidthA(const VideoFont_t Font, const uint32_t Options, const char* const String);
-int V_StringHeightA(const VideoFont_t Font, const uint32_t Options, const char* const String);
+int V_DrawCharacterA(const VideoFont_t a_Font, const uint32_t a_Options, const char a_Char, const int a_x, const int a_y);
+int V_DrawStringA(const VideoFont_t a_Font, const uint32_t a_Options, const char* const a_String, const int a_x, const int a_y);
+void V_StringDimensionsA(const VideoFont_t a_Font, const uint32_t a_Options, const char* const a_String, int* const a_Width, int* const a_Height);
+int V_StringWidthA(const VideoFont_t a_Font, const uint32_t a_Options, const char* const a_String);
+int V_StringHeightA(const VideoFont_t a_Font, const uint32_t a_Options, const char* const a_String);
 
 /*******************************************************************************
 ********************************************************************************
