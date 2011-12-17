@@ -83,7 +83,7 @@ void M_DrawMenuTitle(void)
 	int xtitle = 0;
 	int ytitle = 0;
 	
-	if (CharacterGroups[VFONT_LARGE] && currentMenu->WMenuTitlePtr)
+	if (/*CharacterGroups[VFONT_LARGE] &&*/ currentMenu->WMenuTitlePtr)
 	{
 		xtitle = (BASEVIDWIDTH - V_StringWidthA(VFONT_LARGE, 0, *(currentMenu->WMenuTitlePtr))) / 2;
 		ytitle = (currentMenu->y - V_StringHeightA(VFONT_LARGE, 0, *(currentMenu->WMenuTitlePtr))) / 2;
@@ -151,7 +151,7 @@ void M_DrawGenericMenu(void)
 		switch (currentMenu->menuitems[i].status & IT_DISPLAY)
 		{
 			case IT_PATCH:
-				if (CharacterGroups[VFONT_LARGE_DOOM] && currentMenu->menuitems[i].WItemTextPtr)
+				if (/*CharacterGroups[VFONT_LARGE_DOOM] &&*/ currentMenu->menuitems[i].WItemTextPtr)
 				{
 					V_DrawStringA(VFONT_LARGE, BaseFlags, *(currentMenu->menuitems[i].WItemTextPtr), x, y);
 					y += FONTBHEIGHT - LINEHEIGHT;
@@ -248,7 +248,7 @@ void M_DrawGenericMenu(void)
 			case IT_GRAYPATCH:
 				if (currentMenu->menuitems[i].status & IT_PATCH)
 				{
-					if (CharacterGroups[VFONT_LARGE] && *(currentMenu->menuitems[i].WItemTextPtr))
+					if (/*CharacterGroups[VFONT_LARGE] &&*/ *(currentMenu->menuitems[i].WItemTextPtr))
 					{
 						V_DrawStringA(VFONT_LARGE, VEX_MAP_GRAY, *(currentMenu->menuitems[i].WItemTextPtr), x, y);
 						y += FONTBHEIGHT - LINEHEIGHT;

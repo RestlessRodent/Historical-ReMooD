@@ -1738,20 +1738,33 @@ typedef struct V_FontInfo_s
 	V_FontNameRule_t MapRule[2];			// Mapping rules
 	
 	/* Dynamic */
+	uint32_t NumChars;						// Number of actual characters
 	uint32_t ScriptHash;					// Hash for scripting name
 											// scripts lookup by name!
 	int32_t CharWidth;						// Average character width
 	int32_t CharHeight;						// Average character height
 } V_FontInfo_t;
 
-/*** GLOBALS ***/
+/* V_UniChar_t -- Character data */
+typedef struct V_UniChar_s
+{
+	uint16_t Char;
+	char MB[5];
+	
+	struct V_Image_s* Image;	// Character image
+	
+	struct UniChar_s* BuildTop;
+	struct UniChar_s* BuildBottom;
+} V_UniChar_t;
 
-// Character Groups
-// -- Font (Small, Large, etc.)
-//    ++ Groups 1-256
-//       .. Individual Characters (256)
-// Wasteful but more speedy
-UniChar_t** CharacterGroups[NUMVIDEOFONTS] = { NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL };
+/* V_LocalFontStuff_t -- Info for a font in WAD */
+typedef struct V_LocalFontStuff_s
+{
+	V_UniChar_t** CGroups[NUMVIDEOFONTS];	// Character groups for each font
+	V_FontInfo_t DynInfo[NUMVIDEOFONTS];	// Dynamic loaded info (used w/ comp)
+} V_LocalFontStuff_t;
+
+/*** GLOBALS ***/
 
 /*** LOCALS ***/
 
@@ -1878,7 +1891,8 @@ static V_FontInfo_t l_LocalFonts[NUMVIDEOFONTS] =
 	},
 };
 
-static UniChar_t* l_UnknownLink[NUMVIDEOFONTS];		// Unknown character for each font
+static V_UniChar_t** l_CGroups[NUMVIDEOFONTS];		// Composite group
+static V_UniChar_t* l_UnknownLink[NUMVIDEOFONTS];	// Unknown character for each font
 static V_FontInfo_t* l_FontRemap[NUMVIDEOFONTS];	// Remaps for each font
 
 /*** FUNCTIONS ***/
@@ -1891,6 +1905,10 @@ static void VS_FontPDCRemove(const struct WL_WADFile_s* a_WAD)
 /* VS_FontPDCCreate() -- Creates a character database from characters inside of a WAD */
 static bool_t VS_FontPDCCreate(const struct WL_WADFile_s* const a_WAD, const uint32_t a_Key, void** const a_DataPtr, size_t* const a_SizePtr, WL_RemoveFunc_t* const a_RemoveFuncPtr)
 {
+	/* Check */
+	if (!a_WAD)
+		return false;
+	
 	return false;
 }
 

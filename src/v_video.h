@@ -279,21 +279,6 @@ typedef enum
 	NUMVIDEOFONTS
 } VideoFont_t;
 
-struct V_Image_s;
-
-typedef struct UniChar_s
-{
-	uint16_t Char;
-	char MB[5];
-	
-	struct V_Image_s* Image;	// Character image
-	
-	struct UniChar_s* BuildTop;
-	struct UniChar_s* BuildBottom;
-} UniChar_t;
-
-extern UniChar_t** CharacterGroups[NUMVIDEOFONTS];
-
 /* Options */
 
 // Ordering
