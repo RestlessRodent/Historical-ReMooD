@@ -950,6 +950,7 @@ bool_t WL_RegisterPDC(const uint32_t a_Key, const uint8_t a_Order, WL_PCCreatorF
 		
 		// Put pointer in sort
 		l_PDCp[k++] = &l_PDC[j];
+		l_PDC[j].Mark = true;
 	}
 	
 	/* Create data for WADs */
@@ -960,8 +961,8 @@ bool_t WL_RegisterPDC(const uint32_t a_Key, const uint8_t a_Order, WL_PCCreatorF
 		// Getting private data means creating it
 		WL_GetPrivateData(WAD, a_Key, NULL);
 	
-		// Next
-		WAD = WAD->__Private.__NextWAD;
+		// Go to the previous WAD (since new WADs are prelinked)
+		WAD = WAD->__Private.__PrevWAD;
 	}
 	
 	/* Success! */
