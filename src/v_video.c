@@ -3389,9 +3389,121 @@ int32_t V_ImageUsage(V_Image_t* const a_Image, const bool_t a_Use)
 }
 
 // Get data for a specific format
-const struct patch_s* V_ImageGetPatch(V_Image_t* const a_Image);
-const struct pic_s* V_ImageGetPic(V_Image_t* const a_Image);
-uint8_t* V_ImageGetRaw(V_Image_t* const a_Image);
+const struct patch_s* V_ImageGetPatch(V_Image_t* const a_Image)
+{
+	/* Check */
+	if (!a_Image)
+		return NULL;
+		
+	/* Data already loaded? */
+	if (a_Image->dPatch)
+		return a_Image->dPatch;
+	
+	/* If the picture is natively a patch_t */
+	// Just load it from the WAD data
+	if (a_Image->NativeType == VIT_PATCH)
+	{
+	} 
+	
+	/* If the image is not a patch_t */
+	else
+	{
+	}
+	
+	/* Failure */
+	return NULL;
+}
+
+/* V_ImageGetPic() -- Loads a pic_t */
+const struct pic_s* V_ImageGetPic(V_Image_t* const a_Image)
+{
+	uint8_t* RawImage;
+	
+	/* Check */
+	if (!a_Image)
+		return NULL;
+	
+	/* Data already loaded? */
+	if (a_Image->dPic)
+		return a_Image->dPic;
+	
+	/* If the picture is natively a pic_t */
+	// Just load it from the WAD data
+	if (a_Image->NativeType == VIT_PIC)
+	{
+	} 
+	
+	/* If the image is not a pic_t */
+	else
+	{
+		// Raw easily translate to a pic_t, so use that
+		RawImage = V_ImageGetRaw(a_Image)
+		
+		// Failed?
+		if (!RawImage)
+			return NULL;
+		
+		// Allocate pic_t structure
+		a_Image->dPic = Z_Malloc(sizeof(pic_t) + ((a_Image->PixelCount + 1) * sizeof(uint8_t)), PU_STATIC, (void**)&a_Image->dPic);
+		
+		// Fill in structure
+		a_Image->dPic->width = a_Image->Width;
+		a_Image->dPic->height = a_Image->Height;
+		
+		// Copy raw image data as a whole (real easy!)
+		memmove(&a_Image->dPic->data[0], RawImage, a_Image->PixelCount * sizeof(uint8_t));
+		
+		// Return the converted image
+		return a_Image->dPic;
+	}
+	
+	/* Failure */
+	return NULL;
+}
+
+/* V_ImageGetRaw() -- Loads a raw image */
+// Raw is the lowest common denominator
+uint8_t* V_ImageGetRaw(V_Image_t* const a_Image)
+{
+	/* Check */
+	if (!a_Image)
+		return NULL;
+	
+	/* Data already loaded? */
+	if (a_Image->dRaw)
+		return a_Image->dRaw;
+
+	/* If the picture is natively a raw image */
+	// Just load it from the WAD data (raw is the easiest)
+	if (a_Image->NativeType == VIT_RAW)
+	{
+		// Allocate buffer
+		a_Image->dRaw = Z_Malloc((a_Image->PixelCount + 1) * sizeof(uint8_t), PU_STATIC, (void**)&a_Image->dRaw);
+		
+		// Load WAD data straight into buffer
+		WL_ReadData(a_Image->wData, 0, a_Image->dRaw, a_Image->PixelCount * sizeof(uint8_t));
+		
+		// Return the raw image
+		return a_Image->dRaw;
+	} 
+	
+	/* If the image is not a raw image */
+	else
+	{
+		// If the native type is a pic_t, translation is easy
+		if (a_Image->NativeType == VIT_PIC)
+		{
+		}
+		
+		// Otherwise if it is a patch_t, translation is required
+		else if ((a_Image->NativeType == VIT_PATCH)
+		{
+		}
+	}
+	
+	/* Failure */
+	return NULL;
+}
 
 #if 0
 static V_Image_t* l_ImageChain = NULL;			// Loaded images
