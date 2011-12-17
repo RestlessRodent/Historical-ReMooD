@@ -1743,6 +1743,8 @@ typedef struct V_FontInfo_s
 											// scripts lookup by name!
 	int32_t CharWidth;						// Average character width
 	int32_t CharHeight;						// Average character height
+	int32_t wTotal;							// Width total
+	int32_t hTotal;							// Height total
 } V_FontInfo_t;
 
 /* V_UniChar_t -- Character data */
@@ -1899,7 +1901,7 @@ static V_FontInfo_t l_LocalFonts[NUMVIDEOFONTS] =
 	},
 };
 
-static V_UniChar_t** l_CGroups[NUMVIDEOFONTS];		// Composite group
+static V_UniChar_t*** l_CGroups[NUMVIDEOFONTS];		// Composite group
 static V_UniChar_t* l_UnknownLink[NUMVIDEOFONTS];	// Unknown character for each font
 static V_FontInfo_t* l_FontRemap[NUMVIDEOFONTS];	// Remaps for each font
 
@@ -2062,7 +2064,7 @@ static void VS_FontPDCRemove(const struct WL_WADFile_s* a_WAD)
 }
 
 /* VS_AddCharacter() -- Adds character to table */
-static V_UniChar_t* VS_AddCharacter(const bool_t a_Local, V_LocalFontStuff_t* const a_LocalStuff, const WL_WADEntry_t* const a_Entry, const uint16_t a_Hex, const VideoFont_t a_Font, const uint16_t a_GAlias, const uint16_t* const a_GBuilder)
+static V_UniChar_t* VS_AddCharacter(const bool_t a_Local, V_LocalFontStuff_t* const a_LocalStuff, const WL_WADEntry_t* const a_Entry, const uint16_t a_Hex, const VideoFont_t a_Font, const uint16_t a_GAlias, const uint16_t* const a_GBuilder, V_UniChar_t* const a_CharP)
 {
 	uint16_t Master, Slave;
 	V_UniChar_t* CharP;
@@ -2130,14 +2132,36 @@ static V_UniChar_t* VS_AddCharacter(const bool_t a_Local, V_LocalFontStuff_t* co
 	// Add it to global link
 	else
 	{
+		/* Check */
+		if (!a_CharP)
+			return NULL;
+			
+		// See if the super structure needs creation
+		if (!l_CGroups[a_Font])
+			l_CGroups[a_Font] = Z_Malloc(sizeof(*l_CGroups[a_Font]) * 256, PU_STATIC, NULL);
+		
+		// Find the master and slave index
+		Master = (a_Hex & 0xFF00) >> 8;
+		Slave = (a_Hex & 0xFF);
+		
+		// Allocate master if needed
+		if (!l_CGroups[a_Font][Master])
+			l_CGroups[a_Font][Master] = Z_Malloc(sizeof(*l_CGroups[a_Font][Master]) * 256, PU_STATIC, NULL);
+		
+		// If not set, increment count
+		if (!l_CGroups[a_Font][Master][Slave])
+			l_LocalFonts[a_Font].NumChars++;
+		
+		// Set slave pointer to the character being added
+		l_CGroups[a_Font][Master][Slave] = a_CharP;
+			
+		// Return self on success
+		return a_CharP;
 	}
 	
 	/* Failure */
 	return NULL;
 }
-
-	V_UniChar_t** CGroups[NUMVIDEOFONTS];	// Character groups for each font
-	V_FontInfo_t DynInfo[NUMVIDEOFONTS];	// Dynamic loaded info (used w/ comp)
 
 /* VS_FontPDCCreate() -- Creates a character database from characters inside of a WAD */
 static bool_t VS_FontPDCCreate(const struct WL_WADFile_s* const a_WAD, const uint32_t a_Key, void** const a_DataPtr, size_t* const a_SizePtr, WL_RemoveFunc_t* const a_RemoveFuncPtr)
@@ -2172,7 +2196,7 @@ static bool_t VS_FontPDCCreate(const struct WL_WADFile_s* const a_WAD, const uin
 			continue;
 		
 		// It is a valid character, now slap it into the local table
-		if (!(FreshChar = VS_AddCharacter(true, FontStuff, Entry, Hex, Font, 0, NULL)))
+		if (!(FreshChar = VS_AddCharacter(true, FontStuff, Entry, Hex, Font, 0, NULL, NULL)))
 			continue;
 	}
 	
@@ -2223,7 +2247,140 @@ static bool_t VS_FontPDCCreate(const struct WL_WADFile_s* const a_WAD, const uin
 // composited table.
 static bool_t VS_FontOCCB(const bool_t a_Pushed, const struct WL_WADFile_s* const a_WAD)
 {
-	return false;
+	size_t i, j, f;
+	int32_t Count;
+	V_UniChar_t*** FGroup;
+	V_UniChar_t* Rover;
+	const WL_WADFile_t* WADRover;
+	V_LocalFontStuff_t* FontStuff;
+	int32_t tW, tH, tT;
+	
+#if 0
+	static V_UniChar_t*** l_CGroups[NUMVIDEOFONTS];		// Composite group
+	static V_UniChar_t* l_UnknownLink[NUMVIDEOFONTS];	// Unknown character for each font
+	static V_FontInfo_t* l_FontRemap[NUMVIDEOFONTS];	// Remaps for each font
+	
+	/* V_LocalFontStuff_t -- Info for a font in WAD */
+	typedef struct V_LocalFontStuff_s
+	{
+		V_UniChar_t* FirstLink[NUMVIDEOFONTS];	// First link in the chain
+		V_UniChar_t** CGroups[NUMVIDEOFONTS];	// Character groups for each font
+		V_FontInfo_t DynInfo[NUMVIDEOFONTS];	// Dynamic loaded info (used w/ comp)
+	} V_LocalFontStuff_t;
+#endif
+	
+	/* Clear old groups */
+	for (f = 0; f < NUMVIDEOFONTS; f++)
+	{
+		// Clear character count
+		l_LocalFonts[f].NumChars = 0;
+		
+		// Clear font groups
+		if (l_CGroups[f])
+		{
+			// Clear master groups
+			for (i = 0; i < 256; i++)
+				if (l_CGroups[f][i])
+				{
+					// Clear slave groups
+					for (j = 0; j < 256; j++)
+						if (l_CGroups[f][i][j])
+						{
+							Z_Free(l_CGroups[f][i][j]);
+							l_CGroups[f][i][j] = NULL;
+						}
+					
+					Z_Free(l_CGroups[f][i]);
+					l_CGroups[f][i] = NULL;
+				}
+			
+			Z_Free(l_CGroups[f]);
+			l_CGroups[f] = NULL;
+		}
+	}
+	
+	/* Start constructing new groups */
+	// For every WAD
+	Count = 0;
+	WADRover = NULL;
+	while ((WADRover = WL_IterateVWAD(WADRover, true)))
+	{
+		// Get the WAD's private data
+		FontStuff = WL_GetPrivateData(WADRover, VWLFONTPDC, NULL);
+		
+		// Failed?
+		if (!FontStuff)
+			continue;
+		
+		// for every font
+		for (f = 0; f < NUMVIDEOFONTS; f++)
+		{
+			// Obtain rover for this font
+			Rover = FontStuff->FirstLink[f];
+			
+			// Go through it adding each character
+			while (Rover)
+			{
+				// Add this character
+				if (VS_AddCharacter(false, FontStuff, Rover->Entry, Rover->Char, f, 0, 0, Rover))
+					Count++;
+				
+				// Go to next
+				Rover = Rover->Chain;
+			}
+		}
+	}
+	
+	// Load virtual aliases and builders
+	
+	// Scan through each font and determine the best width and height
+	for (f = 0; f < NUMVIDEOFONTS; f++)
+	{
+		// Hash group identifier
+		l_LocalFonts[f].ScriptHash = Z_Hash(l_LocalFonts[f].ScriptName);
+		
+		// Clear
+		tW = tH = tT = 0;
+		
+		// Determine the best character size for each group
+		if (l_LocalFonts[f].NumChars)
+			if (l_CGroups[f])
+				for (i = 0; i < 256; i++)
+					if (l_CGroups[f][i])
+						for (j = 0; j < 256; j++)
+							if (l_CGroups[f][i][j])
+							{
+								tT++;
+								tW += l_CGroups[f][i][j]->Size[0];
+								tH += l_CGroups[f][i][j]->Size[1];
+							}
+		
+		// Average it out
+		if (tT > 0)
+		{
+			l_LocalFonts[f].CharWidth = tW / tT;
+			l_LocalFonts[f].CharHeight = tH / tT;
+		}
+	}
+	
+#if 0
+	/* Dynamic */
+	uint32_t NumChars;						// Number of actual characters
+	uint32_t ScriptHash;					// Hash for scripting name
+											// scripts lookup by name!
+	int32_t CharWidth;						// Average character width
+	int32_t CharHeight;						// Average character height
+	int32_t wTotal;							// Width total
+	int32_t hTotal;							// Height total
+	
+	int32_t tW[NUMVIDEOFONTS], tH[NUMVIDEOFONTS], tT[NUMVIDEOFONTS];
+#endif
+	
+	// Debug
+	CONS_Printf("VS_FontOCCB: Mapped %i characters.\n", Count);
+	
+	/* Success! */
+	return true;
 }
 
 /* V_MapGraphicalCharacters() -- Initializes WL Hooks */
