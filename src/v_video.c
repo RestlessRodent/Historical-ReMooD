@@ -1758,11 +1758,15 @@ typedef struct V_UniChar_s
 	
 	struct UniChar_s* BuildTop;
 	struct UniChar_s* BuildBottom;
+	
+	struct V_UniChar_s* Chain;	// Chain link
+	bool_t Linked;				// Linked in chain
 } V_UniChar_t;
 
 /* V_LocalFontStuff_t -- Info for a font in WAD */
 typedef struct V_LocalFontStuff_s
 {
+	V_UniChar_t* FirstLink[NUMVIDEOFONTS];	// First link in the chain
 	V_UniChar_t** CGroups[NUMVIDEOFONTS];	// Character groups for each font
 	V_FontInfo_t DynInfo[NUMVIDEOFONTS];	// Dynamic loaded info (used w/ comp)
 } V_LocalFontStuff_t;
@@ -1816,6 +1820,7 @@ static V_FontInfo_t l_LocalFonts[NUMVIDEOFONTS] =
 		"ReMooD OEM",
 		"oem",
 		{"UFNR", "", "UFNR", ""},
+		{VFNR_UNIVERSAL, VFNR_NULL},
 	},
 	
 	// Userspace Fonts
@@ -2061,7 +2066,7 @@ static V_UniChar_t* VS_AddCharacter(const bool_t a_Local, V_LocalFontStuff_t* co
 {
 	uint16_t Master, Slave;
 	V_UniChar_t* CharP;
-	int32_t w, h;
+	int32_t w, h, xo, yo;
 	
 	/* Local */
 	// Add it to passed structure
@@ -2086,6 +2091,24 @@ static V_UniChar_t* VS_AddCharacter(const bool_t a_Local, V_LocalFontStuff_t* co
 		// Get slave
 		CharP = &a_LocalStuff->CGroups[a_Font][Master][Slave];
 		
+		// If it is unlinked, link it in
+		if (!CharP->Linked)
+		{
+			// This will be the first chain?
+			if (!a_LocalStuff->FirstLink[a_Font])
+				a_LocalStuff->FirstLink[a_Font] = CharP;
+			
+			// A simple linked list here
+			else
+			{
+				CharP->Chain = a_LocalStuff->FirstLink[a_Font];
+				a_LocalStuff->FirstLink[a_Font] = CharP;
+			}
+			
+			// Set as linked
+			CharP->Linked = true;
+		}
+		
 		// Fill slave with info
 		CharP->Char = a_Hex;
 		V_ExtWCharToMB(CharP->Char, CharP->MB);
@@ -2094,10 +2117,10 @@ static V_UniChar_t* VS_AddCharacter(const bool_t a_Local, V_LocalFontStuff_t* co
 		CharP->Entry = a_Entry;
 		CharP->Image = V_ImageLoadE(CharP->Entry);
 		
-		// Obtain size of character
-		V_ImageSizePos(CharP->Image, &w, &h, NULL, NULL);
-		CharP->Size[0] = w;
-		CharP->Size[1] = h;
+		// Obtain size of character (include offsets)
+		V_ImageSizePos(CharP->Image, &w, &h, &xo, &yo);
+		CharP->Size[0] = w - xo;
+		CharP->Size[1] = h - yo;
 		
 		// Return the freshly created character
 		return CharP;
@@ -2126,6 +2149,8 @@ static bool_t VS_FontPDCCreate(const struct WL_WADFile_s* const a_WAD, const uin
 	VideoFont_t Font;
 	V_FontNameRule_t Rule;
 	V_UniChar_t* FreshChar;
+	V_UniChar_t* Rover;
+	int32_t TotalWidth, TotalHeight;
 	
 	/* Check */
 	if (!a_WAD)
@@ -2149,11 +2174,40 @@ static bool_t VS_FontPDCCreate(const struct WL_WADFile_s* const a_WAD, const uin
 		// It is a valid character, now slap it into the local table
 		if (!(FreshChar = VS_AddCharacter(true, FontStuff, Entry, Hex, Font, 0, NULL)))
 			continue;
-		
-		fprintf(stderr, "[%4x %2i %2i] %s {%ix%i}\n", Hex, Font, Rule, Entry->Name, FreshChar->Size[0], FreshChar->Size[1]);
 	}
 	
 	/* Build Dynamic Info */
+	for (i = 0; i < NUMVIDEOFONTS; i++)
+	{
+		// Get first chain here
+		Rover = FontStuff->FirstLink[i];
+		
+		// Clear
+		TotalWidth = TotalHeight = 0;
+		
+		// While the chain is linked
+		while (Rover)
+		{
+			// Add to totals
+			TotalWidth += Rover->Size[0];
+			TotalHeight += Rover->Size[1];
+			FontStuff->DynInfo[i].NumChars++;
+			
+			// Go to next link
+			Rover = Rover->Chain;
+		}
+		
+		// Determine average character size
+		// TODO: Instead of average, how about the most size of each? As in
+		// if there are 99 size 7 fonts but there is 1 size 9999 font the char
+		// height would be 106.92 (ouch). This would be for the height only
+		// though.
+		if (FontStuff->DynInfo[i].NumChars > 0)
+		{
+			FontStuff->DynInfo[i].CharWidth = TotalWidth / FontStuff->DynInfo[i].NumChars;
+			FontStuff->DynInfo[i].CharHeight = TotalHeight / FontStuff->DynInfo[i].NumChars;
+		}
+	}
 	
 	/* Success! */
 	return true;
