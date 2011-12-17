@@ -3027,6 +3027,18 @@ void V_RenderPD(V_PDString_t* const PDStr);
 ********************************************************************************
 *******************************************************************************/
 
+/*** CONSTANTS ***/
+
+/* V_ImageType_t -- Native image type */
+typedef enum V_ImageType_e
+{
+	VIT_PATCH,									// Image is a patch
+	VIT_PIC,									// Image is a pic_t
+	VIT_RAW,									// A raw image (flat)
+	
+	NUMVIMAGETYPES
+} V_ImageType_t;
+
 #define VWLIMAGEKEY	0x8C064303					// Key for private data
 
 /*** STRUCTURES ***/
@@ -3075,8 +3087,20 @@ static bool_t l_VSImageBooted = false;
 /*** FUNCTIONS ***/
 
 /* VS_HashImageCompare() -- Compares hash with image */
+// a_A = const char* char
+// a_B = V_Image_t* const
 bool_t VS_HashImageCompare(void* const a_A, void* const a_B)
 {
+	const char* A;
+	V_Image_t* B;
+	
+	/* Get */
+	A = a_A;
+	B = a_B;
+	
+	/* Compare */
+	if (strcasecmp(A, B->Name) == 0)
+		return true;	// a match!
 	return false;
 }
 
@@ -3128,8 +3152,11 @@ static void VS_InitialBoot(void)
 }
 
 /* V_ImageLoadE() -- Loads a specific entry as an image */
-V_Image_t* V_ImageLoadE(WL_WADEntry_t* const a_Entry)
+V_Image_t* V_ImageLoadE(const WL_WADEntry_t* const a_Entry)
 {
+#define HEADERSIZE 12
+	uint16_t Header[HEADERSIZE];
+	
 	/* Check */
 	if (!a_Entry)
 		return NULL;
@@ -3137,13 +3164,26 @@ V_Image_t* V_ImageLoadE(WL_WADEntry_t* const a_Entry)
 	/* Booted? */
 	if (!l_VSImageBooted)
 		VS_InitialBoot();
+	
+	/* Debug */
+	//if (devparm)
+	//	fprintf(stderr, "V_ImageLoadE: Loading \"%s\".\n", a_Entry->Name);
+	
+	/* Read header from entry */
+	memset(Header, 0, sizeof(Header));
+	WL_ReadData(a_Entry, 0, Header, sizeof(Header));
+#undef HEADERSIZE
 }
 
 /* V_ImageFindA() -- Loads an image by name */
 // Essentially a wrapper around V_ImageLoadE()
 V_Image_t* V_ImageFindA(const char* const a_Name)
 {
-	WL_WADFile_t* Rover;
+	const WL_WADFile_t* Rover;
+	V_WLImageHolder_t* WADImages;
+	V_Image_t* FoundImage;
+	const WL_WADEntry_t* Entry;
+	uint32_t Hash;
 	
 	/* Check */
 	if (!a_Name)
@@ -3155,9 +3195,33 @@ V_Image_t* V_ImageFindA(const char* const a_Name)
 	
 	/* Go through each WAD */
 	Rover = NULL;
+	Hash = Z_Hash(a_Name);	// Quicker if here
 	while ((Rover = WL_IterateVWAD(Rover, false)))
 	{
+		// Get images from this WAD
+		WADImages = WL_GetPrivateData(Rover, VWLIMAGEKEY, NULL);
+		
+		// Not found?
+		if (!WADImages)
+			continue;
+		
+		// Look in hashes
+		FoundImage = Z_HashFindEntry(WADImages->ImageHashes, Hash, a_Name, false);
+		
+		// Found it? Then return it
+		if (FoundImage)
+			return FoundImage;
+		
+		// Otherwise if not found, it could be in this wad but it might not be
+		Entry = WL_FindEntry(Rover, 0, a_Name);
+		
+		// Was an entry found? If so, try loading an image from it
+		if (Entry)
+			return V_ImageLoadE(Entry);
 	}
+	
+	/* Failure */
+	return NULL;
 }
 
 /* V_ImageDestroy() -- Destroys an image */
@@ -3165,7 +3229,11 @@ void V_ImageDestroy(V_Image_t* const a_Image)
 {
 }
 
-int32_t V_ImageUsage(V_Image_t* const a_Image, const bool_t a_Use);
+/* V_ImageUsage() -- Prevents an image from being freed */
+int32_t V_ImageUsage(V_Image_t* const a_Image, const bool_t a_Use)
+{
+	return 0;
+}
 
 // Get data for a specific format
 const struct patch_s* V_ImageGetPatch(V_Image_t* const a_Image);
@@ -3320,8 +3388,8 @@ void V_ImageDrawScaled(const uint32_t a_Flags, V_Image_t* const a_Image, const i
 		return;
 	
 	/* Check to see if the image needs probing */
-	if (!a_Image->dPatch && !a_Image->dPic && !a_Image->dRaw)
-		VP_ImageLoadNative(a_Image);
+	/*if (!a_Image->dPatch && !a_Image->dPic && !a_Image->dRaw)
+		VP_ImageLoadNative(a_Image);*/
 }
 
 /* V_ImageDrawTiled() -- Draws the image tiled (i.e. flat fill) */
