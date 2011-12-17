@@ -354,7 +354,7 @@ void V_RenderPD(V_PDString_t* const PDStr);
 
 #define MAXUIANAME			12					// Max name for find cache
 
-typedef struct V_Image_s V_Image_t;
+typedef struct V_Image_s V_Image_t;\
 
 // Load and Destroy
 V_Image_t* V_ImageLoadE(const WL_WADEntry_t* const a_Entry);
@@ -363,6 +363,7 @@ void V_ImageDestroy(V_Image_t* const a_Image);
 
 // Access
 int32_t V_ImageUsage(V_Image_t* const a_Image, const bool_t a_Use);
+uint32_t V_ImageSizePos(V_Image_t* const a_Image, int32_t* const a_Width, int32_t* const a_Height, int32_t* const a_XOff, int32_t* const a_YOff);
 
 // Get data for a specific format
 const struct patch_s* V_ImageGetPatch(V_Image_t* const a_Image);

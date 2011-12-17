@@ -1751,6 +1751,9 @@ typedef struct V_UniChar_s
 	uint16_t Char;
 	char MB[5];
 	
+	int16_t Size[2];			// Size of image
+	
+	const WL_WADEntry_t* Entry;	// Character Entry
 	struct V_Image_s* Image;	// Character image
 	
 	struct UniChar_s* BuildTop;
@@ -1909,7 +1912,7 @@ static bool_t VS_DetectByName(const char* const a_Name, uint16_t* const a_HexOut
 	
 	/* Check for the following rules in most to least liked */
 	// [UFNnhhhh] Universal Font Number (VFNR_UNIVERSAL)
-	if (strlen(a_Name) >= 8 &&
+	if (strlen(a_Name) == 8 &&
 		strncasecmp(a_Name, "UFN", 3) == 0 &&
 		((a_Name[3] >= 'a' && a_Name[3] <= 'z') || (a_Name[3] >= 'A' && a_Name[3] <= 'Z')) &&
 		isxdigit(a_Name[4]) && isxdigit(a_Name[5]) && isxdigit(a_Name[6]) && isxdigit(a_Name[7]))
@@ -1951,6 +1954,33 @@ static bool_t VS_DetectByName(const char* const a_Name, uint16_t* const a_HexOut
 	}
 	
 	// [STCFNddd] Doom STCFN Decimal (VFNR_STCFN)
+	if (strlen(a_Name) == 8 &&
+		strncasecmp(a_Name, "STCFN", 5) == 0 &&
+		isdigit(a_Name[5]) && isdigit(a_Name[6]) && isdigit(a_Name[7]))
+	{
+		// Set Rule
+		*a_RuleOut = VFNR_STCFN;
+		
+		// Convert number to an integer
+		*a_HexOut = 0;
+		for (i = 5; i < 8; i++)
+		{
+			*a_HexOut *= 10;	// Mul old number
+			*a_HexOut += a_Name[i] - '0';
+		}
+		
+		// Swap y and | since they foolishly are swapped in Doom
+		if (*a_HexOut == 121)
+			*a_HexOut = 124;
+		else if (*a_HexOut == 124)
+			*a_HexOut = 121;
+		
+		// Font is always Doom Small
+		*a_FontOut = VFONT_SMALL_DOOM;
+		
+		// Success!
+		return true;
+	}
 	
 	// [FONTnddd] Heretic, Odamex Decimal (VFNR_FONTX)
 	
@@ -1994,7 +2024,97 @@ static bool_t VS_DetectByName(const char* const a_Name, uint16_t* const a_HexOut
 /* VS_FontPDCRemove() -- Removes loaded character data */
 static void VS_FontPDCRemove(const struct WL_WADFile_s* a_WAD)
 {
+	size_t i, f;
+	V_LocalFontStuff_t* LocalStuff;
+	
+	/* Check */
+	if (!a_WAD)
+		return;
+	
+	/* Get local stuff */
+	LocalStuff = WL_GetPrivateData(a_WAD, VWLFONTPDC, NULL);
+	
+	// Failed?
+	if (!LocalStuff)
+		return;
+	
+	/* Clear each things */
+	for (f = 0; f < NUMVIDEOFONTS; f++)
+		if (LocalStuff->CGroups[f])
+		{
+			// Clear sub tables
+			for (i = 0; i < 256; i++)
+				if (LocalStuff->CGroups[f][i])
+				{
+					Z_Free(LocalStuff->CGroups[f][i]);
+					LocalStuff->CGroups[f][i] = NULL;
+				}
+		
+			// Clear master table
+			Z_Free(LocalStuff->CGroups[f]);
+			LocalStuff->CGroups[f] = NULL;
+		}
 }
+
+/* VS_AddCharacter() -- Adds character to table */
+static V_UniChar_t* VS_AddCharacter(const bool_t a_Local, V_LocalFontStuff_t* const a_LocalStuff, const WL_WADEntry_t* const a_Entry, const uint16_t a_Hex, const VideoFont_t a_Font, const uint16_t a_GAlias, const uint16_t* const a_GBuilder)
+{
+	uint16_t Master, Slave;
+	V_UniChar_t* CharP;
+	int32_t w, h;
+	
+	/* Local */
+	// Add it to passed structure
+	if (a_Local)
+	{
+		// Check
+		if (!a_LocalStuff || !a_Entry || !a_Hex)
+			return NULL;
+		
+		// Check to see if the local stuff has the super structure
+		if (!a_LocalStuff->CGroups[a_Font])
+			a_LocalStuff->CGroups[a_Font] = Z_Malloc(sizeof(*a_LocalStuff->CGroups[a_Font]) * 256, PU_STATIC, (void**)&a_LocalStuff->CGroups[a_Font]);
+		
+		// Find the master and slave index
+		Master = (a_Hex & 0xFF00) >> 8;
+		Slave = (a_Hex & 0xFF);
+		
+		// Check if the master is allocated for this group
+		if (!a_LocalStuff->CGroups[a_Font][Master])
+			a_LocalStuff->CGroups[a_Font][Master] = Z_Malloc(sizeof(*a_LocalStuff->CGroups[a_Font][Master]) * 256, PU_STATIC, (void**)&a_LocalStuff->CGroups[a_Font][Master]);
+		
+		// Get slave
+		CharP = &a_LocalStuff->CGroups[a_Font][Master][Slave];
+		
+		// Fill slave with info
+		CharP->Char = a_Hex;
+		V_ExtWCharToMB(CharP->Char, CharP->MB);
+		
+		// Load initial image
+		CharP->Entry = a_Entry;
+		CharP->Image = V_ImageLoadE(CharP->Entry);
+		
+		// Obtain size of character
+		V_ImageSizePos(CharP->Image, &w, &h, NULL, NULL);
+		CharP->Size[0] = w;
+		CharP->Size[1] = h;
+		
+		// Return the freshly created character
+		return CharP;
+	}
+	
+	/* Global */
+	// Add it to global link
+	else
+	{
+	}
+	
+	/* Failure */
+	return NULL;
+}
+
+	V_UniChar_t** CGroups[NUMVIDEOFONTS];	// Character groups for each font
+	V_FontInfo_t DynInfo[NUMVIDEOFONTS];	// Dynamic loaded info (used w/ comp)
 
 /* VS_FontPDCCreate() -- Creates a character database from characters inside of a WAD */
 static bool_t VS_FontPDCCreate(const struct WL_WADFile_s* const a_WAD, const uint32_t a_Key, void** const a_DataPtr, size_t* const a_SizePtr, WL_RemoveFunc_t* const a_RemoveFuncPtr)
@@ -2005,6 +2125,7 @@ static bool_t VS_FontPDCCreate(const struct WL_WADFile_s* const a_WAD, const uin
 	uint16_t Hex;
 	VideoFont_t Font;
 	V_FontNameRule_t Rule;
+	V_UniChar_t* FreshChar;
 	
 	/* Check */
 	if (!a_WAD)
@@ -2026,9 +2147,15 @@ static bool_t VS_FontPDCCreate(const struct WL_WADFile_s* const a_WAD, const uin
 			continue;
 		
 		// It is a valid character, now slap it into the local table
-		fprintf(stderr, "[%4x %2i %2i] %s\n", Hex, Font, Rule, Entry->Name);
+		if (!(FreshChar = VS_AddCharacter(true, FontStuff, Entry, Hex, Font, 0, NULL)))
+			continue;
+		
+		fprintf(stderr, "[%4x %2i %2i] %s {%ix%i}\n", Hex, Font, Rule, Entry->Name, FreshChar->Size[0], FreshChar->Size[1]);
 	}
 	
+	/* Build Dynamic Info */
+	
+	/* Success! */
 	return true;
 }
 
@@ -3776,6 +3903,30 @@ void V_ImageDestroy(V_Image_t* const a_Image)
 int32_t V_ImageUsage(V_Image_t* const a_Image, const bool_t a_Use)
 {
 	return 0;
+}
+
+/* V_ImageSizePos() -- Return image info */
+uint32_t V_ImageSizePos(V_Image_t* const a_Image, int32_t* const a_Width, int32_t* const a_Height, int32_t* const a_XOff, int32_t* const a_YOff)
+{
+	/* Check */
+	if (!a_Image)
+		return 0;
+	
+	/* Return stuff */
+	if (a_Width)
+		*a_Width = a_Image->Width;
+	
+	if (a_Height)
+		*a_Height = a_Image->Height;
+	
+	if (a_XOff)
+		*a_XOff = a_Image->Offset[0];
+	
+	if (a_YOff)
+		*a_YOff = a_Image->Offset[1];
+	
+	/* Return pixel count */
+	return a_Image->PixelCount;
 }
 
 // Get data for a specific format
