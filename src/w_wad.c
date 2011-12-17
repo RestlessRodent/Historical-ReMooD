@@ -597,7 +597,7 @@ void WL_PushWAD(const WL_WADFile_t* const a_WAD)
 		if (CB->Func)
 			if (!CB->Func(true, l_LLastVWAD))
 				if (devparm)
-					CONS_Printf("WL_PopWAD: Order callback failed.\n");
+					CONS_Printf("WL_PushWAD: Order callback failed.\n");
 		CB = CB->Next;
 	}
 }

@@ -1444,6 +1444,8 @@ void D_DoomMain(void)
 	
 	/* Adapters */
 	P_PrepareLevelInfoEx();
+	V_ImageFindA(NULL);					// Bump image loaders
+	V_MapGraphicalCharacters();			// Unicode chars
 	/**************************/
 	
 	// GhostlyDeath <December 14, 2011> -- Use extended identify version

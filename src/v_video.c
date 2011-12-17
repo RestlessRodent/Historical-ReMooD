@@ -1897,6 +1897,100 @@ static V_FontInfo_t* l_FontRemap[NUMVIDEOFONTS];	// Remaps for each font
 
 /*** FUNCTIONS ***/
 
+/* VS_DetectByName() -- Detects the font type and such */
+static bool_t VS_DetectByName(const char* const a_Name, uint16_t* const a_HexOut, VideoFont_t* const a_FontOut, V_FontNameRule_t* const a_RuleOut)
+{
+	size_t i, j;
+	int32_t Num[4];
+	
+	/* Check */
+	if (!a_Name || !a_HexOut || !a_FontOut || !a_RuleOut)
+		return false;
+	
+	/* Check for the following rules in most to least liked */
+	// [UFNnhhhh] Universal Font Number (VFNR_UNIVERSAL)
+	if (strlen(a_Name) >= 8 &&
+		strncasecmp(a_Name, "UFN", 3) == 0 &&
+		((a_Name[3] >= 'a' && a_Name[3] <= 'z') || (a_Name[3] >= 'A' && a_Name[3] <= 'Z')) &&
+		isxdigit(a_Name[4]) && isxdigit(a_Name[5]) && isxdigit(a_Name[6]) && isxdigit(a_Name[7]))
+	{
+		// Return rule
+		*a_RuleOut = VFNR_UNIVERSAL;
+		
+		// Cheat with numbers
+		for (i = 4; i < 8; i++)
+		{
+			// Convert
+			if (a_Name[i] >= 'A' && a_Name[i] <= 'Z')
+				Num[i - 4] = (a_Name[i] - 'A') + 10;
+			else if (a_Name[i] >= 'a' && a_Name[i] <= 'z')
+				Num[i - 4] = (a_Name[i] - 'a') + 10;
+			else
+				Num[i - 4] = a_Name[i] - '0';
+		}
+		
+		// Add hex numbers together
+		*a_HexOut = (Num[0] << 12) + (Num[1] << 8) + (Num[2] << 4) + Num[3];
+		
+		// Find out which font this belongs to
+		for (i = 0; i < NUMVIDEOFONTS; i++)
+			for (j = 0; j < 2; j++)
+				// Does the map rule match?
+				if (l_LocalFonts[i].MapRule[j] == *a_RuleOut)
+					// Does the namespace match?
+					if (tolower(a_Name[3]) == tolower(l_LocalFonts[i].Mappings[j][3]))
+					{
+						// Break out
+						*a_FontOut = i;
+						i = NUMVIDEOFONTS;
+						break;
+					}
+		
+		// Success!
+		return true;
+	}
+	
+	// [STCFNddd] Doom STCFN Decimal (VFNR_STCFN)
+	
+	// [FONTnddd] Heretic, Odamex Decimal (VFNR_FONTX)
+	
+	// [DIG     ] PrBoom Decimal (VFNR_PRBOOM)
+	
+	// [STTNUMd ] Status bar numbers (VFNR_STBARNUM)
+	if ((strlen(a_Name) == 7 &&
+			strncasecmp(a_Name, "STTNUM", 6) == 0 &&
+			isdigit(a_Name[6])) ||
+		(strlen(a_Name) == 8 &&
+			strncasecmp(a_Name, "STTPRCNT", 8) == 0) ||
+		(strlen(a_Name) == 8 &&
+			strncasecmp(a_Name, "STTMINUS", 8) == 0))
+	{
+		// Set Rule
+		*a_RuleOut = VFNR_STBARNUM;
+		
+		// Check if this is the percent sign
+		if (tolower(a_Name[3]) == 'p')
+			*a_HexOut = '%';
+		
+		// Check for minus sign
+		if (tolower(a_Name[3]) == 'm')
+			*a_HexOut = '-';
+		
+		// The rest are always numbers
+		else
+			*a_HexOut = a_Name[6];
+		
+		// Font is always the large status bar font
+		*a_FontOut = VFONT_STATUSBARLARGE;
+		
+		// Success!
+		return true;
+	}
+	
+	/* Failed */
+	return false;
+}
+
 /* VS_FontPDCRemove() -- Removes loaded character data */
 static void VS_FontPDCRemove(const struct WL_WADFile_s* a_WAD)
 {
@@ -1905,11 +1999,37 @@ static void VS_FontPDCRemove(const struct WL_WADFile_s* a_WAD)
 /* VS_FontPDCCreate() -- Creates a character database from characters inside of a WAD */
 static bool_t VS_FontPDCCreate(const struct WL_WADFile_s* const a_WAD, const uint32_t a_Key, void** const a_DataPtr, size_t* const a_SizePtr, WL_RemoveFunc_t* const a_RemoveFuncPtr)
 {
+	size_t i;
+	const WL_WADEntry_t* Entry;
+	V_LocalFontStuff_t* FontStuff;
+	uint16_t Hex;
+	VideoFont_t Font;
+	V_FontNameRule_t Rule;
+	
 	/* Check */
 	if (!a_WAD)
 		return false;
 	
-	return false;
+	/* Create private data */
+	*a_SizePtr = sizeof(*FontStuff);
+	FontStuff = *a_DataPtr = Z_Malloc(*a_SizePtr, PU_STATIC, NULL);
+	
+	/* Go through every single entry in a WAD */
+	for (i = 0; i < a_WAD->NumEntries; i++)
+	{
+		// Obtain entry link
+		Entry = &a_WAD->Entries[i];
+		
+		// Auto-detect if this is a named character along with a correct hex
+		// mapping. It can also auto choose the font too!
+		if (!VS_DetectByName(Entry->Name, &Hex, &Font, &Rule))
+			continue;
+		
+		// It is a valid character, now slap it into the local table
+		fprintf(stderr, "[%4x %2i %2i] %s\n", Hex, Font, Rule, Entry->Name);
+	}
+	
+	return true;
 }
 
 /* VS_FontOCCB() -- Maps all characters from WADs into tables */
@@ -1988,13 +2108,21 @@ void V_StringDimensionsA(const VideoFont_t a_Font, const uint32_t a_Options, con
 /* V_StringWidthA() -- Returns width of string */
 int V_StringWidthA(const VideoFont_t a_Font, const uint32_t a_Options, const char* const a_String)
 {
-	return 0;
+	int n = 0;
+	
+	/* Fairly simple */
+	V_StringDimensionsA(a_Font, a_Options, a_String, &n, NULL);
+	return n;
 }
 
 /* V_StringHeightA() -- Returns height of string */
 int V_StringHeightA(const VideoFont_t a_Font, const uint32_t a_Options, const char* const a_String)
 {
-	return 0;
+	int n = 0;
+	
+	/* Fairly simple */
+	V_StringDimensionsA(a_Font, a_Options, a_String, NULL, &n);
+	return n;
 }
 
 #if 0
@@ -3426,13 +3554,14 @@ V_Image_t* V_ImageLoadE(const WL_WADEntry_t* const a_Entry)
 	V_Image_t* Rover;
 	V_WLImageHolder_t* HI;
 	
-	/* Check */
-	if (!a_Entry)
-		return NULL;
 	
 	/* Booted? */
 	if (!l_VSImageBooted)
 		VS_InitialBoot();
+	
+	/* Check */
+	if (!a_Entry)
+		return NULL;
 	
 	/* Debug */
 	//if (devparm)
@@ -3595,13 +3724,13 @@ V_Image_t* V_ImageFindA(const char* const a_Name)
 	const WL_WADEntry_t* Entry;
 	uint32_t Hash;
 	
-	/* Check */
-	if (!a_Name)
-		return NULL;
-		
 	/* Booted? */
 	if (!l_VSImageBooted)
 		VS_InitialBoot();
+	
+	/* Check */
+	if (!a_Name)
+		return NULL;	
 	
 	/* Go through each WAD */
 	Rover = NULL;
