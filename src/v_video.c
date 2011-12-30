@@ -2254,6 +2254,7 @@ static bool_t VS_FontPDCCreate(const struct WL_WADFile_s* const a_WAD, const uin
 // composited table.
 static bool_t VS_FontOCCB(const bool_t a_Pushed, const struct WL_WADFile_s* const a_WAD)
 {
+#define MAXHEIGHTCHECKERS	16
 	size_t i, j, f;
 	int32_t Count;
 	V_UniChar_t*** FGroup;
@@ -2267,6 +2268,12 @@ static bool_t VS_FontOCCB(const bool_t a_Pushed, const struct WL_WADFile_s* cons
 	uint8_t* p;
 	uint8_t* UTData;
 	uint16_t a, b;
+	
+	struct
+	{
+		uint32_t Height;
+		uint32_t Count;
+	} Heights[MAXHEIGHTCHECKERS];
 	
 	struct
 	{
@@ -2477,19 +2484,43 @@ static bool_t VS_FontOCCB(const bool_t a_Pushed, const struct WL_WADFile_s* cons
 		
 		// Clear
 		tW = tH = tT = 0;
+		memset(Heights, 0, sizeof(Heights));
 		
 		// Determine the best character size for each group
+		// But only for characters that have images
 		if (l_LocalFonts[f].NumChars)
 			if (l_CGroups[f])
 				for (i = 0; i < 256; i++)
 					if (l_CGroups[f][i])
 						for (j = 0; j < 256; j++)
 							if (l_CGroups[f][i][j])
-							{
-								tT++;
-								tW += l_CGroups[f][i][j]->Size[0];
-								tH += l_CGroups[f][i][j]->Size[1];
-							}
+								if (l_CGroups[f][i][j]->Image)
+								{
+									// Average Based
+									tT++;
+									tW += l_CGroups[f][i][j]->Size[0];
+									tH += l_CGroups[f][i][j]->Size[1];
+									
+									// Clone height
+									b = l_CGroups[f][i][j]->Size[1];
+									
+									// Only add if it has height
+									if (b)
+									{
+										// Put in heights listing
+										for (v = 0; v < MAXHEIGHTCHECKERS; v++)
+											if (Heights[v].Height == 0 || Heights[v].Height == b)
+												break;
+										
+										// OK?
+										if (v < MAXHEIGHTCHECKERS)
+										{
+											// Setup and increment count
+											Heights[v].Height = b;
+											Heights[v].Count++;
+										}
+									}
+								}
 		
 		// Average it out
 		if (tT > 0)
@@ -2497,6 +2528,15 @@ static bool_t VS_FontOCCB(const bool_t a_Pushed, const struct WL_WADFile_s* cons
 			l_LocalFonts[f].CharWidth = tW / tT;
 			l_LocalFonts[f].CharHeight = tH / tT;
 		}
+		
+		// Find the height with the most population
+		for (a = 0, v = 0; v < MAXHEIGHTCHECKERS; v++)
+			if (Heights[v].Count > Heights[a].Count)
+				a = v;	// Now the best!
+		
+		// Set the height if there is one (would be zero otherwise anyway
+		if (Heights[a].Height)		// so this if is pointless)
+			l_LocalFonts[f].CharHeight = Heights[a].Height;
 		
 		// Space is this average width and height
 		l_VSpace[f].Size[0] = l_LocalFonts[f].CharWidth;
@@ -2541,24 +2581,13 @@ static bool_t VS_FontOCCB(const bool_t a_Pushed, const struct WL_WADFile_s* cons
 		l_FontRemap[VFONT_LARGE] = VFONT_LARGE_DOOM;
 	}
 	
-#if 0
-	/* Dynamic */
-	uint32_t NumChars;						// Number of actual characters
-	uint32_t ScriptHash;					// Hash for scripting name
-											// scripts lookup by name!
-	int32_t CharWidth;						// Average character width
-	int32_t CharHeight;						// Average character height
-	int32_t wTotal;							// Width total
-	int32_t hTotal;							// Height total
-	
-	int32_t tW[NUMVIDEOFONTS], tH[NUMVIDEOFONTS], tT[NUMVIDEOFONTS];
-#endif
-	
 	// Debug
-	CONS_Printf("VS_FontOCCB: Mapped %i characters.\n", Count);
+	if (devparm)
+		CONS_Printf("VS_FontOCCB: Mapped %i characters.\n", Count);
 	
 	/* Success! */
 	return true;
+#undef MAXHEIGHTCHECKERS
 }
 
 /* V_MapGraphicalCharacters() -- Initializes WL Hooks */
