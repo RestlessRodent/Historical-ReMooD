@@ -2261,8 +2261,12 @@ static bool_t VS_FontOCCB(const bool_t a_Pushed, const struct WL_WADFile_s* cons
 	const WL_WADFile_t* WADRover;
 	V_LocalFontStuff_t* FontStuff;
 	int32_t tW, tH, tT;
-	uint16_t v, Master, Slave;
+	uint16_t v, Master, Slave, MasterC, SlaveC;
 	WL_WADEntry_t* UTTT;
+	uint8_t u8;
+	uint8_t* p;
+	uint8_t* UTData;
+	uint16_t a, b;
 	
 	struct
 	{
@@ -2284,20 +2288,6 @@ static bool_t VS_FontOCCB(const bool_t a_Pushed, const struct WL_WADFile_s* cons
 		{0xFFF9U, 2},
 		{0, 0},
 	};
-	
-#if 0
-	static V_UniChar_t*** l_CGroups[NUMVIDEOFONTS];		// Composite group
-	static V_UniChar_t* l_UnknownLink[NUMVIDEOFONTS];	// Unknown character for each font
-	static V_FontInfo_t* l_FontRemap[NUMVIDEOFONTS];	// Remaps for each font
-	
-	/* V_LocalFontStuff_t -- Info for a font in WAD */
-	typedef struct V_LocalFontStuff_s
-	{
-		V_UniChar_t* FirstLink[NUMVIDEOFONTS];	// First link in the chain
-		V_UniChar_t** CGroups[NUMVIDEOFONTS];	// Character groups for each font
-		V_FontInfo_t DynInfo[NUMVIDEOFONTS];	// Dynamic loaded info (used w/ comp)
-	} V_LocalFontStuff_t;
-#endif
 	
 	/* Clear old groups */
 	for (f = 0; f < NUMVIDEOFONTS; f++)
@@ -2362,10 +2352,92 @@ static bool_t VS_FontOCCB(const bool_t a_Pushed, const struct WL_WADFile_s* cons
 	}
 	
 	// Load virtual aliases and builders from RMD_UTTT
-	//UTTT = WL_FindEntry("RMD_UTTT");
+	UTTT = WL_FindEntry(NULL, 0, "RMD_UTTT");
 	
-	for (f = 0; f < NUMVIDEOFONTS; f++)
+	if (!UTTT)
 	{
+		// Debug message
+		if (devparm)
+			CONS_Printf("VS_FontOCCB: RMD_UTTT found, mappings will be incomplete.\n");
+	}
+	else
+	{
+		// Allocate data
+		UTData = Z_Malloc(UTTT->Size + 5, PU_STATIC, NULL);
+		WL_ReadData(UTTT, 0, UTData, UTTT->Size);
+		
+		// Get base pointer
+		p = UTData;
+		
+		// Constantly read data
+		while (*p != 0)
+		{
+			// Based on the first byte
+			switch (*p)
+			{
+					// Case mapping
+				case 1:
+					// Increment p
+					p++;
+					
+					// Zero indicates an end
+					do
+					{
+						// Read lower case character (target)
+						a = *(p++);
+						a |= ((uint16_t)(*(p++))) << 8;
+					
+						// End?
+						if (!a)
+							break;
+					
+						// Read capitalized character (source)
+						b = *(p++);
+						b |= ((uint16_t)(*(p++))) << 8;
+					
+						// End?
+						if (!b)
+							break;
+						
+						// Determine master and slaves
+						Master = (a & 0xFF) >> 8;
+						Slave = (a & 0xFF);
+						MasterC = (b & 0xFF) >> 8;
+						SlaveC = (b & 0xFF);
+					
+						// Now process for every font
+						for (f = 0; f < NUMVIDEOFONTS; f++)
+							if (l_CGroups[f])
+							{
+								// Check if the capitalized character does not exist
+								if (!l_CGroups[f][MasterC])
+									continue;
+								if (!l_CGroups[f][MasterC][SlaveC])
+									continue;
+							
+								// Check if the lowercase character already exists
+								if (l_CGroups[f][Master])
+									if (l_CGroups[f][Master][Slave])
+										continue;
+							
+								// Duplicate the character
+								if (VS_AddCharacter(false, NULL, NULL, a, f, 0, 0, l_CGroups[f][MasterC][SlaveC]))
+									Count++;
+							}
+					} while (*p != 0);
+					break;
+					
+					// End of Info
+				default:
+					// Oops!
+					if (*p != 0)
+						p++;
+					break;
+			}
+		}
+		
+		// Free data, no longer needed
+		Z_Free(UTData);
 	}
 	
 	// Delete all pre-existing space characters
