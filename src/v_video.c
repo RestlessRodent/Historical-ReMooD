@@ -4457,9 +4457,15 @@ uint32_t V_ImageSizePos(V_Image_t* const a_Image, int32_t* const a_Width, int32_
 	return a_Image->PixelCount;
 }
 
-// Get data for a specific format
+/* V_ImageGetPatch() -- Load a patch */
+// TODO: Enhance Security of this
 const struct patch_s* V_ImageGetPatch(V_Image_t* const a_Image)
 {
+	uint8_t* RawImage;
+	uint8_t* RawData;
+	size_t BaseSize, TotalSize, i;
+	uint32_t Temp;
+	
 	/* Check */
 	if (!a_Image)
 		return NULL;
@@ -4474,12 +4480,49 @@ const struct patch_s* V_ImageGetPatch(V_Image_t* const a_Image)
 	{
 		// Load the patch_t in an endian friendly and structure size friendly
 		// way. So even if there is structure padding, it still works!
+		// Allocate the base patch_t plus the base post data.
+		BaseSize = sizeof(*a_Image->dPatch) + (sizeof(uint32_t) * a_Image->Width);
+		TotalSize = BaseSize + a_Image->wData->Size;
+		a_Image->dPatch = Z_Malloc(TotalSize, PU_STATIC, &a_Image->dPatch);
+		
+		// Read after base (so the lump data is offset sizeof(patch_t))
+		WL_ReadData(a_Image->wData, 0, (void*)(((uintptr_t)a_Image->dPatch) + BaseSize), a_Image->wData->Size);
+		
+		// Initialize the base patch data
+		a_Image->dPatch->width = a_Image->Width;
+		a_Image->dPatch->height = a_Image->Height;
+		a_Image->dPatch->leftoffset = a_Image->Offset[0];
+		a_Image->dPatch->topoffset = a_Image->Offset[1];
+		
+		// Now read the offset table from the WAD
+		for (i = 0; i < a_Image->Width; i++)
+		{
+			// Read offset from file
+			WL_ReadData(a_Image->wData, 8 + (4 * i), &Temp, sizeof(Temp));
+			
+			// Correct endian
+			Temp = LittleSwapUInt32(Temp);
+			
+			// Offset base
+			Temp += BaseSize;
+			
+			// Set
+			a_Image->dPatch->columnofs[i] = Temp;
+		}
+		
+		// Return the freshly loaded image
+		return a_Image->dPatch;
 	} 
 	
 	/* If the image is not a patch_t */
 	else
 	{
 		// Obtain the raw image, then postize it simply
+		RawImage = V_ImageGetRaw(a_Image);
+		
+		// Failed?
+		if (!RawImage)
+			return NULL;
 	}
 	
 	/* Failure */
@@ -4537,6 +4580,11 @@ const struct pic_s* V_ImageGetPic(V_Image_t* const a_Image)
 // Raw is the lowest common denominator
 uint8_t* V_ImageGetRaw(V_Image_t* const a_Image)
 {
+	patch_t* Patch;
+	size_t i, x, dy;
+	uint8_t* p;
+	uint8_t Count;
+	
 	/* Check */
 	if (!a_Image)
 		return NULL;
@@ -4572,10 +4620,45 @@ uint8_t* V_ImageGetRaw(V_Image_t* const a_Image)
 		// Otherwise if it is a patch_t, translation is required
 		else if (a_Image->NativeType == VIT_PATCH)
 		{
-			// Draw the patch into a buffer
+			// Load patch
+			Patch = V_ImageGetPatch(a_Image);
+			
+			// Failed?
+			if (!Patch)
+				return NULL;
+			
+			// Allocate buffer to draw patch into
 			a_Image->dRaw = Z_Malloc((a_Image->PixelCount + 1) * sizeof(uint8_t), PU_STATIC, (void**)&a_Image->dRaw);
 			
-			memset(a_Image->dRaw, 4, (a_Image->PixelCount) * sizeof(uint8_t));
+			// Draw into the raw buffer
+			for (x = 0; x < a_Image->Width; x++)
+			{
+				// Obtain offset to data
+				p = (void*)(((uintptr_t)Patch) + Patch->columnofs[x]);
+				
+				for (;;)
+				{
+					// Read offset
+					dy = *(p++);
+					
+					// Is this the end of the column?
+					if (dy == -1 || dy == 255)
+						break;
+				
+					// Read number of pixels
+					Count = *(p++);
+				
+					// Ignore the first pixel
+					p++;
+				
+					// Draw into destination
+					for (i = 0; i < Count; i++)
+						a_Image->dRaw[(a_Image->Width * (dy++)) + x] = *(p++);
+				
+					// Ignore
+					p++;
+				}
+			}
 		}
 	}
 	
