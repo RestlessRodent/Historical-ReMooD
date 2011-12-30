@@ -1901,6 +1901,7 @@ static V_FontInfo_t l_LocalFonts[NUMVIDEOFONTS] =
 	},
 };
 
+static V_UniChar_t l_VSpace[NUMVIDEOFONTS];			// Virtual space character
 static V_UniChar_t*** l_CGroups[NUMVIDEOFONTS];		// Composite group
 static V_UniChar_t* l_UnknownLink[NUMVIDEOFONTS];	// Unknown character for each font
 static size_t l_FontRemap[NUMVIDEOFONTS];	// Remaps for each font
@@ -2063,6 +2064,9 @@ static void VS_FontPDCRemove(const struct WL_WADFile_s* a_WAD)
 		}
 }
 
+// GhostlyDeath <December 30, 2011> -- Probably pointless!
+#define VVIRTUALSPACECHAR ((V_UniChar_t*)-1)
+
 /* VS_AddCharacter() -- Adds character to table */
 static V_UniChar_t* VS_AddCharacter(const bool_t a_Local, V_LocalFontStuff_t* const a_LocalStuff, const WL_WADEntry_t* const a_Entry, const uint16_t a_Hex, const VideoFont_t a_Font, const uint16_t a_GAlias, const uint16_t* const a_GBuilder, V_UniChar_t* const a_CharP)
 {
@@ -2115,14 +2119,17 @@ static V_UniChar_t* VS_AddCharacter(const bool_t a_Local, V_LocalFontStuff_t* co
 		CharP->Char = a_Hex;
 		V_ExtWCharToMB(CharP->Char, CharP->MB);
 		
-		// Load initial image
-		CharP->Entry = a_Entry;
-		CharP->Image = V_ImageLoadE(CharP->Entry);
+		// Load initial image (but only if it is not virtual)
+		if (a_Entry != VVIRTUALSPACECHAR)
+		{
+			CharP->Entry = a_Entry;
+			CharP->Image = V_ImageLoadE(CharP->Entry);
 		
-		// Obtain size of character (include offsets)
-		V_ImageSizePos(CharP->Image, &w, &h, &xo, &yo);
-		CharP->Size[0] = w - xo;
-		CharP->Size[1] = h - yo;
+			// Obtain size of character (include offsets)
+			V_ImageSizePos(CharP->Image, &w, &h, &xo, &yo);
+			CharP->Size[0] = w - xo;
+			CharP->Size[1] = h - yo;
+		}
 		
 		// Return the freshly created character
 		return CharP;
@@ -2254,6 +2261,29 @@ static bool_t VS_FontOCCB(const bool_t a_Pushed, const struct WL_WADFile_s* cons
 	const WL_WADFile_t* WADRover;
 	V_LocalFontStuff_t* FontStuff;
 	int32_t tW, tH, tT;
+	uint16_t v, Master, Slave;
+	WL_WADEntry_t* UTTT;
+	
+	struct
+	{
+		uint16_t Start;
+		uint16_t Len;
+	} VSpaceChars[] =
+	{
+		{'\r', 1},
+		{'\n', 1},
+		{'\t', 1},
+		{'\a', 1},
+		{'\b', 1},
+		{' ', 1},
+		{0x00A0U, 1},
+		{0x2000U, 15},
+		{0x2028U, 7},
+		{0x205FU, 4},
+		{0x206AU, 5},
+		{0xFFF9U, 2},
+		{0, 0},
+	};
 	
 #if 0
 	static V_UniChar_t*** l_CGroups[NUMVIDEOFONTS];		// Composite group
@@ -2331,7 +2361,41 @@ static bool_t VS_FontOCCB(const bool_t a_Pushed, const struct WL_WADFile_s* cons
 		}
 	}
 	
-	// Load virtual aliases and builders
+	// Load virtual aliases and builders from RMD_UTTT
+	//UTTT = WL_FindEntry("RMD_UTTT");
+	
+	for (f = 0; f < NUMVIDEOFONTS; f++)
+	{
+	}
+	
+	// Delete all pre-existing space characters
+	memset(l_VSpace, 0, sizeof(l_VSpace));
+	
+	// Add virtual space characters
+	for (f = 0; f < NUMVIDEOFONTS; f++)
+	{
+		// Add every virtual space
+		for (i = 0; VSpaceChars[i].Start; i++)
+			for (j = 0; j < VSpaceChars[i].Len; i++)
+			{
+				// Get actual char
+				v = VSpaceChars[i].Start + j;
+				
+				// Get master and slave
+				Master = (v & 0xFF00) >> 8;
+				Slave = (v & 0xFF);
+				
+				// Determine if it exists already
+				if (l_CGroups[f])
+					if (l_CGroups[f][Master])
+						if (l_CGroups[f][Master][Slave])
+							continue;
+				
+				// It does not, so add it
+				if (VS_AddCharacter(false, NULL, NULL, v, f, 0, 0, &l_VSpace[f]))
+					Count++;
+			}
+	}
 	
 	// Scan through each font and determine the best width and height
 	for (f = 0; f < NUMVIDEOFONTS; f++)
@@ -2361,6 +2425,10 @@ static bool_t VS_FontOCCB(const bool_t a_Pushed, const struct WL_WADFile_s* cons
 			l_LocalFonts[f].CharWidth = tW / tT;
 			l_LocalFonts[f].CharHeight = tH / tT;
 		}
+		
+		// Space is this average width and height
+		l_VSpace[f].Size[0] = l_LocalFonts[f].CharWidth;
+		l_VSpace[f].Size[1] = l_LocalFonts[f].CharHeight;
 		
 		// Determine the unknown link
 		l_UnknownLink[f] = 0;
