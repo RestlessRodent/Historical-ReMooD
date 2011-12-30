@@ -2361,6 +2361,25 @@ static bool_t VS_FontOCCB(const bool_t a_Pushed, const struct WL_WADFile_s* cons
 			l_LocalFonts[f].CharWidth = tW / tT;
 			l_LocalFonts[f].CharHeight = tH / tT;
 		}
+		
+		// Determine the unknown link
+		l_UnknownLink[f] = 0;
+		if (l_CGroups[f])
+		{
+			// First attempt 0xFFFD (UTF replacement character)
+			if (l_CGroups[f][0xFF])
+				l_UnknownLink[f] = l_CGroups[f][0xFF][0xFD];
+			
+			// Next attempt 0x0000 (Standard replacement character)
+			if (!l_UnknownLink[f])
+				if (l_CGroups[f][0x00])
+					l_UnknownLink[f] = l_CGroups[f][0x00][0x00];
+				
+			// Next attempt 0x007F (Backspace character)
+			if (!l_UnknownLink[f])
+				if (l_CGroups[f][0x00])
+					l_UnknownLink[f] = l_CGroups[f][0x00][0x7F];
+		}
 	}
 	
 	// Create local mapping (most of them are 1:1)
@@ -2645,10 +2664,76 @@ int V_FontWidth(const VideoFont_t a_Font)
 	return l_LocalFonts[l_FontRemap[a_Font]].CharWidth;
 }
 
+/* VS_FindChar() -- Find character to map to */
+static V_UniChar_t* VS_FindChar(const VideoFont_t a_Font, const char* const a_MBChar, size_t* const a_BSkip)
+{
+	uint16_t WChar, Master, Slave;
+	VideoFont_t TrueFont;
+	V_UniChar_t* VisSlave;
+	
+	/* Check */
+	if (!a_MBChar || a_Font < 0 || a_Font >= NUMVIDEOFONTS)
+		return NULL;
+	
+	/* Convert to integer character */
+	WChar = V_ExtMBToWChar(a_MBChar, a_BSkip);
+	
+	/* Find in tables */
+	// Get the true font mapping
+	TrueFont = l_FontRemap[a_Font];
+	
+	// Get master and slave
+	Master = (WChar & 0xFF00) >> 8;
+	Slave = (WChar & 0xFF);
+	
+	// Check if the font exists
+	if (l_CGroups[TrueFont])
+		// Check if the master group exists
+		if (l_CGroups[TrueFont][Master])
+			// Check if the slave is set
+			if ((VisSlave = l_CGroups[TrueFont][Master][Slave]))
+				// If so, return it!
+				return VisSlave;
+	
+	/* Otherwise return the "unknown" character */
+	return l_UnknownLink[TrueFont];
+}
+
 /* V_DrawCharacterMB() -- Draws multi-byte character */
 int V_DrawCharacterMB(const VideoFont_t a_Font, const uint32_t a_Options, const char* const a_MBChar, const int a_x, const int a_y, size_t* const a_BSkip, uint32_t* a_OptionsMod)
 {
-	return 0;
+	V_UniChar_t* VisChar;
+	uint32_t DrawFlags;
+	
+	/* Check */
+	if (!a_MBChar)
+		return 0;
+	
+	/* Locate visible character */
+	VisChar = VS_FindChar(a_Font, a_MBChar, a_BSkip);
+	
+	// No character?
+	if (!VisChar)
+		return 0;
+	
+	/* Draw character to the screen */
+	// Determine flags
+	DrawFlags = 0;
+	
+	if (a_Options & VFO_NOSCALESTART)
+		DrawFlags |= VEX_NOSCALESTART;
+	if (a_Options & VFO_NOSCALEPATCH)
+		DrawFlags |= VEX_NOSCALESCREEN;
+	if (a_Options & VFO_NOFLOATSCALE)
+		DrawFlags |= VEX_NOFLOATSCALE;
+	if (a_Options & VFO_NOSCALELORES)
+		DrawFlags |= VEX_NOSCALE160160;
+	
+	// Draw it
+	V_ImageDraw(DrawFlags, VisChar->Image, a_x, a_y, NULL);
+	
+	/* Return character width */
+	return VisChar->Size[0];
 }
 
 /* V_DrawCharacterA() -- Draws a single ASCII character */
@@ -4469,9 +4554,6 @@ uint8_t* V_ImageGetRaw(V_Image_t* const a_Image)
 		
 		// Load WAD data straight into buffer
 		WL_ReadData(a_Image->wData, 0, a_Image->dRaw, a_Image->PixelCount * sizeof(uint8_t));
-		
-		// Return the raw image
-		return a_Image->dRaw;
 	} 
 	
 	/* If the image is not a raw image */
@@ -4485,20 +4567,20 @@ uint8_t* V_ImageGetRaw(V_Image_t* const a_Image)
 		
 			// Load WAD data straight into buffer with offset
 			WL_ReadData(a_Image->wData, 8, a_Image->dRaw, a_Image->PixelCount * sizeof(uint8_t));
-		
-			// Return the raw image
-			return a_Image->dRaw;
 		}
 		
 		// Otherwise if it is a patch_t, translation is required
 		else if (a_Image->NativeType == VIT_PATCH)
 		{
 			// Draw the patch into a buffer
+			a_Image->dRaw = Z_Malloc((a_Image->PixelCount + 1) * sizeof(uint8_t), PU_STATIC, (void**)&a_Image->dRaw);
+			
+			memset(a_Image->dRaw, 4, (a_Image->PixelCount) * sizeof(uint8_t));
 		}
 	}
 	
-	/* Failure */
-	return NULL;
+	/* Return the raw image */ 
+	return a_Image->dRaw;
 }
 
 /* V_ImageDrawScaled() -- Draws the image with specific scaling */
@@ -4560,7 +4642,7 @@ void V_ImageDrawScaled(const uint32_t a_Flags, V_Image_t* const a_Image, const i
 	
 	/* If the image is a patch_t then draw it as a patch */
 	// Since patches have "holes" for transparency
-	if (a_Image->NativeType == VIT_PATCH)
+	if (false)//a_Image->NativeType == VIT_PATCH)
 	{
 	}
 	
@@ -4575,11 +4657,11 @@ void V_ImageDrawScaled(const uint32_t a_Flags, V_Image_t* const a_Image, const i
 			return;	// oops!
 		
 		// Draw row by row
-		for (sxY = 0, yy = 0; sxY < xh; sxY += YFrac, yy++)
+		for (sxY = 0, yy = y; sxY < xh; sxY += YFrac, yy++)
 		{
 			// Obtain source and destination pointers (for row base)
 			sP = RawData + (w * (sxY >> FRACBITS));
-			dP = screens[0] + (vid.width * yy);
+			dP = screens[0] + (vid.width * yy) + x;
 			
 			// Scaled row draw
 			for (sxX = 0; sxX < xw; sxX += XFrac)
@@ -4633,6 +4715,6 @@ void V_ImageDraw(const uint32_t a_Flags, V_Image_t* const a_Image, const int32_t
 	}
 	
 	/* That is basically everything */
-	V_ImageDrawScaled(a_Flags, a_Image, a_X, a_Y, xScale, yScale, NULL);
+	V_ImageDrawScaled(a_Flags, a_Image, a_X, a_Y, xScale, yScale, a_ExtraMap);
 }
 
