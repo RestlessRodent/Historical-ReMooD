@@ -436,6 +436,18 @@ size_t ZP_FreePartitionInZone(Z_MemPartition_t* const Part)
 		RetVal++;
 	}
 	
+	/* Fix all partition self references */
+	// Since the references are no longer valid for merged partitions
+	for (; i < l_MainZone->NumPartitions; i++)
+	{
+		// Quick Ref
+		Mergee = &l_MainZone->PartitionList[i];
+		
+		// Reset reference
+		ZP_PointerForPartition(Mergee, &Mergee->Part.SelfRef);
+		*Mergee->Part.SelfRef = i;
+	}
+	
 	/* Return number of merged partitions */
 	return RetVal;
 }
