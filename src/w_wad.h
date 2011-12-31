@@ -195,6 +195,7 @@ const WL_WADFile_t* WL_IterateVWAD(const WL_WADFile_t* const a_WAD, const bool_t
 void WL_PushWAD(const WL_WADFile_t* const a_WAD);
 const WL_WADFile_t* WL_PopWAD(void);
 
+bool_t WL_LockOCCB(const bool_t a_DoLock);
 bool_t WL_RegisterOCCB(WL_OrderCBFunc_t const a_Func, const uint8_t a_Order);
 
 bool_t WL_RegisterPDC(const uint32_t a_Key, const uint8_t a_Order, WL_PCCreatorFunc_t const a_CreatorFunc, WL_RemoveFunc_t const a_RemoveFunc);

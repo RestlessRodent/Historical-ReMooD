@@ -107,6 +107,8 @@ static WL_PDC_t l_PDC[WLMAXPRIVATEWADSTUFF];	// Private WAD Stuff
 static WL_PDC_t* l_PDCp[WLMAXPRIVATEWADSTUFF];	// Sorted variant
 static size_t l_NumPDC = 0;						// Number of PDC
 static WL_OCCB_t* l_OCCBHead = NULL;			// Head of registrars
+static bool_t l_LockOCCB = false;				// OCCB is locked
+static bool_t l_PendingOCCB = false;			// an OCCB is pending
 
 static char l_SearchList[MAXSEARCHBUFFER][PATH_MAX];	// Places to look for WADs
 static size_t l_SearchCount = 0;	// Number of places to look
@@ -590,15 +592,28 @@ void WL_PushWAD(const WL_WADFile_t* const a_WAD)
 	}
 	
 	/* Call order change callback */
-	CB = l_OCCBHead;
-
-	while (CB)
+	// If it is unlocked, then call the callbacks
+	if (!l_LockOCCB)
 	{
-		if (CB->Func)
-			if (!CB->Func(true, l_LLastVWAD))
-				if (devparm)
-					CONS_Printf("WL_PushWAD: Order callback failed.\n");
-		CB = CB->Next;
+		CB = l_OCCBHead;
+
+		while (CB)
+		{
+			if (CB->Func)
+				if (!CB->Func(true, l_LLastVWAD))
+					if (devparm)
+						CONS_Printf("WL_PushWAD: Order callback failed.\n");
+			CB = CB->Next;
+		}
+	}
+	
+	// Otherwise, set pending
+	else
+	{
+		if (devparm)
+			CONS_Printf("WL_PushWAD: OCCB locked, pending notification.\n");
+		
+		l_PendingOCCB = true;
 	}
 }
 
@@ -632,15 +647,28 @@ const WL_WADFile_t* WL_PopWAD(void)
 		l_LFirstVWAD = NULL;
 		
 	/* Call order change callbacks */
-	CB = l_OCCBHead;
-	
-	while (CB)
+	// If it is not locked, call them
+	if (!l_LockOCCB)
 	{
-		if (CB->Func)
-			if (!CB->Func(false, Rover))
-				if (devparm)
-					CONS_Printf("WL_PopWAD: Order callback failed.\n");
-		CB = CB->Next;
+		CB = l_OCCBHead;
+	
+		while (CB)
+		{
+			if (CB->Func)
+				if (!CB->Func(false, Rover))
+					if (devparm)
+						CONS_Printf("WL_PopWAD: Order callback failed.\n");
+			CB = CB->Next;
+		}
+	}
+	
+	// Otherwise, set pending
+	else
+	{
+		if (devparm)
+			CONS_Printf("WL_PopWAD: OCCB locked, pending notification.\n");
+		
+		l_PendingOCCB = true;
 	}
 	
 	/* Return the popped off WAD */
@@ -821,6 +849,59 @@ bool_t WL_LocateWAD(const char* const a_Name, const char* const a_MD5, char* con
 	
 	/* Failed */
 	return false;
+}
+
+/* WL_LockOCCB() -- Prevents OCCB from running */
+bool_t WL_LockOCCB(const bool_t a_DoLock)
+{
+	WL_OCCB_t* CB;
+	
+	/* Locking? */
+	if (a_DoLock)
+	{
+		// Set lock
+		l_LockOCCB = true;
+		
+		// Debug
+		if (devparm)
+			CONS_Printf("WL_LockOCCB: Locked.\n");
+	}
+	
+	/* Unlocking */
+	else
+	{
+		// Debug
+		if (devparm)
+			if (l_PendingOCCB)
+				CONS_Printf("WL_LockOCCB: Unlocked with pending.\n");
+			else
+				CONS_Printf("WL_LockOCCB: Unlocked.\n");
+		
+		// Unset lock
+		l_LockOCCB = false;
+		
+		// Is there a pending OCCB?
+		if (l_PendingOCCB)
+		{
+			// Unset pending
+			l_PendingOCCB = false;
+			
+			// Call all callbacks
+			CB = l_OCCBHead;
+
+			while (CB)
+			{
+				if (CB->Func)
+					if (!CB->Func(true, l_LLastVWAD))
+						if (devparm)
+							CONS_Printf("WL_LockOCCB: Order callback failed.\n");
+				CB = CB->Next;
+			}
+		}
+	}
+	
+	/* Success! */
+	return true;
 }
 
 /* WL_RegisterOCCB() -- This is called whenever the WAD order changes */
@@ -1243,6 +1324,9 @@ WadIndex_t __REMOOD_DEPRECATED W_InitMultipleFiles(char** filenames)
 	if (!filenames)
 		return 0;
 	
+	/* Lock OCCB */
+	WL_LockOCCB(true);
+	
 	/* Run through filename list */
 	for (OK = 0, i = 0; filenames[i]; i++)
 		if ((File = WL_OpenWAD(filenames[i])))
@@ -1253,6 +1337,9 @@ WadIndex_t __REMOOD_DEPRECATED W_InitMultipleFiles(char** filenames)
 			// Push to stack
 			WL_PushWAD(File);
 		}
+		
+	/* Unlock OCCB */
+	WL_LockOCCB(false);
 	
 	/* Return OK count */
 	return OK;
