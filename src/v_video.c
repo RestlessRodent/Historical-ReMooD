@@ -4884,9 +4884,9 @@ void V_ImageDrawScaled(const uint32_t a_Flags, V_Image_t* const a_Image, const i
 		}
 	}
 	
-	/* Determine actual width to draw */
-	tW = FixedMul(a_Image->Width << FRACBITS, a_XScale) >> FRACBITS;
-	tY = FixedMul(a_Image->Height << FRACBITS, a_YScale) >> FRACBITS;
+	/* Determine actual size to draw */
+	tW = FixedMul(xw, a_XScale) >> FRACBITS;
+	tY = FixedMul(xh, a_YScale) >> FRACBITS;
 	
 	/* Determine draw fraction */
 	XFrac = FixedDiv(1 << FRACBITS, a_XScale);

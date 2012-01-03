@@ -181,6 +181,9 @@ typedef struct WL_WADFile_s
 	struct WL_WADFile_s* NextVWAD;	// Next virtual WAD
 } WL_WADFile_t;
 
+// Streamer
+typedef struct WL_EntryStream_s WL_EntryStream_t;
+
 /*** PROTOTYPES ***/
 const char* WL_BaseNameEx(const char* const a_File);
 
@@ -205,6 +208,27 @@ void* WL_GetPrivateData(const WL_WADFile_t* const a_WAD, const uint32_t a_Key, s
 const WL_WADEntry_t* WL_FindEntry(const WL_WADFile_t* const a_BaseSearch, const uint32_t a_Flags, const char* const a_Name);
 uintptr_t WL_TranslateEntry(const WadIndex_t a_GlobalIndex, const WL_WADFile_t* const a_Entry);
 size_t WL_ReadData(const WL_WADEntry_t* const a_Entry, const size_t a_Offset, void* const a_Out, const size_t a_OutSize);
+
+// WAD Stream Buffer
+WL_EntryStream_t* WL_StreamOpen(const WL_WADEntry_t* const a_Entry);
+void WL_StreamClose(WL_EntryStream_t* const a_Stream);
+
+uint32_t WL_StreamTell(WL_EntryStream_t* const a_Stream);
+uint32_t WL_StreamSeek(WL_EntryStream_t* const a_Stream, const uint32_t a_NewPos, const bool_t a_End);
+
+size_t WL_StreamRawRead(WL_EntryStream_t* const a_Stream, const size_t a_Offset, void* const a_Out, const size_t a_OutSize);
+
+int8_t WL_StreamReadInt8(WL_EntryStream_t* const a_Stream);
+int16_t WL_StreamReadInt16(WL_EntryStream_t* const a_Stream);
+int32_t WL_StreamReadInt32(WL_EntryStream_t* const a_Stream);
+uint8_t WL_StreamReadUInt8(WL_EntryStream_t* const a_Stream);
+uint16_t WL_StreamReadUInt16(WL_EntryStream_t* const a_Stream);
+uint32_t WL_StreamReadUInt32(WL_EntryStream_t* const a_Stream);
+
+int16_t WL_StreamReadLittleInt16(WL_EntryStream_t* const a_Stream);
+int32_t WL_StreamReadLittleInt32(WL_EntryStream_t* const a_Stream);
+uint16_t WL_StreamReadLittleUInt16(WL_EntryStream_t* const a_Stream);
+uint32_t WL_StreamReadLittleUInt32(WL_EntryStream_t* const a_Stream);
 
 /******************************
 *** OLD REMOOD WAD HANDLING ***

@@ -13,7 +13,7 @@
 //      :oO8@@@@@@@@@@Oo.
 //         .oCOOOOOCc.                                      http://remood.org/
 // -----------------------------------------------------------------------------
-// Copyright (C) 2011 GhostlyDeath <ghostlydeath@remood.org>
+// Copyright (C) 2011-2012 GhostlyDeath <ghostlydeath@remood.org>
 // -----------------------------------------------------------------------------
 // ReMooD Game Data
 
@@ -111,6 +111,15 @@ Menu "Root"
 // ******************
 // *** STATUS BAR ***
 // ******************
+
+WidgetGroup "DoomStatusBar"
+{
+	Widget "Background"
+	{
+		Type "Image";
+		Value "STBAR";
+	}
+}
 
 StatusBar "Doom"
 {

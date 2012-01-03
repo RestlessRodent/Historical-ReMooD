@@ -1214,6 +1214,184 @@ size_t WL_ReadData(const WL_WADEntry_t* const a_Entry, const size_t a_Offset, vo
 	return CorrectedSize;
 }
 
+/*** ENTRY STREAM ***/
+#define WLSTREAMCACHESIZE				4096	// Default size of cache stream
+
+/* WL_EntryStream_s -- Stream for an entry */
+struct WL_EntryStream_s
+{
+	const WL_WADEntry_t* Entry;					// Entry for stream
+	
+	uint8_t* Cache;								// Stream cache
+	uint32_t CacheSize;							// Size of cache
+	uint32_t CacheOffset;						// Offset of cache data
+	
+	uint32_t StreamOffset;						// Offset of stream
+	uint32_t StreamSize;						// Size of stream
+};
+
+/* WL_StreamOpen() -- Opens a stream */
+WL_EntryStream_t* WL_StreamOpen(const WL_WADEntry_t* const a_Entry)
+{
+	WL_EntryStream_t* New;
+	
+	/* Check */
+	if (!a_Entry)
+		return NULL;
+	
+	/* Create a new stream */
+	New = Z_Malloc(sizeof(*New), PU_STATIC, NULL);
+	
+	/* Set info */
+	New->Entry = a_Entry;
+	New->StreamSize = a_Entry->Size;
+	New->CacheSize = WLSTREAMCACHESIZE;
+	New->Cache = Z_Malloc(New->CacheSize, PU_STATIC, NULL);
+	
+	/* Read the first bits into the cache */
+	WL_ReadData(New->Entry, New->CacheOffset, New->Cache, New->CacheSize);
+	
+	/* Return stream */
+	return New;
+}
+
+/* WL_StreamClose() -- Closes a stream */
+void WL_StreamClose(WL_EntryStream_t* const a_Stream)
+{
+	/* Check */
+	if (!a_Stream)
+		return;
+	
+	/* Free */
+	// Free cache
+	if (a_Stream->Cache)
+		Z_Free(a_Stream->Cache);
+	
+	// Free actual stream
+	Z_Free(a_Stream);
+}
+
+/* WL_StreamTell() -- Return current position of stream */
+uint32_t WL_StreamTell(WL_EntryStream_t* const a_Stream)
+{
+	/* Check */
+	if (!a_Stream)
+		return 0;
+	return a_Stream->StreamOffset;
+}
+
+/* WL_StreamSeek() -- Relocate stream */
+uint32_t WL_StreamSeek(WL_EntryStream_t* const a_Stream, const uint32_t a_NewPos, const bool_t a_End)
+{
+	/* Check */
+	if (!a_Stream)
+		return 0;
+	
+	/* Which endpoint? */
+	// Start
+	if (!a_End)
+	{
+		// After end?
+		if (a_NewPos >= a_Stream->StreamSize)
+			a_Stream->StreamOffset = a_Stream->StreamSize - 1;
+		else
+			a_Stream->StreamOffset = a_NewPos;
+	}
+	
+	// End
+	else
+	{
+		// After start?
+		if (a_NewPos >= a_Stream->StreamSize)
+			a_Stream->StreamOffset = 0;
+		else
+			a_Stream->StreamOffset = a_Stream->StreamSize - a_NewPos - 1;
+	}
+	
+	/* Return current position */
+	return WL_StreamTell(a_Stream);
+}
+
+/* WL_StreamRawRead() -- Reads a raw stream */
+size_t WL_StreamRawRead(WL_EntryStream_t* const a_Stream, const size_t a_Offset, void* const a_Out, const size_t a_OutSize)
+{
+#if 1
+	/* Check */
+	if (!a_Stream || !a_Out || !a_OutSize)
+		return 0;
+	
+	return WL_ReadData(a_Stream->Entry, a_Offset, a_Out, a_OutSize);
+#else
+	size_t Left, Done, ToCopy;
+	
+	/* Check */
+	if (!a_Stream || !a_Out || !a_OutSize)
+		return 0;
+	
+	/* Place data amount that is remaining */
+	Done = 0;
+	Left = a_OutSize;
+	
+	/* Determine if the cache needs re-alignment */
+	if (Left < a_Stream->CacheOffset || Left >= (a_Stream->CacheOffset + a_Stream->CacheSize))
+	{
+		// Reset cache offset
+		a_Stream->CacheOffset = a_Offset;
+		
+		// Read in data
+		WL_ReadData(a_Stream->Entry, a_Stream->CacheOffset, a_Stream->Cache, a_Stream->CacheSize);
+	}
+	
+	/* Copy current chunk to output */
+	// Determine amount to copy
+	if (Left > a_Stream->CacheSize)
+		ToCopy = a_Stream->CacheSize;
+	else
+		ToCopy = Left;
+	
+	// memmove
+	memmove(a_Out, a_Stream->Cache, ToCopy);
+	
+	// Modify numbers
+	Done = ToCopy;
+	Left -= ToCopy;
+	
+	/* If there is anything left, recursively call self */
+	if (Left > 0)
+		Done += WL_StreamRawRead(a_Stream, a_Offset + Done, (void*)(((uintptr_t)a_Out) + Done), Left);
+	
+	/* Return done */
+	return Done;
+#endif
+}
+
+/* WL_StreamReadInt8() -- Read from stream */
+int8_t WL_StreamReadInt8(WL_EntryStream_t* const a_Stream)
+{
+	int8_t Out = 0;
+	
+	/* Check */
+	if (!a_Stream)
+		return 0;
+	
+	/* Read */
+	a_Stream->StreamOffset += WL_StreamRawRead(a_Stream, a_Stream->StreamOffset, &Out, sizeof(Out));
+	
+	/* Return */
+	return Out;
+}
+
+int16_t WL_StreamReadInt16(WL_EntryStream_t* const a_Stream);
+int32_t WL_StreamReadInt32(WL_EntryStream_t* const a_Stream);
+uint8_t WL_StreamReadUInt8(WL_EntryStream_t* const a_Stream);
+uint16_t WL_StreamReadUInt16(WL_EntryStream_t* const a_Stream);
+uint32_t WL_StreamReadUInt32(WL_EntryStream_t* const a_Stream);
+
+int16_t WL_StreamReadLittleInt16(WL_EntryStream_t* const a_Stream);
+int32_t WL_StreamReadLittleInt32(WL_EntryStream_t* const a_Stream);
+uint16_t WL_StreamReadLittleUInt16(WL_EntryStream_t* const a_Stream);
+uint32_t WL_StreamReadLittleUInt32(WL_EntryStream_t* const a_Stream);
+
 /*********************
 *** W_ DEPRECATION ***
 *********************/
