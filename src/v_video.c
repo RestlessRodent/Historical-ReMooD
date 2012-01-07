@@ -2834,7 +2834,7 @@ int V_FontWidth(const VideoFont_t a_Font)
 }
 
 /* VS_FindChar() -- Find character to map to */
-static V_UniChar_t* VS_FindChar(const VideoFont_t a_Font, const char* const a_MBChar, size_t* const a_BSkip)
+static V_UniChar_t* VS_FindChar(const VideoFont_t a_Font, const char* const a_MBChar, size_t* const a_BSkip, uint16_t* const a_WChar)
 {
 	uint16_t WChar, Master, Slave;
 	VideoFont_t TrueFont;
@@ -2846,6 +2846,10 @@ static V_UniChar_t* VS_FindChar(const VideoFont_t a_Font, const char* const a_MB
 	
 	/* Convert to integer character */
 	WChar = V_ExtMBToWChar(a_MBChar, a_BSkip);
+	
+	// Copy char
+	if (a_WChar)
+		*a_WChar = WChar;
 	
 	/* Find in tables */
 	// Get the true font mapping
@@ -2873,15 +2877,51 @@ int V_DrawCharacterMB(const VideoFont_t a_Font, const uint32_t a_Options, const 
 {
 	V_UniChar_t* VisChar;
 	uint32_t DrawFlags;
+	uint16_t WChar;
 	
 	/* Check */
 	if (!a_MBChar)
 		return 0;
 	
 	/* Locate visible character */
-	VisChar = VS_FindChar(a_Font, a_MBChar, a_BSkip);
+	WChar = 0;
+	VisChar = VS_FindChar(a_Font, a_MBChar, a_BSkip, &WChar);
 	
-	// No character?
+	/* Special control code? */
+	if (WChar >= 0xF100U && WChar <= 0xF1FFU)
+	{
+		// If options cannot be modified, just stop
+		if (!a_OptionsMod)
+			return 0;
+		
+		// Return base
+		WChar -= 0xF100U;
+		
+		// Color change?
+		if (WChar >= 0 && WChar < 16)
+		{
+			*a_OptionsMod &= ~VFO_COLORMASK;
+			*a_OptionsMod |= VFO_COLOR(WChar & 0xF);
+		}
+		
+		// Transparency Change?
+		else if (WChar >= 16 && WChar < 32)
+		{
+			*a_OptionsMod &= ~VFO_TRANSMASK;
+			*a_OptionsMod |= VFO_TRANS((WChar - 16) & 0xF);
+		}
+		
+		// Clear attributes
+		else if (WChar == ('z' - 'a') + 10)
+		{
+			*a_OptionsMod &= ~(VFO_COLORMASK | VFO_TRANSMASK);
+		}
+		
+		// Always return 0, there is no space here
+		return 0;
+	}
+	
+	/* No character? */
 	if (!VisChar)
 		return 0;
 	
@@ -2889,6 +2929,10 @@ int V_DrawCharacterMB(const VideoFont_t a_Font, const uint32_t a_Options, const 
 	// Determine flags
 	DrawFlags = 0;
 	
+	// Color/Trans options
+	DrawFlags |= VEX_COLORMAP((a_Options & VFO_COLORMASK) >> VFO_COLORSHIFT);
+	
+	// Scale options
 	if (a_Options & VFO_NOSCALESTART)
 		DrawFlags |= VEX_NOSCALESTART;
 	if (a_Options & VFO_NOSCALEPATCH)
@@ -2921,7 +2965,58 @@ int V_DrawCharacterA(const VideoFont_t a_Font, const uint32_t a_Options, const c
 /* V_DrawStringA() -- Draws a string */
 int V_DrawStringA(const VideoFont_t a_Font, const uint32_t a_Options, const char* const a_String, const int a_x, const int a_y)
 {
-	return 0;
+	const char* c;
+	size_t MBSkip;
+	int32_t basex, x, y, Add;
+	uint32_t Options;
+	
+	/* Check */
+	if (!a_String)	
+		return 0;
+	
+	/* Initialize */
+	x = a_x;
+	y = a_y;
+	Options = a_Options;
+	
+	// Determine modifiers
+	
+	// Base x
+	basex = x;
+	
+	/* Drawer loop */
+	MBSkip = 0;
+	for (c = a_String; *c; c += MBSkip)
+	{
+		// Check for \n (newline)
+		if (*c == '\n')
+		{
+			// Return and shift over
+			x = basex;
+			y += V_FontWidth(a_Font);
+		}
+		
+		// Otherwise a normal character
+		else
+		{
+			// Send to screen
+			Add = V_DrawCharacterMB(a_Font, Options, c, x, y, &MBSkip, &Options);
+			
+			// Scale additional coordinates
+			if ((Options & VFO_NOSCALESTART) && !(Options & VFO_NOSCALEPATCH))
+				Add = FixedMul(Add << FRACBITS, vid.fxdupx) >> FRACBITS;
+			
+			// Add to x
+			x += Add;
+			
+			// MBSkip failed?
+			if (!MBSkip)
+				MBSkip = 1;
+		}
+	}
+	
+	/* Return modifed position */
+	return (x - basex);
 }
 
 /* V_StringDimensionsA() -- Returns dimensions of string */
@@ -4849,10 +4944,28 @@ void V_ImageDrawScaled(const uint32_t a_Flags, V_Image_t* const a_Image, const i
 	uint8_t* dP;
 	uint8_t* sP;
 	fixed_t XFrac, YFrac, sxX, sxY, xw, xh, dxY;
+	uint8_t* ColorMap;
+	uint8_t* ColorMapE;
 	
 	/* Check */
 	if (!a_Image)
 		return;
+	
+	/* Find colormap */
+	x = (a_Flags & VEX_COLORMAPMASK) >> VEX_COLORMAPSHIFT;
+	
+	// Check for illegal
+	if (x < 0 || x >= NUMVEXCOLORS)
+		x = 0;
+	
+	// Get it
+	ColorMap = V_ReturnColormapPtr(x);
+	
+	/* Get extra map */
+	if (a_ExtraMap)
+		ColorMapE = a_ExtraMap;
+	else
+		ColorMapE = V_ReturnColormapPtr(VEX_MAP_NONE);
 	
 	/* Determine the position to draw at */
 	// Add image offsets
@@ -4917,7 +5030,7 @@ void V_ImageDrawScaled(const uint32_t a_Flags, V_Image_t* const a_Image, const i
 			
 			// Scaled row draw
 			for (sxX = 0; sxX < xw; sxX += XFrac)
-				*(dP++) = sP[sxX >> FRACBITS];
+				*(dP++) = ColorMap[ColorMapE[sP[sxX >> FRACBITS]]];
 		}
 	}
 }

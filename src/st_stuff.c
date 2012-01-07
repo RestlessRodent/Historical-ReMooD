@@ -1279,6 +1279,9 @@ void ST_Init(void)
 {
 	int i;
 	
+	// GhostlyDeath <January 7, 2012> -- Don't do anything here
+	return;
+	
 	if (dedicated)
 		return;
 		
