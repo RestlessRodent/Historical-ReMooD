@@ -1891,7 +1891,7 @@ mobj_t* P_SpawnMissile(mobj_t* source, mobj_t* dest, mobjtype_t type)
 	if (!source || !dest)
 	{
 		CONS_Printf("WARNING - P_SpawnMissile: source %p, dest %p (%s:%i).\n", source, dest, __FILE__, __LINE__);
-		return;
+		return NULL;
 	}
 	
 	switch (type)

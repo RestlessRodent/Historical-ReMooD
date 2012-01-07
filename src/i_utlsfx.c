@@ -666,7 +666,7 @@ uint32_t I_MUS2MID_Length(struct I_MusicDriver_s* const a_Driver, const int a_Ha
 		
 	// Check handle
 	if (a_Handle != Local->LocalHandle)
-		return;
+		return 0;
 		
 	/* Feeder mode */
 	if (Local->FeedMessages)
@@ -732,7 +732,7 @@ int I_MUS2MID_Play(struct I_MusicDriver_s* const a_Driver, const void* const a_D
 	
 	// Check
 	if (!Local)
-		return;
+		return 0;
 		
 	if (devparm)
 		CONS_Printf("I_MUS2MID_Play: Converting MUS to MIDI.\n");

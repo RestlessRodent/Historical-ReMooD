@@ -1282,7 +1282,7 @@ bool_t M_ChangeStringCvar(int choise)
 	int len;
 	
 	if (currentMenu->menuitems[itemOn].status & IT_CVARREADONLY)
-		return;
+		return false;
 		
 	switch (choise)
 	{

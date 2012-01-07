@@ -1420,7 +1420,7 @@ static bool_t WP_DepCreate(const struct WL_WADFile_s* const a_WAD, const uint32_
 	
 	/* Check */
 	if (!a_WAD || !a_Key || !a_DataPtr || !a_SizePtr)
-		return;
+		return false;
 		
 	/* Create WAD info on data */
 	*a_SizePtr = sizeof(WadFile_t);

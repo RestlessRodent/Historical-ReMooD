@@ -1231,7 +1231,7 @@ void I_RemoveJoysticks(void)
 	SDL_JoystickEventState(SDL_IGNORE);
 	
 	// Close all joysticks
-	for (i = 0; i < l_Joys; i++)
+	for (i = 0; i < l_NumJoys; i++)
 		SDL_JoystickClose(l_Joys[i].JoyPtr);
 		
 	// Free array

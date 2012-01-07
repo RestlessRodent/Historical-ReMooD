@@ -306,7 +306,7 @@ int S_SoundPlaying(S_NoiseThinker_t* a_Origin, int id)
 	
 	/* Check */
 	if (!l_SoundOK)
-		return;
+		return 0;
 		
 	/* Origin is set */
 	// Return channel that mobj is emitting on

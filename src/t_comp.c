@@ -396,7 +396,7 @@ int TLS_Deepen(int Dir, int Deep)
 		Deepness--;
 		
 		if (Deepness < 0)
-			return;
+			return 0;
 			
 		LastBlock[1] = Blocks[strlen(Blocks) - 1] + 1;
 		LastBlock[0] = Blocks[strlen(Blocks) - 2];
