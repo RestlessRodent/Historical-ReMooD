@@ -2993,7 +2993,7 @@ int V_DrawStringA(const VideoFont_t a_Font, const uint32_t a_Options, const char
 		{
 			// Return and shift over
 			x = basex;
-			y += V_FontWidth(a_Font);
+			y += V_FontHeight(a_Font);
 		}
 		
 		// Otherwise a normal character
@@ -3022,6 +3022,73 @@ int V_DrawStringA(const VideoFont_t a_Font, const uint32_t a_Options, const char
 /* V_StringDimensionsA() -- Returns dimensions of string */
 void V_StringDimensionsA(const VideoFont_t a_Font, const uint32_t a_Options, const char* const a_String, int* const a_Width, int* const a_Height)
 {
+	const char* c;
+	size_t MBSkip;
+	int32_t basex, x, y, Add;
+	uint32_t Options;
+	int MaxX;
+	uint16_t WChar;
+	V_UniChar_t* VisChar;
+	
+	/* Check */
+	if (!a_String || (!a_Width && !a_Height))	
+		return 0;
+	
+	/* Initialize */
+	x = 0;
+	y = 0;
+	Options = a_Options;
+	MaxX = 0;
+	
+	// Determine modifiers
+	
+	// Base x
+	basex = x;
+	
+	/* Drawer loop */
+	MBSkip = 0;
+	for (c = a_String; *c; c += MBSkip)
+	{
+		// Check for \n (newline)
+		if (*c == '\n')
+		{
+			// Return and shift over
+			x = basex;
+			y += V_FontHeight(a_Font);
+		}
+		
+		// Otherwise a normal character
+		else
+		{
+			// Find character 
+			VisChar = VS_FindChar(a_Font, c, &MBSkip, &WChar);
+			
+			// Virtuals take up no room
+			if (WChar >= 0xF100U && WChar <= 0xF1FFU)
+				continue;
+			
+			// Non-drawn character
+			if (!VisChar)
+				continue;
+			
+			// Add to x the width of the font
+			x += VisChar->Size[0];
+			
+			// Change max
+			if (x > MaxX)
+				MaxX = x;
+			
+			// MBSkip failed?
+			if (!MBSkip)
+				MBSkip = 1;
+		}
+	}
+	
+	/* Return dimensions */
+	if (a_Width)
+		*a_Width = MaxX;
+	if (a_Height)
+		*a_Height = y + V_FontHeight(a_Font);
 }
 
 /* V_StringWidthA() -- Returns width of string */
@@ -4969,8 +5036,8 @@ void V_ImageDrawScaled(const uint32_t a_Flags, V_Image_t* const a_Image, const i
 	
 	/* Determine the position to draw at */
 	// Add image offsets
-	x = a_X + a_Image->Offset[0];
-	y = a_Y + a_Image->Offset[1];
+	x = a_X - a_Image->Offset[0];
+	y = a_Y - a_Image->Offset[1];
 	w = a_Image->Width;
 	h = a_Image->Height;
 	
