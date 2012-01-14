@@ -31,5 +31,17 @@
 #ifndef __V_WIDGET_H__
 #define __V_WIDGET_H__
 
+/***************
+*** INCLUDES ***
+***************/
+
+#include "z_zone.h"
+
+/****************
+*** FUNCTIONS ***
+****************/
+
+
+
 #endif /* __V_WIDGET_H__ */
 

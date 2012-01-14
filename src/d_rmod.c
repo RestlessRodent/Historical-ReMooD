@@ -43,7 +43,7 @@
 *** CONSTANTS ***
 ****************/
 
-#define TOKENBUFSIZE 					512		// Max token buffer size
+#define TOKENBUFSIZE 					256		// Max token buffer size
 
 /*****************
 *** STRUCTURES ***
@@ -152,13 +152,10 @@ static bool_t DS_RMODReadToken(D_RMODTokenInfo_t* const a_Info)
 				if (wc == '\n')
 					break;
 			
-			if (wc == '\n')
-			{
-				a_Info->CurCol = 0;
-				a_Info->CurRow++;
-				Action = 0;
-				continue;
-			}
+			a_Info->CurCol = 0;
+			a_Info->CurRow++;
+			Action = 0;
+			continue;
 		}
 		
 		// Quoted String
@@ -236,7 +233,17 @@ static bool_t DS_RMODReadToken(D_RMODTokenInfo_t* const a_Info)
 	
 	/* There was an actual token here? */
 	if (a_Info->PutAt)
+	{
+		// Check for overflow
+		if (a_Info->PutAt >= a_Info->TokenSize)
+		{
+			a_Info->TokenProblem = "Token buffer overflow.";
+			return false;
+		}
+		
+		// Success
 		return true;
+	}
 	
 	/* No more tokens */
 	return false;
@@ -245,12 +252,17 @@ static bool_t DS_RMODReadToken(D_RMODTokenInfo_t* const a_Info)
 /* DS_RMODPDC() -- Creates private data from REMOODAT */
 static bool_t DS_RMODPDC(const struct WL_WADFile_s* const a_WAD, const uint32_t a_Key, void** const a_DataPtr, size_t* const a_SizePtr, WL_RemoveFunc_t* const a_RemoveFuncPtr)
 {
-#define BUFSIZE 512
+#define BUFSIZE 384
 	const WL_WADEntry_t* DataEntry;
 	WL_EntryStream_t* DataStream;
-	int i = 0;
+	int i = 0, n, Expected, Deepness;
 	uint16_t wc;
 	D_RMODTokenInfo_t Info;
+	Z_Table_t* CurrentTable;
+	const char* tP;
+	
+	const char* ErrorText;
+	char TokVals[2][BUFSIZE];
 	
 	/* Check to see if REMOODAT exists in this WAD */
 	if (!(DataEntry = WL_FindEntry(a_WAD, 0, "REMOODAT")))
@@ -286,15 +298,213 @@ static bool_t DS_RMODPDC(const struct WL_WADFile_s* const a_WAD, const uint32_t 
 	Info.TokenSize = TOKENBUFSIZE;
 	Info.StreamEnd = DataEntry->Size;
 	
+	// Reset variables
+	Expected = 0;
+	ErrorText = NULL;
+	Deepness = 0;
+	CurrentTable = NULL;
+		
 	// Token read loop
 	while (DS_RMODReadToken(&Info))
 	{
-		CONS_Printf(">> `%s`\n", Info.Token);
+		// Closing Brace -- Step out of a grouplet
+		if (Expected == 0 && Info.Token[0] == '}')
+		{
+			// Decrease deepness
+			Deepness--;
+			
+			// Too deep?
+			if (Deepness < 0)
+			{
+				ErrorText = "Too many closing braces \'}\'";
+				break;
+			}
+			
+			// Change the current table
+			if (CurrentTable)
+			{
+				// No deepness
+				if (Deepness == 0)
+				{
+					// Find handler for this table type
+					tP = Z_TableName(CurrentTable);
+					
+					// Sanity check
+					if (!tP)
+					{
+						ErrorText = "Table has no name?";
+						break;
+					}
+					
+					// Copy until # is found
+					n = strlen(tP);
+					for (i = 0; i < n; i++)
+						if (tP[i] == '#')
+							break;
+						else
+							TokVals[0][i] = tP[i];
+					
+					// Look in list for a match
+					
+					// Not found?
+					CONS_Printf("DS_RMODPDC: No data handler for \"%s\".\n", TokVals[0]);
+					
+					// Destroy table, not needed
+					Z_TableDestroy(CurrentTable);
+					CurrentTable = NULL;
+				}
+				
+				// Otherwise, go up a table
+				else
+					CurrentTable = Z_TableUp(CurrentTable);
+			}
+		}
+		
+		// Property -- Add to buffer
+		else if (Expected == 0)
+		{
+			// Remember the token
+			strncpy(TokVals[0], Info.Token, BUFSIZE);
+			
+			// Expect Value now
+			Expected++;
+			
+			// Lowercase the property
+			n = strlen(TokVals[0]);
+			for (i = 0; i < n; i++)
+			{
+				// Lowercase
+				TokVals[0][i] = tolower(TokVals[0][i]);
+				
+				// Not alphanumeric?
+				if (!((TokVals[0][i] >= '0' && TokVals[0][i] <= '9') || (TokVals[0][i] >= 'a' && TokVals[0][i] <= 'z')))
+				{
+					ErrorText = "Properties must use only alphanumeric characters (a-z, A-Z, and 0-9)";
+					break;
+				}
+			}
+			
+			// Error?
+			if (ErrorText)
+				break;
+			
+			// Only limit of 64 characters
+			if (strlen(TokVals[0]) >= 64)
+			{
+				ErrorText = "Properties are limited to 64 characters";
+				break;
+			}
+		}
+		
+		// Value -- Add to buffer
+		else if (Expected == 1)
+		{
+			// Remember the token
+			strncpy(TokVals[1], Info.Token, BUFSIZE);
+			
+			// Must start and end with quotes
+			n = strlen(TokVals[1]);
+			if (TokVals[1][0] != '\"' && TokVals[1][n - 1] != '\"')
+			{
+				ErrorText = "Values must be quoted";
+				break;
+			}
+			
+			// Move over and and remove last character (quote purge)
+			TokVals[1][n - 1] = 0;
+			memmove(&TokVals[1][0], &TokVals[1][1], sizeof(TokVals[1]) - (sizeof(*TokVals[1]) * 1));
+			
+			// Expect type now
+			Expected++;
+		}
+		
+		// Type -- Type of Prop/Val, Table or entry?
+		else
+		{
+			// Check for illegal type first
+			if (Info.Token[0] != '{' && Info.Token[0] != ';')
+			{
+				ErrorText = "Expected { or ; after value";
+				break;
+			}
+			
+			// If it is a table, create new table
+			if (Info.Token[0] == '{')
+			{			
+				// Make value lowercase
+				n = strlen(TokVals[1]);
+				for (i = 0; i < n; i++)
+				{
+					// Lowercase
+					TokVals[1][i] = tolower(TokVals[1][i]);
+			
+					// Not alphanumeric?
+					if (!((TokVals[1][i] >= '0' && TokVals[1][i] <= '9') || (TokVals[1][i] >= 'a' && TokVals[1][i] <= 'z')))
+					{
+						ErrorText = "Table names (values) must use only alphanumeric characters (a-z, A-Z, and 0-9)";
+						break;
+					}
+				}
+				
+				// Problem?
+				if (ErrorText)
+					break;
+				
+				// Only limit of 64 characters
+				if (strlen(TokVals[1]) >= 64)
+				{
+					ErrorText = "Table names are limited to 64 characters";
+					break;
+				}
+					
+				// Concat # onto name
+				strncat(TokVals[0], "#", BUFSIZE);
+				
+				// Concat value onto name
+				strncat(TokVals[0], TokVals[1], BUFSIZE);
+				
+				// Create table (or subtable)
+				if (Deepness == 0)	// Table
+				{
+					// Create the table with the specified value/key
+					CurrentTable = Z_TableCreate(TokVals[0]);
+				}
+				else				// Subtable
+				{
+					// Create a sub table
+					CurrentTable = Z_FindSubTable(CurrentTable, TokVals[0], true);
+				}
+				
+				// Increase deepness
+				Deepness++;
+			}
+			
+			// Otherwise, it is a property, add to table
+			else
+			{
+				// Cannot have properties at level 0
+				if (Deepness == 0)
+				{
+					ErrorText = "Properties must be within tables";
+					break;
+				}
+				
+				// Add to table
+				Z_TableSetValue(CurrentTable, TokVals[0], TokVals[1]);
+			}
+			
+			// Reset expected and clear buffers
+			Expected = 0;
+			memset(TokVals, 0, sizeof(TokVals));
+		}
 	}
 	
 	// Was there a problem?
 	if (Info.TokenProblem)
-		CONS_Printf("DS_RMODPDC: Parse error \"%s\" at row %i, column %i.\n", Info.TokenProblem, Info.CurRow + 1, Info.CurCol);
+		CONS_Printf("DS_RMODPDC: Token error \"%s\" at row %i, column %i.\n", Info.TokenProblem, Info.CurRow + 1, Info.CurCol);
+	
+	if (ErrorText)
+		CONS_Printf("DS_RMODPDC: Parse error \"%s\" at row %i, column %i.\n", ErrorText, Info.CurRow + 1, Info.CurCol);
 	
 	/* Free streamer */
 	WL_StreamClose(DataStream);

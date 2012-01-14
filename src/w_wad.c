@@ -1471,11 +1471,16 @@ uint16_t WL_StreamReadChar(WL_EntryStream_t* const a_Stream)
 		RetVal = WL_StreamReadUInt8(a_Stream);
 	else
 	{
+		// TODO: If UTF-8 buffer contains data, flush it
+		
+		// Read next UTF-16 character
 		RetVal = WL_StreamReadUInt16(a_Stream);
 		
 		// Swap the bits?
 		if (a_Stream->IsSwapped)
 			RetVal = SwapUInt16(RetVal);
+		
+		// TODO: If character is > 127, convert to UTF-8 and flush first char
 	}
 	
 	/* Return */

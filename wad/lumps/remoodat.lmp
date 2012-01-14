@@ -112,13 +112,12 @@ Menu "Root"
 // *** STATUS BAR ***
 // ******************
 
-WidgetGroup "DoomStatusBar"
+Widget "DoomStatusBar"
 {
-	Widget "Background"
-	{
-		Type "Image";
-		Value "STBAR";
-	}
+	Type "Container";
+	Width "320";
+	Height "20";	
+	BackgroundImage "STBAR";
 }
 
 StatusBar "Doom"

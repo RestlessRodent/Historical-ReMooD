@@ -152,7 +152,6 @@ void Z_TablePrint(Z_Table_t* const a_Table, const char* const a_Prefix);
 bool_t Z_TableMergeInto(Z_Table_t* const a_Target, const Z_Table_t* const a_Source);
 bool_t Z_TableSuperCallback(Z_Table_t* const a_Table, bool_t (*a_Callback) (Z_Table_t* const a_Sub, void* const a_Data), void* const a_Data);
 
-
 /*****************************************************************************/
 
 #endif							/* __Z_ZONE_H__ */
