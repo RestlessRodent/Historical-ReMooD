@@ -332,8 +332,8 @@ extern consvar_t cv_ng_infiniteammo;
 ********************************************************************************
 *******************************************************************************/
 
-bool_t M_MenuExRMODHandle(Z_Table_t* const a_Table, const WL_WADFile_t* const a_WAD);
-bool_t M_MenuExRMODOrder(void);
+bool_t M_MenuExRMODHandle(Z_Table_t* const a_Table, const WL_WADFile_t* const a_WAD, const D_RMODPrivates_t a_ID, D_RMODPrivate_t* const a_Private);
+bool_t M_MenuExRMODOrder(const bool_t a_Pushed, const struct WL_WADFile_s* const a_WAD, const D_RMODPrivates_t a_ID);
 
 #endif
 

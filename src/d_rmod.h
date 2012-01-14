@@ -44,21 +44,33 @@
 *** CONSTANTS ***
 ****************/
 
+/* D_RMODPrivates_t -- RMOD Private info */
+typedef enum D_RMODPrivates_e
+{
+	DRMODP_MENU,								// Menu related stuff	
+	
+	NUMDRMODPRIVATES
+} D_RMODPrivates_t;
+
 /*****************
 *** STRUCTURES ***
 *****************/
+
+/* D_RMODPrivate_t -- RMOD Private Stuff */
+typedef struct D_RMODPrivate_s
+{
+	void* Data;									// Data
+	size_t Size;								// Size
+} D_RMODPrivate_t;
+
+typedef bool_t (*D_RMODHandleFunc_t)(Z_Table_t* const a_Table, const WL_WADFile_t* const a_WAD, const D_RMODPrivates_t a_ID, D_RMODPrivate_t* const a_Private);
+typedef bool_t (*D_RMODOCCBFunc_t)(const bool_t a_Pushed, const struct WL_WADFile_s* const a_WAD, const D_RMODPrivates_t a_ID);
 
 /*****************
 *** PROTOTYPES ***
 *****************/
 
 void D_InitRMOD(void);
-
-void D_WX_RMODMultiBuild(WX_WADFile_t* const a_WAD, const WX_BuildAction_t a_Action);
-
-void D_WX_RMODBuild(WX_WADFile_t* const a_WAD);
-void D_WX_RMODClearBuild(WX_WADFile_t* const a_WAD);
-void D_WX_RMODComposite(WX_WADFile_t* const a_WAD);
-void D_WX_RMODClearComposite(void);
+D_RMODPrivate_t* D_GetRMODPrivate(const WL_WADFile_t* const a_WAD, const D_RMODPrivates_t a_ID);
 
 #endif							/* __D_RMOD_H__ */

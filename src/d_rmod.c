@@ -73,8 +73,32 @@ typedef struct D_RMODTokenInfo_s
 /* D_RMODHandler_t -- Handles RMOD Data */
 typedef struct D_RMODHandler_s
 {
-	
+	const char* TableType;						// Type of table
+	D_RMODHandleFunc_t HandleFunc;				// Handler function
+	D_RMODOCCBFunc_t OrderFunc;					// OCCB Variant
 } D_RMODHandler_t;
+
+/* D_RMODWADStuff_t -- Stuff in for a WAD */
+typedef struct D_RMODWADStuff_s
+{
+	const WL_WADFile_t* WAD;					// WAD this belongs to
+	D_RMODPrivate_t Private[NUMDRMODPRIVATES];	// Private Stuff
+} D_RMODWADStuff_t;
+
+/*************
+*** LOCALS ***
+*************/
+
+// c_RMODHandlers -- Handlers for RMOD
+static const D_RMODHandler_t c_RMODHandlers[NUMDRMODPRIVATES] =
+{
+	// Menus
+	{
+		"menu",
+		M_MenuExRMODHandle,
+		M_MenuExRMODOrder,
+	},
+};
 
 /****************
 *** FUNCTIONS ***
@@ -266,6 +290,7 @@ static bool_t DS_RMODPDC(const struct WL_WADFile_s* const a_WAD, const uint32_t 
 	D_RMODTokenInfo_t Info;
 	Z_Table_t* CurrentTable;
 	const char* tP;
+	D_RMODWADStuff_t* Stuff;
 	
 	const char* ErrorText;
 	char TokVals[2][BUFSIZE];
@@ -277,6 +302,13 @@ static bool_t DS_RMODPDC(const struct WL_WADFile_s* const a_WAD, const uint32_t 
 			CONS_Printf("DS_RMODPDC: There is no REMOODAT here.\n");
 		return true;
 	}
+	
+	/* Create stuff to store in WAD */
+	*a_SizePtr = sizeof(D_RMODWADStuff_t);
+	*a_DataPtr = Stuff = Z_Malloc(*a_SizePtr, PU_STATIC, NULL);
+	
+	// Initial Stuff
+	Stuff->WAD = a_WAD;
 	
 	// Info
 	if (devparm)
@@ -351,9 +383,20 @@ static bool_t DS_RMODPDC(const struct WL_WADFile_s* const a_WAD, const uint32_t 
 							TokVals[0][i] = tP[i];
 					
 					// Look in list for a match
+					for (i = 0; i < NUMDRMODPRIVATES; i++)
+						if (strcasecmp(TokVals[0], c_RMODHandlers[i].TableType) == 0)
+						{
+							// Call handler
+							if (!c_RMODHandlers[i].HandleFunc(CurrentTable, a_WAD, i, &Stuff->Private[i]))
+								CONS_Printf("DS_RMODPDC: Handler for \"%s\" failed.\n", TokVals[0]);
+							
+							// No more handling needed
+							break;
+						}
 					
 					// Not found?
-					CONS_Printf("DS_RMODPDC: No data handler for \"%s\".\n", TokVals[0]);
+					if (i == NUMDRMODPRIVATES)
+						CONS_Printf("DS_RMODPDC: No data handler for \"%s\".\n", TokVals[0]);
 					
 					// Destroy table, not needed
 					Z_TableDestroy(CurrentTable);
@@ -522,6 +565,15 @@ static bool_t DS_RMODPDC(const struct WL_WADFile_s* const a_WAD, const uint32_t 
 /* DS_RMODOCCB() -- Order change callback for REMOODAT */
 static bool_t DS_RMODOCCB(const bool_t a_Pushed, const struct WL_WADFile_s* const a_WAD)
 {
+	int i;
+	
+	/* Call each order notifier */
+	for (i = 0; i < NUMDRMODPRIVATES; i++)
+		if (!c_RMODHandlers[i].OrderFunc(a_Pushed, a_WAD, i))
+			if (devparm)
+				CONS_Printf("DS_RMODOCCB: Order change for \"%s\" failed.\n", c_RMODHandlers[i].TableType);
+	
+	/* Success! */
 	return true;
 }
 
@@ -538,445 +590,24 @@ void D_InitRMOD(void)
 		I_Error("D_InitRMOD: Failed to register OCCB.");
 }
 
-/* DS_RMODNextToken() -- Returns the next token in an RMOD */
-// Returns true if a token was found
-static bool_t DS_RMODNextToken(const char* const a_DataBase, const size_t a_DataSize, const char** const a_P, char* const a_TokenBuf, const size_t a_TokenSize,
-                               uint32_t* const a_Col, uint32_t* const a_Row)
+/* D_GetRMODPrivate() -- Get private RMOD data from this WAD */
+D_RMODPrivate_t* D_GetRMODPrivate(const WL_WADFile_t* const a_WAD, const D_RMODPrivates_t a_ID)
 {
-	char c;
-	int Action;					// Action to take
-	size_t t;
+	D_RMODWADStuff_t* Stuff;
+	int i;
 	
 	/* Check */
-	if (!a_DataBase || !a_DataSize || !a_P || !*a_P || !a_TokenBuf || !a_TokenSize || !a_Col || !a_Row)
-		return false;
-		
-	/* Clear token buffer */
-	memset(a_TokenBuf, 0, a_TokenSize);
+	if (!a_WAD || a_ID < 0 || a_ID >= NUMDRMODPRIVATES)
+		return NULL;
 	
-	/* Read loop */
-	for (t = 0, Action = 0, c = **a_P;** a_P && *a_P < (a_DataBase + a_DataSize); c = *(++(*a_P)))
-	{
-		// Always increment on columns
-		(*a_Col)++;
-		
-		// Whitespace, ignore
-		if (c == ' ' || c == '\t' || c == '\r' || c == '\n')
-		{
-			// If this is a newline, reset columns and bump rows
-			if (c == '\n')
-			{
-				*a_Col = 0;
-				(*a_Row)++;
-			}
-			// Token has been read
-			if (Action != 0)
-			{
-				(*a_P)++;		// Increment due to break
-				break;
-			}
-			// Continue reading whitespace
-			continue;
-		}
-		// Comment
-		else if (c == '/')
-		{
-			// If action is not a comment
-			if (Action != 4 && Action != 0)
-				break;
-				
-			// Already in comment? skip to end
-			if (Action == 4)
-			{
-				// Read until newline
-				for (c = **a_P;** a_P && *a_P < (a_DataBase + a_DataSize); c = *(++(*a_P)))
-					if (c == '\n')
-						break;
-						
-				*a_Col = 0;		// reset column since we will newlined
-				(*a_Row)++;		// same for row
-				Action = 0;		// Reset to nothing
-				continue;		// Continue on
-			}
-			// Set action as comment
-			Action = 4;
-		}
-		// Quoted literal
-		else if (c == '\"')
-		{
-			// If action is not a quote
-			if (Action != 3 && Action != 0)
-				break;
-				
-			// Set action as quote
-			Action = 3;
-			
-			// Chuck first quote on buffer
-			if (t < a_TokenSize - 1)
-				a_TokenBuf[t++] = c;
-			(*a_P)++;			// Increment to break quote
-			
-			// Keep reading
-			for (c = **a_P;** a_P && *a_P < (a_DataBase + a_DataSize); c = *(++(*a_P)))
-			{
-				// Quote?
-				if (c == '\"')
-				{
-					if (t < a_TokenSize - 1)
-						a_TokenBuf[t++] = '\"';	// slap quote
-					(*a_P)++;	// Increment due to break
-					break;
-				}
-				// Blind copy
-				if (t < a_TokenSize - 1)
-					a_TokenBuf[t++] = c;
-			}
-			
-			break;
-		}
-		// Single tokens
-		else if (c == '{' || c == '}' || c == ';')
-		{
-			// If action is not a single
-			if (Action != 2 && Action != 0)
-				break;
-				
-			// Set action as single
-			Action = 2;
-			
-			a_TokenBuf[0] = c;
-			t = 1;
-			(*a_P)++;			// Increment due to break
-			break;				// break here
-		}
-		// A normal token
-		else
-		{
-			// If action is not a normal
-			if (Action != 1 && Action != 0)
-				break;
-				
-			// Set action as token
-			Action = 1;
-			
-			// Copy to token buffer
-			if (t < a_TokenSize - 1)
-				a_TokenBuf[t++] = c;
-		}
-	}
+	/* Get stuff from current WAD */
+	Stuff = WL_GetPrivateData(a_WAD, WLDK_RMOD, NULL);
 	
-	/* As long as t is positive */
-	if (t != 0)
-		return true;
-		
-	/* Nothing here */
-	return false;
+	// Failed?
+	if (!Stuff)
+		return NULL;
+	
+	/* Return the private stuff */
+	return &Stuff->Private[a_ID];
 }
 
-/* DS_RMODConfirmProperty() -- Checks a property to check whether it is valid */
-static bool_t DS_REMODConfirmProperty(const char* const a_Property)
-{
-	const char* p;
-	
-	/* Check */
-	if (!a_Property)
-		return false;
-		
-	/* Limit property keys to 64 characters */
-	if (strlen(a_Property) > 64)
-		return false;
-		
-	/* Rove around */
-	for (p = a_Property; *p; p++)
-		// fail on illegal characters
-		if (!((*p >= 'a' && *p <= 'z') || (*p >= '0' && *p <= '9') || (*p == '_') || (*p == '@')))
-			return false;
-			
-	/* Success */
-	return true;
-}
-
-/* DS_RMODTableHandler() -- Handles a table */
-static bool_t DS_RMODTableHandler(Z_Table_t* const a_Sub, void* const a_Data)
-{
-#define PREFIXSIZE 48
-	const char* q;
-	const char* p;
-	size_t n, j;
-	struct
-	{
-		const char const Prefix[PREFIXSIZE];	// Prefix# to look for
-		bool_t (*Handler) (Z_Table_t* const a_Table, const char* const a_ID, void* const a_Data);
-	} Handlers[] =
-	{
-		//{"menu#", M_LoadMenuTable},
-		{
-			"", NULL
-		}
-	};
-	
-	/* Check */
-	if (!a_Sub)
-		return false;
-		
-	/* Obtain ID from thing and determine its type */
-	p = q = Z_TableName(a_Sub);
-	q = strchr(q, '#');
-	n = q - p;
-	
-	// Increment to remove # for a_ID passing
-	q++;
-	
-	/* Go through the list */
-	for (j = 0; Handlers[j].Handler; j++)
-	{
-		// Try a name match
-		if (strncasecmp(Handlers[j].Prefix, p, n) == 0)
-		{
-			// Send to handler
-			Handlers[j].Handler(a_Sub, q, a_Data);
-			break;				// No more searching needed
-		}
-	}
-	
-	// Failure?
-	if (!Handlers[j].Handler)
-		if (devparm)
-			CONS_Printf("RMOD: Unknown table \"%.*s\"\n", n, p);
-			
-	/* Always return true! */
-	return true;
-	
-#undef PREFIXSIZE
-}
-
-/* D_WX_RMODMultiBuild() -- RMOD Multi builder */
-void D_WX_RMODMultiBuild(WX_WADFile_t* const a_WAD, const WX_BuildAction_t a_Action)
-{
-#define BUFSIZE 512
-	char Token[BUFSIZE];
-	int j;
-	char KeyProperty[BUFSIZE], KeyValue[BUFSIZE];
-	D_WXRMODPrivate_t* Private;
-	WX_WADEntry_t* Entry;
-	size_t Size, z;
-	const char* Data;
-	void** PvPtr;
-	size_t* PvSize;
-	Z_Table_t* CurrentTable;
-	const char* p;
-	const char* ErrP;
-	bool_t Fail;
-	WX_WADFile_t* Wover;
-	
-	uint32_t cCol, cRow, lCol, lRow;
-	
-	/* Check */
-	if (!a_WAD)
-		return;
-		
-	/* If we are building or clearing, get private data */
-	if (a_Action >= WXBA_BUILDWAD && a_Action <= WXBA_CLEARWAD)
-	{
-		// Get private data from WAD
-		if (!WX_GetVirtualPrivateData(a_WAD, WXDPID_RMOD, &PvPtr, &PvSize))
-			return;
-			
-		// Check whether it really exists, if not create it
-		if (!*PvPtr)
-		{
-			*PvSize = sizeof(D_WXRMODPrivate_t);
-			*PvPtr = Z_Malloc(*PvSize, PU_STATIC, NULL);
-		}
-		// Set private data
-		Private = (D_WXRMODPrivate_t*) * PvPtr;
-	}
-	else
-		Private = 0;
-		
-	/* Based on action */
-	switch (a_Action)
-	{
-			// Build single WAD
-		case WXBA_BUILDWAD:
-			// Obtain entry and make sure we got it
-			Entry = WX_EntryForName(a_WAD, "REMOODAT", false);
-			if (!Entry)
-				return;
-				
-			// Attempt loading of entry data
-			Data = WX_CacheEntry(Entry);
-			if (!Data)
-				return;
-				
-			// Size of entry
-			Size = WX_GetEntrySize(Entry);
-			
-			// Create the root table
-			Private->RMODTable = Z_TableCreate("remood");
-			CurrentTable = Private->RMODTable;
-			
-			// Prepare RMOD Reading
-			lCol = cCol = 0;	// Columns are zero based since they are always incremented
-			lRow = cRow = 1;	// non-zero based rows
-			p = Data;
-			j = 0;
-			
-			// Read RMOD Data
-			Fail = false;
-			ErrP = "Unknown";
-			while (DS_RMODNextToken(Data, Size, &p, Token, BUFSIZE, &cCol, &cRow))
-			{
-				// Expect property
-				if (j == 0)
-				{
-					// End of table
-					if (strcmp("}", Token) == 0)
-					{
-						// Get parent table
-						CurrentTable = Z_TableUp(CurrentTable);
-						
-						// Did we go up too many times?
-						if (!CurrentTable)
-						{
-							ErrP = "Too many closing braces";
-							Fail = true;
-							break;
-						}
-						// Continue to the next token
-						continue;
-					}
-					// Lowercase it
-					C_strlwr(Token);
-					
-					// Confirm the property
-					if (!DS_REMODConfirmProperty(Token))
-					{
-						ErrP = "Property contains invalid characters or > 64";
-						Fail = true;
-						break;
-					}
-					// Copy to property buffer
-					memset(KeyProperty, 0, sizeof(KeyProperty));
-					strncpy(KeyProperty, Token, BUFSIZE);
-					
-					// Increment j and go to value now
-					j++;
-				}
-				// Expect value
-				else if (j == 1)
-				{
-					// Values must start and end with "
-					z = strlen(Token);
-					
-					if (Token[0] != Token[z - 1] && Token[0] != '\"')
-					{
-						ErrP = "Values must always be quoted";
-						Fail = true;
-						break;
-					}
-					// Copy the quote free chunk
-					memset(KeyValue, 0, sizeof(KeyValue));
-					strncpy(KeyValue, Token + 1, z - 2);
-					
-					// Increment j and go to statement type
-					j++;
-				}
-				// Now expect either { or ;
-				else
-				{
-					// Create table
-					if (strcmp(Token, "{") == 0)
-					{
-						// Lowercase value
-						C_strlwr(KeyValue);
-						
-						// Table values are limited to properties
-						if (!DS_REMODConfirmProperty(KeyValue))
-						{
-							ErrP = "Table values are under property name limitations";
-							Fail = true;
-							break;
-						}
-						// Add @ to KeyProperty
-						strncat(KeyProperty, "#", BUFSIZE);
-						
-						// Add value to property
-						strncat(KeyProperty, KeyValue, BUFSIZE);
-						
-						// Create table and set as current table
-						CurrentTable = Z_FindSubTable(CurrentTable, KeyProperty, true);
-					}
-					// Create key
-					else if (strcmp(Token, ";") == 0)
-					{
-						// Add new entry to the current table with said stuff
-						Z_TableSetValue(CurrentTable, KeyProperty, KeyValue);
-					}
-					// Unknown
-					else
-					{
-						ErrP = "Neither table nor key, must be } or ;";
-						Fail = true;
-						break;
-					}
-					
-					// Reset j
-					j = 0;
-				}
-				
-				// Remember last column and row (since it is at parse time)
-				lRow = cRow;
-				lCol = cCol;
-			}
-			
-			// Failure?
-			if (Fail)
-			{
-				CONS_Printf("RMOD Parse Error at column %u on row %u (%s).\n", lRow, lCol, ErrP);
-				return;
-			}
-			// Debugging
-			if (devparm)
-				Z_TablePrint(Private->RMODTable, "");
-			break;
-			
-			// Clear single WAD
-		case WXBA_CLEARWAD:
-			// Delete table
-			if (Private->RMODTable)
-				Z_TableDestroy(Private->RMODTable);
-			Private->RMODTable = NULL;
-			break;
-			
-			// Build WAD composite
-		case WXBA_BUILDCOMPOSITE:
-			// Linearly read all RMODs for every WAD
-			for (Wover = a_WAD; Wover; Wover = WX_RoveWAD(Wover, true, 1))
-			{
-				// Obtain private data
-				if (!WX_GetVirtualPrivateData(Wover, WXDPID_RMOD, &PvPtr, &PvSize))
-					continue;
-					
-				// Check whether it really exists, if not ignore it
-				if (!*PvPtr)
-					continue;
-					
-				// Set private data
-				Private = (D_WXRMODPrivate_t*) * PvPtr;
-				
-				// Rove table and send to callback
-				Z_TableSuperCallback(Private->RMODTable, DS_RMODTableHandler, Wover);
-			}
-			break;
-			
-			// Clear WAD composite
-		case WXBA_CLEARCOMPOSITE:
-			break;
-			
-			// Unknown
-		default:
-			break;
-	}
-#undef BUFSIZE
-}

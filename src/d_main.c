@@ -1443,10 +1443,10 @@ void D_DoomMain(void)
 	CONL_Init(4096, 1024);
 	
 	/* Adapters */
-	P_PrepareLevelInfoEx();
 	V_ImageFindA(NULL);					// Bump image loaders
 	D_InitRMOD();						// Initialize RMOD
 	V_MapGraphicalCharacters();			// Unicode chars
+	P_PrepareLevelInfoEx();
 	/**************************/
 	
 	// GhostlyDeath <December 14, 2011> -- Use extended identify version
