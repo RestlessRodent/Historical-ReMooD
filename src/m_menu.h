@@ -37,6 +37,11 @@
 #include "command.h"
 #include "d_prof.h"
 
+#include "w_wad.h"
+#include "z_zone.h"
+
+#include "d_rmod.h"
+
 //
 // MENUS
 //
@@ -323,4 +328,12 @@ extern consvar_t cv_ng_fragsweaponfalling;
 extern consvar_t cv_ng_bloodtime;
 extern consvar_t cv_ng_infiniteammo;
 
+/*******************************************************************************
+********************************************************************************
+*******************************************************************************/
+
+bool_t M_MenuExRMODHandle(Z_Table_t* const a_Table, const WL_WADFile_t* const a_WAD);
+bool_t M_MenuExRMODOrder(void);
+
 #endif
+

@@ -70,6 +70,12 @@ typedef struct D_RMODTokenInfo_s
 	int32_t CurCol;								// Current column being parsed
 } D_RMODTokenInfo_t;
 
+/* D_RMODHandler_t -- Handles RMOD Data */
+typedef struct D_RMODHandler_s
+{
+	
+} D_RMODHandler_t;
+
 /****************
 *** FUNCTIONS ***
 ****************/
