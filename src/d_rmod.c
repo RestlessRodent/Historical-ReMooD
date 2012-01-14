@@ -43,6 +43,8 @@
 *** CONSTANTS ***
 ****************/
 
+#define TOKENBUFSIZE 					512		// Max token buffer size
+
 /*****************
 *** STRUCTURES ***
 *****************/
@@ -50,8 +52,23 @@
 /* D_WXRMODPrivate_t -- RMOD Private Data */
 typedef struct D_WXRMODPrivate_s
 {
-	Z_Table_t* RMODTable;		// Table to store RMOD data
+	Z_Table_t* RMODTable;						// Table to store RMOD data
 } D_WXRMODPrivate_t;
+
+/* D_RMODTokenInfo_t -- RMOD Token Information */
+typedef struct D_RMODTokenInfo_s
+{
+	WL_EntryStream_t* Stream;					// Stream reader
+	size_t StreamEnd;							// When the stream ends
+	const char* TokenProblem;					// Problem with token
+	
+	char Token[TOKENBUFSIZE];					// Current token
+	size_t TokenSize;							// Size of buffer
+	size_t PutAt;								// Location to put
+	
+	int32_t CurRow;								// Current row being parsed
+	int32_t CurCol;								// Current column being parsed
+} D_RMODTokenInfo_t;
 
 /****************
 *** FUNCTIONS ***
@@ -60,15 +77,180 @@ typedef struct D_WXRMODPrivate_s
 /* DS_RMODPDCRemove() -- Removes loaded data */
 static void DS_RMODPDCRemove(const struct WL_WADFile_s* a_WAD)
 {
+	/* Check */
+	if (!a_WAD)
+		return;
+}
+
+/* DS_RMODReadToken() -- Reads a token from an RMOD */
+static bool_t DS_RMODReadToken(D_RMODTokenInfo_t* const a_Info)
+{
+	uint16_t wc, wcLast;
+	int Action;
+	bool_t Flipped;
+	
+	/* Check */
+	if (!a_Info)
+		return false;
+	
+	/* Clear current token */
+	memset(a_Info->Token, 0, sizeof(*a_Info->Token) * a_Info->TokenSize);
+	a_Info->PutAt = 0;
+	
+	// Also clear problem
+	a_Info->TokenProblem = NULL;
+	
+	/* Read Loop */
+	for (Action = 0, Flipped = false, wc = WL_StreamReadChar(a_Info->Stream); WL_StreamTell(a_Info->Stream) < a_Info->StreamEnd; wc = WL_StreamReadChar(a_Info->Stream))
+	{
+		// Always increment column
+		a_Info->CurCol++;
+		
+		// White space -- Ignore
+		if (wc == ' ' || wc == '\t' || wc == '\r' || wc == '\n')
+		{
+			// A token has been read and this is now whitespace
+			if (Action != 0)
+				break;
+			
+			// If this is a new line, reset columns and add row
+			if (wc == '\n')
+			{
+				a_Info->CurCol = 0;
+				a_Info->CurRow++;
+			}
+			
+			// Continue to read whitespace
+			continue;
+		}
+		
+		// Comments
+		else if (wc == '/')
+		{
+			// Not a comment or whitespace
+			if (Action != 4 && Action != 0)
+			{
+				a_Info->TokenProblem = "Tokens must be separated by whitespace.";
+				break;
+			}
+			
+			// Set as comment
+			Action = 4;
+			
+			// Read character
+			wc = WL_StreamReadChar(a_Info->Stream);
+			
+			// Check for '/'
+			if (wc != '/')
+			{
+				a_Info->TokenProblem = "Expected // for a comment.";
+				return false;
+			}
+			
+			// Already is a comment so ignore character until it is '\n'
+			for (wc = WL_StreamReadChar(a_Info->Stream); WL_StreamTell(a_Info->Stream) < a_Info->StreamEnd; wc = WL_StreamReadChar(a_Info->Stream))
+				if (wc == '\n')
+					break;
+			
+			if (wc == '\n')
+			{
+				a_Info->CurCol = 0;
+				a_Info->CurRow++;
+				Action = 0;
+				continue;
+			}
+		}
+		
+		// Quoted String
+		else if (wc == '\"')
+		{
+			// If not a quote or whitespace
+			if (Action != 3 && Action != 0)
+			{
+				a_Info->TokenProblem = "Tokens must be separated by whitespace.";
+				break;
+			}
+			
+			// Set as quote
+			Action = 3;
+			
+			// Place quote in buffer
+			if (a_Info->PutAt < a_Info->TokenSize)
+				a_Info->Token[a_Info->PutAt++] = wc;
+			
+			// Read into buffer, until quote is found again
+			for (wcLast = 0, wc = WL_StreamReadChar(a_Info->Stream); WL_StreamTell(a_Info->Stream) < a_Info->StreamEnd; wc = WL_StreamReadChar(a_Info->Stream))
+			{
+				// Copy to buffer
+				if (a_Info->PutAt < a_Info->TokenSize)
+					a_Info->Token[a_Info->PutAt++] = wc;
+				
+				// Is a quote and is not escaped quote
+				if (wc == '\"' && wcLast != '\\')
+					break;
+				
+				// Set last
+				wcLast = wc;
+			}
+			
+			// Always break here
+			break;
+		}
+		
+		// Singular Tokens
+		else if (wc == '{' || wc == '}' || wc == ';')
+		{
+			// Not a single or whitespace?
+			if (Action != 2 && Action != 0)
+			{
+				a_Info->TokenProblem = "Tokens must be separated by whitespace.";
+				break;
+			}
+			
+			// Set as single
+			Action = 2;
+			
+			// Copy to buffer
+			if (a_Info->PutAt < a_Info->TokenSize)
+				a_Info->Token[a_Info->PutAt++] = wc;
+			
+			// Done here
+			break;
+		}
+		
+		// Standard Tokens
+		else
+		{
+			// Not whitespace and not a standard token
+			if (Action != 1 && Action != 0)
+				break;
+			
+			// Copy to buffer
+			if (a_Info->PutAt < a_Info->TokenSize)
+				a_Info->Token[a_Info->PutAt++] = wc;
+			
+			// Set as plain token
+			Action = 1;
+		}
+	}
+	
+	/* There was an actual token here? */
+	if (a_Info->PutAt)
+		return true;
+	
+	/* No more tokens */
+	return false;
 }
 
 /* DS_RMODPDC() -- Creates private data from REMOODAT */
 static bool_t DS_RMODPDC(const struct WL_WADFile_s* const a_WAD, const uint32_t a_Key, void** const a_DataPtr, size_t* const a_SizePtr, WL_RemoveFunc_t* const a_RemoveFuncPtr)
 {
+#define BUFSIZE 512
 	const WL_WADEntry_t* DataEntry;
 	WL_EntryStream_t* DataStream;
 	int i = 0;
 	uint16_t wc;
+	D_RMODTokenInfo_t Info;
 	
 	/* Check to see if REMOODAT exists in this WAD */
 	if (!(DataEntry = WL_FindEntry(a_WAD, 0, "REMOODAT")))
@@ -97,19 +279,28 @@ static bool_t DS_RMODPDC(const struct WL_WADFile_s* const a_WAD, const uint32_t 
 	WL_StreamCheckUnicode(DataStream);
 	
 	/* Begin stream parse */
-	CONS_Printf(">>");
-	for (i = 0; i < 256; i++)
+	// Prepare info
+	memset(&Info, 0, sizeof(Info));
+	
+	Info.Stream = DataStream;
+	Info.TokenSize = TOKENBUFSIZE;
+	Info.StreamEnd = DataEntry->Size;
+	
+	// Token read loop
+	while (DS_RMODReadToken(&Info))
 	{
-		wc = WL_StreamReadChar(DataStream);
-		
-		CONS_Printf("%c", wc);
+		CONS_Printf(">> `%s`\n", Info.Token);
 	}
-	CONS_Printf("<<\n");
+	
+	// Was there a problem?
+	if (Info.TokenProblem)
+		CONS_Printf("DS_RMODPDC: Parse error \"%s\" at row %i, column %i.\n", Info.TokenProblem, Info.CurRow + 1, Info.CurCol);
 	
 	/* Free streamer */
 	WL_StreamClose(DataStream);
 	
 	return true;
+#undef BUFSIZE
 }
 
 /* DS_RMODOCCB() -- Order change callback for REMOODAT */

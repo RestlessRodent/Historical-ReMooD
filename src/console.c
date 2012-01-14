@@ -2089,7 +2089,7 @@ void CONS_Printf(char* fmt, ...)
 	if (devparm || !con_started /* || !graphics_started */ )
 	{
 //#if !defined( _WIN32) && !defined( __OS2__)
-		I_OutputText(txt);
+		//I_OutputText(txt);
 //#endif
 		if (!devparm)
 			return;
