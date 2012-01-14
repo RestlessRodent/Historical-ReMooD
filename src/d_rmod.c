@@ -66,14 +66,48 @@ static void DS_RMODPDCRemove(const struct WL_WADFile_s* a_WAD)
 static bool_t DS_RMODPDC(const struct WL_WADFile_s* const a_WAD, const uint32_t a_Key, void** const a_DataPtr, size_t* const a_SizePtr, WL_RemoveFunc_t* const a_RemoveFuncPtr)
 {
 	const WL_WADEntry_t* DataEntry;
+	WL_EntryStream_t* DataStream;
+	int i = 0;
+	uint16_t wc;
 	
 	/* Check to see if REMOODAT exists in this WAD */
 	if (!(DataEntry = WL_FindEntry(a_WAD, 0, "REMOODAT")))
-		return false;
+	{
+		if (devparm)
+			CONS_Printf("DS_RMODPDC: There is no REMOODAT here.\n");
+		return true;
+	}
 	
 	// Info
 	if (devparm)
 		CONS_Printf("DS_RMODPDC: Parsing REMOODAT...\n");
+	
+	/* Use streamer */
+	DataStream = WL_StreamOpen(DataEntry);
+	
+	// Failed?
+	if (!DataStream)
+	{
+		if (devparm)
+			CONS_Printf("DS_RMODPDC: Failed to open stream.\n");
+		return false;
+	}
+	
+	/* Determine text type */
+	WL_StreamCheckUnicode(DataStream);
+	
+	/* Begin stream parse */
+	CONS_Printf(">>");
+	for (i = 0; i < 256; i++)
+	{
+		wc = WL_StreamReadChar(DataStream);
+		
+		CONS_Printf("%c", wc);
+	}
+	CONS_Printf("<<\n");
+	
+	/* Free streamer */
+	WL_StreamClose(DataStream);
 	
 	return true;
 }

@@ -1228,6 +1228,9 @@ struct WL_EntryStream_s
 	
 	uint32_t StreamOffset;						// Offset of stream
 	uint32_t StreamSize;						// Size of stream
+	
+	bool_t IsUnicode;							// Is UTF16 stream
+	bool_t IsSwapped;							// Is byte swapped
 };
 
 /* WL_StreamOpen() -- Opens a stream */
@@ -1383,14 +1386,101 @@ int8_t WL_StreamReadInt8(WL_EntryStream_t* const a_Stream)
 
 int16_t WL_StreamReadInt16(WL_EntryStream_t* const a_Stream);
 int32_t WL_StreamReadInt32(WL_EntryStream_t* const a_Stream);
-uint8_t WL_StreamReadUInt8(WL_EntryStream_t* const a_Stream);
-uint16_t WL_StreamReadUInt16(WL_EntryStream_t* const a_Stream);
+
+/* WL_StreamReadUInt8() -- Read from stream */
+uint8_t WL_StreamReadUInt8(WL_EntryStream_t* const a_Stream)
+{
+	uint8_t Out = 0;
+	
+	/* Check */
+	if (!a_Stream)
+		return 0;
+	
+	/* Read */
+	a_Stream->StreamOffset += WL_StreamRawRead(a_Stream, a_Stream->StreamOffset, &Out, sizeof(Out));
+	
+	/* Return */
+	return Out;
+}
+
+/* WL_StreamReadUInt16() -- Read from stream */
+uint16_t WL_StreamReadUInt16(WL_EntryStream_t* const a_Stream)
+{
+	uint16_t Out = 0;
+	
+	/* Check */
+	if (!a_Stream)
+		return 0;
+	
+	/* Read */
+	a_Stream->StreamOffset += WL_StreamRawRead(a_Stream, a_Stream->StreamOffset, &Out, sizeof(Out));
+	
+	/* Return */
+	return Out;
+}
+
 uint32_t WL_StreamReadUInt32(WL_EntryStream_t* const a_Stream);
 
 int16_t WL_StreamReadLittleInt16(WL_EntryStream_t* const a_Stream);
 int32_t WL_StreamReadLittleInt32(WL_EntryStream_t* const a_Stream);
 uint16_t WL_StreamReadLittleUInt16(WL_EntryStream_t* const a_Stream);
 uint32_t WL_StreamReadLittleUInt32(WL_EntryStream_t* const a_Stream);
+
+/* WL_StreamCheckUnicode() -- Checks if the stream is unicode */
+bool_t WL_StreamCheckUnicode(WL_EntryStream_t* const a_Stream)
+{
+	uint16_t FirstBits;
+	
+	/* Check */
+	if (!a_Stream)
+		return false;
+		
+	/* Reposition */
+	WL_StreamSeek(a_Stream, 0, false);
+	
+	/* Read the first bytes */
+	FirstBits = WL_StreamReadUInt16(a_Stream);
+	
+	/* Determine if it is Unicode */
+	if (FirstBits == 0xFFFE)
+		a_Stream->IsUnicode = true;
+	else if (FirstBits == 0xFEFF)
+		a_Stream->IsUnicode = a_Stream->IsSwapped = true;
+	
+	/* Reposition to start of text */
+	if (!a_Stream->IsUnicode)
+		WL_StreamSeek(a_Stream, 0, false);
+	else
+		WL_StreamSeek(a_Stream, 2, false);
+	
+	/* Success */
+	return true;
+}
+
+/* WL_StreamReadChar() -- Read character from stream */
+uint16_t WL_StreamReadChar(WL_EntryStream_t* const a_Stream)
+{
+	uint16_t RetVal;
+	
+	/* Check */
+	if (!a_Stream)
+		return 0;
+	
+	/* Depending on stream type */
+	if (!a_Stream->IsUnicode)
+		RetVal = WL_StreamReadUInt8(a_Stream);
+	else
+	{
+		RetVal = WL_StreamReadUInt16(a_Stream);
+		
+		// Swap the bits?
+		if (a_Stream->IsSwapped)
+			RetVal = SwapUInt16(RetVal);
+	}
+	
+	/* Return */
+	return RetVal;
+}
 
 /*********************
 *** W_ DEPRECATION ***
