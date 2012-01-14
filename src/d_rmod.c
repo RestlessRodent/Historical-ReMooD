@@ -37,6 +37,11 @@
 #include "m_menu.h"
 #include "console.h"
 #include "z_zone.h"
+#include "w_wad.h"
+
+/****************
+*** CONSTANTS ***
+****************/
 
 /*****************
 *** STRUCTURES ***
@@ -51,6 +56,46 @@ typedef struct D_WXRMODPrivate_s
 /****************
 *** FUNCTIONS ***
 ****************/
+
+/* DS_RMODPDCRemove() -- Removes loaded data */
+static void DS_RMODPDCRemove(const struct WL_WADFile_s* a_WAD)
+{
+}
+
+/* DS_RMODPDC() -- Creates private data from REMOODAT */
+static bool_t DS_RMODPDC(const struct WL_WADFile_s* const a_WAD, const uint32_t a_Key, void** const a_DataPtr, size_t* const a_SizePtr, WL_RemoveFunc_t* const a_RemoveFuncPtr)
+{
+	const WL_WADEntry_t* DataEntry;
+	
+	/* Check to see if REMOODAT exists in this WAD */
+	if (!(DataEntry = WL_FindEntry(a_WAD, 0, "REMOODAT")))
+		return false;
+	
+	// Info
+	if (devparm)
+		CONS_Printf("DS_RMODPDC: Parsing REMOODAT...\n");
+	
+	return true;
+}
+
+/* DS_RMODOCCB() -- Order change callback for REMOODAT */
+static bool_t DS_RMODOCCB(const bool_t a_Pushed, const struct WL_WADFile_s* const a_WAD)
+{
+	return true;
+}
+
+/* D_InitRMOD() -- Initializes REMOODAT handling */
+void D_InitRMOD(void)
+{
+	/* Hook WL handlers */
+	// Register PDC
+	if (!WL_RegisterPDC(WLDK_RMOD, WLDPO_RMOD, DS_RMODPDC, DS_RMODPDCRemove))
+		I_Error("D_InitRMOD: Failed to register PDC.");
+	
+	// Register OCCB (this builds a composite)
+	if (!WL_RegisterOCCB(DS_RMODOCCB, WLDCO_RMOD))
+		I_Error("D_InitRMOD: Failed to register OCCB.");
+}
 
 /* DS_RMODNextToken() -- Returns the next token in an RMOD */
 // Returns true if a token was found

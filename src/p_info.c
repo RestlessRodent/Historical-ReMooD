@@ -50,7 +50,6 @@
 
 /*** CONSTANTS ***/
 
-#define WLINFOPDC					0x4F464E49	// "INFO"
 #define MAXPLIEXFIELDWIDTH			32
 
 typedef enum P_LevelInfoExDataStuff_e
@@ -169,7 +168,7 @@ static bool_t P_WLInfoCreator(const WL_WADFile_t* const a_WAD, const uint32_t a_
 void P_PrepareLevelInfoEx(void)
 {
 	/* Register handler into the light WAD code */
-	if (!WL_RegisterPDC(WLINFOPDC, 127, P_WLInfoCreator, P_WLInfoRemove))
+	if (!WL_RegisterPDC(WLDK_MAPINFO, WLDPO_MAPINFO, P_WLInfoCreator, P_WLInfoRemove))
 		CONS_Printf("P_PrepareLevelInfoEx: Failed to register info creator!\n");
 }
 

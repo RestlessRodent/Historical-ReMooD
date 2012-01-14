@@ -1707,8 +1707,6 @@ void V_DrawTranslucentPatch(const int x, const int y, const int scrn, const patc
 
 /*** CONSTANTS ***/
 
-#define VWLFONTPDC	0x464F4E54
-
 /* V_FontNameRule_t -- Rule to use for fonts */
 // Instead of hardcoding the formats into the initializer function. I will
 // just create this simple index here, then have a table of functions that
@@ -2040,7 +2038,7 @@ static void VS_FontPDCRemove(const struct WL_WADFile_s* a_WAD)
 		return;
 	
 	/* Get local stuff */
-	LocalStuff = WL_GetPrivateData(a_WAD, VWLFONTPDC, NULL);
+	LocalStuff = WL_GetPrivateData(a_WAD, WLDK_VFONTS, NULL);
 	
 	// Failed?
 	if (!LocalStuff)
@@ -2333,7 +2331,7 @@ static bool_t VS_FontOCCB(const bool_t a_Pushed, const struct WL_WADFile_s* cons
 	while ((WADRover = WL_IterateVWAD(WADRover, true)))
 	{
 		// Get the WAD's private data
-		FontStuff = WL_GetPrivateData(WADRover, VWLFONTPDC, NULL);
+		FontStuff = WL_GetPrivateData(WADRover, WLDK_VFONTS, NULL);
 		
 		// Failed?
 		if (!FontStuff)
@@ -2365,7 +2363,7 @@ static bool_t VS_FontOCCB(const bool_t a_Pushed, const struct WL_WADFile_s* cons
 	{
 		// Debug message
 		if (devparm)
-			CONS_Printf("VS_FontOCCB: RMD_UTTT found, mappings will be incomplete.\n");
+			CONS_Printf("VS_FontOCCB: RMD_UTTT missing, mappings will be incomplete.\n");
 	}
 	else
 	{
@@ -2595,11 +2593,11 @@ void V_MapGraphicalCharacters(void)
 {
 	/* Hook WL handlers */
 	// Register PDC
-	if (!WL_RegisterPDC(VWLFONTPDC, 75, VS_FontPDCCreate, VS_FontPDCRemove))
+	if (!WL_RegisterPDC(WLDK_VFONTS, WLDPO_VFONTS, VS_FontPDCCreate, VS_FontPDCRemove))
 		I_Error("V_MapGraphicalCharacters: Failed to register PDC.");
 	
 	// Register OCCB (this builds a composite)
-	if (!WL_RegisterOCCB(VS_FontOCCB, 50))
+	if (!WL_RegisterOCCB(VS_FontOCCB, WLDCO_VFONTS))
 		I_Error("V_MapGraphicalCharacters: Failed to register OCCB.");
 }
 
@@ -3149,8 +3147,6 @@ typedef enum V_ImageType_e
 	NUMVIMAGETYPES
 } V_ImageType_t;
 
-#define VWLIMAGEKEY	0x8C064303					// Key for private data
-
 /*** STRUCTURES ***/
 
 /* V_Image_t -- A single image */
@@ -3237,7 +3233,7 @@ static void VS_WLImagePDCRemove(const struct WL_WADFile_s* a_WAD)
 	V_WLImageHolder_t* HI;
 	
 	/* Obtain */
-	HI = WL_GetPrivateData(a_WAD, VWLIMAGEKEY, NULL);
+	HI = WL_GetPrivateData(a_WAD, WLDK_VIMAGES, NULL);
 	
 	/* Check */
 	if (!HI)
@@ -3256,7 +3252,7 @@ static void VS_WLImagePDCRemove(const struct WL_WADFile_s* a_WAD)
 static void VS_InitialBoot(void)
 {
 	/* Register data loader */
-	if (!WL_RegisterPDC(VWLIMAGEKEY, 50, VS_WLImagePDC, VS_WLImagePDCRemove))
+	if (!WL_RegisterPDC(WLDK_VIMAGES, WLDPO_VIMAGES, VS_WLImagePDC, VS_WLImagePDCRemove))
 		I_Error("VS_InitialBoot: Failed to register PDC!");
 	
 	/* Booted up! */
@@ -3399,7 +3395,7 @@ V_Image_t* V_ImageLoadE(const WL_WADEntry_t* const a_Entry)
 	New->PixelCount = New->Width * New->Height;
 	
 	// Link into chain for this WAD
-	HI = WL_GetPrivateData(a_Entry->Owner, VWLIMAGEKEY, NULL);
+	HI = WL_GetPrivateData(a_Entry->Owner, WLDK_VIMAGES, NULL);
 	
 	// This better always be true!
 	if (HI)
@@ -3459,7 +3455,7 @@ V_Image_t* V_ImageFindA(const char* const a_Name)
 	while ((Rover = WL_IterateVWAD(Rover, false)))
 	{
 		// Get images from this WAD
-		WADImages = WL_GetPrivateData(Rover, VWLIMAGEKEY, NULL);
+		WADImages = WL_GetPrivateData(Rover, WLDK_VIMAGES, NULL);
 		
 		// Not found?
 		if (!WADImages)

@@ -52,6 +52,8 @@
 *** PROTOTYPES ***
 *****************/
 
+void D_InitRMOD(void);
+
 void D_WX_RMODMultiBuild(WX_WADFile_t* const a_WAD, const WX_BuildAction_t a_Action);
 
 void D_WX_RMODBuild(WX_WADFile_t* const a_WAD);

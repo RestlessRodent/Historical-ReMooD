@@ -52,22 +52,30 @@ typedef int WadIndex_t;
 #define WLMAXPRIVATEWADSTUFF	32	// Maximum number of private WAD Stuffs
 #define WLMAXDOSNAME			13	// nnnnnnnn.xxx\0
 
+/* WL_DataPDCOrder_t -- Orders for data handling (PDCs) */
+typedef enum WL_DataPDCOrder_e
+{
+	WLDPO_VIMAGES = 20,				// Image_t
+	WLDPO_RMOD = 30,				// ReMooD Map Object Data
+	WLDPO_VFONTS = 75,				// Fonts
+	WLDPO_MAPINFO = 125,			// MAPINFO
+} WL_DataPDCOrder_t;
+
+/* WL_DataOCCBOrder_t -- Orders for data handling (OCCBs) */
+typedef enum WL_DataOCCBOrder_e
+{
+	WLDCO_RMOD = 30,				// ReMooD Map Object Data
+	WLDCO_VFONTS = 75,				// Fonts
+} WL_DataOCCBOrder_t;
+
 /* WL_DataKeys_t -- Keys for data handling, shortcuts */
 // Helps prevent magic
 typedef enum WL_DataKeys_e
 {
-	WLDK_RMOD = 0x00000000U,	// ReMooD Map Object Data
-	WLDK_FLATS = 0x00000000U,	// Floor Textures (Flats)
-	WLDK_TEXTURES = 0x00000000U,	// Wall Textures
-	WLDK_PATCHES = 0x00000000U,	// Wall Patches
-	WLDK_SPRITES = 0x00000000U,	// Sprites
-	WLDK_SKINS = 0x00000000U,	// Skins
-	WLDK_SOUNDS = 0x00000000U,	// Sounds
-	WLDK_MUSIC = 0x00000000U,	// Music
-	WLDK_UNICODE = 0x00000000U,	// Unicode Related Data
-	WLDK_LANGUAGE = 0x00000000U,	// Language Translations
-	WLDK_SCRIPTS = 0x00000000U,	// Virtual Machine Scripts
-	WLDK_MAPINFO = 0x00000000U,	// Map Info
+	WLDK_RMOD = 0x524D4F44U,		// ReMooD Map Object Data
+	WLDK_VIMAGES = 0x8C064303U,		// Image_t
+	WLDK_VFONTS = 0x464F4E54U,		// Fonts
+	WLDK_MAPINFO = 0x4F464E49U,		// Map Information
 } WL_DataKeys_t;
 
 /* WL_FindFlags_t -- Flags when finding things */

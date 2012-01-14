@@ -1445,6 +1445,7 @@ void D_DoomMain(void)
 	/* Adapters */
 	P_PrepareLevelInfoEx();
 	V_ImageFindA(NULL);					// Bump image loaders
+	D_InitRMOD();						// Initialize RMOD
 	V_MapGraphicalCharacters();			// Unicode chars
 	/**************************/
 	
