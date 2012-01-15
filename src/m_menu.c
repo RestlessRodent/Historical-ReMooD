@@ -1091,18 +1091,42 @@ void M_DumpMenuXML(void)
 /* M_MenuExRMODHandle() -- Handle RMOD Menu Data */
 bool_t M_MenuExRMODHandle(Z_Table_t* const a_Table, const WL_WADFile_t* const a_WAD, const D_RMODPrivates_t a_ID, D_RMODPrivate_t* const a_Private)
 {
+	/*** DEDICATED SERVER ***/
+#if defined(__REMOOD_DEDICATED)
+	return false;
+	
+	/*** STANDARD CLIENT ***/
+#else
+
+	/* Not for dedicated server */
+	if (g_DedicatedServer)
+		return false;	
+	
 	/* Check */
 	if (!a_Table || !a_WAD || !a_ID || !a_Private)
 		return false;
 	
 	/* Success! */
 	return false;
+#endif /* __REMOOD_DEDICATED */
 }
 
 /* M_MenuExRMODOrder() -- WAD order changed */
 bool_t M_MenuExRMODOrder(const bool_t a_Pushed, const struct WL_WADFile_s* const a_WAD, const D_RMODPrivates_t a_ID)
 {
+	/*** DEDICATED SERVER ***/
+#if defined(__REMOOD_DEDICATED)
+	return false;
+	
+	/*** STANDARD CLIENT ***/
+#else
+	
+	/* Not for dedicated server */
+	if (g_DedicatedServer)
+		return false;	
+	
 	/* Success! */
 	return false;
+#endif /* __REMOOD_DEDICATED */
 }
 

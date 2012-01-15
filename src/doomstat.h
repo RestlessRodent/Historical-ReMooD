@@ -254,5 +254,7 @@ typedef enum CoreGame_e
 extern CoreGame_t g_CoreGame;				// Core game mode
 extern const void* g_ReMooDPtr;				// Pointer to remood.wad
 
+extern bool_t g_DedicatedServer;			// Dedicated Server
+
 #endif							//__D_STATE__
 

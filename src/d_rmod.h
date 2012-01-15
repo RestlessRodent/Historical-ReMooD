@@ -47,6 +47,7 @@
 /* D_RMODPrivates_t -- RMOD Private info */
 typedef enum D_RMODPrivates_e
 {
+	DRMODP_WIDGET,								// Widgets
 	DRMODP_MENU,								// Menu related stuff	
 	
 	NUMDRMODPRIVATES

@@ -28,3 +28,55 @@
 // -----------------------------------------------------------------------------
 // DESCRIPTION: Widget Code
 
+/***************
+*** INCLUDES ***
+***************/
+
+#include "v_widget.h"
+#include "doomstat.h"
+
+/****************
+*** FUNCTIONS ***
+****************/
+
+/* V_WidgetRMODHandle() -- Handle RMOD Widget Data */
+bool_t V_WidgetRMODHandle(Z_Table_t* const a_Table, const WL_WADFile_t* const a_WAD, const D_RMODPrivates_t a_ID, D_RMODPrivate_t* const a_Private)
+{
+	/*** DEDICATED SERVER ***/
+#if defined(__REMOOD_DEDICATED)
+	return false;
+	
+	/*** STANDARD CLIENT ***/
+#else
+
+	/* Not for dedicated server */
+	if (g_DedicatedServer)
+		return false;	
+	
+	/* Check */
+	if (!a_Table || !a_WAD || !a_ID || !a_Private)
+		return false;
+	
+	/* Success! */
+	return false;
+#endif /* __REMOOD_DEDICATED */
+}
+
+/* V_WidgetRMODOrder() -- WAD order changed */
+bool_t V_WidgetRMODOrder(const bool_t a_Pushed, const struct WL_WADFile_s* const a_WAD, const D_RMODPrivates_t a_ID)
+{
+	/*** DEDICATED SERVER ***/
+#if defined(__REMOOD_DEDICATED)
+	return false;
+	
+	/*** STANDARD CLIENT ***/
+#else
+	
+	/* Not for dedicated server */
+	if (g_DedicatedServer)
+		return false;	
+	
+	/* Success! */
+	return false;
+#endif /* __REMOOD_DEDICATED */
+}

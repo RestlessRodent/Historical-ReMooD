@@ -38,6 +38,7 @@
 #include "console.h"
 #include "z_zone.h"
 #include "w_wad.h"
+#include "v_widget.h"
 
 /****************
 *** CONSTANTS ***
@@ -92,6 +93,13 @@ typedef struct D_RMODWADStuff_s
 // c_RMODHandlers -- Handlers for RMOD
 static const D_RMODHandler_t c_RMODHandlers[NUMDRMODPRIVATES] =
 {
+	// Widgets
+	{
+		"widget",
+		V_WidgetRMODHandle,
+		V_WidgetRMODOrder,
+	},
+	
 	// Menus
 	{
 		"menu",

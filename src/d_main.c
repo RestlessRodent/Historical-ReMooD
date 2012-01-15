@@ -102,6 +102,12 @@
 
 #include "d_prof.h"
 
+#if defined(__REMOOD_DEDICATED)
+bool_t g_DedicatedServer = true;				// Dedicated Server
+#else
+bool_t g_DedicatedServer = false;				// Dedicated Server
+#endif
+
 //
 //  DEMO LOOP
 //
@@ -1418,6 +1424,16 @@ void D_DoomMain(void)
 	g_QuietConsole = M_CheckParm("-quiet");
 	g_PaintBallMode = M_CheckParm("-paintballmode");
 	
+	// GhostlyDeath <January 15, 2012> -- Check for dedicated server
+#if !defined(__REMOOD_DEDICATED)
+	g_DedicatedServer = M_CheckParm("-dedicated");
+#else
+	g_DedicatedServer = true;
+#endif
+
+	// Replace old variable
+	dedicated = g_DedicatedServer;
+	
 	// GhostlyDeath <July 6, 2008> -- initialize fields
 	memset(player_names, 0, sizeof(player_names));
 	memset(team_names, 0, sizeof(team_names));
@@ -1683,9 +1699,6 @@ void D_DoomMain(void)
 	// now initialised automatically by use_joystick var code
 	//CONS_Printf (text[I_INIT_NUM]);
 	//I_InitJoystick ();
-	
-	// we need to check for dedicated before initialization of some subsystems
-	dedicated = M_CheckParm("-dedicated") != 0;
 	
 	CONS_Printf("I_StartupGraphics...\n");
 	I_StartupGraphics();

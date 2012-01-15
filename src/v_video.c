@@ -1909,8 +1909,18 @@ static size_t l_FontRemap[NUMVIDEOFONTS];	// Remaps for each font
 /* VS_DetectByName() -- Detects the font type and such */
 static bool_t VS_DetectByName(const char* const a_Name, uint16_t* const a_HexOut, VideoFont_t* const a_FontOut, V_FontNameRule_t* const a_RuleOut)
 {
+	/*** DEDICATED SERVER ***/
+#if defined(__REMOOD_DEDICATED)
+	return false;
+	
+	/*** STANDARD CLIENT ***/
+#else
 	size_t i, j;
 	int32_t Num[4];
+	
+	/* Not for dedicated server */
+	if (g_DedicatedServer)
+		return false;
 	
 	/* Check */
 	if (!a_Name || !a_HexOut || !a_FontOut || !a_RuleOut)
@@ -2025,13 +2035,24 @@ static bool_t VS_DetectByName(const char* const a_Name, uint16_t* const a_HexOut
 	
 	/* Failed */
 	return false;
+#endif /* __REMOOD_DEDICATED */
 }
 
 /* VS_FontPDCRemove() -- Removes loaded character data */
 static void VS_FontPDCRemove(const struct WL_WADFile_s* a_WAD)
 {
+	/*** DEDICATED SERVER ***/
+#if defined(__REMOOD_DEDICATED)
+	return;
+	
+	/*** STANDARD CLIENT ***/
+#else
 	size_t i, f;
 	V_LocalFontStuff_t* LocalStuff;
+	
+	/* Not for dedicated server */
+	if (g_DedicatedServer)
+		return;
 	
 	/* Check */
 	if (!a_WAD)
@@ -2060,6 +2081,7 @@ static void VS_FontPDCRemove(const struct WL_WADFile_s* a_WAD)
 			Z_Free(LocalStuff->CGroups[f]);
 			LocalStuff->CGroups[f] = NULL;
 		}
+#endif /* __REMOOD_DEDICATED */
 }
 
 // GhostlyDeath <December 30, 2011> -- Probably pointless!
@@ -2068,9 +2090,19 @@ static void VS_FontPDCRemove(const struct WL_WADFile_s* a_WAD)
 /* VS_AddCharacter() -- Adds character to table */
 static V_UniChar_t* VS_AddCharacter(const bool_t a_Local, V_LocalFontStuff_t* const a_LocalStuff, const WL_WADEntry_t* const a_Entry, const uint16_t a_Hex, const VideoFont_t a_Font, const uint16_t a_GAlias, const uint16_t* const a_GBuilder, V_UniChar_t* const a_CharP)
 {
+	/*** DEDICATED SERVER ***/
+#if defined(__REMOOD_DEDICATED)
+	return NULL;
+	
+	/*** STANDARD CLIENT ***/
+#else
 	uint16_t Master, Slave;
 	V_UniChar_t* CharP;
 	int32_t w, h, xo, yo;
+	
+	/* Not for dedicated server */
+	if (g_DedicatedServer)
+		return NULL;
 	
 	/* Local */
 	// Add it to passed structure
@@ -2166,11 +2198,18 @@ static V_UniChar_t* VS_AddCharacter(const bool_t a_Local, V_LocalFontStuff_t* co
 	
 	/* Failure */
 	return NULL;
+#endif /* __REMOOD_DEDICATED */
 }
 
 /* VS_FontPDCCreate() -- Creates a character database from characters inside of a WAD */
 static bool_t VS_FontPDCCreate(const struct WL_WADFile_s* const a_WAD, const uint32_t a_Key, void** const a_DataPtr, size_t* const a_SizePtr, WL_RemoveFunc_t* const a_RemoveFuncPtr)
 {
+	/*** DEDICATED SERVER ***/
+#if defined(__REMOOD_DEDICATED)
+	return false;
+	
+	/*** STANDARD CLIENT ***/
+#else
 	size_t i;
 	const WL_WADEntry_t* Entry;
 	V_LocalFontStuff_t* FontStuff;
@@ -2180,6 +2219,10 @@ static bool_t VS_FontPDCCreate(const struct WL_WADFile_s* const a_WAD, const uin
 	V_UniChar_t* FreshChar;
 	V_UniChar_t* Rover;
 	int32_t TotalWidth, TotalHeight;
+
+	/* Not for dedicated server */
+	if (g_DedicatedServer)
+		return false;
 	
 	/* Check */
 	if (!a_WAD)
@@ -2240,6 +2283,7 @@ static bool_t VS_FontPDCCreate(const struct WL_WADFile_s* const a_WAD, const uin
 	
 	/* Success! */
 	return true;
+#endif /* __REMOOD_DEDICATED */
 }
 
 /* VS_FontOCCB() -- Maps all characters from WADs into tables */
@@ -2252,6 +2296,13 @@ static bool_t VS_FontPDCCreate(const struct WL_WADFile_s* const a_WAD, const uin
 // composited table.
 static bool_t VS_FontOCCB(const bool_t a_Pushed, const struct WL_WADFile_s* const a_WAD)
 {
+	/*** DEDICATED SERVER ***/
+#if defined(__REMOOD_DEDICATED)
+	return false;
+	
+	/*** STANDARD CLIENT ***/
+#else
+
 #define MAXHEIGHTCHECKERS	16
 	size_t i, j, f;
 	int32_t Count;
@@ -2293,6 +2344,10 @@ static bool_t VS_FontOCCB(const bool_t a_Pushed, const struct WL_WADFile_s* cons
 		{0xFFF9U, 2},
 		{0, 0},
 	};
+	
+	/* Not for dedicated server */
+	if (g_DedicatedServer)
+		return false;
 	
 	/* Clear old groups */
 	for (f = 0; f < NUMVIDEOFONTS; f++)
@@ -2586,11 +2641,23 @@ static bool_t VS_FontOCCB(const bool_t a_Pushed, const struct WL_WADFile_s* cons
 	/* Success! */
 	return true;
 #undef MAXHEIGHTCHECKERS
+#endif /* __REMOOD_DEDICATED */
 }
 
 /* V_MapGraphicalCharacters() -- Initializes WL Hooks */
 void V_MapGraphicalCharacters(void)
 {
+	/*** DEDICATED SERVER ***/
+#if defined(__REMOOD_DEDICATED)
+	return;
+	
+	/*** STANDARD CLIENT ***/
+#else
+
+	/* Not for dedicated server */
+	if (g_DedicatedServer)
+		return;
+	
 	/* Hook WL handlers */
 	// Register PDC
 	if (!WL_RegisterPDC(WLDK_VFONTS, WLDPO_VFONTS, VS_FontPDCCreate, VS_FontPDCRemove))
@@ -2599,6 +2666,7 @@ void V_MapGraphicalCharacters(void)
 	// Register OCCB (this builds a composite)
 	if (!WL_RegisterOCCB(VS_FontOCCB, WLDCO_VFONTS))
 		I_Error("V_MapGraphicalCharacters: Failed to register OCCB.");
+#endif /* __REMOOD_DEDICATED */
 }
 
 /* V_ExtMBToWChar() -- Converts MB to wchar_t */
@@ -2812,31 +2880,65 @@ size_t V_ExtWCharToMB(const uint16_t a_WChar, char* const a_MB)
 /* V_FontHeight() -- Returns the height of the font */
 int V_FontHeight(const VideoFont_t a_Font)
 {
+	/*** DEDICATED SERVER ***/
+#if defined(__REMOOD_DEDICATED)
+	return 0;
+	
+	/*** STANDARD CLIENT ***/
+#else
+	
+	/* Not for dedicated server */
+	if (g_DedicatedServer)
+		return 0;	
+	
 	/* Check */
 	if (a_Font < 0 || a_Font >= NUMVIDEOFONTS)
 		return 0;
 	
 	/* Return average height */
 	return l_LocalFonts[l_FontRemap[a_Font]].CharHeight;
+#endif /* __REMOOD_DEDICATED */
 }
 
 /* V_FontWidth() -- Returns the width of the font */
 int V_FontWidth(const VideoFont_t a_Font)
 {
+	/*** DEDICATED SERVER ***/
+#if defined(__REMOOD_DEDICATED)
+	return 0;
+	
+	/*** STANDARD CLIENT ***/
+#else
+	
+	/* Not for dedicated server */
+	if (g_DedicatedServer)
+		return 0;
+
 	/* Check */
 	if (a_Font < 0 || a_Font >= NUMVIDEOFONTS)
 		return 0;
 	
 	/* Return average height */
 	return l_LocalFonts[l_FontRemap[a_Font]].CharWidth;
+#endif /* __REMOOD_DEDICATED */
 }
 
 /* VS_FindChar() -- Find character to map to */
 static V_UniChar_t* VS_FindChar(const VideoFont_t a_Font, const char* const a_MBChar, size_t* const a_BSkip, uint16_t* const a_WChar)
 {
+	/*** DEDICATED SERVER ***/
+#if defined(__REMOOD_DEDICATED)
+	return NULL;
+	
+	/*** STANDARD CLIENT ***/
+#else
 	uint16_t WChar, Master, Slave;
 	VideoFont_t TrueFont;
 	V_UniChar_t* VisSlave;
+	
+	/* Not for dedicated server */
+	if (g_DedicatedServer)
+		return NULL;
 	
 	/* Check */
 	if (!a_MBChar || a_Font < 0 || a_Font >= NUMVIDEOFONTS)
@@ -2868,14 +2970,25 @@ static V_UniChar_t* VS_FindChar(const VideoFont_t a_Font, const char* const a_MB
 	
 	/* Otherwise return the "unknown" character */
 	return l_UnknownLink[TrueFont];
+#endif /* __REMOOD_DEDICATED */
 }
 
 /* V_DrawCharacterMB() -- Draws multi-byte character */
 int V_DrawCharacterMB(const VideoFont_t a_Font, const uint32_t a_Options, const char* const a_MBChar, const int a_x, const int a_y, size_t* const a_BSkip, uint32_t* a_OptionsMod)
 {
+	/*** DEDICATED SERVER ***/
+#if defined(__REMOOD_DEDICATED)
+	return 0;
+	
+	/*** STANDARD CLIENT ***/
+#else
 	V_UniChar_t* VisChar;
 	uint32_t DrawFlags;
 	uint16_t WChar;
+	
+	/* Not for dedicated server */
+	if (g_DedicatedServer)
+		return 0;
 	
 	/* Check */
 	if (!a_MBChar)
@@ -2945,12 +3058,23 @@ int V_DrawCharacterMB(const VideoFont_t a_Font, const uint32_t a_Options, const 
 	
 	/* Return character width */
 	return VisChar->Size[0];
+#endif /* __REMOOD_DEDICATED */
 }
 
 /* V_DrawCharacterA() -- Draws a single ASCII character */
 int V_DrawCharacterA(const VideoFont_t a_Font, const uint32_t a_Options, const char a_Char, const int a_x, const int a_y)
 {
+	/*** DEDICATED SERVER ***/
+#if defined(__REMOOD_DEDICATED)
+	return 0;
+	
+	/*** STANDARD CLIENT ***/
+#else
 	char MB[2];
+	
+	/* Not for dedicated server */
+	if (g_DedicatedServer)
+		return 0;
 	
 	/* Convert to MB */
 	MB[0] = a_Char;
@@ -2958,15 +3082,26 @@ int V_DrawCharacterA(const VideoFont_t a_Font, const uint32_t a_Options, const c
 	
 	/* Draw and return */
 	return V_DrawCharacterMB(a_Font, a_Options, MB, a_x, a_y, NULL, NULL);
+#endif /* __REMOOD_DEDICATED */
 }
 
 /* V_DrawStringA() -- Draws a string */
 int V_DrawStringA(const VideoFont_t a_Font, const uint32_t a_Options, const char* const a_String, const int a_x, const int a_y)
 {
+	/*** DEDICATED SERVER ***/
+#if defined(__REMOOD_DEDICATED)
+	return 0;
+	
+	/*** STANDARD CLIENT ***/
+#else
 	const char* c;
 	size_t MBSkip;
 	int32_t basex, x, y, Add;
 	uint32_t Options;
+	
+	/* Not for dedicated server */
+	if (g_DedicatedServer)
+		return 0;
 	
 	/* Check */
 	if (!a_String)	
@@ -3015,11 +3150,18 @@ int V_DrawStringA(const VideoFont_t a_Font, const uint32_t a_Options, const char
 	
 	/* Return modifed position */
 	return (x - basex);
+#endif /* __REMOOD_DEDICATED */
 }
 
 /* V_StringDimensionsA() -- Returns dimensions of string */
 void V_StringDimensionsA(const VideoFont_t a_Font, const uint32_t a_Options, const char* const a_String, int* const a_Width, int* const a_Height)
 {
+	/*** DEDICATED SERVER ***/
+#if defined(__REMOOD_DEDICATED)
+	return;
+	
+	/*** STANDARD CLIENT ***/
+#else
 	const char* c;
 	size_t MBSkip;
 	int32_t basex, x, y, Add;
@@ -3028,9 +3170,13 @@ void V_StringDimensionsA(const VideoFont_t a_Font, const uint32_t a_Options, con
 	uint16_t WChar;
 	V_UniChar_t* VisChar;
 	
+	/* Not for dedicated server */
+	if (g_DedicatedServer)
+		return;
+	
 	/* Check */
 	if (!a_String || (!a_Width && !a_Height))	
-		return 0;
+		return;
 	
 	/* Initialize */
 	x = 0;
@@ -3087,6 +3233,7 @@ void V_StringDimensionsA(const VideoFont_t a_Font, const uint32_t a_Options, con
 		*a_Width = MaxX;
 	if (a_Height)
 		*a_Height = y + V_FontHeight(a_Font);
+#endif /* __REMOOD_DEDICATED */
 }
 
 /* V_StringWidthA() -- Returns width of string */
@@ -3262,6 +3409,13 @@ static void VS_InitialBoot(void)
 /* V_ImageLoadE() -- Loads a specific entry as an image */
 V_Image_t* V_ImageLoadE(const WL_WADEntry_t* const a_Entry)
 {
+	/*** DEDICATED SERVER ***/
+#if defined(__REMOOD_DEDICATED)
+	return NULL;
+	
+	/*** STANDARD CLIENT ***/
+#else
+
 #define HEADERSIZE 12
 	int16_t Header[HEADERSIZE];
 	int32_t Conf[NUMVIMAGETYPES];
@@ -3271,6 +3425,9 @@ V_Image_t* V_ImageLoadE(const WL_WADEntry_t* const a_Entry)
 	V_Image_t* Rover;
 	V_WLImageHolder_t* HI;
 	
+	/* Not for dedicated server */
+	if (g_DedicatedServer)
+		return NULL;
 	
 	/* Booted? */
 	if (!l_VSImageBooted)
@@ -3429,17 +3586,29 @@ V_Image_t* V_ImageLoadE(const WL_WADEntry_t* const a_Entry)
 	/* Return the freshly created image */
 	return New;
 #undef HEADERSIZE
+
+#endif /* __REMOOD_DEDICATED */
 }
 
 /* V_ImageFindA() -- Loads an image by name */
 // Essentially a wrapper around V_ImageLoadE()
 V_Image_t* V_ImageFindA(const char* const a_Name)
 {
+	/*** DEDICATED SERVER ***/
+#if defined(__REMOOD_DEDICATED)
+	return NULL;
+	
+	/*** STANDARD CLIENT ***/
+#else
 	const WL_WADFile_t* Rover;
 	V_WLImageHolder_t* WADImages;
 	V_Image_t* FoundImage;
 	const WL_WADEntry_t* Entry;
 	uint32_t Hash;
+	
+	/* Not for dedicated server */
+	if (g_DedicatedServer)
+		return NULL;
 	
 	/* Booted? */
 	if (!l_VSImageBooted)
@@ -3482,22 +3651,66 @@ V_Image_t* V_ImageFindA(const char* const a_Name)
 	
 	/* Failure */
 	return NULL;
+#endif /* __REMOOD_DEDICATED */
 }
 
 /* V_ImageDestroy() -- Destroys an image */
 void V_ImageDestroy(V_Image_t* const a_Image)
 {
+	/*** DEDICATED SERVER ***/
+#if defined(__REMOOD_DEDICATED)
+	return;
+	
+	/*** STANDARD CLIENT ***/
+#else
+
+	/* Not for dedicated server */
+	if (g_DedicatedServer)
+		return;
+
+	/* Check */
+	if (!a_Image)
+		return;
+
+#endif /* __REMOOD_DEDICATED */
 }
 
 /* V_ImageUsage() -- Prevents an image from being freed */
 int32_t V_ImageUsage(V_Image_t* const a_Image, const bool_t a_Use)
 {
+	/*** DEDICATED SERVER ***/
+#if defined(__REMOOD_DEDICATED)
 	return 0;
+	
+	/*** STANDARD CLIENT ***/
+#else
+	
+	/* Not for dedicated server */
+	if (g_DedicatedServer)
+		return 0;
+	
+	/* Check */
+	if (!a_Image)
+		return 0;
+
+	return 0;
+#endif /* __REMOOD_DEDICATED */
 }
 
 /* V_ImageSizePos() -- Return image info */
 uint32_t V_ImageSizePos(V_Image_t* const a_Image, int32_t* const a_Width, int32_t* const a_Height, int32_t* const a_XOff, int32_t* const a_YOff)
 {
+	/*** DEDICATED SERVER ***/
+#if defined(__REMOOD_DEDICATED)
+	return 0;
+	
+	/*** STANDARD CLIENT ***/
+#else
+
+	/* Not for dedicated server */
+	if (g_DedicatedServer)
+		return 0;	
+	
 	/* Check */
 	if (!a_Image)
 		return 0;
@@ -3517,16 +3730,27 @@ uint32_t V_ImageSizePos(V_Image_t* const a_Image, int32_t* const a_Width, int32_
 	
 	/* Return pixel count */
 	return a_Image->PixelCount;
+#endif /* __REMOOD_DEDICATED */
 }
 
 /* V_ImageGetPatch() -- Load a patch */
 // TODO: Enhance Security of this
 const struct patch_s* V_ImageGetPatch(V_Image_t* const a_Image)
 {
+	/*** DEDICATED SERVER ***/
+#if defined(__REMOOD_DEDICATED)
+	return 0;
+	
+	/*** STANDARD CLIENT ***/
+#else
 	uint8_t* RawImage;
 	uint8_t* RawData;
 	size_t BaseSize, TotalSize, i;
 	uint32_t Temp;
+	
+	/* Not for dedicated server */
+	if (g_DedicatedServer)
+		return NULL;
 	
 	/* Check */
 	if (!a_Image)
@@ -3589,12 +3813,22 @@ const struct patch_s* V_ImageGetPatch(V_Image_t* const a_Image)
 	
 	/* Failure */
 	return NULL;
+#endif /* __REMOOD_DEDICATED */
 }
 
 /* V_ImageGetPic() -- Loads a pic_t */
 const struct pic_s* V_ImageGetPic(V_Image_t* const a_Image)
-{
+{	/*** DEDICATED SERVER ***/
+#if defined(__REMOOD_DEDICATED)
+	return 0;
+	
+	/*** STANDARD CLIENT ***/
+#else
 	uint8_t* RawImage;
+	
+	/* Not for dedicated server */
+	if (g_DedicatedServer)
+		return NULL;
 	
 	/* Check */
 	if (!a_Image)
@@ -3636,16 +3870,27 @@ const struct pic_s* V_ImageGetPic(V_Image_t* const a_Image)
 	
 	/* Failure */
 	return NULL;
+#endif /* __REMOOD_DEDICATED */
 }
 
 /* V_ImageGetRaw() -- Loads a raw image */
 // Raw is the lowest common denominator
 uint8_t* V_ImageGetRaw(V_Image_t* const a_Image)
 {
+	/*** DEDICATED SERVER ***/
+#if defined(__REMOOD_DEDICATED)
+	return 0;
+	
+	/*** STANDARD CLIENT ***/
+#else
 	patch_t* Patch;
 	size_t i, x, dy;
 	uint8_t* p;
 	uint8_t Count;
+	
+	/* Not for dedicated server */
+	if (g_DedicatedServer)
+		return NULL;
 	
 	/* Check */
 	if (!a_Image)
@@ -3726,6 +3971,7 @@ uint8_t* V_ImageGetRaw(V_Image_t* const a_Image)
 	
 	/* Return the raw image */ 
 	return a_Image->dRaw;
+#endif /* __REMOOD_DEDICATED */
 }
 
 /* V_ImageDrawScaled() -- Draws the image with specific scaling */
@@ -3734,7 +3980,12 @@ uint8_t* V_ImageGetRaw(V_Image_t* const a_Image)
 //  * Make it more secure (prevent overflows)
 //  * Make it faster in some respects (use memcpy when drawing raw images)
 void V_ImageDrawScaled(const uint32_t a_Flags, V_Image_t* const a_Image, const int32_t a_X, const int32_t a_Y, const fixed_t a_XScale, const fixed_t a_YScale, const uint8_t* const a_ExtraMap)
-{
+{	/*** DEDICATED SERVER ***/
+#if defined(__REMOOD_DEDICATED)
+	return;
+	
+	/*** STANDARD CLIENT ***/
+#else
 	uint8_t* RawData;
 	int32_t x, y, w, h, xx, yy;
 	
@@ -3744,6 +3995,10 @@ void V_ImageDrawScaled(const uint32_t a_Flags, V_Image_t* const a_Image, const i
 	fixed_t XFrac, YFrac, sxX, sxY, xw, xh, dxY;
 	uint8_t* ColorMap;
 	uint8_t* ColorMapE;
+	
+	/* Not for dedicated server */
+	if (g_DedicatedServer)
+		return;
 	
 	/* Check */
 	if (!a_Image)
@@ -3831,20 +4086,44 @@ void V_ImageDrawScaled(const uint32_t a_Flags, V_Image_t* const a_Image, const i
 				*(dP++) = ColorMap[ColorMapE[sP[sxX >> FRACBITS]]];
 		}
 	}
+#endif /* __REMOOD_DEDICATED */
 }
 
 /* V_ImageDrawTiled() -- Draws the image tiled (i.e. flat fill) */
 void V_ImageDrawTiled(const uint32_t a_Flags, V_Image_t* const a_Image, const int32_t a_X, const int32_t a_Y, const uint32_t a_Width, const uint32_t a_Height, const uint8_t* const a_ExtraMap)
 {
+	/*** DEDICATED SERVER ***/
+#if defined(__REMOOD_DEDICATED)
+	return;
+	
+	/*** STANDARD CLIENT ***/
+#else
+	
+	/* Not for dedicated server */
+	if (g_DedicatedServer)
+		return;
+
 	/* Check */
 	if (!a_Image)
 		return;
+
+#endif /* __REMOOD_DEDICATED */
 }
 
 /* V_ImageDraw() -- Draws an image */
 void V_ImageDraw(const uint32_t a_Flags, V_Image_t* const a_Image, const int32_t a_X, const int32_t a_Y, const uint8_t* const a_ExtraMap)
 {
+	/*** DEDICATED SERVER ***/
+#if defined(__REMOOD_DEDICATED)
+	return;
+	
+	/*** STANDARD CLIENT ***/
+#else
 	fixed_t xScale, yScale;
+	
+	/* Not for dedicated server */
+	if (g_DedicatedServer)
+		return;
 	
 	/* Check */
 	if (!a_Image)
@@ -3879,5 +4158,6 @@ void V_ImageDraw(const uint32_t a_Flags, V_Image_t* const a_Image, const int32_t
 	
 	/* That is basically everything */
 	V_ImageDrawScaled(a_Flags, a_Image, a_X, a_Y, xScale, yScale, a_ExtraMap);
+#endif /* __REMOOD_DEDICATED */
 }
 

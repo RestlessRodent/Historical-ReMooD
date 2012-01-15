@@ -36,12 +36,15 @@
 ***************/
 
 #include "z_zone.h"
+#include "w_wad.h"
+#include "d_rmod.h"
 
 /****************
 *** FUNCTIONS ***
 ****************/
 
-
+bool_t V_WidgetRMODHandle(Z_Table_t* const a_Table, const WL_WADFile_t* const a_WAD, const D_RMODPrivates_t a_ID, D_RMODPrivate_t* const a_Private);
+bool_t V_WidgetRMODOrder(const bool_t a_Pushed, const struct WL_WADFile_s* const a_WAD, const D_RMODPrivates_t a_ID);
 
 #endif /* __V_WIDGET_H__ */
 
