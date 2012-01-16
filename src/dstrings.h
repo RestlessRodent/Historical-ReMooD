@@ -342,6 +342,7 @@ typedef struct StringGroupEX_s
 {
 	const char* const id;
 	char* wcharstr;
+	uint32_t Hash;
 } StringGroupEX_t;
 
 StringGroupEX_t UnicodeStrings[NUMUNICODESTRINGS];
@@ -351,5 +352,6 @@ StringGroupEX_t UnicodeStrings[NUMUNICODESTRINGS];
 #define DS_GetString(n) ((const char*)(UnicodeStrings[(UnicodeStringID_t)(n)].wcharstr))
 
 const char* DS_NameOfString(char** const WCharStr);
+const char** DS_FindStringRef(const char* const a_StrID);
 
 #endif							/* __DSTRINGS_H__ */

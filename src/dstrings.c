@@ -1114,3 +1114,39 @@ const char* DS_NameOfString(char** const WCharStr)
 	/* Failure */
 	return NULL;
 }
+
+/* DS_FindStringRef() -- Finds string reference by name */
+const char** DS_FindStringRef(const char* const a_StrID)
+{
+	static bool_t Booted = false;
+	size_t i;
+	uint32_t Hash;
+	
+	/* Not booted? */
+	if (!Booted)
+	{
+		// Hash every string
+		for (i = 0; i < NUMUNICODESTRINGS; i++)
+			UnicodeStrings[i].Hash = Z_Hash(UnicodeStrings[i].id);
+		
+		// Now it is booted
+		Booted = true;
+	}
+	
+	/* Check */
+	if (!a_StrID)
+		return NULL;
+	
+	/* Hash string */
+	Hash = Z_Hash(a_StrID);
+	
+	/* Look through every string */
+	for (i = 0; i < NUMUNICODESTRINGS; i++)
+		if (Hash == UnicodeStrings[i].Hash)
+			if (strcasecmp(a_StrID, UnicodeStrings[i].id) == 0)
+				return &UnicodeStrings[i].wcharstr;
+	
+	/* Not found */
+	return NULL;
+}
+

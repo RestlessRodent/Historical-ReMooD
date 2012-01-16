@@ -16,7 +16,7 @@
 // -----------------------------------------------------------------------------
 // Copyright (C) 1993-1996 by id Software, Inc.
 // Copyright (C) 1998-2000 by DooM Legacy Team.
-// Copyright (C) 2008-2011 GhostlyDeath (ghostlydeath@gmail.com)
+// Copyright (C) 2008-2012 GhostlyDeath (ghostlydeath@gmail.com)
 // -----------------------------------------------------------------------------
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
@@ -1115,9 +1115,13 @@ struct M_MenuExMenu_s;
 typedef struct M_MenuExItem_s
 {
 	/* Loaded by RMOD */
+	char* Name;									// Name of this item
+	char* UStringName;							// Name of string to use
 	char** UString;								// i18n String to display
+	char* ShortUStringName;						// Name of short string to use
 	char** ShortUString;						// String to use when there's no room
 	M_MenuExItemType_t Type;					// Type of item
+	char* TypeString;							// String value for type
 	char* Value;								// Value for this item
 	
 	/* Done at run-time */
@@ -1130,11 +1134,15 @@ typedef struct M_MenuExItem_s
 typedef struct M_MenuExMenu_s
 {
 	/* Loaded by RMOD */
+	char* TitleUStringName;						// Name of string
+	char* ShortUStringName;						// Name of string
 	char** TitleUString;						// Text to use for title (i18n)
 	char** ShortUString;						// Text to use when there isn't much space
 	char* TitlePicture;							// Picture to use for the title
 	char* UUID;									// UUID for this menu
 	char* Name;									// Name for this menu
+	uint32_t NameHash;							// Hash of name
+	uint32_t UUIDHash;							// Hash of UUID
 	
 	/* Items */
 	size_t NumItems;							// Number of menu items
@@ -1150,6 +1158,8 @@ typedef struct M_MenuExMenu_s
 /* M_MenuExPrivate_t -- Private menu stuff */
 typedef struct M_MenuExPrivate_s
 {
+	M_MenuExMenu_t** Menus;						// Loaded Menus
+	size_t NumMenus;							// Number of loaded menus
 } M_MenuExPrivate_t;
 
 /*************
@@ -1162,6 +1172,141 @@ static M_MenuExMenu_t* l_CurrentMenuChain;		// Currently setup menus
 *** FUNCTIONS ***
 ****************/
 
+/* MS_FindMenuByName() -- Finds a menu in the chain by it's Name or UUID */
+static M_MenuExMenu_t* MS_FindMenuByName(const char* const a_Name)
+{
+	/*** DEDICATED SERVER ***/
+#if defined(__REMOOD_DEDICATED)
+	return NULL;
+	
+	/*** STANDARD CLIENT ***/
+#else
+	/* Not for dedicated server */
+	if (g_DedicatedServer)
+		return false;
+	
+	/* Check */
+	if (!a_Name)
+		return NULL;
+#endif /* __REMOOD_DEDICATED */
+}
+
+/* M_MakeUUID() -- Makes a UUID from nowhere */
+// Something such as dc455d5a-b610-11e0-b293-101f740b7dc2
+const char* M_MakeUUID(void)
+{
+	static char UUIDStore[38];
+	int i, j;
+	
+	/* Clear Storage */
+	memset(UUIDStore, 0, sizeof(UUIDStore));
+	
+	/* Just use M_Random(), and hope there are no conflicts */
+	for (i = 0; i < 36; i++)
+		if (i == 8 || i == 13 || i == 18 || i == 23)
+			UUIDStore[i] = '-';
+		else
+		{
+			j = M_Random() & 0xF;
+			
+			// Numeric?
+			if (j < 10)
+				UUIDStore[i] = '0' + j;
+			
+			// Alphabetic
+			else
+				UUIDStore[i] = 'a' + (j - 10);
+		}
+	
+	/* Return buffer */
+	return UUIDStore;
+}
+
+/* MS_MenuExRMODTableCB() -- Handle sub tables */
+static bool_t MS_MenuExRMODTableCB(Z_Table_t* const a_Sub, void* const a_Data)
+{
+	/*** DEDICATED SERVER ***/
+#if defined(__REMOOD_DEDICATED)
+	return false;
+	
+	/*** STANDARD CLIENT ***/
+#else
+	M_MenuExMenu_t* TempMenu;
+	M_MenuExItem_t* TempItem;
+	const char* Value;
+	
+	/* Not for dedicated server */
+	if (g_DedicatedServer)
+		return false;	
+	
+	/* Check */
+	if (!a_Sub || !a_Data)
+		return false;
+	
+	/* Obtain menu */
+	TempMenu = a_Data;
+	
+	/* Retrive item name */
+	// Obtain
+	Value = Z_TableName(a_Sub);
+	
+	// Knock off #
+	Value = strchr(Value, '#');
+	
+	// Not found?
+	if (!Value)
+		return false;
+	
+	// Add 1 to remove #
+	Value++;
+	
+	/* Create the new menu item */
+	Z_ResizeArray((void**)&TempMenu->Items, sizeof(*TempMenu->Items), TempMenu->NumItems, TempMenu->NumItems + 1);
+	TempItem = &TempMenu->Items[TempMenu->NumItems++];
+	
+	/* Fill base info */
+	TempItem->Name = Z_StrDup(Value, PU_STATIC, TempItem->Name);
+	
+	// String
+	if (!(Value = Z_TableGetValue(a_Sub, "String")))
+		TempItem->UStringName = NULL;
+	else
+		TempItem->UStringName = Z_StrDup(Value, PU_STATIC, NULL);
+		
+	// Short String (When there is little space)
+	if (!(Value = Z_TableGetValue(a_Sub, "ShortString")))
+		TempItem->ShortUStringName = NULL;
+	else
+		TempItem->ShortUStringName = Z_StrDup(Value, PU_STATIC, NULL);
+	
+	// Type of item
+	if (!(Value = Z_TableGetValue(a_Sub, "Type")))
+		TempItem->TypeString = Z_StrDup("Label", PU_STATIC, NULL);
+	else
+		TempItem->TypeString = Z_StrDup(Value, PU_STATIC, NULL);
+	
+	/* Initialize item */
+	// Localize the label strings
+	if (TempItem->UStringName)
+		TempItem->UString = DS_FindStringRef(TempItem->UStringName);
+	if (TempItem->UStringName)
+		TempItem->ShortUString = DS_FindStringRef(TempItem->ShortUString);
+	
+	// Convert item type to integer type
+	if (strcasecmp(TempItem->Name, "Label") == 0)
+		TempItem->Type = MMEXIT_LABEL;
+	else if (strcasecmp(TempItem->Name, "CVar") == 0)
+		TempItem->Type = MMEXIT_CVAR;
+	else if (strcasecmp(TempItem->Name, "Command") == 0)
+		TempItem->Type = MMEXIT_COMMAND;
+	else if (strcasecmp(TempItem->Name, "SubMenu") == 0)
+		TempItem->Type = MMEXIT_SUBMENU;
+	
+	/* Success */
+	return true;
+#endif /* __REMOOD_DEDICATED */
+}
+
 /* M_MenuExRMODHandle() -- Handle RMOD Menu Data */
 bool_t M_MenuExRMODHandle(Z_Table_t* const a_Table, const WL_WADFile_t* const a_WAD, const D_RMODPrivates_t a_ID, D_RMODPrivate_t* const a_Private)
 {
@@ -1171,6 +1316,9 @@ bool_t M_MenuExRMODHandle(Z_Table_t* const a_Table, const WL_WADFile_t* const a_
 	
 	/*** STANDARD CLIENT ***/
 #else
+	M_MenuExPrivate_t* LocalStuff;
+	M_MenuExMenu_t* TempMenu;
+	const char* Value;
 
 	/* Not for dedicated server */
 	if (g_DedicatedServer)
@@ -1179,6 +1327,60 @@ bool_t M_MenuExRMODHandle(Z_Table_t* const a_Table, const WL_WADFile_t* const a_
 	/* Check */
 	if (!a_Table || !a_WAD || !a_ID || !a_Private)
 		return false;
+	
+	/* Create private data */
+	a_Private->Size = sizeof(M_MenuExPrivate_t);
+	LocalStuff = a_Private->Data = Z_Malloc(a_Private->Size, PU_STATIC, (void**)&a_Private->Data);
+	
+	/* Create temporary menu */
+	TempMenu = Z_Malloc(sizeof(*TempMenu), PU_STATIC, NULL);
+	
+	/* Fill in known menu stuff */
+	// UUID
+	if (!(Value = Z_TableGetValue(a_Table, "UUID")))
+		TempMenu->UUID = Z_StrDup(M_MakeUUID(), PU_STATIC, NULL);
+	else
+		TempMenu->UUID = Z_StrDup(Value, PU_STATIC, NULL);
+	
+	// Title String
+	if (!(Value = Z_TableGetValue(a_Table, "String")))
+		TempMenu->TitleUStringName = NULL;
+	else
+		TempMenu->TitleUStringName = Z_StrDup(Value, PU_STATIC, NULL);
+		
+	// Short Title String (Not much space)
+	if (!(Value = Z_TableGetValue(a_Table, "ShortString")))
+		TempMenu->ShortUStringName = NULL;
+	else
+		TempMenu->ShortUStringName = Z_StrDup(Value, PU_STATIC, NULL);
+		
+	// Picture
+	if (!(Value = Z_TableGetValue(a_Table, "ShortString")))
+		TempMenu->TitlePicture = NULL;
+	else
+		TempMenu->TitlePicture = Z_StrDup(Value, PU_STATIC, NULL);
+	
+	/* Parse menu item tables */
+	Z_TableSuperCallback(a_Table, MS_MenuExRMODTableCB, (void*)TempMenu);
+	
+	/* Complete the menu stuff */
+	// Localize the strings
+	if (TempMenu->TitleUStringName)
+		TempMenu->TitleUString = DS_FindStringRef(TempMenu->TitleUStringName);
+	if (TempMenu->ShortUStringName)
+		TempMenu->ShortUString = DS_FindStringRef(TempMenu->ShortUStringName);
+	
+	// Hash names
+	TempMenu->NameHash = Z_Hash(TempMenu->Name);
+	TempMenu->UUIDHash = Z_Hash(TempMenu->UUID);
+	
+	// Load picture -- Do this at construction time
+	//if (TempMenu->TitlePicture)
+	//	TempMenu->TitleImage = Z_ImageFindA(TempMenu->TitlePicture);
+	
+	/* Place the menu in the loaded menu chain */
+	Z_ResizeArray((void**)&LocalStuff->Menus, sizeof(*LocalStuff->Menus), LocalStuff->NumMenus, LocalStuff->NumMenus + 1);
+	LocalStuff->Menus[LocalStuff->NumMenus++] = TempMenu;
 	
 	/* Success! */
 	return false;
@@ -1196,10 +1398,48 @@ bool_t M_MenuExRMODOrder(const bool_t a_Pushed, const struct WL_WADFile_s* const
 #else
 	const WL_WADFile_t* RoveWAD;
 	D_RMODPrivate_t* RMODPrivate;
+	M_MenuExPrivate_t* LocalStuff;
+	M_MenuExMenu_t* MenuRover;
+	M_MenuExMenu_t* OldMenu;
+	M_MenuExItem_t* CurItem;
+	size_t i;
 	
 	/* Not for dedicated server */
 	if (g_DedicatedServer)
 		return false;
+	
+	/* Clear the existing chain */
+	MenuRover = l_CurrentMenuChain;
+	while (MenuRover)
+	{
+		// Clear menu items out of run-time determined stuff
+		for (i = 0; i < MenuRover->NumItems; i++)
+		{
+			// Get current Item
+			CurItem = &MenuRover->Items[i];
+			
+			// Remove references
+			CurItem->SubMenu = NULL;
+			CurItem->NewVar = NULL;
+			CurItem->OldVar = NULL;
+		}
+		
+		// Clear references
+		MenuRover->TitleImage = NULL;
+		
+		// Clear current chains
+		OldMenu->PrevMenu = NULL;
+		
+		// Go to next
+		OldMenu = MenuRover;
+		MenuRover = MenuRover->NextMenu;
+		
+		// Clear next
+		OldMenu->NextMenu = NULL;
+	}
+	
+	// Clear chain head
+	l_CurrentMenuChain = NULL;
 	
 	/* Go through every WAD */
 	for (RoveWAD = WL_IterateVWAD(NULL, true); RoveWAD; RoveWAD = WL_IterateVWAD(RoveWAD, true))
@@ -1209,6 +1449,13 @@ bool_t M_MenuExRMODOrder(const bool_t a_Pushed, const struct WL_WADFile_s* const
 		
 		// Not found? Ignore this WAD then
 		if (!RMODPrivate)
+			continue;
+		
+		// Load menu stuff
+		LocalStuff = RMODPrivate->Data;
+		
+		// Not found?
+		if (!LocalStuff)
 			continue;
 	}
 	

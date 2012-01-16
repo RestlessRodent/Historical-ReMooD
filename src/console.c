@@ -1219,6 +1219,12 @@ bool_t CONL_SetActive(const bool_t a_Set)
 /* CONL_Ticker() -- Tick the console */
 void CONL_Ticker(void)
 {
+	/*** DEDICATED SERVER ***/
+#if defined(__REMOOD_DEDICATED)
+	return false;
+	
+	/*** STANDARD CLIENT ***/
+#else
 	const static uint8_t Faders[TICRATE] =
 	{
 		VEX_TRANS90, VEX_TRANS90, VEX_TRANS90, VEX_TRANS80, VEX_TRANS80, VEX_TRANS80,
@@ -1231,6 +1237,10 @@ void CONL_Ticker(void)
 	size_t i, j;
 	tic_t CurrentTime, Left;
 	uint8_t v;
+	
+	/* Not for dedicated server */
+	if (g_DedicatedServer)
+		return false;
 	
 	/* Remove old messages */
 	CurrentTime = I_GetTime();
@@ -1254,17 +1264,28 @@ void CONL_Ticker(void)
 					l_CONLMessageQ[i][j].Flags |= VFO_TRANS((uint32_t)Faders[Left]);
 				}
 			}
+#endif /* __REMOOD_DEDICATED */
 }
 
 /* CONL_HandleEvent() -- Handles extended event for the console */
 bool_t CONL_HandleEvent(const I_EventEx_t* const a_Event)
 {
+	/*** DEDICATED SERVER ***/
+#if defined(__REMOOD_DEDICATED)
+	return false;
+	
+	/*** STANDARD CLIENT ***/
+#else
 	uint8_t Code;
 	uint16_t Char;
 	uint32_t Old;
 	static int32_t HistorySpot = -1;
 	size_t i, j, k;
 	const char* p;
+
+	/* Not for dedicated server */
+	if (g_DedicatedServer)
+		return false;
 	
 	/* Check */
 	if (!a_Event)
@@ -1324,11 +1345,18 @@ bool_t CONL_HandleEvent(const I_EventEx_t* const a_Event)
 	
 	/* Fell through */
 	return false;
+#endif /* __REMOOD_DEDICATED */
 }
 
 /* CONL_DrawConsole() -- Draws the console */
 void CONL_DrawConsole(void)
 {
+	/*** DEDICATED SERVER ***/
+#if defined(__REMOOD_DEDICATED)
+	return;
+	
+	/*** STANDARD CLIENT ***/
+#else
 	bool_t FullCon;
 	size_t i, n, j, k, l, BSkip;
 	int32_t NumLines, Limit;
@@ -1338,6 +1366,10 @@ void CONL_DrawConsole(void)
 	CONL_BasicBuffer_t* Out;
 	
 	static V_Image_t* BackPic;
+	
+	/* Not for dedicated server */
+	if (g_DedicatedServer)
+		return;
 	
 	/* Get output buffer */
 	Out = &l_CONLBuffers[0];
@@ -1588,6 +1620,7 @@ void CONL_DrawConsole(void)
 			}
 		}
 	}
+#endif /* __REMOOD_DEDICATED */
 }
 
 /* CLC_Version() -- ReMooD version info */
