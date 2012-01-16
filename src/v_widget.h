@@ -43,8 +43,11 @@
 *** FUNCTIONS ***
 ****************/
 
+/* RMOD */
 bool_t V_WidgetRMODHandle(Z_Table_t* const a_Table, const WL_WADFile_t* const a_WAD, const D_RMODPrivates_t a_ID, D_RMODPrivate_t* const a_Private);
 bool_t V_WidgetRMODOrder(const bool_t a_Pushed, const struct WL_WADFile_s* const a_WAD, const D_RMODPrivates_t a_ID);
+
+/* Widgets */
 
 #endif /* __V_WIDGET_H__ */
 

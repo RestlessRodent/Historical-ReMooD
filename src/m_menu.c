@@ -1088,13 +1088,42 @@ void M_DumpMenuXML(void)
 ********************************************************************************
 *******************************************************************************/
 
+/****************
+*** CONSTANTS ***
+****************/
+
+/* M_MenuExItemType_t -- Type of menu item */
+typedef enum M_MenuExItemType_e
+{
+	MMEXIT_LABEL,								// Standard label
+	MMEXIT_CVAR,								// Console Variable
+	MMEXIT_COMMAND,								// Command
+	MMEXIT_SUBMENU,								// Sub menu
+	MMEXIT_OLDCVAR,								// Old Console Variable
+		
+	NUMMMENUEXITEMTYPES
+} M_MenuExItemType_t;
+
 /*****************
 *** STRUCTURES ***
 *****************/
 
+struct M_MenuExItem_s;
+struct M_MenuExMenu_s;
+
 /* M_MenuExItem_t -- Extended menu item */
 typedef struct M_MenuExItem_s
 {
+	/* Loaded by RMOD */
+	char** UString;								// i18n String to display
+	char** ShortUString;						// String to use when there's no room
+	M_MenuExItemType_t Type;					// Type of item
+	char* Value;								// Value for this item
+	
+	/* Done at run-time */
+	struct M_MenuExMenu_s* SubMenu;				// Submenu
+	CONL_ConVariable_t* NewVar;					// New Console variable
+	consvar_t* OldVar;							// Old Console variable
 } M_MenuExItem_t;
 
 /* M_MenuExMenu_t -- Extended menu data */
@@ -1102,11 +1131,32 @@ typedef struct M_MenuExMenu_s
 {
 	/* Loaded by RMOD */
 	char** TitleUString;						// Text to use for title (i18n)
+	char** ShortUString;						// Text to use when there isn't much space
 	char* TitlePicture;							// Picture to use for the title
+	char* UUID;									// UUID for this menu
+	char* Name;									// Name for this menu
+	
+	/* Items */
+	size_t NumItems;							// Number of menu items
+	M_MenuExItem_t* Items;						// Actual items
 	
 	/* Done at run-time */
 	V_Image_t* TitleImage;						// Image used for title text
+	
+	struct M_MenuExMenu_s* PrevMenu;			// Previously loaded menu
+	struct M_MenuExMenu_s* NextMenu;			// Next loaded menu
 } M_MenuExMenu_t;
+
+/* M_MenuExPrivate_t -- Private menu stuff */
+typedef struct M_MenuExPrivate_s
+{
+} M_MenuExPrivate_t;
+
+/*************
+*** LOCALS ***
+*************/
+
+static M_MenuExMenu_t* l_CurrentMenuChain;		// Currently setup menus
 
 /****************
 *** FUNCTIONS ***
@@ -1164,6 +1214,70 @@ bool_t M_MenuExRMODOrder(const bool_t a_Pushed, const struct WL_WADFile_s* const
 	
 	/* Success! */
 	return false;
+#endif /* __REMOOD_DEDICATED */
+}
+
+/* M_MenuExHandleEvent() -- Handle extended event */
+bool_t M_MenuExHandleEvent(const I_EventEx_t* const a_Event)
+{
+	/*** DEDICATED SERVER ***/
+#if defined(__REMOOD_DEDICATED)
+	return false;
+	
+	/*** STANDARD CLIENT ***/
+#else
+	
+	/* Not for dedicated server */
+	if (g_DedicatedServer)
+		return false;
+	
+	/* Check */
+	if (!a_Event)
+		return false;
+	
+	/* Keyboard based events */
+	if (a_Event->Type == IET_KEYBOARD)
+	{
+		/* Ignore up events */
+		if (!a_Event->Data.Keyboard.Down && !a_Event->Data.Keyboard.Repeat)
+			return false;
+	}
+	
+	/* Mouse based events */
+	else if (a_Event->Type == IET_MOUSE)
+	{
+	}
+	
+	return false;
+#endif /* __REMOOD_DEDICATED */
+}
+
+/* M_MenuExDrawer() -- Draws the extended menu */
+void M_MenuExDrawer(void)
+{
+	/*** DEDICATED SERVER ***/
+#if defined(__REMOOD_DEDICATED)
+	return;
+	
+	/*** STANDARD CLIENT ***/
+#else
+	int p;
+	
+	/* Not for dedicated server */
+	if (g_DedicatedServer)
+		return;
+	
+	/* Draw each of the player menus */
+	for (p = 0; p < MAXSPLITSCREENPLAYERS; p++)
+	{
+		// Determine if they actually have a menu open
+		
+		// Determine the view window for the player
+		
+		// Draw fuzzy background
+		
+		// Draw widgets
+	}
 #endif /* __REMOOD_DEDICATED */
 }
 

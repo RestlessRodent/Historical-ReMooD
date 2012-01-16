@@ -435,7 +435,13 @@ void D_Display(void)
 	if (menuactive)
 		M_Drawer();
 	else
+	{
+		// Draw the menus
+		M_MenuExDrawer();
+		
+		// Draw the console on the menu (if it is opened anyway)
 		CONL_DrawConsole();
+	}
 		
 	D_SyncNetUpdate();
 	NetUpdate();				// send out any new accumulation

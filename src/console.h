@@ -48,32 +48,47 @@
 *** CONSTANTS ***
 ****************/
 
-#define CONLCONSOLEFONT VFONT_OEM	// Font used to draw console
-#define CONLPADDING 5			// Pad the console
-#define CONLSCROLLFORE 4		// Forecolor of the scrollbar
-#define CONLSCROLLBACK 0		// Backcolor of the scrollbar
-#define CONLSCROLLMISS 200		// Missed color for scrollbar
+#define CONLCONSOLEFONT VFONT_OEM				// Font used to draw console
+#define CONLPADDING 5							// Pad the console
+#define CONLSCROLLFORE 4						// Forecolor of the scrollbar
+#define CONLSCROLLBACK 0						// Backcolor of the scrollbar
+#define CONLSCROLLMISS 200						// Missed color for scrollbar
 
-#define MAXCONLVARIABLENAME		128							// Max name for console command
+#define MAXCONLVARIABLENAME		128				// Max name for console command
 
 /* CONL_ExitCode_t -- Exit code for console command */
 typedef enum CONL_ExitCode_e
 {
-	CLE_SUCCESS,				// Success.
-	CLE_FAILURE,				// Failure.
-	CLE_NOTANERRORSTRING,		// Invalid Error String
-	CLE_CRITICALFAILURE,		// Critical Failure
-	CLE_UNKNOWNCOMMAND,			// Unknown Command
-	CLE_UNKNOWNVARIABLE,		// Unknown Variable
-	CLE_INVALIDARGUMENT,		// Invalid argument
-	CLE_RESOURCENOTFOUND,		// Something was not found (file, wad, lump, url, etc.)
-	CLE_CONNECTIONREFUSED,		// Refused Connection
-	CLE_DISKREADONLY,			// The disk is read only
-	CLE_PERMISSIONDENIED,		// Not allowed to do this
-	CLE_UNKNOWNSUBCOMMAND,		// Unknown sub command
+	CLE_SUCCESS,								// Success.
+	CLE_FAILURE,								// Failure.
+	CLE_NOTANERRORSTRING,						// Invalid Error String
+	CLE_CRITICALFAILURE,						// Critical Failure
+	CLE_UNKNOWNCOMMAND,							// Unknown Command
+	CLE_UNKNOWNVARIABLE,						// Unknown Variable
+	CLE_INVALIDARGUMENT,						// Invalid argument
+	CLE_RESOURCENOTFOUND,						// Something was not found (file, wad, lump, url, etc.)
+	CLE_CONNECTIONREFUSED,						// Refused Connection
+	CLE_DISKREADONLY,							// The disk is read only
+	CLE_PERMISSIONDENIED,						// Not allowed to do this
+	CLE_UNKNOWNSUBCOMMAND,						// Unknown sub command
 	
 	NUMCONLEXITCODES
 } CONL_ExitCode_t;
+
+/* CONL_VariableType_t -- Type of console variable */
+typedef enum CONL_VariableType_e
+{
+	CLVT_NULL,									// Nothing (A valueless variable)
+	CLVT_SIGNEDINT,								// Signed Integer ((-9999999)-9999999)
+	CLVT_UNSIGNEDINT,							// Unsigned Integer (0-9999999)
+	CLVT_STRING,								// String
+	CLVT_SOFTALIAS,								// Alias to another variable
+	CLVT_CODEDALIAS,							// Aliased to another but functional
+	CLVT_ENUM,									// Enumeration (i.e. Possible Values)
+	CLVT_KEYBIND,								// Bound to a key
+	
+	MAXCONLVARIABLETYPES
+} CONL_VariableType_t;
 
 /*****************
 *** STRUCTURES ***
@@ -115,7 +130,8 @@ typedef struct CONCTI_Inputter_s
 /* CONL_ConVariable_t -- Console variable */
 typedef struct CONL_ConVariable_s
 {
-	char Name[MAXCONLVARIABLENAME];		// Name of variable
+	char Name[MAXCONLVARIABLENAME];				// Name of variable
+	CONL_VariableType_t Type;					// Type of variable
 	
 } CONL_ConVariable_t;
 
