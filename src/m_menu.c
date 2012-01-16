@@ -1088,6 +1088,30 @@ void M_DumpMenuXML(void)
 ********************************************************************************
 *******************************************************************************/
 
+/*****************
+*** STRUCTURES ***
+*****************/
+
+/* M_MenuExItem_t -- Extended menu item */
+typedef struct M_MenuExItem_s
+{
+} M_MenuExItem_t;
+
+/* M_MenuExMenu_t -- Extended menu data */
+typedef struct M_MenuExMenu_s
+{
+	/* Loaded by RMOD */
+	char** TitleUString;						// Text to use for title (i18n)
+	char* TitlePicture;							// Picture to use for the title
+	
+	/* Done at run-time */
+	V_Image_t* TitleImage;						// Image used for title text
+} M_MenuExMenu_t;
+
+/****************
+*** FUNCTIONS ***
+****************/
+
 /* M_MenuExRMODHandle() -- Handle RMOD Menu Data */
 bool_t M_MenuExRMODHandle(Z_Table_t* const a_Table, const WL_WADFile_t* const a_WAD, const D_RMODPrivates_t a_ID, D_RMODPrivate_t* const a_Private)
 {
@@ -1120,10 +1144,23 @@ bool_t M_MenuExRMODOrder(const bool_t a_Pushed, const struct WL_WADFile_s* const
 	
 	/*** STANDARD CLIENT ***/
 #else
+	const WL_WADFile_t* RoveWAD;
+	D_RMODPrivate_t* RMODPrivate;
 	
 	/* Not for dedicated server */
 	if (g_DedicatedServer)
-		return false;	
+		return false;
+	
+	/* Go through every WAD */
+	for (RoveWAD = WL_IterateVWAD(NULL, true); RoveWAD; RoveWAD = WL_IterateVWAD(RoveWAD, true))
+	{
+		// Obtain private menu stuff for this WAD
+		RMODPrivate = D_GetRMODPrivate(RoveWAD, a_ID);
+		
+		// Not found? Ignore this WAD then
+		if (!RMODPrivate)
+			continue;
+	}
 	
 	/* Success! */
 	return false;
