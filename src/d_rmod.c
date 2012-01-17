@@ -619,3 +619,18 @@ D_RMODPrivate_t* D_GetRMODPrivate(const WL_WADFile_t* const a_WAD, const D_RMODP
 	return &Stuff->Private[a_ID];
 }
 
+/* D_RMODGetBool() -- Return boolean value of string */
+bool_t D_RMODGetBool(const char* const a_Str)
+{
+	/* Check */
+	if (!a_Str)
+		return false;
+	
+	/* Dictionary Attack */
+	if (strcasecmp(a_Str, "true") == 0 || strcasecmp(a_Str, "yes") == 0 || strcasecmp(a_Str, "on") == 0 || atoi(a_Str) != 0)
+		return true;
+	
+	/* Everything else is false */
+	return false;
+}
+

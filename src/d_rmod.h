@@ -74,4 +74,6 @@ typedef bool_t (*D_RMODOCCBFunc_t)(const bool_t a_Pushed, const struct WL_WADFil
 void D_InitRMOD(void);
 D_RMODPrivate_t* D_GetRMODPrivate(const WL_WADFile_t* const a_WAD, const D_RMODPrivates_t a_ID);
 
+bool_t D_RMODGetBool(const char* const a_Str);
+
 #endif							/* __D_RMOD_H__ */

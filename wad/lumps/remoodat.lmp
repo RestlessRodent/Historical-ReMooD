@@ -92,6 +92,7 @@ Menu "Root"
 	Title "Main Menu";
 	String "MENUMAIN_TITLE";
 	Flags "Auto";
+	Locked "true";
 	
 	Item "NewGame"
 	{
@@ -100,12 +101,28 @@ Menu "Root"
 		SubMenu "newgame";
 	}
 	
+	Item "PWADMenu"
+	{
+		Type "SubMenu";
+		String "MENU_MAIN_PWADMENU";
+		SubMenu "pwadmenu";
+	}
+	
 	Item "Quit"
 	{
 		Type "Function";
 		String "MENU_MAIN_QUITGAME";
 		Function "QuitDoom";
 	}
+}
+
+Menu "PWADMenu"
+{
+	UUID "d5b4e9c0-66ed-416c-990d-a7958b2c5279";
+	Title "PWAD Menu";
+	String "MENUPWAD_TITLE";
+	Flags "Auto";
+	Locked "false";
 }
 
 // ******************

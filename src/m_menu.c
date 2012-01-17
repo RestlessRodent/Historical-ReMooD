@@ -1143,6 +1143,7 @@ typedef struct M_MenuExMenu_s
 	char* Name;									// Name for this menu
 	uint32_t NameHash;							// Hash of name
 	uint32_t UUIDHash;							// Hash of UUID
+	bool_t Locked;								// Cannot be replaced
 	
 	/* Items */
 	size_t NumItems;							// Number of menu items
@@ -1181,6 +1182,9 @@ static M_MenuExMenu_t* MS_FindMenuByName(const char* const a_Name)
 	
 	/*** STANDARD CLIENT ***/
 #else
+	M_MenuExMenu_t* Rover;
+	uint32_t Hash;
+	
 	/* Not for dedicated server */
 	if (g_DedicatedServer)
 		return false;
@@ -1188,6 +1192,31 @@ static M_MenuExMenu_t* MS_FindMenuByName(const char* const a_Name)
 	/* Check */
 	if (!a_Name)
 		return NULL;
+	
+	/* Hash the string we want */
+	Hash = Z_Hash(a_Name);
+	
+	/* Go through every loaded menu */
+	Rover = l_CurrentMenuChain;
+	
+	while (Rover)
+	{
+		// Check UUID
+		if (Hash == Rover->UUIDHash)
+			if (strcasecmp(a_Name, Rover->UUID) == 0)
+				return Rover;
+		
+		// Check name
+		if (Hash == Rover->NameHash)
+			if (strcasecmp(a_Name, Rover->Name) == 0)
+				return Rover;
+		
+		// Next
+		Rover = Rover->NextMenu;
+	}
+	
+	/* Not found */
+	return NULL;
 #endif /* __REMOOD_DEDICATED */
 }
 
@@ -1265,7 +1294,7 @@ static bool_t MS_MenuExRMODTableCB(Z_Table_t* const a_Sub, void* const a_Data)
 	TempItem = &TempMenu->Items[TempMenu->NumItems++];
 	
 	/* Fill base info */
-	TempItem->Name = Z_StrDup(Value, PU_STATIC, TempItem->Name);
+	TempItem->Name = Z_StrDup(Value, PU_STATIC, NULL);
 	
 	// String
 	if (!(Value = Z_TableGetValue(a_Sub, "String")))
@@ -1293,14 +1322,22 @@ static bool_t MS_MenuExRMODTableCB(Z_Table_t* const a_Sub, void* const a_Data)
 		TempItem->ShortUString = DS_FindStringRef(TempItem->ShortUString);
 	
 	// Convert item type to integer type
-	if (strcasecmp(TempItem->Name, "Label") == 0)
+	if (strcasecmp(TempItem->TypeString, "Label") == 0)
 		TempItem->Type = MMEXIT_LABEL;
-	else if (strcasecmp(TempItem->Name, "CVar") == 0)
+	else if (strcasecmp(TempItem->TypeString, "CVar") == 0)
 		TempItem->Type = MMEXIT_CVAR;
-	else if (strcasecmp(TempItem->Name, "Command") == 0)
+	else if (strcasecmp(TempItem->TypeString, "Command") == 0)
 		TempItem->Type = MMEXIT_COMMAND;
-	else if (strcasecmp(TempItem->Name, "SubMenu") == 0)
+	else if (strcasecmp(TempItem->TypeString, "SubMenu") == 0)
+	{
 		TempItem->Type = MMEXIT_SUBMENU;
+		
+		// Retrieve submenu name
+		if (!(Value = Z_TableGetValue(a_Sub, "SubMenu")))
+			TempItem->Value = NULL;
+		else
+			TempItem->Value = Z_StrDup(Value, PU_STATIC, NULL);
+	}
 	
 	/* Success */
 	return true;
@@ -1335,7 +1372,23 @@ bool_t M_MenuExRMODHandle(Z_Table_t* const a_Table, const WL_WADFile_t* const a_
 	/* Create temporary menu */
 	TempMenu = Z_Malloc(sizeof(*TempMenu), PU_STATIC, NULL);
 	
+	/* Retrive menu name */
+	// Obtain
+	Value = Z_TableName(a_Table);
+	
+	// Knock off #
+	Value = strchr(Value, '#');
+	
+	// Not found?
+	if (!Value)
+		return false;
+	
+	// Add 1 to remove #
+	Value++;
+	
 	/* Fill in known menu stuff */
+	TempMenu->Name = Z_StrDup(Value, PU_STATIC, NULL);
+	
 	// UUID
 	if (!(Value = Z_TableGetValue(a_Table, "UUID")))
 		TempMenu->UUID = Z_StrDup(M_MakeUUID(), PU_STATIC, NULL);
@@ -1359,6 +1412,12 @@ bool_t M_MenuExRMODHandle(Z_Table_t* const a_Table, const WL_WADFile_t* const a_
 		TempMenu->TitlePicture = NULL;
 	else
 		TempMenu->TitlePicture = Z_StrDup(Value, PU_STATIC, NULL);
+	
+	// Locked (Cannot be replaced)
+	if (!(Value = Z_TableGetValue(a_Table, "Locked")))
+		TempMenu->Locked = false;
+	else
+		TempMenu->Locked = D_RMODGetBool(Value);
 	
 	/* Parse menu item tables */
 	Z_TableSuperCallback(a_Table, MS_MenuExRMODTableCB, (void*)TempMenu);
@@ -1442,6 +1501,7 @@ bool_t M_MenuExRMODOrder(const bool_t a_Pushed, const struct WL_WADFile_s* const
 	l_CurrentMenuChain = NULL;
 	
 	/* Go through every WAD */
+	// And link every menu into the menu chain, doing replaces if desired
 	for (RoveWAD = WL_IterateVWAD(NULL, true); RoveWAD; RoveWAD = WL_IterateVWAD(RoveWAD, true))
 	{
 		// Obtain private menu stuff for this WAD
@@ -1457,10 +1517,120 @@ bool_t M_MenuExRMODOrder(const bool_t a_Pushed, const struct WL_WADFile_s* const
 		// Not found?
 		if (!LocalStuff)
 			continue;
+		
+		// No menus?
+		if (!LocalStuff->Menus)
+			continue;
+		
+		// Rove through the menus for this WAD
+		for (i = 0; i < LocalStuff->NumMenus; i++)
+		{
+			// Get current menu
+			MenuRover = LocalStuff->Menus[i];
+			
+			// Only if there is one here
+			if (!MenuRover)
+				continue;
+			
+			// See if the menu is already in the chain
+			OldMenu = MS_FindMenuByName(MenuRover->UUID);
+			
+			// Try by name
+			if (!OldMenu)
+				OldMenu = MS_FindMenuByName(MenuRover->Name);
+			
+			// A menu was here
+			if (OldMenu)
+			{
+				// Never replace locked menus
+				if (OldMenu->Locked)
+				{
+					if (devparm)
+						CONS_Printf("M_MenuExRMODOrder: Attempt to replace locked menu.\n");
+					continue;
+				}
+				
+				// Re-link old buddies to link to this
+				if (OldMenu->PrevMenu)
+					OldMenu->PrevMenu->NextMenu = MenuRover;
+				if (OldMenu->NextMenu)
+					OldMenu->NextMenu->PrevMenu = MenuRover;
+				
+				// Link current to what was here
+				MenuRover->PrevMenu = OldMenu->PrevMenu;
+				MenuRover->NextMenu = OldMenu->NextMenu;
+				
+				// Remove old menu links
+				OldMenu->PrevMenu = OldMenu->NextMenu = NULL;
+				
+				// Check head chain
+				if (l_CurrentMenuChain == OldMenu)
+					l_CurrentMenuChain = MenuRover;
+			}
+			
+			// No menu here, so add to the start of the chain
+			else
+			{
+				// No chain at all
+				if (!l_CurrentMenuChain)
+					l_CurrentMenuChain = MenuRover;
+				
+				// Link before
+				else
+				{
+					MenuRover->NextMenu = l_CurrentMenuChain;
+					l_CurrentMenuChain->PrevMenu = MenuRover;
+					l_CurrentMenuChain = MenuRover;
+				}
+			}
+		}
+	}
+	
+	/* Now that all of the menu chains are loaded, reference the menus */
+	MenuRover = l_CurrentMenuChain;
+	
+	// Rove them all
+	while (MenuRover)
+	{
+		// Obtain the title image
+		if (MenuRover->TitlePicture)
+			MenuRover->TitleImage = V_ImageFindA(MenuRover->TitlePicture);
+		
+		// Go through each item and reference them
+		for (i = 0; i < MenuRover->NumItems; i++)
+		{
+			// Get current Item
+			CurItem = &MenuRover->Items[i];
+			
+			// Based on which type
+			switch (CurItem->Type)
+			{
+					// Sub Menu
+				case MMEXIT_SUBMENU:
+					CurItem->SubMenu = MS_FindMenuByName(CurItem->Value);
+					
+					// Not referenced?
+					if (!CurItem->SubMenu)
+						if (devparm)
+							CONS_Printf("M_MenuExRMODOrder: Menu \"%s\" references menu \"%s\", but that menu does not exist.\n", MenuRover->Name, CurItem->Value);
+					break;
+				
+					// Unknown
+				default:
+					break;
+			}
+		}
+		
+		// Debug
+		if (devparm)
+			CONS_Printf("M_MenuExRMODOrder: Processed menu \"%s\".\n", MenuRover->Name);
+		
+		// Next link
+		MenuRover = MenuRover->NextMenu;
 	}
 	
 	/* Success! */
-	return false;
+	return true;
 #endif /* __REMOOD_DEDICATED */
 }
 
