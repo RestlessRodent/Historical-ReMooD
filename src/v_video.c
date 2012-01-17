@@ -4079,6 +4079,31 @@ void V_ImageDrawScaled(const uint32_t a_Flags, V_Image_t* const a_Image, const i
 	XFrac = FixedDiv(1 << FRACBITS, a_XScale);
 	YFrac = FixedDiv(1 << FRACBITS, a_YScale);
 	
+	/* Limit drawing to the screen */
+	// Off the top of the screen
+	if (y < 0)
+	{
+		xh -= y << FRACBITS;
+		tY = FixedMul(xh, a_YScale) >> FRACBITS;
+		y = 0;
+	}
+	
+	// Off the left of the screen
+	if (x < 0)
+	{
+		xw -= x << FRACBITS;
+		tW = FixedMul(xw, a_XScale) >> FRACBITS;
+		x = 0;
+	}
+	
+	// Off the bottom of the screen
+	if ((y + (xh >> FRACBITS)) >= vid.height)
+		xh = (vid.height << FRACBITS) - (y << FRACBITS);
+	
+	// Off the right of the screen
+	if ((x + (xw >> FRACBITS)) >= vid.width)
+		xw = (vid.width << FRACBITS) - (x << FRACBITS);
+	
 	/* If the image is a patch_t then draw it as a patch */
 	// Since patches have "holes" for transparency
 	if (false)//a_Image->NativeType == VIT_PATCH)
