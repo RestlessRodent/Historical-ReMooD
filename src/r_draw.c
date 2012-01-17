@@ -251,6 +251,9 @@ static bool_t RS_TransTableOCCB(const bool_t a_Pushed, const struct WL_WADFile_s
 			Buffer = Z_Malloc(256 * 256, PU_STATIC, NULL);
 			WL_ReadData(Entry, 0, Buffer, 256 * 256);
 			
+			// Do we flip?
+			Flip = TransLumps[i].Flip;
+			
 			// Load data into table portion
 			for (x = 0; x < 256; x++)
 				for (y = 0; y < 256; y++)

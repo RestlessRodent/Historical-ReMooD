@@ -3042,6 +3042,7 @@ int V_DrawCharacterMB(const VideoFont_t a_Font, const uint32_t a_Options, const 
 	
 	// Color/Trans options
 	DrawFlags |= VEX_COLORMAP((a_Options & VFO_COLORMASK) >> VFO_COLORSHIFT);
+	DrawFlags |= VEX_TRANS((a_Options & VFO_TRANSMASK) >> VFO_TRANSSHIFT);
 	
 	// Scale options
 	if (a_Options & VFO_NOSCALESTART)
@@ -3995,6 +3996,7 @@ void V_ImageDrawScaled(const uint32_t a_Flags, V_Image_t* const a_Image, const i
 	fixed_t XFrac, YFrac, sxX, sxY, xw, xh, dxY;
 	uint8_t* ColorMap;
 	uint8_t* ColorMapE;
+	uint8_t* TransMap;
 	
 	/* Not for dedicated server */
 	if (g_DedicatedServer)
@@ -4019,6 +4021,27 @@ void V_ImageDrawScaled(const uint32_t a_Flags, V_Image_t* const a_Image, const i
 		ColorMapE = a_ExtraMap;
 	else
 		ColorMapE = V_ReturnColormapPtr(VEX_MAP_NONE);
+		
+	/* Handle transparency */
+	// Transparency OK
+	if (transtables)
+	{
+		x = ((a_Flags & VEX_FILLTRANSMASK) >> VEX_FILLTRANSSHIFT);
+		if (x >= NUMVEXTRANSPARENCIES)
+			x = 0;
+		
+		// Set table to use
+		if (x > 0)
+			TransMap = transtables + (0x10000 * x);
+		else
+			TransMap = NULL;
+	}
+	
+	// No tables loaded
+	else
+	{
+		TransMap = NULL;	
+	}
 	
 	/* Determine the position to draw at */
 	// Add image offsets
@@ -4082,8 +4105,12 @@ void V_ImageDrawScaled(const uint32_t a_Flags, V_Image_t* const a_Image, const i
 			dP = screens[0] + (vid.width * yy) + x;
 			
 			// Scaled row draw
-			for (sxX = 0; sxX < xw; sxX += XFrac)
-				*(dP++) = ColorMap[ColorMapE[sP[sxX >> FRACBITS]]];
+			if (TransMap)
+				for (sxX = 0; sxX < xw; sxX += XFrac)
+					*(dP++) = TransMap[(ColorMap[ColorMapE[sP[sxX >> FRACBITS]]] << 8) + *dP];
+			else
+				for (sxX = 0; sxX < xw; sxX += XFrac)
+					*(dP++) = ColorMap[ColorMapE[sP[sxX >> FRACBITS]]];
 		}
 	}
 #endif /* __REMOOD_DEDICATED */

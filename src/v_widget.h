@@ -38,6 +38,13 @@
 #include "z_zone.h"
 #include "w_wad.h"
 #include "d_rmod.h"
+#include "v_video.h"
+
+/*****************
+*** STRUCTURES ***
+*****************/
+
+typedef struct V_Widget_s V_Widget_t;
 
 /****************
 *** FUNCTIONS ***
@@ -48,6 +55,16 @@ bool_t V_WidgetRMODHandle(Z_Table_t* const a_Table, const WL_WADFile_t* const a_
 bool_t V_WidgetRMODOrder(const bool_t a_Pushed, const struct WL_WADFile_s* const a_WAD, const D_RMODPrivates_t a_ID);
 
 /* Widgets */
+// Creation
+V_Widget_t* V_WidgetCreate(V_Widget_t* const a_Parent, const char* const a_Type, const char* const a_ID);
+
+// Drawing
+void V_WidgetDraw(V_Widget_t* const a_Widget, const uint32_t a_Flags);
+
+// Properties
+bool_t V_WidgetSetValue(V_Widget_t* const a_Widget, const char* const a_Value);
+bool_t V_WidgetSetSize(V_Widget_t* const a_Widget, const int32_t a_Width, const int32_t a_Height);
+bool_t V_WidgetSetPosition(V_Widget_t* const a_Widget, const int32_t a_X, const int32_t a_Y);
 
 #endif /* __V_WIDGET_H__ */
 
