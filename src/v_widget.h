@@ -57,6 +57,7 @@ bool_t V_WidgetRMODOrder(const bool_t a_Pushed, const struct WL_WADFile_s* const
 /* Widgets */
 // Creation
 V_Widget_t* V_WidgetCreate(V_Widget_t* const a_Parent, const char* const a_Type, const char* const a_ID);
+void V_WidgetDestroy(V_Widget_t* const a_Widget);
 
 // Drawing
 void V_WidgetDraw(V_Widget_t* const a_Widget, const uint32_t a_Flags);

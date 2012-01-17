@@ -35,6 +35,19 @@
 #include "v_widget.h"
 #include "doomstat.h"
 
+/*****************
+*** STRUCTURES ***
+*****************/
+
+/* V_Widget_s -- A GUI Widget */
+struct V_Widget_s
+{
+	/* Ancestry */
+	struct V_Widget_s* Parent;					// Parent Widget
+	struct V_Widget_s** Children;				// Kid Widgets
+	size_t NumChildren;							// Number of kids
+};
+
 /****************
 *** FUNCTIONS ***
 ****************/

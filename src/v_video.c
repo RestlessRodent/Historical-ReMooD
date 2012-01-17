@@ -4039,9 +4039,7 @@ void V_ImageDrawScaled(const uint32_t a_Flags, V_Image_t* const a_Image, const i
 	
 	// No tables loaded
 	else
-	{
-		TransMap = NULL;	
-	}
+		TransMap = NULL;
 	
 	/* Determine the position to draw at */
 	// Add image offsets
@@ -4107,7 +4105,7 @@ void V_ImageDrawScaled(const uint32_t a_Flags, V_Image_t* const a_Image, const i
 			// Scaled row draw
 			if (TransMap)
 				for (sxX = 0; sxX < xw; sxX += XFrac)
-					*(dP++) = TransMap[(ColorMap[ColorMapE[sP[sxX >> FRACBITS]]] << 8) + *dP];
+					*(dP++) = TransMap[(ColorMap[ColorMapE[sP[sxX >> FRACBITS]]] << 8) + (*dP)];
 			else
 				for (sxX = 0; sxX < xw; sxX += XFrac)
 					*(dP++) = ColorMap[ColorMapE[sP[sxX >> FRACBITS]]];
