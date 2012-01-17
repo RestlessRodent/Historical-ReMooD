@@ -42,11 +42,28 @@
 typedef bool_t (*V_WidgetHandlerCreateFunc_t)(V_Widget_t* const a_Widget, const char* const a_Type);
 typedef bool_t (*V_WidgetHandlerDeleteFunc_t)(V_Widget_t* const a_Widget);
 typedef bool_t (*V_WidgetHandlerDrawFunc_t)(V_Widget_t* const a_Widget);
+typedef bool_t (*V_WidgetHandlerSetValueFunc_t)(V_Widget_t* const a_Widget, const char* const a_Value);
 typedef bool_t (*V_WidgetHandlerSetDimensionFunc_t)(V_Widget_t* const a_Widget, const int32_t a_X, const int32_t a_Y, const int32_t a_Width, const int32_t a_Height);
+typedef bool_t (*V_WidgetHandlerCanAddKidFunc_t)(V_Widget_t* const a_Widget, V_Widget_t* const a_KidToAdd);
+typedef bool_t (*V_WidgetHandlerAddKidFunc_t)(V_Widget_t* const a_Widget, V_Widget_t* const a_KidToAdd);
 
 /* V_WidgetHandler_t -- Handles a widget */
 typedef struct V_WidgetHandler_s
 {
+	const char* TypeName;						// Widget Type
+	
+	/* Functions */
+	V_WidgetHandlerCreateFunc_t CreateFunc;
+	V_WidgetHandlerDeleteFunc_t DeleteFunc;
+	V_WidgetHandlerDrawFunc_t DrawFunc;
+	V_WidgetHandlerSetValueFunc_t SetValueFunc;
+	V_WidgetHandlerSetDimensionFunc_t SetDimensionsFunc;
+	V_WidgetHandlerCanAddKidFunc_t CanAddKidFunc;
+	V_WidgetHandlerAddKidFunc_t AddKidFunc;
+	
+	/* Handler Chain */
+	struct V_WidgetHandler_s* Prev;
+	struct V_WidgetHandler_s* Next;
 } V_WidgetHandler_t;
 
 /* V_Widget_s -- A GUI Widget */
@@ -71,8 +88,132 @@ struct V_Widget_s
 };
 
 /****************
+*** CONSTANTS ***
+****************/
+
+/*************
+*** LOCALS ***
+*************/
+
+static V_WidgetHandler_t* l_WidgetHandlers = NULL;
+
+/****************
 *** FUNCTIONS ***
 ****************/
+
+/* Never in Dedicated */
+#if !defined(__REMOOD_DEDICATED)
+
+/*** LABEL ***/
+static bool_t VS_WH_Label_Create(V_Widget_t* const a_Widget, const char* const a_Type)
+{
+	return false;
+}
+
+static bool_t VS_WH_Label_Delete(V_Widget_t* const a_Widget)
+{
+	return false;
+}
+
+static bool_t VS_WH_Label_Draw(V_Widget_t* const a_Widget)
+{
+	return false;
+}
+
+static bool_t VS_WH_Label_SetValue(V_Widget_t* const a_Widget, const char* const a_Value)
+{
+	return false;
+}
+
+static bool_t VS_WH_Label_SetDimension(V_Widget_t* const a_Widget, const int32_t a_X, const int32_t a_Y, const int32_t a_Width, const int32_t a_Height)
+{
+	return false;
+}
+
+static bool_t VS_WH_Label_CanAddKid(V_Widget_t* const a_Widget, V_Widget_t* const a_KidToAdd)
+{
+	return false;
+}
+
+static bool_t VS_WH_Label_AddKid(V_Widget_t* const a_Widget, V_Widget_t* const a_KidToAdd)
+{
+	return false;
+}
+
+
+/*** SCROLLMENU ***/
+static bool_t VS_WH_ScrollMenu_Create(V_Widget_t* const a_Widget, const char* const a_Type)
+{
+	return false;
+}
+
+static bool_t VS_WH_ScrollMenu_Delete(V_Widget_t* const a_Widget)
+{
+	return false;
+}
+
+static bool_t VS_WH_ScrollMenu_Draw(V_Widget_t* const a_Widget)
+{
+	return false;
+}
+
+static bool_t VS_WH_ScrollMenu_SetValue(V_Widget_t* const a_Widget, const char* const a_Value)
+{
+	return false;
+}
+
+static bool_t VS_WH_ScrollMenu_SetDimension(V_Widget_t* const a_Widget, const int32_t a_X, const int32_t a_Y, const int32_t a_Width, const int32_t a_Height)
+{
+	return false;
+}
+
+static bool_t VS_WH_ScrollMenu_CanAddKid(V_Widget_t* const a_Widget, V_Widget_t* const a_KidToAdd)
+{
+	return false;
+}
+
+static bool_t VS_WH_ScrollMenu_AddKid(V_Widget_t* const a_Widget, V_Widget_t* const a_KidToAdd)
+{
+	return false;
+}
+
+
+#endif /* __REMOOD_DEDICATED */
+
+/* VS_RegisterWidgetHandler() -- Registers a widget handler */
+static bool_t VS_RegisterWidgetHandler(V_WidgetHandler_t* const a_Handler)
+{
+	/*** DEDICATED SERVER ***/
+#if defined(__REMOOD_DEDICATED)
+	return false;
+	
+	/*** STANDARD CLIENT ***/
+#else
+	
+	/* Not for dedicated server */
+	if (g_DedicatedServer)
+		return false;
+	
+	/* Check */
+	if (!a_Handler)
+		return false;
+	
+	/* If there are no handlers, set first */
+	if (!l_WidgetHandlers)
+		l_WidgetHandlers = a_Handler;
+	
+	/* If there are, then just set them at the start */
+	else
+	{
+		l_WidgetHandlers->Prev = a_Handler;
+		a_Handler->Next = l_WidgetHandlers;
+		l_WidgetHandlers = a_Handler;
+	}
+	
+	/* Success! */
+	return true;
+#endif /* __REMOOD_DEDICATED */
+}
 
 /* V_WidgetRMODHandle() -- Handle RMOD Widget Data */
 bool_t V_WidgetRMODHandle(Z_Table_t* const a_Table, const WL_WADFile_t* const a_WAD, const D_RMODPrivates_t a_ID, D_RMODPrivate_t* const a_Private)
@@ -125,10 +266,48 @@ bool_t V_InitWidgetSystem(void)
 	
 	/*** STANDARD CLIENT ***/
 #else
+	V_WidgetHandler_t* NewHandler;
 	
 	/* Not for dedicated server */
 	if (g_DedicatedServer)
-		return false;	
+		return false;
+	
+	/* Create the "label" widget */
+	// | Text | << Draws text
+	NewHandler = Z_Malloc(sizeof(*NewHandler), PU_STATIC, NULL);
+	
+	// Set properties
+	NewHandler->TypeName = Z_StrDup("label", PU_STATIC, NULL);
+	NewHandler->CreateFunc = VS_WH_Label_Create;
+	NewHandler->DeleteFunc = VS_WH_Label_Delete;
+	NewHandler->DrawFunc = VS_WH_Label_Draw;
+	NewHandler->SetValueFunc = VS_WH_Label_SetValue;
+	NewHandler->SetDimensionsFunc = VS_WH_Label_SetDimension;
+	NewHandler->CanAddKidFunc = VS_WH_Label_CanAddKid;
+	NewHandler->AddKidFunc = VS_WH_Label_AddKid;
+	
+	// Register
+	VS_RegisterWidgetHandler(NewHandler);
+	
+	/* Create the "scrollmenu" widget */
+	// | Header | << First Widget (smashed)
+	// |--------|
+	// | Kids   | << Kids get smashed in as small as possible
+	// | Kids   | << so they fit more in less
+	NewHandler = Z_Malloc(sizeof(*NewHandler), PU_STATIC, NULL);
+	
+	// Set properties
+	NewHandler->TypeName = Z_StrDup("scrollmenu", PU_STATIC, NULL);
+	NewHandler->CreateFunc = VS_WH_ScrollMenu_Create;
+	NewHandler->DeleteFunc = VS_WH_ScrollMenu_Delete;
+	NewHandler->DrawFunc = VS_WH_ScrollMenu_Draw;
+	NewHandler->SetValueFunc = VS_WH_ScrollMenu_SetValue;
+	NewHandler->SetDimensionsFunc = VS_WH_ScrollMenu_SetDimension;
+	NewHandler->CanAddKidFunc = VS_WH_ScrollMenu_CanAddKid;
+	NewHandler->AddKidFunc = VS_WH_ScrollMenu_AddKid;
+	
+	// Register
+	VS_RegisterWidgetHandler(NewHandler);
 	
 	/* Success! */
 	return false;
@@ -144,13 +323,51 @@ V_Widget_t* V_WidgetCreate(V_Widget_t* const a_Parent, const char* const a_Type,
 	
 	/*** STANDARD CLIENT ***/
 #else
+	V_Widget_t* NewWidget;
+	V_WidgetHandler_t* Handler;
 	
 	/* Not for dedicated server */
 	if (g_DedicatedServer)
-		return NULL;	
+		return NULL;
+	
+	/* Check */
+	if (!a_Type || !a_ID)
+		return NULL;
+	
+	/* Before trying anything, see if the parent can accept more kids */
+	if (a_Parent)
+		if (!a_Parent->Handler->CanAddKidFunc(a_Parent, NULL))
+		{
+			if (devparm)
+				CONS_Printf("V_WidgetCreate: Wanted to add to parent, but parent does not want more kids.\n");
+			
+			return NULL;
+		}
+	
+	/* See if the widget type exists */
+	Handler = l_WidgetHandlers;
+	while (Handler)
+	{
+		// Check name
+		if (strcasecmp(a_Type, Handler->TypeName) == 0)
+			break;
+		
+		// Next
+		Handler = Handler->Next;
+	}
+	
+	// No handler?
+	if (!Handler)
+		return NULL;
+	
+	/* Create */
+	NewWidget = Z_Malloc(sizeof(*NewWidget), PU_STATIC, NULL);
+	
+	/* Set handler */
+	NewWidget->Handler = Handler;
 	
 	/* Success! */
-	return NULL;
+	return NewWidget;
 #endif /* __REMOOD_DEDICATED */
 }
 
@@ -182,7 +399,7 @@ void V_WidgetDraw(V_Widget_t* const a_Widget, const uint32_t a_Flags)
 	
 	/* Not for dedicated server */
 	if (g_DedicatedServer)
-		return;	
+		return;
 #endif /* __REMOOD_DEDICATED */
 }
 

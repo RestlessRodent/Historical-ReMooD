@@ -1464,6 +1464,11 @@ void D_DoomMain(void)
 	Z_Init();
 	CONL_Init(4096, 1024);
 	
+	/* Initialize widgets */
+	if (!g_DedicatedServer)
+		if (!V_InitWidgetSystem())
+			I_Error("D_Main: Failed to initialize the widget handler.");
+	
 	/* Adapters */
 	V_ImageFindA(NULL);					// Bump image loaders
 	D_InitRMOD();						// Initialize RMOD
