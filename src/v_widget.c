@@ -39,6 +39,16 @@
 *** STRUCTURES ***
 *****************/
 
+typedef bool_t (*V_WidgetHandlerCreateFunc_t)(V_Widget_t* const a_Widget, const char* const a_Type);
+typedef bool_t (*V_WidgetHandlerDeleteFunc_t)(V_Widget_t* const a_Widget);
+typedef bool_t (*V_WidgetHandlerDrawFunc_t)(V_Widget_t* const a_Widget);
+typedef bool_t (*V_WidgetHandlerSetDimensionFunc_t)(V_Widget_t* const a_Widget, const int32_t a_X, const int32_t a_Y, const int32_t a_Width, const int32_t a_Height);
+
+/* V_WidgetHandler_t -- Handles a widget */
+typedef struct V_WidgetHandler_s
+{
+} V_WidgetHandler_t;
+
 /* V_Widget_s -- A GUI Widget */
 struct V_Widget_s
 {
@@ -46,6 +56,18 @@ struct V_Widget_s
 	struct V_Widget_s* Parent;					// Parent Widget
 	struct V_Widget_s** Children;				// Kid Widgets
 	size_t NumChildren;							// Number of kids
+	
+	/* Value Stuff */
+	void* ValueP;								// Pointer type value
+	
+	/* Drawing */
+	int32_t XPos;								// X position
+	int32_t YPos;								// Y position
+	int32_t Width;								// Width of widget
+	int32_t Height;								// Height of widget
+	
+	/* Handlers */
+	const V_WidgetHandler_t* Handler;			// Handler to use
 };
 
 /****************
@@ -93,3 +115,131 @@ bool_t V_WidgetRMODOrder(const bool_t a_Pushed, const struct WL_WADFile_s* const
 	return false;
 #endif /* __REMOOD_DEDICATED */
 }
+
+/* V_InitWidgetSystem() -- Initialize the widget subsystem */
+bool_t V_InitWidgetSystem(void)
+{
+	/*** DEDICATED SERVER ***/
+#if defined(__REMOOD_DEDICATED)
+	return false;
+	
+	/*** STANDARD CLIENT ***/
+#else
+	
+	/* Not for dedicated server */
+	if (g_DedicatedServer)
+		return false;	
+	
+	/* Success! */
+	return false;
+#endif /* __REMOOD_DEDICATED */
+}
+
+/* V_WidgetCreate() -- Create new widget */
+V_Widget_t* V_WidgetCreate(V_Widget_t* const a_Parent, const char* const a_Type, const char* const a_ID)
+{
+	/*** DEDICATED SERVER ***/
+#if defined(__REMOOD_DEDICATED)
+	return NULL;
+	
+	/*** STANDARD CLIENT ***/
+#else
+	
+	/* Not for dedicated server */
+	if (g_DedicatedServer)
+		return NULL;	
+	
+	/* Success! */
+	return NULL;
+#endif /* __REMOOD_DEDICATED */
+}
+
+/* V_WidgetDestroy() -- Destroy widget */
+void V_WidgetDestroy(V_Widget_t* const a_Widget)
+{
+	/*** DEDICATED SERVER ***/
+#if defined(__REMOOD_DEDICATED)
+	return;
+	
+	/*** STANDARD CLIENT ***/
+#else
+	
+	/* Not for dedicated server */
+	if (g_DedicatedServer)
+		return;
+#endif /* __REMOOD_DEDICATED */
+}
+
+/* V_WidgetDraw() -- Draw Widget */
+void V_WidgetDraw(V_Widget_t* const a_Widget, const uint32_t a_Flags)
+{
+	/*** DEDICATED SERVER ***/
+#if defined(__REMOOD_DEDICATED)
+	return;
+	
+	/*** STANDARD CLIENT ***/
+#else
+	
+	/* Not for dedicated server */
+	if (g_DedicatedServer)
+		return;	
+#endif /* __REMOOD_DEDICATED */
+}
+
+/* V_WidgetSetValue() -- Set widget value */
+bool_t V_WidgetSetValue(V_Widget_t* const a_Widget, const char* const a_Value)
+{
+	/*** DEDICATED SERVER ***/
+#if defined(__REMOOD_DEDICATED)
+	return false;
+	
+	/*** STANDARD CLIENT ***/
+#else
+	
+	/* Not for dedicated server */
+	if (g_DedicatedServer)
+		return false;	
+	
+	/* Success! */
+	return false;
+#endif /* __REMOOD_DEDICATED */
+}
+
+/* V_WidgetSetSize() -- Set size of widget */
+bool_t V_WidgetSetSize(V_Widget_t* const a_Widget, const int32_t a_Width, const int32_t a_Height)
+{
+	/*** DEDICATED SERVER ***/
+#if defined(__REMOOD_DEDICATED)
+	return false;
+	
+	/*** STANDARD CLIENT ***/
+#else
+	
+	/* Not for dedicated server */
+	if (g_DedicatedServer)
+		return false;	
+	
+	/* Success! */
+	return false;
+#endif /* __REMOOD_DEDICATED */
+}
+
+/* V_WidgetSetPosition() -- Set position of widget */
+bool_t V_WidgetSetPosition(V_Widget_t* const a_Widget, const int32_t a_X, const int32_t a_Y)
+{
+	/*** DEDICATED SERVER ***/
+#if defined(__REMOOD_DEDICATED)
+	return false;
+	
+	/*** STANDARD CLIENT ***/
+#else
+	
+	/* Not for dedicated server */
+	if (g_DedicatedServer)
+		return false;	
+	
+	/* Success! */
+	return false;
+#endif /* __REMOOD_DEDICATED */
+}
+

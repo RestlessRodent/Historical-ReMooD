@@ -55,6 +55,9 @@ bool_t V_WidgetRMODHandle(Z_Table_t* const a_Table, const WL_WADFile_t* const a_
 bool_t V_WidgetRMODOrder(const bool_t a_Pushed, const struct WL_WADFile_s* const a_WAD, const D_RMODPrivates_t a_ID);
 
 /* Widgets */
+// Initial Stuff
+bool_t V_InitWidgetSystem(void);
+
 // Creation
 V_Widget_t* V_WidgetCreate(V_Widget_t* const a_Parent, const char* const a_Type, const char* const a_ID);
 void V_WidgetDestroy(V_Widget_t* const a_Widget);
