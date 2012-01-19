@@ -78,6 +78,12 @@ static bool_t VS_WH_None_AddKidFunc(V_Widget_t* const a_Widget, V_Widget_t* cons
 	return false;
 }
 
+/* VS_WH_None_KidChangedValueFunc() -- Kid changed value */
+bool_t VS_WH_None_KidChangedValueFunc(V_Widget_t* const a_Widget, V_Widget_t* const a_Kid, const char* const a_Value)
+{
+	return false;
+}
+
 /* Handler Struct */
 static V_WidgetHandler_t l_WH_None =
 {
@@ -98,6 +104,7 @@ static V_WidgetHandler_t l_WH_None =
 		(V_WidgetHandlerAbstractFunc_t)VS_WH_None_SetDimensionsFunc,
 		(V_WidgetHandlerAbstractFunc_t)VS_WH_None_CanAddKidFunc,
 		(V_WidgetHandlerAbstractFunc_t)VS_WH_None_AddKidFunc,
+		(V_WidgetHandlerAbstractFunc_t)VS_WH_None_KidChangedValueFunc,
 	},
 };
 
@@ -139,6 +146,158 @@ static V_WidgetHandler_t l_WH_ColorBox =
 		NULL,//(V_WidgetHandlerAbstractFunc_t)VS_WH_ColorBox_SetDimensionsFunc,
 		NULL,//(V_WidgetHandlerAbstractFunc_t)VS_WH_ColorBox_CanAddKidFunc,
 		NULL,//(V_WidgetHandlerAbstractFunc_t)VS_WH_ColorBox_AddKidFunc,
+		NULL,//(V_WidgetHandlerAbstractFunc_t)VS_WH_ColorBox_KidChangedValueFunc,
+	},
+};
+
+/************
+*** LABEL ***
+************/
+
+/* VS_WH_Label_DeleteFunc() -- Delete */
+static bool_t VS_WH_Label_DeleteFunc(V_Widget_t* const a_Widget)
+{
+	/* Check */
+	if (!a_Widget)
+		return false;
+	
+	/* Delete value if any */
+	if (a_Widget->ValueP)
+		Z_Free(a_Widget->ValueP);
+	a_Widget->ValueP = NULL;
+	
+	/* Return */
+	return true;
+}
+
+/* VS_WH_Label_DrawFunc() -- Draw */
+static bool_t VS_WH_Label_DrawFunc(V_Widget_t* const a_Widget, const uint32_t a_Flags, const int32_t a_X, const int32_t a_Y, const int32_t a_Width, const int32_t a_Height)
+{
+	/* Check */
+	if (!a_Widget)
+		return false;
+	
+	/* Draw string */
+	if (a_Widget->ValueP)
+		V_DrawStringA(a_Widget->Font, a_Flags, a_Widget->ValueP, a_X, a_Y);
+	
+	/* Success */
+	return true;
+}
+
+/* VS_WH_Label_SetValueFunc() -- Set value */
+static bool_t VS_WH_Label_SetValueFunc(V_Widget_t* const a_Widget, const char* const a_Value)
+{
+	/* Check */
+	if (!a_Widget || !a_Value)
+		return false;
+		
+	/* Clear old value */
+	if (a_Widget->ValueP)
+		Z_Free(a_Widget->ValueP);
+	a_Widget->ValueP = NULL;
+	
+	/* Duplicate */
+	a_Widget->ValueP = Z_StrDup(a_Value, PU_STATIC, NULL);
+	
+	/* Set true */
+	return true;
+}
+
+/* Handler Struct */
+static V_WidgetHandler_t l_WH_Label =
+{
+	/* Base */
+	"label",
+	&l_WH_None,
+	
+	/* Handler Chain */
+	NULL,
+	NULL,
+	
+	/* Functions */
+	{
+		NULL,//(V_WidgetHandlerAbstractFunc_t)VS_WH_Label_CreateFunc,
+		(V_WidgetHandlerAbstractFunc_t)VS_WH_Label_DeleteFunc,
+		(V_WidgetHandlerAbstractFunc_t)VS_WH_Label_DrawFunc,
+		(V_WidgetHandlerAbstractFunc_t)VS_WH_Label_SetValueFunc,
+		NULL,//(V_WidgetHandlerAbstractFunc_t)VS_WH_Label_SetDimensionsFunc,
+		NULL,//(V_WidgetHandlerAbstractFunc_t)VS_WH_Label_CanAddKidFunc,
+		NULL,//(V_WidgetHandlerAbstractFunc_t)VS_WH_Label_AddKidFunc,
+		NULL,//(V_WidgetHandlerAbstractFunc_t)VS_WH_Label_KidChangedValueFunc,
+	},
+};
+
+/***************
+*** NEATMENU ***
+***************/
+
+/* VS_WH_NeatMenu_DrawFunc() -- Draw */
+static bool_t VS_WH_NeatMenu_DrawFunc(V_Widget_t* const a_Widget, const uint32_t a_Flags, const int32_t a_X, const int32_t a_Y, const int32_t a_Width, const int32_t a_Height)
+{
+	size_t i, y;
+	
+	/* Check */
+	if (!a_Widget)
+		return false;
+	
+	/* Draw children consecutively */
+	for (i = 0; i < a_Widget->NumChildren; i++)
+	{
+		// No kid here?
+		if (!a_Widget->Children[i])
+			continue;
+		
+		// Set position of child
+		V_WidgetSetPosition(a_Widget->Children[i], a_X, a_Y + (i * 12));
+		
+		// Draw child
+		V_WidgetDraw(a_Widget->Children[i], a_Flags);
+	}
+}
+
+/* VS_WH_NeatMenu_CanAddKidFunc() -- Can add kids? */
+static bool_t VS_WH_NeatMenu_CanAddKidFunc(V_Widget_t* const a_Widget, V_Widget_t* const a_KidToAdd)
+{
+	/* Check */
+	if (!a_Widget)
+		return false;
+	
+	/* Can always add kids */
+	return true;
+}
+
+/* VS_WH_NeatMenu_AddKidFunc() -- Add kids */
+static bool_t VS_WH_NeatMenu_AddKidFunc(V_Widget_t* const a_Widget, V_Widget_t* const a_KidToAdd)
+{
+	/* Check */
+	if (!a_Widget)
+		return false;
+		
+	return true;
+}
+
+/* Handler Struct */
+static V_WidgetHandler_t l_WH_NeatMenu =
+{
+	/* Base */
+	"neatmenu",
+	&l_WH_None,
+	
+	/* Handler Chain */
+	NULL,
+	NULL,
+	
+	/* Functions */
+	{
+		NULL,//(V_WidgetHandlerAbstractFunc_t)VS_WH_NeatMenu_CreateFunc,
+		NULL,//(V_WidgetHandlerAbstractFunc_t)VS_WH_NeatMenu_DeleteFunc,
+		(V_WidgetHandlerAbstractFunc_t)VS_WH_NeatMenu_DrawFunc,
+		NULL,//(V_WidgetHandlerAbstractFunc_t)VS_WH_NeatMenu_SetValueFunc,
+		NULL,//(V_WidgetHandlerAbstractFunc_t)VS_WH_NeatMenu_SetDimensionsFunc,
+		(V_WidgetHandlerAbstractFunc_t)VS_WH_NeatMenu_CanAddKidFunc,
+		(V_WidgetHandlerAbstractFunc_t)VS_WH_NeatMenu_AddKidFunc,
+		NULL,//(V_WidgetHandlerAbstractFunc_t)VS_WH_NeatMenu_KidChangedValueFunc,
 	},
 };
 

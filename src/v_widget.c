@@ -51,6 +51,7 @@ typedef enum V_WidgetHandlerFuncId_e
 	VWHFID_SETSIZE,
 	VWHFID_KIDSOK,
 	VWHFID_ADDKID,
+	VWHFID_KIDCHANGEDVAL,
 	
 	NUMWIDGETHANDLERFUNCS
 } V_WidgetHandlerFuncId_t;
@@ -68,6 +69,7 @@ typedef bool_t (*V_WidgetHandlerSetValueFunc_t)(V_Widget_t* const a_Widget, cons
 typedef bool_t (*V_WidgetHandlerSetDimensionFunc_t)(V_Widget_t* const a_Widget, const int32_t a_X, const int32_t a_Y, const int32_t a_Width, const int32_t a_Height);
 typedef bool_t (*V_WidgetHandlerCanAddKidFunc_t)(V_Widget_t* const a_Widget, V_Widget_t* const a_KidToAdd);
 typedef bool_t (*V_WidgetHandlerAddKidFunc_t)(V_Widget_t* const a_Widget, V_Widget_t* const a_KidToAdd);
+typedef bool_t (*V_WidgetHandlerKidChangedValueFunc_t)(V_Widget_t* const a_Widget, V_Widget_t* const a_Kid, const char* const a_Value);
 
 /* V_WidgetHandler_t -- Handles a widget */
 typedef struct V_WidgetHandler_s
@@ -94,6 +96,7 @@ struct V_Widget_s
 	
 	/* Value Stuff */
 	void* ValueP;								// Pointer type value
+	VideoFont_t Font;							// Font to use
 	
 	/* Drawing */
 	int32_t XPos;								// X position
@@ -247,8 +250,14 @@ bool_t V_InitWidgetSystem(void)
 	// None
 	VS_RegisterWidgetHandler(&l_WH_None);
 	
-	// Colorbox
+	// ColorBox
 	VS_RegisterWidgetHandler(&l_WH_ColorBox);
+	
+	// Label
+	VS_RegisterWidgetHandler(&l_WH_Label);
+	
+	// NeatMenu
+	VS_RegisterWidgetHandler(&l_WH_NeatMenu);
 	
 	/* Success! */
 	return true;
@@ -266,6 +275,7 @@ V_Widget_t* V_WidgetCreate(V_Widget_t* const a_Parent, const char* const a_Type,
 #else
 	V_Widget_t* NewWidget;
 	V_WidgetHandler_t* Handler;
+	size_t i;
 	
 	/* Not for dedicated server */
 	if (g_DedicatedServer)
@@ -279,7 +289,7 @@ V_Widget_t* V_WidgetCreate(V_Widget_t* const a_Parent, const char* const a_Type,
 	if (a_Parent)
 	{
 		// See if the parent can add more kids
-		if (((V_WidgetHandlerCanAddKidFunc_t)(VS_WTMI(a_Parent, VWHFID_KIDSOK)))(a_Parent, NULL))
+		if (!((V_WidgetHandlerCanAddKidFunc_t)(VS_WTMI(a_Parent, VWHFID_KIDSOK)))(a_Parent, NULL))
 		{
 			if (devparm)
 				CONS_Printf("V_WidgetCreate: Wanted to add to parent, but parent does not want more kids.\n");
@@ -312,6 +322,31 @@ V_Widget_t* V_WidgetCreate(V_Widget_t* const a_Parent, const char* const a_Type,
 	
 	/* Call creation handler */
 	((V_WidgetHandlerCreateFunc_t)(VS_WTMI(NewWidget, VWHFID_CREATE)))(NewWidget, a_Type);
+	
+	/* Add new widget to parent */
+	if (a_Parent)
+	{
+		// See if there is a blank spot
+		for (i = 0; i < a_Parent->NumChildren; i++)
+			if (!a_Parent->Children[i])
+			{
+				a_Parent->Children[i] = NewWidget;
+				break;
+			}
+		
+		// No room, so add to end
+		if (i == a_Parent->NumChildren)
+		{
+			// Resize array
+			Z_ResizeArray((void**)&a_Parent->Children, sizeof(*a_Parent->Children), a_Parent->NumChildren, a_Parent->NumChildren + 1);
+			
+			// Set last child and increment at the same time
+			a_Parent->Children[a_Parent->NumChildren++] = NewWidget;
+		}
+		
+		// Call Informer (that we added a new kid)
+		((V_WidgetHandlerAddKidFunc_t)(VS_WTMI(NewWidget, VWHFID_ADDKID)))(a_Parent, NewWidget);
+	}
 	
 	/* Success! */
 	return NewWidget;
@@ -384,13 +419,25 @@ bool_t V_WidgetSetValue(V_Widget_t* const a_Widget, const char* const a_Value)
 	
 	/*** STANDARD CLIENT ***/
 #else
+	bool_t RetVal;
 	
 	/* Not for dedicated server */
 	if (g_DedicatedServer)
-		return false;	
+		return false;
+	
+	/* Check */
+	if (!a_Widget)
+		return false;
+		
+	/* Set new value */
+	RetVal = ((V_WidgetHandlerSetValueFunc_t)(VS_WTMI(a_Widget, VWHFID_SETVALUE)))(a_Widget, a_Value);
+	
+	/* Inform parent of value chane */
+	if (a_Widget->Parent)
+		((V_WidgetHandlerKidChangedValueFunc_t)(VS_WTMI(a_Widget, VWHFID_KIDCHANGEDVAL)))(a_Widget->Parent, a_Widget, a_Value);	
 	
 	/* Success! */
-	return false;
+	return RetVal;
 #endif /* __REMOOD_DEDICATED */
 }
 

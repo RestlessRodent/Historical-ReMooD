@@ -1695,14 +1695,22 @@ void M_MenuExDrawer(void)
 #else
 	int p;
 	V_Widget_t* MenuWidget;
+	V_Widget_t* Labels[10];
 	
 	/* Not for dedicated server */
 	if (g_DedicatedServer)
 		return;
 	
-	MenuWidget = V_WidgetCreate(NULL, "colorbox", "test");
-	V_WidgetSetSize(MenuWidget, 200, 100);
-	V_WidgetSetPosition(MenuWidget, 20, 10);
+	MenuWidget = V_WidgetCreate(NULL, "neatmenu", "test");
+	V_WidgetSetSize(MenuWidget, 320, 200);
+	V_WidgetSetPosition(MenuWidget, 0, 0);
+	
+	for (p = 0; p < 10; p++)
+	{
+		Labels[p] = V_WidgetCreate(MenuWidget, "label", "gunk");
+		V_WidgetSetValue(Labels[p], "Hello World!");
+	}
+	
 	V_WidgetDraw(MenuWidget, 0);
 	V_WidgetDestroy(MenuWidget);
 	
