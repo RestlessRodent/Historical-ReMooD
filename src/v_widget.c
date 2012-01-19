@@ -52,6 +52,7 @@ typedef enum V_WidgetHandlerFuncId_e
 	VWHFID_KIDSOK,
 	VWHFID_ADDKID,
 	VWHFID_KIDCHANGEDVAL,
+	VWHFID_AUTOSIZE,
 	
 	NUMWIDGETHANDLERFUNCS
 } V_WidgetHandlerFuncId_t;
@@ -70,6 +71,7 @@ typedef bool_t (*V_WidgetHandlerSetDimensionFunc_t)(V_Widget_t* const a_Widget, 
 typedef bool_t (*V_WidgetHandlerCanAddKidFunc_t)(V_Widget_t* const a_Widget, V_Widget_t* const a_KidToAdd);
 typedef bool_t (*V_WidgetHandlerAddKidFunc_t)(V_Widget_t* const a_Widget, V_Widget_t* const a_KidToAdd);
 typedef bool_t (*V_WidgetHandlerKidChangedValueFunc_t)(V_Widget_t* const a_Widget, V_Widget_t* const a_Kid, const char* const a_Value);
+typedef bool_t (*V_WidgetHandlerAutoSizeFunc_t)(V_Widget_t* const a_Widget);
 
 /* V_WidgetHandler_t -- Handles a widget */
 typedef struct V_WidgetHandler_s
@@ -122,15 +124,20 @@ static V_WidgetHandler_t* l_WidgetHandlers = NULL;
 *** FUNCTIONS ***
 ****************/
 
-/* Never in Dedicated */
-#if !defined(__REMOOD_DEDICATED)
-#include "v_widc.h"
-#endif /* __REMOOD_DEDICATED */
-
 /* VS_WidgetTopMostImpl() -- Top most implementor */
 static V_WidgetHandlerAbstractFunc_t VS_WTMI(V_Widget_t* const a_Widget, const V_WidgetHandlerFuncId_t a_ID)
 {
+	/*** DEDICATED SERVER ***/
+#if defined(__REMOOD_DEDICATED)
+	return NULL;
+	
+	/*** STANDARD CLIENT ***/
+#else
 	V_WidgetHandler_t* HandleRover;
+	
+	/* Not for dedicated server */
+	if (g_DedicatedServer)
+		return NULL;
 	
 	/* Check */
 	if (!a_Widget || a_ID < 0 || a_ID >= NUMWIDGETHANDLERFUNCS)
@@ -152,7 +159,13 @@ static V_WidgetHandlerAbstractFunc_t VS_WTMI(V_Widget_t* const a_Widget, const V
 	
 	/* Never hit? */
 	return NULL;
+#endif /* __REMOOD_DEDICATED */
 }
+
+/* Never in Dedicated */
+#if !defined(__REMOOD_DEDICATED)
+#include "v_widc.h"
+#endif /* __REMOOD_DEDICATED */
 
 /* VS_RegisterWidgetHandler() -- Registers a widget handler */
 static bool_t VS_RegisterWidgetHandler(V_WidgetHandler_t* const a_Handler)

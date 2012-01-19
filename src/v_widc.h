@@ -79,7 +79,13 @@ static bool_t VS_WH_None_AddKidFunc(V_Widget_t* const a_Widget, V_Widget_t* cons
 }
 
 /* VS_WH_None_KidChangedValueFunc() -- Kid changed value */
-bool_t VS_WH_None_KidChangedValueFunc(V_Widget_t* const a_Widget, V_Widget_t* const a_Kid, const char* const a_Value)
+static bool_t VS_WH_None_KidChangedValueFunc(V_Widget_t* const a_Widget, V_Widget_t* const a_Kid, const char* const a_Value)
+{
+	return false;
+}
+
+/* VS_WH_None_AutoSizeFunc() -- Autosize widget */
+static bool_t VS_WH_None_AutoSizeFunc(V_Widget_t* const a_Widget)
 {
 	return false;
 }
@@ -105,6 +111,7 @@ static V_WidgetHandler_t l_WH_None =
 		(V_WidgetHandlerAbstractFunc_t)VS_WH_None_CanAddKidFunc,
 		(V_WidgetHandlerAbstractFunc_t)VS_WH_None_AddKidFunc,
 		(V_WidgetHandlerAbstractFunc_t)VS_WH_None_KidChangedValueFunc,
+		(V_WidgetHandlerAbstractFunc_t)VS_WH_None_AutoSizeFunc,
 	},
 };
 
@@ -147,6 +154,7 @@ static V_WidgetHandler_t l_WH_ColorBox =
 		NULL,//(V_WidgetHandlerAbstractFunc_t)VS_WH_ColorBox_CanAddKidFunc,
 		NULL,//(V_WidgetHandlerAbstractFunc_t)VS_WH_ColorBox_AddKidFunc,
 		NULL,//(V_WidgetHandlerAbstractFunc_t)VS_WH_ColorBox_KidChangedValueFunc,
+		NULL,//(V_WidgetHandlerAbstractFunc_t)VS_WH_ColorBox_AutoSizeFunc,
 	},
 };
 
@@ -204,6 +212,37 @@ static bool_t VS_WH_Label_SetValueFunc(V_Widget_t* const a_Widget, const char* c
 	return true;
 }
 
+/* VS_WH_Label_AutoSizeFunc() -- Set size automatically */
+static bool_t VS_WH_Label_AutoSizeFunc(V_Widget_t* const a_Widget)
+{
+	int w, h;
+	
+	/* Check */
+	if (!a_Widget)
+		return false;
+	
+	/* Is there something here? */
+	if (a_Widget->ValueP)
+	{
+		// Determine size
+		V_StringDimensionsA(a_Widget->Font, 0, a_Widget->ValueP, &w, &h);
+		
+		// Set
+		a_Widget->Width = w;
+		a_Widget->Height = h;
+	}
+	
+	/* Make it sizeless */
+	else
+	{
+		a_Widget->Width = 0;
+		a_Widget->Height = 0;
+	}
+	
+	/* Success */
+	return true;
+}
+
 /* Handler Struct */
 static V_WidgetHandler_t l_WH_Label =
 {
@@ -225,6 +264,7 @@ static V_WidgetHandler_t l_WH_Label =
 		NULL,//(V_WidgetHandlerAbstractFunc_t)VS_WH_Label_CanAddKidFunc,
 		NULL,//(V_WidgetHandlerAbstractFunc_t)VS_WH_Label_AddKidFunc,
 		NULL,//(V_WidgetHandlerAbstractFunc_t)VS_WH_Label_KidChangedValueFunc,
+		(V_WidgetHandlerAbstractFunc_t)VS_WH_Label_AutoSizeFunc,
 	},
 };
 
@@ -235,24 +275,34 @@ static V_WidgetHandler_t l_WH_Label =
 /* VS_WH_NeatMenu_DrawFunc() -- Draw */
 static bool_t VS_WH_NeatMenu_DrawFunc(V_Widget_t* const a_Widget, const uint32_t a_Flags, const int32_t a_X, const int32_t a_Y, const int32_t a_Width, const int32_t a_Height)
 {
-	size_t i, y;
+	size_t i;
+	int32_t y;
 	
 	/* Check */
 	if (!a_Widget)
 		return false;
+		
+	/* Always make first kid in big text */
+	a_Widget->Children[0]->Font = VFONT_LARGE;
 	
 	/* Draw children consecutively */
-	for (i = 0; i < a_Widget->NumChildren; i++)
+	for (y = 0, i = 0; i < a_Widget->NumChildren; i++)
 	{
 		// No kid here?
 		if (!a_Widget->Children[i])
 			continue;
 		
+		// Auto size
+		((V_WidgetHandlerAutoSizeFunc_t)(VS_WTMI(a_Widget->Children[i], VWHFID_AUTOSIZE)))(a_Widget->Children[i]);
+		
 		// Set position of child
-		V_WidgetSetPosition(a_Widget->Children[i], a_X, a_Y + (i * 12));
+		V_WidgetSetPosition(a_Widget->Children[i], a_X, a_Y + y);
 		
 		// Draw child
 		V_WidgetDraw(a_Widget->Children[i], a_Flags);
+		
+		// Move around
+		y += a_Widget->Children[i]->Height;
 	}
 }
 
@@ -271,9 +321,30 @@ static bool_t VS_WH_NeatMenu_CanAddKidFunc(V_Widget_t* const a_Widget, V_Widget_
 static bool_t VS_WH_NeatMenu_AddKidFunc(V_Widget_t* const a_Widget, V_Widget_t* const a_KidToAdd)
 {
 	/* Check */
-	if (!a_Widget)
+	if (!a_Widget || !a_KidToAdd)
 		return false;
 		
+	/* Always make first kid in big text */
+	a_Widget->Children[0]->Font = VFONT_LARGE;
+	
+	/* Auto size the kid */
+	((V_WidgetHandlerAutoSizeFunc_t)(VS_WTMI(a_KidToAdd, VWHFID_AUTOSIZE)))(a_KidToAdd);
+	
+	/* Success */	
+	return true;
+}
+
+/* VS_WH_NeatMenu_KidChangedValueFunc() -- Kid changed value */
+static bool_t VS_WH_NeatMenu_KidChangedValueFunc(V_Widget_t* const a_Widget, V_Widget_t* const a_Kid, const char* const a_Value)
+{
+	/* Check */
+	if (!a_Widget || !a_Kid)
+		return false;
+	
+	/* Determine kid size */
+	((V_WidgetHandlerAutoSizeFunc_t)(VS_WTMI(a_Kid, VWHFID_AUTOSIZE)))(a_Kid);
+	
+	/* Success! */
 	return true;
 }
 
@@ -297,7 +368,8 @@ static V_WidgetHandler_t l_WH_NeatMenu =
 		NULL,//(V_WidgetHandlerAbstractFunc_t)VS_WH_NeatMenu_SetDimensionsFunc,
 		(V_WidgetHandlerAbstractFunc_t)VS_WH_NeatMenu_CanAddKidFunc,
 		(V_WidgetHandlerAbstractFunc_t)VS_WH_NeatMenu_AddKidFunc,
-		NULL,//(V_WidgetHandlerAbstractFunc_t)VS_WH_NeatMenu_KidChangedValueFunc,
+		(V_WidgetHandlerAbstractFunc_t)VS_WH_NeatMenu_KidChangedValueFunc,
+		NULL,//(V_WidgetHandlerAbstractFunc_t)VS_WH_NeatMenu_AutoSizeFunc,
 	},
 };
 
