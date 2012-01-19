@@ -78,6 +78,7 @@
 #include "d_net.h"
 #include "p_inter.h"
 #include "d_prof.h"
+#include "v_widget.h"
 
 bool_t localgame;
 
@@ -1128,6 +1129,9 @@ typedef struct M_MenuExItem_s
 	struct M_MenuExMenu_s* SubMenu;				// Submenu
 	CONL_ConVariable_t* NewVar;					// New Console variable
 	consvar_t* OldVar;							// Old Console variable
+	V_Widget_t* WContainer;						// Widget container
+	V_Widget_t* WLabel;							// Widget label
+	V_Widget_t* WValue;							// Widget value
 } M_MenuExItem_t;
 
 /* M_MenuExMenu_t -- Extended menu data */
@@ -1151,6 +1155,7 @@ typedef struct M_MenuExMenu_s
 	
 	/* Done at run-time */
 	V_Image_t* TitleImage;						// Image used for title text
+	V_Widget_t* Widget;							// Menu container widget
 	
 	struct M_MenuExMenu_s* PrevMenu;			// Previously loaded menu
 	struct M_MenuExMenu_s* NextMenu;			// Next loaded menu
@@ -1481,7 +1486,15 @@ bool_t M_MenuExRMODOrder(const bool_t a_Pushed, const struct WL_WADFile_s* const
 			CurItem->SubMenu = NULL;
 			CurItem->NewVar = NULL;
 			CurItem->OldVar = NULL;
+			CurItem->WContainer = NULL;
+			CurItem->WLabel = NULL;
+			CurItem->WValue = NULL;
 		}
+		
+		// Delete Widget
+		if (MenuRover->Widget)
+			V_WidgetDestroy(MenuRover->Widget);
+		MenuRover->Widget = NULL;
 		
 		// Clear references
 		MenuRover->TitleImage = NULL;
@@ -1629,6 +1642,8 @@ bool_t M_MenuExRMODOrder(const bool_t a_Pushed, const struct WL_WADFile_s* const
 		MenuRover = MenuRover->NextMenu;
 	}
 	
+	/* Create widgets for all of the menus */
+	
 	/* Success! */
 	return true;
 #endif /* __REMOOD_DEDICATED */
@@ -1679,10 +1694,17 @@ void M_MenuExDrawer(void)
 	/*** STANDARD CLIENT ***/
 #else
 	int p;
+	V_Widget_t* MenuWidget;
 	
 	/* Not for dedicated server */
 	if (g_DedicatedServer)
 		return;
+	
+	MenuWidget = V_WidgetCreate(NULL, "colorbox", "test");
+	V_WidgetSetSize(MenuWidget, 200, 100);
+	V_WidgetSetPosition(MenuWidget, 20, 10);
+	V_WidgetDraw(MenuWidget, 0);
+	V_WidgetDestroy(MenuWidget);
 	
 	/* Draw each of the player menus */
 	for (p = 0; p < MAXSPLITSCREENPLAYERS; p++)
