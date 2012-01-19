@@ -310,7 +310,7 @@ bool_t V_InitWidgetSystem(void)
 	VS_RegisterWidgetHandler(NewHandler);
 	
 	/* Success! */
-	return false;
+	return true;
 #endif /* __REMOOD_DEDICATED */
 }
 
