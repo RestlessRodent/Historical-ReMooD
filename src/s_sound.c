@@ -672,8 +672,26 @@ void S_Init(int sfxVolume, int musicVolume)
 	// Sound
 	l_SoundOK = false;
 	if (!M_CheckParm("-nosfx"))
+	{
+		// GhostlyDeath <January 20, 2012> -- To prevent a race, init channels here
+		l_NumDoomChannels = cv_snd_channels.value;
+	
+		if (!l_NumDoomChannels)
+			l_NumDoomChannels = 1;
+		
+		l_DoomChannels = Z_Malloc(sizeof(*l_DoomChannels) * l_NumDoomChannels, PU_STATIC, NULL);
+		
+		// Now startup sound
 		if (I_StartupSound())
 			l_SoundOK = true;
+		
+		// If sound failed to start, free sound channels
+		if (!l_SoundOK)
+		{
+			Z_Free(l_DoomChannels);
+			l_DoomChannels = NULL;
+		}
+	}
 			
 	// Music
 	l_MusicOK = false;
@@ -712,14 +730,6 @@ void S_Init(int sfxVolume, int musicVolume)
 			// Frequency did not match
 			if (l_Freq != cv_snd_soundquality.value)
 				CONS_Printf("S_Init: Requested %iHz but got %iHz\n", cv_snd_soundquality.value, l_Freq);
-				
-			// Create channels
-			l_NumDoomChannels = cv_snd_channels.value;
-			
-			if (!l_NumDoomChannels)
-				l_NumDoomChannels = 1;
-				
-			l_DoomChannels = Z_Malloc(sizeof(*l_DoomChannels) * l_NumDoomChannels, PU_STATIC, NULL);
 		}
 	}
 }

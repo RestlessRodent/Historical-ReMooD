@@ -295,8 +295,27 @@ static bool_t VS_WH_NeatMenu_DrawFunc(V_Widget_t* const a_Widget, const uint32_t
 		// Auto size
 		((V_WidgetHandlerAutoSizeFunc_t)(VS_WTMI(a_Widget->Children[i], VWHFID_AUTOSIZE)))(a_Widget->Children[i]);
 		
-		// Set position of child
-		V_WidgetSetPosition(a_Widget->Children[i], a_X, a_Y + y);
+		// If this is the first widget (it is a title), center it
+		if (i == 0)
+		{
+			// Space on top
+			y += a_Widget->Children[i]->Height >> 1;
+			
+			// Draw neat looking title screen fade here, but blue
+			V_DrawFadeConsBackEx(VEX_COLORMAP(VEX_MAP_BLUE), a_X, a_Y + y, a_Width, a_Widget->Children[i]->Height << 1);
+			
+			// Center in the middle
+			V_WidgetSetPosition(a_Widget->Children[i], a_X + (a_Widget->Width >> 1) - (a_Widget->Children[i]->Width >> 1), a_Y + y);
+			
+			// Space on the bottom
+			y += a_Widget->Children[i]->Height >> 1;
+		}
+		
+		else
+		{
+			// Set position of child
+			V_WidgetSetPosition(a_Widget->Children[i], a_X, a_Y + y);
+		}
 		
 		// Draw child
 		V_WidgetDraw(a_Widget->Children[i], a_Flags);
