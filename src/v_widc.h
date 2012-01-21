@@ -90,6 +90,24 @@ static bool_t VS_WH_None_AutoSizeFunc(V_Widget_t* const a_Widget)
 	return false;
 }
 
+/* VS_WH_None_SetPropFunc() -- Set property */
+static bool_t VS_WH_None_SetPropFunc(V_Widget_t* const a_Widget, const char* const a_Property, const uint32_t a_PropHash, const char* const a_Value)
+{
+	return false;
+}
+
+/* VS_WH_None_GetPropFunc() -- Get property */
+static bool_t VS_WH_None_GetPropFunc(V_Widget_t* const a_Widget, const char* const a_Property, const uint32_t a_PropHash, const char* const* a_ValuePtr)
+{
+	return false;
+}
+
+/* VS_WH_None_PropChangedFunc() -- Property changed */
+static bool_t VS_WH_None_PropChangedFunc(V_Widget_t* const a_Widget, const char* const a_Property, const uint32_t a_PropHash, const char* const a_Value)
+{
+	return false;
+}
+
 /* Handler Struct */
 static V_WidgetHandler_t l_WH_None =
 {
@@ -112,6 +130,9 @@ static V_WidgetHandler_t l_WH_None =
 		(V_WidgetHandlerAbstractFunc_t)VS_WH_None_AddKidFunc,
 		(V_WidgetHandlerAbstractFunc_t)VS_WH_None_KidChangedValueFunc,
 		(V_WidgetHandlerAbstractFunc_t)VS_WH_None_AutoSizeFunc,
+		(V_WidgetHandlerAbstractFunc_t)VS_WH_None_SetPropFunc,
+		(V_WidgetHandlerAbstractFunc_t)VS_WH_None_GetPropFunc,
+		(V_WidgetHandlerAbstractFunc_t)VS_WH_None_PropChangedFunc,
 	},
 };
 
@@ -155,6 +176,9 @@ static V_WidgetHandler_t l_WH_ColorBox =
 		NULL,//(V_WidgetHandlerAbstractFunc_t)VS_WH_ColorBox_AddKidFunc,
 		NULL,//(V_WidgetHandlerAbstractFunc_t)VS_WH_ColorBox_KidChangedValueFunc,
 		NULL,//(V_WidgetHandlerAbstractFunc_t)VS_WH_ColorBox_AutoSizeFunc,
+		NULL,//(V_WidgetHandlerAbstractFunc_t)VS_WH_ColorBox_SetPropFunc,
+		NULL,//(V_WidgetHandlerAbstractFunc_t)VS_WH_ColorBox_GetPropFunc,
+		NULL,//(V_WidgetHandlerAbstractFunc_t)VS_WH_ColorBox_PropChangedFunc,
 	},
 };
 
@@ -265,6 +289,9 @@ static V_WidgetHandler_t l_WH_Label =
 		NULL,//(V_WidgetHandlerAbstractFunc_t)VS_WH_Label_AddKidFunc,
 		NULL,//(V_WidgetHandlerAbstractFunc_t)VS_WH_Label_KidChangedValueFunc,
 		(V_WidgetHandlerAbstractFunc_t)VS_WH_Label_AutoSizeFunc,
+		NULL,//(V_WidgetHandlerAbstractFunc_t)VS_WH_Label_SetPropFunc,
+		NULL,//(V_WidgetHandlerAbstractFunc_t)VS_WH_Label_GetPropFunc,
+		NULL,//(V_WidgetHandlerAbstractFunc_t)VS_WH_Label_PropChangedFunc,
 	},
 };
 
@@ -277,7 +304,7 @@ static bool_t VS_WH_NeatMenu_DrawFunc(V_Widget_t* const a_Widget, const uint32_t
 {
 #define MENUSPACER 2
 #define MENULEFTSPACE 10
-	size_t i;
+	size_t i, SelectedItem;
 	int32_t y;
 	uint32_t Flags;
 	
@@ -288,10 +315,11 @@ static bool_t VS_WH_NeatMenu_DrawFunc(V_Widget_t* const a_Widget, const uint32_t
 	/* Always make first kid in big text */
 	a_Widget->Children[0]->Font = VFONT_LARGE;
 	
-	/* Autosize widgets */
-	for (i = 0; i < a_Widget->NumChildren; i++)
-		if (a_Widget->Children[i])
-			((V_WidgetHandlerAutoSizeFunc_t)(VS_WTMI(a_Widget->Children[i], VWHFID_AUTOSIZE)))(a_Widget->Children[i]);
+	/* Get the currently selected item */
+	SelectedItem = V_WidgetGetPropertyInt(a_Widget, "selected");
+	
+	// Offset by 2 (title and hint)
+	SelectedItem += 2;
 	
 	/* Draw menu background */
 	// Blur pixel effect
@@ -345,7 +373,7 @@ static bool_t VS_WH_NeatMenu_DrawFunc(V_Widget_t* const a_Widget, const uint32_t
 		}
 		
 		// Selected Widget?
-		else if (i == 4)
+		else if (i == SelectedItem)
 		{
 			// Set to bright white
 			Flags = VFO_COLOR(VEX_MAP_BRIGHTWHITE);
@@ -393,6 +421,8 @@ static bool_t VS_WH_NeatMenu_CanAddKidFunc(V_Widget_t* const a_Widget, V_Widget_
 /* VS_WH_NeatMenu_AddKidFunc() -- Add kids */
 static bool_t VS_WH_NeatMenu_AddKidFunc(V_Widget_t* const a_Widget, V_Widget_t* const a_KidToAdd)
 {
+	size_t i;
+	
 	/* Check */
 	if (!a_Widget || !a_KidToAdd)
 		return false;
@@ -400,8 +430,10 @@ static bool_t VS_WH_NeatMenu_AddKidFunc(V_Widget_t* const a_Widget, V_Widget_t* 
 	/* Always make first kid in big text */
 	a_Widget->Children[0]->Font = VFONT_LARGE;
 	
-	/* Auto size the kid */
-	((V_WidgetHandlerAutoSizeFunc_t)(VS_WTMI(a_KidToAdd, VWHFID_AUTOSIZE)))(a_KidToAdd);
+	/* Autosize widgets */
+	for (i = 0; i < a_Widget->NumChildren; i++)
+		if (a_Widget->Children[i])
+			((V_WidgetHandlerAutoSizeFunc_t)(VS_WTMI(a_Widget->Children[i], VWHFID_AUTOSIZE)))(a_Widget->Children[i]);
 	
 	/* Success */	
 	return true;
@@ -410,15 +442,48 @@ static bool_t VS_WH_NeatMenu_AddKidFunc(V_Widget_t* const a_Widget, V_Widget_t* 
 /* VS_WH_NeatMenu_KidChangedValueFunc() -- Kid changed value */
 static bool_t VS_WH_NeatMenu_KidChangedValueFunc(V_Widget_t* const a_Widget, V_Widget_t* const a_Kid, const char* const a_Value)
 {
+	size_t i;
+	
 	/* Check */
 	if (!a_Widget || !a_Kid)
 		return false;
 	
-	/* Determine kid size */
-	((V_WidgetHandlerAutoSizeFunc_t)(VS_WTMI(a_Kid, VWHFID_AUTOSIZE)))(a_Kid);
+	/* Autosize widgets */
+	for (i = 0; i < a_Widget->NumChildren; i++)
+		if (a_Widget->Children[i])
+			((V_WidgetHandlerAutoSizeFunc_t)(VS_WTMI(a_Widget->Children[i], VWHFID_AUTOSIZE)))(a_Widget->Children[i]);
 	
 	/* Success! */
 	return true;
+}
+
+/* VS_WH_NeatMenu_SetPropFunc() -- Set property */
+static bool_t VS_WH_NeatMenu_SetPropFunc(V_Widget_t* const a_Widget, const char* const a_Property, const uint32_t a_PropHash, const char* const a_Value)
+{
+	static bool_t PreHashed;
+	static uint32_t Hashes[1];
+	
+	/* Check */
+	if (!a_Widget || !a_Property)
+		return false;
+	
+	/* Pre-hash? */
+	if (!PreHashed)
+	{
+		Hashes[0] = Z_Hash("selected");
+		
+		// Set
+		PreHashed = true;
+	}
+	
+	/* Compare */
+	if (
+		(a_PropHash == Hashes[0] && strcasecmp(a_Property, "selected") == 0)
+		)
+		return true;
+	
+	/* Not what we want */
+	return false;
 }
 
 /* Handler Struct */
@@ -443,6 +508,9 @@ static V_WidgetHandler_t l_WH_NeatMenu =
 		(V_WidgetHandlerAbstractFunc_t)VS_WH_NeatMenu_AddKidFunc,
 		(V_WidgetHandlerAbstractFunc_t)VS_WH_NeatMenu_KidChangedValueFunc,
 		NULL,//(V_WidgetHandlerAbstractFunc_t)VS_WH_NeatMenu_AutoSizeFunc,
+		(V_WidgetHandlerAbstractFunc_t)VS_WH_NeatMenu_SetPropFunc,
+		NULL,//(V_WidgetHandlerAbstractFunc_t)VS_WH_NeatMenu_GetPropFunc,
+		NULL,//(V_WidgetHandlerAbstractFunc_t)VS_WH_NeatMenu_PropChangedFunc,
 	},
 };
 

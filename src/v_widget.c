@@ -53,6 +53,9 @@ typedef enum V_WidgetHandlerFuncId_e
 	VWHFID_ADDKID,
 	VWHFID_KIDCHANGEDVAL,
 	VWHFID_AUTOSIZE,
+	VWHFID_SETPROP,
+	VWHFID_GETPROP,
+	VWHFID_PROPCHANGED,
 	
 	NUMWIDGETHANDLERFUNCS
 } V_WidgetHandlerFuncId_t;
@@ -72,6 +75,11 @@ typedef bool_t (*V_WidgetHandlerCanAddKidFunc_t)(V_Widget_t* const a_Widget, V_W
 typedef bool_t (*V_WidgetHandlerAddKidFunc_t)(V_Widget_t* const a_Widget, V_Widget_t* const a_KidToAdd);
 typedef bool_t (*V_WidgetHandlerKidChangedValueFunc_t)(V_Widget_t* const a_Widget, V_Widget_t* const a_Kid, const char* const a_Value);
 typedef bool_t (*V_WidgetHandlerAutoSizeFunc_t)(V_Widget_t* const a_Widget);
+
+typedef bool_t (*V_WidgetHandlerSetPropFunc_t)(V_Widget_t* const a_Widget, const char* const a_Property, const uint32_t a_PropHash, const char* const a_Value);
+typedef bool_t (*V_WidgetHandlerGetPropFunc_t)(V_Widget_t* const a_Widget, const char* const a_Property, const uint32_t a_PropHash, const char* const* a_ValuePtr);
+
+typedef bool_t (*V_WidgetHandlerPropChangedFunc_t)(V_Widget_t* const a_Widget, const char* const a_Property, const uint32_t a_PropHash, const char* const a_Value);
 
 /* V_WidgetHandler_t -- Handles a widget */
 typedef struct V_WidgetHandler_s
@@ -99,6 +107,7 @@ struct V_Widget_s
 	/* Value Stuff */
 	void* ValueP;								// Pointer type value
 	VideoFont_t Font;							// Font to use
+	Z_Table_t* Props;							// Properties
 	
 	/* Drawing */
 	int32_t XPos;								// X position
@@ -332,6 +341,8 @@ V_Widget_t* V_WidgetCreate(V_Widget_t* const a_Parent, const char* const a_Type,
 	
 	/* Set handler */
 	NewWidget->Handler = Handler;
+	NewWidget->Parent = a_Parent;
+	NewWidget->Props = Z_TableCreate("properties");
 	
 	/* Call creation handler */
 	((V_WidgetHandlerCreateFunc_t)(VS_WTMI(NewWidget, VWHFID_CREATE)))(NewWidget, a_Type);
@@ -358,7 +369,7 @@ V_Widget_t* V_WidgetCreate(V_Widget_t* const a_Parent, const char* const a_Type,
 		}
 		
 		// Call Informer (that we added a new kid)
-		((V_WidgetHandlerAddKidFunc_t)(VS_WTMI(NewWidget, VWHFID_ADDKID)))(a_Parent, NewWidget);
+		((V_WidgetHandlerAddKidFunc_t)(VS_WTMI(a_Parent, VWHFID_ADDKID)))(a_Parent, NewWidget);
 	}
 	
 	/* Success! */
@@ -396,6 +407,18 @@ void V_WidgetDestroy(V_Widget_t* const a_Widget)
 	((V_WidgetHandlerDeleteFunc_t)(VS_WTMI(a_Widget, VWHFID_DELETE)))(a_Widget);
 	
 	/* Free memory */
+	// Properties
+	if (a_Widget->Props)
+		Z_TableDestroy(a_Widget->Props);
+	a_Widget->Props = NULL;
+	
+	// Child list
+	if (a_Widget->Children)
+		Z_Free(a_Widget->Children);
+	a_Widget->Children = NULL;
+	a_Widget->NumChildren = 0;
+	
+	// Actual widget
 	Z_Free(a_Widget);
 #endif /* __REMOOD_DEDICATED */
 }
@@ -511,6 +534,146 @@ bool_t V_WidgetSetPosition(V_Widget_t* const a_Widget, const int32_t a_X, const 
 	
 	/* Success! */
 	return true;
+#endif /* __REMOOD_DEDICATED */
+}
+
+/* V_WidgetSetPropertyStr() -- Set property string */
+bool_t V_WidgetSetPropertyStr(V_Widget_t* const a_Widget, const char* const a_Key, const char* const a_Value)
+{
+	/*** DEDICATED SERVER ***/
+#if defined(__REMOOD_DEDICATED)
+	return false;
+	
+	/*** STANDARD CLIENT ***/
+#else
+	V_Widget_t* Rover;
+	uint32_t Hash;
+	
+	/* Not for dedicated server */
+	if (g_DedicatedServer)
+		return false;
+		
+	/* Check */
+	if (!a_Widget || !a_Key || !a_Value)
+		return false;
+	
+	/* Hash Key */
+	Hash = Z_Hash(a_Key);
+	
+	/* Check to see if the widget can handle this property */
+	if (((V_WidgetHandlerSetPropFunc_t)(VS_WTMI(a_Widget, VWHFID_SETPROP)))(a_Widget, a_Key, Hash, a_Value))
+	{
+		// it can, so set it in the table (for the widget we want)
+		Z_TableSetValue(a_Widget->Props, a_Key, a_Value);
+		
+		// Inform of value change
+		((V_WidgetHandlerPropChangedFunc_t)(VS_WTMI(a_Widget, VWHFID_PROPCHANGED)))(a_Widget, a_Key, Hash, a_Value);
+		
+		// Done
+		return true;
+	}
+	
+	/* Unhandled property */
+	return false;
+#endif /* __REMOOD_DEDICATED */
+}
+
+/* V_WidgetSetPropertyInt() -- Set property integer */
+bool_t V_WidgetSetPropertyInt(V_Widget_t* const a_Widget, const char* const a_Key, const int32_t a_Value)
+{
+	/*** DEDICATED SERVER ***/
+#if defined(__REMOOD_DEDICATED)
+	return false;
+	
+	/*** STANDARD CLIENT ***/
+#else
+#define BUFSIZE 64
+	char Buf[BUFSIZE];
+	
+	/* Not for dedicated server */
+	if (g_DedicatedServer)
+		return false;
+		
+	/* Check */
+	if (!a_Widget || !a_Key)
+		return false;
+	
+	/* Create value */
+	snprintf(Buf, BUFSIZE, "%i", a_Value);
+	
+	/* Call by string */
+	return V_WidgetSetPropertyStr(a_Widget, a_Key, Buf);
+#undef BUFSIZE
+#endif /* __REMOOD_DEDICATED */
+}
+
+/* V_WidgetGetPropertyStr() -- Get string property */
+bool_t V_WidgetGetPropertyStr(V_Widget_t* const a_Widget, const char* const a_Key, char* const a_Dest, const size_t a_Size)
+{
+	/*** DEDICATED SERVER ***/
+#if defined(__REMOOD_DEDICATED)
+	return false;
+	
+	/*** STANDARD CLIENT ***/
+#else
+	uint32_t Hash;
+	const char* Val;
+	
+	/* Not for dedicated server */
+	if (g_DedicatedServer)
+		return false;
+		
+	/* Check */
+	if (!a_Widget || !a_Key || !a_Dest || a_Size <= 1)
+		return false;
+	
+	/* Get table value */
+	if ((Val = Z_TableGetValue(a_Widget->Props, a_Key)))
+	{
+		// Clear dest
+		memset(a_Dest, 0, a_Size * sizeof(*a_Dest));
+		
+		// Concat
+		strncat(a_Dest, Val, a_Size - 1);
+		
+		// Success
+		return true;
+	}
+	
+	/* Not found (or not set) */
+	return false;
+#endif /* __REMOOD_DEDICATED */
+}
+
+/* V_WidgetGetPropertyInt() -- Gets integer value of property */
+int32_t V_WidgetGetPropertyInt(V_Widget_t* const a_Widget, const char* const a_Key)
+{
+	/*** DEDICATED SERVER ***/
+#if defined(__REMOOD_DEDICATED)
+	return false;
+	
+	/*** STANDARD CLIENT ***/
+#else
+#define BUFSIZE 128
+	uint32_t Hash;
+	char Buf[BUFSIZE];
+	
+	/* Not for dedicated server */
+	if (g_DedicatedServer)
+		return false;
+		
+	/* Check */
+	if (!a_Widget || !a_Key)
+		return false;
+	
+	/* Find in table */
+	if (V_WidgetGetPropertyStr(a_Widget, a_Key, Buf, BUFSIZE))
+		// Return converted result
+		return atoi(Buf);
+	
+	/* Not in table */
+	return 0;
+#undef BUFSIZE
 #endif /* __REMOOD_DEDICATED */
 }
 

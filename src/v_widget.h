@@ -70,5 +70,11 @@ bool_t V_WidgetSetValue(V_Widget_t* const a_Widget, const char* const a_Value);
 bool_t V_WidgetSetSize(V_Widget_t* const a_Widget, const int32_t a_Width, const int32_t a_Height);
 bool_t V_WidgetSetPosition(V_Widget_t* const a_Widget, const int32_t a_X, const int32_t a_Y);
 
+bool_t V_WidgetSetPropertyStr(V_Widget_t* const a_Widget, const char* const a_Key, const char* const a_Value);
+bool_t V_WidgetSetPropertyInt(V_Widget_t* const a_Widget, const char* const a_Key, const int32_t a_Value);
+
+bool_t V_WidgetGetPropertyStr(V_Widget_t* const a_Widget, const char* const a_Key, char* const a_Dest, const size_t a_Size);
+int32_t V_WidgetGetPropertyInt(V_Widget_t* const a_Widget, const char* const a_Key);
+
 #endif /* __V_WIDGET_H__ */
 
