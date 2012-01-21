@@ -1708,7 +1708,12 @@ void M_MenuExDrawer(void)
 	for (p = 0; p < 10; p++)
 	{
 		Labels[p] = V_WidgetCreate(MenuWidget, "label", "gunk");
-		V_WidgetSetValue(Labels[p], "Hello World!");
+		if (p == 0)
+			V_WidgetSetValue(Labels[p], "Hello Title!");
+		else if (p == 1)
+			V_WidgetSetValue(Labels[p], "Hints! \xD0\xB8\xD0\xB3\xD1\x80\xD0\xB0 in Russian! Bad Color Choice.");//"\xD0\xBF\xD1\x80\xD0\xB8\xD0\xB2\xD0\xB5\xD1\x82\x20\xD0\xBC\xD0\xB8\xD1\x80 in russian!");
+		else
+			V_WidgetSetValue(Labels[p], "Hello World!");
 	}
 	
 	V_WidgetDraw(MenuWidget, 0);

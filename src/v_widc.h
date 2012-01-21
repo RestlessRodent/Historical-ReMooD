@@ -276,8 +276,10 @@ static V_WidgetHandler_t l_WH_Label =
 static bool_t VS_WH_NeatMenu_DrawFunc(V_Widget_t* const a_Widget, const uint32_t a_Flags, const int32_t a_X, const int32_t a_Y, const int32_t a_Width, const int32_t a_Height)
 {
 #define MENUSPACER 2
+#define MENULEFTSPACE 10
 	size_t i;
 	int32_t y;
+	uint32_t Flags;
 	
 	/* Check */
 	if (!a_Widget)
@@ -316,10 +318,6 @@ static bool_t VS_WH_NeatMenu_DrawFunc(V_Widget_t* const a_Widget, const uint32_t
 		if (!a_Widget->Children[i])
 			continue;
 		
-		// Selected Widget?
-		if (i == 3)
-			V_DrawFadeConsBackEx(((gametic & 8) ? VEX_COLORMAP(VEX_MAP_WHITE) : VEX_COLORMAP(VEX_MAP_GRAY)), a_X, (a_Y + y) - MENUSPACER, a_Width, a_Y + y + a_Widget->Children[i]->Height + MENUSPACER);
-		
 		// If this is the first widget (it is a title), center it
 		if (i == 0)
 		{
@@ -331,20 +329,53 @@ static bool_t VS_WH_NeatMenu_DrawFunc(V_Widget_t* const a_Widget, const uint32_t
 			
 			// Space on the bottom
 			y += a_Widget->Children[i]->Height >> 1;
+			
+			// Bright white title
+			Flags = VFO_COLOR(VEX_MAP_BRIGHTWHITE);
 		}
 		
+		// If this is the second widget, it is the help string
+		else if (i == 1)
+		{
+			// Set to bright white
+			Flags = VFO_COLOR(VEX_MAP_MAGENTA);
+			
+			// Set position of child
+			V_WidgetSetPosition(a_Widget->Children[i], a_X + (MENULEFTSPACE >> 1), a_Y + (a_Height - (MENUSPACER << 1) - a_Widget->Children[i]->Height));
+		}
+		
+		// Selected Widget?
+		else if (i == 4)
+		{
+			// Set to bright white
+			Flags = VFO_COLOR(VEX_MAP_BRIGHTWHITE);
+			
+			// Draw a star
+			if (gametic & 8)
+				V_DrawCharacterA(VFONT_SMALL, Flags | a_Flags, '*', a_X + 2, a_Y + y);
+			
+			// Set position of child
+			V_WidgetSetPosition(a_Widget->Children[i], a_X + MENULEFTSPACE, a_Y + y);
+		}
+		
+		// Not selected
 		else
 		{
+			// Use default flags
+			Flags = 0;
+			
 			// Set position of child
-			V_WidgetSetPosition(a_Widget->Children[i], a_X, a_Y + y);
+			V_WidgetSetPosition(a_Widget->Children[i], a_X + MENULEFTSPACE, a_Y + y);
 		}
 		
 		// Draw child
-		V_WidgetDraw(a_Widget->Children[i], a_Flags);
+		V_WidgetDraw(a_Widget->Children[i], Flags | a_Flags);
 		
 		// Move around
-		y += a_Widget->Children[i]->Height + (MENUSPACER << 1);
+		if (i != 1)
+			y += a_Widget->Children[i]->Height + (MENUSPACER << 1);
 	}
+#undef MENULEFTSPACE
 #undef MENUSPACER
 }
 
