@@ -961,6 +961,7 @@ void VID_PrepareModeList(void)
 	SDL_PixelFormat pf;
 	SDL_Rect** Modes;
 	size_t i;
+	bool_t AddedTTBTH;
 	
 	/* Get List of modes */
 	// Fill in pixel format
@@ -977,6 +978,7 @@ void VID_PrepareModeList(void)
 		VID_AddMode(320, 200, true);
 		return;
 	}
+	
 	// Any mode is possible (so add generic modes)
 	if (Modes == (SDL_Rect**) - 1)
 	{
@@ -994,9 +996,20 @@ void VID_PrepareModeList(void)
 		VID_AddMode(1600, 1200, true);
 		return;
 	}
+	
 	// Go through modes list for valid modes
-	for (i = 0; Modes[i]; i++)
+	for (AddedTTBTH = false, i = 0; Modes[i]; i++)
+	{
 		VID_AddMode(Modes[i]->w, Modes[i]->h, true);
+		
+		// Is this 320x200?
+		if (Modes[i]->w == 320 && Modes[i]->h == 200)
+			AddedTTBTH = true;
+	}
+	
+	// Was 320x200 never added?
+	if (!AddedTTBTH)
+		VID_AddMode(320, 200, true);
 }
 
 /* I_SetVideoMode() -- Sets the current video mode */

@@ -3113,7 +3113,16 @@ int V_DrawStringA(const VideoFont_t a_Font, const uint32_t a_Options, const char
 	y = a_y;
 	Options = a_Options;
 	
-	// Determine modifiers
+	// If patches are not being scaled but we are scaling the start
+	if (!(Options & VFO_NOSCALESTART) && (Options & VFO_NOSCALEPATCH))
+	{
+		// Rescale to where scale start would scale
+		x = FixedMul(x << FRACBITS, vid.fxdupx) >> FRACBITS;
+		y = FixedMul(y << FRACBITS, vid.fxdupy) >> FRACBITS;
+		
+		// Remove start scale from the options (scaled here already)
+		Options |= VFO_NOSCALESTART;
+	}
 	
 	// Base x
 	basex = x;
@@ -3139,6 +3148,8 @@ int V_DrawStringA(const VideoFont_t a_Font, const uint32_t a_Options, const char
 			// Scale additional coordinates
 			if ((Options & VFO_NOSCALESTART) && !(Options & VFO_NOSCALEPATCH))
 				Add = FixedMul(Add << FRACBITS, vid.fxdupx) >> FRACBITS;
+			/*else if (!(a_Options & VFO_NOSCALESTART) && (a_Options & VFO_NOSCALEPATCH))
+				Add = FixedDiv(Add << FRACBITS, vid.fxdupx) >> FRACBITS;*/
 			
 			// Add to x
 			x += Add;

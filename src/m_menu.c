@@ -1694,36 +1694,40 @@ void M_MenuExDrawer(void)
 	/*** STANDARD CLIENT ***/
 #else
 	int p;
-	V_Widget_t* MenuWidget;
-	V_Widget_t* Labels[13];
+	static V_Widget_t* MenuWidget;
+	static V_Widget_t* Labels[13];
 	
 	/* Not for dedicated server */
 	if (g_DedicatedServer)
 		return;
 	
-	MenuWidget = V_WidgetCreate(NULL, "neatmenu", "test");
-	V_WidgetSetSize(MenuWidget, 320, 200);
-	V_WidgetSetPosition(MenuWidget, 0, 0);
-	
-	for (p = 0; p < 13; p++)
+	if (!MenuWidget)
 	{
-		char Buf[14];
+		MenuWidget = V_WidgetCreate(NULL, "neatmenu", "test");
+		V_WidgetSetSize(MenuWidget, 320, 200);
+		V_WidgetSetPosition(MenuWidget, 0, 0);
+	
+		for (p = 0; p < 13; p++)
+		{
+			char Buf[14];
 		
-		snprintf(Buf, 14, "Hello world %i!", p - 2);
+			snprintf(Buf, 14, "Hello world %i!", p - 2);
 		
-		Labels[p] = V_WidgetCreate(MenuWidget, "label", "gunk");
-		if (p == 0)
-			V_WidgetSetValue(Labels[p], "Hello Title!");
-		else if (p == 1)
-			V_WidgetSetValue(Labels[p], "Hints! \xD0\xB8\xD0\xB3\xD1\x80\xD0\xB0 in Russian! Bad Color Choice.");//"\xD0\xBF\xD1\x80\xD0\xB8\xD0\xB2\xD0\xB5\xD1\x82\x20\xD0\xBC\xD0\xB8\xD1\x80 in russian!");
-		else
-			V_WidgetSetValue(Labels[p], Buf);
+			Labels[p] = V_WidgetCreate(MenuWidget, "label", "gunk");
+			if (p == 0)
+				V_WidgetSetValue(Labels[p], "Hello Title!");
+			else if (p == 1)
+				V_WidgetSetValue(Labels[p], "Hints! \xD0\xB8\xD0\xB3\xD1\x80\xD0\xB0 in Russian! Bad Color Choice.");//"\xD0\xBF\xD1\x80\xD0\xB8\xD0\xB2\xD0\xB5\xD1\x82\x20\xD0\xBC\xD0\xB8\xD1\x80 in russian!");
+			else if (p == 2)
+				V_WidgetSetValue(Labels[p], "*");
+			else
+				V_WidgetSetValue(Labels[p], Buf);
+		}
 	}
 	
 	V_WidgetSetPropertyInt(MenuWidget, "selected", (gametic >> 4) & 0x7);
-	
 	V_WidgetDraw(MenuWidget, 0);
-	V_WidgetDestroy(MenuWidget);
+	//V_WidgetDestroy(MenuWidget);
 	
 	/* Draw each of the player menus */
 	for (p = 0; p < MAXSPLITSCREENPLAYERS; p++)
