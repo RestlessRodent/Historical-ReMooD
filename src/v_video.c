@@ -3181,7 +3181,7 @@ void V_StringDimensionsA(const VideoFont_t a_Font, const uint32_t a_Options, con
 	
 	/* Initialize */
 	x = 0;
-	y = 0;
+	y = V_FontHeight(a_Font);	// Font height always
 	Options = a_Options;
 	MaxX = 0;
 	
@@ -3233,7 +3233,7 @@ void V_StringDimensionsA(const VideoFont_t a_Font, const uint32_t a_Options, con
 	if (a_Width)
 		*a_Width = MaxX;
 	if (a_Height)
-		*a_Height = y + V_FontHeight(a_Font);
+		*a_Height = y;
 #endif /* __REMOOD_DEDICATED */
 }
 

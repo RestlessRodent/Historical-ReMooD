@@ -275,6 +275,7 @@ static V_WidgetHandler_t l_WH_Label =
 /* VS_WH_NeatMenu_DrawFunc() -- Draw */
 static bool_t VS_WH_NeatMenu_DrawFunc(V_Widget_t* const a_Widget, const uint32_t a_Flags, const int32_t a_X, const int32_t a_Y, const int32_t a_Width, const int32_t a_Height)
 {
+#define MENUSPACER 2
 	size_t i;
 	int32_t y;
 	
@@ -285,6 +286,29 @@ static bool_t VS_WH_NeatMenu_DrawFunc(V_Widget_t* const a_Widget, const uint32_t
 	/* Always make first kid in big text */
 	a_Widget->Children[0]->Font = VFONT_LARGE;
 	
+	/* Autosize widgets */
+	for (i = 0; i < a_Widget->NumChildren; i++)
+		if (a_Widget->Children[i])
+			((V_WidgetHandlerAutoSizeFunc_t)(VS_WTMI(a_Widget->Children[i], VWHFID_AUTOSIZE)))(a_Widget->Children[i]);
+	
+	/* Draw menu background */
+	// Blur pixel effect
+	y = 0;
+	
+	// Top title bar
+	if (a_Widget->NumChildren)
+		if (a_Widget->Children[0])
+		{
+			// Some height
+			y += a_Widget->Children[0]->Height << 1;
+			
+			// Draw background
+			V_DrawFadeConsBackEx(VEX_COLORMAP(VEX_MAP_BLACK), a_X, a_Y, a_Width, a_Y + y);
+		}
+	
+	// Bottom black
+	V_DrawFadeConsBackEx(VEX_COLORMAP(VEX_MAP_NONE), a_X, a_Y + y, a_Width, a_Y + (a_Height - y));
+	
 	/* Draw children consecutively */
 	for (y = 0, i = 0; i < a_Widget->NumChildren; i++)
 	{
@@ -292,17 +316,15 @@ static bool_t VS_WH_NeatMenu_DrawFunc(V_Widget_t* const a_Widget, const uint32_t
 		if (!a_Widget->Children[i])
 			continue;
 		
-		// Auto size
-		((V_WidgetHandlerAutoSizeFunc_t)(VS_WTMI(a_Widget->Children[i], VWHFID_AUTOSIZE)))(a_Widget->Children[i]);
+		// Selected Widget?
+		if (i == 3)
+			V_DrawFadeConsBackEx(((gametic & 8) ? VEX_COLORMAP(VEX_MAP_WHITE) : VEX_COLORMAP(VEX_MAP_GRAY)), a_X, (a_Y + y) - MENUSPACER, a_Width, a_Y + y + a_Widget->Children[i]->Height + MENUSPACER);
 		
 		// If this is the first widget (it is a title), center it
 		if (i == 0)
 		{
 			// Space on top
 			y += a_Widget->Children[i]->Height >> 1;
-			
-			// Draw neat looking title screen fade here, but blue
-			V_DrawFadeConsBackEx(VEX_COLORMAP(VEX_MAP_BLUE), a_X, a_Y + y, a_Width, a_Widget->Children[i]->Height << 1);
 			
 			// Center in the middle
 			V_WidgetSetPosition(a_Widget->Children[i], a_X + (a_Widget->Width >> 1) - (a_Widget->Children[i]->Width >> 1), a_Y + y);
@@ -321,8 +343,9 @@ static bool_t VS_WH_NeatMenu_DrawFunc(V_Widget_t* const a_Widget, const uint32_t
 		V_WidgetDraw(a_Widget->Children[i], a_Flags);
 		
 		// Move around
-		y += a_Widget->Children[i]->Height;
+		y += a_Widget->Children[i]->Height + (MENUSPACER << 1);
 	}
+#undef MENUSPACER
 }
 
 /* VS_WH_NeatMenu_CanAddKidFunc() -- Can add kids? */
