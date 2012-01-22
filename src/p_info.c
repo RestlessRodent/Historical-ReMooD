@@ -276,6 +276,9 @@ static bool_t P_WLInfoCreator(const WL_WADFile_t* const a_WAD, const uint32_t a_
 		}
 	}
 	
+	/* Parse MAPINFO (Hexen/ZDoom) */
+	// This is done now so the stuff in the lump headers takes precedence
+	
 	/* Parse loaded infos */
 	for (i = 0; i < Holder->NumInfos; i++)
 	{
@@ -336,24 +339,7 @@ static bool_t P_WLInfoCreator(const WL_WADFile_t* const a_WAD, const uint32_t a_
 			
 			// Run through tokenizer and accept only "[level info]" and "[intertext]"
 				// [level info]
-				//   levelpic == Intermission Screen Picture (WILV)
 				// [intertext]
-				//   raw text == Intermission text
-
-	{IVT_STRING, "levelpic", &info_levelpic},
-	{IVT_STRING, "levelname", &info_levelname},
-	{IVT_INT, "partime", &info_partime},
-	{IVT_STRING, "music", &info_music},
-	{IVT_STRING, "skyname", &info_skyname},
-	{IVT_STRING, "creator", &info_creator},
-	{IVT_STRING, "interpic", &info_interpic},
-	{IVT_STRING, "nextlevel", &info_nextlevel},
-	{IVT_STRING, "nextsecret", &info_nextsecret},
-	{IVT_INT, "gravity", &gravity},
-	{IVT_STRING, "inter-backdrop", &info_backdrop},
-	{IVT_STRING, "defaultweapons", &info_weapons},
-	{IVT_CONSOLECMD, "consolecmd", NULL},
-			
 			// Read blocks and look for "[level info]"
 			while (!WL_StreamEOF(ReadStream))
 			{
@@ -370,8 +356,6 @@ static bool_t P_WLInfoCreator(const WL_WADFile_t* const a_WAD, const uint32_t a_
 					(CurrentInfo->Playable ? "is playable" : "cannot be played")
 				);
 	}
-	
-	/* Parse MAPINFO (Hexen/ZDoom) */
 	
 	return true;
 }
