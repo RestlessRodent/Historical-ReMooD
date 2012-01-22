@@ -351,9 +351,9 @@ static bool_t VS_WH_NeatMenu_DrawFunc(V_Widget_t* const a_Widget, const uint32_t
 {
 #define MENUSPACER 2
 #define MENULEFTSPACE 12
-	size_t i, SelectedItem;
+	size_t i, SelectedItem, Offset, DrawCount;
 	int32_t y;
-	uint32_t Flags;
+	uint32_t Flags, MaxY;
 	bool_t DrawCursor;
 	
 	/* Check */
@@ -362,9 +362,11 @@ static bool_t VS_WH_NeatMenu_DrawFunc(V_Widget_t* const a_Widget, const uint32_t
 	
 	/* Get selected item */
 	SelectedItem = V_WidgetGetPropertyInt(a_Widget, "selected");
+	Offset = V_WidgetGetPropertyInt(a_Widget, "offset");
 	
 	// Offset by 3 (title, hint, cursor)
 	SelectedItem += 3;
+	Offset += 3;
 	
 	/* Draw menu background */
 	// Blur pixel effect
@@ -382,9 +384,17 @@ static bool_t VS_WH_NeatMenu_DrawFunc(V_Widget_t* const a_Widget, const uint32_t
 		}
 	
 	// Bottom black
-	V_DrawFadeConsBackEx(VEX_COLORMAP(VEX_MAP_NONE), a_X, a_Y + y, a_Width, a_Y + (a_Height - y));
+	V_DrawFadeConsBackEx(VEX_COLORMAP(VEX_MAP_NONE), a_X, a_Y + y, a_Width, a_Y + a_Height);
 	
 	/* Draw children consecutively */
+	// Clear draw count
+	DrawCount = 0;
+	if (a_Widget->NumChildren && a_Widget->Children[1])
+		MaxY = (a_Height - (MENUSPACER << 1) - a_Widget->Children[1]->Height);
+	else
+		MaxY = a_Height - (MENUSPACER << 1);
+	
+	// Loop
 	for (DrawCursor = true, y = 0, i = 0; i < a_Widget->NumChildren; i++)
 	{
 		// No kid here?
@@ -425,6 +435,17 @@ static bool_t VS_WH_NeatMenu_DrawFunc(V_Widget_t* const a_Widget, const uint32_t
 		// Not selected
 		else
 		{
+			// Skip drawing of this one?
+			if (i < Offset)
+				continue;
+			
+			// Too much stuff to draw?
+			if (y >= MaxY)
+				break;
+			
+			// Increase draw count
+			DrawCount++;
+			
 			// Set position of child
 			V_WidgetSetPosition(a_Widget->Children[i], a_X + MENULEFTSPACE, a_Y + y);
 			
@@ -446,6 +467,9 @@ static bool_t VS_WH_NeatMenu_DrawFunc(V_Widget_t* const a_Widget, const uint32_t
 		if (i != 1 && i != 2)
 			y += a_Widget->Children[i]->Height + (MENUSPACER << 1);
 	}
+	
+	/* Set draw count */
+	V_WidgetSetPropertyInt(a_Widget, "drawcount", DrawCount);
 #undef MENULEFTSPACE
 #undef MENUSPACER
 }
@@ -483,7 +507,7 @@ static bool_t VS_WH_NeatMenu_AddKidFunc(V_Widget_t* const a_Widget, V_Widget_t* 
 /* VS_WH_NeatMenu_KidChangedValueFunc() -- Kid changed value */
 static bool_t VS_WH_NeatMenu_KidChangedValueFunc(V_Widget_t* const a_Widget, V_Widget_t* const a_Kid, const char* const a_Value)
 {
-	size_t i, SelectedItem;
+	size_t i, SelectedItem, Offset;
 	
 	/* Check */
 	if (!a_Widget || !a_Kid)
@@ -491,6 +515,7 @@ static bool_t VS_WH_NeatMenu_KidChangedValueFunc(V_Widget_t* const a_Widget, V_W
 	
 	/* Get selected item */
 	SelectedItem = V_WidgetGetPropertyInt(a_Widget, "selected");
+	Offset = V_WidgetGetPropertyInt(a_Widget, "offset");
 	
 	// Offset by 3 (title, hint, cursor)
 	SelectedItem += 3;
@@ -498,22 +523,26 @@ static bool_t VS_WH_NeatMenu_KidChangedValueFunc(V_Widget_t* const a_Widget, V_W
 	/* Cheat */
 	if (a_Widget == a_Kid)
 	{
-		// Normalize old one
-		if ((uintptr_t)a_Widget->ValueP > 2 && (uintptr_t)a_Widget->ValueP < a_Widget->NumChildren)
+		// Selection changed?
+		if ((uintptr_t)a_Widget->ValueP != SelectedItem)
 		{
-			V_WidgetSetPropertyInt(a_Widget->Children[(uintptr_t)a_Widget->ValueP], "font", VFONT_SMALL);
-			V_WidgetSetPropertyInt(a_Widget->Children[(uintptr_t)a_Widget->ValueP], "flags", VFO_COLOR(VEX_MAP_RED));
-		}
+			// Normalize old one
+			if ((uintptr_t)a_Widget->ValueP > 2 && (uintptr_t)a_Widget->ValueP < a_Widget->NumChildren)
+			{
+				V_WidgetSetPropertyInt(a_Widget->Children[(uintptr_t)a_Widget->ValueP], "font", VFONT_SMALL);
+				V_WidgetSetPropertyInt(a_Widget->Children[(uintptr_t)a_Widget->ValueP], "flags", VFO_COLOR(VEX_MAP_RED));
+			}
 		
-		// Modify selected Item
-		if (SelectedItem < a_Widget->NumChildren)
-		{
-			V_WidgetSetPropertyInt(a_Widget->Children[SelectedItem], "font", VFONT_SMALL);
-			V_WidgetSetPropertyInt(a_Widget->Children[SelectedItem], "flags", VFO_COLOR(VEX_MAP_BRIGHTWHITE));
-		}
+			// Modify selected Item
+			if (SelectedItem < a_Widget->NumChildren)
+			{
+				V_WidgetSetPropertyInt(a_Widget->Children[SelectedItem], "font", VFONT_SMALL);
+				V_WidgetSetPropertyInt(a_Widget->Children[SelectedItem], "flags", VFO_COLOR(VEX_MAP_BRIGHTWHITE));
+			}
 		
-		// Set old selection
-		a_Widget->ValueP = (void*)((uintptr_t)SelectedItem);
+			// Set old selection
+			a_Widget->ValueP = (void*)((uintptr_t)SelectedItem);
+		}
 		
 		// No more handling
 		return true;
@@ -581,6 +610,8 @@ static bool_t VS_WH_NeatMenu_SetPropFunc(V_Widget_t* const a_Widget, const char*
 	} PropList[] =
 	{
 		{0, "selected"},
+		{0, "offset"},
+		{0, "drawcount"},
 		{0, NULL},
 	} ;
 	

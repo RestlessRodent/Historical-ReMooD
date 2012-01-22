@@ -1695,7 +1695,9 @@ void M_MenuExDrawer(void)
 #else
 	int p;
 	static V_Widget_t* MenuWidget;
-	static V_Widget_t* Labels[13];
+	static V_Widget_t* Labels[30];
+	static bool_t Bounce = false;
+	static int BounceX = 0;
 	
 	/* Not for dedicated server */
 	if (g_DedicatedServer)
@@ -1707,11 +1709,11 @@ void M_MenuExDrawer(void)
 		V_WidgetSetSize(MenuWidget, 320, 200);
 		V_WidgetSetPosition(MenuWidget, 0, 0);
 	
-		for (p = 0; p < 13; p++)
+		for (p = 0; p < 30; p++)
 		{
-			char Buf[14];
+			char Buf[20];
 		
-			snprintf(Buf, 14, "Hello world %i!", p - 2);
+			snprintf(Buf, 19, "Hello world %i!", p - 2);
 		
 			Labels[p] = V_WidgetCreate(MenuWidget, "label", "gunk");
 			if (p == 0)
@@ -1725,7 +1727,26 @@ void M_MenuExDrawer(void)
 		}
 	}
 	
-	V_WidgetSetPropertyInt(MenuWidget, "selected", (gametic >> 4) & 0x7);
+	V_WidgetSetPropertyInt(MenuWidget, "selected", (gametic >> 3) % 25);
+	V_WidgetSetPropertyInt(MenuWidget, "offset", BounceX);
+	
+	if (!Bounce)
+	{
+		if (((gametic >> 4) % 25))
+			BounceX++;
+		
+		if (BounceX == 25)
+			Bounce = true;
+	}
+	else
+	{
+		if (((gametic >> 4) % 25))
+			BounceX--;
+		
+		if (BounceX == 0)
+			Bounce = false;
+	}
+	
 	V_WidgetDraw(MenuWidget, 0);
 	//V_WidgetDestroy(MenuWidget);
 	
