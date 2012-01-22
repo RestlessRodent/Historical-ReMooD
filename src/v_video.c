@@ -4004,7 +4004,7 @@ void V_ImageDrawScaled(const uint32_t a_Flags, V_Image_t* const a_Image, const i
 	int32_t sX, sY, tW, tY;
 	uint8_t* dP;
 	uint8_t* sP;
-	fixed_t XFrac, YFrac, sxX, sxY, xw, xh, dxY;
+	fixed_t XFrac, YFrac, sxX, sxY, xw, xh, dxY, ESXy;
 	uint8_t* ColorMap;
 	uint8_t* ColorMapE;
 	uint8_t* TransMap;
@@ -4131,21 +4131,40 @@ void V_ImageDrawScaled(const uint32_t a_Flags, V_Image_t* const a_Image, const i
 		if (!RawData)
 			return;	// oops!
 		
-		// Draw row by row
-		for (sxY = 0, yy = y; sxY < xh; sxY += YFrac, yy++)
-		{
-			// Obtain source and destination pointers (for row base)
-			sP = RawData + (w * (sxY >> FRACBITS));
-			dP = screens[0] + (vid.width * yy) + x;
+		// Drawing a transparent image
+		if (TransMap)
+			for (sxY = 0, yy = y; sxY < xh; sxY += YFrac, yy++)
+			{
+				// Obtain source and destination pointers (for row base)
+				sP = RawData + (w * (sxY >> FRACBITS));
+				dP = screens[0] + (vid.rowbytes * yy) + x;
 			
-			// Scaled row draw
-			if (TransMap)
+				// Scaled row draw
 				for (sxX = 0; sxX < xw; sxX += XFrac)
 					*(dP++) = TransMap[(ColorMap[ColorMapE[sP[sxX >> FRACBITS]]] << 8) + (*dP)];
-			else
+			}
+		
+		// Drawing an opaque image (with scale)
+		else
+			for (sxY = 0, yy = y; sxY < xh;)
+			{
+				// Obtain source and destination pointers (for row base)
+				sP = RawData + (w * (sxY >> FRACBITS));
+				dP = screens[0] + (vid.rowbytes * yy) + x;
+			
+				// Scaled row draw
 				for (sxX = 0; sxX < xw; sxX += XFrac)
 					*(dP++) = ColorMap[ColorMapE[sP[sxX >> FRACBITS]]];
-		}
+			
+				// Copy first row to succeeding rows
+				ESXy = ((sxY + (1 << FRACBITS)) & (~0xFFFF));
+				sP = screens[0] + (vid.rowbytes * yy) + x;
+				for (;sxY < ESXy ; sxY += YFrac, yy++)
+				{
+					dP = screens[0] + (vid.rowbytes * yy) + x;
+					memcpy(dP, sP, tW);
+				}
+			}
 	}
 #endif /* __REMOOD_DEDICATED */
 }
