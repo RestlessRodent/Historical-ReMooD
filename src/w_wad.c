@@ -1231,6 +1231,9 @@ struct WL_EntryStream_s
 	
 	bool_t IsUnicode;							// Is UTF16 stream
 	bool_t IsSwapped;							// Is byte swapped
+	
+	char MBBuf[5];								// Multi-byte buffer
+	size_t MBLeft;								// Bytes Left
 };
 
 /* WL_StreamOpen() -- Opens a stream */
@@ -1313,6 +1316,21 @@ uint32_t WL_StreamSeek(WL_EntryStream_t* const a_Stream, const uint32_t a_NewPos
 	
 	/* Return current position */
 	return WL_StreamTell(a_Stream);
+}
+
+/* WL_StreamEOF() -- Checks end of file */
+bool_t WL_StreamEOF(WL_EntryStream_t* const a_Stream)
+{
+	/* Check */
+	if (!a_Stream)
+		return true;	// return EOF in this case
+	
+	/* At the end? */
+	if (a_Stream->StreamOffset >= a_Stream->StreamSize)
+		return true;
+	
+	/* Not at end */
+	return false;
 }
 
 /* WL_StreamRawRead() -- Reads a raw stream */
@@ -1471,7 +1489,19 @@ uint16_t WL_StreamReadChar(WL_EntryStream_t* const a_Stream)
 		RetVal = WL_StreamReadUInt8(a_Stream);
 	else
 	{
-		// TODO: If UTF-8 buffer contains data, flush it
+		// If UTF-8 buffer contains data, flush it
+		if (a_Stream->MBLeft)
+		{
+			// Return this character
+			RetVal = a_Stream->MBBuf[0];
+			
+			// Decrease
+			memmove(&a_Stream->MBBuf[0], &a_Stream->MBBuf[1], sizeof(*a_Stream->MBBuf) * 4);
+			a_Stream->MBLeft--;
+			
+			// Return
+			return RetVal;
+		}
 		
 		// Read next UTF-16 character
 		RetVal = WL_StreamReadUInt16(a_Stream);
@@ -1480,7 +1510,25 @@ uint16_t WL_StreamReadChar(WL_EntryStream_t* const a_Stream)
 		if (a_Stream->IsSwapped)
 			RetVal = SwapUInt16(RetVal);
 		
-		// TODO: If character is > 127, convert to UTF-8 and flush first char
+		// If character is > 127, convert to UTF-8 and flush first char
+		if (RetVal > 127)
+		{
+			// Convert
+			a_Stream->MBLeft = V_ExtWCharToMB(RetVal, a_Stream->MBBuf);
+			
+			// Return first character
+			if (a_Stream->MBLeft)
+			{
+				RetVal = a_Stream->MBBuf[0];
+			
+				// Decrease
+				memmove(&a_Stream->MBBuf[0], &a_Stream->MBBuf[1], sizeof(*a_Stream->MBBuf) * 4);
+				a_Stream->MBLeft--;
+			
+				// Return
+				return RetVal;
+			}
+		}
 	}
 	
 	/* Return */

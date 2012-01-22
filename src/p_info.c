@@ -74,6 +74,26 @@ typedef enum P_LevelInfoExDataStuff_e
 	MAXPLIEDS
 } P_LevelInfoExDataStuff_t;
 
+static const char* c_LevelLumpNames[MAXPLIEDS] =
+{
+	"",
+	"THINGS",
+	"LINEDEFS",
+	"SIDEDEFS",
+	"VERTEXES",
+	"SEGS",
+	"SSECTORS",
+	"NODES",
+	"SECTORS",
+	"REJECT",
+	"BLOCKMAP",
+	"BEHAVIOR",
+	"TEXTMAP",
+	"ENDMAP",
+	"RSCRIPTS",
+	"LPREVIEW",
+};
+
 /*** STRUCTURES ***/
 
 /* P_LevelInfoEx_t -- Extended level info */
@@ -101,28 +121,52 @@ typedef struct P_LevelInfoEx_s
 		uint8_t Month;							// Month
 		uint16_t Year;							// Year
 	} Date;										// Date Created
+	
+	/* Compatibility */
+	bool_t Playable;							// Actually playable
 } P_LevelInfoEx_t;
+
+/* P_LevelInfoHolder_t -- Holds level info */
+typedef struct P_LevelInfoHolder_s
+{
+	P_LevelInfoEx_t** Infos;
+	size_t NumInfos;
+} P_LevelInfoHolder_t;
 
 /*** FUNCTIONS ***/
 
 /* P_WLInfoRemove() -- Function that removes private data from a WAD */
 static void P_WLInfoRemove(const WL_WADFile_t* a_WAD)
 {
+	P_LevelInfoHolder_t* Holder;
+	
 	/* Check */
 	if (!a_WAD)
 		return;
+	
+	/* Get Data */
 }
 
 /* P_WLInfoCreator() -- Function that creates private data for a WAD */
 static bool_t P_WLInfoCreator(const WL_WADFile_t* const a_WAD, const uint32_t a_Key, void** const a_DataPtr, size_t* const a_SizePtr, WL_RemoveFunc_t* const a_RemoveFuncPtr)
 {
-	size_t i;
+	size_t i, j;
 	WL_WADEntry_t* Entry;
 	WL_WADEntry_t* Base;
+	bool_t LoadLumps;
+	bool_t IsDoomHexen;
+	P_LevelInfoHolder_t* Holder;
+	P_LevelInfoEx_t* CurrentInfo;
+	WL_EntryStream_t* ReadStream;
+	uint16_t Char;
 	
 	/* Check */
 	if (!a_WAD || !a_DataPtr || !a_SizePtr)
 		return false;
+	
+	/* Create base structures */
+	*a_SizePtr = sizeof(P_LevelInfoHolder_t);
+	Holder = *a_DataPtr = Z_Malloc(*a_SizePtr, PU_STATIC, NULL);
 	
 	/* Debug */
 	if (devparm)
@@ -130,36 +174,204 @@ static bool_t P_WLInfoCreator(const WL_WADFile_t* const a_WAD, const uint32_t a_
 	
 	/* Seek through lumps looking for levels */
 	Base = NULL;
+	LoadLumps = false;
 	for (i = 0; i < a_WAD->NumEntries; i++)
 	{
 		// Get current entry
 		Entry = &a_WAD->Entries[i];
 		
-		// Remember it as the base
-		if (!Base)
+		// Not loading level info lumps
+		if (!LoadLumps)
 		{
-			Base = Entry;
-			continue;
+			// Remember it as the base
+			if (!Base)
+			{
+				Base = Entry;
+				continue;
+			}
+		
+			// Check to see if this entry is called "THINGS" or "TEXTMAP"
+			if (strcasecmp(Entry->Name, c_LevelLumpNames[PLIEDS_THINGS]) == 0)
+			{
+				// Set Doom/Hexen type
+				IsDoomHexen = true;
+			}
+			else if (strcasecmp(Entry->Name, c_LevelLumpNames[PLIEDS_TEXTMAP]) == 0)
+			{
+				// Set textual format
+				IsDoomHexen = false;
+			}
+		
+			// Not of a known format, so just ignore it
+			else
+			{
+				// Clear base, reset i back, and continue
+				Base = NULL;
+				i--;
+				continue;
+			}
+			
+			// Add to end of list
+			Z_ResizeArray((void**)&Holder->Infos, sizeof(*Holder->Infos), Holder->NumInfos, Holder->NumInfos + 1);
+			CurrentInfo = Holder->Infos[Holder->NumInfos++] = Z_Malloc(sizeof(*CurrentInfo), PU_STATIC, NULL);
+			
+			// Initialize new info with base stuff
+			strncat(CurrentInfo->LumpName, Base->Name, MAXPLIEXFIELDWIDTH);
+			
+			CurrentInfo->EntryPtr[PLIEDS_HEADER] = Base;
+			
+			if (IsDoomHexen)
+				CurrentInfo->EntryPtr[PLIEDS_THINGS] = Entry;
+			else
+			{
+				CurrentInfo->Type.Text = true;
+				CurrentInfo->EntryPtr[PLIEDS_TEXTMAP] = Entry;
+			}
+			
+			// Clear base and start loading lumps
+			LoadLumps = true;
+			Base = NULL;
 		}
 		
-		// Check to see if this entry is called "THINGS" or "TEXTMAP"
-		if (strcasecmp(Entry->Name, "THINGS") == 0)
-			CONS_Printf(">> %s == Doom/Hexen Level\n", Base->Name);
-		else if (strcasecmp(Entry->Name, "TEXTMAP") == 0)
-			CONS_Printf(">> %s == Textual Level\n", Base->Name);
-		
-		// Not of a known format, so just ignore it
+		// Loading infos
 		else
 		{
-			Base = NULL;
+			// If this is a textual format map, stop at ENDMAP
+			if (strcasecmp(Entry->Name, c_LevelLumpNames[PLIEDS_ENDMAP]) == 0)
+			{
+				// Set end map
+				CurrentInfo->EntryPtr[PLIEDS_ENDMAP] = Entry;
+				
+				// Reset variables and read a new map
+				LoadLumps = false;
+				CurrentInfo = NULL;
+				continue;
+			}
+			
+			// Find name match to correlate entries to pointers
+			for (j = 1; j < MAXPLIEDS; j++)
+				if (strcasecmp(Entry->Name, c_LevelLumpNames[j]) == 0)
+				{
+					// Place in info
+					CurrentInfo->EntryPtr[j] = Entry;
+					
+					// If it is a behavior lump, set Hexen
+					if (j == PLIEDS_BEHAVIOR)
+						CurrentInfo->Type.Hexen = true;
+					
+					// Found something so it is done
+					break;
+				}
+			
+			// If this isn't a textual map and a match was not found, back off
+			if (!CurrentInfo->Type.Text)
+				if (j == MAXPLIEDS)
+				{
+					// Reset and back off
+					LoadLumps = false;
+					CurrentInfo = NULL;
+					i--;
+					continue;
+				}
+		}
+	}
+	
+	/* Parse loaded infos */
+	for (i = 0; i < Holder->NumInfos; i++)
+	{
+		// Set current
+		CurrentInfo = Holder->Infos[i];
+		
+		// Check
+		if (!CurrentInfo)
 			continue;
+		
+		// Determine textual playability
+		if (CurrentInfo->Type.Text)
+		{
+			// ReMooD requires node information in textual maps (it does not
+			// build them), thus if they do not exist, you cannot play the
+			// level at all. This is until node building is implemented.
+			if (CurrentInfo->EntryPtr[PLIEDS_SEGS] &&
+				CurrentInfo->EntryPtr[PLIEDS_SSECTORS] &&
+				CurrentInfo->EntryPtr[PLIEDS_NODES] &&
+				CurrentInfo->EntryPtr[PLIEDS_REJECT] &&
+				CurrentInfo->EntryPtr[PLIEDS_BLOCKMAP])
+			{
+				CurrentInfo->Playable = true;
+			}
+			
+			// Not playable
+			else
+				CONS_Printf("P_WLInfoCreator: ReMooD requires textual format maps to contain node builder information to be played.\n");
 		}
 		
-		// Push entry to queue for later implementation
+		// Determine Doom/Hexen playability
+		else
+		{
+			// Require all required lumps
+			if (CurrentInfo->EntryPtr[PLIEDS_THINGS] &&
+				CurrentInfo->EntryPtr[PLIEDS_LINEDEFS] &&
+				CurrentInfo->EntryPtr[PLIEDS_SIDEDEFS] &&
+				CurrentInfo->EntryPtr[PLIEDS_VERTEXES] &&
+				CurrentInfo->EntryPtr[PLIEDS_SEGS] &&
+				CurrentInfo->EntryPtr[PLIEDS_SSECTORS] &&
+				CurrentInfo->EntryPtr[PLIEDS_NODES] &&
+				CurrentInfo->EntryPtr[PLIEDS_SECTORS] &&
+				CurrentInfo->EntryPtr[PLIEDS_REJECT] &&
+				CurrentInfo->EntryPtr[PLIEDS_BLOCKMAP])
+			{
+				CurrentInfo->Playable = true;
+			}
+		}
 		
-		// Clear base (FOR NOT YET IMPLEMENTED)
-		Base = NULL;
+		// Read header lump for Legacy map information
+		ReadStream = WL_StreamOpen(CurrentInfo->EntryPtr[PLIEDS_HEADER]);
+		
+		// Worked?
+		if (ReadStream)
+		{
+			// Determine unicode level
+			WL_StreamCheckUnicode(ReadStream);
+			
+			// Run through tokenizer and accept only "[level info]" and "[intertext]"
+				// [level info]
+				//   levelpic == Intermission Screen Picture (WILV)
+				// [intertext]
+				//   raw text == Intermission text
+
+	{IVT_STRING, "levelpic", &info_levelpic},
+	{IVT_STRING, "levelname", &info_levelname},
+	{IVT_INT, "partime", &info_partime},
+	{IVT_STRING, "music", &info_music},
+	{IVT_STRING, "skyname", &info_skyname},
+	{IVT_STRING, "creator", &info_creator},
+	{IVT_STRING, "interpic", &info_interpic},
+	{IVT_STRING, "nextlevel", &info_nextlevel},
+	{IVT_STRING, "nextsecret", &info_nextsecret},
+	{IVT_INT, "gravity", &gravity},
+	{IVT_STRING, "inter-backdrop", &info_backdrop},
+	{IVT_STRING, "defaultweapons", &info_weapons},
+	{IVT_CONSOLECMD, "consolecmd", NULL},
+			
+			// Read blocks and look for "[level info]"
+			while (!WL_StreamEOF(ReadStream))
+			{
+				// Read single character
+				Char = WL_StreamReadChar(ReadStream);
+			}
+		}
+		
+		// Debug
+		if (devparm)
+			CONS_Printf("P_WLInfoCreator: \"%s\" is %s and %s.\n",
+					CurrentInfo->LumpName,
+					(CurrentInfo->Type.Text ? "textual" : (CurrentInfo->Type.Hexen ? "Hexen" : "Doom")),
+					(CurrentInfo->Playable ? "is playable" : "cannot be played")
+				);
 	}
+	
+	/* Parse MAPINFO (Hexen/ZDoom) */
 	
 	return true;
 }

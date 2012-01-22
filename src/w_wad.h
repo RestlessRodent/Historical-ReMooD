@@ -223,6 +223,7 @@ void WL_StreamClose(WL_EntryStream_t* const a_Stream);
 
 uint32_t WL_StreamTell(WL_EntryStream_t* const a_Stream);
 uint32_t WL_StreamSeek(WL_EntryStream_t* const a_Stream, const uint32_t a_NewPos, const bool_t a_End);
+bool_t WL_StreamEOF(WL_EntryStream_t* const a_Stream);
 
 size_t WL_StreamRawRead(WL_EntryStream_t* const a_Stream, const size_t a_Offset, void* const a_Out, const size_t a_OutSize);
 
