@@ -171,7 +171,7 @@ bool_t CONL_IsActive(void);
 bool_t CONL_SetActive(const bool_t a_Set);
 bool_t CONL_HandleEvent(const I_EventEx_t* const a_Event);
 void CONL_Ticker(void);
-void CONL_DrawConsole(void);
+bool_t CONL_DrawConsole(void);
 
 /*** Console Commands ***/
 CONL_ExitCode_t CLC_Version(const uint32_t a_ArgC, const char** const a_ArgV);

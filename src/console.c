@@ -1349,11 +1349,11 @@ bool_t CONL_HandleEvent(const I_EventEx_t* const a_Event)
 }
 
 /* CONL_DrawConsole() -- Draws the console */
-void CONL_DrawConsole(void)
+bool_t CONL_DrawConsole(void)
 {
 	/*** DEDICATED SERVER ***/
 #if defined(__REMOOD_DEDICATED)
-	return;
+	return false;
 	
 	/*** STANDARD CLIENT ***/
 #else
@@ -1365,11 +1365,13 @@ void CONL_DrawConsole(void)
 	char TempFill[6];
 	CONL_BasicBuffer_t* Out;
 	
+	static int32_t BootLines = -1;
+	static int32_t BootCount = 0;
 	static V_Image_t* BackPic;
 	
 	/* Not for dedicated server */
 	if (g_DedicatedServer)
-		return;
+		return false;
 	
 	/* Get output buffer */
 	Out = &l_CONLBuffers[0];
@@ -1377,8 +1379,6 @@ void CONL_DrawConsole(void)
 	/* Console is active (draw the console) */
 	if (CONL_IsActive())
 	{
-		//V_DrawStringA(VFONT_STATUSBARSMALL, 0, "The console is {1Active{z!", 100, 100);
-		
 		// Fullscreen console?
 		FullCon = con_startup;
 		
@@ -1399,7 +1399,13 @@ void CONL_DrawConsole(void)
 				BackPic = V_ImageFindA("RMD_CB_D");
 				
 			// Blit to entire screen
-			V_ImageDraw(0, BackPic, 0, 0, NULL);
+			if (!con_startup || BootLines == -1)	// Draw only once here
+			{
+				V_ImageDraw(0, BackPic, 0, 0, NULL);
+				
+				// And initialize BootLines
+				BootLines = ((Out->EndLine - 1) & Out->MaskLine);
+			}
 			
 			// Get height of console
 			conH = vid.height;
@@ -1419,12 +1425,51 @@ void CONL_DrawConsole(void)
 		
 		// Draw every line
 		DrawCount = 0;
-		y = bh * (NumLines - (con_startup ? 0 : 2));
+		
+		// Start from the bottom if normal, top if boot
+		if (con_startup && BootCount < NumLines)
+			y = 0;
+		else
+			y = bh * (NumLines - (con_startup ? 0 : 2));
+		
+		// No lines needed?
+		if (con_startup)
+			if (BootLines == ((Out->EndLine - 1) & Out->MaskLine))
+				return false;
+		
+		// Draw each line
 		for (l = 0, i = 0, j = ((Out->EndLine - 1) & Out->MaskLine); i < NumLines; j = ((j - 1) & Out->MaskLine))
 		{
 			// Lines out of range? Or this is the first line?
 			if (!Out->Lines[j] || j == ((Out->StartLine) & Out->MaskLine))
 				break;
+			
+			// Boot console
+			if (con_startup)
+			{
+				// Only draw this line
+				if (BootLines != j)
+				{
+					//if (BootCount < NumLines)
+					//	y += bh;
+					continue;
+				}
+				
+				// Pull the screen up (if no more room)
+				if (BootCount >= NumLines)
+				{
+					memmove(screens[0], screens[0] + (vid.rowbytes * bh), (vid.rowbytes * (bh * (NumLines - 1))));
+				
+					// Draw black in the bottom portion
+					memset(screens[0] + (vid.rowbytes * (bh * (NumLines - 1))), 0, (vid.rowbytes * bh));
+					
+					y -= bh;
+				}
+				
+				// Draw first
+				else
+					y = bh * BootCount;
+			}
 				
 			// Skip drawing this line
 			if (l < l_CONLLineOff)
@@ -1459,6 +1504,7 @@ void CONL_DrawConsole(void)
 					x -= (x % (bw * 4));
 					BSkip = 1;
 				}
+				
 				// Make \1 and \3 special (white)
 				else if (*p == '\1' || *p == '\2')
 				{
@@ -1467,6 +1513,7 @@ void CONL_DrawConsole(void)
 					bx = 0;
 					BSkip = 1;
 				}
+				
 				// Non console special control (Legacy)
 				else if (*p > 7)
 					bx = V_DrawCharacterMB(CONLCONSOLEFONT, Options, TempFill, x, y, &BSkip, &Options);
@@ -1480,13 +1527,26 @@ void CONL_DrawConsole(void)
 				
 				if (bx)			// Some characters may return zero
 					x += bw;	// Monospaced instead of variable
+				
 				n = (n + BSkip) & Out->MaskPos;
 				p = &Out->Buffer[n];
 			}
 			
 			// Go down
-			y -= bh;
+			if (!(con_startup && BootCount < NumLines))
+				y -= bh;
 			DrawCount++;
+			
+			// If this is the boot console...
+			if (con_startup)
+			{
+				// Set last boot lines
+				BootLines = (j - 1) & Out->MaskPos;
+				BootCount++;
+				
+				// Break out, don't draw any more
+				break;
+			}
 		}
 		
 		// Draw console input line (as long as it is not startup)
@@ -1620,6 +1680,9 @@ void CONL_DrawConsole(void)
 			}
 		}
 	}
+	
+	/* Update screen */
+	return true;
 #endif /* __REMOOD_DEDICATED */
 }
 
@@ -2152,10 +2215,8 @@ void CONS_Printf(char* fmt, ...)
 		// GhostlyDeath <November 4, 2010> -- If we aren't devparming, draw once
 		if ((devparm && !g_QuietConsole) || ((!devparm || g_QuietConsole) && !AlreadyDrawn))
 		{
-			CONL_DrawConsole();
-			
-			//CON_Drawer();
-			I_FinishUpdate();	// page flip or blit buffer
+			if (CONL_DrawConsole())
+				I_FinishUpdate();	// page flip or blit buffer
 			
 			AlreadyDrawn = true;
 		}
