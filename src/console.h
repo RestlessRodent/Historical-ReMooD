@@ -90,6 +90,18 @@ typedef enum CONL_VariableType_e
 	MAXCONLVARIABLETYPES
 } CONL_VariableType_t;
 
+/* CONL_VariableState_t -- State of a variable */
+typedef enum CONL_VariableState_e
+{
+	CLVS_NORMAL,								// Normal Variable
+	CLVS_NEXTGAME,								// Next Game
+	CLVS_DEMOCOMPAT,							// Demo Compatibility
+	
+	CLVS_DEFAULT,								// Default variable
+	
+	MAXCONLVARIABLESTATES
+} CONL_VariableState_t;
+
 /*****************
 *** STRUCTURES ***
 *****************/
@@ -144,6 +156,15 @@ bool_t CONL_AddCommand(const char* const a_Name, CONL_ExitCode_t (*a_ComFunc)(co
 CONL_ExitCode_t CONL_Exec(const uint32_t a_ArgC, const char** const a_ArgV);
 
 /*** Console Variables */
+void CONL_VarSetString(const char* const a_VarName, const CONL_VariableState_t a_State, const char* const a_Value);
+void CONL_VerSetInt(const char* const a_VarName, const CONL_VariableState_t a_State, const int32_t a_Value);
+void CONL_VerSetFixed(const char* const a_VarName, const CONL_VariableState_t a_State, const fixed_t a_Value);
+void CONL_VerSetBool(const char* const a_VarName, const CONL_VariableState_t a_State, const bool_t a_Value);
+
+const char* CONL_VarGetString(const char* const a_VarName, const CONL_VariableState_t a_State);
+int32_t CONL_VarGetInt(const char* const a_VarName, const CONL_VariableState_t a_State);
+fixed_t CONL_VarGetFixed(const char* const a_VarName, const CONL_VariableState_t a_State);
+bool_t CONL_VarGetBool(const char* const a_VarName, const CONL_VariableState_t a_State);
 
 /*** Base Console ***/
 bool_t CONL_Init(const uint32_t a_OutBS, const uint32_t a_InBS);

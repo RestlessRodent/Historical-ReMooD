@@ -134,7 +134,17 @@ static CONCTI_Inputter_t* l_CONLInputter = NULL;	// Console inputter
 /* CONCTI_CreateInput() -- Creates common inputter */
 CONCTI_Inputter_t* CONCTI_CreateInput(const size_t a_NumHistory, const CONCTI_OutBack_t a_OutBack, CONCTI_Inputter_t** const a_RefPtr)
 {
+	/*** DEDICATED SERVER ***/
+#if defined(__REMOOD_DEDICATED)
+	return NULL;
+	
+	/*** STANDARD CLIENT ***/
+#else
 	CONCTI_Inputter_t* New;
+	
+	/* Not in dedicated */
+	if (g_DedicatedServer)
+		return NULL;
 	
 	/* Create new */
 	New = Z_Malloc(sizeof(*New), PU_STATIC, NULL);
@@ -149,12 +159,24 @@ CONCTI_Inputter_t* CONCTI_CreateInput(const size_t a_NumHistory, const CONCTI_Ou
 		New->History = Z_Malloc(sizeof(*New->History) * New->NumHistory, PU_STATIC, NULL);
 		
 	return New;
+#endif /* __REMOOD_DEDICATED */
 }
 
 /* CONCTI_DestroyInput() -- Destroys common inputter */
 void CONCTI_DestroyInput(CONCTI_Inputter_t* const a_Input)
 {
+
+	/*** DEDICATED SERVER ***/
+#if defined(__REMOOD_DEDICATED)
+	return;
+	
+	/*** STANDARD CLIENT ***/
+#else
 	size_t i;
+	
+	/* Not in dedicated */
+	if (g_DedicatedServer)
+		return;
 	
 	/* Check */
 	if (!a_Input)
@@ -178,11 +200,18 @@ void CONCTI_DestroyInput(CONCTI_Inputter_t* const a_Input)
 	
 	/* Delete self */
 	Z_Free(a_Input);
+#endif /* __REMOOD_DEDICATED */
 }
 
 /* CONCTI_HandleEvent() -- Handles event for inputter */
 bool_t CONCTI_HandleEvent(CONCTI_Inputter_t* const a_Input, const I_EventEx_t* const a_Event)
 {
+	/*** DEDICATED SERVER ***/
+#if defined(__REMOOD_DEDICATED)
+	return false;
+	
+	/*** STANDARD CLIENT ***/
+#else
 #define BUFSIZE 512
 	uint8_t Code;
 	uint16_t Char;
@@ -190,6 +219,10 @@ bool_t CONCTI_HandleEvent(CONCTI_Inputter_t* const a_Input, const I_EventEx_t* c
 	char MB[5];
 	char Buf[BUFSIZE];
 	CONCTI_MBChain_t* MBRover, *Last;
+	
+	/* Not in dedicated server */
+	if (g_DedicatedServer)
+		return false;
 	
 	/* Check */
 	if (!a_Input || !a_Event)
@@ -400,25 +433,48 @@ bool_t CONCTI_HandleEvent(CONCTI_Inputter_t* const a_Input, const I_EventEx_t* c
 	/* Fell through, do not eat */
 	return false;
 #undef BUFSIZE
+#endif /* __REMOOD_DEDICATED */
 }
 
 /* CONCTI_SetText() -- Sets text for inputter */
 void CONCTI_SetText(CONCTI_Inputter_t* const a_Input, const char* const a_Text)
 {
+	/*** DEDICATED SERVER ***/
+#if defined(__REMOOD_DEDICATED)
+	return;
+	
+	/*** STANDARD CLIENT ***/
+#else
+	
+	/* Not in dedicated server */
+	if (g_DedicatedServer)
+		return;
+
+#endif /* __REMOOD_DEDICATED */
 }
 
 /* CONCTI_DrawInput() -- Draws input text */
 int32_t CONCTI_DrawInput(CONCTI_Inputter_t* const a_Input, const uint32_t a_Options, const int32_t a_x, const int32_t a_y, const int32_t a_x2)
 {
+	/*** DEDICATED SERVER ***/
+#if defined(__REMOOD_DEDICATED)
+	return 0;
+	
+	/*** STANDARD CLIENT ***/
+#else
 	CONCTI_MBChain_t* MBRover;
 	uint32_t Options, DefaultOptions;
 	int32_t bx, x, j;
 	bool_t GotCur, CurVirtual;
 	uint16_t ThisChar, NextChar;
 	
+	/* Not in dedicated server */
+	if (g_DedicatedServer)
+		return 0;
+	
 	/* Check */
 	if (!a_Input)
-		return NULL;
+		return 0;
 	
 	/* Default check */
 	DefaultOptions = a_Options & (VFO_COLORMASK | VFO_TRANSMASK);
@@ -513,8 +569,11 @@ int32_t CONCTI_DrawInput(CONCTI_Inputter_t* const a_Input, const uint32_t a_Opti
 	Options = a_Options;
 	Options &= ~VFO_COLORMASK;
 	Options |= VFO_COLOR(VEX_MAP_BRIGHTWHITE);
+	
 	if ((gametic >> 4) & 1)
 		V_DrawCharacterA(CONLCONSOLEFONT, Options, (a_Input->Overwrite ? 0x7F : '_'), bx, a_y);
+		
+#endif /* __REMOOD_DEDICATED */
 }
 
 /*** Static Stuff ***/
@@ -603,7 +662,7 @@ static void CONLFF_OutputFF(const char* const a_Buf)
 	/* Check */
 	if (!a_Buf)
 		return;
-		
+
 	/* Default destination is player 1's buffer */
 	pNum = 1;
 	memset(Buf, 0, sizeof(Buf));
@@ -615,12 +674,16 @@ static void CONLFF_OutputFF(const char* const a_Buf)
 		// Annoying beep?
 		if (*p == 1 || *p == 3)
 		{
-			S_StartSound(0, (commercial ? sfx_radio : sfx_tink));
+#if !defined(__REMOOD_DEDICATED)
+			if (!g_DedicatedServer)
+				S_StartSound(0, (commercial ? sfx_radio : sfx_tink));
+#endif /* __REMOOD_DEDICATED */
 			
 			// Beep only
 			if (*p == 1)
 				continue;
 		}
+		
 		// Adding white?
 		if (*p == 2 || *p == 3)
 		{
@@ -628,18 +691,21 @@ static void CONLFF_OutputFF(const char* const a_Buf)
 			n += 2;
 			continue;
 		}
+		
 		// Only player x's screen
 		if (*p >= 4 && *p <= 6)
 		{
 			pNum = 1 << ((*p - 4) + 1);
 			continue;
 		}
+		
 		// Every player's screen
 		if (*p == 7)
 		{
 			pNum = 0xF;
 			continue;
 		}
+		
 		// Output normal text
 		if (n < MAXCONLPMQBUFSIZE)
 			Buf[n++] = *p;
@@ -649,11 +715,16 @@ static void CONLFF_OutputFF(const char* const a_Buf)
 	Buf[MAXCONLPMQBUFSIZE - 1] = 0;
 	
 	/* Print text to console */
-	if (devparm || !con_started)
+	if (devparm || !con_started || g_DedicatedServer)
 	{
 		I_OutputText(Buf);
 		I_OutputText("\n");
 	}
+
+#if !defined(__REMOOD_DEDICATED)
+	/* Not in dedicated server */
+	if (g_DedicatedServer)
+		return;
 	
 	/* Add messages to queues */
 	CurrentTime = I_GetTime();
@@ -681,6 +752,7 @@ static void CONLFF_OutputFF(const char* const a_Buf)
 			l_CONLMessageQ[i][j].Flags = VFO_NOSCALEPATCH | VFO_NOSCALESTART | VFO_NOSCALELORES;
 			strncat(l_CONLMessageQ[i][j].Text, Buf, MAXCONLPMQBUFSIZE);
 		}
+#endif /* __REMOOD_DEDICATED */
 }
 
 /* CONLFF_InputFF() -- Line is flushed from the input buffer */
@@ -799,18 +871,6 @@ static CONL_ExitCode_t g_CONLError = CLE_SUCCESS;			// '? command' Exit Code
 static CONL_ConCommand_t* l_CONLCommands = NULL;			// Console commands
 static size_t l_CONLNumCommands = 0;						// Number of commands
 static Z_HashTable_t* l_CONLCommandHashes = NULL;			// Speed lookup
-
-/* CONL_ConVariable_t -- Console variable */
-typedef struct CONL_ConVariable_s
-{
-	char Name[MAXCONLVARIABLENAME];				// Name of variable
-	CONL_VariableType_t Type;					// Type of variable
-	
-} CONL_ConVariable_t;
-
-static CONL_ConVariable_t** l_CONLVariables = NULL;			// Console variables
-static size_t l_CONLNumVariables = 0;						// Number of variables
-static Z_HashTable_t* l_CONLVariableHashes = NULL;			// Speed lookup
 
 /* CONL_CommandHashCompare() -- Compares entry hash */
 // A = const char*
@@ -1731,6 +1791,84 @@ bool_t CONL_DrawConsole(void)
 #endif /* __REMOOD_DEDICATED */
 }
 
+/*** CONSOLE VARIABLES ***/
+
+/* CONL_ConVariable_t -- Console variable */
+typedef struct CONL_ConVariable_s
+{
+	char Name[MAXCONLVARIABLENAME];				// Name of variable
+	CONL_VariableType_t Type;					// Type of variable
+	
+	struct
+	{
+		char* StringVal;						// String value
+		int32_t IntVal;							// Integer value
+		fixed_t FixedVal;						// Fixed value
+		bool_t BoolVal;							// Bool value
+	} Values[MAXCONLVARIABLESTATES];			// State variables
+} CONL_ConVariable_t;
+
+static CONL_ConVariable_t** l_CONLVariables = NULL;			// Console variables
+static size_t l_CONLNumVariables = 0;						// Number of variables
+static Z_HashTable_t* l_CONLVariableHashes = NULL;			// Speed lookup
+
+/* CONL_VarSetString() -- Set variable string */
+void CONL_VarSetString(const char* const a_VarName, const CONL_VariableState_t a_State, const char* const a_Value)
+{
+}
+
+/* CONL_VerSetInt() -- Set Integer Value */
+void CONL_VerSetInt(const char* const a_VarName, const CONL_VariableState_t a_State, const int32_t a_Value)
+{
+}
+
+/* CONL_VerSetFixed() -- Set fixed value */
+void CONL_VerSetFixed(const char* const a_VarName, const CONL_VariableState_t a_State, const fixed_t a_Value);
+
+/* CONL_VerSetBool() -- Set bool value */
+void CONL_VerSetBool(const char* const a_VarName, const CONL_VariableState_t a_State, const bool_t a_Value);
+
+/* CONL_VarGetString() -- Get variable string */
+const char* CONL_VarGetString(const char* const a_VarName, const CONL_VariableState_t a_State)
+{
+	const char* a_Val;
+	
+	/* Check */
+	if (!a_VarName || a_State < 0 || a_State >= MAXCONLVARIABLESTATES)
+		return NULL;
+}
+
+/* CONL_VarGetInt() -- Get integer value */
+int32_t CONL_VarGetInt(const char* const a_VarName, const CONL_VariableState_t a_State)
+{
+	const char* a_Val;
+	
+	/* Check */
+	if (!a_VarName || a_State < 0 || a_State >= MAXCONLVARIABLESTATES)
+		return 0;
+}
+
+/* CONL_VarGetFixed() -- Get fixed value */
+fixed_t CONL_VarGetFixed(const char* const a_VarName, const CONL_VariableState_t a_State)
+{
+	const char* a_Val;
+	
+	/* Check */
+	if (!a_VarName || a_State < 0 || a_State >= MAXCONLVARIABLESTATES)
+		return 0;
+}
+
+/* CONL_VarGetBool() -- Get bool value */
+bool_t CONL_VarGetBool(const char* const a_VarName, const CONL_VariableState_t a_State)
+{
+	const char* a_Val;
+	
+	/* Check */
+	if (!a_VarName || a_State < 0 || a_State >= MAXCONLVARIABLESTATES)
+		return false;
+}
+
+/*** BASE CONSOLE COMMANDS ***/
 /* CLC_Version() -- ReMooD version info */
 CONL_ExitCode_t CLC_Version(const uint32_t a_ArgC, const char** const a_ArgV)
 {
