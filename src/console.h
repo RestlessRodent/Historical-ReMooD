@@ -102,6 +102,18 @@ typedef enum CONL_VariableState_e
 	MAXCONLVARIABLESTATES
 } CONL_VariableState_t;
 
+/* CONL_VariableFlags_t -- Flags for variables */
+typedef enum CONL_VariableFlags_e
+{
+	CLVF_SAVE					= 0x00000001U,	// Save in config file
+	CLVF_GAMESTATE				= 0x00000002U,	// Part of the game state
+												// Only server can change.
+	CLVF_SERVERSTATE			= 0x00000004U,	// Server State (send to clients
+												// for server info).
+	CLVF_CLIENTSTATE			= 0x00000008U,	// Client State (send to server
+												// for client info).
+} CONL_VariableFlags_t;
+
 /*****************
 *** STRUCTURES ***
 *****************/
@@ -143,7 +155,9 @@ typedef struct CONCTI_Inputter_s
 // This is the defined local/global, which is then registered
 typedef struct CONL_StaticVar_s
 {
-	const char* const VarName;					// Variable name
+	const char* const VarName;					// Variable Name
+	CONL_VariableType_t Type;					// Variable Type
+	uint32_t Flags;								// Flags for variable
 } CONL_StaticVar_t;
 
 /*****************
