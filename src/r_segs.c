@@ -145,7 +145,7 @@ static void R_DrawSplatColumn(column_t* column)
 			dc_source = (uint8_t*)column + 3;
 			dc_texturemid = basetexturemid - (column->topdelta << FRACBITS);
 			
-			//CONS_Printf("l %d h %d %d\n",dc_yl,dc_yh, column->length);
+			//CONL_PrintF("l %d h %d %d\n",dc_yl,dc_yh, column->length);
 			// Drawn by either R_DrawColumn
 			//  or (SHADOW) R_DrawFuzzColumn.
 			colfunc();
@@ -175,7 +175,7 @@ static void R_DrawWallSplats()
 	// GhostlyDeath <November 3, 2010> -- PARANOIA removal
 	if (!splat)
 	{
-		CONS_Printf("WARNING - R_DrawWallSplats: splat is NULL (%s:%i).\n", __FILE__, __LINE__);
+		CONL_PrintF("WARNING - R_DrawWallSplats: splat is NULL (%s:%i).\n", __FILE__, __LINE__);
 		return;
 	}
 	
@@ -301,7 +301,7 @@ static void R_DrawWallSplats()
 			//DEBUG
 			
 			// FIXME !
-//            CONS_Printf ("%.2f width %d, %d[x], %.1f[off]-%.1f[soff]-tg(%d)=%.1f*%.1f[d] = %.1f\n",
+//            CONL_PrintF ("%.2f width %d, %d[x], %.1f[off]-%.1f[soff]-tg(%d)=%.1f*%.1f[d] = %.1f\n",
 //                         FIXED_TO_FLOAT(texturecolumn), LittleSwapInt16(patch->width),
 //                         dc_x,FIXED_TO_FLOAT(rw_offset2),FIXED_TO_FLOAT(splat->offset),angle,FIXED_TO_FLOAT(finetangent[angle]),FIXED_TO_FLOAT(rw_distance),FIXED_TO_FLOAT(FixedMul(finetangent[angle],rw_distance)));
 			texturecolumn >>= FRACBITS;

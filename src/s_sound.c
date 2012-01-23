@@ -710,7 +710,7 @@ void S_Init(int sfxVolume, int musicVolume)
 		I_SoundBufferRequest(IST_WAVEFORM, cv_snd_sounddensity.value, cv_snd_soundquality.value, cv_snd_speakersetup.value, cv_snd_buffersize.value)))
 		{
 			l_Bits = l_Freq = l_Channels = l_Len = 0;
-			CONS_Printf("S_Init: Failed to obtain a sound buffer.\n");
+			CONL_PrintF("S_Init: Failed to obtain a sound buffer.\n");
 		}
 		// Setup buffer
 		else
@@ -720,7 +720,7 @@ void S_Init(int sfxVolume, int musicVolume)
 			
 			// Is multi-thread?
 			if (l_ThreadedSound)
-				CONS_Printf("S_Init: Sound is multi-threaded!\n");
+				CONL_PrintF("S_Init: Sound is multi-threaded!\n");
 				
 			// Remember settings
 			l_Bits = cv_snd_sounddensity.value;
@@ -729,7 +729,7 @@ void S_Init(int sfxVolume, int musicVolume)
 			
 			// Frequency did not match
 			if (l_Freq != cv_snd_soundquality.value)
-				CONS_Printf("S_Init: Requested %iHz but got %iHz\n", cv_snd_soundquality.value, l_Freq);
+				CONL_PrintF("S_Init: Requested %iHz but got %iHz\n", cv_snd_soundquality.value, l_Freq);
 		}
 	}
 }

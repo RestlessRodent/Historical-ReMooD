@@ -677,7 +677,7 @@ void Command_Water_f(void)
 {
 	if (COM_Argc() < 2)
 	{
-		CONS_Printf("dev_water [height] : set water level (development test)");
+		CONL_PrintF("dev_water [height] : set water level (development test)");
 		
 		if (players[consoleplayer[0]].mo)
 			dev_waterheight = players[consoleplayer[0]].mo->z + (16 << 16) + 1;
@@ -1034,7 +1034,7 @@ void R_RenderBSPNode(int bspnum)
 		if ((bsp = *--bspnum_p) == NULL)
 		{
 			// we're done
-			//CONS_Printf ("Subsectors visited: %d\n", visited);
+			//CONL_PrintF ("Subsectors visited: %d\n", visited);
 			return;
 		}
 		// Possibly divide back space.

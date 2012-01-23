@@ -139,7 +139,7 @@ bool_t P_GiveAmmo(player_t* player, ammotype_t ammo, int count)
 		
 	if (ammo < 0 || ammo > NUMAMMO)
 	{
-		CONS_Printf("\2P_GiveAmmo: bad type %i", ammo);
+		CONL_PrintF("\2P_GiveAmmo: bad type %i", ammo);
 		return false;
 	}
 	
@@ -462,8 +462,8 @@ void PS_PickupMessage(mobj_t* const a_Picker, mobj_t* const a_Upper, const char*
 		
 	/* Print to console (to that player only) */
 	if (i >= 1)
-		CONS_Printf("%c", 4 + (i - 1));
-	CONS_Printf("%s\n", Buf);
+		CONL_PrintF("%c", 4 + (i - 1));
+	CONL_PrintF("%s\n", Buf);
 #undef BUFSIZE
 }
 
@@ -793,7 +793,7 @@ void P_TouchSpecialThing(mobj_t* special, mobj_t* toucher)
 			
 		default:
 			// SoM: New gettable things with FraggleScript!
-			//CONS_Printf ("\2P_TouchSpecialThing: Unknown gettable thing\n");
+			//CONL_PrintF ("\2P_TouchSpecialThing: Unknown gettable thing\n");
 			return;
 	}
 	
@@ -968,7 +968,7 @@ static void P_DeathMessages(mobj_t* target, mobj_t* inflictor, mobj_t* source)
 	   return; */
 	
 	/* Print message */
-	CONS_Printf("\x7{4%s{0 -> {5%s {2({3%s{2)\n", sNoun, tNoun, iNoun);
+	CONL_PrintF("\x7{4%s{0 -> {5%s {2({3%s{2)\n", sNoun, tNoun, iNoun);
 	
 #undef BUFSIZE
 	
@@ -988,11 +988,11 @@ static void P_DeathMessages(mobj_t* target, mobj_t* inflictor, mobj_t* source)
 				char txt[512];
 				
 				sprintf(txt, text[DEATHMSG_SUICIDE], player_names[target->player - players]);
-				CONS_Printf(txt);
-				CONS_Printf("\4%s", txt);
+				CONL_PrintF(txt);
+				CONL_PrintF("\4%s", txt);
 			}
 			else
-				CONS_Printf(text[DEATHMSG_SUICIDE], player_names[target->player - players]);
+				CONL_PrintF(text[DEATHMSG_SUICIDE], player_names[target->player - players]);
 		}
 		else
 		{
@@ -1061,11 +1061,11 @@ static void P_DeathMessages(mobj_t* target, mobj_t* inflictor, mobj_t* source)
 				char txt[512];
 				
 				sprintf(txt, str, player_names[target->player - players], player_names[source->player - players]);
-				CONS_Printf(txt);
-				CONS_Printf("\4%s", txt);
+				CONL_PrintF(txt);
+				CONL_PrintF("\4%s", txt);
 			}
 			else
-				CONS_Printf(str, player_names[target->player - players], player_names[source->player - players]);
+				CONL_PrintF(str, player_names[target->player - players], player_names[source->player - players]);
 		}
 	}
 	else
@@ -1091,7 +1091,7 @@ static void P_DeathMessages(mobj_t* target, mobj_t* inflictor, mobj_t* source)
 			{
 				if (target->type == MT_BARREL)
 				{
-					CONS_Printf(text[DEATHMSG_BARRELFRAG], player_names[target->player - players], player_names[source->target->player - players]);
+					CONL_PrintF(text[DEATHMSG_BARRELFRAG], player_names[target->player - players], player_names[source->target->player - players]);
 					return;
 				}
 				else
@@ -1159,7 +1159,7 @@ static void P_DeathMessages(mobj_t* target, mobj_t* inflictor, mobj_t* source)
 						break;
 				}
 		}
-		CONS_Printf(str, player_names[target->player - players]);
+		CONL_PrintF(str, player_names[target->player - players]);
 	}
 #endif
 }
@@ -1359,7 +1359,7 @@ void P_KillMobj(mobj_t* target, mobj_t* inflictor, mobj_t* source)
 				break;
 				
 			default:
-				//CONS_Printf("Unknown weapon %d\n", target->player->readyweapon);
+				//CONL_PrintF("Unknown weapon %d\n", target->player->readyweapon);
 				return;
 		}
 	}

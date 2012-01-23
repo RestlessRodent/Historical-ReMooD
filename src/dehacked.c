@@ -86,7 +86,7 @@ char* myfgets(char* buf, int bufsize, MYFILE* f)
 			break;
 	}
 	buf[i] = '\0';
-	//CONS_Printf("fgets [0]=%d [1]=%d '%s'\n",buf[0],buf[1],buf);
+	//CONL_PrintF("fgets [0]=%d [1]=%d '%s'\n",buf[0],buf[1],buf);
 	
 	return buf;
 }
@@ -128,7 +128,7 @@ static void deh_error(char* first, ...)
 		vsprintf(buf, first, argptr);
 		va_end(argptr);
 		
-		CONS_Printf("%s\n", buf);
+		CONL_PrintF("%s\n", buf);
 	}
 	
 	deh_num_error++;
@@ -920,7 +920,7 @@ void DEH_LoadDehackedFile(MYFILE* f)
 	}							// end while
 	if (deh_num_error > 0)
 	{
-		CONS_Printf("%d warning(s) in the dehacked file\n", deh_num_error);
+		CONL_PrintF("%d warning(s) in the dehacked file\n", deh_num_error);
 		if (devparm)
 			getchar();
 	}

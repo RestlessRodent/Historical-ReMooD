@@ -378,7 +378,7 @@ bool_t I_MUS2MID_MUSReadNextMessage(I_MUS2MIDData_t* const a_Local, uint32_t* co
 			// Unknown
 		default:
 			if (devparm)
-				CONS_Printf("I_MUS2MID_MUSReadNextMessage: Unknown %i\n", Event);
+				CONL_PrintF("I_MUS2MID_MUSReadNextMessage: Unknown %i\n", Event);
 			break;
 	}
 	
@@ -439,7 +439,7 @@ bool_t I_MUS2MID_Init(struct I_MusicDriver_s* const a_Driver)
 		
 	/* Feeding? */
 	if (Local->FeedMessages)
-		CONS_Printf("I_MUS2MID_Init: Feeding messages into %s.\n", Local->RealDriver->Name);
+		CONL_PrintF("I_MUS2MID_Init: Feeding messages into %s.\n", Local->RealDriver->Name);
 		
 	return true;
 }
@@ -735,7 +735,7 @@ int I_MUS2MID_Play(struct I_MusicDriver_s* const a_Driver, const void* const a_D
 		return 0;
 		
 	if (devparm)
-		CONS_Printf("I_MUS2MID_Play: Converting MUS to MIDI.\n");
+		CONL_PrintF("I_MUS2MID_Play: Converting MUS to MIDI.\n");
 		
 	/* Basic Init */
 	Local->LocalDelta = 0;
@@ -1010,7 +1010,7 @@ bool_t I_InitMusic(void)
 {
 	/* Add interface specific stuff */
 	if (!I_MusicDriverInit())
-		CONS_Printf("I_InitMusic: Failed to add interface specific drivers.\n");
+		CONL_PrintF("I_InitMusic: Failed to add interface specific drivers.\n");
 		
 	/* Add our own virtual drivers that always work */
 	// OPL Emulation!
@@ -1019,7 +1019,7 @@ bool_t I_InitMusic(void)
 	
 	// ReMooD MUS2MID Driver
 	if (!I_AddMusicDriver(&l_MUS2MIDDriver))
-		CONS_Printf("I_InitMusic: Failed to add the MUS2MID driver, you will not hear MUS music.\n");
+		CONL_PrintF("I_InitMusic: Failed to add the MUS2MID driver, you will not hear MUS music.\n");
 		
 	/* Return only if music drivers were loaded */
 	return ! !l_NumMusicDrivers;
@@ -1033,7 +1033,7 @@ void I_ShutdownMusic(void)
 	/* Destroy all drivers */
 	for (i = 0; i < l_NumMusicDrivers; i++)
 		if (!I_RemoveMusicDriver(l_MusicDrivers[i]))
-			CONS_Printf("I_ShutdownMusic: Failed to remove driver.\n");
+			CONL_PrintF("I_ShutdownMusic: Failed to remove driver.\n");
 			
 	/* Destroy array */
 	Z_Free(l_MusicDrivers);
@@ -1073,7 +1073,7 @@ I_MusicType_t I_DetectMusicType(const uint8_t* const a_Data, const size_t a_Size
 		
 	/* Print magic number */
 	if (devparm)
-		CONS_Printf("I_DetectMusicType: Magic \"%c%c%c%c\".\n", a_Data[0], a_Data[1], a_Data[2], a_Data[3]);
+		CONL_PrintF("I_DetectMusicType: Magic \"%c%c%c%c\".\n", a_Data[0], a_Data[1], a_Data[2], a_Data[3]);
 		
 	/* Check for MIDI format */
 	if (a_Data[0] == 'M' && a_Data[1] == 'T' && a_Data[2] == 'h' && a_Data[3] == 'd')
@@ -1134,7 +1134,7 @@ int I_RegisterSong(const char* const a_Lump)
 	if (!New.Driver)
 	{
 		// Debug
-		CONS_Printf("I_RegisterSong: Song format is not supported (Type = %i)!\n", New.Type);
+		CONL_PrintF("I_RegisterSong: Song format is not supported (Type = %i)!\n", New.Type);
 		
 		// Unuse the data (so it gets freed)
 		WX_UseEntry(New.Entry, false);
@@ -1146,12 +1146,12 @@ int I_RegisterSong(const char* const a_Lump)
 	{
 		// Debug
 		if (devparm)
-			CONS_Printf("I_RegisterSong: Driver \"%s\" requires external files.\n", New.Driver->Name);
+			CONL_PrintF("I_RegisterSong: Driver \"%s\" requires external files.\n", New.Driver->Name);
 			
 		// Create temporary file with data
 		if (!I_DumpTemporary(SongPath, BUFSIZE, New.Data, New.EntryLength))
 		{
-			CONS_Printf("I_RegisterSong: Failed to file to disk!\n");
+			CONL_PrintF("I_RegisterSong: Failed to file to disk!\n");
 			WX_UseEntry(New.Entry, false);
 			return 0;
 		}
@@ -1434,7 +1434,7 @@ bool_t I_StartupSound(void)
 {
 	/* Add interface specific stuff */
 	if (!I_SoundDriverInit())
-		CONS_Printf("I_StartupSound: Failed to add interface specific drivers.\n");
+		CONL_PrintF("I_StartupSound: Failed to add interface specific drivers.\n");
 		
 	/* Add exit function */
 	I_AddExitFunc(I_ShutdownSound);
@@ -1451,7 +1451,7 @@ void I_ShutdownSound(void)
 	/* Destroy all drivers */
 	for (i = 0; i < l_NumSoundDrivers; i++)
 		if (!I_RemoveSoundDriver(l_SoundDrivers[i]))
-			CONS_Printf("I_ShutdownSound: Failed to remove driver.\n");
+			CONL_PrintF("I_ShutdownSound: Failed to remove driver.\n");
 			
 	/* Destroy array */
 	Z_Free(l_SoundDrivers);

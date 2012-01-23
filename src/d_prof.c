@@ -270,14 +270,14 @@ static ProfileInfo_t* PROF_CreateProfile(char* Name)
 	InGameProfileChooser.value = 0;
 	InGameProfileChooser.string = DynPossible[0].strvalue;
 	
-	CONS_Printf("PROF_Init: Created profile \"%s\"!\n", Name);
+	CONL_PrintF("PROF_Init: Created profile \"%s\"!\n", Name);
 	
 	return Temp;
 }
 
 void PROF_Init(void)
 {
-	CONS_Printf("PROF_Init: Initializing profile subsystem...\n");
+	CONL_PrintF("PROF_Init: Initializing profile subsystem...\n");
 	
 	// Create Default profile
 	PROF_CreateProfile("default");
@@ -287,7 +287,7 @@ void PROF_Init(void)
 
 void PROF_Shutdown(void)
 {
-	CONS_Printf("PROF_Init: Stopping profile subsystem...\n");
+	CONL_PrintF("PROF_Init: Stopping profile subsystem...\n");
 }
 
 void PROF_HandleVAR(char* arg0, char* arg1)

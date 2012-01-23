@@ -307,7 +307,7 @@ static bool_t DS_RMODPDC(const struct WL_WADFile_s* const a_WAD, const uint32_t 
 	if (!(DataEntry = WL_FindEntry(a_WAD, 0, "REMOODAT")))
 	{
 		if (devparm)
-			CONS_Printf("DS_RMODPDC: There is no REMOODAT here.\n");
+			CONL_PrintF("DS_RMODPDC: There is no REMOODAT here.\n");
 		return true;
 	}
 	
@@ -320,7 +320,7 @@ static bool_t DS_RMODPDC(const struct WL_WADFile_s* const a_WAD, const uint32_t 
 	
 	// Info
 	if (devparm)
-		CONS_Printf("DS_RMODPDC: Parsing REMOODAT...\n");
+		CONL_PrintF("DS_RMODPDC: Parsing REMOODAT...\n");
 	
 	/* Use streamer */
 	DataStream = WL_StreamOpen(DataEntry);
@@ -329,7 +329,7 @@ static bool_t DS_RMODPDC(const struct WL_WADFile_s* const a_WAD, const uint32_t 
 	if (!DataStream)
 	{
 		if (devparm)
-			CONS_Printf("DS_RMODPDC: Failed to open stream.\n");
+			CONL_PrintF("DS_RMODPDC: Failed to open stream.\n");
 		return false;
 	}
 	
@@ -396,7 +396,7 @@ static bool_t DS_RMODPDC(const struct WL_WADFile_s* const a_WAD, const uint32_t 
 						{
 							// Call handler
 							if (!c_RMODHandlers[i].HandleFunc(CurrentTable, a_WAD, i, &Stuff->Private[i]))
-								CONS_Printf("DS_RMODPDC: Handler for \"%s\" failed.\n", TokVals[0]);
+								CONL_PrintF("DS_RMODPDC: Handler for \"%s\" failed.\n", TokVals[0]);
 							
 							// No more handling needed
 							break;
@@ -404,7 +404,7 @@ static bool_t DS_RMODPDC(const struct WL_WADFile_s* const a_WAD, const uint32_t 
 					
 					// Not found?
 					if (i == NUMDRMODPRIVATES)
-						CONS_Printf("DS_RMODPDC: No data handler for \"%s\".\n", TokVals[0]);
+						CONL_PrintF("DS_RMODPDC: No data handler for \"%s\".\n", TokVals[0]);
 					
 					// Destroy table, not needed
 					Z_TableDestroy(CurrentTable);
@@ -558,10 +558,10 @@ static bool_t DS_RMODPDC(const struct WL_WADFile_s* const a_WAD, const uint32_t 
 	
 	// Was there a problem?
 	if (Info.TokenProblem)
-		CONS_Printf("DS_RMODPDC: Token error \"%s\" at row %i, column %i.\n", Info.TokenProblem, Info.CurRow + 1, Info.CurCol);
+		CONL_PrintF("DS_RMODPDC: Token error \"%s\" at row %i, column %i.\n", Info.TokenProblem, Info.CurRow + 1, Info.CurCol);
 	
 	if (ErrorText)
-		CONS_Printf("DS_RMODPDC: Parse error \"%s\" at row %i, column %i.\n", ErrorText, Info.CurRow + 1, Info.CurCol);
+		CONL_PrintF("DS_RMODPDC: Parse error \"%s\" at row %i, column %i.\n", ErrorText, Info.CurRow + 1, Info.CurCol);
 	
 	/* Free streamer */
 	WL_StreamClose(DataStream);
@@ -579,7 +579,7 @@ static bool_t DS_RMODOCCB(const bool_t a_Pushed, const struct WL_WADFile_s* cons
 	for (i = 0; i < NUMDRMODPRIVATES; i++)
 		if (!c_RMODHandlers[i].OrderFunc(a_Pushed, a_WAD, i))
 			if (devparm)
-				CONS_Printf("DS_RMODOCCB: Order change for \"%s\" failed.\n", c_RMODHandlers[i].TableType);
+				CONL_PrintF("DS_RMODOCCB: Order change for \"%s\" failed.\n", c_RMODHandlers[i].TableType);
 	
 	/* Success! */
 	return true;

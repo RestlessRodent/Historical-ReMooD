@@ -123,9 +123,9 @@ void M_PushSpecialParametersAsOne(const bool_t plusplus)
 			if (devparm)
 			{
 				if (plusplus)
-					CONS_PrintfUL(SRCSTR__M_ARGV_C__EXECPP, L"%s", s);
+					CONL_PrintFUL(SRCSTR__M_ARGV_C__EXECPP, L"%s", s);
 				else
-					CONS_PrintfUL(SRCSTR__M_ARGV_C__EXECP, L"%s", s);
+					CONL_PrintFUL(SRCSTR__M_ARGV_C__EXECP, L"%s", s);
 			}
 #endif
 			COM_BufAddText(s);
@@ -177,7 +177,7 @@ void M_FindResponseFile(void)
 				I_Error("\nResponse file %s not found !", &myargv[i][1]);
 				exit(1);
 			}
-			CONS_Printf("Found response file %s!\n", &myargv[i][1]);
+			CONL_PrintF("Found response file %s!\n", &myargv[i][1]);
 			fseek(handle, 0, SEEK_END);
 			size = ftell(handle);
 			fseek(handle, 0, SEEK_SET);
@@ -218,9 +218,9 @@ void M_FindResponseFile(void)
 			myargc = indexinfile;
 			
 			// DISPLAY ARGS
-			CONS_Printf("%d command-line args:\n", myargc);
+			CONL_PrintF("%d command-line args:\n", myargc);
 			for (k = 1; k < myargc; k++)
-				CONS_Printf("%s\n", myargv[k]);
+				CONL_PrintF("%s\n", myargv[k]);
 				
 			break;
 		}

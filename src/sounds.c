@@ -474,7 +474,7 @@ int S_AddSoundFx(char* name, int singularity)
 		}
 	}
 	
-	CONS_Printf("\2No more free sound slots\n");
+	CONL_PrintF("\2No more free sound slots\n");
 	return 0;
 }
 
@@ -510,7 +510,7 @@ int S_AddMusic(char* name)
 		}
 	}
 	
-	CONS_Printf("All music slots are full!\n");
+	CONL_PrintF("All music slots are full!\n");
 	return 0;
 }
 

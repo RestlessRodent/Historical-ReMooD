@@ -119,7 +119,7 @@ void SF_Print()
 		
 	for (i = 0; i < t_argc; i++)
 	{
-		CONS_Printf("%s", stringvalue(t_argv[i]));
+		CONL_PrintF("%s", stringvalue(t_argv[i]));
 	}
 }
 
@@ -254,12 +254,12 @@ void SF_Input()
 	   t_return.type = svt_string;
 	   t_return.value.s = inputstr;
 	 */
-	CONS_Printf("input() function not available in doom\a\n");
+	CONL_PrintF("input() function not available in doom\a\n");
 }
 
 void SF_Beep()
 {
-	CONS_Printf("\3");
+	CONL_PrintF("\3");
 }
 
 void SF_Clock()
@@ -328,7 +328,7 @@ void SF_TimedTip()
 	for (i = 1; i < t_argc; i++)
 		sprintf(tempstr, "%s%s", tempstr, stringvalue(t_argv[i]));
 		
-	//CONS_Printf("%s\n", tempstr);
+	//CONL_PrintF("%s\n", tempstr);
 	HU_SetTip(tempstr, tiptime);
 	Z_Free(tempstr);
 }
@@ -360,7 +360,7 @@ void SF_PlayerTip()
 	for (i = 1; i < t_argc; i++)
 		sprintf(tempstr, "%s%s", tempstr, stringvalue(t_argv[i]));
 		
-	//CONS_Printf("%s\n", tempstr);
+	//CONL_PrintF("%s\n", tempstr);
 	HU_SetTip(tempstr, 53);
 	Z_Free(tempstr);
 }
@@ -384,7 +384,7 @@ void SF_Message()
 	for (i = 0; i < t_argc; i++)
 		sprintf(tempstr, "%s%s", tempstr, stringvalue(t_argv[i]));
 		
-	CONS_Printf("%s\n", tempstr);
+	CONL_PrintF("%s\n", tempstr);
 	Z_Free(tempstr);
 }
 
@@ -438,7 +438,7 @@ void SF_PlayerMsg()
 	for (i = 1; i < t_argc; i++)
 		sprintf(tempstr, "%s%s", tempstr, stringvalue(t_argv[i]));
 		
-	CONS_Printf("%s\n", tempstr);
+	CONL_PrintF("%s\n", tempstr);
 	Z_Free(tempstr);
 }
 
@@ -1874,7 +1874,7 @@ void SF_MoveCamera()
 		}
 	}
 	
-	//CONS_Printf("angle: cam=%i, target=%i; dir: %i; quads: 1=%i, 2=%i\n", camera->angle / ANGLE_1, targetangle / ANGLE_1, angledir, quad1, quad2);
+	//CONL_PrintF("angle: cam=%i, target=%i; dir: %i; quads: 1=%i, 2=%i\n", camera->angle / ANGLE_1, targetangle / ANGLE_1, angledir, quad1, quad2);
 	// set the step variables based on distance and speed...
 	mobjangle = R_PointToAngle2(camera->x, camera->y, target->x, target->y);
 	
@@ -1897,7 +1897,7 @@ void SF_MoveCamera()
 			else
 				fanglestep = 360;
 				
-			//CONS_Printf("fstep: %f, fdist: %f, fmspeed: %f, ms: %i\n", fanglestep, fangledist, fmovestep, FixedDiv(xydist, movespeed) >> FRACBITS);
+			//CONL_PrintF("fstep: %f, fdist: %f, fmspeed: %f, ms: %i\n", fanglestep, fangledist, fmovestep, FixedDiv(xydist, movespeed) >> FRACBITS);
 			
 			anglestep = (fanglestep * ANGLE_1);
 		}

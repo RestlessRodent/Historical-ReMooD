@@ -97,7 +97,7 @@ static bool_t I_AllegroMD_Init(struct I_MusicDriver_s* const a_Driver)
 		// Install Sound
 		if (install_sound(DIGI_AUTODETECT, MIDI_AUTODETECT, NULL) == -1)
 		{
-			CONS_Printf("I_AllegroMD_Init: Failed to install sound (music).\n");
+			CONL_PrintF("I_AllegroMD_Init: Failed to install sound (music).\n");
 			return false;
 		}
 		
@@ -110,7 +110,7 @@ static bool_t I_AllegroMD_Init(struct I_MusicDriver_s* const a_Driver)
 	load_midi_patches();
 	
 	/* Success */
-	CONS_Printf("I_AllegroMD_Init: Success!\n");
+	CONL_PrintF("I_AllegroMD_Init: Success!\n");
 	return true;
 }
 
@@ -166,7 +166,7 @@ static int I_AllegroMD_Play(struct I_MusicDriver_s* const a_Driver, const void* 
 	// Check load
 	if (!Local->CurrentMIDI)
 	{
-		CONS_Printf("I_AllegroMD_Play: Failed to load MIDI.\n");
+		CONL_PrintF("I_AllegroMD_Play: Failed to load MIDI.\n");
 		return 0;
 	}
 	// Boost handle
@@ -235,7 +235,7 @@ bool_t I_MusicDriverInit(void)
 {
 	/* Add Allegro MIDI Driver */
 	if (!I_AddMusicDriver(&l_AllegroDriver))
-		CONS_Printf("I_MusicDriverInit: Failed to add Allegro Driver\n");
+		CONL_PrintF("I_MusicDriverInit: Failed to add Allegro Driver\n");
 		
 	/* Success */
 	return true;

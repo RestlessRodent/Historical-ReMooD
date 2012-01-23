@@ -219,7 +219,7 @@ const WL_WADFile_t* WL_OpenWAD(const char* const a_PathName)
 		
 	// Debug
 	if (devparm)
-		CONS_Printf("WL_OpenWAD: Opening \"%s\".\n", FoundWAD);
+		CONL_PrintF("WL_OpenWAD: Opening \"%s\".\n", FoundWAD);
 		
 	/* Attempt opening of the file */
 	CFile = fopen(FoundWAD, "rb");
@@ -480,7 +480,7 @@ const WL_WADFile_t* WL_OpenWAD(const char* const a_PathName)
 	if (devparm)
 	{
 		u32 = NewWAD->NumEntries;
-		CONS_Printf("WL_OpenWAD: Loaded \"%s\"%s%s [%u Entries, %s]\n", NewWAD->__Private.__DOSName, (NewWAD->__Private.__IsIWAD ? "*" : ""), (NewWAD->__Private.__IsWAD ? "" : "+"), u32, NewWAD->SimpleSumChars);
+		CONL_PrintF("WL_OpenWAD: Loaded \"%s\"%s%s [%u Entries, %s]\n", NewWAD->__Private.__DOSName, (NewWAD->__Private.__IsIWAD ? "*" : ""), (NewWAD->__Private.__IsWAD ? "" : "+"), u32, NewWAD->SimpleSumChars);
 	}
 		
 	/* Return the generated WAD */
@@ -549,14 +549,14 @@ void WL_PushWAD(const WL_WADFile_t* const a_WAD)
 	if (a_WAD->PrevVWAD || a_WAD->NextVWAD)
 	{
 		if (devparm)
-			CONS_Printf("WL_PushWAD: WAD already linked!\n");
+			CONL_PrintF("WL_PushWAD: WAD already linked!\n");
 		
 		return;
 	}
 	
 	/* Debug */
 	if (devparm)
-		CONS_Printf("WL_PushWAD: Pushing \"%s\".\n", a_WAD->__Private.__DOSName);
+		CONL_PrintF("WL_PushWAD: Pushing \"%s\".\n", a_WAD->__Private.__DOSName);
 	
 	/* Re-link into chain */
 	// No chain at all?
@@ -602,7 +602,7 @@ void WL_PushWAD(const WL_WADFile_t* const a_WAD)
 			if (CB->Func)
 				if (!CB->Func(true, l_LLastVWAD))
 					if (devparm)
-						CONS_Printf("WL_PushWAD: Order callback failed.\n");
+						CONL_PrintF("WL_PushWAD: Order callback failed.\n");
 			CB = CB->Next;
 		}
 	}
@@ -611,7 +611,7 @@ void WL_PushWAD(const WL_WADFile_t* const a_WAD)
 	else
 	{
 		if (devparm)
-			CONS_Printf("WL_PushWAD: OCCB locked, pending notification.\n");
+			CONL_PrintF("WL_PushWAD: OCCB locked, pending notification.\n");
 		
 		l_PendingOCCB = true;
 	}
@@ -657,7 +657,7 @@ const WL_WADFile_t* WL_PopWAD(void)
 			if (CB->Func)
 				if (!CB->Func(false, Rover))
 					if (devparm)
-						CONS_Printf("WL_PopWAD: Order callback failed.\n");
+						CONL_PrintF("WL_PopWAD: Order callback failed.\n");
 			CB = CB->Next;
 		}
 	}
@@ -666,7 +666,7 @@ const WL_WADFile_t* WL_PopWAD(void)
 	else
 	{
 		if (devparm)
-			CONS_Printf("WL_PopWAD: OCCB locked, pending notification.\n");
+			CONL_PrintF("WL_PopWAD: OCCB locked, pending notification.\n");
 		
 		l_PendingOCCB = true;
 	}
@@ -799,7 +799,7 @@ bool_t WL_LocateWAD(const char* const a_Name, const char* const a_MD5, char* con
 		// Debug
 		if (devparm)
 			for (i = 0; i < l_SearchCount; i++)
-				CONS_Printf("WL_LocateWAD: Searching \"%s\".\n", l_SearchList[i]);
+				CONL_PrintF("WL_LocateWAD: Searching \"%s\".\n", l_SearchList[i]);
 	}
 	
 	/* Name is required and a size must be given if a_OutPath is set */
@@ -864,7 +864,7 @@ bool_t WL_LockOCCB(const bool_t a_DoLock)
 		
 		// Debug
 		if (devparm)
-			CONS_Printf("WL_LockOCCB: Locked.\n");
+			CONL_PrintF("WL_LockOCCB: Locked.\n");
 	}
 	
 	/* Unlocking */
@@ -873,9 +873,9 @@ bool_t WL_LockOCCB(const bool_t a_DoLock)
 		// Debug
 		if (devparm)
 			if (l_PendingOCCB)
-				CONS_Printf("WL_LockOCCB: Unlocked with pending.\n");
+				CONL_PrintF("WL_LockOCCB: Unlocked with pending.\n");
 			else
-				CONS_Printf("WL_LockOCCB: Unlocked.\n");
+				CONL_PrintF("WL_LockOCCB: Unlocked.\n");
 		
 		// Unset lock
 		l_LockOCCB = false;
@@ -894,7 +894,7 @@ bool_t WL_LockOCCB(const bool_t a_DoLock)
 				if (CB->Func)
 					if (!CB->Func(true, l_LLastVWAD))
 						if (devparm)
-							CONS_Printf("WL_LockOCCB: Order callback failed.\n");
+							CONL_PrintF("WL_LockOCCB: Order callback failed.\n");
 				CB = CB->Next;
 			}
 		}
@@ -972,7 +972,7 @@ bool_t WL_RegisterOCCB(WL_OrderCBFunc_t const a_Func, const uint8_t a_Order)
 	while ((Rover = WL_IterateVWAD(Rover, true)))
 		if (!New->Func(true, Rover))
 			if (devparm)
-				CONS_Printf("WL_RegisterOCCB: Initial push simulate failed for \"%s\".\n", Rover->__Private.__DOSName);
+				CONL_PrintF("WL_RegisterOCCB: Initial push simulate failed for \"%s\".\n", Rover->__Private.__DOSName);
 	
 	/* Success */
 	return true;
@@ -1071,7 +1071,7 @@ void* WL_GetPrivateData(const WL_WADFile_t* const a_WAD, const uint32_t a_Key, s
 	if (a_WAD->__Private.__PublicData.__NumStuffs + 1 >= (WLMAXPRIVATEWADSTUFF - 1))
 	{
 		if (devparm)
-			CONS_Printf("WL_GetPrivateData: Stuff overflow.\n");
+			CONL_PrintF("WL_GetPrivateData: Stuff overflow.\n");
 		return NULL;	// Overflow
 	}
 	
@@ -1100,7 +1100,7 @@ void* WL_GetPrivateData(const WL_WADFile_t* const a_WAD, const uint32_t a_Key, s
 		))
 	{	// Failed?
 		if (devparm)
-			CONS_Printf("WL_GetPrivateData: Private data creation failed!\n");
+			CONL_PrintF("WL_GetPrivateData: Private data creation failed!\n");
 		
 		memset(&((WL_WADFile_t*)a_WAD)->__Private.__PublicData.__Stuff[a_WAD->__Private.__PublicData.__NumStuffs], 0, sizeof(a_WAD->__Private.__PublicData.__Stuff[a_WAD->__Private.__PublicData.__NumStuffs]));
 		return NULL;
@@ -1550,7 +1550,7 @@ bool_t WP_DepOrder(const bool_t a_Pushed, const struct WL_WADFile_s* const a_WAD
 	
 	/* Debug */
 	if (devparm)
-		CONS_Printf("WL_DepOrder: \"%s\" %s.\n", a_WAD->__Private.__DOSName, (a_Pushed ? "pushed" : "popped"));
+		CONL_PrintF("WL_DepOrder: \"%s\" %s.\n", a_WAD->__Private.__DOSName, (a_Pushed ? "pushed" : "popped"));
 	
 	/* Success */
 	return true;
@@ -1796,7 +1796,7 @@ WX_WADFile_t* __REMOOD_DEPRECATED WX_RoveWAD(WX_WADFile_t* const a_WAD, const bo
 	
 	/* Not implemented, only done in the RMOD code */
 	if (devparm)
-		CONS_Printf("WX_RoveWAD: Not implemented.\n");
+		CONL_PrintF("WX_RoveWAD: Not implemented.\n");
 	return NULL;
 }
 

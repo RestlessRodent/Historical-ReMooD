@@ -474,7 +474,7 @@ void Z_Init(void)
 #else
 	if (Sanity != 0x01000000)
 #endif
-		CONS_Printf("Z_Init: ReMooD was compiled with the wrong uint8_t order!\n");
+		CONL_PrintF("Z_Init: ReMooD was compiled with the wrong uint8_t order!\n");
 		
 	/* Create new zone in a loop */
 	// Check free memory
@@ -484,7 +484,7 @@ void Z_Init(void)
 	if (FreeMem < FORCEDMEMORYSIZE)
 	{
 		if (devparm)
-			CONS_Printf("Z_Init: Reported value below %iMiB, capping.\n", FORCEDMEMORYSIZE >> 20);
+			CONL_PrintF("Z_Init: Reported value below %iMiB, capping.\n", FORCEDMEMORYSIZE >> 20);
 			
 		FreeMem = FORCEDMEMORYSIZE;
 	}
@@ -636,7 +636,7 @@ void* Z_MallocWrappee(const size_t Size, const Z_MemoryTag_t Tag, void** const R
 		j = WX_ClearUnused();
 		
 		if (devparm)
-			CONS_Printf("Z_MallocReal: Nearly out of memory, freed %u lumps, %u blocks (Freed %u bytes).\n", j, i, l_MainZone->FreeMemory - k);
+			CONL_PrintF("Z_MallocReal: Nearly out of memory, freed %u lumps, %u blocks (Freed %u bytes).\n", j, i, l_MainZone->FreeMemory - k);
 			
 		// Now try re-allocation
 		DeferLevel = 1;
@@ -1376,7 +1376,7 @@ void Z_TablePrint(Z_Table_t* const a_Table, const char* const a_Prefix)
 		strncpy(Prefix, a_Prefix, BUFSIZE);
 		
 	/* Print Table key */
-	CONS_Printf("%s \"%s\" (%i)\n", Prefix, a_Table->Key, (int)a_Table->NumEntries);
+	CONL_PrintF("%s \"%s\" (%i)\n", Prefix, a_Table->Key, (int)a_Table->NumEntries);
 	
 	/* For every entry */
 	// Slap a > on it
@@ -1394,7 +1394,7 @@ void Z_TablePrint(Z_Table_t* const a_Table, const char* const a_Prefix)
 			
 		// Otherwise it is an entry, print it's value
 		else
-			CONS_Printf("%s @\"%s\" = \"%s\"\n", Prefix, Entry->Data.Index.SubKey, Entry->Data.Index.Value);
+			CONL_PrintF("%s @\"%s\" = \"%s\"\n", Prefix, Entry->Data.Index.SubKey, Entry->Data.Index.Value);
 	}
 #undef BUFSIZE
 }

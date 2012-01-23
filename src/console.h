@@ -149,6 +149,7 @@ CONL_ExitCode_t CONL_Exec(const uint32_t a_ArgC, const char** const a_ArgV);
 bool_t CONL_Init(const uint32_t a_OutBS, const uint32_t a_InBS);
 void CONL_Stop(void);
 
+size_t CONL_PrintF(const char* const a_Format, ...);
 size_t CONL_PrintV(const bool_t a_InBuf, const char* const a_Format, va_list a_ArgPtr);
 size_t CONL_UnicodePrintV(const bool_t a_InBuf, const UnicodeStringID_t a_StrID, const char* const a_Format, va_list a_ArgPtr);
 

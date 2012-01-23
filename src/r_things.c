@@ -129,7 +129,7 @@ void R_InstallSpriteLump(int lumppat,	// graphics patch
 	
 	if (frame >= MAXSPRITEFRAMES || rotation > 8)
 	{
-		CONS_Printf("R_InstallSpriteLump: Bad frame characters in lump %i\n", lumpid);
+		CONL_PrintF("R_InstallSpriteLump: Bad frame characters in lump %i\n", lumpid);
 		return;
 	}
 	//I_Error("R_InstallSpriteLump: "
@@ -142,10 +142,10 @@ void R_InstallSpriteLump(int lumppat,	// graphics patch
 	{
 		// the lump should be used for all rotations
 		if (sprtemp[frame].rotate == 0 && devparm)
-			CONS_Printf("R_InitSprites: Sprite %s frame %c has " "multiple rot=0 lump\n", spritename, 'A' + frame);
+			CONL_PrintF("R_InitSprites: Sprite %s frame %c has " "multiple rot=0 lump\n", spritename, 'A' + frame);
 			
 		if (sprtemp[frame].rotate == 1 && devparm)
-			CONS_Printf("R_InitSprites: Sprite %s frame %c has rotations " "and a rot=0 lump\n", spritename, 'A' + frame);
+			CONL_PrintF("R_InitSprites: Sprite %s frame %c has rotations " "and a rot=0 lump\n", spritename, 'A' + frame);
 			
 		sprtemp[frame].rotate = 0;
 		for (r = 0; r < 8; r++)
@@ -158,7 +158,7 @@ void R_InstallSpriteLump(int lumppat,	// graphics patch
 	}
 	// the lump is only used for one rotation
 	if (sprtemp[frame].rotate == 0 && devparm)
-		CONS_Printf("R_InitSprites: Sprite %s frame %c has rotations " "and a rot=0 lump\n", spritename, 'A' + frame);
+		CONL_PrintF("R_InitSprites: Sprite %s frame %c has rotations " "and a rot=0 lump\n", spritename, 'A' + frame);
 		
 	sprtemp[frame].rotate = 1;
 	
@@ -166,7 +166,7 @@ void R_InstallSpriteLump(int lumppat,	// graphics patch
 	rotation--;
 	
 	if (sprtemp[frame].lumpid[rotation] != -1 && devparm)
-		CONS_Printf("R_InitSprites: Sprite %s : %c : %c " "has two lumps mapped to it\n", spritename, 'A' + frame, '1' + rotation);
+		CONL_PrintF("R_InitSprites: Sprite %s : %c : %c " "has two lumps mapped to it\n", spritename, 'A' + frame, '1' + rotation);
 		
 	// lumppat & lumpid are the same for original Doom, but different
 	// when using sprites in pwad : the lumppat points the new graphics
@@ -289,7 +289,7 @@ bool_t R_AddSingleSpriteDef(char* sprname, spritedef_t* spritedef, int wadnum, i
 		{
 			case -1:
 				// no rotations were found for that frame at all
-				CONS_Printf("R_InitSprites: No patches found for %s frame %c", sprname, frame + 'A');
+				CONL_PrintF("R_InitSprites: No patches found for %s frame %c", sprname, frame + 'A');
 				return false;
 				//I_Error ("R_InitSprites: No patches found "
 				//         "for %s frame %c", sprname, frame+'A');
@@ -317,7 +317,7 @@ bool_t R_AddSingleSpriteDef(char* sprname, spritedef_t* spritedef, int wadnum, i
 					if (sprtemp[frame].lumppat[rotation] == -1)
 					{
 						sprtemp[frame].lumppat[rotation] = GoodFrame;
-						CONS_Printf("R_InitSprites: Sprite %s frame %c " "is missing rotations (using backup)", sprname, frame + 'A');
+						CONL_PrintF("R_InitSprites: Sprite %s frame %c " "is missing rotations (using backup)", sprname, frame + 'A');
 					}
 				break;
 		}
@@ -378,7 +378,7 @@ void R_AddSpriteDefs(char** namelist, int wadnum)
 			// if a new sprite was added (not just replaced)
 			AddSprites++;
 			//if (devparm)
-			//  CONS_Printf("sprite %s set in pwad %d\n", namelist[i], wadnum); //Fab
+			//  CONL_PrintF("sprite %s set in pwad %d\n", namelist[i], wadnum); //Fab
 		}
 	}
 }
@@ -435,7 +435,7 @@ void R_InitSprites(char** namelist)
 	/*
 	   for (i=0; i<numsprites; i++)
 	   if (sprites[i].numframes<1)
-	   CONS_Printf ("R_InitSprites: sprite %s has no frames at all\n", sprnames[i]);
+	   CONL_PrintF ("R_InitSprites: sprite %s has no frames at all\n", sprnames[i]);
 	 */
 }
 
@@ -578,7 +578,7 @@ void R_DrawMaskedColumn(column_t* column)
 				
 					if (first)
 					{
-						CONS_Printf("WARNING: avoiding a crash in %s %d\n", __FILE__, __LINE__);
+						CONL_PrintF("WARNING: avoiding a crash in %s %d\n", __FILE__, __LINE__);
 						first = 0;
 					}
 				}
@@ -1927,7 +1927,7 @@ void SetPlayerSkin(int playernum, char* skinname)
 		}
 	}
 	
-	CONS_Printf("Skin %s not found\n", skinname);
+	CONL_PrintF("Skin %s not found\n", skinname);
 	players[playernum].skin = 0;	// not found put the old marine skin
 	
 	// a copy of the skin value
@@ -2019,7 +2019,7 @@ void R_AddSkins(int wadnum)
 					/* Instead of an I_Error, just fall out of the loop or function rather */
 					if (!Value)
 					{
-						CONS_Printf("R_AddSkins: Syntax error in %s! Aborting Skin Load for this WAD!\n", WAD->Index[i].Name);
+						CONL_PrintF("R_AddSkins: Syntax error in %s! Aborting Skin Load for this WAD!\n", WAD->Index[i].Name);
 						Z_Free(TokenBuf);
 						return;
 					}
@@ -2100,12 +2100,12 @@ void R_AddSkins(int wadnum)
 						}
 						
 						if (!addedsound)
-							CONS_Printf("R_AddSkins: Unknown sound \"%s\" in (%s), ignored!\n", Token + 2, WAD->Index[i].Name);
+							CONL_PrintF("R_AddSkins: Unknown sound \"%s\" in (%s), ignored!\n", Token + 2, WAD->Index[i].Name);
 					}
 					else
 					{
 						// Something we don't understand
-						CONS_Printf("R_AddSkins: Unknown keyword \"%s\" in (%s)\n", Token, WAD->Index[i].Name);
+						CONL_PrintF("R_AddSkins: Unknown keyword \"%s\" in (%s)\n", Token, WAD->Index[i].Name);
 						Token = strtok(NULL, "\r\n");
 					}
 				}
@@ -2148,7 +2148,7 @@ void R_AddSkins(int wadnum)
 				Z_Free(SprName);
 			}
 			
-			CONS_Printf("R_AddSkins: Added skin \"%s\" (%i)!\n", skins[numskins].name, numskins);
+			CONL_PrintF("R_AddSkins: Added skin \"%s\" (%i)!\n", skins[numskins].name, numskins);
 			numskins++;
 			Z_Free(TokenBuf);
 			TokenBuf = NULL;

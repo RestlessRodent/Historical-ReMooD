@@ -553,7 +553,7 @@ void setcontrol(int (*gc)[2], int na)
 	for (numctrl = 0; numctrl < num_gamecontrols && strcasecmp(namectrl, gamecontrolname[numctrl]); numctrl++);
 	if (numctrl == num_gamecontrols)
 	{
-		CONS_Printf("Control '%s' unknown\n", namectrl);
+		CONL_PrintF("Control '%s' unknown\n", namectrl);
 		return;
 	}
 	keynum = G_KeyStringtoNum(COM_Argv(2));
@@ -577,8 +577,8 @@ void Command_Setcontrol_f(void)
 	
 	if (na != 3 && na != 4)
 	{
-		CONS_Printf("%s <controlname> <keyname> [<2nd keyname>]\n", COM_Argv(0));
-		CONS_Printf("# is a value between 1 and %i.\n", MAXSPLITSCREENPLAYERS + 1);
+		CONL_PrintF("%s <controlname> <keyname> [<2nd keyname>]\n", COM_Argv(0));
+		CONL_PrintF("# is a value between 1 and %i.\n", MAXSPLITSCREENPLAYERS + 1);
 		return;
 	}
 	

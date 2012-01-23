@@ -232,7 +232,7 @@ void COM_T_DumpScript_f(void)
 	
 	if (COM_Argc() < 2)
 	{
-		CONS_Printf("usage: T_DumpScript <scriptnum>\n");
+		CONL_PrintF("usage: T_DumpScript <scriptnum>\n");
 		return;
 	}
 	
@@ -243,11 +243,11 @@ void COM_T_DumpScript_f(void)
 		
 	if (!script)
 	{
-		CONS_Printf("script '%s' not defined.\n", COM_Argv(1));
+		CONL_PrintF("script '%s' not defined.\n", COM_Argv(1));
 		return;
 	}
 	
-	CONS_Printf("%s\n", script->data);
+	CONL_PrintF("%s\n", script->data);
 }
 
 void COM_T_RunScript_f(void)
@@ -256,7 +256,7 @@ void COM_T_RunScript_f(void)
 	
 	if (COM_Argc() < 2)
 	{
-		CONS_Printf("Usage: T_RunScript <script>\n");
+		CONL_PrintF("Usage: T_RunScript <script>\n");
 		return;
 	}
 	
@@ -264,7 +264,7 @@ void COM_T_RunScript_f(void)
 	
 	if (!levelscript.children[sn])
 	{
-		CONS_Printf("script not defined\n");
+		CONL_PrintF("script not defined\n");
 		return;
 	}
 	t_trigger = players[consoleplayer[0]].mo;
@@ -562,30 +562,30 @@ void COM_T_Running_f(void)
 	
 	current = runningscripts.next;
 	
-	CONS_Printf("running scripts\n");
+	CONL_PrintF("running scripts\n");
 	
 	if (!current)
-		CONS_Printf("no running scripts.\n");
+		CONL_PrintF("no running scripts.\n");
 		
 	while (current)
 	{
-		CONS_Printf("%i:", current->script->scriptnum);
+		CONL_PrintF("%i:", current->script->scriptnum);
 		switch (current->wait_type)
 		{
 			case wt_none:
-				CONS_Printf("waiting for nothing?\n");
+				CONL_PrintF("waiting for nothing?\n");
 				break;
 			case wt_delay:
-				CONS_Printf("delay %i tics\n", current->wait_data);
+				CONL_PrintF("delay %i tics\n", current->wait_data);
 				break;
 			case wt_tagwait:
-				CONS_Printf("waiting for tag %i\n", current->wait_data);
+				CONL_PrintF("waiting for tag %i\n", current->wait_data);
 				break;
 			case wt_scriptwait:
-				CONS_Printf("waiting for script %i\n", current->wait_data);
+				CONL_PrintF("waiting for script %i\n", current->wait_data);
 				break;
 			default:
-				CONS_Printf("unknown wait type \n");
+				CONL_PrintF("unknown wait type \n");
 				break;
 		}
 		current = current->next;

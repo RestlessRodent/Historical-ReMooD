@@ -79,7 +79,7 @@ void P_SetPsprite(player_t* player, int position, statenum_t stnum)
 		// GhostlyDeath <November 3, 2010> -- PARANOIA removal
 		if (stnum >= NUMSTATES)
 		{
-			CONS_Printf("WARNING - P_SetPsprite: State %i exceeds %i. (%s:%i).\n", stnum, NUMSTATES, __FILE__, __LINE__);
+			CONL_PrintF("WARNING - P_SetPsprite: State %i exceeds %i. (%s:%i).\n", stnum, NUMSTATES, __FILE__, __LINE__);
 			return;
 		}
 		
@@ -162,7 +162,7 @@ void P_BringUpWeapon(player_t* player)
 	// GhostlyDeath <November 3, 2010> -- PARANOIA removal
 	if (player->pendingweapon >= NUMWEAPONS)
 	{
-		CONS_Printf("WARNING - P_BringUpWeapon: %i (player->pendingweapon) >= %i (%s:%i).\n", player->pendingweapon, NUMWEAPONS, __FILE__, __LINE__);
+		CONL_PrintF("WARNING - P_BringUpWeapon: %i (player->pendingweapon) >= %i (%s:%i).\n", player->pendingweapon, NUMWEAPONS, __FILE__, __LINE__);
 		return;
 	}
 	

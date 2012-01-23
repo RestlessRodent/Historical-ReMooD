@@ -742,7 +742,7 @@ void R_ExecuteSetViewSize(void)
 	if (setdetail)
 	{
 		setdetail = 0;
-		CONS_Printf("lower detail mode n.a.\n");
+		CONL_PrintF("lower detail mode n.a.\n");
 		CV_SetValue(&cv_detaillevel, setdetail);
 	}
 	
@@ -865,15 +865,15 @@ void R_Init(void)
 		
 	//added:24-01-98: screensize independent
 	if (devparm)
-		CONS_Printf("\nR_InitData");
+		CONL_PrintF("\nR_InitData");
 	R_InitData();
 	
 	if (devparm)
-		CONS_Printf("\nR_InitPointToAngle");
+		CONL_PrintF("\nR_InitPointToAngle");
 	R_InitPointToAngle();
 	
 	if (devparm)
-		CONS_Printf("\nR_InitTables");
+		CONL_PrintF("\nR_InitTables");
 	R_InitTables();
 	
 	R_InitViewBorder();
@@ -881,20 +881,20 @@ void R_Init(void)
 	R_SetViewSize();			// setsizeneeded is set true
 	
 	if (devparm)
-		CONS_Printf("\nR_InitPlanes");
+		CONL_PrintF("\nR_InitPlanes");
 	R_InitPlanes();
 	
 	//added:02-02-98: this is now done by SCR_Recalc() at the first mode set
 	if (devparm)
-		CONS_Printf("\nR_InitLightTables");
+		CONL_PrintF("\nR_InitLightTables");
 	R_InitLightTables();
 	
 	if (devparm)
-		CONS_Printf("\nR_InitSkyMap");
+		CONL_PrintF("\nR_InitSkyMap");
 	R_InitSkyMap();
 	
 	if (devparm)
-		CONS_Printf("\nR_InitTranslationsTables");
+		CONL_PrintF("\nR_InitTranslationsTables");
 	R_InitTranslationTables();
 	
 	R_InitDrawNodes();

@@ -570,7 +570,7 @@ void Command_Playdemo_f(void)
 	
 	if (COM_Argc() != 2)
 	{
-		CONS_Printf("playdemo <demoname> : playback a demo\n");
+		CONL_PrintF("playdemo <demoname> : playback a demo\n");
 		return;
 	}
 	// disconnect from server here ?
@@ -578,7 +578,7 @@ void Command_Playdemo_f(void)
 		G_StopDemo();
 	if (netgame)
 	{
-		CONS_Printf("\nYou can't play a demo while in net game\n");
+		CONL_PrintF("\nYou can't play a demo while in net game\n");
 		return;
 	}
 	// open the demo file
@@ -586,7 +586,7 @@ void Command_Playdemo_f(void)
 	// dont add .lmp so internal game demos can be played
 	//FIL_DefaultExtension (name, ".lmp");
 	
-	CONS_Printf("Playing back demo '%s'.\n", name);
+	CONL_PrintF("Playing back demo '%s'.\n", name);
 	
 	G_DoPlayDemo(name);
 }
@@ -597,7 +597,7 @@ void Command_Timedemo_f(void)
 	
 	if (COM_Argc() != 2)
 	{
-		CONS_Printf("timedemo <demoname> : time a demo\n");
+		CONL_PrintF("timedemo <demoname> : time a demo\n");
 		return;
 	}
 	// disconnect from server here ?
@@ -605,7 +605,7 @@ void Command_Timedemo_f(void)
 		G_StopDemo();
 	if (netgame)
 	{
-		CONS_Printf("\nYou can't play a demo while in net game\n");
+		CONL_PrintF("\nYou can't play a demo while in net game\n");
 		return;
 	}
 	// open the demo file
@@ -613,7 +613,7 @@ void Command_Timedemo_f(void)
 	// dont add .lmp so internal game demos can be played
 	//FIL_DefaultExtension (name, ".lmp");
 	
-	CONS_Printf("Timing demo '%s'.\n", name);
+	CONL_PrintF("Timing demo '%s'.\n", name);
 	
 	G_TimeDemo(name);
 }
@@ -623,7 +623,7 @@ void Command_Timedemo_f(void)
 void Command_Stopdemo_f(void)
 {
 	G_CheckDemoStatus();
-	CONS_Printf("Stopped demo.\n");
+	CONL_PrintF("Stopped demo.\n");
 }
 
 //  Warp to map code.
@@ -639,7 +639,7 @@ void Command_Map_f(void)
 	
 	if (COM_Argc() < 2 || COM_Argc() > 7)
 	{
-		CONS_Printf("map <mapname> [-skill <1..5>] [-monsters <0/1>] [-noresetplayers]: warp to map\n");
+		CONL_PrintF("map <mapname> [-skill <1..5>] [-monsters <0/1>] [-noresetplayers]: warp to map\n");
 		return;
 	}
 	
@@ -648,7 +648,7 @@ void Command_Map_f(void)
 	// internal wad lump
 	if (W_CheckNumForName(MAPNAME) == -1)
 	{
-		CONS_Printf("\2Internal game map '%s' not found\n" "(use .wad extension for external maps)\n", MAPNAME);
+		CONL_PrintF("\2Internal game map '%s' not found\n" "(use .wad extension for external maps)\n", MAPNAME);
 		return;
 	}
 	
@@ -700,7 +700,7 @@ void Command_Restart_f(void)
 {
 	if (netgame)
 	{
-		CONS_Printf("Restartlevel don't work in network\n");
+		CONL_PrintF("Restartlevel don't work in network\n");
 		return;
 	}
 	
@@ -708,7 +708,7 @@ void Command_Restart_f(void)
 	if (!demoplayback && gamestate == GS_LEVEL)
 		G_DoLoadLevel(true);
 	else
-		CONS_Printf("You should be in a level to restart it !\n");
+		CONL_PrintF("You should be in a level to restart it !\n");
 }
 
 void Command_Pause(void)
@@ -729,7 +729,7 @@ void Command_Addfile(void)
 {
 	if (COM_Argc() != 2)
 	{
-		CONS_Printf("addfile <wadfile.wad> : load wad file\n");
+		CONL_PrintF("addfile <wadfile.wad> : load wad file\n");
 		return;
 	}
 	
@@ -746,19 +746,19 @@ void Command_Frags_f(void)
 	
 	if (!cv_deathmatch.value)
 	{
-		CONS_Printf("Frags : show the frag table\n");
-		CONS_Printf("Only for deathmatch games\n");
+		CONL_PrintF("Frags : show the frag table\n");
+		CONL_PrintF("Only for deathmatch games\n");
 		return;
 	}
 	
 	for (i = 0; i < MAXPLAYERS; i++)
 		if (playeringame[i])
 		{
-			CONS_Printf("%-16s", player_names[i]);
+			CONL_PrintF("%-16s", player_names[i]);
 			for (j = 0; j < MAXPLAYERS; j++)
 				if (playeringame[j])
-					CONS_Printf(" %3d", players[i].frags[j]);
-			CONS_Printf("\n");
+					CONL_PrintF(" %3d", players[i].frags[j]);
+			CONL_PrintF("\n");
 		}
 }
 
@@ -771,8 +771,8 @@ void Command_TeamFrags_f(void)
 	
 	if (!cv_deathmatch.value && !cv_teamplay.value)
 	{
-		CONS_Printf("teamfrags : show the frag table for teams\n");
-		CONS_Printf("Only for deathmatch teamplay games\n");
+		CONL_PrintF("teamfrags : show the frag table for teams\n");
+		CONL_PrintF("Only for deathmatch teamplay games\n");
 		return;
 	}
 	
@@ -781,11 +781,11 @@ void Command_TeamFrags_f(void)
 	for (i = 0; i < 11; i++)
 		if (teamingame(i))
 		{
-			CONS_Printf("%-8s", team_names[i]);
+			CONL_PrintF("%-8s", team_names[i]);
 			for (j = 0; j < 11; j++)
 				if (teamingame(j))
-					CONS_Printf(" %3d", fragtbl[i][j]);
-			CONS_Printf("\n");
+					CONL_PrintF(" %3d", fragtbl[i][j]);
+			CONL_PrintF("\n");
 		}
 }
 
@@ -793,7 +793,7 @@ void Command_TeamFrags_f(void)
 //
 void Command_Version_f(void)
 {
-	CONS_Printf("ReMooD %s \"%s\" (Compiled: %s %s)\n", REMOOD_VERSIONSTRING, REMOOD_VERSIONCODESTRING, __DATE__, __TIME__);
+	CONL_PrintF("ReMooD %s \"%s\" (Compiled: %s %s)\n", REMOOD_VERSIONSTRING, REMOOD_VERSIONCODESTRING, __DATE__, __TIME__);
 }
 
 //  Quit the game immediately
@@ -820,11 +820,11 @@ void TimeLimit_OnChange(void)
 {
 	if (cv_timelimit.value)
 	{
-		CONS_Printf("Levels will end after %d minute(s).\n", cv_timelimit.value);
+		CONL_PrintF("Levels will end after %d minute(s).\n", cv_timelimit.value);
 		timelimitintics = cv_timelimit.value * 60 * TICRATE;
 	}
 	else
-		CONS_Printf("Time limit disabled\n");
+		CONL_PrintF("Time limit disabled\n");
 }
 
 void P_RespawnWeapons(void);
@@ -851,7 +851,7 @@ void Deahtmatch_OnChange(void)
 void Command_ExitLevel_f(void)
 {
 	if (gamestate != GS_LEVEL || demoplayback)
-		CONS_Printf("You should be in a level to exit it !\n");
+		CONL_PrintF("You should be in a level to exit it !\n");
 	else
 		G_ExitLevel();
 }
@@ -864,7 +864,7 @@ void Command_Save_f(void)
 {
 	if (COM_Argc() != 3)
 	{
-		CONS_Printf("save <slot> <desciption>: save game\n");
+		CONL_PrintF("save <slot> <desciption>: save game\n");
 		return;
 	}
 	
@@ -880,7 +880,7 @@ void Command_ExitGame_f(void)
 		D_StartTitle();
 	}
 	else
-		CONS_Printf("You can't exit a game if you aren't even in one !\n");
+		CONL_PrintF("You can't exit a game if you aren't even in one !\n");
 }
 
 void Command_Kill(void)
@@ -888,6 +888,6 @@ void Command_Kill(void)
 	if (!demoplayback && gamestate == GS_LEVEL)
 		P_KillMobj(players[consoleplayer[0]].mo, NULL, players[consoleplayer[0]].mo);
 	else
-		CONS_Printf("The Kill command cannot be used outside a game.\n");
+		CONL_PrintF("The Kill command cannot be used outside a game.\n");
 }
 

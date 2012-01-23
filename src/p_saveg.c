@@ -1170,7 +1170,7 @@ void P_ArchiveWorld(void)
 	}
 	WRITEUSHORT(put, 0xffff);
 	
-	//CONS_Printf("sector saved %d/%d, line saved %d/%d\n",statsec,numsectors,statline,numlines);
+	//CONL_PrintF("sector saved %d/%d, line saved %d/%d\n",statsec,numsectors,statline,numlines);
 	save_p = put;
 }
 
@@ -1694,7 +1694,7 @@ static mobj_t* FindNewPosition(void* oldposition)
 			return mobj;
 	}
 	if (devparm)
-		CONS_Printf("\2not found\n");
+		CONL_PrintF("\2not found\n");
 	DEBFILE("not found\n");
 	return NULL;
 }
@@ -1907,7 +1907,7 @@ void P_UnArchiveThinkers(void)
 				if (mobj->player)
 				{
 					mobj->player->viewz = mobj->player->mo->z + mobj->player->viewheight;
-					//CONS_Printf("viewz = %f\n",FIXED_TO_FLOAT(mobj->player->viewz));
+					//CONL_PrintF("viewz = %f\n",FIXED_TO_FLOAT(mobj->player->viewz));
 				}
 				mobj->ceilingz = mobj->subsector->sector->ceilingheight;
 				mobj->thinker.function.acp1 = (actionf_p1) P_MobjThinker;

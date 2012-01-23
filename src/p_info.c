@@ -232,21 +232,21 @@ static bool_t PS_LevelInfoGetBlockPoints(P_LevelInfoEx_t* const a_Info, const WL
 	if (devparm)
 	{
 		if (a_Info->BlockPos[PIBT_LEVELINFO][1] - a_Info->BlockPos[PIBT_LEVELINFO][0] > 0)
-			CONS_Printf("PS_LevelInfoGetBlockPoints: Level Info at %i - %i (size %i)\n",
+			CONL_PrintF("PS_LevelInfoGetBlockPoints: Level Info at %i - %i (size %i)\n",
 					a_Info->BlockPos[PIBT_LEVELINFO][0],
 					a_Info->BlockPos[PIBT_LEVELINFO][1],
 					a_Info->BlockPos[PIBT_LEVELINFO][1] - a_Info->BlockPos[PIBT_LEVELINFO][0]
 				);
 		
 		if (a_Info->BlockPos[PIBT_SCRIPTS][1] - a_Info->BlockPos[PIBT_SCRIPTS][0] > 0)
-			CONS_Printf("PS_LevelInfoGetBlockPoints: Scripts at %i - %i (size %i)\n",
+			CONL_PrintF("PS_LevelInfoGetBlockPoints: Scripts at %i - %i (size %i)\n",
 					a_Info->BlockPos[PIBT_SCRIPTS][0],
 					a_Info->BlockPos[PIBT_SCRIPTS][1],
 					a_Info->BlockPos[PIBT_SCRIPTS][1] - a_Info->BlockPos[PIBT_SCRIPTS][0]
 				);
 				
 		if (a_Info->BlockPos[PIBT_INTERTEXT][1] - a_Info->BlockPos[PIBT_INTERTEXT][0] > 0)
-			CONS_Printf("PS_LevelInfoGetBlockPoints: Intertext at %i - %i (size %i)\n",
+			CONL_PrintF("PS_LevelInfoGetBlockPoints: Intertext at %i - %i (size %i)\n",
 					a_Info->BlockPos[PIBT_INTERTEXT][0],
 					a_Info->BlockPos[PIBT_INTERTEXT][1],
 					a_Info->BlockPos[PIBT_INTERTEXT][1] - a_Info->BlockPos[PIBT_INTERTEXT][0]
@@ -296,7 +296,7 @@ static bool_t P_WLInfoCreator(const WL_WADFile_t* const a_WAD, const uint32_t a_
 	
 	/* Debug */
 	if (devparm)
-		CONS_Printf("P_WLInfoCreator: Loading level info for \"%s\".\n", WL_GetWADName(a_WAD, false));
+		CONL_PrintF("P_WLInfoCreator: Loading level info for \"%s\".\n", WL_GetWADName(a_WAD, false));
 	
 	/* Seek through lumps looking for levels */
 	Base = NULL;
@@ -432,7 +432,7 @@ static bool_t P_WLInfoCreator(const WL_WADFile_t* const a_WAD, const uint32_t a_
 			
 			// Not playable
 			else
-				CONS_Printf("P_WLInfoCreator: ReMooD requires textual format maps to contain node builder information to be played.\n");
+				CONL_PrintF("P_WLInfoCreator: ReMooD requires textual format maps to contain node builder information to be played.\n");
 		}
 		
 		// Determine Doom/Hexen playability
@@ -467,13 +467,12 @@ static bool_t P_WLInfoCreator(const WL_WADFile_t* const a_WAD, const uint32_t a_
 			if (PS_LevelInfoGetBlockPoints(CurrentInfo, CurrentInfo->EntryPtr[PLIEDS_HEADER], ReadStream))
 			{
 				// Parse [level info]
-				CONS_Printf("Parsing level info.\n");
 			}
 		}
 		
 		// Debug
 		if (devparm)
-			CONS_Printf("P_WLInfoCreator: \"%s\" is %s and %s.\n",
+			CONL_PrintF("P_WLInfoCreator: \"%s\" is %s and %s.\n",
 					CurrentInfo->LumpName,
 					(CurrentInfo->Type.Text ? "textual" : (CurrentInfo->Type.Hexen ? "Hexen" : "Doom")),
 					(CurrentInfo->Playable ? "is playable" : "cannot be played")
@@ -488,7 +487,7 @@ void P_PrepareLevelInfoEx(void)
 {
 	/* Register handler into the light WAD code */
 	if (!WL_RegisterPDC(WLDK_MAPINFO, WLDPO_MAPINFO, P_WLInfoCreator, P_WLInfoRemove))
-		CONS_Printf("P_PrepareLevelInfoEx: Failed to register info creator!\n");
+		CONL_PrintF("P_PrepareLevelInfoEx: Failed to register info creator!\n");
 }
 
 /*******************************************************************************
@@ -1011,12 +1010,12 @@ void P_LoadLevelInfo(int lumpnum)
 
 void COM_Creator_f(void)
 {
-	CONS_Printf("%s\n", info_creator);
+	CONL_PrintF("%s\n", info_creator);
 }
 
 void COM_Levelname_f(void)
 {
-	CONS_Printf("%s\n", levelname);
+	CONL_PrintF("%s\n", levelname);
 }
 
 void P_Info_AddCommands()

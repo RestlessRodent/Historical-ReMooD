@@ -638,13 +638,13 @@ bool_t I_SetVideoMode(const uint32_t a_Width, const uint32_t a_Height, const boo
 	if (set_gfx_mode((a_Fullscreen ? GFX_AUTODETECT_FULLSCREEN : GFX_AUTODETECT_WINDOWED), a_Width, a_Height, 0, 0) < 0)
 	{
 		// Print warnings
-		CONS_Printf("I_SetVideoMode: Failed to set %ux%u %s\n", a_Width, a_Height, (a_Fullscreen ? "fullscreen" : "windowed"));
+		CONL_PrintF("I_SetVideoMode: Failed to set %ux%u %s\n", a_Width, a_Height, (a_Fullscreen ? "fullscreen" : "windowed"));
 		
 		// Try again with a_Fullscreen inverted
 		if (set_gfx_mode((!a_Fullscreen ? GFX_AUTODETECT_FULLSCREEN : GFX_AUTODETECT_WINDOWED), a_Width, a_Height, 0, 0) < 0)
 		{
 			// Oh well
-			CONS_Printf("I_SetVideoMode: Failed to fallback to %s\n", (!a_Fullscreen ? "fullscreen" : "windowed"));
+			CONL_PrintF("I_SetVideoMode: Failed to fallback to %s\n", (!a_Fullscreen ? "fullscreen" : "windowed"));
 			return false;
 		}
 	}
@@ -739,7 +739,7 @@ size_t I_ProbeJoysticks(void)
 	/* Try installing joysticks */
 	if (install_joystick(JOY_TYPE_AUTODETECT) != 0)
 	{
-		CONS_Printf("I_ProbeJoysticks: Failed to install Allegro joystick handler.\n");
+		CONL_PrintF("I_ProbeJoysticks: Failed to install Allegro joystick handler.\n");
 		return 0;
 	}
 	
@@ -771,13 +771,13 @@ size_t I_ProbeJoysticks(void)
 				CalMsg = calibrate_joystick_name(i);
 				
 				// Print message
-				CONS_Printf("I_ProbeJoysticks: %s, then press any key.\n", CalMsg);
+				CONL_PrintF("I_ProbeJoysticks: %s, then press any key.\n", CalMsg);
 				readkey();
 				
 				// Do calibration
 				if (calibrate_joystick(i) != 0)
 				{
-					CONS_Printf("I_ProbeJoysticks: Messed up calibrating joystick %i.\n", i);
+					CONL_PrintF("I_ProbeJoysticks: Messed up calibrating joystick %i.\n", i);
 					break;
 				}
 			}
@@ -785,7 +785,7 @@ size_t I_ProbeJoysticks(void)
 		
 	/* Save calibration data */
 	if (save_joystick_data(NULL) != 0)
-		CONS_Printf("I_ProbeJoysticks: Could not save joystick data.\n");
+		CONL_PrintF("I_ProbeJoysticks: Could not save joystick data.\n");
 		
 	/* Return number of found joys */
 	return num_joysticks;
@@ -872,10 +872,10 @@ bool_t I_ProbeMouse(const size_t a_ID)
 	/* Install mouse */
 	if ((i = install_mouse()) >= 0)
 	{
-		CONS_Printf("I_ProbeMouse: Allegro says there are %i buttons.\n", i);
+		CONL_PrintF("I_ProbeMouse: Allegro says there are %i buttons.\n", i);
 		
 		if (poll_mouse() == -1)
-			CONS_Printf("I_ProbeMouse: First poll is -1!\n");
+			CONL_PrintF("I_ProbeMouse: First poll is -1!\n");
 		return true;
 	}
 	

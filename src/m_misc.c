@@ -212,7 +212,7 @@ void Command_SaveConfig_f(void)
 	
 	if (COM_Argc() != 2)
 	{
-		CONS_Printf("saveconfig <filename[.cfg]> : save config to a file\n");
+		CONL_PrintF("saveconfig <filename[.cfg]> : save config to a file\n");
 		return;
 	}
 	strcpy(tmpstr, COM_Argv(1));
@@ -220,14 +220,14 @@ void Command_SaveConfig_f(void)
 	FIL_DefaultExtension(tmpstr, ".cfg");
 	
 	M_SaveConfig(tmpstr);
-	CONS_Printf("config saved as %s\n", configfile);
+	CONL_PrintF("config saved as %s\n", configfile);
 }
 
 void Command_LoadConfig_f(void)
 {
 	if (COM_Argc() != 2)
 	{
-		CONS_Printf("loadconfig <filename[.cfg]> : load config from a file\n");
+		CONL_PrintF("loadconfig <filename[.cfg]> : load config from a file\n");
 		return;
 	}
 	
@@ -239,7 +239,7 @@ void Command_LoadConfig_f(void)
 	
 	   if ( access (tmpstr,F_OK) )
 	   {
-	   CONS_Printf("Error reading file %s (not exist ?)\n",tmpstr);
+	   CONL_PrintF("Error reading file %s (not exist ?)\n",tmpstr);
 	   return;
 	   }
 	 */
@@ -251,7 +251,7 @@ void Command_ChangeConfig_f(void)
 {
 	if (COM_Argc() != 2)
 	{
-		CONS_Printf("changeconfig <filaname[.cfg]> : save current config and load another\n");
+		CONL_PrintF("changeconfig <filaname[.cfg]> : save current config and load another\n");
 		return;
 	}
 	
@@ -290,13 +290,13 @@ void M_FirstLoadConfig(void)
 			{
 				snprintf(configfile, MAX_WADPATH, "%s", DashConfig);
 				snprintf(SaveGameLocation, MAX_WADPATH, ".");
-				CONS_Printf("D_DoomMain: Using %s as the master configuration.\n", DashConfig);
+				CONL_PrintF("D_DoomMain: Using %s as the master configuration.\n", DashConfig);
 				ConfigMode = 1;
 			}
 			// Does the file exist but we can't write to it? if so, get the settings
 			else if (!access(DashConfig, R_OK))
 			{
-				CONS_Printf("D_DoomMain: %s is read-only, copying settings.\n", DashConfig);
+				CONL_PrintF("D_DoomMain: %s is read-only, copying settings.\n", DashConfig);
 				COM_BufInsertText(va("exec \"%s\"\n", configfile));
 			}
 		}
@@ -312,7 +312,7 @@ void M_FirstLoadConfig(void)
 		
 		ConfigMode = 1;
 		
-		CONS_Printf("D_DoomMain: Using c:\\doomdata\\%s as the master configuration.\n", CONFIGFILENAME);
+		CONL_PrintF("D_DoomMain: Using c:\\doomdata\\%s as the master configuration.\n", CONFIGFILENAME);
 	}
 #endif
 	
@@ -323,14 +323,14 @@ void M_FirstLoadConfig(void)
 		if (!access(va("./%s", CONFIGFILENAME), R_OK | W_OK))
 		{
 			snprintf(configfile, MAX_WADPATH, "./%s", CONFIGFILENAME);
-			CONS_Printf("D_DoomMain: Using ./%s as the master configuration.\n", CONFIGFILENAME);
+			CONL_PrintF("D_DoomMain: Using ./%s as the master configuration.\n", CONFIGFILENAME);
 			snprintf(SaveGameLocation, MAX_WADPATH, ".");
 			ConfigMode = 1;
 		}
 		// Does the file exist but we can't write to it? if so, get the settings
 		else if (!access(va("./%s", CONFIGFILENAME), R_OK))
 		{
-			CONS_Printf("D_DoomMain: ./%s is read-only, copying settings.\n", CONFIGFILENAME);
+			CONL_PrintF("D_DoomMain: ./%s is read-only, copying settings.\n", CONFIGFILENAME);
 			COM_BufInsertText(va("exec \"./%s\"\n", CONFIGFILENAME));
 		}
 	}
@@ -347,7 +347,7 @@ void M_FirstLoadConfig(void)
 			if (!access(va("%s\\%s", ReMooDHome, CONFIGFILENAME), R_OK | W_OK))
 			{
 				snprintf(configfile, MAX_WADPATH, "%s\\%s", ReMooDHome, CONFIGFILENAME);
-				CONS_Printf("D_DoomMain: Using %s\\%s as the master configuration.\n", ReMooDHome, CONFIGFILENAME);
+				CONL_PrintF("D_DoomMain: Using %s\\%s as the master configuration.\n", ReMooDHome, CONFIGFILENAME);
 				snprintf(SaveGameLocation, MAX_WADPATH, "%s", ReMooDHome);
 				ConfigMode = 1;
 			}
@@ -361,7 +361,7 @@ void M_FirstLoadConfig(void)
 			snprintf(configfile, MAX_WADPATH, "%s/%s", ReMooDHome, CONFIGFILENAME);
 			snprintf(SaveGameLocation, MAX_WADPATH, "%s", ReMooDHome);
 			strcatbf(savegamename, ReMooDHome, "/");
-			CONS_Printf("D_DoomMain: Using %s as the master configuration.\n", configfile);
+			CONL_PrintF("D_DoomMain: Using %s as the master configuration.\n", configfile);
 			ConfigMode = 1;
 		}
 #endif
@@ -383,7 +383,7 @@ void M_FirstLoadConfig(void)
 				{
 					snprintf(configfile, MAX_WADPATH, "%s\\%s", ReMooDHome, CONFIGFILENAME);
 					snprintf(SaveGameLocation, MAX_WADPATH, "%s", ReMooDHome);
-					CONS_Printf("D_DoomMain: Using %s\\%s as the master configuration.\n", ReMooDHome, CONFIGFILENAME);
+					CONL_PrintF("D_DoomMain: Using %s\\%s as the master configuration.\n", ReMooDHome, CONFIGFILENAME);
 					ConfigMode = 1;	// set this for later use
 				}
 				else
@@ -414,7 +414,7 @@ void M_FirstLoadConfig(void)
 			snprintf(configfile, MAX_WADPATH, "%s\\%s", ReMooDHome, CONFIGFILENAME);
 			snprintf(SaveGameLocation, MAX_WADPATH, "%s", ReMooDHome);
 			strcatbf(savegamename, ReMooDHome, "\\");
-			CONS_Printf("D_DoomMain: Using %s as the master configuration.\n", configfile);
+			CONL_PrintF("D_DoomMain: Using %s as the master configuration.\n", configfile);
 			ConfigMode = 1;
 		}
 	}
@@ -429,7 +429,7 @@ void M_FirstLoadConfig(void)
 	else
 	{
 		// load config, make sure those commands doesnt require the screen..
-		CONS_Printf("\n");
+		CONL_PrintF("\n");
 		COM_BufInsertText(va("exec \"%s\"\n", configfile));
 		COM_BufExecute();		// make sure initial settings are done
 		
@@ -438,7 +438,7 @@ void M_FirstLoadConfig(void)
 		gameconfig_loaded = true;
 	}
 	
-	CONS_Printf("M_FirstLoadConfig: Using configuration file \"%s\"\n", configfile);
+	CONL_PrintF("M_FirstLoadConfig: Using configuration file \"%s\"\n", configfile);
 }
 
 //  Save all game config here
@@ -451,7 +451,7 @@ void M_SaveConfig(char* filename)
 	//  it's been correctly loaded
 	/*if (!gameconfig_loaded)
 	   {
-	   CONS_Printf("M_SaveConfig: Configuration never loaded\n");
+	   CONL_PrintF("M_SaveConfig: Configuration never loaded\n");
 	   return;
 	   } */
 	
@@ -464,7 +464,7 @@ void M_SaveConfig(char* filename)
 			strcpy(configfile, filename);
 		else
 		{
-			CONS_Printf("Couldn't save game config file %s\n", filename);
+			CONL_PrintF("Couldn't save game config file %s\n", filename);
 			return;
 		}
 	}
@@ -473,7 +473,7 @@ void M_SaveConfig(char* filename)
 		f = fopen(configfile, "w");
 		if (!f)
 		{
-			CONS_Printf("Couldn't save game config file %s\n", configfile);
+			CONL_PrintF("Couldn't save game config file %s\n", configfile);
 			return;
 		}
 	}
@@ -490,7 +490,7 @@ void M_SaveConfig(char* filename)
 	
 	fclose(f);
 	
-	CONS_Printf("M_SaveConfig: Saved configuration to \"%s\"\n", configfile);
+	CONL_PrintF("M_SaveConfig: Saved configuration to \"%s\"\n", configfile);
 }
 
 // ==========================================================================
@@ -610,17 +610,17 @@ void M_ScreenShot(void)
 	}
 	
 	if (ret)
-		CONS_Printf("screen shot %s saved\n", lbmname);
+		CONL_PrintF("screen shot %s saved\n", lbmname);
 	else
-		//CONS_Printf("Couldn't create screen shot\n");
-		CONS_Printf("%s\n", lbmname);
+		//CONL_PrintF("Couldn't create screen shot\n");
+		CONL_PrintF("%s\n", lbmname);
 }
 
 // ==========================================================================
 //                        MISC STRING FUNCTIONS
 // ==========================================================================
 
-//  Temporary varargs CONS_Printf
+//  Temporary varargs CONL_PrintF
 //
 char* va(char* format, ...)
 {

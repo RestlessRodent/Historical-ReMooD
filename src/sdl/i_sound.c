@@ -371,7 +371,7 @@ bool_t I_SoundDriverInit(void)
 {
 	/* Add SDL Sound Driver */
 	if (!I_AddSoundDriver(&l_SDLSoundDriver))
-		CONS_Printf("I_SoundDriverInit: Failed to add SDL Driver\n");
+		CONL_PrintF("I_SoundDriverInit: Failed to add SDL Driver\n");
 		
 	/* Success */
 	return true;

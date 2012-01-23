@@ -461,8 +461,8 @@ void V_CopyRect(int srcx, int srcy, int srcscrn, int width, int height, int dest
 	V_MarkRect(destx, desty, width, height);
 	
 #ifdef DEBUG
-	CONS_Printf("V_CopyRect: vidwidth %d screen[%d]=%x to screen[%d]=%x\n", vid.width, srcscrn, screens[srcscrn], destscrn, screens[destscrn]);
-	CONS_Printf("..........: srcx %d srcy %d width %d height %d destx %d desty %d\n", srcx, srcy, width, height, destx, desty);
+	CONL_PrintF("V_CopyRect: vidwidth %d screen[%d]=%x to screen[%d]=%x\n", vid.width, srcscrn, screens[srcscrn], destscrn, screens[destscrn]);
+	CONL_PrintF("..........: srcx %d srcy %d width %d height %d destx %d desty %d\n", srcx, srcy, width, height, destx, desty);
 #endif
 	
 	src = screens[srcscrn] + vid.rowbytes * srcy + srcx;
@@ -524,8 +524,8 @@ void V_CopyRectTrans(int srcx, int srcy, int srcscrn, int width, int height, int
 	V_MarkRect(destx, desty, width, height);
 	
 #ifdef DEBUG
-	CONS_Printf("V_CopyRect: vidwidth %d screen[%d]=%x to screen[%d]=%x\n", vid.width, srcscrn, screens[srcscrn], destscrn, screens[destscrn]);
-	CONS_Printf("..........: srcx %d srcy %d width %d height %d destx %d desty %d\n", srcx, srcy, width, height, destx, desty);
+	CONL_PrintF("V_CopyRect: vidwidth %d screen[%d]=%x to screen[%d]=%x\n", vid.width, srcscrn, screens[srcscrn], destscrn, screens[destscrn]);
+	CONL_PrintF("..........: srcx %d srcy %d width %d height %d destx %d desty %d\n", srcx, srcy, width, height, destx, desty);
 #endif
 	
 	src = screens[srcscrn] + vid.width * srcy + srcx;
@@ -645,7 +645,7 @@ static void V_BlitScalePic(int x1, int y1, int scrn, pic_t* pic)
 	
 	if (pic->mode != 0)
 	{
-		CONS_Printf("pic mode %d not supported in Software\n", pic->mode);
+		CONL_PrintF("pic mode %d not supported in Software\n", pic->mode);
 		return;
 	}
 	
@@ -2418,7 +2418,7 @@ static bool_t VS_FontOCCB(const bool_t a_Pushed, const struct WL_WADFile_s* cons
 	{
 		// Debug message
 		if (devparm)
-			CONS_Printf("VS_FontOCCB: RMD_UTTT missing, mappings will be incomplete.\n");
+			CONL_PrintF("VS_FontOCCB: RMD_UTTT missing, mappings will be incomplete.\n");
 	}
 	else
 	{
@@ -2636,7 +2636,7 @@ static bool_t VS_FontOCCB(const bool_t a_Pushed, const struct WL_WADFile_s* cons
 	
 	// Debug
 	if (devparm)
-		CONS_Printf("VS_FontOCCB: Mapped %i characters.\n", Count);
+		CONL_PrintF("VS_FontOCCB: Mapped %i characters.\n", Count);
 	
 	/* Success! */
 	return true;

@@ -385,7 +385,7 @@ int TLS_Deepen(int Dir, int Deep)
 		
 		Deeps[Deepness] = Deep;
 		
-		CONS_Printf("%%%% PUSHBLOCK \"%s\"\n", Blocks);
+		CONL_PrintF("%%%% PUSHBLOCK \"%s\"\n", Blocks);
 		
 		Skip = false;
 		return 0;
@@ -409,7 +409,7 @@ int TLS_Deepen(int Dir, int Deep)
 			LastBlock[0]++;
 		}
 		
-		CONS_Printf("%%%% POPBLOCK\n");
+		CONL_PrintF("%%%% POPBLOCK\n");
 		
 		Skip = false;
 		
@@ -424,7 +424,7 @@ void TLD_FillStatement(char* Tokens, char* FinalRes)
 	int i;
 	
 	for (i = 0, p = Tokens; *p; p += strlen(p) + 1, i++)
-		CONS_Printf("> %i: %s\n", i, p);
+		CONL_PrintF("> %i: %s\n", i, p);
 }
 
 /* TLS_IncrementalCompile() -- Compile recursive */
@@ -450,7 +450,7 @@ bool_t TLS_IncrementalCompile(const WadIndex_t Index)
 		
 	/* Debug Message */
 	if (l_ScriptDebug)
-		CONS_Printf("TLSD: Incremental compile %i.\n", Index);
+		CONL_PrintF("TLSD: Incremental compile %i.\n", Index);
 		
 	/* Recursive */
 	// Too much?
@@ -512,7 +512,7 @@ bool_t TLS_IncrementalCompile(const WadIndex_t Index)
 			if (!Token || Token[0] != '(')
 			{
 				if (l_ScriptDebug)
-					CONS_Printf("TLSD: Expected \'(\' after include (got \"%s\").\n", Token);
+					CONL_PrintF("TLSD: Expected \'(\' after include (got \"%s\").\n", Token);
 				break;
 			}
 			// Get next token
@@ -522,7 +522,7 @@ bool_t TLS_IncrementalCompile(const WadIndex_t Index)
 			if (!Token || Token[0] != '\"')
 			{
 				if (l_ScriptDebug)
-					CONS_Printf("TLSD: Expected string constant in include (got \"%s\").\n", Token);
+					CONL_PrintF("TLSD: Expected string constant in include (got \"%s\").\n", Token);
 				break;
 			}
 			// Copy
@@ -533,13 +533,13 @@ bool_t TLS_IncrementalCompile(const WadIndex_t Index)
 			memmove(&Buf[0], &Buf[1], sizeof(char) * (strlen(Buf)));
 			
 			if (l_ScriptDebug)
-				CONS_Printf("TLSD: Including \"%s\".\n", Buf);
+				CONL_PrintF("TLSD: Including \"%s\".\n", Buf);
 				
 			// Check if lump exists and if not, 's/\./_/g'
 			if (W_CheckNumForName(Buf) == INVALIDLUMP)
 			{
 				if (l_ScriptDebug)
-					CONS_Printf("TLSD: Lump does not exist, performing \'s/\\./_/g\'\n");
+					CONL_PrintF("TLSD: Lump does not exist, performing \'s/\\./_/g\'\n");
 					
 				// Now do it
 				for (i = 0; i < strlen(Buf); i++)
@@ -549,7 +549,7 @@ bool_t TLS_IncrementalCompile(const WadIndex_t Index)
 			// Run recursive
 			if (!TLS_IncrementalCompile(W_CheckNumForName(Buf)))
 				if (l_ScriptDebug)
-					CONS_Printf("TLSD: Include failed.\n");
+					CONL_PrintF("TLSD: Include failed.\n");
 					
 			// Get next token
 			Token = TLS_TokenData(Data, Len, &TokData);
@@ -558,7 +558,7 @@ bool_t TLS_IncrementalCompile(const WadIndex_t Index)
 			if (!Token || Token[0] != ')')
 			{
 				if (l_ScriptDebug)
-					CONS_Printf("TLSD: Expected \')\' after include (got \"%s\").\n", Token);
+					CONL_PrintF("TLSD: Expected \')\' after include (got \"%s\").\n", Token);
 				break;
 			}
 			// Get next token
@@ -568,7 +568,7 @@ bool_t TLS_IncrementalCompile(const WadIndex_t Index)
 			if (!Token || Token[0] != ';')
 			{
 				if (l_ScriptDebug)
-					CONS_Printf("TLSD: Expected \';\' after include (got \"%s\").\n", Token);
+					CONL_PrintF("TLSD: Expected \';\' after include (got \"%s\").\n", Token);
 				break;
 			}
 			// Continue
@@ -589,11 +589,11 @@ bool_t TLS_IncrementalCompile(const WadIndex_t Index)
 			if (!Token || !TLS_ValidUInt(Token))
 			{
 				if (l_ScriptDebug)
-					CONS_Printf("TLSD: Invalid script id \"%s\".\n", Token);
+					CONL_PrintF("TLSD: Invalid script id \"%s\".\n", Token);
 				break;
 			}
 			// Print label
-			CONS_Printf("%%%% LABEL \"_SCRIPT_%04X\"\n", atoi(Token));
+			CONL_PrintF("%%%% LABEL \"_SCRIPT_%04X\"\n", atoi(Token));
 		}
 		// Variable
 		else if (strcasecmp(Token, "int") == 0 || strcasecmp(Token, "fixed") == 0 ||
@@ -608,7 +608,7 @@ bool_t TLS_IncrementalCompile(const WadIndex_t Index)
 			if (!Token || !TLS_ValidIdent(Token))
 			{
 				if (l_ScriptDebug)
-					CONS_Printf("TLSD: Invalid identifier name \"%s\".\n", Token);
+					CONL_PrintF("TLSD: Invalid identifier name \"%s\".\n", Token);
 				break;
 			}
 			
@@ -618,7 +618,7 @@ bool_t TLS_IncrementalCompile(const WadIndex_t Index)
 			Skip = true;
 			
 			// Instruction
-			CONS_Printf("%%%% DECL \"%s\", \"_%s_%s\"\n", Buf, Blocks, Buf2);
+			CONL_PrintF("%%%% DECL \"%s\", \"_%s_%s\"\n", Buf, Blocks, Buf2);
 		}
 		// Begin block
 		else if (strcasecmp(Token, "{") == 0)
@@ -646,7 +646,7 @@ bool_t TLS_IncrementalCompile(const WadIndex_t Index)
 			TLS_Deepen(1, 0);
 			
 			// Label start
-			CONS_Printf("%%%% LABEL \"_%s_BEGINIF\"\n", Blocks);
+			CONL_PrintF("%%%% LABEL \"_%s_BEGINIF\"\n", Blocks);
 			
 			// Find (
 			while (Token && strcasecmp(Token, "(") != 0)
@@ -678,9 +678,9 @@ bool_t TLS_IncrementalCompile(const WadIndex_t Index)
 			// Send buf over
 			TLD_FillStatement(Buf, Buf2);
 			
-			CONS_Printf("? %s\n", Token);
-			CONS_Printf("%%%% LABEL \"_%s_BEGINIF\"\n", Blocks);
-			CONS_Printf("%%%% IF \"_%s\"\n", Buf2);
+			CONL_PrintF("? %s\n", Token);
+			CONL_PrintF("%%%% LABEL \"_%s_BEGINIF\"\n", Blocks);
+			CONL_PrintF("%%%% IF \"_%s\"\n", Buf2);
 			Skip = true;
 		}
 		// Loop
@@ -693,7 +693,7 @@ bool_t TLS_IncrementalCompile(const WadIndex_t Index)
 			//TLS_Deepen(1, 0);
 			
 			// Label start
-			CONS_Printf("%%%% LABEL \"_%s\"\n", Blocks);
+			CONL_PrintF("%%%% LABEL \"_%s\"\n", Blocks);
 			
 			// Parse loop
 			
@@ -734,7 +734,7 @@ bool_t TLS_IncrementalCompile(const WadIndex_t Index)
 			if (HubVar || NextVar)
 			{
 				if (l_ScriptDebug)
-					CONS_Printf("TLSD: Attempted to use script as a variable.\n");
+					CONL_PrintF("TLSD: Attempted to use script as a variable.\n");
 				break;
 			}
 			// Get next token
@@ -744,7 +744,7 @@ bool_t TLS_IncrementalCompile(const WadIndex_t Index)
 			if (!Token || strchr(Token, '.'))
 			{
 				if (l_ScriptDebug)
-					CONS_Printf("TLSD: Expected positive integer constant after script (got \"%s\").\n", Token);
+					CONL_PrintF("TLSD: Expected positive integer constant after script (got \"%s\").\n", Token);
 				break;
 			}
 			// Push script block
@@ -758,7 +758,7 @@ bool_t TLS_IncrementalCompile(const WadIndex_t Index)
 			if (HubVar || NextVar)
 			{
 				if (l_ScriptDebug)
-					CONS_Printf("TLSD: Attempted to brace as a variable.\n");
+					CONL_PrintF("TLSD: Attempted to brace as a variable.\n");
 				break;
 			}
 			// Increment
@@ -766,7 +766,7 @@ bool_t TLS_IncrementalCompile(const WadIndex_t Index)
 			
 			// Print
 			if (l_ScriptDebug)
-				CONS_Printf("TLSD: Now %i deep.\n", Deepness);
+				CONL_PrintF("TLSD: Now %i deep.\n", Deepness);
 				
 			// Reset block type
 			PushBlockType = 0;
@@ -779,7 +779,7 @@ bool_t TLS_IncrementalCompile(const WadIndex_t Index)
 			if (HubVar || NextVar)
 			{
 				if (l_ScriptDebug)
-					CONS_Printf("TLSD: Attempted to brace as a variable.\n");
+					CONL_PrintF("TLSD: Attempted to brace as a variable.\n");
 				break;
 			}
 			// Decrement
@@ -787,13 +787,13 @@ bool_t TLS_IncrementalCompile(const WadIndex_t Index)
 			
 			// Print
 			if (l_ScriptDebug)
-				CONS_Printf("TLSD: Now %i deep.\n", Deepness);
+				CONL_PrintF("TLSD: Now %i deep.\n", Deepness);
 				
 			// Check
 			if (Deepness < 0)
 			{
 				if (l_ScriptDebug)
-					CONS_Printf("TLSD: Too many closing braces.\n");
+					CONL_PrintF("TLSD: Too many closing braces.\n");
 				break;
 			}
 		}
@@ -805,21 +805,21 @@ bool_t TLS_IncrementalCompile(const WadIndex_t Index)
 			if (HubVar)
 			{
 				if (l_ScriptDebug)
-					CONS_Printf("TLSD: hub hub is too hubby for ReMooD.\n");
+					CONL_PrintF("TLSD: hub hub is too hubby for ReMooD.\n");
 				break;
 			}
 			// Check var
 			if (NextVar)
 			{
 				if (l_ScriptDebug)
-					CONS_Printf("TLSD: hub is a reserved word.\n");
+					CONL_PrintF("TLSD: hub is a reserved word.\n");
 				break;
 			}
 			// Now set
 			HubVar = true;
 			
 			if (l_ScriptDebug)
-				CONS_Printf("TLSD: Next variable is a hub.\n");
+				CONL_PrintF("TLSD: Next variable is a hub.\n");
 		}
 		
 		/* Declare variable */
@@ -830,7 +830,7 @@ bool_t TLS_IncrementalCompile(const WadIndex_t Index)
 			if (NextVar)
 			{
 				if (l_ScriptDebug)
-					CONS_Printf("TLSD: %s is a reserved word.\n", Token);
+					CONL_PrintF("TLSD: %s is a reserved word.\n", Token);
 				break;
 			}
 			// Unset hub
@@ -850,7 +850,7 @@ bool_t TLS_IncrementalCompile(const WadIndex_t Index)
 				NextVar = TLSVT_FIXED;
 				
 			if (l_ScriptDebug)
-				CONS_Printf("TLSD: Next statement declares a variable (%i).\n", NextVar);
+				CONL_PrintF("TLSD: Next statement declares a variable (%i).\n", NextVar);
 		}
 		
 		/* Loops and branches */
@@ -866,16 +866,16 @@ bool_t TLS_IncrementalCompile(const WadIndex_t Index)
 			if (HubVar)
 			{
 				if (l_ScriptDebug)
-					CONS_Printf("TLSD: Attempted to hub a non variable.\n");
+					CONL_PrintF("TLSD: Attempted to hub a non variable.\n");
 				break;
 			}
 			// Wait until ;
 			while (Token && strcasecmp(Token, ";") != 0)
 			{
-				CONS_Printf("# \'%s\'\n", Token);
+				CONL_PrintF("# \'%s\'\n", Token);
 				Token = TLS_TokenData(Data, Len, &TokData);
 			}
-			CONS_Printf(";\n");
+			CONL_PrintF(";\n");
 			
 			// Lose variable stuff
 			BoostHubVar = false;
@@ -888,7 +888,7 @@ bool_t TLS_IncrementalCompile(const WadIndex_t Index)
 	}
 	
 	if (l_ScriptDebug)
-		CONS_Printf("\n");
+		CONL_PrintF("\n");
 		
 	/* Someone forget braces or whatever? */
 	if (RecCount == 0 && Deepness > 0)
@@ -896,7 +896,7 @@ bool_t TLS_IncrementalCompile(const WadIndex_t Index)
 		Ok = false;
 		
 		if (l_ScriptDebug)
-			CONS_Printf("TLSD: Script contains unclosed brace.\n");
+			CONL_PrintF("TLSD: Script contains unclosed brace.\n");
 	}
 	
 	/* Free token data */
@@ -917,7 +917,7 @@ bool_t TLS_CompileLump(const WadIndex_t Index)
 	l_ScriptDebug = ! !M_CheckParm("-tlsdebug");
 	
 	if (l_ScriptDebug)
-		CONS_Printf("TLS_CompileLump: Debugging %i.\n", Index);
+		CONL_PrintF("TLS_CompileLump: Debugging %i.\n", Index);
 		
 	return TLS_IncrementalCompile(Index);
 }

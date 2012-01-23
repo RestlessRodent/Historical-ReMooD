@@ -1084,7 +1084,7 @@ void I_StartupGraphics(void)
 	/* Initialize SDL */
 	if (SDL_Init(SDL_INIT_VIDEO) == -1)
 	{
-		CONS_Printf("I_StartupGraphics: Failed to initialize SDL graphics.\n");
+		CONL_PrintF("I_StartupGraphics: Failed to initialize SDL graphics.\n");
 		return;
 	}
 	// Set unicode mode and key repeating

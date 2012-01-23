@@ -477,7 +477,7 @@ void D_Display(void)
 	}
 	//I_BeginProfile();
 	I_FinishUpdate();			// page flip or blit buffer
-	//CONS_Printf ("last frame update took %d\n", I_EndProfile());
+	//CONL_PrintF ("last frame update took %d\n", I_EndProfile());
 	
 	if (!wipe)
 		return;
@@ -513,7 +513,7 @@ void D_Display(void)
 	if (!done)
 	{
 		//if (devparm)
-		//  CONS_PrintfUL(SRCSTR__D_MAIN_C__WIPENEVERDONE, L"");
+		//  CONL_PrintFUL(SRCSTR__D_MAIN_C__WIPENEVERDONE, L"");
 		
 		// Force an end
 		wipe_ScreenWipe(cv_screenslink.value - 1, 0, 0, vid.width, vid.height, -tics);
@@ -551,14 +551,14 @@ void D_DoomLoop(void)
 	// user settings
 	COM_BufAddText("exec autoexec.cfg\n");
 	
-	// end of loading screen: CONS_Printf() will no more call FinishUpdate()
+	// end of loading screen: CONL_PrintF() will no more call FinishUpdate()
 	con_startup = false;
 	
-	CONS_Printf("I_StartupKeyboard...\n");
+	CONL_PrintF("I_StartupKeyboard...\n");
 	I_StartupKeyboard();
 	
 	/*#ifdef _WIN32
-	   CONS_Printf("I_StartupMouse...\n");
+	   CONL_PrintF("I_StartupMouse...\n");
 	   I_DoStartupMouse();
 	   #endif */
 	
@@ -1054,7 +1054,7 @@ static bool_t DS_DetectGameMode(const bool_t a_Pushed, const struct WL_WADFile_s
 	if (!BaseWAD)
 	{
 		if (devparm)
-			CONS_Printf("DS_DetectGameMode: Stack empty, there is no game.\n");
+			CONL_PrintF("DS_DetectGameMode: Stack empty, there is no game.\n");
 		g_CoreGame = COREGAME_UNKNOWN;
 		return true;
 	}
@@ -1063,13 +1063,13 @@ static bool_t DS_DetectGameMode(const bool_t a_Pushed, const struct WL_WADFile_s
 	if (g_CoreGame != COREGAME_UNKNOWN)
 	{
 		if (devparm)
-			CONS_Printf("DS_DetectGameMode: Already detected, no need to detect.\n");
+			CONL_PrintF("DS_DetectGameMode: Already detected, no need to detect.\n");
 		return true;
 	}
 	
 	/* Debug */
 	if (devparm)
-		CONS_Printf("DS_DetectGameMode: Detecting game type...\n");
+		CONL_PrintF("DS_DetectGameMode: Detecting game type...\n");
 	
 	/* Allocate Confidence */
 	NumConf = (sizeof(c_IWADInfos) / sizeof(D_IWADInfoEx_t)) - 1;
@@ -1181,7 +1181,7 @@ static bool_t DS_DetectGameMode(const bool_t a_Pushed, const struct WL_WADFile_s
 	{
 		// A nice message
 		if (devparm)
-			CONS_Printf("DS_DetectGameMode: %3i/%-3i: %s\n", Confidence[i], TotalScore, c_IWADInfos[i].NiceTitle);
+			CONL_PrintF("DS_DetectGameMode: %3i/%-3i: %s\n", Confidence[i], TotalScore, c_IWADInfos[i].NiceTitle);
 		
 		// Is this the best?
 		if (Confidence[i] > Confidence[Best])
@@ -1190,7 +1190,7 @@ static bool_t DS_DetectGameMode(const bool_t a_Pushed, const struct WL_WADFile_s
 	
 	// Set the best
 	if (devparm)
-		CONS_Printf("DS_DetectGameMode: Selecting %s.\n", c_IWADInfos[Best].NiceTitle);
+		CONL_PrintF("DS_DetectGameMode: Selecting %s.\n", c_IWADInfos[Best].NiceTitle);
 	
 	g_CoreGame = c_IWADInfos[Best].CoreGame;
 	gamemode = c_IWADInfos[Best].mode;
@@ -1213,7 +1213,7 @@ void D_LoadGameFilesEx(void)
 	
 	/* Register game identifier, based on pushes */
 	if (devparm)
-		CONS_Printf("D_LoadGameFilesEx: Registering mode detector.\n");
+		CONL_PrintF("D_LoadGameFilesEx: Registering mode detector.\n");
 	if (!WL_RegisterOCCB(DS_DetectGameMode, 1))
 		I_Error("D_LoadGameFilesEx: Failed to register IWAD OCCB!");
 	if (!WL_RegisterOCCB(DS_DetectReMooDWAD, 2))
@@ -1246,7 +1246,7 @@ void D_LoadGameFilesEx(void)
 		// Debug
 		if (devparm)
 			if (OK)
-				CONS_Printf("D_LoadGameFilesEx: Pass via -iwad not found\n");
+				CONL_PrintF("D_LoadGameFilesEx: Pass via -iwad not found\n");
 	}
 	
 	// Not found, do standard rotary search
@@ -1267,7 +1267,7 @@ void D_LoadGameFilesEx(void)
 				{
 					// Devparm here
 					if (devparm)
-						CONS_Printf("D_LoadGameFilesEx: Discovering \"%s\"...\n", Field);
+						CONL_PrintF("D_LoadGameFilesEx: Discovering \"%s\"...\n", Field);
 					
 					// Do the actual check
 					if (WL_LocateWAD(Field, NULL, DiscoveredPath, PATH_MAX))
@@ -1288,7 +1288,7 @@ void D_LoadGameFilesEx(void)
 	/* Prepare IWAD for loading */
 	// Debug
 	if (devparm)
-		CONS_Printf("D_LoadGameFilesEx: Found IWAD \"%s\".\n", DiscoveredPath);
+		CONL_PrintF("D_LoadGameFilesEx: Found IWAD \"%s\".\n", DiscoveredPath);
 	
 	// Add it to the files to load
 	D_AddFile(DiscoveredPath);
@@ -1319,7 +1319,7 @@ void D_LoadGameFilesEx(void)
 		// Debug
 		if (devparm)
 			if (OK)
-				CONS_Printf("D_LoadGameFilesEx: Pass via -remoodwad not found\n");
+				CONL_PrintF("D_LoadGameFilesEx: Pass via -remoodwad not found\n");
 	}
 	
 	// Not found, do standard search
@@ -1337,7 +1337,7 @@ void D_LoadGameFilesEx(void)
 	/* Prepare ReMooD.wad for loading */
 	// Debug
 	if (devparm)
-		CONS_Printf("D_LoadGameFilesEx: Found ReMooD.wad \"%s\".\n", DiscoveredPath);
+		CONL_PrintF("D_LoadGameFilesEx: Found ReMooD.wad \"%s\".\n", DiscoveredPath);
 	
 	// Add it to the files to load
 	D_AddFile(DiscoveredPath);
@@ -1454,7 +1454,7 @@ void D_DoomMain(void)
 		
 	//added:18-02-98:keep error messages until the final flush(stderr)
 	//if (setvbuf(stderr, NULL, _IOFBF, 1000))
-	//  CONS_Printf("setvbuf didnt work\n");
+	//  CONL_PrintF("setvbuf didnt work\n");
 	
 	// get parameters from a response file (eg: doom3 @parms.txt)
 	M_FindResponseFile();
@@ -1525,10 +1525,10 @@ void D_DoomMain(void)
 	sprintf(legacy, "ReMooD v%i.%i%c \"%s\"", REMOOD_MAJORVERSION, REMOOD_MINORVERSION, REMOOD_RELEASEVERSION, REMOOD_VERSIONCODESTRING);
 	D_MakeTitleString(legacy);
 	
-	CONS_Printf("%s\n%s\n", legacy, title);
+	CONL_PrintF("%s\n%s\n", legacy, title);
 	
 	if (devparm)
-		CONS_Printf(D_DEVSTR);
+		CONL_PrintF(D_DEVSTR);
 		
 	// default savegame
 	strcpy(savegamename, text[NORM_SAVEI_NUM]);
@@ -1550,7 +1550,7 @@ void D_DoomMain(void)
 			case retail:
 			case registered:
 				sprintf(file, "~" DEVMAPS "E%cM%c.wad", myargv[p + 1][0], myargv[p + 2][0]);
-				CONS_Printf("Warping to Episode %s, Map %s.\n", myargv[p + 1], myargv[p + 2]);
+				CONL_PrintF("Warping to Episode %s, Map %s.\n", myargv[p + 1], myargv[p + 2]);
 				break;
 				
 			case commercial:
@@ -1617,7 +1617,7 @@ void D_DoomMain(void)
 		autostart = true;
 	}
 	
-	CONS_Printf(text[Z_INIT_NUM]);
+	CONL_PrintF(text[Z_INIT_NUM]);
 	
 	G_InitKeys();
 	
@@ -1627,7 +1627,7 @@ void D_DoomMain(void)
 	if (gamemode == chexquest1)
 		Chex1PatchEngine();
 		
-	CONS_Printf(text[W_INIT_NUM]);
+	CONL_PrintF(text[W_INIT_NUM]);
 	// load wad, including the main wad file
 	if (W_InitMultipleFiles(startupwadfiles) == 0)
 		I_Error("A WAD file was not found\n");
@@ -1660,30 +1660,30 @@ void D_DoomMain(void)
 		int i;
 		
 		if (gamemode == shareware)
-			CONS_Printf("\nYou shouldn't use -file with the shareware version. Register!");
+			CONL_PrintF("\nYou shouldn't use -file with the shareware version. Register!");
 			
 		// Check for fake IWAD with right name,
 		// but w/o all the lumps of the registered version.
 		if (gamemode == registered)
 			for (i = 0; i < 23; i++)
 				if (W_CheckNumForName(name[i]) == INVALIDLUMP)
-					CONS_Printf("\nThis is not the registered version.");
+					CONL_PrintF("\nThis is not the registered version.");
 	}
 	// If additonal PWAD files are used, print modified banner
 	if (modifiedgame)
-		CONS_Printf(text[MODIFIED_NUM]);
+		CONL_PrintF(text[MODIFIED_NUM]);
 		
 	// Check and print which version is executed.
 	switch (gamemode)
 	{
 		case shareware:
 		case indetermined:
-			CONS_Printf(text[SHAREWARE_NUM]);
+			CONL_PrintF(text[SHAREWARE_NUM]);
 			break;
 		case registered:
 		case retail:
 		case commercial:
-			CONS_Printf(text[COMERCIAL_NUM]);
+			CONL_PrintF(text[COMERCIAL_NUM]);
 			break;
 		default:
 			// Ouch.
@@ -1694,24 +1694,24 @@ void D_DoomMain(void)
 	//---------------------------------------------------- READY SCREEN
 	//printf("\nI_StartupComm...");
 	
-	CONS_Printf("I_StartupTimer...\n");
+	CONL_PrintF("I_StartupTimer...\n");
 	I_StartupTimer();
 	
-	CONS_Printf("I_InitNetwork...\n");
+	CONL_PrintF("I_InitNetwork...\n");
 	I_InitNetwork();
 	
 	// now initted automatically by use_mouse var code
-	//CONS_Printf("I_StartupMouse...\n");
+	//CONL_PrintF("I_StartupMouse...\n");
 	//I_StartupMouse ();
 	
-	//CONS_Printf ("I_StartupKeyboard...\n");
+	//CONL_PrintF ("I_StartupKeyboard...\n");
 	//I_StartupKeyboard (); // FIXME: this is a dummy, we can remove it!
 	
 	// now initialised automatically by use_joystick var code
-	//CONS_Printf (text[I_INIT_NUM]);
+	//CONL_PrintF (text[I_INIT_NUM]);
 	//I_InitJoystick ();
 	
-	CONS_Printf("I_StartupGraphics...\n");
+	CONL_PrintF("I_StartupGraphics...\n");
 	I_StartupGraphics();
 	
 	//--------------------------------------------------------- CONSOLE
@@ -1720,7 +1720,7 @@ void D_DoomMain(void)
 	SCR_ReclassBuffers();
 	
 	// we need the font of the console
-	CONS_Printf(text[HU_INIT_NUM]);
+	CONL_PrintF(text[HU_INIT_NUM]);
 	HU_Init();
 	
 	COM_Init();
@@ -1736,7 +1736,7 @@ void D_DoomMain(void)
 	PROF_Init();
 	CV_RegisterVar(&cv_screenslink);
 	
-	CONS_Printf(text[M_INIT_NUM]);
+	CONL_PrintF(text[M_INIT_NUM]);
 	M_Init();
 	
 	//Fab:29-04-98: do some dirty chatmacros strings initialisation
@@ -1782,7 +1782,7 @@ void D_DoomMain(void)
 	if (M_CheckParm("-avg"))
 	{
 		COM_BufAddText("timelimit 20\n");
-		CONS_Printf(text[AUSTIN_NUM]);
+		CONL_PrintF(text[AUSTIN_NUM]);
 	}
 	// turbo option, is not meant to be saved in config, still
 	// supported at cmd-line for compatibility
@@ -1792,19 +1792,19 @@ void D_DoomMain(void)
 	// push all "+" parameter at the command buffer
 	M_PushSpecialParameters();
 	
-	CONS_Printf(text[R_INIT_NUM]);
+	CONL_PrintF(text[R_INIT_NUM]);
 	R_Init();
 	
 	//
 	// setting up sound
 	//
-	CONS_Printf(text[S_SETSOUND_NUM]);
+	CONL_PrintF(text[S_SETSOUND_NUM]);
 	nosound = M_CheckParm("-nosound");
 	nomusic = M_CheckParm("-nomusic");	// WARNING: DOS version initmusic in I_StartupSound
 	digmusic = M_CheckParm("-digmusic");	// SSNTails 12-13-2002
 	S_Init(cv_soundvolume.value, cv_musicvolume.value);
 	
-	CONS_Printf(text[ST_INIT_NUM]);
+	CONL_PrintF(text[ST_INIT_NUM]);
 	ST_Init();
 	
 	////////////////////////////////
@@ -1813,7 +1813,7 @@ void D_DoomMain(void)
 	T_Init();
 	
 	// init all NETWORK
-	CONS_Printf(text[D_CHECKNET_NUM]);
+	CONL_PrintF(text[D_CHECKNET_NUM]);
 	if (D_CheckNetGame())
 		autostart = true;
 		
@@ -1827,7 +1827,7 @@ void D_DoomMain(void)
 		   extern  void*   statcopy;
 		
 		   statcopy = (void*)atoi(myargv[p+1]);
-		   CONS_Printf (text[STATREG_NUM]);
+		   CONL_PrintF (text[STATREG_NUM]);
 		 */
 	}
 	// start the apropriate game based on parms
@@ -1859,7 +1859,7 @@ void D_DoomMain(void)
 		if (W_CheckNumForName(tmp) == INVALIDLUMP)
 			FIL_DefaultExtension(tmp, ".lmp");
 			
-		CONS_Printf("Playing demo %s.\n", tmp);
+		CONL_PrintF("Playing demo %s.\n", tmp);
 		
 		if ((p = M_CheckParm("-playdemo")))
 		{

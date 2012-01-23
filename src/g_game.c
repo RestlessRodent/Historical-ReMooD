@@ -269,9 +269,9 @@ void* statcopy;					// for statistics driver
 void ShowMessage_OnChange(void)
 {
 	if (!cv_showmessages.value)
-		CONS_Printf("%s\n", MSGOFF);
+		CONL_PrintF("%s\n", MSGOFF);
 	else
-		CONS_Printf("%s\n", MSGON);
+		CONL_PrintF("%s\n", MSGON);
 }
 
 //  Build an original game map name from episode and map number,
@@ -470,7 +470,7 @@ void G_BuildTiccmd(ticcmd_t* cmd, int realtics, int player)
 		{
 			//faB: JOYAXISRANGE should be 1023 ( divide by 1024 )
 			cmd->angleturn -= ((joyxmove * angleturn[1]) >> 10);	// ANALOG!
-			//CONS_Printf ("joyxmove %d  angleturn %d\n", joyxmove, cmd->angleturn);
+			//CONL_PrintF ("joyxmove %d  angleturn %d\n", joyxmove, cmd->angleturn);
 		}
 		
 	}
@@ -749,13 +749,13 @@ void Command_Turbo_f(void)
 	
 	if (!cv_allowturbo.value && netgame)
 	{
-		CONS_Printf("This server don't allow turbo\n");
+		CONL_PrintF("This server don't allow turbo\n");
 		return;
 	}
 	
 	if (COM_Argc() != 2)
 	{
-		CONS_Printf("turbo <10-255> : set turbo");
+		CONL_PrintF("turbo <10-255> : set turbo");
 		return;
 	}
 	
@@ -766,7 +766,7 @@ void Command_Turbo_f(void)
 	if (scale > 255)
 		scale = 255;
 		
-	CONS_Printf("turbo scale: %i%%\n", scale);
+	CONL_PrintF("turbo scale: %i%%\n", scale);
 	
 	forwardmove[0] = originalforwardmove[0] * scale / 100;
 	forwardmove[1] = originalforwardmove[1] * scale / 100;
@@ -857,7 +857,7 @@ bool_t G_Responder(event_t* ev)
 			ST_changeDemoView();
 			
 		//added:11-04-98: tell who's the view
-		CONS_Printf("Viewpoint : %s\n", player_names[displayplayer[0]]);
+		CONL_PrintF("Viewpoint : %s\n", player_names[displayplayer[0]]);
 		
 		return true;
 	}
@@ -1244,7 +1244,7 @@ bool_t G_DeathMatchSpawnPlayer(int playernum)
 	
 	if (!numdmstarts)
 	{
-		CONS_Printf("No deathmatch start in this map, falling back to Coop starts!");
+		CONL_PrintF("No deathmatch start in this map, falling back to Coop starts!");
 		P_SpawnPlayer(playerstarts[playernum]);
 		return false;
 	}
@@ -1616,7 +1616,7 @@ void G_DoLoadGame(int slot)
 	length = FIL_ReadFile(savename, &savebuffer);
 	if (!length)
 	{
-		CONS_Printf("Couldn't read file %s", savename);
+		CONL_PrintF("Couldn't read file %s", savename);
 		return;
 	}
 	// skip the description field
@@ -1696,7 +1696,7 @@ void G_DoSaveGame(int savegameslot, char* savedescription)
 	save_p = savebuffer = (uint8_t*)malloc(SAVEGAMESIZE);
 	if (!save_p)
 	{
-		CONS_Printf("No More free memory for savegame\n");
+		CONL_PrintF("No More free memory for savegame\n");
 		return;
 	}
 	
@@ -1726,12 +1726,12 @@ void G_DoSaveGame(int savegameslot, char* savedescription)
 	char ExtFileName[MAX_WADPATH];
 	size_t FileLen = 0;
 	
-	CONS_Printf("G_DoSaveGame: Saving the game...\n");
+	CONL_PrintF("G_DoSaveGame: Saving the game...\n");
 	
 	// Can't save when NOT playing
 	if (!(gamestate == GS_LEVEL || gamestate == GS_INTERMISSION))
 	{
-		CONS_Printf("G_DoSaveGame: You can't save the game if you are not inside of a game!\n");
+		CONL_PrintF("G_DoSaveGame: You can't save the game if you are not inside of a game!\n");
 		return;
 	}
 	// Setup
@@ -1749,7 +1749,7 @@ void G_DoSaveGame(int savegameslot, char* savedescription)
 		
 		gameaction = ga_nothing;
 		
-		CONS_Printf("G_DoSaveGame: Game saved!\n");
+		CONL_PrintF("G_DoSaveGame: Game saved!\n");
 		R_FillBackScreen();
 	}
 	
@@ -1791,7 +1791,7 @@ void G_InitNew(skill_t skill, char* mapname, bool_t resetplayer)
 	//                older demos, plus reset new features as default
 	if (!G_Downgrade(demoversion))
 	{
-		CONS_Printf("Cannot Downgrade engine\n");
+		CONL_PrintF("Cannot Downgrade engine\n");
 		D_StartTitle();
 		return;
 	}
@@ -1827,7 +1827,7 @@ void G_InitNew(skill_t skill, char* mapname, bool_t resetplayer)
 		// but in case of for demos....
 		if (W_CheckNumForName(mapname) == -1)
 		{
-			CONS_Printf("\2Internal game map '%s' not found\n" "(use .wad extension for external maps)\n", mapname);
+			CONL_PrintF("\2Internal game map '%s' not found\n" "(use .wad extension for external maps)\n", mapname);
 			Command_ExitGame_f();
 			return;
 		}
@@ -2063,7 +2063,7 @@ void G_DoPlayDemo(char* defdemoname)
 		FIL_DefaultExtension(defdemoname, ".lmp");
 		if (!FIL_ReadFile(defdemoname, &demobuffer))
 		{
-			CONS_Printf("\2ERROR: couldn't open file '%s'.\n", defdemoname);
+			CONL_PrintF("\2ERROR: couldn't open file '%s'.\n", defdemoname);
 			goto no_demo;
 		}
 		demo_p = demobuffer;
@@ -2079,7 +2079,7 @@ void G_DoPlayDemo(char* defdemoname)
 	demoversion = READBYTE(demo_p);
 	if (demoversion < 109)
 	{
-		CONS_Printf("\2ERROR: demo version too old.\n");
+		CONL_PrintF("\2ERROR: demo version too old.\n");
 		demoversion = VERSION;
 		if (demobuffer)
 			Z_Free(demobuffer);
@@ -2092,9 +2092,9 @@ no_demo:
 	}
 	
 	if (demoversion < VERSION)
-		CONS_Printf("\2Demo is from an older game version\n");
+		CONL_PrintF("\2Demo is from an older game version\n");
 		
-	CONS_Printf("Demo is from %i.i\n", demoversion / 100, demoversion % 100);
+	CONL_PrintF("Demo is from %i.i\n", demoversion / 100, demoversion % 100);
 	
 	skill = *demo_p++;
 	episode = *demo_p++;
@@ -2230,7 +2230,7 @@ void G_TimeDemo(char* name)
 
 void G_DoneLevelLoad(void)
 {
-	CONS_Printf("Load Level in %f sec\n", (float)(I_GetTime() - demostarttime) / TICRATE);
+	CONL_PrintF("Load Level in %f sec\n", (float)(I_GetTime() - demostarttime) / TICRATE);
 	framecount = 0;
 	demostarttime = I_GetTime();
 }
@@ -2275,7 +2275,7 @@ bool_t G_CheckDemoStatus(void)
 		timingdemo = false;
 		f1 = time;
 		f2 = framecount * TICRATE;
-		CONS_Printf("timed %i gametics in %i realtics\n" "%f secondes, %f avg fps\n", leveltime, time, f1 / TICRATE, f2 / f1);
+		CONL_PrintF("timed %i gametics in %i realtics\n" "%f secondes, %f avg fps\n", leveltime, time, f1 / TICRATE, f2 / f1);
 		if (restorecv_vidwait != cv_vidwait.value)
 			CV_SetValue(&cv_vidwait, restorecv_vidwait);
 		D_AdvanceDemo();
@@ -2302,7 +2302,7 @@ bool_t G_CheckDemoStatus(void)
 		demobuffer = NULL;
 		demorecording = false;
 		
-		CONS_Printf("\2Demo %s recorded\n", demoname);
+		CONL_PrintF("\2Demo %s recorded\n", demoname);
 		return true;
 		//I_Quit ();
 #endif

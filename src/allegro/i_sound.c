@@ -95,7 +95,7 @@ bool_t I_AllegroSD_Init(struct I_SoundDriver_s* const a_Driver)
 		// Install Sound
 		if (install_sound(DIGI_AUTODETECT, MIDI_AUTODETECT, NULL) == -1)
 		{
-			CONS_Printf("I_AllegroSD_Init: Failed to install sound (sound).\n");
+			CONL_PrintF("I_AllegroSD_Init: Failed to install sound (sound).\n");
 			return false;
 		}
 		
@@ -108,7 +108,7 @@ bool_t I_AllegroSD_Init(struct I_SoundDriver_s* const a_Driver)
 	load_midi_patches();
 	
 	/* Success */
-	CONS_Printf("I_AllegroSD_Init: Success!\n");
+	CONL_PrintF("I_AllegroSD_Init: Success!\n");
 	return true;
 }
 
@@ -313,7 +313,7 @@ bool_t I_SoundDriverInit(void)
 {
 	/* Add Allegro Sound Driver */
 	if (!I_AddSoundDriver(&l_AllegroSoundDriver))
-		CONS_Printf("I_SoundDriverInit: Failed to add Allegro Driver\n");
+		CONL_PrintF("I_SoundDriverInit: Failed to add Allegro Driver\n");
 		
 	/* Success */
 	return true;

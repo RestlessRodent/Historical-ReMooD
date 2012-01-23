@@ -323,7 +323,7 @@ void P_MovePlayer(player_t* player)
 		{
 			//SoM: This seems to be buggy! Can anyone figure out why??
 			movefactor = P_GetMoveFactor(player->mo);
-			//CONS_Printf("movefactor: %i\n", movefactor);
+			//CONL_PrintF("movefactor: %i\n", movefactor);
 		}
 		
 		if (cmd->forwardmove)

@@ -137,7 +137,7 @@ bool_t P_SetMobjState(mobj_t* mobj, statenum_t state)
 	while (!mobj->tics && !seenstate[state]);	// killough 4/9/98
 	
 	if (ret && !mobj->tics)		// killough 4/9/98: detect state cycles
-		CONS_Printf("Warning: State Cycle Detected");
+		CONL_PrintF("Warning: State Cycle Detected");
 		
 	if (!--recursion)
 		for (; (state = seenstate[i]); i = state - 1)
@@ -832,9 +832,9 @@ void P_MobjCheckWater(mobj_t* mobj)
 		
 	/*
 	   if( (mobj->eflags ^ oldeflags) & MF_TOUCHWATER)
-	   CONS_Printf("touchewater %d\n",mobj->eflags & MF_TOUCHWATER ? 1 : 0);
+	   CONL_PrintF("touchewater %d\n",mobj->eflags & MF_TOUCHWATER ? 1 : 0);
 	   if( (mobj->eflags ^ oldeflags) & MF_UNDERWATER)
-	   CONS_Printf("underwater %d\n",mobj->eflags & MF_UNDERWATER ? 1 : 0);
+	   CONL_PrintF("underwater %d\n",mobj->eflags & MF_UNDERWATER ? 1 : 0);
 	 */
 	// blood doesnt make noise when it falls in water
 	if (!(oldeflags & (MF_TOUCHWATER | MF_UNDERWATER)) &&
@@ -1118,7 +1118,7 @@ mobj_t* P_SpawnMobj(fixed_t x, fixed_t y, fixed_t z, mobjtype_t type)
 	}
 	else
 	{
-		//CONS_Printf("mobj spawned at z %d\n",z>>16);
+		//CONL_PrintF("mobj spawned at z %d\n",z>>16);
 		mobj->z = z;
 	}
 	
@@ -1229,7 +1229,7 @@ void P_RespawnSpecials(void)
 	
 	if (!mthing)				// Hurdler: grrrr, very ugly hack that need to be fixed!!!
 	{
-		CONS_Printf("Warning: couldn't respawn a thing. This is a known bug with FS and saved games.\n");
+		CONL_PrintF("Warning: couldn't respawn a thing. This is a known bug with FS and saved games.\n");
 		// pull it from the que
 		iquetail = (iquetail + 1) & (ITEMQUESIZE - 1);
 		return;
@@ -1381,7 +1381,7 @@ void P_SpawnPlayer(mapthing_t* mthing)
 	// GhostlyDeath <November 3, 2010> -- PARANOIA removal
 	if (playernum < 0 && playernum >= MAXPLAYERS)
 	{
-		CONS_Printf("WARNING - P_SpawnPlayer: playernum not valid %i. (%s:%i).\n", playernum, __FILE__, __LINE__);
+		CONL_PrintF("WARNING - P_SpawnPlayer: playernum not valid %i. (%s:%i).\n", playernum, __FILE__, __LINE__);
 		return;
 	}
 	
@@ -1531,7 +1531,7 @@ void P_SpawnMapThing(mapthing_t* mthing)
 			
 	if (i == NUMMOBJTYPES)
 	{
-		CONS_Printf("\2P_SpawnMapThing: Unknown type %i at (%i, %i)\n", mthing->type, mthing->x, mthing->y);
+		CONL_PrintF("\2P_SpawnMapThing: Unknown type %i at (%i, %i)\n", mthing->type, mthing->x, mthing->y);
 		return;
 	}
 	// don't spawn keycards and players in deathmatch
@@ -1752,7 +1752,7 @@ void P_SpawnBloodSplats(fixed_t x, fixed_t y, fixed_t z, int damage, fixed_t mom
 #endif
 	// spawn the usual falling blood sprites at location
 	P_SpawnBlood(x, y, z, damage);
-	//CONS_Printf ("spawned blood counter %d\n", counter++);
+	//CONL_PrintF ("spawned blood counter %d\n", counter++);
 	if (demoversion < 129)
 		return;
 		
@@ -1781,8 +1781,8 @@ void P_SpawnBloodSplats(fixed_t x, fixed_t y, fixed_t z, int damage, fixed_t mom
 	if (numsplats > 20)
 		numsplats = 20;
 		
-	//CONS_Printf ("spawning %d bloodsplats at distance of %d\n", numsplats, distance);
-	//CONS_Printf ("damage %d\n", damage);
+	//CONL_PrintF ("spawning %d bloodsplats at distance of %d\n", numsplats, distance);
+	//CONL_PrintF ("damage %d\n", damage);
 	bloodspawnpointx = x;
 	bloodspawnpointy = y;
 	//uses 'bloodthing' set by P_SpawnBlood()
@@ -1890,7 +1890,7 @@ mobj_t* P_SpawnMissile(mobj_t* source, mobj_t* dest, mobjtype_t type)
 	// GhostlyDeath <November 3, 2010> -- Paranoia removal
 	if (!source || !dest)
 	{
-		CONS_Printf("WARNING - P_SpawnMissile: source %p, dest %p (%s:%i).\n", source, dest, __FILE__, __LINE__);
+		CONL_PrintF("WARNING - P_SpawnMissile: source %p, dest %p (%s:%i).\n", source, dest, __FILE__, __LINE__);
 		return NULL;
 	}
 	

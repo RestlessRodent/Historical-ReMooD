@@ -510,7 +510,7 @@ void M_DrawMessageMenu(void)
 				memset(string, 0, sizeof(string));
 				if (i >= MAXMSGLINELEN)
 				{
-					CONS_Printf("M_DrawMessageMenu: too long segment in %s\n", msg);
+					CONL_PrintF("M_DrawMessageMenu: too long segment in %s\n", msg);
 					return;
 				}
 				else
@@ -528,7 +528,7 @@ void M_DrawMessageMenu(void)
 		{
 			if (i >= MAXMSGLINELEN)
 			{
-				CONS_Printf("M_DrawMessageMenu: too long segment in %s\n", msg);
+				CONL_PrintF("M_DrawMessageMenu: too long segment in %s\n", msg);
 				return;
 			}
 			else

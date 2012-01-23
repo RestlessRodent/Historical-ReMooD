@@ -228,7 +228,7 @@ void BloodTime_OnChange(void)
 	states[S_BLOOD2].tics = 8;
 	states[S_BLOOD3].tics = (cv_bloodtime.value * TICRATE) - 16;
 	
-	CONS_Printf("blood lasts for %d seconds\n", cv_bloodtime.value);
+	CONL_PrintF("blood lasts for %d seconds\n", cv_bloodtime.value);
 }
 
 void D_AddDeathmatchCommands(void)

@@ -314,7 +314,7 @@ V_Widget_t* V_WidgetCreate(V_Widget_t* const a_Parent, const char* const a_Type,
 		if (!((V_WidgetHandlerCanAddKidFunc_t)(VS_WTMI(a_Parent, VWHFID_KIDSOK)))(a_Parent, NULL))
 		{
 			if (devparm)
-				CONS_Printf("V_WidgetCreate: Wanted to add to parent, but parent does not want more kids.\n");
+				CONL_PrintF("V_WidgetCreate: Wanted to add to parent, but parent does not want more kids.\n");
 			
 			return NULL;
 		}

@@ -128,12 +128,12 @@ void SCR_SetMode(void)
 		return;					//should never happen
 		
 	if (devparm)
-		CONS_Printf("SCR_SetMode: Changing resolution.\n");
+		CONL_PrintF("SCR_SetMode: Changing resolution.\n");
 		
 	VID_SetMode(--setmodeneeded);
 	
 	V_SetPalette(0);
-	//CONS_Printf ("SCR_SetMode : vid.bpp is %d\n", vid.bpp);
+	//CONL_PrintF ("SCR_SetMode : vid.bpp is %d\n", vid.bpp);
 	
 	//
 	//  setup the right draw routines for either 8bpp or 16bpp
@@ -211,7 +211,7 @@ void SCR_Recalc(void)
 		return;
 		
 	if (devparm)
-		CONS_Printf("SCR_Recalc: Recalculating Screen\n");
+		CONL_PrintF("SCR_Recalc: Recalculating Screen\n");
 		
 	// bytes per pixel quick access
 	scr_bpp = vid.bpp;
@@ -303,14 +303,14 @@ void SCR_CheckDefaultMode(void)
 		
 	if (scr_forcex && scr_forcey)
 	{
-		CONS_Printf("Using resolution: %d x %d\n", scr_forcex, scr_forcey);
+		CONL_PrintF("Using resolution: %d x %d\n", scr_forcex, scr_forcey);
 		// returns -1 if not found, thus will be 0 (no mode change) if not found
 		setmodeneeded = VID_GetModeForSize(scr_forcex, scr_forcey) + 1;
 		//if (scr_forcex!=BASEVIDWIDTH || scr_forcey!=BASEVIDHEIGHT)
 	}
 	else
 	{
-		CONS_Printf("Default resolution: %d x %d (%d bits)\n", cv_scr_width.value, cv_scr_height.value, cv_scr_depth.value);
+		CONL_PrintF("Default resolution: %d x %d (%d bits)\n", cv_scr_width.value, cv_scr_height.value, cv_scr_depth.value);
 		// see note above
 		setmodeneeded = VID_GetModeForSize(cv_scr_width.value, cv_scr_height.value) + 1;
 	}
@@ -361,7 +361,7 @@ void SCR_ReclassBuffers(void)
 	visplane_t* pl;
 	
 	if (devparm)
-		CONS_Printf("SCR_ReclassBuffers: Reclassing buffers.\n");
+		CONL_PrintF("SCR_ReclassBuffers: Reclassing buffers.\n");
 		
 	/* IF The old stuff exists... */
 #define SCRFREE(x) if (x) { Z_Free(x); x = NULL; }

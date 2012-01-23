@@ -706,7 +706,7 @@ static void ST_updateWidgets(void)
 	// GhostlyDeath <November 3, 2010> -- PARANOIA Removal
 	if (!plyr)
 	{
-		CONS_Printf("WARNING - ST_updateWidgets: plyr is NULL (%s:%i).\n", __FILE__, __LINE__);
+		CONL_PrintF("WARNING - ST_updateWidgets: plyr is NULL (%s:%i).\n", __FILE__, __LINE__);
 		return;
 	}
 	// must redirect the pointer if the ready weapon has changed.

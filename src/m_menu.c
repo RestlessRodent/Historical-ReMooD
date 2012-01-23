@@ -1005,40 +1005,40 @@ void M_DumpMenuXML(void)
 			break;
 			
 		// Menu opening
-		CONS_Printf("<SubMenu>\n");
+		CONL_PrintF("<SubMenu>\n");
 		
 		// Menu Number
-		CONS_Printf("\t<ID>%s</ID>\n", M_CreateID(TempBuf, BUFSIZE, MenuPtr));
+		CONL_PrintF("\t<ID>%s</ID>\n", M_CreateID(TempBuf, BUFSIZE, MenuPtr));
 		
 		// Menu Title
 		if (MenuPtr->WMenuTitlePtr)
-			CONS_Printf("\t<Title>%s</Title>\n", *(MenuPtr->WMenuTitlePtr));
+			CONL_PrintF("\t<Title>%s</Title>\n", *(MenuPtr->WMenuTitlePtr));
 			
 		// Menu Unicode String
-		CONS_Printf("\t<Unicode>%s</Unicode>\n", DS_NameOfString(MenuPtr->WMenuTitlePtr));
+		CONL_PrintF("\t<Unicode>%s</Unicode>\n", DS_NameOfString(MenuPtr->WMenuTitlePtr));
 		
 		// Previous Menu
 		if (MenuPtr->prevMenu)
-			CONS_Printf("\t<PrevID>%s</PrevID>\n", M_CreateID(TempBuf, BUFSIZE, MenuPtr->prevMenu));
+			CONL_PrintF("\t<PrevID>%s</PrevID>\n", M_CreateID(TempBuf, BUFSIZE, MenuPtr->prevMenu));
 			
 		// Column Count
 		if (MenuPtr->numcolumns)
-			CONS_Printf("\t<Columns>%i</Columns>\n", MenuPtr->numcolumns);
+			CONL_PrintF("\t<Columns>%i</Columns>\n", MenuPtr->numcolumns);
 			
 		// Menu Flags
-		CONS_Printf("\t<Flags>");
+		CONL_PrintF("\t<Flags>");
 		
 		if (MenuPtr == &MainDef)
-			CONS_Printf("root ");
+			CONL_PrintF("root ");
 		if (MenuPtr->extraflags & MENUFLAG_OPTIMALSPACE)
-			CONS_Printf("optimalspace ");
+			CONL_PrintF("optimalspace ");
 		if (MenuPtr->extraflags & MENUFLAG_HIDECURSOR)
-			CONS_Printf("hidecursor ");
+			CONL_PrintF("hidecursor ");
 			
-		CONS_Printf("</Flags>\n");
+		CONL_PrintF("</Flags>\n");
 		
 		// Print Items
-		CONS_Printf("\t<Items>\n");
+		CONL_PrintF("\t<Items>\n");
 		
 		// Go through every item
 		for (j = 0; j < MenuPtr->numitems; j++)
@@ -1047,40 +1047,40 @@ void M_DumpMenuXML(void)
 			MenuItem = &MenuPtr->menuitems[j];
 			
 			// Intro
-			CONS_Printf("\t\t<Item>\n");
+			CONL_PrintF("\t\t<Item>\n");
 			
 			// Item text
 			if (MenuItem->WItemTextPtr)
-				CONS_Printf("\t\t\t<Text>%s</Text>\n", *(MenuItem->WItemTextPtr));
+				CONL_PrintF("\t\t\t<Text>%s</Text>\n", *(MenuItem->WItemTextPtr));
 				
 			// Item unicode string
-			CONS_Printf("\t\t\t<Unicode>%s</Unicode>\n", DS_NameOfString(MenuItem->WItemTextPtr));
+			CONL_PrintF("\t\t\t<Unicode>%s</Unicode>\n", DS_NameOfString(MenuItem->WItemTextPtr));
 			
 			// Hotkey
 			if (MenuItem->alphaKey > 0x32 && MenuItem->alphaKey < 0x7F)
-				CONS_Printf("\t\t\t<Hotkey>%c</Hotkey>\n", MenuItem->alphaKey);
+				CONL_PrintF("\t\t\t<Hotkey>%c</Hotkey>\n", MenuItem->alphaKey);
 				
 			// Item Type
 			if ((MenuItem->status & IT_TYPE) == IT_CVAR)
-				CONS_Printf("\t\t\t<ConsoleVar>%s</ConsoleVar>\n", ((consvar_t*) MenuItem->itemaction)->name);
+				CONL_PrintF("\t\t\t<ConsoleVar>%s</ConsoleVar>\n", ((consvar_t*) MenuItem->itemaction)->name);
 				
 			// Item Flags
-			CONS_Printf("\t\t\t<Flags>");
+			CONL_PrintF("\t\t\t<Flags>");
 			
 			//if (MenuPtr->extraflags & MENUFLAG_OPTIMALSPACE)
-			//  CONS_Printf("optimalspace ");
+			//  CONL_PrintF("optimalspace ");
 			
-			CONS_Printf("</Flags>\n");
+			CONL_PrintF("</Flags>\n");
 			
 			// Outro
-			CONS_Printf("\t\t</Item>\n");
+			CONL_PrintF("\t\t</Item>\n");
 		}
 		
 		// Close items
-		CONS_Printf("\t</Items>\n");
+		CONL_PrintF("\t</Items>\n");
 		
 		// Menu Closing
-		CONS_Printf("</SubMenu>\n");
+		CONL_PrintF("</SubMenu>\n");
 	}
 #undef BUFSIZE
 }
@@ -1127,7 +1127,7 @@ typedef struct M_MenuExItem_s
 	
 	/* Done at run-time */
 	struct M_MenuExMenu_s* SubMenu;				// Submenu
-	CONL_ConVariable_t* NewVar;					// New Console variable
+	char* NewVar;								// New Console variable
 	consvar_t* OldVar;							// Old Console variable
 	V_Widget_t* WContainer;						// Widget container
 	V_Widget_t* WLabel;							// Widget label
@@ -1559,7 +1559,7 @@ bool_t M_MenuExRMODOrder(const bool_t a_Pushed, const struct WL_WADFile_s* const
 				if (OldMenu->Locked)
 				{
 					if (devparm)
-						CONS_Printf("M_MenuExRMODOrder: Attempt to replace locked menu.\n");
+						CONL_PrintF("M_MenuExRMODOrder: Attempt to replace locked menu.\n");
 					continue;
 				}
 				
@@ -1625,7 +1625,7 @@ bool_t M_MenuExRMODOrder(const bool_t a_Pushed, const struct WL_WADFile_s* const
 					// Not referenced?
 					if (!CurItem->SubMenu)
 						if (devparm)
-							CONS_Printf("M_MenuExRMODOrder: Menu \"%s\" references menu \"%s\", but that menu does not exist.\n", MenuRover->Name, CurItem->Value);
+							CONL_PrintF("M_MenuExRMODOrder: Menu \"%s\" references menu \"%s\", but that menu does not exist.\n", MenuRover->Name, CurItem->Value);
 					break;
 				
 					// Unknown
@@ -1636,7 +1636,7 @@ bool_t M_MenuExRMODOrder(const bool_t a_Pushed, const struct WL_WADFile_s* const
 		
 		// Debug
 		if (devparm)
-			CONS_Printf("M_MenuExRMODOrder: Processed menu \"%s\".\n", MenuRover->Name);
+			CONL_PrintF("M_MenuExRMODOrder: Processed menu \"%s\".\n", MenuRover->Name);
 		
 		// Next link
 		MenuRover = MenuRover->NextMenu;

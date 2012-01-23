@@ -1118,6 +1118,39 @@ size_t CONL_RawPrint(CONL_BasicBuffer_t* const a_Buffer, const char* const a_Tex
 #undef LINEMASK
 }
 
+/* CONL_PrintF() -- Prints formatted text to console */
+size_t CONL_PrintF(const char* const a_Format, ...)
+{
+	va_list ArgPtr;
+	size_t RetVal;
+	static bool_t AlreadyDrawn = false;
+	
+	/* Check */
+	if (!a_Format)
+		return 0;
+	
+	/* Obtain format, print to first console */
+	va_start(ArgPtr, a_Format);
+	RetVal = CONL_PrintV(false, a_Format, ArgPtr);
+	va_end(ArgPtr);
+	
+	/* Console just starting up?  */
+	if (con_startup)
+	{
+		// GhostlyDeath <November 4, 2010> -- If we aren't devparming, draw once
+		if ((devparm && !g_QuietConsole) || ((!devparm || g_QuietConsole) && !AlreadyDrawn))
+		{
+			if (CONL_DrawConsole())
+				I_FinishUpdate();	// page flip or blit buffer
+			
+			AlreadyDrawn = true;
+		}
+	}
+	
+	/* Return value */
+	return RetVal;
+}
+
 /* CONL_PrintV() -- Prints formatted text to buffer */
 size_t CONL_PrintV(const bool_t a_InBuf, const char* const a_Format, va_list a_ArgPtr)
 {
@@ -1331,18 +1364,21 @@ bool_t CONL_HandleEvent(const I_EventEx_t* const a_Event)
 			CONL_SetActive(false);
 			return true;
 		}
+		
 		// Scroll console up
 		else if (Code == IKBK_PAGEUP)
 		{
 			if (l_CONLLineOff < l_CONLBuffers[0].NumLines)
 				l_CONLLineOff++;
 		}
+		
 		// Scroll console down
 		else if (Code == IKBK_PAGEDOWN)
 		{
 			if (l_CONLLineOff > 0)
 				l_CONLLineOff--;
 		}
+		
 		// Handle input line
 		else if (CONCTI_HandleEvent(l_CONLInputter, a_Event))
 			return true;		// it ate the event
@@ -1569,6 +1605,7 @@ bool_t CONL_DrawConsole(void)
 			// Draw input buffer
 			x += CONCTI_DrawInput(l_CONLInputter, Options, x, y, vid.width);
 		}
+		
 		// Draw scrollbar
 		if (!con_startup)
 		{
@@ -1906,7 +1943,7 @@ void CONS_English_f(void)
 {
 	shiftxform = english_shiftxform;
 	con_keymap = english;
-	CONS_Printf("English keymap.\n");
+	CONL_PrintF("English keymap.\n");
 }
 
 //  Choose french keymap
@@ -1915,7 +1952,7 @@ void CONS_French_f(void)
 {
 	shiftxform = french_shiftxform;
 	con_keymap = french;
-	CONS_Printf("French keymap.\n");
+	CONL_PrintF("French keymap.\n");
 }
 
 char* bindtable[NUMINPUTS];
@@ -1928,24 +1965,24 @@ void CONS_Bind_f(void)
 	
 	if (na != 2 && na != 3)
 	{
-		CONS_Printf("bind <keyname> [<command>]\n");
-		CONS_Printf("\2bind table :\n");
+		CONL_PrintF("bind <keyname> [<command>]\n");
+		CONL_PrintF("\2bind table :\n");
 		na = 0;
 		for (key = 0; key < NUMINPUTS; key++)
 			if (bindtable[key])
 			{
-				CONS_Printf("%s : \"%s\"\n", G_KeynumToString(key), bindtable[key]);
+				CONL_PrintF("%s : \"%s\"\n", G_KeynumToString(key), bindtable[key]);
 				na = 1;
 			}
 		if (!na)
-			CONS_Printf("Empty\n");
+			CONL_PrintF("Empty\n");
 		return;
 	}
 	
 	key = G_KeyStringtoNum(COM_Argv(1));
 	if (!key)
 	{
-		CONS_Printf("Invalid key name\n");
+		CONL_PrintF("Invalid key name\n");
 		return;
 	}
 	
@@ -2169,66 +2206,6 @@ void CON_Print(char* msg)
 				con_line[con_cx++] = *(msg++) /* | mask */ ;
 				
 		}
-	}
-}
-
-//  Console print! Wahooo! Lots o fun!
-//
-void CONS_Printf(char* fmt, ...)
-{
-	va_list argptr;
-	char txt[512];
-	static bool_t AlreadyDrawn;	// Draw once
-	
-	va_start(argptr, fmt);
-#if _MSC_VER >= 1400
-	vsprintf_s(txt, 512, fmt, argptr);
-#elif defined(__GNUC__)
-	vsnprintf(txt, 512, fmt, argptr);
-#else
-	vsprintf(txt, fmt, argptr);
-#endif
-	va_end(argptr);
-	
-	if (devparm || !con_started /* || !graphics_started */ )
-	{
-//#if !defined( _WIN32) && !defined( __OS2__)
-		//I_OutputText(txt);
-//#endif
-		if (!devparm)
-			return;
-	}
-	// GhostlyDeath <September 10, 2011> -- Write to light console
-	CONL_RawPrint(&l_CONLBuffers[0], txt);
-	
-	// write message in con text buffer
-	CON_Print(txt);
-	
-	// make sure new text is visible
-	con_scrollup = 0;
-	
-	// if not in display loop, force screen update
-	if (con_startup)
-	{
-	
-		/*#if defined( _WIN32) || defined( __OS2__)
-		   // show startup screen and message using only 'software' graphics
-		   // (rendermode may be hardware accelerated, but the video mode is not set yet)
-		   CON_DrawBackpic (con_backpic, 0, vid.width);    // put console background
-		   I_LoadingScreen ( txt );
-		   #else */
-		// here we display the console background and console text
-		// (no hardware accelerated support for these versions)
-		
-		// GhostlyDeath <November 4, 2010> -- If we aren't devparming, draw once
-		if ((devparm && !g_QuietConsole) || ((!devparm || g_QuietConsole) && !AlreadyDrawn))
-		{
-			if (CONL_DrawConsole())
-				I_FinishUpdate();	// page flip or blit buffer
-			
-			AlreadyDrawn = true;
-		}
-//#endif
 	}
 }
 
@@ -2577,7 +2554,7 @@ bool_t CON_Responder(event_t* ev)
 		COM_BufAddText(inputlines[inputline] + 1);
 		COM_BufAddText("\n");
 		
-		CONS_Printf("%s\n", inputlines[inputline]);
+		CONL_PrintF("%s\n", inputlines[inputline]);
 		
 		inputline = (inputline + 1) & 31;
 		inputhist = inputline;
@@ -2694,8 +2671,8 @@ void CONS_Error(char* msg)
 		return;
 	}
 #endif
-	CONS_Printf("\2%s", msg);	// write error msg in different colour
-	CONS_Printf("Press ENTER to continue\n");
+	CONL_PrintF("\2%s", msg);	// write error msg in different colour
+	CONL_PrintF("Press ENTER to continue\n");
 	
 	// dirty quick hack, but for the good cause
 	while (I_GetKey() != KEY_ENTER)

@@ -514,7 +514,7 @@ static void WI_drawOnLnode(int n, patch_t* c[])
 		V_DrawScaledPatch(lnodes->x, lnodes->y, FB, c[i]);
 	else
 		// DEBUG
-		CONS_Printf("Could not place patch on level %d\n", n + 1);
+		CONL_PrintF("Could not place patch on level %d\n", n + 1);
 }
 
 //========================================================================

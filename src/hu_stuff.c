@@ -363,7 +363,7 @@ void Command_Say_f(void)
 	
 	if ((j = COM_Argc()) < 2)
 	{
-		CONS_Printf("say <message> : send a message\n");
+		CONL_PrintF("say <message> : send a message\n");
 		return;
 	}
 }
@@ -375,7 +375,7 @@ void Command_Sayto_f(void)
 	
 	if ((j = COM_Argc()) < 3)
 	{
-		CONS_Printf("sayto <playername|playernum> <message> : send a message to a player\n");
+		CONL_PrintF("sayto <playername|playernum> <message> : send a message to a player\n");
 		return;
 	}
 }
@@ -387,7 +387,7 @@ void Command_Sayteam_f(void)
 	
 	if ((j = COM_Argc()) < 2)
 	{
-		CONS_Printf("sayteam <message> : send a message to your team\n");
+		CONL_PrintF("sayteam <message> : send a message to your team\n");
 		return;
 	}
 }
@@ -403,7 +403,7 @@ void Got_Saycmd(char** p, int playernum)
 	to = *(*p)++;
 	
 	if (to == 0 || to == consoleplayer[0] || consoleplayer[0] == playernum || (to < 0 && ST_SameTeam(&players[consoleplayer[0]], &players[-to])))
-		CONS_Printf("\3%s: %s\n", player_names[playernum], *p);
+		CONL_PrintF("\3%s: %s\n", player_names[playernum], *p);
 		
 	*p += strlen(*p) + 1;
 }
@@ -457,7 +457,7 @@ void HU_Ticker(void)
 	
 	if (cv_showmessages.value && pl->message)
 	{
-		CONS_Printf("%s\n", pl->message);
+		CONL_PrintF("%s\n", pl->message);
 		pl->message = 0;
 	}
 	// In splitscreen, display second player's messages
@@ -466,7 +466,7 @@ void HU_Ticker(void)
 		pl = &players[displayplayer[1]];
 		if (cv_showmessages.value && pl->message)
 		{
-			CONS_Printf("\4%s\n", pl->message);
+			CONL_PrintF("\4%s\n", pl->message);
 			pl->message = 0;
 		}
 	}
@@ -1262,7 +1262,7 @@ void Command_Chatmacro_f(void)
 	
 	if (COM_Argc() < 2)
 	{
-		CONS_Printf("chatmacro <0-9> : view chatmacro\n" "chatmacro <0-9> \"chat message\" : change chatmacro\n");
+		CONL_PrintF("chatmacro <0-9> : view chatmacro\n" "chatmacro <0-9> \"chat message\" : change chatmacro\n");
 		return;
 	}
 	
@@ -1270,7 +1270,7 @@ void Command_Chatmacro_f(void)
 	
 	if (COM_Argc() == 2)
 	{
-		CONS_Printf("chatmacro %d is \"%s\"\n", i, chat_macros[i]->string);
+		CONL_PrintF("chatmacro %d is \"%s\"\n", i, chat_macros[i]->string);
 		return;
 	}
 	// change a chatmacro

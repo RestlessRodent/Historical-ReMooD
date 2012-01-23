@@ -557,7 +557,7 @@ bool_t P_BlockLinesIterator(int x, int y, bool_t (*func) (line_t*))
 		
 		if (first)
 		{
-			CONS_Printf("Warning: this map has reached a limit of the doom engine.\n");
+			CONL_PrintF("Warning: this map has reached a limit of the doom engine.\n");
 			first = 0;
 		}
 		return true;

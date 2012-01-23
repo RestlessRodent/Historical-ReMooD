@@ -422,7 +422,7 @@ bool_t cht_Responder(event_t* ev)
 		else if (cht_CheckCheat(&cheat_mypos, ev->data1))
 		{
 			//plyr->message = buf;
-			CONS_Printf(va
+			CONL_PrintF(va
 			            ("ang=%i;x,y=(%i,%i)\n",
 			             players[statusbarplayer].mo->angle / ANGLE_1, players[statusbarplayer].mo->x >> FRACBITS, players[statusbarplayer].mo->y >> FRACBITS));
 
@@ -487,7 +487,7 @@ bool_t cht_Responder(event_t* ev)
 		}
 		// append a newline to the original doom messages
 		if (msg)
-			CONS_Printf("%s\n", msg);
+			CONL_PrintF("%s\n", msg);
 	}
 	return false;
 }
@@ -500,7 +500,7 @@ void Command_CheatNoClip_f(void)
 
 	if (gamestate != GS_LEVEL)
 	{
-		CONS_Printf("Cheats may only be used during a game!\n");
+		CONL_PrintF("Cheats may only be used during a game!\n");
 		return;
 	}
 
@@ -512,9 +512,9 @@ void Command_CheatNoClip_f(void)
 	plyr->cheats ^= CF_NOCLIP;
 
 	if (plyr->cheats & CF_NOCLIP)
-		CONS_Printf(STSTR_NCON);
+		CONL_PrintF(STSTR_NCON);
 	else
-		CONS_Printf(STSTR_NCOFF);
+		CONL_PrintF(STSTR_NCOFF);
 
 }
 
@@ -524,7 +524,7 @@ void Command_CheatGod_f(void)
 
 	if (gamestate != GS_LEVEL)
 	{
-		CONS_Printf("Cheats may only be used during a game!\n");
+		CONL_PrintF("Cheats may only be used during a game!\n");
 		return;
 	}
 
@@ -540,10 +540,10 @@ void Command_CheatGod_f(void)
 			plyr->mo->health = god_health;
 
 		plyr->health = god_health;
-		CONS_Printf("%s\n", STSTR_DQDON);
+		CONL_PrintF("%s\n", STSTR_DQDON);
 	}
 	else
-		CONS_Printf("%s\n", STSTR_DQDOFF);
+		CONL_PrintF("%s\n", STSTR_DQDOFF);
 }
 
 void Command_CheatGimme_f(void)
@@ -555,7 +555,7 @@ void Command_CheatGimme_f(void)
 
 	if (gamestate != GS_LEVEL)
 	{
-		CONS_Printf("Cheats may only be used during a game!\n");
+		CONL_PrintF("Cheats may only be used during a game!\n");
 		return;
 	}
 
@@ -564,7 +564,7 @@ void Command_CheatGimme_f(void)
 
 	if (COM_Argc() < 2)
 	{
-		CONS_Printf("gimme [all, health, ammo, armor, weapons, ...]\n");
+		CONL_PrintF("gimme [all, health, ammo, armor, weapons, ...]\n");
 		return;
 	}
 
@@ -591,27 +591,27 @@ void Command_CheatGimme_f(void)
 
 				plyr->health = god_health;
 
-				CONS_Printf("got health\n");
+				CONL_PrintF("got health\n");
 			}
 			if (all || !strncmp(s, "ammo", 4))
 			{
 				for (j = 0; j < NUMAMMO; j++)
 					plyr->ammo[j] = plyr->maxammo[j];
 
-				CONS_Printf("got ammo\n");
+				CONL_PrintF("got ammo\n");
 			}
 			if (all || !strncmp(s, "armor", 5))
 			{
 				plyr->armorpoints = idfa_armor;
 				plyr->armortype = idfa_armor_class;
 
-				CONS_Printf("got armor\n");
+				CONL_PrintF("got armor\n");
 			}
 			if (all || !strncmp(s, "keys", 4))
 			{
 				plyr->cards = it_allkeys;
 
-				CONS_Printf("got keys\n");
+				CONL_PrintF("got keys\n");
 			}
 			if (all || !strncmp(s, "weapons", 7))
 			{
@@ -622,7 +622,7 @@ void Command_CheatGimme_f(void)
 				for (j = 0; j < NUMAMMO; j++)
 					plyr->ammo[j] = plyr->maxammo[j];
 
-				CONS_Printf("got weapons\n");
+				CONL_PrintF("got weapons\n");
 			}
 			//
 			// WEAPONS
@@ -631,14 +631,14 @@ void Command_CheatGimme_f(void)
 			{
 				plyr->weaponowned[wp_chainsaw] = true;
 
-				CONS_Printf("got chainsaw\n");
+				CONL_PrintF("got chainsaw\n");
 			}
 			if (all || !strncmp(s, "shotgun", 7))
 			{
 				plyr->weaponowned[wp_shotgun] = true;
 				plyr->ammo[am_shell] = plyr->maxammo[am_shell];
 
-				CONS_Printf("got shotgun\n");
+				CONL_PrintF("got shotgun\n");
 			}
 			if (all || !strncmp(s, "supershotgun", 12))
 			{
@@ -647,7 +647,7 @@ void Command_CheatGimme_f(void)
 					plyr->weaponowned[wp_supershotgun] = true;
 					plyr->ammo[am_shell] = plyr->maxammo[am_shell];
 
-					CONS_Printf("got super shotgun\n");
+					CONL_PrintF("got super shotgun\n");
 				}
 			}
 			if (all || !strncmp(s, "rocket", 6))
@@ -655,39 +655,39 @@ void Command_CheatGimme_f(void)
 				plyr->weaponowned[wp_missile] = true;
 				plyr->ammo[am_misl] = plyr->maxammo[am_misl];
 
-				CONS_Printf("got rocket launcher\n");
+				CONL_PrintF("got rocket launcher\n");
 			}
 			if (all || !strncmp(s, "plasma", 6))
 			{
 				plyr->weaponowned[wp_plasma] = true;
 				plyr->ammo[am_cell] = plyr->maxammo[am_cell];
 
-				CONS_Printf("got plasma\n");
+				CONL_PrintF("got plasma\n");
 			}
 			if (all || !strncmp(s, "bfg", 3))
 			{
 				plyr->weaponowned[wp_bfg] = true;
 				plyr->ammo[am_cell] = plyr->maxammo[am_cell];
 
-				CONS_Printf("got bfg\n");
+				CONL_PrintF("got bfg\n");
 			}
 			if (all || !strncmp(s, "chaingun", 8))
 			{
 				plyr->weaponowned[wp_chaingun] = true;
 				plyr->ammo[am_clip] = plyr->maxammo[am_clip];
 
-				CONS_Printf("got chaingun\n");
+				CONL_PrintF("got chaingun\n");
 			}
 
 			if (!strncmp(s, "level2weapons", 13))
 			{
 				plyr->weaponinfo = wpnlev2info;
-				CONS_Printf("got level 2 weapons\n");
+				CONL_PrintF("got level 2 weapons\n");
 			}
 			else if (!strncmp(s, "level1weapons", 13))
 			{
 				plyr->weaponinfo = wpnlev1info;
-				CONS_Printf("got level 1 weapons\n");
+				CONL_PrintF("got level 1 weapons\n");
 			}
 			//
 			// SPECIAL ITEMS
@@ -696,19 +696,19 @@ void Command_CheatGimme_f(void)
 			{
 				if (!plyr->powers[pw_strength])
 					P_GivePower(plyr, pw_strength);
-				CONS_Printf("got berserk strength\n");
+				CONL_PrintF("got berserk strength\n");
 			}
 			//22/08/99: added by Hurdler
 			if (all || !strncmp(s, "map", 3))
 			{
 				am_cheating = 1;
-				CONS_Printf("got map\n");
+				CONL_PrintF("got map\n");
 			}
 			//
 			if (all || !strncmp(s, "fullmap", 7))
 			{
 				am_cheating = 2;
-				CONS_Printf("got map and things\n");
+				CONL_PrintF("got map and things\n");
 			}
 		}
 	}
@@ -735,7 +735,7 @@ void Command_CheatSummon_f(void)
 
 	if (gamestate != GS_LEVEL)
 	{
-		CONS_Printf("Cheats may only be used during a game!\n");
+		CONL_PrintF("Cheats may only be used during a game!\n");
 		return;
 	}
 
@@ -744,7 +744,7 @@ void Command_CheatSummon_f(void)
 
 	if (COM_Argc() < 2)
 	{
-		CONS_Printf("summon [Eternity Class or MT_ Number] ...\n");
+		CONL_PrintF("summon [Eternity Class or MT_ Number] ...\n");
 		return;
 	}
 
@@ -761,7 +761,7 @@ void Command_CheatSummon_f(void)
 
 		if (!((j >= 0) && (j < NUMMOBJTYPES)))
 		{
-			CONS_Printf("Invalid MT_ Number, must be >= 0 and < %i.\n", NUMMOBJTYPES);
+			CONL_PrintF("Invalid MT_ Number, must be >= 0 and < %i.\n", NUMMOBJTYPES);
 			return;
 		}
 	}
@@ -793,7 +793,7 @@ void Command_CheatSummon_f(void)
 				}
 			}
 
-			CONS_Printf("Invalid Object Name \"%s\".\n", s);
+			CONL_PrintF("Invalid Object Name \"%s\".\n", s);
 			return;
 		}
 	}

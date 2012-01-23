@@ -147,7 +147,7 @@ uint8_t* R_GetColumn(int tex, size_t col)
 	if (data == NULL)
 	{
 		if (devparm)
-			CONS_Printf("R_GetColumn: Texture %i does not exist, generating!\n", tex);
+			CONL_PrintF("R_GetColumn: Texture %i does not exist, generating!\n", tex);
 		data = R_GenerateTexture(tex);
 	}
 	
@@ -201,7 +201,7 @@ uint8_t* R_GenerateTexture(int texnum)
 		// FIXME: this version don't put the user z_block
 		texturecache[texnum] = block = W_CacheLumpNum(patch->patch, PU_STATIC, &texturecache[texnum]);
 #endif
-		//CONS_Printf ("R_GenTex SINGLE %.8s size: %d\n",texture->name,blocksize);
+		//CONL_PrintF ("R_GenTex SINGLE %.8s size: %d\n",texture->name,blocksize);
 		
 		texturememory += blocksize;
 		
@@ -226,7 +226,7 @@ uint8_t* R_GenerateTexture(int texnum)
 		//
 		blocksize = (texture->width * 4) + (texture->width * texture->height);
 		
-		//CONS_Printf ("R_GenTex MULTI  %.8s size: %d\n",texture->name,blocksize);
+		//CONL_PrintF ("R_GenTex MULTI  %.8s size: %d\n",texture->name,blocksize);
 		texturememory += blocksize;
 		
 		block = Z_Malloc(blocksize, PU_STATIC, &texturecache[texnum]);
@@ -627,7 +627,7 @@ void R_LoadTextures(void)
 	{
 		//only during game startup
 		//if (!(i&63))
-		//    CONS_Printf (".");
+		//    CONL_PrintF (".");
 		
 		if (i == numtextures1)
 		{
@@ -648,11 +648,11 @@ void R_LoadTextures(void)
 		mtexture = (maptexture_t*) ((uint8_t*)maptex + offset);
 		
 		if (!mtexture && devparm)
-			CONS_Printf("R_LoadTextures: Warning mtexture is NULL!");
+			CONL_PrintF("R_LoadTextures: Warning mtexture is NULL!");
 			
 		textures[i] = Z_Malloc(sizeof(texture_t) + sizeof(texpatch_t) * (mtexture->patchcount), PU_STATIC, 0);
 		/*if (devparm)
-		   CONS_Printf("Z_Malloc(%i + %i * %i) = %i\n", sizeof(texture_t), sizeof(texpatch_t), (mtexture->patchcount),
+		   CONL_PrintF("Z_Malloc(%i + %i * %i) = %i\n", sizeof(texture_t), sizeof(texpatch_t), (mtexture->patchcount),
 		   sizeof(texture_t) + sizeof(texpatch_t) * (mtexture->patchcount)); */
 		
 		texture = textures[i];
@@ -838,7 +838,7 @@ void R_InitFlats()
 		
 		if (startnum != INVALIDLUMP && endnum != INVALIDLUMP && endnum > startnum)
 		{
-			CONS_Printf("R_InitFlats: Registered %i flats in %s.\n", endnum - startnum - 1, wad->FileName);
+			CONL_PrintF("R_InitFlats: Registered %i flats in %s.\n", endnum - startnum - 1, wad->FileName);
 			flats = (lumplist_t*) realloc(flats, sizeof(lumplist_t) * (numflatlists + 1));
 			flats[numflatlists].WadFile = wad;
 			flats[numflatlists].firstlump = startnum - W_LumpsSoFar(wad);
@@ -1246,16 +1246,16 @@ char* R_ColormapNameForNum(int num)
 //
 void R_InitData(void)
 {
-	CONS_Printf("\nInitTextures...");
+	CONL_PrintF("\nInitTextures...");
 	R_LoadTextures();
-	CONS_Printf("\nInitFlats...");
+	CONL_PrintF("\nInitFlats...");
 	R_InitFlats();
 	
-	CONS_Printf("\nInitSprites...\n");
+	CONL_PrintF("\nInitSprites...\n");
 	R_InitSpriteLumps();
 	R_InitSprites(sprnames);
 	
-	CONS_Printf("\nInitColormaps...\n");
+	CONL_PrintF("\nInitColormaps...\n");
 	R_InitColormaps();
 }
 
@@ -1300,7 +1300,7 @@ int R_TextureNumForName(char* name)
 	if (i == -1)
 	{
 		//I_Error ("R_TextureNumForName: %.8s not found", name);
-		CONS_Printf("WARNING: R_TextureNumForName: %.8s not found\n", name);
+		CONL_PrintF("WARNING: R_TextureNumForName: %.8s not found\n", name);
 		return 1;
 	}
 	return i;
@@ -1398,7 +1398,7 @@ void R_PrecacheLevel(void)
 	texturepresent[skytexture] = 1;
 	
 	//if (devparm)
-	//    CONS_Printf("Generating textures..\n");
+	//    CONL_PrintF("Generating textures..\n");
 	
 	texturememory = 0;
 	for (i = 0; i < numtextures; i++)
@@ -1421,7 +1421,7 @@ void R_PrecacheLevel(void)
 		//    W_CacheLumpNum(lump , PU_CACHE);
 		//}
 	}
-	//CONS_Printf ("total mem for %d textures: %d k\n",numgenerated,texturememory>>10);
+	//CONL_PrintF ("total mem for %d textures: %d k\n",numgenerated,texturememory>>10);
 	
 	//
 	// Precache sprites.
@@ -1458,7 +1458,7 @@ void R_PrecacheLevel(void)
 	//FIXME: this is no more correct with glide render mode
 	if (devparm)
 	{
-		CONS_Printf("Precache level done:\n"
+		CONL_PrintF("Precache level done:\n"
 		            "flatmemory:    %ld k\n" "texturememory: %ld k\n" "spritememory:  %ld k\n", flatmemory >> 10, texturememory >> 10, spritememory >> 10);
 	}
 }

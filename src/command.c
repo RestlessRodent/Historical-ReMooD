@@ -109,7 +109,7 @@ void COM_BufAddText(char* text)
 	
 	if (com_text.cursize + l >= com_text.maxsize)
 	{
-		CONS_Printf("Command buffer full!\n");
+		CONL_PrintF("Command buffer full!\n");
 		return;
 	}
 	VS_Write(&com_text, text, l);
@@ -359,7 +359,7 @@ void COM_AddCommand(char* name, com_func_t func)
 	// fail if the command is a variable name
 	if (CV_StringValue(name)[0])
 	{
-		CONS_Printf("%s is a variable name\n", name);
+		CONL_PrintF("%s is a variable name\n", name);
 		return;
 	}
 	// fail if the command already exists
@@ -367,7 +367,7 @@ void COM_AddCommand(char* name, com_func_t func)
 	{
 		if (!strcmp(name, cmd->name))
 		{
-			CONS_Printf("Command %s already exists\n", name);
+			CONL_PrintF("Command %s already exists\n", name);
 			return;
 		}
 	}
@@ -459,7 +459,7 @@ static void COM_ExecuteString(char* text)
 		// Hurdler: added at Ebola's request ;)
 		// (don't flood the console in software mode with bad gr_xxx command)
 		if (!CV_Command() && con_destlines)
-			CONS_Printf("Unknown command '%s'\n", COM_Argv(0));
+			CONL_PrintF("Unknown command '%s'\n", COM_Argv(0));
 	}
 }
 
@@ -477,7 +477,7 @@ static void COM_Alias_f(void)
 	
 	if (COM_Argc() < 3)
 	{
-		CONS_Printf("alias <name> <command>\n");
+		CONL_PrintF("alias <name> <command>\n");
 		return;
 	}
 	
@@ -508,8 +508,8 @@ static void COM_Echo_f(void)
 	int i;
 	
 	for (i = 1; i < COM_Argc(); i++)
-		CONS_Printf("%s ", COM_Argv(i));
-	CONS_Printf("\n");
+		CONL_PrintF("%s ", COM_Argv(i));
+	CONL_PrintF("\n");
 }
 
 // Execute a script file
@@ -521,21 +521,21 @@ static void COM_Exec_f(void)
 	
 	if (COM_Argc() != 2)
 	{
-		CONS_Printf("exec <filename> : run a script file\n");
+		CONL_PrintF("exec <filename> : run a script file\n");
 		return;
 	}
 // load file
 
 	length = FIL_ReadFile(COM_Argv(1), &buf);
-	//CONS_Printf ("debug file length : %d\n",length);
+	//CONL_PrintF ("debug file length : %d\n",length);
 	
 	if (!buf)
 	{
-		CONS_Printf("couldn't execute file %s\n", COM_Argv(1));
+		CONL_PrintF("couldn't execute file %s\n", COM_Argv(1));
 		return;
 	}
 	
-	CONS_Printf("executing %s\n", COM_Argv(1));
+	CONL_PrintF("executing %s\n", COM_Argv(1));
 	
 // insert text file into the command buffer
 
@@ -569,17 +569,17 @@ static void COM_Help_f(void)
 		cvar = CV_FindVar(COM_Argv(1));
 		if (cvar)
 		{
-			CONS_Printf("Variable %s:\n", cvar->name);
-			CONS_Printf("  flags :");
+			CONL_PrintF("Variable %s:\n", cvar->name);
+			CONL_PrintF("  flags :");
 			if (cvar->flags & CV_SAVE)
-				CONS_Printf("AUTOSAVE ");
+				CONL_PrintF("AUTOSAVE ");
 			if (cvar->flags & CV_FLOAT)
-				CONS_Printf("FLOAT ");
+				CONL_PrintF("FLOAT ");
 			if (cvar->flags & CV_NETVAR)
-				CONS_Printf("NETVAR ");
+				CONL_PrintF("NETVAR ");
 			if (cvar->flags & CV_CALL)
-				CONS_Printf("ACTION ");
-			CONS_Printf("\n");
+				CONL_PrintF("ACTION ");
+			CONL_PrintF("\n");
 			if (cvar->PossibleValue)
 			{
 				if (strcasecmp(cvar->PossibleValue[0].strvalue, "MIN") == 0)
@@ -587,44 +587,44 @@ static void COM_Help_f(void)
 					for (i = 1; cvar->PossibleValue[i].strvalue != NULL; i++)
 						if (!strcasecmp(cvar->PossibleValue[i].strvalue, "MAX"))
 							break;
-					CONS_Printf("  range from %d to %d\n", cvar->PossibleValue[0].value, cvar->PossibleValue[i].value);
+					CONL_PrintF("  range from %d to %d\n", cvar->PossibleValue[0].value, cvar->PossibleValue[i].value);
 				}
 				else
 				{
-					CONS_Printf("  possible value :\n", cvar->name);
+					CONL_PrintF("  possible value :\n", cvar->name);
 					while (cvar->PossibleValue[i].strvalue)
 					{
-						CONS_Printf("    %-2d : %s\n", cvar->PossibleValue[i].value, cvar->PossibleValue[i].strvalue);
+						CONL_PrintF("    %-2d : %s\n", cvar->PossibleValue[i].value, cvar->PossibleValue[i].strvalue);
 						i++;
 					}
 				}
 			}
 		}
 		else
-			CONS_Printf("No Help for this command/variable\n");
+			CONL_PrintF("No Help for this command/variable\n");
 	}
 	else
 	{
 		// commands
-		/*CONS_Printf("\2Commands\n");
+		/*CONL_PrintF("\2Commands\n");
 		   for (cmd = com_commands; cmd; cmd = cmd->next)
 		   {
-		   CONS_Printf("%s ", cmd->name);
+		   CONL_PrintF("%s ", cmd->name);
 		   i++;
 		   }
 		
 		   // varibale
-		   CONS_Printf("\2\nVariable\n");
+		   CONL_PrintF("\2\nVariable\n");
 		   for (cvar = consvar_vars; cvar; cvar = cvar->next)
 		   {
-		   CONS_Printf("%s ", cvar->name);
+		   CONL_PrintF("%s ", cvar->name);
 		   i++;
 		   } */
 		
-		CONS_Printf("\2\nType \"commandlist\" or \"cvarlist\" for more or type help <command or variable>\n");
+		CONL_PrintF("\2\nType \"commandlist\" or \"cvarlist\" for more or type help <command or variable>\n");
 		
 		//if (devparm)
-		//  CONS_Printf("\2Total : %d\n", i);
+		//  CONL_PrintF("\2Total : %d\n", i);
 	}
 }
 
@@ -636,17 +636,17 @@ static void COM_commandlist_f(void)
 	if (COM_Argc() > 1 && strncasecmp(COM_Argv(1) + 1, "short", 5))
 		for (cmd = com_commands; cmd; cmd = cmd->next)
 		{
-			CONS_Printf("%s ", cmd->name);
+			CONL_PrintF("%s ", cmd->name);
 			i++;
 		}
 	else
 		for (cmd = com_commands; cmd; cmd = cmd->next)
 		{
-			CONS_Printf("%s\n", cmd->name);
+			CONL_PrintF("%s\n", cmd->name);
 			i++;
 		}
 		
-	CONS_Printf("\2\nTotal of %i Commands\n", i);
+	CONL_PrintF("\2\nTotal of %i Commands\n", i);
 }
 
 static void COM_cvarlist_f(void)
@@ -659,7 +659,7 @@ static void COM_cvarlist_f(void)
 	if (COM_Argc() > 1 && strncasecmp(COM_Argv(1) + 1, "short", 5))
 		for (cvar = consvar_vars; cvar; cvar = cvar->next)
 		{
-			CONS_Printf("%s ", cvar->name);
+			CONL_PrintF("%s ", cvar->name);
 			i++;
 		}
 	else
@@ -685,16 +685,16 @@ static void COM_cvarlist_f(void)
 				chars[7] = 'I';
 				
 			for (j = 0; j < sizeof(chars); j++)
-				CONS_Printf("%c", chars[j]);
+				CONL_PrintF("%c", chars[j]);
 				
 			if (cvar->flags & CV_ALIAS)
-				CONS_Printf("\t%s >>> %s\n", cvar->name, cvar->aliasto);
+				CONL_PrintF("\t%s >>> %s\n", cvar->name, cvar->aliasto);
 			else
-				CONS_Printf("\t%s\n", cvar->name);
+				CONL_PrintF("\t%s\n", cvar->name);
 			i++;
 		}
 		
-	CONS_Printf("\2\nTotal of %i Variables\n", i);
+	CONL_PrintF("\2\nTotal of %i Variables\n", i);
 }
 
 static void COM_Toggle_f(void)
@@ -703,13 +703,13 @@ static void COM_Toggle_f(void)
 	
 	if (COM_Argc() != 2 && COM_Argc() != 3)
 	{
-		CONS_Printf("Toggle <cvar_name> [-1]\n" "Toggle the value of a cvar\n");
+		CONL_PrintF("Toggle <cvar_name> [-1]\n" "Toggle the value of a cvar\n");
 		return;
 	}
 	cvar = CV_FindVar(COM_Argv(1));
 	if (!cvar)
 	{
-		CONS_Printf("%s is not a cvar\n", COM_Argv(1));
+		CONL_PrintF("%s is not a cvar\n", COM_Argv(1));
 		return;
 	}
 	// netcvar don't change imediately
@@ -759,7 +759,7 @@ void* VS_GetSpace(vsbuf_t* buf, int length)
 			I_Error("overflow l%i 112", length);
 			
 		buf->overflowed = true;
-		CONS_Printf("VS buffer overflow");
+		CONL_PrintF("VS buffer overflow");
 		VS_Clear(buf);
 	}
 	
@@ -864,13 +864,13 @@ void CV_RegisterVar(consvar_t* variable)
 	// first check to see if it has allready been defined
 	if (CV_FindVar(variable->name))
 	{
-		CONS_Printf("Variable %s is already defined\n", variable->name);
+		CONL_PrintF("Variable %s is already defined\n", variable->name);
 		return;
 	}
 	// check for overlap with a command
 	if (COM_Exists(variable->name))
 	{
-		CONS_Printf("%s is a command name\n", variable->name);
+		CONL_PrintF("%s is a command name\n", variable->name);
 		return;
 	}
 	// check net variables
@@ -992,7 +992,7 @@ void CV_UnRegisterVar(consvar_t* var)
 			return;
 		}
 		
-	CONS_Printf("Variable \"%s\" is not registered!\n", var->name);
+	CONL_PrintF("Variable \"%s\" is not registered!\n", var->name);
 }
 
 //  Returns the string value of a console var
@@ -1090,7 +1090,7 @@ void Setvalue(consvar_t* var, char* valstr)
 					goto found;
 					
 error:							// not found
-			CONS_Printf("\"%s\" is not a possible value for \"%s\"\n", valstr, ActualVar->name);
+			CONL_PrintF("\"%s\" is not a possible value for \"%s\"\n", valstr, ActualVar->name);
 			if (ActualVar->defaultvalue == valstr)
 				I_Error("Variable %s default value \"%s\" is not a possible value\n", ActualVar->name, ActualVar->defaultvalue);
 			return;
@@ -1133,11 +1133,11 @@ finish:
 	var->flags & CV_DEPRECATED)
 	{
 		if (var->flags & CV_ALIAS && var->flags & CV_DEPRECATED)
-			CONS_Printf("Please use \"%s\" instead of \"%s\", as the latter will be removed.\n", var->aliasto, var->name);
+			CONL_PrintF("Please use \"%s\" instead of \"%s\", as the latter will be removed.\n", var->aliasto, var->name);
 		else if (var->flags & CV_DEPRECATED)
-			CONS_Printf("%s is deprecated and will be removed in a future version.\n", var->name);
+			CONL_PrintF("%s is deprecated and will be removed in a future version.\n", var->name);
 			
-		CONS_Printf("%s set to %s\n", ActualVar->name, ActualVar->string);
+		CONL_PrintF("%s set to %s\n", ActualVar->name, ActualVar->string);
 		ActualVar->flags &= ~CV_SHOWMODIFONETIME;
 	}
 	ActualVar->flags |= CV_MODIFIED;
@@ -1235,7 +1235,7 @@ static bool_t CV_Command(void)
 	// perform a variable print or set
 	if (COM_Argc() == 1)
 	{
-		CONS_Printf("\"%s\" is \"%s\" default is \"%s\"\n", v->name, v->string, v->defaultvalue);
+		CONL_PrintF("\"%s\" is \"%s\" default is \"%s\"\n", v->name, v->string, v->defaultvalue);
 		return true;
 	}
 	

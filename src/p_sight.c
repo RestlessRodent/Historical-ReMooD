@@ -304,7 +304,7 @@ bool_t P_CheckSight(mobj_t* t1, mobj_t* t2)
 	if (s1 < 0 || s1 >= numsectors || s2 < 0 || s2 >= numsectors)
 	{
 		if (devparm)
-			CONS_Printf("P_CheckSight: Quick lookup check found t1's sector to be negative [%i, %i]\n", s1, s2);
+			CONL_PrintF("P_CheckSight: Quick lookup check found t1's sector to be negative [%i, %i]\n", s1, s2);
 		return false;
 	}
 	

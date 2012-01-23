@@ -480,7 +480,7 @@ void P_LoadSectors(int lump)
 		//added:31-03-98: quick hack to test water with DCK
 		
 		/*        if (ss->tag < 0)
-		   CONS_Printf("Level uses dck-water-hack\n"); */
+		   CONL_PrintF("Level uses dck-water-hack\n"); */
 		
 		ss->thinglist = NULL;
 		ss->touching_thinglist = NULL;	//SoM: 4/7/2000
@@ -516,7 +516,7 @@ void P_LoadSectors(int lump)
 	Z_Free(data);
 	
 	// whoa! there is usually no more than 25 different flats used per level!!
-	//CONS_Printf ("%d flats found\n", numlevelflats);
+	//CONL_PrintF ("%d flats found\n", numlevelflats);
 	
 	// set the sky flat num
 	skyflatnum = P_AddLevelFlat("F_SKY1", foundflats);
@@ -1350,7 +1350,7 @@ bool_t P_SetupLevel(int episode, int map, skill_t skill, char* wadname)	// for w
 	HexenACS = W_GetEntry(lastloadedmaplumpnum + ML_BEHAVIOR);
 	if (HexenACS && strncasecmp(HexenACS->Name, "BEHAVIOR", 8) == 0)
 	{
-		CONS_Printf("P_SetupLevel: HeXeN maps are NOT fully supported!\n");
+		CONL_PrintF("P_SetupLevel: HeXeN maps are NOT fully supported!\n");
 		//return false;
 	}
 	else
@@ -1452,7 +1452,7 @@ bool_t P_SetupLevel(int episode, int map, skill_t skill, char* wadname)	// for w
 		
 	script_camera_on = false;
 	
-	//CONS_Printf("%d vertexs %d segs %d subsector\n",numvertexes,numsegs,numsubsectors);
+	//CONL_PrintF("%d vertexs %d segs %d subsector\n",numvertexes,numsegs,numsubsectors);
 	return true;
 }
 
@@ -1503,8 +1503,8 @@ bool_t P_AddWadFile(char* wadfilename, char** firstmapname)
 			TextChange = true;
 	}
 	
-	CONS_Printf("P_AddWadFile: %i sounds replaced\n", SoundReplacements);
-	CONS_Printf("P_AddWadFile: %i songs replaced\n", MusicReplacements);
+	CONL_PrintF("P_AddWadFile: %i sounds replaced\n", SoundReplacements);
+	CONL_PrintF("P_AddWadFile: %i songs replaced\n", MusicReplacements);
 	
 	/******************
 	 MUSIC REPLACEMENTS
@@ -1544,7 +1544,7 @@ bool_t P_AddWadFile(char* wadfilename, char** firstmapname)
 			if (name[0] == 'M' && name[1] == 'A' && name[2] == 'P')
 			{
 				num = (name[3] - '0') * 10 + (name[4] - '0');
-				CONS_Printf("Map %d\n", num);
+				CONL_PrintF("Map %d\n", num);
 			}
 		}
 		else					// Something else
@@ -1553,7 +1553,7 @@ bool_t P_AddWadFile(char* wadfilename, char** firstmapname)
 			        name[2] == 'M' && ((unsigned)name[3] - '0') <= '9' && name[4] == 0)
 			{
 				num = ((name[1] - '0') << 16) + (name[3] - '0');
-				CONS_Printf("Episode %d map %d\n", name[1] - '0', name[3] - '0');
+				CONL_PrintF("Episode %d map %d\n", name[1] - '0', name[3] - '0');
 			}
 		}
 		
@@ -1567,7 +1567,7 @@ bool_t P_AddWadFile(char* wadfilename, char** firstmapname)
 	}
 	
 	if (!firstmapreplaced)
-		CONS_Printf("no maps added\n");
+		CONL_PrintF("no maps added\n");
 		
 	/****
 	 DEFINITIONS
@@ -1591,7 +1591,7 @@ bool_t P_AddWadFile(char* wadfilename, char** firstmapname)
 	
 	   if ((wadfilenum = W_LoadWadFile (wadfilename))==-1)
 	   {
-	   CONS_Printf ("couldn't load wad file %s\n", wadfilename);
+	   CONL_PrintF ("couldn't load wad file %s\n", wadfilename);
 	   return false;
 	   }
 	   wadfile = wadfiles[wadfilenum];
@@ -1616,7 +1616,7 @@ bool_t P_AddWadFile(char* wadfilename, char** firstmapname)
 	   // the sound will be reloaded when needed,
 	   // since sfx->data will be NULL
 	   if (devparm)
-	   CONS_Printf ("Sound %.8s replaced\n", name);
+	   CONL_PrintF ("Sound %.8s replaced\n", name);
 	
 	   I_FreeSfx (&S_sfx[j]);
 	
@@ -1631,7 +1631,7 @@ bool_t P_AddWadFile(char* wadfilename, char** firstmapname)
 	   texturechange=true;
 	   }
 	   if (!devparm && replaces)
-	   CONS_Printf ("%d sounds replaced\n", replaces);
+	   CONL_PrintF ("%d sounds replaced\n", replaces);
 	
 	   //
 	   // search for music replacements
@@ -1644,12 +1644,12 @@ bool_t P_AddWadFile(char* wadfilename, char** firstmapname)
 	   if (name[0]=='D' && name[1]=='_')
 	   {
 	   if (devparm)
-	   CONS_Printf ("Music %.8s replaced\n", name);
+	   CONL_PrintF ("Music %.8s replaced\n", name);
 	   replaces++;
 	   }
 	   }
 	   if (!devparm && replaces)
-	   CONS_Printf ("%d musics replaced\n", replaces);
+	   CONL_PrintF ("%d musics replaced\n", replaces);
 	
 	   //
 	   // search for sprite replacements
@@ -1681,7 +1681,7 @@ bool_t P_AddWadFile(char* wadfilename, char** firstmapname)
 	   name[2]=='P')
 	   {
 	   num = (name[3]-'0')*10 + (name[4]-'0');
-	   CONS_Printf ("Map %d\n", num);
+	   CONL_PrintF ("Map %d\n", num);
 	   }
 	   }
 	   else
@@ -1693,7 +1693,7 @@ bool_t P_AddWadFile(char* wadfilename, char** firstmapname)
 	   name[4]==0)
 	   {
 	   num = ((name[1]-'0')<<16) + (name[3]-'0');
-	   CONS_Printf ("Episode %d map %d\n", name[1]-'0',
+	   CONL_PrintF ("Episode %d map %d\n", name[1]-'0',
 	   name[3]-'0');
 	   }
 	   }
@@ -1704,7 +1704,7 @@ bool_t P_AddWadFile(char* wadfilename, char** firstmapname)
 	   }
 	   }
 	   if (!firstmapreplaced)
-	   CONS_Printf ("no maps added\n");
+	   CONL_PrintF ("no maps added\n");
 	
 	   // reload status bar (warning should have valide player !)
 	   if( gamestate == GS_LEVEL )

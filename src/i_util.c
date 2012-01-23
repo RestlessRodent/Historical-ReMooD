@@ -143,7 +143,7 @@ void I_EventExPush(const I_EventEx_t* const a_Event)
 	{
 		// Indicate overflow
 		if (devparm)
-			CONS_Printf("I_EventExPush: Event overflow (%i)!\n", (int)l_EQWrite);
+			CONL_PrintF("I_EventExPush: Event overflow (%i)!\n", (int)l_EQWrite);
 			
 		// Increment reader
 		l_EQRead++;
@@ -210,12 +210,12 @@ void I_OsPolling(void)
 			{
 					// Quit
 				case IET_QUIT:
-					CONS_Printf("Event: QUIT!!\n");
+					CONL_PrintF("Event: QUIT!!\n");
 					break;
 					
 					// Keyboard
 				case IET_KEYBOARD:
-					CONS_Printf("Event: KEYBRD St:%2s Rp:%2s Kc:%03X Ch:%c\n",
+					CONL_PrintF("Event: KEYBRD St:%2s Rp:%2s Kc:%03X Ch:%c\n",
 					            (Event.Data.Keyboard.Down ? "Dn" : "Up"),
 					            (Event.Data.Keyboard.Repeat ? "Re" : "--"),
 					            Event.Data.Keyboard.KeyCode, (Event.Data.Keyboard.Character & 0x7F ? Event.Data.Keyboard.Character & 0x7F : ' '));
@@ -223,33 +223,33 @@ void I_OsPolling(void)
 					
 					// Mouse
 				case IET_MOUSE:
-					CONS_Printf("Event: MOUSE_ Id:%2i Ps:(%5i, %5i)", Event.Data.Mouse.MouseID, Event.Data.Mouse.Pos[0], Event.Data.Mouse.Pos[1]);
+					CONL_PrintF("Event: MOUSE_ Id:%2i Ps:(%5i, %5i)", Event.Data.Mouse.MouseID, Event.Data.Mouse.Pos[0], Event.Data.Mouse.Pos[1]);
 					
 					// Button
 					if (Event.Data.Mouse.Button)
-						CONS_Printf(" St:%2s Bt:%2i\n", (Event.Data.Mouse.Down ? "Dn" : "Up"), Event.Data.Mouse.Button);
+						CONL_PrintF(" St:%2s Bt:%2i\n", (Event.Data.Mouse.Down ? "Dn" : "Up"), Event.Data.Mouse.Button);
 						
 					// Movement
 					else
-						CONS_Printf(" Mv:(%+4i, %+4i)\n", Event.Data.Mouse.Move[0], Event.Data.Mouse.Move[1]);
+						CONL_PrintF(" Mv:(%+4i, %+4i)\n", Event.Data.Mouse.Move[0], Event.Data.Mouse.Move[1]);
 					break;
 					
 					// Joystick
 				case IET_JOYSTICK:
-					CONS_Printf("Event: JOYSTK Id:%2i", Event.Data.Joystick.JoyID);
+					CONL_PrintF("Event: JOYSTK Id:%2i", Event.Data.Joystick.JoyID);
 					
 					// Button
 					if (Event.Data.Joystick.Button)
-						CONS_Printf(" St:%2s Bt:%2i\n", (Event.Data.Joystick.Down ? "Dn" : "Up"), Event.Data.Joystick.Button);
+						CONL_PrintF(" St:%2s Bt:%2i\n", (Event.Data.Joystick.Down ? "Dn" : "Up"), Event.Data.Joystick.Button);
 						
 					// Axis
 					else
-						CONS_Printf(" Ax:%2i Vl:%+6i\n", Event.Data.Joystick.Axis, Event.Data.Joystick.Value);
+						CONL_PrintF(" Ax:%2i Vl:%+6i\n", Event.Data.Joystick.Axis, Event.Data.Joystick.Value);
 					break;
 					
 					// Unknown
 				default:
-					CONS_Printf("Event: UNKNWN\n");
+					CONL_PrintF("Event: UNKNWN\n");
 					break;
 			}
 		}
@@ -494,7 +494,7 @@ void I_StartupMouse(void)
 	/* Check parameter */
 	if (M_CheckParm("-nomouse"))
 	{
-		CONS_Printf("I_StartupMouse: -nomouse is preventing mice from being used.\n");
+		CONL_PrintF("I_StartupMouse: -nomouse is preventing mice from being used.\n");
 		return;
 	}
 	
@@ -508,11 +508,11 @@ void I_StartupMouse(void)
 		// Probe the mouse
 		if (!I_ProbeMouse(0))
 		{
-			CONS_Printf("I_StartupMouse: There is no mouse\n");
+			CONL_PrintF("I_StartupMouse: There is no mouse\n");
 			return;
 		}
 		// Enable
-		CONS_Printf("I_StartupMouse: Mouse enabled.\n");
+		CONL_PrintF("I_StartupMouse: Mouse enabled.\n");
 		l_MouseOK = true;
 	}
 	
@@ -530,7 +530,7 @@ void I_StartupMouse(void)
 		I_RemoveMouse(0);
 		
 		// Disable
-		CONS_Printf("I_StartupMouse: Mouse disabled.\n");
+		CONL_PrintF("I_StartupMouse: Mouse disabled.\n");
 		l_MouseOK = false;
 	}
 }
@@ -541,7 +541,7 @@ void I_StartupMouse2(void)
 	/* Check parameter */
 	if (M_CheckParm("-nomouse"))
 	{
-		CONS_Printf("I_StartupMouse: -nomouse is preventing mice from being used.\n");
+		CONL_PrintF("I_StartupMouse: -nomouse is preventing mice from being used.\n");
 		return;
 	}
 	
@@ -551,7 +551,7 @@ void I_StartupMouse2(void)
 		// Probe the mouse
 		if (!I_ProbeMouse(1))
 		{
-			CONS_Printf("I_StartupMouse: There is no secondary mouse\n");
+			CONL_PrintF("I_StartupMouse: There is no secondary mouse\n");
 			return;
 		}
 	}
@@ -581,7 +581,7 @@ void I_InitJoystick(void)
 	/* Check parameter */
 	if (M_CheckParm("-nojoy"))
 	{
-		CONS_Printf("I_InitJoystick: -nojoy is preventing joysticks from being used.\n");
+		CONL_PrintF("I_InitJoystick: -nojoy is preventing joysticks from being used.\n");
 		return;
 	}
 	
@@ -597,11 +597,11 @@ void I_InitJoystick(void)
 		
 		if (!l_NumJoys)
 		{
-			CONS_Printf("I_InitJoystick: There are no joysticks.\n");
+			CONL_PrintF("I_InitJoystick: There are no joysticks.\n");
 			return;
 		}
 		// Print number of sticks
-		CONS_Printf("I_InitJoystick: There are %i joystick(s).\n", (int)l_NumJoys);
+		CONL_PrintF("I_InitJoystick: There are %i joystick(s).\n", (int)l_NumJoys);
 		
 		// Map base joysticks
 		for (i = 0; i < MAXJOYSTICKS; i++)
@@ -611,9 +611,9 @@ void I_InitJoystick(void)
 		for (i = 0; i < l_NumJoys; i++)
 		{
 			if (I_GetJoystickID(i, &ID, Buf, BUFSIZE, CoolBuf, BUFSIZE))
-				CONS_Printf("I_InitJoystick: Joystick ID %08x is called \"%s\" (Full name \"%s\").\n", ID, CoolBuf, Buf);
+				CONL_PrintF("I_InitJoystick: Joystick ID %08x is called \"%s\" (Full name \"%s\").\n", ID, CoolBuf, Buf);
 			if (I_GetJoystickCounts(i, &NumAxis, &NumButtons))
-				CONS_Printf("I_InitJoystick: Has %u axis and %u buttons.\n", NumAxis, NumButtons);
+				CONL_PrintF("I_InitJoystick: Has %u axis and %u buttons.\n", NumAxis, NumButtons);
 		}
 		
 		// Enable

@@ -125,7 +125,7 @@ static void next_token()
 		{
 			if (tokens[0][0])
 			{
-				CONS_Printf("%s %i %i\n", tokens[0], rover - current_script->data, current_script->len);
+				CONL_PrintF("%s %i %i\n", tokens[0], rover - current_script->data, current_script->len);
 				// line contains text, but no semicolon: an error
 				script_error("missing ';'\n");
 			}
@@ -339,32 +339,32 @@ void print_tokens()				// DEBUG
 	
 	for (i = 0; i < num_tokens; i++)
 	{
-		CONS_Printf("\n'%s' \t\t --", tokens[i]);
+		CONL_PrintF("\n'%s' \t\t --", tokens[i]);
 		switch (tokentype[i])
 		{
 			case string:
-				CONS_Printf("string");
+				CONL_PrintF("string");
 				break;
 			case operator:
-				CONS_Printf("operator");
+				CONL_PrintF("operator");
 				break;
 			case name:
-				CONS_Printf("name");
+				CONL_PrintF("name");
 				break;
 			case number:
-				CONS_Printf("number");
+				CONL_PrintF("number");
 				break;
 			case unset:
-				CONS_Printf("duh");
+				CONL_PrintF("duh");
 				break;
 			case function:
-				CONS_Printf("function name");
+				CONL_PrintF("function name");
 				break;
 		}
 	}
-	CONS_Printf("\n");
+	CONL_PrintF("\n");
 	if (current_section)
-		CONS_Printf("current section: offset %i\n", (int)(current_section->start - current_script->data));
+		CONL_PrintF("current section: offset %i\n", (int)(current_section->start - current_script->data));
 }
 
 // run_script
@@ -717,7 +717,7 @@ svalue_t evaluate_expression(int start, int stop)
 		
 		if (-1 != (n = (operators[i].direction == forward ? find_operator_backwards : find_operator) (start, stop, operators[i].string)))
 		{
-			// CONS_Printf("operator %s, %i-%i-%i\n", operators[count].string, start, n, stop);
+			// CONL_PrintF("operator %s, %i-%i-%i\n", operators[count].string, start, n, stop);
 			
 			// call the operator function and evaluate this chunk of tokens
 			
@@ -752,9 +752,9 @@ void script_error(char* s, ...)
 		return;					//already killing script
 		
 	if (current_script->scriptnum == -1)
-		CONS_Printf("global");
+		CONL_PrintF("global");
 	else
-		CONS_Printf("%i", current_script->scriptnum);
+		CONL_PrintF("%i", current_script->scriptnum);
 		
 	// find the line number
 	
@@ -766,11 +766,11 @@ void script_error(char* s, ...)
 		for (temp = current_script->data; temp < linestart; temp++)
 			if (*temp == '\n')
 				linenum++;		// count EOLs
-		CONS_Printf(", %i", linenum);
+		CONL_PrintF(", %i", linenum);
 	}
 	// print the error
 	vsprintf(tempstr, s, args);
-	CONS_Printf(": %s", tempstr);
+	CONL_PrintF(": %s", tempstr);
 	
 	// make a noise
 	S_StartSound(NULL, sfx_pldeth);

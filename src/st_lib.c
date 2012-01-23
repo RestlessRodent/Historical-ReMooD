@@ -99,7 +99,7 @@ void STlib_drawNum(st_number_t* n, bool_t refresh)
 	x = n->x - numdigits * w;
 	
 #ifdef DEBUG
-	CONS_Printf("V_CopyRect1: %d %d %d %d %d %d %d %d val: %d\n", x, n->y, BG, w * numdigits, h, x, n->y, STTRANSPARENTSCREEN, num);
+	CONL_PrintF("V_CopyRect1: %d %d %d %d %d %d %d %d val: %d\n", x, n->y, BG, w * numdigits, h, x, n->y, STTRANSPARENTSCREEN, num);
 #endif
 	// dont clear background in overlay
 	if (!st_overlay)			//faB:current hardware mode always refresh the statusbar
@@ -177,7 +177,7 @@ void STlib_updateMultIcon(st_multicon_t* mi, bool_t refresh)
 			h = LittleSwapInt16(mi->p[mi->oldinum]->height);
 			
 #ifdef DEBUG
-			CONS_Printf("V_CopyRect2: %d %d %d %d %d %d %d %d\n", x, y, BG, w, h, x, y, STTRANSPARENTSCREEN);
+			CONL_PrintF("V_CopyRect2: %d %d %d %d %d %d %d %d\n", x, y, BG, w, h, x, y, STTRANSPARENTSCREEN);
 #endif
 			//faB:current hardware mode always refresh the statusbar
 			if (!st_overlay)
@@ -217,7 +217,7 @@ void STlib_updateBinIcon(st_binicon_t* bi, bool_t refresh)
 		else
 		{
 #ifdef DEBUG
-			CONS_Printf("V_CopyRect3: %d %d %d %d %d %d %d %d\n", x, y, BG, w, h, x, y, STTRANSPARENTSCREEN);
+			CONL_PrintF("V_CopyRect3: %d %d %d %d %d %d %d %d\n", x, y, BG, w, h, x, y, STTRANSPARENTSCREEN);
 #endif
 			if (!st_overlay)	//faB:current hardware mode always refresh the statusbar
 				V_CopyRect(x, y, BG, w, h, x, y, STTRANSPARENTSCREEN);

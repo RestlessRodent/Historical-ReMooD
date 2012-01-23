@@ -247,7 +247,7 @@ void P_FindAnimatedFlat(int animnum)
 			foundflats->speed = anims[animnum].speed;
 			
 			if (devparm)
-				CONS_Printf
+				CONL_PrintF
 				("animflat: %#03d name:%.8s animseq:%d numpics:%d speed:%d\n",
 				 i, foundflats->name, foundflats->animseq, foundflats->numpics, foundflats->speed);
 		}
@@ -2105,7 +2105,7 @@ void P_ProcessSpecialSector(player_t* player, sector_t* sector, bool_t instantda
 						P_DamageMobj(player->mo, NULL, NULL, 10);
 						
 						// spawn a puff of smoke
-						//CONS_Printf ("damage!\n"); //debug
+						//CONL_PrintF ("damage!\n"); //debug
 						if (demoversion >= 125)
 							P_SpawnSmoke(player->mo->x, player->mo->y, player->mo->z);
 					}
@@ -2136,7 +2136,7 @@ void P_ProcessSpecialSector(player_t* player, sector_t* sector, bool_t instantda
 				
 				//faB: useful only in single & coop.
 				if (!cv_deathmatch.value && players - player == displayplayer[0])
-					CONS_Printf("\x02You found a secret area!\n");
+					CONL_PrintF("\x02You found a secret area!\n");
 					
 				break;
 				
@@ -2153,7 +2153,7 @@ void P_ProcessSpecialSector(player_t* player, sector_t* sector, bool_t instantda
 				
 			default:
 				//SoM: 3/8/2000: Just ignore.
-				//CONS_Printf ("P_PlayerInSpecialSector: unknown special %i",
+				//CONL_PrintF ("P_PlayerInSpecialSector: unknown special %i",
 				//             sector->special);
 				break;
 		};
@@ -2185,7 +2185,7 @@ void P_ProcessSpecialSector(player_t* player, sector_t* sector, bool_t instantda
 			sector->special &= ~SECRET_MASK;
 			
 			if (!cv_deathmatch.value && players - player == displayplayer[0])
-				CONS_Printf("\2You found a secret area!\n");
+				CONL_PrintF("\2You found a secret area!\n");
 				
 			if (sector->special < 32)
 				sector->special = 0;
@@ -3616,7 +3616,7 @@ void P_HerePlayerInSpecialSector(player_t* player)
 			break;
 			
 		default:
-			CONS_Printf("P_PlayerInSpecialSector: " "unknown special %i\n", sector->special);
+			CONL_PrintF("P_PlayerInSpecialSector: " "unknown special %i\n", sector->special);
 	}
 }
 
