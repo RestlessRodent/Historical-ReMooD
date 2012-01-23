@@ -1541,7 +1541,7 @@ bool_t CONL_DrawConsole(void)
 			if (con_startup)
 			{
 				// Set last boot lines
-				BootLines = (j - 1) & Out->MaskPos;
+				BootLines = ((j - 1) & Out->MaskLine);
 				BootCount++;
 				
 				// Break out, don't draw any more
