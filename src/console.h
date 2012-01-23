@@ -127,14 +127,6 @@ typedef struct CONCTI_Inputter_s
 	struct CONCTI_Inputter_s** RefPtr;	// Reference to this struct
 } CONCTI_Inputter_t;
 
-/* CONL_ConVariable_t -- Console variable */
-typedef struct CONL_ConVariable_s
-{
-	char Name[MAXCONLVARIABLENAME];				// Name of variable
-	CONL_VariableType_t Type;					// Type of variable
-	
-} CONL_ConVariable_t;
-
 /*****************
 *** PROTOTYPES ***
 *****************/
@@ -152,7 +144,6 @@ bool_t CONL_AddCommand(const char* const a_Name, CONL_ExitCode_t (*a_ComFunc)(co
 CONL_ExitCode_t CONL_Exec(const uint32_t a_ArgC, const char** const a_ArgV);
 
 /*** Console Variables */
-bool_t CONL_AddVariable(CONL_ConVariable_t* const a_Variable);  
 
 /*** Base Console ***/
 bool_t CONL_Init(const uint32_t a_OutBS, const uint32_t a_InBS);

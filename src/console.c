@@ -800,6 +800,14 @@ static CONL_ConCommand_t* l_CONLCommands = NULL;			// Console commands
 static size_t l_CONLNumCommands = 0;						// Number of commands
 static Z_HashTable_t* l_CONLCommandHashes = NULL;			// Speed lookup
 
+/* CONL_ConVariable_t -- Console variable */
+typedef struct CONL_ConVariable_s
+{
+	char Name[MAXCONLVARIABLENAME];				// Name of variable
+	CONL_VariableType_t Type;					// Type of variable
+	
+} CONL_ConVariable_t;
+
 static CONL_ConVariable_t** l_CONLVariables = NULL;			// Console variables
 static size_t l_CONLNumVariables = 0;						// Number of variables
 static Z_HashTable_t* l_CONLVariableHashes = NULL;			// Speed lookup
