@@ -34,8 +34,22 @@
 
 #include "command.h"
 
-/*** NEW LEVEL INFO CODE ***/
+/**************************
+*** NEW LEVEL INFO CODE ***
+**************************/
 
+/*** CONSTANTS ***/
+/* P_InfoBlockType_t -- Type of info block */
+typedef enum P_InfoBlockType_e
+{
+	PIBT_LEVELINFO,								// [level info]
+	PIBT_SCRIPTS,								// [scripts]
+	PIBT_INTERTEXT,								// [intertext]	
+	
+	NUMPINFOBLOCKTYPES
+} P_InfoBlockType_t;
+
+/*** FUNCTIONS ***/
 void P_PrepareLevelInfoEx(void);
 
 /*** OLD JUNKY DEPRECATED JUNK ***/

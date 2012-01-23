@@ -108,8 +108,7 @@ typedef struct P_LevelInfoEx_s
 	} Type;										// Level Type
 	
 	/* Script Related */
-	uint32_t ScriptStart;						// Start of script data
-	uint32_t ScriptEnd;							// End of script data
+	uint32_t BlockPos[NUMPINFOBLOCKTYPES][2];	// Block positions ([xxx] stuff)
 	
 	/* Info */
 	char LumpName[MAXPLIEXFIELDWIDTH];			// Name of the lump
@@ -133,6 +132,132 @@ typedef struct P_LevelInfoHolder_s
 	size_t NumInfos;
 } P_LevelInfoHolder_t;
 
+/*** PRIVATE FUNCTIONS ***/
+static bool_t PS_LevelInfoGetBlockPoints(P_LevelInfoEx_t* const a_Info, const WL_WADEntry_t* a_Entry, WL_EntryStream_t* const a_Stream)
+{
+#define BUFSIZE 256
+	char Buf[BUFSIZE];
+	uint16_t Char;
+	size_t i, j, k, LineStartPos;
+	P_InfoBlockType_t CurrentSpec = NUMPINFOBLOCKTYPES;
+	P_InfoBlockType_t NextLineIs = NUMPINFOBLOCKTYPES;
+	
+	/* Check */
+	if (!a_Info || !a_Entry || !a_Stream)
+		return false;
+	
+	/* While there is no stream end */
+	while (!WL_StreamEOF(a_Stream))
+	{
+		// Reset variables
+		i = 0;
+		memset(Buf, 0, sizeof(Buf));
+		LineStartPos = WL_StreamTell(a_Stream);
+		
+		// Read line into buffer
+		do
+		{
+			// Read it
+			Char = WL_StreamReadChar(a_Stream);
+			
+			// Place it
+			if (i < BUFSIZE - 1)
+				if (Char != '\n' && Char != '\r')
+					Buf[i++] = Char;
+		} while (Char != '\n');
+		
+		// Determine if this is a block specifier
+		if (Buf[0] == '[')
+		{
+			// Ignore any spaces
+			for (j = 1; Buf[j] && (Buf[j] == ' ' || Buf[j] == '\t'); j++);
+			
+			// Find terminating ']'
+			for (k = strlen(Buf) - 1; k > 1; k--)
+				if (Buf[k] == ']')
+				{
+					// Delete this and any white space before
+					for (; k > 1 && (Buf[k] == ']' || Buf[k] == ' ' || Buf[k] == '\t'); k--)
+						Buf[k] = '\0';
+					break;
+				}
+			
+			// Never found?
+			if (k == 1)
+				continue;
+			
+			// Terminate previous block
+			if (CurrentSpec != NUMPINFOBLOCKTYPES)
+			{
+				// Set end position
+				a_Info->BlockPos[CurrentSpec][1] = LineStartPos - 1;
+				
+				// No longer at this
+				CurrentSpec = NUMPINFOBLOCKTYPES;
+			}
+			
+			// Level info?
+			if (strcasecmp(&Buf[j], "level info") == 0)
+				NextLineIs = PIBT_LEVELINFO;
+			
+			// Scripts?
+			else if (strcasecmp(&Buf[j], "scripts") == 0)
+				NextLineIs = PIBT_SCRIPTS;
+			
+			// Intertext?
+			else if (strcasecmp(&Buf[j], "intertext") == 0)
+				NextLineIs = PIBT_INTERTEXT;
+		}
+		
+		// If the next line (was then) is a specifier, set it.
+		// Process here in case of block specs adjacent to each other, so if
+		// they are, they aren't specified at all.
+		else if (NextLineIs != NUMPINFOBLOCKTYPES)
+		{
+			// The position of this block is at
+			a_Info->BlockPos[NextLineIs][0] = LineStartPos;
+			
+			// Set current and clear next
+			CurrentSpec = NextLineIs;
+			NextLineIs = NUMPINFOBLOCKTYPES;
+		}
+	}
+	
+	/* Check for unterminated block */
+	if (CurrentSpec != NUMPINFOBLOCKTYPES)
+		// Set end position to entry size
+		a_Info->BlockPos[CurrentSpec][1] = a_Entry->Size;
+	
+	/* Debug */
+	if (devparm)
+	{
+		if (a_Info->BlockPos[PIBT_LEVELINFO][1] - a_Info->BlockPos[PIBT_LEVELINFO][0] > 0)
+			CONS_Printf("PS_LevelInfoGetBlockPoints: Level Info at %i - %i (size %i)\n",
+					a_Info->BlockPos[PIBT_LEVELINFO][0],
+					a_Info->BlockPos[PIBT_LEVELINFO][1],
+					a_Info->BlockPos[PIBT_LEVELINFO][1] - a_Info->BlockPos[PIBT_LEVELINFO][0]
+				);
+		
+		if (a_Info->BlockPos[PIBT_SCRIPTS][1] - a_Info->BlockPos[PIBT_SCRIPTS][0] > 0)
+			CONS_Printf("PS_LevelInfoGetBlockPoints: Scripts at %i - %i (size %i)\n",
+					a_Info->BlockPos[PIBT_SCRIPTS][0],
+					a_Info->BlockPos[PIBT_SCRIPTS][1],
+					a_Info->BlockPos[PIBT_SCRIPTS][1] - a_Info->BlockPos[PIBT_SCRIPTS][0]
+				);
+				
+		if (a_Info->BlockPos[PIBT_INTERTEXT][1] - a_Info->BlockPos[PIBT_INTERTEXT][0] > 0)
+			CONS_Printf("PS_LevelInfoGetBlockPoints: Intertext at %i - %i (size %i)\n",
+					a_Info->BlockPos[PIBT_INTERTEXT][0],
+					a_Info->BlockPos[PIBT_INTERTEXT][1],
+					a_Info->BlockPos[PIBT_INTERTEXT][1] - a_Info->BlockPos[PIBT_INTERTEXT][0]
+				);
+	}
+	
+	/* Success! */
+	return true;
+#undef BUFSIZE
+}
+
 /*** FUNCTIONS ***/
 
 /* P_WLInfoRemove() -- Function that removes private data from a WAD */
@@ -146,6 +271,7 @@ static void P_WLInfoRemove(const WL_WADFile_t* a_WAD)
 	
 	/* Get Data */
 }
+
 
 /* P_WLInfoCreator() -- Function that creates private data for a WAD */
 static bool_t P_WLInfoCreator(const WL_WADFile_t* const a_WAD, const uint32_t a_Key, void** const a_DataPtr, size_t* const a_SizePtr, WL_RemoveFunc_t* const a_RemoveFuncPtr)
@@ -337,14 +463,11 @@ static bool_t P_WLInfoCreator(const WL_WADFile_t* const a_WAD, const uint32_t a_
 			// Determine unicode level
 			WL_StreamCheckUnicode(ReadStream);
 			
-			// Run through tokenizer and accept only "[level info]" and "[intertext]"
-				// [level info]
-				// [intertext]
-			// Read blocks and look for "[level info]"
-			while (!WL_StreamEOF(ReadStream))
+			// Determine block locations
+			if (PS_LevelInfoGetBlockPoints(CurrentInfo, CurrentInfo->EntryPtr[PLIEDS_HEADER], ReadStream))
 			{
-				// Read single character
-				Char = WL_StreamReadChar(ReadStream);
+				// Parse [level info]
+				CONS_Printf("Parsing level info.\n");
 			}
 		}
 		
