@@ -96,7 +96,7 @@ typedef enum CONL_VariableState_e
 	CLVS_NEXTGAME,								// Next Game
 	CLVS_DEMOCOMPAT,							// Demo Compatibility
 	
-	MAXCONLVARIABLESTATES
+	MAXCONLVARSTATES
 } CONL_VariableState_t;
 
 /* CONL_VariableFlags_t -- Flags for variables */
@@ -111,6 +111,8 @@ typedef enum CONL_VariableFlags_e
 												// for client info).
 	CLVF_READONLY				= 0x00000010U,	// Variable cannot be changed
 												// (except by internal calls)
+	CLVF_TRIPLESTATE			= 0x00000020U,	// Variable has multiple states
+												// That is, any set affects state
 } CONL_VariableFlags_t;
 
 /*****************
@@ -163,6 +165,14 @@ typedef struct CONL_VarPossibleValue_s
 	const char* StrAlias;					// String aliase
 } CONL_VarPossibleValue_t;
 
+/* CONL_VarValue_t -- Value for variable */
+typedef struct CONL_VarValue_s
+{
+	char* String;								// String value
+	int32_t Int;								// Integer value
+	fixed_t Fixed;								// Fixed Value
+} CONL_VarValue_t;
+
 /* CONL_StaticVar_s -- Static console variable */
 // This is the defined local/global, which is then registered
 struct CONL_StaticVar_s
@@ -170,18 +180,13 @@ struct CONL_StaticVar_s
 	/* Defined as static */
 	const CONL_VariableType_t Type;				// Variable type
 	const CONL_VarPossibleValue_t* Possible;	// Possible Value
+	uint32_t Flags;								// Flags for variable
 	const char* const VarName;					// Variable Name
 	const char* const DefaultValue;				// Default Value
-	uint32_t Flags;								// Flags for variable
 	CONL_ConVarBackFunc_t ChangeFunc;			// Function to call when changed
 	
 	/* Contained Value */
-	struct
-	{
-		char* String;							// String value
-		int32_t Int;							// Integer value
-		fixed_t Fixed;							// Fixed Value
-	} Value[MAXCONLVARIABLESTATES];				// Value for each state
+	const CONL_VarValue_t* Value;				// Value for each state
 	
 	/* Reference Back */
 	CONL_ConVariable_t* RealLink;				// Registered Variable
@@ -191,6 +196,7 @@ struct CONL_StaticVar_s
 *** GLOBALS ***
 **************/
 
+extern const CONL_VarPossibleValue_t* const g_CVPVClamp;
 extern const CONL_VarPossibleValue_t* const g_CVPVInteger;
 extern const CONL_VarPossibleValue_t* const g_CVPVPositive;
 extern const CONL_VarPossibleValue_t* const g_CVPVNegative;
@@ -213,6 +219,14 @@ bool_t CONL_AddCommand(const char* const a_Name, CONL_ExitCode_t (*a_ComFunc)(co
 CONL_ExitCode_t CONL_Exec(const uint32_t a_ArgC, const char** const a_ArgV);
 
 /*** Console Variables ***/
+CONL_ConVariable_t* CONL_VarRegister(CONL_StaticVar_t* const a_StaticVar);
+
+CONL_StaticVar_t* CONL_VarLocate(const char* const a_Name);
+const char* CONL_VarSetStrByName(const char* const a_Var, const CONL_VariableState_t a_State, const char* const a_NewVal);
+
+const char* CONL_VarSetStr(CONL_StaticVar_t* a_Var, const CONL_VariableState_t a_State, const char* const a_NewVal);
+int32_t CONL_VarSetInt(CONL_StaticVar_t* a_Var, const CONL_VariableState_t a_State, const int32_t a_NewVal);
+fixed_t CONL_VarSetFixed(CONL_StaticVar_t* a_Var, const CONL_VariableState_t a_State, const fixed_t a_NewVal);
 
 /*** Base Console ***/
 bool_t CONL_Init(const uint32_t a_OutBS, const uint32_t a_InBS);
@@ -235,6 +249,11 @@ void CONL_Ticker(void);
 bool_t CONL_DrawConsole(void);
 
 /*** Console Commands ***/
+// Variable Commands
+CONL_ExitCode_t CLC_CVarList(const uint32_t a_ArgC, const char** const a_ArgV);
+CONL_ExitCode_t CLC_CVarSet(const uint32_t a_ArgC, const char** const a_ArgV);
+
+// Base Commands
 CONL_ExitCode_t CLC_Version(const uint32_t a_ArgC, const char** const a_ArgV);
 CONL_ExitCode_t CLC_Dep(const uint32_t a_ArgC, const char** const a_ArgV);
 CONL_ExitCode_t CLC_Exec(const uint32_t a_ArgC, const char** const a_ArgV);

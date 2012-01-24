@@ -887,7 +887,7 @@ static bool_t CONL_CommandHashCompare(void* const a_A, void* const a_B)
 	
 	/* No match */
 	return false;
-}
+};
 
 /* CONL_AddCommand() -- Add console command */
 bool_t CONL_AddCommand(const char* const a_Name, CONL_ExitCode_t (*a_ComFunc)(const uint32_t, const char** const))
@@ -1022,6 +1022,17 @@ bool_t CONL_Init(const uint32_t a_OutBS, const uint32_t a_InBS)
 	CONL_AddCommand("exec", CLC_Exec);
 	CONL_AddCommand("!", CLC_Exclamation);
 	CONL_AddCommand("?", CLC_Question);
+	
+	/* Initialize the variable system */
+	CONL_VarLocate("theconsolesystemwasjustbooted");
+	
+	/* Initialize variables for drawing */
+#if !define(__REMOOD_DEDICATED)
+	if (!g_DedicatedServer)
+	{
+		
+	}
+#endif
 	
 	/* Base init */
 	P_InitSGConsole();
@@ -1658,7 +1669,7 @@ bool_t CONL_DrawConsole(void)
 		{
 			y = conH - bh - CONLPADDING;
 			x = conX;
-			Options = VFO_COLOR(VEX_MAP_BLUE) | VFO_NOSCALEPATCH | VFO_NOSCALESTART | VFO_NOSCALELORES;
+			Options = VFO_COLOR(VEX_MAP_GREEN) | VFO_NOSCALEPATCH | VFO_NOSCALESTART | VFO_NOSCALELORES;
 			
 			// Draw command prompt
 			x += V_DrawStringA(CONLCONSOLEFONT, VFO_COLOR(VEX_MAP_BRIGHTWHITE) | VFO_NOSCALEPATCH | VFO_NOSCALESTART | VFO_NOSCALELORES, "#>", x, y);
@@ -1809,9 +1820,26 @@ struct CONL_ConVariable_s
 	bool_t LoadedValue;							// Was set in the config file
 	bool_t IsDeprecated;						// Is really a deprecated variable
 	char* VirtualValue;							// Virtual Value
+	
+	/* Value */
+	CONL_VarValue_t Value[MAXCONLVARSTATES];	// Value of variable (actual)
+	char* Name;									// Name
+	uint32_t Hash;								// Hash of name
 };
 
 /** GLOBALS **/
+
+// g_CVPVClamp -- Clamped Integer
+static const CONL_VarPossibleValue_t c_CVPVClamp[] =
+{
+	// End
+	{0, "MINVAL"},
+	{1, "MAXVAL"},
+	{0, NULL},
+};
+
+const CONL_VarPossibleValue_t* const g_CVPVClamp = c_CVPVClamp;
+
 // g_CVPVInteger -- Signed Integer
 static const CONL_VarPossibleValue_t c_CVPVInteger[] =
 {
@@ -1873,7 +1901,382 @@ static Z_HashTable_t* l_CONLVariableHashes = NULL;			// Speed lookup
 
 /** FUNCTIONS **/
 
+/* CONL_VariableHashCompare() -- Compares entry hash */
+// A = const char*
+// B = uintptr_t
+static bool_t CONL_VariableHashCompare(void* const a_A, void* const a_B)
+{
+	const char* A;
+	CONL_ConVariable_t* B;
+	
+	/* Check */
+	if (!a_A || !a_B)
+		return false;
+	
+	/* Get normals */
+	A = a_A;
+	B = a_B;
+	
+	/* Caseless compare */
+	if (strcasecmp(A, B->Name) == 0)
+		return true;
+	
+	/* Not a match */
+	return false;
+}
+
+/* CONLS_VarCoreLocate() -- Locate internal varaible by name */
+static CONL_ConVariable_t* CONLS_VarCoreLocate(const char* const a_Name)
+{
+	uint32_t Hash;
+	CONL_ConVariable_t* Found;
+	
+	/* Does the hash table need initialization? */
+	if (!l_CONLVariableHashes)
+	{
+		// Create table
+		l_CONLVariableHashes = Z_HashCreateTable(CONL_VariableHashCompare);
+		
+		// Register variable commands
+		CONL_AddCommand("cvlist", CLC_CVarList);
+		CONL_AddCommand("cvset", CLC_CVarSet);
+	}
+	
+	/* Check */
+	if (!a_Name)
+		return NULL;
+	
+	/* Hash name */
+	Hash = Z_Hash(a_Name);
+	
+	/* Find in table */
+	Found = Z_HashFindEntry(l_CONLVariableHashes, Hash, (void*)a_Name, false);
+	
+	/* Return result (if found) */
+	return Found;
+}
+
+/* CONLS_PushVar() -- Pushes a new variable */
+static CONL_ConVariable_t* CONLS_PushVar(const char* const a_Name, CONL_StaticVar_t* const a_StaticVar)
+{
+	uint32_t Hash;
+	CONL_ConVariable_t* NewVar;
+	
+	/* Check */
+	if (!a_Name)
+		return NULL;
+	
+	/* Hash Name */
+	Hash = Z_Hash(a_Name);
+	
+	/* Create space for variable and push to end of list */
+	// Create
+	NewVar = Z_Malloc(sizeof(*NewVar), PU_STATIC, NULL);
+	
+	// Push
+	Z_ResizeArray((void**)&l_CONLVariables, sizeof(*l_CONLVariables), l_CONLNumVariables, l_CONLNumVariables + 1);
+	l_CONLVariables[l_CONLNumVariables++] = NewVar;
+	
+	// Add to hash table
+	Z_HashAddEntry(l_CONLVariableHashes, Hash, (void*)NewVar);
+	
+	/* Set variable info */
+	NewVar->Name = Z_StrDup(a_Name, PU_STATIC, NULL);
+	NewVar->Hash = Hash;
+	NewVar->StaticLink = a_StaticVar;
+	
+	// If there is a static link...
+	if (NewVar->StaticLink)
+	{
+		// Set value stuff
+		NewVar->StaticLink->Value = NewVar->Value;
+		
+		// And real link
+		NewVar->StaticLink->RealLink = NewVar;
+	}
+	
+	/* Return it */
+	return NewVar;
+}
+
+/* CONL_VarRegister() -- Registers a variable */
+CONL_ConVariable_t* CONL_VarRegister(CONL_StaticVar_t* const a_StaticVar)
+{
+	CONL_ConVariable_t* NewVar;
+	
+	/* Check */
+	if (!a_StaticVar)
+		return NULL;
+	
+	/* Sanity */
+	if (a_StaticVar->Type < 0 || a_StaticVar->Type >= NUMCONLVARIABLETYPES || !a_StaticVar->Possible || !a_StaticVar->VarName || !a_StaticVar->DefaultValue)
+		return NULL;
+	
+	/* Locate variable to see if it is virtualized or registered */
+	if ((NewVar = CONLS_VarCoreLocate(a_StaticVar->VarName)))
+	{
+		// De-virtualize
+		NewVar->IsVirtual = false;
+		
+		// Set static stuff
+		NewVar->StaticLink = a_StaticVar;
+		NewVar->StaticLink->Value = NewVar->Value;
+		NewVar->StaticLink->RealLink = NewVar;
+		
+		// If the value is loaded
+		if (NewVar->LoadedValue && NewVar->VirtualValue)
+		{
+			// Set with it
+			CONL_VarSetStr(NewVar->StaticLink, CLVS_NORMAL, NewVar->VirtualValue);
+			
+			// Clear
+			Z_Free(NewVar->VirtualValue);
+			NewVar->VirtualValue = NULL;
+			NewVar->LoadedValue = false;	// In case the var is not saved
+		}
+		
+		// Otherwise, set it with the default value
+		else
+		{
+			// Since it was never loaded with a config, we want the default
+			CONL_VarSetStr(NewVar->StaticLink, CLVS_NORMAL, NewVar->StaticLink->DefaultValue);
+		}
+		
+		// Return the same variable
+		return NewVar;
+	}
+	
+	/* Obtain a new variable */
+	NewVar = CONLS_PushVar(a_StaticVar->VarName, a_StaticVar);
+	
+	// Set with default value
+	CONL_VarSetStr(NewVar->StaticLink, CLVS_NORMAL, NewVar->StaticLink->DefaultValue);
+	
+	/* Success */
+	return NewVar;
+}
+
+/* CONL_VarLocate() -- Locates a variable by name */
+CONL_StaticVar_t* CONL_VarLocate(const char* const a_Name)
+{
+	CONL_ConVariable_t* FoundVar;
+	
+	/* Check */
+	if (!a_Name)
+		return NULL;
+	
+	/* Locate by name */
+	if ((FoundVar = CONLS_VarCoreLocate(a_Name)))
+		// Only if it actually is registered
+		if (FoundVar->StaticLink)
+			return FoundVar->StaticLink;
+	
+	/* Failed */
+	return NULL;
+}
+
+/* CONL_VarSetStrByName() -- Set variable by its name */
+const char* CONL_VarSetStrByName(const char* const a_Var, const CONL_VariableState_t a_State, const char* const a_NewVal)
+{
+	CONL_ConVariable_t* FoundVar;
+	
+	/* Check */
+	if (!a_Var || a_State < 0 || a_State >= MAXCONLVARSTATES || !a_NewVal)
+		return NULL;
+	
+	/* Locate by name */
+	if ((FoundVar = CONLS_VarCoreLocate(a_Var)))
+	{
+		// If the variable is virtualize, return that
+		if (FoundVar->IsVirtual)
+		{
+			// Replace the loaded value
+			if (FoundVar->VirtualValue)
+				Z_Free(FoundVar->VirtualValue);
+			FoundVar->VirtualValue = NULL;
+			
+			// Put it there
+			FoundVar->VirtualValue = Z_StrDup(a_NewVal, PU_STATIC, NULL);
+			
+			// Return the loaded value
+			return (const char*)FoundVar->VirtualValue;
+		}
+		
+		// Otherwise return the linked value
+		else if (FoundVar->StaticLink)
+		{
+			// Use the real variable set (the one you are supposed to use)
+			// It returns the corrected value
+			return CONL_VarSetStr(FoundVar->StaticLink, a_State, a_NewVal);
+		}
+		
+		// No value for this variable?
+		return NULL;
+	}
+	
+	/* Not found, so create a virtual variable */
+	FoundVar = CONLS_PushVar(a_Var, NULL);
+	
+	// Set virtual and load the value we want there
+	FoundVar->IsVirtual = true;
+	FoundVar->VirtualValue = Z_StrDup(a_NewVal, PU_STATIC, NULL);
+	
+	/* Return the virtualized value */
+	return (const char*)FoundVar->VirtualValue;
+}
+
+/* CONL_VarSetStr() -- Sets variable value, and returns actual set value */
+const char* CONL_VarSetStr(CONL_StaticVar_t* a_Var, const CONL_VariableState_t a_State, const char* const a_NewVal)
+{
+	CONL_ConVariable_t* FoundVar;
+	
+	/* Check */
+	if (!a_Var || a_State < 0 || a_State >= MAXCONLVARSTATES || !a_NewVal)
+		return NULL;
+}
+
+/* CONL_VarSetInt() -- Sets variable value, and returns actual set value */
+int32_t CONL_VarSetInt(CONL_StaticVar_t* a_Var, const CONL_VariableState_t a_State, const int32_t a_NewVal)
+{
+	CONL_ConVariable_t* FoundVar;
+	
+	/* Check */
+	if (!a_Var || a_State < 0 || a_State >= MAXCONLVARSTATES)
+		return 0;
+}
+
+/* CONL_VarSetFixed() -- Sets variable value, and returns actual set value */
+fixed_t CONL_VarSetFixed(CONL_StaticVar_t* a_Var, const CONL_VariableState_t a_State, const fixed_t a_NewVal)
+{
+	CONL_ConVariable_t* FoundVar;
+	
+	/* Check */
+	if (!a_Var || a_State < 0 || a_State >= MAXCONLVARSTATES)
+		return 0;
+}
+
+/* CLC_CVarList() -- List console variables */
+CONL_ExitCode_t CLC_CVarList(const uint32_t a_ArgC, const char** const a_ArgV)
+{
+	size_t i, j;
+	CONL_ConVariable_t* CurVar;
+	uint32_t Flags;
+	
+	/* Check */
+	if (!a_ArgC || !a_ArgV)
+		return CLE_INVALIDARGUMENT;
+	
+	/* No Variables? */
+	if (!l_CONLNumVariables)
+		return CLE_RESOURCENOTFOUND;
+	
+	/* Go through variable list */
+	for (i = 0; i < l_CONLNumVariables; i++)
+	{
+		// Get variable
+		CurVar = l_CONLVariables[i];
+		
+		// Missing?
+		if (!CurVar)
+			continue;
+		
+		// Print variable type
+		if (CurVar->StaticLink)
+		{
+			if (CurVar->StaticLink->Type == CLVT_INTEGER)
+				CONL_PrintF("{9INT {z");
+			else if (CurVar->StaticLink->Type == CLVT_FIXED)
+				CONL_PrintF("{9FIX {z");
+			else if (CurVar->StaticLink->Type == CLVT_STRING)
+				CONL_PrintF("{9STR {z");
+			else
+				CONL_PrintF("{0??? {z");
+		}
+		
+		// Type-less
+		else
+			CONL_PrintF("{0??? {z");
+		
+		// Print variable flags
+		if (CurVar->StaticLink)
+		{
+			// Get flags for less characters
+			Flags = CurVar->StaticLink->Flags;
+			
+			// Print each bit
+			CONL_PrintF("{7%c", (Flags & CLVF_SAVE			? 'S' : ' '));
+			CONL_PrintF("{4%c", (Flags & CLVF_GAMESTATE		? 'g' : ' '));
+			CONL_PrintF("{1%c", (Flags & CLVF_SERVERSTATE	? 'v' : ' '));
+			CONL_PrintF("{3%c", (Flags & CLVF_CLIENTSTATE	? 'c' : ' '));
+			CONL_PrintF("{b%c", (Flags & CLVF_READONLY		? 'R' : ' '));
+			CONL_PrintF("{e%c", (Flags & CLVF_TRIPLESTATE	? 'T' : ' '));
+		}
+		
+		// Print nothing, if otherwise
+		else
+			CONL_PrintF("{z      ");
+		
+		// Print variable name
+		CONL_PrintF("{z\"{4%-15.15s{z\" = {z", CurVar->Name);
+		
+		// A registered variable
+		if (CurVar->StaticLink)
+		{
+			// Multi-state
+			if (CurVar->StaticLink->Flags & CLVF_TRIPLESTATE)
+			{
+				// Open brace
+				CONL_PrintF("{b{{");
+				
+				for (j = 0; j < MAXCONLVARSTATES; j++)
+				{
+					// Value in quotes
+					CONL_PrintF("{z\"{2%s{z\"{z", CurVar->StaticLink->Value[0].String);
+					
+					// Comma?
+					if (j < MAXCONLVARSTATES - 1)
+						CONL_PrintF("{z, ");
+				}
+				
+				// Close brace
+				CONL_PrintF("{b}{z\n");
+			}
+			
+			// Single state
+			else
+				CONL_PrintF("{z\"{2%s{z\"{z\n", CurVar->StaticLink->Value[0].String);
+		}
+		
+		// Non-registered variable
+		else
+			CONL_PrintF("{z\"{2%s{z\"{z\n", CurVar->VirtualValue);
+	}
+	
+	/* Success! */
+	return CLE_SUCCESS;
+}
+
+/* CLC_CVarSet() -- Set variable to value */
+CONL_ExitCode_t CLC_CVarSet(const uint32_t a_ArgC, const char** const a_ArgV)
+{
+	const char* RealValue;
+	
+	/* Requires three arguments */
+	if (a_ArgC < 3)
+		return CLE_INVALIDARGUMENT;
+	
+	/* Set value */
+	RealValue = CONL_VarSetStrByName(a_ArgV[1], CLVS_NORMAL, a_ArgV[2]);
+	
+	// Message
+	CONL_PrintF("{z{3%s{z was set to \"{5%s{z\".\n", a_ArgV[1], RealValue);
+	
+	/* Success */
+	return CLE_SUCCESS;
+}
+
 /*** BASE CONSOLE COMMANDS ***/
+
 /* CLC_Version() -- ReMooD version info */
 CONL_ExitCode_t CLC_Version(const uint32_t a_ArgC, const char** const a_ArgV)
 {

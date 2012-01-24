@@ -294,6 +294,7 @@ void I_GetEvent(void)
 				l_OldMousePos[1] = SCREEN_H >> 1;
 			}
 		}
+		
 		// Handle Buttons
 		for (i = 0; i < 15; i++)
 		{
@@ -310,12 +311,14 @@ void I_GetEvent(void)
 				Repeat = true;
 				ExEvent.Data.Mouse.Down = 1;
 			}
+			
 			// If button is off and our array is on, then button was released
 			else if (!(mouse_b & (1 << i)) && (MouseButtons & (1 << i)))
 			{
 				Repeat = true;
 				ExEvent.Data.Mouse.Down = 0;
 			}
+			
 			// Button not changed
 			if (!Repeat)
 				continue;
@@ -458,7 +461,7 @@ void I_GetEvent(void)
 		if (!(!Shifties[i] && key[i]))
 			continue;
 			
-		// Mark it as up
+		// Mark it as down
 		Shifties[i] = 1;
 		
 		// Create event
@@ -480,7 +483,7 @@ void I_GetEvent(void)
 		if (!(Shifties[i] && !key[i]))
 			continue;
 			
-		// Key is no longer up, so clear it
+		// Key is no longer down, so clear it
 		Shifties[i] = 0;
 		
 		// Create event
