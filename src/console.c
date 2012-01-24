@@ -1322,7 +1322,7 @@ void CONL_Ticker(void)
 {
 	/*** DEDICATED SERVER ***/
 #if defined(__REMOOD_DEDICATED)
-	return false;
+	return;
 	
 	/*** STANDARD CLIENT ***/
 #else
@@ -1341,7 +1341,7 @@ void CONL_Ticker(void)
 	
 	/* Not for dedicated server */
 	if (g_DedicatedServer)
-		return false;
+		return;
 	
 	/* Remove old messages */
 	CurrentTime = I_GetTime();
@@ -1793,80 +1793,85 @@ bool_t CONL_DrawConsole(void)
 
 /*** CONSOLE VARIABLES ***/
 
-/* CONL_ConVariable_t -- Console variable */
-typedef struct CONL_ConVariable_s
-{
-	char Name[MAXCONLVARIABLENAME];				// Name of variable
-	CONL_VariableType_t Type;					// Type of variable
-	
-	struct
-	{
-		char* StringVal;						// String value
-		int32_t IntVal;							// Integer value
-		fixed_t FixedVal;						// Fixed value
-		bool_t BoolVal;							// Bool value
-	} Values[MAXCONLVARIABLESTATES];			// State variables
-} CONL_ConVariable_t;
+/** CONSTANTS **/
 
+/** STRUCTURES **/
+/* CONL_ConVariable_s -- Console variable */
+struct CONL_ConVariable_s
+{
+	/* Static */
+	CONL_StaticVar_t* StaticLink;				// Link to static variable
+	CONL_ConVariable_t* AliasTo;				// Alias to another variable
+	consvar_t* DepVar;							// Deprecated variable
+	
+	/* Virtualization and Config */
+	bool_t IsVirtual;							// A virtual variable (not regged)
+	bool_t LoadedValue;							// Was set in the config file
+	bool_t IsDeprecated;						// Is really a deprecated variable
+	char* VirtualValue;							// Virtual Value
+};
+
+/** GLOBALS **/
+// g_CVPVInteger -- Signed Integer
+static const CONL_VarPossibleValue_t c_CVPVInteger[] =
+{
+	// End
+	{-32767, "MINVAL"},
+	{32767, "MAXVAL"},
+	{0, NULL},
+};
+
+const CONL_VarPossibleValue_t* const g_CVPVInteger = c_CVPVInteger;
+
+// g_CVPVPositive -- Positive Integer
+static const CONL_VarPossibleValue_t c_CVPVPositive[] =
+{
+	// End
+	{0, "MINVAL"},
+	{32767, "MAXVAL"},
+	{0, NULL},
+};
+
+const CONL_VarPossibleValue_t* const g_CVPVPositive = c_CVPVPositive;
+
+// g_CVPVNegative -- Negative Integer
+static const CONL_VarPossibleValue_t c_CVPVNegative[] =
+{
+	// End
+	{-32767, "MINVAL"},
+	{0, "MAXVAL"},
+	{0, NULL},
+};
+
+const CONL_VarPossibleValue_t* const g_CVPVNegative = c_CVPVNegative;
+
+// g_CVPVBoolean -- Boolean
+static const CONL_VarPossibleValue_t c_CVPVBoolean[] =
+{
+	// False
+	{0, "no"},
+	{0, "off"},
+	{0, "false"},
+	
+	// True
+	{1, "yes"},
+	{1, "on"},
+	{1, "true"},
+	
+	// End
+	{0, "MINVAL"},
+	{1, "MAXVAL"},
+	{0, NULL},
+};
+
+const CONL_VarPossibleValue_t* const g_CVPVBoolean = c_CVPVBoolean;
+
+/** LOCALS **/
 static CONL_ConVariable_t** l_CONLVariables = NULL;			// Console variables
 static size_t l_CONLNumVariables = 0;						// Number of variables
 static Z_HashTable_t* l_CONLVariableHashes = NULL;			// Speed lookup
 
-/* CONL_VarSetString() -- Set variable string */
-void CONL_VarSetString(const char* const a_VarName, const CONL_VariableState_t a_State, const char* const a_Value)
-{
-}
-
-/* CONL_VerSetInt() -- Set Integer Value */
-void CONL_VerSetInt(const char* const a_VarName, const CONL_VariableState_t a_State, const int32_t a_Value)
-{
-}
-
-/* CONL_VerSetFixed() -- Set fixed value */
-void CONL_VerSetFixed(const char* const a_VarName, const CONL_VariableState_t a_State, const fixed_t a_Value);
-
-/* CONL_VerSetBool() -- Set bool value */
-void CONL_VerSetBool(const char* const a_VarName, const CONL_VariableState_t a_State, const bool_t a_Value);
-
-/* CONL_VarGetString() -- Get variable string */
-const char* CONL_VarGetString(const char* const a_VarName, const CONL_VariableState_t a_State)
-{
-	const char* a_Val;
-	
-	/* Check */
-	if (!a_VarName || a_State < 0 || a_State >= MAXCONLVARIABLESTATES)
-		return NULL;
-}
-
-/* CONL_VarGetInt() -- Get integer value */
-int32_t CONL_VarGetInt(const char* const a_VarName, const CONL_VariableState_t a_State)
-{
-	const char* a_Val;
-	
-	/* Check */
-	if (!a_VarName || a_State < 0 || a_State >= MAXCONLVARIABLESTATES)
-		return 0;
-}
-
-/* CONL_VarGetFixed() -- Get fixed value */
-fixed_t CONL_VarGetFixed(const char* const a_VarName, const CONL_VariableState_t a_State)
-{
-	const char* a_Val;
-	
-	/* Check */
-	if (!a_VarName || a_State < 0 || a_State >= MAXCONLVARIABLESTATES)
-		return 0;
-}
-
-/* CONL_VarGetBool() -- Get bool value */
-bool_t CONL_VarGetBool(const char* const a_VarName, const CONL_VariableState_t a_State)
-{
-	const char* a_Val;
-	
-	/* Check */
-	if (!a_VarName || a_State < 0 || a_State >= MAXCONLVARIABLESTATES)
-		return false;
-}
+/** FUNCTIONS **/
 
 /*** BASE CONSOLE COMMANDS ***/
 /* CLC_Version() -- ReMooD version info */

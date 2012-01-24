@@ -48,13 +48,13 @@
 *** CONSTANTS ***
 ****************/
 
+/*** Console Commands ***/
+
 #define CONLCONSOLEFONT VFONT_OEM				// Font used to draw console
 #define CONLPADDING 5							// Pad the console
 #define CONLSCROLLFORE 4						// Forecolor of the scrollbar
 #define CONLSCROLLBACK 0						// Backcolor of the scrollbar
 #define CONLSCROLLMISS 200						// Missed color for scrollbar
-
-#define MAXCONLVARIABLENAME		128				// Max name for console command
 
 /* CONL_ExitCode_t -- Exit code for console command */
 typedef enum CONL_ExitCode_e
@@ -75,19 +75,18 @@ typedef enum CONL_ExitCode_e
 	NUMCONLEXITCODES
 } CONL_ExitCode_t;
 
-/* CONL_VariableType_t -- Type of console variable */
+/*** Console Variables ***/
+
+#define MAXCONLVARIABLENAME		128				// Max name for console command
+
+/* CONL_VariableType_t -- Type of variable */
 typedef enum CONL_VariableType_e
 {
-	CLVT_NULL,									// Nothing (A valueless variable)
-	CLVT_SIGNEDINT,								// Signed Integer ((-9999999)-9999999)
-	CLVT_UNSIGNEDINT,							// Unsigned Integer (0-9999999)
-	CLVT_STRING,								// String
-	CLVT_SOFTALIAS,								// Alias to another variable
-	CLVT_CODEDALIAS,							// Aliased to another but functional
-	CLVT_ENUM,									// Enumeration (i.e. Possible Values)
-	CLVT_KEYBIND,								// Bound to a key
+	CLVT_INTEGER,								// Integer Value (Truncate decimal)
+	CLVT_FIXED,									// Fixed point value (Don't truncate)
+	CLVT_STRING,								// String Value
 	
-	MAXCONLVARIABLETYPES
+	NUMCONLVARIABLETYPES
 } CONL_VariableType_t;
 
 /* CONL_VariableState_t -- State of a variable */
@@ -96,8 +95,6 @@ typedef enum CONL_VariableState_e
 	CLVS_NORMAL,								// Normal Variable
 	CLVS_NEXTGAME,								// Next Game
 	CLVS_DEMOCOMPAT,							// Demo Compatibility
-	
-	CLVS_DEFAULT,								// Default variable
 	
 	MAXCONLVARIABLESTATES
 } CONL_VariableState_t;
@@ -112,6 +109,8 @@ typedef enum CONL_VariableFlags_e
 												// for server info).
 	CLVF_CLIENTSTATE			= 0x00000008U,	// Client State (send to server
 												// for client info).
+	CLVF_READONLY				= 0x00000010U,	// Variable cannot be changed
+												// (except by internal calls)
 } CONL_VariableFlags_t;
 
 /*****************
@@ -151,14 +150,51 @@ typedef struct CONCTI_Inputter_s
 	struct CONCTI_Inputter_s** RefPtr;			// Reference to this struct
 } CONCTI_Inputter_t;
 
-/* CONL_StaticVar_t -- Static console variable */
-// This is the defined local/global, which is then registered
-typedef struct CONL_StaticVar_s
+/*** Console Variables ***/
+typedef struct CONL_ConVariable_s CONL_ConVariable_t;
+typedef struct CONL_StaticVar_s CONL_StaticVar_t;
+
+typedef bool_t (*CONL_ConVarBackFunc_t)(CONL_ConVariable_t* const a_Var, CONL_StaticVar_t* const a_StaticVar);
+
+/* CONL_VarPossibleValue_t -- Possible value for a variable */
+typedef struct CONL_VarPossibleValue_s
 {
+	int32_t IntVal;							// Value as integer
+	const char* StrAlias;					// String aliase
+} CONL_VarPossibleValue_t;
+
+/* CONL_StaticVar_s -- Static console variable */
+// This is the defined local/global, which is then registered
+struct CONL_StaticVar_s
+{
+	/* Defined as static */
+	const CONL_VariableType_t Type;				// Variable type
+	const CONL_VarPossibleValue_t* Possible;	// Possible Value
 	const char* const VarName;					// Variable Name
-	CONL_VariableType_t Type;					// Variable Type
+	const char* const DefaultValue;				// Default Value
 	uint32_t Flags;								// Flags for variable
-} CONL_StaticVar_t;
+	CONL_ConVarBackFunc_t ChangeFunc;			// Function to call when changed
+	
+	/* Contained Value */
+	struct
+	{
+		char* String;							// String value
+		int32_t Int;							// Integer value
+		fixed_t Fixed;							// Fixed Value
+	} Value[MAXCONLVARIABLESTATES];				// Value for each state
+	
+	/* Reference Back */
+	CONL_ConVariable_t* RealLink;				// Registered Variable
+};
+
+/**************
+*** GLOBALS ***
+**************/
+
+extern const CONL_VarPossibleValue_t* const g_CVPVInteger;
+extern const CONL_VarPossibleValue_t* const g_CVPVPositive;
+extern const CONL_VarPossibleValue_t* const g_CVPVNegative;
+extern const CONL_VarPossibleValue_t* const g_CVPVBoolean;
 
 /*****************
 *** PROTOTYPES ***
@@ -171,21 +207,12 @@ bool_t CONCTI_HandleEvent(CONCTI_Inputter_t* const a_Input, const I_EventEx_t* c
 void CONCTI_SetText(CONCTI_Inputter_t* const a_Input, const char* const a_Text);
 int32_t CONCTI_DrawInput(CONCTI_Inputter_t* const a_Input, const uint32_t a_Options, const int32_t a_x, const int32_t a_y, const int32_t a_x2);
 
-/*** Console Commands */
+/*** Console Commands ***/
 const char* CONL_ExitCodeToStr(const CONL_ExitCode_t a_Code);
 bool_t CONL_AddCommand(const char* const a_Name, CONL_ExitCode_t (*a_ComFunc)(const uint32_t, const char** const));
 CONL_ExitCode_t CONL_Exec(const uint32_t a_ArgC, const char** const a_ArgV);
 
-/*** Console Variables */
-void CONL_VarSetString(const char* const a_VarName, const CONL_VariableState_t a_State, const char* const a_Value);
-void CONL_VerSetInt(const char* const a_VarName, const CONL_VariableState_t a_State, const int32_t a_Value);
-void CONL_VerSetFixed(const char* const a_VarName, const CONL_VariableState_t a_State, const fixed_t a_Value);
-void CONL_VerSetBool(const char* const a_VarName, const CONL_VariableState_t a_State, const bool_t a_Value);
-
-const char* CONL_VarGetString(const char* const a_VarName, const CONL_VariableState_t a_State);
-int32_t CONL_VarGetInt(const char* const a_VarName, const CONL_VariableState_t a_State);
-fixed_t CONL_VarGetFixed(const char* const a_VarName, const CONL_VariableState_t a_State);
-bool_t CONL_VarGetBool(const char* const a_VarName, const CONL_VariableState_t a_State);
+/*** Console Variables ***/
 
 /*** Base Console ***/
 bool_t CONL_Init(const uint32_t a_OutBS, const uint32_t a_InBS);
