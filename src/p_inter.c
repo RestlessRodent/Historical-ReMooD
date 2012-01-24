@@ -152,7 +152,7 @@ bool_t P_GiveAmmo(player_t* player, ammotype_t ammo, int count)
 	   else
 	   num = clipammo[ammo]/2;
 	 */
-	if (gameskill == sk_baby || gameskill == sk_nightmare)
+	//if (gameskill == sk_baby || gameskill == sk_nightmare)
 	{
 		// give double ammo in trainer mode,
 		// you'll need in nightmare
@@ -1389,6 +1389,8 @@ void P_KillMobj(mobj_t* target, mobj_t* inflictor, mobj_t* source)
 	// SoM: Damnit! Why not use the target's floorz?
 	mo = P_SpawnMobj(target->x, target->y, demoversion < 132 ? ONFLOORZ : target->floorz, item);
 	mo->flags |= MF_DROPPED;	// special versions of items
+
+	mo->special2 = P_WaveGetLevel();
 	
 	if (!cv_fragsweaponfalling.value)
 		drop_ammo_count = 0;	// Doom default ammo count

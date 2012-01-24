@@ -1477,6 +1477,7 @@ static int32_t l_CurrentLevel = 1;
 typedef struct P_WaveInfo_s
 {
 	bool_t IsMons;								// Is a monster
+	bool_t IsWild;								// Wildcard upgrade
 	int32_t TypeID;								// ID of type
 	int32_t Level;								// Level of thing
 	float HealthGrow;							// Health growth
@@ -1488,44 +1489,133 @@ static const P_WaveInfo_t c_WaveInfo[] =
 {
 	/* Monsters */
 	// Zombies
-	{1,	MT_POSSESSED,		1,		0.10,		MT_SHOTGUY},
-	{1,	MT_SHOTGUY,			4,		0.08,		MT_WOLFSS},
-	{1,	MT_WOLFSS,			7,		0.06,		MT_CHAINGUY},
-	{1,	MT_CHAINGUY,		10,		0.04,		0},
+	{1,	0, MT_POSSESSED,		1,		0.02,		MT_SHOTGUY},	// ZM -> SGZ
+	{1,	0, MT_SHOTGUY,			4,		0.02,		MT_WOLFSS},		// SGZ -> Nazi
+	{1,	0, MT_CHAINGUY,			10,		0.02,		0},				// CG
 	
-	// Imps
-	{1,	MT_TROOP,			5,		0.08,		0},
+	// Wolf SS is a wildcard
+	{1,	1, MT_WOLFSS,			7,		0.02,		MT_CHAINGUY},	// NAZI -> CG
+	{1,	1, MT_WOLFSS,			7,		0.02,		MT_TROOP},		// NAZI -> Imp
+	
+	// Imp
+	{1,	1, MT_TROOP,			5,		0.02,		0},				// Imp
+	{1,	1, MT_TROOP,			20,		0.02,		MT_UNDEAD},		// Imp -> Rev
+	{1, 1, MT_TROOP,			15,		0.02,		MT_WOLFSS},		// Imp -> Nazi
+	{1, 1, MT_TROOP,			150,	0.02,		MT_VILE},		// Imp -> Vile
+	
+	// Revenant
+	{1, 1, MT_UNDEAD,			20,		0.02,		0},				// Revenant
+	{1, 1, MT_UNDEAD,			70,		0.02,		MT_VILE},		// Arch-Vile
+	
+	// Arch-Vile is wild card
+	{1, 1, MT_VILE,				50,		0.01,		MT_POSSESSED},	// Vile -> ZM
+	{1, 1, MT_VILE,				50,		0.01,		MT_SHOTGUY},	// Vile -> SGZ
+	{1, 1, MT_VILE,				50,		0.01,		MT_WOLFSS},		// Vile -> Nazi
+	{1, 1, MT_VILE,				50,		0.01,		MT_CHAINGUY},	// Vile -> CGZ
+	{1, 1, MT_VILE,				50,		0.01,		MT_TROOP},		// Vile -> Imp
+	{1, 1, MT_VILE,				50,		0.01,		MT_UNDEAD},		// Vile -> Revenant
+	
+	// Cacodemons
+	{1, 0, MT_HEAD,				17,		0.02,		MT_PAIN},		// Caco -> PE
+	{1, 0, MT_PAIN,				17,		0.02,		MT_HEAD},		// PE -> Caco
+	
+	// Demons
+	{1, 0, MT_SHADOWS,			12,		0.02,		MT_SERGEANT},	// SD -> Demon
+	{1, 0, MT_SERGEANT,			12,		0.02,		0},				// Demon
+	{1, 1, MT_SERGEANT,			22,		0.02,		MT_TROOP},		// Demon -> Imp
+	{1, 1, MT_SERGEANT,			25,		0.02,		MT_KNIGHT},		// Demon -> Knight
+	{1, 1, MT_SERGEANT,			40,		0.02,		MT_BRUISER},	// Demon -> Baron
+	{1, 1, MT_SERGEANT,			30,		0.02,		MT_HEAD},		// Demon -> Cacodemon
+	
+	// Barons (Wild Card)
+	{1, 1, MT_KNIGHT,			40,		0.02,		MT_BRUISER},	// Knight -> Baron
+	{1, 1, MT_KNIGHT,			40,		0.02,		MT_BRUISER},	// Knight -> Baron
+	{1, 1, MT_KNIGHT,			30,		0.02,		MT_BRUISER},	// Knight -> SD
+	{1, 1, MT_BRUISER,			60,		0.01,		MT_KNIGHT},		// Baron -> Knight
+	{1, 1, MT_BRUISER,			50,		0.01,		MT_SHADOWS},	// Baron -> SD
+	
+	// Mancubus (Wild Card)
+	{1, 1, MT_FATSO,			30,		0.02,		0},				// Mancubus
+	{1, 1, MT_FATSO,			120,	0.02,		MT_CYBORG},		// Mancubus -> Cyber
+	{1, 1, MT_FATSO,			120,	0.02,		MT_HEAD},		// Mancubus -> Caco
+	
+	// Cyberdemon (Wild Card)
+	{1, 1, MT_CYBORG,			70,		0.01,		0},			// Cyber
+	{1, 1, MT_CYBORG,			120,	0.01,		MT_PAIN},	// Cyber -> PE
+	{1, 1, MT_CYBORG,			120,	0.01,		MT_HEAD},	// Cyber -> Caco
+	{1, 1, MT_CYBORG,			120,	0.01,		MT_BRUISER},	// Cyber -> Baron
+	{1, 1, MT_CYBORG,			120,	0.01,		MT_KNIGHT},	// Cyber -> Knight
+	{1, 1, MT_CYBORG,			120,	0.01,		MT_VILE},	// Cyber -> Vile
+	{1, 1, MT_CYBORG,			120,	0.01,		MT_SERGEANT},	// Cyber -> Demon
 	
 	/* Items */
 	// Health
-	{0, MT_MISC2			10,		0.0,		MT_MISC10},		// Bonus -> Stimpack
-	{0, MT_MISC10,			15,		0.0,		MT_MISC11},		// Stimpack -> Medikit
-	{0, MT_MISC11,			20,		0.0,		MT_MISC13},		// Medikit -> Berserk
-	{0, MT_MISC12,			40,		0.0,		MT_MEGA},		// Soulsphere -> MegaSphere
+	{0, 0, MT_MISC2,			10,		0.0,		MT_MISC10},	// Bonus -> Stimpack
+	{0, 0, MT_MISC10,			15,		0.0,		MT_MISC11},	// Stimpack -> Medikit
+	{0, 0, MT_MISC11,			20,		0.0,		MT_MISC13},	// Medikit -> Berserk
+	{0, 0, MT_MISC12,			40,		0.0,		MT_MEGA},	// Soulsphere -> MegaSphere
 	
 	// Armor
-	{0, MT_MISC3,			15,		0.0,		MT_MISC0},		// Bonus -> Armor
-	{0, MT_MISC0,			20,		0.0,		MT_MISC1},		// Armor -> MegaArmor
-	{0, MT_MISC1,			40,		0.0,		MT_MEGA},		// MegaArmor -> MegaSphere
+	{0, 0, MT_MISC3,			15,		0.0,		MT_MISC0},	// Bonus -> Armor
+	{0, 0, MT_MISC0,			20,		0.0,		MT_MISC1},	// Armor -> MegaArmor
+	{0, 0, MT_MISC1,			40,		0.0,		MT_MEGA},	// MegaArmor -> MegaSphere
 	
 	/* Weapons */
+	{0, 0, MT_SHOTGUN,			5,		0.0,		MT_SUPERSHOTGUN},	// SG -> SSG
+	{0, 0, MT_PLASMAGUN,		20,		0.0,		MT_BFG9000},	// Plasma -> BFG9000
+	{0, 0, MT_BFG9000,			10,		0.0,		MT_SHAINSAW},	// BFG9000 -> Chainsaw
+	
+	// Chainsaw is wildcard
+	{0, 1, MT_SHAINSAW,			5,		0.0,		MT_SHOTGUN},	// CSaw -> SG
+	{0, 1, MT_SHAINSAW,			5,		0.0,		MT_SUPERSHOTGUN},	// CSaw -> SSG
+	{0, 1, MT_SHAINSAW,			5,		0.0,		MT_CHAINGUN},	// CSaw -> Chaingun
+	{0, 1, MT_SHAINSAW,			5,		0.0,		MT_ROCKETLAUNCH},	// CSaw -> RLauncher
+	{0, 1, MT_SHAINSAW,			5,		0.0,		MT_PLASMAGUN},	// CSaw -> Plasma
+	{0, 1, MT_SHAINSAW,			7,		0.0,		MT_BFG9000},	// CSaw -> BFG9000
 	
 	/* Ammo */
-	{0, MT_CLIP,			10,		0.0,		MT_MISC17},		// Clip -> Ammo Box
-	{0, MT_MISC22,			10,		0.0,		MT_MISC23},		// Shells -> Box of Shells
+	{0, 0, MT_CLIP,				10,		0.0,		MT_MISC17},	// Clip -> Ammo Box
+	{0, 0, MT_MISC22,			10,		0.0,		MT_MISC23},	// Shells -> Box of Shells
+	{0, 0, MT_MISC18,			10,		0.0,		MT_MISC19},	// Rocket -> Box of Rockets
+	{0, 0, MT_MISC20,			10,		0.0,		MT_MISC21},	// Cells -> Large Cells
 	
-	{0, MT_MISC17,			20,		0.0,		MT_MISC24},		// Ammo Box -> Backpack
-	{0, MT_MISC23,			20,		0.0,		MT_MISC24},		// Box of Shells -> Backpack
+	{0, 0, MT_MISC17,			20,		0.0,		MT_MISC24},	// Ammo Box -> Backpack
+	{0, 0, MT_MISC23,			20,		0.0,		MT_MISC24},	// Box of Shells -> Backpack
+	{0, 0, MT_MISC19,			20,		0.0,		MT_MISC24},	// Rocket Box -> Backpack
+	{0, 0, MT_MISC21,			20,		0.0,		MT_MISC24},	// Large Cells -> Backpack
+	
+	/* Powerups */
+	// Radiation Suit
+	{0, 0, MT_MISC14,			15,		0.0,		MT_INV},	// Suit -> Invuln
+	
+	// Inviso Sphere is a wildcard
+	{0, 1, MT_INS,				25,		0.0,		MT_INV},	// P. Inviso -> Invuln
+	{0, 1, MT_INS,				25,		0.0,		MT_MEGA},	// P. Inviso -> MegaSphere
+	{0, 1, MT_INS,				25,		0.0,		MT_MISC12},	// P. Inviso -> SoulSphere
+	{0, 1, MT_INS,				25,		0.0,		MT_MISC14},	// P. Inviso -> Suit
 };
 
-/* P_WaveInfoForThing() -- Returns the info for the thing */
-static const P_WaveInfo_t* P_WaveInfoForThing(mapthing_t* const a_MT, mobj_t* const a_Mo)
+/* P_WaveGetLevel() -- Returns the current level */
+int32_t P_WaveGetLevel(void)
 {
+	return l_CurrentLevel;
+}
+
+/* P_WaveInfoForThing() -- Returns the info for the thing */
+static const P_WaveInfo_t* P_WaveInfoForThing(mapthing_t* const a_MT, mobj_t* const a_Mo, const bool_t a_DoWild)
+{
+#define MAXPICKS 10
+	size_t Picks[MAXPICKS];
+	size_t PickNum;
 	size_t i;
 	
 	/* Check */
 	if (!a_MT && !a_Mo)
 		return NULL;
+	
+	/* Clear picks */
+	memset(Picks, 0, sizeof(Picks));
+	PickNum = 0;
 	
 	/* Loop it */
 	for (i = 0; i < sizeof(c_WaveInfo) / sizeof(P_WaveInfo_t); i++)
@@ -1534,7 +1624,15 @@ static const P_WaveInfo_t* P_WaveInfoForThing(mapthing_t* const a_MT, mobj_t* co
 		{
 			// Compare doomednum
 			if (a_MT->type == mobjinfo[c_WaveInfo[i].TypeID].doomednum)
-				return &c_WaveInfo[i];
+			{
+				// No Wildcard?
+				if (!a_DoWild || !c_WaveInfo[i].IsWild)
+					return &c_WaveInfo[i];
+				
+				// Add to picks
+				if (PickNum < MAXPICKS)
+					Picks[PickNum++] = i;
+			}
 		}
 		
 		// Map Object
@@ -1542,67 +1640,149 @@ static const P_WaveInfo_t* P_WaveInfoForThing(mapthing_t* const a_MT, mobj_t* co
 		{
 			// Compare doomednum
 			if (a_Mo->type == c_WaveInfo[i].TypeID)
-				return &c_WaveInfo[i];
+			{
+				// No Wildcard?
+				if (!a_DoWild || !c_WaveInfo[i].IsWild)
+					return &c_WaveInfo[i];
+					
+				// Add to picks
+				if (PickNum < MAXPICKS)
+					Picks[PickNum++] = i;
+			}
 		}
+	
+	/* Picking? */
+	if (PickNum)
+		// Choose random one
+		return &c_WaveInfo[Picks[abs(P_Random()) % PickNum]];
 	
 	/* Not found */
 	return NULL;
+#undef MAXPICKS
 }
 
 /* P_WaveUpgrade() -- Upgrade monster or thing */
-void P_WaveUpgrade(mapthing_t* const a_Thing)
+bool_t P_WaveUpgrade(mapthing_t* const a_Thing)
 {
 	const P_WaveInfo_t* Info;
 	size_t Was, Now;
 	
 	/* Check */
 	if (!a_Thing)
-		return;
+		return false;
 		
 	/* Get info */
-	if (!(Info = P_WaveInfoForThing(a_Thing, NULL)))
-		return;
+	if (!(Info = P_WaveInfoForThing(a_Thing, NULL, true)))
+		return false;
 	
 	/* Can the thing be upgraded? */
 	// Don't want them to turn into players!
 	if (!Info->UpgradesTo)
-		return;
+		return false;
 	
-	/* If the current level is below (or at) the wave level, only 1/4 chance */
+	/* If the current level is below (or at) the wave level, only rare chance */
+	// Diminishing return chance (sucks to be you!, unless it is a monster)
 	if (l_CurrentLevel <= Info->Level)
-		if ((P_Random() & 0x3) != 0)
-			return;
+	{
+		// More than 30 levels of difference
+		if (Info->Level >= l_CurrentLevel + 30)
+			if ((P_Random() & 0x7F) != 0)
+				return false;
+		
+		// More than 20 levels of difference
+		if (Info->Level >= l_CurrentLevel + 20)
+			if ((P_Random() & 0x3F) != 0)
+				return false;
+		
+		// More than 15 levels of difference
+		if (Info->Level >= l_CurrentLevel + 15)
+			if ((P_Random() & 0x1F) != 0)
+				return false;
+		
+		// More than 10 levels of difference
+		if (Info->Level >= l_CurrentLevel + 10)
+			if ((P_Random() & 0xF) != 0)
+				return false;
+		
+		// More than 5 levels of difference
+		if (Info->Level >= l_CurrentLevel + 5)
+			if ((P_Random() & 0x7) != 0)
+				return false;
+	}
 	
 	/* Now change the thing type by it's doomednum */
-	Was = mobjinfo[Info->UpgradesTo].doomednum;
-	Now = a_Thing->type = mobjinfo[Info->UpgradesTo].doomednum;
+	Was = Info->TypeID;
+	a_Thing->type = mobjinfo[Info->UpgradesTo].doomednum;
+	Now = &mobjinfo[Info->UpgradesTo] - mobjinfo;
 	
 	/* Inform of the change */
 	if (Info->IsMons)
 		CONS_Printf("\3A Stronger monster appears (%s >> %s)!\n", MT2ReMooDClass[Was], MT2ReMooDClass[Now]);
 	else
 		CONS_Printf("\3A better item is available (%s >> %s)!\n", MT2ReMooDClass[Was], MT2ReMooDClass[Now]);
+	
+	/* Success */
+	return true;
 }
 
 /* P_WaveModHealth() -- Modify Object Health */
-void P_WaveModHealth(mobj_t* const a_Thing)
+bool_t P_WaveModHealth(mobj_t* const a_Thing)
 {
 	const P_WaveInfo_t* Info;
 	
 	/* Check */
 	if (!a_Thing)
-		return;
+		return false;
 	
 	/* Get info */
-	if (!(Info = P_WaveInfoForThing(NULL, a_Thing)))
-		return;
+	if (!(Info = P_WaveInfoForThing(NULL, a_Thing, false)))
+		return false;
 	
 	/* If the level of the monster is below (or at) the current wave, do not up */
 	if (l_CurrentLevel <= Info->Level)
-		return;
+		return false;
 	
 	/* Otherwise, the new health is the difference */
 	a_Thing->health += (fixed_t)((FIXED_TO_FLOAT(a_Thing->health) * (((float)(l_CurrentLevel - Info->Level)) * Info->HealthGrow)) * 65536.0);
+	
+	/* Success */
+	return true;
+}
+
+static tic_t l_WaveTimeout;
+
+/* P_WaveDrawer() -- Draws wave info */
+void P_WaveDrawer(void)
+{
+	tic_t Diff;
+	uint32_t TransLevel;
+	char Buf[32];
+	
+	const static uint8_t Faders[TICRATE] =
+	{
+		VEX_TRANS90, VEX_TRANS90, VEX_TRANS90, VEX_TRANS80, VEX_TRANS80, VEX_TRANS80,
+		VEX_TRANS80, VEX_TRANS70, VEX_TRANS70, VEX_TRANS70, VEX_TRANS70, VEX_TRANS60,
+		VEX_TRANS60, VEX_TRANS60, VEX_TRANS60, VEX_TRANS50, VEX_TRANS50, VEX_TRANS50,
+		VEX_TRANS50, VEX_TRANS40, VEX_TRANS40, VEX_TRANS40, VEX_TRANS40, VEX_TRANS30,
+		VEX_TRANS30, VEX_TRANS30, VEX_TRANS30, VEX_TRANS20, VEX_TRANS20, VEX_TRANS20,
+		VEX_TRANS20, VEX_TRANS10, VEX_TRANS10, VEX_TRANS10, VEX_TRANSNONE
+	};
+	
+	/* Show big wave message */
+	if (leveltime < l_WaveTimeout)
+	{
+		// Get Diff
+		Diff = l_WaveTimeout - leveltime;
+		
+		if (Diff < TICRATE)
+			TransLevel = Faders[Diff];
+		else
+			TransLevel = VEX_TRANSNONE;
+		
+		// Draw
+		snprintf(Buf, 32, "Level %i", l_CurrentLevel + 1);
+		V_DrawStringA(VFONT_LARGE, VFO_CENTERED | VFO_TRANS(TransLevel), Buf, 0, 10);
+	}
 }
 
 /* P_WaveDoomCTRL() -- Controls wave doom game */
@@ -1621,6 +1801,8 @@ void P_WaveDoomCTRL(const P_WaveDoomAction_t a_Action, const void* a_Ptr)
 	
 	static bool_t GotUpgraded = false;
 	static bool_t ItemUpped = false;
+	bool_t ThisWasUpped = false;
+	thinker_t* currentthinker;
 	
 	mapthing_t* MThing;
 	
@@ -1693,6 +1875,7 @@ void P_WaveDoomCTRL(const P_WaveDoomAction_t a_Action, const void* a_Ptr)
 			{
 				CONS_Printf("\3STARTING NEXT WAVE.\n");
 				Messaged = true;
+				l_WaveTimeout = leveltime + (TICRATE * 5);
 				
 				// Increase level
 				l_CurrentLevel++;
@@ -1708,26 +1891,43 @@ void P_WaveDoomCTRL(const P_WaveDoomAction_t a_Action, const void* a_Ptr)
 				// Thing is an item
 				if (Things[i]->flags & MF_SPECIAL)
 				{
+					// Is thing on the ground?
+					Mo = Things[i]->mobj;
+					ThisWasUpped = false;
+					
 					// Upgrade item?
 					if (!ItemUpped)
-						if ((l_CurrentLevel % 3) == 0)	// Every 3 levels
-							if (P_Random() < 32)	// Slim chance
-							{
-								P_WaveUpgrade(Things[i]);
-								ItemUpped = true;
-							}
-						
-					// Just spawn it on top
-					Mo = P_SpawnMapThing(Things[i]);
+						if ((l_CurrentLevel % 2) == 0)	// Every 2 levels
+							if ((!Mo && P_Random() < 32) ||	// Picked up so reduce chance
+								(Mo && P_Random() < 64))	// Better chance left alone
+								if (P_WaveUpgrade(Things[i]))
+									ThisWasUpped = ItemUpped = true;
 					
-					// Spawn item respawn fog
-					if (Mo)
-						P_SpawnMobj(
-								Mo->x,
-								Mo->y,
-								Mo->z,
-								MT_IFOG
-							);
+					// If something is here already and was not upgraded
+					if (Mo && !ThisWasUpped)
+					{
+						// Do nothing currently
+					}
+					
+					// Otherwise, spawn it
+					else
+					{
+						// If object is here, then remove it (so upgrade happens)
+						if (Mo)
+							P_RemoveMobj(Mo);
+						
+						// Just spawn it on top
+						Mo = P_SpawnMapThing(Things[i]);
+					
+						// Spawn item respawn fog
+						if (Mo)
+							P_SpawnMobj(
+									Mo->x,
+									Mo->y,
+									Mo->z,
+									MT_IFOG
+								);
+					}
 					
 					// Count vs spawn
 					Spawned[i] = true;
@@ -1740,18 +1940,49 @@ void P_WaveDoomCTRL(const P_WaveDoomAction_t a_Action, const void* a_Ptr)
 					// Check to see if it is dead (use corpse because health == solid corpse)
 					if ((!Things[i]->mobj) || (Things[i]->mobj && (Things[i]->mobj->flags & MF_CORPSE)))
 					{
+						Mo = Things[i]->mobj;
+						ThisWasUpped = false;
+						
 						// Upgrade monster?
 						if (!GotUpgraded)
-							if ((l_CurrentLevel % 5) == 0)	// Every 5 levels
+							if ((l_CurrentLevel % 3) == 0)	// Every 3 levels
 								if (P_Random() < 32)	// Slim chance
-								{
-									P_WaveUpgrade(Things[i]);
-									GotUpgraded = true;
-								}
+									if (P_WaveUpgrade(Things[i]))
+										ThisWasUpped = GotUpgraded = true;
+						
+						// If this monster was upgraded, remove it
+							// that way the upgrade takes effect
+						if (ThisWasUpped)
+							if (Mo)
+							{
+								// Simulate NM respawn, spawn fog here
+								P_SpawnMobj(
+										Mo->x,
+										Mo->y,
+										Mo->z,
+										MF_TFOG
+									);
+								
+								// Remove object
+								P_RemoveMobj(Mo);
+								Mo = NULL;
+								Things[i]->mobj = NULL;
+							}
 						
 						// If there is no mobj, recreate it
 						if (!Things[i]->mobj)
+						{
 							Mo = P_SpawnMapThing(Things[i]);
+							
+							// Spawn teleport fog in its place (sim respawn)
+							if (Mo)
+								P_SpawnMobj(
+										Mo->x,
+										Mo->y,
+										Mo->z,
+										MF_TFOG
+									);
+						}
 						
 						// Otherwise, respawn like in nightmare!
 						else
@@ -1786,6 +2017,33 @@ void P_WaveDoomCTRL(const P_WaveDoomAction_t a_Action, const void* a_Ptr)
 			LockNext = true;
 			Messaged = false;
 			memset(Spawned, 0, sizeof(*Spawned) * NumThings);
+			
+			// Clear out things that have been dropped from 2 levels ago
+				// Cleans up dumb dropped ammo and such
+				// And if you left ammo and guns behind, pick em up!
+			for (currentthinker = thinkercap.next; currentthinker != &thinkercap; currentthinker = currentthinker->next)
+			{
+				// Is this a map object?
+				if (currentthinker->function.acp1 != (actionf_p1)P_MobjThinker)
+					continue;
+				
+				// Get Object
+				Mo = (mobj_t*)currentthinker;
+				
+				// Kill annoying lost souls
+				if (Mo->type == MT_SKULL)
+					P_KillMobj(Mo, NULL, NULL);
+				
+				// If the thing is dropped, remove it if it is 2 levels old
+				if (Mo->flags & MF_DROPPED)
+					if (l_CurrentLevel >= 3)
+						// Remove it?
+						if (Mo->special2 <= l_CurrentLevel - 2)
+							P_RemoveMobj(Mo);
+						// If not, increase ammo a bit (by half)
+						else
+							Mo->dropped_ammo_count += (Mo->dropped_ammo_count >> 1);
+			}
 			break;
 			
 			/* Checks that a wave has been completed */

@@ -577,6 +577,8 @@ typedef enum P_WaveDoomAction_e
 	NUMPWAVEDOOMACTIONS
 } P_WaveDoomAction_t;
 
+void P_WaveDrawer(void);
+int32_t P_WaveGetLevel(void);
 void P_WaveDoomCTRL(const P_WaveDoomAction_t a_Action, const void* a_Ptr);
 
 #endif

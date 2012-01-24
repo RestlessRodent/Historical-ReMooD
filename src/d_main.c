@@ -400,6 +400,9 @@ void D_Display(void)
 		HU_Drawer();
 		
 		ST_Drawer(redrawsbar);
+
+		// Draw wave info
+		P_WaveDrawer();
 	}
 	// change gamma if needed
 	if (gamestate != oldgamestate && gamestate != GS_LEVEL)
