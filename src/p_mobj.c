@@ -1474,29 +1474,86 @@ void COM_WaveNext_f(void)
 static int32_t l_CurrentLevel = 1;
 
 /* c_WaveInfo -- Wave information */
-static const typedef struct P_WaveInfo_s
+typedef struct P_WaveInfo_s
 {
+	bool_t IsMons;								// Is a monster
 	int32_t TypeID;								// ID of type
 	int32_t Level;								// Level of thing
-	fixed_t HealthGrow;							// Health growth
+	float HealthGrow;							// Health growth
 	
 	int32_t UpgradesTo;							// Type upgrades to
-} P_WaveInfo_t c_WaveInfo[] =
+} P_WaveInfo_t;
+
+static const P_WaveInfo_t c_WaveInfo[] =
 {
+	/* Monsters */
+	// Zombies
+	{1,	MT_POSSESSED,		1,		0.10,		MT_SHOTGUY},
+	{1,	MT_SHOTGUY,			4,		0.08,		MT_WOLFSS},
+	{1,	MT_WOLFSS,			7,		0.06,		MT_CHAINGUY},
+	{1,	MT_CHAINGUY,		10,		0.04,		0},
+	
+	// Imps
+	{1,	MT_TROOP,			5,		0.08,		0},
+	
+	/* Items */
+	// Health
+	{0, MT_MISC2			10,		0.0,		MT_MISC10},		// Bonus -> Stimpack
+	{0, MT_MISC10,			15,		0.0,		MT_MISC11},		// Stimpack -> Medikit
+	{0, MT_MISC11,			20,		0.0,		MT_MISC13},		// Medikit -> Berserk
+	{0, MT_MISC12,			40,		0.0,		MT_MEGA},		// Soulsphere -> MegaSphere
+	
+	// Armor
+	{0, MT_MISC3,			15,		0.0,		MT_MISC0},		// Bonus -> Armor
+	{0, MT_MISC0,			20,		0.0,		MT_MISC1},		// Armor -> MegaArmor
+	{0, MT_MISC1,			40,		0.0,		MT_MEGA},		// MegaArmor -> MegaSphere
+	
+	/* Weapons */
+	
+	/* Ammo */
+	{0, MT_CLIP,			10,		0.0,		MT_MISC17},		// Clip -> Ammo Box
+	{0, MT_MISC22,			10,		0.0,		MT_MISC23},		// Shells -> Box of Shells
+	
+	{0, MT_MISC17,			20,		0.0,		MT_MISC24},		// Ammo Box -> Backpack
+	{0, MT_MISC23,			20,		0.0,		MT_MISC24},		// Box of Shells -> Backpack
 };
 
 /* P_WaveInfoForThing() -- Returns the info for the thing */
 static const P_WaveInfo_t* P_WaveInfoForThing(mapthing_t* const a_MT, mobj_t* const a_Mo)
 {
+	size_t i;
+	
 	/* Check */
 	if (!a_MT && !a_Mo)
 		return NULL;
+	
+	/* Loop it */
+	for (i = 0; i < sizeof(c_WaveInfo) / sizeof(P_WaveInfo_t); i++)
+		// Map Thing
+		if (a_MT)
+		{
+			// Compare doomednum
+			if (a_MT->type == mobjinfo[c_WaveInfo[i].TypeID].doomednum)
+				return &c_WaveInfo[i];
+		}
+		
+		// Map Object
+		else
+		{
+			// Compare doomednum
+			if (a_Mo->type == c_WaveInfo[i].TypeID)
+				return &c_WaveInfo[i];
+		}
+	
+	/* Not found */
+	return NULL;
 }
 
 /* P_WaveUpgrade() -- Upgrade monster or thing */
 void P_WaveUpgrade(mapthing_t* const a_Thing)
 {
 	const P_WaveInfo_t* Info;
+	size_t Was, Now;
 	
 	/* Check */
 	if (!a_Thing)
@@ -1505,6 +1562,26 @@ void P_WaveUpgrade(mapthing_t* const a_Thing)
 	/* Get info */
 	if (!(Info = P_WaveInfoForThing(a_Thing, NULL)))
 		return;
+	
+	/* Can the thing be upgraded? */
+	// Don't want them to turn into players!
+	if (!Info->UpgradesTo)
+		return;
+	
+	/* If the current level is below (or at) the wave level, only 1/4 chance */
+	if (l_CurrentLevel <= Info->Level)
+		if ((P_Random() & 0x3) != 0)
+			return;
+	
+	/* Now change the thing type by it's doomednum */
+	Was = mobjinfo[Info->UpgradesTo].doomednum;
+	Now = a_Thing->type = mobjinfo[Info->UpgradesTo].doomednum;
+	
+	/* Inform of the change */
+	if (Info->IsMons)
+		CONS_Printf("\3A Stronger monster appears (%s >> %s)!\n", MT2ReMooDClass[Was], MT2ReMooDClass[Now]);
+	else
+		CONS_Printf("\3A better item is available (%s >> %s)!\n", MT2ReMooDClass[Was], MT2ReMooDClass[Now]);
 }
 
 /* P_WaveModHealth() -- Modify Object Health */
@@ -1519,6 +1596,13 @@ void P_WaveModHealth(mobj_t* const a_Thing)
 	/* Get info */
 	if (!(Info = P_WaveInfoForThing(NULL, a_Thing)))
 		return;
+	
+	/* If the level of the monster is below (or at) the current wave, do not up */
+	if (l_CurrentLevel <= Info->Level)
+		return;
+	
+	/* Otherwise, the new health is the difference */
+	a_Thing->health += (fixed_t)((FIXED_TO_FLOAT(a_Thing->health) * (((float)(l_CurrentLevel - Info->Level)) * Info->HealthGrow)) * 65536.0);
 }
 
 /* P_WaveDoomCTRL() -- Controls wave doom game */
@@ -1626,7 +1710,7 @@ void P_WaveDoomCTRL(const P_WaveDoomAction_t a_Action, const void* a_Ptr)
 				{
 					// Upgrade item?
 					if (!ItemUpped)
-						if ((l_CurrentLevel % 5) == 0)	// Every 5 levels
+						if ((l_CurrentLevel % 3) == 0)	// Every 3 levels
 							if (P_Random() < 32)	// Slim chance
 							{
 								P_WaveUpgrade(Things[i]);
@@ -1642,7 +1726,7 @@ void P_WaveDoomCTRL(const P_WaveDoomAction_t a_Action, const void* a_Ptr)
 								Mo->x,
 								Mo->y,
 								Mo->z,
-								MT_IFOG,
+								MT_IFOG
 							);
 					
 					// Count vs spawn
@@ -1680,7 +1764,7 @@ void P_WaveDoomCTRL(const P_WaveDoomAction_t a_Action, const void* a_Ptr)
 						}
 						
 						// No mo?
-						if (!No)
+						if (!Mo)
 							continue;
 						
 						// Modify Object Health (Based on monster level)
