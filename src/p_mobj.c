@@ -1960,7 +1960,7 @@ void P_WaveDoomCTRL(const P_WaveDoomAction_t a_Action, const void* a_Ptr)
 										Mo->x,
 										Mo->y,
 										Mo->z,
-										MF_TFOG
+										MT_TFOG
 									);
 								
 								// Remove object
@@ -1980,7 +1980,7 @@ void P_WaveDoomCTRL(const P_WaveDoomAction_t a_Action, const void* a_Ptr)
 										Mo->x,
 										Mo->y,
 										Mo->z,
-										MF_TFOG
+										MT_TFOG
 									);
 						}
 						
