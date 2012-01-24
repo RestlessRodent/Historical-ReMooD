@@ -1167,6 +1167,13 @@ void P_RemoveMobj(mobj_t* mobj)
 {
 	if (!mobj)
 		return;
+	
+	// GhostlyDeath <January 23, 2012> -- If spawn point is set, remove from there
+	if (mobj->spawnpoint)
+	{
+		mobj->spawnpoint->mobj = NULL;
+		mobj->spawnpoint = NULL;
+	}
 		
 	if ((mobj->flags & MF_SPECIAL) && !(mobj->flags & MF_DROPPED) && (mobj->type != MT_INV) && (mobj->type != MT_INS))
 	{
