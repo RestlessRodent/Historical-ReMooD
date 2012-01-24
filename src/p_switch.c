@@ -483,7 +483,7 @@ bool_t P_UseSpecialLine(mobj_t* thing, line_t* line, int side)
 				
 				P_ChangeSwitchTexture(line, !Switchy);
 				Switchy = !Switchy;
-				P_WaveDoomCTRL(PWDA_RESPAWN, NULL);
+				P_WaveDoomCTRL(PWDA_CHECKWAVE, NULL);
 				
 				//G_ExitLevel();
 			}

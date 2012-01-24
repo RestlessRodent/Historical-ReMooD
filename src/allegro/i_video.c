@@ -294,6 +294,7 @@ void I_GetEvent(void)
 				l_OldMousePos[1] = SCREEN_H >> 1;
 			}
 		}
+		
 		// Handle Buttons
 		for (i = 0; i < 15; i++)
 		{
@@ -310,12 +311,14 @@ void I_GetEvent(void)
 				Repeat = true;
 				ExEvent.Data.Mouse.Down = 1;
 			}
+			
 			// If button is off and our array is on, then button was released
 			else if (!(mouse_b & (1 << i)) && (MouseButtons & (1 << i)))
 			{
 				Repeat = true;
 				ExEvent.Data.Mouse.Down = 0;
 			}
+			
 			// Button not changed
 			if (!Repeat)
 				continue;

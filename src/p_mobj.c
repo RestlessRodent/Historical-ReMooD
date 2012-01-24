@@ -690,7 +690,7 @@ void P_ZMovement(mobj_t* mo)
 //
 // P_NightmareRespawn
 //
-void P_NightmareRespawn(mobj_t* mobj)
+bool_t P_NightmareRespawn(mobj_t* mobj)
 {
 	fixed_t x;
 	fixed_t y;
@@ -714,7 +714,7 @@ void P_NightmareRespawn(mobj_t* mobj)
 	
 	// somthing is occupying it's position?
 	if (!P_CheckPosition(mobj, x, y))
-		return;					// no respwan
+		return false;					// no respwan
 		
 	// spawn a teleport fog at old spot
 	// because of removal of the body?
@@ -757,6 +757,11 @@ void P_NightmareRespawn(mobj_t* mobj)
 	
 	// remove the old monster,
 	P_RemoveMobj(mobj);
+	
+	// Re add to object
+	mthing->mobj = mo;
+	
+	return true;
 }
 
 consvar_t cv_spawnmonsters = { "spawnmonsters", "1", CV_NETVAR, CV_YesNo };
@@ -1461,15 +1466,90 @@ void P_SpawnPlayer(mapthing_t* mthing)
 		P_ResetCamera(p);
 }
 
+void COM_WaveNext_f(void)
+{
+	P_WaveDoomCTRL(PWDA_CHECKWAVE, NULL);
+}
+
+static int32_t l_CurrentLevel = 1;
+
+/* c_WaveInfo -- Wave information */
+static const typedef struct P_WaveInfo_s
+{
+	int32_t TypeID;								// ID of type
+	int32_t Level;								// Level of thing
+	fixed_t HealthGrow;							// Health growth
+	
+	int32_t UpgradesTo;							// Type upgrades to
+} P_WaveInfo_t c_WaveInfo[] =
+{
+};
+
+/* P_WaveInfoForThing() -- Returns the info for the thing */
+static const P_WaveInfo_t* P_WaveInfoForThing(mapthing_t* const a_MT, mobj_t* const a_Mo)
+{
+	/* Check */
+	if (!a_MT && !a_Mo)
+		return NULL;
+}
+
+/* P_WaveUpgrade() -- Upgrade monster or thing */
+void P_WaveUpgrade(mapthing_t* const a_Thing)
+{
+	const P_WaveInfo_t* Info;
+	
+	/* Check */
+	if (!a_Thing)
+		return;
+		
+	/* Get info */
+	if (!(Info = P_WaveInfoForThing(a_Thing, NULL)))
+		return;
+}
+
+/* P_WaveModHealth() -- Modify Object Health */
+void P_WaveModHealth(mobj_t* const a_Thing)
+{
+	const P_WaveInfo_t* Info;
+	
+	/* Check */
+	if (!a_Thing)
+		return;
+	
+	/* Get info */
+	if (!(Info = P_WaveInfoForThing(NULL, a_Thing)))
+		return;
+}
+
 /* P_WaveDoomCTRL() -- Controls wave doom game */
 void P_WaveDoomCTRL(const P_WaveDoomAction_t a_Action, const void* a_Ptr)
 {
 	static mapthing_t** Things;
 	static size_t NumThings;
+	static bool_t* Spawned;
+	
+	static bool_t Initted = false;
 	mobj_t* Mo;
-	size_t i;
+	size_t i, NumDead, NumLive, SpawnCount;
+	
+	static bool_t LockNext = true;
+	static bool_t Messaged = false;
+	
+	static bool_t GotUpgraded = false;
+	static bool_t ItemUpped = false;
 	
 	mapthing_t* MThing;
+	
+	/* Init? */
+	if (!Initted)
+	{
+		// Register command
+		COM_AddCommand("wavenext", COM_WaveNext_f);
+		
+		// Set as initialized
+		CONS_Printf("\3WAVE MODE INITIALIZED.\n");
+		Initted = true;
+	}
 	
 	/* Check */
 	if (a_Action < 0 || a_Action >= NUMPWAVEDOOMACTIONS)
@@ -1485,8 +1565,13 @@ void P_WaveDoomCTRL(const P_WaveDoomAction_t a_Action, const void* a_Ptr)
 				Z_Free(Things);
 			Things = NULL;
 			
+			if (Spawned)
+				Z_Free(Spawned);
+			Spawned = NULL;
+			
 			// Revert count
 			NumThings = 0;
+			l_CurrentLevel = 0;
 			break;
 			
 			/* Add thing to list */
@@ -1509,11 +1594,144 @@ void P_WaveDoomCTRL(const P_WaveDoomAction_t a_Action, const void* a_Ptr)
 			
 			// Add to end of list
 			Z_ResizeArray((void**)&Things, sizeof(*Things), NumThings, NumThings + 1);
+			Z_ResizeArray((void**)&Spawned, sizeof(*Spawned), NumThings, NumThings + 1);
 			Things[NumThings++] = MThing;
 			break;
 			
 			/* Respawn all things */
 		case PWDA_RESPAWN:
+			// Locked?
+			if (LockNext)
+				return;
+			
+			// Message
+			if (!Messaged)
+			{
+				CONS_Printf("\3STARTING NEXT WAVE.\n");
+				Messaged = true;
+				
+				// Increase level
+				l_CurrentLevel++;
+			}
+			
+			// Respawn all things
+			for (SpawnCount = 0, i = 0; i < NumThings; i++)
+			{
+				// Already spawned?
+				if (Spawned[i])
+					continue;
+				
+				// Thing is an item
+				if (Things[i]->flags & MF_SPECIAL)
+				{
+					// Upgrade item?
+					if (!ItemUpped)
+						if ((l_CurrentLevel % 5) == 0)	// Every 5 levels
+							if (P_Random() < 32)	// Slim chance
+							{
+								P_WaveUpgrade(Things[i]);
+								ItemUpped = true;
+							}
+						
+					// Just spawn it on top
+					Mo = P_SpawnMapThing(Things[i]);
+					
+					// Spawn item respawn fog
+					if (Mo)
+						P_SpawnMobj(
+								Mo->x,
+								Mo->y,
+								Mo->z,
+								MT_IFOG,
+							);
+					
+					// Count vs spawn
+					Spawned[i] = true;
+					return;
+				}
+				
+				// Thing is a monster
+				else if (Things[i]->flags & MF_COUNTKILL)
+				{
+					// Check to see if it is dead (use corpse because health == solid corpse)
+					if ((!Things[i]->mobj) || (Things[i]->mobj && (Things[i]->mobj->flags & MF_CORPSE)))
+					{
+						// Upgrade monster?
+						if (!GotUpgraded)
+							if ((l_CurrentLevel % 5) == 0)	// Every 5 levels
+								if (P_Random() < 32)	// Slim chance
+								{
+									P_WaveUpgrade(Things[i]);
+									GotUpgraded = true;
+								}
+						
+						// If there is no mobj, recreate it
+						if (!Things[i]->mobj)
+							Mo = P_SpawnMapThing(Things[i]);
+						
+						// Otherwise, respawn like in nightmare!
+						else
+						{
+							if (!P_NightmareRespawn(Things[i]->mobj))
+								continue;
+							
+							// Set Mo
+							Mo = Things[i]->mobj;
+						}
+						
+						// No mo?
+						if (!No)
+							continue;
+						
+						// Modify Object Health (Based on monster level)
+						P_WaveModHealth(Mo);
+						
+						// Count vs spawn
+						Spawned[i] = true;
+						return;
+					}
+				}
+				
+				// Other thing
+				else
+				{
+				}
+			}
+			
+			// Nothing more to go to?
+			LockNext = true;
+			Messaged = false;
+			memset(Spawned, 0, sizeof(*Spawned) * NumThings);
+			break;
+			
+			/* Checks that a wave has been completed */
+		case PWDA_CHECKWAVE:
+			// Next is not locked?
+			if (!LockNext)
+				return;
+		
+			// See if everything is dead
+			for (NumDead = 0, NumLive = 0, i = 0; i < NumThings; i++)
+				if (Things[i]->flags & MF_COUNTKILL)
+				{
+					// Check to see if it is dead (use corpse because health == solid corpse)
+					if ((!Things[i]->mobj) || (Things[i]->mobj && (Things[i]->mobj->flags & MF_CORPSE)))
+						NumDead++;
+					else
+						NumLive++;
+				}
+			
+			// If everything is dead, then respawn everything
+			if (NumLive == 0 && NumDead >= 1)
+			{
+				memset(Spawned, 0, sizeof(*Spawned) * NumThings);
+				LockNext = false;
+				GotUpgraded = false;
+				ItemUpped = false;
+				
+				// Start initial respawn of everything
+				P_WaveDoomCTRL(PWDA_RESPAWN, NULL);
+			}
 			break;
 			
 			/* Unknown */
@@ -1623,6 +1841,7 @@ mobj_t* P_SpawnMapThing(mapthing_t* mthing)
 		
 	mobj = P_SpawnMobj(x, y, z, i);
 	mobj->spawnpoint = mthing;
+	mthing->flags = mobjinfo[i].flags;
 	
 	// Seed random starting index for bobbing motion
 	if (mobj->flags2 & MF2_FLOATBOB)

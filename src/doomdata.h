@@ -224,6 +224,8 @@ typedef struct
 	short type;
 	short options;
 	struct mobj_s* mobj;
+	
+	int32_t flags;
 } mapthing_t;
 
 /* HexenMapThingDef_t -- Hexen map thing */

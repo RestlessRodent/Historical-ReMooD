@@ -572,6 +572,7 @@ typedef enum P_WaveDoomAction_e
 	PWDA_CLEAR,
 	PWDA_ADDTHING,
 	PWDA_RESPAWN,
+	PWDA_CHECKWAVE,
 	
 	NUMPWAVEDOOMACTIONS
 } P_WaveDoomAction_t;

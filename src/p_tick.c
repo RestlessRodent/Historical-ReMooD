@@ -144,6 +144,13 @@ void P_Ticker(void)
 		P_UpdateSpecials();
 		P_RespawnSpecials();
 		
+		// Respawn things
+		P_WaveDoomCTRL(PWDA_RESPAWN, NULL);
+		
+		// Wave Doom (every 5 seconds)
+		if ((leveltime % (TICRATE * 5)) == 0)
+			P_WaveDoomCTRL(PWDA_CHECKWAVE, NULL);
+		
 		// for par times
 		leveltime++;
 		
