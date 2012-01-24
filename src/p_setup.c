@@ -575,6 +575,9 @@ void P_LoadThings(int lump)
 	bool_t spawn;
 	int16_t* data, *datastart;
 	
+	// GhostlyDeath <January 23, 2012> -- Clear Objects
+	P_WaveDoomCTRL(PWDA_CLEAR, NULL);
+	
 	data = datastart = W_CacheLumpNum(lump, PU_LEVEL);
 	nummapthings = W_LumpLength(lump) / (5 * sizeof(short));
 	mapthings = Z_Malloc(nummapthings * sizeof(mapthing_t), PU_LEVEL, NULL);

@@ -562,8 +562,21 @@ int P_MobjFlagsExtendedToNatural(mobj_t* MObj);
 // check mobj against water content, before movement code
 void P_MobjCheckWater(mobj_t* mobj);
 
-void P_SpawnMapThing(mapthing_t* mthing);
+mobj_t* P_SpawnMapThing(mapthing_t* mthing);
 void P_SpawnPlayer(mapthing_t* mthing);
 int P_HitFloor(mobj_t* thing);
 
+/*** WAVE DOOM ***/
+typedef enum P_WaveDoomAction_e
+{
+	PWDA_CLEAR,
+	PWDA_ADDTHING,
+	PWDA_RESPAWN,
+	
+	NUMPWAVEDOOMACTIONS
+} P_WaveDoomAction_t;
+
+void P_WaveDoomCTRL(const P_WaveDoomAction_t a_Action, const void* a_Ptr);
+
 #endif
+

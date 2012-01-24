@@ -479,8 +479,13 @@ bool_t P_UseSpecialLine(mobj_t* thing, line_t* line, int side)
 			// Exit level
 			if (cv_allowexitlevel.value)
 			{
-				P_ChangeSwitchTexture(line, 0);
-				G_ExitLevel();
+				static int Switchy;
+				
+				P_ChangeSwitchTexture(line, !Switchy);
+				Switchy = !Switchy;
+				P_WaveDoomCTRL(PWDA_RESPAWN, NULL);
+				
+				//G_ExitLevel();
 			}
 			break;
 			

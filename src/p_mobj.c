@@ -1167,6 +1167,13 @@ void P_RemoveMobj(mobj_t* mobj)
 {
 	if (!mobj)
 		return;
+	
+	// GhostlyDeath <January 23, 2012> -- If spawn point is set, remove from there
+	if (mobj->spawnpoint)
+	{
+		mobj->spawnpoint->mobj = NULL;
+		mobj->spawnpoint = NULL;
+	}
 		
 	if ((mobj->flags & MF_SPECIAL) && !(mobj->flags & MF_DROPPED) && (mobj->type != MT_INV) && (mobj->type != MT_INS))
 	{
@@ -1454,12 +1461,73 @@ void P_SpawnPlayer(mapthing_t* mthing)
 		P_ResetCamera(p);
 }
 
+/* P_WaveDoomCTRL() -- Controls wave doom game */
+void P_WaveDoomCTRL(const P_WaveDoomAction_t a_Action, const void* a_Ptr)
+{
+	static mapthing_t** Things;
+	static size_t NumThings;
+	mobj_t* Mo;
+	size_t i;
+	
+	mapthing_t* MThing;
+	
+	/* Check */
+	if (a_Action < 0 || a_Action >= NUMPWAVEDOOMACTIONS)
+		return;
+	
+	/* Which Action */
+	switch (a_Action)
+	{
+			/* Clear things from list */
+		case PWDA_CLEAR:
+			// Deallocate
+			if (Things)
+				Z_Free(Things);
+			Things = NULL;
+			
+			// Revert count
+			NumThings = 0;
+			break;
+			
+			/* Add thing to list */
+		case PWDA_ADDTHING:
+			// Check
+			if (!a_Ptr)
+				return;
+			
+			// Get thing
+			MThing = (mapthing_t*)a_Ptr;
+			
+			// Look in list (duplicate? */
+			for (i = 0; i < NumThings; i++)
+				if (Things[i] == MThing)
+					break;
+			
+			// Found?
+			if (i < NumThings)
+				return;
+			
+			// Add to end of list
+			Z_ResizeArray((void**)&Things, sizeof(*Things), NumThings, NumThings + 1);
+			Things[NumThings++] = MThing;
+			break;
+			
+			/* Respawn all things */
+		case PWDA_RESPAWN:
+			break;
+			
+			/* Unknown */
+		default:
+			break;
+	}
+}
+
 //
 // P_SpawnMapThing
 // The fields of the mapthing should
 // already be in host uint8_t order.
 //
-void P_SpawnMapThing(mapthing_t* mthing)
+mobj_t* P_SpawnMapThing(mapthing_t* mthing)
 {
 	int i, j;
 	int bit;
@@ -1469,7 +1537,7 @@ void P_SpawnMapThing(mapthing_t* mthing)
 	fixed_t z;
 	
 	if (!mthing->type)
-		return;					//SoM: 4/7/2000: Ignore type-0 things as NOPs
+		return NULL;					//SoM: 4/7/2000: Ignore type-0 things as NOPs
 		
 	// count deathmatch start positions
 	if (mthing->type == 11)
@@ -1480,7 +1548,7 @@ void P_SpawnMapThing(mapthing_t* mthing)
 			mthing->type = 0;
 			numdmstarts++;
 		}
-		return;
+		return NULL;
 	}
 	// check for players specially
 	// added 9-2-98 type 5 -> 8 player[x] starts for cooperative
@@ -1500,19 +1568,19 @@ void P_SpawnMapThing(mapthing_t* mthing)
 		if (!cv_deathmatch.value)
 			P_SpawnPlayer(mthing);
 			
-		return;
+		return NULL;
 	}
 	// check for apropriate skill level
 	if (!multiplayer && (mthing->options & 16))
-		return;
+		return NULL;
 		
 	//SoM: 4/7/2000: Implement "not deathmatch" thing flag
 	if (multiplayer && cv_deathmatch.value && (mthing->options & 32))
-		return;
+		return NULL;
 		
 	//SoM: 4/7/2000: Implement "not cooperative" thing flag
 	if (multiplayer && !cv_deathmatch.value && (mthing->options & 64))
-		return;
+		return NULL;
 		
 	if (gameskill == sk_baby)
 		bit = 1;
@@ -1522,7 +1590,7 @@ void P_SpawnMapThing(mapthing_t* mthing)
 		bit = 1 << (gameskill - 1);
 		
 	if (!(mthing->options & bit))
-		return;
+		return NULL;
 		
 	// find which type to spawn (woo hacky and I like it)
 	for (i = 0; i < NUMMOBJTYPES; i++)
@@ -1532,15 +1600,15 @@ void P_SpawnMapThing(mapthing_t* mthing)
 	if (i == NUMMOBJTYPES)
 	{
 		CONS_Printf("\2P_SpawnMapThing: Unknown type %i at (%i, %i)\n", mthing->type, mthing->x, mthing->y);
-		return;
+		return NULL;
 	}
 	// don't spawn keycards and players in deathmatch
 	if (cv_deathmatch.value && mobjinfo[i].flags & MF_NOTDMATCH)
-		return;
+		return NULL;
 		
 	// don't spawn any monsters if -nomonsters
 	if (!cv_spawnmonsters.value && (i == MT_SKULL || (mobjinfo[i].flags & MF_COUNTKILL)))
-		return;
+		return NULL;
 		
 	// spawn it
 	x = mthing->x << FRACBITS;
@@ -1572,6 +1640,13 @@ void P_SpawnMapThing(mapthing_t* mthing)
 		mobj->flags |= MF_AMBUSH;
 		
 	mthing->mobj = mobj;
+	
+	// GhostlyDeath <January 23, 2012> -- Add killables and items
+	if (mobj->flags & (MF_SPECIAL | MF_COUNTKILL))
+		P_WaveDoomCTRL(PWDA_ADDTHING, mthing);
+	
+	// Return spawned object
+	return mobj;
 }
 
 //
