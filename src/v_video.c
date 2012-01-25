@@ -898,6 +898,7 @@ void R_DrawSpanNoWrap(void);	//tmap.S
 void V_DrawPerspView(uint8_t* viewbuffer, int aiming)
 {
 	uint8_t* source;
+	uint8_t* DestBuffer;
 	uint8_t* dest;
 	int y;
 	int x1, w;
@@ -905,6 +906,11 @@ void V_DrawPerspView(uint8_t* viewbuffer, int aiming)
 	
 	fixed_t topfrac, bottomfrac, scale, scalestep;
 	fixed_t xfrac, xfracstep;
+	
+	DestBuffer = vid.direct;
+	
+	if (!DestBuffer)
+		DestBuffer = vid.buffer;
 	
 	source = viewbuffer;
 	
@@ -920,7 +926,7 @@ void V_DrawPerspView(uint8_t* viewbuffer, int aiming)
 	for (y = 0; y < vid.height; y++)
 	{
 		x1 = ((vid.width << 16) - scale) >> 17;
-		dest = ((uint8_t*)vid.direct) + (vid.rowbytes * y) + x1;
+		dest = ((uint8_t*)DestBuffer) + (vid.rowbytes * y) + x1;
 		
 		xfrac = (20 << FRACBITS) + ((!x1) & 0xFFFF);
 		xfracstep = FixedDiv((vid.width << FRACBITS) - (xfrac << 1), scale);

@@ -977,6 +977,7 @@ void VID_PrepareModeList(void)
 		VID_AddMode(320, 200, true);
 		return;
 	}
+	VID_AddMode(320, 200, true);
 	// Any mode is possible (so add generic modes)
 	if (Modes == (SDL_Rect**) - 1)
 	{

@@ -466,6 +466,45 @@ void D_Display(void)
 		V_DrawCharacterA(VFONT_OEM, 0, 'G', 320 - 16, 24);
 		V_DrawCharacterA(VFONT_OEM, 0, 'S', 320 - 8, 24);
 	}
+	
+	{
+		uint8_t* tScr = malloc(vid.width * vid.height);
+		size_t zzz;
+		int32_t x;
+		bool_t xyz;
+		
+		extern int localaiming[MAXSPLITSCREENPLAYERS];
+		
+		//for (zzz = 1000; zzz < 1001; zzz++)
+		//{
+			memmove(tScr, vid.buffer, vid.width * vid.height);
+			
+			xyz = false;
+			x = players[displayplayer[0]].aiming;
+			
+			if (x < 0)
+			{
+				x = -x;
+				xyz = true;
+			}
+			
+			x >>= 16;
+			x /= 40;
+			
+			if (x >= 160)
+				x = 160;
+			
+			if (xyz)
+				x = -x;
+			
+			//fprintf(stderr, "%i\n", x);
+			
+			V_DrawPerspView(tScr, x);
+		//}
+		
+		free(tScr);
+	}
+	
 	//I_BeginProfile();
 	I_FinishUpdate();			// page flip or blit buffer
 	//CONS_Printf ("last frame update took %d\n", I_EndProfile());
