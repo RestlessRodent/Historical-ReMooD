@@ -1940,43 +1940,6 @@ void SetPlayerSkin(int playernum, char* skinname)
 // Add skins from a pwad, each skin preceded by 'S_SKIN' marker
 //
 
-// Does the same is in w_wad, but check only for
-// the first 6 characters (this is so we can have S_SKIN1, S_SKIN2..
-// for wad editors that don't like multiple resources of the same name)
-//
-WadIndex_t W_CheckForSkinMarkerInPwad(int wadid, int startlump)
-{
-	WadIndex_t i;
-	int v1;
-	WadFile_t* wad = W_GetWadForNum(wadid);
-	
-	//lumpinfo_t* lump_p;
-	
-	union
-	{
-		char s[4];
-		int x;
-	} name4;
-	
-	strncpy(name4.s, "S_SK", 4);
-	v1 = name4.x;
-	
-	// scan forward, start at <startlump>
-	if (startlump < wad->NumLumps)
-	{
-		//lump_p = wadfiles[wadid]->lumpinfo + startlump;
-		for (i = startlump; i < wad->NumLumps; i++)
-		{
-			if (*((int*)wad->Index[i].Name) == v1 && wad->Index[i].Name[4] == 'I' && wad->Index[i].Name[5] == 'N')
-			{
-				return ( /*W_LumpsSoFar(wad) + */ i);
-			}
-		}
-	}
-	
-	return INVALIDLUMP;			// not found
-}
-
 //
 // Find skin sprites, sounds & optional status bar face, & add them
 //

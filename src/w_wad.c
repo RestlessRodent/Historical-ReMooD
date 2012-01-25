@@ -1541,52 +1541,6 @@ uint16_t WL_StreamReadChar(WL_EntryStream_t* const a_Stream)
 
 #define OLDWPDCKEY		0x77444C4FU
 
-/* WP_DepOrder() -- Deprecated order */
-bool_t WP_DepOrder(const bool_t a_Pushed, const struct WL_WADFile_s* const a_WAD)
-{
-	/* Check */
-	if (!a_WAD)
-		return false;
-	
-	/* Debug */
-	if (devparm)
-		CONL_PrintF("WL_DepOrder: \"%s\" %s.\n", a_WAD->__Private.__DOSName, (a_Pushed ? "pushed" : "popped"));
-	
-	/* Success */
-	return true;
-}
-
-/* WP_DepCreate() -- Creates old form WadFile_t and WadEntry_t */
-static bool_t WP_DepCreate(const struct WL_WADFile_s* const a_WAD, const uint32_t a_Key, void** const a_DataPtr, size_t* const a_SizePtr, WL_RemoveFunc_t* const a_RemoveFuncPtr)
-{
-	WadFile_t* WAD;
-	
-	/* Check */
-	if (!a_WAD || !a_Key || !a_DataPtr || !a_SizePtr)
-		return false;
-		
-	/* Create WAD info on data */
-	*a_SizePtr = sizeof(WadFile_t);
-	WAD = *a_DataPtr = Z_Malloc(*a_SizePtr, PU_STATIC, NULL);
-	
-	/* Fill in WAD Info */
-	WAD->DepWAD = a_WAD;
-	WAD->FileName = a_WAD->__Private.__DOSName;
-	WAD->NumLumps = a_WAD->NumEntries;
-	WAD->Size = a_WAD->__Private.__Size;
-	
-	/* Success */
-	return true;
-}
-
-/* WP_DepRemove() -- Removes the old deprecated WAD Code stuff */
-void WP_DepRemove(const struct WL_WADFile_s* a_WAD)
-{
-	/* Check */
-	if (!a_WAD)
-		return;
-}
-
 /* W_NumWadFiles() -- Returns the number of WADs */
 size_t __REMOOD_DEPRECATED W_NumWadFiles(void)
 {
@@ -1603,12 +1557,6 @@ WadFile_t* __REMOOD_DEPRECATED W_GetWadForNum(size_t Num)
 WadFile_t* __REMOOD_DEPRECATED W_GetWadForName(char* Name)
 {
 	return NULL;
-}
-
-/* W_GetNumForWad() -- Returns the WAD number for this WAD */
-size_t __REMOOD_DEPRECATED W_GetNumForWad(WadFile_t* WAD)
-{
-	return 0;
 }
 
 /* W_GetEntry() -- Translates an index to an entry */
@@ -1630,16 +1578,6 @@ WadIndex_t __REMOOD_DEPRECATED W_InitMultipleFiles(char** filenames)
 	size_t i;
 	WadIndex_t OK;
 	const WL_WADFile_t* File;
-	
-#if 0
-	/* Register private data for the old WAD Code */
-	if (!WL_RegisterPDC(OLDWPDCKEY, 25, WP_DepCreate, WP_DepRemove))
-		I_Error("W_InitMultipleFiles: Failed to register PDC.");
-	
-	/* Register order change for the old WAD Code */
-	if (!WL_RegisterOCCB(WP_DepOrder, 5))
-		I_Error("W_InitMultipleFiles: Failed to register OCCB.");
-#endif
 	
 	/* Check */
 	if (!filenames)
@@ -1699,12 +1637,6 @@ WadIndex_t __REMOOD_DEPRECATED W_GetNumForName(char* name)
 	return INVALIDLUMP;
 }
 
-/* W_CheckNumForNameFirst() -- Finds the first lump with this name */
-WadIndex_t __REMOOD_DEPRECATED W_CheckNumForNameFirst(char* name)
-{
-	return INVALIDLUMP;
-}
-
 WadIndex_t __REMOOD_DEPRECATED W_GetNumForNameFirst(char* name);
 
 /* W_LumpLength() -- Returns length of lump */
@@ -1742,18 +1674,6 @@ void* __REMOOD_DEPRECATED W_CachePatchName(char* name, size_t PU)
 	return NULL;
 }
 
-/* W_CacheRawAsPic() -- Translate entry to pic_t */
-void* __REMOOD_DEPRECATED W_CacheRawAsPic(WadIndex_t lump, int width, int height, size_t tag)
-{
-	return NULL;
-}
-
-/* W_GetNumForEntry() -- Returns index id for this entry */
-WadIndex_t __REMOOD_DEPRECATED W_GetNumForEntry(WadEntry_t* Entry)
-{
-	return INVALIDLUMP;
-}
-
 /* W_LoadData() -- Loads private data */
 void __REMOOD_DEPRECATED W_LoadData(void)
 {
@@ -1765,13 +1685,6 @@ bool_t __REMOOD_DEPRECATED W_FindWad(const char* Name, const char* MD5, char* Ou
 {
 	/* This function is exactly the same */
 	return WL_LocateWAD(Name, MD5, OutPath, OutSize);
-}
-
-/* W_BaseName() -- Basename of file */
-const char* __REMOOD_DEPRECATED W_BaseName(const char* Name)
-{
-	// The original version
-	return WLP_BaseName(Name);
 }
 
 /* W_CachePatchNum() -- Caches a patch by its number */
@@ -1786,40 +1699,6 @@ void* __REMOOD_DEPRECATED W_CachePatchNum(const WadIndex_t Lump, size_t PU)
 
 bool_t __REMOOD_DEPRECATED WX_Init(void);
 bool_t __REMOOD_DEPRECATED WX_LocateWAD(const char* const a_Name, const char* const a_MD5, char* const a_OutPath, const size_t a_OutSize);
-
-/* WX_RoveWAD() -- Rove amongst WADs */
-WX_WADFile_t* __REMOOD_DEPRECATED WX_RoveWAD(WX_WADFile_t* const a_WAD, const bool_t a_Virtual, const int32_t a_Next)
-{
-	/* Check */
-	if (!a_WAD)
-		return NULL;
-	
-	/* Not implemented, only done in the RMOD code */
-	if (devparm)
-		CONL_PrintF("WX_RoveWAD: Not implemented.\n");
-	return NULL;
-}
-
-/* WX_GetNumEntry() -- Returns an entry by number inside of a WAD */
-WX_WADEntry_t* __REMOOD_DEPRECATED WX_GetNumEntry(WX_WADFile_t* const a_WAD, const size_t a_Index)
-{
-	/* Check */
-	if (!a_WAD)
-		return 0;
-	
-	/* Which entry now? */
-	// After last (force of overflow)
-	if (a_Index == (size_t)-2)
-		return &a_WAD->Entries[a_WAD->NumEntries];
-	
-	// Prevent overflow
-	else if (a_Index >= a_WAD->NumEntries)
-		return &a_WAD->Entries[a_WAD->NumEntries - 1];
-	
-	// Normal
-	else
-		return &a_WAD->Entries[a_Index];
-}
 
 /* WX_EntryForName() -- Returns an entry for a name */
 WX_WADEntry_t* __REMOOD_DEPRECATED WX_EntryForName(WX_WADFile_t* const a_WAD, const char* const a_Name, const bool_t a_Forwards)
@@ -1852,63 +1731,6 @@ void* __REMOOD_DEPRECATED WX_CacheEntry(WX_WADEntry_t* const a_Entry)
 size_t __REMOOD_DEPRECATED WX_UseEntry(WX_WADEntry_t* const a_Entry, const bool_t a_Use)
 {
 	return 0;
-}
-
-/* WX_GetVirtualPrivateData() -- Returns a WAD's virtual private data */
-bool_t __REMOOD_DEPRECATED WX_GetVirtualPrivateData(WX_WADFile_t* const a_WAD, const WX_DataPrivateID_t a_ID, void** *const a_PPPtr, size_t** const a_PPSize)
-{
-	return false;
-}
-
-/* WX_RoveEntry() -- Roves entries in the WX entry list */
-WX_WADEntry_t* __REMOOD_DEPRECATED WX_RoveEntry(WX_WADEntry_t* const a_Entry, const int32_t a_Next)
-{
-	WX_WADEntry_t* Rover;
-	int32_t Current;
-	
-	/* Check */
-	if (!a_Entry)
-		return NULL;
-	
-	/* Going Nowhere? */
-	if (!a_Next)
-		return a_Entry;
-	
-	/* Which direction? */
-	Rover = a_Entry;
-	
-	// Back
-	if (a_Next < 0)
-		for (Current = a_Next; Rover && Current < 0; Current++)
-			Rover = Rover->PrevEntry;
-	
-	// Next
-	else
-		for (Current = a_Next; Rover && Current > 0; Current--)
-			Rover = Rover->NextEntry;
-	
-	/* Failed? */
-	return Rover;
-}
-
-/* WX_GetEntryName() -- Return name of entry */
-size_t __REMOOD_DEPRECATED WX_GetEntryName(WX_WADEntry_t* const a_Entry, char* const a_OutBuf, const size_t a_OutSize)
-{
-	size_t s;
-	
-	if (!a_Entry || !a_OutBuf || !a_OutSize)
-		return 0;
-	
-	/* Copy */
-	strncpy(a_OutBuf, a_Entry->Name, a_OutSize);
-	
-	/* Return */
-	s = strlen(a_Entry->Name);
-	
-	if (s < a_OutSize)
-		return s;
-	else
-		return a_OutSize;
 }
 
 /* WX_GetEntrySize() -- Return size of entry */

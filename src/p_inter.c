@@ -60,26 +60,6 @@ consvar_t cv_infiniteammo = { "infiniteammo", "0", CV_NETVAR, CV_YesNo };
 // (i don't like that but do you see another solution ?)
 int MAXHEALTH = 100;
 
-//--------------------------------------------------------------------------
-//
-// PROC P_SetMessage
-//
-//--------------------------------------------------------------------------
-
-bool_t ultimatemsg;
-
-void P_SetMessage(player_t* player, char* message, bool_t ultmsg)
-{
-	if ((ultimatemsg || !cv_showmessages.value) && !ultmsg)
-		return;
-		
-	player->message = message;
-	//player->messageTics = MESSAGETICS;
-	//BorderTopRefresh = true;
-	if (ultmsg)
-		ultimatemsg = true;
-}
-
 //
 // GET STUFF
 //

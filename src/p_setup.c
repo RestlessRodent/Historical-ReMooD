@@ -1181,41 +1181,6 @@ char* levellumps[] =
 };
 
 //
-// P_CheckLevel
-// Checks a lump and returns weather or not it is a level header lump.
-bool_t P_CheckLevel(int lumpnum)
-{
-	int i = 0;
-	WadEntry_t* Entry = W_GetEntry(lumpnum);
-	
-	if (Entry == NULL)
-		return false;
-		
-	for (i = ML_THINGS; i <= ML_BLOCKMAP; i++)
-	{
-		Entry = W_GetEntry(lumpnum + i);
-		
-		if (strncmp(Entry->Name, levellumps[i], 8) != 0)
-			return false;
-	}
-	
-	return true;
-	
-	/*int  i;
-	   int  file, lump;
-	
-	   for(i=ML_THINGS; i<=ML_BLOCKMAP; i++)
-	   {
-	   file = lumpnum >> 16;
-	   lump = (lumpnum & 0xffff) + i;
-	   if(file > numwadfiles || lump > wadfiles[file]->numlumps ||
-	   strncmp(wadfiles[file]->lumpinfo[lump].name, levellumps[i], 8) )
-	   return false;
-	   }
-	   return true;    // all right */
-}
-
-//
 // Setup sky texture to use for the level, actually moved the code
 // from G_DoLoadLevel() which had nothing to do there.
 //

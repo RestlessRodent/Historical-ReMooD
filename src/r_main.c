@@ -1205,12 +1205,6 @@ void R_RenderPlayerView(player_t* player)
 	R_RenderPlayerViewEx(player, 0);
 }
 
-// GhostlyDeath <July 6, 2008> -- Draws a quarter of the screen
-void R_RenderPlayerQuarter(player_t* player)
-{
-	R_RenderPlayerViewEx(player, 1);
-}
-
 // =========================================================================
 //                    ENGINE COMMANDS & VARS
 // =========================================================================

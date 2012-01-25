@@ -195,43 +195,6 @@ static point_t doomlnodes[NUMEPISODES][NUMMAPS] =
 	}
 };
 
-static point_t YAHspot[3][9] =
-{
-	{
-		{172, 78},
-		{86, 90},
-		{73, 66},
-		{159, 95},
-		{148, 126},
-		{132, 54},
-		{131, 74},
-		{208, 138},
-		{52, 101}
-	},
-	{
-		{218, 57},
-		{137, 81},
-		{155, 124},
-		{171, 68},
-		{250, 86},
-		{136, 98},
-		{203, 90},
-		{220, 140},
-		{279, 106}
-	},
-	{
-		{86, 99},
-		{124, 103},
-		{154, 79},
-		{202, 83},
-		{178, 59},
-		{142, 58},
-		{219, 66},
-		{247, 57},
-		{107, 80}
-	}
-};
-
 //
 // Animation locations for episode 0 (1).
 // Using patches saves a lot of space,
@@ -514,37 +477,6 @@ static void WI_drawOnLnode(int n, patch_t* c[])
 	else
 		// DEBUG
 		CONL_PrintF("Could not place patch on level %d\n", n + 1);
-}
-
-//========================================================================
-//
-// IN_DrawYAH
-//
-//========================================================================
-static void IN_DrawYAH(void)
-{
-	int i;
-	int x;
-	int prevmap;
-	
-	V_DrawStringA(VFONT_LARGE, VFO_CENTERED, DS_GetString(DSTR_INTERMISSION_NOWENTERING), 0, 10);
-	V_DrawStringA(VFONT_LARGE, VFO_CENTERED, P_LevelNameByNum(wbs->epsd + 1, wbs->next + 1), 0, 20);
-	
-	prevmap = (wbs->last == 8) ? wbs->next - 1 : wbs->last;
-	
-	for (i = 0; i <= prevmap; i++)
-	{
-		V_DrawScaledPatch(YAHspot[gameepisode - 1][i].x, YAHspot[gameepisode - 1][i].y, 0, splat);
-	}
-	if (players[consoleplayer[0]].didsecret)
-	{
-		V_DrawScaledPatch(YAHspot[gameepisode - 1][8].x, YAHspot[gameepisode - 1][8].y, 0, splat);
-	}
-	if (!(bcnt & 16) || state == ShowNextLoc)
-	{
-		// draw the destination 'X'
-		V_DrawScaledPatch(YAHspot[gameepisode - 1][wbs->next].x, YAHspot[gameepisode - 1][wbs->next].y, 0, yah[0]);
-	}
 }
 
 static void WI_initAnimatedBack(void)

@@ -64,7 +64,6 @@ bool_t l_ScriptDebug = false;	// Debug scripts
 static int Deepness;			// Deepness brace wise
 static TLS_BlockType_t PushBlockType;	// Block type to push next
 static bool_t HubVar;			// Make hub variable?
-static bool_t BoostHubVar;		// Boosted hub variable
 static TLS_VariableType_t NextVar;	// next variable type
 static bool_t Skip = false;		// Skip token
 static char Blocks[512];

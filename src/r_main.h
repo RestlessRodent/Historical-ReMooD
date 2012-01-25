@@ -147,7 +147,6 @@ void R_SetupFrame(player_t* player);
 
 // Called by G_Drawer.
 void R_RenderPlayerView(player_t* player);
-void R_RenderPlayerQuarter(player_t* player);
 
 // add commands related to engine, at game startup
 void R_RegisterEngineStuff(void);

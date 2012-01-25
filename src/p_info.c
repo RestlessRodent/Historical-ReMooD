@@ -507,19 +507,6 @@ void P_LowerCase(char* line)
 		*temp = tolower(*temp);
 }
 
-void P_StripSpaces(char* line)
-{
-	char* temp;
-	
-	temp = line + strlen(line) - 1;
-	
-	while (*temp == ' ')
-	{
-		*temp = '\0';
-		temp--;
-	}
-}
-
 static void P_RemoveComments(char* line)
 {
 	char* temp = line;

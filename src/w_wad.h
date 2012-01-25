@@ -346,7 +346,6 @@ typedef struct WadFile_s
 size_t __REMOOD_DEPRECATED W_NumWadFiles(void);
 WadFile_t* __REMOOD_DEPRECATED W_GetWadForNum(size_t Num);
 WadFile_t* __REMOOD_DEPRECATED W_GetWadForName(char* Name);
-size_t __REMOOD_DEPRECATED W_GetNumForWad(WadFile_t* WAD);
 WadEntry_t* __REMOOD_DEPRECATED W_GetEntry(WadIndex_t lump);
 WadIndex_t __REMOOD_DEPRECATED W_LumpsSoFar(WadFile_t* wadid);
 WadIndex_t __REMOOD_DEPRECATED W_InitMultipleFiles(char** filenames);
@@ -358,7 +357,6 @@ WadIndex_t __REMOOD_DEPRECATED W_CheckNumForName(char* name);
 WadIndex_t __REMOOD_DEPRECATED W_CheckNumForNamePwad(char* name, size_t wadid, WadIndex_t startlump);
 WadIndex_t __REMOOD_DEPRECATED W_CheckNumForNamePwadPtr(char* name, WadFile_t* wadid, WadIndex_t startlump);
 WadIndex_t __REMOOD_DEPRECATED W_GetNumForName(char* name);
-WadIndex_t __REMOOD_DEPRECATED W_CheckNumForNameFirst(char* name);
 WadIndex_t __REMOOD_DEPRECATED W_GetNumForNameFirst(char* name);
 size_t __REMOOD_DEPRECATED W_LumpLength(WadIndex_t lump);
 size_t __REMOOD_DEPRECATED W_ReadLumpHeader(WadIndex_t lump, void* dest, size_t size);
@@ -366,11 +364,8 @@ void __REMOOD_DEPRECATED W_ReadLump(WadIndex_t lump, void* dest);
 void* __REMOOD_DEPRECATED W_CacheLumpNum(WadIndex_t lump, size_t PU);
 void* __REMOOD_DEPRECATED W_CacheLumpName(char* name, size_t PU);
 void* __REMOOD_DEPRECATED W_CachePatchName(char* name, size_t PU);
-void* __REMOOD_DEPRECATED W_CacheRawAsPic(WadIndex_t lump, int width, int height, size_t tag);	// return a pic_t
-WadIndex_t __REMOOD_DEPRECATED W_GetNumForEntry(WadEntry_t* Entry);
 void __REMOOD_DEPRECATED W_LoadData(void);
 bool_t __REMOOD_DEPRECATED W_FindWad(const char* Name, const char* MD5, char* OutPath, const size_t OutSize);
-const char* __REMOOD_DEPRECATED W_BaseName(const char* Name);
 
 void* __REMOOD_DEPRECATED W_CachePatchNum(const WadIndex_t Lump, size_t PU);
 
@@ -419,15 +414,9 @@ typedef WL_WADEntry_t WX_WADEntry_t;
 /*** PROTOTYPES ***/
 bool_t __REMOOD_DEPRECATED WX_Init(void);
 bool_t __REMOOD_DEPRECATED WX_LocateWAD(const char* const a_Name, const char* const a_MD5, char* const a_OutPath, const size_t a_OutSize);
-WX_WADFile_t* __REMOOD_DEPRECATED WX_RoveWAD(WX_WADFile_t* const a_WAD, const bool_t a_Virtual, const int32_t a_Next);
-WX_WADEntry_t* __REMOOD_DEPRECATED WX_GetNumEntry(WX_WADFile_t* const a_WAD, const size_t a_Index);
 WX_WADEntry_t* __REMOOD_DEPRECATED WX_EntryForName(WX_WADFile_t* const a_WAD, const char* const a_Name, const bool_t a_Forwards);
 void* __REMOOD_DEPRECATED WX_CacheEntry(WX_WADEntry_t* const a_Entry);
 size_t __REMOOD_DEPRECATED WX_UseEntry(WX_WADEntry_t* const a_Entry, const bool_t a_Use);
-bool_t __REMOOD_DEPRECATED WX_GetVirtualPrivateData(WX_WADFile_t* const a_WAD, const WX_DataPrivateID_t a_ID, void** *const a_PPPtr,
-                                                    size_t** const a_PPSize);
-WX_WADEntry_t* __REMOOD_DEPRECATED WX_RoveEntry(WX_WADEntry_t* const a_Entry, const int32_t a_Next);
-size_t __REMOOD_DEPRECATED WX_GetEntryName(WX_WADEntry_t* const a_Entry, char* const a_OutBuf, const size_t a_OutSize);
 size_t __REMOOD_DEPRECATED WX_GetEntrySize(WX_WADEntry_t* const a_Entry);
 size_t __REMOOD_DEPRECATED WX_ClearUnused(void);
 

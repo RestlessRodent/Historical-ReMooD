@@ -53,20 +53,6 @@ void M_AddToBox(fixed_t* box, fixed_t x, fixed_t y)
 		box[BOXTOP] = y;
 }
 
-bool_t M_PointInBox(fixed_t* box, fixed_t x, fixed_t y)
-{
-	if (x < box[BOXLEFT])
-		return false;
-	if (x > box[BOXRIGHT])
-		return false;
-	if (y < box[BOXBOTTOM])
-		return false;
-	if (y > box[BOXTOP])
-		return false;
-		
-	return true;
-}
-
 bool_t M_CircleTouchBox(fixed_t* box, fixed_t circlex, fixed_t circley, fixed_t circleradius)
 {
 	if (box[BOXLEFT] - circleradius > circlex)

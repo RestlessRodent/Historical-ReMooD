@@ -320,16 +320,6 @@ void M_DrawThermo(int x, int y, consvar_t* cv)
 	V_DrawScaledPatch((x + 8) + xx, y, 0, W_CachePatchNum(cursorlump, PU_CACHE));
 }
 
-void M_DrawEmptyCell(menu_t* menu, int item)
-{
-	V_DrawScaledPatch(menu->x - 10, menu->y + item * LINEHEIGHT - 1, 0, W_CachePatchName("M_CELL1", PU_CACHE));
-}
-
-void M_DrawSelCell(menu_t* menu, int item)
-{
-	V_DrawScaledPatch(menu->x - 10, menu->y + item * LINEHEIGHT - 1, 0, W_CachePatchName("M_CELL2", PU_CACHE));
-}
-
 //
 //  Draw a textbox, like Quake does, because sometimes it's difficult
 //  to read the text with all the stuff in the background...

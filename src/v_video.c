@@ -1463,18 +1463,6 @@ void V_DrawScaledPatch(const int x, const int y, const int scrn, const patch_t* 
 	V_DrawPatchEx(Flags, x, y, patch, NULL);
 }
 
-/* V_DrawTransPatch() -- Draw translucent patch unscaled */
-void V_DrawTransPatch(const int x, const int y, const int scrn, const patch_t* const patch)
-{
-	uint32_t Flags = VEX_NOSCALESTART | VEX_NOSCALESCREEN | VEX_FILLTRANS(VEX_TRANSMED);
-	
-	/* Handle */
-	if (scrn & 0xFFFF)
-		Flags |= VEX_SECONDBUFFER;
-		
-	V_DrawPatchEx(Flags, x, y, patch, NULL);
-}
-
 /* V_DrawTranslucentPatch() -- Draw scaled translucent patch */
 void V_DrawTranslucentPatch(const int x, const int y, const int scrn, const patch_t* const patch)
 {

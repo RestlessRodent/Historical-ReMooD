@@ -209,8 +209,6 @@ void M_DrawGenericMenu(void);
 void M_DrawControl(void);
 void M_DrawTextBox(int x, int y, int width, int lines);	//added:06-02-98:
 void M_DrawThermo(int x, int y, consvar_t* cv);
-void M_DrawEmptyCell(menu_t* menu, int item);
-void M_DrawSelCell(menu_t* menu, int item);
 void M_DrawSlider(int x, int y, int range, void* extra);
 void M_CentreText(int y, char* string);	//added:30-01-98:writetext centered
 

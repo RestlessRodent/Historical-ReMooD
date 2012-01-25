@@ -344,6 +344,5 @@ void S_InitRuntimeSounds(void);
 int S_AddSoundFx(char* name, int singularity);
 void S_RemoveSoundFx(int id);
 
-int S_AddMusic(char* name);
-int S_FindMusic(char* name);
 #endif
+

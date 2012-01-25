@@ -1015,17 +1015,6 @@ bool_t P_IsSecret(sector_t* sec)
 }
 
 //
-// P_WasSecret()
-//
-// Passed a sector, returns if the sector secret type is was active, i.e.
-// secret type was set and the secret has been obtained already.
-//
-bool_t P_WasSecret(sector_t* sec)
-{
-	return (sec->oldspecial == 9 || (sec->oldspecial & SECRET_MASK));
-}
-
-//
 // EVENTS
 // Events are operations triggered by using, crossing,
 // or shooting special lines, or by timed thinkers.

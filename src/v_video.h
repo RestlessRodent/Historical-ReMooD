@@ -223,7 +223,6 @@ void V_DrawPatchEx(const uint32_t Flags, const int x, const int y, const patch_t
 void V_DrawPatch(const int x, const int y, const int scrn, const patch_t* const patch);
 void V_DrawMappedPatch(const int x, const int y, const int scrn, const patch_t* const patch, const uint8_t* const colormap);
 void V_DrawScaledPatch(const int x, const int y, const int scrn, const patch_t* const patch);
-void V_DrawTransPatch(const int x, const int y, const int scrn, const patch_t* const patch);
 void V_DrawTranslucentPatch(const int x, const int y, const int scrn, const patch_t* const patch);
 void V_DrawFadeScreen(void);
 void V_DrawFadeConsBack(int x1, int y1, int x2, int y2);

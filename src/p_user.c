@@ -708,18 +708,6 @@ void P_MoveChaseCamera(player_t* player)
 	camera.aiming -= (dist >> 3);
 }
 
-uint8_t weapontobutton[NUMWEAPONS] = { wp_fist << BT_WEAPONSHIFT,
-                                       wp_pistol << BT_WEAPONSHIFT,
-                                       wp_shotgun << BT_WEAPONSHIFT,
-                                       wp_chaingun << BT_WEAPONSHIFT,
-                                       wp_missile << BT_WEAPONSHIFT,
-                                       wp_plasma << BT_WEAPONSHIFT,
-                                       wp_bfg << BT_WEAPONSHIFT,
-                                       (wp_fist << BT_WEAPONSHIFT) | BT_EXTRAWEAPON,	// wp_chainsaw
-                                       (wp_shotgun << BT_WEAPONSHIFT) | BT_EXTRAWEAPON
-                                     };								//wp_supershotgun
-
-//
 // P_PlayerThink
 //
 

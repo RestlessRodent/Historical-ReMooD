@@ -146,32 +146,6 @@ bool_t P_SetMobjState(mobj_t* mobj, statenum_t state)
 	return ret;
 }
 
-//----------------------------------------------------------------------------
-//
-// FUNC P_SetMobjStateNF
-//
-// Same as P_SetMobjState, but does not call the state function.
-//
-//----------------------------------------------------------------------------
-
-bool_t P_SetMobjStateNF(mobj_t* mobj, statenum_t state)
-{
-	state_t* st;
-	
-	if (state == S_NULL)
-	{
-		// Remove mobj
-		P_RemoveMobj(mobj);
-		return (false);
-	}
-	st = &states[state];
-	mobj->state = st;
-	mobj->tics = st->tics;
-	mobj->sprite = st->sprite;
-	mobj->frame = st->frame;
-	return (true);
-}
-
 //
 // P_ExplodeMissile
 //
@@ -1354,8 +1328,6 @@ void P_RespawnWeapons(void)
 	iquehead = freeslot;
 }
 
-extern uint8_t weapontobutton[NUMWEAPONS];
-
 //
 // P_SpawnPlayer
 // Called when a player is spawned on the level.
@@ -2096,153 +2068,6 @@ void A_ContMobjSound(mobj_t* actor)
 		default:
 			break;
 	}
-}
-
-//----------------------------------------------------------------------------
-//
-// FUNC P_FaceMobj
-//
-// Returns 1 if 'source' needs to turn clockwise, or 0 if 'source' needs
-// to turn counter clockwise.  'delta' is set to the amount 'source'
-// needs to turn.
-//
-//----------------------------------------------------------------------------
-int P_FaceMobj(mobj_t* source, mobj_t* target, angle_t* delta)
-{
-	angle_t diff;
-	angle_t angle1;
-	angle_t angle2;
-	
-	angle1 = source->angle;
-	angle2 = R_PointToAngle2(source->x, source->y, target->x, target->y);
-	if (angle2 > angle1)
-	{
-		diff = angle2 - angle1;
-		if (diff > ANGLE_180)
-		{
-			*delta = ANGLE_MAX - diff;
-			return (0);
-		}
-		else
-		{
-			*delta = diff;
-			return (1);
-		}
-	}
-	else
-	{
-		diff = angle1 - angle2;
-		if (diff > ANGLE_180)
-		{
-			*delta = ANGLE_MAX - diff;
-			return (1);
-		}
-		else
-		{
-			*delta = diff;
-			return (0);
-		}
-	}
-}
-
-//----------------------------------------------------------------------------
-//
-// FUNC P_SeekerMissile
-//
-// The missile tracer field must be mobj_t *target.  Returns true if
-// target was tracked, false if not.
-//
-//----------------------------------------------------------------------------
-
-bool_t P_SeekerMissile(mobj_t* actor, angle_t thresh, angle_t turnMax)
-{
-	int dir;
-	int dist;
-	angle_t delta;
-	angle_t angle;
-	mobj_t* target;
-	
-	target = actor->tracer;
-	if (target == NULL)
-	{
-		return (false);
-	}
-	if (!(target->flags & MF_SHOOTABLE))
-	{
-		// Target died
-		actor->tracer = 0;
-		return (false);
-	}
-	dir = P_FaceMobj(actor, target, &delta);
-	if (delta > thresh)
-	{
-		delta >>= 1;
-		if (delta > turnMax)
-		{
-			delta = turnMax;
-		}
-	}
-	if (dir)
-	{
-		// Turn clockwise
-		actor->angle += delta;
-	}
-	else
-	{
-		// Turn counter clockwise
-		actor->angle -= delta;
-	}
-	angle = actor->angle >> ANGLETOFINESHIFT;
-	actor->momx = FixedMul(actor->info->speed, finecosine[angle]);
-	actor->momy = FixedMul(actor->info->speed, finesine[angle]);
-	if (actor->z + actor->height < target->z || target->z + target->height < actor->z)
-	{
-		// Need to seek vertically
-		dist = P_AproxDistance(target->x - actor->x, target->y - actor->y);
-		dist = dist / actor->info->speed;
-		if (dist < 1)
-			dist = 1;
-		actor->momz = (target->z + (target->height >> 1) - (actor->z + (actor->height >> 1))) / dist;
-	}
-	return (true);
-}
-
-//---------------------------------------------------------------------------
-//
-// FUNC P_SpawnMissileAngle
-//
-// Returns NULL if the missile exploded immediately, otherwise returns
-// a mobj_t pointer to the missile.
-//
-//---------------------------------------------------------------------------
-
-mobj_t* P_SpawnMissileAngle(mobj_t* source, mobjtype_t type, angle_t angle, fixed_t momz)
-{
-	fixed_t z;
-	mobj_t* mo;
-	
-	switch (type)
-	{
-		default:
-			z = source->z + 32 * FRACUNIT;
-			break;
-	}
-	if (source->flags2 & MF2_FEETARECLIPPED)
-	{
-		z -= FOOTCLIPSIZE;
-	}
-	mo = P_SpawnMobj(source->x, source->y, z, type);
-	if (mo->info->seesound)
-	{
-		S_StartSound(&mo->NoiseThinker, mo->info->seesound);
-	}
-	mo->target = source;		// Originator
-	mo->angle = angle;
-	angle >>= ANGLETOFINESHIFT;
-	mo->momx = FixedMul(mo->info->speed, finecosine[angle]);
-	mo->momy = FixedMul(mo->info->speed, finesine[angle]);
-	mo->momz = momz;
-	return (P_CheckMissileSpawn(mo) ? mo : NULL);
 }
 
 bool_t inventory = false;

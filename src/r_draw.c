@@ -869,11 +869,6 @@ void R_DrawFuzzColumn_8(void)
 	while (count--);
 }
 
-// used in tiltview, but never called for now, but who know...
-void R_DrawSpanNoWrap(void)
-{
-}
-
 bool_t g_PaintBallMode = false;
 uint8_t g_PBColor = 0;
 
