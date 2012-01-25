@@ -77,3 +77,274 @@ char* C_strlwr(char* s)
 	
 	return s;
 }
+
+/**************************************
+*** BYTE OPERATIONS FROM DOOMTYPE.H ***
+**************************************/
+
+#define BP_MERGE(a,b) a##b
+
+#if defined(__arm__) || defined(_M_ARM) || defined(__sparc__) || defined(__sparc)
+	/* Access to pointer data for system that can't handle unaligned access */
+	// Lets say we have the following data:
+	// { 01  23  45  67  |  89  AB  CD  EF }
+	//      [*DEREF           ]
+	// On normal systems we can just dereference as normal, but on some systems
+	// such as ARM, we cannot do this. Instead we have to dereference both sides
+	// then merge the data together.
+	// Or we could just read byte by byte.
+
+#define BP_READ(w,x) x BP_MERGE(Read,w)(const x** const Ptr)\
+	{\
+		x Ret = 0;\
+		uint8_t* p8;\
+		size_t i;\
+		\
+		if (!Ptr || !(*Ptr))\
+			return 0;\
+		\
+		p8 = (uint8_t*)*Ptr;\
+		for (i = 0; i < sizeof(x); i++)\
+			((uint8_t*)&Ret)[i] = p8[i];\
+		\
+		(*Ptr)++;\
+		return Ret;\
+	}
+#else
+
+/* Normal Pointer Access */
+#define BP_READ(w,x) x BP_MERGE(Read,w)(const x** const Ptr)\
+	{\
+		x Ret;\
+		\
+		if (!Ptr || !(*Ptr))\
+			return 0;\
+		\
+		Ret = **Ptr;\
+		(*Ptr)++;\
+		return Ret;\
+	}
+#endif
+
+BP_READ(Int8R, int8_t)
+BP_READ(Int16R, int16_t)
+BP_READ(Int32R, int32_t)
+BP_READ(Int64R, int64_t)
+BP_READ(UInt8R, uint8_t)
+BP_READ(UInt16R, uint16_t)
+BP_READ(UInt32R, uint32_t)
+BP_READ(UInt64R, uint64_t)
+
+#define BP_WRITE(w,x) void BP_MERGE(Write,w)(x** const Ptr, const x Val)\
+{\
+	if (!Ptr || !(*Ptr))\
+		return;\
+	**Ptr = Val;\
+	(*Ptr)++;\
+}
+BP_WRITE(Int8R, int8_t)
+BP_WRITE(Int16R, int16_t)
+BP_WRITE(Int32R, int32_t)
+BP_WRITE(Int64R, int64_t)
+BP_WRITE(UInt8R, uint8_t)
+BP_WRITE(UInt16R, uint16_t)
+BP_WRITE(UInt32R, uint32_t)
+BP_WRITE(UInt64R, uint64_t)
+#undef BP_READ
+#undef BP_WRITE
+
+#define BP_READREDO(w,x) x BP_MERGE(Read,w)R(const x** const Ptr)\
+
+/* WriteString() -- Write a string of any length (bad) */
+void WriteString(uint8_t** const Out, uint8_t* const String)
+{
+	size_t i;
+	
+	// Loop
+	for (i = 0; String[i]; i++)
+		WriteUInt8(Out, (uint8_t)String[i]);
+	WriteUInt8(Out, 0);
+}
+
+/* WriteStringN() -- Write a string of n length */
+void WriteStringN(uint8_t** const Out, uint8_t* const String, const size_t Count)
+{
+	size_t i;
+	
+	// Loop
+	for (i = 0; i < Count && String[i]; i++)
+		WriteUInt8(Out, (uint8_t)String[i]);
+	for (; i < Count; i++)
+		WriteUInt8(Out, 0);
+}
+
+/* ReadCompressedUInt16() -- Reads a "compressed" uint16_t */
+// Numerical Range: 0 - 32767
+uint16_t ReadCompressedUInt16(const void** const p)
+{
+	uint16_t ReadVal;
+	
+	/* Check */
+	if (!p || !*p)
+		return 0;
+		
+	/* Read in first value */
+	ReadVal = ReadUInt8((const uint8_t** const)p);
+	
+	// Compressed?
+	if (ReadVal & 0x80U)
+	{
+		ReadVal &= 0x7FU;		// Don't remember upper bit
+		ReadVal <<= 8;
+		ReadVal |= ReadUInt8((const uint8_t** const)p);
+	}
+	
+	/* Return result */
+	return ReadVal;
+}
+
+/* WriteCompressedUInt16() -- Writes a "compressed" uint16_t */
+// Numerical Range: 0 - 32767
+void WriteCompressedUInt16(void** const p, const uint16_t Value)
+{
+	/* Check */
+	if (!p || !*p)
+		return;
+		
+	/* Write in high value */
+	if (Value > 0x7FU)
+		WriteUInt8((uint8_t** const)p, ((Value & 0x7F00) >> 8) | 0x80U);
+		
+	/* Write in low value */
+	WriteUInt8((uint8_t** const)p, Value & 0xFFU);
+}
+
+/********************
+*** BYTE SWAPPING ***
+********************/
+
+/* SwapUInt16() -- Swap 16-bits */
+uint16_t SwapUInt16(const uint16_t In)
+{
+	return ((In & 0xFFU) << 8) | ((In & 0xFF00U) >> 8);
+}
+
+/* SwapUInt32() -- Swap 32-bits */
+uint32_t SwapUInt32(const uint32_t In)
+{
+	return ((In & 0xFFU) << 24) | ((In & 0xFF00U) << 8) | ((In & 0xFF0000U) >> 8) | ((In & 0xFF000000U) >> 24);
+}
+
+/* SwapUInt64() -- Swap 64-bits */
+uint64_t SwapUInt64(const uint64_t In)
+{
+	return (((In >> 56)) |
+	        ((In >> 40) & 0x000000000000FF00LL) |
+	        ((In >> 24) & 0x0000000000FF0000LL) |
+	        ((In >> 8) & 0x00000000FF000000LL) |
+	        ((In << 8) & 0x000000FF00000000LL) |
+	        ((In << 24) & 0x0000FF0000000000LL) | ((In << 40) & 0x00FF000000000000LL) | ((In << 56) & 0xFF00000000000000LL));
+}
+
+/* SwapInt16() -- Swap 16-bits */
+int16_t SwapInt16(const int16_t In)
+{
+	return (int16_t)SwapUInt16((uint16_t)In);
+}
+
+/* SwapInt32() -- Swap 32-bits */
+int32_t SwapInt32(const int32_t In)
+{
+	return (int32_t)SwapUInt32((uint32_t)In);
+}
+
+/* SwapInt64() -- Swap 64-bits */
+int32_t SwapInt64(const int64_t In)
+{
+	return (int64_t)SwapUInt64((uint64_t)In);
+}
+
+/* Little swapping */
+#if defined(__REMOOD_BIG_ENDIAN)
+#define LS_x(w,x) x BP_MERGE(LittleSwap,w)(const x In)\
+	{\
+		return BP_MERGE(Swap,w)(In);\
+	}
+#else
+#define LS_x(w,x) x BP_MERGE(LittleSwap,w)(const x In)\
+	{\
+		return In;\
+	}
+#endif
+
+LS_x(Int16, int16_t);
+LS_x(UInt16, uint16_t);
+LS_x(Int32, int32_t);
+LS_x(UInt32, uint32_t);
+LS_x(Int64, int64_t);
+LS_x(UInt64, uint64_t);
+#undef LS_x
+
+/* Big swapping */
+#if defined(__REMOOD_BIG_ENDIAN)
+#define BS_x(w,x) x BP_MERGE(BigSwap,w)(const x In)\
+	{\
+		return In;\
+	}
+#else
+#define BS_x(w,x) x BP_MERGE(BigSwap,w)(const x In)\
+	{\
+		return BP_MERGE(Swap,w)(In);\
+	}
+#endif
+BS_x(Int16, int16_t);
+BS_x(UInt16, uint16_t);
+BS_x(Int32, int32_t);
+BS_x(UInt32, uint32_t);
+BS_x(Int64, int64_t);
+BS_x(UInt64, uint64_t);
+#undef BS_x
+
+/*** Reading/Writing Little Endian Data ***/
+#if defined(__REMOOD_BIG_ENDIAN)
+#define BPLREAD_x(w,x) x BP_MERGE(LittleRead,w)(const x** const Ptr)\
+	{\
+		return BP_MERGE(Swap,w)(BP_MERGE(Read,w)(Ptr));\
+	}
+#else
+#define BPLREAD_x(w,x) x BP_MERGE(LittleRead,w)(const x** const Ptr)\
+	{\
+		return BP_MERGE(Read,w)(Ptr);\
+	}
+#endif
+#if defined(__REMOOD_BIG_ENDIAN)
+#define BPLWRITE_x(w,x) void BP_MERGE(LittleWrite,w)(x** const Ptr, const x Val)\
+	{\
+		BP_MERGE(Write,w)(Ptr, BP_MERGE(Swap,w)(Val));\
+	}
+#else
+#define BPLWRITE_x(w,x) void BP_MERGE(LittleWrite,w)(x** const Ptr, const x Val)\
+	{\
+		BP_MERGE(Write,w)(Ptr, Val);\
+	}
+#endif
+BPLREAD_x(Int16, int16_t)
+BPLREAD_x(UInt16, uint16_t)
+BPLREAD_x(Int32, int32_t)
+BPLREAD_x(UInt32, uint32_t)
+BPLREAD_x(Int64, int64_t)
+BPLREAD_x(UInt64, uint64_t)
+BPLWRITE_x(Int16, int16_t)
+BPLWRITE_x(UInt16, uint16_t)
+BPLWRITE_x(Int32, int32_t)
+BPLWRITE_x(UInt32, uint32_t)
+BPLWRITE_x(Int64, int64_t)
+BPLWRITE_x(UInt64, uint64_t)
+#undef BPLREAD_x
+#undef BPLWRITE_x
+
+/* End */
+#undef BP_MERGE
+
+
+

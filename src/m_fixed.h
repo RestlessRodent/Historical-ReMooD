@@ -197,16 +197,4 @@ static fixed_t __REMOOD_INLINE __REMOOD_UNUSED FixedDiv(fixed_t a, fixed_t b)
 #endif
 }
 
-/* FixedMulSlow() -- Multiply two fixed numbers (slowly) */
-static fixed_t __REMOOD_FORCEINLINE __REMOOD_UNUSED FixedMulSlow(fixed_t a, fixed_t b)
-{
-	return ((int64_t)a * (int64_t)b) >> FRACBITS;
-}
-
-/* FixedDivSlow() -- Divide two fixed numbers (slowly) */
-static fixed_t __REMOOD_FORCEINLINE __REMOOD_UNUSED FixedDivSlow(fixed_t a, fixed_t b)
-{
-	return (((int64_t)a) << (int64_t)FRACBITS) / ((int64_t)b);
-}
-
 #endif							/* __M_FIXED_H__ */
