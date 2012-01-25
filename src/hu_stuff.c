@@ -704,6 +704,7 @@ void HU_Drawer(void)
 	HU_DrawTip();
 	HU_DrawFSPics();
 	
+#if 0
 	if (cv_splitscreen.value)
 	{
 		switch (cv_splitscreen.value)
@@ -735,6 +736,7 @@ void HU_Drawer(void)
 				break;
 		}
 	}
+#endif
 }
 
 //======================================================================

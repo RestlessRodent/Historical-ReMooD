@@ -395,17 +395,6 @@ void CV_usegamma_OnChange(void)
 //                have to be centered. Set by m_menu.c, and SCR_Recalc()
 int scaledofs;
 
-// V_MarkRect : this used to refresh only the parts of the screen
-//              that were modified since the last screen update
-//              it is useless today
-//
-int dirtybox[4];
-void V_MarkRect(int x, int y, int width, int height)
-{
-	M_AddToBox(dirtybox, x, y);
-	M_AddToBox(dirtybox, x + width - 1, y + height - 1);
-}
-
 static int QuickRound(float x)
 {
 	if ((x - (int)x) > 0.5)
@@ -458,7 +447,6 @@ void V_CopyRect(int srcx, int srcy, int srcscrn, int width, int height, int dest
 		I_Error("Bad V_CopyRect %d %d %d %d %d %d %d %d", srcx, srcy, srcscrn, width, height, destx, desty, destscrn);
 	}
 #endif
-	V_MarkRect(destx, desty, width, height);
 	
 #ifdef DEBUG
 	CONL_PrintF("V_CopyRect: vidwidth %d screen[%d]=%x to screen[%d]=%x\n", vid.width, srcscrn, screens[srcscrn], destscrn, screens[destscrn]);
@@ -521,7 +509,6 @@ void V_CopyRectTrans(int srcx, int srcy, int srcscrn, int width, int height, int
 		I_Error("Bad V_CopyRect %d %d %d %d %d %d %d %d", srcx, srcy, srcscrn, width, height, destx, desty, destscrn);
 	}
 #endif
-	V_MarkRect(destx, desty, width, height);
 	
 #ifdef DEBUG
 	CONL_PrintF("V_CopyRect: vidwidth %d screen[%d]=%x to screen[%d]=%x\n", vid.width, srcscrn, screens[srcscrn], destscrn, screens[destscrn]);
@@ -587,8 +574,6 @@ void V_DrawBlock(int x, int y, int scrn, int width, int height, uint8_t* src)
 	}
 #endif
 	
-	//V_MarkRect (x, y, width, height);
-	
 	dest = screens[scrn] + y * vid.width + x;
 	
 	while (height--)
@@ -598,139 +583,6 @@ void V_DrawBlock(int x, int y, int scrn, int width, int height, uint8_t* src)
 		src += width;
 		dest += vid.width;
 	}
-}
-
-//
-// V_GetBlock
-// Gets a linear block of pixels from the view buffer.
-//
-void V_GetBlock(int x, int y, int scrn, int width, int height, uint8_t* dest)
-{
-	uint8_t* src;
-	
-	if (!graphics_started)
-		return;
-		
-#ifdef RANGECHECK
-	if (x < 0 || x + width > vid.width || y < 0 || y + height > vid.height || (unsigned)scrn > 4)
-	{
-		I_Error("Bad V_GetBlock");
-	}
-#endif
-	
-	src = screens[scrn] + y * vid.width + x;
-	
-	while (height--)
-	{
-		memcpy(dest, src, width);
-		src += vid.width;
-		dest += width;
-	}
-}
-
-static void V_BlitScalePic(int x1, int y1, int scrn, pic_t* pic)
-{
-	// QuickRound
-	int dupx, dupy;
-	int x, y;
-	uint8_t* src, *dest;
-	int width, height;
-	
-	if (!graphics_started)
-		return;
-		
-	width = LittleSwapInt16(pic->width);
-	height = LittleSwapInt16(pic->height);
-	scrn &= 0xffff;
-	
-	if (pic->mode != 0)
-	{
-		CONL_PrintF("pic mode %d not supported in Software\n", pic->mode);
-		return;
-	}
-	
-	
-	dest = screens[scrn] + /*max */ (y1 * vid.width > 0 ? y1 * vid.width : 0) + /*max */ (x1 > 0 ? x1 : 0);
-	// y cliping to the screen
-	if (y1 + QuickRound(height * vid.fdupy) >= vid.width)
-		height = QuickRound((vid.width - y1) / vid.fdupy) - 1;
-	// WARNING no x clipping (not needed for the moment)
-	for (y = /*max */ (QuickRound(-y1 / vid.fdupy) > 0 ? QuickRound(-y1 / vid.fdupy) : 0); y < height; y++)
-	{
-		for (dupy = 0; QuickRound(vid.fdupy - dupy) > 0; dupy++)
-		{
-			src = pic->data + y * width;
-			for (x = 0; x < width; x++)
-			{
-				//for (dupx = 0; QuickRound(vid.fdupx - dupx) > 0; dupx++)
-				for (dupx = vid.dupx; dupx; dupx--)
-					*dest++ = *src;
-				src++;
-			}
-			dest += vid.width - QuickRound(vid.dupx * width);
-		}
-	}
-}
-
-//  Draw a linear pic, scaled, TOTALLY CRAP CODE!!! OPTIMISE AND ASM!!
-//  CURRENTLY USED FOR StatusBarOverlay, scale pic but not starting coords
-//
-void V_DrawScalePic(int x1, int y1, int scrn,	// hack flag
-                    int lumpnum)
-{
-	V_BlitScalePic(x1, y1, scrn, W_CacheLumpNum(lumpnum, PU_CACHE));
-}
-
-/* V_BlitScalePicExtern() -- Extern for static */
-void V_BlitScalePicExtern(int x1, int y1, int scrn, pic_t* pic)
-{
-	V_BlitScalePic(x1, y1, scrn, pic);
-}
-
-void V_DrawRawScreen(int x1, int y1, int lumpnum, int width, int height)
-{
-	V_BlitScalePic(x1, y1, 0, W_CacheRawAsPic(lumpnum, width, height, PU_CACHE));
-}
-
-//
-//  Fills a box of pixels with a single color, NOTE: scaled to screen size
-//
-//added:05-02-98:
-void V_DrawFill(int x, int y, int w, int h, int c)
-{
-	uint8_t* dest;
-	int u, v;
-	float dupx, dupy;
-	
-	if (!graphics_started)
-		return;
-		
-	dupx = vid.fdupx;
-	dupy = vid.fdupy;
-	
-	dest = screens[0] + QuickRound(y * dupy) * vid.width + QuickRound(x * dupx) + scaledofs;
-	
-	w *= dupx;
-	h *= dupy;
-	
-	for (v = 0; v < h; v++, dest += vid.width)
-		for (u = 0; u < w; u++)
-			dest[u] = c;
-}
-
-void V_DrawScreenFill(int x, int y, int w, int h, int c)
-{
-	uint8_t* dest;
-	int u, v;
-	
-	if (!graphics_started)
-		return;
-		
-	dest = screens[0] + y * vid.width + x;
-	
-	for (v = 0; v < h; v++, dest += vid.width)
-		for (u = 0; u < w; u++)
-			dest[u] = c;
 }
 
 //
@@ -910,66 +762,6 @@ void V_Init(void)
 	//added:26-01-98: statusbar buffer
 	screens[4] = base + NUMSCREENS * screensize;
 }
-
-//
-//
-//
-typedef struct
-{
-	int px;
-	int py;
-} modelvertex_t;
-
-void R_DrawSpanNoWrap(void);	//tmap.S
-
-//
-// Test 'scrunch perspective correction' tm (c) ect.
-//
-//added:05-04-98:
-void V_DrawPerspView(uint8_t* viewbuffer, int aiming)
-{
-	uint8_t* source;
-	uint8_t* dest;
-	int y;
-	int x1, w;
-	int offs;
-	
-	fixed_t topfrac, bottomfrac, scale, scalestep;
-	fixed_t xfrac, xfracstep;
-	
-	source = viewbuffer;
-	
-	//+16 to -16 fixed
-	offs = ((aiming * 20) << 16) / 100;
-	
-	topfrac = ((vid.width - 40) << 16) - (offs * 2);
-	bottomfrac = ((vid.width - 40) << 16) + (offs * 2);
-	
-	scalestep = (bottomfrac - topfrac) / vid.height;
-	scale = topfrac;
-	
-	for (y = 0; y < vid.height; y++)
-	{
-		x1 = ((vid.width << 16) - scale) >> 17;
-		dest = ((uint8_t*)vid.direct) + (vid.rowbytes * y) + x1;
-		
-		xfrac = (20 << FRACBITS) + ((!x1) & 0xFFFF);
-		xfracstep = FixedDiv((vid.width << FRACBITS) - (xfrac << 1), scale);
-		w = scale >> 16;
-		while (w--)
-		{
-			*dest++ = source[xfrac >> FRACBITS];
-			xfrac += xfracstep;
-		}
-		scale += scalestep;
-		source += vid.width;
-	}
-	
-}
-
-// =============================================================================
-// === 16-BIT - 16-BIT - 16-BIT - 16-BIT - 16-BIT - 16-BIT - 16-BIT - 16-BIT ===
-// =============================================================================
 
 
 // #############################################################################
@@ -1530,10 +1322,6 @@ void V_DrawPatchEx(const uint32_t Flags, const int x, const int y, const patch_t
 	/* Offscreen? */
 	if (X < 0 || Y < 0 || X >= vid.width || Y >= vid.height)
 		return;
-		
-	/* Update dirty rectangle */
-	if (!Screen)
-		V_MarkRect(X, Y, Width >> FRACBITS, FixedMul(Patch->height << FRACBITS, DupY) >> FRACBITS);
 		
 	/* Setup column limit */
 	// GhostlyDeath <September 17, 2011> -- Don't run off screen (overflow wrap around)

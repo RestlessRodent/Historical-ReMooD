@@ -265,8 +265,6 @@ void F_TextWrite(void)
 	// erase the entire screen to a tiled background
 	V_DrawFlatFill(0, 0, vid.width, vid.height, W_GetNumForName(finaleflat));
 	
-	V_MarkRect(0, 0, vid.width, vid.height);
-	
 	// draw some of the text onto the screen
 	cx = 10;
 	cy = 10;
@@ -620,8 +618,6 @@ void F_BunnyScroll(void)
 	p1 = W_CachePatchName("PFUB2", PU_LEVEL);
 	p2 = W_CachePatchName("PFUB1", PU_LEVEL);
 	
-	V_MarkRect(0, 0, vid.width, vid.height);
-	
 	scrolled = 320 - (finalecount - 230) / 2;
 	if (scrolled > 320)
 		scrolled = 320;
@@ -656,59 +652,6 @@ void F_BunnyScroll(void)
 	
 	sprintf(name, "END%i", stage);
 	V_DrawScaledPatch((320 - 13 * 8) / 2, (200 - 8 * 8) / 2, 0, W_CachePatchName(name, PU_CACHE));
-}
-
-/*
-==================
-=
-= F_DemonScroll
-=
-==================
-*/
-
-void F_DemonScroll(void)
-{
-
-	int scrolled;
-	
-	scrolled = (finalecount - 70) / 3;
-	if (scrolled > 200)
-		scrolled = 200;
-	if (scrolled < 0)
-		scrolled = 0;
-		
-	V_DrawRawScreen(0, scrolled * vid.dupy, W_CheckNumForName("FINAL1"), 320, 200);
-	if (scrolled > 0)
-		V_DrawRawScreen(0, (scrolled - 200) * vid.dupy, W_CheckNumForName("FINAL2"), 320, 200);
-}
-
-/*
-==================
-=
-= F_DrawUnderwater
-=
-==================
-*/
-
-void F_DrawUnderwater(void)
-{
-	static bool_t underwawa = false;
-	
-	switch (finalestage)
-	{
-		case 1:
-			if (!underwawa)
-			{
-				underwawa = true;
-				V_SetPaletteLump("E2PAL");
-			}
-			V_DrawRawScreen(0, 0, W_CheckNumForName("E2END"), 320, 200);
-			break;
-		case 2:
-			V_DrawRawScreen(0, 0, W_CheckNumForName("TITLE"), 320, 200);
-			underwawa = false;
-			//D_StartTitle(); // go to intro/demo mode.
-	}
 }
 
 //

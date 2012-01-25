@@ -322,7 +322,6 @@ int wipe_ScreenWipe(int wipeno, int x, int y, int width, int height, int ticks)
 	if (ticks >= 0)
 	{
 		//Fab: obsolete (we don't use dirty-rectangles type of refresh)
-		//void V_MarkRect(int, int, int, int);
 		
 		// initial stuff
 		if (!go)
@@ -333,7 +332,6 @@ int wipe_ScreenWipe(int wipeno, int x, int y, int width, int height, int ticks)
 			(*wipes[wipeno * 3]) (width, height, ticks);
 		}
 		// do a piece of wipe-in
-		//V_MarkRect(0, 0, width, height);
 		rc = (*wipes[wipeno * 3 + 1]) (width, height, ticks);
 		//  V_DrawBlock(x, y, 0, width, height, wipe_scr); // DEBUG
 		

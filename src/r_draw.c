@@ -540,9 +540,6 @@ void R_DrawViewBorder(void)
 	
 	//added:05-02-98:simpler using our new VID_Blit routine
 	VID_BlitLinearScreen(screens[1] + ofs, screens[0] + ofs, side, viewheight - 1, vid.width, vid.width);
-	
-	// useless, old dirty rectangle stuff
-	//V_MarkRect (0,0,vid.width, vid.height-stbarheight);
 }
 
 // ==========================================================================

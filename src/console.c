@@ -1027,7 +1027,7 @@ bool_t CONL_Init(const uint32_t a_OutBS, const uint32_t a_InBS)
 	CONL_VarLocate("theconsolesystemwasjustbooted");
 	
 	/* Initialize variables for drawing */
-#if !define(__REMOOD_DEDICATED)
+#if !defined(__REMOOD_DEDICATED)
 	if (!g_DedicatedServer)
 	{
 		
@@ -2558,7 +2558,7 @@ void CON_SetupBackColormap(void)
 {
 	/* Call new function */
 	// GhostlyDeath <November 5, 2010> -- Initialize colormaps
-	V_InitializeColormaps();
+	//V_InitializeColormaps();
 	
 	/* Wrap old arrays */
 	// Allocate

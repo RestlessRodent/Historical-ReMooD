@@ -1421,6 +1421,7 @@ static __REMOOD_INLINE int SCX(int x)
 
 void ST_overlayDrawer(void)
 {
+#if 0
 	char* cmds;
 	char c;
 	char buf2[12];
@@ -1528,4 +1529,6 @@ void ST_overlayDrawer(void)
 				break;
 		}
 	}
+#endif
 }
+

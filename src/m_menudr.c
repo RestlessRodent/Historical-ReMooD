@@ -221,9 +221,14 @@ void M_DrawGenericMenu(void)
 							break;
 						case IT_CV_STRING:
 							/* TODO: WHY constantly check the size of a single char? */
-							V_DrawFill((currentMenu->x + currentMenu->width) -
-							           V_StringWidthA(VFONT_SMALL, 0, cv->string) - (i == itemOn ? USSizeW : 0) - 1,
-							           y - 1, V_StringWidthA(VFONT_SMALL, 0, cv->string) + (i == itemOn ? USSizeW : 0) + 2, USSizeH + 2, 0);
+							V_DrawColorBoxEx(
+								0, 0,
+								(currentMenu->x + currentMenu->width) -
+							    V_StringWidthA(VFONT_SMALL, 0, cv->string) - (i == itemOn ? USSizeW : 0) - 1,
+							    y - 1,
+							    (V_StringWidthA(VFONT_SMALL, 0, cv->string) + (i == itemOn ? USSizeW : 0) + 2) + ((currentMenu->x + currentMenu->width) -
+							    V_StringWidthA(VFONT_SMALL, 0, cv->string) - (i == itemOn ? USSizeW : 0) - 1),
+							    (y - 1) + (USSizeH + 2));
 							V_DrawStringA(VFONT_SMALL, VEX_MAP_BRIGHTWHITE, cv->string,
 							              V_StringWidthA(VFONT_SMALL, 0, cv->string) - (i == itemOn ? USSizeW : 0), y);
 							if (skullAnimCounter < 4 && i == itemOn)

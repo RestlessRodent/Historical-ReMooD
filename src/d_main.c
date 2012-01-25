@@ -365,7 +365,7 @@ void D_Display(void)
 						memcpy(ylookup, ylookup1, viewheight * sizeof(ylookup[0]));
 					}
 					else
-						V_DrawScreenFill(0, vid.height >> 1, vid.width, vid.height >> 1, 0);
+						V_DrawColorBoxEx(VEX_NOSCALESTART | VEX_NOSCALESCREEN, 0, 0, vid.height >> 1, vid.width, vid.height);
 				case 0:
 					if (players[displayplayer[0]].mo)
 					{
@@ -393,8 +393,12 @@ void D_Display(void)
 							viewwindowy = 0;
 						}
 						else
-							V_DrawScreenFill(((i == 1 || i == 3) ? vid.width >> 1 : 0),
-							                 ((i == 2 || i == 3) ? vid.height >> 1 : 0), vid.width >> 1, vid.height >> 1, 0);
+							V_DrawColorBoxEx(VEX_NOSCALESTART | VEX_NOSCALESCREEN, 0,
+									((i == 1 || i == 3) ? vid.width >> 1 : 0),
+							        ((i == 2 || i == 3) ? vid.height >> 1 : 0),
+							        (((i == 1 || i == 3) ? vid.width >> 1 : 0)) + (vid.width >> 1),
+							        ( ((i == 2 || i == 3) ? vid.height >> 1 : 0)) + (vid.height >> 1)
+								);
 					}
 					break;
 			}

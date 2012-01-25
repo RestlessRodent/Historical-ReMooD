@@ -99,32 +99,11 @@ void V_CopyRectTrans(int srcx, int srcy, int srcscrn, int width, int height, int
 // Draw a linear block of pixels into the view buffer.
 void V_DrawBlock(int x, int y, int scrn, int width, int height, uint8_t* src);
 
-// Reads a linear block of pixels into the view buffer.
-void V_GetBlock(int x, int y, int scrn, int width, int height, uint8_t* dest);
-
-// draw a pic_t, SCALED
-void V_DrawScalePic(int x1, int y1, int scrn, int lumpnum /*pic_t*        pic */ );
-void V_BlitScalePicExtern(int x1, int y1, int scrn, pic_t* pic);
-
-void V_DrawRawScreen(int x, int y, int lumpnum, int width, int height);
-
-void V_MarkRect(int x, int y, int width, int height);
-
-//added:05-02-98: fill a box with a single color
-void V_DrawFill(int x, int y, int w, int h, int c);
-void V_DrawScreenFill(int x, int y, int w, int h, int c);
-
 //added:06-02-98: fill a box with a flat as a pattern
 void V_DrawFlatFill(int x, int y, int w, int h, int flatnum);
 
 //added:10-02-98: fade down the screen buffer before drawing the menu over
 void V_DrawFadeScreen(void);
-
-//added:12-02-98:
-void V_DrawTiltView(uint8_t* viewbuffer);
-
-//added:05-04-98: test persp. correction !!
-void V_DrawPerspView(uint8_t* viewbuffer, int aiming);
 
 void VID_BlitLinearScreen(uint8_t* srcptr, uint8_t* destptr, int width, int height, int srcrowbytes, int destrowbytes);
 
@@ -247,8 +226,6 @@ void V_DrawScaledPatch(const int x, const int y, const int scrn, const patch_t* 
 void V_DrawTransPatch(const int x, const int y, const int scrn, const patch_t* const patch);
 void V_DrawTranslucentPatch(const int x, const int y, const int scrn, const patch_t* const patch);
 void V_DrawFadeScreen(void);
-void V_DrawFill(int x, int y, int w, int h, int c);
-void V_DrawScreenFill(int x, int y, int w, int h, int c);
 void V_DrawFadeConsBack(int x1, int y1, int x2, int y2);
 
 /**************

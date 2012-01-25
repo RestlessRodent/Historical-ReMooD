@@ -422,7 +422,6 @@ static patch_t** lnames;
 static void WI_slamBackground(void)
 {
 	memcpy(screens[0], screens[1], vid.width * vid.height);
-	V_MarkRect(0, 0, vid.width, vid.height);
 }
 
 // The ticker is used to detect keys
@@ -930,7 +929,7 @@ void WI_drawRancking(char* title, int x, int y, fragsort_t* fragtable, int score
 			color = *((uint8_t*)colormaps + colornum);
 		else
 			color = *((uint8_t*)translationtables - 256 + (color << 8) + colornum);
-		V_DrawFill(x - 1, y - 1, large ? 40 : 26, 9, color);
+		V_DrawColorBoxEx(0, color, x - 1, y - 1, (x - 1) + (large ? 40 : 26), (y - 1) + 9);
 		
 		// draw frags count
 		sprintf(num, "%3i", frags);

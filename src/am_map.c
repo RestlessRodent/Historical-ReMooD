@@ -300,8 +300,6 @@ static uint8_t REDKEYCOLOR;
 typedef void (*AMDRAWFLINEFUNC) (fline_t* fl, int color);
 static AMDRAWFLINEFUNC AM_drawFline;
 
-void V_MarkRect(int x, int y, int width, int height);
-
 void AM_drawFline_soft(fline_t* fl, int color);
 
 // Calculates the slope and slope according to the x-axis of a line
@@ -1465,7 +1463,4 @@ void AM_Drawer(void)
 		
 		V_DrawStringA(VFONT_SMALL, 0, P_LevelName(), 20, y - V_StringHeightA(VFONT_SMALL, 0, P_LevelName()));
 	}
-	
-	V_MarkRect(f_x, f_y, f_w, f_h);
-	
 }
