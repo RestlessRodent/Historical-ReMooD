@@ -32,6 +32,8 @@
 #ifndef __COMMAND_H__
 #define __COMMAND_H__
 
+#warning Inclusion of command.h is deprecated.
+
 #include <stdio.h>
 #include "doomtype.h"
 
