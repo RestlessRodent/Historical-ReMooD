@@ -105,7 +105,7 @@ struct CONL_ConVariable_s
 /*** VARIABLES ***/
 
 // g_CVPVClamp -- Clamped Integer
-static const CONL_VarPossibleValue_t c_CVPVClamp[] =
+const CONL_VarPossibleValue_t c_CVPVClamp[] =
 {
 	// End
 	{0, "MINVAL"},
@@ -115,7 +115,7 @@ static const CONL_VarPossibleValue_t c_CVPVClamp[] =
 
 
 // g_CVPVInteger -- Signed Integer
-static const CONL_VarPossibleValue_t c_CVPVInteger[] =
+const CONL_VarPossibleValue_t c_CVPVInteger[] =
 {
 	// End
 	{-32767, "MINVAL"},
@@ -125,7 +125,7 @@ static const CONL_VarPossibleValue_t c_CVPVInteger[] =
 
 
 // g_CVPVPositive -- Positive Integer
-static const CONL_VarPossibleValue_t c_CVPVPositive[] =
+const CONL_VarPossibleValue_t c_CVPVPositive[] =
 {
 	// End
 	{0, "MINVAL"},
@@ -135,7 +135,7 @@ static const CONL_VarPossibleValue_t c_CVPVPositive[] =
 
 
 // g_CVPVNegative -- Negative Integer
-static const CONL_VarPossibleValue_t c_CVPVNegative[] =
+const CONL_VarPossibleValue_t c_CVPVNegative[] =
 {
 	// End
 	{-32767, "MINVAL"},
@@ -145,7 +145,7 @@ static const CONL_VarPossibleValue_t c_CVPVNegative[] =
 
 
 // g_CVPVBoolean -- Boolean
-static const CONL_VarPossibleValue_t c_CVPVBoolean[] =
+const CONL_VarPossibleValue_t c_CVPVBoolean[] =
 {
 	// False
 	{0, "no"},
@@ -170,12 +170,6 @@ static const CONL_VarPossibleValue_t c_CVPVBoolean[] =
 /*** COMMANDS ***/
 
 /*** VARIABLES ***/
-
-const CONL_VarPossibleValue_t* const g_CVPVClamp = c_CVPVClamp;
-const CONL_VarPossibleValue_t* const g_CVPVInteger = c_CVPVInteger;
-const CONL_VarPossibleValue_t* const g_CVPVPositive = c_CVPVPositive;
-const CONL_VarPossibleValue_t* const g_CVPVNegative = c_CVPVNegative;
-const CONL_VarPossibleValue_t* const g_CVPVBoolean = c_CVPVBoolean;
 
 /*************
 *** LOCALS ***

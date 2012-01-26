@@ -125,6 +125,18 @@ static CONL_PlayerMessage_t l_CONLMessageQ[MAXSPLITSCREENPLAYERS][MAXCONLPLAYERM
 static uint32_t l_CONLLineOff = 0;	// Line offset
 static CONCTI_Inputter_t* l_CONLInputter = NULL;	// Console inputter
 
+// Variables
+#if !defined(__REMOOD_DEDICATED)
+
+CONL_StaticVar_t l_CONScreenHeight =			// Console height
+{
+	CLVT_FIXED, c_CVPVClamp, CLVF_SAVE,
+	"con_screenheight", DSTR_CVHINT_CONSCREENHEIGHT, "0.5",
+	NULL
+};
+
+#endif
+
 /****************
 *** FUNCTIONS ***
 ****************/
@@ -906,7 +918,7 @@ bool_t CONL_Init(const uint32_t a_OutBS, const uint32_t a_InBS)
 #if !defined(__REMOOD_DEDICATED)
 	if (!g_DedicatedServer)
 	{
-		
+		CONL_VarRegister(&l_CONScreenHeight);
 	}
 #endif
 	
@@ -1405,7 +1417,14 @@ bool_t CONL_DrawConsole(void)
 		else
 		{
 			// Height of console is...
-			conH = (vid.height >> 1);
+			if (l_CONScreenHeight.Value)
+				conH = FixedMul(l_CONScreenHeight.Value->Fixed, vid.height << FRACBITS) >> FRACBITS;
+			else
+				conH = (vid.height >> 1);
+			
+			// Too small?
+			if (conH <= (vid.height >> 3))
+				conH = vid.height >> 3;
 			
 			// Draw box
 			V_DrawFadeConsBackEx(VEX_COLORMAP(VEX_MAP_RED) | VEX_NOSCALESTART | VEX_NOSCALESCREEN, 0, 0, vid.width, conH);
@@ -1413,6 +1432,10 @@ bool_t CONL_DrawConsole(void)
 		
 		// Determine line count
 		NumLines = conH / bh;
+		
+		// No lines to draw?
+		if (NumLines < 1)
+			NumLines = 1;
 		
 		// Draw every line
 		DrawCount = 0;

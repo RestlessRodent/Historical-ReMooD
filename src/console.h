@@ -182,6 +182,7 @@ struct CONL_StaticVar_s
 	const CONL_VarPossibleValue_t* Possible;	// Possible Value
 	uint32_t Flags;								// Flags for variable
 	const char* const VarName;					// Variable Name
+	UnicodeStringID_t HintString;				// String used for hint
 	const char* const DefaultValue;				// Default Value
 	CONL_ConVarBackFunc_t ChangeFunc;			// Function to call when changed
 	
@@ -196,11 +197,11 @@ struct CONL_StaticVar_s
 *** GLOBALS ***
 **************/
 
-extern const CONL_VarPossibleValue_t* const g_CVPVClamp;
-extern const CONL_VarPossibleValue_t* const g_CVPVInteger;
-extern const CONL_VarPossibleValue_t* const g_CVPVPositive;
-extern const CONL_VarPossibleValue_t* const g_CVPVNegative;
-extern const CONL_VarPossibleValue_t* const g_CVPVBoolean;
+extern const CONL_VarPossibleValue_t c_CVPVClamp[];
+extern const CONL_VarPossibleValue_t c_CVPVInteger[];
+extern const CONL_VarPossibleValue_t c_CVPVPositive[];
+extern const CONL_VarPossibleValue_t c_CVPVNegative[];
+extern const CONL_VarPossibleValue_t c_CVPVBoolean[];
 
 /*****************
 *** PROTOTYPES ***

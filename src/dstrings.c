@@ -833,7 +833,6 @@ char savegamename[256];
 
 StringGroupEX_t UnicodeStrings[NUMUNICODESTRINGS] =
 {
-
 	/****** MENUS ******/
 	{"MENU_NULLSPACE", " "},
 	{"MENU_MAIN_NEWGAME", "New Game"},
@@ -1095,6 +1094,10 @@ StringGroupEX_t UnicodeStrings[NUMUNICODESTRINGS] =
 	{"INTERMISSION_PAR", "Par"},
 	{"INTERMISSION_NETTIME", "Time"},
 	{"INTERMISSION_NETPAR", "Par"},
+	
+	/*** CONSOLE VARIABLE HINTS ***/
+	{                   "CVHINT_CONSCREENHEIGHT", "Height of the console screen."},
+	
 };
 
 /* DS_NameOfString() -- Returns name of pointer to string */
