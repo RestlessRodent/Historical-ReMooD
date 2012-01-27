@@ -160,6 +160,14 @@ CONL_StaticVar_t l_CONMonoSpace =
 	NULL
 };
 
+// con_scale -- Scale the console text
+CONL_StaticVar_t l_CONScale =
+{
+	CLVT_INTEGER, c_CVPVBoolean, CLVF_SAVE,
+	"con_scale", DSTR_CVHINT_CONSCALE, CLVVT_STRING, "false",
+	NULL
+};
+
 #endif
 
 /****************
@@ -950,6 +958,7 @@ bool_t CONL_Init(const uint32_t a_OutBS, const uint32_t a_InBS)
 		CONL_VarRegister(&l_CONBackColor);
 		CONL_VarRegister(&l_CONFont);
 		CONL_VarRegister(&l_CONMonoSpace);
+		CONL_VarRegister(&l_CONScale);
 	}
 #endif
 	
@@ -1394,7 +1403,7 @@ bool_t CONL_DrawConsole(void)
 	bool_t FullCon;
 	size_t i, n, j, k, l, BSkip;
 	int32_t NumLines, Limit;
-	uint32_t bx, x, by, y, bw, bh, Options, conX, conY, conW, conH, DrawCount, DefaultOptions, BackFlags;
+	uint32_t bx, x, by, y, bw, bh, Options, conX, conY, conW, conH, DrawCount, DefaultOptions, BackFlags, ScaleConH, ScaleBH;
 	const char* p;
 	char TempFill[6];
 	CONL_BasicBuffer_t* Out;
@@ -1419,14 +1428,24 @@ bool_t CONL_DrawConsole(void)
 		// Console x and y
 		conX = CONLPADDING;
 		conY = CONLPADDING;
-		conW = vid.width - (CONLPADDING * 2);
+		
+		// Scale the console?
+		if (l_CONScale.Value[0].Int)
+			conW = BASEVIDWIDTH;
+		
+		// Not scaled
+		else
+			conW = vid.width - (CONLPADDING * 2);
 		
 		// Get character dimensions
 		bw = V_FontWidth(l_CONFont.Value[0].Int);
 		bh = V_FontHeight(l_CONFont.Value[0].Int);
 		
 		// Default background draw flags
-		BackFlags = VEX_COLORMAP(l_CONBackColor.Value[0].Int) | VEX_NOSCALESTART | VEX_NOSCALESCREEN;
+		BackFlags = VEX_COLORMAP(l_CONBackColor.Value[0].Int);
+		
+		if (!l_CONScale.Value[0].Int)
+			BackFlags |= VEX_NOSCALESTART | VEX_NOSCALESCREEN;
 		
 		// Draw back picture and determines lines to draw
 		if (FullCon)
@@ -1450,15 +1469,33 @@ bool_t CONL_DrawConsole(void)
 		
 		else
 		{
-			// Height of console is...
-			if (l_CONScreenHeight.Value)
-				conH = FixedMul(l_CONScreenHeight.Value->Fixed, vid.height << FRACBITS) >> FRACBITS;
-			else
-				conH = (vid.height >> 1);
+			// Scaled
+			if (l_CONScale.Value[0].Int)
+			{
+				// Height of console is...
+				if (l_CONScreenHeight.Value)
+					conH = FixedMul(l_CONScreenHeight.Value->Fixed, BASEVIDHEIGHT << FRACBITS) >> FRACBITS;
+				else
+					conH = (BASEVIDHEIGHT >> 1);
 			
-			// Too small?
-			if (conH <= (vid.height >> 3))
-				conH = vid.height >> 3;
+				// Too small?
+				if (conH <= (BASEVIDHEIGHT >> 3))
+					conH = BASEVIDHEIGHT >> 3;
+			}
+			
+			// Un-Scaled
+			else
+			{
+				// Height of console is...
+				if (l_CONScreenHeight.Value)
+					conH = FixedMul(l_CONScreenHeight.Value->Fixed, vid.height << FRACBITS) >> FRACBITS;
+				else
+					conH = (vid.height >> 1);
+			
+				// Too small?
+				if (conH <= (vid.height >> 3))
+					conH = vid.height >> 3;
+			}
 			
 			// Draw box
 			V_DrawFadeConsBackEx(BackFlags, 0, 0, vid.width, conH);
@@ -1532,8 +1569,13 @@ bool_t CONL_DrawConsole(void)
 			x = conX;
 			p = Out->Lines[j];
 			
+			// Scale the console?
+			if (!l_CONScale.Value[0].Int)
+				Options = VFO_NOSCALEPATCH | VFO_NOSCALESTART | VFO_NOSCALELORES;
+			else
+				Options = 0;
+			
 			// Draw each character
-			Options = VFO_NOSCALEPATCH | VFO_NOSCALESTART | VFO_NOSCALELORES;
 			while (*p && *p != '\n' && x < conW && y > conY)
 			{
 				// Reget n
@@ -1610,12 +1652,17 @@ bool_t CONL_DrawConsole(void)
 		{
 			y = conH - bh - CONLPADDING;
 			x = conX;
-			Options = VFO_COLOR(VEX_MAP_GREEN) | VFO_NOSCALEPATCH | VFO_NOSCALESTART | VFO_NOSCALELORES;
+			Options = 0;
+			
+			// Scale the console?
+			if (!l_CONScale.Value[0].Int)
+				Options |= VFO_NOSCALEPATCH | VFO_NOSCALESTART | VFO_NOSCALELORES;
 			
 			// Draw command prompt
-			x += V_DrawStringA(l_CONFont.Value[0].Int, VFO_COLOR(VEX_MAP_BRIGHTWHITE) | VFO_NOSCALEPATCH | VFO_NOSCALESTART | VFO_NOSCALELORES, "#>", x, y);
+			x += V_DrawStringA(l_CONFont.Value[0].Int, VFO_COLOR(VEX_MAP_BRIGHTWHITE) | Options, "#>", x, y);
 			
 			// Draw input buffer
+			Options |= VFO_COLOR(VEX_MAP_GREEN);
 			l_CONLInputter->Font = l_CONFont.Value[0].Int;
 			x += CONCTI_DrawInput(l_CONLInputter, Options, x, y, vid.width);
 		}
@@ -1627,15 +1674,20 @@ bool_t CONL_DrawConsole(void)
 			by = conH / Out->CountLine;
 			bw = conH - 1;
 			bh = bw - (by * l_CONLLineOff);
+			Options = 0;
+			
+			// Scale the console?
+			if (!l_CONScale.Value[0].Int)
+				Options |= VEX_NOSCALESTART | VEX_NOSCALESCREEN;
 			
 			// Draw skipped lines (from bottom)
-			V_DrawColorBoxEx(VEX_COLORMAP(VEX_MAP_BLACK) | VEX_NOSCALESTART | VEX_NOSCALESCREEN, CONLSCROLLBACK, 1, bw, CONLPADDING - 1, bh);
+			V_DrawColorBoxEx(VEX_COLORMAP(VEX_MAP_BLACK) | Options, CONLSCROLLBACK, 1, bw, CONLPADDING - 1, bh);
 			
 			// Draw lines being seen (in current view)
 			bw = bh;
 			bh = bw - (by * (DrawCount < NumLines ? DrawCount : NumLines));
 			
-			V_DrawColorBoxEx(VEX_COLORMAP(VEX_MAP_WHITE) | VEX_NOSCALESTART | VEX_NOSCALESCREEN, CONLSCROLLFORE, 1, bw, CONLPADDING - 1, bh);
+			V_DrawColorBoxEx(VEX_COLORMAP(VEX_MAP_WHITE) | Options, CONLSCROLLFORE, 1, bw, CONLPADDING - 1, bh);
 			
 			// Draw lines you should see but you cant
 			bw = bh;
@@ -1645,13 +1697,13 @@ bool_t CONL_DrawConsole(void)
 			if (bh < 1)
 				bh = 1;
 				
-			V_DrawColorBoxEx(VEX_COLORMAP(VEX_MAP_GRAY) | VEX_NOSCALESTART | VEX_NOSCALESCREEN, CONLSCROLLMISS, 1, bw, CONLPADDING - 1, bh);
+			V_DrawColorBoxEx(VEX_COLORMAP(VEX_MAP_GRAY) | Options, CONLSCROLLMISS, 1, bw, CONLPADDING - 1, bh);
 			
 			// Draw remaining black
 			bw = bh;
 			bh = 1;
 			
-			V_DrawColorBoxEx(VEX_COLORMAP(VEX_MAP_BLACK) | VEX_NOSCALESTART | VEX_NOSCALESCREEN, CONLSCROLLBACK, 1, bw, CONLPADDING - 1, bh);
+			V_DrawColorBoxEx(VEX_COLORMAP(VEX_MAP_BLACK) | Options, CONLSCROLLBACK, 1, bw, CONLPADDING - 1, bh);
 		}
 	}
 	

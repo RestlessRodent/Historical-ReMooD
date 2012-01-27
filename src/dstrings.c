@@ -1100,6 +1100,7 @@ StringGroupEX_t UnicodeStrings[NUMUNICODESTRINGS] =
 	{                      "CVHINT_CONBACKCOLOR", "Background color of the console."},
 	{                           "CVHINT_CONFONT", "Font to draw the console with."},
 	{                      "CVHINT_CONMONOSPACE", "Draw the console font as monospaced."},
+	{                          "CVHINT_CONSCALE", "Scales the text of the console (high resolution)."},
 };
 
 /* DS_NameOfString() -- Returns name of pointer to string */

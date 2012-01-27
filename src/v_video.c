@@ -3881,7 +3881,7 @@ void V_ImageDrawScaled(const uint32_t a_Flags, V_Image_t* const a_Image, const i
 	// Off the top of the screen
 	if (y < 0)
 	{
-		xh -= y << FRACBITS;
+		xh += y << FRACBITS;	// Add because it is negative
 		tY = FixedMul(xh, a_YScale) >> FRACBITS;
 		y = 0;
 	}
@@ -3889,7 +3889,7 @@ void V_ImageDrawScaled(const uint32_t a_Flags, V_Image_t* const a_Image, const i
 	// Off the left of the screen
 	if (x < 0)
 	{
-		xw -= x << FRACBITS;
+		xw += x << FRACBITS;	// Add because it is negative
 		tW = FixedMul(xw, a_XScale) >> FRACBITS;
 		x = 0;
 	}
