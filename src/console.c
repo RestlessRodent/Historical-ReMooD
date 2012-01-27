@@ -128,10 +128,35 @@ static CONCTI_Inputter_t* l_CONLInputter = NULL;	// Console inputter
 // Variables
 #if !defined(__REMOOD_DEDICATED)
 
-CONL_StaticVar_t l_CONScreenHeight =			// Console height
+// con_screenheight -- Height of the console
+CONL_StaticVar_t l_CONScreenHeight =
 {
 	CLVT_FIXED, c_CVPVClamp, CLVF_SAVE,
-	"con_screenheight", DSTR_CVHINT_CONSCREENHEIGHT, "0.5",
+	"con_screenheight", DSTR_CVHINT_CONSCREENHEIGHT, CLVVT_PERCENT, "0.5",
+	NULL
+};
+
+// con_backcolor -- Background color of the console
+CONL_StaticVar_t l_CONBackColor =
+{
+	CLVT_INTEGER, c_CVPVVexColor, CLVF_SAVE,
+	"con_backcolor", DSTR_CVHINT_CONBACKCOLOR, CLVVT_STRING, "Red",
+	NULL
+};
+
+// con_font -- Console Font
+CONL_StaticVar_t l_CONFont =
+{
+	CLVT_INTEGER, c_CVPVFont, CLVF_SAVE,
+	"con_font", DSTR_CVHINT_CONFONT, CLVVT_STRING, "OEM",
+	NULL
+};
+
+// con_monospace -- Draw as monospaced
+CONL_StaticVar_t l_CONMonoSpace =
+{
+	CLVT_INTEGER, c_CVPVBoolean, CLVF_SAVE,
+	"con_monospace", DSTR_CVHINT_CONMONOSPACE, CLVVT_STRING, "true",
 	NULL
 };
 
@@ -169,7 +194,10 @@ CONCTI_Inputter_t* CONCTI_CreateInput(const size_t a_NumHistory, const CONCTI_Ou
 	New->NumHistory = a_NumHistory;
 	if (New->NumHistory)
 		New->History = Z_Malloc(sizeof(*New->History) * New->NumHistory, PU_STATIC, NULL);
-		
+	
+	// Default font is OEM
+	New->Font = VFONT_OEM;
+	
 	return New;
 #endif /* __REMOOD_DEDICATED */
 }
@@ -557,11 +585,11 @@ int32_t CONCTI_DrawInput(CONCTI_Inputter_t* const a_Input, const uint32_t a_Opti
 		}
 		
 		// Draw it
-		x += V_DrawCharacterMB(CONLCONSOLEFONT, Options, (MBRover->EnableVirtual ? MBRover->VirtualMB : MBRover->MB), x, a_y, NULL, &Options);
+		x += V_DrawCharacterMB(a_Input->Font, Options, (MBRover->EnableVirtual ? MBRover->VirtualMB : MBRover->MB), x, a_y, NULL, &Options);
 		
 		// If a virtual character was drawn here, then replace it with a ?
 		if (MBRover->EnableVirtual)
-			x += V_DrawCharacterMB(CONLCONSOLEFONT, Options, "?", x, a_y, NULL, &Options);
+			x += V_DrawCharacterMB(a_Input->Font, Options, "?", x, a_y, NULL, &Options);
 		
 		// If no color/trans is set, set default
 		if (DefaultOptions)
@@ -583,7 +611,7 @@ int32_t CONCTI_DrawInput(CONCTI_Inputter_t* const a_Input, const uint32_t a_Opti
 	Options |= VFO_COLOR(VEX_MAP_BRIGHTWHITE);
 	
 	if ((gametic >> 4) & 1)
-		V_DrawCharacterA(CONLCONSOLEFONT, Options, (a_Input->Overwrite ? 0x7F : '_'), bx, a_y);
+		V_DrawCharacterA(a_Input->Font, Options, (a_Input->Overwrite ? 0x7F : '_'), bx, a_y);
 		
 #endif /* __REMOOD_DEDICATED */
 }
@@ -919,6 +947,9 @@ bool_t CONL_Init(const uint32_t a_OutBS, const uint32_t a_InBS)
 	if (!g_DedicatedServer)
 	{
 		CONL_VarRegister(&l_CONScreenHeight);
+		CONL_VarRegister(&l_CONBackColor);
+		CONL_VarRegister(&l_CONFont);
+		CONL_VarRegister(&l_CONMonoSpace);
 	}
 #endif
 	
@@ -1363,7 +1394,7 @@ bool_t CONL_DrawConsole(void)
 	bool_t FullCon;
 	size_t i, n, j, k, l, BSkip;
 	int32_t NumLines, Limit;
-	uint32_t bx, x, by, y, bw, bh, Options, conX, conY, conW, conH, DrawCount, DefaultOptions;
+	uint32_t bx, x, by, y, bw, bh, Options, conX, conY, conW, conH, DrawCount, DefaultOptions, BackFlags;
 	const char* p;
 	char TempFill[6];
 	CONL_BasicBuffer_t* Out;
@@ -1391,8 +1422,11 @@ bool_t CONL_DrawConsole(void)
 		conW = vid.width - (CONLPADDING * 2);
 		
 		// Get character dimensions
-		bw = V_FontWidth(CONLCONSOLEFONT);
-		bh = V_FontHeight(CONLCONSOLEFONT);
+		bw = V_FontWidth(l_CONFont.Value[0].Int);
+		bh = V_FontHeight(l_CONFont.Value[0].Int);
+		
+		// Default background draw flags
+		BackFlags = VEX_COLORMAP(l_CONBackColor.Value[0].Int) | VEX_NOSCALESTART | VEX_NOSCALESCREEN;
 		
 		// Draw back picture and determines lines to draw
 		if (FullCon)
@@ -1427,7 +1461,7 @@ bool_t CONL_DrawConsole(void)
 				conH = vid.height >> 3;
 			
 			// Draw box
-			V_DrawFadeConsBackEx(VEX_COLORMAP(VEX_MAP_RED) | VEX_NOSCALESTART | VEX_NOSCALESCREEN, 0, 0, vid.width, conH);
+			V_DrawFadeConsBackEx(BackFlags, 0, 0, vid.width, conH);
 		}
 		
 		// Determine line count
@@ -1530,7 +1564,7 @@ bool_t CONL_DrawConsole(void)
 				
 				// Non console special control (Legacy)
 				else if (*p > 7)
-					bx = V_DrawCharacterMB(CONLCONSOLEFONT, Options, TempFill, x, y, &BSkip, &Options);
+					bx = V_DrawCharacterMB(l_CONFont.Value[0].Int, Options, TempFill, x, y, &BSkip, &Options);
 					
 				// Normal character
 				else
@@ -1539,8 +1573,16 @@ bool_t CONL_DrawConsole(void)
 					BSkip = 1;
 				}
 				
-				if (bx)			// Some characters may return zero
-					x += bw;	// Monospaced instead of variable
+				// Draw using monospace text
+				if (l_CONMonoSpace.Value[0].Int)
+				{
+					if (bx)			// Some characters may return zero
+						x += bw;	// Monospaced instead of variable
+				}
+				
+				// Otherwise, variable width
+				else
+					x += bx;
 				
 				n = (n + BSkip) & Out->MaskPos;
 				p = &Out->Buffer[n];
@@ -1571,8 +1613,10 @@ bool_t CONL_DrawConsole(void)
 			Options = VFO_COLOR(VEX_MAP_GREEN) | VFO_NOSCALEPATCH | VFO_NOSCALESTART | VFO_NOSCALELORES;
 			
 			// Draw command prompt
-			x += V_DrawStringA(CONLCONSOLEFONT, VFO_COLOR(VEX_MAP_BRIGHTWHITE) | VFO_NOSCALEPATCH | VFO_NOSCALESTART | VFO_NOSCALELORES, "#>", x, y);
+			x += V_DrawStringA(l_CONFont.Value[0].Int, VFO_COLOR(VEX_MAP_BRIGHTWHITE) | VFO_NOSCALEPATCH | VFO_NOSCALESTART | VFO_NOSCALELORES, "#>", x, y);
+			
 			// Draw input buffer
+			l_CONLInputter->Font = l_CONFont.Value[0].Int;
 			x += CONCTI_DrawInput(l_CONLInputter, Options, x, y, vid.width);
 		}
 		

@@ -115,6 +115,18 @@ typedef enum CONL_VariableFlags_e
 												// That is, any set affects state
 } CONL_VariableFlags_t;
 
+/* CONL_VariableVisibleType_t -- How to show the variable (in the menu) */
+typedef enum CONL_VariableVisibleType_e
+{
+	CLVVT_STRING,								// Show: "Hello World"
+	CLVVT_INTEGER,								// Show: "12"
+	CLVVT_FIXED,								// Show: "12.34"
+	CLVVT_PERCENT,								// Show: "34%"
+	CLVVT_BAR,									// Show: [======|===]
+	
+	MAXCONLVARIABLEVISIBLETYPES
+} CONL_VariableVisibleType_t;
+
 /*****************
 *** STRUCTURES ***
 *****************/
@@ -140,6 +152,7 @@ typedef struct CONCTI_Inputter_s
 	int32_t CursorPos;							// Cursor position
 	int32_t NumMBs;								// Number of multibytes
 	bool_t Overwrite;							// Overwrite character
+	VideoFont_t Font;							// Font to use when drawing
 	
 	char** History;								// Remembered strings
 	size_t NumHistory;							// Amount of history to preserve
@@ -183,6 +196,7 @@ struct CONL_StaticVar_s
 	uint32_t Flags;								// Flags for variable
 	const char* const VarName;					// Variable Name
 	UnicodeStringID_t HintString;				// String used for hint
+	CONL_VariableVisibleType_t ShowAs;			// Kind to show as
 	const char* const DefaultValue;				// Default Value
 	CONL_ConVarBackFunc_t ChangeFunc;			// Function to call when changed
 	
@@ -202,6 +216,8 @@ extern const CONL_VarPossibleValue_t c_CVPVInteger[];
 extern const CONL_VarPossibleValue_t c_CVPVPositive[];
 extern const CONL_VarPossibleValue_t c_CVPVNegative[];
 extern const CONL_VarPossibleValue_t c_CVPVBoolean[];
+extern const CONL_VarPossibleValue_t c_CVPVVexColor[];
+extern const CONL_VarPossibleValue_t c_CVPVFont[];
 
 /*****************
 *** PROTOTYPES ***

@@ -1096,8 +1096,10 @@ StringGroupEX_t UnicodeStrings[NUMUNICODESTRINGS] =
 	{"INTERMISSION_NETPAR", "Par"},
 	
 	/*** CONSOLE VARIABLE HINTS ***/
-	{                   "CVHINT_CONSCREENHEIGHT", "Height of the console screen."},
-	
+	{                   "CVHINT_CONSCREENHEIGHT", "Height of the console."},
+	{                      "CVHINT_CONBACKCOLOR", "Background color of the console."},
+	{                           "CVHINT_CONFONT", "Font to draw the console with."},
+	{                      "CVHINT_CONMONOSPACE", "Draw the console font as monospaced."},
 };
 
 /* DS_NameOfString() -- Returns name of pointer to string */

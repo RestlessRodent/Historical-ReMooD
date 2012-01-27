@@ -163,6 +163,56 @@ const CONL_VarPossibleValue_t c_CVPVBoolean[] =
 	{0, NULL},
 };
 
+// c_CVPVVexColor -- VEX_MAP_ Color
+const CONL_VarPossibleValue_t c_CVPVVexColor[] =
+{
+	{0, "None"},								// VEX_MAP_NONE
+	{1, "Red"},									// VEX_MAP_RED
+	{2, "Orange"},								// VEX_MAP_ORANGE
+	{3, "Yellow"},								// VEX_MAP_YELLOW
+	{4, "Green"},								// VEX_MAP_GREEN
+	{5, "Cyan"},								// VEX_MAP_CYAN
+	{6, "Blue"},								// VEX_MAP_BLUE
+	{7, "Magenta"},								// VEX_MAP_MAGENTA
+	{8, "Brown"},								// VEX_MAP_BROWN
+	{9, "BrightWhite"},							// VEX_MAP_BRIGHTWHITE
+	{10, "White"},								// VEX_MAP_WHITE
+	{11, "Gray"},								// VEX_MAP_GRAY
+	{12, "Black"},								// VEX_MAP_BLACK
+	{13, "Fuscia"},								// VEX_MAP_FUSCIA
+	{14, "Gold"},								// VEX_MAP_GOLD
+	{15, "TekGreen"},							// VEX_MAP_TEKGREEN
+	
+	// End
+	{0, "MINVAL"},
+	{15, "MAXVAL"},
+	{0, NULL},
+};
+
+// c_CVPVFont -- A Font
+const CONL_VarPossibleValue_t c_CVPVFont[] =
+{
+	{0, "Small"},								// VFONT_SMALL
+	{1, "Large"},								// VFONT_LARGE
+	{2, "StatusBarSmall"},						// VFONT_STATUSBARSMALL
+	{3, "PrBoom"},								// VFONT_PRBOOMHUD
+	{4, "OEM"},									// VFONT_OEM
+	{5, "UserA"},								// VFONT_USERSPACEA
+	{6, "UserB"},								// VFONT_USERSPACEB
+	{7, "UserC"},								// VFONT_USERSPACEC
+	{8, "UserD"},								// VFONT_USERSPACED
+	{9, "DoomSmall"},							// VFONT_SMALL_DOOM
+	{10, "DoomLarge"},							// VFONT_LARGE_DOOM
+	{11, "HereticSmall"},						// VFONT_SMALL_HERETIC
+	{12, "HereticLarge"},						// VFONT_LARGE_HERETIC
+	{13, "StatusBarLarge"},						// VFONT_STATUSBARLARGE
+	
+	// End
+	{0, "MINVAL"},
+	{13, "MAXVAL"},
+	{0, NULL},
+};
+
 /**************
 *** GLOBALS ***
 **************/
@@ -414,6 +464,7 @@ CONL_ExitCode_t CONL_Exec(const uint32_t a_ArgC, const char** const a_ArgV)
 CONL_ConVariable_t* CONL_VarRegister(CONL_StaticVar_t* const a_StaticVar)
 {
 	CONL_ConVariable_t* NewVar;
+	CONL_VariableState_t vs;
 	
 	/* Check */
 	if (!a_StaticVar)
@@ -453,6 +504,11 @@ CONL_ConVariable_t* CONL_VarRegister(CONL_StaticVar_t* const a_StaticVar)
 			CONL_VarSetStr(NewVar->StaticLink, CLVS_NORMAL, NewVar->StaticLink->DefaultValue);
 		}
 		
+		// Set other states to no string
+		if (a_StaticVar->Flags & CLVF_TRIPLESTATE)
+			for (vs = CLVS_NORMAL + 1; vs < MAXCONLVARSTATES; vs++)
+				NewVar->Value[vs].String = Z_StrDup("", PU_STATIC, NULL);
+		
 		// Return the same variable
 		return NewVar;
 	}
@@ -462,6 +518,11 @@ CONL_ConVariable_t* CONL_VarRegister(CONL_StaticVar_t* const a_StaticVar)
 	
 	// Set with default value
 	CONL_VarSetStr(NewVar->StaticLink, CLVS_NORMAL, NewVar->StaticLink->DefaultValue);
+	
+	// Set other states to no string
+	if (a_StaticVar->Flags & CLVF_TRIPLESTATE)
+		for (vs = CLVS_NORMAL + 1; vs < MAXCONLVARSTATES; vs++)
+			NewVar->Value[vs].String = Z_StrDup("", PU_STATIC, NULL);
 	
 	/* Success */
 	return NewVar;
@@ -539,31 +600,210 @@ const char* CONL_VarSetStrByName(const char* const a_Var, const CONL_VariableSta
 /* CONL_VarSetStr() -- Sets variable value, and returns actual set value */
 const char* CONL_VarSetStr(CONL_StaticVar_t* a_Var, const CONL_VariableState_t a_State, const char* const a_NewVal)
 {
-	CONL_ConVariable_t* FoundVar;
+#define BUFSIZE 128
+	char Buf[BUFSIZE];
+	CONL_ConVariable_t* RealVar;
+	size_t PossibleNum;
+	bool_t GotPossible, Whole;
+	int32_t IntVal, MinVal, MaxVal;
+	double DblVal;
+	fixed_t FixVal;
+	const char* StoppedAt;
 	
 	/* Check */
 	if (!a_Var || a_State < 0 || a_State >= MAXCONLVARSTATES || !a_NewVal)
 		return NULL;
+	
+	/* Multi/Single State Collision? */
+	if (a_State != 0 && !(a_Var->Flags & CLVF_TRIPLESTATE))
+		return NULL;
+	
+	/* Get real variable */
+	RealVar = a_Var->RealLink;
+	
+	// None of that?
+	if (!RealVar)
+		return NULL;
+		
+	/* Free old string in this spot */
+	if (RealVar->Value[a_State].String)
+		Z_Free(RealVar->Value[a_State].String);
+	RealVar->Value[a_State].String = NULL;
+	
+	/* Variable is a string */
+	if (a_Var->Type == CLVT_STRING)
+	{
+		// Set string (a copy)
+		RealVar->Value[a_State].String = Z_StrDup(a_NewVal, PU_STATIC, NULL);
+	}
+	
+	/* Variable is a number type */
+	else
+	{
+		// Set whole to true, will be reset later
+		Whole = true;
+		
+		// Convert string to integer (using strtol() to detect errors)
+		IntVal = strtol(a_NewVal, &StoppedAt, 10);
+		
+		// No numbers?
+		if (a_Var->Type == CLVT_INTEGER)
+			if (StoppedAt == a_NewVal || (*StoppedAt != '\n' && *StoppedAt != '\0' && !isspace(*StoppedAt)))
+			{
+				IntVal = 0;
+				Whole = false;
+			}
+		
+		// Convert to double
+		DblVal = atof(a_NewVal);
+		
+		// Other Stuff
+		FixVal = FLOAT_TO_FIXED(DblVal);
+		MinVal = MaxVal = 0;
+		Whole = !Whole;
+		
+		// Whole number? Only if converted successfully
+		if (!Whole)
+		{
+			// Flip back
+			Whole = false;
+			
+			// Check
+			if (a_Var->Type == CLVT_INTEGER)
+				Whole = true;
+			else if (a_Var->Type == CLVT_FIXED)
+				if ((FixVal - ((FixVal >> FRACBITS) << FRACBITS)) == 0)
+					Whole = true;
+		}
+		
+		// Failed on conversion
+		else
+			Whole = false;
+	
+		// Look in possible array
+		for (GotPossible = false, PossibleNum = 0; a_Var->Possible[PossibleNum].StrAlias; PossibleNum++)
+		{
+			// String or number? match
+			if ((strcasecmp(a_NewVal, a_Var->Possible[PossibleNum].StrAlias) == 0) ||
+				(Whole && IntVal == a_Var->Possible[PossibleNum].IntVal))
+			{
+				GotPossible = true;
+				break;
+			}
+			
+			// Matches MINVAL?
+			if (strcasecmp("MINVAL", a_Var->Possible[PossibleNum].StrAlias) == 0)
+				MinVal = a_Var->Possible[PossibleNum].IntVal;
+			
+			// Matches MAXVAL?
+			if (strcasecmp("MAXVAL", a_Var->Possible[PossibleNum].StrAlias) == 0)
+				MaxVal = a_Var->Possible[PossibleNum].IntVal;
+		}
+		
+		// Found possible value
+		if (GotPossible)
+		{
+			// Set integer and fixed with the found possible value
+			RealVar->Value[a_State].Int = a_Var->Possible[PossibleNum].IntVal;
+			RealVar->Value[a_State].Fixed = RealVar->Value[a_State].Int << FRACBITS;
+			
+			// Set string to possible value that was found
+			RealVar->Value[a_State].String = Z_StrDup(a_Var->Possible[PossibleNum].StrAlias, PU_STATIC, NULL);
+		}
+		
+		// Not found, so cap to min/max
+		else
+		{
+			// Is an integer
+			if (a_Var->Type == CLVT_INTEGER)
+			{
+				// Capped?
+				if (IntVal < MinVal)
+					IntVal = MinVal;
+				else if (IntVal > MaxVal)
+					IntVal = MaxVal;
+				
+				// Set values
+				RealVar->Value[a_State].Int = IntVal;
+				RealVar->Value[a_State].Fixed = IntVal << FRACBITS;
+				
+				// Convert to string
+				snprintf(Buf, BUFSIZE, "%i", IntVal);
+				GotPossible = true;
+			}
+			
+			// Is a fixed
+			else if (a_Var->Type == CLVT_FIXED)
+			{
+				// Capped?
+				if (FLOAT_TO_FIXED(DblVal) < (MinVal << FRACBITS))
+					DblVal = (double)MinVal;
+				else if (FLOAT_TO_FIXED(DblVal) > (MaxVal << FRACBITS))
+					DblVal = (double)MaxVal;
+				
+				// Set values
+				RealVar->Value[a_State].Int = (int32_t)DblVal;
+				RealVar->Value[a_State].Fixed = FLOAT_TO_FIXED(DblVal);
+				
+				// Convert to string
+				snprintf(Buf, BUFSIZE, "%f", DblVal);
+				GotPossible = true;
+			}
+			
+			// Set string value
+			RealVar->Value[a_State].String = Z_StrDup((GotPossible ? Buf : ""), PU_STATIC, NULL);
+		}
+	}
+	
+	/* Return new value */
+	return a_Var->Value[a_State].String;
+#undef BUFSIZE
 }
 
 /* CONL_VarSetInt() -- Sets variable value, and returns actual set value */
 int32_t CONL_VarSetInt(CONL_StaticVar_t* a_Var, const CONL_VariableState_t a_State, const int32_t a_NewVal)
 {
-	CONL_ConVariable_t* FoundVar;
+#define BUFSIZE 128
+	char Buf[BUFSIZE];
 	
 	/* Check */
 	if (!a_Var || a_State < 0 || a_State >= MAXCONLVARSTATES)
 		return 0;
+	
+	/* Send to string handler */
+	// Convert
+	snprintf(Buf, BUFSIZE, "%i", a_NewVal);
+	
+	// Send and return
+	if (CONL_VarSetStr(a_Var, a_State, Buf))
+		return a_Var->Value[a_State].Int;
+	
+	/* Returned NULL? */
+	return 0;
+#undef BUFSIZE
 }
 
 /* CONL_VarSetFixed() -- Sets variable value, and returns actual set value */
 fixed_t CONL_VarSetFixed(CONL_StaticVar_t* a_Var, const CONL_VariableState_t a_State, const fixed_t a_NewVal)
 {
-	CONL_ConVariable_t* FoundVar;
+#define BUFSIZE 128
+	char Buf[BUFSIZE];
 	
 	/* Check */
 	if (!a_Var || a_State < 0 || a_State >= MAXCONLVARSTATES)
 		return 0;
+	
+	/* Send to string handler */
+	// Convert
+	snprintf(Buf, BUFSIZE, "%f", FIXED_TO_FLOAT(a_NewVal));
+	
+	// Send and return
+	if (CONL_VarSetStr(a_Var, a_State, Buf))
+		return a_Var->Value[a_State].Fixed;
+	
+	/* Returned NULL? */
+	return 0;
+#undef BUFSIZE
 }
 
 /***********************
@@ -713,7 +953,7 @@ CONL_ExitCode_t CLC_CVarList(const uint32_t a_ArgC, const char** const a_ArgV)
 			CONL_PrintF("{z      ");
 		
 		// Print variable name
-		CONL_PrintF("{z\"{4%-15.15s{z\" = {z", CurVar->Name);
+		CONL_PrintF("{z\"{4%-20.20s{z\" = {z", CurVar->Name);
 		
 		// A registered variable
 		if (CurVar->StaticLink)

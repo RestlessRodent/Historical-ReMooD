@@ -2388,6 +2388,17 @@ static bool_t VS_FontOCCB(const bool_t a_Pushed, const struct WL_WADFile_s* cons
 			if (!l_UnknownLink[f])
 				if (l_CGroups[f][0x00])
 					l_UnknownLink[f] = l_CGroups[f][0x00][0x7F];
+			
+			// If still not found, try any (drawable) character in the first set
+			if (!l_UnknownLink[f])
+				if (l_CGroups[f][0x00])
+					for (j = 0; j < 256; j++)
+						if (l_CGroups[f][0x00][j])
+							if (l_CGroups[f][0x00][j]->Image)
+							{
+								l_UnknownLink[f] = l_CGroups[f][0x00][j];
+								break;
+							}	
 		}
 	}
 	
