@@ -47,7 +47,11 @@
 #if defined(__MSDOS__)
 #include <dos.h>
 #include <conio.h>
+#include <dpmi.h>
 #endif
+
+// Include the standard C stuff here
+#include <stdlib.h>
 
 /* Local */
 #include "i_util.h"
@@ -946,7 +950,7 @@ void I_ShowEndTxt(const uint8_t* const a_TextData)
 		c = (i >> 1) % 80;
 		
 		// Add a newline
-		if (c == 0)
+		if (c == 0 && Cols > 80)
 			I_TextModeNextLine();
 		
 		// Print character
@@ -1276,17 +1280,40 @@ uint64_t I_GetFreeMemory(uint64_t* const a_TotalMem)
 
 	/* MS-DOS w/ DJGPP */
 #if defined(__MSDOS__)
-	struct mallinfo Mall;
+	__dpmi_memory_info MInfo;
+	__dpmi_version_ret DPMIVer;
+	__dpmi_free_mem_info FreeMemFo;
+	unsigned long PageSize;
 	
-	// Obtain heap usage
-	Mall = mallinfo();
+	// Get the current DPMI version
+	__dpmi_get_version(&DPMIVer);
 	
-	// Set total space
+	// Only DPMI 1.0 supports __dpmi_get_memory_information()
+	// and not CWSDPMI and Win32's internal DPMI
+	if (DPMIVer.major >= 1)
+		if (__dpmi_get_memory_information(&MInfo) >= 0)
+		{
+			// Set total
+			if (a_TotalMem)
+				*a_TotalMem = MInfo.total_allocated_bytes_of_virtual_memory_host;
+			
+			// Return free memory
+			return MInfo.total_available_bytes_of_virtual_memory_host;
+		}
+	
+	// Either DPMI < 1.0 or __dpmi_get_memory_information() failed.
+	__dpmi_get_free_memory_information(&FreeMemFo);
+	
+	// Will also need the page size (since that info is all in pages)
+	if (__dpmi_get_page_size(&PageSize) < 0)
+		PageSize = 0;	// Just use 0 here (-1 == 16-bit host)
+	
+	// Set total memory
 	if (a_TotalMem)
-		*a_TotalMem = Mall.arena;
+		*a_TotalMem = FreeMemFo.linear_address_space_size_in_pages * PageSize;
 	
-	// Return free space
-	return Mall.arena - (Mall.usmblks + Mall.uordblks);
+	// Return free memory
+	return FreeMemFo.free_linear_address_space_in_pages * PageSize;
 	
 	/* Windows 32-bit */
 #elif defined(_WIN32)
@@ -1362,6 +1389,7 @@ uint64_t I_GetFreeMemory(uint64_t* const a_TotalMem)
 	// Return free
 	return Free;
 #undef BUFSIZE
+
 	/* UNIX */
 #elif defined(__unix__)
 	uint64_t Total, Free;
