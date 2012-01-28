@@ -80,6 +80,8 @@
 #include "d_prof.h"
 #include "v_widget.h"
 
+#include "i_util.h"
+
 bool_t localgame;
 
 // -1 = no quicksave slot picked!
@@ -187,7 +189,7 @@ menuitem_t OptionsItems[] =
 	{IT_STRING | IT_SUBMENU, NULL, PTROFUNICODESTRING(DSTR_MENUOPTIONS_AUDIOSETTINGS), &SoundsDef}
 	,
 	//{IT_STRING | IT_SUBMENU, NULL,    PTROFUNICODESTRING(DSTR_MENUOPTIONS_ADVANCEDSETTINGS), &AdvancedDef},   // Change if you dare
-	{IT_STRING | IT_SPACE, NULL, PTROFUNICODESTRING(DSTR_MENUNULLSPACE), NULL}
+	{IT_STRING | IT_SPACE, NULL, PTROFUNICODESTRING(DSTR_MENU_NULLSPACE), NULL}
 	,
 	{IT_STRING | IT_CVAR, 0, PTROFUNICODESTRING(DSTR_MENUOPTIONS_DISABLETITLESCREENDEMOS), &cv_disabledemos, 0}
 	,
@@ -866,11 +868,11 @@ menuitem_t NewGameClassicItems[] =
 	,
 	{IT_STRING | IT_CVAR, NULL, PTROFUNICODESTRING(DSTR_MENUCREATEGAME_OPTIONS), &cv_ng_options}
 	,
-	{IT_STRING | IT_SPACE, NULL, PTROFUNICODESTRING(DSTR_MENUNULLSPACE), NULL}
+	{IT_STRING | IT_SPACE, NULL, PTROFUNICODESTRING(DSTR_MENU_NULLSPACE), NULL}
 	,
 	{IT_STRING | IT_CALL, NULL, PTROFUNICODESTRING(DSTR_MENUCREATEGAME_SETUPOPTIONS), M_ClassicGameOptions}
 	,
-	{IT_STRING | IT_SPACE, NULL, PTROFUNICODESTRING(DSTR_MENUNULLSPACE), NULL}
+	{IT_STRING | IT_SPACE, NULL, PTROFUNICODESTRING(DSTR_MENU_NULLSPACE), NULL}
 	,
 	{IT_WHITESTRING | IT_CALL, NULL, PTROFUNICODESTRING(DSTR_MENUCREATEGAME_STARTGAME), M_StartClassicGame}
 	,
@@ -914,11 +916,11 @@ menuitem_t CreatLocalGameItems[] =
 	,
 	{IT_STRING | IT_CVAR, NULL, PTROFUNICODESTRING(DSTR_MENUCREATEGAME_OPTIONS), &cv_ng_options}
 	,
-	{IT_STRING | IT_SPACE, NULL, PTROFUNICODESTRING(DSTR_MENUNULLSPACE), NULL}
+	{IT_STRING | IT_SPACE, NULL, PTROFUNICODESTRING(DSTR_MENU_NULLSPACE), NULL}
 	,
 	{IT_STRING | IT_CALL, NULL, PTROFUNICODESTRING(DSTR_MENUCREATEGAME_SETUPOPTIONS), M_LocalGameOptions}
 	,
-	{IT_STRING | IT_SPACE, NULL, PTROFUNICODESTRING(DSTR_MENUNULLSPACE), NULL}
+	{IT_STRING | IT_SPACE, NULL, PTROFUNICODESTRING(DSTR_MENU_NULLSPACE), NULL}
 	,
 	{IT_WHITESTRING | IT_CALL, NULL, PTROFUNICODESTRING(DSTR_MENUCREATEGAME_STARTGAME), M_StartLocalGame}
 	,
@@ -1071,6 +1073,8 @@ typedef struct M_ActiveMenu_s
 	V_Widget_t* BigWidget;						// Widget for the entire menu!
 	V_Widget_t* Title;							// Menu Title
 	V_Widget_t* Hint;							// Menu Hint
+	V_Widget_t* Blinker;						// Menu Cursor
+	V_Widget_t** Items;							// Items
 	
 	struct M_ActiveMenu_s* StackedOnTop;		// Stacked on top of other menu
 } M_ActiveMenu_t;
@@ -1211,13 +1215,13 @@ static bool_t MS_MenuExRMODTableCB(Z_Table_t* const a_Sub, void* const a_Data)
 	
 	// String
 	if (!(Value = Z_TableGetValue(a_Sub, "String")))
-		TempItem->UStringName = NULL;
+		TempItem->UStringName = Z_StrDup("MENU_NULLSPACE", PU_STATIC, NULL);
 	else
 		TempItem->UStringName = Z_StrDup(Value, PU_STATIC, NULL);
 		
 	// Short String (When there is little space)
 	if (!(Value = Z_TableGetValue(a_Sub, "ShortString")))
-		TempItem->ShortUStringName = NULL;
+		TempItem->ShortUStringName = Z_StrDup("MENU_NULLSPACE", PU_STATIC, NULL);
 	else
 		TempItem->ShortUStringName = Z_StrDup(Value, PU_STATIC, NULL);
 	
@@ -1231,8 +1235,15 @@ static bool_t MS_MenuExRMODTableCB(Z_Table_t* const a_Sub, void* const a_Data)
 	// Localize the label strings
 	if (TempItem->UStringName)
 		TempItem->UString = DS_FindStringRef(TempItem->UStringName);
+			
 	if (TempItem->UStringName)
 		TempItem->ShortUString = DS_FindStringRef(TempItem->ShortUString);
+	
+	// Make sure there are strings there
+	if (!TempItem->UString)
+		TempItem->UString = DS_FindStringRef("MENU_NULLSPACE");
+	if (!TempItem->ShortUString)
+		TempItem->ShortUString = DS_FindStringRef("MENU_NULLSPACE");
 	
 	// Convert item type to integer type
 	if (strcasecmp(TempItem->TypeString, "Label") == 0)
@@ -1317,13 +1328,13 @@ bool_t M_MenuExRMODHandle(Z_Table_t* const a_Table, const WL_WADFile_t* const a_
 	
 	// Title String
 	if (!(Value = Z_TableGetValue(a_Table, "String")))
-		TempMenu->TitleUStringName = Z_StrDup("MENUNULLSPACE", PU_STATIC, NULL);
+		TempMenu->TitleUStringName = Z_StrDup("MENU_NULLSPACE", PU_STATIC, NULL);
 	else
 		TempMenu->TitleUStringName = Z_StrDup(Value, PU_STATIC, NULL);
 		
 	// Short Title String (Not much space)
 	if (!(Value = Z_TableGetValue(a_Table, "ShortString")))
-		TempMenu->ShortUStringName = Z_StrDup("MENUNULLSPACE", PU_STATIC, NULL);
+		TempMenu->ShortUStringName = Z_StrDup("MENU_NULLSPACE", PU_STATIC, NULL);
 	else
 		TempMenu->ShortUStringName = Z_StrDup(Value, PU_STATIC, NULL);
 		
@@ -1346,8 +1357,15 @@ bool_t M_MenuExRMODHandle(Z_Table_t* const a_Table, const WL_WADFile_t* const a_
 	// Localize the strings
 	if (TempMenu->TitleUStringName)
 		TempMenu->TitleUString = DS_FindStringRef(TempMenu->TitleUStringName);
+	
 	if (TempMenu->ShortUStringName)
 		TempMenu->ShortUString = DS_FindStringRef(TempMenu->ShortUStringName);
+	
+	// Make sure there are strings there
+	if (!TempMenu->TitleUString)
+		TempMenu->TitleUString = DS_FindStringRef("MENU_NULLSPACE");
+	if (!TempMenu->ShortUString)
+		TempMenu->ShortUString = DS_FindStringRef("MENU_NULLSPACE");
 	
 	// Hash names
 	TempMenu->NameHash = Z_Hash(TempMenu->Name);
@@ -1575,6 +1593,8 @@ static M_ActiveMenu_t* MS_MenuExPush(const size_t a_Player, M_MenuExMenu_t* cons
 	/*** STANDARD CLIENT ***/
 #else
 	M_ActiveMenu_t* New;
+	size_t i;
+	M_MenuExItem_t* CurItem;
 	
 	/* Not for dedicated */
 	if (g_DedicatedServer)
@@ -1591,6 +1611,9 @@ static M_ActiveMenu_t* MS_MenuExPush(const size_t a_Player, M_MenuExMenu_t* cons
 	New->StackedOnTop = l_ActiveMenuStack[a_Player];
 	l_ActiveMenuStack[a_Player] = New;
 	
+	/* Set initial menu */
+	New->BaseMenu = a_Menu;
+	
 	/* Create widgets for menu */
 	// Core widget
 	New->BigWidget = V_WidgetCreate(NULL, "neatmenu", "toplevelcontainer");
@@ -1600,6 +1623,28 @@ static M_ActiveMenu_t* MS_MenuExPush(const size_t a_Player, M_MenuExMenu_t* cons
 	// Title Widget
 	New->Title = V_WidgetCreate(New->BigWidget, "label", "title");
 	V_WidgetSetValue(New->Title, *a_Menu->TitleUString);
+	
+	// Hint Widget
+	New->Hint = V_WidgetCreate(New->BigWidget, "label", "hint");
+	V_WidgetSetValue(New->Hint, "Hint");
+	
+	// Blinking Cursor
+	New->Blinker = V_WidgetCreate(New->BigWidget, "label", "blinker");
+	V_WidgetSetValue(New->Blinker, "*");
+
+	// Create storage area for widgets
+	New->Items = Z_Malloc(sizeof(*New->Items) * (a_Menu->NumItems * 3), PU_STATIC, NULL);
+	
+	// Go through each entry
+	for (i = 0; i < a_Menu->NumItems; i++)
+	{
+		// Get Current item
+		CurItem = &a_Menu->Items[i];
+		
+		// Resize item widgets
+		New->Items[(i * 3)] = V_WidgetCreate(New->BigWidget, "label", "item");
+		V_WidgetSetValue(New->Items[(i * 3)], *CurItem->UString);
+	}
 	
 	/* Return created menu */
 	return New;
@@ -1636,6 +1681,10 @@ static M_ActiveMenu_t* MS_MenuExPop(const size_t a_Player)
 	l_ActiveMenuStack[a_Player] = Top->StackedOnTop;
 	
 	/* Delete and free everything */
+	// Clear item array
+	if (Top->Items)
+		Z_Free(Top->Items);
+	
 	// Delete the widgets
 	V_WidgetDestroy(Top->BigWidget);
 	
@@ -1656,6 +1705,9 @@ bool_t M_MenuExHandleEvent(const I_EventEx_t* const a_Event)
 	
 	/*** STANDARD CLIENT ***/
 #else
+	M_ActiveMenu_t* EffectMenu;
+	int32_t Point, CurSelection;
+	size_t Player;
 	
 	/* Not for dedicated server */
 	if (g_DedicatedServer)
@@ -1665,6 +1717,9 @@ bool_t M_MenuExHandleEvent(const I_EventEx_t* const a_Event)
 	if (!a_Event)
 		return false;
 	
+	/* Which player? */
+	Player = 0;
+	
 	/* Keyboard based events */
 	if (a_Event->Type == IET_KEYBOARD)
 	{
@@ -1673,12 +1728,12 @@ bool_t M_MenuExHandleEvent(const I_EventEx_t* const a_Event)
 			return false;
 		
 		// A menu is not open
-		if (!l_ActiveMenuStack[0])
+		if (!l_ActiveMenuStack[Player])
 		{
 			// Open Root Menu
 			if (a_Event->Data.Keyboard.KeyCode == IKBK_ESCAPE)
 			{
-				MS_MenuExPush(0, MS_FindMenuByName("root"));
+				MS_MenuExPush(Player, MS_FindMenuByName("root"));
 				return true;
 			}
 		}
@@ -1686,11 +1741,61 @@ bool_t M_MenuExHandleEvent(const I_EventEx_t* const a_Event)
 		// A menu is open
 		else
 		{
+			// Which menu to effect?
+			EffectMenu = l_ActiveMenuStack[0];
+			
 			// Pop last menu
 			if (a_Event->Data.Keyboard.KeyCode == IKBK_ESCAPE)
 			{
-				MS_MenuExPop(0);
+				MS_MenuExPop(Player);
 				return true;
+			}
+			
+			// Clear
+			Point = 0;
+			CurSelection = V_WidgetGetPropertyInt(EffectMenu->BigWidget, "selected");
+			
+			// Navigate Menu
+			switch (a_Event->Data.Keyboard.KeyCode)
+			{
+					// Move Up/Down
+				case IKBK_UP:
+					Point = -1;
+				case IKBK_DOWN:
+					if (!Point)
+						Point = 1;
+					
+					// Move selection
+					CurSelection += Point;
+					
+					if (CurSelection >= 0 && CurSelection < EffectMenu->BaseMenu->NumItems)
+						V_WidgetSetPropertyInt(EffectMenu->BigWidget, "selected", CurSelection);
+					return true;
+					
+					// Select Item
+				case IKBK_RETURN:
+					// Illegal Item?
+					if (!(CurSelection >= 0 && CurSelection < EffectMenu->BaseMenu->NumItems))
+						return false;
+					
+					// Execute action
+					switch (EffectMenu->BaseMenu->Items[CurSelection].Type)
+					{
+							// Open Sub Menu
+						case MMEXIT_SUBMENU:
+							MS_MenuExPush(Player, EffectMenu->BaseMenu->Items[CurSelection].SubMenu);
+							break;
+						
+						default:
+							break;
+					}
+					
+					// Always eat
+					return true;
+				
+					// Unknown Key
+				default:
+					break;
 			}
 		}
 	}

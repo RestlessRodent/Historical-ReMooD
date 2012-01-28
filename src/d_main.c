@@ -435,17 +435,11 @@ void D_Display(void)
 	
 	//CON_Drawer();
 	
-	// GhostlyDeath <November 2, 2010> -- Draw either the console or the menu
-	if (menuactive)
-		M_Drawer();
-	else
-	{
-		// Draw the menus
-		M_MenuExDrawer();
-		
-		// Draw the console on the menu (if it is opened anyway)
-		CONL_DrawConsole();
-	}
+	// Draw the menus
+	M_MenuExDrawer();
+	
+	// Draw the console on the menu (if it is opened anyway)
+	CONL_DrawConsole();
 		
 	D_SyncNetUpdate();
 	NetUpdate();				// send out any new accumulation

@@ -1408,6 +1408,7 @@ void Z_TableDestroy(Z_Table_t* const a_Table)
 			// Now delete that table
 			Z_TableDestroy(SubTable);
 		}
+		
 		// Otherwise it is an index
 		else
 		{

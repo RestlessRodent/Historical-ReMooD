@@ -578,8 +578,8 @@ void M_DoNewGameClassicClassic(int choice)
 		NewGameCCEpiDef.menuitems[1].WItemTextPtr = PTROFUNICODESTRING(DSTR_MENUCLASSICGAME_DOOMEPISODEB);
 		NewGameCCEpiDef.menuitems[2].WItemTextPtr = PTROFUNICODESTRING(DSTR_MENUCLASSICGAME_DOOMEPISODEC);
 		NewGameCCEpiDef.menuitems[3].WItemTextPtr = PTROFUNICODESTRING(DSTR_MENUCLASSICGAME_DOOMEPISODED);
-		NewGameCCEpiDef.menuitems[4].WItemTextPtr = PTROFUNICODESTRING(DSTR_MENUNULLSPACE);
-		NewGameCCEpiDef.menuitems[5].WItemTextPtr = PTROFUNICODESTRING(DSTR_MENUNULLSPACE);
+		NewGameCCEpiDef.menuitems[4].WItemTextPtr = PTROFUNICODESTRING(DSTR_MENU_NULLSPACE);
+		NewGameCCEpiDef.menuitems[5].WItemTextPtr = PTROFUNICODESTRING(DSTR_MENU_NULLSPACE);
 		
 		NewGameCCEpiDef.menuitems[4].status |= IT_DISABLED2;
 		NewGameCCEpiDef.menuitems[5].status |= IT_DISABLED2;
@@ -1105,6 +1105,8 @@ void M_SetupNextMenu(menu_t* menudef)
 	int status = 0;
 	int cont = 1;
 	
+	return;
+	
 	// GhostlyDeath <November 3, 2010> -- Check if menu was passed
 	if (!menudef)
 	{
@@ -1386,6 +1388,7 @@ bool_t M_ChangeStringCvar(int choise)
 //
 bool_t M_Responder(event_t* ev)
 {
+#if 0
 	int ch;
 	int i;
 	int adjustfirstdraw = 0;
@@ -1845,6 +1848,8 @@ adjustfirstdraw:
 		currentMenu->firstdraw = 0;
 		
 	return true;
+#endif
+	return false;
 }
 
 void M_LockGameCVARS(void)
