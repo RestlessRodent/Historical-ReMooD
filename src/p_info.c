@@ -470,6 +470,9 @@ static bool_t P_WLInfoCreator(const WL_WADFile_t* const a_WAD, const uint32_t a_
 			}
 		}
 		
+		// Destroy stream
+		WL_StreamClose(ReadStream);
+		
 		// Debug
 		if (devparm)
 			CONL_PrintF("P_WLInfoCreator: \"%s\" is %s and %s.\n",
