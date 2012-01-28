@@ -68,6 +68,7 @@ typedef struct Z_MemPartition_s
 		size_t Size;			// Partition size
 		bool_t Used;			// Partition used
 		uint32_t* SelfRef;		// Self Reference Pointer
+		bool_t AtEnd;			// Allocated at the end?
 	} Part;						// Partition Info
 	
 	/* Block Data */
@@ -366,9 +367,8 @@ bool_t ZP_FindPointerForPartition(void* const Ptr, Z_MemPartition_t** const Part
 	return false;
 }
 
-/* ZP_FreePartitionInZone() -- Frees selected partition in selected zone */
-// Returns (negative) result of partitions merged away (NewNP = OldNumPartitions - RetVal)
-size_t ZP_FreePartitionInZone(Z_MemPartition_t* const Part)
+/* ZP_MergePartitions() -- Merges partitions */
+static size_t ZP_MergePartitions(Z_MemPartition_t* const Part)
 {
 	size_t i;
 	size_t RetVal;
@@ -378,26 +378,6 @@ size_t ZP_FreePartitionInZone(Z_MemPartition_t* const Part)
 	/* Check */
 	if (!Part)
 		return 0;
-		
-	/* Partition free? */
-	if (!Part->Part.Used)
-	{
-		I_Error("ZP_FreePartitionInZone: Freeing a partition already free?");
-		return 0;
-	}
-	// Add free memory
-	l_MainZone->FreeMemory += Part->Part.Size;
-	
-	/* Lazy fragment freeing */
-	// Is there a reference set?
-	if (Part->Block.Ref)
-		*Part->Block.Ref = NULL;
-		
-	// Clear out data with a simple sweep
-	memset(&Part->Block, 0, sizeof(Part->Block));
-	
-	// No longer used anymore
-	Part->Part.Used = false;
 	
 	/* Get local partition id */
 	i = Part - l_MainZone->PartitionList;
@@ -447,6 +427,58 @@ size_t ZP_FreePartitionInZone(Z_MemPartition_t* const Part)
 		// Reset reference
 		ZP_PointerForPartition(Mergee, &Mergee->Part.SelfRef);
 		*Mergee->Part.SelfRef = i;
+	}
+
+	return RetVal;
+}
+
+/* ZP_FreePartitionInZone() -- Frees selected partition in selected zone */
+// Returns (negative) result of partitions merged away (NewNP = OldNumPartitions - RetVal)
+size_t ZP_FreePartitionInZone(Z_MemPartition_t* const Part)
+{
+	size_t i;
+	size_t RetVal;
+	Z_MemPartition_t* Mergee;
+	Z_MemPartition_t LP, RP;
+	
+	/* Check */
+	if (!Part)
+		return 0;
+		
+	/* Partition free? */
+	if (!Part->Part.Used)
+	{
+		I_Error("ZP_FreePartitionInZone: Freeing a partition already free?");
+		return 0;
+	}
+	
+	// Add free memory
+	l_MainZone->FreeMemory += Part->Part.Size;
+	
+	/* Lazy fragment freeing */
+	// Is there a reference set?
+	if (Part->Block.Ref)
+		*Part->Block.Ref = NULL;
+		
+	// Clear out data with a simple sweep
+	memset(&Part->Block, 0, sizeof(Part->Block));
+	
+	// No longer used anymore
+	Part->Part.Used = false;
+	
+	// Clear return value
+	RetVal = 0;
+	
+	/* If the partition was at the end, merge */
+	// Merging at the end has less cost than merging at the start, plus the
+	// stuff at the end is smaller.
+	if (Part->Part.AtEnd)
+	{
+		// Merge
+		RetVal = ZP_MergePartitions(Part);
+		
+		// Clear at end
+		Part->Part.AtEnd = false;
 	}
 	
 	/* Return number of merged partitions */
@@ -568,9 +600,19 @@ void* Z_MallocWrappee(const size_t Size, const Z_MemoryTag_t Tag, void** const R
 		if (l_MainZone->PartitionList[i].Part.Used)
 			continue;
 			
-		// Paritition too small?
+		// Partition too small?
 		if (l_MainZone->PartitionList[i].Part.Size < ShiftSize)
-			continue;
+		{
+			// Partition is free and the next partition is free
+			if (!AtEnd)	// Never do this at the end
+				if (!l_MainZone->PartitionList[(AtEnd ? (i - 1) : (i + 1))].Part.Used)
+					// Merge partitions
+					ZP_MergePartitions(&l_MainZone->PartitionList[i].Part);
+			
+			// Recheck to see if the partition is too small
+			if (l_MainZone->PartitionList[i].Part.Size < ShiftSize)
+				continue;
+		}
 			
 		// Not a perfect fit? Then we need to split
 		if (l_MainZone->PartitionList[i].Part.Size != ShiftSize)
@@ -603,6 +645,7 @@ void* Z_MallocWrappee(const size_t Size, const Z_MemoryTag_t Tag, void** const R
 		
 		// Set used in new
 		New->Part.Used = true;
+		New->Part.AtEnd = AtEnd;
 		
 		// Set block info
 		New->Block.Ptr = ZP_PointerForPartition(New, &BasePtr);
