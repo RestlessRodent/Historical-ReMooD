@@ -237,8 +237,11 @@ bool_t CONL_AddCommand(const char* const a_Name, CONL_ExitCode_t (*a_ComFunc)(co
 CONL_ExitCode_t CONL_Exec(const uint32_t a_ArgC, const char** const a_ArgV);
 
 /*** Console Variables ***/
+bool_t CONL_VarSetLoaded(const bool_t a_Loaded);
+
 CONL_ConVariable_t* CONL_VarRegister(CONL_StaticVar_t* const a_StaticVar);
 
+bool_t CONL_StaticVarByNum(const size_t a_Num, CONL_StaticVar_t** const a_VarP);
 CONL_StaticVar_t* CONL_VarLocate(const char* const a_Name);
 const char* CONL_VarSetStrByName(const char* const a_Var, const CONL_VariableState_t a_State, const char* const a_NewVal);
 
@@ -250,10 +253,10 @@ fixed_t CONL_VarSetFixed(CONL_StaticVar_t* a_Var, const CONL_VariableState_t a_S
 bool_t CONL_Init(const uint32_t a_OutBS, const uint32_t a_InBS);
 void CONL_Stop(void);
 
-size_t CONL_PrintF(const char* const a_Format, ...);
 size_t CONL_PrintV(const bool_t a_InBuf, const char* const a_Format, va_list a_ArgPtr);
 size_t CONL_UnicodePrintV(const bool_t a_InBuf, const UnicodeStringID_t a_StrID, const char* const a_Format, va_list a_ArgPtr);
 
+size_t CONL_PrintF(const char* const a_Format, ...);
 size_t CONL_OutputF(const char* const a_Format, ...);
 size_t CONL_InputF(const char* const a_Format, ...);
 size_t CONL_OutputU(const UnicodeStringID_t a_StrID, const char* const a_Format, ...);
@@ -275,8 +278,17 @@ CONL_ExitCode_t CLC_CVarSet(const uint32_t a_ArgC, const char** const a_ArgV);
 CONL_ExitCode_t CLC_Version(const uint32_t a_ArgC, const char** const a_ArgV);
 CONL_ExitCode_t CLC_Dep(const uint32_t a_ArgC, const char** const a_ArgV);
 CONL_ExitCode_t CLC_Exec(const uint32_t a_ArgC, const char** const a_ArgV);
+CONL_ExitCode_t CLC_ExecFile(const uint32_t a_ArgC, const char** const a_ArgV);
 CONL_ExitCode_t CLC_Exclamation(const uint32_t a_ArgC, const char** const a_ArgV);
 CONL_ExitCode_t CLC_Question(const uint32_t a_ArgC, const char** const a_ArgV);
+
+/*** Configuration Files ***/
+size_t CONL_EscapeString(char* const a_Dest, const size_t a_Size, const char* const a_Src);
+size_t CONL_UnEscapeString(char* const a_Dest, const size_t a_Size, const char* const a_Src);
+
+bool_t CONL_FindDefaultConfig(void);
+bool_t CONL_LoadConfigFile(const char* const a_Path);
+bool_t CONL_SaveConfigFile(const char* const a_Path);
 
 /******************************************************************************/
 

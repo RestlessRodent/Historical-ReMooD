@@ -127,6 +127,7 @@ static CONCTI_Inputter_t* l_CONLInputter = NULL;	// Console inputter
 
 static char l_ConfigDir[PATH_MAX];				// Configuration directory
 static char l_DataDir[PATH_MAX];				// Data directory
+static char l_DefaultConfig[PATH_MAX];			// The default config
 
 // Variables
 #if !defined(__REMOOD_DEDICATED)
@@ -168,6 +169,14 @@ CONL_StaticVar_t l_CONScale =
 {
 	CLVT_INTEGER, c_CVPVBoolean, CLVF_SAVE,
 	"con_scale", DSTR_CVHINT_CONSCALE, CLVVT_STRING, "false",
+	NULL
+};
+
+// con_teststring -- A test string
+CONL_StaticVar_t l_CONTestString =
+{
+	CLVT_STRING, NULL, CLVF_SAVE,
+	"con_teststring", DSTR_CVHINT_CONTESTSTRING, CLVVT_STRING, "Hello World!",
 	NULL
 };
 
@@ -856,6 +865,7 @@ static void CONLFF_InputFF(const char* const a_Buf)
 				ArgV[Current] = Z_Malloc(sizeof(*ArgV[Current]) * MAXARGV, PU_STATIC, NULL);
 				Quote = 0;
 			}
+			
 			// Whitespace adds to current
 			if (!Quote && (*p == 0 || *p == ' ' || *p == '\t'))
 			{
@@ -863,6 +873,7 @@ static void CONLFF_InputFF(const char* const a_Buf)
 				if (j > 0)
 					Current++;
 			}
+			
 			// Quote?
 			else if ((!Quote && (*p == '\"' || *p == '\'')) || (Quote && *p == Quote))
 			{
@@ -872,6 +883,7 @@ static void CONLFF_InputFF(const char* const a_Buf)
 				else
 					Quote = *p;
 			}
+			
 			// Normal character?
 			else
 			{
@@ -923,6 +935,13 @@ static bool_t CONL_OutBack(struct CONCTI_Inputter_s* a_Input, const char* const 
 
 void P_InitSGConsole(void);
 
+/* CONLS_ExitFunc() -- Exit function */
+static void CONLS_ExitFunc(void)
+{
+	/* Save default config */
+	CONL_SaveConfigFile(l_DefaultConfig);
+}
+
 /* CONL_Init() -- Initializes the light console */
 bool_t CONL_Init(const uint32_t a_OutBS, const uint32_t a_InBS)
 {
@@ -947,6 +966,7 @@ bool_t CONL_Init(const uint32_t a_OutBS, const uint32_t a_InBS)
 	CONL_AddCommand("version", CLC_Version);
 	CONL_AddCommand("dep", CLC_Dep);
 	CONL_AddCommand("exec", CLC_Exec);
+	CONL_AddCommand("execfile", CLC_ExecFile);
 	CONL_AddCommand("!", CLC_Exclamation);
 	CONL_AddCommand("?", CLC_Question);
 	
@@ -962,6 +982,12 @@ bool_t CONL_Init(const uint32_t a_OutBS, const uint32_t a_InBS)
 	CONL_PrintF("CONL_Init: Data directory is \"%s\".\n", l_DataDir);
 	
 	/* Load configuration file */
+	if (CONL_FindDefaultConfig())
+		CONL_LoadConfigFile(l_DefaultConfig);
+	
+	/* Add exit function */
+	// To save the config file when the game exits
+	I_AddExitFunc(CONLS_ExitFunc);
 	
 	/* Initialize variables for drawing */
 #if !defined(__REMOOD_DEDICATED)
@@ -972,6 +998,7 @@ bool_t CONL_Init(const uint32_t a_OutBS, const uint32_t a_InBS)
 		CONL_VarRegister(&l_CONFont);
 		CONL_VarRegister(&l_CONMonoSpace);
 		CONL_VarRegister(&l_CONScale);
+		CONL_VarRegister(&l_CONTestString);
 	}
 #endif
 
@@ -1811,6 +1838,323 @@ bool_t CONL_DrawConsole(void)
 	/* Update screen */
 	return true;
 #endif /* __REMOOD_DEDICATED */
+}
+
+/*** Configuration Files ***/
+
+#if 0
+static char l_ConfigDir[PATH_MAX];				// Configuration directory
+static char l_DataDir[PATH_MAX];				// Data directory
+static char l_DefaultConfig[PATH_MAX];			// The default config
+#endif
+
+// l_EscapeChars -- Escape sequences
+static const struct
+{
+	char From;
+	const char* To;
+} l_EscapeChars[] =
+{
+	{'\t', "\\t"},
+	{'\n', "\\n"},
+	{'\r', "\\r"},
+	{'\"', "\\\""},
+	{'\'', "\\\'"},
+	{'\\', "\\\\"},
+	{0, NULL},
+};
+
+/* CONL_EscapeString() -- Escapes a string */
+size_t CONL_EscapeString(char* const a_Dest, const size_t a_Size, const char* const a_Src)
+{
+#define BUFSIZE 32
+	char* d;
+	char* p;
+	const char* s;
+	uint16_t WChar;
+	size_t MBSkip, i, j;
+	char Buf[BUFSIZE];
+	bool_t IgnoreEscape;
+	
+	/* Check */
+	if (!a_Dest || !a_Size || !a_Src)
+		return 0;
+	
+	/* Conversion Loop */
+	for (IgnoreEscape = false, i = 0, d = a_Dest, s = a_Src; *s;)
+	{
+		// Overflow?
+		if (((size_t)(d - a_Dest)) >= (a_Size - 1))
+			return (d - a_Dest);
+		
+		// Get unicode character
+		WChar = V_ExtMBToWChar(s, &MBSkip);
+		
+		// No skip?
+		if (!MBSkip)
+			MBSkip = 1;
+		
+		// Unicode Character?
+		if (WChar > 127)
+		{
+			// Place in \uHHHH
+			snprintf(Buf, BUFSIZE - 1, "\\u%04X", WChar);
+			
+			for (p = Buf; *p; p++)
+				if (((size_t)(d - a_Dest)) < (a_Size - 1))
+					*(d++) = *p;
+		}
+		
+		// Standard ASCII
+		else
+		{
+			// See if it is already escaped
+			if (!IgnoreEscape && *s != '\\')
+				for (j = 0; l_EscapeChars[j].From; j++)
+					if (*s == l_EscapeChars[j].From)
+						break;
+			
+			// Found one
+			if (!IgnoreEscape && *s != '\\' && l_EscapeChars[j].From)
+			{
+				for (p = l_EscapeChars[j].To; *p; p++)
+					if (((size_t)(d - a_Dest)) < (a_Size - 1))
+						*(d++) = *p;
+			}
+			
+			// Not found, copy as it
+			else
+			{
+				*(d++) = *s;
+				
+				// Unignore escape?
+				if (IgnoreEscape)
+					IgnoreEscape = false;
+				
+				// If the next character is a '\', ignore that
+				if (*(s + 1) == '\\')
+					IgnoreEscape = true;
+			}
+		}
+		
+		// Skip
+		s += MBSkip;
+	}
+	
+	/* Return converted length */
+	return (d - a_Dest);
+#undef BUFSIZE
+}
+
+/* CONL_UnEscapeString() -- Unescapes a string */
+size_t CONL_UnEscapeString(char* const a_Dest, const size_t a_Size, const char* const a_Src)
+{
+	size_t i, j, k;
+	char* d;
+	char* p;
+	const char* s;
+	uint16_t WChar;
+	char MB[5];
+	
+	/* Check */
+	if (!a_Dest || !a_Size || !a_Src)
+		return 0;
+	
+	/* Conversion Loop */
+	for (i = 0, d = a_Dest, s = a_Src; *s;)
+	{
+		// Overflow?
+		if (((size_t)(d - a_Dest)) >= (a_Size - 1))
+			return (d - a_Dest);
+		
+		// Determine if string is an escape string
+		if (*s == '\\')
+			for (j = 0; l_EscapeChars[j].From; j++)
+				if (strncasecmp(s, l_EscapeChars[j].To, strlen(l_EscapeChars[j].To)) == 0)
+					break;
+		
+		// Found
+		if (*s == '\\' && l_EscapeChars[j].From)
+		{
+			// Use literal character
+			*(d++) = l_EscapeChars[j].From;
+			s += strlen(l_EscapeChars[j].To);	// Skip length of conversion
+		}
+		
+		// Not found
+		else
+		{
+			// Check for unicode character
+			if (*s == '\\' && (*(s + 1) == 'u' || *(s + 1) == 'U'))
+			{
+				// Skip ahead
+				s += 2;
+				
+				// Read hex characters
+				for (WChar = 0, j = 0; *s && j < 4; s++, j++)
+				{
+					// Multiply wchar by 16
+					WChar *= 16;
+					
+					if (*s >= '0' && *s <= '9')
+						WChar += (uint16_t)(*s - '0');
+					else if (*s >= 'A' && *s <= 'F')
+						WChar += (uint16_t)((*s - 'A') + 10);
+					else if (*s >= 'a' && *s <= 'f')
+						WChar += (uint16_t)((*s - 'a') + 10);
+				}
+				
+				// Convert to multibyte
+				j = V_ExtWCharToMB(WChar, MB);
+				
+				// Slap to buffer
+				for (k = 0; k < j; k++)
+					if (((size_t)(d - a_Dest)) < (a_Size - 1))
+						*(d++) = MB[k];
+			}
+			
+			// A normal character
+			else
+				*(d++) = *(s++);
+		}
+	}
+	
+	/* Return converted length */
+	return (d - a_Dest);
+}
+
+/* CONL_FindDefaultConfig() -- Finds the default config file */
+bool_t CONL_FindDefaultConfig(void)
+{
+	const char* Arg;
+	bool_t ConfigOK;
+	
+	/* Clear OK */
+	ConfigOK = false;
+	
+	/* Clear */
+	memset(l_DefaultConfig, 0, sizeof(l_DefaultConfig));
+	
+	/* Check for -config */
+	if (M_CheckParm("-config"))
+	{
+		// Get argument
+		Arg = M_GetNextParm();
+		
+		// Copy to config location
+		strncat(l_DefaultConfig, Arg, PATH_MAX);
+		
+		// OK
+		ConfigOK = true;
+	}
+	
+	/* Assume default location */
+	if (!ConfigOK)
+	{
+		// Concat config dir
+		strncat(l_DefaultConfig, l_ConfigDir, PATH_MAX);
+		strncat(l_DefaultConfig, "/remoodex.cfg", PATH_MAX);
+	}
+	
+	/* Success! */
+	return true;
+}
+
+/* CONL_LoadConfigFile() -- Loads the configuration file specified by path */
+bool_t CONL_LoadConfigFile(const char* const a_Path)
+{
+	const char* p;
+	char Buf[PATH_MAX];
+	
+	/* Check */
+	if (!a_Path)
+		return false;
+		
+	/* Message */
+	CONL_PrintF("CONL_LoadConfigFile: Loading from \"%s\"...\n", a_Path);
+	
+	/* Escape the string */
+	// Clear
+	memset(Buf, 0, sizeof(Buf));
+	
+	// Escape
+	CONL_EscapeString(Buf, PATH_MAX, a_Path);
+	
+	/* Execute it */
+	CONL_VarSetLoaded(true);	// Set loaded from config
+	CONL_InputF("execfile \"%s\"\n\n", Buf);
+	CONL_VarSetLoaded(false);	// Unset
+	
+	/* Success! */
+	return true;
+}
+
+/* CONL_SaveConfigFile() -- Save configuration file */
+bool_t CONL_SaveConfigFile(const char* const a_Path)
+{
+#define BUFSIZE 256
+	size_t i;
+	CONL_StaticVar_t* SVar;
+	FILE* File;
+	const char* p;
+	char Buf[BUFSIZE];
+	
+	/* Check */
+	if (!a_Path)
+		return false;
+	
+	/* Message */
+	CONL_PrintF("CONL_SaveConfigFile: Saving to \"%s\"...\n", a_Path);
+	
+	/* Attempt config file open */
+	File = fopen(a_Path, "w");
+	
+	// Failed?
+	if (!File)
+		return false;
+	
+	/* Print Header */
+	fprintf(File, "// ReMooD %i.%i%c \"%s\" Configuration File\n", REMOOD_MAJORVERSION, REMOOD_MINORVERSION, REMOOD_RELEASEVERSION, REMOOD_VERSIONCODESTRING);
+	fprintf(File, "// Visit %s\n", REMOOD_URL);
+	
+	/* Get every var */
+	for (i = 0;; i++)
+	{
+		// Clear
+		SVar = NULL;
+		
+		// Get variable
+		if (!CONL_StaticVarByNum(i, &SVar))
+			break;	// No more
+		
+		// Variable here?
+		if (!SVar)
+			continue;
+		
+		// Variable not saved to config
+		if (!(SVar->Flags & CLVF_SAVE))
+			continue;
+		
+		// Print command to set variables
+		fprintf(File, "cvset \"%s\" \"", SVar->VarName);
+		
+		// Escape string before it is printed (to not mess up syntax)
+		memset(Buf, 0, sizeof(Buf));
+		CONL_EscapeString(Buf, BUFSIZE, SVar->Value[0].String);
+		
+		// And print the escaped string
+		fprintf(File, "%s", Buf);
+		
+		// Print end
+		fprintf(File, "\"\n");
+	}
+	
+	/* Close file */
+	fclose(File);
+	
+	/* Success! */
+	return true;
+#undef BUFSIZE
 }
 
 /*****************************************************************************/

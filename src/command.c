@@ -239,6 +239,8 @@ static CONL_ConVariable_t** l_CONLVariables = NULL;			// Console variables
 static size_t l_CONLNumVariables = 0;						// Number of variables
 static Z_HashTable_t* l_CONLVariableHashes = NULL;			// Speed lookup
 
+static bool_t l_CONLVarLoaded = false;						// Loaded config
+
 /**************
 *** STATICS ***
 **************/
@@ -347,6 +349,7 @@ static CONL_ConVariable_t* CONLS_PushVar(const char* const a_Name, CONL_StaticVa
 	NewVar->Name = Z_StrDup(a_Name, PU_STATIC, NULL);
 	NewVar->Hash = Hash;
 	NewVar->StaticLink = a_StaticVar;
+	NewVar->LoadedValue = l_CONLVarLoaded;
 	
 	// If there is a static link...
 	if (NewVar->StaticLink)
@@ -460,6 +463,18 @@ CONL_ExitCode_t CONL_Exec(const uint32_t a_ArgC, const char** const a_ArgV)
 
 /*** VARIABLES ***/
 
+/* CONL_VarSetLoaded() -- Sets loaded value */
+bool_t CONL_VarSetLoaded(const bool_t a_Loaded)
+{
+	bool_t Old = l_CONLVarLoaded;
+	
+	/* Set */
+	l_CONLVarLoaded = a_Loaded;
+	
+	/* Return Old */
+	return Old;
+}
+
 /* CONL_VarRegister() -- Registers a variable */
 CONL_ConVariable_t* CONL_VarRegister(CONL_StaticVar_t* const a_StaticVar)
 {
@@ -471,7 +486,11 @@ CONL_ConVariable_t* CONL_VarRegister(CONL_StaticVar_t* const a_StaticVar)
 		return NULL;
 	
 	/* Sanity */
-	if (a_StaticVar->Type < 0 || a_StaticVar->Type >= NUMCONLVARIABLETYPES || !a_StaticVar->Possible || !a_StaticVar->VarName || !a_StaticVar->DefaultValue)
+	if (a_StaticVar->Type < 0 || a_StaticVar->Type >= NUMCONLVARIABLETYPES || !a_StaticVar->VarName || !a_StaticVar->DefaultValue)
+		return NULL;
+	
+	// String types do not require possible values, but other types do
+	if (a_StaticVar->Type != CLVT_STRING && !a_StaticVar->Possible)
 		return NULL;
 	
 	/* Locate variable to see if it is virtualized or registered */
@@ -528,6 +547,27 @@ CONL_ConVariable_t* CONL_VarRegister(CONL_StaticVar_t* const a_StaticVar)
 	return NewVar;
 }
 
+/* CONL_StaticVarByNum() -- Return variable by number */
+bool_t CONL_StaticVarByNum(const size_t a_Num, CONL_StaticVar_t** const a_VarP)
+{
+	/* Check */
+	if (a_Num < 0 || a_Num >= l_CONLNumVariables)
+		return false;
+	
+	/* Return static variable link of variable */
+	if (l_CONLVariables[a_Num])
+	{
+		if (a_VarP)
+			*a_VarP = l_CONLVariables[a_Num]->StaticLink;
+		
+		// Variable in this spot
+		return true;
+	}
+	
+	/* Failed */
+	return false;
+}
+
 /* CONL_VarLocate() -- Locates a variable by name */
 CONL_StaticVar_t* CONL_VarLocate(const char* const a_Name)
 {
@@ -550,16 +590,22 @@ CONL_StaticVar_t* CONL_VarLocate(const char* const a_Name)
 /* CONL_VarSetStrByName() -- Set variable by its name */
 const char* CONL_VarSetStrByName(const char* const a_Var, const CONL_VariableState_t a_State, const char* const a_NewVal)
 {
+#define BUFSIZE 512
+	char Buf[BUFSIZE];
 	CONL_ConVariable_t* FoundVar;
 	
 	/* Check */
 	if (!a_Var || a_State < 0 || a_State >= MAXCONLVARSTATES || !a_NewVal)
 		return NULL;
 	
+	/* Unescape value */
+	memset(Buf, 0, sizeof(Buf));
+	CONL_UnEscapeString(Buf, BUFSIZE, a_NewVal);
+	
 	/* Locate by name */
 	if ((FoundVar = CONLS_VarCoreLocate(a_Var)))
 	{
-		// If the variable is virtualize, return that
+		// If the variable is virtualized, return that
 		if (FoundVar->IsVirtual)
 		{
 			// Replace the loaded value
@@ -568,7 +614,7 @@ const char* CONL_VarSetStrByName(const char* const a_Var, const CONL_VariableSta
 			FoundVar->VirtualValue = NULL;
 			
 			// Put it there
-			FoundVar->VirtualValue = Z_StrDup(a_NewVal, PU_STATIC, NULL);
+			FoundVar->VirtualValue = Z_StrDup(Buf, PU_STATIC, NULL);
 			
 			// Return the loaded value
 			return (const char*)FoundVar->VirtualValue;
@@ -591,16 +637,17 @@ const char* CONL_VarSetStrByName(const char* const a_Var, const CONL_VariableSta
 	
 	// Set virtual and load the value we want there
 	FoundVar->IsVirtual = true;
-	FoundVar->VirtualValue = Z_StrDup(a_NewVal, PU_STATIC, NULL);
+	FoundVar->VirtualValue = Z_StrDup(Buf, PU_STATIC, NULL);
 	
 	/* Return the virtualized value */
 	return (const char*)FoundVar->VirtualValue;
+#undef BUFSIZE
 }
 
 /* CONL_VarSetStr() -- Sets variable value, and returns actual set value */
 const char* CONL_VarSetStr(CONL_StaticVar_t* a_Var, const CONL_VariableState_t a_State, const char* const a_NewVal)
 {
-#define BUFSIZE 128
+#define BUFSIZE 256
 	char Buf[BUFSIZE];
 	CONL_ConVariable_t* RealVar;
 	size_t PossibleNum;
@@ -633,8 +680,12 @@ const char* CONL_VarSetStr(CONL_StaticVar_t* a_Var, const CONL_VariableState_t a
 	/* Variable is a string */
 	if (a_Var->Type == CLVT_STRING)
 	{
+		// Unescape the string
+		memset(Buf, 0, sizeof(Buf));
+		CONL_UnEscapeString(Buf, BUFSIZE, a_NewVal);
+		
 		// Set string (a copy)
-		RealVar->Value[a_State].String = Z_StrDup(a_NewVal, PU_STATIC, NULL);
+		RealVar->Value[a_State].String = Z_StrDup(Buf, PU_STATIC, NULL);
 	}
 	
 	/* Variable is a number type */
@@ -861,6 +912,54 @@ CONL_ExitCode_t CLC_Exec(const uint32_t a_ArgC, const char** const a_ArgV)
 	return CONL_Exec(a_ArgC - 1, a_ArgV + 1);
 }
 
+/* CLC_ExecFile() -- Executes a file */
+CONL_ExitCode_t CLC_ExecFile(const uint32_t a_ArgC, const char** const a_ArgV)
+{
+#define BUFSIZE 512
+	FILE* File;
+	char Buf[BUFSIZE];
+	char* p;
+	
+	/* Check */
+	if (a_ArgC < 2)
+		return CLE_INVALIDARGUMENT;
+		
+	/* Message */
+	CONL_PrintF("Executing \"%s\"...\n", a_ArgV[1]);
+	
+	/* Attempt open of file */
+	File = fopen(a_ArgV[1], "r");
+	
+	// Failed?
+	if (!File)
+		return CLE_RESOURCENOTFOUND;
+	
+	/* Constantly read file */
+	while (!feof(File))
+	{
+		// Read into buffer
+		memset(Buf, 0, sizeof(Buf));
+		fgets(Buf, BUFSIZE, File);
+		
+		// Skip white space at start
+		for (p = Buf; *p && isspace(*p); p++);
+		
+		// Check for comment
+		if (*p == '/' && *(p + 1) == '/')
+			continue;
+		
+		// Execute command by sending it to the input buffer
+		CONL_InputF("%s\n", Buf);
+	}
+	
+	/* Close File */
+	fclose(File);
+	
+	/* Success */
+	return CLE_SUCCESS;
+#undef BUFSIZE
+}
+
 /* CLC_Exclamation() -- Runs command and reverses error status */
 CONL_ExitCode_t CLC_Exclamation(const uint32_t a_ArgC, const char** const a_ArgV)
 {
@@ -894,9 +993,11 @@ CONL_ExitCode_t CLC_Question(const uint32_t a_ArgC, const char** const a_ArgV)
 /* CLC_CVarList() -- List console variables */
 CONL_ExitCode_t CLC_CVarList(const uint32_t a_ArgC, const char** const a_ArgV)
 {
+#define BUFSIZE 512
 	size_t i, j;
 	CONL_ConVariable_t* CurVar;
 	uint32_t Flags;
+	char Buf[BUFSIZE];
 	
 	/* Check */
 	if (!a_ArgC || !a_ArgV)
@@ -966,8 +1067,12 @@ CONL_ExitCode_t CLC_CVarList(const uint32_t a_ArgC, const char** const a_ArgV)
 				
 				for (j = 0; j < MAXCONLVARSTATES; j++)
 				{
+					// Escape string
+					memset(Buf, 0, sizeof(Buf));
+					CONL_EscapeString(Buf, BUFSIZE, CurVar->StaticLink->Value[j].String);
+				
 					// Value in quotes
-					CONL_PrintF("{z\"{2%s{z\"{z", CurVar->StaticLink->Value[0].String);
+					CONL_PrintF("{z\"{2%s{z\"{z", CurVar->StaticLink->Value[j].String);
 					
 					// Comma?
 					if (j < MAXCONLVARSTATES - 1)
@@ -980,22 +1085,36 @@ CONL_ExitCode_t CLC_CVarList(const uint32_t a_ArgC, const char** const a_ArgV)
 			
 			// Single state
 			else
-				CONL_PrintF("{z\"{2%s{z\"{z\n", CurVar->StaticLink->Value[0].String);
+			{
+				// Escape string
+				memset(Buf, 0, sizeof(Buf));
+				CONL_EscapeString(Buf, BUFSIZE, CurVar->StaticLink->Value[0].String);
+				
+				// Print
+				CONL_PrintF("{z\"{2%s{z\"{z\n", Buf);
+			}
 		}
 		
 		// Non-registered variable
 		else
-			CONL_PrintF("{z\"{2%s{z\"{z\n", CurVar->VirtualValue);
+		{
+			memset(Buf, 0, sizeof(Buf));
+			CONL_EscapeString(Buf, BUFSIZE, CurVar->VirtualValue);
+			CONL_PrintF("{z\"{2%s{z\"{z\n", Buf);
+		}
 	}
 	
 	/* Success! */
 	return CLE_SUCCESS;
+#undef BUFSIZE
 }
 
 /* CLC_CVarSet() -- Set variable to value */
 CONL_ExitCode_t CLC_CVarSet(const uint32_t a_ArgC, const char** const a_ArgV)
 {
+#define BUFSIZE 512
 	const char* RealValue;
+	char Buf[BUFSIZE];
 	
 	/* Requires three arguments */
 	if (a_ArgC < 3)
@@ -1004,11 +1123,16 @@ CONL_ExitCode_t CLC_CVarSet(const uint32_t a_ArgC, const char** const a_ArgV)
 	/* Set value */
 	RealValue = CONL_VarSetStrByName(a_ArgV[1], CLVS_NORMAL, a_ArgV[2]);
 	
+	// Escape string
+	memset(Buf, 0, sizeof(Buf));
+	CONL_EscapeString(Buf, BUFSIZE, RealValue);
+	
 	// Message
-	CONL_PrintF("{z{3%s{z was set to \"{5%s{z\".\n", a_ArgV[1], RealValue);
+	CONL_PrintF("{z{3%s{z was set to \"{5%s{z\".\n", a_ArgV[1], Buf);
 	
 	/* Success */
 	return CLE_SUCCESS;
+#undef BUFSIZE
 }
 
 /*******************************************************************************
