@@ -40,6 +40,7 @@
 #include "m_misc.h"
 #include "doomdef.h"
 #include "m_argv.h"
+#include "console.h"
 
 /****************
 *** CONSTANTS ***
@@ -459,7 +460,7 @@ size_t ZP_FreePartitionInZone(Z_MemPartition_t* const Part)
 /* Z_Init() -- Initializes the memory manager */
 void Z_Init(void)
 {
-	size_t FreeMem = 0, TotalMem;
+	uint64_t FreeMem = 0, TotalMem;
 	size_t LoopSize, i;
 	bool_t Ok = false;
 	uint32_t Sanity = 0;
@@ -469,16 +470,27 @@ void Z_Init(void)
 	*((uint8_t*)&Sanity) = 1;
 	
 	// Check
-#if defined(__REMOOD_BIG_ENDIAN)
+#if !defined(__REMOOD_BIG_ENDIAN)
 	if (Sanity != 1)
 #else
 	if (Sanity != 0x01000000)
 #endif
-		CONL_PrintF("Z_Init: ReMooD was compiled with the wrong uint8_t order!\n");
-		
+		CONL_PrintF("Z_Init: ReMooD was compiled with the wrong byte order!\n");
+	
 	/* Create new zone in a loop */
 	// Check free memory
-	FreeMem = I_GetFreeMem(&TotalMem);
+	FreeMem = I_GetFreeMemory(&TotalMem);
+	
+	// Lots of memory?
+	if (FreeMem >= (uint64_t)0x7FFFFFFFUL)
+		FreeMem = (uint64_t)0x7FFFFFFFUL;
+		
+	if (TotalMem >= (uint64_t)0x7FFFFFFFUL)
+		TotalMem = (uint64_t)0x7FFFFFFFUL;
+	
+	// Print memory that is free
+	if (devparm)
+		CONL_PrintF("Z_Init: There is %iMiB of memory available (Total: %iMiB).\n", (int)(FreeMem >> 20), (int)(TotalMem >> 20));
 	
 	// Less than 20MB?
 	if (FreeMem < FORCEDMEMORYSIZE)
@@ -790,6 +802,197 @@ size_t Z_FreeTagsWrappee(const Z_MemoryTag_t LowTag, const Z_MemoryTag_t HighTag
 	
 	/* Return freed stuff */
 	return FreeCount;
+}
+
+/* ZS_MemInfo() -- "meminfo" -- Print memory information */
+static CONL_ExitCode_t ZS_MemInfo(const uint32_t a_ArgC, const char** const a_ArgV)
+{
+	size_t i;
+	Z_MemPartition_t* Cur;
+	
+	uint64_t SysTotalLL;
+	uint32_t SysUsed, SysTotal;
+	
+	uint32_t ZAlloc, ZTotal, ZUsed;
+	uint32_t ATotal, AUsed;
+	uint32_t DTotal, DUsed;
+	uint32_t WTotal;
+	
+	uint32_t PUsed, PTotal, PMax, PBytes;
+	
+	/* Get system totals */
+	SysUsed = I_GetFreeMemory(&SysTotalLL);
+	SysTotal = SysTotalLL;
+	SysUsed = SysTotal - SysUsed;
+	
+	/* Go through the memory manager */
+	// Get zone reports
+	ZAlloc = l_MainZone->AllocSize;
+	ZTotal = l_MainZone->TotalMemory << PARTSHIFT;
+	ZUsed = ZTotal - (l_MainZone->FreeMemory << PARTSHIFT);
+	
+	// Find actual memory
+	PUsed = ATotal = AUsed = DTotal = DUsed = WTotal = 0;
+	PTotal = l_MainZone->NumPartitions;
+	PMax = l_MainZone->MaxPartitions;
+	PBytes = l_MainZone->MaxPartitions * sizeof(Z_MemPartition_t);
+	
+	for (i = 0; i < l_MainZone->NumPartitions; i++)
+	{
+		// Get current partition
+		Cur = &l_MainZone->PartitionList[i];
+		
+		// Add actual size
+		ATotal += Cur->Part.Size << PARTSHIFT;
+		DTotal += Cur->Part.Size << PARTSHIFT;
+		
+		// If this block is used, add to used totals
+		if (Cur->Part.Used)
+		{
+			AUsed += Cur->Part.Size << PARTSHIFT;
+			DUsed += Cur->Block.Size;
+			PUsed++;
+		}
+	}
+	
+	// Wasted is the AUsed - DUsed;
+	WTotal = AUsed - DUsed;
+	
+	/* Print Report */
+	CONL_PrintF("{9*** MEMORY REPORT ***{z\n");
+	CONL_PrintF("{zSystem : {3%8u{zKiB/{4%8u{zKiB\n", SysUsed >> 10, SysTotal >> 10);
+	CONL_PrintF("{zClaimed: {3%8u{zKiB\n", ZAlloc >> 10);
+	CONL_PrintF("{zReport : {3%8u{zKiB/{4%8u{zKiB\n", ZUsed >> 10, ZTotal >> 10);
+	CONL_PrintF("{zActual : {3%8u{zKiB/{4%8u{zKiB\n", AUsed >> 10, ATotal >> 10);
+	CONL_PrintF("{zData   : {3%8u{zKiB/{4%8u{zKiB\n", DUsed >> 10, DTotal >> 10);
+	CONL_PrintF("{zWasted : {3%8u{zKiB\n", WTotal >> 10);
+	CONL_PrintF("{zParts  : {3%8u{z/{4%8u\n", PUsed, PTotal);
+	CONL_PrintF("{zPartUtl: {3%8u{z/{4%8u\n", PTotal, PMax);
+	CONL_PrintF("{zPartSiz: {3%8u{zKiB\n", PBytes >> 10);
+	
+	/* Success */
+	return CLE_SUCCESS;
+}
+
+/* ZS_MemCacheFree() -- "memcachefree" -- Free all cached memory */
+static CONL_ExitCode_t ZS_MemCacheFree(const uint32_t a_ArgC, const char** const a_ArgV)
+{
+	uint32_t FreeCount;
+	
+	/* Free all cache tags */
+	FreeCount = Z_FreeTags(PU_PURGELEVEL, NUMZTAGS);
+	
+	/* Print Info */
+	CONL_PrintF("Freed %u blocks.\n", FreeCount);
+	
+	/* Success */
+	return CLE_SUCCESS;
+}
+
+/* ZS_MemFrag() -- "memfrag" -- Show memory fragmentation */
+static CONL_ExitCode_t ZS_MemFrag(const uint32_t a_ArgC, const char** const a_ArgV)
+{
+#define MAXCHARS (30 * 10)
+	uint32_t BytesPerChar;
+	uint32_t CurByte, Diff, Left;
+	char Char, ColorChar;
+	size_t i, j, CurCol, c;
+	Z_MemPartition_t* Cur;
+	bool_t LastUsed;
+	
+	static const struct
+	{
+		char Char;
+		char Color;
+	} CharBits[8] =
+	{
+		{'.', '4'},
+		{',', '3'},
+		{'-', '3'},
+		{'-', '2'},
+		{'=', '2'},
+		{'=', '2'},
+		{'#', '2'},
+		{'#', '1'},
+	};
+	
+	uint32_t Used, Free, Total;
+	
+	/* Obtain bytes per character */
+	BytesPerChar = l_MainZone->AllocSize / MAXCHARS;
+	
+	/* Message */
+	CONL_PrintF("{zPrinting memory map: '#' = %uB\n", BytesPerChar);
+	
+	/* Print characters */
+	for (Total = Used = Free = Left = 0, CurCol = 0, i = 0, c = 0; c < MAXCHARS; c++)
+	{
+		// Calculate totals until memory cap is reached
+		while (Total < BytesPerChar)
+		{
+			// No more partitions?
+			if (i >= l_MainZone->NumPartitions)
+				break;
+			
+			// Get current partition
+			Cur = &l_MainZone->PartitionList[i];
+			
+			// Add to totals
+			Total += Cur->Part.Size << PARTSHIFT;
+			
+			// Used or free?
+			if (Cur->Part.Used)
+				Used += Cur->Part.Size << PARTSHIFT;
+			else
+				Free += Cur->Part.Size << PARTSHIFT;
+			
+			// Go to next partition
+			i++;
+		}
+		
+		// Find out which character to use
+		for (j = 0; j < 7; j++)
+			if (Used <= (((Total >> 3) * j) + 1))
+				break;
+		
+		// Subtract totals for the next
+		Total -= BytesPerChar;
+		
+		if (Used < BytesPerChar)
+			Used = 0;
+		else
+			Used -= BytesPerChar;
+		
+		if (Free < BytesPerChar)
+			Free = 0;
+		else
+			Free -= BytesPerChar;
+		
+		// Print char and go to next column
+		CONL_PrintF("{%c%c", CharBits[j].Color, CharBits[j].Char);
+		CurCol++;
+		
+		// Next line?
+		if (CurCol == 30)
+		{
+			CurCol = 0;
+			CONL_PrintF("\n");
+		}
+	}
+
+	// So it flushes
+	CONL_PrintF("{z\n");
+	
+	/* Success */
+	return CLE_SUCCESS;
+}
+
+/* Z_RegisterCommands() -- Register commands to the console */
+void Z_RegisterCommands(void)
+{
+	CONL_AddCommand("meminfo", ZS_MemInfo);
+	CONL_AddCommand("memcachefree", ZS_MemCacheFree);
+	CONL_AddCommand("memfrag", ZS_MemFrag);
 }
 
 /***********************

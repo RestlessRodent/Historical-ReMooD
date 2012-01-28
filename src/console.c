@@ -961,6 +961,9 @@ bool_t CONL_Init(const uint32_t a_OutBS, const uint32_t a_InBS)
 		CONL_VarRegister(&l_CONScale);
 	}
 #endif
+
+	/* Add other things */
+	Z_RegisterCommands();						// Memory Manager
 	
 	/* Base init */
 	P_InitSGConsole();

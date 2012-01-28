@@ -49,9 +49,6 @@ extern uint8_t sound_started;
 /* flag for 'win-friendly' mode used by interface code */
 extern volatile tic_t ticcount;
 
-// return free and total physical memory in the system
-size_t I_GetFreeMem(size_t* total);
-
 //
 // Called by D_DoomLoop,
 // called before processing any tics in a frame

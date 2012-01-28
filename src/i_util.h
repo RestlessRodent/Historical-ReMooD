@@ -415,6 +415,7 @@ void I_ShutdownSystem(void);
 
 const char* I_GetUserName(void);
 uint64_t I_GetDiskFreeSpace(const char* const a_Path);
+uint64_t I_GetFreeMemory(uint64_t* const a_TotalMem);
 void I_CommonCommandLine(int* const a_argc, char** *const a_argv, const char* const a_Long);
 void I_Quit(void);
 
@@ -461,3 +462,4 @@ void I_PlayCD(int track, bool_t looping);
 int I_SetVolumeCD(int volume);
 
 #endif							/* __I_UTIL_H__ */
+

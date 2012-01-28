@@ -1195,12 +1195,15 @@ const char* I_GetUserName(void)
 	size_t i;
 #endif
 	
+	/* Clear Buffer */
+	memset(RememberName, 0, sizeof(RememberName));
+	
 	/* Try system specific username getting */
 	// Under UNIX, use getlogin
 #if defined(__unix__)
 	// prefer getlogin_r if it exists
 #if _REENTRANT || _POSIX_C_SOURCE >= 199506L
-	if (getlogin_r(RememberName, MAXUSERNAME))
+	if (getlogin_r(RememberName, MAXUSERNAME - 1))
 		return RememberName;
 		
 	// Otherwise use getlogin
@@ -1210,14 +1213,14 @@ const char* I_GetUserName(void)
 	if (p)
 	{
 		// Dupe string
-		strncpy(RememberName, p, MAXUSERNAME);
+		strncpy(RememberName, p, MAXUSERNAME - 1);
 		return RememberName;
 	}
 #endif
 	
 	// Under Win32, use GetUserName
 #elif defined(_WIN32)
-	Size = MAXUSERNAME;
+	Size = MAXUSERNAME - 1;
 	if (GetUserName(Buf, &Size))
 	{
 		// Cheap copy
@@ -1248,10 +1251,10 @@ const char* I_GetUserName(void)
 				return NULL;
 		}
 	}
-	// Copy p to buffer and return the buffer
-	strncpy(RememberName, p, MAXUSERNAME);
-	return RememberName;
 	
+	// Copy p to buffer and return the buffer
+	strncpy(RememberName, p, MAXUSERNAME - 1);
+	return RememberName;
 #undef MAXUSERNAME
 }
 
@@ -1264,6 +1267,124 @@ uint64_t I_GetDiskFreeSpace(const char* const a_Path)
 		
 	// TODO
 	return 2 << 30;
+}
+
+/* I_GetFreeMemory() -- Returns the amount of free memory available */
+uint64_t I_GetFreeMemory(uint64_t* const a_TotalMem)
+{
+#define DEFAULTMEMCOUNT 32
+
+	/* MS-DOS w/ DJGPP */
+#if defined(__MSDOS__)
+	struct mallinfo Mall;
+	
+	// Obtain heap usage
+	Mall = mallinfo();
+	
+	// Set total space
+	if (a_TotalMem)
+		*a_TotalMem = Mall.arena;
+	
+	// Return free space
+	return Mall.arena - (Mall.usmblks + Mall.uordblks);
+	
+	/* Windows 32-bit */
+#elif defined(_WIN32)
+	
+	/* Linux */
+#elif defined(__linux__)
+	// TODO: This could probably be improved, but it is only called in few places
+#define BUFSIZE 256
+	FILE* ProcMem;
+	char Buf[BUFSIZE];
+	char* p;
+	
+	uint64_t Total, Free, Temp;
+	
+	// Clear
+	Total = Free = 0;
+	
+	// Read /proc/meminfo and obtain memory info
+	ProcMem = fopen("/proc/meminfo", "rb");
+	
+	// Check
+	if (!ProcMem)
+	{
+		if (a_TotalMem)
+			*a_TotalMem = DEFAULTMEMCOUNT << 20;
+		return DEFAULTMEMCOUNT << 20;
+	}
+	
+	// Read in lines
+	while (!feof(ProcMem))
+	{
+		// Read line from file
+		fgets(Buf, BUFSIZE, ProcMem);
+		
+		// See if it is something we like
+		if (strncasecmp(Buf, "MemTotal", 8) == 0)
+			Total = strtol(Buf + 8 + 2, &p, 10) << 10;
+		else if (strncasecmp(Buf, "MemFree", 7) == 0)
+			Free += strtol(Buf + 7 + 2, &p, 10) << 10;
+		
+		// Buffers and Cache count at 75%
+		else if (strncasecmp(Buf, "Buffers", 7) == 0)
+		{
+			Temp = strtol(Buf + 7 + 2, &p, 10) << 10;
+			Free += Temp - (Temp >> 2);
+		}
+		else if (strncasecmp(Buf, "Cached", 6) == 0)
+		{
+			Temp = strtol(Buf + 6 + 2, &p, 10) << 10;
+			Free += Temp - (Temp >> 2);
+		}
+		
+		// Swap counts at 50%
+		else if (strncasecmp(Buf, "SwapTotal", 9) == 0)
+		{
+			Temp = strtol(Buf + 9 + 2, &p, 10) << 10;
+			Total += Temp - (Temp >> 1);
+		}
+		else if (strncasecmp(Buf, "SwapFree", 8) == 0)
+		{
+			Temp = strtol(Buf + 8 + 2, &p, 10) << 10;
+			Free += Temp - (Temp >> 1);
+		}
+	}
+	
+	// Close
+	fclose(ProcMem);
+	
+	// Set total
+	if (a_TotalMem)
+		*a_TotalMem = Total;
+
+	// Return free
+	return Free;
+#undef BUFSIZE
+	/* UNIX */
+#elif defined(__unix__)
+	uint64_t Total, Free;
+	
+	// Get total memory (RAM)
+	Total = sysconf(_SC_PHYS_PAGES) * sysconf(_SC_PAGE_SIZE);
+	
+	// Return total
+	if (a_TotalMem)
+		*a_TotalMem = Total;
+	
+	// Just use free as total (ouch)
+	return Total;
+
+	/* Unknown */
+#else
+	// Return 32MiB
+	return DEFAULTMEMCOUNT << 20;
+
+	/* */
+#endif
+
+#undef DEFAULTMEMCOUNT
 }
 
 /* I_CommonCommandLine() -- Common command line stuff */

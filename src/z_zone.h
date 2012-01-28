@@ -92,6 +92,8 @@ void Z_DebugMarkBlock(void* const Ptr, const char* const String);
 void Z_ResizeArray(void** const PtrPtr, const size_t ElemSize, const size_t OldSize, const size_t NewSize);
 void Z_SetLockBack(void* const Ptr, bool_t (*LockBack) (void* const, const Z_LockBackAction_t, const uintptr_t, const uintptr_t));
 
+void Z_RegisterCommands(void);
+
 /* Memory */
 #if defined(_DEBUG)				// DEBUG
 #define _ZMGD_WRAPPEE , const char* const File, const int Line
