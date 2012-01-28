@@ -42,6 +42,15 @@
 *** CONSTANTS ***
 ****************/
 
+/* I_DataStorageType_t -- Type of data to store */
+typedef enum I_DataStorageType_e
+{
+	DST_CONFIG,									// Config Dir (remoodex.cfg)
+	DST_DATA,									// Data Dir (Demos, saves, etc.)
+	
+	NUMDATASTORAGETYPES
+} I_DataStorageType_t;
+
 /* I_KeyBoardKey_t -- A keyboard key */
 typedef enum I_KeyBoardKey_e
 {
@@ -413,7 +422,9 @@ void I_AddExitFunc(void (*func) ());
 void I_RemoveExitFunc(void (*func) ());
 void I_ShutdownSystem(void);
 
+int I_mkdir(const char* a_Path, int a_UNIXPowers);
 const char* I_GetUserName(void);
+size_t I_GetStorageDir(char* const a_Out, const size_t a_Size, const I_DataStorageType_t a_Type);
 uint64_t I_GetDiskFreeSpace(const char* const a_Path);
 uint64_t I_GetFreeMemory(uint64_t* const a_TotalMem);
 void I_CommonCommandLine(int* const a_argc, char** *const a_argv, const char* const a_Long);

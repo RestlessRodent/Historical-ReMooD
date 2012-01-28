@@ -218,17 +218,6 @@ void I_LocateWad(void)
 *** FUNCTIONS ***
 ****************/
 
-/* I_mkdir() -- Creates a new directory */
-int I_mkdir(const char* a_Path, int a_UNIXPowers)
-{
-#if defined(__REMOOD_SYSTEM_WINDOWS)
-	return mkdir(a_Path);
-#else
-	// Ignore UNIX Powers
-	return mkdir(a_Path, S_IWUSR);
-#endif
-}
-
 /* I_SysAlloc() -- Allocate system memory */
 void* I_SysAlloc(const size_t a_Size)
 {

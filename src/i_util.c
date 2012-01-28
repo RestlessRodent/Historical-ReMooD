@@ -1186,6 +1186,18 @@ void I_ShutdownSystem(void)
 		}
 }
 
+/* I_mkdir() -- Creates a new directory */
+int I_mkdir(const char* a_Path, int a_UNIXPowers)
+{
+#if defined(__REMOOD_SYSTEM_WINDOWS)
+	return mkdir(a_Path);
+	
+#else
+	// Ignore UNIX Powers
+	return mkdir(a_Path, S_IRUSR | S_IWUSR | S_IXUSR);
+#endif
+}
+
 /* I_GetUserName() -- Returns the current username */
 const char* I_GetUserName(void)
 {
@@ -1260,6 +1272,86 @@ const char* I_GetUserName(void)
 	strncpy(RememberName, p, MAXUSERNAME - 1);
 	return RememberName;
 #undef MAXUSERNAME
+}
+
+/* I_GetStorageDir() -- Get location to store local data */
+size_t I_GetStorageDir(char* const a_Out, const size_t a_Size, const I_DataStorageType_t a_Type)
+{
+	char* Env;
+	
+	/* Check */
+	if (!a_Out || !a_Size || a_Type < 0 || a_Type >= NUMDATASTORAGETYPES)
+		return 0;
+	
+	/* Clear */
+	memset(a_Out, 0, sizeof(*a_Out) * a_Size);
+	
+	/* UNIX Systems */
+#if defined(__unix__)
+	// Get XDG Config directory
+	if ((Env = getenv((a_Type == DST_CONFIG ? "XDG_CONFIG_HOME" : "XDG_DATA_HOME"))))
+	{
+		// Use the following then
+		strncat(a_Out, Env, a_Size);
+		
+		// Create directory just in case
+		I_mkdir(a_Out, 0);
+		
+		// And concat remood
+		strncat(a_Out, "/", a_Size);
+		strncat(a_Out, "remood", a_Size);
+		
+		// Create the directory
+		I_mkdir(a_Out, 0);
+	}
+	
+	// Otherwise, get the home directory
+	else if ((Env = getenv("HOME")))
+	{
+		// Use the following then
+		strncat(a_Out, Env, a_Size);
+		
+		// Add slash
+		strncat(a_Out, "/", a_Size);
+		
+		// Add .config or .local and create the dir (just in case)
+		strncat(a_Out, ((a_Type == DST_CONFIG) ? ".config" : ".local"), a_Size);
+		I_mkdir(a_Out, 0);
+		
+		// If this is data, add share also (and create the directory)
+		if (a_Type == DST_DATA)
+		{
+			strncat(a_Out, "/share", a_Size);
+			I_mkdir(a_Out, 0);
+		}
+		
+		// Add remood directory and create it
+		strncat(a_Out, "/remood", a_Size);
+		I_mkdir(a_Out, 0);
+	}
+	
+	/* Windows Systems */
+#elif defined(_WIN32)
+	
+	/* DOS */
+#elif defined(__MSDOS__)
+	// Use C:\DOOMDATA and make sure it exists
+	strncat(a_Out, "c:/doomdata", a_Size);	
+	I_mkdir(a_Out, 0);
+
+	/* Other */
+#else
+	
+	/* */
+#endif
+
+	/* Directory is empty? */
+	// Then fallback to current directory
+	if (strlen(a_Out) == 0)
+		strncat(a_Out, ".", a_Size);
+
+	/* Return size of set buffer */
+	return strlen(a_Out);
 }
 
 /* I_GetDiskFreeSpace() -- Returns space being used */

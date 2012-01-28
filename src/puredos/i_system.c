@@ -387,15 +387,6 @@ void I_GetDiskFreeSpace(INT64 * freespace)
 #endif
 }
 
-int I_mkdir(const char *dirname, int unixright)
-{
-#ifdef LINUX
-	return mkdir(dirname, unixright);
-#else
-	return mkdir(dirname);
-#endif
-}
-
 void I_LocateWad(void)
 {
 	// relict from the Linux version

@@ -125,6 +125,9 @@ static CONL_PlayerMessage_t l_CONLMessageQ[MAXSPLITSCREENPLAYERS][MAXCONLPLAYERM
 static uint32_t l_CONLLineOff = 0;	// Line offset
 static CONCTI_Inputter_t* l_CONLInputter = NULL;	// Console inputter
 
+static char l_ConfigDir[PATH_MAX];				// Configuration directory
+static char l_DataDir[PATH_MAX];				// Data directory
+
 // Variables
 #if !defined(__REMOOD_DEDICATED)
 
@@ -949,6 +952,16 @@ bool_t CONL_Init(const uint32_t a_OutBS, const uint32_t a_InBS)
 	
 	/* Initialize the variable system */
 	CONL_VarLocate("theconsolesystemwasjustbooted");
+	
+	/* Get directories for files */
+	I_GetStorageDir(l_ConfigDir, PATH_MAX, DST_CONFIG);
+	I_GetStorageDir(l_DataDir, PATH_MAX, DST_DATA);
+	
+	// Print the info about them
+	CONL_PrintF("CONL_Init: Config directory is \"%s\".\n", l_ConfigDir);
+	CONL_PrintF("CONL_Init: Data directory is \"%s\".\n", l_DataDir);
+	
+	/* Load configuration file */
 	
 	/* Initialize variables for drawing */
 #if !defined(__REMOOD_DEDICATED)

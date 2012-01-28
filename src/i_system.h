@@ -109,7 +109,6 @@ void I_RegisterCrash(void);
 *** PROTOTYPES ***
 *****************/
 
-int I_mkdir(const char* a_Path, int a_UNIXPowers);
 void* I_SysAlloc(const size_t a_Size);
 void* I_SysRealloc(void* const a_Ptr, const size_t a_NewSize);
 void I_SysFree(void* const a_Ptr);
