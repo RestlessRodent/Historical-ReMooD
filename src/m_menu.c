@@ -1064,11 +1064,23 @@ typedef struct M_MenuExPrivate_s
 	size_t NumMenus;							// Number of loaded menus
 } M_MenuExPrivate_t;
 
+/* M_ActiveMenu_t -- An active menu */
+typedef struct M_ActiveMenu_s
+{
+	M_MenuExMenu_t* BaseMenu;					// Current Menu
+	V_Widget_t* BigWidget;						// Widget for the entire menu!
+	V_Widget_t* Title;							// Menu Title
+	V_Widget_t* Hint;							// Menu Hint
+	
+	struct M_ActiveMenu_s* StackedOnTop;		// Stacked on top of other menu
+} M_ActiveMenu_t;
+
 /*************
 *** LOCALS ***
 *************/
 
 static M_MenuExMenu_t* l_CurrentMenuChain;		// Currently setup menus
+static M_ActiveMenu_t* l_ActiveMenuStack[MAXSPLITSCREENPLAYERS];
 
 /****************
 *** FUNCTIONS ***
@@ -1267,8 +1279,15 @@ bool_t M_MenuExRMODHandle(Z_Table_t* const a_Table, const WL_WADFile_t* const a_
 		return false;
 	
 	/* Create private data */
-	a_Private->Size = sizeof(M_MenuExPrivate_t);
-	LocalStuff = a_Private->Data = Z_Malloc(a_Private->Size, PU_STATIC, (void**)&a_Private->Data);
+	// If it needs to be created
+	if (!a_Private->Data)
+	{
+		a_Private->Size = sizeof(M_MenuExPrivate_t);
+		a_Private->Data = Z_Malloc(a_Private->Size, PU_STATIC, (void**)&a_Private->Data);
+	}
+	
+	// Set
+	LocalStuff = a_Private->Data;
 	
 	/* Create temporary menu */
 	TempMenu = Z_Malloc(sizeof(*TempMenu), PU_STATIC, NULL);
@@ -1298,18 +1317,18 @@ bool_t M_MenuExRMODHandle(Z_Table_t* const a_Table, const WL_WADFile_t* const a_
 	
 	// Title String
 	if (!(Value = Z_TableGetValue(a_Table, "String")))
-		TempMenu->TitleUStringName = NULL;
+		TempMenu->TitleUStringName = Z_StrDup("MENUNULLSPACE", PU_STATIC, NULL);
 	else
 		TempMenu->TitleUStringName = Z_StrDup(Value, PU_STATIC, NULL);
 		
 	// Short Title String (Not much space)
 	if (!(Value = Z_TableGetValue(a_Table, "ShortString")))
-		TempMenu->ShortUStringName = NULL;
+		TempMenu->ShortUStringName = Z_StrDup("MENUNULLSPACE", PU_STATIC, NULL);
 	else
 		TempMenu->ShortUStringName = Z_StrDup(Value, PU_STATIC, NULL);
 		
 	// Picture
-	if (!(Value = Z_TableGetValue(a_Table, "ShortString")))
+	if (!(Value = Z_TableGetValue(a_Table, "Picture")))
 		TempMenu->TitlePicture = NULL;
 	else
 		TempMenu->TitlePicture = Z_StrDup(Value, PU_STATIC, NULL);
@@ -1343,7 +1362,7 @@ bool_t M_MenuExRMODHandle(Z_Table_t* const a_Table, const WL_WADFile_t* const a_
 	LocalStuff->Menus[LocalStuff->NumMenus++] = TempMenu;
 	
 	/* Success! */
-	return false;
+	return true;
 #endif /* __REMOOD_DEDICATED */
 }
 
@@ -1487,8 +1506,11 @@ bool_t M_MenuExRMODOrder(const bool_t a_Pushed, const struct WL_WADFile_s* const
 				// Link before
 				else
 				{
-					MenuRover->NextMenu = l_CurrentMenuChain;
+					// Link up
 					l_CurrentMenuChain->PrevMenu = MenuRover;
+					MenuRover->NextMenu = l_CurrentMenuChain;
+					
+					// Replace
 					l_CurrentMenuChain = MenuRover;
 				}
 			}
@@ -1538,10 +1560,90 @@ bool_t M_MenuExRMODOrder(const bool_t a_Pushed, const struct WL_WADFile_s* const
 		MenuRover = MenuRover->NextMenu;
 	}
 	
-	/* Create widgets for all of the menus */
-	
 	/* Success! */
 	return true;
+#endif /* __REMOOD_DEDICATED */
+}
+
+/* MS_MenuExPush() -- Opens a new menu for a player */
+static M_ActiveMenu_t* MS_MenuExPush(const size_t a_Player, M_MenuExMenu_t* const a_Menu)
+{
+	/*** DEDICATED SERVER ***/
+#if defined(__REMOOD_DEDICATED)
+	return NULL;
+	
+	/*** STANDARD CLIENT ***/
+#else
+	M_ActiveMenu_t* New;
+	
+	/* Not for dedicated */
+	if (g_DedicatedServer)
+		return NULL;
+	
+	/* Check */
+	if (!a_Player < 0 || a_Player >= MAXSPLITSCREENPLAYERS || !a_Menu)
+		return NULL;
+	
+	/* Allocate space for new and push it to the stack */
+	New = Z_Malloc(sizeof(*New), PU_STATIC, NULL);
+	
+	// Set parent to New and replace
+	New->StackedOnTop = l_ActiveMenuStack[a_Player];
+	l_ActiveMenuStack[a_Player] = New;
+	
+	/* Create widgets for menu */
+	// Core widget
+	New->BigWidget = V_WidgetCreate(NULL, "neatmenu", "toplevelcontainer");
+	V_WidgetSetSize(New->BigWidget, 320, 200);
+	V_WidgetSetPosition(New->BigWidget, 0, 0);
+	
+	// Title Widget
+	New->Title = V_WidgetCreate(New->BigWidget, "label", "title");
+	V_WidgetSetValue(New->Title, *a_Menu->TitleUString);
+	
+	/* Return created menu */
+	return New;
+#endif /* __REMOOD_DEDICATED */
+}
+
+/* MS_MenuExPop() -- Closes the topmost menu for a player */
+static M_ActiveMenu_t* MS_MenuExPop(const size_t a_Player)
+{
+	/*** DEDICATED SERVER ***/
+#if defined(__REMOOD_DEDICATED)
+	return NULL;
+	
+	/*** STANDARD CLIENT ***/
+#else
+	M_ActiveMenu_t* Top;
+	
+	/* Not for dedicated */
+	if (g_DedicatedServer)
+		return NULL;
+		
+	/* Check */
+	if (!a_Player < 0 || a_Player >= MAXSPLITSCREENPLAYERS)
+		return NULL;
+	
+	/* Get top of the stack */
+	Top = l_ActiveMenuStack[a_Player];
+	
+	// No top?
+	if (!Top)
+		return NULL;
+	
+	/* Go up */
+	l_ActiveMenuStack[a_Player] = Top->StackedOnTop;
+	
+	/* Delete and free everything */
+	// Delete the widgets
+	V_WidgetDestroy(Top->BigWidget);
+	
+	// Remove memory used by menu
+	Z_Free(Top);
+	
+	/* Return new top */
+	return l_ActiveMenuStack[a_Player];
 #endif /* __REMOOD_DEDICATED */
 }
 
@@ -1566,9 +1668,31 @@ bool_t M_MenuExHandleEvent(const I_EventEx_t* const a_Event)
 	/* Keyboard based events */
 	if (a_Event->Type == IET_KEYBOARD)
 	{
-		/* Ignore up events */
+		// Ignore up events
 		if (!a_Event->Data.Keyboard.Down && !a_Event->Data.Keyboard.Repeat)
 			return false;
+		
+		// A menu is not open
+		if (!l_ActiveMenuStack[0])
+		{
+			// Open Root Menu
+			if (a_Event->Data.Keyboard.KeyCode == IKBK_ESCAPE)
+			{
+				MS_MenuExPush(0, MS_FindMenuByName("root"));
+				return true;
+			}
+		}
+		
+		// A menu is open
+		else
+		{
+			// Pop last menu
+			if (a_Event->Data.Keyboard.KeyCode == IKBK_ESCAPE)
+			{
+				MS_MenuExPop(0);
+				return true;
+			}
+		}
 	}
 	
 	/* Mouse based events */
@@ -1589,73 +1713,21 @@ void M_MenuExDrawer(void)
 	
 	/*** STANDARD CLIENT ***/
 #else
-	int p;
-	static V_Widget_t* MenuWidget;
-	static V_Widget_t* Labels[30];
-	static bool_t Bounce = false;
-	static int BounceX = 0;
-	
-	/* Not for dedicated server */
-	if (g_DedicatedServer)
-		return;
-	
-	if (!MenuWidget)
-	{
-		MenuWidget = V_WidgetCreate(NULL, "neatmenu", "test");
-		V_WidgetSetSize(MenuWidget, 320, 200);
-		V_WidgetSetPosition(MenuWidget, 0, 0);
-	
-		for (p = 0; p < 30; p++)
-		{
-			char Buf[20];
-		
-			snprintf(Buf, 19, "Hello world %i!", p - 2);
-		
-			Labels[p] = V_WidgetCreate(MenuWidget, "label", "gunk");
-			if (p == 0)
-				V_WidgetSetValue(Labels[p], "Hello Title!");
-			else if (p == 1)
-				V_WidgetSetValue(Labels[p], "Hints! \xD0\xB8\xD0\xB3\xD1\x80\xD0\xB0 in Russian! Bad Color Choice.");//"\xD0\xBF\xD1\x80\xD0\xB8\xD0\xB2\xD0\xB5\xD1\x82\x20\xD0\xBC\xD0\xB8\xD1\x80 in russian!");
-			else if (p == 2)
-				V_WidgetSetValue(Labels[p], "*");
-			else
-				V_WidgetSetValue(Labels[p], Buf);
-		}
-	}
-	
-	V_WidgetSetPropertyInt(MenuWidget, "selected", (gametic >> 3) % 25);
-	V_WidgetSetPropertyInt(MenuWidget, "offset", BounceX);
-	
-	if (!Bounce)
-	{
-		if (((gametic >> 4) % 25))
-			BounceX++;
-		
-		if (BounceX == 25)
-			Bounce = true;
-	}
-	else
-	{
-		if (((gametic >> 4) % 25))
-			BounceX--;
-		
-		if (BounceX == 0)
-			Bounce = false;
-	}
-	
-	V_WidgetDraw(MenuWidget, 0);
-	//V_WidgetDestroy(MenuWidget);
+	size_t p;
 	
 	/* Draw each of the player menus */
 	for (p = 0; p < MAXSPLITSCREENPLAYERS; p++)
 	{
 		// Determine if they actually have a menu open
+		if (!l_ActiveMenuStack[p])
+			continue;
 		
 		// Determine the view window for the player
 		
 		// Draw fuzzy background
 		
 		// Draw widgets
+		V_WidgetDraw(l_ActiveMenuStack[p]->BigWidget, 0);
 	}
 #endif /* __REMOOD_DEDICATED */
 }

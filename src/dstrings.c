@@ -835,6 +835,7 @@ StringGroupEX_t UnicodeStrings[NUMUNICODESTRINGS] =
 {
 	/****** MENUS ******/
 	{"MENU_NULLSPACE", " "},
+	{                           "MENUMAIN_TITLE", "Main Menu"},
 	{"MENU_MAIN_NEWGAME", "New Game"},
 	{"MENU_MAIN_ENDGAME", "End Game"},
 	{"MENU_MAIN_LOADGAME", "Load Game"},
