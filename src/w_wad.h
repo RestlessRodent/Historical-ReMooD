@@ -241,6 +241,7 @@ uint32_t WL_StreamReadLittleUInt32(WL_EntryStream_t* const a_Stream);
 
 bool_t WL_StreamCheckUnicode(WL_EntryStream_t* const a_Stream);
 uint16_t WL_StreamReadChar(WL_EntryStream_t* const a_Stream);
+size_t WL_StreamReadLine(WL_EntryStream_t* const a_Stream, char* const a_Buf, const size_t a_Size);
 
 /******************************
 *** OLD REMOOD WAD HANDLING ***

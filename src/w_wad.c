@@ -936,12 +936,27 @@ bool_t WL_RegisterOCCB(WL_OrderCBFunc_t const a_Func, const uint8_t a_Order)
 				// Create and link here
 				New = Z_Malloc(sizeof(*New), PU_STATIC, NULL);
 				
-				// Re-chain
-				New->Prev = Temp->Prev;
-				New->Next = Temp;
-				if (Temp->Prev)
-					Temp->Prev->Next = New;
-				Temp->Prev = New;
+				// If Temp is head
+				if (Temp == l_OCCBHead)
+				{
+					// A simple link before
+					New->Next = Temp;
+					Temp->Prev = New;
+					l_OCCBHead = New;
+				}
+				
+				// Otherwise, re-link inside a chain
+				else
+				{
+					// Re-chain
+					New->Prev = Temp->Prev;
+					New->Next = Temp;
+					if (Temp->Prev)
+						Temp->Prev->Next = New;
+					Temp->Prev = New;
+				}
+				
+				// break out
 				break;
 			}
 			
@@ -1532,6 +1547,36 @@ uint16_t WL_StreamReadChar(WL_EntryStream_t* const a_Stream)
 	}
 	
 	/* Return */
+	return RetVal;
+}
+
+/* WL_StreamReadLine() -- Read single line from stream */
+size_t WL_StreamReadLine(WL_EntryStream_t* const a_Stream, char* const a_Buf, const size_t a_Size)
+{
+	size_t RetVal;
+	uint16_t Char;
+	
+	/* Check */
+	if (!a_Stream || !a_Buf || !a_Size)
+		return 0;
+	
+	/* Read characters until \n */
+	for (RetVal = 0, Char = WL_StreamReadChar(a_Stream); !WL_StreamEOF(a_Stream); Char = WL_StreamReadChar(a_Stream))
+	{
+		// If character is \n, the stream has ended
+		if (Char == '\n')
+			break;
+		
+		// Ignore '\r'
+		if (Char == '\r')
+			continue;
+		
+		// Place in buffer
+		if (RetVal < a_Size - 1)
+			a_Buf[RetVal++] = Char;
+	}
+	
+	/* Return retval */
 	return RetVal;
 }
 

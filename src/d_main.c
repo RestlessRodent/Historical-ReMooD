@@ -889,6 +889,7 @@ typedef struct D_IWADInfoEx_s
 	/* Game Info */
 	CoreGame_t CoreGame;						// Core Game
 	bool_t CanDistrib;							// Distributable? (Not illegal to give away)
+	const char* MapInfoLump;					// Map Info Lump
 	
 	int mission;								// Deprecated mission
 	int mode;									// Deprecated mode
@@ -912,6 +913,7 @@ const D_IWADInfoEx_t c_IWADInfos[] =
 		
 		COREGAME_DOOM,
 		false,
+		"MI_DOOM2",
 		
 		doom2,
 		commercial
@@ -931,6 +933,7 @@ const D_IWADInfoEx_t c_IWADInfos[] =
 		
 		COREGAME_DOOM,
 		false,
+		"MI_DOOM",
 		
 		doom,
 		retail
@@ -950,19 +953,21 @@ const D_IWADInfoEx_t c_IWADInfos[] =
 		
 		COREGAME_DOOM,
 		true,
+		"MI_DOOM",
 		
 		doom,
 		shareware
 	},
 
 	/* Last */
-	{NULL, NULL, NULL, NULL, NULL, NULL, 0, 0, 0, 0, 0}
+	{NULL, NULL, NULL, NULL, NULL, NULL, NULL, 0, 0, COREGAME_DOOM, false, NULL, 0, 0}
 };
 
 /*** LOCALS ***/
 
-CoreGame_t g_CoreGame = COREGAME_UNKNOWN;	// Core game mode
-const void* g_ReMooDPtr = NULL;				// Pointer to remood.wad
+CoreGame_t g_CoreGame = COREGAME_UNKNOWN;		// Core game mode
+const void* g_ReMooDPtr = NULL;					// Pointer to remood.wad
+const char* g_IWADMapInfoName = NULL;			// Name of IWAD MAPINFO
 
 /*** FUNCTIONS ***/
 
@@ -1193,6 +1198,7 @@ static bool_t DS_DetectGameMode(const bool_t a_Pushed, const struct WL_WADFile_s
 	g_CoreGame = c_IWADInfos[Best].CoreGame;
 	gamemode = c_IWADInfos[Best].mode;
 	gamemission = c_IWADInfos[Best].mission;
+	g_IWADMapInfoName = c_IWADInfos[Best].MapInfoLump;
 	
 	/* Cleanup */
 	Z_Free(Confidence);

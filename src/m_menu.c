@@ -1805,6 +1805,7 @@ bool_t M_MenuExHandleEvent(const I_EventEx_t* const a_Event)
 	{
 	}
 	
+	/* Not eaten */
 	return false;
 #endif /* __REMOOD_DEDICATED */
 }

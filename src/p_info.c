@@ -51,6 +51,7 @@
 /*** CONSTANTS ***/
 
 #define MAXPLIEXFIELDWIDTH			32
+#define MAXCONSOLECOMMANDWIDTH		128
 
 typedef enum P_LevelInfoExDataStuff_e
 {
@@ -74,6 +75,7 @@ typedef enum P_LevelInfoExDataStuff_e
 	MAXPLIEDS
 } P_LevelInfoExDataStuff_t;
 
+// c_LevelLumpNames -- Names of the level lumps
 static const char* c_LevelLumpNames[MAXPLIEDS] =
 {
 	"",
@@ -112,8 +114,8 @@ typedef struct P_LevelInfoEx_s
 	
 	/* Info */
 	char LumpName[MAXPLIEXFIELDWIDTH];			// Name of the lump
-	char Title[MAXPLIEXFIELDWIDTH];				// Level Title
-	char Author[MAXPLIEXFIELDWIDTH];			// Creator of level
+	char* Title;								// Level Title
+	char* Author;								// Creator of level
 	struct
 	{
 		uint8_t Day;							// Day (of month)
@@ -123,6 +125,19 @@ typedef struct P_LevelInfoEx_s
 	
 	/* Compatibility */
 	bool_t Playable;							// Actually playable
+	
+	/* Settings */
+	char* LevelPic;								// Picture on intermission screen
+	tic_t ParTime;								// Par Time
+	char* Music;								// Background music to play
+	char* SkyTexture;							// Sky texture
+	char* InterPic;								// Intermission background
+	char* NormalNext;							// Next level to play after this
+	char* SecretNext;							// Secret level to play after this
+	fixed_t Gravity;							// Level gravity
+	char* StoryFlat;							// Flat to use in story mode
+	uint64_t Weapons;							// Weapons
+	char* BootCommand;							// Command to execute on map start
 } P_LevelInfoEx_t;
 
 /* P_LevelInfoHolder_t -- Holds level info */
@@ -130,9 +145,58 @@ typedef struct P_LevelInfoHolder_s
 {
 	P_LevelInfoEx_t** Infos;
 	size_t NumInfos;
+	
+	bool_t IWADParsed;							// IWAD info parsed in
+	const WL_WADFile_t* WAD;					// WAD File
 } P_LevelInfoHolder_t;
 
 /*** PRIVATE FUNCTIONS ***/
+/* PS_ParseMapInfo() -- Parses map info */
+static bool_t PS_ParseMapInfo(P_LevelInfoHolder_t* const a_Holder, const WL_WADEntry_t* a_MIEntry)
+{
+#define BUFSIZE 512
+	char Buf[BUFSIZE];
+	P_LevelInfoEx_t* CurrentInfo;
+	WL_EntryStream_t* Stream;
+	
+	/* Check */
+	if (!a_Holder || !a_MIEntry)
+		return false;
+	
+	/* Open Stream */
+	Stream = WL_StreamOpen(a_MIEntry);
+	
+	// Failed to open
+	if (!Stream)
+		return false;
+	
+	// Debug
+	if (devparm)
+		CONL_PrintF("PS_ParseMapInfo: Parsing MAPINFO \"%s\" for \"%s\".\n", a_MIEntry->Name, WL_GetWADName(a_Holder->WAD, false));
+	
+	// Check unicode
+	WL_StreamCheckUnicode(Stream);
+	
+	/* Parse till the end */
+	while (!WL_StreamEOF(Stream))
+	{
+		// Read line into buffer
+		memset(Buf, 0, sizeof(Buf));
+		WL_StreamReadLine(Stream, Buf, BUFSIZE - 1);
+		
+		// Debug
+		CONL_PrintF(">> %s\n", Buf);
+	}
+	
+	/* Close Stream */
+	WL_StreamClose(Stream);
+	
+	/* Success! */
+	return true;
+#undef BUFSIZE
+}
+
+/* PS_LevelInfoGetBlockPoints() -- Locates block points within a file */
 static bool_t PS_LevelInfoGetBlockPoints(P_LevelInfoEx_t* const a_Info, const WL_WADEntry_t* a_Entry, WL_EntryStream_t* const a_Stream)
 {
 #define BUFSIZE 256
@@ -277,8 +341,9 @@ static void P_WLInfoRemove(const WL_WADFile_t* a_WAD)
 static bool_t P_WLInfoCreator(const WL_WADFile_t* const a_WAD, const uint32_t a_Key, void** const a_DataPtr, size_t* const a_SizePtr, WL_RemoveFunc_t* const a_RemoveFuncPtr)
 {
 	size_t i, j;
-	WL_WADEntry_t* Entry;
-	WL_WADEntry_t* Base;
+	const WL_WADEntry_t* Entry;
+	const WL_WADEntry_t* Base;
+	const WL_WADEntry_t* MapInfo;
 	bool_t LoadLumps;
 	bool_t IsDoomHexen;
 	P_LevelInfoHolder_t* Holder;
@@ -293,6 +358,9 @@ static bool_t P_WLInfoCreator(const WL_WADFile_t* const a_WAD, const uint32_t a_
 	/* Create base structures */
 	*a_SizePtr = sizeof(P_LevelInfoHolder_t);
 	Holder = *a_DataPtr = Z_Malloc(*a_SizePtr, PU_STATIC, NULL);
+	
+	/* Set holder info */
+	Holder->WAD = a_WAD;
 	
 	/* Debug */
 	if (devparm)
@@ -403,7 +471,10 @@ static bool_t P_WLInfoCreator(const WL_WADFile_t* const a_WAD, const uint32_t a_
 	}
 	
 	/* Parse MAPINFO (Hexen/ZDoom) */
-	// This is done now so the stuff in the lump headers takes precedence
+	// This is done now so the stuff in the lump headers takes precedence.
+	if ((MapInfo = WL_FindEntry(a_WAD, 0, "MAPINFO")))
+		if (!PS_ParseMapInfo(Holder, MapInfo))
+			CONL_PrintF("P_WLInfoCreator: Failed to parse MAPINFO.\n");
 	
 	/* Parse loaded infos */
 	for (i = 0; i < Holder->NumInfos; i++)
@@ -482,6 +553,52 @@ static bool_t P_WLInfoCreator(const WL_WADFile_t* const a_WAD, const uint32_t a_
 				);
 	}
 	
+	/* Success! */
+	return true;
+}
+
+/* PS_WLInfoOCCB() -- Handles OCCB for the Level Info Code */
+static bool_t PS_WLInfoOCCB(const bool_t a_Pushed, const struct WL_WADFile_s* const a_WAD)
+{
+	const WL_WADFile_t* Rover;
+	P_LevelInfoHolder_t* Holder;
+	const WL_WADEntry_t* Entry;
+	size_t Sz;
+	
+	/* Debug */
+	if (devparm)
+		CONL_PrintF("PS_WLInfoOCCB: Building composite...\n");
+	
+	/* First, The IWAD must get their MAPINFOs loaded from remood.wad */
+	// IWAD is always first
+	Rover = WL_IterateVWAD(NULL, true);
+	
+	// Get holder
+	Holder = WL_GetPrivateData(Rover, WLDK_MAPINFO, &Sz);
+	
+	// Is this an IWAD? And is the data not loaded?
+	if (Holder && Rover->__Private.__IsIWAD && !Holder->IWADParsed)
+	{
+		// Find MAPINFO used for this IWAD
+		Entry = WL_FindEntry(g_ReMooDPtr, 0, g_IWADMapInfoName);
+		
+		// Parse MAPINFO for this IWAD
+		if (Entry)
+			if (!PS_ParseMapInfo(Holder, Entry))
+				CONL_PrintF("PS_WLInfoOCCB: Failed to load IWAD MAPINFO!\n");
+		
+		// Set as parsed
+		Holder->IWADParsed = true;
+	}
+	
+	/* Clear level info composite */
+	
+	/* Now merge all the level information into a composite form */
+	for (Rover = WL_IterateVWAD(NULL, true); Rover; Rover = WL_IterateVWAD(Rover, true))
+	{
+	}
+	
+	/* Success! */
 	return true;
 }
 
@@ -489,8 +606,13 @@ static bool_t P_WLInfoCreator(const WL_WADFile_t* const a_WAD, const uint32_t a_
 void P_PrepareLevelInfoEx(void)
 {
 	/* Register handler into the light WAD code */
+	// This loads all the levels for each WAD
 	if (!WL_RegisterPDC(WLDK_MAPINFO, WLDPO_MAPINFO, P_WLInfoCreator, P_WLInfoRemove))
-		CONL_PrintF("P_PrepareLevelInfoEx: Failed to register info creator!\n");
+		I_Error("P_PrepareLevelInfoEx: Failed to register info creator!");
+	
+	// This merges together the info (and attempts to load IWAD MAPINFOs into IWADs)
+	if (!WL_RegisterOCCB(PS_WLInfoOCCB, 60))
+		I_Error("P_PrepareLevelInfoEx: Failed to register info OCCB!");
 }
 
 /*******************************************************************************

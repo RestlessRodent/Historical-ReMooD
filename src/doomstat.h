@@ -253,6 +253,7 @@ typedef enum CoreGame_e
 
 extern CoreGame_t g_CoreGame;				// Core game mode
 extern const void* g_ReMooDPtr;				// Pointer to remood.wad
+extern const char* g_IWADMapInfoName;		// Name of IWAD MAPINFO
 
 extern bool_t g_DedicatedServer;			// Dedicated Server
 
