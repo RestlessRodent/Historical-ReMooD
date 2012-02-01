@@ -16,7 +16,7 @@
 // -----------------------------------------------------------------------------
 // Copyright (C) 1993-1996 by id Software, Inc.
 // Copyright (C) 1998-2000 by DooM Legacy Team.
-// Copyright (C) 2008-2011 GhostlyDeath (ghostlydeath@gmail.com)
+// Copyright (C) 2008-2012 GhostlyDeath (ghostlydeath@gmail.com)
 // -----------------------------------------------------------------------------
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
@@ -82,7 +82,7 @@ static fixed_t __REMOOD_INLINE __REMOOD_UNUSED FixedMul(fixed_t a, fixed_t b)
 	return ((int64_t)a * (int64_t)b) >> _FIXED_FRACBITS;
 	
 #else
-	// Copyright (C) 2010 GhostlyDeath (ghostlydeath@gmail.com / ghostlydeath@remood.org)
+	// Copyright (C) 2010-2012 GhostlyDeath (ghostlydeath@gmail.com / ghostlydeath@remood.org)
 	register uint32_t w, x, y, z;
 	register uint32_t Af, Ai, Bf, Bi;
 	
@@ -124,7 +124,7 @@ static fixed_t __REMOOD_INLINE __REMOOD_UNUSED FixedMul(fixed_t a, fixed_t b)
 /* FixedPtInv() -- Inverse of fixed point */
 static fixed_t __REMOOD_INLINE __REMOOD_UNUSED FixedInv(const fixed_t a)
 {
-	// Copyright (C) 2010 GhostlyDeath (ghostlydeath@gmail.com / ghostlydeath@remood.org)
+	// Copyright (C) 2010-2012 GhostlyDeath (ghostlydeath@gmail.com / ghostlydeath@remood.org)
 	register uint32_t A, SDiv, Res;
 	
 	/* Short circuit */
@@ -183,7 +183,7 @@ static fixed_t __REMOOD_INLINE __REMOOD_UNUSED FixedInv(const fixed_t a)
 /* FixedDiv() -- Divide two fixed numbers */
 static fixed_t __REMOOD_INLINE __REMOOD_UNUSED FixedDiv(fixed_t a, fixed_t b)
 {
-	// Copyright (C) 2010 GhostlyDeath (ghostlydeath@gmail.com / ghostlydeath@remood.org)
+	// Copyright (C) 2010-2012 GhostlyDeath (ghostlydeath@gmail.com / ghostlydeath@remood.org)
 #ifdef FIXEDBREAKVANILLA
 	if (a == b)
 		return _FIXED_ONE;

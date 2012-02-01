@@ -16,7 +16,7 @@
 // -----------------------------------------------------------------------------
 // Copyright (C) 1993-1996 by id Software, Inc.
 // Copyright (C) 1998-2000 by DooM Legacy Team.
-// Copyright (C) 2008-2011 GhostlyDeath (ghostlydeath@gmail.com)
+// Copyright (C) 2008-2012 GhostlyDeath (ghostlydeath@gmail.com)
 // -----------------------------------------------------------------------------
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
@@ -903,7 +903,7 @@ const D_IWADInfoEx_t c_IWADInfos[] =
 	{
 		"Doom II: Hell on Earth",
 		"doom2:doomii:doomtwo:commercial:hellonearth",
-		"doom2.wad",
+		"doom2.wad:freedoom.wad",
 		"6ff4def4bd24c6943540c790fbfe2642",
 		"25e1459ca71d321525f84628f45ca8cd",
 		"7ec7652fcfce8ddc6e801839291f0e28ef1d5ae7",
@@ -923,7 +923,7 @@ const D_IWADInfoEx_t c_IWADInfos[] =
 	{
 		"The Ultimate Doom",
 		"ultimatedoom:udoom:doomu:retail:thyfleshconsumed:tfc",
-		"doom.wad:doomu.wad",
+		"doom.wad:doomu.wad;ultfdoom.wad",
 		"befb2905b2b5df3e43a36e84e920f71f",
 		"c4fe9fd920207691a9f493668e0a2083",
 		"9b07b02ab3c275a6a7570c3f73cc20d63a0e3833",
