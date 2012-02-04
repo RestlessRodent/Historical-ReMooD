@@ -924,6 +924,8 @@ void ST_Drawer(bool_t refresh)
 {
 	int i;
 	
+	return;
+	
 	st_statusbaron = (cv_viewsize.value < 11) || (automapactive && !automapoverlay);
 	
 	//added:30-01-98:force a set of the palette by doPaletteStuff()

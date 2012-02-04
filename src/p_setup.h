@@ -36,6 +36,8 @@
 #include "doomdata.h"
 #include "r_defs.h"
 
+#include "p_info.h"
+
 // Player spawn spots for deathmatch.
 #define MAX_DM_STARTS   64
 extern mapthing_t* deathmatchstarts[MAX_DM_STARTS];
@@ -79,4 +81,19 @@ extern bool_t newlevel;
 extern bool_t doom1level;
 extern char* levelmapname;
 
+/*******************************************************************************
+********************************************************************************
+*******************************************************************************/
+
+/*** STRUCTURES ***/
+
+/*** PROTOTYPES ***/
+void P_InitSetupEx(void);
+
+bool_t P_ExClearLevel(void);
+
+
+bool_t P_ExLoadLevel(P_LevelInfoEx_t* const a_Info, const bool_t a_ApplyOptions);
+
 #endif
+

@@ -1007,6 +1007,7 @@ bool_t CONL_Init(const uint32_t a_OutBS, const uint32_t a_InBS)
 	
 	/* Base init */
 	P_InitSGConsole();
+	P_InitSetupEx();
 	
 	/* Success! */
 	return true;

@@ -1677,3 +1677,77 @@ bool_t P_AddWadFile(char* wadfilename, char** firstmapname)
 	
 	   return true; */
 }
+
+/*******************************************************************************
+********************************************************************************
+*******************************************************************************/
+
+/*** STRUCTURES ***/
+
+/*** FUNCTIONS ***/
+
+/* PCLC_Map() -- Switch to another map */
+static CONL_ExitCode_t PCLC_Map(const uint32_t a_ArgC, const char** const a_ArgV)
+{
+	P_LevelInfoEx_t* Info;
+	
+	/* Check */
+	if (a_ArgC < 2)
+		return CLE_INVALIDARGUMENT;
+	
+	/* Locate map */
+	Info = P_FindLevelByNameEx(a_ArgV[1], NULL);
+	
+	// Not found?
+	if (!Info)
+		return CLE_RESOURCENOTFOUND;
+	
+	/* Load level */
+	if (P_ExLoadLevel(Info, true))
+		return CLE_SUCCESS;
+	
+	/* Failed */
+	return CLE_FAILURE;
+}
+
+/* P_InitSetupEx() -- Initializes extended setup code */
+void P_InitSetupEx(void)
+{
+	/* Add Console Commands */
+	CONL_AddCommand("map", PCLC_Map);
+}
+
+/* P_ExClearLevel() -- Clears a level and reverts the game state */
+bool_t P_ExClearLevel(void)
+{
+	/* Clear Stuff */
+	HU_ClearTips();
+	S_StopSounds();
+	R_ClearLevelSplats();
+	
+	/* Free all level tags */
+	Z_FreeTags(PU_LEVEL, PU_PURGELEVEL - 1);
+	
+	/* Re-initialize */
+	P_Initsecnode();
+	P_InitThinkers();
+
+	/* Always succeeds */
+	return true;
+}
+
+/* P_ExLoadLevel() -- Loads a new level */
+bool_t P_ExLoadLevel(P_LevelInfoEx_t* const a_Info, const bool_t a_ApplyOptions)
+{
+	/* Check */
+	if (!a_Info)
+		return false;
+		
+	/* Debug */
+	if (devparm)
+		CONL_PrintF("P_ExLoadLevel: Loading \"%s\"...\n", a_Info->LumpName);
+	
+	/* Finalize */
+	gamestate = GS_LEVEL;
+}
+

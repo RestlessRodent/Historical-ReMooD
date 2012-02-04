@@ -50,31 +50,6 @@
 
 /*** CONSTANTS ***/
 
-#define MAXPLIEXFIELDWIDTH			32
-#define MAXCONSOLECOMMANDWIDTH		128
-
-typedef enum P_LevelInfoExDataStuff_e
-{
-	PLIEDS_HEADER,								// MAPxx, ExMx
-	PLIEDS_THINGS,								// THINGS
-	PLIEDS_LINEDEFS,							// LINEDEFS
-	PLIEDS_SIDEDEFS,							// SIDEDEFS
-	PLIEDS_VERTEXES,							// VERTEXES
-	PLIEDS_SEGS,								// SEGS
-	PLIEDS_SSECTORS,							// SSECTORS
-	PLIEDS_NODES,								// NODES
-	PLIEDS_SECTORS,								// SECTORS
-	PLIEDS_REJECT,								// REJECT
-	PLIEDS_BLOCKMAP,							// BLOCKMAP
-	PLIEDS_BEHAVIOR,							// BEHAVIOR (Hexen)
-	PLIEDS_TEXTMAP,								// TEXTMAP (UDMF)
-	PLIEDS_ENDMAP,								// ENDMAP (UDMF)
-	PLIEDS_RSCRIPTS,							// ReMooD Scripts (for this level)
-	PLIEDS_LPREVIEW,							// Level preview image
-	
-	MAXPLIEDS
-} P_LevelInfoExDataStuff_t;
-
 // c_LevelLumpNames -- Names of the level lumps
 static const char* c_LevelLumpNames[MAXPLIEDS] =
 {
@@ -96,49 +71,18 @@ static const char* c_LevelLumpNames[MAXPLIEDS] =
 	"LPREVIEW",
 };
 
-/*** STRUCTURES ***/
-
-/* P_LevelInfoEx_t -- Extended level info */
-typedef struct P_LevelInfoEx_s
+/* P_PMFIFieldType_t -- Type of thing this represents */
+typedef enum P_PMFIFieldType_e
 {
-	/* WAD Related */
-	WL_WADEntry_t* EntryPtr[MAXPLIEDS];			// Pointer to entry
-	struct
-	{
-		bool_t Hexen;							// Hexen level (false = Doom)
-		bool_t Text;							// Text Level
-	} Type;										// Level Type
+	PPMFIFT_STRING,								// char*
+	PPMFIFT_INTEGER,							// int32_t
+	PPMFIFT_WIDEBITFIELD,						// uint64_t (1 << n)
+	PPMFIFT_FIXED,								// fixed_t
 	
-	/* Script Related */
-	uint32_t BlockPos[NUMPINFOBLOCKTYPES][2];	// Block positions ([xxx] stuff)
-	
-	/* Info */
-	char LumpName[MAXPLIEXFIELDWIDTH];			// Name of the lump
-	char* Title;								// Level Title
-	char* Author;								// Creator of level
-	struct
-	{
-		uint8_t Day;							// Day (of month)
-		uint8_t Month;							// Month
-		uint16_t Year;							// Year
-	} Date;										// Date Created
-	
-	/* Compatibility */
-	bool_t Playable;							// Actually playable
-	
-	/* Settings */
-	char* LevelPic;								// Picture on intermission screen
-	tic_t ParTime;								// Par Time
-	char* Music;								// Background music to play
-	char* SkyTexture;							// Sky texture
-	char* InterPic;								// Intermission background
-	char* NormalNext;							// Next level to play after this
-	char* SecretNext;							// Secret level to play after this
-	fixed_t Gravity;							// Level gravity
-	char* StoryFlat;							// Flat to use in story mode
-	uint64_t Weapons;							// Weapons
-	char* BootCommand;							// Command to execute on map start
-} P_LevelInfoEx_t;
+	MAXPPMFIFIELDTYPES
+} P_PMFIFieldType_t;
+
+/*** STRUCTURES ***/
 
 /* P_LevelInfoHolder_t -- Holds level info */
 typedef struct P_LevelInfoHolder_s
@@ -150,14 +94,57 @@ typedef struct P_LevelInfoHolder_s
 	const WL_WADFile_t* WAD;					// WAD File
 } P_LevelInfoHolder_t;
 
+/*** LOCALS ***/
+static P_LevelInfoEx_t** l_CompInfos = NULL;	// Composite infos
+static size_t l_NumCompInfos = 0;				// Number of composites
+
 /*** PRIVATE FUNCTIONS ***/
+
+// c_PMIFields -- Map info fields
+static const struct
+{
+	bool_t IsEnd;								// Parse no more
+	P_PMFIFieldType_t Type;						// Type of variable
+	const char* MapInfo;
+	const char* NewInfo;
+	uintptr_t Offset;
+} c_PMIFields[] =
+{
+	{false, PPMFIFT_STRING, NULL, "levelname", offsetof(P_LevelInfoEx_t, Title)},
+	{false, PPMFIFT_STRING, "author", "creator", offsetof(P_LevelInfoEx_t, Author)},
+	{false, PPMFIFT_STRING, "music", "music", offsetof(P_LevelInfoEx_t, Music)},
+	{false, PPMFIFT_STRING, "titlepatch", "levelpic", offsetof(P_LevelInfoEx_t, LevelPic)},
+	{false, PPMFIFT_STRING, "sky1", "skyname", offsetof(P_LevelInfoEx_t, SkyTexture)},
+	{false, PPMFIFT_INTEGER, "par", "partime", offsetof(P_LevelInfoEx_t, ParTime)},
+	{false, PPMFIFT_STRING, "exitpic", "interpic", offsetof(P_LevelInfoEx_t, InterPic)},
+	{false, PPMFIFT_STRING, "next", "nextlevel", offsetof(P_LevelInfoEx_t, NormalNext)},
+	{false, PPMFIFT_STRING, "secretnext", "nextsecret", offsetof(P_LevelInfoEx_t, SecretNext)},
+	{false, PPMFIFT_STRING, NULL, "consolecmd", offsetof(P_LevelInfoEx_t, BootCommand)},
+	{false, PPMFIFT_WIDEBITFIELD, NULL, "defaultweapons", offsetof(P_LevelInfoEx_t, Weapons)},
+	
+	/*{false, PPMFIFT_STRING, "music", "music", offsetof(P_LevelInfoEx_t, Music)},
+	{false, PPMFIFT_STRING, "music", "music", offsetof(P_LevelInfoEx_t, Music)},
+	{false, PPMFIFT_STRING, "music", "music", offsetof(P_LevelInfoEx_t, Music)},
+	{false, PPMFIFT_STRING, "music", "music", offsetof(P_LevelInfoEx_t, Music)},
+	{false, PPMFIFT_STRING, "music", "music", offsetof(P_LevelInfoEx_t, Music)},
+	{false, PPMFIFT_STRING, "music", "music", offsetof(P_LevelInfoEx_t, Music)},
+	{false, PPMFIFT_STRING, "music", "music", offsetof(P_LevelInfoEx_t, Music)},*/
+	
+	// End
+	{true, MAXPPMFIFIELDTYPES, NULL, NULL, 0},
+};
+
 /* PS_ParseMapInfo() -- Parses map info */
 static bool_t PS_ParseMapInfo(P_LevelInfoHolder_t* const a_Holder, const WL_WADEntry_t* a_MIEntry)
 {
 #define BUFSIZE 512
 	char Buf[BUFSIZE];
+	char Token[BUFSIZE];
 	P_LevelInfoEx_t* CurrentInfo;
 	WL_EntryStream_t* Stream;
+	size_t i, FNum;
+	char* p;
+	char** StrValP;
 	
 	/* Check */
 	if (!a_Holder || !a_MIEntry)
@@ -178,14 +165,105 @@ static bool_t PS_ParseMapInfo(P_LevelInfoHolder_t* const a_Holder, const WL_WADE
 	WL_StreamCheckUnicode(Stream);
 	
 	/* Parse till the end */
+	// Not working on any map
+	CurrentInfo = NULL;
+	
+	// Read constantly
 	while (!WL_StreamEOF(Stream))
 	{
 		// Read line into buffer
 		memset(Buf, 0, sizeof(Buf));
+		memset(Token, 0, sizeof(Token));
 		WL_StreamReadLine(Stream, Buf, BUFSIZE - 1);
 		
 		// Debug
 		CONL_PrintF(">> %s\n", Buf);
+		
+		// Read first word into token
+		for (i = 0, p = Buf; *p && *p != ' ' && *p != '\t'; p++)
+			if (i < BUFSIZE)
+				Token[i++] = *p;
+		
+		// Skip whitespace
+		for (; *p && (*p == ' ' || *p == '\t'); p++)
+			;
+		
+		// If it is "map" it is defining a new map
+		if (strcasecmp(Token, "map") == 0)
+		{
+			// Find out which map to look for
+			memset(Token, 0, sizeof(Token));
+			for (i = 0; *p && *p != ' ' && *p != '\t'; p++)
+				if (i < BUFSIZE)
+					Token[i++] = *p;
+			
+			// Look in holder
+			for (i = 0; i < a_Holder->NumInfos; i++)
+				if (a_Holder->Infos[i])
+					if (strcasecmp(a_Holder->Infos[i]->LumpName, Token) == 0)
+					{
+						// Debug
+						if (devparm)
+							CONL_PrintF("PS_ParseMapInfo: Found map \"%s\".\n", Token);
+						
+						CurrentInfo = a_Holder->Infos[i];
+						break;
+					}
+			
+			// No map found?
+			if (i >= a_Holder->NumInfos)
+			{
+				// Debug
+				if (devparm)
+					CONL_PrintF("PS_ParseMapInfo: Map \"%s\" not found.\n", Token);
+				
+				CurrentInfo = NULL;
+			}
+		}
+		
+		// Otherwise look up in a table (above)
+		else
+		{
+			// Look through list for a match
+			for (FNum = 0; !c_PMIFields[FNum].IsEnd; FNum++)
+				if (c_PMIFields[FNum].MapInfo)
+					if (strcasecmp(Token, c_PMIFields[FNum].MapInfo) == 0)
+						break;
+			
+			// Reached end?
+			if (c_PMIFields[FNum].IsEnd)
+			{
+				if (devparm)
+					CONL_PrintF("PS_ParseMapInfo: Unknown \"%s\".\n", Token);
+				continue;
+			}
+			
+			// No map to modify
+			if (!CurrentInfo)
+			{
+				if (devparm)
+					CONL_PrintF("PS_ParseMapInfo: No map yet defined.\n");
+				continue;
+			}
+			
+			// Depending on the type, set the value
+			if (c_PMIFields[FNum].Type == PPMFIFT_STRING)
+			{
+				// Get actual pointer
+				StrValP = (char**)(((uintptr_t)CurrentInfo) + c_PMIFields[FNum].Offset);
+				
+				// Already set? -- Info in lump header takes precedence
+				if (*StrValP)
+					continue;
+				
+				// Set value
+				*StrValP = Z_StrDup(p, PU_STATIC, NULL);
+				
+				// Debug
+				if (devparm)
+					CONL_PrintF("PS_ParseMapInfo: \"%s\" set to \"%s\".\n", c_PMIFields[FNum].MapInfo, *StrValP);
+			}
+		}
 	}
 	
 	/* Close Stream */
@@ -412,6 +490,7 @@ static bool_t P_WLInfoCreator(const WL_WADFile_t* const a_WAD, const uint32_t a_
 			// Initialize new info with base stuff
 			strncat(CurrentInfo->LumpName, Base->Name, MAXPLIEXFIELDWIDTH);
 			
+			CurrentInfo->WAD = a_WAD;
 			CurrentInfo->EntryPtr[PLIEDS_HEADER] = Base;
 			
 			if (IsDoomHexen)
@@ -563,7 +642,10 @@ static bool_t PS_WLInfoOCCB(const bool_t a_Pushed, const struct WL_WADFile_s* co
 	const WL_WADFile_t* Rover;
 	P_LevelInfoHolder_t* Holder;
 	const WL_WADEntry_t* Entry;
-	size_t Sz;
+	P_LevelInfoEx_t* CurrentInfo;
+	P_LevelInfoEx_t* CompInfo;
+	P_LevelInfoEx_t** CompSpot;
+	size_t Sz, i;
 	
 	/* Debug */
 	if (devparm)
@@ -592,14 +674,139 @@ static bool_t PS_WLInfoOCCB(const bool_t a_Pushed, const struct WL_WADFile_s* co
 	}
 	
 	/* Clear level info composite */
+	if (l_CompInfos)
+		Z_Free(l_CompInfos);
+	l_CompInfos = NULL;
+	l_NumCompInfos = 0;
 	
 	/* Now merge all the level information into a composite form */
 	for (Rover = WL_IterateVWAD(NULL, true); Rover; Rover = WL_IterateVWAD(Rover, true))
 	{
+		// Get holder for this WAD
+		Holder = WL_GetPrivateData(Rover, WLDK_MAPINFO, &Sz);
+		
+		// No holder?
+		if (!Holder)
+			continue;
+		
+		// Go through each map
+		for (i = 0; i < Holder->NumInfos; i++)
+		{
+			// Get current info
+			CurrentInfo = Holder->Infos[i];
+			
+			// No info?
+			if (!CurrentInfo)
+				continue;
+			
+			// Level not playable?
+			if (!CurrentInfo->Playable)
+				continue;
+			
+			// See if it exists in the composite
+			CompInfo = P_FindLevelByNameEx(CurrentInfo->LumpName, &CompSpot);
+			
+			// It does
+			if (CompInfo)
+			{
+				// Replace spot with this map
+				*CompSpot = CurrentInfo;
+			}
+			
+			// Does not
+			else
+			{
+				// Resize array
+				Z_ResizeArray((void**)&l_CompInfos, sizeof(*l_CompInfos), l_NumCompInfos, l_NumCompInfos + 1);
+				
+				// Place at end
+				l_CompInfos[l_NumCompInfos++] = CurrentInfo;
+			}
+		}
 	}
 	
 	/* Success! */
 	return true;
+}
+
+/* PCLC_Maps() -- Print maps available */
+static CONL_ExitCode_t PCLC_Maps(const uint32_t a_ArgC, const char** const a_ArgV)
+{
+	size_t i;
+	
+	/* No maps? */
+	if (!l_NumCompInfos)
+		return CLE_RESOURCENOTFOUND;
+	
+	/* Go through list */
+	for (i = 0; i < l_NumCompInfos; i++)
+		if (l_CompInfos[i])
+		{
+			// Print map name and the WAD it is in
+			CONL_PrintF("{9%s{z ({4%s{z)", l_CompInfos[i]->LumpName, WL_GetWADName(l_CompInfos[i]->WAD, false));
+			
+			// Next line? (two per line)
+			if (((i + 1) & 1) == 0)
+				CONL_PrintF("{z\n");
+			
+			// Comma?
+			else if (i < (l_NumCompInfos - 1))
+				CONL_PrintF("{z, ");
+		}
+	
+	/* Print end line */
+	CONL_PrintF("\n");
+	
+	/* Always success */
+	return CLE_SUCCESS;
+}
+
+/* PCLC_MapInfo() -- Prints all available information on a map */
+static CONL_ExitCode_t PCLC_MapInfo(const uint32_t a_ArgC, const char** const a_ArgV)
+{
+	P_LevelInfoEx_t* Map;
+	
+	/* Check */
+	if (a_ArgC < 2)
+		return CLE_INVALIDARGUMENT;
+	
+	/* Locate map */
+	Map = P_FindLevelByNameEx(a_ArgV[1], NULL);
+	
+	// Not found?
+	if (!Map)
+		return CLE_RESOURCENOTFOUND;
+	
+	/* Print information on map */
+	CONL_PrintF("{zFormat of map is {3%s{z.\n", (Map->Type.Text ? "Textual" : (Map->Type.Hexen ? "Hexen" : "Doom")));
+	
+	CONL_PrintF("{1Title   {z: {9%s{z\n", Map->Title);
+	CONL_PrintF("{1Author  {z: {9%s{z\n", Map->Author);
+	CONL_PrintF("{1Date    {z: {9%2i{z/{9%2i{z/{9%4i{z\n", Map->Date.Month, Map->Date.Day, Map->Date.Year);
+	
+	/*CONL_PrintF("{1  {z: {9%s{z\n", Map->);
+	CONL_PrintF("{1  {z: {9%s{z\n", Map->);
+	CONL_PrintF("{1  {z: {9%s{z\n", Map->);
+	CONL_PrintF("{1  {z: {9%s{z\n", Map->);
+	CONL_PrintF("{1  {z: {9%s{z\n", Map->);
+	CONL_PrintF("{1  {z: {9%s{z\n", Map->);
+	CONL_PrintF("{1  {z: {9%s{z\n", Map->);
+	CONL_PrintF("{1  {z: {9%s{z\n", Map->);
+	CONL_PrintF("{1  {z: {9%s{z\n", Map->);
+	CONL_PrintF("{1  {z: {9%s{z\n", Map->);
+	CONL_PrintF("{1  {z: {9%s{z\n", Map->);
+	CONL_PrintF("{1  {z: {9%s{z\n", Map->);
+	CONL_PrintF("{1  {z: {9%s{z\n", Map->);
+	CONL_PrintF("{1  {z: {9%s{z\n", Map->);
+	CONL_PrintF("{1  {z: {9%s{z\n", Map->);
+	CONL_PrintF("{1  {z: {9%s{z\n", Map->);
+	CONL_PrintF("{1  {z: {9%s{z\n", Map->);
+	CONL_PrintF("{1  {z: {9%s{z\n", Map->);
+	CONL_PrintF("{1  {z: {9%s{z\n", Map->);
+	CONL_PrintF("{1  {z: {9%s{z\n", Map->);*/
+	
+	/* Success! */
+	return CLE_SUCCESS;
 }
 
 /* P_PrepareLevelInfoEx() -- Prepare extended level info */
@@ -613,6 +820,39 @@ void P_PrepareLevelInfoEx(void)
 	// This merges together the info (and attempts to load IWAD MAPINFOs into IWADs)
 	if (!WL_RegisterOCCB(PS_WLInfoOCCB, 60))
 		I_Error("P_PrepareLevelInfoEx: Failed to register info OCCB!");
+	
+	/* Add console commands */
+	CONL_AddCommand("maps", PCLC_Maps);
+	CONL_AddCommand("mapinfo", PCLC_MapInfo);
+}
+
+/* P_FindLevelByNameEx() -- Finds level by its lump name */
+P_LevelInfoEx_t* P_FindLevelByNameEx(const char* const a_Name, P_LevelInfoEx_t*** const a_LocPtr)
+{
+	size_t i;
+	
+	/* Check */
+	if (!a_Name)
+		return NULL;
+	
+	/* Clear location */
+	if (a_LocPtr)
+		*a_LocPtr = NULL;
+	
+	/* Look into composite */
+	for (i = 0; i < l_NumCompInfos; i++)
+		if (l_CompInfos[i])
+			if (strcasecmp(l_CompInfos[i]->LumpName, a_Name) == 0)
+			{
+				// Set location
+				if (a_LocPtr)
+					*a_LocPtr =	&l_CompInfos[i];
+				
+				return l_CompInfos[i];	// Found it!
+			}
+	
+	/* Not found */
+	return NULL;
 }
 
 /*******************************************************************************

@@ -34,11 +34,17 @@
 
 #include "command.h"
 
+#include "w_wad.h"
+
 /**************************
 *** NEW LEVEL INFO CODE ***
 **************************/
 
 /*** CONSTANTS ***/
+
+#define MAXPLIEXFIELDWIDTH			32
+#define MAXCONSOLECOMMANDWIDTH		128
+
 /* P_InfoBlockType_t -- Type of info block */
 typedef enum P_InfoBlockType_e
 {
@@ -49,8 +55,76 @@ typedef enum P_InfoBlockType_e
 	NUMPINFOBLOCKTYPES
 } P_InfoBlockType_t;
 
+/* P_LevelInfoExDataStuff_t -- Stuff needed to hold level information */
+typedef enum P_LevelInfoExDataStuff_e
+{
+	PLIEDS_HEADER,								// MAPxx, ExMx
+	PLIEDS_THINGS,								// THINGS
+	PLIEDS_LINEDEFS,							// LINEDEFS
+	PLIEDS_SIDEDEFS,							// SIDEDEFS
+	PLIEDS_VERTEXES,							// VERTEXES
+	PLIEDS_SEGS,								// SEGS
+	PLIEDS_SSECTORS,							// SSECTORS
+	PLIEDS_NODES,								// NODES
+	PLIEDS_SECTORS,								// SECTORS
+	PLIEDS_REJECT,								// REJECT
+	PLIEDS_BLOCKMAP,							// BLOCKMAP
+	PLIEDS_BEHAVIOR,							// BEHAVIOR (Hexen)
+	PLIEDS_TEXTMAP,								// TEXTMAP (UDMF)
+	PLIEDS_ENDMAP,								// ENDMAP (UDMF)
+	PLIEDS_RSCRIPTS,							// ReMooD Scripts (for this level)
+	PLIEDS_LPREVIEW,							// Level preview image
+	
+	MAXPLIEDS
+} P_LevelInfoExDataStuff_t;
+
+/*** STRUCTURES ***/
+/* P_LevelInfoEx_t -- Extended level info */
+typedef struct P_LevelInfoEx_s
+{
+	/* WAD Related */
+	const WL_WADFile_t* WAD;					// WAD for this level
+	const WL_WADEntry_t* EntryPtr[MAXPLIEDS];	// Pointer to entry
+	struct
+	{
+		bool_t Hexen;							// Hexen level (false = Doom)
+		bool_t Text;							// Text Level
+	} Type;										// Level Type
+	
+	/* Script Related */
+	uint32_t BlockPos[NUMPINFOBLOCKTYPES][2];	// Block positions ([xxx] stuff)
+	
+	/* Info */
+	char LumpName[MAXPLIEXFIELDWIDTH];			// Name of the lump
+	char* Title;								// Level Title
+	char* Author;								// Creator of level
+	struct
+	{
+		uint8_t Day;							// Day (of month)
+		uint8_t Month;							// Month
+		uint16_t Year;							// Year
+	} Date;										// Date Created
+	
+	/* Compatibility */
+	bool_t Playable;							// Actually playable
+	
+	/* Settings */
+	char* LevelPic;								// Picture on intermission screen
+	int32_t ParTime;							// Par Time
+	char* Music;								// Background music to play
+	char* SkyTexture;							// Sky texture
+	char* InterPic;								// Intermission background
+	char* NormalNext;							// Next level to play after this
+	char* SecretNext;							// Secret level to play after this
+	fixed_t Gravity;							// Level gravity
+	char* StoryFlat;							// Flat to use in story mode
+	uint64_t Weapons;							// Weapons
+	char* BootCommand;							// Command to execute on map start
+} P_LevelInfoEx_t;
+
 /*** FUNCTIONS ***/
 void P_PrepareLevelInfoEx(void);
+P_LevelInfoEx_t* P_FindLevelByNameEx(const char* const a_Name, P_LevelInfoEx_t*** const a_LocPtr);
 
 /*** OLD JUNKY DEPRECATED JUNK ***/
 

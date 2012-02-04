@@ -428,6 +428,9 @@ void R_FillBackScreen(void)
 	src = scr_borderpatch;
 	dest = screens[1];
 	
+	if (!src)
+		return;
+	
 	for (y = 0; y < vid.height; y++)
 	{
 		for (x = 0; x < vid.width / 64; x++)
