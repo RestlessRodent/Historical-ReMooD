@@ -1292,6 +1292,10 @@ void R_StoreWallRange(int start, int stop)
 	fixed_t lheight;
 	drawseg_t* newseg = NULL;
 	
+	// TEMP: Prevent crash
+	if (!texturetranslation)
+		return;
+	
 	while (ds_p == drawsegs + maxdrawsegs)
 	{
 		size_t pos = ds_p - drawsegs;
@@ -1446,6 +1450,7 @@ void R_StoreWallRange(int start, int stop)
 	
 	if (!backsector)
 	{
+		
 		// single sided line
 		midtexture = texturetranslation[sidedef->midtexture];
 		// a single sided line is terminal, so it must mark ends
@@ -1603,6 +1608,7 @@ void R_StoreWallRange(int start, int stop)
 		// check BOTTOM TEXTURE
 		if (worldlow > worldbottom)	//seulement si VISIBLE!!!
 		{
+			
 			// bottom texture
 			bottomtexture = texturetranslation[sidedef->bottomtexture];
 			

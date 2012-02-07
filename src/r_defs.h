@@ -318,6 +318,7 @@ typedef struct sector_s
 	// ReMooD Additions
 	char* FloorTexture;							// Name of floor texture
 	char* CeilingTexture;						// Name of ceiling texture
+	fixed_t BBox[4];							// Sector bounding box
 } sector_t;
 
 //
@@ -523,6 +524,10 @@ typedef struct
 	// thick side.
 	int numlights;
 	r_lightlist_t* rlights;
+	
+	// ReMooD Additions
+	uint32_t VertexID[2];
+	uint32_t LineID;
 } seg_t;
 
 //
@@ -540,7 +545,7 @@ typedef struct
 	fixed_t bbox[2][4];
 	
 	// If NF_SUBSECTOR its a subsector.
-	unsigned short children[2];
+	uint16_t children[2];
 	
 } node_t;
 

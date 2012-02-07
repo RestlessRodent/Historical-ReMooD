@@ -57,6 +57,7 @@ thinker_t thinkercap;
 //
 void P_InitThinkers(void)
 {
+	// TODO FIXME: Fix memory leak here!
 	thinkercap.prev = thinkercap.next = &thinkercap;
 }
 
@@ -133,7 +134,7 @@ void P_Ticker(void)
 	/* While the game is behind, update it */
 	while ((LocalTic = D_SyncNetMapTime()) < (SNAR = D_SyncNetAllReady()))
 	{
-		fprintf(stderr, "Ran tic %lli / %lli.\n", LocalTic, SNAR);
+		//fprintf(stderr, "Ran tic %lli / %lli.\n", LocalTic, SNAR);
 		
 		for (i = 0; i < MAXPLAYERS; i++)
 			if (playeringame[i])

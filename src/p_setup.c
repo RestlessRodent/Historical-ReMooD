@@ -1761,6 +1761,9 @@ static void PS_ExSectorInit(sector_t* const a_Sector)
 	a_Sector->topmap = -1;
 	a_Sector->moved = true;
 	a_Sector->lineoutLength = -1.0;
+	
+	/* Clear bounding box */
+	M_ClearBox(a_Sector->BBox);
 }
 
 /* PS_ExSideDefInit() -- Initializes extra data in side def */
@@ -1784,6 +1787,7 @@ static void PS_ExSideDefInit(side_t* const a_SideDef)
 static void PS_ExLineDefInit(line_t* const a_LineDef)
 {
 	size_t i;
+	bool_t a;
 	sector_t** SecRef;
 	
 	/* Check */
@@ -1819,6 +1823,21 @@ static void PS_ExLineDefInit(line_t* const a_LineDef)
 		a_LineDef->slopetype = ST_NEGATIVE;
 	
 	// Bounding volume
+		// X Coord
+	a = false;
+	if (a_LineDef->v1->x < a_LineDef->v2->x)
+		a = true;
+	
+	a_LineDef->bbox[(a ? BOXLEFT : BOXRIGHT)] = a_LineDef->v1->x;
+	a_LineDef->bbox[(a ? BOXRIGHT : BOXLEFT)] = a_LineDef->v2->x;
+	
+		// Y Coord
+	a = false;
+	if (a_LineDef->v1->y < a_LineDef->v2->y)
+		a = true;
+	
+	a_LineDef->bbox[(a ? BOXBOTTOM : BOXTOP)] = a_LineDef->v1->y;
+	a_LineDef->bbox[(a ? BOXTOP : BOXBOTTOM)] = a_LineDef->v2->y;
 	
 	/* Legalize side def reference */
 	for (i = 0; i < 2; i++)
@@ -1838,6 +1857,127 @@ static void PS_ExLineDefInit(line_t* const a_LineDef)
 	//	sides[ld->sidenum[0]].special = ld->special;
 }
 
+/* PS_ExSubSectorInit() -- Initializes extra data in subsector */
+static void PS_ExSubSectorInit(subsector_t* const a_SubSector)
+{
+	/* Check */
+	if (!a_SubSector)
+		return;
+}
+
+/* PS_ExNodeInit() -- Initializes extra data in node */
+static void PS_ExNodeInit(node_t* const a_Node)
+{
+	size_t i;
+	uint32_t Real;
+	
+	/* Check */
+	if (!a_Node)
+		return;
+	
+	/* Check for illegal child reference */
+	for (i = 0; i < 2; i++)
+		// Subsector
+		if (a_Node->children[i] & NF_SUBSECTOR)
+		{
+			// Get real value
+			Real = a_Node->children[i] & (~NF_SUBSECTOR);
+			
+			// Check
+			if (Real < 0 || Real >= numsubsectors)
+				a_Node->children[i] = NF_SUBSECTOR;	// Oops!
+		}
+		
+		// Another node
+		else
+		{
+			// Get real value
+			Real = a_Node->children[i];
+			
+			// Check
+			if (Real < 0 || Real >= numnodes)
+				a_Node->children[i] = NF_SUBSECTOR;	// Oops!
+		}
+}
+
+/* PS_ExSegInit() -- Initializes extra data in seg */
+static void PS_ExSegInit(seg_t* const a_Seg)
+{
+	size_t i;
+	
+	/* Check */
+	if (!a_Seg)
+		return;
+	
+	/* Correct illegal references */
+	// Vertex
+	for (i = 0; i < 2; i++)
+		if (a_Seg->VertexID[i] < 0 || a_Seg->VertexID[i] >= numvertexes)
+			a_Seg->VertexID[i] = 0;
+	
+	// Lines
+	if (a_Seg->LineID < 0 || a_Seg->LineID >= numlines)
+		a_Seg->LineID = 0;
+	
+	// Sides
+	if (a_Seg->side < 0 || a_Seg->side > 1)
+		a_Seg->side = 0;
+	
+	/* Reference */
+	a_Seg->v1 = &vertexes[a_Seg->VertexID[0]];
+	a_Seg->v2 = &vertexes[a_Seg->VertexID[1]];
+	a_Seg->linedef = &lines[a_Seg->LineID];
+	a_Seg->sidedef = &sides[a_Seg->linedef->sidenum[a_Seg->side]];
+	a_Seg->frontsector = a_Seg->linedef->frontsector;
+	a_Seg->backsector = a_Seg->linedef->backsector;
+	
+	/* Initialize */
+	a_Seg->numlights = 0;
+	a_Seg->rlights = NULL;
+}
+
+/* PS_ExMungeNodeData() -- Munges together node data */
+void PS_ExMungeNodeData(void)
+{
+	line_t** LineBuffer;
+	size_t i, j, Total, OldCount;
+	fixed_t BBox[4];
+	sector_t* SectorP;
+	
+	/* Reference sectors to subsectors */
+	for (i = 0; i < numsubsectors; i++)
+		subsectors[i].sector = segs[subsectors[i].firstline].sidedef->sector;
+	
+	/* Count line numbers for each sector */
+	for (Total = 0, i = 0; i < numlines; i++)
+		// For each side
+		for (j = 0; j < 2; j++)
+		{
+			// Front or back?
+			SectorP = (!j ? lines[i].frontsector : lines[i].backsector);
+			
+			// Nothing here?
+			if (!SectorP)
+				continue;
+			
+			// Increase line total
+			Total++;
+			
+			// Re-allocate line buffer array
+			Z_ResizeArray((void**)&SectorP->lines, sizeof(*SectorP->lines), SectorP->linecount, SectorP->linecount + 1);
+			
+			// Change to level tag
+			Z_ChangeTag(SectorP->lines, PU_LEVEL);
+			
+			// Put last spot as this line
+			SectorP->lines[SectorP->linecount++] = &lines[i];
+			
+			// Add to sector bounding box
+			M_AddToBox(SectorP->BBox, lines[i].v1->x, lines[i].v1->y);
+			M_AddToBox(SectorP->BBox, lines[i].v2->x, lines[i].v2->y);
+		}
+}
+
 /* P_ExLoadLevel() -- Loads a new level */
 bool_t P_ExLoadLevel(P_LevelInfoEx_t* const a_Info, const bool_t a_ApplyOptions)
 {
@@ -1848,6 +1988,9 @@ bool_t P_ExLoadLevel(P_LevelInfoEx_t* const a_Info, const bool_t a_ApplyOptions)
 	sector_t* SectorP;
 	side_t* SideDefP;
 	line_t* LineDefP;
+	subsector_t* SubSectorP;
+	node_t* NodeP;
+	seg_t* SegP;
 	size_t i, j, k;
 	char Buf[BUFSIZE];
 	
@@ -1858,6 +2001,9 @@ bool_t P_ExLoadLevel(P_LevelInfoEx_t* const a_Info, const bool_t a_ApplyOptions)
 	/* Debug */
 	if (devparm)
 		CONL_PrintF("P_ExLoadLevel: Loading \"%s\"...\n", a_Info->LumpName);
+	
+	/* Clear level data */
+	P_ExClearLevel();
 	
 	/* Load Map Data */
 	// Load vertex data (Non-Textual Format)
@@ -1880,8 +2026,8 @@ bool_t P_ExLoadLevel(P_LevelInfoEx_t* const a_Info, const bool_t a_ApplyOptions)
 				VertexP = &vertexes[i];
 				
 				// Read
-				VertexP->x = WL_StreamReadLittleInt16(Stream);
-				VertexP->y = WL_StreamReadLittleInt16(Stream);
+				VertexP->x = ((fixed_t)WL_StreamReadLittleInt16(Stream)) <<  FRACBITS;
+				VertexP->y = ((fixed_t)WL_StreamReadLittleInt16(Stream)) <<  FRACBITS;
 				
 				// Initialize
 				PS_ExVertexInit(VertexP);
@@ -2027,6 +2173,159 @@ bool_t P_ExLoadLevel(P_LevelInfoEx_t* const a_Info, const bool_t a_ApplyOptions)
 			WL_StreamClose(Stream);
 		}
 	}
+	
+	// Load Sub-Sector Data
+	if ((Entry = a_Info->EntryPtr[PLIEDS_SSECTORS]))
+	{
+		// Open stream
+		Stream = WL_StreamOpen(Entry);
+		
+		// Read in data
+		if (Stream)
+		{
+			// Allocate array
+			numsubsectors = Entry->Size / 4;	// 1 subsector is 4 bytes
+			subsectors = Z_Malloc(sizeof(*subsectors) * numsubsectors, PU_LEVEL, (void**)&subsectors);
+			
+			// Read in data
+			for (i = 0; i < numsubsectors && !WL_StreamEOF(Stream); i++)
+			{
+				// Get pointer
+				SubSectorP = &subsectors[i];
+				
+				// Read
+				SubSectorP->numlines = WL_StreamReadLittleUInt16(Stream);
+				SubSectorP->firstline = WL_StreamReadLittleUInt16(Stream);
+				
+				// Initialize
+				PS_ExSubSectorInit(SubSectorP);
+			}
+			
+			// Close stream
+			WL_StreamClose(Stream);
+		}
+	}
+	
+	// Load Node Data
+	if ((Entry = a_Info->EntryPtr[PLIEDS_NODES]))
+	{
+		// Open stream
+		Stream = WL_StreamOpen(Entry);
+		
+		// Read in data
+		if (Stream)
+		{
+			// Allocate array
+			numnodes = Entry->Size / 28;	// 1 node is 28 bytes
+			nodes = Z_Malloc(sizeof(*nodes) * numnodes, PU_LEVEL, (void**)&nodes);
+			
+			// Read in data
+			for (i = 0; i < numnodes && !WL_StreamEOF(Stream); i++)
+			{
+				// Get pointer
+				NodeP = &nodes[i];
+				
+				// Read
+				NodeP->x = ((fixed_t)WL_StreamReadLittleInt16(Stream)) <<  FRACBITS;
+				NodeP->y = ((fixed_t)WL_StreamReadLittleInt16(Stream)) <<  FRACBITS;
+				NodeP->dx = ((fixed_t)WL_StreamReadLittleInt16(Stream)) <<  FRACBITS;
+				NodeP->dy = ((fixed_t)WL_StreamReadLittleInt16(Stream)) <<  FRACBITS;
+				
+				for (k = 0; k < 2; k++)
+					for (j = 0; j < 4; j++)
+						NodeP->bbox[k][j] = ((fixed_t)WL_StreamReadLittleInt16(Stream)) <<  FRACBITS;
+				
+				for (k = 0; k < 2; k++)
+					NodeP->children[k] = WL_StreamReadLittleUInt16(Stream);
+				
+				// Initialize
+				PS_ExNodeInit(NodeP);
+			}
+			
+			// Close stream
+			WL_StreamClose(Stream);
+		}
+	}
+	
+	// Load Seg Data
+	if ((Entry = a_Info->EntryPtr[PLIEDS_SEGS]))
+	{
+		// Open stream
+		Stream = WL_StreamOpen(Entry);
+		
+		// Read in data
+		if (Stream)
+		{
+			// Allocate array
+			numsegs = Entry->Size / 12;	// 1 seg is 12 bytes
+			segs = Z_Malloc(sizeof(*segs) * numsegs, PU_LEVEL, (void**)&segs);
+			
+			// Read in data
+			for (i = 0; i < numsegs && !WL_StreamEOF(Stream); i++)
+			{
+				// Get pointer
+				SegP = &segs[i];
+				
+				// Read
+				for (k = 0; k < 2; k++)
+					SegP->VertexID[k] = WL_StreamReadLittleUInt16(Stream);
+				SegP->angle = ((angle_t)WL_StreamReadLittleUInt16(Stream)) << 16;
+				SegP->LineID = WL_StreamReadLittleUInt16(Stream);
+				SegP->side = WL_StreamReadLittleUInt16(Stream);
+				SegP->offset = ((fixed_t)WL_StreamReadLittleInt16(Stream)) <<  FRACBITS;
+				
+				// Initialize
+				PS_ExSegInit(SegP);
+			}
+			
+			// Close stream
+			WL_StreamClose(Stream);
+		}
+	}
+	
+	// Load the Block Map
+	if ((Entry = a_Info->EntryPtr[PLIEDS_BLOCKMAP]))
+	{
+		// Open stream
+		Stream = WL_StreamOpen(Entry);
+		
+		// Read in data
+		if (Stream)
+		{
+			// Close stream
+			WL_StreamClose(Stream);
+		}
+	}
+	
+	// Load the Reject
+	if ((Entry = a_Info->EntryPtr[PLIEDS_REJECT]))
+	{
+		// Open stream
+		Stream = WL_StreamOpen(Entry);
+		
+		// Read in data
+		if (Stream)
+		{
+			// matrix size is (numsectors * numsectors) / 8;
+			k = ((numsectors * numsectors) / 8);
+			rejectmatrix = Z_Malloc(sizeof(*rejectmatrix) * k, PU_LEVEL, (void**)rejectmatrix);
+			
+			// Read in matrix data
+			for (j = 0; j < k; j++)
+				rejectmatrix[j] = WL_StreamReadUInt8(Stream);
+			
+			// Close stream
+			WL_StreamClose(Stream);
+		}
+	}
+	
+	// Munge Node Data
+	PS_ExMungeNodeData();
+	
+	// Load Things
+	playeringame[0] = true;
+	consoleplayer[0] = displayplayer[0] = 0;
+	players[0].mo = P_SpawnMobj(0, 0, 0, MT_PLAYER);
 	
 	/* Pre-Finalize */
 	// Set the level time to zero

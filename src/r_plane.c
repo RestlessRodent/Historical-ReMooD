@@ -481,6 +481,10 @@ void R_DrawPlanes(void)
 	int angle;
 	int i;						//SoM: 3/23/2000
 	
+	// TEMP: Prevent Crash
+	if (!textureheight)
+		return;
+	
 	spanfunc = basespanfunc;
 	
 	for (i = 0; i < MAXVISPLANES; i++, pl++)
