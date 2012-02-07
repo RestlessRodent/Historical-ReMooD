@@ -92,8 +92,8 @@ void P_InitSetupEx(void);
 
 bool_t P_ExClearLevel(void);
 
-
 bool_t P_ExLoadLevel(P_LevelInfoEx_t* const a_Info, const bool_t a_ApplyOptions);
+bool_t P_ExFinalizeLevel(void);
 
 #endif
 

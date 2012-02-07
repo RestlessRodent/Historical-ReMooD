@@ -210,6 +210,7 @@ typedef enum bool_e
 /************
 *** TIC_T ***
 ************/
+
 // A valid tic
 typedef uint64_t tic_t;
 

@@ -65,6 +65,8 @@
 #include "math.h"
 #endif
 
+#include "d_net.h"
+
 #include "command.h"
 
 //#define COOLFLIPLEVELS
@@ -1736,9 +1738,119 @@ bool_t P_ExClearLevel(void)
 	return true;
 }
 
+/* PS_ExVertexInit() -- Initializes extra data in vertex */
+static void PS_ExVertexInit(vertex_t* const a_Vertex)
+{
+}
+
+/* PS_ExSectorInit() -- Initializes extra data in sector */
+static void PS_ExSectorInit(sector_t* const a_Sector)
+{
+	/* Check */
+	if (!a_Sector)
+		return;
+	
+	/* Set default fields */
+	a_Sector->nextsec = -1;
+	a_Sector->prevsec = -1;
+	a_Sector->heightsec = -1;
+	a_Sector->floorlightsec = -1;
+	a_Sector->ceilinglightsec = -1;
+	a_Sector->bottommap = -1;
+	a_Sector->midmap = -1;
+	a_Sector->topmap = -1;
+	a_Sector->moved = true;
+	a_Sector->lineoutLength = -1.0;
+}
+
+/* PS_ExSideDefInit() -- Initializes extra data in side def */
+static void PS_ExSideDefInit(side_t* const a_SideDef)
+{
+	/* Check */
+	if (!a_SideDef)
+		return;
+	
+	/* Reference to sector */
+	// Make sure it is legal
+	if (a_SideDef->SectorNum >= 0 && a_SideDef->SectorNum < numsectors)
+		a_SideDef->sector = &sectors[a_SideDef->SectorNum];
+	
+	// Otherwise use the first sector (ouch!)
+	else
+		a_SideDef->sector = &sectors[0];
+}
+
+/* PS_ExLineDefInit() -- Initializes extra data in linedef */
+static void PS_ExLineDefInit(line_t* const a_LineDef)
+{
+	size_t i;
+	sector_t** SecRef;
+	
+	/* Check */
+	if (!a_LineDef)
+		return;
+	
+	/* Reference */
+	// First Vertex
+	if (a_LineDef->VertexNum[0] >= 0 && a_LineDef->VertexNum[0] < numvertexes)
+		a_LineDef->v1 = &vertexes[a_LineDef->VertexNum[0]];
+	else
+		a_LineDef->v1 = &vertexes[0];	// Oops!
+	
+	// Second vertex
+	if (a_LineDef->VertexNum[1] >= 0 && a_LineDef->VertexNum[1] < numvertexes)
+		a_LineDef->v2 = &vertexes[a_LineDef->VertexNum[1]];
+	else
+		a_LineDef->v2 = &vertexes[0];	// Oops!
+	
+	/* Physics Calculations */
+	// Difference of units
+	a_LineDef->dx = a_LineDef->v2->x - a_LineDef->v1->x;
+	a_LineDef->dy = a_LineDef->v2->y - a_LineDef->v1->y;
+	
+	// Slope type
+	if (!a_LineDef->dx)
+		a_LineDef->slopetype = ST_VERTICAL;
+	else if (!a_LineDef->dy)
+		a_LineDef->slopetype = ST_HORIZONTAL;
+	else if (FixedDiv(a_LineDef->dy, a_LineDef->dx) > 0)
+		a_LineDef->slopetype = ST_POSITIVE;
+	else
+		a_LineDef->slopetype = ST_NEGATIVE;
+	
+	// Bounding volume
+	
+	/* Legalize side def reference */
+	for (i = 0; i < 2; i++)
+		if (a_LineDef->sidenum[i] < 0 || a_LineDef->sidenum[i] >= numsides)
+			a_LineDef->sidenum[i] = -1;
+	
+	/* Set linedef sectors based on side def */
+	for (i = 0; i < 2; i++)
+		if (a_LineDef->sidenum[i] != -1)
+		{
+			SecRef = (i == 0 ? &a_LineDef->frontsector : &a_LineDef->backsector);
+			*SecRef = sides[a_LineDef->sidenum[i]].sector;
+		}
+	
+	/* Set side special from linedef */
+	//if (ld->sidenum[0] != -1 && ld->special)
+	//	sides[ld->sidenum[0]].special = ld->special;
+}
+
 /* P_ExLoadLevel() -- Loads a new level */
 bool_t P_ExLoadLevel(P_LevelInfoEx_t* const a_Info, const bool_t a_ApplyOptions)
 {
+#define BUFSIZE 512
+	const WL_WADEntry_t* Entry;
+	WL_EntryStream_t* Stream;
+	vertex_t* VertexP;
+	sector_t* SectorP;
+	side_t* SideDefP;
+	line_t* LineDefP;
+	size_t i, j, k;
+	char Buf[BUFSIZE];
+	
 	/* Check */
 	if (!a_Info)
 		return false;
@@ -1747,7 +1859,194 @@ bool_t P_ExLoadLevel(P_LevelInfoEx_t* const a_Info, const bool_t a_ApplyOptions)
 	if (devparm)
 		CONL_PrintF("P_ExLoadLevel: Loading \"%s\"...\n", a_Info->LumpName);
 	
+	/* Load Map Data */
+	// Load vertex data (Non-Textual Format)
+	if (!a_Info->Type.Text && (Entry = a_Info->EntryPtr[PLIEDS_VERTEXES]))
+	{
+		// Open stream
+		Stream = WL_StreamOpen(Entry);
+		
+		// Read in data
+		if (Stream)
+		{
+			// Allocate array
+			numvertexes = Entry->Size / 4;	// 1 vertex is 4 bytes
+			vertexes = Z_Malloc(sizeof(*vertexes) * numvertexes, PU_LEVEL, (void**)&vertexes);
+			
+			// Read in data
+			for (i = 0; i < numvertexes && !WL_StreamEOF(Stream); i++)
+			{
+				// Get pointer
+				VertexP = &vertexes[i];
+				
+				// Read
+				VertexP->x = WL_StreamReadLittleInt16(Stream);
+				VertexP->y = WL_StreamReadLittleInt16(Stream);
+				
+				// Initialize
+				PS_ExVertexInit(VertexP);
+			}
+			
+			// Close stream
+			WL_StreamClose(Stream);
+		}
+	}
+	
+	// Load sector data (Non-Textual Format)
+	if (!a_Info->Type.Text && (Entry = a_Info->EntryPtr[PLIEDS_SECTORS]))
+	{
+		// Open stream
+		Stream = WL_StreamOpen(Entry);
+		
+		// Read in data
+		if (Stream)
+		{
+			// Allocate array
+			numsectors = Entry->Size / 26;	// 1 sector is 26 bytes
+			sectors = Z_Malloc(sizeof(*sectors) * numsectors, PU_LEVEL, (void**)&sectors);
+			
+			// Read in data
+			for (i = 0; i < numsectors && !WL_StreamEOF(Stream); i++)
+			{
+				// Get pointer
+				SectorP = &sectors[i];
+				
+				// Read
+				SectorP->floorheight = WL_StreamReadLittleInt16(Stream);
+				SectorP->ceilingheight = WL_StreamReadLittleInt16(Stream);
+				
+				memset(Buf, 0, sizeof(Buf));
+				for (j = 0; j < 8; j++)
+					Buf[j] = WL_StreamReadUInt8(Stream);
+				SectorP->FloorTexture = Z_StrDup(Buf, PU_LEVEL, NULL);
+				
+				memset(Buf, 0, sizeof(Buf));
+				for (j = 0; j < 8; j++)
+					Buf[j] = WL_StreamReadUInt8(Stream);
+				SectorP->CeilingTexture = Z_StrDup(Buf, PU_LEVEL, NULL);
+				
+				SectorP->lightlevel = WL_StreamReadLittleInt16(Stream);
+				SectorP->special = WL_StreamReadLittleUInt16(Stream);
+				SectorP->tag = WL_StreamReadLittleUInt16(Stream);
+				
+				// Initialize
+				PS_ExSectorInit(SectorP);
+			}
+			
+			// Close stream
+			WL_StreamClose(Stream);
+		}
+	}
+	
+	// Load Side-Def Data (Non-Textual Format)
+	if (!a_Info->Type.Text && (Entry = a_Info->EntryPtr[PLIEDS_SIDEDEFS]))
+	{
+		// Open stream
+		Stream = WL_StreamOpen(Entry);
+		
+		// Read in data
+		if (Stream)
+		{
+			// Allocate array
+			numsides = Entry->Size / 30;	// 1 sidedef is 30 bytes
+			sides = Z_Malloc(sizeof(*sides) * numsides, PU_LEVEL, (void**)&sides);
+			
+			// Read in data
+			for (i = 0; i < numsides && !WL_StreamEOF(Stream); i++)
+			{
+				// Get pointer
+				SideDefP = &sides[i];
+				
+				// Read
+				SideDefP->textureoffset = ((fixed_t)WL_StreamReadLittleInt16(Stream)) <<  FRACBITS;
+				SideDefP->rowoffset = ((fixed_t)WL_StreamReadLittleInt16(Stream)) <<  FRACBITS;
+				
+				for (k = 0; k < 3; k++)
+				{
+					memset(Buf, 0, sizeof(Buf));
+					for (j = 0; j < 8; j++)
+						Buf[j] = WL_StreamReadUInt8(Stream);
+					SideDefP->WallTextures[k] = Z_StrDup(Buf, PU_LEVEL, NULL);
+				}
+				
+				SideDefP->SectorNum = WL_StreamReadLittleUInt16(Stream);
+				
+				// Initialize
+				PS_ExSideDefInit(SideDefP);
+			}
+			
+			// Close stream
+			WL_StreamClose(Stream);
+		}
+	}
+	
+	// Load Line-Def Data (Non-Textual Format)
+	if (!a_Info->Type.Text && (Entry = a_Info->EntryPtr[PLIEDS_LINEDEFS]))
+	{
+		// Open stream
+		Stream = WL_StreamOpen(Entry);
+		
+		// Read in data
+		if (Stream)
+		{
+			// Allocate array
+			numlines = Entry->Size / (a_Info->Type.Hexen ? 16 : 14);	// 1 linedef is 15 bytes (doom) and 16 bytes (hexen)
+			lines = Z_Malloc(sizeof(*lines) * numlines, PU_LEVEL, (void**)&lines);
+			
+			// Read in data
+			for (i = 0; i < numlines && !WL_StreamEOF(Stream); i++)
+			{
+				// Get pointer
+				LineDefP = &lines[i];
+				
+				// Read
+				for (k = 0; k < 2; k++)
+					LineDefP->VertexNum[k] = WL_StreamReadLittleUInt16(Stream);
+				LineDefP->flags = WL_StreamReadLittleUInt16(Stream);
+				
+				if (a_Info->Type.Hexen)	// Hexen
+				{
+					LineDefP->HexenSpecial = WL_StreamReadUInt8(Stream);
+					for (k = 0; k < 5; k++)
+						LineDefP->ACSArgs[k] = WL_StreamReadUInt8(Stream);
+				}
+				else					// Doom
+				{
+					LineDefP->special = WL_StreamReadLittleUInt16(Stream);
+					LineDefP->tag = WL_StreamReadLittleUInt16(Stream);
+				}
+				
+				for (k = 0; k < 2; k++)
+					LineDefP->sidenum[k] = WL_StreamReadLittleUInt16(Stream);
+				
+				// Initialize
+				PS_ExLineDefInit(LineDefP);
+			}
+			
+			// Close stream
+			WL_StreamClose(Stream);
+		}
+	}
+	
+	/* Pre-Finalize */
+	// Set the level time to zero
+	D_SyncNetSetMapTime(0);
+	
 	/* Finalize */
+	P_ExFinalizeLevel();
+#undef BUFSIZE
+}
+
+/* P_ExFinalizeLevel() -- Finalizes the level so that it can be joined */
+// Called by level loading and the save game loading code
+bool_t P_ExFinalizeLevel(void)
+{
+	/* Set gamestate to level */
+	// So that we can play it now
 	gamestate = GS_LEVEL;
+	gameaction = ga_nothing;
+	
+	/* Success! */
+	return true;
 }
 

@@ -314,6 +314,10 @@ typedef struct sector_s
 	double lineoutLength;
 #endif
 	// ----- end special tricks -----
+	
+	// ReMooD Additions
+	char* FloorTexture;							// Name of floor texture
+	char* CeilingTexture;						// Name of ceiling texture
 } sector_t;
 
 //
@@ -344,6 +348,9 @@ typedef struct
 	fixed_t ScaleX, ScaleY;
 	bool_t VFlip;				// vertically flip texture
 	
+	// ReMooD Additions
+	char* WallTextures[3];						// Textures used on walls
+	size_t SectorNum;							// Sector number linked to
 } side_t;
 
 //
@@ -403,6 +410,13 @@ typedef struct line_s
 	int firsttag, nexttag;		// improves searches for tags.
 	
 	int ecolormap;				// SoM: Used for 282 linedefs
+	
+	// ReMooD Additions
+	size_t VertexNum[2];					// IDs for vertexes
+	
+	// Hexen
+	uint8_t HexenSpecial;					// Hexen special ID
+	uint8_t ACSArgs[5];						// Arguments for ACS lines
 } line_t;
 
 //

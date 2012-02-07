@@ -32,6 +32,7 @@
 *** INCLUDES ***
 ***************/
 
+#include "doomtype.h"
 #include "doomdef.h"
 #include "g_game.h"
 #include "i_net.h"
@@ -96,7 +97,7 @@ tic_t D_SyncNetMapTime(void)
 tic_t D_SyncNetRealTime(void)
 {
 	/* Just return the number of tics that has passed */
-	return I_GetTimeMS() / TICSPERMS;
+	return I_GetTimeMS() / (tic_t)TICSPERMS;
 }
 
 extern consvar_t cv_g_gamespeed;
@@ -113,13 +114,17 @@ bool_t D_SyncNetIsPaused(void)
 // It returns the tics in the future that everyone is ready to move to
 tic_t D_SyncNetAllReady(void)
 {
-	static tic_t LocalTime;
+	static tic_t LocalTime = 0;
 	tic_t ThisTime, DiffTime;
 	
 	/*** START BIG HACK AREA ***/
 	static fixed_t CurVal, ModVal, TicsPerMS = TICSPERMS;
 	
+	if (!TicsPerMS)
+		TicsPerMS = TICSPERMS;
+	
 	/* Slow */
+#if 0
 	if (CurVal != cv_g_gamespeed.value)
 	{
 		ModVal = CurVal = cv_g_gamespeed.value;
@@ -134,6 +139,7 @@ tic_t D_SyncNetAllReady(void)
 		if (TicsPerMS < 1)
 			TicsPerMS = 1;
 	}
+#endif
 	
 	/*** END BIG HACK AREA ***/
 	
@@ -141,7 +147,7 @@ tic_t D_SyncNetAllReady(void)
 	if (D_SyncNetIsArbiter())
 	{
 		// The map time is determined by the framerate
-		ThisTime = I_GetTimeMS() / TicsPerMS;
+		ThisTime = I_GetTimeMS() / TICSPERMS;
 		DiffTime = ThisTime - LocalTime;
 		
 		if (DiffTime > 0)
@@ -158,6 +164,9 @@ tic_t D_SyncNetAllReady(void)
 	{
 		return l_MapTime;
 	}
+	
+	/* Fell through? */
+	return (tic_t)-1;
 }
 
 /* D_SyncNetUpdate() -- Update synchronized networking */

@@ -1401,63 +1401,41 @@ size_t WL_StreamRawRead(WL_EntryStream_t* const a_Stream, const size_t a_Offset,
 #endif
 }
 
-/* WL_StreamReadInt8() -- Read from stream */
-int8_t WL_StreamReadInt8(WL_EntryStream_t* const a_Stream)
-{
-	int8_t Out = 0;
-	
-	/* Check */
-	if (!a_Stream)
-		return 0;
-	
-	/* Read */
-	a_Stream->StreamOffset += WL_StreamRawRead(a_Stream, a_Stream->StreamOffset, &Out, sizeof(Out));
-	
-	/* Return */
-	return Out;
+#define __REMOOD_MACROMERGE(a,b) a##b
+
+#define __REMOOD_WLSTREAMREAD(w,x) x __REMOOD_MACROMERGE(WL_StreamRead,w)(WL_EntryStream_t* const a_Stream)\
+{\
+	x Out = 0;\
+	\
+	if (!a_Stream)\
+		return 0;\
+	\
+	a_Stream->StreamOffset += WL_StreamRawRead(a_Stream, a_Stream->StreamOffset, &Out, sizeof(Out));\
+	\
+	return Out;\
 }
 
-int16_t WL_StreamReadInt16(WL_EntryStream_t* const a_Stream);
-int32_t WL_StreamReadInt32(WL_EntryStream_t* const a_Stream);
-
-/* WL_StreamReadUInt8() -- Read from stream */
-uint8_t WL_StreamReadUInt8(WL_EntryStream_t* const a_Stream)
-{
-	uint8_t Out = 0;
-	
-	/* Check */
-	if (!a_Stream)
-		return 0;
-	
-	/* Read */
-	a_Stream->StreamOffset += WL_StreamRawRead(a_Stream, a_Stream->StreamOffset, &Out, sizeof(Out));
-	
-	/* Return */
-	return Out;
+#define __REMOOD_WLSTREAMLITTLEREAD(w,x) x __REMOOD_MACROMERGE(WL_StreamReadLittle,w)(WL_EntryStream_t* const a_Stream)\
+{\
+	return __REMOOD_MACROMERGE(LittleSwap,w)(__REMOOD_MACROMERGE(WL_StreamRead,w)(a_Stream));\
 }
 
-/* WL_StreamReadUInt16() -- Read from stream */
-uint16_t WL_StreamReadUInt16(WL_EntryStream_t* const a_Stream)
-{
-	uint16_t Out = 0;
-	
-	/* Check */
-	if (!a_Stream)
-		return 0;
-	
-	/* Read */
-	a_Stream->StreamOffset += WL_StreamRawRead(a_Stream, a_Stream->StreamOffset, &Out, sizeof(Out));
-	
-	/* Return */
-	return Out;
-}
+__REMOOD_WLSTREAMREAD(Int8,int8_t);
+__REMOOD_WLSTREAMREAD(Int16,int16_t);
+__REMOOD_WLSTREAMREAD(Int32,int32_t);
+__REMOOD_WLSTREAMREAD(UInt8,uint8_t);
+__REMOOD_WLSTREAMREAD(UInt16,uint16_t);
+__REMOOD_WLSTREAMREAD(UInt32,uint32_t);
 
-uint32_t WL_StreamReadUInt32(WL_EntryStream_t* const a_Stream);
+__REMOOD_WLSTREAMLITTLEREAD(Int16,int16_t);
+__REMOOD_WLSTREAMLITTLEREAD(Int32,int32_t);
+__REMOOD_WLSTREAMLITTLEREAD(UInt16,uint16_t);
+__REMOOD_WLSTREAMLITTLEREAD(UInt32,uint32_t);
 
-int16_t WL_StreamReadLittleInt16(WL_EntryStream_t* const a_Stream);
-int32_t WL_StreamReadLittleInt32(WL_EntryStream_t* const a_Stream);
-uint16_t WL_StreamReadLittleUInt16(WL_EntryStream_t* const a_Stream);
-uint32_t WL_StreamReadLittleUInt32(WL_EntryStream_t* const a_Stream);
+#undef __REMOOD_WLSTREAMREAD
+#undef __REMOOD_WLSTREAMLITTLEREAD
+
+#undef __REMOOD_MACROMERGE
 
 /* WL_StreamCheckUnicode() -- Checks if the stream is unicode */
 bool_t WL_StreamCheckUnicode(WL_EntryStream_t* const a_Stream)
