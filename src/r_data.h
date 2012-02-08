@@ -144,6 +144,13 @@ char* R_ColormapNameForNum(int num);
 
 void R_SetSpriteLumpCount(const size_t a_Count);
 
+/* R_TextureInfo_t -- Info on current texture */
+typedef struct R_TextureInfo_s
+{
+	texture_t Texture;							// Base Texture
+	uint32_t WidthMask;							// Mask for texture width (loop)
+} R_TextureInfo_t;
+
 #define WLTEXTUREKEY 0x72547854
 
 #endif

@@ -371,7 +371,37 @@ static void RS_TexturePDRemove(const struct WL_WADFile_s* a_WAD)
 /* RS_TexturePDCreate() -- Create texture data for WADs */
 static bool_t RS_TexturePDCreate(const struct WL_WADFile_s* const a_WAD, const uint32_t a_Key, void** const a_DataPtr, size_t* const a_SizePtr, WL_RemoveFunc_t* const a_RemoveFuncPtr)
 {
-	return false;
+	/* Check */
+	if (!a_WAD || !a_DataPtr || !a_SizePtr)
+		return false;
+	
+	/* Create Data Holder */
+	
+	/* Map PNAMES to actual names */
+	// Normally when textures are loaded, the texture information references
+	// patches by their ID. However, when cases where the patch is replaced,
+	// this cannot be done. Messing with the PNAMES order causes the wrong
+	// patches to be used for textures and whatnot. There is also the case for
+	// the dynamic WAD loading code. A texture could be replaced and there could
+	// be patches in later WADs.
+	
+	/* Process TEXTUREx Lumps */
+	
+	/* Process Flats */
+	// Flats can now be used as textures, however there are differences.
+	// Flats will appear as standard 64x64 textures, they will also be of lower
+	// priority compared to textures. If a flat is called SOMEPIC and a texture
+	// is called SOMEPIC, whichever one is chosen is based on the order. If the
+	// renderer requested a wall texture, the texture would be returned, but if
+	// a flat was requested the true flat will be returned. This will result in
+	// two textures having the same name but different IDs. But in the other
+	// case, if no texture or flat exists by said name, it will fall through and
+	// use another flat or texture by that same name (i.e. asking for a wall
+	// called SOMEFLAT but there is no wall texture by that name, it will return
+	// the texture for that flat instead).
+	
+	/* Success */
+	return true;
 }
 
 /* RS_TextureOrderChange() -- Order changed (rebuild composite) */
@@ -386,7 +416,7 @@ void R_LoadTextures(void)
 {
 	/* Register order callbacks and generators */
 	// Generators first
-	if (!WL_RegisterPDC(WLTEXTUREKEY, 100, RS_TexturePDCreate, RS_TextureOrderChange))
+	if (!WL_RegisterPDC(WLTEXTUREKEY, 100, RS_TexturePDCreate, RS_TexturePDRemove))
 		I_Error("R_LoadTextures: Failed to register PDC.\n");
 	
 	// Order callback
@@ -855,6 +885,8 @@ void R_InitFlats()
 /* R_GetFlatNumForName() -- Find flat by it's name */
 int R_GetFlatNumForName(char* name)
 {
+	// GhostlyDeath <February 7, 2012> -- TODO: Search textures for flats then walls	
+	
 	// GhostlyDeath <Sunday, June 21, 2009> -- B Pierra said that R_CheckNumForNameList()
 	//     does not work with gothic2.wad...
 	WadIndex_t Lump = INVALIDLUMP;

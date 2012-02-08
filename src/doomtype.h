@@ -81,8 +81,13 @@
 
 /* DJGPP */
 #if defined(__REMOOD_SYSTEM_DOS) && defined(__DJGPP__)
-#define snprintf g_snprintf
-#define vsnprintf g_vsnprintf
+	#define snprintf g_snprintf
+	#define vsnprintf g_vsnprintf
+#endif
+
+/* Microsoft Visual C++ */
+#if defined(_MSC_VER) && (_MSC_VER <= 1200)
+	#define vsnprintf _vsnprintf
 #endif
 
 /******************
@@ -128,22 +133,32 @@
 
 #if !defined(__REMOOD_IGNORE_FIXEDTYPES)
 
-/* Microsoft Visual C++ */
-#if defined(_MSC_VER)
-typedef signed __int8 int8_t;
-typedef signed __int16 int16_t;
-typedef signed __int32 int32_t;
-typedef signed __int64 int64_t;
-typedef unsigned __int8 uint8_t;
-typedef unsigned __int16 uint16_t;
-typedef unsigned __int32 uint32_t;
-typedef unsigned __int64 uint64_t;
+/* C99 Complaint Compilers */
+#if (__STDC_VERSION__ >= 199901L) || defined(__GNUC__) || defined(__WATCOMC__)
+	#include <stdint.h>
 
-/* Everything else */
-#elif (__STDC_VERSION__ >= 199901L) || defined(__GNUC__) || defined(__WATCOMC__)
-#include <stdint.h>
+	#define __REMOOD_LL_SUFFIX(a) a##LL
+	#define __REMOOD_ULL_SUFFIX(a) a##ULL
+
+/* Microsoft Visual C++ */
+#elif defined(_MSC_VER)
+	typedef signed __int8 int8_t;
+	typedef signed __int16 int16_t;
+	typedef signed __int32 int32_t;
+	typedef signed __int64 int64_t;
+	typedef unsigned __int8 uint8_t;
+	typedef unsigned __int16 uint16_t;
+	typedef unsigned __int32 uint32_t;
+	typedef unsigned __int64 uint64_t;
+
+	// Stuff MSVC <= 6 Lacks
+	typedef size_t uintptr_t;
+	
+	#define __REMOOD_LL_SUFFIX(a) a##i64
+	#define __REMOOD_ULL_SUFFIX(a) a##ui64
 #endif
-#endif
+
+#endif /* __REMOOD_IGNORE_FIXEDTYPES */
 
 /***********
 *** BOOL ***
