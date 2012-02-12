@@ -155,6 +155,4 @@ typedef struct R_TextureInfo_s
 	fixed_t heightDep;							// Texture height
 } R_TextureInfo_t;
 
-#define WLTEXTUREKEY 0x72547854
-
 #endif

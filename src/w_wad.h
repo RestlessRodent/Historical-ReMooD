@@ -58,6 +58,7 @@ typedef enum WL_DataPDCOrder_e
 	WLDPO_VIMAGES = 20,				// Image_t
 	WLDPO_RMOD = 30,				// ReMooD Map Object Data
 	WLDPO_VFONTS = 75,				// Fonts
+	WLDPO_TEXTURES = 100,			// Textures
 	WLDPO_MAPINFO = 125,			// MAPINFO
 } WL_DataPDCOrder_t;
 
@@ -66,6 +67,7 @@ typedef enum WL_DataOCCBOrder_e
 {
 	WLDCO_RMOD = 30,				// ReMooD Map Object Data
 	WLDCO_VFONTS = 75,				// Fonts
+	WLDCO_TEXTURES = 75,			// Textures
 } WL_DataOCCBOrder_t;
 
 /* WL_DataKeys_t -- Keys for data handling, shortcuts */
@@ -76,6 +78,7 @@ typedef enum WL_DataKeys_e
 	WLDK_VIMAGES = 0x8C064303U,		// Image_t
 	WLDK_VFONTS = 0x464F4E54U,		// Fonts
 	WLDK_MAPINFO = 0x4F464E49U,		// Map Information
+	WLDK_TEXTURES = 0x72547854U,	// Textures
 } WL_DataKeys_t;
 
 /* WL_FindFlags_t -- Flags when finding things */

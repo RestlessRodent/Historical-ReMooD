@@ -246,11 +246,11 @@ void R_LoadTextures(void)
 {
 	/* Register order callbacks and generators */
 	// Generators first
-	if (!WL_RegisterPDC(WLTEXTUREKEY, 100, RS_TexturePDCreate, RS_TexturePDRemove))
+	if (!WL_RegisterPDC(WLDK_TEXTURES, WLDPO_TEXTURES, RS_TexturePDCreate, RS_TexturePDRemove))
 		I_Error("R_LoadTextures: Failed to register PDC.\n");
 	
 	// Order callback
-	if (!WL_RegisterOCCB(RS_TextureOrderChange, 75))
+	if (!WL_RegisterOCCB(RS_TextureOrderChange, WLDCO_TEXTURES))
 		I_Error("R_LoadTextures: Failed to register OCCB.\n");
 
 #if 0
