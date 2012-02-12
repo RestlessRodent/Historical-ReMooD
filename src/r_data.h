@@ -147,8 +147,12 @@ void R_SetSpriteLumpCount(const size_t a_Count);
 /* R_TextureInfo_t -- Info on current texture */
 typedef struct R_TextureInfo_s
 {
-	texture_t Texture;							// Base Texture
-	uint32_t WidthMask;							// Mask for texture width (loop)
+	/* Deprecated Texture Info */
+	texture_t* textureDep;						// Texture info
+	uint32_t* columnofsDep;						// Column offset table
+	uint8_t* cacheDep;							// Texture cache
+	int* widthmaskDep;							// Mask to width
+	fixed_t heightDep;							// Texture height
 } R_TextureInfo_t;
 
 #define WLTEXTUREKEY 0x72547854

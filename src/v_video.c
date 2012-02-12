@@ -3773,12 +3773,12 @@ uint8_t* V_ImageGetRaw(V_Image_t* const a_Image)
 #endif /* __REMOOD_DEDICATED */
 }
 
-/* V_ImageDrawScaled() -- Draws the image with specific scaling */
+/* V_ImageDrawScaledIntoBuffer() -- Draws the image with specific scaling */
 // This is the core implementation (all others call this one)
 // TODO: Reimprove this function
 //  * Make it more secure (prevent overflows)
 //  * Make it faster in some respects (use memcpy when drawing raw images)
-void V_ImageDrawScaled(const uint32_t a_Flags, V_Image_t* const a_Image, const int32_t a_X, const int32_t a_Y, const fixed_t a_XScale, const fixed_t a_YScale, const uint8_t* const a_ExtraMap)
+void V_ImageDrawScaledIntoBuffer(const uint32_t a_Flags, V_Image_t* const a_Image, const int32_t a_X, const int32_t a_Y, const uint32_t a_Width, const uint32_t a_Height, const fixed_t a_XScale, const fixed_t a_YScale, const uint8_t* const a_ExtraMap, uint8_t* const a_DestBuffer, const uint32_t a_DestPitch, const uint32_t a_DestWidth, const uint32_t a_DestHeight, const fixed_t a_VidXScaleX, const fixed_t a_VidXScaleY, const double a_VidFScaleX, const double a_VidFScaleY)
 {	/*** DEDICATED SERVER ***/
 #if defined(__REMOOD_DEDICATED)
 	return;
@@ -3852,20 +3852,20 @@ void V_ImageDrawScaled(const uint32_t a_Flags, V_Image_t* const a_Image, const i
 	
 	// Scale start position?
 	if (!((a_Flags & VEX_NOSCALESTART) ||	// Don't scale at all
-		((a_Flags & VEX_NOSCALE160160) && (vid.width < BASEVIDWIDTH || vid.height < BASEVIDHEIGHT))))	// Don't scale on low-res
+		((a_Flags & VEX_NOSCALE160160) && (a_DestWidth < BASEVIDWIDTH || a_DestHeight < BASEVIDHEIGHT))))	// Don't scale on low-res
 	{
 		// Fixed point scale
 		if (a_Flags & VEX_NOFLOATSCALE)
 		{
-			x = FixedMul(x << FRACBITS, vid.fxdupx) >> FRACBITS;
-			y = FixedMul(y << FRACBITS, vid.fxdupy) >> FRACBITS;
+			x = FixedMul(x << FRACBITS, a_VidXScaleX) >> FRACBITS;
+			y = FixedMul(y << FRACBITS, a_VidXScaleY) >> FRACBITS;
 		}
 		
 		// Floating point scale
 		else
 		{
-			x = (double)x * vid.fdupx;
-			y = (double)y * vid.fdupy;
+			x = (double)x * a_VidFScaleX;
+			y = (double)y * a_VidFScaleY;
 		}
 	}
 	
@@ -3895,12 +3895,12 @@ void V_ImageDrawScaled(const uint32_t a_Flags, V_Image_t* const a_Image, const i
 	}
 	
 	// Off the bottom of the screen
-	if ((y + (xh >> FRACBITS)) >= vid.height)
-		xh = (vid.height << FRACBITS) - (y << FRACBITS);
+	if ((y + (xh >> FRACBITS)) >= a_DestHeight)
+		xh = (a_DestHeight << FRACBITS) - (y << FRACBITS);
 	
 	// Off the right of the screen
-	if ((x + (xw >> FRACBITS)) >= vid.width)
-		xw = (vid.width << FRACBITS) - (x << FRACBITS);
+	if ((x + (xw >> FRACBITS)) >= a_DestWidth)
+		xw = (a_DestWidth << FRACBITS) - (x << FRACBITS);
 	
 	/* If the image is a patch_t then draw it as a patch */
 	// Since patches have "holes" for transparency
@@ -3924,7 +3924,7 @@ void V_ImageDrawScaled(const uint32_t a_Flags, V_Image_t* const a_Image, const i
 			{
 				// Obtain source and destination pointers (for row base)
 				sP = RawData + (w * (sxY >> FRACBITS));
-				dP = screens[0] + (vid.rowbytes * yy) + x;
+				dP = a_DestBuffer + (a_DestPitch * yy) + x;
 			
 				// Scaled row draw
 				for (sxX = 0; sxX < xw; sxX += XFrac)
@@ -3937,7 +3937,7 @@ void V_ImageDrawScaled(const uint32_t a_Flags, V_Image_t* const a_Image, const i
 			{
 				// Obtain source and destination pointers (for row base)
 				sP = RawData + (w * (sxY >> FRACBITS));
-				dP = screens[0] + (vid.rowbytes * yy) + x;
+				dP = a_DestBuffer + (a_DestPitch * yy) + x;
 			
 				// Scaled row draw
 				for (sxX = 0; sxX < xw; sxX += XFrac)
@@ -3945,14 +3945,36 @@ void V_ImageDrawScaled(const uint32_t a_Flags, V_Image_t* const a_Image, const i
 			
 				// Copy first row to succeeding rows
 				ESXy = ((sxY + (1 << FRACBITS)) & (~0xFFFF));
-				sP = screens[0] + (vid.rowbytes * yy) + x;
+				sP = a_DestBuffer + (a_DestPitch * yy) + x;
 				for (;sxY < ESXy ; sxY += YFrac, yy++)
 				{
-					dP = screens[0] + (vid.rowbytes * yy) + x;
+					dP = a_DestBuffer + (a_DestPitch * yy) + x;
 					memcpy(dP, sP, tW);
 				}
 			}
 	}
+#endif /* __REMOOD_DEDICATED */
+}
+
+/* V_ImageDrawScaled() -- Draws the image with specific scaling */
+// This is the core implementation (all others call this one)
+// TODO: Reimprove this function
+//  * Make it more secure (prevent overflows)
+//  * Make it faster in some respects (use memcpy when drawing raw images)
+void V_ImageDrawScaled(const uint32_t a_Flags, V_Image_t* const a_Image, const int32_t a_X, const int32_t a_Y, const fixed_t a_XScale, const fixed_t a_YScale, const uint8_t* const a_ExtraMap)
+{	/*** DEDICATED SERVER ***/
+#if defined(__REMOOD_DEDICATED)
+	return;
+	
+	/*** STANDARD CLIENT ***/
+#else
+	
+	/* Check */
+	if (!a_Image)
+		return;
+	
+	/* Draw it into the screen buffer */
+	V_ImageDrawScaledIntoBuffer(a_Flags, a_Image, a_X, a_Y, a_Image->Width, a_Image->Height, a_XScale, a_YScale, a_ExtraMap, screens[0], vid.rowbytes, vid.width, vid.height, vid.fxdupx, vid.fxdupy, vid.fdupx, vid.fdupy);
 #endif /* __REMOOD_DEDICATED */
 }
 

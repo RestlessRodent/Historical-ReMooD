@@ -132,222 +132,6 @@ void R_DrawColumnInCache(column_t* patch, uint8_t* cache, int originy, int cache
 	}
 }
 
-uint8_t* R_GenerateTexture(int texnum);
-
-//
-// R_GetColumn
-//
-uint8_t* R_GetColumn(int tex, size_t col)
-{
-	uint8_t* data;
-	
-	col &= texturewidthmask[tex];
-	data = texturecache[tex];
-	
-	if (data == NULL)
-	{
-		if (devparm)
-			CONL_PrintF("R_GetColumn: Texture %i does not exist, generating!\n", tex);
-		data = R_GenerateTexture(tex);
-	}
-	
-	return data + texturecolumnofs[tex][col];
-}
-
-//
-// R_GenerateTexture
-//
-//   Allocate space for full size texture, either single patch or 'composite'
-//   Build the full textures from patches.
-//   The texture caching system is a little more hungry of memory, but has
-//   been simplified for the sake of highcolor, dynamic ligthing, & speed.
-//
-//   This is not optimised, but it's supposed to be executed only once
-//   per level, when enough memory is available.
-//
-uint8_t* R_GenerateTexture(int texnum)
-{
-	uint8_t* block;
-	uint8_t* blocktex;
-	texture_t* texture;
-	texpatch_t* patch;
-	patch_t* realpatch;
-	int x;
-	int x1;
-	int x2;
-	int i, j;
-	column_t* patchcol;
-	uint32_t* colofs;
-	size_t blocksize;
-	
-	texture = textures[texnum];
-	
-	// allocate texture column offset lookup
-	
-	// single-patch textures can have holes in it and may be used on
-	// 2sided lines so they need to be kept in 'packed' format
-	if (texture->patchcount == 1)
-	{
-		patch = texture->patches;
-		blocksize = W_LumpLength(patch->patch);
-#if 1
-		realpatch = W_CacheLumpNum(patch->patch, PU_CACHE);
-		
-		block = Z_Malloc(blocksize, PU_STATIC,	// will change tag at end of this function
-		                 &texturecache[texnum]);
-		memset(block, 0, blocksize);
-		memcpy(block, realpatch, blocksize);
-#else
-		// FIXME: this version don't put the user z_block
-		texturecache[texnum] = block = W_CacheLumpNum(patch->patch, PU_STATIC, &texturecache[texnum]);
-#endif
-		//CONL_PrintF ("R_GenTex SINGLE %.8s size: %d\n",texture->name,blocksize);
-		
-		texturememory += blocksize;
-		
-		// GhostlyDeath -- Wait a minute! No wonder texturecache[n] is always NULL!
-		texturecache[texnum] = block;
-		
-		// use the patch's column lookup
-		colofs = block + 8;
-		texturecolumnofs[texnum] = colofs;
-		blocktex = block;
-		for (i = 0; i < texture->width; i++)
-			colofs[i] += 3;
-			
-		// Now that the texture has been built in column cache,
-		//  it is purgable from zone memory.
-		Z_ChangeTag(block, PU_CACHE);
-	}
-	else						// Removes a GOTO
-	{
-		//
-		// multi-patch textures (or 'composite')
-		//
-		blocksize = (texture->width * 4) + (texture->width * texture->height);
-		
-		//CONL_PrintF ("R_GenTex MULTI  %.8s size: %d\n",texture->name,blocksize);
-		texturememory += blocksize;
-		
-		block = Z_Malloc(blocksize, PU_STATIC, &texturecache[texnum]);
-		
-		// columns lookup table
-		colofs = block;
-		texturecolumnofs[texnum] = colofs;
-		
-		// GhostlyDeath -- Read above! =)
-		texturecache[texnum] = block;
-		
-		// texture data before the lookup table
-		blocktex = block + (texture->width * 4);
-		
-		// Composite the columns together.
-		patch = texture->patches;
-		
-		for (i = 0, patch = texture->patches; i < texture->patchcount; i++, patch++)
-		{
-			realpatch = W_CacheLumpNum(patch->patch, PU_CACHE);
-			x1 = patch->originx;
-			x2 = x1 + LittleSwapInt16(realpatch->width);
-			
-			if (x1 < 0)
-				x = 0;
-			else
-				x = x1;
-				
-			if (x2 > texture->width)
-				x2 = texture->width;
-				
-			for (; x < x2; x++)
-			{
-				patchcol = (column_t*) ((uint8_t*)realpatch + LittleSwapInt32(realpatch->columnofs[x - x1]));
-				
-				// generate column ofset lookup
-				colofs[x] = (x * texture->height) + (texture->width * 4);
-				
-				R_DrawColumnInCache(patchcol, block + colofs[x], patch->originy, texture->height);
-			}
-		}
-		
-		// Now that the texture has been built in column cache,
-		//  it is purgable from zone memory.
-		Z_ChangeTag(block, PU_CACHE);
-	}
-	
-	// GhostlyDeath <September 29, 2011> -- Flip
-#if 0
-	for (x = 0; x < texture->width; x++)
-	{
-		for (j = 0; j < texture->height / 2; j++)
-		{
-			x2 = *((uint8_t*)(texturecache[texnum] + (colofs[x] + (j))));
-			*((uint8_t*)(texturecache[texnum] + (colofs[x] + (j)))) = *((uint8_t*)(texturecache[texnum] + (colofs[x] + (texture->height - j))));
-			*((uint8_t*)(texturecache[texnum] + (colofs[x] + (texture->height - j)))) = x2;
-		}
-	}
-#endif
-	
-	return blocktex;
-}
-
-//  convert flat to hicolor as they are requested
-//
-//uint8_t**  flatcache;
-
-uint8_t* R_GetFlat(int flatlumpnum)
-{
-	return W_CacheLumpNum(flatlumpnum, PU_CACHE);
-	
-	/*  // this code work but is useless
-	   uint8_t*    data;
-	   short*   wput;
-	   int      i,j;
-	
-	   //FIXME: work with run time pwads, flats may be added
-	   // lumpnum to flatnum in flatcache
-	   if ((data = flatcache[flatlumpnum-firstflat])!=0)
-	   return data;
-	
-	   data = W_CacheLumpNum (flatlumpnum, PU_CACHE);
-	   i=W_LumpLength(flatlumpnum);
-	
-	   Z_Malloc (i,PU_STATIC,&flatcache[flatlumpnum-firstflat]);
-	   memcpy (flatcache[flatlumpnum-firstflat], data, i);
-	
-	   return flatcache[flatlumpnum-firstflat];
-	 */
-	
-	/*  // this code don't work because it don't put a proper user in the z_block
-	   if ((data = flatcache[flatlumpnum-firstflat])!=0)
-	   return data;
-	
-	   data = (uint8_t *) W_CacheLumpNum(flatlumpnum,PU_LEVEL);
-	   flatcache[flatlumpnum-firstflat] = data;
-	   return data;
-	
-	   flatlumpnum -= firstflat;
-	
-	   if (scr_bpp==1)
-	   {
-	   flatcache[flatlumpnum] = data;
-	   return data;
-	   }
-	
-	   // allocate and convert to high color
-	
-	   wput = (short*) Z_Malloc (64*64*2,PU_STATIC,&flatcache[flatlumpnum]);
-	   //flatcache[flatlumpnum] =(uint8_t*) wput;
-	
-	   for (i=0; i<64; i++)
-	   for (j=0; j<64; j++)
-	   wput[i*64+j] = ((color8to16[*data++]&0x7bde) + ((i<<9|j<<4)&0x7bde))>>1;
-	
-	   //Z_ChangeTag (data, PU_CACHE);
-	
-	   return (uint8_t*) wput;
-	 */
-}
-
 //
 // Empty the texture cache (used for load wad at runtime)
 //
@@ -363,6 +147,11 @@ void R_FlushTextureCache(void)
 		}
 }
 
+/* R_TextureHolder_t -- Holds texture stuff */
+typedef struct R_TextureHolder_s
+{
+} R_TextureHolder_t;
+
 /* RS_TexturePDRemove() -- Remove loaded texture data */
 static void RS_TexturePDRemove(const struct WL_WADFile_s* a_WAD)
 {
@@ -371,11 +160,15 @@ static void RS_TexturePDRemove(const struct WL_WADFile_s* a_WAD)
 /* RS_TexturePDCreate() -- Create texture data for WADs */
 static bool_t RS_TexturePDCreate(const struct WL_WADFile_s* const a_WAD, const uint32_t a_Key, void** const a_DataPtr, size_t* const a_SizePtr, WL_RemoveFunc_t* const a_RemoveFuncPtr)
 {
+	R_TextureHolder_t* Holder;
+	
 	/* Check */
 	if (!a_WAD || !a_DataPtr || !a_SizePtr)
 		return false;
 	
 	/* Create Data Holder */
+	*a_SizePtr = sizeof(R_TextureHolder_t);
+	Holder = *a_DataPtr = Z_Malloc(*a_SizePtr, PU_STATIC, NULL);
 	
 	/* Map PNAMES to actual names */
 	// Normally when textures are loaded, the texture information references
@@ -407,7 +200,44 @@ static bool_t RS_TexturePDCreate(const struct WL_WADFile_s* const a_WAD, const u
 /* RS_TextureOrderChange() -- Order changed (rebuild composite) */
 static bool_t RS_TextureOrderChange(const bool_t a_Pushed, const struct WL_WADFile_s* const a_WAD)
 {
-	return false;
+	/* Success */
+	return true;
+}
+
+/* R_CheckTextureNumForName() -- Find texture by name */
+int R_CheckTextureNumForName(char* name)
+{
+	return 0;
+}
+
+/* R_TextureNumForName() -- Find texture by name */
+int R_TextureNumForName(char* name)
+{
+	return 0;
+}
+
+/* R_GetFlatNumForName() -- Get flat by name */
+int R_GetFlatNumForName(char* name)
+{
+	return 0;
+}
+
+/* R_GetFlat() -- Get data for flat */
+uint8_t* R_GetFlat(int flatlumpnum)
+{
+	return NULL;
+}
+
+/* R_GenerateTexture() -- Generates a texture (loads from cache) */
+uint8_t* R_GenerateTexture(int texnum)
+{
+	return NULL;
+}
+
+/* R_GetColumn() -- Get column data from a texture */
+uint8_t* R_GetColumn(int tex, size_t col)
+{
+	return NULL;
 }
 
 /* R_LoadTextures() -- Loads texture data information */
@@ -882,28 +712,6 @@ void R_InitFlats()
 #endif
 }
 
-/* R_GetFlatNumForName() -- Find flat by it's name */
-int R_GetFlatNumForName(char* name)
-{
-	// GhostlyDeath <February 7, 2012> -- TODO: Search textures for flats then walls	
-	
-	// GhostlyDeath <Sunday, June 21, 2009> -- B Pierra said that R_CheckNumForNameList()
-	//     does not work with gothic2.wad...
-	WadIndex_t Lump = INVALIDLUMP;
-	
-	Lump = R_CheckNumForNameList(name, flats, numflatlists);
-	
-	if (Lump == INVALIDLUMP)
-		Lump = W_CheckNumForName(name);
-		
-	// Instead of exploding, why don't we load an "invalid" flat like a checker pattern?
-	if (Lump == INVALIDLUMP)
-		Lump = R_CheckNumForNameList("-NOFLAT-", flats, numflatlists);
-	//I_Error("R_GetFlatNumForName: Could not find flat \"%.8s\".\n");
-	
-	return Lump;
-}
-
 size_t g_SpritesBufferSize = 0;	// GhostlyDeath <July 24, 2011> -- Unlimited sprites! not really
 
 /* R_SetSpriteLumpCount() -- Sets a nice size for the sprite buffer */
@@ -1294,51 +1102,6 @@ void R_InitData(void)
 //SoM: REmoved R_FlatNumForName
 
 //
-// R_CheckTextureNumForName
-// Check whether texture is available.
-// Filter out NoTexture indicator.
-//
-int R_CheckTextureNumForName(char* name)
-{
-	int i;
-	
-	// "NoTexture" marker.
-	if (name[0] == '-')
-		return 0;
-		
-	for (i = 0; i < numtextures; i++)
-	{
-		if (!textures[i]->name)
-			continue;
-			
-		if (!strncasecmp(textures[i]->name, name, 8))
-			return i;
-	}
-	
-	return -1;
-}
-
-//
-// R_TextureNumForName
-// Calls R_CheckTextureNumForName,
-//  aborts with error message.
-//
-int R_TextureNumForName(char* name)
-{
-	int i;
-	
-	i = R_CheckTextureNumForName(name);
-	
-	if (i == -1)
-	{
-		//I_Error ("R_TextureNumForName: %.8s not found", name);
-		CONL_PrintF("WARNING: R_TextureNumForName: %.8s not found\n", name);
-		return 1;
-	}
-	return i;
-}
-
-//
 // R_PrecacheLevel
 // Preloads all relevant graphics for the level.
 //
@@ -1494,3 +1257,4 @@ void R_PrecacheLevel(void)
 		            "flatmemory:    %ld k\n" "texturememory: %ld k\n" "spritememory:  %ld k\n", flatmemory >> 10, texturememory >> 10, spritememory >> 10);
 	}
 }
+
