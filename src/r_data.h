@@ -54,7 +54,7 @@ typedef struct
 	short patch;
 	short stepdir;
 	short colormap;
-} mappatch_t;
+} mappatch_t;	// DEPRECATED
 
 //
 // Texture definition.
@@ -73,7 +73,7 @@ typedef struct
 	
 	short patchcount;
 	mappatch_t patches[1];
-} maptexture_t;
+} maptexture_t;	// DEPRECATED
 
 // A single patch from a texture definition,
 //  basically a rectangular area within
@@ -85,7 +85,10 @@ typedef struct
 	// for the internal origin of the patch.
 	int originx;
 	int originy;
-	int patch;
+	int patch;									// DEPRECATED
+	
+	/* Unified Data */
+	char PatchName[9];							// Name of patch to use
 } texpatch_t;
 
 // A maptexturedef_t describes a rectangular texture,
@@ -95,14 +98,23 @@ typedef struct
 {
 	// Keep name for switch changing, etc.
 	char name[9];
-	short width;
-	short height;
+	int32_t width;
+	int32_t height;
 	
 	// All the patches[patchcount]
 	//  are drawn back to front into the cached texture.
-	short patchcount;
-	texpatch_t patches[1];
+	uint32_t patchcount;
+	texpatch_t* patches;
 	
+	/* Unified Data */
+	bool_t IsFlat;								// Is flat texture (floor)
+	bool_t NonPowerTwo;							// Non power of 2 width texture (slow)
+	uint32_t* ColumnOffs;						// Column offsets
+	uint8_t* Cache;								// Texture cache
+	uint8_t* FlatCache;							// Flat cache
+	uint32_t WidthMask;							// Mask to width
+	fixed_t XWidth;								// fixed_t width of texture
+	fixed_t XHeight;							// fixed_t height of texture
 } texture_t;
 
 // all loaded and prepared textures from the start of the game
@@ -143,16 +155,5 @@ int R_CreateColormap(char* p1, char* p2, char* p3);
 char* R_ColormapNameForNum(int num);
 
 void R_SetSpriteLumpCount(const size_t a_Count);
-
-/* R_TextureInfo_t -- Info on current texture */
-typedef struct R_TextureInfo_s
-{
-	/* Deprecated Texture Info */
-	texture_t* textureDep;						// Texture info
-	uint32_t* columnofsDep;						// Column offset table
-	uint8_t* cacheDep;							// Texture cache
-	int* widthmaskDep;							// Mask to width
-	fixed_t heightDep;							// Texture height
-} R_TextureInfo_t;
 
 #endif

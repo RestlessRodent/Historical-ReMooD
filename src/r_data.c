@@ -150,6 +150,13 @@ void R_FlushTextureCache(void)
 /* R_TextureHolder_t -- Holds texture stuff */
 typedef struct R_TextureHolder_s
 {
+	size_t NumPatches;							// Number of PNAMES in wad
+	char* RealPatchBuf;							// Real patch buffer
+	char** Patches;								// List of names to numbers
+	
+	texture_t* Textures;						// Texture Data
+	uint32_t* TextureOffsets;					// Texture offsets
+	size_t NumTextures;							// Number of textures
 } R_TextureHolder_t;
 
 /* RS_TexturePDRemove() -- Remove loaded texture data */
@@ -160,7 +167,15 @@ static void RS_TexturePDRemove(const struct WL_WADFile_s* a_WAD)
 /* RS_TexturePDCreate() -- Create texture data for WADs */
 static bool_t RS_TexturePDCreate(const struct WL_WADFile_s* const a_WAD, const uint32_t a_Key, void** const a_DataPtr, size_t* const a_SizePtr, WL_RemoveFunc_t* const a_RemoveFuncPtr)
 {
+#define TEMPNAME 9
 	R_TextureHolder_t* Holder;
+	const WL_WADEntry_t* Entry;
+	WL_EntryStream_t* Stream;
+	size_t i, j, k, p, z;
+	char c;
+	bool_t Continue;
+	char TempStr[TEMPNAME];
+	size_t BaseOffset, ThisCount;
 	
 	/* Check */
 	if (!a_WAD || !a_DataPtr || !a_SizePtr)
@@ -176,9 +191,181 @@ static bool_t RS_TexturePDCreate(const struct WL_WADFile_s* const a_WAD, const u
 	// this cannot be done. Messing with the PNAMES order causes the wrong
 	// patches to be used for textures and whatnot. There is also the case for
 	// the dynamic WAD loading code. A texture could be replaced and there could
-	// be patches in later WADs.
+	// be patches in later WADs. Although this changes the behavior of how
+	// textures are handled, it simplifies things when textures are added and
+	// removed of which they may have illegal references.
+	
+	// Locate PNAMES
+	Entry = WL_FindEntry(a_WAD, 0, "PNAMES");
+	
+	// Found it?
+	if (Entry)
+	{
+		// Open stream
+		Stream = WL_StreamOpen(Entry);
+		
+		// Opened?
+		if (Stream)
+		{
+			// Read number of patches
+			Holder->NumPatches = WL_StreamReadLittleUInt32(Stream);
+			
+			// Allocate array name of patches
+			Holder->RealPatchBuf = Z_Malloc(sizeof(char) * 9 * Holder->NumPatches, PU_STATIC, NULL);
+			Holder->Patches = Z_Malloc(sizeof(*Holder->Patches) * Holder->NumPatches, PU_STATIC, NULL);
+			
+			// Read in patch names
+			for (i = 0; i < Holder->NumPatches; i++)
+			{
+				// Allocate in sub buffer
+				Holder->Patches[i] = &Holder->RealPatchBuf[i * 9];
+				
+				// Read in lump data
+				for (Continue = true, j = 0; j < 8; j++)
+				{
+					// Always read character
+					c = WL_StreamReadChar(Stream);
+					
+					// No longer continue?
+					if (!c)
+						Continue = false;
+					
+					// Add to buffer
+					if (Continue)
+						Holder->Patches[i][j] = c;
+				}
+			}
+			
+			// Close stream
+			WL_StreamClose(Entry);
+		}
+	}
 	
 	/* Process TEXTUREx Lumps */
+	// Allow from TEXTURE1..9
+	for (BaseOffset = 0, i = 0; i <= 9; i++)
+	{
+		// Build name of lump
+		snprintf(TempStr, TEMPNAME, "TEXTURE%u", (unsigned int)i);
+		
+		// Attempt to locate it
+		if (!(Entry = WL_FindEntry(a_WAD, 0, TempStr)))
+			continue;	// Not found, ignore
+		
+		// Attempt to open stream
+		if (!(Stream = WL_StreamOpen(Entry)))
+			continue;	// Failed to open
+		
+		// Read texture count (and add)
+		ThisCount = WL_StreamReadLittleUInt32(Stream);
+		
+		// Allocate offset table
+		Holder->TextureOffsets = Z_Malloc(sizeof(*Holder->TextureOffsets) * ThisCount, PU_STATIC, NULL);
+		
+		// Re-allocate texture table
+		Z_ResizeArray((void**)&Holder->Textures, sizeof(*Holder->Textures), Holder->NumTextures, Holder->NumTextures + ThisCount);
+		Holder->NumTextures += ThisCount;
+		
+		// Read offset table
+		for (j = 0; j < ThisCount; j++)
+			Holder->TextureOffsets[j] = WL_StreamReadLittleUInt32(Stream);
+		
+		// Read in texture data
+		for (z = BaseOffset, j = 0; j < ThisCount; j++, z++)
+		{
+			// Seek to offset in stream
+			WL_StreamSeek(Stream, Holder->TextureOffsets[j], false);
+			
+			// Read texture name
+			for (Continue = true, k = 0; k < 8; k++)
+			{
+				// Always read character
+				c = WL_StreamReadChar(Stream);
+				
+				// No longer continue?
+				if (!c)
+					Continue = false;
+				
+				// Add to buffer
+				if (Continue)
+					Holder->Textures[z].name[k] = c;
+			}
+			
+			// Ignore "masked", unused
+			WL_StreamReadLittleUInt32(Stream);
+			
+			// Read the size of the texture
+			Holder->Textures[z].width = WL_StreamReadLittleInt16(Stream);
+			Holder->Textures[z].height = WL_StreamReadLittleInt16(Stream);
+			
+			// Fixed-ize the dimensions
+			Holder->Textures[z].XWidth = ((fixed_t)Holder->Textures[z].width) << FRACBITS;
+			Holder->Textures[z].XHeight = ((fixed_t)Holder->Textures[z].height) << FRACBITS;
+			
+			// Create mask
+			Holder->Textures[z].WidthMask = Holder->Textures[z].width - 1;
+			
+			// Non-power of two?
+			for (k = Holder->Textures[z].width; k; k >>= 1)
+				// Bit 1 and other bit set?
+					// This works because: 1000f -> 100f -> 10f -> 1f
+					//                     1010f -> 101t
+				if ((k & 1) && (k & (~1)))
+				{
+					Holder->Textures[z].NonPowerTwo;
+					break;
+				}
+			
+			// Ignore "columndirectory", unused
+			WL_StreamReadLittleUInt32(Stream);
+			
+			// Read patch count
+			Holder->Textures[z].patchcount = WL_StreamReadLittleUInt16(Stream);
+			
+			// Allocate patch data
+			Holder->Textures[z].patches = Z_Malloc(sizeof(*Holder->Textures[z].patches) * Holder->Textures[z].patchcount, PU_STATIC, NULL);
+			
+			// Read in patches
+			for (p = 0; p < Holder->Textures[z].patchcount; p++)
+			{
+				// Read offsets
+				Holder->Textures[z].patches[p].originx = WL_StreamReadLittleInt16(Stream);
+				Holder->Textures[z].patches[p].originy = WL_StreamReadLittleInt16(Stream);
+				
+				// Read patch ID
+				Holder->Textures[z].patches[p].patch = WL_StreamReadLittleUInt16(Stream);
+				
+				// Translate patch ID to name
+				k = Holder->Textures[z].patches[p].patch;
+				
+				// Copy name over
+				if (k >= 0 && k < Holder->NumPatches)
+					strncpy(Holder->Textures[z].patches[p].PatchName, Holder->Patches[k], 8);
+			}
+		}
+		
+		// Close stream
+		WL_StreamClose(Stream);
+		
+		// Free offset table (no longer needed)
+		if (Holder->TextureOffsets)
+			Z_Free(Holder->TextureOffsets);
+		Holder->TextureOffsets = NULL;
+		
+		// Increase base
+		BaseOffset += Holder->NumTextures;
+	}
+	
+	/* Free up space used by PNAMES */
+	// Since the texture code pre-referenced patch names instead of numbers, the
+	// PNAMES data is no longer required.
+	if (Holder->RealPatchBuf)
+		Z_Free(Holder->RealPatchBuf);
+	Holder->RealPatchBuf = NULL;
+	
+	if (Holder->Patches)
+		Z_Free(Holder->Patches);
+	Holder->Patches = NULL;
 	
 	/* Process Flats */
 	// Flats can now be used as textures, however there are differences.
@@ -195,11 +382,31 @@ static bool_t RS_TexturePDCreate(const struct WL_WADFile_s* const a_WAD, const u
 	
 	/* Success */
 	return true;
+#undef TEMPNAME
 }
 
 /* RS_TextureOrderChange() -- Order changed (rebuild composite) */
 static bool_t RS_TextureOrderChange(const bool_t a_Pushed, const struct WL_WADFile_s* const a_WAD)
 {
+	const WL_WADFile_t* Rover;
+	
+	/* Clear texture count */
+	// Free pointer array
+	if (textures)
+		Z_Free(textures);
+	textures = NULL;
+	
+	// Clear count
+	numtextures = 0;
+	
+	/* Go through WAD files in reverse order */
+	// Why reverse? So later textures take precedence, when a texture is to be
+	// slapped onto the pointer list, see if a texture of the same name already
+	// exists. If it does, do not add it.
+	for (Rover = WL_IterateVWAD(NULL, false); Rover; Rover = WL_IterateVWAD(Rover, false))
+	{
+	}
+	
 	/* Success */
 	return true;
 }
@@ -252,318 +459,6 @@ void R_LoadTextures(void)
 	// Order callback
 	if (!WL_RegisterOCCB(RS_TextureOrderChange, WLDCO_TEXTURES))
 		I_Error("R_LoadTextures: Failed to register OCCB.\n");
-
-#if 0
-	maptexture_t* mtexture;
-	texture_t* texture;
-	mappatch_t* mpatch;
-	texpatch_t* patch;
-	char* pnames;
-	
-	int i;
-	int j;
-	WadIndex_t k;
-	int l;
-	
-	uint32_t* maptex;
-	uint32_t* maptex2;
-	uint32_t* maptex1;
-	
-	char name[9];
-	char* name_p;
-	
-	WadIndex_t* patchlookup;
-	
-	uint32_t nummappatches;
-	uint32_t offset;
-	uint32_t maxoff;
-	uint32_t maxoff2;
-	uint32_t numtextures1;
-	uint32_t numtextures2;
-	
-	uint32_t* directory;
-	
-	char* PS;
-	char* PE;
-	WadIndex_t PStart, PEnd;
-	WadIndex_t v;
-	WadFile_t* CurWad = NULL;
-	WadIndex_t Potential, Found;
-	int PotentialW;
-	
-	// free previous memory before numtextures change
-	
-	if (numtextures > 0)
-		for (i = 0; i < numtextures; i++)
-		{
-			if (textures[i])
-				Z_Free(textures[i]);
-			if (texturecache[i])
-				Z_Free(texturecache[i]);
-		}
-	// Load the patch names from pnames.lmp.
-	name[8] = 0;
-	pnames = W_CacheLumpName("PNAMES", PU_STATIC);
-	nummappatches = LittleSwapInt32(*((uint32_t*)pnames));
-	name_p = pnames + 4;
-	patchlookup = Z_Malloc(nummappatches * sizeof(*patchlookup), PU_STATIC, NULL);
-	
-	for (i = 0; i < nummappatches; i++)
-	{
-		strncpy(name, name_p + i * 8, 8);
-		
-		// GhostlyDeath <December 20, 2008> -- USE what's between the P_ etc.!
-		// instead of: patchlookup[i] = W_CheckNumForName(name);
-		patchlookup[i] = INVALIDLUMP;
-		Potential = Found = INVALIDLUMP;
-		PotentialW = -1;
-		
-		// P1_, P2_, P3_, PP_
-		
-		for (j = W_NumWadFiles() - 1; j >= 0; j--)
-		{
-			CurWad = W_GetWadForNum(j);
-			
-			if (!CurWad)
-				continue;
-				
-			/* Search the 4 containers */
-			for (k = 0; k < 4; k++)
-			{
-				/* What are we searching between? */
-				switch (k)
-				{
-					case 0:
-						PS = "PP_START";
-						PE = "PP_END";
-						break;
-					case 1:
-						PS = "P3_START";
-						PE = "P3_END";
-						break;
-					case 2:
-						PS = "P2_START";
-						PE = "P2_END";
-						break;
-					default:
-						PS = "P1_START";
-						PE = "P1_END";
-						break;
-				}
-				
-				PStart = INVALIDLUMP;
-				PEnd = INVALIDLUMP;
-				
-				/* Get container locations */
-				for (l = 0; l < CurWad->NumLumps; l++)
-					if (strncasecmp(CurWad->Index[l].Name, PS, 8) == 0)
-					{
-						PStart = l;
-						break;
-					}
-					
-				for (; l < CurWad->NumLumps; l++)
-					if (strncasecmp(CurWad->Index[l].Name, PE, 8) == 0)
-					{
-						PEnd = l;
-						break;
-					}
-					
-				/* Now search every entry... */
-				if (PStart != INVALIDLUMP && PEnd != INVALIDLUMP)
-					for (v = (PStart + 1); v <= (PEnd - 1); v++)
-						if (strncasecmp(CurWad->Index[v].Name, name, 8) == 0)
-						{
-							if (PotentialW > -1 && PotentialW >= W_GetNumForWad(CurWad))
-								Found = Potential;
-							else
-								Found = W_LumpsSoFar(CurWad) + v;
-							break;
-						}
-						
-				if (Found != INVALIDLUMP)
-					break;
-			}
-			
-			if (Found != INVALIDLUMP)
-				break;
-				
-			// GhostlyDeath <August 27, 2011> -- Potential lump
-			// This fixes patches in DWANGO5.WAD that are set
-			if (Potential == INVALIDLUMP)
-			{
-				Potential = W_CheckNumForNamePwadPtr(name, CurWad, 0);
-				
-				if (Potential != INVALIDLUMP)
-					PotentialW = W_GetNumForWad(CurWad);
-				break;
-			}
-		}
-		
-		// IF Nothing was found... resort to Legacy mode...
-		if (Found == INVALIDLUMP)
-			// GhostlyDeath <August 27, 2011> -- Is there potential?
-			if (Potential != INVALIDLUMP)
-				patchlookup[i] = Potential;
-			else
-				patchlookup[i] = W_CheckNumForName(name);
-		else
-			patchlookup[i] = Found;
-	}
-	
-	// Free temporary (ouch here!)
-	Z_Free(pnames);
-	
-	// Load the map texture definitions from textures.lmp.
-	// The data is contained in one or two lumps,
-	//  TEXTURE1 for shareware, plus TEXTURE2 for commercial.
-	maptex = maptex1 = W_CacheLumpName("TEXTURE1", PU_STATIC);
-	numtextures1 = *maptex;
-	maxoff = W_LumpLength(W_GetNumForName("TEXTURE1"));
-	directory = maptex + 1;
-	
-	if (W_CheckNumForName("TEXTURE2") != -1)
-	{
-		maptex2 = W_CacheLumpName("TEXTURE2", PU_STATIC);
-		numtextures2 = *maptex2;
-		maxoff2 = W_LumpLength(W_GetNumForName("TEXTURE2"));
-	}
-	else
-	{
-		maptex2 = NULL;
-		numtextures2 = 0;
-		maxoff2 = 0;
-	}
-
-	// GhostlyDeath <November 4, 2011> -- Really need new texture code here of sorts
-	numtextures1 = LittleSwapUInt32(numtextures1);
-	numtextures2 = LittleSwapUInt32(numtextures2);
-
-	numtextures = numtextures1 + numtextures2;
-	
-	// GhostlyDeath -- Due to the new code, we clear all the buffers!
-	if (textures)
-		Z_Free(textures);
-	if (texturecolumnofs)
-		Z_Free(texturecolumnofs);
-	if (texturecache);
-	Z_Free(texturecache);
-	if (texturewidthmask);
-	Z_Free(texturewidthmask);
-	if (textureheight)
-		Z_Free(textureheight);
-		
-	/*// GhostlyDeath -- OK after reading... textures is a pointer list
-	   textures = Z_Malloc(((numtextures * sizeof(texture_t*)) * 5) + sizeof(texture_t*), PU_STATIC, 0);
-	   //textures         = Z_Malloc((numtextures*sizeof(size_t)*5)+1, PU_STATIC, 0);
-	
-	   texturecolumnofs = (void*)(((size_t*)textures) + (((size_t)numtextures) * 1));
-	   texturecache         = (void*)(((size_t*)textures) + (((size_t)numtextures) * 2));
-	   texturewidthmask = (void*)(((size_t*)textures) + (((size_t)numtextures) * 3));
-	   textureheight        = (void*)(((size_t*)textures) + (((size_t)numtextures) * 4)); */
-	
-	// GhostlyDeath -- Fuck all of it, WHY DONT WE JUST MAKE THEM INDIV BUFFERS!?
-	/*
-	   FOR REFERENCE:
-	
-	   texture_t** textures=NULL;
-	   uint32_t** texturecolumnofs;   // column offset lookup table for each texture
-	   uint8_t** texturecache;       // graphics data for each generated full-size texture
-	   int* texturewidthmask;   // texture width is a power of 2, so it can easily repeat along sidedefs using a simple mask
-	   fixed_t* textureheight;      // needed for texture pegging
-	 */
-	textures = Z_Malloc(numtextures * sizeof(texture_t*), PU_STATIC, 0);
-	memset(textures, 0, numtextures * sizeof(texture_t*));
-	texturecolumnofs = Z_Malloc(numtextures * sizeof(uint32_t*), PU_STATIC, 0);
-	memset(textures, 0, numtextures * sizeof(uint32_t*));
-	texturecache = Z_Malloc(numtextures * sizeof(uint8_t*), PU_STATIC, 0);
-	memset(textures, 0, numtextures * sizeof(uint8_t*));
-	texturewidthmask = Z_Malloc(numtextures * sizeof(int), PU_STATIC, 0);
-	memset(textures, 0, numtextures * sizeof(int));
-	textureheight = Z_Malloc(numtextures * sizeof(fixed_t), PU_STATIC, 0);
-	memset(textures, 0, numtextures * sizeof(fixed_t));
-	
-	for (i = 0; i < numtextures; i++, directory++)
-	{
-		//only during game startup
-		//if (!(i&63))
-		//    CONL_PrintF (".");
-		
-		if (i == numtextures1)
-		{
-			// Start looking in second texture file.
-			maptex = maptex2;
-			maxoff = maxoff2;
-			directory = maptex + 1;
-		}
-		// offset to the current texture in TEXTURESn lump
-		offset = *directory;
-		offset = LittleSwapUInt32(offset);	// FIXME
-		
-		if (offset > maxoff)
-			I_Error("R_LoadTextures: bad texture directory");
-			
-		// maptexture describes texture name, size, and
-		// used patches in z order from bottom to top
-		mtexture = (maptexture_t*) ((uint8_t*)maptex + offset);
-		
-		if (!mtexture && devparm)
-			CONL_PrintF("R_LoadTextures: Warning mtexture is NULL!");
-			
-		textures[i] = Z_Malloc(sizeof(texture_t) + sizeof(texpatch_t) * (mtexture->patchcount), PU_STATIC, 0);
-		/*if (devparm)
-		   CONL_PrintF("Z_Malloc(%i + %i * %i) = %i\n", sizeof(texture_t), sizeof(texpatch_t), (mtexture->patchcount),
-		   sizeof(texture_t) + sizeof(texpatch_t) * (mtexture->patchcount)); */
-		
-		texture = textures[i];
-		
-		texture->width = LittleSwapInt16(mtexture->width);
-		texture->height = LittleSwapInt16(mtexture->height);
-		texture->patchcount = LittleSwapInt16(mtexture->patchcount);
-		
-		// Sparc requires memmove, becuz gcc doesn't know mtexture is not aligned.
-		// gcc will replace memcpy with two 4-uint8_t read/writes, which will bus error.
-		memmove(texture->name, mtexture->name, sizeof(texture->name));
-		mpatch = &mtexture->patches[0];
-		patch = &texture->patches[0];
-		
-		for (j = 0; j < texture->patchcount; j++, mpatch++, patch++)
-		{
-			patch->originx = LittleSwapInt16(mpatch->originx);
-			patch->originy = LittleSwapInt16(mpatch->originy);
-			patch->patch = patchlookup[LittleSwapInt16(mpatch->patch)];
-			if (patch->patch == -1)
-			{
-				I_Error("R_InitTextures: Missing patch in texture %s (tried %i)", texture->name, mpatch->patch);
-			}
-		}
-		
-		j = 1;
-		while (j * 2 <= texture->width)
-			j <<= 1;
-			
-		texturewidthmask[i] = j - 1;
-		textureheight[i] = texture->height << FRACBITS;
-	}
-	
-	Z_Free(maptex1);
-	if (maptex2)
-		Z_Free(maptex2);
-		
-	//added:01-04-98: this takes 90% of texture loading time..
-	// Precalculate whatever possible.
-	for (i = 0; i < numtextures; i++)
-		texturecache[i] = NULL;
-		
-	// Create translation table for global animation.
-	if (texturetranslation)
-		Z_Free(texturetranslation);
-		
-	texturetranslation = Z_Malloc((numtextures + 1) * sizeof(void*), PU_STATIC, 0);
-	
-	for (i = 0; i < numtextures; i++)
-		texturetranslation[i] = i;
-#endif
 }
 
 /* R_CheckNumForNameList() -- Find flat */
@@ -1086,8 +981,6 @@ char* R_ColormapNameForNum(int num)
 //
 void R_InitData(void)
 {
-	CONL_PrintF("\nInitTextures...");
-	R_LoadTextures();
 	CONL_PrintF("\nInitFlats...");
 	R_InitFlats();
 	

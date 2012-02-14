@@ -1469,9 +1469,10 @@ bool_t WL_StreamCheckUnicode(WL_EntryStream_t* const a_Stream)
 }
 
 /* WL_StreamReadChar() -- Read character from stream */
-uint16_t WL_StreamReadChar(WL_EntryStream_t* const a_Stream)
+char WL_StreamReadChar(WL_EntryStream_t* const a_Stream)
 {
-	uint16_t RetVal;
+	char RetVal;
+	uint16_t wcTemp;
 	
 	/* Check */
 	if (!a_Stream)
@@ -1497,17 +1498,17 @@ uint16_t WL_StreamReadChar(WL_EntryStream_t* const a_Stream)
 		}
 		
 		// Read next UTF-16 character
-		RetVal = WL_StreamReadUInt16(a_Stream);
+		wcTemp = WL_StreamReadUInt16(a_Stream);
 		
 		// Swap the bits?
 		if (a_Stream->IsSwapped)
-			RetVal = SwapUInt16(RetVal);
+			wcTemp = SwapUInt16(RetVal);
 		
 		// If character is > 127, convert to UTF-8 and flush first char
-		if (RetVal > 127)
+		if (wcTemp > 127)
 		{
 			// Convert
-			a_Stream->MBLeft = V_ExtWCharToMB(RetVal, a_Stream->MBBuf);
+			a_Stream->MBLeft = V_ExtWCharToMB(wcTemp, a_Stream->MBBuf);
 			
 			// Return first character
 			if (a_Stream->MBLeft)
@@ -1522,6 +1523,10 @@ uint16_t WL_StreamReadChar(WL_EntryStream_t* const a_Stream)
 				return RetVal;
 			}
 		}
+		
+		// A normal character
+		else
+			RetVal = wcTemp;
 	}
 	
 	/* Return */
@@ -1532,7 +1537,7 @@ uint16_t WL_StreamReadChar(WL_EntryStream_t* const a_Stream)
 size_t WL_StreamReadLine(WL_EntryStream_t* const a_Stream, char* const a_Buf, const size_t a_Size)
 {
 	size_t RetVal;
-	uint16_t Char;
+	char Char;
 	
 	/* Check */
 	if (!a_Stream || !a_Buf || !a_Size)

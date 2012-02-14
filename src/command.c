@@ -1128,7 +1128,8 @@ CONL_ExitCode_t CLC_CVarSet(const uint32_t a_ArgC, const char** const a_ArgV)
 	CONL_EscapeString(Buf, BUFSIZE, RealValue);
 	
 	// Message
-	CONL_PrintF("{z{3%s{z was set to \"{5%s{z\".\n", a_ArgV[1], Buf);
+	if (devparm)
+		CONL_PrintF("{z{3%s{z was set to \"{5%s{z\".\n", a_ArgV[1], Buf);
 	
 	/* Success */
 	return CLE_SUCCESS;

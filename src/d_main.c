@@ -1477,7 +1477,8 @@ void D_DoomMain(void)
 	V_ImageFindA(NULL);					// Bump image loaders
 	D_InitRMOD();						// Initialize RMOD
 	V_MapGraphicalCharacters();			// Unicode chars
-	P_PrepareLevelInfoEx();
+	P_PrepareLevelInfoEx();				// Level information
+	R_LoadTextures();					// Load texture info
 	/**************************/
 	
 	// GhostlyDeath <December 14, 2011> -- Use extended identify version
@@ -1491,45 +1492,11 @@ void D_DoomMain(void)
 	
 	nomonsters = M_CheckParm("-nomonsters");
 	
-	//added:11-01-98:removed the repeated spaces in title strings,
-	//               because GCC doesn't expand the TABS from my text editor.
-	//  Now the string is centered in a larger one just before output,
-	//  and the date and time of compilation is added. (see below)
-	switch (gamemode)
-	{
-		case retail:
-			strcpy(title, "The Ultimate DOOM Startup");
-			break;
-		case shareware:
-			strcpy(title, "DOOM Shareware Startup");
-			break;
-		case registered:
-			strcpy(title, "DOOM Registered Startup");
-			break;
-		case commercial:
-			switch (gamemission)
-			{
-				case pack_plut:
-					strcpy(title, "DOOM 2: Plutonia Experiment");
-					break;
-				case pack_tnt:
-					strcpy(title, "DOOM 2: TNT - Evilution");
-					break;
-				default:
-					strcpy(title, "DOOM 2: Hell on Earth");
-					break;
-			}
-			break;
-		default:
-			strcpy(title, "Public DOOM");
-			break;
-	}
-	
 	//added:11-01-98:center the string, add compilation time and date.
 	sprintf(legacy, "ReMooD v%i.%i%c \"%s\"", REMOOD_MAJORVERSION, REMOOD_MINORVERSION, REMOOD_RELEASEVERSION, REMOOD_VERSIONCODESTRING);
 	D_MakeTitleString(legacy);
 	
-	CONL_PrintF("%s\n%s\n", legacy, title);
+	CONL_PrintF("%s\n", legacy);
 	
 	if (devparm)
 		CONL_PrintF(D_DEVSTR);

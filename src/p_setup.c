@@ -1306,10 +1306,6 @@ bool_t P_SetupLevel(int episode, int map, skill_t skill, char* wadname)	// for w
 	levelmapname = Z_Strdup(maplumpname, PU_STATIC, 0);
 	
 	leveltime = 0;
-	
-	// textures are needed first
-//    R_LoadTextures ();
-//    R_FlushTextureCache();
 
 	R_ClearColormaps();
 	
@@ -1486,11 +1482,6 @@ bool_t P_AddWadFile(char* wadfilename, char** firstmapname)
 	 TEXTURE CHANGES
 	 ***************/
 	
-	if (TextChange)				// inited in the sound check
-		R_LoadTextures();		// numtexture changes
-	else
-		R_FlushTextureCache();	// just reload it from file
-		
 	/*****
 	 SKINS
 	 *****/
