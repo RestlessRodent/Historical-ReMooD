@@ -89,6 +89,7 @@ typedef struct
 	
 	/* Unified Data */
 	char PatchName[9];							// Name of patch to use
+	const WL_WADEntry_t* Entry;					// Entry image
 } texpatch_t;
 
 // A maptexturedef_t describes a rectangular texture,
@@ -107,14 +108,19 @@ typedef struct
 	texpatch_t* patches;
 	
 	/* Unified Data */
+	uint32_t InternalOrder;						// Internal texture order
+	uint32_t CombinedOrder;						// Texture order (when ordered)
 	bool_t IsFlat;								// Is flat texture (floor)
 	bool_t NonPowerTwo;							// Non power of 2 width texture (slow)
 	uint32_t* ColumnOffs;						// Column offsets
+	uint8_t** Composite;						// Composite Data
 	uint8_t* Cache;								// Texture cache
 	uint8_t* FlatCache;							// Flat cache
 	uint32_t WidthMask;							// Mask to width
 	fixed_t XWidth;								// fixed_t width of texture
 	fixed_t XHeight;							// fixed_t height of texture
+	uint32_t Translation;						// Which texture to draw in place of this one
+	uint32_t CacheSize;							// Size of cache
 } texture_t;
 
 // all loaded and prepared textures from the start of the game

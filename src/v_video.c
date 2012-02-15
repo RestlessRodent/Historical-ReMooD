@@ -3534,7 +3534,7 @@ uint32_t V_ImageSizePos(V_Image_t* const a_Image, int32_t* const a_Width, int32_
 
 /* V_ImageGetPatch() -- Load a patch */
 // TODO: Enhance Security of this
-const struct patch_s* V_ImageGetPatch(V_Image_t* const a_Image)
+const struct patch_s* V_ImageGetPatch(V_Image_t* const a_Image, size_t* const a_ByteSize)
 {
 	/*** DEDICATED SERVER ***/
 #if defined(__REMOOD_DEDICATED)
@@ -3570,6 +3570,10 @@ const struct patch_s* V_ImageGetPatch(V_Image_t* const a_Image)
 		TotalSize = BaseSize + a_Image->wData->Size;
 		a_Image->dPatch = Z_Malloc(TotalSize, PU_STATIC, &a_Image->dPatch);
 		
+		// Return size
+		if (a_ByteSize)
+			*a_ByteSize = TotalSize;
+		
 		// Read after base (so the lump data is offset sizeof(patch_t))
 		WL_ReadData(a_Image->wData, 0, (void*)(((uintptr_t)a_Image->dPatch) + BaseSize), a_Image->wData->Size);
 		
@@ -3603,7 +3607,7 @@ const struct patch_s* V_ImageGetPatch(V_Image_t* const a_Image)
 	else
 	{
 		// Obtain the raw image, then postize it simply
-		RawImage = V_ImageGetRaw(a_Image);
+		RawImage = V_ImageGetRaw(a_Image, a_ByteSize);
 		
 		// Failed?
 		if (!RawImage)
@@ -3616,7 +3620,7 @@ const struct patch_s* V_ImageGetPatch(V_Image_t* const a_Image)
 }
 
 /* V_ImageGetPic() -- Loads a pic_t */
-const struct pic_s* V_ImageGetPic(V_Image_t* const a_Image)
+const struct pic_s* V_ImageGetPic(V_Image_t* const a_Image, size_t* const a_ByteSize)
 {	/*** DEDICATED SERVER ***/
 #if defined(__REMOOD_DEDICATED)
 	return 0;
@@ -3624,6 +3628,7 @@ const struct pic_s* V_ImageGetPic(V_Image_t* const a_Image)
 	/*** STANDARD CLIENT ***/
 #else
 	uint8_t* RawImage;
+	size_t TotalSize;
 	
 	/* Not for dedicated server */
 	if (g_DedicatedServer)
@@ -3647,14 +3652,19 @@ const struct pic_s* V_ImageGetPic(V_Image_t* const a_Image)
 	else
 	{
 		// Raw easily translate to a pic_t, so use that
-		RawImage = V_ImageGetRaw(a_Image);
+		RawImage = V_ImageGetRaw(a_Image, a_ByteSize);
 		
 		// Failed?
 		if (!RawImage)
 			return NULL;
 		
 		// Allocate pic_t structure
-		a_Image->dPic = Z_Malloc(sizeof(pic_t) + ((a_Image->PixelCount + 1) * sizeof(uint8_t)), PU_STATIC, (void**)&a_Image->dPic);
+		TotalSize = sizeof(pic_t) + ((a_Image->PixelCount + 1) * sizeof(uint8_t));
+		a_Image->dPic = Z_Malloc(TotalSize, PU_STATIC, (void**)&a_Image->dPic);
+		
+		// Return size
+		if (a_ByteSize)
+			*a_ByteSize = TotalSize;
 		
 		// Fill in structure
 		((pic_t*)a_Image->dPic)->width = a_Image->Width;
@@ -3674,7 +3684,7 @@ const struct pic_s* V_ImageGetPic(V_Image_t* const a_Image)
 
 /* V_ImageGetRaw() -- Loads a raw image */
 // Raw is the lowest common denominator
-uint8_t* V_ImageGetRaw(V_Image_t* const a_Image)
+uint8_t* V_ImageGetRaw(V_Image_t* const a_Image, size_t* const a_ByteSize)
 {
 	/*** DEDICATED SERVER ***/
 #if defined(__REMOOD_DEDICATED)
@@ -3686,6 +3696,7 @@ uint8_t* V_ImageGetRaw(V_Image_t* const a_Image)
 	size_t i, x, dy;
 	uint8_t* p;
 	uint8_t Count;
+	size_t TotalSize;
 	
 	/* Not for dedicated server */
 	if (g_DedicatedServer)
@@ -3704,7 +3715,12 @@ uint8_t* V_ImageGetRaw(V_Image_t* const a_Image)
 	if (a_Image->NativeType == VIT_RAW)
 	{
 		// Allocate buffer
-		a_Image->dRaw = Z_Malloc((a_Image->PixelCount + 1) * sizeof(uint8_t), PU_STATIC, (void**)&a_Image->dRaw);
+		TotalSize = (a_Image->PixelCount + 1) * sizeof(uint8_t);
+		a_Image->dRaw = Z_Malloc(TotalSize, PU_STATIC, (void**)&a_Image->dRaw);
+		
+		// Return size
+		if (a_ByteSize)
+			*a_ByteSize = TotalSize;
 		
 		// Load WAD data straight into buffer
 		WL_ReadData(a_Image->wData, 0, a_Image->dRaw, a_Image->PixelCount * sizeof(uint8_t));
@@ -3717,7 +3733,12 @@ uint8_t* V_ImageGetRaw(V_Image_t* const a_Image)
 		if (a_Image->NativeType == VIT_PIC)
 		{
 			// Allocate buffer
-			a_Image->dRaw = Z_Malloc((a_Image->PixelCount + 1) * sizeof(uint8_t), PU_STATIC, (void**)&a_Image->dRaw);
+			TotalSize = (a_Image->PixelCount + 1) * sizeof(uint8_t);
+			a_Image->dRaw = Z_Malloc(TotalSize, PU_STATIC, (void**)&a_Image->dRaw);
+			
+			// Return size
+			if (a_ByteSize)
+				*a_ByteSize = TotalSize;
 		
 			// Load WAD data straight into buffer with offset
 			WL_ReadData(a_Image->wData, 8, a_Image->dRaw, a_Image->PixelCount * sizeof(uint8_t));
@@ -3727,14 +3748,19 @@ uint8_t* V_ImageGetRaw(V_Image_t* const a_Image)
 		else if (a_Image->NativeType == VIT_PATCH)
 		{
 			// Load patch
-			Patch = V_ImageGetPatch(a_Image);
+			Patch = V_ImageGetPatch(a_Image, a_ByteSize);
 			
 			// Failed?
 			if (!Patch)
 				return NULL;
 			
 			// Allocate buffer to draw patch into
-			a_Image->dRaw = Z_Malloc((a_Image->PixelCount + 1) * sizeof(uint8_t), PU_STATIC, (void**)&a_Image->dRaw);
+			TotalSize = (a_Image->PixelCount + 1) * sizeof(uint8_t);
+			a_Image->dRaw = Z_Malloc(TotalSize, PU_STATIC, (void**)&a_Image->dRaw);
+			
+			// Return size
+			if (a_ByteSize)
+				*a_ByteSize = TotalSize;
 			
 			// Draw into the raw buffer
 			for (x = 0; x < a_Image->Width; x++)
@@ -3843,8 +3869,20 @@ void V_ImageDrawScaledIntoBuffer(const uint32_t a_Flags, V_Image_t* const a_Imag
 	// Add image offsets
 	x = a_X - a_Image->Offset[0];
 	y = a_Y - a_Image->Offset[1];
-	w = a_Image->Width;
-	h = a_Image->Height;
+	
+	// Use detected size
+	if (!a_Width && !a_Height)
+	{
+		w = a_Image->Width;
+		h = a_Image->Height;
+	}
+	
+	// Use explicit size
+	else
+	{
+		w = a_Width;
+		h = a_Height;
+	}
 	
 	// fixed_t variants
 	xw = w << FRACBITS;
@@ -3912,7 +3950,7 @@ void V_ImageDrawScaledIntoBuffer(const uint32_t a_Flags, V_Image_t* const a_Imag
 	else
 	{
 		// Load data
-		RawData = V_ImageGetRaw(a_Image);
+		RawData = V_ImageGetRaw(a_Image, NULL);
 		
 		// Check
 		if (!RawData)

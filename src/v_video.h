@@ -342,11 +342,12 @@ int32_t V_ImageUsage(V_Image_t* const a_Image, const bool_t a_Use);
 uint32_t V_ImageSizePos(V_Image_t* const a_Image, int32_t* const a_Width, int32_t* const a_Height, int32_t* const a_XOff, int32_t* const a_YOff);
 
 // Get data for a specific format
-const struct patch_s* V_ImageGetPatch(V_Image_t* const a_Image);
-const struct pic_s* V_ImageGetPic(V_Image_t* const a_Image);
-uint8_t* V_ImageGetRaw(V_Image_t* const a_Image);
+const struct patch_s* V_ImageGetPatch(V_Image_t* const a_Image, size_t* const a_ByteSize);
+const struct pic_s* V_ImageGetPic(V_Image_t* const a_Image, size_t* const a_ByteSize);
+uint8_t* V_ImageGetRaw(V_Image_t* const a_Image, size_t* const a_ByteSize);
 
 // Common Drawers
+void V_ImageDrawScaledIntoBuffer(const uint32_t a_Flags, V_Image_t* const a_Image, const int32_t a_X, const int32_t a_Y, const uint32_t a_Width, const uint32_t a_Height, const fixed_t a_XScale, const fixed_t a_YScale, const uint8_t* const a_ExtraMap, uint8_t* const a_DestBuffer, const uint32_t a_DestPitch, const uint32_t a_DestWidth, const uint32_t a_DestHeight, const fixed_t a_VidXScaleX, const fixed_t a_VidXScaleY, const double a_VidFScaleX, const double a_VidFScaleY);
 void V_ImageDrawScaled(const uint32_t a_Flags, V_Image_t* const a_Image, const int32_t a_X, const int32_t a_Y, const fixed_t a_XScale, const fixed_t a_YScale, const uint8_t* const a_ExtraMap);
 void V_ImageDrawTiled(const uint32_t a_Flags, V_Image_t* const a_Image, const int32_t a_X, const int32_t a_Y, const uint32_t a_Width, const uint32_t a_Height, const uint8_t* const a_ExtraMap);
 void V_ImageDraw(const uint32_t a_Flags, V_Image_t* const a_Image, const int32_t a_X, const int32_t a_Y, const uint8_t* const a_ExtraMap);

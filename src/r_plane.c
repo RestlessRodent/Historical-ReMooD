@@ -481,10 +481,6 @@ void R_DrawPlanes(void)
 	int angle;
 	int i;						//SoM: 3/23/2000
 	
-	// TEMP: Prevent Crash
-	if (!textureheight)
-		return;
-	
 	spanfunc = basespanfunc;
 	
 	for (i = 0; i < MAXVISPLANES; i++, pl++)
@@ -513,7 +509,7 @@ void R_DrawPlanes(void)
 #endif
 					dc_colormap = colormaps;
 				dc_texturemid = skytexturemid;
-				dc_texheight = textureheight[skytexture] >> FRACBITS;
+				dc_texheight = (textures[skytexture]->XHeight) >> FRACBITS;
 				for (x = pl->minx; x <= pl->maxx; x++)
 				{
 					dc_yl = pl->top[x];

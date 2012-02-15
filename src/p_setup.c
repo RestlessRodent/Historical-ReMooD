@@ -1196,7 +1196,7 @@ void P_SetupLevelSky(void)
 	// DOOM determines the sky texture to be used
 	// depending on the current episode, and the game version.
 	
-	if (*info_skyname)
+	if (info_skyname && *info_skyname)
 		skytexture = R_TextureNumForName(info_skyname);
 	else if ((gamemode == commercial))
 		// || (gamemode == pack_tnt) he ! is not a mode is a episode !
@@ -2335,6 +2335,9 @@ bool_t P_ExFinalizeLevel(void)
 	// So that we can play it now
 	gamestate = GS_LEVEL;
 	gameaction = ga_nothing;
+	
+	/* Setup sky */
+	P_SetupLevelSky();
 	
 	/* Success! */
 	return true;

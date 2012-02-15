@@ -1150,7 +1150,7 @@ void R_RenderSegLoop(void)
 			dc_yh = yh;
 			dc_texturemid = rw_midtexturemid;
 			dc_source = R_GetColumn(midtexture, texturecolumn);
-			dc_texheight = textureheight[midtexture] >> FRACBITS;
+			dc_texheight = textures[midtexture]->XHeight >> FRACBITS;
 			colfunc();
 			
 			// dont draw anything more for this column, since
@@ -1291,10 +1291,6 @@ void R_StoreWallRange(int start, int stop)
 	r_lightlist_t* rlight;
 	fixed_t lheight;
 	drawseg_t* newseg = NULL;
-	
-	// TEMP: Prevent crash
-	if (!texturetranslation)
-		return;
 	
 	while (ds_p == drawsegs + maxdrawsegs)
 	{
@@ -1452,13 +1448,13 @@ void R_StoreWallRange(int start, int stop)
 	{
 		
 		// single sided line
-		midtexture = texturetranslation[sidedef->midtexture];
+		midtexture = textures[sidedef->midtexture]->Translation;
 		// a single sided line is terminal, so it must mark ends
 		markfloor = markceiling = true;
 		
 		if (linedef->flags & ML_DONTPEGBOTTOM)
 		{
-			vtop = frontsector->floorheight + textureheight[sidedef->midtexture];
+			vtop = frontsector->floorheight + textures[sidedef->midtexture]->XHeight;
 			// bottom of texture at bottom
 			rw_midtexturemid = vtop - viewz;
 		}
@@ -1610,7 +1606,7 @@ void R_StoreWallRange(int start, int stop)
 		{
 			
 			// bottom texture
-			bottomtexture = texturetranslation[sidedef->bottomtexture];
+			bottomtexture = textures[sidedef->bottomtexture]->Translation;
 			
 			if (linedef->flags & ML_DONTPEGBOTTOM)
 			{

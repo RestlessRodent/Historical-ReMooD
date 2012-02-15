@@ -159,6 +159,8 @@ typedef struct R_TextureHolder_s
 	size_t NumTextures;							// Number of textures
 } R_TextureHolder_t;
 
+static Z_HashTable_t* l_TextureHashes = NULL;
+
 /* RS_TexturePDRemove() -- Remove loaded texture data */
 static void RS_TexturePDRemove(const struct WL_WADFile_s* a_WAD)
 {
@@ -276,6 +278,9 @@ static bool_t RS_TexturePDCreate(const struct WL_WADFile_s* const a_WAD, const u
 			// Seek to offset in stream
 			WL_StreamSeek(Stream, Holder->TextureOffsets[j], false);
 			
+			// Set internal order
+			Holder->Textures[z].InternalOrder = j;
+			
 			// Read texture name
 			for (Continue = true, k = 0; k < 8; k++)
 			{
@@ -385,10 +390,83 @@ static bool_t RS_TexturePDCreate(const struct WL_WADFile_s* const a_WAD, const u
 #undef TEMPNAME
 }
 
+/* R_TCFInput_t -- Input on the table */
+typedef struct R_TCFInput_s
+{
+	bool_t AnyMode;								// Find anything
+	bool_t CheckFlat;							// Check for flat
+	const char* Name;							// Name to check
+} R_TCFInput_t;
+
+/* RS_TextureCompareFunc() -- Checks if two textures match */
+// A = R_TCFInput_t*
+// B = uintptr_t
+static bool_t RS_TextureCompareFunc(void* const a_A, void* const a_B)
+{
+	R_TCFInput_t* TCF;
+	uintptr_t TextID;
+	
+	/* Check */
+	if (!a_A || (((uintptr_t)a_B) - 1) >= numtextures)
+		return false;
+	
+	/* Set */
+	TCF = (R_TCFInput_t*)a_A;
+	TextID = ((uintptr_t)a_B) - 1;
+	
+	/* Check again */
+	if (!TCF->Name)
+		return false;
+	
+	/* Not any mode and flat is not matched to flat */
+	// We want a specific texture/flat, but we got something else
+	if (!TCF->AnyMode && TCF->CheckFlat != textures[TextID]->IsFlat)
+		return false;
+	
+	/* Compare the name of the texture */
+	if (strcasecmp(TCF->Name, textures[TextID]->name) == 0)
+		return true;
+	
+	/* No match */
+	return false;
+}
+
+/* RS_HashUpTextures() -- Hash the textures */
+static bool_t RS_HashUpTextures(void)
+{
+	size_t i;
+	uint32_t Hash;
+	
+	/* Check */
+	if (!numtextures || !textures)
+		return false;
+	
+	/* Create table */
+	l_TextureHashes = Z_HashCreateTable(RS_TextureCompareFunc);
+	
+	/* Run through textures creating hashes for them */
+	for (i = 0; i < numtextures; i++)
+	{
+		// Create hash of name
+		Hash = Z_Hash(textures[i]->name);
+		
+		// Add to table with table offset increased by 1
+		Z_HashAddEntry(l_TextureHashes, Hash, (uintptr_t)(i + 1));
+	}
+	
+	/* Success is with us always */
+	return true;
+}
+
 /* RS_TextureOrderChange() -- Order changed (rebuild composite) */
 static bool_t RS_TextureOrderChange(const bool_t a_Pushed, const struct WL_WADFile_s* const a_WAD)
 {
 	const WL_WADFile_t* Rover;
+	uint32_t OrderMul;
+	R_TextureHolder_t* Holder;
+	bool_t First;
+	size_t HolderSize, i, j, z, PutWall, PutFloor, b, n, y, Best;
+	texture_t** TempArray;
 	
 	/* Clear texture count */
 	// Free pointer array
@@ -399,14 +477,140 @@ static bool_t RS_TextureOrderChange(const bool_t a_Pushed, const struct WL_WADFi
 	// Clear count
 	numtextures = 0;
 	
+	// Delete hash table
+	if (l_TextureHashes)
+		Z_HashDeleteTable(l_TextureHashes);
+	l_TextureHashes = NULL;
+	
 	/* Go through WAD files in reverse order */
 	// Why reverse? So later textures take precedence, when a texture is to be
 	// slapped onto the pointer list, see if a texture of the same name already
 	// exists. If it does, do not add it.
-	for (Rover = WL_IterateVWAD(NULL, false); Rover; Rover = WL_IterateVWAD(Rover, false))
+	OrderMul = 900;		// 900 is hopefully enough (to retain order of textures)
+	for (First = true, Rover = WL_IterateVWAD(NULL, false); Rover; Rover = WL_IterateVWAD(Rover, false), OrderMul--)
 	{
+		// Obtain texture info
+		Holder = WL_GetPrivateData(Rover, WLDK_TEXTURES, &HolderSize);
+		
+		// Nothing here?
+		if (!Holder)
+			continue;
+		
+		// No textures in this WAD?
+		if (!Holder->NumTextures)
+			continue;
+		
+		// If this is the first, then there is no need to slow down texture loading
+		// as everything is exactly how it is.
+		if (First)
+		{
+			// Create pointer array
+			numtextures = Holder->NumTextures;
+			textures = Z_Malloc(sizeof(*textures) * numtextures, PU_STATIC, &textures);
+			
+			// Copy pointers
+			for (i = 0; i < numtextures; i++)
+			{
+				textures[i] = &Holder->Textures[i];
+				
+				// Set combined order
+				textures[i]->CombinedOrder = (OrderMul << 16) + textures[i]->InternalOrder;
+			}
+			
+			// Unset first
+			First = false;
+		}
+		
+		// This is not the first WAD with textures, so when a texture is
+		// iterated check to see if it already exists in the global texture
+		// table. If it does not appear in it, add it to the back.
+		else
+		{
+			// Does a hash table need to be created?
+			if (!l_TextureHashes)
+				RS_HashUpTextures();
+		}
 	}
 	
+	/* Sort texture table */
+	// Destroy hash table (it will be made invalid)
+	if (l_TextureHashes)
+		Z_HashDeleteTable(l_TextureHashes);
+	l_TextureHashes = NULL;
+	
+	// Sort by wall textures and floor textures (walls first, then floors)
+	PutWall = 0;
+	PutFloor = numtextures - 1;
+	TempArray = Z_Malloc(sizeof(*TempArray), PU_STATIC, NULL);
+	
+	for (i = 0; i < numtextures; i++)
+		if (textures[i]->IsFlat)
+			TempArray[PutFloor--] = textures[i];
+		else
+			TempArray[PutWall++] = textures[i];
+	
+	// Sort sub zones by combinedID. (TempArray back into textures)
+	for (y = 0, z = 0; z < 2; z++)
+	{
+		// Walls
+		if (!z)
+		{
+			b = 0;
+			n = PutWall;
+		}
+		
+		// Floors
+		else
+		{
+			b = PutWall;
+			n = numtextures - PutWall;
+		}
+		
+		// Sort through (memory: 2, selection sort)
+		for (i = b; i < n; i++)
+		{
+			// Initial best
+			for (Best = b; Best < n; Best++)
+				if (TempArray[Best])
+					break;
+			
+			// Find lowest
+			for (j = b; j < n; j++)
+				if (TempArray[j])
+					if (TempArray[j]->CombinedOrder < TempArray[Best]->CombinedOrder)
+						Best = j;
+			
+			// Place best here
+			textures[y++] = TempArray[Best];
+			
+			// Wipe out best value
+			TempArray[Best] = NULL;
+		}
+	}
+	
+	// Debug
+	for (i = 0; i < numtextures; i++)
+	{
+		fprintf(stderr, "%3i %i %10i %s\n", (int)i, textures[i]->IsFlat, textures[i]->CombinedOrder, textures[i]->name);
+	}
+	
+	// Temporary array is not needed anymore
+	Z_Free(TempArray);
+	
+	// Recreate hash table (to make it fully valid)
+	RS_HashUpTextures();
+	
+	/* Finalize textures */
+	for (i = 0; i < numtextures; i++)
+	{
+		// Translate to self initially
+		textures[i]->Translation = i;
+		
+		// Reference patches
+		for (j = 0; j < textures[i]->patchcount; j++)
+			textures[i]->patches[i].Entry = WL_FindEntry(NULL, 0, textures[i]->patches[i].PatchName);
+	}
+		
 	/* Success */
 	return true;
 }
@@ -414,13 +618,43 @@ static bool_t RS_TextureOrderChange(const bool_t a_Pushed, const struct WL_WADFi
 /* R_CheckTextureNumForName() -- Find texture by name */
 int R_CheckTextureNumForName(char* name)
 {
-	return 0;
+	R_TCFInput_t TCF;
+	uintptr_t Ref;
+	uint32_t Hash;
+	
+	/* Check */
+	if (!name)
+		return 0;
+	
+	/* Create TCF and hash name */
+	TCF.Name = name;
+	Hash = Z_Hash(name);
+	
+	/* Find in table */
+	Ref = (uintptr_t)Z_HashFindEntry(l_TextureHashes, Hash, &TCF, false);
+	
+	// Not found?
+	if (!Ref)
+	{
+		// Just look for anything then
+		TCF.AnyMode = true;
+		
+		Ref = (uintptr_t)Z_HashFindEntry(l_TextureHashes, Hash, &TCF, false);
+		
+		// Still not found (return ASHWALL/AASTINKY)
+		if (!Ref)
+			return 0;
+	}
+	
+	/* Found it! */
+	return Ref - 1;
 }
 
 /* R_TextureNumForName() -- Find texture by name */
 int R_TextureNumForName(char* name)
 {
-	return 0;
+	/* Just call the texture check function */
+	return R_CheckTextureNumForName(name);
 }
 
 /* R_GetFlatNumForName() -- Get flat by name */
@@ -438,13 +672,127 @@ uint8_t* R_GetFlat(int flatlumpnum)
 /* R_GenerateTexture() -- Generates a texture (loads from cache) */
 uint8_t* R_GenerateTexture(int texnum)
 {
-	return NULL;
+	uint8_t* Buffer;
+	uint8_t* dd;
+	uint32_t w, h, x, y, z;
+	size_t p, c, PatchSize;
+	texture_t* Texture;
+	V_Image_t* PatchPic;
+	patch_t* PatchT;
+	
+	/* Check */
+	if (texnum < 0 || texnum >= numtextures)
+		return NULL;
+	
+	/* Quick info */
+	Texture = textures[texnum];
+	w = Texture->width;
+	h = Texture->height;
+	
+	/* Wipe old data */
+	// Clear offsets
+	if (Texture->ColumnOffs)
+		Z_Free(Texture->ColumnOffs);
+	Texture->ColumnOffs = NULL;
+	
+	// Clear composite
+	if (Texture->Composite)
+	{
+		for (c = 0; c < Texture->width; c++)
+			if (Texture->Composite[c])
+				Z_Free(Texture->Composite[c]);
+		Z_Free(Texture->Composite);
+	}
+	Texture->Composite = NULL;
+	
+	// Clear cache size
+	Texture->CacheSize = 0;
+	
+#if 0
+
+	/* Create initial composite buffer */
+	Texture->Composite = Z_Malloc(sizeof(*Texture->Composite) * w, PU_STATIC, NULL);
+	
+	/* For every patch in the texture slap into the composite cache */
+	// Create cache
+	Texture->Cache = Z_Maloc(PU_CACHE, NULL);
+	
+	// Run through patch
+	for (p = 0; p < Texture->patchcount; p++)
+	{
+		// Obtain patch image
+		PatchSize = 0;
+		PatchPic = V_ImageLoadE(Texture->patches[p].Entry);
+		PatchT = V_ImageGetPatch(PatchPic, &PatchSize);
+		
+		// Resize cache to slap in
+	}
+
+#else	
+
+	/* Allocate buffer based on size */
+	Buffer = Z_Malloc(sizeof(*Buffer) * (w * h), PU_STATIC, NULL);
+	
+	/* For every patch in the texture, draw */
+	for (p = 0; p < Texture->patchcount; p++)
+	{
+		// Obtain patch image
+		PatchPic = V_ImageLoadE(Texture->patches[p].Entry);
+		
+		// Draw into buffer
+		V_ImageDrawScaledIntoBuffer(0, PatchPic, Texture->patches[p].originx, Texture->patches[p].originy, 0, 0, 1 << FRACBITS, 1 << FRACBITS, NULL, Buffer, w, w, h, 1 << FRACBITS, 1 << FRACBITS, 1.0, 1.0);
+		
+		// Free patch image
+		V_ImageDestroy(PatchPic);
+	}
+	
+	/* Create column data based on picture */
+	Texture->ColumnOffs = Z_Malloc(sizeof(*Texture->ColumnOffs) * w, PU_STATIC, NULL);
+	Texture->Cache = Z_Malloc((w * h) + (6 * w), PU_CACHE, NULL);
+	
+	// Copy in data
+	dd = Texture->Cache;
+	z = 0;
+	for (x = 0; x < w; x++)
+	{
+		// Offset here
+		Texture->ColumnOffs[x] = dd - Texture->Cache;
+		
+		// Place posts
+		*(dd++) = 0;	// offset
+		*(dd++) = h;	// size
+		*(dd++) = 0;	// junk
+		
+		for (y = 0; y < h; y++)
+			*(dd++) = Buffer[(w * y) + x];
+		
+		*(dd++) = 0;	// junk
+		*(dd++) = 0xFFU;	// end
+	}
+	
+	/* No longer need the buffer */
+	Z_Free(Buffer);
+
+#endif
+	
+	/* Return cache */
+	return Texture->Cache;
 }
 
 /* R_GetColumn() -- Get column data from a texture */
 uint8_t* R_GetColumn(int tex, size_t col)
 {
-	return NULL;
+	/* Check */
+	if (tex < 0 || tex >= numtextures)
+		return NULL;
+	
+	/* Needs generation? */
+	if (!textures[tex]->Cache)
+		R_GenerateTexture(tex);
+	
+	/* Return texture column */
+	//return ((uint8_t*)textures[tex]->Composite
+	return ((uint8_t*)textures[tex]->Cache) + textures[tex]->ColumnOffs[col & textures[tex]->WidthMask];
 }
 
 /* R_LoadTextures() -- Loads texture data information */
