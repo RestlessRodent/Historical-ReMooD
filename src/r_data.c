@@ -58,16 +58,9 @@ int numtextures = 0;			// total number of textures found,
 // size of following tables
 
 texture_t** textures = NULL;
-uint32_t** texturecolumnofs;	// column offset lookup table for each texture
-uint8_t** texturecache;			// graphics data for each generated full-size texture
-int* texturewidthmask;			// texture width is a power of 2, so it
 
 // can easily repeat along sidedefs using
 // a simple mask
-fixed_t* textureheight;			// needed for texture pegging
-
-int* flattranslation;			// for global animation
-int* texturetranslation;
 
 // needed for pre rendering
 fixed_t* spritewidth;
@@ -142,8 +135,8 @@ void R_FlushTextureCache(void)
 	if (numtextures > 0)
 		for (i = 0; i < numtextures; i++)
 		{
-			if (texturecache[i])
-				Z_Free(texturecache[i]);
+			//if (texturecache[i])
+			//	Z_Free(texturecache[i]);
 		}
 }
 
@@ -166,12 +159,54 @@ static void RS_TexturePDRemove(const struct WL_WADFile_s* a_WAD)
 {
 }
 
+/* RS_GetMarkers() -- Get markers in WAD */
+static bool_t RS_GetMarkers(const WL_WADFile_t* const a_WAD, const char* const a_Start, const char* const a_End, const WL_WADEntry_t** const a_SOut, const WL_WADEntry_t** const a_EOut)
+{
+	const WL_WADEntry_t* SFound;
+	const WL_WADEntry_t* EFound;
+	
+	/* Check */
+	if (!a_WAD || !a_Start || !a_End || !a_SOut || !a_EOut)
+		return false;
+	
+	/* Find entries in wad */
+	// Start first
+	SFound = WL_FindEntry(a_WAD, 0, a_Start);
+	EFound = WL_FindEntry(a_WAD, 0, a_End);
+	
+	// Not found?
+	if (!SFound || !EFound)
+		return false;
+	
+	/* Compare index */
+	if (EFound->Index <= SFound->Index)
+		return false;	// End before start?
+	
+	/* Move start marker up */
+	SFound = SFound->NextEntry;
+	
+	// No more?
+	if (!SFound)
+		return false;
+	
+	/* Make sure end was not hit */
+	if (SFound->Index == EFound->Index)
+		return false;
+	
+	/* Found it */
+	*a_SOut = SFound;
+	*a_EOut = EFound;
+	return true;
+}
+
 /* RS_TexturePDCreate() -- Create texture data for WADs */
 static bool_t RS_TexturePDCreate(const struct WL_WADFile_s* const a_WAD, const uint32_t a_Key, void** const a_DataPtr, size_t* const a_SizePtr, WL_RemoveFunc_t* const a_RemoveFuncPtr)
 {
 #define TEMPNAME 9
 	R_TextureHolder_t* Holder;
 	const WL_WADEntry_t* Entry;
+	const WL_WADEntry_t* MStart;
+	const WL_WADEntry_t* MEnd;
 	WL_EntryStream_t* Stream;
 	size_t i, j, k, p, z;
 	char c;
@@ -384,6 +419,54 @@ static bool_t RS_TexturePDCreate(const struct WL_WADFile_s* const a_WAD, const u
 	// use another flat or texture by that same name (i.e. asking for a wall
 	// called SOMEFLAT but there is no wall texture by that name, it will return
 	// the texture for that flat instead).
+	Entry = MStart = MEnd = NULL;
+	
+	// Attempt flat marker location
+	if (!RS_GetMarkers(a_WAD, "F_START", "F_END", &MStart, &MEnd))
+		if (!RS_GetMarkers(a_WAD, "FF_START", "F_END", &MStart, &MEnd))
+			if (!RS_GetMarkers(a_WAD, "F_START", "FF_END", &MStart, &MEnd))
+				RS_GetMarkers(a_WAD, "FF_START", "FF_END", &MStart, &MEnd);
+	
+	// Read list of flats
+	if (MStart && MEnd)
+	{
+		// Get number of flats
+		BaseOffset = Holder->NumTextures;
+		ThisCount = MEnd->Index - MStart->Index;
+		
+		// Reallocate texture array
+		Z_ResizeArray((void**)&Holder->Textures, sizeof(*Holder->Textures), Holder->NumTextures, Holder->NumTextures + ThisCount);
+		Holder->NumTextures += ThisCount;
+		
+		// Read in textures by lumps
+		for (i = BaseOffset, Entry = MStart; Entry && Entry != MEnd; i++, Entry = Entry->NextEntry)
+		{
+			// Copy name
+			strncat(Holder->Textures[i].name, Entry->Name, 8);
+			
+			// Set internal order to what i is
+			Holder->Textures[i].InternalOrder = i;
+			
+			// Flats are always 64x64
+			Holder->Textures[i].width = 64;
+			Holder->Textures[i].height = 64;
+			Holder->Textures[i].XWidth = 64 << FRACBITS;
+			Holder->Textures[i].XHeight = 64 << FRACBITS;
+			
+			// Mask
+			Holder->Textures[i].WidthMask = Holder->Textures[i].width - 1;
+			
+			// Mark as flat
+			Holder->Textures[i].IsFlat = true;
+			
+			// Set entry to this
+			Holder->Textures[i].FlatEntry = Entry;
+		}
+	}
+	
+	texture_t* Textures;						// Texture Data
+	uint32_t* TextureOffsets;					// Texture offsets
+	size_t NumTextures;							// Number of textures
 	
 	/* Success */
 	return true;
@@ -461,12 +544,14 @@ static bool_t RS_HashUpTextures(void)
 /* RS_TextureOrderChange() -- Order changed (rebuild composite) */
 static bool_t RS_TextureOrderChange(const bool_t a_Pushed, const struct WL_WADFile_s* const a_WAD)
 {
+	R_TCFInput_t TCF;
 	const WL_WADFile_t* Rover;
-	uint32_t OrderMul;
+	uint32_t OrderMul, Hash;
 	R_TextureHolder_t* Holder;
 	bool_t First;
 	size_t HolderSize, i, j, z, PutWall, PutFloor, b, n, y, Best;
 	texture_t** TempArray;
+	uintptr_t FoundID;
 	
 	/* Clear texture count */
 	// Free pointer array
@@ -505,8 +590,8 @@ static bool_t RS_TextureOrderChange(const bool_t a_Pushed, const struct WL_WADFi
 		if (First)
 		{
 			// Create pointer array
+			Z_ResizeArray((void**)&textures, sizeof(*textures), numtextures, numtextures + Holder->NumTextures);
 			numtextures = Holder->NumTextures;
-			textures = Z_Malloc(sizeof(*textures) * numtextures, PU_STATIC, &textures);
 			
 			// Copy pointers
 			for (i = 0; i < numtextures; i++)
@@ -529,6 +614,56 @@ static bool_t RS_TextureOrderChange(const bool_t a_Pushed, const struct WL_WADFi
 			// Does a hash table need to be created?
 			if (!l_TextureHashes)
 				RS_HashUpTextures();
+			
+			// Clear marks on this WAD's textures and see if they deserve marking
+			for (y = 0, i = 0; i < Holder->NumTextures; i++)
+			{
+				// Clear mark
+				Holder->Textures[i].Marked = false;
+				
+				// See if the texture already exists
+				TCF.Name = Holder->Textures[i].name;
+				TCF.CheckFlat = Holder->Textures[i].IsFlat;
+				Hash = Z_Hash(Holder->Textures[i].name);
+	
+				FoundID = (uintptr_t)Z_HashFindEntry(l_TextureHashes, Hash, &TCF, false);
+				
+				// If it was found, then do not mark it
+				if (FoundID)
+					continue;
+				
+				// Found so mark it and increase total
+				Holder->Textures[i].Marked = true;
+				y++;
+			}
+			
+			fprintf(stderr, ">> MARKED %u textures.\n", (unsigned)y);
+			
+			// Found new textures to append?
+			if (y)
+			{
+				// Destroy invalid hash table
+				if (l_TextureHashes)
+					Z_HashDeleteTable(l_TextureHashes);
+				l_TextureHashes = NULL;
+				
+				// Increase array size by the count and remember the old count
+				b = numtextures;
+				Z_ResizeArray((void**)&textures, sizeof(*textures), numtextures, numtextures + y);
+				numtextures += y;
+				
+				// Go through list again for marked ones
+				for (i = 0; i < Holder->NumTextures; i++)
+					if (Holder->Textures[i].Marked)
+					{
+						// Reference then set order
+						textures[b] = &Holder->Textures[i];
+						textures[b]->CombinedOrder = (OrderMul << 16) + textures[b]->InternalOrder;
+						
+						// Increment b, the base write index
+						b++;
+					}
+			}
 		}
 	}
 	
@@ -541,7 +676,7 @@ static bool_t RS_TextureOrderChange(const bool_t a_Pushed, const struct WL_WADFi
 	// Sort by wall textures and floor textures (walls first, then floors)
 	PutWall = 0;
 	PutFloor = numtextures - 1;
-	TempArray = Z_Malloc(sizeof(*TempArray), PU_STATIC, NULL);
+	TempArray = Z_Malloc(sizeof(*TempArray) * numtextures, PU_STATIC, NULL);
 	
 	for (i = 0; i < numtextures; i++)
 		if (textures[i]->IsFlat)
@@ -608,7 +743,14 @@ static bool_t RS_TextureOrderChange(const bool_t a_Pushed, const struct WL_WADFi
 		
 		// Reference patches
 		for (j = 0; j < textures[i]->patchcount; j++)
-			textures[i]->patches[i].Entry = WL_FindEntry(NULL, 0, textures[i]->patches[i].PatchName);
+		{
+			textures[i]->patches[j].Entry = WL_FindEntry(NULL, 0, textures[i]->patches[j].PatchName);
+			
+			// No match?
+			if (devparm)
+				if (!textures[i]->patches[j].Entry)
+					CONL_PrintF("Patch without entry %s.\n", textures[i]->patches[j].PatchName);
+		}
 	}
 		
 	/* Success */
@@ -660,13 +802,92 @@ int R_TextureNumForName(char* name)
 /* R_GetFlatNumForName() -- Get flat by name */
 int R_GetFlatNumForName(char* name)
 {
-	return 0;
+	R_TCFInput_t TCF;
+	uintptr_t Ref;
+	uint32_t Hash;
+	
+	/* Check */
+	if (!name)
+		return 0;
+	
+	/* Create TCF and hash name */
+	TCF.Name = name;
+	TCF.CheckFlat = true;
+	Hash = Z_Hash(name);
+	
+	/* Find in table */
+	Ref = (uintptr_t)Z_HashFindEntry(l_TextureHashes, Hash, &TCF, false);
+	
+	// Not found?
+	if (!Ref)
+	{
+		// Just look for anything then
+		TCF.AnyMode = true;
+		
+		Ref = (uintptr_t)Z_HashFindEntry(l_TextureHashes, Hash, &TCF, false);
+		
+		// Still not found (return ASHWALL/AASTINKY)
+		if (!Ref)
+			return 0;
+	}
+	
+	/* Found it! */
+	return Ref - 1;
 }
 
 /* R_GetFlat() -- Get data for flat */
 uint8_t* R_GetFlat(int flatlumpnum)
 {
-	return NULL;
+	texture_t* Texture;
+	V_Image_t* Image;
+	uint8_t* FlatData;
+	size_t Size;
+	
+	/* Check */
+	if (flatlumpnum < 0 || flatlumpnum >= numtextures)
+		return NULL;
+	
+	/* Reference texture */
+	Texture = textures[flatlumpnum];
+	
+	/* Check if cache exists */
+	if (Texture->FlatCache)
+		return Texture->FlatCache;
+	
+	/* Create cache */
+	Texture->FlatCache = Z_Malloc(64 * 64, PU_STATIC, (void**)&Texture->FlatCache);
+	
+	/* If texture is a flat, return patch_t of it */
+	if (Texture->IsFlat)
+	{
+		// Load image
+		Image = V_ImageLoadE(Texture->FlatEntry);
+		
+		// Found image?
+		if (Image)
+		{
+			// Get flat data
+			FlatData = V_ImageGetRaw(Image, &Size);
+			
+			// Copy raw data
+			memmove(Texture->FlatCache, FlatData, (Size < (64 * 64) ? Size : (64 * 64)));
+		
+			// Destroy image
+			V_ImageDestroy(Image);
+		}
+	}
+	
+	/* Otherwise it is a normal texture with patches */
+	else
+	{
+		memset(Texture->FlatCache, 140 + (flatlumpnum % 10), 64 * 64);
+	}
+	
+	/* Change to static */
+	Z_ChangeTag(Texture->FlatCache, PU_CACHE);
+	
+	/* Return flat cache */
+	return Texture->FlatCache;
 }
 
 /* R_GenerateTexture() -- Generates a texture (loads from cache) */
@@ -764,6 +985,7 @@ uint8_t* R_GenerateTexture(int texnum)
 		*(dd++) = 0;	// junk
 		
 		for (y = 0; y < h; y++)
+			//*(dd++) = x + y + w + h;
 			*(dd++) = Buffer[(w * y) + x];
 		
 		*(dd++) = 0;	// junk
@@ -1443,8 +1665,8 @@ void R_PrecacheLevel(void)
 			continue;
 			
 		//texture = textures[i];
-		if (texturecache[i] == NULL)
-			R_GenerateTexture(i);
+		//if (texturecache[i] == NULL)
+		//	R_GenerateTexture(i);
 		//numgenerated++;
 		
 		// note: pre-caching individual patches that compose textures became

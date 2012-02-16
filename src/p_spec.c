@@ -578,12 +578,12 @@ fixed_t P_FindShortestTextureAround(int secnum)
 		{
 			side = getSide(secnum, i, 0);
 			if (side->bottomtexture > 0)
-				if (textureheight[side->bottomtexture] < minsize)
-					minsize = textureheight[side->bottomtexture];
+				if (textures[side->bottomtexture]->XHeight < minsize)
+					minsize = textures[side->bottomtexture]->XHeight;
 			side = getSide(secnum, i, 1);
 			if (side->bottomtexture > 0)
-				if (textureheight[side->bottomtexture] < minsize)
-					minsize = textureheight[side->bottomtexture];
+				if (textures[side->bottomtexture]->XHeight < minsize)
+					minsize = textures[side->bottomtexture]->XHeight;
 		}
 	}
 	return minsize;
@@ -612,12 +612,12 @@ fixed_t P_FindShortestUpperAround(int secnum)
 		{
 			side = getSide(secnum, i, 0);
 			if (side->toptexture > 0)
-				if (textureheight[side->toptexture] < minsize)
-					minsize = textureheight[side->toptexture];
+				if (textures[side->toptexture]->XHeight < minsize)
+					minsize = textures[side->toptexture]->XHeight;
 			side = getSide(secnum, i, 1);
 			if (side->toptexture > 0)
-				if (textureheight[side->toptexture] < minsize)
-					minsize = textureheight[side->toptexture];
+				if (textures[side->toptexture]->XHeight < minsize)
+					minsize = textures[side->toptexture]->XHeight;
 		}
 	}
 	return minsize;
@@ -2289,7 +2289,7 @@ void P_UpdateSpecials(void)
 		{
 			pic = anim->basepic + ((leveltime / anim->speed + i) % anim->numpics);
 			if (anim->istexture)
-				texturetranslation[i] = pic;
+				textures[i]->Translation = pic;
 		}
 	}
 	

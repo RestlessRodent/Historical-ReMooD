@@ -285,7 +285,7 @@ visplane_t* new_visplane(unsigned hash)
 // R_FindPlane : cherche un visplane ayant les valeurs identiques:
 //               meme hauteur, meme flattexture, meme lightlevel.
 //               Sinon en alloue un autre.
-//
+//	"seeks a visplane having values ​​identical: same height, same flattexture, even lightlevel. Otherwise allocates another."
 visplane_t* R_FindPlane(fixed_t height, int picnum, int lightlevel, fixed_t xoff, fixed_t yoff, extracolormap_t* planecolormap, ffloor_t* ffloor)
 {
 	visplane_t* check;
@@ -613,9 +613,9 @@ void R_DrawSinglePlane(visplane_t* pl, bool_t handlesource)
 	{
 		int size;
 		
-		ds_source = (uint8_t*)R_GetFlat(levelflats[pl->picnum].lumpnum);
+		ds_source = (uint8_t*)R_GetFlat(pl->picnum);
 		
-		size = W_LumpLength(levelflats[pl->picnum].lumpnum);
+		size = 64 * 64;//W_LumpLength(pl->picnum);
 		
 		switch (size)
 		{

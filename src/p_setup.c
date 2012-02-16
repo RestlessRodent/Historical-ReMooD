@@ -1755,6 +1755,10 @@ static void PS_ExSectorInit(sector_t* const a_Sector)
 	
 	/* Clear bounding box */
 	M_ClearBox(a_Sector->BBox);
+	
+	/* Get flats */
+	a_Sector->floorpic = R_GetFlatNumForName(a_Sector->FloorTexture);
+	a_Sector->ceilingpic = R_GetFlatNumForName(a_Sector->CeilingTexture);
 }
 
 /* PS_ExSideDefInit() -- Initializes extra data in side def */
@@ -1772,6 +1776,11 @@ static void PS_ExSideDefInit(side_t* const a_SideDef)
 	// Otherwise use the first sector (ouch!)
 	else
 		a_SideDef->sector = &sectors[0];
+	
+	/* Reference Textures */
+	a_SideDef->toptexture = R_TextureNumForName(a_SideDef->WallTextures[0]);
+	a_SideDef->bottomtexture = R_TextureNumForName(a_SideDef->WallTextures[1]);
+	a_SideDef->midtexture = R_TextureNumForName(a_SideDef->WallTextures[2]);
 }
 
 /* PS_ExLineDefInit() -- Initializes extra data in linedef */
@@ -2165,6 +2174,20 @@ bool_t P_ExLoadLevel(P_LevelInfoEx_t* const a_Info, const bool_t a_ApplyOptions)
 		}
 	}
 	
+	// Load blockmap
+	if ((Entry = a_Info->EntryPtr[PLIEDS_BLOCKMAP]))
+	{
+		// Open stream
+		Stream = WL_StreamOpen(Entry);
+		
+		// Read in data
+		if (Stream)
+		{
+			// Close stream
+			WL_StreamClose(Stream);
+		}
+	}
+	
 	// Load Sub-Sector Data
 	if ((Entry = a_Info->EntryPtr[PLIEDS_SSECTORS]))
 	{
@@ -2314,9 +2337,17 @@ bool_t P_ExLoadLevel(P_LevelInfoEx_t* const a_Info, const bool_t a_ApplyOptions)
 	PS_ExMungeNodeData();
 	
 	// Load Things
+	deathmatchstarts[0] = Z_Malloc(sizeof(*deathmatchstarts[0]), PU_LEVEL, NULL);
+	deathmatchstarts[0]->type = 1;
+	numdmstarts = 1;
 	playeringame[0] = true;
 	consoleplayer[0] = displayplayer[0] = 0;
-	players[0].mo = P_SpawnMobj(0, 0, 0, MT_PLAYER);
+	players[0].mo = NULL;//P_SpawnMobj(0, 0, 0, MT_PLAYER);
+	players[0].playerstate = PST_REBORN;
+	P_SpawnPlayer(deathmatchstarts[0]);
+	//players[0].health = 100;
+	//P_SpawnMobj(32 << FRACBITS, 32 << FRACBITS, 0, MT_TROOP);
+	//P_SpawnMobj(-32 << FRACBITS, -32 << FRACBITS, 0, MT_TROOP);
 	
 	/* Pre-Finalize */
 	// Set the level time to zero

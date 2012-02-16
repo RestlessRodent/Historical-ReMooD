@@ -121,6 +121,8 @@ typedef struct
 	fixed_t XHeight;							// fixed_t height of texture
 	uint32_t Translation;						// Which texture to draw in place of this one
 	uint32_t CacheSize;							// Size of cache
+	void* FlatEntry;							// Entry for flat
+	bool_t Marked;								// Marked?
 } texture_t;
 
 // all loaded and prepared textures from the start of the game

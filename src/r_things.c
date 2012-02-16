@@ -1101,7 +1101,7 @@ void R_DrawPSprite(pspdef_t* psp)
 #ifdef PARANOIA
 	//Fab:debug
 	if (sprframe == NULL)
-		I_Error("sprframes NULL for state %d\n", psp->state - states);
+		return;//I_Error("sprframes NULL for state %d\n", psp->state - states);
 #endif
 		
 	//Fab: see the notes in R_ProjectSprite about lumpid,lumppat

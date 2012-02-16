@@ -1321,12 +1321,14 @@ void G_DoReborn(int playernum)
 	
 	// boris comment : this test is like 'single player game'
 	//                 all this kind of hiden variable must be removed
+#if 0
 	if (!multiplayer && !cv_deathmatch.value)
 	{
 		// reload the level from scratch
 		G_DoLoadLevel(true);
 	}
 	else
+#endif
 	{
 		// respawn at the start
 		
@@ -2230,7 +2232,8 @@ void G_TimeDemo(char* name)
 
 void G_DoneLevelLoad(void)
 {
-	CONL_PrintF("Load Level in %f sec\n", (float)(I_GetTime() - demostarttime) / TICRATE);
+	// GhostlyDeath <February 8, 2012> -- uint64_t to double not impl on MSVC6
+	//CONL_PrintF("Load Level in %f sec\n", (float)(I_GetTime() - demostarttime) / TICRATE);
 	framecount = 0;
 	demostarttime = I_GetTime();
 }

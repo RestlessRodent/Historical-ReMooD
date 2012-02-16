@@ -389,7 +389,7 @@ void R_RenderMaskedSegRange(drawseg_t* ds, int x1, int x2)
 	curline = ds->curline;
 	frontsector = curline->frontsector;
 	backsector = curline->backsector;
-	texnum = texturetranslation[curline->sidedef->midtexture];
+	texnum = textures[curline->sidedef->midtexture]->Translation;
 	windowbottom = windowtop = sprbotscreen = INT_MAX;
 	
 	//faB: hack translucent linedef types (201-205 for transtables 1-5)
@@ -502,7 +502,7 @@ void R_RenderMaskedSegRange(drawseg_t* ds, int x1, int x2)
 	if (curline->linedef->flags & ML_DONTPEGBOTTOM)
 	{
 		dc_texturemid = frontsector->floorheight > backsector->floorheight ? frontsector->floorheight : backsector->floorheight;
-		dc_texturemid = dc_texturemid + textureheight[texnum] - viewz;
+		dc_texturemid = dc_texturemid + textures[texnum]->XHeight - viewz;
 	}
 	else
 	{
@@ -511,7 +511,7 @@ void R_RenderMaskedSegRange(drawseg_t* ds, int x1, int x2)
 	}
 	dc_texturemid += curline->sidedef->rowoffset;
 	
-	dc_texheight = textureheight[texnum] >> FRACBITS;
+	dc_texheight = textures[texnum]->XHeight >> FRACBITS;
 	
 	if (fixedcolormap)
 		dc_colormap = fixedcolormap;
@@ -528,7 +528,7 @@ void R_RenderMaskedSegRange(drawseg_t* ds, int x1, int x2)
 				
 				sprbotscreen = INT_MAX;
 				sprtopscreen = windowtop = (centeryfrac - FixedMul(dc_texturemid, spryscale));
-				realbot = windowbottom = FixedMul(textureheight[texnum], spryscale) + sprtopscreen;
+				realbot = windowbottom = FixedMul(textures[texnum]->XHeight, spryscale) + sprtopscreen;
 				dc_iscale = 0xffffffffu / (unsigned)spryscale;
 				
 				// draw the texture
@@ -648,7 +648,7 @@ void R_RenderThickSideRange(drawseg_t* ds, int x1, int x2, ffloor_t* ffloor)
 	curline = ds->curline;
 	backsector = ffloor->target;
 	frontsector = curline->frontsector == ffloor->target ? curline->backsector : curline->frontsector;
-	texnum = texturetranslation[sides[ffloor->master->sidenum[0]].midtexture];
+	texnum = textures[sides[ffloor->master->sidenum[0]].midtexture]->Translation;
 	
 	colfunc = basecolfunc;
 	
@@ -772,7 +772,7 @@ void R_RenderThickSideRange(drawseg_t* ds, int x1, int x2, ffloor_t* ffloor)
 	
 	mfloorclip = ds->sprbottomclip;
 	mceilingclip = ds->sprtopclip;
-	dc_texheight = textureheight[texnum] >> FRACBITS;
+	dc_texheight = textures[texnum]->XHeight >> FRACBITS;
 	
 	dc_texturemid = *ffloor->topheight - viewz;
 	
@@ -1176,7 +1176,7 @@ void R_RenderSegLoop(void)
 					dc_yh = mid;
 					dc_texturemid = rw_toptexturemid;
 					dc_source = R_GetColumn(toptexture, texturecolumn);
-					dc_texheight = textureheight[toptexture] >> FRACBITS;
+					dc_texheight = textures[toptexture]->XHeight >> FRACBITS;
 					colfunc();
 					ceilingclip[rw_x] = mid;
 				}
@@ -1208,7 +1208,7 @@ void R_RenderSegLoop(void)
 					dc_yh = yh;
 					dc_texturemid = rw_bottomtexturemid;
 					dc_source = R_GetColumn(bottomtexture, texturecolumn);
-					dc_texheight = textureheight[bottomtexture] >> FRACBITS;
+					dc_texheight = textures[bottomtexture]->XHeight >> FRACBITS;
 					colfunc();
 					floorclip[rw_x] = mid;
 				}
@@ -1587,7 +1587,7 @@ void R_StoreWallRange(int start, int stop)
 		if (worldhigh < worldtop)
 		{
 			// top texture
-			toptexture = texturetranslation[sidedef->toptexture];
+			toptexture = textures[sidedef->toptexture]->Translation;
 			if (linedef->flags & ML_DONTPEGTOP)
 			{
 				// top of texture at top
@@ -1595,7 +1595,7 @@ void R_StoreWallRange(int start, int stop)
 			}
 			else
 			{
-				vtop = backsector->ceilingheight + textureheight[sidedef->toptexture];
+				vtop = backsector->ceilingheight + textures[sidedef->toptexture]->XHeight;
 				
 				// bottom of texture
 				rw_toptexturemid = vtop - viewz;
