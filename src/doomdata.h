@@ -223,7 +223,14 @@ typedef struct
 	short angle;
 	short type;
 	short options;
+	
 	struct mobj_s* mobj;
+	
+	bool_t IsHexen;								// Hexen Defined
+	int16_t HeightOffset;						// Height offset
+	uint16_t ID;								// Hexen Thing ID
+	uint8_t Special;							// Hexen Special
+	uint8_t Args[5];							// Hexen arguments
 } mapthing_t;
 
 /* HexenMapThingDef_t -- Hexen map thing */

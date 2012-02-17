@@ -1683,6 +1683,7 @@ bool_t P_AddWadFile(char* wadfilename, char** firstmapname)
 static CONL_ExitCode_t PCLC_Map(const uint32_t a_ArgC, const char** const a_ArgV)
 {
 	P_LevelInfoEx_t* Info;
+	size_t i;
 	
 	/* Check */
 	if (a_ArgC < 2)
@@ -1694,6 +1695,31 @@ static CONL_ExitCode_t PCLC_Map(const uint32_t a_ArgC, const char** const a_ArgV
 	// Not found?
 	if (!Info)
 		return CLE_RESOURCENOTFOUND;
+	
+	/* Reset player info */
+	// TODO: Multiplayer here!
+	for (i = 0; i < MAXPLAYERS; i++)
+		playeringame[i] = false;
+	
+	for (i = 0; i < MAXSPLITSCREENPLAYERS; i++)
+		consoleplayer[i] = displayplayer[i] = i;
+	
+	// Spawn player 1 at least
+	playeringame[0] = true;
+	players[0].mo = NULL;
+	players[0].playerstate = PST_REBORN;
+	
+#if 0
+	deathmatchstarts[0] = Z_Malloc(sizeof(*deathmatchstarts[0]), PU_LEVEL, NULL);
+	deathmatchstarts[0]->type = 1;
+	numdmstarts = 1;
+	playeringame[0] = true;
+	consoleplayer[0] = displayplayer[0] = 0;
+	players[0].mo = NULL;//P_SpawnMobj(0, 0, 0, MT_PLAYER);
+	players[0].playerstate = PST_REBORN;
+	P_SpawnPlayer(deathmatchstarts[0]);
+	//players[0].health = 100;
+#endif
 	
 	/* Load level */
 	if (P_ExLoadLevel(Info, true))
@@ -1920,8 +1946,8 @@ static void PS_ExSegInit(seg_t* const a_Seg)
 		a_Seg->LineID = 0;
 	
 	// Sides
-	if (a_Seg->side < 0 || a_Seg->side > 1)
-		a_Seg->side = 0;
+	if (a_Seg->side != 0)
+		a_Seg->side = 1;
 	
 	/* Reference */
 	a_Seg->v1 = &vertexes[a_Seg->VertexID[0]];
@@ -1934,6 +1960,17 @@ static void PS_ExSegInit(seg_t* const a_Seg)
 	/* Initialize */
 	a_Seg->numlights = 0;
 	a_Seg->rlights = NULL;
+}
+
+/* PS_ExThingInit() -- Initializes extra data in thing */
+static void PS_ExThingInit(mapthing_t* const a_Thing)
+{
+	/* Check */
+	if (!a_Thing)
+		return;
+	
+	/* Spawn it */
+	P_SpawnMapThing(a_Thing);	
 }
 
 /* PS_ExMungeNodeData() -- Munges together node data */
@@ -1991,6 +2028,7 @@ bool_t P_ExLoadLevel(P_LevelInfoEx_t* const a_Info, const bool_t a_ApplyOptions)
 	subsector_t* SubSectorP;
 	node_t* NodeP;
 	seg_t* SegP;
+	mapthing_t* ThingP;
 	size_t i, j, k;
 	char Buf[BUFSIZE];
 	
@@ -2058,8 +2096,8 @@ bool_t P_ExLoadLevel(P_LevelInfoEx_t* const a_Info, const bool_t a_ApplyOptions)
 				SectorP = &sectors[i];
 				
 				// Read
-				SectorP->floorheight = WL_StreamReadLittleInt16(Stream);
-				SectorP->ceilingheight = WL_StreamReadLittleInt16(Stream);
+				SectorP->floorheight = ((fixed_t)WL_StreamReadLittleInt16(Stream)) << FRACBITS;
+				SectorP->ceilingheight = ((fixed_t)WL_StreamReadLittleInt16(Stream)) << FRACBITS;
 				
 				memset(Buf, 0, sizeof(Buf));
 				for (j = 0; j < 8; j++)
@@ -2322,7 +2360,7 @@ bool_t P_ExLoadLevel(P_LevelInfoEx_t* const a_Info, const bool_t a_ApplyOptions)
 		{
 			// matrix size is (numsectors * numsectors) / 8;
 			k = ((numsectors * numsectors) / 8);
-			rejectmatrix = Z_Malloc(sizeof(*rejectmatrix) * k, PU_LEVEL, (void**)rejectmatrix);
+			rejectmatrix = Z_Malloc(sizeof(*rejectmatrix) * k, PU_LEVEL, (void**)&rejectmatrix);
 			
 			// Read in matrix data
 			for (j = 0; j < k; j++)
@@ -2336,7 +2374,58 @@ bool_t P_ExLoadLevel(P_LevelInfoEx_t* const a_Info, const bool_t a_ApplyOptions)
 	// Munge Node Data
 	PS_ExMungeNodeData();
 	
-	// Load Things
+	// Load Things (Non-Textual Format)
+	if (!a_Info->Type.Text && (Entry = a_Info->EntryPtr[PLIEDS_THINGS]))
+	{
+		// Open stream
+		Stream = WL_StreamOpen(Entry);
+		
+		// Read in data
+		if (Stream)
+		{
+			// Create map thing array
+			nummapthings = Entry->Size / (a_Info->Type.Hexen ? 20 : 10);	// 1 thing is 10 bytes (doom) and 20 bytes (hexen)
+			mapthings = Z_Malloc(sizeof(*mapthings) * nummapthings, PU_LEVEL, (void**)&mapthings);
+			
+			// Read thing data
+			for (i = 0; i < nummapthings && !WL_StreamEOF(Stream); i++)
+			{
+				// Get pointer
+				ThingP = &mapthings[i];
+				
+				// Read data
+				ThingP->IsHexen = a_Info->Type.Hexen;
+				
+				if (ThingP->IsHexen)
+					ThingP->ID = WL_StreamReadLittleUInt16(Stream);
+				
+				ThingP->x = WL_StreamReadLittleInt16(Stream);
+				ThingP->y = WL_StreamReadLittleInt16(Stream);
+				
+				if (ThingP->IsHexen)
+					ThingP->HeightOffset = WL_StreamReadLittleInt16(Stream);
+				
+				ThingP->angle = WL_StreamReadLittleInt16(Stream);
+				ThingP->type = WL_StreamReadLittleInt16(Stream);
+				ThingP->options = WL_StreamReadLittleInt16(Stream);
+				
+				if (ThingP->IsHexen)
+				{
+					ThingP->Special = WL_StreamReadUInt8(Stream);
+					for (k = 0; k < 5; k++)
+						ThingP->Args[k] = WL_StreamReadUInt8(Stream);
+				}
+				
+				// Init
+				PS_ExThingInit(ThingP);
+			}
+			
+			// Close stream
+			WL_StreamClose(Stream);
+		}
+	}
+
+#if 0
 	deathmatchstarts[0] = Z_Malloc(sizeof(*deathmatchstarts[0]), PU_LEVEL, NULL);
 	deathmatchstarts[0]->type = 1;
 	numdmstarts = 1;
@@ -2348,6 +2437,7 @@ bool_t P_ExLoadLevel(P_LevelInfoEx_t* const a_Info, const bool_t a_ApplyOptions)
 	//players[0].health = 100;
 	//P_SpawnMobj(32 << FRACBITS, 32 << FRACBITS, 0, MT_TROOP);
 	//P_SpawnMobj(-32 << FRACBITS, -32 << FRACBITS, 0, MT_TROOP);
+#endif
 	
 	/* Pre-Finalize */
 	// Set the level time to zero

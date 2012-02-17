@@ -698,7 +698,7 @@ static bool_t RS_TextureOrderChange(const bool_t a_Pushed, const struct WL_WADFi
 		else
 		{
 			b = PutWall;
-			n = numtextures - PutWall;
+			n = b + (numtextures - PutFloor);
 		}
 		
 		// Sort through (memory: 2, selection sort)
@@ -1010,11 +1010,15 @@ uint8_t* R_GetColumn(int tex, size_t col)
 	
 	/* Needs generation? */
 	if (!textures[tex]->Cache)
+	{
+		if (devparm)
+			CONL_PrintF("R_GetColumn: Generating \"%s\".\n", textures[tex]->name);
 		R_GenerateTexture(tex);
+	}
 	
 	/* Return texture column */
 	//return ((uint8_t*)textures[tex]->Composite
-	return ((uint8_t*)textures[tex]->Cache) + textures[tex]->ColumnOffs[col & textures[tex]->WidthMask];
+	return ((uint8_t*)textures[tex]->Cache) + (textures[tex]->ColumnOffs[col & textures[tex]->WidthMask] + 3);
 }
 
 /* R_LoadTextures() -- Loads texture data information */
