@@ -3113,6 +3113,7 @@ struct V_Image_s
 	WadIndex_t				Index;				// Index of this image (for find)
 	char					Name[MAXUIANAME];	// Name of the image (for find)
 	uint32_t				NameHash;			// Hash for the name (if applicable)
+	int32_t				Conf[NUMVIMAGETYPES];	// Confidence
 	
 	/* WAD Related */
 	const struct WL_WADEntry_s*	wData;			// New WAD Access (WL)
@@ -3320,6 +3321,10 @@ V_Image_t* V_ImageLoadE(const WL_WADEntry_t* const a_Entry)
 	strncpy(New->Name, a_Entry->Name, MAXUIANAME);
 	New->NameHash = Z_Hash(New->Name);
 	
+	// Copy confidence
+	for (i = 0; i < NUMVIMAGETYPES; i++)
+		New->Conf[i] = Conf[i];
+	
 	// Fill in image data based on type
 	switch (Best)
 	{
@@ -3462,7 +3467,9 @@ void V_ImageDestroy(V_Image_t* const a_Image)
 	
 	/*** STANDARD CLIENT ***/
 #else
-
+	V_WLImageHolder_t* HI;
+	uint32_t Hash;
+	
 	/* Not for dedicated server */
 	if (g_DedicatedServer)
 		return;
@@ -3470,7 +3477,34 @@ void V_ImageDestroy(V_Image_t* const a_Image)
 	/* Check */
 	if (!a_Image)
 		return;
-
+	
+	/* Remove from WAD */
+	HI = WL_GetPrivateData(a_Image->wData->Owner, WLDK_VIMAGES, NULL);
+	
+	// Delete
+	if (HI)
+	{
+		// Remove from hash table
+		Z_HashDeleteEntry(HI->ImageHashes, a_Image->NameHash, a_Image->Name, false);
+		
+		// Check root reference
+		if (HI->ImageChain == a_Image)
+			HI->ImageChain = HI->ImageChain->iNext;
+	}
+	
+	/* Remove link if needed */
+	if (a_Image->iPrev)
+		a_Image->iPrev->iNext = a_Image->iNext;
+	if (a_Image->iNext)
+		a_Image->iNext->iPrev = a_Image->iPrev;
+	
+	/* De-allocate raw type buffers */
+	if (a_Image->dPatch)
+		Z_Free(a_Image->dPatch);
+	if (a_Image->dPic)
+		Z_Free(a_Image->dPic);
+	if (a_Image->dRaw)
+		Z_Free(a_Image->dRaw);
 #endif /* __REMOOD_DEDICATED */
 }
 
@@ -3867,8 +3901,15 @@ void V_ImageDrawScaledIntoBuffer(const uint32_t a_Flags, V_Image_t* const a_Imag
 	
 	/* Determine the position to draw at */
 	// Add image offsets
-	x = a_X - a_Image->Offset[0];
-	y = a_Y - a_Image->Offset[1];
+	x = a_X;
+	y = a_Y;
+	
+	// Only if offsets are not ignored
+	if (!(a_Flags & VEX_IGNOREOFFSETS))
+	{
+		x -= a_Image->Offset[0];
+		y -= a_Image->Offset[1];
+	}
 	
 	// Use detected size
 	if (!a_Width && !a_Height)

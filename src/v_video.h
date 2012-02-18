@@ -134,6 +134,7 @@ extern consvar_t cv_vid_drawfps;
 #define VEX_MAPTHENMASK			0x00000200	// Apply color mapping then apply color masking
 #define VEX_SKIPEVEN			0x00000400	// Don't draw even pixels
 #define VEX_SECONDBUFFER		0x00000800	// Draw in second video buffer
+#define VEX_IGNOREOFFSETS		0x00001000	// Ignore image origins
 
 /* Color mapping */
 typedef enum VEX_ColorList_s

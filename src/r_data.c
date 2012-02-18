@@ -363,7 +363,8 @@ static bool_t RS_TexturePDCreate(const struct WL_WADFile_s* const a_WAD, const u
 			Holder->Textures[z].patchcount = WL_StreamReadLittleUInt16(Stream);
 			
 			// Allocate patch data
-			Holder->Textures[z].patches = Z_Malloc(sizeof(*Holder->Textures[z].patches) * Holder->Textures[z].patchcount, PU_STATIC, NULL);
+			if (Holder->Textures[z].patchcount)
+				Holder->Textures[z].patches = Z_Malloc(sizeof(*Holder->Textures[z].patches) * Holder->Textures[z].patchcount, PU_STATIC, NULL);
 			
 			// Read in patches
 			for (p = 0; p < Holder->Textures[z].patchcount; p++)
@@ -374,6 +375,10 @@ static bool_t RS_TexturePDCreate(const struct WL_WADFile_s* const a_WAD, const u
 				
 				// Read patch ID
 				Holder->Textures[z].patches[p].patch = WL_StreamReadLittleUInt16(Stream);
+				
+				// Ignore stepdir and colormap
+				WL_StreamReadLittleUInt16(Stream);
+				WL_StreamReadLittleUInt16(Stream);
 				
 				// Translate patch ID to name
 				k = Holder->Textures[z].patches[p].patch;
@@ -961,7 +966,7 @@ uint8_t* R_GenerateTexture(int texnum)
 		PatchPic = V_ImageLoadE(Texture->patches[p].Entry);
 		
 		// Draw into buffer
-		V_ImageDrawScaledIntoBuffer(0, PatchPic, Texture->patches[p].originx, Texture->patches[p].originy, 0, 0, 1 << FRACBITS, 1 << FRACBITS, NULL, Buffer, w, w, h, 1 << FRACBITS, 1 << FRACBITS, 1.0, 1.0);
+		V_ImageDrawScaledIntoBuffer(VEX_IGNOREOFFSETS, PatchPic, Texture->patches[p].originx, Texture->patches[p].originy, 0, 0, 1 << (FRACBITS), 1 << (FRACBITS), NULL, Buffer, w, w, h, 1 << FRACBITS, 1 << FRACBITS, 1.0, 1.0);
 		
 		// Free patch image
 		V_ImageDestroy(PatchPic);
