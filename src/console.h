@@ -290,6 +290,12 @@ bool_t CONL_FindDefaultConfig(void);
 bool_t CONL_LoadConfigFile(const char* const a_Path);
 bool_t CONL_SaveConfigFile(const char* const a_Path);
 
+/*** Loading Screens ***/
+bool_t CONL_LoadingScreenSet(const int32_t a_NumSteps);
+bool_t CONL_LoadingScreenIncrMaj(const char* const a_Message, const int32_t a_NumSteps);
+bool_t CONL_LoadingScreenIncrSub(void);
+bool_t CONL_LoadingScreenSetSubEnd(const int32_t a_NumSteps);
+
 /******************************************************************************/
 
 /****************

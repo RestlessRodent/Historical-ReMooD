@@ -90,6 +90,7 @@ typedef struct
 	/* Unified Data */
 	char PatchName[9];							// Name of patch to use
 	const WL_WADEntry_t* Entry;					// Entry image
+	size_t PatchListRef;						// Reference to patch list
 } texpatch_t;
 
 // A maptexturedef_t describes a rectangular texture,

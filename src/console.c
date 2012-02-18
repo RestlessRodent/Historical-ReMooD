@@ -775,11 +775,13 @@ static void CONLFF_OutputFF(const char* const a_Buf)
 	Buf[MAXCONLPMQBUFSIZE - 1] = 0;
 	
 	/* Print text to console */
+#if !defined(_DEBUG)
 	if (devparm || !con_started || g_DedicatedServer)
 	{
 		I_OutputText(Buf);
 		I_OutputText("\n");
 	}
+#endif
 
 #if !defined(__REMOOD_DEDICATED)
 	/* Not in dedicated server */
@@ -1209,6 +1211,14 @@ size_t CONL_PrintV(const bool_t a_InBuf, const char* const a_Format, va_list a_A
 	memset(Buf, 0, sizeof(Buf));
 	vsnprintf(Buf, BUFSIZE, a_Format, a_ArgPtr);
 	RetVal = CONL_RawPrint(&l_CONLBuffers[(a_InBuf ? 1 : 0)], Buf);
+	
+	/* Debug print here */
+#if defined(_DEBUG)
+	if (devparm || !con_started || g_DedicatedServer)
+	{
+		I_OutputText(Buf);
+	}
+#endif
 	
 	/* Return */
 	return RetVal;
@@ -2156,6 +2166,126 @@ bool_t CONL_SaveConfigFile(const char* const a_Path)
 	/* Success! */
 	return true;
 #undef BUFSIZE
+}
+
+/*** LOADING SCREENS ***/
+
+/** LOCALS **/
+
+static const char* l_CLSMessage = NULL;
+static int32_t l_CLSProgress[2][2] = {{0, 0}, {0, 0}};
+
+/** FUNCTIONS **/
+
+/* CONLS_DrawLoadingScreen() -- Draw loading screen */
+static void CONLS_DrawLoadingScreen(const bool_t a_QuickDraw)
+{
+	size_t i;
+	fixed_t Frac;
+	
+	/* Clear screen if not quick drawing */
+	if (!a_QuickDraw)
+	{
+		// Wipe away
+		memset(screens[0], 0, vid.rowbytes * vid.height);
+		
+		// Draw stuff onto screen
+		V_DrawStringA(VFONT_LARGE, VFO_CENTERED, "Loading...", vid.width / 4, 100);
+		
+		// Draw current action
+		if (l_CLSMessage)
+			V_DrawStringA(VFONT_OEM, 0, l_CLSMessage, 0, 160);
+	}
+	
+	/* Draw completion bars */
+	for (i = 0; i < 2; i++)
+	{
+#define SIDESPACE 5
+#define BASEBARY (170 + (12 * i))
+#define BASEBARSIZE 10
+		// Draw bar across entire screen (white for incomplete)
+		V_DrawColorBoxEx(0, 4, SIDESPACE, BASEBARY, 320 - (SIDESPACE * 2), BASEBARY + BASEBARSIZE);
+		
+		// No right side?
+		if (!l_CLSProgress[i][1])
+			continue;
+			
+		// Draw green bar ontop (complete)
+		if (l_CLSProgress[i][0] >= 0)
+		{
+			Frac = FixedDiv(l_CLSProgress[i][0] << FRACBITS, l_CLSProgress[i][1] << FRACBITS);
+			
+			// Limit to 0.0-1.0
+			if (Frac < 0)
+				Frac = 0;
+			else if (Frac > (1 << FRACBITS))
+				Frac = 1 << FRACBITS;
+			
+			// Draw bar
+			V_DrawColorBoxEx(0, 112, SIDESPACE, BASEBARY, SIDESPACE + (FixedMul(Frac, (320 - (SIDESPACE * 2)) << FRACBITS) >> FRACBITS), BASEBARY + BASEBARSIZE);
+		}
+#undef BASEBARSIZE
+#undef BASEBARY
+#undef SIDESPACE
+	}
+	
+	/* Update Screen */
+	I_FinishUpdate();
+}
+
+/* CONL_LoadingScreenSet() -- Set loading screen */
+bool_t CONL_LoadingScreenSet(const int32_t a_NumSteps)
+{
+	/* Reset */
+	l_CLSMessage = NULL;
+	memset(l_CLSProgress, 0, sizeof(l_CLSProgress));
+	
+	/* Set count */
+	l_CLSProgress[0][0] = -1;
+	l_CLSProgress[0][1] = a_NumSteps;
+	
+	/* Draw and return */
+	CONLS_DrawLoadingScreen(false);
+	return true;
+}
+
+/* CONL_LoadingScreenIncrMaj() -- Increment major */
+bool_t CONL_LoadingScreenIncrMaj(const char* const a_Message, const int32_t a_NumSteps)
+{
+	/* Set */
+	// Major
+	l_CLSMessage = a_Message;
+	l_CLSProgress[0][0]++;
+	
+	// Sub
+	l_CLSProgress[1][0] = -1;
+	l_CLSProgress[1][1] = a_NumSteps;
+	
+	/* Draw and return */
+	CONLS_DrawLoadingScreen(false);
+	return true;
+}
+
+/* CONL_LoadingScreenIncrSub() -- Increment Sub */
+bool_t CONL_LoadingScreenIncrSub(void)
+{
+	/* Increment */
+	l_CLSProgress[1][0]++;
+	
+	/* Draw and return */
+	CONLS_DrawLoadingScreen(true);
+	return true;
+}
+
+/* CONL_LoadingScreenSetSubEnd() -- Set sub steps */
+bool_t CONL_LoadingScreenSetSubEnd(const int32_t a_NumSteps)
+{
+	/* Increment */
+	l_CLSProgress[1][1] = a_NumSteps;
+	
+	/* Draw and return */
+	CONLS_DrawLoadingScreen(true);
+	return true;
 }
 
 /*****************************************************************************/
@@ -3173,3 +3303,4 @@ void CON_Drawer(void)
 		
 	hu_font['I' - HU_FONTSTART]->leftoffset = 0;
 }
+

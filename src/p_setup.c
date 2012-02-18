@@ -1981,11 +1981,17 @@ void PS_ExMungeNodeData(void)
 	fixed_t BBox[4];
 	sector_t* SectorP;
 	
+			
+	/* Set loading screen info */
+	CONL_LoadingScreenSetSubEnd(2);
+	
 	/* Reference sectors to subsectors */
+	CONL_LoadingScreenIncrSub();
 	for (i = 0; i < numsubsectors; i++)
 		subsectors[i].sector = segs[subsectors[i].firstline].sidedef->sector;
 	
 	/* Count line numbers for each sector */
+	CONL_LoadingScreenIncrSub();
 	for (Total = 0, i = 0; i < numlines; i++)
 		// For each side
 		for (j = 0; j < 2; j++)
@@ -2019,6 +2025,8 @@ void PS_ExMungeNodeData(void)
 bool_t P_ExLoadLevel(P_LevelInfoEx_t* const a_Info, const bool_t a_ApplyOptions)
 {
 #define BUFSIZE 512
+#define LOADSHIFT 6
+#define LOADMASK ((1 << LOADSHIFT) - 1)
 	const WL_WADEntry_t* Entry;
 	WL_EntryStream_t* Stream;
 	vertex_t* VertexP;
@@ -2031,7 +2039,7 @@ bool_t P_ExLoadLevel(P_LevelInfoEx_t* const a_Info, const bool_t a_ApplyOptions)
 	mapthing_t* ThingP;
 	size_t i, j, k;
 	char Buf[BUFSIZE];
-	
+
 	/* Check */
 	if (!a_Info)
 		return false;
@@ -2040,11 +2048,16 @@ bool_t P_ExLoadLevel(P_LevelInfoEx_t* const a_Info, const bool_t a_ApplyOptions)
 	if (devparm)
 		CONL_PrintF("P_ExLoadLevel: Loading \"%s\"...\n", a_Info->LumpName);
 	
+	/* Loading Screen */
+	CONL_LoadingScreenSet(12);
+	
 	/* Clear level data */
+	CONL_LoadingScreenIncrMaj("Clearing level", 0);
 	P_ExClearLevel();
 	
 	/* Load Map Data */
 	// Load vertex data (Non-Textual Format)
+	CONL_LoadingScreenIncrMaj("Loading vertexes", 0);
 	if (!a_Info->Type.Text && (Entry = a_Info->EntryPtr[PLIEDS_VERTEXES]))
 	{
 		// Open stream
@@ -2057,9 +2070,16 @@ bool_t P_ExLoadLevel(P_LevelInfoEx_t* const a_Info, const bool_t a_ApplyOptions)
 			numvertexes = Entry->Size / 4;	// 1 vertex is 4 bytes
 			vertexes = Z_Malloc(sizeof(*vertexes) * numvertexes, PU_LEVEL, (void**)&vertexes);
 			
+			// Set loading screen info
+			CONL_LoadingScreenSetSubEnd(numvertexes >> LOADSHIFT);
+			
 			// Read in data
 			for (i = 0; i < numvertexes && !WL_StreamEOF(Stream); i++)
 			{
+				// Loading screen
+				if ((i & LOADMASK) == 0)
+					CONL_LoadingScreenIncrSub();
+				
 				// Get pointer
 				VertexP = &vertexes[i];
 				
@@ -2077,6 +2097,7 @@ bool_t P_ExLoadLevel(P_LevelInfoEx_t* const a_Info, const bool_t a_ApplyOptions)
 	}
 	
 	// Load sector data (Non-Textual Format)
+	CONL_LoadingScreenIncrMaj("Loading sectors", 0);
 	if (!a_Info->Type.Text && (Entry = a_Info->EntryPtr[PLIEDS_SECTORS]))
 	{
 		// Open stream
@@ -2089,9 +2110,16 @@ bool_t P_ExLoadLevel(P_LevelInfoEx_t* const a_Info, const bool_t a_ApplyOptions)
 			numsectors = Entry->Size / 26;	// 1 sector is 26 bytes
 			sectors = Z_Malloc(sizeof(*sectors) * numsectors, PU_LEVEL, (void**)&sectors);
 			
+			// Set loading screen info
+			CONL_LoadingScreenSetSubEnd(numsectors >> LOADSHIFT);
+			
 			// Read in data
 			for (i = 0; i < numsectors && !WL_StreamEOF(Stream); i++)
 			{
+				// Loading screen
+				if ((i & LOADMASK) == 0)
+					CONL_LoadingScreenIncrSub();
+				
 				// Get pointer
 				SectorP = &sectors[i];
 				
@@ -2123,6 +2151,7 @@ bool_t P_ExLoadLevel(P_LevelInfoEx_t* const a_Info, const bool_t a_ApplyOptions)
 	}
 	
 	// Load Side-Def Data (Non-Textual Format)
+	CONL_LoadingScreenIncrMaj("Loading side defs", 0);
 	if (!a_Info->Type.Text && (Entry = a_Info->EntryPtr[PLIEDS_SIDEDEFS]))
 	{
 		// Open stream
@@ -2135,9 +2164,16 @@ bool_t P_ExLoadLevel(P_LevelInfoEx_t* const a_Info, const bool_t a_ApplyOptions)
 			numsides = Entry->Size / 30;	// 1 sidedef is 30 bytes
 			sides = Z_Malloc(sizeof(*sides) * numsides, PU_LEVEL, (void**)&sides);
 			
+			// Set loading screen info
+			CONL_LoadingScreenSetSubEnd(numsides >> LOADSHIFT);
+			
 			// Read in data
 			for (i = 0; i < numsides && !WL_StreamEOF(Stream); i++)
 			{
+				// Loading screen
+				if ((i & LOADMASK) == 0)
+					CONL_LoadingScreenIncrSub();
+				
 				// Get pointer
 				SideDefP = &sides[i];
 				
@@ -2165,6 +2201,7 @@ bool_t P_ExLoadLevel(P_LevelInfoEx_t* const a_Info, const bool_t a_ApplyOptions)
 	}
 	
 	// Load Line-Def Data (Non-Textual Format)
+	CONL_LoadingScreenIncrMaj("Loading line defs", 0);
 	if (!a_Info->Type.Text && (Entry = a_Info->EntryPtr[PLIEDS_LINEDEFS]))
 	{
 		// Open stream
@@ -2177,9 +2214,16 @@ bool_t P_ExLoadLevel(P_LevelInfoEx_t* const a_Info, const bool_t a_ApplyOptions)
 			numlines = Entry->Size / (a_Info->Type.Hexen ? 16 : 14);	// 1 linedef is 15 bytes (doom) and 16 bytes (hexen)
 			lines = Z_Malloc(sizeof(*lines) * numlines, PU_LEVEL, (void**)&lines);
 			
+			// Set loading screen info
+			CONL_LoadingScreenSetSubEnd(numlines >> LOADSHIFT);
+			
 			// Read in data
 			for (i = 0; i < numlines && !WL_StreamEOF(Stream); i++)
 			{
+				// Loading screen
+				if ((i & LOADMASK) == 0)
+					CONL_LoadingScreenIncrSub();
+				
 				// Get pointer
 				LineDefP = &lines[i];
 				
@@ -2212,21 +2256,8 @@ bool_t P_ExLoadLevel(P_LevelInfoEx_t* const a_Info, const bool_t a_ApplyOptions)
 		}
 	}
 	
-	// Load blockmap
-	if ((Entry = a_Info->EntryPtr[PLIEDS_BLOCKMAP]))
-	{
-		// Open stream
-		Stream = WL_StreamOpen(Entry);
-		
-		// Read in data
-		if (Stream)
-		{
-			// Close stream
-			WL_StreamClose(Stream);
-		}
-	}
-	
 	// Load Sub-Sector Data
+	CONL_LoadingScreenIncrMaj("Loading sub sectors", 0);
 	if ((Entry = a_Info->EntryPtr[PLIEDS_SSECTORS]))
 	{
 		// Open stream
@@ -2239,9 +2270,16 @@ bool_t P_ExLoadLevel(P_LevelInfoEx_t* const a_Info, const bool_t a_ApplyOptions)
 			numsubsectors = Entry->Size / 4;	// 1 subsector is 4 bytes
 			subsectors = Z_Malloc(sizeof(*subsectors) * numsubsectors, PU_LEVEL, (void**)&subsectors);
 			
+			// Set loading screen info
+			CONL_LoadingScreenSetSubEnd(numsubsectors >> LOADSHIFT);
+			
 			// Read in data
 			for (i = 0; i < numsubsectors && !WL_StreamEOF(Stream); i++)
 			{
+				// Loading screen
+				if ((i & LOADMASK) == 0)
+					CONL_LoadingScreenIncrSub();
+				
 				// Get pointer
 				SubSectorP = &subsectors[i];
 				
@@ -2259,6 +2297,7 @@ bool_t P_ExLoadLevel(P_LevelInfoEx_t* const a_Info, const bool_t a_ApplyOptions)
 	}
 	
 	// Load Node Data
+	CONL_LoadingScreenIncrMaj("Loading nodes", 0);
 	if ((Entry = a_Info->EntryPtr[PLIEDS_NODES]))
 	{
 		// Open stream
@@ -2271,9 +2310,16 @@ bool_t P_ExLoadLevel(P_LevelInfoEx_t* const a_Info, const bool_t a_ApplyOptions)
 			numnodes = Entry->Size / 28;	// 1 node is 28 bytes
 			nodes = Z_Malloc(sizeof(*nodes) * numnodes, PU_LEVEL, (void**)&nodes);
 			
+			// Set loading screen info
+			CONL_LoadingScreenSetSubEnd(numnodes >> LOADSHIFT);
+			
 			// Read in data
 			for (i = 0; i < numnodes && !WL_StreamEOF(Stream); i++)
 			{
+				// Loading screen
+				if ((i & LOADMASK) == 0)
+					CONL_LoadingScreenIncrSub();
+				
 				// Get pointer
 				NodeP = &nodes[i];
 				
@@ -2300,6 +2346,7 @@ bool_t P_ExLoadLevel(P_LevelInfoEx_t* const a_Info, const bool_t a_ApplyOptions)
 	}
 	
 	// Load Seg Data
+	CONL_LoadingScreenIncrMaj("Loading segs", 0);
 	if ((Entry = a_Info->EntryPtr[PLIEDS_SEGS]))
 	{
 		// Open stream
@@ -2312,9 +2359,16 @@ bool_t P_ExLoadLevel(P_LevelInfoEx_t* const a_Info, const bool_t a_ApplyOptions)
 			numsegs = Entry->Size / 12;	// 1 seg is 12 bytes
 			segs = Z_Malloc(sizeof(*segs) * numsegs, PU_LEVEL, (void**)&segs);
 			
+			// Set loading screen info
+			CONL_LoadingScreenSetSubEnd(numsegs >> LOADSHIFT);
+			
 			// Read in data
 			for (i = 0; i < numsegs && !WL_StreamEOF(Stream); i++)
 			{
+				// Loading screen
+				if ((i & LOADMASK) == 0)
+					CONL_LoadingScreenIncrSub();
+				
 				// Get pointer
 				SegP = &segs[i];
 				
@@ -2336,6 +2390,7 @@ bool_t P_ExLoadLevel(P_LevelInfoEx_t* const a_Info, const bool_t a_ApplyOptions)
 	}
 	
 	// Load the Block Map
+	CONL_LoadingScreenIncrMaj("Loading block map", 0);
 	if ((Entry = a_Info->EntryPtr[PLIEDS_BLOCKMAP]))
 	{
 		// Open stream
@@ -2350,6 +2405,7 @@ bool_t P_ExLoadLevel(P_LevelInfoEx_t* const a_Info, const bool_t a_ApplyOptions)
 	}
 	
 	// Load the Reject
+	CONL_LoadingScreenIncrMaj("Loading reject", 0);
 	if ((Entry = a_Info->EntryPtr[PLIEDS_REJECT]))
 	{
 		// Open stream
@@ -2362,9 +2418,18 @@ bool_t P_ExLoadLevel(P_LevelInfoEx_t* const a_Info, const bool_t a_ApplyOptions)
 			k = ((numsectors * numsectors) / 8);
 			rejectmatrix = Z_Malloc(sizeof(*rejectmatrix) * k, PU_LEVEL, (void**)&rejectmatrix);
 			
+			// Set loading screen info
+			CONL_LoadingScreenSetSubEnd(k >> LOADSHIFT);
+			
 			// Read in matrix data
 			for (j = 0; j < k; j++)
+			{
+				// Loading screen
+				if ((j & LOADMASK) == 0)
+					CONL_LoadingScreenIncrSub();
+				
 				rejectmatrix[j] = WL_StreamReadUInt8(Stream);
+			}
 			
 			// Close stream
 			WL_StreamClose(Stream);
@@ -2372,9 +2437,11 @@ bool_t P_ExLoadLevel(P_LevelInfoEx_t* const a_Info, const bool_t a_ApplyOptions)
 	}
 	
 	// Munge Node Data
+	CONL_LoadingScreenIncrMaj("Merging renderer data", 0);
 	PS_ExMungeNodeData();
 	
 	// Load Things (Non-Textual Format)
+	CONL_LoadingScreenIncrMaj("Loading thing", 0);
 	if (!a_Info->Type.Text && (Entry = a_Info->EntryPtr[PLIEDS_THINGS]))
 	{
 		// Open stream
@@ -2387,9 +2454,16 @@ bool_t P_ExLoadLevel(P_LevelInfoEx_t* const a_Info, const bool_t a_ApplyOptions)
 			nummapthings = Entry->Size / (a_Info->Type.Hexen ? 20 : 10);	// 1 thing is 10 bytes (doom) and 20 bytes (hexen)
 			mapthings = Z_Malloc(sizeof(*mapthings) * nummapthings, PU_LEVEL, (void**)&mapthings);
 			
+			// Set loading screen info
+			CONL_LoadingScreenSetSubEnd(nummapthings >> LOADSHIFT);
+			
 			// Read thing data
 			for (i = 0; i < nummapthings && !WL_StreamEOF(Stream); i++)
 			{
+				// Loading screen
+				if ((i & LOADMASK) == 0)
+					CONL_LoadingScreenIncrSub();
+				
 				// Get pointer
 				ThingP = &mapthings[i];
 				
@@ -2446,6 +2520,8 @@ bool_t P_ExLoadLevel(P_LevelInfoEx_t* const a_Info, const bool_t a_ApplyOptions)
 	/* Finalize */
 	P_ExFinalizeLevel();
 #undef BUFSIZE
+#undef LOADMASK
+#undef LOADSHIFT
 }
 
 /* P_ExFinalizeLevel() -- Finalizes the level so that it can be joined */
@@ -2459,6 +2535,9 @@ bool_t P_ExFinalizeLevel(void)
 	
 	/* Setup sky */
 	P_SetupLevelSky();
+	
+	// Flat number is the holder F_SKY1
+	skyflatnum = R_GetFlatNumForName("F_SKY1");
 	
 	/* Success! */
 	return true;

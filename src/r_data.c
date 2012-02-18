@@ -140,9 +140,20 @@ void R_FlushTextureCache(void)
 		}
 }
 
+/* R_PatchInfo_t -- Information on a patch */
+typedef struct R_PatchInfo_s
+{
+	/* Per WAD */
+	char Name[9];								// Name of patch
+	uint32_t Hash;								// Hash of patch
+	const WL_WADEntry_t* Entry;					// Entry in WAD
+	V_Image_t* Image;							// Image for this patch
+} R_PatchInfo_t;
+
 /* R_TextureHolder_t -- Holds texture stuff */
 typedef struct R_TextureHolder_s
 {
+	R_PatchInfo_t* PatchInfos;					// Patch information (complex)
 	size_t NumPatches;							// Number of PNAMES in wad
 	char* RealPatchBuf;							// Real patch buffer
 	char** Patches;								// List of names to numbers
@@ -152,6 +163,8 @@ typedef struct R_TextureHolder_s
 	size_t NumTextures;							// Number of textures
 } R_TextureHolder_t;
 
+static R_PatchInfo_t* l_PatchList = NULL;		// List of patches
+static size_t l_NumPatchList;					// Number of patches in list
 static Z_HashTable_t* l_TextureHashes = NULL;
 
 /* RS_TexturePDRemove() -- Remove loaded texture data */
@@ -469,10 +482,6 @@ static bool_t RS_TexturePDCreate(const struct WL_WADFile_s* const a_WAD, const u
 		}
 	}
 	
-	texture_t* Textures;						// Texture Data
-	uint32_t* TextureOffsets;					// Texture offsets
-	size_t NumTextures;							// Number of textures
-	
 	/* Success */
 	return true;
 #undef TEMPNAME
@@ -557,6 +566,9 @@ static bool_t RS_TextureOrderChange(const bool_t a_Pushed, const struct WL_WADFi
 	size_t HolderSize, i, j, z, PutWall, PutFloor, b, n, y, Best;
 	texture_t** TempArray;
 	uintptr_t FoundID;
+	const WL_WADEntry_t* Entry;
+	const WL_WADEntry_t* MStart;
+	const WL_WADEntry_t* MEnd;
 	
 	/* Clear texture count */
 	// Free pointer array
@@ -566,6 +578,14 @@ static bool_t RS_TextureOrderChange(const bool_t a_Pushed, const struct WL_WADFi
 	
 	// Clear count
 	numtextures = 0;
+	
+	// Free patch composite
+	if (l_PatchList)
+		Z_Free(l_PatchList);
+	l_PatchList = NULL;
+	
+	// Clear count
+	l_NumPatchList = 0;
 	
 	// Delete hash table
 	if (l_TextureHashes)
@@ -641,8 +661,6 @@ static bool_t RS_TextureOrderChange(const bool_t a_Pushed, const struct WL_WADFi
 				Holder->Textures[i].Marked = true;
 				y++;
 			}
-			
-			fprintf(stderr, ">> MARKED %u textures.\n", (unsigned)y);
 			
 			// Found new textures to append?
 			if (y)
@@ -749,12 +767,42 @@ static bool_t RS_TextureOrderChange(const bool_t a_Pushed, const struct WL_WADFi
 		// Reference patches
 		for (j = 0; j < textures[i]->patchcount; j++)
 		{
+			// Find entry for this texture
 			textures[i]->patches[j].Entry = WL_FindEntry(NULL, 0, textures[i]->patches[j].PatchName);
 			
 			// No match?
 			if (devparm)
 				if (!textures[i]->patches[j].Entry)
 					CONL_PrintF("Patch without entry %s.\n", textures[i]->patches[j].PatchName);
+				
+			
+				
+			// Hash name
+			Hash = Z_Hash(textures[i]->patches[j].PatchName);
+			
+			// Look through existing list for match
+			for (b = 0; b < l_NumPatchList; b++)
+				if (Hash == l_PatchList[i].Hash)
+					if (strcasecmp(textures[i]->patches[j].PatchName, l_PatchList[i].Name) == 0)
+						break;
+			
+			// Not found, append to back
+			if (b >= l_NumPatchList)
+			{
+				// Resize array
+				Z_ResizeArray((void**)&l_PatchList, sizeof(*l_PatchList), l_NumPatchList, l_NumPatchList + 1);
+				l_NumPatchList += 1;
+				
+				// Fill in info
+				strncpy(l_PatchList[b].Name, textures[i]->patches[j].PatchName, 8);
+				l_PatchList[b].Hash = Hash;
+				
+				// Find the real patch picture that belongs to this
+				l_PatchList[b].Entry = textures[i]->patches[j].Entry;
+			}
+			
+			// Reference it from b (if appended, b is the last)
+			textures[i]->patches[j].PatchListRef = b;
 		}
 	}
 		
@@ -905,6 +953,7 @@ uint8_t* R_GenerateTexture(int texnum)
 	texture_t* Texture;
 	V_Image_t* PatchPic;
 	patch_t* PatchT;
+	R_PatchInfo_t* PInfo;
 	
 	/* Check */
 	if (texnum < 0 || texnum >= numtextures)
@@ -962,14 +1011,15 @@ uint8_t* R_GenerateTexture(int texnum)
 	/* For every patch in the texture, draw */
 	for (p = 0; p < Texture->patchcount; p++)
 	{
-		// Obtain patch image
-		PatchPic = V_ImageLoadE(Texture->patches[p].Entry);
+		// Obtain info
+		PInfo = &l_PatchList[Texture->patches[p].PatchListRef];
+		
+		// Image needs loading?
+		if (!PInfo->Image)
+			PInfo->Image = V_ImageLoadE(PInfo->Entry);
 		
 		// Draw into buffer
-		V_ImageDrawScaledIntoBuffer(VEX_IGNOREOFFSETS, PatchPic, Texture->patches[p].originx, Texture->patches[p].originy, 0, 0, 1 << (FRACBITS), 1 << (FRACBITS), NULL, Buffer, w, w, h, 1 << FRACBITS, 1 << FRACBITS, 1.0, 1.0);
-		
-		// Free patch image
-		V_ImageDestroy(PatchPic);
+		V_ImageDrawScaledIntoBuffer(VEX_IGNOREOFFSETS, PInfo->Image, Texture->patches[p].originx, Texture->patches[p].originy, 0, 0, 1 << (FRACBITS), 1 << (FRACBITS), NULL, Buffer, w, w, h, 1 << FRACBITS, 1 << FRACBITS, 1.0, 1.0);
 	}
 	
 	/* Create column data based on picture */

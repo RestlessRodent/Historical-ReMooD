@@ -3591,7 +3591,13 @@ const struct patch_s* V_ImageGetPatch(V_Image_t* const a_Image, size_t* const a_
 		
 	/* Data already loaded? */
 	if (a_Image->dPatch)
+	{
+		// Change to static
+		Z_ChangeTag(a_Image->dPatch, PU_STATIC);
+		
+		// Return picture
 		return a_Image->dPatch;
+	}
 	
 	/* If the picture is natively a patch_t */
 	// Just load it from the WAD data
@@ -3646,6 +3652,9 @@ const struct patch_s* V_ImageGetPatch(V_Image_t* const a_Image, size_t* const a_
 		// Failed?
 		if (!RawImage)
 			return NULL;
+		
+		// Raw picture not needed anymore
+		Z_ChangeTag(a_Image->dRaw, PU_CACHE);
 	}
 	
 	/* Failure */
@@ -3674,7 +3683,13 @@ const struct pic_s* V_ImageGetPic(V_Image_t* const a_Image, size_t* const a_Byte
 	
 	/* Data already loaded? */
 	if (a_Image->dPic)
-		return a_Image->dPic;
+	{
+		// Change to static
+		Z_ChangeTag(a_Image->dRaw, PU_STATIC);
+		
+		// Return picture
+		return a_Image->dRaw;
+	}
 	
 	/* If the picture is natively a pic_t */
 	// Just load it from the WAD data
@@ -3742,7 +3757,13 @@ uint8_t* V_ImageGetRaw(V_Image_t* const a_Image, size_t* const a_ByteSize)
 	
 	/* Data already loaded? */
 	if (a_Image->dRaw)
+	{
+		// Change to static
+		Z_ChangeTag(a_Image->dRaw, PU_STATIC);
+		
+		// Return raw image
 		return a_Image->dRaw;
+	}
 
 	/* If the picture is natively a raw image */
 	// Just load it from the WAD data (raw is the easiest)
@@ -3825,6 +3846,9 @@ uint8_t* V_ImageGetRaw(V_Image_t* const a_Image, size_t* const a_ByteSize)
 					p++;
 				}
 			}
+			
+			// Patch is no longer needed
+			Z_ChangeTag(a_Image->dPatch, PU_CACHE);
 		}
 	}
 	
@@ -4031,6 +4055,9 @@ void V_ImageDrawScaledIntoBuffer(const uint32_t a_Flags, V_Image_t* const a_Imag
 					memcpy(dP, sP, tW);
 				}
 			}
+		
+		// No longer need image, so mark it as cache
+		Z_ChangeTag(a_Image->dRaw, PU_CACHE);
 	}
 #endif /* __REMOOD_DEDICATED */
 }
