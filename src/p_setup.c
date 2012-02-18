@@ -1954,8 +1954,8 @@ static void PS_ExSegInit(seg_t* const a_Seg)
 	a_Seg->v2 = &vertexes[a_Seg->VertexID[1]];
 	a_Seg->linedef = &lines[a_Seg->LineID];
 	a_Seg->sidedef = &sides[a_Seg->linedef->sidenum[a_Seg->side]];
-	a_Seg->frontsector = a_Seg->linedef->frontsector;
-	a_Seg->backsector = a_Seg->linedef->backsector;
+	a_Seg->frontsector = (a_Seg->side ? a_Seg->linedef->backsector : a_Seg->linedef->frontsector);
+	a_Seg->backsector = (a_Seg->side ? a_Seg->linedef->frontsector : a_Seg->linedef->backsector);
 	
 	/* Initialize */
 	a_Seg->numlights = 0;
