@@ -1983,7 +1983,11 @@ void PS_ExMungeNodeData(void)
 	
 			
 	/* Set loading screen info */
-	CONL_LoadingScreenSetSubEnd(2);
+	CONL_LoadingScreenSetSubEnd(3);
+	
+	/* Initialize block links */
+	CONL_LoadingScreenIncrSub();
+	blocklinks = Z_Malloc(sizeof(*blocklinks) * (bmapwidth * bmapheight), PU_LEVEL, (void**)&blocklinks);
 	
 	/* Reference sectors to subsectors */
 	CONL_LoadingScreenIncrSub();
@@ -2039,6 +2043,7 @@ bool_t P_ExLoadLevel(P_LevelInfoEx_t* const a_Info, const bool_t a_ApplyOptions)
 	mapthing_t* ThingP;
 	size_t i, j, k;
 	char Buf[BUFSIZE];
+	int16_t TempShort;
 
 	/* Check */
 	if (!a_Info)
@@ -2399,6 +2404,45 @@ bool_t P_ExLoadLevel(P_LevelInfoEx_t* const a_Info, const bool_t a_ApplyOptions)
 		// Read in data
 		if (Stream)
 		{
+			// Determine count and allocate
+			if (Entry->Size >= 8)	// Prevent overflow and explode
+				k = (Entry->Size - 8) / 2;
+			else
+				k = 0;
+			
+			// Set loading screen info
+			CONL_LoadingScreenSetSubEnd(k >> LOADSHIFT);
+			
+			blockmaplump = Z_Malloc(sizeof(*blockmap) * (k + 4), PU_LEVEL, (void**)&blockmap);
+			blockmap = blockmaplump + 4;	// Needed for compat
+			
+			// Read blockmap origin
+			blockmaplump[0] = WL_StreamReadLittleInt16(Stream);
+			bmaporgx = ((fixed_t)blockmaplump[0]) <<  FRACBITS;
+			blockmaplump[1] = WL_StreamReadLittleInt16(Stream);
+			bmaporgy = ((fixed_t)blockmaplump[1]) <<  FRACBITS;
+			
+			// Read blockmap size
+			blockmaplump[2] = bmapwidth = ((int32_t)WL_StreamReadLittleUInt16(Stream)) & 0xFFFFU;
+			blockmaplump[3] = bmapheight = ((int32_t)WL_StreamReadLittleUInt16(Stream)) & 0xFFFFU;
+			
+			// Load remaining blockmap data
+			for (i = 0; i < k; i++)
+			{
+				// Loading screen
+				if ((i & LOADMASK) == 0)
+					CONL_LoadingScreenIncrSub();
+				
+				// Load in
+				TempShort = WL_StreamReadLittleInt16(Stream);
+				
+				// Keep -1, but drop everything else
+				if (TempShort == -1)
+					blockmap[i] = -1;
+				else
+					blockmap[i] = ((int32_t)TempShort) & 0xFFFF;
+			}
+			
 			// Close stream
 			WL_StreamClose(Stream);
 		}
@@ -2512,6 +2556,9 @@ bool_t P_ExLoadLevel(P_LevelInfoEx_t* const a_Info, const bool_t a_ApplyOptions)
 	//P_SpawnMobj(32 << FRACBITS, 32 << FRACBITS, 0, MT_TROOP);
 	//P_SpawnMobj(-32 << FRACBITS, -32 << FRACBITS, 0, MT_TROOP);
 #endif
+
+	/* Spawn map specials */
+	P_SpawnSpecials();
 	
 	/* Pre-Finalize */
 	// Set the level time to zero
