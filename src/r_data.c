@@ -894,7 +894,9 @@ uint8_t* R_GetFlat(int flatlumpnum)
 	texture_t* Texture;
 	V_Image_t* Image;
 	uint8_t* FlatData;
-	size_t Size;
+	size_t Size, p;
+	uint32_t w, h;
+	R_PatchInfo_t* PInfo;
 	
 	/* Check */
 	if (flatlumpnum < 0 || flatlumpnum >= numtextures)
@@ -902,38 +904,52 @@ uint8_t* R_GetFlat(int flatlumpnum)
 	
 	/* Reference texture */
 	Texture = textures[flatlumpnum];
+	w = 64;//Texture->width;
+	h = 64;//Texture->height;
 	
 	/* Check if cache exists */
 	if (Texture->FlatCache)
 		return Texture->FlatCache;
 	
+	// Debug
+	if (devparm)
+		CONL_PrintF("R_GetFlat: Generating \"%s\".\n", Texture->name);
+	
 	/* Create cache */
-	Texture->FlatCache = Z_Malloc(64 * 64, PU_STATIC, (void**)&Texture->FlatCache);
+	Texture->FlatCache = Z_Malloc(w * h, PU_STATIC, (void**)&Texture->FlatCache);
 	
 	/* If texture is a flat, return patch_t of it */
 	if (Texture->IsFlat)
 	{
+		// Image already exists?
+		if (Texture->FlatImage)
+			Image = Texture->FlatImage;
+		
 		// Load image
-		Image = V_ImageLoadE(Texture->FlatEntry);
+		else
+			Image = Texture->FlatImage = V_ImageLoadE(Texture->FlatEntry);
 		
-		// Found image?
+		// Draw into buffer
 		if (Image)
-		{
-			// Get flat data
-			FlatData = V_ImageGetRaw(Image, &Size);
-			
-			// Copy raw data
-			memmove(Texture->FlatCache, FlatData, (Size < (64 * 64) ? Size : (64 * 64)));
-		
-			// Destroy image
-			V_ImageDestroy(Image);
-		}
+			V_ImageDrawScaledIntoBuffer(VEX_IGNOREOFFSETS, Image, 0, 0, 0, 0, 1 << (FRACBITS), 1 << (FRACBITS), NULL, Texture->FlatCache, w, w, h, 1 << FRACBITS, 1 << FRACBITS, 1.0, 1.0);
 	}
 	
 	/* Otherwise it is a normal texture with patches */
 	else
 	{
-		memset(Texture->FlatCache, 140 + (flatlumpnum % 10), 64 * 64);
+		// For every patch in the texture, draw
+		for (p = 0; p < Texture->patchcount; p++)
+		{
+			// Obtain info
+			PInfo = &l_PatchList[Texture->patches[p].PatchListRef];
+		
+			// Image needs loading?
+			if (!PInfo->Image)
+				PInfo->Image = V_ImageLoadE(PInfo->Entry);
+		
+			// Draw into buffer
+			V_ImageDrawScaledIntoBuffer(VEX_IGNOREOFFSETS, PInfo->Image, Texture->patches[p].originx, Texture->patches[p].originy, 0, 0, 1 << (FRACBITS), 1 << (FRACBITS), NULL, Texture->FlatCache, w, w, h, 1 << FRACBITS, 1 << FRACBITS, 1.0, 1.0);
+		}
 	}
 	
 	/* Change to static */
@@ -951,9 +967,10 @@ uint8_t* R_GenerateTexture(int texnum)
 	uint32_t w, h, x, y, z;
 	size_t p, c, PatchSize;
 	texture_t* Texture;
-	V_Image_t* PatchPic;
+	V_Image_t* Image;
 	patch_t* PatchT;
 	R_PatchInfo_t* PInfo;
+	size_t Size;
 	
 	/* Check */
 	if (texnum < 0 || texnum >= numtextures)
@@ -983,43 +1000,41 @@ uint8_t* R_GenerateTexture(int texnum)
 	// Clear cache size
 	Texture->CacheSize = 0;
 	
-#if 0
-
-	/* Create initial composite buffer */
-	Texture->Composite = Z_Malloc(sizeof(*Texture->Composite) * w, PU_STATIC, NULL);
-	
-	/* For every patch in the texture slap into the composite cache */
-	// Create cache
-	Texture->Cache = Z_Maloc(PU_CACHE, NULL);
-	
-	// Run through patch
-	for (p = 0; p < Texture->patchcount; p++)
-	{
-		// Obtain patch image
-		PatchSize = 0;
-		PatchPic = V_ImageLoadE(Texture->patches[p].Entry);
-		PatchT = V_ImageGetPatch(PatchPic, &PatchSize);
-		
-		// Resize cache to slap in
-	}
-
-#else	
-
 	/* Allocate buffer based on size */
 	Buffer = Z_Malloc(sizeof(*Buffer) * (w * h), PU_STATIC, NULL);
 	
-	/* For every patch in the texture, draw */
-	for (p = 0; p < Texture->patchcount; p++)
+	/* Drawing a flat? */
+	if (Texture->IsFlat)
 	{
-		// Obtain info
-		PInfo = &l_PatchList[Texture->patches[p].PatchListRef];
+		// Image already exists?
+		if (Texture->FlatImage)
+			Image = Texture->FlatImage;
 		
-		// Image needs loading?
-		if (!PInfo->Image)
-			PInfo->Image = V_ImageLoadE(PInfo->Entry);
+		// Load image
+		else
+			Image = Texture->FlatImage = V_ImageLoadE(Texture->FlatEntry);
 		
 		// Draw into buffer
-		V_ImageDrawScaledIntoBuffer(VEX_IGNOREOFFSETS, PInfo->Image, Texture->patches[p].originx, Texture->patches[p].originy, 0, 0, 1 << (FRACBITS), 1 << (FRACBITS), NULL, Buffer, w, w, h, 1 << FRACBITS, 1 << FRACBITS, 1.0, 1.0);
+		if (Image)
+			V_ImageDrawScaledIntoBuffer(VEX_IGNOREOFFSETS, Image, 0, 0, 0, 0, 1 << (FRACBITS), 1 << (FRACBITS), NULL, Buffer, w, w, h, 1 << FRACBITS, 1 << FRACBITS, 1.0, 1.0);
+	}
+	
+	/* Drawing a wall? */
+	else
+	{
+		// For every patch in the texture, draw
+		for (p = 0; p < Texture->patchcount; p++)
+		{
+			// Obtain info
+			PInfo = &l_PatchList[Texture->patches[p].PatchListRef];
+		
+			// Image needs loading?
+			if (!PInfo->Image)
+				PInfo->Image = V_ImageLoadE(PInfo->Entry);
+		
+			// Draw into buffer
+			V_ImageDrawScaledIntoBuffer(VEX_IGNOREOFFSETS, PInfo->Image, Texture->patches[p].originx, Texture->patches[p].originy, 0, 0, 1 << (FRACBITS), 1 << (FRACBITS), NULL, Buffer, w, w, h, 1 << FRACBITS, 1 << FRACBITS, 1.0, 1.0);
+		}
 	}
 	
 	/* Create column data based on picture */
@@ -1049,8 +1064,6 @@ uint8_t* R_GenerateTexture(int texnum)
 	
 	/* No longer need the buffer */
 	Z_Free(Buffer);
-
-#endif
 	
 	/* Return cache */
 	return Texture->Cache;

@@ -252,3 +252,86 @@ MapThing "DoomPlayer"
 	}
 }
 
+// ************
+// *** KEYS ***
+// ************
+
+MapKey "BlueCard"
+{
+	Color "Blue";
+	Icon "stkeys0";
+}
+
+MapKey "BlueSkull";
+{
+	Color "Blue";
+	Icon "stkeys3";
+}
+
+MapKey "YellowCard"
+{
+	Color "Yellow";
+	Icon "stkeys1";
+}
+
+MapKey "YellowSkull";
+{
+	Color "Yellow";
+	Icon "stkeys4";
+}
+
+MapKey "RedCard"
+{
+	Color "Red";
+	Icon "stkeys2";
+}
+
+MapKey "RedSkull";
+{
+	Color "Red";
+	Icon "stkeys5";
+}
+
+// ************
+// *** AMMO ***
+// ************
+
+MapAmmo "Clip"
+{
+	ClipSize "10";
+	MaxAmmo "200";
+}
+
+MapAmmo "Shell"
+{
+	ClipSize "4";
+	MaxAmmo "50";
+}
+
+MapAmmo "Cell"
+{
+	ClipSize "20";
+	MaxAmmo "300";
+}
+
+MapAmmo "Rocket"
+{
+	ClipSize "1";
+	MaxAmmo "50";
+}
+
+MapAmmo "Unlimited"
+{
+	ClipSize "0";
+	MaxAmmo "0";
+}
+
+// ***************
+// *** WEAPONS ***
+// ***************
+
+// **********************
+// *** TOUCH SPECIALS ***
+// **********************
+
+

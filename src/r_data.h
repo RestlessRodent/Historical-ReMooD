@@ -124,6 +124,7 @@ typedef struct
 	uint32_t CacheSize;							// Size of cache
 	void* FlatEntry;							// Entry for flat
 	bool_t Marked;								// Marked?
+	void* FlatImage;							// Image for flat
 } texture_t;
 
 // all loaded and prepared textures from the start of the game
