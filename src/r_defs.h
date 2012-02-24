@@ -715,7 +715,29 @@ typedef struct vissprite_s
 	int Priority;				// Priority of object to be seen
 	int BasePriority;			// Base Priority of object
 	
+	// GhostlyDeath <February 24, 2012> -- Image to draw
+	void* Image;								// Image to draw for sprite
+	
 } vissprite_t;
+
+/* R_SpriteInfoEx_t -- Extended sprite information */
+typedef struct R_SpriteInfoEx_s
+{
+	char Name[5];								// Sprite name
+	uint32_t Code;								// Sprite code name
+	int8_t Frame[2];							// Frame of sprite (2 possible)
+	int8_t Rotation[2];							// Rotation (0 = all, 1.. = rest)
+	bool_t Double;								// Double frames
+	bool_t Init;								// Data initialized?
+	
+	fixed_t Width;								// Width of sprite
+	fixed_t Offset;								// Offset of sprite (x axis)
+	fixed_t TopOffset;							// Offset of sprite (y axis)
+	fixed_t Height;								// Height of sprite
+	
+	struct V_Image_s* Image;					// Cached image info
+	struct WL_WADEntry_s* Entry;				// Entry for sprite image
+} R_SpriteInfoEx_t;
 
 //
 // Sprites are patches with a special naming convention
@@ -746,6 +768,9 @@ typedef struct
 	// Flip bit (1 = flip) to use for view angles 0-7.
 	uint8_t flip[8];
 	
+	// GhostlyDeath <February 21, 2012> -- Extended dynamic sprites
+	R_SpriteInfoEx_t* ExAngles[16];				// Extended frame pointers
+	bool_t ExFlip[16];							// Flip sprites?
 } spriteframe_t;
 
 //
@@ -756,6 +781,7 @@ typedef struct
 	int numframes;
 	spriteframe_t* spriteframes;
 	
+	uint32_t Code;								// Sprite code name
 } spritedef_t;
 
 #define BORIS_FIX

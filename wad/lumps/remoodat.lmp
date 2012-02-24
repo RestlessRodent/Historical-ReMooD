@@ -334,4 +334,57 @@ MapAmmo "Unlimited"
 // *** TOUCH SPECIALS ***
 // **********************
 
+MapTouchSpecial "ARM1"
+{
+	Message "DEP_GOTARMOR";
+	ArmorClass "1";
+	ArmorAmount "100";
+	IsCapNormStat "true";
+	IsCapMaxStat "true";
+	IsGreaterArmorClass "true";
+}
+
+MapTouchSpecial "ARM2"
+{
+	Message "DEP_GOTMEGA";
+	ArmorClass "2";
+	ArmorAmount "200";
+	IsCapMaxStat "true";
+	IsGreaterArmorClass "true";
+}
+
+MapTouchSpecial "BON1"
+{
+	Message "DEP_GOTHTHBONUS";
+	HealthAmount "1";
+	IsCapMaxStat "true";
+}
+
+MapTouchSpecial "BON2"
+{
+	Message "DEP_GOTARMBONUS";
+	ArmorClass "1";
+	ArmorAmount "1";
+	IsCapMaxStat "true";
+	IsGreaterArmorClass "true";
+}
+
+MapTouchSpecial "SOUL"
+{
+	Message "DEP_GOTSUPER";
+	HealthAmount "100";
+	IsCapMaxStat "true";
+	Sound "getpow";
+}
+
+MapTouchSpecial "MEGA"
+{
+	Message "DEP_GOTMSPHERE";
+	HealthAmount "200";
+	ArmorClass "2";
+	ArmorAmount "200";
+	IsCapMaxStat "true";
+	IsGreaterArmorClass "true";
+	Sound "getpow";
+}
 

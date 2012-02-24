@@ -153,6 +153,7 @@ typedef struct R_PatchInfo_s
 /* R_TextureHolder_t -- Holds texture stuff */
 typedef struct R_TextureHolder_s
 {
+	/* Walls and Floors */
 	R_PatchInfo_t* PatchInfos;					// Patch information (complex)
 	size_t NumPatches;							// Number of PNAMES in wad
 	char* RealPatchBuf;							// Real patch buffer
@@ -161,6 +162,10 @@ typedef struct R_TextureHolder_s
 	texture_t* Textures;						// Texture Data
 	uint32_t* TextureOffsets;					// Texture offsets
 	size_t NumTextures;							// Number of textures
+	
+	/* Sprites */
+	size_t NumSpriteInfo;						// Number of sprites
+	R_SpriteInfoEx_t* SpriteInfo;				// Sprite information
 } R_TextureHolder_t;
 
 static R_PatchInfo_t* l_PatchList = NULL;		// List of patches
@@ -213,6 +218,10 @@ static bool_t RS_GetMarkers(const WL_WADFile_t* const a_WAD, const char* const a
 }
 
 /* RS_TexturePDCreate() -- Create texture data for WADs */
+// Not only does this do textures, it does sprites also.
+// I thought about putting sprite loaders in a separate function but putting it
+// here would simplify things. Sprites are needed for the server anyway, at
+// least for scripting and pickups.
 static bool_t RS_TexturePDCreate(const struct WL_WADFile_s* const a_WAD, const uint32_t a_Key, void** const a_DataPtr, size_t* const a_SizePtr, WL_RemoveFunc_t* const a_RemoveFuncPtr)
 {
 #define TEMPNAME 9
@@ -482,6 +491,90 @@ static bool_t RS_TexturePDCreate(const struct WL_WADFile_s* const a_WAD, const u
 		}
 	}
 	
+	/* Process sprites */
+	Entry = MStart = MEnd = NULL;
+	
+	// Attempt flat marker location
+	if (!RS_GetMarkers(a_WAD, "S_START", "S_END", &MStart, &MEnd))
+		if (!RS_GetMarkers(a_WAD, "SS_START", "S_END", &MStart, &MEnd))
+			if (!RS_GetMarkers(a_WAD, "S_START", "SS_END", &MStart, &MEnd))
+				RS_GetMarkers(a_WAD, "SS_START", "SS_END", &MStart, &MEnd);
+	
+	// Read list of sprites
+	if (MStart && MEnd)
+	{
+		// Create sprite info array
+		Holder->NumSpriteInfo = MEnd->Index - MStart->Index;
+		Holder->SpriteInfo = Z_Malloc(sizeof(*Holder->SpriteInfo) * Holder->NumSpriteInfo, PU_STATIC, (void**)&Holder->SpriteInfo);
+		
+		// Read in sprites by lumps
+		for (i = 0, Entry = MStart; Entry && Entry != MEnd; Entry = Entry->NextEntry)
+		{
+			// Check name length (nnnnFR or nnnnFRFR)
+			z = strlen(Entry->Name);
+			
+			if (z != 6 && z != 8)
+				continue;
+			
+			// Check for legal state/frame
+			c = toupper(Entry->Name[4]);
+			if (c < 'A' || c > '`')
+				continue;
+			
+			c = toupper(Entry->Name[5]);
+			if (!((c >= '0' && c <= '9') || (c >= 'A' && c <= 'G')))
+				continue;
+			
+			// Check second
+			if (z == 8)
+			{
+				c = toupper(Entry->Name[6]);
+				if (c < 'A' || c > '`')
+					continue;
+				
+				c = toupper(Entry->Name[7]);
+				if (!((c >= '0' && c <= '9') || (c >= 'A' && c <= 'G')))
+					continue;
+			}
+			
+			// Copy name (to uppercase) and create code
+			Holder->SpriteInfo[i].Code = 0;
+			for (j = 0; j < 4; j++)
+			{
+				c = toupper(Entry->Name[j]);
+				
+				Holder->SpriteInfo[i].Name[j] = c;
+				Holder->SpriteInfo[i].Code |= ((uint32_t)c) << (8 * j);
+			}
+			
+			// Determine frame and rotation
+			for (j = 0; j < 2; j++)
+			{
+				// Frame requires no real checking
+				c = toupper(Entry->Name[4 + (j * 2)]);
+				Holder->SpriteInfo[i].Frame[j] = c - 'A';
+				
+				// Rotation does however
+				c = toupper(Entry->Name[5 + (j * 2)]);
+				if (c >= '0' || c <= '9')
+					Holder->SpriteInfo[i].Rotation[j] = c - '0';
+				else
+					Holder->SpriteInfo[i].Rotation[j] = (c - 'A') + 10;
+			}
+			
+			// Mark double?
+			Holder->SpriteInfo[i].Double = false;
+			if (z == 8)
+				Holder->SpriteInfo[i].Double = true;
+			
+			// Place entry
+			Holder->SpriteInfo[i].Entry = Entry;
+			
+			// Increment i
+			i++;
+		}
+	}
+	
 	/* Success */
 	return true;
 #undef TEMPNAME
@@ -563,12 +656,16 @@ static bool_t RS_TextureOrderChange(const bool_t a_Pushed, const struct WL_WADFi
 	uint32_t OrderMul, Hash;
 	R_TextureHolder_t* Holder;
 	bool_t First;
-	size_t HolderSize, i, j, z, PutWall, PutFloor, b, n, y, Best;
+	size_t HolderSize, i, j, k, z, PutWall, PutFloor, b, n, y, Best;
 	texture_t** TempArray;
 	uintptr_t FoundID;
 	const WL_WADEntry_t* Entry;
 	const WL_WADEntry_t* MStart;
 	const WL_WADEntry_t* MEnd;
+	R_SpriteInfoEx_t* ThisInfo;
+	spritedef_t* ThisDef;
+	spriteframe_t* ThisFrame;
+	uint32_t Code;
 	
 	/* Clear texture count */
 	// Free pointer array
@@ -805,9 +902,204 @@ static bool_t RS_TextureOrderChange(const bool_t a_Pushed, const struct WL_WADFi
 			textures[i]->patches[j].PatchListRef = b;
 		}
 	}
+	
+	/* Merge sprite information */
+	// This turns R_SpriteInfoEx_t -> spritedef_t + spriteframe_t
+	for (Rover = WL_IterateVWAD(NULL, true); Rover; Rover = WL_IterateVWAD(Rover, true))
+	{
+		// Obtain texture info
+		Holder = WL_GetPrivateData(Rover, WLDK_TEXTURES, &HolderSize);
+		
+		// No sprites?
+		if (!Holder->NumSpriteInfo)
+			continue;
+		
+		// Go through every sprite
+		for (i = 0; i < Holder->NumSpriteInfo; i++)
+		{
+			// Base pointers
+			ThisInfo = &Holder->SpriteInfo[i];
+			ThisDef = NULL;
+			
+			// Try to find sprite def with the same definition
+			for (j = 0; j < g_NumExSprites; j++)
+				if (g_ExSprites[j].Code == ThisInfo->Code)
+				{
+					ThisDef = &g_ExSprites[j];
+					break;
+				}
+			
+			// Was it not found? append to end
+			if (!ThisDef)
+			{
+				// Resize and slap at the end
+				Z_ResizeArray((void**)&g_ExSprites, sizeof(*g_ExSprites), g_NumExSprites, g_NumExSprites + 1);
+				
+				// Get the very end
+				ThisDef = &g_ExSprites[g_NumExSprites++];
+				
+				// Place code here
+				ThisDef->Code = ThisInfo->Code;
+				
+				// Create frame stuff
+				ThisDef->numframes = MAXEXSPRITEFRAMES;
+				ThisDef->spriteframes = Z_Malloc(sizeof(*ThisDef->spriteframes) * ThisDef->numframes, PU_STATIC, NULL);
+			}
+			
+			// Go through each single or double set
+			for (j = 0; j < 1 + (ThisInfo->Double ? 1 : 0); j++)
+			{
+				// Frame out of bounds?
+				if (ThisInfo->Frame[j] < 0 || ThisInfo->Frame[j] >= MAXEXSPRITEFRAMES)
+					continue;
+				
+				// Get frame ref
+				ThisFrame = &ThisDef->spriteframes[ThisInfo->Frame[j]];
+				
+				// All rotations?
+				if (ThisInfo->Rotation[j] == 0)
+				{
+					// Set all to this
+					for (k = 0; k < 16; k++)
+					{
+						ThisFrame->ExAngles[k] = ThisInfo;
+						ThisFrame->ExFlip[k] = !!j;
+					}
+				}
+				
+				// A single rotation
+				else
+				{
+					// Only set a single rotation
+					k = ThisInfo->Rotation[j] - 1;
+					
+					// Check bounds
+					if (k >= 0 && k < 16)
+					{
+						ThisFrame->ExAngles[k] = ThisInfo;
+						ThisFrame->ExFlip[k] = !!j;
+					}
+				}
+			}
+		}
+	}
+	
+#if 0
+		Holder->NumSpriteInfo = MEnd->Index - MStart->Index;
+		Holder->SpriteInfo = Z_Malloc(sizeof(*Holder->SpriteInfo) * Holder->NumSpriteInfo, PU_STATIC, (void**)&Holder->SpriteInfo);
+		
+		extern size_t g_NumExSprites;
+		extern spritedef_t* g_ExSprites;
+		
+		char Name[5];								// Sprite name
+		int8_t Frame[2];							// Frame of sprite (2 possible)
+		int8_t Rotation[2];							// Rotation (0 = all, 1.. = rest)
+		bool_t Double;
+		bool_t Init;								// Data initialized?
+
+		fixed_t Width;								// Width of sprite
+		fixed_t Offset;								// Offset of sprite (x axis)
+		fixed_t TopOffset;							// Offset of sprite (y axis)
+		fixed_t Height;								// Height of sprite
+
+		V_Image_t* Image;							// Cached image info
+		struct WL_WADEntry_s* Entry;				// Entry for sprite image
+		
+		typedef struct
+		{
+			bool_t rotate;
+			
+			int lumppat[8];				// lump number 16:16 wad:lump
+			short lumpid[8];			// id in the spriteoffset,spritewidth.. tables
+	
+			uint8_t flip[8];
+	
+			// GhostlyDeath <February 21, 2012> -- Extended dynamic sprites
+			R_SpriteInfoEx_t* ExAngles[16];				// Extended frame pointers
+			bool_t ExFlip[16];							// Flip sprites?
+		} spriteframe_t;
+		
+		typedef struct
+		{
+			int numframes;
+			spriteframe_t* spriteframes;
+			
+			uint32_t Code;								// Sprite code name
+		} spritedef_t;
+#endif
+	
+	// Map to sprites[numsprites] (which requires spritenum_t compat)
+	// Once info.[ch] is shed away, this can be removed.
+	// The states in info.[ch] uses sprites along with sprnames to determine
+	// the sprite to draw.
+	if (sprites)
+		Z_Free(sprites);
+	sprites = NULL;
+	
+	numsprites = NUMSPRITES;
+	sprites = Z_Malloc(sizeof(*sprites) * numsprites, PU_STATIC, (void**)&sprites);
+	
+	for (i = 0; i < numsprites; i++)
+	{
+		// Get code name for this sprite
+		Code = 0;
+		for (j = 0; j < 4; j++)
+			Code |= ((uint32_t)toupper(sprnames[i][j])) << (8 * j);
+		
+		// Find matching code
+		for (j = 0; j < g_NumExSprites; j++)
+		{
+			char ba[5] = {0, 0, 0, 0, 0};
+			char bb[5] = {0, 0, 0, 0, 0};
+			
+			memcpy(ba, &g_ExSprites[j].Code, 4);
+			memcpy(bb, &Code, 4);
+			
+			if (g_ExSprites[j].Code == Code)
+			{
+				sprites[i] = g_ExSprites[j];
+				fprintf(stderr, "%i == %i; %8x %s == %8x %s [%p %p]\n", j, i, g_ExSprites[j].Code, ba, Code, bb, sprites[i], g_ExSprites[j]);
+				break;
+			}
+		}
+	}
 		
 	/* Success */
 	return true;
+}
+
+/* R_InitExSpriteInfo() -- Initialize extended sprite info */
+void R_InitExSpriteInfo(R_SpriteInfoEx_t* const a_Info)
+{
+	int32_t w, h, xo, yo;
+	
+	/* Check */
+	if (!a_Info)
+		return;
+	
+	/* Already initted? */
+	if (a_Info->Init)
+		return;
+	
+	/* Get image from entry */
+	a_Info->Image = V_ImageLoadE(a_Info->Entry);
+	
+	// Get properties
+	if (a_Info->Image)
+	{
+		// Get from image
+		w = h = xo = yo = 0;
+		V_ImageSizePos(a_Info->Image, &w, &h, &xo, &yo);
+		
+		// Set to info
+		a_Info->Width = w << FRACBITS;
+		a_Info->Height = h << FRACBITS;
+		a_Info->Offset = xo << FRACBITS;
+		a_Info->TopOffset = yo << FRACBITS;
+	}
+	
+	/* Set to initialized */
+	a_Info->Init = true;
 }
 
 /* R_CheckTextureNumForName() -- Find texture by name */
@@ -1198,55 +1490,6 @@ void R_InitFlats()
 	// GhostlyDeath <December 14, 2011> -- The flat code will be unified with
 	// the texture code. This will allow textures as flats and vice versa. It
 	// also helps unify it for future OpenGLization.
-#if 0
-	WadIndex_t startnum;
-	WadIndex_t endnum;
-	int onef;
-	WadFile_t* wad;
-	uint32_t i;
-	
-	numflatlists = 0;
-	flats = NULL;
-	
-	for (i = 0; i < W_NumWadFiles(); i++)
-	{
-		wad = W_GetWadForNum(i);
-		
-		startnum = endnum = INVALIDLUMP;
-		
-		onef = 0;
-		startnum = W_CheckNumForNamePwadPtr("F_START", wad, 0);
-		
-		if (startnum == INVALIDLUMP)
-			startnum = W_CheckNumForNamePwadPtr("FF_START", wad, 0);
-		else
-			onef = 1;
-			
-		// GhostlyDeath <June 21, 2009> -- Deutex and such does not use FF_END, it uses F_END! wtf!
-		if (startnum != INVALIDLUMP)
-		{
-			// F_START never ends in FF_END!
-			if (!onef)
-				endnum = W_CheckNumForNamePwadPtr("FF_END", wad, 0);
-				
-			if (onef || endnum == INVALIDLUMP)
-				endnum = W_CheckNumForNamePwadPtr("F_END", wad, 0);
-		}
-		
-		if (startnum != INVALIDLUMP && endnum != INVALIDLUMP && endnum > startnum)
-		{
-			CONL_PrintF("R_InitFlats: Registered %i flats in %s.\n", endnum - startnum - 1, wad->FileName);
-			flats = (lumplist_t*) realloc(flats, sizeof(lumplist_t) * (numflatlists + 1));
-			flats[numflatlists].WadFile = wad;
-			flats[numflatlists].firstlump = startnum - W_LumpsSoFar(wad);
-			flats[numflatlists].numlumps = (endnum - startnum);
-			numflatlists++;
-		}
-	}
-	
-	if (!numflatlists)
-		I_Error("R_InitFlats: No flats found!\n");
-#endif
 }
 
 size_t g_SpritesBufferSize = 0;	// GhostlyDeath <July 24, 2011> -- Unlimited sprites! not really

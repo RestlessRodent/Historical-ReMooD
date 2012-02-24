@@ -80,6 +80,12 @@ extern int numspritelumps;
 extern int numsprites;
 extern spritedef_t* sprites;
 
+// GhostlyDeath <February 24, 2012> -- Extended sprites
+extern size_t g_NumExSprites;
+extern spritedef_t* g_ExSprites;
+
+#define MAXEXSPRITEFRAMES 29
+
 extern int numvertexes;
 extern vertex_t* vertexes;
 

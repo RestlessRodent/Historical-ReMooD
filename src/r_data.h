@@ -166,4 +166,6 @@ char* R_ColormapNameForNum(int num);
 
 void R_SetSpriteLumpCount(const size_t a_Count);
 
+void R_InitExSpriteInfo(R_SpriteInfoEx_t* const a_Info);
+
 #endif

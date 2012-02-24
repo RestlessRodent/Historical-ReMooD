@@ -106,6 +106,10 @@ short* screenheightarray = NULL;
 spritedef_t* sprites;
 int numsprites;
 
+// GhostlyDeath <February 24, 2012> -- Extended sprites
+size_t g_NumExSprites;
+spritedef_t* g_ExSprites;
+
 #define MAXSPRITEFRAMES 29
 
 spriteframe_t sprtemp[MAXSPRITEFRAMES];
@@ -395,6 +399,7 @@ static vissprite_t* vissprite_p;
 //
 void R_InitSprites(char** namelist)
 {
+#if 0
 	int i;
 	char** check;
 	
@@ -437,6 +442,7 @@ void R_InitSprites(char** namelist)
 	   if (sprites[i].numframes<1)
 	   CONL_PrintF ("R_InitSprites: sprite %s has no frames at all\n", sprnames[i]);
 	 */
+#endif
 }
 
 //
@@ -605,7 +611,8 @@ static void R_DrawVisSprite(vissprite_t* vis, int x1, int x2)
 	patch_t* patch = NULL;
 	
 	//Fab:R_InitSprites now sets a wad lump number
-	patch = W_CacheLumpNum(vis->patch, PU_CACHE);
+	//patch = W_CacheLumpNum(vis->patch, PU_CACHE);
+	patch = V_ImageGetPatch(vis->Image, NULL);
 	
 	if (!patch)
 		return;
@@ -663,10 +670,10 @@ static void R_DrawVisSprite(vissprite_t* vis, int x1, int x2)
 	{
 		texturecolumn = frac >> FRACBITS;
 #ifdef RANGECHECK
-		if (texturecolumn < 0 || texturecolumn >= LittleSwapInt16(patch->width))
+		if (texturecolumn < 0 || texturecolumn >= (patch->width))
 			I_Error("R_DrawSpriteRange: bad texturecolumn");
 #endif
-		column = (column_t*) (((uint8_t*)patch) + LittleSwapInt32(patch->columnofs[texturecolumn]));
+		column = (column_t*) (((uint8_t*)patch) + (patch->columnofs[texturecolumn]));
 		R_DrawMaskedColumn(column);
 	}
 	
@@ -676,6 +683,7 @@ static void R_DrawVisSprite(vissprite_t* vis, int x1, int x2)
 //
 // R_SplitSprite
 // runs through a sector's lightlist and
+//                                       does what?
 static void R_SplitSprite(vissprite_t* sprite, mobj_t* thing)
 {
 	int i, lightnum, index;
@@ -792,6 +800,8 @@ static void R_ProjectSprite(mobj_t* thing)
 	angle_t ang;
 	fixed_t iscale;
 	
+	R_SpriteInfoEx_t* SprInfo;
+	
 	//SoM: 3/17/2000
 	fixed_t gzt;
 	int heightsec;
@@ -849,15 +859,21 @@ static void R_ProjectSprite(mobj_t* thing)
 	
 	if (!sprframe)
 		return;					// GhostlyDeath: Just Don't draw it...
-		
+
+#if defined(__REMOOD_USESPRROTATE)
 	if (sprframe->rotate)
 	{
+#endif
 		// choose a different rotation based on player view
 		ang = R_PointToAngle(thing->x, thing->y);
 		rot = (ang - thing->angle + (unsigned)(ANG45 / 2) * 9) >> 29;
 		//Fab: lumpid is the index for spritewidth,spriteoffset... tables
 		lump = sprframe->lumpid[rot];
 		flip = (bool_t)sprframe->flip[rot];
+		
+		SprInfo = sprframe->ExAngles[rot];
+		flip = sprframe->ExFlip[rot];
+#if defined(__REMOOD_USESPRROTATE)
 	}
 	else
 	{
@@ -865,17 +881,24 @@ static void R_ProjectSprite(mobj_t* thing)
 		rot = 0;				//Fab: for vis->patch below
 		lump = sprframe->lumpid[0];	//Fab: see note above
 		flip = (bool_t)sprframe->flip[0];
+		
+		SprInfo = sprframe->ExAngles[0];
+		flip = sprframe->ExFlip[0];
 	}
+#endif
+
+	// Initialize sprite
+	R_InitExSpriteInfo(SprInfo);
 	
 	// calculate edges of the shape
-	tx -= spriteoffset[lump];
+	tx -= SprInfo->Offset;
 	x1 = (centerxfrac + FixedMul(tx, xscale)) >> FRACBITS;
 	
 	// off the right side?
 	if (x1 > viewwidth)
 		return;
 		
-	tx += spritewidth[lump];
+	tx += SprInfo->Width;
 	x2 = ((centerxfrac + FixedMul(tx, xscale)) >> FRACBITS) - 1;
 	
 	// off the left side
@@ -883,7 +906,7 @@ static void R_ProjectSprite(mobj_t* thing)
 		return;
 		
 	//SoM: 3/17/2000: Disreguard sprites that are out of view..
-	gzt = thing->z + spritetopoffset[lump];
+	gzt = thing->z + SprInfo->Offset;
 	
 	if (thing->subsector->sector->numlights)
 	{
@@ -926,7 +949,7 @@ static void R_ProjectSprite(mobj_t* thing)
 	vis->scale = yscale;		//<<detailshift;
 	vis->gx = thing->x;
 	vis->gy = thing->y;
-	vis->gz = gzt - spriteheight[lump];
+	vis->gz = gzt - SprInfo->Height;
 	vis->gzt = gzt;
 	vis->thingheight = thing->height;
 	vis->pz = thing->z;
@@ -952,7 +975,7 @@ static void R_ProjectSprite(mobj_t* thing)
 	
 	if (flip)
 	{
-		vis->startfrac = spritewidth[lump] - 1;
+		vis->startfrac = SprInfo->Width - 1;
 		vis->xiscale = -iscale;
 	}
 	else
@@ -966,7 +989,7 @@ static void R_ProjectSprite(mobj_t* thing)
 		
 	//Fab: lumppat is the lump number of the patch to use, this is different
 	//     than lumpid for sprites-in-pwad : the graphics are patched
-	vis->patch = sprframe->lumppat[rot];
+	vis->Image = SprInfo->Image;
 	
 //
 // determine the colormap (lightlevel & special effects)
@@ -1158,6 +1181,7 @@ void R_DrawPSprite(pspdef_t* psp)
 		vis->startfrac += vis->xiscale * (vis->x1 - x1);
 		
 	//Fab: see above for more about lumpid,lumppat
+	vis->Image = NULL;
 	vis->patch = sprframe->lumppat[0];
 	vis->transmap = NULL;
 	if (viewplayer->mo->flags & MF_SHADOW)	// invisibility effect
