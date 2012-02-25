@@ -744,6 +744,7 @@ static bool_t RS_TextureOrderChange(const bool_t a_Pushed, const struct WL_WADFi
 				Holder->Textures[i].Marked = false;
 				
 				// See if the texture already exists
+				memset(&TCF, 0, sizeof(TCF));
 				TCF.Name = Holder->Textures[i].name;
 				TCF.CheckFlat = Holder->Textures[i].IsFlat;
 				Hash = Z_Hash(Holder->Textures[i].name);
@@ -1114,6 +1115,7 @@ int R_CheckTextureNumForName(char* name)
 		return 0;
 	
 	/* Create TCF and hash name */
+	memset(&TCF, 0, sizeof(TCF));
 	TCF.Name = name;
 	Hash = Z_Hash(name);
 	
@@ -1156,6 +1158,7 @@ int R_GetFlatNumForName(char* name)
 		return 0;
 	
 	/* Create TCF and hash name */
+	memset(&TCF, 0, sizeof(TCF));
 	TCF.Name = name;
 	TCF.CheckFlat = true;
 	Hash = Z_Hash(name);

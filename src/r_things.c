@@ -906,7 +906,7 @@ static void R_ProjectSprite(mobj_t* thing)
 		return;
 		
 	//SoM: 3/17/2000: Disreguard sprites that are out of view..
-	gzt = thing->z + SprInfo->Offset;
+	gzt = thing->z + SprInfo->TopOffset;
 	
 	if (thing->subsector->sector->numlights)
 	{
@@ -1108,6 +1108,7 @@ void R_DrawPSprite(pspdef_t* psp)
 	bool_t flip;
 	vissprite_t* vis;
 	vissprite_t avis;
+	R_SpriteInfoEx_t* SprInfo;
 	
 	// decide which patch to use
 #ifdef RANGECHECK
@@ -1128,8 +1129,12 @@ void R_DrawPSprite(pspdef_t* psp)
 #endif
 		
 	//Fab: see the notes in R_ProjectSprite about lumpid,lumppat
+	SprInfo = sprframe->ExAngles[0];
 	lump = sprframe->lumpid[0];
-	flip = (bool_t)sprframe->flip[0];
+	flip = (bool_t)sprframe->ExFlip[0];
+	
+	// Initialize sprite
+	R_InitExSpriteInfo(SprInfo);
 	
 	// calculate edges of the shape
 	
@@ -1138,14 +1143,15 @@ void R_DrawPSprite(pspdef_t* psp)
 	
 	//added:02-02-98:spriteoffset should be abs coords for psprites, based on
 	//               320x200
-	tx -= spriteoffset[lump];
+	
+	tx -= SprInfo->Offset;
 	x1 = (centerxfrac + FixedMul(tx, pspritescale)) >> FRACBITS;
 	
 	// off the right side
 	if (x1 > viewwidth)
 		return;
 		
-	tx += spritewidth[lump];
+	tx += SprInfo->Width;
 	x2 = ((centerxfrac + FixedMul(tx, pspritescale)) >> FRACBITS) - 1;
 	
 	// off the left side
@@ -1156,9 +1162,9 @@ void R_DrawPSprite(pspdef_t* psp)
 	vis = &avis;
 	vis->mobjflags = 0;
 	if (cv_splitscreen.value == 1)
-		vis->texturemid = (120 << (FRACBITS)) + FRACUNIT / 2 - (psp->sy - spritetopoffset[lump]);
+		vis->texturemid = (120 << (FRACBITS)) + FRACUNIT / 2 - (psp->sy - SprInfo->TopOffset);
 	else
-		vis->texturemid = (BASEYCENTER << FRACBITS) + FRACUNIT / 2 - (psp->sy - spritetopoffset[lump]);
+		vis->texturemid = (BASEYCENTER << FRACBITS) + FRACUNIT / 2 - (psp->sy - SprInfo->TopOffset);
 		
 	//vis->texturemid += FRACUNIT/2;
 	
@@ -1169,7 +1175,7 @@ void R_DrawPSprite(pspdef_t* psp)
 	if (flip)
 	{
 		vis->xiscale = -pspriteiscale;
-		vis->startfrac = spritewidth[lump] - 1;
+		vis->startfrac = SprInfo->Width - 1;
 	}
 	else
 	{
@@ -1182,7 +1188,8 @@ void R_DrawPSprite(pspdef_t* psp)
 		
 	//Fab: see above for more about lumpid,lumppat
 	vis->Image = NULL;
-	vis->patch = sprframe->lumppat[0];
+	//vis->patch = sprframe->lumppat[0];
+	vis->Image = SprInfo->Image;
 	vis->transmap = NULL;
 	if (viewplayer->mo->flags & MF_SHADOW)	// invisibility effect
 	{
