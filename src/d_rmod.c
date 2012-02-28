@@ -38,7 +38,10 @@
 #include "console.h"
 #include "z_zone.h"
 #include "w_wad.h"
+
+// RMOD Handlers are here
 #include "v_widget.h"
+#include "p_spec.h"
 
 /****************
 *** CONSTANTS ***
@@ -105,6 +108,21 @@ static const D_RMODHandler_t c_RMODHandlers[NUMDRMODPRIVATES] =
 		"menu",
 		M_MenuExRMODHandle,
 		M_MenuExRMODOrder,
+	},
+	
+	/* Specials */
+	// Sectors
+	{
+		"MapSectorSpecial",
+		P_RMODH_Specials,
+		P_RMODO_Specials,
+	},
+	
+	// Lines
+	{
+		"MapLineSpecial",
+		P_RMODH_Specials,
+		NULL,//P_RMODO_Specials,
 	},
 };
 
@@ -395,7 +413,8 @@ static bool_t DS_RMODPDC(const struct WL_WADFile_s* const a_WAD, const uint32_t 
 						if (strcasecmp(TokVals[0], c_RMODHandlers[i].TableType) == 0)
 						{
 							// Call handler
-							if (!c_RMODHandlers[i].HandleFunc(CurrentTable, a_WAD, i, &Stuff->Private[i]))
+							if (c_RMODHandlers[i].HandleFunc)
+								if (!c_RMODHandlers[i].HandleFunc(CurrentTable, a_WAD, i, &Stuff->Private[i]))
 								CONL_PrintF("DS_RMODPDC: Handler for \"%s\" failed.\n", TokVals[0]);
 							
 							// No more handling needed
@@ -577,9 +596,10 @@ static bool_t DS_RMODOCCB(const bool_t a_Pushed, const struct WL_WADFile_s* cons
 	
 	/* Call each order notifier */
 	for (i = 0; i < NUMDRMODPRIVATES; i++)
-		if (!c_RMODHandlers[i].OrderFunc(a_Pushed, a_WAD, i))
-			if (devparm)
-				CONL_PrintF("DS_RMODOCCB: Order change for \"%s\" failed.\n", c_RMODHandlers[i].TableType);
+		if (c_RMODHandlers[i].OrderFunc)
+			if (!c_RMODHandlers[i].OrderFunc(a_Pushed, a_WAD, i))
+				if (devparm)
+					CONL_PrintF("DS_RMODOCCB: Order change for \"%s\" failed.\n", c_RMODHandlers[i].TableType);
 	
 	/* Success! */
 	return true;

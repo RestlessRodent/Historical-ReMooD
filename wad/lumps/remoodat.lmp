@@ -262,7 +262,7 @@ MapKey "BlueCard"
 	Icon "stkeys0";
 }
 
-MapKey "BlueSkull";
+MapKey "BlueSkull"
 {
 	Color "Blue";
 	Icon "stkeys3";
@@ -274,7 +274,7 @@ MapKey "YellowCard"
 	Icon "stkeys1";
 }
 
-MapKey "YellowSkull";
+MapKey "YellowSkull"
 {
 	Color "Yellow";
 	Icon "stkeys4";
@@ -286,7 +286,7 @@ MapKey "RedCard"
 	Icon "stkeys2";
 }
 
-MapKey "RedSkull";
+MapKey "RedSkull"
 {
 	Color "Red";
 	Icon "stkeys5";
@@ -386,5 +386,20 @@ MapTouchSpecial "MEGA"
 	IsCapMaxStat "true";
 	IsGreaterArmorClass "true";
 	Sound "getpow";
+}
+
+// ***********************
+// *** SECTOR SPECIALS ***
+// ***********************
+
+MapSectorSpecial "Doom1"
+{
+	IsDoom "true";
+	TypeId "1";
+	
+	LightEffect "EffectA"
+	{
+		LightLang "rmd_ll_a";
+	}
 }
 

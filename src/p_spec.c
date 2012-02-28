@@ -2420,15 +2420,129 @@ void P_AddFFloor(sector_t* sec, ffloor_t* ffloor)
 // SPECIAL SPAWNING
 //
 
-//
-// P_SpawnSpecials
-// After the map has been loaded, scan for specials
-//  that spawn thinkers
-//
+/* P_RMODSpecialEffect_t -- RMOD Special Effect */
+typedef struct P_RMODSpecialEffect_s
+{
+	union
+	{
+		struct
+		{
+			bool_t OnFloor;						// [s] Damage when on floor
+			bool_t OnCeiling;					// [s] Damage when on ceiling
+			bool_t In3DFloor;					// [s] Damage when inside 3D Floor (swimming?)
+			bool_t InSector;					// [s] Damage when inside sector (but not 3D floor)
+			bool_t DelaySync;					// [s] true == Damage at gametic % Delay, false == damage at (gametic - playerentertic) % Delay
+			tic_t Delay;						// [s] [s] Delay damage
+			int32_t Damage;						// [*] Damage to deal every Delay tics
+		} Damage;								// Damage effect
+	} Data;										// Effect Data
+} P_RMODSpecialEffect_t;
+
+/* P_RMODSpecialInfo_t -- RMOD Special */
+typedef struct P_RMODSpecialInfo_s
+{
+	bool_t IsLine;								// Is a line special?
+	uint32_t TypeID;							// Type ID (activator)
+	
+	size_t NumEffects;							// Number of effects
+	P_RMODSpecialEffect_t* Effects;				// Effects
+	
+	union
+	{
+		struct
+		{
+		} Line;									// Line Data
+		
+		struct
+		{
+		} Sector;								// Sector Data
+	} Data;										// Data
+} P_RMODSpecialInfo_t;
+
+/* P_RMODSpecials_t -- RMOD Specials */
+typedef struct P_RMODSpecials_s
+{
+	size_t NumInfos;							// Number of infos
+	P_RMODSpecialInfo_t* Infos;					// Info table
+} P_RMODSpecials_t;
+
+/* P_RMODH_Specials() -- Handles all specials */
+bool_t P_RMODH_Specials(Z_Table_t* const a_Table, const WL_WADFile_t* const a_WAD, const D_RMODPrivates_t a_ID, D_RMODPrivate_t* const a_Private)
+{
+	const char* Value;
+	P_RMODSpecialInfo_t TempInfo;
+	
+	/* Create specials list */
+	a_Private->Size = sizeof(P_RMODSpecials_t);
+	a_Private->Data = Z_Malloc(a_Private->Size, PU_STATIC, (void**)&a_Private->Data);
+	
+	/* Clear */
+	memset(&TempInfo, 0, sizeof(TempInfo));
+	
+	/* Which special ID to handle? */
+	switch (a_ID)
+	{
+			// Sector specials
+		case DRMODP_SPECSECTOR:
+			// Type ID is required!
+			if (!(Value = Z_TableGetValue(a_Table, "TypeId")))
+				return false;
+			
+			return true;
+			
+			// Line specials
+		case DRMODP_SPECLINE:
+			// Type ID is required!
+			if (!(Value = Z_TableGetValue(a_Table, "TypeId")))
+				return false;
+			
+			return true;
+		
+			// Unknown
+		default:
+			return false;
+	}
+}
+
+/* P_RMODO_Specials() -- Order for specials */
+bool_t P_RMODO_Specials(const bool_t a_Pushed, const struct WL_WADFile_s* const a_WAD, const D_RMODPrivates_t a_ID)
+{
+	/* Only allow from sector */
+	if (a_ID != DRMODP_SPECSECTOR)
+		return true;		// Fake true
+	
+	/* Succes */
+	return true;
+}
 
 // Parses command line parameters.
+/* P_SpawnSpecials() -- Spawns sector specials (damagers, lights, floors, etc.) */
 void P_SpawnSpecials(void)
 {
+#if 1
+	size_t i;
+	sector_t* Sector;
+	
+	/* Re-initialize */
+	//SoM: 3/8/2000: Boom level init functions
+	P_RemoveAllActiveCeilings();
+	P_RemoveAllActivePlats();
+	for (i = 0; i < MAXBUTTONS; i++)
+		memset(&buttonlist[i], 0, sizeof(button_t));
+		
+	P_InitTagLists();			//Create xref tables for tags
+	
+	/* Go through sectors looking for specials */
+	for (i = 0; i < numsectors; i++)
+	{
+		// Get sector
+		Sector = &sectors[i];
+		
+		// No sector special?
+		if (!Sector->special)
+			continue;
+	}
+#else
 	sector_t* sector;
 	int i;
 	int episode;
@@ -2658,6 +2772,7 @@ void P_SpawnSpecials(void)
 				}
 		}
 	}
+#endif
 }
 
 /*

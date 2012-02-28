@@ -1,0 +1,23 @@
+ifgt rega 0
+begin
+	decr rega
+	restart
+end
+
+ifset flag
+begin
+	copy rgb adjmin
+	rand rega
+	and rega 7
+	add rega 1
+	clear flag
+end
+else
+begin
+	copy rgb basell
+	rand rega
+	and rega 64
+	add rega 1
+	set flag
+end
+

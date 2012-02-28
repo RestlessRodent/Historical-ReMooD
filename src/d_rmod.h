@@ -48,7 +48,11 @@
 typedef enum D_RMODPrivates_e
 {
 	DRMODP_WIDGET,								// Widgets
-	DRMODP_MENU,								// Menu related stuff	
+	DRMODP_MENU,								// Menu related stuff
+	
+	/* Specials (Lines/Sectors) */
+	DRMODP_SPECSECTOR,							// "MapSectorSpecial"
+	DRMODP_SPECLINE,							// "MapLineSpecial"
 	
 	NUMDRMODPRIVATES
 } D_RMODPrivates_t;
@@ -77,3 +81,4 @@ D_RMODPrivate_t* D_GetRMODPrivate(const WL_WADFile_t* const a_WAD, const D_RMODP
 bool_t D_RMODGetBool(const char* const a_Str);
 
 #endif							/* __D_RMOD_H__ */
+

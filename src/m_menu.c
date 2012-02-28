@@ -1196,6 +1196,10 @@ static bool_t MS_MenuExRMODTableCB(Z_Table_t* const a_Sub, void* const a_Data)
 	// Obtain
 	Value = Z_TableName(a_Sub);
 	
+	// Not an item?
+	if (strncasecmp(Value, "item#", 5) != 0)
+		return false;
+	
 	// Knock off #
 	Value = strchr(Value, '#');
 	

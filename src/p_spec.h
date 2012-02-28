@@ -36,6 +36,8 @@
 #ifndef __P_SPEC__
 #define __P_SPEC__
 
+#include "d_rmod.h"
+
 //      Define values for map objects
 #define MO_TELEPORTMAN          14
 
@@ -1009,4 +1011,8 @@ void P_AmbientSound(void);
 void P_AddAmbientSfx(int sequence);
 void P_InitAmbientSound(void);
 
+bool_t P_RMODH_Specials(Z_Table_t* const a_Table, const WL_WADFile_t* const a_WAD, const D_RMODPrivates_t a_ID, D_RMODPrivate_t* const a_Private);
+bool_t P_RMODO_Specials(const bool_t a_Pushed, const struct WL_WADFile_s* const a_WAD, const D_RMODPrivates_t a_ID);
+
 #endif
+
