@@ -2420,9 +2420,45 @@ void P_AddFFloor(sector_t* sec, ffloor_t* ffloor)
 // SPECIAL SPAWNING
 //
 
+/* P_RMODSpecialEffectType_t -- Type of special effect to cause */
+typedef enum P_RMODSpecialEffectType_e
+{
+	PRSE_DAMAGE,								// Damage
+	PRSE_LIGHT,									// Lighting
+	PRSE_DOOR,									// Door
+	PRSE_LIFT,									// Lift
+	PRSE_FLOORMOVER,							// Floor movement
+	PRSE_CEILINGMOVER,							// Ceiling movement
+	PRSE_WEATHER,								// Modify the weather
+	PRSE_SCROLLER,								// Scrolling thing
+	
+	NUMPRMODSPECEFFECTTYPES
+} P_RMODSpecialEffectType_t;
+
+/* P_RMODSpecialTrigger_t -- Triggers for specials */
+typedef enum P_RMODSpecialTrigger_e
+{
+	PRST_WALK,									// Walk trigger (walk over)
+	PRST_MANUAL,								// Door-like trigger
+	PRST_HITSCAN,								// Hitscan
+	PRST_SWITCH,								// Switch
+	
+	NUMPRMODSPECTRIGGERS
+} P_RMODSpecialTrigger_t;
+
 /* P_RMODSpecialEffect_t -- RMOD Special Effect */
 typedef struct P_RMODSpecialEffect_s
 {
+	/* Line Only */
+	bool_t Repeatable;							// Can be repeated
+	bool_t Triggers[NUMPRMODSPECTRIGGERS];		// Triggers to activate
+	bool_t TriggerSides[2];						// Side to trigger on
+	
+	/* Sector Only */
+	
+	/* Lines and Sectors */
+	P_RMODSpecialEffectType_t Type;				// Type of effect
+	
 	union
 	{
 		struct
@@ -2466,6 +2502,11 @@ typedef struct P_RMODSpecials_s
 	P_RMODSpecialInfo_t* Infos;					// Info table
 } P_RMODSpecials_t;
 
+/* PS_RMODSpecialEffects() -- Handles effects for specials */
+static bool_t PS_RMODSpecialEffects(Z_Table_t* const a_Sub, void* const a_Data)
+{
+}
+
 /* P_RMODH_Specials() -- Handles all specials */
 bool_t P_RMODH_Specials(Z_Table_t* const a_Table, const WL_WADFile_t* const a_WAD, const D_RMODPrivates_t a_ID, D_RMODPrivate_t* const a_Private)
 {
@@ -2479,23 +2520,23 @@ bool_t P_RMODH_Specials(Z_Table_t* const a_Table, const WL_WADFile_t* const a_WA
 	/* Clear */
 	memset(&TempInfo, 0, sizeof(TempInfo));
 	
+	/* General Stuff */
+	// Type ID is required!
+	if (!(Value = Z_TableGetValue(a_Table, "TypeId")))
+		return false;
+	
+	// Handle effects
+	//Z_TableSuperCallback(a_Table, PS_RMODSpecialEffects, (void*)TempMenu);
+	
 	/* Which special ID to handle? */
 	switch (a_ID)
 	{
 			// Sector specials
 		case DRMODP_SPECSECTOR:
-			// Type ID is required!
-			if (!(Value = Z_TableGetValue(a_Table, "TypeId")))
-				return false;
-			
 			return true;
 			
 			// Line specials
 		case DRMODP_SPECLINE:
-			// Type ID is required!
-			if (!(Value = Z_TableGetValue(a_Table, "TypeId")))
-				return false;
-			
 			return true;
 		
 			// Unknown
@@ -2519,7 +2560,7 @@ bool_t P_RMODO_Specials(const bool_t a_Pushed, const struct WL_WADFile_s* const 
 /* P_SpawnSpecials() -- Spawns sector specials (damagers, lights, floors, etc.) */
 void P_SpawnSpecials(void)
 {
-#if 1
+#if 0
 	size_t i;
 	sector_t* Sector;
 	
