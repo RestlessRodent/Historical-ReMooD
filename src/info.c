@@ -670,19 +670,19 @@ state_t states[NUMSTATES] =
 	{SPR_TROO, 8, 6, {NULL}, S_TROO_RUN1, STP_MONSTERS},	// S_TROO_RAISE5
 	{SPR_SARG, 0, 10, {A_Look}, S_SARG_STND2, STP_MONSTERS},	// S_SARG_STND
 	{SPR_SARG, 1, 10, {A_Look}, S_SARG_STND, STP_MONSTERS},	// S_SARG_STND2
-	{SPR_SARG, 0, 2, {A_Chase}, S_SARG_RUN2, STP_MONSTERS},	// S_SARG_RUN1
-	{SPR_SARG, 0, 2, {A_Chase}, S_SARG_RUN3, STP_MONSTERS},	// S_SARG_RUN2
-	{SPR_SARG, 1, 2, {A_Chase}, S_SARG_RUN4, STP_MONSTERS},	// S_SARG_RUN3
-	{SPR_SARG, 1, 2, {A_Chase}, S_SARG_RUN5, STP_MONSTERS},	// S_SARG_RUN4
-	{SPR_SARG, 2, 2, {A_Chase}, S_SARG_RUN6, STP_MONSTERS},	// S_SARG_RUN5
-	{SPR_SARG, 2, 2, {A_Chase}, S_SARG_RUN7, STP_MONSTERS},	// S_SARG_RUN6
-	{SPR_SARG, 3, 2, {A_Chase}, S_SARG_RUN8, STP_MONSTERS},	// S_SARG_RUN7
-	{SPR_SARG, 3, 2, {A_Chase}, S_SARG_RUN1, STP_MONSTERS},	// S_SARG_RUN8
-	{SPR_SARG, 4, 8, {A_FaceTarget}, S_SARG_ATK2, STP_MONSTERS},	// S_SARG_ATK1
-	{SPR_SARG, 5, 8, {A_FaceTarget}, S_SARG_ATK3, STP_MONSTERS},	// S_SARG_ATK2
-	{SPR_SARG, 6, 8, {A_SargAttack}, S_SARG_RUN1, STP_MONSTERS},	// S_SARG_ATK3
-	{SPR_SARG, 7, 2, {NULL}, S_SARG_PAIN2, STP_MONSTERS},	// S_SARG_PAIN
-	{SPR_SARG, 7, 2, {A_Pain}, S_SARG_RUN1, STP_MONSTERS},	// S_SARG_PAIN2
+	{SPR_SARG, 0, 2, {A_Chase}, S_SARG_RUN2, STP_MONSTERS, 1},	// S_SARG_RUN1
+	{SPR_SARG, 0, 2, {A_Chase}, S_SARG_RUN3, STP_MONSTERS, 1},	// S_SARG_RUN2
+	{SPR_SARG, 1, 2, {A_Chase}, S_SARG_RUN4, STP_MONSTERS, 1},	// S_SARG_RUN3
+	{SPR_SARG, 1, 2, {A_Chase}, S_SARG_RUN5, STP_MONSTERS, 1},	// S_SARG_RUN4
+	{SPR_SARG, 2, 2, {A_Chase}, S_SARG_RUN6, STP_MONSTERS, 1},	// S_SARG_RUN5
+	{SPR_SARG, 2, 2, {A_Chase}, S_SARG_RUN7, STP_MONSTERS, 1},	// S_SARG_RUN6
+	{SPR_SARG, 3, 2, {A_Chase}, S_SARG_RUN8, STP_MONSTERS, 1},	// S_SARG_RUN7
+	{SPR_SARG, 3, 2, {A_Chase}, S_SARG_RUN1, STP_MONSTERS, 1},	// S_SARG_RUN8
+	{SPR_SARG, 4, 8, {A_FaceTarget}, S_SARG_ATK2, STP_MONSTERS, 4},	// S_SARG_ATK1
+	{SPR_SARG, 5, 8, {A_FaceTarget}, S_SARG_ATK3, STP_MONSTERS, 4},	// S_SARG_ATK2
+	{SPR_SARG, 6, 8, {A_SargAttack}, S_SARG_RUN1, STP_MONSTERS, 4},	// S_SARG_ATK3
+	{SPR_SARG, 7, 2, {NULL}, S_SARG_PAIN2, STP_MONSTERS, 1},	// S_SARG_PAIN
+	{SPR_SARG, 7, 2, {A_Pain}, S_SARG_RUN1, STP_MONSTERS, 1},	// S_SARG_PAIN2
 	{SPR_SARG, 8, 8, {NULL}, S_SARG_DIE2, STP_CORPSES},	// S_SARG_DIE1
 	{SPR_SARG, 9, 8, {A_Scream}, S_SARG_DIE3, STP_CORPSES},	// S_SARG_DIE2
 	{SPR_SARG, 10, 4, {NULL}, S_SARG_DIE4, STP_CORPSES},	// S_SARG_DIE3
@@ -1648,7 +1648,12 @@ mobjinfo_t mobjinfo[NUMMOBJTYPES] =
 		8,							// damage
 		sfx_None,					// activesound
 		MF_NOBLOCKMAP | MF_MISSILE | MF_DROPOFF | MF_NOGRAVITY,	// flags
-		S_NULL						// raisestate
+		S_NULL,						// raisestate
+		0,							// flags2
+		
+		// ReMooD Extended
+		{MFREXA_ENABLEFASTSPEED, 0, 0, 0},
+		20,
 	},
 	{
 		// MT_KNIGHT
@@ -2053,7 +2058,12 @@ mobjinfo_t mobjinfo[NUMMOBJTYPES] =
 		3,							// damage
 		sfx_None,					// activesound
 		MF_NOBLOCKMAP | MF_MISSILE | MF_DROPOFF | MF_NOGRAVITY,	// flags
-		S_NULL						// raisestate
+		S_NULL,						// raisestate
+		0,							// flags2
+		
+		// ReMooD Extended
+		{MFREXA_ENABLEFASTSPEED, 0, 0, 0},
+		20,
 	},
 	{
 		// MT_HEADSHOT
@@ -2080,7 +2090,12 @@ mobjinfo_t mobjinfo[NUMMOBJTYPES] =
 		5,							// damage
 		sfx_None,					// activesound
 		MF_NOBLOCKMAP | MF_MISSILE | MF_DROPOFF | MF_NOGRAVITY,	// flags
-		S_NULL						// raisestate
+		S_NULL,						// raisestate
+		0,							// flags2
+		
+		// ReMooD Extended
+		{MFREXA_ENABLEFASTSPEED, 0, 0, 0},
+		20,
 	},
 	{
 		// MT_ROCKET

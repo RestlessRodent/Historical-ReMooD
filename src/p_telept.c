@@ -97,8 +97,8 @@ bool_t P_Teleport(mobj_t* thing, fixed_t x, fixed_t y, angle_t angle)
 	thing->angle = angle;
 	if (thing->flags & MF_MISSILE)
 	{
-		thing->momx = FixedMul(thing->info->speed, finecosine[an]);
-		thing->momy = FixedMul(thing->info->speed, finesine[an]);
+		thing->momx = FixedMul(__REMOOD_GETSPEEDMO(thing), finecosine[an]);
+		thing->momy = FixedMul(__REMOOD_GETSPEEDMO(thing), finesine[an]);
 	}
 	else
 		thing->momx = thing->momy = thing->momz = 0;

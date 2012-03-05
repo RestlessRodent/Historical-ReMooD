@@ -2,3 +2,7 @@ Problems with ReMooD that are critical:
 
  * In R_InitColormaps(), colormaps should be 256 * NUMCOLORMAPS, this is completely ignored and the COLORMAP lump is loaded in an array of size lump. Although there is no corruption, if the COLORMAP is too small then array accesses will run off the array and cause strange colors.
 
+ * In P_SpawnMissile(), with predicting monsters, if the missile speed is zero then the game will divide by zero and crash.
+
+ * In A_Tracer(), if the missile (tracer) speed is zero the game will crash.
+

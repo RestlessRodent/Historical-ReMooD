@@ -273,6 +273,18 @@ typedef enum
 	MF_NOZCHECKING = 32,
 } mobjeflag_t;
 
+/* mobjflagrexa_t -- Extended flag group A  */
+// GhostlyDeath <March 4, 2012> -- Extended flags here
+typedef enum mobjflagrexa_e
+{
+	MFREXA_ENABLEFASTSPEED		= 0x00000001U,	// Allow RFastSpeed
+} mobjflagrexa_t;
+
+// GhostlyDeath <March 4, 2012> -- About all this stuff underneath, i'm thinking
+// of removing it since it changes all the pre-existing flag stuff. Even though
+// I had previously migrated most of everything to this new setup it was a pain
+// in the ass. So now I am just deciding to just add some more fields instead.
+
 typedef enum
 {
 	MFXA_AREFEETCLIPPED = 0x00000001,
@@ -546,6 +558,10 @@ typedef struct mobj_s
 	uint32_t XFlagsB;
 	uint32_t XFlagsC;
 	uint32_t XFlagsD;
+	
+	/*** RMOD EXTENDED SUPPORT ***/
+	// New Flags
+	uint32_t RXFlags[NUMINFORXFIELDS];		// ReMooD Extended Flags
 	
 	// Owners
 #if 0

@@ -120,7 +120,13 @@ bool_t P_SetMobjState(mobj_t* mobj, statenum_t state)
 		
 		st = &states[state];
 		mobj->state = st;
-		mobj->tics = st->tics;
+		
+		// GhostlyDeath <March 5, 2012> -- Remove hack in p_enemy -fast onchange
+		if (cv_fastmonsters.value && st->RMODFastTics)
+			mobj->tics = st->RMODFastTics;
+		else
+			mobj->tics = st->tics;
+		
 		mobj->sprite = st->sprite;
 		mobj->frame = st->frame;
 		
@@ -990,6 +996,7 @@ mobj_t* P_SpawnMobj(fixed_t x, fixed_t y, fixed_t z, mobjtype_t type)
 	mobj_t* mobj;
 	state_t* st;
 	mobjinfo_t* info;
+	int i;
 	
 	mobj = Z_Malloc(sizeof(*mobj), PU_LEVEL, NULL);
 	memset(mobj, 0, sizeof(*mobj));
@@ -1003,6 +1010,9 @@ mobj_t* P_SpawnMobj(fixed_t x, fixed_t y, fixed_t z, mobjtype_t type)
 	mobj->height = info->height;
 	mobj->flags = info->flags;
 	mobj->flags2 = info->flags2;
+	
+	for (i = 0; i < NUMINFORXFIELDS; i++)
+		mobj->RXFlags[i] = info->RXFlags[i];
 	
 	mobj->health = info->spawnhealth;
 	
@@ -1896,9 +1906,11 @@ mobj_t* P_SpawnMissile(mobj_t* source, mobj_t* dest, mobjtype_t type)
 		int time, t;
 		subsector_t* sec;
 		
+		// TODO FIXME: If someone specifies a speed of zero the game will crash!
+		
 		dist = P_AproxDistance(dest->x - source->x, dest->y - source->y);
-		time = dist / th->info->speed;
-		time = P_AproxDistance(dest->x + dest->momx * time - source->x, dest->y + dest->momy * time - source->y) / th->info->speed;
+		time = dist / __REMOOD_GETSPEEDMO(th);
+		time = P_AproxDistance(dest->x + dest->momx * time - source->x, dest->y + dest->momy * time - source->y) / __REMOOD_GETSPEEDMO(th);
 		
 		canHit = false;
 		t = time + 4;
@@ -1932,8 +1944,8 @@ mobj_t* P_SpawnMissile(mobj_t* source, mobj_t* dest, mobjtype_t type)
 			
 		th->angle = an;
 		an >>= ANGLETOFINESHIFT;
-		th->momx = FixedMul(th->info->speed, finecosine[an]);
-		th->momy = FixedMul(th->info->speed, finesine[an]);
+		th->momx = FixedMul(__REMOOD_GETSPEEDMO(th), finecosine[an]);
+		th->momy = FixedMul(__REMOOD_GETSPEEDMO(th), finesine[an]);
 		
 		if (t < 1)
 			t = 1;
@@ -1952,11 +1964,11 @@ mobj_t* P_SpawnMissile(mobj_t* source, mobj_t* dest, mobjtype_t type)
 		
 		th->angle = an;
 		an >>= ANGLETOFINESHIFT;
-		th->momx = FixedMul(th->info->speed, finecosine[an]);
-		th->momy = FixedMul(th->info->speed, finesine[an]);
+		th->momx = FixedMul(__REMOOD_GETSPEEDMO(th), finecosine[an]);
+		th->momy = FixedMul(__REMOOD_GETSPEEDMO(th), finesine[an]);
 		
 		dist = P_AproxDistance(dest->x - source->x, dest->y - source->y);
-		dist = dist / th->info->speed;
+		dist = dist / __REMOOD_GETSPEEDMO(th);
 		
 		if (dist < 1)
 			dist = 1;
@@ -2036,8 +2048,8 @@ mobj_t* P_SPMAngle(mobj_t* source, mobjtype_t type, angle_t angle)
 	th->target = source;
 	
 	th->angle = an;
-	th->momx = FixedMul(th->info->speed, finecosine[an >> ANGLETOFINESHIFT]);
-	th->momy = FixedMul(th->info->speed, finesine[an >> ANGLETOFINESHIFT]);
+	th->momx = FixedMul(__REMOOD_GETSPEEDMO(th), finecosine[an >> ANGLETOFINESHIFT]);
+	th->momy = FixedMul(__REMOOD_GETSPEEDMO(th), finesine[an >> ANGLETOFINESHIFT]);
 	
 	if (demoversion >= 128)
 	{
@@ -2045,7 +2057,7 @@ mobj_t* P_SPMAngle(mobj_t* source, mobjtype_t type, angle_t angle)
 		th->momx = FixedMul(th->momx, finecosine[source->player->aiming >> ANGLETOFINESHIFT]);
 		th->momy = FixedMul(th->momy, finecosine[source->player->aiming >> ANGLETOFINESHIFT]);
 	}
-	th->momz = FixedMul(th->info->speed, slope);
+	th->momz = FixedMul(__REMOOD_GETSPEEDMO(th), slope);
 	
 	slope = P_CheckMissileSpawn(th);
 	

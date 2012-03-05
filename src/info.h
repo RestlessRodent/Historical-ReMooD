@@ -1193,6 +1193,9 @@ typedef struct
 	statenum_t nextstate;
 	
 	uint8_t Priority;			// View priority of the state
+	
+	// GhostlyDeath <March 5, 2012> -- To RMOD Deprecation
+	int32_t RMODFastTics;						// Tics when -fast
 } state_t;
 
 extern state_t states[NUMSTATES];
@@ -1360,6 +1363,8 @@ typedef enum
 	NUMMOBJTYPES
 } mobjtype_t;
 
+#define NUMINFORXFIELDS 4		// Prevents unwanted magic
+
 typedef struct
 {
 	int doomednum;
@@ -1387,6 +1392,10 @@ typedef struct
 	int flags;
 	int raisestate;
 	int flags2;					// from heretic/hexen
+	
+	// RMOD Extended Support
+	uint32_t RXFlags[NUMINFORXFIELDS];		// ReMooD Extended Flags
+	int32_t RFastSpeed;			// Speed when -fast
 } mobjinfo_t;
 
 extern mobjinfo_t mobjinfo[NUMMOBJTYPES];
@@ -1395,4 +1404,14 @@ extern char* MT2MTString[NUMMOBJTYPES];
 
 void P_PatchInfoTables(void);
 
+/*** HELPFUL MACROS ***/
+// Yuck! TODO: Make these real functions
+
+// __REMOOD_GETSPEEDMO -- Get speed of mobj, note that getting the flag from the
+// mobj is intentional. Why? So in -fast you could make certain monsters fast
+// and not others with the same type. You could have a slowdown type weapon that
+// when used with fast monsters negates the fast speed?
+#define __REMOOD_GETSPEEDMO(mo) ((((mo)->RXFlags[0] & MFREXA_ENABLEFASTSPEED) && cv_fastmonsters.value) ? (mo)->info->RFastSpeed : (mo)->info->speed)
+
 #endif
+

@@ -85,59 +85,6 @@ void A_Fall(mobj_t* actor);
 
 void FastMonster_OnChange(void)
 {
-	static bool_t fast = false;
-	static const struct
-	{
-		mobjtype_t type;
-		int speed[2];
-	} MonsterMissileInfo[] =
-	{
-		// doom
-		{
-			MT_BRUISERSHOT,
-			{
-				15, 20
-			}
-		},
-		{
-			MT_HEADSHOT,
-			{
-				10, 20
-			}
-		},
-		{
-			MT_TROOPSHOT,
-			{
-				10, 20
-			}
-		},
-		{
-			-1,
-			{
-				-1, -1
-			}
-		}						// Terminator
-	};
-	
-	int i;
-	
-	if (cv_fastmonsters.value && !fast)
-	{
-		for (i = S_SARG_RUN1; i <= S_SARG_PAIN2; i++)
-			states[i].tics >>= 1;
-		fast = true;
-	}
-	else if (!cv_fastmonsters.value && fast)
-	{
-		for (i = S_SARG_RUN1; i <= S_SARG_PAIN2; i++)
-			states[i].tics <<= 1;
-		fast = false;
-	}
-	
-	for (i = 0; MonsterMissileInfo[i].type != -1; i++)
-	{
-		mobjinfo[MonsterMissileInfo[i].type].speed = MonsterMissileInfo[i].speed[cv_fastmonsters.value] << FRACBITS;
-	}
 }
 
 //
@@ -324,8 +271,8 @@ static bool_t P_Move(mobj_t* actor)
 		I_Error("Weird actor->movedir!");
 #endif
 		
-	tryx = actor->x + actor->info->speed * xspeed[actor->movedir];
-	tryy = actor->y + actor->info->speed * yspeed[actor->movedir];
+	tryx = actor->x + __REMOOD_GETSPEEDMO(actor) * xspeed[actor->movedir];
+	tryy = actor->y + __REMOOD_GETSPEEDMO(actor) * yspeed[actor->movedir];
 	
 	if (!P_TryMove(actor, tryx, tryy, false))
 	{
@@ -1065,13 +1012,13 @@ void A_Tracer(mobj_t* actor)
 	}
 	
 	exact = actor->angle >> ANGLETOFINESHIFT;
-	actor->momx = FixedMul(actor->info->speed, finecosine[exact]);
-	actor->momy = FixedMul(actor->info->speed, finesine[exact]);
+	actor->momx = FixedMul(__REMOOD_GETSPEEDMO(actor), finecosine[exact]);
+	actor->momy = FixedMul(__REMOOD_GETSPEEDMO(actor), finesine[exact]);
 	
 	// change slope
 	dist = P_AproxDistance(dest->x - actor->x, dest->y - actor->y);
 	
-	dist = dist / actor->info->speed;
+	dist = dist / __REMOOD_GETSPEEDMO(actor);
 	
 	if (dist < 1)
 		dist = 1;
@@ -1170,8 +1117,8 @@ void A_VileChase(mobj_t* actor)
 	if (actor->movedir != DI_NODIR)
 	{
 		// check for corpses to raise
-		viletryx = actor->x + actor->info->speed * xspeed[actor->movedir];
-		viletryy = actor->y + actor->info->speed * yspeed[actor->movedir];
+		viletryx = actor->x + __REMOOD_GETSPEEDMO(actor) * xspeed[actor->movedir];
+		viletryy = actor->y + __REMOOD_GETSPEEDMO(actor) * yspeed[actor->movedir];
 		
 		xl = (viletryx - bmaporgx - MAXRADIUS * 2) >> MAPBLOCKSHIFT;
 		xh = (viletryx - bmaporgx + MAXRADIUS * 2) >> MAPBLOCKSHIFT;
@@ -1351,8 +1298,8 @@ void A_FatAttack1(mobj_t* actor)
 	{
 		mo->angle += FATSPREAD;
 		an = mo->angle >> ANGLETOFINESHIFT;
-		mo->momx = FixedMul(mo->info->speed, finecosine[an]);
-		mo->momy = FixedMul(mo->info->speed, finesine[an]);
+		mo->momx = FixedMul(__REMOOD_GETSPEEDMO(mo), finecosine[an]);
+		mo->momy = FixedMul(__REMOOD_GETSPEEDMO(mo), finesine[an]);
 	}
 }
 
@@ -1371,8 +1318,8 @@ void A_FatAttack2(mobj_t* actor)
 	{
 		mo->angle -= FATSPREAD * 2;
 		an = mo->angle >> ANGLETOFINESHIFT;
-		mo->momx = FixedMul(mo->info->speed, finecosine[an]);
-		mo->momy = FixedMul(mo->info->speed, finesine[an]);
+		mo->momx = FixedMul(__REMOOD_GETSPEEDMO(mo), finecosine[an]);
+		mo->momy = FixedMul(__REMOOD_GETSPEEDMO(mo), finesine[an]);
 	}
 }
 
@@ -1388,8 +1335,8 @@ void A_FatAttack3(mobj_t* actor)
 	{
 		mo->angle -= FATSPREAD / 2;
 		an = mo->angle >> ANGLETOFINESHIFT;
-		mo->momx = FixedMul(mo->info->speed, finecosine[an]);
-		mo->momy = FixedMul(mo->info->speed, finesine[an]);
+		mo->momx = FixedMul(__REMOOD_GETSPEEDMO(mo), finecosine[an]);
+		mo->momy = FixedMul(__REMOOD_GETSPEEDMO(mo), finesine[an]);
 	}
 	
 	mo = P_SpawnMissile(actor, actor->target, MT_FATSHOT);
@@ -1397,8 +1344,8 @@ void A_FatAttack3(mobj_t* actor)
 	{
 		mo->angle += FATSPREAD / 2;
 		an = mo->angle >> ANGLETOFINESHIFT;
-		mo->momx = FixedMul(mo->info->speed, finecosine[an]);
-		mo->momy = FixedMul(mo->info->speed, finesine[an]);
+		mo->momx = FixedMul(__REMOOD_GETSPEEDMO(mo), finecosine[an]);
+		mo->momy = FixedMul(__REMOOD_GETSPEEDMO(mo), finesine[an]);
 	}
 }
 
