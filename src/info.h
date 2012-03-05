@@ -1404,6 +1404,10 @@ extern char* MT2MTString[NUMMOBJTYPES];
 
 void P_PatchInfoTables(void);
 
+/*** HELPFUL FUNCTIONS ***/
+
+mobjtype_t INFO_GetTypeByName(const char* const a_Name);
+
 /*** HELPFUL MACROS ***/
 // Yuck! TODO: Make these real functions
 

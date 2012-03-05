@@ -699,16 +699,16 @@ void P_NightmareRespawn(mobj_t* mobj)
 	// spawn a teleport fog at old spot
 	// because of removal of the body?
 	if (mthing->options & MTF_FS_SPAWNED)
-		mo = P_SpawnMobj(mobj->x, mobj->y, mobj->z + (0), MT_TFOG);
+		mo = P_SpawnMobj(mobj->x, mobj->y, mobj->z + (0), INFO_GetTypeByName("TeleportFog"));
 	else
-		mo = P_SpawnMobj(mobj->x, mobj->y, mobj->subsector->sector->floorheight + (0), MT_TFOG);
+		mo = P_SpawnMobj(mobj->x, mobj->y, mobj->subsector->sector->floorheight + (0), INFO_GetTypeByName("TeleportFog"));
 	// initiate teleport sound
 	S_StartSound(&mo->NoiseThinker, sfx_telept);
 	
 	// spawn a teleport fog at the new spot
 	ss = R_PointInSubsector(x, y);
 	
-	mo = P_SpawnMobj(x, y, ss->sector->floorheight + (0), MT_TFOG);
+	mo = P_SpawnMobj(x, y, ss->sector->floorheight + (0), INFO_GetTypeByName("TeleportFog"));
 	
 	S_StartSound(&mo->NoiseThinker, sfx_telept);
 	

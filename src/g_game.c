@@ -1223,7 +1223,7 @@ bool_t G_CheckSpot(int playernum, mapthing_t* mthing)
 	an = (ANG45 * (mthing->angle / 45));
 	an >>= ANGLETOFINESHIFT;
 	
-	mo = P_SpawnMobj(x + 20 * finecosine[an], y + 20 * finesine[an], ss->sector->floorheight, MT_TFOG);
+	mo = P_SpawnMobj(x + 20 * finecosine[an], y + 20 * finesine[an], ss->sector->floorheight, INFO_GetTypeByName("TeleportFog"));
 	
 	//added:16-01-98:consoleplayer -> displayplayer (hear snds from viewpt)
 	// removed 9-12-98: why not ????

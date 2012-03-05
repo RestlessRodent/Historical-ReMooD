@@ -73,10 +73,10 @@ bool_t P_Teleport(mobj_t* thing, fixed_t x, fixed_t y, angle_t angle)
 			thing->z = thing->ceilingz - thing->height;
 	}
 	// spawn teleport fog at source and destination
-	fog = P_SpawnMobj(oldx, oldy, oldz + fogDelta, MT_TFOG);
+	fog = P_SpawnMobj(oldx, oldy, oldz + fogDelta, INFO_GetTypeByName("TeleportFog"));
 	S_StartSound(&fog->NoiseThinker, sfx_telept);
 	an = angle >> ANGLETOFINESHIFT;
-	fog = P_SpawnMobj(x + 20 * finecosine[an], y + 20 * finesine[an], thing->z + fogDelta, MT_TFOG);
+	fog = P_SpawnMobj(x + 20 * finecosine[an], y + 20 * finesine[an], thing->z + fogDelta, INFO_GetTypeByName("TeleportFog"));
 	
 	// emit sound, where?
 	S_StartSound(&fog->NoiseThinker, sfx_telept);

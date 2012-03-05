@@ -39,6 +39,7 @@
 #include "m_fixed.h"
 #include "d_items.h"
 #include "p_mobj.h"
+#include "z_zone.h"
 
 char* sprnames[NUMSPRITES + 1] =
 {
@@ -5583,3 +5584,42 @@ char* MT2MTString[NUMMOBJTYPES] =
 	STRINGIFY(MT_YELLOWFLAG),
 	STRINGIFY(MT_NEUTRALFLAG)
 };
+
+static uint32_t l_DeprClassHash[NUMMOBJTYPES][2];
+
+/* INFO_GetTypeByName() -- Returns a map object by it's name */
+mobjtype_t INFO_GetTypeByName(const char* const a_Name)
+{
+	size_t i = 0;
+	uint32_t Hash;
+	
+	/* Check */
+	if (!a_Name)
+		return NUMMOBJTYPES;
+	
+	/* Hash name */
+	Hash = Z_Hash(a_Name);
+	
+	/* Go through class list */
+	for (i = 0; i < NUMMOBJTYPES; i++)
+	{
+		// Needs hashing?
+		if (!l_DeprClassHash[i][0])
+		{
+			l_DeprClassHash[i][0] = Z_Hash(MT2ReMooDClass[i]);
+			l_DeprClassHash[i][1] = Z_Hash(MT2MTString[i]);
+		}
+		
+		// Compare against ReMooD Class
+		if (Hash == l_DeprClassHash[i][0] && strcasecmp(a_Name, MT2ReMooDClass[i]) == 0)
+			return i;
+			
+		// Compare against MT Name
+		if (Hash == l_DeprClassHash[i][1] && strcasecmp(a_Name, MT2MTString[i]) == 0)
+			return i;
+	}
+	
+	/* Not found? */
+	return NUMMOBJTYPES;
+}
+
