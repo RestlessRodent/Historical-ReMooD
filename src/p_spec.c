@@ -1037,29 +1037,21 @@ void P_CrossSpecialLine(int linenum, int side, mobj_t* thing)
 void P_ActivateCrossedLine(line_t* line, int side, mobj_t* thing)
 {
 	int ok;
-	int forceuse;				//SoM: 4/26/2000: ALLTRIGGER should allow monsters to use generalized types too!
+	bool_t forceuse;				//SoM: 4/26/2000: ALLTRIGGER should allow monsters to use generalized types too!
 	
-	forceuse = line->flags & ML_ALLTRIGGER && thing->type != MT_BLOOD;
+	forceuse = false;
+	
+	// Force all usage?
+	if (thing->RXFlags[0] & MFREXA_NOFORCEALLTRIGGERC)
+		if (line->flags & ML_ALLTRIGGER)
+			forceuse = true;
 	
 	//  Triggers that other things can activate
 	if (!thing->player)
-	{
 		// Things that should NOT trigger specials...
-		switch (thing->type)
-		{
-			case MT_ROCKET:
-			case MT_PLASMA:
-			case MT_BFG:
-			case MT_TROOPSHOT:
-			case MT_HEADSHOT:
-			case MT_BRUISERSHOT:
-				return;
-				break;
-				
-			default:
-				break;
-		}
-	}
+		if (thing->RXFlags[0] & MFREXA_NOCROSSTRIGGER)
+			return;
+	
 	//SoM: 3/7/2000: Check for generalized line types/
 	if (boomsupport)
 	{
@@ -3233,8 +3225,11 @@ bool_t PIT_PushThing(mobj_t* thing)
 		if ((speed > 0) && (P_CheckSight(thing, tmpusher->source)))
 		{
 			pushangle = R_PointToAngle2(thing->x, thing->y, sx, sy);
-			if (tmpusher->source->type == MT_PUSH)
+			
+			// GhostlyDeath <March 6, 2012> -- Push away?
+			if (tmpusher->source->RXFlags[0] & MFREXA_DOPUSHAWAY)
 				pushangle += ANG180;	// away
+			
 			pushangle >>= ANGLETOFINESHIFT;
 			thing->momx += FixedMul(speed, finecosine[pushangle]);
 			thing->momy += FixedMul(speed, finesine[pushangle]);
@@ -3577,16 +3572,14 @@ mobj_t* P_GetPushThing(int s)
 	thing = sec->thinglist;
 	while (thing)
 	{
-		switch (thing->type)
-		{
-			case MT_PUSH:
-			case MT_PULL:
-				return thing;
-			default:
-				break;
-		}
+		// GhostlyDeath <March 6, 2012> -- Is pusher/puller?
+		if (thing->RXFlags[0] & MFREXA_ISPUSHPULL)
+			return thing;
+		
+		// It is not
 		thing = thing->snext;
 	}
+	
 	return NULL;
 }
 

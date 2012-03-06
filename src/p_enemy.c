@@ -1141,7 +1141,9 @@ void A_VileChase(mobj_t* actor)
 					A_FaceTarget(actor);
 					actor->target = temp;
 					
-					P_SetMobjState(actor, S_VILE_HEAL1);
+					// GhostlyDeath <March 6, 2012> -- Use healing state (but only if it is set)
+					if (actor->info->RVileHealState)
+						P_SetMobjState(actor, actor->info->RVileHealState);
 					S_StartSound(&corpsehit->NoiseThinker, sfx_slop);
 					info = corpsehit->info;
 					
@@ -1162,6 +1164,7 @@ void A_VileChase(mobj_t* actor)
 			}
 		}
 	}
+	
 	// Return to normal attack.
 	A_Chase(actor);
 }

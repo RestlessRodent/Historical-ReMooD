@@ -1399,6 +1399,7 @@ typedef struct
 	statenum_t RPlayerRunState;					// State for moving player
 	statenum_t RPlayerMeleeAttackState;			// S_PLAY_ATK2
 	statenum_t RPlayerRangedAttackState;		// S_PLAY_ATK1
+	statenum_t RVileHealState;					// Heal state for Arch-Vile
 } mobjinfo_t;
 
 extern mobjinfo_t mobjinfo[NUMMOBJTYPES];

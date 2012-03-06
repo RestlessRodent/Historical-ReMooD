@@ -1303,7 +1303,16 @@ mobjinfo_t mobjinfo[NUMMOBJTYPES] =
 		0,							// damage
 		sfx_vilact,				// activesound
 		MF_SOLID | MF_SHOOTABLE | MF_COUNTKILL,	// flags
-		S_NULL						// raisestate
+		S_NULL,						// raisestate
+		0,							// flags2
+		
+		// ReMooD Extended
+		{0, 0, 0, 0},				// RXFlags[NUMINFORXFIELDS]
+		0,							// RFastSpeed
+		0,							// RPlayerRunState
+		0,							// RPlayerMeleeAttackState
+		0,							// RPlayerRangedAttackState
+		S_VILE_HEAL1,				// RVileHealState
 	},
 	{
 		// MT_FIRE
@@ -1660,7 +1669,7 @@ mobjinfo_t mobjinfo[NUMMOBJTYPES] =
 		0,							// flags2
 		
 		// ReMooD Extended
-		{MFREXA_ENABLEFASTSPEED, 0, 0, 0},
+		{MFREXA_ENABLEFASTSPEED | MFREXA_NOCROSSTRIGGER, 0, 0, 0},
 		20,
 	},
 	{
@@ -2070,7 +2079,7 @@ mobjinfo_t mobjinfo[NUMMOBJTYPES] =
 		0,							// flags2
 		
 		// ReMooD Extended
-		{MFREXA_ENABLEFASTSPEED, 0, 0, 0},
+		{MFREXA_ENABLEFASTSPEED | MFREXA_NOCROSSTRIGGER, 0, 0, 0},
 		20,
 	},
 	{
@@ -2102,7 +2111,7 @@ mobjinfo_t mobjinfo[NUMMOBJTYPES] =
 		0,							// flags2
 		
 		// ReMooD Extended
-		{MFREXA_ENABLEFASTSPEED, 0, 0, 0},
+		{MFREXA_ENABLEFASTSPEED | MFREXA_NOCROSSTRIGGER, 0, 0, 0},
 		20,
 	},
 	{
@@ -2130,7 +2139,11 @@ mobjinfo_t mobjinfo[NUMMOBJTYPES] =
 		20,						// damage
 		sfx_None,					// activesound
 		MF_NOBLOCKMAP | MF_MISSILE | MF_DROPOFF | MF_NOGRAVITY,	// flags
-		S_NULL						// raisestate
+		S_NULL,						// raisestate
+		0,							// flags2
+		
+		// ReMooD Extended
+		{MFREXA_NOCROSSTRIGGER, 0, 0, 0},
 	},
 	{
 		// MT_PLASMA
@@ -2157,7 +2170,11 @@ mobjinfo_t mobjinfo[NUMMOBJTYPES] =
 		5,							// damage
 		sfx_None,					// activesound
 		MF_NOBLOCKMAP | MF_MISSILE | MF_DROPOFF | MF_NOGRAVITY,	// flags
-		S_NULL						// raisestate
+		S_NULL,						// raisestate
+		0,							// flags2
+		
+		// ReMooD Extended
+		{MFREXA_NOCROSSTRIGGER, 0, 0, 0},
 	},
 	{
 		// MT_BFG
@@ -2184,7 +2201,11 @@ mobjinfo_t mobjinfo[NUMMOBJTYPES] =
 		100,						// damage
 		sfx_None,					// activesound
 		MF_NOBLOCKMAP | MF_MISSILE | MF_DROPOFF | MF_NOGRAVITY,	// flags
-		S_NULL						// raisestate
+		S_NULL,						// raisestate
+		0,							// flags2
+		
+		// ReMooD Extended
+		{MFREXA_NOCROSSTRIGGER, 0, 0, 0},
 	},
 	{
 		// MT_ARACHPLAZ
@@ -2267,7 +2288,11 @@ mobjinfo_t mobjinfo[NUMMOBJTYPES] =
 		0,							// damage
 		sfx_None,					// activesound
 		0 /*MF_NOBLOCKMAP */ ,		// flags
-		S_NULL						// raisestate
+		S_NULL,						// raisestate
+		0,							// flags 2
+		
+		// ReMooD Extended
+		{MFREXA_NOFORCEALLTRIGGERC, 0, 0, 0},
 	},
 	{
 		// MT_TFOG
@@ -5055,7 +5080,11 @@ mobjinfo_t mobjinfo[NUMMOBJTYPES] =
 		0,							// damage
 		sfx_None,					// activesound
 		MF_NOBLOCKMAP,				// flags
-		S_NULL						// raisestate
+		S_NULL,						// raisestate
+		0,							// flags2
+		
+		// ReMooD Extended
+		{MFREXA_ISPUSHPULL | MFREXA_DOPUSHAWAY, 0, 0, 0},
 	},
 	
 	// For use with wind and current effects
@@ -5084,7 +5113,11 @@ mobjinfo_t mobjinfo[NUMMOBJTYPES] =
 		0,							// damage
 		sfx_None,					// activesound
 		MF_NOBLOCKMAP,				// flags
-		S_NULL						// raisestate
+		S_NULL,						// raisestate
+		0,							// flags2
+		
+		// ReMooD Extended
+		{MFREXA_ISPUSHPULL, 0, 0, 0},
 	},
 	//SoM: Note that the above is thing type # 138
 	

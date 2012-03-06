@@ -789,7 +789,7 @@ void A_FireCGun(player_t* player, pspdef_t* psp)
 	if (!cv_infiniteammo.value)
 		player->ammo[player->weaponinfo[player->readyweapon].ammo]--;
 		
-	P_SetPsprite(player, ps_flash, player->weaponinfo[player->readyweapon].flashstate + psp->state - &states[S_CHAIN1]);
+	P_SetPsprite(player, ps_flash, player->weaponinfo[player->readyweapon].flashstate + psp->state - &states[player->weaponinfo[player->readyweapon].atkstate]/*&states[S_CHAIN1]*/);
 	
 	P_BulletSlope(player->mo);
 	P_GunShot(player->mo, !player->refire);

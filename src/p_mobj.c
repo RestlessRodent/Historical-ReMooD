@@ -217,8 +217,8 @@ void P_XYFriction(mobj_t* mo, fixed_t oldx, fixed_t oldy, bool_t oldfriction)
 		// if in a walking frame, stop moving
 		if (player && (mo->type != MT_SPIRIT))
 		{
-			if ((unsigned)((player->mo->state - states) - S_PLAY_RUN1) < 4)
-				P_SetMobjState(player->mo, S_PLAY);
+			if ((unsigned)((player->mo->state - states) - player->mo->info->RPlayerRunState) < 4)
+				P_SetMobjState(player->mo, player->mo->info->spawnstate);
 		}
 		
 		mo->momx = 0;

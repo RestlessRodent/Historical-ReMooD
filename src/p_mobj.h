@@ -278,6 +278,10 @@ typedef enum
 typedef enum mobjflagrexa_e
 {
 	MFREXA_ENABLEFASTSPEED		= 0x00000001U,	// Allow RFastSpeed
+	MFREXA_NOFORCEALLTRIGGERC	= 0x00000002U,	// Can't trigger cross-line even if ML_ALLTRIGGER
+	MFREXA_NOCROSSTRIGGER		= 0x00000004U,	// Does not trigger crossing lines
+	MFREXA_ISPUSHPULL			= 0x00000008U,	// Returnable by P_GetPushThing()
+	MFREXA_DOPUSHAWAY			= 0x00000010U,	// Push instead of pull by PIT_PushThing()
 } mobjflagrexa_t;
 
 // GhostlyDeath <March 4, 2012> -- About all this stuff underneath, i'm thinking
