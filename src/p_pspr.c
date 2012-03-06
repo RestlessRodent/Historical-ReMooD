@@ -458,7 +458,16 @@ void A_Punch(player_t* player, pspdef_t* psp)
 	int slope;
 	int i;
 	
-	PuffType = MT_PUFF;
+	angle_t victimangle = 0;
+	angle_t myangle = 0;
+	angle_t actualangle = 0;
+	angle_t virtualangle = 0;
+	int someactualangle = 0;
+	int somevirtualangle = 0;
+	int somemyangle = 0;
+	int someoffset = 0;
+	
+	PuffType = INFO_GetTypeByName("BulletPuff");
 	damage = (P_Random() % 10 + 1) << 1;
 	
 	if (player->powers[pw_strength])
@@ -477,22 +486,13 @@ void A_Punch(player_t* player, pspdef_t* psp)
 		S_StartSound(&player->mo->NoiseThinker, sfx_punch);
 		player->mo->angle = R_PointToAngle2(player->mo->x, player->mo->y, linetarget->x, linetarget->y);
 		
-		// GhostlyDeath -- Effect Local Aiming yknow
+		// GhostlyDeath -- Affect Local Aiming yknow
 		for (i = 0; i < MAXSPLITSCREENPLAYERS; i++)
 			if (playeringame[consoleplayer[i]] && player == &players[consoleplayer[i]])
 				locang = &localangle[i];
 				
 		if (locang)
 		{
-			angle_t victimangle = 0;
-			angle_t myangle = 0;
-			angle_t actualangle = 0;
-			angle_t virtualangle = 0;
-			int someactualangle = 0;
-			int somevirtualangle = 0;
-			int somemyangle = 0;
-			int someoffset = 0;
-			
 			// First Face the target
 			actualangle = R_PointToAngle2(player->mo->x, player->mo->y, linetarget->x, linetarget->y);
 			virtualangle = *locang;
@@ -529,7 +529,7 @@ void A_Saw(player_t* player, pspdef_t* psp)
 	int slope;
 	int i;
 	
-	PuffType = MT_PUFF;
+	PuffType = INFO_GetTypeByName("BulletPuff");
 	damage = 2 * (P_Random() % 10 + 1);
 	angle = player->mo->angle;
 	angle += (P_Random() << 18);	// WARNING: don't put this in one line
@@ -613,7 +613,7 @@ void A_FireMissile(player_t* player, pspdef_t* psp)
 	if (!cv_infiniteammo.value)
 		player->ammo[player->weaponinfo[player->readyweapon].ammo] -= player->weaponinfo[player->readyweapon].ammopershoot;
 	//added:16-02-98: added player arg3
-	P_SpawnPlayerMissile(player->mo, MT_ROCKET);
+	P_SpawnPlayerMissile(player->mo, INFO_GetTypeByName("RocketShot"));
 }
 
 //
@@ -624,7 +624,7 @@ void A_FireBFG(player_t* player, pspdef_t* psp)
 	if (!cv_infiniteammo.value)
 		player->ammo[player->weaponinfo[player->readyweapon].ammo] -= player->weaponinfo[player->readyweapon].ammopershoot;
 	//added:16-02-98:added player arg3
-	P_SpawnPlayerMissile(player->mo, MT_BFG);
+	P_SpawnPlayerMissile(player->mo, INFO_GetTypeByName("BFGShot"));
 }
 
 //
@@ -638,7 +638,7 @@ void A_FirePlasma(player_t* player, pspdef_t* psp)
 	P_SetPsprite(player, ps_flash, player->weaponinfo[player->readyweapon].flashstate + (P_Random() & 1));
 	
 	//added:16-02-98: added player arg3
-	P_SpawnPlayerMissile(player->mo, MT_PLASMA);
+	P_SpawnPlayerMissile(player->mo, INFO_GetTypeByName("PlasmaShot"));
 }
 
 //
@@ -710,7 +710,7 @@ void A_FirePistol(player_t* player, pspdef_t* psp)
 {
 	S_StartSound(&player->mo->NoiseThinker, sfx_pistol);
 	
-	PuffType = MT_PUFF;
+	PuffType = INFO_GetTypeByName("BulletPuff");
 	P_SetMobjState(player->mo, player->mo->info->RPlayerRangedAttackState);
 	
 	if (!cv_infiniteammo.value)
@@ -729,7 +729,7 @@ void A_FireShotgun(player_t* player, pspdef_t* psp)
 {
 	int i;
 	
-	PuffType = MT_PUFF;
+	PuffType = INFO_GetTypeByName("BulletPuff");
 	S_StartSound(&player->mo->NoiseThinker, sfx_shotgn);
 	P_SetMobjState(player->mo, player->mo->info->RPlayerRangedAttackState);
 	
@@ -751,7 +751,7 @@ void A_FireShotgun2(player_t* player, pspdef_t* psp)
 	angle_t angle;
 	int damage;
 	
-	PuffType = MT_PUFF;
+	PuffType = INFO_GetTypeByName("BulletPuff");
 	S_StartSound(&player->mo->NoiseThinker, sfx_dshtgn);
 	P_SetMobjState(player->mo, player->mo->info->RPlayerRangedAttackState);
 	
@@ -783,7 +783,7 @@ void A_FireCGun(player_t* player, pspdef_t* psp)
 		if (!player->ammo[player->weaponinfo[player->readyweapon].ammo])
 			return;
 			
-	PuffType = MT_PUFF;
+	PuffType = INFO_GetTypeByName("BulletPuff");
 	P_SetMobjState(player->mo, player->mo->info->RPlayerRangedAttackState);
 	
 	if (!cv_infiniteammo.value)

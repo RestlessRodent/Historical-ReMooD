@@ -1724,7 +1724,11 @@ mobjinfo_t mobjinfo[NUMMOBJTYPES] =
 		3,							// damage
 		sfx_dmact,					// activesound
 		MF_SOLID | MF_SHOOTABLE | MF_FLOAT | MF_NOGRAVITY,	// flags
-		S_NULL						// raisestate
+		S_NULL,						// raisestate
+		0,							// flags2
+		
+		// ReMooD Extended
+		{MFREXA_ISMONSTER, 0, 0, 0},
 	},
 	{
 		// MT_SPIDER
@@ -2319,7 +2323,11 @@ mobjinfo_t mobjinfo[NUMMOBJTYPES] =
 		0,							// damage
 		sfx_None,					// activesound
 		MF_NOBLOCKMAP | MF_NOGRAVITY,	// flags
-		S_NULL						// raisestate
+		S_NULL,						// raisestate
+		0,							// flags2
+		
+		// ReMooD Extended
+		{MFREXA_ISTELEFOG, 0, 0, 0},
 	},
 	{
 		// MT_IFOG
@@ -2346,7 +2354,11 @@ mobjinfo_t mobjinfo[NUMMOBJTYPES] =
 		0,							// damage
 		sfx_None,					// activesound
 		MF_NOBLOCKMAP | MF_NOGRAVITY,	// flags
-		S_NULL						// raisestate
+		S_NULL,						// raisestate
+		0,							// flags2
+		
+		// ReMooD Extended
+		{MFREXA_ISTELEFOG, 0, 0, 0},
 	},
 	{
 		// MT_TELEPORTMAN
@@ -2373,7 +2385,11 @@ mobjinfo_t mobjinfo[NUMMOBJTYPES] =
 		0,							// damage
 		sfx_None,					// activesound
 		MF_NOBLOCKMAP | MF_NOSECTOR,	// flags
-		S_NULL						// raisestate
+		S_NULL,						// raisestate
+		0,							// flags2
+		
+		// ReMooD Extended
+		{MFREXA_ISTELEPORTMAN, 0, 0, 0},
 	},
 	{
 		// MT_EXTRABFG
@@ -2751,7 +2767,11 @@ mobjinfo_t mobjinfo[NUMMOBJTYPES] =
 		0,							// damage
 		sfx_None,					// activesound
 		MF_SPECIAL | MF_COUNTITEM,	// flags
-		S_NULL						// raisestate
+		S_NULL,						// raisestate
+		0,							// flags2
+		
+		// ReMooD Extended
+		{MFREXA_ISPOWERUP, 0, 0, 0},
 	},
 	{
 		// MT_INV
@@ -2778,7 +2798,11 @@ mobjinfo_t mobjinfo[NUMMOBJTYPES] =
 		0,							// damage
 		sfx_None,					// activesound
 		MF_SPECIAL | MF_COUNTITEM,	// flags
-		S_NULL						// raisestate
+		S_NULL,						// raisestate
+		0,							// flags2
+		
+		// ReMooD Extended
+		{MFREXA_ISPOWERUP, 0, 0, 0},
 	},
 	{
 		// MT_MISC13
@@ -2805,7 +2829,11 @@ mobjinfo_t mobjinfo[NUMMOBJTYPES] =
 		0,							// damage
 		sfx_None,					// activesound
 		MF_SPECIAL | MF_COUNTITEM,	// flags
-		S_NULL						// raisestate
+		S_NULL,						// raisestate
+		0,							// flags2
+		
+		// ReMooD Extended
+		{MFREXA_ISPOWERUP, 0, 0, 0},
 	},
 	{
 		// MT_INS
@@ -2832,7 +2860,11 @@ mobjinfo_t mobjinfo[NUMMOBJTYPES] =
 		0,							// damage
 		sfx_None,					// activesound
 		MF_SPECIAL | MF_COUNTITEM,	// flags
-		S_NULL						// raisestate
+		S_NULL,						// raisestate
+		0,							// flags2
+		
+		// ReMooD Extended
+		{MFREXA_ISPOWERUP, 0, 0, 0},
 	},
 	{
 		// MT_MISC14
@@ -2859,7 +2891,11 @@ mobjinfo_t mobjinfo[NUMMOBJTYPES] =
 		0,							// damage
 		sfx_None,					// activesound
 		MF_SPECIAL,				// flags
-		S_NULL						// raisestate
+		S_NULL,						// raisestate
+		0,							// flags2
+		
+		// ReMooD Extended
+		{MFREXA_ISPOWERUP, 0, 0, 0},
 	},
 	{
 		// MT_MISC15
@@ -2886,7 +2922,11 @@ mobjinfo_t mobjinfo[NUMMOBJTYPES] =
 		0,							// damage
 		sfx_None,					// activesound
 		MF_SPECIAL | MF_COUNTITEM,	// flags
-		S_NULL						// raisestate
+		S_NULL,						// raisestate
+		0,							// flags2
+		
+		// ReMooD Extended
+		{MFREXA_ISPOWERUP, 0, 0, 0},
 	},
 	{
 		// MT_MISC16
@@ -2913,7 +2953,11 @@ mobjinfo_t mobjinfo[NUMMOBJTYPES] =
 		0,							// damage
 		sfx_None,					// activesound
 		MF_SPECIAL | MF_COUNTITEM,	// flags
-		S_NULL						// raisestate
+		S_NULL,						// raisestate
+		0,							// flags2
+		
+		// ReMooD Extended
+		{MFREXA_ISPOWERUP, 0, 0, 0},
 	},
 	{
 		// MT_MEGA
@@ -2940,7 +2984,11 @@ mobjinfo_t mobjinfo[NUMMOBJTYPES] =
 		0,							// damage
 		sfx_None,					// activesound
 		MF_SPECIAL | MF_COUNTITEM,	// flags
-		S_NULL						// raisestate
+		S_NULL,						// raisestate
+		0,							// flags2
+		
+		// ReMooD Extended
+		{MFREXA_ISPOWERUP, 0, 0, 0},
 	},
 	{
 		// MT_CLIP

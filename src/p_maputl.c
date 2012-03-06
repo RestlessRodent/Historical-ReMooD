@@ -535,7 +535,7 @@ void P_SetThingPosition(mobj_t* thing)
 // to P_BlockLinesIterator, then make one or more calls
 // to it.
 //
-bool_t P_BlockLinesIterator(int x, int y, bool_t (*func) (line_t*))
+bool_t P_BlockLinesIterator(int x, int y, bool_t (*func) (line_t*, void*), void* a_Arg)
 {
 	int offset;
 	const long* list;			// Big blockmap Tails
@@ -572,7 +572,7 @@ bool_t P_BlockLinesIterator(int x, int y, bool_t (*func) (line_t*))
 			
 		ld->validcount = validcount;
 		
-		if (!func(ld))
+		if (!func(ld, a_Arg))
 			return false;
 	}
 	return true;				// everything was checked
@@ -581,7 +581,7 @@ bool_t P_BlockLinesIterator(int x, int y, bool_t (*func) (line_t*))
 //
 // P_BlockThingsIterator
 //
-bool_t P_BlockThingsIterator(int x, int y, bool_t (*func) (mobj_t*))
+bool_t P_BlockThingsIterator(int x, int y, bool_t (*func) (mobj_t*, void*), void* a_Arg)
 {
 	mobj_t* mobj;
 	
@@ -593,7 +593,7 @@ bool_t P_BlockThingsIterator(int x, int y, bool_t (*func) (mobj_t*))
 	//                avec les objets dans le blocmap
 	for (mobj = blocklinks[y * bmapwidth + x]; mobj; mobj = mobj->bnext)
 	{
-		if (!func(mobj))
+		if (!func(mobj, a_Arg))
 			return false;
 	}
 	return true;
@@ -639,7 +639,7 @@ void P_CheckIntercepts()
 // are on opposite sides of the trace.
 // Returns true if earlyout and a solid line hit.
 //
-bool_t PIT_AddLineIntercepts(line_t* ld)
+bool_t PIT_AddLineIntercepts(line_t* ld, void* a_Arg)
 {
 	int s1;
 	int s2;
@@ -689,7 +689,7 @@ bool_t PIT_AddLineIntercepts(line_t* ld)
 //
 // PIT_AddThingIntercepts
 //
-bool_t PIT_AddThingIntercepts(mobj_t* thing)
+bool_t PIT_AddThingIntercepts(mobj_t* thing, void* a_Arg)
 {
 	fixed_t x1;
 	fixed_t y1;
@@ -912,13 +912,13 @@ bool_t P_PathTraverse(fixed_t x1, fixed_t y1, fixed_t x2, fixed_t y2, int flags,
 	{
 		if (flags & PT_ADDLINES)
 		{
-			if (!P_BlockLinesIterator(mapx, mapy, PIT_AddLineIntercepts))
+			if (!P_BlockLinesIterator(mapx, mapy, PIT_AddLineIntercepts, NULL))
 				return false;	// early out
 		}
 		
 		if (flags & PT_ADDTHINGS)
 		{
-			if (!P_BlockThingsIterator(mapx, mapy, PIT_AddThingIntercepts))
+			if (!P_BlockThingsIterator(mapx, mapy, PIT_AddThingIntercepts, NULL))
 				return false;	// early out
 		}
 		

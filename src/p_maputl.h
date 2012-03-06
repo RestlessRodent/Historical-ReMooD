@@ -89,8 +89,8 @@ extern fixed_t lowfloor;
 
 void P_LineOpening(line_t* linedef);
 
-bool_t P_BlockLinesIterator(int x, int y, bool_t (*func) (line_t*));
-bool_t P_BlockThingsIterator(int x, int y, bool_t (*func) (mobj_t*));
+bool_t P_BlockLinesIterator(int x, int y, bool_t (*func) (line_t*, void*), void* a_Arg);
+bool_t P_BlockThingsIterator(int x, int y, bool_t (*func) (mobj_t*, void*), void* a_Arg);
 
 #define PT_ADDLINES     1
 #define PT_ADDTHINGS    2

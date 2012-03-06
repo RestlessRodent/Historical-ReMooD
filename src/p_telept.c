@@ -120,8 +120,9 @@ int EV_Teleport(line_t* line, int side, mobj_t* thing)
 	sector_t* sector;
 	
 	// don't teleport missiles
-	if (((thing->flags & MF_MISSILE)) || (thing->flags2 & MF2_NOTELEPORT))
-		return 0;
+	if (!(thing->RXFlags[0] & MFREXA_ALWAYSTELEPORT))
+		if (((thing->flags & MF_MISSILE)) || (thing->flags2 & MF2_NOTELEPORT))
+			return 0;
 		
 	// Don't teleport if hit back of line,
 	//  so you can get out of teleporter.
@@ -143,7 +144,7 @@ int EV_Teleport(line_t* line, int side, mobj_t* thing)
 				m = (mobj_t*)thinker;
 				
 				// not a teleportman
-				if (m->type != MT_TELEPORTMAN)
+				if (!(m->RXFlags[0] & MFREXA_ISTELEPORTMAN))
 					continue;
 					
 				sector = m->subsector->sector;
@@ -168,16 +169,19 @@ int EV_SilentTeleport(line_t* line, int side, mobj_t* thing)
 	mobj_t* m;
 	thinker_t* th;
 	
-	// don't teleport missiles
-	// Don't teleport if hit back of line,
-	// so you can get out of teleporter.
 	
-	if (side || thing->flags & MF_MISSILE)
+	// Don't teleport if hit back of line, so you can get out of teleporter.
+	if (side)
 		return 0;
-		
+	
+	// don't teleport missiles
+	else if (!(thing->RXFlags[0] & MFREXA_ALWAYSTELEPORT))
+		if (thing->flags & MF_MISSILE)
+			return 0;
+	
 	for (i = -1; (i = P_FindSectorFromLineTag(line, i)) >= 0;)
 		for (th = thinkercap.next; th != &thinkercap; th = th->next)
-			if (th->function.acp1 == (actionf_p1) P_MobjThinker && (m = (mobj_t*)th)->type == MT_TELEPORTMAN && m->subsector->sector - sectors == i)
+			if (th->function.acp1 == (actionf_p1) P_MobjThinker && ((m = (mobj_t*)th)->RXFlags[0] & MFREXA_ISTELEPORTMAN) && m->subsector->sector - sectors == i)
 			{
 				// Height of thing above ground, in case of mid-air teleports:
 				fixed_t z = thing->z - thing->floorz;

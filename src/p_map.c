@@ -102,7 +102,7 @@ extern bool_t infight;			//DarkWolf95:November 21, 2003: Monsters Infight!
 //
 // PIT_StompThing
 //
-static bool_t PIT_StompThing(mobj_t* thing)
+static bool_t PIT_StompThing(mobj_t* thing, void* a_Arg)
 {
 	fixed_t blockdist;
 	
@@ -229,7 +229,7 @@ bool_t P_TeleportMove(mobj_t* thing, fixed_t x, fixed_t y)
 	
 	for (bx = xl; bx <= xh; bx++)
 		for (by = yl; by <= yh; by++)
-			if (!P_BlockThingsIterator(bx, by, PIT_StompThing))
+			if (!P_BlockThingsIterator(bx, by, PIT_StompThing, NULL))
 				return false;
 				
 	// the move is ok,
@@ -268,7 +268,7 @@ static void add_spechit(line_t* ld)
 //
 // PIT_CheckThing
 //
-static bool_t PIT_CheckThing(mobj_t* thing)
+static bool_t PIT_CheckThing(mobj_t* thing, void* a_Arg)
 {
 	fixed_t blockdist;
 	bool_t solid;
@@ -462,7 +462,7 @@ static bool_t PIT_CheckThing(mobj_t* thing)
 // intersection of the trajectory and the line, but that takes
 // longer and probably really isn't worth the effort.
 //
-static bool_t PIT_CrossLine(line_t* ld)
+static bool_t PIT_CrossLine(line_t* ld, void* a_Arg)
 {
 	if (!(ld->flags & ML_TWOSIDED) || (ld->flags & (ML_BLOCKING | ML_BLOCKMONSTERS)))
 		if (!(tmbbox[BOXLEFT] > ld->bbox[BOXRIGHT] ||
@@ -476,7 +476,7 @@ static bool_t PIT_CrossLine(line_t* ld)
 // PIT_CheckLine
 // Adjusts tmfloorz and tmceilingz as lines are contacted
 //
-bool_t PIT_CheckLine(line_t* ld)
+bool_t PIT_CheckLine(line_t* ld, void* a_Arg)
 {
 	if (tmbbox[BOXRIGHT] <= ld->bbox[BOXLEFT]
 	        || tmbbox[BOXLEFT] >= ld->bbox[BOXRIGHT] || tmbbox[BOXTOP] <= ld->bbox[BOXBOTTOM] || tmbbox[BOXBOTTOM] >= ld->bbox[BOXTOP])
@@ -654,7 +654,7 @@ bool_t P_CheckPosition(mobj_t* thing, fixed_t x, fixed_t y)
 		
 		for (bx = xl; bx <= xh; bx++)
 			for (by = yl; by <= yh; by++)
-				if (!P_BlockThingsIterator(bx, by, PIT_CheckThing))
+				if (!P_BlockThingsIterator(bx, by, PIT_CheckThing, NULL))
 					return false;
 	}
 	// check lines
@@ -665,7 +665,7 @@ bool_t P_CheckPosition(mobj_t* thing, fixed_t x, fixed_t y)
 	
 	for (bx = xl; bx <= xh; bx++)
 		for (by = yl; by <= yh; by++)
-			if (!P_BlockLinesIterator(bx, by, PIT_CheckLine))
+			if (!P_BlockLinesIterator(bx, by, PIT_CheckLine, NULL))
 				return false;
 				
 	return true;
@@ -1774,7 +1774,7 @@ int bombdamage;
 // "bombsource" is the creature
 // that caused the explosion at "bombspot".
 //
-bool_t PIT_RadiusAttack(mobj_t* thing)
+bool_t PIT_RadiusAttack(mobj_t* thing, void* a_Arg)
 {
 	fixed_t dx;
 	fixed_t dy;
@@ -1861,7 +1861,7 @@ void P_RadiusAttack(mobj_t* spot, mobj_t* source, int damage)
 	
 	for (y = yl; y <= yh; y++)
 		for (x = xl; x <= xh; x++)
-			P_BlockThingsIterator(x, y, PIT_RadiusAttack);
+			P_BlockThingsIterator(x, y, PIT_RadiusAttack, NULL);
 }
 
 //
@@ -1884,7 +1884,7 @@ sector_t* sectorchecked;
 //
 // PIT_ChangeSector
 //
-bool_t PIT_ChangeSector(mobj_t* thing)
+bool_t PIT_ChangeSector(mobj_t* thing, void* a_Arg)
 {
 	mobj_t* mo;
 	
@@ -1974,7 +1974,7 @@ bool_t P_ChangeSector(sector_t* sector, bool_t crunch)
 	// re-check heights for all things near the moving sector
 	for (x = sector->blockbox[BOXLEFT]; x <= sector->blockbox[BOXRIGHT]; x++)
 		for (y = sector->blockbox[BOXBOTTOM]; y <= sector->blockbox[BOXTOP]; y++)
-			P_BlockThingsIterator(x, y, PIT_ChangeSector);
+			P_BlockThingsIterator(x, y, PIT_ChangeSector, NULL);
 			
 	return nofit;
 }
@@ -2018,7 +2018,7 @@ bool_t P_CheckSector(sector_t* sector, bool_t crunch)
 					{
 						n->visited = true;
 						if (!(n->m_thing->flags & MF_NOBLOCKMAP))
-							PIT_ChangeSector(n->m_thing);
+							PIT_ChangeSector(n->m_thing, NULL);
 						break;
 					}
 			}
@@ -2038,7 +2038,7 @@ bool_t P_CheckSector(sector_t* sector, bool_t crunch)
 			{
 				n->visited = true;	// mark thing as processed
 				if (!(n->m_thing->flags & MF_NOBLOCKMAP))	//jff 4/7/98 don't do these
-					PIT_ChangeSector(n->m_thing);	// process it
+					PIT_ChangeSector(n->m_thing, NULL);	// process it
 				break;			// exit and start over
 			}
 	}
@@ -2187,7 +2187,7 @@ void P_DelSeclist(msecnode_t* node)
 // at this location, so don't bother with checking impassable or
 // blocking lines.
 
-bool_t PIT_GetSectors(line_t* ld)
+bool_t PIT_GetSectors(line_t* ld, void* a_Arg)
 {
 	if (tmbbox[BOXRIGHT] <= ld->bbox[BOXLEFT] ||
 	        tmbbox[BOXLEFT] >= ld->bbox[BOXRIGHT] || tmbbox[BOXTOP] <= ld->bbox[BOXBOTTOM] || tmbbox[BOXBOTTOM] >= ld->bbox[BOXTOP])
@@ -2262,7 +2262,7 @@ void P_CreateSecNodeList(mobj_t* thing, fixed_t x, fixed_t y)
 	
 	for (bx = xl; bx <= xh; bx++)
 		for (by = yl; by <= yh; by++)
-			P_BlockLinesIterator(bx, by, PIT_GetSectors);
+			P_BlockLinesIterator(bx, by, PIT_GetSectors, NULL);
 			
 	// Add the sector of the (x,y) point to sector_list.
 	
@@ -2294,7 +2294,7 @@ void P_CreateSecNodeList(mobj_t* thing, fixed_t x, fixed_t y)
 //---------------------------------------------------------------------------
 mobj_t* onmobj;					//generic global onmobj...used for landing on pods/players
 
-static bool_t PIT_CheckOnmobjZ(mobj_t* thing)
+static bool_t PIT_CheckOnmobjZ(mobj_t* thing, void* a_Arg)
 {
 	fixed_t blockdist;
 	
@@ -2472,7 +2472,7 @@ mobj_t* P_CheckOnmobj(mobj_t* thing)
 	
 	for (bx = xl; bx <= xh; bx++)
 		for (by = yl; by <= yh; by++)
-			if (!P_BlockThingsIterator(bx, by, PIT_CheckOnmobjZ))
+			if (!P_BlockThingsIterator(bx, by, PIT_CheckOnmobjZ, NULL))
 			{
 				*tmthing = oldmo;
 				return onmobj;

@@ -1066,10 +1066,11 @@ mobj_t* vileobj;
 fixed_t viletryx;
 fixed_t viletryy;
 
-bool_t PIT_VileCheck(mobj_t* thing)
+bool_t PIT_VileCheck(mobj_t* thing, void* a_Arg)
 {
 	int maxdist;
 	bool_t check;
+	mobj_t* TheVile = a_Arg;
 	
 	if (!(thing->flags & MF_CORPSE))
 		return true;			// not a monster
@@ -1080,7 +1081,7 @@ bool_t PIT_VileCheck(mobj_t* thing)
 	if (thing->info->raisestate == S_NULL)
 		return true;			// monster doesn't have a raise state
 		
-	maxdist = thing->info->radius + mobjinfo[MT_VILE].radius;
+	maxdist = thing->info->radius + TheVile->info->radius;
 	
 	if (abs(thing->x - viletryx) > maxdist || abs(thing->y - viletryy) > maxdist)
 		return true;			// not actually touching
@@ -1133,7 +1134,7 @@ void A_VileChase(mobj_t* actor)
 				// Call PIT_VileCheck to check
 				// whether object is a corpse
 				// that canbe raised.
-				if (!P_BlockThingsIterator(bx, by, PIT_VileCheck))
+				if (!P_BlockThingsIterator(bx, by, PIT_VileCheck, actor))
 				{
 					// got one!
 					temp = actor->target;

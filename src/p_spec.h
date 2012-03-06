@@ -998,7 +998,7 @@ typedef struct
 } pusher_t;
 
 //SoM: 3/9/2000: Prototype functions for pushers
-bool_t PIT_PushThing(mobj_t* thing);
+bool_t PIT_PushThing(mobj_t* thing, void* a_Arg);
 void T_Pusher(pusher_t* p);
 mobj_t* P_GetPushThing(int s);
 

@@ -1353,20 +1353,13 @@ void AM_drawThings(int colors, int colorrange)
 		while (t)
 		{
 			// Modify Angle
-			switch (t->type)
-			{
-				case MT_TFOG:
-				case MT_IFOG:
-					tangle = t->angle + (ANG45 * (gametic % 8));
-					break;
-					
-				default:
-					tangle = t->angle;
-					break;
-			}
+			if (t->RXFlags[0] & MFREXA_ISTELEFOG)
+				tangle = t->angle + (ANG45 * (gametic % 8));
+			else
+				tangle = t->angle;
 			
 			// Modify Color
-			if (t->info->flags& MF_COUNTKILL || t->type == MT_SKULL)
+			if (t->info->flags & MF_COUNTKILL || (t->RXFlags[0] & MFREXA_ISMONSTER))
 			{
 				if (t->health <= 0 || t->flags & MF_CORPSE)
 					color = GRAYS + (GRAYSRANGE >> 1);
@@ -1380,23 +1373,10 @@ void AM_drawThings(int colors, int colorrange)
 			}
 			else if (t->info->flags & MF_SPECIAL)
 			{
-				switch (t->type)
-				{
-					case MT_MISC12:	// Soul Sphere
-					case MT_MEGA:	// Mega Sphere
-					case MT_INV:	// Invincibility Sphere
-					case MT_INS:	// Partial Invisibility Sphere
-					case MT_MISC13:	// Berzerker
-					case MT_MISC14:	// Radiation Suit
-					case MT_MISC15:	// Computer Map
-					case MT_MISC16:	// Light Amplification Goggles
-						color = YELLOWS + ((gametic >> 1) % YELLOWRANGE);
-						break;
-						
-					default:
-						color = YELLOWS + 7;
-						break;
-				}
+				if (t->RXFlags[0] & MFREXA_ISPOWERUP)
+					color = YELLOWS + ((gametic >> 1) % YELLOWRANGE);
+				else
+					color = YELLOWS + 7;
 			}
 			else
 				color = colors + lightlev;

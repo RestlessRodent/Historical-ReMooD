@@ -282,6 +282,11 @@ typedef enum mobjflagrexa_e
 	MFREXA_NOCROSSTRIGGER		= 0x00000004U,	// Does not trigger crossing lines
 	MFREXA_ISPUSHPULL			= 0x00000008U,	// Returnable by P_GetPushThing()
 	MFREXA_DOPUSHAWAY			= 0x00000010U,	// Push instead of pull by PIT_PushThing()
+	MFREXA_ISTELEPORTMAN		= 0x00000020U,	// Is teleport destination? [EV_Teleport()]
+	MFREXA_ALWAYSTELEPORT		= 0x00000040U,	// Always teleport? no check [EV_Teleport()]
+	MFREXA_ISMONSTER			= 0x00000080U,	// Treat as monster regardless of !MF_COUNTKILL
+	MFREXA_ISTELEFOG			= 0x00000100U,	// Spin triangle in automap
+	MFREXA_ISPOWERUP			= 0x00000200U,	// Glow triangle in automap
 } mobjflagrexa_t;
 
 // GhostlyDeath <March 4, 2012> -- About all this stuff underneath, i'm thinking
