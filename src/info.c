@@ -1215,7 +1215,12 @@ mobjinfo_t mobjinfo[NUMMOBJTYPES] =
 		sfx_None,					// activesound
 		MF_SOLID | MF_SHOOTABLE | MF_DROPOFF | MF_PICKUP | MF_NOTDMATCH,	// flags
 		S_NULL,					// raisestate
-		MF2_WINDTHRUST | MF2_FOOTCLIP | MF2_SLIDE | MF2_PASSMOBJ | MF2_TELESTOMP
+		MF2_WINDTHRUST | MF2_FOOTCLIP | MF2_SLIDE | MF2_PASSMOBJ | MF2_TELESTOMP,
+		
+		// ReMooD Extended
+		{0, 0, 0, 0},			// RXFlags
+		0,						// RFastSpeed
+		S_PLAY_RUN1,			// RPlayerRunState
 	},
 	{
 		// MT_POSSESSED

@@ -1394,8 +1394,9 @@ typedef struct
 	int flags2;					// from heretic/hexen
 	
 	// RMOD Extended Support
-	uint32_t RXFlags[NUMINFORXFIELDS];		// ReMooD Extended Flags
-	int32_t RFastSpeed;			// Speed when -fast
+	uint32_t RXFlags[NUMINFORXFIELDS];			// ReMooD Extended Flags
+	int32_t RFastSpeed;							// Speed when -fast
+	statenum_t RPlayerRunState;					// State for moving player
 } mobjinfo_t;
 
 extern mobjinfo_t mobjinfo[NUMMOBJTYPES];

@@ -429,8 +429,9 @@ void P_MovePlayer(player_t* player)
 		
 	if (cmd->forwardmove || cmd->sidemove)
 	{
-		if (player->mo->state == &states[S_PLAY])
-			P_SetMobjState(player->mo, S_PLAY_RUN1);
+		if (player->mo->info->RPlayerRunState)
+			if (player->mo->state == &states[player->mo->info->spawnstate])
+				P_SetMobjState(player->mo, player->mo->info->RPlayerRunState);
 	}
 	
 	/* HERETODO
