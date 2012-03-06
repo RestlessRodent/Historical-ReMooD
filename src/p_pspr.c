@@ -264,7 +264,7 @@ void P_FireWeapon(player_t* player)
 	if (!P_CheckAmmo(player))
 		return;
 		
-	P_SetMobjState(player->mo, S_PLAY_ATK1);
+	P_SetMobjState(player->mo, player->mo->info->RPlayerMeleeAttackState);
 	newstate = player->weaponinfo[player->readyweapon].atkstate;
 	
 	P_SetPsprite(player, ps_weapon, newstate);
@@ -291,9 +291,9 @@ void A_WeaponReady(player_t* player, pspdef_t* psp)
 {
 
 	// get out of attack state
-	if (player->mo->state == &states[S_PLAY_ATK1] || player->mo->state == &states[S_PLAY_ATK2])
+	if (player->mo->state == &states[player->mo->info->RPlayerRangedAttackState] || player->mo->state == &states[player->mo->info->RPlayerMeleeAttackState])
 	{
-		P_SetMobjState(player->mo, S_PLAY);
+		P_SetMobjState(player->mo, player->mo->info->spawnstate);
 	}
 	
 	if (player->readyweapon == wp_chainsaw && psp->state == &states[S_SAW])
@@ -439,7 +439,7 @@ void A_Raise(player_t* player, pspdef_t* psp)
 //
 void A_GunFlash(player_t* player, pspdef_t* psp)
 {
-	P_SetMobjState(player->mo, S_PLAY_ATK2);
+	P_SetMobjState(player->mo, player->mo->info->RPlayerRangedAttackState);
 	P_SetPsprite(player, ps_flash, player->weaponinfo[player->readyweapon].flashstate);
 }
 
@@ -711,7 +711,7 @@ void A_FirePistol(player_t* player, pspdef_t* psp)
 	S_StartSound(&player->mo->NoiseThinker, sfx_pistol);
 	
 	PuffType = MT_PUFF;
-	P_SetMobjState(player->mo, S_PLAY_ATK2);
+	P_SetMobjState(player->mo, player->mo->info->RPlayerRangedAttackState);
 	
 	if (!cv_infiniteammo.value)
 		player->ammo[player->weaponinfo[player->readyweapon].ammo]--;
@@ -731,7 +731,7 @@ void A_FireShotgun(player_t* player, pspdef_t* psp)
 	
 	PuffType = MT_PUFF;
 	S_StartSound(&player->mo->NoiseThinker, sfx_shotgn);
-	P_SetMobjState(player->mo, S_PLAY_ATK2);
+	P_SetMobjState(player->mo, player->mo->info->RPlayerRangedAttackState);
 	
 	if (!cv_infiniteammo.value)
 		player->ammo[player->weaponinfo[player->readyweapon].ammo]--;
@@ -753,7 +753,7 @@ void A_FireShotgun2(player_t* player, pspdef_t* psp)
 	
 	PuffType = MT_PUFF;
 	S_StartSound(&player->mo->NoiseThinker, sfx_dshtgn);
-	P_SetMobjState(player->mo, S_PLAY_ATK2);
+	P_SetMobjState(player->mo, player->mo->info->RPlayerRangedAttackState);
 	
 	if (!cv_infiniteammo.value)
 		player->ammo[player->weaponinfo[player->readyweapon].ammo] -= 2;
@@ -784,7 +784,7 @@ void A_FireCGun(player_t* player, pspdef_t* psp)
 			return;
 			
 	PuffType = MT_PUFF;
-	P_SetMobjState(player->mo, S_PLAY_ATK2);
+	P_SetMobjState(player->mo, player->mo->info->RPlayerRangedAttackState);
 	
 	if (!cv_infiniteammo.value)
 		player->ammo[player->weaponinfo[player->readyweapon].ammo]--;

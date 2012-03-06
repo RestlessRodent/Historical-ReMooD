@@ -1221,6 +1221,8 @@ mobjinfo_t mobjinfo[NUMMOBJTYPES] =
 		{0, 0, 0, 0},			// RXFlags
 		0,						// RFastSpeed
 		S_PLAY_RUN1,			// RPlayerRunState
+		S_PLAY_ATK1,			// RPlayerMeleeAttackState
+		S_PLAY_ATK2,			// RPlayerRangedAttackState
 	},
 	{
 		// MT_POSSESSED

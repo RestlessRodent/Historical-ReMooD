@@ -1397,6 +1397,8 @@ typedef struct
 	uint32_t RXFlags[NUMINFORXFIELDS];			// ReMooD Extended Flags
 	int32_t RFastSpeed;							// Speed when -fast
 	statenum_t RPlayerRunState;					// State for moving player
+	statenum_t RPlayerMeleeAttackState;			// S_PLAY_ATK2
+	statenum_t RPlayerRangedAttackState;		// S_PLAY_ATK1
 } mobjinfo_t;
 
 extern mobjinfo_t mobjinfo[NUMMOBJTYPES];
