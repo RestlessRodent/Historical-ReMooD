@@ -1269,8 +1269,8 @@ bool_t P_SetupLevel(int episode, int map, skill_t skill, char* wadname)	// for w
 	script_camera_on = false;
 	HU_ClearTips();
 	
-	if (camera.chase)
-		camera.mo = NULL;
+	//if (camera.chase)
+	//	camera.mo = NULL;
 		
 	// UNUSED W_Profile ();
 	
@@ -1739,6 +1739,8 @@ void P_InitSetupEx(void)
 /* P_ExClearLevel() -- Clears a level and reverts the game state */
 bool_t P_ExClearLevel(void)
 {
+	size_t i;
+	
 	/* Clear Stuff */
 	HU_ClearTips();
 	S_StopSounds();
@@ -1746,6 +1748,11 @@ bool_t P_ExClearLevel(void)
 	
 	/* Free all level tags */
 	Z_FreeTags(PU_LEVEL, PU_PURGELEVEL - 1);
+	
+	/* Wipe cameras */
+	for (i = 0; i < MAXPLAYERS; i++)
+		if (players[i].camera.chase)
+			players[i].camera.mo = NULL;
 	
 	/* Re-initialize */
 	P_Initsecnode();

@@ -820,8 +820,9 @@ void G_DoLoadLevel(bool_t resetplayer)
 			
 	gameaction = ga_nothing;
 	
-	if (camera.chase)
-		P_ResetCamera(&players[displayplayer[0]]);
+	for (i = 0; i < MAXPLAYERS; i++)
+		if (players[i].camera.chase)
+			P_ResetCamera(&players[i]);
 		
 	// clear cmd building stuff
 	memset(gamekeydown, 0, sizeof(gamekeydown));

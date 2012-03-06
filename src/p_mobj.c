@@ -1439,7 +1439,7 @@ void P_SpawnPlayer(mapthing_t* mthing)
 		HU_Start();
 	}
 	
-	if (camera.chase && displayplayer[0] == playernum)
+	if (p->camera.chase)
 		P_ResetCamera(p);
 }
 

@@ -117,20 +117,6 @@ void P_DropWeapon(player_t* player);
 //
 // P_USER
 //
-typedef struct camera_s
-{
-	bool_t chase;
-	angle_t aiming;
-	int fixedcolormap;
-	
-	//SoM: Things used by FS cameras.
-	fixed_t viewheight;
-	angle_t startangle;
-	
-	mobj_t* mo;
-} camera_t;
-
-extern camera_t camera;
 
 extern consvar_t cv_cam_dist;
 extern consvar_t cv_cam_height;

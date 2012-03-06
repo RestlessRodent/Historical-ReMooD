@@ -89,8 +89,9 @@ bool_t P_Teleport(mobj_t* thing, fixed_t x, fixed_t y, angle_t angle)
 		for (i = 0; i < MAXSPLITSCREENPLAYERS; i++)
 			if (playeringame[consoleplayer[i]] && thing == players[consoleplayer[i]].mo)
 				localangle[i] = angle;
+		
 		// move chasecam at new player location
-		if (camera.chase)
+		if (thing->player->camera.chase)
 			P_ResetCamera(thing->player);
 	}
 	
@@ -230,7 +231,7 @@ int EV_SilentTeleport(line_t* line, int side, mobj_t* thing)
 					player->deltaviewheight = deltaviewheight;
 					
 					// SoM: 3/15/2000: move chasecam at new player location
-					if (camera.chase)
+					if (thing->player->camera.chase)
 						P_ResetCamera(thing->player);
 						
 				}
@@ -357,7 +358,7 @@ int EV_SilentLineTeleport(line_t* line, int side, mobj_t* thing, bool_t reverse)
 				player->deltaviewheight = deltaviewheight;
 				
 				// SoM: 3/15/2000: move chasecam at new player location
-				if (camera.chase)
+				if (thing->player->camera.chase)
 					P_ResetCamera(thing->player);
 			}
 			

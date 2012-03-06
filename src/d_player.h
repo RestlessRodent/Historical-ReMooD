@@ -87,6 +87,20 @@ typedef enum
 
 #include "d_items.h"
 
+/* camera_t -- Chase cam */
+typedef struct camera_s
+{
+	bool_t chase;
+	angle_t aiming;
+	int fixedcolormap;
+	
+	//SoM: Things used by FS cameras.
+	fixed_t viewheight;
+	angle_t startangle;
+	
+	mobj_t* mo;
+} camera_t;
+
 // ========================================================================
 //                          PLAYER STRUCTURE
 // ========================================================================
@@ -218,6 +232,8 @@ typedef struct player_s
 	// GhostlyDeath <September 16, 2011> -- "Effort" based bobbing
 	fixed_t FakeMom[3];
 	
+	// GhostlyDeath <March 6, 2012> -- Per-player (chase) camera
+	camera_t camera;
 } player_t;
 
 //

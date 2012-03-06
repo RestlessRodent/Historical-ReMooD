@@ -979,14 +979,14 @@ void R_SetupFrame(player_t* player)
 	
 	extralight = player->extralight;
 	
-	//
-	if (cv_chasecam.value && !camera.chase)
+	// TODO FIXME: Profiled chase cameras
+	if (cv_chasecam.value && !player->camera.chase)
 	{
 		P_ResetCamera(player);
-		camera.chase = true;
+		player->camera.chase = true;
 	}
 	else if (!cv_chasecam.value)
-		camera.chase = false;
+		player->camera.chase = false;
 		
 #ifdef FRAGGLESCRIPT
 	if (script_camera_on)
@@ -997,23 +997,23 @@ void R_SetupFrame(player_t* player)
 			I_Error("no mobj for the camera");
 #endif
 		viewz = viewmobj->z;
-		fixedcolormap_setup = camera.fixedcolormap;
+		fixedcolormap_setup = player->camera.fixedcolormap;
 		aimingangle = script_camera.aiming;
 		viewangle = viewmobj->angle;
 	}
 	else
 #endif
-		if (camera.chase)
+		if (player->camera.chase)
 			// use outside cam view
 		{
-			viewmobj = camera.mo;
+			viewmobj = player->camera.mo;
 #ifdef PARANOIA
 			if (!viewmobj)
 				I_Error("no mobj for the camera");
 #endif
 			viewz = viewmobj->z + (viewmobj->height >> 1);
-			fixedcolormap_setup = camera.fixedcolormap;
-			aimingangle = camera.aiming;
+			fixedcolormap_setup = player->camera.fixedcolormap;
+			aimingangle = player->camera.aiming;
 			viewangle = viewmobj->angle;
 		}
 		else
@@ -1133,7 +1133,7 @@ void R_RenderPlayerViewEx(player_t* player, int quarter)
 	
 	// draw the psprites on top of everything
 	//  but does not draw on side views
-	if (!viewangleoffset && !camera.chase && cv_psprites.value && !script_camera_on)
+	if (!viewangleoffset && !player->camera.chase && cv_psprites.value && !script_camera_on)
 		R_DrawPlayerSprites();
 		
 	// GhostlyDeath -- warp the view

@@ -559,8 +559,6 @@ void P_DeathThink(player_t* player)
 //                and looks at the player avatar
 //
 
-camera_t camera;
-
 //#define VIEWCAM_DIST    (128<<FRACBITS)
 //#define VIEWCAM_HEIGHT  (20<<FRACBITS)
 
@@ -574,7 +572,7 @@ void P_ResetCamera(player_t* player)
 	fixed_t y;
 	fixed_t z;
 	
-	camera.chase = true;
+	player->camera.chase = true;
 	x = player->mo->x;
 	y = player->mo->y;
 	z = player->mo->z + (cv_viewheight.value << FRACBITS);
@@ -583,17 +581,17 @@ void P_ResetCamera(player_t* player)
 	// instead of the marine's head : TO DO
 	
 	// set bits for the camera
-	if (!camera.mo)
-		camera.mo = P_SpawnMobj(x, y, z, MT_CHASECAM);
+	if (!player->camera.mo)
+		player->camera.mo = P_SpawnMobj(x, y, z, MT_CHASECAM);
 	else
 	{
-		camera.mo->x = x;
-		camera.mo->y = y;
-		camera.mo->z = z;
+		player->camera.mo->x = x;
+		player->camera.mo->y = y;
+		player->camera.mo->z = z;
 	}
 	
-	camera.mo->angle = player->mo->angle;
-	camera.aiming = 0;
+	player->camera.mo->angle = player->mo->angle;
+	player->camera.aiming = 0;
 }
 
 bool_t PTR_FindCameraPoint(intercept_t* in)
@@ -652,7 +650,7 @@ void P_MoveChaseCamera(player_t* player)
 	subsector_t* newsubsec;
 	float f1, f2;
 	
-	if (!camera.mo)
+	if (!player->camera.mo)
 		P_ResetCamera(player);
 	mo = player->mo;
 	
@@ -667,23 +665,23 @@ void P_MoveChaseCamera(player_t* player)
 	/*    P_PathTraverse ( mo->x, mo->y, x, y, PT_ADDLINES, PTR_UseTraverse ); */
 	
 	// move camera down to move under lower ceilings
-	newsubsec = R_IsPointInSubsector((mo->x + camera.mo->x) >> 1, (mo->y + camera.mo->y) >> 1);
+	newsubsec = R_IsPointInSubsector((mo->x + player->camera.mo->x) >> 1, (mo->y + player->camera.mo->y) >> 1);
 	
 	if (!newsubsec)
 	{
 		// use player sector
-		if (mo->subsector->sector->ceilingheight - camera.mo->height < z)
-			z = mo->subsector->sector->ceilingheight - camera.mo->height - 11 * FRACUNIT;	// don't be blocked by a opened door
+		if (mo->subsector->sector->ceilingheight - player->camera.mo->height < z)
+			z = mo->subsector->sector->ceilingheight - player->camera.mo->height - 11 * FRACUNIT;	// don't be blocked by a opened door
 	}
 	else
 		// camera fit ?
-		if (newsubsec->sector->ceilingheight - camera.mo->height < z)
+		if (newsubsec->sector->ceilingheight - player->camera.mo->height < z)
 			// no fit
-			z = newsubsec->sector->ceilingheight - camera.mo->height - 11 * FRACUNIT;
+			z = newsubsec->sector->ceilingheight - player->camera.mo->height - 11 * FRACUNIT;
 	// is the camera fit is there own sector
-	newsubsec = R_PointInSubsector(camera.mo->x, camera.mo->y);
-	if (newsubsec->sector->ceilingheight - camera.mo->height < z)
-		z = newsubsec->sector->ceilingheight - camera.mo->height - 11 * FRACUNIT;
+	newsubsec = R_PointInSubsector(player->camera.mo->x, player->camera.mo->y);
+	if (newsubsec->sector->ceilingheight - player->camera.mo->height < z)
+		z = newsubsec->sector->ceilingheight - player->camera.mo->height - 11 * FRACUNIT;
 		
 	// point viewed by the camera
 	// this point is just 64 unit forward the player
@@ -691,22 +689,22 @@ void P_MoveChaseCamera(player_t* player)
 	viewpointx = mo->x + FixedMul(finecosine[(angle >> ANGLETOFINESHIFT) & FINEMASK], dist);
 	viewpointy = mo->y + FixedMul(finesine[(angle >> ANGLETOFINESHIFT) & FINEMASK], dist);
 	
-	camera.mo->angle = R_PointToAngle2(camera.mo->x, camera.mo->y, viewpointx, viewpointy);
+	player->camera.mo->angle = R_PointToAngle2(player->camera.mo->x, player->camera.mo->y, viewpointx, viewpointy);
 	
 	// folow the player
-	camera.mo->momx = FixedMul(x - camera.mo->x, cv_cam_speed.value);
-	camera.mo->momy = FixedMul(y - camera.mo->y, cv_cam_speed.value);
-	camera.mo->momz = FixedMul(z - camera.mo->z, cv_cam_speed.value);
+	player->camera.mo->momx = FixedMul(x - player->camera.mo->x, cv_cam_speed.value);
+	player->camera.mo->momy = FixedMul(y - player->camera.mo->y, cv_cam_speed.value);
+	player->camera.mo->momz = FixedMul(z - player->camera.mo->z, cv_cam_speed.value);
 	
 	// compute aming to look the viewed point
-	f1 = FIXED_TO_FLOAT(viewpointx - camera.mo->x);
-	f2 = FIXED_TO_FLOAT(viewpointy - camera.mo->y);
+	f1 = FIXED_TO_FLOAT(viewpointx - player->camera.mo->x);
+	f2 = FIXED_TO_FLOAT(viewpointy - player->camera.mo->y);
 	dist = sqrt(f1 * f1 + f2 * f2) * FRACUNIT;
-	angle = R_PointToAngle2(0, camera.mo->z, dist, mo->z + (mo->height >> 1) + finesine[(player->aiming >> ANGLETOFINESHIFT) & FINEMASK] * 64);
+	angle = R_PointToAngle2(0, player->camera.mo->z, dist, mo->z + (mo->height >> 1) + finesine[(player->aiming >> ANGLETOFINESHIFT) & FINEMASK] * 64);
 	
 	G_ClipAimingPitch(&angle);
-	dist = camera.aiming - angle;
-	camera.aiming -= (dist >> 3);
+	dist = player->camera.aiming - angle;
+	player->camera.aiming -= (dist >> 3);
 }
 
 // P_PlayerThink
@@ -773,8 +771,8 @@ void P_PlayerThink(player_t* player)
 		P_DeathThink(player);
 		
 		//added:26-02-98:camera may still move when guy is dead
-		if (camera.chase)
-			P_MoveChaseCamera(&players[displayplayer[0]]);
+		if (player->camera.chase)
+			P_MoveChaseCamera(player);
 		return;
 	}
 	else if (player == &players[displayplayer[0]])
@@ -796,12 +794,18 @@ void P_PlayerThink(player_t* player)
 	player->FakeMom[1] = FixedMul(player->FakeMom[1], ORIG_FRICTION);
 	
 	//added:22-02-98: bob view only if looking by the marine's eyes
-	if (!camera.chase)
+	if (!player->camera.chase)
 		P_CalcHeight(player);
 		
 	//added:26-02-98: calculate the camera movement
-	if (camera.chase && player == &players[displayplayer[0]])
-		P_MoveChaseCamera(&players[displayplayer[0]]);
+	if (player->camera.chase)
+	{
+		P_MoveChaseCamera(player);
+	
+		// GhostlyDeath <March 6, 2012> -- Camera cannot see player?
+		if (!P_CheckSight(player->camera.mo, player->mo))
+			P_ResetCamera(player);
+	}
 		
 	// check special sectors : damage & secrets
 	P_PlayerInSpecialSector(player);

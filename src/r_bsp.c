@@ -256,7 +256,16 @@ int R_DoorClosed(void)
 sector_t* R_FakeFlat(sector_t* sec, sector_t* tempsec, int* floorlightlevel, int* ceilinglightlevel, bool_t back)
 {
 	int mapnum = -1;			//SoM: 4/4/2000
-	mobj_t* viewmobj = camera.chase ? camera.mo : viewplayer->mo;
+	mobj_t* viewmobj = NULL;
+	
+	// GhostlyDeath <March 6, 2012> -- Chasecam or player?
+	if (viewplayer)
+	{
+		if (viewplayer->camera.chase)
+			viewmobj = viewplayer->camera.mo;
+		else
+			viewmobj = viewplayer->mo;
+	}
 	
 	if (floorlightlevel)
 		*floorlightlevel = sec->floorlightsec == -1 ? sec->lightlevel : sectors[sec->floorlightsec].lightlevel;
