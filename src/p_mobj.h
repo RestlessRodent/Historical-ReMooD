@@ -289,6 +289,11 @@ typedef enum mobjflagrexa_e
 	MFREXA_ISPOWERUP			= 0x00000200U,	// Glow triangle in automap
 	MFREXA_HALFMISSILERANGE		= 0x00000400U,	// Half missile range [P_CheckMissileRange]
 	MFREXA_SOUNDEVERYWHERE		= 0x00000800U,	// Play wake up/death sound everywhere
+	MFREXA_NOWATERSPLASH		= 0x00001000U,	// Do not splash water [P_MobjCheckWater]
+	MFREXA_NOCHECKWATER			= 0x00002000U,	// Do not perform water check []
+	MFREXA_USENULLMOTHINKER		= 0x00004000U,	// Use MobjNullThinker
+	MFREXA_NOPLAYERWALK			= 0x00008000U,	// Don't use player walking animation [P_XYFriction]
+	MFREXA_NOSMOOTHSTEPUP		= 0x00010000U,	// Don't smoothly step up the player view [P_ZMovement]
 } mobjflagrexa_t;
 
 // GhostlyDeath <March 4, 2012> -- About all this stuff underneath, i'm thinking

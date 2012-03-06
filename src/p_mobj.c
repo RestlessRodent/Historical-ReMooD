@@ -87,6 +87,32 @@ static const fixed_t FloatBobOffsets[64] =
 	-200637, -152193, -102284, -51389
 };
 
+extern consvar_t cv_bloodtime;
+
+/* P_AdjMobjStateTics() -- Adjust object state tics */
+void P_AdjMobjStateTics(mobj_t* const a_Object)
+{
+	/* Check */
+	if (!a_Object)
+		return;
+	
+	/* Special value? */
+	switch (a_Object->tics)
+	{
+			// Use blood time value
+		case __REMOOD_BLOODTIMECONST:
+			if (cv_bloodtime.value <= 0)
+				a_Object->tics = 0;
+			else
+				a_Object->tics = (cv_bloodtime.value * TICRATE) - 16;
+			break;
+			
+			// No special constants
+		default:
+			break;
+	}
+}
+
 //
 // P_SetMobjState
 // Returns true if the mobj is still present.
@@ -126,6 +152,9 @@ bool_t P_SetMobjState(mobj_t* mobj, statenum_t state)
 			mobj->tics = st->RMODFastTics;
 		else
 			mobj->tics = st->tics;
+		
+		// GhostlyDeath <March 6, 2012> -- Special tic constants?
+		P_AdjMobjStateTics(mobj);
 		
 		mobj->sprite = st->sprite;
 		mobj->frame = st->frame;
@@ -215,7 +244,7 @@ void P_XYFriction(mobj_t* mo, fixed_t oldx, fixed_t oldy, bool_t oldfriction)
 	        && mo->momy < STOPSPEED && (!player || (player->cmd.forwardmove == 0 && player->cmd.sidemove == 0)))
 	{
 		// if in a walking frame, stop moving
-		if (player && (mo->type != MT_SPIRIT))
+		if (player && !(mo->RXFlags[0] & MFREXA_NOPLAYERWALK))
 		{
 			if ((unsigned)((player->mo->state - states) - player->mo->info->RPlayerRunState) < 4)
 				P_SetMobjState(player->mo, player->mo->info->spawnstate);
@@ -496,7 +525,7 @@ void P_ZMovement(mobj_t* mo)
 	if (mo->player)
 	{
 		// check for smooth step up
-		if (mo->z < mo->floorz && mo->type != MT_SPIRIT)
+		if (mo->z < mo->floorz && !(mo->RXFlags[0] & MFREXA_NOSMOOTHSTEPUP))
 		{
 			mo->player->viewheight -= mo->floorz - mo->z;
 			
@@ -752,7 +781,8 @@ void P_MobjCheckWater(mobj_t* mobj)
 	fixed_t z;
 	int oldeflags;
 	
-	if (demoversion < 128 || mobj->type == MT_SPLASH || mobj->type == MT_SPIRIT)	// splash don't do splash
+	// GhostlyDeath <March 6, 2012> -- Some things are not be in the water
+	if (demoversion < 128 || (mobj->RXFlags[0] & MFREXA_NOCHECKWATER))
 		return;
 	//
 	// see if we are in water, and set some flags for later
@@ -802,7 +832,9 @@ void P_MobjCheckWater(mobj_t* mobj)
 			else
 				mobj->eflags &= ~MF_UNDERWATER;
 				
-			if (!(oldeflags & (MF_TOUCHWATER | MF_UNDERWATER)) && ((mobj->eflags & MF_TOUCHWATER) || (mobj->eflags & MF_UNDERWATER)) && mobj->type != MT_BLOOD)
+			if (!(oldeflags & (MF_TOUCHWATER | MF_UNDERWATER)) &&
+				((mobj->eflags & MF_TOUCHWATER) ||
+				(mobj->eflags & MF_UNDERWATER)) && !(mobj->RXFlags[0] & MFREXA_NOWATERSPLASH))
 				P_SpawnSplash(mobj, *rover->topheight);
 		}
 		return;
@@ -818,7 +850,7 @@ void P_MobjCheckWater(mobj_t* mobj)
 	 */
 	// blood doesnt make noise when it falls in water
 	if (!(oldeflags & (MF_TOUCHWATER | MF_UNDERWATER)) &&
-	        ((mobj->eflags & MF_TOUCHWATER) || (mobj->eflags & MF_UNDERWATER)) && mobj->type != MT_BLOOD && demoversion < 132)
+	        ((mobj->eflags & MF_TOUCHWATER) || (mobj->eflags & MF_UNDERWATER)) && !(mobj->RXFlags[0] & MFREXA_NOWATERSPLASH) && demoversion < 132)
 		P_SpawnSplash(mobj, z);	//SoM: 3/17/2000
 }
 
@@ -1035,6 +1067,9 @@ mobj_t* P_SpawnMobj(fixed_t x, fixed_t y, fixed_t z, mobjtype_t type)
 	mobj->touching_sectorlist = NULL;	//SoM: 4/7/2000
 	mobj->friction = ORIG_FRICTION;	//SoM: 4/7/2000
 	
+	// GhostlyDeath <March 6, 2012> -- Init tics
+	P_AdjMobjStateTics(mobj);
+	
 	// BP: SoM right ? if not ajust in p_saveg line 625 and 979
 	mobj->movefactor = ORIG_FRICTION_FACTOR;
 	
@@ -1125,7 +1160,8 @@ mobj_t* P_SpawnMobj(fixed_t x, fixed_t y, fixed_t z, mobjtype_t type)
 		mobj->flags2 &= ~MF2_FEETARECLIPPED;
 		
 	// added 16-6-98: special hack for spirit
-	if (mobj->type == MT_SPIRIT)
+		// GhostlyDeath <March 6, 2012> -- Don't use thinker for object
+	if (mobj->RXFlags[0] & MFREXA_USENULLMOTHINKER)
 		mobj->thinker.function.acv = (actionf_p1) P_MobjNullThinker;
 	else
 	{
@@ -1596,7 +1632,7 @@ void P_SpawnSplash(mobj_t* mo, fixed_t z)
 		return;
 		
 	// note pos +1 +1 so it doesn't eat the sound of the player..
-	th = P_SpawnMobj(mo->x + 1, mo->y + 1, z, MT_SPLASH);
+	th = P_SpawnMobj(mo->x + 1, mo->y + 1, z, INFO_GetTypeByName("RocketShot"));
 	
 	if( z - mo->subsector->sector->floorheight > 4*FRACUNIT)
 		S_StartSound(&th->NoiseThinker, sfx_gloop);
@@ -1796,7 +1832,7 @@ void P_SpawnBlood(fixed_t x, fixed_t y, fixed_t z, int damage)
 	mobj_t* th;
 	
 	z += P_SignedRandom() << 10;
-	th = P_SpawnMobj(x, y, z, MT_BLOOD);
+	th = P_SpawnMobj(x, y, z, INFO_GetTypeByName(__REMOOD_GETBLOODKIND));
 	if (!DEMOCVAR(classicblood).value)
 	{
 		th->momx = P_SignedRandom() << 12;	//faB:19jan99
@@ -1807,11 +1843,18 @@ void P_SpawnBlood(fixed_t x, fixed_t y, fixed_t z, int damage)
 	
 	if (th->tics < 1)
 		th->tics = 1;
-		
+	
+	// GhostlyDeath <March 6, 2012> -- Less blood?
 	if (damage <= 12 && damage >= 9)
-		P_SetMobjState(th, S_BLOOD2);
+	{
+		if (th->info->RLessBlood[0])
+			P_SetMobjState(th, th->info->RLessBlood[0]);
+	}
 	else if (damage < 9)
-		P_SetMobjState(th, S_BLOOD3);
+	{
+		if (th->info->RLessBlood[1])
+			P_SetMobjState(th, th->info->RLessBlood[1]);
+	}
 		
 	bloodthing = th;
 }

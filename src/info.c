@@ -168,6 +168,8 @@ void A_SpawnSound();
 void A_SpawnFly();
 void A_BrainExplode();
 
+void A_SmokeTrailer();
+
 // Fab note : frame is masked through FF_FRAMEMASK
 //            FF_FULLBRIGHT (0x8000) activates the fullbright colormap
 //
@@ -286,7 +288,7 @@ state_t states[NUMSTATES] =
 	{SPR_BFGF, 32769, 6, {A_Light2}, S_LIGHTDONE, STP_WEPFLASH},	// S_BFGFLASH2
 	{SPR_BLUD, 2, 8, {NULL}, S_BLOOD2, STP_EFFECTS},	// S_BLOOD1
 	{SPR_BLUD, 1, 8, {NULL}, S_BLOOD3, STP_EFFECTS},	// S_BLOOD2
-	{SPR_BLUD, 0, 8, {NULL}, S_NULL, STP_EFFECTS},	// S_BLOOD3
+	{SPR_BLUD, 0, __REMOOD_BLOODTIMECONST, {NULL}, S_NULL, STP_EFFECTS},	// S_BLOOD3
 	{SPR_PUFF, 32768, 4, {NULL}, S_PUFF2, STP_EFFECTS},	// S_PUFF1
 	{SPR_PUFF, 1, 4, {NULL}, S_PUFF3, STP_EFFECTS},	// S_PUFF2
 	{SPR_PUFF, 2, 4, {NULL}, S_PUFF4, STP_EFFECTS},	// S_PUFF3
@@ -308,7 +310,7 @@ state_t states[NUMSTATES] =
 	{SPR_PLSE, 32770, 4, {NULL}, S_PLASEXP4, STP_PROJECTILES},	// S_PLASEXP3
 	{SPR_PLSE, 32771, 4, {NULL}, S_PLASEXP5, STP_PROJECTILES},	// S_PLASEXP4
 	{SPR_PLSE, 32772, 4, {NULL}, S_NULL, STP_PROJECTILES},	// S_PLASEXP5
-	{SPR_MISL, 32768, 1, {NULL}, S_ROCKET, STP_PROJECTILES},	// S_ROCKET
+	{SPR_MISL, 32768, 1, {A_SmokeTrailer}, S_ROCKET, STP_PROJECTILES},	// S_ROCKET
 	{SPR_BFS1, 32768, 4, {NULL}, S_BFGSHOT2, STP_PROJECTILES},	// S_BFGSHOT
 	{SPR_BFS1, 32769, 4, {NULL}, S_BFGSHOT, STP_PROJECTILES},	// S_BFGSHOT2
 	{SPR_BFE1, 32768, 8, {NULL}, S_BFGLAND2, STP_PROJECTILES},	// S_BFGLAND
@@ -785,8 +787,8 @@ state_t states[NUMSTATES] =
 	{SPR_SKUL, 32769, 6, {A_Chase}, S_SKULL_RUN1, STP_MONSTERS},	// S_SKULL_RUN2
 	{SPR_SKUL, 32770, 10, {A_FaceTarget}, S_SKULL_ATK2, STP_MONSTERS},	// S_SKULL_ATK1
 	{SPR_SKUL, 32771, 4, {A_SkullAttack}, S_SKULL_ATK3, STP_MONSTERS},	// S_SKULL_ATK2
-	{SPR_SKUL, 32770, 4, {NULL}, S_SKULL_ATK4, STP_MONSTERS},	// S_SKULL_ATK3
-	{SPR_SKUL, 32771, 4, {NULL}, S_SKULL_ATK3, STP_MONSTERS},	// S_SKULL_ATK4
+	{SPR_SKUL, 32770, 4, {A_SmokeTrailer}, S_SKULL_ATK4, STP_MONSTERS},	// S_SKULL_ATK3
+	{SPR_SKUL, 32771, 4, {A_SmokeTrailer}, S_SKULL_ATK3, STP_MONSTERS},	// S_SKULL_ATK4
 	{SPR_SKUL, 32772, 3, {NULL}, S_SKULL_PAIN2, STP_MONSTERS},	// S_SKULL_PAIN
 	{SPR_SKUL, 32772, 3, {A_Pain}, S_SKULL_RUN1, STP_MONSTERS},	// S_SKULL_PAIN2
 	{SPR_SKUL, 32773, 6, {NULL}, S_SKULL_DIE2, STP_CORPSES},	// S_SKULL_DIE1
@@ -2322,8 +2324,17 @@ mobjinfo_t mobjinfo[NUMMOBJTYPES] =
 		0,							// flags 2
 		
 		// ReMooD Extended
-		{MFREXA_NOFORCEALLTRIGGERC, 0, 0, 0},
+		{MFREXA_NOFORCEALLTRIGGERC | MFREXA_NOWATERSPLASH, 0, 0, 0},
+		0,						// RFastSpeed
+		0,						// RPlayerRunState
+		0,						// RPlayerMeleeAttackState
+		0,						// RPlayerRangedAttackState
+		0,						// RVileHealState
+		{0, 0},					// RMissileDist[2]
+		0,						// RCapMissileDist
+		{S_BLOOD2, S_BLOOD3},	// RLessBlood[2]
 	},
+	
 	{
 		// MT_TFOG
 		-1,						// doomednum
@@ -5071,7 +5082,10 @@ mobjinfo_t mobjinfo[NUMMOBJTYPES] =
 		/*MF_NOBLOCKMAP|MF_NOSECTOR| */ MF_DROPOFF,
 		// flags    MF_SOLID|MF_SHOOTABLE|MF_PICKUP|MF_NOTDMATCH,
 		S_NULL,					// raisestate                      S_NULL          // raisestate
-		MF2_SLIDE
+		MF2_SLIDE,
+		
+		// ReMooD Extended
+		{MFREXA_NOCHECKWATER | MFREXA_USENULLMOTHINKER | MFREXA_NOPLAYERWALK | MFREXA_NOSMOOTHSTEPUP, 0, 0, 0},	// RXFlags
 	},
 	{
 		// MT_SMOK test v1.25 smoke from lava/slime damage
@@ -5125,7 +5139,11 @@ mobjinfo_t mobjinfo[NUMMOBJTYPES] =
 		0,							// damage
 		sfx_None,					// activesound
 		MF_NOBLOCKMAP | MF_NOGRAVITY | MF_NOCLIP,	// flags
-		S_NULL						// raisestate
+		S_NULL,						// raisestate
+		0,							// flags2
+		
+		// ReMooD Extended
+		{MFREXA_NOCHECKWATER | MFREXA_NOWATERSPLASH, 0, 0, 0},	// RXFlags
 	},
 	
 	// For use with wind and current effects
@@ -5373,6 +5391,47 @@ mobjinfo_t mobjinfo[NUMMOBJTYPES] =
 		8 * FRACUNIT, 60 * FRACUNIT, 100, 0, sfx_None, (MF_TRANSLATION + (12 << MF_TRANSSHIFT)),
 		S_NULL, 0
 	},
+	
+	// Doom v1.9 Blood
+	{
+		// MT_OLDDOOMBLOOD
+		-1,						// doomednum
+		S_BLOOD1,					// spawnstate
+		1000,						// spawnhealth
+		S_NULL,					// seestate
+		sfx_None,					// seesound
+		8,							// reactiontime
+		sfx_None,					// attacksound
+		S_NULL,					// painstate
+		0,							// painchance
+		sfx_None,					// painsound
+		S_NULL,					// meleestate
+		S_NULL,					// missilestate
+		S_NULL,					// crashstate
+		S_NULL,					// deathstate
+		S_NULL,					// xdeathstate
+		sfx_None,					// deathsound
+		0,							// speed
+		20 * FRACUNIT,				// radius
+		16 * FRACUNIT,				// height
+		100,						// mass
+		0,							// damage
+		sfx_None,					// activesound
+		MF_NOBLOCKMAP,				// flags
+		S_NULL,						// raisestate
+		0,							// flags 2
+		
+		// ReMooD Extended
+		{MFREXA_NOFORCEALLTRIGGERC | MFREXA_NOWATERSPLASH, 0, 0, 0},
+		0,						// RFastSpeed
+		0,						// RPlayerRunState
+		0,						// RPlayerMeleeAttackState
+		0,						// RPlayerRangedAttackState
+		0,						// RVileHealState
+		{0, 0},					// RMissileDist[2]
+		0,						// RCapMissileDist
+		{S_BLOOD2, S_BLOOD3},	// RLessBlood[2]
+	},
 };
 
 // patch the info mobjinfo table and state table for new legacy needs
@@ -5536,7 +5595,9 @@ char* MT2ReMooDClass[NUMMOBJTYPES] =
 	"BlueFlag",					// MT_BLUEFLAG
 	"GreenFlag",				// MT_GREENFLAG
 	"YellowFlag",				// MT_YELLOWFLAG
-	"NeutralFlag"				// MT_NEUTRALFLAG
+	"NeutralFlag",				// MT_NEUTRALFLAG
+	
+	"LegacyOldDoomBlood",		// MT_OLDDOOMBLOOD
 };
 
 #define STRINGIFY(x) #x
@@ -5696,7 +5757,10 @@ char* MT2MTString[NUMMOBJTYPES] =
 	STRINGIFY(MT_BLUEFLAG),
 	STRINGIFY(MT_GREENFLAG),
 	STRINGIFY(MT_YELLOWFLAG),
-	STRINGIFY(MT_NEUTRALFLAG)
+	STRINGIFY(MT_NEUTRALFLAG),
+	
+	STRINGIFY(MT_OLDDOOMBLOOD),
+	
 };
 
 static uint32_t l_DeprClassHash[NUMMOBJTYPES][2];

@@ -52,6 +52,10 @@ void A_SmokeTrailer(mobj_t* actor)
 {
 	mobj_t* th;
 	
+	// GhostlyDeath <March 6, 2012> -- Check version (not before Legacy 1.25)
+	if (demoversion < 125)
+		return;
+	
 	if (gametic % (4))
 		return;
 		
@@ -224,10 +228,6 @@ consvar_t cv_bloodtime = { "bloodtime", "20", CV_NETVAR | CV_CALL | CV_SAVE, blo
 //
 void BloodTime_OnChange(void)
 {
-	states[S_BLOOD1].tics = 8;
-	states[S_BLOOD2].tics = 8;
-	states[S_BLOOD3].tics = (cv_bloodtime.value * TICRATE) - 16;
-	
 	CONL_PrintF("blood lasts for %d seconds\n", cv_bloodtime.value);
 }
 

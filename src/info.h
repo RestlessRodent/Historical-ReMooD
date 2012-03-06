@@ -1360,6 +1360,8 @@ typedef enum
 	MT_YELLOWFLAG,
 	MT_NEUTRALFLAG,
 	
+	MT_OLDDOOMBLOOD,			// GhostlyDeath <March 6, 2012> -- Old Style Blood
+	
 	NUMMOBJTYPES
 } mobjtype_t;
 
@@ -1402,6 +1404,7 @@ typedef struct
 	statenum_t RVileHealState;					// Heal state for Arch-Vile
 	int RMissileDist[2];						// Min/Max missile distances [P_CheckMissileRange]
 	int RCapMissileDist;						// Distance cap [P_CheckMissileRange]
+	statenum_t RLessBlood[2];					// Less blood to spew? (0 = 9-12, 1 = < 9) [P_SpawnBlood]
 } mobjinfo_t;
 
 extern mobjinfo_t mobjinfo[NUMMOBJTYPES];
@@ -1416,6 +1419,12 @@ mobjtype_t INFO_GetTypeByName(const char* const a_Name);
 
 /*** HELPFUL MACROS ***/
 // Yuck! TODO: Make these real functions
+
+// __REMOOD_BLOODTIMECONST -- use cv_bloodtime.value instead here
+#define __REMOOD_BLOODTIMECONST ((int32_t)-2674)
+
+// __REMOOD_GETBLOODKIND -- or "LegacyOldDoomBlood"
+#define __REMOOD_GETBLOODKIND ((demoversion < 130) ? ("LegacyOldDoomBlood") : ("DoomBlood"))
 
 // __REMOOD_GETSPEEDMO -- Get speed of mobj, note that getting the flag from the
 // mobj is intentional. Why? So in -fast you could make certain monsters fast
