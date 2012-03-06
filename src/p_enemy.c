@@ -216,29 +216,28 @@ static bool_t P_CheckMissileRange(mobj_t* actor)
 		
 	dist >>= 16;
 	
-	if (actor->type == MT_VILE)
-	{
-		if (dist > 14 * 64)
-			return false;		// too far away
-	}
+	// GhostlyDeath <March 6, 2012> -- Distance caps
+	// Distance less than said range?
+	if (actor->info->RMissileDist[0])
+		if (dist < actor->info->RMissileDist[0])
+			return false;
 	
-	if (actor->type == MT_UNDEAD)
-	{
-		if (dist < 196)
-			return false;		// close for fist attack
-		dist >>= 1;
-	}
+	// Distance more than said range?
+	if (actor->info->RMissileDist[1])
+		if (dist > actor->info->RMissileDist[1])
+			return false;
 	
-	if (actor->type == MT_CYBORG || actor->type == MT_SPIDER || actor->type == MT_SKULL)
-	{
+	// GhostlyDeath <March 6, 2012> -- Cut missile range in half?
+	if (actor->RXFlags[0] & MFREXA_HALFMISSILERANGE)
 		dist >>= 1;
-	}
 	
 	if (dist > 200)
 		dist = 200;
 		
-	if (actor->type == MT_CYBORG && dist > 160)
-		dist = 160;
+	// GhostlyDeath <March 6, 2012> -- Cap missile distance?
+	if (actor->info->RCapMissileDist)
+		if (dist > actor->info->RCapMissileDist)
+			dist = actor->info->RCapMissileDist;
 		
 	if (P_Random() < dist)
 		return false;
@@ -620,7 +619,7 @@ seeyou:
 				break;
 		}
 		
-		if (actor->type == MT_SPIDER || actor->type == MT_CYBORG || (actor->flags2 & MF2_BOSS))
+		if ((actor->RXFlags[0] & MFREXA_SOUNDEVERYWHERE) || (actor->flags2 & MF2_BOSS))
 		{
 			// full volume
 			S_StartSound(NULL, sound);
@@ -1544,7 +1543,8 @@ void A_Scream(mobj_t* actor)
 	}
 	
 	// Check for bosses.
-	if (actor->type == MT_SPIDER || actor->type == MT_CYBORG)
+	
+	if (actor->RXFlags[0] & MFREXA_SOUNDEVERYWHERE)
 	{
 		// full volume
 		S_StartSound(NULL, sound);

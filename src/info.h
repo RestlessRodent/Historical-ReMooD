@@ -1400,6 +1400,8 @@ typedef struct
 	statenum_t RPlayerMeleeAttackState;			// S_PLAY_ATK2
 	statenum_t RPlayerRangedAttackState;		// S_PLAY_ATK1
 	statenum_t RVileHealState;					// Heal state for Arch-Vile
+	int RMissileDist[2];						// Min/Max missile distances [P_CheckMissileRange]
+	int RCapMissileDist;						// Distance cap [P_CheckMissileRange]
 } mobjinfo_t;
 
 extern mobjinfo_t mobjinfo[NUMMOBJTYPES];

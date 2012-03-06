@@ -287,6 +287,8 @@ typedef enum mobjflagrexa_e
 	MFREXA_ISMONSTER			= 0x00000080U,	// Treat as monster regardless of !MF_COUNTKILL
 	MFREXA_ISTELEFOG			= 0x00000100U,	// Spin triangle in automap
 	MFREXA_ISPOWERUP			= 0x00000200U,	// Glow triangle in automap
+	MFREXA_HALFMISSILERANGE		= 0x00000400U,	// Half missile range [P_CheckMissileRange]
+	MFREXA_SOUNDEVERYWHERE		= 0x00000800U,	// Play wake up/death sound everywhere
 } mobjflagrexa_t;
 
 // GhostlyDeath <March 4, 2012> -- About all this stuff underneath, i'm thinking

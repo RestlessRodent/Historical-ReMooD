@@ -1313,6 +1313,7 @@ mobjinfo_t mobjinfo[NUMMOBJTYPES] =
 		0,							// RPlayerMeleeAttackState
 		0,							// RPlayerRangedAttackState
 		S_VILE_HEAL1,				// RVileHealState
+		{0, 896},					// RMissileDist
 	},
 	{
 		// MT_FIRE
@@ -1366,7 +1367,17 @@ mobjinfo_t mobjinfo[NUMMOBJTYPES] =
 		0,							// damage
 		sfx_skeact,				// activesound
 		MF_SOLID | MF_SHOOTABLE | MF_COUNTKILL,	// flags
-		S_SKEL_RAISE1				// raisestate
+		S_SKEL_RAISE1,				// raisestate
+		0,						// flags2
+		
+		// ReMooD Extended
+		{MFREXA_HALFMISSILERANGE, 0, 0, 0},
+		0,							// RFastSpeed
+		0,							// RPlayerRunState
+		0,							// RPlayerMeleeAttackState
+		0,							// RPlayerRangedAttackState
+		0,							// RVileHealState
+		{196, 0},					// RMissileDist
 	},
 	{
 		// MT_TRACER
@@ -1728,7 +1739,7 @@ mobjinfo_t mobjinfo[NUMMOBJTYPES] =
 		0,							// flags2
 		
 		// ReMooD Extended
-		{MFREXA_ISMONSTER, 0, 0, 0},
+		{MFREXA_ISMONSTER | MFREXA_HALFMISSILERANGE, 0, 0, 0},
 	},
 	{
 		// MT_SPIDER
@@ -1755,7 +1766,11 @@ mobjinfo_t mobjinfo[NUMMOBJTYPES] =
 		0,							// damage
 		sfx_dmact,					// activesound
 		MF_SOLID | MF_SHOOTABLE | MF_COUNTKILL,	// flags
-		S_NULL						// raisestate
+		S_NULL,						// raisestate
+		0,						// flags2
+		
+		// ReMooD Extended
+		{MFREXA_HALFMISSILERANGE | MFREXA_SOUNDEVERYWHERE, 0, 0, 0},
 	},
 	{
 		// MT_BABY
@@ -1809,7 +1824,18 @@ mobjinfo_t mobjinfo[NUMMOBJTYPES] =
 		0,							// damage
 		sfx_dmact,					// activesound
 		MF_SOLID | MF_SHOOTABLE | MF_COUNTKILL,	// flags
-		S_NULL						// raisestate
+		S_NULL,						// raisestate
+		0,						// flags2
+		
+		// ReMooD Extended
+		{MFREXA_HALFMISSILERANGE | MFREXA_SOUNDEVERYWHERE, 0, 0, 0},
+		0,							// RFastSpeed
+		0,							// RPlayerRunState
+		0,							// RPlayerMeleeAttackState
+		0,							// RPlayerRangedAttackState
+		0,							// RVileHealState
+		{0, 0},						// RMissileDist
+		160,						// RCapMissileDist
 	},
 	{
 		// MT_PAIN
