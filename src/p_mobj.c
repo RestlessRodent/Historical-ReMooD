@@ -1030,6 +1030,10 @@ mobj_t* P_SpawnMobj(fixed_t x, fixed_t y, fixed_t z, mobjtype_t type)
 	mobjinfo_t* info;
 	int i;
 	
+	/* Check Type */
+	if (type < 0 || type >= NUMMOBJTYPES)
+		return NULL;
+	
 	mobj = Z_Malloc(sizeof(*mobj), PU_LEVEL, NULL);
 	memset(mobj, 0, sizeof(*mobj));
 	info = &mobjinfo[type];
@@ -1112,9 +1116,7 @@ mobj_t* P_SpawnMobj(fixed_t x, fixed_t y, fixed_t z, mobjtype_t type)
 		   // thing not on solid ground
 		   if (tmfloorthing)
 		   mobj->eflags &= ~MF_ONGROUND;
-		
-		   //if (mobj->type == MT_BARREL)
-		   //   fprintf(stderr,"barrel at z %d floor %d ceiling %d\n",mobj->z,mobj->floorz,mobj->ceilingz);
+			
 		
 		   }
 		   else
@@ -1411,7 +1413,7 @@ void P_SpawnPlayer(mapthing_t* mthing)
 	
 	z = ONFLOORZ;
 	
-	mobj = P_SpawnMobj(x, y, z, MT_PLAYER);
+	mobj = P_SpawnMobj(x, y, z, INFO_GetTypeByName("DoomPlayer"));
 	//SoM:
 	mthing->mobj = mobj;
 	
@@ -1692,22 +1694,23 @@ void P_SpawnPuff(fixed_t x, fixed_t y, fixed_t z)
 	// GhostlyDeath <January 7, 2008> -- So I can use heretic stuff in Doom!
 	puff = P_SpawnMobj(x, y, z, PuffType);
 	
-	switch (PuffType)
+	if (!puff)
+		return;
+	
+	// GhostlyDeath <March 6, 2012> -- Randomized puff time?
+	if (puff->RXFlags[0] & MFREXA_RANDOMPUFFTIME)
 	{
-		case MT_PUFF:
-			puff->momz = FRACUNIT;
-			puff->tics -= P_Random() & 3;
-			
-			if (puff->tics < 1)
-				puff->tics = 1;
-				
-			// don't make punches spark on the wall
-			if (attackrange == MELEERANGE)
-				P_SetMobjState(puff, S_PUFF3);
-			break;
-		default:
-			break;
+		puff->momz = FRACUNIT;
+		puff->tics -= P_Random() & 3;
+		
+		if (puff->tics < 1)
+			puff->tics = 1;
 	}
+	
+	// GhostlyDeath <March 6, 2012> -- Close range state
+	if (attackrange == MELEERANGE)
+		if (puff->info->RMeleePuffState)
+			P_SetMobjState(puff, puff->info->RMeleePuffState);
 }
 
 // --------------------------------------------------------------------------

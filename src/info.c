@@ -1690,7 +1690,21 @@ mobjinfo_t mobjinfo[NUMMOBJTYPES] =
 		0,							// damage
 		sfx_dmact,					// activesound
 		MF_SOLID | MF_SHOOTABLE | MF_COUNTKILL,	// flags
-		S_BOSS_RAISE1				// raisestate
+		S_BOSS_RAISE1,				// raisestate
+		0,							// flags
+		
+		// ReMooD Extended
+		{0, 0, 0, 0},				// RXFlags
+		0,							// RFastSpeed
+		0,							// RPlayerRunState
+		0,							// RPlayerMeleeAttackState
+		0,							// RPlayerRangedAttackState
+		0,							// RVileHealState
+		{0, 0},						// RMissileDist
+		0,							// RCapMissileDist
+		{0, 0},						// RLessBlood
+		NULL,						// RDropClass
+		MT_BRUISER,					// RBaseFamily
 	},
 	{
 		// MT_BRUISERSHOT
@@ -1749,7 +1763,21 @@ mobjinfo_t mobjinfo[NUMMOBJTYPES] =
 		0,							// damage
 		sfx_dmact,					// activesound
 		MF_SOLID | MF_SHOOTABLE | MF_COUNTKILL,	// flags
-		S_BOS2_RAISE1				// raisestate
+		S_BOS2_RAISE1,				// raisestate
+		0,							// flags2
+		
+		// ReMooD Extended
+		{0, 0, 0, 0},				// RXFlags
+		0,							// RFastSpeed
+		0,							// RPlayerRunState
+		0,							// RPlayerMeleeAttackState
+		0,							// RPlayerRangedAttackState
+		0,							// RVileHealState
+		{0, 0},						// RMissileDist
+		0,							// RCapMissileDist
+		{0, 0},						// RLessBlood
+		NULL,						// RDropClass
+		MT_BRUISER,					// RBaseFamily
 	},
 	{
 		// MT_SKULL
@@ -1811,7 +1839,7 @@ mobjinfo_t mobjinfo[NUMMOBJTYPES] =
 		0,						// flags2
 		
 		// ReMooD Extended
-		{MFREXA_HALFMISSILERANGE | MFREXA_SOUNDEVERYWHERE, 0, 0, 0},
+		{MFREXA_HALFMISSILERANGE | MFREXA_SOUNDEVERYWHERE | MFREXA_RADIUSATTACKPROOF, 0, 0, 0},
 	},
 	{
 		// MT_BABY
@@ -1869,7 +1897,7 @@ mobjinfo_t mobjinfo[NUMMOBJTYPES] =
 		0,						// flags2
 		
 		// ReMooD Extended
-		{MFREXA_HALFMISSILERANGE | MFREXA_SOUNDEVERYWHERE, 0, 0, 0},
+		{MFREXA_HALFMISSILERANGE | MFREXA_SOUNDEVERYWHERE | MFREXA_RADIUSATTACKPROOF, 0, 0, 0},
 		0,							// RFastSpeed
 		0,							// RPlayerRunState
 		0,							// RPlayerMeleeAttackState
@@ -1997,7 +2025,23 @@ mobjinfo_t mobjinfo[NUMMOBJTYPES] =
 		0,							// damage
 		sfx_None,					// activesound
 		MF_SOLID | MF_SHOOTABLE,	// flags
-		S_NULL						// raisestate
+		S_NULL,						// raisestate
+		0,							// flags2
+		
+		// ReMooD Extended
+		{0, 0, 0, 0},				// RXFlags
+		0,							// RFastSpeed
+		0,							// RPlayerRunState
+		0,							// RPlayerMeleeAttackState
+		0,							// RPlayerRangedAttackState
+		0,							// RVileHealState
+		{0, 0},						// RMissileDist
+		0,							// RCapMissileDist
+		{0, 0},						// RLessBlood
+		NULL,						// RDropClass
+		0,							// RBaseFamily
+		0,							// RBrainExplodeState
+		"RocketShot",				// RBrainExplodeThing
 	},
 	{
 		// MT_BOSSSPIT
@@ -2231,7 +2275,19 @@ mobjinfo_t mobjinfo[NUMMOBJTYPES] =
 		0,							// flags2
 		
 		// ReMooD Extended
-		{MFREXA_NOCROSSTRIGGER, 0, 0, 0},
+		{MFREXA_NOCROSSTRIGGER, 0, 0, 0},	// RXFlags
+		0,							// RFastSpeed
+		0,							// RPlayerRunState
+		0,							// RPlayerMeleeAttackState
+		0,							// RPlayerRangedAttackState
+		0,							// RVileHealState
+		{0, 0},						// RMissileDist
+		0,							// RCapMissileDist
+		{0, 0},						// RLessBlood
+		NULL,						// RDropClass
+		0,							// RBaseFamily
+		S_BRAINEXPLODE1,			// RBrainExplodeState
+		NULL,						// RBrainExplodeThing
 	},
 	{
 		// MT_PLASMA
@@ -2347,7 +2403,24 @@ mobjinfo_t mobjinfo[NUMMOBJTYPES] =
 		0,							// damage
 		sfx_None,					// activesound
 		MF_NOBLOCKMAP | MF_NOGRAVITY | MF_NOCLIP,	// flags
-		S_NULL						// raisestate
+		S_NULL,						// raisestate
+		0,							// flags2
+		
+		// ReMooD Extended
+		{MFREXA_RANDOMPUFFTIME, 0, 0, 0},				// RXFlags
+		0,							// RFastSpeed
+		0,							// RPlayerRunState
+		0,							// RPlayerMeleeAttackState
+		0,							// RPlayerRangedAttackState
+		0,							// RVileHealState
+		{0, 0},						// RMissileDist
+		0,							// RCapMissileDist
+		{0, 0},						// RLessBlood
+		NULL,						// RDropClass
+		0,							// RBaseFamily
+		0,							// RBrainExplodeState
+		NULL,						// RBrainExplodeThing
+		S_PUFF3,							// RMeleePuffState
 	},
 	
 	//WARNING: this mobj is hacked in g_downgrade (g_game.c)

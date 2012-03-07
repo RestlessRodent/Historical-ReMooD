@@ -304,6 +304,8 @@ typedef enum mobjflagrexa_e
 	MFREXA_CANCEILINGSTEP		= 0x00800000U,	// Can step from the ceiling (similar to stairs but for ceilings instead)
 	MFREXA_NOTHRESHOLD			= 0x01000000U,	// No threshold (instantly change target) [P_DamageMobj]
 	MFREXA_NOTRETAILIATETARGET	= 0x02000000U,	// Object cannot be targetted by monster even if hurt by it [P_DamageMobj]
+	MFREXA_RADIUSATTACKPROOF	= 0x04000000U,	// Immune to radial attacks [PIT_RadiusAttack]
+	MFREXA_RANDOMPUFFTIME		= 0x08000000U,	// Randomize the puff time a bit [P_SpawnPuff]
 } mobjflagrexa_t;
 
 // GhostlyDeath <March 4, 2012> -- About all this stuff underneath, i'm thinking

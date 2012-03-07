@@ -1406,7 +1406,30 @@ typedef struct
 	int RCapMissileDist;						// Distance cap [P_CheckMissileRange]
 	statenum_t RLessBlood[2];					// Less blood to spew? (0 = 9-12, 1 = < 9) [P_SpawnBlood]
 	const char* RDropClass;						// Class to "drop" when dead
+	mobjtype_t RBaseFamily;						// Base object family [PIT_CheckThing]
+	statenum_t RBrainExplodeState;				// State for exploding rockets [A_BrainScream]
+	const char* RBrainExplodeThing;				// Thing to explode on a dying brain [A_BrainScream]
+	statenum_t RMeleePuffState;					// State for meleerange puff [P_SpawnPuff]
 } mobjinfo_t;
+
+#if 0
+// Object Extended Template
+/*	// ReMooD Extended
+	{0, 0, 0, 0},				// RXFlags
+	0,							// RFastSpeed
+	0,							// RPlayerRunState
+	0,							// RPlayerMeleeAttackState
+	0,							// RPlayerRangedAttackState
+	0,							// RVileHealState
+	{0, 0},						// RMissileDist
+	0,							// RCapMissileDist
+	{0, 0},						// RLessBlood
+	NULL,						// RDropClass
+	0,							// RBaseFamily
+	0,							// RBrainExplodeState
+	NULL,						// RBrainExplodeThing
+	0,							// RMeleePuffState*/
+#endif
 
 extern mobjinfo_t mobjinfo[NUMMOBJTYPES];
 extern char* MT2ReMooDClass[NUMMOBJTYPES];

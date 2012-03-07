@@ -335,9 +335,7 @@ static bool_t PIT_CheckThing(mobj_t* thing, void* a_Arg)
 		if (tmthing->z + tmthing->height < thing->z)
 			return true;		// underneath
 			
-		if (tmthing->target && (tmthing->target->type == thing->type ||
-		                        (tmthing->target->type == MT_KNIGHT &&
-		                         thing->type == MT_BRUISER) || (tmthing->target->type == MT_BRUISER && thing->type == MT_KNIGHT)))
+		if (tmthing->target && (tmthing->target->type == thing->type || (tmthing->target->info->RBaseFamily && thing->info->RBaseFamily && tmthing->target->info->RBaseFamily == thing->info->RBaseFamily)))
 		{
 			// Don't hit same species as originator.
 			if (thing == tmthing->target)
@@ -1796,7 +1794,8 @@ bool_t PIT_RadiusAttack(mobj_t* thing, void* a_Arg)
 		
 	// Boss spider and cyborg
 	// take no damage from concussion.
-	if (thing->type == MT_CYBORG || thing->type == MT_SPIDER)
+		// GhostlyDeath <March 6, 2012> -- Immune to radius attacks
+	if (thing->RXFlags[0] & MFREXA_RADIUSATTACKPROOF)
 		return true;
 		
 	dx = abs(thing->x - bombspot->x);

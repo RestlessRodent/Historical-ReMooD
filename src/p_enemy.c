@@ -863,7 +863,7 @@ void A_BspiAttack(mobj_t* actor)
 	A_FaceTarget(actor);
 	
 	// launch a missile
-	Missile = P_SpawnMissile(actor, actor->target, MT_ARACHPLAZ);
+	Missile = P_SpawnMissile(actor, actor->target, INFO_GetTypeByName("ArachnotronShot"));
 	
 	// GhostlyDeath <March 6, 2012> -- Obituary Stuff
 	if (Missile)
@@ -898,7 +898,7 @@ void A_TroopAttack(mobj_t* actor)
 	}
 	
 	// launch a missile
-	Missile = P_SpawnMissile(actor, actor->target, MT_TROOPSHOT);
+	Missile = P_SpawnMissile(actor, actor->target, INFO_GetTypeByName("ImpShot"));
 	
 	// GhostlyDeath <March 6, 2012> -- Obituary Stuff
 	if (Missile)
@@ -948,7 +948,7 @@ void A_HeadAttack(mobj_t* actor)
 	}
 	
 	// launch a missile
-	Missile = P_SpawnMissile(actor, actor->target, MT_HEADSHOT);
+	Missile = P_SpawnMissile(actor, actor->target, INFO_GetTypeByName("CacodemonShot"));
 	
 	// GhostlyDeath <March 6, 2012> -- Obituary Stuff
 	if (Missile)
@@ -966,7 +966,7 @@ void A_CyberAttack(mobj_t* actor)
 		return;
 	
 	A_FaceTarget(actor);
-	Missile = P_SpawnMissile(actor, actor->target, MT_ROCKET);
+	Missile = P_SpawnMissile(actor, actor->target, INFO_GetTypeByName("RocketShot"));
 	
 	// GhostlyDeath <March 6, 2012> -- Obituary Stuff
 	if (Missile)
@@ -997,7 +997,7 @@ void A_BruisAttack(mobj_t* actor)
 	}
 	
 	// launch a missile
-	Missile = P_SpawnMissile(actor, actor->target, MT_BRUISERSHOT);
+	Missile = P_SpawnMissile(actor, actor->target, INFO_GetTypeByName("BaronShot"));
 	
 	// GhostlyDeath <March 6, 2012> -- Obituary Stuff
 	if (Missile)
@@ -1019,7 +1019,7 @@ void A_SkelMissile(mobj_t* actor)
 		
 	A_FaceTarget(actor);
 	actor->z += 16 * FRACUNIT;	// so missile spawns higher
-	mo = P_SpawnMissile(actor, actor->target, MT_TRACER);
+	mo = P_SpawnMissile(actor, actor->target, INFO_GetTypeByName("TracerShot"));
 	actor->z -= 16 * FRACUNIT;	// back to normal
 	
 	if (mo)
@@ -1051,10 +1051,10 @@ void A_Tracer(mobj_t* actor)
 		return;
 		
 	// spawn a puff of smoke behind the rocket
-	PuffType = MT_PUFF;
+	PuffType = INFO_GetTypeByName("BulletPuff");
 	P_SpawnPuff(actor->x, actor->y, actor->z);
 	
-	th = P_SpawnMobj(actor->x - actor->momx, actor->y - actor->momy, actor->z, MT_SMOKE);
+	th = P_SpawnMobj(actor->x - actor->momx, actor->y - actor->momy, actor->z, INFO_GetTypeByName("TracerSmoke"));
 	
 	th->momz = FRACUNIT;
 	th->tics -= P_Random() & 3;
@@ -1311,7 +1311,7 @@ void A_VileTarget(mobj_t* actor)
 	A_FaceTarget(actor);
 	
 	fog = P_SpawnMobj(actor->target->x, actor->target->x,	// Bp: shoul'nt be y ?
-	                  actor->target->z, MT_FIRE);
+	                  actor->target->z, INFO_GetTypeByName("VileFire"));
 	                  
 	actor->tracer = fog;
 	fog->target = actor;
@@ -1379,13 +1379,13 @@ void A_FatAttack1(mobj_t* actor)
 	A_FaceTarget(actor);
 	// Change direction  to ...
 	actor->angle += FATSPREAD;
-	mo = P_SpawnMissile(actor, actor->target, MT_FATSHOT);
+	mo = P_SpawnMissile(actor, actor->target, INFO_GetTypeByName("MancubusShot"));
 	
 	// GhostlyDeath <March 6, 2012> -- Obituary Stuff
 	mo->RXUsedMelee = false;
 	mo->RXUsedSpell = false;
 	
-	mo = P_SpawnMissile(actor, actor->target, MT_FATSHOT);
+	mo = P_SpawnMissile(actor, actor->target, INFO_GetTypeByName("MancubusShot"));
 	if (mo)
 	{
 		mo->angle += FATSPREAD;
@@ -1407,13 +1407,13 @@ void A_FatAttack2(mobj_t* actor)
 	A_FaceTarget(actor);
 	// Now here choose opposite deviation.
 	actor->angle -= FATSPREAD;
-	mo = P_SpawnMissile(actor, actor->target, MT_FATSHOT);
+	mo = P_SpawnMissile(actor, actor->target, INFO_GetTypeByName("MancubusShot"));
 	
 	// GhostlyDeath <March 6, 2012> -- Obituary Stuff
 	mo->RXUsedMelee = false;
 	mo->RXUsedSpell = false;
 	
-	mo = P_SpawnMissile(actor, actor->target, MT_FATSHOT);
+	mo = P_SpawnMissile(actor, actor->target, INFO_GetTypeByName("MancubusShot"));
 	if (mo)
 	{
 		mo->angle -= FATSPREAD * 2;
@@ -1434,7 +1434,7 @@ void A_FatAttack3(mobj_t* actor)
 	
 	A_FaceTarget(actor);
 	
-	mo = P_SpawnMissile(actor, actor->target, MT_FATSHOT);
+	mo = P_SpawnMissile(actor, actor->target, INFO_GetTypeByName("MancubusShot"));
 	if (mo)
 	{
 		mo->angle -= FATSPREAD / 2;
@@ -1447,7 +1447,7 @@ void A_FatAttack3(mobj_t* actor)
 		mo->RXUsedSpell = false;
 	}
 	
-	mo = P_SpawnMissile(actor, actor->target, MT_FATSHOT);
+	mo = P_SpawnMissile(actor, actor->target, INFO_GetTypeByName("MancubusShot"));
 	if (mo)
 	{
 		mo->angle += FATSPREAD / 2;
@@ -1555,6 +1555,7 @@ void A_PainShootSkull(mobj_t* actor, angle_t angle)
 	fixed_t y;
 	fixed_t z;
 	
+	mobjtype_t TargetType;
 	mobj_t* newmobj;
 	angle_t an;
 	int prestep;
@@ -1585,13 +1586,20 @@ void A_PainShootSkull(mobj_t* actor, angle_t angle)
 	// okay, there's place for another one
 	an = angle >> ANGLETOFINESHIFT;
 	
-	prestep = 4 * FRACUNIT + 3 * (actor->info->radius + mobjinfo[MT_SKULL].radius) / 2;
+	// GhostlyDeath <March 6, 2012> -- Get target type
+	TargetType = INFO_GetTypeByName("LostSoul");
+	
+	// Bad object?
+	if (!(TargetType >= 0 && TargetType < NUMMOBJTYPES))
+		return;
+	
+	prestep = 4 * FRACUNIT + 3 * (actor->info->radius + mobjinfo[TargetType].radius) / 2;
 	
 	x = actor->x + FixedMul(prestep, finecosine[an]);
 	y = actor->y + FixedMul(prestep, finesine[an]);
 	z = actor->z + 8 * FRACUNIT;
 	
-	newmobj = P_SpawnMobj(x, y, z, MT_SKULL);
+	newmobj = P_SpawnMobj(x, y, z, TargetType);
 	
 	// Check for movements.
 	if (!P_TryMove(newmobj, newmobj->x, newmobj->y, false))
@@ -1975,19 +1983,31 @@ void A_BrainScream(mobj_t* mo)
 	int y;
 	int z;
 	mobj_t* th;
+	mobjtype_t SpawnThing;
 	
-	for (x = mo->x - 196 * FRACUNIT; x < mo->x + 320 * FRACUNIT; x += FRACUNIT * 8)
+	// GhostlyDeath <March 6, 2012> -- Custom thing spawning
+	if (mo->info->RBrainExplodeThing)
 	{
-		y = mo->y - 320 * FRACUNIT;
-		z = 128 + P_Random() * 2 * FRACUNIT;
-		th = P_SpawnMobj(x, y, z, MT_ROCKET);
-		th->momz = P_Random() * 512;
+		// Get the exploding thing class
+		SpawnThing = INFO_GetTypeByName(mo->info->RBrainExplodeThing);
 		
-		P_SetMobjState(th, S_BRAINEXPLODE1);
+		// Spawn alot of objects
+		if (SpawnThing >= 0 && SpawnThing < NUMMOBJTYPES)
+			for (x = mo->x - 196 * FRACUNIT; x < mo->x + 320 * FRACUNIT; x += FRACUNIT * 8)
+			{
+				y = mo->y - 320 * FRACUNIT;
+				z = 128 + P_Random() * 2 * FRACUNIT;
+				th = P_SpawnMobj(x, y, z, SpawnThing);
+				th->momz = P_Random() * 512;
+				
+				// Explode if possible
+				if (th->info->RBrainExplodeState)
+					P_SetMobjState(th, th->info->RBrainExplodeState);
 		
-		th->tics -= P_Random() & 7;
-		if (th->tics < 1)
-			th->tics = 1;
+				th->tics -= P_Random() & 7;
+				if (th->tics < 1)
+					th->tics = 1;
+			}
 	}
 	
 	S_StartSound(NULL, sfx_bosdth);
@@ -1999,14 +2019,19 @@ void A_BrainExplode(mobj_t* mo)
 	int y;
 	int z;
 	mobj_t* th;
+	mobjtype_t SpawnThing;
 	
 	x = (P_SignedRandom() << 11) + mo->x;
 	y = mo->y;
 	z = 128 + P_Random() * 2 * FRACUNIT;
-	th = P_SpawnMobj(x, y, z, MT_ROCKET);
+	
+	// GhostlyDeath <March 6, 2012> -- Spawn self again
+	th = P_SpawnMobj(x, y, z, mo->type);
 	th->momz = P_Random() * 512;
 	
-	P_SetMobjState(th, S_BRAINEXPLODE1);
+	// Explode if possible
+	if (th->info->RBrainExplodeState)
+		P_SetMobjState(th, th->info->RBrainExplodeState);
 	
 	th->tics -= P_Random() & 7;
 	if (th->tics < 1)
@@ -2037,7 +2062,7 @@ void A_BrainSpit(mobj_t* mo)
 		braintargeton = (braintargeton + 1) % numbraintargets;
 		
 		// spawn brain missile
-		newmobj = P_SpawnMissile(mo, targ, MT_SPAWNSHOT);
+		newmobj = P_SpawnMissile(mo, targ, INFO_GetTypeByName("BossSpawnCube"));
 		if (newmobj)
 		{
 			newmobj->target = targ;
@@ -2071,7 +2096,7 @@ void A_SpawnFly(mobj_t* mo)
 	targ = mo->target;
 	
 	// First spawn teleport fog.
-	fog = P_SpawnMobj(targ->x, targ->y, targ->z, MT_SPAWNFIRE);
+	fog = P_SpawnMobj(targ->x, targ->y, targ->z, INFO_GetTypeByName("BossSpawnFire"));
 	S_StartSound(&fog->NoiseThinker, sfx_telept);
 	
 	// Randomly select monster to spawn.
