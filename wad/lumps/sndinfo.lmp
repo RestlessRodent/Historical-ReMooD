@@ -1,0 +1,186 @@
+// -----------------------------------------------------------------------------
+//         :oCCCCOCoc.
+//     .cCO8OOOOOOOOO8Oo:
+//   .oOO8OOOOOOOOOOOOOOOCc
+//  cO8888:         .:oOOOOC.                                                TM
+// :888888:   :CCCc   .oOOOOC.     ###      ###                    #########
+// C888888:   .ooo:   .C########   #####  #####  ######    ######  ##########
+// O888888:         .oO###    ###  #####  ##### ########  ######## ####    ###
+// C888888:   :8O.   .C##########  ### #### ### ##    ##  ##    ## ####    ###
+// :8@@@@8:   :888c   o###         ### #### ### ########  ######## ##########
+//  :8@@@@C   C@@@@   oo########   ###  ##  ###  ######    ######  #########
+//    cO@@@@@@@@@@@@@@@@@Oc0
+//      :oO8@@@@@@@@@@Oo.
+//         .oCOOOOOCc.                                      http://remood.org/
+// -----------------------------------------------------------------------------
+// Copyright (C) 2012 GhostlyDeath <ghostlydeath@remood.org>
+// -----------------------------------------------------------------------------
+// ReMooD Sound Data
+
+// ******************************
+// *** DEHACKED COMPATIBILITY ***
+// ******************************
+
+$dehacked	0	sfx_None	unknown/unknown
+$dehacked	1	sfx_pistol	unknown/unknown
+$dehacked	2	sfx_shotgn	unknown/unknown
+$dehacked	3	sfx_sgcock	unknown/unknown
+$dehacked	4	sfx_dshtgn	unknown/unknown
+$dehacked	5	sfx_dbopn	unknown/unknown
+$dehacked	6	sfx_dbcls	unknown/unknown
+$dehacked	7	sfx_dbload	unknown/unknown
+$dehacked	8	sfx_plasma	unknown/unknown
+$dehacked	9	sfx_bfg		unknown/unknown
+$dehacked	10	sfx_sawup	unknown/unknown
+$dehacked	11	sfx_sawidl	unknown/unknown
+$dehacked	12	sfx_sawful	unknown/unknown
+$dehacked	13	sfx_sawhit	unknown/unknown
+$dehacked	14	sfx_rlaunc	unknown/unknown
+$dehacked	15	sfx_rxplod	unknown/unknown
+$dehacked	16	sfx_firsht	unknown/unknown
+$dehacked	17	sfx_firxpl	unknown/unknown
+$dehacked	18	sfx_pstart	unknown/unknown
+$dehacked	19	sfx_pstop	unknown/unknown
+$dehacked	20	sfx_doropn	unknown/unknown
+$dehacked	21	sfx_dorcls	unknown/unknown
+$dehacked	22	sfx_stnmov	unknown/unknown
+$dehacked	23	sfx_swtchn	unknown/unknown
+$dehacked	24	sfx_swtchx	unknown/unknown
+$dehacked	25	sfx_plpain	unknown/unknown
+$dehacked	26	sfx_dmpain	unknown/unknown
+$dehacked	27	sfx_popain	unknown/unknown
+$dehacked	28	sfx_vipain	unknown/unknown
+$dehacked	29	sfx_mnpain	unknown/unknown
+$dehacked	30	sfx_pepain	unknown/unknown
+$dehacked	31	sfx_slop	unknown/unknown
+$dehacked	32	sfx_itemup	unknown/unknown
+$dehacked	33	sfx_wpnup	unknown/unknown
+$dehacked	34	sfx_oof		unknown/unknown
+$dehacked	35	sfx_telept	unknown/unknown
+$dehacked	36	sfx_posit1	genzombie/sight
+$dehacked	37	sfx_posit2	genzombie/sight
+$dehacked	38	sfx_posit3	genzombie/sight
+$dehacked	39	sfx_bgsit1	genimp/sight
+$dehacked	40	sfx_bgsit2	genimp/sight
+$dehacked	41	sfx_sgtsit	unknown/unknown
+$dehacked	42	sfx_cacsit	unknown/unknown
+$dehacked	43	sfx_brssit	unknown/unknown
+$dehacked	44	sfx_cybsit	unknown/unknown
+$dehacked	45	sfx_spisit	unknown/unknown
+$dehacked	46	sfx_bspsit	unknown/unknown
+$dehacked	47	sfx_kntsit	unknown/unknown
+$dehacked	48	sfx_vilsit	unknown/unknown
+$dehacked	49	sfx_mansit	unknown/unknown
+$dehacked	50	sfx_pesit	unknown/unknown
+$dehacked	51	sfx_sklatk	unknown/unknown
+$dehacked	52	sfx_sgtatk	unknown/unknown
+$dehacked	53	sfx_skepch	unknown/unknown
+$dehacked	54	sfx_vilatk	unknown/unknown
+$dehacked	55	sfx_claw	unknown/unknown
+$dehacked	56	sfx_skeswg	unknown/unknown
+$dehacked	57	sfx_pldeth	unknown/unknown
+$dehacked	58	sfx_pdiehi	unknown/unknown
+$dehacked	59	sfx_podth1	genzombie/death
+$dehacked	60	sfx_podth2	genzombie/death
+$dehacked	61	sfx_podth3	genzombie/death
+$dehacked	62	sfx_bgdth1	genimp/death
+$dehacked	63	sfx_bgdth2	genimp/death
+$dehacked	64	sfx_sgtdth	unknown/unknown
+$dehacked	65	sfx_cacdth	unknown/unknown
+$dehacked	66	sfx_skldth	unknown/unknown
+$dehacked	67	sfx_brsdth	unknown/unknown
+$dehacked	68	sfx_cybdth	unknown/unknown
+$dehacked	69	sfx_spidth	unknown/unknown
+$dehacked	70	sfx_bspdth	unknown/unknown
+$dehacked	71	sfx_vildth	unknown/unknown
+$dehacked	72	sfx_kntdth	unknown/unknown
+$dehacked	73	sfx_pedth	unknown/unknown
+$dehacked	74	sfx_skedth	unknown/unknown
+$dehacked	75	sfx_posact	unknown/unknown
+$dehacked	76	sfx_bgact	unknown/unknown
+$dehacked	77	sfx_dmact	unknown/unknown
+$dehacked	78	sfx_bspact	unknown/unknown
+$dehacked	79	sfx_bspwlk	unknown/unknown
+$dehacked	80	sfx_vilact	unknown/unknown
+$dehacked	81	sfx_noway	unknown/unknown
+$dehacked	82	sfx_barexp	unknown/unknown
+$dehacked	83	sfx_punch	unknown/unknown
+$dehacked	84	sfx_hoof	unknown/unknown
+$dehacked	85	sfx_metal	unknown/unknown
+$dehacked	86	sfx_chgun	unknown/unknown
+$dehacked	87	sfx_tink	unknown/unknown
+$dehacked	88	sfx_bdopn	unknown/unknown
+$dehacked	89	sfx_bdcls	unknown/unknown
+$dehacked	90	sfx_itmbk	unknown/unknown
+$dehacked	91	sfx_flame	unknown/unknown
+$dehacked	92	sfx_flamst	unknown/unknown
+$dehacked	93	sfx_getpow	unknown/unknown
+$dehacked	94	sfx_bospit	unknown/unknown
+$dehacked	95	sfx_boscub	unknown/unknown
+$dehacked	96	sfx_bossit	unknown/unknown
+$dehacked	97	sfx_bospn	unknown/unknown
+$dehacked	98	sfx_bosdth	unknown/unknown
+$dehacked	99	sfx_manatk	unknown/unknown
+$dehacked	100	sfx_mandth	unknown/unknown
+$dehacked	101	sfx_sssit	unknown/unknown
+$dehacked	102	sfx_ssdth	unknown/unknown
+$dehacked	103	sfx_keenpn	unknown/unknown
+$dehacked	104	sfx_keendt	unknown/unknown
+$dehacked	105	sfx_skeact	unknown/unknown
+$dehacked	106	sfx_skesit	unknown/unknown
+$dehacked	107	sfx_skeatk	unknown/unknown
+$dehacked	108	sfx_radio	unknown/unknown
+$dehacked	109	sfx_jump	unknown/unknown
+$dehacked	110	sfx_ouch	unknown/unknown
+$dehacked	111	sfx_gloop	unknown/unknown
+$dehacked	112	sfx_splash	unknown/unknown
+$dehacked	113	sfx_floush	unknown/unknown
+
+// ****************************
+// *** GENERIC CLASS SOUNDS ***
+// ****************************
+
+// Zombies
+$random genzombie/sight			{genzombie/sight1 genzombie/sight2 genzombie/sight3}
+$random genzombie/death			{genzombie/death1 genzombie/death2 genzombie/death3}
+$random genzombie/active		{genzombie/active1}
+$random genzombie/pain			{genzombie/pain1}
+
+genzombie/sight1				posit1
+genzombie/sight2				posit2
+genzombie/sight3				posit3
+genzombie/death1				podth1
+genzombie/death2				podth2
+genzombie/death3				podth3
+genzombie/active1				posact
+genzombie/pain1					popain
+
+// Imps
+$random genimp/sight			{genimp/sight1 genimp/sight2}
+$random genimp/death			{genimp/death1 genimp/sight2}
+$random genimp/active			{genimp/active1}
+$alias genimp/pain				genzombie/pain
+
+genimp/sight1					bgsit1
+genimp/sight2					bgsit2
+genimp/death1					bgdth1
+genimp/death2					bgdth2
+genimp/active1					bgact
+
+// Demons
+$random gendemon/active			{gendemon/active1}
+$random gendemon/pain			{gendemon/pain1}
+
+gendemon/active1				dmact
+gendemon/pain1					dmpain
+
+// **********************
+// *** MONSTER SOUNDS ***
+// **********************
+
+// Zombieman
+$alias monzombieman/sight		genzombie/sight
+$alias monzombieman/death		genzombie/death
+$alias monzombieman/active		genzombie/active
+$alias monzombieman/pain		genzombie/pain
+

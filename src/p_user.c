@@ -582,7 +582,7 @@ void P_ResetCamera(player_t* player)
 	
 	// set bits for the camera
 	if (!player->camera.mo)
-		player->camera.mo = P_SpawnMobj(x, y, z, MT_CHASECAM);
+		player->camera.mo = P_SpawnMobj(x, y, z, INFO_GetTypeByName("LegacyChasecam"));
 	else
 	{
 		player->camera.mo->x = x;

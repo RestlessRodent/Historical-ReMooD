@@ -65,7 +65,7 @@ void A_SmokeTrailer(mobj_t* actor)
 		P_SpawnPuff(actor->x, actor->y, actor->z);
 		
 	// add the smoke behind the rocket
-	th = P_SpawnMobj(actor->x - actor->momx, actor->y - actor->momy, actor->z, MT_SMOK);
+	th = P_SpawnMobj(actor->x - actor->momx, actor->y - actor->momy, actor->z, INFO_GetTypeByName("LegacySmoke"));
 	
 	th->momz = FRACUNIT;
 	th->tics -= P_Random() & 3;

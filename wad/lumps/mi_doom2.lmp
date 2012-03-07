@@ -1,18 +1,21 @@
+defaultsettings
+	sucktime 1
+	exitpic INTERPIC
+	enterpic INTERPIC
+	entersound SGCOCK
+	intermusic D_DM2INT
+	bordertexture GRNROCK
+	gravity 800
+
 map MAP01 "Entryway"
-cluster 1
-next MAP02
-secretnext MAP01
-levelnum 1
-author "Sandy Petersen"
-par 30
-sucktime 1
-sky1 SKY1
-titlepatch CWILV00
-exitpic INTERPIC
-enterpic INTERPIC
-entersound SGCOCK
-music D_RUNNIN
-intermusic D_DM2INT
-bordertexture GRNROCK
-gravity 800
+	cluster 1
+	next MAP02
+	secretnext MAP01
+	levelnum 1
+	creator "Sandy Petersen"
+	par 30
+	sky1 SKY1
+	titlepatch CWILV00
+	music D_RUNNIN
+
 

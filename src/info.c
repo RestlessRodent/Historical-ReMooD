@@ -1808,7 +1808,7 @@ mobjinfo_t mobjinfo[NUMMOBJTYPES] =
 		0,							// flags2
 		
 		// ReMooD Extended
-		{MFREXA_ISMONSTER | MFREXA_HALFMISSILERANGE, 0, 0, 0},
+		{MFREXA_ISMONSTER | MFREXA_HALFMISSILERANGE | MFREXA_KEEPGRAVONDEATH, 0, 0, 0},
 	},
 	{
 		// MT_SPIDER
@@ -2095,7 +2095,24 @@ mobjinfo_t mobjinfo[NUMMOBJTYPES] =
 		0,							// damage
 		sfx_None,					// activesound
 		MF_NOBLOCKMAP | MF_NOSECTOR,	// flags
-		S_NULL						// raisestate
+		S_NULL,						// raisestate
+		0,							// flags2
+		
+		// ReMooD Extended
+		{MFREXA_ISBRAINTARGET, 0, 0, 0},				// RXFlags
+		0,							// RFastSpeed
+		0,							// RPlayerRunState
+		0,							// RPlayerMeleeAttackState
+		0,							// RPlayerRangedAttackState
+		0,							// RVileHealState
+		{0, 0},						// RMissileDist
+		0,							// RCapMissileDist
+		{0, 0},						// RLessBlood
+		NULL,						// RDropClass
+		0,							// RBaseFamily
+		0,							// RBrainExplodeState
+		NULL,						// RBrainExplodeThing
+		0,							// RMeleePuffState
 	},
 	{
 		// MT_SPAWNSHOT

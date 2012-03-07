@@ -758,7 +758,7 @@ void A_PosAttack(mobj_t* actor)
 	if (!actor->target)
 		return;
 		
-	PuffType = MT_PUFF;
+	PuffType = INFO_GetTypeByName("BulletPuff");
 	A_FaceTarget(actor);
 	angle = actor->angle;
 	slope = P_AimLineAttack(actor, angle, MISSILERANGE);
@@ -783,7 +783,7 @@ void A_SPosAttack(mobj_t* actor)
 	
 	if (!actor->target)
 		return;
-	PuffType = MT_PUFF;
+	PuffType = INFO_GetTypeByName("BulletPuff");
 	S_StartSound(&actor->NoiseThinker, sfx_shotgn);
 	A_FaceTarget(actor);
 	bangle = actor->angle;
@@ -809,7 +809,7 @@ void A_CPosAttack(mobj_t* actor)
 	
 	if (!actor->target)
 		return;
-	PuffType = MT_PUFF;
+	PuffType = INFO_GetTypeByName("BulletPuff");
 	S_StartSound(&actor->NoiseThinker, sfx_shotgn);
 	A_FaceTarget(actor);
 	bangle = actor->angle;
@@ -1571,7 +1571,7 @@ void A_PainShootSkull(mobj_t* actor, angle_t angle)
 	   while (currentthinker != &thinkercap)
 	   {
 	   if (   (currentthinker->function.acp1 == (actionf_p1)P_MobjThinker)
-	   && ((mobj_t *)currentthinker)->type == MT_SKULL)
+	   && ((mobj_t *)currentthinker)->type == "LostSoul")
 	   count++;
 	   currentthinker = currentthinker->next;
 	   }
@@ -1959,7 +1959,8 @@ void P_InitBrainTarget()
 			
 		m = (mobj_t*)thinker;
 		
-		if (m->type == MT_BOSSTARGET)
+		// GhostlyDeath <March 6, 2012> -- Is this a brain target?
+		if (m->RXFlags[0] & MFREXA_ISBRAINTARGET)
 		{
 			braintargets[numbraintargets] = m;
 			numbraintargets++;

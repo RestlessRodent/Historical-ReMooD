@@ -78,6 +78,16 @@ typedef enum P_LevelInfoExDataStuff_e
 	MAXPLIEDS
 } P_LevelInfoExDataStuff_t;
 
+/* P_LevelInfoBitLevels_t -- Level info bit levels */
+typedef enum P_LevelInfoBitLevels_e
+{
+	PLIBL_NONE,									// Nothing
+	PLIBL_MAPINFO,								// Set by MAPINFO
+	PLIBL_LUMPHEADER,							// Set by lump header
+} P_LevelInfoBitLevels_t;
+
+#define MAXPINFOSETFLAGS 24						// Max stuff to set flags for
+
 /*** STRUCTURES ***/
 /* P_LevelInfoEx_t -- Extended level info */
 typedef struct P_LevelInfoEx_s
@@ -109,6 +119,7 @@ typedef struct P_LevelInfoEx_s
 	bool_t Playable;							// Actually playable
 	
 	/* Settings */
+	int8_t SetBits[MAXPINFOSETFLAGS];			// Bits that were set
 	char* LevelPic;								// Picture on intermission screen
 	int32_t ParTime;							// Par Time
 	char* Music;								// Background music to play
@@ -121,6 +132,9 @@ typedef struct P_LevelInfoEx_s
 	uint64_t Weapons;							// Weapons
 	char* BootCommand;							// Command to execute on map start
 } P_LevelInfoEx_t;
+
+/*** GLOBALS ***/
+extern P_LevelInfoEx_t* g_CurrentLevelInfo;		// Current level being played
 
 /*** FUNCTIONS ***/
 void P_PrepareLevelInfoEx(void);

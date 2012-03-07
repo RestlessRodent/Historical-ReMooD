@@ -1067,7 +1067,8 @@ void P_KillMobj(mobj_t* target, mobj_t* inflictor, mobj_t* source)
 		
 	target->flags &= ~(MF_FLOAT | MF_SKULLFLY);
 	
-	if (target->type != MT_SKULL)
+	// GhostlyDeath <March 6, 2012> -- Keep gravity on death?
+	if (!(target->RXFlags[0] & MFREXA_KEEPGRAVONDEATH))
 		target->flags &= ~MF_NOGRAVITY;
 		
 	// scream a corpse :)

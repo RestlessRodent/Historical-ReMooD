@@ -1709,18 +1709,6 @@ static CONL_ExitCode_t PCLC_Map(const uint32_t a_ArgC, const char** const a_ArgV
 	players[0].mo = NULL;
 	players[0].playerstate = PST_REBORN;
 	
-#if 0
-	deathmatchstarts[0] = Z_Malloc(sizeof(*deathmatchstarts[0]), PU_LEVEL, NULL);
-	deathmatchstarts[0]->type = 1;
-	numdmstarts = 1;
-	playeringame[0] = true;
-	consoleplayer[0] = displayplayer[0] = 0;
-	players[0].mo = NULL;//P_SpawnMobj(0, 0, 0, MT_PLAYER);
-	players[0].playerstate = PST_REBORN;
-	P_SpawnPlayer(deathmatchstarts[0]);
-	//players[0].health = 100;
-#endif
-	
 	/* Load level */
 	if (P_ExLoadLevel(Info, true))
 		return CLE_SUCCESS;
@@ -2055,6 +2043,9 @@ bool_t P_ExLoadLevel(P_LevelInfoEx_t* const a_Info, const bool_t a_ApplyOptions)
 	/* Check */
 	if (!a_Info)
 		return false;
+	
+	/* Set global info */
+	g_CurrentLevelInfo = a_Info;
 		
 	/* Debug */
 	if (devparm)
@@ -2549,23 +2540,10 @@ bool_t P_ExLoadLevel(P_LevelInfoEx_t* const a_Info, const bool_t a_ApplyOptions)
 			WL_StreamClose(Stream);
 		}
 	}
-
-#if 0
-	deathmatchstarts[0] = Z_Malloc(sizeof(*deathmatchstarts[0]), PU_LEVEL, NULL);
-	deathmatchstarts[0]->type = 1;
-	numdmstarts = 1;
-	playeringame[0] = true;
-	consoleplayer[0] = displayplayer[0] = 0;
-	players[0].mo = NULL;//P_SpawnMobj(0, 0, 0, MT_PLAYER);
-	players[0].playerstate = PST_REBORN;
-	P_SpawnPlayer(deathmatchstarts[0]);
-	//players[0].health = 100;
-	//P_SpawnMobj(32 << FRACBITS, 32 << FRACBITS, 0, MT_TROOP);
-	//P_SpawnMobj(-32 << FRACBITS, -32 << FRACBITS, 0, MT_TROOP);
-#endif
-
+	
 	/* Spawn map specials */
 	P_SpawnSpecials();
+	P_InitBrainTarget();
 	
 	/* Pre-Finalize */
 	// Set the level time to zero

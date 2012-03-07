@@ -837,7 +837,7 @@ void A_BFGSpray(mobj_t* mo)
 		if (!linetarget)
 			continue;
 			
-		extrabfg = P_SpawnMobj(linetarget->x, linetarget->y, linetarget->z + (linetarget->height >> 2), MT_EXTRABFG);
+		extrabfg = P_SpawnMobj(linetarget->x, linetarget->y, linetarget->z + (linetarget->height >> 2), INFO_GetTypeByName("BFGFlash"));
 		extrabfg->target = mo->target;
 		
 		damage = 0;

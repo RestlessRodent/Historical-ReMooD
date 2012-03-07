@@ -306,6 +306,9 @@ typedef enum mobjflagrexa_e
 	MFREXA_NOTRETAILIATETARGET	= 0x02000000U,	// Object cannot be targetted by monster even if hurt by it [P_DamageMobj]
 	MFREXA_RADIUSATTACKPROOF	= 0x04000000U,	// Immune to radial attacks [PIT_RadiusAttack]
 	MFREXA_RANDOMPUFFTIME		= 0x08000000U,	// Randomize the puff time a bit [P_SpawnPuff]
+	MFREXA_KEEPGRAVONDEATH		= 0x10000000U,	// Keep gravity when object is killed [P_KillMobj]
+	MFREXA_ISPLAYEROBJECT		= 0x20000000U,	// Is player object?
+	MFREXA_ISBRAINTARGET		= 0x40000000U,	// Brain shoots here [P_InitBrainTarget]
 } mobjflagrexa_t;
 
 // GhostlyDeath <March 4, 2012> -- About all this stuff underneath, i'm thinking
@@ -554,7 +557,6 @@ typedef struct mobj_s
 	int threshold;
 	
 	// Additional info record for player avatars only.
-	// Only valid if type == MT_PLAYER
 	struct player_s* player;
 	
 	// Player number last looked for.

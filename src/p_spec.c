@@ -3319,7 +3319,7 @@ void T_Pusher(pusher_t* p)
 		// Seek out all pushable things within the force radius of this
 		// point pusher. Crosses sectors, so use blockmap.
 		
-		tmpusher = p;			// MT_PUSH/MT_PULL point source
+		tmpusher = p;			// "LegacyPusher"/"LegacyPuller" point source
 		radius = p->radius;		// where force goes to zero
 		tmbbox[BOXTOP] = p->y + radius;
 		tmbbox[BOXBOTTOM] = p->y - radius;
@@ -3606,7 +3606,7 @@ static void P_SpawnPushers(void)
 				for (s = -1; (s = P_FindSectorFromLineTag(l, s)) >= 0;)
 				{
 					thing = P_GetPushThing(s);
-					if (thing)	// No MT_P* means no effect
+					if (thing)	// No thing means no effect
 						Add_Pusher(p_push, l->dx, l->dy, thing, s);
 				}
 				break;

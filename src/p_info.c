@@ -94,6 +94,9 @@ typedef struct P_LevelInfoHolder_s
 	const WL_WADFile_t* WAD;					// WAD File
 } P_LevelInfoHolder_t;
 
+/*** GLOBALS ***/
+P_LevelInfoEx_t* g_CurrentLevelInfo = NULL;		// Current level being played
+
 /*** LOCALS ***/
 static P_LevelInfoEx_t** l_CompInfos = NULL;	// Composite infos
 static size_t l_NumCompInfos = 0;				// Number of composites
@@ -108,7 +111,7 @@ static const struct
 	const char* MapInfo;
 	const char* NewInfo;
 	uintptr_t Offset;
-} c_PMIFields[] =
+} c_PMIFields[MAXPINFOSETFLAGS] =
 {
 	{false, PPMFIFT_STRING, NULL, "levelname", offsetof(P_LevelInfoEx_t, Title)},
 	{false, PPMFIFT_STRING, "author", "creator", offsetof(P_LevelInfoEx_t, Author)},
@@ -144,11 +147,29 @@ static bool_t PS_ParseMapInfo(P_LevelInfoHolder_t* const a_Holder, const WL_WADE
 	WL_EntryStream_t* Stream;
 	size_t i, FNum;
 	char* p;
+	char* TokenP;
+	
 	char** StrValP;
+	char** StrValS;
+	
+	int32_t* IntValP;
+	int32_t* IntValS;
+	
+	fixed_t* FixedValP;
+	fixed_t* FixedValS;
+	
+	void* vP;
+	void* vS;
+	
+	// GhostlyDeath <March 6, 2012> -- Non-standard default storage (cool!)
+	P_LevelInfoEx_t DefaultStore;
 	
 	/* Check */
 	if (!a_Holder || !a_MIEntry)
 		return false;
+	
+	/* Clear defualt area */
+	memset(&DefaultStore, 0, sizeof(DefaultStore));
 	
 	/* Open Stream */
 	Stream = WL_StreamOpen(a_MIEntry);
@@ -179,8 +200,12 @@ static bool_t PS_ParseMapInfo(P_LevelInfoHolder_t* const a_Holder, const WL_WADE
 		// Debug
 		CONL_PrintF(">> %s\n", Buf);
 		
+		// Skip whitespace
+		for (p = Buf; *p && (*p == ' ' || *p == '\t'); p++)
+			;
+		
 		// Read first word into token
-		for (i = 0, p = Buf; *p && *p != ' ' && *p != '\t'; p++)
+		for (i = 0; *p && *p != ' ' && *p != '\t'; p++)
 			if (i < BUFSIZE)
 				Token[i++] = *p;
 		
@@ -188,8 +213,15 @@ static bool_t PS_ParseMapInfo(P_LevelInfoHolder_t* const a_Holder, const WL_WADE
 		for (; *p && (*p == ' ' || *p == '\t'); p++)
 			;
 		
+		// If it is "defaultsettings", it defines the base for everything
+		if (strcasecmp(Token, "defaultsettings") == 0)
+		{
+			// Just set current into to the default
+			CurrentInfo = &DefaultStore;
+		}
+		
 		// If it is "map" it is defining a new map
-		if (strcasecmp(Token, "map") == 0)
+		else if (strcasecmp(Token, "map") == 0)
 		{
 			// Find out which map to look for
 			memset(Token, 0, sizeof(Token));
@@ -219,6 +251,54 @@ static bool_t PS_ParseMapInfo(P_LevelInfoHolder_t* const a_Holder, const WL_WADE
 				
 				CurrentInfo = NULL;
 			}
+			
+			// Copy default settings?
+			if (CurrentInfo)
+			{
+				// For every field...
+				for (i = 0; i < !c_PMIFields[i].IsEnd; i++)
+				{
+					// Check to see if already set or the default is unset
+						// But have MAPINFO levels replace each other
+					if (CurrentInfo->SetBits[i] > DefaultStore.SetBits[i])
+						continue;	// Skip it then
+					
+					// Set the bit flag then (with MAPINFO level)
+					CurrentInfo->SetBits[i] = PLIBL_MAPINFO;
+					
+					// Get source and dest
+					vP = (void*)(((uintptr_t)CurrentInfo) + c_PMIFields[i].Offset);
+					vS = (void*)(((uintptr_t)&DefaultStore) + c_PMIFields[i].Offset);
+					
+					// Which type now?
+					switch (c_PMIFields[i].Type)
+					{
+							// Copy String
+						case PPMFIFT_STRING:
+							// Get source and dest
+							StrValP = (char**)vP;
+							StrValS = (char**)vS;
+							
+							// Duplicate string
+							*StrValP = Z_StrDup(*StrValS, PU_STATIC, NULL);
+							break;
+							
+							// Copy Integer
+						case PPMFIFT_INTEGER:
+							// Get source and dest
+							IntValP = (int32_t*)vP;
+							IntValS = (int32_t*)vS;
+							
+							// Copy value
+							*IntValP = *IntValS;
+							break;
+						
+							// Unknown
+						default:
+							break;
+					}
+				}
+			}
 		}
 		
 		// Otherwise look up in a table (above)
@@ -246,15 +326,23 @@ static bool_t PS_ParseMapInfo(P_LevelInfoHolder_t* const a_Holder, const WL_WADE
 				continue;
 			}
 			
+			// Check to see if already set or the default is unset
+				// But have MAPINFO levels replace each other
+			if (CurrentInfo->SetBits[i] > PLIBL_MAPINFO)
+				continue;	// Skip it then
+			
+			// Set the bit flag then (with MAPINFO level)
+			CurrentInfo->SetBits[i] = PLIBL_MAPINFO;
+			
+			// Get field location
+			vP = (void*)(((uintptr_t)CurrentInfo) + c_PMIFields[FNum].Offset);
+			
 			// Depending on the type, set the value
+				// String
 			if (c_PMIFields[FNum].Type == PPMFIFT_STRING)
 			{
 				// Get actual pointer
-				StrValP = (char**)(((uintptr_t)CurrentInfo) + c_PMIFields[FNum].Offset);
-				
-				// Already set? -- Info in lump header takes precedence
-				if (*StrValP)
-					continue;
+				StrValP = (char**)vP;
 				
 				// Set value
 				*StrValP = Z_StrDup(p, PU_STATIC, NULL);
@@ -263,11 +351,44 @@ static bool_t PS_ParseMapInfo(P_LevelInfoHolder_t* const a_Holder, const WL_WADE
 				if (devparm)
 					CONL_PrintF("PS_ParseMapInfo: \"%s\" set to \"%s\".\n", c_PMIFields[FNum].MapInfo, *StrValP);
 			}
+				// Integer
+			else if (c_PMIFields[FNum].Type == PPMFIFT_INTEGER)
+			{
+				// Get actual pointer
+				IntValP = (char**)vP;
+				
+				// Set value
+				*IntValP = atoi(p);
+				
+				// Debug
+				if (devparm)
+					CONL_PrintF("PS_ParseMapInfo: \"%s\" set to \'%i\'.\n", c_PMIFields[FNum].MapInfo, *IntValP);
+			}
 		}
 	}
 	
 	/* Close Stream */
 	WL_StreamClose(Stream);
+	
+	/* Clear default settings */
+	for (FNum = 0; !c_PMIFields[FNum].IsEnd; FNum++)
+		switch (c_PMIFields[FNum].Type)
+		{
+				// Delete String
+			case PPMFIFT_STRING:
+				// Get source
+				StrValP = (char**)(((uintptr_t)&DefaultStore) + c_PMIFields[FNum].Offset);
+				
+				// Is set?
+				if (*StrValP)
+					Z_Free(*StrValP);
+				*StrValP = NULL;
+				break;
+				
+				// Everything else is safe to not worry about
+			default:
+				break;
+		}
 	
 	/* Success! */
 	return true;

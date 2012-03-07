@@ -340,16 +340,13 @@ static bool_t PIT_CheckThing(mobj_t* thing, void* a_Arg)
 			// Don't hit same species as originator.
 			if (thing == tmthing->target)
 				return true;
-				
-			if (thing->type != MT_PLAYER)
-			{
-				// Explode, but do no damage.
-				// Let players missile other players.
-				if (!infight)	//DarkWolf95:November 21, 2003: Monsters Infight!
-				{
+			
+			// Explode, but do no damage.
+			// Let players missile other players.
+			if (!(thing->RXFlags[0] & MFREXA_ISPLAYEROBJECT))
+				//DarkWolf95:November 21, 2003: Monsters Infight!
+				if (!infight)	
 					return false;
-				}
-			}
 		}
 		
 		if (!(thing->flags & MF_SHOOTABLE))
@@ -1941,7 +1938,7 @@ bool_t PIT_ChangeSector(mobj_t* thing, void* a_Arg)
 			P_DamageMobj(thing, NULL, NULL, 10);
 			
 			// spray blood in a random direction
-			mo = P_SpawnMobj(thing->x, thing->y, thing->z + thing->height / 2, MT_BLOOD);
+			mo = P_SpawnMobj(thing->x, thing->y, thing->z + thing->height / 2, INFO_GetTypeByName(__REMOOD_GETBLOODKIND));
 			
 			mo->momx = (P_Random() - P_Random()) << 12;
 			mo->momy = (P_Random() - P_Random()) << 12;
@@ -1956,7 +1953,7 @@ bool_t PIT_ChangeSector(mobj_t* thing, void* a_Arg)
 			if (demoversion < 132 || (!(leveltime % (16)) && !(thing->flags & MF_NOBLOOD)))
 			{
 				// spray blood in a random direction
-				mo = P_SpawnMobj(thing->x, thing->y, thing->z + thing->height / 2, MT_BLOOD);
+				mo = P_SpawnMobj(thing->x, thing->y, thing->z + thing->height / 2, INFO_GetTypeByName(__REMOOD_GETBLOODKIND));
 				
 				mo->momx = P_SignedRandom() << 12;
 				mo->momy = P_SignedRandom() << 12;
@@ -2215,7 +2212,7 @@ bool_t PIT_GetSectors(line_t* ld, void* a_Arg)
 	sector_list = P_AddSecnode(ld->frontsector, tmthing, sector_list);
 	
 	// Don't assume all lines are 2-sided, since some Things
-	// like MT_TFOG are allowed regardless of whether their radius takes
+	// like "TeleportFog" are allowed regardless of whether their radius takes
 	// them beyond an impassable linedef.
 	
 	// Use sidedefs instead of 2s flag to determine two-sidedness.
