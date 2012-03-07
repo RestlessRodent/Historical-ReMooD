@@ -356,11 +356,15 @@ static bool_t PS_ParseMapInfo(P_LevelInfoHolder_t* const a_Holder, const WL_WADE
 			
 			// Check to see if already set or the default is unset
 				// But have MAPINFO levels replace each other
-			if (CurrentInfo->SetBits[i] > PLIBL_MAPINFO)
+			if (CurrentInfo->SetBits[FNum] > PLIBL_MAPINFO)
+			{
+				if (devparm)
+					CONL_PrintF("PS_ParseMapInfo: Already defined at higher level (this: %i, at: %i).\n", PLIBL_MAPINFO, CurrentInfo->SetBits[FNum]);
 				continue;	// Skip it then
+			}
 			
 			// Set the bit flag then (with MAPINFO level)
-			CurrentInfo->SetBits[i] = PLIBL_MAPINFO;
+			CurrentInfo->SetBits[FNum] = PLIBL_MAPINFO;
 			
 			// Get field location
 			vP = (void*)(((uintptr_t)CurrentInfo) + c_PMIFields[FNum].Offset);
