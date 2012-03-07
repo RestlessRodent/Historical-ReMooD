@@ -1251,7 +1251,20 @@ mobjinfo_t mobjinfo[NUMMOBJTYPES] =
 		0,							// damage
 		sfx_posact,				// activesound
 		MF_SOLID | MF_SHOOTABLE | MF_COUNTKILL,	// flags
-		S_POSS_RAISE1				// raisestate
+		S_POSS_RAISE1,				// raisestate
+		0,							// flags2
+		
+		// ReMooD Extended
+		{0, 0, 0, 0},				// RXFlags[NUMINFORXFIELDS]
+		0,							// RFastSpeed
+		0,							// RPlayerRunState
+		0,							// RPlayerMeleeAttackState
+		0,							// RPlayerRangedAttackState
+		0,							// RVileHealState
+		{0, 0},						// RMissileDist[2]
+		0,							// RCapMissileDist
+		{0, 0},						// RLessBlood[2]
+		"SmallClipAmmo",			// RDropClass
 	},
 	{
 		// MT_SHOTGUY
@@ -1278,7 +1291,20 @@ mobjinfo_t mobjinfo[NUMMOBJTYPES] =
 		0,							// damage
 		sfx_posact,				// activesound
 		MF_SOLID | MF_SHOOTABLE | MF_COUNTKILL,	// flags
-		S_SPOS_RAISE1				// raisestate
+		S_SPOS_RAISE1,				// raisestate
+		0,							// flags2
+		
+		// ReMooD Extended
+		{0, 0, 0, 0},				// RXFlags[NUMINFORXFIELDS]
+		0,							// RFastSpeed
+		0,							// RPlayerRunState
+		0,							// RPlayerMeleeAttackState
+		0,							// RPlayerRangedAttackState
+		0,							// RVileHealState
+		{0, 0},						// RMissileDist[2]
+		0,							// RCapMissileDist
+		{0, 0},						// RLessBlood[2]
+		"Shotgun",					// RDropClass
 	},
 	{
 		// MT_VILE
@@ -1514,7 +1540,20 @@ mobjinfo_t mobjinfo[NUMMOBJTYPES] =
 		0,							// damage
 		sfx_posact,				// activesound
 		MF_SOLID | MF_SHOOTABLE | MF_COUNTKILL,	// flags
-		S_CPOS_RAISE1				// raisestate
+		S_CPOS_RAISE1,				// raisestate
+		0,							// flags2
+		
+		// ReMooD Extended
+		{0, 0, 0, 0},				// RXFlags[NUMINFORXFIELDS]
+		0,							// RFastSpeed
+		0,							// RPlayerRunState
+		0,							// RPlayerMeleeAttackState
+		0,							// RPlayerRangedAttackState
+		0,							// RVileHealState
+		{0, 0},						// RMissileDist[2]
+		0,							// RCapMissileDist
+		{0, 0},						// RLessBlood[2]
+		"Chaingun",					// RDropClass
 	},
 	{
 		// MT_TROOP
@@ -1891,7 +1930,20 @@ mobjinfo_t mobjinfo[NUMMOBJTYPES] =
 		0,							// damage
 		sfx_posact,				// activesound
 		MF_SOLID | MF_SHOOTABLE | MF_COUNTKILL,	// flags
-		S_SSWV_RAISE1				// raisestate
+		S_SSWV_RAISE1,				// raisestate
+		0,							// flags2
+		
+		// ReMooD Extended
+		{0, 0, 0, 0},				// RXFlags[NUMINFORXFIELDS]
+		0,							// RFastSpeed
+		0,							// RPlayerRunState
+		0,							// RPlayerMeleeAttackState
+		0,							// RPlayerRangedAttackState
+		0,							// RVileHealState
+		{0, 0},						// RMissileDist[2]
+		0,							// RCapMissileDist
+		{0, 0},						// RLessBlood[2]
+		"SmallClipAmmo",			// RDropClass
 	},
 	{
 		// MT_KEEN
@@ -2080,7 +2132,11 @@ mobjinfo_t mobjinfo[NUMMOBJTYPES] =
 		0,							// damage
 		sfx_None,					// activesound
 		MF_SOLID | MF_SHOOTABLE | MF_NOBLOOD,	// flags
-		S_NULL						// raisestate
+		S_NULL,						// raisestate
+		0,							// flags2
+		
+		// ReMooD Extended
+		{MFREXA_CARRYKILLER, 0, 0, 0},
 	},
 	{
 		// MT_TROOPSHOT
@@ -2839,7 +2895,7 @@ mobjinfo_t mobjinfo[NUMMOBJTYPES] =
 		0,							// flags2
 		
 		// ReMooD Extended
-		{MFREXA_ISPOWERUP, 0, 0, 0},
+		{MFREXA_ISPOWERUP | MFREXA_NOALTDMRESPAWN, 0, 0, 0},
 	},
 	{
 		// MT_MISC13
@@ -2901,7 +2957,7 @@ mobjinfo_t mobjinfo[NUMMOBJTYPES] =
 		0,							// flags2
 		
 		// ReMooD Extended
-		{MFREXA_ISPOWERUP, 0, 0, 0},
+		{MFREXA_ISPOWERUP | MFREXA_NOALTDMRESPAWN, 0, 0, 0},
 	},
 	{
 		// MT_MISC14
@@ -3295,7 +3351,11 @@ mobjinfo_t mobjinfo[NUMMOBJTYPES] =
 		0,							// damage
 		sfx_None,					// activesound
 		MF_SPECIAL,				// flags
-		S_NULL						// raisestate
+		S_NULL,						// raisestate
+		0,							// flags2
+		
+		// ReMooD extended
+		{MFREXA_MARKRESTOREWEAPON, 0, 0, 0},
 	},
 	{
 		// MT_CHAINGUN
@@ -3322,7 +3382,11 @@ mobjinfo_t mobjinfo[NUMMOBJTYPES] =
 		0,							// damage
 		sfx_None,					// activesound
 		MF_SPECIAL,				// flags
-		S_NULL						// raisestate
+		S_NULL,						// raisestate
+		0,							// flags2
+		
+		// ReMooD extended
+		{MFREXA_MARKRESTOREWEAPON, 0, 0, 0},
 	},
 	{
 		// MT_SHAINSAW
@@ -3349,7 +3413,11 @@ mobjinfo_t mobjinfo[NUMMOBJTYPES] =
 		0,							// damage
 		sfx_None,					// activesound
 		MF_SPECIAL,				// flags
-		S_NULL						// raisestate
+		S_NULL,						// raisestate
+		0,							// flags2
+		
+		// ReMooD extended
+		{MFREXA_MARKRESTOREWEAPON, 0, 0, 0},
 	},
 	{
 		// MT_ROCKETLAUNCH
@@ -3376,7 +3444,11 @@ mobjinfo_t mobjinfo[NUMMOBJTYPES] =
 		0,							// damage
 		sfx_None,					// activesound
 		MF_SPECIAL,				// flags
-		S_NULL						// raisestate
+		S_NULL,						// raisestate
+		0,							// flags2
+		
+		// ReMooD extended
+		{MFREXA_MARKRESTOREWEAPON, 0, 0, 0},
 	},
 	{
 		// MT_PLASMAGUN
@@ -3403,7 +3475,11 @@ mobjinfo_t mobjinfo[NUMMOBJTYPES] =
 		0,							// damage
 		sfx_None,					// activesound
 		MF_SPECIAL,				// flags
-		S_NULL						// raisestate
+		S_NULL,						// raisestate
+		0,							// flags2
+		
+		// ReMooD extended
+		{MFREXA_MARKRESTOREWEAPON, 0, 0, 0},
 	},
 	{
 		// MT_SHOTGUN
@@ -3430,7 +3506,11 @@ mobjinfo_t mobjinfo[NUMMOBJTYPES] =
 		0,							// damage
 		sfx_None,					// activesound
 		MF_SPECIAL,				// flags
-		S_NULL						// raisestate
+		S_NULL,						// raisestate
+		0,							// flags2
+		
+		// ReMooD extended
+		{MFREXA_MARKRESTOREWEAPON, 0, 0, 0},
 	},
 	{
 		// MT_SUPERSHOTGUN
@@ -3457,7 +3537,11 @@ mobjinfo_t mobjinfo[NUMMOBJTYPES] =
 		0,							// damage
 		sfx_None,					// activesound
 		MF_SPECIAL,				// flags
-		S_NULL						// raisestate
+		S_NULL,						// raisestate
+		0,							// flags2
+		
+		// ReMooD extended
+		{MFREXA_MARKRESTOREWEAPON, 0, 0, 0},
 	},
 	{
 		// MT_MISC29

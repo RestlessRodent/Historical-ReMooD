@@ -766,7 +766,11 @@ void A_PosAttack(mobj_t* actor)
 	S_StartSound(&actor->NoiseThinker, sfx_pistol);
 	angle += P_SignedRandom() << 20;
 	damage = ((P_Random() % 5) + 1) * 3;
+	
+	// GhostlyDeath <March 6, 2012> -- Obit check
+	actor->RXUsedMelee = false;
 	P_LineAttack(actor, angle, MISSILERANGE, slope, damage);
+	actor->RXUsedMelee = true;
 }
 
 void A_SPosAttack(mobj_t* actor)
@@ -785,12 +789,15 @@ void A_SPosAttack(mobj_t* actor)
 	bangle = actor->angle;
 	slope = P_AimLineAttack(actor, bangle, MISSILERANGE);
 	
+	// GhostlyDeath <March 6, 2012> -- Obit check
+	actor->RXUsedMelee = false;
 	for (i = 0; i < 3; i++)
 	{
 		angle = (P_SignedRandom() << 20) + bangle;
 		damage = ((P_Random() % 5) + 1) * 3;
 		P_LineAttack(actor, angle, MISSILERANGE, slope, damage);
 	}
+	actor->RXUsedMelee = true;
 }
 
 void A_CPosAttack(mobj_t* actor)
@@ -811,7 +818,11 @@ void A_CPosAttack(mobj_t* actor)
 	angle = (P_SignedRandom() << 20) + bangle;
 	
 	damage = ((P_Random() % 5) + 1) * 3;
+	
+	// GhostlyDeath <March 6, 2012> -- Obit check
+	actor->RXUsedMelee = false;
 	P_LineAttack(actor, angle, MISSILERANGE, slope, damage);
+	actor->RXUsedMelee = true;
 }
 
 void A_CPosRefire(mobj_t* actor)
@@ -844,13 +855,22 @@ void A_SpidRefire(mobj_t* actor)
 
 void A_BspiAttack(mobj_t* actor)
 {
+	mobj_t* Missile;
+	
 	if (!actor->target)
 		return;
 		
 	A_FaceTarget(actor);
 	
 	// launch a missile
-	P_SpawnMissile(actor, actor->target, MT_ARACHPLAZ);
+	Missile = P_SpawnMissile(actor, actor->target, MT_ARACHPLAZ);
+	
+	// GhostlyDeath <March 6, 2012> -- Obituary Stuff
+	if (Missile)
+	{
+		Missile->RXUsedMelee = false;
+		Missile->RXUsedSpell = false;
+	}
 }
 
 //
@@ -859,6 +879,7 @@ void A_BspiAttack(mobj_t* actor)
 void A_TroopAttack(mobj_t* actor)
 {
 	int damage;
+	mobj_t* Missile;
 	
 	if (!actor->target)
 		return;
@@ -868,11 +889,23 @@ void A_TroopAttack(mobj_t* actor)
 	{
 		S_StartSound(&actor->NoiseThinker, sfx_claw);
 		damage = (P_Random() % 8 + 1) * 3;
+		
+		// GhostlyDeath <March 6, 2012> -- Obit check
+		actor->RXUsedMelee = true;
 		P_DamageMobj(actor->target, actor, actor, damage);
+		actor->RXUsedMelee = false;
 		return;
 	}
+	
 	// launch a missile
-	P_SpawnMissile(actor, actor->target, MT_TROOPSHOT);
+	Missile = P_SpawnMissile(actor, actor->target, MT_TROOPSHOT);
+	
+	// GhostlyDeath <March 6, 2012> -- Obituary Stuff
+	if (Missile)
+	{
+		Missile->RXUsedMelee = false;
+		Missile->RXUsedSpell = false;
+	}
 }
 
 void A_SargAttack(mobj_t* actor)
@@ -886,13 +919,18 @@ void A_SargAttack(mobj_t* actor)
 	if (P_CheckMeleeRange(actor))
 	{
 		damage = ((P_Random() % 10) + 1) * 4;
+		
+		// GhostlyDeath <March 6, 2012> -- Obit check
+		actor->RXUsedMelee = true;
 		P_DamageMobj(actor->target, actor, actor, damage);
+		actor->RXUsedMelee = false;
 	}
 }
 
 void A_HeadAttack(mobj_t* actor)
 {
 	int damage;
+	mobj_t* Missile;
 	
 	if (!actor->target)
 		return;
@@ -901,25 +939,47 @@ void A_HeadAttack(mobj_t* actor)
 	if (P_CheckMeleeRange(actor))
 	{
 		damage = (P_Random() % 6 + 1) * 10;
+		
+		// GhostlyDeath <March 6, 2012> -- Obit check
+		actor->RXUsedMelee = true;
 		P_DamageMobj(actor->target, actor, actor, damage);
+		actor->RXUsedMelee = false;
 		return;
 	}
+	
 	// launch a missile
-	P_SpawnMissile(actor, actor->target, MT_HEADSHOT);
+	Missile = P_SpawnMissile(actor, actor->target, MT_HEADSHOT);
+	
+	// GhostlyDeath <March 6, 2012> -- Obituary Stuff
+	if (Missile)
+	{
+		Missile->RXUsedMelee = false;
+		Missile->RXUsedSpell = false;
+	}
 }
 
 void A_CyberAttack(mobj_t* actor)
 {
+	mobj_t* Missile;
+	
 	if (!actor->target)
 		return;
-		
+	
 	A_FaceTarget(actor);
-	P_SpawnMissile(actor, actor->target, MT_ROCKET);
+	Missile = P_SpawnMissile(actor, actor->target, MT_ROCKET);
+	
+	// GhostlyDeath <March 6, 2012> -- Obituary Stuff
+	if (Missile)
+	{
+		Missile->RXUsedMelee = false;
+		Missile->RXUsedSpell = false;
+	}
 }
 
 void A_BruisAttack(mobj_t* actor)
 {
 	int damage;
+	mobj_t* Missile;
 	
 	if (!actor->target)
 		return;
@@ -928,11 +988,23 @@ void A_BruisAttack(mobj_t* actor)
 	{
 		S_StartSound(&actor->NoiseThinker, sfx_claw);
 		damage = (P_Random() % 8 + 1) * 10;
+		
+		// GhostlyDeath <March 6, 2012> -- Obit check
+		actor->RXUsedMelee = true;
 		P_DamageMobj(actor->target, actor, actor, damage);
+		actor->RXUsedMelee = false;
 		return;
 	}
+	
 	// launch a missile
-	P_SpawnMissile(actor, actor->target, MT_BRUISERSHOT);
+	Missile = P_SpawnMissile(actor, actor->target, MT_BRUISERSHOT);
+	
+	// GhostlyDeath <March 6, 2012> -- Obituary Stuff
+	if (Missile)
+	{
+		Missile->RXUsedMelee = false;
+		Missile->RXUsedSpell = false;
+	}
 }
 
 //
@@ -955,6 +1027,10 @@ void A_SkelMissile(mobj_t* actor)
 		mo->x += mo->momx;
 		mo->y += mo->momy;
 		mo->tracer = actor->target;
+		
+		// GhostlyDeath <March 6, 2012> -- Obituary Stuff
+		mo->RXUsedMelee = false;
+		mo->RXUsedSpell = false;
 	}
 }
 
@@ -1052,7 +1128,11 @@ void A_SkelFist(mobj_t* actor)
 	{
 		damage = ((P_Random() % 10) + 1) * 6;
 		S_StartSound(&actor->NoiseThinker, sfx_skepch);
+		
+		// GhostlyDeath <March 6, 2012> -- Obit check
+		actor->RXUsedMelee = true;
 		P_DamageMobj(actor->target, actor, actor, damage);
+		actor->RXUsedMelee = false;
 	}
 }
 
@@ -1256,7 +1336,11 @@ void A_VileAttack(mobj_t* actor)
 		return;
 		
 	S_StartSound(&actor->NoiseThinker, sfx_barexp);
+	
+	actor->RXUsedSpell = true;
 	P_DamageMobj(actor->target, actor, actor, 20);
+	actor->RXUsedSpell = false;
+	
 	actor->target->momz = 1000 * FRACUNIT / actor->target->info->mass;
 	
 	an = actor->angle >> ANGLETOFINESHIFT;
@@ -1269,6 +1353,7 @@ void A_VileAttack(mobj_t* actor)
 	// move the fire between the vile and the player
 	fire->x = actor->target->x - FixedMul(24 * FRACUNIT, finecosine[an]);
 	fire->y = actor->target->y - FixedMul(24 * FRACUNIT, finesine[an]);
+	fire->RXUsedSpell = true;
 	P_RadiusAttack(fire, actor, 70);
 }
 
@@ -1294,7 +1379,11 @@ void A_FatAttack1(mobj_t* actor)
 	A_FaceTarget(actor);
 	// Change direction  to ...
 	actor->angle += FATSPREAD;
-	P_SpawnMissile(actor, actor->target, MT_FATSHOT);
+	mo = P_SpawnMissile(actor, actor->target, MT_FATSHOT);
+	
+	// GhostlyDeath <March 6, 2012> -- Obituary Stuff
+	mo->RXUsedMelee = false;
+	mo->RXUsedSpell = false;
 	
 	mo = P_SpawnMissile(actor, actor->target, MT_FATSHOT);
 	if (mo)
@@ -1303,6 +1392,10 @@ void A_FatAttack1(mobj_t* actor)
 		an = mo->angle >> ANGLETOFINESHIFT;
 		mo->momx = FixedMul(__REMOOD_GETSPEEDMO(mo), finecosine[an]);
 		mo->momy = FixedMul(__REMOOD_GETSPEEDMO(mo), finesine[an]);
+		
+		// GhostlyDeath <March 6, 2012> -- Obituary Stuff
+		mo->RXUsedMelee = false;
+		mo->RXUsedSpell = false;
 	}
 }
 
@@ -1314,7 +1407,11 @@ void A_FatAttack2(mobj_t* actor)
 	A_FaceTarget(actor);
 	// Now here choose opposite deviation.
 	actor->angle -= FATSPREAD;
-	P_SpawnMissile(actor, actor->target, MT_FATSHOT);
+	mo = P_SpawnMissile(actor, actor->target, MT_FATSHOT);
+	
+	// GhostlyDeath <March 6, 2012> -- Obituary Stuff
+	mo->RXUsedMelee = false;
+	mo->RXUsedSpell = false;
 	
 	mo = P_SpawnMissile(actor, actor->target, MT_FATSHOT);
 	if (mo)
@@ -1323,6 +1420,10 @@ void A_FatAttack2(mobj_t* actor)
 		an = mo->angle >> ANGLETOFINESHIFT;
 		mo->momx = FixedMul(__REMOOD_GETSPEEDMO(mo), finecosine[an]);
 		mo->momy = FixedMul(__REMOOD_GETSPEEDMO(mo), finesine[an]);
+		
+		// GhostlyDeath <March 6, 2012> -- Obituary Stuff
+		mo->RXUsedMelee = false;
+		mo->RXUsedSpell = false;
 	}
 }
 
@@ -1340,6 +1441,10 @@ void A_FatAttack3(mobj_t* actor)
 		an = mo->angle >> ANGLETOFINESHIFT;
 		mo->momx = FixedMul(__REMOOD_GETSPEEDMO(mo), finecosine[an]);
 		mo->momy = FixedMul(__REMOOD_GETSPEEDMO(mo), finesine[an]);
+		
+		// GhostlyDeath <March 6, 2012> -- Obituary Stuff
+		mo->RXUsedMelee = false;
+		mo->RXUsedSpell = false;
 	}
 	
 	mo = P_SpawnMissile(actor, actor->target, MT_FATSHOT);
@@ -1349,6 +1454,10 @@ void A_FatAttack3(mobj_t* actor)
 		an = mo->angle >> ANGLETOFINESHIFT;
 		mo->momx = FixedMul(__REMOOD_GETSPEEDMO(mo), finecosine[an]);
 		mo->momy = FixedMul(__REMOOD_GETSPEEDMO(mo), finesine[an]);
+		
+		// GhostlyDeath <March 6, 2012> -- Obituary Stuff
+		mo->RXUsedMelee = false;
+		mo->RXUsedSpell = false;
 	}
 }
 

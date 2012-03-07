@@ -946,7 +946,9 @@ weaponinfo_t wpnlev1info[NUMWEAPONS] =
 		S_PUNCH,
 		S_PUNCH1,
 		S_PUNCH1,
-		S_NULL
+		S_NULL,
+		NULL,					// DropWeaponClass
+		"Fist",					// NiceName
 	}
 	,
 	{
@@ -958,7 +960,9 @@ weaponinfo_t wpnlev1info[NUMWEAPONS] =
 		S_PISTOL,
 		S_PISTOL1,
 		S_PISTOL1,
-		S_PISTOLFLASH
+		S_PISTOLFLASH,
+		NULL,					// DropWeaponClass
+		"Pistol",				// NiceName
 	}
 	,
 	{
@@ -970,7 +974,9 @@ weaponinfo_t wpnlev1info[NUMWEAPONS] =
 		S_SGUN,
 		S_SGUN1,
 		S_SGUN1,
-		S_SGUNFLASH1
+		S_SGUNFLASH1,
+		"Shotgun",					// DropWeaponClass
+		"Shotgun",					// NiceName
 	}
 	,
 	{
@@ -982,7 +988,9 @@ weaponinfo_t wpnlev1info[NUMWEAPONS] =
 		S_CHAIN,
 		S_CHAIN1,
 		S_CHAIN1,
-		S_CHAINFLASH1
+		S_CHAINFLASH1,
+		"Chaingun",					// DropWeaponClass
+		"Chaingun",					// NiceName
 	}
 	,
 	{
@@ -994,7 +1002,9 @@ weaponinfo_t wpnlev1info[NUMWEAPONS] =
 		S_MISSILE,
 		S_MISSILE1,
 		S_MISSILE1,
-		S_MISSILEFLASH1
+		S_MISSILEFLASH1,
+		"RocketLauncher",					// DropWeaponClass
+		"Rocket Launcher",					// NiceName
 	}
 	,
 	{
@@ -1006,7 +1016,9 @@ weaponinfo_t wpnlev1info[NUMWEAPONS] =
 		S_PLASMA,
 		S_PLASMA1,
 		S_PLASMA1,
-		S_PLASMAFLASH1
+		S_PLASMAFLASH1,
+		"PlasmaRifle",					// DropWeaponClass
+		"Plasma Rifle",					// NiceName
 	}
 	,
 	{
@@ -1018,7 +1030,9 @@ weaponinfo_t wpnlev1info[NUMWEAPONS] =
 		S_BFG,
 		S_BFG1,
 		S_BFG1,
-		S_BFGFLASH1
+		S_BFGFLASH1,
+		"BFG",					// DropWeaponClass
+		"BFG9000",				// NiceName
 	}
 	,
 	{
@@ -1030,7 +1044,9 @@ weaponinfo_t wpnlev1info[NUMWEAPONS] =
 		S_SAW,
 		S_SAW1,
 		S_SAW1,
-		S_NULL
+		S_NULL,
+		"Chainsaw",					// DropWeaponClass
+		"Chainsaw",					// NiceName
 	}
 	,
 	{
@@ -1042,13 +1058,18 @@ weaponinfo_t wpnlev1info[NUMWEAPONS] =
 		S_DSGUN,
 		S_DSGUN1,
 		S_DSGUN1,
-		S_DSGUNFLASH1
+		S_DSGUNFLASH1,
+		"SuperShotgun",					// DropWeaponClass
+		"Super Shotgun",				// NiceName
 	},
 };
 
+#if 1
+// GhostkyDeath <March 6, 2012> -- March level 1 weapons for now... (until heretic)
+weaponinfo_t* wpnlev2info = wpnlev1info;
+#else
 weaponinfo_t wpnlev2info[NUMWEAPONS] =
 {
-
 	{
 		// fist
 		am_noammo,
@@ -1058,7 +1079,8 @@ weaponinfo_t wpnlev2info[NUMWEAPONS] =
 		S_PUNCH,
 		S_PUNCH1,
 		S_PUNCH1,
-		S_NULL
+		S_NULL,
+		NULL,					// DropWeaponClass
 	}
 	,
 	{
@@ -1070,7 +1092,8 @@ weaponinfo_t wpnlev2info[NUMWEAPONS] =
 		S_PISTOL,
 		S_PISTOL1,
 		S_PISTOL1,
-		S_PISTOLFLASH
+		S_PISTOLFLASH,
+		NULL,					// DropWeaponClass
 	}
 	,
 	{
@@ -1082,7 +1105,8 @@ weaponinfo_t wpnlev2info[NUMWEAPONS] =
 		S_SGUN,
 		S_SGUN1,
 		S_SGUN1,
-		S_SGUNFLASH1
+		S_SGUNFLASH1,
+		"Shotgun",					// DropWeaponClass
 	}
 	,
 	{
@@ -1094,7 +1118,8 @@ weaponinfo_t wpnlev2info[NUMWEAPONS] =
 		S_CHAIN,
 		S_CHAIN1,
 		S_CHAIN1,
-		S_CHAINFLASH1
+		S_CHAINFLASH1,
+		"Chaingun",					// DropWeaponClass
 	}
 	,
 	{
@@ -1106,7 +1131,8 @@ weaponinfo_t wpnlev2info[NUMWEAPONS] =
 		S_MISSILE,
 		S_MISSILE1,
 		S_MISSILE1,
-		S_MISSILEFLASH1
+		S_MISSILEFLASH1,
+		"RocketLauncher",					// DropWeaponClass
 	}
 	,
 	{
@@ -1118,7 +1144,8 @@ weaponinfo_t wpnlev2info[NUMWEAPONS] =
 		S_PLASMA,
 		S_PLASMA1,
 		S_PLASMA1,
-		S_PLASMAFLASH1
+		S_PLASMAFLASH1,
+		"PlasmaRifle",					// DropWeaponClass
 	}
 	,
 	{
@@ -1130,7 +1157,8 @@ weaponinfo_t wpnlev2info[NUMWEAPONS] =
 		S_BFG,
 		S_BFG1,
 		S_BFG1,
-		S_BFGFLASH1
+		S_BFGFLASH1,
+		"BFG",					// DropWeaponClass
 	}
 	,
 	{
@@ -1142,7 +1170,8 @@ weaponinfo_t wpnlev2info[NUMWEAPONS] =
 		S_SAW,
 		S_SAW1,
 		S_SAW1,
-		S_NULL
+		S_NULL,
+		"Chainsaw",					// DropWeaponClass
 	}
 	,
 	{
@@ -1154,6 +1183,9 @@ weaponinfo_t wpnlev2info[NUMWEAPONS] =
 		S_DSGUN,
 		S_DSGUN1,
 		S_DSGUN1,
-		S_DSGUNFLASH1
+		S_DSGUNFLASH1,
+		"SuperShotgun",					// DropWeaponClass
 	},
 };
+#endif
+

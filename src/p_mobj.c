@@ -1042,6 +1042,7 @@ mobj_t* P_SpawnMobj(fixed_t x, fixed_t y, fixed_t z, mobjtype_t type)
 	mobj->height = info->height;
 	mobj->flags = info->flags;
 	mobj->flags2 = info->flags2;
+	mobj->RXShotWithWeapon = NUMWEAPONS;
 	
 	for (i = 0; i < NUMINFORXFIELDS; i++)
 		mobj->RXFlags[i] = info->RXFlags[i];
@@ -1187,15 +1188,8 @@ void P_RemoveMobj(mobj_t* mobj)
 {
 	if (!mobj)
 		return;
-	
-	// GhostlyDeath <January 23, 2012> -- If spawn point is set, remove from there
-	if (mobj->spawnpoint)
-	{
-		mobj->spawnpoint->mobj = NULL;
-		mobj->spawnpoint = NULL;
-	}
 		
-	if ((mobj->flags & MF_SPECIAL) && !(mobj->flags & MF_DROPPED) && (mobj->type != MT_INV) && (mobj->type != MT_INS))
+	if ((mobj->flags & MF_SPECIAL) && !(mobj->flags & MF_DROPPED) && !(mobj->RXFlags[0] & MFREXA_NOALTDMRESPAWN))
 	{
 		itemrespawnque[iquehead] = mobj->spawnpoint;
 		itemrespawntime[iquehead] = leveltime;
@@ -1219,6 +1213,14 @@ void P_RemoveMobj(mobj_t* mobj)
 	
 	// free block
 	P_RemoveThinker((thinker_t*) mobj);
+	
+	// GhostlyDeath <January 23, 2012> -- If spawn point is set, remove from there
+		// GhostlyDeath <March 6, 2012> -- Moved from top (otherwise stops respawning items)
+	if (mobj->spawnpoint)
+	{
+		mobj->spawnpoint->mobj = NULL;
+		mobj->spawnpoint = NULL;
+	}
 }
 
 consvar_t cv_itemrespawntime = { "respawnitemtime", "30", CV_NETVAR, CV_Unsigned };
@@ -1266,11 +1268,12 @@ void P_RespawnSpecials(void)
 	y = mthing->y << FRACBITS;
 	
 	// spawn a teleport fog at the new spot
+		// TODO -- GhostlyDeath: How about custom respawn fogs for items
 	ss = R_PointInSubsector(x, y);
 	if (mthing->options & MTF_FS_SPAWNED)
-		mo = P_SpawnMobj(x, y, mthing->z << FRACBITS, MT_IFOG);
+		mo = P_SpawnMobj(x, y, mthing->z << FRACBITS, INFO_GetTypeByName("ItemFog"));
 	else
-		mo = P_SpawnMobj(x, y, ss->sector->floorheight, MT_IFOG);
+		mo = P_SpawnMobj(x, y, ss->sector->floorheight, INFO_GetTypeByName("ItemFog"));
 	S_StartSound(&mo->NoiseThinker, sfx_itmbk);
 	
 	// find which type to spawn
@@ -1313,49 +1316,37 @@ void P_RespawnWeapons(void)
 		mthing = itemrespawnque[j];
 		
 		i = 0;
-		switch (mthing->type)
+		
+		// GhostlyDeath <March 6, 2012> -- Use remembered values here
+			// If the mthing was marked as a gun then respawn it
+		if (mthing->MarkedWeapon && mthing->MoType >= 0 && mthing->MoType <= NUMMOBJTYPES)
+			i = mthing->MoType;
+		
+		// Not remembered? remove from queue and move on
+		else
 		{
-			case 2001:			//mobjinfo[MT_SHOTGUN].doomednum  :
-				i = MT_SHOTGUN;
-				break;
-			case 82:			//mobjinfo[MT_SUPERSHOTGUN].doomednum :
-				i = MT_SUPERSHOTGUN;
-				break;
-			case 2002:			//mobjinfo[MT_CHAINGUN].doomednum :
-				i = MT_CHAINGUN;
-				break;
-			case 2006:			//mobjinfo[MT_BFG9000].doomednum   : // bfg9000
-				i = MT_BFG9000;
-				break;
-			case 2004:			//mobjinfo[MT_PLASMAGUN].doomednum   : // plasma launcher
-				i = MT_PLASMAGUN;
-				break;
-			case 2003:			//mobjinfo[MT_ROCKETLAUNCH].doomednum   : // rocket launcher
-				i = MT_ROCKETLAUNCH;
-				break;
-			case 2005:			//mobjinfo[MT_SHAINSAW].doomednum   : // shainsaw
-				i = MT_SHAINSAW;
-				break;
-			default:
-				if (freeslot != j)
-				{
-					itemrespawnque[freeslot] = itemrespawnque[j];
-					itemrespawntime[freeslot] = itemrespawntime[j];
-				}
-				
-				freeslot = (freeslot + 1) & (ITEMQUESIZE - 1);
-				continue;
+			// Free slot?
+			if (freeslot != j)
+			{
+				itemrespawnque[freeslot] = itemrespawnque[j];
+				itemrespawntime[freeslot] = itemrespawntime[j];
+			}
+			
+			freeslot = (freeslot + 1) & (ITEMQUESIZE - 1);
+			continue;
 		}
+		
 		// respwan it
 		x = mthing->x << FRACBITS;
 		y = mthing->y << FRACBITS;
 		
 		// spawn a teleport fog at the new spot
+			// TODO -- GhostlyDeath: How about custom respawn fogs for items
 		ss = R_PointInSubsector(x, y);
 		if (mthing->options & MTF_FS_SPAWNED)
-			mo = P_SpawnMobj(x, y, mthing->z << FRACBITS, MT_IFOG);
+			mo = P_SpawnMobj(x, y, mthing->z << FRACBITS, INFO_GetTypeByName("ItemFog"));
 		else
-			mo = P_SpawnMobj(x, y, ss->sector->floorheight, MT_IFOG);
+			mo = P_SpawnMobj(x, y, ss->sector->floorheight, INFO_GetTypeByName("ItemFog"));
 		S_StartSound(&mo->NoiseThinker, sfx_itmbk);
 		
 		// spawn it
@@ -1493,6 +1484,10 @@ void P_SpawnMapThing(mapthing_t* mthing)
 	fixed_t y;
 	fixed_t z;
 	
+	// GhostlyDeath <March 6, 2012> -- Clear thing ID
+	mthing->MoType = NUMMOBJTYPES;
+	mthing->MarkedWeapon = false;
+	
 	if (!mthing->type)
 		return;					//SoM: 4/7/2000: Ignore type-0 things as NOPs
 		
@@ -1559,6 +1554,13 @@ void P_SpawnMapThing(mapthing_t* mthing)
 		CONL_PrintF("\2P_SpawnMapThing: Unknown type %i at (%i, %i)\n", mthing->type, mthing->x, mthing->y);
 		return;
 	}
+	
+	// GhostlyDeath <March 6, 2012> -- Set thing ID and mark with weapon if possible
+	mthing->MoType = i;
+	
+	if (mobjinfo[mthing->MoType].RXFlags[0] & MFREXA_MARKRESTOREWEAPON)
+		mthing->MarkedWeapon = true;
+	
 	// don't spawn keycards and players in deathmatch
 	if (cv_deathmatch.value && mobjinfo[i].flags & MF_NOTDMATCH)
 		return;
@@ -2103,6 +2105,12 @@ mobj_t* P_SPMAngle(mobj_t* source, mobjtype_t type, angle_t angle)
 	th->momz = FixedMul(__REMOOD_GETSPEEDMO(th), slope);
 	
 	slope = P_CheckMissileSpawn(th);
+	
+	// GhostlyDeath <March 6, 2012> -- Set weapon fired with from player
+	if (source->player)
+		th->RXShotWithWeapon = source->player->readyweapon;
+	else	// Otherwise carry the original weapon
+		th->RXShotWithWeapon = source->RXShotWithWeapon;
 	
 	if (demoversion < 131)
 		return th;

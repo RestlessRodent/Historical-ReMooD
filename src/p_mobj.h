@@ -50,6 +50,7 @@
 #include "info.h"
 
 #include "s_sound.h"
+#include "d_items.h"
 
 //
 // NOTES: mobj_t
@@ -294,6 +295,9 @@ typedef enum mobjflagrexa_e
 	MFREXA_USENULLMOTHINKER		= 0x00004000U,	// Use MobjNullThinker
 	MFREXA_NOPLAYERWALK			= 0x00008000U,	// Don't use player walking animation [P_XYFriction]
 	MFREXA_NOSMOOTHSTEPUP		= 0x00010000U,	// Don't smoothly step up the player view [P_ZMovement]
+	MFREXA_NOALTDMRESPAWN		= 0x00020000U,	// Do not respawn in altdeath mode
+	MFREXA_CARRYKILLER			= 0x00040000U,	// Carries object killer (Barrels) [P_KillMobj]
+	MFREXA_MARKRESTOREWEAPON	= 0x00080000U,	// Mark mapthing_t to restore weapon [P_RespawnWeapons]
 } mobjflagrexa_t;
 
 // GhostlyDeath <March 4, 2012> -- About all this stuff underneath, i'm thinking
@@ -578,6 +582,11 @@ typedef struct mobj_s
 	/*** RMOD EXTENDED SUPPORT ***/
 	// New Flags
 	uint32_t RXFlags[NUMINFORXFIELDS];		// ReMooD Extended Flags
+	
+	// Obituary helpers
+	weapontype_t RXShotWithWeapon;			// Weapon that fired this
+	bool_t RXUsedMelee;						// Used melee attack
+	bool_t RXUsedSpell;						// Used spell
 	
 	// Owners
 #if 0

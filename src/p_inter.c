@@ -893,7 +893,7 @@ void P_UnlinkFloorThing(mobj_t* mobj)
 #endif
 
 /* PS_GetMobjNoun() -- Gets the noun of the object */
-static const char* PS_GetMobjNoun(mobj_t* const a_Mobj, bool_t* const a_Special)
+static const char* PS_GetMobjNoun(mobj_t* const a_Mobj, bool_t* const a_Special, const bool_t a_IsInflictor, mobj_t* const a_Source)
 {
 	/* If there is no object */
 	if (!a_Mobj)
@@ -915,7 +915,25 @@ static const char* PS_GetMobjNoun(mobj_t* const a_Mobj, bool_t* const a_Special)
 				*a_Special = true;
 				
 			// Return the player's name
-			return player_names[a_Mobj->player - players];
+			if (!a_IsInflictor)
+				return player_names[a_Mobj->player - players];
+			
+			// Return the name of the gun
+			else
+			{
+				// Inflictor is the source (melee or gun attack?)
+				if (a_Mobj == a_Source)
+					return a_Mobj->player->weaponinfo[a_Mobj->player->readyweapon].NiceName;
+				
+				// It must be a missile then, return the weapon there
+				else
+				{
+					if (a_Mobj->RXShotWithWeapon >= 0 && a_Mobj->RXShotWithWeapon < NUMWEAPONS)
+						return a_Mobj->player->weaponinfo[a_Mobj->RXShotWithWeapon].NiceName;
+					else
+						return "Unknown Weapon";
+				}
+			}
 		}
 		// Otherwise it is a monster or otherwise
 		else
@@ -923,9 +941,36 @@ static const char* PS_GetMobjNoun(mobj_t* const a_Mobj, bool_t* const a_Special)
 			// Not Special
 			if (a_Special)
 				*a_Special = true;
+			
+			// If the source has a weapon attached to it 
+			if (a_Mobj->RXShotWithWeapon >= 0 && a_Mobj->RXShotWithWeapon < NUMWEAPONS)
+			{
+				// Check to see if there is a source player (use that name)
+				if (a_Source->player)
+					return a_Source->player->weaponinfo[a_Mobj->RXShotWithWeapon].NiceName;
 				
-			// Return object name
-			return MT2ReMooDClass[a_Mobj->type];
+				// There is no player source, so use standard gun name
+				else
+					return wpnlev1info[a_Mobj->RXShotWithWeapon].NiceName;
+			}
+			
+			// If we never returned, then there was no weapon used
+			if (!a_IsInflictor)
+				// Return nice name of object
+				return MT2ReMooDClass[a_Mobj->type];
+			
+			// Otherwise return the attack type
+			else
+			{
+				if (a_Mobj->RXUsedMelee && !a_Mobj->RXUsedSpell)
+					return "Melee Attack";
+				else if (a_Mobj->RXUsedMelee && a_Mobj->RXUsedSpell)
+					return "Melee Spell";
+				else if (!a_Mobj->RXUsedMelee && !a_Mobj->RXUsedSpell)
+					return "Ranged Attack";
+				else
+					return "Ranged Spell";
+			}
 		}
 	}
 }
@@ -939,9 +984,9 @@ static void P_DeathMessages(mobj_t* target, mobj_t* inflictor, mobj_t* source)
 	bool_t tSpecial, iSpecial, sSpecial;
 	
 	/* Determine nouns of objects */
-	tNoun = PS_GetMobjNoun(target, &tSpecial);
-	iNoun = PS_GetMobjNoun(inflictor, &iSpecial);
-	sNoun = PS_GetMobjNoun(source, &sSpecial);
+	tNoun = PS_GetMobjNoun(target, &tSpecial, false, source);
+	iNoun = PS_GetMobjNoun(inflictor, &iSpecial, true, source);
+	sNoun = PS_GetMobjNoun(source, &sSpecial, false, source);
 	
 	/* If neither side is special, who cares? */
 	/*if (!(tSpecial | sSpecial))
@@ -951,197 +996,6 @@ static void P_DeathMessages(mobj_t* target, mobj_t* inflictor, mobj_t* source)
 	CONL_PrintF("\x7{4%s{0 -> {5%s {2({3%s{2)\n", sNoun, tNoun, iNoun);
 	
 #undef BUFSIZE
-	
-#if 0
-	int w;
-	char* str;
-	
-	if (!target || !target->player)
-		return;
-		
-	if (source && source->player)
-	{
-		if (source->player == target->player)
-		{
-			if (cv_splitscreen.value)
-			{
-				char txt[512];
-				
-				sprintf(txt, text[DEATHMSG_SUICIDE], player_names[target->player - players]);
-				CONL_PrintF(txt);
-				CONL_PrintF("\4%s", txt);
-			}
-			else
-				CONL_PrintF(text[DEATHMSG_SUICIDE], player_names[target->player - players]);
-		}
-		else
-		{
-			if (target->health < -9000)	// telefrag !
-				str = text[DEATHMSG_TELEFRAG];
-			else
-			{
-				w = source->player->readyweapon;
-				if (inflictor)
-				{
-					switch (inflictor->type)
-					{
-						case MT_ROCKET:
-							w = wp_missile;
-							break;
-						case MT_PLASMA:
-							w = wp_plasma;
-							break;
-						case MT_EXTRABFG:
-						case MT_BFG:
-							w = wp_bfg;
-							break;
-						default:
-							break;
-					}
-				}
-				
-				switch (w)
-				{
-					case wp_fist:
-						str = text[DEATHMSG_FIST];
-						break;
-					case wp_pistol:
-						str = text[DEATHMSG_GUN];
-						break;
-					case wp_shotgun:
-						str = text[DEATHMSG_SHOTGUN];
-						break;
-					case wp_chaingun:
-						str = text[DEATHMSG_MACHGUN];
-						break;
-					case wp_missile:
-						str = text[DEATHMSG_ROCKET];
-						if (target->health < -target->info->spawnhealth && target->info->xdeathstate)
-							str = text[DEATHMSG_GIBROCKET];
-						break;
-					case wp_plasma:
-						str = text[DEATHMSG_PLASMA];
-						break;
-					case wp_bfg:
-						str = text[DEATHMSG_BFGBALL];
-						break;
-					case wp_chainsaw:
-						str = text[DEATHMSG_CHAINSAW];
-						break;
-					case wp_supershotgun:
-						str = text[DEATHMSG_SUPSHOTGUN];
-						break;
-					default:
-						str = text[DEATHMSG_PLAYUNKNOW];
-						break;
-				}
-			}
-			if (cv_splitscreen.value)
-			{
-				char txt[512];
-				
-				sprintf(txt, str, player_names[target->player - players], player_names[source->player - players]);
-				CONL_PrintF(txt);
-				CONL_PrintF("\4%s", txt);
-			}
-			else
-				CONL_PrintF(str, player_names[target->player - players], player_names[source->player - players]);
-		}
-	}
-	else
-	{
-		if (!source)
-		{
-			// environment kills
-			w = target->player->specialsector;	//see p_spec.c
-			
-			if (w == 5)
-				str = text[DEATHMSG_HELLSLIME];
-			else if (w == 7)
-				str = text[DEATHMSG_NUKE];
-			else if (w == 16 || w == 4)
-				str = text[DEATHMSG_SUPHELLSLIME];
-			else
-				str = text[DEATHMSG_SPECUNKNOW];
-		}
-		else
-		{
-			// check for lava,slime,water,crush,fall,monsters..
-			if (source->type == MT_BARREL)
-			{
-				if (target->type == MT_BARREL)
-				{
-					CONL_PrintF(text[DEATHMSG_BARRELFRAG], player_names[target->player - players], player_names[source->target->player - players]);
-					return;
-				}
-				else
-					str = text[DEATHMSG_BARREL];
-			}
-			else
-				switch (source->type)
-				{
-					case MT_POSSESSED:
-						str = text[DEATHMSG_POSSESSED];
-						break;
-					case MT_SHOTGUY:
-						str = text[DEATHMSG_SHOTGUY];
-						break;
-					case MT_VILE:
-						str = text[DEATHMSG_VILE];
-						break;
-					case MT_FATSO:
-						str = text[DEATHMSG_FATSO];
-						break;
-					case MT_CHAINGUY:
-						str = text[DEATHMSG_CHAINGUY];
-						break;
-					case MT_TROOP:
-						str = text[DEATHMSG_TROOP];
-						break;
-					case MT_SERGEANT:
-						str = text[DEATHMSG_SERGEANT];
-						break;
-					case MT_SHADOWS:
-						str = text[DEATHMSG_SHADOWS];
-						break;
-					case MT_HEAD:
-						str = text[DEATHMSG_HEAD];
-						break;
-					case MT_BRUISER:
-						str = text[DEATHMSG_BRUISER];
-						break;
-					case MT_UNDEAD:
-						str = text[DEATHMSG_UNDEAD];
-						break;
-					case MT_KNIGHT:
-						str = text[DEATHMSG_KNIGHT];
-						break;
-					case MT_SKULL:
-						str = text[DEATHMSG_SKULL];
-						break;
-					case MT_SPIDER:
-						str = text[DEATHMSG_SPIDER];
-						break;
-					case MT_BABY:
-						str = text[DEATHMSG_BABY];
-						break;
-					case MT_CYBORG:
-						str = text[DEATHMSG_CYBORG];
-						break;
-					case MT_PAIN:
-						str = text[DEATHMSG_PAIN];
-						break;
-					case MT_WOLFSS:
-						str = text[DEATHMSG_WOLFSS];
-						break;
-					default:
-						str = text[DEATHMSG_DEAD];
-						break;
-				}
-		}
-		CONL_PrintF(str, player_names[target->player - players]);
-	}
-#endif
 }
 
 // WARNING : check cv_fraglimit>0 before call this function !
@@ -1235,7 +1089,8 @@ void P_KillMobj(mobj_t* target, mobj_t* inflictor, mobj_t* source)
 	//                shot the barrel which killed another guy, gets the frag!
 	//                (source is passed from barrel to barrel also!)
 	//                (only for multiplayer fun, does not remember monsters)
-	if ((target->type == MT_BARREL) && source && source->player)
+	// GhostlyDeath <March 6, 2012> -- Use flag here
+	if ((target->RXFlags[0] & MFREXA_CARRYKILLER) && source && source->player)
 		target->target = source;
 		
 	if (demoversion < 131)
@@ -1304,6 +1159,9 @@ void P_KillMobj(mobj_t* target, mobj_t* inflictor, mobj_t* source)
 	// Drop stuff.
 	// This determines the kind of object spawned
 	// during the death frame of a thing.
+
+	// GhostlyDeath <March 6, 2012> -- Use invalid object	
+	item = NUMMOBJTYPES;
 	
 	// Frags Weapon Falling support
 	if (target->player && cv_fragsweaponfalling.value)
@@ -1312,68 +1170,28 @@ void P_KillMobj(mobj_t* target, mobj_t* inflictor, mobj_t* source)
 		//if (!drop_ammo_count)
 		//    return;
 		
-		switch (target->player->readyweapon)
-		{
-			case wp_shotgun:
-				item = MT_SHOTGUN;
-				break;
-				
-			case wp_supershotgun:
-				item = MT_SUPERSHOTGUN;
-				break;
-				
-			case wp_chaingun:
-				item = MT_CHAINGUN;
-				break;
-				
-			case wp_missile:
-				item = MT_ROCKETLAUNCH;
-				break;
-				
-			case wp_plasma:
-				item = MT_PLASMAGUN;
-				break;
-				
-			case wp_bfg:
-				item = MT_BFG9000;
-				break;
-				
-			default:
-				//CONL_PrintF("Unknown weapon %d\n", target->player->readyweapon);
-				return;
-		}
+		// Which item to drop?
+		if (target->player->weaponinfo[target->player->readyweapon].DropWeaponClass)
+			item = INFO_GetTypeByName(target->player->weaponinfo[target->player->readyweapon].DropWeaponClass);
 	}
 	else
 	{
-	
-		switch (target->type)
-		{
-			case MT_WOLFSS:
-			case MT_POSSESSED:
-				item = MT_CLIP;
-				break;
-				
-			case MT_SHOTGUY:
-				item = MT_SHOTGUN;
-				break;
-				
-			case MT_CHAINGUY:
-				item = MT_CHAINGUN;
-				break;
-				
-			default:
-				return;
-		}
+		// Which item to drop?
+		if (target->info->RDropClass)
+			item = INFO_GetTypeByName(target->info->RDropClass);
 	}
 	
-	// SoM: Damnit! Why not use the target's floorz?
-	mo = P_SpawnMobj(target->x, target->y, demoversion < 132 ? ONFLOORZ : target->floorz, item);
-	mo->flags |= MF_DROPPED;	// special versions of items
+	if (item && item >= 0 && item < NUMMOBJTYPES)
+	{
+		// SoM: Damnit! Why not use the target's floorz?
+		mo = P_SpawnMobj(target->x, target->y, demoversion < 132 ? ONFLOORZ : target->floorz, item);
+		mo->flags |= MF_DROPPED;	// special versions of items
 	
-	if (!cv_fragsweaponfalling.value)
-		drop_ammo_count = 0;	// Doom default ammo count
+		if (!cv_fragsweaponfalling.value)
+			drop_ammo_count = 0;	// Doom default ammo count
 		
-	mo->dropped_ammo_count = drop_ammo_count;
+		mo->dropped_ammo_count = drop_ammo_count;
+	}
 }
 
 //

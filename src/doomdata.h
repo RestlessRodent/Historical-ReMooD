@@ -42,6 +42,8 @@
 // Some global defines, that configure the game.
 #include "doomdef.h"
 
+#include "info.h"
+
 //
 // Map level types.
 // The following data structures define the persistent format
@@ -226,11 +228,16 @@ typedef struct
 	
 	struct mobj_s* mobj;
 	
+	// Hexen Stuff
 	bool_t IsHexen;								// Hexen Defined
 	int16_t HeightOffset;						// Height offset
 	uint16_t ID;								// Hexen Thing ID
 	uint8_t Special;							// Hexen Special
 	uint8_t Args[5];							// Hexen arguments
+	
+	// Other Stuff
+	mobjtype_t MoType;							// Type of spawned object
+	bool_t MarkedWeapon;						// Marked as a weapon to respawn
 } mapthing_t;
 
 /* HexenMapThingDef_t -- Hexen map thing */

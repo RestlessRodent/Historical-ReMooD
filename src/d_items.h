@@ -150,9 +150,16 @@ typedef struct
 	int holdatkstate;
 	int flashstate;
 	
+	const char* DropWeaponClass;		// Thing to "drop" when a player dies
+	const char* NiceName;				// Name of weapon (obit)
 } weaponinfo_t;
 
 extern weaponinfo_t wpnlev1info[NUMWEAPONS];
+
+#if 1
+extern weaponinfo_t* wpnlev2info;
+#else
 extern weaponinfo_t wpnlev2info[NUMWEAPONS];
+#endif
 
 #endif

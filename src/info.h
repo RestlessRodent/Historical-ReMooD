@@ -1405,6 +1405,7 @@ typedef struct
 	int RMissileDist[2];						// Min/Max missile distances [P_CheckMissileRange]
 	int RCapMissileDist;						// Distance cap [P_CheckMissileRange]
 	statenum_t RLessBlood[2];					// Less blood to spew? (0 = 9-12, 1 = < 9) [P_SpawnBlood]
+	const char* RDropClass;						// Class to "drop" when dead
 } mobjinfo_t;
 
 extern mobjinfo_t mobjinfo[NUMMOBJTYPES];
