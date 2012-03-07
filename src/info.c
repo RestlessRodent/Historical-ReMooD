@@ -1335,7 +1335,7 @@ mobjinfo_t mobjinfo[NUMMOBJTYPES] =
 		0,							// flags2
 		
 		// ReMooD Extended
-		{0, 0, 0, 0},				// RXFlags[NUMINFORXFIELDS]
+		{MFREXA_NOTHRESHOLD | MFREXA_NOTRETAILIATETARGET, 0, 0, 0},				// RXFlags[NUMINFORXFIELDS]
 		0,							// RFastSpeed
 		0,							// RPlayerRunState
 		0,							// RPlayerMeleeAttackState
@@ -5137,7 +5137,10 @@ mobjinfo_t mobjinfo[NUMMOBJTYPES] =
 		sfx_None,					// activesound
 		MF_NOBLOCKMAP | MF_NOSECTOR | MF_NOGRAVITY | MF_FLOAT | MF_NOCLIPTHING,	// flags
 		S_NULL,					// raisestate
-		MF2_SLIDE
+		MF2_SLIDE,				// flags2
+		
+		// ReMooD Extended
+		{MFREXA_NORANDOMPLAYERLOOK | MFREXA_ALLOWNOCROSSCROSS | MFREXA_NEVERCROSSTRIGGER | MFREXA_CANCEILINGSTEP, 0, 0, 0},	// RXFlags
 	},
 	//added:9-06-98: spirit for movement prediction
 	{
@@ -5156,6 +5159,7 @@ mobjinfo_t mobjinfo[NUMMOBJTYPES] =
 		S_NULL,					// missilestate                    S_PLAY_ATK1,    // missilestate
 		S_NULL,					// crashstate
 		S_NULL,					// xdeathstate                     S_PLAY_XDIE1,   // xdeathstate
+		S_NULL,					// deathstate                     S_PLAY_DIE1,   // deathstate
 		sfx_None,					// deathsound                      sfx_pldeth,     // deathsound
 		0,							// speed                           0,              // speed
 		16 * FRACUNIT,				// radius                          16*FRACUNIT,    // radius
@@ -5163,13 +5167,12 @@ mobjinfo_t mobjinfo[NUMMOBJTYPES] =
 		100,						// mass                            100,            // mass
 		0,							// damage                          0,              // damage
 		sfx_None,					// activesound                     sfx_None,       // activesound
-		/*MF_NOBLOCKMAP|MF_NOSECTOR| */ MF_DROPOFF,
-		// flags    MF_SOLID|MF_SHOOTABLE|MF_PICKUP|MF_NOTDMATCH,
+		/*MF_NOBLOCKMAP|MF_NOSECTOR| */ MF_DROPOFF,	// flags    MF_SOLID|MF_SHOOTABLE|MF_PICKUP|MF_NOTDMATCH,
 		S_NULL,					// raisestate                      S_NULL          // raisestate
-		MF2_SLIDE,
+		MF2_SLIDE,				// flags2
 		
 		// ReMooD Extended
-		{MFREXA_NOCHECKWATER | MFREXA_USENULLMOTHINKER | MFREXA_NOPLAYERWALK | MFREXA_NOSMOOTHSTEPUP, 0, 0, 0},	// RXFlags
+		{MFREXA_NOCHECKWATER | MFREXA_USENULLMOTHINKER | MFREXA_NOPLAYERWALK | MFREXA_NOSMOOTHSTEPUP | MFREXA_NEVERCROSSTRIGGER, 0, 0, 0},	// RXFlags
 	},
 	{
 		// MT_SMOK test v1.25 smoke from lava/slime damage

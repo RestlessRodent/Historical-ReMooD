@@ -298,6 +298,12 @@ typedef enum mobjflagrexa_e
 	MFREXA_NOALTDMRESPAWN		= 0x00020000U,	// Do not respawn in altdeath mode
 	MFREXA_CARRYKILLER			= 0x00040000U,	// Carries object killer (Barrels) [P_KillMobj]
 	MFREXA_MARKRESTOREWEAPON	= 0x00080000U,	// Mark mapthing_t to restore weapon [P_RespawnWeapons]
+	MFREXA_NORANDOMPLAYERLOOK	= 0x00100000U,	// Don't randomize the last target player when spawning the new object [P_SpawnMapObject]
+	MFREXA_ALLOWNOCROSSCROSS	= 0x00200000U,	// Allow crossing of uncrossable lines [PIT_CheckLine]
+	MFREXA_NEVERCROSSTRIGGER	= 0x00400000U,	// Similar to MFREXA_NOCROSSTRIGGER however it never triggers cross specials regardless if ML_ALLTRIGGER or not [P_TryMove]
+	MFREXA_CANCEILINGSTEP		= 0x00800000U,	// Can step from the ceiling (similar to stairs but for ceilings instead)
+	MFREXA_NOTHRESHOLD			= 0x01000000U,	// No threshold (instantly change target) [P_DamageMobj]
+	MFREXA_NOTRETAILIATETARGET	= 0x02000000U,	// Object cannot be targetted by monster even if hurt by it [P_DamageMobj]
 } mobjflagrexa_t;
 
 // GhostlyDeath <March 4, 2012> -- About all this stuff underneath, i'm thinking

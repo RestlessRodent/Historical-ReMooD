@@ -507,7 +507,7 @@ bool_t PIT_CheckLine(line_t* ld, void* a_Arg)
 		return false;			// one sided line
 	}
 	// missil and Camera can cross uncrossable line
-	if (!(tmthing->flags & MF_MISSILE) && !(tmthing->type == MT_CHASECAM))
+	if (!(tmthing->flags & MF_MISSILE) && !(tmthing->RXFlags[0] & MFREXA_ALLOWNOCROSSCROSS))
 	{
 		if (ld->flags & ML_BLOCKING)
 			return false;		// explicitly blocking everything
@@ -703,6 +703,7 @@ bool_t P_TryMove(mobj_t* thing, fixed_t x, fixed_t y, bool_t allowdropoff)
 	int side;
 	int oldside;
 	line_t* ld;
+	bool_t CeilStepDownOK = false;
 	
 	floatok = false;
 	
@@ -724,11 +725,20 @@ bool_t P_TryMove(mobj_t* thing, fixed_t x, fixed_t y, bool_t allowdropoff)
 		
 		floatok = true;
 		
-		if (!(thing->flags & MF_TELEPORT) && tmceilingz - thing->z < thing->height && !(thing->flags2 & MF2_FLY))
-		{
-			CheckMissileImpact(thing);
-			return false;		// mobj must lower itself to fit
-		}
+		// GhostlyDeath <March 6, 2012> -- Can step from the ceiling
+		CeilStepDownOK = false;
+		if (thing->RXFlags[0] & MFREXA_CANCEILINGSTEP)
+			if ((thing->z + thing->height) - tmceilingz < maxstep)
+				CeilStepDownOK = true;
+		
+		// Stepping from ceiling not OK? Check collision here
+		if (!CeilStepDownOK)
+			if (!(thing->flags & MF_TELEPORT) && tmceilingz - thing->z < thing->height && !(thing->flags2 & MF2_FLY))
+			{
+				CheckMissileImpact(thing);
+				return false;		// mobj must lower itself to fit
+			}
+		
 		if (thing->flags2 & MF2_FLY)
 		{
 			if (thing->z + thing->height > tmceilingz)
@@ -745,7 +755,7 @@ bool_t P_TryMove(mobj_t* thing, fixed_t x, fixed_t y, bool_t allowdropoff)
 		// jump out of water
 		if ((thing->eflags & (MF_UNDERWATER | MF_TOUCHWATER)) == (MF_UNDERWATER | MF_TOUCHWATER))
 			maxstep = 37 * FRACUNIT;
-			
+		
 		if (!(thing->flags & MF_TELEPORT) && (tmfloorz - thing->z > maxstep))
 		{
 			CheckMissileImpact(thing);
@@ -792,7 +802,7 @@ bool_t P_TryMove(mobj_t* thing, fixed_t x, fixed_t y, bool_t allowdropoff)
 		thing->flags2 &= ~MF2_FEETARECLIPPED;
 		
 	// if any special lines were hit, do the effect
-	if (!(thing->flags & (MF_TELEPORT | MF_NOCLIP)) && (thing->type != MT_CHASECAM) && (thing->type != MT_SPIRIT))
+	if (!(thing->flags & (MF_TELEPORT | MF_NOCLIP)) && !(thing->RXFlags[0] & MFREXA_NEVERCROSSTRIGGER))
 	{
 		while (numspechit--)
 		{

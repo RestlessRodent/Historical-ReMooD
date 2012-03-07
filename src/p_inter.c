@@ -1397,7 +1397,7 @@ bool_t P_DamageMobj(mobj_t* target, mobj_t* inflictor, mobj_t* source, int damag
 		target->reactiontime = 0;	// we're awake now...
 	}
 	
-	if ((!target->threshold || target->type == MT_VILE) && source && source != target && source->type != MT_VILE && !(source->flags2 & MF2_BOSS))
+	if ((!target->threshold || (target->RXFlags[0] & MFREXA_NOTHRESHOLD)) && source && source != target && !(source->RXFlags[0] & MFREXA_NOTRETAILIATETARGET) && !(source->flags2 & MF2_BOSS))
 	{
 		// if not intent on another player,
 		// chase after this one

@@ -1052,7 +1052,7 @@ mobj_t* P_SpawnMobj(fixed_t x, fixed_t y, fixed_t z, mobjtype_t type)
 	if (gameskill != sk_nightmare)
 		mobj->reactiontime = info->reactiontime;
 		
-	if (demoversion < 129 && mobj->type != MT_CHASECAM)
+	if (demoversion < 129 && !(mobj->RXFlags[0] & MFREXA_NORANDOMPLAYERLOOK))
 		mobj->lastlook = P_Random() % MAXPLAYERS;
 	else
 		mobj->lastlook = -1;	// stuff moved in P_enemy.P_LookForPlayer
@@ -1672,7 +1672,7 @@ void P_SpawnSmoke(fixed_t x, fixed_t y, fixed_t z)
 	y = y - ((P_Random() & 8) * FRACUNIT) - 4 * FRACUNIT;
 	z += (P_Random() & 3) * FRACUNIT;
 	
-	th = P_SpawnMobj(x, y, z, MT_SMOK);
+	th = P_SpawnMobj(x, y, z, INFO_GetTypeByName("LegacySmoke"));
 	th->momz = FRACUNIT;
 	th->tics -= P_Random() & 3;
 	
