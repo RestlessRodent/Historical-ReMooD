@@ -78,6 +78,7 @@ typedef enum P_PMFIFieldType_e
 	PPMFIFT_INTEGER,							// int32_t
 	PPMFIFT_WIDEBITFIELD,						// uint64_t (1 << n)
 	PPMFIFT_FIXED,								// fixed_t
+	PPMFIFT_BOOL,								// bool_t
 	
 	MAXPPMFIFIELDTYPES
 } P_PMFIFieldType_t;
@@ -114,7 +115,7 @@ static const struct
 } c_PMIFields[MAXPINFOSETFLAGS] =
 {
 	{false, PPMFIFT_STRING, NULL, "levelname", offsetof(P_LevelInfoEx_t, Title)},
-	{false, PPMFIFT_STRING, "author", "creator", offsetof(P_LevelInfoEx_t, Author)},
+	{false, PPMFIFT_STRING, "creator", "author", offsetof(P_LevelInfoEx_t, Author)},
 	{false, PPMFIFT_STRING, "music", "music", offsetof(P_LevelInfoEx_t, Music)},
 	{false, PPMFIFT_STRING, "titlepatch", "levelpic", offsetof(P_LevelInfoEx_t, LevelPic)},
 	{false, PPMFIFT_STRING, "sky1", "skyname", offsetof(P_LevelInfoEx_t, SkyTexture)},
@@ -124,6 +125,16 @@ static const struct
 	{false, PPMFIFT_STRING, "secretnext", "nextsecret", offsetof(P_LevelInfoEx_t, SecretNext)},
 	{false, PPMFIFT_STRING, NULL, "consolecmd", offsetof(P_LevelInfoEx_t, BootCommand)},
 	{false, PPMFIFT_WIDEBITFIELD, NULL, "defaultweapons", offsetof(P_LevelInfoEx_t, Weapons)},
+	
+	// Level special endings
+	{false, PPMFIFT_BOOL, "map07special", NULL, offsetof(P_LevelInfoEx_t, MapSevenSpecial)},
+	{false, PPMFIFT_BOOL, "baronspecial", NULL, offsetof(P_LevelInfoEx_t, BaronSpecial)},
+	{false, PPMFIFT_BOOL, "cyberdemonspecial", NULL, offsetof(P_LevelInfoEx_t, CyberSpecial)},
+	{false, PPMFIFT_BOOL, "spidermastermindspecial", NULL, offsetof(P_LevelInfoEx_t, SpiderdemonSpecial)},
+	{false, PPMFIFT_BOOL, "specialaction_exitlevel", NULL, offsetof(P_LevelInfoEx_t, ExitOnSpecial)},
+	{false, PPMFIFT_BOOL, "specialaction_opendoor", NULL, offsetof(P_LevelInfoEx_t, OpenDoorOnSpecial)},
+	{false, PPMFIFT_BOOL, "specialaction_lowerfloor", NULL, offsetof(P_LevelInfoEx_t, LowerFloorOnSpecial)},
+	{false, PPMFIFT_BOOL, "specialaction_killmonsters", NULL, offsetof(P_LevelInfoEx_t, KillMonstersOnSpecial)},
 	
 	/*{false, PPMFIFT_STRING, "music", "music", offsetof(P_LevelInfoEx_t, Music)},
 	{false, PPMFIFT_STRING, "music", "music", offsetof(P_LevelInfoEx_t, Music)},
@@ -157,6 +168,9 @@ static bool_t PS_ParseMapInfo(P_LevelInfoHolder_t* const a_Holder, const WL_WADE
 	
 	fixed_t* FixedValP;
 	fixed_t* FixedValS;
+	
+	bool_t* BoolValP;
+	bool_t* BoolValS;
 	
 	void* vP;
 	void* vS;
@@ -279,6 +293,10 @@ static bool_t PS_ParseMapInfo(P_LevelInfoHolder_t* const a_Holder, const WL_WADE
 							StrValP = (char**)vP;
 							StrValS = (char**)vS;
 							
+							// Delete string?
+							if (*StrValP)
+								Z_Free(*StrValP);
+							
 							// Duplicate string
 							*StrValP = Z_StrDup(*StrValS, PU_STATIC, NULL);
 							break;
@@ -291,6 +309,16 @@ static bool_t PS_ParseMapInfo(P_LevelInfoHolder_t* const a_Holder, const WL_WADE
 							
 							// Copy value
 							*IntValP = *IntValS;
+							break;
+							
+							// Copy Bool
+						case PPMFIFT_BOOL:
+							// Get source and dest
+							BoolValP = (bool_t*)vP;
+							BoolValS = (bool_t*)vS;
+							
+							// Copy value
+							*BoolValP = *BoolValS;
 							break;
 						
 							// Unknown
@@ -344,6 +372,10 @@ static bool_t PS_ParseMapInfo(P_LevelInfoHolder_t* const a_Holder, const WL_WADE
 				// Get actual pointer
 				StrValP = (char**)vP;
 				
+				// Delete string?
+				if (*StrValP)
+					Z_Free(*StrValP);
+				
 				// Set value
 				*StrValP = Z_StrDup(p, PU_STATIC, NULL);
 				
@@ -363,6 +395,20 @@ static bool_t PS_ParseMapInfo(P_LevelInfoHolder_t* const a_Holder, const WL_WADE
 				// Debug
 				if (devparm)
 					CONL_PrintF("PS_ParseMapInfo: \"%s\" set to \'%i\'.\n", c_PMIFields[FNum].MapInfo, *IntValP);
+			}
+				
+				// Bool
+			else if (c_PMIFields[FNum].Type == PPMFIFT_BOOL)
+			{
+				// Get source and dest
+				BoolValP = (bool_t*)vP;
+			
+				// Set to true!
+				*BoolValP = true;
+				
+				// Debug
+				if (devparm)
+					CONL_PrintF("PS_ParseMapInfo: \"%s\" flagged.\n", c_PMIFields[FNum].MapInfo);
 			}
 		}
 	}
@@ -765,8 +811,23 @@ static bool_t PS_WLInfoOCCB(const bool_t a_Pushed, const struct WL_WADFile_s* co
 	const WL_WADEntry_t* Entry;
 	P_LevelInfoEx_t* CurrentInfo;
 	P_LevelInfoEx_t* CompInfo;
+	P_LevelInfoEx_t* Composite;
+	P_LevelInfoEx_t* CopyFrom;
 	P_LevelInfoEx_t** CompSpot;
-	size_t Sz, i;
+	size_t Sz, i, Field, j, k;
+	bool_t BootFields;
+	
+	char** StrValP;
+	char** StrValS;
+	
+	int32_t* IntValP;
+	int32_t* IntValS;
+	
+	fixed_t* FixedValP;
+	fixed_t* FixedValS;
+	
+	void* vP;
+	void* vS;
 	
 	/* Debug */
 	if (devparm)
@@ -796,7 +857,21 @@ static bool_t PS_WLInfoOCCB(const bool_t a_Pushed, const struct WL_WADFile_s* co
 	
 	/* Clear level info composite */
 	if (l_CompInfos)
+	{
+		// Clear subs
+		for (i = 0; i < l_NumCompInfos; i++)
+			if (l_CompInfos[i])
+				if (l_CompInfos[i]->IsComposite)
+				{
+					// Clear out string
+					
+					// Clear self away
+					Z_Free(l_CompInfos[i]);
+				}
+		
+		// Clear master
 		Z_Free(l_CompInfos);
+	}
 	l_CompInfos = NULL;
 	l_NumCompInfos = 0;
 	
@@ -830,8 +905,118 @@ static bool_t PS_WLInfoOCCB(const bool_t a_Pushed, const struct WL_WADFile_s* co
 			// It does
 			if (CompInfo)
 			{
-				// Replace spot with this map
-				*CompSpot = CurrentInfo;
+				// Clear for future field booting
+				BootFields = false;
+				
+				// If the existing info is a compsite then use that
+				if (CompInfo->IsComposite)
+					// Set as this
+					Composite = CompInfo;
+				
+				// Otherwise allocate a new composite
+				else
+				{
+					// Allocate
+					Composite = Z_Malloc(sizeof(*Composite), PU_STATIC, NULL);
+					
+					// Set as composite and boot the fields
+					Composite->IsComposite = true;
+					BootFields = true;
+					
+					// Use the latest map (entry related) stuff
+					if (CurrentInfo->WAD)
+					{
+						// Copy WAD
+						Composite->WAD = CurrentInfo->WAD;
+						
+						// Copy lumps over
+						for (Field = 0; Field < MAXPLIEDS; Field++)
+							Composite->EntryPtr[Field] = CurrentInfo->EntryPtr[Field];
+						
+						// Copy type
+						Composite->Type = CurrentInfo->Type;
+						
+						// Copy script positions
+						for (Field = 0; Field < NUMPINFOBLOCKTYPES; Field++)
+							for (j = 0; j < 2; j++)
+								Composite->BlockPos[Field][j] = CurrentInfo->BlockPos[Field][j];
+						
+						// Copy name of lump
+						memmove(Composite->LumpName, CurrentInfo->LumpName, sizeof(char) * MAXPLIEXFIELDWIDTH);
+					}
+				}
+				
+				// Copy fields from CurrentInfo to Composite
+				// For every field...
+				for (k = 0; k < 2; k++)
+				{
+					// Fields don't need booting?
+					if (!k && !BootFields)
+						continue;
+					
+					// Which fields to copy from?
+					if (!k)
+						CopyFrom = CompInfo;
+					else
+						CopyFrom = CurrentInfo;
+					
+					// Copy fields over
+					for (Field = 0; !c_PMIFields[Field].IsEnd; Field++)
+					{
+						// Not set here?
+						if (!CopyFrom->SetBits[Field])
+							continue;
+					
+						// Check to see if already set or the default is unset
+							// Compare level, if it is the same or better, replace
+							// Less than because we always want CopyFrom to always
+							// be better!
+						if (CopyFrom->SetBits[Field] < Composite->SetBits[Field])
+							continue;	// Skip it then
+					
+						// Set the bit flag then (with most level)
+						Composite->SetBits[Field] = CopyFrom->SetBits[Field];
+					
+						// Get source and dest
+						vP = (void*)(((uintptr_t)Composite) + c_PMIFields[Field].Offset);
+						vS = (void*)(((uintptr_t)CopyFrom) + c_PMIFields[Field].Offset);
+					
+						// Which type now?
+						switch (c_PMIFields[Field].Type)
+						{
+								// Copy String
+							case PPMFIFT_STRING:
+								// Get source and dest
+								StrValP = (char**)vP;
+								StrValS = (char**)vS;
+							
+								// Delete string?
+								if (*StrValP)
+									Z_Free(*StrValP);
+							
+								// Duplicate string
+								*StrValP = Z_StrDup(*StrValS, PU_STATIC, NULL);
+								break;
+							
+								// Copy Integer
+							case PPMFIFT_INTEGER:
+								// Get source and dest
+								IntValP = (int32_t*)vP;
+								IntValS = (int32_t*)vS;
+							
+								// Copy value
+								*IntValP = *IntValS;
+								break;
+						
+								// Unknown
+							default:
+								break;
+						}
+					}
+				}
+				
+				// Set current spot with composite
+				*CompSpot = Composite;
 			}
 			
 			// Does not

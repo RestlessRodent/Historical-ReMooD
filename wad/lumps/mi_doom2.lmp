@@ -6,6 +6,9 @@ defaultsettings
 	intermusic D_DM2INT
 	bordertexture GRNROCK
 	gravity 800
+	
+defaultsettings
+	sky1 SKY1
 
 map MAP01 "Entryway"
 	cluster 1
@@ -14,8 +17,17 @@ map MAP01 "Entryway"
 	levelnum 1
 	creator "Sandy Petersen"
 	par 30
-	sky1 SKY1
 	titlepatch CWILV00
 	music D_RUNNIN
 
+map MAP07 "Dead Simple"
+	cluster 1
+	next MAP08
+	secretnext MAP07
+	levelnum 7
+	creator "American McGee and Sandy Petersen"
+	par 30
+	titlepatch CWILV06
+	music D_SHAWN
+	map07special
 

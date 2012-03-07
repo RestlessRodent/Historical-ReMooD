@@ -41,6 +41,7 @@
 #include "s_sound.h"
 #include "m_random.h"
 #include "p_demcmp.h"
+#include "p_info.h"
 
 void FastMonster_OnChange(void);
 
@@ -1740,154 +1741,141 @@ static state_t* P_FinalState(statenum_t state)
 //
 void A_BossDeath(mobj_t* mo)
 {
+	bool_t OK;
 	thinker_t* th;
-	mobj_t* mo2;
+	mobj_t* CheckMo;
+	uint32_t CheckFlags;
 	line_t junk;
-	int i;
 	
-	if (gamemode == commercial)
-	{
-		if ((mo->type != MT_FATSO) && (mo->type != MT_BABY) && (mo->type != MT_KEEN))
-			return;
-	}
-	else
-	{
-		switch (gameepisode)
-		{
-			case 1:
-				if (gamemap != 8)
-					return;
-					
-				if (mo->type != MT_BRUISER)
-					return;
-				break;
-				
-			case 2:
-				if (gamemap != 8)
-					return;
-					
-				if (mo->type != MT_CYBORG)
-					return;
-				break;
-				
-			case 3:
-				if (gamemap != 8)
-					return;
-					
-				if (mo->type != MT_SPIDER)
-					return;
-					
-				break;
-				
-			case 4:
-				switch (gamemap)
-				{
-					case 6:
-						if (mo->type != MT_CYBORG)
-							return;
-						break;
-						
-					case 8:
-						if (mo->type != MT_SPIDER)
-							return;
-						break;
-						
-					default:
-						return;
-						break;
-				}
-				break;
-				
-			default:
-				if (gamemap != 8)
-					return;
-				break;
-		}
-		
-	}
+	/* Check */
+	if (!mo)
+		return;
 	
-	// make sure there is a player alive for victory
-	for (i = 0; i < MAXPLAYERS; i++)
-		if (playeringame[i] && players[i].health > 0)
-			break;
-			
-	if (i == MAXPLAYERS)
-		return;					// no one left alive, so do not end game
+	/* Do comparitive matching */
+	// Set to false
+	OK = false;
+	
+	if (
+		// MAP07 Special (666 and 667 sectors)
+		(g_CurrentLevelInfo->MapSevenSpecial && (mo->RXFlags[1] & (MFREXB_DOMAPSEVENSPECA | MFREXB_DOMAPSEVENSPECB))) ||
 		
-	// scan the remaining thinkers to see
-	// if all bosses are dead
+		// Baron special
+		(g_CurrentLevelInfo->BaronSpecial && (mo->RXFlags[1] & (MFREXB_DOBARONSPECIAL))) ||
+		
+		// Cyberdemon special
+		(g_CurrentLevelInfo->CyberSpecial && (mo->RXFlags[1] & (MFREXB_DOCYBERSPECIAL))) ||
+		
+		// Spider Mastermind special
+		(g_CurrentLevelInfo->SpiderdemonSpecial && (mo->RXFlags[1] & (MFREXB_DOSPIDERSPECIAL))) ||
+		
+		// Normal command keen open door
+		(mo->RXFlags[1] & MFREXB_DODOORSIXTHREEOPEN)
+		)
+		OK = true;
+	
+	/* Not OK? */
+	if (!OK)
+		return;
+	
+	/* Obtain flags to check */
+	CheckFlags = mo->RXFlags[1] & (MFREXB_DOMAPSEVENSPECA | MFREXB_DOMAPSEVENSPECB | MFREXB_DOBARONSPECIAL | MFREXB_DOCYBERSPECIAL | MFREXB_DOSPIDERSPECIAL | MFREXB_DODOORSIXTHREEOPEN);
+	
+	/* Check to see if every other object (with flag set) is dead */
 	for (th = thinkercap.next; th != &thinkercap; th = th->next)
 	{
+		// Not a map object?
 		if (th->function.acp1 != (actionf_p1) P_MobjThinker)
 			continue;
-			
-		mo2 = (mobj_t*)th;
-		if (mo2 != mo && mo2->type == mo->type
-		        /*&& mo2->health > 0 */// the old one (doom original 1.9)
-		        && mo2->state != P_FinalState(mo->info->deathstate))
+		
+		// Get reference of it
+		CheckMo = (mobj_t*)th;
+		
+		// Ignore Self
+		if (CheckMo == mo)
+			continue;
+		
+		// If the flags match then the object is of the same special kind
+		if (CheckMo->RXFlags[1] & CheckFlags)
 		{
-			// other boss not dead
-			return;
+			// See if it is not fully dead yet
+				// TODO FIXME: May be a compat issue here
+			//if (CheckMo->state != P_FinalState(CheckMo->info->deathstate))
+			if (CheckMo->health < 0 || CheckMo->flags & MF_CORPSE)
+				return;
 		}
 	}
 	
-	// victory!
-	if (gamemode == commercial)
+	/* Everything with this flag is dead, so do the action */
+#define MULTISPECFLAGS (MFREXB_DOBARONSPECIAL | MFREXB_DOCYBERSPECIAL | MFREXB_DOSPIDERSPECIAL)
+	// Do MAP06 666/667 actions
+	if (g_CurrentLevelInfo->MapSevenSpecial)
 	{
-		if (mo->type == MT_FATSO)
-		{
-			if (gamemap == 7)
-			{
-				junk.tag = 666;
-				EV_DoFloor(&junk, lowerFloorToLowest);
-			}
-			return;
-		}
-		if (mo->type == MT_BABY)
-		{
-			if (gamemap == 7)
-			{
-				junk.tag = 667;
-				EV_DoFloor(&junk, raiseToTexture);
-			}
-			return;
-		}
-		else if (mo->type == MT_KEEN)
+		// 666
+		if (CheckFlags & MFREXB_DOMAPSEVENSPECA)
 		{
 			junk.tag = 666;
-			EV_DoDoor(&junk, dooropen, VDOORSPEED);
-			return;
+			EV_DoFloor(&junk, lowerFloorToLowest);
 		}
-	}
-	else
-	{
-		switch (gameepisode)
+		
+		// 667
+		if (CheckFlags & MFREXB_DOMAPSEVENSPECB)
 		{
-			case 1:
-				junk.tag = 666;
-				EV_DoFloor(&junk, lowerFloorToLowest);
-				return;
-				break;
-				
-			case 4:
-				switch (gamemap)
-				{
-					case 6:
-						junk.tag = 666;
-						EV_DoDoor(&junk, blazeOpen, 4 * VDOORSPEED);
-						return;
-						break;
-						
-					case 8:
-						junk.tag = 666;
-						EV_DoFloor(&junk, lowerFloorToLowest);
-						return;
-						break;
-				}
+			junk.tag = 667;
+			EV_DoFloor(&junk, raiseToTexture);
 		}
 	}
-	if (cv_allowexitlevel.value)
-		G_ExitLevel();
+	
+	// Blazing 666 door open
+	if (CheckFlags & MFREXB_DODOORSIXTHREEOPEN)
+	{
+		junk.tag = 666;
+		EV_DoDoor(&junk, dooropen, VDOORSPEED);
+	}
+	
+	// Kill everything in the level
+	if ((CheckFlags & MULTISPECFLAGS) && g_CurrentLevelInfo->KillMonstersOnSpecial)
+	{
+		// Go through thinker loop, again
+		for (th = thinkercap.next; th != &thinkercap; th = th->next)
+		{
+			// Not a map object?
+			if (th->function.acp1 != (actionf_p1) P_MobjThinker)
+				continue;
+		
+			// Get reference of it
+			CheckMo = (mobj_t*)th;
+		
+			// Ignore Self
+			if (CheckMo == mo)
+				continue;
+			
+			// Ignore players
+			if (CheckMo->RXFlags[0] & MFREXA_ISPLAYEROBJECT)
+				continue;
+		}
+	}
+	
+	// Open a door
+	if ((CheckFlags & MULTISPECFLAGS) && g_CurrentLevelInfo->OpenDoorOnSpecial)
+	{
+		junk.tag = 666;
+		EV_DoDoor(&junk, blazeOpen, 4 * VDOORSPEED);
+	}
+	
+	// Lower floor
+	if ((CheckFlags & MULTISPECFLAGS) && g_CurrentLevelInfo->LowerFloorOnSpecial)
+	{
+		junk.tag = 666;
+		EV_DoFloor(&junk, lowerFloorToLowest);
+	}
+	
+	// Level Exiting Last
+	if ((CheckFlags & MULTISPECFLAGS) && g_CurrentLevelInfo->ExitOnSpecial)
+	{
+		if (cv_allowexitlevel.value)
+			G_ExitLevel();
+	}
+#undef MULTISPECFLAGS
 }
 
 //

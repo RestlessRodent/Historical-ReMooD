@@ -104,6 +104,9 @@ typedef struct P_LevelInfoEx_s
 	/* Script Related */
 	uint32_t BlockPos[NUMPINFOBLOCKTYPES][2];	// Block positions ([xxx] stuff)
 	
+	/* Block related */
+	bool_t IsComposite;							// Is a composite of information
+	
 	/* Info */
 	char LumpName[MAXPLIEXFIELDWIDTH];			// Name of the lump
 	char* Title;								// Level Title
@@ -131,6 +134,14 @@ typedef struct P_LevelInfoEx_s
 	char* StoryFlat;							// Flat to use in story mode
 	uint64_t Weapons;							// Weapons
 	char* BootCommand;							// Command to execute on map start
+	bool_t MapSevenSpecial;						// Map can use DOOM.WAD:MAP07 666/667
+	bool_t BaronSpecial;						// Baron of hell special
+	bool_t CyberSpecial;						// Cyberdemon special
+	bool_t SpiderdemonSpecial;					// Spider Mastermind special
+	bool_t ExitOnSpecial;						// Exit on special action
+	bool_t OpenDoorOnSpecial;					// Open door on special action
+	bool_t LowerFloorOnSpecial;					// Floor lowers on special
+	bool_t KillMonstersOnSpecial;				// Kills other monsters on special
 } P_LevelInfoEx_t;
 
 /*** GLOBALS ***/

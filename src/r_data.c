@@ -844,12 +844,6 @@ static bool_t RS_TextureOrderChange(const bool_t a_Pushed, const struct WL_WADFi
 		}
 	}
 	
-	// Debug
-	for (i = 0; i < numtextures; i++)
-	{
-		fprintf(stderr, "%3i %i %10i %s\n", (int)i, textures[i]->IsFlat, textures[i]->CombinedOrder, textures[i]->name);
-	}
-	
 	// Temporary array is not needed anymore
 	Z_Free(TempArray);
 	
@@ -1059,7 +1053,6 @@ static bool_t RS_TextureOrderChange(const bool_t a_Pushed, const struct WL_WADFi
 			if (g_ExSprites[j].Code == Code)
 			{
 				sprites[i] = g_ExSprites[j];
-				fprintf(stderr, "%i == %i; %8x %s == %8x %s [%p %p]\n", j, i, g_ExSprites[j].Code, ba, Code, bb, sprites[i], g_ExSprites[j]);
 				break;
 			}
 		}

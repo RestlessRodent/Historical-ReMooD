@@ -933,7 +933,7 @@ const D_IWADInfoEx_t c_IWADInfos[] =
 		
 		COREGAME_DOOM,
 		false,
-		"MI_DOOM",
+		"MI_DOOM1",
 		
 		doom,
 		retail
@@ -953,7 +953,7 @@ const D_IWADInfoEx_t c_IWADInfos[] =
 		
 		COREGAME_DOOM,
 		true,
-		"MI_DOOM",
+		"MI_DOOM1",
 		
 		doom,
 		shareware

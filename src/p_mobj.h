@@ -311,6 +311,18 @@ typedef enum mobjflagrexa_e
 	MFREXA_ISBRAINTARGET		= 0x40000000U,	// Brain shoots here [P_InitBrainTarget]
 } mobjflagrexa_t;
 
+/* mobjflagrexb_t -- Extended flag group B  */
+// GhostlyDeath <March 7, 2012> -- Extended flags here
+typedef enum mobjflagrexb_e
+{
+	MFREXB_DOMAPSEVENSPECA		= 0x000000001U,	// DOOM2.WAD MAP07 (666) [A_BossDeath]
+	MFREXB_DOMAPSEVENSPECB		= 0x000000002U,	// DOOM2.WAD MAP07 (667) [A_BossDeath]
+	MFREXB_DOBARONSPECIAL		= 0x000000004U,	// Triggers baron special [A_BossDeath]
+	MFREXB_DOCYBERSPECIAL		= 0x000000008U,	// Triggers cyber special [A_BossDeath]
+	MFREXB_DOSPIDERSPECIAL		= 0x000000010U,	// Triggers spider special [A_BossDeath]
+	MFREXB_DODOORSIXTHREEOPEN	= 0x000000020U,	// When this thing dies, blaze a door open [A_BossDeath]
+} mobjflagrexb_t;
+
 // GhostlyDeath <March 4, 2012> -- About all this stuff underneath, i'm thinking
 // of removing it since it changes all the pre-existing flag stuff. Even though
 // I had previously migrated most of everything to this new setup it was a pain
