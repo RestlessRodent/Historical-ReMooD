@@ -1,0 +1,82 @@
+defaultsettings
+	sucktime 1
+	entersound SGCOCK
+	intermusic D_INTER
+	bordertexture GRNROCK
+	gravity 800
+
+defaultsettings
+	exitpic WIMAP0
+	enterpic WIMAP0
+	sky1 SKY1
+
+map E1M8 "Phobos Anomaly"
+	cluster 1
+	secretnext E1M9
+	levelnum 8
+	creator "Tom Hall and Sandy Petersen"
+	par 30
+	titlepatch WILV07
+	music D_E1M8
+	baronspecial
+	specialaction_lowerfloor
+
+defaultsettings
+	exitpic WIMAP1
+	enterpic WIMAP1
+	sky1 SKY2
+
+map E2M8 "Tower of Babel"
+	cluster 2
+	secretnext E2M9
+	levelnum 8
+	creator "Sandy Petersen"
+	par 30
+	titlepatch WILV17
+	music D_E2M8
+	cyberdemonspecial
+	specialaction_exitlevel
+
+defaultsettings
+	exitpic WIMAP2
+	enterpic WIMAP2
+	sky1 SKY3
+
+map E3M8 "Dis"
+	cluster 3
+	secretnext E3M9
+	levelnum 8
+	creator "Sandy Petersen"
+	par 30
+	titlepatch WILV27
+	music D_E3M8
+	spidermastermindspecial
+	specialaction_exitlevel
+
+defaultsettings
+	exitpic INTERPIC
+	enterpic INTERPIC
+	sky1 SKY4
+
+map E4M6 "Against Thee Wickedly"
+	cluster 4
+	secretnext E4M9
+	levelnum 6
+	creator "John Romero"
+	par 30
+	titlepatch WILV35
+	music D_E4M8
+	cyberdemonspecial
+	specialaction_opendoor
+
+map E4M8 "Unto The Cruel"
+	cluster 4
+	secretnext E4M9
+	levelnum 8
+	creator "Shawn Green"
+	par 30
+	titlepatch WILV37
+	music D_E4M8
+	spidermastermindspecial
+	specialaction_lowerfloor
+
