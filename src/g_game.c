@@ -344,39 +344,119 @@ uint8_t nextweaponorder[NUMWEAPONS] =
 	wp_shotgun, wp_supershotgun, wp_chaingun, wp_missile, wp_plasma, wp_bfg
 };
 
+bool_t P_CanUseWeapon(player_t* const a_Player, const weapontype_t a_Weapon);
+
+/* NextWeapon() -- Finds the next weapon in the chain */
+// This is for PrevWeapon and NextWeapon
+// Rewritten for RMOD Support!
+// This uses the fields in weaponinfo_t for ordering info
 uint8_t NextWeapon(player_t* player, int step)
 {
-	uint8_t w;
-	int i;
+	size_t g, w, fw, BestNum;
+	int32_t s, StepsLeft, StepsAdd, BestDiff, ThisDiff;
+	size_t MostOrder, LeastOrder;
+	bool_t Neg;
+	weaponinfo_t* weapons;
 	
-	for (i = 0; i < NUMWEAPONS; i++)
-		if (player->readyweapon == nextweaponorder[i])
+	/* Get current weapon info */
+	weapons = player->weaponinfo;
+	
+	/* Get the weapon with the lowest and highest order */
+	// Find first gun the player has (so order is correct)
+	MostOrder = LeastOrder = 0;
+	for (w = 0; w < NUMWEAPONS; w++)
+		if (P_CanUseWeapon(player, w))
 		{
-			i = (i + NUMWEAPONS + step) % NUMWEAPONS;
+			// Got the first available gun
+			MostOrder = LeastOrder = w;
 			break;
 		}
-	for (; nextweaponorder[i] != player->readyweapon; i = (i + NUMWEAPONS + step) % NUMWEAPONS)
+	
+	// Now go through
+	for (w = 0; w < NUMWEAPONS; w++)
 	{
-		w = nextweaponorder[i];
+		// Can't use this gun?
+		if (!P_CanUseWeapon(player, w))
+			continue;
 		
-		// skip super shotgun for non-Doom2
-		if (gamemode != commercial && w == wp_supershotgun)
-			continue;
-			
-		// skip plasma-bfg in sharware
-		if (gamemode == shareware && (w == wp_plasma || w == wp_bfg))
-			continue;
-			
-		if (player->weaponowned[w] && player->ammo[player->weaponinfo[w].ammo] >= player->weaponinfo[w].ammopershoot)
-		{
-			/*if (w == wp_chainsaw)
-			   return (BT_CHANGE | BT_EXTRAWEAPON | (wp_fist << BT_WEAPONSHIFT));
-			   if (w == wp_supershotgun)
-			   return (BT_CHANGE | BT_EXTRAWEAPON | (wp_shotgun << BT_WEAPONSHIFT)); */
-			return (BT_CHANGE | (w << BT_WEAPONSHIFT));
-		}
+		// Least
+		if (weapons[w].SwitchOrder < weapons[LeastOrder].SwitchOrder)
+			LeastOrder = w;
+		
+		// Most
+		if (weapons[w].SwitchOrder > weapons[MostOrder].SwitchOrder)
+			MostOrder = w;
 	}
-	return 0;
+	
+	/* Look for the current weapon in the weapon list */
+	// Well that was easy
+	fw = s = g = player->readyweapon;
+	
+	/* Constantly change the weapon */
+	// Prepare variables
+	Neg = (step < 0 ? true : false);
+	StepsAdd = (Neg ? -1 : 1);
+	StepsLeft = step * StepsAdd;
+	
+	// Go through the weapon list, step times
+	while (StepsLeft > 0)
+	{
+		// Clear variables
+		BestDiff = 9999999;		// The worst weapon difference ever
+		BestNum = NUMWEAPONS;
+		
+		// Go through every weapon and find the next in the order
+		for (w = 0; w < NUMWEAPONS; w++)
+		{
+			// Ignore the current weapon (don't want to switch back to it)
+			if (w == fw)		// Otherwise BestDiff is zero!
+				continue;
+			
+			// Can't use this gun?
+			if (!P_CanUseWeapon(player, w))
+				continue;
+			
+			// Only consider worse/better weapons?
+			if ((Neg && weapons[w].SwitchOrder > weapons[fw].SwitchOrder) || (!Neg && weapons[w].SwitchOrder < weapons[fw].SwitchOrder))
+				continue;
+			
+			// Get current diff
+			ThisDiff = abs(weapons[fw].SwitchOrder - weapons[w].SwitchOrder);
+			
+			// Closer weapon?
+			if (ThisDiff < BestDiff)
+			{
+				BestDiff = ThisDiff;
+				BestNum = w;
+			}
+		}
+		
+		// Found no weapon? Then "loop" around
+		if (BestNum == NUMWEAPONS)
+		{
+			// Switch to the highest gun if going down
+			if (Neg)
+				fw = MostOrder;
+			
+			// And if going up, go to the lowest
+			else
+				fw = LeastOrder;
+		}
+		
+		// Found a weapon
+		else
+		{
+			// Switch to this gun
+			fw = BestNum;
+		}
+		
+		// Next step
+		StepsLeft--;
+	}
+	
+	/* Return the weapon we want */
+	fprintf(stderr, "The next gun from %i is %i.\n", g, fw);
+	return fw;
 }
 
 uint8_t BestWeapon(player_t* player)
@@ -509,11 +589,21 @@ void G_BuildTiccmd(ticcmd_t* cmd, int realtics, int player)
 	//added:07-02-98: any key / button can trigger a weapon
 	// chainsaw overrides
 	if (GAMEKEYDOWN(gc_nextweapon))
-		cmd->buttons |= NextWeapon(&players[consoleplayer[player]], 1);
+	{
+		// Set switch
+		cmd->buttons |= BT_CHANGE;
+		cmd->XNewWeapon = NextWeapon(&players[consoleplayer[player]], 1);
+	}
 	else if (GAMEKEYDOWN(gc_prevweapon))
-		cmd->buttons |= NextWeapon(&players[consoleplayer[player]], -1);
+	{
+		// Set switch
+		cmd->buttons |= BT_CHANGE;
+		cmd->XNewWeapon = NextWeapon(&players[consoleplayer[player]], -1);
+	}
 	else if (GAMEKEYDOWN(gc_bestweapon))
+	{
 		cmd->buttons |= BestWeapon(&players[consoleplayer[player]]);
+	}
 	else
 		for (i = gc_weapon1; i < gc_weapon1 + 9 - 1; i++)
 		{

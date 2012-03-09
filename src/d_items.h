@@ -138,6 +138,24 @@ typedef enum
 	am_noammo					// Unlimited for chainsaw / fist.
 } ammotype_t;
 
+/* WeaponFlags_t -- Flags for weapons */
+typedef enum WeaponFlags_e
+{
+	// Game bases
+	WF_ISDOOM					= 0x00000001,	// Weapon appears in Doom
+	WF_ISHERETIC				= 0x00000002,	// Weapon appears in Heretic
+	WF_ISHEXEN					= 0x00000004,	// Weapon appears in Hexen
+	WF_ISSTRIFE					= 0x00000008,	// Weapon appears in Strife
+	
+	// Visibility Status
+	WF_NOTSHAREWARE				= 0x00000010,	// Does not appear in shareware
+	WF_INCOMMERCIAL				= 0x00000020,	// Appears in commercial mode
+	WF_INREGISTERED				= 0x00000040,	// Appears in registered mode
+	
+	// Other
+	WF_BERSERKTOGGLE			= 0x00000080,	// Only accept least weapon when berserk
+} WeaponFlags_t;
+
 // Weapon info: sprite frames, ammunition use.
 typedef struct
 {
@@ -150,8 +168,13 @@ typedef struct
 	int holdatkstate;
 	int flashstate;
 	
-	const char* DropWeaponClass;		// Thing to "drop" when a player dies
-	const char* NiceName;				// Name of weapon (obit)
+	// ReMooD Extended
+	char* DropWeaponClass;		// Thing to "drop" when a player dies
+	char* NiceName;				// Name of weapon (obit)
+	char* ClassName;			// Weapon class Name
+	int32_t SwitchOrder;		// Weapon switch order
+	int8_t SlotNum;				// Weapon slot number
+	uint32_t WeaponFlags;		// Flags for weapon
 } weaponinfo_t;
 
 extern weaponinfo_t wpnlev1info[NUMWEAPONS];

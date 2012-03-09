@@ -172,6 +172,16 @@ mobj_t* P_SPMAngle(mobj_t* source, mobjtype_t type, angle_t angle);
 // P_ENEMY
 //
 
+/* P_BossSpitEntry_t -- Boss cube spitting entry */
+typedef struct P_BossSpitEntry_s
+{
+	int32_t Chance;								// < P_Random() chance to spawn
+	mobjtype_t Type;							// Type to spawn
+} P_BossSpitEntry_t;
+
+extern P_BossSpitEntry_t* g_BossSpitList;
+extern size_t g_NumBossSpitList;
+
 // when pushing a line
 //#define MAXSPECIALCROSS 16
 

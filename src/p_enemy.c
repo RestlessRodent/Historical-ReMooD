@@ -2078,6 +2078,7 @@ void A_SpawnFly(mobj_t* mo)
 	mobj_t* targ;
 	int r;
 	mobjtype_t type;
+	size_t i;
 	
 	if (--mo->reactiontime)
 		return;					// still flying
@@ -2091,37 +2092,26 @@ void A_SpawnFly(mobj_t* mo)
 	// Randomly select monster to spawn.
 	r = P_Random();
 	
+	// GhostlyDeath <March 8, 2012> -- Boss spawn list
 	// Probability distribution (kind of :),
 	// decreasing likelihood.
-	if (r < 50)
-		type = MT_TROOP;
-	else if (r < 90)
-		type = MT_SERGEANT;
-	else if (r < 120)
-		type = MT_SHADOWS;
-	else if (r < 130)
-		type = MT_PAIN;
-	else if (r < 160)
-		type = MT_HEAD;
-	else if (r < 162)
-		type = MT_VILE;
-	else if (r < 172)
-		type = MT_UNDEAD;
-	else if (r < 192)
-		type = MT_BABY;
-	else if (r < 222)
-		type = MT_FATSO;
-	else if (r < 246)
-		type = MT_KNIGHT;
-	else
-		type = MT_BRUISER;
+	for (i = 0; i < g_NumBossSpitList; i++)
+		if (r < g_BossSpitList[i].Chance)
+		{
+			type = g_BossSpitList[i].Type;
+			break;
+		}
+	
+	// Make sure it really is valid
+	if (type >= 0 && type < NUMMOBJTYPES)
+	{
+		newmobj = P_SpawnMobj(targ->x, targ->y, targ->z, type);
+		if (P_LookForPlayers(newmobj, true))
+			P_SetMobjState(newmobj, newmobj->info->seestate);
 		
-	newmobj = P_SpawnMobj(targ->x, targ->y, targ->z, type);
-	if (P_LookForPlayers(newmobj, true))
-		P_SetMobjState(newmobj, newmobj->info->seestate);
-		
-	// telefrag anything in this spot
-	P_TeleportMove(newmobj, newmobj->x, newmobj->y);
+		// telefrag anything in this spot
+		P_TeleportMove(newmobj, newmobj->x, newmobj->y);
+	}
 	
 	// remove self (i.e., cube).
 	P_RemoveMobj(mo);

@@ -68,6 +68,7 @@ typedef enum WL_DataOCCBOrder_e
 	WLDCO_RMOD = 30,				// ReMooD Map Object Data
 	WLDCO_VFONTS = 75,				// Fonts
 	WLDCO_TEXTURES = 75,			// Textures
+	WLDCO_EXTRASPECIALS = 100,		// Extra Special Stuff
 } WL_DataOCCBOrder_t;
 
 /* WL_DataKeys_t -- Keys for data handling, shortcuts */

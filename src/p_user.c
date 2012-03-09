@@ -712,14 +712,46 @@ void P_MoveChaseCamera(player_t* player)
 
 bool_t playerdeadview;			//Fab:25-04-98:show dm rankings while in death view
 
+/* P_CanUseWeapon() -- Can use (switch to) this weapon */
+bool_t P_CanUseWeapon(player_t* const a_Player, const weapontype_t a_Weapon)
+{
+	/* Check */
+	if (!a_Player || a_Weapon < 0 || a_Weapon >= NUMWEAPONS)
+		return false;
+	
+	/* Perform checks */
+	// Don't have this gun?
+	if (!a_Player->weaponowned[a_Weapon])
+		return false;
+	
+	// Playing in shareware and the gun is not in shareware
+	if ((g_IWADFlags & CIF_SHAREWARE) && (a_Player->weaponinfo[a_Weapon].WeaponFlags & WF_NOTSHAREWARE))
+		return false;
+	
+	// Not playing in commercial and gun is in commercial (Doom II)
+	if (!(g_IWADFlags & CIF_COMMERCIAL) && (a_Player->weaponinfo[a_Weapon].WeaponFlags & WF_INCOMMERCIAL))
+		return false;
+		
+	// Not playing in registered and gun is in registered (Heretic)
+	if (!(g_IWADFlags & CIF_REGISTERED) && (a_Player->weaponinfo[a_Weapon].WeaponFlags & WF_INREGISTERED))
+		return false;
+	
+	/* Everything worked! */
+	return true;
+}
+
 void P_PlayerThink(player_t* player)
 {
+#define MAXWEAPONSLOTS 64
 	ticcmd_t* cmd;
 	weapontype_t newweapon;
 	int slot;
 	int validguns;
 	int waterz;
 	int i, j, k, l;
+	
+	weapontype_t SlotList[MAXWEAPONSLOTS];
+	bool_t GunInSlot = false;
 	
 #ifdef PARANOIA
 	if (!player->mo)
@@ -846,109 +878,159 @@ void P_PlayerThink(player_t* player)
 		}
 	}
 	// Check for weapon change.
+		// GhostlyDeath <March 9, 2012> -- Rewritten for RMOD
 	if (cmd->buttons & BT_CHANGE)
 	{
-	
-		// The actual changing of the weapon is done
-		//  when the weapon psprite can do it
-		//  (read: not in the middle of an attack).
-		newweapon = (cmd->buttons & BT_WEAPONMASK) >> BT_WEAPONSHIFT;
-		slot = (cmd->buttons & BT_SLOTMASK) >> BT_SLOTSHIFT;
+		// Get slot to switch to (if any)
+		slot = ((cmd->buttons & BT_SLOTMASK) >> BT_SLOTSHIFT) + 1;
 		
-		if (demoversion < 128)
+		// Deprecated button shifty? or the new way (more guns)?
+		if (!cmd->XNewWeapon)
+			newweapon = (cmd->buttons & BT_WEAPONMASK) >> BT_WEAPONSHIFT;
+		else
+			newweapon = cmd->XNewWeapon;
+		
+		// Slot based switching?
+		if (cmd->buttons & BT_EXTRAWEAPON)
 		{
-			if (newweapon == wp_fist && player->weaponowned[wp_chainsaw] && !(player->readyweapon == wp_chainsaw && player->powers[pw_strength]))
-			{
-				newweapon = wp_chainsaw;
-			}
+			// Clear flag
+			GunInSlot = false;
+			l = 0;
 			
-			if ((gamemode == commercial) && newweapon == wp_shotgun && player->weaponowned[wp_supershotgun] && player->readyweapon != wp_supershotgun)
-			{
-				newweapon = wp_supershotgun;
-			}
+			// Figure out weapons that belong in this slot
+			for (j = 0, i = 0; i < NUMWEAPONS; i++)
+				if (P_CanUseWeapon(player, i))
+				{
+					// Weapon not in this slot?
+					if (player->weaponinfo[i].SlotNum != slot)
+						continue;
+					
+					// Place in slot list before the highest
+					if (j < (MAXWEAPONSLOTS - 1))
+					{
+						// Just place here
+						if (j == 0)
+						{
+							// Current weapon is in this slot?
+							if (player->readyweapon == i)
+							{
+								GunInSlot = true;
+								l = j;
+							}
+							
+							// Place in last spot
+							SlotList[j++] = i;
+						}
+						
+						// Otherwise more work is needed
+						else
+						{
+							// Start from high to low
+								// When the order is lower, we know to insert now
+							for (k = 0; k < j; k++)
+								if (player->weaponinfo[i].SwitchOrder < player->weaponinfo[SlotList[k]].SwitchOrder)
+								{
+									// Current gun may need shifting
+									if (!GunInSlot)
+									{
+										// Current weapon is in this slot?
+										if (player->readyweapon == i)
+										{
+											GunInSlot = true;
+											l = k;
+										}
+									}
+									
+									// Possibly shift gun
+									else
+									{
+										// If the current gun is higher then this gun
+										// then it will be off by whatever is more
+										if (player->weaponinfo[SlotList[l]].SwitchOrder > player->weaponinfo[i].SwitchOrder)
+											l++;
+									}
+									
+									// move up
+									memmove(&SlotList[k + 1], &SlotList[k], sizeof(SlotList[k]) * (MAXWEAPONSLOTS - k - 1));
+									
+									// Place in slightly upper spot
+									SlotList[k] = i;
+									j++;
+									
+									// Don't add it anymore
+									break;
+								}
+							
+							// Can't put it anywhere? Goes at end then
+							if (k == j)
+							{
+								// Current weapon is in this slot?
+								if (player->readyweapon == i)
+								{
+									GunInSlot = true;
+									l = k;
+								}
+								
+								// Put
+								SlotList[j++] = i;
+							}
+						}
+					}
+				}
+			
+			// No guns in this slot? Then don't switch to anything
+			if (j == 0)
+				newweapon = player->readyweapon;
+			
+			// If the current gun is in this slot, go to the next in the slot
+			else if (GunInSlot)		// from [best - worst]
+				newweapon = SlotList[((l - 1) + j) % j];
+			
+			// Otherwise, switch to the best gun there
+			else
+				// Set it to the highest valued gun
+				newweapon = SlotList[j - 1];
 		}
+		
+		// Weapon ID based switching
 		else
 		{
-			//if (cmd->buttons & BT_EXTRAWEAPON)
-			validguns = 0;
-			
-			switch (slot)
-			{
-				case 0:		// Fist, Chainsaw, Staff, Gauntlets
-					validguns = (1 << wp_fist) | (1 << wp_chainsaw);
-					break;
-				case 1:		// Pistol, Wand
-					validguns = (1 << wp_pistol);
-					break;
-				case 2:		// Shotgun, Super Shotgun, Crossbow
-					validguns = (1 << wp_shotgun) | (1 << wp_supershotgun);
-					break;
-				case 3:		// Chaingun, Dragon Claw
-					validguns = (1 << wp_chaingun);
-					break;
-				case 4:		// Rocket Launcher, Hellstaff
-					validguns = (1 << wp_missile);
-					break;
-				case 5:		// Plasma Rifle, Phoenix Rod
-					validguns = (1 << wp_plasma);
-					break;
-				case 6:		// BFG9000, Mace
-					validguns = (1 << wp_bfg);
-					break;
-				case 7:		// Chainsaw, Gauntlets, Beak
-					validguns = (1 << wp_chainsaw);
-					break;
-				default:
-					break;
-			}
-			
-			if (validguns)
-			{
-				// Does our weapon occupy the slot?
-				if (validguns & (1 << player->readyweapon))
-				{
-					j = (1 << player->readyweapon);
-					i = player->readyweapon;
-					k = i;
-					l = 0;
-				}
-				else
-				{
-					j = 0;
-					i = 0;
-					k = i;
-					l = 1;
-				}
-				
-				i++;
-				j = (1 << i);
-				for (; i != k; i++, j = (1 << i))
-				{
-					if (i == NUMWEAPONS)
-					{
-						i = -1;
-						continue;
-					}
-					
-					if ((validguns & j) && (players->weaponowned[i]))
-					{
-						newweapon = i;
-						break;
-					}
-				}
-			}
+			// Well, nothing needs to be done here really!
 		}
 		
-		if (player->weaponowned[newweapon] && newweapon != player->readyweapon)
+		// New weapon is NOT the current weapon?
+		if (newweapon != player->readyweapon)
 		{
-			// Do not go to plasma or BFG in shareware,
-			//  even if cheated.
-			if ((newweapon != wp_plasma && newweapon != wp_bfg) || (gamemode != shareware))
-			{
+			// Weapon switching to is berserk cap flagged
+			if (player->weaponinfo[newweapon].WeaponFlags & WF_BERSERKTOGGLE)
+				// Only before Legacy 1.28
+				if (demoversion < 128)
+					// Use the lowest weapon with this flag
+					for (i = 0; i < NUMWEAPONS; i++)
+					{
+						// Does not own gun? ignore
+						if (!player->weaponowned[i])
+							continue;
+						
+						// Weapon is not berserk flagged
+						if (!(player->weaponinfo[i].WeaponFlags & WF_BERSERKTOGGLE))
+							continue;
+						
+						// Weapon is of lower quality
+						if (player->weaponinfo[newweapon].SwitchOrder < player->weaponinfo[i].SwitchOrder)
+							newweapon = i;
+					}
+			
+			// Can't use this gun?
+			if (!P_CanUseWeapon(player, newweapon))
+				newweapon = player->readyweapon;
+			
+			// Set pending weapon (if it is still OK)
+			if (newweapon != player->readyweapon)
 				player->pendingweapon = newweapon;
-			}
 		}
 	}
+	
 	// check for use
 	if (cmd->buttons & BT_USE)
 	{
@@ -1017,5 +1099,6 @@ void P_PlayerThink(player_t* player)
 	}
 	else
 		player->fixedcolormap = 0;
-		
+#undef MAXWEAPONSLOTS
 }
+

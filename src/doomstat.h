@@ -239,23 +239,34 @@ extern bool_t novideo;
 *** EXTENDED STUFF ***
 *********************/
 
+/* CoreIWADFlags_t -- IWAD flags */
+typedef enum CoreIWADFlags_e
+{
+	CIF_SHAREWARE				= 0x0000001,	// Shareware Mode
+	CIF_COMMERCIAL				= 0x0000002,	// Commercial
+	CIF_REGISTERED				= 0x0000004,	// Registered Mode
+	CIF_CANFILE					= 0x0000008,	// Can -file -deh, etc.
+	CIF_EXTENDED				= 0x0000010,	// Extended Mode
+} CoreIWADFlags_t;
+
 /* CoreGame_t -- Game being played... */
 typedef enum CoreGame_e
 {
-	COREGAME_UNKNOWN,						// Unknown game
-	COREGAME_DOOM,							// Doom is being played
-	COREGAME_HERETIC,						// Heretic is being played
-	COREGAME_HEXEN,							// Hexen is being played
-	COREGAME_STRIFE,						// Strife is being played
+	COREGAME_UNKNOWN,							// Unknown game
+	COREGAME_DOOM,								// Doom is being played
+	COREGAME_HERETIC,							// Heretic is being played
+	COREGAME_HEXEN,								// Hexen is being played
+	COREGAME_STRIFE,							// Strife is being played
 	
 	NUMCOREGAMES
 } CoreGame_t;
 
-extern CoreGame_t g_CoreGame;				// Core game mode
-extern const void* g_ReMooDPtr;				// Pointer to remood.wad
-extern const char* g_IWADMapInfoName;		// Name of IWAD MAPINFO
+extern CoreGame_t g_CoreGame;					// Core game mode
+extern const void* g_ReMooDPtr;					// Pointer to remood.wad
+extern const char* g_IWADMapInfoName;			// Name of IWAD MAPINFO
+extern uint32_t g_IWADFlags;					// IWAD Flags
 
-extern bool_t g_DedicatedServer;			// Dedicated Server
+extern bool_t g_DedicatedServer;				// Dedicated Server
 
 #endif							//__D_STATE__
 

@@ -947,8 +947,12 @@ weaponinfo_t wpnlev1info[NUMWEAPONS] =
 		S_PUNCH1,
 		S_PUNCH1,
 		S_NULL,
-		NULL,					// DropWeaponClass
-		"Fist",					// NiceName
+		NULL,									// DropWeaponClass
+		"Fist",									// NiceName
+		"Fist",									// ClassName
+		100,									// SwitchOrder
+		1,										// SlotNum
+		WF_ISDOOM | WF_BERSERKTOGGLE,	// WeaponFlags
 	}
 	,
 	{
@@ -961,8 +965,12 @@ weaponinfo_t wpnlev1info[NUMWEAPONS] =
 		S_PISTOL1,
 		S_PISTOL1,
 		S_PISTOLFLASH,
-		NULL,					// DropWeaponClass
-		"Pistol",				// NiceName
+		NULL,									// DropWeaponClass
+		"Pistol",								// NiceName
+		"Pistol",								// ClassName
+		300,									// SwitchOrder
+		2,										// SlotNum
+		WF_ISDOOM,	// WeaponFlags
 	}
 	,
 	{
@@ -975,8 +983,12 @@ weaponinfo_t wpnlev1info[NUMWEAPONS] =
 		S_SGUN1,
 		S_SGUN1,
 		S_SGUNFLASH1,
-		"Shotgun",					// DropWeaponClass
-		"Shotgun",					// NiceName
+		"Shotgun",								// DropWeaponClass
+		"Shotgun",								// NiceName
+		"Shotgun",								// ClassName
+		400,									// SwitchOrder
+		3,										// SlotNum
+		WF_ISDOOM,	// WeaponFlags
 	}
 	,
 	{
@@ -989,8 +1001,12 @@ weaponinfo_t wpnlev1info[NUMWEAPONS] =
 		S_CHAIN1,
 		S_CHAIN1,
 		S_CHAINFLASH1,
-		"Chaingun",					// DropWeaponClass
-		"Chaingun",					// NiceName
+		"Chaingun",								// DropWeaponClass
+		"Chaingun",								// NiceName
+		"Chaingun",								// ClassName
+		600,									// SwitchOrder
+		4,										// SlotNum
+		WF_ISDOOM,	// WeaponFlags
 	}
 	,
 	{
@@ -1003,8 +1019,12 @@ weaponinfo_t wpnlev1info[NUMWEAPONS] =
 		S_MISSILE1,
 		S_MISSILE1,
 		S_MISSILEFLASH1,
-		"RocketLauncher",					// DropWeaponClass
-		"Rocket Launcher",					// NiceName
+		"RocketLauncher",						// DropWeaponClass
+		"Rocket Launcher",						// NiceName
+		"RocketLauncher",						// ClassName
+		700,									// SwitchOrder
+		5,										// SlotNum
+		WF_ISDOOM,	// WeaponFlags
 	}
 	,
 	{
@@ -1017,8 +1037,12 @@ weaponinfo_t wpnlev1info[NUMWEAPONS] =
 		S_PLASMA1,
 		S_PLASMA1,
 		S_PLASMAFLASH1,
-		"PlasmaRifle",					// DropWeaponClass
-		"Plasma Rifle",					// NiceName
+		"PlasmaRifle",							// DropWeaponClass
+		"Plasma Rifle",							// NiceName
+		"PlasmaRifle",							// ClassName
+		800,									// SwitchOrder
+		6,										// SlotNum
+		WF_ISDOOM | WF_NOTSHAREWARE,	// WeaponFlags
 	}
 	,
 	{
@@ -1031,8 +1055,12 @@ weaponinfo_t wpnlev1info[NUMWEAPONS] =
 		S_BFG1,
 		S_BFG1,
 		S_BFGFLASH1,
-		"BFG",					// DropWeaponClass
-		"BFG9000",				// NiceName
+		"BFG",									// DropWeaponClass
+		"BFG9000",								// NiceName
+		"BFGNineK",								// ClassName
+		900,									// SwitchOrder
+		7,										// SlotNum
+		WF_ISDOOM | WF_NOTSHAREWARE,	// WeaponFlags
 	}
 	,
 	{
@@ -1045,8 +1073,12 @@ weaponinfo_t wpnlev1info[NUMWEAPONS] =
 		S_SAW1,
 		S_SAW1,
 		S_NULL,
-		"Chainsaw",					// DropWeaponClass
-		"Chainsaw",					// NiceName
+		"Chainsaw",								// DropWeaponClass
+		"Chainsaw",								// NiceName
+		"Chainsaw",								// ClassName
+		200,									// SwitchOrder
+		1,										// SlotNum
+		WF_ISDOOM | WF_BERSERKTOGGLE,	// WeaponFlags
 	}
 	,
 	{
@@ -1059,8 +1091,12 @@ weaponinfo_t wpnlev1info[NUMWEAPONS] =
 		S_DSGUN1,
 		S_DSGUN1,
 		S_DSGUNFLASH1,
-		"SuperShotgun",					// DropWeaponClass
-		"Super Shotgun",				// NiceName
+		"SuperShotgun",							// DropWeaponClass
+		"Super Shotgun",						// NiceName
+		"SuperShotgun",							// ClassName
+		500,									// SwitchOrder
+		3,										// SlotNum
+		WF_ISDOOM | WF_INCOMMERCIAL,	// WeaponFlags
 	},
 };
 

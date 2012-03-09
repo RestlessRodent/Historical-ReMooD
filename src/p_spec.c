@@ -3767,3 +3767,115 @@ int P_GetThingFloorType(mobj_t* thing)
 {
 	return thing->subsector->sector->floortype;
 }
+
+/******************
+*** EXTRA STUFF ***
+******************/
+
+/*** GLOBALS ***/
+P_BossSpitEntry_t* g_BossSpitList = NULL;		// List of things to spit out
+size_t g_NumBossSpitList = 0;					// Count of those things
+
+/*** FUNCTIONS ***/
+
+/* PS_ExtraSpecialOCCB() -- Called when the order changes */
+static bool_t PS_ExtraSpecialOCCB(const bool_t a_Pushed, const struct WL_WADFile_s* const a_WAD)
+{
+#define BUFSIZE 512
+	const WL_WADEntry_t* Entry;
+	WL_EntryStream_t* Stream;
+	size_t i;
+	char Buf[BUFSIZE];
+	char* p;
+	int32_t Val;
+	mobjtype_t MoType;
+	
+	/* Load boss spitters */
+	// The boss spitter list is for internal constant removal and is not really
+	// meant to be used by map authors, although it can be. Once ReMooD Script
+	// is fully implemented, using that would be ALOT better than using this
+	// minor hack to remove constants.
+	
+	// Clear
+	if (g_BossSpitList)
+		Z_Free(g_BossSpitList);
+	g_BossSpitList = NULL;
+	g_NumBossSpitList = NULL;
+	
+	// Load from lump (if it exists)
+	Entry = WL_FindEntry(NULL, 0, "RMD_BOSS");
+	
+	// Only if it was found, attempt to work with it
+	if (Entry)
+	{
+		// Open stream
+		Stream = WL_StreamOpen(Entry);
+		
+		// Did it work?
+		if (Stream)
+		{
+			// Check unicode
+			WL_StreamCheckUnicode(Stream);
+			
+			// While there is no end
+			while (!WL_StreamEOF(Stream))
+			{
+				// Read into buffer
+				memset(Buf, 0, sizeof(Buf));
+				WL_StreamReadLine(Stream, Buf, BUFSIZE);
+				
+				// Prepare to read
+				p = Buf;
+				
+				// Strip leading whitespace
+				while (*p && (*p == ' ' || *p == '\t'))
+					p++;
+				
+				// Read number
+				for (Val = 0; *p && (*p >= '0' && *p <= '9'); p++)
+				{
+					// Multiply value by 10 then add the current p
+					Val *= 10;
+					Val += (*p - '0');
+				}
+				
+				// Skip white space
+				while (*p && (*p == ' ' || *p == '\t'))
+					p++;
+				
+				// Attempt derefence to class
+				MoType = INFO_GetTypeByName(p);
+				
+				// Invalid?
+				if (MoType < 0 || MoType >= NUMMOBJTYPES)
+					continue;
+				
+				// Add to end of cube list
+				Z_ResizeArray((void**)&g_BossSpitList, sizeof(*g_BossSpitList), g_NumBossSpitList, g_NumBossSpitList + 1);
+				
+				// Put here
+				g_BossSpitList[g_NumBossSpitList].Chance = Val;
+				g_BossSpitList[g_NumBossSpitList].Type = MoType;
+				
+				// Increment
+				g_NumBossSpitList++;
+			}
+			
+			// Close stream
+			WL_StreamClose(Stream);
+		}
+	}
+	
+	/* Always success! */
+	return true;
+#undef BUFSIZE
+}
+
+/* P_ExtraSpecialStuff() -- Extra special stuff to load */
+void P_ExtraSpecialStuff(void)
+{
+	/* Register extra special stuff */
+	if (!WL_RegisterOCCB(PS_ExtraSpecialOCCB, WLDCO_EXTRASPECIALS))
+		I_Error("P_ExtraSpecialStuff: Failed to register OCCB");	
+}
+

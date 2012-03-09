@@ -890,6 +890,7 @@ typedef struct D_IWADInfoEx_s
 	CoreGame_t CoreGame;						// Core Game
 	bool_t CanDistrib;							// Distributable? (Not illegal to give away)
 	const char* MapInfoLump;					// Map Info Lump
+	uint32_t Flags;								// Flags for game
 	
 	int mission;								// Deprecated mission
 	int mode;									// Deprecated mode
@@ -914,6 +915,7 @@ const D_IWADInfoEx_t c_IWADInfos[] =
 		COREGAME_DOOM,
 		false,
 		"MI_DOOM2",
+		CIF_CANFILE | CIF_REGISTERED | CIF_EXTENDED | CIF_COMMERCIAL,
 		
 		doom2,
 		commercial
@@ -934,6 +936,7 @@ const D_IWADInfoEx_t c_IWADInfos[] =
 		COREGAME_DOOM,
 		false,
 		"MI_DOOM1",
+		CIF_CANFILE | CIF_REGISTERED | CIF_EXTENDED,
 		
 		doom,
 		retail
@@ -954,6 +957,7 @@ const D_IWADInfoEx_t c_IWADInfos[] =
 		COREGAME_DOOM,
 		true,
 		"MI_DOOM1",
+		CIF_SHAREWARE,
 		
 		doom,
 		shareware
@@ -968,6 +972,7 @@ const D_IWADInfoEx_t c_IWADInfos[] =
 CoreGame_t g_CoreGame = COREGAME_UNKNOWN;		// Core game mode
 const void* g_ReMooDPtr = NULL;					// Pointer to remood.wad
 const char* g_IWADMapInfoName = NULL;			// Name of IWAD MAPINFO
+uint32_t g_IWADFlags = 0;						// IWAD Flags
 
 /*** FUNCTIONS ***/
 
@@ -1198,7 +1203,9 @@ static bool_t DS_DetectGameMode(const bool_t a_Pushed, const struct WL_WADFile_s
 	g_CoreGame = c_IWADInfos[Best].CoreGame;
 	gamemode = c_IWADInfos[Best].mode;
 	gamemission = c_IWADInfos[Best].mission;
+	
 	g_IWADMapInfoName = c_IWADInfos[Best].MapInfoLump;
+	g_IWADFlags = c_IWADInfos[Best].Flags;
 	
 	/* Cleanup */
 	Z_Free(Confidence);
@@ -1479,6 +1486,7 @@ void D_DoomMain(void)
 	V_MapGraphicalCharacters();			// Unicode chars
 	P_PrepareLevelInfoEx();				// Level information
 	R_LoadTextures();					// Load texture info
+	P_ExtraSpecialStuff();				// Initialize extra special stuff
 	/**************************/
 	
 	// GhostlyDeath <December 14, 2011> -- Use extended identify version

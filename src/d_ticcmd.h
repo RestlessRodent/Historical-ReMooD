@@ -83,6 +83,9 @@ typedef struct
 	uint16_t aiming;			//added:16-02-98:mouse aiming, see G_BuildTicCmd
 	uint16_t buttons;
 	uint8_t artifact;			// For Heretic
+	
+	// Extended tic command stuff
+	uint8_t XNewWeapon;							// New weapon to switch to
 } ticcmd_t;
 
 #endif

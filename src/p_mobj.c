@@ -1646,17 +1646,6 @@ void P_SpawnSplash(mobj_t* mo, fixed_t z)
 	
 	if (th->tics < 1)
 		th->tics = 1;
-		
-	// get rough idea of speed
-	/*
-	   thrust = (mo->momx + mo->momy) >> FRACBITS+1;
-	
-	   if (thrust >= 2 && thrust<=3)
-	   P_SetMobjState (th,S_SPLASH2);
-	   else
-	   if (thrust < 2)
-	   P_SetMobjState (th,S_SPLASH3);
-	 */
 }
 
 // --------------------------------------------------------------------------
