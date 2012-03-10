@@ -2460,7 +2460,7 @@ void V_MapGraphicalCharacters(void)
 uint16_t V_ExtMBToWChar(const char* MBChar, size_t* const BSkip)
 {
 	size_t n;
-	uint16_t Feed = 0, Safe;
+	uint16_t Feed = 0, Safe, Temp;
 	
 	/* Check */
 	if (!MBChar)
@@ -2479,9 +2479,6 @@ uint16_t V_ExtMBToWChar(const char* MBChar, size_t* const BSkip)
 	{
 		if (BSkip)
 			*BSkip = 1;
-			
-		// Get safe character
-		Safe = *MBChar & 0x7F;
 		
 		// Special '{' Sequence?
 		if (n > 1 && *MBChar == '{')
@@ -2500,9 +2497,53 @@ uint16_t V_ExtMBToWChar(const char* MBChar, size_t* const BSkip)
 					
 				if (BSkip)
 					*BSkip = 2;
+				
+				// Super Extended Sequence? ("{x")
+				if (Feed == 0xF121U && n > 3)
+				{
+					// Set to default
+					Feed = 0xF100U;
+					
+					// Add first bit set
+					MBChar++;
+					Temp = tolower(*MBChar);
+					
+					if ((Temp >= '0' && Temp <= '9') || (Temp >= 'a' && Temp <= 'z'))
+					{
+						if (Temp >= '0' && Temp <= '9')
+							Feed |= ((Temp - '0') & 0xFU) << 4;
+						else if (Temp >= 'a' && Feed <= 'f')
+							Feed |= (((Temp - 'a') + 10U) & 0xFU) << 4;
+						else
+							Feed |= 0xF1FFU;
+						
+						// Skip more characters
+						if (BSkip)
+							*BSkip += 1;
+							
+						// Add second bit set
+						MBChar++;
+						Temp = tolower(*MBChar);
+						
+						if ((Temp >= '0' && Temp <= '9') || (Temp >= 'a' && Temp <= 'z'))
+						{
+							if (Temp >= '0' && Temp <= '9')
+								Feed |= ((Temp - '0') & 0xFU);
+							else if (Temp >= 'a' && Feed <= 'f')
+								Feed |= (((Temp - 'a') + 10U) & 0xFU);
+							else
+								Feed |= 0xF1FFU;
+					
+							// Skip more characters
+							if (BSkip)
+								*BSkip += 1;
+						}
+					}
+				}
 					
 				return Feed;
 			}
+			
 			// Is it another {? semi-scape
 			else if (n > 2 && *MBChar == '{')
 			{
@@ -2602,11 +2643,11 @@ size_t V_ExtWCharToMB(const uint16_t a_WChar, char* const a_MB)
 	MBx = (unsigned char*)a_MB;
 	
 	/* Convert in steps */
-	// Special
-	if (WChar >= 0xF100 && WChar <= (0xF100 + 10 + ('z' - 'a')))
+	// Special (single char)
+	if (WChar >= 0xF100U && WChar <= (0xF100U + 10 + ('z' - 'a')))
 	{
 		MBx[0] = '{';
-		MBx[1] = (WChar - 0xF100);
+		MBx[1] = (WChar - 0xF100U);
 		MBx[2] = 0;
 		
 		// Normalize
@@ -2618,8 +2659,31 @@ size_t V_ExtWCharToMB(const uint16_t a_WChar, char* const a_MB)
 		return 2;
 	}
 	
+	// Super Extended Character (quad char)
+	else if (WChar >= 0xF100U && WChar <= 0xF1FFU)
+	{
+		MBx[0] = '{';
+		MBx[1] = 'x';
+		MBx[2] = (WChar & 0xF0U) >> 4;
+		MBx[3] = (WChar & 0x0FU);
+		MBx[4] = 0;
+		
+		// Normalize
+		if (MBx[2] > 10)
+			MBx[2] = (MBx[2] - 10) + 'a';
+		else
+			MBx[2] += '0';
+			
+		if (MBx[3] > 10)
+			MBx[3] = (MBx[3] - 10) + 'a';
+		else
+			MBx[3] += '0';
+		
+		return 4;
+	}
+	
 	// Single byte
-	else if (WChar >= 0x0000 && WChar <= 0x007F)
+	else if (WChar >= 0x0000U && WChar <= 0x007FU)
 	{
 		MBx[0] = WChar & 0x7F;
 		MBx[1] = 0;
@@ -2628,7 +2692,7 @@ size_t V_ExtWCharToMB(const uint16_t a_WChar, char* const a_MB)
 	}
 	
 	// Double byte
-	else if (WChar >= 0x0080 && WChar <= 0x07FF)
+	else if (WChar >= 0x0080U && WChar <= 0x07FFU)
 	{
 		MBx[0] = 0xC0 | (WChar >> 6);
 		MBx[1] = 0x80 | (WChar & 0x3F);
@@ -2638,7 +2702,7 @@ size_t V_ExtWCharToMB(const uint16_t a_WChar, char* const a_MB)
 	}
 	
 	// Triple byte
-	else if (WChar >= 0x8000 && WChar <= 0xFFFF)
+	else if (WChar >= 0x8000U && WChar <= 0xFFFFU)
 	{
 		MBx[0] = 0xE0 | (WChar >> 12);
 		MBx[1] = 0x80 | ((WChar >> 6) & 0x3F);
@@ -2649,7 +2713,7 @@ size_t V_ExtWCharToMB(const uint16_t a_WChar, char* const a_MB)
 	}
 	
 	// Quad-uint8_t (Requires 32-bit uint16_t)
-	else if (sizeof(uint16_t) >= 4 && (WChar >= 0x010000 && WChar <= 0x10FFFF))
+	else if (sizeof(uint16_t) >= 4 && (WChar >= 0x010000U && WChar <= 0x10FFFFU))
 	{
 		MBx[0] = 0xF0 | (WChar >> 18);
 		MBx[1] = 0x80 | ((WChar >> 12) & 0x3F);
@@ -2809,10 +2873,19 @@ int V_DrawCharacterMB(const VideoFont_t a_Font, const uint32_t a_Options, const 
 			*a_OptionsMod |= VFO_TRANS((WChar - 16) & 0xF);
 		}
 		
+		// Underlined?
+		else if (WChar == ('u' - 'a') + 10)
+		{
+			if (*a_OptionsMod & VFO_UNDERLINE)
+				*a_OptionsMod &= ~VFO_UNDERLINE;
+			else
+				*a_OptionsMod |= VFO_UNDERLINE;
+		}
+		
 		// Clear attributes
 		else if (WChar == ('z' - 'a') + 10)
 		{
-			*a_OptionsMod &= ~(VFO_COLORMASK | VFO_TRANSMASK);
+			*a_OptionsMod &= ~(VFO_COLORMASK | VFO_TRANSMASK | VFO_UNDERLINE);
 		}
 		
 		// Always return 0, there is no space here

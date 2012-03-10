@@ -272,6 +272,7 @@ typedef enum
 #define VFO_NOFLOATSCALE	0x00100000
 #define VFO_NOSCALELORES	0x00200000	// NOT IMPLEMENTED!
 #define VFO_LEFTFLOW		0x00400000	// Like RTL but not swapped
+#define VFO_UNDERLINE		0x00800000	// Underline text
 
 void V_MapGraphicalCharacters(void);
 
