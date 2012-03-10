@@ -479,13 +479,19 @@ uint8_t BestWeapon(player_t* player)
 
 void G_BuildTiccmd(ticcmd_t* cmd, int realtics, int player)
 {
-	int i, j;
+#define MAXWEAPONSLOTS 64
+	int i, j, k, l;
 	bool_t strafe;
 	int speed;
 	int tspeed;
 	int forward;
 	int side;
 	ticcmd_t* base;
+	
+	int slot;
+	weapontype_t newweapon;
+	weapontype_t SlotList[MAXWEAPONSLOTS];
+	bool_t GunInSlot = false;
 	
 	//added:14-02-98: these ones used for multiple conditions
 	bool_t turnleft, turnright, mouseaiming, analogjoystickmove, gamepadjoystickmove;
@@ -605,18 +611,124 @@ void G_BuildTiccmd(ticcmd_t* cmd, int realtics, int player)
 		cmd->buttons |= BestWeapon(&players[consoleplayer[player]]);
 	}
 	else
+	{
+		// Which slot?
+		slot = -1;
+		
+		// Look for keys
 		for (i = gc_weapon1; i < gc_weapon1 + 9 - 1; i++)
-		{
 			if (GAMEKEYDOWN(i))
-			{
-				cmd->buttons |= BT_CHANGE | BT_EXTRAWEAPON;	// extra by default
-				cmd->buttons |= (i - gc_weapon1) << BT_WEAPONSHIFT;
+				slot = (i - gc_weapon1) + 1;
+		
+		// Hit slot?
+		if (slot != -1)
+		{
+			// Clear flag
+			GunInSlot = false;
+			l = 0;
+		
+			// Figure out weapons that belong in this slot
+			for (j = 0, i = 0; i < NUMWEAPONS; i++)
+				if (P_CanUseWeapon(ply, i))
+				{
+					// Weapon not in this slot?
+					if (ply->weaponinfo[i].SlotNum != slot)
+						continue;
 				
-				// Record Slot
-				cmd->buttons |= (i - gc_weapon1) << BT_SLOTSHIFT;
-				break;
+					// Place in slot list before the highest
+					if (j < (MAXWEAPONSLOTS - 1))
+					{
+						// Just place here
+						if (j == 0)
+						{
+							// Current weapon is in this slot?
+							if (ply->readyweapon == i)
+							{
+								GunInSlot = true;
+								l = j;
+							}
+						
+							// Place in last spot
+							SlotList[j++] = i;
+						}
+					
+						// Otherwise more work is needed
+						else
+						{
+							// Start from high to low
+								// When the order is lower, we know to insert now
+							for (k = 0; k < j; k++)
+								if (ply->weaponinfo[i].SwitchOrder < ply->weaponinfo[SlotList[k]].SwitchOrder)
+								{
+									// Current gun may need shifting
+									if (!GunInSlot)
+									{
+										// Current weapon is in this slot?
+										if (ply->readyweapon == i)
+										{
+											GunInSlot = true;
+											l = k;
+										}
+									}
+								
+									// Possibly shift gun
+									else
+									{
+										// If the current gun is higher then this gun
+										// then it will be off by whatever is more
+										if (ply->weaponinfo[SlotList[l]].SwitchOrder > ply->weaponinfo[i].SwitchOrder)
+											l++;
+									}
+								
+									// move up
+									memmove(&SlotList[k + 1], &SlotList[k], sizeof(SlotList[k]) * (MAXWEAPONSLOTS - k - 1));
+								
+									// Place in slightly upper spot
+									SlotList[k] = i;
+									j++;
+								
+									// Don't add it anymore
+									break;
+								}
+						
+							// Can't put it anywhere? Goes at end then
+							if (k == j)
+							{
+								// Current weapon is in this slot?
+								if (ply->readyweapon == i)
+								{
+									GunInSlot = true;
+									l = k;
+								}
+							
+								// Put
+								SlotList[j++] = i;
+							}
+						}
+					}
+				}
+		
+			// No guns in this slot? Then don't switch to anything
+			if (j == 0)
+				newweapon = ply->readyweapon;
+		
+			// If the current gun is in this slot, go to the next in the slot
+			else if (GunInSlot)		// from [best - worst]
+				newweapon = SlotList[((l - 1) + j) % j];
+		
+			// Otherwise, switch to the best gun there
+			else
+				// Set it to the highest valued gun
+				newweapon = SlotList[j - 1];
+		
+			// Did it work?
+			if (newweapon != ply->readyweapon)
+			{
+				cmd->buttons |= BT_CHANGE;
+				cmd->XNewWeapon = newweapon;
 			}
 		}
+	}
 		
 	// mouse look stuff (mouse look is not the same as mouse aim)
 	if (cv_m_legacymouse.value)
@@ -814,6 +926,7 @@ void G_BuildTiccmd(ticcmd_t* cmd, int realtics, int player)
 	else
 		cmd->angleturn &= ~BT_FLYDOWN;
 	//}
+#undef MAXWEAPONSLOTS
 }
 
 static fixed_t originalforwardmove[2] = { 0x19, 0x32 };
