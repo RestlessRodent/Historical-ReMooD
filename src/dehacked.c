@@ -525,6 +525,7 @@ extern int GetWeaponAmmo[];
 
 static void readammo(MYFILE* f, int num)
 {
+#if 0
 	char s[MAXLINELEN];
 	char* word;
 	int value;
@@ -552,6 +553,7 @@ static void readammo(MYFILE* f, int num)
 		}
 	}
 	while (s[0] != '\n' && !myfeof(f));
+#endif
 }
 
 // i don't like that but do you see a other way ?

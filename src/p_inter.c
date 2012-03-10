@@ -50,9 +50,6 @@
 
 // a weapon is found with two clip loads,
 // a big item has five clip loads
-int maxammo[NUMAMMO] = { 200, 50, 300, 50 };
-int clipammo[NUMAMMO] = { 10, 4, 20, 1 };
-
 consvar_t cv_fragsweaponfalling = { "fragsweaponfalling", "0", CV_NETVAR, CV_YesNo };
 consvar_t cv_infiniteammo = { "infiniteammo", "0", CV_NETVAR, CV_YesNo };
 
@@ -204,20 +201,6 @@ bool_t P_GiveAmmo(player_t* player, ammotype_t ammo, int count)
 	return true;
 }
 
-// ammo get with the weapon
-int GetWeaponAmmo[NUMWEAPONS] =
-{
-	0,							// fist
-	20,							// pistol
-	8,							// shotgun
-	20,							// chaingun
-	2,							// missile
-	40,							// rod plasma
-	40,							// bfg
-	0,							// chainsaw
-	8,							// supershotgun
-};
-
 static int has_ammo_dropped = 0;
 
 //
@@ -241,9 +224,9 @@ bool_t P_GiveWeapon(player_t* player, weapontype_t weapon, bool_t dropped)
 		player->weaponowned[weapon] = true;
 		
 		if (cv_deathmatch.value)
-			P_GiveAmmo(player, player->weaponinfo[weapon].ammo, 5 * clipammo[player->weaponinfo[weapon].ammo]);
+			P_GiveAmmo(player, player->weaponinfo[weapon].ammo, 5 * ammoinfo[player->weaponinfo[weapon].ammo].ClipAmmo);
 		else
-			P_GiveAmmo(player, player->weaponinfo[weapon].ammo, GetWeaponAmmo[weapon]);
+			P_GiveAmmo(player, player->weaponinfo[weapon].ammo, player->weaponinfo[weapon].GetAmmo);
 			
 		// Boris hack preferred weapons order...
 		if (player->originalweaponswitch || player->favoritweapon[weapon] > player->favoritweapon[player->readyweapon])
@@ -263,13 +246,13 @@ bool_t P_GiveWeapon(player_t* player, weapontype_t weapon, bool_t dropped)
 		// two clips with a found weapon
 		if (dropped)
 		{
-			ammo_count = has_ammo_dropped ? (has_ammo_dropped < 0 ? 0 : has_ammo_dropped) : clipammo[player->weaponinfo[weapon].ammo];
+			ammo_count = has_ammo_dropped ? (has_ammo_dropped < 0 ? 0 : has_ammo_dropped) : ammoinfo[player->weaponinfo[weapon].ammo].ClipAmmo;
 			//gaveammo = P_GiveAmmo (player, player->weaponinfo[weapon].ammo, clipammo[player->weaponinfo[weapon].ammo]);
 		}
 		else
 		{
-			//gaveammo = P_GiveAmmo (player, player->weaponinfo[weapon].ammo, GetWeaponAmmo[weapon]);
-			ammo_count = GetWeaponAmmo[weapon];
+			//gaveammo = P_GiveAmmo (player, player->weaponinfo[weapon].ammo, player->weaponinfo[weapon].GetAmmo);
+			ammo_count = player->weaponinfo[weapon].GetAmmo;
 		}
 		gaveammo = P_GiveAmmo(player, player->weaponinfo[weapon].ammo, ammo_count);
 	}
@@ -656,55 +639,55 @@ void P_TouchSpecialThing(mobj_t* special, mobj_t* toucher)
 		case SPR_CLIP:
 			if (special->flags & MF_DROPPED)
 			{
-				if (!P_GiveAmmo(player, am_clip, clipammo[am_clip] / 2))
+				if (!P_GiveAmmo(player, am_clip, ammoinfo[am_clip].ClipAmmo / 2))
 					return;
 			}
 			else
 			{
-				if (!P_GiveAmmo(player, am_clip, clipammo[am_clip]))
+				if (!P_GiveAmmo(player, am_clip, ammoinfo[am_clip].ClipAmmo))
 					return;
 			}
 			PS_PickupMessage(toucher, special, GOTCLIP);
 			break;
 			
 		case SPR_AMMO:
-			if (!P_GiveAmmo(player, am_clip, 5 * clipammo[am_clip]))
+			if (!P_GiveAmmo(player, am_clip, 5 * ammoinfo[am_clip].ClipAmmo))
 				return;
 			PS_PickupMessage(toucher, special, GOTCLIPBOX);
 			break;
 			
 		case SPR_ROCK:
-			if (!P_GiveAmmo(player, am_misl, clipammo[am_misl]))
+			if (!P_GiveAmmo(player, am_misl, ammoinfo[am_misl].ClipAmmo))
 				return;
 			PS_PickupMessage(toucher, special, GOTROCKET);
 			break;
 			
 		case SPR_BROK:
-			if (!P_GiveAmmo(player, am_misl, 5 * clipammo[am_misl]))
+			if (!P_GiveAmmo(player, am_misl, 5 * ammoinfo[am_misl].ClipAmmo))
 				return;
 			PS_PickupMessage(toucher, special, GOTROCKBOX);
 			break;
 			
 		case SPR_CELL:
-			if (!P_GiveAmmo(player, am_cell, clipammo[am_cell]))
+			if (!P_GiveAmmo(player, am_cell, ammoinfo[am_cell].ClipAmmo))
 				return;
 			PS_PickupMessage(toucher, special, GOTCELL);
 			break;
 			
 		case SPR_CELP:
-			if (!P_GiveAmmo(player, am_cell, 5 * clipammo[am_cell]))
+			if (!P_GiveAmmo(player, am_cell, 5 * ammoinfo[am_cell].ClipAmmo))
 				return;
 			PS_PickupMessage(toucher, special, GOTCELLBOX);
 			break;
 			
 		case SPR_SHEL:
-			if (!P_GiveAmmo(player, am_shell, clipammo[am_shell]))
+			if (!P_GiveAmmo(player, am_shell, ammoinfo[am_shell].ClipAmmo))
 				return;
 			PS_PickupMessage(toucher, special, GOTSHELLS);
 			break;
 			
 		case SPR_SBOX:
-			if (!P_GiveAmmo(player, am_shell, 5 * clipammo[am_shell]))
+			if (!P_GiveAmmo(player, am_shell, 5 * ammoinfo[am_shell].ClipAmmo))
 				return;
 			PS_PickupMessage(toucher, special, GOTSHELLBOX);
 			break;
@@ -717,7 +700,7 @@ void P_TouchSpecialThing(mobj_t* special, mobj_t* toucher)
 				player->backpack = true;
 			}
 			for (i = 0; i < NUMAMMO; i++)
-				P_GiveAmmo(player, i, clipammo[i]);
+				P_GiveAmmo(player, i, ammoinfo[i].ClipAmmo);
 			PS_PickupMessage(toucher, special, GOTBACKPACK);
 			break;
 			

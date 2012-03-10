@@ -953,6 +953,7 @@ weaponinfo_t wpnlev1info[NUMWEAPONS] =
 		100,									// SwitchOrder
 		1,										// SlotNum
 		WF_ISDOOM | WF_BERSERKTOGGLE,	// WeaponFlags
+		0,										// GetAmmo
 	}
 	,
 	{
@@ -971,6 +972,7 @@ weaponinfo_t wpnlev1info[NUMWEAPONS] =
 		300,									// SwitchOrder
 		2,										// SlotNum
 		WF_ISDOOM,	// WeaponFlags
+		20,										// GetAmmo
 	}
 	,
 	{
@@ -989,6 +991,7 @@ weaponinfo_t wpnlev1info[NUMWEAPONS] =
 		400,									// SwitchOrder
 		3,										// SlotNum
 		WF_ISDOOM,	// WeaponFlags
+		8,										// GetAmmo
 	}
 	,
 	{
@@ -1007,6 +1010,7 @@ weaponinfo_t wpnlev1info[NUMWEAPONS] =
 		600,									// SwitchOrder
 		4,										// SlotNum
 		WF_ISDOOM,	// WeaponFlags
+		20,										// GetAmmo
 	}
 	,
 	{
@@ -1025,6 +1029,7 @@ weaponinfo_t wpnlev1info[NUMWEAPONS] =
 		700,									// SwitchOrder
 		5,										// SlotNum
 		WF_ISDOOM,	// WeaponFlags
+		2,										// GetAmmo
 	}
 	,
 	{
@@ -1043,6 +1048,7 @@ weaponinfo_t wpnlev1info[NUMWEAPONS] =
 		800,									// SwitchOrder
 		6,										// SlotNum
 		WF_ISDOOM | WF_NOTSHAREWARE,	// WeaponFlags
+		40,										// GetAmmo
 	}
 	,
 	{
@@ -1061,6 +1067,7 @@ weaponinfo_t wpnlev1info[NUMWEAPONS] =
 		900,									// SwitchOrder
 		7,										// SlotNum
 		WF_ISDOOM | WF_NOTSHAREWARE,	// WeaponFlags
+		40,										// GetAmmo
 	}
 	,
 	{
@@ -1079,6 +1086,7 @@ weaponinfo_t wpnlev1info[NUMWEAPONS] =
 		200,									// SwitchOrder
 		1,										// SlotNum
 		WF_ISDOOM | WF_BERSERKTOGGLE,	// WeaponFlags
+		0,										// GetAmmo
 	}
 	,
 	{
@@ -1097,6 +1105,7 @@ weaponinfo_t wpnlev1info[NUMWEAPONS] =
 		500,									// SwitchOrder
 		3,										// SlotNum
 		WF_ISDOOM | WF_INCOMMERCIAL,	// WeaponFlags
+		8,										// GetAmmo
 	},
 };
 
@@ -1224,4 +1233,36 @@ weaponinfo_t wpnlev2info[NUMWEAPONS] =
 	},
 };
 #endif
+
+// Ammo information
+ammoinfo_t ammoinfo[NUMAMMO] =
+{
+	// am_clip
+	{
+		"Clip",							// ClassName
+		10,								// ClipAmmo
+		200,							// MaxAmmo
+	},
+	
+	// am_shell
+	{
+		"Shell",						// ClassName
+		4,								// ClipAmmo
+		50,								// MaxAmmo
+	},
+	
+	// am_cell
+	{
+		"Cell",							// ClassName
+		20,								// ClipAmmo
+		300,							// MaxAmmo
+	},
+	
+	// am_misl
+	{
+		"Rocket",						// ClassName
+		1,								// ClipAmmo
+		50,								// MaxAmmo
+	},
+};
 

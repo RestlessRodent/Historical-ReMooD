@@ -253,8 +253,6 @@ extern mobj_t** blocklinks;		// for thing chains
 //
 // P_INTER
 //
-extern int maxammo[NUMAMMO];
-extern int clipammo[NUMAMMO];
 
 void P_TouchSpecialThing(mobj_t* special, mobj_t* toucher);
 

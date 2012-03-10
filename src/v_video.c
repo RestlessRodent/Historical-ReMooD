@@ -2480,6 +2480,9 @@ uint16_t V_ExtMBToWChar(const char* MBChar, size_t* const BSkip)
 		if (BSkip)
 			*BSkip = 1;
 		
+		// Get safe character
+		Safe = *MBChar & 0x7F;
+		
 		// Special '{' Sequence?
 		if (n > 1 && *MBChar == '{')
 		{

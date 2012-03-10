@@ -175,6 +175,7 @@ typedef struct
 	int32_t SwitchOrder;		// Weapon switch order
 	int8_t SlotNum;				// Weapon slot number
 	uint32_t WeaponFlags;		// Flags for weapon
+	int32_t GetAmmo;			// Amount of ammo to pick up for this weapon
 } weaponinfo_t;
 
 extern weaponinfo_t wpnlev1info[NUMWEAPONS];
@@ -184,5 +185,17 @@ extern weaponinfo_t* wpnlev2info;
 #else
 extern weaponinfo_t wpnlev2info[NUMWEAPONS];
 #endif
+
+// GhostlyDeath <March 10, 2012> -- Ammo Information
+
+/* ammoinfo_t -- Hold ammo information */
+typedef struct ammoinfo_s
+{
+	char* ClassName;							// Class name
+	int32_t ClipAmmo;							// Ammo in clip
+	int32_t MaxAmmo;							// Max ammo held
+} ammoinfo_t;
+
+extern ammoinfo_t ammoinfo[NUMAMMO];
 
 #endif

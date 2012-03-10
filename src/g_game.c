@@ -1360,7 +1360,7 @@ void G_PlayerReborn(int player)
 	//eof Boris
 	
 	for (i = 0; i < NUMAMMO; i++)
-		p->maxammo[i] = maxammo[i];
+		p->maxammo[i] = ammoinfo[i].MaxAmmo;
 }
 
 //
