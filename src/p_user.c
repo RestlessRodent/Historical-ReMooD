@@ -762,6 +762,7 @@ void P_PlayerThink(player_t* player)
 				M_ProfilePrompt(i);
 				break;
 			}
+	
 	// fixme: do this in the cheat code
 	if (player->cheats & CF_NOCLIP)
 		player->mo->flags |= MF_NOCLIP;
@@ -873,6 +874,7 @@ void P_PlayerThink(player_t* player)
 			}
 		}
 	}
+	
 	// Check for weapon change.
 		// GhostlyDeath <March 9, 2012> -- Rewritten for RMOD
 	if (cmd->buttons & BT_CHANGE)

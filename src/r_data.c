@@ -979,50 +979,6 @@ static bool_t RS_TextureOrderChange(const bool_t a_Pushed, const struct WL_WADFi
 		}
 	}
 	
-#if 0
-		Holder->NumSpriteInfo = MEnd->Index - MStart->Index;
-		Holder->SpriteInfo = Z_Malloc(sizeof(*Holder->SpriteInfo) * Holder->NumSpriteInfo, PU_STATIC, (void**)&Holder->SpriteInfo);
-		
-		extern size_t g_NumExSprites;
-		extern spritedef_t* g_ExSprites;
-		
-		char Name[5];								// Sprite name
-		int8_t Frame[2];							// Frame of sprite (2 possible)
-		int8_t Rotation[2];							// Rotation (0 = all, 1.. = rest)
-		bool_t Double;
-		bool_t Init;								// Data initialized?
-
-		fixed_t Width;								// Width of sprite
-		fixed_t Offset;								// Offset of sprite (x axis)
-		fixed_t TopOffset;							// Offset of sprite (y axis)
-		fixed_t Height;								// Height of sprite
-
-		V_Image_t* Image;							// Cached image info
-		struct WL_WADEntry_s* Entry;				// Entry for sprite image
-		
-		typedef struct
-		{
-			bool_t rotate;
-			
-			int lumppat[8];				// lump number 16:16 wad:lump
-			short lumpid[8];			// id in the spriteoffset,spritewidth.. tables
-	
-			uint8_t flip[8];
-	
-			// GhostlyDeath <February 21, 2012> -- Extended dynamic sprites
-			R_SpriteInfoEx_t* ExAngles[16];				// Extended frame pointers
-			bool_t ExFlip[16];							// Flip sprites?
-		} spriteframe_t;
-		
-		typedef struct
-		{
-			int numframes;
-			spriteframe_t* spriteframes;
-			
-			uint32_t Code;								// Sprite code name
-		} spritedef_t;
-#endif
-	
 	// Map to sprites[numsprites] (which requires spritenum_t compat)
 	// Once info.[ch] is shed away, this can be removed.
 	// The states in info.[ch] uses sprites along with sprnames to determine

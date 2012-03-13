@@ -3946,7 +3946,7 @@ void V_ImageDrawScaledIntoBuffer(const uint32_t a_Flags, V_Image_t* const a_Imag
 	/*** STANDARD CLIENT ***/
 #else
 	uint8_t* RawData;
-	int32_t x, y, w, h, xx, yy;
+	int32_t x, y, w, h, xx, yy, i, c;
 	
 	int32_t sX, sY, tW, tY;
 	uint8_t* dP;
@@ -3955,6 +3955,9 @@ void V_ImageDrawScaledIntoBuffer(const uint32_t a_Flags, V_Image_t* const a_Imag
 	uint8_t* ColorMap;
 	uint8_t* ColorMapE;
 	uint8_t* TransMap;
+	uint8_t Pixel;
+	
+	patch_t* RawPatch;
 	
 	/* Not for dedicated server */
 	if (g_DedicatedServer)
@@ -4083,8 +4086,63 @@ void V_ImageDrawScaledIntoBuffer(const uint32_t a_Flags, V_Image_t* const a_Imag
 	
 	/* If the image is a patch_t then draw it as a patch */
 	// Since patches have "holes" for transparency
-	if (false)//a_Image->NativeType == VIT_PATCH)
+	if (a_Image->NativeType == VIT_PATCH)
 	{
+		// Load the patch
+		RawPatch = V_ImageGetPatch(a_Image, NULL);
+		
+		// Check
+		if (!RawPatch)
+			return;	// oops!
+		
+		// Draw column by column
+		for (sxX = 0, xx = x; sxX < xw; sxX += XFrac, xx++)
+		{
+			// Get source
+			sP = ((uint8_t*)RawPatch) + RawPatch->columnofs[sxX >> FRACBITS];
+			
+			// While there are no more columns
+			while (*sP != 0xFF)
+			{
+				// Get destination
+				Pixel = FixedMul(((fixed_t)(*sP)) << FRACBITS, a_YScale) >> FRACBITS;
+				dP = a_DestBuffer + (a_DestPitch * (y + ((fixed_t)Pixel))) + (xx);
+				sP++;
+				
+				// Get count
+				c = *sP;
+				sP += 2;
+				
+				// Draw for count
+				sxY = 0;
+				if (TransMap)
+				{
+					for (i = 0; i < c; i++)
+						for (ESXy = (sxY & _FIXED_FRAC); ESXy < FRACUNIT; ESXy += YFrac, sxY += YFrac)
+						{
+							Pixel = sP[i];
+							*(dP) = TransMap[(ColorMap[ColorMapE[Pixel]] << 8) + (*dP)];
+							dP += a_DestPitch;
+						}
+				}
+				else
+				{
+					for (i = 0; i < c; i++)
+						for (ESXy = (sxY & _FIXED_FRAC); ESXy < FRACUNIT; ESXy += YFrac, sxY += YFrac)
+						{
+							Pixel = sP[i];
+							*(dP) = ColorMap[ColorMapE[Pixel]];
+							dP += a_DestPitch;
+						}
+				}
+				
+				// Skip count and the last (unused)
+				sP += c + 1;
+			}
+		}
+		
+		// No longer need image, so mark it as cache
+		Z_ChangeTag(a_Image->dPatch, PU_CACHE);
 	}
 	
 	/* Otherwise, treat it as a raw image */

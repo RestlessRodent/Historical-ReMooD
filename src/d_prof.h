@@ -64,3 +64,4 @@ void M_StartProfiler(int choice);
 void M_ProfilePrompt(int player);
 
 #endif							/* __D_PROF_H__ */
+
