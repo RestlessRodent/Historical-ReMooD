@@ -122,7 +122,14 @@ static const D_RMODHandler_t c_RMODHandlers[NUMDRMODPRIVATES] =
 	{
 		"MapLineSpecial",
 		P_RMODH_Specials,
-		NULL,//P_RMODO_Specials,
+		NULL,
+	},
+	
+	// Touchers
+	{
+		"MapTouchSpecial",
+		P_RMODH_Specials,
+		NULL,
 	},
 };
 
@@ -318,14 +325,28 @@ static bool_t DS_RMODPDC(const struct WL_WADFile_s* const a_WAD, const uint32_t 
 	const char* tP;
 	D_RMODWADStuff_t* Stuff;
 	
+	static bool_t CheckRecursive = false;
+	
 	const char* ErrorText;
 	char TokVals[2][BUFSIZE];
+	
+	/* Recursive call? */
+	if (CheckRecursive)
+	{
+		if (devparm)
+			CONL_PrintF("DS_RMODPC: Recursive call to DS_RMODPDC, doing nothing.\n");
+		return true;
+	}
+	
+	/* Mark as recursive */
+	CheckRecursive = true;
 	
 	/* Check to see if REMOODAT exists in this WAD */
 	if (!(DataEntry = WL_FindEntry(a_WAD, 0, "REMOODAT")))
 	{
 		if (devparm)
 			CONL_PrintF("DS_RMODPDC: There is no REMOODAT here.\n");
+		CheckRecursive = false;
 		return true;
 	}
 	
@@ -348,6 +369,7 @@ static bool_t DS_RMODPDC(const struct WL_WADFile_s* const a_WAD, const uint32_t 
 	{
 		if (devparm)
 			CONL_PrintF("DS_RMODPDC: Failed to open stream.\n");
+		CheckRecursive = false;
 		return false;
 	}
 	
@@ -584,6 +606,9 @@ static bool_t DS_RMODPDC(const struct WL_WADFile_s* const a_WAD, const uint32_t 
 	
 	/* Free streamer */
 	WL_StreamClose(DataStream);
+	
+	/* Unmark recursive */
+	CheckRecursive = false;
 	
 	return true;
 #undef BUFSIZE

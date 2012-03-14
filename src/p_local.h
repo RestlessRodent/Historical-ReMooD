@@ -320,4 +320,41 @@ bool_t P_ChickenMorphPlayer(player_t* player);
 
 extern consvar_t cv_spawnmonsters;
 
+/**************************
+*** RMOD TOUCH SPECIALS ***
+**************************/
+
+/*** CONSTANTS ***/
+
+#define PMAXRTSFIELDSIZE					32	// Max size of field in touch specials
+
+/*** STRUCTURES ***/
+
+/* P_RMODTouchSpecial_t -- Special toucher for RMOD */
+typedef struct P_RMODTouchSpecial_s
+{
+	/* General */
+	char SpriteName[4];							// Name of sprite
+	char PickupMsg[PMAXRTSFIELDSIZE];			// Message to print when picked up
+	char PickupSnd[PMAXRTSFIELDSIZE];			// Sound to play when picked up
+	
+	/* Modifiers */
+	char GiveWeapon[PMAXRTSFIELDSIZE];			// Weapon to give
+	char GiveAmmo[PMAXRTSFIELDSIZE];			// Ammo to give
+	bool_t KeepNotNeeded;						// Keep when not needed
+	bool_t RemoveAlways;						// Always remove this thing
+	bool_t MonsterCanGrab;						// Monster can grab item
+	
+	/* Actual */
+	spritenum_t ActSpriteNum;					// Sprite number to match
+	weapontype_t ActGiveWeapon;					// Actual weapon to give
+	ammotype_t ActGiveAmmo;						// Actual ammo to give
+} P_RMODTouchSpecial_t;
+
+/*** GLOBALS ***/
+
+extern size_t g_RMODNumTouchSpecials;
+extern P_RMODTouchSpecial_t** g_RMODTouchSpecials;
+
 #endif							// __P_LOCAL__
+

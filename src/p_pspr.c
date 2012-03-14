@@ -1266,3 +1266,40 @@ ammoinfo_t ammoinfo[NUMAMMO] =
 	},
 };
 
+/* INFO_GetWeaponByName() -- Return weapon by name */
+weapontype_t INFO_GetWeaponByName(const char* const a_Name)
+{
+	size_t i;
+	
+	/* Check */
+	if (!a_Name)
+		return NUMWEAPONS;
+	
+	/* Loop */
+	for (i = 0; i < NUMWEAPONS; i++)
+		if (strcasecmp(a_Name, wpnlev1info[i].ClassName) == 0)
+			return i;
+	
+	/* Failed */
+	return NUMWEAPONS;
+}
+
+/* INFO_GetAmmoByName() -- Return ammo by name */
+ammotype_t INFO_GetAmmoByName(const char* const a_Name)
+{
+	size_t i;
+	
+	/* Check */
+	if (!a_Name)
+		return NUMAMMO;
+	
+	/* Loop */
+	for (i = 0; i < NUMAMMO; i++)
+		if (strcasecmp(a_Name, ammoinfo[i].ClassName) == 0)
+			return i;
+	
+	/* Failed */
+	return NUMAMMO;
+}
+
+

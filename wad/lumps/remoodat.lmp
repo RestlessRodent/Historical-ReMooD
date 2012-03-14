@@ -334,6 +334,26 @@ MapAmmo "Unlimited"
 // *** TOUCH SPECIALS ***
 // **********************
 
+// SGN2 -- Super Shotgun
+MapTouchSpecial "SGN2"
+{
+	Message "DEP_GOTSHOTGUN2";
+	GiveWeapon "SuperShotgun";
+	PickupSound "wpnup";
+	IsKeepIfNotNeeded "true";
+}
+
+// SHOT -- Shotgun
+MapTouchSpecial "SHOT"
+{
+	Message "DEP_GOTSHOTGUN";
+	GiveWeapon "Shotgun";
+	PickupSound "wpnup";
+	IsKeepIfNotNeeded "true";
+}
+
+
+
 MapTouchSpecial "ARM1"
 {
 	Message "DEP_GOTARMOR";

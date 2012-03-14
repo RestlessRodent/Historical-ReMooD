@@ -439,6 +439,8 @@ void P_TouchSpecialThing(mobj_t* special, mobj_t* toucher)
 	int i;
 	fixed_t delta;
 	int sound;
+	P_RMODTouchSpecial_t* Current;
+	bool_t OKStat;
 	
 	delta = special->z - toucher->z;
 	
@@ -456,15 +458,62 @@ void P_TouchSpecialThing(mobj_t* special, mobj_t* toucher)
 		
 	sound = sfx_itemup;
 	player = toucher->player;
-	
-#ifdef PARANOIA
-	if (!player)
-		I_Error("P_TouchSpecialThing: without player\n");
-#endif
 		
 	// FWF support
 	has_ammo_dropped = special->dropped_ammo_count;
 	
+	/* Find sprite by ID and match to touch special list */
+	OKStat = false;
+	for (i = 0; i < g_RMODNumTouchSpecials; i++)
+	{
+		// Get current
+		Current = g_RMODTouchSpecials[i];
+		
+		// Wrong sprite?
+		if (Current->ActSpriteNum != special->sprite)
+			continue;
+		
+		// Player is grabbing
+		if (player)
+		{
+			// Give gun?
+			if (Current->ActGiveWeapon != NUMWEAPONS)
+				OKStat |= P_GiveWeapon(player, Current->ActGiveWeapon, special->flags & MF_DROPPED);
+			
+			// Counts as an item?
+			if (special->flags & MF_COUNTITEM)
+			{
+				player->itemcount++;
+				player->bonuscount += BONUSADD;
+			}
+			
+			//added:16-01-98:consoleplayer -> displayplayer (hear sounds from viewpoint)
+			for (i = 0; i < cv_splitscreen.value + 1; i++)
+				if (player == &players[displayplayer[i]])
+					S_StartSound(NULL, sound);
+		}
+		
+		// Monster is grabbing
+		else
+		{
+			// Monster cannot pickup thing
+			if (!Current->MonsterCanGrab)
+				return;
+			
+			// Emit sound from monster
+			S_StartSound(toucher, sound);
+		}
+		
+		
+		// Remove if we used it? or remove regardless
+		if ((Current->KeepNotNeeded && OKStat) || !Current->KeepNotNeeded || Current->RemoveAlways)
+			P_RemoveMobj(special);
+		
+		// Don't process anymore
+		break;
+	}
+	
+#if 0
 	// Identify by sprite.
 	switch (special->sprite)
 	{
@@ -769,6 +818,7 @@ void P_TouchSpecialThing(mobj_t* special, mobj_t* toucher)
 	for (i = 0; i < cv_splitscreen.value + 1; i++)
 		if (player == &players[displayplayer[i]])
 			S_StartSound(NULL, sound);
+#endif
 }
 
 #ifdef thatsbuggycode

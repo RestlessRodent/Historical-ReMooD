@@ -48,6 +48,8 @@
 #include "dstrings.h"			//SoM: 3/10/2000
 #include "r_main.h"				//Two extra includes.
 #include "t_script.h"
+
+#include "d_rmod.h"
 //#include "r_sky.h" // Portals
 
 //SoM: Enable Boom features?
@@ -2412,6 +2414,8 @@ void P_AddFFloor(sector_t* sec, ffloor_t* ffloor)
 // SPECIAL SPAWNING
 //
 
+/*** CONSTANTS ***/
+
 /* P_RMODSpecialEffectType_t -- Type of special effect to cause */
 typedef enum P_RMODSpecialEffectType_e
 {
@@ -2437,6 +2441,8 @@ typedef enum P_RMODSpecialTrigger_e
 	
 	NUMPRMODSPECTRIGGERS
 } P_RMODSpecialTrigger_t;
+
+/*** STRUCTURES ***/
 
 /* P_RMODSpecialEffect_t -- RMOD Special Effect */
 typedef struct P_RMODSpecialEffect_s
@@ -2492,7 +2498,17 @@ typedef struct P_RMODSpecials_s
 {
 	size_t NumInfos;							// Number of infos
 	P_RMODSpecialInfo_t* Infos;					// Info table
+	
+	size_t NumTouchers;							// Number of touch specials
+	P_RMODTouchSpecial_t* Touchers;				// Touch specials
 } P_RMODSpecials_t;
+
+/*** GLOBALS ***/
+
+size_t g_RMODNumTouchSpecials = 0;
+P_RMODTouchSpecial_t** g_RMODTouchSpecials = NULL;
+
+/*** FUNCTIONS ***/
 
 /* PS_RMODSpecialEffects() -- Handles effects for specials */
 static bool_t PS_RMODSpecialEffects(Z_Table_t* const a_Sub, void* const a_Data)
@@ -2502,23 +2518,46 @@ static bool_t PS_RMODSpecialEffects(Z_Table_t* const a_Sub, void* const a_Data)
 /* P_RMODH_Specials() -- Handles all specials */
 bool_t P_RMODH_Specials(Z_Table_t* const a_Table, const WL_WADFile_t* const a_WAD, const D_RMODPrivates_t a_ID, D_RMODPrivate_t* const a_Private)
 {
+	const char* TableName;
 	const char* Value;
 	P_RMODSpecialInfo_t TempInfo;
+	P_RMODTouchSpecial_t TempTouch;
+	D_RMODPrivate_t* RealPrivate;
+	P_RMODSpecials_t* Specs;
+	
+	/* Obtain private info for sector data */
+	RealPrivate = D_GetRMODPrivate(a_WAD, DRMODP_SPECSECTOR);
+	
+	// No real private?
+	if (!RealPrivate)
+		RealPrivate = a_Private;
 	
 	/* Create specials list */
-	a_Private->Size = sizeof(P_RMODSpecials_t);
-	a_Private->Data = Z_Malloc(a_Private->Size, PU_STATIC, (void**)&a_Private->Data);
+	// Does not exist
+	if (!RealPrivate->Data)
+	{
+		RealPrivate->Size = sizeof(P_RMODSpecials_t);
+		RealPrivate->Data = Z_Malloc(RealPrivate->Size, PU_STATIC, (void**)&RealPrivate->Data);
+	}
+	
+	/* Set data area */
+	Specs = RealPrivate->Data;
 	
 	/* Clear */
 	memset(&TempInfo, 0, sizeof(TempInfo));
+	memset(&TempTouch, 0, sizeof(TempTouch));
 	
 	/* General Stuff */
-	// Type ID is required!
-	if (!(Value = Z_TableGetValue(a_Table, "TypeId")))
-		return false;
+	// Type ID is required for lines and specials!
+	if (a_ID == DRMODP_SPECSECTOR || a_ID == DRMODP_SPECLINE)
+		if (!(Value = Z_TableGetValue(a_Table, "TypeId")))
+			return false;
 	
 	// Handle effects
 	//Z_TableSuperCallback(a_Table, PS_RMODSpecialEffects, (void*)TempMenu);
+	
+	/* Get table name */
+	TableName = strchr(Z_TableName(a_Table), '#') + 1;
 	
 	/* Which special ID to handle? */
 	switch (a_ID)
@@ -2530,6 +2569,35 @@ bool_t P_RMODH_Specials(Z_Table_t* const a_Table, const WL_WADFile_t* const a_WA
 			// Line specials
 		case DRMODP_SPECLINE:
 			return true;
+			
+			// Touch specials
+		case DRMODP_SPECTOUCH:
+#define __QUICK_ORELSE(m,e) Z_TableGetValueOrElse(a_Table, (m), (e))
+#define __QUICK_TOUCHCPY(t,m,e) strncpy(TempTouch.t, __QUICK_ORELSE((m), (e)), PMAXRTSFIELDSIZE - 1);
+			// Copy name to sprite
+			strncpy(TempTouch.SpriteName, TableName, 4);
+				
+			// Copy fields
+			__QUICK_TOUCHCPY(PickupMsg, "Message", "DSTR_MENU_NULLSPACE");
+			__QUICK_TOUCHCPY(PickupSnd, "PickupSound", "itmup");
+			__QUICK_TOUCHCPY(GiveWeapon, "GiveWeapon", "");
+			__QUICK_TOUCHCPY(GiveAmmo, "GiveAmmo", "");
+			
+			// Get bool fields
+			TempTouch.KeepNotNeeded = D_RMODGetBool(__QUICK_ORELSE("IsKeepIfNotNeeded", "false"));
+			TempTouch.RemoveAlways = D_RMODGetBool(__QUICK_ORELSE("IsRemoveAlways", "false"));
+			TempTouch.MonsterCanGrab = D_RMODGetBool(__QUICK_ORELSE("IsMonsterGrab", "false"));
+
+#undef __QUICK_TOUCHCPY
+#undef __QUICK_ORELSE
+			
+			// Append to back of touch list
+			Z_ResizeArray((void**)&Specs->Touchers, sizeof(*Specs->Touchers), Specs->NumTouchers, Specs->NumTouchers + 1);
+			
+			// Copy
+			memmove(&Specs->Touchers[Specs->NumTouchers], &TempTouch, sizeof(TempTouch));
+			Specs->NumTouchers++;
+			return true;
 		
 			// Unknown
 		default:
@@ -2540,9 +2608,101 @@ bool_t P_RMODH_Specials(Z_Table_t* const a_Table, const WL_WADFile_t* const a_WA
 /* P_RMODO_Specials() -- Order for specials */
 bool_t P_RMODO_Specials(const bool_t a_Pushed, const struct WL_WADFile_s* const a_WAD, const D_RMODPrivates_t a_ID)
 {
+	const WL_WADFile_t* RoveWAD;
+	D_RMODPrivate_t* RMODPrivate;
+	P_RMODSpecials_t* Specials;
+	P_RMODTouchSpecial_t* ThisToucher;
+	P_RMODTouchSpecial_t* TargTouch;
+	P_RMODTouchSpecial_t** TargRef;
+	size_t i, j;
+	
 	/* Only allow from sector */
 	if (a_ID != DRMODP_SPECSECTOR)
 		return true;		// Fake true
+	
+	/* Merge touch specials */
+	// Clear existing
+	if (g_RMODTouchSpecials)
+		Z_Free(g_RMODTouchSpecials);
+	g_RMODTouchSpecials = NULL;
+	g_RMODNumTouchSpecials = 0;
+	
+	// Merge all existing ones together
+	for (RoveWAD = WL_IterateVWAD(NULL, true); RoveWAD; RoveWAD = WL_IterateVWAD(RoveWAD, true))
+	{
+		// Obtain private RMOD Stuff
+		RMODPrivate = D_GetRMODPrivate(RoveWAD, DRMODP_SPECSECTOR);
+		
+		// Not found? Ignore this WAD then
+		if (!RMODPrivate)
+			continue;
+		
+		// Get specials
+		Specials = RMODPrivate->Data;
+		
+		// No specials?
+		if (!Specials)
+			continue;
+		
+		// No touch specials in this at all?
+		if (!Specials->NumTouchers)
+			continue;
+		
+		// Debug
+		if (devparm)
+			CONL_PrintF("P_RMODO_Specials: There are %u special touches.\n", (unsigned int)Specials->NumTouchers);
+		
+		// Go through every toucher
+		for (i = 0; i < Specials->NumTouchers; i++)
+		{
+			// Get current toucher
+			ThisToucher = &Specials->Touchers[i];
+			TargRef = NULL;
+			
+			// Find existing toucher with this sprite and replace
+			for (j = 0; j < g_RMODNumTouchSpecials; j++)
+				if (strncasecmp(ThisToucher->SpriteName, g_RMODTouchSpecials[j]->SpriteName, 4) == 0)
+				{
+					TargRef = &g_RMODTouchSpecials[j];
+					break;
+				}
+			
+			// Not found? then resize and add at end
+			if (!TargRef)
+			{
+				// Resize
+				Z_ResizeArray((void**)&g_RMODTouchSpecials, sizeof(*g_RMODTouchSpecials), g_RMODNumTouchSpecials, g_RMODNumTouchSpecials + 1);
+				
+				// At end
+				TargRef = &g_RMODTouchSpecials[g_RMODNumTouchSpecials];
+				g_RMODNumTouchSpecials++;
+			}
+			
+			// Place ref here (replace whatever was here)
+			*TargRef = ThisToucher;
+			
+			// Dereference
+			TargTouch = *TargRef;
+			
+			// Clear active info
+			TargTouch->ActSpriteNum = NUMSPRITES;
+			TargTouch->ActGiveWeapon = NUMWEAPONS;
+			TargTouch->ActGiveAmmo = NUMAMMO;
+			
+			// Reference each thing
+			TargTouch->ActGiveWeapon = INFO_GetWeaponByName(TargTouch->GiveWeapon);
+			
+			// Find sprite to map to
+			for (j = 0; j < NUMSPRITES; j++)
+				if (strncasecmp(TargTouch->SpriteName, sprnames[j], 4) == 0)
+					break;
+			
+			TargTouch->ActSpriteNum = j;
+		}
+	}
+	
+	//size_t g_RMODNumTouchSpecials = 0;
+	//P_RMODTouchSpecial_t** g_RMODTouchSpecials = NULL;
 	
 	/* Succes */
 	return true;

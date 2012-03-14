@@ -198,4 +198,7 @@ typedef struct ammoinfo_s
 
 extern ammoinfo_t ammoinfo[NUMAMMO];
 
+weapontype_t INFO_GetWeaponByName(const char* const a_Name);
+ammotype_t INFO_GetAmmoByName(const char* const a_Name);
+
 #endif

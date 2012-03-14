@@ -309,7 +309,7 @@ void* ZP_PointerForPartition(Z_MemPartition_t* const Part, void** const a_BasePt
 	
 	if (a_BasePtrPtr)
 		*a_BasePtrPtr = (void*)Base;
-	return (void*)Base + ZPARTEXTRASIZE;
+	return (void*)((uint8_t*)Base + ZPARTEXTRASIZE);
 }
 
 /* ZP_FindPointerForPartition() -- Finds a pointer that was found in a partition (if any) */
@@ -938,7 +938,6 @@ static CONL_ExitCode_t ZS_MemFrag(const uint32_t a_ArgC, const char** const a_Ar
 #define MAXCHARS (30 * 10)
 	uint32_t BytesPerChar;
 	uint32_t CurByte, Diff, Left;
-	char Char, ColorChar;
 	size_t i, j, CurCol, c;
 	Z_MemPartition_t* Cur;
 	bool_t LastUsed;
@@ -1376,7 +1375,7 @@ Z_Table_t* Z_TableCreate(const char* const a_Key)
 /* Z_TableDestroy() -- Destroys an existing table */
 void Z_TableDestroy(Z_Table_t* const a_Table)
 {
-	size_t i, j;
+	size_t i;
 	Z_TableEntry_t* Ref;
 	Z_Table_t* SubTable, *UpTable;
 	
@@ -1676,3 +1675,19 @@ bool_t Z_TableSuperCallback(Z_Table_t* const a_Table, bool_t (*a_Callback) (Z_Ta
 	/* Success */
 	return true;
 }
+
+/* Z_TableGetValueOrElse() -- Gets value from table or returns a_ElseOr */
+const char* Z_TableGetValueOrElse(Z_Table_t* const a_Table, const char* const a_SubKey, const char* a_ElseOr)
+{
+	const char* Value;
+	
+	/* Try getting the value */
+	// It has no value
+	if (!(Value = Z_TableGetValue(a_Table, a_SubKey)))
+		return a_ElseOr;
+	
+	// There is a value
+	else
+		return Value;
+}
+

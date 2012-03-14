@@ -1800,7 +1800,7 @@ void A_BossDeath(mobj_t* mo)
 			// See if it is not fully dead yet
 				// TODO FIXME: May be a compat issue here
 			//if (CheckMo->state != P_FinalState(CheckMo->info->deathstate))
-			if (CheckMo->health < 0 || CheckMo->flags & MF_CORPSE)
+			if (!(CheckMo->health < 0 || CheckMo->flags & MF_CORPSE))
 				return;
 		}
 	}

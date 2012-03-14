@@ -47,12 +47,17 @@
 /* D_RMODPrivates_t -- RMOD Private info */
 typedef enum D_RMODPrivates_e
 {
+	/* GUI */
 	DRMODP_WIDGET,								// Widgets
 	DRMODP_MENU,								// Menu related stuff
 	
+	/* Objects, Weapons, Ammo, etc. */
+	
 	/* Specials (Lines/Sectors) */
+	// MapTouchSpecial REQUIRES the above to happen first
 	DRMODP_SPECSECTOR,							// "MapSectorSpecial"
 	DRMODP_SPECLINE,							// "MapLineSpecial"
+	DRMODP_SPECTOUCH,							// "MapTouchSpecial"
 	
 	NUMDRMODPRIVATES
 } D_RMODPrivates_t;

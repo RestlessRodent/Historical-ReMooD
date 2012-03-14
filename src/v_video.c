@@ -3712,7 +3712,10 @@ const struct patch_s* V_ImageGetPatch(V_Image_t* const a_Image, size_t* const a_
 			Temp += BaseSize;
 			
 			// Set
-			a_Image->dPatch->columnofs[i] = Temp;
+			if (Temp >= 0 && Temp < TotalSize)
+				a_Image->dPatch->columnofs[i] = Temp;
+			else
+				a_Image->dPatch->columnofs[i] = 0;
 		}
 		
 		// Return the freshly loaded image
