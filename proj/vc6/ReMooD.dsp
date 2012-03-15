@@ -4,7 +4,7 @@
 
 # TARGTYPE "Win32 (x86) Application" 0x0101
 
-CFG=ReMooD - Win32 Debug
+CFG=ReMooD - Win32 Debug SDL
 !MESSAGE This is not a valid makefile. To build this project using NMAKE,
 !MESSAGE use the Export Makefile command and run
 !MESSAGE 
@@ -13,12 +13,14 @@ CFG=ReMooD - Win32 Debug
 !MESSAGE You can specify a configuration when running NMAKE
 !MESSAGE by defining the macro CFG on the command line. For example:
 !MESSAGE 
-!MESSAGE NMAKE /f "ReMooD.mak" CFG="ReMooD - Win32 Debug"
+!MESSAGE NMAKE /f "ReMooD.mak" CFG="ReMooD - Win32 Debug SDL"
 !MESSAGE 
 !MESSAGE Possible choices for configuration are:
 !MESSAGE 
-!MESSAGE "ReMooD - Win32 Release" (based on "Win32 (x86) Application")
-!MESSAGE "ReMooD - Win32 Debug" (based on "Win32 (x86) Application")
+!MESSAGE "ReMooD - Win32 Debug Allegro" (based on "Win32 (x86) Application")
+!MESSAGE "ReMooD - Win32 Release Allegro" (based on "Win32 (x86) Application")
+!MESSAGE "ReMooD - Win32 Debug SDL" (based on "Win32 (x86) Application")
+!MESSAGE "ReMooD - Win32 Release SDL" (based on "Win32 (x86) Application")
 !MESSAGE 
 
 # Begin Project
@@ -29,49 +31,23 @@ CPP=cl.exe
 MTL=midl.exe
 RSC=rc.exe
 
-!IF  "$(CFG)" == "ReMooD - Win32 Release"
-
-# PROP BASE Use_MFC 0
-# PROP BASE Use_Debug_Libraries 0
-# PROP BASE Output_Dir "Release"
-# PROP BASE Intermediate_Dir "Release"
-# PROP BASE Target_Dir ""
-# PROP Use_MFC 0
-# PROP Use_Debug_Libraries 0
-# PROP Output_Dir "Release"
-# PROP Intermediate_Dir "Release"
-# PROP Ignore_Export_Lib 0
-# PROP Target_Dir ""
-# ADD BASE CPP /nologo /W3 /GX /O2 /D "WIN32" /D "NDEBUG" /D "_WINDOWS" /D "_MBCS" /YX /FD /c
-# ADD CPP /nologo /MD /W3 /GX /O2 /I "..\..\sdl" /I "..\..\win32" /I "..\..\src_cl" /I "..\..\src" /D "GAMECLIENT" /U "GAMESERVER" /D "_WIN32" /D "WIN32" /D "NDEBUG" /D "_WINDOWS" /D "_MBCS" /D "ENABLEMULTITHREADING" /FD /c
-# SUBTRACT CPP /YX
-# ADD BASE MTL /nologo /D "NDEBUG" /mktyplib203 /win32
-# ADD MTL /nologo /D "NDEBUG" /mktyplib203 /win32
-# ADD BASE RSC /l 0x409 /d "NDEBUG"
-# ADD RSC /l 0x409 /d "NDEBUG"
-BSC32=bscmake.exe
-# ADD BASE BSC32 /nologo
-# ADD BSC32 /nologo
-LINK32=link.exe
-# ADD BASE LINK32 kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib /nologo /subsystem:windows /machine:I386
-# ADD LINK32 kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib SDL.lib winmm.lib /nologo /subsystem:console /machine:I386 /out:"..\..\bin\remood.exe"
-# SUBTRACT LINK32 /pdb:none
-
-!ELSEIF  "$(CFG)" == "ReMooD - Win32 Debug"
+!IF  "$(CFG)" == "ReMooD - Win32 Debug Allegro"
 
 # PROP BASE Use_MFC 0
 # PROP BASE Use_Debug_Libraries 1
-# PROP BASE Output_Dir "Debug"
-# PROP BASE Intermediate_Dir "Debug"
+# PROP BASE Output_Dir "ReMooD___Win32_Debug_Allegro"
+# PROP BASE Intermediate_Dir "ReMooD___Win32_Debug_Allegro"
+# PROP BASE Ignore_Export_Lib 0
 # PROP BASE Target_Dir ""
 # PROP Use_MFC 0
 # PROP Use_Debug_Libraries 1
-# PROP Output_Dir "Debug"
-# PROP Intermediate_Dir "Debug"
+# PROP Output_Dir "ReMooD___Win32_Debug_Allegro"
+# PROP Intermediate_Dir "ReMooD___Win32_Debug_Allegro"
 # PROP Ignore_Export_Lib 0
 # PROP Target_Dir ""
-# ADD BASE CPP /nologo /W3 /Gm /GX /ZI /Od /D "WIN32" /D "_DEBUG" /D "_WINDOWS" /D "_MBCS" /D "HIGHMEMORYUNICODE" /YX /FD /GZ /c
-# ADD CPP /nologo /MDd /W3 /Gm /GX /ZI /Od /I "..\..\sdl" /I "..\..\win32" /I "..\..\src" /I "..\..\src_cl" /D "GAMECLIENT" /U "GAMESERVER" /D "_WIN32" /D "WIN32" /D "_DEBUG" /D "_WINDOWS" /D "_MBCS" /D "ENABLEMULTITHREADING" /D "HIGHMEMORYUNICODE" /FD /GZ /c
+# ADD BASE CPP /nologo /MDd /W3 /Gm /GX /ZI /Od /I "..\..\sdl" /I "..\..\win32" /I "..\..\src" /I "..\..\src_cl" /D "GAMECLIENT" /D "_WIN32" /D "WIN32" /D "_DEBUG" /D "_WINDOWS" /D "_MBCS" /D "ENABLEMULTITHREADING" /D "HIGHMEMORYUNICODE" /D "__REMOOD_SYSTEM_WINDOWS" /U "GAMESERVER" /FD /GZ /c
+# SUBTRACT BASE CPP /YX
+# ADD CPP /nologo /MDd /W3 /Gm /GX /ZI /Od /I "..\..\sdl" /I "..\..\win32" /I "..\..\src" /I "..\..\src_cl" /D "GAMECLIENT" /D "_WIN32" /D "WIN32" /D "_DEBUG" /D "_WINDOWS" /D "_MBCS" /D "ENABLEMULTITHREADING" /D "HIGHMEMORYUNICODE" /D "__REMOOD_SYSTEM_WINDOWS" /U "GAMESERVER" /FD /GZ /c
 # SUBTRACT CPP /YX
 # ADD BASE MTL /nologo /D "_DEBUG" /mktyplib203 /win32
 # ADD MTL /nologo /D "_DEBUG" /mktyplib203 /win32
@@ -81,42 +57,145 @@ BSC32=bscmake.exe
 # ADD BASE BSC32 /nologo
 # ADD BSC32 /nologo
 LINK32=link.exe
-# ADD BASE LINK32 kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib /nologo /subsystem:windows /debug /machine:I386 /pdbtype:sept
-# ADD LINK32 kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib SDL.lib winmm.lib /nologo /subsystem:console /debug /machine:I386 /out:"..\..\bin\remood-dbg.exe" /pdbtype:sept
+# ADD BASE LINK32 kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib SDL.lib SDLmain.lib winmm.lib /nologo /subsystem:console /debug /machine:I386 /out:"..\..\bin\remood-dbg.exe" /pdbtype:sept
+# SUBTRACT BASE LINK32 /pdb:none
+# ADD LINK32 kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib alleg.lib winmm.lib /nologo /subsystem:windows /debug /machine:I386 /out:"..\..\bin\remood-dbg.exe" /pdbtype:sept
+# SUBTRACT LINK32 /pdb:none
+
+!ELSEIF  "$(CFG)" == "ReMooD - Win32 Release Allegro"
+
+# PROP BASE Use_MFC 0
+# PROP BASE Use_Debug_Libraries 0
+# PROP BASE Output_Dir "ReMooD___Win32_Release_Allegro"
+# PROP BASE Intermediate_Dir "ReMooD___Win32_Release_Allegro"
+# PROP BASE Ignore_Export_Lib 0
+# PROP BASE Target_Dir ""
+# PROP Use_MFC 0
+# PROP Use_Debug_Libraries 0
+# PROP Output_Dir "ReMooD___Win32_Release_Allegro"
+# PROP Intermediate_Dir "ReMooD___Win32_Release_Allegro"
+# PROP Ignore_Export_Lib 0
+# PROP Target_Dir ""
+# ADD BASE CPP /nologo /MD /W3 /GX /O2 /I "..\..\sdl" /I "..\..\win32" /I "..\..\src_cl" /I "..\..\src" /D "GAMECLIENT" /D "_WIN32" /D "WIN32" /D "NDEBUG" /D "_WINDOWS" /D "_MBCS" /D "ENABLEMULTITHREADING" /D "__REMOOD_SYSTEM_WINDOWS" /U "GAMESERVER" /FD /c
+# SUBTRACT BASE CPP /YX
+# ADD CPP /nologo /MD /W3 /GX /O2 /I "..\..\sdl" /I "..\..\win32" /I "..\..\src_cl" /I "..\..\src" /D "GAMECLIENT" /D "_WIN32" /D "WIN32" /D "NDEBUG" /D "_WINDOWS" /D "_MBCS" /D "ENABLEMULTITHREADING" /D "__REMOOD_SYSTEM_WINDOWS" /U "GAMESERVER" /FD /c
+# SUBTRACT CPP /YX
+# ADD BASE MTL /nologo /D "NDEBUG" /mktyplib203 /win32
+# ADD MTL /nologo /D "NDEBUG" /mktyplib203 /win32
+# ADD BASE RSC /l 0x409 /d "NDEBUG"
+# ADD RSC /l 0x409 /d "NDEBUG"
+BSC32=bscmake.exe
+# ADD BASE BSC32 /nologo
+# ADD BSC32 /nologo
+LINK32=link.exe
+# ADD BASE LINK32 kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib SDL.lib SDLmain.lib winmm.lib /nologo /subsystem:console /machine:I386 /out:"..\..\bin\remood.exe"
+# SUBTRACT BASE LINK32 /pdb:none
+# ADD LINK32 kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib alleg.lib winmm.lib /nologo /subsystem:windows /machine:I386 /out:"..\..\bin\remood.exe"
+# SUBTRACT LINK32 /pdb:none
+
+!ELSEIF  "$(CFG)" == "ReMooD - Win32 Debug SDL"
+
+# PROP BASE Use_MFC 0
+# PROP BASE Use_Debug_Libraries 1
+# PROP BASE Output_Dir "ReMooD___Win32_Debug_SDL"
+# PROP BASE Intermediate_Dir "ReMooD___Win32_Debug_SDL"
+# PROP BASE Ignore_Export_Lib 0
+# PROP BASE Target_Dir ""
+# PROP Use_MFC 0
+# PROP Use_Debug_Libraries 1
+# PROP Output_Dir "ReMooD___Win32_Debug_SDL"
+# PROP Intermediate_Dir "ReMooD___Win32_Debug_SDL"
+# PROP Ignore_Export_Lib 0
+# PROP Target_Dir ""
+# ADD BASE CPP /nologo /MDd /W3 /Gm /GX /ZI /Od /I "..\..\sdl" /I "..\..\win32" /I "..\..\src" /I "..\..\src_cl" /D "GAMECLIENT" /D "_WIN32" /D "WIN32" /D "_DEBUG" /D "_WINDOWS" /D "_MBCS" /D "ENABLEMULTITHREADING" /D "HIGHMEMORYUNICODE" /D "__REMOOD_SYSTEM_WINDOWS" /U "GAMESERVER" /FD /GZ /c
+# SUBTRACT BASE CPP /YX
+# ADD CPP /nologo /MDd /W3 /Gm /GX /ZI /Od /I "..\..\sdl" /I "..\..\win32" /I "..\..\src" /I "..\..\src_cl" /D "GAMECLIENT" /D "_WIN32" /D "WIN32" /D "_DEBUG" /D "_WINDOWS" /D "_MBCS" /D "ENABLEMULTITHREADING" /D "HIGHMEMORYUNICODE" /D "__REMOOD_SYSTEM_WINDOWS" /U "GAMESERVER" /FD /GZ /c
+# SUBTRACT CPP /YX
+# ADD BASE MTL /nologo /D "_DEBUG" /mktyplib203 /win32
+# ADD MTL /nologo /D "_DEBUG" /mktyplib203 /win32
+# ADD BASE RSC /l 0x409 /d "_DEBUG"
+# ADD RSC /l 0x409 /d "_DEBUG"
+BSC32=bscmake.exe
+# ADD BASE BSC32 /nologo
+# ADD BSC32 /nologo
+LINK32=link.exe
+# ADD BASE LINK32 kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib SDL.lib SDLmain.lib winmm.lib /nologo /subsystem:console /debug /machine:I386 /out:"..\..\bin\remood-dbg.exe" /pdbtype:sept
+# SUBTRACT BASE LINK32 /pdb:none
+# ADD LINK32 kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib SDL.lib SDLmain.lib winmm.lib /nologo /subsystem:console /debug /machine:I386 /out:"..\..\bin\remood-dbg.exe" /pdbtype:sept
+# SUBTRACT LINK32 /pdb:none
+
+!ELSEIF  "$(CFG)" == "ReMooD - Win32 Release SDL"
+
+# PROP BASE Use_MFC 0
+# PROP BASE Use_Debug_Libraries 0
+# PROP BASE Output_Dir "ReMooD___Win32_Release_SDL"
+# PROP BASE Intermediate_Dir "ReMooD___Win32_Release_SDL"
+# PROP BASE Ignore_Export_Lib 0
+# PROP BASE Target_Dir ""
+# PROP Use_MFC 0
+# PROP Use_Debug_Libraries 0
+# PROP Output_Dir "ReMooD___Win32_Release_SDL"
+# PROP Intermediate_Dir "ReMooD___Win32_Release_SDL"
+# PROP Ignore_Export_Lib 0
+# PROP Target_Dir ""
+# ADD BASE CPP /nologo /MD /W3 /GX /O2 /I "..\..\sdl" /I "..\..\win32" /I "..\..\src_cl" /I "..\..\src" /D "GAMECLIENT" /D "_WIN32" /D "WIN32" /D "NDEBUG" /D "_WINDOWS" /D "_MBCS" /D "ENABLEMULTITHREADING" /D "__REMOOD_SYSTEM_WINDOWS" /U "GAMESERVER" /FD /c
+# SUBTRACT BASE CPP /YX
+# ADD CPP /nologo /MD /W3 /GX /O2 /I "..\..\sdl" /I "..\..\win32" /I "..\..\src_cl" /I "..\..\src" /D "GAMECLIENT" /D "_WIN32" /D "WIN32" /D "NDEBUG" /D "_WINDOWS" /D "_MBCS" /D "ENABLEMULTITHREADING" /D "__REMOOD_SYSTEM_WINDOWS" /U "GAMESERVER" /FD /c
+# SUBTRACT CPP /YX
+# ADD BASE MTL /nologo /D "NDEBUG" /mktyplib203 /win32
+# ADD MTL /nologo /D "NDEBUG" /mktyplib203 /win32
+# ADD BASE RSC /l 0x409 /d "NDEBUG"
+# ADD RSC /l 0x409 /d "NDEBUG"
+BSC32=bscmake.exe
+# ADD BASE BSC32 /nologo
+# ADD BSC32 /nologo
+LINK32=link.exe
+# ADD BASE LINK32 kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib SDL.lib SDLmain.lib winmm.lib /nologo /subsystem:console /machine:I386 /out:"..\..\bin\remood.exe"
+# SUBTRACT BASE LINK32 /pdb:none
+# ADD LINK32 kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib SDL.lib SDLmain.lib winmm.lib /nologo /subsystem:console /machine:I386 /out:"..\..\bin\remood.exe"
 # SUBTRACT LINK32 /pdb:none
 
 !ENDIF 
 
 # Begin Target
 
-# Name "ReMooD - Win32 Release"
-# Name "ReMooD - Win32 Debug"
+# Name "ReMooD - Win32 Debug Allegro"
+# Name "ReMooD - Win32 Release Allegro"
+# Name "ReMooD - Win32 Debug SDL"
+# Name "ReMooD - Win32 Release SDL"
 # Begin Group "Source Files"
 
 # PROP Default_Filter "cpp;c;cxx;rc;def;r;odl;idl;hpj;bat"
+# Begin Group "am_"
+
+# PROP Default_Filter ""
 # Begin Source File
 
-SOURCE=..\..\src_cl\am_map.c
+SOURCE=..\..\src\am_map.c
 # End Source File
+# End Group
+# Begin Group "c_"
+
+# PROP Default_Filter ""
 # Begin Source File
 
-SOURCE=..\..\src\byteptr.c
+SOURCE=..\..\src\c_lib.c
 # End Source File
+# End Group
+# Begin Group "d_"
+
+# PROP Default_Filter ""
 # Begin Source File
 
-SOURCE=..\..\src\cmp_rle.c
-# End Source File
-# Begin Source File
-
-SOURCE=..\..\src\command.c
-# End Source File
-# Begin Source File
-
-SOURCE=..\..\src\console.c
+SOURCE=..\..\src\d_block.c
 # End Source File
 # Begin Source File
 
 SOURCE=..\..\src\d_clisrv.c
+# End Source File
+# Begin Source File
+
+SOURCE=..\..\src\d_info.c
 # End Source File
 # Begin Source File
 
@@ -144,28 +223,24 @@ SOURCE=..\..\src\d_rdf.c
 # End Source File
 # Begin Source File
 
-SOURCE=..\..\src\dehacked.c
+SOURCE=..\..\src\d_rmod.c
+# End Source File
+# End Group
+# Begin Group "f_"
+
+# PROP Default_Filter ""
+# Begin Source File
+
+SOURCE=..\..\src\f_finale.c
 # End Source File
 # Begin Source File
 
-SOURCE=..\..\isrc\sdl\dosstr.c
+SOURCE=..\..\src\f_wipe.c
 # End Source File
-# Begin Source File
+# End Group
+# Begin Group "g_"
 
-SOURCE=..\..\src\dstrings.c
-# End Source File
-# Begin Source File
-
-SOURCE=..\..\isrc\sdl\endtxt.c
-# End Source File
-# Begin Source File
-
-SOURCE=..\..\src_cl\f_finale.c
-# End Source File
-# Begin Source File
-
-SOURCE=..\..\src_cl\f_wipe.c
-# End Source File
+# PROP Default_Filter ""
 # Begin Source File
 
 SOURCE=..\..\src\g_game.c
@@ -178,50 +253,34 @@ SOURCE=..\..\src\g_input.c
 
 SOURCE=..\..\src\g_state.c
 # End Source File
+# End Group
+# Begin Group "hu_"
+
+# PROP Default_Filter ""
 # Begin Source File
 
-SOURCE=..\..\src_cl\hu_stuff.c
+SOURCE=..\..\src\hu_stuff.c
+# End Source File
+# End Group
+# Begin Group "i_"
+
+# PROP Default_Filter ""
+# Begin Source File
+
+SOURCE=..\..\src\i_util.c
 # End Source File
 # Begin Source File
 
-SOURCE=..\..\isrc\sdl\i_cdmus.c
+SOURCE=..\..\src\i_utlnet.c
 # End Source File
 # Begin Source File
 
-SOURCE=..\..\isrc\sdl\i_main.c
+SOURCE=..\..\src\i_utlsfx.c
 # End Source File
-# Begin Source File
+# End Group
+# Begin Group "m_"
 
-SOURCE=..\..\isrc\sdl\i_music.c
-# End Source File
-# Begin Source File
-
-SOURCE=..\..\isrc\sdl\i_net.c
-# End Source File
-# Begin Source File
-
-SOURCE=..\..\isrc\sdl\i_sound.c
-# End Source File
-# Begin Source File
-
-SOURCE=..\..\isrc\sdl\i_system.c
-# End Source File
-# Begin Source File
-
-SOURCE=..\..\isrc\sdl\i_tcp.c
-# End Source File
-# Begin Source File
-
-SOURCE=..\..\isrc\sdl\i_thread.c
-# End Source File
-# Begin Source File
-
-SOURCE=..\..\isrc\sdl\i_video.c
-# End Source File
-# Begin Source File
-
-SOURCE=..\..\src\info.c
-# End Source File
+# PROP Default_Filter ""
 # Begin Source File
 
 SOURCE=..\..\src\m_argv.c
@@ -240,15 +299,15 @@ SOURCE=..\..\src\m_fixed.c
 # End Source File
 # Begin Source File
 
-SOURCE=..\..\src_cl\m_menu.c
+SOURCE=..\..\src\m_menu.c
 # End Source File
 # Begin Source File
 
-SOURCE=..\..\src_cl\m_menudr.c
+SOURCE=..\..\src\m_menudr.c
 # End Source File
 # Begin Source File
 
-SOURCE=..\..\src_cl\m_menufn.c
+SOURCE=..\..\src\m_menufn.c
 # End Source File
 # Begin Source File
 
@@ -258,14 +317,10 @@ SOURCE=..\..\src\m_misc.c
 
 SOURCE=..\..\src\m_random.c
 # End Source File
-# Begin Source File
+# End Group
+# Begin Group "p_"
 
-SOURCE=..\..\src\m_swap.c
-# End Source File
-# Begin Source File
-
-SOURCE=..\..\src\md5.c
-# End Source File
+# PROP Default_Filter ""
 # Begin Source File
 
 SOURCE=..\..\src\p_ceilng.c
@@ -362,85 +417,73 @@ SOURCE=..\..\src\p_tick.c
 
 SOURCE=..\..\src\p_user.c
 # End Source File
+# End Group
+# Begin Group "r_"
+
+# PROP Default_Filter ""
 # Begin Source File
 
-SOURCE=..\..\src_cl\r_bsp.c
+SOURCE=..\..\src\r_bsp.c
 # End Source File
 # Begin Source File
 
-SOURCE=..\..\src_cl\r_data.c
+SOURCE=..\..\src\r_data.c
 # End Source File
 # Begin Source File
 
-SOURCE=..\..\src_cl\r_draw.c
+SOURCE=..\..\src\r_draw.c
 # End Source File
 # Begin Source File
 
-SOURCE=..\..\src_cl\r_main.c
+SOURCE=..\..\src\r_main.c
 # End Source File
 # Begin Source File
 
-SOURCE=..\..\src_cl\r_plane.c
+SOURCE=..\..\src\r_plane.c
 # End Source File
 # Begin Source File
 
-SOURCE=..\..\src_cl\r_segs.c
+SOURCE=..\..\src\r_segs.c
 # End Source File
 # Begin Source File
 
-SOURCE=..\..\src_cl\r_sky.c
+SOURCE=..\..\src\r_sky.c
 # End Source File
 # Begin Source File
 
-SOURCE=..\..\src_cl\r_splats.c
+SOURCE=..\..\src\r_splats.c
 # End Source File
 # Begin Source File
 
-SOURCE=..\..\src_cl\r_things.c
+SOURCE=..\..\src\r_things.c
+# End Source File
+# End Group
+# Begin Group "st_"
+
+# PROP Default_Filter ""
+# Begin Source File
+
+SOURCE=..\..\src\st_lib.c
 # End Source File
 # Begin Source File
 
-SOURCE=..\..\src\rmd_frgl.c
+SOURCE=..\..\src\st_stuff.c
 # End Source File
-# Begin Source File
+# End Group
+# Begin Group "t_"
 
-SOURCE=..\..\src\rmd_func.c
-# End Source File
-# Begin Source File
-
-SOURCE=..\..\src\rmd_main.c
-# End Source File
-# Begin Source File
-
-SOURCE=..\..\src\s_amb.c
-# End Source File
-# Begin Source File
-
-SOURCE=..\..\src\s_sound.c
-# End Source File
-# Begin Source File
-
-SOURCE=..\..\src_cl\sb_bar.c
-# End Source File
-# Begin Source File
-
-SOURCE=..\..\src\screen.c
-# End Source File
-# Begin Source File
-
-SOURCE=..\..\src\sounds.c
-# End Source File
-# Begin Source File
-
-SOURCE=..\..\src_cl\st_lib.c
-# End Source File
-# Begin Source File
-
-SOURCE=..\..\src_cl\st_stuff.c
-# End Source File
+# PROP Default_Filter ""
 # Begin Source File
 
 SOURCE=..\..\src\t_comp.c
+# End Source File
+# Begin Source File
+
+SOURCE=..\..\src\t_dscc.c
+# End Source File
+# Begin Source File
+
+SOURCE=..\..\src\t_dsvm.c
 # End Source File
 # Begin Source File
 
@@ -470,13 +513,290 @@ SOURCE=..\..\src\t_spec.c
 
 SOURCE=..\..\src\t_vari.c
 # End Source File
+# End Group
+# Begin Group "SDL Interface"
+
+# PROP Default_Filter ""
+# Begin Source File
+
+SOURCE=..\..\src\sdl\i_main.c
+
+!IF  "$(CFG)" == "ReMooD - Win32 Debug Allegro"
+
+# PROP Exclude_From_Build 1
+
+!ELSEIF  "$(CFG)" == "ReMooD - Win32 Release Allegro"
+
+# PROP Exclude_From_Build 1
+
+!ELSEIF  "$(CFG)" == "ReMooD - Win32 Debug SDL"
+
+!ELSEIF  "$(CFG)" == "ReMooD - Win32 Release SDL"
+
+!ENDIF 
+
+# End Source File
+# Begin Source File
+
+SOURCE=..\..\src\sdl\i_music.c
+
+!IF  "$(CFG)" == "ReMooD - Win32 Debug Allegro"
+
+# PROP Exclude_From_Build 1
+
+!ELSEIF  "$(CFG)" == "ReMooD - Win32 Release Allegro"
+
+# PROP Exclude_From_Build 1
+
+!ELSEIF  "$(CFG)" == "ReMooD - Win32 Debug SDL"
+
+!ELSEIF  "$(CFG)" == "ReMooD - Win32 Release SDL"
+
+!ENDIF 
+
+# End Source File
+# Begin Source File
+
+SOURCE=..\..\src\sdl\i_net.c
+
+!IF  "$(CFG)" == "ReMooD - Win32 Debug Allegro"
+
+# PROP Exclude_From_Build 1
+
+!ELSEIF  "$(CFG)" == "ReMooD - Win32 Release Allegro"
+
+# PROP Exclude_From_Build 1
+
+!ELSEIF  "$(CFG)" == "ReMooD - Win32 Debug SDL"
+
+!ELSEIF  "$(CFG)" == "ReMooD - Win32 Release SDL"
+
+!ENDIF 
+
+# End Source File
+# Begin Source File
+
+SOURCE=..\..\src\sdl\i_sound.c
+
+!IF  "$(CFG)" == "ReMooD - Win32 Debug Allegro"
+
+# PROP Exclude_From_Build 1
+
+!ELSEIF  "$(CFG)" == "ReMooD - Win32 Release Allegro"
+
+# PROP Exclude_From_Build 1
+
+!ELSEIF  "$(CFG)" == "ReMooD - Win32 Debug SDL"
+
+!ELSEIF  "$(CFG)" == "ReMooD - Win32 Release SDL"
+
+!ENDIF 
+
+# End Source File
+# Begin Source File
+
+SOURCE=..\..\src\sdl\i_system.c
+
+!IF  "$(CFG)" == "ReMooD - Win32 Debug Allegro"
+
+# PROP Exclude_From_Build 1
+
+!ELSEIF  "$(CFG)" == "ReMooD - Win32 Release Allegro"
+
+# PROP Exclude_From_Build 1
+
+!ELSEIF  "$(CFG)" == "ReMooD - Win32 Debug SDL"
+
+!ELSEIF  "$(CFG)" == "ReMooD - Win32 Release SDL"
+
+!ENDIF 
+
+# End Source File
+# Begin Source File
+
+SOURCE=..\..\src\sdl\i_video.c
+
+!IF  "$(CFG)" == "ReMooD - Win32 Debug Allegro"
+
+# PROP Exclude_From_Build 1
+
+!ELSEIF  "$(CFG)" == "ReMooD - Win32 Release Allegro"
+
+# PROP Exclude_From_Build 1
+
+!ELSEIF  "$(CFG)" == "ReMooD - Win32 Debug SDL"
+
+!ELSEIF  "$(CFG)" == "ReMooD - Win32 Release SDL"
+
+!ENDIF 
+
+# End Source File
+# End Group
+# Begin Group "Allegro Interface"
+
+# PROP Default_Filter ""
+# Begin Source File
+
+SOURCE=..\..\src\allegro\i_main.c
+
+!IF  "$(CFG)" == "ReMooD - Win32 Debug Allegro"
+
+!ELSEIF  "$(CFG)" == "ReMooD - Win32 Release Allegro"
+
+!ELSEIF  "$(CFG)" == "ReMooD - Win32 Debug SDL"
+
+# PROP Exclude_From_Build 1
+
+!ELSEIF  "$(CFG)" == "ReMooD - Win32 Release SDL"
+
+# PROP Exclude_From_Build 1
+
+!ENDIF 
+
+# End Source File
+# Begin Source File
+
+SOURCE=..\..\src\allegro\i_music.c
+
+!IF  "$(CFG)" == "ReMooD - Win32 Debug Allegro"
+
+!ELSEIF  "$(CFG)" == "ReMooD - Win32 Release Allegro"
+
+!ELSEIF  "$(CFG)" == "ReMooD - Win32 Debug SDL"
+
+# PROP Exclude_From_Build 1
+
+!ELSEIF  "$(CFG)" == "ReMooD - Win32 Release SDL"
+
+# PROP Exclude_From_Build 1
+
+!ENDIF 
+
+# End Source File
+# Begin Source File
+
+SOURCE=..\..\src\allegro\i_net.c
+
+!IF  "$(CFG)" == "ReMooD - Win32 Debug Allegro"
+
+!ELSEIF  "$(CFG)" == "ReMooD - Win32 Release Allegro"
+
+!ELSEIF  "$(CFG)" == "ReMooD - Win32 Debug SDL"
+
+# PROP Exclude_From_Build 1
+
+!ELSEIF  "$(CFG)" == "ReMooD - Win32 Release SDL"
+
+# PROP Exclude_From_Build 1
+
+!ENDIF 
+
+# End Source File
+# Begin Source File
+
+SOURCE=..\..\src\allegro\i_sound.c
+
+!IF  "$(CFG)" == "ReMooD - Win32 Debug Allegro"
+
+!ELSEIF  "$(CFG)" == "ReMooD - Win32 Release Allegro"
+
+!ELSEIF  "$(CFG)" == "ReMooD - Win32 Debug SDL"
+
+# PROP Exclude_From_Build 1
+
+!ELSEIF  "$(CFG)" == "ReMooD - Win32 Release SDL"
+
+# PROP Exclude_From_Build 1
+
+!ENDIF 
+
+# End Source File
+# Begin Source File
+
+SOURCE=..\..\src\allegro\i_system.c
+
+!IF  "$(CFG)" == "ReMooD - Win32 Debug Allegro"
+
+!ELSEIF  "$(CFG)" == "ReMooD - Win32 Release Allegro"
+
+!ELSEIF  "$(CFG)" == "ReMooD - Win32 Debug SDL"
+
+# PROP Exclude_From_Build 1
+
+!ELSEIF  "$(CFG)" == "ReMooD - Win32 Release SDL"
+
+# PROP Exclude_From_Build 1
+
+!ENDIF 
+
+# End Source File
+# Begin Source File
+
+SOURCE=..\..\src\allegro\i_video.c
+
+!IF  "$(CFG)" == "ReMooD - Win32 Debug Allegro"
+
+!ELSEIF  "$(CFG)" == "ReMooD - Win32 Release Allegro"
+
+!ELSEIF  "$(CFG)" == "ReMooD - Win32 Debug SDL"
+
+# PROP Exclude_From_Build 1
+
+!ELSEIF  "$(CFG)" == "ReMooD - Win32 Release SDL"
+
+# PROP Exclude_From_Build 1
+
+!ENDIF 
+
+# End Source File
+# End Group
+# Begin Source File
+
+SOURCE=..\..\src\command.c
+# End Source File
+# Begin Source File
+
+SOURCE=..\..\src\console.c
+# End Source File
+# Begin Source File
+
+SOURCE=..\..\src\dehacked.c
+# End Source File
+# Begin Source File
+
+SOURCE=..\..\src\dstrings.c
+# End Source File
+# Begin Source File
+
+SOURCE=..\..\src\info.c
+# End Source File
+# Begin Source File
+
+SOURCE=..\..\src\md5.c
+# End Source File
+# Begin Source File
+
+SOURCE=..\..\src\s_sound.c
+# End Source File
+# Begin Source File
+
+SOURCE=..\..\src\screen.c
+# End Source File
+# Begin Source File
+
+SOURCE=..\..\src\sounds.c
+# End Source File
 # Begin Source File
 
 SOURCE=..\..\src\tables.c
 # End Source File
 # Begin Source File
 
-SOURCE=..\..\src_cl\v_video.c
+SOURCE=..\..\src\v_video.c
+# End Source File
+# Begin Source File
+
+SOURCE=..\..\src\v_widget.c
 # End Source File
 # Begin Source File
 
@@ -484,7 +804,7 @@ SOURCE=..\..\src\w_wad.c
 # End Source File
 # Begin Source File
 
-SOURCE=..\..\src_cl\wi_stuff.c
+SOURCE=..\..\src\wi_stuff.c
 # End Source File
 # Begin Source File
 
@@ -500,11 +820,7 @@ SOURCE=..\..\src\am_map.h
 # End Source File
 # Begin Source File
 
-SOURCE=..\..\src\byteptr.h
-# End Source File
-# Begin Source File
-
-SOURCE=..\..\src\cmp_rle.h
+SOURCE=..\..\src\c_lib.h
 # End Source File
 # Begin Source File
 
@@ -513,6 +829,10 @@ SOURCE=..\..\src\command.h
 # Begin Source File
 
 SOURCE=..\..\src\console.h
+# End Source File
+# Begin Source File
+
+SOURCE=..\..\src\d_block.h
 # End Source File
 # Begin Source File
 
@@ -532,6 +852,10 @@ SOURCE=..\..\src\d_french.h
 # End Source File
 # Begin Source File
 
+SOURCE=..\..\src\d_info.h
+# End Source File
+# Begin Source File
+
 SOURCE=..\..\src\d_items.h
 # End Source File
 # Begin Source File
@@ -544,6 +868,10 @@ SOURCE=..\..\src\d_net.h
 # End Source File
 # Begin Source File
 
+SOURCE=..\..\src\d_netcmd.h
+# End Source File
+# Begin Source File
+
 SOURCE=..\..\src\d_player.h
 # End Source File
 # Begin Source File
@@ -553,6 +881,10 @@ SOURCE=..\..\src\d_prof.h
 # Begin Source File
 
 SOURCE=..\..\src\d_rdf.h
+# End Source File
+# Begin Source File
+
+SOURCE=..\..\src\d_rmod.h
 # End Source File
 # Begin Source File
 
@@ -588,15 +920,11 @@ SOURCE=..\..\src\dstrings.h
 # End Source File
 # Begin Source File
 
-SOURCE=..\..\isrc\sdl\endtxt.h
+SOURCE=..\..\src\f_finale.h
 # End Source File
 # Begin Source File
 
-SOURCE=..\..\src_cl\f_finale.h
-# End Source File
-# Begin Source File
-
-SOURCE=..\..\src_cl\f_wipe.h
+SOURCE=..\..\src\f_wipe.h
 # End Source File
 # Begin Source File
 
@@ -612,11 +940,7 @@ SOURCE=..\..\src\g_state.h
 # End Source File
 # Begin Source File
 
-SOURCE=..\..\src_cl\hu_stuff.h
-# End Source File
-# Begin Source File
-
-SOURCE=..\..\src\i_joy.h
+SOURCE=..\..\src\hu_stuff.h
 # End Source File
 # Begin Source File
 
@@ -632,11 +956,7 @@ SOURCE=..\..\src\i_system.h
 # End Source File
 # Begin Source File
 
-SOURCE=..\..\src\i_tcp.h
-# End Source File
-# Begin Source File
-
-SOURCE=..\..\src\i_thread.h
+SOURCE=..\..\src\i_util.h
 # End Source File
 # Begin Source File
 
@@ -668,7 +988,7 @@ SOURCE=..\..\src\m_fixed.h
 # End Source File
 # Begin Source File
 
-SOURCE=..\..\src_cl\m_menu.h
+SOURCE=..\..\src\m_menu.h
 # End Source File
 # Begin Source File
 
@@ -677,10 +997,6 @@ SOURCE=..\..\src\m_misc.h
 # Begin Source File
 
 SOURCE=..\..\src\m_random.h
-# End Source File
-# Begin Source File
-
-SOURCE=..\..\src\m_swap.h
 # End Source File
 # Begin Source File
 
@@ -740,59 +1056,51 @@ SOURCE=..\..\src\p_tick.h
 # End Source File
 # Begin Source File
 
-SOURCE=..\..\src_cl\r_bsp.h
+SOURCE=..\..\src\r_bsp.h
 # End Source File
 # Begin Source File
 
-SOURCE=..\..\src_cl\r_data.h
+SOURCE=..\..\src\r_data.h
 # End Source File
 # Begin Source File
 
-SOURCE=..\..\src_cl\r_defs.h
+SOURCE=..\..\src\r_defs.h
 # End Source File
 # Begin Source File
 
-SOURCE=..\..\src_cl\r_draw.h
+SOURCE=..\..\src\r_draw.h
 # End Source File
 # Begin Source File
 
-SOURCE=..\..\src_cl\r_local.h
+SOURCE=..\..\src\r_local.h
 # End Source File
 # Begin Source File
 
-SOURCE=..\..\src_cl\r_main.h
+SOURCE=..\..\src\r_main.h
 # End Source File
 # Begin Source File
 
-SOURCE=..\..\src_cl\r_plane.h
+SOURCE=..\..\src\r_plane.h
 # End Source File
 # Begin Source File
 
-SOURCE=..\..\src_cl\r_segs.h
+SOURCE=..\..\src\r_segs.h
 # End Source File
 # Begin Source File
 
-SOURCE=..\..\src_cl\r_sky.h
+SOURCE=..\..\src\r_sky.h
 # End Source File
 # Begin Source File
 
-SOURCE=..\..\src_cl\r_splats.h
+SOURCE=..\..\src\r_splats.h
 # End Source File
 # Begin Source File
 
-SOURCE=..\..\src_cl\r_state.h
+SOURCE=..\..\src\r_state.h
 # End Source File
 # Begin Source File
 
-SOURCE=..\..\src_cl\r_things.h
-# End Source File
-# Begin Source File
-
-SOURCE=..\..\src\rmd_func.h
-# End Source File
-# Begin Source File
-
-SOURCE=..\..\src\rmd_main.h
+SOURCE=..\..\src\r_things.h
 # End Source File
 # Begin Source File
 
@@ -808,15 +1116,19 @@ SOURCE=..\..\src\sounds.h
 # End Source File
 # Begin Source File
 
-SOURCE=..\..\src_cl\st_lib.h
+SOURCE=..\..\src\st_lib.h
 # End Source File
 # Begin Source File
 
-SOURCE=..\..\src_cl\st_stuff.h
+SOURCE=..\..\src\st_stuff.h
 # End Source File
 # Begin Source File
 
 SOURCE=..\..\src\t_comp.h
+# End Source File
+# Begin Source File
+
+SOURCE=..\..\src\t_dsvm.h
 # End Source File
 # Begin Source File
 
@@ -852,7 +1164,15 @@ SOURCE=..\..\src\tables.h
 # End Source File
 # Begin Source File
 
-SOURCE=..\..\src_cl\v_video.h
+SOURCE=..\..\src\v_video.h
+# End Source File
+# Begin Source File
+
+SOURCE=..\..\src\v_widc.h
+# End Source File
+# Begin Source File
+
+SOURCE=..\..\src\v_widget.h
 # End Source File
 # Begin Source File
 
@@ -873,6 +1193,14 @@ SOURCE=..\..\src\z_zone.h
 # Begin Source File
 
 SOURCE=..\..\rc\remood.rc
+# End Source File
+# Begin Source File
+
+SOURCE=..\..\rc\remood6.ico
+# End Source File
+# Begin Source File
+
+SOURCE=..\..\rc\remoods.ico
 # End Source File
 # End Group
 # End Target

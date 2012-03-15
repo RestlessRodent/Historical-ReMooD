@@ -59,3 +59,8 @@ glob:wad/sprites/smoka0.raw
 glob:playpal-base.lmp
 relre:.*@.*
 relre:.*~$
+glob:proj/vc6/ReMooD.plg
+glob:ReMooD_private.rc
+glob:ReMooD_private.h
+glob:remoodex.cfg
+glob:desktop.ini

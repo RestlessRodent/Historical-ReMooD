@@ -149,7 +149,6 @@ bool_t I_MUS2MID_MUSReadNextMessage(I_MUS2MIDData_t* const a_Local, uint32_t* co
 	bool_t Last;
 	uint8_t Channel;
 	uint8_t Event;
-	size_t i;
 	uint8_t Key, VolUse;
 	
 	union

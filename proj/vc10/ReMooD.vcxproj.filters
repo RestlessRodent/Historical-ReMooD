@@ -1,0 +1,600 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="Interfaces">
+      <UniqueIdentifier>{b972eb9c-c5bd-470e-84f6-356569befdb0}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Interfaces\SDL">
+      <UniqueIdentifier>{d4874809-a0c7-4c21-a860-6d98dd905b6f}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Interfaces\Allegro">
+      <UniqueIdentifier>{499be076-bd0d-4483-902d-3b3c6714b25f}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="v_ %28Video%29">
+      <UniqueIdentifier>{5833e26b-de0f-4ade-ac30-f9643054ac3c}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="w_ %28WADs%29">
+      <UniqueIdentifier>{196c3c89-ce9e-4e75-9fc2-42dc597d4808}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="wi_ %28Intermission%29">
+      <UniqueIdentifier>{f6e4ea69-a0c9-4f31-b7c7-620f0a0b63cf}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="z_ %28Memory%29">
+      <UniqueIdentifier>{20cbd7cf-939e-46ee-b1a3-9404e12986f3}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Doom">
+      <UniqueIdentifier>{6b552da1-1655-49ad-aba8-0aa257f2e8bb}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Doom\r_ %28Renderer%29">
+      <UniqueIdentifier>{e330b060-f6e0-4482-9f4c-5df4e897f884}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Doom\s_ %28Sound%29">
+      <UniqueIdentifier>{71dce9a6-599b-4773-ab51-7442794262b6}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Doom\p_ %28Logic%29">
+      <UniqueIdentifier>{a7f94823-f85b-4a3c-8764-fd02143f4501}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Doom\st_ %28Status Bar%29">
+      <UniqueIdentifier>{b470387b-3ac6-425d-a056-2ee8cf0fe61c}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Doom\t_ %28FraggleScript/ReMooD Script%29">
+      <UniqueIdentifier>{3d42ed41-6b7e-4ec3-9d12-05ea8e69add8}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Doom\m_ %28Misc%29">
+      <UniqueIdentifier>{07aadbcc-b712-4530-a84f-e5446a1795a2}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Doom\hu_ %28HUD%29">
+      <UniqueIdentifier>{fba7349f-b1a4-48e0-b687-035dd17648c5}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Doom\g_ %28Game%29">
+      <UniqueIdentifier>{4c3161d8-510b-4b69-94c3-a89155bbf52c}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Doom\f_ %28Finale%29">
+      <UniqueIdentifier>{c5b43eaf-aea7-44ad-a5eb-33a2f9518ca3}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Doom\d_ %28Doom%29">
+      <UniqueIdentifier>{af8d540e-011f-43e9-8fd0-3d473959f087}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Doom\am_ %28Automap%29">
+      <UniqueIdentifier>{78930e6e-efec-4a8a-9f2a-04afbbf723c4}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\..\src\i_net.h">
+      <Filter>Interfaces</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\i_sound.h">
+      <Filter>Interfaces</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\i_system.h">
+      <Filter>Interfaces</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\i_util.h">
+      <Filter>Interfaces</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\i_video.h">
+      <Filter>Interfaces</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\v_video.h">
+      <Filter>v_ %28Video%29</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\v_widc.h">
+      <Filter>v_ %28Video%29</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\v_widget.h">
+      <Filter>v_ %28Video%29</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\w_wad.h">
+      <Filter>w_ %28WADs%29</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\wi_stuff.h">
+      <Filter>wi_ %28Intermission%29</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\z_zone.h">
+      <Filter>z_ %28Memory%29</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\r_bsp.h">
+      <Filter>Doom\r_ %28Renderer%29</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\r_data.h">
+      <Filter>Doom\r_ %28Renderer%29</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\r_defs.h">
+      <Filter>Doom\r_ %28Renderer%29</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\r_draw.h">
+      <Filter>Doom\r_ %28Renderer%29</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\r_local.h">
+      <Filter>Doom\r_ %28Renderer%29</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\r_main.h">
+      <Filter>Doom\r_ %28Renderer%29</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\r_plane.h">
+      <Filter>Doom\r_ %28Renderer%29</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\r_segs.h">
+      <Filter>Doom\r_ %28Renderer%29</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\r_sky.h">
+      <Filter>Doom\r_ %28Renderer%29</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\r_splats.h">
+      <Filter>Doom\r_ %28Renderer%29</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\r_state.h">
+      <Filter>Doom\r_ %28Renderer%29</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\r_things.h">
+      <Filter>Doom\r_ %28Renderer%29</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\s_sound.h">
+      <Filter>Doom\s_ %28Sound%29</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\p_chex.h">
+      <Filter>Doom\p_ %28Logic%29</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\p_demcmp.h">
+      <Filter>Doom\p_ %28Logic%29</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\p_fab.h">
+      <Filter>Doom\p_ %28Logic%29</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\p_info.h">
+      <Filter>Doom\p_ %28Logic%29</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\p_inter.h">
+      <Filter>Doom\p_ %28Logic%29</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\p_local.h">
+      <Filter>Doom\p_ %28Logic%29</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\p_maputl.h">
+      <Filter>Doom\p_ %28Logic%29</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\p_mobj.h">
+      <Filter>Doom\p_ %28Logic%29</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\p_pspr.h">
+      <Filter>Doom\p_ %28Logic%29</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\p_saveg.h">
+      <Filter>Doom\p_ %28Logic%29</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\p_setup.h">
+      <Filter>Doom\p_ %28Logic%29</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\p_spec.h">
+      <Filter>Doom\p_ %28Logic%29</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\p_tick.h">
+      <Filter>Doom\p_ %28Logic%29</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\st_lib.h">
+      <Filter>Doom\st_ %28Status Bar%29</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\st_stuff.h">
+      <Filter>Doom\st_ %28Status Bar%29</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\t_func.h">
+      <Filter>Doom\t_ %28FraggleScript/ReMooD Script%29</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\t_oper.h">
+      <Filter>Doom\t_ %28FraggleScript/ReMooD Script%29</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\t_parse.h">
+      <Filter>Doom\t_ %28FraggleScript/ReMooD Script%29</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\t_prepro.h">
+      <Filter>Doom\t_ %28FraggleScript/ReMooD Script%29</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\t_script.h">
+      <Filter>Doom\t_ %28FraggleScript/ReMooD Script%29</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\t_spec.h">
+      <Filter>Doom\t_ %28FraggleScript/ReMooD Script%29</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\t_vari.h">
+      <Filter>Doom\t_ %28FraggleScript/ReMooD Script%29</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\m_argv.h">
+      <Filter>Doom\m_ %28Misc%29</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\m_bbox.h">
+      <Filter>Doom\m_ %28Misc%29</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\m_cheat.h">
+      <Filter>Doom\m_ %28Misc%29</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\m_fixed.h">
+      <Filter>Doom\m_ %28Misc%29</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\m_menu.h">
+      <Filter>Doom\m_ %28Misc%29</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\m_misc.h">
+      <Filter>Doom\m_ %28Misc%29</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\m_random.h">
+      <Filter>Doom\m_ %28Misc%29</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\m_swap.h">
+      <Filter>Doom\m_ %28Misc%29</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\hu_stuff.h">
+      <Filter>Doom\hu_ %28HUD%29</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\g_game.h">
+      <Filter>Doom\g_ %28Game%29</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\g_input.h">
+      <Filter>Doom\g_ %28Game%29</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\g_state.h">
+      <Filter>Doom\g_ %28Game%29</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\f_finale.h">
+      <Filter>Doom\f_ %28Finale%29</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\f_wipe.h">
+      <Filter>Doom\f_ %28Finale%29</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\d_block.h">
+      <Filter>Doom\d_ %28Doom%29</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\d_clisrv.h">
+      <Filter>Doom\d_ %28Doom%29</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\d_englsh.h">
+      <Filter>Doom\d_ %28Doom%29</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\d_event.h">
+      <Filter>Doom\d_ %28Doom%29</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\d_french.h">
+      <Filter>Doom\d_ %28Doom%29</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\d_info.h">
+      <Filter>Doom\d_ %28Doom%29</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\d_items.h">
+      <Filter>Doom\d_ %28Doom%29</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\d_main.h">
+      <Filter>Doom\d_ %28Doom%29</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\d_net.h">
+      <Filter>Doom\d_ %28Doom%29</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\d_netcmd.h">
+      <Filter>Doom\d_ %28Doom%29</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\d_player.h">
+      <Filter>Doom\d_ %28Doom%29</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\d_prof.h">
+      <Filter>Doom\d_ %28Doom%29</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\d_rdf.h">
+      <Filter>Doom\d_ %28Doom%29</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\d_rmod.h">
+      <Filter>Doom\d_ %28Doom%29</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\d_think.h">
+      <Filter>Doom\d_ %28Doom%29</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\d_ticcmd.h">
+      <Filter>Doom\d_ %28Doom%29</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\am_map.h">
+      <Filter>Doom\am_ %28Automap%29</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\byteptr.h" />
+    <ClInclude Include="..\..\src\c_lib.h" />
+    <ClInclude Include="..\..\src\command.h" />
+    <ClInclude Include="..\..\src\console.h" />
+    <ClInclude Include="..\..\src\dehacked.h" />
+    <ClInclude Include="..\..\src\doomdata.h" />
+    <ClInclude Include="..\..\src\doomdef.h" />
+    <ClInclude Include="..\..\src\doomstat.h" />
+    <ClInclude Include="..\..\src\doomtype.h" />
+    <ClInclude Include="..\..\src\dstrings.h" />
+    <ClInclude Include="..\..\src\info.h" />
+    <ClInclude Include="..\..\src\keys.h" />
+    <ClInclude Include="..\..\src\md5.h" />
+    <ClInclude Include="..\..\src\screen.h" />
+    <ClInclude Include="..\..\src\sounds.h" />
+    <ClInclude Include="..\..\src\tables.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="..\..\src\i_util.c">
+      <Filter>Interfaces</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\i_utlnet.c">
+      <Filter>Interfaces</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\i_utlsfx.c">
+      <Filter>Interfaces</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\sdl\i_main.c">
+      <Filter>Interfaces\SDL</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\sdl\i_music.c">
+      <Filter>Interfaces\SDL</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\sdl\i_net.c">
+      <Filter>Interfaces\SDL</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\sdl\i_sound.c">
+      <Filter>Interfaces\SDL</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\sdl\i_system.c">
+      <Filter>Interfaces\SDL</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\sdl\i_video.c">
+      <Filter>Interfaces\SDL</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\allegro\i_main.c">
+      <Filter>Interfaces\Allegro</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\allegro\i_music.c">
+      <Filter>Interfaces\Allegro</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\allegro\i_net.c">
+      <Filter>Interfaces\Allegro</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\allegro\i_sound.c">
+      <Filter>Interfaces\Allegro</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\allegro\i_system.c">
+      <Filter>Interfaces\Allegro</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\allegro\i_video.c">
+      <Filter>Interfaces\Allegro</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\v_video.c">
+      <Filter>v_ %28Video%29</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\v_widget.c">
+      <Filter>v_ %28Video%29</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\w_wad.c">
+      <Filter>w_ %28WADs%29</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\wi_stuff.c">
+      <Filter>wi_ %28Intermission%29</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\z_zone.c">
+      <Filter>z_ %28Memory%29</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\r_bsp.c">
+      <Filter>Doom\r_ %28Renderer%29</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\r_data.c">
+      <Filter>Doom\r_ %28Renderer%29</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\r_draw.c">
+      <Filter>Doom\r_ %28Renderer%29</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\r_main.c">
+      <Filter>Doom\r_ %28Renderer%29</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\r_plane.c">
+      <Filter>Doom\r_ %28Renderer%29</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\r_segs.c">
+      <Filter>Doom\r_ %28Renderer%29</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\r_sky.c">
+      <Filter>Doom\r_ %28Renderer%29</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\r_splats.c">
+      <Filter>Doom\r_ %28Renderer%29</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\r_things.c">
+      <Filter>Doom\r_ %28Renderer%29</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\s_sound.c">
+      <Filter>Doom\s_ %28Sound%29</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\p_ceilng.c">
+      <Filter>Doom\p_ %28Logic%29</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\p_chex.c">
+      <Filter>Doom\p_ %28Logic%29</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\p_demcmp.c">
+      <Filter>Doom\p_ %28Logic%29</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\p_doors.c">
+      <Filter>Doom\p_ %28Logic%29</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\p_enemy.c">
+      <Filter>Doom\p_ %28Logic%29</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\p_fab.c">
+      <Filter>Doom\p_ %28Logic%29</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\p_floor.c">
+      <Filter>Doom\p_ %28Logic%29</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\p_genlin.c">
+      <Filter>Doom\p_ %28Logic%29</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\p_info.c">
+      <Filter>Doom\p_ %28Logic%29</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\p_inter.c">
+      <Filter>Doom\p_ %28Logic%29</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\p_lights.c">
+      <Filter>Doom\p_ %28Logic%29</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\p_map.c">
+      <Filter>Doom\p_ %28Logic%29</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\p_maputl.c">
+      <Filter>Doom\p_ %28Logic%29</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\p_mobj.c">
+      <Filter>Doom\p_ %28Logic%29</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\p_plats.c">
+      <Filter>Doom\p_ %28Logic%29</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\p_pspr.c">
+      <Filter>Doom\p_ %28Logic%29</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\p_saveg.c">
+      <Filter>Doom\p_ %28Logic%29</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\p_setup.c">
+      <Filter>Doom\p_ %28Logic%29</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\p_sight.c">
+      <Filter>Doom\p_ %28Logic%29</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\p_spec.c">
+      <Filter>Doom\p_ %28Logic%29</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\p_switch.c">
+      <Filter>Doom\p_ %28Logic%29</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\p_telept.c">
+      <Filter>Doom\p_ %28Logic%29</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\p_tick.c">
+      <Filter>Doom\p_ %28Logic%29</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\p_user.c">
+      <Filter>Doom\p_ %28Logic%29</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\st_lib.c">
+      <Filter>Doom\st_ %28Status Bar%29</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\st_stuff.c">
+      <Filter>Doom\st_ %28Status Bar%29</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\t_comp.c">
+      <Filter>Doom\t_ %28FraggleScript/ReMooD Script%29</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\t_func.c">
+      <Filter>Doom\t_ %28FraggleScript/ReMooD Script%29</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\t_oper.c">
+      <Filter>Doom\t_ %28FraggleScript/ReMooD Script%29</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\t_parse.c">
+      <Filter>Doom\t_ %28FraggleScript/ReMooD Script%29</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\t_prepro.c">
+      <Filter>Doom\t_ %28FraggleScript/ReMooD Script%29</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\t_script.c">
+      <Filter>Doom\t_ %28FraggleScript/ReMooD Script%29</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\t_spec.c">
+      <Filter>Doom\t_ %28FraggleScript/ReMooD Script%29</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\t_vari.c">
+      <Filter>Doom\t_ %28FraggleScript/ReMooD Script%29</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\m_argv.c">
+      <Filter>Doom\m_ %28Misc%29</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\m_bbox.c">
+      <Filter>Doom\m_ %28Misc%29</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\m_cheat.c">
+      <Filter>Doom\m_ %28Misc%29</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\m_fixed.c">
+      <Filter>Doom\m_ %28Misc%29</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\m_menu.c">
+      <Filter>Doom\m_ %28Misc%29</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\m_menudr.c">
+      <Filter>Doom\m_ %28Misc%29</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\m_menufn.c">
+      <Filter>Doom\m_ %28Misc%29</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\m_misc.c">
+      <Filter>Doom\m_ %28Misc%29</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\m_random.c">
+      <Filter>Doom\m_ %28Misc%29</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\hu_stuff.c">
+      <Filter>Doom\hu_ %28HUD%29</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\g_game.c">
+      <Filter>Doom\g_ %28Game%29</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\g_input.c">
+      <Filter>Doom\g_ %28Game%29</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\g_state.c">
+      <Filter>Doom\g_ %28Game%29</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\f_finale.c">
+      <Filter>Doom\f_ %28Finale%29</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\f_wipe.c">
+      <Filter>Doom\f_ %28Finale%29</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\d_block.c">
+      <Filter>Doom\d_ %28Doom%29</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\d_clisrv.c">
+      <Filter>Doom\d_ %28Doom%29</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\d_info.c">
+      <Filter>Doom\d_ %28Doom%29</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\d_items.c">
+      <Filter>Doom\d_ %28Doom%29</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\d_main.c">
+      <Filter>Doom\d_ %28Doom%29</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\d_net.c">
+      <Filter>Doom\d_ %28Doom%29</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\d_netcmd.c">
+      <Filter>Doom\d_ %28Doom%29</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\d_prof.c">
+      <Filter>Doom\d_ %28Doom%29</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\d_rdf.c">
+      <Filter>Doom\d_ %28Doom%29</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\d_rmod.c">
+      <Filter>Doom\d_ %28Doom%29</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\am_map.c">
+      <Filter>Doom\am_ %28Automap%29</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\c_lib.c" />
+    <ClCompile Include="..\..\src\command.c" />
+    <ClCompile Include="..\..\src\console.c" />
+    <ClCompile Include="..\..\src\dehacked.c" />
+    <ClCompile Include="..\..\src\dstrings.c" />
+    <ClCompile Include="..\..\src\info.c" />
+    <ClCompile Include="..\..\src\md5.c" />
+    <ClCompile Include="..\..\src\screen.c" />
+    <ClCompile Include="..\..\src\sounds.c" />
+    <ClCompile Include="..\..\src\tables.c" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="..\..\rc\remood.ico" />
+    <None Include="..\..\rc\remoods.ico" />
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="..\..\rc\remood.rc" />
+  </ItemGroup>
+</Project>

@@ -162,6 +162,9 @@ void TryRunTics(tic_t realtics)
 {
 	static tic_t LastTic;
 	tic_t LocalTic, TargetTic;
+
+	// Init
+	LocalTic = 0;
 	
 	// Last tic not set?
 	if (!LastTic)

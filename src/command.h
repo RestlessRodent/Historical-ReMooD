@@ -32,7 +32,11 @@
 #ifndef __COMMAND_H__
 #define __COMMAND_H__
 
-#warning Inclusion of command.h is deprecated.
+#if defined(_MSC_VER)
+	#pragma warning (Inclusion of command.h is deprecated.)
+#else
+	#warning Inclusion of command.h is deprecated.
+#endif
 
 #include <stdio.h>
 #include "doomtype.h"

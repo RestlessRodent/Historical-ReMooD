@@ -190,7 +190,7 @@
 		</Configuration>
 		<Configuration
 			Name="Debug (Allegro)|Win32"
-			OutputDirectory="$(ConfigurationName)"
+			OutputDirectory="..\..\bin"
 			IntermediateDirectory="$(ConfigurationName)"
 			ConfigurationType="1"
 			CharacterSet="0"
@@ -215,7 +215,7 @@
 				Name="VCCLCompilerTool"
 				UseUnicodeResponseFiles="false"
 				Optimization="0"
-				EnableIntrinsicFunctions="true"
+				EnableIntrinsicFunctions="false"
 				FavorSizeOrSpeed="0"
 				AdditionalIncludeDirectories="..\..\src\;..\..\src\sdl\"
 				PreprocessorDefinitions="WIN32,_WIN32,_DEBUG,_CRT_SECURE_NO_WARNINGS,__REMOOD_SYSTEM_WINDOWS,__REMOOD_INTERFACE_ALLEGRO"
@@ -243,12 +243,14 @@
 			<Tool
 				Name="VCLinkerTool"
 				AdditionalDependencies="winmm.lib wsock32.lib kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib shell32.lib alleg.lib"
-				OutputFile="$(OutDir)\remood.exe"
+				OutputFile="$(OutDir)\remood-dbg.exe"
 				IgnoreAllDefaultLibraries="false"
 				GenerateDebugInformation="true"
+				AssemblyDebug="1"
+				GenerateMapFile="true"
 				SubSystem="2"
-				OptimizeReferences="2"
-				EnableCOMDATFolding="2"
+				OptimizeReferences="0"
+				EnableCOMDATFolding="0"
 				OptimizeForWindows98="1"
 				RandomizedBaseAddress="1"
 				TargetMachine="1"
@@ -277,7 +279,7 @@
 		</Configuration>
 		<Configuration
 			Name="Release (Allegro)|Win32"
-			OutputDirectory="$(ConfigurationName)"
+			OutputDirectory="..\..\bin"
 			IntermediateDirectory="$(ConfigurationName)"
 			ConfigurationType="1"
 			CharacterSet="0"
@@ -711,20 +713,6 @@
 							Name="VCCLCompilerTool"
 						/>
 					</FileConfiguration>
-					<FileConfiguration
-						Name="Debug (Allegro)|Win32"
-						>
-						<Tool
-							Name="VCCLCompilerTool"
-						/>
-					</FileConfiguration>
-					<FileConfiguration
-						Name="Release (Allegro)|Win32"
-						>
-						<Tool
-							Name="VCCLCompilerTool"
-						/>
-					</FileConfiguration>
 				</File>
 				<File
 					RelativePath="..\..\src\allegro\i_music.c"
@@ -740,20 +728,6 @@
 					<FileConfiguration
 						Name="Release (SDL)|Win32"
 						ExcludedFromBuild="true"
-						>
-						<Tool
-							Name="VCCLCompilerTool"
-						/>
-					</FileConfiguration>
-					<FileConfiguration
-						Name="Debug (Allegro)|Win32"
-						>
-						<Tool
-							Name="VCCLCompilerTool"
-						/>
-					</FileConfiguration>
-					<FileConfiguration
-						Name="Release (Allegro)|Win32"
 						>
 						<Tool
 							Name="VCCLCompilerTool"
@@ -779,20 +753,6 @@
 							Name="VCCLCompilerTool"
 						/>
 					</FileConfiguration>
-					<FileConfiguration
-						Name="Debug (Allegro)|Win32"
-						>
-						<Tool
-							Name="VCCLCompilerTool"
-						/>
-					</FileConfiguration>
-					<FileConfiguration
-						Name="Release (Allegro)|Win32"
-						>
-						<Tool
-							Name="VCCLCompilerTool"
-						/>
-					</FileConfiguration>
 				</File>
 				<File
 					RelativePath="..\..\src\allegro\i_sound.c"
@@ -808,20 +768,6 @@
 					<FileConfiguration
 						Name="Release (SDL)|Win32"
 						ExcludedFromBuild="true"
-						>
-						<Tool
-							Name="VCCLCompilerTool"
-						/>
-					</FileConfiguration>
-					<FileConfiguration
-						Name="Debug (Allegro)|Win32"
-						>
-						<Tool
-							Name="VCCLCompilerTool"
-						/>
-					</FileConfiguration>
-					<FileConfiguration
-						Name="Release (Allegro)|Win32"
 						>
 						<Tool
 							Name="VCCLCompilerTool"
@@ -847,20 +793,6 @@
 							Name="VCCLCompilerTool"
 						/>
 					</FileConfiguration>
-					<FileConfiguration
-						Name="Debug (Allegro)|Win32"
-						>
-						<Tool
-							Name="VCCLCompilerTool"
-						/>
-					</FileConfiguration>
-					<FileConfiguration
-						Name="Release (Allegro)|Win32"
-						>
-						<Tool
-							Name="VCCLCompilerTool"
-						/>
-					</FileConfiguration>
 				</File>
 				<File
 					RelativePath="..\..\src\allegro\i_video.c"
@@ -881,20 +813,6 @@
 							Name="VCCLCompilerTool"
 						/>
 					</FileConfiguration>
-					<FileConfiguration
-						Name="Debug (Allegro)|Win32"
-						>
-						<Tool
-							Name="VCCLCompilerTool"
-						/>
-					</FileConfiguration>
-					<FileConfiguration
-						Name="Release (Allegro)|Win32"
-						>
-						<Tool
-							Name="VCCLCompilerTool"
-						/>
-					</FileConfiguration>
 				</File>
 			</Filter>
 		</Filter>
@@ -907,6 +825,18 @@
 			</File>
 			<File
 				RelativePath="..\..\src\v_video.h"
+				>
+			</File>
+			<File
+				RelativePath="..\..\src\v_widc.h"
+				>
+			</File>
+			<File
+				RelativePath="..\..\src\v_widget.c"
+				>
+			</File>
+			<File
+				RelativePath="..\..\src\v_widget.h"
 				>
 			</File>
 		</Filter>
@@ -1420,6 +1350,14 @@
 			<Filter
 				Name="d_ (Doom)"
 				>
+				<File
+					RelativePath="..\..\src\d_block.c"
+					>
+				</File>
+				<File
+					RelativePath="..\..\src\d_block.h"
+					>
+				</File>
 				<File
 					RelativePath="..\..\src\d_clisrv.c"
 					>

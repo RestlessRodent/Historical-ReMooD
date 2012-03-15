@@ -113,7 +113,7 @@ uint32_t SwapUInt32(const uint32_t In);
 uint64_t SwapUInt64(const uint64_t In);
 int16_t SwapInt16(const int16_t In);
 int32_t SwapInt32(const int32_t In);
-int32_t SwapInt64(const int64_t In);
+int64_t SwapInt64(const int64_t In);
 
 
 __REMOOD_LITTLESWAPMACRO(Int16, int16_t);
