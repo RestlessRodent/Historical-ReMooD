@@ -29,6 +29,109 @@ C888888:   :8O.   .C##########  ### #### ### ##    ##  ##    ## ####    ###
  
 -------------------------------------------------------------------------------
 
+#### BEGIN ACTUAL TODO LIST ###################################################
+
+These are the following things that need to be done to progress: When done
+mark as completed, too bad there is no ASCII checkmark.
+
+ * f_finale:	RMODize the code or use another special proprietary format to
+				define the finale cast.
+
+ * v_widget:	Rework the widget code, it sucks. Although it can be expanded it
+ 				has just turned into a huge contorted mess of object oriented
+ 				C. Would still have to do OO C but it can be done alot cleaner
+ 				than what is already here.
+ 
+ * v_video:		Add back support for characters with accents and such along with
+ 				other international characters.
+ 
+ * v_video:		Make the patch drawing functions in the image code actually
+ 				secure so someone won't crash the game with a badly malformed
+ 				patch.
+ 
+ * v_video:		Add support for tall patches to be drawn.
+ 
+ * makefile:	Add back WAD building to the makefile and make it mandatory and
+ 				dependable so you don't have to wad/makewad.sh. Would also have
+ 				to make it work on MSVC too.
+ 
+ * remootex:	Rewrite the old crusty program that was basically a proof of
+ 				concept into something much more reliable and better.
+ 
+ * t_*:			Implement the ReMooD Virtual Machine (big undertaking).
+ 
+ * p_spec/intr:	Make line triggers and sector specials dynamic in RMOD so that
+ 				pages and pages of switch statements are removed.
+ 
+ * sounds:		Fix the sound code for WL and add support for SNDINFO or another
+ 				similar format. (Needed for Hexen anyway)
+ 
+ * w_wad:		Remove the old W_ and WX_ code, it is very old.
+ 
+ * p_info:		Remove the old info interface and use the new one, which is
+ 				much better and more dynamic. Also, implement the remaining
+ 				stuff needed to parse info on a level.
+ 
+ * m_cheat:		Rewrite the cheat subsystem and possibly RMOD it so that any
+ 				cheats done are not a huge mess. Could also add a single cheat
+ 				command that can access all cheats ("cheats list" anyone?).
+ 
+ * d_prof:		Rewrite the profile subsystem and make it so it isn't a giant
+ 				old console code hack. It should be better and independent along
+ 				with the ability to be placed in new config files and to have it
+ 				transferrable over the net. Also, make per player configs and
+ 				key binds along with alternative configs (such as when playing
+ 				with someone else) and if two players share the same keys, then
+ 				show a list of conflicts so they don't screw each other over.
+ 
+ * m_menu:		Rewrite the drawing stuff so it is much better, with the super
+ 				new widget code.
+ 
+ * command:		Remove all this junk.
+ 
+ * console:		Move all the variables to the new system.
+ 
+ * g_*,p_*:		Make game settings semi-console bound but not exactly console
+ 				bound, this way demos and such along with network environments
+ 				will work without much trouble here.
+ 
+ * g_state:		Merge this file into something else, it virtually has nothing
+ 				here and just holds game state defines for some reason.
+ 
+ * info:		RMODize everything.
+ 
+ * md5:			Use a better algorithm?
+ 
+ * p_mobj:		Make per object P_Random() and possibly map based P_Random().
+ 				Fully synced for synced games and per object/thinker for async
+ 				games.
+ 
+ * p_chex:		Make this an internal DeHackEd Patch and put it in remood.wad.
+ 
+ * g_input:		Delete the way normal input is done and do it a profile way so
+ 				that there are no more console variables that define keys.
+ 
+ * dehacked:	RMODize this to make it fit with RMOD and not be so constant.
+ 
+ * p_???:		Make P_CheckSight() stop at 3D floors.
+ 
+ * *:			Remove all that demoversion < > <= >= junk and just make them
+ 				all game varaibles (so one could easily support old demos or
+ 				possibly even record older demos -complevel).
+ 
+ * p_???:		Fixup Vanilla and older Legacy Demo suports so the ancient
+ 				demos play.
+ 
+ * d_eng/frn:	Remove these language files, will be replaced by the stuff in
+ 				dstrings for internationalization.
+ 
+ * p_fab:		Remove this file and put the stuff elsewhere.
+
+###############################################################################
+ END ACTUAL TODO LIST
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
 in r_splats.c, make wallsplats a dynamic array instead of a static one of size
 MAXLEVELSPLATS. This way, global memory space is reduced potentially and the
 game memory can be managed better.
