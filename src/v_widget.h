@@ -101,6 +101,7 @@ struct V_WidgetEx_s
 	VEX_TransparencyList_t wBorderTrans;		// Widget Border Transparency
 	uint8_t wBorderSize;						// Size of border (in 320x200 pixels)
 	VideoFont_t wFont;							// Widget Font
+	char* wStrVal;								// String value
 	
 	/* Handler Functions */
 		// fDelete() -- Delete widget
@@ -122,6 +123,9 @@ struct V_WidgetEx_s
 ****************/
 
 V_WidgetEx_t* V_WidgetExNewLabel(const VideoFont_t a_Font, const char* const a_Text);
+
+void V_WidgetExDelete(V_WidgetEx_t* const a_This);
+void V_WidgetExDraw(V_WidgetEx_t* const a_This);
 
 #endif /* __V_WIDGET_H__ */
 

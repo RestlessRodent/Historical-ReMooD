@@ -1839,6 +1839,12 @@ void M_MenuExDrawer(void)
 		// Draw widgets
 		V_WidgetDraw(l_ActiveMenuStack[p]->BigWidget, 0);
 	}
+	
+	{
+		V_WidgetEx_t* wex = V_WidgetExNewLabel(VFONT_LARGE, "Hello World");
+		V_WidgetExDraw(wex);
+		V_WidgetExDelete(wex);
+	}
 #endif /* __REMOOD_DEDICATED */
 }
 

@@ -685,13 +685,131 @@ int32_t V_WidgetGetPropertyInt(V_Widget_t* const a_Widget, const char* const a_K
 *** GENERIC WIDGET FUNCTIONS ***
 *******************************/
 
+/* VS_GenericWEX_Draw() -- Generic Draw function */
+static void VS_GenericWEX_Draw(V_WidgetEx_t* const a_This)
+{
+	/* Check */
+	if (!a_This)
+		return;
+	
+	/* Draw background color? */
+	if (a_This->wColor[1] != VEX_MAP_NONE)
+	{
+		// Draw a nice colored box
+		V_DrawColorBoxEx(
+				VEX_COLORMAP(a_This->wColor[1]) | VEX_TRANS(a_This->wTrans[1]),
+				112,
+				a_This->wPos[0],
+				a_This->wPos[1],
+				a_This->wPos[0] + a_This->wSize[0],
+				a_This->wPos[1] + a_This->wSize[1]
+			);
+	}
+	
+	/* Draw border? */
+	if (a_This->wBorderColor != VEX_MAP_NONE)
+	{
+		// Draw a nice colored box
+		V_DrawColorBoxEx(
+				VEX_HOLLOW | VEX_COLORMAP(a_This->wBorderColor) | VEX_TRANS(a_This->wBorderTrans),
+				112,
+				a_This->wPos[0],
+				a_This->wPos[1],
+				a_This->wPos[0] + a_This->wSize[0],
+				a_This->wPos[1] + a_This->wSize[1]
+			);
+	}
+}
+
+/* VS_BaseWidgetEx() -- Creates a base widget */
+static V_WidgetEx_t* VS_BaseWidgetEx(void)
+{
+	V_WidgetEx_t* New;
+	
+	/* Allocate */
+	New = Z_Malloc(sizeof(*New), PU_STATIC, NULL);
+	
+	/* Set base functions */
+	New->fDraw = VS_GenericWEX_Draw;
+	
+	/* Return */
+	return New;
+}
+
 /************
 *** LABEL ***
 ************/
 
+/* VS_LabelWEX_Draw() -- Label Draw function */
+static void VS_LabelWEX_Draw(V_WidgetEx_t* const a_This)
+{
+	/* Check */
+	if (!a_This)
+		return;
+	
+	/* Draw generic */
+	VS_GenericWEX_Draw(a_This);
+	
+	/* Draw label text */
+	if (a_This->wStrVal)
+		V_DrawStringA(a_This->wFont, VEX_COLORMAP(a_This->wColor[0]) | VEX_TRANS(a_This->wTrans[0]), a_This->wStrVal, a_This->wPos[0], a_This->wPos[1]);
+}
+
 /* V_WidgetExNewLabel() -- Creates a new label */
 V_WidgetEx_t* V_WidgetExNewLabel(const VideoFont_t a_Font, const char* const a_Text)
 {
+	V_WidgetEx_t* RetVal;
+	
+	/* Create base */
+	RetVal = VS_BaseWidgetEx();
+	
+	/* Set Properties */
+	// Set functions
+	RetVal->fDraw = VS_LabelWEX_Draw;
+	
+	// Set font
+	RetVal->wFont = a_Font;
+	
+	// Clone text
+	if (a_Text)
+		RetVal->wStrVal = Z_StrDup(a_Text, PU_STATIC, &RetVal->wStrVal);
+	
+	/* Return the created widget */
+	return RetVal;
+}
+
+/************************
+*** WRAPPER FUNCTIONS ***
+************************/
+
+/* V_WidgetExDelete() -- Delete widget */
+void V_WidgetExDelete(V_WidgetEx_t* const a_This)
+{
+	/* Check */
+	if (!a_This)
+		return;
+	
+	/* Call delete function (if any) */
+	if (a_This->fDelete)
+		a_This->fDelete(a_This);
+	
+	/* Cleanup */
+	if (a_This->wStrVal)
+		Z_Free(a_This->wStrVal);
+	
+	/* Remove widget */
+	Z_Free(a_This);
+}
+
+/* V_WidgetExDraw() -- Draw widget */
+void V_WidgetExDraw(V_WidgetEx_t* const a_This)
+{
+	/* Check */
+	if (!a_This || !a_This->fDraw)
+		return;
+	
+	/* Call */
+	a_This->fDraw(a_This);
 }
 
 

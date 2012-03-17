@@ -1066,6 +1066,8 @@ bool_t G_Responder(event_t* ev)
 		return true;
 	}
 	// any other key pops up menu if in demos
+		// GhostlyDeath <March 17, 2012> -- This messes up the console not opening when pressing any key during boot
+#if 0
 	if (gameaction == ga_nothing && !singledemo && (demoplayback || gamestate == GS_DEMOSCREEN))
 	{
 		if (ev->type == ev_keydown)
@@ -1075,6 +1077,7 @@ bool_t G_Responder(event_t* ev)
 		}
 		return false;
 	}
+#endif
 	
 	if (gamestate == GS_LEVEL)
 	{

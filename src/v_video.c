@@ -1203,29 +1203,60 @@ void V_DrawColorBoxEx(const uint32_t a_Flags, const int8_t a_Color, const int32_
 	// Speed
 	w = (X2 >> 2);
 	
-	// Loop
-	for (y = Y1; y < Y2; y += 8)
+	// Hollow (border) box
+	if (a_Flags & VEX_HOLLOW)
 	{
-		// Set buf
-		buf = (int*)(screens[0] + (vid.width * y) + X1);
+		// Top Line
+		buf = (int*)(screens[0] + (vid.width * (Y1)) + X1);
+		memset(buf, c, X2 - X1);
 		
-		// Loop
-		x = 0;
-		for (; x < (X2 - X1) - 8; x += 8)
+		// Bottom Line
+		buf = (int*)(screens[0] + (vid.width * (Y2)) + X1);
+		memset(buf, c, X2 - X1);
+		
+		// Side Lines
+		for (y = Y1; y < Y2; y++)
 		{
-			*((uint32_t*)(&buf[x])) = c;
-			*((uint32_t*)(&buf[x + 4])) = c;
-		}
-		
-		// Final bits
-		for (; x < (X2 - X1); x++)
-			((uint8_t*)buf)[x] = c;
+			// Set buf
+			buf = (screens[0] + (vid.width * y) + X1);
 			
-		// Inner second loop
-		for (i = 1; i < 8 && (y + i) < Y2; i++)
+			// Set single pixel values
+			buf[0] = c & 0xFFU;
+			buf[(X2 - X1) - 1] = c & 0xFFU;
+		}
+	}
+	
+	// Solid Box
+	else
+	{
+		// Loop
+		for (y = Y1; y < Y2; y += 8)
 		{
-			buf2 = (int*)(screens[0] + (vid.width * (y + i)) + X1);
-			memcpy(buf2, buf, X2 - X1);
+			// Set buf
+			buf = (int*)(screens[0] + (vid.width * y) + X1);
+			i = (((intptr_t)buf) & (intptr_t)7);
+			
+			// Pre-8 loop (prevents signaling buses)
+			for (x = 0; x < i; x++)
+				((uint8_t*)buf)[x] = c & 0xFFU;
+			
+			// Loop
+			for (; x < (X2 - X1) - 8; x += 8)
+			{
+				*((uint32_t*)(&buf[x])) = c;
+				*((uint32_t*)(&buf[x + 4])) = c;
+			}
+		
+			// Final bits
+			for (; x < (X2 - X1); x++)
+				((uint8_t*)buf)[x] = c & 0xFFU;
+			
+			// Inner second loop
+			for (i = 1; i < 8 && (y + i) < Y2; i++)
+			{
+				buf2 = (int*)(screens[0] + (vid.width * (y + i)) + X1);
+				memcpy(buf2, buf, X2 - X1);
+			}
 		}
 	}
 }
