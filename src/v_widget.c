@@ -677,3 +677,21 @@ int32_t V_WidgetGetPropertyInt(V_Widget_t* const a_Widget, const char* const a_K
 #endif /* __REMOOD_DEDICATED */
 }
 
+/******************************************************************************
+*******************************************************************************
+******************************************************************************/
+
+/*******************************
+*** GENERIC WIDGET FUNCTIONS ***
+*******************************/
+
+/************
+*** LABEL ***
+************/
+
+/* V_WidgetExNewLabel() -- Creates a new label */
+V_WidgetEx_t* V_WidgetExNewLabel(const VideoFont_t a_Font, const char* const a_Text)
+{
+}
+
+

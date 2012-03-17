@@ -126,6 +126,14 @@ mark as completed, too bad there is no ASCII checkmark.
  				dstrings for internationalization.
  
  * p_fab:		Remove this file and put the stuff elsewhere.
+ 
+ * p_*:			Merge all the door, specials, plats, etc. code into a single
+ 				RMOD possibly source and make it event based so that less code
+ 				does more things.
+ 
+ * w_*,z_,*:	For any WL_ data use special allocation tags for anything that
+ 				creates "ordered" data, this way it can also be freed after the
+ 				initial free in case there was any misses.
 
 ###############################################################################
  END ACTUAL TODO LIST

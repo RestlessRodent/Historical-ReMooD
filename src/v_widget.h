@@ -76,5 +76,52 @@ bool_t V_WidgetSetPropertyInt(V_Widget_t* const a_Widget, const char* const a_Ke
 bool_t V_WidgetGetPropertyStr(V_Widget_t* const a_Widget, const char* const a_Key, char* const a_Dest, const size_t a_Size);
 int32_t V_WidgetGetPropertyInt(V_Widget_t* const a_Widget, const char* const a_Key);
 
+/******************************************************************************
+*******************************************************************************
+******************************************************************************/
+
+/*****************
+*** STRUCTURES ***
+*****************/
+
+typedef struct V_WidgetEx_s V_WidgetEx_t;
+
+/* V_WidgetEx_t -- Extended widget */
+struct V_WidgetEx_s
+{
+	/* Information */
+	V_WidgetEx_t* wParent;						// Parent of widget
+	size_t wNumKids;							// Number of kids
+	V_WidgetEx_t** wKids;						// List of kids
+	int32_t wPos[2];							// Widget position (320x200)
+	int32_t wSize[2];							// Widget size (320x200)
+	VEX_ColorList_t wColor[2];					// Widget Color [FG, BG]
+	VEX_TransparencyList_t wTrans[2];			// Widget Transparency [FG, BG]
+	VEX_ColorList_t wBorderColor;				// Widget Border Color
+	VEX_TransparencyList_t wBorderTrans;		// Widget Border Transparency
+	uint8_t wBorderSize;						// Size of border (in 320x200 pixels)
+	VideoFont_t wFont;							// Widget Font
+	
+	/* Handler Functions */
+		// fDelete() -- Delete widget
+	void (*fDelete)(V_WidgetEx_t* const a_This);
+		// fDraw() -- Draw widget
+	void (*fDraw)(V_WidgetEx_t* const a_This);
+		// fAddKid() -- Add kid widget
+	void (*fAddKid)(V_WidgetEx_t* const a_This, V_WidgetEx_t* const a_Kid);
+		// fDelKid() -- Delete kid widget
+	void (*fDelKid)(V_WidgetEx_t* const a_This, V_WidgetEx_t* const a_Kid);
+		// fSetSize() -- Set size of widget
+	void (*fSetSize)(V_WidgetEx_t* const a_This, const int32_t a_W, const int32_t a_H);
+		// fSetPos() -- Set position of widget
+	void (*fSetPos)(V_WidgetEx_t* const a_This, const int32_t a_X, const int32_t a_Y);
+};
+
+/****************
+*** FUNCTIONS ***
+****************/
+
+V_WidgetEx_t* V_WidgetExNewLabel(const VideoFont_t a_Font, const char* const a_Text);
+
 #endif /* __V_WIDGET_H__ */
 
