@@ -903,12 +903,12 @@ const D_IWADInfoEx_t c_IWADInfos[] =
 	// Doom II: Hell on Earth
 	{
 		"Doom II: Hell on Earth",
-		"doom2:doomii:doomtwo:commercial:hellonearth",
-		"doom2.wad:freedoom.wad",
+		"doom2\0doomii\0doomtwo\0commercial\0hellonearth\0\0",
+		"doom2.wad\0freedoom.wad\0\0",
 		"6ff4def4bd24c6943540c790fbfe2642",
 		"25e1459ca71d321525f84628f45ca8cd",
 		"7ec7652fcfce8ddc6e801839291f0e28ef1d5ae7",
-		"MAP01:GRASS1:MAP31:MAP32",
+		"MAP01\0GRASS1\0MAP31\0MAP32\0\0",
 		14604584,
 		2919,
 		
@@ -924,12 +924,12 @@ const D_IWADInfoEx_t c_IWADInfos[] =
 	// The Ultimate Doom
 	{
 		"The Ultimate Doom",
-		"ultimatedoom:udoom:doomu:retail:thyfleshconsumed:tfc",
-		"doom.wad:doomu.wad;ultfdoom.wad",
+		"ultimatedoom\0udoom\0doomu\0retail\0thyfleshconsumed\0tfc\0\0",
+		"doom.wad\0doomu.wad\0ultfdoom.wad\0\0",
 		"befb2905b2b5df3e43a36e84e920f71f",
 		"c4fe9fd920207691a9f493668e0a2083",
 		"9b07b02ab3c275a6a7570c3f73cc20d63a0e3833",
-		"E1M1:E2M1:E3M1:E4M1",
+		"E1M1\0E2M1\0E3M1\0E4M1\0\0",
 		12408292,
 		2306,
 		
@@ -945,12 +945,12 @@ const D_IWADInfoEx_t c_IWADInfos[] =
 	// Doom Shareware
 	{
 		"Doom Shareware",
-		"sharewaredoom:doomshareware:shareware:doom1:kneedeepinthedead:kditd",
-		"doom1.wad",
+		"sharewaredoom\0doomshareware\0shareware\0doom1\0kneedeepinthedead\0kditd\0\0",
+		"doom1.wad\0\0",
 		"b9e51b0a0174fb0f52f0f641a06164d7",
 		"f0cefca49926d00903cf57551d901abe",
 		"5b2e249b9c5133ec987b3ea77596381dc0d6bc1d",
-		"E1M1:!E2M1:!E3M1:!E4M1",
+		"E1M1\0!E2M1\0!E3M1\0!E4M1\0\0",
 		4196020,
 		1264,
 		
@@ -979,44 +979,29 @@ uint32_t g_IWADFlags = 0;						// IWAD Flags
 /* DS_FieldNumber() -- Get field number from string */
 static const char* DS_FieldNumber(const char* const a_Str, const size_t a_Num)
 {
-#define BUFSIZE 256
-	static char StaticBuf[BUFSIZE];
-	const char* a;
-	const char* b;
-	size_t f;
+	const char* f;
+	size_t n;
 	
 	/* Check */
 	if (!a_Str)
 		return NULL;
-		
-	/* Clear */
-	memset(StaticBuf, 0, sizeof(StaticBuf));
 	
-	/* Seek */
-	a = b = a_Str;
-	for (f = 0;; f++)
+	/* Seek around */
+	f = a_Str;
+	n = 0;
+	while (*f)
 	{
-		// Find end of b
-		while (*b != '\0' && *b != ':')
-			b++;
+		// Match?
+		if (n == a_Num)
+			return f;
 		
-		// Found end (hopefully)
-		strncpy(StaticBuf, a, ((b - a) < BUFSIZE ? (b - a) : BUFSIZE));
-		
-		if (f == a_Num)
-			return StaticBuf;
-		
-		// Reset
-		if (*b == '\0')	// Last in sequence
-			return NULL;
-		
-		a = b = b + 1;
-		memset(StaticBuf, 0, sizeof(StaticBuf));
+		// Move up
+		n++;
+		f += strlen(f);
 	}
 	
-	/* Oops */
+	/* Not found */
 	return NULL;
-#undef BUFSIZE
 }
 
 /* DS_DetectReMooDWAD() -- Detects for ReMooD.WAD */
@@ -1264,10 +1249,13 @@ void D_LoadGameFilesEx(void)
 	if (!OK)
 		// For every WAD in the chain
 		for (i = 0; c_IWADInfos[i].BaseName; i++)
+		{
 			for (j = 0;; j++)
 			{
 				// Get field
 				Field = DS_FieldNumber(c_IWADInfos[i].BaseName, j);
+				
+				fprintf(stderr, "%i == %s\n", (int)j, Field);
 				
 				// No more fields
 				if (!Field)
@@ -1288,6 +1276,11 @@ void D_LoadGameFilesEx(void)
 					}
 				}
 			}
+			
+			// Found something
+			if (OK)
+				break;
+		}
 	
 	// Still not found?
 	if (!OK)
