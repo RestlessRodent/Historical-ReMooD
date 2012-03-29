@@ -823,7 +823,23 @@ void A_BFGSpray(mobj_t* mo)
 	int j;
 	int damage;
 	angle_t an;
-	mobj_t* extrabfg;;
+	mobj_t* extrabfg;
+	mobj_t* BallOwner;
+	weapontype_t OldWeapon;
+	
+	// Remember stuff about object
+	BallOwner = mo->target;
+	
+	if (BallOwner)
+		OldWeapon = BallOwner->RXShotWithWeapon;
+	else
+	{
+		BallOwner = mo;
+		OldWeapon = NUMWEAPONS;
+	}
+	
+	// Set owner weapon to BFG, etc.
+	BallOwner->RXShotWithWeapon = mo->RXShotWithWeapon;
 	
 	// offset angles from its attack angle
 	for (i = 0; i < 40; i++)
@@ -832,13 +848,14 @@ void A_BFGSpray(mobj_t* mo)
 		
 		// mo->target is the originator (player)
 		//  of the missile
-		P_AimLineAttack(mo->target, an, 16 * 64 * FRACUNIT);
+		P_AimLineAttack(BallOwner, an, 16 * 64 * FRACUNIT);
 		
 		if (!linetarget)
 			continue;
-			
+		
 		extrabfg = P_SpawnMobj(linetarget->x, linetarget->y, linetarget->z + (linetarget->height >> 2), INFO_GetTypeByName("BFGFlash"));
-		extrabfg->target = mo->target;
+		extrabfg->target = BallOwner;
+		extrabfg->RXShotWithWeapon = mo->RXShotWithWeapon;
 		
 		damage = 0;
 		for (j = 0; j < 15; j++)
@@ -847,6 +864,9 @@ void A_BFGSpray(mobj_t* mo)
 		//BP: use extramobj as inflictor so we have the good death message
 		P_DamageMobj(linetarget, extrabfg, mo->target, damage);
 	}
+	
+	// Set owner weapon to BFG, etc.
+	BallOwner->RXShotWithWeapon = OldWeapon;
 }
 
 //

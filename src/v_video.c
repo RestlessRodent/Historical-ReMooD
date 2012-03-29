@@ -3245,6 +3245,7 @@ typedef struct V_WLImageHolder_s
 /*** LOCALS ***/
 
 static bool_t l_VSImageBooted = false;
+static uint32_t l_VSImageAreaLimit = 0;			// Maximum picture size
 
 /*** FUNCTIONS ***/
 
@@ -3305,6 +3306,10 @@ static void VS_WLImagePDCRemove(const struct WL_WADFile_s* a_WAD)
 /* VS_InitialBoot() -- Initial startup */
 static void VS_InitialBoot(void)
 {
+	/* Static image limit? */
+	// FIXME TODO: cvar-ize
+	l_VSImageAreaLimit = 512 * 512;
+	
 	/* Register data loader */
 	if (!WL_RegisterPDC(WLDK_VIMAGES, WLDPO_VIMAGES, VS_WLImagePDC, VS_WLImagePDCRemove))
 		I_Error("VS_InitialBoot: Failed to register PDC!");
@@ -3461,6 +3466,24 @@ V_Image_t* V_ImageLoadE(const WL_WADEntry_t* const a_Entry)
 	
 	// Pixel count is based on image width*height
 	New->PixelCount = New->Width * New->Height;
+	
+	// Gigantic image?
+	if (New->PixelCount >= l_VSImageAreaLimit)
+	{
+		// Make square, lowest of
+		if (New->Width < New->Height)
+			New->Height = New->Width;
+		else if (New->Height < New->Width)
+			New->Width = New->Height;
+		
+		// GhostlyDeath <March 28, 2012> -- I'd like to avoid <math.h> but I don't know how
+		// to calc the square root int wise without the internet at my current disposal.
+		New->Width = (int)(sqrt((double)New->Width));
+		New->Height = New->Width;
+		
+		// Recalculate area
+		New->PixelCount = New->Width * New->Height;
+	}
 	
 	// Link into chain for this WAD
 	HI = WL_GetPrivateData(a_Entry->Owner, WLDK_VIMAGES, NULL);
