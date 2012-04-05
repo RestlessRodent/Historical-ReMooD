@@ -874,8 +874,8 @@ static bool_t RS_TextureOrderChange(const bool_t a_Pushed, const struct WL_WADFi
 			
 			// Look through existing list for match
 			for (b = 0; b < l_NumPatchList; b++)
-				if (Hash == l_PatchList[i].Hash)
-					if (strcasecmp(textures[i]->patches[j].PatchName, l_PatchList[i].Name) == 0)
+				if (Hash == l_PatchList[b].Hash)
+					if (strcasecmp(textures[i]->patches[j].PatchName, l_PatchList[b].Name) == 0)
 						break;
 			
 			// Not found, append to back

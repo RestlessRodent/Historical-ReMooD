@@ -86,6 +86,9 @@ void R_SetupSkyDraw(void)
 	// note: the TEXTURES lump doesn't have the taller size of Legacy
 	//       skies, but the patches it use will give the right size
 	
+	// GhostlyDeath <April 5, 2012> -- Clear wpatch (valgrind)
+	memset(&wpatch, 0, sizeof(wpatch));
+	
 	count = textures[skytexture]->patchcount;
 	patches = &textures[skytexture]->patches[0];
 	for (height = 0, i = 0; i < count; i++, patches++)

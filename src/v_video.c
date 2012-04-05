@@ -2131,7 +2131,7 @@ static bool_t VS_FontOCCB(const bool_t a_Pushed, const struct WL_WADFile_s* cons
 		uint32_t Count;
 	} Heights[MAXHEIGHTCHECKERS];
 	
-	struct
+	static const struct
 	{
 		uint16_t Start;
 		uint16_t Len;
@@ -4243,7 +4243,7 @@ void V_ImageDrawScaledIntoBuffer(const uint32_t a_Flags, V_Image_t* const a_Imag
 				for (;sxY < ESXy ; sxY += YFrac, yy++)
 				{
 					dP = a_DestBuffer + (a_DestPitch * yy) + x;
-					memcpy(dP, sP, tW);
+					memmove(dP, sP, tW);
 				}
 			}
 		

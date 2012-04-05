@@ -136,7 +136,8 @@ mark as completed, too bad there is no ASCII checkmark.
  				initial free in case there was any misses.
  				
  * *:			Switch from the WL_StreamXXX() to something a bit more generic
- 				similar to the block layer.
+ 				similar to the block layer. This way networks, files, etc.
+ 				will use the same code.
  
  * d_block:		Implement more of the block layer, and in fact make it much
  				better, lighter, and faster.

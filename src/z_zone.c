@@ -110,6 +110,227 @@ static Z_MemZone_t* l_MainZone = NULL;	// Memory zones
 *** PRIVATE FUNCTIONS ***
 ************************/
 
+#if defined(_DEBUG)
+//	#define __REMOOD_VALGRIND
+#endif
+
+#if defined(__REMOOD_VALGRIND)
+
+/* Z_Allocation_t -- A malloc allocation (chunked) */
+typedef struct Z_Allocation_s
+{
+	void* Data;									// Data to be allocated
+	Z_MemoryTag_t Tag;							// Allocation Tag
+	void** User;								// User
+	
+	struct Z_Allocation_s* Prev;				// Prev Block
+	struct Z_Allocation_s* Next;				// Next Block
+} Z_Allocation_t;
+
+static Z_Allocation_t* l_AllocChain = NULL;		// Allocation Chain
+
+/* ZS_AllocForPtr() -- Looks for pointer allocation */
+static Z_Allocation_t* ZS_AllocForPtr(void* const a_Ptr)
+{
+	Z_Allocation_t* Rover;
+	
+	/* Check */
+	if (!a_Ptr)
+		return NULL;
+	
+	/* Look through list */
+	for (Rover = l_AllocChain; Rover; Rover = Rover->Next)
+		// Match?
+		if (a_Ptr == Rover->Data)
+			return Rover;
+	
+	/* Not found */
+	return NULL;
+}
+
+/* Z_Init() -- Initialize the malloc() based memory manager */
+void Z_Init(void)
+{
+	// Nothing to do here
+}
+
+/* Z_TagUsage() -- Does nothing */
+size_t Z_TagUsage(const Z_MemoryTag_t TagNum)
+{
+	return 0;
+}
+
+/* Z_CheckHeap() -- Does nothing */
+void Z_CheckHeap(const int Code)
+{
+}
+
+/* Z_MallocWrappee() -- Allocate data */
+void* Z_MallocWrappee(const size_t Size, const Z_MemoryTag_t Tag, void** Ref _ZMGD_WRAPPEE)
+{
+	Z_Allocation_t* New;
+	static bool_t ReDo = false;
+	void* Ret;
+	
+	/* Check */
+	if (!Size)
+		return NULL;
+	
+	/* Create new */
+	New = malloc(sizeof(*New));
+	
+	// Check
+	if (New)
+	{
+		New->Prev = New->Next = NULL;
+		Ret = New->Data = malloc(Size);
+		New->User = Ref;
+		New->Tag = Tag;
+	}
+	
+	// Check
+	if (!New || (New && !New->Data))
+	{
+		// Redone?
+		if (ReDo)
+		{
+			I_Error("Z_Malloc: No more memory!\n");
+			return NULL;
+		}
+		
+		// Free cache tag
+		Z_FreeTags(PU_PURGELEVEL, NUMZTAGS);
+		
+		// Try again
+		ReDo = true;
+		Ret = Z_Malloc(Size, Tag, Ref);
+		ReDo = false;
+		
+		// Return it
+		return Ret;
+	}
+	
+	/* Clear */
+	memset(Ret, 0, Size);
+	
+	// Set
+	New->Tag = Tag;
+	
+	/* Link */
+	if (!l_AllocChain)
+		l_AllocChain = New;
+	else
+	{
+		New->Next = l_AllocChain;
+		l_AllocChain->Prev = New;
+		l_AllocChain = New;
+	}
+	
+	/* Return Data */
+	return Ret;
+}
+
+/* Z_FreeWrappee() -- Free pointer */
+void Z_FreeWrappee(void* const Ptr _ZMGD_WRAPPEE)
+{
+	Z_Allocation_t* Alloc;
+	
+	/* Check */
+	if (!Ptr)
+		return;
+	
+	/* Find pointer */
+	Alloc = ZS_AllocForPtr(Ptr);
+	
+	// Not found?
+	if (!Alloc)
+		return;
+	
+	/* Clear user */
+	if (Alloc->User)
+		*Alloc->User = NULL;
+	
+	/* Free everything else */
+	free(Alloc->Data);
+	
+	/* Re-chain */
+	if (Alloc->Prev)
+		Alloc->Prev->Next = Alloc->Next;
+	if (Alloc->Next)
+		Alloc->Next->Prev = Alloc->Prev;
+}
+
+size_t Z_FreeTagsWrappee(const Z_MemoryTag_t LowTag, const Z_MemoryTag_t HighTag _ZMGD_WRAPPEE)
+{
+	Z_Allocation_t* Rover;
+	Z_Allocation_t* Next;
+	
+	/* Look through list */
+	for (Rover = l_AllocChain; Rover; Rover = Rover->Next)
+	{
+		// Match?
+		if (Rover->Tag >= LowTag && Rover->Tag < HighTag)
+		{
+			Next = Rover->Next;
+			Z_Free(Rover->Data);
+			Rover = Next;
+		}
+	}
+}
+
+/* Z_GetTagFromPtrWrappee() -- Returns tag from this pointer */
+Z_MemoryTag_t Z_GetTagFromPtrWrappee(void* const Ptr _ZMGD_WRAPPEE)
+{
+	Z_Allocation_t* Alloc;
+	
+	/* Check */
+	if (!Ptr)
+		return;
+	
+	/* Find pointer */
+	Alloc = ZS_AllocForPtr(Ptr);
+	
+	// Not found?
+	if (!Alloc)
+		return;
+	
+	/* Return tag */
+	return Alloc->Tag;
+}
+
+/* Z_ChangeTagWrappee() -- Changes this pointer's tag (returns old tag) */
+Z_MemoryTag_t Z_ChangeTagWrappee(void* const Ptr, const Z_MemoryTag_t NewTag _ZMGD_WRAPPEE)
+{
+	Z_Allocation_t* Alloc;
+	Z_MemoryTag_t OldTag;
+	
+	/* Check */
+	if (!Ptr)
+		return;
+	
+	/* Find pointer */
+	Alloc = ZS_AllocForPtr(Ptr);
+	
+	// Not found?
+	if (!Alloc)
+		return;
+	
+	/* Return tag */
+	OldTag = Alloc->Tag;
+	
+	// Modify
+	Alloc->Tag = NewTag;
+	
+	// Return it
+	return OldTag;
+}
+
+void Z_RegisterCommands(void)
+{
+}
+
+#else
+
 /* ZP_NewZone() -- Creates a new memory zone */
 bool_t ZP_NewZone(size_t* const SizePtr, Z_MemZone_t** const ZoneRef)
 {
@@ -143,6 +364,7 @@ bool_t ZP_NewZone(size_t* const SizePtr, Z_MemZone_t** const ZoneRef)
 		free(NewZone);
 		return false;
 	}
+	
 	// Clear it out
 	memset(NewZone->DataChunk, 0, ShiftSize << PARTSHIFT);
 	
@@ -1036,6 +1258,8 @@ void Z_RegisterCommands(void)
 	CONL_AddCommand("memcachefree", ZS_MemCacheFree);
 	CONL_AddCommand("memfrag", ZS_MemFrag);
 }
+
+#endif
 
 /***********************
 *** COMMON FUNCTIONS ***
