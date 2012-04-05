@@ -1287,7 +1287,7 @@ void COM_BufExecute(void)
 		{
 			i++;
 			com_text.cursize -= i;
-			memcpy(text, text + i, com_text.cursize);
+			memmove(text, text + i, com_text.cursize);
 		}
 		
 		// execute the command line

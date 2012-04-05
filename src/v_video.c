@@ -4141,6 +4141,12 @@ void V_ImageDrawScaledIntoBuffer(const uint32_t a_Flags, V_Image_t* const a_Imag
 	if ((x + (xw >> FRACBITS)) >= a_DestWidth)
 		xw = (a_DestWidth << FRACBITS) - (x << FRACBITS);
 	
+	// way off screen?
+	if (y >= a_DestHeight)
+		return;
+	if (x >= a_DestWidth)
+		return;
+	
 	/* If the image is a patch_t then draw it as a patch */
 	// Since patches have "holes" for transparency
 	if (a_Image->NativeType == VIT_PATCH)

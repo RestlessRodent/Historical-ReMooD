@@ -111,7 +111,7 @@ static Z_MemZone_t* l_MainZone = NULL;	// Memory zones
 ************************/
 
 #if defined(_DEBUG)
-//	#define __REMOOD_VALGRIND
+	#define __REMOOD_VALGRIND
 #endif
 
 #if defined(__REMOOD_VALGRIND)
