@@ -819,7 +819,7 @@ static bool_t RS_TextureOrderChange(const bool_t a_Pushed, const struct WL_WADFi
 		else
 		{
 			b = PutWall;
-			n = b + (numtextures - PutFloor);
+			n = numtextures;//b + (numtextures - PutFloor);
 		}
 		
 		// Sort through (memory: 2, selection sort)
@@ -827,11 +827,8 @@ static bool_t RS_TextureOrderChange(const bool_t a_Pushed, const struct WL_WADFi
 		{
 			// Initial best
 			for (Best = b; Best < n; Best++)
-			{
-				// TODO FIXME: Invalid read of size 8
 				if (TempArray[Best])
 					break;
-			}
 			
 			// Find lowest
 			for (j = b; j < n; j++)
@@ -840,11 +837,9 @@ static bool_t RS_TextureOrderChange(const bool_t a_Pushed, const struct WL_WADFi
 						Best = j;
 			
 			// Place best here
-				// TODO FIXME: Invalid read of size 8
 			textures[y++] = TempArray[Best];
 			
 			// Wipe out best value
-				// TODO FIXME: Invalid read of size 8
 			TempArray[Best] = NULL;
 		}
 	}

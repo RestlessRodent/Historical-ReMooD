@@ -4149,6 +4149,7 @@ void V_ImageDrawScaledIntoBuffer(const uint32_t a_Flags, V_Image_t* const a_Imag
 	
 	/* If the image is a patch_t then draw it as a patch */
 	// Since patches have "holes" for transparency
+#if 0
 	if (a_Image->NativeType == VIT_PATCH)
 	{
 		// Load the patch
@@ -4210,6 +4211,7 @@ void V_ImageDrawScaledIntoBuffer(const uint32_t a_Flags, V_Image_t* const a_Imag
 	
 	/* Otherwise, treat it as a raw image */
 	else
+#endif
 	{
 		// Load data
 		RawData = V_ImageGetRaw(a_Image, NULL);
