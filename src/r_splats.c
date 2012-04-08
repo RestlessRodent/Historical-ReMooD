@@ -37,6 +37,7 @@
 #include "w_wad.h"
 #include "z_zone.h"
 #include "d_netcmd.h"
+#include "p_demcmp.h"
 
 #ifdef WALLSPLATS
 static wallsplat_t wallsplats[MAXLEVELSPLATS];	// WALL splats
@@ -135,7 +136,7 @@ void R_AddWallSplat(line_t* wallline, int sectorside, char* patchname, fixed_t t
 		return;
 		
 	// Demo version
-	if (demoversion < 128)
+	if (!P_EXGSGetValue(PEXGSBID_COENABLESPLATS))
 		return;
 		
 	/* Pre-init some variables */

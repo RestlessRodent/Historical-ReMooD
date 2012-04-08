@@ -518,7 +518,7 @@ static bool_t P_LookForPlayers(mobj_t* actor, bool_t allaround)
 	sector = actor->subsector->sector;
 	
 	// BP: first time init, this allow minimum lastlook changes
-	if (actor->lastlook < 0 && demoversion >= 129)
+	if (actor->lastlook < 0 && P_EXGSGetValue(PEXGSBID_CORANDOMLASTLOOK))
 		actor->lastlook = P_Random() % MAXPLAYERS;
 	
 	c = 0;
@@ -1229,7 +1229,7 @@ void A_VileChase(mobj_t* actor)
 					info = corpsehit->info;
 					
 					P_SetMobjState(corpsehit, info->raisestate);
-					if (demoversion < 129)
+					if (P_EXGSGetValue(PEXGSBID_COUNSHIFTVILERAISE))
 						corpsehit->height <<= 2;
 					else
 					{
@@ -1690,7 +1690,7 @@ void A_Fall(mobj_t* actor)
 	// actor is on ground, it can be walked over
 	if (!cv_solidcorpse.value)
 		actor->flags &= ~MF_SOLID;
-	if (demoversion >= 131)
+	if (P_EXGSGetValue(PEXGSBID_COMODIFYCORPSE))
 	{
 		actor->flags |= MF_CORPSE | MF_DROPOFF;
 		actor->height >>= 2;

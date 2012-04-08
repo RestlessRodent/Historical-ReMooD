@@ -128,3 +128,61 @@ void DC_SetDemoOptions(int VerToSet)
 		CV_Set(&cv_dc_classicrocketblast, "0");
 	}
 }
+
+/*****************************
+*** EXTENDED GAME SETTINGS ***
+*****************************/
+
+// l_GSVars -- Game state variables
+static P_EXGSVariable_t l_GSVars[] =
+{
+	{PEXGST_INTEGER, PEXGSBID_NOTHINGHERE, "nothinghere",
+		"Nothing is here"},
+	{PEXGST_INTEGER, PEXGSBID_COENABLEBLOODSPLATS, "co_enablebloodsplats",
+		"Enables blood spats on walls. [Legacy >= 1.29]", PEXGSDR_ATLEAST, 129, {0, 1}, 1},
+	{PEXGST_INTEGER, PEXGSBID_CORANDOMLASTLOOK, "co_randomlastlook",
+		"Randomize monster's last look (which player to target). [Legacy >= 1.29]", PEXGSDR_ATLEAST, 129, {0, 1}, 1},
+	{PEXGST_INTEGER, PEXGSBID_COUNSHIFTVILERAISE, "co_unshiftvileraise",
+		"Multiply the corpse height by 4 when an Arch-Vile resurrects. [Legacy < 1.29]", PEXGSDR_LESSTHAN, 129, {0, 1}, 0},
+	{PEXGST_INTEGER, PEXGSBID_COMODIFYCORPSE, "co_modifycorpse",
+		"Enables correct corpse modification for solid corpses. [Legacy >= 1.31]", PEXGSDR_ATLEAST, 131, {0, 1}, 1},
+	{PEXGST_INTEGER, PEXGSBID_CONOSMOKETRAILS, "co_nosmoketrails",
+		"Disable smoke trails on rockets and lost souls [Legacy < 1.11]", PEXGSDR_LESSTHAN, 111, {0, 1}, 0},
+	{PEXGST_INTEGER, PEXGSBID_COUSEREALSMOKE, "co_userealsmoke",
+		"Use actual smoke rather than puffs for rockets and lost souls. [Legacy < 1.25]", PEXGSDR_LESSTHAN, 125, {0, 1}, 0},
+	{PEXGST_INTEGER, PEXGSBID_COOLDCUTCORPSERADIUS, "co_oldcutcorpseradius",
+		"Reduces corpse radius, only when co_modifycorpse is off. [Legacy >= 1.12]", PEXGSDR_GREATERTHAN, 112, {0, 1}, 1},
+	{PEXGST_INTEGER, PEXGSBID_COSPAWNDROPSONMOFLOORZ, "co_spawndropsonmofloorz",
+		"Spawn item drops on the closest floor rather than the lowest floor. [Legacy >= 1.32]", PEXGSDR_ATLEAST, 132, {0, 1}, 1},
+	{PEXGST_INTEGER, PEXGSBID_CODISABLETEAMPLAY, "co_disableteamplay",
+		"Disable support for team play. [Legacy < 1.25]", PEXGSDR_LESSTHAN, 125, {0, 1}, 0},
+	{PEXGST_INTEGER, PEXGSBID_COSLOWINWATER, "co_moveslowinwater",
+		"Move slower when underwater (in 3D Water). [Legacy >= 1.28]", PEXGSDR_ATLEAST, 128, {0, 1}, 1},
+	{PEXGST_INTEGER, PEXGSBID_COSLIDEOFFMOFLOOR, "co_slideoffmofloor",
+		"Slide off the closest floor not the real one (affects 3D floors). [Legacy >= 1.32]", PEXGSDR_ATLEAST, 132, {0, 1}, 1},
+	{PEXGST_INTEGER, PEXGSBID_COOLDFRICTIONMOVE, "co_oldfrictionmove",
+		"Use old friction when moving. [Legacy < 1.32]", PEXGSDR_LESSTHAN, 132, {0, 1}, 0},
+	{PEXGST_INTEGER, PEXGSBID_COOUCHONCEILING, "co_ouchonceiling",
+		"Go ouch when hitting the ceiling. [Legacy >= 1.12]", PEXGSDR_ATLEAST, 112, {0, 1}, 1},
+	{PEXGST_INTEGER, PEXGSBID_COENABLESPLASHES, "co_enablesplashes",
+		"Enable splashes on the water. [Legacy >= 1.25]", PEXGSDR_ATLEAST, 125, {0, 1}, 1},
+	{PEXGST_INTEGER, PEXGSBID_COENABLEFLOORSMOKE, "co_enablefloorsmoke",
+		"Enable smoke when on a damaging floor. [Legacy >= 1.25]", PEXGSDR_ATLEAST, 125, {0, 1}, 1},
+	{PEXGST_INTEGER, PEXGSBID_COENABLESMOKE, "co_enablesmoke",
+		"Enable smoke. [Legacy >= 1.25]", PEXGSDR_ATLEAST, 125, {0, 1}, 1},
+	{PEXGST_INTEGER, PEXGSBID_CODAMAGEONLAND, "co_damageonland",
+		"Damage when landing on a damaging floor. [Legacy >= 1.25]", PEXGSDR_ATLEAST, 125, {0, 1}, 1},
+	{PEXGST_INTEGER, PEXGSBID_COABSOLUTEANGLE, "co_absoluteangle",
+		"Use absolute angle rather than relative angle in player aiming. [Legacy >= 1.25]", PEXGSDR_ATLEAST, 125, {0, 1}, 1},
+	{PEXGST_INTEGER, PEXGSBID_COOLDJUMPOVER, "co_oldjumpover",
+		"Use old jump over code. [Legacy < 1.28]", PEXGSDR_LESSTHAN, 128, {0, 1}, 0},
+	{PEXGST_INTEGER, PEXGSBID_COENABLESPLATS, "co_enablesplats",
+		"Enable splats. [Legacy >= 1.28]", PEXGSDR_ATLEAST, 128, {0, 1}, 1},
+	{PEXGST_INTEGER, PEXGSBID_COOLDFLATPUSHERCODE, "co_oldflatpushercode",
+		"Use old pusher/puller code that cannot handle 3D Floors. [Legacy <= 1.40]", PEXGSDR_ATMOST, 140, {0, 1}, 0},
+	{PEXGST_INTEGER, PEXGSBID_COSPAWNPLAYERSEARLY, "co_spawnplayersearly",
+		"Spawn players while the map is loading. [Legacy >= 1.28]", PEXGSDR_ATLEAST, 128, {0, 1}, 1},
+	{PEXGST_INTEGER, PEXGSBID_COENABLEUPDOWNSHOOT, "co_enableupdownshoot",
+		"Enable shooting up/down when not aiming at something. [Legacy >= 1.28]", PEXGSDR_ATLEAST, 128, {0, 1}, 1},
+};
+

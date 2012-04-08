@@ -86,6 +86,8 @@
 
 #include "d_net.h"
 
+#include "p_demcmp.h"
+
 //extern int firstcolormaplump, lastcolormaplump;      // r_data.c
 
 svalue_t evaluate_expression(int start, int stop);
@@ -1172,7 +1174,7 @@ void SF_Resurrect()
 		return;
 		
 	P_SetMobjState(mo, mo->info->raisestate);
-	if (demoversion < 129)
+	if (P_EXGSGetValue(PEXGSBID_COUNSHIFTVILERAISE))
 		mo->height <<= 2;
 	else
 	{

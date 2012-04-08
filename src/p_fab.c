@@ -37,6 +37,7 @@
 #include "r_state.h"
 #include "p_fab.h"
 #include "m_random.h"
+#include "p_demcmp.h"
 
 void Translucency_OnChange(void);
 
@@ -53,24 +54,34 @@ void A_SmokeTrailer(mobj_t* actor)
 	mobj_t* th;
 	
 	// GhostlyDeath <March 6, 2012> -- Check version (not before Legacy 1.25)
-	if (demoversion < 125)
+	if (P_EXGSGetValue(PEXGSBID_CONOSMOKETRAILS))
 		return;
 	
+	// Only every 4 gametics
 	if (gametic % (4))
 		return;
-		
-	// spawn a puff of smoke behind the rocket
-	if (demoversion < 125 &&	// rocket trails spawnpuff from v1.11 to v1.24
-	        demoversion >= 111)		// skull trails since v1.25
-		P_SpawnPuff(actor->x, actor->y, actor->z);
-		
-	// add the smoke behind the rocket
-	th = P_SpawnMobj(actor->x - actor->momx, actor->y - actor->momy, actor->z, INFO_GetTypeByName("LegacySmoke"));
 	
-	th->momz = FRACUNIT;
-	th->tics -= P_Random() & 3;
-	if (th->tics < 1)
-		th->tics = 1;
+	// GhostlyDeath <April 8, 2012> -- Fix flawed legacy compat options?
+		// For some reason they say that bullets puffs are between 1.11 and 1.24
+		// inclusive and smoke is used on and after 1.25, but with all the logic
+		// inside, there is no such thing there. So what gives?
+	// This uses bullet puffs
+	if (!P_EXGSGetValue(PEXGSBID_COUSEREALSMOKE))
+	{
+		P_SpawnPuff(actor->x, actor->y, actor->z);
+	}
+	
+	// This uses actual smoke
+	else
+	{
+		// add the smoke behind the rocket
+		th = P_SpawnMobj(actor->x - actor->momx, actor->y - actor->momy, actor->z, INFO_GetTypeByName("LegacySmoke"));
+	
+		th->momz = FRACUNIT;
+		th->tics -= P_Random() & 3;
+		if (th->tics < 1)
+			th->tics = 1;
+	}	
 }
 
 static bool_t resettrans = false;

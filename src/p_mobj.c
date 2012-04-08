@@ -409,7 +409,7 @@ void P_XYMovement(mobj_t* mo)
 				// draw damage on wall
 				//SPLAT TEST ----------------------------------------------------------
 #ifdef WALLSPLATS
-				if (blockingline && demoversion >= 129)	//set by last P_TryMove() that failed
+				if (blockingline && P_EXGSGetValue(PEXGSBID_COENABLEBLOODSPLATS))	//set by last P_TryMove() that failed
 				{
 					divline_t divl;
 					divline_t misl;
@@ -461,7 +461,7 @@ void P_XYMovement(mobj_t* mo)
 		return;					// no friction for missiles ever
 		
 	// slow down in water, not too much for playability issues
-	if (demoversion >= 128 && (mo->eflags & MF_UNDERWATER))
+	if (P_EXGSGetValue(PEXGSBID_COSLOWINWATER) && (mo->eflags & MF_UNDERWATER))
 	{
 		mo->momx = FixedMul(mo->momx, FRICTION * 3 / 4);
 		mo->momy = FixedMul(mo->momy, FRICTION * 3 / 4);
@@ -477,7 +477,7 @@ void P_XYMovement(mobj_t* mo)
 		//  if halfway off a step with some momentum
 		if (mo->momx > FRACUNIT / 4 || mo->momx < -FRACUNIT / 4 || mo->momy > FRACUNIT / 4 || mo->momy < -FRACUNIT / 4)
 		{
-			if (demoversion < 132)
+			if (!P_EXGSGetValue(PEXGSBID_COSLIDEOFFMOFLOOR))
 			{
 				if (mo->z != mo->subsector->sector->floorheight)
 					return;
@@ -489,7 +489,8 @@ void P_XYMovement(mobj_t* mo)
 			}
 		}
 	}
-	P_XYFriction(mo, oldx, oldy, demoversion < 132);
+	
+	P_XYFriction(mo, oldx, oldy, P_EXGSGetValue(PEXGSBID_COOLDFRICTIONMOVE));
 }
 
 //
@@ -662,7 +663,7 @@ void P_ZMovement(mobj_t* mo)
 		mo->z = mo->ceilingz - mo->height;
 		
 		//added:22-02-98: player avatar hits his head on the ceiling, ouch!
-		if (mo->player && (demoversion >= 112) && !(mo->player->cheats & CF_FLYAROUND) && !(mo->flags2 & MF2_FLY) && mo->momz > 8 * FRACUNIT)
+		if (mo->player && (P_EXGSGetValue(PEXGSBID_COOUCHONCEILING)) && !(mo->player->cheats & CF_FLYAROUND) && !(mo->flags2 & MF2_FLY) && mo->momz > 8 * FRACUNIT)
 			S_StartSound(&mo->NoiseThinker, sfx_ouch);
 			
 		// hit the ceiling
@@ -1619,7 +1620,7 @@ void P_SpawnSplash(mobj_t* mo, fixed_t z)
 	
 	//fixed_t     z;
 	
-	if (demoversion < 125)
+	if (!P_EXGSGetValue(PEXGSBID_COENABLESPLASHES))
 		return;
 		
 	// we are supposed to be in water sector and my current
@@ -1656,7 +1657,7 @@ void P_SpawnSmoke(fixed_t x, fixed_t y, fixed_t z)
 {
 	mobj_t* th;
 	
-	if (demoversion < 125)
+	if (!P_EXGSGetValue(PEXGSBID_COENABLESMOKE))
 		return;
 		
 	x = x - ((P_Random() & 8) * FRACUNIT) - 4 * FRACUNIT;
@@ -1772,7 +1773,7 @@ void P_SpawnBloodSplats(fixed_t x, fixed_t y, fixed_t z, int damage, fixed_t mom
 	// spawn the usual falling blood sprites at location
 	P_SpawnBlood(x, y, z, damage);
 	//CONL_PrintF ("spawned blood counter %d\n", counter++);
-	if (demoversion < 129)
+	if (!P_EXGSGetValue(PEXGSBID_COENABLEBLOODSPLATS))
 		return;
 		
 #ifdef WALLSPLATS

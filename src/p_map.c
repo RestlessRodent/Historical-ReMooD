@@ -369,7 +369,7 @@ static bool_t PIT_CheckThing(mobj_t* thing, void* a_Arg)
 		}
 		// damage / explode
 		damage = ((P_Random() % 8) + 1) * tmthing->info->damage;
-		if (P_DamageMobj(thing, tmthing, tmthing->target, damage) && (thing->flags & MF_NOBLOOD) == 0 && demoversion >= 129)
+		if (P_DamageMobj(thing, tmthing, tmthing->target, damage) && (thing->flags & MF_NOBLOOD) == 0 && P_EXGSGetValue(PEXGSBID_COENABLEBLOODSPLATS))
 			P_SpawnBloodSplats(tmthing->x, tmthing->y, tmthing->z, damage, thing->momx, thing->momy);
 			
 		// don't traverse any more
@@ -1833,7 +1833,7 @@ bool_t PIT_RadiusAttack(mobj_t* thing, void* a_Arg)
 			momy = (thing->y - bombspot->y) / dist;
 		}
 		// must be in direct path
-		if (P_DamageMobj(thing, bombspot, bombsource, damage) && (thing->flags & MF_NOBLOOD) == 0 && demoversion >= 129)
+		if (P_DamageMobj(thing, bombspot, bombsource, damage) && (thing->flags & MF_NOBLOOD) == 0 && P_EXGSGetValue(PEXGSBID_COENABLEBLOODSPLATS))
 			P_SpawnBloodSplats(thing->x, thing->y, thing->z, damage, momx, momy);
 	}
 	
@@ -2517,3 +2517,6 @@ bool_t P_TestMobjLocation(mobj_t* mobj)
 	mobj->flags = flags;
 	return (false);
 }
+
+
+

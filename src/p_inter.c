@@ -1126,14 +1126,16 @@ void P_KillMobj(mobj_t* target, mobj_t* inflictor, mobj_t* source)
 	// GhostlyDeath <March 6, 2012> -- Use flag here
 	if ((target->RXFlags[0] & MFREXA_CARRYKILLER) && source && source->player)
 		target->target = source;
-		
-	if (demoversion < 131)
+	
+	// GhostlyDeath <April 8, 2012> -- If modifying corpses in A_Fall, then don't modify here
+	if (!PEXGS_GetValue(PEXGSBID_COMODIFYCORPSE))
 	{
 		// in version 131 and higer this is done later in a_fall
 		// (this fix the stepping monster)
 		target->flags |= MF_CORPSE | MF_DROPOFF;
 		target->height >>= 2;
-		if (demoversion >= 112)
+		
+		if (PEXGS_GetValue(PEXGSBID_COOLDCUTCORPSERADIUS))
 			target->radius -= (target->radius >> 4);	//for solid corpses
 	}
 	// GhostlyDeath <September 17, 2011> -- Change the way obituaries are done
@@ -1218,7 +1220,7 @@ void P_KillMobj(mobj_t* target, mobj_t* inflictor, mobj_t* source)
 	if (item && item >= 0 && item < NUMMOBJTYPES)
 	{
 		// SoM: Damnit! Why not use the target's floorz?
-		mo = P_SpawnMobj(target->x, target->y, demoversion < 132 ? ONFLOORZ : target->floorz, item);
+		mo = P_SpawnMobj(target->x, target->y, (!P_EXGSGetValue(PEXGSBID_COSPAWNDROPSONMOFLOORZ) ? ONFLOORZ : target->floorz), item);
 		mo->flags |= MF_DROPPED;	// special versions of items
 	
 		if (!cv_fragsweaponfalling.value)
@@ -1304,7 +1306,7 @@ bool_t P_DamageMobj(mobj_t* target, mobj_t* inflictor, mobj_t* source, int damag
 		   the following is wrong if they want to support classic demos because 1.09
 		   never thrusted on the Z plane
 		
-		   if (source && demoversion >= 124 && (demoversion < 129 || !cv_allowrocketjump.value))
+		   if (source && demo_version >= 124 && (demo_version < 129 || !cv_allowrocketjump.value))
 		 */
 		if (source && !DEMOCVAR(classicrocketblast).value && !DEMOCVAR(allowrocketjump).value)
 		{
@@ -1379,7 +1381,7 @@ bool_t P_DamageMobj(mobj_t* target, mobj_t* inflictor, mobj_t* source, int damag
 			damage -= saved;
 		}
 		// added team play and teamdamage (view logboris at 13-8-98 to understand)
-		if (demoversion < 125 ||	// support old demoversion
+		if (P_EXGSGetValue(PEXGSBID_CODISABLETEAMPLAY) ||	// support old demo version
 		        cv_teamdamage.value || damage > 1000 ||	// telefrag
 		        source == target || !source || !source->player || (cv_deathmatch.value && (!cv_teamplay.value || !ST_SameTeam(source->player, player))))
 		{

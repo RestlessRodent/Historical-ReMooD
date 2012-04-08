@@ -75,6 +75,8 @@ extern consvar_t cv_dc_classicmonsterlogic;
 
 // So Legacy settings are all demoversion and cvars, an ugly mix.
 
+/*** CONSTANTS ***/
+
 /* P_EXGSType_t -- Setting type for said setting */
 typedef enum P_EXGSType_e
 {
@@ -83,6 +85,84 @@ typedef enum P_EXGSType_e
 	
 	NUMPEXGSTYPES
 } P_EXGSType_t;
+
+/* P_EXGSDemoRange_t -- Range for demo compatibility */
+typedef enum P_EXGSDemoRange_e
+{
+	PEXGSDR_NOCHECK,							// Do not check range here
+	PEXGSDR_EQUALS,								// ==
+	PEXGSDR_NOT,								// !=
+	PEXGSDR_LESSTHAN,							// <
+	PEXGSDR_GREATERTHAN,						// >
+	PEXGSDR_ATMOST,								// <=
+	PEXGSDR_ATLEAST,							// >=
+	
+	NUMPEXGSDEMORANGES
+} P_EXGSDemoRange_t;
+
+/* P_EXGSBitID_t -- Bit ID of flag */
+typedef enum P_EXGSBitID_e
+{
+	PEXGSBID_NOTHINGHERE,						// Nothing is here
+	PEXGSBID_COENABLEBLOODSPLATS,				// Enables blood splats
+	PEXGSBID_CORANDOMLASTLOOK,					// Randomized Last Look
+	PEXGSBID_COUNSHIFTVILERAISE,				// <<=2 when vile resurrects
+	PEXGSBID_COMODIFYCORPSE,					// Modify corpse more in A_Fall()
+	PEXGSBID_CONOSMOKETRAILS,					// Disable smoke trails in A_SmokeTrailer()
+	PEXGSBID_COUSEREALSMOKE,					// Use real smoke on trails
+	PEXGSBID_COPUFFTRAILS,						// Use bullet puff trails.
+	PEXGSBID_COOLDCUTCORPSERADIUS,				// Cut corpse radius when !COMODIFYCORPSE
+	PEXGSBID_COSPAWNDROPSONMOFLOORZ,			// Spawn dropped items on the map object's floorz
+	PEXGSBID_CODISABLETEAMPLAY,					// Disable support for team play
+	PEXGSBID_COSLOWINWATER,						// Move slowly in water
+	PEXGSBID_COSLIDEOFFMOFLOOR,					// Slide of mobj's floorz rather than real sector
+	PEXGSBID_COOLDFRICTIONMOVE,					// Use old friction in XYMovement()
+	PEXGSBID_COOUCHONCEILING,					// Go "ouch" when hitting the ceiling
+	PEXGSBID_COENABLESPLASHES,					// Enable water splashes
+	PEXGSBID_COENABLEFLOORSMOKE,				// Enable floor smoke
+	PEXGSBID_COENABLESMOKE,						// Enables spawning of smoke
+	PEXGSBID_CODAMAGEONLAND,					// Damage player once landing on floor
+	PEXGSBID_COABSOLUTEANGLE,					// Use absolute angle turning rather than relative
+	PEXGSBID_COOLDJUMPOVER,						// Use old jump over code
+	PEXGSBID_COENABLESPLATS,					// Enable wall splats
+	PEXGSBID_COOLDFLATPUSHERCODE,				// Use Old (non 3D floor capable) pushers/pullers
+	PEXGSBID_COSPAWNPLAYERSEARLY,				// Spawn players early (during map setup)
+	PEXGSBID_COENABLEUPDOWNSHOOT,				// Enable shooting up/down (aiming) when no target found
+	
+	PEXGSNUMBITIDS
+} P_EXGSBitID_t;
+
+/*** STRUCTURES ***/
+
+/* P_EXGSVariable_t -- Variable for game setting */
+typedef struct P_EXGSVariable_s
+{
+	// Base
+	P_EXGSType_t Type;							// Type of value to conform to
+	P_EXGSBitID_t BitID;						// BitID of flag
+	const char* Name;							// Name of game setting
+	const char* Description;					// Description
+	P_EXGSDemoRange_t DemoRange;				// Range for "demoversion"
+	uint16_t DemoVersion;						// "demoversion" wrapper
+	struct
+	{
+		int32_t WhenFalse;						// demoversion compare is false
+		int32_t WhenTrue;						// demoversion compare is true
+	} DemoVal;									// Demo values
+	int32_t DefaultVal;							// Default value wherever
+	
+	// Settings
+} P_EXGSVariable_t;
+
+/*** FUNCTIONS ***/
+
+// Setting Finder
+P_EXGSBitID_t P_EXGSBitForName(const char* const a_Name);
+const P_EXGSVariable_t* P_EXGSVarForBit(const P_EXGSBitID_t a_Bit);
+const P_EXGSVariable_t* P_EXGSVarForName(const char* const a_Name);
+
+// Value Getter
+int32_t P_EXGSGetValue(const P_EXGSBitID_t a_Bit);
 
 #endif							/* __P_DEMCMP_H__ */
 

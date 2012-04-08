@@ -42,6 +42,7 @@
 #include "p_setup.h"
 #include "p_inter.h"
 #include "m_random.h"
+#include "p_demcmp.h"
 
 // Index of the special effects (INVUL inverse) map.
 #define INVERSECOLORMAP         32
@@ -270,7 +271,7 @@ void P_MovePlayer(player_t* player)
 #ifndef ABSOLUTEANGLE
 	player->mo->angle += (cmd->angleturn << 16);
 #else
-	if (demoversion < 125)
+	if (!P_EXGSGetValue(PEXGSBID_COABSOLUTEANGLE))
 		player->mo->angle += (cmd->angleturn << 16);
 	else
 		player->mo->angle = (cmd->angleturn << 16);
@@ -289,7 +290,7 @@ void P_MovePlayer(player_t* player)
 	//  if not onground.
 	onground = (player->mo->z <= player->mo->floorz) || (player->cheats & CF_FLYAROUND) || (player->mo->flags2 & (MF2_ONMOBJ | MF2_FLY));
 	
-	if (demoversion < 128)
+	if (P_EXGSGetValue(PEXGSBID_COOLDJUMPOVER))
 	{
 		bool_t jumpover = player->cheats & CF_JUMPOVER;
 		

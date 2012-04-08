@@ -51,6 +51,7 @@
 
 #include "d_rmod.h"
 //#include "r_sky.h" // Portals
+#include "p_demcmp.h"
 
 //SoM: Enable Boom features?
 int boomsupport = 1;
@@ -2089,7 +2090,7 @@ void P_ProcessSpecialSector(player_t* player, sector_t* sector, bool_t instantda
 						
 						// spawn a puff of smoke
 						//CONL_PrintF ("damage!\n"); //debug
-						if (demoversion >= 125)
+						if (P_EXGSGetValue(PEXGSBID_COENABLEFLOORSMOKE))
 							P_SpawnSmoke(player->mo->x, player->mo->y, player->mo->z);
 					}
 				break;
@@ -2202,7 +2203,7 @@ void P_PlayerOnSpecial3DFloor(player_t* player)
 			if (player->mo->z != *rover->topheight)
 				continue;
 				
-			if (demoversion >= 125 && (player->mo->eflags & MF_JUSTHITFLOOR) && sector->heightsec == -1 && (leveltime % (2)))	//SoM: penalize jumping less.
+			if (P_EXGSGetValue(PEXGSBID_CODAMAGEONLAND) && (player->mo->eflags & MF_JUSTHITFLOOR) && sector->heightsec == -1 && (leveltime % (2)))	//SoM: penalize jumping less.
 				instantdamage = true;
 			else
 				instantdamage = !(leveltime % (32));
@@ -2251,7 +2252,7 @@ void P_PlayerInSpecialSector(player_t* player)
 		return;
 		
 	//Fab: jumping in lava/slime does instant damage (no jump cheat)
-	if (demoversion >= 125 && (player->mo->eflags & MF_JUSTHITFLOOR) && sector->heightsec == -1 && (leveltime % (2)))	//SoM: penalize jumping less.
+	if (P_EXGSGetValue(PEXGSBID_CODAMAGEONLAND) && (player->mo->eflags & MF_JUSTHITFLOOR) && sector->heightsec == -1 && (leveltime % (2)))	//SoM: penalize jumping less.
 		instantdamage = true;
 	else
 		instantdamage = !(leveltime % (32));
@@ -3424,7 +3425,7 @@ void T_Pusher(pusher_t* p)
 	// Be sure the special sector type is still turned on. If so, proceed.
 	// Else, bail out; the sector type has been changed on us.
 	
-	if (demoversion <= 140)
+	if (P_EXGSGetValue(PEXGSBID_COOLDFLATPUSHERCODE))
 	{
 		if (!(sec->special & PUSH_MASK))
 			return;
@@ -3497,7 +3498,7 @@ void T_Pusher(pusher_t* p)
 	}
 	// constant pushers p_wind and p_current
 	
-	if (demoversion <= 140)
+	if (P_EXGSGetValue(PEXGSBID_COOLDFLATPUSHERCODE))
 	{
 		if (sec->heightsec != -1)	// special water sector?
 			ht = sectors[sec->heightsec].floorheight;

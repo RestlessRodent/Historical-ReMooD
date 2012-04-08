@@ -68,6 +68,7 @@
 #include "d_net.h"
 
 #include "command.h"
+#include "p_demcmp.h"
 
 //#define COOLFLIPLEVELS
 
@@ -1381,7 +1382,7 @@ bool_t P_SetupLevel(int episode, int map, skill_t skill, char* wadname)	// for w
 				players[i].mo = NULL;
 				G_DoReborn(i);
 			}
-			else if (demoversion >= 128 && !localgame)
+			else if (P_EXGSGetValue(PEXGSBID_COSPAWNPLAYERSEARLY) && !localgame)
 			{
 				players[i].mo = NULL;
 				G_CoopSpawnPlayer(i);

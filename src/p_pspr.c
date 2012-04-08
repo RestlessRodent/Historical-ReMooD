@@ -673,7 +673,7 @@ void P_BulletSlope(mobj_t* mo)
 		if (!linetarget)
 		{
 notagetfound:
-			if (demoversion >= 128)
+			if (P_EXGSGetValue(PEXGSBID_COENABLEUPDOWNSHOOT))
 				bulletslope = AIMINGTOSLOPE(mo->player->aiming);
 			else
 				bulletslope = (mo->player->aiming << FRACBITS) / 160;
