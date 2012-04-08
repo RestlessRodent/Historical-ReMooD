@@ -56,4 +56,33 @@ extern consvar_t cv_dc_classicrocketblast;
 extern consvar_t cv_dc_classicmeleerange;
 extern consvar_t cv_dc_classicmonsterlogic;
 
+/*****************************
+*** EXTENDED GAME SETTINGS ***
+*****************************/
+
+// The way settings were done in Legacy were that they were console variables,
+// so you would have tons of console variables for every concievable setting.
+// However, of all the settings, virtually all of them are either on/off, pure
+// integers, floating point numbers, or a specific list of options.
+// Doing individually split game settings allows for them to be saved all at
+// once and sent by the server all at once, rather than polluting the console
+// code with variables splattered all over the place. Game options aren't
+// exactly saveable in configs, only the settings that would take effect the
+// next game that is played. Also, settings will change drastically when demos
+// are played, so you don't want the ugly demoversion checks and you also don't
+// want to lost all your game settings when you play a demo or use similar
+// settings from the last demo played.
+
+// So Legacy settings are all demoversion and cvars, an ugly mix.
+
+/* P_EXGSType_t -- Setting type for said setting */
+typedef enum P_EXGSType_e
+{
+	PEXGST_INTEGER,								// Integer
+	PEXGST_FLOAT,								// Floating Point
+	
+	NUMPEXGSTYPES
+} P_EXGSType_t;
+
 #endif							/* __P_DEMCMP_H__ */
+
