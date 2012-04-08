@@ -393,7 +393,7 @@ static bool_t PIT_CheckThing(mobj_t* thing, void* a_Arg)
 		return !solid;
 	}
 	// check again for special pickup
-	if (demoversion >= 132 && tmthing->flags & MF_SPECIAL)
+	if (P_EXGSGetValue(PEXGSBID_CODOUBLEPICKUPCHECK) && tmthing->flags & MF_SPECIAL)
 	{
 		solid = tmthing->flags & MF_SOLID;
 		if (thing->flags & MF_PICKUP)
@@ -405,7 +405,7 @@ static bool_t PIT_CheckThing(mobj_t* thing, void* a_Arg)
 	}
 	//added:24-02-98:compatibility with old demos, it used to return with...
 	//added:27-02-98:for version 112+, nonsolid things pass through other things
-	if (demoversion < 112 || demoversion >= 132 || !(tmthing->flags & MF_SOLID))
+	if (P_EXGSGetValue(PEXGSBID_CONONSOLIDPASSTHRUOLD) || P_EXGSGetValue(PEXGSBID_CONONSOLIDPASSTHRUNEW) || !(tmthing->flags & MF_SOLID))
 		return !(thing->flags & MF_SOLID);
 		
 	//added:22-02-98: added z checking at last
@@ -496,7 +496,7 @@ bool_t PIT_CheckLine(line_t* ld, void* a_Arg)
 	blockingline = ld;
 	if (!ld->backsector)
 	{
-		if (demoversion >= 132 && tmthing->flags & MF_MISSILE && ld->special)
+		if (P_EXGSGetValue(PEXGSBID_COMISSILESPECHIT) && tmthing->flags & MF_MISSILE && ld->special)
 			add_spechit(ld);
 			
 		return false;			// one sided line
@@ -676,7 +676,7 @@ static void CheckMissileImpact(mobj_t* mobj)
 {
 	int i;
 	
-	if (demoversion < 132 || !numspechit || !(mobj->flags & MF_MISSILE) || !mobj->target)
+	if (P_EXGSGetValue(PEXGSBID_CODISABLEMISSILEIMPACTCHECK) || !numspechit || !(mobj->flags & MF_MISSILE) || !mobj->target)
 		return;
 		
 	if (!mobj->target->player)
@@ -768,10 +768,10 @@ bool_t P_TryMove(mobj_t* thing, fixed_t x, fixed_t y, bool_t allowdropoff)
 	// so link the thing into its new position
 	P_UnsetThingPosition(thing);
 	
-	//added:28-02-98: gameplay hack : walk over a small wall while jumping
+	//added:28-02-98: gameplay hack : walk over a small wall while 	jumping
 	//                stop jumping it succeeded
 	// BP: removed in 1.28 because we can move in air now
-	if (demoversion >= 112 && demoversion < 128 && thing->player && (thing->player->cheats & CF_JUMPOVER))
+	if (P_EXGSGetValue(PEXGSBID_COJUMPCHECK) && P_EXGSGetValue(PEXGSBID_COOLDJUMPOVER) && thing->player && (thing->player->cheats & CF_JUMPOVER))
 	{
 		if (tmfloorz > thing->floorz + MAXSTEPMOVE)
 			thing->momz >>= 2;
@@ -1462,7 +1462,7 @@ hitline:
 		}
 		//SPLAT TEST ----------------------------------------------------------
 #ifdef WALLSPLATS
-		if (!hitplane && demoversion >= 129)
+		if (!hitplane && P_EXGSGetValue(PEXGSBID_COMISSILESPLATONWALL))
 		{
 			divline_t divl;
 			fixed_t frac;
@@ -1484,7 +1484,7 @@ hitline:
 				return false;
 				
 			//added:24-02-98: compatibility with older demos
-			if (demoversion < 112)
+			if (P_EXGSGetValue(PEXGSBID_COHITSCANSSLIDEONFLATS))
 			{
 				diffheights = true;
 				hitplane = false;
@@ -1575,7 +1575,7 @@ hitline:
 	else
 		hitplane = false;
 		
-	if (demoversion >= 125 && !(DEMOCVAR(classicblood).value))
+	if (P_EXGSGetValue(PEXGSBID_CONEWBLOODHITSCANCODE) && !(DEMOCVAR(classicblood).value))
 	{
 		// Spawn bullet puffs or blood spots,
 		// depending on target type.
@@ -1613,7 +1613,7 @@ fixed_t P_AimLineAttack(mobj_t* t1, angle_t angle, fixed_t distance)
 	angle >>= ANGLETOFINESHIFT;
 	shootthing = t1;
 	
-	if (t1->player && demoversion >= 128)
+	if (t1->player && P_EXGSGetValue(PEXGSBID_CONEWAIMINGCODE))
 	{
 		fixed_t cosineaiming = finecosine[t1->player->aiming >> ANGLETOFINESHIFT];
 		int aiming = ((int)t1->player->aiming) >> ANGLETOFINESHIFT;
@@ -1677,7 +1677,7 @@ void P_LineAttack(mobj_t* t1, angle_t angle, fixed_t distance, fixed_t slope, in
 	la_damage = damage;
 	
 	// player autoaimed attack,
-	if (demoversion < 128 || !t1->player)
+	if (!P_EXGSGetValue(PEXGSBID_CONEWAIMINGCODE) || !t1->player)
 	{
 		x2 = t1->x + (distance >> FRACBITS) * finecosine[angle];
 		y2 = t1->y + (distance >> FRACBITS) * finesine[angle];
@@ -1950,7 +1950,7 @@ bool_t PIT_ChangeSector(mobj_t* thing, void* a_Arg)
 		{
 			P_DamageMobj(thing, NULL, NULL, 10);
 			
-			if (demoversion < 132 || (!(leveltime % (16)) && !(thing->flags & MF_NOBLOOD)))
+			if (P_EXGSGetValue(PEXGSBID_COSTATICCRUSHERBLOOD) || (!(leveltime % (16)) && !(thing->flags & MF_NOBLOOD)))
 			{
 				// spray blood in a random direction
 				mo = P_SpawnMobj(thing->x, thing->y, thing->z + thing->height / 2, INFO_GetTypeByName(__REMOOD_GETBLOODKIND));

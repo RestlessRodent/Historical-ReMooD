@@ -1128,14 +1128,14 @@ void P_KillMobj(mobj_t* target, mobj_t* inflictor, mobj_t* source)
 		target->target = source;
 	
 	// GhostlyDeath <April 8, 2012> -- If modifying corpses in A_Fall, then don't modify here
-	if (!PEXGS_GetValue(PEXGSBID_COMODIFYCORPSE))
+	if (!P_EXGSGetValue(PEXGSBID_COMODIFYCORPSE))
 	{
 		// in version 131 and higer this is done later in a_fall
 		// (this fix the stepping monster)
 		target->flags |= MF_CORPSE | MF_DROPOFF;
 		target->height >>= 2;
 		
-		if (PEXGS_GetValue(PEXGSBID_COOLDCUTCORPSERADIUS))
+		if (P_EXGSGetValue(PEXGSBID_COOLDCUTCORPSERADIUS))
 			target->radius -= (target->radius >> 4);	//for solid corpses
 	}
 	// GhostlyDeath <September 17, 2011> -- Change the way obituaries are done

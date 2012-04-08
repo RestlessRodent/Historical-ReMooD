@@ -679,7 +679,7 @@ void P_ZMovement(mobj_t* mo)
 		if ((mo->flags & MF_MISSILE) && !(mo->flags & MF_NOCLIP))
 		{
 			//SoM: 4/3/2000: Don't explode on the sky!
-			if (demoversion >= 129 && mo->subsector->sector->ceilingpic == skyflatnum && mo->subsector->sector->ceilingheight == mo->ceilingz)
+			if (P_EXGSGetValue(PEXGSBID_COREMOVEMOINSKYZ) && mo->subsector->sector->ceilingpic == skyflatnum && mo->subsector->sector->ceilingheight == mo->ceilingz)
 			{
 				P_RemoveMobj(mo);
 				return;
@@ -690,7 +690,7 @@ void P_ZMovement(mobj_t* mo)
 		}
 	}
 	// z friction in water
-	if (demoversion >= 128 && ((mo->eflags & MF_TOUCHWATER) || (mo->eflags & MF_UNDERWATER)) && !(mo->flags & (MF_MISSILE | MF_SKULLFLY)))
+	if (P_EXGSGetValue(PEXGSBID_COWATERZFRICTION) && ((mo->eflags & MF_TOUCHWATER) || (mo->eflags & MF_UNDERWATER)) && !(mo->flags & (MF_MISSILE | MF_SKULLFLY)))
 	{
 		mo->momz = FixedMul(mo->momz, FRICTION * 3 / 4);
 	}
@@ -783,7 +783,7 @@ void P_MobjCheckWater(mobj_t* mobj)
 	int oldeflags;
 	
 	// GhostlyDeath <March 6, 2012> -- Some things are not be in the water
-	if (demoversion < 128 || (mobj->RXFlags[0] & MFREXA_NOCHECKWATER))
+	if (P_EXGSGetValue(PEXGSBID_CONOUNDERWATERCHECK) || (mobj->RXFlags[0] & MFREXA_NOCHECKWATER))
 		return;
 	//
 	// see if we are in water, and set some flags for later
@@ -851,7 +851,7 @@ void P_MobjCheckWater(mobj_t* mobj)
 	 */
 	// blood doesnt make noise when it falls in water
 	if (!(oldeflags & (MF_TOUCHWATER | MF_UNDERWATER)) &&
-	        ((mobj->eflags & MF_TOUCHWATER) || (mobj->eflags & MF_UNDERWATER)) && !(mobj->RXFlags[0] & MFREXA_NOWATERSPLASH) && demoversion < 132)
+	        ((mobj->eflags & MF_TOUCHWATER) || (mobj->eflags & MF_UNDERWATER)) && !(mobj->RXFlags[0] & MFREXA_NOWATERSPLASH) && P_EXGSGetValue(PEXGSBID_COSPLASHTRANSWATER))
 		P_SpawnSplash(mobj, z);	//SoM: 3/17/2000
 }
 
@@ -908,11 +908,11 @@ void P_MobjThinker(mobj_t* mobj)
 		{
 			// BP: since version 1.31 we use heretic z-cheching code
 			//     kept old code for backward demo compatibility
-			if (demoversion < 131)
+			if (P_EXGSGetValue(PEXGSBID_COUSEOLDZCHECK))
 			{
 			
 				// if didnt check things Z while XYMovement, do the necessary now
-				if (!checkedpos && (demoversion >= 112))
+				if (!checkedpos && P_EXGSGetValue(PEXGSBID_COCHECKXYMOVE))
 				{
 					// FIXME : should check only with things, not lines
 					P_CheckPosition(mobj, mobj->x, mobj->y);
@@ -1057,7 +1057,7 @@ mobj_t* P_SpawnMobj(fixed_t x, fixed_t y, fixed_t z, mobjtype_t type)
 	if (gameskill != sk_nightmare)
 		mobj->reactiontime = info->reactiontime;
 		
-	if (demoversion < 129 && !(mobj->RXFlags[0] & MFREXA_NORANDOMPLAYERLOOK))
+	if (P_EXGSGetValue(PEXGSBID_CORANOMLASTLOOKSPAWN) && !(mobj->RXFlags[0] & MFREXA_NORANDOMPLAYERLOOK))
 		mobj->lastlook = P_Random() % MAXPLAYERS;
 	else
 		mobj->lastlook = -1;	// stuff moved in P_enemy.P_LookForPlayer
@@ -2015,7 +2015,7 @@ mobj_t* P_SpawnMissile(mobj_t* source, mobj_t* dest, mobjtype_t type)
 	}
 	
 	dist = P_CheckMissileSpawn(th);
-	if (demoversion < 131)
+	if (P_EXGSGetValue(PEXGSBID_COALWAYSRETURNDEADSPMISSILE))
 		return th;
 	else
 		return dist ? th : NULL;
@@ -2066,7 +2066,7 @@ mobj_t* P_SPMAngle(mobj_t* source, mobjtype_t type, angle_t angle)
 	//                use the mouseaiming
 	if (((source->player->autoaim_toggle && DEMOCVAR(allowautoaim).value) || DEMOCVAR(forceautoaim).value) && !linetarget)
 	{
-		if (demoversion >= 128)
+		if (P_EXGSGetValue(PEXGSBID_COUSEMOUSEAIMING))
 			slope = AIMINGTOSLOPE(source->player->aiming);
 		else
 			slope = (source->player->aiming << FRACBITS) / 160;
@@ -2089,12 +2089,13 @@ mobj_t* P_SPMAngle(mobj_t* source, mobjtype_t type, angle_t angle)
 	th->momx = FixedMul(__REMOOD_GETSPEEDMO(th), finecosine[an >> ANGLETOFINESHIFT]);
 	th->momy = FixedMul(__REMOOD_GETSPEEDMO(th), finesine[an >> ANGLETOFINESHIFT]);
 	
-	if (demoversion >= 128)
+	if (P_EXGSGetValue(PEXGSBID_COFIXPLAYERMISSILEANGLE))
 	{
 		// 1.28 fix, allow full aiming must be much precise
 		th->momx = FixedMul(th->momx, finecosine[source->player->aiming >> ANGLETOFINESHIFT]);
 		th->momy = FixedMul(th->momy, finecosine[source->player->aiming >> ANGLETOFINESHIFT]);
 	}
+	
 	th->momz = FixedMul(__REMOOD_GETSPEEDMO(th), slope);
 	
 	slope = P_CheckMissileSpawn(th);
@@ -2105,7 +2106,7 @@ mobj_t* P_SPMAngle(mobj_t* source, mobjtype_t type, angle_t angle)
 	else	// Otherwise carry the original weapon
 		th->RXShotWithWeapon = source->RXShotWithWeapon;
 	
-	if (demoversion < 131)
+	if (P_EXGSGetValue(PEXGSBID_COALWAYSRETURNDEADSPMISSILE))
 		return th;
 	else
 		return slope ? th : NULL;

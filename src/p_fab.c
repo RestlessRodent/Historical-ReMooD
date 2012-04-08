@@ -68,6 +68,7 @@ void A_SmokeTrailer(mobj_t* actor)
 	// This uses bullet puffs
 	if (!P_EXGSGetValue(PEXGSBID_COUSEREALSMOKE))
 	{
+		PuffType = INFO_GetTypeByName("BulletPuff");
 		P_SpawnPuff(actor->x, actor->y, actor->z);
 	}
 	

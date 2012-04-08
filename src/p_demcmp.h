@@ -128,6 +128,32 @@ typedef enum P_EXGSBitID_e
 	PEXGSBID_COOLDFLATPUSHERCODE,				// Use Old (non 3D floor capable) pushers/pullers
 	PEXGSBID_COSPAWNPLAYERSEARLY,				// Spawn players early (during map setup)
 	PEXGSBID_COENABLEUPDOWNSHOOT,				// Enable shooting up/down (aiming) when no target found
+	PEXGSBID_CONOUNDERWATERCHECK,				// Don't check for things being underwater
+	PEXGSBID_COSPLASHTRANSWATER,				// Cause a splash when transitioning to/from water
+	PEXGSBID_COUSEOLDZCHECK,					// Use Old Z Checking Code
+	PEXGSBID_COCHECKXYMOVE,						// Check X/Y Movement in old Z Code
+	PEXGSBID_COWATERZFRICTION,					// Apply friction when underwater on Z plane
+	PEXGSBID_CORANOMLASTLOOKSPAWN,				// Random last look on spawn
+	PEXGSBID_COALWAYSRETURNDEADSPMISSILE,		// Always return the missile even if it died on spawn
+	PEXGSBID_COUSEMOUSEAIMING,					// When player autoaimed at nothing, use mouse aiming angle
+	PEXGSBID_COFIXPLAYERMISSILEANGLE,			// Fix the angle of player missiles being fired
+	PEXGSBID_COREMOVEMOINSKYZ,					// When Z movement into sky, do not explode a missile.
+	PEXGSBID_COFORCEAUTOAIM,					// Force Auto-aim
+	PEXGSBID_COFORCEBERSERKSWITCH,				// Force switching to berserk enabled slots.
+	PEXGSBID_CODOUBLEPICKUPCHECK,				// Check twice when picking things up
+	PEXGSBID_CODISABLEMISSILEIMPACTCHECK,		// Disable check for missile impact
+	PEXGSBID_COMISSILESPLATONWALL,				// Splat missiles on walls
+	PEXGSBID_CONEWBLOODHITSCANCODE,				// Use newer blood spewing code.
+	PEXGSBID_CONEWAIMINGCODE,					// Use newer aiming code.
+	PEXGSBID_COSTATICCRUSHERBLOOD,				// Static crusher blood
+	PEXGSBID_COMISSILESPECHIT,					// Missiles could trigger special hits?
+	PEXGSBID_COHITSCANSSLIDEONFLATS,			// Hitscans slide on flats
+	PEXGSBID_CONONSOLIDPASSTHRUOLD,				// Non-solid pass through (older trigger)
+	PEXGSBID_CONONSOLIDPASSTHRUNEW,				// Non-solid pass through (newer trigger)
+	PEXGSBID_COJUMPCHECK,						// Check for jumping
+	PEXGSBID_COLINEARMAPTRAVERSE,				// Linearly traverse maps
+	PEXGSBID_COONLYTWENTYDMSPOTS,				// Only support 20 deathmatch spawn spots.
+	PEXGSBID_COALLOWSTUCKSPAWNS,				// Allow getting stuck in spawn spots.
 	
 	PEXGSNUMBITIDS
 } P_EXGSBitID_t;
@@ -152,14 +178,15 @@ typedef struct P_EXGSVariable_s
 	int32_t DefaultVal;							// Default value wherever
 	
 	// Settings
+	int32_t ActualVal;							// Actually set value
 } P_EXGSVariable_t;
 
 /*** FUNCTIONS ***/
 
 // Setting Finder
 P_EXGSBitID_t P_EXGSBitForName(const char* const a_Name);
-const P_EXGSVariable_t* P_EXGSVarForBit(const P_EXGSBitID_t a_Bit);
-const P_EXGSVariable_t* P_EXGSVarForName(const char* const a_Name);
+P_EXGSVariable_t* P_EXGSVarForBit(const P_EXGSBitID_t a_Bit);
+P_EXGSVariable_t* P_EXGSVarForName(const char* const a_Name);
 
 // Value Getter
 int32_t P_EXGSGetValue(const P_EXGSBitID_t a_Bit);

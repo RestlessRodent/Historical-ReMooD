@@ -1456,7 +1456,7 @@ bool_t G_DeathMatchSpawnPlayer(int playernum)
 		return false;
 	}
 	
-	if (demoversion < 123)
+	if (P_EXGSGetValue(PEXGSBID_COONLYTWENTYDMSPOTS))
 		n = 20;
 	else
 		n = 64;
@@ -1472,7 +1472,7 @@ bool_t G_DeathMatchSpawnPlayer(int playernum)
 		}
 	}
 	
-	if (demoversion < 113)
+	if (P_EXGSGetValue(PEXGSBID_COALLOWSTUCKSPAWNS))
 	{
 	
 		// no good spot, so the player will probably get stuck
@@ -1505,7 +1505,7 @@ void G_CoopSpawnPlayer(int playernum)
 		// he's going to be inside something.  Too bad.
 	}
 	
-	if (demoversion < 113 || (demoversion >= 113 && localgame))
+	if (P_EXGSGetValue(PEXGSBID_COALLOWSTUCKSPAWNS) || (!P_EXGSGetValue(PEXGSBID_COALLOWSTUCKSPAWNS) && localgame))
 		P_SpawnPlayer(playerstarts[playernum]);
 	else
 	{
@@ -1776,7 +1776,7 @@ void G_NextLevel(void)
 
 void G_DoWorldDone(void)
 {
-	if (demoversion < 129)
+	if (P_EXGSGetValue(PEXGSBID_COLINEARMAPTRAVERSE))
 	{
 		gamemap = wminfo.next + 1;
 		G_DoLoadLevel(true);

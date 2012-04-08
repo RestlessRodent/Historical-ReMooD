@@ -843,7 +843,7 @@ void P_PlayerThink(player_t* player)
 	//
 	// water splashes
 	//
-	if (demoversion >= 125 && player->specialsector >= 887 && player->specialsector <= 888)
+	if (P_EXGSGetValue(PEXGSBID_COENABLESPLASHES) && player->specialsector >= 887 && player->specialsector <= 888)
 	{
 		if ((player->mo->momx > (2 * FRACUNIT) || player->mo->momx < (-2 * FRACUNIT) || player->mo->momy > (2 * FRACUNIT) || player->mo->momy < (-2 * FRACUNIT) || player->mo->momz > (2 * FRACUNIT)) &&	// jump out of water
 		        !(gametic % (32)))
@@ -907,7 +907,7 @@ void P_PlayerThink(player_t* player)
 			// Weapon switching to is berserk cap flagged
 			if (player->weaponinfo[newweapon].WeaponFlags & WF_BERSERKTOGGLE)
 				// Only before Legacy 1.28
-				if (demoversion < 128)
+				if (P_EXGSGetValue(PEXGSBID_COFORCEBERSERKSWITCH))
 					// Use the lowest weapon with this flag
 					for (i = 0; i < NUMWEAPONS; i++)
 					{

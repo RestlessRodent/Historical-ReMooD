@@ -133,8 +133,10 @@ void DC_SetDemoOptions(int VerToSet)
 *** EXTENDED GAME SETTINGS ***
 *****************************/
 
+/*** LOCALS ***/
+
 // l_GSVars -- Game state variables
-static P_EXGSVariable_t l_GSVars[] =
+static P_EXGSVariable_t l_GSVars[PEXGSNUMBITIDS] =
 {
 	{PEXGST_INTEGER, PEXGSBID_NOTHINGHERE, "nothinghere",
 		"Nothing is here"},
@@ -149,7 +151,7 @@ static P_EXGSVariable_t l_GSVars[] =
 	{PEXGST_INTEGER, PEXGSBID_CONOSMOKETRAILS, "co_nosmoketrails",
 		"Disable smoke trails on rockets and lost souls [Legacy < 1.11]", PEXGSDR_LESSTHAN, 111, {0, 1}, 0},
 	{PEXGST_INTEGER, PEXGSBID_COUSEREALSMOKE, "co_userealsmoke",
-		"Use actual smoke rather than puffs for rockets and lost souls. [Legacy < 1.25]", PEXGSDR_LESSTHAN, 125, {0, 1}, 0},
+		"Use actual smoke rather than puffs for rockets and lost souls. [Legacy >= 1.25]", PEXGSDR_ATLEAST, 125, {0, 1}, 1},
 	{PEXGST_INTEGER, PEXGSBID_COOLDCUTCORPSERADIUS, "co_oldcutcorpseradius",
 		"Reduces corpse radius, only when co_modifycorpse is off. [Legacy >= 1.12]", PEXGSDR_GREATERTHAN, 112, {0, 1}, 1},
 	{PEXGST_INTEGER, PEXGSBID_COSPAWNDROPSONMOFLOORZ, "co_spawndropsonmofloorz",
@@ -184,5 +186,97 @@ static P_EXGSVariable_t l_GSVars[] =
 		"Spawn players while the map is loading. [Legacy >= 1.28]", PEXGSDR_ATLEAST, 128, {0, 1}, 1},
 	{PEXGST_INTEGER, PEXGSBID_COENABLEUPDOWNSHOOT, "co_enableupdownshoot",
 		"Enable shooting up/down when not aiming at something. [Legacy >= 1.28]", PEXGSDR_ATLEAST, 128, {0, 1}, 1},
+	{PEXGST_INTEGER, PEXGSBID_CONOUNDERWATERCHECK, "co_nounderwatercheck",
+		"Do not check for an object being underwater. [Legacy < 1.28]", PEXGSDR_LESSTHAN, 128, {0, 1}, 0},
+	{PEXGST_INTEGER, PEXGSBID_COSPLASHTRANSWATER, "co_transwatersplash",
+		"Causes splashes when transitioning from water/non-water. [Legacy >= 1.32]", PEXGSDR_ATLEAST, 132, {0, 1}, 1},
+	{PEXGST_INTEGER, PEXGSBID_COUSEOLDZCHECK, "co_useoldzcheck",
+		"Use old Z checking code rather than Heretic's. [Legacy < 1.31]", PEXGSDR_LESSTHAN, 131, {0, 1}, 0},
+	{PEXGST_INTEGER, PEXGSBID_COCHECKXYMOVE, "co_checkxymove",
+		"Check X/Y Movement (Only when co_useoldzcheck is enabled). [Legacy >= 1.12]", PEXGSDR_ATLEAST, 112, {0, 1}, 1},
+	{PEXGST_INTEGER, PEXGSBID_COWATERZFRICTION, "co_waterzfriction",
+		"Apply Z friction movement when underwater. [Legacy >= 1.28]", PEXGSDR_ATLEAST, 128, {0, 1}, 1},
+	{PEXGST_INTEGER, PEXGSBID_CORANOMLASTLOOKSPAWN, "co_randomlastlookspawn",
+		"Choose random player when object spawns. [Legacy < 1.29]", PEXGSDR_LESSTHAN, 129, {0, 1}, 0},
+	{PEXGST_INTEGER, PEXGSBID_COALWAYSRETURNDEADSPMISSILE, "co_alwaysretdeadspmissile",
+		"Always return the missile spawned even if it dies on spawn. [Legacy < 1.31]", PEXGSDR_LESSTHAN, 131, {0, 1}, 0},
+	{PEXGST_INTEGER, PEXGSBID_COUSEMOUSEAIMING, "co_usemouseaiming",
+		"Use mouse aiming when auto-aim aims at no other object. [Legacy >= 1.28]", PEXGSDR_ATLEAST, 128, {0, 1}, 1},
+	{PEXGST_INTEGER, PEXGSBID_COFIXPLAYERMISSILEANGLE, "co_fixplayermissleangle",
+		"Fix player missiles being fired to be more accurate. [Legacy >= 1.28]", PEXGSDR_ATLEAST, 128, {0, 1}, 1},
+	{PEXGST_INTEGER, PEXGSBID_COREMOVEMOINSKYZ, "co_removemissileinskyz",
+		"When Z movement is performed into a sky, do not explode. [Legacy >= 1.29]", PEXGSDR_ATLEAST, 129, {0, 1}, 1},
+	{PEXGST_INTEGER, PEXGSBID_COFORCEAUTOAIM, "co_forceautoaim",
+		"Always force auto-aim. [Legacy <= 1.11]", PEXGSDR_ATMOST, 111, {0, 1}, 0},
+	{PEXGST_INTEGER, PEXGSBID_COFORCEBERSERKSWITCH, "co_forceberserkswitch",
+		"Force switching to berserk-enabled weapons in slots. [Legacy < 1.28]", PEXGSDR_LESSTHAN, 128, {0, 1}, 0},
+	{PEXGST_INTEGER, PEXGSBID_CODOUBLEPICKUPCHECK, "co_doublepickupcheck",
+		"Double check for pickups rather than just once. [Legacy >= 1.32]", PEXGSDR_ATLEAST, 132, {0, 1}, 1},
+	{PEXGST_INTEGER, PEXGSBID_CODISABLEMISSILEIMPACTCHECK, "co_disablemissileimpactcheck",
+		"Disable the checking of missile impacts. [Legacy < 1.32]", PEXGSDR_LESSTHAN, 132, {0, 1}, 0},
+	{PEXGST_INTEGER, PEXGSBID_COMISSILESPLATONWALL, "co_missilesplatsonwalls",
+		"When missiles hit walls, they splat it. [Legacy >= 1.29]", PEXGSDR_ATLEAST, 129, {0, 1}, 1},
+	{PEXGST_INTEGER, PEXGSBID_CONEWBLOODHITSCANCODE, "co_newbloodhitscancode",
+		"Use newer blood spawning code when tracing hitscans. [Legacy >= 1.25]", PEXGSDR_ATLEAST, 125, {0, 1}, 1},
+	{PEXGST_INTEGER, PEXGSBID_CONEWAIMINGCODE, "co_newaimingcode",
+		"Use newer aiming code in P_AimLineAttack(). [Legacy >= 1.28]", PEXGSDR_ATLEAST, 128, {0, 1}, 1},
+	{PEXGST_INTEGER, PEXGSBID_COSTATICCRUSHERBLOOD, "co_staticcrusherblood",
+		"Use static crushing blood. [Legacy < 1.32]", PEXGSDR_LESSTHAN, 132, {0, 1}, 0},
+	{PEXGST_INTEGER, PEXGSBID_COMISSILESPECHIT, "co_missilespechit",
+		"Missiles can trigger special line hits. [Legacy >= 1.32]", PEXGSDR_ATLEAST, 132, {0, 1}, 1},
+	{PEXGST_INTEGER, PEXGSBID_COHITSCANSSLIDEONFLATS, "co_hitscanslidesonflats",
+		"Hitscans slide on flats. [Legacy < 1.12]", PEXGSDR_LESSTHAN, 112, {0, 1}, 0},
+	{PEXGST_INTEGER, PEXGSBID_CONONSOLIDPASSTHRUOLD, "co_nonsolidpassthruold",
+		"Non-solid objects pass through others (Old trigger). [Legacy < 1.12]", PEXGSDR_LESSTHAN, 112, {0, 1}, 0},
+	{PEXGST_INTEGER, PEXGSBID_CONONSOLIDPASSTHRUNEW, "co_nonsolidpassthrunew",
+		"Non-solid objects pass through others (New trigger). [Legacy >= 1.32]", PEXGSDR_ATLEAST, 132, {0, 1}, 1},
+	{PEXGST_INTEGER, PEXGSBID_COJUMPCHECK, "co_checkjumpover",
+		"Allow jump over to take effect. [Legacy >= 1.12]", PEXGSDR_ATLEAST, 112, {0, 1}, 1},
+	{PEXGST_INTEGER, PEXGSBID_COLINEARMAPTRAVERSE, "co_linearmaptraverse",
+		"Loads a new map rather than starting from fresh when finished. [Legacy < 1.29]", PEXGSDR_LESSTHAN, 129, {0, 1}, 0},
+	{PEXGST_INTEGER, PEXGSBID_COONLYTWENTYDMSPOTS, "co_onlytwentydmspots",
+		"Support only 20 DM starts rather than 64. [Legacy < 1.23]", PEXGSDR_LESSTHAN, 123, {0, 1}, 0},
+	{PEXGST_INTEGER, PEXGSBID_COALLOWSTUCKSPAWNS, "co_allowstuckspawns",
+		"Allow players getting stuck in others in deathmatch games. [Legacy < 1.13]", PEXGSDR_LESSTHAN, 113, {0, 1}, 0},
 };
+
+/*** FUNCTIONS ***/
+
+/* P_EXGSVarForBit() -- Get variable for bit */
+P_EXGSVariable_t* P_EXGSVarForBit(const P_EXGSBitID_t a_Bit)
+{
+	size_t i;
+	
+	/* Check bit */
+	if (a_Bit < 0 || a_Bit >= PEXGSNUMBITIDS)
+		return NULL;
+	
+	/* Match? */
+	if (a_Bit == l_GSVars[a_Bit].BitID)
+		return &l_GSVars[a_Bit];
+	
+	/* Find it manually */
+	for (i = 0; i < PEXGSNUMBITIDS; i++)
+		if (a_Bit == l_GSVars[i].BitID)
+			return &l_GSVars[i];
+	
+	/* Not found */
+	return NULL;
+}
+
+/* P_EXGSGetValue() -- Get value based on bit */
+int32_t P_EXGSGetValue(const P_EXGSBitID_t a_Bit)
+{
+	P_EXGSVariable_t* Var;
+	
+	/* Get variable first */
+	Var = P_EXGSVarForBit(a_Bit);
+	
+	// Nothing?
+	if (!Var)
+		return 0;
+	
+	/* Just return default value for now */
+	return Var->DefaultVal;
+}
 
