@@ -273,6 +273,12 @@ static P_EXGSVariable_t l_GSVars[PEXGSNUMBITIDS] =
 		"Support only 20 DM starts rather than 64. [Legacy < 1.23]", PEXGSDR_LESSTHAN, 123, {0, 1}, 0},
 	{PEXGST_INTEGER, PEXGSBID_COALLOWSTUCKSPAWNS, "co_allowstuckspawns", "Allow stuck DM spawns",
 		"Allow players getting stuck in others in deathmatch spawns. [Legacy < 1.13]", PEXGSDR_LESSTHAN, 113, {0, 1}, 0},
+	{PEXGST_INTEGER, PEXGSBID_COUSEOLDBLOOD, "co_useoldblood", "Use Old Doom Blood",
+		"Uses standard Doom blood rather than Legacy blood. [Legacy < 130]", PEXGSDR_LESSTHAN, 130, {0, 1}, 0},
+	{PEXGST_INTEGER, PEXGSBID_FUNMONSTERFFA, "fun_monsterffa", "Monster Free For All",
+		"Monsters enter a Free For All and attack anything in sight.", PEXGSDR_NOCHECK, 0, {0, 1}, 0},
+	{PEXGST_INTEGER, PEXGSBID_FUNINFIGHTING, "fun_monsterinfight", "Monsters Infight",
+		"Monsters attack monsters of the same race.", PEXGSDR_NOCHECK, 0, {0, 1}, 0},
 };
 
 /*** FUNCTIONS ***/
@@ -384,11 +390,24 @@ static CONL_ExitCode_t PS_EXGSGeneralComm(const uint32_t a_ArgC, const char** co
 			CONL_PrintF("{4%-30s{z \"{7%s{z\"\n", Var->Name, Var->MenuTitle);
 			CONL_PrintF("  Desc: %s\n", Var->Description);
 			CONL_PrintF("  Valu: %i\n", P_EXGSGetValue(Var->BitID));
+			
+			return CLE_SUCCESS;
 		}
 		
 		// Other arguments = Set value of setting
 		else
 		{
+			// Find var?
+			Var = P_EXGSVarForName(a_ArgV[1]);
+			
+			// Not found?
+			if (!Var)
+				return CLE_UNKNOWNVARIABLE;
+			
+			// Set value
+			P_EXGSSetValueStr(Var->BitID, a_ArgV[2]);
+			
+			return CLE_SUCCESS;
 		}
 	}
 	
@@ -509,5 +528,29 @@ int32_t P_EXGSSetValue(const P_EXGSBitID_t a_Bit, const int32_t a_Value)
 	
 	/* Return the value */
 	return Var->ActualVal;
+}
+
+/* P_EXGSSetValueStr() -- Sets value by string */
+int32_t P_EXGSSetValueStr(const P_EXGSBitID_t a_Bit, const char* const a_Value)
+{
+	int32_t SetVal;
+	P_EXGSVariable_t* Var;
+	
+	/* Check */
+	if (!a_Value)
+		return 0;
+	
+	/* Get variable first */
+	Var = P_EXGSVarForBit(a_Bit);
+	
+	// Nothing?
+	if (!Var)
+		return 0;
+	
+	/* See which value to use here */
+	SetVal = atoi(a_Value);
+	
+	/* Return the value */
+	return P_EXGSSetValue(a_Bit, SetVal);
 }
 

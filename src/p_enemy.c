@@ -466,103 +466,123 @@ static void P_NewChaseDir(mobj_t* actor)
 //
 static bool_t P_LookForPlayers(mobj_t* actor, bool_t allaround)
 {
-	// GhostlyDeath <August 7, 2011> -- Chaos mode, for fun!
-#if 0							// CHAOS MODE!
-	mobj_t* mo;
-	thinker_t* currentthinker;
-	
-	/* Only on some tics */
-	//if ((gametic % TICRATE) != 0)
-	//  return false;
-	
-	/* Look through thinkers */
-	for (currentthinker = thinkercap.next; currentthinker != &thinkercap; currentthinker = currentthinker->next)
-	{
-		// Not a mobj?
-		if (!((currentthinker->function.acp1 == (actionf_p1) P_MobjThinker)))
-			continue;
-			
-		// Make mo
-		mo = currentthinker;
-		
-		// Ourself?
-		if (actor == mo)
-			continue;
-			
-		// Not Shootable?
-		if (!(mo->flags & MF_SHOOTABLE))
-			continue;
-			
-		// Dead?
-		if (mo->health <= 0)
-			continue;
-			
-		// Is it in view?
-		if (!P_CheckSight(actor, mo))
-			continue;
-			
-		// Target it! heheheh
-		actor->target = mo;
-		return true;
-	}
-	
-	return false;
-#else
 	int c;
 	int stop;
 	player_t* player;
 	sector_t* sector;
 	angle_t an;
-	fixed_t dist;
+	fixed_t dist, BestDist;
+	mobj_t* mo;
+	mobj_t* BestMo;
+	thinker_t* currentthinker;
 	
-	sector = actor->subsector->sector;
-	
-	// BP: first time init, this allow minimum lastlook changes
-	if (actor->lastlook < 0 && P_EXGSGetValue(PEXGSBID_CORANDOMLASTLOOK))
-		actor->lastlook = P_Random() % MAXPLAYERS;
-	
-	c = 0;
-	stop = (actor->lastlook - 1) & PLAYERSMASK;
-	
-	for (;; actor->lastlook = (actor->lastlook + 1) & PLAYERSMASK)
+	/* Chaos Mode */
+	// GhostlyDeath <April 11, 2012> -- Much fun
+	if (P_EXGSGetValue(PEXGSBID_FUNMONSTERFFA))
 	{
-		// done looking
-		if (actor->lastlook == stop)
-			return false;
-	
-		if (!playeringame[actor->lastlook])
-			continue;
-	
-		if (c++ == 2)
-			return false;
-	
-		player = &players[actor->lastlook];
-	
-		if (player->health <= 0)
-			continue;			// dead
-	
-		if (!P_CheckSight(actor, player->mo))
-			continue;			// out of sight
-	
-		if (!allaround)
+		// Find closest target
+		BestMo = NULL;
+		BestDist = 20000 << FRACBITS;
+		
+		// Look through thinkers
+		for (currentthinker = thinkercap.next; currentthinker != &thinkercap; currentthinker = currentthinker->next)
 		{
-			an = R_PointToAngle2(actor->x, actor->y, player->mo->x, player->mo->y) - actor->angle;
-	
-			if (an > ANG90 && an < ANG270)
+			// Not a mobj?
+			if (!((currentthinker->function.acp1 == (actionf_p1) P_MobjThinker)))
+				continue;
+			
+			// Make mo
+			mo = currentthinker;
+		
+			// Ourself?
+			if (actor == mo)
+				continue;
+			
+			// Not Shootable?
+			if (!(mo->flags & MF_SHOOTABLE))
+				continue;
+			
+			// Dead?
+			if (mo->health <= 0)
+				continue;
+			
+			// Is it in view?
+			if (!P_CheckSight(actor, mo))
+				continue;
+			
+			// Distance Check
+			dist = P_AproxDistance(actor->x - mo->x, actor->y - mo->y);
+			if (dist < BestDist)
 			{
-				dist = P_AproxDistance(player->mo->x - actor->x, player->mo->y - actor->y);
-				// if real close, react anyway
-				if (dist > MELEERANGE)
-					continue;	// behind back
+				BestDist = dist;
+				BestMo = mo;
+				
+				// Distance is REALLY close? Then target that thing
+				if (BestDist < (128 << FRACBITS))
+					break;
 			}
 		}
+		
+		// Found best?
+		if (BestMo)
+		{
+			// target it then!
+			actor->target = BestMo;
+			return true;
+		}
+	}
 	
-		actor->target = player->mo;
-		return true;
+	/* Normal, look for players */
+	else
+	{
+		sector = actor->subsector->sector;
+	
+		// BP: first time init, this allow minimum lastlook changes
+		if (actor->lastlook < 0 && P_EXGSGetValue(PEXGSBID_CORANDOMLASTLOOK))
+			actor->lastlook = P_Random() % MAXPLAYERS;
+	
+		c = 0;
+		stop = (actor->lastlook - 1) & PLAYERSMASK;
+	
+		for (;; actor->lastlook = (actor->lastlook + 1) & PLAYERSMASK)
+		{
+			// done looking
+			if (actor->lastlook == stop)
+				return false;
+	
+			if (!playeringame[actor->lastlook])
+				continue;
+	
+			if (c++ == 2)
+				return false;
+	
+			player = &players[actor->lastlook];
+	
+			if (player->health <= 0)
+				continue;			// dead
+	
+			if (!P_CheckSight(actor, player->mo))
+				continue;			// out of sight
+	
+			if (!allaround)
+			{
+				an = R_PointToAngle2(actor->x, actor->y, player->mo->x, player->mo->y) - actor->angle;
+	
+				if (an > ANG90 && an < ANG270)
+				{
+					dist = P_AproxDistance(player->mo->x - actor->x, player->mo->y - actor->y);
+					// if real close, react anyway
+					if (dist > MELEERANGE)
+						continue;	// behind back
+				}
+			}
+	
+			actor->target = player->mo;
+			return true;
+		}
 	}
 	
 	return false;
-#endif
 }
 
 //

@@ -1405,10 +1405,10 @@ typedef struct
 	int RMissileDist[2];						// Min/Max missile distances [P_CheckMissileRange]
 	int RCapMissileDist;						// Distance cap [P_CheckMissileRange]
 	statenum_t RLessBlood[2];					// Less blood to spew? (0 = 9-12, 1 = < 9) [P_SpawnBlood]
-	const char* RDropClass;						// Class to "drop" when dead
+	char* RDropClass;							// Class to "drop" when dead
 	mobjtype_t RBaseFamily;						// Base object family [PIT_CheckThing]
 	statenum_t RBrainExplodeState;				// State for exploding rockets [A_BrainScream]
-	const char* RBrainExplodeThing;				// Thing to explode on a dying brain [A_BrainScream]
+	char* RBrainExplodeThing;					// Thing to explode on a dying brain [A_BrainScream]
 	statenum_t RMeleePuffState;					// State for meleerange puff [P_SpawnPuff]
 } mobjinfo_t;
 
@@ -1448,7 +1448,7 @@ mobjtype_t INFO_GetTypeByName(const char* const a_Name);
 #define __REMOOD_BLOODTIMECONST ((int32_t)-2674)
 
 // __REMOOD_GETBLOODKIND -- or "LegacyOldDoomBlood"
-#define __REMOOD_GETBLOODKIND ((demoversion < 130) ? ("LegacyOldDoomBlood") : ("DoomBlood"))
+#define __REMOOD_GETBLOODKIND (P_EXGSGetValue(PEXGSBID_COUSEOLDBLOOD) ? ("LegacyOldDoomBlood") : ("DoomBlood"))
 
 // __REMOOD_GETSPEEDMO -- Get speed of mobj, note that getting the flag from the
 // mobj is intentional. Why? So in -fast you could make certain monsters fast

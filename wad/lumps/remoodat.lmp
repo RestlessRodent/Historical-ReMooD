@@ -35,53 +35,6 @@ WADProperty "ReMooD"
 	IdSelf "true";
 }
 
-WADProperty "Doom2"
-{
-	// Info
-	Title "Doom II: Hell on Earth";
-	UUID "c2cdf940-acec-11e0-8cad-7071bc43d0ee";
-	Author "id Software";
-	ReleaseDate "";
-	Type "IWAD";
-	FileName "doom2.wad";
-	CoreGame "doom";
-	GameMode "commercial";
-	GameMission "doom2";
-	MapInfo "MI_DOOM2";
-	
-	// Identification
-	IdSS "6ff4def4bd24c6943540c790fbfe2642";
-	IdSHA512 "32f720c85134da7bee3a7d6cd18c98dae7c6a0cb821a9f05fe28eeb055c97f40cc73fd336b6ba3d9be8fd39072129829e458769b3ed3c2fa298d3ec8b9805c6d";
-	IdSHA384 "2f802064dd58b27a87d77a30597481b89710afa799796c5dd803eb26935c13c1fccecd6dc7de51a897fcc3ac1260d45d";
-	IdSHA256 "10d67824b11025ddd9198e8cfc87ca335ee6e2d3e63af4180fa9b8a471893255";
-	IdSHA224 "844bf047a2bbd765176f5264674b66e7702cc51567f6c7201c816434";
-	IdSHA1 "7ec7652fcfce8ddc6e801839291f0e28ef1d5ae7";
-	IdMD5 "25e1459ca71d321525f84628f45ca8cd";
-	IdCRC32 "ec8725db";
-	IdSize "14604584";
-	IdNumLumps "2919";
-	IdFileName "doom2.wad:freedoom.wad";
-}
-
-WADProperty "BoomEditRef"
-{
-	// Info
-	Title "BOOM Editing Reference";
-	UUID "c2cdf940-acec-11e0-8cad-7071bc43d0ee";
-	Author "TeamTNT";
-	ReleaseDate "";
-	Type "PWAD";
-	FileName "boomedit.wad";
-	
-	// Identification
-	IdSHA256 "bdf7c98ac6084b0993edbcce9a29f8528b3ac6c944459dee0a7503471b9975d9";
-	IdSHA1 "5f7212e598ef9b341cf90185e6702151e1f7a1f9";
-	IdMD5 "8b81578ba565585f90d5cf0ade10183c";
-	IdCRC32 "b5bb2154";
-	IdSize "685156";
-	IdFileName "boomedit.wad";
-}
-
 // *************
 // *** MENUS ***
 // *************

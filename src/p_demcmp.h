@@ -153,6 +153,9 @@ typedef enum P_EXGSBitID_e
 	PEXGSBID_COLINEARMAPTRAVERSE,				// Linearly traverse maps
 	PEXGSBID_COONLYTWENTYDMSPOTS,				// Only support 20 deathmatch spawn spots.
 	PEXGSBID_COALLOWSTUCKSPAWNS,				// Allow getting stuck in spawn spots.
+	PEXGSBID_COUSEOLDBLOOD,						// Use Older Doom Blood
+	PEXGSBID_FUNMONSTERFFA,						// Monster Free For All
+	PEXGSBID_FUNINFIGHTING,						// Monster Infighting
 	
 	PEXGSNUMBITIDS
 } P_EXGSBitID_t;
@@ -192,6 +195,7 @@ int32_t P_EXGSGetValue(const P_EXGSBitID_t a_Bit);
 bool_t P_EXGSRegisterStuff(void);
 bool_t P_EXGSSetVersionLevel(const uint32_t a_Level);
 int32_t P_EXGSSetValue(const P_EXGSBitID_t a_Bit, const int32_t a_Value);
+int32_t P_EXGSSetValueStr(const P_EXGSBitID_t a_Bit, const char* const a_Value);
 
 #endif							/* __P_DEMCMP_H__ */
 

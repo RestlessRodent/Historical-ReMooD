@@ -127,7 +127,6 @@ char* startupwadfiles[MAX_WADFILES];
 
 bool_t devparm;					// started game with -devparm
 bool_t nomonsters;				// checkparm of -nomonsters
-bool_t infight = false;			//DarkWolf95:November 21, 2003: Monsters Infight!
 
 bool_t singletics = false;		// timedemo
 

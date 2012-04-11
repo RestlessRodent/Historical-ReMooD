@@ -51,8 +51,6 @@
 #include "z_zone.h"
 #include "w_wad.h"
 
-extern bool_t infight;			//DarkWolf95:November 21, 2003: Monsters Infight!
-
 bool_t deh_loaded = false;
 
 #define MAXLINELEN  200
@@ -636,7 +634,9 @@ static void readmisc(MYFILE* f)
 				wpnlev2info[wp_bfg].ammopershoot = value;
 			}
 			else if (!strcmp(word, "Monsters"))
-				infight = true;	//DarkWolf95:November 21, 2003: Monsters Infight!
+			{
+				//infight = true;	//DarkWolf95:November 21, 2003: Monsters Infight!
+			}
 			else
 				deh_error("Misc : unknow word '%s'\n", word);
 		}

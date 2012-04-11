@@ -93,8 +93,6 @@ static int pe_y;				// Pain Elemental position for Lost Soul checks
 static int ls_x;				// Lost Soul position for Lost Soul checks
 static int ls_y;				// Lost Soul position for Lost Soul checks
 
-extern bool_t infight;			//DarkWolf95:November 21, 2003: Monsters Infight!
-
 //
 // TELEPORT MOVE
 //
@@ -345,7 +343,7 @@ static bool_t PIT_CheckThing(mobj_t* thing, void* a_Arg)
 			// Let players missile other players.
 			if (!(thing->RXFlags[0] & MFREXA_ISPLAYEROBJECT))
 				//DarkWolf95:November 21, 2003: Monsters Infight!
-				if (!infight)	
+				if (!P_EXGSGetValue(PEXGSBID_FUNINFIGHTING))
 					return false;
 		}
 		
