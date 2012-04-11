@@ -279,6 +279,8 @@ static P_EXGSVariable_t l_GSVars[PEXGSNUMBITIDS] =
 		"Monsters enter a Free For All and attack anything in sight.", PEXGSDR_NOCHECK, 0, {0, 1}, 0},
 	{PEXGST_INTEGER, PEXGSBID_FUNINFIGHTING, "fun_monsterinfight", "Monsters Infight",
 		"Monsters attack monsters of the same race.", PEXGSDR_NOCHECK, 0, {0, 1}, 0},
+	{PEXGST_INTEGER, PEXGSBID_COCORRECTVILETARGET, "co_correctviletarget", "Correct Position Of Vile Vire",
+		"Correct the position of the Arch-Vile target fire. [ReMooD >= 1.0a]", PEXGSDR_ATLEAST, 200, {0, 1}, 1}
 };
 
 /*** FUNCTIONS ***/

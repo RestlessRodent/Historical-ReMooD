@@ -1331,8 +1331,10 @@ void A_VileTarget(mobj_t* actor)
 		
 	A_FaceTarget(actor);
 	
-	fog = P_SpawnMobj(actor->target->x, actor->target->x,	// Bp: shoul'nt be y ?
-	                  actor->target->z, INFO_GetTypeByName("VileFire"));
+	fog = P_SpawnMobj(actor->target->x,
+			// GhostlyDeath <April 11, 2012> -- Correct Arch-Vile fire target position
+		(P_EXGSGetValue(PEXGSBID_COCORRECTVILETARGET) ? actor->target->y : actor->target->x),
+		actor->target->z, INFO_GetTypeByName("VileFire"));
 	                  
 	actor->tracer = fog;
 	fog->target = actor;

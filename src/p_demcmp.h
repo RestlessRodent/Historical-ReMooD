@@ -156,6 +156,7 @@ typedef enum P_EXGSBitID_e
 	PEXGSBID_COUSEOLDBLOOD,						// Use Older Doom Blood
 	PEXGSBID_FUNMONSTERFFA,						// Monster Free For All
 	PEXGSBID_FUNINFIGHTING,						// Monster Infighting
+	PEXGSBID_COCORRECTVILETARGET,				// Correct Arch-Vile Target Fire
 	
 	PEXGSNUMBITIDS
 } P_EXGSBitID_t;
