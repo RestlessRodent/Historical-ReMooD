@@ -1480,6 +1480,7 @@ void D_DoomMain(void)
 	P_PrepareLevelInfoEx();				// Level information
 	R_LoadTextures();					// Load texture info
 	P_ExtraSpecialStuff();				// Initialize extra special stuff
+	P_EXGSRegisterStuff();				// Extended Game Settings stuff
 	/**************************/
 	
 	// GhostlyDeath <December 14, 2011> -- Use extended identify version

@@ -267,7 +267,8 @@ void P_MovePlayer(player_t* player)
 	fixed_t MoveAmount;
 	
 	cmd = &player->cmd;
-	
+
+#if 0
 #ifndef ABSOLUTEANGLE
 	player->mo->angle += (cmd->angleturn << 16);
 #else
@@ -275,6 +276,9 @@ void P_MovePlayer(player_t* player)
 		player->mo->angle += (cmd->angleturn << 16);
 	else
 		player->mo->angle = (cmd->angleturn << 16);
+#endif
+#else
+	player->mo->angle = (cmd->angleturn << 16);
 #endif
 	
 	// GhostlyDeath <August 26, 2011> -- Update listener angle (for sounds)

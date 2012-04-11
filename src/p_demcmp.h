@@ -110,7 +110,6 @@ typedef enum P_EXGSBitID_e
 	PEXGSBID_COMODIFYCORPSE,					// Modify corpse more in A_Fall()
 	PEXGSBID_CONOSMOKETRAILS,					// Disable smoke trails in A_SmokeTrailer()
 	PEXGSBID_COUSEREALSMOKE,					// Use real smoke on trails
-	PEXGSBID_COPUFFTRAILS,						// Use bullet puff trails.
 	PEXGSBID_COOLDCUTCORPSERADIUS,				// Cut corpse radius when !COMODIFYCORPSE
 	PEXGSBID_COSPAWNDROPSONMOFLOORZ,			// Spawn dropped items on the map object's floorz
 	PEXGSBID_CODISABLETEAMPLAY,					// Disable support for team play
@@ -167,17 +166,15 @@ typedef struct P_EXGSVariable_s
 	P_EXGSType_t Type;							// Type of value to conform to
 	P_EXGSBitID_t BitID;						// BitID of flag
 	const char* Name;							// Name of game setting
+	const char* MenuTitle;						// Title for menus
 	const char* Description;					// Description
-	P_EXGSDemoRange_t DemoRange;				// Range for "demoversion"
-	uint16_t DemoVersion;						// "demoversion" wrapper
-	struct
-	{
-		int32_t WhenFalse;						// demoversion compare is false
-		int32_t WhenTrue;						// demoversion compare is true
-	} DemoVal;									// Demo values
-	int32_t DefaultVal;							// Default value wherever
+	const P_EXGSDemoRange_t DemoRange;			// Range for "demoversion"
+	const uint16_t DemoVersion;					// "demoversion" wrapper
+	const int32_t DemoVal[2];					// Demo values (false, true)
+	const int32_t DefaultVal;					// Default value wherever
 	
 	// Settings
+	bool_t WasSet;								// Was Set to value?
 	int32_t ActualVal;							// Actually set value
 } P_EXGSVariable_t;
 
@@ -190,6 +187,11 @@ P_EXGSVariable_t* P_EXGSVarForName(const char* const a_Name);
 
 // Value Getter
 int32_t P_EXGSGetValue(const P_EXGSBitID_t a_Bit);
+
+// General Functions
+bool_t P_EXGSRegisterStuff(void);
+bool_t P_EXGSSetVersionLevel(const uint32_t a_Level);
+int32_t P_EXGSSetValue(const P_EXGSBitID_t a_Bit, const int32_t a_Value);
 
 #endif							/* __P_DEMCMP_H__ */
 
