@@ -179,7 +179,7 @@ static bool_t P_CheckMeleeRange(mobj_t* actor)
 		
 	//added:19-03-98: check height now, so that damn imps cant attack
 	//                you if you stand on a higher ledge.
-	if (!DEMOCVAR(classicmeleerange).value && ((pl->z > actor->z + actor->height) || (actor->z > pl->z + pl->height)))
+	if (P_EXGSGetValue(PEXGSBID_COLIMITMONSTERZMATTACK) && ((pl->z > actor->z + actor->height) || (actor->z > pl->z + pl->height)))
 		return false;
 		
 	if (!P_CheckSight(actor, actor->target))
@@ -666,18 +666,15 @@ void A_Chase(mobj_t* actor)
 		actor->reactiontime--;
 		
 	// modify target threshold
-	if (actor->threshold)
+	if  (actor->threshold)
 	{
-		if (DEMOCVAR(classicmonsterlogic).value)
-		{
-			if (!actor->target || actor->target->health <= 0)
-				actor->threshold = 0;
-			else
-				actor->threshold--;
-		}
+		// Use Heretic Threshold Logic
+		if (P_EXGSGetValue(PEXGSBID_HEREMONSTERTHRESH))
+			actor->threshold--;
 		else if ((!actor->target || actor->target->health <= 0 || (actor->target->flags & MF_CORPSE)))
 			actor->threshold = 0;
 	}
+	
 	// turn towards movement direction if not there yet
 	if (actor->movedir < 8)
 	{

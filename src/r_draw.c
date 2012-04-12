@@ -226,7 +226,7 @@ static bool_t RS_TransTableOCCB(const bool_t a_Pushed, const struct WL_WADFile_s
 		{"RMD_TR10", true},
 		{"RMD_TRFF", false},
 		{"RMD_TRFR", false},
-		{"TRANSFX1", false},
+		{"TRANSFX1", true},
 	};
 	
 	/* Load transparency tables */

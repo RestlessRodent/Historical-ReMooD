@@ -1520,7 +1520,7 @@ void P_SpawnMapThing(mapthing_t* mthing)
 		// old version spawn player now, new version spawn player when level is
 		// loaded, or in network event later when player join game
 		// TODO: GhostlyDeath -- This has to do with voodoo dolls!
-		if (!cv_deathmatch.value)
+		if (!cv_deathmatch.value && P_EXGSGetValue(PEXGSBID_COVOODOODOLLS))
 			P_SpawnPlayer(mthing);
 			
 		return;

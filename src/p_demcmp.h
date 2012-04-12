@@ -97,8 +97,19 @@ typedef enum P_EXGSDemoRange_e
 	PEXGSDR_ATMOST,								// <=
 	PEXGSDR_ATLEAST,							// >=
 	
+	PEXGSDR_MORETHAN = PEXGSDR_GREATERTHAN,
+	
 	NUMPEXGSDEMORANGES
 } P_EXGSDemoRange_t;
+
+/* P_EXGSGameMode_t -- Game modes for demo compat */
+typedef enum P_EXGSGameMode_e
+{
+	PEXGSGM_DOOM						= 0x01,	// Doom
+	PEXGSGM_HERETIC						= 0x02,	// Heretic
+	
+	PEXGSGM_ANY = PEXGSGM_DOOM | PEXGSGM_HERETIC,
+} P_EXGSGameMode_t;
 
 /* P_EXGSBitID_t -- Bit ID of flag */
 typedef enum P_EXGSBitID_e
@@ -159,6 +170,12 @@ typedef enum P_EXGSBitID_e
 	PEXGSBID_FUNMONSTERSMISSMORE,				// Monsters miss more
 	PEXGSBID_COMORECRUSHERBLOOD,				// More Crusher Blood
 	PEXGSBID_CORANDOMBLOODDIR,					// Spew Blood in random directions
+	PEXGSBID_COINFINITEROCKETZ,					// Infinite Rocket Z Damage
+	PEXGSBID_COALLOWROCKETJUMPING,				// Allow rocket jumping
+	PEXGSBID_COROCKETZTHRUST,					// Rocket Z Thrust
+	PEXGSBID_COLIMITMONSTERZMATTACK,			// Limit Monster Z Range
+	PEXGSBID_HEREMONSTERTHRESH,					// Heretic Monster Threshold
+	PEXGSBID_COVOODOODOLLS,						// Voodoo Dolls
 	
 	PEXGSNUMBITIDS
 } P_EXGSBitID_t;
@@ -174,6 +191,7 @@ typedef struct P_EXGSVariable_s
 	const char* Name;							// Name of game setting
 	const char* MenuTitle;						// Title for menus
 	const char* Description;					// Description
+	const uint8_t GameFlags;					// Game Flags
 	const P_EXGSDemoRange_t DemoRange;			// Range for "demoversion"
 	const uint16_t DemoVersion;					// "demoversion" wrapper
 	const int32_t DemoVal[2];					// Demo values (false, true)

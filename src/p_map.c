@@ -1801,7 +1801,7 @@ bool_t PIT_RadiusAttack(mobj_t* thing, void* a_Arg)
 	
 	//added:22-02-98: now checks also z dist for rockets exploding
 	//                above yer head...
-	if (!DEMOCVAR(classicrocketblast).value)
+	if (!P_EXGSGetValue(PEXGSBID_COINFINITEROCKETZ))
 	{
 		dz = abs(thing->z + (thing->height >> 1) - bombspot->z);
 		dist = dist > dz ? dist : dz;
