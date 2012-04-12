@@ -171,6 +171,15 @@ static const P_EXGSNiceVersion_t l_NiceVersions[] =
 };
 
 // l_GSVars -- Game state variables
+	// NOTE THAT DOCUMENTATION THE OLDER YOU GET GETS MORE SCARCE AND MORE
+	// LESS INFORMATIVE THE FURTHER AWAY INTO THE PAST IT HAS BEEN. SO IF A
+	// VERSION IDENTIFIER IS HERE AND YOU HAVE PROOF THAT IT WRONG, THEN PLEASE
+	// INFORM ME.
+	//
+	// However, Luckily for me, Doom Legacy v1.11's source (the first version)
+	// is in idgames (sources/doomlegacy1_src.zip) and Fraggle gave me the
+	// source to 1.25. There is a huge hole in between because the source was
+	// never really released and if it ever was, it was lost.
 static P_EXGSVariable_t l_GSVars[PEXGSNUMBITIDS] =
 {
 	{PEXGST_INTEGER, PEXGSBID_NOTHINGHERE, "nothinghere", "Nothing",
@@ -183,8 +192,13 @@ static P_EXGSVariable_t l_GSVars[PEXGSNUMBITIDS] =
 		"Multiply the corpse height by 4 on resurrects. [Legacy < 1.29]", PEXGSGM_ANY, PEXGSDR_LESSTHAN, 129, {0, 1}, 0},
 	{PEXGST_INTEGER, PEXGSBID_COMODIFYCORPSE, "co_modifycorpse", "Modify Corpse (Solid Corpses)",
 		"Enables correct corpse modification for solid corpses. [Legacy >= 1.31]", PEXGSGM_ANY, PEXGSDR_ATLEAST, 131, {0, 1}, 1},
+		
+	// Smoke trails appear in v1.11, but only for rockets
 	{PEXGST_INTEGER, PEXGSBID_CONOSMOKETRAILS, "co_nosmoketrails", "No Smoke Trails",
 		"Disable smoke trails on rockets and lost souls [Legacy < 1.11]", PEXGSGM_ANY, PEXGSDR_LESSTHAN, 111, {0, 1}, 0},
+	
+	// 
+		
 	{PEXGST_INTEGER, PEXGSBID_COUSEREALSMOKE, "co_userealsmoke", "Use Real Smoke For Trails",
 		"Use actual smoke rather than puffs for smoke trails. [Legacy >= 1.25]", PEXGSGM_ANY, PEXGSDR_ATLEAST, 125, {0, 1}, 1},
 	{PEXGST_INTEGER, PEXGSBID_COOLDCUTCORPSERADIUS, "co_oldcutcorpseradius", "Cut Corpse Radius (Solid Corpse)",
@@ -296,7 +310,26 @@ static P_EXGSVariable_t l_GSVars[PEXGSNUMBITIDS] =
 	{PEXGST_INTEGER, PEXGSBID_HEREMONSTERTHRESH, "here_monsterthresh", "Heretic Monster Threshold",
 		"Use Heretic Threshold Logic. [Heretic]", PEXGSGM_HERETIC, PEXGSDR_NOCHECK, 0, {0, 1}, 0},
 	{PEXGST_INTEGER, PEXGSBID_COVOODOODOLLS, "co_voodoodolls", "Enable Voodoo Dolls",
-		"Enable spawning of Voodoo Dolls. [Legacy < 1.28]", PEXGSDR_LESSTHAN, 128, {0, 1}, 0},
+		"Enable spawning of Voodoo Dolls. [Legacy < 1.28]", PEXGSGM_ANY, PEXGSDR_LESSTHAN, 128, {0, 1}, 0},
+	
+	// Extra Puff in A_SmokeTrailer() before v1.25
+	{PEXGST_INTEGER, PEXGSBID_COEXTRATRAILPUFF, "co_extratrailpuff", "Extra Smoke Trails",
+		"Add extra puff for smoke. [Legacy < 1.25]", PEXGSGM_ANY, PEXGSDR_LESSTHAN, 125, {0, 1}, 0},
+	
+	// - Soul trails existed since 1.25, so that is the first ver?
+	{PEXGST_INTEGER, PEXGSBID_COLOSTSOULTRAILS, "co_lostsoultrails", "Lost Sould Trails",
+		"Lost souls emit smoke. [Legacy >= 1.25]", PEXGSGM_ANY, PEXGSDR_ATLEAST, 125, {0, 1}, 1},
+	
+	// In Legacy 1.11, two sided walls were transparent!
+	{PEXGST_INTEGER, PEXGSBID_COTRANSTWOSIDED, "co_transtwosided", "Transparent 2D Walls",
+		"Transparent two sided walls. [Legacy = 1.11]", PEXGSGM_ANY, PEXGSDR_EQUALS, 111, {0, 1}, 0},
+		
+	// - Exists in v1.25
+	// - Mentioned that it changed in v1.24
+	// - Does not exist in v1.11
+	// - Possibly appeared in v1.23?
+	{PEXGST_INTEGER, PEXGSBID_COENABLEBLOODTIME, "co_enablebloodtime", "Enable Blood Time",
+		"Enables setting blood time. [Legacy >= 1.23]", PEXGSGM_ANY, PEXGSDR_ATLEAST, 123, {0, 1}, 1},
 };
 
 /*** FUNCTIONS ***/

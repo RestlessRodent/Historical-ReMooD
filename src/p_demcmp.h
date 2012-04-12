@@ -176,6 +176,10 @@ typedef enum P_EXGSBitID_e
 	PEXGSBID_COLIMITMONSTERZMATTACK,			// Limit Monster Z Range
 	PEXGSBID_HEREMONSTERTHRESH,					// Heretic Monster Threshold
 	PEXGSBID_COVOODOODOLLS,						// Voodoo Dolls
+	PEXGSBID_COEXTRATRAILPUFF,					// Extra smoke trail puff
+	PEXGSBID_COLOSTSOULTRAILS,					// Trails for lost souls
+	PEXGSBID_COTRANSTWOSIDED,					// Transparent Two Sided walls
+	PEXGSBID_COENABLEBLOODTIME,					// Enable Blood Time
 	
 	PEXGSNUMBITIDS
 } P_EXGSBitID_t;

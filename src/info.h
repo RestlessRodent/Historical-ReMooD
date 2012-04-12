@@ -1196,6 +1196,7 @@ typedef struct
 	
 	// GhostlyDeath <March 5, 2012> -- To RMOD Deprecation
 	int32_t RMODFastTics;						// Tics when -fast
+	int32_t ExtraStateFlags;					// Custom flags
 } state_t;
 
 extern state_t states[NUMSTATES];
@@ -1445,7 +1446,7 @@ mobjtype_t INFO_GetTypeByName(const char* const a_Name);
 // Yuck! TODO: Make these real functions
 
 // __REMOOD_BLOODTIMECONST -- use cv_bloodtime.value instead here
-#define __REMOOD_BLOODTIMECONST ((int32_t)-2674)
+#define __REMOOD_BLOODTIMECONST 0x1
 
 // __REMOOD_GETBLOODKIND -- or "LegacyOldDoomBlood"
 #define __REMOOD_GETBLOODKIND (P_EXGSGetValue(PEXGSBID_COUSEOLDBLOOD) ? ("LegacyOldDoomBlood") : ("DoomBlood"))

@@ -44,6 +44,8 @@
 #include "console.h"			//Con_clipviewtop
 #include "z_zone.h"
 
+#include "p_demcmp.h"
+
 // OPTIMIZE: closed two sided lines as single sided
 
 // True if any of the segs textures might be visible.
@@ -392,27 +394,37 @@ void R_RenderMaskedSegRange(drawseg_t* ds, int x1, int x2)
 	texnum = textures[curline->sidedef->midtexture]->Translation;
 	windowbottom = windowtop = sprbotscreen = INT_MAX;
 	
-	//faB: hack translucent linedef types (201-205 for transtables 1-5)
-	//SoM: 201-205 are taken... So I'm switching to 284 - 288
-	ldef = curline->linedef;
-	if (ldef->special >= 284 && ldef->special <= 288)
+	
+	// GhostlyDeath <April 12, 2012> -- v1.11 had transparent 2D walls
+	if (P_EXGSGetValue(PEXGSBID_COTRANSTWOSIDED))
 	{
-		dc_transmap = ((ldef->special - 284) << FF_TRANSSHIFT) + transtables;
+		dc_transmap = transtables + (0x10000 * VEX_TRANS50);	// get first transtable 50/50
 		colfunc = fuzzcolfunc;
-	}
-	else if (ldef->special == 260)
-	{
-		dc_transmap = transtables;	// get first transtable 50/50
-		colfunc = fuzzcolfunc;
-	}
-	else if (ldef->special == 283)
-	{
-		colfunc = R_DrawFogColumn_8;
-		windowtop = frontsector->ceilingheight;
-		windowbottom = frontsector->floorheight;
 	}
 	else
-		colfunc = basecolfunc;
+	{
+		//faB: hack translucent linedef types (201-205 for transtables 1-5)
+		//SoM: 201-205 are taken... So I'm switching to 284 - 288
+		ldef = curline->linedef;
+		if (ldef->special >= 284 && ldef->special <= 288)
+		{
+			dc_transmap = ((ldef->special - 284) << FF_TRANSSHIFT) + transtables;
+			colfunc = fuzzcolfunc;
+		}
+		else if (ldef->special == 260)
+		{
+			dc_transmap = transtables + (0x10000 * VEX_TRANS50);	// get first transtable 50/50
+			colfunc = fuzzcolfunc;
+		}
+		else if (ldef->special == 283)
+		{
+			colfunc = R_DrawFogColumn_8;
+			windowtop = frontsector->ceilingheight;
+			windowbottom = frontsector->floorheight;
+		}
+		else
+			colfunc = basecolfunc;
+	}
 		
 	rw_scalestep = ds->scalestep;
 	spryscale = ds->scale1 + (x1 - ds->x1) * rw_scalestep;

@@ -97,20 +97,14 @@ void P_AdjMobjStateTics(mobj_t* const a_Object)
 		return;
 	
 	/* Special value? */
-	switch (a_Object->tics)
-	{
-			// Use blood time value
-		case __REMOOD_BLOODTIMECONST:
+	if (P_EXGSGetValue(PEXGSBID_COENABLEBLOODTIME))
+		if (a_Object->state->ExtraStateFlags & __REMOOD_BLOODTIMECONST)
+		{
 			if (cv_bloodtime.value <= 0)
 				a_Object->tics = 0;
 			else
 				a_Object->tics = (cv_bloodtime.value * TICRATE) - 16;
-			break;
-			
-			// No special constants
-		default:
-			break;
-	}
+		}
 }
 
 //

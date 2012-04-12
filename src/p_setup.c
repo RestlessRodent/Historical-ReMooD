@@ -1977,7 +1977,6 @@ void PS_ExMungeNodeData(void)
 	fixed_t BBox[4];
 	sector_t* SectorP;
 	
-			
 	/* Set loading screen info */
 	CONL_LoadingScreenSetSubEnd(3);
 	
