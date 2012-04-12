@@ -2036,7 +2036,7 @@ mobj_t* P_SPMAngle(mobj_t* source, mobjtype_t type, angle_t angle)
 	an = angle;
 	
 	//added:16-02-98: autoaim is now a toggle
-	if ((source->player->autoaim_toggle && DEMOCVAR(allowautoaim).value) || DEMOCVAR(forceautoaim).value)
+	if ((source->player->autoaim_toggle && DEMOCVAR(allowautoaim).value))
 	{
 		// see which target is to be aimed at
 		slope = P_AimLineAttack(source, an, 16 * 64 * FRACUNIT);
@@ -2061,7 +2061,8 @@ mobj_t* P_SPMAngle(mobj_t* source, mobjtype_t type, angle_t angle)
 	}
 	//added:18-02-98: if not autoaim, or if the autoaim didnt aim something,
 	//                use the mouseaiming
-	if (((source->player->autoaim_toggle && DEMOCVAR(allowautoaim).value) || DEMOCVAR(forceautoaim).value) && !linetarget)
+	
+	if (!(source->player->autoaim_toggle && DEMOCVAR(allowautoaim).value) || (!linetarget && P_EXGSGetValue(PEXGSBID_COMOUSEAIM)))
 	{
 		if (P_EXGSGetValue(PEXGSBID_COUSEMOUSEAIMING))
 			slope = AIMINGTOSLOPE(source->player->aiming);

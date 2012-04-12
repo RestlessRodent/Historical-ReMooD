@@ -368,7 +368,7 @@ static P_EXGSVariable_t l_GSVars[PEXGSNUMBITIDS] =
 		PEXGSMC_COMPAT},
 	{PEXGST_INTEGER, PEXGSBID_HEREMONSTERTHRESH, "here_monsterthresh", "Heretic Monster Threshold",
 		"Use Heretic Threshold Logic. [Heretic]", PEXGSGM_HERETIC, PEXGSDR_NOCHECK, 0, {0, 1}, 0,
-		PEXGSMC_COMPAT},
+		PEXGSMC_HERETIC},
 	{PEXGST_INTEGER, PEXGSBID_COVOODOODOLLS, "co_voodoodolls", "Enable Voodoo Dolls",
 		"Enable spawning of Voodoo Dolls. [Legacy < 1.28]", PEXGSGM_ANY, PEXGSDR_LESSTHAN, 128, {0, 1}, 0,
 		PEXGSMC_COMPAT},
@@ -399,6 +399,11 @@ static P_EXGSVariable_t l_GSVars[PEXGSNUMBITIDS] =
 	// Since v1.12, there was jumping
 	{PEXGST_INTEGER, PEXGSBID_COENABLEJUMPING, "co_enablejumping", "Enable Jumping",
 		"Enables Jumping Support [Legacy >= 1.12]", PEXGSGM_ANY, PEXGSDR_ATLEAST, 112, {0, 1}, 1,
+		PEXGSMC_COMPAT},
+	
+	// After v1.11, Enable mouse aiming
+	{PEXGST_INTEGER, PEXGSBID_COMOUSEAIM, "co_mouseaim", "Enable Mouse Aiming",
+		"Enable mouse aiming [Legacy > 1.11]", PEXGSGM_ANY, PEXGSDR_MORETHAN, 111, {0, 1}, 1,
 		PEXGSMC_COMPAT},
 };
 

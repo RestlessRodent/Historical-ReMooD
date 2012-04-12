@@ -117,6 +117,7 @@ typedef enum P_EXGSMenuCategory_s
 	PEXGSMC_MISC,								// Misc. Settings
 	PEXGSMC_COMPAT,								// Compatibility Option
 	PEXGSMC_FUN,								// Fun Settings! =D yay!
+	PEXGSMC_HERETIC,							// Heretic Settings
 	
 	NUMPEXGSMENUCATEGORIES
 } P_EXGSMenuCategory_t;
@@ -191,6 +192,7 @@ typedef enum P_EXGSBitID_e
 	PEXGSBID_COTRANSTWOSIDED,					// Transparent Two Sided walls
 	PEXGSBID_COENABLEBLOODTIME,					// Enable Blood Time
 	PEXGSBID_COENABLEJUMPING,					// Enable Jumping
+	PEXGSBID_COMOUSEAIM,						// Aim by mouse
 	
 	PEXGSNUMBITIDS
 } P_EXGSBitID_t;
