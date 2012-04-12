@@ -213,6 +213,7 @@ typedef struct P_EXGSVariable_s
 	const uint16_t DemoVersion;					// "demoversion" wrapper
 	const int32_t DemoVal[2];					// Demo values (false, true)
 	const int32_t DefaultVal;					// Default value wherever
+	P_EXGSMenuCategory_t Category;				// Category for item
 	
 	// Settings
 	bool_t WasSet;								// Was Set to value?

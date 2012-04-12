@@ -1840,10 +1840,30 @@ void M_MenuExDrawer(void)
 		V_WidgetDraw(l_ActiveMenuStack[p]->BigWidget, 0);
 	}
 	
+	if (false)
 	{
-		V_WidgetEx_t* wex = V_WidgetExNewLabel(VFONT_LARGE, "Hello World");
-		V_WidgetExDraw(wex);
-		V_WidgetExDelete(wex);
+		size_t i, m;
+		V_WidgetEx_t* cont = V_WidgetExNewHSplit();
+		V_WidgetEx_t* ttt[50];
+		
+		memset(ttt, 0, sizeof(ttt));
+		
+		m = (gametic / TICRATE) % 50;
+		
+		for (i = 0; i < m; i++)
+		{
+			ttt[i] = V_WidgetExNewLabel(i % 4, "Hello World");
+			V_WidgetExAddKid(cont, ttt[i]);
+		}
+		
+		V_WidgetExSetPos(cont, 0/*gametic % 40*/, 0/*gametic % 25*/);
+		V_WidgetExSetSize(cont, 320, 200);
+		V_WidgetExDraw(cont);
+		
+		for (i = 0; i < m; i++)
+			V_WidgetExDelete(ttt[i]);
+		
+		V_WidgetExDelete(cont);
 	}
 #endif /* __REMOOD_DEDICATED */
 }

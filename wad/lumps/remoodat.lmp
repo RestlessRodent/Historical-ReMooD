@@ -305,7 +305,14 @@ MapTouchSpecial "SHOT"
 	IsKeepIfNotNeeded "true";
 }
 
-
+// LAUN -- Rocket Launcher
+MapTouchSpecial "LAUN"
+{
+	Message "DEP_GOTLAUNCHER";
+	GiveWeapon "RocketLauncher";
+	PickupSound "wpnup";
+	IsKeepIfNotNeeded "true";
+}
 
 MapTouchSpecial "ARM1"
 {

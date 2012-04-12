@@ -113,9 +113,9 @@ struct V_WidgetEx_s
 		// fDelKid() -- Delete kid widget
 	void (*fDelKid)(V_WidgetEx_t* const a_This, V_WidgetEx_t* const a_Kid);
 		// fSetSize() -- Set size of widget
-	void (*fSetSize)(V_WidgetEx_t* const a_This, const int32_t a_W, const int32_t a_H);
+	void (*fSetSize)(V_WidgetEx_t* const a_This, const int32_t a_W, const int32_t a_H, const int32_t a_OldW, const int32_t a_OldH);
 		// fSetPos() -- Set position of widget
-	void (*fSetPos)(V_WidgetEx_t* const a_This, const int32_t a_X, const int32_t a_Y);
+	void (*fSetPos)(V_WidgetEx_t* const a_This, const int32_t a_X, const int32_t a_Y, const int32_t a_OldX, const int32_t a_OldY);
 };
 
 /****************
@@ -123,9 +123,13 @@ struct V_WidgetEx_s
 ****************/
 
 V_WidgetEx_t* V_WidgetExNewLabel(const VideoFont_t a_Font, const char* const a_Text);
+V_WidgetEx_t* V_WidgetExNewHSplit(void);
 
 void V_WidgetExDelete(V_WidgetEx_t* const a_This);
 void V_WidgetExDraw(V_WidgetEx_t* const a_This);
+void V_WidgetExAddKid(V_WidgetEx_t* const a_Parent, V_WidgetEx_t* const a_Kid);
+void V_WidgetExSetPos(V_WidgetEx_t* const a_This, const int32_t a_X, const int32_t a_Y);
+void V_WidgetExSetSize(V_WidgetEx_t* const a_This, const int32_t a_W, const int32_t a_H);
 
 #endif /* __V_WIDGET_H__ */
 

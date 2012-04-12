@@ -721,6 +721,52 @@ static void VS_GenericWEX_Draw(V_WidgetEx_t* const a_This)
 	}
 }
 
+/* VS_GenericWEX_AddKid() -- Generic add child to widget */
+static void VS_GenericWEX_AddKid(V_WidgetEx_t* const a_This, V_WidgetEx_t* const a_Kid)
+{
+	size_t i;
+	
+	/* Check */
+	if ((!a_This || !a_Kid) || (a_This == a_Kid))
+		return;
+	
+	/* Confirm not a duplicate kid */
+	for (i = 0; i < a_This->wNumKids; i++)
+		if (a_This->wKids[i] == a_Kid)
+			return;
+	
+	/* Resize array */
+	Z_ResizeArray((void**)&a_This->wKids, sizeof(*a_This->wKids), a_This->wNumKids, a_This->wNumKids + 1);
+	a_This->wKids[a_This->wNumKids++] = a_Kid;
+	
+	/* Set as parent */
+	a_Kid->wParent = a_This;
+}
+
+/* VS_GenericWEX_SetPos() -- Set position */
+void VS_GenericWEX_SetPos(V_WidgetEx_t* const a_This, const int32_t a_X, const int32_t a_Y, const int32_t a_OldX, const int32_t a_OldY)
+{
+	/* Check */
+	if (!a_This)
+		return;
+	
+	/* Move around */
+	a_This->wPos[0] = a_X;
+	a_This->wPos[1] = a_Y;
+}
+
+/* VS_GenericWEX_SetSize() -- Set size */
+void VS_GenericWEX_SetSize(V_WidgetEx_t* const a_This, const int32_t a_W, const int32_t a_H, const int32_t a_OldW, const int32_t a_OldH)
+{
+	/* Check */
+	if (!a_This)
+		return;
+	
+	/* Move around */
+	a_This->wSize[0] = a_W;
+	a_This->wSize[1] = a_H;
+}
+
 /* VS_BaseWidgetEx() -- Creates a base widget */
 static V_WidgetEx_t* VS_BaseWidgetEx(void)
 {
@@ -728,9 +774,6 @@ static V_WidgetEx_t* VS_BaseWidgetEx(void)
 	
 	/* Allocate */
 	New = Z_Malloc(sizeof(*New), PU_STATIC, NULL);
-	
-	/* Set base functions */
-	New->fDraw = VS_GenericWEX_Draw;
 	
 	/* Return */
 	return New;
@@ -746,9 +789,6 @@ static void VS_LabelWEX_Draw(V_WidgetEx_t* const a_This)
 	/* Check */
 	if (!a_This)
 		return;
-	
-	/* Draw generic */
-	VS_GenericWEX_Draw(a_This);
 	
 	/* Draw label text */
 	if (a_This->wStrVal)
@@ -773,6 +813,89 @@ V_WidgetEx_t* V_WidgetExNewLabel(const VideoFont_t a_Font, const char* const a_T
 	// Clone text
 	if (a_Text)
 		RetVal->wStrVal = Z_StrDup(a_Text, PU_STATIC, &RetVal->wStrVal);
+	
+	/* Return the created widget */
+	return RetVal;
+}
+
+/***********************
+*** HORIZONTAL SPLIT ***
+***********************/
+
+/* VS_HSplitWEX_TotalResize() -- Resize everything */
+static void VS_HSplitWEX_TotalResize(V_WidgetEx_t* const a_This, const int32_t a_X, const int32_t a_Y, const int32_t a_W, const int32_t a_H)
+{
+	size_t i;
+	int32_t PerH;
+	
+	/* Check */
+	if (!a_This)
+		return;
+	
+	/* No kids? */
+	if (!a_This->wNumKids)
+		return;
+	
+	/* Determine size of kids */
+	// Evenly split between them
+	PerH = a_H / a_This->wNumKids;
+	
+	/* Resize each kid */
+	for (i = 0; i < a_This->wNumKids; i++)
+		if (a_This->wKids[i])
+		{
+			// Set size and position of widget
+			V_WidgetExSetSize(a_This->wKids[i], a_W, PerH);
+			V_WidgetExSetPos(a_This->wKids[i], a_X, a_Y + (PerH * i));
+		}
+}
+
+/* VS_HSplitWEX_SetPos() -- Horizontal split */
+static void VS_HSplitWEX_SetPos(V_WidgetEx_t* const a_This, const int32_t a_X, const int32_t a_Y, const int32_t a_OldX, const int32_t a_OldY)
+{
+	/* Check */
+	if (!a_This)
+		return;
+	
+	/* Call super resizer */
+	VS_HSplitWEX_TotalResize(a_This, a_X, a_Y, a_This->wSize[0], a_This->wSize[1]);
+}
+
+/* VS_HSplitWEX_SetSize() -- Set size of split */
+static void VS_HSplitWEX_SetSize(V_WidgetEx_t* const a_This, const int32_t a_W, const int32_t a_H, const int32_t a_OldW, const int32_t a_OldH)
+{
+	/* Check */
+	if (!a_This)
+		return;
+	
+	/* Call super resizer */
+	VS_HSplitWEX_TotalResize(a_This, a_This->wPos[0], a_This->wPos[1], a_W, a_H);
+}
+
+/* VS_HSplitWEX_AddKid() -- Add kid */
+void VS_HSplitWEX_AddKid(V_WidgetEx_t* const a_This, V_WidgetEx_t* const a_Kid)
+{
+	/* Check */
+	if (!a_This || !a_Kid)
+		return;
+	
+	/* Total resize */
+	VS_HSplitWEX_TotalResize(a_This, a_This->wPos[0], a_This->wPos[1], a_This->wSize[0], a_This->wSize[1]);
+}
+
+/* V_WidgetExNewHSplit() -- New horizontal split */
+V_WidgetEx_t* V_WidgetExNewHSplit(void)
+{
+	V_WidgetEx_t* RetVal;
+	
+	/* Create base */
+	RetVal = VS_BaseWidgetEx();
+	
+	/* Set Properties */
+	// Set functions
+	RetVal->fSetPos = VS_HSplitWEX_SetPos;
+	RetVal->fSetSize = VS_HSplitWEX_SetSize;
+	RetVal->fAddKid = VS_HSplitWEX_AddKid;
 	
 	/* Return the created widget */
 	return RetVal;
@@ -804,12 +927,79 @@ void V_WidgetExDelete(V_WidgetEx_t* const a_This)
 /* V_WidgetExDraw() -- Draw widget */
 void V_WidgetExDraw(V_WidgetEx_t* const a_This)
 {
+	size_t i;
+	
 	/* Check */
-	if (!a_This || !a_This->fDraw)
+	if (!a_This)
 		return;
+		
+	/* Draw generic */
+	VS_GenericWEX_Draw(a_This);
 	
 	/* Call */
-	a_This->fDraw(a_This);
+	if (a_This->fDraw)
+		a_This->fDraw(a_This);
+	
+	/* Draw kids */
+	for (i = 0; i < a_This->wNumKids; i++)
+		if (a_This->wKids[i])
+			V_WidgetExDraw(a_This->wKids[i]);
 }
 
+/* V_WidgetExAddKid() -- Add kid to parent widget */
+void V_WidgetExAddKid(V_WidgetEx_t* const a_Parent, V_WidgetEx_t* const a_Kid)
+{
+	/* Check */
+	if ((!a_Parent || !a_Kid) || (a_Parent == a_Kid))
+		return;
+	
+	/* Add kid */
+	VS_GenericWEX_AddKid(a_Parent, a_Kid);
+	
+	/* Call */
+	if (a_Parent->fAddKid)
+		a_Parent->fAddKid(a_Parent, a_Kid);
+}
+
+/* V_WidgetExSetPos() -- Set widget position */
+void V_WidgetExSetPos(V_WidgetEx_t* const a_This, const int32_t a_X, const int32_t a_Y)
+{
+	int32_t OldX, OldY;
+	
+	/* Check */
+	if (!a_This)
+		return;
+	
+	/* Remember Old position */
+	OldX = a_This->wPos[0];
+	OldY = a_This->wPos[1];
+	
+	/* Generic */
+	VS_GenericWEX_SetPos(a_This, a_X, a_Y, OldX, OldY);
+	
+	/* Call */
+	if (a_This->fSetPos)
+		a_This->fSetPos(a_This, a_X, a_Y, OldX, OldY);
+}
+
+/* V_WidgetExSetSize() -- Set size of sub widget */
+void V_WidgetExSetSize(V_WidgetEx_t* const a_This, const int32_t a_W, const int32_t a_H)
+{
+	int32_t OldX, OldY;
+	
+	/* Check */
+	if (!a_This)
+		return;
+	
+	/* Remember Old size */
+	OldX = a_This->wSize[0];
+	OldY = a_This->wSize[1];
+	
+	/* Generic */
+	VS_GenericWEX_SetSize(a_This, a_W, a_H, OldX, OldY);
+	
+	/* Call */
+	if (a_This->fSetSize)
+		a_This->fSetSize(a_This, a_W, a_H, OldX, OldY);
+}
 
