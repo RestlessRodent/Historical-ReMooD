@@ -1558,7 +1558,7 @@ hitline:
 	y = trace.y + FixedMul(trace.dy, frac);
 	z = shootz + FixedMul(aimslope, FixedMul(frac, attackrange));
 	
-	if (DEMOCVAR(classicblood).value)
+	if (!P_EXGSGetValue(PEXGSBID_CONEWBLOODHITSCANCODE))
 	{
 		// Spawn bullet puffs or blood spots,
 		// depending on target type.
@@ -1573,7 +1573,7 @@ hitline:
 	else
 		hitplane = false;
 		
-	if (P_EXGSGetValue(PEXGSBID_CONEWBLOODHITSCANCODE) && !(DEMOCVAR(classicblood).value))
+	if (P_EXGSGetValue(PEXGSBID_CONEWBLOODHITSCANCODE))
 	{
 		// Spawn bullet puffs or blood spots,
 		// depending on target type.
@@ -1929,33 +1929,25 @@ bool_t PIT_ChangeSector(mobj_t* thing, void* a_Arg)
 	
 	nofit = true;
 	
-	if (DEMOCVAR(classicblood).value)
+	// GhostlyDeath <April 12, 2012> -- Whoops, I thought Legacy changed the
+	// way crusher blood worked, turns out it didn't. It seems I never actually
+	// realized that (x & 3) and (x % 4) are exactly the same. However, Legacy
+	// did add some added logic to the blood spraying. Legacy sprays a little
+	// less blood. The only difference here is that 
+	if (crushchange && !(leveltime & 3))
 	{
-		if (crushchange && !(leveltime & 3))
+		// Regardless, things always get hurt here
+		P_DamageMobj(thing, NULL, NULL, 10);
+		
+		// Before Legacy 1.32, there was more blood, and everything bled, even barrels!
+		if (P_EXGSGetValue(PEXGSBID_COMORECRUSHERBLOOD) || ((!(leveltime % (16)) && !(thing->flags & MF_NOBLOOD))))
 		{
-			P_DamageMobj(thing, NULL, NULL, 10);
-			
 			// spray blood in a random direction
 			mo = P_SpawnMobj(thing->x, thing->y, thing->z + thing->height / 2, INFO_GetTypeByName(__REMOOD_GETBLOODKIND));
 			
-			mo->momx = (P_Random() - P_Random()) << 12;
-			mo->momy = (P_Random() - P_Random()) << 12;
-		}
-	}
-	else
-	{
-		if (crushchange && !(leveltime % (4)))
-		{
-			P_DamageMobj(thing, NULL, NULL, 10);
-			
-			if (P_EXGSGetValue(PEXGSBID_COSTATICCRUSHERBLOOD) || (!(leveltime % (16)) && !(thing->flags & MF_NOBLOOD)))
-			{
-				// spray blood in a random direction
-				mo = P_SpawnMobj(thing->x, thing->y, thing->z + thing->height / 2, INFO_GetTypeByName(__REMOOD_GETBLOODKIND));
-				
-				mo->momx = P_SignedRandom() << 12;
-				mo->momy = P_SignedRandom() << 12;
-			}
+			// Signed random because P_Random() is now uint8_t!
+			mo->momx = P_SignedRandom() << 12;
+			mo->momy = P_SignedRandom() << 12;
 		}
 	}
 	

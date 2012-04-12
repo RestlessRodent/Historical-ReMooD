@@ -1828,11 +1828,14 @@ void P_SpawnBlood(fixed_t x, fixed_t y, fixed_t z, int damage)
 	
 	z += P_SignedRandom() << 10;
 	th = P_SpawnMobj(x, y, z, INFO_GetTypeByName(__REMOOD_GETBLOODKIND));
-	if (!DEMOCVAR(classicblood).value)
+	
+	// GhostlyDeath <April 12, 2012> -- 1.28 and up added blood spewing
+	if (P_EXGSGetValue(PEXGSBID_CORANDOMBLOODDIR))
 	{
 		th->momx = P_SignedRandom() << 12;	//faB:19jan99
 		th->momy = P_SignedRandom() << 12;	//faB:19jan99
 	}
+	
 	th->momz = FRACUNIT * 2;
 	th->tics -= P_Random() & 3;
 	
@@ -1977,7 +1980,7 @@ mobj_t* P_SpawnMissile(mobj_t* source, mobj_t* dest, mobjtype_t type)
 		an = R_PointToAngle2(source->x, source->y, px, py);
 		
 		// fuzzy player
-		if (dest->flags & MF_SHADOW)
+		if ((dest->flags & MF_SHADOW) || P_EXGSGetValue(PEXGSBID_FUNMONSTERSMISSMORE))
 			an += P_SignedRandom() << 20;
 			
 		th->angle = an;
@@ -1995,7 +1998,7 @@ mobj_t* P_SpawnMissile(mobj_t* source, mobj_t* dest, mobjtype_t type)
 		an = R_PointToAngle2(source->x, source->y, dest->x, dest->y);
 		
 		// fuzzy player
-		if (dest->flags & MF_SHADOW)
+		if ((dest->flags & MF_SHADOW) || P_EXGSGetValue(PEXGSBID_FUNMONSTERSMISSMORE))
 		{
 			an += P_SignedRandom() << 20;
 		}

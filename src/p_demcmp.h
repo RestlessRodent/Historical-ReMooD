@@ -144,7 +144,6 @@ typedef enum P_EXGSBitID_e
 	PEXGSBID_COMISSILESPLATONWALL,				// Splat missiles on walls
 	PEXGSBID_CONEWBLOODHITSCANCODE,				// Use newer blood spewing code.
 	PEXGSBID_CONEWAIMINGCODE,					// Use newer aiming code.
-	PEXGSBID_COSTATICCRUSHERBLOOD,				// Static crusher blood
 	PEXGSBID_COMISSILESPECHIT,					// Missiles could trigger special hits?
 	PEXGSBID_COHITSCANSSLIDEONFLATS,			// Hitscans slide on flats
 	PEXGSBID_CONONSOLIDPASSTHRUOLD,				// Non-solid pass through (older trigger)
@@ -157,6 +156,9 @@ typedef enum P_EXGSBitID_e
 	PEXGSBID_FUNMONSTERFFA,						// Monster Free For All
 	PEXGSBID_FUNINFIGHTING,						// Monster Infighting
 	PEXGSBID_COCORRECTVILETARGET,				// Correct Arch-Vile Target Fire
+	PEXGSBID_FUNMONSTERSMISSMORE,				// Monsters miss more
+	PEXGSBID_COMORECRUSHERBLOOD,				// More Crusher Blood
+	PEXGSBID_CORANDOMBLOODDIR,					// Spew Blood in random directions
 	
 	PEXGSNUMBITIDS
 } P_EXGSBitID_t;

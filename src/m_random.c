@@ -75,6 +75,7 @@ uint8_t P_Random()
 // lot of code used P_Random()-P_Random() since C don't define
 // evaluation order it is compiler depenent so this allow network play
 // between different compilers
+// GhostlyDeath <April 12, 2012> -- Whoever thought this, does not know C! Perhaps that is why it is so buggy!
 int P_SignedRandom()
 {
 	int r = P_Random();

@@ -763,7 +763,7 @@ void A_FaceTarget(mobj_t* actor)
 	
 	actor->angle = R_PointToAngle2(actor->x, actor->y, actor->target->x, actor->target->y);
 	
-	if (actor->target->flags & MF_SHADOW)
+	if ((actor->target->flags & MF_SHADOW) || P_EXGSGetValue(PEXGSBID_FUNMONSTERSMISSMORE))
 		actor->angle += P_SignedRandom() << 21;
 }
 

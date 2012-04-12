@@ -255,8 +255,6 @@ static P_EXGSVariable_t l_GSVars[PEXGSNUMBITIDS] =
 		"Use newer blood spawning code when tracing hitscans. [Legacy >= 1.25]", PEXGSDR_ATLEAST, 125, {0, 1}, 1},
 	{PEXGST_INTEGER, PEXGSBID_CONEWAIMINGCODE, "co_newaimingcode", "New Aiming Code",
 		"Use newer aiming code in P_AimLineAttack(). [Legacy >= 1.28]", PEXGSDR_ATLEAST, 128, {0, 1}, 1},
-	{PEXGST_INTEGER, PEXGSBID_COSTATICCRUSHERBLOOD, "co_staticcrusherblood", "Static Crusher Blood",
-		"Use static crushing blood. [Legacy < 1.32]", PEXGSDR_LESSTHAN, 132, {0, 1}, 0},
 	{PEXGST_INTEGER, PEXGSBID_COMISSILESPECHIT, "co_missilespechit", "Missiles Trigger Special Line Hits",
 		"Missiles can trigger special line hits. [Legacy >= 1.32]", PEXGSDR_ATLEAST, 132, {0, 1}, 1},
 	{PEXGST_INTEGER, PEXGSBID_COHITSCANSSLIDEONFLATS, "co_hitscanslidesonflats", "Hitscans Slide On Floor",
@@ -276,11 +274,17 @@ static P_EXGSVariable_t l_GSVars[PEXGSNUMBITIDS] =
 	{PEXGST_INTEGER, PEXGSBID_COUSEOLDBLOOD, "co_useoldblood", "Use Old Doom Blood",
 		"Uses standard Doom blood rather than Legacy blood. [Legacy < 130]", PEXGSDR_LESSTHAN, 130, {0, 1}, 0},
 	{PEXGST_INTEGER, PEXGSBID_FUNMONSTERFFA, "fun_monsterffa", "Monster Free For All",
-		"Monsters enter a Free For All and attack anything in sight.", PEXGSDR_NOCHECK, 0, {0, 1}, 0},
+		"Monsters enter a Free For All and attack anything in sight.", PEXGSDR_NOCHECK, 0, {0, 0}, 0},
 	{PEXGST_INTEGER, PEXGSBID_FUNINFIGHTING, "fun_monsterinfight", "Monsters Infight",
-		"Monsters attack monsters of the same race.", PEXGSDR_NOCHECK, 0, {0, 1}, 0},
+		"Monsters attack monsters of the same race.", PEXGSDR_NOCHECK, 0, {0, 0}, 0},
 	{PEXGST_INTEGER, PEXGSBID_COCORRECTVILETARGET, "co_correctviletarget", "Correct Position Of Vile Vire",
-		"Correct the position of the Arch-Vile target fire. [ReMooD >= 1.0a]", PEXGSDR_ATLEAST, 200, {0, 1}, 1}
+		"Correct the position of the Arch-Vile target fire. [ReMooD >= 1.0a]", PEXGSDR_ATLEAST, 200, {0, 1}, 1},
+	{PEXGST_INTEGER, PEXGSBID_FUNMONSTERSMISSMORE, "fun_monstersmissmore", "Monsters Miss More",
+		"Monsters miss their target more.", PEXGSDR_NOCHECK, 0, {0, 0}, 0},
+	{PEXGST_INTEGER, PEXGSBID_COMORECRUSHERBLOOD, "co_morecrusherblood", "More Crusher Blood",
+		"Make crushers spew more blood. [Legacy < 1.32]", PEXGSDR_LESSTHAN, 132, {0, 1}, 0},
+	{PEXGST_INTEGER, PEXGSBID_CORANDOMBLOODDIR, "co_randomblooddir", "Random Blood Direction",
+		"Spew blood in a random direction. [Legacy >= 1.28]", PEXGSDR_ATLEAST, 128, {0, 1}, 1},
 };
 
 /*** FUNCTIONS ***/
