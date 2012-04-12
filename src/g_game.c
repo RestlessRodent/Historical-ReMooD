@@ -589,7 +589,7 @@ void G_BuildTiccmd(ticcmd_t* cmd, int realtics, int player)
 		cmd->buttons |= BT_USE;
 		
 	//added:22-02-98: jump button
-	if (cv_allowjump.value && GAMEKEYDOWN(gc_jump))
+	if (GAMEKEYDOWN(gc_jump))
 		cmd->buttons |= BT_JUMP;
 		
 	//added:07-02-98: any key / button can trigger a weapon

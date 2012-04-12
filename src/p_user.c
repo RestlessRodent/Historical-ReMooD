@@ -402,35 +402,42 @@ void P_MovePlayer(player_t* player)
 		}
 	}
 	
-	//added:22-02-98: jumping
-	if (cmd->buttons & BT_JUMP)
+	// GhostlyDeath <April 12, 2012> -- Enable jumping
+	// For some reason, despite cv_allowjump being false, you could still jump
+	// since the check was done in P_BuildTicCommand(). So despite not being
+	// allowed to jump, a hacked client could jump anyway. This fixes it here.
+	if (P_EXGSGetValue(PEXGSBID_COENABLEJUMPING))
 	{
-		if (player->mo->flags2 & MF2_FLY)
-			player->flyheight = 10;
-		if (player->mo->eflags & MF_UNDERWATER)
+		//added:22-02-98: jumping
+		if (cmd->buttons & BT_JUMP)
 		{
-			player->mo->momz = JUMPGRAVITY / 2;
-			if (gametic > player->flushdelay + TICRATE)
+			if (player->mo->flags2 & MF2_FLY)
+				player->flyheight = 10;
+			if (player->mo->eflags & MF_UNDERWATER)
 			{
-				S_StartSound(&player->mo->NoiseThinker, sfx_floush);
-				player->flushdelay = gametic;
-			}
-		}
-		else
-			// can't jump while in air, can't jump while jumping
-			if (onground && !(player->jumpdown & 1))
-			{
-				player->mo->momz = JUMPGRAVITY;
-				if (!(player->cheats & CF_FLYAROUND))
+				player->mo->momz = JUMPGRAVITY / 2;
+				if (gametic > player->flushdelay + TICRATE)
 				{
-					S_StartSound(&player->mo->NoiseThinker, sfx_jump);
-					// keep jumping ok if FLY mode.
-					player->jumpdown |= 1;
+					S_StartSound(&player->mo->NoiseThinker, sfx_floush);
+					player->flushdelay = gametic;
 				}
 			}
+			else
+				// can't jump while in air, can't jump while jumping
+				if (onground && !(player->jumpdown & 1))
+				{
+					player->mo->momz = JUMPGRAVITY;
+					if (!(player->cheats & CF_FLYAROUND))
+					{
+						S_StartSound(&player->mo->NoiseThinker, sfx_jump);
+						// keep jumping ok if FLY mode.
+						player->jumpdown |= 1;
+					}
+				}
+		}
+		else
+			player->jumpdown &= ~1;
 	}
-	else
-		player->jumpdown &= ~1;
 		
 	if (cmd->forwardmove || cmd->sidemove)
 	{

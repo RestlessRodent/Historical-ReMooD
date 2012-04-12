@@ -111,6 +111,16 @@ typedef enum P_EXGSGameMode_e
 	PEXGSGM_ANY = PEXGSGM_DOOM | PEXGSGM_HERETIC,
 } P_EXGSGameMode_t;
 
+/* P_EXGSMenuCategory_t -- Menu category */
+typedef enum P_EXGSMenuCategory_s
+{
+	PEXGSMC_MISC,								// Misc. Settings
+	PEXGSMC_COMPAT,								// Compatibility Option
+	PEXGSMC_FUN,								// Fun Settings! =D yay!
+	
+	NUMPEXGSMENUCATEGORIES
+} P_EXGSMenuCategory_t;
+
 /* P_EXGSBitID_t -- Bit ID of flag */
 typedef enum P_EXGSBitID_e
 {
@@ -180,6 +190,7 @@ typedef enum P_EXGSBitID_e
 	PEXGSBID_COLOSTSOULTRAILS,					// Trails for lost souls
 	PEXGSBID_COTRANSTWOSIDED,					// Transparent Two Sided walls
 	PEXGSBID_COENABLEBLOODTIME,					// Enable Blood Time
+	PEXGSBID_COENABLEJUMPING,					// Enable Jumping
 	
 	PEXGSNUMBITIDS
 } P_EXGSBitID_t;

@@ -70,7 +70,7 @@ void A_SmokeTrailer(mobj_t* actor)
 	}
 	
 	// add the smoke behind the rocket
-	th = P_SpawnMobj(actor->x - actor->momx, actor->y - actor->momy, actor->z, INFO_GetTypeByName("LegacySmoke"));
+	th = P_SpawnMobj(actor->x - actor->momx, actor->y - actor->momy, actor->z, (P_EXGSGetValue(PEXGSBID_COUSEREALSMOKE) ? INFO_GetTypeByName("LegacySmoke") : INFO_GetTypeByName("TracerSmoke")));
 
 	th->momz = FRACUNIT;
 	th->tics -= P_Random() & 3;
