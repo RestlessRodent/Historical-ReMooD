@@ -59,24 +59,4 @@ void P_LinkFloorThing(mobj_t* mobj);
 void P_UnlinkFloorThing(mobj_t* mobj);
 */
 
-typedef struct CustomTouch_s
-{
-	int SpriteNum;
-	int ThingNum;
-	
-	// Misc
-	char* PickupString;
-	int Flags;
-	int Health[2];
-	int Armor[2];
-	int ArmorType;
-	int Keys[NUMCARDS];
-	int Ammo[NUMAMMO];
-	int Weapons[NUMWEAPONS];
-	
-} CustomTouch_t;
-
-extern CustomTouch_t* NewTouchThings;
-extern size_t NumTouchThings;
-
 #endif

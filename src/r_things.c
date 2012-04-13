@@ -1081,19 +1081,6 @@ void R_AddSprites(sector_t* sec, int lightlevel)
 			R_ProjectSprite(thing);
 }
 
-const int PSpriteSY[NUMWEAPONS] =
-{
-	0,							// staff
-	5 * FRACUNIT,				// goldwand
-	15 * FRACUNIT,				// crossbow
-	15 * FRACUNIT,				// blaster
-	15 * FRACUNIT,				// skullrod
-	15 * FRACUNIT,				// phoenix rod
-	15 * FRACUNIT,				// mace
-	15 * FRACUNIT,				// gauntlets
-	15 * FRACUNIT				// beak
-};
-
 //
 // R_DrawPSprite
 //
@@ -1165,6 +1152,9 @@ void R_DrawPSprite(pspdef_t* psp)
 		vis->texturemid = (120 << (FRACBITS)) + FRACUNIT / 2 - (psp->sy - SprInfo->TopOffset);
 	else
 		vis->texturemid = (BASEYCENTER << FRACBITS) + FRACUNIT / 2 - (psp->sy - SprInfo->TopOffset);
+	
+	if (viewheight == vid.height || (!cv_scalestatusbar.value && vid.dupy > 1))
+		vis->texturemid -= viewplayer->weaponinfo[viewplayer->readyweapon].PSpriteSY;
 		
 	//vis->texturemid += FRACUNIT/2;
 	

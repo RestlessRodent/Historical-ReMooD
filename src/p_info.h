@@ -171,8 +171,6 @@ extern char* info_intertext;
 extern char* info_backdrop;
 extern int info_scripts;		// whether the current level has scripts
 
-extern bool_t default_weaponowned[NUMWEAPONS];
-
 // level menu
 // level authors can include a menu in their level to
 // activate special features

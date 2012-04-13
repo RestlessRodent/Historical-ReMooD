@@ -148,11 +148,9 @@ typedef struct player_s
 	// Is wp_nochange if not changing.
 	weapontype_t pendingweapon;
 	
-	bool_t weaponowned[NUMWEAPONS];
-	int ammo[NUMAMMO];
-	int maxammo[NUMAMMO];
-	// added by Boris : preferred weapons order stuff
-	char favoritweapon[NUMWEAPONS];
+	bool_t* weaponowned;
+	int* ammo;
+	int* maxammo;
 	bool_t originalweaponswitch;
 	//added:28-02-98:
 	bool_t autoaim_toggle;

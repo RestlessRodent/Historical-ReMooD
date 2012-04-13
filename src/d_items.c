@@ -30,6 +30,8 @@
 // -----------------------------------------------------------------------------
 // DESCRIPTION: holds the weapon info for now...
 
+#include <stdio.h>
+
 // We are referring to sprite numbers.
 #include "info.h"
 #include "d_items.h"
@@ -46,3 +48,42 @@
 //  atkstate, i.e. attack/fire/hit frame
 //  flashstate, muzzle flash
 //
+
+/* D_DumpItemRMOD() -- Dump RMOD for weapons and ammo */
+void D_DumpItemRMOD(void)
+{
+	size_t i;
+	FILE* f;
+	weaponinfo_t* ThisWep;
+	
+	/* Create file */
+	f = fopen("rmoddump", "w+b");
+	
+	/* Dump Ammo */
+	for (i = 0; i < NUMAMMO; i++)
+	{
+	}
+	
+	/* Dump Weapons */
+	for (i = 0; i < NUMWEAPONS; i++)
+	{
+		// Get the current weapon
+		ThisWep = &wpnlev1info[i];
+		
+		// Print opener
+		fprintf(f, "MapWeapon \"%s\"\n", ThisWep->ClassName);
+		fprintf(f, "{\n");
+		
+		// Print stuff about weapon
+		
+		// Print weapon states
+		
+		// Print closure
+		fprintf(f, "}\n");
+		fprintf(f, "\n");
+	}
+	
+	/* Close file */
+	fclose(f);
+}
+

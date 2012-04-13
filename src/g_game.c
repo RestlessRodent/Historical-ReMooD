@@ -337,13 +337,6 @@ static fixed_t forwardmove[2] = { 25, 50 };
 static fixed_t sidemove[2] = { 24, 40 };
 static fixed_t angleturn[3] = { 640, 1280, 320 };	// + slow turn
 
-// for change this table change also nextweapon func in g_game and P_PlayerThink
-uint8_t nextweaponorder[NUMWEAPONS] =
-{
-	wp_fist, wp_chainsaw, wp_pistol,
-	wp_shotgun, wp_supershotgun, wp_chaingun, wp_missile, wp_plasma, wp_bfg
-};
-
 bool_t P_CanUseWeapon(player_t* const a_Player, const weapontype_t a_Weapon);
 
 /* NextWeapon() -- Finds the next weapon in the chain */
@@ -461,18 +454,7 @@ uint8_t NextWeapon(player_t* player, int step)
 
 uint8_t BestWeapon(player_t* player)
 {
-	int newweapon = FindBestWeapon(player);
-	
-	if (newweapon == player->readyweapon)
-		return 0;
-		
-	if (newweapon == wp_chainsaw)
-		return (BT_CHANGE | BT_EXTRAWEAPON | (wp_fist << BT_WEAPONSHIFT));
-		
-	if (newweapon == wp_supershotgun)
-		return (BT_CHANGE | BT_EXTRAWEAPON | (wp_shotgun << BT_WEAPONSHIFT));
-		
-	return (BT_CHANGE | (newweapon << BT_WEAPONSHIFT));
+	return 0;
 }
 
 #define GAMEKEYDOWN(x) (gamekeydown[gamecontrol[player][x][0]] || gamekeydown[gamecontrol[player][x][1]])
@@ -608,7 +590,7 @@ void G_BuildTiccmd(ticcmd_t* cmd, int realtics, int player)
 	}
 	else if (GAMEKEYDOWN(gc_bestweapon))
 	{
-		cmd->buttons |= BestWeapon(&players[consoleplayer[player]]);
+		//cmd->buttons |= BestWeapon(&players[consoleplayer[player]]);
 	}
 	else
 	{
@@ -1306,10 +1288,13 @@ void G_PlayerReborn(int player)
 	int secretcount;
 	uint16_t addfrags;
 	ProfileInfo_t* prof;
+	bool_t* weaponowned;
+	int* ammo;
+	int* maxammo;
 	
 	//from Boris
 	int skincolor;
-	char favoritweapon[NUMWEAPONS];
+	//char favoritweapon[NUMWEAPONS];
 	bool_t originalweaponswitch;
 	bool_t autoaim;
 	int skin;					//Fab: keep same skin
@@ -1321,10 +1306,14 @@ void G_PlayerReborn(int player)
 	itemcount = players[player].itemcount;
 	secretcount = players[player].secretcount;
 	
+	weaponowned = players[player].weaponowned;
+	ammo = players[player].ammo;
+	maxammo = players[player].maxammo;
+	
 	//from Boris
 	skincolor = players[player].skincolor;
 	originalweaponswitch = players[player].originalweaponswitch;
-	memcpy(favoritweapon, players[player].favoritweapon, NUMWEAPONS);
+	//memcpy(favoritweapon, players[player].favoritweapon, NUMWEAPONS);
 	autoaim = players[player].autoaim_toggle;
 	skin = players[player].skin;
 	
@@ -1337,10 +1326,27 @@ void G_PlayerReborn(int player)
 	players[player].itemcount = itemcount;
 	players[player].secretcount = secretcount;
 	
+	// Weapons
+	if (!weaponowned)
+		weaponowned = Z_Malloc(sizeof(*weaponowned) * NUMWEAPONS, PU_STATIC, NULL);
+	memset(weaponowned, 0, sizeof(*weaponowned) * NUMWEAPONS);
+	players[player].weaponowned = weaponowned;
+
+	// Ammo
+	if (!ammo)
+		ammo = Z_Malloc(sizeof(*ammo) * NUMAMMO, PU_STATIC, NULL);
+	memset(ammo, 0, sizeof(*ammo) * NUMAMMO);
+	players[player].ammo = ammo;
+	
+	// Max Ammo
+	if (!maxammo)
+		maxammo = Z_Malloc(sizeof(*maxammo) * NUMAMMO, PU_STATIC, NULL);
+	memset(maxammo, 0, sizeof(*maxammo) * NUMAMMO);
+	players[player].maxammo = maxammo;
+	
 	// save player config truth reborn
 	players[player].skincolor = skincolor;
 	players[player].originalweaponswitch = originalweaponswitch;
-	memcpy(players[player].favoritweapon, favoritweapon, NUMWEAPONS);
 	players[player].autoaim_toggle = autoaim;
 	players[player].skin = skin;
 	
@@ -1350,10 +1356,27 @@ void G_PlayerReborn(int player)
 	
 	p->weaponinfo = wpnlev1info;
 	//p->weaponinfo = doomweaponinfo;
-	p->readyweapon = p->pendingweapon = wp_pistol;
-	p->weaponowned[wp_fist] = true;
-	p->weaponowned[wp_pistol] = true;
-	p->ammo[am_clip] = initial_bullets;
+	
+	// GhostlyDeath <April 13, 2012> -- Give player starting weapons
+	p->readyweapon = p->pendingweapon = NUMWEAPONS;
+	for (i = 0; i < NUMWEAPONS; i++)
+		// Only see if the weapon is unlocked
+		if (P_WeaponIsUnlocked(i))
+			// Is this a starting weapon
+			if (p->weaponinfo[i].WeaponFlags & WF_STARTINGWEAPON)
+			{
+				// Set as owned
+				p->weaponowned[i] = true;
+				
+				// Choose this gun?
+				if ((p->readyweapon == NUMWEAPONS) ||
+					(p->readyweapon != NUMWEAPONS && p->weaponinfo[i].NoAmmoOrder > p->weaponinfo[p->readyweapon].NoAmmoOrder))
+					p->readyweapon = p->pendingweapon = i;
+			}
+	
+	// GhostlyDeath <April 13, 2012> -- Give player starting ammo
+	for (i = 0; i < NUMAMMO; i++)
+		p->ammo[i] = ammoinfo[i].StartingAmmo;
 	
 	p->profile = prof;
 	

@@ -77,27 +77,7 @@ void VerifFavoritWeapon(player_t* player)
 
 int FindBestWeapon(player_t* player)
 {
-	int actualprior, actualweapon = 0, i;
-	
-	actualprior = -1;
-	
-	for (i = 0; i < NUMWEAPONS; i++)
-	{
-		// skip super shotgun for non-Doom2
-		if (gamemode != commercial && i == wp_supershotgun)
-			continue;
-		// skip plasma-bfg in sharware
-		if (gamemode == shareware && (i == wp_plasma || i == wp_bfg))
-			continue;
-			
-		if (player->weaponowned[i] && actualprior < player->favoritweapon[i] && player->ammo[player->weaponinfo[i].ammo] >= player->weaponinfo[i].ammopershoot)
-		{
-			actualweapon = i;
-			actualprior = player->favoritweapon[i];
-		}
-	}
-	
-	return actualweapon;
+	return wp_nochange;
 }
 
 //
@@ -188,45 +168,6 @@ bool_t P_GiveAmmo(player_t* player, ammotype_t ammo, int count)
 			if (ChoseWeapon != player->readyweapon)
 				player->pendingweapon = ChoseWeapon;
 	}
-#if 0
-		switch (ammo)
-		{
-			case am_clip:
-				if (player->readyweapon == wp_fist)
-				{
-					if (player->weaponowned[wp_chaingun])
-						player->pendingweapon = wp_chaingun;
-					else
-						player->pendingweapon = wp_pistol;
-				}
-				break;
-				
-			case am_shell:
-				if (player->readyweapon == wp_fist || player->readyweapon == wp_pistol)
-				{
-					if (player->weaponowned[wp_shotgun])
-						player->pendingweapon = wp_shotgun;
-				}
-				break;
-				
-			case am_cell:
-				if (player->readyweapon == wp_fist || player->readyweapon == wp_pistol)
-				{
-					if (player->weaponowned[wp_plasma])
-						player->pendingweapon = wp_plasma;
-				}
-				break;
-				
-			case am_misl:
-				if (player->readyweapon == wp_fist)
-				{
-					if (player->weaponowned[wp_missile])
-						player->pendingweapon = wp_missile;
-				}
-			default:
-				break;
-		}
-#endif
 		
 	return true;
 }
@@ -259,8 +200,9 @@ bool_t P_GiveWeapon(player_t* player, weapontype_t weapon, bool_t dropped)
 			P_GiveAmmo(player, player->weaponinfo[weapon].ammo, player->weaponinfo[weapon].GetAmmo);
 			
 		// Boris hack preferred weapons order...
-		if (player->originalweaponswitch || player->favoritweapon[weapon] > player->favoritweapon[player->readyweapon])
-			player->pendingweapon = weapon;	// do like Doom2 original
+		// TODO FIXME: Reimplement player weapon order
+//		if (player->originalweaponswitch || player->favoritweapon[weapon] > player->favoritweapon[player->readyweapon])
+//			player->pendingweapon = weapon;	// do like Doom2 original
 			
 		//added:16-01-98:changed consoleplayer to displayplayer
 		//               (hear the sounds from the viewpoint)
@@ -295,8 +237,9 @@ bool_t P_GiveWeapon(player_t* player, weapontype_t weapon, bool_t dropped)
 	{
 		gaveweapon = true;
 		player->weaponowned[weapon] = true;
-		if (player->originalweaponswitch || player->favoritweapon[weapon] > player->favoritweapon[player->readyweapon])
-			player->pendingweapon = weapon;	// Doom2 original stuff
+		// TODO FIXME: Reimplement player weapon order
+//		if (player->originalweaponswitch || player->favoritweapon[weapon] > player->favoritweapon[player->readyweapon])
+//			player->pendingweapon = weapon;	// Doom2 original stuff
 	}
 	
 	return (gaveweapon || gaveammo);
@@ -419,10 +362,6 @@ int soul_health = 100;
 int mega_health = 200;
 
 // eof Boris
-
-
-CustomTouch_t* NewTouchThings = NULL;
-size_t NumTouchThings = 0;
 
 /* PS_PickupMessage() -- Handles pickup messages */
 void PS_PickupMessage(mobj_t* const a_Picker, mobj_t* const a_Upper, const char* const a_Message)

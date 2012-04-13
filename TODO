@@ -150,6 +150,8 @@ mark as completed, too bad there is no ASCII checkmark.
  				don't care if we cannot allocate something.
  
  * tables:		Put this in a lump, no need to have gigantic lookup tables in C.
+ 
+ * p_inter:		Reimplement player weapon order.
 
 ###############################################################################
  END ACTUAL TODO LIST

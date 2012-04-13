@@ -1455,43 +1455,8 @@ void P_ParseInterText(char* line)
 // Setup/Misc. Functions
 //
 
-bool_t default_weaponowned[NUMWEAPONS];
-
 void P_InitWeapons()
 {
-	char* s;
-	
-	memset(default_weaponowned, 0, sizeof(default_weaponowned));
-	
-	s = info_weapons;
-	
-	while (*s)
-	{
-		switch (*s)
-		{
-			case '3':
-				default_weaponowned[wp_shotgun] = true;
-				break;
-			case '4':
-				default_weaponowned[wp_chaingun] = true;
-				break;
-			case '5':
-				default_weaponowned[wp_missile] = true;
-				break;
-			case '6':
-				default_weaponowned[wp_plasma] = true;
-				break;
-			case '7':
-				default_weaponowned[wp_bfg] = true;
-				break;
-			case '8':
-				default_weaponowned[wp_supershotgun] = true;
-				break;
-			default:
-				break;
-		}
-		s++;
-	}
 }
 
 //SoM: Moved from hu_stuff.c

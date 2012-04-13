@@ -363,7 +363,7 @@ static int st_fragscount;
 static int st_oldhealth = -1;
 
 // used for evil grin
-static bool_t oldweaponsowned[NUMWEAPONS];
+//static bool_t oldweaponsowned[NUMWEAPONS];
 
 // count until face changes
 static int st_facecount = 0;
@@ -392,7 +392,6 @@ float st_scalex, st_scaley;
 static int sbohealth;
 static int sbofrags;
 static int sboarmor;
-static int sboammo[NUMWEAPONS];
 
 void ST_TransSTChange(void)
 {
@@ -529,11 +528,11 @@ static void ST_updateFaceWidget(void)
 			
 			for (i = 0; i < NUMWEAPONS; i++)
 			{
-				if (oldweaponsowned[i] != plyr->weaponowned[i])
+				/*if (oldweaponsowned[i] != plyr->weaponowned[i])
 				{
 					doevilgrin = true;
 					oldweaponsowned[i] = plyr->weaponowned[i];
-				}
+				}*/
 			}
 			if (doevilgrin)
 			{
@@ -1157,8 +1156,8 @@ void ST_initData(void)
 	
 	st_oldhealth = -1;
 	
-	for (i = 0; i < NUMWEAPONS; i++)
-		oldweaponsowned[i] = plyr->weaponowned[i];
+	//for (i = 0; i < NUMWEAPONS; i++)
+	//	oldweaponsowned[i] = plyr->weaponowned[i];
 		
 	for (i = 0; i < 3; i++)
 		keyboxes[i] = -1;
@@ -1316,10 +1315,10 @@ void ST_Init(void)
 	
 	for (i = 0; i < NUMWEAPONS; i++)
 	{
-		if (i > 0 && i != 7 && i <= 8)
-			sboammo[i] = W_GetNumForName(va("SBOAMMO%c", '0' + i));
-		else
-			sboammo[i] = 0;
+		//if (i > 0 && i != 7 && i <= 8)
+		//	sboammo[i] = W_GetNumForName(va("SBOAMMO%c", '0' + i));
+		//else
+		//	sboammo[i] = 0;
 	}
 }
 

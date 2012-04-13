@@ -320,6 +320,9 @@ bool_t P_ChickenMorphPlayer(player_t* player);
 
 extern consvar_t cv_spawnmonsters;
 
+bool_t P_WeaponIsUnlocked(const weapontype_t a_Weapon);
+bool_t P_CanUseWeapon(player_t* const a_Player, const weapontype_t a_Weapon);
+
 /**************************
 *** RMOD TOUCH SPECIALS ***
 **************************/

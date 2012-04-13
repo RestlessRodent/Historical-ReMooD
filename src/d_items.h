@@ -34,6 +34,7 @@
 #define __D_ITEMS__
 
 #include "doomdef.h"
+#include "m_fixed.h"
 
 // ==================================
 // Difficulty/skill settings/filters.
@@ -155,6 +156,7 @@ typedef enum WeaponFlags_e
 	// Other
 	WF_BERSERKTOGGLE			= 0x00000080,	// Only accept least weapon when berserk
 	WF_SWITCHFROMNOAMMO			= 0x00000100,	// When player has 0 ammo, switch away!
+	WF_STARTINGWEAPON			= 0x00000200,	// Start with this gun
 } WeaponFlags_t;
 
 // Weapon info: sprite frames, ammunition use.
@@ -178,6 +180,9 @@ typedef struct
 	uint32_t WeaponFlags;		// Flags for weapon
 	int32_t GetAmmo;			// Amount of ammo to pick up for this weapon
 	int32_t NoAmmoOrder;		// No Ammo Order
+	fixed_t PSpriteSY;			// PSprite offset
+	char* SBOGraphic;			// SBO Graphic
+	char* AmmoClass;			// Name of ammo to use
 } weaponinfo_t;
 
 extern weaponinfo_t wpnlev1info[NUMWEAPONS];
@@ -203,6 +208,7 @@ typedef struct ammoinfo_s
 	int32_t ClipAmmo;							// Ammo in clip
 	int32_t MaxAmmo;							// Max ammo held
 	uint32_t Flags;								// Ammo Flags
+	int32_t StartingAmmo;						// Starting Ammo
 } ammoinfo_t;
 
 extern ammoinfo_t ammoinfo[NUMAMMO];

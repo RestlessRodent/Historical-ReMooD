@@ -954,9 +954,11 @@ weaponinfo_t wpnlev1info[NUMWEAPONS] =
 		"Fist",									// ClassName
 		100,									// SwitchOrder
 		1,										// SlotNum
-		WF_ISDOOM | WF_BERSERKTOGGLE | WF_SWITCHFROMNOAMMO, 	// WeaponFlags
+		WF_ISDOOM | WF_BERSERKTOGGLE | WF_SWITCHFROMNOAMMO | WF_STARTINGWEAPON, 	// WeaponFlags
 		0,										// GetAmmo
 		100,									// Switch Order
+		0,										// PSpriteSY
+		"sboempty",								// SBOGraphic
 	}
 	,
 	{
@@ -974,9 +976,11 @@ weaponinfo_t wpnlev1info[NUMWEAPONS] =
 		"Pistol",								// ClassName
 		300,									// SwitchOrder
 		2,										// SlotNum
-		WF_ISDOOM | WF_SWITCHFROMNOAMMO,	// WeaponFlags
+		WF_ISDOOM | WF_SWITCHFROMNOAMMO | WF_STARTINGWEAPON,	// WeaponFlags
 		20,										// GetAmmo
 		500,									// Switch Order
+		0,										// PSpriteSY
+		"sboammo1",								// SBOGraphic
 	}
 	,
 	{
@@ -997,6 +1001,8 @@ weaponinfo_t wpnlev1info[NUMWEAPONS] =
 		WF_ISDOOM,	// WeaponFlags
 		8,										// GetAmmo
 		600,									// Switch Order
+		0,										// PSpriteSY
+		"sboammo2",								// SBOGraphic
 	}
 	,
 	{
@@ -1017,6 +1023,8 @@ weaponinfo_t wpnlev1info[NUMWEAPONS] =
 		WF_ISDOOM,	// WeaponFlags
 		20,										// GetAmmo
 		700,									// Switch Order
+		0,										// PSpriteSY
+		"sboammo3",								// SBOGraphic
 	}
 	,
 	{
@@ -1037,6 +1045,8 @@ weaponinfo_t wpnlev1info[NUMWEAPONS] =
 		WF_ISDOOM,	// WeaponFlags
 		2,										// GetAmmo
 		300,									// Switch Order
+		0,										// PSpriteSY
+		"sboammo4",								// SBOGraphic
 	}
 	,
 	{
@@ -1057,6 +1067,8 @@ weaponinfo_t wpnlev1info[NUMWEAPONS] =
 		WF_ISDOOM | WF_NOTSHAREWARE,	// WeaponFlags
 		40,										// GetAmmo
 		900,									// Switch Order
+		0,										// PSpriteSY
+		"sboammo5",								// SBOGraphic
 	}
 	,
 	{
@@ -1077,6 +1089,8 @@ weaponinfo_t wpnlev1info[NUMWEAPONS] =
 		WF_ISDOOM | WF_NOTSHAREWARE,	// WeaponFlags
 		40,										// GetAmmo
 		200,									// Switch Order
+		0,										// PSpriteSY
+		"sboammo6",								// SBOGraphic
 	}
 	,
 	{
@@ -1097,6 +1111,8 @@ weaponinfo_t wpnlev1info[NUMWEAPONS] =
 		WF_ISDOOM | WF_BERSERKTOGGLE,	// WeaponFlags
 		0,										// GetAmmo
 		400,									// Switch Order
+		0,										// PSpriteSY
+		"sboempty",								// SBOGraphic
 	}
 	,
 	{
@@ -1117,6 +1133,8 @@ weaponinfo_t wpnlev1info[NUMWEAPONS] =
 		WF_ISDOOM | WF_INCOMMERCIAL,	// WeaponFlags
 		8,										// GetAmmo
 		800,									// Switch Order
+		0,										// PSpriteSY
+		"sboammo8",								// SBOGraphic
 	},
 };
 
@@ -1253,6 +1271,8 @@ ammoinfo_t ammoinfo[NUMAMMO] =
 		"Clip",							// ClassName
 		10,								// ClipAmmo
 		200,							// MaxAmmo
+		0,								// Flags
+		50,								// StartingAmmo
 	},
 	
 	// am_shell
@@ -1260,6 +1280,8 @@ ammoinfo_t ammoinfo[NUMAMMO] =
 		"Shell",						// ClassName
 		4,								// ClipAmmo
 		50,								// MaxAmmo
+		0,								// Flags
+		0,								// StartingAmmo
 	},
 	
 	// am_cell
@@ -1267,6 +1289,8 @@ ammoinfo_t ammoinfo[NUMAMMO] =
 		"Cell",							// ClassName
 		20,								// ClipAmmo
 		300,							// MaxAmmo
+		0,								// Flags
+		0,								// StartingAmmo
 	},
 	
 	// am_misl
@@ -1274,6 +1298,8 @@ ammoinfo_t ammoinfo[NUMAMMO] =
 		"Rocket",						// ClassName
 		1,								// ClipAmmo
 		50,								// MaxAmmo
+		0,								// Flags
+		0,								// StartingAmmo
 	},
 };
 

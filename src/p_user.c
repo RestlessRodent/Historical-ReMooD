@@ -724,6 +724,29 @@ void P_MoveChaseCamera(player_t* player)
 
 bool_t playerdeadview;			//Fab:25-04-98:show dm rankings while in death view
 
+/* P_WeaponIsUnlocked() -- Checks if a weapon is unlocked */
+bool_t P_WeaponIsUnlocked(const weapontype_t a_Weapon)
+{
+	/* Check */
+	if (a_Weapon < 0 || a_Weapon >= NUMWEAPONS)
+		return false;
+		
+	// Playing in shareware and the gun is not in shareware
+	if ((g_IWADFlags & CIF_SHAREWARE) && (wpnlev1info[a_Weapon].WeaponFlags & WF_NOTSHAREWARE))
+		return false;
+	
+	// Not playing in commercial and gun is in commercial (Doom II)
+	if (!(g_IWADFlags & CIF_COMMERCIAL) && (wpnlev1info[a_Weapon].WeaponFlags & WF_INCOMMERCIAL))
+		return false;
+		
+	// Not playing in registered and gun is in registered (Heretic)
+	if (!(g_IWADFlags & CIF_REGISTERED) && (wpnlev1info[a_Weapon].WeaponFlags & WF_INREGISTERED))
+		return false;
+		
+	/* Yay it isn't unlocked */
+	return true;
+}
+
 /* P_CanUseWeapon() -- Can use (switch to) this weapon */
 bool_t P_CanUseWeapon(player_t* const a_Player, const weapontype_t a_Weapon)
 {
@@ -732,20 +755,12 @@ bool_t P_CanUseWeapon(player_t* const a_Player, const weapontype_t a_Weapon)
 		return false;
 	
 	/* Perform checks */
+	// Available for the taking?
+	if (!P_WeaponIsUnlocked(a_Weapon))
+		return false;
+	
 	// Don't have this gun?
 	if (!a_Player->weaponowned[a_Weapon])
-		return false;
-	
-	// Playing in shareware and the gun is not in shareware
-	if ((g_IWADFlags & CIF_SHAREWARE) && (a_Player->weaponinfo[a_Weapon].WeaponFlags & WF_NOTSHAREWARE))
-		return false;
-	
-	// Not playing in commercial and gun is in commercial (Doom II)
-	if (!(g_IWADFlags & CIF_COMMERCIAL) && (a_Player->weaponinfo[a_Weapon].WeaponFlags & WF_INCOMMERCIAL))
-		return false;
-		
-	// Not playing in registered and gun is in registered (Heretic)
-	if (!(g_IWADFlags & CIF_REGISTERED) && (a_Player->weaponinfo[a_Weapon].WeaponFlags & WF_INREGISTERED))
 		return false;
 	
 	/* Everything worked! */
