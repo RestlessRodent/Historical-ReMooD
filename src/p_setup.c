@@ -1685,6 +1685,7 @@ static CONL_ExitCode_t PCLC_Map(const uint32_t a_ArgC, const char** const a_ArgV
 {
 	P_LevelInfoEx_t* Info;
 	size_t i;
+	bool_t LevelSwitch = false;
 	
 	/* Check */
 	if (a_ArgC < 2)
@@ -1697,18 +1698,23 @@ static CONL_ExitCode_t PCLC_Map(const uint32_t a_ArgC, const char** const a_ArgV
 	if (!Info)
 		return CLE_RESOURCENOTFOUND;
 	
+	/* Switching levels */
+	if (strcasecmp(a_ArgV[0], "switchmap") == 0)
+		LevelSwitch = true;
+	
 	/* Reset player info */
-	// TODO: Multiplayer here!
-	for (i = 0; i < MAXPLAYERS; i++)
-		playeringame[i] = false;
+	if (!LevelSwitch)
+	{
+		// TODO: Multiplayer here!
+		for (i = 0; i < MAXPLAYERS; i++)
+			playeringame[i] = false;
 	
-	for (i = 0; i < MAXSPLITSCREENPLAYERS; i++)
-		consoleplayer[i] = displayplayer[i] = i;
+		for (i = 0; i < MAXSPLITSCREENPLAYERS; i++)
+			consoleplayer[i] = displayplayer[i] = i;
 	
-	// Spawn player 1 at least
-	playeringame[0] = true;
-	players[0].mo = NULL;
-	players[0].playerstate = PST_REBORN;
+		// Spawn player 1 at least
+		playeringame[0] = true;
+	}
 	
 	/* Load level */
 	if (P_ExLoadLevel(Info, true))
@@ -1723,6 +1729,7 @@ void P_InitSetupEx(void)
 {
 	/* Add Console Commands */
 	CONL_AddCommand("map", PCLC_Map);
+	CONL_AddCommand("switchmap", PCLC_Map);
 }
 
 /* P_ExClearLevel() -- Clears a level and reverts the game state */
@@ -2046,6 +2053,18 @@ bool_t P_ExLoadLevel(P_LevelInfoEx_t* const a_Info, const bool_t a_ApplyOptions)
 	
 	/* Set global info */
 	g_CurrentLevelInfo = a_Info;
+	
+	/* Respawn all players */
+	for (i = 0; i < MAXPLAYERS; i++)
+		if (playeringame[i])
+		{
+			// Revive dead players
+			if (!players[i].mo || players[i].playerstate == PST_DEAD)
+				players[i].playerstate = PST_REBORN;
+				
+			// Remove map object here
+			players[i].mo = NULL;
+		}
 		
 	/* Debug */
 	if (devparm)

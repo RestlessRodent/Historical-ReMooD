@@ -593,9 +593,12 @@ static void WI_drawAnimatedBack(void)
 static int WI_drawNum(int x, int y, int n, int digits)
 {
 
-	int fontwidth = LittleSwapInt16(num[0]->width);
+	int fontwidth = 0;
 	int neg;
 	int temp;
+	
+	if (num[0])
+		fontwidth = LittleSwapInt16(num[0]->width);
 	
 	if (digits < 0)
 	{
@@ -671,7 +674,8 @@ static void WI_drawTime(int x, int y, int t)
 		do
 		{
 			n = (t / div) % 60;
-			x = WI_drawNum(x, y, n, 2) - LittleSwapInt16(colon->width);
+			if (colon)
+				x = WI_drawNum(x, y, n, 2) - LittleSwapInt16(colon->width);
 			div *= 60;
 			
 			// draw
@@ -684,7 +688,8 @@ static void WI_drawTime(int x, int y, int t)
 	else
 	{
 		// "sucks"
-		V_DrawScaledPatch(x - LittleSwapInt16(sucks->width), y, FB, sucks);
+		if (sucks)
+			V_DrawScaledPatch(x - LittleSwapInt16(sucks->width), y, FB, sucks);
 	}
 }
 
@@ -1569,7 +1574,8 @@ static void WI_drawStats(void)
 	// line height
 	int lh;
 	
-	lh = (3 * LittleSwapInt16(num[0]->height)) / 2;
+	if (num[0])
+		lh = (3 * LittleSwapInt16(num[0]->height)) / 2;
 	
 	WI_slamBackground();
 	
@@ -1685,7 +1691,7 @@ static void WI_loadData(void)
 	char name[9];
 	
 	// choose the background of the intermission
-	if (*info_interpic)
+	if (info_interpic && *info_interpic)
 		strcpy(bgname, info_interpic);
 	else if (gamemode == commercial)
 		strcpy(bgname, "INTERPIC");

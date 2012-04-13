@@ -405,6 +405,10 @@ static P_EXGSVariable_t l_GSVars[PEXGSNUMBITIDS] =
 	{PEXGST_INTEGER, PEXGSBID_COMOUSEAIM, "co_mouseaim", "Enable Mouse Aiming",
 		"Enable mouse aiming [Legacy > 1.11]", PEXGSGM_ANY, PEXGSDR_MORETHAN, 111, {0, 1}, 1,
 		PEXGSMC_COMPAT},
+	
+	{PEXGST_INTEGER, PEXGSBID_MONRESPAWNMONSTERS, "mon_respawnmonsters", "Respawn Monsters",
+		"Monsters come back to life after a short delay.", PEXGSGM_ANY, PEXGSDR_NOCHECK, 0, {0, 1}, 0,
+		PEXGSMC_MONSTERS}, 
 };
 
 /*** FUNCTIONS ***/

@@ -989,7 +989,7 @@ void P_MobjThinker(mobj_t* mobj)
 	else
 	{
 		// check for nightmare respawn
-		if (!cv_respawnmonsters.value)
+		if (!P_EXGSGetValue(PEXGSBID_MONRESPAWNMONSTERS))
 			return;
 			
 		if (!(mobj->flags & MF_COUNTKILL))
@@ -1445,6 +1445,9 @@ void P_SpawnPlayer(mapthing_t* mthing)
 	// added 2-12-98
 	p->viewz = p->mo->z + p->viewheight;
 	
+	// GhostlyDeath <April 13, 2012> -- Fix weapons
+	p->weaponinfo = wpnlev1info;
+	
 	p->flamecount = 0;
 	p->flyheight = 0;
 	
@@ -1474,7 +1477,7 @@ void P_SpawnPlayer(mapthing_t* mthing)
 //
 void P_SpawnMapThing(mapthing_t* mthing)
 {
-	int i, j;
+	int i, j, pid;
 	int bit;
 	mobj_t* mobj;
 	fixed_t x;
@@ -1511,10 +1514,13 @@ void P_SpawnMapThing(mapthing_t* mthing)
 		// save spots for respawning in network games
 		playerstarts[mthing->type - 1] = mthing;
 		
+		// Player ID
+		pid = mthing->type - 1;
+		
 		// old version spawn player now, new version spawn player when level is
 		// loaded, or in network event later when player join game
 		// TODO: GhostlyDeath -- This has to do with voodoo dolls!
-		if (!cv_deathmatch.value && P_EXGSGetValue(PEXGSBID_COVOODOODOLLS))
+		if (!cv_deathmatch.value && ((playeringame[pid] && !players[pid].mo) || P_EXGSGetValue(PEXGSBID_COVOODOODOLLS)))
 			P_SpawnPlayer(mthing);
 			
 		return;

@@ -110,6 +110,8 @@ int FindBestWeapon(player_t* player)
 bool_t P_GiveAmmo(player_t* player, ammotype_t ammo, int count)
 {
 	int oldammo;
+	size_t i;
+	weapontype_t ChoseWeapon;
 	
 	if (ammo == am_noammo)
 		return false;
@@ -160,6 +162,33 @@ bool_t P_GiveAmmo(player_t* player, ammotype_t ammo, int count)
 		return true;
 	}
 	else
+	{
+		// Clear
+		ChoseWeapon = NUMWEAPONS;
+		
+		// Weapon is undesireable, so switch away from it
+		if (player->weaponinfo[player->readyweapon].WeaponFlags & WF_SWITCHFROMNOAMMO)
+			// Only switch if our ammo isn't the same
+			if (ammo != player->weaponinfo[player->readyweapon].ammo)
+				// Switch to the best gun for this ammo type, that the player has
+				for (i = 0; i < NUMWEAPONS; i++)
+					// Can use weapon?
+					if (P_CanUseWeapon(player, i))
+						// Only check for the same ammo
+						if (ammo == player->weaponinfo[i].ammo)
+							// Only if the player has this gun
+							if (player->weaponowned[i])
+								// Got this gun, or it is better than this.
+								if (ChoseWeapon == NUMWEAPONS ||
+									(player->weaponinfo[i].SwitchOrder > player->weaponinfo[ChoseWeapon].SwitchOrder))
+									ChoseWeapon = i;
+		
+		// Switch to gun?
+		if (ChoseWeapon != NUMWEAPONS)
+			if (ChoseWeapon != player->readyweapon)
+				player->pendingweapon = ChoseWeapon;
+	}
+#if 0
 		switch (ammo)
 		{
 			case am_clip:
@@ -197,6 +226,7 @@ bool_t P_GiveAmmo(player_t* player, ammotype_t ammo, int count)
 			default:
 				break;
 		}
+#endif
 		
 	return true;
 }

@@ -118,6 +118,7 @@ typedef enum P_EXGSMenuCategory_s
 	PEXGSMC_COMPAT,								// Compatibility Option
 	PEXGSMC_FUN,								// Fun Settings! =D yay!
 	PEXGSMC_HERETIC,							// Heretic Settings
+	PEXGSMC_MONSTERS,							// Monster Settings
 	
 	NUMPEXGSMENUCATEGORIES
 } P_EXGSMenuCategory_t;
@@ -193,6 +194,7 @@ typedef enum P_EXGSBitID_e
 	PEXGSBID_COENABLEBLOODTIME,					// Enable Blood Time
 	PEXGSBID_COENABLEJUMPING,					// Enable Jumping
 	PEXGSBID_COMOUSEAIM,						// Aim by mouse
+	PEXGSBID_MONRESPAWNMONSTERS,				// Respawn Monsters
 	
 	PEXGSNUMBITIDS
 } P_EXGSBitID_t;

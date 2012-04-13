@@ -1776,12 +1776,27 @@ void G_NextLevel(void)
 
 void G_DoWorldDone(void)
 {
+	P_LevelInfoEx_t* NewInfo;
+
+#if 0
 	if (P_EXGSGetValue(PEXGSBID_COLINEARMAPTRAVERSE))
 	{
-		gamemap = wminfo.next + 1;
-		G_DoLoadLevel(true);
+#endif
+		// Go to next level, if possible...
+		if (g_CurrentLevelInfo->NormalNext)
+		{
+			NewInfo = P_FindLevelByNameEx(g_CurrentLevelInfo->NormalNext, NULL);
+			
+			if (NewInfo)
+				P_ExLoadLevel(NewInfo, false);
+		}
+		
+		//gamemap = wminfo.next + 1;
+		//G_DoLoadLevel(true);
+#if 0
 	}
 	else
+	{
 		// not in demo because demo have the mapcommand on it
 		if (!demoplayback)
 		{
@@ -1799,6 +1814,7 @@ void G_DoWorldDone(void)
 			   // resetplayer in deathmatch for more equality
 			   COM_BufAddText(va("map \"%s\"\n", G_BuildMapName(gameepisode, wminfo.next + 1))); */
 		}
+#endif
 		
 	gameaction = ga_nothing;
 }

@@ -154,6 +154,7 @@ typedef enum WeaponFlags_e
 	
 	// Other
 	WF_BERSERKTOGGLE			= 0x00000080,	// Only accept least weapon when berserk
+	WF_SWITCHFROMNOAMMO			= 0x00000100,	// When player has 0 ammo, switch away!
 } WeaponFlags_t;
 
 // Weapon info: sprite frames, ammunition use.
@@ -176,6 +177,7 @@ typedef struct
 	int8_t SlotNum;				// Weapon slot number
 	uint32_t WeaponFlags;		// Flags for weapon
 	int32_t GetAmmo;			// Amount of ammo to pick up for this weapon
+	int32_t NoAmmoOrder;		// No Ammo Order
 } weaponinfo_t;
 
 extern weaponinfo_t wpnlev1info[NUMWEAPONS];
@@ -188,12 +190,19 @@ extern weaponinfo_t wpnlev2info[NUMWEAPONS];
 
 // GhostlyDeath <March 10, 2012> -- Ammo Information
 
+/* AmmoFlags_t -- Ammunition Flags */
+typedef enum AmmoFlags_e
+{
+	AF_INFINITE						= 0x0001,	// Infinite Ammo
+} AmmoFlags_t;
+
 /* ammoinfo_t -- Hold ammo information */
 typedef struct ammoinfo_s
 {
 	char* ClassName;							// Class name
 	int32_t ClipAmmo;							// Ammo in clip
 	int32_t MaxAmmo;							// Max ammo held
+	uint32_t Flags;								// Ammo Flags
 } ammoinfo_t;
 
 extern ammoinfo_t ammoinfo[NUMAMMO];

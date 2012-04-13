@@ -183,6 +183,8 @@ bool_t P_CheckAmmo(player_t* player)
 {
 	ammotype_t ammo;
 	int count;
+	size_t i;
+	weapontype_t BestWeapon;
 	
 	ammo = player->weaponinfo[player->readyweapon].ammo;
 	
@@ -202,51 +204,31 @@ bool_t P_CheckAmmo(player_t* player)
 	// added by Boris : preferred weapons order
 	if (!player->originalweaponswitch)
 		VerifFavoritWeapon(player);
-		
-		
-	do
+	
+	/* Find the best weapon, when out of ammo */
+	// This uses NoAmmoOrder, the higher the better!
+	for (BestWeapon = NUMWEAPONS, i = 0; i < NUMWEAPONS; i++)
 	{
-		if (player->weaponowned[wp_plasma] && player->ammo[am_cell] >= player->weaponinfo[wp_plasma].ammopershoot && (gamemode != shareware))
-		{
-			player->pendingweapon = wp_plasma;
-		}
-		else if (player->weaponowned[wp_supershotgun]
-		         && player->ammo[am_shell] >= player->weaponinfo[wp_supershotgun].ammopershoot && (gamemode == commercial))
-		{
-			player->pendingweapon = wp_supershotgun;
-		}
-		else if (player->weaponowned[wp_chaingun] && player->ammo[am_clip] >= player->weaponinfo[wp_chaingun].ammopershoot)
-		{
-			player->pendingweapon = wp_chaingun;
-		}
-		else if (player->weaponowned[wp_shotgun] && player->ammo[am_shell] >= player->weaponinfo[wp_shotgun].ammopershoot)
-		{
-			player->pendingweapon = wp_shotgun;
-		}
-		else if (player->ammo[am_clip] >= player->weaponinfo[wp_pistol].ammopershoot)
-		{
-			player->pendingweapon = wp_pistol;
-		}
-		else if (player->weaponowned[wp_chainsaw])
-		{
-			player->pendingweapon = wp_chainsaw;
-		}
-		else if (player->weaponowned[wp_missile] && player->ammo[am_misl] >= player->weaponinfo[wp_missile].ammopershoot)
-		{
-			player->pendingweapon = wp_missile;
-		}
-		else if (player->weaponowned[wp_bfg] && player->ammo[am_cell] >= player->weaponinfo[wp_bfg].ammopershoot && (gamemode != shareware))
-		{
-			player->pendingweapon = wp_bfg;
-		}
-		else
-		{
-			// If everything fails.
-			player->pendingweapon = wp_fist;
-		}
+		// Cannot use weapon?
+		if (!P_CanUseWeapon(player, i))
+			continue;
 		
+		// Already using this gun?
+		if (i == player->readyweapon)
+			continue;
+		
+		// Got no ammo for this gun?
+		if (player->ammo[player->weaponinfo[i].ammo] < player->weaponinfo[i].ammopershoot)
+			continue;
+		
+		// Better than the best?
+		if ((BestWeapon == NUMWEAPONS) || (player->weaponinfo[i].NoAmmoOrder > player->weaponinfo[BestWeapon].NoAmmoOrder))
+			BestWeapon = i;
 	}
-	while (player->pendingweapon == wp_nochange);
+	
+	// Switch to best?
+	if (BestWeapon != NUMWEAPONS)
+		player->pendingweapon = BestWeapon;
 	
 	// Now set appropriate weapon overlay.
 	P_SetPsprite(player, ps_weapon, player->weaponinfo[player->readyweapon].downstate);
@@ -972,8 +954,9 @@ weaponinfo_t wpnlev1info[NUMWEAPONS] =
 		"Fist",									// ClassName
 		100,									// SwitchOrder
 		1,										// SlotNum
-		WF_ISDOOM | WF_BERSERKTOGGLE,	// WeaponFlags
+		WF_ISDOOM | WF_BERSERKTOGGLE | WF_SWITCHFROMNOAMMO, 	// WeaponFlags
 		0,										// GetAmmo
+		100,									// Switch Order
 	}
 	,
 	{
@@ -991,8 +974,9 @@ weaponinfo_t wpnlev1info[NUMWEAPONS] =
 		"Pistol",								// ClassName
 		300,									// SwitchOrder
 		2,										// SlotNum
-		WF_ISDOOM,	// WeaponFlags
+		WF_ISDOOM | WF_SWITCHFROMNOAMMO,	// WeaponFlags
 		20,										// GetAmmo
+		500,									// Switch Order
 	}
 	,
 	{
@@ -1012,6 +996,7 @@ weaponinfo_t wpnlev1info[NUMWEAPONS] =
 		3,										// SlotNum
 		WF_ISDOOM,	// WeaponFlags
 		8,										// GetAmmo
+		600,									// Switch Order
 	}
 	,
 	{
@@ -1031,6 +1016,7 @@ weaponinfo_t wpnlev1info[NUMWEAPONS] =
 		4,										// SlotNum
 		WF_ISDOOM,	// WeaponFlags
 		20,										// GetAmmo
+		700,									// Switch Order
 	}
 	,
 	{
@@ -1050,6 +1036,7 @@ weaponinfo_t wpnlev1info[NUMWEAPONS] =
 		5,										// SlotNum
 		WF_ISDOOM,	// WeaponFlags
 		2,										// GetAmmo
+		300,									// Switch Order
 	}
 	,
 	{
@@ -1069,6 +1056,7 @@ weaponinfo_t wpnlev1info[NUMWEAPONS] =
 		6,										// SlotNum
 		WF_ISDOOM | WF_NOTSHAREWARE,	// WeaponFlags
 		40,										// GetAmmo
+		900,									// Switch Order
 	}
 	,
 	{
@@ -1088,6 +1076,7 @@ weaponinfo_t wpnlev1info[NUMWEAPONS] =
 		7,										// SlotNum
 		WF_ISDOOM | WF_NOTSHAREWARE,	// WeaponFlags
 		40,										// GetAmmo
+		200,									// Switch Order
 	}
 	,
 	{
@@ -1107,6 +1096,7 @@ weaponinfo_t wpnlev1info[NUMWEAPONS] =
 		1,										// SlotNum
 		WF_ISDOOM | WF_BERSERKTOGGLE,	// WeaponFlags
 		0,										// GetAmmo
+		400,									// Switch Order
 	}
 	,
 	{
@@ -1126,6 +1116,7 @@ weaponinfo_t wpnlev1info[NUMWEAPONS] =
 		3,										// SlotNum
 		WF_ISDOOM | WF_INCOMMERCIAL,	// WeaponFlags
 		8,										// GetAmmo
+		800,									// Switch Order
 	},
 };
 
