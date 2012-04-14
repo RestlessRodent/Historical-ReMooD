@@ -247,7 +247,11 @@ void P_FireWeapon(player_t* player)
 		return;
 		
 	P_SetMobjState(player->mo, player->mo->info->RPlayerMeleeAttackState);
-	newstate = player->weaponinfo[player->readyweapon].atkstate;
+	
+	if (player->refire && player->weaponinfo[player->readyweapon].holdatkstate != S_NULL)
+		newstate = player->weaponinfo[player->readyweapon].holdatkstate;
+	else
+		newstate = player->weaponinfo[player->readyweapon].atkstate;
 	
 	P_SetPsprite(player, ps_weapon, newstate);
 	P_NoiseAlert(player->mo, player->mo);
@@ -947,7 +951,7 @@ weaponinfo_t wpnlev1info[NUMWEAPONS] =
 		S_PUNCHDOWN,
 		S_PUNCH,
 		S_PUNCH1,
-		S_PUNCH1,
+		S_NULL,
 		S_NULL,
 		NULL,									// DropWeaponClass
 		"Fist",									// NiceName
@@ -969,7 +973,7 @@ weaponinfo_t wpnlev1info[NUMWEAPONS] =
 		S_PISTOLDOWN,
 		S_PISTOL,
 		S_PISTOL1,
-		S_PISTOL1,
+		S_NULL,
 		S_PISTOLFLASH,
 		NULL,									// DropWeaponClass
 		"Pistol",								// NiceName
@@ -991,7 +995,7 @@ weaponinfo_t wpnlev1info[NUMWEAPONS] =
 		S_SGUNDOWN,
 		S_SGUN,
 		S_SGUN1,
-		S_SGUN1,
+		S_NULL,
 		S_SGUNFLASH1,
 		"Shotgun",								// DropWeaponClass
 		"Shotgun",								// NiceName
@@ -1013,7 +1017,7 @@ weaponinfo_t wpnlev1info[NUMWEAPONS] =
 		S_CHAINDOWN,
 		S_CHAIN,
 		S_CHAIN1,
-		S_CHAIN1,
+		S_NULL,
 		S_CHAINFLASH1,
 		"Chaingun",								// DropWeaponClass
 		"Chaingun",								// NiceName
@@ -1035,7 +1039,7 @@ weaponinfo_t wpnlev1info[NUMWEAPONS] =
 		S_MISSILEDOWN,
 		S_MISSILE,
 		S_MISSILE1,
-		S_MISSILE1,
+		S_NULL,
 		S_MISSILEFLASH1,
 		"RocketLauncher",						// DropWeaponClass
 		"Rocket Launcher",						// NiceName
@@ -1057,7 +1061,7 @@ weaponinfo_t wpnlev1info[NUMWEAPONS] =
 		S_PLASMADOWN,
 		S_PLASMA,
 		S_PLASMA1,
-		S_PLASMA1,
+		S_NULL,
 		S_PLASMAFLASH1,
 		"PlasmaRifle",							// DropWeaponClass
 		"Plasma Rifle",							// NiceName
@@ -1079,7 +1083,7 @@ weaponinfo_t wpnlev1info[NUMWEAPONS] =
 		S_BFGDOWN,
 		S_BFG,
 		S_BFG1,
-		S_BFG1,
+		S_NULL,
 		S_BFGFLASH1,
 		"BFG",									// DropWeaponClass
 		"BFG9000",								// NiceName
@@ -1101,7 +1105,7 @@ weaponinfo_t wpnlev1info[NUMWEAPONS] =
 		S_SAWDOWN,
 		S_SAW,
 		S_SAW1,
-		S_SAW1,
+		S_NULL,
 		S_NULL,
 		"Chainsaw",								// DropWeaponClass
 		"Chainsaw",								// NiceName
@@ -1123,7 +1127,7 @@ weaponinfo_t wpnlev1info[NUMWEAPONS] =
 		S_DSGUNDOWN,
 		S_DSGUN,
 		S_DSGUN1,
-		S_DSGUN1,
+		S_NULL,
 		S_DSGUNFLASH1,
 		"SuperShotgun",							// DropWeaponClass
 		"Super Shotgun",						// NiceName
@@ -1152,7 +1156,7 @@ weaponinfo_t wpnlev2info[NUMWEAPONS] =
 		S_PUNCHDOWN,
 		S_PUNCH,
 		S_PUNCH1,
-		S_PUNCH1,
+		S_NULL,
 		S_NULL,
 		NULL,					// DropWeaponClass
 	}
@@ -1165,7 +1169,7 @@ weaponinfo_t wpnlev2info[NUMWEAPONS] =
 		S_PISTOLDOWN,
 		S_PISTOL,
 		S_PISTOL1,
-		S_PISTOL1,
+		S_NULL,
 		S_PISTOLFLASH,
 		NULL,					// DropWeaponClass
 	}
@@ -1178,7 +1182,7 @@ weaponinfo_t wpnlev2info[NUMWEAPONS] =
 		S_SGUNDOWN,
 		S_SGUN,
 		S_SGUN1,
-		S_SGUN1,
+		S_NULL,
 		S_SGUNFLASH1,
 		"Shotgun",					// DropWeaponClass
 	}
@@ -1191,7 +1195,7 @@ weaponinfo_t wpnlev2info[NUMWEAPONS] =
 		S_CHAINDOWN,
 		S_CHAIN,
 		S_CHAIN1,
-		S_CHAIN1,
+		S_NULL,
 		S_CHAINFLASH1,
 		"Chaingun",					// DropWeaponClass
 	}
@@ -1204,7 +1208,7 @@ weaponinfo_t wpnlev2info[NUMWEAPONS] =
 		S_MISSILEDOWN,
 		S_MISSILE,
 		S_MISSILE1,
-		S_MISSILE1,
+		S_NULL,
 		S_MISSILEFLASH1,
 		"RocketLauncher",					// DropWeaponClass
 	}
@@ -1217,7 +1221,7 @@ weaponinfo_t wpnlev2info[NUMWEAPONS] =
 		S_PLASMADOWN,
 		S_PLASMA,
 		S_PLASMA1,
-		S_PLASMA1,
+		S_NULL,
 		S_PLASMAFLASH1,
 		"PlasmaRifle",					// DropWeaponClass
 	}
@@ -1230,7 +1234,7 @@ weaponinfo_t wpnlev2info[NUMWEAPONS] =
 		S_BFGDOWN,
 		S_BFG,
 		S_BFG1,
-		S_BFG1,
+		S_NULL,
 		S_BFGFLASH1,
 		"BFG",					// DropWeaponClass
 	}
@@ -1243,7 +1247,7 @@ weaponinfo_t wpnlev2info[NUMWEAPONS] =
 		S_SAWDOWN,
 		S_SAW,
 		S_SAW1,
-		S_SAW1,
+		S_NULL,
 		S_NULL,
 		"Chainsaw",					// DropWeaponClass
 	}
@@ -1256,7 +1260,7 @@ weaponinfo_t wpnlev2info[NUMWEAPONS] =
 		S_DSGUNDOWN,
 		S_DSGUN,
 		S_DSGUN1,
-		S_DSGUN1,
+		S_NULL,
 		S_DSGUNFLASH1,
 		"SuperShotgun",					// DropWeaponClass
 	},

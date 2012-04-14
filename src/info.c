@@ -176,26 +176,6 @@ void A_SmokeTrailerSkull();
 //            FF_FULLBRIGHT (0x8000) activates the fullbright colormap
 //
 
-/* StatePriorities_t -- Viewing priority for state */
-typedef enum StatePriorities_e
-{
-	STP_NULL = 0,				// Nothing
-	STP_DEFAULT = 128,			// Default (Unset)
-	STP_WEAPON = 112,			// Weapons
-	STP_AMMO = 90,				// Ammo on the ground
-	STP_WEPFLASH = 36,			// Weapon flashes
-	STP_EFFECTS = 48,			// Effects (blood, fog, puffs, etc.)
-	STP_MONSTERS = 96,			// Monsters that are alive
-	STP_CORPSES = 32,			// Dead things
-	STP_PLAYERS = 116,			// Other players
-	STP_HEALTH = 100,			// Powerups that give health
-	STP_COOKIES = 80,			// Health givers (but super small)
-	STP_MISSIONCRITICAL = 128,	// Mission critical objects
-	STP_POWERUPS = 70,			// Non health giving powerups
-	STP_DECORATIONS = 50,		// Stuff meant to get in your way
-	STP_PROJECTILES = 100,		// Stuff flying though the air
-} StatePriorities_t;
-
 state_t states[NUMSTATES] =
 {
 	{SPR_TROO, 0, -1, {NULL}, S_NULL, STP_NULL},	// S_NULL
