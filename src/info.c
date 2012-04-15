@@ -74,6 +74,8 @@ char* sprnames[NUMSPRITES + 1] =
 	"HDB4", "HDB5", "HDB6", "POB1", "POB2", "BRS1", "TLMP", "TLP2", "SMOK",
 	"SPLA",
 	"TNT1",						//SoM: 4/8/2000: INVISIBLE SPRITE!
+	"PLS1",
+	"PLS2",
 	
 	/*"IMPX", "ACLO", "PTN1", "SHLD", "SHD2", "BAGH", "SPMP", "INVS", "PTN2", "SOAR",
 	   "INVU", "PWBK", "EGGC", "EGGM", "FX01", "SPHL", "TRCH", "FBMB", "XPL1", "ATLP",
@@ -173,6 +175,8 @@ void A_BrainExplode();
 void A_SmokeTrailer();
 void A_SmokeTrailerRocket();
 void A_SmokeTrailerSkull();
+
+void A_FireOldBFG();
 
 // Fab note : frame is masked through FF_FRAMEMASK
 //            FF_FULLBRIGHT (0x8000) activates the fullbright colormap
@@ -1161,6 +1165,22 @@ state_t states[NUMSTATES] =
 	{SPR_SPLA, 2, 8, {NULL}, S_NULL, STP_EFFECTS},	// S_SPLASH3
 	
 	{SPR_TNT1, 0, -1, {NULL}, S_TNT1, STP_NULL},	// S_TNT1    //SoM: 3/8/2000
+	
+	// killough 7/19/98: First plasma fireball in the beta:
+	{SPR_PLS1,32768,6,{NULL},S_PLS1BALL2, STP_PROJECTILES},  // S_PLS1BALL
+	{SPR_PLS1,32769,6,{NULL},S_PLS1BALL, STP_PROJECTILES}, // S_PLS1BALL2
+	{SPR_PLS1,32770,4,{NULL},S_PLS1EXP2, STP_PROJECTILES}, // S_PLS1EXP
+	{SPR_PLS1,32771,4,{NULL},S_PLS1EXP3, STP_PROJECTILES}, // S_PLS1EXP2
+	{SPR_PLS1,32772,4,{NULL},S_PLS1EXP4, STP_PROJECTILES}, // S_PLS1EXP3
+	{SPR_PLS1,32773,4,{NULL},S_PLS1EXP5, STP_PROJECTILES}, // S_PLS1EXP4
+	{SPR_PLS1,32774,4,{NULL},S_NULL, STP_PROJECTILES}, // S_PLS1EXP5
+
+	// killough 7/19/98: Second plasma fireball in the beta:
+	{SPR_PLS2,32768,4,{NULL},S_PLS2BALL2, STP_PROJECTILES}, // S_PLS2BALL
+	{SPR_PLS2,32769,4,{NULL},S_PLS2BALL, STP_PROJECTILES},  // S_PLS2BALL2
+	{SPR_PLS2,32770,6,{NULL},S_PLS2BALLX2, STP_PROJECTILES},  // S_PLS2BALLX1
+	{SPR_PLS2,32771,6,{NULL},S_PLS2BALLX3, STP_PROJECTILES},  // S_PLS2BALLX2
+	{SPR_PLS2,32772,6,{NULL},S_NULL, STP_PROJECTILES}, // S_PLS2BALLX3
 	
 	/* CTF FLAG */
 	{SPR_FLAG, 7, 4, {NULL}, S_FLAG_2, STP_MISSIONCRITICAL},	// S_FLAG_1
@@ -5454,59 +5474,63 @@ mobjinfo_t mobjinfo[NUMMOBJTYPES] =
 		MF_NOSECTOR | MF_NOBLOCKMAP,	// flags
 		S_NULL						// raisestate
 	},
-	{
-		// MT_PLASMA1
-		-1,						// doomednum
-		S_TNT1,					// spawnstate
-		1000,						// spawnhealth
-		S_NULL,					// seestate
-		sfx_None,					// seesound
-		8,							// reactiontime
-		sfx_None,					// attacksound
-		S_NULL,					// painstate
-		0,							// painchance
-		sfx_None,					// painsound
-		S_NULL,					// meleestate
-		S_NULL,					// missilestate
-		S_NULL,					// crashstate
-		S_TNT1,					// deathstate
-		S_NULL,					// xdeathstate
-		sfx_None,					// deathsound
-		25 * FRACUNIT,				// speed
-		13 * FRACUNIT,				// radius
-		8 * FRACUNIT,				// height
-		100,						// mass
-		4,							// damage
-		sfx_None,					// activesound
-		MF_NOSECTOR | MF_NOBLOCKMAP,	// flags
-		S_NULL						// raisestate
+
+	// killough 7/11/98: this is the first of two plasma fireballs in the beta
+	{   // MT_PLASMA1
+		-1,   // doomednum
+		S_PLS1BALL,   // spawnstate
+		1000,   // spawnhealth
+		S_NULL,   // seestate
+		sfx_plasma,   // seesound
+		8,    // reactiontime
+		sfx_None,   // attacksound
+		S_NULL,   // painstate
+		0,    // painchance
+		sfx_None,   // painsound
+		S_NULL,   // meleestate
+		S_NULL,   // missilestate
+		S_NULL,	// crashstate
+		S_PLS1EXP,    // deathstate
+		S_NULL,   // xdeathstate
+		sfx_firxpl,   // deathsound
+		25*FRACUNIT,    // speed
+		13*FRACUNIT,    // radius
+		8*FRACUNIT,   // height
+		100,    // mass
+		4,    // damage
+		sfx_None,   // activesound
+		MF_NOBLOCKMAP|MF_MISSILE|MF_DROPOFF|MF_NOGRAVITY,
+		S_NULL,    // raisestate
+		MF2_BOUNCES,
 	},
-	{
-		// MT_PLASMA2
-		-1,						// doomednum
-		S_TNT1,					// spawnstate
-		1000,						// spawnhealth
-		S_NULL,					// seestate
-		sfx_None,					// seesound
-		8,							// reactiontime
-		sfx_None,					// attacksound
-		S_NULL,					// painstate
-		0,							// painchance
-		sfx_None,					// painsound
-		S_NULL,					// meleestate
-		S_NULL,					// missilestate
-		S_NULL,					// crashstate
-		S_TNT1,					// deathstate
-		S_NULL,					// xdeathstate
-		sfx_None,					// deathsound
-		25 * FRACUNIT,				// speed
-		6 * FRACUNIT,				// radius
-		8 * FRACUNIT,				// height
-		100,						// mass
-		4,							// damage
-		sfx_None,					// activesound
-		MF_NOSECTOR | MF_NOBLOCKMAP,	// flags
-		S_NULL						// raisestate
+
+	// killough 7/11/98: this is the second of two plasma fireballs in the beta
+	{   // MT_PLASMA2
+		-1,   // doomednum
+		S_PLS2BALL,   // spawnstate
+		1000,   // spawnhealth
+		S_NULL,   // seestate
+		sfx_plasma,   // seesound
+		8,    // reactiontime
+		sfx_None,   // attacksound
+		S_NULL,   // painstate
+		0,    // painchance
+		sfx_None,   // painsound
+		S_NULL,   // meleestate
+		S_NULL,   // missilestate
+		S_NULL,	// crashstate
+		S_PLS2BALLX1,    // deathstate
+		S_NULL,   // xdeathstate
+		sfx_firxpl,   // deathsound
+		25*FRACUNIT,    // speed
+		6*FRACUNIT,    // radius
+		8*FRACUNIT,   // height
+		100,    // mass
+		4,    // damage
+		sfx_None,   // activesound
+		MF_NOBLOCKMAP|MF_MISSILE|MF_DROPOFF|MF_NOGRAVITY,
+		S_NULL,    // raisestate
+		MF2_BOUNCES,
 	},
 	{
 		// MT_CAMERA
@@ -6119,6 +6143,7 @@ actionf_t INFO_FunctionPtrByName(const char* const a_Name)
 	else if (strcasecmp("SmokeTrailer", a_Name) == 0) RetVal.acv = A_SmokeTrailer;
 	else if (strcasecmp("SmokeTrailerRocket", a_Name) == 0) RetVal.acv = A_SmokeTrailerRocket;
 	else if (strcasecmp("SmokeTrailerSkull", a_Name) == 0) RetVal.acv = A_SmokeTrailerSkull;
+	else if (strcasecmp("FireOldBFG", a_Name) == 0) RetVal.acv = A_FireOldBFG;
 	
 	/* Not found? */
 	return RetVal;

@@ -1485,6 +1485,489 @@ MapWeapon "SuperShotgun"
 	}
 }
 
+// Weapon -- Beta BFG
+MapWeapon "BetaBFG"
+{
+	Ammo "Cell";
+	NiceName "BFG2074";
+	SBOGraphic "sboammo6";
+	SlotNum "7";
+	SwitchOrder "901";
+	NoAmmoSwitchOrder "201";
+	AmmoPerShot "0";
+	PickupAmmo "40";
+	DroppedObject "BFG";
+	SpriteYOffset "0";
+	IsDoom "true";
+	IsNotShareware "true";
+	NoAutoFire "true";
+	IsStartingWeapon "true";
+	
+	State "PrimaryBringUpState"
+	{
+		Frame "1"
+		{
+			Sprite "BFGG";
+			Frame "0";
+			Tics "1";
+			ViewPriority "Weapons";
+			Function "Raise";
+			Goto "PrimaryBringUpState";
+		}
+	}
+	
+	State "PrimaryPutDownState"
+	{
+		Frame "1"
+		{
+			Sprite "BFGG";
+			Frame "0";
+			Tics "1";
+			ViewPriority "Weapons";
+			Function "Lower";
+			Goto "PrimaryPutDownState";
+		}
+	}
+	
+	State "PrimaryReadyState"
+	{
+		Frame "1"
+		{
+			Sprite "BFGG";
+			Frame "0";
+			Tics "1";
+			ViewPriority "Weapons";
+			Function "WeaponReady";
+			Goto "PrimaryReadyState";
+		}
+	}
+	
+	State "PrimaryFireState"
+	{
+		Frame "1"
+		{	Sprite "BFGG";
+			Frame "0";
+			Tics "10";
+			ViewPriority "Weapons";
+			Function "BFGSound";
+			Next "2";
+		}
+
+		Frame "2"
+		{	Sprite "BFGG";
+			Frame "1";
+			Tics "1";
+			ViewPriority "Weapons";
+			Function "FireOldBFG";
+			Next "3";
+		}
+
+		Frame "3"
+		{	Sprite "BFGG";
+			Frame "1";
+			Tics "1";
+			ViewPriority "Weapons";
+			Function "FireOldBFG";
+			Next "4";
+		}
+
+		Frame "4"
+		{	Sprite "BFGG";
+			Frame "1";
+			Tics "1";
+			ViewPriority "Weapons";
+			Function "FireOldBFG";
+			Next "5";
+		}
+
+		Frame "5"
+		{	Sprite "BFGG";
+			Frame "1";
+			Tics "1";
+			ViewPriority "Weapons";
+			Function "FireOldBFG";
+			Next "6";
+		}
+
+		Frame "6"
+		{	Sprite "BFGG";
+			Frame "1";
+			Tics "1";
+			ViewPriority "Weapons";
+			Function "FireOldBFG";
+			Next "7";
+		}
+
+		Frame "7"
+		{	Sprite "BFGG";
+			Frame "1";
+			Tics "1";
+			ViewPriority "Weapons";
+			Function "FireOldBFG";
+			Next "8";
+		}
+
+		Frame "8"
+		{	Sprite "BFGG";
+			Frame "1";
+			Tics "1";
+			ViewPriority "Weapons";
+			Function "FireOldBFG";
+			Next "9";
+		}
+
+		Frame "9"
+		{	Sprite "BFGG";
+			Frame "1";
+			Tics "1";
+			ViewPriority "Weapons";
+			Function "FireOldBFG";
+			Next "10";
+		}
+
+		Frame "10"
+		{	Sprite "BFGG";
+			Frame "1";
+			Tics "1";
+			ViewPriority "Weapons";
+			Function "FireOldBFG";
+			Next "11";
+		}
+
+		Frame "11"
+		{	Sprite "BFGG";
+			Frame "1";
+			Tics "1";
+			ViewPriority "Weapons";
+			Function "FireOldBFG";
+			Next "12";
+		}
+
+		Frame "12"
+		{	Sprite "BFGG";
+			Frame "1";
+			Tics "1";
+			ViewPriority "Weapons";
+			Function "FireOldBFG";
+			Next "13";
+		}
+
+		Frame "13"
+		{	Sprite "BFGG";
+			Frame "1";
+			Tics "1";
+			ViewPriority "Weapons";
+			Function "FireOldBFG";
+			Next "14";
+		}
+
+		Frame "14"
+		{	Sprite "BFGG";
+			Frame "1";
+			Tics "1";
+			ViewPriority "Weapons";
+			Function "FireOldBFG";
+			Next "15";
+		}
+
+		Frame "15"
+		{	Sprite "BFGG";
+			Frame "1";
+			Tics "1";
+			ViewPriority "Weapons";
+			Function "FireOldBFG";
+			Next "16";
+		}
+
+		Frame "16"
+		{	Sprite "BFGG";
+			Frame "1";
+			Tics "1";
+			ViewPriority "Weapons";
+			Function "FireOldBFG";
+			Next "17";
+		}
+
+		Frame "17"
+		{	Sprite "BFGG";
+			Frame "1";
+			Tics "1";
+			ViewPriority "Weapons";
+			Function "FireOldBFG";
+			Next "18";
+		}
+
+		Frame "18"
+		{	Sprite "BFGG";
+			Frame "1";
+			Tics "1";
+			ViewPriority "Weapons";
+			Function "FireOldBFG";
+			Next "19";
+		}
+
+		Frame "19"
+		{	Sprite "BFGG";
+			Frame "1";
+			Tics "1";
+			ViewPriority "Weapons";
+			Function "FireOldBFG";
+			Next "20";
+		}
+
+		Frame "20"
+		{	Sprite "BFGG";
+			Frame "1";
+			Tics "1";
+			ViewPriority "Weapons";
+			Function "FireOldBFG";
+			Next "21";
+		}
+
+		Frame "21"
+		{	Sprite "BFGG";
+			Frame "1";
+			Tics "1";
+			ViewPriority "Weapons";
+			Function "FireOldBFG";
+			Next "22";
+		}
+
+		Frame "22"
+		{	Sprite "BFGG";
+			Frame "1";
+			Tics "1";
+			ViewPriority "Weapons";
+			Function "FireOldBFG";
+			Next "23";
+		}
+
+		Frame "23"
+		{	Sprite "BFGG";
+			Frame "1";
+			Tics "1";
+			ViewPriority "Weapons";
+			Function "FireOldBFG";
+			Next "24";
+		}
+
+		Frame "24"
+		{	Sprite "BFGG";
+			Frame "1";
+			Tics "1";
+			ViewPriority "Weapons";
+			Function "FireOldBFG";
+			Next "25";
+		}
+
+		Frame "25"
+		{	Sprite "BFGG";
+			Frame "1";
+			Tics "1";
+			ViewPriority "Weapons";
+			Function "FireOldBFG";
+			Next "26";
+		}
+
+		Frame "26"
+		{	Sprite "BFGG";
+			Frame "1";
+			Tics "1";
+			ViewPriority "Weapons";
+			Function "FireOldBFG";
+			Next "27";
+		}
+
+		Frame "27"
+		{	Sprite "BFGG";
+			Frame "1";
+			Tics "1";
+			ViewPriority "Weapons";
+			Function "FireOldBFG";
+			Next "28";
+		}
+
+		Frame "28"
+		{	Sprite "BFGG";
+			Frame "1";
+			Tics "1";
+			ViewPriority "Weapons";
+			Function "FireOldBFG";
+			Next "29";
+		}
+
+		Frame "29"
+		{	Sprite "BFGG";
+			Frame "1";
+			Tics "1";
+			ViewPriority "Weapons";
+			Function "FireOldBFG";
+			Next "30";
+		}
+
+		Frame "30"
+		{	Sprite "BFGG";
+			Frame "1";
+			Tics "1";
+			ViewPriority "Weapons";
+			Function "FireOldBFG";
+			Next "31";
+		}
+
+		Frame "31"
+		{	Sprite "BFGG";
+			Frame "1";
+			Tics "1";
+			ViewPriority "Weapons";
+			Function "FireOldBFG";
+			Next "32";
+		}
+
+		Frame "32"
+		{	Sprite "BFGG";
+			Frame "1";
+			Tics "1";
+			ViewPriority "Weapons";
+			Function "FireOldBFG";
+			Next "33";
+		}
+
+		Frame "33"
+		{	Sprite "BFGG";
+			Frame "1";
+			Tics "1";
+			ViewPriority "Weapons";
+			Function "FireOldBFG";
+			Next "34";
+		}
+
+		Frame "34"
+		{	Sprite "BFGG";
+			Frame "1";
+			Tics "1";
+			ViewPriority "Weapons";
+			Function "FireOldBFG";
+			Next "35";
+		}
+
+		Frame "35"
+		{	Sprite "BFGG";
+			Frame "1";
+			Tics "1";
+			ViewPriority "Weapons";
+			Function "FireOldBFG";
+			Next "36";
+		}
+
+		Frame "36"
+		{	Sprite "BFGG";
+			Frame "1";
+			Tics "1";
+			ViewPriority "Weapons";
+			Function "FireOldBFG";
+			Next "37";
+		}
+
+		Frame "37"
+		{	Sprite "BFGG";
+			Frame "1";
+			Tics "1";
+			ViewPriority "Weapons";
+			Function "FireOldBFG";
+			Next "38";
+		}
+
+		Frame "38"
+		{	Sprite "BFGG";
+			Frame "1";
+			Tics "1";
+			ViewPriority "Weapons";
+			Function "FireOldBFG";
+			Next "39";
+		}
+
+		Frame "39"
+		{	Sprite "BFGG";
+			Frame "1";
+			Tics "1";
+			ViewPriority "Weapons";
+			Function "FireOldBFG";
+			Next "40";
+		}
+
+		Frame "40"
+		{	Sprite "BFGG";
+			Frame "1";
+			Tics "1";
+			ViewPriority "Weapons";
+			Function "FireOldBFG";
+			Next "41";
+		}
+
+		Frame "41"
+		{	Sprite "BFGG";
+			Frame "1";
+			Tics "1";
+			ViewPriority "Weapons";
+			Function "FireOldBFG";
+			Next "42";
+		}
+
+		Frame "42"
+		{	Sprite "BFGG";
+			Frame "1";
+			Tics "0";
+			ViewPriority "Weapons";
+			Function "Light0";
+			Next "43";
+		}
+
+		Frame "43"
+		{	Sprite "BFGG";
+			Frame "1";
+			Tics "20";
+			ViewPriority "Weapons";
+			Function "Refire";
+			Goto "PrimaryReadyState";
+		}
+	}
+	
+	State "PrimaryFlashState"
+	{
+		Frame "1"
+		{
+			Sprite "BFGF";
+			Frame "0";
+			Tics "11";
+			FullBright "true";
+			ViewPriority "WeaponFlash";
+			Function "Light1";
+			Next "2";
+		}
+		
+		Frame "2"
+		{
+			Sprite "BFGF";
+			Frame "1";
+			Tics "6";
+			FullBright "true";
+			ViewPriority "WeaponFlash";
+			Function "Light2";
+			Next "3";
+		}
+		
+		Frame "3"
+		{
+			Sprite "SHTG";
+			Frame "4";
+			Tics "0";
+			ViewPriority "WeaponFlash";
+			Function "Light0";
+			Next "0";
+		}
+	}
+}
+
 // **********************
 // *** TOUCH SPECIALS ***
 // **********************

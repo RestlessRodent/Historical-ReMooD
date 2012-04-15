@@ -184,6 +184,9 @@ typedef enum
 	SPR_SPLA,
 	SPR_TNT1,					// 140  SoM: 3/8/2000: add invisible sprite
 	
+	SPR_PLS1, // killough 7/19/98: first  of two plasma fireballs in the beta
+	SPR_PLS2, // killough 7/19/98: second of two plasma fireballs in the beta
+	
 	SPR_FLAG,
 	
 	NUMSPRITES
@@ -1169,6 +1172,20 @@ typedef enum
 	S_SPLASH2,
 	S_SPLASH3,
 	S_TNT1,						//SoM: 3/9/2000: add state for invisible sprite
+	
+	S_PLS1BALL,      // killough 7/19/98: first plasma fireball in the beta
+	S_PLS1BALL2,
+	S_PLS1EXP,
+	S_PLS1EXP2,
+	S_PLS1EXP3,
+	S_PLS1EXP4,
+	S_PLS1EXP5,
+
+	S_PLS2BALL,     // killough 7/19/98: second plasma fireball in the beta
+	S_PLS2BALL2,
+	S_PLS2BALLX1,
+	S_PLS2BALLX2,
+	S_PLS2BALLX3,
 	
 	S_FLAG_1,
 	S_FLAG_2,

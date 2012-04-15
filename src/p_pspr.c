@@ -16,8 +16,9 @@
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 // Copyright (C) 1993-1996 by id Software, Inc.
+// Copyright (C) 1999 Lee Killough.
 // Copyright (C) 1998-2000 by DooM Legacy Team.
-// Copyright (C) 2008-2012 GhostlyDeath (ghostlydeath@gmail.com)
+// Copyright (C) 2008-2012 GhostlyDeath (ghostlydeath@gmail.com).
 // -----------------------------------------------------------------------------
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
@@ -706,7 +707,7 @@ void A_FirePistol(player_t* player, pspdef_t* psp)
 	P_SetMobjState(player->mo, player->mo->info->RPlayerRangedAttackState);
 	
 	if (!cv_infiniteammo.value)
-		player->ammo[player->weaponinfo[player->readyweapon]->ammo]--;
+		player->ammo[player->weaponinfo[player->readyweapon]->ammo] -= player->weaponinfo[player->readyweapon]->ammopershoot;
 		
 	P_SetPsprite(player, ps_flash, player->weaponinfo[player->readyweapon]->flashstate);
 	
@@ -726,7 +727,7 @@ void A_FireShotgun(player_t* player, pspdef_t* psp)
 	P_SetMobjState(player->mo, player->mo->info->RPlayerRangedAttackState);
 	
 	if (!cv_infiniteammo.value)
-		player->ammo[player->weaponinfo[player->readyweapon]->ammo]--;
+		player->ammo[player->weaponinfo[player->readyweapon]->ammo] -= player->weaponinfo[player->readyweapon]->ammopershoot;
 	P_SetPsprite(player, ps_flash, player->weaponinfo[player->readyweapon]->flashstate);
 	
 	P_BulletSlope(player->mo);
@@ -748,7 +749,7 @@ void A_FireShotgun2(player_t* player, pspdef_t* psp)
 	P_SetMobjState(player->mo, player->mo->info->RPlayerRangedAttackState);
 	
 	if (!cv_infiniteammo.value)
-		player->ammo[player->weaponinfo[player->readyweapon]->ammo] -= 2;
+		player->ammo[player->weaponinfo[player->readyweapon]->ammo] -= player->weaponinfo[player->readyweapon]->ammopershoot;
 		
 	P_SetPsprite(player, ps_flash, player->weaponinfo[player->readyweapon]->flashstate);
 	
@@ -779,7 +780,7 @@ void A_FireCGun(player_t* player, pspdef_t* psp)
 	P_SetMobjState(player->mo, player->mo->info->RPlayerRangedAttackState);
 	
 	if (!cv_infiniteammo.value)
-		player->ammo[player->weaponinfo[player->readyweapon]->ammo]--;
+		player->ammo[player->weaponinfo[player->readyweapon]->ammo] -= player->weaponinfo[player->readyweapon]->ammopershoot;
 		
 	P_SetPsprite(player, ps_flash, player->weaponinfo[player->readyweapon]->flashstate + psp->state - &states[player->weaponinfo[player->readyweapon]->atkstate]/*&states[S_CHAIN1]*/);
 	
@@ -868,6 +869,98 @@ void A_BFGsound(player_t* player, pspdef_t* psp)
 {
 	S_StartSound(&player->mo->NoiseThinker, sfx_bfg);
 }
+
+/*** BETA BFG ***/
+// This function emulates Doom's Pre-Beta BFG
+// By Lee Killough 6/6/98, 7/11/98, 7/19/98, 8/20/98
+//
+// This code may not be used in other mods without appropriate credit given.
+// Code leeches will be telefragged.
+//
+// GhostlyDeath <April 15, 2012> -- The GPL requires this anyway so why bother
+// stating it? But eitherway, this is modified for ReMooD purposes.
+
+/* A_FireOldBFG() -- Fires the BFG from Beta Doom */
+void A_FireOldBFG(player_t* player, pspdef_t* psp)
+{
+	angle_t la, lb, lc;
+	mobj_t* pMo, *BallMo;
+	size_t i;
+	
+	/* Light up the area */
+	player->extralight = 2;
+	
+	/* Get player object */
+	pMo = player->mo;
+	
+	/* Fire Loop */
+	for (i = 0; i < 2; i++)
+	{
+		// Get random aiming angles
+		la = pMo->angle;
+		lb = (((int)(P_Random() & 0x7F)) - 64) * (ANG90 / 768) + la;
+		lc = (((int)(P_Random() & 0x7F)) - 64) * (ANG90 / 640) + ANG90;
+		
+		// Spawn fireball
+		BallMo = P_SpawnPlayerMissile(pMo, (i == 0 ? INFO_GetTypeByName("LegacyPlasma1") : INFO_GetTypeByName("LegacyPlasma2")));
+		
+		// Reduce ammo
+		if (!cv_infiniteammo.value)
+			player->ammo[player->weaponinfo[player->readyweapon]->ammo] -= player->weaponinfo[player->readyweapon]->ammopershoot;
+		
+		// Modify angle
+		if (BallMo)
+		{
+			// Modify angle and momentum
+			BallMo->angle = lb;
+			BallMo->momx = finecosine[lb >> ANGLETOFINESHIFT] * 25;
+			BallMo->momy = finesine[lb >> ANGLETOFINESHIFT] * 25;
+			BallMo->momz += finetangent[lc >> ANGLETOFINESHIFT] * 25;
+		}
+	}
+	
+#if 0
+	do
+	{
+		mobj_t *th, *mo = player->mo;
+		angle_t an = mo->angle;
+		angle_t an1 = ((P_Random(pr_bfg)&127) - 64) * (ANG90/768) + an;
+		angle_t an2 = ((P_Random(pr_bfg)&127) - 64) * (ANG90/640) + ANG90;
+		extern int autoaim;
+
+		if (autoaim || !beta_emulation)
+		{
+			// killough 8/2/98: make autoaiming prefer enemies
+			int mask = MF_FRIEND;
+			fixed_t slope;
+			do
+			{
+				slope = P_AimLineAttack(mo, an, 16*64*FRACUNIT, mask);
+				if (!linetarget)
+				slope = P_AimLineAttack(mo, an += 1<<26, 16*64*FRACUNIT, mask);
+				if (!linetarget)
+				slope = P_AimLineAttack(mo, an -= 2<<26, 16*64*FRACUNIT, mask);
+				if (!linetarget)
+				slope = 0, an = mo->angle;
+			}
+			while (mask && (mask=0, !linetarget));     // killough 8/2/98
+			an1 += an - mo->angle;
+			an2 += tantoangle[slope >> DBITS];
+		}
+
+		th = P_SpawnMobj(mo->x, mo->y, mo->z + 62*FRACUNIT - player->psprites[ps_weapon].sy, type);
+		P_SetTarget(&th->target, mo);
+		th->angle = an1;
+		th->momx = finecosine[an1>>ANGLETOFINESHIFT] * 25;
+		th->momy = finesine[an1>>ANGLETOFINESHIFT] * 25;
+		th->momz = finetangent[an2>>ANGLETOFINESHIFT] * 25;
+		P_CheckMissileSpawn(th);
+	}
+	while ((type != MT_PLASMA2) && (type = MT_PLASMA2)); //killough: obfuscated!
+#endif
+}
+
+/****************/
 
 //
 // P_SetupPsprites
@@ -1350,8 +1443,8 @@ bool_t P_RMODH_WeaponsAmmo(Z_Table_t* const a_Table, const WL_WADFile_t* const a
 		TempWeapon.ClassName = Z_StrDup(Value, PU_STATIC, NULL);
 		
 		// Get Values
-		TempWeapon.ammopershoot = D_RMODGetValueInt(a_Table, "AmmoPerShot", 0);
-		TempWeapon.SwitchOrder = D_RMODGetValueInt(a_Table, "AmmoPerShot", 0);
+		TempWeapon.ammopershoot = D_RMODGetValueInt(a_Table, "ammopershoot", 0);
+		TempWeapon.SwitchOrder = D_RMODGetValueInt(a_Table, "ammopershoot", 0);
 		TempWeapon.GetAmmo = D_RMODGetValueInt(a_Table, "PickupAmmo", 0);
 		TempWeapon.SlotNum = D_RMODGetValueInt(a_Table, "SlotNum", 0);
 		TempWeapon.NoAmmoOrder = D_RMODGetValueInt(a_Table, "NoAmmoSwitchOrder", 0);

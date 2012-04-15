@@ -569,6 +569,11 @@ void P_ZMovement(mobj_t* mo)
 				P_FloorBounceMissile(mo);
 				return;
 			}
+			else if (mo->flags2 & MF2_BOUNCES)
+			{
+				mo->momz = -mo->momz;
+				return;
+			}
 			else
 			{
 				if ((mo->flags & MF_NOCLIP) == 0)
@@ -672,8 +677,14 @@ void P_ZMovement(mobj_t* mo)
 		
 		if ((mo->flags & MF_MISSILE) && !(mo->flags & MF_NOCLIP))
 		{
+			if (mo->flags2 & MF2_BOUNCES)
+			{
+				mo->momz = -mo->momz;
+				return;
+			}
+			
 			//SoM: 4/3/2000: Don't explode on the sky!
-			if (P_EXGSGetValue(PEXGSBID_COREMOVEMOINSKYZ) && mo->subsector->sector->ceilingpic == skyflatnum && mo->subsector->sector->ceilingheight == mo->ceilingz)
+			else if (P_EXGSGetValue(PEXGSBID_COREMOVEMOINSKYZ) && mo->subsector->sector->ceilingpic == skyflatnum && mo->subsector->sector->ceilingheight == mo->ceilingz)
 			{
 				P_RemoveMobj(mo);
 				return;
