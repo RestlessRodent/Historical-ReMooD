@@ -463,6 +463,7 @@ Firing frame = 10
 */
 static void readweapon(MYFILE* f, int num)
 {
+#if 0
 	char s[MAXLINELEN];
 	char* word;
 	int value;
@@ -511,6 +512,7 @@ static void readweapon(MYFILE* f, int num)
 		}
 	}
 	while (s[0] != '\n' && !myfeof(f));
+#endif
 }
 
 /*
@@ -630,8 +632,8 @@ static void readmisc(MYFILE* f)
 			}
 			else if (!strcmp(word, "BFG"))
 			{
-				wpnlev1info[wp_bfg].ammopershoot = value;
-				wpnlev2info[wp_bfg].ammopershoot = value;
+				//wpnlev1info[wp_bfg].ammopershoot = value;
+				//wpnlev2info[wp_bfg].ammopershoot = value;
 			}
 			else if (!strcmp(word, "Monsters"))
 			{

@@ -1222,6 +1222,9 @@ typedef struct
 extern state_t states[NUMSTATES];
 extern char* sprnames[NUMSPRITES + 1];
 
+extern state_t** XStates;
+extern size_t NumXStates;
+
 typedef enum
 {
 	MT_PLAYER,

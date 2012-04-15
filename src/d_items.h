@@ -106,38 +106,11 @@ typedef enum
 	IRONTICS = (60 * TICRATE)
 } powerduration_t;
 
-// The defined weapons,
-//  including a marker indicating
-//  user has not changed weapon.
-typedef enum
-{
-	wp_fist,
-	wp_pistol,
-	wp_shotgun,
-	wp_chaingun,
-	wp_missile,
-	wp_plasma,
-	wp_bfg,
-	wp_chainsaw,
-	wp_supershotgun,
-	
-	NUMWEAPONS,
-	
-	// No pending weapon change.
-	wp_nochange
-} weapontype_t;
+typedef int32_t weapontype_t;
+typedef int32_t ammotype_t;
 
-// Ammunition types defined.
-typedef enum
-{
-	am_clip,					// Pistol / chaingun ammo.
-	am_shell,					// Shotgun / double barreled shotgun.
-	am_cell,					// Plasma rifle, BFG.
-	am_misl,					// Missile launcher.
-	
-	NUMAMMO,
-	am_noammo					// Unlimited for chainsaw / fist.
-} ammotype_t;
+#define wp_nochange				-1
+#define am_noammo				-1
 
 /* WeaponFlags_t -- Flags for weapons */
 typedef enum WeaponFlags_e
@@ -157,6 +130,8 @@ typedef enum WeaponFlags_e
 	WF_BERSERKTOGGLE			= 0x00000080,	// Only accept least weapon when berserk
 	WF_SWITCHFROMNOAMMO			= 0x00000100,	// When player has 0 ammo, switch away!
 	WF_STARTINGWEAPON			= 0x00000200,	// Start with this gun
+	WF_NOAUTOFIRE				= 0x00000400,	// No automatic fire
+	WF_NOTHRUST					= 0x00000800,	// No thrusting the enemy
 } WeaponFlags_t;
 
 // Weapon info: sprite frames, ammunition use.
@@ -183,15 +158,13 @@ typedef struct
 	fixed_t PSpriteSY;			// PSprite offset
 	char* SBOGraphic;			// SBO Graphic
 	char* AmmoClass;			// Name of ammo to use
+	char* BringUpSound;			// Sound to play when brung up
+	char* IdleNoise;			// Noise when idling (chainsaw)
 } weaponinfo_t;
 
-extern weaponinfo_t wpnlev1info[NUMWEAPONS];
-
-#if 1
-extern weaponinfo_t* wpnlev2info;
-#else
-extern weaponinfo_t wpnlev2info[NUMWEAPONS];
-#endif
+extern weaponinfo_t** wpnlev1info;
+extern weaponinfo_t** wpnlev2info;
+extern size_t NUMWEAPONS;
 
 // GhostlyDeath <March 10, 2012> -- Ammo Information
 
@@ -211,9 +184,11 @@ typedef struct ammoinfo_s
 	int32_t StartingAmmo;						// Starting Ammo
 } ammoinfo_t;
 
-extern ammoinfo_t ammoinfo[NUMAMMO];
+extern ammoinfo_t** ammoinfo;
+extern size_t NUMAMMO;
 
 weapontype_t INFO_GetWeaponByName(const char* const a_Name);
 ammotype_t INFO_GetAmmoByName(const char* const a_Name);
 
 #endif
+

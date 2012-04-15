@@ -614,7 +614,7 @@ void G_BuildTiccmd(ticcmd_t* cmd, int realtics, int player)
 				if (P_CanUseWeapon(ply, i))
 				{
 					// Weapon not in this slot?
-					if (ply->weaponinfo[i].SlotNum != slot)
+					if (ply->weaponinfo[i]->SlotNum != slot)
 						continue;
 				
 					// Place in slot list before the highest
@@ -640,7 +640,7 @@ void G_BuildTiccmd(ticcmd_t* cmd, int realtics, int player)
 							// Start from high to low
 								// When the order is lower, we know to insert now
 							for (k = 0; k < j; k++)
-								if (ply->weaponinfo[i].SwitchOrder < ply->weaponinfo[SlotList[k]].SwitchOrder)
+								if (ply->weaponinfo[i]->SwitchOrder < ply->weaponinfo[SlotList[k]]->SwitchOrder)
 								{
 									// Current gun may need shifting
 									if (!GunInSlot)
@@ -658,7 +658,7 @@ void G_BuildTiccmd(ticcmd_t* cmd, int realtics, int player)
 									{
 										// If the current gun is higher then this gun
 										// then it will be off by whatever is more
-										if (ply->weaponinfo[SlotList[l]].SwitchOrder > ply->weaponinfo[i].SwitchOrder)
+										if (ply->weaponinfo[SlotList[l]]->SwitchOrder > ply->weaponinfo[i]->SwitchOrder)
 											l++;
 									}
 								
@@ -1363,20 +1363,20 @@ void G_PlayerReborn(int player)
 		// Only see if the weapon is unlocked
 		if (P_WeaponIsUnlocked(i))
 			// Is this a starting weapon
-			if (p->weaponinfo[i].WeaponFlags & WF_STARTINGWEAPON)
+			if (p->weaponinfo[i]->WeaponFlags & WF_STARTINGWEAPON)
 			{
 				// Set as owned
 				p->weaponowned[i] = true;
 				
 				// Choose this gun?
 				if ((p->readyweapon == NUMWEAPONS) ||
-					(p->readyweapon != NUMWEAPONS && p->weaponinfo[i].NoAmmoOrder > p->weaponinfo[p->readyweapon].NoAmmoOrder))
+					(p->readyweapon != NUMWEAPONS && p->weaponinfo[i]->NoAmmoOrder > p->weaponinfo[p->readyweapon]->NoAmmoOrder))
 					p->readyweapon = p->pendingweapon = i;
 			}
 	
 	// GhostlyDeath <April 13, 2012> -- Give player starting ammo
 	for (i = 0; i < NUMAMMO; i++)
-		p->ammo[i] = ammoinfo[i].StartingAmmo;
+		p->ammo[i] = ammoinfo[i]->StartingAmmo;
 	
 	p->profile = prof;
 	
@@ -1386,7 +1386,7 @@ void G_PlayerReborn(int player)
 	//eof Boris
 	
 	for (i = 0; i < NUMAMMO; i++)
-		p->maxammo[i] = ammoinfo[i].MaxAmmo;
+		p->maxammo[i] = ammoinfo[i]->MaxAmmo;
 }
 
 //

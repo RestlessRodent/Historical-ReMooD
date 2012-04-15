@@ -732,15 +732,15 @@ bool_t P_WeaponIsUnlocked(const weapontype_t a_Weapon)
 		return false;
 		
 	// Playing in shareware and the gun is not in shareware
-	if ((g_IWADFlags & CIF_SHAREWARE) && (wpnlev1info[a_Weapon].WeaponFlags & WF_NOTSHAREWARE))
+	if ((g_IWADFlags & CIF_SHAREWARE) && (wpnlev1info[a_Weapon]->WeaponFlags & WF_NOTSHAREWARE))
 		return false;
 	
 	// Not playing in commercial and gun is in commercial (Doom II)
-	if (!(g_IWADFlags & CIF_COMMERCIAL) && (wpnlev1info[a_Weapon].WeaponFlags & WF_INCOMMERCIAL))
+	if (!(g_IWADFlags & CIF_COMMERCIAL) && (wpnlev1info[a_Weapon]->WeaponFlags & WF_INCOMMERCIAL))
 		return false;
 		
 	// Not playing in registered and gun is in registered (Heretic)
-	if (!(g_IWADFlags & CIF_REGISTERED) && (wpnlev1info[a_Weapon].WeaponFlags & WF_INREGISTERED))
+	if (!(g_IWADFlags & CIF_REGISTERED) && (wpnlev1info[a_Weapon]->WeaponFlags & WF_INREGISTERED))
 		return false;
 		
 	/* Yay it isn't unlocked */
@@ -931,7 +931,7 @@ void P_PlayerThink(player_t* player)
 		if (newweapon != player->readyweapon)
 		{
 			// Weapon switching to is berserk cap flagged
-			if (player->weaponinfo[newweapon].WeaponFlags & WF_BERSERKTOGGLE)
+			if (player->weaponinfo[newweapon]->WeaponFlags & WF_BERSERKTOGGLE)
 				// Only before Legacy 1.28
 				if (P_EXGSGetValue(PEXGSBID_COFORCEBERSERKSWITCH))
 					// Use the lowest weapon with this flag
@@ -942,11 +942,11 @@ void P_PlayerThink(player_t* player)
 							continue;
 						
 						// Weapon is not berserk flagged
-						if (!(player->weaponinfo[i].WeaponFlags & WF_BERSERKTOGGLE))
+						if (!(player->weaponinfo[i]->WeaponFlags & WF_BERSERKTOGGLE))
 							continue;
 						
 						// Weapon is of lower quality
-						if (player->weaponinfo[newweapon].SwitchOrder < player->weaponinfo[i].SwitchOrder)
+						if (player->weaponinfo[newweapon]->SwitchOrder < player->weaponinfo[i]->SwitchOrder)
 							newweapon = i;
 					}
 			

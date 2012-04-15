@@ -1055,3 +1055,10 @@ void Command_SoundReset_f(void)
 void S_FreeSfx(sfxinfo_t* sfx)
 {
 }
+
+/* S_SoundIDForName() -- Return sound ID for sound name */
+int S_SoundIDForName(const char* const a_Name)
+{
+	return 0;
+}
+

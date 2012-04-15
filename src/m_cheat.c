@@ -248,6 +248,7 @@ static player_t* plyr;
 
 bool_t cht_Responder(event_t* ev)
 {
+#if 0
 	int i;
 	char* msg;
 
@@ -490,6 +491,7 @@ bool_t cht_Responder(event_t* ev)
 			CONL_PrintF("%s\n", msg);
 	}
 	return false;
+#endif
 }
 
 // command that can be typed at the console !
@@ -548,6 +550,7 @@ void Command_CheatGod_f(void)
 
 void Command_CheatGimme_f(void)
 {
+#if 0
 	char* s;
 	int i, j, k;
 	player_t* plyr;
@@ -712,6 +715,7 @@ void Command_CheatGimme_f(void)
 			}
 		}
 	}
+#endif
 }
 
 //

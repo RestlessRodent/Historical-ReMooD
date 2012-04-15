@@ -249,39 +249,1241 @@ MapKey "RedSkull"
 // *** AMMO ***
 // ************
 
+// Ammo -- Clip
 MapAmmo "Clip"
 {
-	ClipSize "10";
+	ClipAmmo "10";
 	MaxAmmo "200";
+	StartingAmmo "50";
 }
 
+// Ammo -- Shell
 MapAmmo "Shell"
 {
-	ClipSize "4";
+	ClipAmmo "4";
 	MaxAmmo "50";
+	StartingAmmo "0";
 }
 
+// Ammo -- Cell
 MapAmmo "Cell"
 {
-	ClipSize "20";
+	ClipAmmo "20";
 	MaxAmmo "300";
+	StartingAmmo "0";
 }
 
+// Ammo -- Rocket
 MapAmmo "Rocket"
 {
-	ClipSize "1";
+	ClipAmmo "1";
 	MaxAmmo "50";
-}
-
-MapAmmo "Unlimited"
-{
-	ClipSize "0";
-	MaxAmmo "0";
+	StartingAmmo "0";
 }
 
 // ***************
 // *** WEAPONS ***
 // ***************
+
+// Weapon -- Fist
+MapWeapon "Fist"
+{
+	Ammo "None";
+	NiceName "Fist";
+	SBOGraphic "sboempty";
+	SlotNum "1";
+	SwitchOrder "100";
+	NoAmmoSwitchOrder "100";
+	AmmoPerShot "0";
+	PickupAmmo "0";
+	SpriteYOffset "0";
+	IsDoom "true";
+	IsBerserkToggle "true";
+	IsSwitchFromNoAmmo "true";
+	IsStartingWeapon "true";
+	
+	State "PrimaryBringUpState"
+	{
+		Frame "1"
+		{
+			Sprite "PUNG";
+			Frame "0";
+			Tics "1";
+			ViewPriority "Weapons";
+			Function "Raise";
+			Goto "PrimaryBringUpState";
+		}
+	}
+	
+	State "PrimaryPutDownState"
+	{
+		Frame "1"
+		{
+			Sprite "PUNG";
+			Frame "0";
+			Tics "1";
+			ViewPriority "Weapons";
+			Function "Lower";
+			Goto "PrimaryPutDownState";
+		}
+	}
+	
+	State "PrimaryReadyState"
+	{
+		Frame "1"
+		{
+			Sprite "PUNG";
+			Frame "0";
+			Tics "1";
+			ViewPriority "Weapons";
+			Function "WeaponReady";
+			Goto "PrimaryReadyState";
+		}
+	}
+	
+	State "PrimaryFireState"
+	{
+		Frame "1"
+		{
+			Sprite "PUNG";
+			Frame "1";
+			Tics "4";
+			ViewPriority "Weapons";
+			Next "2";
+		}
+		
+		Frame "2"
+		{
+			Sprite "PUNG";
+			Frame "2";
+			Tics "4";
+			ViewPriority "Weapons";
+			Function "Punch";
+			Next "3";
+		}
+		
+		Frame "3"
+		{
+			Sprite "PUNG";
+			Frame "3";
+			Tics "5";
+			ViewPriority "Weapons";
+			Next "4";
+		}
+		
+		Frame "4"
+		{
+			Sprite "PUNG";
+			Frame "2";
+			Tics "4";
+			ViewPriority "Weapons";
+			Next "5";
+		}
+		
+		Frame "5"
+		{
+			Sprite "PUNG";
+			Frame "1";
+			Tics "5";
+			ViewPriority "Weapons";
+			Function "ReFire";
+			Goto "PrimaryReadyState";
+		}
+		
+	}
+}
+
+// Weapon -- Pistol
+MapWeapon "Pistol"
+{
+	Ammo "Clip";
+	NiceName "Pistol";
+	SBOGraphic "sboammo1";
+	SlotNum "2";
+	SwitchOrder "300";
+	NoAmmoSwitchOrder "500";
+	AmmoPerShot "1";
+	PickupAmmo "20";
+	SpriteYOffset "0";
+	IsDoom "true";
+	IsSwitchFromNoAmmo "true";
+	IsStartingWeapon "true";
+	
+	State "PrimaryBringUpState"
+	{
+		Frame "1"
+		{
+			Sprite "PISG";
+			Frame "0";
+			Tics "1";
+			ViewPriority "Weapons";
+			Function "Raise";
+			Goto "PrimaryBringUpState";
+		}
+	}
+	
+	State "PrimaryPutDownState"
+	{
+		Frame "1"
+		{
+			Sprite "PISG";
+			Frame "0";
+			Tics "1";
+			ViewPriority "Weapons";
+			Function "Lower";
+			Goto "PrimaryPutDownState";
+		}
+	}
+	
+	State "PrimaryReadyState"
+	{
+		Frame "1"
+		{
+			Sprite "PISG";
+			Frame "0";
+			Tics "1";
+			ViewPriority "Weapons";
+			Function "WeaponReady";
+			Goto "PrimaryReadyState";
+		}
+	}
+	
+	State "PrimaryFireState"
+	{
+		Frame "1"
+		{
+			Sprite "PISG";
+			Frame "0";
+			Tics "4";
+			ViewPriority "Weapons";
+			Next "2";
+		}
+		
+		Frame "2"
+		{
+			Sprite "PISG";
+			Frame "1";
+			Tics "6";
+			ViewPriority "Weapons";
+			Function "FirePistol";
+			Next "3";
+		}
+		
+		Frame "3"
+		{
+			Sprite "PISG";
+			Frame "2";
+			Tics "4";
+			ViewPriority "Weapons";
+			Next "4";
+		}
+		
+		Frame "4"
+		{
+			Sprite "PISG";
+			Frame "1";
+			Tics "5";
+			ViewPriority "Weapons";
+			Function "ReFire";
+			Goto "PrimaryReadyState";
+		}
+		
+	}
+	
+	State "PrimaryFlashState"
+	{
+		Frame "1"
+		{
+			Sprite "PISF";
+			Frame "0";
+			Tics "7";
+			FullBright "true";
+			ViewPriority "WeaponFlash";
+			Function "Light1";
+			Next "2";
+		}
+		
+		Frame "2"
+		{
+			Sprite "SHTG";
+			Frame "4";
+			Tics "0";
+			ViewPriority "WeaponFlash";
+			Function "Light0";
+			Next "0";
+		}
+	}
+}
+
+// Weapon -- Shotgun
+MapWeapon "Shotgun"
+{
+	Ammo "Shell";
+	NiceName "Shotgun";
+	SBOGraphic "sboammo2";
+	SlotNum "3";
+	SwitchOrder "400";
+	NoAmmoSwitchOrder "600";
+	AmmoPerShot "1";
+	PickupAmmo "8";
+	DroppedObject "Shotgun";
+	SpriteYOffset "0";
+	IsDoom "true";
+	
+	State "PrimaryBringUpState"
+	{
+		Frame "1"
+		{
+			Sprite "SHTG";
+			Frame "0";
+			Tics "1";
+			ViewPriority "Weapons";
+			Function "Raise";
+			Goto "PrimaryBringUpState";
+		}
+	}
+	
+	State "PrimaryPutDownState"
+	{
+		Frame "1"
+		{
+			Sprite "SHTG";
+			Frame "0";
+			Tics "1";
+			ViewPriority "Weapons";
+			Function "Lower";
+			Goto "PrimaryPutDownState";
+		}
+	}
+	
+	State "PrimaryReadyState"
+	{
+		Frame "1"
+		{
+			Sprite "SHTG";
+			Frame "0";
+			Tics "1";
+			ViewPriority "Weapons";
+			Function "WeaponReady";
+			Goto "PrimaryReadyState";
+		}
+	}
+	
+	State "PrimaryFireState"
+	{
+		Frame "1"
+		{
+			Sprite "SHTG";
+			Frame "0";
+			Tics "3";
+			ViewPriority "Weapons";
+			Next "2";
+		}
+		
+		Frame "2"
+		{
+			Sprite "SHTG";
+			Frame "0";
+			Tics "7";
+			ViewPriority "Weapons";
+			Function "FireShotgun";
+			Next "3";
+		}
+		
+		Frame "3"
+		{
+			Sprite "SHTG";
+			Frame "1";
+			Tics "5";
+			ViewPriority "Weapons";
+			Next "4";
+		}
+		
+		Frame "4"
+		{
+			Sprite "SHTG";
+			Frame "2";
+			Tics "5";
+			ViewPriority "Weapons";
+			Next "5";
+		}
+		
+		Frame "5"
+		{
+			Sprite "SHTG";
+			Frame "3";
+			Tics "4";
+			ViewPriority "Weapons";
+			Next "6";
+		}
+		
+		Frame "6"
+		{
+			Sprite "SHTG";
+			Frame "2";
+			Tics "5";
+			ViewPriority "Weapons";
+			Next "7";
+		}
+		
+		Frame "7"
+		{
+			Sprite "SHTG";
+			Frame "1";
+			Tics "5";
+			ViewPriority "Weapons";
+			Next "8";
+		}
+		
+		Frame "8"
+		{
+			Sprite "SHTG";
+			Frame "0";
+			Tics "3";
+			ViewPriority "Weapons";
+			Next "9";
+		}
+		
+		Frame "9"
+		{
+			Sprite "SHTG";
+			Frame "0";
+			Tics "7";
+			ViewPriority "Weapons";
+			Function "ReFire";
+			Goto "PrimaryReadyState";
+		}
+		
+	}
+	
+	State "PrimaryFlashState"
+	{
+		Frame "1"
+		{
+			Sprite "SHTF";
+			Frame "0";
+			Tics "4";
+			FullBright "true";
+			ViewPriority "WeaponFlash";
+			Function "Light1";
+			Next "2";
+		}
+		
+		Frame "2"
+		{
+			Sprite "SHTF";
+			Frame "1";
+			Tics "3";
+			FullBright "true";
+			ViewPriority "WeaponFlash";
+			Function "Light2";
+			Next "3";
+		}
+		
+		Frame "3"
+		{
+			Sprite "SHTG";
+			Frame "4";
+			Tics "0";
+			ViewPriority "WeaponFlash";
+			Function "Light0";
+			Next "0";
+		}
+	}
+}
+
+// Weapon -- Chaingun
+MapWeapon "Chaingun"
+{
+	Ammo "Clip";
+	NiceName "Chaingun";
+	SBOGraphic "sboammo3";
+	SlotNum "4";
+	SwitchOrder "600";
+	NoAmmoSwitchOrder "700";
+	AmmoPerShot "1";
+	PickupAmmo "20";
+	DroppedObject "Chaingun";
+	SpriteYOffset "0";
+	IsDoom "true";
+	
+	State "PrimaryBringUpState"
+	{
+		Frame "1"
+		{
+			Sprite "CHGG";
+			Frame "0";
+			Tics "1";
+			ViewPriority "Weapons";
+			Function "Raise";
+			Goto "PrimaryBringUpState";
+		}
+	}
+	
+	State "PrimaryPutDownState"
+	{
+		Frame "1"
+		{
+			Sprite "CHGG";
+			Frame "0";
+			Tics "1";
+			ViewPriority "Weapons";
+			Function "Lower";
+			Goto "PrimaryPutDownState";
+		}
+	}
+	
+	State "PrimaryReadyState"
+	{
+		Frame "1"
+		{
+			Sprite "CHGG";
+			Frame "0";
+			Tics "1";
+			ViewPriority "Weapons";
+			Function "WeaponReady";
+			Goto "PrimaryReadyState";
+		}
+	}
+	
+	State "PrimaryFireState"
+	{
+		Frame "1"
+		{
+			Sprite "CHGG";
+			Frame "0";
+			Tics "4";
+			ViewPriority "Weapons";
+			Function "FireCGun";
+			Next "2";
+		}
+		
+		Frame "2"
+		{
+			Sprite "CHGG";
+			Frame "1";
+			Tics "4";
+			ViewPriority "Weapons";
+			Function "FireCGun";
+			Next "3";
+		}
+		
+		Frame "3"
+		{
+			Sprite "CHGG";
+			Frame "1";
+			Tics "0";
+			ViewPriority "Weapons";
+			Function "ReFire";
+			Goto "PrimaryReadyState";
+		}
+		
+	}
+	
+	State "PrimaryFlashState"
+	{
+		Frame "1"
+		{
+			Sprite "CHGF";
+			Frame "0";
+			Tics "5";
+			FullBright "true";
+			ViewPriority "WeaponFlash";
+			Function "Light1";
+			Next "2";
+		}
+		
+		Frame "2"
+		{
+			Sprite "SHTG";
+			Frame "4";
+			Tics "0";
+			ViewPriority "WeaponFlash";
+			Function "Light0";
+			Next "0";
+		}
+	}
+}
+
+// Weapon -- Rocket Launcher
+MapWeapon "RocketLauncher"
+{
+	Ammo "Rocket";
+	NiceName "Rocket Launcher";
+	SBOGraphic "sboammo4";
+	SlotNum "5";
+	SwitchOrder "700";
+	NoAmmoSwitchOrder "300";
+	AmmoPerShot "1";
+	PickupAmmo "2";
+	DroppedObject "RocketLauncher";
+	SpriteYOffset "0";
+	IsDoom "true";
+	NoAutoFire "true";
+	
+	State "PrimaryBringUpState"
+	{
+		Frame "1"
+		{
+			Sprite "MISG";
+			Frame "0";
+			Tics "1";
+			ViewPriority "Weapons";
+			Function "Raise";
+			Goto "PrimaryBringUpState";
+		}
+	}
+	
+	State "PrimaryPutDownState"
+	{
+		Frame "1"
+		{
+			Sprite "MISG";
+			Frame "0";
+			Tics "1";
+			ViewPriority "Weapons";
+			Function "Lower";
+			Goto "PrimaryPutDownState";
+		}
+	}
+	
+	State "PrimaryReadyState"
+	{
+		Frame "1"
+		{
+			Sprite "MISG";
+			Frame "0";
+			Tics "1";
+			ViewPriority "Weapons";
+			Function "WeaponReady";
+			Goto "PrimaryReadyState";
+		}
+	}
+	
+	State "PrimaryFireState"
+	{
+		Frame "1"
+		{
+			Sprite "MISG";
+			Frame "1";
+			Tics "8";
+			ViewPriority "Weapons";
+			Function "GunFlash";
+			Next "2";
+		}
+		
+		Frame "2"
+		{
+			Sprite "MISG";
+			Frame "1";
+			Tics "12";
+			ViewPriority "Weapons";
+			Function "FireMissile";
+			Next "3";
+		}
+		
+		Frame "3"
+		{
+			Sprite "MISG";
+			Frame "1";
+			Tics "0";
+			ViewPriority "Weapons";
+			Function "ReFire";
+			Goto "PrimaryReadyState";
+		}
+		
+	}
+	
+	State "PrimaryFlashState"
+	{
+		Frame "1"
+		{
+			Sprite "MISF";
+			Frame "0";
+			Tics "3";
+			FullBright "true";
+			ViewPriority "WeaponFlash";
+			Function "Light1";
+			Next "2";
+		}
+		
+		Frame "2"
+		{
+			Sprite "MISF";
+			Frame "1";
+			Tics "4";
+			FullBright "true";
+			ViewPriority "WeaponFlash";
+			Next "3";
+		}
+		
+		Frame "3"
+		{
+			Sprite "MISF";
+			Frame "2";
+			Tics "4";
+			FullBright "true";
+			ViewPriority "WeaponFlash";
+			Function "Light2";
+			Next "4";
+		}
+		
+		Frame "4"
+		{
+			Sprite "MISF";
+			Frame "3";
+			Tics "4";
+			FullBright "true";
+			ViewPriority "WeaponFlash";
+			Function "Light2";
+			Next "5";
+		}
+		
+		Frame "5"
+		{
+			Sprite "SHTG";
+			Frame "4";
+			Tics "0";
+			ViewPriority "WeaponFlash";
+			Function "Light0";
+			Next "0";
+		}
+	}
+}
+
+// Weapon -- Plasma Rifle
+MapWeapon "PlasmaRifle"
+{
+	Ammo "Cell";
+	NiceName "Plasma Rifle";
+	SBOGraphic "sboammo5";
+	SlotNum "6";
+	SwitchOrder "800";
+	NoAmmoSwitchOrder "900";
+	AmmoPerShot "1";
+	PickupAmmo "40";
+	DroppedObject "PlasmaRifle";
+	SpriteYOffset "0";
+	IsDoom "true";
+	IsNotShareware "true";
+	
+	State "PrimaryBringUpState"
+	{
+		Frame "1"
+		{
+			Sprite "PLSG";
+			Frame "0";
+			Tics "1";
+			ViewPriority "Weapons";
+			Function "Raise";
+			Goto "PrimaryBringUpState";
+		}
+	}
+	
+	State "PrimaryPutDownState"
+	{
+		Frame "1"
+		{
+			Sprite "PLSG";
+			Frame "0";
+			Tics "1";
+			ViewPriority "Weapons";
+			Function "Lower";
+			Goto "PrimaryPutDownState";
+		}
+	}
+	
+	State "PrimaryReadyState"
+	{
+		Frame "1"
+		{
+			Sprite "PLSG";
+			Frame "0";
+			Tics "1";
+			ViewPriority "Weapons";
+			Function "WeaponReady";
+			Goto "PrimaryReadyState";
+		}
+	}
+	
+	State "PrimaryFireState"
+	{
+		Frame "1"
+		{
+			Sprite "PLSG";
+			Frame "0";
+			Tics "3";
+			ViewPriority "Weapons";
+			Function "FirePlasma";
+			Next "2";
+		}
+		
+		Frame "2"
+		{
+			Sprite "PLSG";
+			Frame "1";
+			Tics "20";
+			ViewPriority "Weapons";
+			Function "ReFire";
+			Goto "PrimaryReadyState";
+		}
+		
+	}
+	
+	State "PrimaryFlashState"
+	{
+		Frame "1"
+		{
+			Sprite "PLSF";
+			Frame "0";
+			Tics "4";
+			FullBright "true";
+			ViewPriority "WeaponFlash";
+			Function "Light1";
+			Next "2";
+		}
+		
+		Frame "2"
+		{
+			Sprite "SHTG";
+			Frame "4";
+			Tics "0";
+			ViewPriority "WeaponFlash";
+			Function "Light0";
+			Next "0";
+		}
+	}
+}
+
+// Weapon -- BFG9000
+MapWeapon "BFGNineK"
+{
+	Ammo "Cell";
+	NiceName "BFG9000";
+	SBOGraphic "sboammo6";
+	SlotNum "7";
+	SwitchOrder "900";
+	NoAmmoSwitchOrder "200";
+	AmmoPerShot "40";
+	PickupAmmo "40";
+	DroppedObject "BFG";
+	SpriteYOffset "0";
+	IsDoom "true";
+	IsNotShareware "true";
+	NoAutoFire "true";
+	
+	State "PrimaryBringUpState"
+	{
+		Frame "1"
+		{
+			Sprite "BFGG";
+			Frame "0";
+			Tics "1";
+			ViewPriority "Weapons";
+			Function "Raise";
+			Goto "PrimaryBringUpState";
+		}
+	}
+	
+	State "PrimaryPutDownState"
+	{
+		Frame "1"
+		{
+			Sprite "BFGG";
+			Frame "0";
+			Tics "1";
+			ViewPriority "Weapons";
+			Function "Lower";
+			Goto "PrimaryPutDownState";
+		}
+	}
+	
+	State "PrimaryReadyState"
+	{
+		Frame "1"
+		{
+			Sprite "BFGG";
+			Frame "0";
+			Tics "1";
+			ViewPriority "Weapons";
+			Function "WeaponReady";
+			Goto "PrimaryReadyState";
+		}
+	}
+	
+	State "PrimaryFireState"
+	{
+		Frame "1"
+		{
+			Sprite "BFGG";
+			Frame "0";
+			Tics "20";
+			ViewPriority "Weapons";
+			Function "BFGsound";
+			Next "2";
+		}
+		
+		Frame "2"
+		{
+			Sprite "BFGG";
+			Frame "1";
+			Tics "10";
+			ViewPriority "Weapons";
+			Function "GunFlash";
+			Next "3";
+		}
+		
+		Frame "3"
+		{
+			Sprite "BFGG";
+			Frame "1";
+			Tics "10";
+			ViewPriority "Weapons";
+			Function "FireBFG";
+			Next "4";
+		}
+		
+		Frame "4"
+		{
+			Sprite "BFGG";
+			Frame "1";
+			Tics "20";
+			ViewPriority "Weapons";
+			Function "ReFire";
+			Goto "PrimaryReadyState";
+		}
+		
+	}
+	
+	State "PrimaryFlashState"
+	{
+		Frame "1"
+		{
+			Sprite "BFGF";
+			Frame "0";
+			Tics "11";
+			FullBright "true";
+			ViewPriority "WeaponFlash";
+			Function "Light1";
+			Next "2";
+		}
+		
+		Frame "2"
+		{
+			Sprite "BFGF";
+			Frame "1";
+			Tics "6";
+			FullBright "true";
+			ViewPriority "WeaponFlash";
+			Function "Light2";
+			Next "3";
+		}
+		
+		Frame "3"
+		{
+			Sprite "SHTG";
+			Frame "4";
+			Tics "0";
+			ViewPriority "WeaponFlash";
+			Function "Light0";
+			Next "0";
+		}
+	}
+}
+
+// Weapon -- Chainsaw
+MapWeapon "Chainsaw"
+{
+	Ammo "None";
+	NiceName "Chainsaw";
+	SBOGraphic "sboempty";
+	SlotNum "1";
+	SwitchOrder "200";
+	NoAmmoSwitchOrder "400";
+	AmmoPerShot "0";
+	PickupAmmo "0";
+	DroppedObject "Chainsaw";
+	SpriteYOffset "0";
+	IsDoom "true";
+	IsBerserkToggle "true";
+	BringUpSound "sawup";
+	NoThrust "true";
+	IdleNoise "sawidl";
+	
+	State "PrimaryBringUpState"
+	{
+		Frame "1"
+		{
+			Sprite "SAWG";
+			Frame "2";
+			Tics "1";
+			ViewPriority "Weapons";
+			Function "Raise";
+			Goto "PrimaryBringUpState";
+		}
+	}
+	
+	State "PrimaryPutDownState"
+	{
+		Frame "1"
+		{
+			Sprite "SAWG";
+			Frame "2";
+			Tics "1";
+			ViewPriority "Weapons";
+			Function "Lower";
+			Goto "PrimaryPutDownState";
+		}
+	}
+	
+	State "PrimaryReadyState"
+	{
+		Frame "1"
+		{
+			Sprite "SAWG";
+			Frame "2";
+			Tics "4";
+			ViewPriority "Weapons";
+			Function "WeaponReady";
+			Next "2";
+		}
+		
+		Frame "2"
+		{
+			Sprite "SAWG";
+			Frame "3";
+			Tics "4";
+			ViewPriority "Weapons";
+			Function "WeaponReady";
+			Goto "PrimaryReadyState";
+		}
+	}
+	
+	State "PrimaryFireState"
+	{
+		Frame "1"
+		{
+			Sprite "SAWG";
+			Frame "0";
+			Tics "4";
+			ViewPriority "Weapons";
+			Function "Saw";
+			Next "2";
+		}
+		
+		Frame "2"
+		{
+			Sprite "SAWG";
+			Frame "1";
+			Tics "4";
+			ViewPriority "Weapons";
+			Function "Saw";
+			Next "3";
+		}
+		
+		Frame "3"
+		{
+			Sprite "SAWG";
+			Frame "1";
+			Tics "0";
+			ViewPriority "Weapons";
+			Function "ReFire";
+			Goto "PrimaryReadyState";
+		}
+		
+	}
+}
+
+// Weapon -- Super Shotgun
+MapWeapon "SuperShotgun"
+{
+	Ammo "Shell";
+	NiceName "Super Shotgun";
+	SBOGraphic "sboammo8";
+	SlotNum "3";
+	SwitchOrder "500";
+	NoAmmoSwitchOrder "800";
+	AmmoPerShot "2";
+	PickupAmmo "8";
+	DroppedObject "SuperShotgun";
+	SpriteYOffset "0";
+	IsDoom "true";
+	IsInCommercial "true";
+	
+	State "PrimaryBringUpState"
+	{
+		Frame "1"
+		{
+			Sprite "SHT2";
+			Frame "0";
+			Tics "1";
+			ViewPriority "Weapons";
+			Function "Raise";
+			Goto "PrimaryBringUpState";
+		}
+	}
+	
+	State "PrimaryPutDownState"
+	{
+		Frame "1"
+		{
+			Sprite "SHT2";
+			Frame "0";
+			Tics "1";
+			ViewPriority "Weapons";
+			Function "Lower";
+			Goto "PrimaryPutDownState";
+		}
+	}
+	
+	State "PrimaryReadyState"
+	{
+		Frame "1"
+		{
+			Sprite "SHT2";
+			Frame "0";
+			Tics "1";
+			ViewPriority "Weapons";
+			Function "WeaponReady";
+			Goto "PrimaryReadyState";
+		}
+	}
+	
+	State "PrimaryFireState"
+	{
+		Frame "1"
+		{
+			Sprite "SHT2";
+			Frame "0";
+			Tics "3";
+			ViewPriority "Weapons";
+			Next "2";
+		}
+		
+		Frame "2"
+		{
+			Sprite "SHT2";
+			Frame "0";
+			Tics "7";
+			ViewPriority "Weapons";
+			Function "FireShotgun2";
+			Next "3";
+		}
+		
+		Frame "3"
+		{
+			Sprite "SHT2";
+			Frame "1";
+			Tics "7";
+			ViewPriority "Weapons";
+			Next "4";
+		}
+		
+		Frame "4"
+		{
+			Sprite "SHT2";
+			Frame "2";
+			Tics "7";
+			ViewPriority "Weapons";
+			Function "CheckReload";
+			Next "5";
+		}
+		
+		Frame "5"
+		{
+			Sprite "SHT2";
+			Frame "3";
+			Tics "7";
+			ViewPriority "Weapons";
+			Function "OpenShotgun2";
+			Next "6";
+		}
+		
+		Frame "6"
+		{
+			Sprite "SHT2";
+			Frame "4";
+			Tics "7";
+			ViewPriority "Weapons";
+			Next "7";
+		}
+		
+		Frame "7"
+		{
+			Sprite "SHT2";
+			Frame "5";
+			Tics "7";
+			ViewPriority "Weapons";
+			Function "LoadShotgun2";
+			Next "8";
+		}
+		
+		Frame "8"
+		{
+			Sprite "SHT2";
+			Frame "6";
+			Tics "6";
+			ViewPriority "Weapons";
+			Next "9";
+		}
+		
+		Frame "9"
+		{
+			Sprite "SHT2";
+			Frame "7";
+			Tics "6";
+			ViewPriority "Weapons";
+			Function "CloseShotgun2";
+			Next "10";
+		}
+		
+		Frame "10"
+		{
+			Sprite "SHT2";
+			Frame "0";
+			Tics "5";
+			ViewPriority "Weapons";
+			Function "ReFire";
+			Goto "PrimaryReadyState";
+		}
+		
+	}
+	
+	State "PrimaryFlashState"
+	{
+		Frame "1"
+		{
+			Sprite "SHT2";
+			Frame "8";
+			Tics "5";
+			FullBright "true";
+			ViewPriority "WeaponFlash";
+			Function "Light1";
+			Next "2";
+		}
+		
+		Frame "2"
+		{
+			Sprite "SHT2";
+			Frame "9";
+			Tics "4";
+			FullBright "true";
+			ViewPriority "WeaponFlash";
+			Function "Light2";
+			Next "3";
+		}
+		
+		Frame "3"
+		{
+			Sprite "SHTG";
+			Frame "4";
+			Tics "0";
+			ViewPriority "WeaponFlash";
+			Function "Light0";
+			Next "0";
+		}
+	}
+}
 
 // **********************
 // *** TOUCH SPECIALS ***

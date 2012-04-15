@@ -155,9 +155,9 @@ void P_BringUpWeapon(player_t* player)
 		
 	if (player->pendingweapon == wp_nochange)
 		player->pendingweapon = player->readyweapon;
-		
-	if (player->pendingweapon == wp_chainsaw)
-		S_StartSound(&player->mo->NoiseThinker, sfx_sawup);
+	
+	if (player->weaponinfo[player->pendingweapon]->BringUpSound)
+		S_StartSound(&player->mo->NoiseThinker, S_SoundIDForName(player->weaponinfo[player->pendingweapon]->BringUpSound));
 		
 	// GhostlyDeath <November 3, 2010> -- PARANOIA removal
 	if (player->pendingweapon >= NUMWEAPONS)
@@ -166,7 +166,7 @@ void P_BringUpWeapon(player_t* player)
 		return;
 	}
 	
-	newstate = player->weaponinfo[player->pendingweapon].upstate;
+	newstate = player->weaponinfo[player->pendingweapon]->upstate;
 	
 	player->pendingweapon = wp_nochange;
 	player->psprites[ps_weapon].sy = WEAPONBOTTOM;
@@ -186,13 +186,13 @@ bool_t P_CheckAmmo(player_t* player)
 	size_t i;
 	weapontype_t BestWeapon;
 	
-	ammo = player->weaponinfo[player->readyweapon].ammo;
+	ammo = player->weaponinfo[player->readyweapon]->ammo;
 	
 	if (cv_infiniteammo.value)
 		return true;
 		
 	// Minimal amount for one shot varies.
-	count = player->weaponinfo[player->readyweapon].ammopershoot;
+	count = player->weaponinfo[player->readyweapon]->ammopershoot;
 	
 	// Some do not need ammunition anyway.
 	// Return if current ammunition sufficient.
@@ -218,11 +218,11 @@ bool_t P_CheckAmmo(player_t* player)
 			continue;
 		
 		// Got no ammo for this gun?
-		if (player->ammo[player->weaponinfo[i].ammo] < player->weaponinfo[i].ammopershoot)
+		if (player->ammo[player->weaponinfo[i]->ammo] < player->weaponinfo[i]->ammopershoot)
 			continue;
 		
 		// Better than the best?
-		if ((BestWeapon == NUMWEAPONS) || (player->weaponinfo[i].NoAmmoOrder > player->weaponinfo[BestWeapon].NoAmmoOrder))
+		if ((BestWeapon == NUMWEAPONS) || (player->weaponinfo[i]->NoAmmoOrder > player->weaponinfo[BestWeapon]->NoAmmoOrder))
 			BestWeapon = i;
 	}
 	
@@ -231,7 +231,7 @@ bool_t P_CheckAmmo(player_t* player)
 		player->pendingweapon = BestWeapon;
 	
 	// Now set appropriate weapon overlay.
-	P_SetPsprite(player, ps_weapon, player->weaponinfo[player->readyweapon].downstate);
+	P_SetPsprite(player, ps_weapon, player->weaponinfo[player->readyweapon]->downstate);
 	
 	return false;
 }
@@ -248,10 +248,10 @@ void P_FireWeapon(player_t* player)
 		
 	P_SetMobjState(player->mo, player->mo->info->RPlayerMeleeAttackState);
 	
-	if (player->refire && player->weaponinfo[player->readyweapon].holdatkstate != S_NULL)
-		newstate = player->weaponinfo[player->readyweapon].holdatkstate;
+	if (player->refire && player->weaponinfo[player->readyweapon]->holdatkstate != S_NULL)
+		newstate = player->weaponinfo[player->readyweapon]->holdatkstate;
 	else
-		newstate = player->weaponinfo[player->readyweapon].atkstate;
+		newstate = player->weaponinfo[player->readyweapon]->atkstate;
 	
 	P_SetPsprite(player, ps_weapon, newstate);
 	P_NoiseAlert(player->mo, player->mo);
@@ -263,7 +263,7 @@ void P_FireWeapon(player_t* player)
 //
 void P_DropWeapon(player_t* player)
 {
-	P_SetPsprite(player, ps_weapon, player->weaponinfo[player->readyweapon].downstate);
+	P_SetPsprite(player, ps_weapon, player->weaponinfo[player->readyweapon]->downstate);
 }
 
 //
@@ -282,24 +282,25 @@ void A_WeaponReady(player_t* player, pspdef_t* psp)
 		P_SetMobjState(player->mo, player->mo->info->spawnstate);
 	}
 	
-	if (player->readyweapon == wp_chainsaw && psp->state == &states[S_SAW])
-	{
-		S_StartSound(&player->mo->NoiseThinker, sfx_sawidl);
-	}
+	// GhostlyDeath <April 14, 2012> -- Chainsaw buzzing
+	if (player->weaponinfo[player->readyweapon]->IdleNoise)
+		if (psp->state == XStates[player->weaponinfo[player->readyweapon]->readystate])
+			S_StartSound(&player->mo->NoiseThinker, S_SoundIDForName(player->weaponinfo[player->readyweapon]->IdleNoise));
+	
 	// check for change
 	//  if player is dead, put the weapon away
 	if (player->pendingweapon != wp_nochange || !player->health)
 	{
 		// change weapon
 		//  (pending weapon should allready be validated)
-		P_SetPsprite(player, ps_weapon, player->weaponinfo[player->readyweapon].downstate);
+		P_SetPsprite(player, ps_weapon, player->weaponinfo[player->readyweapon]->downstate);
 		return;
 	}
 	// check for fire
 	//  the missile launcher and bfg do not auto fire
 	if (player->cmd.buttons & BT_ATTACK)
 	{
-		if (!player->attackdown || (player->readyweapon != wp_missile && (player->readyweapon != wp_bfg)))
+		if (!player->attackdown || !(player->weaponinfo[player->readyweapon]->WeaponFlags & WF_NOAUTOFIRE))
 		{
 			player->attackdown = true;
 			P_FireWeapon(player);
@@ -417,7 +418,7 @@ void A_Raise(player_t* player, pspdef_t* psp)
 	
 	// The weapon has been raised all the way,
 	//  so change to the ready state.
-	P_SetPsprite(player, ps_weapon, player->weaponinfo[player->readyweapon].readystate);
+	P_SetPsprite(player, ps_weapon, player->weaponinfo[player->readyweapon]->readystate);
 }
 
 //
@@ -426,7 +427,7 @@ void A_Raise(player_t* player, pspdef_t* psp)
 void A_GunFlash(player_t* player, pspdef_t* psp)
 {
 	P_SetMobjState(player->mo, player->mo->info->RPlayerRangedAttackState);
-	P_SetPsprite(player, ps_flash, player->weaponinfo[player->readyweapon].flashstate);
+	P_SetPsprite(player, ps_flash, player->weaponinfo[player->readyweapon]->flashstate);
 }
 
 //
@@ -597,7 +598,7 @@ void A_Saw(player_t* player, pspdef_t* psp)
 void A_FireMissile(player_t* player, pspdef_t* psp)
 {
 	if (!cv_infiniteammo.value)
-		player->ammo[player->weaponinfo[player->readyweapon].ammo] -= player->weaponinfo[player->readyweapon].ammopershoot;
+		player->ammo[player->weaponinfo[player->readyweapon]->ammo] -= player->weaponinfo[player->readyweapon]->ammopershoot;
 	//added:16-02-98: added player arg3
 	P_SpawnPlayerMissile(player->mo, INFO_GetTypeByName("RocketShot"));
 }
@@ -608,7 +609,7 @@ void A_FireMissile(player_t* player, pspdef_t* psp)
 void A_FireBFG(player_t* player, pspdef_t* psp)
 {
 	if (!cv_infiniteammo.value)
-		player->ammo[player->weaponinfo[player->readyweapon].ammo] -= player->weaponinfo[player->readyweapon].ammopershoot;
+		player->ammo[player->weaponinfo[player->readyweapon]->ammo] -= player->weaponinfo[player->readyweapon]->ammopershoot;
 	//added:16-02-98:added player arg3
 	P_SpawnPlayerMissile(player->mo, INFO_GetTypeByName("BFGShot"));
 }
@@ -619,9 +620,9 @@ void A_FireBFG(player_t* player, pspdef_t* psp)
 void A_FirePlasma(player_t* player, pspdef_t* psp)
 {
 	if (!cv_infiniteammo.value)
-		player->ammo[player->weaponinfo[player->readyweapon].ammo] -= player->weaponinfo[player->readyweapon].ammopershoot;
+		player->ammo[player->weaponinfo[player->readyweapon]->ammo] -= player->weaponinfo[player->readyweapon]->ammopershoot;
 		
-	P_SetPsprite(player, ps_flash, player->weaponinfo[player->readyweapon].flashstate + (P_Random() & 1));
+	P_SetPsprite(player, ps_flash, player->weaponinfo[player->readyweapon]->flashstate + (P_Random() & 1));
 	
 	//added:16-02-98: added player arg3
 	P_SpawnPlayerMissile(player->mo, INFO_GetTypeByName("PlasmaShot"));
@@ -700,9 +701,9 @@ void A_FirePistol(player_t* player, pspdef_t* psp)
 	P_SetMobjState(player->mo, player->mo->info->RPlayerRangedAttackState);
 	
 	if (!cv_infiniteammo.value)
-		player->ammo[player->weaponinfo[player->readyweapon].ammo]--;
+		player->ammo[player->weaponinfo[player->readyweapon]->ammo]--;
 		
-	P_SetPsprite(player, ps_flash, player->weaponinfo[player->readyweapon].flashstate);
+	P_SetPsprite(player, ps_flash, player->weaponinfo[player->readyweapon]->flashstate);
 	
 	P_BulletSlope(player->mo);
 	P_GunShot(player->mo, !player->refire);
@@ -720,8 +721,8 @@ void A_FireShotgun(player_t* player, pspdef_t* psp)
 	P_SetMobjState(player->mo, player->mo->info->RPlayerRangedAttackState);
 	
 	if (!cv_infiniteammo.value)
-		player->ammo[player->weaponinfo[player->readyweapon].ammo]--;
-	P_SetPsprite(player, ps_flash, player->weaponinfo[player->readyweapon].flashstate);
+		player->ammo[player->weaponinfo[player->readyweapon]->ammo]--;
+	P_SetPsprite(player, ps_flash, player->weaponinfo[player->readyweapon]->flashstate);
 	
 	P_BulletSlope(player->mo);
 	for (i = 0; i < 7; i++)
@@ -742,9 +743,9 @@ void A_FireShotgun2(player_t* player, pspdef_t* psp)
 	P_SetMobjState(player->mo, player->mo->info->RPlayerRangedAttackState);
 	
 	if (!cv_infiniteammo.value)
-		player->ammo[player->weaponinfo[player->readyweapon].ammo] -= 2;
+		player->ammo[player->weaponinfo[player->readyweapon]->ammo] -= 2;
 		
-	P_SetPsprite(player, ps_flash, player->weaponinfo[player->readyweapon].flashstate);
+	P_SetPsprite(player, ps_flash, player->weaponinfo[player->readyweapon]->flashstate);
 	
 	P_BulletSlope(player->mo);
 	
@@ -766,16 +767,16 @@ void A_FireCGun(player_t* player, pspdef_t* psp)
 	S_StartSound(&player->mo->NoiseThinker, sfx_pistol);
 	
 	if (!cv_infiniteammo.value)
-		if (!player->ammo[player->weaponinfo[player->readyweapon].ammo])
+		if (!player->ammo[player->weaponinfo[player->readyweapon]->ammo])
 			return;
 			
 	PuffType = INFO_GetTypeByName("BulletPuff");
 	P_SetMobjState(player->mo, player->mo->info->RPlayerRangedAttackState);
 	
 	if (!cv_infiniteammo.value)
-		player->ammo[player->weaponinfo[player->readyweapon].ammo]--;
+		player->ammo[player->weaponinfo[player->readyweapon]->ammo]--;
 		
-	P_SetPsprite(player, ps_flash, player->weaponinfo[player->readyweapon].flashstate + psp->state - &states[player->weaponinfo[player->readyweapon].atkstate]/*&states[S_CHAIN1]*/);
+	P_SetPsprite(player, ps_flash, player->weaponinfo[player->readyweapon]->flashstate + psp->state - &states[player->weaponinfo[player->readyweapon]->atkstate]/*&states[S_CHAIN1]*/);
 	
 	P_BulletSlope(player->mo);
 	P_GunShot(player->mo, !player->refire);
@@ -941,372 +942,6 @@ static struct
 
 fixed_t bulletslope;
 
-weaponinfo_t wpnlev1info[NUMWEAPONS] =
-{
-	{
-		// fist
-		am_noammo,
-		0,
-		S_PUNCHUP,
-		S_PUNCHDOWN,
-		S_PUNCH,
-		S_PUNCH1,
-		S_NULL,
-		S_NULL,
-		NULL,									// DropWeaponClass
-		"Fist",									// NiceName
-		"Fist",									// ClassName
-		100,									// SwitchOrder
-		1,										// SlotNum
-		WF_ISDOOM | WF_BERSERKTOGGLE | WF_SWITCHFROMNOAMMO | WF_STARTINGWEAPON, 	// WeaponFlags
-		0,										// GetAmmo
-		100,									// Switch Order
-		0,										// PSpriteSY
-		"sboempty",								// SBOGraphic
-	}
-	,
-	{
-		// pistol
-		am_clip,
-		1,
-		S_PISTOLUP,
-		S_PISTOLDOWN,
-		S_PISTOL,
-		S_PISTOL1,
-		S_NULL,
-		S_PISTOLFLASH,
-		NULL,									// DropWeaponClass
-		"Pistol",								// NiceName
-		"Pistol",								// ClassName
-		300,									// SwitchOrder
-		2,										// SlotNum
-		WF_ISDOOM | WF_SWITCHFROMNOAMMO | WF_STARTINGWEAPON,	// WeaponFlags
-		20,										// GetAmmo
-		500,									// Switch Order
-		0,										// PSpriteSY
-		"sboammo1",								// SBOGraphic
-	}
-	,
-	{
-		// shotgun
-		am_shell,
-		1,
-		S_SGUNUP,
-		S_SGUNDOWN,
-		S_SGUN,
-		S_SGUN1,
-		S_NULL,
-		S_SGUNFLASH1,
-		"Shotgun",								// DropWeaponClass
-		"Shotgun",								// NiceName
-		"Shotgun",								// ClassName
-		400,									// SwitchOrder
-		3,										// SlotNum
-		WF_ISDOOM,	// WeaponFlags
-		8,										// GetAmmo
-		600,									// Switch Order
-		0,										// PSpriteSY
-		"sboammo2",								// SBOGraphic
-	}
-	,
-	{
-		// chaingun
-		am_clip,
-		1,
-		S_CHAINUP,
-		S_CHAINDOWN,
-		S_CHAIN,
-		S_CHAIN1,
-		S_NULL,
-		S_CHAINFLASH1,
-		"Chaingun",								// DropWeaponClass
-		"Chaingun",								// NiceName
-		"Chaingun",								// ClassName
-		600,									// SwitchOrder
-		4,										// SlotNum
-		WF_ISDOOM,	// WeaponFlags
-		20,										// GetAmmo
-		700,									// Switch Order
-		0,										// PSpriteSY
-		"sboammo3",								// SBOGraphic
-	}
-	,
-	{
-		// missile launcher
-		am_misl,
-		1,
-		S_MISSILEUP,
-		S_MISSILEDOWN,
-		S_MISSILE,
-		S_MISSILE1,
-		S_NULL,
-		S_MISSILEFLASH1,
-		"RocketLauncher",						// DropWeaponClass
-		"Rocket Launcher",						// NiceName
-		"RocketLauncher",						// ClassName
-		700,									// SwitchOrder
-		5,										// SlotNum
-		WF_ISDOOM,	// WeaponFlags
-		2,										// GetAmmo
-		300,									// Switch Order
-		0,										// PSpriteSY
-		"sboammo4",								// SBOGraphic
-	}
-	,
-	{
-		// plasma rifle
-		am_cell,
-		1,
-		S_PLASMAUP,
-		S_PLASMADOWN,
-		S_PLASMA,
-		S_PLASMA1,
-		S_NULL,
-		S_PLASMAFLASH1,
-		"PlasmaRifle",							// DropWeaponClass
-		"Plasma Rifle",							// NiceName
-		"PlasmaRifle",							// ClassName
-		800,									// SwitchOrder
-		6,										// SlotNum
-		WF_ISDOOM | WF_NOTSHAREWARE,	// WeaponFlags
-		40,										// GetAmmo
-		900,									// Switch Order
-		0,										// PSpriteSY
-		"sboammo5",								// SBOGraphic
-	}
-	,
-	{
-		// bfg 9000
-		am_cell,
-		40,
-		S_BFGUP,
-		S_BFGDOWN,
-		S_BFG,
-		S_BFG1,
-		S_NULL,
-		S_BFGFLASH1,
-		"BFG",									// DropWeaponClass
-		"BFG9000",								// NiceName
-		"BFGNineK",								// ClassName
-		900,									// SwitchOrder
-		7,										// SlotNum
-		WF_ISDOOM | WF_NOTSHAREWARE,	// WeaponFlags
-		40,										// GetAmmo
-		200,									// Switch Order
-		0,										// PSpriteSY
-		"sboammo6",								// SBOGraphic
-	}
-	,
-	{
-		// chainsaw
-		am_noammo,
-		0,
-		S_SAWUP,
-		S_SAWDOWN,
-		S_SAW,
-		S_SAW1,
-		S_NULL,
-		S_NULL,
-		"Chainsaw",								// DropWeaponClass
-		"Chainsaw",								// NiceName
-		"Chainsaw",								// ClassName
-		200,									// SwitchOrder
-		1,										// SlotNum
-		WF_ISDOOM | WF_BERSERKTOGGLE,	// WeaponFlags
-		0,										// GetAmmo
-		400,									// Switch Order
-		0,										// PSpriteSY
-		"sboempty",								// SBOGraphic
-	}
-	,
-	{
-		// super shotgun
-		am_shell,
-		2,
-		S_DSGUNUP,
-		S_DSGUNDOWN,
-		S_DSGUN,
-		S_DSGUN1,
-		S_NULL,
-		S_DSGUNFLASH1,
-		"SuperShotgun",							// DropWeaponClass
-		"Super Shotgun",						// NiceName
-		"SuperShotgun",							// ClassName
-		500,									// SwitchOrder
-		3,										// SlotNum
-		WF_ISDOOM | WF_INCOMMERCIAL,	// WeaponFlags
-		8,										// GetAmmo
-		800,									// Switch Order
-		0,										// PSpriteSY
-		"sboammo8",								// SBOGraphic
-	},
-};
-
-#if 1
-// GhostkyDeath <March 6, 2012> -- March level 1 weapons for now... (until heretic)
-weaponinfo_t* wpnlev2info = wpnlev1info;
-#else
-weaponinfo_t wpnlev2info[NUMWEAPONS] =
-{
-	{
-		// fist
-		am_noammo,
-		0,
-		S_PUNCHUP,
-		S_PUNCHDOWN,
-		S_PUNCH,
-		S_PUNCH1,
-		S_NULL,
-		S_NULL,
-		NULL,					// DropWeaponClass
-	}
-	,
-	{
-		// pistol
-		am_clip,
-		1,
-		S_PISTOLUP,
-		S_PISTOLDOWN,
-		S_PISTOL,
-		S_PISTOL1,
-		S_NULL,
-		S_PISTOLFLASH,
-		NULL,					// DropWeaponClass
-	}
-	,
-	{
-		// shotgun
-		am_shell,
-		1,
-		S_SGUNUP,
-		S_SGUNDOWN,
-		S_SGUN,
-		S_SGUN1,
-		S_NULL,
-		S_SGUNFLASH1,
-		"Shotgun",					// DropWeaponClass
-	}
-	,
-	{
-		// chaingun
-		am_clip,
-		1,
-		S_CHAINUP,
-		S_CHAINDOWN,
-		S_CHAIN,
-		S_CHAIN1,
-		S_NULL,
-		S_CHAINFLASH1,
-		"Chaingun",					// DropWeaponClass
-	}
-	,
-	{
-		// missile launcher
-		am_misl,
-		1,
-		S_MISSILEUP,
-		S_MISSILEDOWN,
-		S_MISSILE,
-		S_MISSILE1,
-		S_NULL,
-		S_MISSILEFLASH1,
-		"RocketLauncher",					// DropWeaponClass
-	}
-	,
-	{
-		// plasma rifle
-		am_cell,
-		1,
-		S_PLASMAUP,
-		S_PLASMADOWN,
-		S_PLASMA,
-		S_PLASMA1,
-		S_NULL,
-		S_PLASMAFLASH1,
-		"PlasmaRifle",					// DropWeaponClass
-	}
-	,
-	{
-		// bfg 9000
-		am_cell,
-		40,
-		S_BFGUP,
-		S_BFGDOWN,
-		S_BFG,
-		S_BFG1,
-		S_NULL,
-		S_BFGFLASH1,
-		"BFG",					// DropWeaponClass
-	}
-	,
-	{
-		// chainsaw
-		am_noammo,
-		0,
-		S_SAWUP,
-		S_SAWDOWN,
-		S_SAW,
-		S_SAW1,
-		S_NULL,
-		S_NULL,
-		"Chainsaw",					// DropWeaponClass
-	}
-	,
-	{
-		// super shotgun
-		am_shell,
-		2,
-		S_DSGUNUP,
-		S_DSGUNDOWN,
-		S_DSGUN,
-		S_DSGUN1,
-		S_NULL,
-		S_DSGUNFLASH1,
-		"SuperShotgun",					// DropWeaponClass
-	},
-};
-#endif
-
-// Ammo information
-ammoinfo_t ammoinfo[NUMAMMO] =
-{
-	// am_clip
-	{
-		"Clip",							// ClassName
-		10,								// ClipAmmo
-		200,							// MaxAmmo
-		0,								// Flags
-		50,								// StartingAmmo
-	},
-	
-	// am_shell
-	{
-		"Shell",						// ClassName
-		4,								// ClipAmmo
-		50,								// MaxAmmo
-		0,								// Flags
-		0,								// StartingAmmo
-	},
-	
-	// am_cell
-	{
-		"Cell",							// ClassName
-		20,								// ClipAmmo
-		300,							// MaxAmmo
-		0,								// Flags
-		0,								// StartingAmmo
-	},
-	
-	// am_misl
-	{
-		"Rocket",						// ClassName
-		1,								// ClipAmmo
-		50,								// MaxAmmo
-		0,								// Flags
-		0,								// StartingAmmo
-	},
-};
-
 /* INFO_GetWeaponByName() -- Return weapon by name */
 weapontype_t INFO_GetWeaponByName(const char* const a_Name)
 {
@@ -1318,7 +953,7 @@ weapontype_t INFO_GetWeaponByName(const char* const a_Name)
 	
 	/* Loop */
 	for (i = 0; i < NUMWEAPONS; i++)
-		if (strcasecmp(a_Name, wpnlev1info[i].ClassName) == 0)
+		if (strcasecmp(a_Name, wpnlev1info[i]->ClassName) == 0)
 			return i;
 	
 	/* Failed */
@@ -1336,11 +971,315 @@ ammotype_t INFO_GetAmmoByName(const char* const a_Name)
 	
 	/* Loop */
 	for (i = 0; i < NUMAMMO; i++)
-		if (strcasecmp(a_Name, ammoinfo[i].ClassName) == 0)
+		if (strcasecmp(a_Name, ammoinfo[i]->ClassName) == 0)
 			return i;
 	
 	/* Failed */
 	return NUMAMMO;
 }
 
+/****************************
+*** RMOD WEAPONS AND AMMO ***
+****************************/
+
+/*** STRUCTURES ***/
+/* P_LocalWeaponsAndAmmo_t -- Local Weapons and ammo */
+typedef struct P_LocalWeaponsAndAmmo_s
+{
+	weaponinfo_t** Weapons;
+	size_t NumWeapons;
+	
+	ammoinfo_t** Ammo;
+	size_t NumAmmo;
+	
+	state_t** WeaponStates;
+	size_t NumWeaponStates;
+} P_LocalWeaponsAndAmmo_t;
+
+/* P_WepAmmoTransfer_t -- Transfer handler */
+typedef struct P_WepAmmoTransfer_s
+{
+	P_LocalWeaponsAndAmmo_t* Local;
+	weaponinfo_t* Weapon;
+} P_WepAmmoTransfer_t;
+
+/*** GLOBALS ***/
+weaponinfo_t** wpnlev1info = NULL;
+weaponinfo_t** wpnlev2info = NULL;
+size_t NUMWEAPONS = 0;
+
+ammoinfo_t** ammoinfo = NULL;
+size_t NUMAMMO = 0;
+
+state_t** XStates = NULL;
+size_t NumXStates = 0;
+
+/*** FUNCTIONS ***/
+
+/* PS_RMODWeaponStateHandlers() -- Weapon state handler */
+static bool_t PS_RMODWeaponStateHandlers(Z_Table_t* const a_Sub, void* const a_Data)
+{
+	P_WepAmmoTransfer_t* WATp = a_Data;
+	const char* Value;
+	
+	/* Check */
+	if (!a_Sub || !a_Data)
+		return false; 
+#if 0	
+	int upstate;
+	int downstate;
+	int readystate;
+	int atkstate;
+	int holdatkstate;
+	int flashstate;
+#endif
+
+	/* Keep Going */
+	return true;
+}
+
+/* P_RMODH_WeaponsAmmo() -- Handler for Weapons */
+bool_t P_RMODH_WeaponsAmmo(Z_Table_t* const a_Table, const WL_WADFile_t* const a_WAD, const D_RMODPrivates_t a_ID, D_RMODPrivate_t* const a_Private)
+{
+	P_LocalWeaponsAndAmmo_t* LocalStuff;
+	const char* Value;
+	weaponinfo_t TempWeapon;
+	ammoinfo_t TempAmmo;
+	D_RMODPrivate_t* RealPrivate;
+	P_WepAmmoTransfer_t WAT;
+	
+	/* Check */
+	if (!a_Table || !a_WAD || !a_ID || !a_Private)
+		return false;
+	
+	/* Clear */
+	memset(&WAT, 0, sizeof(WAT));
+	memset(&TempWeapon, 0, sizeof(TempWeapon));
+	memset(&TempAmmo, 0, sizeof(TempAmmo));
+	
+	/* Obtain private info for sector data */
+	RealPrivate = D_GetRMODPrivate(a_WAD, DRMODP_ITEMAMMO);
+	
+	// No real private?
+	if (!RealPrivate)
+		RealPrivate = a_Private;
+	
+	/* Create specials list */
+	// Does not exist
+	if (!RealPrivate->Data)
+	{
+		RealPrivate->Size = sizeof(*LocalStuff);
+		RealPrivate->Data = Z_Malloc(RealPrivate->Size, PU_STATIC, (void**)&RealPrivate->Data);
+	}
+	
+	// Get the local stuff
+	LocalStuff = RealPrivate->Data;
+	
+	/* Get ClassName */
+	Value = Z_TableName(a_Table);
+	
+	// Knock off #
+	Value = strchr(Value, '#');
+	
+	// Not found?
+	if (!Value)
+		return false;
+	
+	// Add 1 to remove #
+	Value++;
+	
+	/* Ammunition */
+	if (a_ID == DRMODP_ITEMAMMO)
+	{
+		// Copy Class
+		TempAmmo.ClassName = Z_StrDup(Value, PU_STATIC, NULL);
+		
+		// Get Values
+		TempAmmo.ClipAmmo = D_RMODGetValueInt(a_Table, "ClipAmmo", 0);
+		TempAmmo.MaxAmmo = D_RMODGetValueInt(a_Table, "MaxAmmo", 0);
+		TempAmmo.StartingAmmo = D_RMODGetValueInt(a_Table, "StartingAmmo", 0);
+		
+		// Add to end
+		Z_ResizeArray((void**)&LocalStuff->Ammo, sizeof(*LocalStuff->Ammo), LocalStuff->NumAmmo, LocalStuff->NumAmmo + 1);
+		LocalStuff->Ammo[LocalStuff->NumAmmo] = Z_Malloc(sizeof(*LocalStuff->Ammo[LocalStuff->NumAmmo]), PU_STATIC, NULL);
+		memmove(LocalStuff->Ammo[LocalStuff->NumAmmo], &TempAmmo, sizeof(TempAmmo));
+		LocalStuff->NumAmmo++;
+		return true;
+	}
+	
+	/* Weapons */
+	else if (a_ID == DRMODP_ITEMWEAPON)
+	{
+		// Copy Class
+		TempWeapon.ClassName = Z_StrDup(Value, PU_STATIC, NULL);
+		
+		// Get Values
+		TempWeapon.ammopershoot = D_RMODGetValueInt(a_Table, "AmmoPerShot", 0);
+		TempWeapon.SwitchOrder = D_RMODGetValueInt(a_Table, "AmmoPerShot", 0);
+		TempWeapon.GetAmmo = D_RMODGetValueInt(a_Table, "PickupAmmo", 0);
+		TempWeapon.SlotNum = D_RMODGetValueInt(a_Table, "SlotNum", 0);
+		TempWeapon.NoAmmoOrder = D_RMODGetValueInt(a_Table, "NoAmmoSwitchOrder", 0);
+		
+		// Get Booleans
+		if (D_RMODGetValueBool(a_Table, "IsDoom", false))
+			TempWeapon.WeaponFlags |= WF_ISDOOM;
+		if (D_RMODGetValueBool(a_Table, "IsHeretic", false))
+			TempWeapon.WeaponFlags |= WF_ISHERETIC;
+		if (D_RMODGetValueBool(a_Table, "IsHexen", false))
+			TempWeapon.WeaponFlags |= WF_ISHEXEN;
+		if (D_RMODGetValueBool(a_Table, "IsStrife", false))
+			TempWeapon.WeaponFlags |= WF_ISSTRIFE;
+		if (D_RMODGetValueBool(a_Table, "IsNotShareware", false))
+			TempWeapon.WeaponFlags |= WF_NOTSHAREWARE;
+		if (D_RMODGetValueBool(a_Table, "IsInCommercial", false))
+			TempWeapon.WeaponFlags |= WF_INCOMMERCIAL;
+		if (D_RMODGetValueBool(a_Table, "IsRegistered", false))
+			TempWeapon.WeaponFlags |= WF_INREGISTERED;
+		if (D_RMODGetValueBool(a_Table, "IsBerserkToggle", false))
+			TempWeapon.WeaponFlags |= WF_BERSERKTOGGLE;
+		if (D_RMODGetValueBool(a_Table, "IsSwitchFromNoAmmo", false))
+			TempWeapon.WeaponFlags |= WF_SWITCHFROMNOAMMO;
+		if (D_RMODGetValueBool(a_Table, "IsStartingWeapon", false))
+			TempWeapon.WeaponFlags |= WF_STARTINGWEAPON;
+		if (D_RMODGetValueBool(a_Table, "NoThrust", false))
+			TempWeapon.WeaponFlags |= WF_NOTHRUST;
+		if (D_RMODGetValueBool(a_Table, "NoAutoFire", false))
+			TempWeapon.WeaponFlags |= WF_NOAUTOFIRE;
+		
+		// Get Fixed
+		TempWeapon.PSpriteSY = D_RMODGetValueFixed(a_Table, "SpriteYOffset", 0);
+		
+		// Get Strings
+		TempWeapon.DropWeaponClass = D_RMODGetValueString(a_Table, "DroppedObject", NULL);
+		TempWeapon.NiceName = D_RMODGetValueString(a_Table, "NiceName", TempWeapon.ClassName);
+		TempWeapon.SBOGraphic = D_RMODGetValueString(a_Table, "SBOGraphic", NULL);
+		TempWeapon.BringUpSound = D_RMODGetValueString(a_Table, "BringUpSound", NULL);
+		TempWeapon.IdleNoise = D_RMODGetValueString(a_Table, "IdleNoise", NULL);
+		
+		// Handle States
+		WAT.Local = LocalStuff;
+		WAT.Weapon = &TempWeapon;
+		Z_TableSuperCallback(a_Table, PS_RMODWeaponStateHandlers, (void*)&WAT);
+		
+		// Add to end
+		Z_ResizeArray((void**)&LocalStuff->Weapons, sizeof(*LocalStuff->Weapons), LocalStuff->NumWeapons, LocalStuff->NumWeapons + 1);
+		LocalStuff->Weapons[LocalStuff->NumWeapons] = Z_Malloc(sizeof(*LocalStuff->Weapons[LocalStuff->NumWeapons]), PU_STATIC, NULL);
+		memmove(LocalStuff->Weapons[LocalStuff->NumWeapons], &TempWeapon, sizeof(TempWeapon));
+		LocalStuff->NumWeapons++;
+		return true;
+	}
+	
+	/* Unknown? */
+	else
+		return false;
+}
+
+/* P_RMODO_WeaponsAmmo() -- Order for Weapons and Ammo */
+bool_t P_RMODO_WeaponsAmmo(const bool_t a_Pushed, const struct WL_WADFile_s* const a_WAD, const D_RMODPrivates_t a_ID)
+{
+	const WL_WADFile_t* RoveWAD;
+	P_LocalWeaponsAndAmmo_t* LocalStuff;
+	weaponinfo_t* TempWeapon;
+	ammoinfo_t* TempAmmo;
+	D_RMODPrivate_t* RMODPrivate;
+	size_t i, FoundID;
+	
+	/* Clear old weapons and ammo */
+	// Weapons
+	if (wpnlev1info)
+		Z_Free(wpnlev1info);
+	wpnlev1info = NULL;
+	if (wpnlev2info)
+		Z_Free(wpnlev2info);
+	wpnlev2info = NULL;
+	NUMWEAPONS = 0;
+	
+	// Ammo
+	if (ammoinfo)
+		Z_Free(ammoinfo);
+	NUMAMMO = 0;
+	
+	/* Go through every WAD */
+	// And link every menu into the menu chain, doing replaces if desired
+	for (RoveWAD = WL_IterateVWAD(NULL, true); RoveWAD; RoveWAD = WL_IterateVWAD(RoveWAD, true))
+	{
+		// Obtain private menu stuff for this WAD
+		RMODPrivate = D_GetRMODPrivate(RoveWAD, a_ID);
+		
+		// Not found? Ignore this WAD then
+		if (!RMODPrivate)
+			continue;
+		
+		// Load menu stuff
+		LocalStuff = RMODPrivate->Data;
+		
+		// Not found?
+		if (!LocalStuff)
+			continue;
+		
+		// Add ammo from this, overwriting everything
+		for (i = 0; i < LocalStuff->NumAmmo; i++)
+		{
+			// Get Current
+			TempAmmo = LocalStuff->Ammo[i];
+			
+			// See if it already exists
+			FoundID = INFO_GetAmmoByName(TempAmmo->ClassName);
+			
+			// Not found? Add to end
+			if (FoundID == NUMAMMO)
+			{
+				Z_ResizeArray((void**)&ammoinfo, sizeof(*ammoinfo), NUMAMMO, NUMAMMO + 1);
+				ammoinfo[NUMAMMO++] = TempAmmo;
+			}
+			
+			// Found, replace
+			else
+			{
+				// Replace here
+				ammoinfo[FoundID] = TempAmmo;
+			}
+		}
+		
+		// Add weapons from this too
+		for (i = 0; i < LocalStuff->NumWeapons; i++)
+		{
+			// Get Current
+			TempWeapon = LocalStuff->Weapons[i];
+			
+			// See if it already exists
+			FoundID = INFO_GetWeaponByName(TempWeapon->ClassName);
+			
+			// Not found? Add to end
+			if (FoundID == NUMWEAPONS)
+			{
+				Z_ResizeArray((void**)&wpnlev1info, sizeof(*wpnlev1info), NUMWEAPONS, NUMWEAPONS + 1);
+				wpnlev1info[NUMWEAPONS] = TempWeapon;
+				
+				Z_ResizeArray((void**)&wpnlev2info, sizeof(*wpnlev2info), NUMWEAPONS, NUMWEAPONS + 1);
+				wpnlev2info[NUMWEAPONS] = TempWeapon;
+				
+				// Increase weapons
+				NUMWEAPONS++;
+			}
+			
+			// Found, replace
+			else
+			{
+				// Replace here
+				wpnlev1info[FoundID] = TempWeapon;
+				wpnlev2info[FoundID] = TempWeapon;
+			}
+		}
+	}
+	
+	/* Normalize */
+	for (i = 0; i < LocalStuff->NumWeapons; i++)
+	{
+		// Normalize classes
+		TempWeapon->ammo = INFO_GetAmmoByName(TempWeapon->AmmoClass);
+	}
+	
+	return false;
+}
 

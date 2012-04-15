@@ -39,6 +39,7 @@
 #include "dstrings.h"
 #include "w_wad.h"
 #include "z_zone.h"
+#include "m_fixed.h"
 
 /****************
 *** CONSTANTS ***
@@ -58,6 +59,10 @@ typedef enum D_RMODPrivates_e
 	DRMODP_SPECSECTOR,							// "MapSectorSpecial"
 	DRMODP_SPECLINE,							// "MapLineSpecial"
 	DRMODP_SPECTOUCH,							// "MapTouchSpecial"
+	
+	/* Stuff (Weapons/Ammo) */
+	DRMODP_ITEMAMMO,							// "MapAmmo"
+	DRMODP_ITEMWEAPON,							// "MapWeapon"
 	
 	NUMDRMODPRIVATES
 } D_RMODPrivates_t;
@@ -84,6 +89,11 @@ void D_InitRMOD(void);
 D_RMODPrivate_t* D_GetRMODPrivate(const WL_WADFile_t* const a_WAD, const D_RMODPrivates_t a_ID);
 
 bool_t D_RMODGetBool(const char* const a_Str);
+
+fixed_t D_RMODGetValueFixed(Z_Table_t* const a_Table, const char* const a_Value, const fixed_t a_MissingVal);
+int32_t D_RMODGetValueInt(Z_Table_t* const a_Table, const char* const a_Value, const int32_t a_MissingVal);
+bool_t D_RMODGetValueBool(Z_Table_t* const a_Table, const char* const a_Value, const bool_t a_MissingVal);
+char* D_RMODGetValueString(Z_Table_t* const a_Table, const char* const a_Value, const char* const a_MissingVal);
 
 #endif							/* __D_RMOD_H__ */
 

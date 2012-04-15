@@ -444,6 +444,7 @@ State "SpawnState"
 /* D_DumpItemRMOD() -- Dump RMOD for weapons and ammo */
 void D_DumpItemRMOD(void)
 {
+#if 0
 	size_t i;
 	FILE* f;
 	weaponinfo_t* ThisWep;
@@ -536,5 +537,6 @@ void D_DumpItemRMOD(void)
 	
 	/* Close file */
 	fclose(f);
+#endif
 }
 

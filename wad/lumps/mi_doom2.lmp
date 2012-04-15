@@ -20,6 +20,33 @@ map MAP01 "Entryway"
 	titlepatch CWILV00
 	music D_RUNNIN
 
+map MAP02 "Underhalls"
+	cluster 1
+	next MAP03
+	secretnext MAP02
+	levelnum 2
+	par 90
+	titlepatch CWILV01
+	music D_STALKS
+	
+map MAP03 "The Gantlet"
+	cluster 1
+	next MAP04
+	secretnext MAP03
+	levelnum 3
+	par 120
+	titlepatch CWILV02
+	music D_COUNTD
+	
+map MAP04 "The Focus"
+	cluster 1
+	next MAP05
+	secretnext MAP04
+	levelnum 4
+	par 120
+	titlepatch CWILV03
+	music D_BETWEE
+
 map MAP07 "Dead Simple"
 	cluster 1
 	next MAP08

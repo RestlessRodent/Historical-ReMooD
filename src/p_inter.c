@@ -45,6 +45,8 @@
 #include "g_input.h"
 #include "p_demcmp.h"
 #include "z_zone.h"
+#include "p_pspr.h"
+#include "d_items.h"
 
 #define BONUSADD        6
 
@@ -137,7 +139,7 @@ bool_t P_GiveAmmo(player_t* player, ammotype_t ammo, int count)
 	// Boris hack for preferred weapons order...
 	if (!player->originalweaponswitch)
 	{
-		if (player->ammo[player->weaponinfo[player->readyweapon].ammo] < player->weaponinfo[player->readyweapon].ammopershoot)
+		if (player->ammo[player->weaponinfo[player->readyweapon]->ammo] < player->weaponinfo[player->readyweapon]->ammopershoot)
 			VerifFavoritWeapon(player);
 		return true;
 	}
@@ -147,20 +149,20 @@ bool_t P_GiveAmmo(player_t* player, ammotype_t ammo, int count)
 		ChoseWeapon = NUMWEAPONS;
 		
 		// Weapon is undesireable, so switch away from it
-		if (player->weaponinfo[player->readyweapon].WeaponFlags & WF_SWITCHFROMNOAMMO)
+		if (player->weaponinfo[player->readyweapon]->WeaponFlags & WF_SWITCHFROMNOAMMO)
 			// Only switch if our ammo isn't the same
-			if (ammo != player->weaponinfo[player->readyweapon].ammo)
+			if (ammo != player->weaponinfo[player->readyweapon]->ammo)
 				// Switch to the best gun for this ammo type, that the player has
 				for (i = 0; i < NUMWEAPONS; i++)
 					// Can use weapon?
 					if (P_CanUseWeapon(player, i))
 						// Only check for the same ammo
-						if (ammo == player->weaponinfo[i].ammo)
+						if (ammo == player->weaponinfo[i]->ammo)
 							// Only if the player has this gun
 							if (player->weaponowned[i])
 								// Got this gun, or it is better than this.
 								if (ChoseWeapon == NUMWEAPONS ||
-									(player->weaponinfo[i].SwitchOrder > player->weaponinfo[ChoseWeapon].SwitchOrder))
+									(player->weaponinfo[i]->SwitchOrder > player->weaponinfo[ChoseWeapon]->SwitchOrder))
 									ChoseWeapon = i;
 		
 		// Switch to gun?
@@ -195,9 +197,9 @@ bool_t P_GiveWeapon(player_t* player, weapontype_t weapon, bool_t dropped)
 		player->weaponowned[weapon] = true;
 		
 		if (cv_deathmatch.value)
-			P_GiveAmmo(player, player->weaponinfo[weapon].ammo, 5 * ammoinfo[player->weaponinfo[weapon].ammo].ClipAmmo);
+			P_GiveAmmo(player, player->weaponinfo[weapon]->ammo, 5 * ammoinfo[player->weaponinfo[weapon]->ammo]->ClipAmmo);
 		else
-			P_GiveAmmo(player, player->weaponinfo[weapon].ammo, player->weaponinfo[weapon].GetAmmo);
+			P_GiveAmmo(player, player->weaponinfo[weapon]->ammo, player->weaponinfo[weapon]->GetAmmo);
 			
 		// Boris hack preferred weapons order...
 		// TODO FIXME: Reimplement player weapon order
@@ -212,21 +214,21 @@ bool_t P_GiveWeapon(player_t* player, weapontype_t weapon, bool_t dropped)
 		return false;
 	}
 	
-	if (player->weaponinfo[weapon].ammo != am_noammo)
+	if (player->weaponinfo[weapon]->ammo != am_noammo)
 	{
 		// give one clip with a dropped weapon,
 		// two clips with a found weapon
 		if (dropped)
 		{
-			ammo_count = has_ammo_dropped ? (has_ammo_dropped < 0 ? 0 : has_ammo_dropped) : ammoinfo[player->weaponinfo[weapon].ammo].ClipAmmo;
+			ammo_count = has_ammo_dropped ? (has_ammo_dropped < 0 ? 0 : has_ammo_dropped) : ammoinfo[player->weaponinfo[weapon]->ammo]->ClipAmmo;
 			//gaveammo = P_GiveAmmo (player, player->weaponinfo[weapon].ammo, clipammo[player->weaponinfo[weapon].ammo]);
 		}
 		else
 		{
 			//gaveammo = P_GiveAmmo (player, player->weaponinfo[weapon].ammo, player->weaponinfo[weapon].GetAmmo);
-			ammo_count = player->weaponinfo[weapon].GetAmmo;
+			ammo_count = player->weaponinfo[weapon]->GetAmmo;
 		}
-		gaveammo = P_GiveAmmo(player, player->weaponinfo[weapon].ammo, ammo_count);
+		gaveammo = P_GiveAmmo(player, player->weaponinfo[weapon]->ammo, ammo_count);
 	}
 	else
 		gaveammo = false;
@@ -925,13 +927,13 @@ static const char* PS_GetMobjNoun(mobj_t* const a_Mobj, bool_t* const a_Special,
 			{
 				// Inflictor is the source (melee or gun attack?)
 				if (a_Mobj == a_Source)
-					return a_Mobj->player->weaponinfo[a_Mobj->player->readyweapon].NiceName;
+					return a_Mobj->player->weaponinfo[a_Mobj->player->readyweapon]->NiceName;
 				
 				// It must be a missile then, return the weapon there
 				else
 				{
 					if (a_Mobj->RXShotWithWeapon >= 0 && a_Mobj->RXShotWithWeapon < NUMWEAPONS)
-						return a_Mobj->player->weaponinfo[a_Mobj->RXShotWithWeapon].NiceName;
+						return a_Mobj->player->weaponinfo[a_Mobj->RXShotWithWeapon]->NiceName;
 					else
 						return "Unknown Weapon";
 				}
@@ -949,11 +951,11 @@ static const char* PS_GetMobjNoun(mobj_t* const a_Mobj, bool_t* const a_Special,
 			{
 				// Check to see if there is a source player (use that name)
 				if (a_Source->player)
-					return a_Source->player->weaponinfo[a_Mobj->RXShotWithWeapon].NiceName;
+					return a_Source->player->weaponinfo[a_Mobj->RXShotWithWeapon]->NiceName;
 				
 				// There is no player source, so use standard gun name
 				else
-					return wpnlev1info[a_Mobj->RXShotWithWeapon].NiceName;
+					return wpnlev1info[a_Mobj->RXShotWithWeapon]->NiceName;
 			}
 			
 			// If we never returned, then there was no weapon used
@@ -1029,7 +1031,7 @@ void P_CheckFragLimit(player_t* p)
  */
 static int P_AmmoInWeapon(player_t* player)
 {
-	ammotype_t ammo = player->weaponinfo[player->readyweapon].ammo;
+	ammotype_t ammo = player->weaponinfo[player->readyweapon]->ammo;
 	int ammo_count = player->ammo[ammo];
 	
 	return ammo == am_noammo ? 0 : ammo_count ? ammo_count : -1;
@@ -1176,8 +1178,8 @@ void P_KillMobj(mobj_t* target, mobj_t* inflictor, mobj_t* source)
 		//    return;
 		
 		// Which item to drop?
-		if (target->player->weaponinfo[target->player->readyweapon].DropWeaponClass)
-			item = INFO_GetTypeByName(target->player->weaponinfo[target->player->readyweapon].DropWeaponClass);
+		if (target->player->weaponinfo[target->player->readyweapon]->DropWeaponClass)
+			item = INFO_GetTypeByName(target->player->weaponinfo[target->player->readyweapon]->DropWeaponClass);
 	}
 	else
 	{
@@ -1248,7 +1250,7 @@ bool_t P_DamageMobj(mobj_t* target, mobj_t* inflictor, mobj_t* source, int damag
 	// inflict thrust and push the victim out of reach,
 	// thus kick away unless using the chainsaw.
 	if (inflictor
-	        && !(target->flags & MF_NOCLIP) && !(inflictor->flags2 & MF2_NODMGTHRUST) && (!source || !source->player || source->player->readyweapon != wp_chainsaw))
+	        && !(target->flags & MF_NOCLIP) && !(inflictor->flags2 & MF2_NODMGTHRUST) && (!source || !source->player || !(source->player->weaponinfo[source->player->readyweapon]->WeaponFlags & WF_NOTHRUST)))
 	{
 		fixed_t amomx, amomy, amomz = 0;	//SoM: 3/28/2000
 		

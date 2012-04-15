@@ -711,10 +711,10 @@ static void ST_updateWidgets(void)
 	// must redirect the pointer if the ready weapon has changed.
 	//  if (w_ready.data != plyr->readyweapon)
 	//  {
-	if (plyr->weaponinfo[plyr->readyweapon].ammo == am_noammo)
+	if (plyr->weaponinfo[plyr->readyweapon]->ammo == am_noammo)
 		w_ready.num = &largeammo;
 	else
-		w_ready.num = &plyr->ammo[plyr->weaponinfo[plyr->readyweapon].ammo];
+		w_ready.num = &plyr->ammo[plyr->weaponinfo[plyr->readyweapon]->ammo];
 	//{
 	// static int tic=0;
 	// static int dir=-1;
@@ -1192,7 +1192,7 @@ void ST_createWidgets(void)
 	ST_CalcPos();
 	
 	// ready weapon ammo
-	STlib_initNum(&w_ready, st_x + ST_AMMOX, ST_AMMOY, tallnum, &plyr->ammo[plyr->weaponinfo[plyr->readyweapon].ammo], &st_statusbaron, ST_AMMOWIDTH);
+	STlib_initNum(&w_ready, st_x + ST_AMMOX, ST_AMMOY, tallnum, &plyr->ammo[plyr->weaponinfo[plyr->readyweapon]->ammo], &st_statusbaron, ST_AMMOWIDTH);
 	
 	// the last weapon type
 	w_ready.data = plyr->readyweapon;

@@ -117,4 +117,7 @@ void S_SetMusicVolume(int volume);
 void S_SetSfxVolume(int volume);
 void Command_SoundReset_f(void);
 
+int S_SoundIDForName(const char* const a_Name);
+
 #endif							/* __S_SOUND_H__ */
+

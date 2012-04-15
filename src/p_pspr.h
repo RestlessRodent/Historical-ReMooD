@@ -48,6 +48,8 @@
 // and the Frame Sequence table.
 #include "info.h"
 
+#include "d_rmod.h"
+
 //
 // Frame flags:
 // handles maximum brightness (torches, muzzle flare, light sources)
@@ -112,5 +114,9 @@ typedef struct
 
 void P_OpenWeapons(void);
 void P_CloseWeapons(void);
+
+bool_t P_RMODH_WeaponsAmmo(Z_Table_t* const a_Table, const WL_WADFile_t* const a_WAD, const D_RMODPrivates_t a_ID, D_RMODPrivate_t* const a_Private);
+bool_t P_RMODO_WeaponsAmmo(const bool_t a_Pushed, const struct WL_WADFile_s* const a_WAD, const D_RMODPrivates_t a_ID);
+
 
 #endif

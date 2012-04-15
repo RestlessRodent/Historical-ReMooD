@@ -131,6 +131,21 @@ static const D_RMODHandler_t c_RMODHandlers[NUMDRMODPRIVATES] =
 		P_RMODH_Specials,
 		NULL,
 	},
+	
+	/* Objects */
+	// Ammo
+	{
+		"MapAmmo",
+		P_RMODH_WeaponsAmmo,
+		P_RMODO_WeaponsAmmo,
+	},
+	
+	// Weapons
+	{
+		"MapWeapon",
+		P_RMODH_WeaponsAmmo,
+		NULL,
+	},
 };
 
 /****************
@@ -677,5 +692,65 @@ bool_t D_RMODGetBool(const char* const a_Str)
 	
 	/* Everything else is false */
 	return false;
+}
+
+/* D_RMODGetValueFixed() -- Get fixed value */
+fixed_t D_RMODGetValueFixed(Z_Table_t* const a_Table, const char* const a_Value, const fixed_t a_MissingVal)
+{
+	const char* Value;
+	
+	/* Check */
+	if (!a_Table || !a_Value)
+		return a_MissingVal;
+	
+	if (!(Value = Z_TableGetValue(a_Table, a_Value)))
+		return a_MissingVal;
+	else
+		return (fixed_t)(atof(Value) * 65536.0);
+}
+
+/* D_RMODGetValueInt() -- Get RMOD Value Int */
+int32_t D_RMODGetValueInt(Z_Table_t* const a_Table, const char* const a_Value, const int32_t a_MissingVal)
+{
+	const char* Value;
+	
+	/* Check */
+	if (!a_Table || !a_Value)
+		return a_MissingVal;
+	
+	if (!(Value = Z_TableGetValue(a_Table, a_Value)))
+		return a_MissingVal;
+	else
+		return atoi(Value);
+}
+
+/* D_RMODGetValueInt() -- Get RMOD Value Int */
+bool_t D_RMODGetValueBool(Z_Table_t* const a_Table, const char* const a_Value, const bool_t a_MissingVal)
+{
+	const char* Value;
+	
+	/* Check */
+	if (!a_Table || !a_Value)
+		return a_MissingVal;
+	
+	if (!(Value = Z_TableGetValue(a_Table, a_Value)))
+		return a_MissingVal;
+	else
+		return D_RMODGetBool(Value);
+}
+
+/* D_RMODGetValueString() -- Get string value */
+char* D_RMODGetValueString(Z_Table_t* const a_Table, const char* const a_Value, const char* const a_MissingVal)
+{
+	const char* Value;
+	
+	/* Check */
+	if (!a_Table || !a_Value)
+		return a_MissingVal;
+	
+	if (!(Value = Z_TableGetValue(a_Table, a_Value)))
+		return (a_MissingVal ? Z_StrDup(a_MissingVal, PU_STATIC, NULL) : NULL);
+	else
+		return Z_StrDup(Value, PU_STATIC, NULL);
 }
 
