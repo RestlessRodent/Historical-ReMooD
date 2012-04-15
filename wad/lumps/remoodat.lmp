@@ -1494,14 +1494,13 @@ MapWeapon "BetaBFG"
 	SlotNum "7";
 	SwitchOrder "901";
 	NoAmmoSwitchOrder "201";
-	AmmoPerShot "0";
+	AmmoPerShot "1";
 	PickupAmmo "40";
 	DroppedObject "BFG";
 	SpriteYOffset "0";
 	IsDoom "true";
 	IsNotShareware "true";
 	NoAutoFire "true";
-	IsStartingWeapon "true";
 	
 	State "PrimaryBringUpState"
 	{

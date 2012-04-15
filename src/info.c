@@ -5481,7 +5481,7 @@ mobjinfo_t mobjinfo[NUMMOBJTYPES] =
 		S_PLS1BALL,   // spawnstate
 		1000,   // spawnhealth
 		S_NULL,   // seestate
-		sfx_plasma,   // seesound
+		sfx_None,//sfx_plasma,   // seesound
 		8,    // reactiontime
 		sfx_None,   // attacksound
 		S_NULL,   // painstate
@@ -5510,7 +5510,7 @@ mobjinfo_t mobjinfo[NUMMOBJTYPES] =
 		S_PLS2BALL,   // spawnstate
 		1000,   // spawnhealth
 		S_NULL,   // seestate
-		sfx_plasma,   // seesound
+		sfx_None,//sfx_plasma,   // seesound
 		8,    // reactiontime
 		sfx_None,   // attacksound
 		S_NULL,   // painstate
