@@ -76,14 +76,15 @@ void P_SetPsprite(player_t* player, int position, statenum_t stnum)
 			psp->state = NULL;
 			break;
 		}
+		
 		// GhostlyDeath <November 3, 2010> -- PARANOIA removal
-		if (stnum >= NUMSTATES)
+		if (stnum >= NumXStates)
 		{
-			CONL_PrintF("WARNING - P_SetPsprite: State %i exceeds %i. (%s:%i).\n", stnum, NUMSTATES, __FILE__, __LINE__);
+			CONL_PrintF("WARNING - P_SetPsprite: State %i exceeds %i. (%s:%i).\n", stnum, NumXStates, __FILE__, __LINE__);
 			return;
 		}
 		
-		state = &states[stnum];
+		state = XStates[stnum];
 		psp->state = state;
 		psp->tics = state->tics;	// could be 0
 		
@@ -222,16 +223,20 @@ bool_t P_CheckAmmo(player_t* player)
 			continue;
 		
 		// Better than the best?
-		if ((BestWeapon == NUMWEAPONS) || (player->weaponinfo[i]->NoAmmoOrder > player->weaponinfo[BestWeapon]->NoAmmoOrder))
+		if ((BestWeapon == NUMWEAPONS) || (BestWeapon != NUMWEAPONS && player->weaponinfo[i]->NoAmmoOrder > player->weaponinfo[BestWeapon]->NoAmmoOrder))
 			BestWeapon = i;
 	}
 	
+	fprintf(stderr, "Best gun is %i\n", BestWeapon);
+	
 	// Switch to best?
 	if (BestWeapon != NUMWEAPONS)
+	{
 		player->pendingweapon = BestWeapon;
 	
-	// Now set appropriate weapon overlay.
-	P_SetPsprite(player, ps_weapon, player->weaponinfo[player->readyweapon]->downstate);
+		// Now set appropriate weapon overlay.
+		P_SetPsprite(player, ps_weapon, player->weaponinfo[player->readyweapon]->downstate);
+	}
 	
 	return false;
 }
@@ -967,7 +972,7 @@ ammotype_t INFO_GetAmmoByName(const char* const a_Name)
 	
 	/* Check */
 	if (!a_Name)
-		return NUMAMMO;
+		return am_noammo;
 	
 	/* Loop */
 	for (i = 0; i < NUMAMMO; i++)
@@ -975,14 +980,17 @@ ammotype_t INFO_GetAmmoByName(const char* const a_Name)
 			return i;
 	
 	/* Failed */
-	return NUMAMMO;
+	return am_noammo;
 }
 
 /****************************
 *** RMOD WEAPONS AND AMMO ***
 ****************************/
 
+/*** CONSTANTS ***/
+
 /*** STRUCTURES ***/
+
 /* P_LocalWeaponsAndAmmo_t -- Local Weapons and ammo */
 typedef struct P_LocalWeaponsAndAmmo_s
 {
@@ -1001,6 +1009,13 @@ typedef struct P_WepAmmoTransfer_s
 {
 	P_LocalWeaponsAndAmmo_t* Local;
 	weaponinfo_t* Weapon;
+	int* StateValueP;
+	int BaseStateNum;
+	int NumStateNum;
+	uint32_t WeaponID;
+	int* StateSplasher;
+	
+	P_WeaponStateGroup_t StateGroup;
 } P_WepAmmoTransfer_t;
 
 /*** GLOBALS ***/
@@ -1016,6 +1031,205 @@ size_t NumXStates = 0;
 
 /*** FUNCTIONS ***/
 
+/* PS_RMODWeaponStateForName() -- Determines state value for name */
+static int* PS_RMODWeaponStateForName(weaponinfo_t* const Weapon, const char* const a_Name, P_WeaponStateGroup_t* const WSG, int** const a_RefState)
+{
+	/* Check */
+	if (!Weapon || !a_Name)
+		return NULL;
+	
+	/* Now which one? */
+	if (strcasecmp(a_Name, "PrimaryBringUpState") == 0)
+	{
+		*WSG = PWSG_UP;
+		if (a_RefState)
+			*a_RefState = &Weapon->RefStates[*WSG];
+		return &Weapon->upstate;
+	}
+	else if (strcasecmp(a_Name, "PrimaryPutDownState") == 0)
+	{
+		*WSG = PWSG_DOWN;
+		if (a_RefState)
+			*a_RefState = &Weapon->RefStates[*WSG];
+		return &Weapon->downstate;
+	}
+	else if (strcasecmp(a_Name, "PrimaryReadyState") == 0)
+	{
+		*WSG = PWSG_READY;
+		if (a_RefState)
+			*a_RefState = &Weapon->RefStates[*WSG];
+		return &Weapon->readystate;
+	}
+	else if (strcasecmp(a_Name, "PrimaryFireState") == 0)
+	{
+		*WSG = PWSG_ATTACK;
+		if (a_RefState)
+			*a_RefState = &Weapon->RefStates[*WSG];
+		return &Weapon->atkstate;
+	}
+	else if (strcasecmp(a_Name, "PrimaryFireHeldState") == 0)
+	{
+		*WSG = PWSG_HOLDATTACK;
+		if (a_RefState)
+			*a_RefState = &Weapon->RefStates[*WSG];
+		return &Weapon->holdatkstate;
+	}
+	else if (strcasecmp(a_Name, "PrimaryFlashState") == 0)
+	{
+		*WSG = PWSG_FLASH;
+		if (a_RefState)
+			*a_RefState = &Weapon->RefStates[*WSG];
+		return &Weapon->flashstate;
+	}
+	
+	/* Not Found */
+	*WSG = -1;
+	if (a_RefState)
+		*a_RefState = NULL;
+	return NULL;
+}
+
+/* PS_RMODWeaponInnerStateHandlers() -- Inner state handlers */
+static bool_t PS_RMODWeaponInnerStateHandlers(Z_Table_t* const a_Sub, void* const a_Data)
+{
+	P_WepAmmoTransfer_t* WATp = a_Data;
+	const char* Value;
+	int CurFrameID;
+	state_t* StateP;
+	size_t i;
+	int32_t MarkerVal;
+	int32_t IntVal;
+	P_WeaponStateGroup_t WSG;
+	
+	/* Check */
+	if (!a_Sub || !a_Data)
+		return true;
+	
+	/* Retrive item name */
+	// Obtain
+	Value = Z_TableName(a_Sub);
+	
+	// Not a frame?
+	if (strncasecmp(Value, "frame#", 6) != 0)
+		return true;
+	
+	// Knock off #
+	Value = strchr(Value, '#');
+	
+	// Not found?
+	if (!Value)
+		return true;
+	
+	// Add 1 to remove #
+	Value++;
+	
+	// Convert to integer
+	CurFrameID = atoi(Value);
+	
+	/* Add state frame to latest? */
+	// Determine marker value
+	MarkerVal = (WATp->StateGroup << 16) | (CurFrameID & 0xFFFF);
+	
+	// Set group marker
+	*WATp->StateSplasher = MarkerVal;
+	
+	// See if it already exists
+	StateP = NULL;
+	for (i = 0; i < WATp->Local->NumWeaponStates; i++)
+		if (WATp->WeaponID == WATp->Local->WeaponStates[i]->WeaponID && MarkerVal == WATp->Local->WeaponStates[i]->Marker)
+		{
+			StateP = WATp->Local->WeaponStates[i];
+			break;
+		}
+	
+	// Missing still?
+	if (!StateP)
+	{
+		// Resize and place at end
+		Z_ResizeArray((void**)&WATp->Local->WeaponStates, sizeof(*WATp->Local->WeaponStates), WATp->Local->NumWeaponStates, WATp->Local->NumWeaponStates + 1);
+		StateP = WATp->Local->WeaponStates[WATp->Local->NumWeaponStates++] = Z_Malloc(sizeof(*StateP), PU_STATIC, NULL);
+	}
+	
+	/* Fill state with info */
+	// Remember marker for later uses
+	StateP->Marker = MarkerVal;
+	StateP->WeaponID = WATp->WeaponID;
+	
+	// Get normal values
+	StateP->frame = D_RMODGetValueInt(a_Sub, "Frame", 0);
+	StateP->tics = D_RMODGetValueInt(a_Sub, "Tics", 0);
+	StateP->RMODFastTics = D_RMODGetValueInt(a_Sub, "FastTics", 0);
+	
+	// Get booleans
+	if (D_RMODGetValueBool(a_Sub, "FullBright", false))
+		StateP->frame |= FF_FULLBRIGHT;
+	
+	// Get Sprite
+	Value = Z_TableGetValue(a_Sub, "Sprite");
+	
+	if (Value)
+		for (i = 0; i < 4 && Value[i]; i++)
+			StateP->HoldSprite[i] = Value[i];
+		
+	// Get Priority
+	Value = Z_TableGetValue(a_Sub, "Sprite");
+	
+	if (Value)
+		StateP->Priority = INFO_PriorityByName(Value);
+	
+	// Get Transparency
+	Value = Z_TableGetValue(a_Sub, "Transparency");
+	
+	if (Value)
+		StateP->frame = (INFO_TransparencyByName(Value) << FF_TRANSSHIFT) & FF_TRANSMASK;
+		
+	// Get function
+	StateP->Function = D_RMODGetValueString(a_Sub, "Function", NULL);
+	
+	// Next?
+	Value = Z_TableGetValue(a_Sub, "Goto");
+	if (!Value)
+	{
+		// SimNext is squashed WeaponID and Marker
+		StateP->SimNext = WATp->WeaponID;
+		StateP->SimNext <<= 32;
+		
+		// Determine marker
+		IntVal = D_RMODGetValueInt(a_Sub, "Next", 0);
+		
+		// 0 is S_NULL, otherwise...
+		if (IntVal <= 0)
+			StateP->SimNext = 0;
+		else
+			StateP->SimNext |= (WATp->StateGroup << 16) | (IntVal & 0xFFFF);
+	}
+	
+	// Goto?
+	else
+	{
+		// Match string to group
+		if (PS_RMODWeaponStateForName(WATp->Weapon, Value, &WSG, NULL))
+		{
+			// Simulated Next is similar to above, but jumps to another group
+			StateP->SimNext = WATp->WeaponID;
+			StateP->SimNext <<= 32;
+			StateP->SimNext |= (WSG << 16) | 1;
+		}
+	}
+#if 0
+	fprintf(f, "\t\t\tSprite \"%s\";\n", sprnames[CurrentState->sprite]);
+	fprintf(f, "\t\t\tFrame \"%i\";\n", CurrentState->frame & FF_FRAMEMASK);
+	fprintf(f, "\t\t\tTics \"%i\";\n", CurrentState->tics);
+	fprintf(f, "\t\t\tFastTics \"%i\";\n", CurrentState->RMODFastTics);
+	fprintf(f, "\t\t\tFullBright \"true\";\n");
+	fprintf(f, "\t\t\tViewPriority \"%s\";\n", TransName);
+	fprintf(f, "\t\t\tFunction \"%s\";\n", TransName);
+	fprintf(f, "\t\t\tTransparency \"%s\";\n", TransName);
+	fprintf(f, "\t\t\tGoto \"%s\";\n", IDName);
+	fprintf(f, "\t\t\tNext \"%i\";\n", TrigID[CurrentState->nextstate] & 0x7FFF);
+#endif
+}
+
 /* PS_RMODWeaponStateHandlers() -- Weapon state handler */
 static bool_t PS_RMODWeaponStateHandlers(Z_Table_t* const a_Sub, void* const a_Data)
 {
@@ -1024,15 +1238,36 @@ static bool_t PS_RMODWeaponStateHandlers(Z_Table_t* const a_Sub, void* const a_D
 	
 	/* Check */
 	if (!a_Sub || !a_Data)
-		return false; 
-#if 0	
-	int upstate;
-	int downstate;
-	int readystate;
-	int atkstate;
-	int holdatkstate;
-	int flashstate;
-#endif
+		return true;
+	
+	/* Retrive item name */
+	// Obtain
+	Value = Z_TableName(a_Sub);
+	
+	// Not a state table?
+	if (strncasecmp(Value, "state#", 6) != 0)
+		return true;
+	
+	// Knock off #
+	Value = strchr(Value, '#');
+	
+	// Not found?
+	if (!Value)
+		return true;
+	
+	// Add 1 to remove #
+	Value++;
+	
+	/* Determine state value */
+	WATp->StateValueP = PS_RMODWeaponStateForName(WATp->Weapon, Value, &WATp->StateGroup, &WATp->StateSplasher);
+	WATp->BaseStateNum = 0;
+	
+	// Something here? (Future reference state groups?)
+	if (!WATp->StateValueP)
+		return true;
+	
+	/* Run through an inner inner state callback */
+	Z_TableSuperCallback(a_Sub, PS_RMODWeaponInnerStateHandlers, (void*)WATp);
 
 	/* Keep Going */
 	return true;
@@ -1047,6 +1282,7 @@ bool_t P_RMODH_WeaponsAmmo(Z_Table_t* const a_Table, const WL_WADFile_t* const a
 	ammoinfo_t TempAmmo;
 	D_RMODPrivate_t* RealPrivate;
 	P_WepAmmoTransfer_t WAT;
+	static uint32_t WeaponIDBase;
 	
 	/* Check */
 	if (!a_Table || !a_WAD || !a_ID || !a_Private)
@@ -1155,10 +1391,15 @@ bool_t P_RMODH_WeaponsAmmo(Z_Table_t* const a_Table, const WL_WADFile_t* const a
 		TempWeapon.SBOGraphic = D_RMODGetValueString(a_Table, "SBOGraphic", NULL);
 		TempWeapon.BringUpSound = D_RMODGetValueString(a_Table, "BringUpSound", NULL);
 		TempWeapon.IdleNoise = D_RMODGetValueString(a_Table, "IdleNoise", NULL);
+		TempWeapon.AmmoClass = D_RMODGetValueString(a_Table, "Ammo", NULL);
+		
+		// Weapon ID (A somewhat unique number)
+		TempWeapon.WeaponID = (M_Random() & 0xFF) | ((++WeaponIDBase) << 8);
 		
 		// Handle States
 		WAT.Local = LocalStuff;
 		WAT.Weapon = &TempWeapon;
+		WAT.WeaponID = TempWeapon.WeaponID;
 		Z_TableSuperCallback(a_Table, PS_RMODWeaponStateHandlers, (void*)&WAT);
 		
 		// Add to end
@@ -1174,6 +1415,8 @@ bool_t P_RMODH_WeaponsAmmo(Z_Table_t* const a_Table, const WL_WADFile_t* const a
 		return false;
 }
 
+static state_t StaticSNull;
+
 /* P_RMODO_WeaponsAmmo() -- Order for Weapons and Ammo */
 bool_t P_RMODO_WeaponsAmmo(const bool_t a_Pushed, const struct WL_WADFile_s* const a_WAD, const D_RMODPrivates_t a_ID)
 {
@@ -1182,7 +1425,12 @@ bool_t P_RMODO_WeaponsAmmo(const bool_t a_Pushed, const struct WL_WADFile_s* con
 	weaponinfo_t* TempWeapon;
 	ammoinfo_t* TempAmmo;
 	D_RMODPrivate_t* RMODPrivate;
-	size_t i, FoundID;
+	size_t i, j, k, FoundID, Base, Count, MergeBase, MergeCount;
+	int* StateRef;
+	uint32_t WepID, RefToFind;
+	
+	/* Reset */
+	MergeBase = (size_t)-1;
 	
 	/* Clear old weapons and ammo */
 	// Weapons
@@ -1197,7 +1445,18 @@ bool_t P_RMODO_WeaponsAmmo(const bool_t a_Pushed, const struct WL_WADFile_s* con
 	// Ammo
 	if (ammoinfo)
 		Z_Free(ammoinfo);
+	ammoinfo = NULL;
 	NUMAMMO = 0;
+	
+	// Clear old XStates
+	if (XStates)
+		Z_Free(XStates);
+	XStates = NULL;
+	NumXStates = 0;
+	
+	// Add first state, an S_NULL
+	Z_ResizeArray((void**)&XStates, sizeof(*XStates), NumXStates, NumXStates + 1);
+	XStates[NumXStates++] = &StaticSNull;
 	
 	/* Go through every WAD */
 	// And link every menu into the menu chain, doing replaces if desired
@@ -1227,7 +1486,7 @@ bool_t P_RMODO_WeaponsAmmo(const bool_t a_Pushed, const struct WL_WADFile_s* con
 			FoundID = INFO_GetAmmoByName(TempAmmo->ClassName);
 			
 			// Not found? Add to end
-			if (FoundID == NUMAMMO)
+			if (FoundID == NUMAMMO || FoundID == am_noammo)
 			{
 				Z_ResizeArray((void**)&ammoinfo, sizeof(*ammoinfo), NUMAMMO, NUMAMMO + 1);
 				ammoinfo[NUMAMMO++] = TempAmmo;
@@ -1271,13 +1530,136 @@ bool_t P_RMODO_WeaponsAmmo(const bool_t a_Pushed, const struct WL_WADFile_s* con
 				wpnlev2info[FoundID] = TempWeapon;
 			}
 		}
+		
+		// Push all states
+		if (LocalStuff->NumWeaponStates)
+		{
+			Base = NumXStates;
+			Count = LocalStuff->NumWeaponStates;
+			
+			if (MergeBase == (size_t)-1)
+			{
+				MergeBase = Base;
+				MergeCount = Count;
+			}
+			else
+				MergeCount += Count;
+			
+			// Resize array of states
+			Z_ResizeArray((void**)&XStates, sizeof(*XStates), NumXStates, NumXStates + Count);
+			NumXStates += Count;
+			
+			// Reference every single state
+			for (j = 0, i = Base; i < Base + Count; i++, j++)
+				XStates[i] = LocalStuff->WeaponStates[j];
+		}
 	}
 	
 	/* Normalize */
-	for (i = 0; i < LocalStuff->NumWeapons; i++)
+	for (i = 0; i < NUMWEAPONS; i++)
 	{
+		// Reference
+		TempWeapon = wpnlev1info[i];
+		
 		// Normalize classes
 		TempWeapon->ammo = INFO_GetAmmoByName(TempWeapon->AmmoClass);
+		
+		// Reference states to IDs
+		for (j = 0; j < NUMPWEAPONSTATEGROUPS; j++)
+		{
+			// Get reference
+			switch (j)
+			{
+				case PWSG_UP:
+					StateRef = &TempWeapon->upstate;
+					break;
+				case PWSG_DOWN:
+					StateRef = &TempWeapon->downstate;
+					break;
+				case PWSG_READY:
+					StateRef = &TempWeapon->readystate;
+					break;
+				case PWSG_ATTACK:
+					StateRef = &TempWeapon->atkstate;
+					break;
+				case PWSG_HOLDATTACK:
+					StateRef = &TempWeapon->holdatkstate;
+					break;
+				case PWSG_FLASH:
+					StateRef = &TempWeapon->flashstate;
+					break;
+				default:
+					StateRef = NULL;
+					break;
+			}
+			
+			// Missing?
+			if (!StateRef)
+				continue;
+			
+			// Determine reference to find
+			RefToFind = ((j & 0xFFFF) << 16) | 1;
+			
+			// Find states in merge bases
+			for (k = MergeBase; k < MergeBase + MergeCount; k++)
+				if (XStates[k]->WeaponID == TempWeapon->WeaponID)
+					if (XStates[k]->Marker == RefToFind)
+					{
+						*StateRef = k;
+						break;
+					}
+		}
+	}
+	
+	/* Normalize state references */
+	for (i = MergeBase; i < MergeBase + MergeCount; i++)
+	{
+		// Reference states and functions
+		XStates[i]->sprite = INFO_SpriteNumByName(XStates[i]->HoldSprite);
+		
+		// Reference function
+		if (XStates[i]->Function)
+			XStates[i]->action = INFO_FunctionPtrByName(XStates[i]->Function);
+		
+		// Find next reference
+		if (XStates[i]->SimNext)
+		{
+			// Get IDs to look for
+			WepID = (XStates[i]->SimNext >> (uint64_t)32) & ((uint64_t)0xFFFFFFFFU);
+			RefToFind = (XStates[i]->SimNext & (uint64_t)0xFFFFFFFFU);
+			
+			// Search through everything
+			for (j = MergeBase; j < MergeBase + MergeCount; j++)
+				if (WepID == XStates[j]->WeaponID && RefToFind == XStates[j]->Marker)
+				{
+					XStates[i]->nextstate = j;
+					break;
+				}
+		}
+#if 0
+typedef struct
+{
+	spritenum_t sprite;
+	int32_t frame;				//faB: we use the upper 16bits for translucency
+	//     and other shade effects
+	int32_t tics;
+	// void       (*action) ();
+	actionf_t action;
+	statenum_t nextstate;
+	
+	uint8_t Priority;			// View priority of the state
+	
+	// GhostlyDeath <March 5, 2012> -- To RMOD Deprecation
+	int32_t RMODFastTics;						// Tics when -fast
+	int32_t ExtraStateFlags;					// Custom flags
+	
+	uint32_t WeaponID;							// Unique Weapon ID
+	uint32_t Marker;							// Marker for RMOD
+	uint64_t SimNext;							// Simulated next state
+	char HoldSprite[5];							// Sprite to remember
+	char* Function;								// Function Name
+} state_t;
+#endif
 	}
 	
 	return false;

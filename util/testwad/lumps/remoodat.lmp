@@ -1,0 +1,320 @@
+
+// ***************
+// *** WEAPONS ***
+// ***************
+
+// Weapon -- The Destroyer
+// This weapon is based on the BFG9000 and it sprays a killer amount of
+// projectiles and hitscans at the target!
+MapWeapon "Destroyer"
+{
+	Ammo "NoAmmo";
+	NiceName "The Destroyer";
+	SBOGraphic "sbofrags";
+	SlotNum "7";
+	SwitchOrder "910";
+	NoAmmoSwitchOrder "210";
+	AmmoPerShot "0";
+	PickupAmmo "0";
+	//DroppedObject "BFG";
+	SpriteYOffset "-10";
+	IsDoom "true";
+	IsNotShareware "true";
+	IsStartingWeapon "true";
+	
+	State "PrimaryBringUpState"
+	{
+		Frame "1"
+		{
+			Sprite "BFGG";
+			Frame "0";
+			Tics "1";
+			ViewPriority "Weapons";
+			Function "Raise";
+			Goto "PrimaryBringUpState";
+		}
+	}
+	
+	State "PrimaryPutDownState"
+	{
+		Frame "1"
+		{
+			Sprite "BFGG";
+			Frame "0";
+			Tics "1";
+			ViewPriority "Weapons";
+			Function "Lower";
+			Goto "PrimaryPutDownState";
+		}
+	}
+	
+	State "PrimaryReadyState"
+	{
+		Frame "1"
+		{
+			Sprite "BFGG";
+			Frame "0";
+			Tics "1";
+			ViewPriority "Weapons";
+			Function "WeaponReady";
+			Goto "PrimaryReadyState";
+		}
+	}
+	
+	State "PrimaryFireState"
+	{
+		Frame "1"
+		{
+			Sprite "BFGG";
+			Frame "0";
+			Tics "10";
+			ViewPriority "Weapons";
+			Function "BFGsound";
+			Next "2";
+		}
+		
+		Frame "2"
+		{
+			Sprite "BFGG";
+			Frame "1";
+			Tics "5";
+			ViewPriority "Weapons";
+			Function "GunFlash";
+			Next "3";
+		}
+		
+		Frame "3"
+		{
+			Sprite "BFGG";
+			Frame "1";
+			Tics "5";
+			ViewPriority "Weapons";
+			Function "FireBFG";
+			Next "4";
+		}
+		
+		Frame "4"
+		{
+			Sprite "BFGG";
+			Frame "1";
+			Tics "5";
+			ViewPriority "Weapons";
+			Function "FireBFG";
+			Next "5";
+		}
+		
+		Frame "5"
+		{
+			Sprite "BFGG";
+			Frame "1";
+			Tics "5";
+			ViewPriority "Weapons";
+			Function "FireBFG";
+			Next "6";
+		}
+		
+		Frame "6"
+		{
+			Sprite "BFGG";
+			Frame "1";
+			Tics "5";
+			ViewPriority "Weapons";
+			Function "ReFire";
+			Goto "PrimaryReadyState";
+		}
+	}
+	
+	State "PrimaryFireHeldState"
+	{
+		Frame "1"
+		{
+			Sprite "BFGG";
+			Frame "0";
+			Tics "0";
+			ViewPriority "Weapons";
+			Function "GunFlash";
+			Transparency "10";
+			Next "2";
+		}
+		
+		Frame "2"
+		{
+			Sprite "BFGG";
+			Frame "1";
+			Tics "0";
+			ViewPriority "Weapons";
+			Function "Saw";
+			Transparency "20";
+			Next "3";
+		}
+		
+		Frame "3"
+		{
+			Sprite "BFGG";
+			Frame "0";
+			Tics "0";
+			ViewPriority "Weapons";
+			Function "Punch";
+			Transparency "30";
+			Next "4";
+		}
+		
+		Frame "4"
+		{
+			Sprite "BFGG";
+			Frame "1";
+			Tics "2";
+			ViewPriority "Weapons";
+			Function "FirePistol";
+			Transparency "40";
+			Next "5";
+		}
+		
+		Frame "5"
+		{
+			Sprite "BFGG";
+			Frame "0";
+			Tics "2";
+			ViewPriority "Weapons";
+			Function "FirePlasma";
+			Transparency "50";
+			Next "6";
+		}
+		
+		Frame "6"
+		{
+			Sprite "BFGG";
+			Frame "1";
+			Tics "2";
+			ViewPriority "Weapons";
+			Function "FireShotgun";
+			Transparency "60";
+			Next "7";
+		}
+		
+		Frame "7"
+		{
+			Sprite "BFGG";
+			Frame "0";
+			Tics "2";
+			ViewPriority "Weapons";
+			Function "FirePlasma";
+			Transparency "70";
+			Next "8";
+		}
+		
+		Frame "8"
+		{
+			Sprite "BFGG";
+			Frame "1";
+			Tics "2";
+			ViewPriority "Weapons";
+			Function "FireShotgun2";
+			Transparency "80";
+			Next "9";
+		}
+		
+		Frame "8"
+		{
+			Sprite "BFGG";
+			Frame "0";
+			Tics "2";
+			ViewPriority "Weapons";
+			Function "FirePlasma";
+			Transparency "90";
+			Next "9";
+		}
+		
+		Frame "9"
+		{
+			Sprite "BFGG";
+			Frame "1";
+			Tics "2";
+			ViewPriority "Weapons";
+			Function "FireShotgun";
+			Transparency "70";
+			Next "10";
+		}
+		
+		Frame "10"
+		{
+			Sprite "BFGG";
+			Frame "0";
+			Tics "2";
+			ViewPriority "Weapons";
+			Function "FirePlasma";
+			Transparency "50";
+			Next "11";
+		}
+		
+		Frame "11"
+		{
+			Sprite "BFGG";
+			Frame "0";
+			Tics "2";
+			ViewPriority "Weapons";
+			Function "FireMissile";
+			Transparency "30";
+			Next "12";
+		}
+		
+		Frame "12"
+		{
+			Sprite "BFGG";
+			Frame "1";
+			Tics "2";
+			ViewPriority "Weapons";
+			Function "FireMissile";
+			Transparency "10";
+			Next "13";
+		}
+		
+		Frame "13"
+		{
+			Sprite "BFGG";
+			Frame "0";
+			Tics "0";
+			ViewPriority "Weapons";
+			Function "ReFire";
+			Goto "PrimaryReadyState";
+		}
+	}
+	
+	State "PrimaryFlashState"
+	{
+		Frame "1"
+		{
+			Sprite "BFGF";
+			Frame "0";
+			Tics "11";
+			FullBright "true";
+			ViewPriority "WeaponFlash";
+			Function "Light1";
+			Transparency "Fire";
+			Next "2";
+		}
+		
+		Frame "2"
+		{
+			Sprite "BFGF";
+			Frame "1";
+			Tics "6";
+			FullBright "true";
+			ViewPriority "WeaponFlash";
+			Function "Light2";
+			Transparency "Fire";
+			Next "3";
+		}
+		
+		Frame "3"
+		{
+			Sprite "SHTG";
+			Frame "4";
+			Tics "0";
+			ViewPriority "WeaponFlash";
+			Function "Light0";
+			Next "0";
+		}
+	}
+}
+

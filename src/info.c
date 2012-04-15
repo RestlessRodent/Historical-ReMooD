@@ -40,6 +40,8 @@
 #include "d_items.h"
 #include "p_mobj.h"
 #include "z_zone.h"
+#include "info.h"
+#include "v_video.h"
 
 char* sprnames[NUMSPRITES + 1] =
 {
@@ -6009,5 +6011,179 @@ mobjtype_t INFO_GetTypeByName(const char* const a_Name)
 	
 	/* Not found? */
 	return NUMMOBJTYPES;
+}
+
+/* INFO_SpriteNumByName() -- Determine sprite ID by name */
+spritenum_t INFO_SpriteNumByName(const char* const a_Name)
+{
+	size_t i;
+	
+	/* Check */
+	if (!a_Name)
+		return 0;
+	
+	/* Determine sprite */
+	for (i = 0; sprnames[i]; i++)
+		if (strcasecmp(a_Name, sprnames[i]) == 0)
+			return i;
+		
+	/* Not found? */
+	return 0;
+}
+
+/* INFO_FunctionPtrByName() -- Get action pointer by name */
+actionf_t INFO_FunctionPtrByName(const char* const a_Name)
+{
+	actionf_t RetVal;
+	
+	memset(&RetVal, 0, sizeof(RetVal));
+	
+	/* Check */
+	if (!a_Name)
+		return RetVal;
+	
+	if (strcasecmp("Light0", a_Name) == 0) RetVal.acv = A_Light0;
+	else if (strcasecmp("WeaponReady", a_Name) == 0) RetVal.acv = A_WeaponReady;
+	else if (strcasecmp("Lower", a_Name) == 0) RetVal.acv = A_Lower;
+	else if (strcasecmp("Raise", a_Name) == 0) RetVal.acv = A_Raise;
+	else if (strcasecmp("Punch", a_Name) == 0) RetVal.acv = A_Punch;
+	else if (strcasecmp("ReFire", a_Name) == 0) RetVal.acv = A_ReFire;
+	else if (strcasecmp("FirePistol", a_Name) == 0) RetVal.acv = A_FirePistol;
+	else if (strcasecmp("Light1", a_Name) == 0) RetVal.acv = A_Light1;
+	else if (strcasecmp("FireShotgun", a_Name) == 0) RetVal.acv = A_FireShotgun;
+	else if (strcasecmp("Light2", a_Name) == 0) RetVal.acv = A_Light2;
+	else if (strcasecmp("FireShotgun2", a_Name) == 0) RetVal.acv = A_FireShotgun2;
+	else if (strcasecmp("CheckReload", a_Name) == 0) RetVal.acv = A_CheckReload;
+	else if (strcasecmp("OpenShotgun2", a_Name) == 0) RetVal.acv = A_OpenShotgun2;
+	else if (strcasecmp("LoadShotgun2", a_Name) == 0) RetVal.acv = A_LoadShotgun2;
+	else if (strcasecmp("CloseShotgun2", a_Name) == 0) RetVal.acv = A_CloseShotgun2;
+	else if (strcasecmp("FireCGun", a_Name) == 0) RetVal.acv = A_FireCGun;
+	else if (strcasecmp("GunFlash", a_Name) == 0) RetVal.acv = A_GunFlash;
+	else if (strcasecmp("FireMissile", a_Name) == 0) RetVal.acv = A_FireMissile;
+	else if (strcasecmp("Saw", a_Name) == 0) RetVal.acv = A_Saw;
+	else if (strcasecmp("FirePlasma", a_Name) == 0) RetVal.acv = A_FirePlasma;
+	else if (strcasecmp("BFGsound", a_Name) == 0) RetVal.acv = A_BFGsound;
+	else if (strcasecmp("FireBFG", a_Name) == 0) RetVal.acv = A_FireBFG;
+	else if (strcasecmp("BFGSpray", a_Name) == 0) RetVal.acv = A_BFGSpray;
+	else if (strcasecmp("Explode", a_Name) == 0) RetVal.acv = A_Explode;
+	else if (strcasecmp("Pain", a_Name) == 0) RetVal.acv = A_Pain;
+	else if (strcasecmp("PlayerScream", a_Name) == 0) RetVal.acv = A_PlayerScream;
+	else if (strcasecmp("Fall", a_Name) == 0) RetVal.acv = A_Fall;
+	else if (strcasecmp("XScream", a_Name) == 0) RetVal.acv = A_XScream;
+	else if (strcasecmp("Look", a_Name) == 0) RetVal.acv = A_Look;
+	else if (strcasecmp("Chase", a_Name) == 0) RetVal.acv = A_Chase;
+	else if (strcasecmp("FaceTarget", a_Name) == 0) RetVal.acv = A_FaceTarget;
+	else if (strcasecmp("PosAttack", a_Name) == 0) RetVal.acv = A_PosAttack;
+	else if (strcasecmp("Scream", a_Name) == 0) RetVal.acv = A_Scream;
+	else if (strcasecmp("SPosAttack", a_Name) == 0) RetVal.acv = A_SPosAttack;
+	else if (strcasecmp("VileChase", a_Name) == 0) RetVal.acv = A_VileChase;
+	else if (strcasecmp("VileStart", a_Name) == 0) RetVal.acv = A_VileStart;
+	else if (strcasecmp("VileTarget", a_Name) == 0) RetVal.acv = A_VileTarget;
+	else if (strcasecmp("VileAttack", a_Name) == 0) RetVal.acv = A_VileAttack;
+	else if (strcasecmp("StartFire", a_Name) == 0) RetVal.acv = A_StartFire;
+	else if (strcasecmp("Fire", a_Name) == 0) RetVal.acv = A_Fire;
+	else if (strcasecmp("FireCrackle", a_Name) == 0) RetVal.acv = A_FireCrackle;
+	else if (strcasecmp("Tracer", a_Name) == 0) RetVal.acv = A_Tracer;
+	else if (strcasecmp("SkelWhoosh", a_Name) == 0) RetVal.acv = A_SkelWhoosh;
+	else if (strcasecmp("SkelFist", a_Name) == 0) RetVal.acv = A_SkelFist;
+	else if (strcasecmp("SkelMissile", a_Name) == 0) RetVal.acv = A_SkelMissile;
+	else if (strcasecmp("FatRaise", a_Name) == 0) RetVal.acv = A_FatRaise;
+	else if (strcasecmp("FatAttack1", a_Name) == 0) RetVal.acv = A_FatAttack1;
+	else if (strcasecmp("FatAttack2", a_Name) == 0) RetVal.acv = A_FatAttack2;
+	else if (strcasecmp("FatAttack3", a_Name) == 0) RetVal.acv = A_FatAttack3;
+	else if (strcasecmp("BossDeath", a_Name) == 0) RetVal.acv = A_BossDeath;
+	else if (strcasecmp("CPosAttack", a_Name) == 0) RetVal.acv = A_CPosAttack;
+	else if (strcasecmp("CPosRefire", a_Name) == 0) RetVal.acv = A_CPosRefire;
+	else if (strcasecmp("TroopAttack", a_Name) == 0) RetVal.acv = A_TroopAttack;
+	else if (strcasecmp("SargAttack", a_Name) == 0) RetVal.acv = A_SargAttack;
+	else if (strcasecmp("HeadAttack", a_Name) == 0) RetVal.acv = A_HeadAttack;
+	else if (strcasecmp("BruisAttack", a_Name) == 0) RetVal.acv = A_BruisAttack;
+	else if (strcasecmp("SkullAttack", a_Name) == 0) RetVal.acv = A_SkullAttack;
+	else if (strcasecmp("Metal", a_Name) == 0) RetVal.acv = A_Metal;
+	else if (strcasecmp("SpidRefire", a_Name) == 0) RetVal.acv = A_SpidRefire;
+	else if (strcasecmp("BabyMetal", a_Name) == 0) RetVal.acv = A_BabyMetal;
+	else if (strcasecmp("BspiAttack", a_Name) == 0) RetVal.acv = A_BspiAttack;
+	else if (strcasecmp("Hoof", a_Name) == 0) RetVal.acv = A_Hoof;
+	else if (strcasecmp("CyberAttack", a_Name) == 0) RetVal.acv = A_CyberAttack;
+	else if (strcasecmp("PainAttack", a_Name) == 0) RetVal.acv = A_PainAttack;
+	else if (strcasecmp("PainDie", a_Name) == 0) RetVal.acv = A_PainDie;
+	else if (strcasecmp("KeenDie", a_Name) == 0) RetVal.acv = A_KeenDie;
+	else if (strcasecmp("BrainPain", a_Name) == 0) RetVal.acv = A_BrainPain;
+	else if (strcasecmp("BrainScream", a_Name) == 0) RetVal.acv = A_BrainScream;
+	else if (strcasecmp("BrainDie", a_Name) == 0) RetVal.acv = A_BrainDie;
+	else if (strcasecmp("BrainAwake", a_Name) == 0) RetVal.acv = A_BrainAwake;
+	else if (strcasecmp("BrainSpit", a_Name) == 0) RetVal.acv = A_BrainSpit;
+	else if (strcasecmp("SpawnSound", a_Name) == 0) RetVal.acv = A_SpawnSound;
+	else if (strcasecmp("SpawnFly", a_Name) == 0) RetVal.acv = A_SpawnFly;
+	else if (strcasecmp("BrainExplode", a_Name) == 0) RetVal.acv = A_BrainExplode;
+	else if (strcasecmp("SmokeTrailer", a_Name) == 0) RetVal.acv = A_SmokeTrailer;
+	else if (strcasecmp("SmokeTrailerRocket", a_Name) == 0) RetVal.acv = A_SmokeTrailerRocket;
+	else if (strcasecmp("SmokeTrailerSkull", a_Name) == 0) RetVal.acv = A_SmokeTrailerSkull;
+	
+	/* Not found? */
+	return RetVal;
+}
+
+/* INFO_PriorityByName() -- Priority by name */
+int INFO_PriorityByName(const char* const a_Name)
+{
+	/* Check */
+	if (!a_Name)
+		return STP_DEFAULT;
+	
+	/* Compare */
+	if (strcasecmp(a_Name, "Null") == 0) return STP_NULL;
+	else if (strcasecmp(a_Name, "Default") == 0) return STP_DEFAULT;
+	else if (strcasecmp(a_Name, "Weapons") == 0) return STP_WEAPON;
+	else if (strcasecmp(a_Name, "Ammo") == 0) return STP_AMMO;
+	else if (strcasecmp(a_Name, "WeaponFlash") == 0) return STP_WEPFLASH;
+	else if (strcasecmp(a_Name, "Effects") == 0) return STP_EFFECTS;
+	else if (strcasecmp(a_Name, "Monsters") == 0) return STP_MONSTERS;
+	else if (strcasecmp(a_Name, "Corpses") == 0) return STP_CORPSES;
+	else if (strcasecmp(a_Name, "Players") == 0) return STP_PLAYERS;
+	else if (strcasecmp(a_Name, "Health") == 0) return STP_HEALTH;
+	else if (strcasecmp(a_Name, "Cookies") == 0) return STP_COOKIES;
+	else if (strcasecmp(a_Name, "MissionCritical") == 0) return STP_MISSIONCRITICAL;
+	else if (strcasecmp(a_Name, "Powerups") == 0) return STP_POWERUPS;
+	else if (strcasecmp(a_Name, "Decorations") == 0) return STP_DECORATIONS;
+	else if (strcasecmp(a_Name, "Projectiles") == 0) return STP_PROJECTILES;
+	
+	/* Not Found */
+	return STP_DEFAULT;
+}
+
+/* INFO_TransparencyByName() -- Return transparency for name */
+uint32_t INFO_TransparencyByName(const char* const a_Name)
+{
+	int32_t TransNum;
+	
+	/* Check */
+	if (!a_Name)
+		return 0;
+	
+	/* Check name first */
+	if (strcasecmp(a_Name, "Fire") == 0)
+		return VEX_TRANSFIRE;
+	else if (strcasecmp(a_Name, "Effect1") == 0)
+		return VEX_TRANSFX1;
+	
+	/* Compare Number */
+	TransNum = atoi(a_Name);
+	
+	// Round up?
+	if ((TransNum % 10) >= 5)
+		TransNum += 5;
+	
+	// Shrink
+	TransNum /= 10;
+	
+	// Limit
+	if (TransNum < 0)
+		TransNum = 0;
+	if (TransNum > 10)
+		TransNum = 10;
+	
+	// Return
+	return TransNum;
 }
 

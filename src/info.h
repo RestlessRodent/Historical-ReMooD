@@ -1217,6 +1217,12 @@ typedef struct
 	// GhostlyDeath <March 5, 2012> -- To RMOD Deprecation
 	int32_t RMODFastTics;						// Tics when -fast
 	int32_t ExtraStateFlags;					// Custom flags
+	
+	uint32_t WeaponID;							// Unique Weapon ID
+	uint32_t Marker;							// Marker for RMOD
+	uint64_t SimNext;							// Simulated next state
+	char HoldSprite[5];							// Sprite to remember
+	char* Function;								// Function Name
 } state_t;
 
 extern state_t states[NUMSTATES];
@@ -1464,6 +1470,10 @@ void P_PatchInfoTables(void);
 /*** HELPFUL FUNCTIONS ***/
 
 mobjtype_t INFO_GetTypeByName(const char* const a_Name);
+spritenum_t INFO_SpriteNumByName(const char* const a_Name);
+actionf_t INFO_FunctionPtrByName(const char* const a_Name);
+int INFO_PriorityByName(const char* const a_Name);
+uint32_t INFO_TransparencyByName(const char* const a_Name);
 
 /*** HELPFUL MACROS ***/
 // Yuck! TODO: Make these real functions

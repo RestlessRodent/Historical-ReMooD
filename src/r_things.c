@@ -1199,6 +1199,7 @@ void R_DrawPSprite(pspdef_t* psp)
 		// fixed color
 		vis->colormap = fixedcolormap;
 	}
+	
 	else if (psp->state->frame & FF_FULLBRIGHT)
 	{
 		// full bright
@@ -1209,6 +1210,10 @@ void R_DrawPSprite(pspdef_t* psp)
 		// local light
 		vis->colormap = spritelights[MAXLIGHTSCALE - 1];
 	}
+	
+	// GhostlyDeath <April 15, 2012> -- Transparent Psprites (cool!)
+	if (psp->state->frame & FF_TRANSMASK)
+		vis->transmap = transtables + (((psp->state->frame & FF_TRANSMASK) >> FF_TRANSSHIFT) * 0x10000);
 	
 	if (viewplayer->mo->subsector->sector->numlights)
 	{

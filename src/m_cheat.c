@@ -248,6 +248,7 @@ static player_t* plyr;
 
 bool_t cht_Responder(event_t* ev)
 {
+	return false;
 #if 0
 	int i;
 	char* msg;

@@ -134,6 +134,19 @@ typedef enum WeaponFlags_e
 	WF_NOTHRUST					= 0x00000800,	// No thrusting the enemy
 } WeaponFlags_t;
 
+/* P_WeaponStateGroup_t -- Weapon state group number */
+typedef enum P_WeaponStateGroup_e
+{
+	PWSG_UP,
+	PWSG_DOWN,
+	PWSG_READY,
+	PWSG_ATTACK,
+	PWSG_HOLDATTACK,
+	PWSG_FLASH,
+	
+	NUMPWEAPONSTATEGROUPS
+} P_WeaponStateGroup_t;
+
 // Weapon info: sprite frames, ammunition use.
 typedef struct
 {
@@ -160,6 +173,8 @@ typedef struct
 	char* AmmoClass;			// Name of ammo to use
 	char* BringUpSound;			// Sound to play when brung up
 	char* IdleNoise;			// Noise when idling (chainsaw)
+	uint32_t WeaponID;			// Unique Weapon ID
+	int RefStates[NUMPWEAPONSTATEGROUPS];
 } weaponinfo_t;
 
 extern weaponinfo_t** wpnlev1info;
