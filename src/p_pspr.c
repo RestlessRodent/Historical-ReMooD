@@ -1264,7 +1264,7 @@ static bool_t PS_RMODWeaponInnerStateHandlers(Z_Table_t* const a_Sub, void* cons
 		for (i = 0; i < 4 && Value[i]; i++)
 		{
 			StateP->HoldSprite[i] = Value[i];
-			StateP->SpriteID |= ((uint32_t)Value[i]) << (i * 8);
+			StateP->SpriteID |= ((uint32_t)toupper(Value[i])) << (i * 8);
 		}
 		
 	// Get Priority

@@ -2695,7 +2695,7 @@ bool_t P_RMODO_Specials(const bool_t a_Pushed, const struct WL_WADFile_s* const 
 			
 			// Find sprite to map to
 			for (j = 0; j < 4 && TargTouch->SpriteName[j]; j++)
-				TargTouch->ActSpriteID |= ((uint32_t)TargTouch->SpriteName[j]) << (j * 8);
+				TargTouch->ActSpriteID |= ((uint32_t)toupper(TargTouch->SpriteName[j])) << (j * 8);
 			
 			//TargTouch->ActSpriteNum = INFO_SpriteNumByName(TargTouch->SpriteName);
 		}

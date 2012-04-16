@@ -184,9 +184,9 @@ typedef enum
 	SPR_SPLA,
 	SPR_TNT1,					// 140  SoM: 3/8/2000: add invisible sprite
 	
-	SPR_DOGS,
 	SPR_PLS1, // killough 7/19/98: first  of two plasma fireballs in the beta
 	SPR_PLS2, // killough 7/19/98: second of two plasma fireballs in the beta
+	SPR_DOGS,
 	
 	SPR_FLAG,
 	
