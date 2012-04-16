@@ -198,7 +198,7 @@ MapWeapon "Destroyer"
 			Frame "0";
 			Tics "2";
 			ViewPriority "Weapons";
-			Function "FirePlasma";
+			Function "FireOldBFG";
 			Transparency "70";
 			Next "8";
 		}
@@ -242,7 +242,7 @@ MapWeapon "Destroyer"
 			Frame "0";
 			Tics "2";
 			ViewPriority "Weapons";
-			Function "FirePlasma";
+			Function "FireOldBFG";
 			Transparency "50";
 			Next "11";
 		}

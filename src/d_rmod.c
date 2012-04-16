@@ -110,6 +110,21 @@ static const D_RMODHandler_t c_RMODHandlers[NUMDRMODPRIVATES] =
 		M_MenuExRMODOrder,
 	},
 	
+	/* Objects */
+	// Ammo
+	{
+		"MapAmmo",
+		P_RMODH_WeaponsAmmo,
+		P_RMODO_WeaponsAmmo,
+	},
+	
+	// Weapons
+	{
+		"MapWeapon",
+		P_RMODH_WeaponsAmmo,
+		NULL,
+	},
+	
 	/* Specials */
 	// Sectors
 	{
@@ -129,21 +144,6 @@ static const D_RMODHandler_t c_RMODHandlers[NUMDRMODPRIVATES] =
 	{
 		"MapTouchSpecial",
 		P_RMODH_Specials,
-		NULL,
-	},
-	
-	/* Objects */
-	// Ammo
-	{
-		"MapAmmo",
-		P_RMODH_WeaponsAmmo,
-		P_RMODO_WeaponsAmmo,
-	},
-	
-	// Weapons
-	{
-		"MapWeapon",
-		P_RMODH_WeaponsAmmo,
 		NULL,
 	},
 };

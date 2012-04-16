@@ -664,7 +664,13 @@ void P_ZMovement(mobj_t* mo)
 		//added:22-02-98: player avatar hits his head on the ceiling, ouch!
 		if (mo->player && (P_EXGSGetValue(PEXGSBID_COOUCHONCEILING)) && !(mo->player->cheats & CF_FLYAROUND) && !(mo->flags2 & MF2_FLY) && mo->momz > 8 * FRACUNIT)
 			S_StartSound(&mo->NoiseThinker, sfx_ouch);
-			
+		
+		if (mo->flags2 & MF2_BOUNCES)
+		{
+			mo->momz = -mo->momz;
+			return;
+		}
+		
 		// hit the ceiling
 		if (mo->momz > 0)
 			mo->momz = 0;
@@ -675,16 +681,11 @@ void P_ZMovement(mobj_t* mo)
 			mo->momz = -mo->momz;
 		}
 		
+		
 		if ((mo->flags & MF_MISSILE) && !(mo->flags & MF_NOCLIP))
 		{
-			if (mo->flags2 & MF2_BOUNCES)
-			{
-				mo->momz = -mo->momz;
-				return;
-			}
-			
 			//SoM: 4/3/2000: Don't explode on the sky!
-			else if (P_EXGSGetValue(PEXGSBID_COREMOVEMOINSKYZ) && mo->subsector->sector->ceilingpic == skyflatnum && mo->subsector->sector->ceilingheight == mo->ceilingz)
+			if (P_EXGSGetValue(PEXGSBID_COREMOVEMOINSKYZ) && mo->subsector->sector->ceilingpic == skyflatnum && mo->subsector->sector->ceilingheight == mo->ceilingz)
 			{
 				P_RemoveMobj(mo);
 				return;

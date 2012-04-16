@@ -352,6 +352,7 @@ typedef struct P_RMODTouchSpecial_s
 	spritenum_t ActSpriteNum;					// Sprite number to match
 	weapontype_t ActGiveWeapon;					// Actual weapon to give
 	ammotype_t ActGiveAmmo;						// Actual ammo to give
+	uint32_t ActSpriteID;						// Actual Sprite ID
 } P_RMODTouchSpecial_t;
 
 /*** GLOBALS ***/

@@ -893,6 +893,10 @@ void A_FireOldBFG(player_t* player, pspdef_t* psp)
 	/* Get player object */
 	pMo = player->mo;
 	
+	// Reduce ammo
+	if (!cv_infiniteammo.value)
+		player->ammo[player->weaponinfo[player->readyweapon]->ammo] -= player->weaponinfo[player->readyweapon]->ammopershoot;
+	
 	/* Fire Loop */
 	for (i = 0; i < 2; i++)
 	{
@@ -903,10 +907,6 @@ void A_FireOldBFG(player_t* player, pspdef_t* psp)
 		
 		// Spawn fireball
 		BallMo = P_SpawnPlayerMissile(pMo, (i == 0 ? INFO_GetTypeByName("LegacyPlasma1") : INFO_GetTypeByName("LegacyPlasma2")));
-		
-		// Reduce ammo
-		if (!cv_infiniteammo.value)
-			player->ammo[player->weaponinfo[player->readyweapon]->ammo] -= player->weaponinfo[player->readyweapon]->ammopershoot;
 		
 		// Modify angle
 		if (BallMo)
@@ -1262,10 +1262,13 @@ static bool_t PS_RMODWeaponInnerStateHandlers(Z_Table_t* const a_Sub, void* cons
 	
 	if (Value)
 		for (i = 0; i < 4 && Value[i]; i++)
+		{
 			StateP->HoldSprite[i] = Value[i];
+			StateP->SpriteID |= ((uint32_t)Value[i]) << (i * 8);
+		}
 		
 	// Get Priority
-	Value = Z_TableGetValue(a_Sub, "Sprite");
+	Value = Z_TableGetValue(a_Sub, "Priority");
 	
 	if (Value)
 		StateP->Priority = INFO_PriorityByName(Value);

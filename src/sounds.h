@@ -329,6 +329,13 @@ typedef enum
 	sfx_splash,
 	sfx_floush,
 	
+	// killough 11/98: dog sounds
+	sfx_dgsit,
+	sfx_dgatk,
+	sfx_dgact,
+	sfx_dgdth,
+	sfx_dgpain,
+	
 	// free slots for S_AddSoundFx() at run-time --------------------
 	sfx_freeslot0,
 	//

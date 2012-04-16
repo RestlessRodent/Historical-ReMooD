@@ -53,16 +53,14 @@ typedef enum D_RMODPrivates_e
 	DRMODP_MENU,								// Menu related stuff
 	
 	/* Objects, Weapons, Ammo, etc. */
-	
-	/* Specials (Lines/Sectors) */
-	// MapTouchSpecial REQUIRES the above to happen first
-	DRMODP_SPECSECTOR,							// "MapSectorSpecial"
-	DRMODP_SPECLINE,							// "MapLineSpecial"
-	DRMODP_SPECTOUCH,							// "MapTouchSpecial"
-	
-	/* Stuff (Weapons/Ammo) */
 	DRMODP_ITEMAMMO,							// "MapAmmo"
 	DRMODP_ITEMWEAPON,							// "MapWeapon"
+	
+	/* Specials (Lines/Sectors) */
+	DRMODP_SPECSECTOR,							// "MapSectorSpecial"
+	DRMODP_SPECLINE,							// "MapLineSpecial"
+		// MapTouchSpecial needs weapons and ammo to be registered first
+	DRMODP_SPECTOUCH,							// "MapTouchSpecial"
 	
 	NUMDRMODPRIVATES
 } D_RMODPrivates_t;

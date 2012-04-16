@@ -441,7 +441,7 @@ void P_TouchSpecialThing(mobj_t* special, mobj_t* toucher)
 		Current = g_RMODTouchSpecials[i];
 		
 		// Wrong sprite?
-		if (Current->ActSpriteNum != special->sprite)
+		if (Current->ActSpriteID != special->state->SpriteID)
 			continue;
 		
 		// Player is grabbing

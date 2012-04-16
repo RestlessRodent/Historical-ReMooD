@@ -74,8 +74,7 @@ char* sprnames[NUMSPRITES + 1] =
 	"HDB4", "HDB5", "HDB6", "POB1", "POB2", "BRS1", "TLMP", "TLP2", "SMOK",
 	"SPLA",
 	"TNT1",						//SoM: 4/8/2000: INVISIBLE SPRITE!
-	"PLS1",
-	"PLS2",
+	"PLS1", "PLS2", "DOGS",
 	
 	/*"IMPX", "ACLO", "PTN1", "SHLD", "SHD2", "BAGH", "SPMP", "INVS", "PTN2", "SOAR",
 	   "INVU", "PWBK", "EGGC", "EGGM", "FX01", "SPHL", "TRCH", "FBMB", "XPL1", "ATLP",
@@ -1165,6 +1164,35 @@ state_t states[NUMSTATES] =
 	{SPR_SPLA, 2, 8, {NULL}, S_NULL, STP_EFFECTS},	// S_SPLASH3
 	
 	{SPR_TNT1, 0, -1, {NULL}, S_TNT1, STP_NULL},	// S_TNT1    //SoM: 3/8/2000
+	
+	// killough 7/19/98: Marine's best friend :)
+	{SPR_DOGS,0,10,{A_Look},S_DOGS_STND2},  // S_DOGS_STND
+	{SPR_DOGS,1,10,{A_Look},S_DOGS_STND}, // S_DOGS_STND2
+	{SPR_DOGS,0,2,{A_Chase},S_DOGS_RUN2}, // S_DOGS_RUN1
+	{SPR_DOGS,0,2,{A_Chase},S_DOGS_RUN3}, // S_DOGS_RUN2
+	{SPR_DOGS,1,2,{A_Chase},S_DOGS_RUN4}, // S_DOGS_RUN3
+	{SPR_DOGS,1,2,{A_Chase},S_DOGS_RUN5}, // S_DOGS_RUN4
+	{SPR_DOGS,2,2,{A_Chase},S_DOGS_RUN6}, // S_DOGS_RUN5
+	{SPR_DOGS,2,2,{A_Chase},S_DOGS_RUN7}, // S_DOGS_RUN6
+	{SPR_DOGS,3,2,{A_Chase},S_DOGS_RUN8}, // S_DOGS_RUN7
+	{SPR_DOGS,3,2,{A_Chase},S_DOGS_RUN1}, // S_DOGS_RUN8
+	{SPR_DOGS,4,8,{A_FaceTarget},S_DOGS_ATK2},  // S_DOGS_ATK1
+	{SPR_DOGS,5,8,{A_FaceTarget},S_DOGS_ATK3},  // S_DOGS_ATK2
+	{SPR_DOGS,6,8,{A_SargAttack},S_DOGS_RUN1},  // S_DOGS_ATK3
+	{SPR_DOGS,7,2,{NULL},S_DOGS_PAIN2}, // S_DOGS_PAIN
+	{SPR_DOGS,7,2,{A_Pain},S_DOGS_RUN1},  // S_DOGS_PAIN2
+	{SPR_DOGS,8,8,{NULL},S_DOGS_DIE2},  // S_DOGS_DIE1
+	{SPR_DOGS,9,8,{A_Scream},S_DOGS_DIE3},  // S_DOGS_DIE2
+	{SPR_DOGS,10,4,{NULL},S_DOGS_DIE4}, // S_DOGS_DIE3
+	{SPR_DOGS,11,4,{A_Fall},S_DOGS_DIE5}, // S_DOGS_DIE4
+	{SPR_DOGS,12,4,{NULL},S_DOGS_DIE6}, // S_DOGS_DIE5
+	{SPR_DOGS,13,-1,{NULL},S_NULL}, // S_DOGS_DIE6
+	{SPR_DOGS,13,5,{NULL},S_DOGS_RAISE2}, // S_DOGS_RAISE1
+	{SPR_DOGS,12,5,{NULL},S_DOGS_RAISE3}, // S_DOGS_RAISE2
+	{SPR_DOGS,11,5,{NULL},S_DOGS_RAISE4}, // S_DOGS_RAISE3
+	{SPR_DOGS,10,5,{NULL},S_DOGS_RAISE5}, // S_DOGS_RAISE4
+	{SPR_DOGS,9,5,{NULL},S_DOGS_RAISE6},  // S_DOGS_RAISE5
+	{SPR_DOGS,8,5,{NULL},S_DOGS_RUN1},  // S_DOGS_RAISE6
 	
 	// killough 7/19/98: First plasma fireball in the beta:
 	{SPR_PLS1,32768,6,{NULL},S_PLS1BALL2, STP_PROJECTILES},  // S_PLS1BALL
@@ -5445,34 +5473,32 @@ mobjinfo_t mobjinfo[NUMMOBJTYPES] =
 	},
 	//SoM: Note that the above is thing type # 138
 	
-	//SoM: Dogs, and BetaBFG are NOT implemented! These things are here to
-	//hold spaces.
-	{
-		// MT_DOGS
-		888,						// doomednum
-		S_TNT1,					// spawnstate
-		500,						// spawnhealth
-		S_TNT1,					// seestate
-		sfx_None,					// seesound
-		8,							// reactiontime
-		sfx_None,					// attacksound
-		S_TNT1,					// painstate
-		180,						// painchance
-		sfx_None,					// painsound
-		S_TNT1,					// meleestate
-		0,							// missilestate
-		S_NULL,					// crashstate
-		S_NULL,					// deathstate
-		S_NULL,					// xdeathstate
-		sfx_None,					// deathsound
-		10,						// speed
-		12 * FRACUNIT,				// radius
-		28 * FRACUNIT,				// height
-		100,						// mass
-		0,							// damage
-		sfx_None,					// activesound
-		MF_NOSECTOR | MF_NOBLOCKMAP,	// flags
-		S_NULL						// raisestate
+	// Marine's best friend :)      // killough 7/19/98
+	{   // MT_DOGS
+		888,   // doomednum
+		S_DOGS_STND,    // spawnstate
+		500,    // spawnhealth
+		S_DOGS_RUN1,    // seestate
+		sfx_dgsit,   // seesound
+		8,    // reactiontime
+		sfx_dgatk,   // attacksound
+		S_DOGS_PAIN,    // painstate
+		180,    // painchance
+		sfx_dgpain,   // painsound
+		S_DOGS_ATK1,    // meleestate
+		0,    // missilestate
+		S_NULL,			// crashstate
+		S_DOGS_DIE1,    // deathstate
+		S_NULL,   // xdeathstate
+		sfx_dgdth,   // deathsound
+		10,   // speed
+		12*FRACUNIT,    // radius
+		28*FRACUNIT,    // height
+		100,    // mass
+		0,    // damage
+		sfx_dgact,    // activesound
+		MF_SOLID|MF_SHOOTABLE|MF_COUNTKILL, // flags
+		S_DOGS_RAISE1   // raisestate
 	},
 
 	// killough 7/11/98: this is the first of two plasma fireballs in the beta
