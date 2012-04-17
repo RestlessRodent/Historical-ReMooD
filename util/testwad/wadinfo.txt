@@ -1,3 +1,6 @@
 [lumps]
 remoodat
 
+[levels]
+map01
+

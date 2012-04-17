@@ -275,7 +275,7 @@ bool_t CONCTI_HandleEvent(CONCTI_Inputter_t* const a_Input, const I_EventEx_t* c
 #define BUFSIZE 512
 	uint8_t Code;
 	uint16_t Char;
-	int32_t i, j;
+	int32_t i, j, OldSpot;
 	char MB[5];
 	char Buf[BUFSIZE];
 	CONCTI_MBChain_t* MBRover, *Last;
@@ -306,6 +306,22 @@ bool_t CONCTI_HandleEvent(CONCTI_Inputter_t* const a_Input, const I_EventEx_t* c
 			// Browse through history (if it exists)
 		case IKBK_UP:
 		case IKBK_DOWN:
+			// Move input around
+			if (Code == IKBK_UP)
+				a_Input->HistorySpot++;
+			else
+				a_Input->HistorySpot--;
+			
+			// Cap
+			if (a_Input->HistorySpot < -1)
+				a_Input->HistorySpot = -1;
+			else if (a_Input->HistorySpot >= (int)a_Input->NumHistory)
+				a_Input->HistorySpot = a_Input->NumHistory - 1;
+			
+			// Set history?
+			if (a_Input->HistorySpot >= 0 && a_Input->HistorySpot < a_Input->NumHistory)
+				if (a_Input->History[a_Input->HistorySpot])
+					CONCTI_SetText(a_Input, a_Input->History[a_Input->HistorySpot]);
 			return true;
 			
 			// Move cursor left
@@ -357,6 +373,23 @@ bool_t CONCTI_HandleEvent(CONCTI_Inputter_t* const a_Input, const I_EventEx_t* c
 			a_Input->ChainRoot = NULL;
 			a_Input->CursorPos = a_Input->NumMBs = 0;
 			
+			// Reset history mark
+			a_Input->HistorySpot = -1;
+			
+			// Free last history, if it exists
+			if (a_Input->History[a_Input->NumHistory - 1])
+			{
+				Z_Free(a_Input->History[a_Input->NumHistory - 1]);
+				a_Input->History[a_Input->NumHistory - 1] = NULL;
+			}
+			
+			// Push histories down
+			for (j = a_Input->NumHistory - 2; j > 0 ; j--)
+				a_Input->History[j] = a_Input->History[j - 1];
+			
+			// Place buffer in current spot
+			a_Input->History[0] = Z_StrDup(Buf, PU_STATIC, NULL);
+			
 			// Send buffer to handler
 			if (a_Input->OutFunc)
 				if (a_Input->OutFunc(a_Input, Buf))
@@ -369,6 +402,9 @@ bool_t CONCTI_HandleEvent(CONCTI_Inputter_t* const a_Input, const I_EventEx_t* c
 			// Delete Characters
 		case IKBK_BACKSPACE:
 		case IKBK_DELETE:
+			// Reset history mark
+			a_Input->HistorySpot = -1;
+			
 			// Find character to delete
 			j = a_Input->CursorPos - (Code == IKBK_DELETE ? 0 : 1);
 			
@@ -419,6 +455,9 @@ bool_t CONCTI_HandleEvent(CONCTI_Inputter_t* const a_Input, const I_EventEx_t* c
 			if (!Char || (Char < 0x20 && Char != '\t'))
 				return false;
 				
+			// Reset history mark
+			a_Input->HistorySpot = -1;
+				
 			// Set to first in chain
 			MBRover = a_Input->ChainRoot;
 			
@@ -450,6 +489,7 @@ bool_t CONCTI_HandleEvent(CONCTI_Inputter_t* const a_Input, const I_EventEx_t* c
 					MBRover->Prev = Last;	// link back
 					a_Input->NumMBs++;	// Added
 				}
+					
 				// Not overwriting
 				else if (!a_Input->Overwrite)
 				{
@@ -505,11 +545,125 @@ void CONCTI_SetText(CONCTI_Inputter_t* const a_Input, const char* const a_Text)
 	
 	/*** STANDARD CLIENT ***/
 #else
+	CONCTI_MBChain_t* MBRover, *Last;
+	const char* p;
+	size_t i, j;
+	char MB[5];
 	
 	/* Not in dedicated server */
 	if (g_DedicatedServer)
 		return;
-
+		
+	/* Erase */
+	while (a_Input->ChainRoot)
+	{
+		// Find character to delete
+		j = 0;
+	
+		for (MBRover = a_Input->ChainRoot, i = 0; MBRover; i++)
+		{
+			// Is this it?
+			if (i == j)
+				break;
+			
+			// Next
+			MBRover = MBRover->Next;
+		}
+	
+		// Found it, so unlink it
+		if (MBRover)
+		{
+			// First character?
+			if (MBRover == a_Input->ChainRoot)
+				a_Input->ChainRoot = MBRover->Next;
+			
+			// Unlink from chain
+			if (MBRover->Next)
+				MBRover->Next->Prev = MBRover->Prev;
+			
+			if (MBRover->Prev)
+				MBRover->Prev->Next = MBRover->Next;
+			
+			// Delete rover
+			Z_Free(MBRover);
+		
+			// Change input stuff
+			a_Input->NumMBs--;	// Deleted char
+			a_Input->CursorPos = j;	// Set cursor pos to deleted spot
+		}
+	}
+	
+	/* Create */
+	for (p = a_Text; *p; p++)
+	{
+		// Set to first in chain
+		MBRover = a_Input->ChainRoot;
+	
+		// If there are no characters in the buffer, create one
+		if (!MBRover)
+		{
+			MBRover = a_Input->ChainRoot = Z_Malloc(sizeof(*MBRover), PU_STATIC, NULL);
+			a_Input->NumMBs++;	// Added more
+		}
+		// Append somewhere, somehow
+		else
+		{
+			// Keep running until we hit the spot
+			for (Last = NULL, i = 0; MBRover; i++)
+			{
+				// Did we hit it?
+				if (i == a_Input->CursorPos)
+					break;
+				
+				// Next
+				Last = MBRover;
+				MBRover = MBRover->Next;
+			}
+		
+			// Attach to end?
+			if (!MBRover)
+			{
+				MBRover = Last->Next = Z_Malloc(sizeof(*MBRover), PU_STATIC, NULL);
+				MBRover->Prev = Last;	// link back
+				a_Input->NumMBs++;	// Added
+			}
+			
+			// Not overwriting
+			else if (!a_Input->Overwrite)
+			{
+				Last = Z_Malloc(sizeof(*Last), PU_STATIC, NULL);
+			
+				// Shove current to the next spot
+				Last->Next = MBRover;
+				Last->Prev = MBRover->Prev;
+			
+				// Relink current
+				MBRover->Prev = Last;
+			
+				// Relink before
+				if (Last->Prev)
+					Last->Prev->Next = Last;
+				
+				// This is the first!
+				if (MBRover == a_Input->ChainRoot)
+					a_Input->ChainRoot = Last;
+				
+				// Set to last
+				MBRover = Last;
+			
+				a_Input->NumMBs++;	// Added
+			}
+		}
+	
+		// Set character info
+		i = V_ExtWCharToMB(*p, MB);
+		memset(MBRover->MB, 0, sizeof(MBRover->MB));
+		strncpy(MBRover->MB, MB, i);
+		a_Input->CursorPos++;	// Always increment
+	}
+	
+	// Changed
+	a_Input->Changed = true;
 #endif /* __REMOOD_DEDICATED */
 }
 

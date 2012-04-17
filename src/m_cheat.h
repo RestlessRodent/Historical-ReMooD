@@ -100,4 +100,20 @@ void Command_CheatSummon_f(void);
 void Command_CheatSummonFriend_f(void);
 #endif
 
+/*** CONSTANTS ***/
+
+typedef enum M_CheatFlag_s
+{
+	MCF_FREEZETIME					= 0x00000001, // Freeze Time
+} M_CheatFlag_t;
+
+/*** GLOBALS ***/
+
+extern uint32_t g_CheatFlags;					// Global cheat flags
+
+/*** FUNCTIONS ***/
+
+void M_CheatInit(void);
+
 #endif							/* __M_CHEAT_H__ */
+

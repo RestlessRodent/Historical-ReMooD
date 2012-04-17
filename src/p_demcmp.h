@@ -195,6 +195,8 @@ typedef enum P_EXGSBitID_e
 	PEXGSBID_COENABLEJUMPING,					// Enable Jumping
 	PEXGSBID_COMOUSEAIM,						// Aim by mouse
 	PEXGSBID_MONRESPAWNMONSTERS,				// Respawn Monsters
+	PEXGSBID_FUNNOTARGETPLAYER,					// Don't Target Players, ever!
+	PEXGSBID_MONARCHVILEANYRESPAWN,				// Arch-Viles can respawn anything
 	
 	PEXGSNUMBITIDS
 } P_EXGSBitID_t;

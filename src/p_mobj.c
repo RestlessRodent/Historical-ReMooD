@@ -48,6 +48,7 @@
 #include "d_clisrv.h"
 #include "r_splats.h"			//faB: in dev.
 #include "p_demcmp.h"
+#include "m_cheat.h"
 
 // protos.
 CV_PossibleValue_t viewheight_cons_t[] = { {16, "MIN"}
@@ -886,6 +887,13 @@ static void PlayerLandedOnThing(mobj_t* mo, mobj_t* onmobj)
 void P_MobjThinker(mobj_t* mobj)
 {
 	bool_t checkedpos = false;	//added:22-02-98:
+	
+	if (g_CheatFlags & MCF_FREEZETIME)
+	{
+		// Only players are not frozen
+		if (!mobj->player)
+			return;
+	}
 	
 	// check mobj against possible water content, before movement code
 	P_MobjCheckWater(mobj);

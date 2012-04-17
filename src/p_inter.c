@@ -1406,6 +1406,11 @@ bool_t P_DamageMobj(mobj_t* target, mobj_t* inflictor, mobj_t* source, int damag
 	
 	if ((!target->threshold || (target->RXFlags[0] & MFREXA_NOTHRESHOLD)) && source && source != target && !(source->RXFlags[0] & MFREXA_NOTRETAILIATETARGET) && !(source->flags2 & MF2_BOSS))
 	{
+		// If this is another player, do not target
+		if (P_EXGSGetValue(PEXGSBID_FUNNOTARGETPLAYER))
+			if (source->player)
+				return;
+		
 		// if not intent on another player,
 		// chase after this one
 		target->target = source;

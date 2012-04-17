@@ -80,6 +80,7 @@ typedef enum LumpType_e
 	WT_RAWPIC,
 	WT_SOUND,
 	WT_SPRITE,
+	WT_LEVELS,
 	
 	NUMLUMPTYPES
 } LumpType_t;
@@ -174,6 +175,7 @@ static const LumpDir_t c_LumpDirs[NUMLUMPTYPES] =
 	{WT_RAWPIC, "rawpics", {"ppm"}, Handler_RawPic, "raw image"},
 	{WT_SOUND, "sounds", {"au", "txt"}, Handler_Sound, "sound"},
 	{WT_SPRITE, "sprites", {"ppm"}, Handler_PatchT, "sprite"},
+	{WT_LEVELS, "levels", {"wad"}, NULL, "level"},
 };
 
 /* c_Colors -- FreeDOOM's Palette */
@@ -1101,14 +1103,16 @@ int main(int argc, char** argv)
 	char Ext[5];
 	char* p;
 	char* Tok;
-	size_t i, j, n, ld, q;
+	size_t i, j, n, ld, q, k;
 	FILE* InTXT;
 	FILE* OutWAD;
 	FILE* LumpFile;
 	LumpType_t Type = 0, NewType;
 	size_t LumpSize;
 	PushyData_t Push;
-	uint32_t u32;
+	uint32_t u32, llIndexOff, llNumLumps, lllOff, lllSize;
+	char llName[9];
+	uint8_t* Data;
 	
 	/* Check */
 	if (argc < 3)
@@ -1287,17 +1291,62 @@ int main(int argc, char** argv)
 			// Handle Data Type
 			memset(&Push, 0, sizeof(Push));
 			
-			if (c_LumpDirs[ld].Handler)
-				if (!c_LumpDirs[ld].Handler(&c_LumpDirs[ld], LumpFile, LumpSize, Ext, Args, &Push))
-					fprintf(stderr, "Err: Handler had trouble with %s \"%s\"\n", c_LumpDirs[ld].NoteName, Arg[0]);
-				else
+			// If levels, append WAD to end
+			if (ld == WT_LEVELS)
+			{
+				// Read entire data file
+				Data = malloc(LumpSize);
+				fseek(LumpFile, 0, SEEK_SET);
+				fread(Data, LumpSize, 1, LumpFile);
+				fseek(LumpFile, 0, SEEK_SET);
+				
+				// Read header
+				fseek(LumpFile, 4, SEEK_SET);
+				fread(&llNumLumps, 4, 1, LumpFile);
+				fread(&llIndexOff, 4, 1, LumpFile);
+				
+				// Swap
+				llIndexOff = LittleSwapUInt32(llIndexOff);
+				llNumLumps = LittleSwapUInt32(llNumLumps);
+				
+				// Seek to index
+				fseek(LumpFile, llIndexOff, SEEK_SET);
+				
+				// Read Lump data
+				for (k = 0; k < llNumLumps; k++)
 				{
-					// Push `Data` and `Size` in WAD
-					AddLump(Arg[0], Push.Data, Push.Size);
-					fprintf(stderr, "Not: Added %s \"%s\"\n", c_LumpDirs[ld].NoteName, Arg[0]);
+					// Read offset
+					fread(&lllOff, 4, 1, LumpFile);
+					lllOff = LittleSwapUInt32(lllOff);
+					
+					// Read Size
+					fread(&lllSize, 4, 1, LumpFile);
+					lllSize = LittleSwapUInt32(lllSize);
+					
+					// Read Name
+					memset(llName, 0, sizeof(llName));
+					fread(llName, 8, 1, LumpFile);
+					
+					// Push around
+					AddLump(llName, Data + lllOff, lllSize);
 				}
+			}
+			
+			// Use Handler
 			else
-				fprintf(stderr, "Err: No handler for %s \"%s\"\n", c_LumpDirs[ld].NoteName, Arg[0]);
+			{
+				if (c_LumpDirs[ld].Handler)
+					if (!c_LumpDirs[ld].Handler(&c_LumpDirs[ld], LumpFile, LumpSize, Ext, Args, &Push))
+						fprintf(stderr, "Err: Handler had trouble with %s \"%s\"\n", c_LumpDirs[ld].NoteName, Arg[0]);
+					else
+					{
+						// Push `Data` and `Size` in WAD
+						AddLump(Arg[0], Push.Data, Push.Size);
+						fprintf(stderr, "Not: Added %s \"%s\"\n", c_LumpDirs[ld].NoteName, Arg[0]);
+					}
+				else
+					fprintf(stderr, "Err: No handler for %s \"%s\"\n", c_LumpDirs[ld].NoteName, Arg[0]);
+			}
 			
 			// Close data file
 			fclose(LumpFile);

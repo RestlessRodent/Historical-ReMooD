@@ -49,6 +49,7 @@
 #include "v_video.h"
 #include "st_stuff.h"
 #include "w_wad.h"
+#include "console.h"
 
 #if defined(NEWCHEATS)
 
@@ -820,4 +821,192 @@ void Command_CheatSummonFriend_f(void)
 
 // heretic cheat
 
+/***********************
+*** NEW CHEAT SYSTEM ***
+***********************/
+
+/*** STRUCTURES ***/
+
+/* M_SingleCheat_t -- A single cheat */
+typedef struct M_SingleCheat_s
+{
+	const char* const Name;						// Cheat name
+	void (*Command)(player_t* const a_Player, const uint32_t a_ArgC, const char** const a_ArgV);
+} M_SingleCheat_t;
+
+/*** GLOBALS ***/
+
+uint32_t g_CheatFlags = 0;						// Global cheat flags
+
+/*** LOCALS ***/
+
+void MS_CHEAT_FreezeTime(player_t* const a_Player, const uint32_t a_ArgC, const char** const a_ArgV);
+void MS_CHEAT_Give(player_t* const a_Player, const uint32_t a_ArgC, const char** const a_ArgV);
+void MS_CHEAT_Summon(player_t* const a_Player, const uint32_t a_ArgC, const char** const a_ArgV);
+void MS_CHEAT_God(player_t* const a_Player, const uint32_t a_ArgC, const char** const a_ArgV);
+
+// l_LocalCheats -- Locally obtained cheats
+static M_SingleCheat_t l_LocalCheats[] =
+{
+	{"freezetime", MS_CHEAT_FreezeTime},
+	{"give", MS_CHEAT_Give},
+	{"summon", MS_CHEAT_Summon},
+	{"god", MS_CHEAT_God},
+	
+	{NULL},
+};
+
+/*** FUNCTIONS ***/
+
+/* MS_CHEAT_FreezeTime() -- Freeze time! Cool! */
+void MS_CHEAT_FreezeTime(player_t* const a_Player, const uint32_t a_ArgC, const char** const a_ArgV)
+{
+	/* Toggle Freeze Time */
+	g_CheatFlags ^= MCF_FREEZETIME;
+	
+	/* Message */
+	CONL_PrintF("Time is now %s.\n", (g_CheatFlags & MCF_FREEZETIME ? "Frozen" : "Flowing"));
+}
+
+/* MS_CHEAT_Give() -- Give something */
+void MS_CHEAT_Give(player_t* const a_Player, const uint32_t a_ArgC, const char** const a_ArgV)
+{
+	weapontype_t Weapon;
+	ammotype_t Ammo;
+	size_t CompLen, i;
+	char* AstPtr;
+	bool_t Wild;
+	
+	/* Check Arguments */
+	if (!a_Player || a_ArgC < 1)
+		return;
+	
+	/* Find asterisk? */
+	Wild = false;
+	AstPtr = strchr(a_ArgV[0], '*');
+	
+	if (!AstPtr)
+		CompLen = strlen(a_ArgV[0]);
+	else
+	{
+		Wild = true;
+		CompLen = AstPtr - a_ArgV[0];
+	}
+	
+	/* Give what? */
+	// Weapon?
+	for (i = 0; i < NUMWEAPONS; i++)
+		if ((!Wild && strcasecmp(a_ArgV[0], a_Player->weaponinfo[i]->ClassName) == 0) || 
+			(Wild && strncasecmp(a_ArgV[0], a_Player->weaponinfo[i]->ClassName, CompLen) == 0))
+			// Make it owned
+			a_Player->weaponowned[i] = true;
+	
+	// Ammo?
+	for (i = 0; i < NUMAMMO; i++)
+		if ((!Wild && strcasecmp(a_ArgV[0], ammoinfo[i]->ClassName) == 0) || 
+			(Wild && strncasecmp(a_ArgV[0], ammoinfo[i]->ClassName, CompLen) == 0))
+			// Give max ammo
+			a_Player->ammo[i] = a_Player->maxammo[i];
+}
+
+/* MS_CHEAT_Summon() -- Spawn an object in front of the player */
+void MS_CHEAT_Summon(player_t* const a_Player, const uint32_t a_ArgC, const char** const a_ArgV)
+{
+	fixed_t Distance, BaseDist;
+	mobjtype_t Obj;
+	mobj_t* Mo;
+	size_t Count, i;
+	
+	/* Check Arguments */
+	if (!a_Player || a_ArgC < 1)
+		return;
+	
+	/* Get Count */
+	if (a_ArgC > 1)
+		Count = atoi(a_ArgV[1]);
+	else
+		Count = 1;
+	
+	/* Look it up by name */
+	Obj = INFO_GetTypeByName(a_ArgV[0]);
+	
+	// Invalid?
+	if (Obj == NUMMOBJTYPES)
+		return;
+		
+	/* Spawn it away from the player */
+	BaseDist = Distance = (a_Player->mo->info->radius * 2) + (mobjinfo[Obj].radius * 2);
+
+	// Spawn it
+	for (i = 0; i < Count; i++)
+	{
+		Mo = P_SpawnMobj(
+				a_Player->mo->x +
+					FixedMul(Distance,
+						finecosine[a_Player->mo->angle >> ANGLETOFINESHIFT]),
+				a_Player->mo->y + FixedMul(Distance, finesine[a_Player->mo->angle >> ANGLETOFINESHIFT]),
+				a_Player->mo->z,
+				Obj
+			);
+		
+		// Failed to spawn?
+		if (!Mo)
+			break;
+		
+		// If respawning more than 1 and the rest cannot be seen, respawn
+		if (Count > 1 && !P_CheckSight(a_Player->mo, Mo))
+		{
+			P_RemoveMobj(Mo);
+			continue;
+		}
+				
+		// Modify angle
+		Mo->angle = a_Player->mo->angle;
+		
+		// Add distance
+		Distance += BaseDist;
+	}
+}
+
+/* MS_CHEAT_God() -- Make invincible */
+void MS_CHEAT_God(player_t* const a_Player, const uint32_t a_ArgC, const char** const a_ArgV)
+{
+	/* Check */
+	if (!a_Player)
+		return;
+	
+	/* Toggle God Mode */
+	a_Player->cheats ^= CF_GODMODE;
+}
+
+/* MS_MultiCheatCommand() -- Multi-cheat command */
+static CONL_ExitCode_t MS_MultiCheatCommand(const uint32_t a_ArgC, const char** const a_ArgV)
+{
+	size_t i;
+	
+	/* Check */
+	if (a_ArgC < 2)
+		return CLE_INVALIDARGUMENT;
+	
+	/* See if cheating is permitted in this game */
+	
+	/* Loop */
+	for (i = 0; l_LocalCheats[i].Name; i++)
+		// Compare Name
+		if (strcasecmp(a_ArgV[1], l_LocalCheats[i].Name) == 0)
+			// Call cheat handler
+			l_LocalCheats[i].Command(&players[consoleplayer[0]], a_ArgC - 2, a_ArgV + 2);
+	
+	/* Return */
+	return CLE_SUCCESS;
+}
+
+/* M_CheatInit() -- Initialize Cheating */
+void M_CheatInit(void)
+{
+	/* Add multi-cheat command */
+	CONL_AddCommand("cheat", MS_MultiCheatCommand);
+}
+
 #endif
+

@@ -408,7 +408,15 @@ static P_EXGSVariable_t l_GSVars[PEXGSNUMBITIDS] =
 	
 	{PEXGST_INTEGER, PEXGSBID_MONRESPAWNMONSTERS, "mon_respawnmonsters", "Respawn Monsters",
 		"Monsters come back to life after a short delay.", PEXGSGM_ANY, PEXGSDR_NOCHECK, 0, {0, 1}, 0,
-		PEXGSMC_MONSTERS}, 
+		PEXGSMC_MONSTERS},
+	
+	{PEXGST_INTEGER, PEXGSBID_FUNNOTARGETPLAYER, "fun_noplayertarget", "No Player Targetting",
+		"Monsters are incapable of targetting players.", PEXGSGM_ANY, PEXGSDR_NOCHECK, 0, {0, 1}, 0,
+		PEXGSMC_FUN},
+	
+	{PEXGST_INTEGER, PEXGSBID_MONARCHVILEANYRESPAWN, "mon_archvileanyrespawn", "Arch-Viles Respawn Anything",
+		"Arch-Viles can ressurect anything regardless if it can be or not.", PEXGSGM_ANY, PEXGSDR_NOCHECK, 0, {0, 1}, 0,
+		PEXGSMC_FUN},
 };
 
 /*** FUNCTIONS ***/

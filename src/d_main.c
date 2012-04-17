@@ -1480,6 +1480,7 @@ void D_DoomMain(void)
 	R_LoadTextures();					// Load texture info
 	P_ExtraSpecialStuff();				// Initialize extra special stuff
 	P_EXGSRegisterStuff();				// Extended Game Settings stuff
+	M_CheatInit();						// Initialize Cheats
 	/**************************/
 	
 	// GhostlyDeath <December 14, 2011> -- Use extended identify version

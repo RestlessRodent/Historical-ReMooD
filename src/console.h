@@ -158,7 +158,8 @@ typedef struct CONCTI_Inputter_s
 	char** History;								// Remembered strings
 	size_t NumHistory;							// Amount of history to preserve
 	size_t HistoryCount;						// Stuff in history
-	size_t HistorySpot;							// Current spot in history
+	int HistorySpot;							// Current spot in history
+	size_t HistoryRove;							// History Rove
 	
 	CONCTI_OutBack_t OutFunc;					// Function to call when text is entered (\n)
 	bool_t Changed;								// Input changed?

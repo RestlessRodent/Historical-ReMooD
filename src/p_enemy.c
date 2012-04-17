@@ -498,6 +498,10 @@ static bool_t P_LookForPlayers(mobj_t* actor, bool_t allaround)
 			if (actor == mo)
 				continue;
 			
+			// A player? and cannot target them?
+			if (P_EXGSGetValue(PEXGSBID_FUNNOTARGETPLAYER) && mo->player)
+				continue;
+			
 			// Not Shootable?
 			if (!(mo->flags & MF_SHOOTABLE))
 				continue;
@@ -535,6 +539,10 @@ static bool_t P_LookForPlayers(mobj_t* actor, bool_t allaround)
 	/* Normal, look for players */
 	else
 	{
+		// Never Target Players?
+		if (P_EXGSGetValue(PEXGSBID_FUNNOTARGETPLAYER))
+			return false;
+		
 		sector = actor->subsector->sector;
 	
 		// BP: first time init, this allow minimum lastlook changes
@@ -600,6 +608,11 @@ void A_Look(mobj_t* actor)
 	actor->threshold = 0;		// any shot will wake up
 	targ = actor->subsector->sector->soundtarget;
 	
+	// Target is a player?
+	if (P_EXGSGetValue(PEXGSBID_FUNNOTARGETPLAYER))
+		if (targ && targ->player)
+			targ = NULL;
+	
 	if (targ && (targ->flags & MF_SHOOTABLE))
 	{
 		actor->target = targ;
@@ -618,6 +631,7 @@ void A_Look(mobj_t* actor)
 		
 	// go into chase state
 seeyou:
+	
 	if (actor->info->seesound)
 	{
 		int sound;
@@ -1174,9 +1188,11 @@ bool_t PIT_VileCheck(mobj_t* thing, void* a_Arg)
 		
 	if (thing->tics != -1)
 		return true;			// not lying still yet
-		
-	if (thing->info->raisestate == S_NULL)
-		return true;			// monster doesn't have a raise state
+	
+	// GhostlyDeath <April 16, 2012> -- Arch-Viles can ressurect anything variable
+	if (!P_EXGSGetValue(PEXGSBID_MONARCHVILEANYRESPAWN))
+		if (thing->info->raisestate == S_NULL)
+			return true;			// monster doesn't have a raise state
 		
 	maxdist = thing->info->radius + TheVile->info->radius;
 	
@@ -1245,7 +1261,12 @@ void A_VileChase(mobj_t* actor)
 					S_StartSound(&corpsehit->NoiseThinker, sfx_slop);
 					info = corpsehit->info;
 					
-					P_SetMobjState(corpsehit, info->raisestate);
+					// GhostlyDeath <March 6, 2012> -- If there is no raise state, use spawn state
+					if (info->raisestate != S_NULL)
+						P_SetMobjState(corpsehit, info->raisestate);
+					else
+						P_SetMobjState(corpsehit, info->spawnstate);
+					
 					if (P_EXGSGetValue(PEXGSBID_COUNSHIFTVILERAISE))
 						corpsehit->height <<= 2;
 					else
@@ -1402,8 +1423,11 @@ void A_FatAttack1(mobj_t* actor)
 	mo = P_SpawnMissile(actor, actor->target, INFO_GetTypeByName("MancubusShot"));
 	
 	// GhostlyDeath <March 6, 2012> -- Obituary Stuff
-	mo->RXUsedMelee = false;
-	mo->RXUsedSpell = false;
+	if (mo)
+	{
+		mo->RXUsedMelee = false;
+		mo->RXUsedSpell = false;
+	}
 	
 	mo = P_SpawnMissile(actor, actor->target, INFO_GetTypeByName("MancubusShot"));
 	if (mo)
@@ -1430,8 +1454,11 @@ void A_FatAttack2(mobj_t* actor)
 	mo = P_SpawnMissile(actor, actor->target, INFO_GetTypeByName("MancubusShot"));
 	
 	// GhostlyDeath <March 6, 2012> -- Obituary Stuff
-	mo->RXUsedMelee = false;
-	mo->RXUsedSpell = false;
+	if (mo)
+	{
+		mo->RXUsedMelee = false;
+		mo->RXUsedSpell = false;
+	}
 	
 	mo = P_SpawnMissile(actor, actor->target, INFO_GetTypeByName("MancubusShot"));
 	if (mo)
