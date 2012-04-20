@@ -212,7 +212,14 @@ extern line_t* ceilingline;
 extern line_t* blockingline;
 extern msecnode_t* sector_list;
 
-bool_t P_CheckPosition(mobj_t* thing, fixed_t x, fixed_t y);
+/* P_CheckPositionFlags_t -- Position check flags */
+typedef enum P_CheckPositionFlags_e
+{
+	PCPF_ACCEPTALL					= 0x0001,	// Accept all things
+	PCPF_FORSPOTCHECK				= 0x0002,	// For player spot checking
+} P_CheckPositionFlags_t;
+
+bool_t P_CheckPosition(mobj_t* thing, fixed_t x, fixed_t y, uint32_t a_Flags);
 bool_t P_TryMove(mobj_t* thing, fixed_t x, fixed_t y, bool_t allowdropoff);
 bool_t P_TeleportMove(mobj_t* thing, fixed_t x, fixed_t y);
 void P_SlideMove(mobj_t* mo);

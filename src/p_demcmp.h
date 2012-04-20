@@ -119,6 +119,8 @@ typedef enum P_EXGSMenuCategory_s
 	PEXGSMC_FUN,								// Fun Settings! =D yay!
 	PEXGSMC_HERETIC,							// Heretic Settings
 	PEXGSMC_MONSTERS,							// Monster Settings
+	PEXGSMC_GAME,								// Game Settings
+	PEXGSMC_PLAYERS,							// Players
 	
 	NUMPEXGSMENUCATEGORIES
 } P_EXGSMenuCategory_t;
@@ -197,6 +199,9 @@ typedef enum P_EXGSBitID_e
 	PEXGSBID_MONRESPAWNMONSTERS,				// Respawn Monsters
 	PEXGSBID_FUNNOTARGETPLAYER,					// Don't Target Players, ever!
 	PEXGSBID_MONARCHVILEANYRESPAWN,				// Arch-Viles can respawn anything
+	PEXGSBID_COOLDCHECKPOSITION,				// Use Old P_CheckPosition()
+	PEXGSBID_COLESSSPAWNSTICKING,				// Make spawn sticking less likely
+	PEXGSBID_PLSPAWNTELEFRAG,					// Telefrag on spawn
 	
 	PEXGSNUMBITIDS
 } P_EXGSBitID_t;

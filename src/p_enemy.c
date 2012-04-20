@@ -1202,7 +1202,7 @@ bool_t PIT_VileCheck(mobj_t* thing, void* a_Arg)
 	corpsehit = thing;
 	corpsehit->momx = corpsehit->momy = 0;
 	corpsehit->height <<= 2;
-	check = P_CheckPosition(corpsehit, corpsehit->x, corpsehit->y);
+	check = P_CheckPosition(corpsehit, corpsehit->x, corpsehit->y, 0);
 	corpsehit->height >>= 2;
 	
 	if (!check)

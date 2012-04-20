@@ -146,6 +146,7 @@ extern bool_t g_PlayerInSplit[MAXSPLITSCREEN];	// Players that belong in splits
 /*** FUNCTIONS ***/
 
 struct player_s* D_NCSAddLocalPlayer(const char* const a_ProfileID);
+struct player_s* D_NCSAddBotPlayer(const char* const a_ProfileID);
 
 void D_NCSInit(void);
 void D_NCSNetUpdateSingle(struct player_s* a_Player);

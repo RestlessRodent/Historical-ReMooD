@@ -1466,7 +1466,7 @@ bool_t G_CheckSpot(int playernum, mapthing_t* mthing)
 		}
 	}
 	
-	if (!P_CheckPosition(players[playernum].mo, x, y))
+	if (!P_CheckPosition(players[playernum].mo, x, y, (P_EXGSGetValue(PEXGSBID_COLESSSPAWNSTICKING) ? PCPF_FORSPOTCHECK : 0)))
 		return false;
 		
 	// flush an old corpse if needed

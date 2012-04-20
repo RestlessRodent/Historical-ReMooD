@@ -730,7 +730,7 @@ void P_NightmareRespawn(mobj_t* mobj)
 	}
 	
 	// somthing is occupying it's position?
-	if (!P_CheckPosition(mobj, x, y))
+	if (!P_CheckPosition(mobj, x, y, 0))
 		return;					// no respwan
 		
 	// spawn a teleport fog at old spot
@@ -929,7 +929,7 @@ void P_MobjThinker(mobj_t* mobj)
 				if (!checkedpos && P_EXGSGetValue(PEXGSBID_COCHECKXYMOVE))
 				{
 					// FIXME : should check only with things, not lines
-					P_CheckPosition(mobj, mobj->x, mobj->y);
+					P_CheckPosition(mobj, mobj->x, mobj->y, 0);
 					
 					mobj->floorz = tmfloorz;
 					mobj->ceilingz = tmceilingz;
@@ -1104,7 +1104,7 @@ mobj_t* P_SpawnMobj(fixed_t x, fixed_t y, fixed_t z, mobjtype_t type)
 	//                allow for some funny thing arrangements!
 	if (z == ONFLOORZ)
 	{
-		//if (!P_CheckPosition(mobj,x,y))
+		//if (!P_CheckPosition(mobj,x,y, 0))
 		// we could send a message to the console here, saying
 		// "no place for spawned thing"...
 		
@@ -1119,11 +1119,11 @@ mobj_t* P_SpawnMobj(fixed_t x, fixed_t y, fixed_t z, mobjtype_t type)
 		   mobj->z = mobj->floorz;
 		
 		   // first check the tmfloorz
-		   P_CheckPosition(mobj,x,y);
+		   P_CheckPosition(mobj,x,y, 0);
 		   mobj->z = tmfloorz+FRACUNIT;
 		
 		   // second check at the good z pos
-		   P_CheckPosition(mobj,x,y);
+		   P_CheckPosition(mobj,x,y, 0);
 		
 		   mobj->floorz = tmfloorz;
 		   mobj->ceilingz = tmsectorceilingz;
@@ -1488,6 +1488,10 @@ void P_SpawnPlayer(mapthing_t* mthing)
 	
 	if (p->camera.chase)
 		P_ResetCamera(p);
+	
+	// GhostlyDeath <April 20, 2012> -- Telefrag whatever was here
+	if (P_EXGSGetValue(PEXGSBID_PLSPAWNTELEFRAG))
+		P_TeleportMove(mobj, mobj->x, mobj->y);
 }
 
 //

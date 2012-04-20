@@ -963,6 +963,47 @@ struct player_s* D_NCSAddLocalPlayer(const char* const a_ProfileID)
 	return &players[p];
 }
 
+/* D_NCSAddBotPlayer() -- Add bot player */
+struct player_s* D_NCSAddBotPlayer(const char* const a_ProfileID)
+{
+	size_t p;
+	D_NetPlayer_t* NPp;
+	
+	/* Check */
+	if (!a_ProfileID)
+		return NULL;
+	
+	/* Find player that is not in game */
+	for (p = 0; p < MAXPLAYERS; p++)
+		if (!playeringame[p])
+			break;
+	
+	// No free slots (too many inside the game)
+	if (p >= MAXPLAYERS)
+		return NULL;
+	
+	/* Add player to game */
+	playeringame[p] = true;
+	
+	/* Initialize Player */
+	// Clear everything
+	memset(&players[p], 0, sizeof(players[p]));
+	
+	// Set as reborn
+	players[p].playerstate = PST_REBORN;
+	
+	/* Setup network player */
+	// Allocate
+	NPp = players[p].NetPlayer = D_NCSAllocNetPlayer();
+	
+	// Set base info
+	NPp->Type = DNPT_BOT;
+	NPp->Player = &players[p];
+	
+	/* Return the new player */
+	return &players[p];
+}
+
 /* DS_NCSNetCommand() -- Network commands */
 static CONL_ExitCode_t DS_NCSNetCommand(const uint32_t a_ArgC, const char** const a_ArgV)
 {
@@ -991,6 +1032,24 @@ static CONL_ExitCode_t DS_NCSNetCommand(const uint32_t a_ArgC, const char** cons
 			return CLE_FAILURE;
 		}
 	}
+	
+	// Add Bot to game
+	else if (strcasecmp(a_ArgV[1], "addbot") == 0)
+	{
+		p = D_NCSAddBotPlayer((a_ArgC > 2 ? a_ArgV[2] : "default"));
+		
+		if (p)
+		{
+			i = p - players;
+		
+			CONL_PrintF("Net: Added bot %i.\n", i);
+		}
+		else
+		{
+			CONL_PrintF("Net: Failed to add bot.\n");
+			return CLE_FAILURE;
+		}
+	} 
 	
 	/* Success */
 	return CLE_SUCCESS;
@@ -1034,15 +1093,16 @@ void D_NCSNetUpdateSingle(struct player_s* a_Player)
 	if (!NPp)
 		return;
 	
-	/* Which type of player is this? */
+	/* Generate Commands */
+	// Use last free spot
+	i = NPp->TicTotal++;
+	TicCmd = &NPp->TicCmd[i];
+	
+	// Now what to do with this?
 	switch (NPp->Type)
 	{
 			// Local player on this computer
 		case DNPT_LOCAL:
-			// Push command
-			i = NPp->TicTotal++;
-			TicCmd = &NPp->TicCmd[i];
-			
 			// Fill command based on controller input
 				// TODO
 			
@@ -1057,6 +1117,16 @@ void D_NCSNetUpdateSingle(struct player_s* a_Player)
 			
 			// Bot, a simulated player
 		case DNPT_BOT:
+			// TODO: Make actual bots here
+			TicCmd->forwardmove = (int)(M_Random() % 100) - 50;
+			TicCmd->sidemove = (int)(M_Random() % 100) - 50;
+			TicCmd->angleturn = (M_Random() * M_Random()) & 0xFFFF;
+			
+			// Dead? Respawn
+			if (NPp->Player->playerstate == PST_DEAD)
+				TicCmd->buttons = BT_USE;
+			else
+				TicCmd->buttons = BT_ATTACK;
 			break;
 			
 			// Unknown

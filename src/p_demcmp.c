@@ -417,6 +417,18 @@ static P_EXGSVariable_t l_GSVars[PEXGSNUMBITIDS] =
 	{PEXGST_INTEGER, PEXGSBID_MONARCHVILEANYRESPAWN, "mon_archvileanyrespawn", "Arch-Viles Respawn Anything",
 		"Arch-Viles can ressurect anything regardless if it can be or not.", PEXGSGM_ANY, PEXGSDR_NOCHECK, 0, {0, 1}, 0,
 		PEXGSMC_FUN},
+	
+	{PEXGST_INTEGER, PEXGSBID_COOLDCHECKPOSITION, "co_oldcheckposition", "Old Position Checking",
+		"Use old P_CheckPosition() Code. [Legacy < 1.42]", PEXGSGM_ANY, PEXGSDR_LESSTHAN, 142, {0, 1}, 0,
+		PEXGSMC_COMPAT},
+	
+	{PEXGST_INTEGER, PEXGSBID_COLESSSPAWNSTICKING, "co_lessspawnsticking", "Less Spawn Spot Sticking",
+		"Make players getting stuck inside other players less likely to occur. [ReMooD >= 1.0a]", PEXGSGM_ANY, PEXGSDR_ATLEAST, PEXGSDR_ATLEAST, 200, {0, 1}, 1,
+		PEXGSMC_COMPAT},
+	
+	{PEXGST_INTEGER, PEXGSBID_PLSPAWNTELEFRAG, "pl_spawntelefrag", "Tele-Frag When Spawning",
+		"Tele-frag when a player respawns (to empty the spot). [ReMooD >= 1.0a]", PEXGSGM_ANY, PEXGSDR_ATLEAST, 200, {0, 1}, 1,
+		PEXGSMC_PLAYERS},
 };
 
 /*** FUNCTIONS ***/

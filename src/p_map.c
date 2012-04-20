@@ -126,7 +126,7 @@ static bool_t PIT_StompThing(mobj_t* thing, void* a_Arg)
 	// Not allowed to stomp things
 	if (!(tmthing->flags2 & MF2_TELESTOMP))
 		return (false);
-		
+	
 	P_DamageMobj(thing, tmthing, tmthing, 10000);
 	
 	return true;
@@ -263,6 +263,12 @@ static void add_spechit(line_t* ld)
 	numspechit++;
 }
 
+/* P_PITCTSettings_t -- Settings for PIT_CheckThing */
+typedef struct P_PITCTSettings_s
+{
+	bool_t VsInfo;								// Use against mobjinfo, not mobj_t
+} P_PITCTSettings_t;
+
 //
 // PIT_CheckThing
 //
@@ -271,6 +277,7 @@ static bool_t PIT_CheckThing(mobj_t* thing, void* a_Arg)
 	fixed_t blockdist;
 	bool_t solid;
 	int damage;
+	P_PITCTSettings_t* SettingsP = a_Arg;
 	
 	//added:22-02-98:
 	fixed_t topz;
@@ -293,6 +300,7 @@ static bool_t PIT_CheckThing(mobj_t* thing, void* a_Arg)
 		// didn't hit it
 		return true;
 	}
+	
 	// heretic stuffs
 	if (tmthing->flags2 & MF2_PASSMOBJ)
 	{
@@ -306,6 +314,7 @@ static bool_t PIT_CheckThing(mobj_t* thing, void* a_Arg)
 			return (true);
 		}
 	}
+	
 	// check for skulls slamming into things
 	if (tmflags & MF_SKULLFLY)
 	{
@@ -320,6 +329,7 @@ static bool_t PIT_CheckThing(mobj_t* thing, void* a_Arg)
 		
 		return false;			// stop moving
 	}
+	
 	// missiles can hit other things
 	if (tmthing->flags & MF_MISSILE)
 	{
@@ -379,6 +389,7 @@ static bool_t PIT_CheckThing(mobj_t* thing, void* a_Arg)
 		thing->momx += tmthing->momx >> 2;
 		thing->momy += tmthing->momy >> 2;
 	}
+	
 	// check for special pickup
 	if (thing->flags & MF_SPECIAL)
 	{
@@ -390,6 +401,7 @@ static bool_t PIT_CheckThing(mobj_t* thing, void* a_Arg)
 		}
 		return !solid;
 	}
+	
 	// check again for special pickup
 	if (P_EXGSGetValue(PEXGSBID_CODOUBLEPICKUPCHECK) && tmthing->flags & MF_SPECIAL)
 	{
@@ -401,6 +413,7 @@ static bool_t PIT_CheckThing(mobj_t* thing, void* a_Arg)
 		}
 		return !solid;
 	}
+	
 	//added:24-02-98:compatibility with old demos, it used to return with...
 	//added:27-02-98:for version 112+, nonsolid things pass through other things
 	if (P_EXGSGetValue(PEXGSBID_CONONSOLIDPASSTHRUOLD) || P_EXGSGetValue(PEXGSBID_CONONSOLIDPASSTHRUNEW) || !(tmthing->flags & MF_SOLID))
@@ -435,6 +448,7 @@ static bool_t PIT_CheckThing(mobj_t* thing, void* a_Arg)
 		}
 		
 	}
+	
 	// not solid not blocked
 	return true;
 }
@@ -567,7 +581,7 @@ bool_t PIT_CheckLine(line_t* ld, void* a_Arg)
 // tmceilingz
 //     the nearest ceiling or thing's bottom over tmthing
 //
-bool_t P_CheckPosition(mobj_t* thing, fixed_t x, fixed_t y)
+bool_t P_CheckPosition(mobj_t* thing, fixed_t x, fixed_t y, uint32_t a_Flags)
 {
 	int xl;
 	int xh;
@@ -576,6 +590,10 @@ bool_t P_CheckPosition(mobj_t* thing, fixed_t x, fixed_t y)
 	int bx;
 	int by;
 	subsector_t* newsubsec;
+	P_PITCTSettings_t Settings;
+	
+	// Clear settings
+	memset(&Settings, 0, sizeof(Settings));
 	
 	tmthing = thing;
 	tmflags = thing->flags;
@@ -636,7 +654,9 @@ bool_t P_CheckPosition(mobj_t* thing, fixed_t x, fixed_t y)
 	// into adjacent blocks by up to MAXRADIUS units.
 	
 	// BP: added MF_NOCLIPTHING :used by camera to don't be blocked by things
-	if (!(thing->flags & MF_NOCLIPTHING) && (thing->flags & MF_SOLID || thing->flags & MF_MISSILE))
+	if (!(thing->flags & MF_NOCLIPTHING) && 
+		((a_Flags & PCPF_FORSPOTCHECK) ||
+			(P_EXGSGetValue(PEXGSBID_COOLDCHECKPOSITION) || (thing->flags & MF_SOLID || thing->flags & MF_MISSILE))))
 		/* DarkWolf95:don't check non-solids against other things,
 		   keep them in the map though, so still check against lines */
 	{
@@ -645,9 +665,12 @@ bool_t P_CheckPosition(mobj_t* thing, fixed_t x, fixed_t y)
 		yl = (tmbbox[BOXBOTTOM] - bmaporgy - MAXRADIUS) >> MAPBLOCKSHIFT;
 		yh = (tmbbox[BOXTOP] - bmaporgy + MAXRADIUS) >> MAPBLOCKSHIFT;
 		
+		if (a_Flags & PCPF_FORSPOTCHECK)
+			Settings.VsInfo = true;
+		
 		for (bx = xl; bx <= xh; bx++)
 			for (by = yl; by <= yh; by++)
-				if (!P_BlockThingsIterator(bx, by, PIT_CheckThing, NULL))
+				if (!P_BlockThingsIterator(bx, by, PIT_CheckThing, &Settings))
 					return false;
 	}
 	// check lines
@@ -700,7 +723,7 @@ bool_t P_TryMove(mobj_t* thing, fixed_t x, fixed_t y, bool_t allowdropoff)
 	
 	floatok = false;
 	
-	if (!P_CheckPosition(thing, x, y))
+	if (!P_CheckPosition(thing, x, y, 0))
 	{
 		CheckMissileImpact(thing);
 		return false;			// solid wall or thing
@@ -830,7 +853,7 @@ bool_t P_ThingHeightClip(mobj_t* thing)
 	
 	onfloor = (thing->z <= thing->floorz);
 	
-	P_CheckPosition(thing, thing->x, thing->y);
+	P_CheckPosition(thing, thing->x, thing->y, 0);
 	
 	// what about stranding a monster partially off an edge?
 	
@@ -1290,9 +1313,6 @@ bool_t PTR_ShootTraverse(intercept_t* in, void* a_Data)
 	int dir;
 	
 	P_LineAtkArgs_t* Args = a_Data;
-	
-	if (Args)
-		fprintf(stderr, "ST %i %s %i (%s)\n", Args->Flags, (in->isaline ? "Line" : "Thing"), (in->isaline ? in->d.line - lines : in->d.thing->type), (in->isaline ? "--" : MT2ReMooDClass[in->d.thing->type]));
 	
 	if (aimslope > 0)
 		dir = 1;
@@ -2501,7 +2521,7 @@ bool_t P_TestMobjLocation(mobj_t* mobj)
 	
 	flags = mobj->flags;
 	mobj->flags &= ~MF_PICKUP;
-	if (P_CheckPosition(mobj, mobj->x, mobj->y))
+	if (P_CheckPosition(mobj, mobj->x, mobj->y, 0))
 	{
 		// XY is ok, now check Z
 		mobj->flags = flags;
