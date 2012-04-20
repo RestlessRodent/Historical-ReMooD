@@ -202,6 +202,7 @@ typedef enum P_EXGSBitID_e
 	PEXGSBID_COOLDCHECKPOSITION,				// Use Old P_CheckPosition()
 	PEXGSBID_COLESSSPAWNSTICKING,				// Make spawn sticking less likely
 	PEXGSBID_PLSPAWNTELEFRAG,					// Telefrag on spawn
+	PEXGSBID_GAMEONEHITKILLS,					// One Hit Kills
 	
 	PEXGSNUMBITIDS
 } P_EXGSBitID_t;

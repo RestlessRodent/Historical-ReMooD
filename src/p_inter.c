@@ -1394,6 +1394,23 @@ bool_t P_DamageMobj(mobj_t* target, mobj_t* inflictor, mobj_t* source, int damag
 			return true;
 		}
 		
+		// GhostlyDeath <April 20, 2012> -- One Hit Kills
+		if (P_EXGSGetValue(PEXGSBID_GAMEONEHITKILLS))
+		{
+			// Set health to zero
+			if (target->health > 0)
+				target->health = 0;
+			
+			// Set player's health to zero also
+			if (target->player)
+				if (target->player->health > 0)
+					target->player->health = 0;
+			
+			// Kill it
+			P_KillMobj(target, inflictor, source);
+			return true;
+		}
+		
 		if ((P_Random() < target->info->painchance) && !(target->flags & (MF_SKULLFLY | MF_CORPSE)))
 		{
 			target->flags |= MF_JUSTHIT;	// fight back!

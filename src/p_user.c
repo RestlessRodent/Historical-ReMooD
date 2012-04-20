@@ -810,12 +810,15 @@ void P_PlayerThink(player_t* player)
 	}
 	
 	if (player->playerstate == PST_REBORN)
+	{
+		return;
 #ifdef PARANOIA
 		I_Error("player %d is in PST_REBORN\n");
 #else
 		// it is not "normal" but far to be critical
 		return;
 #endif
+	}
 		
 	if (player->playerstate == PST_DEAD)
 	{
