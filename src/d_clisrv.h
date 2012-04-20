@@ -52,3 +52,4 @@ void D_QuitNetGame(void);		// Broadcasts special packets to other players to not
 void TryRunTics(tic_t realtic);	// how many ticks to run
 
 #endif
+

@@ -1731,7 +1731,7 @@ static mobj_t* bloodthing;
 static fixed_t bloodspawnpointx, bloodspawnpointy;
 
 #ifdef WALLSPLATS
-bool_t PTR_BloodTraverse(intercept_t* in)
+bool_t PTR_BloodTraverse(intercept_t* in, void* a_Data)
 {
 	line_t* li;
 	divline_t divl;
@@ -1833,7 +1833,7 @@ void P_SpawnBloodSplats(fixed_t x, fixed_t y, fixed_t z, int damage, fixed_t mom
 		x2 = x + distance * finecosine[anglesplat >> ANGLETOFINESHIFT];
 		y2 = y + distance * finesine[anglesplat >> ANGLETOFINESHIFT];
 		
-		P_PathTraverse(x, y, x2, y2, PT_ADDLINES, PTR_BloodTraverse);
+		P_PathTraverse(x, y, x2, y2, PT_ADDLINES, PTR_BloodTraverse, NULL);
 	}
 #endif
 }
@@ -2065,17 +2065,17 @@ mobj_t* P_SPMAngle(mobj_t* source, mobjtype_t type, angle_t angle)
 	if ((source->player->autoaim_toggle && DEMOCVAR(allowautoaim).value))
 	{
 		// see which target is to be aimed at
-		slope = P_AimLineAttack(source, an, 16 * 64 * FRACUNIT);
+		slope = P_AimLineAttack(source, an, 16 * 64 * FRACUNIT, NULL);
 		
 		if (!linetarget)
 		{
 			an += 1 << 26;
-			slope = P_AimLineAttack(source, an, 16 * 64 * FRACUNIT);
+			slope = P_AimLineAttack(source, an, 16 * 64 * FRACUNIT, NULL);
 			
 			if (!linetarget)
 			{
 				an -= 2 << 26;
-				slope = P_AimLineAttack(source, an, 16 * 64 * FRACUNIT);
+				slope = P_AimLineAttack(source, an, 16 * 64 * FRACUNIT, NULL);
 			}
 			
 			if (!linetarget)

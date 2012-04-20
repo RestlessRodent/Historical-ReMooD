@@ -149,10 +149,6 @@ consvar_t cv_screenshotdir = { "screenshotdir", "", CV_SAVE, NULL };
 
 // added 16-6-98:splitscreen
 
-void SplitScreen_OnChange(void);
-
-CV_PossibleValue_t splitscreen_cons_t[] = { {0, "MIN"}, {3, "MAX"}, {0, NULL} };
-consvar_t cv_splitscreen = { "splitscreen", "0", CV_CALL, splitscreen_cons_t, SplitScreen_OnChange };
 
 void SplitScreen_OnChange(void)
 {
@@ -188,7 +184,7 @@ void SplitScreen_OnChange(void)
 			if (playeringame[i])
 			{
 				// KEEP or REMOVE
-				if (i > cv_splitscreen.value)	// remove
+				if (i > g_SplitScreen)	// remove
 				{
 					players[consoleplayer[i]].profile = NULL;
 					if (players[consoleplayer[i]].mo)
@@ -196,13 +192,13 @@ void SplitScreen_OnChange(void)
 					playeringame[i] = 0;
 				}
 				
-				if (!cv_splitscreen.value)
+				if ((g_SplitScreen <= 0))
 					multiplayer = 0;
 			}
 			else
 			{
 				// ADD
-				if (i > 0 && i < cv_splitscreen.value + 1)
+				if (i > 0 && i < g_SplitScreen + 1)
 				{
 					j = 0;
 					
@@ -730,7 +726,7 @@ void R_ExecuteSetViewSize(void)
 		
 	setsizeneeded = false;
 	// no reduced view in splitscreen mode
-	if (cv_splitscreen.value && cv_viewsize.value < 11)
+	if (g_SplitScreen && cv_viewsize.value < 11)
 		CV_SetValue(&cv_viewsize, 11);
 		
 	setdetail = cv_detaillevel.value;
@@ -748,12 +744,12 @@ void R_ExecuteSetViewSize(void)
 	
 	stbarheight = ST_HEIGHT;
 	
-	if (!cv_splitscreen.value && cv_scalestatusbar.value || cv_viewsize.value >= 11)
+	if ((g_SplitScreen <= 0) && cv_scalestatusbar.value || cv_viewsize.value >= 11)
 		stbarheight *= vid.fdupy;
 		
 		
 	//added 01-01-98: full screen view, without statusbar
-	if (cv_splitscreen.value || cv_viewsize.value > 10 || TRANSPARENTSTATUSBAR)
+	if (g_SplitScreen || cv_viewsize.value > 10 || TRANSPARENTSTATUSBAR)
 	{
 		scaledviewwidth = vid.width;
 		viewheight = vid.height;
@@ -768,9 +764,9 @@ void R_ExecuteSetViewSize(void)
 	}
 	
 	// added 16-6-98:splitscreen
-	if (cv_splitscreen.value)
+	if (g_SplitScreen >= 1)
 		viewheight >>= 1;
-	if (cv_splitscreen.value > 1)
+	if (g_SplitScreen > 1)
 		scaledviewwidth >>= 1;
 		
 	detailshift = setdetail;
@@ -1069,7 +1065,7 @@ void R_SetupFrame(player_t* player)
 	// (lmps, nework and use F12...)
 	G_ClipAimingPitch(&aimingangle);
 	
-	if (cv_splitscreen.value != 1)
+	if (g_SplitScreen != 1)
 		dy = AIMINGTODY(aimingangle) * viewheight / BASEVIDHEIGHT;
 	else
 		dy = AIMINGTODY(aimingangle) * viewheight * 2 / BASEVIDHEIGHT;
@@ -1140,7 +1136,7 @@ void R_RenderPlayerViewEx(player_t* player, int quarter)
 	// ylookup is the row and columnofs is the column in the row
 #if 0
 	if (((!cv_chasecam.value && player->mo && player->mo->eflags & MF_UNDERWATER) ||
-	(cv_chasecam.value && camera.mo && camera.mo->eflags & MF_UNDERWATER)) && !cv_splitscreen.value)
+	(cv_chasecam.value && camera.mo && camera.mo->eflags & MF_UNDERWATER)) && (g_SplitScreen <= 0))
 	{
 		for (y = 0; y < viewheight; y++)
 		{
@@ -1222,7 +1218,6 @@ void R_RegisterEngineStuff(void)
 	
 	CV_RegisterVar(&cv_viewsize);
 	CV_RegisterVar(&cv_psprites);
-	CV_RegisterVar(&cv_splitscreen);
 //    CV_RegisterVar (&cv_fov);
 
 	// Default viewheight is changeable,

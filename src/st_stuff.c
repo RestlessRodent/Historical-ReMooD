@@ -838,7 +838,7 @@ void ST_doPaletteStuff(void)
 	}
 	
 	/* Set palette */
-	if (!cv_splitscreen.value)
+	if ((g_SplitScreen <= 0))
 		V_SetPalette(ChosePal);
 }
 
@@ -953,7 +953,7 @@ void ST_Drawer(bool_t refresh)
 	}
 	else if (st_overlay)
 	{
-		for (i = 0; i < cv_splitscreen.value + 1; i++)
+		for (i = 0; i < g_SplitScreen + 1; i++)
 		{
 			overlaypnum = i;
 			if (playeringame[displayplayer[i]])
@@ -1384,13 +1384,13 @@ static __REMOOD_INLINE int SCY(int y)
 	// do not scale to resolution for hardware accelerated
 	// because these modes always scale by default
 	y = y * vid.fdupy;			// scale to resolution
-	if (cv_splitscreen.value == 1)
+	if (g_SplitScreen == 1)
 	{
 		y >>= 1;
 		if (overlaypnum == 1)
 			y += vid.height / 2;
 	}
-	else if (cv_splitscreen.value > 1)
+	else if (g_SplitScreen > 1)
 	{
 		y >>= 1;
 		if (overlaypnum == 2 || overlaypnum == 3)
@@ -1404,7 +1404,7 @@ static __REMOOD_INLINE int SCX(int x)
 {
 	x = x * vid.fdupx;
 	
-	if (cv_splitscreen.value > 1)
+	if (g_SplitScreen > 1)
 	{
 		x >>= 1;
 		if (overlaypnum == 1 || overlaypnum == 3)
@@ -1418,7 +1418,7 @@ static __REMOOD_INLINE int SCX(int x)
 //  kind of information to overlay
 //
 
-#define NOTINTWOSPLIT(x) (cv_splitscreen.value > 1 ? (x) : 0)
+#define NOTINTWOSPLIT(x) (g_SplitScreen > 1 ? (x) : 0)
 
 void ST_overlayDrawer(void)
 {
@@ -1437,7 +1437,7 @@ void ST_overlayDrawer(void)
 		switch (c)
 		{
 			case 'h':			// draw health
-				if (cv_splitscreen.value <= 1)
+				if (g_SplitScreen <= 1)
 					ST_drawOverlayNum(SCX(50) + NOTINTWOSPLIT(8 * vid.fdupx), SCY(198) - (16 * vid.fdupy), plyr->health, tallnum, NULL);
 				else
 				{
@@ -1465,7 +1465,7 @@ void ST_overlayDrawer(void)
 				{
 					if (i)
 					{
-						if (cv_splitscreen.value <= 1)
+						if (g_SplitScreen <= 1)
 						{
 							ST_drawOverlayNum(SCX(234) - NOTINTWOSPLIT(32 * vid.fdupx),
 							                  SCY(198) - (16 * vid.fdupy), plyr->ammo[plyr->weaponinfo[plyr->readyweapon].ammo], tallnum, NULL);
@@ -1494,7 +1494,7 @@ void ST_overlayDrawer(void)
 				break;
 				
 			case 'm':			// draw armor
-				if (cv_splitscreen.value <= 1)
+				if (g_SplitScreen <= 1)
 				{
 					ST_drawOverlayNum(SCX(300) - NOTINTWOSPLIT(8 * vid.fdupx), SCY(198) - (16 * vid.fdupy), plyr->armorpoints, tallnum, NULL);
 				}
@@ -1509,7 +1509,7 @@ void ST_overlayDrawer(void)
 				
 				// added by Hurdler for single player only
 			case 'e':			// number of monster killed
-				if ((!cv_deathmatch.value) && (!cv_splitscreen.value))
+				if ((!cv_deathmatch.value) && ((g_SplitScreen <= 0)))
 				{
 					char buf[16];
 					
@@ -1520,7 +1520,7 @@ void ST_overlayDrawer(void)
 				break;
 				
 			case 's':			// number of secrets found
-				if ((!cv_deathmatch.value) && (!cv_splitscreen.value))
+				if ((!cv_deathmatch.value) && ((g_SplitScreen <= 0)))
 				{
 					char buf[16];
 					

@@ -470,8 +470,8 @@ void A_Punch(player_t* player, pspdef_t* psp)
 	angle += (P_Random() << 18);	// WARNING: don't put this in one line
 	angle -= (P_Random() << 18);	// else this expretion is ambiguous (evaluation order not diffined)
 	
-	slope = P_AimLineAttack(player->mo, angle, MELEERANGE);
-	P_LineAttack(player->mo, angle, MELEERANGE, slope, damage);
+	slope = P_AimLineAttack(player->mo, angle, MELEERANGE, NULL);
+	P_LineAttack(player->mo, angle, MELEERANGE, slope, damage, NULL);
 	
 	// turn to face target
 	if (linetarget)
@@ -529,8 +529,8 @@ void A_Saw(player_t* player, pspdef_t* psp)
 	angle -= (P_Random() << 18);	// else this expretion is ambiguous (evaluation order not diffined)
 	
 	// use meleerange + 1 se the puff doesn't skip the flash
-	slope = P_AimLineAttack(player->mo, angle, MELEERANGE + 1);
-	P_LineAttack(player->mo, angle, MELEERANGE + 1, slope, damage);
+	slope = P_AimLineAttack(player->mo, angle, MELEERANGE + 1, NULL);
+	P_LineAttack(player->mo, angle, MELEERANGE + 1, slope, damage, NULL);
 	
 	if (!linetarget)
 	{
@@ -652,16 +652,16 @@ void P_BulletSlope(mobj_t* mo)
 		
 	// see which target is to be aimed at
 	an = mo->angle;
-	bulletslope = P_AimLineAttack(mo, an, 16 * 64 * FRACUNIT);
+	bulletslope = P_AimLineAttack(mo, an, 16 * 64 * FRACUNIT, NULL);
 	
 	if (!linetarget)
 	{
 		an += 1 << 26;
-		bulletslope = P_AimLineAttack(mo, an, 16 * 64 * FRACUNIT);
+		bulletslope = P_AimLineAttack(mo, an, 16 * 64 * FRACUNIT, NULL);
 		if (!linetarget)
 		{
 			an -= 2 << 26;
-			bulletslope = P_AimLineAttack(mo, an, 16 * 64 * FRACUNIT);
+			bulletslope = P_AimLineAttack(mo, an, 16 * 64 * FRACUNIT, NULL);
 		}
 		if (!linetarget)
 		{
@@ -683,6 +683,10 @@ void P_GunShot(mobj_t* mo, bool_t accurate)
 {
 	angle_t angle;
 	int damage;
+	P_LineAtkArgs_t Args;
+	
+	/* Clear arguments */
+	memset(&Args, 0, sizeof(Args));
 	
 	damage = 5 * (P_Random() % 3 + 1);
 	angle = mo->angle;
@@ -693,7 +697,8 @@ void P_GunShot(mobj_t* mo, bool_t accurate)
 		angle -= (P_Random() << 18);	// else this expretion is ambiguous (evaluation order not diffined)
 	}
 	
-	P_LineAttack(mo, angle, MISSILERANGE, bulletslope, damage);
+	Args.Flags |= PLAF_THRUMOBJ;
+	P_LineAttack(mo, angle, MISSILERANGE, bulletslope, damage, &Args);
 }
 
 //
@@ -761,7 +766,7 @@ void A_FireShotgun2(player_t* player, pspdef_t* psp)
 		
 		damage = 5 * (P_Random() % 3 + 1);
 		angle = player->mo->angle + (P_SignedRandom() << 19);
-		P_LineAttack(player->mo, angle, MISSILERANGE, slope, damage);
+		P_LineAttack(player->mo, angle, MISSILERANGE, slope, damage, NULL);
 	}
 }
 
@@ -841,7 +846,7 @@ void A_BFGSpray(mobj_t* mo)
 		
 		// mo->target is the originator (player)
 		//  of the missile
-		P_AimLineAttack(BallOwner, an, 16 * 64 * FRACUNIT);
+		P_AimLineAttack(BallOwner, an, 16 * 64 * FRACUNIT, NULL);
 		
 		if (!linetarget)
 			continue;

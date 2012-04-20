@@ -461,7 +461,7 @@ void HU_Ticker(void)
 		pl->message = 0;
 	}
 	// In splitscreen, display second player's messages
-	if (cv_splitscreen.value)
+	if (g_SplitScreen)
 	{
 		pl = &players[displayplayer[1]];
 		if (cv_showmessages.value && pl->message)
@@ -705,9 +705,9 @@ void HU_Drawer(void)
 	HU_DrawFSPics();
 	
 #if 0
-	if (cv_splitscreen.value)
+	if (g_SplitScreen)
 	{
-		switch (cv_splitscreen.value)
+		switch (g_SplitScreen)
 		{
 			case 1:
 				if (playeringame[consoleplayer[0]])
@@ -1104,7 +1104,7 @@ void HU_drawDeathmatchRankings(void)
 	bool_t large;
 	
 	// draw the ranking title panel
-	if (!cv_splitscreen.value)
+	if ((g_SplitScreen <= 0))
 	{
 		p = W_CachePatchName("RANKINGS", PU_CACHE);
 		V_DrawScaledPatch((BASEVIDWIDTH - p->width) / 2, 5, 0, p);
@@ -1130,10 +1130,10 @@ void HU_drawDeathmatchRankings(void)
 	
 	if (scorelines > 9)
 		scorelines = 9;			//dont draw past bottom of screen, show the best only
-	else if (cv_splitscreen.value && scorelines > 4)
+	else if (g_SplitScreen && scorelines > 4)
 		scorelines = 4;
 		
-	if (cv_splitscreen.value)
+	if (g_SplitScreen)
 	{
 		y = (100 - (12 * (scorelines + 1) / 2)) + 15;
 		title = "Rankings";
@@ -1178,13 +1178,13 @@ void HU_drawCrosshair(void)
 	   V_DrawTranslucentPatch (vid.width>>1, y, 0, crosshair[i-1]);
 	   else */
 	
-	if (cv_splitscreen.value == 1)
+	if (g_SplitScreen == 1)
 	{
 		V_DrawTranslucentPatch(vid.width >> 1, y, V_NOSCALESTART, crosshair[i - 1]);
 		y += viewheight;
 		V_DrawTranslucentPatch(vid.width >> 1, y, V_NOSCALESTART, crosshair[i - 1]);
 	}
-	else if (cv_splitscreen.value > 1)
+	else if (g_SplitScreen > 1)
 	{
 		if (playeringame[displayplayer[0]])
 			V_DrawTranslucentPatch((vid.width >> 1) - (vid.width >> 2), (vid.height >> 1) - (vid.height >> 2), V_NOSCALESTART, crosshair[i - 1]);
@@ -1192,10 +1192,10 @@ void HU_drawCrosshair(void)
 		if (playeringame[displayplayer[1]])
 			V_DrawTranslucentPatch((vid.width >> 1) + (vid.width >> 2), (vid.height >> 1) - (vid.height >> 2), V_NOSCALESTART, crosshair[i - 1]);
 			
-		if (playeringame[displayplayer[2]] && cv_splitscreen.value >= 2)
+		if (playeringame[displayplayer[2]] && g_SplitScreen >= 2)
 			V_DrawTranslucentPatch((vid.width >> 1) - (vid.width >> 2), (vid.height >> 1) + (vid.height >> 2), V_NOSCALESTART, crosshair[i - 1]);
 			
-		if (playeringame[displayplayer[3]] && cv_splitscreen.value >= 3)
+		if (playeringame[displayplayer[3]] && g_SplitScreen >= 3)
 			V_DrawTranslucentPatch((vid.width >> 1) + (vid.width >> 2), (vid.height >> 1) + (vid.height >> 2), V_NOSCALESTART, crosshair[i - 1]);
 	}
 	else

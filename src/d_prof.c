@@ -88,7 +88,7 @@ void PROF_CVARWasChanged(void)
 	{
 		while (Rover)
 		{
-			for (i = 0; i < cv_splitscreen.value + 1; i++)
+			for (i = 0; i < g_SplitScreen + 1; i++)
 			{
 				if (playeringame[consoleplayer[i]] && Rover == players[consoleplayer[i]].profile)
 				{
@@ -657,14 +657,14 @@ void M_ProfilePrompt(int player)
 		return;
 		
 	// Variable Message
-	if (cv_splitscreen.value == 1)
+	if (g_SplitScreen == 1)
 	{
 		if (i == 0)
 			ProfileChooserItems[1].WItemTextPtr = PTROFUNICODESTRING(DSTR_MENUSELECTPROFILE_TWOSPLITA);
 		else
 			ProfileChooserItems[1].WItemTextPtr = PTROFUNICODESTRING(DSTR_MENUSELECTPROFILE_TWOSPLITB);
 	}
-	else if (cv_splitscreen.value > 1)
+	else if (g_SplitScreen > 1)
 	{
 		if (i == 0)
 			ProfileChooserItems[1].WItemTextPtr = PTROFUNICODESTRING(DSTR_MENUSELECTPROFILE_FOURSPLITA);
@@ -707,7 +707,7 @@ void M_ProfAccept(int choice)
 			ModPlayer->profile = Rover;
 			
 			// Change Name
-			for (i = 0; i < cv_splitscreen.value + 1; i++)
+			for (i = 0; i < g_SplitScreen + 1; i++)
 				if (playeringame[consoleplayer[i]] && ModPlayer == &players[consoleplayer[i]])
 				{
 					strncpy(player_names[consoleplayer[i]], Rover->cvars[PC_NAME].string, MAXPLAYERNAME);

@@ -50,6 +50,7 @@
 #include "d_ticcmd.h"
 
 #include "d_prof.h"
+#include "d_netcmd.h"
 
 //
 // Player states.
@@ -232,6 +233,10 @@ typedef struct player_s
 	
 	// GhostlyDeath <March 6, 2012> -- Per-player (chase) camera
 	camera_t camera;
+	
+	/*** EXTENDED STUFF ***/
+	D_ProfileEx_t* ProfileEx;					// Extended Profiles
+	D_NetPlayer_t* NetPlayer;					// Network Player
 } player_t;
 
 //

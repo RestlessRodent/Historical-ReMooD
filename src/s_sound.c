@@ -171,7 +171,7 @@ S_NoiseThinker_t** const a_Emit)
 	/* Find the closest listener */
 	*a_Listen = NULL;
 	ApproxDist = 32000 << FRACBITS;
-	for (i = 0; i <= cv_splitscreen.value; i++)
+	for (i = 0; i <= g_SplitScreen; i++)
 	{
 		// Check to see if the player is in game (if not ignore)
 		if (displayplayer[i] < 0 || displayplayer[i] >= MAXPLAYERS || !playeringame[displayplayer[i]])
@@ -1057,8 +1057,21 @@ void S_FreeSfx(sfxinfo_t* sfx)
 }
 
 /* S_SoundIDForName() -- Return sound ID for sound name */
+// TODO FIXME: Speed this up
 int S_SoundIDForName(const char* const a_Name)
 {
+	size_t i;
+	
+	/* Check */
+	if (!a_Name)
+		return 0;
+	
+	/* Find sounds */
+	for (i = 0; i < NUMSFX; i++)
+		if (strcasecmp(a_Name, S_sfx[i].name) == 0)
+			return i;
+	
+	/* Return default sound */
 	return 0;
 }
 

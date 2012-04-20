@@ -160,21 +160,23 @@ typedef struct
 	int flashstate;
 	
 	// ReMooD Extended
-	char* DropWeaponClass;		// Thing to "drop" when a player dies
-	char* NiceName;				// Name of weapon (obit)
-	char* ClassName;			// Weapon class Name
-	int32_t SwitchOrder;		// Weapon switch order
-	int8_t SlotNum;				// Weapon slot number
-	uint32_t WeaponFlags;		// Flags for weapon
-	int32_t GetAmmo;			// Amount of ammo to pick up for this weapon
-	int32_t NoAmmoOrder;		// No Ammo Order
-	fixed_t PSpriteSY;			// PSprite offset
-	char* SBOGraphic;			// SBO Graphic
-	char* AmmoClass;			// Name of ammo to use
-	char* BringUpSound;			// Sound to play when brung up
-	char* IdleNoise;			// Noise when idling (chainsaw)
-	uint32_t WeaponID;			// Unique Weapon ID
-	int RefStates[NUMPWEAPONSTATEGROUPS];
+	char* DropWeaponClass;						// Thing to "drop" when a player dies
+	char* NiceName;								// Name of weapon (obit)
+	char* ClassName;							// Weapon class Name
+	int32_t SwitchOrder;						// Weapon switch order
+	int8_t SlotNum;								// Weapon slot number
+	uint32_t WeaponFlags;						// Flags for weapon
+	int32_t GetAmmo;							// Amount of ammo to pick up for this weapon
+	int32_t NoAmmoOrder;						// No Ammo Order
+	fixed_t PSpriteSY;							// PSprite offset
+	char* SBOGraphic;							// SBO Graphic
+	char* AmmoClass;							// Name of ammo to use
+	char* BringUpSound;							// Sound to play when brung up
+	char* IdleNoise;							// Noise when idling (chainsaw)
+	uint32_t WeaponID;							// Unique Weapon ID
+	int RefStates[NUMPWEAPONSTATEGROUPS];		// Reference States
+	char* ReplacePuffType;						// Replacement puff type (rather than default)
+	char* ReplaceFireSound;						// Replacement Fire Sound
 } weaponinfo_t;
 
 extern weaponinfo_t** wpnlev1info;

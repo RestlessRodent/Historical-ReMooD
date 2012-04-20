@@ -606,7 +606,7 @@ void P_ResetCamera(player_t* player)
 	player->camera.aiming = 0;
 }
 
-bool_t PTR_FindCameraPoint(intercept_t* in)
+bool_t PTR_FindCameraPoint(intercept_t* in, void* a_Data)
 {
 
 	/*    int         side;
@@ -674,7 +674,7 @@ void P_MoveChaseCamera(player_t* player)
 	y = mo->y - FixedMul(finesine[(angle >> ANGLETOFINESHIFT) & FINEMASK], dist);
 	z = mo->z + (cv_viewheight.value << FRACBITS) + cv_cam_height.value;
 	
-	/*    P_PathTraverse ( mo->x, mo->y, x, y, PT_ADDLINES, PTR_UseTraverse ); */
+	/*    P_PathTraverse ( mo->x, mo->y, x, y, PT_ADDLINES, PTR_UseTraverse, NULL); */
 	
 	// move camera down to move under lower ceilings
 	newsubsec = R_IsPointInSubsector((mo->x + player->camera.mo->x) >> 1, (mo->y + player->camera.mo->y) >> 1);
@@ -783,7 +783,7 @@ void P_PlayerThink(player_t* player)
 		
 	// GhostlyDeath <July 10, 2008> -- Profile Check
 	if (!player->profile && !demoplayback && !menuactive)
-		for (i = 0; i < cv_splitscreen.value + 1; i++)
+		for (i = 0; i < g_SplitScreen + 1; i++)
 			if (playeringame[consoleplayer[i]] && player == &players[consoleplayer[i]])
 			{
 				M_ProfilePrompt(i);

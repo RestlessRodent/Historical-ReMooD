@@ -668,7 +668,7 @@ void Command_Map_f(void)
 	// this leave the actual game if needed
 	server = false;
 	netgame = false;
-	if (!cv_splitscreen.value)
+	if (!g_SplitScreen)
 		multiplayer = false;
 	else
 		multiplayer = true;
@@ -687,7 +687,7 @@ void Command_Map_f(void)
 	for (i = 0; i < MAXPLAYERS; i++)
 		playeringame[i] = 0;
 		
-	for (i = 0; i < cv_splitscreen.value + 1; i++)
+	for (i = 0; i < g_SplitScreen + 1; i++)
 		playeringame[i] = 1;
 		
 		
@@ -889,5 +889,195 @@ void Command_Kill(void)
 		P_KillMobj(players[consoleplayer[0]].mo, NULL, players[consoleplayer[0]].mo);
 	else
 		CONL_PrintF("The Kill command cannot be used outside a game.\n");
+}
+
+/*****************************
+*** EXTENDED NETWORK STUFF ***
+*****************************/
+
+/*** GLOBALS ***/
+
+int g_SplitScreen = -1;							// Split screen players (-1 based)
+bool_t g_PlayerInSplit[MAXSPLITSCREEN] = {false, false, false, false};
+
+/*** FUNCTIONS ***/
+
+/* D_NCSAddLocalPlayer() -- Adds local player (splitscreen) */
+// Takes: Profile ID to put local player as
+// Returns the added player
+struct player_s* D_NCSAddLocalPlayer(const char* const a_ProfileID)
+{
+	size_t p, s;
+	D_NetPlayer_t* NPp;
+	
+	/* Check */
+	if (!a_ProfileID)
+		return NULL;
+	
+	/* Not enough screens? */
+	if (g_SplitScreen >= 3)
+		return NULL;
+	
+	/* Find Free screen */
+	for (s = 0; s < MAXSPLITSCREEN; s++)
+		if (!g_PlayerInSplit[s])
+			break;
+	
+	// No free screens (too many local players?)
+	if (s >= MAXSPLITSCREEN)
+		return NULL;
+	
+	/* Find player that is not in game */
+	for (p = 0; p < MAXPLAYERS; p++)
+		if (!playeringame[p])
+			break;
+	
+	// No free slots (too many inside the game)
+	if (p >= MAXPLAYERS)
+		return NULL;
+	
+	/* Add player to game */
+	playeringame[p] = true;
+	g_PlayerInSplit[s] = true;
+	consoleplayer[s] = p;
+	displayplayer[s] = p;
+	g_SplitScreen++;
+	R_ExecuteSetViewSize();
+	
+	/* Initialize Player */
+	// Clear everything
+	memset(&players[p], 0, sizeof(players[p]));
+	
+	// Set as reborn
+	players[p].playerstate = PST_REBORN;
+	
+	/* Setup network player */
+	// Allocate
+	NPp = players[p].NetPlayer = D_NCSAllocNetPlayer();
+	
+	// Set base info
+	NPp->Type = DNPT_LOCAL;
+	NPp->Player = &players[p];
+	
+	/* Return the new player */
+	return &players[p];
+}
+
+/* DS_NCSNetCommand() -- Network commands */
+static CONL_ExitCode_t DS_NCSNetCommand(const uint32_t a_ArgC, const char** const a_ArgV)
+{
+	struct player_s* p;
+	int i;
+	
+	/* Check */
+	if (a_ArgC < 2)
+		return CLE_INVALIDARGUMENT;
+	
+	/* Which Sub Command? */
+	// Add Player to Game
+	if (strcasecmp(a_ArgV[1], "addplayer") == 0)
+	{
+		p = D_NCSAddLocalPlayer((a_ArgC > 2 ? a_ArgV[2] : "default"));
+		
+		if (p)
+		{
+			i = p - players;
+		
+			CONL_PrintF("Net: Added local player %i.\n", i);
+		}
+		else
+		{
+			CONL_PrintF("Net: Failed to add local player.\n");
+			return CLE_FAILURE;
+		}
+	}
+	
+	/* Success */
+	return CLE_SUCCESS;
+}
+
+/* D_NCSInit() -- Initialize network client/server */
+void D_NCSInit(void)
+{
+	/* Register "net" command */
+	CONL_AddCommand("net", DS_NCSNetCommand);
+}
+
+/* D_NCSNetUpdateSingle() -- Update single player */
+void D_NCSNetUpdateSingle(struct player_s* a_Player)
+{
+	size_t PID, SID, i;
+	D_NetPlayer_t* NPp;
+	ticcmd_t* TicCmd;
+	
+	/* Check */
+	if (!a_Player)
+		return;
+	
+	// Get player ID
+	PID = a_Player - players;
+	
+	// Get Screen ID
+	for (SID = 0; SID < MAXSPLITSCREEN; SID++)
+		if (g_PlayerInSplit[SID])
+			if (PID == consoleplayer[SID])
+				break;
+	
+	// More checks
+	if (PID < 0 || PID >= MAXPLAYERS || !playeringame[PID])
+		return;
+	
+	/* Get player's netplayer */
+	NPp = players[PID].NetPlayer;
+	
+	// No net player?
+	if (!NPp)
+		return;
+	
+	/* Which type of player is this? */
+	switch (NPp->Type)
+	{
+			// Local player on this computer
+		case DNPT_LOCAL:
+			// Push command
+			i = NPp->TicTotal++;
+			TicCmd = &NPp->TicCmd[i];
+			
+			// Fill command based on controller input
+				// TODO
+			
+			// Change Local aiming
+			if (SID < MAXSPLITSCREEN)
+				TicCmd->angleturn = localangle[SID] >> 16;
+			break;
+		
+			// Networked player on another system
+		case DNPT_NETWORK:
+			break;
+			
+			// Bot, a simulated player
+		case DNPT_BOT:
+			break;
+			
+			// Unknown
+		default:
+			break;
+	}
+}
+
+/* D_NCSNetUpdateAll() -- Update all players */
+void D_NCSNetUpdateAll(void)
+{
+	size_t i;
+	
+	/* Update All Players */
+	for (i = 0; i < MAXPLAYERS; i++)
+		D_NCSNetUpdateSingle(&players[i]);
+}
+
+/* D_NCSAllocNetPlayer() -- Allocates a network player */
+D_NetPlayer_t* D_NCSAllocNetPlayer(void)
+{
+	return Z_Malloc(sizeof(D_NetPlayer_t), PU_STATIC, NULL);
 }
 

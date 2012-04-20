@@ -232,10 +232,26 @@ extern mobj_t* linetarget;		// who got hit (or NULL)
 
 extern fixed_t attackrange;
 
-fixed_t P_AimLineAttack(mobj_t* t1, angle_t angle, fixed_t distance);
+/* P_LineAtkFlags_t -- Line Attack Flags */
+typedef enum P_LineAtkFlags_e
+{
+	PLAF_THRUMOBJ				= 0x00000001,	// Continue through map objects
+} P_LineAtkFlags_t;
 
-void P_LineAttack(mobj_t* t1, angle_t angle, fixed_t distance, fixed_t slope, int damage);
+/* P_AimLineAtkArgs_t -- Aim line attack arguments */
+typedef struct P_AimLineAtkArgs_s
+{
+	uint32_t Flags;								// Flags
+} P_AimLineAtkArgs_t;
 
+/* P_LineAtkArgs_t -- Line Attack arguments */
+typedef struct P_LineAtkArgs_s
+{
+	uint32_t Flags;								// Flags
+} P_LineAtkArgs_t;
+
+fixed_t P_AimLineAttack(mobj_t* t1, angle_t angle, fixed_t distance, P_AimLineAtkArgs_t* const a_Args);
+void P_LineAttack(mobj_t* t1, angle_t angle, fixed_t distance, fixed_t slope, int damage, P_LineAtkArgs_t* const a_Args);
 void P_RadiusAttack(mobj_t* spot, mobj_t* source, int damage);
 
 //

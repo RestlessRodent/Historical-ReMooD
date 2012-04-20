@@ -1148,7 +1148,7 @@ void R_DrawPSprite(pspdef_t* psp)
 	// store information in a vissprite
 	vis = &avis;
 	vis->mobjflags = 0;
-	if (cv_splitscreen.value == 1)
+	if (g_SplitScreen == 1)
 		vis->texturemid = (120 << (FRACBITS)) + FRACUNIT / 2 - (psp->sy - SprInfo->TopOffset);
 	else
 		vis->texturemid = (BASEYCENTER << FRACBITS) + FRACUNIT / 2 - (psp->sy - SprInfo->TopOffset);

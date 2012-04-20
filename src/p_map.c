@@ -943,7 +943,7 @@ void P_HitSlideLine(line_t* ld)
 //
 // PTR_SlideTraverse
 //
-bool_t PTR_SlideTraverse(intercept_t* in)
+bool_t PTR_SlideTraverse(intercept_t* in, void* a_Data)
 {
 	line_t* li;
 	
@@ -1039,9 +1039,9 @@ retry:
 	
 	bestslidefrac = FRACUNIT + 1;
 	
-	P_PathTraverse(leadx, leady, leadx + mo->momx, leady + mo->momy, PT_ADDLINES, PTR_SlideTraverse);
-	P_PathTraverse(trailx, leady, trailx + mo->momx, leady + mo->momy, PT_ADDLINES, PTR_SlideTraverse);
-	P_PathTraverse(leadx, traily, leadx + mo->momx, traily + mo->momy, PT_ADDLINES, PTR_SlideTraverse);
+	P_PathTraverse(leadx, leady, leadx + mo->momx, leady + mo->momy, PT_ADDLINES, PTR_SlideTraverse, NULL);
+	P_PathTraverse(trailx, leady, trailx + mo->momx, leady + mo->momy, PT_ADDLINES, PTR_SlideTraverse, NULL);
+	P_PathTraverse(leadx, traily, leadx + mo->momx, traily + mo->momy, PT_ADDLINES, PTR_SlideTraverse, NULL);
 	
 	// move up to the wall
 	if (bestslidefrac == FRACUNIT + 1)
@@ -1109,7 +1109,7 @@ fixed_t aimslope;
 //added:15-02-98: comment
 // Returns true if the thing is not shootable, else continue through..
 //
-bool_t PTR_AimTraverse(intercept_t* in)
+bool_t PTR_AimTraverse(intercept_t* in, void* a_Data)
 {
 	line_t* li;
 	mobj_t* th;
@@ -1261,7 +1261,7 @@ bool_t PTR_AimTraverse(intercept_t* in)
 //
 //added:18-02-98: added clipping the shots on the floor and ceiling.
 //
-bool_t PTR_ShootTraverse(intercept_t* in)
+bool_t PTR_ShootTraverse(intercept_t* in, void* a_Data)
 {
 	fixed_t x;
 	fixed_t y;
@@ -1288,6 +1288,11 @@ bool_t PTR_ShootTraverse(intercept_t* in)
 	
 	int sectorside;
 	int dir;
+	
+	P_LineAtkArgs_t* Args = a_Data;
+	
+	if (Args)
+		fprintf(stderr, "ST %i %s %i (%s)\n", Args->Flags, (in->isaline ? "Line" : "Thing"), (in->isaline ? in->d.line - lines : in->d.thing->type), (in->isaline ? "--" : MT2ReMooDClass[in->d.thing->type]));
 	
 	if (aimslope > 0)
 		dir = 1;
@@ -1508,6 +1513,7 @@ hitline:
 		// don't go any farther
 		return false;
 	}
+	
 	// shoot a thing
 	th = in->d.thing;
 	if (th == shootthing)
@@ -1584,21 +1590,23 @@ hitline:
 			P_SpawnBlood(x, y, z, la_damage);	//P_SpawnPuff(x, y, z);
 			
 			if (hitplane)
-			{
 				P_SpawnBloodSplats(x, y, z, la_damage, trace.dx, trace.dy);
-				return false;
-			}
 		}
 	}
-	// don't go any farther
-	return false;
 	
+	// GhostlyDeath <April 17, 2012> -- Through map object
+	if (Args && (Args->Flags & PLAF_THRUMOBJ))
+		return true;
+	
+	// don't go any farther
+	else
+		return false;
 }
 
 //
 // P_AimLineAttack
 //
-fixed_t P_AimLineAttack(mobj_t* t1, angle_t angle, fixed_t distance)
+fixed_t P_AimLineAttack(mobj_t* t1, angle_t angle, fixed_t distance, P_AimLineAtkArgs_t* const a_Args)
 {
 	fixed_t x2;
 	fixed_t y2;
@@ -1645,7 +1653,7 @@ fixed_t P_AimLineAttack(mobj_t* t1, angle_t angle, fixed_t distance)
 	// to the blockmap containing the dest. point.
 	// Call the function for each mobj/line on the way,
 	// starting with the mobj/linedef at the shortest distance...
-	P_PathTraverse(t1->x, t1->y, x2, y2, PT_ADDLINES | PT_ADDTHINGS, PTR_AimTraverse);
+	P_PathTraverse(t1->x, t1->y, x2, y2, PT_ADDLINES | PT_ADDTHINGS, PTR_AimTraverse, NULL);
 	
 	//added:15-02-98: linetarget is only for mobjs, not for linedefs
 	if (linetarget)
@@ -1665,7 +1673,7 @@ fixed_t P_AimLineAttack(mobj_t* t1, angle_t angle, fixed_t distance)
 //                distance est la porte maximale de la balle
 //                slope    est la pente vers la destination (up/down)
 //                damage   est les degats infliges par la balle
-void P_LineAttack(mobj_t* t1, angle_t angle, fixed_t distance, fixed_t slope, int damage)
+void P_LineAttack(mobj_t* t1, angle_t angle, fixed_t distance, fixed_t slope, int damage, P_LineAtkArgs_t* const a_Args)
 {
 	fixed_t x2;
 	fixed_t y2;
@@ -1697,7 +1705,7 @@ void P_LineAttack(mobj_t* t1, angle_t angle, fixed_t distance, fixed_t slope, in
 	
 	tmthing = shootthing;
 	
-	P_PathTraverse(t1->x, t1->y, x2, y2, PT_ADDLINES | PT_ADDTHINGS, PTR_ShootTraverse);
+	P_PathTraverse(t1->x, t1->y, x2, y2, PT_ADDLINES | PT_ADDTHINGS, PTR_ShootTraverse, a_Args);
 }
 
 //
@@ -1705,7 +1713,7 @@ void P_LineAttack(mobj_t* t1, angle_t angle, fixed_t distance, fixed_t slope, in
 //
 mobj_t* usething;
 
-bool_t PTR_UseTraverse(intercept_t* in)
+bool_t PTR_UseTraverse(intercept_t* in, void* a_Data)
 {
 	int side;
 	
@@ -1762,7 +1770,7 @@ void P_UseLines(player_t* player)
 	x2 = x1 + (USERANGE >> FRACBITS) * finecosine[angle];
 	y2 = y1 + (USERANGE >> FRACBITS) * finesine[angle];
 	
-	P_PathTraverse(x1, y1, x2, y2, PT_ADDLINES, PTR_UseTraverse);
+	P_PathTraverse(x1, y1, x2, y2, PT_ADDLINES, PTR_UseTraverse, NULL);
 }
 
 //

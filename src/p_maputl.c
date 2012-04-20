@@ -756,7 +756,7 @@ bool_t PIT_AddThingIntercepts(mobj_t* thing, void* a_Arg)
 // Returns true if the traverser function returns true
 // for all lines.
 //
-bool_t P_TraverseIntercepts(traverser_t func, fixed_t maxfrac)
+bool_t P_TraverseIntercepts(traverser_t func, fixed_t maxfrac, void* a_Data)
 {
 	int count;
 	fixed_t dist;
@@ -796,7 +796,7 @@ bool_t P_TraverseIntercepts(traverser_t func, fixed_t maxfrac)
 		
 		// appelle la fonction en commencant par l' intercept_t le plus
 		// proche
-		if (!func(in))
+		if (!func(in, a_Data))
 			return false;		// don't bother going farther
 			
 		in->frac = INT_MAX;
@@ -812,7 +812,7 @@ bool_t P_TraverseIntercepts(traverser_t func, fixed_t maxfrac)
 // Returns true if the traverser function returns true
 // for all lines.
 //
-bool_t P_PathTraverse(fixed_t x1, fixed_t y1, fixed_t x2, fixed_t y2, int flags, traverser_t trav)
+bool_t P_PathTraverse(fixed_t x1, fixed_t y1, fixed_t x2, fixed_t y2, int flags, traverser_t trav, void* const a_Data)
 {
 	fixed_t xt1;
 	fixed_t yt1;
@@ -940,7 +940,7 @@ bool_t P_PathTraverse(fixed_t x1, fixed_t y1, fixed_t x2, fixed_t y2, int flags,
 		
 	}
 	// go through the sorted list
-	return P_TraverseIntercepts(trav, FRACUNIT);
+	return P_TraverseIntercepts(trav, FRACUNIT, a_Data);
 }
 
 // =========================================================================

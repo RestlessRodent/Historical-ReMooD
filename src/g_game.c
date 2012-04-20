@@ -492,8 +492,8 @@ void G_BuildTiccmd(ticcmd_t* cmd, int realtics, int player)
 	turnright = GAMEKEYDOWN(gc_turnright);
 	turnleft = GAMEKEYDOWN(gc_turnleft);
 	mouseaiming = GAMEKEYDOWN(gc_mouseaiming) ^ cv_alwaysfreelook.value;
-	analogjoystickmove = cv_use_joystick.value && !cv_splitscreen.value;
-	gamepadjoystickmove = cv_use_joystick.value && !cv_splitscreen.value;
+	analogjoystickmove = cv_use_joystick.value && (g_SplitScreen <= 0);
+	gamepadjoystickmove = cv_use_joystick.value && (g_SplitScreen <= 0);
 	
 	if (gamepadjoystickmove)
 	{
@@ -997,7 +997,7 @@ void G_DoLoadLevel(bool_t resetplayer)
 	//BOT_InitLevelBots ();
 	
 	displayplayer[0] = consoleplayer[0];	// view the guy you are playing
-	if (!cv_splitscreen.value)
+	if ((g_SplitScreen <= 0))
 		displayplayer[1] = consoleplayer[0];
 	else
 		for (i = 0; i < MAXSPLITSCREENPLAYERS; i++)
@@ -1163,7 +1163,26 @@ void G_Ticker(void)
 			if (demoplayback)
 				G_ReadDemoTiccmd(cmd, i);
 			else
-				memcpy(cmd, &netcmds[buf][i], sizeof(ticcmd_t));
+			{
+				// Determine net player existence
+				if (players[i].NetPlayer)
+					// Tic count > 0?
+					if (players[i].NetPlayer->TicTotal > 0)
+					{
+						// Copy the oldest command
+						memcpy(cmd, &players[i].NetPlayer->TicCmd[0], sizeof(ticcmd_t));
+						
+						// Reduce down buffered commands
+						players[i].NetPlayer->TicTotal--;
+						
+						// Replace all the old commands
+						memmove(
+								&players[i].NetPlayer->TicCmd[0],
+								&players[i].NetPlayer->TicCmd[1],
+								sizeof(ticcmd_t) * (MAXDNETTICCMDCOUNT - 1)
+							);
+					}
+			}
 				
 			if (demorecording)
 				G_WriteDemoTiccmd(cmd, i);
@@ -1292,6 +1311,9 @@ void G_PlayerReborn(int player)
 	int* ammo;
 	int* maxammo;
 	
+	D_ProfileEx_t* PEp;
+	D_NetPlayer_t* NPp;
+	
 	//from Boris
 	int skincolor;
 	//char favoritweapon[NUMWEAPONS];
@@ -1299,7 +1321,10 @@ void G_PlayerReborn(int player)
 	bool_t autoaim;
 	int skin;					//Fab: keep same skin
 	
+	PEp = players[player].ProfileEx;
+	NPp = players[player].NetPlayer;
 	prof = players[player].profile;
+	
 	memcpy(frags, players[player].frags, sizeof(frags));
 	addfrags = players[player].addfrags;
 	killcount = players[player].killcount;
@@ -1379,6 +1404,8 @@ void G_PlayerReborn(int player)
 		p->ammo[i] = ammoinfo[i]->StartingAmmo;
 	
 	p->profile = prof;
+	players[player].ProfileEx = PEp;
+	players[player].NetPlayer = NPp;
 	
 	// Boris stuff
 	if (!p->originalweaponswitch)
@@ -1905,8 +1932,8 @@ void G_DoLoadGame(int slot)
 	Z_Free(savebuffer);
 	
 	multiplayer = playeringame[1];
-	if (playeringame[1] && !netgame)
-		CV_SetValue(&cv_splitscreen, 1);
+	//if (playeringame[1] && !netgame)
+	//	CV_SetValue(&cv_splitscreen, 1);
 		
 	if (setsizeneeded)
 		R_ExecuteSetViewSize();
@@ -2024,7 +2051,7 @@ void G_DeferedInitNew(skill_t skill, char* mapname, int StartSplitScreenGame)
 	// Enable End Game option
 	MainDef.menuitems[1].status &= ~IT_DISABLED2;
 	
-	CV_Set(&cv_splitscreen, va("%d", StartSplitScreenGame));
+	//CV_Set(&cv_splitscreen, va("%d", StartSplitScreenGame));
 	
 	COM_BufAddText(va("map \"%s\" -skill %d -monsters 1\n", mapname, skill + 1));
 }
@@ -2400,7 +2427,7 @@ no_demo:
 		// wait map command in the demo
 		gamestate = wipegamestate = GS_WAITINGPLAYERS;
 		
-	if (cv_splitscreen.value)
+	if (g_SplitScreen)
 		for (i = 0; i < MAXSPLITSCREENPLAYERS; i++)
 		{
 			displayplayer[i] = i;
@@ -2424,7 +2451,7 @@ void G_TimeDemo(char* name)
 {
 	int i;
 	
-	if (cv_splitscreen.value)
+	if (g_SplitScreen > 0)
 		for (i = 0; i < MAXSPLITSCREENPLAYERS; i++)
 		{
 			displayplayer[i] = i;

@@ -34,7 +34,9 @@
 #ifndef __D_NETCMD__
 #define __D_NETCMD__
 
+#include "doomdef.h"
 #include "command.h"
+#include "d_ticcmd.h"
 
 // console vars
 extern consvar_t cv_playername;
@@ -63,8 +65,6 @@ extern consvar_t cv_itemrespawn;
 extern consvar_t cv_respawnmonsters;
 extern consvar_t cv_respawnmonsterstime;
 
-// added 16-6-98 : splitscreen
-extern consvar_t cv_splitscreen;
 
 // 02-08-98      : r_things.c
 extern consvar_t cv_skin;
@@ -97,4 +97,61 @@ extern CV_PossibleValue_t fraglimit_cons_t[];
 extern CV_PossibleValue_t teamplay_cons_t[];
 extern CV_PossibleValue_t deathmatch_cons_t[];
 
+/*****************************
+*** EXTENDED NETWORK STUFF ***
+*****************************/
+
+/*** CONSTANTS ***/
+
+#define MAXDNETTICCMDCOUNT					64	// Max allowed buffered tics
+
+/* D_NetPlayerType_t -- Profile Type */
+typedef enum D_NetPlayerType_e
+{
+	DNPT_LOCAL,									// Local player
+	DNPT_NETWORK,								// Network player
+	DNPT_BOT,									// Bot player
+	
+	NUMDNETPLAYERTYPES
+} D_NetPlayerType_t;
+
+/*** STRUCTURES ***/
+
+struct D_ProfileEx_s;
+struct player_s;
+
+/* D_NetPlayer_t() -- Network Player */
+typedef struct D_NetPlayer_s
+{
+	/* Generic */
+	D_NetPlayerType_t Type;						// Type of network player
+	struct D_ProfileEx_s* Profile;				// Linked Profile
+	struct player_s* Player;					// Attached Player
+	
+	/* Player Control */
+	// Sync
+	int TicTotal;								// Total number of tic commands
+	ticcmd_t TicCmd[MAXDNETTICCMDCOUNT];		// Tic Command to execute
+	
+	// Desync
+	
+	/* Specifics */
+} D_NetPlayer_t;
+
+/*** GLOBALS ***/
+
+extern int g_SplitScreen;						// Players in splits
+extern bool_t g_PlayerInSplit[MAXSPLITSCREEN];	// Players that belong in splits
+
+/*** FUNCTIONS ***/
+
+struct player_s* D_NCSAddLocalPlayer(const char* const a_ProfileID);
+
+void D_NCSInit(void);
+void D_NCSNetUpdateSingle(struct player_s* a_Player);
+void D_NCSNetUpdateAll(void);
+
+D_NetPlayer_t* D_NCSAllocNetPlayer(void);
+
 #endif
+

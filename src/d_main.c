@@ -347,7 +347,7 @@ void D_Display(void)
 		if (!automapactive || automapoverlay)
 		{
 			// added 16-6-98: render the second screen
-			switch (cv_splitscreen.value)
+			switch (g_SplitScreen)
 			{
 				case 1:
 					if (playeringame[displayplayer[1]] && players[displayplayer[1]].mo)
@@ -377,13 +377,13 @@ void D_Display(void)
 				default:
 					for (i = 0; i < 4; i++)
 					{
-						if (playeringame[displayplayer[i]] && players[displayplayer[i]].mo && i < cv_splitscreen.value + 1)
+						if (playeringame[displayplayer[i]] && players[displayplayer[i]].mo && i < g_SplitScreen + 1)
 						{
 							activeylookup = ylookup4[i];
 							
-							if (cv_splitscreen.value % 2 == 1)
+							if (g_SplitScreen % 2 == 1)
 								viewwindowx = vid.width / 2;
-							if (cv_splitscreen.value > 1)
+							if (g_SplitScreen > 1)
 								viewwindowy = vid.height / 2;
 								
 							R_RenderPlayerView(&players[displayplayer[i]]);
@@ -1481,6 +1481,7 @@ void D_DoomMain(void)
 	P_ExtraSpecialStuff();				// Initialize extra special stuff
 	P_EXGSRegisterStuff();				// Extended Game Settings stuff
 	M_CheatInit();						// Initialize Cheats
+	D_NCSInit();
 	/**************************/
 	
 	// GhostlyDeath <December 14, 2011> -- Use extended identify version
@@ -1734,8 +1735,8 @@ void D_DoomMain(void)
 		COM_BufAddText("teamplay 1\n");
 	if (M_CheckParm("-teamskin"))
 		COM_BufAddText("teamplay 2\n");
-	if (M_CheckParm("-splitscreen"))
-		CV_SetValue(&cv_splitscreen, 1);
+	//if (M_CheckParm("-splitscreen"))
+	//	CV_SetValue(&cv_splitscreen, 1);
 	if (M_CheckParm("-altdeath"))
 		COM_BufAddText("deathmatch 2\n");
 	else if (M_CheckParm("-deathmatch"))

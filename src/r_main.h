@@ -125,7 +125,6 @@ void R_AddPointToBox(int x, int y, fixed_t* box);
 
 extern consvar_t cv_psprites;
 extern consvar_t cv_perspcorr;
-extern consvar_t cv_splitscreen;
 extern consvar_t cv_viewsize;
 extern consvar_t cv_detaillevel;
 extern consvar_t cv_scalestatusbar;

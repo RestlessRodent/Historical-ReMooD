@@ -1586,9 +1586,9 @@ void SF_LineAttack()
 	damage = intvalue(t_argv[2]);
 	
 	angle = (intvalue(t_argv[1]) * (ANG45 / 45));
-	slope = P_AimLineAttack(mo, angle, MISSILERANGE);
+	slope = P_AimLineAttack(mo, angle, MISSILERANGE, NULL);
 	
-	P_LineAttack(mo, angle, MISSILERANGE, slope, damage);
+	P_LineAttack(mo, angle, MISSILERANGE, slope, damage, NULL);
 }
 
 //checks to see if a Map Thing Number exists; used to avoid script errors

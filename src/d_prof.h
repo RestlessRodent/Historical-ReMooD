@@ -34,6 +34,7 @@
 #include "doomtype.h"
 #include "doomdef.h"
 #include "command.h"
+#include "d_netcmd.h"
 
 enum
 {
@@ -62,6 +63,57 @@ void PROF_HandleVAR(char* arg0, char* arg1);
 
 void M_StartProfiler(int choice);
 void M_ProfilePrompt(int player);
+
+/************************
+*** EXTENDED PROFILES ***
+************************/
+
+/*** CONSTANTS ***/
+
+/* D_ProfileExType_t -- Profile Type */
+typedef enum D_ProfileExType_e
+{
+	DPEXT_LOCAL,								// Local player
+	DPEXT_NETWORK,								// Network player
+	DPEXT_BOT,									// Bot player
+	
+	NUMDPROFILEEXTYPES
+} D_ProfileExType_t;
+
+/* D_ProfileExFlags_t -- Extended profile flags */
+typedef enum D_ProfileExFlags_e
+{
+	DPEXF_GOTMOUSE				= 0x00000001,	// Has control of the mouse
+	DPEXF_GOTJOY				= 0x00000002,	// Controls a joystick
+	DPEXF_PLAYING				= 0x00000004,	// Is playing the game
+} D_ProfileExFlags_t;
+
+/* D_ProfileExBotFlags_t -- Bot Flags */
+typedef enum D_ProfileExBotFlags_e
+{
+	DPEXBOTF_MOUSE				= 0x00000001,	// Bot "uses" a mouse
+	DPEXBOTF_TURNAROUND			= 0x00000002,	// Bot can do 180 degree turns
+} D_ProfileExBotFlags_t;
+
+/*** STRUCTURES ***/
+
+struct mobj_s;
+
+/* D_ProfileEx_t -- Extended Profile */
+typedef struct D_ProfileEx_s
+{
+	/* Profile Related */
+	D_ProfileExType_t Type;						// Type of profile
+	uint32_t Flags;								// Flags for profile controller
+	char DisplayName[MAXPLAYERNAME];			// Name to show in network games
+	char AccountName[MAXPLAYERNAME];			// Local account name (selection limited)
+	uint8_t Color;								// Color
+	uint8_t JoyControl;							// Which joystick player controls
+	char UUID[MAXPLAYERNAME * 2];				// Player Unique ID
+	
+	/* Network Related */
+	D_NetPlayer_t* NetPlayer;					// Network Player
+} D_ProfileEx_t;
 
 #endif							/* __D_PROF_H__ */
 

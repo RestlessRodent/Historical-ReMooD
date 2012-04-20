@@ -793,7 +793,7 @@ void A_PosAttack(mobj_t* actor)
 	PuffType = INFO_GetTypeByName("BulletPuff");
 	A_FaceTarget(actor);
 	angle = actor->angle;
-	slope = P_AimLineAttack(actor, angle, MISSILERANGE);
+	slope = P_AimLineAttack(actor, angle, MISSILERANGE, NULL);
 	
 	S_StartSound(&actor->NoiseThinker, sfx_pistol);
 	angle += P_SignedRandom() << 20;
@@ -801,7 +801,7 @@ void A_PosAttack(mobj_t* actor)
 	
 	// GhostlyDeath <March 6, 2012> -- Obit check
 	actor->RXUsedMelee = false;
-	P_LineAttack(actor, angle, MISSILERANGE, slope, damage);
+	P_LineAttack(actor, angle, MISSILERANGE, slope, damage, NULL);
 	actor->RXUsedMelee = true;
 }
 
@@ -819,7 +819,7 @@ void A_SPosAttack(mobj_t* actor)
 	S_StartSound(&actor->NoiseThinker, sfx_shotgn);
 	A_FaceTarget(actor);
 	bangle = actor->angle;
-	slope = P_AimLineAttack(actor, bangle, MISSILERANGE);
+	slope = P_AimLineAttack(actor, bangle, MISSILERANGE, NULL);
 	
 	// GhostlyDeath <March 6, 2012> -- Obit check
 	actor->RXUsedMelee = false;
@@ -827,7 +827,7 @@ void A_SPosAttack(mobj_t* actor)
 	{
 		angle = (P_SignedRandom() << 20) + bangle;
 		damage = ((P_Random() % 5) + 1) * 3;
-		P_LineAttack(actor, angle, MISSILERANGE, slope, damage);
+		P_LineAttack(actor, angle, MISSILERANGE, slope, damage, NULL);
 	}
 	actor->RXUsedMelee = true;
 }
@@ -845,7 +845,7 @@ void A_CPosAttack(mobj_t* actor)
 	S_StartSound(&actor->NoiseThinker, sfx_shotgn);
 	A_FaceTarget(actor);
 	bangle = actor->angle;
-	slope = P_AimLineAttack(actor, bangle, MISSILERANGE);
+	slope = P_AimLineAttack(actor, bangle, MISSILERANGE, NULL);
 	
 	angle = (P_SignedRandom() << 20) + bangle;
 	
@@ -853,7 +853,7 @@ void A_CPosAttack(mobj_t* actor)
 	
 	// GhostlyDeath <March 6, 2012> -- Obit check
 	actor->RXUsedMelee = false;
-	P_LineAttack(actor, angle, MISSILERANGE, slope, damage);
+	P_LineAttack(actor, angle, MISSILERANGE, slope, damage, NULL);
 	actor->RXUsedMelee = true;
 }
 

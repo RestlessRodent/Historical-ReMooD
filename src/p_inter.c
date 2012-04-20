@@ -208,7 +208,7 @@ bool_t P_GiveWeapon(player_t* player, weapontype_t weapon, bool_t dropped)
 			
 		//added:16-01-98:changed consoleplayer to displayplayer
 		//               (hear the sounds from the viewpoint)
-		for (i = 0; i < cv_splitscreen.value + 1; i++)
+		for (i = 0; i < g_SplitScreen + 1; i++)
 			if (player == &players[displayplayer[i]])
 				S_StartSound(NULL, sfx_wpnup);
 		return false;
@@ -459,7 +459,7 @@ void P_TouchSpecialThing(mobj_t* special, mobj_t* toucher)
 			}
 			
 			//added:16-01-98:consoleplayer -> displayplayer (hear sounds from viewpoint)
-			for (i = 0; i < cv_splitscreen.value + 1; i++)
+			for (i = 0; i < g_SplitScreen + 1; i++)
 				if (player == &players[displayplayer[i]])
 					S_StartSound(NULL, sound);
 		}
@@ -786,7 +786,7 @@ void P_TouchSpecialThing(mobj_t* special, mobj_t* toucher)
 	player->bonuscount += BONUSADD;
 	
 	//added:16-01-98:consoleplayer -> displayplayer (hear sounds from viewpoint)
-	for (i = 0; i < cv_splitscreen.value + 1; i++)
+	for (i = 0; i < g_SplitScreen + 1; i++)
 		if (player == &players[displayplayer[i]])
 			S_StartSound(NULL, sound);
 #endif

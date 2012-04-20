@@ -133,8 +133,6 @@ static void Local_Maketic(int realtics)
 	if (dedicated)
 		return;
 		
-	I_OsPolling();				// i_getevent
-	D_ProcessEvents();			// menu responder ???!!!
 	// Cons responder
 	// game responder call :
 	//    HU_responder,St_responder, Am_responder
@@ -147,7 +145,7 @@ static void Local_Maketic(int realtics)
 	//Use = D_SyncNetMapTime() % BACKUPTICS;
 	Use = gametic % BACKUPTICS;
 	
-	for (i = 0; i < cv_splitscreen.value + 1; i++)
+	for (i = 0; i < g_SplitScreen + 1; i++)
 		if (playeringame[consoleplayer[i]])
 			G_BuildTiccmd(&netcmds[Use][consoleplayer[i]], realtics, i);
 	maketic++;
@@ -310,7 +308,12 @@ void NetUpdate(void)
 	
 	gametime = nowtime;
 	
-	Local_Maketic(realtics);	// make local tic, and call menu ?!
+	// GhostlyDeath <April 20, 2012> -- Update all players
+	D_NCSNetUpdateAll();
+	
+	//Local_Maketic(realtics);	// make local tic, and call menu ?!
+	I_OsPolling();				// i_getevent
+	D_ProcessEvents();			// menu responder ???!!!
 	
 	if (!demoplayback)
 		neededtic = maketic;

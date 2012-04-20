@@ -1948,7 +1948,7 @@ bool_t CONL_DrawConsole(void)
 	/* Not active, draw per player messages */
 	else
 	{
-		n = cv_splitscreen.value + 1;
+		n = g_SplitScreen + 1;
 		for (i = 0; i < n; i++)
 		{
 			// Obtain bounding box

@@ -575,7 +575,7 @@ void Command_CheatGimme_f(void)
 
 	plyr = &players[consoleplayer[0]];
 
-	for (k = 0; k < (cv_splitscreen.value ? 2 : 1); k++)
+	for (k = 0; k < (g_SplitScreen ? 2 : 1); k++)
 	{
 		if (k == 1)
 		{
@@ -724,7 +724,7 @@ void Command_CheatGimme_f(void)
 // PTR_SummonTraverse
 // Summons an object if possible
 //
-bool_t PTR_SummonTraverse(intercept_t* in)
+bool_t PTR_SummonTraverse(intercept_t* in, void* a_Data)
 {
 	return false;
 }
