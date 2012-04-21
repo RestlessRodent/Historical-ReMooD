@@ -657,6 +657,17 @@ void I_GetEvent(void)
 	static uint16_t LastUnic[SDLK_LAST];
 	SDLKey Key;
 	
+	/* Clear Event */
+	// Somewhere in SDL land...
+		// ==00:00:02:25.812 19764== Conditional jump or move depends on uninitialised value(s)
+		// ==00:00:02:25.813 19764==    at 0x50E44E6: ??? (in /usr/lib/libSDL-1.2.so.0.11.3)
+		// ==00:00:02:25.813 19764==    by 0x50E4D06: ??? (in /usr/lib/libSDL-1.2.so.0.11.3)
+		// ==00:00:02:25.813 19764==    by 0x50E575A: ??? (in /usr/lib/libSDL-1.2.so.0.11.3)
+		// ==00:00:02:25.813 19764==    by 0x50B996F: SDL_PumpEvents (in /usr/lib/libSDL-1.2.so.0.11.3)
+		// ==00:00:02:25.813 19764==    by 0x50B9E08: SDL_PollEvent (in /usr/lib/libSDL-1.2.so.0.11.3)
+		// ==00:00:02:25.813 19764==    by 0x4AC2B3: I_GetEvent (i_video.c:661)
+	memset(&Event, 0, sizeof(Event));
+	
 	/* Constantly read events */
 	while (SDL_PollEvent(&Event))
 	{

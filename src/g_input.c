@@ -584,3 +584,4 @@ void Command_Setcontrol_f(void)
 	
 	setcontrol(gamecontrol[j], na);
 }
+

@@ -374,6 +374,7 @@ To  :      ReMooD 1.0a "Stuffed Cabbage"   [To Be Determined]
  >> COMPATIBILITY:
     * Make spawn sticking less likely to occur. [co_lessspawnsticking]
     + Add a large number of compatibility options.
+    + Improve how bodies are managed (so the game does not keep thousands of dead player bodies). [co_betterplbodyqueue]
 
  >> GAME SETTING:
     * Change the way game settings are performed, they now do not rely on the console.
@@ -383,6 +384,9 @@ To  :      ReMooD 1.0a "Stuffed Cabbage"   [To Be Determined]
     * Implemented a new console which, although different, should perform better.
     + Added one hit kills. [game_onehitkills]
     - Remove the unfinished and incomplete 16-bit color mode.
+ 
+ >> BUG FIXES:
+    * When an object is removed, remove any player that have it as the attacker (helps prevent crashes).
 </PRE>
 
  * Backend/Internationalization: For multinational support use UTF-8 instead of UTF-16/UTF-32 to save space and to support targets that lack wchar_t support. [GhostlyDeath]<BR>

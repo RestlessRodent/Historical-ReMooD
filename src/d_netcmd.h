@@ -136,6 +136,7 @@ typedef struct D_NetPlayer_s
 	// Desync
 	
 	/* Specifics */
+	int NetColor;								// Network Color
 } D_NetPlayer_t;
 
 /*** GLOBALS ***/

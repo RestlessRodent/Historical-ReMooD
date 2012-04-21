@@ -111,7 +111,7 @@ static Z_MemZone_t* l_MainZone = NULL;	// Memory zones
 ************************/
 
 #if defined(_DEBUG)
-//	#define __REMOOD_VALGRIND
+	#define __REMOOD_VALGRIND
 #endif
 
 #if defined(__REMOOD_VALGRIND)
@@ -182,6 +182,7 @@ void* Z_MallocWrappee(const size_t Size, const Z_MemoryTag_t Tag, void** Ref _ZM
 	// Check
 	if (New)
 	{
+		memset(New, 0, sizeof(*New));
 		New->Prev = New->Next = NULL;
 		Ret = New->Data = malloc(Size);
 		New->User = Ref;
@@ -254,10 +255,22 @@ void Z_FreeWrappee(void* const Ptr _ZMGD_WRAPPEE)
 	free(Alloc->Data);
 	
 	/* Re-chain */
+	if (Alloc == l_AllocChain)
+	{
+		if (Alloc->Next)
+			l_AllocChain = Alloc->Next;
+		else
+			l_AllocChain = Alloc->Prev;
+	}
+	
 	if (Alloc->Prev)
 		Alloc->Prev->Next = Alloc->Next;
 	if (Alloc->Next)
 		Alloc->Next->Prev = Alloc->Prev;
+	
+	
+	// Free allocation
+	free(Alloc);
 }
 
 size_t Z_FreeTagsWrappee(const Z_MemoryTag_t LowTag, const Z_MemoryTag_t HighTag _ZMGD_WRAPPEE)

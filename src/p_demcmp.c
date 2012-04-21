@@ -433,6 +433,10 @@ static P_EXGSVariable_t l_GSVars[PEXGSNUMBITIDS] =
 	{PEXGST_INTEGER, PEXGSBID_GAMEONEHITKILLS, "game_onehitkills", "One Hit Kills",
 		"Any recieved damage kills.", PEXGSGM_ANY, PEXGSDR_NOCHECK, 0, {0, 1}, 0,
 		PEXGSMC_GAME},
+	
+	{PEXGST_INTEGER, PEXGSBID_COBETTERPLCORPSEREMOVAL, "co_betterplbodyqueue", "Better Body Management",
+		"Better management of player bodies so they do not litter everywhere. [ReMooD >= 1.0a]", PEXGSGM_ANY, PEXGSDR_ATLEAST, 200, {0, 1}, 1,
+		PEXGSMC_COMPAT},
 };
 
 /*** FUNCTIONS ***/

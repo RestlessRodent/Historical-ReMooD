@@ -1470,10 +1470,14 @@ bool_t G_CheckSpot(int playernum, mapthing_t* mthing)
 		return false;
 		
 	// flush an old corpse if needed
-	if (bodyqueslot >= BODYQUESIZE)
-		P_RemoveMobj(bodyque[bodyqueslot % BODYQUESIZE]);
-	bodyque[bodyqueslot % BODYQUESIZE] = players[playernum].mo;
-	bodyqueslot++;
+		// GhostlyDeath <April 20, 2012> -- This is quite useless here especially when there are 32 players!
+	if (!P_EXGSGetValue(PEXGSBID_COBETTERPLCORPSEREMOVAL))
+	{
+		if (bodyqueslot >= BODYQUESIZE)
+			P_RemoveMobj(bodyque[bodyqueslot % BODYQUESIZE]);
+		bodyque[bodyqueslot % BODYQUESIZE] = players[playernum].mo;
+		bodyqueslot++;
+	}
 	
 	// spawn a teleport fog
 	// TODO: Vanilla comp: an = (ANG45 * (mthing->angle / 45)) >> ANGLETOFINESHIFT;
@@ -1524,7 +1528,6 @@ bool_t G_DeathMatchSpawnPlayer(int playernum)
 	
 	if (P_EXGSGetValue(PEXGSBID_COALLOWSTUCKSPAWNS))
 	{
-	
 		// no good spot, so the player will probably get stuck
 		P_SpawnPlayer(playerstarts[playernum]);
 		return true;

@@ -547,11 +547,22 @@ void P_DeathThink(player_t* player)
 		// change aiming to look up or down at the attacker (DOESNT WORK)
 		// FIXME : the aiming returned seems to be too up or down... later
 		
+			// FIXME
+			// ==00:00:02:56.682 32109== Invalid read of size 4
+			// ==00:00:02:56.682 32109==    at 0x465437: P_DeathThink (p_user.c:550)
+			// ==00:00:02:56.682 32109==    by 0x465DE5: P_PlayerThink (p_user.c:830)
+			// ==00:00:02:56.683 32109==  Address 0x6f8ab10 is 64 bytes inside a block of size 352 free'd
 		dist = P_AproxDistance(attacker->x - player->mo->x, attacker->y - player->mo->y);
 		//if (dist)
 		//    pitch = FixedMul ((160<<FRACBITS), FixedDiv (attacker->z + (attacker->height>>1), dist)) >>FRACBITS;
 		//else
 		//    pitch = 0;
+			// FIXME
+			// ==00:00:02:56.683 32109== Invalid read of size 4
+			// ==00:00:02:56.683 32109==    at 0x46545B: P_DeathThink (p_user.c:555)
+			// ==00:00:02:56.684 32109==    by 0x465DE5: P_PlayerThink (p_user.c:830)
+			// ==00:00:02:56.684 32109==    by 0x4644FA: P_Ticker (p_tick.c:141)
+			// ==00:00:02:56.684 32109==  Address 0x6f8ab18 is 72 bytes inside a block of size 352 free'd
 		pitch = (attacker->z - player->mo->z) >> 17;
 		player->aiming = G_ClipAimingPitch(&pitch);
 		

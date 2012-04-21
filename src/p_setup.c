@@ -1753,6 +1753,11 @@ bool_t P_ExClearLevel(void)
 	/* Re-initialize */
 	P_Initsecnode();
 	P_InitThinkers();
+	
+	/* Re-init some things */
+	// Body Queue
+	memset(bodyque, 0, sizeof(bodyque));
+	bodyqueslot = true;
 
 	/* Always succeeds */
 	return true;

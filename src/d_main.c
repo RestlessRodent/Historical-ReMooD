@@ -1481,7 +1481,9 @@ void D_DoomMain(void)
 	P_ExtraSpecialStuff();				// Initialize extra special stuff
 	P_EXGSRegisterStuff();				// Extended Game Settings stuff
 	M_CheatInit();						// Initialize Cheats
-	D_NCSInit();
+	D_NCSInit();						// Initialize Network Code
+	
+	D_CreateProfileEx("guest");			// Create guest account
 	/**************************/
 	
 	// GhostlyDeath <December 14, 2011> -- Use extended identify version

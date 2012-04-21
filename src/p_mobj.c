@@ -1203,6 +1203,8 @@ int iquetail;
 
 void P_RemoveMobj(mobj_t* mobj)
 {
+	size_t i;
+	
 	if (!mobj)
 		return;
 		
@@ -1238,6 +1240,12 @@ void P_RemoveMobj(mobj_t* mobj)
 		mobj->spawnpoint->mobj = NULL;
 		mobj->spawnpoint = NULL;
 	}
+	
+	// GhostlyDeath <April 20, 2012> -- Remove attackers so they don't get followed for dead players
+	for (i = 0; i < MAXPLAYERS; i++)
+		if (playeringame[i])
+			if (players[i].attacker == mobj)
+				players[i].attacker = NULL;
 }
 
 consvar_t cv_itemrespawntime = { "respawnitemtime", "30", CV_NETVAR, CV_Unsigned };
@@ -1416,6 +1424,16 @@ void P_SpawnPlayer(mapthing_t* mthing)
 	{
 		CONL_PrintF("WARNING - P_SpawnPlayer: playernum not valid %i. (%s:%i).\n", playernum, __FILE__, __LINE__);
 		return;
+	}
+	
+	// Remove bodies
+	// GhostlyDeath <April 20, 2012> -- Remove bodies here so they actually GET removed!
+	if (P_EXGSGetValue(PEXGSBID_COBETTERPLCORPSEREMOVAL))
+	{
+		if (bodyqueslot >= BODYQUESIZE)
+			P_RemoveMobj(bodyque[bodyqueslot % BODYQUESIZE]);
+		bodyque[bodyqueslot % BODYQUESIZE] = players[playernum].mo;
+		bodyqueslot++;
 	}
 	
 	p = &players[playernum];

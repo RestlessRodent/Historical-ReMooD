@@ -185,6 +185,8 @@ typedef enum I_KeyBoardKey_e
 	IKBK_WINDOWSKEY,
 	IKBK_MENUKEY,
 	IKBK_EVILEURO,
+	
+	NUMIKEYBOARDKEYS
 } I_KeyBoardKey_t;
 
 /* I_EventType_t -- Event type */

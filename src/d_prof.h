@@ -95,6 +95,16 @@ typedef enum D_ProfileExBotFlags_e
 	DPEXBOTF_TURNAROUND			= 0x00000002,	// Bot can do 180 degree turns
 } D_ProfileExBotFlags_t;
 
+/* D_ProfileExInputCtrl_t -- Input control */
+typedef enum D_ProfileExInputCtrl_e
+{
+	DPEXIC_NULL,
+	DPEXIC_FORWARDS,
+	DPEXIC_BACKWARDS,
+	
+	NUMDPROFILEEXINPUTCTRLS
+} D_ProfileExInputCtrl_t;
+
 /*** STRUCTURES ***/
 
 struct mobj_s;
@@ -110,10 +120,15 @@ typedef struct D_ProfileEx_s
 	uint8_t Color;								// Color
 	uint8_t JoyControl;							// Which joystick player controls
 	char UUID[MAXPLAYERNAME * 2];				// Player Unique ID
+	uint32_t Ctrls[NUMDPROFILEEXINPUTCTRLS][2];	// Player Controls
 	
 	/* Network Related */
 	D_NetPlayer_t* NetPlayer;					// Network Player
 } D_ProfileEx_t;
+
+/*** FUNCTIONS ***/
+
+D_ProfileEx_t* D_CreateProfileEx(const char* const a_Name);
 
 #endif							/* __D_PROF_H__ */
 

@@ -147,16 +147,18 @@ static bool_t l_ThreadedSound = false;	// Threaded sound
 ****************/
 
 /* S_GetListenerEmitterWithDist() -- Gets the listener for the sound, the emiter and the distance */
-fixed_t S_GetListenerEmitterWithDist(S_SoundChannel_t* const a_Channel, S_NoiseThinker_t* const a_Origin, S_NoiseThinker_t** const a_Listen,
-S_NoiseThinker_t** const a_Emit)
+fixed_t S_GetListenerEmitterWithDist(S_SoundChannel_t* const a_Channel, S_NoiseThinker_t* const a_Origin, S_NoiseThinker_t** const a_Listen, S_NoiseThinker_t** const a_Emit)
 {
 	fixed_t ApproxDist, NewDist = 0;
-	size_t i;
+	int i;
 	S_NoiseThinker_t* Attempt;
 	
 	/* Check */
 	if (!a_Listen || !a_Emit)
 		return 0;
+	
+	/* Clear listener */
+	*a_Listen = NULL;
 		
 	/* Find emitter of object */
 	if (a_Channel)
@@ -166,6 +168,10 @@ S_NoiseThinker_t** const a_Emit)
 		
 	/* If there is no emitter, don't bother going on */
 	if (!*a_Emit)
+		return 0;
+	
+	/* No local players */
+	if (g_SplitScreen < 0)
 		return 0;
 		
 	/* Find the closest listener */
@@ -357,6 +363,10 @@ void S_StartSoundAtVolume(S_NoiseThinker_t* a_Origin, int sound_id, int volume)
 		
 	/* Get closest listener, emitter, and distance */
 	Dist = S_GetListenerEmitterWithDist(NULL, a_Origin, &Listener, &Emitter);
+	
+	// No listener?
+	if (!Listener)
+		return;
 	
 	// The further the sound is the lower the priority
 	MyP = S_sfx[sound_id].priority;

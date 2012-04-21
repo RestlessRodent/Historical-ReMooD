@@ -992,6 +992,9 @@ struct player_s* D_NCSAddBotPlayer(const char* const a_ProfileID)
 	// Set as reborn
 	players[p].playerstate = PST_REBORN;
 	
+	// Set color
+	players[p].skincolor = p % MAXSKINCOLORS;
+	
 	/* Setup network player */
 	// Allocate
 	NPp = players[p].NetPlayer = D_NCSAllocNetPlayer();
@@ -999,6 +1002,7 @@ struct player_s* D_NCSAddBotPlayer(const char* const a_ProfileID)
 	// Set base info
 	NPp->Type = DNPT_BOT;
 	NPp->Player = &players[p];
+	NPp->NetColor = p % MAXSKINCOLORS;
 	
 	/* Return the new player */
 	return &players[p];
@@ -1095,8 +1099,14 @@ void D_NCSNetUpdateSingle(struct player_s* a_Player)
 	
 	/* Generate Commands */
 	// Use last free spot
-	i = NPp->TicTotal++;
+	if (NPp->TicTotal < MAXDNETTICCMDCOUNT - 1)
+		i = NPp->TicTotal++;
+	else
+		i = MAXDNETTICCMDCOUNT - 1;
 	TicCmd = &NPp->TicCmd[i];
+	
+	// Clear command
+	memset(TicCmd, 0, sizeof(*TicCmd));
 	
 	// Now what to do with this?
 	switch (NPp->Type)
@@ -1107,7 +1117,7 @@ void D_NCSNetUpdateSingle(struct player_s* a_Player)
 				// TODO
 			
 			// Change Local aiming
-			if (SID < MAXSPLITSCREEN)
+			if (SID >= 0 && SID < MAXSPLITSCREEN)
 				TicCmd->angleturn = localangle[SID] >> 16;
 			break;
 		

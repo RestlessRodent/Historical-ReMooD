@@ -203,6 +203,7 @@ typedef enum P_EXGSBitID_e
 	PEXGSBID_COLESSSPAWNSTICKING,				// Make spawn sticking less likely
 	PEXGSBID_PLSPAWNTELEFRAG,					// Telefrag on spawn
 	PEXGSBID_GAMEONEHITKILLS,					// One Hit Kills
+	PEXGSBID_COBETTERPLCORPSEREMOVAL,			// Botter bodyqueue management
 	
 	PEXGSNUMBITIDS
 } P_EXGSBitID_t;
