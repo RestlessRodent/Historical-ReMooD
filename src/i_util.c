@@ -66,6 +66,7 @@
 #include "d_main.h"
 #include "m_argv.h"
 #include "g_game.h"
+#include "d_netcmd.h"
 
 /****************
 *** CONSTANTS ***
@@ -268,7 +269,8 @@ void I_OsPolling(void)
 		// Translate
 		if (!CONL_HandleEvent(&Event))
 			if (!M_MenuExHandleEvent(&Event))
-				I_EventToOldDoom(&Event);
+				if (!D_NCSHandleEvent(&Event))
+					I_EventToOldDoom(&Event);
 	}
 }
 

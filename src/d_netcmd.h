@@ -37,6 +37,7 @@
 #include "doomdef.h"
 #include "command.h"
 #include "d_ticcmd.h"
+#include "i_util.h"
 
 // console vars
 extern consvar_t cv_playername;
@@ -152,6 +153,8 @@ struct player_s* D_NCSAddBotPlayer(const char* const a_ProfileID);
 void D_NCSInit(void);
 void D_NCSNetUpdateSingle(struct player_s* a_Player);
 void D_NCSNetUpdateAll(void);
+
+bool_t D_NCSHandleEvent(const I_EventEx_t* const a_Event);
 
 D_NetPlayer_t* D_NCSAllocNetPlayer(void);
 

@@ -105,6 +105,17 @@ typedef enum D_ProfileExInputCtrl_e
 	NUMDPROFILEEXINPUTCTRLS
 } D_ProfileExInputCtrl_t;
 
+/* D_ProfileExCtrlMA_t -- Controlled mouse axis */
+typedef enum D_ProfileExCtrlMA_e
+{
+	DPEXCMA_MOVEX,								// Move on axis
+	DPEXCMA_MOVEY,
+	DPEXCMA_LOOKX,								// Look on axis
+	DPEXCMA_LOOKY,
+	
+	NUMDPROFILEEXCTRLMAS
+} D_ProfileExCtrlMA_t;
+
 /*** STRUCTURES ***/
 
 struct mobj_s;
@@ -120,15 +131,25 @@ typedef struct D_ProfileEx_s
 	uint8_t Color;								// Color
 	uint8_t JoyControl;							// Which joystick player controls
 	char UUID[MAXPLAYERNAME * 2];				// Player Unique ID
+	
+	/* Controls For Player */
 	uint32_t Ctrls[NUMDPROFILEEXINPUTCTRLS][2];	// Player Controls
+	D_ProfileExCtrlMA_t MouseAxis[3][2];		// Mouse Axis Movement
+	int32_t MouseSens[2];						// Mouse Sensitivity
 	
 	/* Network Related */
 	D_NetPlayer_t* NetPlayer;					// Network Player
+	
+	/* Profile Chains */
+	struct D_ProfileEx_s* Prev;					// Previous link
+	struct D_ProfileEx_s* Next;					// Next link
 } D_ProfileEx_t;
 
 /*** FUNCTIONS ***/
 
 D_ProfileEx_t* D_CreateProfileEx(const char* const a_Name);
+
+D_ProfileEx_t* D_FindProfileEx(const char* const a_Name);
 
 #endif							/* __D_PROF_H__ */
 

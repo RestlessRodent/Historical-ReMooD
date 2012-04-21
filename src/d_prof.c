@@ -739,6 +739,10 @@ void M_ProfAccept(int choice)
 *** EXTENDED PROFILES ***
 ************************/
 
+/*** LOCALS ***/
+
+static D_ProfileEx_t* l_FirstProfile = NULL;	// First in chain
+
 /*** FUNCTIONS ***/
 
 /* D_CreateProfileEx() -- Create Profile */
@@ -760,7 +764,7 @@ D_ProfileEx_t* D_CreateProfileEx(const char* const a_Name)
 	New->UUID[0] = a_Name[0];
 	
 	// UUID (hopefully random)
-	for (i = 1; i < MAXPLAYERNAME * 2; i++)
+	for (i = 1; i < (MAXPLAYERNAME * 2) - 1; i++)
 	{
 		// Hopefully random enough
 		Char = (((int)(M_Random())) + ((int)I_GetTime() * (int)I_GetTime()));
@@ -779,7 +783,63 @@ D_ProfileEx_t* D_CreateProfileEx(const char* const a_Name)
 		I_WaitVBL(M_Random() & 1);
 	}
 	
+	/* Copy Name */
+	strncpy(New->AccountName, a_Name, MAXPLAYERNAME - 1);
+	strncpy(New->DisplayName, a_Name, MAXPLAYERNAME - 1);
+	
+	/* Set Default Options */
+	New->Flags |= DPEXF_GOTMOUSE;
+	
+	// Default Controls
+		// Not ALT
+	New->MouseAxis[0][0] = DPEXCMA_LOOKX;
+	New->MouseAxis[0][1] = DPEXCMA_MOVEY;
+		// ALT
+	New->MouseAxis[1][0] = DPEXCMA_MOVEX;
+	New->MouseAxis[1][1] = DPEXCMA_MOVEY;
+		// Mouse Look (Default 'S')
+	New->MouseAxis[2][0] = DPEXCMA_LOOKX;
+	New->MouseAxis[2][1] = DPEXCMA_LOOKY;
+
+	// Default Sensitivities
+	New->MouseSens[0] = New->MouseSens[1] = 10;
+	
+	/* Link */
+	if (!l_FirstProfile)
+		l_FirstProfile = New;
+	else
+	{
+		New->Next = l_FirstProfile;
+		l_FirstProfile->Prev = New;
+		l_FirstProfile = New;
+	}
+	
 	/* Return the new one */
 	return New;
+}
+
+/* D_FindProfileEx() -- Locates a profile */
+D_ProfileEx_t* D_FindProfileEx(const char* const a_Name)
+{
+	D_ProfileEx_t* Rover;
+	
+	/* Check */
+	if (!a_Name)
+		return NULL;
+	
+	/* Rove */
+	for (Rover = l_FirstProfile; Rover; Rover = Rover->Next)
+	{
+		// UUID Match?
+		if (strcmp(Rover->UUID, a_Name) == 0)
+			return Rover;
+		
+		// Account Match?
+		else if (strcasecmp(Rover->AccountName, a_Name) == 0)
+			return Rover;
+	}
+	
+	/* Not found */
+	return NULL;
 }
 

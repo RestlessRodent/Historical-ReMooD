@@ -895,10 +895,21 @@ void Command_Kill(void)
 *** EXTENDED NETWORK STUFF ***
 *****************************/
 
+/*** CONSTANTS ***/
+
+static const fixed_t c_forwardmove[2] = { 25, 50 };
+static const fixed_t c_sidemove[2] = { 24, 40 };
+static const fixed_t c_angleturn[3] = { 640, 1280, 320 };	// + slow turn
+#define MAXPLMOVE       (c_forwardmove[1])
+
 /*** GLOBALS ***/
 
 int g_SplitScreen = -1;							// Split screen players (-1 based)
 bool_t g_PlayerInSplit[MAXSPLITSCREEN] = {false, false, false, false};
+
+/*** LOCALS ***/
+static bool_t l_PermitMouse = false;			// Use mouse input
+static int32_t l_MouseMove[2] = {0, 0};			// Mouse movement (x/y)
 
 /*** FUNCTIONS ***/
 
@@ -958,6 +969,7 @@ struct player_s* D_NCSAddLocalPlayer(const char* const a_ProfileID)
 	// Set base info
 	NPp->Type = DNPT_LOCAL;
 	NPp->Player = &players[p];
+	NPp->Profile = D_FindProfileEx(a_ProfileID);
 	
 	/* Return the new player */
 	return &players[p];
@@ -1077,6 +1089,152 @@ void D_NCSInit(void)
 	CONL_AddCommand("net", DS_NCSNetCommand);
 }
 
+/* D_NCSHandleEvent() -- Handle advanced events */
+bool_t D_NCSHandleEvent(const I_EventEx_t* const a_Event)
+{
+	/* Check */
+	if (!a_Event)
+		return false;
+	
+	/* Which kind of event? */
+	switch (a_Event->Type)
+	{
+			// Mouse
+		case IET_MOUSE:
+			// Add position to movement
+			l_MouseMove[0] += a_Event->Data.Mouse.Move[0];
+			l_MouseMove[1] += a_Event->Data.Mouse.Move[1];
+			break;
+		
+			// Unknown
+		default:
+			break;
+	}
+	
+	/* Un-Handled */
+	return false;
+}
+
+/* D_NCSLocalBuildTicCmd() -- Build local tic command */
+static void D_NCSLocalBuildTicCmd(D_NetPlayer_t* const a_NPp, ticcmd_t* const a_TicCmd)
+{
+	D_ProfileEx_t* Profile;
+	int32_t TargetMove;
+	size_t i, PID, SID;
+	int8_t SensMod, MoveMod, MouseMod;
+	int32_t SideMove, ForwardMove;
+	
+	/* Check */
+	if (!a_NPp || !a_TicCmd)
+		return;
+	
+	/* Obtain profile */
+	Profile = a_NPp->Profile;
+	
+	// No profile?
+	if (!Profile)
+		return;
+	
+	/* Find Player ID */
+	PID = a_NPp->Player - players;
+	
+	// Illegal player?
+	if (PID < 0 || PID >= MAXPLAYERS)
+		return;
+	
+	/* Find Screen ID */
+	for (SID = 0; SID < MAXSPLITSCREEN; SID++)
+		if (g_PlayerInSplit[SID])
+			if (consoleplayer[SID] == PID)
+				break;
+	
+	// Not found?
+	if (SID >= MAXSPLITSCREEN)
+		return;
+	
+	/* Reset Some Things */
+	SideMove = ForwardMove = 0;
+	
+	/* Modifiers */
+	// Mouse Sensitivity
+	SensMod = 0;
+	
+	// Movement Modifier
+	MoveMod = 0;
+	
+	// Mouse Modifier
+	MouseMod = 0;
+	
+	/* Player has mouse input? */
+	if (l_PermitMouse && (Profile->Flags & DPEXF_GOTMOUSE))
+	{
+		// Read mouse input for both axis
+		for (i = 0; i < 2; i++)
+		{
+			// Modify with sensitivity
+			TargetMove = l_MouseMove[i] * ((((float)(Profile->MouseSens[MouseMod] * Profile->MouseSens[MouseMod])) / 110.0) + 0.1);
+			
+			// Do action for which movement type?
+			switch (Profile->MouseAxis[MouseMod][i])
+			{
+					// Strafe Left/Right
+				case DPEXCMA_MOVEX:
+					SideMove += TargetMove;
+					break;
+					
+					// Move Forward/Back
+				case DPEXCMA_MOVEY:
+					ForwardMove += TargetMove;
+					break;
+					
+					// Left/Right Look
+				case DPEXCMA_LOOKX:
+					a_TicCmd->angleturn -= TargetMove * 8;
+					break;
+					
+					// Up/Down Look
+				case DPEXCMA_LOOKY:
+					localaiming[SID] += TargetMove << 19;
+					break;
+				
+					// Unknown
+				default:
+					break;
+			}
+		}
+		
+		// Clear mouse permission
+		l_PermitMouse = false;
+		
+		// Clear mouse input
+		l_MouseMove[0] = l_MouseMove[1] = 0;
+	}
+	
+	/* Set Movement Now */
+	// Cap
+	if (SideMove > MAXPLMOVE)
+		SideMove = MAXPLMOVE;
+	else if (SideMove < -MAXPLMOVE)
+		SideMove = -MAXPLMOVE;
+		
+	if (ForwardMove > MAXPLMOVE)
+		ForwardMove = MAXPLMOVE;
+	else if (ForwardMove < -MAXPLMOVE)
+		ForwardMove = -MAXPLMOVE;
+	
+	// Set
+	a_TicCmd->sidemove = SideMove;
+	a_TicCmd->forwardmove = ForwardMove;
+	
+	/* Set from localaiming and such */
+	// Local angle (x look)
+	localangle[SID] += (a_TicCmd->angleturn << 16);
+	a_TicCmd->angleturn = localangle[SID] >> 16;
+	
+	// Local aiming (y look)
+	a_TicCmd->aiming = G_ClipAimingPitch(&localaiming);
+}
+
 /* D_NCSNetUpdateSingle() -- Update single player */
 void D_NCSNetUpdateSingle(struct player_s* a_Player)
 {
@@ -1125,11 +1283,7 @@ void D_NCSNetUpdateSingle(struct player_s* a_Player)
 			// Local player on this computer
 		case DNPT_LOCAL:
 			// Fill command based on controller input
-				// TODO
-			
-			// Change Local aiming
-			if (SID >= 0 && SID < MAXSPLITSCREEN)
-				TicCmd->angleturn = localangle[SID] >> 16;
+			D_NCSLocalBuildTicCmd(NPp, TicCmd);
 			break;
 		
 			// Networked player on another system
@@ -1160,6 +1314,9 @@ void D_NCSNetUpdateSingle(struct player_s* a_Player)
 void D_NCSNetUpdateAll(void)
 {
 	size_t i;
+	
+	/* Enable Mouse Input */
+	l_PermitMouse = true;
 	
 	/* Update All Players */
 	for (i = 0; i < MAXPLAYERS; i++)

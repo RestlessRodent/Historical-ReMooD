@@ -764,7 +764,7 @@ void G_BuildTiccmd(ticcmd_t* cmd, int realtics, int player)
 	if (!cv_allowmlook.value)
 		localaiming[player] = 0;
 		
-	cmd->aiming = G_ClipAimingPitch(&localaiming);
+	cmd->aiming = G_ClipAimingPitch(&localaiming[player]);
 	
 	if (cv_m_legacymouse.value)
 	{
