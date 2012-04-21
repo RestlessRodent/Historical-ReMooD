@@ -1492,16 +1492,19 @@ bool_t G_CheckSpot(int playernum, mapthing_t* mthing, const bool_t a_NoFirstMo)
 		}
 	
 	// spawn a teleport fog
-	// TODO: Vanilla comp: an = (ANG45 * (mthing->angle / 45)) >> ANGLETOFINESHIFT;
-	an = (ANG45 * (mthing->angle / 45));
-	an >>= ANGLETOFINESHIFT;
+	if (players[playernum].mo)
+	{
+		// TODO: Vanilla comp: an = (ANG45 * (mthing->angle / 45)) >> ANGLETOFINESHIFT;
+		an = (ANG45 * (mthing->angle / 45));
+		an >>= ANGLETOFINESHIFT;
 	
-	mo = P_SpawnMobj(x + 20 * finecosine[an], y + 20 * finesine[an], ss->sector->floorheight, INFO_GetTypeByName("TeleportFog"));
+		mo = P_SpawnMobj(x + 20 * finecosine[an], y + 20 * finesine[an], ss->sector->floorheight, INFO_GetTypeByName("TeleportFog"));
 	
-	//added:16-01-98:consoleplayer -> displayplayer (hear snds from viewpt)
-	// removed 9-12-98: why not ????
-	if (players[displayplayer[0]].viewz != 1)
-		S_StartSound(mo, sfx_telept);	// don't start sound on first frame
+		//added:16-01-98:consoleplayer -> displayplayer (hear snds from viewpt)
+		// removed 9-12-98: why not ????
+		if (players[displayplayer[0]].viewz != 1)
+			S_StartSound(mo, sfx_telept);	// don't start sound on first frame
+	}
 		
 	return true;
 }
@@ -1548,10 +1551,12 @@ static bool_t GS_ClusterTraverser(intercept_t* in, void* const a_Data)
 bool_t G_ClusterSpawnPlayer(const int PlayerID, const bool_t a_CheckOp)
 {
 	mapthing_t** Spots;
-	size_t NumSpots, i;
+	size_t NumSpots, i, s;
 	int x, y, bx, by;
 	mapthing_t OrigThing, FakeThing;
 	subsector_t* SubS;
+	bool_t RandomSpot;
+	bool_t* Tried;
 	
 	/* Bad player id? */
 	if (PlayerID < 0 || PlayerID >= MAXPLAYERS)
@@ -1561,26 +1566,47 @@ bool_t G_ClusterSpawnPlayer(const int PlayerID, const bool_t a_CheckOp)
 	// Deathmatch
 	if (cv_deathmatch.value || (!cv_deathmatch.value && a_CheckOp))
 	{
+		RandomSpot = true;
 		Spots = deathmatchstarts;
 		NumSpots = numdmstarts;
+		Tried = Z_Malloc(sizeof(*Tried) * NumSpots, PU_STATIC, NULL);
 	}
 	
 	// Coop
 	else if (!cv_deathmatch.value || (cv_deathmatch.value && a_CheckOp))
 	{
+		RandomSpot = false;
 		Spots = playerstarts;
 		NumSpots = MAXPLAYERS;
+		Tried = NULL;
 	}
 	
 	/* Determine offset base */
 	if (a_CheckOp || cv_deathmatch.value)
-		bx = by = 1;
+		bx = by = 2;
 	else
 		bx = by = 3;
 	
 	/* Go through each spot */
-	for (i = 0; i < NumSpots; i++)
+	for (s = 0; s < NumSpots; s++)
 	{
+		// Randomize?
+		if (RandomSpot)
+		{
+			// Determine random spot
+			do
+			{
+				i = P_Random() % NumSpots;
+			} while (Tried[i]);
+			
+			// Mark as tried
+			Tried[i] = true;
+		}
+		
+		// Normal through the list
+		else
+			i = s;
+		
 		// No actual spot here?
 		if (!Spots[i])
 			continue;
@@ -1671,10 +1697,18 @@ bool_t G_ClusterSpawnPlayer(const int PlayerID, const bool_t a_CheckOp)
 				if (players[PlayerID].mo)
 					players[PlayerID].mo->spawnpoint = NULL;
 				
+				// Clear tried before we leave
+				if (Tried)
+					Z_Free(Tried);
+				
 				// Success here!
 				return true;
 			}
 	}
+	
+	/* Clear tried */
+	if (Tried)
+		Z_Free(Tried);
 	
 	/* Did not find a spot nor spawned a player */
 	return false;
@@ -1700,17 +1734,6 @@ bool_t G_DeathMatchSpawnPlayer(int playernum)
 		n = 20;
 	else
 		n = 64;
-		
-	for (j = 0; j < n; j++)
-	{
-		i = P_Random() % numdmstarts;
-		if (G_CheckSpot(playernum, deathmatchstarts[i], false))
-		{
-			deathmatchstarts[i]->type = playernum + 1;
-			P_SpawnPlayer(deathmatchstarts[i]);
-			return true;
-		}
-	}
 	
 	// GhostlyDeath <April 21, 2012> -- Spawn clustering (extra invisible spots)
 	if (P_EXGSGetValue(PEXGSBID_PLSPAWNCLUSTERING))
@@ -1722,6 +1745,17 @@ bool_t G_DeathMatchSpawnPlayer(int playernum)
 		// Then try Coop Starts
 		if (G_ClusterSpawnPlayer(playernum, true))
 			return true;
+	}
+	
+	for (j = 0; j < n; j++)
+	{
+		i = P_Random() % numdmstarts;
+		if (G_CheckSpot(playernum, deathmatchstarts[i], false))
+		{
+			deathmatchstarts[i]->type = playernum + 1;
+			P_SpawnPlayer(deathmatchstarts[i]);
+			return true;
+		}
 	}
 	
 	if (P_EXGSGetValue(PEXGSBID_COALLOWSTUCKSPAWNS))
