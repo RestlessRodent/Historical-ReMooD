@@ -104,6 +104,30 @@ void FastMonster_OnChange(void)
 
 static mobj_t* soundtarget;
 
+static sector_t** l_SoundSecs;
+static size_t l_NumSoundSecs;
+
+/* P_ClearRecursiveSound() -- Clears recursive sounds */
+void P_ClearRecursiveSound(void)
+{
+	if (l_SoundSecs)
+		Z_Free(l_SoundSecs);
+	l_SoundSecs = NULL;
+	l_NumSoundSecs = NULL;
+}
+
+/* P_RemoveRecursiveSound() -- Remove recursive sounds from sectors */
+void P_RemoveRecursiveSound(mobj_t* const a_Mo)
+{
+	size_t i;
+	
+	/* Look through sound sectors */
+	for (i = 0; i < l_NumSoundSecs; i++)
+		if (l_SoundSecs[i])
+			if (l_SoundSecs[i]->soundtarget == a_Mo)
+				l_SoundSecs[i]->soundtarget = NULL;
+}
+
 static void P_RecursiveSound(sector_t* sec, int soundblocks)
 {
 	int i;
@@ -119,6 +143,14 @@ static void P_RecursiveSound(sector_t* sec, int soundblocks)
 	sec->validcount = validcount;
 	sec->soundtraversed = soundblocks + 1;
 	sec->soundtarget = soundtarget;
+
+	// GhostlyDeath <April 21, 2012> -- Add to referenced sectors	
+	if (!sec->SoundSecRef)
+	{
+		Z_ResizeArray((void**)&l_SoundSecs, sizeof(*l_SoundSecs), l_NumSoundSecs, l_NumSoundSecs + 1);
+		sec->SoundSecRef = ++l_NumSoundSecs;
+		l_SoundSecs[sec->SoundSecRef - 1] = sec;
+	}
 	
 	for (i = 0; i < sec->linecount; i++)
 	{
@@ -531,7 +563,7 @@ static bool_t P_LookForPlayers(mobj_t* actor, bool_t allaround)
 		if (BestMo)
 		{
 			// target it then!
-			actor->target = BestMo;
+			P_RefMobj(PMRT_TARGET, actor, BestMo);
 			return true;
 		}
 	}
@@ -585,7 +617,7 @@ static bool_t P_LookForPlayers(mobj_t* actor, bool_t allaround)
 				}
 			}
 	
-			actor->target = player->mo;
+			P_RefMobj(PMRT_TARGET, actor, player->mo);
 			return true;
 		}
 	}
@@ -615,7 +647,7 @@ void A_Look(mobj_t* actor)
 	
 	if (targ && (targ->flags & MF_SHOOTABLE))
 	{
-		actor->target = targ;
+		P_RefMobj(PMRT_TARGET, actor, targ);
 		
 		if (actor->flags & MF_AMBUSH)
 		{
@@ -686,7 +718,12 @@ void A_Chase(mobj_t* actor)
 		if (P_EXGSGetValue(PEXGSBID_HEREMONSTERTHRESH))
 			actor->threshold--;
 		else if ((!actor->target || actor->target->health <= 0 || (actor->target->flags & MF_CORPSE)))
+		{
 			actor->threshold = 0;
+		
+			// GhostlyDeath <April 21, 2012> -- Deref here to remove reference
+			P_RefMobj(PMRT_TARGET, actor, NULL);
+		}
 	}
 	
 	// turn towards movement direction if not there yet
@@ -1058,7 +1095,7 @@ void A_SkelMissile(mobj_t* actor)
 	{
 		mo->x += mo->momx;
 		mo->y += mo->momy;
-		mo->tracer = actor->target;
+		P_RefMobj(PMRT_TRACER, mo, actor->target);
 		
 		// GhostlyDeath <March 6, 2012> -- Obituary Stuff
 		mo->RXUsedMelee = false;
@@ -1251,9 +1288,9 @@ void A_VileChase(mobj_t* actor)
 				{
 					// got one!
 					temp = actor->target;
-					actor->target = corpsehit;
+					P_RefMobj(PMRT_TARGET, actor, corpsehit);
 					A_FaceTarget(actor);
-					actor->target = temp;
+					P_RefMobj(PMRT_TARGET, actor, temp);
 					
 					// GhostlyDeath <March 6, 2012> -- Use healing state (but only if it is set)
 					if (actor->info->RVileHealState)
@@ -1276,8 +1313,7 @@ void A_VileChase(mobj_t* actor)
 					}
 					corpsehit->flags = info->flags;
 					corpsehit->health = info->spawnhealth;
-					corpsehit->target = NULL;
-					
+					P_RefMobj(PMRT_TARGET, corpsehit, NULL);
 					return;
 				}
 			}
@@ -1353,10 +1389,10 @@ void A_VileTarget(mobj_t* actor)
 			// GhostlyDeath <April 11, 2012> -- Correct Arch-Vile fire target position
 		(P_EXGSGetValue(PEXGSBID_COCORRECTVILETARGET) ? actor->target->y : actor->target->x),
 		actor->target->z, INFO_GetTypeByName("VileFire"));
-	                  
-	actor->tracer = fog;
-	fog->target = actor;
-	fog->tracer = actor->target;
+	 
+	P_RefMobj(PMRT_TRACER, actor, fog);
+	P_RefMobj(PMRT_TARGET, fog, actor);
+	P_RefMobj(PMRT_TRACER, fog, actor->target);
 	A_Fire(fog);
 }
 
@@ -1656,7 +1692,7 @@ void A_PainShootSkull(mobj_t* actor, angle_t angle)
 		return;
 	}
 	
-	newmobj->target = actor->target;
+	P_RefMobj(PMRT_TARGET, newmobj, actor->target);
 	A_SkullAttack(newmobj);
 }
 
@@ -1846,7 +1882,7 @@ void A_BossDeath(mobj_t* mo)
 			// See if it is not fully dead yet
 				// TODO FIXME: May be a compat issue here
 			//if (CheckMo->state != P_FinalState(CheckMo->info->deathstate))
-			if (!(CheckMo->health < 0 || CheckMo->flags & MF_CORPSE))
+			if (!(CheckMo->health <= 0 || CheckMo->flags & MF_CORPSE))
 				return;
 		}
 	}
@@ -2100,7 +2136,7 @@ void A_BrainSpit(mobj_t* mo)
 		newmobj = P_SpawnMissile(mo, targ, INFO_GetTypeByName("BossSpawnCube"));
 		if (newmobj)
 		{
-			newmobj->target = targ;
+			P_RefMobj(PMRT_TARGET, newmobj, targ);
 			newmobj->reactiontime = ((targ->y - mo->y) / newmobj->momy) / newmobj->state->tics;
 		}
 		

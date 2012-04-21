@@ -319,6 +319,7 @@ typedef struct sector_s
 	char* FloorTexture;							// Name of floor texture
 	char* CeilingTexture;						// Name of ceiling texture
 	fixed_t BBox[4];							// Sector bounding box
+	size_t SoundSecRef;							// Reference to sound sector
 } sector_t;
 
 //

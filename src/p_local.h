@@ -96,6 +96,9 @@ extern consvar_t cv_classicblood;
 extern consvar_t cv_classicmeleerange;
 extern consvar_t cv_classicmonsterlogic;
 
+void P_ClearRecursiveSound(void);
+void P_RemoveRecursiveSound(mobj_t* const a_Mo);
+
 //
 // P_TICK
 //

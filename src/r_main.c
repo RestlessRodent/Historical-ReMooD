@@ -1193,7 +1193,7 @@ void R_RenderPlayerViewEx(player_t* player, int quarter)
 	// Check for new console commands.
 	D_SyncNetUpdate();
 	NetUpdate();
-	player->mo->flags &= ~MF_NOSECTOR;	// don't show self (uninit) clientprediction code
+	//player->mo->flags &= ~MF_NOSECTOR;	// don't show self (uninit) clientprediction code
 }
 
 void R_RenderPlayerView(player_t* player)

@@ -1096,7 +1096,7 @@ void P_KillMobj(mobj_t* target, mobj_t* inflictor, mobj_t* source)
 	//                (only for multiplayer fun, does not remember monsters)
 	// GhostlyDeath <March 6, 2012> -- Use flag here
 	if ((target->RXFlags[0] & MFREXA_CARRYKILLER) && source && source->player)
-		target->target = source;
+		P_RefMobj(PMRT_TARGET, target, source);
 	
 	// GhostlyDeath <April 8, 2012> -- If modifying corpses in A_Fall, then don't modify here
 	if (!P_EXGSGetValue(PEXGSBID_COMODIFYCORPSE))
@@ -1430,7 +1430,7 @@ bool_t P_DamageMobj(mobj_t* target, mobj_t* inflictor, mobj_t* source, int damag
 		
 		// if not intent on another player,
 		// chase after this one
-		target->target = source;
+		P_RefMobj(PMRT_TARGET, target, source);
 		target->threshold = BASETHRESHOLD;
 		if (target->state == &states[target->info->spawnstate] && target->info->seestate != S_NULL)
 			P_SetMobjState(target, target->info->seestate);

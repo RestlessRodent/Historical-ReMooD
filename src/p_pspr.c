@@ -852,7 +852,7 @@ void A_BFGSpray(mobj_t* mo)
 			continue;
 		
 		extrabfg = P_SpawnMobj(linetarget->x, linetarget->y, linetarget->z + (linetarget->height >> 2), INFO_GetTypeByName("BFGFlash"));
-		extrabfg->target = BallOwner;
+		P_RefMobj(PMRT_TARGET, extrabfg, BallOwner);
 		extrabfg->RXShotWithWeapon = mo->RXShotWithWeapon;
 		
 		damage = 0;

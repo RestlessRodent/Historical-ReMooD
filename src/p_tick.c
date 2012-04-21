@@ -107,6 +107,11 @@ void P_RunThinkers(void)
 			currentthinker->prev->next = currentthinker->next;
 			removeit = currentthinker;
 			currentthinker = currentthinker->next;
+			
+			// GhostlyDeath <April 20, 2012> -- Wipe away thinker
+				// MIGHT BREAK DEMO COMPAT
+			memset(removeit, 0xFF, sizeof(*removeit));
+			
 			Z_Free(removeit);
 		}
 		else

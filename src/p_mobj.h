@@ -323,6 +323,27 @@ typedef enum mobjflagrexb_e
 	MFREXB_DODOORSIXTHREEOPEN	= 0x000000020U,	// When this thing dies, blaze a door open [A_BossDeath]
 } mobjflagrexb_t;
 
+/* P_MobjRefType_t -- Reference type */
+typedef enum P_MobjRefType_e
+{
+	PMRT_TARGET,
+	PMRT_TRACER,
+	
+	NUMPMOBJREFTYPES
+} P_MobjRefType_t;
+
+struct mobj_s;
+
+/* P_MobjRefLog_t -- Map object reference log */
+typedef struct P_MobjRefLog_s
+{
+	struct mobj_s* Source;
+	struct mobj_s* Ref;
+	bool_t IsSource;
+	char* File;
+	int Line;
+} P_MobjRefLog_t;
+
 #if MAXSKINCOLOR > 16
 
 #error MAXSKINCOLOR have changed Change MF_TRANSLATION to take effect of the change
@@ -463,12 +484,25 @@ typedef struct mobj_s
 	
 	/*** RMOD EXTENDED SUPPORT ***/
 	// New Flags
-	uint32_t RXFlags[NUMINFORXFIELDS];		// ReMooD Extended Flags
+	uint32_t RXFlags[NUMINFORXFIELDS];			// ReMooD Extended Flags
 	
 	// Obituary helpers
-	weapontype_t RXShotWithWeapon;			// Weapon that fired this
-	bool_t RXUsedMelee;						// Used melee attack
-	bool_t RXUsedSpell;						// Used spell
+	weapontype_t RXShotWithWeapon;				// Weapon that fired this
+	bool_t RXUsedMelee;							// Used melee attack
+	bool_t RXUsedSpell;							// Used spell
+	
+	// Reference Counts
+	int32_t RefCount[NUMPMOBJREFTYPES];			// Objects referencing this object
+	struct mobj_s** RefList[NUMPMOBJREFTYPES];	// Reference List
+	size_t RefListSz[NUMPMOBJREFTYPES];			// Size of reference list
+
+#if defined(_DEBUG)
+	char* RefFile[NUMPMOBJREFTYPES];			// Reference From File
+	int RefLine[NUMPMOBJREFTYPES];				// Reference From Line
+#endif
+
+	bool_t RemoveMo;							// Remove Map Object
+	mobjtype_t RemType;							// Type removed
 	
 	// Owners
 #if 0
@@ -489,4 +523,21 @@ void P_SpawnMapThing(mapthing_t* mthing);
 void P_SpawnPlayer(mapthing_t* mthing);
 int P_HitFloor(mobj_t* thing);
 
+mobj_t* P_RefMobjReal(const P_MobjRefType_t a_Type, mobj_t* const a_SourceRef, mobj_t* const a_RefThis
+#if defined(_DEBUG)
+		, const char* const File, const int Line
+#endif 
+	);
+
+void P_FindMobjRef(const P_MobjRefType_t a_Type, mobj_t* const a_SourceRef);
+void P_SetMobjToCrash(mobj_t* const a_Mo);
+void P_ClearMobjRefs(mobj_t* const a_Mo);
+
+#if defined(_DEBUG)
+	#define P_RefMobj(t,s,r) P_RefMobjReal((t), (s), (r), __FILE__, __LINE__)
+#else
+	#define P_RefMobj(t,s,r) P_RefMobjReal((t), (s), (r))
 #endif
+
+#endif
+

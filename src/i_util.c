@@ -818,7 +818,7 @@ void I_VideoSetBuffer(const uint32_t a_Width, const uint32_t a_Height, const uin
 		return;
 		
 	// Clear buffer
-	memset(vid.buffer, 0, a_Width * a_Height);
+	memset(vid.buffer, 0, a_Width * a_Height * NUMSCREENS);
 	
 	/* Initialize video stuff (ouch) */
 	V_Init();

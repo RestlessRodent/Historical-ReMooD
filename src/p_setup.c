@@ -1741,6 +1741,7 @@ bool_t P_ExClearLevel(void)
 	HU_ClearTips();
 	S_StopSounds();
 	R_ClearLevelSplats();
+	P_ClearRecursiveSound();
 	
 	/* Free all level tags */
 	Z_FreeTags(PU_LEVEL, PU_PURGELEVEL - 1);
@@ -2482,7 +2483,7 @@ bool_t P_ExLoadLevel(P_LevelInfoEx_t* const a_Info, const bool_t a_ApplyOptions)
 		{
 			// matrix size is (numsectors * numsectors) / 8;
 			k = ((numsectors * numsectors) / 8);
-			rejectmatrix = Z_Malloc(sizeof(*rejectmatrix) * k, PU_LEVEL, (void**)&rejectmatrix);
+			rejectmatrix = Z_Malloc(sizeof(*rejectmatrix) * (k + 1), PU_LEVEL, (void**)&rejectmatrix);
 			
 			// Set loading screen info
 			CONL_LoadingScreenSetSubEnd(k >> LOADSHIFT);

@@ -887,6 +887,8 @@ static void PlayerLandedOnThing(mobj_t* mo, mobj_t* onmobj)
 void P_MobjThinker(mobj_t* mobj)
 {
 	bool_t checkedpos = false;	//added:22-02-98:
+	size_t i;
+	thinker_t Hold;
 	
 	if (g_CheatFlags & MCF_FREEZETIME)
 	{
@@ -1204,6 +1206,7 @@ int iquetail;
 void P_RemoveMobj(mobj_t* mobj)
 {
 	size_t i;
+	thinker_t Hold;
 	
 	if (!mobj)
 		return;
@@ -1218,6 +1221,7 @@ void P_RemoveMobj(mobj_t* mobj)
 		if (iquehead == iquetail)
 			iquetail = (iquetail + 1) & (ITEMQUESIZE - 1);
 	}
+	
 	// unlink from sector and block lists
 	P_UnsetThingPosition(mobj);
 	
@@ -1227,11 +1231,9 @@ void P_RemoveMobj(mobj_t* mobj)
 		P_DelSeclist(sector_list);
 		sector_list = NULL;
 	}
+	
 	// stop any playing sound
 	S_StopSound(&mobj->NoiseThinker);
-	
-	// free block
-	P_RemoveThinker((thinker_t*) mobj);
 	
 	// GhostlyDeath <January 23, 2012> -- If spawn point is set, remove from there
 		// GhostlyDeath <March 6, 2012> -- Moved from top (otherwise stops respawning items)
@@ -1241,11 +1243,68 @@ void P_RemoveMobj(mobj_t* mobj)
 		mobj->spawnpoint = NULL;
 	}
 	
-	// GhostlyDeath <April 20, 2012> -- Remove attackers so they don't get followed for dead players
+	// GhostlyDeath <April 21, 2012> -- Remove sound reference
+	P_RemoveRecursiveSound(mobj);
+	
+	// GhostlyDeath <April 20, 2012> -- Remove refs from players so they don't get followed for dead players
 	for (i = 0; i < MAXPLAYERS; i++)
 		if (playeringame[i])
+		{
+			// Remove attacker (follow player)
 			if (players[i].attacker == mobj)
 				players[i].attacker = NULL;
+			
+			// Remove references done by players
+			if (players[i].mo)
+			{
+				// Remove Target
+				if (players[i].mo->target)
+					P_RefMobj(PMRT_TARGET, players[i].mo, NULL);
+				
+				// Remove Tracer
+				if (players[i].mo->tracer)
+					P_RefMobj(PMRT_TRACER, players[i].mo, NULL);
+			}
+		}
+	
+	// GhostlyDeath <April 21, 2012> -- Remove object references
+	for (i = 0; i < NUMPMOBJREFTYPES; i++)
+		P_RefMobj(i, mobj, NULL);
+	
+	// GhostlyDeath <April 21, 2012> -- Clear objects that reference this
+	P_ClearMobjRefs(mobj);
+	
+	// GhostlyDeath <April 21, 2012> -- Check reference count
+	for (i = 0; i < NUMPMOBJREFTYPES; i++)
+		if (mobj->RefCount[i] > 0)
+		{
+			CONL_PrintF("mobj %p is still referenced (%i = %i).\n", mobj, (int)i, (int)mobj->RefCount[i]);
+			P_FindMobjRef(i, mobj);
+			I_Error("mobj still referenced.\n");
+			break;
+		}
+	
+	// Invalidate some things
+	mobj->RemType = mobj->type;
+	mobj->type = -1;
+	mobj->info = NULL;
+	
+	// De-allocate some final things
+	for (i = 0; i < NUMPMOBJREFTYPES; i++)
+		if (mobj->RefList[i])
+			mobj->RefList[i] = NULL;
+	
+	// Remove Thinker
+	P_RemoveThinker((thinker_t*) mobj);
+
+	// GhostlyDeath <April 20, 2012> -- Invalidate the entire map object structure
+		// MIGHT BREAK DEMO COMPAT
+	memmove(&Hold, &mobj->thinker, sizeof(thinker_t));
+	memset(mobj, 0xFF, sizeof(*mobj));
+	memmove(&mobj->thinker, &Hold, sizeof(thinker_t));
+	
+	// Set to crash
+	P_SetMobjToCrash(mobj);
 }
 
 consvar_t cv_itemrespawntime = { "respawnitemtime", "30", CV_NETVAR, CV_Unsigned };
@@ -1980,7 +2039,7 @@ mobj_t* P_SpawnMissile(mobj_t* source, mobj_t* dest, mobjtype_t type)
 	if (th->info->seesound)
 		S_StartSound(&th->NoiseThinker, th->info->seesound);
 		
-	th->target = source;		// where it came from
+	P_RefMobj(PMRT_TARGET, th, source);		// where it came from
 	
 	if (DEMOCVAR(predictingmonsters).value)	//added by AC for predmonsters
 	{
@@ -2129,7 +2188,7 @@ mobj_t* P_SPMAngle(mobj_t* source, mobjtype_t type, angle_t angle)
 	if (th->info->seesound)
 		S_StartSound(&th->NoiseThinker, th->info->seesound);
 		
-	th->target = source;
+	P_RefMobj(PMRT_TARGET, th, source);
 	
 	th->angle = an;
 	th->momx = FixedMul(__REMOOD_GETSPEEDMO(th), finecosine[an >> ANGLETOFINESHIFT]);
@@ -2176,4 +2235,189 @@ void A_ContMobjSound(mobj_t* actor)
 bool_t inventory = false;
 
 /******************************************************************************/
+
+/* P_RefMobj() -- Reference Object */
+mobj_t* P_RefMobjReal(const P_MobjRefType_t a_Type, mobj_t* const a_SourceRef, mobj_t* const a_RefThis
+#if defined(_DEBUG)
+		, const char* const File, const int Line
+#endif
+	)
+{
+	P_MobjRefLog_t* Log;
+	mobj_t** ChangePtr;
+	size_t i;
+	
+	/* Check */
+	if (!a_SourceRef || a_Type < 0 || a_Type >= NUMPMOBJREFTYPES)
+		return NULL;
+	
+	/* Determine options */
+	if (a_Type == PMRT_TARGET)
+		ChangePtr = &a_SourceRef->target;
+	else if (a_Type == PMRT_TRACER)
+		ChangePtr = &a_SourceRef->tracer;
+		
+	struct mobj_s** RefList[NUMPMOBJREFTYPES];	// Reference List
+	size_t RefListSz[NUMPMOBJREFTYPES];			// Size of reference list
+	
+	/* Remove old reference */
+	if (*ChangePtr)
+	{
+		// Find reference in list and remove it
+		for (i = 0; i < (*ChangePtr)->RefListSz[a_Type]; i++)
+			if ((*ChangePtr)->RefList[a_Type][i] == a_SourceRef)
+				(*ChangePtr)->RefList[a_Type][i] = NULL;
+		
+		// Reduce reference of original
+		(*ChangePtr)->RefCount[a_Type]--;
+		
+		// Remove old reference
+		(*ChangePtr) = NULL;
+	}
+	
+	/* Set new reference */
+	(*ChangePtr) = a_RefThis;
+	
+	// And increment it
+	if (a_RefThis)
+	{
+		// Add reference count
+		(*ChangePtr)->RefCount[a_Type]++;
+		
+		// Find blank spot in reference list
+		for (i = 0; i < (*ChangePtr)->RefListSz[a_Type]; i++)
+			if (!(*ChangePtr)->RefList[a_Type][i])
+			{
+				(*ChangePtr)->RefList[a_Type][i] = a_SourceRef;
+				break;
+			}
+		
+		// No spot?
+		if (i >= (*ChangePtr)->RefListSz[a_Type])
+		{
+			// Resize it
+			Z_ResizeArray(
+					(void**)&((*ChangePtr)->RefList[a_Type]),
+					sizeof((*ChangePtr)->RefList[a_Type]),
+					(*ChangePtr)->RefListSz[a_Type],
+					(*ChangePtr)->RefListSz[a_Type] + 1
+				);
+			
+			// Add to back
+			(*ChangePtr)->RefList[a_Type][(*ChangePtr)->RefListSz[a_Type]++] = a_SourceRef;
+			
+			// Change tag
+			Z_ChangeTag((*ChangePtr)->RefList[a_Type], PU_LEVEL);
+		}
+	}
+
+#if defined(_DEBUG)
+	if (a_SourceRef->RefFile[a_Type])
+		Z_Free(a_SourceRef->RefFile[a_Type]);
+	a_SourceRef->RefFile[a_Type] = Z_StrDup(File, PU_LEVEL, NULL);
+	a_SourceRef->RefLine[a_Type] = Line;
+#endif
+	
+	/* Return the changed to reference */
+	return (*ChangePtr);
+}
+
+/* P_FindMobjRef() -- Find reference of object */
+void P_FindMobjRef(const P_MobjRefType_t a_Type, mobj_t* const a_SourceRef)
+{
+#if defined(_DEBUG)
+	thinker_t* currentthinker;
+	mobj_t* mo;
+	mobj_t** ChangePtr;
+
+	for (currentthinker = thinkercap.next; currentthinker != &thinkercap; currentthinker = currentthinker->next)
+	{
+		// Only Objects
+		if ((currentthinker->function.acp1 != (actionf_p1)P_MobjThinker))
+			continue;
+
+		// Convert to object
+		mo = (mobj_t*)currentthinker;
+		
+		// Which type?
+		if (a_Type == PMRT_TARGET)
+			ChangePtr = &mo->target;
+		else if (a_Type == PMRT_TRACER)
+			ChangePtr = &mo->tracer;
+
+		// Found it here?
+		if (*ChangePtr == a_SourceRef)
+		{
+			fprintf(stderr, "Object %p,%i (%s/%s) [%s:%i] refs %p,%i (%s/%s) [%s:%i] by %i\n",
+					mo,
+					mo->RefCount[a_Type],
+					(mo->type >= NUMMOBJTYPES ? "Free" : MT2ReMooDClass[mo->type]),
+					(mo->type >= NUMMOBJTYPES ? MT2ReMooDClass[mo->RemType] : "Active"),
+					mo->RefFile[a_Type], mo->RefLine[a_Type],
+					a_SourceRef,
+					a_SourceRef->RefCount[a_Type],
+					(a_SourceRef->type >= NUMMOBJTYPES ? "Free" : MT2ReMooDClass[a_SourceRef->type]),
+					(a_SourceRef->type >= NUMMOBJTYPES ? MT2ReMooDClass[a_SourceRef->RemType] : "Active"),
+					a_SourceRef->RefFile[a_Type], a_SourceRef->RefLine[a_Type],
+					a_Type
+				);
+		}
+	}
+#endif
+}
+
+/* P_ClearMobjRefs() -- Clear references from object */
+void P_ClearMobjRefs(mobj_t* const a_Mo)
+{
+	size_t i, j;
+	
+	/* Check */
+	if (!a_Mo)
+		return;
+	
+	/* Clear the list away */
+	for (i = 0; i < NUMPMOBJREFTYPES; i++)
+		for (j = 0; j < a_Mo->RefListSz[i]; j++)
+			if (a_Mo->RefList[i][j])
+				P_RefMobj(i, a_Mo->RefList[i][j], NULL);
+}
+
+/* P_SetMobjToCrash() -- Set mobj to crash */
+void P_SetMobjToCrash(mobj_t* const a_Mo)
+{
+	/* Check */
+	if (!a_Mo)
+		return;
+	
+	/* Make these things invalid */
+	a_Mo->x = a_Mo->y = a_Mo->z = 32765 << FRACBITS;
+	a_Mo->sprite = NUMSPRITES;
+	a_Mo->frame = ~a_Mo->frame;
+	a_Mo->skin = ~a_Mo->skin;
+	a_Mo->floorz = a_Mo->ceilingz = a_Mo->radius = a_Mo->height = 32765 << FRACBITS;
+	a_Mo->momx = a_Mo->momy = a_Mo->momz = 32765 << FRACBITS;
+	a_Mo->type = -1;
+	a_Mo->tics = 0;
+	a_Mo->flags = a_Mo->eflags = a_Mo->flags2 = a_Mo->special1 = a_Mo->special2 = ~0;
+	a_Mo->health = 1337;
+	a_Mo->movedir = a_Mo->movecount = -8;
+	a_Mo->reactiontime = 0;
+	a_Mo->threshold = -14;
+	a_Mo->lastlook = -17;
+	
+	/* Invalid pointers */
+	a_Mo->snext = (void*)((uintptr_t)4);
+	a_Mo->sprev = (void*)((uintptr_t)5);
+	a_Mo->bnext = (void*)((uintptr_t)6);
+	a_Mo->bprev = (void*)((uintptr_t)7);
+	a_Mo->subsector = (void*)((uintptr_t)8);
+	a_Mo->info = (void*)((uintptr_t)9);
+	a_Mo->state = (void*)((uintptr_t)10);
+	a_Mo->target = (void*)((uintptr_t)11);
+	a_Mo->player = (void*)((uintptr_t)12);
+	a_Mo->tracer = (void*)((uintptr_t)13);
+	a_Mo->touching_sectorlist = (void*)((uintptr_t)14);
+	a_Mo->ChildFloor = (void*)((uintptr_t)15);
+	a_Mo->spawnpoint = (void*)((uintptr_t)16);
+}
 

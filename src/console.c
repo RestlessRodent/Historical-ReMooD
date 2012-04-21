@@ -1949,6 +1949,12 @@ bool_t CONL_DrawConsole(void)
 	else
 	{
 		n = g_SplitScreen + 1;
+		
+		// Limit, just in case
+		if (n > MAXSPLITSCREEN)
+			n = MAXSPLITSCREEN;
+		
+		// Run through each player
 		for (i = 0; i < n; i++)
 		{
 			// Obtain bounding box

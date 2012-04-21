@@ -216,7 +216,7 @@ extern gamestate_t wipegamestate;
 // debug flag to cancel adaptiveness
 extern bool_t singletics;
 
-#define   BODYQUESIZE     32
+#define   BODYQUESIZE     MAXPLAYERS
 
 extern mobj_t* bodyque[BODYQUESIZE];
 extern int bodyqueslot;
