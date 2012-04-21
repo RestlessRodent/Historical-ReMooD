@@ -223,12 +223,14 @@ typedef enum P_CheckPositionFlags_e
 } P_CheckPositionFlags_t;
 
 bool_t P_CheckPosition(mobj_t* thing, fixed_t x, fixed_t y, uint32_t a_Flags);
+bool_t P_CheckPosRadius(fixed_t x, fixed_t y, fixed_t Radius);
 bool_t P_TryMove(mobj_t* thing, fixed_t x, fixed_t y, bool_t allowdropoff);
 bool_t P_TeleportMove(mobj_t* thing, fixed_t x, fixed_t y);
 void P_SlideMove(mobj_t* mo);
 bool_t P_CheckSight(mobj_t* t1, mobj_t* t2);
 bool_t P_CheckSight2(mobj_t* t1, mobj_t* t2, fixed_t x, fixed_t y, fixed_t z);	//added by AC for predicting
 void P_UseLines(player_t* player);
+bool_t P_CheckSightLine(const fixed_t x1, const fixed_t y1, const fixed_t x2, const fixed_t y2);
 
 bool_t P_CheckSector(sector_t* sector, bool_t crunch);
 bool_t P_ChangeSector(sector_t* sector, bool_t crunch);

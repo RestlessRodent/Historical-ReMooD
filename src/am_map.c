@@ -474,8 +474,17 @@ static void AM_initVariables(void)
 				break;
 				
 	plr = &players[pnum];
-	m_x = plr->mo->x - m_w / 2;
-	m_y = plr->mo->y - m_h / 2;
+	
+	if (plr->mo)
+	{
+		m_x = plr->mo->x - m_w / 2;
+		m_y = plr->mo->y - m_h / 2;
+	}
+	else
+	{
+		m_x = m_w / 2;
+		m_y = m_h / 2;
+	}
 	AM_changeWindowLoc();
 	
 	// for saving & restoring
@@ -771,7 +780,7 @@ void AM_changeWindowScale(void)
 void AM_doFollowPlayer(void)
 {
 
-	if (f_oldloc.x != plr->mo->x || f_oldloc.y != plr->mo->y)
+	if (plr->mo && (f_oldloc.x != plr->mo->x || f_oldloc.y != plr->mo->y))
 	{
 		m_x = FTOM(MTOF(plr->mo->x)) - m_w / 2;
 		m_y = FTOM(MTOF(plr->mo->y)) - m_h / 2;
@@ -858,7 +867,7 @@ void AM_clearFB(int color)
 		
 #define MAPLUMPHEIGHT (200-SBARHEIGHT)
 		
-		if (followplayer)
+		if (followplayer && plr->mo)
 		{
 			static vertex_t oldplr;
 			
@@ -1305,12 +1314,16 @@ void AM_drawPlayers(void)
 	
 	if (!multiplayer)
 	{
-		if (am_cheating)
-			AM_drawLineCharacter(cheat_player_arrow, NUMCHEATPLYRLINES, 0, plr->mo->angle, DWHITE, plr->mo->x, plr->mo->y);
-		else
-			AM_drawLineCharacter(player_arrow, NUMPLYRLINES, 0, plr->mo->angle, DWHITE, plr->mo->x, plr->mo->y);
+		if (plr->mo)
+		{
+			if (am_cheating)
+				AM_drawLineCharacter(cheat_player_arrow, NUMCHEATPLYRLINES, 0, plr->mo->angle, DWHITE, plr->mo->x, plr->mo->y);
+			else
+				AM_drawLineCharacter(player_arrow, NUMPLYRLINES, 0, plr->mo->angle, DWHITE, plr->mo->x, plr->mo->y);
+		}
 		return;
 	}
+	
 	// multiplayer
 	for (i = 0; i < MAXPLAYERS; i++)
 	{
@@ -1359,7 +1372,9 @@ void AM_drawThings(int colors, int colorrange)
 				tangle = t->angle;
 			
 			// Modify Color
-			if (t->info->flags & MF_COUNTKILL || (t->RXFlags[0] & MFREXA_ISMONSTER))
+			if (t->health <= 0 || t->flags & MF_CORPSE)
+				color = GRAYS + (GRAYSRANGE >> 1);
+			else if (t->info->flags & MF_COUNTKILL || (t->RXFlags[0] & MFREXA_ISMONSTER))
 			{
 				if (t->health <= 0 || t->flags & MF_CORPSE)
 					color = GRAYS + (GRAYSRANGE >> 1);
@@ -1378,6 +1393,8 @@ void AM_drawThings(int colors, int colorrange)
 				else
 					color = YELLOWS + 7;
 			}
+			else if (t->player)
+				color = *(translationtables + ((t->player->skincolor - 1) << 8) + GREENS + 8);
 			else
 				color = colors + lightlev;
 				

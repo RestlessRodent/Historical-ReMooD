@@ -388,3 +388,64 @@ bool_t P_CheckSight2(mobj_t* t1, mobj_t* t2, fixed_t px, fixed_t py, fixed_t pz)
 	// the head node is the last node output
 	return P_CrossBSPNode(numnodes - 1);
 }
+
+/* P_CheckSightLine() -- Checks sight between two points */
+bool_t P_CheckSightLine(const fixed_t x1, const fixed_t y1, const fixed_t x2, const fixed_t y2)
+{
+	int s1;
+	int s2;
+	int pnum;
+	int bytenum;
+	int bitnum;
+	subsector_t* ss1;
+	subsector_t* ss2;
+	
+	// Determine if points are valid
+	if (!R_IsPointInSubsector(x1, y1) || !R_IsPointInSubsector(x2, y2))
+		return false;
+	
+	// Determine subsector entries in REJECT table.
+	ss1 = R_PointInSubsector(x1, y1);
+	ss2 = R_PointInSubsector(x2, y2);
+	s1 = ss1->sector - sectors;
+	s2 = ss2->sector - sectors;
+	pnum = s1 * numsectors + s2;
+	bytenum = pnum >> 3;
+	bitnum = 1 << (pnum & 7);
+	
+	// GhostlyDeath <March 21, 2010> -- Sometimes crashes when rapidly reloading level
+	if (s1 < 0 || s1 >= numsectors || s2 < 0 || s2 >= numsectors)
+	{
+		if (devparm)
+			CONL_PrintF("P_CheckSight: Quick lookup check found t1's sector to be negative [%i, %i]\n", s1, s2);
+		return false;
+	}
+	
+	// Check in REJECT table.
+	if (rejectmatrix[bytenum] & bitnum)
+	{
+		sightcounts[0]++;
+		
+		// can't possibly be connected
+		return false;
+	}
+	// An unobstructed LOS is possible.
+	// Now look from eyes of t1 to any part of t2.
+	sightcounts[1]++;
+	
+	validcount++;
+	
+	sightzstart = ss1->sector->floorheight + (ss1->sector->ceilingheight - ss1->sector->floorheight) - ((ss1->sector->ceilingheight - ss1->sector->floorheight) >> 2);
+	topslope = (ss2->sector->floorheight + (ss2->sector->ceilingheight - ss2->sector->floorheight)) - sightzstart;
+	bottomslope = (ss2->sector->floorheight) - sightzstart;
+	
+	strace.x = x1;
+	strace.y = y1;
+	t2x = x2;
+	t2y = y2;
+	strace.dx = x2 - x1;
+	strace.dy = y2 - y1;
+	
+	// the head node is the last node output
+	return P_CrossBSPNode(numnodes - 1);
+}

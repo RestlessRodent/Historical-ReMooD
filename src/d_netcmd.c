@@ -1055,6 +1055,17 @@ static CONL_ExitCode_t DS_NCSNetCommand(const uint32_t a_ArgC, const char** cons
 		}
 	} 
 	
+	// Add as many bots as possible
+	else if (strcasecmp(a_ArgV[1], "addmaxbots") == 0)
+	{
+		while ((p = D_NCSAddBotPlayer((a_ArgC > 2 ? a_ArgV[2] : "default"))))
+		{
+			i = p - players;
+		
+			CONL_PrintF("Net: Added bot %i.\n", i);
+		}
+	} 
+	
 	/* Success */
 	return CLE_SUCCESS;
 }
@@ -1128,9 +1139,9 @@ void D_NCSNetUpdateSingle(struct player_s* a_Player)
 			// Bot, a simulated player
 		case DNPT_BOT:
 			// TODO: Make actual bots here
-			TicCmd->forwardmove = (int)(M_Random() % 100) - 50;
-			TicCmd->sidemove = (int)(M_Random() % 100) - 50;
-			TicCmd->angleturn = (M_Random() * M_Random()) & 0xFFFF;
+			TicCmd->forwardmove = (int)(M_Random() % 50) - 20;
+			TicCmd->sidemove = (int)(M_Random() % 50) - 20;
+			//TicCmd->angleturn = (M_Random() * M_Random()) & 0xFFFF;
 			
 			// Dead? Respawn
 			if (NPp->Player->playerstate == PST_DEAD)

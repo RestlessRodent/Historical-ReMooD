@@ -127,6 +127,7 @@ static bool_t PIT_StompThing(mobj_t* thing, void* a_Arg)
 	if (!(tmthing->flags2 & MF2_TELESTOMP))
 		return (false);
 	
+	tmthing->RXAttackAttackType = PRXAT_TELEFRAG;
 	P_DamageMobj(thing, tmthing, tmthing, 10000);
 	
 	return true;
@@ -1894,6 +1895,131 @@ void P_RadiusAttack(mobj_t* spot, mobj_t* source, int damage)
 	for (y = yl; y <= yh; y++)
 		for (x = xl; x <= xh; x++)
 			P_BlockThingsIterator(x, y, PIT_RadiusAttack, NULL);
+}
+
+/* PIT_CheckRadius() -- Check radius of object */
+bool_t PIT_CheckRadius(mobj_t* thing, void* a_Arg)
+{
+	fixed_t blockdist;
+	bool_t solid;
+	int damage;
+	P_PITCTSettings_t* SettingsP = a_Arg;
+	
+	//added:22-02-98:
+	fixed_t topz;
+	fixed_t tmtopz;
+	
+	fixed_t* Args = a_Arg;
+	
+	// don't clip against self
+	if (!(thing->flags & (MF_SOLID | MF_SPECIAL | MF_SHOOTABLE)))
+		return true;
+		
+	blockdist = thing->radius + Args[0];
+	
+	if (abs(thing->x - tmx) >= blockdist || abs(thing->y - tmy) >= blockdist)
+	{
+		// didn't hit it
+		return true;
+	}
+	
+	return false;
+}
+
+/* PIT_CheckRadiusLine() -- Checks line for radius */
+bool_t PIT_CheckRadiusLine(line_t* ld, void* a_Arg)
+{
+	if (tmbbox[BOXRIGHT] <= ld->bbox[BOXLEFT]
+	        || tmbbox[BOXLEFT] >= ld->bbox[BOXRIGHT] || tmbbox[BOXTOP] <= ld->bbox[BOXBOTTOM] || tmbbox[BOXBOTTOM] >= ld->bbox[BOXTOP])
+		return true;
+		
+	if (P_BoxOnLineSide(tmbbox, ld) != -1)
+		return true;
+		
+	// A line has been hit
+	
+	// The moving thing's destination position will cross
+	// the given line.
+	// If this should not be allowed, return false.
+	// If the line is special, keep track of it
+	// to process later if the move is proven ok.
+	// NOTE: specials are NOT sorted by order,
+	// so two special lines that are only 8 pixels apart
+	// could be crossed in either order.
+	
+	// 10-12-99 BP: moved this line to out of the if so upper and
+	//              lower texture can be hit by a splat
+	blockingline = ld;
+	if (!ld->backsector)
+	{
+		return false;			// one sided line
+	}
+	
+	// set openrange, opentop, openbottom
+	P_LineOpening(ld);
+	
+	// adjust floor / ceiling heights
+	if (opentop < tmceilingz)
+	{
+		tmsectorceilingz = tmceilingz = opentop;
+		ceilingline = ld;
+	}
+	
+	if (openbottom > tmfloorz)
+		tmsectorfloorz = tmfloorz = openbottom;
+		
+	if (lowfloor < tmdropoffz)
+		tmdropoffz = lowfloor;
+		
+	return true;
+}
+
+/* P_CheckPosRadius() -- Checks for solid objects within radius */
+// Based off P_CheckPosition() somewhat
+bool_t P_CheckPosRadius(fixed_t x, fixed_t y, fixed_t Radius)
+{	
+	int xl;
+	int xh;
+	int yl;
+	int yh;
+	
+	fixed_t bx, by;
+	
+	fixed_t dist;
+	fixed_t Args[3];
+	
+	Args[0] = Radius;
+	
+	tmbbox[BOXTOP] = y + Radius;
+	tmbbox[BOXBOTTOM] = y - Radius;
+	tmbbox[BOXRIGHT] = x + Radius;
+	tmbbox[BOXLEFT] = x - Radius;
+
+	xl = (tmbbox[BOXLEFT] - bmaporgx - MAXRADIUS) >> MAPBLOCKSHIFT;
+	xh = (tmbbox[BOXRIGHT] - bmaporgx + MAXRADIUS) >> MAPBLOCKSHIFT;
+	yl = (tmbbox[BOXBOTTOM] - bmaporgy - MAXRADIUS) >> MAPBLOCKSHIFT;
+	yh = (tmbbox[BOXTOP] - bmaporgy + MAXRADIUS) >> MAPBLOCKSHIFT;
+	
+	tmx = x;
+	tmy = y;
+	
+	for (bx = xl; bx <= xh; bx++)
+		for (by = yl; by <= yh; by++)
+			if (!P_BlockThingsIterator(bx, by, PIT_CheckRadius, Args))
+				return false;
+	
+	// check lines
+	xl = (tmbbox[BOXLEFT] - bmaporgx) >> MAPBLOCKSHIFT;
+	xh = (tmbbox[BOXRIGHT] - bmaporgx) >> MAPBLOCKSHIFT;
+	yl = (tmbbox[BOXBOTTOM] - bmaporgy) >> MAPBLOCKSHIFT;
+	yh = (tmbbox[BOXTOP] - bmaporgy) >> MAPBLOCKSHIFT;
+	
+	for (bx = xl; bx <= xh; bx++)
+		for (by = yl; by <= yh; by++)
+			if (!P_BlockLinesIterator(bx, by, PIT_CheckRadiusLine, NULL))
+				return false;
+	
+	return true;
 }
 
 //

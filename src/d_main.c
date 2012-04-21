@@ -427,7 +427,7 @@ void D_Display(void)
 		else
 			y = viewwindowy + 4;
 		patch = W_CachePatchName("M_PAUSE", PU_CACHE);
-		V_DrawScaledPatch(viewwindowx + (BASEVIDWIDTH - LittleSwapInt16(patch->width)) / 2, y, 0, patch);
+		//V_DrawScaledPatch(viewwindowx + (BASEVIDWIDTH - LittleSwapInt16(patch->width)) / 2, y, 0, patch);
 	}
 	//added:24-01-98:vid size change is now finished if it was on...
 	vid.recalc = 0;

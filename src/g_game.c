@@ -448,7 +448,6 @@ uint8_t NextWeapon(player_t* player, int step)
 	}
 	
 	/* Return the weapon we want */
-	fprintf(stderr, "The next gun from %i is %i.\n", g, fw);
 	return fw;
 }
 
@@ -1422,7 +1421,7 @@ void G_PlayerReborn(int player)
 // at the given mapthing_t spot
 // because something is occupying it
 //
-bool_t G_CheckSpot(int playernum, mapthing_t* mthing)
+bool_t G_CheckSpot(int playernum, mapthing_t* mthing, const bool_t a_NoFirstMo)
 {
 	fixed_t x;
 	fixed_t y;
@@ -1434,16 +1433,17 @@ bool_t G_CheckSpot(int playernum, mapthing_t* mthing)
 	// added 25-4-98 : maybe there is no player start
 	if (!mthing || mthing->type < 0)
 		return false;
-		
-	if (!players[playernum].mo)
-	{
-		// first spawn of level, before corpses
-		for (i = 0; i < playernum; i++)
-			// added 15-1-98 check if player is in game (mistake from id)
-			if (playeringame[i] && players[i].mo->x == mthing->x << FRACBITS && players[i].mo->y == mthing->y << FRACBITS)
-				return false;
-		return true;
-	}
+	
+	if (!a_NoFirstMo)
+		if (!players[playernum].mo)
+		{
+			// first spawn of level, before corpses
+			for (i = 0; i < playernum; i++)
+				// added 15-1-98 check if player is in game (mistake from id)
+				if (playeringame[i] && players[i].mo->x == mthing->x << FRACBITS && players[i].mo->y == mthing->y << FRACBITS)
+					return false;
+			return true;
+		}
 	
 	x = mthing->x << FRACBITS;
 	y = mthing->y << FRACBITS;
@@ -1466,18 +1466,30 @@ bool_t G_CheckSpot(int playernum, mapthing_t* mthing)
 		}
 	}
 	
-	if (!P_CheckPosition(players[playernum].mo, x, y, (P_EXGSGetValue(PEXGSBID_COLESSSPAWNSTICKING) ? PCPF_FORSPOTCHECK : 0)))
-		return false;
+	// GhostlyDeath <April 21, 2012> -- Check 
+	if (a_NoFirstMo)
+	{
+		if (!P_CheckPosRadius(x, y, 20 << FRACBITS))
+			return false;
+	}
+	
+	// Otherwise compare against object
+	else
+	{
+		if (!P_CheckPosition(players[playernum].mo, x, y, (P_EXGSGetValue(PEXGSBID_COLESSSPAWNSTICKING) ? PCPF_FORSPOTCHECK : 0)))
+			return false;
+	}
 		
 	// flush an old corpse if needed
 		// GhostlyDeath <April 20, 2012> -- This is quite useless here especially when there are 32 players!
 	if (!P_EXGSGetValue(PEXGSBID_COBETTERPLCORPSEREMOVAL))
-	{
-		if (bodyqueslot >= BODYQUESIZE)
-			P_RemoveMobj(bodyque[bodyqueslot % BODYQUESIZE]);
-		bodyque[bodyqueslot % BODYQUESIZE] = players[playernum].mo;
-		bodyqueslot++;
-	}
+		if (!a_NoFirstMo)
+		{
+			if (bodyqueslot >= BODYQUESIZE)
+				P_RemoveMobj(bodyque[bodyqueslot % BODYQUESIZE]);
+			bodyque[bodyqueslot % BODYQUESIZE] = players[playernum].mo;
+			bodyqueslot++;
+		}
 	
 	// spawn a teleport fog
 	// TODO: Vanilla comp: an = (ANG45 * (mthing->angle / 45)) >> ANGLETOFINESHIFT;
@@ -1492,6 +1504,180 @@ bool_t G_CheckSpot(int playernum, mapthing_t* mthing)
 		S_StartSound(mo, sfx_telept);	// don't start sound on first frame
 		
 	return true;
+}
+
+/* GS_ClusterTraverser() -- Cluster Traverser */
+static bool_t GS_ClusterTraverser(intercept_t* in, void* const a_Data)
+{
+	line_t* li;
+	
+	/* Lines */
+	if (in->isaline)
+	{
+		// Get line
+		li = in->d.line;
+		
+		// Cannot cross two sided line
+		if (!(li->flags & ML_TWOSIDED))
+			return false;
+		
+		// Cannot cross impassible line
+		if (li->flags & ML_BLOCKING)
+			return false;
+		
+		// Cannot fit inside of sector
+			// Front Side
+		if ((li->frontsector->ceilingheight - li->frontsector->floorheight) < (56 << FRACBITS))
+			return false;
+			// Back Side
+		if ((li->backsector->ceilingheight - li->backsector->floorheight) < (56 << FRACBITS))
+			return false;
+		
+		// Everything seems OK
+		return true;
+	}
+	
+	/* Things */
+	else
+	{
+		return false;
+	}
+}
+
+/* G_ClusterSpawnPlayer() -- Spawns player in cluster spot */
+bool_t G_ClusterSpawnPlayer(const int PlayerID, const bool_t a_CheckOp)
+{
+	mapthing_t** Spots;
+	size_t NumSpots, i;
+	int x, y, bx, by;
+	mapthing_t OrigThing, FakeThing;
+	subsector_t* SubS;
+	
+	/* Bad player id? */
+	if (PlayerID < 0 || PlayerID >= MAXPLAYERS)
+		return false;
+	
+	/* Which spots to prefer? */
+	// Deathmatch
+	if (cv_deathmatch.value || (!cv_deathmatch.value && a_CheckOp))
+	{
+		Spots = deathmatchstarts;
+		NumSpots = numdmstarts;
+	}
+	
+	// Coop
+	else if (!cv_deathmatch.value || (cv_deathmatch.value && a_CheckOp))
+	{
+		Spots = playerstarts;
+		NumSpots = MAXPLAYERS;
+	}
+	
+	/* Determine offset base */
+	if (a_CheckOp || cv_deathmatch.value)
+		bx = by = 1;
+	else
+		bx = by = 3;
+	
+	/* Go through each spot */
+	for (i = 0; i < NumSpots; i++)
+	{
+		// No actual spot here?
+		if (!Spots[i])
+			continue;
+		
+		// Copy original thing
+		OrigThing = *Spots[i];
+		
+		// Try spawning in different spots
+		for (x = -bx; x <= by; x++)
+			for (y = -bx; y <= by; y++)
+			{
+				// Spawn in plus pattern only
+				if (x == y || (x == 0 && y == 0))
+					continue;
+				
+				// Create fake thing
+				FakeThing = OrigThing;
+				FakeThing.type = PlayerID + 1;
+				
+				// Move thing location
+				FakeThing.x += (x * 36);
+				FakeThing.y += (y * 36);
+				
+				// See if a straight line can be drawn between these two spots
+				if (!P_CheckSightLine(
+							((fixed_t)OrigThing.x) << FRACBITS,
+							((fixed_t)OrigThing.y) << FRACBITS,
+							((fixed_t)FakeThing.x) << FRACBITS,
+							((fixed_t)FakeThing.y) << FRACBITS
+						))
+					continue;
+				
+				// Draw another line from the soure to destination
+				if (!P_PathTraverse(
+							((fixed_t)OrigThing.x) << FRACBITS,
+							((fixed_t)OrigThing.y) << FRACBITS,
+							((fixed_t)FakeThing.x) << FRACBITS,
+							((fixed_t)FakeThing.y) << FRACBITS,
+							PT_ADDLINES,
+							GS_ClusterTraverser,
+							NULL
+						))
+					continue;
+				
+				// Draw line from thing corner (corss section BL to TR)
+				if (!P_PathTraverse(
+							((fixed_t)FakeThing.x - 16) << FRACBITS,
+							((fixed_t)FakeThing.y - 16) << FRACBITS,
+							((fixed_t)FakeThing.x + 16) << FRACBITS,
+							((fixed_t)FakeThing.y + 16) << FRACBITS,
+							PT_ADDLINES,
+							GS_ClusterTraverser,
+							NULL
+						))
+					continue;
+				
+				// Draw line from thing corner (corss section TL to BR)
+				if (!P_PathTraverse(
+							((fixed_t)FakeThing.x - 16) << FRACBITS,
+							((fixed_t)FakeThing.y + 16) << FRACBITS,
+							((fixed_t)FakeThing.x + 16) << FRACBITS,
+							((fixed_t)FakeThing.y - 16) << FRACBITS,
+							PT_ADDLINES,
+							GS_ClusterTraverser,
+							NULL
+						))
+					continue;
+				
+				// Obtain subsector to this point
+				SubS = R_PointInSubsector(((fixed_t)FakeThing.x) << FRACBITS, ((fixed_t)FakeThing.y) << FRACBITS);
+				
+				// No subsector here
+				if (!SubS)
+					continue;
+				
+				// Check to see if the player can actually fit
+				if ((SubS->sector->ceilingheight - SubS->sector->floorheight) < (56 << FRACBITS))
+					continue;
+				
+				// Check to see if something can be spawned here
+				if (!G_CheckSpot(PlayerID, &FakeThing, true))
+					continue;
+				
+				// Spawn player here
+				P_SpawnPlayer(&FakeThing);
+				
+				// Clear spawn spot (since it does not actually exist)
+				if (players[PlayerID].mo)
+					players[PlayerID].mo->spawnpoint = NULL;
+				
+				// Success here!
+				return true;
+			}
+	}
+	
+	/* Did not find a spot nor spawned a player */
+	return false;
 }
 
 //
@@ -1518,12 +1704,24 @@ bool_t G_DeathMatchSpawnPlayer(int playernum)
 	for (j = 0; j < n; j++)
 	{
 		i = P_Random() % numdmstarts;
-		if (G_CheckSpot(playernum, deathmatchstarts[i]))
+		if (G_CheckSpot(playernum, deathmatchstarts[i], false))
 		{
 			deathmatchstarts[i]->type = playernum + 1;
 			P_SpawnPlayer(deathmatchstarts[i]);
 			return true;
 		}
+	}
+	
+	// GhostlyDeath <April 21, 2012> -- Spawn clustering (extra invisible spots)
+	if (P_EXGSGetValue(PEXGSBID_PLSPAWNCLUSTERING))
+	{
+		// Try DM starts first
+		if (G_ClusterSpawnPlayer(playernum, false))
+			return true;
+			
+		// Then try Coop Starts
+		if (G_ClusterSpawnPlayer(playernum, true))
+			return true;
 	}
 	
 	if (P_EXGSGetValue(PEXGSBID_COALLOWSTUCKSPAWNS))
@@ -1540,7 +1738,7 @@ void G_CoopSpawnPlayer(int playernum)
 	int i;
 	
 	// no deathmatch use the spot
-	if (G_CheckSpot(playernum, playerstarts[playernum]))
+	if (G_CheckSpot(playernum, playerstarts[playernum], false))
 	{
 		P_SpawnPlayer(playerstarts[playernum]);
 		return;
@@ -1548,7 +1746,7 @@ void G_CoopSpawnPlayer(int playernum)
 	// try to spawn at one of the other players spots
 	for (i = 0; i < MAXPLAYERS; i++)
 	{
-		if (G_CheckSpot(playernum, playerstarts[i]))
+		if (G_CheckSpot(playernum, playerstarts[i], false))
 		{
 			playerstarts[i]->type = playernum + 1;	// fake as other player
 			P_SpawnPlayer(playerstarts[i]);
@@ -1556,6 +1754,18 @@ void G_CoopSpawnPlayer(int playernum)
 			return;
 		}
 		// he's going to be inside something.  Too bad.
+	}
+	
+	// GhostlyDeath <April 21, 2012> -- Spawn clustering (extra invisible spots)
+	if (P_EXGSGetValue(PEXGSBID_PLSPAWNCLUSTERING))
+	{
+		// Try Coop starts first
+		if (G_ClusterSpawnPlayer(playernum, false))
+			return true;
+			
+		// Then try DM Starts
+		if (G_ClusterSpawnPlayer(playernum, true))
+			return true;
 	}
 	
 	if (P_EXGSGetValue(PEXGSBID_COALLOWSTUCKSPAWNS) || (!P_EXGSGetValue(PEXGSBID_COALLOWSTUCKSPAWNS) && localgame))

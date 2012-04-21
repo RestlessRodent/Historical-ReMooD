@@ -925,8 +925,12 @@ static const char* PS_GetMobjNoun(mobj_t* const a_Mobj, bool_t* const a_Special,
 			// Return the name of the gun
 			else
 			{
+				// Check for telefrags
+				if (a_Mobj->RXAttackAttackType == PRXAT_TELEFRAG)
+					return "TeleFrag";
+					
 				// Inflictor is the source (melee or gun attack?)
-				if (a_Mobj == a_Source)
+				else if (a_Mobj == a_Source)
 					return a_Mobj->player->weaponinfo[a_Mobj->player->readyweapon]->NiceName;
 				
 				// It must be a missile then, return the weapon there
@@ -966,14 +970,21 @@ static const char* PS_GetMobjNoun(mobj_t* const a_Mobj, bool_t* const a_Special,
 			// Otherwise return the attack type
 			else
 			{
-				if (a_Mobj->RXUsedMelee && !a_Mobj->RXUsedSpell)
-					return "Melee Attack";
-				else if (a_Mobj->RXUsedMelee && a_Mobj->RXUsedSpell)
-					return "Melee Spell";
-				else if (!a_Mobj->RXUsedMelee && !a_Mobj->RXUsedSpell)
-					return "Ranged Attack";
-				else
-					return "Ranged Spell";
+				switch (a_Mobj->RXAttackAttackType)
+				{
+					case PRXAT_MELEE:
+						return "Melee Attack";
+						
+					case PRXAT_RANGED:
+						return "Ranged Attack";
+						
+					case PRXAT_TELEFRAG:
+						return "TeleFrag";
+						
+					case PRXAT_UNKNOWN:
+					default:
+						return "Unknown";
+				}
 			}
 		}
 	}

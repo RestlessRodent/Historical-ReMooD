@@ -1703,7 +1703,7 @@ static CONL_ExitCode_t PCLC_Map(const uint32_t a_ArgC, const char** const a_ArgV
 		LevelSwitch = true;
 	
 	/* Reset player info */
-	//if (!LevelSwitch)
+	if (!LevelSwitch)
 	{
 		// TODO: Multiplayer here!
 		for (i = 0; i < MAXPLAYERS; i++)
@@ -1711,6 +1711,11 @@ static CONL_ExitCode_t PCLC_Map(const uint32_t a_ArgC, const char** const a_ArgV
 	
 		for (i = 0; i < MAXSPLITSCREENPLAYERS; i++)
 			consoleplayer[i] = displayplayer[i] = i;
+		
+		for (i = 0; i < MAXSPLITSCREEN; i++)
+			g_PlayerInSplit[i] = false;
+		
+		g_SplitScreen = -1;
 	
 		// Spawn player 1 at least
 		//playeringame[0] = true;

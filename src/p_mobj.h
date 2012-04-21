@@ -349,6 +349,17 @@ typedef struct P_MobjRefLog_s
 #error MAXSKINCOLOR have changed Change MF_TRANSLATION to take effect of the change
 #endif
 
+/* P_EXAttackType_t -- Attack type */
+typedef enum P_RXAttackType_e
+{
+	PRXAT_UNKNOWN,								// Unknown
+	PRXAT_MELEE,								// Melee Attack
+	PRXAT_RANGED,								// Ranged Attack
+	PRXAT_TELEFRAG,								// Telefrag
+	
+	NUMPRXATTACKTYPES
+} P_RXAttackType_t;
+
 /* KidList_t -- Linked list of kids */
 typedef struct KidList_s
 {
@@ -488,8 +499,7 @@ typedef struct mobj_s
 	
 	// Obituary helpers
 	weapontype_t RXShotWithWeapon;				// Weapon that fired this
-	bool_t RXUsedMelee;							// Used melee attack
-	bool_t RXUsedSpell;							// Used spell
+	P_RXAttackType_t RXAttackAttackType;		// Attack type
 	
 	// Reference Counts
 	int32_t RefCount[NUMPMOBJREFTYPES];			// Objects referencing this object
