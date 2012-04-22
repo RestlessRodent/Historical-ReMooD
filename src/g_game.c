@@ -1513,6 +1513,7 @@ bool_t G_CheckSpot(int playernum, mapthing_t* mthing, const bool_t a_NoFirstMo)
 static bool_t GS_ClusterTraverser(intercept_t* in, void* const a_Data)
 {
 	line_t* li;
+	mobj_t* mo;
 	
 	/* Lines */
 	if (in->isaline)
@@ -1543,7 +1544,14 @@ static bool_t GS_ClusterTraverser(intercept_t* in, void* const a_Data)
 	/* Things */
 	else
 	{
-		return false;
+		// Get Object
+		mo = in->d.thing;
+		
+		/* Don't hit solid things */
+		if (mo->flags & (MF_SOLID))
+			return false;
+		
+		return true;
 	}
 }
 
@@ -1557,6 +1565,20 @@ bool_t G_ClusterSpawnPlayer(const int PlayerID, const bool_t a_CheckOp)
 	subsector_t* SubS;
 	bool_t RandomSpot;
 	bool_t* Tried;
+	bool_t PreDiamond;
+	
+	static const uint8_t SpawnDiamond[9][9] =
+	{
+		{0, 0, 0, 0, 1, 0, 0, 0, 0},
+		{0, 0, 0, 1, 1, 1, 0, 0, 0},
+		{0, 0, 1, 1, 1, 1, 1, 0, 0},
+		{0, 1, 1, 1, 1, 1, 1, 1, 0},
+		{1, 1, 1, 1, 0, 1, 1, 1, 1},
+		{0, 1, 1, 1, 1, 1, 1, 1, 0},
+		{0, 0, 1, 1, 1, 1, 1, 0, 0},
+		{0, 0, 0, 1, 1, 1, 0, 0, 0},
+		{0, 0, 0, 0, 1, 0, 0, 0, 0},
+	};
 	
 	/* Bad player id? */
 	if (PlayerID < 0 || PlayerID >= MAXPLAYERS)
@@ -1566,6 +1588,7 @@ bool_t G_ClusterSpawnPlayer(const int PlayerID, const bool_t a_CheckOp)
 	// Deathmatch
 	if (cv_deathmatch.value || (!cv_deathmatch.value && a_CheckOp))
 	{
+		PreDiamond = false;
 		RandomSpot = true;
 		Spots = deathmatchstarts;
 		NumSpots = numdmstarts;
@@ -1575,6 +1598,7 @@ bool_t G_ClusterSpawnPlayer(const int PlayerID, const bool_t a_CheckOp)
 	// Coop
 	else if (!cv_deathmatch.value || (cv_deathmatch.value && a_CheckOp))
 	{
+		PreDiamond = true;
 		RandomSpot = false;
 		Spots = playerstarts;
 		NumSpots = MAXPLAYERS;
@@ -1585,7 +1609,7 @@ bool_t G_ClusterSpawnPlayer(const int PlayerID, const bool_t a_CheckOp)
 	if (a_CheckOp || cv_deathmatch.value)
 		bx = by = 2;
 	else
-		bx = by = 3;
+		bx = by = 4;
 	
 	/* Go through each spot */
 	for (s = 0; s < NumSpots; s++)
@@ -1615,12 +1639,22 @@ bool_t G_ClusterSpawnPlayer(const int PlayerID, const bool_t a_CheckOp)
 		OrigThing = *Spots[i];
 		
 		// Try spawning in different spots
-		for (x = -bx; x <= by; x++)
-			for (y = -bx; y <= by; y++)
+		for (x = -bx; x <= bx; x++)
+			for (y = -by; y <= by; y++)
 			{
-				// Spawn in plus pattern only
-				if (x == y || (x == 0 && y == 0))
-					continue;
+				// Coop -- Spawn in pre-made diamond
+				if (SpawnDiamond)
+				{
+					if (!SpawnDiamond[x + bx][y + by])
+						continue;
+				}
+				
+				// DM -- Spawn in plus pattern only
+				else
+				{
+					if (x == y || (x == 0 && y == 0))
+						continue;
+				}
 				
 				// Create fake thing
 				FakeThing = OrigThing;
@@ -1657,7 +1691,7 @@ bool_t G_ClusterSpawnPlayer(const int PlayerID, const bool_t a_CheckOp)
 							((fixed_t)FakeThing.y - 16) << FRACBITS,
 							((fixed_t)FakeThing.x + 16) << FRACBITS,
 							((fixed_t)FakeThing.y + 16) << FRACBITS,
-							PT_ADDLINES,
+							PT_ADDLINES | PT_ADDTHINGS,
 							GS_ClusterTraverser,
 							NULL
 						))
@@ -1669,7 +1703,7 @@ bool_t G_ClusterSpawnPlayer(const int PlayerID, const bool_t a_CheckOp)
 							((fixed_t)FakeThing.y + 16) << FRACBITS,
 							((fixed_t)FakeThing.x + 16) << FRACBITS,
 							((fixed_t)FakeThing.y - 16) << FRACBITS,
-							PT_ADDLINES,
+							PT_ADDLINES | PT_ADDTHINGS,
 							GS_ClusterTraverser,
 							NULL
 						))
@@ -1795,11 +1829,11 @@ void G_CoopSpawnPlayer(int playernum)
 	{
 		// Try Coop starts first
 		if (G_ClusterSpawnPlayer(playernum, false))
-			return true;
+			return;
 			
 		// Then try DM Starts
 		if (G_ClusterSpawnPlayer(playernum, true))
-			return true;
+			return;
 	}
 	
 	if (P_EXGSGetValue(PEXGSBID_COALLOWSTUCKSPAWNS) || (!P_EXGSGetValue(PEXGSBID_COALLOWSTUCKSPAWNS) && localgame))
@@ -2799,3 +2833,4 @@ bool_t G_CheckDemoStatus(void)
 	
 	return false;
 }
+

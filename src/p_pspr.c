@@ -228,8 +228,6 @@ bool_t P_CheckAmmo(player_t* player)
 			BestWeapon = i;
 	}
 	
-	fprintf(stderr, "Best gun is %i\n", BestWeapon);
-	
 	// Switch to best?
 	if (BestWeapon != NUMWEAPONS)
 	{
@@ -1451,8 +1449,8 @@ bool_t P_RMODH_WeaponsAmmo(Z_Table_t* const a_Table, const WL_WADFile_t* const a
 		TempWeapon.ClassName = Z_StrDup(Value, PU_STATIC, NULL);
 		
 		// Get Values
-		TempWeapon.ammopershoot = D_RMODGetValueInt(a_Table, "ammopershoot", 0);
-		TempWeapon.SwitchOrder = D_RMODGetValueInt(a_Table, "ammopershoot", 0);
+		TempWeapon.ammopershoot = D_RMODGetValueInt(a_Table, "AmmoPerShot", 0);
+		TempWeapon.SwitchOrder = D_RMODGetValueInt(a_Table, "SwitchOrder", 0);
 		TempWeapon.GetAmmo = D_RMODGetValueInt(a_Table, "PickupAmmo", 0);
 		TempWeapon.SlotNum = D_RMODGetValueInt(a_Table, "SlotNum", 0);
 		TempWeapon.NoAmmoOrder = D_RMODGetValueInt(a_Table, "NoAmmoSwitchOrder", 0);
@@ -1737,32 +1735,8 @@ bool_t P_RMODO_WeaponsAmmo(const bool_t a_Pushed, const struct WL_WADFile_s* con
 					break;
 				}
 		}
-#if 0
-typedef struct
-{
-	spritenum_t sprite;
-	int32_t frame;				//faB: we use the upper 16bits for translucency
-	//     and other shade effects
-	int32_t tics;
-	// void       (*action) ();
-	actionf_t action;
-	statenum_t nextstate;
-	
-	uint8_t Priority;			// View priority of the state
-	
-	// GhostlyDeath <March 5, 2012> -- To RMOD Deprecation
-	int32_t RMODFastTics;						// Tics when -fast
-	int32_t ExtraStateFlags;					// Custom flags
-	
-	uint32_t WeaponID;							// Unique Weapon ID
-	uint32_t Marker;							// Marker for RMOD
-	uint64_t SimNext;							// Simulated next state
-	char HoldSprite[5];							// Sprite to remember
-	char* Function;								// Function Name
-} state_t;
-#endif
 	}
 	
-	return false;
+	return true;
 }
 

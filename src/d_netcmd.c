@@ -1216,7 +1216,7 @@ static void D_NCSLocalBuildTicCmd(D_NetPlayer_t* const a_NPp, ticcmd_t* const a_
 		SideMove = MAXPLMOVE;
 	else if (SideMove < -MAXPLMOVE)
 		SideMove = -MAXPLMOVE;
-		
+	
 	if (ForwardMove > MAXPLMOVE)
 		ForwardMove = MAXPLMOVE;
 	else if (ForwardMove < -MAXPLMOVE)
