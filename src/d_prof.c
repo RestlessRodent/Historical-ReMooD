@@ -791,6 +791,9 @@ D_ProfileEx_t* D_CreateProfileEx(const char* const a_Name)
 	New->Flags |= DPEXF_GOTMOUSE;
 	
 	// Default Controls
+	New->Ctrls[DPEXIC_COOPSPY][0] = IKBK_F12;
+	
+	// Mouse Axis
 		// Not ALT
 	New->MouseAxis[0][0] = DPEXCMA_LOOKX;
 	New->MouseAxis[0][1] = DPEXCMA_MOVEY;

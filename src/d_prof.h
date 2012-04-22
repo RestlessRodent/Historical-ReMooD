@@ -157,6 +157,7 @@ typedef enum D_ProfileExInputCtrl_e
 	/* General */
 	DPEXIC_TOPSCORES,							// Show the best players
 	DPEXIC_BOTTOMSCORES,						// Show the worst players
+	DPEXIC_COOPSPY,								// Coop Spy
 	
 	NUMDPROFILEEXINPUTCTRLS
 } D_ProfileExInputCtrl_t;
@@ -199,6 +200,9 @@ typedef struct D_ProfileEx_s
 	/* Profile Chains */
 	struct D_ProfileEx_s* Prev;					// Previous link
 	struct D_ProfileEx_s* Next;					// Next link
+	
+	/* Other stuff */
+	tic_t CoopSpyTime;							// Time to wait to respy
 } D_ProfileEx_t;
 
 /*** FUNCTIONS ***/

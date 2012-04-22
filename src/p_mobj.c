@@ -1291,8 +1291,11 @@ void P_RemoveMobj(mobj_t* mobj)
 	
 	// De-allocate some final things
 	for (i = 0; i < NUMPMOBJREFTYPES; i++)
+	{
 		if (mobj->RefList[i])
-			mobj->RefList[i] = NULL;
+			Z_Free(mobj->RefList[i]);
+		mobj->RefList[i] = NULL;
+	}
 	
 	// Remove Thinker
 	P_RemoveThinker((thinker_t*) mobj);
@@ -2314,7 +2317,7 @@ mobj_t* P_RefMobjReal(const P_MobjRefType_t a_Type, mobj_t* const a_SourceRef, m
 #if defined(_DEBUG)
 	if (a_SourceRef->RefFile[a_Type])
 		Z_Free(a_SourceRef->RefFile[a_Type]);
-	a_SourceRef->RefFile[a_Type] = Z_StrDup(File, PU_LEVEL, NULL);
+	//a_SourceRef->RefFile[a_Type] = Z_StrDup(File, PU_LEVEL, NULL);
 	a_SourceRef->RefLine[a_Type] = Line;
 #endif
 	

@@ -1044,3 +1044,22 @@ void P_PlayerThink(player_t* player)
 		player->fixedcolormap = 0;
 }
 
+/* P_PlayerOnSameTeam() -- Returns true if the player is on the same team */
+bool_t P_PlayerOnSameTeam(player_t* const a_A, player_t* const a_B)
+{
+	/* Check */
+	if (!a_A || !a_B)
+		return false;
+	
+	/* Same Player */
+	if (a_A == a_B)
+		return true;
+	
+	/* Coop? */
+	if (!cv_deathmatch.value)
+		return true;
+	
+	/* Not the same */
+	return false;
+}
+

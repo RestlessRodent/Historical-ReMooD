@@ -678,6 +678,8 @@ static void R_DrawVisSprite(vissprite_t* vis, int x1, int x2)
 	}
 	
 	colfunc = basecolfunc;
+	
+	Z_ChangeTag(patch, PU_CACHE);
 }
 
 //

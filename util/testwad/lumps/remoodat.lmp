@@ -3,6 +3,207 @@
 // *** WEAPONS ***
 // ***************
 
+// Weapon -- Battle Shotgun
+MapWeapon "BattleShotgun"
+{
+	Ammo "Shell";
+	NiceName "Battle Shotgun";
+	SBOGraphic "sboammo2";
+	SlotNum "3";
+	SwitchOrder "400";
+	NoAmmoSwitchOrder "600";
+	AmmoPerShot "1";
+	PickupAmmo "8";
+	DroppedObject "Shotgun";
+	SpriteYOffset "0";
+	IsDoom "true";
+	IsStartingWeapon "true";
+	MagazineSize "true";
+	
+	State "PrimaryBringUpState"
+	{
+		Frame "1"
+		{
+			Sprite "SHTG";
+			Frame "0";
+			Tics "1";
+			ViewPriority "Weapons";
+			Function "Raise";
+			Goto "PrimaryBringUpState";
+		}
+	}
+	
+	State "PrimaryPutDownState"
+	{
+		Frame "1"
+		{
+			Sprite "SHTG";
+			Frame "0";
+			Tics "1";
+			ViewPriority "Weapons";
+			Function "Lower";
+			Goto "PrimaryPutDownState";
+		}
+	}
+	
+	State "PrimaryReadyState"
+	{
+		Frame "1"
+		{
+			Sprite "SHTG";
+			Frame "0";
+			Tics "1";
+			ViewPriority "Weapons";
+			Function "WeaponReady";
+			Goto "PrimaryReadyState";
+		}
+	}
+	
+	State "PrimaryFireState"
+	{
+		Frame "1"
+		{
+			Sprite "SHTG";
+			Frame "0";
+			Tics "3";
+			ViewPriority "Weapons";
+			Next "2";
+		}
+		
+		Frame "2"
+		{
+			Sprite "SHTG";
+			Frame "0";
+			Tics "7";
+			ViewPriority "Weapons";
+			Function "FireShotgun";
+			Next "3";
+		}
+		
+		Frame "3"
+		{
+			Sprite "SHTG";
+			Frame "0";
+			Tics "7";
+			ViewPriority "Weapons";
+			Function "ReFire";
+			Goto "PrimaryReadyState";
+		}
+	}
+	
+	State "PrimaryFlashState"
+	{
+		Frame "1"
+		{
+			Sprite "SHTF";
+			Frame "0";
+			Tics "4";
+			FullBright "true";
+			ViewPriority "WeaponFlash";
+			Function "Light1";
+			Next "2";
+		}
+		
+		Frame "2"
+		{
+			Sprite "SHTF";
+			Frame "1";
+			Tics "3";
+			FullBright "true";
+			ViewPriority "WeaponFlash";
+			Function "Light2";
+			Next "3";
+		}
+		
+		Frame "3"
+		{
+			Sprite "SHTG";
+			Frame "4";
+			Tics "0";
+			ViewPriority "WeaponFlash";
+			Function "Light0";
+			Next "0";
+		}
+	}
+	
+	State "PrimaryDryFireState"
+	{
+		Frame "1"
+		{
+			Sprite "SHTG";
+			Frame "3";
+			Tics "3";
+			Function "Punch";
+			ViewPriority "Weapons";
+			Next "2";
+		}
+		
+		Frame "2"
+		{
+			Sprite "SHTG";
+			Frame "2";
+			Tics "3";
+			Function "Punch";
+			ViewPriority "Weapons";
+			Next "3";
+		}
+		
+		Frame "3"
+		{
+			Sprite "SHTG";
+			Frame "1";
+			Tics "3";
+			Function "Punch";
+			ViewPriority "Weapons";
+			Next "4";
+		}
+		
+		Frame "4"
+		{
+			Sprite "SHTG";
+			Frame "0";
+			Tics "3";
+			Function "ReFire";
+			ViewPriority "Weapons";
+			Function "ReFire";
+			Goto "PrimaryReadyState";
+		}
+	}
+	
+	State "PrimaryReloadState"
+	{
+		Frame "1"
+		{
+			Sprite "SHTG";
+			Frame "0";
+			Tics "3";
+			ViewPriority "Weapons";
+			Function "LoadShotgun2";
+			Next "2";
+		}
+		
+		Frame "2"
+		{
+			Sprite "SHTG";
+			Frame "0";
+			Tics "3";
+			ViewPriority "Weapons";
+			Function "ReloadSingle";
+			Next "3";
+		}
+		
+		Frame "3"
+		{
+			Sprite "SHTG";
+			Frame "0";
+			Tics "3";
+			ViewPriority "Weapons";
+			Function "ReReload";
+			Goto "PrimaryReadyState";
+		}
+	}
+}
+
 // Weapon -- The Destroyer
 // This weapon is based on the BFG9000 and it sprays a killer amount of
 // projectiles and hitscans at the target!

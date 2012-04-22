@@ -78,6 +78,11 @@ typedef struct Z_MemPartition_s
 		void** Ref;				// Reference
 		Z_MemoryTag_t Tag;		// Tag
 		size_t Size;			// Allocation size
+#if defined(_DEBUG)
+		const char* File;		// File
+		int32_t Line;			// Line
+		uint32_t Time;			// Allocation Time
+#endif
 	} Block;
 } Z_MemPartition_t;
 
@@ -408,7 +413,7 @@ bool_t ZP_NewZone(size_t* const SizePtr, Z_MemZone_t** const ZoneRef)
 	Part->Part.End = NewZone->TotalMemory;
 	Part->Part.Size = Part->Part.End - Part->Part.Start;
 	Part->Part.Used = false;
-	Part->Part.SelfRef = NewZone->DataChunk;
+	Part->Part.SelfRef = (uint32_t*)NewZone->DataChunk;
 	
 	memset(&Part->Block, 0, sizeof(Part->Block));	// Quick clear
 	
@@ -660,7 +665,7 @@ static size_t ZP_MergePartitions(Z_MemPartition_t* const Part)
 		Mergee = &l_MainZone->PartitionList[i];
 		
 		// Reset reference
-		ZP_PointerForPartition(Mergee, &Mergee->Part.SelfRef);
+		ZP_PointerForPartition(Mergee, (void**)&Mergee->Part.SelfRef);
 		*Mergee->Part.SelfRef = i;
 	}
 
@@ -719,6 +724,33 @@ size_t ZP_FreePartitionInZone(Z_MemPartition_t* const Part)
 	/* Return number of merged partitions */
 	return RetVal;
 }
+
+#if defined(_DEBUG)
+/* Z_DupFileLine() -- Duplicate line and file into another block */
+void Z_DupFileLine(void* const a_Dest, void* const a_Src)
+{
+	Z_MemPartition_t* PartD;
+	Z_MemPartition_t* PartS;
+	
+	/* Check */
+	if (!a_Dest || !a_Src)
+		return;
+		
+	/* Find zone and partition relating to pointer */
+	// Clear
+	PartD = PartS = NULL;
+	
+	// Now call
+	if (!ZP_FindPointerForPartition(a_Dest, &PartD))
+		return;
+	if (!ZP_FindPointerForPartition(a_Src, &PartS))
+		return;
+	
+	/* Copy File:line over */
+	PartD->Block.File = PartS->Block.File;
+	PartD->Block.Line = PartS->Block.Line;
+}
+#endif
 
 /****************
 *** FUNCTIONS ***
@@ -842,7 +874,7 @@ void* Z_MallocWrappee(const size_t Size, const Z_MemoryTag_t Tag, void** const R
 			if (!AtEnd)	// Never do this at the end
 				if (!l_MainZone->PartitionList[(AtEnd ? (i - 1) : (i + 1))].Part.Used)
 					// Merge partitions
-					ZP_MergePartitions(&l_MainZone->PartitionList[i].Part);
+					ZP_MergePartitions(&l_MainZone->PartitionList[i]);
 			
 			// Recheck to see if the partition is too small
 			if (l_MainZone->PartitionList[i].Part.Size < ShiftSize)
@@ -886,6 +918,12 @@ void* Z_MallocWrappee(const size_t Size, const Z_MemoryTag_t Tag, void** const R
 		New->Block.Ptr = ZP_PointerForPartition(New, &BasePtr);
 		New->Block.Ref = Ref;
 		New->Block.Size = Size;
+
+#ifdef _DEBUG
+		New->Block.File = File;
+		New->Block.Line = Line;
+		New->Block.Time = I_GetTimeMS();
+#endif
 		
 		// Block Tag (if it is invalid, just make it static to be sure)
 		if ((size_t) Tag >= NUMZTAGS)
@@ -1264,12 +1302,64 @@ static CONL_ExitCode_t ZS_MemFrag(const uint32_t a_ArgC, const char** const a_Ar
 	return CLE_SUCCESS;
 }
 
+#if defined(_DEBUG)
+/* ZS_MemTrash() -- "memtrash" -- Print hardcore information */
+static CONL_ExitCode_t ZS_MemTrash(const uint32_t a_ArgC, const char** const a_ArgV)
+{
+	size_t i;
+	FILE* f;
+	Z_MemPartition_t* Cur;
+	
+	/* Open */
+	f = fopen("Trash", "wt");
+	
+	/* Go through each partition */
+	for (i = 0; i < l_MainZone->NumPartitions; i++)
+	{
+		// Get current partition
+		Cur = &l_MainZone->PartitionList[i];
+		
+		// Used?
+		if (Cur->Part.Used)
+		{
+			fprintf(f, "Used [%16u+%8u]; tg %2u sz %8u %12.12s:%4i (t+%8u))\n",
+					(uint32_t)Cur->Part.Start,
+					(uint32_t)Cur->Part.Size,
+					(uint32_t)Cur->Block.Tag,
+					(uint32_t)Cur->Block.Size,
+					Cur->Block.File,
+					(int32_t)Cur->Block.Line,
+					(uint32_t)Cur->Block.Time
+				);
+		}
+		
+		// Free?
+		else
+		{
+			fprintf(f, "Free [%16u+%8u]\n",
+					(uint32_t)Cur->Part.Start,
+					(uint32_t)Cur->Part.Size
+				);
+		}
+	}
+	
+	fclose(f);
+	
+	/* Success */
+	return CLE_SUCCESS;
+}
+#endif
+
 /* Z_RegisterCommands() -- Register commands to the console */
 void Z_RegisterCommands(void)
 {
 	CONL_AddCommand("meminfo", ZS_MemInfo);
 	CONL_AddCommand("memcachefree", ZS_MemCacheFree);
 	CONL_AddCommand("memfrag", ZS_MemFrag);
+
+#if defined(_DEBUG)
+	CONL_AddCommand("memtrash", ZS_MemTrash);
+#endif
 }
 
 #endif
@@ -1278,8 +1368,8 @@ void Z_RegisterCommands(void)
 *** COMMON FUNCTIONS ***
 ***********************/
 
-/* Z_ResizeArray() -- Resizes an array */
-void Z_ResizeArray(void** const PtrPtr, const size_t ElemSize, const size_t OldSize, const size_t NewSize)
+/* Z_ResizeArrayWrappee() -- Resizes an array */
+void Z_ResizeArrayWrappee(void** const PtrPtr, const size_t ElemSize, const size_t OldSize, const size_t NewSize _ZMGD_WRAPPEE)
 {
 	void* Temp;
 	Z_MemoryTag_t OldTag;
@@ -1310,11 +1400,20 @@ void Z_ResizeArray(void** const PtrPtr, const size_t ElemSize, const size_t OldS
 		OldTag = PU_STATIC;
 		
 	/* Allocate temp for new size */
-	Temp = Z_Malloc(ElemSize * NewSize, PU_STATIC, NULL);
+	Temp = Z_MallocWrappee(ElemSize * NewSize, PU_STATIC, NULL
+#if defined(_DEBUG)
+		, File, Line
+#endif
+		);
 	
 	/* If *PtrPtr is set then manage it */
 	if (*PtrPtr)
 	{
+		// Copy file:line
+#if defined(_DEBUG)
+		Z_DupFileLine(Temp, *PtrPtr);
+#endif
+		
 		// Copy all the old data
 		memmove(Temp, *PtrPtr, ElemSize * (NewSize < OldSize ? NewSize : OldSize));
 		
@@ -1329,7 +1428,8 @@ void Z_ResizeArray(void** const PtrPtr, const size_t ElemSize, const size_t OldS
 	Z_ChangeTag(*PtrPtr, OldTag);
 }
 
-char* Z_StrDup(const char* const String, const Z_MemoryTag_t Tag, void** Ref)
+/* Z_StrDupWrappee() -- Duplicate String */
+char* Z_StrDupWrappee(const char* const String, const Z_MemoryTag_t Tag, void** Ref _ZMGD_WRAPPEE)
 {
 	size_t n;
 	char* Ptr;
@@ -1340,7 +1440,11 @@ char* Z_StrDup(const char* const String, const Z_MemoryTag_t Tag, void** Ref)
 		
 	/* Copy */
 	n = strlen(String);
+#if defined(_DEBUG)
+	Ptr = Z_MallocWrappee(sizeof(char) * (n + 1), Tag, Ref, File, -Line);
+#else
 	Ptr = Z_Malloc(sizeof(char) * (n + 1), Tag, Ref);
+#endif
 	strcpy(Ptr, String);
 	
 	/* Return */

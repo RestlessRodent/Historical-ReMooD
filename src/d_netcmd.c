@@ -908,8 +908,10 @@ int g_SplitScreen = -1;							// Split screen players (-1 based)
 bool_t g_PlayerInSplit[MAXSPLITSCREEN] = {false, false, false, false};
 
 /*** LOCALS ***/
+
 static bool_t l_PermitMouse = false;			// Use mouse input
 static int32_t l_MouseMove[2] = {0, 0};			// Mouse movement (x/y)
+static bool_t l_KeyDown[NUMIKEYBOARDKEYS];		// Keys that are down
 
 /*** FUNCTIONS ***/
 
@@ -953,7 +955,6 @@ struct player_s* D_NCSAddLocalPlayer(const char* const a_ProfileID)
 	consoleplayer[s] = p;
 	displayplayer[s] = p;
 	g_SplitScreen++;
-	R_ExecuteSetViewSize();
 	
 	/* Initialize Player */
 	// Clear everything
@@ -970,6 +971,15 @@ struct player_s* D_NCSAddLocalPlayer(const char* const a_ProfileID)
 	NPp->Type = DNPT_LOCAL;
 	NPp->Player = &players[p];
 	NPp->Profile = D_FindProfileEx(a_ProfileID);
+	
+	/* Functions for player screens */
+	am_recalc = true;
+	R_ExecuteSetViewSize();
+	
+	// Fix automap
+	if (automapactive)
+		AM_Start();
+	AM_LevelInit();
 	
 	/* Return the new player */
 	return &players[p];
@@ -1105,6 +1115,12 @@ bool_t D_NCSHandleEvent(const I_EventEx_t* const a_Event)
 			l_MouseMove[0] += a_Event->Data.Mouse.Move[0];
 			l_MouseMove[1] += a_Event->Data.Mouse.Move[1];
 			break;
+			
+			// Keyboard
+		case IET_KEYBOARD:
+			if (a_Event->Data.Keyboard.KeyCode >= 0 && a_Event->Data.Keyboard.KeyCode < NUMIKEYBOARDKEYS)
+				l_KeyDown[a_Event->Data.Keyboard.KeyCode] = a_Event->Data.Keyboard.Down;
+			break;
 		
 			// Unknown
 		default:
@@ -1112,6 +1128,14 @@ bool_t D_NCSHandleEvent(const I_EventEx_t* const a_Event)
 	}
 	
 	/* Un-Handled */
+	return false;
+}
+
+/* GAMEKEYDOWN() -- Checks if a key is down */
+static bool_t GAMEKEYDOWN(D_ProfileEx_t* const a_Profile, const uint8_t a_Key)
+{
+	if (l_KeyDown[a_Profile->Ctrls[a_Key][0]] || l_KeyDown[a_Profile->Ctrls[a_Key][1]])
+		return true;
 	return false;
 }
 
@@ -1209,6 +1233,35 @@ static void D_NCSLocalBuildTicCmd(D_NetPlayer_t* const a_NPp, ticcmd_t* const a_
 		// Clear mouse input
 		l_MouseMove[0] = l_MouseMove[1] = 0;
 	}
+	
+	/* Handle Player Control Keyboard Stuff */
+	
+	/* Handle special functions */
+	// Coop Spy
+	if (GAMEKEYDOWN(Profile, DPEXIC_COOPSPY))
+	{
+		// Only every half second
+		if (gametic > (Profile->CoopSpyTime + (TICRATE >> 1)))
+		{
+			do
+			{
+				displayplayer[SID] = (displayplayer[SID] + 1) % MAXPLAYERS;
+			} while (!playeringame[displayplayer[SID]] || !P_PlayerOnSameTeam(&players[consoleplayer[SID]], &players[displayplayer[SID]]));
+			
+			// Print Message
+			CONL_PrintF("%sYou are now watching %s.\n",
+					(SID == 3 ? "\x6" : (SID == 2 ? "\x5" : (SID == 1 ? "\x4" : ""))),
+					(displayplayer[SID] == consoleplayer[SID] ? "Yourself" : player_names[displayplayer[SID]])
+				);
+			
+			// Reset timeout
+			Profile->CoopSpyTime = gametic + (TICRATE >> 1);
+		}
+	}
+	
+	// Key is unpressed to reduce time
+	else
+		Profile->CoopSpyTime = 0;
 	
 	/* Set Movement Now */
 	// Cap
