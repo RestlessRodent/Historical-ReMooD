@@ -5623,35 +5623,35 @@ mobjinfo_t mobjinfo[NUMMOBJTYPES] =
 		5131, S_FLAG_1, 1000, S_NULL, sfx_None, 8, sfx_None, S_NULL, 0, sfx_None,
 		S_NULL, S_NULL, S_NULL, S_NULL, S_NULL, sfx_None, 0,
 		8 * FRACUNIT, 60 * FRACUNIT, 100, 0, sfx_None, (MF_TRANSLATION + (7 << MF_TRANSSHIFT)),
-		S_NULL, 0
+		S_NULL, 0, {0, MFREXB_INITBOTNODES, 0, 0},
 	},
 	// Blue
 	{
 		5130, S_FLAG_1, 1000, S_NULL, sfx_None, 8, sfx_None, S_NULL, 0, sfx_None,
 		S_NULL, S_NULL, S_NULL, S_NULL, S_NULL, sfx_None, 0,
 		8 * FRACUNIT, 60 * FRACUNIT, 100, 0, sfx_None, (MF_TRANSLATION + (8 << MF_TRANSSHIFT)),
-		S_NULL, 0
+		S_NULL, 0, {0, MFREXB_INITBOTNODES, 0, 0},
 	},
 	// Green
 	{
 		5133, S_FLAG_1, 1000, S_NULL, sfx_None, 8, sfx_None, S_NULL, 0, sfx_None,
 		S_NULL, S_NULL, S_NULL, S_NULL, S_NULL, sfx_None, 0,
 		8 * FRACUNIT, 60 * FRACUNIT, 100, 0, sfx_None, 0,
-		S_NULL, 0
+		S_NULL, 0, {0, MFREXB_INITBOTNODES, 0, 0},
 	},
 	// Yellow
 	{
 		5134, S_FLAG_1, 1000, S_NULL, sfx_None, 8, sfx_None, S_NULL, 0, sfx_None,
 		S_NULL, S_NULL, S_NULL, S_NULL, S_NULL, sfx_None, 0,
 		8 * FRACUNIT, 60 * FRACUNIT, 100, 0, sfx_None, (MF_TRANSLATION + (10 << MF_TRANSSHIFT)),
-		S_NULL, 0
+		S_NULL, 0, {0, MFREXB_INITBOTNODES, 0, 0},
 	},
 	// White
 	{
 		5132, S_FLAG_1, 1000, S_NULL, sfx_None, 8, sfx_None, S_NULL, 0, sfx_None,
 		S_NULL, S_NULL, S_NULL, S_NULL, S_NULL, sfx_None, 0,
 		8 * FRACUNIT, 60 * FRACUNIT, 100, 0, sfx_None, (MF_TRANSLATION + (12 << MF_TRANSSHIFT)),
-		S_NULL, 0
+		S_NULL, 0, {0, MFREXB_INITBOTNODES, 0, 0},
 	},
 	
 	// Doom v1.9 Blood

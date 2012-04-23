@@ -69,6 +69,7 @@
 
 #include "command.h"
 #include "p_demcmp.h"
+#include "b_bot.h"
 
 //#define COOLFLIPLEVELS
 
@@ -2600,6 +2601,9 @@ bool_t P_ExFinalizeLevel(void)
 	
 	// Flat number is the holder F_SKY1
 	skyflatnum = R_GetFlatNumForName("F_SKY1");
+	
+	/* Build Bot Nodes */
+	B_InitNodes();
 	
 	/* Success! */
 	return true;

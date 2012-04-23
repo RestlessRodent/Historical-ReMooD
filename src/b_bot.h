@@ -56,6 +56,7 @@ extern bool_t g_BotDebug;						// Debugging Bots
 ****************/
 
 B_BotData_t* B_InitBot(D_NetPlayer_t* const a_NPp);
+void B_InitNodes(void);
 
 void B_BuildBotTicCmd(B_BotData_t* const a_BotData, ticcmd_t* const a_TicCmd);
 

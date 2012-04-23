@@ -321,6 +321,7 @@ typedef enum mobjflagrexb_e
 	MFREXB_DOCYBERSPECIAL		= 0x000000008U,	// Triggers cyber special [A_BossDeath]
 	MFREXB_DOSPIDERSPECIAL		= 0x000000010U,	// Triggers spider special [A_BossDeath]
 	MFREXB_DODOORSIXTHREEOPEN	= 0x000000020U,	// When this thing dies, blaze a door open [A_BossDeath]
+	MFREXB_INITBOTNODES			= 0x000000040U,	// Initialize With bot nodes
 } mobjflagrexb_t;
 
 /* P_MobjRefType_t -- Reference type */

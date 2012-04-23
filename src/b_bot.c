@@ -28,6 +28,17 @@
 // -----------------------------------------------------------------------------
 // DESCRIPTION: Bot Code
 
+// Bot navigation is done by dynamic node generation every 32 map units or so.
+// There is no way to use precreated nodes currently and there might not be any
+// plans to do so. Creating nodes for every single map would be a tiresome and
+// complex process (imagine creating nodes for EVERY single level in EVERY
+// single WAD). Everyone would die before finishing. So this dynamic node system
+// is a compromise. Before a level is truly playable by bots, the bots must
+// navigate enough of the level in order for navigation to work, otherwise they
+// cannot navigate through anything. Navigation nodes might take up much memory
+// but the nodes are shared between all bots in the game. So in general, the
+// smaller the map the better the performance.
+
 /***************
 *** INCLUDES ***
 ***************/
@@ -39,6 +50,7 @@
 #include "m_fixed.h"
 #include "r_main.h"
 #include "p_local.h"
+#include "g_game.h"
 
 /****************
 *** CONSTANTS ***
@@ -46,6 +58,7 @@
 
 #define BOTMINNODEDIST		(32 << FRACBITS)	// Minimum node distance
 #define BOTMAXNODERECOURSE	5					// Maximum bot recursion
+#define BOTINITNODERECOURSE	3					// Initial Count for initial nodes
 
 /* B_BotActionSub_t -- Bot action subroutines */
 typedef enum B_BotActionSub_e
@@ -130,6 +143,9 @@ static angle_t c_NavAngle[3][3] =
 
 static B_BotNode_t** l_BotNodes = NULL;			// Nodes here
 static size_t l_NumBotNodes = 0;				// Number of bot nodes
+static bool_t l_InitialNodeGen = false;			// Initial Nodes Generated
+static B_BotNode_t* l_PlayerNodes[MAXPLAYERS];	// Player Node locations
+static tic_t l_PlayerLastTime = 0;				// Last generation time
 
 /************************
 *** PRIVATE FUNCTIONS ***
@@ -485,10 +501,18 @@ static void BS_ThinkStraightLine(B_BotData_t* const a_BotData, ticcmd_t* const a
 *** FUNCTIONS ***
 ****************/
 
+/* B_InitNodes() -- Initializes bots for this level */
+void B_InitNodes(void)
+{
+	l_InitialNodeGen = false;
+}
+
 /* B_InitBot() -- Initializes Bot */
 B_BotData_t* B_InitBot(D_NetPlayer_t* const a_NPp)
 {
 	B_BotData_t* New;
+	thinker_t* currentthinker;
+	mobj_t* mo;
 	
 	/* Check */
 	if (!a_NPp)
@@ -497,6 +521,31 @@ B_BotData_t* B_InitBot(D_NetPlayer_t* const a_NPp)
 	/* Debugging? */
 	if (M_CheckParm("-devbots"))
 		g_BotDebug = true;
+	
+	/* Initial Node Generation? */
+	if (!l_InitialNodeGen)
+	{
+		// Run through every map object
+		for (currentthinker = thinkercap.next; currentthinker != &thinkercap; currentthinker = currentthinker->next)
+		{
+			// Only Objects
+			if ((currentthinker->function.acp1 != (actionf_p1)P_MobjThinker))
+				continue;
+
+			// Convert to object
+			mo = (mobj_t*)currentthinker;
+			
+			// Object is something worth navigating to?
+				// Things that can be picked up
+				// Shootable things (monsters, barrels, etc.)
+				// Things marked as initialization nodes (CTF Flags)
+			if ((mo->flags & (MF_SPECIAL | MF_SHOOTABLE)) || (mo->RXFlags[1] & MFREXB_INITBOTNODES))
+				BS_GetNodeAtPos(mo->x, mo->y, BOTINITNODERECOURSE);
+		}
+		
+		// Generated, so don't bother again
+		l_InitialNodeGen = true;
+	}
 	
 	/* Allocate */
 	New = Z_Malloc(sizeof(*New), PU_STATIC, NULL);
@@ -513,11 +562,25 @@ B_BotData_t* B_InitBot(D_NetPlayer_t* const a_NPp)
 /* B_BuildBotTicCmd() -- Builds tic command for bot */
 void B_BuildBotTicCmd(B_BotData_t* const a_BotData, ticcmd_t* const a_TicCmd)
 {
+	size_t i;
 	player_t* Player;
 	
 	/* Check */
 	if (!a_BotData || !a_TicCmd)
 		return;
+	
+	/* Update player nodes */
+	if (gametic > l_PlayerLastTime)
+	{
+		// Update all positions
+		for (i = 0; i < MAXPLAYERS; i++)
+			if (playeringame[i])
+				if (players[i].mo)
+					l_PlayerNodes[i] = BS_GetNodeAtPos(players[i].mo->x, players[i].mo->y, 0);;
+		
+		// Reset time
+		l_PlayerLastTime = gametic;
+	}
 	
 	/* Get variables */
 	Player = a_BotData->Player;
