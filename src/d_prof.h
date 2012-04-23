@@ -168,6 +168,7 @@ typedef enum D_ProfileExInputCtrl_e
 /* D_ProfileExCtrlMA_t -- Controlled mouse axis */
 typedef enum D_ProfileExCtrlMA_e
 {
+	DPEXCMA_NULL,								// Do Nothing
 	DPEXCMA_MOVEX,								// Move on axis
 	DPEXCMA_MOVEY,
 	DPEXCMA_LOOKX,								// Look on axis
@@ -175,6 +176,8 @@ typedef enum D_ProfileExCtrlMA_e
 	
 	NUMDPROFILEEXCTRLMAS
 } D_ProfileExCtrlMA_t;
+
+#define MAXJOYAXIS		8
 
 /*** STRUCTURES ***/
 
@@ -194,9 +197,11 @@ typedef struct D_ProfileEx_s
 	tic_t SlowTurnTime;							// Time to slow turn
 	
 	/* Controls For Player */
-	uint32_t Ctrls[NUMDPROFILEEXINPUTCTRLS][2];	// Player Controls
+	uint32_t Ctrls[NUMDPROFILEEXINPUTCTRLS][4];	// Player Controls
 	D_ProfileExCtrlMA_t MouseAxis[3][2];		// Mouse Axis Movement
+	D_ProfileExCtrlMA_t JoyAxis[3][MAXJOYAXIS];	// Joy Axis Movement
 	int32_t MouseSens[2];						// Mouse Sensitivity
+	int32_t JoySens[2];							// Joystick Sensitivity
 	int32_t LookUpDownSpeed;					// Looking Up/Down Speed
 	
 	/* Network Related */

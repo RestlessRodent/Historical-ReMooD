@@ -788,12 +788,13 @@ D_ProfileEx_t* D_CreateProfileEx(const char* const a_Name)
 	strncpy(New->DisplayName, a_Name, MAXPLAYERNAME - 1);
 	
 	/* Set Default Options */
-	New->Flags |= DPEXF_GOTMOUSE | DPEXF_SLOWTURNING;
+	New->Flags |= DPEXF_GOTMOUSE | DPEXF_GOTJOY | DPEXF_SLOWTURNING;
 	New->SlowTurnTime = 6;
 	
 	// Default Controls
 #define SETKEY_M(a,b) a##b
 #define SETKEY(c,k) New->Ctrls[SETKEY_M(DPEXIC_,c)][0] = (SETKEY_M(IKBK_,k))
+#define SETJOY(c,b) New->Ctrls[SETKEY_M(DPEXIC_,c)][3] = 0x1000 | ((b) - 1)
 
 	SETKEY(SPEED, SHIFT);
 	SETKEY(MOVEMENT, ALT);
@@ -835,6 +836,13 @@ D_ProfileEx_t* D_CreateProfileEx(const char* const a_Name)
 	SETKEY(TOPSCORES, F);
 	SETKEY(COOPSPY, F12);
 	
+	// Joystick Buttons
+	SETJOY(ATTACK, 1);
+	SETJOY(USE, 2);
+	SETJOY(MOVEMENT, 3);
+	SETJOY(SPEED, 4);
+
+#undef SETJOY
 #undef SETKEY_M
 #undef SETKEY
 	
@@ -848,9 +856,21 @@ D_ProfileEx_t* D_CreateProfileEx(const char* const a_Name)
 		// Mouse Look (Default 'S')
 	New->MouseAxis[2][0] = DPEXCMA_LOOKX;
 	New->MouseAxis[2][1] = DPEXCMA_LOOKY;
+	
+	// Joystick Axis
+		// Not ALT
+	New->JoyAxis[0][0] = DPEXCMA_LOOKX;
+	New->JoyAxis[0][1] = DPEXCMA_MOVEY;
+		// ALT
+	New->JoyAxis[1][0] = DPEXCMA_MOVEX;
+	New->JoyAxis[1][1] = DPEXCMA_MOVEY;
+		// Mouse Look (Default 'S')
+	New->JoyAxis[2][0] = DPEXCMA_LOOKX;
+	New->JoyAxis[2][1] = DPEXCMA_LOOKY;
 
 	// Default Sensitivities
 	New->MouseSens[0] = New->MouseSens[1] = 10;
+	New->JoySens[0] = New->JoySens[1] = 100;
 	New->LookUpDownSpeed = (1 << 25);
 	
 	/* Link */

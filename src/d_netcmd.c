@@ -902,6 +902,8 @@ static const fixed_t c_sidemove[2] = { 24, 40 };
 static const fixed_t c_angleturn[3] = { 640, 1280, 320 };	// + slow turn
 #define MAXPLMOVE       (c_forwardmove[1])
 
+#define MAXLOCALJOYS	4
+
 /*** GLOBALS ***/
 
 int g_SplitScreen = -1;							// Split screen players (-1 based)
@@ -912,6 +914,8 @@ bool_t g_PlayerInSplit[MAXSPLITSCREEN] = {false, false, false, false};
 static bool_t l_PermitMouse = false;			// Use mouse input
 static int32_t l_MouseMove[2] = {0, 0};			// Mouse movement (x/y)
 static bool_t l_KeyDown[NUMIKEYBOARDKEYS];		// Keys that are down
+static uint32_t l_JoyButtons[MAXLOCALJOYS];		// Local Joysticks
+static int16_t l_JoyAxis[MAXLOCALJOYS][MAXJOYAXIS];
 
 /*** FUNCTIONS ***/
 
@@ -1102,6 +1106,8 @@ void D_NCSInit(void)
 /* D_NCSHandleEvent() -- Handle advanced events */
 bool_t D_NCSHandleEvent(const I_EventEx_t* const a_Event)
 {
+	int32_t ButtonNum, LocalJoy;
+	
 	/* Check */
 	if (!a_Event)
 		return false;
@@ -1121,6 +1127,44 @@ bool_t D_NCSHandleEvent(const I_EventEx_t* const a_Event)
 			if (a_Event->Data.Keyboard.KeyCode >= 0 && a_Event->Data.Keyboard.KeyCode < NUMIKEYBOARDKEYS)
 				l_KeyDown[a_Event->Data.Keyboard.KeyCode] = a_Event->Data.Keyboard.Down;
 			break;
+			
+			// Joystick
+		case IET_JOYSTICK:
+			// Get local joystick
+			LocalJoy = a_Event->Data.Joystick.JoyID;
+			
+			// Now determine which action
+			if (LocalJoy >= 0 && LocalJoy < MAXLOCALJOYS)
+			{
+				// Button Pressed Down
+				if (a_Event->Data.Joystick.Button)
+				{
+					// Get Number
+					ButtonNum = a_Event->Data.Joystick.Button;
+					ButtonNum--;
+					
+					// Limited to 32 buttons =(
+					if (ButtonNum >= 0 && ButtonNum < 32)
+					{
+						// Was it pressed?
+						if (a_Event->Data.Joystick.Down)
+							l_JoyButtons[LocalJoy] |= (1 << ButtonNum);
+						else
+							l_JoyButtons[LocalJoy] &= ~(1 << ButtonNum);
+					}
+				}
+				
+				// Axis Moved
+				else if (a_Event->Data.Joystick.Axis)
+				{
+					ButtonNum = a_Event->Data.Joystick.Axis;
+					ButtonNum--;
+					
+					if (ButtonNum >= 0 && ButtonNum < MAXJOYAXIS)
+						l_JoyAxis[LocalJoy][ButtonNum] = a_Event->Data.Joystick.Value;
+				}
+			}
+			break;
 		
 			// Unknown
 		default:
@@ -1134,8 +1178,29 @@ bool_t D_NCSHandleEvent(const I_EventEx_t* const a_Event)
 /* GAMEKEYDOWN() -- Checks if a key is down */
 static bool_t GAMEKEYDOWN(D_ProfileEx_t* const a_Profile, const uint8_t a_Key)
 {
-	if (l_KeyDown[a_Profile->Ctrls[a_Key][0]] || l_KeyDown[a_Profile->Ctrls[a_Key][1]])
+	size_t i;
+	uint32_t CurrentButton;
+	
+	/* Check Keyboard */
+	if (l_KeyDown[a_Profile->Ctrls[a_Key][0]] || l_KeyDown[a_Profile->Ctrls[a_Key][1]] || l_KeyDown[a_Profile->Ctrls[a_Key][2]] || l_KeyDown[a_Profile->Ctrls[a_Key][3]])
 		return true;
+	
+	/* Check Joysticks */
+	if (a_Profile->Flags & DPEXF_GOTJOY)
+		if (a_Profile->JoyControl >= 0 && a_Profile->JoyControl < 4)
+			for (i = 0; i < 4; i++)
+				if ((a_Profile->Ctrls[a_Key][i] & 0xF000) == 0x1000)
+				{
+					// Get current button
+					CurrentButton = (a_Profile->Ctrls[a_Key][i] & 0x00FF);
+				
+					// Button pressed?
+					if (CurrentButton >= 0 && CurrentButton < 32)
+						if (l_JoyButtons[a_Profile->JoyControl] & (1 << CurrentButton))
+							return true;
+				}
+	
+	/* Not pressed */
 	return false;
 }
 
@@ -1200,7 +1265,7 @@ static void D_NCSLocalBuildTicCmd(D_NetPlayer_t* const a_NPp, ticcmd_t* const a_
 	// Mouse Modifier
 	if (GAMEKEYDOWN(Profile, DPEXIC_LOOKING))
 		MouseMod = 2;
-	else if (GAMEKEYDOWN(Profile, DPEXIC_MOVEMENT))
+	else if (MoveMod)
 		MouseMod = 1;
 	else 
 		MouseMod = 0;
@@ -1220,6 +1285,48 @@ static void D_NCSLocalBuildTicCmd(D_NetPlayer_t* const a_NPp, ticcmd_t* const a_
 	else
 		TurnSpeed = 0;
 	
+	/* Player has joystick input? */
+	if (Profile->Flags & DPEXF_GOTJOY)
+	{
+		// Read input for all axis
+		for (i = 0; i < MAXJOYAXIS; i++)
+		{
+			// Modify with sensitivity
+			TargetMove = ((float)l_JoyAxis[Profile->JoyControl][i]) * (((float)Profile->JoySens[SensMod]) / 100.0);
+			
+			// Which movement to perform?
+			switch (Profile->JoyAxis[MouseMod][i])
+			{
+					// Movement
+				case DPEXCMA_MOVEX:
+				case DPEXCMA_MOVEY:
+					// Movement is fractionally based
+					TargetMove = (((float)TargetMove) / ((float)32767.0)) * ((float)c_forwardmove[MoveSpeed]);
+					
+					// Now which action really?
+					if (Profile->JoyAxis[MouseMod][i] == DPEXCMA_MOVEX)
+						SideMove += TargetMove;
+					else
+						ForwardMove -= TargetMove;
+					break;
+					
+					// Looking Left/Right
+				case DPEXCMA_LOOKX:
+					TargetMove = (((float)TargetMove) / ((float)32767.0)) * ((float)c_angleturn[TurnSpeed]);
+					IsTurning = true;
+					a_TicCmd->angleturn -= TargetMove;
+					break;
+					
+					// Looking Up/Down
+				case DPEXCMA_LOOKY:
+					break;
+				
+				default:
+					break;
+			}
+		}
+	}
+	
 	/* Player has mouse input? */
 	if (l_PermitMouse && (Profile->Flags & DPEXF_GOTMOUSE))
 	{
@@ -1227,7 +1334,7 @@ static void D_NCSLocalBuildTicCmd(D_NetPlayer_t* const a_NPp, ticcmd_t* const a_
 		for (i = 0; i < 2; i++)
 		{
 			// Modify with sensitivity
-			TargetMove = l_MouseMove[i] * ((((float)(Profile->MouseSens[MouseMod] * Profile->MouseSens[MouseMod])) / 110.0) + 0.1);
+			TargetMove = l_MouseMove[i] * ((((float)(Profile->MouseSens[SensMod] * Profile->MouseSens[SensMod])) / 110.0) + 0.1);
 			
 			// Do action for which movement type?
 			switch (Profile->MouseAxis[MouseMod][i])
