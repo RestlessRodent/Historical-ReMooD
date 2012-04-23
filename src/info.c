@@ -1252,7 +1252,7 @@ mobjinfo_t mobjinfo[NUMMOBJTYPES] =
 		MF2_WINDTHRUST | MF2_FOOTCLIP | MF2_SLIDE | MF2_PASSMOBJ | MF2_TELESTOMP,
 		
 		// ReMooD Extended
-		{0, 0, 0, 0},			// RXFlags
+		{MFREXA_ISPLAYEROBJECT, 0, 0, 0},			// RXFlags
 		0,						// RFastSpeed
 		S_PLAY_RUN1,			// RPlayerRunState
 		S_PLAY_ATK1,			// RPlayerMeleeAttackState

@@ -63,6 +63,8 @@
 #include "i_sound.h"
 #include "i_util.h"
 
+#include "b_bot.h"
+
 // ------
 // protos
 // ------
@@ -1801,16 +1803,12 @@ void D_NCSNetUpdateSingle(struct player_s* a_Player)
 			
 			// Bot, a simulated player
 		case DNPT_BOT:
-			// TODO: Make actual bots here
-			TicCmd->forwardmove = (int)(M_Random() % 50) - 20;
-			TicCmd->sidemove = (int)(M_Random() % 50) - 20;
-			//TicCmd->angleturn = (M_Random() * M_Random()) & 0xFFFF;
+			// No bot data?
+			if (!NPp->BotData)
+				NPp->BotData = B_InitBot(NPp);
 			
-			// Dead? Respawn
-			if (NPp->Player->playerstate == PST_DEAD)
-				TicCmd->buttons = BT_USE;
-			else
-				TicCmd->buttons = BT_ATTACK;
+			// Build bot tic command
+			B_BuildBotTicCmd(NPp->BotData, TicCmd);
 			break;
 			
 			// Unknown

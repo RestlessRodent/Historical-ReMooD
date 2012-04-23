@@ -554,7 +554,7 @@ void A_Saw(player_t* player, pspdef_t* psp)
 			player->mo->angle += ANG90 / 20;
 	}
 	
-	// GhostlyDeath -- Effect Local Aiming yknow
+	// GhostlyDeath -- Affect Local Aiming yknow
 	for (i = 0; i < MAXSPLITSCREENPLAYERS; i++)
 		if (playeringame[consoleplayer[i]] && player == &players[consoleplayer[i]])
 			locang = &localangle[i];

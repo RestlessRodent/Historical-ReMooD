@@ -437,6 +437,10 @@ typedef struct subsector_s
 	void* splats;
 	//Hurdler: added for optimized mlook in hw mode
 	int validcount;
+	
+	// GhostlyDeath <April 23, 2012> -- Bots
+	void** BotNodes;
+	size_t NumBotNodes;
 } subsector_t;
 
 // SoM: 3/6/200

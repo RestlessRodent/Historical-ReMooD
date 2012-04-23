@@ -1021,6 +1021,7 @@ void R_SetupFrame(player_t* player)
 			aimingangle = player->aiming;
 			viewangle = viewmobj->angle + viewangleoffset;
 			
+#if 0
 			if (!demoplayback && player->playerstate != PST_DEAD)
 			{
 				for (i = 0; i < MAXSPLITSCREENPLAYERS; i++)
@@ -1030,6 +1031,7 @@ void R_SetupFrame(player_t* player)
 						aimingangle = localaiming[i];
 					}
 			}
+#endif
 			
 		}
 		

@@ -1107,7 +1107,7 @@ void HU_drawDeathmatchRankings(void)
 	if ((g_SplitScreen <= 0))
 	{
 		p = W_CachePatchName("RANKINGS", PU_CACHE);
-		V_DrawScaledPatch((BASEVIDWIDTH - p->width) / 2, 5, 0, p);
+		//V_DrawScaledPatch((BASEVIDWIDTH - p->width) / 2, 5, 0, p);
 	}
 	// count frags for each present player
 	scorelines = 0;

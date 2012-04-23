@@ -14,9 +14,7 @@
 //      :oO8@@@@@@@@@@Oo.
 //         .oCOOOOOCc.                                      http://remood.org/
 // -----------------------------------------------------------------------------
-// Copyright (C) 1993-1996 by id Software, Inc.
-// Copyright (C) 1998-2000 by DooM Legacy Team.
-// Copyright (C) 2008-2012 GhostlyDeath (ghostlydeath@gmail.com)
+// Copyright (C) 2012 GhostlyDeath <ghostlydeath@remood.org>
 // -----------------------------------------------------------------------------
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
@@ -28,44 +26,39 @@
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 // GNU General Public License for more details.
 // -----------------------------------------------------------------------------
-// DESCRIPTION: event handling.
+// DESCRIPTION: Bot Code
 
-#ifndef __D_EVENT__
-#define __D_EVENT__
+#ifndef __B_BOT_H__
+#define __B_BOT_H__
 
-#include "doomtype.h"
-#include "g_state.h"
+/***************
+*** INCLUDES ***
+***************/
 
-// Input event types.
-typedef enum
-{
-	ev_keydown,
-	ev_keyup,
-	ev_mouse,
-	ev_joystick,
-	ev_mouse2
-} evtype_t;
+#include "d_netcmd.h"
+#include "d_prof.h"
+#include "d_ticcmd.h"
 
-// Event structure.
-typedef struct
-{
-	evtype_t type;
-	int data1;					// keys / mouse/joystick buttons
-	int data2;					// mouse/joystick x move
-	int data3;					// mouse/joystick y move
-	int typekey;				// Unicode key for chatting
-} event_t;
+/*****************
+*** STRUCTURES ***
+*****************/
 
-//
-// GLOBAL VARIABLES
-//
-#define MAXEVENTS               64
+typedef struct B_BotData_s B_BotData_t;
 
-extern event_t events[MAXEVENTS];
-extern int eventhead;
-extern int eventtail;
+/**************
+*** GLOBALS ***
+**************/
 
-extern gameaction_t gameaction;
+extern bool_t g_BotDebug;						// Debugging Bots
 
-#endif
+/****************
+*** FUNCTIONS ***
+****************/
+
+B_BotData_t* B_InitBot(D_NetPlayer_t* const a_NPp);
+
+void B_BuildBotTicCmd(B_BotData_t* const a_BotData, ticcmd_t* const a_TicCmd);
+
+#endif /* __B_BOT_H__ */
+
 

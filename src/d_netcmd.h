@@ -120,6 +120,7 @@ typedef enum D_NetPlayerType_e
 
 struct D_ProfileEx_s;
 struct player_s;
+struct B_BotData_s;
 
 /* D_NetPlayer_t() -- Network Player */
 typedef struct D_NetPlayer_s
@@ -138,6 +139,9 @@ typedef struct D_NetPlayer_s
 	
 	/* Specifics */
 	int NetColor;								// Network Color
+	
+	/* Bot Related */
+	struct B_BotData_s* BotData;				// Bot Data
 } D_NetPlayer_t;
 
 /*** GLOBALS ***/
