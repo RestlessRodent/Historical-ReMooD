@@ -113,7 +113,7 @@ void P_ClearRecursiveSound(void)
 	if (l_SoundSecs)
 		Z_Free(l_SoundSecs);
 	l_SoundSecs = NULL;
-	l_NumSoundSecs = NULL;
+	l_NumSoundSecs = 0;
 }
 
 /* P_RemoveRecursiveSound() -- Remove recursive sounds from sectors */
@@ -1630,7 +1630,7 @@ void A_PainShootSkull(mobj_t* actor, angle_t angle)
 	if (!(TargetType >= 0 && TargetType < NUMMOBJTYPES))
 		return;
 	
-	prestep = 4 * FRACUNIT + 3 * (actor->info->radius + mobjinfo[TargetType].radius) / 2;
+	prestep = 4 * FRACUNIT + 3 * (actor->info->radius + mobjinfo[TargetType]->radius) / 2;
 	
 	x = actor->x + FixedMul(prestep, finecosine[an]);
 	y = actor->y + FixedMul(prestep, finesine[an]);
@@ -1756,13 +1756,23 @@ void A_Explode(mobj_t* actor)
 
 static state_t* P_FinalState(statenum_t state)
 {
-	static char final_state[NUMSTATES];	//Hurdler: quick temporary hack to fix hacx freeze
+	static char* final_state;
+	static size_t OldStateCount;
+	
+	// GhostlyDeath <April 23, 2012> -- Cheat the quick "temporary" hack
+	if (NUMSTATES != OldStateCount || !final_state)
+	{
+		if (final_state)
+			Z_Free(final_state);
+		final_state = Z_Malloc(sizeof(*final_state) * NUMSTATES, PU_STATIC, NULL);
+		OldStateCount = NUMSTATES;
+	}
 	
 	memset(final_state, 0, NUMSTATES);
-	while (states[state].tics != -1)
+	while (states[state]->tics != -1)
 	{
 		final_state[state] = 1;
-		state = states[state].nextstate;
+		state = states[state]->nextstate;
 		if (final_state[state])
 			return NULL;
 	}

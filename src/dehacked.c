@@ -51,6 +51,8 @@
 #include "z_zone.h"
 #include "w_wad.h"
 
+#if 0
+
 bool_t deh_loaded = false;
 
 #define MAXLINELEN  200
@@ -947,3 +949,5 @@ void DEH_LoadDehackedLump(int lump)
 	DEH_LoadDehackedFile(&f);
 	Z_Free(f.data);
 }
+
+#endif

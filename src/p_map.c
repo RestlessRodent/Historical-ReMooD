@@ -2045,6 +2045,7 @@ sector_t* sectorchecked;
 bool_t PIT_ChangeSector(mobj_t* thing, void* a_Arg)
 {
 	mobj_t* mo;
+	mobjtype_t GibsType;
 	
 	if (P_ThingHeightClip(thing))
 	{
@@ -2054,7 +2055,10 @@ bool_t PIT_ChangeSector(mobj_t* thing, void* a_Arg)
 	// crunch bodies to giblets
 	if (thing->flags & MF_CORPSE)
 	{
-		P_SetMobjState(thing, S_GIBS);
+		GibsType = INFO_GetTypeByName("CrushedGibs"); 
+		if (GibsType != NUMMOBJTYPES)
+			P_SetMobjState(thing, mobjinfo[GibsType]->spawnstate);
+		
 		thing->flags &= ~MF_SOLID;
 		//added:22-02-98: lets have a neat 'crunch' sound!
 		S_StartSound(&thing->NoiseThinker, sfx_slop);

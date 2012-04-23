@@ -79,13 +79,13 @@ void P_SetPsprite(player_t* player, int position, statenum_t stnum)
 		}
 		
 		// GhostlyDeath <November 3, 2010> -- PARANOIA removal
-		if (stnum >= NumXStates)
+		if (stnum >= NUMSTATES)
 		{
-			CONL_PrintF("WARNING - P_SetPsprite: State %i exceeds %i. (%s:%i).\n", stnum, NumXStates, __FILE__, __LINE__);
+			CONL_PrintF("WARNING - P_SetPsprite: State %i exceeds %i. (%s:%i).\n", stnum, NUMSTATES, __FILE__, __LINE__);
 			return;
 		}
 		
-		state = XStates[stnum];
+		state = states[stnum];
 		psp->state = state;
 		psp->tics = state->tics;	// could be 0
 		
@@ -288,7 +288,7 @@ void A_WeaponReady(player_t* player, pspdef_t* psp)
 	
 	// GhostlyDeath <April 14, 2012> -- Chainsaw buzzing
 	if (player->weaponinfo[player->readyweapon]->IdleNoise)
-		if (psp->state == XStates[player->weaponinfo[player->readyweapon]->readystate])
+		if (psp->state == states[player->weaponinfo[player->readyweapon]->readystate])
 			S_StartSound(&player->mo->NoiseThinker, S_SoundIDForName(player->weaponinfo[player->readyweapon]->IdleNoise));
 	
 	// check for change
@@ -785,7 +785,7 @@ void A_FireCGun(player_t* player, pspdef_t* psp)
 	if (!cv_infiniteammo.value)
 		player->ammo[player->weaponinfo[player->readyweapon]->ammo] -= player->weaponinfo[player->readyweapon]->ammopershoot;
 	
-	//P_SetPsprite(player, ps_flash, player->weaponinfo[player->readyweapon]->flashstate + psp->state - XStates[player->weaponinfo[player->readyweapon]->atkstate]/*&states[S_CHAIN1]*/);
+	//P_SetPsprite(player, ps_flash, player->weaponinfo[player->readyweapon]->flashstate + psp->state - states[player->weaponinfo[player->readyweapon]->atkstate]/*&states[S_CHAIN1]*/);
 	
 	P_BulletSlope(player->mo);
 	P_GunShot(player->mo, !player->refire);
@@ -1121,9 +1121,6 @@ size_t NUMWEAPONS = 0;
 
 ammoinfo_t** ammoinfo = NULL;
 size_t NUMAMMO = 0;
-
-state_t** XStates = NULL;
-size_t NumXStates = 0;
 
 /*** FUNCTIONS ***/
 
@@ -1547,15 +1544,15 @@ bool_t P_RMODO_WeaponsAmmo(const bool_t a_Pushed, const struct WL_WADFile_s* con
 	ammoinfo = NULL;
 	NUMAMMO = 0;
 	
-	// Clear old XStates
-	if (XStates)
-		Z_Free(XStates);
-	XStates = NULL;
-	NumXStates = 0;
+	// Clear old states
+	if (states)
+		Z_Free(states);
+	states = NULL;
+	NUMSTATES = 0;
 	
 	// Add first state, an S_NULL
-	Z_ResizeArray((void**)&XStates, sizeof(*XStates), NumXStates, NumXStates + 1);
-	XStates[NumXStates++] = &StaticSNull;
+	Z_ResizeArray((void**)&states, sizeof(*states), NUMSTATES, NUMSTATES + 1);
+	states[NUMSTATES++] = &StaticSNull;
 	
 	/* Go through every WAD */
 	// And link every menu into the menu chain, doing replaces if desired
@@ -1633,7 +1630,7 @@ bool_t P_RMODO_WeaponsAmmo(const bool_t a_Pushed, const struct WL_WADFile_s* con
 		// Push all states
 		if (LocalStuff->NumWeaponStates)
 		{
-			Base = NumXStates;
+			Base = NUMSTATES;
 			Count = LocalStuff->NumWeaponStates;
 			
 			if (MergeBase == (size_t)-1)
@@ -1645,12 +1642,12 @@ bool_t P_RMODO_WeaponsAmmo(const bool_t a_Pushed, const struct WL_WADFile_s* con
 				MergeCount += Count;
 			
 			// Resize array of states
-			Z_ResizeArray((void**)&XStates, sizeof(*XStates), NumXStates, NumXStates + Count);
-			NumXStates += Count;
+			Z_ResizeArray((void**)&states, sizeof(*states), NUMSTATES, NUMSTATES + Count);
+			NUMSTATES += Count;
 			
 			// Reference every single state
 			for (j = 0, i = Base; i < Base + Count; i++, j++)
-				XStates[i] = LocalStuff->WeaponStates[j];
+				states[i] = LocalStuff->WeaponStates[j];
 		}
 	}
 	
@@ -1701,8 +1698,8 @@ bool_t P_RMODO_WeaponsAmmo(const bool_t a_Pushed, const struct WL_WADFile_s* con
 			
 			// Find states in merge bases
 			for (k = MergeBase; k < MergeBase + MergeCount; k++)
-				if (XStates[k]->WeaponID == TempWeapon->WeaponID)
-					if (XStates[k]->Marker == RefToFind)
+				if (states[k]->WeaponID == TempWeapon->WeaponID)
+					if (states[k]->Marker == RefToFind)
 					{
 						*StateRef = k;
 						break;
@@ -1714,24 +1711,24 @@ bool_t P_RMODO_WeaponsAmmo(const bool_t a_Pushed, const struct WL_WADFile_s* con
 	for (i = MergeBase; i < MergeBase + MergeCount; i++)
 	{
 		// Reference states and functions
-		XStates[i]->sprite = INFO_SpriteNumByName(XStates[i]->HoldSprite);
+		states[i]->sprite = INFO_SpriteNumByName(states[i]->HoldSprite);
 		
 		// Reference function
-		if (XStates[i]->Function)
-			XStates[i]->action = INFO_FunctionPtrByName(XStates[i]->Function);
+		if (states[i]->Function)
+			states[i]->action = INFO_FunctionPtrByName(states[i]->Function);
 		
 		// Find next reference
-		if (XStates[i]->SimNext)
+		if (states[i]->SimNext)
 		{
 			// Get IDs to look for
-			WepID = (XStates[i]->SimNext >> (uint64_t)32) & ((uint64_t)0xFFFFFFFFU);
-			RefToFind = (XStates[i]->SimNext & (uint64_t)0xFFFFFFFFU);
+			WepID = (states[i]->SimNext >> (uint64_t)32) & ((uint64_t)0xFFFFFFFFU);
+			RefToFind = (states[i]->SimNext & (uint64_t)0xFFFFFFFFU);
 			
 			// Search through everything
 			for (j = MergeBase; j < MergeBase + MergeCount; j++)
-				if (WepID == XStates[j]->WeaponID && RefToFind == XStates[j]->Marker)
+				if (WepID == states[j]->WeaponID && RefToFind == states[j]->Marker)
 				{
-					XStates[i]->nextstate = j;
+					states[i]->nextstate = j;
 					break;
 				}
 		}

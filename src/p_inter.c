@@ -965,7 +965,7 @@ static const char* PS_GetMobjNoun(mobj_t* const a_Mobj, bool_t* const a_Special,
 			// If we never returned, then there was no weapon used
 			if (!a_IsInflictor)
 				// Return nice name of object
-				return MT2ReMooDClass[a_Mobj->type];
+				return a_Mobj->info->RClassName;
 			
 			// Otherwise return the attack type
 			else
@@ -1069,6 +1069,7 @@ consvar_t cv_g_gibrules = { "g_gibrules", "1", CV_SAVE, GibRules_cons_t };
 //                                          113
 void P_KillMobj(mobj_t* target, mobj_t* inflictor, mobj_t* source)
 {
+	mobjtype_t GibsType = 0;
 	mobjtype_t item = 0;
 	mobj_t* mo;
 	int drop_ammo_count = 0;
@@ -1090,7 +1091,9 @@ void P_KillMobj(mobj_t* target, mobj_t* inflictor, mobj_t* source)
 	if (target->flags & MF_CORPSE)
 	{
 		// turn it to gibs
-		P_SetMobjState(target, S_GIBS);
+		GibsType = INFO_GetTypeByName("CrushedGibs"); 
+		if (GibsType != NUMMOBJTYPES)
+			P_SetMobjState(target, mobjinfo[GibsType]->spawnstate);
 		
 		target->flags &= ~MF_SOLID;
 		target->height = 0;
@@ -1443,7 +1446,7 @@ bool_t P_DamageMobj(mobj_t* target, mobj_t* inflictor, mobj_t* source, int damag
 		// chase after this one
 		P_RefMobj(PMRT_TARGET, target, source);
 		target->threshold = BASETHRESHOLD;
-		if (target->state == &states[target->info->spawnstate] && target->info->seestate != S_NULL)
+		if (target->state == states[target->info->spawnstate] && target->info->seestate != S_NULL)
 			P_SetMobjState(target, target->info->seestate);
 	}
 	

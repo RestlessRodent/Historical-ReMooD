@@ -731,6 +731,7 @@ bool_t PTR_SummonTraverse(intercept_t* in, void* a_Data)
 
 void Command_CheatSummon_f(void)
 {
+#if 0
 	char* s;
 	int i, j, k;
 	player_t* plyr;
@@ -811,6 +812,7 @@ void Command_CheatSummon_f(void)
 	            FixedMul(distance,
 	                     finecosine[plyr->mo->angle >> ANGLETOFINESHIFT]),
 	            plyr->mo->y + FixedMul(distance, finesine[plyr->mo->angle >> ANGLETOFINESHIFT]), plyr->mo->z, j);
+#endif
 }
 
 void Command_CheatSummonFriend_f(void)
@@ -935,7 +937,7 @@ void MS_CHEAT_Summon(player_t* const a_Player, const uint32_t a_ArgC, const char
 		return;
 		
 	/* Spawn it away from the player */
-	BaseDist = Distance = (a_Player->mo->info->radius * 2) + (mobjinfo[Obj].radius * 2);
+	BaseDist = Distance = (a_Player->mo->info->radius * 2) + (mobjinfo[Obj]->radius * 2);
 
 	// Spawn it
 	for (i = 0; i < Count; i++)

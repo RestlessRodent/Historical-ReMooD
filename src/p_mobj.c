@@ -119,12 +119,23 @@ bool_t P_SetMobjState(mobj_t* mobj, statenum_t state)
 	
 	//remember states seen, to detect cycles:
 	
-	static statenum_t seenstate_tab[NUMSTATES];	// fast transition table
+	static statenum_t* seenstate_tab;	// fast transition table
+	static size_t OldNumStates;
+	
 	statenum_t* seenstate = seenstate_tab;	// pointer to table
 	static int recursion;		// detects recursion
 	statenum_t i = state;		// initial state
 	bool_t ret = true;			// return value
 	statenum_t tempstate[NUMSTATES];	// for use with recursion
+	
+	// GhostlyDeath <April 23, 2012> -- Seen cycles
+	if (!seenstate_tab || OldNumStates != NUMSTATES)
+	{
+		if (seenstate_tab)
+			Z_Free(seenstate_tab);
+		seenstate_tab = Z_Malloc(sizeof(*seenstate_tab) * NUMSTATES, PU_STATIC, NULL);
+		OldNumStates = NUMSTATES;
+	}
 	
 	if (recursion++)			// if recursion detected,
 		memset(seenstate = tempstate, 0, sizeof tempstate);	// clear state table
@@ -139,7 +150,7 @@ bool_t P_SetMobjState(mobj_t* mobj, statenum_t state)
 			break;				// killough 4/9/98
 		}
 		
-		st = &states[state];
+		st = states[state];
 		mobj->state = st;
 		
 		// GhostlyDeath <March 5, 2012> -- Remove hack in p_enemy -fast onchange
@@ -183,7 +194,7 @@ void P_ExplodeMissile(mobj_t* mo)
 {
 	mo->momx = mo->momy = mo->momz = 0;
 	
-	P_SetMobjState(mo, mobjinfo[mo->type].deathstate);
+	P_SetMobjState(mo, mobjinfo[mo->type]->deathstate);
 	
 	mo->tics -= P_Random() & 3;
 	
@@ -205,7 +216,7 @@ void P_ExplodeMissile(mobj_t* mo)
 void P_FloorBounceMissile(mobj_t* mo)
 {
 	mo->momz = -mo->momz;
-	P_SetMobjState(mo, mobjinfo[mo->type].deathstate);
+	P_SetMobjState(mo, mobjinfo[mo->type]->deathstate);
 }
 
 //----------------------------------------------------------------------------
@@ -1053,7 +1064,7 @@ mobj_t* P_SpawnMobj(fixed_t x, fixed_t y, fixed_t z, mobjtype_t type)
 	
 	mobj = Z_Malloc(sizeof(*mobj), PU_LEVEL, NULL);
 	memset(mobj, 0, sizeof(*mobj));
-	info = &mobjinfo[type];
+	info = mobjinfo[type];
 	
 	mobj->type = type;
 	mobj->info = info;
@@ -1080,7 +1091,7 @@ mobj_t* P_SpawnMobj(fixed_t x, fixed_t y, fixed_t z, mobjtype_t type)
 		
 	// do not set the state with P_SetMobjState,
 	// because action routines can not be called yet
-	st = &states[info->spawnstate];
+	st = states[info->spawnstate];
 	
 	mobj->state = st;
 	mobj->tics = st->tics;
@@ -1365,11 +1376,11 @@ void P_RespawnSpecials(void)
 	
 	// find which type to spawn
 	for (i = 0; i < NUMMOBJTYPES; i++)
-		if (mthing->type == mobjinfo[i].doomednum)
+		if (mthing->type == mobjinfo[i]->doomednum)
 			break;
 			
 	// spawn it
-	if (mobjinfo[i].flags & MF_SPAWNCEILING)
+	if (mobjinfo[i]->flags & MF_SPAWNCEILING)
 		z = ONCEILINGZ;
 	else if (mthing->options & MTF_FS_SPAWNED)
 		z = mthing->z << FRACBITS;	//DarkWolf95:This still wasn't fixed?! Keep Z for FS stuff.
@@ -1437,7 +1448,7 @@ void P_RespawnWeapons(void)
 		S_StartSound(&mo->NoiseThinker, sfx_itmbk);
 		
 		// spawn it
-		if (mobjinfo[i].flags & MF_SPAWNCEILING)
+		if (mobjinfo[i]->flags & MF_SPAWNCEILING)
 			z = ONCEILINGZ;
 		else if (mthing->options & MTF_FS_SPAWNED)
 			z = mthing->z << FRACBITS;
@@ -1653,7 +1664,7 @@ void P_SpawnMapThing(mapthing_t* mthing)
 		
 	// find which type to spawn (woo hacky and I like it)
 	for (i = 0; i < NUMMOBJTYPES; i++)
-		if (mthing->type == mobjinfo[i].doomednum)
+		if (mthing->type == mobjinfo[i]->doomednum)
 			break;
 			
 	if (i == NUMMOBJTYPES)
@@ -1665,24 +1676,24 @@ void P_SpawnMapThing(mapthing_t* mthing)
 	// GhostlyDeath <March 6, 2012> -- Set thing ID and mark with weapon if possible
 	mthing->MoType = i;
 	
-	if (mobjinfo[mthing->MoType].RXFlags[0] & MFREXA_MARKRESTOREWEAPON)
+	if (mobjinfo[mthing->MoType]->RXFlags[0] & MFREXA_MARKRESTOREWEAPON)
 		mthing->MarkedWeapon = true;
 	
 	// don't spawn keycards and players in deathmatch
-	if (cv_deathmatch.value && mobjinfo[i].flags & MF_NOTDMATCH)
+	if (cv_deathmatch.value && mobjinfo[i]->flags & MF_NOTDMATCH)
 		return;
 		
 	// don't spawn any monsters if -nomonsters
-	if (!cv_spawnmonsters.value && ((mobjinfo[i].RXFlags[0] & MFREXA_ISMONSTER) || (mobjinfo[i].flags & MF_COUNTKILL)))
+	if (!cv_spawnmonsters.value && ((mobjinfo[i]->RXFlags[0] & MFREXA_ISMONSTER) || (mobjinfo[i]->flags & MF_COUNTKILL)))
 		return;
 		
 	// spawn it
 	x = mthing->x << FRACBITS;
 	y = mthing->y << FRACBITS;
 	
-	if (mobjinfo[i].flags & MF_SPAWNCEILING)
+	if (mobjinfo[i]->flags & MF_SPAWNCEILING)
 		z = ONCEILINGZ;
-	else if (mobjinfo[i].flags2 & MF2_SPAWNFLOAT)
+	else if (mobjinfo[i]->flags2 & MF2_SPAWNFLOAT)
 		z = FLOATRANDZ;
 	else
 		z = ONFLOORZ;
@@ -2354,13 +2365,13 @@ void P_FindMobjRef(const P_MobjRefType_t a_Type, mobj_t* const a_SourceRef)
 			fprintf(stderr, "Object %p,%i (%s/%s) [%s:%i] refs %p,%i (%s/%s) [%s:%i] by %i\n",
 					mo,
 					mo->RefCount[a_Type],
-					(mo->type >= NUMMOBJTYPES ? "Free" : MT2ReMooDClass[mo->type]),
-					(mo->type >= NUMMOBJTYPES ? MT2ReMooDClass[mo->RemType] : "Active"),
+					(mo->type >= NUMMOBJTYPES ? "Free" : mobjinfo[mo->type]->RClassName),
+					(mo->type >= NUMMOBJTYPES ? mobjinfo[mo->RemType]->RClassName : "Active"),
 					mo->RefFile[a_Type], mo->RefLine[a_Type],
 					a_SourceRef,
 					a_SourceRef->RefCount[a_Type],
-					(a_SourceRef->type >= NUMMOBJTYPES ? "Free" : MT2ReMooDClass[a_SourceRef->type]),
-					(a_SourceRef->type >= NUMMOBJTYPES ? MT2ReMooDClass[a_SourceRef->RemType] : "Active"),
+					(a_SourceRef->type >= NUMMOBJTYPES ? "Free" : mobjinfo[a_SourceRef->type]->RClassName),
+					(a_SourceRef->type >= NUMMOBJTYPES ? mobjinfo[a_SourceRef->RemType]->RClassName : "Active"),
 					a_SourceRef->RefFile[a_Type], a_SourceRef->RefLine[a_Type],
 					a_Type
 				);
@@ -2394,7 +2405,7 @@ void P_SetMobjToCrash(mobj_t* const a_Mo)
 	
 	/* Make these things invalid */
 	a_Mo->x = a_Mo->y = a_Mo->z = 32765 << FRACBITS;
-	a_Mo->sprite = NUMSPRITES;
+	a_Mo->sprite = g_NumExSprites;
 	a_Mo->frame = ~a_Mo->frame;
 	a_Mo->skin = ~a_Mo->skin;
 	a_Mo->floorz = a_Mo->ceilingz = a_Mo->radius = a_Mo->height = 32765 << FRACBITS;
