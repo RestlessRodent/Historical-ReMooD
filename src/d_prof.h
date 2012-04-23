@@ -86,6 +86,7 @@ typedef enum D_ProfileExFlags_e
 	DPEXF_GOTMOUSE				= 0x00000001,	// Has control of the mouse
 	DPEXF_GOTJOY				= 0x00000002,	// Controls a joystick
 	DPEXF_PLAYING				= 0x00000004,	// Is playing the game
+	DPEXF_SLOWTURNING			= 0x00000008,	// Enables Slow Turning
 } D_ProfileExFlags_t;
 
 /* D_ProfileExBotFlags_t -- Bot Flags */
@@ -143,6 +144,8 @@ typedef enum D_ProfileExInputCtrl_e
 	DPEXIC_SLOT6,
 	DPEXIC_SLOT7,
 	DPEXIC_SLOT8,
+	DPEXIC_SLOT9,
+	DPEXIC_SLOT10,
 	DPEXIC_NEXTWEAPON,
 	DPEXIC_PREVWEAPON,
 	DPEXIC_BESTWEAPON,
@@ -188,11 +191,13 @@ typedef struct D_ProfileEx_s
 	uint8_t Color;								// Color
 	uint8_t JoyControl;							// Which joystick player controls
 	char UUID[MAXPLAYERNAME * 2];				// Player Unique ID
+	tic_t SlowTurnTime;							// Time to slow turn
 	
 	/* Controls For Player */
 	uint32_t Ctrls[NUMDPROFILEEXINPUTCTRLS][2];	// Player Controls
 	D_ProfileExCtrlMA_t MouseAxis[3][2];		// Mouse Axis Movement
 	int32_t MouseSens[2];						// Mouse Sensitivity
+	int32_t LookUpDownSpeed;					// Looking Up/Down Speed
 	
 	/* Network Related */
 	D_NetPlayer_t* NetPlayer;					// Network Player
@@ -203,6 +208,7 @@ typedef struct D_ProfileEx_s
 	
 	/* Other stuff */
 	tic_t CoopSpyTime;							// Time to wait to respy
+	tic_t TurnHeld;								// Time turning is held
 } D_ProfileEx_t;
 
 /*** FUNCTIONS ***/

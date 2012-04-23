@@ -1142,11 +1142,17 @@ static bool_t GAMEKEYDOWN(D_ProfileEx_t* const a_Profile, const uint8_t a_Key)
 /* D_NCSLocalBuildTicCmd() -- Build local tic command */
 static void D_NCSLocalBuildTicCmd(D_NetPlayer_t* const a_NPp, ticcmd_t* const a_TicCmd)
 {
+#define MAXWEAPONSLOTS 12
 	D_ProfileEx_t* Profile;
+	player_t* Player;
 	int32_t TargetMove;
 	size_t i, PID, SID;
-	int8_t SensMod, MoveMod, MouseMod;
+	int8_t SensMod, MoveMod, MouseMod, MoveSpeed, TurnSpeed;
 	int32_t SideMove, ForwardMove;
+	bool_t IsTurning, GunInSlot;
+	int slot, j, l, k;
+	weapontype_t newweapon;
+	weapontype_t SlotList[MAXWEAPONSLOTS];
 	
 	/* Check */
 	if (!a_NPp || !a_TicCmd)
@@ -1154,6 +1160,7 @@ static void D_NCSLocalBuildTicCmd(D_NetPlayer_t* const a_NPp, ticcmd_t* const a_
 	
 	/* Obtain profile */
 	Profile = a_NPp->Profile;
+	Player = a_NPp->Player;
 	
 	// No profile?
 	if (!Profile)
@@ -1178,16 +1185,40 @@ static void D_NCSLocalBuildTicCmd(D_NetPlayer_t* const a_NPp, ticcmd_t* const a_
 	
 	/* Reset Some Things */
 	SideMove = ForwardMove = 0;
+	IsTurning = false;
 	
 	/* Modifiers */
 	// Mouse Sensitivity
 	SensMod = 0;
 	
 	// Movement Modifier
-	MoveMod = 0;
+	if (GAMEKEYDOWN(Profile, DPEXIC_MOVEMENT))
+		MoveMod = 1;
+	else
+		MoveMod = 0;
 	
 	// Mouse Modifier
-	MouseMod = 0;
+	if (GAMEKEYDOWN(Profile, DPEXIC_LOOKING))
+		MouseMod = 2;
+	else if (GAMEKEYDOWN(Profile, DPEXIC_MOVEMENT))
+		MouseMod = 1;
+	else 
+		MouseMod = 0;
+	
+	// Moving Speed
+	if (GAMEKEYDOWN(Profile, DPEXIC_SPEED))
+		MoveSpeed = 1;
+	else
+		MoveSpeed = 0;
+	
+	// Turn Speed
+	if ((Profile->Flags & DPEXF_SLOWTURNING) &&
+			gametic < (Profile->TurnHeld + Profile->SlowTurnTime))
+		TurnSpeed = 2;
+	else if (MoveSpeed)
+		TurnSpeed = 1;
+	else
+		TurnSpeed = 0;
 	
 	/* Player has mouse input? */
 	if (l_PermitMouse && (Profile->Flags & DPEXF_GOTMOUSE))
@@ -1235,6 +1266,191 @@ static void D_NCSLocalBuildTicCmd(D_NetPlayer_t* const a_NPp, ticcmd_t* const a_
 	}
 	
 	/* Handle Player Control Keyboard Stuff */
+	// Weapon Attacks
+	if (GAMEKEYDOWN(Profile, DPEXIC_ATTACK))
+		a_TicCmd->buttons |= BT_ATTACK;
+	
+	// Use
+	if (GAMEKEYDOWN(Profile, DPEXIC_USE))
+		a_TicCmd->buttons |= BT_USE;
+	
+	// Jump
+	if (GAMEKEYDOWN(Profile, DPEXIC_JUMP))
+		a_TicCmd->buttons |= BT_JUMP;
+	
+	// Keyboard Turning
+	if (GAMEKEYDOWN(Profile, DPEXIC_TURNLEFT))
+	{
+		// Strafe
+		if (MoveMod)
+			SideMove -= c_sidemove[MoveSpeed];
+		
+		// Turn
+		else
+		{
+			a_TicCmd->angleturn += c_angleturn[TurnSpeed];
+			IsTurning = true;
+		}
+	}
+	if (GAMEKEYDOWN(Profile, DPEXIC_TURNRIGHT))
+	{
+		// Strafe
+		if (MoveMod)
+			SideMove += c_sidemove[MoveSpeed];
+		
+		// Turn
+		else
+		{
+			a_TicCmd->angleturn -= c_angleturn[TurnSpeed];
+			IsTurning = true;
+		}
+	}
+	
+	// Keyboard Moving
+	if (GAMEKEYDOWN(Profile, DPEXIC_STRAFELEFT))
+		SideMove -= c_sidemove[MoveSpeed];
+	if (GAMEKEYDOWN(Profile, DPEXIC_STRAFERIGHT))
+		SideMove += c_sidemove[MoveSpeed];
+	if (GAMEKEYDOWN(Profile, DPEXIC_FORWARDS))
+		ForwardMove += c_forwardmove[MoveSpeed];
+	if (GAMEKEYDOWN(Profile, DPEXIC_BACKWARDS))
+		ForwardMove -= c_forwardmove[MoveSpeed];
+		
+	// Looking
+	if (GAMEKEYDOWN(Profile, DPEXIC_LOOKCENTER))
+		localaiming[SID] = 0;
+	else
+	{
+		if (GAMEKEYDOWN(Profile, DPEXIC_LOOKUP))
+			localaiming[SID] += Profile->LookUpDownSpeed;
+		if (GAMEKEYDOWN(Profile, DPEXIC_LOOKDOWN))
+			localaiming[SID] -= Profile->LookUpDownSpeed;
+	}
+	
+	// Weapons
+	
+	// Slots
+	{
+		// Which slot?
+		slot = -1;
+		
+		// Look for keys
+		for (i = DPEXIC_SLOT1; i <= DPEXIC_SLOT10; i++)
+			if (GAMEKEYDOWN(Profile, i))
+			{
+				slot = (i - DPEXIC_SLOT1) + 1;
+				break;
+			}
+		
+		// Hit slot?
+		if (slot != -1)
+		{
+			// Clear flag
+			GunInSlot = false;
+			l = 0;
+		
+			// Figure out weapons that belong in this slot
+			for (j = 0, i = 0; i < NUMWEAPONS; i++)
+				if (P_CanUseWeapon(Player, i))
+				{
+					// Weapon not in this slot?
+					if (Player->weaponinfo[i]->SlotNum != slot)
+						continue;
+				
+					// Place in slot list before the highest
+					if (j < (MAXWEAPONSLOTS - 1))
+					{
+						// Just place here
+						if (j == 0)
+						{
+							// Current weapon is in this slot?
+							if (Player->readyweapon == i)
+							{
+								GunInSlot = true;
+								l = j;
+							}
+						
+							// Place in last spot
+							SlotList[j++] = i;
+						}
+					
+						// Otherwise more work is needed
+						else
+						{
+							// Start from high to low
+								// When the order is lower, we know to insert now
+							for (k = 0; k < j; k++)
+								if (Player->weaponinfo[i]->SwitchOrder < Player->weaponinfo[SlotList[k]]->SwitchOrder)
+								{
+									// Current gun may need shifting
+									if (!GunInSlot)
+									{
+										// Current weapon is in this slot?
+										if (Player->readyweapon == i)
+										{
+											GunInSlot = true;
+											l = k;
+										}
+									}
+								
+									// Possibly shift gun
+									else
+									{
+										// If the current gun is higher then this gun
+										// then it will be off by whatever is more
+										if (Player->weaponinfo[SlotList[l]]->SwitchOrder > Player->weaponinfo[i]->SwitchOrder)
+											l++;
+									}
+								
+									// move up
+									memmove(&SlotList[k + 1], &SlotList[k], sizeof(SlotList[k]) * (MAXWEAPONSLOTS - k - 1));
+								
+									// Place in slightly upper spot
+									SlotList[k] = i;
+									j++;
+								
+									// Don't add it anymore
+									break;
+								}
+						
+							// Can't put it anywhere? Goes at end then
+							if (k == j)
+							{
+								// Current weapon is in this slot?
+								if (Player->readyweapon == i)
+								{
+									GunInSlot = true;
+									l = k;
+								}
+							
+								// Put
+								SlotList[j++] = i;
+							}
+						}
+					}
+				}
+		
+			// No guns in this slot? Then don't switch to anything
+			if (j == 0)
+				newweapon = Player->readyweapon;
+		
+			// If the current gun is in this slot, go to the next in the slot
+			else if (GunInSlot)		// from [best - worst]
+				newweapon = SlotList[((l - 1) + j) % j];
+		
+			// Otherwise, switch to the best gun there
+			else
+				// Set it to the highest valued gun
+				newweapon = SlotList[j - 1];
+		
+			// Did it work?
+			if (newweapon != Player->readyweapon)
+			{
+				a_TicCmd->buttons |= BT_CHANGE;
+				a_TicCmd->XNewWeapon = newweapon;
+			}
+		}
+	}
 	
 	/* Handle special functions */
 	// Coop Spy
@@ -1279,13 +1495,18 @@ static void D_NCSLocalBuildTicCmd(D_NetPlayer_t* const a_NPp, ticcmd_t* const a_
 	a_TicCmd->sidemove = SideMove;
 	a_TicCmd->forwardmove = ForwardMove;
 	
+	/* Slow turning? */
+	if (!IsTurning)
+		Profile->TurnHeld = gametic;
+	
 	/* Set from localaiming and such */
 	// Local angle (x look)
 	localangle[SID] += (a_TicCmd->angleturn << 16);
 	a_TicCmd->angleturn = localangle[SID] >> 16;
 	
 	// Local aiming (y look)
-	a_TicCmd->aiming = G_ClipAimingPitch(&localaiming);
+	a_TicCmd->aiming = G_ClipAimingPitch(&localaiming[SID]);
+#undef MAXWEAPONSLOTS
 }
 
 /* D_NCSNetUpdateSingle() -- Update single player */

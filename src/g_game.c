@@ -328,7 +328,7 @@ int localaiming[MAXSPLITSCREENPLAYERS];
 angle_t localangle[MAXSPLITSCREENPLAYERS];
 
 //added:06-02-98: mouseaiming (looking up/down with the mouse or keyboard)
-#define KB_LOOKSPEED    (1<<25)
+#define KB_LOOKSPEED    (1 << 25)
 #define MAXPLMOVE       (forwardmove[1])
 #define TURBOTHRESHOLD  0x32
 #define SLOWTURNTICS    (6)
