@@ -1175,6 +1175,118 @@ bool_t D_NCSHandleEvent(const I_EventEx_t* const a_Event)
 	return false;
 }
 
+/* NextWeapon() -- Finds the next weapon in the chain */
+// This is for PrevWeapon and NextWeapon
+// Rewritten for RMOD Support!
+// This uses the fields in weaponinfo_t for ordering info
+static uint8_t DS_NCSNextWeapon(player_t* player, int step)
+{
+	size_t g, w, fw, BestNum;
+	int32_t s, StepsLeft, StepsAdd, BestDiff, ThisDiff;
+	size_t MostOrder, LeastOrder;
+	bool_t Neg;
+	weaponinfo_t** weapons;
+	
+	/* Get current weapon info */
+	weapons = player->weaponinfo;
+	
+	/* Get the weapon with the lowest and highest order */
+	// Find first gun the player has (so order is correct)
+	MostOrder = LeastOrder = 0;
+	for (w = 0; w < NUMWEAPONS; w++)
+		if (P_CanUseWeapon(player, w))
+		{
+			// Got the first available gun
+			MostOrder = LeastOrder = w;
+			break;
+		}
+	
+	// Now go through
+	for (w = 0; w < NUMWEAPONS; w++)
+	{
+		// Can't use this gun?
+		if (!P_CanUseWeapon(player, w))
+			continue;
+		
+		// Least
+		if (weapons[w]->SwitchOrder < weapons[LeastOrder]->SwitchOrder)
+			LeastOrder = w;
+		
+		// Most
+		if (weapons[w]->SwitchOrder > weapons[MostOrder]->SwitchOrder)
+			MostOrder = w;
+	}
+	
+	/* Look for the current weapon in the weapon list */
+	// Well that was easy
+	fw = s = g = player->readyweapon;
+	
+	/* Constantly change the weapon */
+	// Prepare variables
+	Neg = (step < 0 ? true : false);
+	StepsAdd = (Neg ? -1 : 1);
+	StepsLeft = step * StepsAdd;
+	
+	// Go through the weapon list, step times
+	while (StepsLeft > 0)
+	{
+		// Clear variables
+		BestDiff = 9999999;		// The worst weapon difference ever
+		BestNum = NUMWEAPONS;
+		
+		// Go through every weapon and find the next in the order
+		for (w = 0; w < NUMWEAPONS; w++)
+		{
+			// Ignore the current weapon (don't want to switch back to it)
+			if (w == fw)		// Otherwise BestDiff is zero!
+				continue;
+			
+			// Can't use this gun?
+			if (!P_CanUseWeapon(player, w))
+				continue;
+			
+			// Only consider worse/better weapons?
+			if ((Neg && weapons[w]->SwitchOrder > weapons[fw]->SwitchOrder) || (!Neg && weapons[w]->SwitchOrder < weapons[fw]->SwitchOrder))
+				continue;
+			
+			// Get current diff
+			ThisDiff = abs(weapons[fw]->SwitchOrder - weapons[w]->SwitchOrder);
+			
+			// Closer weapon?
+			if (ThisDiff < BestDiff)
+			{
+				BestDiff = ThisDiff;
+				BestNum = w;
+			}
+		}
+		
+		// Found no weapon? Then "loop" around
+		if (BestNum == NUMWEAPONS)
+		{
+			// Switch to the highest gun if going down
+			if (Neg)
+				fw = MostOrder;
+			
+			// And if going up, go to the lowest
+			else
+				fw = LeastOrder;
+		}
+		
+		// Found a weapon
+		else
+		{
+			// Switch to this gun
+			fw = BestNum;
+		}
+		
+		// Next step
+		StepsLeft--;
+	}
+	
+	/* Return the weapon we want */
+	return fw;
+}
+
 /* GAMEKEYDOWN() -- Checks if a key is down */
 static bool_t GAMEKEYDOWN(D_ProfileEx_t* const a_Profile, const uint8_t a_Key)
 {
@@ -1435,8 +1547,24 @@ static void D_NCSLocalBuildTicCmd(D_NetPlayer_t* const a_NPp, ticcmd_t* const a_
 	}
 	
 	// Weapons
+		// Next
+	if (GAMEKEYDOWN(Profile, DPEXIC_NEXTWEAPON))
+	{
+		// Set switch
+		a_TicCmd->buttons |= BT_CHANGE;
+		a_TicCmd->XNewWeapon = DS_NCSNextWeapon(Player, 1);
+	}
 	
-	// Slots
+		// Prev
+	else if (GAMEKEYDOWN(Profile, DPEXIC_PREVWEAPON))
+	{
+		// Set switch
+		a_TicCmd->buttons |= BT_CHANGE;
+		a_TicCmd->XNewWeapon = DS_NCSNextWeapon(Player, -1);
+	}
+	
+		// Slots
+	else
 	{
 		// Which slot?
 		slot = -1;
