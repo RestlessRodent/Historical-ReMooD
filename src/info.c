@@ -394,6 +394,13 @@ bool_t INFO_RMODH_MapObjects(Z_Table_t* const a_Table, const WL_WADFile_t* const
 	ThisObject.radius = D_RMODGetValueFixed(a_Table, "Radius", 0);
 	ThisObject.height = D_RMODGetValueFixed(a_Table, "Height", 0);
 	
+	// Sounds
+	ThisObject.RSeeSound = D_RMODGetValueString(a_Table, "WakeSound", NULL);;
+	ThisObject.RAttackSound = D_RMODGetValueString(a_Table, "AttackSound", NULL);;;
+	ThisObject.RPainSound = D_RMODGetValueString(a_Table, "PainSound", NULL);;;
+	ThisObject.RDeathSound = D_RMODGetValueString(a_Table, "DeathSound", NULL);;;
+	ThisObject.RActiveSound = D_RMODGetValueString(a_Table, "ActiveSound", NULL);;;
+	
 	// Flags (This is a huge up taking in time and speed)
 		// Normal Doom Flags
 	for (i = 0; c_xFlags[i].Name; i++)
@@ -437,14 +444,6 @@ bool_t INFO_RMODH_MapObjects(Z_Table_t* const a_Table, const WL_WADFile_t* const
 	
 	Z_TableSuperCallback(a_Table, INFO_RMODStateHandlers, (void*)&Helper);
 	
-#if 0
-	int seesound;
-	int attacksound;
-	int painsound;
-	int deathsound;
-	int activesound;
-#endif
-
 	/* Add to end */
 	Z_ResizeArray((void**)&LocalStuff->Objects, sizeof(*LocalStuff->Objects), LocalStuff->NumObjects, LocalStuff->NumObjects + 1);
 	LocalStuff->Objects[LocalStuff->NumObjects] = Z_Malloc(sizeof(*LocalStuff->Objects[LocalStuff->NumObjects]), PU_STATIC, NULL);

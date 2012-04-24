@@ -664,6 +664,7 @@ void A_Look(mobj_t* actor)
 	// go into chase state
 seeyou:
 	
+	actor->info->seesound = S_SoundIDForName(actor->info->RSeeSound);
 	if (actor->info->seesound)
 	{
 		int sound;
@@ -758,8 +759,8 @@ void A_Chase(mobj_t* actor)
 	// check for melee attack
 	if (actor->info->meleestate && P_CheckMeleeRange(actor))
 	{
-		if (actor->info->attacksound)
-			S_StartSound(&actor->NoiseThinker, actor->info->attacksound);
+		if (actor->info->RAttackSound)
+			S_StartSound(&actor->NoiseThinker, S_SoundIDForName(actor->info->RAttackSound));
 			
 		P_SetMobjState(actor, actor->info->meleestate);
 		return;
@@ -793,9 +794,9 @@ nomissile:
 		P_NewChaseDir(actor);
 	}
 	// make active sound
-	if (actor->info->activesound && P_Random() < 3)
+	if (actor->info->RActiveSound && P_Random() < 3)
 	{
-		S_StartSound(&actor->NoiseThinker, actor->info->activesound);
+		S_StartSound(&actor->NoiseThinker, S_SoundIDForName(actor->info->RActiveSound));
 	}
 }
 
@@ -1515,7 +1516,7 @@ void A_SkullAttack(mobj_t* actor)
 		
 	dest = actor->target;
 	actor->flags |= MF_SKULLFLY;
-	S_StartSound(&actor->NoiseThinker, actor->info->attacksound);
+	S_StartSound(&actor->NoiseThinker, S_SoundIDForName(actor->info->RAttackSound));
 	A_FaceTarget(actor);
 	
 	if (cv_predictingmonsters.value)	//added by AC for predmonsters
@@ -1675,6 +1676,7 @@ void A_Scream(mobj_t* actor)
 {
 	int sound;
 	
+	actor->info->deathsound = S_SoundIDForName(actor->info->RDeathSound);
 	switch (actor->info->deathsound)
 	{
 		case 0:
@@ -1714,8 +1716,8 @@ void A_XScream(mobj_t* actor)
 
 void A_Pain(mobj_t* actor)
 {
-	if (actor->info->painsound)
-		S_StartSound(&actor->NoiseThinker, actor->info->painsound);
+	if (actor->info->RPainSound)
+		S_StartSound(&actor->NoiseThinker, S_SoundIDForName(actor->info->RPainSound));
 }
 
 //

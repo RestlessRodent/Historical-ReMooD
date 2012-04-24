@@ -1054,8 +1054,8 @@ void SF_SpawnExplosion()
 	spawn = P_SpawnMobj(x, y, z, type);
 	t_return.type = svt_int;
 	t_return.value.i = P_SetMobjState(spawn, spawn->info->deathstate);
-	if (spawn->info->deathsound)
-		S_StartSound(&spawn->NoiseThinker, spawn->info->deathsound);
+	if (spawn->info->RDeathSound)
+		S_StartSound(&spawn->NoiseThinker, S_SoundIDForName(spawn->info->RDeathSound));
 }
 
 void SF_RadiusAttack()

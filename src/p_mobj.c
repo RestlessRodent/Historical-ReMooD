@@ -205,8 +205,8 @@ void P_ExplodeMissile(mobj_t* mo)
 		
 	mo->flags &= ~MF_MISSILE;
 	
-	if (mo->info->deathsound)
-		S_StartSound(&mo->NoiseThinker, mo->info->deathsound);
+	if (mo->info->RDeathSound)
+		S_StartSound(&mo->NoiseThinker, S_SoundIDForName(mo->info->RDeathSound));
 }
 
 //----------------------------------------------------------------------------
@@ -2054,8 +2054,8 @@ mobj_t* P_SpawnMissile(mobj_t* source, mobj_t* dest, mobjtype_t type)
 		
 	th = P_SpawnMobj(source->x, source->y, z, type);
 	
-	if (th->info->seesound)
-		S_StartSound(&th->NoiseThinker, th->info->seesound);
+	if (th->info->RSeeSound)
+		S_StartSound(&th->NoiseThinker, S_SoundIDForName(th->info->RSeeSound));
 		
 	P_RefMobj(PMRT_TARGET, th, source);		// where it came from
 	
@@ -2203,8 +2203,8 @@ mobj_t* P_SPMAngle(mobj_t* source, mobjtype_t type, angle_t angle)
 		
 	th = P_SpawnMobj(x, y, z, type);
 	
-	if (th->info->seesound)
-		S_StartSound(&th->NoiseThinker, th->info->seesound);
+	if (th->info->RSeeSound)
+		S_StartSound(&th->NoiseThinker, S_SoundIDForName(th->info->RSeeSound));
 		
 	P_RefMobj(PMRT_TARGET, th, source);
 	

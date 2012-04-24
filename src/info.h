@@ -191,6 +191,13 @@ typedef struct
 	
 	// Object ID
 	uint32_t ObjectID;							// ID Of Object (unique, kinda)
+	
+	// Sounds
+	char* RSeeSound;
+	char* RAttackSound;
+	char* RPainSound;
+	char* RDeathSound;
+	char* RActiveSound;
 } mobjinfo_t;
 
 extern mobjinfo_t** mobjinfo;
