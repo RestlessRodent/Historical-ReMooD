@@ -53,7 +53,9 @@ typedef enum D_RMODPrivates_e
 	DRMODP_MENU,								// Menu related stuff
 	
 	/* Objects, Weapons, Ammo, etc. */
+	DRMODP_MAPOBJECT,							// "MapObject"
 	DRMODP_ITEMAMMO,							// "MapAmmo"
+		// MapWeapon needs states[NUMSTATES] to be initialized by MapObject
 	DRMODP_ITEMWEAPON,							// "MapWeapon"
 	
 	/* Specials (Lines/Sectors) */

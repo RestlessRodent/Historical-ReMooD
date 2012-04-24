@@ -1597,9 +1597,6 @@ void D_DoomMain(void)
 	
 	G_InitKeys();
 	
-	// adapt tables to legacy needs
-	P_PatchInfoTables();
-	
 	if (gamemode == chexquest1)
 		Chex1PatchEngine();
 		

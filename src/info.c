@@ -127,10 +127,356 @@ void A_FireOldBFG();
 
 /*****************************************************************************/
 
+char** sprnames = NULL;
+size_t NUMSPRITES = 0;
 state_t** states = 0;
 size_t NUMSTATES = 0;
 mobjinfo_t** mobjinfo = NULL;
 mobjtype_t NUMMOBJTYPES = 0;
+
+/* INFO_LocalObjects_t -- Local map objects */
+typedef struct INFO_LocalObjects_s
+{
+	// Actual map objects
+	mobjinfo_t** Objects;
+	size_t NumObjects;
+	
+	// States used by defined objects
+	state_t** ObjectStates;
+	size_t NumObjectStates;
+} INFO_LocalObjects_t;
+
+/* INFO_FlagInfo_t -- Flag Information */
+typedef struct INFO_FlagInfo_s
+{
+	uint32_t Field;
+	const char* const Name;
+} INFO_FlagInfo_t;
+
+// c_xFlags -- "flags"
+static const INFO_FlagInfo_t c_xFlags[] =
+{
+	{MF_SPECIAL, "IsSpecial"},
+	{MF_SOLID, "IsSolid"},
+	{MF_SHOOTABLE, "IsShootable"},
+	{MF_NOSECTOR, "NoSectorLinks"},
+	{MF_NOBLOCKMAP, "NoBlockMap"},
+	{MF_AMBUSH, "IsDeaf"},
+	{MF_JUSTHIT, "JustGotHit"},
+	{MF_JUSTATTACKED, "JustAttacked"},
+	{MF_SPAWNCEILING, "SpawnsOnCeiling"},
+	{MF_NOGRAVITY, "NoGravity"},
+	{MF_DROPOFF, "IsDropOff"},
+	{MF_PICKUP, "CanPickupItems"},
+	{MF_NOCLIP, "NoClipping"},
+	{MF_SLIDE, "CanSlideAlongWalls"},
+	{MF_FLOAT, "IsFloating"},
+	{MF_TELEPORT, "NoLineCrossing"},
+	{MF_MISSILE, "IsMissile"},
+	{MF_DROPPED, "IsDropped"},
+	{MF_SHADOW, "IsFuzzyShadow"},
+	{MF_NOBLOOD, "NoBleeding"},
+	{MF_CORPSE, "IsCorpse"},
+	{MF_INFLOAT, "NoFloatAdjust"},
+	{MF_COUNTKILL, "IsKillCountable"},
+	{MF_COUNTITEM, "IsItemCountable"},
+	{MF_SKULLFLY, "IsFlyingSkull"},
+	{MF_NOTDMATCH, "NotInDeathmatch"},
+	{MF_NOCLIPTHING, "NoThingClipping"},
+	{0, NULL},
+};
+
+// c_xFlagsTwo -- "flags2"
+static const INFO_FlagInfo_t c_xFlagsTwo[] =
+{
+	{MF2_LOGRAV, "IsLowGravity"},
+	{MF2_WINDTHRUST, "IsWindThrustable"},
+	{MF2_FLOORBOUNCE, "IsFloorBouncer"},
+	{MF2_THRUGHOST, "PassThruGhosts"},
+	{MF2_FLY, "IsFlying"},
+	{MF2_FOOTCLIP, "CanFeetClip"},
+	{MF2_SPAWNFLOAT, "SpawnAtRandomZ"},
+	{MF2_NOTELEPORT, "CannotTeleport"},
+	{MF2_RIP, "MissilesThruSolids"},
+	{MF2_PUSHABLE, "Pushable"},
+	{MF2_SLIDE, "WallSliding"},
+	{MF2_ONMOBJ, "IsOnObject"},
+	{MF2_PASSMOBJ, "MoveOverUnderObject"},
+	{MF2_CANNOTPUSH, "CannotPushPushables"},
+	{MF2_FEETARECLIPPED, "AreFeetClipped"},
+	{MF2_BOSS, "IsBoss"},
+	{MF2_FIREDAMAGE, "DealsFireDamage"},
+	{MF2_NODMGTHRUST, "NoDamageThrust"},
+	{MF2_TELESTOMP, "CanTeleStomp"},
+	{MF2_FLOATBOB, "FloatBobbing"},
+	{MF2_DONTDRAW, "DoNotDraw"},
+	{MF2_BOUNCES, "CanBounce"},
+	{MF2_FRIENDLY, "IsFriendly"},
+	{MF2_FORCETRANSPARENCY, "ForceTransparency"},
+	{MF2_FLOORHUGGER, "IsFloorHugger"},
+	{0, NULL},
+};
+
+// c_xRXFlagsA -- RX[REXA]
+static const INFO_FlagInfo_t c_xRXFlagsA[] =
+{
+	{MFREXA_ENABLEFASTSPEED, "EnableFastSpeed"},
+	{MFREXA_NOFORCEALLTRIGGERC, "NoForcedAllTriggers"},
+	{MFREXA_NOCROSSTRIGGER, "NoLineCrossTrigger"},
+	{MFREXA_ISPUSHPULL, "IsPusherPuller"},
+	{MFREXA_DOPUSHAWAY, "PushesAway"},
+	{MFREXA_ISTELEPORTMAN, "IsTeleportMan"},
+	{MFREXA_ALWAYSTELEPORT, "AlwaysTeleport"},
+	{MFREXA_ISMONSTER, "IsMonster"},
+	{MFREXA_ISTELEFOG, "IsTeleportFog"},
+	{MFREXA_ISPOWERUP, "IsPowerup"},
+	{MFREXA_HALFMISSILERANGE, "HalfMissileRange"},
+	{MFREXA_SOUNDEVERYWHERE, "PlaySoundsEverywhere"},
+	{MFREXA_NOWATERSPLASH, "NoWaterSplashing"},
+	{MFREXA_NOCHECKWATER, "NoWaterChecking"},
+	{MFREXA_USENULLMOTHINKER, "UseMobjNullThinker"},
+	{MFREXA_NOPLAYERWALK, "NoPlayerWalkAnimation"},
+	{MFREXA_NOSMOOTHSTEPUP, "NoSmoothStepUp"},
+	{MFREXA_NOALTDMRESPAWN, "NoRespawnInAltDM"},
+	{MFREXA_CARRYKILLER, "CarriesKiller"},
+	{MFREXA_MARKRESTOREWEAPON, "MarkRestoreWeapon"},
+	{MFREXA_NORANDOMPLAYERLOOK, "NoRandomPlayerLook"},
+	{MFREXA_ALLOWNOCROSSCROSS, "AllowNonCrossableCrossing"},
+	{MFREXA_NEVERCROSSTRIGGER, "NeverCrossTrigger"},
+	{MFREXA_CANCEILINGSTEP, "CanCeilingStep"},
+	{MFREXA_NOTHRESHOLD, "NoThreshold"},
+	{MFREXA_NOTRETAILIATETARGET, "NotARetaliateTarget"},
+	{MFREXA_RADIUSATTACKPROOF, "ExplosionProof"},
+	{MFREXA_RANDOMPUFFTIME, "RandomPuffTime"},
+	{MFREXA_KEEPGRAVONDEATH, "KeepGravityWhenKilled"},
+	{MFREXA_ISPLAYEROBJECT, "IsPlayerObject"},
+	{MFREXA_ISBRAINTARGET, "IsBossBrainTarget"},
+	{0, NULL},
+};
+
+// c_xRXFlagsB -- RX[REXB]
+static const INFO_FlagInfo_t c_xRXFlagsB[] =
+{
+	{MFREXB_DOMAPSEVENSPECA, "DoDeadSimpleSpecialSix"},
+	{MFREXB_DOMAPSEVENSPECB, "DoDeadSimpleSpecialSeven"},
+	{MFREXB_DOBARONSPECIAL, "DoBaronSpecial"},
+	{MFREXB_DOCYBERSPECIAL, "DoCyberSpecial"},
+	{MFREXB_DOSPIDERSPECIAL, "DoSpiderSpecial"},
+	{MFREXB_DODOORSIXTHREEOPEN, "DoSixSixSixDoorOpen"},
+	{MFREXB_INITBOTNODES, "ForceInitializeBotNodes"},
+	{0, NULL},
+};
+
+/* INFO_RMODH_MapObjects() -- Parser for map objects */
+bool_t INFO_RMODH_MapObjects(Z_Table_t* const a_Table, const WL_WADFile_t* const a_WAD, const D_RMODPrivates_t a_ID, D_RMODPrivate_t* const a_Private)
+{
+	INFO_LocalObjects_t* LocalStuff;
+	mobjinfo_t ThisObject;
+	size_t i;
+	const char* Value;
+	
+	/* Check */
+	if (!a_Table || !a_WAD || !a_Private)
+		return false;
+	
+	/* Init */
+	memset(&ThisObject, 0, sizeof(ThisObject));
+	
+	/* Create specials list */
+	// Does not exist
+	if (!a_Private->Data)
+	{
+		a_Private->Size = sizeof(*LocalStuff);
+		a_Private->Data = Z_Malloc(a_Private->Size, PU_STATIC, (void**)&a_Private->Data);
+	}
+	
+	// Get the local stuff
+	LocalStuff = a_Private->Data;
+	
+	/* Get ClassName */
+	Value = Z_TableName(a_Table);
+	
+	// Knock off #
+	Value = strchr(Value, '#');
+	
+	// Not found?
+	if (!Value)
+		return false;
+	
+	// Add 1 to remove #
+	Value++;
+	
+	/* Parse Objects */
+	// Class Name
+	ThisObject.RClassName = Z_StrDup(Value, PU_STATIC, NULL);
+	
+	fprintf(stderr, "**** Added %s\n", Value);
+	
+	// String Values
+	ThisObject.RMTName = D_RMODGetValueString(a_Table, "MTName", NULL);
+	ThisObject.RDropClass = D_RMODGetValueString(a_Table, "DropsClass", NULL);
+	ThisObject.RFamilyClass = D_RMODGetValueString(a_Table, "BaseFamily", NULL);
+	ThisObject.RBrainExplodeThing = D_RMODGetValueString(a_Table, "BrainExplodeClass", NULL);
+	
+	// Integer Values
+	ThisObject.doomednum = D_RMODGetValueInt(a_Table, "DoomEdNum", 0);
+	ThisObject.RDehackEdID = D_RMODGetValueInt(a_Table, "DeHackEdNum", 0);
+	ThisObject.spawnhealth = D_RMODGetValueInt(a_Table, "SpawnHealth", 0);
+	ThisObject.reactiontime = D_RMODGetValueInt(a_Table, "ReactionTime", 0);
+	ThisObject.mass = D_RMODGetValueInt(a_Table, "Mass", 0);
+	ThisObject.damage = D_RMODGetValueInt(a_Table, "Damage", 0);
+	ThisObject.RCapMissileDist = D_RMODGetValueInt(a_Table, "CapMissileDist", 0);
+	ThisObject.RMissileDist[0] = D_RMODGetValueInt(a_Table, "MinMissileDist", 0);
+	ThisObject.RMissileDist[1] = D_RMODGetValueInt(a_Table, "MaxMissileDist", 0);
+	
+	// Fixed Values
+	ThisObject.speed = D_RMODGetValueFixed(a_Table, "Speed", 0);
+	ThisObject.RFastSpeed = D_RMODGetValueFixed(a_Table, "FastSpeed", 0);
+	ThisObject.radius = D_RMODGetValueFixed(a_Table, "Radius", 0);
+	ThisObject.height = D_RMODGetValueFixed(a_Table, "Height", 0);
+	
+	// Flags (This is a huge up taking in time and speed)
+		// Normal Doom Flags
+	for (i = 0; c_xFlags[i].Name; i++)
+		if (D_RMODGetValueBool(a_Table, c_xFlags[i].Name, false))
+			ThisObject.flags |= c_xFlags[i].Field;
+		else
+			ThisObject.flags &= ~c_xFlags[i].Field;
+			
+		// Normal Heretic Flags + Legacy Ones
+	for (i = 0; c_xFlagsTwo[i].Name; i++)
+		if (D_RMODGetValueBool(a_Table, c_xFlagsTwo[i].Name, false))
+			ThisObject.flags2 |= c_xFlagsTwo[i].Field;
+		else
+			ThisObject.flags2 &= ~c_xFlagsTwo[i].Field;
+		
+		// ReMooD Extended Group A
+	for (i = 0; c_xRXFlagsA[i].Name; i++)
+		if (D_RMODGetValueBool(a_Table, c_xRXFlagsA[i].Name, false))
+			ThisObject.RXFlags[0] |= c_xRXFlagsA[i].Field;
+		else
+			ThisObject.RXFlags[0] &= ~c_xRXFlagsA[i].Field;
+		
+		// ReMooD Extended Group B
+	for (i = 0; c_xRXFlagsB[i].Name; i++)
+		if (D_RMODGetValueBool(a_Table, c_xRXFlagsB[i].Name, false))
+			ThisObject.RXFlags[1] |= c_xRXFlagsB[i].Field;
+		else
+			ThisObject.RXFlags[1] &= ~c_xRXFlagsB[i].Field;
+	
+#if 0
+	statenum_t spawnstate;
+	statenum_t seestate;
+	statenum_t painstate;
+	statenum_t painchance;
+	statenum_t meleestate;
+	statenum_t missilestate;
+	statenum_t crashstate;				// from heretic/hexen
+	statenum_t deathstate;
+	statenum_t xdeathstate;
+	statenum_t raisestate;
+	
+	int seesound;
+	int attacksound;
+	int painsound;
+	int deathsound;
+	int activesound;
+	
+	// RMOD Extended Support
+	statenum_t RPlayerRunState;					// State for moving player
+	statenum_t RPlayerMeleeAttackState;			// S_PLAY_ATK2
+	statenum_t RPlayerRangedAttackState;		// S_PLAY_ATK1
+	statenum_t RVileHealState;					// Heal state for Arch-Vile
+	statenum_t RLessBlood[2];					// Less blood to spew? (0 = 9-12, 1 = < 9) [P_SpawnBlood]
+	statenum_t RBrainExplodeState;				// State for exploding rockets [A_BrainScream]
+	statenum_t RMeleePuffState;					// State for meleerange puff [P_SpawnPuff]
+	
+	// Class Names
+	int RefStates[NUMINFOOBJECTSTATEGROUPS];	// State references
+#endif
+
+	/* Add to end */
+	Z_ResizeArray((void**)&LocalStuff->Objects, sizeof(*LocalStuff->Objects), LocalStuff->NumObjects, LocalStuff->NumObjects + 1);
+	LocalStuff->Objects[LocalStuff->NumObjects] = Z_Malloc(sizeof(*LocalStuff->Objects[LocalStuff->NumObjects]), PU_STATIC, NULL);
+	memmove(LocalStuff->Objects[LocalStuff->NumObjects], &ThisObject, sizeof(ThisObject));
+	LocalStuff->NumObjects++;
+
+	/* Success! */
+	return true;
+}
+
+static state_t StaticSNull;
+
+/* INFO_RMODO_MapObjects() -- Order for map objects */
+bool_t INFO_RMODO_MapObjects(const bool_t a_Pushed, const struct WL_WADFile_s* const a_WAD, const D_RMODPrivates_t a_ID)
+{
+	INFO_LocalObjects_t* LocalStuff;
+	D_RMODPrivate_t* RMODPrivate;
+	const WL_WADFile_t* RoveWAD;
+	size_t i;
+	mobjtype_t FoundID;
+	mobjinfo_t* TempObject;
+	
+	/* Reset States */
+	// Clear old states
+	if (states)
+		Z_Free(states);
+	states = NULL;
+	NUMSTATES = 0;
+	
+	// Add first state, an S_NULL
+	Z_ResizeArray((void**)&states, sizeof(*states), NUMSTATES, NUMSTATES + 1);
+	states[NUMSTATES++] = &StaticSNull;
+	
+	/* Go through every WAD */
+	for (RoveWAD = WL_IterateVWAD(NULL, true); RoveWAD; RoveWAD = WL_IterateVWAD(RoveWAD, true))
+	{
+		// Obtain private menu stuff for this WAD
+		RMODPrivate = D_GetRMODPrivate(RoveWAD, a_ID);
+		
+		// Not found? Ignore this WAD then
+		if (!RMODPrivate)
+			continue;
+		
+		// Load menu stuff
+		LocalStuff = RMODPrivate->Data;
+		
+		fprintf(stderr, "****>> LS %p\n", LocalStuff);
+		
+		// Not found?
+		if (!LocalStuff)
+			continue;
+		
+		// Add objects to the list, overwriting everything
+		for (i = 0; i < LocalStuff->NumObjects; i++)
+		{
+			// Get Current
+			TempObject = LocalStuff->Objects[i];
+			
+			// See if it already exists
+			FoundID = INFO_GetTypeByName(TempObject->RClassName);
+			
+			// Not found? Add to end
+			if (FoundID == NUMMOBJTYPES)
+			{
+				Z_ResizeArray((void**)&mobjinfo, sizeof(*mobjinfo), NUMMOBJTYPES, NUMMOBJTYPES + 1);
+				mobjinfo[NUMMOBJTYPES++] = TempObject;
+			}
+			
+			// Found, replace
+			else
+			{
+				// Replace here
+				mobjinfo[FoundID] = TempObject;
+			}
+		}
+		
+		// Push all states
+	}
+	
+	/* Success! */
+	return true;
+}
 
 /*****************************************************************************/
 
@@ -144,29 +490,16 @@ mobjtype_t INFO_GetTypeByName(const char* const a_Name)
 	if (!a_Name)
 		return NUMMOBJTYPES;
 	
-	/* Hash name */
-	Hash = Z_Hash(a_Name);
-	
 	/* Go through class list */
+	// By Class Name
 	for (i = 0; i < NUMMOBJTYPES; i++)
-	{
-#if 0
-		// Needs hashing?
-		if (!l_DeprClassHash[i][0])
-		{
-			l_DeprClassHash[i][0] = Z_Hash(MT2ReMooDClass[i]);
-			l_DeprClassHash[i][1] = Z_Hash(MT2MTString[i]);
-		}
-		
-		// Compare against ReMooD Class
-		if (Hash == l_DeprClassHash[i][0] && strcasecmp(a_Name, MT2ReMooDClass[i]) == 0)
+		if (strcasecmp(a_Name, mobjinfo[i]->RClassName) == 0)
 			return i;
 			
-		// Compare against MT Name
-		if (Hash == l_DeprClassHash[i][1] && strcasecmp(a_Name, MT2MTString[i]) == 0)
+	// By MT Name
+	for (i = 0; i < NUMMOBJTYPES; i++)
+		if (strcasecmp(a_Name, mobjinfo[i]->RMTName) == 0)
 			return i;
-#endif
-	}
 	
 	/* Not found? */
 	return NUMMOBJTYPES;
@@ -182,9 +515,9 @@ spritenum_t INFO_SpriteNumByName(const char* const a_Name)
 		return 0;
 	
 	/* Determine sprite */
-	//for (i = 0; sprnames[i]; i++)
-	//	if (strcasecmp(a_Name, sprnames[i]) == 0)
-	//		return i;
+	for (i = 0; i < NUMSPRITES; i++)
+		if (strcasecmp(a_Name, sprnames[i]) == 0)
+			return i;
 		
 	/* Not found? */
 	return 0;
@@ -346,120 +679,4 @@ uint32_t INFO_TransparencyByName(const char* const a_Name)
 	// Return
 	return TransNum;
 }
-
-typedef struct FlagInfo_s
-{
-	uint32_t Field;
-	const char* const Name;
-} FlagInfo_t;
-
-const FlagInfo_t xFlags[] =
-{
-	{MF_SPECIAL, "IsSpecial"},
-	{MF_SOLID, "IsSolid"},
-	{MF_SHOOTABLE, "IsShootable"},
-	{MF_NOSECTOR, "NoSectorLinks"},
-	{MF_NOBLOCKMAP, "NoBlockMap"},
-	{MF_AMBUSH, "IsDeaf"},
-	{MF_JUSTHIT, "JustGotHit"},
-	{MF_JUSTATTACKED, "JustAttacked"},
-	{MF_SPAWNCEILING, "SpawnsOnCeiling"},
-	{MF_NOGRAVITY, "NoGravity"},
-	{MF_DROPOFF, "IsDropOff"},
-	{MF_PICKUP, "CanPickupItems"},
-	{MF_NOCLIP, "NoClipping"},
-	{MF_SLIDE, "CanSlideAlongWalls"},
-	{MF_FLOAT, "IsFloating"},
-	{MF_TELEPORT, "NoLineCrossing"},
-	{MF_MISSILE, "IsMissile"},
-	{MF_DROPPED, "IsDropped"},
-	{MF_SHADOW, "IsFuzzyShadow"},
-	{MF_NOBLOOD, "NoBleeding"},
-	{MF_CORPSE, "IsCorpse"},
-	{MF_INFLOAT, "NoFloatAdjust"},
-	{MF_COUNTKILL, "IsKillCountable"},
-	{MF_COUNTITEM, "IsItemCountable"},
-	{MF_SKULLFLY, "IsFlyingSkull"},
-	{MF_NOTDMATCH, "NotInDeathmatch"},
-	{MF_NOCLIPTHING, "NoThingClipping"},
-	{0, NULL},
-};
-
-const FlagInfo_t xFlagsTwo[] =
-{
-	{MF2_LOGRAV, "IsLowGravity"},
-	{MF2_WINDTHRUST, "IsWindThrustable"},
-	{MF2_FLOORBOUNCE, "IsFloorBouncer"},
-	{MF2_THRUGHOST, "PassThruGhosts"},
-	{MF2_FLY, "IsFlying"},
-	{MF2_FOOTCLIP, "CanFeetClip"},
-	{MF2_SPAWNFLOAT, "SpawnAtRandomZ"},
-	{MF2_NOTELEPORT, "CannotTeleport"},
-	{MF2_RIP, "MissilesThruSolids"},
-	{MF2_PUSHABLE, "Pushable"},
-	{MF2_SLIDE, "WallSliding"},
-	{MF2_ONMOBJ, "IsOnObject"},
-	{MF2_PASSMOBJ, "MoveOverUnderObject"},
-	{MF2_CANNOTPUSH, "CannotPushPushables"},
-	{MF2_FEETARECLIPPED, "AreFeetClipped"},
-	{MF2_BOSS, "IsBoss"},
-	{MF2_FIREDAMAGE, "DealsFireDamage"},
-	{MF2_NODMGTHRUST, "NoDamageThrust"},
-	{MF2_TELESTOMP, "CanTeleStomp"},
-	{MF2_FLOATBOB, "FloatBobbing"},
-	{MF2_DONTDRAW, "DoNotDraw"},
-	{MF2_BOUNCES, "CanBounce"},
-	{MF2_FRIENDLY, "IsFriendly"},
-	{MF2_FORCETRANSPARENCY, "ForceTransparency"},
-	{MF2_FLOORHUGGER, "IsFloorHugger"},
-	{0, NULL},
-};
-
-const FlagInfo_t xRXFlagsA[] =
-{
-	{MFREXA_ENABLEFASTSPEED, "EnableFastSpeed"},
-	{MFREXA_NOFORCEALLTRIGGERC, "NoForcedAllTriggers"},
-	{MFREXA_NOCROSSTRIGGER, "NoLineCrossTrigger"},
-	{MFREXA_ISPUSHPULL, "IsPusherPuller"},
-	{MFREXA_DOPUSHAWAY, "PushesAway"},
-	{MFREXA_ISTELEPORTMAN, "IsTeleportMan"},
-	{MFREXA_ALWAYSTELEPORT, "AlwaysTeleport"},
-	{MFREXA_ISMONSTER, "IsMonster"},
-	{MFREXA_ISTELEFOG, "IsTeleportFog"},
-	{MFREXA_ISPOWERUP, "IsPowerup"},
-	{MFREXA_HALFMISSILERANGE, "HalfMissileRange"},
-	{MFREXA_SOUNDEVERYWHERE, "PlaySoundsEverywhere"},
-	{MFREXA_NOWATERSPLASH, "NoWaterSplashing"},
-	{MFREXA_NOCHECKWATER, "NoWaterChecking"},
-	{MFREXA_USENULLMOTHINKER, "UseMobjNullThinker"},
-	{MFREXA_NOPLAYERWALK, "NoPlayerWalkAnimation"},
-	{MFREXA_NOSMOOTHSTEPUP, "NoSmoothStepUp"},
-	{MFREXA_NOALTDMRESPAWN, "NoRespawnInAltDM"},
-	{MFREXA_CARRYKILLER, "CarriesKiller"},
-	{MFREXA_MARKRESTOREWEAPON, "MarkRestoreWeapon"},
-	{MFREXA_NORANDOMPLAYERLOOK, "NoRandomPlayerLook"},
-	{MFREXA_ALLOWNOCROSSCROSS, "AllowNonCrossableCrossing"},
-	{MFREXA_NEVERCROSSTRIGGER, "NeverCrossTrigger"},
-	{MFREXA_CANCEILINGSTEP, "CanCeilingStep"},
-	{MFREXA_NOTHRESHOLD, "NoThreshold"},
-	{MFREXA_NOTRETAILIATETARGET, "NotARetaliateTarget"},
-	{MFREXA_RADIUSATTACKPROOF, "ExplosionProof"},
-	{MFREXA_RANDOMPUFFTIME, "RandomPuffTime"},
-	{MFREXA_KEEPGRAVONDEATH, "KeepGravityWhenKilled"},
-	{MFREXA_ISPLAYEROBJECT, "IsPlayerObject"},
-	{MFREXA_ISBRAINTARGET, "IsBossBrainTarget"},
-	{0, NULL},
-};
-
-const FlagInfo_t xRXFlagsB[] =
-{
-	{MFREXB_DOMAPSEVENSPECA, "DoDeadSimpleSpecialSix"},
-	{MFREXB_DOMAPSEVENSPECB, "DoDeadSimpleSpecialSeven"},
-	{MFREXB_DOBARONSPECIAL, "DoBaronSpecial"},
-	{MFREXB_DOCYBERSPECIAL, "DoCyberSpecial"},
-	{MFREXB_DOSPIDERSPECIAL, "DoSpiderSpecial"},
-	{MFREXB_DODOORSIXTHREEOPEN, "DoSixSixSixDoorOpen"},
-	{MFREXB_INITBOTNODES, "ForceInitializeBotNodes"},
-	{0, NULL},
-};
 

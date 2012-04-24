@@ -1290,7 +1290,7 @@ bool_t M_MenuExRMODHandle(Z_Table_t* const a_Table, const WL_WADFile_t* const a_
 		return false;	
 	
 	/* Check */
-	if (!a_Table || !a_WAD || !a_ID || !a_Private)
+	if (!a_Table || !a_WAD || !a_Private)
 		return false;
 	
 	/* Create private data */

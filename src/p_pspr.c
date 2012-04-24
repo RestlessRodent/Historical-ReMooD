@@ -281,7 +281,7 @@ void A_WeaponReady(player_t* player, pspdef_t* psp)
 {
 
 	// get out of attack state
-	if (player->mo->state == &states[player->mo->info->RPlayerRangedAttackState] || player->mo->state == &states[player->mo->info->RPlayerMeleeAttackState])
+	if (player->mo->state == states[player->mo->info->RPlayerRangedAttackState] || player->mo->state == states[player->mo->info->RPlayerMeleeAttackState])
 	{
 		P_SetMobjState(player->mo, player->mo->info->spawnstate);
 	}
@@ -1312,18 +1312,6 @@ static bool_t PS_RMODWeaponInnerStateHandlers(Z_Table_t* const a_Sub, void* cons
 			StateP->SimNext |= (WSG << 16) | 1;
 		}
 	}
-#if 0
-	fprintf(f, "\t\t\tSprite \"%s\";\n", sprnames[CurrentState->sprite]);
-	fprintf(f, "\t\t\tFrame \"%i\";\n", CurrentState->frame & FF_FRAMEMASK);
-	fprintf(f, "\t\t\tTics \"%i\";\n", CurrentState->tics);
-	fprintf(f, "\t\t\tFastTics \"%i\";\n", CurrentState->RMODFastTics);
-	fprintf(f, "\t\t\tFullBright \"true\";\n");
-	fprintf(f, "\t\t\tViewPriority \"%s\";\n", TransName);
-	fprintf(f, "\t\t\tFunction \"%s\";\n", TransName);
-	fprintf(f, "\t\t\tTransparency \"%s\";\n", TransName);
-	fprintf(f, "\t\t\tGoto \"%s\";\n", IDName);
-	fprintf(f, "\t\t\tNext \"%i\";\n", TrigID[CurrentState->nextstate] & 0x7FFF);
-#endif
 }
 
 /* PS_RMODWeaponStateHandlers() -- Weapon state handler */
@@ -1373,15 +1361,15 @@ static bool_t PS_RMODWeaponStateHandlers(Z_Table_t* const a_Sub, void* const a_D
 bool_t P_RMODH_WeaponsAmmo(Z_Table_t* const a_Table, const WL_WADFile_t* const a_WAD, const D_RMODPrivates_t a_ID, D_RMODPrivate_t* const a_Private)
 {
 	P_LocalWeaponsAndAmmo_t* LocalStuff;
+	D_RMODPrivate_t* RealPrivate;
 	const char* Value;
 	weaponinfo_t TempWeapon;
 	ammoinfo_t TempAmmo;
-	D_RMODPrivate_t* RealPrivate;
 	P_WepAmmoTransfer_t WAT;
 	static uint32_t WeaponIDBase;
 	
 	/* Check */
-	if (!a_Table || !a_WAD || !a_ID || !a_Private)
+	if (!a_Table || !a_WAD || !a_Private)
 		return false;
 	
 	/* Clear */
@@ -1389,7 +1377,7 @@ bool_t P_RMODH_WeaponsAmmo(Z_Table_t* const a_Table, const WL_WADFile_t* const a
 	memset(&TempWeapon, 0, sizeof(TempWeapon));
 	memset(&TempAmmo, 0, sizeof(TempAmmo));
 	
-	/* Obtain private info for sector data */
+	/* Obtain private info for ammo data */
 	RealPrivate = D_GetRMODPrivate(a_WAD, DRMODP_ITEMAMMO);
 	
 	// No real private?
@@ -1511,8 +1499,6 @@ bool_t P_RMODH_WeaponsAmmo(Z_Table_t* const a_Table, const WL_WADFile_t* const a
 		return false;
 }
 
-static state_t StaticSNull;
-
 /* P_RMODO_WeaponsAmmo() -- Order for Weapons and Ammo */
 bool_t P_RMODO_WeaponsAmmo(const bool_t a_Pushed, const struct WL_WADFile_s* const a_WAD, const D_RMODPrivates_t a_ID)
 {
@@ -1544,18 +1530,9 @@ bool_t P_RMODO_WeaponsAmmo(const bool_t a_Pushed, const struct WL_WADFile_s* con
 	ammoinfo = NULL;
 	NUMAMMO = 0;
 	
-	// Clear old states
-	if (states)
-		Z_Free(states);
-	states = NULL;
-	NUMSTATES = 0;
-	
-	// Add first state, an S_NULL
-	Z_ResizeArray((void**)&states, sizeof(*states), NUMSTATES, NUMSTATES + 1);
-	states[NUMSTATES++] = &StaticSNull;
+	// State initialization used to be here, now it is done in the INFO code
 	
 	/* Go through every WAD */
-	// And link every menu into the menu chain, doing replaces if desired
 	for (RoveWAD = WL_IterateVWAD(NULL, true); RoveWAD; RoveWAD = WL_IterateVWAD(RoveWAD, true))
 	{
 		// Obtain private menu stuff for this WAD

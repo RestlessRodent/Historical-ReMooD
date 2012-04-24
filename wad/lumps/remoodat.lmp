@@ -156,34 +156,34 @@ StatusBar "Doom"
 // Object -- DoomPlayer
 MapObject "DoomPlayer"
 {
-	DoomEdNum "-1"
-	DeHackEdNum "0"
-	MTName "MT_PLAYER"
-	SpawnHealth "100"
-	Damage "0"
-	ReactionTime "0"
-	Mass "100"
-	Speed "0"
-	PainChance "1"
-	Height "56"
-	Radius "16"
-	WakeSound "none"
-	AttackSound "none"
-	PainSound "plpain"
-	DeathSound "pldeth"
-	ActiveSound "none"
+	DoomEdNum "-1";
+	DeHackEdNum "0";
+	MTName "MT_PLAYER";
+	SpawnHealth "100";
+	Damage "0";
+	ReactionTime "0";
+	Mass "100";
+	Speed "0";
+	PainChance "1";
+	Height "56";
+	Radius "16";
+	WakeSound "none";
+	AttackSound "none";
+	PainSound "plpain";
+	DeathSound "pldeth";
+	ActiveSound "none";
 	
-	IsSolid "true"
-	IsShootable "true"
-	IsDropOff "true"
-	CanPickupItems "true"
-	NotInDeathmatch "true"
-	IsWindThrustable "true"
-	CanFeetClip "true"
-	WallSliding "true"
-	MoveOverUnderObject "true"
-	CanTeleStomp "true"
-	IsPlayerObject "true"
+	IsSolid "true";
+	IsShootable "true";
+	IsDropOff "true";
+	CanPickupItems "true";
+	NotInDeathmatch "true";
+	IsWindThrustable "true";
+	CanFeetClip "true";
+	WallSliding "true";
+	MoveOverUnderObject "true";
+	CanTeleStomp "true";
+	IsPlayerObject "true";
 	
 	State "SpawnState"
 	{
@@ -526,27 +526,27 @@ MapObject "DoomPlayer"
 // Object -- Zombieman
 MapObject "Zombieman"
 {
-	DoomEdNum "3004"
-	DeHackEdNum "1"
-	MTName "MT_POSSESSED"
-	DropsClass "SmallClipAmmo"
-	SpawnHealth "20"
-	Damage "0"
-	ReactionTime "8"
-	Mass "100"
-	Speed "8"
-	PainChance "0.784314"
-	Height "56"
-	Radius "20"
-	WakeSound "posit1"
-	AttackSound "pistol"
-	PainSound "popain"
-	DeathSound "podth1"
-	ActiveSound "posact"
+	DoomEdNum "3004";
+	DeHackEdNum "1";
+	MTName "MT_POSSESSED";
+	DropsClass "SmallClipAmmo";
+	SpawnHealth "20";
+	Damage "0";
+	ReactionTime "8";
+	Mass "100";
+	Speed "8";
+	PainChance "0.784314";
+	Height "56";
+	Radius "20";
+	WakeSound "posit1";
+	AttackSound "pistol";
+	PainSound "popain";
+	DeathSound "podth1";
+	ActiveSound "posact";
 	
-	IsSolid "true"
-	IsShootable "true"
-	IsKillCountable "true"
+	IsSolid "true";
+	IsShootable "true";
+	IsKillCountable "true";
 	
 	State "SpawnState"
 	{
@@ -923,27 +923,27 @@ MapObject "Zombieman"
 // Object -- Sergeant
 MapObject "Sergeant"
 {
-	DoomEdNum "9"
-	DeHackEdNum "2"
-	MTName "MT_SHOTGUY"
-	DropsClass "Shotgun"
-	SpawnHealth "30"
-	Damage "0"
-	ReactionTime "8"
-	Mass "100"
-	Speed "8"
-	PainChance "0.666667"
-	Height "56"
-	Radius "20"
-	WakeSound "posit2"
-	AttackSound "none"
-	PainSound "popain"
-	DeathSound "podth2"
-	ActiveSound "posact"
+	DoomEdNum "9";
+	DeHackEdNum "2";
+	MTName "MT_SHOTGUY";
+	DropsClass "Shotgun";
+	SpawnHealth "30";
+	Damage "0";
+	ReactionTime "8";
+	Mass "100";
+	Speed "8";
+	PainChance "0.666667";
+	Height "56";
+	Radius "20";
+	WakeSound "posit2";
+	AttackSound "none";
+	PainSound "popain";
+	DeathSound "podth2";
+	ActiveSound "posact";
 	
-	IsSolid "true"
-	IsShootable "true"
-	IsKillCountable "true"
+	IsSolid "true";
+	IsShootable "true";
+	IsKillCountable "true";
 	
 	State "SpawnState"
 	{
@@ -1331,29 +1331,29 @@ MapObject "Sergeant"
 // Object -- Archvile
 MapObject "Archvile"
 {
-	DoomEdNum "64"
-	DeHackEdNum "3"
-	MTName "MT_VILE"
-	SpawnHealth "700"
-	Damage "0"
-	ReactionTime "8"
-	Mass "500"
-	Speed "15"
-	MaxMissileDist "896"
-	PainChance "0.0392157"
-	Height "56"
-	Radius "20"
-	WakeSound "vilsit"
-	AttackSound "none"
-	PainSound "vipain"
-	DeathSound "vildth"
-	ActiveSound "vilact"
+	DoomEdNum "64";
+	DeHackEdNum "3";
+	MTName "MT_VILE";
+	SpawnHealth "700";
+	Damage "0";
+	ReactionTime "8";
+	Mass "500";
+	Speed "15";
+	MaxMissileDist "896";
+	PainChance "0.0392157";
+	Height "56";
+	Radius "20";
+	WakeSound "vilsit";
+	AttackSound "none";
+	PainSound "vipain";
+	DeathSound "vildth";
+	ActiveSound "vilact";
 	
-	IsSolid "true"
-	IsShootable "true"
-	IsKillCountable "true"
-	NoThreshold "true"
-	NotARetaliateTarget "true"
+	IsSolid "true";
+	IsShootable "true";
+	IsKillCountable "true";
+	NoThreshold "true";
+	NotARetaliateTarget "true";
 	
 	State "SpawnState"
 	{
@@ -1821,25 +1821,25 @@ MapObject "Archvile"
 // Object -- VileFire
 MapObject "VileFire"
 {
-	DoomEdNum "-1"
-	DeHackEdNum "4"
-	MTName "MT_FIRE"
-	SpawnHealth "1000"
-	Damage "0"
-	ReactionTime "8"
-	Mass "100"
-	Speed "0"
-	PainChance "0"
-	Height "16"
-	Radius "20"
-	WakeSound "none"
-	AttackSound "none"
-	PainSound "none"
-	DeathSound "none"
-	ActiveSound "none"
+	DoomEdNum "-1";
+	DeHackEdNum "4";
+	MTName "MT_FIRE";
+	SpawnHealth "1000";
+	Damage "0";
+	ReactionTime "8";
+	Mass "100";
+	Speed "0";
+	PainChance "0";
+	Height "16";
+	Radius "20";
+	WakeSound "none";
+	AttackSound "none";
+	PainSound "none";
+	DeathSound "none";
+	ActiveSound "none";
 	
-	NoBlockMap "true"
-	NoGravity "true"
+	NoBlockMap "true";
+	NoGravity "true";
 	
 	State "SpawnState"
 	{
@@ -2238,28 +2238,28 @@ MapObject "VileFire"
 // Object -- Revenant
 MapObject "Revenant"
 {
-	DoomEdNum "66"
-	DeHackEdNum "5"
-	MTName "MT_UNDEAD"
-	SpawnHealth "300"
-	Damage "0"
-	ReactionTime "8"
-	Mass "500"
-	Speed "10"
-	MinMissileDist "196"
-	PainChance "0.392157"
-	Height "56"
-	Radius "20"
-	WakeSound "skesit"
-	AttackSound "none"
-	PainSound "popain"
-	DeathSound "skedth"
-	ActiveSound "skeact"
+	DoomEdNum "66";
+	DeHackEdNum "5";
+	MTName "MT_UNDEAD";
+	SpawnHealth "300";
+	Damage "0";
+	ReactionTime "8";
+	Mass "500";
+	Speed "10";
+	MinMissileDist "196";
+	PainChance "0.392157";
+	Height "56";
+	Radius "20";
+	WakeSound "skesit";
+	AttackSound "none";
+	PainSound "popain";
+	DeathSound "skedth";
+	ActiveSound "skeact";
 	
-	IsSolid "true"
-	IsShootable "true"
-	IsKillCountable "true"
-	HalfMissileRange "true"
+	IsSolid "true";
+	IsShootable "true";
+	IsKillCountable "true";
+	HalfMissileRange "true";
 	
 	State "SpawnState"
 	{
@@ -2677,27 +2677,27 @@ MapObject "Revenant"
 // Object -- TracerShot
 MapObject "TracerShot"
 {
-	DoomEdNum "-1"
-	DeHackEdNum "6"
-	MTName "MT_TRACER"
-	SpawnHealth "1000"
-	Damage "10"
-	ReactionTime "8"
-	Mass "100"
-	Speed "10"
-	PainChance "0"
-	Height "8"
-	Radius "11"
-	WakeSound "skeatk"
-	AttackSound "none"
-	PainSound "none"
-	DeathSound "barexp"
-	ActiveSound "none"
+	DoomEdNum "-1";
+	DeHackEdNum "6";
+	MTName "MT_TRACER";
+	SpawnHealth "1000";
+	Damage "10";
+	ReactionTime "8";
+	Mass "100";
+	Speed "10";
+	PainChance "0";
+	Height "8";
+	Radius "11";
+	WakeSound "skeatk";
+	AttackSound "none";
+	PainSound "none";
+	DeathSound "barexp";
+	ActiveSound "none";
 	
-	NoBlockMap "true"
-	NoGravity "true"
-	IsDropOff "true"
-	IsMissile "true"
+	NoBlockMap "true";
+	NoGravity "true";
+	IsDropOff "true";
+	IsMissile "true";
 	
 	State "SpawnState"
 	{
@@ -2771,25 +2771,25 @@ MapObject "TracerShot"
 // Object -- TracerSmoke
 MapObject "TracerSmoke"
 {
-	DoomEdNum "-1"
-	DeHackEdNum "7"
-	MTName "MT_SMOKE"
-	SpawnHealth "1000"
-	Damage "0"
-	ReactionTime "8"
-	Mass "100"
-	Speed "0"
-	PainChance "0"
-	Height "16"
-	Radius "20"
-	WakeSound "none"
-	AttackSound "none"
-	PainSound "none"
-	DeathSound "none"
-	ActiveSound "none"
+	DoomEdNum "-1";
+	DeHackEdNum "7";
+	MTName "MT_SMOKE";
+	SpawnHealth "1000";
+	Damage "0";
+	ReactionTime "8";
+	Mass "100";
+	Speed "0";
+	PainChance "0";
+	Height "16";
+	Radius "20";
+	WakeSound "none";
+	AttackSound "none";
+	PainSound "none";
+	DeathSound "none";
+	ActiveSound "none";
 	
-	NoBlockMap "true"
-	NoGravity "true"
+	NoBlockMap "true";
+	NoGravity "true";
 	
 	State "SpawnState"
 	{
@@ -2853,27 +2853,27 @@ MapObject "TracerSmoke"
 // Object -- Mancubus
 MapObject "Mancubus"
 {
-	DoomEdNum "67"
-	DeHackEdNum "8"
-	MTName "MT_FATSO"
-	SpawnHealth "600"
-	Damage "0"
-	ReactionTime "8"
-	Mass "1000"
-	Speed "8"
-	PainChance "0.313725"
-	Height "64"
-	Radius "48"
-	WakeSound "mansit"
-	AttackSound "none"
-	PainSound "mnpain"
-	DeathSound "mandth"
-	ActiveSound "posact"
+	DoomEdNum "67";
+	DeHackEdNum "8";
+	MTName "MT_FATSO";
+	SpawnHealth "600";
+	Damage "0";
+	ReactionTime "8";
+	Mass "1000";
+	Speed "8";
+	PainChance "0.313725";
+	Height "64";
+	Radius "48";
+	WakeSound "mansit";
+	AttackSound "none";
+	PainSound "mnpain";
+	DeathSound "mandth";
+	ActiveSound "posact";
 	
-	IsSolid "true"
-	IsShootable "true"
-	IsKillCountable "true"
-	DoDeadSimpleSpecialSix "true"
+	IsSolid "true";
+	IsShootable "true";
+	IsKillCountable "true";
+	DoDeadSimpleSpecialSix "true";
 	
 	State "SpawnState"
 	{
@@ -3371,27 +3371,27 @@ MapObject "Mancubus"
 // Object -- MancubusShot
 MapObject "MancubusShot"
 {
-	DoomEdNum "-1"
-	DeHackEdNum "9"
-	MTName "MT_FATSHOT"
-	SpawnHealth "1000"
-	Damage "8"
-	ReactionTime "8"
-	Mass "100"
-	Speed "20"
-	PainChance "0"
-	Height "8"
-	Radius "6"
-	WakeSound "firsht"
-	AttackSound "none"
-	PainSound "none"
-	DeathSound "firxpl"
-	ActiveSound "none"
+	DoomEdNum "-1";
+	DeHackEdNum "9";
+	MTName "MT_FATSHOT";
+	SpawnHealth "1000";
+	Damage "8";
+	ReactionTime "8";
+	Mass "100";
+	Speed "20";
+	PainChance "0";
+	Height "8";
+	Radius "6";
+	WakeSound "firsht";
+	AttackSound "none";
+	PainSound "none";
+	DeathSound "firxpl";
+	ActiveSound "none";
 	
-	NoBlockMap "true"
-	NoGravity "true"
-	IsDropOff "true"
-	IsMissile "true"
+	NoBlockMap "true";
+	NoGravity "true";
+	IsDropOff "true";
+	IsMissile "true";
 	
 	State "SpawnState"
 	{
@@ -3463,27 +3463,27 @@ MapObject "MancubusShot"
 // Object -- HeavyWeaponDude
 MapObject "HeavyWeaponDude"
 {
-	DoomEdNum "65"
-	DeHackEdNum "10"
-	MTName "MT_CHAINGUY"
-	DropsClass "Chaingun"
-	SpawnHealth "70"
-	Damage "0"
-	ReactionTime "8"
-	Mass "100"
-	Speed "8"
-	PainChance "0.666667"
-	Height "56"
-	Radius "20"
-	WakeSound "posit2"
-	AttackSound "none"
-	PainSound "popain"
-	DeathSound "podth2"
-	ActiveSound "posact"
+	DoomEdNum "65";
+	DeHackEdNum "10";
+	MTName "MT_CHAINGUY";
+	DropsClass "Chaingun";
+	SpawnHealth "70";
+	Damage "0";
+	ReactionTime "8";
+	Mass "100";
+	Speed "8";
+	PainChance "0.666667";
+	Height "56";
+	Radius "20";
+	WakeSound "posit2";
+	AttackSound "none";
+	PainSound "popain";
+	DeathSound "podth2";
+	ActiveSound "posact";
 	
-	IsSolid "true"
-	IsShootable "true"
-	IsKillCountable "true"
+	IsSolid "true";
+	IsShootable "true";
+	IsKillCountable "true";
 	
 	State "SpawnState"
 	{
@@ -3893,26 +3893,26 @@ MapObject "HeavyWeaponDude"
 // Object -- Imp
 MapObject "Imp"
 {
-	DoomEdNum "3001"
-	DeHackEdNum "11"
-	MTName "MT_TROOP"
-	SpawnHealth "60"
-	Damage "0"
-	ReactionTime "8"
-	Mass "100"
-	Speed "8"
-	PainChance "0.784314"
-	Height "56"
-	Radius "20"
-	WakeSound "bgsit1"
-	AttackSound "none"
-	PainSound "popain"
-	DeathSound "bgdth1"
-	ActiveSound "bgact"
+	DoomEdNum "3001";
+	DeHackEdNum "11";
+	MTName "MT_TROOP";
+	SpawnHealth "60";
+	Damage "0";
+	ReactionTime "8";
+	Mass "100";
+	Speed "8";
+	PainChance "0.784314";
+	Height "56";
+	Radius "20";
+	WakeSound "bgsit1";
+	AttackSound "none";
+	PainSound "popain";
+	DeathSound "bgdth1";
+	ActiveSound "bgact";
 	
-	IsSolid "true"
-	IsShootable "true"
-	IsKillCountable "true"
+	IsSolid "true";
+	IsShootable "true";
+	IsKillCountable "true";
 	
 	State "SpawnState"
 	{
@@ -4327,26 +4327,26 @@ MapObject "Imp"
 // Object -- Demon
 MapObject "Demon"
 {
-	DoomEdNum "3002"
-	DeHackEdNum "12"
-	MTName "MT_SERGEANT"
-	SpawnHealth "150"
-	Damage "0"
-	ReactionTime "8"
-	Mass "400"
-	Speed "10"
-	PainChance "0.705882"
-	Height "56"
-	Radius "30"
-	WakeSound "sgtsit"
-	AttackSound "sgtatk"
-	PainSound "dmpain"
-	DeathSound "sgtdth"
-	ActiveSound "dmact"
+	DoomEdNum "3002";
+	DeHackEdNum "12";
+	MTName "MT_SERGEANT";
+	SpawnHealth "150";
+	Damage "0";
+	ReactionTime "8";
+	Mass "400";
+	Speed "10";
+	PainChance "0.705882";
+	Height "56";
+	Radius "30";
+	WakeSound "sgtsit";
+	AttackSound "sgtatk";
+	PainSound "dmpain";
+	DeathSound "sgtdth";
+	ActiveSound "dmact";
 	
-	IsSolid "true"
-	IsShootable "true"
-	IsKillCountable "true"
+	IsSolid "true";
+	IsShootable "true";
+	IsKillCountable "true";
 	
 	State "SpawnState"
 	{
@@ -4672,27 +4672,27 @@ MapObject "Demon"
 // Object -- Specter
 MapObject "Specter"
 {
-	DoomEdNum "58"
-	DeHackEdNum "13"
-	MTName "MT_SHADOWS"
-	SpawnHealth "150"
-	Damage "0"
-	ReactionTime "8"
-	Mass "400"
-	Speed "10"
-	PainChance "0.705882"
-	Height "56"
-	Radius "30"
-	WakeSound "sgtsit"
-	AttackSound "sgtatk"
-	PainSound "dmpain"
-	DeathSound "sgtdth"
-	ActiveSound "dmact"
+	DoomEdNum "58";
+	DeHackEdNum "13";
+	MTName "MT_SHADOWS";
+	SpawnHealth "150";
+	Damage "0";
+	ReactionTime "8";
+	Mass "400";
+	Speed "10";
+	PainChance "0.705882";
+	Height "56";
+	Radius "30";
+	WakeSound "sgtsit";
+	AttackSound "sgtatk";
+	PainSound "dmpain";
+	DeathSound "sgtdth";
+	ActiveSound "dmact";
 	
-	IsSolid "true"
-	IsShootable "true"
-	IsFuzzyShadow "true"
-	IsKillCountable "true"
+	IsSolid "true";
+	IsShootable "true";
+	IsFuzzyShadow "true";
+	IsKillCountable "true";
 	
 	State "SpawnState"
 	{
@@ -5018,28 +5018,28 @@ MapObject "Specter"
 // Object -- Cacodemon
 MapObject "Cacodemon"
 {
-	DoomEdNum "3005"
-	DeHackEdNum "14"
-	MTName "MT_HEAD"
-	SpawnHealth "400"
-	Damage "0"
-	ReactionTime "8"
-	Mass "400"
-	Speed "8"
-	PainChance "0.501961"
-	Height "56"
-	Radius "31"
-	WakeSound "cacsit"
-	AttackSound "none"
-	PainSound "dmpain"
-	DeathSound "cacdth"
-	ActiveSound "dmact"
+	DoomEdNum "3005";
+	DeHackEdNum "14";
+	MTName "MT_HEAD";
+	SpawnHealth "400";
+	Damage "0";
+	ReactionTime "8";
+	Mass "400";
+	Speed "8";
+	PainChance "0.501961";
+	Height "56";
+	Radius "31";
+	WakeSound "cacsit";
+	AttackSound "none";
+	PainSound "dmpain";
+	DeathSound "cacdth";
+	ActiveSound "dmact";
 	
-	IsSolid "true"
-	IsShootable "true"
-	NoGravity "true"
-	IsFloating "true"
-	IsKillCountable "true"
+	IsSolid "true";
+	IsShootable "true";
+	NoGravity "true";
+	IsFloating "true";
+	IsKillCountable "true";
 	
 	State "SpawnState"
 	{
@@ -5275,28 +5275,28 @@ MapObject "Cacodemon"
 // Object -- BaronOfHell
 MapObject "BaronOfHell"
 {
-	DoomEdNum "3003"
-	DeHackEdNum "15"
-	MTName "MT_BRUISER"
-	BaseFamily "BaronOfHell"
-	SpawnHealth "1000"
-	Damage "0"
-	ReactionTime "8"
-	Mass "1000"
-	Speed "8"
-	PainChance "0.196078"
-	Height "64"
-	Radius "24"
-	WakeSound "brssit"
-	AttackSound "none"
-	PainSound "dmpain"
-	DeathSound "brsdth"
-	ActiveSound "dmact"
+	DoomEdNum "3003";
+	DeHackEdNum "15";
+	MTName "MT_BRUISER";
+	BaseFamily "BaronOfHell";
+	SpawnHealth "1000";
+	Damage "0";
+	ReactionTime "8";
+	Mass "1000";
+	Speed "8";
+	PainChance "0.196078";
+	Height "64";
+	Radius "24";
+	WakeSound "brssit";
+	AttackSound "none";
+	PainSound "dmpain";
+	DeathSound "brsdth";
+	ActiveSound "dmact";
 	
-	IsSolid "true"
-	IsShootable "true"
-	IsKillCountable "true"
-	DoBaronSpecial "true"
+	IsSolid "true";
+	IsShootable "true";
+	IsKillCountable "true";
+	DoBaronSpecial "true";
 	
 	State "SpawnState"
 	{
@@ -5667,30 +5667,30 @@ MapObject "BaronOfHell"
 // Object -- BaronShot
 MapObject "BaronShot"
 {
-	DoomEdNum "-1"
-	DeHackEdNum "16"
-	MTName "MT_BRUISERSHOT"
-	SpawnHealth "1000"
-	Damage "8"
-	ReactionTime "8"
-	Mass "100"
-	Speed "15"
-	FastSpeed "0.000305176"
-	PainChance "0"
-	Height "8"
-	Radius "6"
-	WakeSound "firsht"
-	AttackSound "none"
-	PainSound "none"
-	DeathSound "firxpl"
-	ActiveSound "none"
+	DoomEdNum "-1";
+	DeHackEdNum "16";
+	MTName "MT_BRUISERSHOT";
+	SpawnHealth "1000";
+	Damage "8";
+	ReactionTime "8";
+	Mass "100";
+	Speed "15";
+	FastSpeed "20";
+	PainChance "0";
+	Height "8";
+	Radius "6";
+	WakeSound "firsht";
+	AttackSound "none";
+	PainSound "none";
+	DeathSound "firxpl";
+	ActiveSound "none";
 	
-	NoBlockMap "true"
-	NoGravity "true"
-	IsDropOff "true"
-	IsMissile "true"
-	EnableFastSpeed "true"
-	NoLineCrossTrigger "true"
+	NoBlockMap "true";
+	NoGravity "true";
+	IsDropOff "true";
+	IsMissile "true";
+	EnableFastSpeed "true";
+	NoLineCrossTrigger "true";
 	
 	State "SpawnState"
 	{
@@ -5762,27 +5762,27 @@ MapObject "BaronShot"
 // Object -- HellKnight
 MapObject "HellKnight"
 {
-	DoomEdNum "69"
-	DeHackEdNum "17"
-	MTName "MT_KNIGHT"
-	BaseFamily "BaronOfHell"
-	SpawnHealth "500"
-	Damage "0"
-	ReactionTime "8"
-	Mass "1000"
-	Speed "8"
-	PainChance "0.196078"
-	Height "64"
-	Radius "24"
-	WakeSound "kntsit"
-	AttackSound "none"
-	PainSound "dmpain"
-	DeathSound "kntdth"
-	ActiveSound "dmact"
+	DoomEdNum "69";
+	DeHackEdNum "17";
+	MTName "MT_KNIGHT";
+	BaseFamily "BaronOfHell";
+	SpawnHealth "500";
+	Damage "0";
+	ReactionTime "8";
+	Mass "1000";
+	Speed "8";
+	PainChance "0.196078";
+	Height "64";
+	Radius "24";
+	WakeSound "kntsit";
+	AttackSound "none";
+	PainSound "dmpain";
+	DeathSound "kntdth";
+	ActiveSound "dmact";
 	
-	IsSolid "true"
-	IsShootable "true"
-	IsKillCountable "true"
+	IsSolid "true";
+	IsShootable "true";
+	IsKillCountable "true";
 	
 	State "SpawnState"
 	{
@@ -6152,30 +6152,30 @@ MapObject "HellKnight"
 // Object -- LostSoul
 MapObject "LostSoul"
 {
-	DoomEdNum "3006"
-	DeHackEdNum "18"
-	MTName "MT_SKULL"
-	SpawnHealth "100"
-	Damage "3"
-	ReactionTime "8"
-	Mass "50"
-	Speed "8"
-	PainChance "1.00392"
-	Height "56"
-	Radius "16"
-	WakeSound "none"
-	AttackSound "sklatk"
-	PainSound "dmpain"
-	DeathSound "firxpl"
-	ActiveSound "dmact"
+	DoomEdNum "3006";
+	DeHackEdNum "18";
+	MTName "MT_SKULL";
+	SpawnHealth "100";
+	Damage "3";
+	ReactionTime "8";
+	Mass "50";
+	Speed "8";
+	PainChance "1.00392";
+	Height "56";
+	Radius "16";
+	WakeSound "none";
+	AttackSound "sklatk";
+	PainSound "dmpain";
+	DeathSound "firxpl";
+	ActiveSound "dmact";
 	
-	IsSolid "true"
-	IsShootable "true"
-	NoGravity "true"
-	IsFloating "true"
-	IsMonster "true"
-	HalfMissileRange "true"
-	KeepGravityWhenKilled "true"
+	IsSolid "true";
+	IsShootable "true";
+	NoGravity "true";
+	IsFloating "true";
+	IsMonster "true";
+	HalfMissileRange "true";
+	KeepGravityWhenKilled "true";
 	
 	State "SpawnState"
 	{
@@ -6398,30 +6398,30 @@ MapObject "LostSoul"
 // Object -- Spiderdemon
 MapObject "Spiderdemon"
 {
-	DoomEdNum "7"
-	DeHackEdNum "19"
-	MTName "MT_SPIDER"
-	SpawnHealth "3000"
-	Damage "0"
-	ReactionTime "8"
-	Mass "1000"
-	Speed "12"
-	PainChance "0.156863"
-	Height "100"
-	Radius "128"
-	WakeSound "spisit"
-	AttackSound "shotgn"
-	PainSound "dmpain"
-	DeathSound "spidth"
-	ActiveSound "dmact"
+	DoomEdNum "7";
+	DeHackEdNum "19";
+	MTName "MT_SPIDER";
+	SpawnHealth "3000";
+	Damage "0";
+	ReactionTime "8";
+	Mass "1000";
+	Speed "12";
+	PainChance "0.156863";
+	Height "100";
+	Radius "128";
+	WakeSound "spisit";
+	AttackSound "shotgn";
+	PainSound "dmpain";
+	DeathSound "spidth";
+	ActiveSound "dmact";
 	
-	IsSolid "true"
-	IsShootable "true"
-	IsKillCountable "true"
-	HalfMissileRange "true"
-	PlaySoundsEverywhere "true"
-	ExplosionProof "true"
-	DoSpiderSpecial "true"
+	IsSolid "true";
+	IsShootable "true";
+	IsKillCountable "true";
+	HalfMissileRange "true";
+	PlaySoundsEverywhere "true";
+	ExplosionProof "true";
+	DoSpiderSpecial "true";
 	
 	State "SpawnState"
 	{
@@ -6779,27 +6779,27 @@ MapObject "Spiderdemon"
 // Object -- Arachnotron
 MapObject "Arachnotron"
 {
-	DoomEdNum "68"
-	DeHackEdNum "20"
-	MTName "MT_BABY"
-	SpawnHealth "500"
-	Damage "0"
-	ReactionTime "8"
-	Mass "600"
-	Speed "12"
-	PainChance "0.501961"
-	Height "64"
-	Radius "64"
-	WakeSound "bspsit"
-	AttackSound "none"
-	PainSound "dmpain"
-	DeathSound "bspdth"
-	ActiveSound "bspact"
+	DoomEdNum "68";
+	DeHackEdNum "20";
+	MTName "MT_BABY";
+	SpawnHealth "500";
+	Damage "0";
+	ReactionTime "8";
+	Mass "600";
+	Speed "12";
+	PainChance "0.501961";
+	Height "64";
+	Radius "64";
+	WakeSound "bspsit";
+	AttackSound "none";
+	PainSound "dmpain";
+	DeathSound "bspdth";
+	ActiveSound "bspact";
 	
-	IsSolid "true"
-	IsShootable "true"
-	IsKillCountable "true"
-	DoDeadSimpleSpecialSeven "true"
+	IsSolid "true";
+	IsShootable "true";
+	IsKillCountable "true";
+	DoDeadSimpleSpecialSeven "true";
 	
 	State "SpawnState"
 	{
@@ -7462,31 +7462,31 @@ MapObject "Arachnotron"
 // Object -- Cyberdemon
 MapObject "Cyberdemon"
 {
-	DoomEdNum "16"
-	DeHackEdNum "21"
-	MTName "MT_CYBORG"
-	SpawnHealth "4000"
-	Damage "0"
-	ReactionTime "8"
-	Mass "1000"
-	Speed "16"
-	CapMissileDist "160"
-	PainChance "0.0784314"
-	Height "110"
-	Radius "40"
-	WakeSound "cybsit"
-	AttackSound "none"
-	PainSound "dmpain"
-	DeathSound "cybdth"
-	ActiveSound "dmact"
+	DoomEdNum "16";
+	DeHackEdNum "21";
+	MTName "MT_CYBORG";
+	SpawnHealth "4000";
+	Damage "0";
+	ReactionTime "8";
+	Mass "1000";
+	Speed "16";
+	CapMissileDist "160";
+	PainChance "0.0784314";
+	Height "110";
+	Radius "40";
+	WakeSound "cybsit";
+	AttackSound "none";
+	PainSound "dmpain";
+	DeathSound "cybdth";
+	ActiveSound "dmact";
 	
-	IsSolid "true"
-	IsShootable "true"
-	IsKillCountable "true"
-	HalfMissileRange "true"
-	PlaySoundsEverywhere "true"
-	ExplosionProof "true"
-	DoCyberSpecial "true"
+	IsSolid "true";
+	IsShootable "true";
+	IsKillCountable "true";
+	HalfMissileRange "true";
+	PlaySoundsEverywhere "true";
+	ExplosionProof "true";
+	DoCyberSpecial "true";
 	
 	State "SpawnState"
 	{
@@ -7799,28 +7799,28 @@ MapObject "Cyberdemon"
 // Object -- PainElemental
 MapObject "PainElemental"
 {
-	DoomEdNum "71"
-	DeHackEdNum "22"
-	MTName "MT_PAIN"
-	SpawnHealth "400"
-	Damage "0"
-	ReactionTime "8"
-	Mass "400"
-	Speed "8"
-	PainChance "0.501961"
-	Height "56"
-	Radius "31"
-	WakeSound "pesit"
-	AttackSound "none"
-	PainSound "pepain"
-	DeathSound "pedth"
-	ActiveSound "dmact"
+	DoomEdNum "71";
+	DeHackEdNum "22";
+	MTName "MT_PAIN";
+	SpawnHealth "400";
+	Damage "0";
+	ReactionTime "8";
+	Mass "400";
+	Speed "8";
+	PainChance "0.501961";
+	Height "56";
+	Radius "31";
+	WakeSound "pesit";
+	AttackSound "none";
+	PainSound "pepain";
+	DeathSound "pedth";
+	ActiveSound "dmact";
 	
-	IsSolid "true"
-	IsShootable "true"
-	NoGravity "true"
-	IsFloating "true"
-	IsKillCountable "true"
+	IsSolid "true";
+	IsShootable "true";
+	NoGravity "true";
+	IsFloating "true";
+	IsKillCountable "true";
 	
 	State "SpawnState"
 	{
@@ -8119,27 +8119,27 @@ MapObject "PainElemental"
 // Object -- WolfSS
 MapObject "WolfSS"
 {
-	DoomEdNum "84"
-	DeHackEdNum "23"
-	MTName "MT_WOLFSS"
-	DropsClass "SmallClipAmmo"
-	SpawnHealth "50"
-	Damage "0"
-	ReactionTime "8"
-	Mass "100"
-	Speed "8"
-	PainChance "0.666667"
-	Height "56"
-	Radius "20"
-	WakeSound "sssit"
-	AttackSound "none"
-	PainSound "popain"
-	DeathSound "ssdth"
-	ActiveSound "posact"
+	DoomEdNum "84";
+	DeHackEdNum "23";
+	MTName "MT_WOLFSS";
+	DropsClass "SmallClipAmmo";
+	SpawnHealth "50";
+	Damage "0";
+	ReactionTime "8";
+	Mass "100";
+	Speed "8";
+	PainChance "0.666667";
+	Height "56";
+	Radius "20";
+	WakeSound "sssit";
+	AttackSound "none";
+	PainSound "popain";
+	DeathSound "ssdth";
+	ActiveSound "posact";
 	
-	IsSolid "true"
-	IsShootable "true"
-	IsKillCountable "true"
+	IsSolid "true";
+	IsShootable "true";
+	IsKillCountable "true";
 	
 	State "SpawnState"
 	{
@@ -8561,29 +8561,29 @@ MapObject "WolfSS"
 // Object -- CommanderKeen
 MapObject "CommanderKeen"
 {
-	DoomEdNum "72"
-	DeHackEdNum "24"
-	MTName "MT_KEEN"
-	SpawnHealth "100"
-	Damage "0"
-	ReactionTime "8"
-	Mass "10000000"
-	Speed "0"
-	PainChance "1.00392"
-	Height "72"
-	Radius "16"
-	WakeSound "none"
-	AttackSound "none"
-	PainSound "keenpn"
-	DeathSound "keendt"
-	ActiveSound "none"
+	DoomEdNum "72";
+	DeHackEdNum "24";
+	MTName "MT_KEEN";
+	SpawnHealth "100";
+	Damage "0";
+	ReactionTime "8";
+	Mass "10000000";
+	Speed "0";
+	PainChance "1.00392";
+	Height "72";
+	Radius "16";
+	WakeSound "none";
+	AttackSound "none";
+	PainSound "keenpn";
+	DeathSound "keendt";
+	ActiveSound "none";
 	
-	IsSolid "true"
-	IsShootable "true"
-	SpawnsOnCeiling "true"
-	NoGravity "true"
-	IsKillCountable "true"
-	DoSixSixSixDoorOpen "true"
+	IsSolid "true";
+	IsShootable "true";
+	SpawnsOnCeiling "true";
+	NoGravity "true";
+	IsKillCountable "true";
+	DoSixSixSixDoorOpen "true";
 	
 	State "SpawnState"
 	{
@@ -8752,26 +8752,26 @@ MapObject "CommanderKeen"
 // Object -- BossBrain
 MapObject "BossBrain"
 {
-	DoomEdNum "88"
-	DeHackEdNum "25"
-	MTName "MT_BOSSBRAIN"
-	BrainExplodeClass "RocketShot"
-	SpawnHealth "250"
-	Damage "0"
-	ReactionTime "8"
-	Mass "10000000"
-	Speed "0"
-	PainChance "1"
-	Height "64"
-	Radius "16"
-	WakeSound "none"
-	AttackSound "none"
-	PainSound "bospn"
-	DeathSound "bosdth"
-	ActiveSound "none"
+	DoomEdNum "88";
+	DeHackEdNum "25";
+	MTName "MT_BOSSBRAIN";
+	BrainExplodeClass "RocketShot";
+	SpawnHealth "250";
+	Damage "0";
+	ReactionTime "8";
+	Mass "10000000";
+	Speed "0";
+	PainChance "1";
+	Height "64";
+	Radius "16";
+	WakeSound "none";
+	AttackSound "none";
+	PainSound "bospn";
+	DeathSound "bosdth";
+	ActiveSound "none";
 	
-	IsSolid "true"
-	IsShootable "true"
+	IsSolid "true";
+	IsShootable "true";
 	
 	State "SpawnState"
 	{
@@ -8850,25 +8850,25 @@ MapObject "BossBrain"
 // Object -- BossCubeSpitter
 MapObject "BossCubeSpitter"
 {
-	DoomEdNum "89"
-	DeHackEdNum "26"
-	MTName "MT_BOSSSPIT"
-	SpawnHealth "1000"
-	Damage "0"
-	ReactionTime "8"
-	Mass "100"
-	Speed "0"
-	PainChance "0"
-	Height "32"
-	Radius "20"
-	WakeSound "none"
-	AttackSound "none"
-	PainSound "none"
-	DeathSound "none"
-	ActiveSound "none"
+	DoomEdNum "89";
+	DeHackEdNum "26";
+	MTName "MT_BOSSSPIT";
+	SpawnHealth "1000";
+	Damage "0";
+	ReactionTime "8";
+	Mass "100";
+	Speed "0";
+	PainChance "0";
+	Height "32";
+	Radius "20";
+	WakeSound "none";
+	AttackSound "none";
+	PainSound "none";
+	DeathSound "none";
+	ActiveSound "none";
 	
-	NoSectorLinks "true"
-	NoBlockMap "true"
+	NoSectorLinks "true";
+	NoBlockMap "true";
 	
 	State "SpawnState"
 	{
@@ -8913,53 +8913,53 @@ MapObject "BossCubeSpitter"
 // Object -- BossSpawnSpot
 MapObject "BossSpawnSpot"
 {
-	DoomEdNum "87"
-	DeHackEdNum "27"
-	MTName "MT_BOSSTARGET"
-	SpawnHealth "1000"
-	Damage "0"
-	ReactionTime "8"
-	Mass "100"
-	Speed "0"
-	PainChance "0"
-	Height "32"
-	Radius "20"
-	WakeSound "none"
-	AttackSound "none"
-	PainSound "none"
-	DeathSound "none"
-	ActiveSound "none"
+	DoomEdNum "87";
+	DeHackEdNum "27";
+	MTName "MT_BOSSTARGET";
+	SpawnHealth "1000";
+	Damage "0";
+	ReactionTime "8";
+	Mass "100";
+	Speed "0";
+	PainChance "0";
+	Height "32";
+	Radius "20";
+	WakeSound "none";
+	AttackSound "none";
+	PainSound "none";
+	DeathSound "none";
+	ActiveSound "none";
 	
-	NoSectorLinks "true"
-	NoBlockMap "true"
-	IsBossBrainTarget "true"
+	NoSectorLinks "true";
+	NoBlockMap "true";
+	IsBossBrainTarget "true";
 }
 
 // Object -- BossSpawnCube
 MapObject "BossSpawnCube"
 {
-	DoomEdNum "-1"
-	DeHackEdNum "28"
-	MTName "MT_SPAWNSHOT"
-	SpawnHealth "1000"
-	Damage "3"
-	ReactionTime "8"
-	Mass "100"
-	Speed "10"
-	PainChance "0"
-	Height "32"
-	Radius "6"
-	WakeSound "bospit"
-	AttackSound "none"
-	PainSound "none"
-	DeathSound "firxpl"
-	ActiveSound "none"
+	DoomEdNum "-1";
+	DeHackEdNum "28";
+	MTName "MT_SPAWNSHOT";
+	SpawnHealth "1000";
+	Damage "3";
+	ReactionTime "8";
+	Mass "100";
+	Speed "10";
+	PainChance "0";
+	Height "32";
+	Radius "6";
+	WakeSound "bospit";
+	AttackSound "none";
+	PainSound "none";
+	DeathSound "firxpl";
+	ActiveSound "none";
 	
-	NoBlockMap "true"
-	NoGravity "true"
-	IsDropOff "true"
-	NoClipping "true"
-	IsMissile "true"
+	NoBlockMap "true";
+	NoGravity "true";
+	IsDropOff "true";
+	NoClipping "true";
+	IsMissile "true";
 	
 	State "SpawnState"
 	{
@@ -9016,25 +9016,25 @@ MapObject "BossSpawnCube"
 // Object -- BossSpawnFire
 MapObject "BossSpawnFire"
 {
-	DoomEdNum "-1"
-	DeHackEdNum "29"
-	MTName "MT_SPAWNFIRE"
-	SpawnHealth "1000"
-	Damage "0"
-	ReactionTime "8"
-	Mass "100"
-	Speed "0"
-	PainChance "0"
-	Height "16"
-	Radius "20"
-	WakeSound "none"
-	AttackSound "none"
-	PainSound "none"
-	DeathSound "none"
-	ActiveSound "none"
+	DoomEdNum "-1";
+	DeHackEdNum "29";
+	MTName "MT_SPAWNFIRE";
+	SpawnHealth "1000";
+	Damage "0";
+	ReactionTime "8";
+	Mass "100";
+	Speed "0";
+	PainChance "0";
+	Height "16";
+	Radius "20";
+	WakeSound "none";
+	AttackSound "none";
+	PainSound "none";
+	DeathSound "none";
+	ActiveSound "none";
 	
-	NoBlockMap "true"
-	NoGravity "true"
+	NoBlockMap "true";
+	NoGravity "true";
 	
 	State "SpawnState"
 	{
@@ -9147,27 +9147,27 @@ MapObject "BossSpawnFire"
 // Object -- ExplosiveBarrel
 MapObject "ExplosiveBarrel"
 {
-	DoomEdNum "2035"
-	DeHackEdNum "30"
-	MTName "MT_BARREL"
-	SpawnHealth "20"
-	Damage "0"
-	ReactionTime "8"
-	Mass "100"
-	Speed "0"
-	PainChance "0"
-	Height "32"
-	Radius "10"
-	WakeSound "none"
-	AttackSound "none"
-	PainSound "none"
-	DeathSound "barexp"
-	ActiveSound "none"
+	DoomEdNum "2035";
+	DeHackEdNum "30";
+	MTName "MT_BARREL";
+	SpawnHealth "20";
+	Damage "0";
+	ReactionTime "8";
+	Mass "100";
+	Speed "0";
+	PainChance "0";
+	Height "32";
+	Radius "10";
+	WakeSound "none";
+	AttackSound "none";
+	PainSound "none";
+	DeathSound "barexp";
+	ActiveSound "none";
 	
-	IsSolid "true"
-	IsShootable "true"
-	NoBleeding "true"
-	CarriesKiller "true"
+	IsSolid "true";
+	IsShootable "true";
+	NoBleeding "true";
+	CarriesKiller "true";
 	
 	State "SpawnState"
 	{
@@ -9256,30 +9256,30 @@ MapObject "ExplosiveBarrel"
 // Object -- ImpShot
 MapObject "ImpShot"
 {
-	DoomEdNum "-1"
-	DeHackEdNum "31"
-	MTName "MT_TROOPSHOT"
-	SpawnHealth "1000"
-	Damage "3"
-	ReactionTime "8"
-	Mass "100"
-	Speed "10"
-	FastSpeed "0.000305176"
-	PainChance "0"
-	Height "8"
-	Radius "6"
-	WakeSound "firsht"
-	AttackSound "none"
-	PainSound "none"
-	DeathSound "firxpl"
-	ActiveSound "none"
+	DoomEdNum "-1";
+	DeHackEdNum "31";
+	MTName "MT_TROOPSHOT";
+	SpawnHealth "1000";
+	Damage "3";
+	ReactionTime "8";
+	Mass "100";
+	Speed "10";
+	FastSpeed "20";
+	PainChance "0";
+	Height "8";
+	Radius "6";
+	WakeSound "firsht";
+	AttackSound "none";
+	PainSound "none";
+	DeathSound "firxpl";
+	ActiveSound "none";
 	
-	NoBlockMap "true"
-	NoGravity "true"
-	IsDropOff "true"
-	IsMissile "true"
-	EnableFastSpeed "true"
-	NoLineCrossTrigger "true"
+	NoBlockMap "true";
+	NoGravity "true";
+	IsDropOff "true";
+	IsMissile "true";
+	EnableFastSpeed "true";
+	NoLineCrossTrigger "true";
 	
 	State "SpawnState"
 	{
@@ -9351,30 +9351,30 @@ MapObject "ImpShot"
 // Object -- CacodemonShot
 MapObject "CacodemonShot"
 {
-	DoomEdNum "-1"
-	DeHackEdNum "32"
-	MTName "MT_HEADSHOT"
-	SpawnHealth "1000"
-	Damage "5"
-	ReactionTime "8"
-	Mass "100"
-	Speed "10"
-	FastSpeed "0.000305176"
-	PainChance "0"
-	Height "8"
-	Radius "6"
-	WakeSound "firsht"
-	AttackSound "none"
-	PainSound "none"
-	DeathSound "firxpl"
-	ActiveSound "none"
+	DoomEdNum "-1";
+	DeHackEdNum "32";
+	MTName "MT_HEADSHOT";
+	SpawnHealth "1000";
+	Damage "5";
+	ReactionTime "8";
+	Mass "100";
+	Speed "10";
+	FastSpeed "20";
+	PainChance "0";
+	Height "8";
+	Radius "6";
+	WakeSound "firsht";
+	AttackSound "none";
+	PainSound "none";
+	DeathSound "firxpl";
+	ActiveSound "none";
 	
-	NoBlockMap "true"
-	NoGravity "true"
-	IsDropOff "true"
-	IsMissile "true"
-	EnableFastSpeed "true"
-	NoLineCrossTrigger "true"
+	NoBlockMap "true";
+	NoGravity "true";
+	IsDropOff "true";
+	IsMissile "true";
+	EnableFastSpeed "true";
+	NoLineCrossTrigger "true";
 	
 	State "SpawnState"
 	{
@@ -9446,28 +9446,28 @@ MapObject "CacodemonShot"
 // Object -- RocketShot
 MapObject "RocketShot"
 {
-	DoomEdNum "-1"
-	DeHackEdNum "33"
-	MTName "MT_ROCKET"
-	SpawnHealth "1000"
-	Damage "20"
-	ReactionTime "8"
-	Mass "100"
-	Speed "20"
-	PainChance "0"
-	Height "8"
-	Radius "11"
-	WakeSound "rlaunc"
-	AttackSound "none"
-	PainSound "none"
-	DeathSound "barexp"
-	ActiveSound "none"
+	DoomEdNum "-1";
+	DeHackEdNum "33";
+	MTName "MT_ROCKET";
+	SpawnHealth "1000";
+	Damage "20";
+	ReactionTime "8";
+	Mass "100";
+	Speed "20";
+	PainChance "0";
+	Height "8";
+	Radius "11";
+	WakeSound "rlaunc";
+	AttackSound "none";
+	PainSound "none";
+	DeathSound "barexp";
+	ActiveSound "none";
 	
-	NoBlockMap "true"
-	NoGravity "true"
-	IsDropOff "true"
-	IsMissile "true"
-	NoLineCrossTrigger "true"
+	NoBlockMap "true";
+	NoGravity "true";
+	IsDropOff "true";
+	IsMissile "true";
+	NoLineCrossTrigger "true";
 	
 	State "SpawnState"
 	{
@@ -9565,28 +9565,28 @@ MapObject "RocketShot"
 // Object -- PlasmaShot
 MapObject "PlasmaShot"
 {
-	DoomEdNum "-1"
-	DeHackEdNum "34"
-	MTName "MT_PLASMA"
-	SpawnHealth "1000"
-	Damage "5"
-	ReactionTime "8"
-	Mass "100"
-	Speed "25"
-	PainChance "0"
-	Height "8"
-	Radius "13"
-	WakeSound "plasma"
-	AttackSound "none"
-	PainSound "none"
-	DeathSound "firxpl"
-	ActiveSound "none"
+	DoomEdNum "-1";
+	DeHackEdNum "34";
+	MTName "MT_PLASMA";
+	SpawnHealth "1000";
+	Damage "5";
+	ReactionTime "8";
+	Mass "100";
+	Speed "25";
+	PainChance "0";
+	Height "8";
+	Radius "13";
+	WakeSound "plasma";
+	AttackSound "none";
+	PainSound "none";
+	DeathSound "firxpl";
+	ActiveSound "none";
 	
-	NoBlockMap "true"
-	NoGravity "true"
-	IsDropOff "true"
-	IsMissile "true"
-	NoLineCrossTrigger "true"
+	NoBlockMap "true";
+	NoGravity "true";
+	IsDropOff "true";
+	IsMissile "true";
+	NoLineCrossTrigger "true";
 	
 	State "SpawnState"
 	{
@@ -9682,28 +9682,28 @@ MapObject "PlasmaShot"
 // Object -- BFGShot
 MapObject "BFGShot"
 {
-	DoomEdNum "-1"
-	DeHackEdNum "35"
-	MTName "MT_BFG"
-	SpawnHealth "1000"
-	Damage "100"
-	ReactionTime "8"
-	Mass "100"
-	Speed "25"
-	PainChance "0"
-	Height "8"
-	Radius "13"
-	WakeSound "none"
-	AttackSound "none"
-	PainSound "none"
-	DeathSound "rxplod"
-	ActiveSound "none"
+	DoomEdNum "-1";
+	DeHackEdNum "35";
+	MTName "MT_BFG";
+	SpawnHealth "1000";
+	Damage "100";
+	ReactionTime "8";
+	Mass "100";
+	Speed "25";
+	PainChance "0";
+	Height "8";
+	Radius "13";
+	WakeSound "none";
+	AttackSound "none";
+	PainSound "none";
+	DeathSound "rxplod";
+	ActiveSound "none";
 	
-	NoBlockMap "true"
-	NoGravity "true"
-	IsDropOff "true"
-	IsMissile "true"
-	NoLineCrossTrigger "true"
+	NoBlockMap "true";
+	NoGravity "true";
+	IsDropOff "true";
+	IsMissile "true";
+	NoLineCrossTrigger "true";
 	
 	State "SpawnState"
 	{
@@ -9812,27 +9812,27 @@ MapObject "BFGShot"
 // Object -- ArachnotronShot
 MapObject "ArachnotronShot"
 {
-	DoomEdNum "-1"
-	DeHackEdNum "36"
-	MTName "MT_ARACHPLAZ"
-	SpawnHealth "1000"
-	Damage "5"
-	ReactionTime "8"
-	Mass "100"
-	Speed "25"
-	PainChance "0"
-	Height "8"
-	Radius "13"
-	WakeSound "plasma"
-	AttackSound "none"
-	PainSound "none"
-	DeathSound "firxpl"
-	ActiveSound "none"
+	DoomEdNum "-1";
+	DeHackEdNum "36";
+	MTName "MT_ARACHPLAZ";
+	SpawnHealth "1000";
+	Damage "5";
+	ReactionTime "8";
+	Mass "100";
+	Speed "25";
+	PainChance "0";
+	Height "8";
+	Radius "13";
+	WakeSound "plasma";
+	AttackSound "none";
+	PainSound "none";
+	DeathSound "firxpl";
+	ActiveSound "none";
 	
-	NoBlockMap "true"
-	NoGravity "true"
-	IsDropOff "true"
-	IsMissile "true"
+	NoBlockMap "true";
+	NoGravity "true";
+	IsDropOff "true";
+	IsMissile "true";
 	
 	State "SpawnState"
 	{
@@ -9928,27 +9928,27 @@ MapObject "ArachnotronShot"
 // Object -- BulletPuff
 MapObject "BulletPuff"
 {
-	DoomEdNum "-1"
-	DeHackEdNum "37"
-	MTName "MT_PUFF"
-	SpawnHealth "1000"
-	Damage "0"
-	ReactionTime "8"
-	Mass "100"
-	Speed "0"
-	PainChance "0"
-	Height "16"
-	Radius "20"
-	WakeSound "none"
-	AttackSound "none"
-	PainSound "none"
-	DeathSound "none"
-	ActiveSound "none"
+	DoomEdNum "-1";
+	DeHackEdNum "37";
+	MTName "MT_PUFF";
+	SpawnHealth "1000";
+	Damage "0";
+	ReactionTime "8";
+	Mass "100";
+	Speed "0";
+	PainChance "0";
+	Height "16";
+	Radius "20";
+	WakeSound "none";
+	AttackSound "none";
+	PainSound "none";
+	DeathSound "none";
+	ActiveSound "none";
 	
-	NoBlockMap "true"
-	NoGravity "true"
-	NoClipping "true"
-	RandomPuffTime "true"
+	NoBlockMap "true";
+	NoGravity "true";
+	NoClipping "true";
+	RandomPuffTime "true";
 	
 	State "SpawnState"
 	{
@@ -10006,25 +10006,25 @@ MapObject "BulletPuff"
 // Object -- DoomBlood
 MapObject "DoomBlood"
 {
-	DoomEdNum "-1"
-	DeHackEdNum "38"
-	MTName "MT_BLOOD"
-	SpawnHealth "1000"
-	Damage "0"
-	ReactionTime "8"
-	Mass "100"
-	Speed "0"
-	PainChance "0"
-	Height "0"
-	Radius "3"
-	WakeSound "none"
-	AttackSound "none"
-	PainSound "none"
-	DeathSound "none"
-	ActiveSound "none"
+	DoomEdNum "-1";
+	DeHackEdNum "38";
+	MTName "MT_BLOOD";
+	SpawnHealth "1000";
+	Damage "0";
+	ReactionTime "8";
+	Mass "100";
+	Speed "0";
+	PainChance "0";
+	Height "0";
+	Radius "3";
+	WakeSound "none";
+	AttackSound "none";
+	PainSound "none";
+	DeathSound "none";
+	ActiveSound "none";
 	
-	NoForcedAllTriggers "true"
-	NoWaterSplashing "true"
+	NoForcedAllTriggers "true";
+	NoWaterSplashing "true";
 	
 	State "SpawnState"
 	{
@@ -10071,26 +10071,26 @@ MapObject "DoomBlood"
 // Object -- TeleportFog
 MapObject "TeleportFog"
 {
-	DoomEdNum "-1"
-	DeHackEdNum "39"
-	MTName "MT_TFOG"
-	SpawnHealth "1000"
-	Damage "0"
-	ReactionTime "8"
-	Mass "100"
-	Speed "0"
-	PainChance "0"
-	Height "16"
-	Radius "20"
-	WakeSound "none"
-	AttackSound "none"
-	PainSound "none"
-	DeathSound "none"
-	ActiveSound "none"
+	DoomEdNum "-1";
+	DeHackEdNum "39";
+	MTName "MT_TFOG";
+	SpawnHealth "1000";
+	Damage "0";
+	ReactionTime "8";
+	Mass "100";
+	Speed "0";
+	PainChance "0";
+	Height "16";
+	Radius "20";
+	WakeSound "none";
+	AttackSound "none";
+	PainSound "none";
+	DeathSound "none";
+	ActiveSound "none";
 	
-	NoBlockMap "true"
-	NoGravity "true"
-	IsTeleportFog "true"
+	NoBlockMap "true";
+	NoGravity "true";
+	IsTeleportFog "true";
 	
 	State "SpawnState"
 	{
@@ -10243,26 +10243,26 @@ MapObject "TeleportFog"
 // Object -- ItemFog
 MapObject "ItemFog"
 {
-	DoomEdNum "-1"
-	DeHackEdNum "40"
-	MTName "MT_IFOG"
-	SpawnHealth "1000"
-	Damage "0"
-	ReactionTime "8"
-	Mass "100"
-	Speed "0"
-	PainChance "0"
-	Height "16"
-	Radius "20"
-	WakeSound "none"
-	AttackSound "none"
-	PainSound "none"
-	DeathSound "none"
-	ActiveSound "none"
+	DoomEdNum "-1";
+	DeHackEdNum "40";
+	MTName "MT_IFOG";
+	SpawnHealth "1000";
+	Damage "0";
+	ReactionTime "8";
+	Mass "100";
+	Speed "0";
+	PainChance "0";
+	Height "16";
+	Radius "20";
+	WakeSound "none";
+	AttackSound "none";
+	PainSound "none";
+	DeathSound "none";
+	ActiveSound "none";
 	
-	NoBlockMap "true"
-	NoGravity "true"
-	IsTeleportFog "true"
+	NoBlockMap "true";
+	NoGravity "true";
+	IsTeleportFog "true";
 	
 	State "SpawnState"
 	{
@@ -10355,50 +10355,50 @@ MapObject "ItemFog"
 // Object -- LegacyTeleportman
 MapObject "LegacyTeleportman"
 {
-	DoomEdNum "14"
-	DeHackEdNum "41"
-	MTName "MT_TELEPORTMAN"
-	SpawnHealth "1000"
-	Damage "0"
-	ReactionTime "8"
-	Mass "100"
-	Speed "0"
-	PainChance "0"
-	Height "16"
-	Radius "20"
-	WakeSound "none"
-	AttackSound "none"
-	PainSound "none"
-	DeathSound "none"
-	ActiveSound "none"
+	DoomEdNum "14";
+	DeHackEdNum "41";
+	MTName "MT_TELEPORTMAN";
+	SpawnHealth "1000";
+	Damage "0";
+	ReactionTime "8";
+	Mass "100";
+	Speed "0";
+	PainChance "0";
+	Height "16";
+	Radius "20";
+	WakeSound "none";
+	AttackSound "none";
+	PainSound "none";
+	DeathSound "none";
+	ActiveSound "none";
 	
-	NoSectorLinks "true"
-	NoBlockMap "true"
-	IsTeleportMan "true"
+	NoSectorLinks "true";
+	NoBlockMap "true";
+	IsTeleportMan "true";
 }
 
 // Object -- BFGFlash
 MapObject "BFGFlash"
 {
-	DoomEdNum "-1"
-	DeHackEdNum "42"
-	MTName "MT_EXTRABFG"
-	SpawnHealth "1000"
-	Damage "0"
-	ReactionTime "8"
-	Mass "100"
-	Speed "0"
-	PainChance "0"
-	Height "16"
-	Radius "20"
-	WakeSound "none"
-	AttackSound "none"
-	PainSound "none"
-	DeathSound "none"
-	ActiveSound "none"
+	DoomEdNum "-1";
+	DeHackEdNum "42";
+	MTName "MT_EXTRABFG";
+	SpawnHealth "1000";
+	Damage "0";
+	ReactionTime "8";
+	Mass "100";
+	Speed "0";
+	PainChance "0";
+	Height "16";
+	Radius "20";
+	WakeSound "none";
+	AttackSound "none";
+	PainSound "none";
+	DeathSound "none";
+	ActiveSound "none";
 	
-	NoBlockMap "true"
-	NoGravity "true"
+	NoBlockMap "true";
+	NoGravity "true";
 	
 	State "SpawnState"
 	{
@@ -10455,24 +10455,24 @@ MapObject "BFGFlash"
 // Object -- GreenArmor
 MapObject "GreenArmor"
 {
-	DoomEdNum "2018"
-	DeHackEdNum "43"
-	MTName "MT_MISC0"
-	SpawnHealth "1000"
-	Damage "0"
-	ReactionTime "8"
-	Mass "100"
-	Speed "0"
-	PainChance "0"
-	Height "16"
-	Radius "20"
-	WakeSound "none"
-	AttackSound "none"
-	PainSound "none"
-	DeathSound "none"
-	ActiveSound "none"
+	DoomEdNum "2018";
+	DeHackEdNum "43";
+	MTName "MT_MISC0";
+	SpawnHealth "1000";
+	Damage "0";
+	ReactionTime "8";
+	Mass "100";
+	Speed "0";
+	PainChance "0";
+	Height "16";
+	Radius "20";
+	WakeSound "none";
+	AttackSound "none";
+	PainSound "none";
+	DeathSound "none";
+	ActiveSound "none";
 	
-	IsSpecial "true"
+	IsSpecial "true";
 	
 	State "SpawnState"
 	{
@@ -10502,24 +10502,24 @@ MapObject "GreenArmor"
 // Object -- BlueArmor
 MapObject "BlueArmor"
 {
-	DoomEdNum "2019"
-	DeHackEdNum "44"
-	MTName "MT_MISC1"
-	SpawnHealth "1000"
-	Damage "0"
-	ReactionTime "8"
-	Mass "100"
-	Speed "0"
-	PainChance "0"
-	Height "16"
-	Radius "20"
-	WakeSound "none"
-	AttackSound "none"
-	PainSound "none"
-	DeathSound "none"
-	ActiveSound "none"
+	DoomEdNum "2019";
+	DeHackEdNum "44";
+	MTName "MT_MISC1";
+	SpawnHealth "1000";
+	Damage "0";
+	ReactionTime "8";
+	Mass "100";
+	Speed "0";
+	PainChance "0";
+	Height "16";
+	Radius "20";
+	WakeSound "none";
+	AttackSound "none";
+	PainSound "none";
+	DeathSound "none";
+	ActiveSound "none";
 	
-	IsSpecial "true"
+	IsSpecial "true";
 	
 	State "SpawnState"
 	{
@@ -10549,25 +10549,25 @@ MapObject "BlueArmor"
 // Object -- HealthBonus
 MapObject "HealthBonus"
 {
-	DoomEdNum "2014"
-	DeHackEdNum "45"
-	MTName "MT_MISC2"
-	SpawnHealth "1000"
-	Damage "0"
-	ReactionTime "8"
-	Mass "100"
-	Speed "0"
-	PainChance "0"
-	Height "16"
-	Radius "20"
-	WakeSound "none"
-	AttackSound "none"
-	PainSound "none"
-	DeathSound "none"
-	ActiveSound "none"
+	DoomEdNum "2014";
+	DeHackEdNum "45";
+	MTName "MT_MISC2";
+	SpawnHealth "1000";
+	Damage "0";
+	ReactionTime "8";
+	Mass "100";
+	Speed "0";
+	PainChance "0";
+	Height "16";
+	Radius "20";
+	WakeSound "none";
+	AttackSound "none";
+	PainSound "none";
+	DeathSound "none";
+	ActiveSound "none";
 	
-	IsSpecial "true"
-	IsItemCountable "true"
+	IsSpecial "true";
+	IsItemCountable "true";
 	
 	State "SpawnState"
 	{
@@ -10636,25 +10636,25 @@ MapObject "HealthBonus"
 // Object -- ArmorBonus
 MapObject "ArmorBonus"
 {
-	DoomEdNum "2015"
-	DeHackEdNum "46"
-	MTName "MT_MISC3"
-	SpawnHealth "1000"
-	Damage "0"
-	ReactionTime "8"
-	Mass "100"
-	Speed "0"
-	PainChance "0"
-	Height "16"
-	Radius "20"
-	WakeSound "none"
-	AttackSound "none"
-	PainSound "none"
-	DeathSound "none"
-	ActiveSound "none"
+	DoomEdNum "2015";
+	DeHackEdNum "46";
+	MTName "MT_MISC3";
+	SpawnHealth "1000";
+	Damage "0";
+	ReactionTime "8";
+	Mass "100";
+	Speed "0";
+	PainChance "0";
+	Height "16";
+	Radius "20";
+	WakeSound "none";
+	AttackSound "none";
+	PainSound "none";
+	DeathSound "none";
+	ActiveSound "none";
 	
-	IsSpecial "true"
-	IsItemCountable "true"
+	IsSpecial "true";
+	IsItemCountable "true";
 	
 	State "SpawnState"
 	{
@@ -10723,25 +10723,25 @@ MapObject "ArmorBonus"
 // Object -- BlueCard
 MapObject "BlueCard"
 {
-	DoomEdNum "5"
-	DeHackEdNum "47"
-	MTName "MT_MISC4"
-	SpawnHealth "1000"
-	Damage "0"
-	ReactionTime "8"
-	Mass "100"
-	Speed "0"
-	PainChance "0"
-	Height "16"
-	Radius "20"
-	WakeSound "none"
-	AttackSound "none"
-	PainSound "none"
-	DeathSound "none"
-	ActiveSound "none"
+	DoomEdNum "5";
+	DeHackEdNum "47";
+	MTName "MT_MISC4";
+	SpawnHealth "1000";
+	Damage "0";
+	ReactionTime "8";
+	Mass "100";
+	Speed "0";
+	PainChance "0";
+	Height "16";
+	Radius "20";
+	WakeSound "none";
+	AttackSound "none";
+	PainSound "none";
+	DeathSound "none";
+	ActiveSound "none";
 	
-	IsSpecial "true"
-	NotInDeathmatch "true"
+	IsSpecial "true";
+	NotInDeathmatch "true";
 	
 	State "SpawnState"
 	{
@@ -10771,25 +10771,25 @@ MapObject "BlueCard"
 // Object -- RedCard
 MapObject "RedCard"
 {
-	DoomEdNum "13"
-	DeHackEdNum "48"
-	MTName "MT_MISC5"
-	SpawnHealth "1000"
-	Damage "0"
-	ReactionTime "8"
-	Mass "100"
-	Speed "0"
-	PainChance "0"
-	Height "16"
-	Radius "20"
-	WakeSound "none"
-	AttackSound "none"
-	PainSound "none"
-	DeathSound "none"
-	ActiveSound "none"
+	DoomEdNum "13";
+	DeHackEdNum "48";
+	MTName "MT_MISC5";
+	SpawnHealth "1000";
+	Damage "0";
+	ReactionTime "8";
+	Mass "100";
+	Speed "0";
+	PainChance "0";
+	Height "16";
+	Radius "20";
+	WakeSound "none";
+	AttackSound "none";
+	PainSound "none";
+	DeathSound "none";
+	ActiveSound "none";
 	
-	IsSpecial "true"
-	NotInDeathmatch "true"
+	IsSpecial "true";
+	NotInDeathmatch "true";
 	
 	State "SpawnState"
 	{
@@ -10819,25 +10819,25 @@ MapObject "RedCard"
 // Object -- YellowCard
 MapObject "YellowCard"
 {
-	DoomEdNum "6"
-	DeHackEdNum "49"
-	MTName "MT_MISC6"
-	SpawnHealth "1000"
-	Damage "0"
-	ReactionTime "8"
-	Mass "100"
-	Speed "0"
-	PainChance "0"
-	Height "16"
-	Radius "20"
-	WakeSound "none"
-	AttackSound "none"
-	PainSound "none"
-	DeathSound "none"
-	ActiveSound "none"
+	DoomEdNum "6";
+	DeHackEdNum "49";
+	MTName "MT_MISC6";
+	SpawnHealth "1000";
+	Damage "0";
+	ReactionTime "8";
+	Mass "100";
+	Speed "0";
+	PainChance "0";
+	Height "16";
+	Radius "20";
+	WakeSound "none";
+	AttackSound "none";
+	PainSound "none";
+	DeathSound "none";
+	ActiveSound "none";
 	
-	IsSpecial "true"
-	NotInDeathmatch "true"
+	IsSpecial "true";
+	NotInDeathmatch "true";
 	
 	State "SpawnState"
 	{
@@ -10867,25 +10867,25 @@ MapObject "YellowCard"
 // Object -- YellowSkull
 MapObject "YellowSkull"
 {
-	DoomEdNum "39"
-	DeHackEdNum "50"
-	MTName "MT_MISC7"
-	SpawnHealth "1000"
-	Damage "0"
-	ReactionTime "8"
-	Mass "100"
-	Speed "0"
-	PainChance "0"
-	Height "16"
-	Radius "20"
-	WakeSound "none"
-	AttackSound "none"
-	PainSound "none"
-	DeathSound "none"
-	ActiveSound "none"
+	DoomEdNum "39";
+	DeHackEdNum "50";
+	MTName "MT_MISC7";
+	SpawnHealth "1000";
+	Damage "0";
+	ReactionTime "8";
+	Mass "100";
+	Speed "0";
+	PainChance "0";
+	Height "16";
+	Radius "20";
+	WakeSound "none";
+	AttackSound "none";
+	PainSound "none";
+	DeathSound "none";
+	ActiveSound "none";
 	
-	IsSpecial "true"
-	NotInDeathmatch "true"
+	IsSpecial "true";
+	NotInDeathmatch "true";
 	
 	State "SpawnState"
 	{
@@ -10915,25 +10915,25 @@ MapObject "YellowSkull"
 // Object -- RedSkull
 MapObject "RedSkull"
 {
-	DoomEdNum "38"
-	DeHackEdNum "51"
-	MTName "MT_MISC8"
-	SpawnHealth "1000"
-	Damage "0"
-	ReactionTime "8"
-	Mass "100"
-	Speed "0"
-	PainChance "0"
-	Height "16"
-	Radius "20"
-	WakeSound "none"
-	AttackSound "none"
-	PainSound "none"
-	DeathSound "none"
-	ActiveSound "none"
+	DoomEdNum "38";
+	DeHackEdNum "51";
+	MTName "MT_MISC8";
+	SpawnHealth "1000";
+	Damage "0";
+	ReactionTime "8";
+	Mass "100";
+	Speed "0";
+	PainChance "0";
+	Height "16";
+	Radius "20";
+	WakeSound "none";
+	AttackSound "none";
+	PainSound "none";
+	DeathSound "none";
+	ActiveSound "none";
 	
-	IsSpecial "true"
-	NotInDeathmatch "true"
+	IsSpecial "true";
+	NotInDeathmatch "true";
 	
 	State "SpawnState"
 	{
@@ -10963,25 +10963,25 @@ MapObject "RedSkull"
 // Object -- BlueSkull
 MapObject "BlueSkull"
 {
-	DoomEdNum "40"
-	DeHackEdNum "52"
-	MTName "MT_MISC9"
-	SpawnHealth "1000"
-	Damage "0"
-	ReactionTime "8"
-	Mass "100"
-	Speed "0"
-	PainChance "0"
-	Height "16"
-	Radius "20"
-	WakeSound "none"
-	AttackSound "none"
-	PainSound "none"
-	DeathSound "none"
-	ActiveSound "none"
+	DoomEdNum "40";
+	DeHackEdNum "52";
+	MTName "MT_MISC9";
+	SpawnHealth "1000";
+	Damage "0";
+	ReactionTime "8";
+	Mass "100";
+	Speed "0";
+	PainChance "0";
+	Height "16";
+	Radius "20";
+	WakeSound "none";
+	AttackSound "none";
+	PainSound "none";
+	DeathSound "none";
+	ActiveSound "none";
 	
-	IsSpecial "true"
-	NotInDeathmatch "true"
+	IsSpecial "true";
+	NotInDeathmatch "true";
 	
 	State "SpawnState"
 	{
@@ -11011,24 +11011,24 @@ MapObject "BlueSkull"
 // Object -- StimPack
 MapObject "StimPack"
 {
-	DoomEdNum "2011"
-	DeHackEdNum "53"
-	MTName "MT_MISC10"
-	SpawnHealth "1000"
-	Damage "0"
-	ReactionTime "8"
-	Mass "100"
-	Speed "0"
-	PainChance "0"
-	Height "16"
-	Radius "20"
-	WakeSound "none"
-	AttackSound "none"
-	PainSound "none"
-	DeathSound "none"
-	ActiveSound "none"
+	DoomEdNum "2011";
+	DeHackEdNum "53";
+	MTName "MT_MISC10";
+	SpawnHealth "1000";
+	Damage "0";
+	ReactionTime "8";
+	Mass "100";
+	Speed "0";
+	PainChance "0";
+	Height "16";
+	Radius "20";
+	WakeSound "none";
+	AttackSound "none";
+	PainSound "none";
+	DeathSound "none";
+	ActiveSound "none";
 	
-	IsSpecial "true"
+	IsSpecial "true";
 	
 	State "SpawnState"
 	{
@@ -11047,24 +11047,24 @@ MapObject "StimPack"
 // Object -- MediKit
 MapObject "MediKit"
 {
-	DoomEdNum "2012"
-	DeHackEdNum "54"
-	MTName "MT_MISC11"
-	SpawnHealth "1000"
-	Damage "0"
-	ReactionTime "8"
-	Mass "100"
-	Speed "0"
-	PainChance "0"
-	Height "16"
-	Radius "20"
-	WakeSound "none"
-	AttackSound "none"
-	PainSound "none"
-	DeathSound "none"
-	ActiveSound "none"
+	DoomEdNum "2012";
+	DeHackEdNum "54";
+	MTName "MT_MISC11";
+	SpawnHealth "1000";
+	Damage "0";
+	ReactionTime "8";
+	Mass "100";
+	Speed "0";
+	PainChance "0";
+	Height "16";
+	Radius "20";
+	WakeSound "none";
+	AttackSound "none";
+	PainSound "none";
+	DeathSound "none";
+	ActiveSound "none";
 	
-	IsSpecial "true"
+	IsSpecial "true";
 	
 	State "SpawnState"
 	{
@@ -11083,26 +11083,26 @@ MapObject "MediKit"
 // Object -- SoulSphere
 MapObject "SoulSphere"
 {
-	DoomEdNum "2013"
-	DeHackEdNum "55"
-	MTName "MT_MISC12"
-	SpawnHealth "1000"
-	Damage "0"
-	ReactionTime "8"
-	Mass "100"
-	Speed "0"
-	PainChance "0"
-	Height "16"
-	Radius "20"
-	WakeSound "none"
-	AttackSound "none"
-	PainSound "none"
-	DeathSound "none"
-	ActiveSound "none"
+	DoomEdNum "2013";
+	DeHackEdNum "55";
+	MTName "MT_MISC12";
+	SpawnHealth "1000";
+	Damage "0";
+	ReactionTime "8";
+	Mass "100";
+	Speed "0";
+	PainChance "0";
+	Height "16";
+	Radius "20";
+	WakeSound "none";
+	AttackSound "none";
+	PainSound "none";
+	DeathSound "none";
+	ActiveSound "none";
 	
-	IsSpecial "true"
-	IsItemCountable "true"
-	IsPowerup "true"
+	IsSpecial "true";
+	IsItemCountable "true";
+	IsPowerup "true";
 	
 	State "SpawnState"
 	{
@@ -11183,27 +11183,27 @@ MapObject "SoulSphere"
 // Object -- InvulnSphere
 MapObject "InvulnSphere"
 {
-	DoomEdNum "2022"
-	DeHackEdNum "56"
-	MTName "MT_INV"
-	SpawnHealth "1000"
-	Damage "0"
-	ReactionTime "8"
-	Mass "100"
-	Speed "0"
-	PainChance "0"
-	Height "16"
-	Radius "20"
-	WakeSound "none"
-	AttackSound "none"
-	PainSound "none"
-	DeathSound "none"
-	ActiveSound "none"
+	DoomEdNum "2022";
+	DeHackEdNum "56";
+	MTName "MT_INV";
+	SpawnHealth "1000";
+	Damage "0";
+	ReactionTime "8";
+	Mass "100";
+	Speed "0";
+	PainChance "0";
+	Height "16";
+	Radius "20";
+	WakeSound "none";
+	AttackSound "none";
+	PainSound "none";
+	DeathSound "none";
+	ActiveSound "none";
 	
-	IsSpecial "true"
-	IsItemCountable "true"
-	IsPowerup "true"
-	NoRespawnInAltDM "true"
+	IsSpecial "true";
+	IsItemCountable "true";
+	IsPowerup "true";
+	NoRespawnInAltDM "true";
 	
 	State "SpawnState"
 	{
@@ -11260,26 +11260,26 @@ MapObject "InvulnSphere"
 // Object -- Berserker
 MapObject "Berserker"
 {
-	DoomEdNum "2023"
-	DeHackEdNum "57"
-	MTName "MT_MISC13"
-	SpawnHealth "1000"
-	Damage "0"
-	ReactionTime "8"
-	Mass "100"
-	Speed "0"
-	PainChance "0"
-	Height "16"
-	Radius "20"
-	WakeSound "none"
-	AttackSound "none"
-	PainSound "none"
-	DeathSound "none"
-	ActiveSound "none"
+	DoomEdNum "2023";
+	DeHackEdNum "57";
+	MTName "MT_MISC13";
+	SpawnHealth "1000";
+	Damage "0";
+	ReactionTime "8";
+	Mass "100";
+	Speed "0";
+	PainChance "0";
+	Height "16";
+	Radius "20";
+	WakeSound "none";
+	AttackSound "none";
+	PainSound "none";
+	DeathSound "none";
+	ActiveSound "none";
 	
-	IsSpecial "true"
-	IsItemCountable "true"
-	IsPowerup "true"
+	IsSpecial "true";
+	IsItemCountable "true";
+	IsPowerup "true";
 	
 	State "SpawnState"
 	{
@@ -11299,27 +11299,27 @@ MapObject "Berserker"
 // Object -- InvisSphere
 MapObject "InvisSphere"
 {
-	DoomEdNum "2024"
-	DeHackEdNum "58"
-	MTName "MT_INS"
-	SpawnHealth "1000"
-	Damage "0"
-	ReactionTime "8"
-	Mass "100"
-	Speed "0"
-	PainChance "0"
-	Height "16"
-	Radius "20"
-	WakeSound "none"
-	AttackSound "none"
-	PainSound "none"
-	DeathSound "none"
-	ActiveSound "none"
+	DoomEdNum "2024";
+	DeHackEdNum "58";
+	MTName "MT_INS";
+	SpawnHealth "1000";
+	Damage "0";
+	ReactionTime "8";
+	Mass "100";
+	Speed "0";
+	PainChance "0";
+	Height "16";
+	Radius "20";
+	WakeSound "none";
+	AttackSound "none";
+	PainSound "none";
+	DeathSound "none";
+	ActiveSound "none";
 	
-	IsSpecial "true"
-	IsItemCountable "true"
-	IsPowerup "true"
-	NoRespawnInAltDM "true"
+	IsSpecial "true";
+	IsItemCountable "true";
+	IsPowerup "true";
+	NoRespawnInAltDM "true";
 	
 	State "SpawnState"
 	{
@@ -11376,25 +11376,25 @@ MapObject "InvisSphere"
 // Object -- RadiationSuit
 MapObject "RadiationSuit"
 {
-	DoomEdNum "2025"
-	DeHackEdNum "59"
-	MTName "MT_MISC14"
-	SpawnHealth "1000"
-	Damage "0"
-	ReactionTime "8"
-	Mass "100"
-	Speed "0"
-	PainChance "0"
-	Height "16"
-	Radius "20"
-	WakeSound "none"
-	AttackSound "none"
-	PainSound "none"
-	DeathSound "none"
-	ActiveSound "none"
+	DoomEdNum "2025";
+	DeHackEdNum "59";
+	MTName "MT_MISC14";
+	SpawnHealth "1000";
+	Damage "0";
+	ReactionTime "8";
+	Mass "100";
+	Speed "0";
+	PainChance "0";
+	Height "16";
+	Radius "20";
+	WakeSound "none";
+	AttackSound "none";
+	PainSound "none";
+	DeathSound "none";
+	ActiveSound "none";
 	
-	IsSpecial "true"
-	IsPowerup "true"
+	IsSpecial "true";
+	IsPowerup "true";
 	
 	State "SpawnState"
 	{
@@ -11414,26 +11414,26 @@ MapObject "RadiationSuit"
 // Object -- ComputerMap
 MapObject "ComputerMap"
 {
-	DoomEdNum "2026"
-	DeHackEdNum "60"
-	MTName "MT_MISC15"
-	SpawnHealth "1000"
-	Damage "0"
-	ReactionTime "8"
-	Mass "100"
-	Speed "0"
-	PainChance "0"
-	Height "16"
-	Radius "20"
-	WakeSound "none"
-	AttackSound "none"
-	PainSound "none"
-	DeathSound "none"
-	ActiveSound "none"
+	DoomEdNum "2026";
+	DeHackEdNum "60";
+	MTName "MT_MISC15";
+	SpawnHealth "1000";
+	Damage "0";
+	ReactionTime "8";
+	Mass "100";
+	Speed "0";
+	PainChance "0";
+	Height "16";
+	Radius "20";
+	WakeSound "none";
+	AttackSound "none";
+	PainSound "none";
+	DeathSound "none";
+	ActiveSound "none";
 	
-	IsSpecial "true"
-	IsItemCountable "true"
-	IsPowerup "true"
+	IsSpecial "true";
+	IsItemCountable "true";
+	IsPowerup "true";
 	
 	State "SpawnState"
 	{
@@ -11508,26 +11508,26 @@ MapObject "ComputerMap"
 // Object -- LightAmpVisor
 MapObject "LightAmpVisor"
 {
-	DoomEdNum "2045"
-	DeHackEdNum "61"
-	MTName "MT_MISC16"
-	SpawnHealth "1000"
-	Damage "0"
-	ReactionTime "8"
-	Mass "100"
-	Speed "0"
-	PainChance "0"
-	Height "16"
-	Radius "20"
-	WakeSound "none"
-	AttackSound "none"
-	PainSound "none"
-	DeathSound "none"
-	ActiveSound "none"
+	DoomEdNum "2045";
+	DeHackEdNum "61";
+	MTName "MT_MISC16";
+	SpawnHealth "1000";
+	Damage "0";
+	ReactionTime "8";
+	Mass "100";
+	Speed "0";
+	PainChance "0";
+	Height "16";
+	Radius "20";
+	WakeSound "none";
+	AttackSound "none";
+	PainSound "none";
+	DeathSound "none";
+	ActiveSound "none";
 	
-	IsSpecial "true"
-	IsItemCountable "true"
-	IsPowerup "true"
+	IsSpecial "true";
+	IsItemCountable "true";
+	IsPowerup "true";
 	
 	State "SpawnState"
 	{
@@ -11557,26 +11557,26 @@ MapObject "LightAmpVisor"
 // Object -- MegaSphere
 MapObject "MegaSphere"
 {
-	DoomEdNum "83"
-	DeHackEdNum "62"
-	MTName "MT_MEGA"
-	SpawnHealth "1000"
-	Damage "0"
-	ReactionTime "8"
-	Mass "100"
-	Speed "0"
-	PainChance "0"
-	Height "16"
-	Radius "20"
-	WakeSound "none"
-	AttackSound "none"
-	PainSound "none"
-	DeathSound "none"
-	ActiveSound "none"
+	DoomEdNum "83";
+	DeHackEdNum "62";
+	MTName "MT_MEGA";
+	SpawnHealth "1000";
+	Damage "0";
+	ReactionTime "8";
+	Mass "100";
+	Speed "0";
+	PainChance "0";
+	Height "16";
+	Radius "20";
+	WakeSound "none";
+	AttackSound "none";
+	PainSound "none";
+	DeathSound "none";
+	ActiveSound "none";
 	
-	IsSpecial "true"
-	IsItemCountable "true"
-	IsPowerup "true"
+	IsSpecial "true";
+	IsItemCountable "true";
+	IsPowerup "true";
 	
 	State "SpawnState"
 	{
@@ -11633,24 +11633,24 @@ MapObject "MegaSphere"
 // Object -- SmallClipAmmo
 MapObject "SmallClipAmmo"
 {
-	DoomEdNum "2007"
-	DeHackEdNum "63"
-	MTName "MT_CLIP"
-	SpawnHealth "1000"
-	Damage "0"
-	ReactionTime "8"
-	Mass "100"
-	Speed "0"
-	PainChance "0"
-	Height "16"
-	Radius "20"
-	WakeSound "none"
-	AttackSound "none"
-	PainSound "none"
-	DeathSound "none"
-	ActiveSound "none"
+	DoomEdNum "2007";
+	DeHackEdNum "63";
+	MTName "MT_CLIP";
+	SpawnHealth "1000";
+	Damage "0";
+	ReactionTime "8";
+	Mass "100";
+	Speed "0";
+	PainChance "0";
+	Height "16";
+	Radius "20";
+	WakeSound "none";
+	AttackSound "none";
+	PainSound "none";
+	DeathSound "none";
+	ActiveSound "none";
 	
-	IsSpecial "true"
+	IsSpecial "true";
 	
 	State "SpawnState"
 	{
@@ -11669,24 +11669,24 @@ MapObject "SmallClipAmmo"
 // Object -- LargeClipAmmo
 MapObject "LargeClipAmmo"
 {
-	DoomEdNum "2048"
-	DeHackEdNum "64"
-	MTName "MT_MISC17"
-	SpawnHealth "1000"
-	Damage "0"
-	ReactionTime "8"
-	Mass "100"
-	Speed "0"
-	PainChance "0"
-	Height "16"
-	Radius "20"
-	WakeSound "none"
-	AttackSound "none"
-	PainSound "none"
-	DeathSound "none"
-	ActiveSound "none"
+	DoomEdNum "2048";
+	DeHackEdNum "64";
+	MTName "MT_MISC17";
+	SpawnHealth "1000";
+	Damage "0";
+	ReactionTime "8";
+	Mass "100";
+	Speed "0";
+	PainChance "0";
+	Height "16";
+	Radius "20";
+	WakeSound "none";
+	AttackSound "none";
+	PainSound "none";
+	DeathSound "none";
+	ActiveSound "none";
 	
-	IsSpecial "true"
+	IsSpecial "true";
 	
 	State "SpawnState"
 	{
@@ -11705,24 +11705,24 @@ MapObject "LargeClipAmmo"
 // Object -- SmallRocketAmmo
 MapObject "SmallRocketAmmo"
 {
-	DoomEdNum "2010"
-	DeHackEdNum "65"
-	MTName "MT_MISC18"
-	SpawnHealth "1000"
-	Damage "0"
-	ReactionTime "8"
-	Mass "100"
-	Speed "0"
-	PainChance "0"
-	Height "16"
-	Radius "20"
-	WakeSound "none"
-	AttackSound "none"
-	PainSound "none"
-	DeathSound "none"
-	ActiveSound "none"
+	DoomEdNum "2010";
+	DeHackEdNum "65";
+	MTName "MT_MISC18";
+	SpawnHealth "1000";
+	Damage "0";
+	ReactionTime "8";
+	Mass "100";
+	Speed "0";
+	PainChance "0";
+	Height "16";
+	Radius "20";
+	WakeSound "none";
+	AttackSound "none";
+	PainSound "none";
+	DeathSound "none";
+	ActiveSound "none";
 	
-	IsSpecial "true"
+	IsSpecial "true";
 	
 	State "SpawnState"
 	{
@@ -11741,24 +11741,24 @@ MapObject "SmallRocketAmmo"
 // Object -- LargeRocketAmmo
 MapObject "LargeRocketAmmo"
 {
-	DoomEdNum "2046"
-	DeHackEdNum "66"
-	MTName "MT_MISC19"
-	SpawnHealth "1000"
-	Damage "0"
-	ReactionTime "8"
-	Mass "100"
-	Speed "0"
-	PainChance "0"
-	Height "16"
-	Radius "20"
-	WakeSound "none"
-	AttackSound "none"
-	PainSound "none"
-	DeathSound "none"
-	ActiveSound "none"
+	DoomEdNum "2046";
+	DeHackEdNum "66";
+	MTName "MT_MISC19";
+	SpawnHealth "1000";
+	Damage "0";
+	ReactionTime "8";
+	Mass "100";
+	Speed "0";
+	PainChance "0";
+	Height "16";
+	Radius "20";
+	WakeSound "none";
+	AttackSound "none";
+	PainSound "none";
+	DeathSound "none";
+	ActiveSound "none";
 	
-	IsSpecial "true"
+	IsSpecial "true";
 	
 	State "SpawnState"
 	{
@@ -11777,24 +11777,24 @@ MapObject "LargeRocketAmmo"
 // Object -- SmallCellAmmo
 MapObject "SmallCellAmmo"
 {
-	DoomEdNum "2047"
-	DeHackEdNum "67"
-	MTName "MT_MISC20"
-	SpawnHealth "1000"
-	Damage "0"
-	ReactionTime "8"
-	Mass "100"
-	Speed "0"
-	PainChance "0"
-	Height "16"
-	Radius "20"
-	WakeSound "none"
-	AttackSound "none"
-	PainSound "none"
-	DeathSound "none"
-	ActiveSound "none"
+	DoomEdNum "2047";
+	DeHackEdNum "67";
+	MTName "MT_MISC20";
+	SpawnHealth "1000";
+	Damage "0";
+	ReactionTime "8";
+	Mass "100";
+	Speed "0";
+	PainChance "0";
+	Height "16";
+	Radius "20";
+	WakeSound "none";
+	AttackSound "none";
+	PainSound "none";
+	DeathSound "none";
+	ActiveSound "none";
 	
-	IsSpecial "true"
+	IsSpecial "true";
 	
 	State "SpawnState"
 	{
@@ -11813,24 +11813,24 @@ MapObject "SmallCellAmmo"
 // Object -- LargeCellAmmo
 MapObject "LargeCellAmmo"
 {
-	DoomEdNum "17"
-	DeHackEdNum "68"
-	MTName "MT_MISC21"
-	SpawnHealth "1000"
-	Damage "0"
-	ReactionTime "8"
-	Mass "100"
-	Speed "0"
-	PainChance "0"
-	Height "16"
-	Radius "20"
-	WakeSound "none"
-	AttackSound "none"
-	PainSound "none"
-	DeathSound "none"
-	ActiveSound "none"
+	DoomEdNum "17";
+	DeHackEdNum "68";
+	MTName "MT_MISC21";
+	SpawnHealth "1000";
+	Damage "0";
+	ReactionTime "8";
+	Mass "100";
+	Speed "0";
+	PainChance "0";
+	Height "16";
+	Radius "20";
+	WakeSound "none";
+	AttackSound "none";
+	PainSound "none";
+	DeathSound "none";
+	ActiveSound "none";
 	
-	IsSpecial "true"
+	IsSpecial "true";
 	
 	State "SpawnState"
 	{
@@ -11849,24 +11849,24 @@ MapObject "LargeCellAmmo"
 // Object -- SmallShellAmmo
 MapObject "SmallShellAmmo"
 {
-	DoomEdNum "2008"
-	DeHackEdNum "69"
-	MTName "MT_MISC22"
-	SpawnHealth "1000"
-	Damage "0"
-	ReactionTime "8"
-	Mass "100"
-	Speed "0"
-	PainChance "0"
-	Height "16"
-	Radius "20"
-	WakeSound "none"
-	AttackSound "none"
-	PainSound "none"
-	DeathSound "none"
-	ActiveSound "none"
+	DoomEdNum "2008";
+	DeHackEdNum "69";
+	MTName "MT_MISC22";
+	SpawnHealth "1000";
+	Damage "0";
+	ReactionTime "8";
+	Mass "100";
+	Speed "0";
+	PainChance "0";
+	Height "16";
+	Radius "20";
+	WakeSound "none";
+	AttackSound "none";
+	PainSound "none";
+	DeathSound "none";
+	ActiveSound "none";
 	
-	IsSpecial "true"
+	IsSpecial "true";
 	
 	State "SpawnState"
 	{
@@ -11885,24 +11885,24 @@ MapObject "SmallShellAmmo"
 // Object -- LargeShellAmmo
 MapObject "LargeShellAmmo"
 {
-	DoomEdNum "2049"
-	DeHackEdNum "70"
-	MTName "MT_MISC23"
-	SpawnHealth "1000"
-	Damage "0"
-	ReactionTime "8"
-	Mass "100"
-	Speed "0"
-	PainChance "0"
-	Height "16"
-	Radius "20"
-	WakeSound "none"
-	AttackSound "none"
-	PainSound "none"
-	DeathSound "none"
-	ActiveSound "none"
+	DoomEdNum "2049";
+	DeHackEdNum "70";
+	MTName "MT_MISC23";
+	SpawnHealth "1000";
+	Damage "0";
+	ReactionTime "8";
+	Mass "100";
+	Speed "0";
+	PainChance "0";
+	Height "16";
+	Radius "20";
+	WakeSound "none";
+	AttackSound "none";
+	PainSound "none";
+	DeathSound "none";
+	ActiveSound "none";
 	
-	IsSpecial "true"
+	IsSpecial "true";
 	
 	State "SpawnState"
 	{
@@ -11921,24 +11921,24 @@ MapObject "LargeShellAmmo"
 // Object -- Backpack
 MapObject "Backpack"
 {
-	DoomEdNum "8"
-	DeHackEdNum "71"
-	MTName "MT_MISC24"
-	SpawnHealth "1000"
-	Damage "0"
-	ReactionTime "8"
-	Mass "100"
-	Speed "0"
-	PainChance "0"
-	Height "16"
-	Radius "20"
-	WakeSound "none"
-	AttackSound "none"
-	PainSound "none"
-	DeathSound "none"
-	ActiveSound "none"
+	DoomEdNum "8";
+	DeHackEdNum "71";
+	MTName "MT_MISC24";
+	SpawnHealth "1000";
+	Damage "0";
+	ReactionTime "8";
+	Mass "100";
+	Speed "0";
+	PainChance "0";
+	Height "16";
+	Radius "20";
+	WakeSound "none";
+	AttackSound "none";
+	PainSound "none";
+	DeathSound "none";
+	ActiveSound "none";
 	
-	IsSpecial "true"
+	IsSpecial "true";
 	
 	State "SpawnState"
 	{
@@ -11957,25 +11957,25 @@ MapObject "Backpack"
 // Object -- BFG
 MapObject "BFG"
 {
-	DoomEdNum "2006"
-	DeHackEdNum "72"
-	MTName "MT_BFG9000"
-	SpawnHealth "1000"
-	Damage "0"
-	ReactionTime "8"
-	Mass "100"
-	Speed "0"
-	PainChance "0"
-	Height "16"
-	Radius "20"
-	WakeSound "none"
-	AttackSound "none"
-	PainSound "none"
-	DeathSound "none"
-	ActiveSound "none"
+	DoomEdNum "2006";
+	DeHackEdNum "72";
+	MTName "MT_BFG9000";
+	SpawnHealth "1000";
+	Damage "0";
+	ReactionTime "8";
+	Mass "100";
+	Speed "0";
+	PainChance "0";
+	Height "16";
+	Radius "20";
+	WakeSound "none";
+	AttackSound "none";
+	PainSound "none";
+	DeathSound "none";
+	ActiveSound "none";
 	
-	IsSpecial "true"
-	MarkRestoreWeapon "true"
+	IsSpecial "true";
+	MarkRestoreWeapon "true";
 	
 	State "SpawnState"
 	{
@@ -11994,25 +11994,25 @@ MapObject "BFG"
 // Object -- Chaingun
 MapObject "Chaingun"
 {
-	DoomEdNum "2002"
-	DeHackEdNum "73"
-	MTName "MT_CHAINGUN"
-	SpawnHealth "1000"
-	Damage "0"
-	ReactionTime "8"
-	Mass "100"
-	Speed "0"
-	PainChance "0"
-	Height "16"
-	Radius "20"
-	WakeSound "none"
-	AttackSound "none"
-	PainSound "none"
-	DeathSound "none"
-	ActiveSound "none"
+	DoomEdNum "2002";
+	DeHackEdNum "73";
+	MTName "MT_CHAINGUN";
+	SpawnHealth "1000";
+	Damage "0";
+	ReactionTime "8";
+	Mass "100";
+	Speed "0";
+	PainChance "0";
+	Height "16";
+	Radius "20";
+	WakeSound "none";
+	AttackSound "none";
+	PainSound "none";
+	DeathSound "none";
+	ActiveSound "none";
 	
-	IsSpecial "true"
-	MarkRestoreWeapon "true"
+	IsSpecial "true";
+	MarkRestoreWeapon "true";
 	
 	State "SpawnState"
 	{
@@ -12031,25 +12031,25 @@ MapObject "Chaingun"
 // Object -- Chainsaw
 MapObject "Chainsaw"
 {
-	DoomEdNum "2005"
-	DeHackEdNum "74"
-	MTName "MT_SHAINSAW"
-	SpawnHealth "1000"
-	Damage "0"
-	ReactionTime "8"
-	Mass "100"
-	Speed "0"
-	PainChance "0"
-	Height "16"
-	Radius "20"
-	WakeSound "none"
-	AttackSound "none"
-	PainSound "none"
-	DeathSound "none"
-	ActiveSound "none"
+	DoomEdNum "2005";
+	DeHackEdNum "74";
+	MTName "MT_SHAINSAW";
+	SpawnHealth "1000";
+	Damage "0";
+	ReactionTime "8";
+	Mass "100";
+	Speed "0";
+	PainChance "0";
+	Height "16";
+	Radius "20";
+	WakeSound "none";
+	AttackSound "none";
+	PainSound "none";
+	DeathSound "none";
+	ActiveSound "none";
 	
-	IsSpecial "true"
-	MarkRestoreWeapon "true"
+	IsSpecial "true";
+	MarkRestoreWeapon "true";
 	
 	State "SpawnState"
 	{
@@ -12068,25 +12068,25 @@ MapObject "Chainsaw"
 // Object -- RocketLauncher
 MapObject "RocketLauncher"
 {
-	DoomEdNum "2003"
-	DeHackEdNum "75"
-	MTName "MT_ROCKETLAUNCH"
-	SpawnHealth "1000"
-	Damage "0"
-	ReactionTime "8"
-	Mass "100"
-	Speed "0"
-	PainChance "0"
-	Height "16"
-	Radius "20"
-	WakeSound "none"
-	AttackSound "none"
-	PainSound "none"
-	DeathSound "none"
-	ActiveSound "none"
+	DoomEdNum "2003";
+	DeHackEdNum "75";
+	MTName "MT_ROCKETLAUNCH";
+	SpawnHealth "1000";
+	Damage "0";
+	ReactionTime "8";
+	Mass "100";
+	Speed "0";
+	PainChance "0";
+	Height "16";
+	Radius "20";
+	WakeSound "none";
+	AttackSound "none";
+	PainSound "none";
+	DeathSound "none";
+	ActiveSound "none";
 	
-	IsSpecial "true"
-	MarkRestoreWeapon "true"
+	IsSpecial "true";
+	MarkRestoreWeapon "true";
 	
 	State "SpawnState"
 	{
@@ -12105,25 +12105,25 @@ MapObject "RocketLauncher"
 // Object -- PlasmaRifle
 MapObject "PlasmaRifle"
 {
-	DoomEdNum "2004"
-	DeHackEdNum "76"
-	MTName "MT_PLASMAGUN"
-	SpawnHealth "1000"
-	Damage "0"
-	ReactionTime "8"
-	Mass "100"
-	Speed "0"
-	PainChance "0"
-	Height "16"
-	Radius "20"
-	WakeSound "none"
-	AttackSound "none"
-	PainSound "none"
-	DeathSound "none"
-	ActiveSound "none"
+	DoomEdNum "2004";
+	DeHackEdNum "76";
+	MTName "MT_PLASMAGUN";
+	SpawnHealth "1000";
+	Damage "0";
+	ReactionTime "8";
+	Mass "100";
+	Speed "0";
+	PainChance "0";
+	Height "16";
+	Radius "20";
+	WakeSound "none";
+	AttackSound "none";
+	PainSound "none";
+	DeathSound "none";
+	ActiveSound "none";
 	
-	IsSpecial "true"
-	MarkRestoreWeapon "true"
+	IsSpecial "true";
+	MarkRestoreWeapon "true";
 	
 	State "SpawnState"
 	{
@@ -12142,25 +12142,25 @@ MapObject "PlasmaRifle"
 // Object -- Shotgun
 MapObject "Shotgun"
 {
-	DoomEdNum "2001"
-	DeHackEdNum "77"
-	MTName "MT_SHOTGUN"
-	SpawnHealth "1000"
-	Damage "0"
-	ReactionTime "8"
-	Mass "100"
-	Speed "0"
-	PainChance "0"
-	Height "16"
-	Radius "20"
-	WakeSound "none"
-	AttackSound "none"
-	PainSound "none"
-	DeathSound "none"
-	ActiveSound "none"
+	DoomEdNum "2001";
+	DeHackEdNum "77";
+	MTName "MT_SHOTGUN";
+	SpawnHealth "1000";
+	Damage "0";
+	ReactionTime "8";
+	Mass "100";
+	Speed "0";
+	PainChance "0";
+	Height "16";
+	Radius "20";
+	WakeSound "none";
+	AttackSound "none";
+	PainSound "none";
+	DeathSound "none";
+	ActiveSound "none";
 	
-	IsSpecial "true"
-	MarkRestoreWeapon "true"
+	IsSpecial "true";
+	MarkRestoreWeapon "true";
 	
 	State "SpawnState"
 	{
@@ -12179,25 +12179,25 @@ MapObject "Shotgun"
 // Object -- SuperShotgun
 MapObject "SuperShotgun"
 {
-	DoomEdNum "82"
-	DeHackEdNum "78"
-	MTName "MT_SUPERSHOTGUN"
-	SpawnHealth "1000"
-	Damage "0"
-	ReactionTime "8"
-	Mass "100"
-	Speed "0"
-	PainChance "0"
-	Height "16"
-	Radius "20"
-	WakeSound "none"
-	AttackSound "none"
-	PainSound "none"
-	DeathSound "none"
-	ActiveSound "none"
+	DoomEdNum "82";
+	DeHackEdNum "78";
+	MTName "MT_SUPERSHOTGUN";
+	SpawnHealth "1000";
+	Damage "0";
+	ReactionTime "8";
+	Mass "100";
+	Speed "0";
+	PainChance "0";
+	Height "16";
+	Radius "20";
+	WakeSound "none";
+	AttackSound "none";
+	PainSound "none";
+	DeathSound "none";
+	ActiveSound "none";
 	
-	IsSpecial "true"
-	MarkRestoreWeapon "true"
+	IsSpecial "true";
+	MarkRestoreWeapon "true";
 	
 	State "SpawnState"
 	{
@@ -12216,24 +12216,24 @@ MapObject "SuperShotgun"
 // Object -- TechLamp1
 MapObject "TechLamp1"
 {
-	DoomEdNum "85"
-	DeHackEdNum "79"
-	MTName "MT_MISC29"
-	SpawnHealth "1000"
-	Damage "0"
-	ReactionTime "8"
-	Mass "100"
-	Speed "0"
-	PainChance "0"
-	Height "72"
-	Radius "16"
-	WakeSound "none"
-	AttackSound "none"
-	PainSound "none"
-	DeathSound "none"
-	ActiveSound "none"
+	DoomEdNum "85";
+	DeHackEdNum "79";
+	MTName "MT_MISC29";
+	SpawnHealth "1000";
+	Damage "0";
+	ReactionTime "8";
+	Mass "100";
+	Speed "0";
+	PainChance "0";
+	Height "72";
+	Radius "16";
+	WakeSound "none";
+	AttackSound "none";
+	PainSound "none";
+	DeathSound "none";
+	ActiveSound "none";
 	
-	IsSolid "true"
+	IsSolid "true";
 	
 	State "SpawnState"
 	{
@@ -12286,24 +12286,24 @@ MapObject "TechLamp1"
 // Object -- TechLamp2
 MapObject "TechLamp2"
 {
-	DoomEdNum "86"
-	DeHackEdNum "80"
-	MTName "MT_MISC30"
-	SpawnHealth "1000"
-	Damage "0"
-	ReactionTime "8"
-	Mass "100"
-	Speed "0"
-	PainChance "0"
-	Height "56"
-	Radius "16"
-	WakeSound "none"
-	AttackSound "none"
-	PainSound "none"
-	DeathSound "none"
-	ActiveSound "none"
+	DoomEdNum "86";
+	DeHackEdNum "80";
+	MTName "MT_MISC30";
+	SpawnHealth "1000";
+	Damage "0";
+	ReactionTime "8";
+	Mass "100";
+	Speed "0";
+	PainChance "0";
+	Height "56";
+	Radius "16";
+	WakeSound "none";
+	AttackSound "none";
+	PainSound "none";
+	DeathSound "none";
+	ActiveSound "none";
 	
-	IsSolid "true"
+	IsSolid "true";
 	
 	State "SpawnState"
 	{
@@ -12356,24 +12356,24 @@ MapObject "TechLamp2"
 // Object -- ShortLamp
 MapObject "ShortLamp"
 {
-	DoomEdNum "2028"
-	DeHackEdNum "81"
-	MTName "MT_MISC31"
-	SpawnHealth "1000"
-	Damage "0"
-	ReactionTime "8"
-	Mass "100"
-	Speed "0"
-	PainChance "0"
-	Height "48"
-	Radius "16"
-	WakeSound "none"
-	AttackSound "none"
-	PainSound "none"
-	DeathSound "none"
-	ActiveSound "none"
+	DoomEdNum "2028";
+	DeHackEdNum "81";
+	MTName "MT_MISC31";
+	SpawnHealth "1000";
+	Damage "0";
+	ReactionTime "8";
+	Mass "100";
+	Speed "0";
+	PainChance "0";
+	Height "48";
+	Radius "16";
+	WakeSound "none";
+	AttackSound "none";
+	PainSound "none";
+	DeathSound "none";
+	ActiveSound "none";
 	
-	IsSolid "true"
+	IsSolid "true";
 	
 	State "SpawnState"
 	{
@@ -12393,24 +12393,24 @@ MapObject "ShortLamp"
 // Object -- GreenTallColumn
 MapObject "GreenTallColumn"
 {
-	DoomEdNum "30"
-	DeHackEdNum "82"
-	MTName "MT_MISC32"
-	SpawnHealth "1000"
-	Damage "0"
-	ReactionTime "8"
-	Mass "100"
-	Speed "0"
-	PainChance "0"
-	Height "52"
-	Radius "16"
-	WakeSound "none"
-	AttackSound "none"
-	PainSound "none"
-	DeathSound "none"
-	ActiveSound "none"
+	DoomEdNum "30";
+	DeHackEdNum "82";
+	MTName "MT_MISC32";
+	SpawnHealth "1000";
+	Damage "0";
+	ReactionTime "8";
+	Mass "100";
+	Speed "0";
+	PainChance "0";
+	Height "52";
+	Radius "16";
+	WakeSound "none";
+	AttackSound "none";
+	PainSound "none";
+	DeathSound "none";
+	ActiveSound "none";
 	
-	IsSolid "true"
+	IsSolid "true";
 	
 	State "SpawnState"
 	{
@@ -12429,24 +12429,24 @@ MapObject "GreenTallColumn"
 // Object -- GreenShortColumn
 MapObject "GreenShortColumn"
 {
-	DoomEdNum "31"
-	DeHackEdNum "83"
-	MTName "MT_MISC33"
-	SpawnHealth "1000"
-	Damage "0"
-	ReactionTime "8"
-	Mass "100"
-	Speed "0"
-	PainChance "0"
-	Height "40"
-	Radius "16"
-	WakeSound "none"
-	AttackSound "none"
-	PainSound "none"
-	DeathSound "none"
-	ActiveSound "none"
+	DoomEdNum "31";
+	DeHackEdNum "83";
+	MTName "MT_MISC33";
+	SpawnHealth "1000";
+	Damage "0";
+	ReactionTime "8";
+	Mass "100";
+	Speed "0";
+	PainChance "0";
+	Height "40";
+	Radius "16";
+	WakeSound "none";
+	AttackSound "none";
+	PainSound "none";
+	DeathSound "none";
+	ActiveSound "none";
 	
-	IsSolid "true"
+	IsSolid "true";
 	
 	State "SpawnState"
 	{
@@ -12465,24 +12465,24 @@ MapObject "GreenShortColumn"
 // Object -- RedTallColumn
 MapObject "RedTallColumn"
 {
-	DoomEdNum "32"
-	DeHackEdNum "84"
-	MTName "MT_MISC34"
-	SpawnHealth "1000"
-	Damage "0"
-	ReactionTime "8"
-	Mass "100"
-	Speed "0"
-	PainChance "0"
-	Height "52"
-	Radius "16"
-	WakeSound "none"
-	AttackSound "none"
-	PainSound "none"
-	DeathSound "none"
-	ActiveSound "none"
+	DoomEdNum "32";
+	DeHackEdNum "84";
+	MTName "MT_MISC34";
+	SpawnHealth "1000";
+	Damage "0";
+	ReactionTime "8";
+	Mass "100";
+	Speed "0";
+	PainChance "0";
+	Height "52";
+	Radius "16";
+	WakeSound "none";
+	AttackSound "none";
+	PainSound "none";
+	DeathSound "none";
+	ActiveSound "none";
 	
-	IsSolid "true"
+	IsSolid "true";
 	
 	State "SpawnState"
 	{
@@ -12501,24 +12501,24 @@ MapObject "RedTallColumn"
 // Object -- RedShortColumn
 MapObject "RedShortColumn"
 {
-	DoomEdNum "33"
-	DeHackEdNum "85"
-	MTName "MT_MISC35"
-	SpawnHealth "1000"
-	Damage "0"
-	ReactionTime "8"
-	Mass "100"
-	Speed "0"
-	PainChance "0"
-	Height "40"
-	Radius "16"
-	WakeSound "none"
-	AttackSound "none"
-	PainSound "none"
-	DeathSound "none"
-	ActiveSound "none"
+	DoomEdNum "33";
+	DeHackEdNum "85";
+	MTName "MT_MISC35";
+	SpawnHealth "1000";
+	Damage "0";
+	ReactionTime "8";
+	Mass "100";
+	Speed "0";
+	PainChance "0";
+	Height "40";
+	Radius "16";
+	WakeSound "none";
+	AttackSound "none";
+	PainSound "none";
+	DeathSound "none";
+	ActiveSound "none";
 	
-	IsSolid "true"
+	IsSolid "true";
 	
 	State "SpawnState"
 	{
@@ -12537,24 +12537,24 @@ MapObject "RedShortColumn"
 // Object -- RedSkullColumn
 MapObject "RedSkullColumn"
 {
-	DoomEdNum "37"
-	DeHackEdNum "86"
-	MTName "MT_MISC36"
-	SpawnHealth "1000"
-	Damage "0"
-	ReactionTime "8"
-	Mass "100"
-	Speed "0"
-	PainChance "0"
-	Height "40"
-	Radius "16"
-	WakeSound "none"
-	AttackSound "none"
-	PainSound "none"
-	DeathSound "none"
-	ActiveSound "none"
+	DoomEdNum "37";
+	DeHackEdNum "86";
+	MTName "MT_MISC36";
+	SpawnHealth "1000";
+	Damage "0";
+	ReactionTime "8";
+	Mass "100";
+	Speed "0";
+	PainChance "0";
+	Height "40";
+	Radius "16";
+	WakeSound "none";
+	AttackSound "none";
+	PainSound "none";
+	DeathSound "none";
+	ActiveSound "none";
 	
-	IsSolid "true"
+	IsSolid "true";
 	
 	State "SpawnState"
 	{
@@ -12573,24 +12573,24 @@ MapObject "RedSkullColumn"
 // Object -- GreenHeartColumn
 MapObject "GreenHeartColumn"
 {
-	DoomEdNum "36"
-	DeHackEdNum "87"
-	MTName "MT_MISC37"
-	SpawnHealth "1000"
-	Damage "0"
-	ReactionTime "8"
-	Mass "100"
-	Speed "0"
-	PainChance "0"
-	Height "40"
-	Radius "16"
-	WakeSound "none"
-	AttackSound "none"
-	PainSound "none"
-	DeathSound "none"
-	ActiveSound "none"
+	DoomEdNum "36";
+	DeHackEdNum "87";
+	MTName "MT_MISC37";
+	SpawnHealth "1000";
+	Damage "0";
+	ReactionTime "8";
+	Mass "100";
+	Speed "0";
+	PainChance "0";
+	Height "40";
+	Radius "16";
+	WakeSound "none";
+	AttackSound "none";
+	PainSound "none";
+	DeathSound "none";
+	ActiveSound "none";
 	
-	IsSolid "true"
+	IsSolid "true";
 	
 	State "SpawnState"
 	{
@@ -12619,24 +12619,24 @@ MapObject "GreenHeartColumn"
 // Object -- EvilEye
 MapObject "EvilEye"
 {
-	DoomEdNum "41"
-	DeHackEdNum "88"
-	MTName "MT_MISC38"
-	SpawnHealth "1000"
-	Damage "0"
-	ReactionTime "8"
-	Mass "100"
-	Speed "0"
-	PainChance "0"
-	Height "16"
-	Radius "16"
-	WakeSound "none"
-	AttackSound "none"
-	PainSound "none"
-	DeathSound "none"
-	ActiveSound "none"
+	DoomEdNum "41";
+	DeHackEdNum "88";
+	MTName "MT_MISC38";
+	SpawnHealth "1000";
+	Damage "0";
+	ReactionTime "8";
+	Mass "100";
+	Speed "0";
+	PainChance "0";
+	Height "16";
+	Radius "16";
+	WakeSound "none";
+	AttackSound "none";
+	PainSound "none";
+	DeathSound "none";
+	ActiveSound "none";
 	
-	IsSolid "true"
+	IsSolid "true";
 	
 	State "SpawnState"
 	{
@@ -12693,24 +12693,24 @@ MapObject "EvilEye"
 // Object -- FloatingSkulls
 MapObject "FloatingSkulls"
 {
-	DoomEdNum "42"
-	DeHackEdNum "89"
-	MTName "MT_MISC39"
-	SpawnHealth "1000"
-	Damage "0"
-	ReactionTime "8"
-	Mass "100"
-	Speed "0"
-	PainChance "0"
-	Height "48"
-	Radius "16"
-	WakeSound "none"
-	AttackSound "none"
-	PainSound "none"
-	DeathSound "none"
-	ActiveSound "none"
+	DoomEdNum "42";
+	DeHackEdNum "89";
+	MTName "MT_MISC39";
+	SpawnHealth "1000";
+	Damage "0";
+	ReactionTime "8";
+	Mass "100";
+	Speed "0";
+	PainChance "0";
+	Height "48";
+	Radius "16";
+	WakeSound "none";
+	AttackSound "none";
+	PainSound "none";
+	DeathSound "none";
+	ActiveSound "none";
 	
-	IsSolid "true"
+	IsSolid "true";
 	
 	State "SpawnState"
 	{
@@ -12752,24 +12752,24 @@ MapObject "FloatingSkulls"
 // Object -- GrayShortTree
 MapObject "GrayShortTree"
 {
-	DoomEdNum "43"
-	DeHackEdNum "90"
-	MTName "MT_MISC40"
-	SpawnHealth "1000"
-	Damage "0"
-	ReactionTime "8"
-	Mass "100"
-	Speed "0"
-	PainChance "0"
-	Height "64"
-	Radius "16"
-	WakeSound "none"
-	AttackSound "none"
-	PainSound "none"
-	DeathSound "none"
-	ActiveSound "none"
+	DoomEdNum "43";
+	DeHackEdNum "90";
+	MTName "MT_MISC40";
+	SpawnHealth "1000";
+	Damage "0";
+	ReactionTime "8";
+	Mass "100";
+	Speed "0";
+	PainChance "0";
+	Height "64";
+	Radius "16";
+	WakeSound "none";
+	AttackSound "none";
+	PainSound "none";
+	DeathSound "none";
+	ActiveSound "none";
 	
-	IsSolid "true"
+	IsSolid "true";
 	
 	State "SpawnState"
 	{
@@ -12788,24 +12788,24 @@ MapObject "GrayShortTree"
 // Object -- BlueTallTorch
 MapObject "BlueTallTorch"
 {
-	DoomEdNum "44"
-	DeHackEdNum "91"
-	MTName "MT_MISC41"
-	SpawnHealth "1000"
-	Damage "0"
-	ReactionTime "8"
-	Mass "100"
-	Speed "0"
-	PainChance "0"
-	Height "64"
-	Radius "16"
-	WakeSound "none"
-	AttackSound "none"
-	PainSound "none"
-	DeathSound "none"
-	ActiveSound "none"
+	DoomEdNum "44";
+	DeHackEdNum "91";
+	MTName "MT_MISC41";
+	SpawnHealth "1000";
+	Damage "0";
+	ReactionTime "8";
+	Mass "100";
+	Speed "0";
+	PainChance "0";
+	Height "64";
+	Radius "16";
+	WakeSound "none";
+	AttackSound "none";
+	PainSound "none";
+	DeathSound "none";
+	ActiveSound "none";
 	
-	IsSolid "true"
+	IsSolid "true";
 	
 	State "SpawnState"
 	{
@@ -12858,24 +12858,24 @@ MapObject "BlueTallTorch"
 // Object -- GreenTallTorch
 MapObject "GreenTallTorch"
 {
-	DoomEdNum "45"
-	DeHackEdNum "92"
-	MTName "MT_MISC42"
-	SpawnHealth "1000"
-	Damage "0"
-	ReactionTime "8"
-	Mass "100"
-	Speed "0"
-	PainChance "0"
-	Height "64"
-	Radius "16"
-	WakeSound "none"
-	AttackSound "none"
-	PainSound "none"
-	DeathSound "none"
-	ActiveSound "none"
+	DoomEdNum "45";
+	DeHackEdNum "92";
+	MTName "MT_MISC42";
+	SpawnHealth "1000";
+	Damage "0";
+	ReactionTime "8";
+	Mass "100";
+	Speed "0";
+	PainChance "0";
+	Height "64";
+	Radius "16";
+	WakeSound "none";
+	AttackSound "none";
+	PainSound "none";
+	DeathSound "none";
+	ActiveSound "none";
 	
-	IsSolid "true"
+	IsSolid "true";
 	
 	State "SpawnState"
 	{
@@ -12932,24 +12932,24 @@ MapObject "GreenTallTorch"
 // Object -- RedTallTorch
 MapObject "RedTallTorch"
 {
-	DoomEdNum "46"
-	DeHackEdNum "93"
-	MTName "MT_MISC43"
-	SpawnHealth "1000"
-	Damage "0"
-	ReactionTime "8"
-	Mass "100"
-	Speed "0"
-	PainChance "0"
-	Height "64"
-	Radius "16"
-	WakeSound "none"
-	AttackSound "none"
-	PainSound "none"
-	DeathSound "none"
-	ActiveSound "none"
+	DoomEdNum "46";
+	DeHackEdNum "93";
+	MTName "MT_MISC43";
+	SpawnHealth "1000";
+	Damage "0";
+	ReactionTime "8";
+	Mass "100";
+	Speed "0";
+	PainChance "0";
+	Height "64";
+	Radius "16";
+	WakeSound "none";
+	AttackSound "none";
+	PainSound "none";
+	DeathSound "none";
+	ActiveSound "none";
 	
-	IsSolid "true"
+	IsSolid "true";
 	
 	State "SpawnState"
 	{
@@ -13006,24 +13006,24 @@ MapObject "RedTallTorch"
 // Object -- BlueShortTorch
 MapObject "BlueShortTorch"
 {
-	DoomEdNum "55"
-	DeHackEdNum "94"
-	MTName "MT_MISC44"
-	SpawnHealth "1000"
-	Damage "0"
-	ReactionTime "8"
-	Mass "100"
-	Speed "0"
-	PainChance "0"
-	Height "40"
-	Radius "16"
-	WakeSound "none"
-	AttackSound "none"
-	PainSound "none"
-	DeathSound "none"
-	ActiveSound "none"
+	DoomEdNum "55";
+	DeHackEdNum "94";
+	MTName "MT_MISC44";
+	SpawnHealth "1000";
+	Damage "0";
+	ReactionTime "8";
+	Mass "100";
+	Speed "0";
+	PainChance "0";
+	Height "40";
+	Radius "16";
+	WakeSound "none";
+	AttackSound "none";
+	PainSound "none";
+	DeathSound "none";
+	ActiveSound "none";
 	
-	IsSolid "true"
+	IsSolid "true";
 	
 	State "SpawnState"
 	{
@@ -13076,24 +13076,24 @@ MapObject "BlueShortTorch"
 // Object -- GreenShortTorch
 MapObject "GreenShortTorch"
 {
-	DoomEdNum "56"
-	DeHackEdNum "95"
-	MTName "MT_MISC45"
-	SpawnHealth "1000"
-	Damage "0"
-	ReactionTime "8"
-	Mass "100"
-	Speed "0"
-	PainChance "0"
-	Height "40"
-	Radius "16"
-	WakeSound "none"
-	AttackSound "none"
-	PainSound "none"
-	DeathSound "none"
-	ActiveSound "none"
+	DoomEdNum "56";
+	DeHackEdNum "95";
+	MTName "MT_MISC45";
+	SpawnHealth "1000";
+	Damage "0";
+	ReactionTime "8";
+	Mass "100";
+	Speed "0";
+	PainChance "0";
+	Height "40";
+	Radius "16";
+	WakeSound "none";
+	AttackSound "none";
+	PainSound "none";
+	DeathSound "none";
+	ActiveSound "none";
 	
-	IsSolid "true"
+	IsSolid "true";
 	
 	State "SpawnState"
 	{
@@ -13150,24 +13150,24 @@ MapObject "GreenShortTorch"
 // Object -- RedShortTorch
 MapObject "RedShortTorch"
 {
-	DoomEdNum "57"
-	DeHackEdNum "96"
-	MTName "MT_MISC46"
-	SpawnHealth "1000"
-	Damage "0"
-	ReactionTime "8"
-	Mass "100"
-	Speed "0"
-	PainChance "0"
-	Height "40"
-	Radius "16"
-	WakeSound "none"
-	AttackSound "none"
-	PainSound "none"
-	DeathSound "none"
-	ActiveSound "none"
+	DoomEdNum "57";
+	DeHackEdNum "96";
+	MTName "MT_MISC46";
+	SpawnHealth "1000";
+	Damage "0";
+	ReactionTime "8";
+	Mass "100";
+	Speed "0";
+	PainChance "0";
+	Height "40";
+	Radius "16";
+	WakeSound "none";
+	AttackSound "none";
+	PainSound "none";
+	DeathSound "none";
+	ActiveSound "none";
 	
-	IsSolid "true"
+	IsSolid "true";
 	
 	State "SpawnState"
 	{
@@ -13224,24 +13224,24 @@ MapObject "RedShortTorch"
 // Object -- ThornySpikes
 MapObject "ThornySpikes"
 {
-	DoomEdNum "47"
-	DeHackEdNum "97"
-	MTName "MT_MISC47"
-	SpawnHealth "1000"
-	Damage "0"
-	ReactionTime "8"
-	Mass "100"
-	Speed "0"
-	PainChance "0"
-	Height "40"
-	Radius "16"
-	WakeSound "none"
-	AttackSound "none"
-	PainSound "none"
-	DeathSound "none"
-	ActiveSound "none"
+	DoomEdNum "47";
+	DeHackEdNum "97";
+	MTName "MT_MISC47";
+	SpawnHealth "1000";
+	Damage "0";
+	ReactionTime "8";
+	Mass "100";
+	Speed "0";
+	PainChance "0";
+	Height "40";
+	Radius "16";
+	WakeSound "none";
+	AttackSound "none";
+	PainSound "none";
+	DeathSound "none";
+	ActiveSound "none";
 	
-	IsSolid "true"
+	IsSolid "true";
 	
 	State "SpawnState"
 	{
@@ -13260,24 +13260,24 @@ MapObject "ThornySpikes"
 // Object -- TechPillar
 MapObject "TechPillar"
 {
-	DoomEdNum "48"
-	DeHackEdNum "98"
-	MTName "MT_MISC48"
-	SpawnHealth "1000"
-	Damage "0"
-	ReactionTime "8"
-	Mass "100"
-	Speed "0"
-	PainChance "0"
-	Height "120"
-	Radius "16"
-	WakeSound "none"
-	AttackSound "none"
-	PainSound "none"
-	DeathSound "none"
-	ActiveSound "none"
+	DoomEdNum "48";
+	DeHackEdNum "98";
+	MTName "MT_MISC48";
+	SpawnHealth "1000";
+	Damage "0";
+	ReactionTime "8";
+	Mass "100";
+	Speed "0";
+	PainChance "0";
+	Height "120";
+	Radius "16";
+	WakeSound "none";
+	AttackSound "none";
+	PainSound "none";
+	DeathSound "none";
+	ActiveSound "none";
 	
-	IsSolid "true"
+	IsSolid "true";
 	
 	State "SpawnState"
 	{
@@ -13296,22 +13296,22 @@ MapObject "TechPillar"
 // Object -- BlackCandle
 MapObject "BlackCandle"
 {
-	DoomEdNum "34"
-	DeHackEdNum "99"
-	MTName "MT_MISC49"
-	SpawnHealth "1000"
-	Damage "0"
-	ReactionTime "8"
-	Mass "100"
-	Speed "0"
-	PainChance "0"
-	Height "16"
-	Radius "20"
-	WakeSound "none"
-	AttackSound "none"
-	PainSound "none"
-	DeathSound "none"
-	ActiveSound "none"
+	DoomEdNum "34";
+	DeHackEdNum "99";
+	MTName "MT_MISC49";
+	SpawnHealth "1000";
+	Damage "0";
+	ReactionTime "8";
+	Mass "100";
+	Speed "0";
+	PainChance "0";
+	Height "16";
+	Radius "20";
+	WakeSound "none";
+	AttackSound "none";
+	PainSound "none";
+	DeathSound "none";
+	ActiveSound "none";
 	
 	
 	State "SpawnState"
@@ -13332,24 +13332,24 @@ MapObject "BlackCandle"
 // Object -- Candelabra
 MapObject "Candelabra"
 {
-	DoomEdNum "35"
-	DeHackEdNum "100"
-	MTName "MT_MISC50"
-	SpawnHealth "1000"
-	Damage "0"
-	ReactionTime "8"
-	Mass "100"
-	Speed "0"
-	PainChance "0"
-	Height "56"
-	Radius "16"
-	WakeSound "none"
-	AttackSound "none"
-	PainSound "none"
-	DeathSound "none"
-	ActiveSound "none"
+	DoomEdNum "35";
+	DeHackEdNum "100";
+	MTName "MT_MISC50";
+	SpawnHealth "1000";
+	Damage "0";
+	ReactionTime "8";
+	Mass "100";
+	Speed "0";
+	PainChance "0";
+	Height "56";
+	Radius "16";
+	WakeSound "none";
+	AttackSound "none";
+	PainSound "none";
+	DeathSound "none";
+	ActiveSound "none";
 	
-	IsSolid "true"
+	IsSolid "true";
 	
 	State "SpawnState"
 	{
@@ -13369,26 +13369,26 @@ MapObject "Candelabra"
 // Object -- HangingBodyTwitch
 MapObject "HangingBodyTwitch"
 {
-	DoomEdNum "49"
-	DeHackEdNum "101"
-	MTName "MT_MISC51"
-	SpawnHealth "1000"
-	Damage "0"
-	ReactionTime "8"
-	Mass "100"
-	Speed "0"
-	PainChance "0"
-	Height "68"
-	Radius "16"
-	WakeSound "none"
-	AttackSound "none"
-	PainSound "none"
-	DeathSound "none"
-	ActiveSound "none"
+	DoomEdNum "49";
+	DeHackEdNum "101";
+	MTName "MT_MISC51";
+	SpawnHealth "1000";
+	Damage "0";
+	ReactionTime "8";
+	Mass "100";
+	Speed "0";
+	PainChance "0";
+	Height "68";
+	Radius "16";
+	WakeSound "none";
+	AttackSound "none";
+	PainSound "none";
+	DeathSound "none";
+	ActiveSound "none";
 	
-	IsSolid "true"
-	SpawnsOnCeiling "true"
-	NoGravity "true"
+	IsSolid "true";
+	SpawnsOnCeiling "true";
+	NoGravity "true";
 	
 	State "SpawnState"
 	{
@@ -13437,26 +13437,26 @@ MapObject "HangingBodyTwitch"
 // Object -- HangingBodyJacket
 MapObject "HangingBodyJacket"
 {
-	DoomEdNum "50"
-	DeHackEdNum "102"
-	MTName "MT_MISC52"
-	SpawnHealth "1000"
-	Damage "0"
-	ReactionTime "8"
-	Mass "100"
-	Speed "0"
-	PainChance "0"
-	Height "84"
-	Radius "16"
-	WakeSound "none"
-	AttackSound "none"
-	PainSound "none"
-	DeathSound "none"
-	ActiveSound "none"
+	DoomEdNum "50";
+	DeHackEdNum "102";
+	MTName "MT_MISC52";
+	SpawnHealth "1000";
+	Damage "0";
+	ReactionTime "8";
+	Mass "100";
+	Speed "0";
+	PainChance "0";
+	Height "84";
+	Radius "16";
+	WakeSound "none";
+	AttackSound "none";
+	PainSound "none";
+	DeathSound "none";
+	ActiveSound "none";
 	
-	IsSolid "true"
-	SpawnsOnCeiling "true"
-	NoGravity "true"
+	IsSolid "true";
+	SpawnsOnCeiling "true";
+	NoGravity "true";
 	
 	State "SpawnState"
 	{
@@ -13475,26 +13475,26 @@ MapObject "HangingBodyJacket"
 // Object -- HangingBodyNoLeg
 MapObject "HangingBodyNoLeg"
 {
-	DoomEdNum "51"
-	DeHackEdNum "103"
-	MTName "MT_MISC53"
-	SpawnHealth "1000"
-	Damage "0"
-	ReactionTime "8"
-	Mass "100"
-	Speed "0"
-	PainChance "0"
-	Height "84"
-	Radius "16"
-	WakeSound "none"
-	AttackSound "none"
-	PainSound "none"
-	DeathSound "none"
-	ActiveSound "none"
+	DoomEdNum "51";
+	DeHackEdNum "103";
+	MTName "MT_MISC53";
+	SpawnHealth "1000";
+	Damage "0";
+	ReactionTime "8";
+	Mass "100";
+	Speed "0";
+	PainChance "0";
+	Height "84";
+	Radius "16";
+	WakeSound "none";
+	AttackSound "none";
+	PainSound "none";
+	DeathSound "none";
+	ActiveSound "none";
 	
-	IsSolid "true"
-	SpawnsOnCeiling "true"
-	NoGravity "true"
+	IsSolid "true";
+	SpawnsOnCeiling "true";
+	NoGravity "true";
 	
 	State "SpawnState"
 	{
@@ -13513,26 +13513,26 @@ MapObject "HangingBodyNoLeg"
 // Object -- HangingBodyTorso
 MapObject "HangingBodyTorso"
 {
-	DoomEdNum "52"
-	DeHackEdNum "104"
-	MTName "MT_MISC54"
-	SpawnHealth "1000"
-	Damage "0"
-	ReactionTime "8"
-	Mass "100"
-	Speed "0"
-	PainChance "0"
-	Height "68"
-	Radius "16"
-	WakeSound "none"
-	AttackSound "none"
-	PainSound "none"
-	DeathSound "none"
-	ActiveSound "none"
+	DoomEdNum "52";
+	DeHackEdNum "104";
+	MTName "MT_MISC54";
+	SpawnHealth "1000";
+	Damage "0";
+	ReactionTime "8";
+	Mass "100";
+	Speed "0";
+	PainChance "0";
+	Height "68";
+	Radius "16";
+	WakeSound "none";
+	AttackSound "none";
+	PainSound "none";
+	DeathSound "none";
+	ActiveSound "none";
 	
-	IsSolid "true"
-	SpawnsOnCeiling "true"
-	NoGravity "true"
+	IsSolid "true";
+	SpawnsOnCeiling "true";
+	NoGravity "true";
 	
 	State "SpawnState"
 	{
@@ -13551,26 +13551,26 @@ MapObject "HangingBodyTorso"
 // Object -- HangingBodyLeg
 MapObject "HangingBodyLeg"
 {
-	DoomEdNum "53"
-	DeHackEdNum "105"
-	MTName "MT_MISC55"
-	SpawnHealth "1000"
-	Damage "0"
-	ReactionTime "8"
-	Mass "100"
-	Speed "0"
-	PainChance "0"
-	Height "52"
-	Radius "16"
-	WakeSound "none"
-	AttackSound "none"
-	PainSound "none"
-	DeathSound "none"
-	ActiveSound "none"
+	DoomEdNum "53";
+	DeHackEdNum "105";
+	MTName "MT_MISC55";
+	SpawnHealth "1000";
+	Damage "0";
+	ReactionTime "8";
+	Mass "100";
+	Speed "0";
+	PainChance "0";
+	Height "52";
+	Radius "16";
+	WakeSound "none";
+	AttackSound "none";
+	PainSound "none";
+	DeathSound "none";
+	ActiveSound "none";
 	
-	IsSolid "true"
-	SpawnsOnCeiling "true"
-	NoGravity "true"
+	IsSolid "true";
+	SpawnsOnCeiling "true";
+	NoGravity "true";
 	
 	State "SpawnState"
 	{
@@ -13589,25 +13589,25 @@ MapObject "HangingBodyLeg"
 // Object -- HangingBodyJacketPass
 MapObject "HangingBodyJacketPass"
 {
-	DoomEdNum "59"
-	DeHackEdNum "106"
-	MTName "MT_MISC56"
-	SpawnHealth "1000"
-	Damage "0"
-	ReactionTime "8"
-	Mass "100"
-	Speed "0"
-	PainChance "0"
-	Height "84"
-	Radius "20"
-	WakeSound "none"
-	AttackSound "none"
-	PainSound "none"
-	DeathSound "none"
-	ActiveSound "none"
+	DoomEdNum "59";
+	DeHackEdNum "106";
+	MTName "MT_MISC56";
+	SpawnHealth "1000";
+	Damage "0";
+	ReactionTime "8";
+	Mass "100";
+	Speed "0";
+	PainChance "0";
+	Height "84";
+	Radius "20";
+	WakeSound "none";
+	AttackSound "none";
+	PainSound "none";
+	DeathSound "none";
+	ActiveSound "none";
 	
-	SpawnsOnCeiling "true"
-	NoGravity "true"
+	SpawnsOnCeiling "true";
+	NoGravity "true";
 	
 	State "SpawnState"
 	{
@@ -13626,25 +13626,25 @@ MapObject "HangingBodyJacketPass"
 // Object -- HangingBodyTorsoPass
 MapObject "HangingBodyTorsoPass"
 {
-	DoomEdNum "60"
-	DeHackEdNum "107"
-	MTName "MT_MISC57"
-	SpawnHealth "1000"
-	Damage "0"
-	ReactionTime "8"
-	Mass "100"
-	Speed "0"
-	PainChance "0"
-	Height "68"
-	Radius "20"
-	WakeSound "none"
-	AttackSound "none"
-	PainSound "none"
-	DeathSound "none"
-	ActiveSound "none"
+	DoomEdNum "60";
+	DeHackEdNum "107";
+	MTName "MT_MISC57";
+	SpawnHealth "1000";
+	Damage "0";
+	ReactionTime "8";
+	Mass "100";
+	Speed "0";
+	PainChance "0";
+	Height "68";
+	Radius "20";
+	WakeSound "none";
+	AttackSound "none";
+	PainSound "none";
+	DeathSound "none";
+	ActiveSound "none";
 	
-	SpawnsOnCeiling "true"
-	NoGravity "true"
+	SpawnsOnCeiling "true";
+	NoGravity "true";
 	
 	State "SpawnState"
 	{
@@ -13663,25 +13663,25 @@ MapObject "HangingBodyTorsoPass"
 // Object -- HangingBodyNoLegPass
 MapObject "HangingBodyNoLegPass"
 {
-	DoomEdNum "61"
-	DeHackEdNum "108"
-	MTName "MT_MISC58"
-	SpawnHealth "1000"
-	Damage "0"
-	ReactionTime "8"
-	Mass "100"
-	Speed "0"
-	PainChance "0"
-	Height "52"
-	Radius "20"
-	WakeSound "none"
-	AttackSound "none"
-	PainSound "none"
-	DeathSound "none"
-	ActiveSound "none"
+	DoomEdNum "61";
+	DeHackEdNum "108";
+	MTName "MT_MISC58";
+	SpawnHealth "1000";
+	Damage "0";
+	ReactionTime "8";
+	Mass "100";
+	Speed "0";
+	PainChance "0";
+	Height "52";
+	Radius "20";
+	WakeSound "none";
+	AttackSound "none";
+	PainSound "none";
+	DeathSound "none";
+	ActiveSound "none";
 	
-	SpawnsOnCeiling "true"
-	NoGravity "true"
+	SpawnsOnCeiling "true";
+	NoGravity "true";
 	
 	State "SpawnState"
 	{
@@ -13700,25 +13700,25 @@ MapObject "HangingBodyNoLegPass"
 // Object -- HangingBodyLegPass
 MapObject "HangingBodyLegPass"
 {
-	DoomEdNum "62"
-	DeHackEdNum "109"
-	MTName "MT_MISC59"
-	SpawnHealth "1000"
-	Damage "0"
-	ReactionTime "8"
-	Mass "100"
-	Speed "0"
-	PainChance "0"
-	Height "52"
-	Radius "20"
-	WakeSound "none"
-	AttackSound "none"
-	PainSound "none"
-	DeathSound "none"
-	ActiveSound "none"
+	DoomEdNum "62";
+	DeHackEdNum "109";
+	MTName "MT_MISC59";
+	SpawnHealth "1000";
+	Damage "0";
+	ReactionTime "8";
+	Mass "100";
+	Speed "0";
+	PainChance "0";
+	Height "52";
+	Radius "20";
+	WakeSound "none";
+	AttackSound "none";
+	PainSound "none";
+	DeathSound "none";
+	ActiveSound "none";
 	
-	SpawnsOnCeiling "true"
-	NoGravity "true"
+	SpawnsOnCeiling "true";
+	NoGravity "true";
 	
 	State "SpawnState"
 	{
@@ -13737,25 +13737,25 @@ MapObject "HangingBodyLegPass"
 // Object -- HangingBodyTwitchPass
 MapObject "HangingBodyTwitchPass"
 {
-	DoomEdNum "63"
-	DeHackEdNum "110"
-	MTName "MT_MISC60"
-	SpawnHealth "1000"
-	Damage "0"
-	ReactionTime "8"
-	Mass "100"
-	Speed "0"
-	PainChance "0"
-	Height "68"
-	Radius "20"
-	WakeSound "none"
-	AttackSound "none"
-	PainSound "none"
-	DeathSound "none"
-	ActiveSound "none"
+	DoomEdNum "63";
+	DeHackEdNum "110";
+	MTName "MT_MISC60";
+	SpawnHealth "1000";
+	Damage "0";
+	ReactionTime "8";
+	Mass "100";
+	Speed "0";
+	PainChance "0";
+	Height "68";
+	Radius "20";
+	WakeSound "none";
+	AttackSound "none";
+	PainSound "none";
+	DeathSound "none";
+	ActiveSound "none";
 	
-	SpawnsOnCeiling "true"
-	NoGravity "true"
+	SpawnsOnCeiling "true";
+	NoGravity "true";
 	
 	State "SpawnState"
 	{
@@ -13804,22 +13804,22 @@ MapObject "HangingBodyTwitchPass"
 // Object -- DeadCacodemon
 MapObject "DeadCacodemon"
 {
-	DoomEdNum "22"
-	DeHackEdNum "111"
-	MTName "MT_MISC61"
-	SpawnHealth "1000"
-	Damage "0"
-	ReactionTime "8"
-	Mass "100"
-	Speed "0"
-	PainChance "0"
-	Height "16"
-	Radius "20"
-	WakeSound "none"
-	AttackSound "none"
-	PainSound "none"
-	DeathSound "none"
-	ActiveSound "none"
+	DoomEdNum "22";
+	DeHackEdNum "111";
+	MTName "MT_MISC61";
+	SpawnHealth "1000";
+	Damage "0";
+	ReactionTime "8";
+	Mass "100";
+	Speed "0";
+	PainChance "0";
+	Height "16";
+	Radius "20";
+	WakeSound "none";
+	AttackSound "none";
+	PainSound "none";
+	DeathSound "none";
+	ActiveSound "none";
 	
 	
 	State "SpawnState"
@@ -13839,22 +13839,22 @@ MapObject "DeadCacodemon"
 // Object -- DeadPlayer
 MapObject "DeadPlayer"
 {
-	DoomEdNum "15"
-	DeHackEdNum "112"
-	MTName "MT_MISC62"
-	SpawnHealth "1000"
-	Damage "0"
-	ReactionTime "8"
-	Mass "100"
-	Speed "0"
-	PainChance "0"
-	Height "16"
-	Radius "20"
-	WakeSound "none"
-	AttackSound "none"
-	PainSound "none"
-	DeathSound "none"
-	ActiveSound "none"
+	DoomEdNum "15";
+	DeHackEdNum "112";
+	MTName "MT_MISC62";
+	SpawnHealth "1000";
+	Damage "0";
+	ReactionTime "8";
+	Mass "100";
+	Speed "0";
+	PainChance "0";
+	Height "16";
+	Radius "20";
+	WakeSound "none";
+	AttackSound "none";
+	PainSound "none";
+	DeathSound "none";
+	ActiveSound "none";
 	
 	
 	State "SpawnState"
@@ -13874,22 +13874,22 @@ MapObject "DeadPlayer"
 // Object -- DeadZombieman
 MapObject "DeadZombieman"
 {
-	DoomEdNum "18"
-	DeHackEdNum "113"
-	MTName "MT_MISC63"
-	SpawnHealth "1000"
-	Damage "0"
-	ReactionTime "8"
-	Mass "100"
-	Speed "0"
-	PainChance "0"
-	Height "16"
-	Radius "20"
-	WakeSound "none"
-	AttackSound "none"
-	PainSound "none"
-	DeathSound "none"
-	ActiveSound "none"
+	DoomEdNum "18";
+	DeHackEdNum "113";
+	MTName "MT_MISC63";
+	SpawnHealth "1000";
+	Damage "0";
+	ReactionTime "8";
+	Mass "100";
+	Speed "0";
+	PainChance "0";
+	Height "16";
+	Radius "20";
+	WakeSound "none";
+	AttackSound "none";
+	PainSound "none";
+	DeathSound "none";
+	ActiveSound "none";
 	
 	
 	State "SpawnState"
@@ -13909,22 +13909,22 @@ MapObject "DeadZombieman"
 // Object -- DeadDemon
 MapObject "DeadDemon"
 {
-	DoomEdNum "21"
-	DeHackEdNum "114"
-	MTName "MT_MISC64"
-	SpawnHealth "1000"
-	Damage "0"
-	ReactionTime "8"
-	Mass "100"
-	Speed "0"
-	PainChance "0"
-	Height "16"
-	Radius "20"
-	WakeSound "none"
-	AttackSound "none"
-	PainSound "none"
-	DeathSound "none"
-	ActiveSound "none"
+	DoomEdNum "21";
+	DeHackEdNum "114";
+	MTName "MT_MISC64";
+	SpawnHealth "1000";
+	Damage "0";
+	ReactionTime "8";
+	Mass "100";
+	Speed "0";
+	PainChance "0";
+	Height "16";
+	Radius "20";
+	WakeSound "none";
+	AttackSound "none";
+	PainSound "none";
+	DeathSound "none";
+	ActiveSound "none";
 	
 	
 	State "SpawnState"
@@ -13944,22 +13944,22 @@ MapObject "DeadDemon"
 // Object -- DeadLostSoul
 MapObject "DeadLostSoul"
 {
-	DoomEdNum "23"
-	DeHackEdNum "115"
-	MTName "MT_MISC65"
-	SpawnHealth "1000"
-	Damage "0"
-	ReactionTime "8"
-	Mass "100"
-	Speed "0"
-	PainChance "0"
-	Height "16"
-	Radius "20"
-	WakeSound "none"
-	AttackSound "none"
-	PainSound "none"
-	DeathSound "none"
-	ActiveSound "none"
+	DoomEdNum "23";
+	DeHackEdNum "115";
+	MTName "MT_MISC65";
+	SpawnHealth "1000";
+	Damage "0";
+	ReactionTime "8";
+	Mass "100";
+	Speed "0";
+	PainChance "0";
+	Height "16";
+	Radius "20";
+	WakeSound "none";
+	AttackSound "none";
+	PainSound "none";
+	DeathSound "none";
+	ActiveSound "none";
 	
 	
 	State "SpawnState"
@@ -13980,22 +13980,22 @@ MapObject "DeadLostSoul"
 // Object -- DeadImp
 MapObject "DeadImp"
 {
-	DoomEdNum "20"
-	DeHackEdNum "116"
-	MTName "MT_MISC66"
-	SpawnHealth "1000"
-	Damage "0"
-	ReactionTime "8"
-	Mass "100"
-	Speed "0"
-	PainChance "0"
-	Height "16"
-	Radius "20"
-	WakeSound "none"
-	AttackSound "none"
-	PainSound "none"
-	DeathSound "none"
-	ActiveSound "none"
+	DoomEdNum "20";
+	DeHackEdNum "116";
+	MTName "MT_MISC66";
+	SpawnHealth "1000";
+	Damage "0";
+	ReactionTime "8";
+	Mass "100";
+	Speed "0";
+	PainChance "0";
+	Height "16";
+	Radius "20";
+	WakeSound "none";
+	AttackSound "none";
+	PainSound "none";
+	DeathSound "none";
+	ActiveSound "none";
 	
 	
 	State "SpawnState"
@@ -14015,22 +14015,22 @@ MapObject "DeadImp"
 // Object -- DeadSergeant
 MapObject "DeadSergeant"
 {
-	DoomEdNum "19"
-	DeHackEdNum "117"
-	MTName "MT_MISC67"
-	SpawnHealth "1000"
-	Damage "0"
-	ReactionTime "8"
-	Mass "100"
-	Speed "0"
-	PainChance "0"
-	Height "16"
-	Radius "20"
-	WakeSound "none"
-	AttackSound "none"
-	PainSound "none"
-	DeathSound "none"
-	ActiveSound "none"
+	DoomEdNum "19";
+	DeHackEdNum "117";
+	MTName "MT_MISC67";
+	SpawnHealth "1000";
+	Damage "0";
+	ReactionTime "8";
+	Mass "100";
+	Speed "0";
+	PainChance "0";
+	Height "16";
+	Radius "20";
+	WakeSound "none";
+	AttackSound "none";
+	PainSound "none";
+	DeathSound "none";
+	ActiveSound "none";
 	
 	
 	State "SpawnState"
@@ -14050,22 +14050,22 @@ MapObject "DeadSergeant"
 // Object -- DeadPlayerGibs
 MapObject "DeadPlayerGibs"
 {
-	DoomEdNum "10"
-	DeHackEdNum "118"
-	MTName "MT_MISC68"
-	SpawnHealth "1000"
-	Damage "0"
-	ReactionTime "8"
-	Mass "100"
-	Speed "0"
-	PainChance "0"
-	Height "16"
-	Radius "20"
-	WakeSound "none"
-	AttackSound "none"
-	PainSound "none"
-	DeathSound "none"
-	ActiveSound "none"
+	DoomEdNum "10";
+	DeHackEdNum "118";
+	MTName "MT_MISC68";
+	SpawnHealth "1000";
+	Damage "0";
+	ReactionTime "8";
+	Mass "100";
+	Speed "0";
+	PainChance "0";
+	Height "16";
+	Radius "20";
+	WakeSound "none";
+	AttackSound "none";
+	PainSound "none";
+	DeathSound "none";
+	ActiveSound "none";
 	
 	
 	State "SpawnState"
@@ -14085,22 +14085,22 @@ MapObject "DeadPlayerGibs"
 // Object -- DeadPlayerGibs2
 MapObject "DeadPlayerGibs2"
 {
-	DoomEdNum "12"
-	DeHackEdNum "119"
-	MTName "MT_MISC69"
-	SpawnHealth "1000"
-	Damage "0"
-	ReactionTime "8"
-	Mass "100"
-	Speed "0"
-	PainChance "0"
-	Height "16"
-	Radius "20"
-	WakeSound "none"
-	AttackSound "none"
-	PainSound "none"
-	DeathSound "none"
-	ActiveSound "none"
+	DoomEdNum "12";
+	DeHackEdNum "119";
+	MTName "MT_MISC69";
+	SpawnHealth "1000";
+	Damage "0";
+	ReactionTime "8";
+	Mass "100";
+	Speed "0";
+	PainChance "0";
+	Height "16";
+	Radius "20";
+	WakeSound "none";
+	AttackSound "none";
+	PainSound "none";
+	DeathSound "none";
+	ActiveSound "none";
 	
 	
 	State "SpawnState"
@@ -14120,24 +14120,24 @@ MapObject "DeadPlayerGibs2"
 // Object -- HeadShishkabob
 MapObject "HeadShishkabob"
 {
-	DoomEdNum "28"
-	DeHackEdNum "120"
-	MTName "MT_MISC70"
-	SpawnHealth "1000"
-	Damage "0"
-	ReactionTime "8"
-	Mass "100"
-	Speed "0"
-	PainChance "0"
-	Height "64"
-	Radius "16"
-	WakeSound "none"
-	AttackSound "none"
-	PainSound "none"
-	DeathSound "none"
-	ActiveSound "none"
+	DoomEdNum "28";
+	DeHackEdNum "120";
+	MTName "MT_MISC70";
+	SpawnHealth "1000";
+	Damage "0";
+	ReactionTime "8";
+	Mass "100";
+	Speed "0";
+	PainChance "0";
+	Height "64";
+	Radius "16";
+	WakeSound "none";
+	AttackSound "none";
+	PainSound "none";
+	DeathSound "none";
+	ActiveSound "none";
 	
-	IsSolid "true"
+	IsSolid "true";
 	
 	State "SpawnState"
 	{
@@ -14156,22 +14156,22 @@ MapObject "HeadShishkabob"
 // Object -- CrushedGibs
 MapObject "CrushedGibs"
 {
-	DoomEdNum "24"
-	DeHackEdNum "121"
-	MTName "MT_MISC71"
-	SpawnHealth "1000"
-	Damage "0"
-	ReactionTime "8"
-	Mass "100"
-	Speed "0"
-	PainChance "0"
-	Height "16"
-	Radius "20"
-	WakeSound "none"
-	AttackSound "none"
-	PainSound "none"
-	DeathSound "none"
-	ActiveSound "none"
+	DoomEdNum "24";
+	DeHackEdNum "121";
+	MTName "MT_MISC71";
+	SpawnHealth "1000";
+	Damage "0";
+	ReactionTime "8";
+	Mass "100";
+	Speed "0";
+	PainChance "0";
+	Height "16";
+	Radius "20";
+	WakeSound "none";
+	AttackSound "none";
+	PainSound "none";
+	DeathSound "none";
+	ActiveSound "none";
 	
 	
 	State "SpawnState"
@@ -14191,24 +14191,24 @@ MapObject "CrushedGibs"
 // Object -- HeadOnStick
 MapObject "HeadOnStick"
 {
-	DoomEdNum "27"
-	DeHackEdNum "122"
-	MTName "MT_MISC72"
-	SpawnHealth "1000"
-	Damage "0"
-	ReactionTime "8"
-	Mass "100"
-	Speed "0"
-	PainChance "0"
-	Height "56"
-	Radius "16"
-	WakeSound "none"
-	AttackSound "none"
-	PainSound "none"
-	DeathSound "none"
-	ActiveSound "none"
+	DoomEdNum "27";
+	DeHackEdNum "122";
+	MTName "MT_MISC72";
+	SpawnHealth "1000";
+	Damage "0";
+	ReactionTime "8";
+	Mass "100";
+	Speed "0";
+	PainChance "0";
+	Height "56";
+	Radius "16";
+	WakeSound "none";
+	AttackSound "none";
+	PainSound "none";
+	DeathSound "none";
+	ActiveSound "none";
 	
-	IsSolid "true"
+	IsSolid "true";
 	
 	State "SpawnState"
 	{
@@ -14227,24 +14227,24 @@ MapObject "HeadOnStick"
 // Object -- SkullsAndCandles
 MapObject "SkullsAndCandles"
 {
-	DoomEdNum "29"
-	DeHackEdNum "123"
-	MTName "MT_MISC73"
-	SpawnHealth "1000"
-	Damage "0"
-	ReactionTime "8"
-	Mass "100"
-	Speed "0"
-	PainChance "0"
-	Height "48"
-	Radius "16"
-	WakeSound "none"
-	AttackSound "none"
-	PainSound "none"
-	DeathSound "none"
-	ActiveSound "none"
+	DoomEdNum "29";
+	DeHackEdNum "123";
+	MTName "MT_MISC73";
+	SpawnHealth "1000";
+	Damage "0";
+	ReactionTime "8";
+	Mass "100";
+	Speed "0";
+	PainChance "0";
+	Height "48";
+	Radius "16";
+	WakeSound "none";
+	AttackSound "none";
+	PainSound "none";
+	DeathSound "none";
+	ActiveSound "none";
 	
-	IsSolid "true"
+	IsSolid "true";
 	
 	State "SpawnState"
 	{
@@ -14275,24 +14275,24 @@ MapObject "SkullsAndCandles"
 // Object -- ImpaledZombieman
 MapObject "ImpaledZombieman"
 {
-	DoomEdNum "25"
-	DeHackEdNum "124"
-	MTName "MT_MISC74"
-	SpawnHealth "1000"
-	Damage "0"
-	ReactionTime "8"
-	Mass "100"
-	Speed "0"
-	PainChance "0"
-	Height "64"
-	Radius "16"
-	WakeSound "none"
-	AttackSound "none"
-	PainSound "none"
-	DeathSound "none"
-	ActiveSound "none"
+	DoomEdNum "25";
+	DeHackEdNum "124";
+	MTName "MT_MISC74";
+	SpawnHealth "1000";
+	Damage "0";
+	ReactionTime "8";
+	Mass "100";
+	Speed "0";
+	PainChance "0";
+	Height "64";
+	Radius "16";
+	WakeSound "none";
+	AttackSound "none";
+	PainSound "none";
+	DeathSound "none";
+	ActiveSound "none";
 	
-	IsSolid "true"
+	IsSolid "true";
 	
 	State "SpawnState"
 	{
@@ -14311,24 +14311,24 @@ MapObject "ImpaledZombieman"
 // Object -- TwitchingImpaledZombieman
 MapObject "TwitchingImpaledZombieman"
 {
-	DoomEdNum "26"
-	DeHackEdNum "125"
-	MTName "MT_MISC75"
-	SpawnHealth "1000"
-	Damage "0"
-	ReactionTime "8"
-	Mass "100"
-	Speed "0"
-	PainChance "0"
-	Height "64"
-	Radius "16"
-	WakeSound "none"
-	AttackSound "none"
-	PainSound "none"
-	DeathSound "none"
-	ActiveSound "none"
+	DoomEdNum "26";
+	DeHackEdNum "125";
+	MTName "MT_MISC75";
+	SpawnHealth "1000";
+	Damage "0";
+	ReactionTime "8";
+	Mass "100";
+	Speed "0";
+	PainChance "0";
+	Height "64";
+	Radius "16";
+	WakeSound "none";
+	AttackSound "none";
+	PainSound "none";
+	DeathSound "none";
+	ActiveSound "none";
 	
-	IsSolid "true"
+	IsSolid "true";
 	
 	State "SpawnState"
 	{
@@ -14357,24 +14357,24 @@ MapObject "TwitchingImpaledZombieman"
 // Object -- LargeTree
 MapObject "LargeTree"
 {
-	DoomEdNum "54"
-	DeHackEdNum "126"
-	MTName "MT_MISC76"
-	SpawnHealth "1000"
-	Damage "0"
-	ReactionTime "8"
-	Mass "100"
-	Speed "0"
-	PainChance "0"
-	Height "96"
-	Radius "32"
-	WakeSound "none"
-	AttackSound "none"
-	PainSound "none"
-	DeathSound "none"
-	ActiveSound "none"
+	DoomEdNum "54";
+	DeHackEdNum "126";
+	MTName "MT_MISC76";
+	SpawnHealth "1000";
+	Damage "0";
+	ReactionTime "8";
+	Mass "100";
+	Speed "0";
+	PainChance "0";
+	Height "96";
+	Radius "32";
+	WakeSound "none";
+	AttackSound "none";
+	PainSound "none";
+	DeathSound "none";
+	ActiveSound "none";
 	
-	IsSolid "true"
+	IsSolid "true";
 	
 	State "SpawnState"
 	{
@@ -14393,24 +14393,24 @@ MapObject "LargeTree"
 // Object -- FlamingBarrel
 MapObject "FlamingBarrel"
 {
-	DoomEdNum "70"
-	DeHackEdNum "127"
-	MTName "MT_MISC77"
-	SpawnHealth "1000"
-	Damage "0"
-	ReactionTime "8"
-	Mass "100"
-	Speed "0"
-	PainChance "0"
-	Height "30"
-	Radius "16"
-	WakeSound "none"
-	AttackSound "none"
-	PainSound "none"
-	DeathSound "none"
-	ActiveSound "none"
+	DoomEdNum "70";
+	DeHackEdNum "127";
+	MTName "MT_MISC77";
+	SpawnHealth "1000";
+	Damage "0";
+	ReactionTime "8";
+	Mass "100";
+	Speed "0";
+	PainChance "0";
+	Height "30";
+	Radius "16";
+	WakeSound "none";
+	AttackSound "none";
+	PainSound "none";
+	DeathSound "none";
+	ActiveSound "none";
 	
-	IsSolid "true"
+	IsSolid "true";
 	
 	State "SpawnState"
 	{
@@ -14455,26 +14455,26 @@ MapObject "FlamingBarrel"
 // Object -- HangingCorpseNoGuts
 MapObject "HangingCorpseNoGuts"
 {
-	DoomEdNum "73"
-	DeHackEdNum "128"
-	MTName "MT_MISC78"
-	SpawnHealth "1000"
-	Damage "0"
-	ReactionTime "8"
-	Mass "100"
-	Speed "0"
-	PainChance "0"
-	Height "88"
-	Radius "16"
-	WakeSound "none"
-	AttackSound "none"
-	PainSound "none"
-	DeathSound "none"
-	ActiveSound "none"
+	DoomEdNum "73";
+	DeHackEdNum "128";
+	MTName "MT_MISC78";
+	SpawnHealth "1000";
+	Damage "0";
+	ReactionTime "8";
+	Mass "100";
+	Speed "0";
+	PainChance "0";
+	Height "88";
+	Radius "16";
+	WakeSound "none";
+	AttackSound "none";
+	PainSound "none";
+	DeathSound "none";
+	ActiveSound "none";
 	
-	IsSolid "true"
-	SpawnsOnCeiling "true"
-	NoGravity "true"
+	IsSolid "true";
+	SpawnsOnCeiling "true";
+	NoGravity "true";
 	
 	State "SpawnState"
 	{
@@ -14493,26 +14493,26 @@ MapObject "HangingCorpseNoGuts"
 // Object -- HangingCorpseNoBrain
 MapObject "HangingCorpseNoBrain"
 {
-	DoomEdNum "74"
-	DeHackEdNum "129"
-	MTName "MT_MISC79"
-	SpawnHealth "1000"
-	Damage "0"
-	ReactionTime "8"
-	Mass "100"
-	Speed "0"
-	PainChance "0"
-	Height "88"
-	Radius "16"
-	WakeSound "none"
-	AttackSound "none"
-	PainSound "none"
-	DeathSound "none"
-	ActiveSound "none"
+	DoomEdNum "74";
+	DeHackEdNum "129";
+	MTName "MT_MISC79";
+	SpawnHealth "1000";
+	Damage "0";
+	ReactionTime "8";
+	Mass "100";
+	Speed "0";
+	PainChance "0";
+	Height "88";
+	Radius "16";
+	WakeSound "none";
+	AttackSound "none";
+	PainSound "none";
+	DeathSound "none";
+	ActiveSound "none";
 	
-	IsSolid "true"
-	SpawnsOnCeiling "true"
-	NoGravity "true"
+	IsSolid "true";
+	SpawnsOnCeiling "true";
+	NoGravity "true";
 	
 	State "SpawnState"
 	{
@@ -14531,26 +14531,26 @@ MapObject "HangingCorpseNoBrain"
 // Object -- HangingCorpseTop
 MapObject "HangingCorpseTop"
 {
-	DoomEdNum "75"
-	DeHackEdNum "130"
-	MTName "MT_MISC80"
-	SpawnHealth "1000"
-	Damage "0"
-	ReactionTime "8"
-	Mass "100"
-	Speed "0"
-	PainChance "0"
-	Height "64"
-	Radius "16"
-	WakeSound "none"
-	AttackSound "none"
-	PainSound "none"
-	DeathSound "none"
-	ActiveSound "none"
+	DoomEdNum "75";
+	DeHackEdNum "130";
+	MTName "MT_MISC80";
+	SpawnHealth "1000";
+	Damage "0";
+	ReactionTime "8";
+	Mass "100";
+	Speed "0";
+	PainChance "0";
+	Height "64";
+	Radius "16";
+	WakeSound "none";
+	AttackSound "none";
+	PainSound "none";
+	DeathSound "none";
+	ActiveSound "none";
 	
-	IsSolid "true"
-	SpawnsOnCeiling "true"
-	NoGravity "true"
+	IsSolid "true";
+	SpawnsOnCeiling "true";
+	NoGravity "true";
 	
 	State "SpawnState"
 	{
@@ -14569,26 +14569,26 @@ MapObject "HangingCorpseTop"
 // Object -- HangingCorpseTopBrain
 MapObject "HangingCorpseTopBrain"
 {
-	DoomEdNum "76"
-	DeHackEdNum "131"
-	MTName "MT_MISC81"
-	SpawnHealth "1000"
-	Damage "0"
-	ReactionTime "8"
-	Mass "100"
-	Speed "0"
-	PainChance "0"
-	Height "64"
-	Radius "16"
-	WakeSound "none"
-	AttackSound "none"
-	PainSound "none"
-	DeathSound "none"
-	ActiveSound "none"
+	DoomEdNum "76";
+	DeHackEdNum "131";
+	MTName "MT_MISC81";
+	SpawnHealth "1000";
+	Damage "0";
+	ReactionTime "8";
+	Mass "100";
+	Speed "0";
+	PainChance "0";
+	Height "64";
+	Radius "16";
+	WakeSound "none";
+	AttackSound "none";
+	PainSound "none";
+	DeathSound "none";
+	ActiveSound "none";
 	
-	IsSolid "true"
-	SpawnsOnCeiling "true"
-	NoGravity "true"
+	IsSolid "true";
+	SpawnsOnCeiling "true";
+	NoGravity "true";
 	
 	State "SpawnState"
 	{
@@ -14607,26 +14607,26 @@ MapObject "HangingCorpseTopBrain"
 // Object -- HangingCorpseTopLookUp
 MapObject "HangingCorpseTopLookUp"
 {
-	DoomEdNum "77"
-	DeHackEdNum "132"
-	MTName "MT_MISC82"
-	SpawnHealth "1000"
-	Damage "0"
-	ReactionTime "8"
-	Mass "100"
-	Speed "0"
-	PainChance "0"
-	Height "64"
-	Radius "16"
-	WakeSound "none"
-	AttackSound "none"
-	PainSound "none"
-	DeathSound "none"
-	ActiveSound "none"
+	DoomEdNum "77";
+	DeHackEdNum "132";
+	MTName "MT_MISC82";
+	SpawnHealth "1000";
+	Damage "0";
+	ReactionTime "8";
+	Mass "100";
+	Speed "0";
+	PainChance "0";
+	Height "64";
+	Radius "16";
+	WakeSound "none";
+	AttackSound "none";
+	PainSound "none";
+	DeathSound "none";
+	ActiveSound "none";
 	
-	IsSolid "true"
-	SpawnsOnCeiling "true"
-	NoGravity "true"
+	IsSolid "true";
+	SpawnsOnCeiling "true";
+	NoGravity "true";
 	
 	State "SpawnState"
 	{
@@ -14645,26 +14645,26 @@ MapObject "HangingCorpseTopLookUp"
 // Object -- HangingCorpseTopNoBrain
 MapObject "HangingCorpseTopNoBrain"
 {
-	DoomEdNum "78"
-	DeHackEdNum "133"
-	MTName "MT_MISC83"
-	SpawnHealth "1000"
-	Damage "0"
-	ReactionTime "8"
-	Mass "100"
-	Speed "0"
-	PainChance "0"
-	Height "64"
-	Radius "16"
-	WakeSound "none"
-	AttackSound "none"
-	PainSound "none"
-	DeathSound "none"
-	ActiveSound "none"
+	DoomEdNum "78";
+	DeHackEdNum "133";
+	MTName "MT_MISC83";
+	SpawnHealth "1000";
+	Damage "0";
+	ReactionTime "8";
+	Mass "100";
+	Speed "0";
+	PainChance "0";
+	Height "64";
+	Radius "16";
+	WakeSound "none";
+	AttackSound "none";
+	PainSound "none";
+	DeathSound "none";
+	ActiveSound "none";
 	
-	IsSolid "true"
-	SpawnsOnCeiling "true"
-	NoGravity "true"
+	IsSolid "true";
+	SpawnsOnCeiling "true";
+	NoGravity "true";
 	
 	State "SpawnState"
 	{
@@ -14683,24 +14683,24 @@ MapObject "HangingCorpseTopNoBrain"
 // Object -- BloodPoolAndGuts
 MapObject "BloodPoolAndGuts"
 {
-	DoomEdNum "79"
-	DeHackEdNum "134"
-	MTName "MT_MISC84"
-	SpawnHealth "1000"
-	Damage "0"
-	ReactionTime "8"
-	Mass "100"
-	Speed "0"
-	PainChance "0"
-	Height "16"
-	Radius "20"
-	WakeSound "none"
-	AttackSound "none"
-	PainSound "none"
-	DeathSound "none"
-	ActiveSound "none"
+	DoomEdNum "79";
+	DeHackEdNum "134";
+	MTName "MT_MISC84";
+	SpawnHealth "1000";
+	Damage "0";
+	ReactionTime "8";
+	Mass "100";
+	Speed "0";
+	PainChance "0";
+	Height "16";
+	Radius "20";
+	WakeSound "none";
+	AttackSound "none";
+	PainSound "none";
+	DeathSound "none";
+	ActiveSound "none";
 	
-	NoBlockMap "true"
+	NoBlockMap "true";
 	
 	State "SpawnState"
 	{
@@ -14719,24 +14719,24 @@ MapObject "BloodPoolAndGuts"
 // Object -- BloodPool
 MapObject "BloodPool"
 {
-	DoomEdNum "80"
-	DeHackEdNum "135"
-	MTName "MT_MISC85"
-	SpawnHealth "1000"
-	Damage "0"
-	ReactionTime "8"
-	Mass "100"
-	Speed "0"
-	PainChance "0"
-	Height "16"
-	Radius "20"
-	WakeSound "none"
-	AttackSound "none"
-	PainSound "none"
-	DeathSound "none"
-	ActiveSound "none"
+	DoomEdNum "80";
+	DeHackEdNum "135";
+	MTName "MT_MISC85";
+	SpawnHealth "1000";
+	Damage "0";
+	ReactionTime "8";
+	Mass "100";
+	Speed "0";
+	PainChance "0";
+	Height "16";
+	Radius "20";
+	WakeSound "none";
+	AttackSound "none";
+	PainSound "none";
+	DeathSound "none";
+	ActiveSound "none";
 	
-	NoBlockMap "true"
+	NoBlockMap "true";
 	
 	State "SpawnState"
 	{
@@ -14755,24 +14755,24 @@ MapObject "BloodPool"
 // Object -- BloodPoolAndBrain
 MapObject "BloodPoolAndBrain"
 {
-	DoomEdNum "81"
-	DeHackEdNum "136"
-	MTName "MT_MISC86"
-	SpawnHealth "1000"
-	Damage "0"
-	ReactionTime "8"
-	Mass "100"
-	Speed "0"
-	PainChance "0"
-	Height "16"
-	Radius "20"
-	WakeSound "none"
-	AttackSound "none"
-	PainSound "none"
-	DeathSound "none"
-	ActiveSound "none"
+	DoomEdNum "81";
+	DeHackEdNum "136";
+	MTName "MT_MISC86";
+	SpawnHealth "1000";
+	Damage "0";
+	ReactionTime "8";
+	Mass "100";
+	Speed "0";
+	PainChance "0";
+	Height "16";
+	Radius "20";
+	WakeSound "none";
+	AttackSound "none";
+	PainSound "none";
+	DeathSound "none";
+	ActiveSound "none";
 	
-	NoBlockMap "true"
+	NoBlockMap "true";
 	
 	State "SpawnState"
 	{
@@ -14791,87 +14791,87 @@ MapObject "BloodPoolAndBrain"
 // Object -- LegacyChasecam
 MapObject "LegacyChasecam"
 {
-	DoomEdNum "-1"
-	DeHackEdNum "137"
-	MTName "MT_CHASECAM"
-	SpawnHealth "1000"
-	Damage "0"
-	ReactionTime "8"
-	Mass "100"
-	Speed "0"
-	PainChance "0"
-	Height "16"
-	Radius "20"
-	WakeSound "none"
-	AttackSound "none"
-	PainSound "none"
-	DeathSound "none"
-	ActiveSound "none"
+	DoomEdNum "-1";
+	DeHackEdNum "137";
+	MTName "MT_CHASECAM";
+	SpawnHealth "1000";
+	Damage "0";
+	ReactionTime "8";
+	Mass "100";
+	Speed "0";
+	PainChance "0";
+	Height "16";
+	Radius "20";
+	WakeSound "none";
+	AttackSound "none";
+	PainSound "none";
+	DeathSound "none";
+	ActiveSound "none";
 	
-	NoSectorLinks "true"
-	NoBlockMap "true"
-	NoGravity "true"
-	IsFloating "true"
-	NoThingClipping "true"
-	WallSliding "true"
-	NoRandomPlayerLook "true"
-	AllowNonCrossableCrossing "true"
-	NeverCrossTrigger "true"
-	CanCeilingStep "true"
+	NoSectorLinks "true";
+	NoBlockMap "true";
+	NoGravity "true";
+	IsFloating "true";
+	NoThingClipping "true";
+	WallSliding "true";
+	NoRandomPlayerLook "true";
+	AllowNonCrossableCrossing "true";
+	NeverCrossTrigger "true";
+	CanCeilingStep "true";
 }
 
 // Object -- LegacySpirit
 MapObject "LegacySpirit"
 {
-	DoomEdNum "-1"
-	DeHackEdNum "138"
-	MTName "MT_SPIRIT"
-	SpawnHealth "1000"
-	Damage "0"
-	ReactionTime "0"
-	Mass "100"
-	Speed "0"
-	PainChance "0"
-	Height "56"
-	Radius "16"
-	WakeSound "none"
-	AttackSound "none"
-	PainSound "none"
-	DeathSound "none"
-	ActiveSound "none"
+	DoomEdNum "-1";
+	DeHackEdNum "138";
+	MTName "MT_SPIRIT";
+	SpawnHealth "1000";
+	Damage "0";
+	ReactionTime "0";
+	Mass "100";
+	Speed "0";
+	PainChance "0";
+	Height "56";
+	Radius "16";
+	WakeSound "none";
+	AttackSound "none";
+	PainSound "none";
+	DeathSound "none";
+	ActiveSound "none";
 	
-	IsDropOff "true"
-	WallSliding "true"
-	NoWaterChecking "true"
-	UseMobjNullThinker "true"
-	NoPlayerWalkAnimation "true"
-	NoSmoothStepUp "true"
-	NeverCrossTrigger "true"
+	IsDropOff "true";
+	WallSliding "true";
+	NoWaterChecking "true";
+	UseMobjNullThinker "true";
+	NoPlayerWalkAnimation "true";
+	NoSmoothStepUp "true";
+	NeverCrossTrigger "true";
 }
 
 // Object -- LegacySmoke
 MapObject "LegacySmoke"
 {
-	DoomEdNum "-1"
-	DeHackEdNum "139"
-	MTName "MT_SMOK"
-	SpawnHealth "1000"
-	Damage "0"
-	ReactionTime "8"
-	Mass "100"
-	Speed "0"
-	PainChance "0"
-	Height "16"
-	Radius "20"
-	WakeSound "none"
-	AttackSound "none"
-	PainSound "none"
-	DeathSound "none"
-	ActiveSound "none"
+	DoomEdNum "-1";
+	DeHackEdNum "139";
+	MTName "MT_SMOK";
+	SpawnHealth "1000";
+	Damage "0";
+	ReactionTime "8";
+	Mass "100";
+	Speed "0";
+	PainChance "0";
+	Height "16";
+	Radius "20";
+	WakeSound "none";
+	AttackSound "none";
+	PainSound "none";
+	DeathSound "none";
+	ActiveSound "none";
 	
-	NoBlockMap "true"
-	NoGravity "true"
-	NoClipping "true"
+	NoBlockMap "true";
+	NoGravity "true";
+	NoClipping "true";
 	
 	State "SpawnState"
 	{
@@ -14935,28 +14935,28 @@ MapObject "LegacySmoke"
 // Object -- LegacySplash
 MapObject "LegacySplash"
 {
-	DoomEdNum "-1"
-	DeHackEdNum "140"
-	MTName "MT_SPLASH"
-	SpawnHealth "1000"
-	Damage "0"
-	ReactionTime "8"
-	Mass "100"
-	Speed "0"
-	PainChance "0"
-	Height "16"
-	Radius "20"
-	WakeSound "none"
-	AttackSound "none"
-	PainSound "none"
-	DeathSound "none"
-	ActiveSound "none"
+	DoomEdNum "-1";
+	DeHackEdNum "140";
+	MTName "MT_SPLASH";
+	SpawnHealth "1000";
+	Damage "0";
+	ReactionTime "8";
+	Mass "100";
+	Speed "0";
+	PainChance "0";
+	Height "16";
+	Radius "20";
+	WakeSound "none";
+	AttackSound "none";
+	PainSound "none";
+	DeathSound "none";
+	ActiveSound "none";
 	
-	NoBlockMap "true"
-	NoGravity "true"
-	NoClipping "true"
-	NoWaterSplashing "true"
-	NoWaterChecking "true"
+	NoBlockMap "true";
+	NoGravity "true";
+	NoClipping "true";
+	NoWaterSplashing "true";
+	NoWaterChecking "true";
 	
 	State "SpawnState"
 	{
@@ -14998,26 +14998,26 @@ MapObject "LegacySplash"
 // Object -- LegacyPusher
 MapObject "LegacyPusher"
 {
-	DoomEdNum "5001"
-	DeHackEdNum "141"
-	MTName "MT_PUSH"
-	SpawnHealth "1000"
-	Damage "0"
-	ReactionTime "8"
-	Mass "10"
-	Speed "0"
-	PainChance "0"
-	Height "0.00012207"
-	Radius "0.00012207"
-	WakeSound "none"
-	AttackSound "none"
-	PainSound "none"
-	DeathSound "none"
-	ActiveSound "none"
+	DoomEdNum "5001";
+	DeHackEdNum "141";
+	MTName "MT_PUSH";
+	SpawnHealth "1000";
+	Damage "0";
+	ReactionTime "8";
+	Mass "10";
+	Speed "0";
+	PainChance "0";
+	Height "0.00012207";
+	Radius "0.00012207";
+	WakeSound "none";
+	AttackSound "none";
+	PainSound "none";
+	DeathSound "none";
+	ActiveSound "none";
 	
-	NoBlockMap "true"
-	IsPusherPuller "true"
-	PushesAway "true"
+	NoBlockMap "true";
+	IsPusherPuller "true";
+	PushesAway "true";
 	
 	State "SpawnState"
 	{
@@ -15036,25 +15036,25 @@ MapObject "LegacyPusher"
 // Object -- LegacyPuller
 MapObject "LegacyPuller"
 {
-	DoomEdNum "5002"
-	DeHackEdNum "142"
-	MTName "MT_PULL"
-	SpawnHealth "1000"
-	Damage "0"
-	ReactionTime "8"
-	Mass "10"
-	Speed "0"
-	PainChance "0"
-	Height "0.00012207"
-	Radius "0.00012207"
-	WakeSound "none"
-	AttackSound "none"
-	PainSound "none"
-	DeathSound "none"
-	ActiveSound "none"
+	DoomEdNum "5002";
+	DeHackEdNum "142";
+	MTName "MT_PULL";
+	SpawnHealth "1000";
+	Damage "0";
+	ReactionTime "8";
+	Mass "10";
+	Speed "0";
+	PainChance "0";
+	Height "0.00012207";
+	Radius "0.00012207";
+	WakeSound "none";
+	AttackSound "none";
+	PainSound "none";
+	DeathSound "none";
+	ActiveSound "none";
 	
-	NoBlockMap "true"
-	IsPusherPuller "true"
+	NoBlockMap "true";
+	IsPusherPuller "true";
 	
 	State "SpawnState"
 	{
@@ -15073,26 +15073,26 @@ MapObject "LegacyPuller"
 // Object -- LegacyDog
 MapObject "LegacyDog"
 {
-	DoomEdNum "888"
-	DeHackEdNum "143"
-	MTName "MT_DOGS"
-	SpawnHealth "500"
-	Damage "0"
-	ReactionTime "8"
-	Mass "100"
-	Speed "10"
-	PainChance "0.705882"
-	Height "28"
-	Radius "12"
-	WakeSound "dgsit"
-	AttackSound "dgatk"
-	PainSound "dgpain"
-	DeathSound "dgdth"
-	ActiveSound "dgact"
+	DoomEdNum "888";
+	DeHackEdNum "143";
+	MTName "MT_DOGS";
+	SpawnHealth "500";
+	Damage "0";
+	ReactionTime "8";
+	Mass "100";
+	Speed "10";
+	PainChance "0.705882";
+	Height "28";
+	Radius "12";
+	WakeSound "dgsit";
+	AttackSound "dgatk";
+	PainSound "dgpain";
+	DeathSound "dgdth";
+	ActiveSound "dgact";
 	
-	IsSolid "true"
-	IsShootable "true"
-	IsKillCountable "true"
+	IsSolid "true";
+	IsShootable "true";
+	IsKillCountable "true";
 	
 	State "SpawnState"
 	{
@@ -15405,28 +15405,28 @@ MapObject "LegacyDog"
 // Object -- LegacyPlasma1
 MapObject "LegacyPlasma1"
 {
-	DoomEdNum "-1"
-	DeHackEdNum "144"
-	MTName "MT_PLASMA1"
-	SpawnHealth "1000"
-	Damage "4"
-	ReactionTime "8"
-	Mass "100"
-	Speed "25"
-	PainChance "0"
-	Height "8"
-	Radius "13"
-	WakeSound "none"
-	AttackSound "none"
-	PainSound "none"
-	DeathSound "firxpl"
-	ActiveSound "none"
+	DoomEdNum "-1";
+	DeHackEdNum "144";
+	MTName "MT_PLASMA1";
+	SpawnHealth "1000";
+	Damage "4";
+	ReactionTime "8";
+	Mass "100";
+	Speed "25";
+	PainChance "0";
+	Height "8";
+	Radius "13";
+	WakeSound "none";
+	AttackSound "none";
+	PainSound "none";
+	DeathSound "firxpl";
+	ActiveSound "none";
 	
-	NoBlockMap "true"
-	NoGravity "true"
-	IsDropOff "true"
-	IsMissile "true"
-	CanBounce "true"
+	NoBlockMap "true";
+	NoGravity "true";
+	IsDropOff "true";
+	IsMissile "true";
+	CanBounce "true";
 	
 	State "SpawnState"
 	{
@@ -15515,28 +15515,28 @@ MapObject "LegacyPlasma1"
 // Object -- LegacyPlasma2
 MapObject "LegacyPlasma2"
 {
-	DoomEdNum "-1"
-	DeHackEdNum "145"
-	MTName "MT_PLASMA2"
-	SpawnHealth "1000"
-	Damage "4"
-	ReactionTime "8"
-	Mass "100"
-	Speed "25"
-	PainChance "0"
-	Height "8"
-	Radius "6"
-	WakeSound "none"
-	AttackSound "none"
-	PainSound "none"
-	DeathSound "firxpl"
-	ActiveSound "none"
+	DoomEdNum "-1";
+	DeHackEdNum "145";
+	MTName "MT_PLASMA2";
+	SpawnHealth "1000";
+	Damage "4";
+	ReactionTime "8";
+	Mass "100";
+	Speed "25";
+	PainChance "0";
+	Height "8";
+	Radius "6";
+	WakeSound "none";
+	AttackSound "none";
+	PainSound "none";
+	DeathSound "firxpl";
+	ActiveSound "none";
 	
-	NoBlockMap "true"
-	NoGravity "true"
-	IsDropOff "true"
-	IsMissile "true"
-	CanBounce "true"
+	NoBlockMap "true";
+	NoGravity "true";
+	IsDropOff "true";
+	IsMissile "true";
+	CanBounce "true";
 	
 	State "SpawnState"
 	{
@@ -15603,28 +15603,28 @@ MapObject "LegacyPlasma2"
 // Object -- LegacyCamera
 MapObject "LegacyCamera"
 {
-	DoomEdNum "5003"
-	DeHackEdNum "146"
-	MTName "MT_CAMERA"
-	SpawnHealth "1000"
-	Damage "0"
-	ReactionTime "8"
-	Mass "10"
-	Speed "0"
-	PainChance "0"
-	Height "0.00012207"
-	Radius "0.00012207"
-	WakeSound "none"
-	AttackSound "none"
-	PainSound "none"
-	DeathSound "none"
-	ActiveSound "none"
+	DoomEdNum "5003";
+	DeHackEdNum "146";
+	MTName "MT_CAMERA";
+	SpawnHealth "1000";
+	Damage "0";
+	ReactionTime "8";
+	Mass "10";
+	Speed "0";
+	PainChance "0";
+	Height "0.00012207";
+	Radius "0.00012207";
+	WakeSound "none";
+	AttackSound "none";
+	PainSound "none";
+	DeathSound "none";
+	ActiveSound "none";
 	
-	NoSectorLinks "true"
-	NoBlockMap "true"
-	NoGravity "true"
-	NoClipping "true"
-	WallSliding "true"
+	NoSectorLinks "true";
+	NoBlockMap "true";
+	NoGravity "true";
+	NoClipping "true";
+	WallSliding "true";
 	
 	State "SpawnState"
 	{
@@ -15643,27 +15643,27 @@ MapObject "LegacyCamera"
 // Object -- LegacyNode
 MapObject "LegacyNode"
 {
-	DoomEdNum "5004"
-	DeHackEdNum "147"
-	MTName "MT_NODE"
-	SpawnHealth "1000"
-	Damage "0"
-	ReactionTime "8"
-	Mass "10"
-	Speed "0"
-	PainChance "0"
-	Height "0.00012207"
-	Radius "0.00012207"
-	WakeSound "none"
-	AttackSound "none"
-	PainSound "none"
-	DeathSound "none"
-	ActiveSound "none"
+	DoomEdNum "5004";
+	DeHackEdNum "147";
+	MTName "MT_NODE";
+	SpawnHealth "1000";
+	Damage "0";
+	ReactionTime "8";
+	Mass "10";
+	Speed "0";
+	PainChance "0";
+	Height "0.00012207";
+	Radius "0.00012207";
+	WakeSound "none";
+	AttackSound "none";
+	PainSound "none";
+	DeathSound "none";
+	ActiveSound "none";
 	
-	NoSectorLinks "true"
-	NoBlockMap "true"
-	NoGravity "true"
-	NoClipping "true"
+	NoSectorLinks "true";
+	NoBlockMap "true";
+	NoGravity "true";
+	NoClipping "true";
 	
 	State "SpawnState"
 	{
@@ -15682,26 +15682,26 @@ MapObject "LegacyNode"
 // Object -- RedFlag
 MapObject "RedFlag"
 {
-	DoomEdNum "5131"
-	DeHackEdNum "148"
-	MTName "MT_REDFLAG"
-	SpawnHealth "1000"
-	Damage "0"
-	ReactionTime "8"
-	Mass "100"
-	Speed "0"
-	PainChance "0"
-	Height "60"
-	Radius "8"
-	WakeSound "none"
-	AttackSound "none"
-	PainSound "none"
-	DeathSound "none"
-	ActiveSound "none"
+	DoomEdNum "5131";
+	DeHackEdNum "148";
+	MTName "MT_REDFLAG";
+	SpawnHealth "1000";
+	Damage "0";
+	ReactionTime "8";
+	Mass "100";
+	Speed "0";
+	PainChance "0";
+	Height "60";
+	Radius "8";
+	WakeSound "none";
+	AttackSound "none";
+	PainSound "none";
+	DeathSound "none";
+	ActiveSound "none";
 	
-	NoThingClipping "true"
-	ForceInitializeBotNodes "true"
-	TranslationColor "light red"
+	NoThingClipping "true";
+	ForceInitializeBotNodes "true";
+	TranslationColor "light red";
 	
 	State "SpawnState"
 	{
@@ -15790,26 +15790,26 @@ MapObject "RedFlag"
 // Object -- BlueFlag
 MapObject "BlueFlag"
 {
-	DoomEdNum "5130"
-	DeHackEdNum "149"
-	MTName "MT_BLUEFLAG"
-	SpawnHealth "1000"
-	Damage "0"
-	ReactionTime "8"
-	Mass "100"
-	Speed "0"
-	PainChance "0"
-	Height "60"
-	Radius "8"
-	WakeSound "none"
-	AttackSound "none"
-	PainSound "none"
-	DeathSound "none"
-	ActiveSound "none"
+	DoomEdNum "5130";
+	DeHackEdNum "149";
+	MTName "MT_BLUEFLAG";
+	SpawnHealth "1000";
+	Damage "0";
+	ReactionTime "8";
+	Mass "100";
+	Speed "0";
+	PainChance "0";
+	Height "60";
+	Radius "8";
+	WakeSound "none";
+	AttackSound "none";
+	PainSound "none";
+	DeathSound "none";
+	ActiveSound "none";
 	
-	NoThingClipping "true"
-	ForceInitializeBotNodes "true"
-	TranslationColor "light blue"
+	NoThingClipping "true";
+	ForceInitializeBotNodes "true";
+	TranslationColor "light blue";
 	
 	State "SpawnState"
 	{
@@ -15898,24 +15898,24 @@ MapObject "BlueFlag"
 // Object -- GreenFlag
 MapObject "GreenFlag"
 {
-	DoomEdNum "5133"
-	DeHackEdNum "150"
-	MTName "MT_GREENFLAG"
-	SpawnHealth "1000"
-	Damage "0"
-	ReactionTime "8"
-	Mass "100"
-	Speed "0"
-	PainChance "0"
-	Height "60"
-	Radius "8"
-	WakeSound "none"
-	AttackSound "none"
-	PainSound "none"
-	DeathSound "none"
-	ActiveSound "none"
+	DoomEdNum "5133";
+	DeHackEdNum "150";
+	MTName "MT_GREENFLAG";
+	SpawnHealth "1000";
+	Damage "0";
+	ReactionTime "8";
+	Mass "100";
+	Speed "0";
+	PainChance "0";
+	Height "60";
+	Radius "8";
+	WakeSound "none";
+	AttackSound "none";
+	PainSound "none";
+	DeathSound "none";
+	ActiveSound "none";
 	
-	ForceInitializeBotNodes "true"
+	ForceInitializeBotNodes "true";
 	
 	State "SpawnState"
 	{
@@ -16004,26 +16004,26 @@ MapObject "GreenFlag"
 // Object -- YellowFlag
 MapObject "YellowFlag"
 {
-	DoomEdNum "5134"
-	DeHackEdNum "151"
-	MTName "MT_YELLOWFLAG"
-	SpawnHealth "1000"
-	Damage "0"
-	ReactionTime "8"
-	Mass "100"
-	Speed "0"
-	PainChance "0"
-	Height "60"
-	Radius "8"
-	WakeSound "none"
-	AttackSound "none"
-	PainSound "none"
-	DeathSound "none"
-	ActiveSound "none"
+	DoomEdNum "5134";
+	DeHackEdNum "151";
+	MTName "MT_YELLOWFLAG";
+	SpawnHealth "1000";
+	Damage "0";
+	ReactionTime "8";
+	Mass "100";
+	Speed "0";
+	PainChance "0";
+	Height "60";
+	Radius "8";
+	WakeSound "none";
+	AttackSound "none";
+	PainSound "none";
+	DeathSound "none";
+	ActiveSound "none";
 	
-	NoThingClipping "true"
-	ForceInitializeBotNodes "true"
-	TranslationColor "Yellow"
+	NoThingClipping "true";
+	ForceInitializeBotNodes "true";
+	TranslationColor "Yellow";
 	
 	State "SpawnState"
 	{
@@ -16112,26 +16112,26 @@ MapObject "YellowFlag"
 // Object -- NeutralFlag
 MapObject "NeutralFlag"
 {
-	DoomEdNum "5132"
-	DeHackEdNum "152"
-	MTName "MT_NEUTRALFLAG"
-	SpawnHealth "1000"
-	Damage "0"
-	ReactionTime "8"
-	Mass "100"
-	Speed "0"
-	PainChance "0"
-	Height "60"
-	Radius "8"
-	WakeSound "none"
-	AttackSound "none"
-	PainSound "none"
-	DeathSound "none"
-	ActiveSound "none"
+	DoomEdNum "5132";
+	DeHackEdNum "152";
+	MTName "MT_NEUTRALFLAG";
+	SpawnHealth "1000";
+	Damage "0";
+	ReactionTime "8";
+	Mass "100";
+	Speed "0";
+	PainChance "0";
+	Height "60";
+	Radius "8";
+	WakeSound "none";
+	AttackSound "none";
+	PainSound "none";
+	DeathSound "none";
+	ActiveSound "none";
 	
-	NoThingClipping "true"
-	ForceInitializeBotNodes "true"
-	TranslationColor "White"
+	NoThingClipping "true";
+	ForceInitializeBotNodes "true";
+	TranslationColor "White";
 	
 	State "SpawnState"
 	{
@@ -16220,26 +16220,26 @@ MapObject "NeutralFlag"
 // Object -- LegacyOldDoomBlood
 MapObject "LegacyOldDoomBlood"
 {
-	DoomEdNum "-1"
-	DeHackEdNum "153"
-	MTName "MT_OLDDOOMBLOOD"
-	SpawnHealth "1000"
-	Damage "0"
-	ReactionTime "8"
-	Mass "100"
-	Speed "0"
-	PainChance "0"
-	Height "16"
-	Radius "20"
-	WakeSound "none"
-	AttackSound "none"
-	PainSound "none"
-	DeathSound "none"
-	ActiveSound "none"
+	DoomEdNum "-1";
+	DeHackEdNum "153";
+	MTName "MT_OLDDOOMBLOOD";
+	SpawnHealth "1000";
+	Damage "0";
+	ReactionTime "8";
+	Mass "100";
+	Speed "0";
+	PainChance "0";
+	Height "16";
+	Radius "20";
+	WakeSound "none";
+	AttackSound "none";
+	PainSound "none";
+	DeathSound "none";
+	ActiveSound "none";
 	
-	NoBlockMap "true"
-	NoForcedAllTriggers "true"
-	NoWaterSplashing "true"
+	NoBlockMap "true";
+	NoForcedAllTriggers "true";
+	NoWaterSplashing "true";
 	
 	State "SpawnState"
 	{

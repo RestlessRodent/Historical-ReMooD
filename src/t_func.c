@@ -1018,7 +1018,7 @@ void SF_Spawn()
 		mthing->y = y >> FRACBITS;
 		mthing->z = z >> FRACBITS;
 		mthing->angle = angle >> FRACBITS;
-		mthing->type = mobjinfo[objtype].doomednum;	//objtype;
+		mthing->type = mobjinfo[objtype]->doomednum;	//objtype;
 		mthing->options = MTF_FS_SPAWNED;
 		mthing->mobj = t_return.value.mobj;
 		t_return.value.mobj->spawnpoint = mthing;

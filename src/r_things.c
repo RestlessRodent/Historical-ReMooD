@@ -349,6 +349,7 @@ bool_t R_AddSingleSpriteDef(char* sprname, spritedef_t* spritedef, int wadnum, i
 //
 void R_AddSpriteDefs(char** namelist, int wadnum)
 {
+#if 0
 	int i;
 	WadIndex_t Start, End;
 	int AddSprites;
@@ -377,7 +378,7 @@ void R_AddSpriteDefs(char** namelist, int wadnum)
 	for (i = 0; i < numsprites; i++)
 	{
 		spritename = namelist[i];
-		if (R_AddSingleSpriteDef(spritename, &sprites[i], wadnum, Start, End))
+		if (c(spritename, &sprites[i], wadnum, Start, End))
 		{
 			// if a new sprite was added (not just replaced)
 			AddSprites++;
@@ -385,6 +386,7 @@ void R_AddSpriteDefs(char** namelist, int wadnum)
 			//  CONL_PrintF("sprite %s set in pwad %d\n", namelist[i], wadnum); //Fab
 		}
 	}
+#endif
 }
 
 //
@@ -1883,7 +1885,7 @@ void Sk_SetDefaultValue(skin_t* skin)
 		{
 			skin->soundsid[S_sfx[i].skinsound] = i;
 		}
-	memcpy(&skins[0].spritedef, &sprites[SPR_PLAY], sizeof(spritedef_t));
+	//memcpy(&skins[0].spritedef, &sprites[SPR_PLAY], sizeof(spritedef_t));
 }
 
 //

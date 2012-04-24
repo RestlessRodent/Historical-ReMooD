@@ -42,6 +42,7 @@
 // RMOD Handlers are here
 #include "v_widget.h"
 #include "p_spec.h"
+#include "info.h"
 
 /****************
 *** CONSTANTS ***
@@ -111,6 +112,13 @@ static const D_RMODHandler_t c_RMODHandlers[NUMDRMODPRIVATES] =
 	},
 	
 	/* Objects */
+	// Objects
+	{
+		"MapObject",
+		INFO_RMODH_MapObjects,
+		INFO_RMODO_MapObjects,
+	},
+	
 	// Ammo
 	{
 		"MapAmmo",

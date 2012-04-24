@@ -3960,7 +3960,7 @@ static bool_t PS_ExtraSpecialOCCB(const bool_t a_Pushed, const struct WL_WADFile
 	if (g_BossSpitList)
 		Z_Free(g_BossSpitList);
 	g_BossSpitList = NULL;
-	g_NumBossSpitList = NULL;
+	g_NumBossSpitList = 0;
 	
 	// Load from lump (if it exists)
 	Entry = WL_FindEntry(NULL, 0, "RMD_BOSS");

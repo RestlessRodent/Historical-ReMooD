@@ -38,6 +38,8 @@
 // Needed for action function pointer handling.
 #include "d_think.h"
 #include "doomtype.h"
+#include "d_rmod.h"
+#include "z_zone.h"
 
 typedef int32_t spritenum_t;
 typedef int32_t statenum_t;
@@ -89,6 +91,9 @@ typedef struct
 
 #define S_NULL 0
 
+extern size_t NUMSPRITES;
+extern char** sprnames;
+
 extern state_t** states;
 extern size_t NUMSTATES;
 
@@ -97,37 +102,44 @@ extern mobjtype_t NUMMOBJTYPES;
 
 #define NUMINFORXFIELDS 4		// Prevents unwanted magic
 
+typedef enum INFO_ObjectStateGroup_e
+{
+	IOSG_SPAWN,
+	
+	NUMINFOOBJECTSTATEGROUPS
+} INFO_ObjectStateGroup_t;
+
 typedef struct
 {
 	int doomednum;
-	int spawnstate;
+	statenum_t spawnstate;
 	int spawnhealth;
-	int seestate;
+	statenum_t seestate;
 	int seesound;
 	int reactiontime;
 	int attacksound;
-	int painstate;
+	statenum_t painstate;
 	int painchance;
 	int painsound;
-	int meleestate;
-	int missilestate;
-	int crashstate;				// from heretic/hexen
-	int deathstate;
-	int xdeathstate;
+	statenum_t meleestate;
+	statenum_t missilestate;
+	statenum_t crashstate;				// from heretic/hexen
+	statenum_t deathstate;
+	statenum_t xdeathstate;
 	int deathsound;
-	int speed;
-	int radius;
-	int height;
+	fixed_t speed;
+	fixed_t radius;
+	fixed_t height;
 	int mass;
 	int damage;
 	int activesound;
 	int flags;
-	int raisestate;
+	statenum_t raisestate;
 	int flags2;					// from heretic/hexen
 	
 	// RMOD Extended Support
 	uint32_t RXFlags[NUMINFORXFIELDS];			// ReMooD Extended Flags
-	int32_t RFastSpeed;							// Speed when -fast
+	fixed_t RFastSpeed;							// Speed when -fast
 	statenum_t RPlayerRunState;					// State for moving player
 	statenum_t RPlayerMeleeAttackState;			// S_PLAY_ATK2
 	statenum_t RPlayerRangedAttackState;		// S_PLAY_ATK1
@@ -145,9 +157,16 @@ typedef struct
 	char* RClassName;							// Class Name
 	char* RMTName;								// MT Name
 	uint32_t RDehackEdID;						// DeHackEd ID
+	int RefStates[NUMINFOOBJECTSTATEGROUPS];	// State references
+	char* RFamilyClass;							// Family Class
 } mobjinfo_t;
 
 extern mobjinfo_t** mobjinfo;
+
+/*** RMOD ***/
+
+bool_t INFO_RMODH_MapObjects(Z_Table_t* const a_Table, const WL_WADFile_t* const a_WAD, const D_RMODPrivates_t a_ID, D_RMODPrivate_t* const a_Private);
+bool_t INFO_RMODO_MapObjects(const bool_t a_Pushed, const struct WL_WADFile_s* const a_WAD, const D_RMODPrivates_t a_ID);
 
 /*** HELPFUL FUNCTIONS ***/
 

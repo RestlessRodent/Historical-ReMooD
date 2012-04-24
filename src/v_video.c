@@ -1957,7 +1957,7 @@ static V_UniChar_t* VS_AddCharacter(const bool_t a_Local, V_LocalFontStuff_t* co
 		V_ExtWCharToMB(CharP->Char, CharP->MB);
 		
 		// Load initial image (but only if it is not virtual)
-		if (a_Entry != VVIRTUALSPACECHAR)
+		if (CharP != VVIRTUALSPACECHAR)
 		{
 			CharP->Entry = a_Entry;
 			CharP->Image = V_ImageLoadE(CharP->Entry);

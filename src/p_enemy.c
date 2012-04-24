@@ -524,7 +524,7 @@ static bool_t P_LookForPlayers(mobj_t* actor, bool_t allaround)
 				continue;
 			
 			// Make mo
-			mo = currentthinker;
+			mo = (mobj_t*)currentthinker;
 		
 			// Ourself?
 			if (actor == mo)
@@ -1777,7 +1777,7 @@ static state_t* P_FinalState(statenum_t state)
 			return NULL;
 	}
 	
-	return &states[state];
+	return states[state];
 }
 
 //

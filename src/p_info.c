@@ -1480,7 +1480,7 @@ void P_FindLevelName()
 	if (*info_levelname)
 		levelname = info_levelname;
 	// not a new level or dehacked level names ?
-	else if (!newlevel || deh_loaded)
+	else if (!newlevel/* || deh_loaded*/)
 	{
 		if (isMAPxy(maplumpname))
 			levelname = gamemission == pack_tnt ? HU_TITLET : gamemission == pack_plut ? HU_TITLEP : HU_TITLE2;

@@ -137,6 +137,8 @@ bool_t P_SetMobjState(mobj_t* mobj, statenum_t state)
 		OldNumStates = NUMSTATES;
 	}
 	
+	seenstate = seenstate_tab;
+	
 	if (recursion++)			// if recursion detected,
 		memset(seenstate = tempstate, 0, sizeof tempstate);	// clear state table
 		
@@ -252,7 +254,9 @@ void P_XYFriction(mobj_t* mo, fixed_t oldx, fixed_t oldy, bool_t oldfriction)
 		// if in a walking frame, stop moving
 		if (player && !(mo->RXFlags[0] & MFREXA_NOPLAYERWALK))
 		{
-			if ((unsigned)((player->mo->state - states) - player->mo->info->RPlayerRunState) < 4)
+			// TODO FIXME Check
+			if (player->mo->state == states[player->mo->info->RPlayerRunState])
+			//if ((unsigned)((player->mo->state - states) - player->mo->info->RPlayerRunState) < 4)
 				P_SetMobjState(player->mo, player->mo->info->spawnstate);
 		}
 		
