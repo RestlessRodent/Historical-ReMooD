@@ -80,7 +80,7 @@ typedef struct
 	int32_t RMODFastTics;						// Tics when -fast
 	int32_t ExtraStateFlags;					// Custom flags
 	
-	uint32_t WeaponID;							// Unique Weapon ID
+	uint32_t ObjectID;							// Unique Weapon ID
 	uint32_t Marker;							// Marker for RMOD
 	uint64_t SimNext;							// Simulated next state
 	char HoldSprite[5];							// Sprite to remember
@@ -104,10 +104,39 @@ extern mobjtype_t NUMMOBJTYPES;
 
 typedef enum INFO_ObjectStateGroup_e
 {
-	IOSG_SPAWN,
+	/* Map Object States */
+	IOSG_SPAWN = 0,
+	IOSG_ACTIVE,
+	IOSG_PAIN,
+	IOSG_MELEEATTACK,
+	IOSG_RANGEDATTACK,
+	IOSG_CRASH,
+	IOSG_DEATH,
+	IOSG_GIB,
+	IOSG_RAISE,
+	IOSG_PLAYERRUN,
+	IOSG_PLAYERMELEE,
+	IOSG_PLAYERRANGED,
+	IOSG_VILEHEAL,
+	IOSG_LESSBLOODA,
+	IOSG_LESSBLOODB,
+	IOSG_BRAINEXPLODE,
+	IOSG_MELEEPUFF,
 	
-	NUMINFOOBJECTSTATEGROUPS
+	NUMINFOOBJECTSTATEGROUPS,
+	
+	/* Weapon States */
+	PWSG_UP = 0,
+	PWSG_DOWN,
+	PWSG_READY,
+	PWSG_ATTACK,
+	PWSG_HOLDATTACK,
+	PWSG_FLASH,
+	
+	NUMPWEAPONSTATEGROUPS,
 } INFO_ObjectStateGroup_t;
+
+typedef INFO_ObjectStateGroup_t P_WeaponStateGroup_t;
 
 typedef struct
 {
@@ -157,8 +186,11 @@ typedef struct
 	char* RClassName;							// Class Name
 	char* RMTName;								// MT Name
 	uint32_t RDehackEdID;						// DeHackEd ID
-	int RefStates[NUMINFOOBJECTSTATEGROUPS];	// State references
+	uint32_t RefStates[NUMINFOOBJECTSTATEGROUPS];	// State references
 	char* RFamilyClass;							// Family Class
+	
+	// Object ID
+	uint32_t ObjectID;							// ID Of Object (unique, kinda)
 } mobjinfo_t;
 
 extern mobjinfo_t** mobjinfo;
@@ -168,10 +200,33 @@ extern mobjinfo_t** mobjinfo;
 bool_t INFO_RMODH_MapObjects(Z_Table_t* const a_Table, const WL_WADFile_t* const a_WAD, const D_RMODPrivates_t a_ID, D_RMODPrivate_t* const a_Private);
 bool_t INFO_RMODO_MapObjects(const bool_t a_Pushed, const struct WL_WADFile_s* const a_WAD, const D_RMODPrivates_t a_ID);
 
+// RMOD Helpers
+
+typedef statenum_t* (*INFO_RMODStateForNameFunc_t)(void* const a_Input, const char* const a_Name, INFO_ObjectStateGroup_t* const IOSG, uint32_t** const a_RefState);
+
+/* INFO_RMODStateHelper_t -- RMOD State Helper */
+typedef struct INFO_RMODStateHelper_s
+{
+	INFO_RMODStateForNameFunc_t StateForName;	// State for Name function
+
+	void* InputPtr;								// Input Pointer
+	uint32_t ObjectID;							// Object ID
+	uint32_t* StateSplasher;					// Splasher for states
+	INFO_ObjectStateGroup_t StateGroup;			// Current State Group
+	uint32_t* StateValueP;						// Reference State
+	
+	state_t*** StatesRef;						// Reference to stored states
+	size_t* NumStatesRef;						// Reference to number of states
+	size_t BaseStateNum;						// Base state to start from
+} INFO_RMODStateHelper_t;
+
+bool_t INFO_RMODStateHandlers(Z_Table_t* const a_Sub, void* const a_Data);
+void INFO_StateNormalize(const size_t a_MergeBase, const size_t a_MergeCount);
+
 /*** HELPFUL FUNCTIONS ***/
 
 mobjtype_t INFO_GetTypeByName(const char* const a_Name);
-spritenum_t INFO_SpriteNumByName(const char* const a_Name);
+spritenum_t INFO_SpriteNumByName(const char* const a_Name, bool_t a_Create);
 actionf_t INFO_FunctionPtrByName(const char* const a_Name);
 int INFO_PriorityByName(const char* const a_Name);
 uint32_t INFO_TransparencyByName(const char* const a_Name);

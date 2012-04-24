@@ -985,37 +985,31 @@ static bool_t RS_TextureOrderChange(const bool_t a_Pushed, const struct WL_WADFi
 		Z_Free(sprites);
 	sprites = NULL;
 	
-	if (sprnames)
-		Z_Free(sprnames);
-	sprnames = NULL;
-	
-	NUMSPRITES = numsprites = g_NumExSprites;
-	sprnames = Z_Malloc(sizeof(*sprnames) * numsprites, PU_STATIC, (void**)&sprnames);
+	numsprites = NUMSPRITES;
 	sprites = Z_Malloc(sizeof(*sprites) * numsprites, PU_STATIC, (void**)&sprites);
 	
 	for (i = 0; i < numsprites; i++)
 	{
-		// sprites can map 1:1
-		sprites[i] = g_ExSprites[i];
+		// Get code name for this sprite
+		Code = 0;
+		for (j = 0; j < 4; j++)
+			Code |= ((uint32_t)toupper(sprnames[i][j])) << (8 * j);
 		
-		// Find sprite name to copy
-		sprnames[i] = NULL;
-		if (g_ExSprites[i].spriteframes)
-			for (k = 0; k < g_ExSprites[i].numframes; k++)
+		// Find matching code
+		for (j = 0; j < g_NumExSprites; j++)
+		{
+			char ba[5] = {0, 0, 0, 0, 0};
+			char bb[5] = {0, 0, 0, 0, 0};
+			
+			memcpy(ba, &g_ExSprites[j].Code, 4);
+			memcpy(bb, &Code, 4);
+			
+			if (g_ExSprites[j].Code == Code)
 			{
-				// Look for name
-				for (j = 0; j < 16; j++)
-					if (g_ExSprites[i].spriteframes[0].ExAngles[j])
-					{
-						sprnames[i] = g_ExSprites[i].spriteframes[k].ExAngles[j]->Name;
-						fprintf(stderr, ">> %p %s\n", sprnames[i], sprnames[i]);
-						break;
-					}
-				
-				// Found?
-				if (sprnames[i])
-					break;
+				sprites[i] = g_ExSprites[j];
+				break;
 			}
+		}
 	}
 		
 	/* Success */

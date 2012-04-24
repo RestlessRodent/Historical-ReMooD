@@ -35,6 +35,7 @@
 
 #include "doomdef.h"
 #include "m_fixed.h"
+#include "info.h"
 
 // ==================================
 // Difficulty/skill settings/filters.
@@ -134,30 +135,17 @@ typedef enum WeaponFlags_e
 	WF_NOTHRUST					= 0x00000800,	// No thrusting the enemy
 } WeaponFlags_t;
 
-/* P_WeaponStateGroup_t -- Weapon state group number */
-typedef enum P_WeaponStateGroup_e
-{
-	PWSG_UP,
-	PWSG_DOWN,
-	PWSG_READY,
-	PWSG_ATTACK,
-	PWSG_HOLDATTACK,
-	PWSG_FLASH,
-	
-	NUMPWEAPONSTATEGROUPS
-} P_WeaponStateGroup_t;
-
 // Weapon info: sprite frames, ammunition use.
 typedef struct
 {
 	ammotype_t ammo;
-	int ammopershoot;
-	int upstate;
-	int downstate;
-	int readystate;
-	int atkstate;
-	int holdatkstate;
-	int flashstate;
+	statenum_t ammopershoot;
+	statenum_t upstate;
+	statenum_t downstate;
+	statenum_t readystate;
+	statenum_t atkstate;
+	statenum_t holdatkstate;
+	statenum_t flashstate;
 	
 	// ReMooD Extended
 	char* DropWeaponClass;						// Thing to "drop" when a player dies
@@ -174,7 +162,7 @@ typedef struct
 	char* BringUpSound;							// Sound to play when brung up
 	char* IdleNoise;							// Noise when idling (chainsaw)
 	uint32_t WeaponID;							// Unique Weapon ID
-	int RefStates[NUMPWEAPONSTATEGROUPS];		// Reference States
+	uint32_t RefStates[NUMPWEAPONSTATEGROUPS];	// Reference States
 	char* ReplacePuffType;						// Replacement puff type (rather than default)
 	char* ReplaceFireSound;						// Replacement Fire Sound
 } weaponinfo_t;

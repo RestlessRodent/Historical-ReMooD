@@ -10064,6 +10064,7 @@ MapObject "DoomBlood"
 			Tics "8";
 			ViewPriority "Effects";
 			Next "0";
+			UseBloodTime "true";
 		}
 	}
 }
