@@ -121,6 +121,11 @@ static Z_MemZone_t* l_MainZone = NULL;	// Memory zones
 
 #if defined(__REMOOD_VALGRIND)
 
+/* Z_DupFileLine() -- Does nothing */
+void Z_DupFileLine(void* const a_Dest, void* const a_Src)
+{
+}
+
 /* Z_Allocation_t -- A malloc allocation (chunked) */
 typedef struct Z_Allocation_s
 {

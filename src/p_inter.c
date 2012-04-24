@@ -404,7 +404,7 @@ void PS_PickupMessage(mobj_t* const a_Picker, mobj_t* const a_Upper, const char*
 //
 // P_TouchSpecialThing
 //
-void P_TouchSpecialThing(mobj_t* special, mobj_t* toucher)
+bool_t P_TouchSpecialThing(mobj_t* special, mobj_t* toucher)
 {
 	player_t* player;
 	int i;
@@ -420,12 +420,12 @@ void P_TouchSpecialThing(mobj_t* special, mobj_t* toucher)
 	if (delta > toucher->height || delta < -special->height)
 	{
 		// out of reach
-		return;
+		return false;
 	}
 	// Dead thing touching.
 	// Can happen with a sliding player corpse.
 	if (toucher->health <= 0 || toucher->flags & MF_CORPSE)
-		return;
+		return false;
 		
 	sound = sfx_itemup;
 	player = toucher->player;
@@ -469,20 +469,22 @@ void P_TouchSpecialThing(mobj_t* special, mobj_t* toucher)
 		{
 			// Monster cannot pickup thing
 			if (!Current->MonsterCanGrab)
-				return;
+				return false;
 			
 			// Emit sound from monster
 			S_StartSound(toucher, sound);
 		}
-		
 		
 		// Remove if we used it? or remove regardless
 		if ((Current->KeepNotNeeded && OKStat) || !Current->KeepNotNeeded || Current->RemoveAlways)
 			P_RemoveMobj(special);
 		
 		// Don't process anymore
-		break;
+		return true;
 	}
+	
+	/* Nothing picked up */
+	return false;
 	
 #if 0
 	// Identify by sprite.

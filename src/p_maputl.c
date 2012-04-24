@@ -431,6 +431,9 @@ void P_UnsetThingPosition(mobj_t* thing)
 			}
 		}
 	}
+	
+	// GhostlyDeath <April 24, 2012> -- Always clear mobj links
+	thing->bnext = thing->bprev = NULL;
 }
 
 //
@@ -584,6 +587,7 @@ bool_t P_BlockLinesIterator(int x, int y, bool_t (*func) (line_t*, void*), void*
 bool_t P_BlockThingsIterator(int x, int y, bool_t (*func) (mobj_t*, void*), void* a_Arg)
 {
 	mobj_t* mobj;
+	mobj_t* NextMo;
 	
 	if (x < 0 || y < 0 || x >= bmapwidth || y >= bmapheight)
 	{
@@ -591,8 +595,13 @@ bool_t P_BlockThingsIterator(int x, int y, bool_t (*func) (mobj_t*, void*), void
 	}
 	//added:15-02-98: check interaction (ligne de tir, ...)
 	//                avec les objets dans le blocmap
-	for (mobj = blocklinks[y * bmapwidth + x]; mobj; mobj = mobj->bnext)
+	for (NextMo = NULL, mobj = blocklinks[y * bmapwidth + x]; mobj; mobj = NextMo)
 	{
+		// GhostlyDeath <April 24, 2012> -- Remember the next object, because with
+		// the new referencing code, *mobj may become invalidated (special pickups, etc.)
+		// so the next object cannot be referenced because it was made invalid.
+		NextMo = mobj->bnext;
+		
 		if (!func(mobj, a_Arg))
 			return false;
 	}

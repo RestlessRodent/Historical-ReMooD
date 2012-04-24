@@ -282,7 +282,7 @@ extern mobj_t** blocklinks;		// for thing chains
 // P_INTER
 //
 
-void P_TouchSpecialThing(mobj_t* special, mobj_t* toucher);
+bool_t P_TouchSpecialThing(mobj_t* special, mobj_t* toucher);
 
 bool_t P_DamageMobj(mobj_t* target, mobj_t* inflictor, mobj_t* source, int damage);
 

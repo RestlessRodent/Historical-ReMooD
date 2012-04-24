@@ -1225,7 +1225,7 @@ void P_RemoveMobj(mobj_t* mobj)
 	
 	if (!mobj)
 		return;
-		
+	
 	if ((mobj->flags & MF_SPECIAL) && !(mobj->flags & MF_DROPPED) && !(mobj->RXFlags[0] & MFREXA_NOALTDMRESPAWN))
 	{
 		itemrespawnque[iquehead] = mobj->spawnpoint;
