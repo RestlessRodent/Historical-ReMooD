@@ -409,6 +409,9 @@ void D_Display(void)
 		HU_Drawer();
 		
 		ST_Drawer(redrawsbar);
+		
+		// GhostlyDeath <April 25, 2012> -- Extended Status Bar
+		ST_DrawPlayerBarsEx();
 	}
 	// change gamma if needed
 	if (gamestate != oldgamestate && gamestate != GS_LEVEL)
@@ -1482,6 +1485,7 @@ void D_DoomMain(void)
 	P_EXGSRegisterStuff();				// Extended Game Settings stuff
 	M_CheatInit();						// Initialize Cheats
 	D_NCSInit();						// Initialize Network Code
+	ST_InitEx();						// Extended Status Bar
 	
 	D_CreateProfileEx("guest");			// Create guest account
 	/**************************/

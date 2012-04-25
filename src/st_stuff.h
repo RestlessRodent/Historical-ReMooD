@@ -128,5 +128,12 @@ void SB_Drawer(bool_t refresh);
 bool_t SB_Responder(event_t* event);
 void SB_Init(void);
 
+/*****************************************************************************/
+
+/*** FUNCTIONS ***/
+
+void ST_DrawPlayerBarsEx(void);
+void ST_InitEx(void);
+
 #endif
 

@@ -1533,3 +1533,146 @@ void ST_overlayDrawer(void)
 #endif
 }
 
+/*****************************************************************************/
+
+/*** PRIVATE FUNCTIONS ***/
+
+/* STS_SBX() -- Status Bar X */
+static int32_t STS_SBX(D_ProfileEx_t* const a_Profile, const int32_t a_Coord, int32_t a_W, const int32_t a_H)
+{
+	int c = a_Coord;
+	
+	// a_W    1
+	// --- * --- = ???
+	//  1    320
+	return FixedMul(c << FRACBITS, FixedMul(204, a_W << FRACBITS)) >> FRACBITS;
+}
+
+/* STS_SBY() -- Status Bar Y */
+static int32_t STS_SBY(D_ProfileEx_t* const a_Profile, const int32_t a_Coord, int32_t a_W, const int32_t a_H)
+{
+	int c = a_Coord;
+	
+	// a_H    1
+	// --- * --- = ???
+	//  1    200
+	return FixedMul(c << FRACBITS, FixedMul(327, a_H << FRACBITS)) >> FRACBITS;
+}
+
+/* STS_DrawPlayerBarEx() -- Draws a player's status bar */
+static void STS_DrawPlayerBarEx(const size_t a_PID, const int32_t a_X, const int32_t a_Y, const int32_t a_W, const int32_t a_H)
+{
+#define BUFSIZE 32
+	char Buf[BUFSIZE];
+	player_t* ConsoleP, *DisplayP;
+	D_ProfileEx_t* Profile;
+	V_Image_t* vi;
+	VideoFont_t Font;
+	
+	/* Init */
+	if (a_W < 320)
+		Font = VFONT_SMALL;
+	else
+		Font = VFONT_STATUSBARLARGE;
+	
+	/* Get players to draw for */
+	ConsoleP = &players[consoleplayer[a_PID]];
+	DisplayP = &players[displayplayer[a_PID]];
+	
+	/* Get profile of player */
+	Profile = ConsoleP->ProfileEx;
+	
+	/* Which status bar type to draw? */
+	// Overlay
+	if (true)
+	{
+		// Draw Health Icon
+		vi = V_ImageFindA("sbohealt");
+		
+		if (vi)
+			V_ImageDraw(
+					0, vi,
+					a_X + STS_SBX(Profile, 8, a_W, a_H),
+					a_Y + STS_SBY(Profile, 192, a_W, a_H) - 16,
+					Pal
+				);
+		
+		// Draw Health Text
+		snprintf(Buf, BUFSIZE - 1, "%i", DisplayP->health);
+		V_DrawStringA(
+				Font, 0, Buf,
+				a_X + STS_SBX(Profile, 8, a_W, a_H) + 20,
+				a_Y + STS_SBY(Profile, 192, a_W, a_H) - 12
+			);
+	}
+	
+	/* Draw Object Overlays */
+#undef BUFSIZE
+}
+
+/*** FUNCTIONS ***/
+
+/* ST_DrawPlayerBarsEx() -- Draw player status bars */
+void ST_DrawPlayerBarsEx(void)
+{
+	int p, x, y, w, h;
+	
+	/* Screen division? */
+	// Initial
+	x = y = 0;
+	w = 320;
+	h = 200;
+	
+	// 2+ split
+	if (g_SplitScreen >= 1)
+		h /= 2;
+	
+	// 3+ split
+	if (g_SplitScreen >= 2)
+		w /= 2;
+	
+	/* Draw each player */
+	for (p = 0; p < g_SplitScreen + 1; p++)
+	{
+		// Draw Bar
+		STS_DrawPlayerBarEx(p, x, y, w, h);
+		
+		// Add to coords
+		if (g_SplitScreen == 1)
+			y += h;
+		else if (g_SplitScreen > 1)
+		{
+			x += w;
+			
+			if (x == (w * 2))
+			{
+				x = 0;
+				y += h;
+			}
+		}
+		
+	}
+}
+
+/* ST_InitEx() -- Initializes the extended status bar */
+void ST_InitEx(void)
+{
+}
+
+/* ST_TickerEx() -- Extended Ticker */
+void ST_TickerEx(void)
+{
+	int ChosePal = 0;
+	int BaseDam = 0, BzFade;
+	size_t p;
+	
+	/* Update for all players */
+	for (p = 0; p < MAXPLAYERS; p++)
+	{
+		// No player here?
+		if (!playeringame[p])
+			continue;
+		
+	}
+}
+

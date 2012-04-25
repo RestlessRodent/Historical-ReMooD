@@ -66,6 +66,7 @@ void V_Init(void);
 // Set the current RGB palette lookup to use for palettized graphics
 #define VPALSMOOTHCOUNT 2		// Must be power of 2, higher number means smoother palette transition
 void V_SetPalette(int palettenum);
+uint8_t* V_GetPalette(int palettenum);
 
 void V_SetPaletteLump(char* pal);
 
@@ -332,7 +333,7 @@ void V_RenderPD(V_PDString_t* const PDStr);
 
 #define MAXUIANAME			12					// Max name for find cache
 
-typedef struct V_Image_s V_Image_t;\
+typedef struct V_Image_s V_Image_t;
 
 // Load and Destroy
 V_Image_t* V_ImageLoadE(const WL_WADEntry_t* const a_Entry);

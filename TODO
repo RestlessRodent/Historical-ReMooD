@@ -98,8 +98,6 @@ mark as completed, too bad there is no ASCII checkmark.
  * g_state:		Merge this file into something else, it virtually has nothing
  				here and just holds game state defines for some reason.
  
- * info:		RMODize everything.
- 
  * md5:			Use a better algorithm?
  
  * p_mobj:		Make per object P_Random() and possibly map based P_Random().
@@ -159,6 +157,10 @@ mark as completed, too bad there is no ASCII checkmark.
 
 ###############################################################################
  END ACTUAL TODO LIST
+
+COMPLETED TODOS:
+
+ * info:		RMODize everything.
 
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 

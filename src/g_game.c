@@ -1205,6 +1205,7 @@ void G_Ticker(void)
 			ST_Ticker();
 			AM_Ticker();
 			HU_Ticker();
+			ST_TickerEx();
 			break;
 			
 		case GS_INTERMISSION:

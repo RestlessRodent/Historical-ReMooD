@@ -371,6 +371,18 @@ void V_SetPalette(int palettenum)
 		I_SetPalette(l_DoomPals[palettenum]);
 }
 
+/* V_GetPalette() -- Gets palette */
+uint8_t* V_GetPalette(int palettenum)
+{
+	if (!l_DoomPals)
+		LoadPalette("PLAYPAL");
+		
+	if (palettenum < 0 || palettenum >= l_NumDoomPals || !l_DoomPals[palettenum])
+		return l_DoomPals[0];
+	else
+		return l_DoomPals[palettenum];
+}
+
 /* V_SetPaletteLump -- Set the current palette based on the lump */
 void V_SetPaletteLump(char* pal)
 {

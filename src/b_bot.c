@@ -57,8 +57,8 @@
 ****************/
 
 #define BOTMINNODEDIST		(32 << FRACBITS)	// Minimum node distance
-#define BOTMAXNODERECOURSE	5					// Maximum bot recursion
-#define BOTINITNODERECOURSE	3					// Initial Count for initial nodes
+#define BOTMAXNODERECOURSE	24					// Maximum bot recursion
+#define BOTINITNODERECOURSE	12					// Initial Count for initial nodes
 #define BOTSLMOVETIMEOUT	(2 * TICRATE)		// Straight move timeout
 
 /* B_BotActionSub_t -- Bot action subroutines */
@@ -311,7 +311,7 @@ static uint32_t BS_BuildBotPath(B_BotData_t* const a_BotData, B_BotNode_t* const
 	B_BotNode_t* TheHitNode;
 	angle_t DestAng, TryAng;
 	angle_t AngDiff, CurAng;
-	int32_t TryDir[2], x, y;
+	int32_t TryDir[2], x, y, SameX, SameY;
 	bool_t HitNode;
 	size_t j;
 	
@@ -433,48 +433,10 @@ static uint32_t BS_BuildBotPath(B_BotData_t* const a_BotData, B_BotNode_t* const
 	// towards every node in the list and it takes awhile for it to move to the
 	// target. So as such, the pivot list is to simplify the path of the bot.
 	
-	// Add the first node to the pivot
-	AtNode = a_BotData->PathNodes[0];
-	Z_ResizeArray((void**)&a_BotData->PivotNodes, sizeof(*a_BotData->PivotNodes),
-			a_BotData->NumPivotNodes, a_BotData->NumPivotNodes + 1);
-	a_BotData->PivotNodes[a_BotData->NumPivotNodes++] = AtNode;
-	
-	// Get the current facing angle (direction to go)
-	DestNode = a_BotData->PathNodes[1];
-	CurAng = R_PointToAngle2(AtNode->Pos[0], AtNode->Pos[1], DestNode->Pos[0], DestNode->Pos[1]);
-	
-	// Go through all the path nodes
-	for (j = 2; j < a_BotData->NumPathNodes; j++)
-	{
-		// Get path node the bot wants to move to
-		DestNode = a_BotData->PathNodes[j];
-		
-		// Get the angle to this node
-		DestAng = R_PointToAngle2(AtNode->Pos[0], AtNode->Pos[1], DestNode->Pos[0], DestNode->Pos[1]);
-		
-		// Get the difference between that angle and the current angle
-		AngDiff = BS_AngleDiff(CurAng, DestAng);
-		
-		// If the angle is greater than 22deg or this is the last node
-		if ((AngDiff >= (ANG45 / 2)) && (j <= (a_BotData->NumPathNodes - 1)))
-		{
-			// Replace the current node with this one
-			AtNode = DestNode;
-			
-			// Add the current node to the pivot list
-			Z_ResizeArray((void**)&a_BotData->PivotNodes, sizeof(*a_BotData->PivotNodes),
-					a_BotData->NumPivotNodes, a_BotData->NumPivotNodes + 1);
-			a_BotData->PivotNodes[a_BotData->NumPivotNodes++] = AtNode;
-			
-			// Get the angle to the new destination
-			if (j < (a_BotData->NumPathNodes - 1))
-			{
-				DestNode = a_BotData->PathNodes[j + 1];
-				CurAng = R_PointToAngle2(AtNode->Pos[0], AtNode->Pos[1], DestNode->Pos[0], DestNode->Pos[1]);
-				j++;
-			}
-		}
-	}
+	// Duplicate the path list entirely
+	a_BotData->NumPivotNodes = a_BotData->NumPathNodes;
+	a_BotData->PivotNodes = Z_Malloc(sizeof(*a_BotData->PivotNodes) * a_BotData->NumPivotNodes, PU_STATIC, NULL);
+	memmove(a_BotData->PivotNodes, a_BotData->PathNodes, sizeof(*a_BotData->PivotNodes) * a_BotData->NumPivotNodes);
 	
 #if 0
 	B_BotNode_t** PivotNodes;					// Pivots in path
@@ -664,6 +626,13 @@ static B_BotNode_t* BS_GetNodeAtPos(const fixed_t a_X, const fixed_t a_Y, const 
 	/* Recursion to find different nodes */
 	// Links need generation?
 		// Also, do not generate nodes and recourse more than needed!
+#if 0
+	if (!CurNode->LinksMade)
+	{
+		// Set current node as generated
+		CurNode->LinksMade = true;
+	}
+#else
 	if (a_Rec < BOTMAXNODERECOURSE && !CurNode->LinksMade)
 	{
 		// Set current node as generated
@@ -727,6 +696,7 @@ static B_BotNode_t* BS_GetNodeAtPos(const fixed_t a_X, const fixed_t a_Y, const 
 				}
 			}
 	}
+#endif
 	
 	/* Return the current node */
 	return CurNode;
@@ -917,7 +887,7 @@ static void BS_ThinkFollowNearestPlayer(B_BotData_t* const a_BotData, ticcmd_t* 
 	else
 	{
 		// End of iteration? Clear everything
-		if (a_BotData->PivotIt >= a_BotData->PivotNodes)
+		if (a_BotData->PivotIt >= a_BotData->NumPivotNodes)
 		{
 			fprintf(stderr, "Bot: Target reached\n");
 			
@@ -925,6 +895,11 @@ static void BS_ThinkFollowNearestPlayer(B_BotData_t* const a_BotData, ticcmd_t* 
 				Z_Free(a_BotData->PathNodes);
 			a_BotData->PathNodes = NULL;
 			a_BotData->PathIt = a_BotData->NumPathNodes = 0;
+			
+			if (a_BotData->PivotNodes)
+				Z_Free(a_BotData->PivotNodes);
+			a_BotData->PivotNodes = NULL;
+			a_BotData->PivotIt = a_BotData->NumPivotNodes = 0;
 		}
 		
 		// Continue down iterator.
