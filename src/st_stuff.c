@@ -1594,7 +1594,7 @@ static void STS_DrawPlayerBarEx(const size_t a_PID, const int32_t a_X, const int
 					0, vi,
 					a_X + STS_SBX(Profile, 8, a_W, a_H),
 					a_Y + STS_SBY(Profile, 192, a_W, a_H) - 16,
-					Pal
+					NULL
 				);
 		
 		// Draw Health Text

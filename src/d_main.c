@@ -98,7 +98,6 @@
 #include "z_zone.h"
 #include "d_main.h"
 #include "m_cheat.h"
-#include "p_chex.h"
 
 #include "d_prof.h"
 
@@ -1600,9 +1599,6 @@ void D_DoomMain(void)
 	CONL_PrintF(text[Z_INIT_NUM]);
 	
 	G_InitKeys();
-	
-	if (gamemode == chexquest1)
-		Chex1PatchEngine();
 		
 	CONL_PrintF(text[W_INIT_NUM]);
 	// load wad, including the main wad file
