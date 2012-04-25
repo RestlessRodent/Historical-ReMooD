@@ -59,13 +59,18 @@
 #define BOTMINNODEDIST		(32 << FRACBITS)	// Minimum node distance
 #define BOTMAXNODERECOURSE	5					// Maximum bot recursion
 #define BOTINITNODERECOURSE	3					// Initial Count for initial nodes
+#define BOTSLMOVETIMEOUT	(2 * TICRATE)		// Straight move timeout
 
 /* B_BotActionSub_t -- Bot action subroutines */
 typedef enum B_BotActionSub_e
 {
-	BBAS_STRAIGHTNAV,							// Straight line navigation	
+	BBAS_STRAIGHTNAV,							// Straight line navigation
+	BBAS_FOLLOWNEARESTPLAYER,					// Follows the nearest player
+	BBAS_BLINDSTRAIGHTNAV,						// Same as Straight nav but nodeless
 	
-	NUMBBOTACTIONSUBS
+	NUMBBOTACTIONSUBS,
+	
+	BBAS_NORMALAI = BBAS_FOLLOWNEARESTPLAYER
 } B_BotActionSub_t;
 
 /* B_NodeToNodeFlags_t -- Node to node flags */
@@ -75,6 +80,12 @@ typedef enum B_NodeToNodeFlags_e
 	BNTNF_FIRSTTIME				= 0x00000002,	// First time determination
 } B_NodeToNodeFlags_t;
 
+/* B_BuildBotPathFlags_t -- Paths for building bot path */
+typedef enum B_BuildBotPathFlags_e
+{
+	BBBPF_INSERT				= 0x00000001,	// Insert nodes instead of deleting them all
+} B_BuildBotPathFlags_t;
+
 /*****************
 *** STRUCTURES ***
 *****************/
@@ -83,12 +94,19 @@ typedef enum B_NodeToNodeFlags_e
 typedef struct B_BotNode_s
 {
 	/* Position */
+	bool_t NoTraverse;							// Never traversable
+	bool_t IsFloating;							// Is floating node
 	fixed_t Pos[2];								// Position of node
 	subsector_t* SubS;							// Subsector of node
+	fixed_t FloorZ, CeilingZ;					// Floor and Ceiling Z
 	
 	/* Links to other nodes */
 	bool_t LinksMade;							// Links generated?
 	struct B_BotNode_s* Links[3][3];			// (x, y)
+	fixed_t Dists[3][3];						// Distance
+	
+	/* Path Building */
+	uint32_t NavCount;							// Navigation Count
 } B_BotNode_t;
 
 /* B_BotData_t -- Bot data */
@@ -104,6 +122,10 @@ struct B_BotData_s
 	
 	/* Movement */
 	B_BotNode_t* AtNode;						// Node Currently At
+	
+	B_BotNode_t** PathNodes;					// Node List
+	size_t PathIt;								// Current node that is being iterated
+	size_t NumPathNodes;						// Number of path nodes
 	
 	/* Thinking */
 	B_BotActionSub_t ActSub;					// Action Subroutine
@@ -155,6 +177,12 @@ static tic_t l_PlayerLastTime = 0;				// Last generation time
 static int BS_Random(B_BotData_t* const a_BotData)
 {
 	return M_Random();
+}
+
+/* BS_PointsToAngleTurn() -- Convert points to angle turn */
+static int16_t BS_PointsToAngleTurn(const fixed_t a_x1, const fixed_t a_y1, const fixed_t a_x2, const fixed_t a_y2)
+{
+	return R_PointToAngle2(a_x1, a_y1, a_x2, a_y2) >> 16;
 }
 
 /* BS_NTNPFirst() -- Determines whether point is reachable */
@@ -241,10 +269,10 @@ static bool_t BS_NodeToNodePossible(B_BotData_t* const a_BotData, B_BotNode_t* c
 		return false;
 	
 	/* Get sector information */
-	sfZ = a_A->SubS->sector->floorheight;
-	scZ = a_A->SubS->sector->ceilingheight;
-	dfZ = a_B->SubS->sector->floorheight;
-	dcZ = a_B->SubS->sector->ceilingheight;
+	sfZ = a_A->FloorZ;
+	scZ = a_A->CeilingZ;
+	dfZ = a_B->FloorZ;
+	dcZ = a_B->CeilingZ;
 	
 	/* Sector height differences */
 	// Destination ceiling too low?
@@ -252,11 +280,183 @@ static bool_t BS_NodeToNodePossible(B_BotData_t* const a_BotData, B_BotNode_t* c
 		return false;
 	
 	// Destination floor too high?
-	if (dfZ - sfZ >= (24 << FRACBITS))
+	if (dfZ - sfZ > (24 << FRACBITS))
 		return false;
 	
 	/* Reachable */
 	return true;
+}
+
+/* BS_BuildBotPath() -- Build bot path from A to B */
+static uint32_t BS_BuildBotPath(B_BotData_t* const a_BotData, B_BotNode_t* const a_A, B_BotNode_t* const a_B, const uint32_t a_Flags)
+{
+	static uint32_t CurrentNav;
+	uint32_t RetVal = 0;
+	B_BotNode_t* AtNode;
+	B_BotNode_t* DestNode;
+	B_BotNode_t* CheckNode;
+	B_BotNode_t* TheHitNode;
+	angle_t DestAng, TryAng;
+	angle_t AngDiff;
+	int32_t TryDir[2], x, y;
+	bool_t HitNode;
+	
+	/* Increase current navigation */
+	CurrentNav = CurrentNav + 1;
+	
+	/* Check */
+	if (!a_BotData || !a_A || !a_B)
+		return 0;
+	
+	/* Clear all path nodes? */
+	if (!(a_Flags & BBBPF_INSERT))
+	{
+		// Reset path data
+		if (a_BotData->PathNodes)
+			Z_Free(a_BotData->PathNodes);
+		a_BotData->PathNodes = NULL;
+		a_BotData->PathIt = a_BotData->NumPathNodes = 0;
+	}
+	
+	/* Some Junky Algorithm */
+	// I don't know the actual A-Star but it goes something like the following...
+#if !defined(__REMOOD_BBPASTAR)
+	// Start at the node the bot is at
+	AtNode = a_A;
+	DestNode = a_B;
+	
+	//Dists
+	
+	// Continue moving to that node
+	do
+	{
+		// Reset
+		HitNode = false;
+		TheHitNode = NULL;
+		
+		// Mark current node as navigated on
+		AtNode->NavCount = CurrentNav;
+		
+		// Get angle to destination node
+		DestAng = R_PointToAngle2(AtNode->Pos[0], AtNode->Pos[1], DestNode->Pos[0], DestNode->Pos[1]);
+		
+		// Reset angle differences
+		AngDiff = ANG180;
+		
+		// With that angle, determine (x,y)
+		for (x = -1; x <= 1; x++)
+			for (y = -1; y <= 1; y++)
+			{
+				// Forget the same
+				if (x == 0 && y == 0)
+					continue;
+				
+				// Get angle based on prenagles
+				TryAng = ((uint32_t)(abs(((int32_t)(c_NavAngle[x + 1][y + 1] >> 1)) - ((int32_t)(DestAng >> 1))) & 0x7FFFFFFFU)) << 1;
+				
+				// Shorter than that?
+				if (TryAng < AngDiff)
+				{
+					// Get that node there
+					CheckNode = AtNode->Links[x + 1][y + 1];
+					
+					//fprintf(stderr, "node to (%i, %i) is %p\n", x, y, CheckNode);
+					
+					// Node is there?
+					if (CheckNode)
+						// Walkable?
+						if (BS_NodeToNodePossible(a_BotData, AtNode, CheckNode, BNTNF_RUNDYNAMIC))
+							// Never been walked onto?
+							if (CheckNode->NavCount != CurrentNav)
+							{
+								TryDir[0] = x + 1;
+								TryDir[1] = y + 1;
+								AngDiff = TryAng;
+								HitNode = true;
+								TheHitNode = CheckNode;
+							}
+				}
+			}
+		
+		// If the hit failed to hit, then break out
+		if (!HitNode || !TheHitNode)
+			break;
+		
+		// Now add it to the node list at the current insertion point
+		Z_ResizeArray(
+				(void**)&a_BotData->PathNodes,
+				sizeof(*a_BotData->PathNodes),
+				a_BotData->NumPathNodes,
+				a_BotData->NumPathNodes + 1
+			);
+		a_BotData->PathNodes[a_BotData->NumPathNodes++] = TheHitNode;
+		
+		// Go to that node now
+		AtNode = TheHitNode;
+		RetVal++;
+	} while (AtNode != DestNode);
+	
+	/* A-Star */
+#else
+#endif
+	
+	/* Return value */
+	return RetVal;
+}
+
+static fixed_t l_FloorZ, l_CeilingZ;
+
+/* BS_CheckNodeSafeTraverser() -- Checks whether the node is in a "good" spot */
+static bool_t BS_CheckNodeSafeTraverser(intercept_t* in, void* const a_Data)
+{
+	line_t* li;
+	mobj_t* mo;
+	
+	/* Lines */
+	if (in->isaline)
+	{
+		// Get line
+		li = in->d.line;
+		
+		// Cannot cross two sided line
+		if (!(li->flags & ML_TWOSIDED))
+			return false;
+		
+		// Cannot cross impassible line
+		if (li->flags & ML_BLOCKING)
+			return false;
+			
+		// Get sector floor and ceiling z
+		if (li->frontsector->floorheight > l_FloorZ)
+			l_FloorZ = li->frontsector->floorheight;
+		if (li->backsector->floorheight > l_FloorZ)
+			l_FloorZ = li->backsector->floorheight;
+		
+		if (li->frontsector->ceilingheight > l_CeilingZ)
+			l_CeilingZ = li->frontsector->ceilingheight;
+		if (li->backsector->ceilingheight > l_CeilingZ)
+			l_CeilingZ = li->backsector->ceilingheight;
+		
+		// Cannot fit inside of sector?
+		if ((l_CeilingZ - l_FloorZ) < (56 << FRACBITS))
+			return false;
+		
+		// Everything seems OK
+		return true;
+	}
+	
+	/* Things */
+	else
+	{
+		// Get Object
+		mo = in->d.thing;
+		
+		/* Don't hit solid things */
+		if (mo->flags & (MF_SOLID))
+			return false;
+		
+		return true;
+	}
 }
 
 /* BS_GetNodeAtPos() -- Get node at position */
@@ -267,9 +467,18 @@ static B_BotNode_t* BS_GetNodeAtPos(const fixed_t a_X, const fixed_t a_Y, const 
 	fixed_t Dist;
 	size_t i;
 	int32_t x, y, LinkXID, LinkYID;
+	bool_t Failed;
+	fixed_t PlaceX, PlaceY;
+	
+	/* Round input coordinates to the normal grid */
+	// Because otherwise bot nodes will be placed everywhere in un-grid fashion.
+	// Also, Some nodes could be placed in adjacent subsectors not very far from
+	// an existing node in another subsector, so this changes that.
+	PlaceX = ((a_X >> FRACBITS) - ((a_X >> FRACBITS) % (BOTMINNODEDIST >> FRACBITS))) << FRACBITS;
+	PlaceY = ((a_Y >> FRACBITS) - ((a_Y >> FRACBITS) % (BOTMINNODEDIST >> FRACBITS))) << FRACBITS;
 	
 	/* See if spot is in a subector */
-	SpotSS = R_IsPointInSubsector(a_X, a_Y);
+	SpotSS = R_IsPointInSubsector(PlaceX, PlaceY);
 	
 	// No subsector here?
 	if (!SpotSS)
@@ -286,7 +495,7 @@ static B_BotNode_t* BS_GetNodeAtPos(const fixed_t a_X, const fixed_t a_Y, const 
 			continue;
 		
 		// Determine how close the node is
-		Dist = P_AproxDistance(a_X - CurNode->Pos[0], a_Y - CurNode->Pos[1]);
+		Dist = P_AproxDistance(PlaceX - CurNode->Pos[0], PlaceY - CurNode->Pos[1]);
 		
 		// Distance is close
 		if (Dist < BOTMINNODEDIST)
@@ -299,12 +508,55 @@ static B_BotNode_t* BS_GetNodeAtPos(const fixed_t a_X, const fixed_t a_Y, const 
 	/* Create a new node at this position */
 	if (!CurNode)
 	{
+		Failed = false;
+		
+		// Get Floor and ceiling Z
+		l_FloorZ = SpotSS->sector->floorheight;
+		l_CeilingZ = SpotSS->sector->ceilingheight;
+		
+		// See if it is possible to even create a node here
+			// The bots will blindly run to a node it cannot reach because
+			// there happens to be a wall where the node is directly attached
+			// to it.
+		if (!P_PathTraverse(
+					PlaceX - (BOTMINNODEDIST >> 1),
+					PlaceY - (BOTMINNODEDIST >> 1),
+					PlaceX + (BOTMINNODEDIST >> 1),
+					PlaceY + (BOTMINNODEDIST >> 1),
+					PT_ADDLINES,
+					BS_CheckNodeSafeTraverser,
+					NULL
+				))
+			Failed = true;
+		
+		// Draw line from thing corner (corss section TL to BR)
+		if (!P_PathTraverse(
+					PlaceX - (BOTMINNODEDIST >> 1),
+					PlaceY + (BOTMINNODEDIST >> 1),
+					PlaceX + (BOTMINNODEDIST >> 1),
+					PlaceY - (BOTMINNODEDIST >> 1),
+					PT_ADDLINES,
+					BS_CheckNodeSafeTraverser,
+					NULL
+				))
+			Failed = true;
+		
+		// Create Node
 		CurNode = Z_Malloc(sizeof(*CurNode), PU_LEVEL, NULL);
 	
 		// Set node info
-		CurNode->Pos[0] = a_X;
-		CurNode->Pos[1] = a_Y;
+		CurNode->NoTraverse = Failed;
+		CurNode->Pos[0] = PlaceX;
+		CurNode->Pos[1] = PlaceY;
 		CurNode->SubS = SpotSS;
+		CurNode->FloorZ = l_FloorZ;
+		CurNode->CeilingZ = l_CeilingZ;
+		
+		// Floating Node?
+		CurNode->IsFloating = false;
+		
+		if (CurNode->FloorZ > CurNode->SubS->sector->floorheight)
+			CurNode->IsFloating = true;
 	
 		// Add node to subsector chain
 		Z_ResizeArray(
@@ -321,8 +573,8 @@ static B_BotNode_t* BS_GetNodeAtPos(const fixed_t a_X, const fixed_t a_Y, const 
 			P_SpawnMobj(
 					CurNode->Pos[0],
 					CurNode->Pos[1],
-					CurNode->SubS->sector->floorheight,
-					INFO_GetTypeByName("BlackCandle")
+					CurNode->FloorZ,
+					(CurNode->NoTraverse ? INFO_GetTypeByName("ReMooDBotDebugBadNode") : (CurNode->IsFloating ? INFO_GetTypeByName("ReMooDBotDebugFloatNode") : INFO_GetTypeByName("ReMooDBotDebugNode")))
 				);
 		}
 	}
@@ -350,8 +602,8 @@ static B_BotNode_t* BS_GetNodeAtPos(const fixed_t a_X, const fixed_t a_Y, const 
 				// Create new link (at coordinate away from this spot)
 				LinkNode = CurNode->Links[LinkXID][LinkYID] =
 					BS_GetNodeAtPos(
-							a_X + ((BOTMINNODEDIST * x)),
-							a_Y + ((BOTMINNODEDIST * y)),
+							PlaceX + ((BOTMINNODEDIST * x)),
+							PlaceY + ((BOTMINNODEDIST * y)),
 							a_Rec + 1
 						);
 			
@@ -360,20 +612,35 @@ static B_BotNode_t* BS_GetNodeAtPos(const fixed_t a_X, const fixed_t a_Y, const 
 				{
 					// Link the remote node back to here
 					LinkNode->Links[c_LinkOp[LinkXID]][c_LinkOp[LinkYID]] = CurNode;
-				
+					
+					// Distance between two nodes
+					Dist = P_AproxDistance(LinkNode->Pos[0] - CurNode->Pos[0], LinkNode->Pos[1] - CurNode->Pos[1]);
+					
 					// If the remote node is NOT in the same subsector
 						// Determine if it is possible to get to it
 						// But you can move to node from both sides, so a to b
 						// and b to a MUST be determined.
-					if (LinkNode->SubS != CurNode->SubS)
+						// Untraversable nodes can be linked from but not linked to
+					if (CurNode->NoTraverse || LinkNode->NoTraverse || LinkNode->SubS != CurNode->SubS)
 					{
 						// Cannot go to there?
-						if (!BS_NodeToNodePossible(NULL, CurNode, LinkNode, BNTNF_FIRSTTIME))
+						if (LinkNode->NoTraverse || !BS_NodeToNodePossible(NULL, CurNode, LinkNode, BNTNF_FIRSTTIME))
 							CurNode->Links[LinkXID][LinkYID] = NULL;
+						else
+							CurNode->Dists[LinkXID][LinkYID] = Dist;
 						
 						// Cannot come from there?
-						if (!BS_NodeToNodePossible(NULL, LinkNode, CurNode, BNTNF_FIRSTTIME))
+						if (CurNode->NoTraverse || !BS_NodeToNodePossible(NULL, LinkNode, CurNode, BNTNF_FIRSTTIME))
 							LinkNode->Links[c_LinkOp[LinkXID]][c_LinkOp[LinkYID]] = NULL;
+						else
+							LinkNode->Dists[c_LinkOp[LinkXID]][c_LinkOp[LinkYID]] = Dist;
+					}
+					
+					// Just copy distance (same subsector)
+					else
+					{
+						CurNode->Dists[LinkXID][LinkYID] = Dist;
+						LinkNode->Dists[c_LinkOp[LinkXID]][c_LinkOp[LinkYID]] = Dist;
 					}
 				}
 			}
@@ -430,7 +697,10 @@ static void BS_ThinkStraightLine(B_BotData_t* const a_BotData, ticcmd_t* const a
 	
 	// No node at this coordinate? A lost bot
 	if (!CurNode)
+	{
+		a_BotData->ActSub = BBAS_BLINDSTRAIGHTNAV;
 		return;
+	}
 	
 	/* Determine if moving is possible in this direction */
 	// Get that node
@@ -445,6 +715,10 @@ static void BS_ThinkStraightLine(B_BotData_t* const a_BotData, ticcmd_t* const a
 	if (!LinkNode || !Walkable ||
 		(a_BotData->SLToNode && CurNode != a_BotData->SLToNode && gametic > a_BotData->SLMoveTimeout))
 	{
+#if 1
+		// Change AI
+		a_BotData->ActSub = BBAS_NORMALAI;
+#else
 		// Clear destination node
 		a_BotData->SLToNode = false;
 		
@@ -465,6 +739,7 @@ static void BS_ThinkStraightLine(B_BotData_t* const a_BotData, ticcmd_t* const a
 			if (a_BotData->SLMoveY >= 2)
 				a_BotData->SLMoveX = a_BotData->SLMoveY = 0;
 		}
+#endif
 		
 		// Wait for another tic to do the movement
 		return;
@@ -474,7 +749,7 @@ static void BS_ThinkStraightLine(B_BotData_t* const a_BotData, ticcmd_t* const a
 	// Timeout determination
 	if (!a_BotData->SLToNode)
 	{
-		a_BotData->SLMoveTimeout = gametic + (TICRATE * 2);
+		a_BotData->SLMoveTimeout = gametic + BOTSLMOVETIMEOUT;
 		a_BotData->SLToNode = LinkNode;
 	}
 	
@@ -487,14 +762,174 @@ static void BS_ThinkStraightLine(B_BotData_t* const a_BotData, ticcmd_t* const a
 	// Spawn object there
 	if (g_BotDebug)
 	{
-		//CONL_PrintF("Bot: Dir (%i, %i)\n", a_BotData->SLMoveX, a_BotData->SLMoveY);
 		P_SpawnMobj(
 				LinkNode->Pos[0],
 				LinkNode->Pos[1],
-				LinkNode->SubS->sector->floorheight,
-				INFO_GetTypeByName("ItemFog")
+				LinkNode->SubS->sector->floorheight + (32 << FRACBITS),
+				INFO_GetTypeByName("ReMooDBotDebugTarget")
 			);
 	}
+}
+
+/* BS_ThinkFollowNearestPlayer() -- Follows the nearest player */
+static void BS_ThinkFollowNearestPlayer(B_BotData_t* const a_BotData, ticcmd_t* const a_TicCmd)
+{
+	size_t p, j;
+	player_t* Player, *ToPlayer;
+	B_BotNode_t* TargetNode;
+	uint32_t ItCount;
+	
+	/* Check */
+	if (!a_BotData || !a_TicCmd)
+		return;
+	
+	/* Find Players */
+	// Self
+	Player = a_BotData->Player;
+	
+	/* Bot is nowhere? */
+	if (!a_BotData->AtNode)
+	{
+		a_BotData->ActSub = BBAS_BLINDSTRAIGHTNAV;
+		return;
+	}
+	
+	/* No Existing Path */
+	if (!a_BotData->NumPathNodes)
+	{
+		// Find Other players
+		for (p = 0; p < MAXPLAYERS; p++)
+			if (p != Player - players)
+				if (playeringame[p])
+				{
+					ToPlayer = &players[p];
+					break;
+				}
+		
+		fprintf(stderr, "Bot: Traverse to player %i.\n", (int)p);
+	
+		// No players found?
+		if (!Player || !ToPlayer)
+			return;
+	
+		// Get target destination
+		TargetNode = l_PlayerNodes[p];
+	
+		// No target node
+		if (!TargetNode)
+			return;
+		
+		// Build path to the player
+		ItCount = BS_BuildBotPath(a_BotData, a_BotData->AtNode, TargetNode, 0);
+		
+		// Reset move time
+		a_BotData->SLMoveTimeout = gametic + BOTSLMOVETIMEOUT;
+		
+		// Straight Line Navigation
+		if (!ItCount)
+			a_BotData->ActSub = BBAS_STRAIGHTNAV;
+	}
+	
+	/* Existing Path */
+	else
+	{
+		// End of iteration? Clear everything
+		if (a_BotData->PathIt >= a_BotData->NumPathNodes)
+		{
+			fprintf(stderr, "Bot: Target reached\n");
+			
+			if (a_BotData->PathNodes)
+				Z_Free(a_BotData->PathNodes);
+			a_BotData->PathNodes = NULL;
+			a_BotData->PathIt = a_BotData->NumPathNodes = 0;
+		}
+		
+		// Continue down iterator.
+		else
+		{
+			fprintf(stderr, "Bot: Move to node\n");
+			
+			// Spawn Debug here
+			if (g_BotDebug)
+			{
+				if ((gametic % TICRATE) == 0)
+				{
+					for (j = 0; j < a_BotData->NumPathNodes; j++)
+						P_SpawnMobj(
+								a_BotData->PathNodes[j]->Pos[0],
+								a_BotData->PathNodes[j]->Pos[1],
+								a_BotData->PathNodes[j]->SubS->sector->floorheight + (32 << FRACBITS),
+								INFO_GetTypeByName("ReMooDBotDebugTarget")
+							);
+				}
+			}
+			
+			// Turn to it
+			if (a_BotData->AtNode)
+				a_TicCmd->angleturn = BS_PointsToAngleTurn(
+											a_BotData->AtNode->Pos[0],
+											a_BotData->AtNode->Pos[1],
+											a_BotData->PathNodes[a_BotData->PathIt]->Pos[0],
+											a_BotData->PathNodes[a_BotData->PathIt]->Pos[1]
+										);
+			
+			// Walk to it
+			a_TicCmd->forwardmove = c_forwardmove[a_BotData->SLMoveSpeed];
+			
+			// Reached the target iteration node? or it is taking too long for
+				// the bot to get there.
+			if ((!a_BotData->AtNode) ||
+				(a_BotData->AtNode == a_BotData->PathNodes[a_BotData->PathIt]) ||
+				(gametic > a_BotData->SLMoveTimeout))
+			{
+				// Iterate up
+				a_BotData->PathIt++;
+				
+				// Reset Time
+				a_BotData->SLMoveTimeout = gametic + BOTSLMOVETIMEOUT;
+			}
+		}
+	}
+}
+
+/* BS_ThinkBlindStraightLine() -- Blindly Move in straight line */
+static void BS_ThinkBlindStraightLine(B_BotData_t* const a_BotData, ticcmd_t* const a_TicCmd)
+{
+	int32_t lopX, lopY;
+	B_BotNode_t* CurNode, *LinkNode;
+	bool_t Walkable;
+	
+	/* Check */
+	if (!a_BotData || !a_TicCmd)
+		return;
+	
+	/* Direction not set? */
+	while (!a_BotData->SLMoveX && !a_BotData->SLMoveY)
+	{
+		a_BotData->SLMoveX = (BS_Random(a_BotData) % 3) - 1;
+		a_BotData->SLMoveY = (BS_Random(a_BotData) % 3) - 1;
+	}
+	
+	/* Move in that direction */
+	if (gametic < a_BotData->SLMoveTimeout)
+	{
+		// Turn to it
+		a_TicCmd->angleturn = c_NavAngle[a_BotData->SLMoveX + 1][a_BotData->SLMoveY + 1] >> 16;
+	
+		// Walk to it
+		a_TicCmd->forwardmove = c_forwardmove[a_BotData->SLMoveSpeed];
+	}
+	
+	/* Recycle current direction */
+	else
+	{
+		a_BotData->SLMoveTimeout = gametic + (TICRATE * 3);
+		a_BotData->SLMoveX = a_BotData->SLMoveY = 0;
+	}
+	
+	/* If the bot is at a node, change routine */
+	if (a_BotData->AtNode)
+		a_BotData->ActSub = BBAS_NORMALAI;
 }
 
 /****************
@@ -553,6 +988,7 @@ B_BotData_t* B_InitBot(D_NetPlayer_t* const a_NPp)
 	/* Set Data */
 	New->NetPlayer = a_NPp;
 	New->Player = New->NetPlayer->Player;
+	New->ActSub = BBAS_FOLLOWNEARESTPLAYER;
 	
 	/* Set and return */
 	a_NPp->BotData = New;
@@ -623,6 +1059,16 @@ void B_BuildBotTicCmd(B_BotData_t* const a_BotData, ticcmd_t* const a_TicCmd)
 					// Try moving in straight lines (to build navigation)
 				case BBAS_STRAIGHTNAV:
 					BS_ThinkStraightLine(a_BotData, a_TicCmd);
+					break;
+					
+					// Follows the nearest player
+				case BBAS_FOLLOWNEARESTPLAYER:
+					BS_ThinkFollowNearestPlayer(a_BotData, a_TicCmd);
+					break;
+					
+					// Blind straight navigation
+				case BBAS_BLINDSTRAIGHTNAV:
+					BS_ThinkBlindStraightLine(a_BotData, a_TicCmd);
 					break;
 				
 					// Unknown

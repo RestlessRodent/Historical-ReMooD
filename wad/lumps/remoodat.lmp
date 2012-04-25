@@ -16284,6 +16284,206 @@ MapObject "LegacyOldDoomBlood"
 	}
 }
 
+// ----------------------------------------------------------------------------
+// ---------------------------- BOT DEBUGGING STUFF ---------------------------
+// ----------------------------------------------------------------------------
+
+// Object -- ReMooDBotDebugNode -- This indicates where a bot node is
+MapObject "ReMooDBotDebugNode"
+{
+	DoomEdNum "-1";
+	DeHackEdNum "9999";
+	SpawnHealth "1000";
+	Damage "0";
+	ReactionTime "0";
+	Mass "1";
+	Speed "0";
+	PainChance "0";
+	Height "1";
+	Radius "1";
+	WakeSound "none";
+	AttackSound "none";
+	PainSound "none";
+	DeathSound "none";
+	ActiveSound "none";
+	
+	NoBlockMap "true";
+	NoGravity "true";
+	TranslationColor "Blue";
+	
+	State "SpawnState"
+	{
+		Frame "1"
+		{
+			DeHackEdNum "99990";
+			Sprite "RBDZ";
+			Frame "0";
+			Tics "-1";
+			FullBright "true";
+			ViewPriority "Decorations";
+			Next "0";
+		}
+	}
+}
+
+// Object -- ReMooDBotDebugBadNode -- A bad bot node
+MapObject "ReMooDBotDebugBadNode"
+{
+	DoomEdNum "-1";
+	DeHackEdNum "9995";
+	SpawnHealth "1000";
+	Damage "0";
+	ReactionTime "0";
+	Mass "1";
+	Speed "0";
+	PainChance "0";
+	Height "1";
+	Radius "1";
+	WakeSound "none";
+	AttackSound "none";
+	PainSound "none";
+	DeathSound "none";
+	ActiveSound "none";
+	
+	NoBlockMap "true";
+	NoGravity "true";
+	TranslationColor "Light Red";
+	
+	State "SpawnState"
+	{
+		Frame "1"
+		{
+			DeHackEdNum "99990";
+			Sprite "RBDZ";
+			Frame "0";
+			Tics "-1";
+			FullBright "true";
+			ViewPriority "Decorations";
+			Next "0";
+		}
+	}
+}
+
+// Object -- ReMooDBotDebugFloatNode -- A floating node
+MapObject "ReMooDBotDebugFloatNode"
+{
+	DoomEdNum "-1";
+	DeHackEdNum "9996";
+	SpawnHealth "1000";
+	Damage "0";
+	ReactionTime "0";
+	Mass "1";
+	Speed "0";
+	PainChance "0";
+	Height "1";
+	Radius "1";
+	WakeSound "none";
+	AttackSound "none";
+	PainSound "none";
+	DeathSound "none";
+	ActiveSound "none";
+	
+	NoBlockMap "true";
+	NoGravity "true";
+	TranslationColor "Yellow";
+	
+	State "SpawnState"
+	{
+		Frame "1"
+		{
+			DeHackEdNum "99990";
+			Sprite "RBDZ";
+			Frame "0";
+			Tics "-1";
+			FullBright "true";
+			ViewPriority "Decorations";
+			Next "0";
+		}
+	}
+}
+
+// Object -- ReMooDBotDebugPath -- This indicates the path the bot is taking
+MapObject "ReMooDBotDebugPath"
+{
+	DoomEdNum "-1";
+	DeHackEdNum "9998";
+	SpawnHealth "1000";
+	Damage "0";
+	ReactionTime "0";
+	Mass "1";
+	Speed "0";
+	PainChance "0";
+	Height "1";
+	Radius "1";
+	WakeSound "none";
+	AttackSound "none";
+	PainSound "none";
+	DeathSound "none";
+	ActiveSound "none";
+	
+	NoBlockMap "true";
+	NoGravity "true";
+	TranslationColor "Red";
+	FloatBobbing "true";
+	
+	State "SpawnState"
+	{
+		Frame "1"
+		{
+			DeHackEdNum "99990";
+			Sprite "RBDY";
+			Frame "0";
+			Tics "70";
+			FullBright "true";
+			ViewPriority "Effects";
+			Next "0";
+		}
+	}
+}
+
+// Object -- ReMooDBotDebugTarget -- This indicates the target the bot is thinking about
+MapObject "ReMooDBotDebugTarget"
+{
+	DoomEdNum "-1";
+	DeHackEdNum "9997";
+	SpawnHealth "1000";
+	Damage "0";
+	ReactionTime "0";
+	Mass "1";
+	Speed "0";
+	PainChance "0";
+	Height "1";
+	Radius "1";
+	WakeSound "none";
+	AttackSound "none";
+	PainSound "none";
+	DeathSound "none";
+	ActiveSound "none";
+	
+	NoBlockMap "true";
+	NoGravity "true";
+	TranslationColor "Orange";
+	FloatBobbing "true";
+	
+	State "SpawnState"
+	{
+		Frame "1"
+		{
+			DeHackEdNum "99990";
+			Sprite "RBDY";
+			Frame "0";
+			Tics "35";
+			FullBright "true";
+			ViewPriority "Effects";
+			Next "0";
+		}
+	}
+}
+
+// ----------------------------------------------------------------------------
+// ----------------------------------------------------------------------------
+// ----------------------------------------------------------------------------
+
 // ************
 // *** KEYS ***
 // ************

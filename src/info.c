@@ -430,6 +430,13 @@ bool_t INFO_RMODH_MapObjects(Z_Table_t* const a_Table, const WL_WADFile_t* const
 		else
 			ThisObject.RXFlags[1] &= ~c_xRXFlagsB[i].Field;
 	
+	// Convert Color to Name
+	if ((Value = Z_TableGetValue(a_Table, "TranslationColor")))
+		// Find translation color
+		for (i = 0; i < MAXSKINCOLORS; i++)
+			if (strcasecmp(Value, Color_Names[i]) == 0)
+				ThisObject.flags |= ((((uint32_t)i) << MF_TRANSSHIFT) & MF_TRANSLATION);
+	
 	// Object ID (semi-unique)
 	ThisObject.ObjectID = (((uint32_t)(M_Random() & 0xFF)) | ((++ObjectIDBase) << 8));
 	
@@ -835,13 +842,15 @@ mobjtype_t INFO_GetTypeByName(const char* const a_Name)
 	/* Go through class list */
 	// By Class Name
 	for (i = 0; i < NUMMOBJTYPES; i++)
-		if (strcasecmp(a_Name, mobjinfo[i]->RClassName) == 0)
-			return i;
+		if (mobjinfo[i]->RClassName)
+			if (strcasecmp(a_Name, mobjinfo[i]->RClassName) == 0)
+				return i;
 			
 	// By MT Name
 	for (i = 0; i < NUMMOBJTYPES; i++)
-		if (strcasecmp(a_Name, mobjinfo[i]->RMTName) == 0)
-			return i;
+		if (mobjinfo[i]->RMTName)
+			if (strcasecmp(a_Name, mobjinfo[i]->RMTName) == 0)
+				return i;
 	
 	/* Not found? */
 	return NUMMOBJTYPES;
