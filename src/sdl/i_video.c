@@ -972,13 +972,16 @@ void VID_PrepareModeList(void)
 	SDL_PixelFormat pf;
 	SDL_Rect** Modes;
 	size_t i;
-	bool_t AddedTTBTH;
+	bool_t AddedBase[4];
 	
 	/* Get List of modes */
 	// Fill in pixel format
 	memset(&pf, 0, sizeof(pf));
 	pf.BitsPerPixel = 8;
 	pf.BytesPerPixel = 1;
+	
+	// Clear added bases
+	memset(&AddedBase, 0, sizeof(AddedBase));
 	
 	// Get modes
 	Modes = SDL_ListModes(NULL /*&pf */ , SDL_FULLSCREEN);
@@ -987,6 +990,9 @@ void VID_PrepareModeList(void)
 	if (Modes == NULL)
 	{
 		VID_AddMode(320, 200, true);
+		VID_AddMode(320, 240, true);
+		VID_AddMode(640, 400, true);
+		VID_AddMode(640, 480, true);
 		return;
 	}
 	
@@ -1009,18 +1015,33 @@ void VID_PrepareModeList(void)
 	}
 	
 	// Go through modes list for valid modes
-	for (AddedTTBTH = false, i = 0; Modes[i]; i++)
+	for (i = 0; Modes[i]; i++)
 	{
 		VID_AddMode(Modes[i]->w, Modes[i]->h, true);
 		
 		// Is this 320x200?
 		if (Modes[i]->w == 320 && Modes[i]->h == 200)
-			AddedTTBTH = true;
+			AddedBase[0] = true;
+		// Is this 320x240?
+		else if (Modes[i]->w == 320 && Modes[i]->h == 240)
+			AddedBase[1] = true;
+		// Is this 640x400?
+		else if (Modes[i]->w == 640 && Modes[i]->h == 400)
+			AddedBase[2] = true;
+		// Is this 640x480?
+		else if (Modes[i]->w == 640 && Modes[i]->h == 480)
+			AddedBase[3] = true;
 	}
 	
-	// Was 320x200 never added?
-	if (!AddedTTBTH)
+	// Were the base reses never added?
+	if (!AddedBase[0])
 		VID_AddMode(320, 200, true);
+	if (!AddedBase[1])
+		VID_AddMode(320, 240, true);
+	if (!AddedBase[2])
+		VID_AddMode(640, 400, true);
+	if (!AddedBase[3])
+		VID_AddMode(640, 480, true);
 }
 
 /* I_SetVideoMode() -- Sets the current video mode */

@@ -480,7 +480,18 @@ static vissprite_t* R_NewVisSprite(const fixed_t a_Dist, vissprite_t* const a_Pr
 	{
 		// Go through all sprites
 		for (i = 0; i < MAXVISSPRITES; i++)
+#if 0
+			if (&vissprites[i] != a_Protect &&
+				//a_BasePr > vissprites[i].Priority &&
+				a_Dist < vissprites[i].Distance &&
+				(!Found || (Found &&
+						//a_BasePr > Found->Priority &&
+						a_Dist < Found->Distance
+					)))
+#else
 			if (&vissprites[i] != a_Protect && ThisPr > vissprites[i].Priority && (!Found || (Found && vissprites[i].Priority < Found->Priority)))
+			
+#endif
 				Found = &vissprites[i];
 				
 		// Still not found? -- Use overflow sprite

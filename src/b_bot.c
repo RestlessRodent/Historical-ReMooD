@@ -127,6 +127,10 @@ struct B_BotData_s
 	size_t PathIt;								// Current node that is being iterated
 	size_t NumPathNodes;						// Number of path nodes
 	
+	B_BotNode_t** PivotNodes;					// Pivots in path
+	size_t PivotIt;								// Current Pivot
+	size_t NumPivotNodes;						// Number of pivot nodes
+	
 	/* Thinking */
 	B_BotActionSub_t ActSub;					// Action Subroutine
 	
@@ -136,6 +140,9 @@ struct B_BotData_s
 	int8_t SLMoveSpeed;							// Speed to move in
 	tic_t SLMoveTimeout;						// Time to stop trying to move there
 	B_BotNode_t* SLToNode;						// Moving to this node
+	
+	// Follow Player
+	uint32_t FPTargetAim;						// Target Aim
 };
 
 /**************
@@ -180,9 +187,15 @@ static int BS_Random(B_BotData_t* const a_BotData)
 }
 
 /* BS_PointsToAngleTurn() -- Convert points to angle turn */
-static int16_t BS_PointsToAngleTurn(const fixed_t a_x1, const fixed_t a_y1, const fixed_t a_x2, const fixed_t a_y2)
+static uint16_t BS_PointsToAngleTurn(const fixed_t a_x1, const fixed_t a_y1, const fixed_t a_x2, const fixed_t a_y2)
 {
 	return R_PointToAngle2(a_x1, a_y1, a_x2, a_y2) >> 16;
+}
+
+/* BS_AngleDiff() -- Difference of angle */
+static angle_t BS_AngleDiff(const angle_t a_A, const angle_t a_B)
+{
+	return ((uint32_t)(abs(((int32_t)(a_A >> 1)) - ((int32_t)(a_B >> 1))) & 0x7FFFFFFFU)) << 1;
 }
 
 /* BS_NTNPFirst() -- Determines whether point is reachable */
@@ -297,9 +310,10 @@ static uint32_t BS_BuildBotPath(B_BotData_t* const a_BotData, B_BotNode_t* const
 	B_BotNode_t* CheckNode;
 	B_BotNode_t* TheHitNode;
 	angle_t DestAng, TryAng;
-	angle_t AngDiff;
+	angle_t AngDiff, CurAng;
 	int32_t TryDir[2], x, y;
 	bool_t HitNode;
+	size_t j;
 	
 	/* Increase current navigation */
 	CurrentNav = CurrentNav + 1;
@@ -317,6 +331,13 @@ static uint32_t BS_BuildBotPath(B_BotData_t* const a_BotData, B_BotNode_t* const
 		a_BotData->PathNodes = NULL;
 		a_BotData->PathIt = a_BotData->NumPathNodes = 0;
 	}
+	
+	/* The Pivot list must always be removed */
+	// Reset path data
+	if (a_BotData->PivotNodes)
+		Z_Free(a_BotData->PivotNodes);
+	a_BotData->PivotNodes = NULL;
+	a_BotData->PivotIt = a_BotData->NumPivotNodes = 0;
 	
 	/* Some Junky Algorithm */
 	// I don't know the actual A-Star but it goes something like the following...
@@ -352,7 +373,7 @@ static uint32_t BS_BuildBotPath(B_BotData_t* const a_BotData, B_BotNode_t* const
 					continue;
 				
 				// Get angle based on prenagles
-				TryAng = ((uint32_t)(abs(((int32_t)(c_NavAngle[x + 1][y + 1] >> 1)) - ((int32_t)(DestAng >> 1))) & 0x7FFFFFFFU)) << 1;
+				TryAng = BS_AngleDiff(c_NavAngle[x + 1][y + 1], DestAng);
 				
 				// Shorter than that?
 				if (TryAng < AngDiff)
@@ -398,6 +419,67 @@ static uint32_t BS_BuildBotPath(B_BotData_t* const a_BotData, B_BotNode_t* const
 	
 	/* A-Star */
 #else
+#endif
+	
+	/* No Real Path? */
+	if (RetVal <= 2)
+		return 0;
+	
+	/* Build Pivoted Node List */
+	// The pivot list here is a simplified path and is essentially the same
+	// path from A to B but with less nodes in between. Why make a pivot list?
+	// Because at this time the bot just goes to a single node then once it
+	// reaches it, it moves to the next. Sounds like it works but the bot runs
+	// towards every node in the list and it takes awhile for it to move to the
+	// target. So as such, the pivot list is to simplify the path of the bot.
+	
+	// Add the first node to the pivot
+	AtNode = a_BotData->PathNodes[0];
+	Z_ResizeArray((void**)&a_BotData->PivotNodes, sizeof(*a_BotData->PivotNodes),
+			a_BotData->NumPivotNodes, a_BotData->NumPivotNodes + 1);
+	a_BotData->PivotNodes[a_BotData->NumPivotNodes++] = AtNode;
+	
+	// Get the current facing angle (direction to go)
+	DestNode = a_BotData->PathNodes[1];
+	CurAng = R_PointToAngle2(AtNode->Pos[0], AtNode->Pos[1], DestNode->Pos[0], DestNode->Pos[1]);
+	
+	// Go through all the path nodes
+	for (j = 2; j < a_BotData->NumPathNodes; j++)
+	{
+		// Get path node the bot wants to move to
+		DestNode = a_BotData->PathNodes[j];
+		
+		// Get the angle to this node
+		DestAng = R_PointToAngle2(AtNode->Pos[0], AtNode->Pos[1], DestNode->Pos[0], DestNode->Pos[1]);
+		
+		// Get the difference between that angle and the current angle
+		AngDiff = BS_AngleDiff(CurAng, DestAng);
+		
+		// If the angle is greater than 22deg or this is the last node
+		if ((AngDiff >= (ANG45 / 2)) && (j <= (a_BotData->NumPathNodes - 1)))
+		{
+			// Replace the current node with this one
+			AtNode = DestNode;
+			
+			// Add the current node to the pivot list
+			Z_ResizeArray((void**)&a_BotData->PivotNodes, sizeof(*a_BotData->PivotNodes),
+					a_BotData->NumPivotNodes, a_BotData->NumPivotNodes + 1);
+			a_BotData->PivotNodes[a_BotData->NumPivotNodes++] = AtNode;
+			
+			// Get the angle to the new destination
+			if (j < (a_BotData->NumPathNodes - 1))
+			{
+				DestNode = a_BotData->PathNodes[j + 1];
+				CurAng = R_PointToAngle2(AtNode->Pos[0], AtNode->Pos[1], DestNode->Pos[0], DestNode->Pos[1]);
+				j++;
+			}
+		}
+	}
+	
+#if 0
+	B_BotNode_t** PivotNodes;					// Pivots in path
+	size_t PivotIt;								// Current Pivot
+	size_t NumPivotNodes;						// Number of pivot nodes
 #endif
 	
 	/* Return value */
@@ -778,6 +860,7 @@ static void BS_ThinkFollowNearestPlayer(B_BotData_t* const a_BotData, ticcmd_t* 
 	player_t* Player, *ToPlayer;
 	B_BotNode_t* TargetNode;
 	uint32_t ItCount;
+	angle_t PAng;
 	
 	/* Check */
 	if (!a_BotData || !a_TicCmd)
@@ -834,7 +917,7 @@ static void BS_ThinkFollowNearestPlayer(B_BotData_t* const a_BotData, ticcmd_t* 
 	else
 	{
 		// End of iteration? Clear everything
-		if (a_BotData->PathIt >= a_BotData->NumPathNodes)
+		if (a_BotData->PivotIt >= a_BotData->PivotNodes)
 		{
 			fprintf(stderr, "Bot: Target reached\n");
 			
@@ -861,17 +944,24 @@ static void BS_ThinkFollowNearestPlayer(B_BotData_t* const a_BotData, ticcmd_t* 
 								a_BotData->PathNodes[j]->SubS->sector->floorheight + (32 << FRACBITS),
 								INFO_GetTypeByName("ReMooDBotDebugTarget")
 							);
+							
+					for (j = 0; j < a_BotData->NumPivotNodes; j++)
+						P_SpawnMobj(
+								a_BotData->PivotNodes[j]->Pos[0],
+								a_BotData->PivotNodes[j]->Pos[1],
+								a_BotData->PivotNodes[j]->SubS->sector->floorheight + (64 << FRACBITS),
+								INFO_GetTypeByName("ReMooDBotDebugPath")
+							);
 				}
 			}
 			
 			// Turn to it
-			if (a_BotData->AtNode)
-				a_TicCmd->angleturn = BS_PointsToAngleTurn(
-											a_BotData->AtNode->Pos[0],
-											a_BotData->AtNode->Pos[1],
-											a_BotData->PathNodes[a_BotData->PathIt]->Pos[0],
-											a_BotData->PathNodes[a_BotData->PathIt]->Pos[1]
-										);
+			a_TicCmd->angleturn = BS_PointsToAngleTurn(
+								a_BotData->Player->mo->x,
+								a_BotData->Player->mo->y,
+								a_BotData->PivotNodes[a_BotData->PivotIt]->Pos[0],
+								a_BotData->PivotNodes[a_BotData->PivotIt]->Pos[1]
+							);
 			
 			// Walk to it
 			a_TicCmd->forwardmove = c_forwardmove[a_BotData->SLMoveSpeed];
@@ -879,11 +969,10 @@ static void BS_ThinkFollowNearestPlayer(B_BotData_t* const a_BotData, ticcmd_t* 
 			// Reached the target iteration node? or it is taking too long for
 				// the bot to get there.
 			if ((!a_BotData->AtNode) ||
-				(a_BotData->AtNode == a_BotData->PathNodes[a_BotData->PathIt]) ||
-				(gametic > a_BotData->SLMoveTimeout))
+				(a_BotData->AtNode == a_BotData->PivotNodes[a_BotData->PivotIt]))
 			{
 				// Iterate up
-				a_BotData->PathIt++;
+				a_BotData->PivotIt++;
 				
 				// Reset Time
 				a_BotData->SLMoveTimeout = gametic + BOTSLMOVETIMEOUT;
