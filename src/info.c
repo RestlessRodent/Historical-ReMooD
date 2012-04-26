@@ -124,8 +124,10 @@ void A_SmokeTrailer();
 void A_SmokeTrailerRocket();
 void A_SmokeTrailerSkull();
 
+// ReMooD Additions
 void A_FireOldBFG();
 void A_FireGenericProjectile();
+void A_NextFrameIfMoving();
 
 /*****************************************************************************/
 
@@ -200,7 +202,7 @@ static const INFO_FlagInfo_t c_xFlagsTwo[] =
 	{MF2_SPAWNFLOAT, "SpawnAtRandomZ"},
 	{MF2_NOTELEPORT, "CannotTeleport"},
 	{MF2_RIP, "MissilesThruSolids"},
-	{MF2_PUSHABLE, "Pushable"},
+	{MF2_PUSHABLE, "IsPushable"},
 	{MF2_SLIDE, "WallSliding"},
 	{MF2_ONMOBJ, "IsOnObject"},
 	{MF2_PASSMOBJ, "MoveOverUnderObject"},
@@ -266,6 +268,10 @@ static const INFO_FlagInfo_t c_xRXFlagsB[] =
 	{MFREXB_DOSPIDERSPECIAL, "DoSpiderSpecial"},
 	{MFREXB_DODOORSIXTHREEOPEN, "DoSixSixSixDoorOpen"},
 	{MFREXB_INITBOTNODES, "ForceInitializeBotNodes"},
+	{MFREXB_DONTTAKEDAMAGE, "DoNotTakeDamage"},
+	{MFREXB_ISHIGHBOUNCER, "IsHighBouncer"},
+	{MFREXB_NONMISSILEFLBOUNCE, "NonMissileFloorBounce"},
+	{MFREXB_IGNOREBLOCKMONS, "IgnoreBlockMonsterLines"},
 	{0, NULL},
 };
 
@@ -394,6 +400,8 @@ bool_t INFO_RMODH_MapObjects(Z_Table_t* const a_Table, const WL_WADFile_t* const
 	ThisObject.RFastSpeed = D_RMODGetValueFixed(a_Table, "FastSpeed", 0);
 	ThisObject.radius = D_RMODGetValueFixed(a_Table, "Radius", 0);
 	ThisObject.height = D_RMODGetValueFixed(a_Table, "Height", 0);
+	ThisObject.painchance = FixedMul(D_RMODGetValueFixed(a_Table, "PainChance", 0), (255 << FRACBITS)) >> FRACBITS;
+	ThisObject.RBounceFactor = D_RMODGetValueFixed(a_Table, "BounceFactor", (1 << FRACBITS));
 	
 	// Sounds
 	ThisObject.RSeeSound = D_RMODGetValueString(a_Table, "WakeSound", NULL);;
@@ -976,6 +984,7 @@ actionf_t INFO_FunctionPtrByName(const char* const a_Name)
 	else if (strcasecmp("SmokeTrailerSkull", a_Name) == 0) RetVal.acv = A_SmokeTrailerSkull;
 	else if (strcasecmp("FireOldBFG", a_Name) == 0) RetVal.acv = A_FireOldBFG;
 	else if (strcasecmp("FireGenericProjectile", a_Name) == 0) RetVal.acv = A_FireGenericProjectile;
+	else if (strcasecmp("NextFrameIfMoving", a_Name) == 0) RetVal.acv = A_NextFrameIfMoving;
 	
 	/* Not found? */
 	return RetVal;

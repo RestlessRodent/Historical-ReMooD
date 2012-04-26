@@ -1,7 +1,95 @@
 
-// ****************
-// *** BFG10000 ***
-// ****************
+// **********************
+// *** OBJECT: MARBLE ***
+// **********************
+// This is a toy you can shove around.
+
+// Object -- Marble
+MapObject "Marble"
+{
+	DoomEdNum "27301";
+	SpawnHealth "1000";
+	Damage "0";
+	ReactionTime "8";
+	Mass "100";
+	Speed "0";
+	PainChance "0";
+	Height "16";
+	Radius "10";
+	WakeSound "none";
+	AttackSound "none";
+	PainSound "none";
+	DeathSound "none";
+	ActiveSound "none";
+	
+	IsSolid "true";
+	IsPushable "true";
+	WallSliding "true";
+	IsWindThrustable "true";
+	CanBounce "true";
+	CanTeleStomp "true";
+	IsShootable "true";
+	DoNotTakeDamage "true";
+	NoBleeding "true";
+	IsDropOff "true";
+	MoveOverUnderObject "true";
+	BounceFactor "0.75";
+	NonMissileFloorBounce "true";
+	IgnoreBlockMonsterLines "true";
+	
+	State "SpawnState"
+	{
+		Frame "1"
+		{
+			Sprite "MRBL";
+			Frame "0";
+			Tics "6";
+			ViewPriority "Decoration";
+			Transparency "10";
+			Function "NextFrameIfMoving";
+			Next "2";
+		}
+		
+		Frame "2"
+		{
+			Sprite "MRBL";
+			Frame "1";
+			Tics "6";
+			ViewPriority "Decoration";
+			Transparency "10";
+			Function "NextFrameIfMoving";
+			Next "3";
+		}
+		
+		Frame "3"
+		{
+			Sprite "MRBL";
+			Frame "2";
+			Tics "6";
+			ViewPriority "Decoration";
+			Transparency "10";
+			Function "NextFrameIfMoving";
+			Next "4";
+		}
+		
+		Frame "4"
+		{
+			Sprite "MRBL";
+			Frame "3";
+			Tics "6";
+			ViewPriority "Decoration";
+			Transparency "10";
+			Function "NextFrameIfMoving";
+			Next "1";
+		}
+	}
+}
+
+// ************************
+// *** WEAPON: BFG10000 ***
+// ************************
+// This is a very powerful weapon with a force to be reckoned with. Use it
+// wrong and it may take you out too!
 
 // The object where you can pick it up from
 MapObject "BFGTenK"

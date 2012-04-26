@@ -322,6 +322,10 @@ typedef enum mobjflagrexb_e
 	MFREXB_DOSPIDERSPECIAL		= 0x000000010U,	// Triggers spider special [A_BossDeath]
 	MFREXB_DODOORSIXTHREEOPEN	= 0x000000020U,	// When this thing dies, blaze a door open [A_BossDeath]
 	MFREXB_INITBOTNODES			= 0x000000040U,	// Initialize With bot nodes
+	MFREXB_DONTTAKEDAMAGE		= 0x000000080U,	// Do not actually take damage
+	MFREXB_ISHIGHBOUNCER		= 0x000000100U,	// Bounces High
+	MFREXB_NONMISSILEFLBOUNCE	= 0x000000200U,	// Bounce on floor without being MF_MISSILE
+	MFREXB_IGNOREBLOCKMONS		= 0x000000400U,	// Ignore monster blocking lines
 } mobjflagrexb_t;
 
 /* P_MobjRefType_t -- Reference type */
@@ -514,6 +518,9 @@ typedef struct mobj_s
 
 	bool_t RemoveMo;							// Remove Map Object
 	mobjtype_t RemType;							// Type removed
+	
+	// Properties
+	fixed_t MaxZObtained;						// Max Z Obtained while in air
 	
 	// Owners
 #if 0

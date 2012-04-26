@@ -2178,3 +2178,18 @@ void A_PlayerScream(mobj_t* mo)
 	}
 	S_StartSound(&mo->NoiseThinker, sound);
 }
+
+/* A_NextFrameIfMoving() -- Goes to the next frame if the object is moving */
+void A_NextFrameIfMoving(mobj_t* mo)
+{
+	/* Moving */
+	if (mo->momx || mo->momy)
+	{
+	}
+	
+	/* Not Moving */
+	else
+	{
+	}
+}
+

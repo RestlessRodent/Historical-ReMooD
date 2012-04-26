@@ -510,6 +510,11 @@ void P_ZMovement(mobj_t* mo)
 {
 	fixed_t dist;
 	fixed_t delta;
+	fixed_t BounceMomZ;
+	
+	// GhostlyDeath <April 26, 2012> -- Max Z obtained
+	if (mo->z > mo->MaxZObtained)
+		mo->MaxZObtained = mo->z;
 	
 // Intercept the stupid 'fall through 3dfloors' bug SSNTails 06-13-2002
 	if (mo->subsector->sector->ffloors)
@@ -576,8 +581,18 @@ void P_ZMovement(mobj_t* mo)
 	
 	if (mo->z <= mo->floorz)
 	{
+		// GhostlyDeath <April 26, 2012> -- Precalc Bounce
+		BounceMomZ = -mo->momz;
+		
+		// Bounce Factor
+		BounceMomZ = FixedMul(BounceMomZ, mo->info->RBounceFactor);
+				
+		// GhostlyDeath <April 26, 2012> -- Non-missile bouncing
+		if (!(mo->flags & MF_MISSILE) && (mo->RXFlags[1] & MFREXB_NONMISSILEFLBOUNCE))
+			mo->momz = BounceMomZ;
+		
 		// hit the floor
-		if (mo->flags & MF_MISSILE)
+		else if (mo->flags & MF_MISSILE)
 		{
 			mo->z = mo->floorz;
 			if (mo->flags2 & MF2_FLOORBOUNCE)
@@ -587,7 +602,7 @@ void P_ZMovement(mobj_t* mo)
 			}
 			else if (mo->flags2 & MF2_BOUNCES)
 			{
-				mo->momz = -mo->momz;
+				mo->momz = BounceMomZ;
 				return;
 			}
 			else
@@ -599,6 +614,10 @@ void P_ZMovement(mobj_t* mo)
 				}
 			}
 		}
+		
+		// GhostlyDeath <April 26, 2012> -- Max Z (For Bouncing)
+		mo->MaxZObtained = mo->floorz;
+		
 		// Spawn splashes, etc.
 		if (mo->z - mo->momz > mo->floorz)
 			P_HitFloor(mo);
@@ -675,6 +694,12 @@ void P_ZMovement(mobj_t* mo)
 	
 	if (mo->z + mo->height > mo->ceilingz)
 	{
+		// GhostlyDeath <April 26, 2012> -- Precalc Bounce
+		BounceMomZ = -mo->momz;
+		
+		// Bounce Factor
+		BounceMomZ = FixedMul(BounceMomZ, mo->info->RBounceFactor);
+		
 		mo->z = mo->ceilingz - mo->height;
 		
 		//added:22-02-98: player avatar hits his head on the ceiling, ouch!
@@ -683,7 +708,7 @@ void P_ZMovement(mobj_t* mo)
 		
 		if (mo->flags2 & MF2_BOUNCES)
 		{
-			mo->momz = -mo->momz;
+			mo->momz = BounceMomZ;
 			return;
 		}
 		
@@ -1115,6 +1140,9 @@ mobj_t* P_SpawnMobj(fixed_t x, fixed_t y, fixed_t z, mobjtype_t type)
 	
 	mobj->floorz = mobj->subsector->sector->floorheight;
 	mobj->ceilingz = mobj->subsector->sector->ceilingheight;
+	
+	// GhostlyDeath <April 26, 2012> -- Max Z (For Bouncing)
+	mobj->MaxZObtained = mobj->floorz;
 	
 	//added:27-02-98: if ONFLOORZ, stack the things one on another
 	//                so they do not occupy the same 3d space

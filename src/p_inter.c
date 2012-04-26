@@ -1423,6 +1423,7 @@ bool_t P_DamageMobj(mobj_t* target, mobj_t* inflictor, mobj_t* source, int damag
 			player->armorpoints -= saved;
 			damage -= saved;
 		}
+		
 		// added team play and teamdamage (view logboris at 13-8-98 to understand)
 		if (P_EXGSGetValue(PEXGSBID_CODISABLETEAMPLAY) ||	// support old demo version
 		        cv_teamdamage.value || damage > 1000 ||	// telefrag
@@ -1446,8 +1447,10 @@ bool_t P_DamageMobj(mobj_t* target, mobj_t* inflictor, mobj_t* source, int damag
 	}
 	else
 		takedamage = true;
-		
-	if (takedamage)
+	
+	if (takedamage && (
+		((target->RXFlags[1] & MFREXB_DONTTAKEDAMAGE) && damage >= 1000) || 
+		(!(target->RXFlags[1] & MFREXB_DONTTAKEDAMAGE))))
 	{
 		// do the damage
 		target->health -= damage;

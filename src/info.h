@@ -198,6 +198,9 @@ typedef struct
 	char* RPainSound;
 	char* RDeathSound;
 	char* RActiveSound;
+	
+	// Extra Stuff
+	fixed_t RBounceFactor;						// Bounce Multiplier
 } mobjinfo_t;
 
 extern mobjinfo_t** mobjinfo;
