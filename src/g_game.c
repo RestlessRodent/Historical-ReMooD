@@ -1414,6 +1414,10 @@ void G_PlayerReborn(int player)
 	
 	for (i = 0; i < NUMAMMO; i++)
 		p->maxammo[i] = ammoinfo[i]->MaxAmmo;
+	
+	// GhostlyDeath <April 26, 2012> -- Health and Armor
+	p->MaxHealth[0] = p->MaxArmor[0] = 100;
+	p->MaxHealth[1] = p->MaxArmor[1] = 200;
 }
 
 //

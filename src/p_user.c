@@ -753,6 +753,10 @@ bool_t P_WeaponIsUnlocked(const weapontype_t a_Weapon)
 	// Not playing in registered and gun is in registered (Heretic)
 	if (!(g_IWADFlags & CIF_REGISTERED) && (wpnlev1info[a_Weapon]->WeaponFlags & WF_INREGISTERED))
 		return false;
+	
+	// Not playing in extended and gun is in extended (Heretic)
+	if (!(g_IWADFlags & CIF_EXTENDED) && (wpnlev1info[a_Weapon]->WeaponFlags & WF_INEXTENDED))
+		return false;
 		
 	/* Yay it isn't unlocked */
 	return true;

@@ -45,7 +45,7 @@
 		&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<FONT color="#ae9999">;</FONT><FONT color="#a25555">d</FONT><FONT color="#7e1818">0</FONT><FONT color="#2b0101">W</FONT><FONT color="#170101">W</FONT><FONT color="#0b0000">M</FONT><FONT color="#120001">M</FONT><FONT color="#180100">W</FONT><FONT color="#1f0101">W</FONT><FONT color="#500000">N</FONT><FONT color="#770000">X</FONT><FONT color="#990001">K</FONT><FONT color="#b50100">0</FONT><FONT color="#ca0101">0</FONT><FONT color="#d92423">x</FONT><FONT color="#e65d5d">c</FONT><FONT color="#eda3a3">'</FONT><BR>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<FONT color="#bca3a3">,</FONT><FONT color="#7c6666">d</FONT><FONT color="#493232">0</FONT><FONT color="#320708">N</FONT><FONT color="#3c0101">N</FONT><FONT color="#480101">N</FONT><FONT color="#610101">X</FONT><FONT color="#760e0f">K</FONT><FONT color="#ac3939">x</FONT><FONT color="#cc6f6f">c</FONT><FONT color="#e0b1b1">'</FONT><BR>
 		<BR>
 		This documentation was written by GhostlyDeath (<A HREF="mailto:ghostlydeath@gmail.com">ghostlydeath@gmail.com</A>).<BR>
-		ReMooD (C) 2006-2009 GhostlyDeath, 2006-2009 ReMooD Team. The ReMooD Name and Logo are trademarks of GhostlyDeath (<A HREF="mailto:ghostlydeath@gmail.com">ghostlydeath@gmail.com</A>).</TT></B>
+		ReMooD (C) 2006-2012 GhostlyDeath, 2006-2012 ReMooD Team. The ReMooD Name and Logo are trademarks of GhostlyDeath (<A HREF="mailto:ghostlydeath@gmail.com">ghostlydeath@gmail.com</A>).</TT></B>
 		<!----------------------------------------------------------------------------->
 		
 		<!-- ###################
@@ -55,7 +55,25 @@
 		<P>
 			<UL>
 				<LI><A href="#analogsound">Analog Sound</A></LI>
-				<LI><A href="#remoodat">ReMooD Data</A></LI>
+				<LI><A href="#remoodat">ReMooD Data</A>
+					<UL>
+						<LI><A href="#rmodobject">Objects (MapObject)</A>
+							<UL>
+								<LI><A href="#rmodobjectref">Reference</A></LI>
+							</UL></LI>
+						<LI><A href="#rmodweapon">Weapons (MapWeapon)</A>
+							<UL>
+								<LI><A href="#rmodweaponref">Reference</A></LI>
+							</UL></LI>
+						<LI><A href="#rmodammo">Ammo (MapAmmo)</A>
+							<UL>
+								<LI><A href="#rmodammoref">Reference</A></LI>
+							</UL></LI>
+						<LI><A href="#rmodtouchspecial">Touch Special (MapTouchSpecial)</A>
+							<UL>
+								<LI><A href="#rmodtouchspecialref">Reference</A></LI>
+							</UL></LI>
+					</UL></LI>
 				<LI><A href="#skins">Skins</A></LI>
 			</UL>
 		</P>
@@ -79,6 +97,99 @@
 			<P>
 				ReMooD contains the bulk of the game definitions in the lump named <I>REMOODAT</I>. The primary data is contained within <I>ReMooD.wad</I>, while it will also be loaded from user supplied PWADs. ReMooD Data is also historically known as <B>RMOD</B>, which stood for <B>R</B>eMooD <B>M</B>ap <B>O</B>bject <B>D</B>ata, however it no longer contains just data used for the map, it contains all of the data in a wide variety of areas.
 			</P>
+			
+			<!-- MAP OBJECT -->
+			<DIV id="rmodobject">
+			<H2>Objects (MapObject)</H2>
+			<P>
+				<P>
+					Map objects define things that are in the actual map, that is the player, monsters, decorations, and other such things.
+				</P>
+			</P>
+			</DIV>
+			
+			<!-- MAP WEAPON -->
+			<DIV id="rmodweapon">
+			<H2>Weapons (MapWeapon)</H2>
+			<P>
+				<P>
+					This defines weapons, things that are used to attack enemies.
+				</P>
+				
+				<DIV id="rmodweaponref">
+				<H3>Reference</H3>
+				<P>
+					<UL>
+						<LI><B>Ammo</B> [<I>integer</I>] -- The type of ammo this weapon takes. Use "None" for infinite ammo.</LI>
+						<LI><B>NiceName</B> [<I>string</I>] -- The appearance name of this weapon, this is used in obituaries and display names.</LI>
+						<LI><B>SBOGraphic</B> [<I>string</I>] -- The picture to use when this weapon is used in the status bar overlay. The graphics usually start with "sbo".</LI>
+						<LI><B>SlotNum</B> [<I>integer</I>] -- The slot number this weapon occupies. The values 1 thru 10 are permitted.</LI>
+						<LI><B>SwitchOrder</B> [<I>integer</I>] -- The default switching order, this is used when using the previous and next buttons on the controller. This order is also used when switching based on slots. The built-in weapons are based around 100 to permit placing weapons in between.</LI>
+						<LI><B>NoAmmoSwitchOrder</B> [<I>integer</I>] -- The order of weapons to switch to when you run out of ammo with the current gun. The weapon with the highest order will be switched to, provided there is enough ammo.</LI>
+						<LI><B>AmmoPerShot</B> [<I>integer</I>] -- The amount of ammo used per shot. Note that this varies based on function. If you use the value 2 and create a weapon that fires a 3 round burst for example, 6 ammo will be used.</LI>
+						<LI><B>PickupAmmo</B> [<I>integer</I>] -- Ammo received when this item is picked up.</LI>
+						<LI><B>DroppedObject</B> [<I>string</I>] -- If a player dies and weapon drops are enabled, the player will drop this object.</LI>
+						<LI><B>GenericProjectile</B> [<I>string</I>] -- Generic projectile to launch for the generic projectile function.</LI>
+						<LI><B>PuffClass</B> [<I>string</I>] -- Uses another object class instead of the default ("BulletPuff") when this object hits the wall.</LI>
+						<LI><B>BringUpSound</B> [<I>string</I>] -- This sound is played when the weapon is brought up.</LI>
+						<LI><B>IdleNoise</B> [<I>string</I>] -- This sound is played when the weapon is in the ready state.</LI>
+						<LI><B>SpriteYOffset</B> [<I>floating</I>] -- The Y offset of the weapon sprite when viewed by a player. This changes how high or low the weapon appears.</LI>
+						<LI><B>IsDoom</B> [<I>boolean</I>] -- This weapon appears in Doom.</LI>
+						<LI><B>IsHeretic</B> [<I>boolean</I>] -- This weapon appears in Heretic.</LI>
+						<LI><B>IsHexen</B> [<I>boolean</I>] -- This weapon appears in Hexen.</LI>
+						<LI><B>IsStrife</B> [<I>boolean</I>] -- This weapon appears in Strife.</LI>
+						<LI><B>IsNotShareware</B> [<I>boolean</I>] -- This weapon cannot be used in shareware.</LI>
+						<LI><B>IsInCommercial</B> [<I>boolean</I>] -- This weapon appears in commercial mode (aka Doom II).</LI>
+						<LI><B>IsRegistered</B> [<I>boolean</I>] -- This weapon appears in non-shareware Doom and Heretic.</LI>
+						<LI><B>IsInExtended</B> [<I>boolean</I>] -- This weapons appears in extended Heretic, The Ultimate Doom, and Doom 2.</LI>
+						<LI><B>IsBerserkToggle</B> [<I>boolean</I>] -- This weapon is part of a berserker toggle. On older versions of Doom, the lowest ordered weapon with this flag is switched to when the player has the berserker powerup.</LI>
+						<LI><B>IsSwitchFromNoAmmo</B> [<I>boolean</I>] -- Weapon is switched away when there is no more ammo remaining in this weapon. If this flag is not set then the weapon will not switch away when out of ammo.</LI>
+						<LI><B>IsStartingWeapon</B> [<I>boolean</I>] -- The player starts with this weapon.</LI>
+						<LI><B>NoBleedTarget</B> [<I>boolean</I>] -- When target is hit by a hitscan, it does not bleed.</LI>
+						<LI><B>NoThrust</B> [<I>boolean</I>] -- This weapon does not push the target away from the player that fired it.</LI>
+						<LI><B>NoAutoFire</B> [<I>boolean</I>] -- This weapon does not auto re-fire, this is used on the rocket launcher and BFG but a bug in the original Doom code prevents this from even working.</LI>
+						
+						<LI><B>PrimaryBringUpState</B> [<I>states</I>] -- These states are used when the weapon is brought up.</LI>
+						<LI><B>PrimaryPutDownState</B> [<I>states</I>] -- These states are used when the weapon is lowered.</LI>
+						<LI><B>PrimaryReadyState</B> [<I>states</I>] -- These states are used when the weapon is ready to fire.</LI>
+						<LI><B>PrimaryFireState</B> [<I>states</I>] -- These states are used when the weapon is firing.</LI>
+						<LI><B>PrimaryFireHeldState</B> [<I>states</I>] -- These states are used when the weapon is firing and the first fire sequence has been executed. This could be used for example with a flame thrower type weapon, the PrimaryFireState can be where the weapon was ignited and the PrimaryFireHeldState would be the actual flame shooting.</LI>
+						<LI><B>PrimaryFlashState</B> [<I>states</I>] -- These states are used for weapon flashes.</LI>
+					</UL>
+				</P>
+				</DIV>
+			</P>
+			</DIV>
+			
+			<!-- MAP AMMO -->
+			<DIV id="rmodammo">
+			<H2>Ammo (MapAmmo)</H2>
+			<P>
+				<P>
+					This defines ammo, which enable weapons to shoot.
+				</P>
+				
+				<DIV id="rmodammoref">
+				<H3>Reference</H3>
+				<P>
+					<UL>
+						<LI><B>ClipAmmo</B> [<I>integer</I>] -- The amount of ammo per clip.</LI>
+						<LI><B>MaxAmmo</B> [<I>integer</I>] -- The maximum amount of ammo that can be held for this ammo type.</LI>
+						<LI><B>StartingAmmo</B> [<I>integer</I>] -- The amount of ammo the player starts with for this ammo type.</LI>
+					</UL>
+				</P>
+			</P>
+			</DIV>
+			
+			<!-- MAP TOUCH SPECIAL -->
+			<DIV id="rmodtouchspecial">
+			<H2>Touch Special (MapTouchSpecial)</H2>
+			<P>
+				<P>
+					Map touch specials define things that can be picked up (aka touched). This includes weapons, ammo, health, and armor on the ground along with any powerups floating or sitting around.
+				</P>
+			</P>
+			</DIV>
 		</P>
 		</DIV>
 		

@@ -125,6 +125,7 @@ void A_SmokeTrailerRocket();
 void A_SmokeTrailerSkull();
 
 void A_FireOldBFG();
+void A_FireGenericProjectile();
 
 /*****************************************************************************/
 
@@ -974,6 +975,7 @@ actionf_t INFO_FunctionPtrByName(const char* const a_Name)
 	else if (strcasecmp("SmokeTrailerRocket", a_Name) == 0) RetVal.acv = A_SmokeTrailerRocket;
 	else if (strcasecmp("SmokeTrailerSkull", a_Name) == 0) RetVal.acv = A_SmokeTrailerSkull;
 	else if (strcasecmp("FireOldBFG", a_Name) == 0) RetVal.acv = A_FireOldBFG;
+	else if (strcasecmp("FireGenericProjectile", a_Name) == 0) RetVal.acv = A_FireGenericProjectile;
 	
 	/* Not found? */
 	return RetVal;

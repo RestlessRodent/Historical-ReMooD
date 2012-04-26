@@ -237,6 +237,10 @@ typedef struct player_s
 	/*** EXTENDED STUFF ***/
 	D_ProfileEx_t* ProfileEx;					// Extended Profiles
 	D_NetPlayer_t* NetPlayer;					// Network Player
+	
+	// Health
+	int32_t MaxHealth[2];						// Max Health
+	int32_t MaxArmor[2];						// Max Armor
 } player_t;
 
 //

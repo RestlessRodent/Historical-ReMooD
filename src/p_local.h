@@ -381,6 +381,14 @@ typedef struct P_RMODTouchSpecial_s
 	weapontype_t ActGiveWeapon;					// Actual weapon to give
 	ammotype_t ActGiveAmmo;						// Actual ammo to give
 	uint32_t ActSpriteID;						// Actual Sprite ID
+	
+	/* Health */
+	int8_t ArmorClass;							// Armor Class
+	int32_t ArmorAmount;						// Armor Amount
+	int32_t HealthAmount;						// Health Amount
+	bool_t CapNormStat;							// Cap normal stat
+	bool_t CapMaxStat;							// Cap max stat
+	bool_t GreaterArmorClass;					// Better Armor Class
 } P_RMODTouchSpecial_t;
 
 /*** GLOBALS ***/

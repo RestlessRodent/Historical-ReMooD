@@ -339,6 +339,13 @@ void A_TicWeapon(player_t* player, pspdef_t* psp)
 	}
 }
 
+/* P_ReduceAmmo() -- Reduces player ammo */
+void P_ReduceAmmo(player_t* player)
+{
+	if (!cv_infiniteammo.value)
+		player->ammo[player->weaponinfo[player->readyweapon]->ammo] -= player->weaponinfo[player->readyweapon]->ammopershoot;
+}
+
 //
 // A_ReFire
 // The player can re-fire the weapon
@@ -438,6 +445,20 @@ void A_GunFlash(player_t* player, pspdef_t* psp)
 // WEAPON ATTACKS
 //
 
+/* PS_GetPuffType() -- Gets the replacement puff */
+mobjtype_t PS_GetPuffType(player_t* player)
+{
+	weaponinfo_t* Weapon;
+	
+	Weapon = player->weaponinfo[player->readyweapon];
+	
+	/* Which is returned? */
+	if (Weapon->ReplacePuffType)
+		return INFO_GetTypeByName(Weapon->ReplacePuffType);
+	else
+		return INFO_GetTypeByName("BulletPuff");
+}
+
 //
 // A_Punch
 //
@@ -458,7 +479,7 @@ void A_Punch(player_t* player, pspdef_t* psp)
 	int somemyangle = 0;
 	int someoffset = 0;
 	
-	PuffType = INFO_GetTypeByName("BulletPuff");
+	PuffType = PS_GetPuffType(player);
 	damage = (P_Random() % 10 + 1) << 1;
 	
 	if (player->powers[pw_strength])
@@ -520,7 +541,7 @@ void A_Saw(player_t* player, pspdef_t* psp)
 	int slope;
 	int i;
 	
-	PuffType = INFO_GetTypeByName("BulletPuff");
+	PuffType = PS_GetPuffType(player);
 	damage = 2 * (P_Random() % 10 + 1);
 	angle = player->mo->angle;
 	angle += (P_Random() << 18);	// WARNING: don't put this in one line
@@ -601,8 +622,8 @@ void A_Saw(player_t* player, pspdef_t* psp)
 //
 void A_FireMissile(player_t* player, pspdef_t* psp)
 {
-	if (!cv_infiniteammo.value)
-		player->ammo[player->weaponinfo[player->readyweapon]->ammo] -= player->weaponinfo[player->readyweapon]->ammopershoot;
+	P_ReduceAmmo(player);
+	
 	//added:16-02-98: added player arg3
 	P_SpawnPlayerMissile(player->mo, INFO_GetTypeByName("RocketShot"));
 }
@@ -612,8 +633,7 @@ void A_FireMissile(player_t* player, pspdef_t* psp)
 //
 void A_FireBFG(player_t* player, pspdef_t* psp)
 {
-	if (!cv_infiniteammo.value)
-		player->ammo[player->weaponinfo[player->readyweapon]->ammo] -= player->weaponinfo[player->readyweapon]->ammopershoot;
+	P_ReduceAmmo(player);
 	//added:16-02-98:added player arg3
 	P_SpawnPlayerMissile(player->mo, INFO_GetTypeByName("BFGShot"));
 }
@@ -623,8 +643,7 @@ void A_FireBFG(player_t* player, pspdef_t* psp)
 //
 void A_FirePlasma(player_t* player, pspdef_t* psp)
 {
-	if (!cv_infiniteammo.value)
-		player->ammo[player->weaponinfo[player->readyweapon]->ammo] -= player->weaponinfo[player->readyweapon]->ammopershoot;
+	P_ReduceAmmo(player);
 		
 	P_SetPsprite(player, ps_flash, player->weaponinfo[player->readyweapon]->flashstate + (P_Random() & 1));
 	
@@ -706,11 +725,10 @@ void A_FirePistol(player_t* player, pspdef_t* psp)
 {
 	S_StartSound(&player->mo->NoiseThinker, sfx_pistol);
 	
-	PuffType = INFO_GetTypeByName("BulletPuff");
+	PuffType = PS_GetPuffType(player);
 	P_SetMobjState(player->mo, player->mo->info->RPlayerRangedAttackState);
 	
-	if (!cv_infiniteammo.value)
-		player->ammo[player->weaponinfo[player->readyweapon]->ammo] -= player->weaponinfo[player->readyweapon]->ammopershoot;
+	P_ReduceAmmo(player);
 		
 	P_SetPsprite(player, ps_flash, player->weaponinfo[player->readyweapon]->flashstate);
 	
@@ -725,12 +743,11 @@ void A_FireShotgun(player_t* player, pspdef_t* psp)
 {
 	int i;
 	
-	PuffType = INFO_GetTypeByName("BulletPuff");
+	PuffType = PS_GetPuffType(player);
 	S_StartSound(&player->mo->NoiseThinker, sfx_shotgn);
 	P_SetMobjState(player->mo, player->mo->info->RPlayerRangedAttackState);
 	
-	if (!cv_infiniteammo.value)
-		player->ammo[player->weaponinfo[player->readyweapon]->ammo] -= player->weaponinfo[player->readyweapon]->ammopershoot;
+	P_ReduceAmmo(player);
 	P_SetPsprite(player, ps_flash, player->weaponinfo[player->readyweapon]->flashstate);
 	
 	P_BulletSlope(player->mo);
@@ -747,12 +764,11 @@ void A_FireShotgun2(player_t* player, pspdef_t* psp)
 	angle_t angle;
 	int damage;
 	
-	PuffType = INFO_GetTypeByName("BulletPuff");
+	PuffType = PS_GetPuffType(player);
 	S_StartSound(&player->mo->NoiseThinker, sfx_dshtgn);
 	P_SetMobjState(player->mo, player->mo->info->RPlayerRangedAttackState);
 	
-	if (!cv_infiniteammo.value)
-		player->ammo[player->weaponinfo[player->readyweapon]->ammo] -= player->weaponinfo[player->readyweapon]->ammopershoot;
+	P_ReduceAmmo(player);
 		
 	P_SetPsprite(player, ps_flash, player->weaponinfo[player->readyweapon]->flashstate);
 	
@@ -779,11 +795,10 @@ void A_FireCGun(player_t* player, pspdef_t* psp)
 		if (!player->ammo[player->weaponinfo[player->readyweapon]->ammo])
 			return;
 			
-	PuffType = INFO_GetTypeByName("BulletPuff");
+	PuffType = PS_GetPuffType(player);
 	P_SetMobjState(player->mo, player->mo->info->RPlayerRangedAttackState);
 	
-	if (!cv_infiniteammo.value)
-		player->ammo[player->weaponinfo[player->readyweapon]->ammo] -= player->weaponinfo[player->readyweapon]->ammopershoot;
+	P_ReduceAmmo(player);
 	
 	//P_SetPsprite(player, ps_flash, player->weaponinfo[player->readyweapon]->flashstate + psp->state - states[player->weaponinfo[player->readyweapon]->atkstate]/*&states[S_CHAIN1]*/);
 	
@@ -873,6 +888,17 @@ void A_BFGsound(player_t* player, pspdef_t* psp)
 	S_StartSound(&player->mo->NoiseThinker, sfx_bfg);
 }
 
+/* A_FireGenericProjectile() -- Fires a generic projectile */
+void A_FireGenericProjectile(player_t* player, pspdef_t* psp)
+{
+	/* Reduce ammo */
+	P_ReduceAmmo(player);
+	
+	/* Spawn the projectile */
+	if (player->weaponinfo[player->readyweapon]->GenericProjectile)
+		P_SpawnPlayerMissile(player->mo, INFO_GetTypeByName(player->weaponinfo[player->readyweapon]->GenericProjectile));
+}
+
 /*** BETA BFG ***/
 // This function emulates Doom's Pre-Beta BFG
 // By Lee Killough 6/6/98, 7/11/98, 7/19/98, 8/20/98
@@ -897,8 +923,7 @@ void A_FireOldBFG(player_t* player, pspdef_t* psp)
 	pMo = player->mo;
 	
 	// Reduce ammo
-	if (!cv_infiniteammo.value)
-		player->ammo[player->weaponinfo[player->readyweapon]->ammo] -= player->weaponinfo[player->readyweapon]->ammopershoot;
+	P_ReduceAmmo(player);
 	
 	/* Fire Loop */
 	for (i = 0; i < 2; i++)
@@ -1291,6 +1316,10 @@ bool_t P_RMODH_WeaponsAmmo(Z_Table_t* const a_Table, const WL_WADFile_t* const a
 			TempWeapon.WeaponFlags |= WF_NOTHRUST;
 		if (D_RMODGetValueBool(a_Table, "NoAutoFire", false))
 			TempWeapon.WeaponFlags |= WF_NOAUTOFIRE;
+		if (D_RMODGetValueBool(a_Table, "IsInExtended", false))
+			TempWeapon.WeaponFlags |= WF_INEXTENDED;
+		if (D_RMODGetValueBool(a_Table, "NoBleedTarget", false))
+			TempWeapon.WeaponFlags |= WF_NOBLEEDTARGET;
 		
 		// Get Fixed
 		TempWeapon.PSpriteSY = D_RMODGetValueFixed(a_Table, "SpriteYOffset", 0);
@@ -1302,6 +1331,8 @@ bool_t P_RMODH_WeaponsAmmo(Z_Table_t* const a_Table, const WL_WADFile_t* const a
 		TempWeapon.BringUpSound = D_RMODGetValueString(a_Table, "BringUpSound", NULL);
 		TempWeapon.IdleNoise = D_RMODGetValueString(a_Table, "IdleNoise", NULL);
 		TempWeapon.AmmoClass = D_RMODGetValueString(a_Table, "Ammo", NULL);
+		TempWeapon.ReplacePuffType = D_RMODGetValueString(a_Table, "PuffClass", NULL);
+		TempWeapon.GenericProjectile = D_RMODGetValueString(a_Table, "GenericProjectile", NULL);
 		
 		// Weapon ID (A somewhat unique number)
 		TempWeapon.WeaponID = (((uint32_t)(M_Random() & 0xFF)) | ((++WeaponIDBase) << 8)) | 0x80000000UL;

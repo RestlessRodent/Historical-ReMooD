@@ -1295,6 +1295,7 @@ bool_t PTR_ShootTraverse(intercept_t* in, void* a_Data)
 	line_t* li;
 	sector_t* sector = NULL;
 	mobj_t* th;
+	player_t* Player;
 	
 	fixed_t slope;
 	fixed_t dist;
@@ -1314,6 +1315,12 @@ bool_t PTR_ShootTraverse(intercept_t* in, void* a_Data)
 	int dir;
 	
 	P_LineAtkArgs_t* Args = a_Data;
+	
+	/* Get Player */
+	if (shootthing)
+		Player = shootthing->player;
+	else
+		Player = NULL;
 	
 	if (aimslope > 0)
 		dir = 1;
@@ -1589,7 +1596,7 @@ hitline:
 	{
 		// Spawn bullet puffs or blood spots,
 		// depending on target type.
-		if (in->d.thing->flags & MF_NOBLOOD)
+		if ((in->d.thing->flags & MF_NOBLOOD) || (Player && Player->weaponinfo[Player->readyweapon]->WeaponFlags & WF_NOBLEEDTARGET))
 			P_SpawnPuff(x, y, z);
 		else
 			P_SpawnBlood(x, y, z, la_damage);
@@ -1604,7 +1611,7 @@ hitline:
 	{
 		// Spawn bullet puffs or blood spots,
 		// depending on target type.
-		if (in->d.thing->flags & MF_NOBLOOD)
+		if ((in->d.thing->flags & MF_NOBLOOD) || (Player && Player->weaponinfo[Player->readyweapon]->WeaponFlags & WF_NOBLEEDTARGET))
 			P_SpawnPuff(x, y, z);
 		else
 		{

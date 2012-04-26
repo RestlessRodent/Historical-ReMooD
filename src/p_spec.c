@@ -2584,6 +2584,16 @@ bool_t P_RMODH_Specials(Z_Table_t* const a_Table, const WL_WADFile_t* const a_WA
 			__QUICK_TOUCHCPY(GiveWeapon, "GiveWeapon", "");
 			__QUICK_TOUCHCPY(GiveAmmo, "GiveAmmo", "");
 			
+			// Get Fields
+				// Boolean
+			TempTouch.CapMaxStat = D_RMODGetValueBool(a_Table, "IsCapMaxStat", false);
+			TempTouch.GreaterArmorClass = D_RMODGetValueBool(a_Table, "IsGreaterArmorClass", false);
+			TempTouch.CapNormStat = D_RMODGetValueBool(a_Table, "IsCapNormStat", false);
+				// Integer
+			TempTouch.ArmorClass = D_RMODGetValueInt(a_Table, "ArmorClass", 0);
+			TempTouch.ArmorAmount = D_RMODGetValueInt(a_Table, "ArmorAmount", 0);
+			TempTouch.HealthAmount = D_RMODGetValueInt(a_Table, "HealthAmount", 0);
+			
 			// Get bool fields
 			TempTouch.KeepNotNeeded = D_RMODGetBool(__QUICK_ORELSE("IsKeepIfNotNeeded", "false"));
 			TempTouch.RemoveAlways = D_RMODGetBool(__QUICK_ORELSE("IsRemoveAlways", "false"));

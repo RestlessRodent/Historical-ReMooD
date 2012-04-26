@@ -411,7 +411,8 @@ bool_t P_TouchSpecialThing(mobj_t* special, mobj_t* toucher)
 	fixed_t delta;
 	int sound;
 	P_RMODTouchSpecial_t* Current;
-	bool_t OKStat;
+	bool_t OKStat, NewWear;
+	int32_t Target, Max, Amount;
 	
 	delta = special->z - toucher->z;
 	
@@ -473,6 +474,61 @@ bool_t P_TouchSpecialThing(mobj_t* special, mobj_t* toucher)
 			
 			// Emit sound from monster
 			S_StartSound(toucher, sound);
+		}
+		
+		// Armor
+		if (player && Current->ArmorAmount)
+		{
+			// Get target amount
+			Target = player->armorpoints + Current->ArmorAmount;
+			NewWear = true;
+			
+			// Determine caps?
+			if (Current->CapNormStat)
+				Max = player->MaxArmor[0];
+			else if (Current->CapMaxStat)
+				Max = player->MaxArmor[1];
+			else
+				Max = 9999999;
+			
+			// Limit Armor?
+			if (Target >= Max)
+			{
+				NewWear = false;
+				Amount = Max;
+			}
+			else
+				Amount = Target;
+			
+			// Not Needed?
+			if (!NewWear && Current->KeepNotNeeded)
+				return false;
+			
+			// Change Armor
+			player->armorpoints = Amount;
+			OKStat = true;
+			
+			// Change armor class?
+			if (Current->ArmorClass)
+			{
+				// Get target armor class
+				Target = Current->ArmorClass;
+				
+				// Limited?
+				if (Current->GreaterArmorClass)
+					Max = player->armortype;
+				else
+					Max = 0;
+				
+				// Actual?
+				if (Current->ArmorClass >= Max)
+					Amount = Current->ArmorClass;
+				else
+					Amount = player->armortype;
+				
+				// Change armor
+				player->armortype = Amount;
+			}
 		}
 		
 		// Remove if we used it? or remove regardless

@@ -133,6 +133,9 @@ typedef enum WeaponFlags_e
 	WF_STARTINGWEAPON			= 0x00000200,	// Start with this gun
 	WF_NOAUTOFIRE				= 0x00000400,	// No automatic fire
 	WF_NOTHRUST					= 0x00000800,	// No thrusting the enemy
+	
+	WF_INEXTENDED				= 0x00001000,	// Appears in extended mode
+	WF_NOBLEEDTARGET			= 0x00002000,	// Do not need target
 } WeaponFlags_t;
 
 // Weapon info: sprite frames, ammunition use.
@@ -165,6 +168,7 @@ typedef struct
 	uint32_t RefStates[NUMPWEAPONSTATEGROUPS];	// Reference States
 	char* ReplacePuffType;						// Replacement puff type (rather than default)
 	char* ReplaceFireSound;						// Replacement Fire Sound
+	char* GenericProjectile;					// Generic Projectile
 } weaponinfo_t;
 
 extern weaponinfo_t** wpnlev1info;

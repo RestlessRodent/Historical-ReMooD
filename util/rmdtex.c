@@ -1354,6 +1354,15 @@ int main(int argc, char** argv)
 		}
 	}
 	
+	// Unfinished Type?
+	// End of sprites
+	if (Type == WT_SPRITE)
+		AddMarker("SS_END");
+	
+	// End of flats
+	if (Type == WT_FLAT)
+		AddMarker("FF_END");
+	
 	/* Create WAD */
 	// Create header
 	fwrite("PWAD", 4, 1, OutWAD);

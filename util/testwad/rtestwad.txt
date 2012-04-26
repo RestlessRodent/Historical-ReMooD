@@ -1,0 +1,71 @@
+===========================================================================
+Advanced engine needed  : ReMooD
+Primary purpose         : Engine Testing
+===========================================================================
+Title                   : ReMooD Test WAD
+Filename                : rtestwad.wad
+Release date            : 
+Author                  : GhostlyDeath
+Email Address           : ghostlydeath@remood.org
+Other Files By Author   : gdudm.wad, gdudm2.wad, a few levels for level packs.
+Misc. Author Info       : Project Leader and Developer for the ReMooD Project.
+
+Description             : This is the ReMooD Test WAD which shows off a bunch of
+                          editing features that ReMooD supports.
+
+Additional Credits to   : Some graphics have been taken from Freedoom.
+===========================================================================
+* What is included *
+
+New levels              : (Number of levels or "None")
+Sounds                  : Yes / No
+Music                   : Yes / No
+Graphics                : Yes / No
+Dehacked/BEX Patch      : Yes / No
+Demos                   : Yes / No
+Other                   : Yes / No (describe if yes)
+Other files required    : (list unusual files the player is expected to have)
+
+
+* Play Information *
+
+Game                    : DOOM / DOOM2 / Heretic / Hexen...
+Map #                   : (For DOOM2 maps, format is Mapxx. Others are ExMx.)
+Single Player           : Designed for / Player starts only / No
+Cooperative 2-4 Player  : Designed for / Player starts only / No
+Deathmatch 2-4 Player   : Designed for / Player starts only / No
+Other game styles       : (specify)
+Difficulty Settings     : Yes / Not implemented
+
+
+* Construction *
+
+Base                    : New from scratch
+Build Time              :  
+Editor(s) used          : 
+Known Bugs              : 
+May Not Run With        : Anything that is not ReMooD
+Tested With             : ReMooD
+
+* Copyright / Permissions *
+
+Authors MAY use the contents of this file as a base for
+modification or reuse.  Permissions have been obtained from original 
+authors for any of their resources modified or included in this file.
+
+You MAY distribute this file, provided you include this text file, with
+no modifications.  You may distribute this file in any electronic
+format (BBS, Diskette, CD, etc) as long as you include this file 
+intact.  I have received permission from the original authors of any
+modified or included content in this file to allow further distribution.
+
+* Where to get the file that this text file describes *
+
+Located within /util/rtestwad/ inside of The ReMooD Mercurial Repository.
+
+===========================================================================
+
+Doom Editor Numbers For Stuff
+
+ * 27300 -- BFGTenK -- BFG From Quake 3 (Mockup)
+
