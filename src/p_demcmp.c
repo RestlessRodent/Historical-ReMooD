@@ -441,6 +441,14 @@ static P_EXGSVariable_t l_GSVars[PEXGSNUMBITIDS] =
 	{PEXGST_INTEGER, PEXGSBID_PLSPAWNCLUSTERING, "pl_spawnclustering", "Spawn Spot Clustering",
 		"Adds extra spawn spots near other spawn spots for more players. [ReMooD >= 1.0a]", PEXGSGM_ANY, PEXGSDR_ATLEAST, 200, {0, 1}, 1,
 		PEXGSMC_PLAYERS},
+	
+	{PEXGST_INTEGER, PEXGSBID_COIMPROVEDMOBJONMOBJ, "co_improvedmobjonmobj", "Improved Object on Object",
+		"Improves handling of objects on top of other objects. [ReMooD >= 1.0a]", PEXGSGM_ANY, PEXGSDR_ATLEAST, 200, {0, 0}, 0,
+		PEXGSMC_COMPAT},
+	
+	{PEXGST_INTEGER, PEXGSBID_COLINETRAVERSEMOVE, "co_linetraversemove", "Line Traversing Move",
+		"Use line traversing when moving things. [ReMooD >= 1.0a]", PEXGSGM_ANY, PEXGSDR_ATLEAST, 200, {0, 0}, 0,
+		PEXGSMC_COMPAT},
 };
 
 /*** FUNCTIONS ***/

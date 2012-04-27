@@ -1448,9 +1448,16 @@ bool_t P_DamageMobj(mobj_t* target, mobj_t* inflictor, mobj_t* source, int damag
 	else
 		takedamage = true;
 	
-	if (takedamage && (
-		((target->RXFlags[1] & MFREXB_DONTTAKEDAMAGE) && damage >= 1000) || 
-		(!(target->RXFlags[1] & MFREXB_DONTTAKEDAMAGE))))
+	if (takedamage)
+		if (target->RXFlags[1] & MFREXB_DONTTAKEDAMAGE)
+		{
+			if (damage >= 1000)
+				takedamage = true;
+			else
+				takedamage = false;
+		}
+	
+	if (takedamage)
 	{
 		// do the damage
 		target->health -= damage;
@@ -1513,3 +1520,4 @@ bool_t P_DamageMobj(mobj_t* target, mobj_t* inflictor, mobj_t* source, int damag
 	
 	return takedamage;
 }
+

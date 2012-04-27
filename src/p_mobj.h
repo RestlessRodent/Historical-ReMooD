@@ -522,6 +522,10 @@ typedef struct mobj_s
 	// Properties
 	fixed_t MaxZObtained;						// Max Z Obtained while in air
 	
+	// GhostlyDeath <April 26, 2012> -- Improved mobj on mobj
+	struct mobj_s** MoOn[2];					// Objects on top/bottom
+	size_t MoOnCount[2];						// Count of top/bottom
+	
 	// Owners
 #if 0
 	struct mobj_s* RootOwner;	// Root owner of this object (first mobj in owner chain)

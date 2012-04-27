@@ -205,6 +205,8 @@ typedef enum P_EXGSBitID_e
 	PEXGSBID_GAMEONEHITKILLS,					// One Hit Kills
 	PEXGSBID_COBETTERPLCORPSEREMOVAL,			// Botter bodyqueue management
 	PEXGSBID_PLSPAWNCLUSTERING,					// Cluster spawn spots
+	PEXGSBID_COIMPROVEDMOBJONMOBJ,				// Improved Mobj on Mobj
+	PEXGSBID_COLINETRAVERSEMOVE,				// Use line traversing move
 	
 	PEXGSNUMBITIDS
 } P_EXGSBitID_t;

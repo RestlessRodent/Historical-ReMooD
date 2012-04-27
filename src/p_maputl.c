@@ -803,8 +803,7 @@ bool_t P_TraverseIntercepts(traverser_t func, fixed_t maxfrac, void* a_Data)
 		}
 #endif
 		
-		// appelle la fonction en commencant par l' intercept_t le plus
-		// proche
+		// calls the function starting with the nearest intercept_t
 		if (!func(in, a_Data))
 			return false;		// don't bother going farther
 			

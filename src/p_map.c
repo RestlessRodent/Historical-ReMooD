@@ -585,12 +585,7 @@ bool_t PIT_CheckLine(line_t* ld, void* a_Arg)
 //
 bool_t P_CheckPosition(mobj_t* thing, fixed_t x, fixed_t y, uint32_t a_Flags)
 {
-	int xl;
-	int xh;
-	int yl;
-	int yh;
-	int bx;
-	int by;
+	int xl, xh, yl, yh, bx, by;
 	subsector_t* newsubsec;
 	P_PITCTSettings_t Settings;
 	
@@ -709,6 +704,44 @@ static void CheckMissileImpact(mobj_t* mobj)
 		P_ShootSpecialLine(mobj->target, lines + spechit[i]);
 }
 
+/* PS_TMTInfo_t -- Move traverser */
+typedef struct PS_TMTInfo_s
+{
+	fixed_t x, y;
+	fixed_t xOrig, yOrig;
+	fixed_t dx, dy;
+	fixed_t Dist;
+} PS_TMTInfo_t;
+
+/* PS_TryMoveTraverser() -- Traverse for trymove */
+static bool_t PS_TryMoveTraverser(intercept_t* in, void* const a_Data)
+{
+	line_t* li;
+	mobj_t* mo;
+	PS_TMTInfo_t* TMData;
+	
+	/* Data */
+	TMData = a_Data;
+	
+	/* Lines */
+	if (in->isaline)
+	{
+		// Get line
+		li = in->d.line;
+		
+		// Cannot cross non two sided line
+		if (!(li->flags & ML_TWOSIDED))
+			return false;
+		
+		// Passable
+		return true;
+	}
+	
+	/* Things */
+	else
+		return false;
+}
+
 //
 // P_TryMove
 // Attempt to move to a new position,
@@ -722,13 +755,45 @@ bool_t P_TryMove(mobj_t* thing, fixed_t x, fixed_t y, bool_t allowdropoff)
 	int oldside;
 	line_t* ld;
 	bool_t CeilStepDownOK = false;
+	PS_TMTInfo_t TMData;
 	
 	floatok = false;
+	
+	// Clear arguments
+	memset(&TMData, 0, sizeof(TMData));
+	TMData.x = x;
+	TMData.y = y;
+	TMData.xOrig = thing->x;
+	TMData.yOrig = thing->y;
+	TMData.dx = TMData.x - TMData.xOrig;
+	TMData.Dist = P_AproxDistance(x - thing->x, y - thing->y);
 	
 	if (!P_CheckPosition(thing, x, y, 0))
 	{
 		CheckMissileImpact(thing);
 		return false;			// solid wall or thing
+	}
+	
+	// GhostlyDeath <April 26, 2012> -- Use P_PathTraverse to try a move
+	if (P_EXGSGetValue(PEXGSBID_COLINETRAVERSEMOVE))
+	{
+		tmx = thing->x;
+		tmy = thing->y;
+		tmthing = thing;
+		
+		// Not on no clip things
+		if (!(tmthing->flags & MF_NOCLIP))
+			if (!P_PathTraverse(thing->x, thing->y, x, y, PT_ADDLINES, PS_TryMoveTraverser, &TMData))
+			{
+				// Change position to failure point
+				P_UnsetThingPosition(thing);
+				thing->x = TMData.x;
+				thing->y = TMData.y;
+				thing->floorz = tmfloorz;
+				thing->ceilingz = tmceilingz;
+				P_SetThingPosition(thing);
+				return false;
+			}
 	}
 	
 	if (!(thing->flags & MF_NOCLIP))

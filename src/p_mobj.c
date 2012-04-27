@@ -512,6 +512,11 @@ void P_ZMovement(mobj_t* mo)
 	fixed_t delta;
 	fixed_t BounceMomZ;
 	
+	// GhostlyDeath <April 26, 2012> -- Improved on map object
+	if (P_EXGSGetValue(PEXGSBID_COIMPROVEDMOBJONMOBJ))
+	{
+	}
+	
 	// GhostlyDeath <April 26, 2012> -- Max Z obtained
 	if (mo->z > mo->MaxZObtained)
 		mo->MaxZObtained = mo->z;
@@ -921,13 +926,71 @@ static void PlayerLandedOnThing(mobj_t* mo, mobj_t* onmobj)
 	}
 }
 
+extern mobj_t* tmthing;
+extern int tmflags;
+extern fixed_t tmx;
+extern fixed_t tmy;
+
+/* PIT_StackThings() -- Stack map objects */
+static bool_t PIT_StackThings(mobj_t* thing, void* a_Arg)
+{
+	fixed_t blockdist;
+	mobj_t* SourceMo;
+	size_t i, j;
+	bool_t Less;
+	fixed_t dx, dy, dr;
+	
+	/* Get Source */
+	SourceMo = (mobj_t*)a_Arg;
+	
+	/* Ignore self and non-solids */
+	if ((thing == tmthing) || (thing == SourceMo))
+		return true;
+		
+	if (!(thing->flags & (MF_SOLID | MF_SPECIAL | MF_SHOOTABLE)))
+		return true;
+		
+	/* Check Distance */
+	dr = thing->radius + SourceMo->radius;
+	dx = abs(thing->x - SourceMo->x);
+	dy = abs(thing->y - SourceMo->y);
+	
+	// Too far away?
+	if (P_AproxDistance(dx, dy) >= dr)
+		return true;
+	
+	/* Z less than source? */
+	// Place it on bottom
+	if (thing->z < SourceMo->z)
+	{
+		i = 1;
+		Less = true;
+	}
+	
+	/* Z more than source? */
+	// Place it on top
+	else
+	{
+		i = 0;
+		Less = false;
+	}
+	
+	/* Inject in the list */
+	Z_ResizeArray((void**)&SourceMo->MoOn[i], sizeof(*SourceMo->MoOn[i]), SourceMo->MoOnCount[i], SourceMo->MoOnCount[i] + 1);
+	SourceMo->MoOn[i][SourceMo->MoOnCount[i]++] = thing;
+	
+	/* Continue on */
+	return true;
+}
+
 //
 // P_MobjThinker
 //
 void P_MobjThinker(mobj_t* mobj)
 {
+	int xl, xh, yl, yh, bx, by;
 	bool_t checkedpos = false;	//added:22-02-98:
-	size_t i;
+	size_t i, j;
 	thinker_t Hold;
 	
 	if (g_CheatFlags & MCF_FREEZETIME)
@@ -958,6 +1021,47 @@ void P_MobjThinker(mobj_t* mobj)
 		mobj->z = mobj->floorz + FloatBobOffsets[(mobj->health++) & 63];
 	}
 	else
+	{
+		// GhostlyDeath <April 26, 2012> -- Improved on map object
+		if (P_EXGSGetValue(PEXGSBID_COIMPROVEDMOBJONMOBJ))
+		{
+			// Clear stack list for object
+			for (i = 0; i < 2; i++)
+			{
+				if (mobj->MoOn[i])
+					Z_Free(mobj->MoOn[i]);
+				mobj->MoOn[i] = NULL;
+				mobj->MoOnCount[i] = 0;
+			}
+			
+			// Check for things the object is standing on and objects
+			// standing on it.
+			tmthing = mobj;
+			tmflags = mobj->flags;
+	
+			tmx = mobj->x;
+			tmy = mobj->y;
+	
+			tmbbox[BOXTOP] = tmy + tmthing->radius;
+			tmbbox[BOXBOTTOM] = tmy - tmthing->radius;
+			tmbbox[BOXRIGHT] = tmx + tmthing->radius;
+			tmbbox[BOXLEFT] = tmx - tmthing->radius;
+			
+			xl = (tmbbox[BOXLEFT] - bmaporgx - MAXRADIUS) >> MAPBLOCKSHIFT;
+			xh = (tmbbox[BOXRIGHT] - bmaporgx + MAXRADIUS) >> MAPBLOCKSHIFT;
+			yl = (tmbbox[BOXBOTTOM] - bmaporgy - MAXRADIUS) >> MAPBLOCKSHIFT;
+			yh = (tmbbox[BOXTOP] - bmaporgy + MAXRADIUS) >> MAPBLOCKSHIFT;
+			
+			//for (bx = xl; bx <= xh; bx++)
+			//	for (by = yl; by <= yh; by++)
+			//		P_BlockThingsIterator(bx, by, PIT_StackThings, mobj);
+			
+			// Modify floorz and ceilingz of all objects
+			for (i = 0; i < 2; i++)
+				for (j = 0; j < mobj->MoOnCount[i]; j++)
+					;//fprintf(stderr, "[%2i, %2i] %016p [a %s]\n", (int)i, (int)j, mobj->MoOn[i][j], mobj->MoOn[i][j]->info->RClassName);
+		}
+		
 		//added:28-02-98: always do the gravity bit now, that's simpler
 		//                BUT CheckPosition only if wasn't do before.
 		if ((mobj->eflags & MF_ONGROUND) == 0 || (mobj->z != mobj->floorz) || mobj->momz)
@@ -986,6 +1090,16 @@ void P_MobjThinker(mobj_t* mobj)
 				
 				P_ZMovement(mobj);
 			}
+			
+			// GhostlyDeath <April 26, 2012> -- Improved on map object
+			else if (P_EXGSGetValue(PEXGSBID_COIMPROVEDMOBJONMOBJ))
+			{
+				// Modify floorz/ceilingz of object based on stacks
+				
+				// Always perform Z Movement
+				P_ZMovement(mobj);
+			}
+			
 			else if (mobj->flags2 & MF2_PASSMOBJ)
 			{
 				mobj_t* onmo;
@@ -1030,6 +1144,7 @@ void P_MobjThinker(mobj_t* mobj)
 		}
 		else
 			mobj->eflags &= ~MF_JUSTHITFLOOR;
+	}
 			
 	// SoM: Floorhuggers stay on the floor allways...
 	// BP: tested here but never set ?!
