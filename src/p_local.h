@@ -222,6 +222,7 @@ typedef enum P_CheckPositionFlags_e
 	PCPF_FORSPOTCHECK				= 0x0002,	// For player spot checking
 } P_CheckPositionFlags_t;
 
+bool_t P_CheckPositionDetermine(mobj_t* thing, fixed_t x, fixed_t y, uint32_t a_Flags);
 bool_t P_CheckPosition(mobj_t* thing, fixed_t x, fixed_t y, uint32_t a_Flags);
 bool_t P_CheckPosRadius(fixed_t x, fixed_t y, fixed_t Radius);
 bool_t P_TryMove(mobj_t* thing, fixed_t x, fixed_t y, bool_t allowdropoff);

@@ -206,7 +206,7 @@ typedef enum P_EXGSBitID_e
 	PEXGSBID_COBETTERPLCORPSEREMOVAL,			// Botter bodyqueue management
 	PEXGSBID_PLSPAWNCLUSTERING,					// Cluster spawn spots
 	PEXGSBID_COIMPROVEDMOBJONMOBJ,				// Improved Mobj on Mobj
-	PEXGSBID_COLINETRAVERSEMOVE,				// Use line traversing move
+	PEXGSBID_COIMPROVEPATHTRAVERSE,				// Smooth out path traversing
 	
 	PEXGSNUMBITIDS
 } P_EXGSBitID_t;

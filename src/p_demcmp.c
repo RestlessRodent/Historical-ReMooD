@@ -446,8 +446,8 @@ static P_EXGSVariable_t l_GSVars[PEXGSNUMBITIDS] =
 		"Improves handling of objects on top of other objects. [ReMooD >= 1.0a]", PEXGSGM_ANY, PEXGSDR_ATLEAST, 200, {0, 0}, 0,
 		PEXGSMC_COMPAT},
 	
-	{PEXGST_INTEGER, PEXGSBID_COLINETRAVERSEMOVE, "co_linetraversemove", "Line Traversing Move",
-		"Use line traversing when moving things. [ReMooD >= 1.0a]", PEXGSGM_ANY, PEXGSDR_ATLEAST, 200, {0, 0}, 0,
+	{PEXGST_INTEGER, PEXGSBID_COIMPROVEPATHTRAVERSE, "co_improvepathtraverse", "Improve Traversing Move",
+		"Smooth out position moving. [ReMooD >= 1.0a]", PEXGSGM_ANY, PEXGSDR_ATLEAST, 200, {0, 1}, 1,
 		PEXGSMC_COMPAT},
 };
 

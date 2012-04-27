@@ -270,9 +270,7 @@ typedef struct P_PITCTSettings_s
 	bool_t VsInfo;								// Use against mobjinfo, not mobj_t
 } P_PITCTSettings_t;
 
-//
-// PIT_CheckThing
-//
+/* PIT_CheckThing() -- Check thing */
 static bool_t PIT_CheckThing(mobj_t* thing, void* a_Arg)
 {
 	fixed_t blockdist;
@@ -684,13 +682,314 @@ bool_t P_CheckPosition(mobj_t* thing, fixed_t x, fixed_t y, uint32_t a_Flags)
 	return true;
 }
 
+
+/* PIT_CheckThingDet() -- Check thing */
+static bool_t PIT_CheckThingDet(mobj_t* thing, void* a_Arg)
+{
+	fixed_t blockdist;
+	bool_t solid;
+	int damage;
+	P_PITCTSettings_t* SettingsP = a_Arg;
+	
+	//added:22-02-98:
+	fixed_t topz;
+	fixed_t tmtopz;
+	
+	//SoM: 3/15/2000: Moved to front.
+	
+	// don't clip against self
+	
+	if (thing == tmthing)
+		return true;
+		
+	if (!(thing->flags & (MF_SOLID | MF_SPECIAL | MF_SHOOTABLE)))
+		return true;
+		
+	blockdist = thing->radius + tmthing->radius;
+	
+	if (abs(thing->x - tmx) >= blockdist || abs(thing->y - tmy) >= blockdist)
+	{
+		// didn't hit it
+		return true;
+	}
+	
+	// heretic stuffs
+	if (tmthing->flags2 & MF2_PASSMOBJ)
+	{
+		if (tmthing->z >= thing->z + thing->height && !(thing->flags & MF_SPECIAL))
+		{
+			return (true);
+		}
+		else if (tmthing->z + tmthing->height < thing->z && !(thing->flags & MF_SPECIAL))
+		{
+			// under thing
+			return (true);
+		}
+	}
+	
+	// check for skulls slamming into things
+	if (tmflags & MF_SKULLFLY)
+		return false;			// stop moving
+	
+	// missiles can hit other things
+	if (tmthing->flags & MF_MISSILE)
+	{
+		// Check for passing through a ghost (heretic)
+		if ((thing->flags & MF_SHADOW) && (tmthing->flags2 & MF2_THRUGHOST))
+			return true;
+			
+		// see if it went over / under
+		if (tmthing->z > thing->z + thing->height)
+			return true;		// overhead
+		if (tmthing->z + tmthing->height < thing->z)
+			return true;		// underneath
+			
+		if (tmthing->target && (tmthing->target->type == thing->type || (tmthing->target->info->RBaseFamily && thing->info->RBaseFamily && tmthing->target->info->RBaseFamily == thing->info->RBaseFamily)))
+		{
+			// Don't hit same species as originator.
+			if (thing == tmthing->target)
+				return true;
+			
+			// Explode, but do no damage.
+			// Let players missile other players.
+			if (!(thing->RXFlags[0] & MFREXA_ISPLAYEROBJECT))
+				//DarkWolf95:November 21, 2003: Monsters Infight!
+				if (!P_EXGSGetValue(PEXGSBID_FUNINFIGHTING))
+					return false;
+		}
+		
+		if (!(thing->flags & MF_SHOOTABLE))
+		{
+			// didn't do any damage
+			return !(thing->flags & MF_SOLID);
+		}
+		// more heretic stuff
+		if (tmthing->flags2 & MF2_RIP)
+		{
+			return (true);
+		}
+		// damage / explode
+		// don't traverse any more
+		return false;
+	}
+	if (thing->flags2 & MF2_PUSHABLE && !(tmthing->flags2 & MF2_CANNOTPUSH))
+	{
+	}
+	
+	// check for special pickup
+	if (thing->flags & MF_SPECIAL)
+	{
+		solid = thing->flags & MF_SOLID;
+		if (tmflags & MF_PICKUP)
+		{
+		}
+		return !solid;
+	}
+	
+	// check again for special pickup
+	if (P_EXGSGetValue(PEXGSBID_CODOUBLEPICKUPCHECK) && tmthing->flags & MF_SPECIAL)
+	{
+		solid = tmthing->flags & MF_SOLID;
+		if (thing->flags & MF_PICKUP)
+		{
+		}
+		return !solid;
+	}
+	
+	//added:24-02-98:compatibility with old demos, it used to return with...
+	//added:27-02-98:for version 112+, nonsolid things pass through other things
+	if (P_EXGSGetValue(PEXGSBID_CONONSOLIDPASSTHRUOLD) || P_EXGSGetValue(PEXGSBID_CONONSOLIDPASSTHRUNEW) || !(tmthing->flags & MF_SOLID))
+		return !(thing->flags & MF_SOLID);
+		
+	//added:22-02-98: added z checking at last
+	//SoM: 3/10/2000: Treat noclip things as non-solid!
+	if ((thing->flags & MF_SOLID) && (tmthing->flags & MF_SOLID) && !(thing->flags & MF_NOCLIP) && !(tmthing->flags & MF_NOCLIP))
+	{
+		// pass under
+		tmtopz = tmthing->z + tmthing->height;
+		
+		if (tmtopz < thing->z)
+		{
+			return true;
+		}
+		
+		topz = thing->z + thing->height + FRACUNIT;
+		
+		// block only when jumping not high enough,
+		// (dont climb max. 24units while already in air)
+		// if not in air, let P_TryMove() decide if its not too high
+		if (tmthing->player && tmthing->z < topz && tmthing->z > tmthing->floorz)	// block while in air
+			return false;
+			
+		if (topz > tmfloorz)
+		{
+		}
+		
+	}
+	
+	// not solid not blocked
+	return true;
+}
+
+/* PIT_CheckLineDet() -- Deterministic check line */
+bool_t PIT_CheckLineDet(line_t* ld, void* a_Arg)
+{
+	line_t* tempblockingline;
+	
+	if (tmbbox[BOXRIGHT] <= ld->bbox[BOXLEFT]
+	        || tmbbox[BOXLEFT] >= ld->bbox[BOXRIGHT] || tmbbox[BOXTOP] <= ld->bbox[BOXBOTTOM] || tmbbox[BOXBOTTOM] >= ld->bbox[BOXTOP])
+		return true;
+		
+	if (P_BoxOnLineSide(tmbbox, ld) != -1)
+		return true;
+		
+	// A line has been hit
+	
+	// The moving thing's destination position will cross
+	// the given line.
+	// If this should not be allowed, return false.
+	// If the line is special, keep track of it
+	// to process later if the move is proven ok.
+	// NOTE: specials are NOT sorted by order,
+	// so two special lines that are only 8 pixels apart
+	// could be crossed in either order.
+	
+	// 10-12-99 BP: moved this line to out of the if so upper and
+	//              lower texture can be hit by a splat
+	if (!ld->backsector)
+	{
+		return false;			// one sided line
+	}
+	// missil and Camera can cross uncrossable line
+	if (!(tmthing->flags & MF_MISSILE) && !(tmthing->RXFlags[0] & MFREXA_ALLOWNOCROSSCROSS))
+	{
+		if (ld->flags & ML_BLOCKING)
+			return false;		// explicitly blocking everything
+		
+		if (!(tmthing->RXFlags[1] & MFREXB_IGNOREBLOCKMONS))
+			if (!(tmthing->player) && ld->flags & ML_BLOCKMONSTERS)
+				return false;		// block monsters only
+	}
+		
+	return true;
+}
+
+/* P_CheckPositionDetermine() -- Use non modifying positional check */
+bool_t P_CheckPositionDetermine(mobj_t* thing, fixed_t x, fixed_t y, uint32_t a_Flags)
+{
+	int xl, xh, yl, yh, bx, by;
+	subsector_t* newsubsec;
+	P_PITCTSettings_t Settings;
+	
+	// Clear settings
+	memset(&Settings, 0, sizeof(Settings));
+	
+	tmthing = thing;
+	tmflags = thing->flags;
+	
+	tmx = x;
+	tmy = y;
+	
+	tmbbox[BOXTOP] = y + tmthing->radius;
+	tmbbox[BOXBOTTOM] = y - tmthing->radius;
+	tmbbox[BOXRIGHT] = x + tmthing->radius;
+	tmbbox[BOXLEFT] = x - tmthing->radius;
+	
+	newsubsec = R_PointInSubsector(x, y);
+	ceilingline = blockingline = NULL;
+	
+	// The base floor / ceiling is from the subsector
+	// that contains the point.
+	// Any contacted lines the step closer together
+	// will adjust them.
+	tmfloorz = tmsectorfloorz = tmdropoffz = newsubsec->sector->floorheight;
+	tmceilingz = tmsectorceilingz = newsubsec->sector->ceilingheight;
+	
+	//SoM: 3/23/2000: Check list of fake floors and see if
+	//tmfloorz/tmceilingz need to be altered.
+	if (newsubsec->sector->ffloors)
+	{
+		ffloor_t* rover;
+		fixed_t delta1;
+		fixed_t delta2;
+		int thingtop = thing->z + thing->height;
+		
+		for (rover = newsubsec->sector->ffloors; rover; rover = rover->next)
+		{
+			if (!(rover->flags & FF_SOLID) || !(rover->flags & FF_EXISTS))
+				continue;
+				
+			delta1 = thing->z - (*rover->bottomheight + ((*rover->topheight - *rover->bottomheight) / 2));
+			delta2 = thingtop - (*rover->bottomheight + ((*rover->topheight - *rover->bottomheight) / 2));
+			if (*rover->topheight > tmfloorz && abs(delta1) < abs(delta2))
+				tmfloorz = tmdropoffz = *rover->topheight;
+			if (*rover->bottomheight < tmceilingz && abs(delta1) >= abs(delta2))
+				tmceilingz = *rover->bottomheight;
+		}
+	}
+	// tmfloorthing is set when tmfloorz comes from a thing's top
+	tmfloorthing = NULL;
+	
+	validcount++;
+	numspechit = 0;
+	
+	if (tmflags & MF_NOCLIP)
+		return true;
+		
+	// Check things first, possibly picking things up.
+	// The bounding box is extended by MAXRADIUS
+	// because mobj_ts are grouped into mapblocks
+	// based on their origin point, and can overlap
+	// into adjacent blocks by up to MAXRADIUS units.
+	
+	// BP: added MF_NOCLIPTHING :used by camera to don't be blocked by things
+	if (!(thing->flags & MF_NOCLIPTHING) && 
+		((a_Flags & PCPF_FORSPOTCHECK) ||
+			(P_EXGSGetValue(PEXGSBID_COOLDCHECKPOSITION) || (thing->flags & MF_SOLID || thing->flags & MF_MISSILE))))
+		/* DarkWolf95:don't check non-solids against other things,
+		   keep them in the map though, so still check against lines */
+	{
+		xl = (tmbbox[BOXLEFT] - bmaporgx - MAXRADIUS) >> MAPBLOCKSHIFT;
+		xh = (tmbbox[BOXRIGHT] - bmaporgx + MAXRADIUS) >> MAPBLOCKSHIFT;
+		yl = (tmbbox[BOXBOTTOM] - bmaporgy - MAXRADIUS) >> MAPBLOCKSHIFT;
+		yh = (tmbbox[BOXTOP] - bmaporgy + MAXRADIUS) >> MAPBLOCKSHIFT;
+		
+		if (a_Flags & PCPF_FORSPOTCHECK)
+			Settings.VsInfo = true;
+		
+		for (bx = xl; bx <= xh; bx++)
+			for (by = yl; by <= yh; by++)
+				if (!P_BlockThingsIterator(bx, by, PIT_CheckThingDet, &Settings))
+					return false;
+	}
+	// check lines
+	xl = (tmbbox[BOXLEFT] - bmaporgx) >> MAPBLOCKSHIFT;
+	xh = (tmbbox[BOXRIGHT] - bmaporgx) >> MAPBLOCKSHIFT;
+	yl = (tmbbox[BOXBOTTOM] - bmaporgy) >> MAPBLOCKSHIFT;
+	yh = (tmbbox[BOXTOP] - bmaporgy) >> MAPBLOCKSHIFT;
+	
+	for (bx = xl; bx <= xh; bx++)
+		for (by = yl; by <= yh; by++)
+			if (!P_BlockLinesIterator(bx, by, PIT_CheckLineDet, NULL))
+				return false;
+				
+	return true;
+}
+
 //==========================================================================
 //
 // CheckMissileImpact
 //
 //==========================================================================
 
-static void CheckMissileImpact(mobj_t* mobj)
+/* P_CMIFlags_t -- CMI Flags */
+typedef enum P_CMIFlags_e
+{
+	PCMIF_NOSHOOTLINE			= 0x00000001,	// No shoot line
+} P_CMIFlags_t;
+
+/* CheckMissileImpact() -- Checks for missile impact against wall */
+static void CheckMissileImpact(mobj_t* mobj, const uint32_t a_Flags)
 {
 	int i;
 	
@@ -699,55 +998,22 @@ static void CheckMissileImpact(mobj_t* mobj)
 		
 	if (!mobj->target->player)
 		return;
-		
-	for (i = numspechit - 1; i >= 0; i--)
-		P_ShootSpecialLine(mobj->target, lines + spechit[i]);
+	
+	if (!(a_Flags & PCMIF_NOSHOOTLINE))
+		for (i = numspechit - 1; i >= 0; i--)
+			P_ShootSpecialLine(mobj->target, lines + spechit[i]);
 }
 
-/* PS_TMTInfo_t -- Move traverser */
-typedef struct PS_TMTInfo_s
+/* P_SubTryMoveFlags_t -- Sub try attempt flags */
+typedef enum P_SubTryMoveFlags_s
 {
-	fixed_t x, y;
-	fixed_t xOrig, yOrig;
-	fixed_t dx, dy;
-	fixed_t Dist;
-} PS_TMTInfo_t;
+	PSTMF_DONTACTUALLYMOVE		= 0x00000001,	// Don't actually move the thing
+	PSTMF_DETCHECKPOSITION		= 0x00000002,	// Use deterministic check move
+	PSTMF_IGNOREPOSCHECK		= 0x00000004,	// Ignore position check
+} P_SubTryMoveFlags_t;
 
-/* PS_TryMoveTraverser() -- Traverse for trymove */
-static bool_t PS_TryMoveTraverser(intercept_t* in, void* const a_Data)
-{
-	line_t* li;
-	mobj_t* mo;
-	PS_TMTInfo_t* TMData;
-	
-	/* Data */
-	TMData = a_Data;
-	
-	/* Lines */
-	if (in->isaline)
-	{
-		// Get line
-		li = in->d.line;
-		
-		// Cannot cross non two sided line
-		if (!(li->flags & ML_TWOSIDED))
-			return false;
-		
-		// Passable
-		return true;
-	}
-	
-	/* Things */
-	else
-		return false;
-}
-
-//
-// P_TryMove
-// Attempt to move to a new position,
-// crossing special lines unless MF_TELEPORT is set.
-//
-bool_t P_TryMove(mobj_t* thing, fixed_t x, fixed_t y, bool_t allowdropoff)
+/* PS_SubTryMove() -- Try sub move */
+static bool_t PS_SubTryMove(mobj_t* thing, fixed_t x, fixed_t y, bool_t allowdropoff, const uint32_t a_Flags)
 {
 	fixed_t oldx;
 	fixed_t oldy;
@@ -755,45 +1021,34 @@ bool_t P_TryMove(mobj_t* thing, fixed_t x, fixed_t y, bool_t allowdropoff)
 	int oldside;
 	line_t* ld;
 	bool_t CeilStepDownOK = false;
-	PS_TMTInfo_t TMData;
+	uint32_t Flags;
 	
 	floatok = false;
 	
-	// Clear arguments
-	memset(&TMData, 0, sizeof(TMData));
-	TMData.x = x;
-	TMData.y = y;
-	TMData.xOrig = thing->x;
-	TMData.yOrig = thing->y;
-	TMData.dx = TMData.x - TMData.xOrig;
-	TMData.Dist = P_AproxDistance(x - thing->x, y - thing->y);
+	Flags = 0;
+	if (a_Flags & PSTMF_DONTACTUALLYMOVE)
+		Flags |= PCMIF_NOSHOOTLINE;
 	
-	if (!P_CheckPosition(thing, x, y, 0))
+	if (Flags & PSTMF_DETCHECKPOSITION)
 	{
-		CheckMissileImpact(thing);
-		return false;			// solid wall or thing
+		if (!P_CheckPositionDetermine(thing, x, y, 0))
+		{
+			CheckMissileImpact(thing, Flags);
+			return false;			// solid wall or thing
+		}
 	}
-	
-	// GhostlyDeath <April 26, 2012> -- Use P_PathTraverse to try a move
-	if (P_EXGSGetValue(PEXGSBID_COLINETRAVERSEMOVE))
+	else
 	{
-		tmx = thing->x;
-		tmy = thing->y;
-		tmthing = thing;
-		
-		// Not on no clip things
-		if (!(tmthing->flags & MF_NOCLIP))
-			if (!P_PathTraverse(thing->x, thing->y, x, y, PT_ADDLINES, PS_TryMoveTraverser, &TMData))
+		if ((Flags & PSTMF_IGNOREPOSCHECK))
+			return false;
+		else
+		{
+			if (!P_CheckPosition(thing, x, y, 0))
 			{
-				// Change position to failure point
-				P_UnsetThingPosition(thing);
-				thing->x = TMData.x;
-				thing->y = TMData.y;
-				thing->floorz = tmfloorz;
-				thing->ceilingz = tmceilingz;
-				P_SetThingPosition(thing);
-				return false;
+				CheckMissileImpact(thing, Flags);
+				return false;			// solid wall or thing
 			}
+		}
 	}
 	
 	if (!(thing->flags & MF_NOCLIP))
@@ -802,7 +1057,7 @@ bool_t P_TryMove(mobj_t* thing, fixed_t x, fixed_t y, bool_t allowdropoff)
 		
 		if (tmceilingz - tmfloorz < thing->height)
 		{
-			CheckMissileImpact(thing);
+			CheckMissileImpact(thing, Flags);
 			return false;		// doesn't fit
 		}
 		
@@ -818,7 +1073,7 @@ bool_t P_TryMove(mobj_t* thing, fixed_t x, fixed_t y, bool_t allowdropoff)
 		if (!CeilStepDownOK)
 			if (!(thing->flags & MF_TELEPORT) && tmceilingz - thing->z < thing->height && !(thing->flags2 & MF2_FLY))
 			{
-				CheckMissileImpact(thing);
+				CheckMissileImpact(thing, Flags);
 				return false;		// mobj must lower itself to fit
 			}
 		
@@ -841,17 +1096,22 @@ bool_t P_TryMove(mobj_t* thing, fixed_t x, fixed_t y, bool_t allowdropoff)
 		
 		if (!(thing->flags & MF_TELEPORT) && (tmfloorz - thing->z > maxstep))
 		{
-			CheckMissileImpact(thing);
+			CheckMissileImpact(thing, Flags);
 			return false;		// too big a step up
 		}
 		
 		if ((thing->flags & MF_MISSILE) && tmfloorz > thing->z)
-			CheckMissileImpact(thing);
+			CheckMissileImpact(thing, Flags);
 			
 		if (!boomsupport || !allowdropoff)
 			if (!(thing->flags & (MF_DROPOFF | MF_FLOAT)) && !tmfloorthing && tmfloorz - tmdropoffz > MAXSTEPMOVE)
 				return false;	// don't stand over a dropoff
 	}
+	
+	// GhostlyDeath <April 27, 2012> -- Don't actually move!
+	if (a_Flags & PSTMF_DONTACTUALLYMOVE)
+		return true;
+	
 	// the move is ok,
 	// so link the thing into its new position
 	P_UnsetThingPosition(thing);
@@ -902,6 +1162,89 @@ bool_t P_TryMove(mobj_t* thing, fixed_t x, fixed_t y, bool_t allowdropoff)
 	}
 	
 	return true;
+}
+
+/* P_TryMove() -- Trying move */
+bool_t P_TryMove(mobj_t* thing, fixed_t x, fixed_t y, bool_t allowdropoff)
+{
+#define MAXMOVETRIES 4
+	bool_t MoveUp;
+	fixed_t ox, oy;
+	fixed_t mx, my;
+	fixed_t dx, dy;
+	fixed_t zx, zy;
+	fixed_t fx, fy;
+	fixed_t MoveFrac;
+	fixed_t i, Dist;
+	bool_t OKs[MAXMOVETRIES];
+	
+	/* Smooth Traversing */
+	// GhostlyDeath <April 27, 2012> -- Improve Traversing
+	if (P_EXGSGetValue(PEXGSBID_COIMPROVEPATHTRAVERSE))
+	{
+		// No clipping?
+		if ((thing->flags & MF_NOCLIP) || (thing->player && thing->player->cheats & CF_NOCLIP))
+			return true;
+		
+		// Clear OKs
+		memset(&OKs, 0, sizeof(OKs));
+		OKs[0] = true;	// First move is always OK!
+		
+		// Set move fraction
+		MoveFrac = FixedDiv(1 << FRACBITS, MAXMOVETRIES << FRACBITS);
+		
+		// Get original points
+		fx = ox = thing->x;
+		fy = oy = thing->y;
+		dx = x;
+		dy = y;
+		
+		// Get difference of points
+		zx = dx - ox;
+		zy = dy - oy;
+		
+		Dist = P_AproxDistance(zx, zy);
+		
+		// Don't care enough to try?
+		if (Dist <= (thing->radius >> 1))
+			return PS_SubTryMove(thing, dx, dy, allowdropoff, 0);
+		
+		// Run through tries
+		for (i = 1; i < MAXMOVETRIES; i++)
+		{
+			// Position to check
+			mx = ox + FixedMul(zx, (MoveFrac * i));
+			my = oy + FixedMul(zy, (MoveFrac * i));
+			
+			// This spot OK?
+			if (R_IsPointInSubsector(mx, my))
+				if (PS_SubTryMove(thing, mx, my, allowdropoff, PSTMF_DONTACTUALLYMOVE | PSTMF_DETCHECKPOSITION))
+				{
+					// Set OK and set furthest x/y pos
+					OKs[i] = true;
+					fx = mx;
+					fy = my;
+				}
+		}
+		
+		// Move to the furthest guessed position now
+		PS_SubTryMove(thing, fx, fy, allowdropoff, 0);
+		
+		// Now check each position and see if anything returned false
+		for (i = 0; i < MAXMOVETRIES; i++)
+			if (!OKs[i])
+				return false;
+		
+		// Never returned false!
+		return true;
+	}
+	
+	/* Non-Smooth Traversing */
+	else
+	{
+		return PS_SubTryMove(thing, x, y, allowdropoff, 0);
+	}
+#undef MAXMOVETRIES
 }
 
 //
