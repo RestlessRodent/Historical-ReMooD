@@ -1025,41 +1025,6 @@ void P_MobjThinker(mobj_t* mobj)
 		// GhostlyDeath <April 26, 2012> -- Improved on map object
 		if (P_EXGSGetValue(PEXGSBID_COIMPROVEDMOBJONMOBJ))
 		{
-			// Clear stack list for object
-			for (i = 0; i < 2; i++)
-			{
-				if (mobj->MoOn[i])
-					Z_Free(mobj->MoOn[i]);
-				mobj->MoOn[i] = NULL;
-				mobj->MoOnCount[i] = 0;
-			}
-			
-			// Check for things the object is standing on and objects
-			// standing on it.
-			tmthing = mobj;
-			tmflags = mobj->flags;
-	
-			tmx = mobj->x;
-			tmy = mobj->y;
-	
-			tmbbox[BOXTOP] = tmy + tmthing->radius;
-			tmbbox[BOXBOTTOM] = tmy - tmthing->radius;
-			tmbbox[BOXRIGHT] = tmx + tmthing->radius;
-			tmbbox[BOXLEFT] = tmx - tmthing->radius;
-			
-			xl = (tmbbox[BOXLEFT] - bmaporgx - MAXRADIUS) >> MAPBLOCKSHIFT;
-			xh = (tmbbox[BOXRIGHT] - bmaporgx + MAXRADIUS) >> MAPBLOCKSHIFT;
-			yl = (tmbbox[BOXBOTTOM] - bmaporgy - MAXRADIUS) >> MAPBLOCKSHIFT;
-			yh = (tmbbox[BOXTOP] - bmaporgy + MAXRADIUS) >> MAPBLOCKSHIFT;
-			
-			//for (bx = xl; bx <= xh; bx++)
-			//	for (by = yl; by <= yh; by++)
-			//		P_BlockThingsIterator(bx, by, PIT_StackThings, mobj);
-			
-			// Modify floorz and ceilingz of all objects
-			for (i = 0; i < 2; i++)
-				for (j = 0; j < mobj->MoOnCount[i]; j++)
-					;//fprintf(stderr, "[%2i, %2i] %016p [a %s]\n", (int)i, (int)j, mobj->MoOn[i][j], mobj->MoOn[i][j]->info->RClassName);
 		}
 		
 		//added:28-02-98: always do the gravity bit now, that's simpler

@@ -37,6 +37,7 @@
 #include "p_local.h"
 #include "r_main.h"
 #include "p_maputl.h"
+#include "p_demcmp.h"
 
 //
 // P_AproxDistance
@@ -434,6 +435,11 @@ void P_UnsetThingPosition(mobj_t* thing)
 	
 	// GhostlyDeath <April 24, 2012> -- Always clear mobj links
 	thing->bnext = thing->bprev = NULL;
+	
+	// GhostlyDeath <April 27, 2012> -- Improved Mobj on Mobj
+	if (P_EXGSGetValue(PEXGSBID_COIMPROVEDMOBJONMOBJ))
+	{
+	}
 }
 
 //
@@ -519,6 +525,11 @@ void P_SetThingPosition(mobj_t* thing)
 			// thing is off the map
 			thing->bnext = thing->bprev = NULL;
 		}
+	}
+	
+	// GhostlyDeath <April 27, 2012> -- Improved Mobj on Mobj
+	if (P_EXGSGetValue(PEXGSBID_COIMPROVEDMOBJONMOBJ))
+	{
 	}
 }
 
