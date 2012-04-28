@@ -57,6 +57,10 @@
 				<LI><A href="#analogsound">Analog Sound</A></LI>
 				<LI><A href="#remoodat">ReMooD Data</A>
 					<UL>
+						<LI><A href="#rmodstate">States</A>
+							<UL>
+								<LI><A href="#rmodstateref">Reference</A></LI>
+							</UL></LI>
 						<LI><A href="#rmodobject">Objects (MapObject)</A>
 							<UL>
 								<LI><A href="#rmodobjectref">Reference</A></LI>
@@ -95,8 +99,36 @@
 		<H1>ReMooD Data</H1>
 		<P>
 			<P>
-				ReMooD contains the bulk of the game definitions in the lump named <I>REMOODAT</I>. The primary data is contained within <I>ReMooD.wad</I>, while it will also be loaded from user supplied PWADs. ReMooD Data is also historically known as <B>RMOD</B>, which stood for <B>R</B>eMooD <B>M</B>ap <B>O</B>bject <B>D</B>ata, however it no longer contains just data used for the map, it contains all of the data in a wide variety of areas.
+				ReMooD contains the bulk of the game definitions in the lump named <I>REMOODAT</I>. The primary data is contained within <I>ReMooD.wad</I>, while it will also be loaded from user supplied PWADs. ReMooD Data is also historically known as <B>RMOD</B>, which stood for <B>R</B>eMooD <B>M</B>ap <B>O</B>bject <B>D</B>ata, however it no longer contains just data used for the map, it contains all of the data in a wide variety of areas. ReMooD Data replaces DeHackEd as the primary object modification method.
 			</P>
+			
+			<!-- STATES -->
+			<DIV id="rmodstate">
+			<H2>States</H2>
+			<P>
+				<P>
+					States are the bulk of what makes <A href="#rmodobject">objects (MapObject)</A> and <A href="#rmodweapon">weapons (MapWeapon)</A> useful. Without states, you cannot see an object or make a weapon that has any use at all. States are never used standalone but only inside of other definitions.
+				</P>
+				
+				<DIV id="rmodstateref">
+				<H3>Reference</H3>
+				<P>
+					<UL>
+						<LI><B>DeHackEdNum</B> [<I>integer</I>] -- DeHackEd state number identification. This is used for DeHackEd compatibility.</LI>
+						<LI><B>Tics</B> [<I>integer</I>] -- Length of time the state lasts in 1/35th second intervals. A value of "-1" means this state lasts forever and a value of "0" means it instantly changes to the next state.</LI>
+						<LI><B>FastTics</B> [<I>integer</I>] -- Similar to above, but when <i>Fast Monsters</i> is enabled this value is used instead.</LI>
+						<LI><B>Frame</B> [<I>integer</I>/<I>character</I>] -- This is either a character matching the sprite frame number or a zero-based index of the sprite frame. That is, A is equal to 0, B is equal to 1, etc.</LI>
+						<LI><B>FullBright</B> [<I>boolean</I>] -- Frame appears bright in the dark.</LI>
+						<LI><B>Sprite</B> [<I>string</I>] -- A four character string that identifies the sprite to be displayed. Please note that this is used in <A href="#rmodtouchspecial">touch specials (MapTouchSpecial)</A> to identify the sprite to be displayed.</LI>
+						<LI><B>Priority</B> [<I>string</I>] -- This determines how important the displayed frame is when viewed in the level. When the sprites in view limitation is reached an algorithm determines which sprite to replace, ones with lower priorities means they will not be visible. The possible values are: "Null", "Default", "Weapons", "Ammo", "WeaponFlash", "Effects", "Monsters", "Corpses", "Players", "Health", "Cookies", "MissionCritical", "Powerups", "Decorations", and "Projectiles".</LI>
+						<LI><B>Transparency</B> [<I>string</I>/<I>integer</I>] -- This is how transparent the displayed sprite should appear when drawn. The possible values are numbers from "1" to "100" and special values such as "Fire" and "Effect1".</LI>
+						<LI><B>Function</B> [<I>string</I>] -- This is the function to be execute when the state is set. This could be anything from monster actions to weapon actions. Each function varies based on its own use.</LI>
+						<LI><B>Goto</B> [<I>string</I>] -- This indicates that the next state should jump to another state group. If this is specified with <U>Next</U> then this takes precedence.</LI>
+						<LI><B>Next</B> [<I>integer</I>] -- This indicates the next frame to be displayed. If this is specified with <U>Goto</U> then this value is ignored.</LI>
+					</UL>
+				</P>
+			</P>
+			</DIV>
 			
 			<!-- MAP OBJECT -->
 			<DIV id="rmodobject">
