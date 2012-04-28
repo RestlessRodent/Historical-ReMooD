@@ -728,9 +728,21 @@ static bool_t INFO_RMODInnerStateHandler(Z_Table_t* const a_Sub, void* const a_D
 	StateP->DehackEdID = D_RMODGetValueInt(a_Sub, "DeHackEdNum", 0);
 	
 	// Get normal values
-	StateP->frame = D_RMODGetValueInt(a_Sub, "Frame", 0);
 	StateP->tics = D_RMODGetValueInt(a_Sub, "Tics", 0);
 	StateP->RMODFastTics = D_RMODGetValueInt(a_Sub, "FastTics", 0);
+	
+	// GhostlyDeath <April 28, 2012> -- To make DECORATE translation easier I
+	// have decided to add support for A-Z.
+	Value = Z_TableGetValue(a_Sub, "Frame");
+	
+	// Is it a letter?
+	if (Value)
+	{
+		if (toupper(Value[0]) >= 'A' && toupper(Value[1]) <= 'Z')
+			StateP->frame = toupper(Value[0]) - 'A';
+		else
+			StateP->frame = D_RMODGetValueInt(a_Sub, "Frame", 0);
+	}
 	
 	// Get booleans
 	if (D_RMODGetValueBool(a_Sub, "FullBright", false))
