@@ -305,7 +305,7 @@ static const struct
 };
 
 /* INFO_RMODObjectStateForName() -- Get information needed for state handling */
-static statenum_t* INFO_RMODObjectStateForName(void* const a_Input, const char* const a_Name, INFO_ObjectStateGroup_t* const IOSG, uint32_t** const a_RefState)
+static statenum_t* INFO_RMODObjectStateForName(void* const a_Input, const char* const a_Name, INFO_ObjectStateGroup_t* const IOSG, uint32_t** const a_RefState, uint32_t*** const a_LRefs, size_t* a_NumLRefs)
 {
 	mobjinfo_t* Object = a_Input;
 	size_t i;
@@ -695,6 +695,10 @@ static bool_t INFO_RMODInnerStateHandler(Z_Table_t* const a_Sub, void* const a_D
 	// Convert to integer
 	CurFrameID = atoi(Value);
 	
+	/* Less than 1? invalid frame */
+	if (CurFrameID < 1)
+		return true;
+	
 	/* Add state frame to latest? */
 	// Determine marker value
 	MarkerVal = (HelperP->StateGroup << 16) | (CurFrameID & 0xFFFF);
@@ -721,6 +725,7 @@ static bool_t INFO_RMODInnerStateHandler(Z_Table_t* const a_Sub, void* const a_D
 	
 	/* Fill state with info */
 	// Remember marker for later uses
+	StateP->FrameID = CurFrameID;
 	StateP->Marker = MarkerVal;
 	StateP->ObjectID = HelperP->ObjectID;
 	
@@ -795,7 +800,7 @@ static bool_t INFO_RMODInnerStateHandler(Z_Table_t* const a_Sub, void* const a_D
 	else
 	{
 		// Match string to group
-		if (HelperP->StateForName(HelperP->InputPtr, Value, &IOSG, NULL))
+		if (HelperP->StateForName(HelperP->InputPtr, Value, &IOSG, NULL, NULL, NULL))
 		{
 			// Simulated Next is similar to above, but jumps to another group
 			StateP->SimNext = HelperP->ObjectID;
@@ -834,7 +839,7 @@ bool_t INFO_RMODStateHandlers(Z_Table_t* const a_Sub, void* const a_Data)
 	Value++;
 	
 	/* Determine state value */
-	HelperP->StateValueP = HelperP->StateForName(HelperP->InputPtr, Value, &HelperP->StateGroup, &HelperP->StateSplasher);
+	HelperP->StateValueP = HelperP->StateForName(HelperP->InputPtr, Value, &HelperP->StateGroup, &HelperP->StateSplasher, NULL, NULL);
 	HelperP->BaseStateNum = 0;
 	
 	// Something here? (Future reference state groups?)

@@ -80,6 +80,7 @@ typedef struct
 	int32_t RMODFastTics;						// Tics when -fast
 	int32_t ExtraStateFlags;					// Custom flags
 	
+	uint32_t FrameID;							// Frame Marker
 	uint32_t ObjectID;							// Unique Weapon ID
 	uint32_t Marker;							// Marker for RMOD
 	uint64_t SimNext;							// Simulated next state
@@ -212,7 +213,7 @@ bool_t INFO_RMODO_MapObjects(const bool_t a_Pushed, const struct WL_WADFile_s* c
 
 // RMOD Helpers
 
-typedef statenum_t* (*INFO_RMODStateForNameFunc_t)(void* const a_Input, const char* const a_Name, INFO_ObjectStateGroup_t* const IOSG, uint32_t** const a_RefState);
+typedef statenum_t* (*INFO_RMODStateForNameFunc_t)(void* const a_Input, const char* const a_Name, INFO_ObjectStateGroup_t* const IOSG, uint32_t** const a_RefState, uint32_t*** const a_LRefs, size_t** a_NumLRefs);
 
 /* INFO_RMODStateHelper_t -- RMOD State Helper */
 typedef struct INFO_RMODStateHelper_s

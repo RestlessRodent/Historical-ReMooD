@@ -253,12 +253,8 @@ void P_XYFriction(mobj_t* mo, fixed_t oldx, fixed_t oldy, bool_t oldfriction)
 	{
 		// if in a walking frame, stop moving
 		if (player && !(mo->RXFlags[0] & MFREXA_NOPLAYERWALK))
-		{
-			// TODO FIXME Check
-			if (player->mo->state == states[player->mo->info->RPlayerRunState])
-			//if ((unsigned)((player->mo->state - states) - player->mo->info->RPlayerRunState) < 4)
+			if (player->mo->state->FrameID < 4)
 				P_SetMobjState(player->mo, player->mo->info->spawnstate);
-		}
 		
 		mo->momx = 0;
 		mo->momy = 0;

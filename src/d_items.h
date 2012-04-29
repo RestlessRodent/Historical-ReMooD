@@ -169,6 +169,10 @@ typedef struct
 	char* ReplacePuffType;						// Replacement puff type (rather than default)
 	char* ReplaceFireSound;						// Replacement Fire Sound
 	char* GenericProjectile;					// Generic Projectile
+	
+	// State References
+	statenum_t* FlashStates;					// Weapon flash states
+	size_t NumFlashStates;						// Number of flash states
 } weaponinfo_t;
 
 extern weaponinfo_t** wpnlev1info;

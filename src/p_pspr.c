@@ -643,9 +643,14 @@ void A_FireBFG(player_t* player, pspdef_t* psp)
 //
 void A_FirePlasma(player_t* player, pspdef_t* psp)
 {
+	int StateDiff;
+	
 	P_ReduceAmmo(player);
-		
-	P_SetPsprite(player, ps_flash, player->weaponinfo[player->readyweapon]->flashstate + (P_Random() & 1));
+	
+	// GhostlyDeath <April 29, 2012> -- Set corresponding flash state
+	StateDiff = P_Random() & 1;
+	if (StateDiff < player->weaponinfo[player->readyweapon]->NumFlashStates)
+		P_SetPsprite(player, ps_flash, player->weaponinfo[player->readyweapon]->FlashStates[StateDiff]);
 	
 	//added:16-02-98: added player arg3
 	P_SpawnPlayerMissile(player->mo, INFO_GetTypeByName("PlasmaShot"));
@@ -789,6 +794,8 @@ void A_FireShotgun2(player_t* player, pspdef_t* psp)
 //
 void A_FireCGun(player_t* player, pspdef_t* psp)
 {
+	int StateDiff;
+	
 	S_StartSound(&player->mo->NoiseThinker, sfx_pistol);
 	
 	if (!cv_infiniteammo.value)
@@ -800,7 +807,10 @@ void A_FireCGun(player_t* player, pspdef_t* psp)
 	
 	P_ReduceAmmo(player);
 	
-	//P_SetPsprite(player, ps_flash, player->weaponinfo[player->readyweapon]->flashstate + psp->state - states[player->weaponinfo[player->readyweapon]->atkstate]/*&states[S_CHAIN1]*/);
+	// GhostlyDeath <April 29, 2012> -- Set corresponding flash state
+	StateDiff = player->psprites[ps_weapon].state->FrameID - 1;
+	if (StateDiff < player->weaponinfo[player->readyweapon]->NumFlashStates)
+		P_SetPsprite(player, ps_flash, player->weaponinfo[player->readyweapon]->FlashStates[StateDiff]);
 	
 	P_BulletSlope(player->mo);
 	P_GunShot(player->mo, !player->refire);
@@ -1150,8 +1160,10 @@ size_t NUMAMMO = 0;
 /*** FUNCTIONS ***/
 
 /* PS_RMODWeaponStateForName() -- Determines state value for name */
-static statenum_t* PS_RMODWeaponStateForName(weaponinfo_t* const Weapon, const char* const a_Name, P_WeaponStateGroup_t* const WSG, uint32_t** const a_RefState)
+static statenum_t* PS_RMODWeaponStateForName(void* const a_Input, const char* const a_Name, INFO_ObjectStateGroup_t* const WSG, uint32_t** const a_RefState, uint32_t*** const a_LRefs, size_t** a_NumLRefs)
 {
+	weaponinfo_t* Weapon = a_Input;	
+	
 	/* Check */
 	if (!Weapon || !a_Name)
 		return NULL;
@@ -1548,6 +1560,40 @@ bool_t P_RMODO_WeaponsAmmo(const bool_t a_Pushed, const struct WL_WADFile_s* con
 						*StateRef = k;
 						break;
 					}
+			
+			// Find flash states
+			if (j == PWSG_FLASH)
+			{
+				// Clear flash states for this weapon
+				if (TempWeapon->FlashStates)
+					Z_Free(TempWeapon->FlashStates);
+				TempWeapon->FlashStates = NULL;
+				TempWeapon->NumFlashStates = 0;
+				
+				// Get reference
+				RefToFind = ((j & 0xFFFF) << 16);
+				
+				// Determine flash order
+				for (k = MergeBase; k < MergeBase + MergeCount; k++)
+					if (states[k]->ObjectID == TempWeapon->WeaponID)
+						if ((states[k]->Marker & 0xFFFF0000U) == RefToFind)
+						{
+							// No func?
+							if (!states[k]->Function)
+								continue;
+							
+							// Function only on A_Light*()
+							if (strcasecmp(states[k]->Function, "Light1") != 0 && strcasecmp(states[k]->Function, "Light2") != 0)
+								continue;
+							
+							// Add to array
+							if (WepID > TempWeapon->NumFlashStates)
+								Z_ResizeArray((void**)&TempWeapon->FlashStates, sizeof(*TempWeapon->FlashStates), TempWeapon->NumFlashStates, TempWeapon->NumFlashStates + 1);
+							
+							// Set array value
+							TempWeapon->FlashStates[TempWeapon->NumFlashStates++] = k;
+						}
+			}
 		}
 	}
 	

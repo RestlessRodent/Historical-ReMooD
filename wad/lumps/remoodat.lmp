@@ -17081,6 +17081,17 @@ MapWeapon "Chaingun"
 			Function "Light0";
 			Next "0";
 		}
+		
+		Frame "3"
+		{
+			Sprite "CHGF";
+			Frame "1";
+			Tics "5";
+			FullBright "true";
+			ViewPriority "WeaponFlash";
+			Function "Light1";
+			Next "2";
+		}
 	}
 }
 
@@ -17330,6 +17341,17 @@ MapWeapon "PlasmaRifle"
 			ViewPriority "WeaponFlash";
 			Function "Light0";
 			Next "0";
+		}
+		
+		Frame "3"
+		{
+			Sprite "PLSF";
+			Frame "1";
+			Tics "4";
+			FullBright "true";
+			ViewPriority "WeaponFlash";
+			Function "Light1";
+			Next "2";
 		}
 	}
 }
