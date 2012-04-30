@@ -790,6 +790,7 @@ void P_PlayerThink(player_t* player)
 	int validguns;
 	int waterz;
 	int i, j, k, l;
+	angle_t delta;
 	
 #ifdef PARANOIA
 	if (!player->mo)
@@ -861,7 +862,37 @@ void P_PlayerThink(player_t* player)
 	if (player->mo->reactiontime)
 		player->mo->reactiontime--;
 	else
-		P_MovePlayer(player);
+	{
+		// Use player movement?
+		if (player->mo->RXFlags[1] & MFREXB_USEPLAYERMOVEMENT)
+			P_MovePlayer(player);
+		
+		// Use monster movement
+		else
+		{
+			// Change direction
+			player->mo->movedir = (((uint32_t)player->cmd.angleturn & 0xE000) >> 13U);
+			
+			// Odd?
+			if ((player->cmd.angleturn >> 12) & 1)
+				player->mo->movedir++;
+			
+			// Correct direction
+			if (player->mo->movedir < 0)
+				player->mo->movedir = DI_NODIR - 1;
+			else if (player->mo->movedir >= DI_NODIR)
+				player->mo->movedir = 0;
+			
+			// Set angle
+			player->mo->angle = ((angle_t)player->cmd.angleturn) << 16;
+			
+			// Move forward?
+			if (player->cmd.forwardmove >= 5)
+				player->mo->movecount = 2;
+			else
+				player->mo->movecount = -1;
+		}
+	}
 		
 	// GhostlyDeath <September 16, 2011> -- Apply fake friction to "effort" bobbing
 	player->FakeMom[0] = FixedMul(player->FakeMom[0], ORIG_FRICTION);

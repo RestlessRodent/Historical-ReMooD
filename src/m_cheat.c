@@ -846,6 +846,7 @@ void MS_CHEAT_FreezeTime(player_t* const a_Player, const uint32_t a_ArgC, const 
 void MS_CHEAT_Give(player_t* const a_Player, const uint32_t a_ArgC, const char** const a_ArgV);
 void MS_CHEAT_Summon(player_t* const a_Player, const uint32_t a_ArgC, const char** const a_ArgV);
 void MS_CHEAT_God(player_t* const a_Player, const uint32_t a_ArgC, const char** const a_ArgV);
+void MS_CHEAT_Morph(player_t* const a_Player, const uint32_t a_ArgC, const char** const a_ArgV);
 
 // l_LocalCheats -- Locally obtained cheats
 static M_SingleCheat_t l_LocalCheats[] =
@@ -854,6 +855,7 @@ static M_SingleCheat_t l_LocalCheats[] =
 	{"give", MS_CHEAT_Give},
 	{"summon", MS_CHEAT_Summon},
 	{"god", MS_CHEAT_God},
+	{"morph", MS_CHEAT_Morph},
 	
 	{NULL},
 };
@@ -979,6 +981,17 @@ void MS_CHEAT_God(player_t* const a_Player, const uint32_t a_ArgC, const char** 
 	
 	/* Toggle God Mode */
 	a_Player->cheats ^= CF_GODMODE;
+}
+
+/* MS_CHEAT_Morph() -- Morph player into another object */
+void MS_CHEAT_Morph(player_t* const a_Player, const uint32_t a_ArgC, const char** const a_ArgV)
+{
+	/* Check */
+	if (!a_Player || a_ArgC < 1)
+		return;
+	
+	/* Change base class */
+	P_MorphObjectClass(a_Player->mo, INFO_GetTypeByName(a_ArgV[0]));
 }
 
 /* MS_MultiCheatCommand() -- Multi-cheat command */

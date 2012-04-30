@@ -272,6 +272,8 @@ static const INFO_FlagInfo_t c_xRXFlagsB[] =
 	{MFREXB_ISHIGHBOUNCER, "IsHighBouncer"},
 	{MFREXB_NONMISSILEFLBOUNCE, "NonMissileFloorBounce"},
 	{MFREXB_IGNOREBLOCKMONS, "IgnoreBlockMonsterLines"},
+	{MFREXB_USEPLAYERMOVEMENT, "UsePlayerMovement"},
+	{MFREXB_CANUSEWEAPONS, "CanUseWeapons"},
 	{0, NULL},
 };
 

@@ -243,8 +243,8 @@ typedef enum
 	MF2_DONTDRAW = 0X00100000,	// don't generate a vissprite
 	
 	// GhostlyDeath
-	MF2_BOUNCES = 0x00200000,	// Bounces off walls and floors
-	MF2_FRIENDLY = 0x00400000,	// On the players' side
+	MF2_BOUNCES =           0x00200000,	// Bounces off walls and floors
+	MF2_FRIENDLY =          0x00400000,	// On the players' side
 	MF2_FORCETRANSPARENCY = 0x00800000,
 	
 	MF2_FLOORHUGGER 	  = 0x01000000,	// Always on the floor
@@ -326,6 +326,8 @@ typedef enum mobjflagrexb_e
 	MFREXB_ISHIGHBOUNCER		= 0x000000100U,	// Bounces High
 	MFREXB_NONMISSILEFLBOUNCE	= 0x000000200U,	// Bounce on floor without being MF_MISSILE
 	MFREXB_IGNOREBLOCKMONS		= 0x000000400U,	// Ignore monster blocking lines
+	MFREXB_USEPLAYERMOVEMENT	= 0x000000800U,	// Use player movement
+	MFREXB_CANUSEWEAPONS		= 0x000001000U,	// Can use player weapons
 } mobjflagrexb_t;
 
 /* P_MobjRefType_t -- Reference type */
@@ -364,6 +366,20 @@ typedef enum P_RXAttackType_e
 	
 	NUMPRXATTACKTYPES
 } P_RXAttackType_t;
+
+typedef enum
+{
+	DI_EAST,
+	DI_NORTHEAST,
+	DI_NORTH,
+	DI_NORTHWEST,
+	DI_WEST,
+	DI_SOUTHWEST,
+	DI_SOUTH,
+	DI_SOUTHEAST,
+	DI_NODIR,
+	NUMDIRS
+} dirtype_t;
 
 /* KidList_t -- Linked list of kids */
 typedef struct KidList_s
@@ -526,6 +542,9 @@ typedef struct mobj_s
 	struct mobj_s** MoOn[2];					// Objects on top/bottom
 	size_t MoOnCount[2];						// Count of top/bottom
 	
+	// GhostlyDeath <April 29, 2012> -- Teams
+	int32_t SkinTeamColor;						// player skincolor + 1 Team
+	
 	// Owners
 #if 0
 	struct mobj_s* RootOwner;	// Root owner of this object (first mobj in owner chain)
@@ -560,6 +579,9 @@ void P_ClearMobjRefs(mobj_t* const a_Mo);
 #else
 	#define P_RefMobj(t,s,r) P_RefMobjReal((t), (s), (r))
 #endif
+
+void P_MorphObjectClass(mobj_t* const a_Mo, const mobjtype_t a_NewClass);
+bool_t P_MobjOnSameTeam(mobj_t* const a_ThisMo, mobj_t* const a_OtherMo);
 
 #endif
 

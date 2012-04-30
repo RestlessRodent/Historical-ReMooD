@@ -184,6 +184,8 @@ MapObject "DoomPlayer"
 	MoveOverUnderObject "true";
 	CanTeleStomp "true";
 	IsPlayerObject "true";
+	UsePlayerMovement "true";
+	CanUseWeapons "true";
 	
 	State "SpawnState"
 	{

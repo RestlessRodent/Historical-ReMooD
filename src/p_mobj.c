@@ -170,8 +170,8 @@ bool_t P_SetMobjState(mobj_t* mobj, statenum_t state)
 		// Modified handling.
 		// Call action functions when the state is set
 		
-		if (st->action.acp1)
-			st->action.acp1(mobj);
+		if (st->action.acp3)
+			st->action.acp3(mobj, mobj->player, NULL);
 			
 		seenstate[state] = 1 + st->nextstate;	// killough 4/9/98
 		
@@ -1180,6 +1180,7 @@ mobj_t* P_SpawnMobj(fixed_t x, fixed_t y, fixed_t z, mobjtype_t type)
 	mobj->flags = info->flags;
 	mobj->flags2 = info->flags2;
 	mobj->RXShotWithWeapon = NUMWEAPONS;
+	mobj->SkinTeamColor = 0;
 	
 	for (i = 0; i < NUMINFORXFIELDS; i++)
 		mobj->RXFlags[i] = info->RXFlags[i];
@@ -2140,6 +2141,10 @@ mobj_t* P_SpawnMissile(mobj_t* source, mobj_t* dest, mobjtype_t type)
 	int dist;
 	fixed_t z;
 	
+	// GhostlyDeath <April 29, 2012> -- Player shooting missile
+	if (source->player)
+		return P_SpawnPlayerMissile(source, type);
+	
 	// GhostlyDeath <November 3, 2010> -- Paranoia removal
 	if (!source || !dest)
 	{
@@ -2541,5 +2546,133 @@ void P_SetMobjToCrash(mobj_t* const a_Mo)
 	a_Mo->touching_sectorlist = (void*)((uintptr_t)14);
 	a_Mo->ChildFloor = (void*)((uintptr_t)15);
 	a_Mo->spawnpoint = (void*)((uintptr_t)16);
+}
+
+/* P_MorphObjectClass() -- Morphs an object to another class */
+void P_MorphObjectClass(mobj_t* const a_Mo, const mobjtype_t a_NewClass)
+{
+	mobjinfo_t* OldI, *NewI;
+	fixed_t HealthP, RadiusP, HeightP;
+	INFO_ObjectStateGroup_t OldGroup, NewGroup;
+	statenum_t NewState;
+	size_t i;
+	
+	/* Check */
+	if (!a_Mo || a_NewClass < 0 || a_NewClass >= NUMMOBJTYPES)
+		return;
+	
+	/* Obtain old and new infos */
+	OldI = a_Mo->info;
+	NewI = mobjinfo[a_NewClass];
+	
+	/* Obtain stat differentials */
+	HealthP = FixedDiv(a_Mo->health << FRACBITS, OldI->spawnhealth << FRACBITS);
+	RadiusP = FixedDiv(a_Mo->radius, OldI->radius);
+	HeightP = FixedDiv(a_Mo->height, OldI->height);
+	
+	/* Remove position */
+	P_UnsetThingPosition(a_Mo);
+	
+	/* Change object info now */
+	a_Mo->type = a_NewClass;
+	a_Mo->health = FixedMul(NewI->spawnhealth << FRACBITS, HealthP) >> FRACBITS;
+	a_Mo->radius = FixedMul(NewI->radius, RadiusP);
+	a_Mo->height = FixedMul(NewI->height, HeightP);
+	a_Mo->info = NewI;
+	
+	// Setup player health
+	if (a_Mo->player)
+		a_Mo->player->health = a_Mo->health;
+	
+	// Setup Flags
+	a_Mo->flags = NewI->flags;
+	a_Mo->flags2 = NewI->flags2;
+	for (i = 0; i < NUMINFORXFIELDS; i++)
+		a_Mo->RXFlags[i] = NewI->RXFlags[i];
+	
+	/* Determine state to change to */
+	OldGroup = (a_Mo->state->Marker & 0xFFFF0000U) >> 16U;
+	
+	// Does the state not exist in the new group
+	if (!NewI->RefStates[OldGroup])
+	{
+#define __REMOOD_STATECHECKS(x,y) if (OldGroup == (x) && NewI->RefStates[(x)]) NewGroup = (y)
+		// Which 
+		__REMOOD_STATECHECKS(IOSG_CRASH, IOSG_DEATH);
+		else __REMOOD_STATECHECKS(IOSG_DEATH, IOSG_GIB);
+		else __REMOOD_STATECHECKS(IOSG_GIB, IOSG_DEATH);
+		else __REMOOD_STATECHECKS(IOSG_PLAYERRUN, IOSG_ACTIVE);
+		else __REMOOD_STATECHECKS(IOSG_PLAYERMELEE, IOSG_MELEEATTACK);
+		else __REMOOD_STATECHECKS(IOSG_PLAYERRANGED, IOSG_RANGEDATTACK);
+		else __REMOOD_STATECHECKS(IOSG_RANGEDATTACK, IOSG_MELEEATTACK);
+		else __REMOOD_STATECHECKS(IOSG_MELEEATTACK, IOSG_RANGEDATTACK);
+		else NewGroup = IOSG_SPAWN;
+#undef __REMOOD_STATECHECKS
+	}
+	else
+		// Use existing group
+		NewGroup = OldGroup;
+	
+	// Choose state based on group
+	if (NewGroup == IOSG_SPAWN) NewState = NewI->spawnstate;
+	else if (NewGroup == IOSG_ACTIVE) NewState = NewI->seestate;
+	else if (NewGroup == IOSG_PAIN) NewState = NewI->painstate;
+	else if (NewGroup == IOSG_MELEEATTACK) NewState = NewI->meleestate;
+	else if (NewGroup == IOSG_RANGEDATTACK) NewState = NewI->missilestate;
+	else if (NewGroup == IOSG_CRASH) NewState = NewI->crashstate;
+	else if (NewGroup == IOSG_DEATH) NewState = NewI->deathstate;
+	else if (NewGroup == IOSG_GIB) NewState = NewI->xdeathstate;
+	else if (NewGroup == IOSG_RAISE) NewState = NewI->raisestate;
+	else if (NewGroup == IOSG_PLAYERRUN) NewState = NewI->RPlayerRunState;
+	else if (NewGroup == IOSG_PLAYERMELEE) NewState = NewI->RPlayerMeleeAttackState;
+	else if (NewGroup == IOSG_PLAYERRANGED) NewState = NewI->RPlayerRangedAttackState;
+	else if (NewGroup == IOSG_VILEHEAL) NewState = NewI->RVileHealState;
+	else if (NewGroup == IOSG_LESSBLOODA) NewState = NewI->RLessBlood[0];
+	else if (NewGroup == IOSG_LESSBLOODB) NewState = NewI->RLessBlood[1];
+	else if (NewGroup == IOSG_BRAINEXPLODE) NewState = NewI->RBrainExplodeState;
+	else if (NewGroup == IOSG_MELEEPUFF) NewState = NewI->RMeleePuffState;
+	else NewState = 0;
+	
+	// Set state to that
+	P_SetMobjState(a_Mo, NewState);
+	
+	/* Set position */
+	P_SetThingPosition(a_Mo);
+}
+
+/* P_MobjOnSameTeam() -- Determines whether two objects are on the same team */
+bool_t P_MobjOnSameTeam(mobj_t* const a_ThisMo, mobj_t* const a_OtherMo)
+{
+	/* Check */
+	if (!a_ThisMo || !a_OtherMo)
+		return false;
+	
+	/* Self object is always on the same team */
+	if (a_ThisMo == a_OtherMo)
+		return true;
+	
+	/* Player and friendly monster */
+	if ((a_ThisMo->player && (a_OtherMo->flags2 & MF2_FRIENDLY)) ||
+		((a_OtherMo->player && (a_ThisMo->flags2 & MF2_FRIENDLY))))
+		return true;
+	
+	/* Monsters on the same skin team */
+	if (a_ThisMo->SkinTeamColor > 0 && a_OtherMo->SkinTeamColor > 0)
+		// Same team?
+		if (a_ThisMo->SkinTeamColor == a_OtherMo->SkinTeamColor)
+			return true;
+	
+	/* Monsters on a team vs teamless monsters */
+	if (a_ThisMo->SkinTeamColor > 0 && !a_OtherMo->SkinTeamColor)
+		return false;
+	if (!a_ThisMo->SkinTeamColor && a_OtherMo->SkinTeamColor > 0)
+		return false;
+	
+	/* Monsters and other monsters */
+	if (!a_ThisMo->player && !a_OtherMo->player)
+		return true;
+	
+	/* Not on same team */
+	return false;
 }
 
