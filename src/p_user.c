@@ -415,7 +415,7 @@ void P_MovePlayer(player_t* player)
 				player->flyheight = 10;
 			if (player->mo->eflags & MF_UNDERWATER)
 			{
-				player->mo->momz = JUMPGRAVITY / 2;
+				player->mo->momz = P_EXGSGetFixed(PEXGSBID_PLJUMPGRAVITY) / 2;
 				if (gametic > player->flushdelay + TICRATE)
 				{
 					S_StartSound(&player->mo->NoiseThinker, sfx_floush);
@@ -426,7 +426,7 @@ void P_MovePlayer(player_t* player)
 				// can't jump while in air, can't jump while jumping
 				if (onground && !(player->jumpdown & 1))
 				{
-					player->mo->momz = JUMPGRAVITY;
+					player->mo->momz = P_EXGSGetFixed(PEXGSBID_PLJUMPGRAVITY);
 					if (!(player->cheats & CF_FLYAROUND))
 					{
 						S_StartSound(&player->mo->NoiseThinker, sfx_jump);

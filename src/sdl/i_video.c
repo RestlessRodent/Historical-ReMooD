@@ -972,7 +972,7 @@ void VID_PrepareModeList(void)
 	SDL_PixelFormat pf;
 	SDL_Rect** Modes;
 	size_t i;
-	bool_t AddedBase[4];
+	bool_t AddedBase[6];
 	
 	/* Get List of modes */
 	// Fill in pixel format
@@ -993,6 +993,8 @@ void VID_PrepareModeList(void)
 		VID_AddMode(320, 240, true);
 		VID_AddMode(640, 400, true);
 		VID_AddMode(640, 480, true);
+		VID_AddMode(800, 600, true);
+		VID_AddMode(1024, 768, true);
 		return;
 	}
 	
@@ -1031,6 +1033,13 @@ void VID_PrepareModeList(void)
 		// Is this 640x480?
 		else if (Modes[i]->w == 640 && Modes[i]->h == 480)
 			AddedBase[3] = true;
+			
+		// Is this 800x600?
+		else if (Modes[i]->w == 800 && Modes[i]->h == 600)
+			AddedBase[4] = true;
+		// Is this 1024x768?
+		else if (Modes[i]->w == 1024 && Modes[i]->h == 768)
+			AddedBase[5] = true;
 	}
 	
 	// Were the base reses never added?
@@ -1042,6 +1051,10 @@ void VID_PrepareModeList(void)
 		VID_AddMode(640, 400, true);
 	if (!AddedBase[3])
 		VID_AddMode(640, 480, true);
+	if (!AddedBase[4])
+		VID_AddMode(800, 600, true);
+	if (!AddedBase[5])
+		VID_AddMode(1024, 768, true);
 }
 
 /* I_SetVideoMode() -- Sets the current video mode */

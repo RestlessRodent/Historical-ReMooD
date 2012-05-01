@@ -411,7 +411,7 @@ bool_t P_TouchSpecialThing(mobj_t* special, mobj_t* toucher)
 	fixed_t delta;
 	int sound;
 	P_RMODTouchSpecial_t* Current;
-	bool_t OKStat, NewWear;
+	bool_t OKStat, NewWear, PickedUp;
 	int32_t Target, Max, Amount;
 	
 	delta = special->z - toucher->z;
@@ -435,7 +435,7 @@ bool_t P_TouchSpecialThing(mobj_t* special, mobj_t* toucher)
 	has_ammo_dropped = special->dropped_ammo_count;
 	
 	/* Find sprite by ID and match to touch special list */
-	OKStat = false;
+	OKStat = PickedUp = false;
 	for (i = 0; i < g_RMODNumTouchSpecials; i++)
 	{
 		// Get current
@@ -445,35 +445,78 @@ bool_t P_TouchSpecialThing(mobj_t* special, mobj_t* toucher)
 		if (Current->ActSpriteID != special->state->SpriteID)
 			continue;
 		
-		// Player is grabbing
+		// Check if monster is grabbing and cannot pick this thing up
+		if (!player)
+			// Monster cannot pickup thing
+			if (!Current->MonsterCanGrab)
+				return false;
+		
+		// Weapon
 		if (player)
 		{
 			// Give gun?
 			if (Current->ActGiveWeapon != NUMWEAPONS)
-				OKStat |= P_GiveWeapon(player, Current->ActGiveWeapon, special->flags & MF_DROPPED);
-			
-			// Counts as an item?
-			if (special->flags & MF_COUNTITEM)
 			{
-				player->itemcount++;
-				player->bonuscount += BONUSADD;
+				OKStat |= P_GiveWeapon(player, Current->ActGiveWeapon, special->flags & MF_DROPPED);
+				if (OKStat)
+					PickedUp = true;
 			}
 			
-			//added:16-01-98:consoleplayer -> displayplayer (hear sounds from viewpoint)
-			for (i = 0; i < g_SplitScreen + 1; i++)
-				if (player == &players[displayplayer[i]])
-					S_StartSound(NULL, sound);
-		}
+			// Give Ammo?
+			if (Current->ActGiveAmmo != NUMAMMO && Current->ActGiveAmmo != am_noammo)
+			{
+				Amount = ammoinfo[Current->ActGiveAmmo]->ClipAmmo * Current->AmmoMul;
+				
+				// Dropped ammo?
+				if (special->flags & MF_DROPPED)
+					Amount /= 2;
+				
+				// No ammo?
+				if (Amount <= 0)
+					Amount = 1;
+				
+				OKStat |= P_GiveAmmo(player, Current->ActGiveAmmo, Amount);
+				if (OKStat)
+					PickedUp = true;
+			}
+		}	
 		
-		// Monster is grabbing
-		else
+		// Health
+		if (Current->HealthAmount)
 		{
-			// Monster cannot pickup thing
-			if (!Current->MonsterCanGrab)
-				return false;
+			// Get target amount
+			Target = toucher->health + Current->HealthAmount;
+			NewWear = true;
 			
-			// Emit sound from monster
-			S_StartSound(toucher, sound);
+			// Determine caps?
+			if (Current->CapNormStat)
+				Max = player->MaxHealth[0];
+			else if (Current->CapMaxStat)
+				Max = player->MaxHealth[1];
+			else
+				Max = 9999999;
+			
+			// Limit Health?
+			if (Target >= Max)
+			{
+				NewWear = false;
+				Amount = Max;
+			}
+			else
+				Amount = Target;
+			
+			// Not Needed? Reverse of that
+			if (!(!NewWear && Current->KeepNotNeeded))
+			{
+				// Change Health
+				if (player)
+					player->health = Amount;
+				toucher->health = Amount;
+				OKStat = true;
+				
+				// Set as picked up
+				PickedUp = true;
+			}
 		}
 		
 		// Armor
@@ -500,36 +543,71 @@ bool_t P_TouchSpecialThing(mobj_t* special, mobj_t* toucher)
 			else
 				Amount = Target;
 			
-			// Not Needed?
-			if (!NewWear && Current->KeepNotNeeded)
-				return false;
-			
-			// Change Armor
-			player->armorpoints = Amount;
-			OKStat = true;
-			
-			// Change armor class?
-			if (Current->ArmorClass)
+			// Not Needed? Reverse of that
+			if (!(!NewWear && Current->KeepNotNeeded))
 			{
-				// Get target armor class
-				Target = Current->ArmorClass;
+				// Change Armor
+				player->armorpoints = Amount;
+				OKStat = true;
+					
+				// Set as picked up
+				PickedUp = true;
+			
+				// Change armor class?
+				if (Current->ArmorClass)
+				{
+					// Get target armor class
+					Target = Current->ArmorClass;
 				
-				// Limited?
-				if (Current->GreaterArmorClass)
-					Max = player->armortype;
-				else
-					Max = 0;
+					// Limited?
+					if (Current->GreaterArmorClass)
+						Max = player->armortype;
+					else
+						Max = 0;
 				
-				// Actual?
-				if (Current->ArmorClass >= Max)
-					Amount = Current->ArmorClass;
-				else
-					Amount = player->armortype;
+					// Actual?
+					if (Current->ArmorClass >= Max)
+						Amount = Current->ArmorClass;
+					else
+						Amount = player->armortype;
 				
-				// Change armor
-				player->armortype = Amount;
+					// Change armor
+					player->armortype = Amount;
+				}
 			}
 		}
+		
+		// Not picked up?
+		if (!PickedUp)
+			return false;
+		
+		// Emit sounds and change colors
+			// For Player
+		if (player)
+		{
+			// Counts as an item?
+			if (special->flags & MF_COUNTITEM)
+			{
+				player->itemcount++;
+				player->bonuscount += BONUSADD;
+			}
+			
+			//added:16-01-98:consoleplayer -> displayplayer (hear sounds from viewpoint)
+			for (i = 0; i < g_SplitScreen + 1; i++)
+				if (player == &players[displayplayer[i]])
+					S_StartSound(NULL, sound);
+		}
+		
+			// For Monster
+		else
+		{
+			// Emit sound from monster
+			S_StartSound(toucher, sound);
+		}
+		
+		// The object picking this up happens to have died?
+		if (toucher->health <= 0)
+			P_KillMobj(toucher, special, special);
 		
 		// Remove if we used it? or remove regardless
 		if ((Current->KeepNotNeeded && OKStat) || !Current->KeepNotNeeded || Current->RemoveAlways)
@@ -546,56 +624,6 @@ bool_t P_TouchSpecialThing(mobj_t* special, mobj_t* toucher)
 	// Identify by sprite.
 	switch (special->sprite)
 	{
-			// armor
-		case SPR_ARM1:
-			if (!P_GiveArmor(player, green_armor_class))
-				return;
-			PS_PickupMessage(toucher, special, GOTARMOR);
-			break;
-			
-		case SPR_ARM2:
-			if (!P_GiveArmor(player, blue_armor_class))
-				return;
-			PS_PickupMessage(toucher, special, GOTMEGA);
-			break;
-			
-			// bonus items
-		case SPR_BON1:
-			player->health++;	// can go over 100%
-			if (player->health > 2 * MAXHEALTH)
-				player->health = 2 * MAXHEALTH;
-			player->mo->health = player->health;
-			if (cv_showmessages.value == 1)
-				PS_PickupMessage(toucher, special, GOTHTHBONUS);
-			break;
-			
-		case SPR_BON2:
-			player->armorpoints++;	// can go over 100%
-			if (player->armorpoints > max_armor)
-				player->armorpoints = max_armor;
-			if (!player->armortype)
-				player->armortype = 1;
-			PS_PickupMessage(toucher, special, GOTARMBONUS);
-			break;
-			
-		case SPR_SOUL:
-			player->health += soul_health;
-			if (player->health > maxsoul)
-				player->health = maxsoul;
-			player->mo->health = player->health;
-			PS_PickupMessage(toucher, special, GOTSUPER);
-			sound = sfx_getpow;
-			break;
-			
-		case SPR_MEGA:
-			if (gamemode != commercial)
-				return;
-			player->health = mega_health;
-			player->mo->health = player->health;
-			P_GiveArmor(player, 2);
-			PS_PickupMessage(toucher, special, GOTMSPHERE);
-			sound = sfx_getpow;
-			break;
 			// cards
 			// leave cards for everyone
 		case SPR_BKEY:
@@ -713,63 +741,6 @@ bool_t P_TouchSpecialThing(mobj_t* special, mobj_t* toucher)
 			sound = sfx_getpow;
 			break;
 			
-			// ammo
-		case SPR_CLIP:
-			if (special->flags & MF_DROPPED)
-			{
-				if (!P_GiveAmmo(player, am_clip, ammoinfo[am_clip].ClipAmmo / 2))
-					return;
-			}
-			else
-			{
-				if (!P_GiveAmmo(player, am_clip, ammoinfo[am_clip].ClipAmmo))
-					return;
-			}
-			PS_PickupMessage(toucher, special, GOTCLIP);
-			break;
-			
-		case SPR_AMMO:
-			if (!P_GiveAmmo(player, am_clip, 5 * ammoinfo[am_clip].ClipAmmo))
-				return;
-			PS_PickupMessage(toucher, special, GOTCLIPBOX);
-			break;
-			
-		case SPR_ROCK:
-			if (!P_GiveAmmo(player, am_misl, ammoinfo[am_misl].ClipAmmo))
-				return;
-			PS_PickupMessage(toucher, special, GOTROCKET);
-			break;
-			
-		case SPR_BROK:
-			if (!P_GiveAmmo(player, am_misl, 5 * ammoinfo[am_misl].ClipAmmo))
-				return;
-			PS_PickupMessage(toucher, special, GOTROCKBOX);
-			break;
-			
-		case SPR_CELL:
-			if (!P_GiveAmmo(player, am_cell, ammoinfo[am_cell].ClipAmmo))
-				return;
-			PS_PickupMessage(toucher, special, GOTCELL);
-			break;
-			
-		case SPR_CELP:
-			if (!P_GiveAmmo(player, am_cell, 5 * ammoinfo[am_cell].ClipAmmo))
-				return;
-			PS_PickupMessage(toucher, special, GOTCELLBOX);
-			break;
-			
-		case SPR_SHEL:
-			if (!P_GiveAmmo(player, am_shell, ammoinfo[am_shell].ClipAmmo))
-				return;
-			PS_PickupMessage(toucher, special, GOTSHELLS);
-			break;
-			
-		case SPR_SBOX:
-			if (!P_GiveAmmo(player, am_shell, 5 * ammoinfo[am_shell].ClipAmmo))
-				return;
-			PS_PickupMessage(toucher, special, GOTSHELLBOX);
-			break;
-			
 		case SPR_BPAK:
 			if (!player->backpack)
 			{
@@ -781,56 +752,8 @@ bool_t P_TouchSpecialThing(mobj_t* special, mobj_t* toucher)
 				P_GiveAmmo(player, i, ammoinfo[i].ClipAmmo);
 			PS_PickupMessage(toucher, special, GOTBACKPACK);
 			break;
+
 			
-			// weapons
-		case SPR_BFUG:
-			if (!P_GiveWeapon(player, wp_bfg, special->flags & MF_DROPPED))
-				return;
-			PS_PickupMessage(toucher, special, GOTBFG9000);
-			sound = sfx_wpnup;
-			break;
-			
-		case SPR_MGUN:
-			if (!P_GiveWeapon(player, wp_chaingun, special->flags & MF_DROPPED))
-				return;
-			PS_PickupMessage(toucher, special, GOTCHAINGUN);
-			sound = sfx_wpnup;
-			break;
-			
-		case SPR_CSAW:
-			if (!P_GiveWeapon(player, wp_chainsaw, false))
-				return;
-			PS_PickupMessage(toucher, special, GOTCHAINSAW);
-			sound = sfx_wpnup;
-			break;
-			
-		case SPR_LAUN:
-			if (!P_GiveWeapon(player, wp_missile, special->flags & MF_DROPPED))
-				return;
-			PS_PickupMessage(toucher, special, GOTLAUNCHER);
-			sound = sfx_wpnup;
-			break;
-			
-		case SPR_PLAS:
-			if (!P_GiveWeapon(player, wp_plasma, special->flags & MF_DROPPED))
-				return;
-			PS_PickupMessage(toucher, special, GOTPLASMA);
-			sound = sfx_wpnup;
-			break;
-			
-		case SPR_SHOT:
-			if (!P_GiveWeapon(player, wp_shotgun, special->flags & MF_DROPPED))
-				return;
-			PS_PickupMessage(toucher, special, GOTSHOTGUN);
-			sound = sfx_wpnup;
-			break;
-			
-		case SPR_SGN2:
-			if (!P_GiveWeapon(player, wp_supershotgun, special->flags & MF_DROPPED))
-				return;
-			PS_PickupMessage(toucher, special, GOTSHOTGUN2);
-			sound = sfx_wpnup;
-			break;
 			
 		default:
 			// SoM: New gettable things with FraggleScript!

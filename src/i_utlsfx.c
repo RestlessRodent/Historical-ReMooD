@@ -946,6 +946,7 @@ bool_t I_AddMusicDriver(I_MusicDriver_t* const a_Driver)
 			l_MusicDrivers[i] = a_Driver;
 			break;
 		}
+	
 	// did not find one
 	if (i == l_NumMusicDrivers)
 	{

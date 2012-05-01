@@ -50,6 +50,7 @@ typedef enum Z_MemoryTag_e
 	
 	/* Static */
 	PU_STATIC = 1,				// Never freed
+	PU_WLDKRMOD,				// WAD Level and RMOD
 	PU_SOUND,
 	PU_MUSIC,
 	PU_DAVE,

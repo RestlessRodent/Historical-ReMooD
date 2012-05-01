@@ -207,6 +207,7 @@ typedef enum P_EXGSBitID_e
 	PEXGSBID_PLSPAWNCLUSTERING,					// Cluster spawn spots
 	PEXGSBID_COIMPROVEDMOBJONMOBJ,				// Improved Mobj on Mobj
 	PEXGSBID_COIMPROVEPATHTRAVERSE,				// Smooth out path traversing
+	PEXGSBID_PLJUMPGRAVITY,						// Player Jump Gravity
 	
 	PEXGSNUMBITIDS
 } P_EXGSBitID_t;
@@ -243,6 +244,7 @@ P_EXGSVariable_t* P_EXGSVarForName(const char* const a_Name);
 
 // Value Getter
 int32_t P_EXGSGetValue(const P_EXGSBitID_t a_Bit);
+fixed_t P_EXGSGetFixed(const P_EXGSBitID_t a_Bit);
 
 // General Functions
 bool_t P_EXGSRegisterStuff(void);

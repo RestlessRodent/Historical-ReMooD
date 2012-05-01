@@ -75,9 +75,6 @@ extern consvar_t cv_viewheight;	// p_mobj.c
 //      above this, a heigth difference is considered as a 'dropoff'
 #define MAXSTEPMOVE     (24*FRACUNIT)
 
-//added:22-02-98: initial momz when player jumps (moves up)
-#define JUMPGRAVITY     (6*FRACUNIT)
-
 #define USERANGE        (64*FRACUNIT)
 #define MELEERANGE      (64*FRACUNIT)
 #define MISSILERANGE    (32*64*FRACUNIT)
@@ -390,6 +387,9 @@ typedef struct P_RMODTouchSpecial_s
 	bool_t CapNormStat;							// Cap normal stat
 	bool_t CapMaxStat;							// Cap max stat
 	bool_t GreaterArmorClass;					// Better Armor Class
+	
+	/* Weapons and Ammo */
+	int32_t AmmoMul;							// Ammo multiplier
 } P_RMODTouchSpecial_t;
 
 /*** GLOBALS ***/

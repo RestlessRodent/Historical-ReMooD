@@ -242,7 +242,7 @@ static bool_t RS_TexturePDCreate(const struct WL_WADFile_s* const a_WAD, const u
 	
 	/* Create Data Holder */
 	*a_SizePtr = sizeof(R_TextureHolder_t);
-	Holder = *a_DataPtr = Z_Malloc(*a_SizePtr, PU_STATIC, NULL);
+	Holder = *a_DataPtr = Z_Malloc(*a_SizePtr, PU_WLDKRMOD, NULL);
 	
 	/* Map PNAMES to actual names */
 	// Normally when textures are loaded, the texture information references
@@ -270,8 +270,8 @@ static bool_t RS_TexturePDCreate(const struct WL_WADFile_s* const a_WAD, const u
 			Holder->NumPatches = WL_StreamReadLittleUInt32(Stream);
 			
 			// Allocate array name of patches
-			Holder->RealPatchBuf = Z_Malloc(sizeof(char) * 9 * Holder->NumPatches, PU_STATIC, NULL);
-			Holder->Patches = Z_Malloc(sizeof(*Holder->Patches) * Holder->NumPatches, PU_STATIC, NULL);
+			Holder->RealPatchBuf = Z_Malloc(sizeof(char) * 9 * Holder->NumPatches, PU_WLDKRMOD, NULL);
+			Holder->Patches = Z_Malloc(sizeof(*Holder->Patches) * Holder->NumPatches, PU_WLDKRMOD, NULL);
 			
 			// Read in patch names
 			for (i = 0; i < Holder->NumPatches; i++)
@@ -319,7 +319,7 @@ static bool_t RS_TexturePDCreate(const struct WL_WADFile_s* const a_WAD, const u
 		ThisCount = WL_StreamReadLittleUInt32(Stream);
 		
 		// Allocate offset table
-		Holder->TextureOffsets = Z_Malloc(sizeof(*Holder->TextureOffsets) * ThisCount, PU_STATIC, NULL);
+		Holder->TextureOffsets = Z_Malloc(sizeof(*Holder->TextureOffsets) * ThisCount, PU_WLDKRMOD, NULL);
 		
 		// Re-allocate texture table
 		Z_ResizeArray((void**)&Holder->Textures, sizeof(*Holder->Textures), Holder->NumTextures, Holder->NumTextures + ThisCount);
@@ -386,7 +386,7 @@ static bool_t RS_TexturePDCreate(const struct WL_WADFile_s* const a_WAD, const u
 			
 			// Allocate patch data
 			if (Holder->Textures[z].patchcount)
-				Holder->Textures[z].patches = Z_Malloc(sizeof(*Holder->Textures[z].patches) * Holder->Textures[z].patchcount, PU_STATIC, NULL);
+				Holder->Textures[z].patches = Z_Malloc(sizeof(*Holder->Textures[z].patches) * Holder->Textures[z].patchcount, PU_WLDKRMOD, NULL);
 			
 			// Read in patches
 			for (p = 0; p < Holder->Textures[z].patchcount; p++)
@@ -505,7 +505,7 @@ static bool_t RS_TexturePDCreate(const struct WL_WADFile_s* const a_WAD, const u
 	{
 		// Create sprite info array
 		Holder->NumSpriteInfo = MEnd->Index - MStart->Index;
-		Holder->SpriteInfo = Z_Malloc(sizeof(*Holder->SpriteInfo) * Holder->NumSpriteInfo, PU_STATIC, (void**)&Holder->SpriteInfo);
+		Holder->SpriteInfo = Z_Malloc(sizeof(*Holder->SpriteInfo) * Holder->NumSpriteInfo, PU_WLDKRMOD, (void**)&Holder->SpriteInfo);
 		
 		// Read in sprites by lumps
 		for (i = 0, Entry = MStart; Entry && Entry != MEnd; Entry = Entry->NextEntry)
@@ -797,7 +797,7 @@ static bool_t RS_TextureOrderChange(const bool_t a_Pushed, const struct WL_WADFi
 	// Sort by wall textures and floor textures (walls first, then floors)
 	PutWall = 0;
 	PutFloor = numtextures - 1;
-	TempArray = Z_Malloc(sizeof(*TempArray) * numtextures, PU_STATIC, NULL);
+	TempArray = Z_Malloc(sizeof(*TempArray) * numtextures, PU_WLDKRMOD, NULL);
 	
 	for (i = 0; i < numtextures; i++)
 		if (textures[i]->IsFlat)
@@ -936,7 +936,7 @@ static bool_t RS_TextureOrderChange(const bool_t a_Pushed, const struct WL_WADFi
 				
 				// Create frame stuff
 				ThisDef->numframes = MAXEXSPRITEFRAMES;
-				ThisDef->spriteframes = Z_Malloc(sizeof(*ThisDef->spriteframes) * ThisDef->numframes, PU_STATIC, NULL);
+				ThisDef->spriteframes = Z_Malloc(sizeof(*ThisDef->spriteframes) * ThisDef->numframes, PU_WLDKRMOD, NULL);
 			}
 			
 			// Go through each single or double set
@@ -986,7 +986,7 @@ static bool_t RS_TextureOrderChange(const bool_t a_Pushed, const struct WL_WADFi
 	sprites = NULL;
 	
 	numsprites = NUMSPRITES;
-	sprites = Z_Malloc(sizeof(*sprites) * numsprites, PU_STATIC, (void**)&sprites);
+	sprites = Z_Malloc(sizeof(*sprites) * numsprites, PU_WLDKRMOD, (void**)&sprites);
 	
 	for (i = 0; i < numsprites; i++)
 	{
@@ -1158,7 +1158,7 @@ uint8_t* R_GetFlat(int flatlumpnum)
 		CONL_PrintF("R_GetFlat: Generating \"%s\".\n", Texture->name);
 	
 	/* Create cache */
-	Texture->FlatCache = Z_Malloc(w * h, PU_STATIC, (void**)&Texture->FlatCache);
+	Texture->FlatCache = Z_Malloc(w * h, PU_WLDKRMOD, (void**)&Texture->FlatCache);
 	
 	/* If texture is a flat, return patch_t of it */
 	if (Texture->IsFlat)
@@ -1243,7 +1243,7 @@ uint8_t* R_GenerateTexture(int texnum)
 	Texture->CacheSize = 0;
 	
 	/* Allocate buffer based on size */
-	Buffer = Z_Malloc(sizeof(*Buffer) * (w * h), PU_STATIC, NULL);
+	Buffer = Z_Malloc(sizeof(*Buffer) * (w * h), PU_WLDKRMOD, NULL);
 	
 	/* Drawing a flat? */
 	if (Texture->IsFlat)
@@ -1280,7 +1280,7 @@ uint8_t* R_GenerateTexture(int texnum)
 	}
 	
 	/* Create column data based on picture */
-	Texture->ColumnOffs = Z_Malloc(sizeof(*Texture->ColumnOffs) * w, PU_STATIC, NULL);
+	Texture->ColumnOffs = Z_Malloc(sizeof(*Texture->ColumnOffs) * w, PU_WLDKRMOD, NULL);
 	Texture->Cache = Z_Malloc((w * h) + (6 * w), PU_CACHE, NULL);
 	
 	// Copy in data
@@ -1507,7 +1507,7 @@ static bool_t RS_ColormapOCCB(const bool_t a_Pushed, const struct WL_WADFile_s* 
 			Z_Free(colormaps);
 		
 		// Allocate new space
-		colormaps = Z_Malloc(Entry->Size, PU_STATIC, NULL);
+		colormaps = Z_Malloc(Entry->Size, PU_WLDKRMOD, NULL);
 		WL_ReadData(Entry, 0, colormaps, Entry->Size);
 	}
 	
@@ -1898,7 +1898,7 @@ void R_PrecacheLevel(void)
 	//
 	// no need to precache all software textures in 3D mode
 	// (note they are still used with the reference software view)
-	texturepresent = Z_Malloc(numflats, PU_STATIC, NULL);
+	texturepresent = Z_Malloc(numflats, PU_WLDKRMOD, NULL);
 	memset(texturepresent, 0, numtextures);
 	
 	for (i = 0; i < numsides; i++)
@@ -1949,7 +1949,7 @@ void R_PrecacheLevel(void)
 	//
 	// Precache sprites.
 	//
-	spritepresent = Z_Malloc(numsprites, PU_STATIC, NULL);
+	spritepresent = Z_Malloc(numsprites, PU_WLDKRMOD, NULL);
 	memset(spritepresent, 0, numsprites);
 	
 	for (th = thinkercap.next; th != &thinkercap; th = th->next)

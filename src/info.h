@@ -202,6 +202,8 @@ typedef struct
 	
 	// Extra Stuff
 	fixed_t RBounceFactor;						// Bounce Multiplier
+	fixed_t RAirGravity;						// Gravity while in air
+	fixed_t RWaterGravity;						// Gravity while in water
 } mobjinfo_t;
 
 extern mobjinfo_t** mobjinfo;

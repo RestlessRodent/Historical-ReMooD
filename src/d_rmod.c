@@ -375,7 +375,7 @@ static bool_t DS_RMODPDC(const struct WL_WADFile_s* const a_WAD, const uint32_t 
 	
 	/* Create stuff to store in WAD */
 	*a_SizePtr = sizeof(D_RMODWADStuff_t);
-	*a_DataPtr = Stuff = Z_Malloc(*a_SizePtr, PU_STATIC, NULL);
+	*a_DataPtr = Stuff = Z_Malloc(*a_SizePtr, PU_WLDKRMOD, NULL);
 	
 	// Initial Stuff
 	Stuff->WAD = a_WAD;
@@ -757,8 +757,8 @@ char* D_RMODGetValueString(Z_Table_t* const a_Table, const char* const a_Value, 
 		return a_MissingVal;
 	
 	if (!(Value = Z_TableGetValue(a_Table, a_Value)))
-		return (a_MissingVal ? Z_StrDup(a_MissingVal, PU_STATIC, NULL) : NULL);
+		return (a_MissingVal ? Z_StrDup(a_MissingVal, PU_WLDKRMOD, NULL) : NULL);
 	else
-		return Z_StrDup(Value, PU_STATIC, NULL);
+		return Z_StrDup(Value, PU_WLDKRMOD, NULL);
 }
 

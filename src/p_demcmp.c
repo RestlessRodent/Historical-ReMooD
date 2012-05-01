@@ -449,6 +449,10 @@ static P_EXGSVariable_t l_GSVars[PEXGSNUMBITIDS] =
 	{PEXGST_INTEGER, PEXGSBID_COIMPROVEPATHTRAVERSE, "co_improvepathtraverse", "Improve Traversing Move",
 		"Smooth out position moving. [ReMooD >= 1.0a]", PEXGSGM_ANY, PEXGSDR_ATLEAST, 200, {0, 1}, 1,
 		PEXGSMC_COMPAT},
+	
+	{PEXGST_FLOAT, PEXGSBID_PLJUMPGRAVITY, "pl_jumpgravity", "Jump Gravity",
+		"This is the amount of pushing force used when jumping.", PEXGSGM_ANY, PEXGSDR_NOCHECK, 0, {0, (6 * FRACUNIT)}, (6 * FRACUNIT),
+		PEXGSMC_PLAYERS},
 };
 
 /*** FUNCTIONS ***/
@@ -513,6 +517,12 @@ int32_t P_EXGSGetValue(const P_EXGSBitID_t a_Bit)
 	// Otherwise return to what it was set to
 	else
 		return Var->ActualVal;
+}
+
+/* P_EXGSGetFixed() -- Gets fixed_t value */
+fixed_t P_EXGSGetFixed(const P_EXGSBitID_t a_Bit)
+{
+	return P_EXGSGetValue(a_Bit);
 }
 
 /* PS_EXGSGeneralComm() -- General command for game settings */

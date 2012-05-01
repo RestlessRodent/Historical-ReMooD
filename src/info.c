@@ -355,7 +355,7 @@ bool_t INFO_RMODH_MapObjects(Z_Table_t* const a_Table, const WL_WADFile_t* const
 	if (!a_Private->Data)
 	{
 		a_Private->Size = sizeof(*LocalStuff);
-		a_Private->Data = Z_Malloc(a_Private->Size, PU_STATIC, (void**)&a_Private->Data);
+		a_Private->Data = Z_Malloc(a_Private->Size, PU_WLDKRMOD, (void**)&a_Private->Data);
 	}
 	
 	// Get the local stuff
@@ -376,7 +376,7 @@ bool_t INFO_RMODH_MapObjects(Z_Table_t* const a_Table, const WL_WADFile_t* const
 	
 	/* Parse Objects */
 	// Class Name
-	ThisObject.RClassName = Z_StrDup(Value, PU_STATIC, NULL);
+	ThisObject.RClassName = Z_StrDup(Value, PU_WLDKRMOD, NULL);
 	
 	fprintf(stderr, "**** Added %s\n", Value);
 	
@@ -404,6 +404,9 @@ bool_t INFO_RMODH_MapObjects(Z_Table_t* const a_Table, const WL_WADFile_t* const
 	ThisObject.height = D_RMODGetValueFixed(a_Table, "Height", 0);
 	ThisObject.painchance = FixedMul(D_RMODGetValueFixed(a_Table, "PainChance", 0), (255 << FRACBITS)) >> FRACBITS;
 	ThisObject.RBounceFactor = D_RMODGetValueFixed(a_Table, "BounceFactor", (1 << FRACBITS));
+	
+	ThisObject.RAirGravity = D_RMODGetValueFixed(a_Table, "AirGravity", (1 << FRACBITS));
+	ThisObject.RWaterGravity = D_RMODGetValueFixed(a_Table, "WaterGravity", (1 << FRACBITS));
 	
 	// Sounds
 	ThisObject.RSeeSound = D_RMODGetValueString(a_Table, "WakeSound", NULL);;
@@ -464,7 +467,7 @@ bool_t INFO_RMODH_MapObjects(Z_Table_t* const a_Table, const WL_WADFile_t* const
 	
 	/* Add to end */
 	Z_ResizeArray((void**)&LocalStuff->Objects, sizeof(*LocalStuff->Objects), LocalStuff->NumObjects, LocalStuff->NumObjects + 1);
-	LocalStuff->Objects[LocalStuff->NumObjects] = Z_Malloc(sizeof(*LocalStuff->Objects[LocalStuff->NumObjects]), PU_STATIC, NULL);
+	LocalStuff->Objects[LocalStuff->NumObjects] = Z_Malloc(sizeof(*LocalStuff->Objects[LocalStuff->NumObjects]), PU_WLDKRMOD, NULL);
 	memmove(LocalStuff->Objects[LocalStuff->NumObjects], &ThisObject, sizeof(ThisObject));
 	LocalStuff->NumObjects++;
 
@@ -722,7 +725,7 @@ static bool_t INFO_RMODInnerStateHandler(Z_Table_t* const a_Sub, void* const a_D
 	{
 		// Resize and place at end
 		Z_ResizeArray((void**)&(*HelperP->StatesRef), sizeof(*(*HelperP->StatesRef)), (*HelperP->NumStatesRef), (*HelperP->NumStatesRef) + 1);
-		StateP = (*HelperP->StatesRef)[(*HelperP->NumStatesRef)++] = Z_Malloc(sizeof(*StateP), PU_STATIC, NULL);
+		StateP = (*HelperP->StatesRef)[(*HelperP->NumStatesRef)++] = Z_Malloc(sizeof(*StateP), PU_WLDKRMOD, NULL);
 	}
 	
 	/* Fill state with info */
@@ -903,7 +906,7 @@ spritenum_t INFO_SpriteNumByName(const char* const a_Name, bool_t a_Create)
 	{
 		i = NUMSPRITES++;
 		Z_ResizeArray((void**)&sprnames, sizeof(*sprnames), i, NUMSPRITES);
-		sprnames[i] = Z_StrDup(a_Name, PU_STATIC, NULL);
+		sprnames[i] = Z_StrDup(a_Name, PU_WLDKRMOD, NULL);
 		
 		// Return the freshly added one
 		return i;

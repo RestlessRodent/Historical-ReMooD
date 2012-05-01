@@ -2538,7 +2538,7 @@ bool_t P_RMODH_Specials(Z_Table_t* const a_Table, const WL_WADFile_t* const a_WA
 	if (!RealPrivate->Data)
 	{
 		RealPrivate->Size = sizeof(P_RMODSpecials_t);
-		RealPrivate->Data = Z_Malloc(RealPrivate->Size, PU_STATIC, (void**)&RealPrivate->Data);
+		RealPrivate->Data = Z_Malloc(RealPrivate->Size, PU_WLDKRMOD, (void**)&RealPrivate->Data);
 	}
 	
 	/* Set data area */
@@ -2593,6 +2593,7 @@ bool_t P_RMODH_Specials(Z_Table_t* const a_Table, const WL_WADFile_t* const a_WA
 			TempTouch.ArmorClass = D_RMODGetValueInt(a_Table, "ArmorClass", 0);
 			TempTouch.ArmorAmount = D_RMODGetValueInt(a_Table, "ArmorAmount", 0);
 			TempTouch.HealthAmount = D_RMODGetValueInt(a_Table, "HealthAmount", 0);
+			TempTouch.AmmoMul = D_RMODGetValueInt(a_Table, "AmmoMul", 1);
 			
 			// Get bool fields
 			TempTouch.KeepNotNeeded = D_RMODGetBool(__QUICK_ORELSE("IsKeepIfNotNeeded", "false"));
@@ -2702,6 +2703,7 @@ bool_t P_RMODO_Specials(const bool_t a_Pushed, const struct WL_WADFile_s* const 
 			
 			// Reference each thing
 			TargTouch->ActGiveWeapon = INFO_GetWeaponByName(TargTouch->GiveWeapon);
+			TargTouch->ActGiveAmmo = INFO_GetAmmoByName(TargTouch->GiveAmmo);
 			
 			// Find sprite to map to
 			for (j = 0; j < 4 && TargTouch->SpriteName[j]; j++)

@@ -1257,7 +1257,7 @@ bool_t P_RMODH_WeaponsAmmo(Z_Table_t* const a_Table, const WL_WADFile_t* const a
 	if (!RealPrivate->Data)
 	{
 		RealPrivate->Size = sizeof(*LocalStuff);
-		RealPrivate->Data = Z_Malloc(RealPrivate->Size, PU_STATIC, (void**)&RealPrivate->Data);
+		RealPrivate->Data = Z_Malloc(RealPrivate->Size, PU_WLDKRMOD, (void**)&RealPrivate->Data);
 	}
 	
 	// Get the local stuff
@@ -1280,7 +1280,7 @@ bool_t P_RMODH_WeaponsAmmo(Z_Table_t* const a_Table, const WL_WADFile_t* const a
 	if (a_ID == DRMODP_ITEMAMMO)
 	{
 		// Copy Class
-		TempAmmo.ClassName = Z_StrDup(Value, PU_STATIC, NULL);
+		TempAmmo.ClassName = Z_StrDup(Value, PU_WLDKRMOD, NULL);
 		
 		// Get Values
 		TempAmmo.ClipAmmo = D_RMODGetValueInt(a_Table, "ClipAmmo", 0);
@@ -1289,7 +1289,7 @@ bool_t P_RMODH_WeaponsAmmo(Z_Table_t* const a_Table, const WL_WADFile_t* const a
 		
 		// Add to end
 		Z_ResizeArray((void**)&LocalStuff->Ammo, sizeof(*LocalStuff->Ammo), LocalStuff->NumAmmo, LocalStuff->NumAmmo + 1);
-		LocalStuff->Ammo[LocalStuff->NumAmmo] = Z_Malloc(sizeof(*LocalStuff->Ammo[LocalStuff->NumAmmo]), PU_STATIC, NULL);
+		LocalStuff->Ammo[LocalStuff->NumAmmo] = Z_Malloc(sizeof(*LocalStuff->Ammo[LocalStuff->NumAmmo]), PU_WLDKRMOD, NULL);
 		memmove(LocalStuff->Ammo[LocalStuff->NumAmmo], &TempAmmo, sizeof(TempAmmo));
 		LocalStuff->NumAmmo++;
 		return true;
@@ -1299,7 +1299,7 @@ bool_t P_RMODH_WeaponsAmmo(Z_Table_t* const a_Table, const WL_WADFile_t* const a
 	else if (a_ID == DRMODP_ITEMWEAPON)
 	{
 		// Copy Class
-		TempWeapon.ClassName = Z_StrDup(Value, PU_STATIC, NULL);
+		TempWeapon.ClassName = Z_StrDup(Value, PU_WLDKRMOD, NULL);
 		
 		// Get Values
 		TempWeapon.ammopershoot = D_RMODGetValueInt(a_Table, "AmmoPerShot", 0);
@@ -1372,7 +1372,7 @@ bool_t P_RMODH_WeaponsAmmo(Z_Table_t* const a_Table, const WL_WADFile_t* const a
 		
 		// Add to end
 		Z_ResizeArray((void**)&LocalStuff->Weapons, sizeof(*LocalStuff->Weapons), LocalStuff->NumWeapons, LocalStuff->NumWeapons + 1);
-		LocalStuff->Weapons[LocalStuff->NumWeapons] = Z_Malloc(sizeof(*LocalStuff->Weapons[LocalStuff->NumWeapons]), PU_STATIC, NULL);
+		LocalStuff->Weapons[LocalStuff->NumWeapons] = Z_Malloc(sizeof(*LocalStuff->Weapons[LocalStuff->NumWeapons]), PU_WLDKRMOD, NULL);
 		memmove(LocalStuff->Weapons[LocalStuff->NumWeapons], &TempWeapon, sizeof(TempWeapon));
 		LocalStuff->NumWeapons++;
 		return true;

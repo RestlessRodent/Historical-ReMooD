@@ -18274,6 +18274,119 @@ MapWeapon "BetaBFG"
 // *** TOUCH SPECIALS ***
 // **********************
 
+// CLIP -- Clip
+MapTouchSpecial "CLIP"
+{
+	Message "DEP_GOTCLIP";
+	GiveAmmo "Clip";
+	IsKeepIfNotNeeded "true";
+}
+
+// ROCK -- Rocket
+MapTouchSpecial "ROCK"
+{
+	Message "DEP_GOTROCKET";
+	GiveAmmo "Rocket";
+	IsKeepIfNotNeeded "true";
+}
+
+// CELL -- Cells
+MapTouchSpecial "CELL"
+{
+	Message "DEP_GOTCELL";
+	GiveAmmo "Cell";
+	IsKeepIfNotNeeded "true";
+}
+
+// SHEL -- Shells
+MapTouchSpecial "SHEL"
+{
+	Message "DEP_GOTSHELLS";
+	GiveAmmo "Shell";
+	IsKeepIfNotNeeded "true";
+}
+
+// AMMO -- Box of Bullets
+MapTouchSpecial "AMMO"
+{
+	Message "DEP_GOTCLIPBOX";
+	GiveAmmo "Clip";
+	IsKeepIfNotNeeded "true";
+	AmmoMul "5";
+}
+
+// BROK -- Box of Rockets
+MapTouchSpecial "BROK"
+{
+	Message "DEP_GOTROCKBOX";
+	GiveAmmo "Rocket";
+	IsKeepIfNotNeeded "true";
+	AmmoMul "5";
+}
+
+// CELP -- Box of Cells
+MapTouchSpecial "CELP"
+{
+	Message "DEP_GOTCELLBOX";
+	GiveAmmo "Cell";
+	IsKeepIfNotNeeded "true";
+	AmmoMul "5";
+}
+
+// SBOX -- Box of Shells
+MapTouchSpecial "SBOX"
+{
+	Message "DEP_GOTSHELLBOX";
+	GiveAmmo "Shell";
+	IsKeepIfNotNeeded "true";
+	AmmoMul "5";
+}
+
+// BFUG -- BFG9000
+MapTouchSpecial "BFUG"
+{
+	Message "DEP_GOTCHAINGUN";
+	GiveWeapon "BFGNineK";
+	PickupSound "wpnup";
+	IsKeepIfNotNeeded "true";
+}
+
+// MGUN -- Chaingun
+MapTouchSpecial "MGUN"
+{
+	Message "DEP_GOTCHAINGUN";
+	GiveWeapon "Chaingun";
+	PickupSound "wpnup";
+	IsKeepIfNotNeeded "true";
+}
+
+// CSAW -- Chainsaw
+MapTouchSpecial "CSAW"
+{
+	Message "DEP_GOTCHAINSAW";
+	GiveWeapon "Chainsaw";
+	PickupSound "wpnup";
+	IsKeepIfNotNeeded "true";
+}
+
+// LAUN -- Rocket Launcher
+MapTouchSpecial "LAUN"
+{
+	Message "DEP_GOTLAUNCHER";
+	GiveWeapon "RocketLauncher";
+	PickupSound "wpnup";
+	IsKeepIfNotNeeded "true";
+}
+
+// PLAS -- Plasma Rifle
+MapTouchSpecial "PLAS"
+{
+	Message "DEP_GOTPLASMA";
+	GiveWeapon "PlasmaRifle";
+	PickupSound "wpnup";
+	IsKeepIfNotNeeded "true";
+}
+
 // SGN2 -- Super Shotgun
 MapTouchSpecial "SGN2"
 {
@@ -18354,6 +18467,8 @@ MapTouchSpecial "MEGA"
 	IsGreaterArmorClass "true";
 	Sound "getpow";
 }
+
+
 
 // ***********************
 // *** SECTOR SPECIALS ***
