@@ -1,18 +1,18 @@
 // -*- Mode: C; indent-tabs-mode: t; c-basic-offset: 4; tab-width: 4 -*-
 // -----------------------------------------------------------------------------
-//         :oCCCCOCoc.
-//     .cCO8OOOOOOOOO8Oo:
+//		 :oCCCCOCoc.
+//	 .cCO8OOOOOOOOO8Oo:
 //   .oOO8OOOOOOOOOOOOOOOCc
-//  cO8888:         .:oOOOOC.                                                TM
-// :888888:   :CCCc   .oOOOOC.     ###      ###                    #########
-// C888888:   .ooo:   .C########   #####  #####  ######    ######  ##########
-// O888888:         .oO###    ###  #####  ##### ########  ######## ####    ###
-// C888888:   :8O.   .C##########  ### #### ### ##    ##  ##    ## ####    ###
-// :8@@@@8:   :888c   o###         ### #### ### ########  ######## ##########
-//  :8@@@@C   C@@@@   oo########   ###  ##  ###  ######    ######  #########
-//    cO@@@@@@@@@@@@@@@@@Oc0
-//      :oO8@@@@@@@@@@Oo.
-//         .oCOOOOOCc.                                      http://remood.org/
+//  cO8888:		 .:oOOOOC.												TM
+// :888888:   :CCCc   .oOOOOC.	 ###	  ###					#########
+// C888888:   .ooo:   .C########   #####  #####  ######	######  ##########
+// O888888:		 .oO###	###  #####  ##### ########  ######## ####	###
+// C888888:   :8O.   .C##########  ### #### ### ##	##  ##	## ####	###
+// :8@@@@8:   :888c   o###		 ### #### ### ########  ######## ##########
+//  :8@@@@C   C@@@@   oo########   ###  ##  ###  ######	######  #########
+//	cO@@@@@@@@@@@@@@@@@Oc0
+//	  :oO8@@@@@@@@@@Oo.
+//		 .oCOOOOOCc.									  http://remood.org/
 // -----------------------------------------------------------------------------
 // Copyright (C) 2011-2012 GhostlyDeath <ghostlydeath@gmail.com>
 // -----------------------------------------------------------------------------
@@ -56,6 +56,8 @@
 #include "w_wad.h"
 #include "doomstat.h"
 #include "i_sound.h"
+#include "s_sound.h"
+#include "dbopl.h"
 
 /****************
 *** CONSTANTS ***
@@ -897,7 +899,7 @@ void I_MUS2MID_Update(struct I_MusicDriver_s* const a_Driver, const tic_t a_Tics
 	}
 }
 
-/* I_MusicDriver_t -- Driver for playing Music */
+// l_MUS2MIDDrive -- MUS2MID Driver
 static I_MusicDriver_t l_MUS2MIDDriver =
 {
 	/* Data */
@@ -920,6 +922,505 @@ static I_MusicDriver_t l_MUS2MIDDriver =
 	I_MUS2MID_Volume,
 	NULL,
 	I_MUS2MID_Update
+};
+
+/***************************
+*** OPL EMULATION, KINDA ***
+***************************/
+// Simulated OPL Emulation, of sorts
+// Portions Copyright(C) 2009 Simon Howard
+
+/*** CONSTANTS ***/
+
+typedef enum
+{
+	OPL_REGISTER_PORT = 0,
+	OPL_DATA_PORT = 1
+} opl_port_t;
+
+#define OPL_NUM_OPERATORS   21
+#define OPL_NUM_VOICES	  9
+
+#define OPL_REG_WAVEFORM_ENABLE   0x01
+#define OPL_REG_TIMER1			0x02
+#define OPL_REG_TIMER2			0x03
+#define OPL_REG_TIMER_CTRL		0x04
+#define OPL_REG_FM_MODE		   0x08
+
+// Operator registers (21 of each):
+
+#define OPL_REGS_TREMOLO		  0x20
+#define OPL_REGS_LEVEL			0x40
+#define OPL_REGS_ATTACK		   0x60
+#define OPL_REGS_SUSTAIN		  0x80
+#define OPL_REGS_WAVEFORM		 0xE0
+
+// Voice registers (9 of each):
+
+#define OPL_REGS_FREQ_1		   0xA0
+#define OPL_REGS_FREQ_2		   0xB0
+#define OPL_REGS_FEEDBACK		 0xC0
+
+/*** STRUCTURES ***/
+
+/* opl_timer_t -- Timer for OPL */
+typedef struct
+{
+	unsigned int rate;		// Number of times the timer is advanced per sec.
+	unsigned int enabled;	 // Non-zero if timer is enabled.
+	unsigned int value;	   // Last value that was set.
+	unsigned int expire_time; // Calculated time that timer will expire.
+} opl_timer_t;
+
+/* I_OPLEmData_t -- Emulated OPL Data */
+typedef struct I_OPLEmData_s
+{
+	struct _Chip OPLChip;						// OPL Chip
+	uint32_t Freq;								// Frequency
+	
+	int SamplesPerMS;							// Samples per millisecond
+	
+	bool_t init_stage_reg_writes;				// Intialization stage?
+	opl_timer_t timer1;							// First Timer
+	opl_timer_t timer2;							// Second Timer
+	int current_time;							// Current OPL Sample Time
+	int register_num;							// Register Number
+} I_OPLEmData_t;
+
+/*** STUFF FROM CHOCOLATE DOOM ***/
+
+/* ICD_OPL_Delay() -- Cause delay in OPL system */
+static void ICD_OPL_Delay(I_OPLEmData_t* const a_OPLData, int WaitTime)
+{
+	I_WaitVBL(WaitTime);
+	
+	/* Advance Time */
+	a_OPLData->current_time += a_OPLData->SamplesPerMS * WaitTime;
+}
+
+/* ICD_OPLTimer_CalculateEndTime() -- Calculates end time? */
+static void ICD_OPLTimer_CalculateEndTime(I_OPLEmData_t* const a_OPLData, opl_timer_t *timer)
+{
+	int tics;
+
+	// If the timer is enabled, calculate the time when the timer
+	// will expire.
+
+	if (timer->enabled)
+	{
+		tics = 0x100 - timer->value;
+		timer->expire_time = a_OPLData->current_time
+						   + (tics * a_OPLData->Freq) / timer->rate;
+	}
+}
+
+/* ICD_OPL_DirectWriteRegister() -- Writes to OPL register */
+static void ICD_OPL_DirectWriteRegister(I_OPLEmData_t* const a_OPLData, unsigned int reg_num, unsigned int value)
+{
+	switch (reg_num)
+	{
+		case OPL_REG_TIMER1:
+			a_OPLData->timer1.value = value;
+			ICD_OPLTimer_CalculateEndTime(a_OPLData, &a_OPLData->timer1);
+			break;
+
+		case OPL_REG_TIMER2:
+			a_OPLData->timer2.value = value;
+			ICD_OPLTimer_CalculateEndTime(a_OPLData, &a_OPLData->timer2);
+			break;
+
+		case OPL_REG_TIMER_CTRL:
+			if (value & 0x80)
+			{
+				a_OPLData->timer1.enabled = 0;
+				a_OPLData->timer2.enabled = 0;
+			}
+			else
+			{
+				if ((value & 0x40) == 0)
+				{
+					a_OPLData->timer1.enabled = (value & 0x01) != 0;
+					ICD_OPLTimer_CalculateEndTime(a_OPLData, &a_OPLData->timer1);
+				}
+
+				if ((value & 0x20) == 0)
+				{
+					a_OPLData->timer1.enabled = (value & 0x02) != 0;
+					ICD_OPLTimer_CalculateEndTime(a_OPLData, &a_OPLData->timer2);
+				}
+			}
+
+			break;
+
+		default:
+			Chip__WriteReg(&a_OPLData->OPLChip, reg_num, value);
+			break;
+	}
+}
+
+/* ICD_OPL_WritePort() -- Writes to OPL Port */
+static void ICD_OPL_WritePort(I_OPLEmData_t* const a_OPLData, opl_port_t port, unsigned int value)
+{
+	/* Change Register */
+	if (port == OPL_REGISTER_PORT)
+		a_OPLData->register_num = value;
+
+	/* Write Data */
+	else if (port == OPL_DATA_PORT)
+		ICD_OPL_DirectWriteRegister(a_OPLData, a_OPLData->register_num, value);
+}
+
+/* ICD_OPL_ReadPort() -- Reads from OPL Port */
+static unsigned int ICD_OPL_ReadPort(I_OPLEmData_t* const a_OPLData, opl_port_t port)
+{
+	unsigned int result = 0;
+
+	if (a_OPLData->timer1.enabled && a_OPLData->current_time > a_OPLData->timer1.expire_time)
+	{
+		result |= 0x80;   // Either have expired
+		result |= 0x40;   // Timer 1 has expired
+	}
+
+	if (a_OPLData->timer2.enabled && a_OPLData->current_time > a_OPLData->timer2.expire_time)
+	{
+		result |= 0x80;   // Either have expired
+		result |= 0x20;   // Timer 2 has expired
+	}
+
+	return result;	
+}
+
+/* ICD_OPL_ReadStatus() -- Read OPL status */
+static unsigned int ICD_OPL_ReadStatus(I_OPLEmData_t* const a_OPLData)
+{
+	return ICD_OPL_ReadPort(a_OPLData, OPL_REGISTER_PORT);
+}
+
+/* ICD_OPL_WriteRegister() -- Write OPL register */
+static void ICD_OPL_WriteRegister(I_OPLEmData_t* const a_OPLData, int reg, int value)
+{
+	int i;
+
+	ICD_OPL_WritePort(a_OPLData, OPL_REGISTER_PORT, reg);
+
+	// For timing, read the register port six times after writing the
+	// register number to cause the appropriate delay
+
+	for (i=0; i<6; ++i)
+	{
+		// An oddity of the Doom OPL code: at startup initialization,
+		// the spacing here is performed by reading from the register
+		// port; after initialization, the data port is read, instead.
+
+		if (a_OPLData->init_stage_reg_writes)
+		{
+			ICD_OPL_ReadPort(a_OPLData, OPL_REGISTER_PORT);
+		}
+		else
+		{
+			ICD_OPL_ReadPort(a_OPLData, OPL_DATA_PORT);
+		}
+	}
+
+	ICD_OPL_WritePort(a_OPLData, OPL_DATA_PORT, value);
+
+	// Read the register port 24 times after writing the value to
+	// cause the appropriate delay
+
+	for (i=0; i<24; ++i)
+	{
+		ICD_OPL_ReadStatus(a_OPLData);
+	}
+}
+
+/* CD_OPL_Detect() -- Detects if an OPL chip is around */
+// From Chocolate Doom
+static int ICD_OPL_Detect(I_OPLEmData_t* const a_OPLData)
+{
+	int result1, result2;
+	int i;
+
+	// Reset both timers:
+	ICD_OPL_WriteRegister(a_OPLData, OPL_REG_TIMER_CTRL, 0x60);
+
+	// Enable interrupts:
+	ICD_OPL_WriteRegister(a_OPLData, OPL_REG_TIMER_CTRL, 0x80);
+
+	// Read status
+	result1 = ICD_OPL_ReadStatus(a_OPLData);
+
+	// Set timer:
+	ICD_OPL_WriteRegister(a_OPLData, OPL_REG_TIMER1, 0xff);
+
+	// Start timer 1:
+	ICD_OPL_WriteRegister(a_OPLData, OPL_REG_TIMER_CTRL, 0x21);
+
+	// Wait for 80 microseconds
+	// This is how Doom does it:
+
+	for (i=0; i<200; ++i)
+	{
+		ICD_OPL_ReadStatus(a_OPLData);
+	}
+
+	ICD_OPL_Delay(a_OPLData, 1);
+
+	// Read status
+	result2 = ICD_OPL_ReadStatus(a_OPLData);
+
+	// Reset both timers:
+	ICD_OPL_WriteRegister(a_OPLData, OPL_REG_TIMER_CTRL, 0x60);
+
+	// Enable interrupts:
+	ICD_OPL_WriteRegister(a_OPLData, OPL_REG_TIMER_CTRL, 0x80);
+
+	return (result1 & 0xe0) == 0x00
+		&& (result2 & 0xe0) == 0xc0;
+}
+
+/*** REMOOD EMULATION STUFF ***/
+
+/* IS_OPLEm_Init() -- OPL Emulation Init */
+static bool_t IS_OPLEm_Init(struct I_MusicDriver_s* const a_Driver)
+{
+	int r;
+	I_OPLEmData_t* Local;
+	
+	/* Check */
+	if (!a_Driver)
+		return false;
+	
+	/* Debug */
+	if (devparm)
+		CONL_PrintF("OPL: Initializing...\n");
+	
+	/* Create Data */
+	Local = a_Driver->Data = Z_Malloc(sizeof(*Local), PU_STATIC, NULL);
+	
+	// Setup some fields
+	Local->Freq = I_SoundGetFreq();
+	Local->init_stage_reg_writes = true;
+	Local->timer1.rate = 12500;
+	Local->timer2.rate = 3125;
+	Local->SamplesPerMS = Local->Freq / 1000;
+	
+	if (devparm)
+		CONL_PrintF("OPL: Frequency is %u\n", Local->Freq);
+	
+	/* Pre-Init OPL Stuff */
+	Chip__Chip(&Local->OPLChip);
+	Chip__Setup(&Local->OPLChip, Local->Freq);
+	
+	/* Detecting OPL */
+	// Debug
+	if (devparm)
+		CONL_PrintF("OPL: Detecting...\n");
+	
+	// Detect?
+	if (!ICD_OPL_Detect(Local) || !ICD_OPL_Detect(Local))
+	{
+		if (devparm)
+			CONL_PrintF("OPL: Not Detected!\n");
+		return false;
+	}
+	
+	// Found it
+	if (devparm)
+		CONL_PrintF("OPL: Detected!\n");
+	
+	/* Initialize the OPL Stuff */
+	// Debug
+	if (devparm)
+		CONL_PrintF("OPL: Initializing\n");
+
+	// Initialize level registers
+	for (r=OPL_REGS_LEVEL; r <= OPL_REGS_LEVEL + OPL_NUM_OPERATORS; ++r)
+		ICD_OPL_WriteRegister(Local, r, 0x3f);
+
+	// Initialize other registers
+	// These two loops write to registers that actually don't exist,
+	// but this is what Doom does ...
+	// Similarly, the <= is also intenational.
+	for (r=OPL_REGS_ATTACK; r <= OPL_REGS_WAVEFORM + OPL_NUM_OPERATORS; ++r)
+		ICD_OPL_WriteRegister(Local, r, 0x00);
+
+	// More registers ...
+	for (r=1; r < OPL_REGS_LEVEL; ++r)
+		ICD_OPL_WriteRegister(Local, r, 0x00);
+
+	// Re-initialize the low registers:
+	// Reset both timers and enable interrupts:
+	ICD_OPL_WriteRegister(Local, OPL_REG_TIMER_CTRL, 0x60);
+	ICD_OPL_WriteRegister(Local, OPL_REG_TIMER_CTRL, 0x80);
+
+	// "Allow FM chips to control the waveform of each operator":
+	ICD_OPL_WriteRegister(Local, OPL_REG_WAVEFORM_ENABLE, 0x20);
+
+	// Keyboard split point on (?)
+	ICD_OPL_WriteRegister(Local, OPL_REG_FM_MODE, 0x40);
+	
+	/* Register access is no longer initialized */
+	Local->init_stage_reg_writes = false;
+	
+	/* Return */
+	return true;
+}
+
+/* IS_WriteMixSample() -- Writes a single sample */
+static void IS_WriteMixSample(void** Buf, int32_t Value, size_t a_Bits)
+{
+	int32_t v, s;
+	
+	/* Get shift */
+	s = Value;
+	
+	/* Write Wide */
+	if (a_Bits == 16)
+	{
+		// Read current value (I hope the buffer is aligned!)
+		v = **((uint16_t**)Buf);
+		v = (v - 32768) + (s / 32768);
+		
+		if (v > 32767)
+			v = 32767;
+		else if (v < -32768)
+			v = -32768;
+		v += 32768;
+		
+		// Mix into buffer
+		WriteUInt16(Buf, v);
+	}
+	
+	/* Write Narrow */
+	else
+	{
+		// Read current value and add to it
+		v = **((uint8_t**)Buf);
+		v = (v - 128) + (s / 16777216);
+		
+		if (v > 127)
+			v = 127;
+		else if (v < -128)
+			v = -128;
+		v += 128;
+		
+		// Mix into buffer
+		WriteUInt8(Buf, v);
+	}
+}
+
+/* IS_OPLEm_RawMIDI() -- Raw OPL MIDI command */
+static void IS_OPLEm_RawMIDI(struct I_MusicDriver_s* const a_Driver, const uint32_t a_Msg, const uint32_t a_BitLength)
+{
+	I_OPLEmData_t* Local;
+	
+	/* Check */
+	if (!a_Driver)
+		return;
+	
+	/* Get Data */
+	Local = a_Driver->Data;
+	
+	// Check
+	if (!Local)
+		return;
+	
+	/* Handle MIDI Events */
+    ICD_OPL_WriteRegister(Local, OPL_REGS_LEVEL + 0, 0);
+    //OPL_WriteRegister(OPL_REGS_TREMOLO + 0, data->tremolo);
+    ICD_OPL_WriteRegister(Local, OPL_REGS_ATTACK + 0, (1 << 8) | 1);
+    //OPL_WriteRegister(OPL_REGS_SUSTAIN + 0, data->sustain);
+    ICD_OPL_WriteRegister(Local, OPL_REGS_WAVEFORM + 0, 1);
+}
+
+/* IS_OPLEm_SoundLayer() -- Sound layered on top */
+void IS_OPLEm_SoundLayer(struct I_MusicDriver_s* const a_Driver, struct I_SoundDriver_s* const a_SoundDriver, void* const a_SoundBuf, const size_t a_SoundLen, const int a_Freq, const int a_Bits, const int a_Channels)
+{
+	I_OPLEmData_t* Local;
+	size_t SplitLen, i, j;
+	int32_t* TTBuf;
+	void* p, *pEnd;
+	
+	/* Check */
+	if (!a_Driver)
+		return;
+	
+	/* Get Data */
+	Local = a_Driver->Data;
+	
+	// Check
+	if (!Local)
+		return;
+	
+#if 0
+	/* Create Temporary Buffer */
+	SplitLen = ((a_SoundLen / a_Channels) / (a_Bits / 8));
+	TTBuf = malloc(sizeof(*TTBuf) * (SplitLen));
+	
+	if (!TTBuf)
+		return;
+	
+	memset(TTBuf, 0, sizeof(*TTBuf) * (SplitLen));
+	
+	/* Generate OPL Data */
+	Chip__GenerateBlock2(&Local->OPLChip, SplitLen, TTBuf);
+	
+	/* Downmix */
+	// Prepare
+	p = a_SoundBuf;
+	pEnd = ((uint8_t*)a_SoundBuf) + a_SoundLen;
+	
+	// Write in
+	for (i = 0; i < SplitLen; i++)
+	{
+		// At end?
+		if (p >= pEnd)
+			break;
+		
+		// Left Channel
+		IS_WriteMixSample(&p, TTBuf[i * 2], a_Bits);
+		
+		// Right Channel
+		if (a_Channels >= 2)
+			IS_WriteMixSample(&p, TTBuf[(i * 2) + 1], a_Bits);
+		
+		// Ignore other channels
+		for (j = 2; j < a_Channels; j++)
+			IS_WriteMixSample(&p, 0, a_Bits);
+	}
+	
+	/* Free Buffer */
+	free(TTBuf);
+	
+	/* Advance OPL Time */
+	Local->current_time += a_SoundLen / (a_Bits >> 3);
+#endif
+}
+
+// l_OPLEMDriver -- OPL Emulation Driver
+static I_MusicDriver_t l_OPLEMDriver =
+{
+	/* Data */
+	"OPL Emulation",
+	"oplem",
+	1 << IMT_MIDI,
+	false,
+	25,
+	
+	/* Handlers */
+	IS_OPLEm_Init,
+	NULL,//I_MUS2MID_Destroy,
+	NULL,//I_MUS2MID_Success,
+	NULL,//I_MUS2MID_Pause,
+	NULL,//I_MUS2MID_Resume,
+	NULL,//I_MUS2MID_Stop,
+	NULL,//I_MUS2MID_Length,
+	NULL,//I_MUS2MID_Seek,
+	NULL,//I_MUS2MID_Play,
+	NULL,//I_MUS2MID_Volume,
+	IS_OPLEm_RawMIDI,//NULL,
+	NULL,//I_MUS2MID_Update
+	IS_OPLEm_SoundLayer,
 };
 
 /**********************
@@ -1013,7 +1514,11 @@ bool_t I_InitMusic(void)
 		CONL_PrintF("I_InitMusic: Failed to add interface specific drivers.\n");
 		
 	/* Add our own virtual drivers that always work */
+	// Simple Tone Driver
+	
 	// OPL Emulation!
+	if (!I_AddMusicDriver(&l_OPLEMDriver))
+		CONL_PrintF("I_InitMusic: Failed to add the OPL Emulation Driver.\n");
 	
 	// Native MOD Support
 	
@@ -1155,6 +1660,7 @@ int I_RegisterSong(const char* const a_Lump)
 			WX_UseEntry(New.Entry, false);
 			return 0;
 		}
+		
 		// Copy pathname
 		New.PathName = Z_StrDup(SongPath, PU_STATIC, NULL);
 		WX_UseEntry(Entry, false);	// Always unuse the enrty once in a file
@@ -1167,6 +1673,7 @@ int I_RegisterSong(const char* const a_Lump)
 			l_LocalSongs[i] = New;
 			break;
 		}
+	
 	// did not find one
 	if (i == l_NumLocalSongs)
 	{
@@ -1308,9 +1815,9 @@ void I_PlaySong(int handle, int looping)
 	/* Send to driver */
 	if (l_LocalSongs[i].Driver->Play)
 		l_LocalSongs[i].DriverHandle = l_LocalSongs[i].Driver->Play(l_LocalSongs[i].Driver,
-		                                                            (l_LocalSongs[i].Driver->ExternalData ? (void*)l_LocalSongs[i].PathName : (void*)l_LocalSongs[i].Data),
-		                                                            l_LocalSongs[i].EntryLength, looping);
-		                                                            
+																	(l_LocalSongs[i].Driver->ExternalData ? (void*)l_LocalSongs[i].PathName : (void*)l_LocalSongs[i].Data),
+																	l_LocalSongs[i].EntryLength, looping);
+																	
 	/* Set song to playing */
 	l_LocalSongs[i].Playing = true;
 }
@@ -1549,15 +2056,25 @@ bool_t I_SoundBufferIsFinished(void)
 }
 
 /* I_SoundBufferWriteOut() -- Writes out the buffer */
-void I_SoundBufferWriteOut(void)
+void I_SoundBufferWriteOut(void* const a_SoundBuf, const size_t a_SoundLen, const int a_Freq, const int a_Bits, const int a_Channels)
 {
+	size_t i;
+	
 	/* Check */
 	if (!l_CurSoundDriver)
 		return;
 		
 	/* Obtain it */
 	if (l_CurSoundDriver->WriteOut)
+	{
+		// Sound layering (internal music)
+		for (i = 0; i < l_NumMusicDrivers; i++)
+			if (l_MusicDrivers[i]->SoundLayer)
+				l_MusicDrivers[i]->SoundLayer(l_MusicDrivers[i], l_CurSoundDriver, a_SoundBuf, a_SoundLen, a_Freq, a_Bits, a_Channels);
+		
+		// Call function
 		l_CurSoundDriver->WriteOut(l_CurSoundDriver);
+	}
 }
 
 /* I_SoundGetFreq() -- Returns frequency in Hz */

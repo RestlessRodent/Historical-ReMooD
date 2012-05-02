@@ -139,6 +139,7 @@ static int l_CurrentSong = 0;	// Current playing song handle
 static int l_Bits, l_Freq, l_Channels, l_Len;
 static S_SoundChannel_t* l_DoomChannels;	// Sound channels
 static size_t l_NumDoomChannels;	// Number of possible sound channels
+static size_t l_ReservedChannels;	// Reserved Channels
 static fixed_t l_GlobalSoundVolume;	// Global sound volume
 static bool_t l_ThreadedSound = false;	// Threaded sound
 
@@ -267,6 +268,32 @@ S_SoundChannel_t* S_PlayEntryOnChannel(const uint32_t a_Channel, WX_WADEntry_t* 
 	return &l_DoomChannels[a_Channel];
 }
 
+/* S_ReservedChannelPlay() -- Play sound on reserved channel */
+void S_ReservedChannelPlay(int sound_id, int volume, fixed_t MoveVal)
+{
+#define BUFSIZE 24
+	char Buf[BUFSIZE];
+	WX_WADEntry_t* Entry;
+	S_SoundChannel_t* Target;
+	
+	/* Obtain entry then play on said channel */
+	// Prefix with ds
+	snprintf(Buf, BUFSIZE, "ds%.6s", S_sfx[sound_id].name);
+	Entry = WX_EntryForName(NULL, Buf, false);
+	
+	// Try direct name
+	if (!Entry)
+		Entry = WX_EntryForName(NULL, S_sfx[sound_id].name, false);
+	Target = S_PlayEntryOnChannel(l_NumDoomChannels - 1, Entry);
+	
+	/* Modify Target */
+	if (Target)
+	{
+		Target->MoveRate = FixedMul(Target->MoveRate, FixedDiv(MoveVal, ((fixed_t)l_Freq) << FRACBITS));
+	}
+#undef BUFSIZE
+}
+
 /* S_StopChannel() -- Stop channel from playing */
 void S_StopChannel(const uint32_t a_Channel)
 {
@@ -344,10 +371,10 @@ void S_StartSoundAtVolume(S_NoiseThinker_t* a_Origin, int sound_id, int volume)
 {
 #define BUFSIZE 24
 	char Buf[BUFSIZE];
-	int OnChannel, i, LowestP, MyP;
-	fixed_t RPA, Dist, GS;
 	WX_WADEntry_t* Entry;
 	S_SoundChannel_t* Target;
+	int OnChannel, i, LowestP, MyP;
+	fixed_t RPA, Dist, GS;
 	S_NoiseThinker_t* Listener;
 	S_NoiseThinker_t* Emitter;
 	
@@ -364,10 +391,6 @@ void S_StartSoundAtVolume(S_NoiseThinker_t* a_Origin, int sound_id, int volume)
 	/* Get closest listener, emitter, and distance */
 	Dist = S_GetListenerEmitterWithDist(NULL, a_Origin, &Listener, &Emitter);
 	
-	// No listener?
-	if (!Listener)
-		return;
-	
 	// The further the sound is the lower the priority
 	MyP = S_sfx[sound_id].priority;
 	MyP = FixedMul(MyP << FRACBITS, (1 << FRACBITS) - FixedMul(Dist, 60)) >> FRACBITS;
@@ -382,7 +405,7 @@ void S_StartSoundAtVolume(S_NoiseThinker_t* a_Origin, int sound_id, int volume)
 	if (!OnChannel)
 	{
 		// Find first free channel
-		for (OnChannel = 0; OnChannel < l_NumDoomChannels; OnChannel++)
+		for (OnChannel = 0; OnChannel < l_NumDoomChannels - l_ReservedChannels; OnChannel++)
 			if (!l_DoomChannels[OnChannel].Used)
 				break;
 				
@@ -392,7 +415,7 @@ void S_StartSoundAtVolume(S_NoiseThinker_t* a_Origin, int sound_id, int volume)
 			// Find the channel with the lowest priority
 			LowestP = -1;
 			
-			for (OnChannel = 0; OnChannel < l_NumDoomChannels; OnChannel++)
+			for (OnChannel = 0; OnChannel < l_NumDoomChannels - l_ReservedChannels; OnChannel++)
 				// Only care about used channels (check anyway, despite always being true)
 				if (l_DoomChannels[OnChannel].Used)
 					// Replace a channel with a lower priority
@@ -407,6 +430,7 @@ void S_StartSoundAtVolume(S_NoiseThinker_t* a_Origin, int sound_id, int volume)
 				I_SoundLockThread(false);
 				return;
 			}
+			
 			// Choose a random channel
 			OnChannel = LowestP;
 			
@@ -461,6 +485,7 @@ void S_StartSoundAtVolume(S_NoiseThinker_t* a_Origin, int sound_id, int volume)
 		// Modify move rate to random pitch change
 		Target->MoveRate = FixedMul(Target->MoveRate, RPA);
 	}
+	
 	// Game Speed modifier
 	Target->MoveRate = FixedMul(Target->MoveRate, GS);
 	
@@ -490,6 +515,8 @@ void S_StartSoundName(S_NoiseThinker_t* a_Origin, char* soundname)
 	/* Check */
 	if (!l_SoundOK)
 		return;
+	
+	S_StartSound(a_Origin, S_SoundIDForName(soundname));
 }
 
 /* S_StopSound() -- Stop sound being played by this object */
@@ -641,6 +668,28 @@ void SetChannelsNum(void)
 {
 }
 
+/* SCLC_SoundMulti() -- Sound multi-handler */
+static CONL_ExitCode_t SCLC_SoundMulti(const uint32_t a_ArgC, const char** const a_ArgV)
+{
+	/* Check */
+	if (a_ArgC < 2)
+		return CLE_FAILURE;
+	
+	/* Play Song */
+	if (strcasecmp(a_ArgV[0], "soundchangemus") == 0)
+	{
+		S_ChangeMusicName(a_ArgV[1], true);
+	}
+	
+	/* Play Sound */
+	else if (strcasecmp(a_ArgV[0], "soundplay") == 0)
+	{
+	}
+	
+	/* Success */
+	return CLE_SUCCESS;
+}
+
 /* S_RegisterSoundStuff() -- Register the sound console variables */
 void S_RegisterSoundStuff(void)
 {
@@ -649,6 +698,10 @@ void S_RegisterSoundStuff(void)
 	/* Check */
 	if (cvRegged)
 		return;
+	
+	/* Register new commands */
+	CONL_AddCommand("soundchangemus", SCLC_SoundMulti);
+	CONL_AddCommand("soundplay", SCLC_SoundMulti);
 		
 	/* Register Variables */
 	CV_RegisterVar(&cv_snd_speakersetup);
@@ -685,6 +738,7 @@ void S_Init(int sfxVolume, int musicVolume)
 	{
 		// GhostlyDeath <January 20, 2012> -- To prevent a race, init channels here
 		l_NumDoomChannels = cv_snd_channels.value;
+		l_ReservedChannels = cv_snd_reservedchannels.value;
 	
 		if (!l_NumDoomChannels)
 			l_NumDoomChannels = 1;
@@ -703,21 +757,13 @@ void S_Init(int sfxVolume, int musicVolume)
 		}
 	}
 			
-	// Music
-	l_MusicOK = false;
-	if (!M_CheckParm("-nomusic"))
-		if (I_InitMusic())
-			l_MusicOK = true;
-			
 	// Set volumes based on CVARs
 	S_UpdateCVARVolumes();
 	
 	/* Try getting a buffer */
 	if (l_SoundOK)
 	{
-		if (!
-		(l_Len =
-		I_SoundBufferRequest(IST_WAVEFORM, cv_snd_sounddensity.value, cv_snd_soundquality.value, cv_snd_speakersetup.value, cv_snd_buffersize.value)))
+		if (!(l_Len = I_SoundBufferRequest(IST_WAVEFORM, cv_snd_sounddensity.value, cv_snd_soundquality.value, cv_snd_speakersetup.value, cv_snd_buffersize.value)))
 		{
 			l_Bits = l_Freq = l_Channels = l_Len = 0;
 			CONL_PrintF("S_Init: Failed to obtain a sound buffer.\n");
@@ -742,6 +788,12 @@ void S_Init(int sfxVolume, int musicVolume)
 				CONL_PrintF("S_Init: Requested %iHz but got %iHz\n", cv_snd_soundquality.value, l_Freq);
 		}
 	}
+	
+	// Music
+	l_MusicOK = false;
+	if (!M_CheckParm("-nomusic"))
+		if (I_InitMusic())
+			l_MusicOK = true;
 }
 
 /* S_StopSounds() -- Stops all playing sounds */
@@ -1021,7 +1073,7 @@ void S_UpdateSounds(const bool_t a_Threaded)
 	}
 	
 	/* Write to driver */
-	I_SoundBufferWriteOut();
+	I_SoundBufferWriteOut(SoundBuf, SoundLen, l_Freq, l_Bits, l_Channels);
 	
 	/* Unlock thread */
 	I_SoundLockThread(false);

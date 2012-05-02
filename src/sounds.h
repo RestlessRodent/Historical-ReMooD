@@ -336,6 +336,9 @@ typedef enum
 	sfx_dgdth,
 	sfx_dgpain,
 	
+	// GhostlyDeath <May 2, 2012> -- Synth Sounds
+	sfx_zzzzza,
+	
 	// free slots for S_AddSoundFx() at run-time --------------------
 	sfx_freeslot0,
 	//

@@ -256,8 +256,6 @@ Lumps Copyright (C) 2001-2004 Doom Legacy Team <http://doomlegacy.sourceforge.ne
 	lumps/water6.lmp
 	lumps/water7.lmp
 	lumps/watermap.lmp [!!!, BASED OFF NON-FREE COLORMAP]
-	sounds/dsjump.wav [!!!, UNVERIFIED SOURCE]
-	sounds/dsouch.wav [!!!, UNVERIFIED SOURCE]
 	sprites/bluda0.ppm
 	sprites/bludb0.ppm
 	sprites/splaa0.ppm
@@ -378,6 +376,78 @@ Lumps Copyright (C) Odamex Development Team <http://odamex.net/>
 	graphics/ufnb005a.ppm
 
 Copyright (c) 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010 Contributors to the Freedoom project. <http://www.nongnu.org/freedoom/>
+	sprites/pls1a0.ppm
+	sprites/pls1b0.ppm
+	sprites/pls1c0.ppm
+	sprites/pls1d0.ppm
+	sprites/pls1e0.ppm
+	sprites/pls1f0.ppm
+	sprites/pls1g0.ppm
+	sprites/pls2a0.ppm
+	sprites/pls2b0.ppm
+	sprites/pls2c0.ppm
+	sprites/pls2d0.ppm
+	sprites/pls2e0.ppm
+	sprites/dogsa1.ppm
+	sprites/dogsa2a8.ppm
+	sprites/dogsa3a7.ppm
+	sprites/dogsa4a6.ppm
+	sprites/dogsa5.ppm
+	sprites/dogsb1.ppm
+	sprites/dogsb2b8.ppm
+	sprites/dogsb3b7.ppm
+	sprites/dogsb4b6.ppm
+	sprites/dogsb5.ppm
+	sprites/dogsc1.ppm
+	sprites/dogsc2c8.ppm
+	sprites/dogsc3c7.ppm
+	sprites/dogsc4c6.ppm
+	sprites/dogsc5.ppm
+	sprites/dogsd1.ppm
+	sprites/dogsd2d8.ppm
+	sprites/dogsd3d7.ppm
+	sprites/dogsd4d6.ppm
+	sprites/dogsd5.ppm
+	sprites/dogse1.ppm
+	sprites/dogse2.ppm
+	sprites/dogse3.ppm
+	sprites/dogse4.ppm
+	sprites/dogse5.ppm
+	sprites/dogse6.ppm
+	sprites/dogse7.ppm
+	sprites/dogse8.ppm
+	sprites/dogsf1.ppm
+	sprites/dogsf2.ppm
+	sprites/dogsf3.ppm
+	sprites/dogsf4.ppm
+	sprites/dogsf5.ppm
+	sprites/dogsf6.ppm
+	sprites/dogsf7.ppm
+	sprites/dogsf8.ppm
+	sprites/dogsg1.ppm
+	sprites/dogsg2.ppm
+	sprites/dogsg3.ppm
+	sprites/dogsg4.ppm
+	sprites/dogsg5.ppm
+	sprites/dogsg6.ppm
+	sprites/dogsg7.ppm
+	sprites/dogsg8.ppm
+	sprites/dogsh1.ppm
+	sprites/dogsh2.ppm
+	sprites/dogsh3.ppm
+	sprites/dogsh4.ppm
+	sprites/dogsh5.ppm
+	sprites/dogsh6.ppm
+	sprites/dogsh7.ppm
+	sprites/dogsh8.ppm
+	sprites/dogsi0.ppm
+	sprites/dogsj0.ppm
+	sprites/dogsk0.ppm
+	sprites/dogsl0.ppm
+	sprites/dogsm0.ppm
+	sprites/dogsn0.ppm
+	sounds/dsjump.wav [sounds/dspldeath.wav, MODIFIED]
+	sounds/dsouch.wav [sounds/dsplpain.wav]
 
 Copyright (C) 2008 Blasphemer <http://www.jeshimoth.com/jutegyte/blasphemer/>
 	sounds/dsfloush.wav

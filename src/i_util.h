@@ -310,6 +310,9 @@ typedef struct I_MusicDriver_s
 	// Update MIDI
 	void (*Update) (struct I_MusicDriver_s* const a_Driver, const tic_t a_Tics);
 	
+	// Sound Layering
+	void (*SoundLayer)(struct I_MusicDriver_s* const a_Driver, struct I_SoundDriver_s* const a_SoundDriver, void* const a_SoundBuf, const size_t a_SoundLen, const int a_Freq, const int a_Bits, const int a_Channels);
+	
 	/* Dynamic */
 	void* Data;					// Driver personal data
 	size_t Size;				// Size of personal data
@@ -461,7 +464,7 @@ size_t I_SoundBufferRequest(const I_SoundType_t a_Type, const uint8_t a_Bits, co
 bool_t I_SoundSetThreaded(void (*a_ThreadFunc) (const bool_t a_Threaded));
 void* I_SoundBufferObtain(void);
 bool_t I_SoundBufferIsFinished(void);
-void I_SoundBufferWriteOut(void);
+void I_SoundBufferWriteOut(void* const a_SoundBuf, const size_t a_SoundLen, const int a_Freq, const int a_Bits, const int a_Channels);
 uint16_t I_SoundGetFreq(void);
 void I_SoundLockThread(const bool_t a_Lock);
 

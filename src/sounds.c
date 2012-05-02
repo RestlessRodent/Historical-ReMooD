@@ -438,6 +438,9 @@ sfxinfo_t S_sfx[NUMSFX] =
 	{ "dgact",  false,  120, 0, -1, -1, 0 },
 	{ "dgdth",  false,   70, 0, -1, -1, 0 },
 	{ "dgpain", false,   96, 0, -1, -1, 0 },
+	
+	// GhostlyDeath <May 2, 2012> -- Synth Sounds
+	{ "zzzzza", false, 64, 0, -1, -1, 0},
 };
 
 // Prepare free sfx slots to add sfx at run time
