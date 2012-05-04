@@ -1590,13 +1590,16 @@ bool_t P_RMODO_WeaponsAmmo(const bool_t a_Pushed, const struct WL_WADFile_s* con
 							// Function only on A_Light*()
 							if (strcasecmp(states[k]->Function, "Light1") != 0 && strcasecmp(states[k]->Function, "Light2") != 0)
 								continue;
+								
+							// Reference it
+							WepID = (states[k]->Marker & 0xFFFFU);
 							
 							// Add to array
 							if (WepID > TempWeapon->NumFlashStates)
-								Z_ResizeArray((void**)&TempWeapon->FlashStates, sizeof(*TempWeapon->FlashStates), TempWeapon->NumFlashStates, TempWeapon->NumFlashStates + 1);
+								Z_ResizeArray((void**)&TempWeapon->FlashStates, sizeof(*TempWeapon->FlashStates), TempWeapon->NumFlashStates, WepID);
 							
 							// Set array value
-							TempWeapon->FlashStates[TempWeapon->NumFlashStates++] = k;
+							TempWeapon->FlashStates[WepID - 1] = k;
 						}
 			}
 		}
