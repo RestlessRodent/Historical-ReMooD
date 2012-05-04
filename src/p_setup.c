@@ -1893,6 +1893,9 @@ static void PS_ExLineDefInit(line_t* const a_LineDef)
 			*SecRef = sides[a_LineDef->sidenum[i]].sector;
 		}
 	
+	/* Calculate the real line special (generalized) */
+	a_LineDef->special = EV_DoomToGenTrigger(a_LineDef->special);
+	
 	/* Set side special from linedef */
 	//if (ld->sidenum[0] != -1 && ld->special)
 	//	sides[ld->sidenum[0]].special = ld->special;

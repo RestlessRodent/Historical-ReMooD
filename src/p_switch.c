@@ -300,13 +300,24 @@ void P_ChangeSwitchTexture(line_t* line, int useAgain)
 //
 bool_t P_UseSpecialLine(mobj_t* thing, line_t* line, int side)
 {
-
+	bool_t UseAgain;
+	
 	// Err...
 	// Use the back sides of VERY SPECIAL lines...
 	if (side)
-	{
 		return false;
+	
+	/* Better Generalized Support */
+	// GhostlyDeath <May 2, 2012> -- This is MUCH better than before!
+	UseAgain = false;
+	if (EV_TryGenTrigger(line, side, thing, EVTGT_SWITCH, 0, &UseAgain))
+	{
+		P_ChangeSwitchTexture(line, (UseAgain ? 1 : 0));
+		return true;
 	}
+	return false;
+
+#if 0
 	//SoM: 3/18/2000: Add check for Generalized linedefs.
 	if (boomsupport)
 	{
@@ -1143,4 +1154,6 @@ bool_t P_UseSpecialLine(mobj_t* thing, line_t* line, int side)
 	}
 	
 	return true;
+#endif
 }
+

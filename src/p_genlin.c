@@ -39,6 +39,7 @@
 #include "m_random.h"
 #include "s_sound.h"
 #include "z_zone.h"
+#include "p_spec.h"
 
 /*
   SoM: 3/9/2000: Copied this entire file from Boom sources to Legacy sources.
@@ -53,7 +54,7 @@
 // Passed the line activating the generalized floor function
 // Returns true if a thinker is created
 //
-int EV_DoGenFloor(line_t* line)
+int EV_DoGenFloor(line_t* line, mobj_t* const a_Object)
 {
 	int secnum;
 	int rtn;
@@ -237,7 +238,7 @@ manual_floor:
 // Passed the linedef activating the ceiling function
 // Returns true if a thinker created
 //
-int EV_DoGenCeiling(line_t* line)
+int EV_DoGenCeiling(line_t* line, mobj_t* const a_Object)
 {
 	int secnum;
 	int rtn;
@@ -431,7 +432,7 @@ manual_ceiling:
 // Passed the linedef activating the lift
 // Returns true if a thinker is created
 //
-int EV_DoGenLift(line_t* line)
+int EV_DoGenLift(line_t* line, mobj_t* const a_Object)
 {
 	plat_t* plat;
 	int secnum;
@@ -577,7 +578,7 @@ manual_lift:
 // Passed the linedef activating the stairs
 // Returns true if a thinker is created
 //
-int EV_DoGenStairs(line_t* line)
+int EV_DoGenStairs(line_t* line, mobj_t* const a_Object)
 {
 	int secnum;
 	int osecnum;
@@ -771,7 +772,7 @@ manual_stair:
 // Passed the linedef activating the crusher
 // Returns true if a thinker created
 //
-int EV_DoGenCrusher(line_t* line)
+int EV_DoGenCrusher(line_t* line, mobj_t* const a_Object)
 {
 	int secnum;
 	int rtn;
@@ -865,7 +866,7 @@ manual_crusher:
 // Passed the linedef activating the generalized locked door
 // Returns true if a thinker created
 //
-int EV_DoGenLockedDoor(line_t* line)
+int EV_DoGenLockedDoor(line_t* line, mobj_t* const a_Object)
 {
 	int secnum, rtn;
 	sector_t* sec;
@@ -965,7 +966,7 @@ manual_locked:
 // Passed the linedef activating the generalized door
 // Returns true if a thinker created
 //
-int EV_DoGenDoor(line_t* line)
+int EV_DoGenDoor(line_t* line, mobj_t* const a_Object)
 {
 	int secnum, rtn;
 	sector_t* sec;
@@ -1095,3 +1096,165 @@ manual_door:
 	}
 	return rtn;
 }
+
+/****************************************************************************/
+
+/* EV_TryGenTrigger() -- Tries to trigger a line */
+bool_t EV_TryGenTrigger(line_t* const a_Line, const int a_Side, mobj_t* const a_Object, const EV_TryGenType_t a_Type, const uint32_t a_Flags, bool_t* const a_UseAgain)
+{
+	triggertype_e TrigMode;
+	
+	/* Check */
+	if (!a_Line)
+		return false;
+	
+	/* Ignore Non-Special Lines */
+	if (a_Line->special == 0)
+		return false;
+	
+	/* Debug */
+	if (devparm)
+		CONL_PrintF("Trig %p by %p (side %+1i): Via %c, %u\n", a_Line, a_Object, a_Side, (a_Type == EVTGT_WALK ? 'W' : (a_Type == EVTGT_SHOOT ? 'G' : 'S')), a_Line->special);
+	
+	/* Standard Boom Types */
+	// These are available in Boom
+	if (a_Line->special >= 0x2F80 && a_Line->special <= 0x7FFF)
+	{
+		// Determine the current trigger type
+		TrigMode = (a_Line->special & TriggerType) >> TriggerTypeShift;
+		
+		// Trigger only once?
+		*a_UseAgain = (TrigMode & 1);
+		
+		// Lose that bit
+		TrigMode &= ~1;
+		
+		// Determine trigger compatibility
+		if ((a_Type == WalkOnce && TrigMode != EVTGT_WALK) ||
+			((a_Type == PushOnce || a_Type == SwitchOnce) && TrigMode != EVTGT_SWITCH) ||
+			(a_Type == GunOnce && TrigMode != EVTGT_SHOOT) ||
+			(TrigMode == EVTGT_MAPSTART))
+			return false;
+		
+		// Generic Floors
+		if (a_Line->special >= GenFloorBase)
+		{
+			// Check for Monster trigger
+			if (!a_Object->player)
+				if (((a_Line->special & FloorChange) || !(a_Line->special & FloorModel)) && !(a_Flags & EVTGTF_FORCEUSE))
+					return false;
+			
+			// Non-manual push
+			if (!a_Line->tag && ((a_Line->special & 6) != 6))
+				return false;
+			
+			// Do the command and return
+			return EV_DoGenFloor(a_Line, a_Object);
+		}
+		
+		// Generic Ceilings
+		else if (a_Line->special >= GenCeilingBase)
+		{
+			// Check for monster
+			if (!a_Object->player)
+				if (((a_Line->special & CeilingChange) || !(a_Line->special & CeilingModel)) && !(a_Flags & EVTGTF_FORCEUSE))
+					return false;	// CeilingModel is "Allow Monsters" if CeilingChange is 0
+			
+			// Only accept push w/o tag
+			if (!a_Line->tag && ((a_Line->special & 6) != 6))	//all non-manual
+				return false;	//generalized types require tag
+			
+			return EV_DoGenCeiling(a_Line, a_Object);
+		}
+		
+		// Generic Doors
+		else if (a_Line->special >= GenDoorBase)
+		{
+			// Check for monster
+			if (!a_Object->player)
+			{
+				if (!(a_Line->special & DoorMonster) && !(a_Flags & EVTGTF_FORCEUSE))
+					return;		// monsters disallowed from this door
+				
+				if (a_Line->flags & ML_SECRET)	// they can't open secret doors either
+					return;
+			}
+			
+			// Only accept push w/o tag
+			if (!a_Line->tag && ((a_Line->special & 6) != 6))	//all non-manual
+				return false;	//generalized types require tag
+			
+			return EV_DoGenDoor(a_Line, a_Object);
+		}
+		
+		// Generic Locked Doors
+		else if (a_Line->special >= GenLockedBase)
+		{
+		}
+		
+		// Generic Lifts
+		else if (a_Line->special >= GenLiftBase)
+		{
+			// Check for Monster trigger
+			if (!a_Object->player)
+				if ((!(a_Line->special & LiftMonster)) && !(a_Flags & EVTGTF_FORCEUSE))
+					return false;
+			
+			// Gunshots and pushable don't need tags
+			if (!a_Line->tag && (TrigMode != PushOnce && TrigMode != GunOnce))
+				return false;
+			
+			// Do the command and return
+			return EV_DoGenLift(a_Line, a_Object);
+		}
+		
+		// Generic Stairs
+		else if (a_Line->special >= GenStairsBase)
+		{
+		}
+		
+		// Generic Crushers
+		else if (a_Line->special >= GenCrusherBase)
+		{
+		}
+		
+		// Unknown
+		else
+			return false;
+	}
+	
+	/* ReMooD Low-Extended Specials */
+	// These use the 16-bit as a sign
+	else if (a_Line->special >= 0x8000 && a_Line->special <= 0xFFFF)
+	{
+	}
+	
+	/* ReMooD 32-bit Extended Specials */
+	// These are only accessable via RMD_EGLL or perhaps UDMF. These are mostly
+	// for internal support.
+	else if (a_Line->special > 0xFFFF)
+	{
+	}
+	
+	/* Failed */
+	return false;
+}
+
+/* EV_DoomToGenTrigger() -- Translate old Doom Lines to generalized ones */
+uint32_t EV_DoomToGenTrigger(const uint32_t a_Input)
+{
+	size_t i;
+	
+	/* Inputs at generalization base are unchanged */
+	if (!a_Input || a_Input >= GenCrusherBase)
+		return a_Input;
+	
+	/* Check through list */
+	for (i = 0; i < g_NumReGenMap; i++)
+		if (g_ReGenMap[i].Source == a_Input)
+			return g_ReGenMap[i].Target;
+	
+	/* Otherwise return input */
+	return a_Input;
+}
+

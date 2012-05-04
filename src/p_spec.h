@@ -779,6 +779,24 @@ int EV_PortalTeleport(line_t* line, mobj_t* thing, int side);
 #define DoorKindShift              5
 #define DoorSpeedShift             3
 
+/* PGL_GenDoorDelay_t -- General Door Delay */
+typedef enum PGL_GenDoorDelay_e
+{
+	PGLGOD_WAITONE,
+	PGLGOD_WAITFOUR,
+	PGLGOD_WAITNINE,
+	PGLGOD_WAITTHIRTY,
+} PGL_GenDoorDelay_t;
+
+/* PGL_GenDoorKind_t -- General Door Kind */
+typedef enum PGL_GenDoorKind_e
+{
+	PGLGDK_ODC,
+	PGLGDK_O,
+	PGLGDK_CDO,
+	PGLGDK_C,
+} PGL_GenDoorKind_t;
+
 // define masks and shifts for the locked door type fields
 
 #define LockedNKeys           0x0200
@@ -791,34 +809,58 @@ int EV_PortalTeleport(line_t* line, mobj_t* thing, int side);
 #define LockedKindShift            5
 #define LockedSpeedShift           3
 
+/* EV_TryGenType_t -- Trigger attempt type */
+typedef enum EV_TryGenType_e
+{
+	EVTGT_WALK,									// Attempt to walk through
+	EVTGT_SWITCH,								// Attempt to switch
+	EVTGT_SHOOT,								// Attempt to shoot
+	EVTGT_MAPSTART,								// Map Initialization
+		
+	NUMEVTRYGENTYPES
+} EV_TryGenType_t;
+
+/* EV_TryGenTypeFlags_t -- Flags for TryGenType */
+typedef enum EV_TryGenTypeFlags_e
+{
+	EVTGTF_FORCEUSE					= 0x0001,	// Force trigger
+} EV_TryGenTypeFlags_t;
+
+/* EV_ReGenMap_t -- Re-Generalize Map */
+typedef struct EV_ReGenMap_s
+{
+	uint32_t Source;							// Source Type
+	uint32_t Target;							// Target Type
+} EV_ReGenMap_t;
+
+extern EV_ReGenMap_t* g_ReGenMap;
+extern size_t g_NumReGenMap;
+
 //SoM: 3/9/2000: p_genlin
 
-int EV_DoGenFloor(line_t* line);
+int EV_DoGenFloor(line_t* line, mobj_t* const a_Object);
+int EV_DoGenCeiling(line_t* line, mobj_t* const a_Object);
+int EV_DoGenLift(line_t* line, mobj_t* const a_Object);
+int EV_DoGenStairs(line_t* line, mobj_t* const a_Object);
+int EV_DoGenCrusher(line_t* line, mobj_t* const a_Object);
+int EV_DoGenDoor(line_t* line, mobj_t* const a_Object);
+int EV_DoGenLockedDoor(line_t* line, mobj_t* const a_Object);
 
-int EV_DoGenCeiling(line_t* line);
-
-int EV_DoGenLift(line_t* line);
-
-int EV_DoGenStairs(line_t* line);
-
-int EV_DoGenCrusher(line_t* line);
-
-int EV_DoGenDoor(line_t* line);
-
-int EV_DoGenLockedDoor(line_t* line);
+bool_t EV_TryGenTrigger(line_t* const a_Line, const int a_Side, mobj_t* const a_Object, const EV_TryGenType_t a_Type, const uint32_t a_Flags, bool_t* const a_UseAgain);
+uint32_t EV_DoomToGenTrigger(const uint32_t a_Input);
 
 // define names for the TriggerType field of the general linedefs
 
 typedef enum
 {
-	WalkOnce,
-	WalkMany,
-	SwitchOnce,
-	SwitchMany,
-	GunOnce,
-	GunMany,
-	PushOnce,
-	PushMany,
+	WalkOnce,	// 000
+	WalkMany,	// 001
+	SwitchOnce, // 010
+	SwitchMany, // 011
+	GunOnce,    // 100
+	GunMany,    // 101
+	PushOnce,   // 110
+	PushMany,   // 111
 } triggertype_e;
 
 // define names for the Speed field of the general linedefs
@@ -1012,6 +1054,32 @@ void P_AddAmbientSfx(int sequence);
 void P_InitAmbientSound(void);
 
 /*****************************************************************************/
+
+/*** CONSTANTS ***/
+
+/* P_EXSLineTrigger_t -- Trigger for line */
+typedef enum P_EXSLineTrigger_s
+{
+	PWXSLT_WALK,								// Walk
+	PWXSLT_SWITCH,								// Press button
+	PWXSLT_GUN,									// Shoot
+	PWXSLT_PUSH,								// Push on it
+	PWXSLT_MAP,									// Done at map start
+	
+	NUMPEXSLINETRIGGERS
+} P_EXSLineTrigger_t;
+
+/*** STRUCTURES ***/
+
+/* P_EXSLineType_t -- Line special type */
+typedef struct P_EXSLineType_s
+{
+	uint16_t ID;								// Line Trigger ID
+	P_EXSLineTrigger_t Trigger;					// Trigger to activate
+	bool_t Repeats;								// Trigger repeats
+} P_EXSLineType_t;
+
+/*** FUNCTIONS ***/
 
 bool_t P_RMODH_Specials(Z_Table_t* const a_Table, const WL_WADFile_t* const a_WAD, const D_RMODPrivates_t a_ID, D_RMODPrivate_t* const a_Private);
 bool_t P_RMODO_Specials(const bool_t a_Pushed, const struct WL_WADFile_s* const a_WAD, const D_RMODPrivates_t a_ID);

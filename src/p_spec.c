@@ -1040,6 +1040,7 @@ void P_CrossSpecialLine(int linenum, int side, mobj_t* thing)
 void P_ActivateCrossedLine(line_t* line, int side, mobj_t* thing)
 {
 	int ok;
+	bool_t UseAgain;
 	bool_t forceuse;				//SoM: 4/26/2000: ALLTRIGGER should allow monsters to use generalized types too!
 	
 	forceuse = false;
@@ -1054,6 +1055,15 @@ void P_ActivateCrossedLine(line_t* line, int side, mobj_t* thing)
 		// Things that should NOT trigger specials...
 		if (thing->RXFlags[0] & MFREXA_NOCROSSTRIGGER)
 			return;
+	
+	/* Better Generalized Support */
+	// GhostlyDeath <May 2, 2012> -- This is MUCH better than before!
+	UseAgain = false;
+	if (EV_TryGenTrigger(line, side, thing, EVTGT_WALK, (forceuse ? EVTGTF_FORCEUSE : 0), &UseAgain))
+		if (!UseAgain)
+			line->special = 0;
+	return;	
+#if 0
 	
 	//SoM: 3/7/2000: Check for generalized line types/
 	if (boomsupport)
@@ -1889,6 +1899,7 @@ void P_ActivateCrossedLine(line_t* line, int side, mobj_t* thing)
 				}
 			}
 	}
+#endif
 }
 
 //
@@ -1898,7 +1909,16 @@ void P_ActivateCrossedLine(line_t* line, int side, mobj_t* thing)
 void P_ShootSpecialLine(mobj_t* thing, line_t* line)
 {
 	int ok;
+	bool_t UseAgain;
 	
+	/* Better Generalized Support */
+	// GhostlyDeath <May 2, 2012> -- This is MUCH better than before!
+	UseAgain = false;
+	if (EV_TryGenTrigger(line, -1, thing, EVTGT_SHOOT, 0, &UseAgain))
+		P_ChangeSwitchTexture(line, UseAgain);
+	return;
+
+#if 0
 	//SoM: 3/7/2000: Another General type check
 	if (boomsupport)
 	{
@@ -2069,6 +2089,7 @@ void P_ShootSpecialLine(mobj_t* thing, line_t* line)
 				}
 			break;
 	}
+#endif
 }
 
 //
@@ -3947,6 +3968,8 @@ int P_GetThingFloorType(mobj_t* thing)
 /*** GLOBALS ***/
 P_BossSpitEntry_t* g_BossSpitList = NULL;		// List of things to spit out
 size_t g_NumBossSpitList = 0;					// Count of those things
+EV_ReGenMap_t* g_ReGenMap = NULL;				// List of generalization
+size_t g_NumReGenMap = 0;						// Number of them
 
 /*** FUNCTIONS ***/
 
@@ -3958,9 +3981,194 @@ static bool_t PS_ExtraSpecialOCCB(const bool_t a_Pushed, const struct WL_WADFile
 	WL_EntryStream_t* Stream;
 	size_t i;
 	char Buf[BUFSIZE];
-	char* p;
+	char* p, *TokStr;
 	int32_t Val;
 	mobjtype_t MoType;
+	uint32_t Source, Target, Type, Temp;
+	
+	/* Load LineDef Specials */
+	// Clear
+	if (g_ReGenMap)
+		Z_Free(g_ReGenMap);
+	g_ReGenMap = NULL;
+	g_NumReGenMap = 0;
+	
+	// Load from lump (if it exists)
+	Entry = WL_FindEntry(NULL, 0, "RMD_EGLL");
+	
+	// Only if it was found, attempt to work with it
+	if (Entry)
+	{
+		// Open stream
+		Stream = WL_StreamOpen(Entry);
+		
+		// Did it work?
+		if (Stream)
+		{
+			// Check unicode
+			WL_StreamCheckUnicode(Stream);
+			
+			// While there is no end
+			while (!WL_StreamEOF(Stream))
+			{
+				// Read into buffer
+				memset(Buf, 0, sizeof(Buf));
+				WL_StreamReadLine(Stream, Buf, BUFSIZE);
+				
+				// If it starts with a #, a comment
+				if (Buf[0] == '#')
+					continue;
+				
+				// Reset
+				i = 0;
+				Source = Target = Type = 0;
+				
+				// Why not use strtok(), It is fun and on top of that! insecure!
+				TokStr = strtok(Buf, " ");
+				
+				// No token
+				if (!TokStr)
+					continue;
+				
+				// Parse loop
+				do
+				{
+					
+					// Get Target Type?
+					if (i == 0)
+					{
+						// Get the type to translate from
+						Source = atoi(TokStr);
+						
+						// Bad number?
+						if (!Source || Source >= GenCrusherBase)
+							break;
+						
+						// Next token
+						i++;
+					}
+					
+					// Get appearence
+					else if (i == 1)
+					{
+						// Check for game compatibilities
+						if (strcasecmp(TokStr, "ALL") != 0)
+							if ((strcasecmp(TokStr, "DOOM") == 0 && g_CoreGame != COREGAME_DOOM) ||
+								(strcasecmp(TokStr, "HERETIC") == 0 && g_CoreGame != COREGAME_HERETIC) ||
+								(strcasecmp(TokStr, "HEXEN") == 0 && g_CoreGame != COREGAME_HEXEN) ||
+								(strcasecmp(TokStr, "STRIFE") == 0 && g_CoreGame != COREGAME_STRIFE))
+								break;
+							
+						// Next token
+						i++;
+					}
+					
+					// Get Type (Door, Floor, etc.)
+					else if (i == 2)
+					{
+						if (strcasecmp(TokStr, "DOOR") == 0)
+							Type = GenDoorBase;
+						else
+							break;
+							
+						// Next token
+						i++;
+					}
+					
+					// Get Trigger
+					else if (i == 3)
+					{
+						// Clear
+						Temp = 0;
+						
+						// Which one?
+						if (strcasecmp(TokStr, "W1") == 0)
+							Temp = WalkOnce;
+						else if (strcasecmp(TokStr, "WR") == 0)
+							Temp = WalkMany;
+						else if (strcasecmp(TokStr, "S1") == 0)
+							Temp = SwitchOnce;
+						else if (strcasecmp(TokStr, "SR") == 0)
+							Temp = SwitchMany;
+						else if (strcasecmp(TokStr, "G1") == 0)
+							Temp = GunOnce;
+						else if (strcasecmp(TokStr, "GR") == 0)
+							Temp = GunMany;
+						else if (strcasecmp(TokStr, "P1") == 0)
+							Temp = PushOnce;
+						else if (strcasecmp(TokStr, "PR") == 0)
+							Temp = PushMany;
+						
+						// Or it in
+						Target |= (Temp << TriggerTypeShift) & TriggerType;
+
+						// Next token
+						i++;
+					}
+					
+					// Determine flags and other stuff
+					else
+					{
+						// Handle Door Stuff
+						if (Type == GenDoorBase)
+						{
+							// Speed
+							if (strcasecmp(TokStr, "SLOW") == 0)
+								Target |= (SpeedSlow << DoorSpeedShift) & DoorSpeed;
+							else if (strcasecmp(TokStr, "NORMAL") == 0)
+								Target |= (SpeedNormal << DoorSpeedShift) & DoorSpeed;
+							else if (strcasecmp(TokStr, "FAST") == 0)
+								Target |= (SpeedFast << DoorSpeedShift) & DoorSpeed;
+							else if (strcasecmp(TokStr, "TURBO") == 0)
+								Target |= (SpeedTurbo << DoorSpeedShift) & DoorSpeed;
+								
+							// Wait
+							else if (strcasecmp(TokStr, "WAIT1S") == 0)
+								Target |= (PGLGOD_WAITONE << DoorDelayShift) & DoorDelay;
+							else if (strcasecmp(TokStr, "WAIT4S") == 0)
+								Target |= (PGLGOD_WAITFOUR << DoorDelayShift) & DoorDelay;
+							else if (strcasecmp(TokStr, "WAIT9S") == 0)
+								Target |= (PGLGOD_WAITNINE << DoorDelayShift) & DoorDelay;
+							else if (strcasecmp(TokStr, "WAIT30S") == 0)
+								Target |= (PGLGOD_WAITTHIRTY << DoorDelayShift) & DoorDelay;
+							
+							// Monster
+							else if (strcasecmp(TokStr, "MONSTER") == 0)
+								Target |= (1 << DoorMonsterShift) & DoorMonster;
+							
+							// Kind
+							else if (strcasecmp(TokStr, "OWC") == 0)
+								Target |= (PGLGDK_ODC << DoorKindShift) & DoorKind;
+							else if (strcasecmp(TokStr, "OSO") == 0)
+								Target |= (PGLGDK_O << DoorKindShift) & DoorKind;
+							else if (strcasecmp(TokStr, "CSO") == 0)
+								Target |= (PGLGDK_CDO << DoorKindShift) & DoorKind;
+							else if (strcasecmp(TokStr, "CSC") == 0)
+								Target |= (PGLGDK_C << DoorKindShift) & DoorKind;
+						}
+					}
+				} while ((TokStr = strtok(NULL, " ")));
+				
+				// OR target to type
+				Target |= Type;
+				
+				// Only if source, target, and type
+				if (Source && Target && Type)
+				{
+					Z_ResizeArray((void**)&g_ReGenMap, sizeof(*g_ReGenMap), g_NumReGenMap, g_NumReGenMap + 1);
+					g_ReGenMap[g_NumReGenMap].Source = Source;
+					g_ReGenMap[g_NumReGenMap++].Target = Target;
+					
+					// Debug
+					if (devparm)
+						CONL_PrintF("Line Map: %08x -> %08x", Source, Target);
+				}
+			}
+			
+			// Close stream
+			WL_StreamClose(Stream);
+		}
+	}
 	
 	/* Load boss spitters */
 	// The boss spitter list is for internal constant removal and is not really
@@ -4024,6 +4232,7 @@ static bool_t PS_ExtraSpecialOCCB(const bool_t a_Pushed, const struct WL_WADFile
 				
 				// Add to end of cube list
 				Z_ResizeArray((void**)&g_BossSpitList, sizeof(*g_BossSpitList), g_NumBossSpitList, g_NumBossSpitList + 1);
+				Z_ChangeTag(g_BossSpitList, PU_WLDKRMOD);
 				
 				// Put here
 				g_BossSpitList[g_NumBossSpitList].Chance = Val;

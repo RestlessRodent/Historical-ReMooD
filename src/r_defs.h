@@ -229,8 +229,8 @@ typedef struct sector_s
 	short floorpic;
 	short ceilingpic;
 	short lightlevel;
-	short special;
-	short oldspecial;			//SoM: 3/6/2000: Remember if a sector was secret (for automap)
+	uint32_t special;
+	uint32_t oldspecial;			//SoM: 3/6/2000: Remember if a sector was secret (for automap)
 	short tag;
 	int nexttag, firsttag;		//SoM: 3/6/2000: by killough: improves searches for tags.
 	
@@ -344,7 +344,7 @@ typedef struct
 	sector_t* sector;
 	
 	//SoM: 3/6/2000: This is the special of the linedef this side belongs to.
-	int special;
+	uint32_t special;
 	
 	// GhostlyDeath <September 29, 2011> -- Cool Texture Stuff
 	fixed_t ScaleX, ScaleY;
@@ -366,6 +366,8 @@ typedef enum
 	ST_NEGATIVE
 } slopetype_t;
 
+struct P_EXSLineType_s;
+
 typedef struct line_s
 {
 	// Vertices, from v1 to v2.
@@ -378,7 +380,7 @@ typedef struct line_s
 	
 	// Animation related.
 	short flags;
-	short special;
+	uint32_t special;
 	short tag;
 	
 	// Visual appearance: SideDefs.
@@ -414,11 +416,12 @@ typedef struct line_s
 	int ecolormap;				// SoM: Used for 282 linedefs
 	
 	// ReMooD Additions
-	size_t VertexNum[2];					// IDs for vertexes
+	size_t VertexNum[2];						// IDs for vertexes
+	struct P_EXSLineType_s* LineSpecial;		// Specialized Special
 	
 	// Hexen
-	uint8_t HexenSpecial;					// Hexen special ID
-	uint8_t ACSArgs[5];						// Arguments for ACS lines
+	uint8_t HexenSpecial;						// Hexen special ID
+	uint8_t ACSArgs[5];							// Arguments for ACS lines
 } line_t;
 
 //
