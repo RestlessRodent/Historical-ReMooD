@@ -364,12 +364,13 @@ typedef struct P_RMODTouchSpecial_s
 {
 	/* General */
 	char SpriteName[4];							// Name of sprite
-	char PickupMsg[PMAXRTSFIELDSIZE];			// Message to print when picked up
-	char PickupSnd[PMAXRTSFIELDSIZE];			// Sound to play when picked up
+	char* PickupSnd;							// Sound to play when picked up
+	const char** PickupMsgRef;					// Message to print when picked up
+	const char* PickupMsgFaked;					// Faked pickup message
 	
 	/* Modifiers */
-	char GiveWeapon[PMAXRTSFIELDSIZE];			// Weapon to give
-	char GiveAmmo[PMAXRTSFIELDSIZE];			// Ammo to give
+	char* GiveWeapon;							// Weapon to give
+	char* GiveAmmo;								// Ammo to give
 	bool_t KeepNotNeeded;						// Keep when not needed
 	bool_t RemoveAlways;						// Always remove this thing
 	bool_t MonsterCanGrab;						// Monster can grab item

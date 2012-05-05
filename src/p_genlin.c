@@ -548,20 +548,20 @@ manual_lift:
 		switch (Dely)
 		{
 			case 0:
-				plat->wait = 1 * 35;
+				plat->wait = 1 * TICRATE;
 				break;
 			case 1:
-				plat->wait = PLATWAIT * 35;
+				plat->wait = PLATWAIT * TICRATE;
 				break;
 			case 2:
-				plat->wait = 5 * 35;
+				plat->wait = 5 * TICRATE;
 				break;
 			case 3:
-				plat->wait = 10 * 35;
+				plat->wait = 10 * TICRATE;
 				break;
 		}
 		
-		S_StartSound((mobj_t*)&sec->soundorg, sfx_pstart);
+		S_StartSound((S_NoiseThinker_t*)&sec->soundorg, sfx_pstart);
 		P_AddActivePlat(plat);	// add this plat to the list of active plats
 		
 		if (manual)
@@ -949,7 +949,7 @@ manual_locked:
 		// killough 4/15/98: fix generalized door opening sounds
 		// (previously they always had the blazing door close sound)
 		
-		S_StartSound((mobj_t*)&door->sector->soundorg,	// killough 4/15/98
+		S_StartSound((S_NoiseThinker_t*)&door->sector->soundorg,	// killough 4/15/98
 		             door->speed >= VDOORSPEED * 4 ? sfx_bdopn : sfx_doropn);
 		             
 		if (manual)
@@ -1064,7 +1064,8 @@ manual_door:
 				door->topheight = P_FindLowestCeilingSurrounding(sec);
 				door->topheight -= 4 * FRACUNIT;
 				if (door->topheight != sec->ceilingheight)
-					S_StartSound((mobj_t*)&door->sector->soundorg, sfx_bdopn);
+					S_StartSound((S_NoiseThinker_t*)&door->sector->soundorg,	// killough 4/15/98
+						door->speed >= VDOORSPEED * 4 ? sfx_bdopn : sfx_doropn);
 				door->type = Sped >= SpeedFast ? genBlazeRaise : genRaise;
 				break;
 			case ODoor:
@@ -1072,25 +1073,27 @@ manual_door:
 				door->topheight = P_FindLowestCeilingSurrounding(sec);
 				door->topheight -= 4 * FRACUNIT;
 				if (door->topheight != sec->ceilingheight)
-					S_StartSound((mobj_t*)&door->sector->soundorg, sfx_bdopn);
+					S_StartSound((S_NoiseThinker_t*)&door->sector->soundorg,	// killough 4/15/98
+						door->speed >= VDOORSPEED * 4 ? sfx_bdopn : sfx_doropn);
 				door->type = Sped >= SpeedFast ? genBlazeOpen : genOpen;
 				break;
 			case CdODoor:
 				door->topheight = sec->ceilingheight;
 				door->direction = -1;
-				S_StartSound((mobj_t*)&door->sector->soundorg, sfx_dorcls);
+				S_StartSound((S_NoiseThinker_t*)&door->sector->soundorg, sfx_dorcls);
 				door->type = Sped >= SpeedFast ? genBlazeCdO : genCdO;
 				break;
 			case CDoor:
 				door->topheight = P_FindLowestCeilingSurrounding(sec);
 				door->topheight -= 4 * FRACUNIT;
 				door->direction = -1;
-				S_StartSound((mobj_t*)&door->sector->soundorg, sfx_dorcls);
+				S_StartSound((S_NoiseThinker_t*)&door->sector->soundorg, sfx_dorcls);
 				door->type = Sped >= SpeedFast ? genBlazeClose : genClose;
 				break;
 			default:
 				break;
 		}
+		
 		if (manual)
 			return rtn;
 	}
@@ -1099,10 +1102,216 @@ manual_door:
 
 /****************************************************************************/
 
+/* EV_HExDoGenPlat() -- Do high extended generalized platform */
+bool_t EV_HExDoGenPlat(line_t* const a_Line, mobj_t* const a_Object)
+{
+	plat_t* NewPlat;
+	EV_GenHEFType_t HEFType;
+	EV_GenHESpeed_t HEFSpeed;
+	EV_GenHEFCDWait_t HEFWait;
+	floorchange_e HEFMode;
+	bool_t Ret, StnMove;
+	int SectorNum;
+	sector_t* CurSec;
+	
+	/* Check */
+	if (!a_Line)
+		return false;
+	
+	/* Init */
+	Ret = false;
+	StnMove = false;
+	
+	/* Extract Variables */
+	HEFSpeed = (a_Line->special & EVGENGE_SPEEDMASK) >> EVGENGE_SPEEDSHIFT;
+	HEFType = (a_Line->special & EVGENGE_FCPTYPEMASK) >> EVGENGE_FCPTYPESHIFT;
+	HEFWait = (a_Line->special & EVGENGE_FCDWAITMASK) >> EVGENGE_FCDWAITSHIFT;
+	HEFMode = (a_Line->special & EVGENGE_FCPMODEMASK) >> EVGENGE_FCPMODESHIFT;
+		
+	/* Activate plats and such in status */
+	if (HEFType == EVGHEPLATT_LHFPERP || HEFType == EVGHEPLATT_CEILTOGGLE)
+	{
+		P_ActivateInStasis(a_Line->tag);
+		
+		// Toggle?
+		if (HEFType == EVGHEPLATT_CEILTOGGLE)
+			Ret = true;
+	}
+	
+	/* Create plats when needed */
+	SectorNum = -1; 
+	
+	// Run through everything
+	while ((SectorNum = P_FindSectorFromLineTag(a_Line, SectorNum)) >= 0)
+	{
+		// Get current sector
+		CurSec = &sectors[SectorNum];
+		
+		// If the sector is active, ignore it
+		if (P_SectorActive(floor_special, CurSec))
+			continue;
+		
+		// Create new plat here
+		Ret = true;
+		NewPlat = Z_Malloc(sizeof(*NewPlat), PU_LEVSPEC, 0);
+		P_AddThinker(&NewPlat->thinker);
+		
+		// Base plat stuff
+		NewPlat->sector = CurSec;
+		NewPlat->sector->floordata = NewPlat;
+		NewPlat->thinker.function.acp1 = (actionf_p1)T_PlatRaise;
+		NewPlat->tag = a_Line->tag;
+		NewPlat->low = CurSec->floorheight;
+		
+		// Determine plat type
+			// Perpetual Lift
+		if (HEFType == EVGHEPLATT_LHFPERP)
+		{
+			NewPlat->type = perpetualRaise;
+			
+			// Lower Area
+			NewPlat->low = P_FindLowestFloorSurrounding(CurSec);
+			if (NewPlat->low > CurSec->floorheight)
+				NewPlat->low = CurSec->floorheight;
+				
+			// Higher Area
+			NewPlat->high = P_FindHighestFloorSurrounding(CurSec);
+			if (NewPlat->high < CurSec->floorheight)
+				NewPlat->high = CurSec->floorheight;
+			
+			// Randomize up/down
+			NewPlat->status = P_Random() & 1;
+			
+		}
+			// Floor/Ceiling Toggle
+		else if (HEFType == EVGHEPLATT_CEILTOGGLE)
+		{
+			NewPlat->type = toggleUpDn;
+			
+			NewPlat->crush = true;
+			NewPlat->low = CurSec->ceilingheight;
+			NewPlat->high = CurSec->floorheight;
+			NewPlat->status = down;
+		}
+			// Down, Wait, Up, Stay (A Lift)
+		else if (HEFType == EVGHEPLATT_DWUS)
+		{
+			NewPlat->type = downWaitUpStay;
+			
+			// Find where to drop to
+			NewPlat->low = P_FindLowestFloorSurrounding(CurSec);
+			if (NewPlat->low > CurSec->floorheight)
+				NewPlat->low = CurSec->floorheight;
+				
+			NewPlat->high = CurSec->floorheight;
+			NewPlat->status = down;
+		}
+			// Raise And Change
+		else if (HEFType == EVGHEPLATT_RAISE32 || HEFType == EVGHEPLATT_RAISE24)
+		{
+			NewPlat->type = raiseAndChange;
+			
+			NewPlat->high = CurSec->floorheight +
+				(HEFType == EVGHEPLATT_RAISE32 ? 32 : 24) * FRACUNIT;
+			NewPlat->status = up;
+			
+			StnMove = true;
+		}
+			// Next Nearest and Change
+		else if (HEFType == EVGHEPLATT_NNF)
+		{
+			NewPlat->type = raiseToNearestAndChange;
+			
+			NewPlat->high = P_FindNextHighestFloor(CurSec, CurSec->floorheight);
+			NewPlat->status = up;
+			
+			StnMove = true;
+		}
+			// Unknown
+		else
+			NewPlat->type = 0;
+		
+		// Texture/Type changing
+		if (HEFMode == FChgTxt || HEFMode == FChgZero)
+			CurSec->floorpic = sides[a_Line->sidenum[0]].sector->floorpic;
+			
+		// NO MORE DAMAGE, IF APPLICABLE
+		if (HEFMode == FChgZero)
+		{
+			CurSec->special = 0;
+			CurSec->oldspecial = 0;	//SoM: 3/7/2000: Clear old field.
+		}
+		
+		// Speed
+		if (HEFSpeed == EVGHES_SLOWEST)
+			NewPlat->speed = PLATSPEED / 8;
+		else if (HEFSpeed == EVGHES_SLOWER)
+			NewPlat->speed = PLATSPEED / 4;
+		else if (HEFSpeed == EVGHES_SLOW)
+			NewPlat->speed = PLATSPEED / 2;
+		else if (HEFSpeed == EVGHES_NORMAL)
+			NewPlat->speed = PLATSPEED;
+		else if (HEFSpeed == EVGHES_FAST)
+			NewPlat->speed = PLATSPEED * 2;
+		else if (HEFSpeed == EVGHES_FASTER)
+			NewPlat->speed = PLATSPEED * 4;
+		else if (HEFSpeed == EVGHES_FASTEST)
+			NewPlat->speed = PLATSPEED * 8;
+		
+		// Wait
+		if (HEFType == EVGHEPLATT_LHFPERP || HEFType == EVGHEPLATT_CEILTOGGLE)
+		{
+			if (HEFWait == EVGHEFCDW_WAIT1S)
+				NewPlat->wait = 1 * TICRATE;
+			else if (HEFWait == EVGHEFCDW_WAIT3S)
+				NewPlat->wait = 3 * TICRATE;
+			else if (HEFWait == EVGHEFCDW_WAIT4S)
+				NewPlat->wait = 4 * TICRATE;
+			else if (HEFWait == EVGHEFCDW_WAIT5S)
+				NewPlat->wait = 5 * TICRATE;
+			else if (HEFWait == EVGHEFCDW_WAIT9S)
+				NewPlat->wait = 9 * TICRATE;
+			else if (HEFWait == EVGHEFCDW_WAIT10S)
+				NewPlat->wait = 10 * TICRATE;
+			else if (HEFWait == EVGHEFCDW_WAIT30S)
+				NewPlat->wait = 30 * TICRATE;
+			else if (HEFWait == EVGHEFCDW_WAIT60S)
+				NewPlat->wait = 60 * TICRATE;
+		}
+		
+		// Make noise
+		S_StartSound((S_NoiseThinker_t*)&CurSec->soundorg, (StnMove ? sfx_stnmov : sfx_pstart));
+		
+		// Add this plat
+		P_AddActivePlat(NewPlat);
+	}
+	
+	/* Activated */
+	return Ret;
+#if 0
+		
+		switch (type)
+		{
+				break;
+				
+				
+				
+			default:
+				break;
+		}
+		P_AddActivePlat(plat);
+	}
+	return rtn;
+#endif
+}
+
+/****************************************************************************/
+
 /* EV_TryGenTrigger() -- Tries to trigger a line */
 bool_t EV_TryGenTrigger(line_t* const a_Line, const int a_Side, mobj_t* const a_Object, const EV_TryGenType_t a_Type, const uint32_t a_Flags, bool_t* const a_UseAgain)
 {
 	triggertype_e TrigMode;
+	uint32_t TypeBase;
 	
 	/* Check */
 	if (!a_Line)
@@ -1114,7 +1323,7 @@ bool_t EV_TryGenTrigger(line_t* const a_Line, const int a_Side, mobj_t* const a_
 	
 	/* Debug */
 	if (devparm)
-		CONL_PrintF("Trig %p by %p (side %+1i): Via %c, %u\n", a_Line, a_Object, a_Side, (a_Type == EVTGT_WALK ? 'W' : (a_Type == EVTGT_SHOOT ? 'G' : 'S')), a_Line->special);
+		CONL_PrintF("Trig %p by %p (side %+1i): Via %c, %8x\n", a_Line, a_Object, a_Side, (a_Type == EVTGT_WALK ? 'W' : (a_Type == EVTGT_SHOOT ? 'G' : 'S')), a_Line->special);
 	
 	/* Standard Boom Types */
 	// These are available in Boom
@@ -1130,10 +1339,10 @@ bool_t EV_TryGenTrigger(line_t* const a_Line, const int a_Side, mobj_t* const a_
 		TrigMode &= ~1;
 		
 		// Determine trigger compatibility
-		if ((a_Type == WalkOnce && TrigMode != EVTGT_WALK) ||
-			((a_Type == PushOnce || a_Type == SwitchOnce) && TrigMode != EVTGT_SWITCH) ||
-			(a_Type == GunOnce && TrigMode != EVTGT_SHOOT) ||
-			(TrigMode == EVTGT_MAPSTART))
+		if ((TrigMode == WalkOnce && a_Type != EVTGT_WALK) ||
+			((TrigMode == PushOnce || TrigMode == SwitchOnce) && a_Type != EVTGT_SWITCH) ||
+			(TrigMode == GunOnce && a_Type != EVTGT_SHOOT) ||
+			(a_Type == EVTGT_MAPSTART))
 			return false;
 		
 		// Generic Floors
@@ -1145,7 +1354,7 @@ bool_t EV_TryGenTrigger(line_t* const a_Line, const int a_Side, mobj_t* const a_
 					return false;
 			
 			// Non-manual push
-			if (!a_Line->tag && ((a_Line->special & 6) != 6))
+			if (!a_Line->tag && TrigMode != PushOnce)
 				return false;
 			
 			// Do the command and return
@@ -1161,7 +1370,7 @@ bool_t EV_TryGenTrigger(line_t* const a_Line, const int a_Side, mobj_t* const a_
 					return false;	// CeilingModel is "Allow Monsters" if CeilingChange is 0
 			
 			// Only accept push w/o tag
-			if (!a_Line->tag && ((a_Line->special & 6) != 6))	//all non-manual
+			if (!a_Line->tag && TrigMode != PushOnce)	//all non-manual
 				return false;	//generalized types require tag
 			
 			return EV_DoGenCeiling(a_Line, a_Object);
@@ -1181,7 +1390,7 @@ bool_t EV_TryGenTrigger(line_t* const a_Line, const int a_Side, mobj_t* const a_
 			}
 			
 			// Only accept push w/o tag
-			if (!a_Line->tag && ((a_Line->special & 6) != 6))	//all non-manual
+			if (!a_Line->tag && TrigMode != PushOnce)	//all non-manual
 				return false;	//generalized types require tag
 			
 			return EV_DoGenDoor(a_Line, a_Object);
@@ -1190,6 +1399,19 @@ bool_t EV_TryGenTrigger(line_t* const a_Line, const int a_Side, mobj_t* const a_
 		// Generic Locked Doors
 		else if (a_Line->special >= GenLockedBase)
 		{
+			// Players Only
+			if (!a_Object->player)
+				return false;
+			
+			// No keys to unlock door
+			if (!P_CanUnlockGenDoor(a_Line, a_Object->player))
+				return false;
+			
+			// Only accept push w/o tag
+			if (!a_Line->tag && TrigMode != PushOnce)	//all non-manual
+				return false;	//generalized types require tag
+			
+			return EV_DoGenLockedDoor(a_Line, a_Object);
 		}
 		
 		// Generic Lifts
@@ -1211,11 +1433,33 @@ bool_t EV_TryGenTrigger(line_t* const a_Line, const int a_Side, mobj_t* const a_
 		// Generic Stairs
 		else if (a_Line->special >= GenStairsBase)
 		{
+			// Check for Monster trigger
+			if (!a_Object->player)
+				if ((!(a_Line->special & StairMonster)) && !(a_Flags & EVTGTF_FORCEUSE))
+					return false;
+			
+			// Tag Required
+			if (!a_Line->tag && TrigMode != PushOnce)	//all non-manual
+				return false;
+			
+			// Do the command and return
+			return EV_DoGenStairs(a_Line, a_Object);
 		}
 		
 		// Generic Crushers
 		else if (a_Line->special >= GenCrusherBase)
 		{
+			// Check for Monster trigger
+			if (!a_Object->player)
+				if ((!(a_Line->special & CrusherMonster)) && !(a_Flags & EVTGTF_FORCEUSE))
+					return false;
+			
+			// Tag Required
+			if (!a_Line->tag && TrigMode != PushOnce)	//all non-manual
+				return false;
+				
+			// Do the command and return
+			return EV_DoGenCrusher(a_Line, a_Object);
 		}
 		
 		// Unknown
@@ -1229,11 +1473,59 @@ bool_t EV_TryGenTrigger(line_t* const a_Line, const int a_Side, mobj_t* const a_
 	{
 	}
 	
-	/* ReMooD 32-bit Extended Specials */
+	/* ReMooD High-Extended Specials */
 	// These are only accessable via RMD_EGLL or perhaps UDMF. These are mostly
 	// for internal support.
 	else if (a_Line->special > 0xFFFF)
 	{
+		// Get Type Base
+		TypeBase = ((a_Line->special & EVGENHE_TYPEMASK) >> EVGENHE_TYPESHIFT);
+		
+		// If the type is Odd, it has a trigger
+		if (TypeBase & 1)
+		{
+			// Extract Trigger
+			TrigMode = (a_Line->special & EVGENGE_TRIGMASK) >> EVGENGE_TRIGSHIFT;
+			
+			// Trigger only once?
+			*a_UseAgain = (TrigMode & 1);
+			
+			// Determine trigger compatibility
+			if ((TrigMode == WalkOnce && a_Type != EVTGT_WALK) ||
+				((TrigMode == PushOnce || TrigMode == SwitchOnce) && a_Type != EVTGT_SWITCH) ||
+				(TrigMode == GunOnce && a_Type != EVTGT_SHOOT) ||
+				(TrigMode == EVTGT_MAPSTART))
+				return false;
+			
+			// Player and not player triggered
+			if (a_Object->player)
+				if (!((a_Line->special & EVGENGE_PLAYERMASK) >> EVGENGE_PLAYERSHIFT))
+					return false;
+			
+			// Check Monster Trigger
+			if (!a_Object->player)
+				if (!((a_Line->special & EVGENGE_MONSTERMASK) >> EVGENGE_MONSTERSHIFT))
+					return false;
+			
+			// Gunshots and pushable don't need tags
+			if (!a_Line->tag && (TrigMode != PushOnce && TrigMode != GunOnce))
+				return false;
+		}
+		
+		// Otherwise, if it is even it is done at map start
+		else
+		{
+			// Not map start
+			if (TrigMode != EVTGT_MAPSTART)
+				return false;
+			
+			// Never use map starts again
+			*a_UseAgain = false;
+		}
+		
+		// Activate Extended Triggers
+		if (TypeBase == EVGHET_XPLAT)
+			return EV_HExDoGenPlat(a_Line, a_Object);
 	}
 	
 	/* Failed */

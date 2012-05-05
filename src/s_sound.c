@@ -1130,8 +1130,9 @@ int S_SoundIDForName(const char* const a_Name)
 	
 	/* Find sounds */
 	for (i = 0; i < NUMSFX; i++)
-		if (strcasecmp(a_Name, S_sfx[i].name) == 0)
-			return i;
+		if (S_sfx[i].name)
+			if (strcasecmp(a_Name, S_sfx[i].name) == 0)
+				return i;
 	
 	/* Return default sound */
 	return 0;

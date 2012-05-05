@@ -873,6 +873,9 @@ D_ProfileEx_t* D_CreateProfileEx(const char* const a_Name)
 	New->JoySens[0] = New->JoySens[1] = 100;
 	New->LookUpDownSpeed = (1 << 25);
 	
+	// Default Colors
+	New->ColorPickup = VEX_MAP_WHITE;
+	
 	/* Link */
 	if (!l_FirstProfile)
 		l_FirstProfile = New;

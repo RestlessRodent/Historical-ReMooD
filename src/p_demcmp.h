@@ -208,6 +208,7 @@ typedef enum P_EXGSBitID_e
 	PEXGSBID_COIMPROVEDMOBJONMOBJ,				// Improved Mobj on Mobj
 	PEXGSBID_COIMPROVEPATHTRAVERSE,				// Smooth out path traversing
 	PEXGSBID_PLJUMPGRAVITY,						// Player Jump Gravity
+	PEXGSBID_FUNNOLOCKEDDOORS,					// No Doors are locked
 	
 	PEXGSNUMBITIDS
 } P_EXGSBitID_t;

@@ -733,6 +733,15 @@ int EV_PortalTeleport(line_t* line, mobj_t* thing, int side);
 
 // define masks and shifts for the lift type fields
 
+/* PGL_GenLiftDelay_t -- General Lift Delay */
+typedef enum PGL_GenLiftDelay_e
+{
+	PGLGLD_WAITONE,
+	PGLGLD_WAITTHREE,
+	PGLGLD_WAITFIVE,
+	PGLGLD_WAITTEN,
+} PGL_GenLiftDelay_t;
+
 #define LiftTarget            0x0300
 #define LiftDelay             0x00c0
 #define LiftMonster           0x0020
@@ -744,6 +753,15 @@ int EV_PortalTeleport(line_t* line, mobj_t* thing, int side);
 #define LiftSpeedShift             3
 
 // define masks and shifts for the stairs type fields
+
+/* PGL_GenStairStep_t -- General Stair Step */
+typedef enum PGL_GenStairStep_e
+{
+	PGLGSS_STEPFOUR,
+	PGLGSS_STEPEIGHT,
+	PGLGSS_STEPSIXTEEN,
+	PGLGSS_STEPTWENTYFOUR,
+} PGL_GenStairStep_t;
 
 #define StairIgnore           0x0200
 #define StairDirection        0x0100
@@ -797,6 +815,13 @@ typedef enum PGL_GenDoorKind_e
 	PGLGDK_C,
 } PGL_GenDoorKind_t;
 
+/* PGL_GenLockedDoorKind_t -- Kind of locked door */
+typedef enum PGL_GenLockedDoorKind_e
+{
+	PGLGLDK_ODC,
+	PGLGLDK_O,
+} PGL_GenLockedDoorKind_t;
+
 // define masks and shifts for the locked door type fields
 
 #define LockedNKeys           0x0200
@@ -848,6 +873,123 @@ int EV_DoGenLockedDoor(line_t* line, mobj_t* const a_Object);
 
 bool_t EV_TryGenTrigger(line_t* const a_Line, const int a_Side, mobj_t* const a_Object, const EV_TryGenType_t a_Type, const uint32_t a_Flags, bool_t* const a_UseAgain);
 uint32_t EV_DoomToGenTrigger(const uint32_t a_Input);
+
+/****** EXTENDED HIGH GENERALIZATION ******/
+
+/*** CONSTANTS ***/
+
+/* EV_GenHEType_t -- Generalized High Extended Type */
+// Consumes 5 of 32 bits, 27 left
+typedef enum EV_GenHEType_e
+{
+	EVGHET_NULL,								//  0 Do not use
+	
+	EVGHET_XDOOR,								//  1 XR Door
+	EVGHET_YFAKEFLOORS,							//  2 MM 3D Floors
+	EVGHET_XLOCKEDDOOR,							//  3 XR Locked Door
+	EVGHET_YTRANSFER,							//  4 MM Transfers
+	EVGHET_XFLOOR,								//  5 XR Floor
+	EVGHET_YSCROLLER,							//  6 MM Scrollers
+	EVGHET_XCEILING,							//  7 XR Ceiling
+	EVGHET_YEFFECTS,							//  8 MM Line Effects
+	EVGHET_XPLAT,								//  9 XR Platform [Replaces EV_DoPlat]
+	EVGHET_YTEAMSTARTS,							// 10 MM Team Starts
+	EVGHET_XCRUSHER,							// 11 XR Crusher
+	EVGHET_YUNUSED12,							// 12 MM Unused
+	EVGHET_XSTAIR,								// 13 XR Stair
+	EVGHET_YUNUSED14,							// 14 MM Unused
+	EVGHET_XELEVATOR,							// 15 XR Elevator
+	EVGHET_YUNUSED16,							// 16 MM Unused
+	EVGHET_XLIGHTS,								// 17 XR Lights
+	EVGHET_YUNUSED18,							// 18 MM Unused
+	EVGHET_XEXIT,								// 19 XR Exit
+	EVGHET_YUNUSED20,							// 20 MM Unused
+	EVGHET_XTELEPORT,							// 21 XR Teleporter
+	EVGHET_YUNUSED22,							// 22 MM Unused
+	EVGHET_XDONUT,								// 23 XR Donut
+	EVGHET_YUNUSED24,							// 24 MM Unused
+	EVGHET_XSCRIPTS,							// 25 XR Scripts
+	EVGHET_YSCRIPTS,							// 26 MM Scripts
+} EV_GenHEType_t;
+
+/* EV_GenHETrig_t -- Generalized High Extended Trigger */
+// Consumes 3 of 32 bits, 24 left
+typedef uint32_t EV_GenHEActivator_t;
+
+/* EV_GenHESpeed_t -- Generalized Speed */
+// Consumes 3 of 32 bits
+typedef enum EV_GenHESpeed_e
+{
+	EVGHES_SLOWEST,								// 000 Speed / 8
+	EVGHES_SLOWER,								// 001 Speed / 4
+	EVGHES_SLOW,								// 010 Speed / 2
+	EVGHES_NORMAL,								// 011 Speed
+	EVGHES_FAST,								// 100 Speed * 2
+	EVGHES_FASTER,								// 101 Speed * 4
+	EVGHES_FASTEST,								// 110 Speed * 8
+	EVGHES_INSTANT,								// 111 Instant
+} EV_GenHESpeed_t;
+
+/* EV_GenHEFCDWait_t -- Wait Delay */
+// Consumes 3 of 32 bits
+typedef enum EV_GenHEFCDWait_e
+{
+	EVGHEFCDW_WAIT1S,							// 000 Wait 1 Seconds
+	EVGHEFCDW_WAIT3S,							// 001 Wait 3 Seconds
+	EVGHEFCDW_WAIT4S,							// 010 Wait 4 Seconds
+	EVGHEFCDW_WAIT5S,							// 011 Wait 5 Seconds
+	EVGHEFCDW_WAIT9S,							// 100 Wait 9 Seconds
+	EVGHEFCDW_WAIT10S,							// 101 Wait 10 Seconds
+	EVGHEFCDW_WAIT30S,							// 110 Wait 30 Seconds
+	EVGHEFCDW_WAIT60S,							// 111 Wait 60 Seconds
+} EV_GenHEFCDWait_t;
+
+/* EV_GenHEFType_t -- Floor/Ceiling/Plat Type */
+// Uses 4 bits of 32
+typedef enum EV_GenHEFCPType_e
+{
+	EVGHEPLATT_LHFPERP,							// Perpetual lower to higher
+	EVGHEPLATT_CEILTOGGLE,						// Ceiling Toggle
+	EVGHEPLATT_DWUS,								// Down wait up stay
+	EVGHEPLATT_RAISE24,							// Raise and Change by 24
+	EVGHEPLATT_RAISE32,							// Raise and Change by 32
+	EVGHEPLATT_NNF,								// Next to Next Floor
+} EV_GenHEFType_t;
+
+/*** SHIFTS ***/
+
+// BASE
+#define EVGENHE_TYPEMASK			UINT32_C(0xF8000000)
+#define EVGENHE_TYPESHIFT			UINT32_C(27)
+#define EVGENHE_TYPEBASE(n)			((((uint32_t)(n)) << EVGENHE_TYPESHIFT) & EVGENHE_TYPEMASK)
+
+#define EVGENGE_TRIGMASK			UINT32_C(0x00000007)
+#define EVGENGE_TRIGSHIFT			UINT32_C(0)
+
+#define EVGENGE_SPEEDMASK			UINT32_C(0x00000038)
+#define EVGENGE_SPEEDSHIFT			UINT32_C(3)
+
+#define EVGENGE_MONSTERMASK			UINT32_C(0x00000040)
+#define EVGENGE_MONSTERSHIFT		UINT32_C(6)
+
+#define EVGENGE_PLAYERMASK			UINT32_C(0x00000080)
+#define EVGENGE_PLAYERSHIFT			UINT32_C(7)
+
+// FLOOR/CEILING/DOOR Wait Delay
+#define EVGENGE_FCDWAITMASK			UINT32_C(0x00000700)
+#define EVGENGE_FCDWAITSHIFT		UINT32_C(8)
+
+// Floor Stuff
+#define EVGENGE_FCFMODEMASK			UINT32_C(0x00003800)
+#define EVGENGE_FCFMODESHIFT		UINT32_C(11)
+
+// PLAT Stuff
+#define EVGENGE_FCPTYPEMASK			UINT32_C(0x00003800)
+#define EVGENGE_FCPTYPESHIFT		UINT32_C(11)
+#define EVGENGE_FCPMODEMASK			UINT32_C(0x0001C000)
+#define EVGENGE_FCPMODESHIFT		UINT32_C(14)
+
+/******************************************/
 
 // define names for the TriggerType field of the general linedefs
 

@@ -186,6 +186,7 @@ typedef struct
 	// Class Names
 	char* RClassName;							// Class Name
 	char* RMTName;								// MT Name
+	char* RNiceName;							// Nice Name
 	uint32_t RDehackEdID;						// DeHackEd ID
 	uint32_t RefStates[NUMINFOOBJECTSTATEGROUPS];	// State references
 	char* RFamilyClass;							// Family Class

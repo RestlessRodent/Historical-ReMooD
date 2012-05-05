@@ -366,14 +366,19 @@ int mega_health = 200;
 // eof Boris
 
 /* PS_PickupMessage() -- Handles pickup messages */
-void PS_PickupMessage(mobj_t* const a_Picker, mobj_t* const a_Upper, const char* const a_Message)
+void PS_PickupMessage(mobj_t* const a_Picker, mobj_t* const a_Upper, const char** const a_MessageRef)
 {
 #define BUFSIZE 128
 	int LocalPlayer, i;
 	char Buf[BUFSIZE];
+	D_ProfileEx_t* Prof;
 	
 	/* Check */
-	if (!a_Picker || !a_Upper)
+	if (!a_Picker || !a_Upper || !a_MessageRef)
+		return;
+	
+	/* Message references nothing */
+	if (!*a_MessageRef)
 		return;
 		
 	/* If the object picking it up is not a player... */
@@ -388,16 +393,25 @@ void PS_PickupMessage(mobj_t* const a_Picker, mobj_t* const a_Upper, const char*
 	// Nobody on these screens
 	if (i == MAXSPLITSCREENPLAYERS)
 		return;
+	
+	/* Get Profile */
+	Prof = a_Picker->player->ProfileEx;
 		
 	/* Find message to print */
 	memset(Buf, 0, sizeof(Buf));
-	if (a_Message)
-		strncpy(Buf, a_Message, BUFSIZE);
+	strncpy(Buf, *a_MessageRef, BUFSIZE);
 		
 	/* Print to console (to that player only) */
 	if (i >= 1)
 		CONL_PrintF("%c", 4 + (i - 1));
-	CONL_PrintF("%s\n", Buf);
+		
+	// Send pickup color
+	if (Prof)
+		if (Prof->ColorPickup >= 0 && Prof->ColorPickup < NUMVEXCOLORS)
+			CONL_PrintF("{%c", (Prof->ColorPickup < 10 ? '0' + Prof->ColorPickup : 'a' + (Prof->ColorPickup - 10)));
+	
+	// Send actual message
+	CONL_PrintF("%s{z\n", Buf);
 #undef BUFSIZE
 }
 
@@ -582,6 +596,12 @@ bool_t P_TouchSpecialThing(mobj_t* special, mobj_t* toucher)
 			return false;
 		
 		// Emit sounds and change colors
+			// Determine sound
+		if (Current->PickupSnd)
+			sound = S_SoundIDForName(Current->PickupSnd);
+		else
+			sound = sfx_itemup;
+		
 			// For Player
 		if (player)
 		{
@@ -612,6 +632,10 @@ bool_t P_TouchSpecialThing(mobj_t* special, mobj_t* toucher)
 		// Remove if we used it? or remove regardless
 		if ((Current->KeepNotNeeded && OKStat) || !Current->KeepNotNeeded || Current->RemoveAlways)
 			P_RemoveMobj(special);
+		
+		// Message?
+		if (Current->PickupMsgRef)
+			PS_PickupMessage(toucher, special, Current->PickupMsgRef);
 		
 		// Don't process anymore
 		return true;
@@ -924,6 +948,7 @@ static const char* PS_GetMobjNoun(mobj_t* const a_Mobj, bool_t* const a_Special,
 				}
 			}
 		}
+		
 		// Otherwise it is a monster or otherwise
 		else
 		{
@@ -946,10 +971,10 @@ static const char* PS_GetMobjNoun(mobj_t* const a_Mobj, bool_t* const a_Special,
 			// If we never returned, then there was no weapon used
 			if (!a_IsInflictor)
 				// Return nice name of object
-				return a_Mobj->info->RClassName;
+				return (a_Mobj->info->RNiceName ? a_Mobj->info->RNiceName : a_Mobj->info->RClassName);
 			
-			// Otherwise return the attack type
-			else
+			// Return attack type if the inflictor is the source
+			else if (a_IsInflictor && a_Mobj == a_Source)
 			{
 				switch (a_Mobj->RXAttackAttackType)
 				{
@@ -967,6 +992,11 @@ static const char* PS_GetMobjNoun(mobj_t* const a_Mobj, bool_t* const a_Special,
 						return "Unknown";
 				}
 			}
+			
+			// Otherwise return the inflictor
+			else if (a_IsInflictor && a_Mobj != a_Source)
+				// Return nice name
+				return (a_Mobj->info->RNiceName ? a_Mobj->info->RNiceName : a_Mobj->info->RClassName);
 		}
 	}
 }

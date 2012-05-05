@@ -21,6 +21,7 @@ map MAP01 "Entryway"
 	music D_RUNNIN
 
 map MAP02 "Underhalls"
+	creater "American McGee"
 	cluster 1
 	next MAP03
 	secretnext MAP02
@@ -30,6 +31,7 @@ map MAP02 "Underhalls"
 	music D_STALKS
 	
 map MAP03 "The Gantlet"
+	creater "American McGee"
 	cluster 1
 	next MAP04
 	secretnext MAP03
@@ -39,6 +41,7 @@ map MAP03 "The Gantlet"
 	music D_COUNTD
 	
 map MAP04 "The Focus"
+	creater "American McGee"
 	cluster 1
 	next MAP05
 	secretnext MAP04
@@ -47,14 +50,290 @@ map MAP04 "The Focus"
 	titlepatch CWILV03
 	music D_BETWEE
 
+map MAP05 "The Waste Tunnels"
+	creater "American McGee"
+	cluster 1
+	next MAP06
+	secretnext MAP05
+	levelnum 5
+	par 90
+	titlepatch CWILV04
+	music D_DOOM
+
+map MAP06 "The Crusher"
+	creater "American McGee"
+	cluster 1
+	next MAP07
+	secretnext MAP06
+	levelnum 6
+	par 150
+	titlepatch CWILV05
+	music D_THE_DA
+
 map MAP07 "Dead Simple"
+	creator "American McGee and Sandy Petersen"
 	cluster 1
 	next MAP08
 	secretnext MAP07
 	levelnum 7
-	creator "American McGee and Sandy Petersen"
-	par 30
+	par 120
 	titlepatch CWILV06
 	music D_SHAWN
 	map07special
+
+map MAP08 "Tricks and Traps"
+	creater "Sandy Petersen"
+	cluster 1
+	next MAP09
+	secretnext MAP08
+	levelnum 8
+	par 120
+	titlepatch CWILV07
+	music D_DTTBLU
+
+map MAP09 "The Pit"
+	creater "Sandy Petersen"
+	cluster 1
+	next MAP10
+	secretnext MAP09
+	levelnum 9
+	par 270
+	titlepatch CWILV08
+	music D_IN_CIT
+
+map MAP10 "Refueling Base"
+	creater "Tom Hall and Sandy Petersen"
+	cluster 1
+	next MAP11
+	secretnext MAP10
+	levelnum 10
+	par 90
+	titlepatch CWILV09
+	music D_DEAD
+
+map MAP11 "Circle of Death"
+	creater "John Romero"
+	cluster 1
+	next MAP12
+	secretnext MAP11
+	levelnum 11
+	par 210
+	titlepatch CWILV10
+	music D_STLKS2
+	
+defaultsettings
+	sky1 SKY2
+
+map MAP12 "The Factory"
+	creater "Sandy Petersen"
+	cluster 1
+	next MAP13
+	secretnext MAP12
+	levelnum 12
+	par 150
+	titlepatch CWILV11
+	music D_THEDA2
+	
+map MAP13 "Downtown"
+	creater "Sandy Petersen"
+	cluster 1
+	next MAP14
+	secretnext MAP13
+	levelnum 13
+	par 150
+	titlepatch CWILV12
+	music D_DOOM2
+	
+map MAP14 "The Inmost Dens"
+	creater "American McGee"
+	cluster 1
+	next MAP15
+	secretnext MAP14
+	levelnum 14
+	par 150
+	titlepatch CWILV13
+	music D_DDTBL2
+
+map MAP15 "The Industrial Zone"
+	creater "John Romero"
+	cluster 1
+	next MAP16
+	secretnext MAP31
+	levelnum 15
+	par 210
+	titlepatch CWILV14
+	music D_RUNNI2
+
+map MAP16 "Suburbs"
+	creater "Sandy Petersen"
+	cluster 1
+	next MAP17
+	secretnext MAP16
+	levelnum 16
+	par 150
+	titlepatch CWILV15
+	music D_DEAD2
+
+map MAP17 "Tenements"
+	creater "John Romero"
+	cluster 1
+	next MAP18
+	secretnext MAP17
+	levelnum 17
+	par 420
+	titlepatch CWILV16
+	music D_STLKS3
+
+map MAP18 "The Courtyard"
+	creater "Sandy Petersen"
+	cluster 1
+	next MAP19
+	secretnext MAP18
+	levelnum 18
+	par 150
+	titlepatch CWILV17
+	music D_ROMERO
+
+map MAP19 "The Citadel"
+	creater "Sandy Petersen"
+	cluster 1
+	next MAP20
+	secretnext MAP19
+	levelnum 19
+	par 210
+	titlepatch CWILV18
+	music D_SHAWN2
+	
+map MAP20 "Gotcha!"
+	creater "John Romero"
+	cluster 1
+	next MAP21
+	secretnext MAP20
+	levelnum 20
+	par 150
+	titlepatch CWILV19
+	music D_MESSAG
+	
+defaultsettings
+	sky1 SKY3
+	
+map MAP21 "Nirvana"
+	creater "Sandy Petersen"
+	cluster 1
+	next MAP22
+	secretnext MAP21
+	levelnum 21
+	par 240
+	titlepatch CWILV20
+	music D_COUNT2
+	
+map MAP22 "The Catacombs"
+	creater "American McGee"
+	cluster 1
+	next MAP23
+	secretnext MAP22
+	levelnum 22
+	par 150
+	titlepatch CWILV21
+	music D_DDTBL3
+	
+map MAP23 "Barrels o' Fun"
+	creater "Sandy Petersen"
+	cluster 1
+	next MAP24
+	secretnext MAP23
+	levelnum 23
+	par 180
+	titlepatch CWILV22
+	music D_AMPIE
+	
+map MAP24 "The Chasm"
+	creater "Sandy Petersen"
+	cluster 1
+	next MAP25
+	secretnext MAP24
+	levelnum 24
+	par 150
+	titlepatch CWILV23
+	music D_THEDA3
+	
+map MAP25 "Bloodfalls"
+	creater "Shawn Green"
+	cluster 1
+	next MAP26
+	secretnext MAP25
+	levelnum 25
+	par 150
+	titlepatch CWILV24
+	music D_ADRIAN
+	
+map MAP26 "The Abandoned Mines"
+	creater "John Romero"
+	cluster 1
+	next MAP27
+	secretnext MAP26
+	levelnum 26
+	par 300
+	titlepatch CWILV25
+	music D_MESSG2
+	
+map MAP27 "Monster Condo"
+	creater "Sandy Petersen"
+	cluster 1
+	next MAP28
+	secretnext MAP27
+	levelnum 27
+	par 330
+	titlepatch CWILV26
+	music D_ROMER2
+	
+map MAP28 "The Spirit World"
+	creater "Sandy Petersen"
+	cluster 1
+	next MAP29
+	secretnext MAP28
+	levelnum 28
+	par 420
+	titlepatch CWILV27
+	music D_TENSE
+	
+map MAP29 "The Living End"
+	creater "John Romero"
+	cluster 1
+	next MAP30
+	secretnext MAP29
+	levelnum 29
+	par 300
+	titlepatch CWILV28
+	music D_SHAWN3
+	
+map MAP30 "Icon Of Sin"
+	creater "Sandy Petersen"
+	cluster 1
+	next EndGameC
+	secretnext MAP30
+	levelnum 30
+	par 180
+	titlepatch CWILV29
+	music D_OPENIN
+	
+map MAP31 "Wolfenstein"
+	creater "Sandy Petersen"
+	cluster 1
+	next MAP16
+	secretnext MAP32
+	levelnum 31
+	par 120
+	titlepatch CWILV30
+	music D_EVIL
+	
+map MAP32 "The Grosse"
+	creater "Sandy Petersen"
+	cluster 1
+	next MAP16
+	secretnext MAP32
+	levelnum 32
+	par 30
+	titlepatch CWILV31
+	music D_ULTIMA
 

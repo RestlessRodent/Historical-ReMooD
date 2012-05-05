@@ -58,9 +58,8 @@ typedef enum D_RMODPrivates_e
 		// MapWeapon needs states[NUMSTATES] to be initialized by MapObject
 	DRMODP_ITEMWEAPON,							// "MapWeapon"
 	
-	/* Specials (Lines/Sectors) */
+	/* Specials */
 	DRMODP_SPECSECTOR,							// "MapSectorSpecial"
-	DRMODP_SPECLINE,							// "MapLineSpecial"
 		// MapTouchSpecial needs weapons and ammo to be registered first
 	DRMODP_SPECTOUCH,							// "MapTouchSpecial"
 	

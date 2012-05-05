@@ -976,7 +976,7 @@ struct player_s* D_NCSAddLocalPlayer(const char* const a_ProfileID)
 	// Set base info
 	NPp->Type = DNPT_LOCAL;
 	NPp->Player = &players[p];
-	NPp->Profile = D_FindProfileEx(a_ProfileID);
+	players[p].ProfileEx = NPp->Profile = D_FindProfileEx(a_ProfileID);
 	
 	/* Functions for player screens */
 	am_recalc = true;
@@ -1050,7 +1050,7 @@ static CONL_ExitCode_t DS_NCSNetCommand(const uint32_t a_ArgC, const char** cons
 	// Add Player to Game
 	if (strcasecmp(a_ArgV[1], "addplayer") == 0)
 	{
-		p = D_NCSAddLocalPlayer((a_ArgC > 2 ? a_ArgV[2] : "default"));
+		p = D_NCSAddLocalPlayer((a_ArgC >= 3 ? a_ArgV[2] : "guest"));
 		
 		if (p)
 		{
@@ -1068,7 +1068,7 @@ static CONL_ExitCode_t DS_NCSNetCommand(const uint32_t a_ArgC, const char** cons
 	// Add Bot to game
 	else if (strcasecmp(a_ArgV[1], "addbot") == 0)
 	{
-		p = D_NCSAddBotPlayer((a_ArgC > 2 ? a_ArgV[2] : "default"));
+		p = D_NCSAddBotPlayer((a_ArgC > 2 ? a_ArgV[2] : "guest"));
 		
 		if (p)
 		{

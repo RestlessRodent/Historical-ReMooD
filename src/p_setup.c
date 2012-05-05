@@ -1998,6 +1998,7 @@ void PS_ExMungeNodeData(void)
 	size_t i, j, Total, OldCount;
 	fixed_t BBox[4];
 	sector_t* SectorP;
+	int block;
 	
 	/* Set loading screen info */
 	CONL_LoadingScreenSetSubEnd(3);
@@ -2039,6 +2040,27 @@ void PS_ExMungeNodeData(void)
 			// Add to sector bounding box
 			M_AddToBox(SectorP->BBox, lines[i].v1->x, lines[i].v1->y);
 			M_AddToBox(SectorP->BBox, lines[i].v2->x, lines[i].v2->y);
+			
+			// Sound Origin
+			SectorP->soundorg.x = (SectorP->BBox[BOXRIGHT] + SectorP->BBox[BOXLEFT]) / 2;
+			SectorP->soundorg.y = (SectorP->BBox[BOXTOP] + SectorP->BBox[BOXBOTTOM]) / 2;
+			
+			// adjust bounding box to map blocks
+			block = (SectorP->BBox[BOXTOP] - bmaporgy + MAXRADIUS) >> MAPBLOCKSHIFT;
+			block = block >= bmapheight ? bmapheight - 1 : block;
+			SectorP->blockbox[BOXTOP] = block;
+	
+			block = (SectorP->BBox[BOXBOTTOM] - bmaporgy - MAXRADIUS) >> MAPBLOCKSHIFT;
+			block = block < 0 ? 0 : block;
+			SectorP->blockbox[BOXBOTTOM] = block;
+	
+			block = (SectorP->BBox[BOXRIGHT] - bmaporgx + MAXRADIUS) >> MAPBLOCKSHIFT;
+			block = block >= bmapwidth ? bmapwidth - 1 : block;
+			SectorP->blockbox[BOXRIGHT] = block;
+	
+			block = (SectorP->BBox[BOXLEFT] - bmaporgx - MAXRADIUS) >> MAPBLOCKSHIFT;
+			block = block < 0 ? 0 : block;
+			SectorP->blockbox[BOXLEFT] = block;
 		}
 }
 

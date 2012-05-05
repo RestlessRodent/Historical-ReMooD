@@ -365,3 +365,4 @@ void P_RemoveAllActivePlats(void)
 		activeplats = next;
 	}
 }
+

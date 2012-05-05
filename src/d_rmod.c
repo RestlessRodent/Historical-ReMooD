@@ -141,13 +141,6 @@ static const D_RMODHandler_t c_RMODHandlers[NUMDRMODPRIVATES] =
 		P_RMODO_Specials,
 	},
 	
-	// Lines
-	{
-		"MapLineSpecial",
-		P_RMODH_Specials,
-		NULL,
-	},
-	
 	// Touchers
 	{
 		"MapTouchSpecial",

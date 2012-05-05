@@ -12,6 +12,7 @@ defaultsettings
 
 map E1M8 "Phobos Anomaly"
 	cluster 1
+	next EndGame1
 	secretnext E1M9
 	levelnum 8
 	creator "Tom Hall and Sandy Petersen"
@@ -28,6 +29,7 @@ defaultsettings
 
 map E2M8 "Tower of Babel"
 	cluster 2
+	next EndGame2
 	secretnext E2M9
 	levelnum 8
 	creator "Sandy Petersen"
@@ -44,6 +46,7 @@ defaultsettings
 
 map E3M8 "Dis"
 	cluster 3
+	next EndGame3
 	secretnext E3M9
 	levelnum 8
 	creator "Sandy Petersen"
@@ -60,6 +63,7 @@ defaultsettings
 
 map E4M6 "Against Thee Wickedly"
 	cluster 4
+	next E4M7
 	secretnext E4M9
 	levelnum 6
 	creator "John Romero"
@@ -71,6 +75,7 @@ map E4M6 "Against Thee Wickedly"
 
 map E4M8 "Unto The Cruel"
 	cluster 4
+	next EndGame4
 	secretnext E4M9
 	levelnum 8
 	creator "Shawn Green"

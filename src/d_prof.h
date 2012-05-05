@@ -214,6 +214,8 @@ typedef struct D_ProfileEx_s
 	/* Other stuff */
 	tic_t CoopSpyTime;							// Time to wait to respy
 	tic_t TurnHeld;								// Time turning is held
+	
+	uint8_t ColorPickup;						// Color for pickups
 } D_ProfileEx_t;
 
 /*** FUNCTIONS ***/

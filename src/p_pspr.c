@@ -1595,11 +1595,8 @@ bool_t P_RMODO_WeaponsAmmo(const bool_t a_Pushed, const struct WL_WADFile_s* con
 							WepID = (states[k]->Marker & 0xFFFFU);
 							
 							// Add to array
-							if (WepID > TempWeapon->NumFlashStates)
-								Z_ResizeArray((void**)&TempWeapon->FlashStates, sizeof(*TempWeapon->FlashStates), TempWeapon->NumFlashStates, WepID);
-							
-							// Set array value
-							TempWeapon->FlashStates[WepID - 1] = k;
+							Z_ResizeArray((void**)&TempWeapon->FlashStates, sizeof(*TempWeapon->FlashStates), TempWeapon->NumFlashStates, TempWeapon->NumFlashStates + 1);
+							TempWeapon->FlashStates[TempWeapon->NumFlashStates++] = k;
 						}
 			}
 		}

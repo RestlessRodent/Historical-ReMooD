@@ -453,6 +453,10 @@ static P_EXGSVariable_t l_GSVars[PEXGSNUMBITIDS] =
 	{PEXGST_FLOAT, PEXGSBID_PLJUMPGRAVITY, "pl_jumpgravity", "Jump Gravity",
 		"This is the amount of pushing force used when jumping.", PEXGSGM_ANY, PEXGSDR_NOCHECK, 0, {0, (6 * FRACUNIT)}, (6 * FRACUNIT),
 		PEXGSMC_PLAYERS},
+		
+	{PEXGST_INTEGER, PEXGSBID_FUNNOLOCKEDDOORS, "fun_nolockeddoors", "No Locked Door",
+		"All doors are unlocked and do not need keys.", PEXGSGM_ANY, PEXGSDR_NOCHECK, 0, {0, 1}, 0,
+		PEXGSMC_FUN},
 };
 
 /*** FUNCTIONS ***/
