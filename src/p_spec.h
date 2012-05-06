@@ -1002,6 +1002,14 @@ typedef enum EV_GenHEFCPType_e
 #define EVGENGE_EXITHUBMASK			UINT32_C(0x00000040)
 #define EVGENGE_EXITHUBSHIFT		UINT32_C(6)
 
+// XTELEPORT Stuff
+#define EVGENGE_TELESILENTMASK		UINT32_C(0x00000020)
+#define EVGENGE_TELESILENTSHIFT		UINT32_C(5)
+#define EVGENGE_TELEREVERSEMASK		UINT32_C(0x00000040)
+#define EVGENGE_TELEREVERSESHIFT	UINT32_C(6)
+#define EVGENGE_TELELWSTMASK		UINT32_C(0x00000080)
+#define EVGENGE_TELELWSTSHIFT		UINT32_C(7)
+
 /******************************************/
 
 // define names for the TriggerType field of the general linedefs

@@ -1554,7 +1554,7 @@ void I_UpdateMusic(void)
 	/* Update all drivers */
 	for (i = 0; i < l_NumMusicDrivers; i++)
 		if (l_MusicDrivers[i]->Update)
-			l_MusicDrivers[i]->Update(l_MusicDrivers[i], g_ProgramTic);
+			l_MusicDrivers[i]->Update(l_MusicDrivers[i], I_GetTimeMS() / TICRATE);
 }
 
 /* I_SetMusicVolume() -- Sets music volume */

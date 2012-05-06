@@ -4100,6 +4100,8 @@ static bool_t PS_ExtraSpecialOCCB(const bool_t a_Pushed, const struct WL_WADFile
 							Type = EVGENHE_TYPEBASE(EVGHET_XPLAT);
 						else if (strcasecmp(TokStr, "EXIT") == 0)
 							Type = EVGENHE_TYPEBASE(EVGHET_XEXIT);
+						else if (strcasecmp(TokStr, "XTELEPORT") == 0)
+							Type = EVGENHE_TYPEBASE(EVGHET_XTELEPORT);
 						else
 							break;
 							
@@ -4315,10 +4317,10 @@ static bool_t PS_ExtraSpecialOCCB(const bool_t a_Pushed, const struct WL_WADFile
 							__REMOOD_EQKT("MONSTER", 1, LiftMonsterShift, LiftMonster);
 								
 							// Delay
-							__REMOOD_EQKT("WAIT1S", PGLGLD_WAITONE, LiftSpeedShift, LiftSpeed);
-							__REMOOD_EQKT("WAIT3S", PGLGLD_WAITTHREE, LiftSpeedShift, LiftSpeed);
-							__REMOOD_EQKT("WAIT5S", PGLGLD_WAITFIVE, LiftSpeedShift, LiftSpeed);
-							__REMOOD_EQKT("WAIT10S", PGLGLD_WAITTEN, LiftSpeedShift, LiftSpeed);
+							__REMOOD_EQKT("WAIT1S", PGLGLD_WAITONE, LiftDelayShift, LiftDelay);
+							__REMOOD_EQKT("WAIT3S", PGLGLD_WAITTHREE, LiftDelayShift, LiftDelay);
+							__REMOOD_EQKT("WAIT5S", PGLGLD_WAITFIVE, LiftDelayShift, LiftDelay);
+							__REMOOD_EQKT("WAIT10S", PGLGLD_WAITTEN, LiftDelayShift, LiftDelay);
 							
 							// Target
 							__REMOOD_EQKT("LNF", F2LnF, LiftTargetShift, LiftTarget);
@@ -4427,6 +4429,19 @@ static bool_t PS_ExtraSpecialOCCB(const bool_t a_Pushed, const struct WL_WADFile
 							
 							// Hubbed?
 							__REMOOD_IQKT("HUB", 1, EVGENGE_EXITHUBSHIFT, EVGENGE_EXITHUBMASK);
+						}
+						
+						// EXTENDED Teleports
+						else if (Type == EVGENHE_TYPEBASE(EVGHET_XTELEPORT))
+						{
+							// Monsters and players?
+							__REMOOD_IQKT("MONSTER", 1, EVGENGE_MONSTERSHIFT, EVGENGE_MONSTERMASK);
+							__REMOOD_EQKT("PLAYER", 1, EVGENGE_PLAYERSHIFT, EVGENGE_PLAYERMASK);
+							
+							// Silent?
+							__REMOOD_IQKT("SILENT", 1, EVGENGE_TELESILENTSHIFT, EVGENGE_TELESILENTMASK);
+							__REMOOD_IQKT("REVERSE", 1, EVGENGE_TELEREVERSESHIFT, EVGENGE_TELEREVERSEMASK);
+							__REMOOD_IQKT("LWST", 1, EVGENGE_TELELWSTSHIFT, EVGENGE_TELELWSTMASK);
 						}
 					}
 					

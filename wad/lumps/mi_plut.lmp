@@ -10,8 +10,8 @@ defaultsettings
 defaultsettings
 	sky1 SKY1
 
-map MAP01 "Entryway"
-	creator "Sandy Petersen"
+map MAP01 "Congo"
+	creator "Milo Casali or Dario Casali"
 	cluster 1
 	next MAP02
 	secretnext MAP01
@@ -20,8 +20,8 @@ map MAP01 "Entryway"
 	titlepatch CWILV00
 	music D_RUNNIN
 
-map MAP02 "Underhalls"
-	creator "American McGee"
+map MAP02 "Well of Souls"
+	creator "Milo Casali or Dario Casali"
 	cluster 1
 	next MAP03
 	secretnext MAP02
@@ -30,8 +30,8 @@ map MAP02 "Underhalls"
 	titlepatch CWILV01
 	music D_STALKS
 	
-map MAP03 "The Gantlet"
-	creator "American McGee"
+map MAP03 "Aztec"
+	creator "Milo Casali or Dario Casali"
 	cluster 1
 	next MAP04
 	secretnext MAP03
@@ -40,8 +40,8 @@ map MAP03 "The Gantlet"
 	titlepatch CWILV02
 	music D_COUNTD
 	
-map MAP04 "The Focus"
-	creator "American McGee"
+map MAP04 "Caged"
+	creator "Milo Casali or Dario Casali"
 	cluster 1
 	next MAP05
 	secretnext MAP04
@@ -50,8 +50,8 @@ map MAP04 "The Focus"
 	titlepatch CWILV03
 	music D_BETWEE
 
-map MAP05 "The Waste Tunnels"
-	creator "American McGee"
+map MAP05 "Ghost Town"
+	creator "Milo Casali or Dario Casali"
 	cluster 1
 	next MAP06
 	secretnext MAP05
@@ -60,8 +60,8 @@ map MAP05 "The Waste Tunnels"
 	titlepatch CWILV04
 	music D_DOOM
 
-map MAP06 "The Crusher"
-	creator "American McGee"
+map MAP06 "Baron's Lair"
+	creator "Milo Casali or Dario Casali"
 	cluster 1
 	next MAP07
 	secretnext MAP06
@@ -70,8 +70,8 @@ map MAP06 "The Crusher"
 	titlepatch CWILV05
 	music D_THE_DA
 
-map MAP07 "Dead Simple"
-	creator "American McGee and Sandy Petersen"
+map MAP07 "Caughtyard"
+	creator "Milo Casali or Dario Casali"
 	cluster 1
 	next MAP08
 	secretnext MAP07
@@ -81,8 +81,8 @@ map MAP07 "Dead Simple"
 	music D_SHAWN
 	map07special
 
-map MAP08 "Tricks and Traps"
-	creator "Sandy Petersen"
+map MAP08 "Realm"
+	creator "Milo Casali or Dario Casali"
 	cluster 1
 	next MAP09
 	secretnext MAP08
@@ -91,8 +91,8 @@ map MAP08 "Tricks and Traps"
 	titlepatch CWILV07
 	music D_DTTBLU
 
-map MAP09 "The Pit"
-	creator "Sandy Petersen"
+map MAP09 "Abbattoire"
+	creator "Milo Casali"
 	cluster 1
 	next MAP10
 	secretnext MAP09
@@ -101,8 +101,8 @@ map MAP09 "The Pit"
 	titlepatch CWILV08
 	music D_IN_CIT
 
-map MAP10 "Refueling Base"
-	creator "Tom Hall and Sandy Petersen"
+map MAP10 "Onslaught"
+	creator "Milo Casali or Dario Casali"
 	cluster 1
 	next MAP11
 	secretnext MAP10
@@ -111,8 +111,8 @@ map MAP10 "Refueling Base"
 	titlepatch CWILV09
 	music D_DEAD
 
-map MAP11 "Circle of Death"
-	creator "John Romero"
+map MAP11 "Haunted"
+	creator "Milo Casali or Dario Casali"
 	cluster 1
 	next MAP12
 	secretnext MAP11
@@ -124,8 +124,8 @@ map MAP11 "Circle of Death"
 defaultsettings
 	sky1 SKY2
 
-map MAP12 "The Factory"
-	creator "Sandy Petersen"
+map MAP12 "Speed"
+	creator "Milo Casali or Dario Casali"
 	cluster 1
 	next MAP13
 	secretnext MAP12
@@ -134,8 +134,8 @@ map MAP12 "The Factory"
 	titlepatch CWILV11
 	music D_THEDA2
 	
-map MAP13 "Downtown"
-	creator "Sandy Petersen"
+map MAP13 "The Crypt"
+	creator "Milo Casali or Dario Casali"
 	cluster 1
 	next MAP14
 	secretnext MAP13
@@ -144,8 +144,8 @@ map MAP13 "Downtown"
 	titlepatch CWILV12
 	music D_DOOM2
 	
-map MAP14 "The Inmost Dens"
-	creator "American McGee"
+map MAP14 "Genesis"
+	creator "Milo Casali or Dario Casali"
 	cluster 1
 	next MAP15
 	secretnext MAP14
@@ -154,8 +154,8 @@ map MAP14 "The Inmost Dens"
 	titlepatch CWILV13
 	music D_DDTBL2
 
-map MAP15 "The Industrial Zone"
-	creator "John Romero"
+map MAP15 "The Twilight"
+	creator "Milo Casali or Dario Casali"
 	cluster 1
 	next MAP16
 	secretnext MAP31
@@ -164,8 +164,8 @@ map MAP15 "The Industrial Zone"
 	titlepatch CWILV14
 	music D_RUNNI2
 
-map MAP16 "Suburbs"
-	creator "Sandy Petersen"
+map MAP16 "The Omen"
+	creator "Milo Casali or Dario Casali"
 	cluster 1
 	next MAP17
 	secretnext MAP16
@@ -174,8 +174,8 @@ map MAP16 "Suburbs"
 	titlepatch CWILV15
 	music D_DEAD2
 
-map MAP17 "Tenements"
-	creator "John Romero"
+map MAP17 "Compound"
+	creator "Milo Casali or Dario Casali"
 	cluster 1
 	next MAP18
 	secretnext MAP17
@@ -184,8 +184,8 @@ map MAP17 "Tenements"
 	titlepatch CWILV16
 	music D_STLKS3
 
-map MAP18 "The Courtyard"
-	creator "Sandy Petersen"
+map MAP18 "Neurosphere"
+	creator "Milo Casali or Dario Casali"
 	cluster 1
 	next MAP19
 	secretnext MAP18
@@ -194,8 +194,8 @@ map MAP18 "The Courtyard"
 	titlepatch CWILV17
 	music D_ROMERO
 
-map MAP19 "The Citadel"
-	creator "Sandy Petersen"
+map MAP19 "NME"
+	creator "Milo Casali or Dario Casali"
 	cluster 1
 	next MAP20
 	secretnext MAP19
@@ -204,8 +204,8 @@ map MAP19 "The Citadel"
 	titlepatch CWILV18
 	music D_SHAWN2
 	
-map MAP20 "Gotcha!"
-	creator "John Romero"
+map MAP20 "The Death Domain"
+	creator "Milo Casali or Dario Casali"
 	cluster 1
 	next MAP21
 	secretnext MAP20
@@ -217,8 +217,8 @@ map MAP20 "Gotcha!"
 defaultsettings
 	sky1 SKY3
 	
-map MAP21 "Nirvana"
-	creator "Sandy Petersen"
+map MAP21 "Slayer"
+	creator "Milo Casali or Dario Casali"
 	cluster 1
 	next MAP22
 	secretnext MAP21
@@ -227,8 +227,8 @@ map MAP21 "Nirvana"
 	titlepatch CWILV20
 	music D_COUNT2
 	
-map MAP22 "The Catacombs"
-	creator "American McGee"
+map MAP22 "Impossible Mission"
+	creator "Milo Casali or Dario Casali"
 	cluster 1
 	next MAP23
 	secretnext MAP22
@@ -237,8 +237,8 @@ map MAP22 "The Catacombs"
 	titlepatch CWILV21
 	music D_DDTBL3
 	
-map MAP23 "Barrels o' Fun"
-	creator "Sandy Petersen"
+map MAP23 "Tombstone"
+	creator "Milo Casali or Dario Casali"
 	cluster 1
 	next MAP24
 	secretnext MAP23
@@ -247,8 +247,8 @@ map MAP23 "Barrels o' Fun"
 	titlepatch CWILV22
 	music D_AMPIE
 	
-map MAP24 "The Chasm"
-	creator "Sandy Petersen"
+map MAP24 "The Final Frontier"
+	creator "Milo Casali or Dario Casali"
 	cluster 1
 	next MAP25
 	secretnext MAP24
@@ -257,8 +257,8 @@ map MAP24 "The Chasm"
 	titlepatch CWILV23
 	music D_THEDA3
 	
-map MAP25 "Bloodfalls"
-	creator "Shawn Green"
+map MAP25 "The Temple of Darkness"
+	creator "Milo Casali or Dario Casali"
 	cluster 1
 	next MAP26
 	secretnext MAP25
@@ -267,8 +267,8 @@ map MAP25 "Bloodfalls"
 	titlepatch CWILV24
 	music D_ADRIAN
 	
-map MAP26 "The Abandoned Mines"
-	creator "John Romero"
+map MAP26 "Bunker"
+	creator "Milo Casali or Dario Casali"
 	cluster 1
 	next MAP27
 	secretnext MAP26
@@ -277,8 +277,8 @@ map MAP26 "The Abandoned Mines"
 	titlepatch CWILV25
 	music D_MESSG2
 	
-map MAP27 "Monster Condo"
-	creator "Sandy Petersen"
+map MAP27 "Anti-Christ"
+	creator "Milo Casali or Dario Casali"
 	cluster 1
 	next MAP28
 	secretnext MAP27
@@ -287,8 +287,8 @@ map MAP27 "Monster Condo"
 	titlepatch CWILV26
 	music D_ROMER2
 	
-map MAP28 "The Spirit World"
-	creator "Sandy Petersen"
+map MAP28 "The Sewers"
+	creator "Milo Casali or Dario Casali"
 	cluster 1
 	next MAP29
 	secretnext MAP28
@@ -297,8 +297,8 @@ map MAP28 "The Spirit World"
 	titlepatch CWILV27
 	music D_TENSE
 	
-map MAP29 "The Living End"
-	creator "John Romero"
+map MAP29 "Odyssey of Noises"
+	creator "Milo Casali or Dario Casali"
 	cluster 1
 	next MAP30
 	secretnext MAP29
@@ -307,8 +307,8 @@ map MAP29 "The Living End"
 	titlepatch CWILV28
 	music D_SHAWN3
 	
-map MAP30 "Icon Of Sin"
-	creator "Sandy Petersen"
+map MAP30 "The Gateway of Hell"
+	creator "Milo Casali or Dario Casali"
 	cluster 1
 	next EndGameC
 	secretnext MAP30
@@ -317,8 +317,8 @@ map MAP30 "Icon Of Sin"
 	titlepatch CWILV29
 	music D_OPENIN
 	
-map MAP31 "Wolfenstein"
-	creator "Sandy Petersen"
+map MAP31 "Cyberden"
+	creator "Milo Casali or Dario Casali"
 	cluster 1
 	next MAP16
 	secretnext MAP32

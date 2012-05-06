@@ -501,6 +501,11 @@ void D_Display(void)
 		while (!tics);
 		wipestart = nowtime;
 		done = wipe_ScreenWipe(cv_screenslink.value - 1, 0, 0, vid.width, vid.height, tics);
+		
+		// GhostlyDeath <May 5, 2012> -- Update Music
+		I_UpdateMusic();
+		
+		// Do other stuff
 		I_OsPolling();
 		I_UpdateNoBlit();
 		M_Drawer();				// menu is drawn even on top of wipes

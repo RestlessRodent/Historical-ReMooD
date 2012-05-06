@@ -1968,7 +1968,7 @@ void SetPlayerSkin(int playernum, char* skinname)
 		}
 	}
 	
-	CONL_PrintF("Skin %s not found\n", skinname);
+	//CONL_PrintF("Skin %s not found\n", skinname);
 	players[playernum].skin = 0;	// not found put the old marine skin
 	
 	// a copy of the skin value

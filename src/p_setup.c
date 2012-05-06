@@ -1719,6 +1719,10 @@ bool_t P_ExClearLevel(void)
 {
 	size_t i;
 	
+	/* Stop Playing Music and Sound */
+	S_StopSounds();
+	S_StopMusic();
+	
 	/* Clear Stuff */
 	HU_ClearTips();
 	S_StopSounds();

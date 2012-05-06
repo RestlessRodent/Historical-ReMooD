@@ -1195,6 +1195,7 @@ void WI_Drawer(void)
 	int32_t xBase, yBase, yAdd, y;
 	bool_t IsOnScreen;
 	uint32_t DrawFlags;
+	int8_t ScreenNum;
 	
 	/* Generic Drawing */
 	// Draw interpic
@@ -1242,10 +1243,15 @@ void WI_Drawer(void)
 		IsOnScreen = false;
 		
 		// Determine extra stuff
+		ScreenNum = 0;
 		for (j = 0; j < MAXSPLITSCREEN; j++)
 			if (g_PlayerInSplit[j])
 				if ((l_DrawPlayers[i].Player - players) == consoleplayer[j])
+				{
 					IsOnScreen = true;
+					ScreenNum = j;
+					break;
+				}
 		
 		// Draw player band
 		V_DrawColorBoxEx(
@@ -1267,10 +1273,14 @@ void WI_Drawer(void)
 			);
 		
 		// Draw player name
+		if (IsOnScreen)
+			snprintf(Buf, BUFSIZE - 1, "%s (P%i)", D_NCSGetPlayerName(l_DrawPlayers[i].Player - players), ScreenNum + 1);
+		else
+			snprintf(Buf, BUFSIZE - 1, "%s", D_NCSGetPlayerName(l_DrawPlayers[i].Player - players));
 		V_DrawStringA(
 				VFONT_SMALL,
 				DrawFlags,
-				D_NCSGetPlayerName(l_DrawPlayers[i].Player - players),
+				Buf,
 				xBase + 20, yBase + y
 			);
 	}

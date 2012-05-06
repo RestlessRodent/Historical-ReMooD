@@ -1530,6 +1530,25 @@ bool_t EV_TryGenTrigger(line_t* const a_Line, const int a_Side, mobj_t* const a_
 		if (TypeBase == EVGHET_XPLAT)
 			return EV_HExDoGenPlat(a_Line, a_Object);
 			
+			// Teleport
+		else if (TypeBase == EVGHET_XTELEPORT)
+		{
+			// Silent
+			if ((a_Line->special & EVGENGE_TELESILENTMASK) >> EVGENGE_TELESILENTSHIFT)
+			{
+				// Smooth Teleport
+				if ((a_Line->special & EVGENGE_TELELWSTMASK) >> EVGENGE_TELELWSTSHIFT)
+					return EV_SilentLineTeleport(a_Line, a_Side, a_Object, (((a_Line->special & EVGENGE_TELEREVERSEMASK) >> EVGENGE_TELEREVERSESHIFT) ? true : false));
+				// Silent Generic Teleport
+				else
+					return EV_SilentTeleport(a_Line, a_Side, a_Object);
+			}
+			
+			// Noisy
+			else
+				return EV_Teleport(a_Line, a_Side, a_Object);
+		}
+			
 			// Level Exit
 		else if (TypeBase == EVGHET_XEXIT)
 		{

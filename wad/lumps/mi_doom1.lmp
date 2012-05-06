@@ -10,6 +10,76 @@ defaultsettings
 	enterpic WIMAP0
 	sky1 SKY1
 
+map E1M1 "Hangar"
+	cluster 1
+	next E1M2
+	secretnext E1M9
+	levelnum 1
+	creator "John Romero"
+	par 30
+	titlepatch WILV00
+	music D_E1M1
+	
+map E1M2 "Nuclear Plant"
+	cluster 1
+	next E1M3
+	secretnext E1M9
+	levelnum 2
+	creator "John Romero"
+	par 75
+	titlepatch WILV01
+	music D_E1M2
+	
+map E1M3 "Toxin Refinery"
+	cluster 1
+	next E1M4
+	secretnext E1M9
+	levelnum 3
+	creator "John Romero"
+	par 120
+	titlepatch WILV02
+	music D_E1M3
+	
+map E1M4 "Command Control"
+	cluster 1
+	next E1M5
+	secretnext E1M9
+	levelnum 4
+	creator "Tom Hall and John Romero"
+	par 90
+	titlepatch WILV03
+	music D_E1M4
+	
+map E1M5 "Phobos Lab"
+	cluster 1
+	next E1M6
+	secretnext E1M9
+	levelnum 5
+	creator "John Romero"
+	par 165
+	titlepatch WILV04
+	music D_E1M5
+	
+map E1M6 "Central Processing"
+	cluster 1
+	next E1M7
+	secretnext E1M9
+	levelnum 6
+	creator "John Romero"
+	par 180
+	titlepatch WILV05
+	music D_E1M6
+	
+map E1M7 "Computer Station"
+	cluster 1
+	next E1M8
+	secretnext E1M9
+	levelnum 7
+	creator "John Romero"
+	par 180
+	titlepatch WILV06
+	music D_E1M7
+
 map E1M8 "Phobos Anomaly"
 	cluster 1
 	next EndGame1
@@ -21,11 +91,91 @@ map E1M8 "Phobos Anomaly"
 	music D_E1M8
 	baronspecial
 	specialaction_lowerfloor
+	
+map E1M9 "Military Base"
+	cluster 1
+	next E1M4
+	secretnext E1M9
+	levelnum 9
+	creator "John Romero"
+	par 165
+	titlepatch WILV06
+	music D_E1M9
 
 defaultsettings
 	exitpic WIMAP1
 	enterpic WIMAP1
 	sky1 SKY2
+
+map E2M1 "Deimos Anomaly"
+	cluster 2
+	next E2M2
+	secretnext E2M9
+	levelnum 1
+	creator "Sandy Petersen"
+	par 90
+	titlepatch WILV10
+	music D_E2M1
+	
+map E2M2 "Containment Area"
+	cluster 2
+	next E2M3
+	secretnext E2M9
+	levelnum 2
+	creator "Tom Hall and Sandy Petersen"
+	par 90
+	titlepatch WILV11
+	music D_E2M2
+	
+map E2M3 "Refinery"
+	cluster 2
+	next E2M4
+	secretnext E2M9
+	levelnum 3
+	creator "Tom Hall and Sandy Petersen"
+	par 90
+	titlepatch WILV12
+	music D_E2M3
+	
+map E2M4 "Deimos Lab"
+	cluster 2
+	next E2M5
+	secretnext E2M9
+	levelnum 4
+	creator "Tom Hall and Sandy Petersen"
+	par 120
+	titlepatch WILV13
+	music D_E2M4
+	
+map E2M5 "Command Center"
+	cluster 2
+	next E2M6
+	secretnext E2M9
+	levelnum 5
+	creator "Sandy Petersen"
+	par 90
+	titlepatch WILV14
+	music D_E2M5
+	
+map E2M6 "Halls of the Damned"
+	cluster 2
+	next E2M7
+	secretnext E2M9
+	levelnum 6
+	creator "Sandy Petersen"
+	par 360
+	titlepatch WILV15
+	music D_E2M6
+	
+map E2M7 "Spawning Vats"
+	cluster 2
+	next E2M8
+	secretnext E2M9
+	levelnum 7
+	creator "Tom Hall and Sandy Petersen"
+	par 240
+	titlepatch WILV16
+	music D_E2M7
 
 map E2M8 "Tower of Babel"
 	cluster 2
@@ -38,11 +188,91 @@ map E2M8 "Tower of Babel"
 	music D_E2M8
 	cyberdemonspecial
 	specialaction_exitlevel
+	
+map E2M9 "Fortress of Mystery"
+	cluster 2
+	next E2M6
+	secretnext E2M9
+	levelnum 9
+	creator "Sandy Petersen"
+	par 170
+	titlepatch WILV18
+	music D_E2M9
 
 defaultsettings
 	exitpic WIMAP2
 	enterpic WIMAP2
 	sky1 SKY3
+
+map E3M1 "Hell Keep"
+	cluster 3
+	next E3M2
+	secretnext E3M9
+	levelnum 1
+	creator "Sandy Petersen"
+	par 90
+	titlepatch WILV20
+	music D_E3M1
+	
+map E3M2 "Slough of Despair"
+	cluster 3
+	next E3M3
+	secretnext E3M9
+	levelnum 2
+	creator "Sandy Petersen"
+	par 45
+	titlepatch WILV21
+	music D_E3M2
+	
+map E3M3 "Pandemonium"
+	cluster 3
+	next E3M4
+	secretnext E3M9
+	levelnum 3
+	creator "Tom Hall and Sandy Petersen"
+	par 90
+	titlepatch WILV22
+	music D_E3M3
+	
+map E3M4 "House of Pain"
+	cluster 3
+	next E3M5
+	secretnext E3M9
+	levelnum 4
+	creator "Sandy Petersen"
+	par 150
+	titlepatch WILV23
+	music D_E3M4
+	
+map E3M5 "Unholy Cathedral"
+	cluster 3
+	next E3M6
+	secretnext E3M9
+	levelnum 5
+	creator "Sandy Petersen"
+	par 90
+	titlepatch WILV24
+	music D_E3M5
+	
+map E3M6 "Mt. Erebus"
+	cluster 3
+	next E3M7
+	secretnext E3M9
+	levelnum 6
+	creator "Sandy Petersen"
+	par 90
+	titlepatch WILV25
+	music D_E3M6
+	
+map E3M7 "Limbo"
+	cluster 3
+	next E3M8
+	secretnext E3M9
+	levelnum 7
+	creator "Sandy Petersen"
+	par 165
+	titlepatch WILV26
+	music D_E3M7
 
 map E3M8 "Dis"
 	cluster 3
@@ -55,11 +285,66 @@ map E3M8 "Dis"
 	music D_E3M8
 	spidermastermindspecial
 	specialaction_exitlevel
+	
+map E3M9 "Warrens"
+	cluster 3
+	next E3M7
+	secretnext E3M9
+	levelnum 9
+	creator "Sandy Petersen"
+	par 135
+	titlepatch WILV28
+	music D_E3M9
 
 defaultsettings
 	exitpic INTERPIC
 	enterpic INTERPIC
 	sky1 SKY4
+	
+map E4M1 "Hell Beneath"
+	cluster 4
+	next E4M2
+	secretnext E4M9
+	levelnum 1
+	creator "American McGee"
+	titlepatch WILV30
+	music D_E3M4
+	
+map E4M2 "Hell Beneath"
+	cluster 4
+	next E4M3
+	secretnext E4M9
+	levelnum 2
+	creator "John Romero"
+	titlepatch WILV31
+	music D_E3M2
+	
+map E4M3 "Sever The Wicked"
+	cluster 4
+	next E4M4
+	secretnext E4M9
+	levelnum 3
+	creator "Shawn Green"
+	titlepatch WILV32
+	music D_E3M3
+	
+map E4M4 "Unruly Evil"
+	cluster 4
+	next E4M5
+	secretnext E4M9
+	levelnum 4
+	creator "American McGee"
+	titlepatch WILV33
+	music D_E1M5
+	
+map E4M5 "They Will Repent"
+	cluster 4
+	next E4M6
+	secretnext E4M9
+	levelnum 5
+	creator "Tim Willits"
+	titlepatch WILV34
+	music D_E2M7
 
 map E4M6 "Against Thee Wickedly"
 	cluster 4
@@ -67,11 +352,19 @@ map E4M6 "Against Thee Wickedly"
 	secretnext E4M9
 	levelnum 6
 	creator "John Romero"
-	par 30
 	titlepatch WILV35
-	music D_E4M8
+	music D_E2M4
 	cyberdemonspecial
 	specialaction_opendoor
+	
+map E4M7 "And Hell Followed"
+	cluster 4
+	next E4M8
+	secretnext E4M9
+	levelnum 7
+	creator "John Anderson"
+	titlepatch WILV36
+	music D_E2M6
 
 map E4M8 "Unto The Cruel"
 	cluster 4
@@ -79,9 +372,17 @@ map E4M8 "Unto The Cruel"
 	secretnext E4M9
 	levelnum 8
 	creator "Shawn Green"
-	par 30
 	titlepatch WILV37
-	music D_E4M8
+	music D_E2M5
 	spidermastermindspecial
 	specialaction_lowerfloor
+
+map E4M9 "Fear"
+	cluster 4
+	next E4M3
+	secretnext E4M9
+	levelnum 9
+	creator "Tim Willits"
+	titlepatch WILV38
+	music D_E1M9
 
