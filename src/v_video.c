@@ -1150,8 +1150,8 @@ void V_DrawColorBoxEx(const uint32_t a_Flags, const int8_t a_Color, const int32_
 	int X1, Y1, X2, Y2;
 	int x, y, i, w;
 	uint8_t* buf, *buf2;
-	uint32_t c;
-	uint8_t* Map;
+	uint32_t c, Mask;
+	uint8_t* Map, *ExtraMap, *TransMap;
 	
 	/* Flags */
 	// Unscaled
@@ -1205,9 +1205,36 @@ void V_DrawColorBoxEx(const uint32_t a_Flags, const int8_t a_Color, const int32_
 		Map = l_ColorMaps[(a_Flags & VEX_COLORMAPMASK) >> VEX_COLORMAPSHIFT];
 	else
 		Map = l_ColorMaps[0];
+	
+	/* Use player translation tables? */
+	Mask = (a_Flags & VEX_COLORMASK) >> VEX_COLORSHIFT;
+	
+	if (Mask > 0)
+		ExtraMap = translationtables + (256 * Mask);
+	else
+		ExtraMap = V_ReturnColormapPtr(VEX_MAP_NONE);
+		
+	/* Handle transparency */
+	// Transparency OK
+	if (transtables)
+	{
+		x = ((a_Flags & VEX_FILLTRANSMASK) >> VEX_FILLTRANSSHIFT);
+		if (x >= NUMVEXTRANSPARENCIES)
+			x = 0;
+		
+		// Set table to use
+		if (x > 0)
+			TransMap = transtables + (0x10000 * x);
+		else
+			TransMap = NULL;
+	}
+	
+	// No tables loaded
+	else
+		TransMap = NULL;
 		
 	/* Same Color all the way */
-	c = Map[a_Color];
+	c = ExtraMap[Map[a_Color]];
 	c |= c << 8;
 	c |= c << 16;
 	
@@ -1241,35 +1268,50 @@ void V_DrawColorBoxEx(const uint32_t a_Flags, const int8_t a_Color, const int32_
 	// Solid Box
 	else
 	{
-		// Loop
-		for (y = Y1; y < Y2; y += 8)
-		{
-			// Set buf
-			buf = (int*)(screens[0] + (vid.width * y) + X1);
-			i = (((intptr_t)buf) & (intptr_t)7);
-			
-			// Pre-8 loop (prevents signaling buses)
-			for (x = 0; x < i; x++)
-				((uint8_t*)buf)[x] = c & 0xFFU;
-			
+		// Transparent Box (REALLY slow)
+		if (TransMap)
 			// Loop
-			for (; x < (X2 - X1) - 8; x += 8)
+			for (y = Y1; y < Y2; y ++)
 			{
-				*((uint32_t*)(&buf[x])) = c;
-				*((uint32_t*)(&buf[x + 4])) = c;
+				// Set buf
+				buf = (int*)(screens[0] + (vid.width * y) + X1);
+				i = (((intptr_t)buf) & (intptr_t)7);
+				
+				// Loop entire row
+				for (x = 0; x < (X2 - X1); x++)
+					((uint8_t*)buf)[x] = TransMap[((c & 0xFFU) * 256) + (((uint8_t*)buf)[x])];
 			}
-		
-			// Final bits
-			for (; x < (X2 - X1); x++)
-				((uint8_t*)buf)[x] = c & 0xFFU;
+		// Solid Box
+		else
+			// Loop
+			for (y = Y1; y < Y2; y += 8)
+			{
+				// Set buf
+				buf = (int*)(screens[0] + (vid.width * y) + X1);
+				i = (((intptr_t)buf) & (intptr_t)7);
 			
-			// Inner second loop
-			for (i = 1; i < 8 && (y + i) < Y2; i++)
-			{
-				buf2 = (int*)(screens[0] + (vid.width * (y + i)) + X1);
-				memcpy(buf2, buf, X2 - X1);
+				// Pre-8 loop (prevents signaling buses)
+				for (x = 0; x < i; x++)
+					((uint8_t*)buf)[x] = c & 0xFFU;
+			
+				// Loop
+				for (; x < (X2 - X1) - 8; x += 8)
+				{
+					*((uint32_t*)(&buf[x])) = c;
+					*((uint32_t*)(&buf[x + 4])) = c;
+				}
+		
+				// Final bits
+				for (; x < (X2 - X1); x++)
+					((uint8_t*)buf)[x] = c & 0xFFU;
+			
+				// Inner second loop
+				for (i = 1; i < 8 && (y + i) < Y2; i++)
+				{
+					buf2 = (int*)(screens[0] + (vid.width * (y + i)) + X1);
+					memcpy(buf2, buf, X2 - X1);
+				}
 			}
-		}
 	}
 }
 
@@ -2949,6 +2991,7 @@ int V_DrawCharacterMB(const VideoFont_t a_Font, const uint32_t a_Options, const 
 	// Color/Trans options
 	DrawFlags |= VEX_COLORMAP((a_Options & VFO_COLORMASK) >> VFO_COLORSHIFT);
 	DrawFlags |= VEX_TRANS((a_Options & VFO_TRANSMASK) >> VFO_TRANSSHIFT);
+	DrawFlags |= VEX_PCOLOR((a_Options & VFO_PCOLMASK) >> VFO_PCOLSHIFT);
 	
 	// Scale options
 	if (a_Options & VFO_NOSCALESTART)
@@ -4015,7 +4058,7 @@ void V_ImageDrawScaledIntoBuffer(const uint32_t a_Flags, V_Image_t* const a_Imag
 	/*** STANDARD CLIENT ***/
 #else
 	uint8_t* RawData;
-	int32_t x, y, w, h, xx, yy, i, c;
+	int32_t x, y, w, h, xx, yy, i, c, Mask;
 	
 	int32_t sX, sY, tW, tY;
 	uint8_t* dP;
@@ -4050,7 +4093,15 @@ void V_ImageDrawScaledIntoBuffer(const uint32_t a_Flags, V_Image_t* const a_Imag
 	if (a_ExtraMap)
 		ColorMapE = a_ExtraMap;
 	else
-		ColorMapE = V_ReturnColormapPtr(VEX_MAP_NONE);
+	{
+		// Use player translation tables?
+		Mask = (a_Flags & VEX_COLORMASK) >> VEX_COLORSHIFT;
+		
+		if (Mask > 0)
+			ColorMapE = translationtables[Mask];
+		else
+			ColorMapE = V_ReturnColormapPtr(VEX_MAP_NONE);
+	}
 		
 	/* Handle transparency */
 	// Transparency OK

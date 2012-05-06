@@ -1193,36 +1193,12 @@ char* levellumps[] =
 // The sky texture to be used instead of the F_SKY1 dummy.
 void P_SetupLevelSky(void)
 {
-	char skytexname[12];
+	/* Load Sky */
+	if (g_CurrentLevelInfo)
+		if (g_CurrentLevelInfo->SkyTexture)
+			skytexture = R_TextureNumForName(g_CurrentLevelInfo->SkyTexture);
 	
-	// DOOM determines the sky texture to be used
-	// depending on the current episode, and the game version.
-	
-	if (info_skyname && *info_skyname)
-		skytexture = R_TextureNumForName(info_skyname);
-	else if ((gamemode == commercial))
-		// || (gamemode == pack_tnt) he ! is not a mode is a episode !
-		//    || ( gamemode == pack_plut )
-	{
-		if (gamemap < 12)
-			skytexture = R_TextureNumForName("SKY1");
-		else if (gamemap < 21)
-			skytexture = R_TextureNumForName("SKY2");
-		else
-			skytexture = R_TextureNumForName("SKY3");
-	}
-	else if ((gamemode == retail) || (gamemode == registered))
-	{
-		if (gameepisode < 1 || gameepisode > 4)	// useful??
-			gameepisode = 1;
-			
-		sprintf(skytexname, "SKY%d", gameepisode);
-		skytexture = R_TextureNumForName(skytexname);
-	}
-	else
-		skytexture = R_TextureNumForName("SKY1");
-		
-	// scale up the old skies, if needed
+	/* scale up the old skies, if needed */
 	R_SetupSkyDraw();
 }
 
@@ -1894,7 +1870,12 @@ static void PS_ExLineDefInit(line_t* const a_LineDef)
 		}
 	
 	/* Calculate the real line special (generalized) */
-	a_LineDef->special = EV_DoomToGenTrigger(a_LineDef->special);
+	// Hexen
+	if (a_LineDef->HexenSpecial)
+		a_LineDef->special = EV_HexenToGenTrigger(a_LineDef->flags, a_LineDef->HexenSpecial, a_LineDef->ACSArgs);
+	// Doom
+	else
+		a_LineDef->special = EV_DoomToGenTrigger(a_LineDef->special);
 	
 	/* Set side special from linedef */
 	//if (ld->sidenum[0] != -1 && ld->special)
@@ -2616,16 +2597,42 @@ bool_t P_ExLoadLevel(P_LevelInfoEx_t* const a_Info, const bool_t a_ApplyOptions)
 // Called by level loading and the save game loading code
 bool_t P_ExFinalizeLevel(void)
 {
+	size_t i;
+	
 	/* Set gamestate to level */
 	// So that we can play it now
 	gamestate = GS_LEVEL;
 	gameaction = ga_nothing;
+	
+	/* Respawn Missing Players */
+	// This occurs when there are more players than starts on a new map load...
+	for (i = 0; i < MAXPLAYERS; i++)
+		if (playeringame[i] && !players[i].mo)
+			// Use cluster spawns
+			if (cv_deathmatch.value)
+				G_DeathMatchSpawnPlayer(i);
+			else
+				G_CoopSpawnPlayer(i);
+	
+	/* Correct local player angles */
+	for (i = 0; i < MAXSPLITSCREEN; i++)
+		if (g_PlayerInSplit[i] && playeringame[consoleplayer[i]])
+		{
+			if (players[consoleplayer[i]].mo)
+				localangle[i] = players[consoleplayer[i]].mo->angle;
+			localaiming[i] = players[consoleplayer[i]].aiming;
+		}
 	
 	/* Setup sky */
 	P_SetupLevelSky();
 	
 	// Flat number is the holder F_SKY1
 	skyflatnum = R_GetFlatNumForName("F_SKY1");
+	
+	/* Load Music */
+	if (g_CurrentLevelInfo)
+		if (g_CurrentLevelInfo->Music)
+			S_ChangeMusicName(g_CurrentLevelInfo->Music, 1);
 	
 	/* Build Bot Nodes */
 	B_InitNodes();

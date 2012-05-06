@@ -121,6 +121,7 @@ static const struct
 	{false, PPMFIFT_STRING, "sky1", "skyname", offsetof(P_LevelInfoEx_t, SkyTexture)},
 	{false, PPMFIFT_INTEGER, "par", "partime", offsetof(P_LevelInfoEx_t, ParTime)},
 	{false, PPMFIFT_STRING, "exitpic", "interpic", offsetof(P_LevelInfoEx_t, InterPic)},
+	{false, PPMFIFT_STRING, "intermusic", "intermusic", offsetof(P_LevelInfoEx_t, InterMus)},
 	{false, PPMFIFT_STRING, "next", "nextlevel", offsetof(P_LevelInfoEx_t, NormalNext)},
 	{false, PPMFIFT_STRING, "secretnext", "nextsecret", offsetof(P_LevelInfoEx_t, SecretNext)},
 	{false, PPMFIFT_STRING, NULL, "consolecmd", offsetof(P_LevelInfoEx_t, BootCommand)},
@@ -157,7 +158,7 @@ static bool_t PS_ParseMapInfo(P_LevelInfoHolder_t* const a_Holder, const WL_WADE
 	P_LevelInfoEx_t* CurrentInfo;
 	WL_EntryStream_t* Stream;
 	size_t i, FNum;
-	char* p;
+	char* p, *q;
 	char* TokenP;
 	
 	char** StrValP;
@@ -244,6 +245,7 @@ static bool_t PS_ParseMapInfo(P_LevelInfoHolder_t* const a_Holder, const WL_WADE
 					Token[i++] = *p;
 			
 			// Look in holder
+			CurrentInfo = NULL;
 			for (i = 0; i < a_Holder->NumInfos; i++)
 				if (a_Holder->Infos[i])
 					if (strcasecmp(a_Holder->Infos[i]->LumpName, Token) == 0)
@@ -266,11 +268,41 @@ static bool_t PS_ParseMapInfo(P_LevelInfoHolder_t* const a_Holder, const WL_WADE
 				CurrentInfo = NULL;
 			}
 			
+			// Setup level title?
+			if (!CurrentInfo->Title)
+			{
+				// Set as MAPINFO level
+				CurrentInfo->SetBits[0] = PLIBL_MAPINFO;
+				
+				// Ignore any whitespace
+				for (; *p && (*p == ' ' || *p == '\t'); p++)
+					;
+				
+				// Ignore any quotes
+				if (*p == '\"')
+				{
+					// Null the quote away
+					*(p++) = '\0';
+				
+					// Find the next quote, null that then die
+					for (q = p; *q; q++)
+						if (*q == '\"')
+						{
+							*q = '\0';
+							break;
+						}
+				}
+				
+				// Place level name here
+				CurrentInfo->Title = Z_StrDup(p, PU_STATIC, NULL);
+			}
+			
 			// Copy default settings?
-			if (CurrentInfo)
+				// Also never copy from default to default!
+			if (CurrentInfo && CurrentInfo != &DefaultStore)
 			{
 				// For every field...
-				for (i = 0; i < !c_PMIFields[i].IsEnd; i++)
+				for (i = 0; !c_PMIFields[i].IsEnd; i++)
 				{
 					// Check to see if already set or the default is unset
 						// But have MAPINFO levels replace each other
@@ -298,7 +330,8 @@ static bool_t PS_ParseMapInfo(P_LevelInfoHolder_t* const a_Holder, const WL_WADE
 								Z_Free(*StrValP);
 							
 							// Duplicate string
-							*StrValP = Z_StrDup(*StrValS, PU_STATIC, NULL);
+							if (*StrValS)
+								*StrValP = Z_StrDup(*StrValS, PU_STATIC, NULL);
 							break;
 							
 							// Copy Integer
@@ -361,6 +394,21 @@ static bool_t PS_ParseMapInfo(P_LevelInfoHolder_t* const a_Holder, const WL_WADE
 				if (devparm)
 					CONL_PrintF("PS_ParseMapInfo: Already defined at higher level (this: %i, at: %i).\n", PLIBL_MAPINFO, CurrentInfo->SetBits[FNum]);
 				continue;	// Skip it then
+			}
+			
+			// GhostlyDeath <May 5, 2012> -- Ignore any quotes
+			if (*p == '\"')
+			{
+				// Null the quote away
+				*(p++) = '\0';
+				
+				// Find the next quote, null that then die
+				for (q = p; *q; q++)
+					if (*q == '\"')
+					{
+						*q = '\0';
+						break;
+					}
 			}
 			
 			// Set the bit flag then (with MAPINFO level)

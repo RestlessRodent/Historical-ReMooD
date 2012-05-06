@@ -1508,8 +1508,10 @@ bool_t EV_TryGenTrigger(line_t* const a_Line, const int a_Side, mobj_t* const a_
 					return false;
 			
 			// Gunshots and pushable don't need tags
-			if (!a_Line->tag && (TrigMode != PushOnce && TrigMode != GunOnce))
-				return false;
+				// Along with certain types
+			if (TypeBase != EVGHET_XEXIT)
+				if (!a_Line->tag && (TrigMode != PushOnce && TrigMode != GunOnce))
+					return false;
 		}
 		
 		// Otherwise, if it is even it is done at map start
@@ -1524,8 +1526,35 @@ bool_t EV_TryGenTrigger(line_t* const a_Line, const int a_Side, mobj_t* const a_
 		}
 		
 		// Activate Extended Triggers
+			// Plat
 		if (TypeBase == EVGHET_XPLAT)
 			return EV_HExDoGenPlat(a_Line, a_Object);
+			
+			// Level Exit
+		else if (TypeBase == EVGHET_XEXIT)
+		{
+			// Secret?
+			if ((a_Line->special & EVGENGE_EXITSECRETMASK) >> EVGENGE_EXITSECRETSHIFT)
+				G_SecretExitLevel();
+			
+			// Normal
+			else
+				G_ExitLevel();
+			
+			// Success!
+			return true;
+		}
+			
+			// Damage Object
+		else if (TypeBase == EVGHET_XDAMAGE)
+		{
+			if (a_Object)
+			{
+				P_DamageMobj(a_Object, NULL, NULL,
+					(a_Line->special & EVGENHE_XDAMGMASK) >> EVGENHE_XDAMGSHIFT);
+				return true;
+			}
+		}
 	}
 	
 	/* Failed */
@@ -1548,5 +1577,45 @@ uint32_t EV_DoomToGenTrigger(const uint32_t a_Input)
 	
 	/* Otherwise return input */
 	return a_Input;
+}
+
+/* EV_HexenToGenTrigger() -- Hexen to general trigger */
+uint32_t EV_HexenToGenTrigger(const uint32_t a_Flags, const uint8_t a_Input, const uint8_t* const a_Args)
+{
+	EV_GenHEActivator_t Trig;
+	
+	/* Zero is nothing */
+	if (!a_Input || !a_Args)
+		return 0;
+	
+	/* Determine Trigger */
+	Trig = 0;
+	
+	// Repeatable?
+	if (a_Flags & ML_REPEAT_SPECIAL)
+		Trig |= 1;
+	
+	// Determine the stuff
+		// Player Cross
+	if (((a_Flags & ML_SPAC_MASK) >> ML_SPAC_SHIFT) == 0)
+		Trig |= ((WalkOnce << EVGENGE_TRIGSHIFT) & EVGENGE_TRIGMASK) | ((1 << EVGENGE_PLAYERSHIFT) & EVGENGE_PLAYERMASK);
+		// Player Push
+	else if (((a_Flags & ML_SPAC_MASK) >> ML_SPAC_SHIFT) == 1)
+		Trig |= ((SwitchOnce << EVGENGE_TRIGSHIFT) & EVGENGE_TRIGMASK) | ((1 << EVGENGE_PLAYERSHIFT) & EVGENGE_PLAYERMASK);
+		// Monster Cross
+	else if (((a_Flags & ML_SPAC_MASK) >> ML_SPAC_SHIFT) == 0)
+		Trig |= ((WalkOnce << EVGENGE_TRIGSHIFT) & EVGENGE_TRIGMASK) | ((1 << EVGENGE_MONSTERSHIFT) & EVGENGE_MONSTERMASK);
+		// Player/Monster Push
+	else if (((a_Flags & ML_SPAC_MASK) >> ML_SPAC_SHIFT) == 1)
+		Trig |= ((SwitchOnce << EVGENGE_TRIGSHIFT) & EVGENGE_TRIGMASK) | ((1 << EVGENGE_PLAYERSHIFT) & EVGENGE_PLAYERMASK) | ((1 << EVGENGE_MONSTERSHIFT) & EVGENGE_MONSTERMASK);
+	
+	/* Which Special? */
+	// Damage Object
+	if (a_Input == 73)
+		return Trig |= EVGENHE_TYPEBASE(EVGHET_XDAMAGE) |
+				(((!a_Args[0] ? 10000 : a_Args[0]) << EVGENHE_XDAMGSHIFT) & EVGENHE_XDAMGMASK);
+	
+	/* Currently Unhandled */
+	return 0;
 }
 

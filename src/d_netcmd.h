@@ -134,6 +134,7 @@ typedef struct D_NetPlayer_s
 	// Sync
 	int TicTotal;								// Total number of tic commands
 	ticcmd_t TicCmd[MAXDNETTICCMDCOUNT];		// Tic Command to execute
+	char DisplayName[MAXPLAYERNAME];			// Name to show in network games
 	
 	// Desync
 	
@@ -161,6 +162,8 @@ void D_NCSNetUpdateAll(void);
 bool_t D_NCSHandleEvent(const I_EventEx_t* const a_Event);
 
 D_NetPlayer_t* D_NCSAllocNetPlayer(void);
+
+const char* D_NCSGetPlayerName(const uint32_t a_PlayerID);
 
 #endif
 

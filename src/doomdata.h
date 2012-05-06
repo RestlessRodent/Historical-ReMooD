@@ -160,6 +160,10 @@ typedef struct HexenMapLineDef_s
 //SoM: 4/1/2000: If flag is set, anything can trigger the line.
 #define ML_ALLTRIGGER           1024
 
+#define ML_REPEAT_SPECIAL	0x0200	// special is repeatable
+#define ML_SPAC_SHIFT		10
+#define ML_SPAC_MASK		0x1c00
+
 // Sector definition, from editing.
 typedef struct
 {

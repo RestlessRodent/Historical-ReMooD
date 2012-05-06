@@ -169,6 +169,7 @@ typedef enum VEX_ColorList_s
 /* Color masking (Matches skin colors) */
 #define VEX_COLORMASK			0x00F00000	// Mask of the colors
 #define VEX_COLORSHIFT			20	// Shift
+#define VEX_PCOLOR(x)			(((x) << VEX_COLORSHIFT) & VEX_COLORMASK)
 
 /* Transparency */
 // MAX OF 16
@@ -274,6 +275,10 @@ typedef enum
 #define VFO_NOSCALELORES	0x00200000	// NOT IMPLEMENTED!
 #define VFO_LEFTFLOW		0x00400000	// Like RTL but not swapped
 #define VFO_UNDERLINE		0x00800000	// Underline text
+
+#define VFO_PCOLMASK		0x0F000000	// Player Color Mapping
+#define VFO_PCOLSHIFT		24
+#define VFO_PCOL(x)			(((x) << VFO_PCOLSHIFT) & VFO_PCOLMASK)
 
 void V_MapGraphicalCharacters(void);
 

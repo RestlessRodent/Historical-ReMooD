@@ -128,6 +128,7 @@ typedef struct P_LevelInfoEx_s
 	char* Music;								// Background music to play
 	char* SkyTexture;							// Sky texture
 	char* InterPic;								// Intermission background
+	char* InterMus;								// Intermission music
 	char* NormalNext;							// Next level to play after this
 	char* SecretNext;							// Secret level to play after this
 	fixed_t Gravity;							// Level gravity

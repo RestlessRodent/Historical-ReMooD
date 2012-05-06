@@ -503,6 +503,7 @@ void P_SetThingPosition(mobj_t* thing)
 		thing->touching_sectorlist = sector_list;	// Attach to Thing's mobj_t
 		sector_list = NULL;		// clear for next time
 	}
+	
 	// link into blockmap
 	if (!(thing->flags & MF_NOBLOCKMAP))
 	{
@@ -599,11 +600,17 @@ bool_t P_BlockThingsIterator(int x, int y, bool_t (*func) (mobj_t*, void*), void
 {
 	mobj_t* mobj;
 	mobj_t* NextMo;
+	static uint32_t BaseCheckNum;
+	uint32_t CheckNum;
 	
 	if (x < 0 || y < 0 || x >= bmapwidth || y >= bmapheight)
 	{
 		return true;
 	}
+	
+	// GhostlyDeath <May 5, 2012> -- Infinite Loop aversion
+	CheckNum = ++BaseCheckNum;
+	
 	//added:15-02-98: check interaction (ligne de tir, ...)
 	//                avec les objets dans le blocmap
 	for (NextMo = NULL, mobj = blocklinks[y * bmapwidth + x]; mobj; mobj = NextMo)
@@ -615,7 +622,12 @@ bool_t P_BlockThingsIterator(int x, int y, bool_t (*func) (mobj_t*, void*), void
 		
 		if (!func(mobj, a_Arg))
 			return false;
+
+		// GhostlyDeath <May 5, 2012> -- Infinite Loop of sorts?
+		if (NextMo == mobj)
+			return true;
 	}
+	
 	return true;
 }
 

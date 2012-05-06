@@ -1691,7 +1691,10 @@ void P_SpawnPlayer(mapthing_t* mthing)
 	
 	// GhostlyDeath <April 20, 2012> -- Telefrag whatever was here
 	if (P_EXGSGetValue(PEXGSBID_PLSPAWNTELEFRAG))
+	{
 		P_TeleportMove(mobj, mobj->x, mobj->y);
+		mobj->reactiontime = 0;	// Don't telefreeze
+	}
 }
 
 //

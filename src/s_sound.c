@@ -874,27 +874,38 @@ void S_ChangeMusic(int music_num, int looping)
 /* S_ChangeMusicName() -- Change song by its name */
 void S_ChangeMusicName(char* name, int looping)
 {
-#define BUFSIZE 12
+#define BUFSIZE 24
+	size_t i;
 	char NameBuf[BUFSIZE];
 	
 	/* Check */
 	if (!l_MusicOK || !name)
 		return;
 		
-	/* Prepend the D_ prefix */
-	snprintf(NameBuf, BUFSIZE, "D_%s", name);
-	C_strupr(NameBuf);
-	
 	/* If a song is already playing */
 	if (l_CurrentSong)
 		S_StopMusic();
-		
-	/* Call the interface */
-	l_CurrentSong = I_RegisterSong(NameBuf);
 	
-	// Failed?
-	if (!l_CurrentSong)
-		return;
+	/* Double check */
+	for (i = 0; i < 2; i++)
+	{
+		// Prepend the D_ prefix?
+		memset(NameBuf, 0, sizeof(NameBuf));
+		snprintf(NameBuf, BUFSIZE - 1, "%s%s", (!i ? "D_" : ""), name);
+		C_strupr(NameBuf);
+		
+		// Call the interface
+		l_CurrentSong = I_RegisterSong(NameBuf);
+	
+		// Failed?
+		if (!l_CurrentSong)
+		{
+			if (!i)
+				continue;
+			else
+				return;
+		}
+	}
 		
 	/* Start playing the song */
 	I_PlaySong(l_CurrentSong, looping);

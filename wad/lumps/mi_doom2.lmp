@@ -21,7 +21,7 @@ map MAP01 "Entryway"
 	music D_RUNNIN
 
 map MAP02 "Underhalls"
-	creater "American McGee"
+	creator "American McGee"
 	cluster 1
 	next MAP03
 	secretnext MAP02
@@ -31,7 +31,7 @@ map MAP02 "Underhalls"
 	music D_STALKS
 	
 map MAP03 "The Gantlet"
-	creater "American McGee"
+	creator "American McGee"
 	cluster 1
 	next MAP04
 	secretnext MAP03
@@ -41,7 +41,7 @@ map MAP03 "The Gantlet"
 	music D_COUNTD
 	
 map MAP04 "The Focus"
-	creater "American McGee"
+	creator "American McGee"
 	cluster 1
 	next MAP05
 	secretnext MAP04
@@ -51,7 +51,7 @@ map MAP04 "The Focus"
 	music D_BETWEE
 
 map MAP05 "The Waste Tunnels"
-	creater "American McGee"
+	creator "American McGee"
 	cluster 1
 	next MAP06
 	secretnext MAP05
@@ -61,7 +61,7 @@ map MAP05 "The Waste Tunnels"
 	music D_DOOM
 
 map MAP06 "The Crusher"
-	creater "American McGee"
+	creator "American McGee"
 	cluster 1
 	next MAP07
 	secretnext MAP06
@@ -82,7 +82,7 @@ map MAP07 "Dead Simple"
 	map07special
 
 map MAP08 "Tricks and Traps"
-	creater "Sandy Petersen"
+	creator "Sandy Petersen"
 	cluster 1
 	next MAP09
 	secretnext MAP08
@@ -92,7 +92,7 @@ map MAP08 "Tricks and Traps"
 	music D_DTTBLU
 
 map MAP09 "The Pit"
-	creater "Sandy Petersen"
+	creator "Sandy Petersen"
 	cluster 1
 	next MAP10
 	secretnext MAP09
@@ -102,7 +102,7 @@ map MAP09 "The Pit"
 	music D_IN_CIT
 
 map MAP10 "Refueling Base"
-	creater "Tom Hall and Sandy Petersen"
+	creator "Tom Hall and Sandy Petersen"
 	cluster 1
 	next MAP11
 	secretnext MAP10
@@ -112,7 +112,7 @@ map MAP10 "Refueling Base"
 	music D_DEAD
 
 map MAP11 "Circle of Death"
-	creater "John Romero"
+	creator "John Romero"
 	cluster 1
 	next MAP12
 	secretnext MAP11
@@ -125,7 +125,7 @@ defaultsettings
 	sky1 SKY2
 
 map MAP12 "The Factory"
-	creater "Sandy Petersen"
+	creator "Sandy Petersen"
 	cluster 1
 	next MAP13
 	secretnext MAP12
@@ -135,7 +135,7 @@ map MAP12 "The Factory"
 	music D_THEDA2
 	
 map MAP13 "Downtown"
-	creater "Sandy Petersen"
+	creator "Sandy Petersen"
 	cluster 1
 	next MAP14
 	secretnext MAP13
@@ -145,7 +145,7 @@ map MAP13 "Downtown"
 	music D_DOOM2
 	
 map MAP14 "The Inmost Dens"
-	creater "American McGee"
+	creator "American McGee"
 	cluster 1
 	next MAP15
 	secretnext MAP14
@@ -155,7 +155,7 @@ map MAP14 "The Inmost Dens"
 	music D_DDTBL2
 
 map MAP15 "The Industrial Zone"
-	creater "John Romero"
+	creator "John Romero"
 	cluster 1
 	next MAP16
 	secretnext MAP31
@@ -165,7 +165,7 @@ map MAP15 "The Industrial Zone"
 	music D_RUNNI2
 
 map MAP16 "Suburbs"
-	creater "Sandy Petersen"
+	creator "Sandy Petersen"
 	cluster 1
 	next MAP17
 	secretnext MAP16
@@ -175,7 +175,7 @@ map MAP16 "Suburbs"
 	music D_DEAD2
 
 map MAP17 "Tenements"
-	creater "John Romero"
+	creator "John Romero"
 	cluster 1
 	next MAP18
 	secretnext MAP17
@@ -185,7 +185,7 @@ map MAP17 "Tenements"
 	music D_STLKS3
 
 map MAP18 "The Courtyard"
-	creater "Sandy Petersen"
+	creator "Sandy Petersen"
 	cluster 1
 	next MAP19
 	secretnext MAP18
@@ -195,7 +195,7 @@ map MAP18 "The Courtyard"
 	music D_ROMERO
 
 map MAP19 "The Citadel"
-	creater "Sandy Petersen"
+	creator "Sandy Petersen"
 	cluster 1
 	next MAP20
 	secretnext MAP19
@@ -205,7 +205,7 @@ map MAP19 "The Citadel"
 	music D_SHAWN2
 	
 map MAP20 "Gotcha!"
-	creater "John Romero"
+	creator "John Romero"
 	cluster 1
 	next MAP21
 	secretnext MAP20
@@ -218,7 +218,7 @@ defaultsettings
 	sky1 SKY3
 	
 map MAP21 "Nirvana"
-	creater "Sandy Petersen"
+	creator "Sandy Petersen"
 	cluster 1
 	next MAP22
 	secretnext MAP21
@@ -228,7 +228,7 @@ map MAP21 "Nirvana"
 	music D_COUNT2
 	
 map MAP22 "The Catacombs"
-	creater "American McGee"
+	creator "American McGee"
 	cluster 1
 	next MAP23
 	secretnext MAP22
@@ -238,7 +238,7 @@ map MAP22 "The Catacombs"
 	music D_DDTBL3
 	
 map MAP23 "Barrels o' Fun"
-	creater "Sandy Petersen"
+	creator "Sandy Petersen"
 	cluster 1
 	next MAP24
 	secretnext MAP23
@@ -248,7 +248,7 @@ map MAP23 "Barrels o' Fun"
 	music D_AMPIE
 	
 map MAP24 "The Chasm"
-	creater "Sandy Petersen"
+	creator "Sandy Petersen"
 	cluster 1
 	next MAP25
 	secretnext MAP24
@@ -258,7 +258,7 @@ map MAP24 "The Chasm"
 	music D_THEDA3
 	
 map MAP25 "Bloodfalls"
-	creater "Shawn Green"
+	creator "Shawn Green"
 	cluster 1
 	next MAP26
 	secretnext MAP25
@@ -268,7 +268,7 @@ map MAP25 "Bloodfalls"
 	music D_ADRIAN
 	
 map MAP26 "The Abandoned Mines"
-	creater "John Romero"
+	creator "John Romero"
 	cluster 1
 	next MAP27
 	secretnext MAP26
@@ -278,7 +278,7 @@ map MAP26 "The Abandoned Mines"
 	music D_MESSG2
 	
 map MAP27 "Monster Condo"
-	creater "Sandy Petersen"
+	creator "Sandy Petersen"
 	cluster 1
 	next MAP28
 	secretnext MAP27
@@ -288,7 +288,7 @@ map MAP27 "Monster Condo"
 	music D_ROMER2
 	
 map MAP28 "The Spirit World"
-	creater "Sandy Petersen"
+	creator "Sandy Petersen"
 	cluster 1
 	next MAP29
 	secretnext MAP28
@@ -298,7 +298,7 @@ map MAP28 "The Spirit World"
 	music D_TENSE
 	
 map MAP29 "The Living End"
-	creater "John Romero"
+	creator "John Romero"
 	cluster 1
 	next MAP30
 	secretnext MAP29
@@ -308,7 +308,7 @@ map MAP29 "The Living End"
 	music D_SHAWN3
 	
 map MAP30 "Icon Of Sin"
-	creater "Sandy Petersen"
+	creator "Sandy Petersen"
 	cluster 1
 	next EndGameC
 	secretnext MAP30
@@ -318,7 +318,7 @@ map MAP30 "Icon Of Sin"
 	music D_OPENIN
 	
 map MAP31 "Wolfenstein"
-	creater "Sandy Petersen"
+	creator "Sandy Petersen"
 	cluster 1
 	next MAP16
 	secretnext MAP32
@@ -328,7 +328,7 @@ map MAP31 "Wolfenstein"
 	music D_EVIL
 	
 map MAP32 "The Grosse"
-	creater "Sandy Petersen"
+	creator "Sandy Petersen"
 	cluster 1
 	next MAP16
 	secretnext MAP32

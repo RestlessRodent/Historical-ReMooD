@@ -873,6 +873,7 @@ int EV_DoGenLockedDoor(line_t* line, mobj_t* const a_Object);
 
 bool_t EV_TryGenTrigger(line_t* const a_Line, const int a_Side, mobj_t* const a_Object, const EV_TryGenType_t a_Type, const uint32_t a_Flags, bool_t* const a_UseAgain);
 uint32_t EV_DoomToGenTrigger(const uint32_t a_Input);
+uint32_t EV_HexenToGenTrigger(const uint32_t a_Flags, const uint8_t a_Input, const uint8_t* const a_Args);
 
 /****** EXTENDED HIGH GENERALIZATION ******/
 
@@ -910,6 +911,7 @@ typedef enum EV_GenHEType_e
 	EVGHET_YUNUSED24,							// 24 MM Unused
 	EVGHET_XSCRIPTS,							// 25 XR Scripts
 	EVGHET_YSCRIPTS,							// 26 MM Scripts
+	EVGHET_XDAMAGE,								// 27 XR Damage Objects
 } EV_GenHEType_t;
 
 /* EV_GenHETrig_t -- Generalized High Extended Trigger */
@@ -966,28 +968,39 @@ typedef enum EV_GenHEFCPType_e
 #define EVGENGE_TRIGMASK			UINT32_C(0x00000007)
 #define EVGENGE_TRIGSHIFT			UINT32_C(0)
 
-#define EVGENGE_SPEEDMASK			UINT32_C(0x00000038)
-#define EVGENGE_SPEEDSHIFT			UINT32_C(3)
+#define EVGENGE_MONSTERMASK			UINT32_C(0x00000008)
+#define EVGENGE_MONSTERSHIFT		UINT32_C(3)
 
-#define EVGENGE_MONSTERMASK			UINT32_C(0x00000040)
-#define EVGENGE_MONSTERSHIFT		UINT32_C(6)
+#define EVGENGE_PLAYERMASK			UINT32_C(0x00000010)
+#define EVGENGE_PLAYERSHIFT			UINT32_C(4)
 
-#define EVGENGE_PLAYERMASK			UINT32_C(0x00000080)
-#define EVGENGE_PLAYERSHIFT			UINT32_C(7)
+#define EVGENGE_SPEEDMASK			UINT32_C(0x000000E0)
+#define EVGENGE_SPEEDSHIFT			UINT32_C(5)
 
 // FLOOR/CEILING/DOOR Wait Delay
 #define EVGENGE_FCDWAITMASK			UINT32_C(0x00000700)
 #define EVGENGE_FCDWAITSHIFT		UINT32_C(8)
 
-// Floor Stuff
+// XFLOOR Stuff
 #define EVGENGE_FCFMODEMASK			UINT32_C(0x00003800)
 #define EVGENGE_FCFMODESHIFT		UINT32_C(11)
 
-// PLAT Stuff
+// XPLAT Stuff
 #define EVGENGE_FCPTYPEMASK			UINT32_C(0x00003800)
 #define EVGENGE_FCPTYPESHIFT		UINT32_C(11)
 #define EVGENGE_FCPMODEMASK			UINT32_C(0x0001C000)
 #define EVGENGE_FCPMODESHIFT		UINT32_C(14)
+
+// XDAMAGE Stuff
+#define EVGENHE_XDAMGMASK			UINT32_C(0x00FFFF00)
+#define EVGENHE_XDAMGSHIFT			UINT32_C(8)
+
+// XEXIT Stuff
+#define EVGENGE_EXITSECRETMASK		UINT32_C(0x00000020)
+#define EVGENGE_EXITSECRETSHIFT		UINT32_C(5)
+
+#define EVGENGE_EXITHUBMASK			UINT32_C(0x00000040)
+#define EVGENGE_EXITHUBSHIFT		UINT32_C(6)
 
 /******************************************/
 

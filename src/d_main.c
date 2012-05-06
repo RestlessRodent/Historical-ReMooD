@@ -905,7 +905,7 @@ const D_IWADInfoEx_t c_IWADInfos[] =
 	{
 		"Doom II: Hell on Earth",
 		"doom2\0doomii\0doomtwo\0commercial\0hellonearth\0\0",
-		"doom2.wad\0freedoom.wad\0\0",
+		"doom2.wad\0freedoom.wad\0freedm.wad\0\0",
 		"6ff4def4bd24c6943540c790fbfe2642",
 		"25e1459ca71d321525f84628f45ca8cd",
 		"7ec7652fcfce8ddc6e801839291f0e28ef1d5ae7",
@@ -916,6 +916,48 @@ const D_IWADInfoEx_t c_IWADInfos[] =
 		COREGAME_DOOM,
 		false,
 		"MI_DOOM2",
+		CIF_CANFILE | CIF_REGISTERED | CIF_EXTENDED | CIF_COMMERCIAL,
+		
+		doom2,
+		commercial
+	},
+	
+	// TNT Evilution
+	{
+		"TNT: Evilution",
+		"tnt\0evilution\0\0",
+		"tnt.wad\0\0",
+		"109bf7725eeb8b11cc30cd42c81d9ae4",
+		"4e158d9953c79ccf97bd0663244cc6b6",
+		"9fbc66aedef7fe3bae0986cdb9323d2b8db4c9d3",
+		"MAP01\0GRASS1\0MAP31\0MAP32\0\0",
+		14604584,
+		3101,
+		
+		COREGAME_DOOM,
+		false,
+		"MI_TNT",
+		CIF_CANFILE | CIF_REGISTERED | CIF_EXTENDED | CIF_COMMERCIAL,
+		
+		doom2,
+		commercial
+	},
+	
+	// The Plutonia Experiment
+	{
+		"The Plutonia Experiment",
+		"plutonia\0theplutoniaexperiment\0plutoniaexperiment\0\0",
+		"plutonia.wad\0\0",
+		"7ee851eb6711fa859dd3c649402382d5",
+		"75c8cf89566741fa9d22447604053bd7",
+		"90361e2a538d2388506657252ae41aceeb1ba360",
+		"MAP01\0GRASS1\0MAP31\0MAP32\0\0",
+		17373080,
+		2984,
+		
+		COREGAME_DOOM,
+		false,
+		"MI_PLUT",
 		CIF_CANFILE | CIF_REGISTERED | CIF_EXTENDED | CIF_COMMERCIAL,
 		
 		doom2,
@@ -943,6 +985,27 @@ const D_IWADInfoEx_t c_IWADInfos[] =
 		retail
 	},
 	
+	// Doom Registered
+	{
+		"Doom Registered",
+		"registereddoom\0doomregistered\0doomr\0rdoom\0registered\0\0",
+		"doom.wad\0doomr.wad\0\0",
+		"69abda21496c137592f70edb9e3f08fe",
+		"1cd63c5ddff1bf8ce844237f580e9cf3",
+		"7742089b4468a736cadb659a7deca3320fe6dcbd",
+		"E1M1\0E2M1\0E3M1\0\0",
+		11124736,
+		2194,
+		
+		COREGAME_DOOM,
+		false,
+		"MI_DOOM1",
+		CIF_CANFILE | CIF_REGISTERED,
+		
+		doom,
+		retail
+	},
+	
 	// Doom Shareware
 	{
 		"Doom Shareware",
@@ -963,6 +1026,16 @@ const D_IWADInfoEx_t c_IWADInfos[] =
 		doom,
 		shareware
 	},
+	
+	// Heretic Extended
+	
+	// Heretic Registered
+	
+	// Heretic Shareware
+	
+	// Hexen Registered
+	
+	// Hexen Shareware
 
 	/* Last */
 	{NULL, NULL, NULL, NULL, NULL, NULL, NULL, 0, 0, COREGAME_DOOM, false, NULL, 0, 0}

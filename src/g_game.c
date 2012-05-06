@@ -1935,12 +1935,11 @@ void G_ExitLevel(void)
 // Here's for the german edition.
 void G_SecretExitLevel(void)
 {
-	// IF NO WOLF3D LEVELS, NO SECRET EXIT!
-	if ((gamemode == commercial) && (W_CheckNumForName("map31") < 0))
-		secretexit = false;
-	else
+	if (gamestate == GS_LEVEL)
+	{
 		secretexit = true;
-	gameaction = ga_completed;
+		gameaction = ga_completed;
+	}
 }
 
 void G_DoCompleted(void)
@@ -1955,93 +1954,21 @@ void G_DoCompleted(void)
 			
 	if (automapactive)
 		AM_Stop();
-		
-	if (gamemode != commercial)
-		switch (gamemap)
-		{
-			case 8:
-				//BP add comment : no intermistion screen
-				if (cv_deathmatch.value)
-					wminfo.next = 0;
-				else
-				{
-					// also for heretic
-					// disconnect from network
-					F_StartFinale();
-					return;
-				}
-			case 9:
-				for (i = 0; i < MAXPLAYERS; i++)
-					players[i].didsecret = true;
-				break;
-		}
-		
+	
+	// GhostlyDeath <May 5, 2012> -- Secret Exit?
+	if (secretexit)
+		wminfo.next = 1;
+	else
+		wminfo.next = 0;
+	
+	// Did secret level?
+	for (i = 0; i < MAXPLAYERS; i++)
+		players[i].didsecret = true;
+	
 	if (!dedicated)
 		wminfo.didsecret = players[consoleplayer[0]].didsecret;
 	wminfo.epsd = gameepisode - 1;
 	wminfo.last = gamemap - 1;
-	
-	// go to next level
-	// wminfo.next is 0 biased, unlike gamemap
-	wminfo.next = gamemap;
-	
-	// overwrite next level in some cases
-	if (gamemode == commercial)
-	{
-		if (secretexit)
-			switch (gamemap)
-			{
-				case 15:
-					wminfo.next = 30;
-					break;
-				case 31:
-					wminfo.next = 31;
-					break;
-				default:
-					wminfo.next = 15;
-					break;
-			}
-		else
-			switch (gamemap)
-			{
-				case 31:
-				case 32:
-					wminfo.next = 15;
-					break;
-				default:
-					wminfo.next = gamemap;
-			}
-	}
-	else
-	{
-		if (secretexit)
-			wminfo.next = 8;	// go to secret level
-		else if (gamemap == 9)
-		{
-			// returning from secret level
-			switch (gameepisode)
-			{
-				case 1:
-					wminfo.next = 3;
-					break;
-				case 2:
-					wminfo.next = 5;
-					break;
-				case 3:
-					wminfo.next = 6;
-					break;
-				case 4:
-					wminfo.next = 2;
-					break;
-				default:
-					wminfo.next = 0;
-					break;
-			}
-		}
-		else if (gamemap == 8)
-			wminfo.next = 0;	// wrape around in deathmatch
-	}
-	
 	wminfo.maxkills = totalkills;
 	wminfo.maxitems = totalitems;
 	wminfo.maxsecret = totalsecret;
@@ -2083,6 +2010,7 @@ void G_DoCompleted(void)
 void G_NextLevel(void)
 {
 	gameaction = ga_worlddone;
+	
 	if (secretexit)
 		players[consoleplayer[0]].didsecret = true;
 		
@@ -2118,17 +2046,26 @@ void G_DoWorldDone(void)
 	if (P_EXGSGetValue(PEXGSBID_COLINEARMAPTRAVERSE))
 	{
 #endif
-		// Go to next level, if possible...
-		if (g_CurrentLevelInfo->NormalNext)
-		{
-			NewInfo = P_FindLevelByNameEx(g_CurrentLevelInfo->NormalNext, NULL);
-			
-			if (NewInfo)
-				P_ExLoadLevel(NewInfo, false);
-		}
+		// Clear Info
+		NewInfo = NULL;
 		
-		//gamemap = wminfo.next + 1;
-		//G_DoLoadLevel(true);
+		// Secret Exit?
+		if (wminfo.next && g_CurrentLevelInfo->SecretNext)
+			NewInfo = P_FindLevelByNameEx(g_CurrentLevelInfo->SecretNext, NULL);
+		
+		// Normal Exit?
+		if (!NewInfo && g_CurrentLevelInfo->NormalNext)
+			NewInfo = P_FindLevelByNameEx(g_CurrentLevelInfo->NormalNext, NULL);
+		
+		// Was able to find the level?
+		if (NewInfo)
+			P_ExLoadLevel(NewInfo, false);
+		// Otherwise it was a failure, try something else
+		else
+		{
+			// Back to the titlescreen!
+			gamestate = GS_DEMOSCREEN;
+		}
 #if 0
 	}
 	else

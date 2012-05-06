@@ -4098,6 +4098,8 @@ static bool_t PS_ExtraSpecialOCCB(const bool_t a_Pushed, const struct WL_WADFile
 							Type = EVGENHE_TYPEBASE(EVGHET_XFLOOR);
 						else if (strcasecmp(TokStr, "XPLAT") == 0)
 							Type = EVGENHE_TYPEBASE(EVGHET_XPLAT);
+						else if (strcasecmp(TokStr, "EXIT") == 0)
+							Type = EVGENHE_TYPEBASE(EVGHET_XEXIT);
 						else
 							break;
 							
@@ -4410,6 +4412,21 @@ static bool_t PS_ExtraSpecialOCCB(const bool_t a_Pushed, const struct WL_WADFile
 							__REMOOD_EQKT("TXZ", FChgZero, EVGENGE_FCPMODESHIFT, EVGENGE_FCPMODEMASK);
 							__REMOOD_EQKT("TXONLY", FChgTxt, EVGENGE_FCPMODESHIFT, EVGENGE_FCPMODEMASK);
 							__REMOOD_EQKT("TXTY", FChgTyp, EVGENGE_FCPMODESHIFT, EVGENGE_FCPMODEMASK);
+						}
+						
+						// EXTENDED Exit
+						else if (Type == EVGENHE_TYPEBASE(EVGHET_XEXIT))
+						{
+							// Monsters and players?
+							__REMOOD_IQKT("MONSTER", 1, EVGENGE_MONSTERSHIFT, EVGENGE_MONSTERMASK);
+							__REMOOD_EQKT("PLAYER", 1, EVGENGE_PLAYERSHIFT, EVGENGE_PLAYERMASK);
+							
+							// Exit types
+							__REMOOD_IQKT("NORMAL", 0, EVGENGE_EXITSECRETSHIFT, EVGENGE_EXITSECRETMASK);
+							__REMOOD_EQKT("SECRET", 1, EVGENGE_EXITSECRETSHIFT, EVGENGE_EXITSECRETMASK);
+							
+							// Hubbed?
+							__REMOOD_IQKT("HUB", 1, EVGENGE_EXITHUBSHIFT, EVGENGE_EXITHUBMASK);
 						}
 					}
 					

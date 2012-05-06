@@ -379,12 +379,43 @@ static patch_t** lnames;
 // CODE
 //
 
-// slam background
-// UNUSED static unsigned char *background=0;
+/****************
+*** CONSTANTS ***
+****************/
 
+#define WIDPLIMIT 16
+
+/*****************
+*** STRUCTURES ***
+*****************/
+
+/* WI_PlayerInfo_t -- Player Info */
+typedef struct WI_PlayerInfo_s
+{
+	player_t* Player;
+	int32_t Rank;
+} WI_PlayerInfo_t;
+
+/*************
+*** LOCALS ***
+*************/
+
+static V_Image_t* l_PicINTER = NULL;
+static WI_PlayerInfo_t l_DrawPlayers[MAXPLAYERS];
+static size_t l_NumDrawPlayers;
+
+/****************
+*** FUNCTIONS ***
+****************/
+
+/* WI_slamBackground() -- Slams intermission background on the screen */
 static void WI_slamBackground(void)
 {
+	/* Copy old screen */
 	memcpy(screens[0], screens[1], vid.width * vid.height);
+	
+	/* Draw Interpic */
+	V_ImageDraw(0, l_PicINTER, 0, 0, NULL);
 }
 
 // The ticker is used to detect keys
@@ -397,86 +428,16 @@ bool_t WI_Responder(event_t* ev)
 // Draws "<Levelname> Finished!"
 static void WI_drawLF(void)
 {
-	int y = WI_TITLEY;
-	
-	// draw <LevelName>
-	if (true /*FontBBaseLump */ )
-	{
-		V_DrawStringA(VFONT_LARGE, VFO_CENTERED, P_LevelName(), 0, y);
-		y += (5 * V_StringHeightA(VFONT_LARGE, 0, P_LevelName())) / 4;
-		V_DrawStringA(VFONT_LARGE, VFO_CENTERED, DS_GetString(DSTR_INTERMISSION_FINISHED), 0, y);
-	}
-	else
-	{
-		V_DrawScaledPatch((BASEVIDWIDTH - LittleSwapInt16(lnames[wbs->last]->width)) / 2, y, FB, lnames[wbs->last]);
-		y += (5 * LittleSwapInt16(lnames[wbs->last]->height)) / 4;
-		// draw "Finished!"
-		V_DrawScaledPatch((BASEVIDWIDTH - LittleSwapInt16(finished->width)) / 2, y, FB, finished);
-	}
 }
 
 // Draws "Entering <LevelName>"
 static void WI_drawEL(void)
 {
-	int y = WI_TITLEY;
-	
-	// draw "Entering"
-	if (true /*FontBBaseLump */ )
-	{
-		V_DrawStringA(VFONT_LARGE, VFO_CENTERED, DS_GetString(DSTR_INTERMISSION_ENTERING), 0, y);
-		y += (5 * V_StringHeightA(VFONT_LARGE, VFO_CENTERED, DS_GetString(DSTR_INTERMISSION_ENTERING))) / 4;
-		V_DrawStringA(VFONT_LARGE, VFO_CENTERED, P_LevelNameByNum(wbs->epsd + 1, wbs->next + 1), 0, y);
-	}
-	else
-	{
-		V_DrawScaledPatch((BASEVIDWIDTH - LittleSwapInt16(entering->width)) / 2, y, FB, entering);
-		
-		// draw level
-		y += (5 * LittleSwapInt16(lnames[wbs->next]->height)) / 4;
-		
-		V_DrawScaledPatch((BASEVIDWIDTH - LittleSwapInt16(lnames[wbs->next]->width)) / 2, y, FB, lnames[wbs->next]);
-	}
-	
 }
 
+/* WI_drawOnLnode() -- Draws level currently on */
 static void WI_drawOnLnode(int n, patch_t* c[])
 {
-
-	int i;
-	int left;
-	int top;
-	int right;
-	int bottom;
-	bool_t fits = false;
-	
-	point_t* lnodes;
-	
-	lnodes = &doomlnodes[wbs->epsd][n];
-	
-	i = 0;
-	do
-	{
-		left = lnodes->x - LittleSwapInt16(c[i]->leftoffset);
-		top = lnodes->y - LittleSwapInt16(c[i]->topoffset);
-		right = left + LittleSwapInt16(c[i]->width);
-		bottom = top + LittleSwapInt16(c[i]->height);
-		
-		if (left >= 0 && right < BASEVIDWIDTH && top >= 0 && bottom < BASEVIDHEIGHT)
-		{
-			fits = true;
-		}
-		else
-		{
-			i++;
-		}
-	}
-	while (!fits && i != 2);
-	
-	if (fits && i < 2)
-		V_DrawScaledPatch(lnodes->x, lnodes->y, FB, c[i]);
-	else
-		// DEBUG
-		CONL_PrintF("Could not place patch on level %d\n", n + 1);
 }
 
 static void WI_initAnimatedBack(void)
@@ -561,136 +522,25 @@ static void WI_updateAnimatedBack(void)
 	
 }
 
+/* WI_drawAnimatedBack() -- Draws animated background */
 static void WI_drawAnimatedBack(void)
 {
-	int i;
-	anim_t* a;
-	
-	//BP: fixed it was "if (commercial)"
-	if (gamemode == commercial)
-		return;
-		
-	if (wbs->epsd > 2)
-		return;
-		
-	for (i = 0; i < NUMANIMS[wbs->epsd]; i++)
-	{
-		a = &anims[wbs->epsd][i];
-		
-		if (a->ctr >= 0)
-			V_DrawScaledPatch(a->loc.x, a->loc.y, FB, a->p[a->ctr]);
-	}
-	
 }
 
-//
-// Draws a number.
-// If digits > 0, then use that many digits minimum,
-//  otherwise only use as many as necessary.
-// Returns new x position.
-//
-
+/* WI_drawNum() -- Draws number */
 static int WI_drawNum(int x, int y, int n, int digits)
 {
-
-	int fontwidth = 0;
-	int neg;
-	int temp;
-	
-	if (num[0])
-		fontwidth = LittleSwapInt16(num[0]->width);
-	
-	if (digits < 0)
-	{
-		if (!n)
-		{
-			// make variable-length zeros 1 digit long
-			digits = 1;
-		}
-		else
-		{
-			// figure out # of digits in #
-			digits = 0;
-			temp = n;
-			
-			while (temp)
-			{
-				temp /= 10;
-				digits++;
-			}
-		}
-	}
-	
-	neg = n < 0;
-	if (neg)
-		n = -n;
-		
-	// if non-number, do not draw it
-	if (n == 1994)
-		return 0;
-		
-	// draw the new number
-	while (digits--)
-	{
-		x -= fontwidth;
-		V_DrawScaledPatch(x, y, FB, num[n % 10]);
-		n /= 10;
-	}
-	
-	// draw a minus sign if necessary
-	if (neg)
-		V_DrawScaledPatch(x -= 8, y, FB, wiminus);
-		
-	return x;
-	
+	return 0;
 }
 
+/* WI_drawPercent() -- Draws percentage */
 static void WI_drawPercent(int x, int y, int p)
 {
-	if (p < 0)
-		return;
-		
-	V_DrawScaledPatch(x, y, FB, percent);
-	WI_drawNum(x, y, p, -1);
 }
 
-//
-// Display level completion time and par,
-//  or "sucks" message if overflow.
-//
+/* WI_drawTime() -- Draws the time */
 static void WI_drawTime(int x, int y, int t)
 {
-
-	int div;
-	int n;
-	
-	if (t < 0)
-		return;
-		
-	if (t <= 61 * 59)
-	{
-		div = 1;
-		
-		do
-		{
-			n = (t / div) % 60;
-			if (colon)
-				x = WI_drawNum(x, y, n, 2) - LittleSwapInt16(colon->width);
-			div *= 60;
-			
-			// draw
-			if (div == 60 || t / div)
-				V_DrawScaledPatch(x, y, FB, colon);
-				
-		}
-		while (t / div);
-	}
-	else
-	{
-		// "sucks"
-		if (sucks)
-			V_DrawScaledPatch(x - LittleSwapInt16(sucks->width), y, FB, sucks);
-	}
 }
 
 static void WI_unloadData(void);
@@ -742,46 +592,13 @@ static void WI_updateShowNextLoc(void)
 		snl_pointeron = (cnt & 31) < 20;
 }
 
+/* WI_drawShowNextLoc() -- Draws area going to */
 static void WI_drawShowNextLoc(void)
 {
-
-	int i;
-	int last;
-	
-	if (cnt <= 0)				// all removed no draw !!!
-		return;
-		
-	WI_slamBackground();
-	
-	// draw animated background
-	WI_drawAnimatedBack();
-	
-	if (gamemode != commercial && wbs->epsd <= 2)
-	{
-		last = (wbs->last == 8) ? wbs->next - 1 : wbs->last;
-		
-		// draw a splat on taken cities.
-		for (i = 0; i <= last; i++)
-			WI_drawOnLnode(i, &splat);
-			
-		// splat the secret level?
-		if (wbs->didsecret)
-			WI_drawOnLnode(8, &splat);
-			
-		// draw flashing ptr
-		if (snl_pointeron)
-			WI_drawOnLnode(wbs->next, yah);
-	}
-	// draws which level you are entering..
-	if ((gamemode != commercial || wbs->next != 30))
-		WI_drawEL();
-		
 }
 
 static void WI_drawNoState(void)
 {
-	snl_pointeron = true;
-	WI_drawShowNextLoc();
 }
 
 static int dm_frags[MAXPLAYERS][MAXPLAYERS];
@@ -827,154 +644,16 @@ static void WI_updateDeathmatchStats(void)
 	}
 }
 
-//  Quick-patch for the Cave party 19-04-1998 !!
-//
+/* WI_drawRancking() -- Draws rankings */
 void WI_drawRancking(char* title, int x, int y, fragsort_t* fragtable, int scorelines, bool_t large, int white)
 {
-	int i, j;
-	int color;
-	char num[12];
-	int plnum;
-	int frags;
-	int colornum;
-	fragsort_t temp;
-	
-	colornum = 0x78;
-	
-	// sort the frags count
-	for (i = 0; i < scorelines; i++)
-		for (j = 0; j < scorelines - 1 - i; j++)
-			if (fragtable[j].count < fragtable[j + 1].count)
-			{
-				temp = fragtable[j];
-				fragtable[j] = fragtable[j + 1];
-				fragtable[j + 1] = temp;
-			}
-			
-	if (title)
-		V_DrawStringA(VFONT_SMALL, 0, title, x, y - 14);
-		
-	// draw rankings
-	for (i = 0; i < scorelines; i++)
-	{
-		frags = fragtable[i].count;
-		plnum = fragtable[i].num;
-		
-		// draw color background
-		color = fragtable[i].color;
-		if (!color)
-			color = *((uint8_t*)colormaps + colornum);
-		else
-			color = *((uint8_t*)translationtables - 256 + (color << 8) + colornum);
-		V_DrawColorBoxEx(0, color, x - 1, y - 1, (x - 1) + (large ? 40 : 26), (y - 1) + 9);
-		
-		// draw frags count
-		sprintf(num, "%3i", frags);
-		
-		V_DrawStringA(VFONT_SMALL, 0, num, x + (large ? 32 : 24) - V_StringWidthA(VFONT_SMALL, 0, num), y);
-		
-		// draw name
-		V_DrawStringA(VFONT_SMALL, (plnum == white ? VEX_MAP_WHITE : 0), fragtable[i].name, x + (large ? 64 : 29), y);
-		
-		y += 12;
-		if (y >= BASEVIDHEIGHT)
-			break;				// dont draw past bottom of screen
-	}
 }
 
 #define RANKINGY 60
 
+/* WI_drawDeathmatchStats() -- Draws Deathmatch stats */
 static void WI_drawDeathmatchStats(void)
 {
-	int i, j;
-	int scorelines;
-	int whiteplayer;
-	fragsort_t fragtab[MAXPLAYERS];
-	char* timeleft;
-	
-	WI_slamBackground();
-	
-	// draw animated background
-	WI_drawAnimatedBack();
-	WI_drawLF();
-	
-	//Fab:25-04-98: when you play, you quickly see your frags because your
-	//  name is displayed white, when playback demo, you quicly see who's the
-	//  view.
-	whiteplayer = demoplayback ? displayplayer[0] : consoleplayer[0];
-	
-	// count frags for each present player
-	scorelines = 0;
-	for (i = 0; i < MAXPLAYERS; i++)
-		if (playeringame[i])
-		{
-			fragtab[scorelines].count = dm_totals[i];
-			fragtab[scorelines].num = i;
-			fragtab[scorelines].color = players[i].skincolor;
-			fragtab[scorelines].name = player_names[i];
-			scorelines++;
-		}
-	WI_drawRancking("Frags", 5, RANKINGY, fragtab, scorelines, false, whiteplayer);
-	
-	// count buchholz
-	scorelines = 0;
-	for (i = 0; i < MAXPLAYERS; i++)
-		if (playeringame[i])
-		{
-			fragtab[scorelines].count = 0;
-			for (j = 0; j < MAXPLAYERS; j++)
-				if (playeringame[j] && i != j)
-					fragtab[scorelines].count += dm_frags[i][j] * (dm_totals[j] + dm_frags[j][j]);
-					
-			fragtab[scorelines].num = i;
-			fragtab[scorelines].color = players[i].skincolor;
-			fragtab[scorelines].name = player_names[i];
-			scorelines++;
-		}
-	WI_drawRancking("Buchholz", 85, RANKINGY, fragtab, scorelines, false, whiteplayer);
-	
-	// count individuel
-	scorelines = 0;
-	for (i = 0; i < MAXPLAYERS; i++)
-		if (playeringame[i])
-		{
-			fragtab[scorelines].count = 0;
-			for (j = 0; j < MAXPLAYERS; j++)
-				if (playeringame[j] && i != j)
-				{
-					if (dm_frags[i][j] > dm_frags[j][i])
-						fragtab[scorelines].count += 3;
-					else if (dm_frags[i][j] == dm_frags[j][i])
-						fragtab[scorelines].count += 1;
-				}
-				
-			fragtab[scorelines].num = i;
-			fragtab[scorelines].color = players[i].skincolor;
-			fragtab[scorelines].name = player_names[i];
-			scorelines++;
-		}
-	WI_drawRancking("indiv.", 165, RANKINGY, fragtab, scorelines, false, whiteplayer);
-	
-	// count deads
-	scorelines = 0;
-	for (i = 0; i < MAXPLAYERS; i++)
-		if (playeringame[i])
-		{
-			fragtab[scorelines].count = 0;
-			for (j = 0; j < MAXPLAYERS; j++)
-				if (playeringame[j])
-					fragtab[scorelines].count += dm_frags[j][i];
-			fragtab[scorelines].num = i;
-			fragtab[scorelines].color = players[i].skincolor;
-			fragtab[scorelines].name = player_names[i];
-			
-			scorelines++;
-		}
-	WI_drawRancking("deads", 245, RANKINGY, fragtab, scorelines, false, whiteplayer);
-	
-	timeleft = va("start in %d", cnt_pause / TICRATE);
-	
-	V_DrawStringA(VFONT_SMALL, VEX_MAP_WHITE, timeleft, 200, 30);
 }
 
 bool_t teamingame(int teamnum)
@@ -996,87 +675,9 @@ bool_t teamingame(int teamnum)
 	return false;
 }
 
+/* WI_drawTeamsStats() -- Draws team stats */
 static void WI_drawTeamsStats(void)
 {
-	int i, j;
-	int scorelines;
-	int whiteplayer;
-	fragsort_t fragtab[MAXPLAYERS];
-	
-	WI_slamBackground();
-	
-	// draw animated background
-	WI_drawAnimatedBack();
-	WI_drawLF();
-	
-	//Fab:25-04-98: when you play, you quickly see your frags because your
-	//  name is displayed white, when playback demo, you quicly see who's the
-	//  view.
-	if (cv_teamplay.value == 1)
-		whiteplayer = demoplayback ? players[displayplayer[0]].skincolor : players[consoleplayer[0]].skincolor;
-	else
-		whiteplayer = demoplayback ? players[displayplayer[0]].skin : players[consoleplayer[0]].skin;
-		
-	// count frags for each present player
-	scorelines = HU_CreateTeamFragTbl(fragtab, dm_totals, dm_frags);
-	
-	WI_drawRancking("Frags", 5, 80, fragtab, scorelines, false, whiteplayer);
-	
-	// count buchholz
-	scorelines = 0;
-	for (i = 0; i < MAXPLAYERS; i++)
-		if (teamingame(i))
-		{
-			fragtab[scorelines].count = 0;
-			for (j = 0; j < MAXPLAYERS; j++)
-				if (teamingame(j) && i != j)
-					fragtab[scorelines].count += dm_frags[i][j] * dm_totals[j];
-					
-			fragtab[scorelines].num = i;
-			fragtab[scorelines].color = i;
-			fragtab[scorelines].name = team_names[i];
-			scorelines++;
-		}
-	WI_drawRancking("Buchholz", 85, 80, fragtab, scorelines, false, whiteplayer);
-	
-	// count individuel
-	scorelines = 0;
-	for (i = 0; i < MAXPLAYERS; i++)
-		if (teamingame(i))
-		{
-			fragtab[scorelines].count = 0;
-			for (j = 0; j < MAXPLAYERS; j++)
-				if (teamingame(j) && i != j)
-				{
-					if (dm_frags[i][j] > dm_frags[j][i])
-						fragtab[scorelines].count += 3;
-					else if (dm_frags[i][j] == dm_frags[j][i])
-						fragtab[scorelines].count += 1;
-				}
-				
-			fragtab[scorelines].num = i;
-			fragtab[scorelines].color = i;
-			fragtab[scorelines].name = team_names[i];
-			scorelines++;
-		}
-	WI_drawRancking("indiv.", 165, 80, fragtab, scorelines, false, whiteplayer);
-	
-	// count deads
-	scorelines = 0;
-	for (i = 0; i < MAXPLAYERS; i++)
-		if (teamingame(i))
-		{
-			fragtab[scorelines].count = 0;
-			for (j = 0; j < MAXPLAYERS; j++)
-				if (teamingame(j))
-					fragtab[scorelines].count += dm_frags[j][i];
-			fragtab[scorelines].num = i;
-			fragtab[scorelines].color = i;
-			fragtab[scorelines].name = team_names[i];
-			
-			scorelines++;
-		}
-	WI_drawRancking("deads", 245, 80, fragtab, scorelines, false, whiteplayer);
 }
 
 /* old code
@@ -1370,83 +971,9 @@ static void WI_updateNetgameStats(void)
 	}
 }
 
+/* WI_drawStats() -- Draws Co-Op Stats */
 static void WI_drawNetgameStats(void)
 {
-	int i;
-	int x;
-	int y;
-	int pwidth = LittleSwapInt16(percent->width);
-	
-	uint8_t* colormap;			//added:08-02-98: remap STBP0 to player color
-	
-	WI_slamBackground();
-	
-	// draw animated background
-	WI_drawAnimatedBack();
-	
-	WI_drawLF();
-	
-	// draw stat titles (top line)
-	if (true /*FontBBaseLump */ )
-	{
-		// use FontB if any
-		
-		V_DrawStringA(VFONT_LARGE, 0, DS_GetString(DSTR_INTERMISSION_NETKILLS),
-		              NG_STATSX + NG_SPACINGX - V_StringWidthA(VFONT_LARGE, 0, DS_GetString(DSTR_INTERMISSION_NETKILLS)), NG_STATSY);
-		V_DrawStringA(VFONT_LARGE, 0, DS_GetString(DSTR_INTERMISSION_NETITEMS),
-		              NG_STATSX + 2 * NG_SPACINGX - V_StringWidthA(VFONT_LARGE, 0, DS_GetString(DSTR_INTERMISSION_NETITEMS)), NG_STATSY);
-		V_DrawStringA(VFONT_LARGE, 0, DS_GetString(DSTR_INTERMISSION_NETSECRETS),
-		              NG_STATSX + 3 * NG_SPACINGX - V_StringWidthA(VFONT_LARGE, 0, DS_GetString(DSTR_INTERMISSION_NETSECRETS)), NG_STATSY);
-		if (dofrags)
-			V_DrawStringA(VFONT_LARGE, 0, DS_GetString(DSTR_INTERMISSION_NETFRAGS),
-			              NG_STATSX + 4 * NG_SPACINGX - V_StringWidthA(VFONT_LARGE, 0, DS_GetString(DSTR_INTERMISSION_NETFRAGS)), NG_STATSY);
-			              
-		y = NG_STATSY + V_StringHeightA(VFONT_LARGE, 0, DS_GetString(DSTR_INTERMISSION_NETKILLS));
-	}
-	else
-	{
-		V_DrawScaledPatch(NG_STATSX + NG_SPACINGX - LittleSwapInt16(kills->width), NG_STATSY, FB, kills);
-		
-		V_DrawScaledPatch(NG_STATSX + 2 * NG_SPACINGX - LittleSwapInt16(items->width), NG_STATSY, FB, items);
-		
-		V_DrawScaledPatch(NG_STATSX + 3 * NG_SPACINGX - LittleSwapInt16(secret->width), NG_STATSY, FB, secret);
-		if (dofrags)
-			V_DrawScaledPatch(NG_STATSX + 4 * NG_SPACINGX - LittleSwapInt16(frags->width), NG_STATSY, FB, frags);
-		// draw stats
-		y = NG_STATSY + LittleSwapInt16(kills->height);
-	}
-	
-	//added:08-02-98: p[i] replaced by stpb (see WI_loadData for more)
-	for (i = 0; i < MAXPLAYERS; i++)
-	{
-		if (!playeringame[i])
-			continue;
-			
-		x = NG_STATSX;
-		if (players[i].skincolor == 0)
-			colormap = colormaps;	//no translation table for green guy
-		else
-			colormap = (uint8_t*)translationtables - 256 + (players[i].skincolor << 8);
-			
-		V_DrawMappedPatch(x - LittleSwapInt16(stpb->width), y, FB, stpb, colormap);
-		
-		if (i == me)
-			V_DrawScaledPatch(x - LittleSwapInt16(stpb->width), y, FB, star);
-			
-		x += NG_SPACINGX;
-		WI_drawPercent(x - pwidth, y + 10, cnt_kills[i]);
-		x += NG_SPACINGX;
-		WI_drawPercent(x - pwidth, y + 10, cnt_items[i]);
-		x += NG_SPACINGX;
-		WI_drawPercent(x - pwidth, y + 10, cnt_secret[i]);
-		x += NG_SPACINGX;
-		
-		if (dofrags)
-			WI_drawNum(x, y + 10, cnt_frags[i], -1);
-			
-		y += WI_SPACINGY;
-	}
-	
 }
 
 static int sp_state;
@@ -1569,49 +1096,9 @@ static void WI_updateStats(void)
 	
 }
 
+/* WI_drawStats() -- Draws Single Player Stats */
 static void WI_drawStats(void)
 {
-	// line height
-	int lh;
-	
-	if (num[0])
-		lh = (3 * LittleSwapInt16(num[0]->height)) / 2;
-	
-	WI_slamBackground();
-	
-	// draw animated background
-	WI_drawAnimatedBack();
-	
-	WI_drawLF();
-	
-	if (true /*FontBBaseLump */ )
-	{
-		// use FontB if any
-		V_DrawStringA(VFONT_LARGE, 0, DS_GetString(DSTR_INTERMISSION_KILLS), SP_STATSX, SP_STATSY);
-		V_DrawStringA(VFONT_LARGE, 0, DS_GetString(DSTR_INTERMISSION_ITEMS), SP_STATSX, SP_STATSY + lh);
-		V_DrawStringA(VFONT_LARGE, 0, DS_GetString(DSTR_INTERMISSION_SECRETS), SP_STATSX, SP_STATSY + 2 * lh);
-		V_DrawStringA(VFONT_LARGE, 0, DS_GetString(DSTR_INTERMISSION_TIME), SP_STATSX, SP_TIMEY);
-		
-		if (wbs->epsd < 3)
-			V_DrawStringA(VFONT_LARGE, 0, DS_GetString(DSTR_INTERMISSION_PAR), BASEVIDWIDTH / 2 + SP_TIMEX, SP_TIMEY);
-	}
-	else
-	{
-		V_DrawScaledPatch(SP_STATSX, SP_STATSY, FB, kills);
-		V_DrawScaledPatch(SP_STATSX, SP_STATSY + lh, FB, items);
-		V_DrawScaledPatch(SP_STATSX, SP_STATSY + 2 * lh, FB, sp_secret);
-		V_DrawScaledPatch(SP_TIMEX, SP_TIMEY, FB, timePatch);
-		if (wbs->epsd < 3)
-			V_DrawScaledPatch(BASEVIDWIDTH / 2 + SP_TIMEX, SP_TIMEY, FB, par);
-	}
-	WI_drawPercent(BASEVIDWIDTH - SP_STATSX, SP_STATSY, cnt_kills[0]);
-	WI_drawPercent(BASEVIDWIDTH - SP_STATSX, SP_STATSY + lh, cnt_items[0]);
-	WI_drawPercent(BASEVIDWIDTH - SP_STATSX, SP_STATSY + 2 * lh, cnt_secret[0]);
-	WI_drawTime(BASEVIDWIDTH / 2 - SP_TIMEX, SP_TIMEY, cnt_time);
-	
-	if (wbs->epsd < 3)
-		WI_drawTime(BASEVIDWIDTH - SP_TIMEX, SP_TIMEY, cnt_par);
-		
 }
 
 static void WI_checkForAccelerate(void)
@@ -1647,17 +1134,11 @@ static void WI_checkForAccelerate(void)
 // Updates stuff each tick
 void WI_Ticker(void)
 {
+	// Update music
+	I_UpdateMusic();
+	
 	// counter for general background animation
 	bcnt++;
-	
-	if (bcnt == 1)
-	{
-		// intermission music
-		if (gamemode == commercial)
-			S_ChangeMusic(mus_dm2int, true);
-		else
-			S_ChangeMusic(mus_inter, true);
-	}
 	
 	WI_checkForAccelerate();
 	
@@ -1683,227 +1164,118 @@ void WI_Ticker(void)
 	
 }
 
+/* WI_loadData() -- Loads Intermission Data */
 static void WI_loadData(void)
 {
-	int i;
-	int j;
-	anim_t* a;
-	char name[9];
-	
-	// choose the background of the intermission
-	if (info_interpic && *info_interpic)
-		strcpy(bgname, info_interpic);
-	else if (gamemode == commercial)
-		strcpy(bgname, "INTERPIC");
-	else
-		sprintf(bgname, "WIMAP%d", wbs->epsd);
-		
-	if (gamemode == retail)
+	/* Load level-based info */
+	if (g_CurrentLevelInfo)
 	{
-		if (wbs->epsd == 3)
-			strcpy(bgname, "INTERPIC");
+		// INTERPIC
+		if (g_CurrentLevelInfo->InterPic)
+			l_PicINTER = V_ImageFindA(g_CurrentLevelInfo->InterPic);
 	}
 	
-	memset(screens[0], 0, vid.width * vid.height * vid.bpp);
 	
-	// clear backbuffer from status bar stuff and borders
-	memset(screens[1], 0, vid.width * vid.height * vid.bpp);
-	
-	// background stored in backbuffer
-	V_DrawScaledPatch(0, 0, 1, W_CachePatchName(bgname, PU_CACHE));
-	
-	// UNUSED unsigned char *pic = screens[1];
-	// if (gamemode == commercial)
-	// {
-	// darken the background image
-	// while (pic != screens[1] + SCREENHEIGHT*SCREENWIDTH)
-	// {
-	//   *pic = colormaps[256*25 + *pic];
-	//   pic++;
-	// }
-	//}
-	
-	if (gamemode == commercial)
-	{
-		NUMCMAPS = 32;
-		lnames = (patch_t**)Z_Malloc(sizeof(patch_t*) * NUMCMAPS, PU_STATIC, 0);
-		for (i = 0; i < NUMCMAPS; i++)
-		{
-			sprintf(name, "CWILV%2.2d", i);
-			lnames[i] = W_CachePatchName(name, PU_STATIC);
-		}
-	}
-	else
-	{
-		lnames = (patch_t**)Z_Malloc(sizeof(patch_t*) * NUMMAPS, PU_STATIC, 0);
-		for (i = 0; i < NUMMAPS; i++)
-		{
-			sprintf(name, "WILV%d%d", wbs->epsd, i);
-			lnames[i] = W_CachePatchName(name, PU_STATIC);
-		}
-		
-		// you are here
-		yah[0] = W_CachePatchName("WIURH0", PU_STATIC);
-		
-		// you are here (alt.)
-		yah[1] = W_CachePatchName("WIURH1", PU_STATIC);
-		
-		// splat
-		splat = W_CachePatchName("WISPLAT", PU_STATIC);
-		
-		if (wbs->epsd < 3)
-		{
-			for (j = 0; j < NUMANIMS[wbs->epsd]; j++)
-			{
-				a = &anims[wbs->epsd][j];
-				for (i = 0; i < a->nanims; i++)
-				{
-					// MONDO HACK!
-					if (wbs->epsd != 1 || j != 8)
-					{
-						// animations
-						sprintf(name, "WIA%d%.2d%.2d", wbs->epsd, j, i);
-						a->p[i] = W_CachePatchName(name, PU_STATIC);
-					}
-					else
-					{
-						// HACK ALERT!
-						a->p[i] = anims[1][4].p[i];
-					}
-				}
-			}
-		}
-	}
-	
-	// More hacks on minus sign.
-	wiminus = W_CachePatchName("WIMINUS", PU_STATIC);
-	
-	for (i = 0; i < 10; i++)
-	{
-		// numbers 0-9
-		sprintf(name, "WINUM%d", i);
-		num[i] = W_CachePatchName(name, PU_STATIC);
-	}
-	
-	// percent sign
-	percent = W_CachePatchName("WIPCNT", PU_STATIC);
-	
-	// "finished"
-	finished = W_CachePatchName("WIF", PU_STATIC);
-	
-	// "entering"
-	entering = W_CachePatchName("WIENTER", PU_STATIC);
-	
-	// "kills"
-	kills = W_CachePatchName("WIOSTK", PU_STATIC);
-	
-	// "scrt"
-	secret = W_CachePatchName("WIOSTS", PU_STATIC);
-	
-	// "secret"
-	sp_secret = W_CachePatchName("WISCRT2", PU_STATIC);
-	
-	// "items"
-	items = W_CachePatchName("WIOSTI", PU_STATIC);
-	
-	// "frgs"
-	frags = W_CachePatchName("WIFRGS", PU_STATIC);
-	
-	// "time"
-	timePatch = W_CachePatchName("WITIME", PU_STATIC);
-	
-	// "sucks"
-	sucks = W_CachePatchName("WISUCKS", PU_STATIC);
-	
-	// "par"
-	par = W_CachePatchName("WIPAR", PU_STATIC);
-	
-	// "killers" (vertical)
-	killers = W_CachePatchName("WIKILRS", PU_STATIC);
-	
-	// "victims" (horiz)
-	victims = W_CachePatchName("WIVCTMS", PU_STATIC);
-	
-	// "total"
-	total = W_CachePatchName("WIMSTT", PU_STATIC);
-	
-	// ":"
-	colon = W_CachePatchName("WICOLON", PU_STATIC);
-	
-	// your face
-	star = W_CachePatchName("STFST01", PU_STATIC);
-	
-	// dead face
-	bstar = W_CachePatchName("STFDEAD0", PU_STATIC);
-	
-	//added:08-02-98: now uses a single STPB0 which is remapped to the
-	//                player translation table. Whatever new colors we add
-	//                since we'll have to define a translation table for
-	//                it, we'll have the right colors here automatically.
-	stpb = W_CachePatchName("STPB0", PU_STATIC);
 }
 
+/* WI_unloadData() -- Unloads intermission Data */
 static void WI_unloadData(void)
 {
-	int i;
-	int j;
+	/* Delete everything */
+	if (l_PicINTER)
+		V_ImageDestroy(l_PicINTER);
+}
+
+/* WI_Drawer() -- Draws the intermission */
+void WI_Drawer(void)
+{
+#define BUFSIZE 64
+	char Buf[BUFSIZE];
+	size_t i, j;
+	int32_t xBase, yBase, yAdd, y;
+	bool_t IsOnScreen;
+	uint32_t DrawFlags;
 	
-	//faB: never Z_ChangeTag() a pointer returned by W_CachePatchxxx()
-	//     it doesn't work and is unecessary
-	Z_ChangeTag(wiminus, PU_CACHE);
+	/* Generic Drawing */
+	// Draw interpic
+	V_ImageDraw(0, l_PicINTER, 0, 0, NULL);
 	
-	for (i = 0; i < 10; i++)
-		Z_ChangeTag(num[i], PU_CACHE);
-		
-	if (gamemode == commercial)
+	/* Draw Level Name */
+	if (g_CurrentLevelInfo)
 	{
-		for (i = 0; i < NUMCMAPS; i++)
-			Z_ChangeTag(lnames[i], PU_CACHE);
-	}
-	else
-	{
-		Z_ChangeTag(yah[0], PU_CACHE);
-		Z_ChangeTag(yah[1], PU_CACHE);
-		
-		Z_ChangeTag(splat, PU_CACHE);
-		
-		for (i = 0; i < NUMMAPS; i++)
-			Z_ChangeTag(lnames[i], PU_CACHE);
-			
-		if (wbs->epsd < 3)
+		// Use title?
+		if (g_CurrentLevelInfo->Title)
 		{
-			for (j = 0; j < NUMANIMS[wbs->epsd]; j++)
-			{
-				if (wbs->epsd != 1 || j != 8)
-					for (i = 0; i < anims[wbs->epsd][j].nanims; i++)
-						Z_ChangeTag(anims[wbs->epsd][j].p[i], PU_CACHE);
-			}
+			V_DrawStringA(
+				VFONT_LARGE,
+				VFO_COLOR(VEX_MAP_BRIGHTWHITE),
+				g_CurrentLevelInfo->Title,
+				5, 5
+			);
+			
+			// Draw Author?
+			if (g_CurrentLevelInfo->Author)
+				V_DrawStringA(
+					VFONT_SMALL,
+					VFO_COLOR(VEX_MAP_GREEN),
+					g_CurrentLevelInfo->Author,
+					5, 5 + V_FontHeight(VFONT_LARGE) + 1
+				);
+		}
+		
+		// Otherwise use level picture
+		else if (g_CurrentLevelInfo->LevelPic)
+		{
 		}
 	}
 	
-	Z_Free(lnames);
+	/* Generalized Drawing */
+	// Determine lines
+	xBase = 10;
+	yBase = 30;
+	yAdd = V_FontHeight(VFONT_SMALL) + 1;
 	
-	Z_ChangeTag(percent, PU_CACHE);
-	Z_ChangeTag(colon, PU_CACHE);
+	// Draw player sort
+	for (y = 0, i = 0; i < l_NumDrawPlayers; i++, y += yAdd + 1)
+	{
+		// Clear
+		IsOnScreen = false;
+		
+		// Determine extra stuff
+		for (j = 0; j < MAXSPLITSCREEN; j++)
+			if (g_PlayerInSplit[j])
+				if ((l_DrawPlayers[i].Player - players) == consoleplayer[j])
+					IsOnScreen = true;
+		
+		// Draw player band
+		V_DrawColorBoxEx(
+				VEX_TRANS(VEX_TRANS50) | VEX_COLORMAP(VEX_MAP_GREEN) | VEX_PCOLOR(l_DrawPlayers[i].Player->skincolor) ,
+				120, 0, yBase + y, 320, yBase + y + yAdd);
+		
+		// Options
+		DrawFlags = 0;
+		if (IsOnScreen)
+			DrawFlags = VFO_COLOR(VEX_MAP_BRIGHTWHITE);
+		
+		// Draw Rank
+		snprintf(Buf, BUFSIZE - 1, "%i.", l_DrawPlayers[i].Rank + 1);
+		V_DrawStringA(
+				VFONT_SMALL,
+				DrawFlags,
+				Buf,
+				xBase, yBase + y
+			);
+		
+		// Draw player name
+		V_DrawStringA(
+				VFONT_SMALL,
+				DrawFlags,
+				D_NCSGetPlayerName(l_DrawPlayers[i].Player - players),
+				xBase + 20, yBase + y
+			);
+	}
 	
-	Z_ChangeTag(finished, PU_CACHE);
-	Z_ChangeTag(entering, PU_CACHE);
-	Z_ChangeTag(kills, PU_CACHE);
-	Z_ChangeTag(secret, PU_CACHE);
-	Z_ChangeTag(sp_secret, PU_CACHE);
-	Z_ChangeTag(items, PU_CACHE);
-	Z_ChangeTag(frags, PU_CACHE);
-	Z_ChangeTag(timePatch, PU_CACHE);
-	Z_ChangeTag(sucks, PU_CACHE);
-	Z_ChangeTag(par, PU_CACHE);
-	
-	Z_ChangeTag(victims, PU_CACHE);
-	Z_ChangeTag(killers, PU_CACHE);
-	Z_ChangeTag(total, PU_CACHE);
-}
-
-void WI_Drawer(void)
-{
+#if 0
 	switch (state)
 	{
 		case StatCount:
@@ -1928,11 +1300,17 @@ void WI_Drawer(void)
 			WI_drawNoState();
 			break;
 	}
+#endif
+#undef BUFSIZE
 }
 
+/* WI_initVariables() -- Initializes variables */
 static void WI_initVariables(wbstartstruct_t* wbstartstruct)
 {
-
+	size_t i, j, k;
+	WI_PlayerInfo_t TempDP[MAXPLAYERS];
+	size_t NumTempDP;
+	
 	wbs = wbstartstruct;
 	
 #ifdef RANGECHECKING
@@ -1969,14 +1347,59 @@ static void WI_initVariables(wbstartstruct_t* wbstartstruct)
 	if (gamemode != retail)
 		if (wbs->epsd > 2)
 			wbs->epsd -= 3;
+	
+	/* Determine Players to Draw */
+	// Clear
+	memset(l_DrawPlayers, 0, sizeof(l_DrawPlayers));
+	l_NumDrawPlayers = 0;
+	
+	memset(TempDP, 0, sizeof(TempDP));
+	NumTempDP = 0;
+	
+	// Use players in game
+	for (i = 0; i < MAXPLAYERS; i++)
+		if (playeringame[i])
+		{
+			TempDP[NumTempDP].Player = &players[i];
+			TempDP[NumTempDP++].Rank = i;
+		}
+	
+	// Sort players based on statistics
+	
+	// Move into draw players, limiting to 16
+	for (i = 0; i < NumTempDP; i++)
+	{
+		// Enough Room?
+		if (l_NumDrawPlayers < WIDPLIMIT)
+			l_DrawPlayers[l_NumDrawPlayers++] = TempDP[i];
+		
+		// Bump a non-local player out (but never replace 1st place)
+		else if (TempDP[i].Player->NetPlayer && TempDP[i].Player->NetPlayer->Type == DNPT_LOCAL)
+		{
+			// If the player is NOT a local player
+			for (j = WIDPLIMIT - 1; j > 1; j--)
+				if ((!l_DrawPlayers[j].Player->NetPlayer) || (l_DrawPlayers[j].Player->NetPlayer && l_DrawPlayers[j].Player->NetPlayer->Type != DNPT_LOCAL))
+				{
+					l_DrawPlayers[j] = TempDP[i];
+					break;
+				}
+		}
+	}
 }
 
+/* WI_Start() -- Starts the intermission */
 void WI_Start(wbstartstruct_t* wbstartstruct)
 {
-
+	/* Play Intermission Music */
+	if (g_CurrentLevelInfo)
+		if (g_CurrentLevelInfo->InterMus)
+			S_ChangeMusicName(g_CurrentLevelInfo->InterMus, 1);
+	
+	/* Load Data */
 	WI_initVariables(wbstartstruct);
 	WI_loadData();
 	
+	/* Initialize Stats */
 	if (cv_deathmatch.value)
 		WI_initDeathmatchStats();
 	else if (multiplayer)
@@ -1984,3 +1407,4 @@ void WI_Start(wbstartstruct_t* wbstartstruct)
 	else
 		WI_initStats();
 }
+

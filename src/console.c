@@ -2372,6 +2372,7 @@ static void CONLS_DrawLoadingScreen(const bool_t a_QuickDraw)
 {
 	size_t i;
 	fixed_t Frac;
+	V_Image_t* BGImage;
 	
 	/* Clear screen if not quick drawing */
 	if (!a_QuickDraw)
@@ -2379,8 +2380,13 @@ static void CONLS_DrawLoadingScreen(const bool_t a_QuickDraw)
 		// Wipe away
 		memset(screens[0], 0, vid.rowbytes * vid.height);
 		
+		// Draw ReMooD Background
+		BGImage = V_ImageFindA("RMD_LLOA");
+		V_ImageDraw(0, BGImage, 0, 0, NULL);
+		V_ImageDestroy(BGImage);
+		
 		// Draw stuff onto screen
-		V_DrawStringA(VFONT_LARGE, VFO_CENTERED, "Loading...", vid.width / 4, 100);
+		//V_DrawStringA(VFONT_LARGE, VFO_CENTERED, "Loading...", vid.width / 4, 100);
 		
 		// Draw current action
 		if (l_CLSMessage)

@@ -859,7 +859,11 @@ static void BS_ThinkFollowNearestPlayer(B_BotData_t* const a_BotData, ticcmd_t* 
 					break;
 				}
 		
-		fprintf(stderr, "Bot: Traverse to player %i.\n", (int)p);
+		if (p >= MAXPLAYERS)
+			return;
+		
+		if (g_BotDebug)
+			fprintf(stderr, "Bot: Traverse to player %i.\n", (int)p);
 	
 		// No players found?
 		if (!Player || !ToPlayer)
@@ -1067,6 +1071,28 @@ void B_BuildBotTicCmd(B_BotData_t* const a_BotData, ticcmd_t* const a_TicCmd)
 	
 	/* Check */
 	if (!a_BotData || !a_TicCmd)
+		return;
+	
+	/* Intermission? */
+	if (gamestate == GS_INTERMISSION)
+	{
+		// Check to see if there are other non-bot players, because if there are
+			// then do not press use! It would be very rude!
+		for (i = 0; i < MAXPLAYERS; i++)
+			if (playeringame[i])
+				if (players[i].NetPlayer)
+					if (players[i].NetPlayer->Type != DNPT_BOT)
+						return;
+		
+		// Otherwise press use
+		a_TicCmd->buttons |= BT_USE;
+		
+		// Don't process anymore
+		return;
+	}
+	
+	/* Non-Level? */
+	if (gamestate != GS_LEVEL)
 		return;
 	
 	/* Update player nodes */

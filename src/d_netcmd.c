@@ -1031,6 +1031,7 @@ struct player_s* D_NCSAddBotPlayer(const char* const a_ProfileID)
 	NPp->Type = DNPT_BOT;
 	NPp->Player = &players[p];
 	NPp->NetColor = p % MAXSKINCOLORS;
+	snprintf(NPp->DisplayName, MAXPLAYERNAME - 1, "Bot %i", p);
 	
 	/* Return the new player */
 	return &players[p];
@@ -1704,7 +1705,7 @@ static void D_NCSLocalBuildTicCmd(D_NetPlayer_t* const a_NPp, ticcmd_t* const a_
 			// Print Message
 			CONL_PrintF("%sYou are now watching %s.\n",
 					(SID == 3 ? "\x6" : (SID == 2 ? "\x5" : (SID == 1 ? "\x4" : ""))),
-					(displayplayer[SID] == consoleplayer[SID] ? "Yourself" : player_names[displayplayer[SID]])
+					(displayplayer[SID] == consoleplayer[SID] ? "Yourself" : D_NCSGetPlayerName(displayplayer[SID]))
 				);
 			
 			// Reset timeout
@@ -1834,5 +1835,34 @@ void D_NCSNetUpdateAll(void)
 D_NetPlayer_t* D_NCSAllocNetPlayer(void)
 {
 	return Z_Malloc(sizeof(D_NetPlayer_t), PU_STATIC, NULL);
+}
+
+/* D_NCSGetPlayerName() -- Get player name */
+const char* D_NCSGetPlayerName(const uint32_t a_PlayerID)
+{
+	/* Check */
+	if (a_PlayerID < 0 || a_PlayerID >= MAXPLAYERS)
+		return NULL;
+	
+	/* Player is in game */
+	if (playeringame[a_PlayerID])
+	{
+		// Network Player
+		if (players[a_PlayerID].NetPlayer)
+			if (players[a_PlayerID].NetPlayer->DisplayName[0])
+				return players[a_PlayerID].NetPlayer->DisplayName;
+		
+		// Try from profiles
+		if (players[a_PlayerID].ProfileEx)
+			if (players[a_PlayerID].ProfileEx->DisplayName[0])
+				return players[a_PlayerID].ProfileEx->DisplayName;
+	}
+	
+	/* Return default */
+	if (player_names[a_PlayerID][0])
+		return player_names[a_PlayerID];
+	
+	/* Return Unknown */
+	return "Unnamed Player";
 }
 
