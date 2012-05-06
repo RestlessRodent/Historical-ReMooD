@@ -87,7 +87,6 @@ extern CV_PossibleValue_t exmy_cons_t[];
 /* Prototypes */
 void Command_Turbo_f(void);
 char* G_BuildMapName(int episode, int map);
-void G_BuildTiccmd(ticcmd_t* cmd, int realtics, int player);
 short G_ClipAimingPitch(int* aiming);
 void G_DoReborn(int playernum);
 bool_t G_DeathMatchSpawnPlayer(int playernum);

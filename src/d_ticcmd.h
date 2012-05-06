@@ -80,12 +80,13 @@ typedef struct
 	int8_t sidemove;			// *2048 for move
 	int16_t angleturn;			// <<16 for angle delta
 	// SAVED AS A BYTE into demos
-	uint16_t aiming;			//added:16-02-98:mouse aiming, see G_BuildTicCmd
+	uint16_t aiming;			//added:16-02-98:mouse aiming
 	uint16_t buttons;
 	uint8_t artifact;			// For Heretic
 	
 	// Extended tic command stuff
 	uint8_t XNewWeapon;							// New weapon to switch to
+	int16_t BaseAngleTurn;						// Base angle turning
 } ticcmd_t;
 
 #endif

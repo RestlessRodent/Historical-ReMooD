@@ -35,6 +35,10 @@
 #include "i_util.h"
 #include "i_net.h"
 
+/*****************
+*** STRUCTURES ***
+*****************/
+
 /*************
 *** LOCALS ***
 *************/
@@ -49,3 +53,4 @@ bool_t I_InitNetwork(void)
 	/* Success! */
 	return true;
 }
+

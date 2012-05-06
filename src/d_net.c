@@ -110,6 +110,12 @@ bool_t D_SyncNetIsPaused(void)
 	return false;
 }
 
+/* D_SyncNetIsSolo() -- Is solo game (non-networked) */
+bool_t D_SyncNetIsSolo(void)
+{
+	return true;
+}
+
 /* D_SyncNetAllReady() -- Inidicates that all parties are ready to move to the next tic */
 // It returns the tics in the future that everyone is ready to move to
 tic_t D_SyncNetAllReady(void)
@@ -152,6 +158,7 @@ tic_t D_SyncNetAllReady(void)
 		
 		if (DiffTime > 0)
 		{
+			// Return the time difference
 			LocalTime = ThisTime;
 			return l_MapTime + DiffTime;
 		}
@@ -173,6 +180,12 @@ tic_t D_SyncNetAllReady(void)
 bool_t D_SyncNetUpdate(void)
 {
 	D_SyncNetDebugMessage("Update...\n");
+	
+	/* Old Update Code */
+	NetUpdate();
+	
+	/* Update all networked players */
+	D_NCSNetUpdateAll();
 	
 	/* Success */
 	return true;

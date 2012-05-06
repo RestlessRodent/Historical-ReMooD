@@ -2073,6 +2073,9 @@ bool_t P_ExLoadLevel(P_LevelInfoEx_t* const a_Info, const bool_t a_ApplyOptions)
 	if (!a_Info)
 		return false;
 	
+	/* Set state to loading */
+	D_NCSNetSetState(DNS_LOADING);
+	
 	/* Set global info */
 	g_CurrentLevelInfo = a_Info;
 	
@@ -2592,6 +2595,9 @@ bool_t P_ExLoadLevel(P_LevelInfoEx_t* const a_Info, const bool_t a_ApplyOptions)
 	
 	/* Finalize */
 	P_ExFinalizeLevel();
+	
+	/* Set state to playing */
+	D_NCSNetSetState(DNS_PLAYING);
 #undef BUFSIZE
 #undef LOADMASK
 #undef LOADSHIFT

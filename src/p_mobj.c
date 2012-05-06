@@ -1644,8 +1644,9 @@ void P_SpawnPlayer(mapthing_t* mthing)
 	
 	mobj->angle = ANG45 * (mthing->angle / 45);
 	for (i = 0; i < MAXSPLITSCREENPLAYERS; i++)
-		if (playernum == consoleplayer[i])
-			localangle[i] = mobj->angle;
+		if (g_PlayerInSplit[i])
+			if (playernum == consoleplayer[i])
+				localangle[i] = mobj->angle;
 			
 	mobj->player = p;
 	mobj->health = p->health;

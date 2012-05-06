@@ -366,8 +366,11 @@ typedef struct I_NetHost_s
 	char Hostname[MAXHOSTNAME];	// Hostname of this nethost
 	
 	/* IP Addresses */
-	uint8_t IPAddr[16];			// IP Address
-	uint16_t IPPort;			// IP Port
+	struct
+	{
+		uint8_t Addr[16];		// Address
+		uint16_t Port;			// Port
+	} IP[2];					// 0 = v4, 1 = v6
 } I_NetHost_t;
 
 /* I_NetSocket_t -- A network socket */

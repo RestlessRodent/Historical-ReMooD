@@ -4057,10 +4057,14 @@ void V_ImageDrawScaledIntoBuffer(const uint32_t a_Flags, V_Image_t* const a_Imag
 	
 	/*** STANDARD CLIENT ***/
 #else
+
+//#define __REMOOD_OLDDRAW
+#define __REMOOD_ONESHORT
+
 	uint8_t* RawData;
 	int32_t x, y, w, h, xx, yy, i, c, Mask;
 	
-	int32_t sX, sY, tW, tY;
+	int32_t sX, sY, tW, tY, px;
 	uint8_t* dP;
 	uint8_t* sP;
 	fixed_t XFrac, YFrac, sxX, sxY, xw, xh, dxY, ESXy;
@@ -4171,10 +4175,6 @@ void V_ImageDrawScaledIntoBuffer(const uint32_t a_Flags, V_Image_t* const a_Imag
 		}
 	}
 	
-	/* Determine actual size to draw */
-	tW = FixedMul(xw, a_XScale) >> FRACBITS;
-	tY = FixedMul(xh, a_YScale) >> FRACBITS;
-	
 	/* Determine draw fraction */
 	XFrac = FixedDiv(1 << FRACBITS, a_XScale);
 	YFrac = FixedDiv(1 << FRACBITS, a_YScale);
@@ -4184,7 +4184,6 @@ void V_ImageDrawScaledIntoBuffer(const uint32_t a_Flags, V_Image_t* const a_Imag
 	if (y < 0)
 	{
 		xh += y << FRACBITS;	// Add because it is negative
-		tY = FixedMul(xh, a_YScale) >> FRACBITS;
 		y = 0;
 	}
 	
@@ -4192,7 +4191,6 @@ void V_ImageDrawScaledIntoBuffer(const uint32_t a_Flags, V_Image_t* const a_Imag
 	if (x < 0)
 	{
 		xw += x << FRACBITS;	// Add because it is negative
-		tW = FixedMul(xw, a_XScale) >> FRACBITS;
 		x = 0;
 	}
 	
@@ -4209,6 +4207,15 @@ void V_ImageDrawScaledIntoBuffer(const uint32_t a_Flags, V_Image_t* const a_Imag
 		return;
 	if (x >= a_DestWidth)
 		return;
+	
+	/* Determine Draw Size */
+	// On certain scales, there is a 1 pixel row copying loss
+		// x
+	tW = FixedMul(xw, a_XScale);
+	tW = (tW + (tW & _FIXED_ROUND)) >> FRACBITS;
+		// y
+	tY = FixedMul(xh, a_YScale);
+	tY = (tY + (tY & _FIXED_ROUND)) >> FRACBITS;
 	
 	/* If the image is a patch_t then draw it as a patch */
 	// Since patches have "holes" for transparency
@@ -4301,12 +4308,16 @@ void V_ImageDrawScaledIntoBuffer(const uint32_t a_Flags, V_Image_t* const a_Imag
 			for (sxY = 0, yy = y; sxY < xh;)
 			{
 				// Obtain source and destination pointers (for row base)
+				px = 0;
 				sP = RawData + (w * (sxY >> FRACBITS));
 				dP = a_DestBuffer + (a_DestPitch * yy) + x;
 			
 				// Scaled row draw
 				for (sxX = 0; sxX < xw; sxX += XFrac)
 					*(dP++) = ColorMap[ColorMapE[sP[sxX >> FRACBITS]]];
+				
+				if ((sxX - XFrac) & 0xFFFF)
+					px = 1;
 			
 				// Copy first row to succeeding rows
 				ESXy = ((sxY + (1 << FRACBITS)) & (~0xFFFF));
@@ -4314,7 +4325,7 @@ void V_ImageDrawScaledIntoBuffer(const uint32_t a_Flags, V_Image_t* const a_Imag
 				for (;sxY < ESXy ; sxY += YFrac, yy++)
 				{
 					dP = a_DestBuffer + (a_DestPitch * yy) + x;
-					memmove(dP, sP, tW);
+					memmove(dP, sP, tW + px);
 				}
 			}
 		

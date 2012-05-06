@@ -2371,6 +2371,7 @@ static int32_t l_CLSProgress[2][2] = {{0, 0}, {0, 0}};
 static void CONLS_DrawLoadingScreen(const bool_t a_QuickDraw)
 {
 	size_t i;
+	uint32_t BarBits;
 	fixed_t Frac;
 	V_Image_t* BGImage;
 	
@@ -2400,7 +2401,7 @@ static void CONLS_DrawLoadingScreen(const bool_t a_QuickDraw)
 #define BASEBARY (170 + (12 * i))
 #define BASEBARSIZE 10
 		// Draw bar across entire screen (white for incomplete)
-		V_DrawColorBoxEx(0, 4, SIDESPACE, BASEBARY, 320 - (SIDESPACE * 2), BASEBARY + BASEBARSIZE);
+		V_DrawColorBoxEx(0, 4, SIDESPACE, BASEBARY, SIDESPACE + (320 - (SIDESPACE * 2)), BASEBARY + BASEBARSIZE);
 		
 		// No right side?
 		if (!l_CLSProgress[i][1])
@@ -2417,8 +2418,14 @@ static void CONLS_DrawLoadingScreen(const bool_t a_QuickDraw)
 			else if (Frac > (1 << FRACBITS))
 				Frac = 1 << FRACBITS;
 			
+			// Cap Bar
+			BarBits = (FixedMul(Frac, (320 - (SIDESPACE * 2)) << FRACBITS) >> FRACBITS);
+			
+			if (BarBits >= 320 - (SIDESPACE * 2))
+				BarBits = 320 - (SIDESPACE * 2);
+			
 			// Draw bar
-			V_DrawColorBoxEx(0, 112, SIDESPACE, BASEBARY, SIDESPACE + (FixedMul(Frac, (320 - (SIDESPACE * 2)) << FRACBITS) >> FRACBITS), BASEBARY + BASEBARSIZE);
+			V_DrawColorBoxEx(0, 112, SIDESPACE, BASEBARY, SIDESPACE + BarBits, BASEBARY + BASEBARSIZE);
 		}
 #undef BASEBARSIZE
 #undef BASEBARY

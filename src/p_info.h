@@ -83,6 +83,7 @@ typedef enum P_LevelInfoBitLevels_e
 {
 	PLIBL_NONE,									// Nothing
 	PLIBL_MAPINFO,								// Set by MAPINFO
+	PLIBL_GENERIC,								// Generic Set
 	PLIBL_LUMPHEADER,							// Set by lump header
 } P_LevelInfoBitLevels_t;
 

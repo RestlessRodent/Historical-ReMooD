@@ -1490,6 +1490,9 @@ bool_t EV_TryGenTrigger(line_t* const a_Line, const int a_Side, mobj_t* const a_
 			// Trigger only once?
 			*a_UseAgain = (TrigMode & 1);
 			
+			// Lose the many bit
+			TrigMode &= ~1;
+			
 			// Determine trigger compatibility
 			if ((TrigMode == WalkOnce && a_Type != EVTGT_WALK) ||
 				((TrigMode == PushOnce || TrigMode == SwitchOnce) && a_Type != EVTGT_SWITCH) ||

@@ -104,6 +104,8 @@ static size_t l_NumCompInfos = 0;				// Number of composites
 
 /*** PRIVATE FUNCTIONS ***/
 
+#define NUMPINFOIGNOREFIELDS 0
+
 // c_PMIFields -- Map info fields
 static const struct
 {
@@ -294,7 +296,7 @@ static bool_t PS_ParseMapInfo(P_LevelInfoHolder_t* const a_Holder, const WL_WADE
 				}
 				
 				// Place level name here
-				CurrentInfo->Title = Z_StrDup(p, PU_STATIC, NULL);
+				CurrentInfo->Title = Z_StrDup(p, PU_WLDKRMOD, NULL);
 			}
 			
 			// Copy default settings?
@@ -331,7 +333,7 @@ static bool_t PS_ParseMapInfo(P_LevelInfoHolder_t* const a_Holder, const WL_WADE
 							
 							// Duplicate string
 							if (*StrValS)
-								*StrValP = Z_StrDup(*StrValS, PU_STATIC, NULL);
+								*StrValP = Z_StrDup(*StrValS, PU_WLDKRMOD, NULL);
 							break;
 							
 							// Copy Integer
@@ -429,7 +431,7 @@ static bool_t PS_ParseMapInfo(P_LevelInfoHolder_t* const a_Holder, const WL_WADE
 					Z_Free(*StrValP);
 				
 				// Set value
-				*StrValP = Z_StrDup(p, PU_STATIC, NULL);
+				*StrValP = Z_StrDup(p, PU_WLDKRMOD, NULL);
 				
 				// Debug
 				if (devparm)
@@ -499,6 +501,7 @@ static bool_t PS_LevelInfoGetBlockPoints(P_LevelInfoEx_t* const a_Info, const WL
 #define BUFSIZE 256
 	char Buf[BUFSIZE];
 	uint16_t Char;
+	bool_t FullRead;
 	size_t i, j, k, LineStartPos;
 	P_InfoBlockType_t CurrentSpec = NUMPINFOBLOCKTYPES;
 	P_InfoBlockType_t NextLineIs = NUMPINFOBLOCKTYPES;
@@ -514,10 +517,15 @@ static bool_t PS_LevelInfoGetBlockPoints(P_LevelInfoEx_t* const a_Info, const WL
 		i = 0;
 		memset(Buf, 0, sizeof(Buf));
 		LineStartPos = WL_StreamTell(a_Stream);
+		FullRead = false;
 		
 		// Read line into buffer
 		do
 		{
+			// No more characters?
+			if (WL_StreamEOF(a_Stream))
+				break;
+			
 			// Read it
 			Char = WL_StreamReadChar(a_Stream);
 			
@@ -525,10 +533,12 @@ static bool_t PS_LevelInfoGetBlockPoints(P_LevelInfoEx_t* const a_Info, const WL
 			if (i < BUFSIZE - 1)
 				if (Char != '\n' && Char != '\r')
 					Buf[i++] = Char;
+				else
+					FullRead = true;
 		} while (Char != '\n');
 		
 		// Determine if this is a block specifier
-		if (Buf[0] == '[')
+		if (FullRead && Buf[0] == '[')
 		{
 			// Ignore any spaces
 			for (j = 1; Buf[j] && (Buf[j] == ' ' || Buf[j] == '\t'); j++);
@@ -654,7 +664,7 @@ static bool_t P_WLInfoCreator(const WL_WADFile_t* const a_WAD, const uint32_t a_
 	
 	/* Create base structures */
 	*a_SizePtr = sizeof(P_LevelInfoHolder_t);
-	Holder = *a_DataPtr = Z_Malloc(*a_SizePtr, PU_STATIC, NULL);
+	Holder = *a_DataPtr = Z_Malloc(*a_SizePtr, PU_WLDKRMOD, NULL);
 	
 	/* Set holder info */
 	Holder->WAD = a_WAD;
@@ -704,7 +714,7 @@ static bool_t P_WLInfoCreator(const WL_WADFile_t* const a_WAD, const uint32_t a_
 			
 			// Add to end of list
 			Z_ResizeArray((void**)&Holder->Infos, sizeof(*Holder->Infos), Holder->NumInfos, Holder->NumInfos + 1);
-			CurrentInfo = Holder->Infos[Holder->NumInfos++] = Z_Malloc(sizeof(*CurrentInfo), PU_STATIC, NULL);
+			CurrentInfo = Holder->Infos[Holder->NumInfos++] = Z_Malloc(sizeof(*CurrentInfo), PU_WLDKRMOD, NULL);
 			
 			// Initialize new info with base stuff
 			strncat(CurrentInfo->LumpName, Base->Name, MAXPLIEXFIELDWIDTH);
@@ -842,6 +852,24 @@ static bool_t P_WLInfoCreator(const WL_WADFile_t* const a_WAD, const uint32_t a_
 		// Destroy stream
 		WL_StreamClose(ReadStream);
 		
+		// If no level name exists, fake one (as long as this isn't an IWAD)
+		if (!CurrentInfo->WAD->__Private.__IsIWAD)
+		{
+			// Title
+			if (!CurrentInfo->Title)
+			{
+				CurrentInfo->Title = Z_StrDup(CurrentInfo->LumpName, PU_WLDKRMOD, NULL);
+				CurrentInfo->SetBits[0] = PLIBL_GENERIC;
+			}
+			
+			// Author
+			if (!CurrentInfo->Author)
+			{
+				CurrentInfo->Author = Z_StrDup("Unknown", PU_WLDKRMOD, NULL);
+				CurrentInfo->SetBits[1] = PLIBL_GENERIC;
+			}
+		}
+		
 		// Debug
 		if (devparm)
 			CONL_PrintF("P_WLInfoCreator: \"%s\" is %s and %s.\n",
@@ -915,7 +943,7 @@ static bool_t PS_WLInfoOCCB(const bool_t a_Pushed, const struct WL_WADFile_s* co
 			if (l_CompInfos[i])
 				if (l_CompInfos[i]->IsComposite)
 				{
-					// Clear out string
+					// Clear out strings
 					
 					// Clear self away
 					Z_Free(l_CompInfos[i]);
@@ -969,7 +997,7 @@ static bool_t PS_WLInfoOCCB(const bool_t a_Pushed, const struct WL_WADFile_s* co
 				else
 				{
 					// Allocate
-					Composite = Z_Malloc(sizeof(*Composite), PU_STATIC, NULL);
+					Composite = Z_Malloc(sizeof(*Composite), PU_WLDKRMOD, NULL);
 					
 					// Set as composite and boot the fields
 					Composite->IsComposite = true;
@@ -1012,8 +1040,8 @@ static bool_t PS_WLInfoOCCB(const bool_t a_Pushed, const struct WL_WADFile_s* co
 					else
 						CopyFrom = CurrentInfo;
 					
-					// Copy fields over
-					for (Field = 0; !c_PMIFields[Field].IsEnd; Field++)
+					// Copy fields over (all but authors)
+					for (Field = NUMPINFOIGNOREFIELDS; !c_PMIFields[Field].IsEnd; Field++)
 					{
 						// Not set here?
 						if (!CopyFrom->SetBits[Field])
@@ -1047,7 +1075,7 @@ static bool_t PS_WLInfoOCCB(const bool_t a_Pushed, const struct WL_WADFile_s* co
 									Z_Free(*StrValP);
 							
 								// Duplicate string
-								*StrValP = Z_StrDup(*StrValS, PU_STATIC, NULL);
+								*StrValP = Z_StrDup(*StrValS, PU_WLDKRMOD, NULL);
 								break;
 							
 								// Copy Integer
@@ -1493,7 +1521,7 @@ void P_ParseInterText(char* line)
 	}
 	else
 	{
-		info_intertext = Z_Malloc(maxscriptsize, PU_STATIC, 0);
+		info_intertext = Z_Malloc(maxscriptsize, PU_WLDKRMOD, 0);
 		strcpy(info_intertext, line);
 	}
 }

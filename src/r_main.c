@@ -1106,24 +1106,17 @@ void R_RenderPlayerViewEx(player_t* player, int quarter)
 	//R_ClearPortals ();
 	R_ClearSprites();
 	
-	// check for new console commands.
+	// GhostlyDeath <May 6, 2012> -- Network Update
 	D_SyncNetUpdate();
-	NetUpdate();
 	
 	// The head node is the last node output.
 	
 	R_RenderBSPNode(numnodes - 1);
 	
-	// Check for new console commands.
 	D_SyncNetUpdate();
-	NetUpdate();
 	
 	//R_DrawPortals ();
 	R_DrawPlanes();
-	
-	// Check for new console commands.
-	D_SyncNetUpdate();
-	NetUpdate();
 	
 	// draw mid texture and sprite
 	// SoM: And now 3D floors/sides!
@@ -1192,9 +1185,9 @@ void R_RenderPlayerViewEx(player_t* player, int quarter)
 	}
 #endif
 	
-	// Check for new console commands.
+	// GhostlyDeath <May 6, 2012> -- Network Update
 	D_SyncNetUpdate();
-	NetUpdate();
+	
 	//player->mo->flags &= ~MF_NOSECTOR;	// don't show self (uninit) clientprediction code
 }
 

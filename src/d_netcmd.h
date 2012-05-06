@@ -38,6 +38,7 @@
 #include "command.h"
 #include "d_ticcmd.h"
 #include "i_util.h"
+#include "d_net.h"
 
 // console vars
 extern consvar_t cv_playername;
@@ -116,6 +117,19 @@ typedef enum D_NetPlayerType_e
 	NUMDNETPLAYERTYPES
 } D_NetPlayerType_t;
 
+/* D_NetState_t -- Network State */
+typedef enum D_NetState_e
+{
+	DNS_NULL,									// NULL State
+	DNS_CONNECTING,								// Player is connecting
+	DNS_DOWNLOADING,							// Downloading something
+	DNS_LOADING,								// Loading the game
+	DNS_PLAYING,								// Playing the game
+	DNS_DROPPLAYER,								// Player should be dropped
+	
+	NUMDNETSTATES
+} D_NetState_t;
+
 /*** STRUCTURES ***/
 
 struct D_ProfileEx_s;
@@ -134,7 +148,12 @@ typedef struct D_NetPlayer_s
 	// Sync
 	int TicTotal;								// Total number of tic commands
 	ticcmd_t TicCmd[MAXDNETTICCMDCOUNT];		// Tic Command to execute
+	int LocalTicTotal;							// Number of local tics
+	ticcmd_t LocalTicCmd[MAXDNETTICCMDCOUNT];	// Local Tic Commands
+	tic_t LastLocalTic;							// Last local tic time
 	char DisplayName[MAXPLAYERNAME];			// Name to show in network games
+	D_NetState_t NetState;						// Current network state
+	D_NetController_t* NetCtrl;					// Net Controller
 	
 	// Desync
 	
@@ -147,6 +166,7 @@ typedef struct D_NetPlayer_s
 
 /*** GLOBALS ***/
 
+extern bool_t g_NetDev;
 extern int g_SplitScreen;						// Players in splits
 extern bool_t g_PlayerInSplit[MAXSPLITSCREEN];	// Players that belong in splits
 
@@ -158,6 +178,11 @@ struct player_s* D_NCSAddBotPlayer(const char* const a_ProfileID);
 void D_NCSInit(void);
 void D_NCSNetUpdateSingle(struct player_s* a_Player);
 void D_NCSNetUpdateAll(void);
+void D_NCSNetUpdateSingleTic(void);
+
+void D_NCSNetSetState(const D_NetState_t a_State);
+void D_NCSNetTicTransmit(D_NetPlayer_t* const a_NPp, ticcmd_t* const a_TicCmd);
+void D_NCSNetMergeTics(ticcmd_t* const a_DestCmd, const ticcmd_t* const a_SrcList, const size_t a_NumSrc);
 
 bool_t D_NCSHandleEvent(const I_EventEx_t* const a_Event);
 

@@ -99,12 +99,15 @@ void T_MoveCeiling(ceiling_t* ceiling)
 						break;
 						
 					case silentCrushAndRaise:
-						S_StartSound((mobj_t*)&ceiling->sector->soundorg, sfx_pstop);
+						//S_StartSound((mobj_t*)&ceiling->sector->soundorg, sfx_pstop);
 					case fastCrushAndRaise:
 					case genCrusher:	// SoM: 3/6/2000
 					case genSilentCrusher:
 					case crushAndRaise:
 						ceiling->direction = -1;
+						
+						// GhostlyDeath <May 6, 2012> -- Crushers always make stop sound?
+						S_StartSound((mobj_t*)&ceiling->sector->soundorg, sfx_pstop);
 						break;
 						
 					default:
@@ -138,6 +141,9 @@ void T_MoveCeiling(ceiling_t* ceiling)
 						if (ceiling->oldspeed < CEILSPEED * 3)
 							ceiling->speed = ceiling->oldspeed;
 						ceiling->direction = 1;
+						
+						// GhostlyDeath <May 6, 2012> -- Crushers always make stop sound?
+						S_StartSound((mobj_t*)&ceiling->sector->soundorg, sfx_pstop);
 						break;
 						
 						// make platform stop at bottom of all crusher strokes

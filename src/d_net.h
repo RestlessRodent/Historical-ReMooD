@@ -40,11 +40,26 @@
 ***************/
 
 #include "i_net.h"
+#include "i_util.h"
 
 /*****************
 *** STRUCTURES ***
 *****************/
 
+struct D_NetPlayer_s;
+
+/* D_NetController_t() -- Network Controller */
+typedef struct D_NetController_s
+{
+	/* Arbitration for players */
+	struct D_NetPlayer_s** Arbs;				// Players this controller controls
+	size_t NumArbs;								// Number of them
+	
+	/* Socket Stuff */
+	I_NetSocket_t* NetSock;						// Network Socket
+	I_NetHost_t NetTo;							// Where to send to
+	I_NetHost_t NetFrom;						// Where to recieve from
+} D_NetController_t;
 
 /*****************
 *** PROTOTYPES ***
@@ -58,6 +73,7 @@ tic_t D_SyncNetRealTime(void);
 tic_t D_SyncNetAllReady(void);
 bool_t D_SyncNetIsPaused(void);
 bool_t D_SyncNetUpdate(void);
+bool_t D_SyncNetIsSolo(void);
 
 bool_t D_CheckNetGame(void);
 

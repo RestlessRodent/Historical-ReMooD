@@ -908,6 +908,7 @@ static const fixed_t c_angleturn[3] = { 640, 1280, 320 };	// + slow turn
 
 /*** GLOBALS ***/
 
+bool_t g_NetDev = false;						// Network Debug
 int g_SplitScreen = -1;							// Split screen players (-1 based)
 bool_t g_PlayerInSplit[MAXSPLITSCREEN] = {false, false, false, false};
 
@@ -1017,7 +1018,7 @@ struct player_s* D_NCSAddBotPlayer(const char* const a_ProfileID)
 	// Clear everything
 	memset(&players[p], 0, sizeof(players[p]));
 	
-	// Set as reborn
+	// Set as reborn	
 	players[p].playerstate = PST_REBORN;
 	
 	// Set color
@@ -1102,6 +1103,10 @@ static CONL_ExitCode_t DS_NCSNetCommand(const uint32_t a_ArgC, const char** cons
 /* D_NCSInit() -- Initialize network client/server */
 void D_NCSInit(void)
 {
+	/* Debug? */
+	if (M_CheckParm("-netdev"))
+		g_NetDev = true;
+	
 	/* Register "net" command */
 	CONL_AddCommand("net", DS_NCSNetCommand);
 }
@@ -1320,7 +1325,7 @@ static bool_t GAMEKEYDOWN(D_ProfileEx_t* const a_Profile, const uint8_t a_Key)
 }
 
 /* D_NCSLocalBuildTicCmd() -- Build local tic command */
-static void D_NCSLocalBuildTicCmd(D_NetPlayer_t* const a_NPp, ticcmd_t* const a_TicCmd)
+static void D_NCSLocalBuildTicCmd(D_NetPlayer_t* const a_NPp, ticcmd_t* const a_TicCmd, size_t* const a_SIDp)
 {
 #define MAXWEAPONSLOTS 12
 	D_ProfileEx_t* Profile;
@@ -1328,7 +1333,7 @@ static void D_NCSLocalBuildTicCmd(D_NetPlayer_t* const a_NPp, ticcmd_t* const a_
 	int32_t TargetMove;
 	size_t i, PID, SID;
 	int8_t SensMod, MoveMod, MouseMod, MoveSpeed, TurnSpeed;
-	int32_t SideMove, ForwardMove;
+	int32_t SideMove, ForwardMove, BaseAT;
 	bool_t IsTurning, GunInSlot;
 	int slot, j, l, k;
 	weapontype_t newweapon;
@@ -1363,8 +1368,12 @@ static void D_NCSLocalBuildTicCmd(D_NetPlayer_t* const a_NPp, ticcmd_t* const a_
 	if (SID >= MAXSPLITSCREEN)
 		return;
 	
+	// Return pointer
+	if (a_SIDp)
+		*a_SIDp = SID;
+	
 	/* Reset Some Things */
-	SideMove = ForwardMove = 0;
+	SideMove = ForwardMove = BaseAT = 0;
 	IsTurning = false;
 	
 	/* Modifiers */
@@ -1429,7 +1438,7 @@ static void D_NCSLocalBuildTicCmd(D_NetPlayer_t* const a_NPp, ticcmd_t* const a_
 				case DPEXCMA_LOOKX:
 					TargetMove = (((float)TargetMove) / ((float)32767.0)) * ((float)c_angleturn[TurnSpeed]);
 					IsTurning = true;
-					a_TicCmd->angleturn -= TargetMove;
+					BaseAT -= TargetMove;
 					break;
 					
 					// Looking Up/Down
@@ -1466,7 +1475,7 @@ static void D_NCSLocalBuildTicCmd(D_NetPlayer_t* const a_NPp, ticcmd_t* const a_
 					
 					// Left/Right Look
 				case DPEXCMA_LOOKX:
-					a_TicCmd->angleturn -= TargetMove * 8;
+					BaseAT -= TargetMove * 8;
 					break;
 					
 					// Up/Down Look
@@ -1510,7 +1519,7 @@ static void D_NCSLocalBuildTicCmd(D_NetPlayer_t* const a_NPp, ticcmd_t* const a_
 		// Turn
 		else
 		{
-			a_TicCmd->angleturn += c_angleturn[TurnSpeed];
+			BaseAT += c_angleturn[TurnSpeed];
 			IsTurning = true;
 		}
 	}
@@ -1523,7 +1532,7 @@ static void D_NCSLocalBuildTicCmd(D_NetPlayer_t* const a_NPp, ticcmd_t* const a_
 		// Turn
 		else
 		{
-			a_TicCmd->angleturn -= c_angleturn[TurnSpeed];
+			BaseAT -= c_angleturn[TurnSpeed];
 			IsTurning = true;
 		}
 	}
@@ -1737,10 +1746,19 @@ static void D_NCSLocalBuildTicCmd(D_NetPlayer_t* const a_NPp, ticcmd_t* const a_
 	if (!IsTurning)
 		Profile->TurnHeld = gametic;
 	
+	/* Turning */
+	a_TicCmd->BaseAngleTurn = BaseAT;
+	
 	/* Set from localaiming and such */
-	// Local angle (x look)
-	localangle[SID] += (a_TicCmd->angleturn << 16);
-	a_TicCmd->angleturn = localangle[SID] >> 16;
+	// Don't change angle when teleporting
+#if 0
+	if ((!Player->mo) || (Player->mo && Player->mo->reactiontime <= 0))
+	{
+		// Local angle (x look)
+		localangle[SID] += (a_TicCmd->angleturn << 16);
+		a_TicCmd->angleturn = localangle[SID] >> 16;
+	}
+#endif
 	
 	// Local aiming (y look)
 	a_TicCmd->aiming = G_ClipAimingPitch(&localaiming[SID]);
@@ -1752,7 +1770,7 @@ void D_NCSNetUpdateSingle(struct player_s* a_Player)
 {
 	size_t PID, SID, i;
 	D_NetPlayer_t* NPp;
-	ticcmd_t* TicCmd;
+	ticcmd_t* TicCmd, *LocalTicCmd;
 	
 	/* Check */
 	if (!a_Player)
@@ -1780,11 +1798,14 @@ void D_NCSNetUpdateSingle(struct player_s* a_Player)
 	
 	/* Generate Commands */
 	// Use last free spot
-	if (NPp->TicTotal < MAXDNETTICCMDCOUNT - 1)
-		i = NPp->TicTotal++;
+	if (NPp->LocalTicTotal < MAXDNETTICCMDCOUNT - 1)
+		i = NPp->LocalTicTotal++;
 	else
 		i = MAXDNETTICCMDCOUNT - 1;
-	TicCmd = &NPp->TicCmd[i];
+	TicCmd = &NPp->LocalTicCmd[i];
+	
+	// Set Time
+	NPp->LastLocalTic = g_ProgramTic;
 	
 	// Clear command
 	memset(TicCmd, 0, sizeof(*TicCmd));
@@ -1795,7 +1816,7 @@ void D_NCSNetUpdateSingle(struct player_s* a_Player)
 			// Local player on this computer
 		case DNPT_LOCAL:
 			// Fill command based on controller input
-			D_NCSLocalBuildTicCmd(NPp, TicCmd);
+			D_NCSLocalBuildTicCmd(NPp, TicCmd, NULL);
 			break;
 		
 			// Networked player on another system
@@ -1821,7 +1842,12 @@ void D_NCSNetUpdateSingle(struct player_s* a_Player)
 /* D_NCSNetUpdateAll() -- Update all players */
 void D_NCSNetUpdateAll(void)
 {
-	size_t i;
+	size_t i, j, SID;
+	D_NetPlayer_t* NetPlayer;
+	ticcmd_t TicMerge;
+	
+	// Extended tic command stuff
+	uint8_t XNewWeapon;							// New weapon to switch to
 	
 	/* Enable Mouse Input */
 	l_PermitMouse = true;
@@ -1829,6 +1855,162 @@ void D_NCSNetUpdateAll(void)
 	/* Update All Players */
 	for (i = 0; i < MAXPLAYERS; i++)
 		D_NCSNetUpdateSingle(&players[i]);
+}
+
+/* D_NCSNetUpdateSingleTic() -- Single tic update */
+void D_NCSNetUpdateSingleTic(void)
+{
+	size_t i, j, SID;
+	D_NetPlayer_t* NetPlayer;
+	ticcmd_t TicMerge;
+	
+	/* Transmit local tic command */
+	for (i = 0; i < MAXPLAYERS; i++)
+		if (playeringame[i])
+		{
+			// Get and check netplayer
+			NetPlayer = players[i].NetPlayer;
+		
+			if (!NetPlayer)
+				continue;
+		
+			// Non-local player?
+			if (NetPlayer->Type != DNPT_LOCAL && NetPlayer->Type != DNPT_BOT)
+				continue;
+		
+			// Merge all local tics into a single source
+			memset(&TicMerge, 0, sizeof(TicMerge));
+			
+			// Merge
+			D_NCSNetMergeTics(&TicMerge, NetPlayer->LocalTicCmd, NetPlayer->LocalTicTotal);
+			
+			// Clear away
+			NetPlayer->LocalTicTotal = 0;
+			
+			// Transmit this tic command
+			D_NCSNetTicTransmit(NetPlayer, &TicMerge);
+		}
+}
+
+/* D_NCSNetSetState() -- Set state of local players */
+void D_NCSNetSetState(const D_NetState_t a_State)
+{
+	size_t i;
+	
+	/* Check */
+	if (a_State < 0 || a_State >= NUMDNETSTATES)
+		return;
+	
+	/* Set it for all local players */
+	for (i = 0; i < MAXSPLITSCREEN; i++)
+		if (g_PlayerInSplit[i] && playeringame[consoleplayer[i]])
+			if (players[consoleplayer[i]].NetPlayer)
+				players[consoleplayer[i]].NetPlayer->NetState = a_State;
+}
+
+/* D_NCSNetTicTransmit() -- Transmit tic command to server */
+void D_NCSNetTicTransmit(D_NetPlayer_t* const a_NPp, ticcmd_t* const a_TicCmd)
+{
+	size_t i, SID;
+	ticcmd_t* DestTic;
+	ticcmd_t Merge;
+	
+	/* Check */
+	if (!a_NPp || !a_TicCmd)
+		return;
+	
+	/* Remote Game */
+	if (!D_SyncNetIsSolo())
+	{
+	}
+	
+	/* Local Game */
+	else
+	{
+		// Add local command to end
+		a_NPp->TicCmd[a_NPp->TicTotal++] = *a_TicCmd;
+		
+		// Merge it All
+		memset(&Merge, 0, sizeof(Merge));
+		D_NCSNetMergeTics(&Merge, a_NPp->TicCmd, a_NPp->TicTotal);
+		
+		// Set local view angle
+		for (SID = 0; SID < MAXSPLITSCREEN; SID++)
+			if (g_PlayerInSplit[SID] && (a_NPp->Player - players) == consoleplayer[SID])
+			{
+				localangle[SID] += Merge.BaseAngleTurn << 16;
+				Merge.angleturn = localangle[SID] >> 16;
+				break;
+			}
+		
+		// Only use this tic (single player game)
+		a_NPp->TicCmd[0] = Merge;
+		a_NPp->TicTotal = 1;
+	}
+}
+
+/* D_NCSNetMergeTics() -- Merges all tic commands */
+void D_NCSNetMergeTics(ticcmd_t* const a_DestCmd, const ticcmd_t* const a_SrcList, const size_t a_NumSrc)
+{
+#define __REMOOD_SWIRVYANGLE
+	size_t i, j;
+	int32_t FM, SM, AT;
+	fixed_t xDiv;
+	
+	/* Check */
+	if (!a_DestCmd || !a_SrcList || !a_NumSrc)
+		return;
+	
+	/* Merge Variadic Stuff */
+	// Super merging
+	FM = SM = AT = 0;
+	for (j = 0; j < a_NumSrc; j++)
+	{
+		FM += a_SrcList[j].forwardmove;
+		SM += a_SrcList[j].sidemove;
+
+#if defined(__REMOOD_SWIRVYANGLE)
+		AT += a_SrcList[j].BaseAngleTurn;
+#else
+		// Use the furthest aiming angle
+		if (abs(a_SrcList[j].BaseAngleTurn) > abs(AT))
+			AT = a_SrcList[j].BaseAngleTurn;
+#endif
+		
+		// Merge weapon here
+		if (!a_DestCmd->XNewWeapon)
+			a_DestCmd->XNewWeapon = a_SrcList[j].XNewWeapon;
+		
+		// Clear slot and weapon masks (they OR badly)
+		a_DestCmd->buttons &= ~(BT_WEAPONMASK | BT_SLOTMASK);
+		
+		// Merge Buttons
+		a_DestCmd->buttons |= a_SrcList[j].buttons;
+	}
+
+	// Do some math
+	xDiv = ((fixed_t)a_NumSrc) << FRACBITS;
+	a_DestCmd->forwardmove = FixedDiv(FM << FRACBITS, xDiv) >> FRACBITS;
+	a_DestCmd->sidemove = FixedDiv(SM << FRACBITS, xDiv) >> FRACBITS;
+	
+	/* Aiming is slightly different */
+#if defined(__REMOOD_SWIRVYANGLE)
+	// Divide some
+	//AT /= ((int32_t)(a_NumSrc));
+	
+	// Cap
+	if (AT > 32000)
+		AT = 32000;
+	else if (AT < -32000)
+		AT = -32000;
+	
+	// Try now
+	a_DestCmd->BaseAngleTurn = FixedDiv(AT << FRACBITS, xDiv) >> FRACBITS;
+#else
+	// Use furthest angle
+	//AT /= ((int32_t)(a_NumSrc));
+	a_DestCmd->BaseAngleTurn = AT;
+#endif
 }
 
 /* D_NCSAllocNetPlayer() -- Allocates a network player */

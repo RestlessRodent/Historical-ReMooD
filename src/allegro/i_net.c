@@ -33,17 +33,6 @@
 *** HACKY INCLUDES ***
 *********************/
 
-// Use WinSocks
-#if defined(_WIN32)
-#include "../x_nets/xx_winsk.c"
-
-#elif defined(__MSDOS__)
-#include "../x_nets/xx_dos.c"
-
-// Otherwise use BSD Sockets
-#else
-#include "../x_nets/xx_bsd.c"
-#endif
 
 /****************
 *** FUNCTIONS ***

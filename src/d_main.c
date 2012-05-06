@@ -442,8 +442,8 @@ void D_Display(void)
 	// Draw the console on the menu (if it is opened anyway)
 	CONL_DrawConsole();
 		
+	// GhostlyDeath <May 6, 2012> -- Network Update
 	D_SyncNetUpdate();
-	NetUpdate();				// send out any new accumulation
 	
 	// GhostlyDeath <July 8, 2009> -- Add FPS Counter
 	if (cv_vid_drawfps.value)

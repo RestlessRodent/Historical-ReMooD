@@ -139,6 +139,9 @@ void P_Ticker(void)
 	/* While the game is behind, update it */
 	while ((LocalTic = D_SyncNetMapTime()) < (SNAR = D_SyncNetAllReady()))
 	{
+		// GhostlyDeath <May 6, 2012> -- Player tic update
+		D_NCSNetUpdateSingleTic();
+		
 		//fprintf(stderr, "Ran tic %lli / %lli.\n", LocalTic, SNAR);
 		
 		for (i = 0; i < MAXPLAYERS; i++)

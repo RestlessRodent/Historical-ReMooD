@@ -866,7 +866,7 @@ void I_MUS2MID_Update(struct I_MusicDriver_s* const a_Driver, const tic_t a_Tics
 	/* Set stuff */
 	if (!Local->BaseTime)
 	{
-		Local->LocalTime = a_Tics * TICRATE;
+		Local->LocalTime = a_Tics;
 		Local->BaseTime = a_Tics;
 	}
 	
@@ -874,7 +874,7 @@ void I_MUS2MID_Update(struct I_MusicDriver_s* const a_Driver, const tic_t a_Tics
 	if (Local->FeedMessages)
 	{
 		// Get time in millis
-		MSTime = a_Tics * TICRATE;
+		MSTime = a_Tics;
 		
 		// Constant play loop
 		while (Local->LocalTime <= MSTime)
@@ -1554,7 +1554,7 @@ void I_UpdateMusic(void)
 	/* Update all drivers */
 	for (i = 0; i < l_NumMusicDrivers; i++)
 		if (l_MusicDrivers[i]->Update)
-			l_MusicDrivers[i]->Update(l_MusicDrivers[i], I_GetTimeMS() / TICRATE);
+			l_MusicDrivers[i]->Update(l_MusicDrivers[i], I_GetTimeMS());
 }
 
 /* I_SetMusicVolume() -- Sets music volume */

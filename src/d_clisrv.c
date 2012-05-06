@@ -125,33 +125,6 @@ static void TicCmdCopy(ticcmd_t* dst, ticcmd_t* src, int n)
 //
 // TryRunTics
 //
-static void Local_Maketic(int realtics)
-{
-	int i;
-	int Use;
-	
-	if (dedicated)
-		return;
-		
-	// Cons responder
-	// game responder call :
-	//    HU_responder,St_responder, Am_responder
-	//    F_responder (final)
-	//    and G_MapEventsToControls
-	
-	rendergametic = gametic;
-	
-	//Use = maketic % BACKUPTICS;
-	//Use = D_SyncNetMapTime() % BACKUPTICS;
-	Use = gametic % BACKUPTICS;
-	
-	for (i = 0; i < g_SplitScreen + 1; i++)
-		if (playeringame[consoleplayer[i]])
-			G_BuildTiccmd(&netcmds[Use][consoleplayer[i]], realtics, i);
-	maketic++;
-	
-	//netcmds[Use][consoleplayer[0]].angleturn |= TICCMD_RECEIVED;
-}
 
 extern bool_t advancedemo;
 static int load;
@@ -179,7 +152,6 @@ void TryRunTics(tic_t realtics)
 		COM_BufExecute();
 		
 	D_SyncNetUpdate();
-	NetUpdate();
 	
 	if (demoplayback)
 	{
@@ -308,10 +280,6 @@ void NetUpdate(void)
 	
 	gametime = nowtime;
 	
-	// GhostlyDeath <April 20, 2012> -- Update all players
-	D_NCSNetUpdateAll();
-	
-	//Local_Maketic(realtics);	// make local tic, and call menu ?!
 	I_OsPolling();				// i_getevent
 	D_ProcessEvents();			// menu responder ???!!!
 	
