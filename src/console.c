@@ -80,6 +80,8 @@
 #define MAXCONLPMQBUFSIZE	128	// Length of the message buffer
 #define CONLMAXCOMBUFSIZE	160	// Length of input command
 
+#include "bootdata.h"
+
 /*****************
 *** STRUCTURES ***
 *****************/
@@ -114,6 +116,12 @@ typedef struct CONL_PlayerMessage_s
 	tic_t Timeout;				// When the message times out
 	uint8_t Priority;			// Priority of the message
 } CONL_PlayerMessage_t;
+
+/**************
+*** GLOBALS ***
+**************/
+
+bool_t g_EarlyBootConsole = false;				// Early Boot Console
 
 /*************
 *** LOCALS ***
@@ -929,6 +937,10 @@ static void CONLFF_OutputFF(const char* const a_Buf)
 	Buf[MAXCONLPMQBUFSIZE - 1] = 0;
 	
 	/* Print text to console */
+	// Early Boot
+	if (g_EarlyBootConsole)
+		CONL_EarlyBootTic(Buf, true);
+	
 #if !defined(_DEBUG)
 	if (devparm || !con_started || g_DedicatedServer)
 	{
@@ -1323,6 +1335,7 @@ size_t CONL_PrintF(const char* const a_Format, ...)
 	va_list ArgPtr;
 	size_t RetVal;
 	static bool_t AlreadyDrawn = false;
+	bool_t Drew;
 	
 	/* Check */
 	if (!a_Format)
@@ -1334,15 +1347,18 @@ size_t CONL_PrintF(const char* const a_Format, ...)
 	va_end(ArgPtr);
 	
 	/* Console just starting up?  */
-	if (con_startup)
+	if (con_startup || g_EarlyBootConsole)
 	{
 		// GhostlyDeath <November 4, 2010> -- If we aren't devparming, draw once
 		if ((devparm && !g_QuietConsole) || ((!devparm || g_QuietConsole) && !AlreadyDrawn))
 		{
-			if (CONL_DrawConsole())
+			Drew = CONL_DrawConsole();
+			
+			if ((!g_EarlyBootConsole && Drew) || g_EarlyBootConsole)
 				I_FinishUpdate();	// page flip or blit buffer
 			
-			AlreadyDrawn = true;
+			if (!g_EarlyBootConsole)
+				AlreadyDrawn = true;
 		}
 	}
 	
@@ -1570,7 +1586,7 @@ bool_t CONL_HandleEvent(const I_EventEx_t* const a_Event)
 		return false;
 		
 	/* Don't handle events during startup */
-	if (con_startup)
+	if (con_startup || g_EarlyBootConsole)
 		return false;
 		
 	/* Only handle keyboard events */
@@ -1629,6 +1645,76 @@ bool_t CONL_HandleEvent(const I_EventEx_t* const a_Event)
 #endif /* __REMOOD_DEDICATED */
 }
 
+static uint32_t l_EarlyBootTicNum = 0;			// Early tic number
+
+/* CONL_EarlyBootTic() -- Tic Early Boot */
+void CONL_EarlyBootTic(const char* const a_Message, const bool_t a_DoTic)
+{
+	size_t i, x, y;
+	uint8_t BMPc;
+	uint32_t BarBits;
+	fixed_t Frac;
+	
+	/* Not in early boot console? */
+	if (!g_EarlyBootConsole)
+		return;
+	
+	/* Tick it */
+	if (a_DoTic)
+	{
+		// Tic Counter
+		l_EarlyBootTicNum++;
+	
+		// Set Message to draw
+	}
+	
+	/* Copy background */
+	for (x = 62, y = 0, i = 0; i < CBOOTLOGOSIZE; i++)
+	{
+		// Get Bit Count
+		BMPc = c_BootLogo[i++];
+		
+		// Draw to screen
+		while (BMPc--)
+		{
+			screens[0][(vid.rowbytes * y) + (x++)] = ((c_BootLogo[i] & 0x0F)) + 1;
+			screens[0][(vid.rowbytes * y) + (x++)] = ((c_BootLogo[i] & 0xF0) >> 4) + 1;
+			
+			if (x >= 198 + 62)
+			{
+				x = 62;
+				y++;
+			}
+		}
+	}
+	
+	/* Draw Message Text */
+		
+	//for (i = 0; i < 200; i++)
+	//	memmove(screens[0] + (vid.rowbytes * i), &c_BootLogo[320 * i], 320);
+	
+	/* Draw Bar */
+#define SIDESPACE 5
+#define BASEBARY (170)
+#define BASEBARSIZE 10
+	// Draw bar across entire screen (white for incomplete)
+	V_DrawColorBoxEx(0, 5, SIDESPACE, BASEBARY, SIDESPACE + (320 - (SIDESPACE * 2)), BASEBARY + BASEBARSIZE);
+	
+	// Draw bar
+	V_DrawColorBoxEx(0, 6,
+			SIDESPACE + ((20 * ((int32_t)l_EarlyBootTicNum)) % 300),
+			BASEBARY,
+			SIDESPACE + ((20 * ((int32_t)l_EarlyBootTicNum)) % 300) + 20,
+			BASEBARY + BASEBARSIZE
+		);
+#undef BASEBARSIZE
+#undef BASEBARY
+#undef SIDESPACE
+	
+	/* Update Screen */
+	I_FinishUpdate();
+}
+
 /* CONL_DrawConsole() -- Draws the console */
 bool_t CONL_DrawConsole(void)
 {
@@ -1650,6 +1736,8 @@ bool_t CONL_DrawConsole(void)
 	static int32_t BootCount = 0;
 	static V_Image_t* BackPic;
 	
+	static uint8_t SColor;
+	
 	/* Not for dedicated server */
 	if (g_DedicatedServer)
 		return false;
@@ -1657,8 +1745,16 @@ bool_t CONL_DrawConsole(void)
 	/* Get output buffer */
 	Out = &l_CONLBuffers[0];
 	
+	/* Early Boot Console */
+	if (g_EarlyBootConsole)
+	{
+		CONL_EarlyBootTic(NULL, false);
+		BootLines = -1;
+		return true;
+	}
+	
 	/* Console is active (draw the console) */
-	if (CONL_IsActive())
+	else if (CONL_IsActive())
 	{
 		// Fullscreen console?
 		FullCon = con_startup;
@@ -1971,8 +2067,8 @@ bool_t CONL_DrawConsole(void)
 				case 4:
 					bx = ((i & 1)) * (vid.width >> 1);
 					by = (((i & 2) >> 1)) * (vid.height >> 1);
-					bw = bw + (vid.width >> 1);
-					bh = bh + (vid.height >> 1);
+					bw = bx + (vid.width >> 1);
+					bh = by + (vid.height >> 1);
 					break;
 					
 				case 1:
@@ -2021,7 +2117,7 @@ bool_t CONL_DrawConsole(void)
 						p += BSkip;
 						
 						// Over edge?
-						if (x >= bw)
+						if (x >= bx + bw)
 						{
 							// Reset x and increase y some
 							x = bx;
@@ -2758,6 +2854,7 @@ void CON_Init(void)
 	con_curlines = vid.height;
 	consoletoggle = false;
 	
+	g_EarlyBootConsole = false;
 	con_started = true;
 	con_startup = true;			// need explicit screen refresh
 	// until we are in Doomloop

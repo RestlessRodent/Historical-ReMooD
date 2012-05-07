@@ -214,9 +214,6 @@ static bool_t PS_ParseMapInfo(P_LevelInfoHolder_t* const a_Holder, const WL_WADE
 		memset(Token, 0, sizeof(Token));
 		WL_StreamReadLine(Stream, Buf, BUFSIZE - 1);
 		
-		// Debug
-		CONL_PrintF(">> %s\n", Buf);
-		
 		// Skip whitespace
 		for (p = Buf; *p && (*p == ' ' || *p == '\t'); p++)
 			;

@@ -145,121 +145,35 @@ void P_SAVE_MapObjects(void);
 /* P_CheckSizeEx() -- Resize buffer */
 bool_t P_CheckSizeEx(size_t Need)
 {
-	uint8_t* T = NULL;
-	size_t Offs = 0;
-	
-	// Resize?
-	if (((size_t) (SaveBlock - SaveStart) + Need) > SaveLimit)
-	{
-		Offs = SaveBlock - SaveStart;
-		
-		// Need with an alignment of 512 bytes
-		T = Z_Malloc((SaveLimit + Need) + (512 - ((SaveLimit + Need) % 512)), PU_STATIC, NULL);
-		memcpy(T, SaveStart, Offs);
-		Z_Free(SaveStart);
-		SaveStart = T;
-		SaveBlock = SaveStart + Offs;
-		SaveLimit = (SaveLimit + Need) + (512 - ((SaveLimit + Need) % 512));
-	}
-	
 	return true;
 }
 
 /* P_SaveGameEx() -- Extended savegame */
 bool_t P_SaveGameEx(const char* SaveName, char* ExtFileName, size_t ExtFileNameLen, size_t* SaveLen, uint8_t** Origin)
 {
-#if 0
-	size_t i;
-	time_t Date = time(NULL);
-	struct tm* TM = localtime(&Date);
-	char CleanDesc[32];
-	const char* x = SaveName;
-	
-	/* Create the file name */
-	// Clean the description up
-	memset(CleanDesc, 0, sizeof(CleanDesc));
-	i = 0;
-	while (*x)
-	{
-		if (*x >= 'A' && *x <= 'Z')
-		{
-			CleanDesc[i] = *x + 32;
-			i++;
-		}
-		else if ((*x >= 'a' && *x <= 'z') || (*x >= '0' && *x <= '9') || (*x == '-'))
-		{
-			CleanDesc[i] = *x;
-			i++;
-		}
-		
-		x++;
-	}
-	
-	// Make the file and add the date and the ReMooD Version
-	// yyyy  mm  dd  hh mm
-	snprintf(ExtFileName, ExtFileNameLen, "%s%c%04d%02d%02d%02d%02d_%s_%i%i%c.rsv", SaveGameLocation,
-#if defined(_WIN32) || defined(__MSDOS__)
-	         '\\',
-#else
-	         '/',
-#endif
-	         // TIME
-	         TM->tm_year + 1900, TM->tm_mon + 1, TM->tm_mday, TM->tm_hour + 1, TM->tm_min + 1,
-	         // CLEANED UP DESCRIPTION
-	         CleanDesc,
-	         // VERSION
-	         REMOOD_MAJORVERSION, REMOOD_MINORVERSION, REMOOD_RELEASEVERSION);
-	         
-	/* Create Buffer with an initial size */
-	SaveStart = Z_Malloc(512, PU_STATIC, NULL);
-	SaveBlock = SaveStart;
-	SaveLimit = 512;
-	
-	/* Doom Legacy Compatibility */
-	WriteStringN(&SaveBlock, va("ReMooD %i.%i%c Save Game", REMOOD_MAJORVERSION, REMOOD_MINORVERSION, REMOOD_RELEASEVERSION), SAVESTRINGSIZE);
-	WriteStringN(&SaveBlock, va("version %i", VERSION), VERSIONSIZE);
-	
-	/* ReMooD Header */
-	P_CheckSizeEx(64 + 4);
-	WriteStringN(&SaveBlock, va("ReMooD %i.%i%c \"%s\" (%s)",
-	                            REMOOD_MAJORVERSION, REMOOD_MINORVERSION, REMOOD_RELEASEVERSION, REMOOD_VERSIONCODESTRING, REMOOD_URL), 64);
-	WriteUInt8(&SaveBlock, REMOOD_MAJORVERSION);
-	WriteUInt8(&SaveBlock, REMOOD_MINORVERSION);
-	WriteUInt8(&SaveBlock, REMOOD_RELEASEVERSION);
-	WriteUInt8(&SaveBlock, VERSION);
-	WriteStringN(&SaveBlock, SaveName, 32);
-	
-	/* Individual Write Functions */
-	// Misc
-	P_SAVE_WadState();
-	P_SAVE_Console();
-	P_SAVE_LevelState();
-	
-	// Players
-	P_SAVE_Players();
-	
-	// Sectors
-	// Lines
-	// Things
-	P_SAVE_MapObjects();
-	
-	// Scripts
-	
-	/* Leave */
-	*Origin = SaveStart;
-	*SaveLen = SaveBlock - SaveStart;
-	SaveBlock = 0;
-	
-	return true;
-#else
-	return false;
-#endif
+	return P_SaveGameToBS(D_RBSCreateFileStream(ExtFileName));
 }
 
 /* P_LoadGameEx() -- Load an extended save game */
 bool_t P_LoadGameEx(const char* FileName, char* ExtFileName, size_t ExtFileNameLen, size_t* SaveLen, uint8_t** Origin)
 {
 	return false;
+}
+
+/* P_LoadGameFromBS() -- Load game from block stream */
+bool_t P_LoadGameFromBS(D_RBlockStream_t* const a_Stream)
+{
+	/* Check */
+	if (!a_Stream)
+		return false;
+}
+
+/* P_SaveGameToBS() -- Save game to block stream */
+bool_t P_SaveGameToBS(D_RBlockStream_t* const a_Stream)
+{
+	/* Check */
+	if (!a_Stream)
+		return false;
 }
 
 /*** MISC ***/

@@ -376,6 +376,8 @@ static bool_t DS_RMODPDC(const struct WL_WADFile_s* const a_WAD, const uint32_t 
 	// Info
 	if (devparm)
 		CONL_PrintF("DS_RMODPDC: Parsing REMOODAT...\n");
+	else
+		CONL_EarlyBootTic("Parsing REMOODAT", true);
 	
 	/* Use streamer */
 	DataStream = WL_StreamOpen(DataEntry);

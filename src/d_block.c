@@ -254,3 +254,110 @@ D_TBlockErr_t D_BlockSend(D_TStreamSource_t* const a_Stream, D_TBlock_t** const 
 	return a_Stream->FuncSend(a_Stream, a_BlkPtr, a_Stream->BlockDefFlags, &a_Stream->Stat, &a_Stream->Data);
 }
 
+/*****************************************************************************/
+
+/******************
+*** FILE STREAM ***
+******************/
+
+/* DS_RBSFile_RecordF() -- Records the current block */
+static size_t DS_RBSFile_RecordF(struct D_RBlockStream_s* const a_Stream)
+{
+	FILE* File;
+	size_t RetVal;
+	
+	/* Check */
+	if (!a_Stream)
+		return 0;
+	
+	/* Get Data */
+	File = (FILE*)a_Stream->Data;
+}
+
+/****************
+*** FUNCTIONS ***
+****************/
+
+/* D_RBSCreateFileStream() -- Create file stream */
+D_RBlockStream_t* D_RBSCreateFileStream(const char* const a_PathName)
+{
+	FILE* File;
+	D_RBlockStream_t* New;
+	
+	/* Check */
+	if (!a_PathName)
+		return NULL;
+	
+	/* Open r/w file */
+	File = fopen(a_PathName, "a+b");
+	
+	// Failed?
+	if (!File)
+		return;
+	
+	/* Create block stream */
+	New = Z_Malloc(sizeof(*New), PU_BLOCKSTREAM, NULL);
+	
+	/* Setup Data */
+	New->Data = File;
+	
+	/* Return Stream */
+	return New;
+}
+
+/* D_RBSCreateNetStream() -- Create network stream */
+D_RBlockStream_t* D_RBSCreateNetStream(I_NetSocket_t* const a_NetSocket)
+{
+	return NULL;
+}
+
+/* D_RBSCloseStream() -- Closes File Stream */
+void D_RBSCloseStream(D_RBlockStream_t* const a_Stream)
+{
+	/* Check */
+	if (!a_Stream)
+		return;
+}
+
+/* D_RBSBaseBlock() -- Base block */
+void D_RBSBaseBlock(D_RBlockStream_t* const a_Stream, const char* const a_Header)
+{
+	/* Check */
+	if (!a_Stream || !a_Header)
+		return;
+	
+	/* Clear Everything */
+	memset(a_Stream->BlkHeader, 0, sizeof(a_Stream->BlkHeader));
+	
+	if (a_Stream->BlkData)
+		Z_Free(a_Stream->BlkData);
+	a_Stream->BlkSize = a_Stream->BlkBufferSize = 0;
+	
+	/* Create a fresh block */
+	a_Stream->BlkBufferSize = RBLOCKBUFSIZE;
+	a_Stream->BlkData = Z_Malloc(sizeof(a_Stream->BlkBufferSize), PU_BLOCKSTREAM, NULL);
+	
+	// Copy header
+	memmove(a_Stream->BlkHeader, a_Header, (strlen(a_Header) >= 4 ? 4 : strlen(a_Header)));
+}
+
+/* D_RBSRecordBlock() -- Records the current block to the stream */
+void D_RBSRecordBlock(D_RBlockStream_t* const a_Stream)
+{
+	/* Check */
+	if (!a_Stream)
+		return;
+	
+	/* Call recorder */
+	if (a_Stream->RecordF)
+		a_Stream->RecordF(a_Stream);
+}
+
+/* D_RBSWriteChunk() -- Write data chunk into block */
+size_t D_RBSWriteChunk(D_RBlockStream_t* const a_Stream, const uint8_t* const a_Data, const size_t a_Size)
+{
+	/* Check */
+	if (!a_Stream || !a_Data || !a_Size)
+		return 0;
+}
+

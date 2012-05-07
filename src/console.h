@@ -221,9 +221,13 @@ extern const CONL_VarPossibleValue_t c_CVPVBoolean[];
 extern const CONL_VarPossibleValue_t c_CVPVVexColor[];
 extern const CONL_VarPossibleValue_t c_CVPVFont[];
 
+extern bool_t g_EarlyBootConsole;				// Early Boot Console
+
 /*****************
 *** PROTOTYPES ***
 *****************/
+
+void CONL_EarlyBootTic(const char* const a_Message, const bool_t a_DoTic);
 
 /*** Common Text Input ***/
 CONCTI_Inputter_t* CONCTI_CreateInput(const size_t a_NumHistory, const CONCTI_OutBack_t a_OutBack, CONCTI_Inputter_t** const a_RefPtr);

@@ -1276,6 +1276,10 @@ bool_t P_RMODH_WeaponsAmmo(Z_Table_t* const a_Table, const WL_WADFile_t* const a
 	// Add 1 to remove #
 	Value++;
 	
+	// Early Boot Notice
+	if (g_EarlyBootConsole)
+		CONL_EarlyBootTic(Value, true);
+	
 	/* Ammunition */
 	if (a_ID == DRMODP_ITEMAMMO)
 	{

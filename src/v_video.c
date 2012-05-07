@@ -239,6 +239,10 @@ void LoadPalette(char* lumpname)
 	fixed_t pR[256], pG[256], pB[256];
 	const WL_WADEntry_t* PalEntry;
 	
+	/* There are no VWADs? */
+	if (!WL_IterateVWAD(NULL, true))
+		return;
+	
 	/* Get index of lump */
 	// Get lump
 	PalEntry = WL_FindEntry(NULL, 0, "PLAYPAL");
@@ -362,9 +366,50 @@ void LoadPalette(char* lumpname)
 /* V_SetPalette() -- Set the current palette */
 void V_SetPalette(int palettenum)
 {
+	RGBA_t* FakePal;
+	size_t r, g, b, i;
+	
+	/* Load palletes if possible */
 	if (!l_DoomPals)
 		LoadPalette("PLAYPAL");
+	
+	/* If there is no palette, load a cheap one */
+	if (!l_DoomPals)
+	{
+		FakePal = Z_Malloc(sizeof(*FakePal) * 256, PU_STATIC, NULL);
 		
+		// Boot Image Palette
+		FakePal[1].s.red = 0x05;
+		FakePal[1].s.green = 0x04;
+		FakePal[1].s.blue = 0x00;
+		
+		FakePal[2].s.red = 0x4c;
+		FakePal[2].s.green = 0x01;
+		FakePal[2].s.blue = 0x00;
+		
+		FakePal[3].s.red = 0x9b;
+		FakePal[3].s.green = 0x00;
+		FakePal[3].s.blue = 0x00;
+		
+		FakePal[4].s.red = 0xfd;
+		FakePal[4].s.green = 0xff;
+		FakePal[4].s.blue = 0xfc;
+		
+		// Red Loading Bar
+		FakePal[5].s.red = 0xff;
+		FakePal[5].s.green = 0xff;
+		FakePal[5].s.blue = 0xff;
+		FakePal[6].s.red = 0xff;
+		FakePal[6].s.green = 0x00;
+		FakePal[6].s.blue = 0x00;
+		
+		// Send in
+		I_SetPalette(FakePal);
+		Z_Free(FakePal);
+		return;
+	}
+	
+	/* Use lump data */
 	if (palettenum < 0 || palettenum >= l_NumDoomPals || !l_DoomPals[palettenum])
 		I_SetPalette(l_DoomPals[0]);
 	else
@@ -1145,7 +1190,7 @@ void V_DrawFadeConsBackEx(const uint32_t Flags, const int x1, const int y1, cons
 
 /* V_DrawColorBoxEx() -- Draws a colorbox */
 // GhostlyDeath <September 20, 2011> -- Based off V_DrawFadeConsBackEx() but with only a single solid color
-void V_DrawColorBoxEx(const uint32_t a_Flags, const int8_t a_Color, const int32_t a_x1, const int32_t a_y1, const int32_t a_x2, const int32_t a_y2)
+void V_DrawColorBoxEx(const uint32_t a_Flags, const uint8_t a_Color, const int32_t a_x1, const int32_t a_y1, const int32_t a_x2, const int32_t a_y2)
 {
 	int X1, Y1, X2, Y2;
 	int x, y, i, w;
@@ -1234,7 +1279,10 @@ void V_DrawColorBoxEx(const uint32_t a_Flags, const int8_t a_Color, const int32_
 		TransMap = NULL;
 		
 	/* Same Color all the way */
-	c = ExtraMap[Map[a_Color]];
+	if (ExtraMap && Map)
+		c = ExtraMap[Map[a_Color]];
+	else
+		c = a_Color;
 	c |= c << 8;
 	c |= c << 16;
 	

@@ -273,6 +273,8 @@ typedef struct I_EventEx_s
 	} Data;						// Event data
 } I_EventEx_t;
 
+struct I_SoundDriver_s;
+
 /* I_MusicDriver_t -- Driver for playing Music */
 typedef struct I_MusicDriver_s
 {

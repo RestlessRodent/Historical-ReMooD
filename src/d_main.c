@@ -1552,6 +1552,13 @@ void D_DoomMain(void)
 		if (!V_InitWidgetSystem())
 			I_Error("D_Main: Failed to initialize the widget handler.");
 	
+	/* Start Graphics REALLY early! */
+	CONL_PrintF("I_StartupGraphics...\n");
+	I_StartupGraphics();
+	SCR_Startup();
+	SCR_ReclassBuffers();
+	g_EarlyBootConsole = true;
+	
 	/* Adapters */
 	V_ImageFindA(NULL);					// Bump image loaders
 	D_InitRMOD();						// Initialize RMOD
@@ -1762,18 +1769,11 @@ void D_DoomMain(void)
 	//CONL_PrintF (text[I_INIT_NUM]);
 	//I_InitJoystick ();
 	
-	CONL_PrintF("I_StartupGraphics...\n");
-	I_StartupGraphics();
-	
-	//--------------------------------------------------------- CONSOLE
-	// setup loading screen
-	SCR_Startup();
-	SCR_ReclassBuffers();
-	
 	// we need the font of the console
 	CONL_PrintF(text[HU_INIT_NUM]);
 	HU_Init();
 	
+	g_EarlyBootConsole = false;
 	COM_Init();
 	CON_Init();
 	

@@ -47,6 +47,7 @@
 *****************/
 
 struct D_NetPlayer_s;
+struct D_RBlockStream_s;
 
 /* D_NetController_t() -- Network Controller */
 typedef struct D_NetController_s
@@ -59,6 +60,8 @@ typedef struct D_NetController_s
 	I_NetSocket_t* NetSock;						// Network Socket
 	I_NetHost_t NetTo;							// Where to send to
 	I_NetHost_t NetFrom;						// Where to recieve from
+	
+	struct D_RBlockStream_s* BlockStream;		// Block stream
 } D_NetController_t;
 
 /*****************

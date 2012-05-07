@@ -43,6 +43,7 @@
 #include "info.h"
 #include "v_video.h"
 #include "p_pspr.h"
+#include "console.h"
 
 // Doesn't work with g++, needs actionf_p1
 void A_Light0();
@@ -378,7 +379,9 @@ bool_t INFO_RMODH_MapObjects(Z_Table_t* const a_Table, const WL_WADFile_t* const
 	// Class Name
 	ThisObject.RClassName = Z_StrDup(Value, PU_WLDKRMOD, NULL);
 	
-	fprintf(stderr, "**** Added %s\n", Value);
+	// Early Boot Notice
+	if (g_EarlyBootConsole)
+		CONL_EarlyBootTic(Value, true);
 	
 	// String Values
 	ThisObject.RNiceName = D_RMODGetValueString(a_Table, "NiceName", NULL);

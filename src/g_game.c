@@ -1653,6 +1653,7 @@ void G_LoadGame(int slot)
 
 void G_DoLoadGame(int slot)
 {
+#if 0
 	int length;
 	char vcheck[VERSIONSIZE];
 	char savename[255];
@@ -1712,6 +1713,7 @@ void G_DoLoadGame(int slot)
 	// draw the pattern into the back screen
 	R_FillBackScreen();
 	CON_ToggleOff();
+#endif
 }
 
 //
@@ -1768,7 +1770,8 @@ void G_DoSaveGame(int savegameslot, char* savedescription)
 	// draw the pattern into the back screen
 	R_FillBackScreen();
 #endif
-	
+
+#if 0
 	char ExtFileName[MAX_WADPATH];
 	size_t FileLen = 0;
 	
@@ -1800,6 +1803,7 @@ void G_DoSaveGame(int savegameslot, char* savedescription)
 	}
 	
 	gameaction = ga_nothing;
+#endif
 }
 
 //
@@ -1970,8 +1974,23 @@ bool_t G_Downgrade(int version)
 
 ticcmd_t oldcmd[MAXPLAYERS];
 
+/* G_DemoInfo_t -- Info about current demo */
+typedef struct G_DemoInfo_s
+{
+	WL_WADEntry_t* Entry;						// Entry Playing
+	uint16_t DemoVersion;						// Version of Demo
+	WL_EntryStream_t* EntryStream;				// Entry Stream
+} G_DemoInfo_t;
+
+G_DemoInfo_t* g_CurDemoInfo = NULL;				// Current Demo
+
+/* G_ReadDemoTiccmd() -- Read tic command */
 void G_ReadDemoTiccmd(ticcmd_t* cmd, int playernum)
 {
+	/* Check */
+	if (!cmd || !g_CurDemoInfo)
+		return;
+	
 #if 0
 	if (*demo_p == DEMOMARKER)
 	{
@@ -2056,13 +2075,52 @@ void G_DeferedPlayDemo(char* name)
 	COM_BufAddText("\"\n");
 }
 
-//
-//  Start a demo from a .LMP file or from a wad resource (eg: DEMO1)
-//
+/* G_DoPlayDemo() -- Plays A demo */
 void G_DoPlayDemo(char* defdemoname)
 {
 	skill_t skill;
 	int i, j, episode, map;
+	
+	WL_WADEntry_t* Entry;
+	WL_EntryStream_t* Stream;
+	
+	/* Stop playing old demo */
+	if (g_CurDemoInfo)
+		Z_Free(g_CurDemoInfo);
+	g_CurDemoInfo = NULL;
+	
+	/* Try playing by entry */
+	Entry = WL_FindEntry(NULL, 0, defdemoname);
+	
+	// Found?
+	if (Entry)
+	{
+		// Open Stream
+		Stream = WL_StreamOpen(Entry);
+		
+		// Found!
+		if (Stream)
+		{
+			// Allocate
+			g_CurDemoInfo = Z_Malloc(sizeof(*g_CurDemoInfo), PU_STATIC, NULL);
+			
+			// Fill
+			g_CurDemoInfo->Entry = Entry;
+			g_CurDemoInfo->EntryStream = Stream;
+			g_CurDemoInfo->DemoVersion = WL_StreamReadUInt8(Stream);
+		}
+	}
+	
+	/* Begin demo playback now */
+	if (g_CurDemoInfo)
+	{
+		// Inform the watcher
+		demoplayback = true;
+		CONL_PrintF("Playing back %i.%02i\n",
+				g_CurDemoInfo->DemoVersion / 100, g_CurDemoInfo->DemoVersion % 100);
+		
+		// Load Demo Information
+	}
 	
 #if 0
 //

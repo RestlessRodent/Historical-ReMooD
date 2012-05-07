@@ -165,12 +165,12 @@ uint32_t I_GetTimeMS(void)
 	/* Is the refresh rate known? */
 	// retrace_count will match it
 	if (g_RefreshRate)
-		return (retrace_count * 1000) / g_RefreshRate;
+		return ((retrace_count * 1000) / g_RefreshRate);
 		
 	/* It isn't */
 	// Otherwise retrace_count will be simulated at 70
 	else
-		return (retrace_count * 1000) / 70;
+		return ((retrace_count * 1000) / 70);
 }
 
 //
@@ -184,6 +184,8 @@ void I_Init(void)
 void I_WaitVBL(int count)
 {
 	/* Use rest() */
+	if (count <= 0)
+		return;
 	rest(count);
 }
 
