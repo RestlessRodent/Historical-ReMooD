@@ -143,6 +143,7 @@ typedef struct D_NetPlayer_s
 	D_NetPlayerType_t Type;						// Type of network player
 	struct D_ProfileEx_s* Profile;				// Linked Profile
 	struct player_s* Player;					// Attached Player
+	char UUID[MAXPLAYERNAME * 2];				// Network Player Unique ID
 	
 	/* Player Control */
 	// Sync

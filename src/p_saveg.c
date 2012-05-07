@@ -49,6 +49,7 @@
 #include "m_misc.h"
 #include "p_saveg.h"
 #include "console.h"
+#include "p_demcmp.h"
 
 /****************
 *** FUNCTIONS ***
@@ -57,8 +58,6 @@
 /* CLC_SaveGame() -- Saves the game */
 static CONL_ExitCode_t CLC_SaveGame(const uint32_t a_ArgC, const char** const a_ArgV)
 {
-	D_TStreamSource_t* FStream;
-	
 	/* Check */
 	if (a_ArgC < 2)
 	{
@@ -66,21 +65,12 @@ static CONL_ExitCode_t CLC_SaveGame(const uint32_t a_ArgC, const char** const a_
 		return CLE_INVALIDARGUMENT;
 	}
 	
-	/* Create stream */
-	FStream = D_CreateFileOutStream(a_ArgV[1]);
-	
-	// Check
-	if (!FStream)
-		return CLE_DISKREADONLY;	// Return read only? heh
-	
 	/* Save the game */
-	P_SaveGameStream(FStream);
-	
-	/* Destroy stream */
-	D_BlockStreamDelete(FStream);
+	if (P_SaveGameEx(NULL, a_ArgV[1], strlen(a_ArgV[1]), NULL, NULL))
+		return CLE_SUCCESS;
 	
 	/* Return success always */
-	return CLE_SUCCESS;
+	return CLE_FAILURE;
 }
 
 /* P_InitSGConsole() -- Initialize save command */
@@ -151,7 +141,13 @@ bool_t P_CheckSizeEx(size_t Need)
 /* P_SaveGameEx() -- Extended savegame */
 bool_t P_SaveGameEx(const char* SaveName, char* ExtFileName, size_t ExtFileNameLen, size_t* SaveLen, uint8_t** Origin)
 {
-	return P_SaveGameToBS(D_RBSCreateFileStream(ExtFileName));
+	bool_t OK = false;
+	D_RBlockStream_t* BS = D_RBSCreateFileStream(ExtFileName);
+	
+	if (BS)
+		OK = P_SaveGameToBS(BS);
+	
+	return OK;
 }
 
 /* P_LoadGameEx() -- Load an extended save game */
@@ -166,15 +162,719 @@ bool_t P_LoadGameFromBS(D_RBlockStream_t* const a_Stream)
 	/* Check */
 	if (!a_Stream)
 		return false;
+	
+	/* Success */
+	return true;
 }
+
+// Save Game Prototypes
+void P_SGBS_Time(D_RBlockStream_t* const a_Stream);
+void P_SGBS_Version(D_RBlockStream_t* const a_Stream);
+void P_SGBS_WAD(D_RBlockStream_t* const a_Stream);
+void P_SGBS_NetProfiles(D_RBlockStream_t* const a_Stream);
+void P_SGBS_SplitPlayers(D_RBlockStream_t* const a_Stream);
+void P_SGBS_Players(D_RBlockStream_t* const a_Stream);
+void P_SGBS_MapData(D_RBlockStream_t* const a_Stream);
+void P_SGBS_Thinkers(D_RBlockStream_t* const a_Stream);
+void P_SGBS_State(D_RBlockStream_t* const a_Stream);
 
 /* P_SaveGameToBS() -- Save game to block stream */
 bool_t P_SaveGameToBS(D_RBlockStream_t* const a_Stream)
 {
+	const char* c;
+	
 	/* Check */
 	if (!a_Stream)
 		return false;
+		
+	/* Create Header Block */
+	// Save Game Save Stream
+		// Base
+	D_RBSBaseBlock(a_Stream, "SGSS");
+		// Fill
+	for (c = "ReMooD Save Game"; *c; c++)
+		D_RBSWriteUInt8(a_Stream, *c);
+		// Record
+	D_RBSRecordBlock(a_Stream);
+	
+	/* Save Details of Game */
+	P_SGBS_Time(a_Stream);
+	P_SGBS_Version(a_Stream);
+	P_SGBS_WAD(a_Stream);
+	P_SGBS_NetProfiles(a_Stream);
+	P_SGBS_SplitPlayers(a_Stream);
+	P_SGBS_Players(a_Stream);
+	P_SGBS_MapData(a_Stream);
+	P_SGBS_Thinkers(a_Stream);
+	P_SGBS_State(a_Stream);
+	
+	/* Write End Header */
+	// Save Game End Exit
+		// Base
+	D_RBSBaseBlock(a_Stream, "SGEE");
+		// Fill
+	for (c = "End Stream"; *c; c++)
+		D_RBSWriteUInt8(a_Stream, *c);
+		// Record
+	D_RBSRecordBlock(a_Stream);
+	
+	/* Success */
+	return true;
 }
+
+/*** SAVING THE GAME STATE ***/
+
+/* P_SGBS_Time() -- Print Time Information */
+void P_SGBS_Time(D_RBlockStream_t* const a_Stream)
+{
+	/* Begin Header */
+	D_RBSBaseBlock(a_Stream, "SGVT");
+	
+	/* Place Time Information (Save Related) */
+	D_RBSWriteUInt32(a_Stream, time(NULL));
+	D_RBSWriteUInt32(a_Stream, g_ProgramTic);
+	
+	/* Record Block */
+	D_RBSRecordBlock(a_Stream);
+}
+
+/* P_SGBS_Version() -- Write version information */
+void P_SGBS_Version(D_RBlockStream_t* const a_Stream)
+{
+	/* Begin Header */
+	D_RBSBaseBlock(a_Stream, "SGVR");
+	
+	/* Fill With Versioning */
+		// Legacy Version
+	D_RBSWriteUInt8(a_Stream, VERSION);
+		// ReMooD Version
+	D_RBSWriteUInt8(a_Stream, REMOOD_MAJORVERSION);
+	D_RBSWriteUInt8(a_Stream, REMOOD_MINORVERSION);
+	D_RBSWriteUInt8(a_Stream, REMOOD_RELEASEVERSION);
+		// Version Strings
+	D_RBSWriteString(a_Stream, REMOOD_VERSIONCODESTRING);
+	D_RBSWriteString(a_Stream, REMOOD_FULLVERSIONSTRING);
+	D_RBSWriteString(a_Stream, REMOOD_URL);
+	
+	/* Record Block */
+	D_RBSRecordBlock(a_Stream);
+}
+
+/* P_SGBS_WAD() -- Write WAD State */
+void P_SGBS_WAD(D_RBlockStream_t* const a_Stream)
+{
+	const WL_WADFile_t* CurVWAD;
+	size_t i;
+	
+	/* Begin Header */
+	D_RBSBaseBlock(a_Stream, "SGVW");
+	
+	/* Iterate all VWADs */	
+	for (CurVWAD = WL_IterateVWAD(NULL, true); CurVWAD; CurVWAD = WL_IterateVWAD(CurVWAD, true))
+	{
+		// Print WAD Names
+		D_RBSWriteString(a_Stream, CurVWAD->__Private.__FileName);
+		D_RBSWriteString(a_Stream, CurVWAD->__Private.__DOSName);
+		
+		// Print Some Flags
+		D_RBSWriteUInt8(a_Stream, (CurVWAD->__Private.__IsIWAD ? 'I' : 'P'));
+		D_RBSWriteUInt8(a_Stream, (CurVWAD->__Private.__IsWAD ? 'W' : 'N'));
+		D_RBSWriteUInt8(a_Stream, (CurVWAD->__Private.__IsValid ? 'V' : 'I'));
+		
+		// Print Some WAD Identification
+		D_RBSWriteUInt8(a_Stream, CurVWAD->NumEntries);
+		D_RBSWriteUInt8(a_Stream, CurVWAD->__Private.__IndexOff);
+		D_RBSWriteUInt8(a_Stream, CurVWAD->__Private.__Size);
+		
+		// Print WAD Sums
+		for (i = 0; i < 4; i++)
+			D_RBSWriteUInt32(a_Stream, CurVWAD->CheckSum[i]);
+		for (i = 0; i < 4; i++)
+			D_RBSWriteUInt32(a_Stream, CurVWAD->SimpleSum[i]);
+		for (i = 0; i < 32; i++)
+			D_RBSWriteUInt8(a_Stream, CurVWAD->CheckSumChars[i]);
+		for (i = 0; i < 32; i++)
+			D_RBSWriteUInt8(a_Stream, CurVWAD->SimpleSumChars[i]);
+	}
+	
+	/* Record Block */
+	D_RBSRecordBlock(a_Stream);
+}
+
+/* P_SGBS_NetProfiles() -- Record network profiles */
+void P_SGBS_NetProfiles(D_RBlockStream_t* const a_Stream)
+{
+	size_t i, j, k;
+	D_ProfileEx_t* ProfileEx;
+	D_NetPlayer_t* NetPlayer;
+	ticcmd_t* TicCmd;
+	
+	/* Begin Header */
+	D_RBSBaseBlock(a_Stream, "SGNP");
+	
+	/* Go through each player */
+	for (i = 0; i < MAXPLAYERS; i++)
+	{
+		// Make sure he is in game
+		if (!playeringame[i])
+			continue;
+		
+		// Print Player ID
+		D_RBSWriteUInt8(a_Stream, i);
+		
+		// Get Stuff
+		NetPlayer = players[i].NetPlayer;
+		ProfileEx = players[i].ProfileEx;
+		
+		// Parse Net Player
+		if (NetPlayer)
+		{
+			// Write ticker
+			D_RBSWriteUInt8(a_Stream, 'N');
+			
+			// Print UUID To Identify
+			D_RBSWritePointer(a_Stream, NetPlayer);
+			D_RBSWriteString(a_Stream, NetPlayer->UUID);
+			
+			// Print Profile And Player Link
+			D_RBSWriteString(a_Stream, (NetPlayer->Profile ? NetPlayer->Profile->UUID : ""));
+			D_RBSWriteUInt8(a_Stream, NetPlayer->Player - players);
+			
+			// Print Other NetInfo Stuff
+			D_RBSWriteUInt8(a_Stream, NetPlayer->Type);
+			D_RBSWriteString(a_Stream, NetPlayer->DisplayName);
+			D_RBSWriteUInt8(a_Stream, NetPlayer->NetColor);
+			
+			// Print Tic Info
+			for (k = 0; k < 2; k++)
+			{
+				// Write Tic Count
+				D_RBSWriteUInt16(a_Stream, (!k ? NetPlayer->LocalTicTotal : NetPlayer->TicTotal));
+				
+				// Write each tic
+				for (j = 0; j < (!k ? NetPlayer->LocalTicTotal : NetPlayer->TicTotal); j++)
+				{
+					// Current Tic
+					TicCmd = (!k ? &NetPlayer->LocalTicCmd[j] : &NetPlayer->TicCmd[j]);
+					
+					// Write the commands out
+					D_RBSWriteUInt8(a_Stream, TicCmd->forwardmove);
+					D_RBSWriteUInt8(a_Stream, TicCmd->sidemove);
+					D_RBSWriteUInt8(a_Stream, TicCmd->artifact);
+					D_RBSWriteUInt8(a_Stream, TicCmd->XNewWeapon);
+					D_RBSWriteUInt16(a_Stream, TicCmd->BaseAngleTurn);
+					D_RBSWriteUInt16(a_Stream, TicCmd->angleturn);
+					D_RBSWriteUInt16(a_Stream, TicCmd->aiming);
+					D_RBSWriteUInt16(a_Stream, TicCmd->buttons);
+				}
+			}
+		}
+		
+		// Missing net player, so ignore it
+		else
+			D_RBSWriteUInt8(a_Stream, 'X');
+		
+		// Parse Profile
+		if (ProfileEx)
+		{
+			// Write ticker
+			D_RBSWriteUInt8(a_Stream, 'P');
+			
+			// Print UUID To Identify
+			D_RBSWritePointer(a_Stream, ProfileEx);
+			D_RBSWriteString(a_Stream, ProfileEx->UUID);
+			
+			// Print NetPlayer Link
+			D_RBSWriteString(a_Stream, (ProfileEx->NetPlayer ? ProfileEx->NetPlayer->UUID : ""));
+			
+			// Print Profile Info
+			D_RBSWriteUInt8(a_Stream, ProfileEx->Type);
+			D_RBSWriteString(a_Stream, ProfileEx->DisplayName);
+			D_RBSWriteString(a_Stream, ProfileEx->AccountName);
+			D_RBSWriteUInt8(a_Stream, ProfileEx->Color);
+		}
+		
+		// Missing profile, so ignore it
+		else
+			D_RBSWriteUInt8(a_Stream, 'X');
+	}
+	
+	/* Record Block */
+	D_RBSRecordBlock(a_Stream);
+}
+
+/* P_SGBS_SplitPlayers() -- Split players */
+void P_SGBS_SplitPlayers(D_RBlockStream_t* const a_Stream)
+{
+	size_t i;
+	
+	/* Begin Header */
+	D_RBSBaseBlock(a_Stream, "SGSC");
+	
+	/* Print Local Players */
+	D_RBSWriteUInt8(a_Stream, g_SplitScreen);
+	
+	// Go through Each
+	for (i = 0; i < MAXSPLITSCREEN; i++)
+	{
+		D_RBSWriteUInt8(a_Stream, g_PlayerInSplit[i]);
+		D_RBSWriteUInt8(a_Stream, consoleplayer[i]);
+		D_RBSWriteUInt8(a_Stream, displayplayer[i]);
+	}
+	
+	/* Record Block */
+	D_RBSRecordBlock(a_Stream);
+}
+
+/* P_SGBS_Players() -- Dump Players */
+void P_SGBS_Players(D_RBlockStream_t* const a_Stream)
+{
+	size_t i, j;
+	player_t* Player;
+	
+	/* Begin Header */
+	D_RBSBaseBlock(a_Stream, "SGPL");
+	
+	for (i = 0; i < MAXPLAYERS; i++)
+	{
+		Player = &players[i];
+		
+		// Print Identifier
+		D_RBSWriteUInt8(a_Stream, i);
+		D_RBSWritePointer(a_Stream, Player);
+		
+		// Not in game?
+		if (!playeringame[i])
+		{
+			D_RBSWriteUInt8(a_Stream, 'V');
+			continue;
+		}
+		
+		// Write as In Game
+		D_RBSWriteUInt8(a_Stream, 'P');
+		
+		// Write Links
+		D_RBSWritePointer(a_Stream, Player->ProfileEx);
+		D_RBSWriteString(a_Stream, (Player->ProfileEx ? Player->ProfileEx->UUID : ""));
+		D_RBSWritePointer(a_Stream, Player->NetPlayer);
+		D_RBSWriteString(a_Stream, (Player->NetPlayer ? Player->NetPlayer->UUID : ""));
+		
+		// Print Map Objects Connected To
+		D_RBSWritePointer(a_Stream, Player->mo);
+		D_RBSWritePointer(a_Stream, Player->rain1);
+		D_RBSWritePointer(a_Stream, Player->rain2);
+		D_RBSWritePointer(a_Stream, Player->attacker);
+		
+		// Write Player Info
+		D_RBSWriteUInt8(a_Stream, Player->playerstate);
+		D_RBSWriteInt32(a_Stream, Player->viewz);
+		D_RBSWriteInt32(a_Stream, Player->viewheight);
+		D_RBSWriteInt32(a_Stream, Player->deltaviewheight);
+		D_RBSWriteInt32(a_Stream, Player->bob);
+		D_RBSWriteUInt32(a_Stream, Player->aiming);
+		D_RBSWriteInt32(a_Stream, Player->health);
+		D_RBSWriteInt32(a_Stream, Player->armorpoints);
+		D_RBSWriteInt32(a_Stream, Player->armortype);
+		D_RBSWriteUInt32(a_Stream, Player->cards);
+		D_RBSWriteUInt32(a_Stream, Player->backpack);
+		D_RBSWriteUInt32(a_Stream, Player->addfrags);
+		D_RBSWriteInt32(a_Stream, Player->readyweapon);
+		D_RBSWriteString(a_Stream, Player->weaponinfo[Player->readyweapon]->ClassName);
+		D_RBSWriteInt32(a_Stream, Player->pendingweapon);
+		D_RBSWriteString(a_Stream, ((Player->pendingweapon < 0) ? "NoPending" :Player->weaponinfo[Player->pendingweapon]->ClassName));
+		D_RBSWriteUInt8(a_Stream, Player->originalweaponswitch);
+		D_RBSWriteUInt8(a_Stream, Player->autoaim_toggle);
+		D_RBSWriteUInt8(a_Stream, Player->attackdown);
+		D_RBSWriteUInt8(a_Stream, Player->usedown);
+		D_RBSWriteUInt8(a_Stream, Player->jumpdown);
+		D_RBSWriteUInt32(a_Stream, Player->cheats);
+		D_RBSWriteUInt32(a_Stream, Player->refire);
+		D_RBSWriteUInt32(a_Stream, Player->killcount);
+		D_RBSWriteUInt32(a_Stream, Player->itemcount);
+		D_RBSWriteUInt32(a_Stream, Player->secretcount);
+		D_RBSWriteUInt32(a_Stream, Player->damagecount);
+		D_RBSWriteUInt32(a_Stream, Player->bonuscount);
+		D_RBSWriteUInt32(a_Stream, Player->specialsector);
+		D_RBSWriteUInt32(a_Stream, Player->extralight);
+		D_RBSWriteUInt32(a_Stream, Player->fixedcolormap);
+		D_RBSWriteUInt32(a_Stream, Player->skincolor);
+		D_RBSWriteUInt32(a_Stream, Player->skin);
+		D_RBSWriteUInt8(a_Stream, Player->didsecret);
+		D_RBSWriteInt32(a_Stream, Player->chickenTics);
+		D_RBSWriteInt32(a_Stream, Player->chickenPeck);
+		D_RBSWriteInt32(a_Stream, Player->flamecount);
+		D_RBSWriteInt32(a_Stream, Player->flyheight);
+		D_RBSWriteInt32(a_Stream, Player->inv_ptr);
+		D_RBSWriteInt32(a_Stream, Player->st_curpos);
+		D_RBSWriteInt32(a_Stream, Player->st_inventoryTics);
+		D_RBSWriteInt32(a_Stream, Player->flushdelay);
+		D_RBSWriteInt32(a_Stream, Player->MoveMom);
+		D_RBSWriteInt32(a_Stream, Player->TargetViewZ);
+		D_RBSWriteInt32(a_Stream, Player->FakeMom[0]);
+		D_RBSWriteInt32(a_Stream, Player->FakeMom[1]);
+		D_RBSWriteInt32(a_Stream, Player->FakeMom[2]);
+		D_RBSWriteInt32(a_Stream, Player->MaxHealth[0]);
+		D_RBSWriteInt32(a_Stream, Player->MaxHealth[1]);
+		D_RBSWriteInt32(a_Stream, Player->MaxArmor[0]);
+		D_RBSWriteInt32(a_Stream, Player->MaxArmor[1]);
+		
+		// Current Weapon Level
+		D_RBSWriteUInt8(a_Stream, (Player->weaponinfo == wpnlev2info ? 1 : 0));
+		
+		// Write Variable Info
+			// Powerups
+		for (j = 0; j < NUMPOWERS; j++)
+			D_RBSWriteInt32(a_Stream, Player->powers[j]);
+			
+			// Ammo
+		for (j = 0; j < NUMAMMO; j++)
+		{
+			D_RBSWriteInt32(a_Stream, Player->ammo[j]);
+			D_RBSWriteInt32(a_Stream, Player->maxammo[j]);
+		}
+			
+			// Weapons
+		for (j = 0; j < NUMWEAPONS; j++)
+			D_RBSWriteUInt8(a_Stream, Player->weaponowned[j]);
+			
+			// Frags
+		for (j = 0; j < MAXPLAYERS; j++)
+			D_RBSWriteUInt32(a_Stream, Player->frags[j]);
+			
+			// Inventory Slots
+		for (j = 0; j < NUMINVENTORYSLOTS; j++)
+		{
+			D_RBSWriteUInt8(a_Stream, Player->inventory[j].type);
+			D_RBSWriteUInt8(a_Stream, Player->inventory[j].count);
+		}
+		
+		// Save psprites
+		for (j = 0; j < NUMPSPRITES; j++)
+		{
+			D_RBSWriteInt32(a_Stream, Player->psprites[j].tics);
+			D_RBSWriteInt32(a_Stream, Player->psprites[j].sx);
+			D_RBSWriteInt32(a_Stream, Player->psprites[j].sy);
+			
+			// Write current state
+			if (!Player->psprites[j].state)
+				D_RBSWriteUInt8(a_Stream, 'N');
+			else
+			{
+				D_RBSWriteUInt8(a_Stream, 'S');
+				D_RBSWriteUInt32(a_Stream, Player->psprites[j].state->FrameID);
+				D_RBSWriteUInt32(a_Stream, Player->psprites[j].state->ObjectID);
+				D_RBSWriteUInt32(a_Stream, Player->psprites[j].state->Marker);
+				D_RBSWriteUInt32(a_Stream, Player->psprites[j].state->SpriteID);
+				D_RBSWriteUInt32(a_Stream, Player->psprites[j].state->DehackEdID);
+			}
+		}
+		
+		// Save camera
+		D_RBSWritePointer(a_Stream, Player->camera.mo);
+		D_RBSWriteUInt8(a_Stream, Player->camera.chase);
+		D_RBSWriteUInt32(a_Stream, Player->camera.aiming);
+		D_RBSWriteUInt32(a_Stream, Player->camera.startangle);
+		D_RBSWriteInt32(a_Stream, Player->camera.fixedcolormap);
+		D_RBSWriteInt32(a_Stream, Player->camera.viewheight);
+	}
+	
+	/* Record Block */
+	D_RBSRecordBlock(a_Stream);
+}
+
+/* P_SGBS_MapData() -- Write All Map Data */
+// Some map data cannot be moved
+void P_SGBS_MapData(D_RBlockStream_t* const a_Stream)
+{
+	size_t i;
+	
+	/* Vertexes */
+#if 0
+	// Begin
+	D_RBSBaseBlock(a_Stream, "SGMV");
+	
+	// Put vertexes
+	D_RBSWriteUInt32(a_Stream, numvertexes);
+	for (i = 0; i < numvertexes; i++)
+	{
+		D_RBSWriteInt32(a_Stream, vertexes[i].x);
+		D_RBSWriteInt32(a_Stream, vertexes[i].y);
+	}
+	
+	// End
+	D_RBSRecordBlock(a_Stream);
+#endif
+	
+	/* Sectors */
+	
+	/* SideDefs */
+	
+	/* LineDefs */
+	
+	/* SubSectors */
+	
+	/* Nodes */
+	
+	/* Segs */
+	
+	/* Block Map */
+	// extern long* blockmaplump;		// offsets in blockmap are from here
+	// extern long* blockmap;			// Big blockmap SSNTails
+	// extern int bmapwidth;
+	// extern int bmapheight;			// in mapblocks
+	// extern fixed_t bmaporgx;
+	// extern fixed_t bmaporgy;		// origin of block map
+	// extern mobj_t** blocklinks;		// for thing chains
+	
+	/* Reject */
+	// extern uint8_t* rejectmatrix;	// for fast sight rejection
+	
+	/* Things */
+	//extern int nummapthings;
+	//extern mapthing_t* mapthings;
+	
+	// Begin
+	D_RBSBaseBlock(a_Stream, "SGMT");
+	
+	// Record all things
+	D_RBSWriteUInt32(a_Stream, nummapthings);
+	for (i = 0; i < nummapthings; i++)
+	{
+	}
+	
+	// End
+	D_RBSRecordBlock(a_Stream);
+	
+	/* Deathmatch Starts */
+	// deathmatchstarts[numdmstarts]
+	
+	/* Player Starts */
+	// playerstarts[mthing->type - 1] = mthing;
+	
+	/* Boss Brain Spots */
+	// braintargets[numbraintargets]
+	
+	/* Item Respawns */
+	//extern mapthing_t* itemrespawnque[ITEMQUESIZE];
+	//extern tic_t itemrespawntime[ITEMQUESIZE];
+	//extern int iquehead;
+	//extern int iquetail;
+}
+
+void P_MobjNullThinker(mobj_t* mobj);
+
+/* P_SGBS_Thinkers() -- Thinkers */
+// extern thinker_t thinkercap;
+void P_SGBS_Thinkers(D_RBlockStream_t* const a_Stream)
+{
+	thinker_t* CurThinker;
+	bool_t Capped;
+	
+	/* Run through all thinkers */
+	// Thinkercap MUST be first
+	Capped = false;
+	for (CurThinker = &thinkercap;
+		!Capped || (Capped && CurThinker != &thinkercap);
+		CurThinker = CurThinker->next, Capped = true)
+	{
+		// Begin
+		D_RBSBaseBlock(a_Stream, "SGTH");
+		
+		// Print Thinker Current Pointer ID
+		D_RBSWritePointer(a_Stream, CurThinker);
+		
+		// P_MobjNullThinker(mobj_t* mobj) || P_MobjThinker(mobj_t* mobj)
+		if (CurThinker->function.acv == P_MobjNullThinker ||
+				CurThinker->function.acv == P_MobjThinker)
+		{
+			// Thinker Header
+			D_RBSWriteUInt8(a_Stream, 'M');
+			if (CurThinker->function.acv == P_MobjNullThinker)
+				D_RBSWriteUInt8(a_Stream, 'N');
+			else
+				D_RBSWriteUInt8(a_Stream, 'O');
+		}
+		
+		// T_FireFlicker(fireflicker_t* flick)
+		else if (CurThinker->function.acv == T_FireFlicker)
+		{
+			// Thinker Header
+			D_RBSWriteUInt8(a_Stream, 'F');
+			D_RBSWriteUInt8(a_Stream, 'F');
+		}
+		
+		// T_Friction(friction_t* f)
+		else if (CurThinker->function.acv == T_Friction)
+		{
+			// Thinker Header
+			D_RBSWriteUInt8(a_Stream, 'F');
+			D_RBSWriteUInt8(a_Stream, 'R');
+		}
+		
+		// T_Glow(glow_t* g)
+		else if (CurThinker->function.acv == T_Glow)
+		{
+			// Thinker Header
+			D_RBSWriteUInt8(a_Stream, 'G');
+			D_RBSWriteUInt8(a_Stream, 'L');
+		}
+		
+		// T_LightFade(lightlevel_t* ll)
+		else if (CurThinker->function.acv == T_LightFade)
+		{
+			// Thinker Header
+			D_RBSWriteUInt8(a_Stream, 'L');
+			D_RBSWriteUInt8(a_Stream, 'A');
+		}
+		
+		// T_LightFlash(lightflash_t* flash)
+		else if (CurThinker->function.acv == T_LightFlash)
+		{
+			// Thinker Header
+			D_RBSWriteUInt8(a_Stream, 'L');
+			D_RBSWriteUInt8(a_Stream, 'F');
+		}
+		
+		// T_MoveCeiling(ceiling_t* ceiling)
+		else if (CurThinker->function.acv == T_MoveCeiling)
+		{
+			// Thinker Header
+			D_RBSWriteUInt8(a_Stream, 'M');
+			D_RBSWriteUInt8(a_Stream, 'C');
+		}
+		
+		// T_MoveElevator(elevator_t* elevator)
+		else if (CurThinker->function.acv == T_MoveElevator)
+		{
+			// Thinker Header
+			D_RBSWriteUInt8(a_Stream, 'M');
+			D_RBSWriteUInt8(a_Stream, 'E');
+		}
+		
+		// T_MoveFloor(floormove_t* floor)
+		else if (CurThinker->function.acv == T_MoveFloor)
+		{
+			// Thinker Header
+			D_RBSWriteUInt8(a_Stream, 'M');
+			D_RBSWriteUInt8(a_Stream, 'F');
+		}
+		
+		// T_MovePlane(sector_t* sector, fixed_t speed, fixed_t dest, bool_t crush, int floorOrCeiling, int direction)
+		else if (CurThinker->function.acv == T_MovePlane)
+		{
+			// Thinker Header
+			D_RBSWriteUInt8(a_Stream, 'M');
+			D_RBSWriteUInt8(a_Stream, 'P');
+		}
+		
+		// T_PlatRaise(plat_t* plat)
+		else if (CurThinker->function.acv == T_PlatRaise)
+		{
+			// Thinker Header
+			D_RBSWriteUInt8(a_Stream, 'P');
+			D_RBSWriteUInt8(a_Stream, 'R');
+		}
+		
+		// T_Pusher(pusher_t* p)
+		else if (CurThinker->function.acv == T_Pusher)
+		{
+			// Thinker Header
+			D_RBSWriteUInt8(a_Stream, 'P');
+			D_RBSWriteUInt8(a_Stream, 'U');
+		}
+		
+		// T_Scroll(scroll_t* s)
+		else if (CurThinker->function.acv == T_Scroll)
+		{
+			// Thinker Header
+			D_RBSWriteUInt8(a_Stream, 'S');
+			D_RBSWriteUInt8(a_Stream, 'C');
+		}
+		
+		// T_StrobeFlash(strobe_t* flash)
+		else if (CurThinker->function.acv == T_StrobeFlash)
+		{
+			// Thinker Header
+			D_RBSWriteUInt8(a_Stream, 'S');
+			D_RBSWriteUInt8(a_Stream, 'F');
+		}
+		
+		// T_VerticalDoor(vldoor_t* door)
+		else if (CurThinker->function.acv == T_VerticalDoor)
+		{
+			// Thinker Header
+			D_RBSWriteUInt8(a_Stream, 'V');
+			D_RBSWriteUInt8(a_Stream, 'D');
+		}
+		
+		// End
+		D_RBSRecordBlock(a_Stream);
+	}
+}
+
+/* P_SGBS_State() -- Game State */
+void P_SGBS_State(D_RBlockStream_t* const a_Stream)
+{
+	size_t i;
+	P_EXGSVariable_t* Vars;
+	
+	/* Something */
+	// Begin
+	D_RBSBaseBlock(a_Stream, "SGZA");
+	
+	// End
+	D_RBSRecordBlock(a_Stream);
+	
+	/* Game State Info */
+	// Begin
+	D_RBSBaseBlock(a_Stream, "SGZS");
+	
+	// Write Times
+	D_RBSWriteUInt32(a_Stream, gametic);
+	D_RBSWriteUInt32(a_Stream, D_SyncNetMapTime());
+	D_RBSWriteUInt32(a_Stream, D_SyncNetRealTime());
+	
+	// Write Game state
+	D_RBSWriteUInt8(a_Stream, gamestate);
+	D_RBSWriteUInt8(a_Stream, demorecording);
+	D_RBSWriteUInt8(a_Stream, demoplayback);
+	D_RBSWriteUInt8(a_Stream, multiplayer);
+	
+	// End
+	D_RBSRecordBlock(a_Stream);
+	
+	/* Game Setting Variables */
+	// Begin
+	D_RBSBaseBlock(a_Stream, "SGZV");
+	
+	// Go through all variables
+	for (i = 0; i < PEXGSNUMBITIDS; i++)
+	{
+		// Get Variable
+		Vars = P_EXGSVarForBit(i);
+		
+		// No Var?
+		if (!Vars)
+			continue;
+		
+		// Write ID and Name
+		D_RBSWriteUInt32(a_Stream, Vars->BitID);
+		D_RBSWriteString(a_Stream, Vars->Name);
+		
+		// Write Value
+		if (Vars->WasSet)
+			D_RBSWriteInt32(a_Stream, Vars->ActualVal);
+		else
+			D_RBSWriteInt32(a_Stream, Vars->DefaultVal);
+	}
+	
+	// End
+	D_RBSRecordBlock(a_Stream);
+}
+
+/*** WRITING THE GAME STATE ***/
+
+
 
 /*** MISC ***/
 

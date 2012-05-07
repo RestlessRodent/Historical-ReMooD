@@ -2527,7 +2527,7 @@ bool_t P_ExLoadLevel(P_LevelInfoEx_t* const a_Info, const bool_t a_ApplyOptions)
 	PS_ExMungeNodeData();
 	
 	// Load Things (Non-Textual Format)
-	CONL_LoadingScreenIncrMaj("Loading thing", 0);
+	CONL_LoadingScreenIncrMaj("Loading things", 0);
 	if (!a_Info->Type.Text && (Entry = a_Info->EntryPtr[PLIEDS_THINGS]))
 	{
 		// Open stream

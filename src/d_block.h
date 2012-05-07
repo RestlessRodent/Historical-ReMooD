@@ -166,7 +166,7 @@ typedef struct D_RBlockStream_s
 	void* Data;									// Private Data
 	
 	/* Current Block */
-	const char BlkHeader[4];					// Block identifier
+	char BlkHeader[4];							// Block identifier
 	uint8_t* BlkData;							// Data
 	size_t BlkSize;								// Block Size
 	size_t BlkBufferSize;						// Size of buffer
@@ -186,7 +186,7 @@ void D_RBSCloseStream(D_RBlockStream_t* const a_Stream);
 void D_RBSBaseBlock(D_RBlockStream_t* const a_Stream, const char* const a_Header);
 void D_RBSRecordBlock(D_RBlockStream_t* const a_Stream);
 
-size_t D_RBSWriteChunk(D_RBlockStream_t* const a_Stream, const uint8_t* const a_Data, const size_t a_Size);
+size_t D_RBSWriteChunk(D_RBlockStream_t* const a_Stream, const void* const a_Data, const size_t a_Size);
 
 void D_RBSWriteInt8(D_RBlockStream_t* const a_Stream, const int8_t a_Val);
 void D_RBSWriteInt16(D_RBlockStream_t* const a_Stream, const int16_t a_Val);
@@ -194,6 +194,9 @@ void D_RBSWriteInt32(D_RBlockStream_t* const a_Stream, const int32_t a_Val);
 void D_RBSWriteUInt8(D_RBlockStream_t* const a_Stream, const uint8_t a_Val);
 void D_RBSWriteUInt16(D_RBlockStream_t* const a_Stream, const uint16_t a_Val);
 void D_RBSWriteUInt32(D_RBlockStream_t* const a_Stream, const uint32_t a_Val);
+
+void D_RBSWriteString(D_RBlockStream_t* const a_Stream, const char* const a_Val);
+void D_RBSWritePointer(D_RBlockStream_t* const a_Stream, const void* const a_Ptr);
 
 #endif /* __D_BLOCK_H__ */
 

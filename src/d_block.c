@@ -265,6 +265,8 @@ static size_t DS_RBSFile_RecordF(struct D_RBlockStream_s* const a_Stream)
 {
 	FILE* File;
 	size_t RetVal;
+	uint32_t BlockLen, i;
+	uint32_t QuickSum;
 	
 	/* Check */
 	if (!a_Stream)
@@ -272,6 +274,30 @@ static size_t DS_RBSFile_RecordF(struct D_RBlockStream_s* const a_Stream)
 	
 	/* Get Data */
 	File = (FILE*)a_Stream->Data;
+	
+	/* Flush for write */
+	fflush(File);
+	
+	/* Write Header */
+	fwrite(a_Stream->BlkHeader, 4, 1, File);
+	BlockLen = a_Stream->BlkSize;
+	fwrite(&BlockLen, sizeof(BlockLen), 1, File);
+	
+	/* Determine Quicksum */
+	for (i = 0; i < BlockLen; i++)
+		if (i & 1)
+			QuickSum ^= (((uint8_t*)a_Stream->BlkData)[i]) << ((i & 2) ? 4 : 0);
+		else
+			QuickSum ^= (~(((uint8_t*)a_Stream->BlkData)[i])) << ((i & 2) ? 6 : 2);
+	fwrite(&QuickSum, sizeof(QuickSum), 1, File);
+	
+	/* Write Data */
+	RetVal = fwrite(a_Stream->BlkData, BlockLen, 1, File);
+	
+	/* Flush for write */
+	fflush(File);
+	
+	return RetVal;
 }
 
 /****************
@@ -300,6 +326,7 @@ D_RBlockStream_t* D_RBSCreateFileStream(const char* const a_PathName)
 	
 	/* Setup Data */
 	New->Data = File;
+	New->RecordF = DS_RBSFile_RecordF;
 	
 	/* Return Stream */
 	return New;
@@ -335,7 +362,7 @@ void D_RBSBaseBlock(D_RBlockStream_t* const a_Stream, const char* const a_Header
 	
 	/* Create a fresh block */
 	a_Stream->BlkBufferSize = RBLOCKBUFSIZE;
-	a_Stream->BlkData = Z_Malloc(sizeof(a_Stream->BlkBufferSize), PU_BLOCKSTREAM, NULL);
+	a_Stream->BlkData = Z_Malloc(a_Stream->BlkBufferSize, PU_BLOCKSTREAM, NULL);
 	
 	// Copy header
 	memmove(a_Stream->BlkHeader, a_Header, (strlen(a_Header) >= 4 ? 4 : strlen(a_Header)));
@@ -354,10 +381,74 @@ void D_RBSRecordBlock(D_RBlockStream_t* const a_Stream)
 }
 
 /* D_RBSWriteChunk() -- Write data chunk into block */
-size_t D_RBSWriteChunk(D_RBlockStream_t* const a_Stream, const uint8_t* const a_Data, const size_t a_Size)
+size_t D_RBSWriteChunk(D_RBlockStream_t* const a_Stream, const void* const a_Data, const size_t a_Size)
 {
+	size_t DestSize;
+	
 	/* Check */
 	if (!a_Stream || !a_Data || !a_Size)
 		return 0;
+	
+	/* Determine Block Resize */
+	DestSize = a_Stream->BlkSize + a_Size;
+	
+	// Too big?
+	while (DestSize >= a_Stream->BlkBufferSize)
+	{
+		Z_ResizeArray((void**)&a_Stream->BlkData, sizeof(*a_Stream->BlkData), a_Stream->BlkBufferSize, a_Stream->BlkBufferSize + RBLOCKBUFSIZE);
+		a_Stream->BlkBufferSize += RBLOCKBUFSIZE;
+	}
+	
+	/* Slap data there */
+	memmove(&a_Stream->BlkData[a_Stream->BlkSize], a_Data, a_Size);
+	a_Stream->BlkSize += a_Size;
+	
+	/* Return size */
+	return a_Size;
+}
+
+#define BP_MERGE(a,b) a##b
+#define __REMOOD_RBSQUICK(w,x) void BP_MERGE(D_RBSWrite,w)(D_RBlockStream_t* const a_Stream, const x a_Val)\
+{\
+	D_RBSWriteChunk(a_Stream, &a_Val, sizeof(a_Val));\
+}
+
+__REMOOD_RBSQUICK(Int8,int8_t);
+__REMOOD_RBSQUICK(Int16,int16_t);
+__REMOOD_RBSQUICK(Int32,int32_t);
+__REMOOD_RBSQUICK(UInt8,uint8_t);
+__REMOOD_RBSQUICK(UInt16,uint16_t);
+__REMOOD_RBSQUICK(UInt32,uint32_t);
+
+/* D_RBSWriteString() -- Write Version String */
+void D_RBSWriteString(D_RBlockStream_t* const a_Stream, const char* const a_Val)
+{
+	const char* c;
+	
+	/* Check */
+	if (!a_Stream)
+		return;
+	
+	/* Constant Write */
+	for (c = a_Val; *c; c++)
+		D_RBSWriteUInt8(a_Stream, *c);
+	D_RBSWriteUInt8(a_Stream, 0);	// NUL
+}
+
+/* D_RBSWritePointer() -- Write Pointer */
+void D_RBSWritePointer(D_RBlockStream_t* const a_Stream, const void* const a_Ptr)
+{
+	uint32_t Half;
+	uintptr_t pI;
+	
+	/* Translate */
+	pI = (uintptr_t)pI;
+	
+	/* Slap In */
+	Half = pI & 0xFFFFFFFU;
+	Half ^= (pI >> 32U) & 0xFFFFFFFU;
+	
+	/* Write */
+	D_RBSWriteUInt32(a_Stream, Half);
 }
 

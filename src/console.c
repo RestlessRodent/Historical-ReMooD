@@ -1702,27 +1702,30 @@ void CONL_EarlyBootTic(const char* const a_Message, const bool_t a_DoTic)
 	DrewLogo = true;
 	
 	/* Black behind text */
-	// Draw bar across entire screen (white for incomplete)
-	V_DrawColorBoxEx(0, 0, 0, 160, 320, 168);
-	
-	/* Draw Message Text */
-	yB = 160;	// Base near the bottom somewhere
-	for (x = 0, c = EarlyBuf; *c; c++, x += 8)
+	if (a_Message)
 	{
-		// Get better character
-		Char = toupper(*c) - '!';
+		// Draw bar across entire screen (white for incomplete)
+		V_DrawColorBoxEx(0, 0, 0, 160, 320, 168);
+	
+		/* Draw Message Text */
+		yB = 160;	// Base near the bottom somewhere
+		for (x = 0, c = EarlyBuf; *c; c++, x += 8)
+		{
+			// Get better character
+			Char = toupper(*c) - '!';
 		
-		// Illegal?
-		if (Char < 0 || Char >= 64)
-			continue;
+			// Illegal?
+			if (Char < 0 || Char >= 64)
+				continue;
 		
-		// Draw character
-		for (r = 0, j = 0; j < 8; j++)
-			for (y = yB, r = 0; r < 8; r++)
-				if (c_OEMFont[((int)Char) + (64 * r)] & (1 << j))
-					screens[0][(vid.rowbytes * (y++)) + (x + j)] = 5;
-				else
-					y++;
+			// Draw character
+			for (r = 0, j = 0; j < 8; j++)
+				for (y = yB, r = 0; r < 8; r++)
+					if (c_OEMFont[((int)Char) + (64 * r)] & (1 << j))
+						screens[0][(vid.rowbytes * (y++)) + (x + j)] = 5;
+					else
+						y++;
+		}
 	}
 	
 	/* Draw Bar */
