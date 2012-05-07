@@ -1652,6 +1652,7 @@ void CONL_EarlyBootTic(const char* const a_Message, const bool_t a_DoTic)
 {
 #define BUFSIZE 40
 	static char EarlyBuf[BUFSIZE];
+	static bool_t DrewLogo;
 	char* c;
 	size_t i, j, x, y, r, yB;
 	uint8_t BMPc, Char;
@@ -1677,24 +1678,28 @@ void CONL_EarlyBootTic(const char* const a_Message, const bool_t a_DoTic)
 	}
 	
 	/* Copy background */
-	for (x = 62, y = 0, i = 0; i < CBOOTLOGOSIZE; i++)
-	{
-		// Get Bit Count
-		BMPc = c_BootLogo[i++];
-		
-		// Draw to screen
-		while (BMPc--)
+	if (!DrewLogo)
+		for (x = 62, y = 0, i = 0; i < CBOOTLOGOSIZE; i++)
 		{
-			screens[0][(vid.rowbytes * y) + (x++)] = ((c_BootLogo[i] & 0x0F)) + 1;
-			screens[0][(vid.rowbytes * y) + (x++)] = ((c_BootLogo[i] & 0xF0) >> 4) + 1;
-			
-			if (x >= 198 + 62)
+			// Get Bit Count
+			BMPc = c_BootLogo[i++];
+		
+			// Draw to screen
+			while (BMPc--)
 			{
-				x = 62;
-				y++;
+				screens[0][(vid.rowbytes * y) + (x++)] = ((c_BootLogo[i] & 0x0F)) + 1;
+				screens[0][(vid.rowbytes * y) + (x++)] = ((c_BootLogo[i] & 0xF0) >> 4) + 1;
+			
+				if (x >= 198 + 62)
+				{
+					x = 62;
+					y++;
+				}
 			}
 		}
-	}
+	
+	// Logo is now drawn
+	DrewLogo = true;
 	
 	/* Black behind text */
 	// Draw bar across entire screen (white for incomplete)
