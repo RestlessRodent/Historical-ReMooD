@@ -791,6 +791,9 @@ static bool_t P_WLInfoCreator(const WL_WADFile_t* const a_WAD, const uint32_t a_
 		if (!CurrentInfo)
 			continue;
 		
+		// Info
+		CONL_EarlyBootTic(CurrentInfo->LumpName, true);
+		
 		// Determine textual playability
 		if (CurrentInfo->Type.Text)
 		{

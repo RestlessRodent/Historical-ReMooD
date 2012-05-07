@@ -2585,6 +2585,9 @@ bool_t P_RMODH_Specials(Z_Table_t* const a_Table, const WL_WADFile_t* const a_WA
 	/* Get table name */
 	TableName = strchr(Z_TableName(a_Table), '#') + 1;
 	
+	// GhostlyDeath <May 7, 2012> -- Boot Status
+	CONL_EarlyBootTic(TableName, true);
+	
 	/* Which special ID to handle? */
 	switch (a_ID)
 	{

@@ -299,6 +299,9 @@ const WL_WADFile_t* WL_OpenWAD(const char* const a_PathName)
 		}
 	}
 	
+	// GhostlyDeath <May 7, 2012> -- Boot Status
+	CONL_EarlyBootTic(NewWAD->__Private.__DOSName, true);
+	
 	// Find size
 	fseek(CFile, 0, SEEK_END);
 	NewWAD->__Private.__Size = ftell(CFile);
