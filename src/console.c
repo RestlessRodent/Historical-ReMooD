@@ -2494,8 +2494,13 @@ bool_t CONL_SaveConfigFile(const char* const a_Path)
 
 /** LOCALS **/
 
+#define CCLSLOADINGSCREENWAIT				2000	// Time before screen effect
+
+static bool_t l_CLSDoBase = false;
+static bool_t l_CLSBaseDrawn = false;
 static const char* l_CLSMessage = NULL;
 static int32_t l_CLSProgress[2][2] = {{0, 0}, {0, 0}};
+static uint32_t l_CLSBaseTic = 0;					// Base loading screen time
 
 /** FUNCTIONS **/
 
@@ -2508,8 +2513,11 @@ static void CONLS_DrawLoadingScreen(const bool_t a_QuickDraw)
 	V_Image_t* BGImage;
 	
 	/* Clear screen if not quick drawing */
-	if (!a_QuickDraw)
+	if (!a_QuickDraw || (l_CLSDoBase && !l_CLSBaseDrawn))
 	{
+		// Set as drawn
+		l_CLSBaseDrawn = true;
+		
 		// Wipe away
 		memset(screens[0], 0, vid.rowbytes * vid.height);
 		
@@ -2579,8 +2587,14 @@ bool_t CONL_LoadingScreenSet(const int32_t a_NumSteps)
 	l_CLSProgress[0][0] = -1;
 	l_CLSProgress[0][1] = a_NumSteps;
 	
+	/* Reset Time */
+	l_CLSBaseTic = I_GetTimeMS();
+	
 	/* Draw and return */
-	CONLS_DrawLoadingScreen(false);
+	l_CLSDoBase = true;
+	l_CLSBaseDrawn = false;
+	if (I_GetTimeMS() - l_CLSBaseTic >= CCLSLOADINGSCREENWAIT)
+		CONLS_DrawLoadingScreen(false);
 	return true;
 }
 
@@ -2597,7 +2611,10 @@ bool_t CONL_LoadingScreenIncrMaj(const char* const a_Message, const int32_t a_Nu
 	l_CLSProgress[1][1] = a_NumSteps;
 	
 	/* Draw and return */
-	CONLS_DrawLoadingScreen(false);
+	l_CLSDoBase = true;
+	l_CLSBaseDrawn = false;
+	if (I_GetTimeMS() - l_CLSBaseTic >= CCLSLOADINGSCREENWAIT)
+		CONLS_DrawLoadingScreen(false);
 	return true;
 }
 
@@ -2608,7 +2625,8 @@ bool_t CONL_LoadingScreenIncrSub(void)
 	l_CLSProgress[1][0]++;
 	
 	/* Draw and return */
-	CONLS_DrawLoadingScreen(true);
+	if (I_GetTimeMS() - l_CLSBaseTic >= CCLSLOADINGSCREENWAIT)
+		CONLS_DrawLoadingScreen(true);
 	return true;
 }
 
@@ -2619,7 +2637,8 @@ bool_t CONL_LoadingScreenSetSubEnd(const int32_t a_NumSteps)
 	l_CLSProgress[1][1] = a_NumSteps;
 	
 	/* Draw and return */
-	CONLS_DrawLoadingScreen(true);
+	if (I_GetTimeMS() - l_CLSBaseTic >= 2000)
+		CONLS_DrawLoadingScreen(true);
 	return true;
 }
 

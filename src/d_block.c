@@ -438,17 +438,20 @@ void D_RBSWriteString(D_RBlockStream_t* const a_Stream, const char* const a_Val)
 /* D_RBSWritePointer() -- Write Pointer */
 void D_RBSWritePointer(D_RBlockStream_t* const a_Stream, const void* const a_Ptr)
 {
-	uint32_t Half;
-	uintptr_t pI;
+	size_t i;
+	uintptr_t XP;
 	
-	/* Translate */
-	pI = (uintptr_t)pI;
+	/* Write sizeof() */
+	D_RBSWriteUInt8(a_Stream, sizeof(a_Ptr));
 	
-	/* Slap In */
-	Half = pI & 0xFFFFFFFU;
-	Half ^= (pI >> 32U) & 0xFFFFFFFU;
-	
-	/* Write */
-	D_RBSWriteUInt32(a_Stream, Half);
+	/* Write all the pointer bits (for UUID in a way) */
+	XP = (uintptr_t)a_Ptr;
+	for (i = 0; i < sizeof(a_Ptr); i++)
+	{
+		// Write this bit area, then chop down
+		D_RBSWriteUInt8(a_Stream, XP & 0xFFU);
+		XP &= ~0xFFU;
+		XP >>= 8U;
+	}
 }
 

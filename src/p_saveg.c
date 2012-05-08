@@ -255,6 +255,9 @@ void P_SGBS_Version(D_RBlockStream_t* const a_Stream)
 	D_RBSWriteString(a_Stream, REMOOD_VERSIONCODESTRING);
 	D_RBSWriteString(a_Stream, REMOOD_FULLVERSIONSTRING);
 	D_RBSWriteString(a_Stream, REMOOD_URL);
+		// Compilation Stuff
+	D_RBSWriteString(a_Stream, __TIME__);
+	D_RBSWriteString(a_Stream, __DATE__);
 	
 	/* Record Block */
 	D_RBSRecordBlock(a_Stream);
@@ -582,14 +585,39 @@ void P_SGBS_Players(D_RBlockStream_t* const a_Stream)
 	D_RBSRecordBlock(a_Stream);
 }
 
+/* PS_SGBS_DumpMapThing() -- Dumps a map thing (occurs alot) */
+void PS_SGBS_DumpMapThing(D_RBlockStream_t* const a_Stream, mapthing_t* const MapThing)
+{
+	D_RBSWritePointer(a_Stream, MapThing);
+	D_RBSWriteInt16(a_Stream, MapThing->x);
+	D_RBSWriteInt16(a_Stream, MapThing->y);
+	D_RBSWriteInt16(a_Stream, MapThing->z);
+	D_RBSWriteInt16(a_Stream, MapThing->angle);
+	D_RBSWriteInt16(a_Stream, MapThing->type);
+	D_RBSWriteInt16(a_Stream, MapThing->options);
+	D_RBSWritePointer(a_Stream, MapThing->mobj);
+	D_RBSWriteUInt8(a_Stream, MapThing->IsHexen);
+	D_RBSWriteInt16(a_Stream, MapThing->HeightOffset);
+	D_RBSWriteUInt16(a_Stream, MapThing->ID);
+	D_RBSWriteUInt8(a_Stream, MapThing->Special);
+	D_RBSWriteUInt8(a_Stream, MapThing->Args[0]);
+	D_RBSWriteUInt8(a_Stream, MapThing->Args[1]);
+	D_RBSWriteUInt8(a_Stream, MapThing->Args[2]);
+	D_RBSWriteUInt8(a_Stream, MapThing->Args[3]);
+	D_RBSWriteUInt8(a_Stream, MapThing->Args[4]);
+	D_RBSWriteUInt32(a_Stream, MapThing->MoType);
+	D_RBSWriteUInt8(a_Stream, MapThing->MarkedWeapon);
+}
+
 /* P_SGBS_MapData() -- Write All Map Data */
 // Some map data cannot be moved
+// Left: AFHKMQWXY
 void P_SGBS_MapData(D_RBlockStream_t* const a_Stream)
 {
 	size_t i;
+	mapthing_t* MapThing;
 	
 	/* Vertexes */
-#if 0
 	// Begin
 	D_RBSBaseBlock(a_Stream, "SGMV");
 	
@@ -603,19 +631,48 @@ void P_SGBS_MapData(D_RBlockStream_t* const a_Stream)
 	
 	// End
 	D_RBSRecordBlock(a_Stream);
-#endif
 	
 	/* Sectors */
+	// Begin
+	D_RBSBaseBlock(a_Stream, "SGMS");
+	
+	// End
+	D_RBSRecordBlock(a_Stream);
 	
 	/* SideDefs */
+	// Begin
+	D_RBSBaseBlock(a_Stream, "SGMI");
+	
+	// End
+	D_RBSRecordBlock(a_Stream);
 	
 	/* LineDefs */
+	// Begin
+	D_RBSBaseBlock(a_Stream, "SGML");
+	
+	// End
+	D_RBSRecordBlock(a_Stream);
 	
 	/* SubSectors */
+	// Begin
+	D_RBSBaseBlock(a_Stream, "SGMU");
+	
+	// End
+	D_RBSRecordBlock(a_Stream);
 	
 	/* Nodes */
+	// Begin
+	D_RBSBaseBlock(a_Stream, "SGMN");
+	
+	// End
+	D_RBSRecordBlock(a_Stream);
 	
 	/* Segs */
+	// Begin
+	D_RBSBaseBlock(a_Stream, "SGMG");
+	
+	// End
+	D_RBSRecordBlock(a_Stream);
 	
 	/* Block Map */
 	// extern long* blockmaplump;		// offsets in blockmap are from here
@@ -626,8 +683,20 @@ void P_SGBS_MapData(D_RBlockStream_t* const a_Stream)
 	// extern fixed_t bmaporgy;		// origin of block map
 	// extern mobj_t** blocklinks;		// for thing chains
 	
+	// Begin
+	D_RBSBaseBlock(a_Stream, "SGMB");
+	
+	// End
+	D_RBSRecordBlock(a_Stream);
+	
 	/* Reject */
 	// extern uint8_t* rejectmatrix;	// for fast sight rejection
+	
+	// Begin
+	D_RBSBaseBlock(a_Stream, "SGMJ");
+	
+	// End
+	D_RBSRecordBlock(a_Stream);
 	
 	/* Things */
 	//extern int nummapthings;
@@ -640,25 +709,81 @@ void P_SGBS_MapData(D_RBlockStream_t* const a_Stream)
 	D_RBSWriteUInt32(a_Stream, nummapthings);
 	for (i = 0; i < nummapthings; i++)
 	{
+		// Get Current
+		MapThing = &mapthings[i];
+		
+		// Write Out
+		PS_SGBS_DumpMapThing(a_Stream, MapThing);
 	}
 	
 	// End
 	D_RBSRecordBlock(a_Stream);
 	
 	/* Deathmatch Starts */
+	//PS_SGBS_DumpMapThing
 	// deathmatchstarts[numdmstarts]
+	// Begin
+	D_RBSBaseBlock(a_Stream, "SGMD");
+	
+	// End
+	D_RBSRecordBlock(a_Stream);
 	
 	/* Player Starts */
 	// playerstarts[mthing->type - 1] = mthing;
 	
+	// Begin
+	D_RBSBaseBlock(a_Stream, "SGMC");
+	
+	// End
+	D_RBSRecordBlock(a_Stream);
+	
 	/* Boss Brain Spots */
 	// braintargets[numbraintargets]
+	
+	// Begin
+	D_RBSBaseBlock(a_Stream, "SGMO");
+	
+	// End
+	D_RBSRecordBlock(a_Stream);
 	
 	/* Item Respawns */
 	//extern mapthing_t* itemrespawnque[ITEMQUESIZE];
 	//extern tic_t itemrespawntime[ITEMQUESIZE];
 	//extern int iquehead;
 	//extern int iquetail;
+	
+	// Begin
+	D_RBSBaseBlock(a_Stream, "SGMR");
+	
+	// End
+	D_RBSRecordBlock(a_Stream);
+	
+	/* Touching Sector Lists */
+	//msecnode_t* sector_list = NULL;
+	
+	// Begin
+	D_RBSBaseBlock(a_Stream, "SGMZ");
+	
+	// End
+	D_RBSRecordBlock(a_Stream);
+	
+	/* Active Plats */
+	// platlist_t* activeplats;
+	
+	// Begin
+	D_RBSBaseBlock(a_Stream, "SGMP");
+	
+	// End
+	D_RBSRecordBlock(a_Stream);
+	
+	/* Active Ceilings */
+	// ceilinglist_t* activeceilings;
+	
+	// Begin
+	D_RBSBaseBlock(a_Stream, "SGME");
+	
+	// End
+	D_RBSRecordBlock(a_Stream);
 }
 
 void P_MobjNullThinker(mobj_t* mobj);
@@ -667,8 +792,25 @@ void P_MobjNullThinker(mobj_t* mobj);
 // extern thinker_t thinkercap;
 void P_SGBS_Thinkers(D_RBlockStream_t* const a_Stream)
 {
+	size_t i, j;
 	thinker_t* CurThinker;
 	bool_t Capped;
+	
+	mobj_t* Mobj;
+	vldoor_t* VLDoor;
+	strobe_t* Strobe;
+	scroll_t* Scroll;
+	pusher_t* Pusher;
+	mapthing_t* MapThing;
+	fireflicker_t* FireFlicker;
+	friction_t* Friction;
+	plat_t* Plat;
+	floormove_t* FloorMove;
+	glow_t* Glow;
+	lightlevel_t* LightFade;
+	elevator_t* Elevator;
+	ceiling_t* Ceiling;
+	lightflash_t* LightFlash;
 	
 	/* Run through all thinkers */
 	// Thinkercap MUST be first
@@ -693,6 +835,111 @@ void P_SGBS_Thinkers(D_RBlockStream_t* const a_Stream)
 				D_RBSWriteUInt8(a_Stream, 'N');
 			else
 				D_RBSWriteUInt8(a_Stream, 'O');
+			
+			// Get Thinker
+			Mobj = (mobj_t*)CurThinker;
+			
+			// Dump Info
+			D_RBSWriteInt32(a_Stream, Mobj->x);
+			D_RBSWriteInt32(a_Stream, Mobj->y);
+			D_RBSWriteInt32(a_Stream, Mobj->z);
+			D_RBSWriteUInt32(a_Stream, Mobj->angle);
+			D_RBSWriteInt32(a_Stream, Mobj->sprite);
+			D_RBSWriteInt32(a_Stream, Mobj->frame);
+			D_RBSWriteInt32(a_Stream, Mobj->skin);
+			D_RBSWriteInt32(a_Stream, Mobj->sprite);
+			D_RBSWriteInt32(a_Stream, Mobj->floorz);
+			D_RBSWriteInt32(a_Stream, Mobj->ceilingz);
+			D_RBSWriteInt32(a_Stream, Mobj->height);
+			D_RBSWriteInt32(a_Stream, Mobj->radius);
+			D_RBSWriteInt32(a_Stream, Mobj->momx);
+			D_RBSWriteInt32(a_Stream, Mobj->momy);
+			D_RBSWriteInt32(a_Stream, Mobj->momz);
+			D_RBSWriteInt32(a_Stream, Mobj->type);
+			D_RBSWriteInt32(a_Stream, Mobj->tics);
+			D_RBSWriteInt32(a_Stream, Mobj->flags);
+			D_RBSWriteInt32(a_Stream, Mobj->eflags);
+			D_RBSWriteInt32(a_Stream, Mobj->flags2);
+			D_RBSWriteInt32(a_Stream, Mobj->special1);
+			D_RBSWriteInt32(a_Stream, Mobj->special2);
+			D_RBSWriteInt32(a_Stream, Mobj->health);
+			D_RBSWriteInt32(a_Stream, Mobj->movedir);
+			D_RBSWriteInt32(a_Stream, Mobj->movecount);
+			D_RBSWriteInt32(a_Stream, Mobj->reactiontime);
+			D_RBSWriteInt32(a_Stream, Mobj->threshold);
+			D_RBSWriteInt32(a_Stream, Mobj->lastlook);
+			D_RBSWriteInt32(a_Stream, Mobj->friction);
+			D_RBSWriteInt32(a_Stream, Mobj->movefactor);
+			D_RBSWriteInt32(a_Stream, Mobj->dropped_ammo_count);
+			D_RBSWriteUInt32(a_Stream, Mobj->XFlagsA);
+			D_RBSWriteUInt32(a_Stream, Mobj->XFlagsB);
+			D_RBSWriteUInt32(a_Stream, Mobj->XFlagsC);
+			D_RBSWriteUInt32(a_Stream, Mobj->XFlagsD);
+			D_RBSWriteUInt32(a_Stream, Mobj->RXAttackAttackType);
+			D_RBSWriteUInt32(a_Stream, Mobj->RXShotWithWeapon);
+			D_RBSWriteUInt8(a_Stream, Mobj->RemoveMo);
+			D_RBSWriteUInt32(a_Stream, Mobj->RemType);
+			D_RBSWriteInt32(a_Stream, Mobj->MaxZObtained);
+			D_RBSWriteInt32(a_Stream, Mobj->SkinTeamColor);
+			D_RBSWriteInt32(a_Stream, Mobj->NoiseThinker.Pitch);
+			D_RBSWriteInt32(a_Stream, Mobj->NoiseThinker.Volume);
+			
+			// Map Data Related
+			D_RBSWriteInt32(a_Stream, Mobj->player - players);
+			D_RBSWriteUInt32(a_Stream, Mobj->subsector - subsectors);
+			D_RBSWriteUInt32(a_Stream, Mobj->spawnpoint - mapthings);
+			
+			// Spawn Point is probably virtualzed
+			if (Mobj->spawnpoint)
+			{
+				MapThing = Mobj->spawnpoint;
+				D_RBSWriteUInt8(a_Stream, 'T');
+				
+				PS_SGBS_DumpMapThing(a_Stream, MapThing);
+			}
+			else
+				D_RBSWriteUInt8(a_Stream, 'X');
+			
+			// Pointer Links
+			D_RBSWritePointer(a_Stream, Mobj->snext);
+			D_RBSWritePointer(a_Stream, Mobj->sprev);
+			D_RBSWritePointer(a_Stream, Mobj->bnext);
+			D_RBSWritePointer(a_Stream, Mobj->bprev);
+			D_RBSWritePointer(a_Stream, Mobj->target);
+			D_RBSWritePointer(a_Stream, Mobj->player);
+			D_RBSWritePointer(a_Stream, Mobj->tracer);
+			D_RBSWritePointer(a_Stream, Mobj->ChildFloor);
+			D_RBSWritePointer(a_Stream, Mobj->touching_sectorlist);
+			D_RBSWritePointer(a_Stream, Mobj->info);
+			
+			// Info
+			D_RBSWriteString(a_Stream, (Mobj->info ? Mobj->info->RClassName : "NoRCN"));
+			
+			// State
+			if (Mobj->state)
+			{
+				D_RBSWriteUInt8(a_Stream, 'S');
+				D_RBSWriteUInt32(a_Stream, Mobj->state->FrameID);
+				D_RBSWriteUInt32(a_Stream, Mobj->state->ObjectID);
+				D_RBSWriteUInt32(a_Stream, Mobj->state->Marker);
+				D_RBSWriteUInt32(a_Stream, Mobj->state->SpriteID);
+				D_RBSWriteUInt32(a_Stream, Mobj->state->DehackEdID);
+			}
+			else
+				D_RBSWriteUInt8(a_Stream, 'X');
+			
+			// Variable Info
+				// ReMooD Extended Flags
+			for (i = 0; i < NUMINFORXFIELDS; i++)
+				D_RBSWriteUInt32(a_Stream, Mobj->RXFlags[i]);
+			
+				// Map Objects On
+			for (i = 0; i < 2; i++)
+			{
+				D_RBSWriteUInt32(a_Stream, Mobj->MoOnCount[i]);
+				for (j = 0; j < Mobj->MoOnCount[i]; j++)
+					D_RBSWritePointer(a_Stream, Mobj->MoOn[i][j]);
+			}
 		}
 		
 		// T_FireFlicker(fireflicker_t* flick)
@@ -701,6 +948,15 @@ void P_SGBS_Thinkers(D_RBlockStream_t* const a_Stream)
 			// Thinker Header
 			D_RBSWriteUInt8(a_Stream, 'F');
 			D_RBSWriteUInt8(a_Stream, 'F');
+			
+			// Get Thinker
+			FireFlicker = (fireflicker_t*)CurThinker;
+			
+			// Dump Info
+			D_RBSWriteUInt32(a_Stream, FireFlicker->sector - sectors);
+			D_RBSWriteInt32(a_Stream, FireFlicker->count);
+			D_RBSWriteInt32(a_Stream, FireFlicker->maxlight);
+			D_RBSWriteInt32(a_Stream, FireFlicker->minlight);
 		}
 		
 		// T_Friction(friction_t* f)
@@ -709,6 +965,14 @@ void P_SGBS_Thinkers(D_RBlockStream_t* const a_Stream)
 			// Thinker Header
 			D_RBSWriteUInt8(a_Stream, 'F');
 			D_RBSWriteUInt8(a_Stream, 'R');
+			
+			// Get Thinker
+			Friction = (friction_t*)CurThinker;
+			
+			// Dump Info
+			D_RBSWriteInt32(a_Stream, Friction->friction);
+			D_RBSWriteInt32(a_Stream, Friction->movefactor);
+			D_RBSWriteInt32(a_Stream, Friction->affectee);
 		}
 		
 		// T_Glow(glow_t* g)
@@ -717,6 +981,15 @@ void P_SGBS_Thinkers(D_RBlockStream_t* const a_Stream)
 			// Thinker Header
 			D_RBSWriteUInt8(a_Stream, 'G');
 			D_RBSWriteUInt8(a_Stream, 'L');
+			
+			// Get Thinker
+			Glow = (glow_t*)CurThinker;
+			
+			// Dump Info
+			D_RBSWriteUInt32(a_Stream, Glow->sector - sectors);
+			D_RBSWriteInt32(a_Stream, Glow->minlight);
+			D_RBSWriteInt32(a_Stream, Glow->maxlight);
+			D_RBSWriteInt32(a_Stream, Glow->direction);
 		}
 		
 		// T_LightFade(lightlevel_t* ll)
@@ -725,6 +998,14 @@ void P_SGBS_Thinkers(D_RBlockStream_t* const a_Stream)
 			// Thinker Header
 			D_RBSWriteUInt8(a_Stream, 'L');
 			D_RBSWriteUInt8(a_Stream, 'A');
+			
+			// Get Thinker
+			LightFade = (lightlevel_t*)CurThinker;
+			
+			// Dump Info
+			D_RBSWriteUInt32(a_Stream, LightFade->sector - sectors);
+			D_RBSWriteInt32(a_Stream, LightFade->destlevel);
+			D_RBSWriteInt32(a_Stream, LightFade->speed);
 		}
 		
 		// T_LightFlash(lightflash_t* flash)
@@ -733,6 +1014,17 @@ void P_SGBS_Thinkers(D_RBlockStream_t* const a_Stream)
 			// Thinker Header
 			D_RBSWriteUInt8(a_Stream, 'L');
 			D_RBSWriteUInt8(a_Stream, 'F');
+			
+			// Get Thinker
+			LightFlash = (lightflash_t*)CurThinker;
+			
+			// Dump Data
+			D_RBSWriteUInt32(a_Stream, LightFlash->sector - sectors);
+			D_RBSWriteInt32(a_Stream, LightFlash->count);
+			D_RBSWriteInt32(a_Stream, LightFlash->maxlight);
+			D_RBSWriteInt32(a_Stream, LightFlash->minlight);
+			D_RBSWriteInt32(a_Stream, LightFlash->maxtime);
+			D_RBSWriteInt32(a_Stream, LightFlash->mintime);
 		}
 		
 		// T_MoveCeiling(ceiling_t* ceiling)
@@ -741,6 +1033,25 @@ void P_SGBS_Thinkers(D_RBlockStream_t* const a_Stream)
 			// Thinker Header
 			D_RBSWriteUInt8(a_Stream, 'M');
 			D_RBSWriteUInt8(a_Stream, 'C');
+			
+			// Get Thinker
+			Ceiling = (ceiling_t*)CurThinker;
+			
+			// Dump Info
+			D_RBSWriteUInt8(a_Stream, Ceiling->type);
+			D_RBSWriteUInt8(a_Stream, Ceiling->crush);
+			D_RBSWriteInt32(a_Stream, Ceiling->bottomheight);
+			D_RBSWriteInt32(a_Stream, Ceiling->topheight);
+			D_RBSWriteInt32(a_Stream, Ceiling->speed);
+			D_RBSWriteInt32(a_Stream, Ceiling->oldspeed);
+			D_RBSWriteInt32(a_Stream, Ceiling->newspecial);
+			D_RBSWriteInt32(a_Stream, Ceiling->oldspecial);
+			D_RBSWriteInt32(a_Stream, Ceiling->texture);
+			D_RBSWriteInt32(a_Stream, Ceiling->direction);
+			D_RBSWriteInt32(a_Stream, Ceiling->tag);
+			D_RBSWriteInt32(a_Stream, Ceiling->olddirection);
+			D_RBSWriteUInt32(a_Stream, Ceiling->sector - sectors);
+			D_RBSWritePointer(a_Stream, Ceiling->list);
 		}
 		
 		// T_MoveElevator(elevator_t* elevator)
@@ -749,6 +1060,17 @@ void P_SGBS_Thinkers(D_RBlockStream_t* const a_Stream)
 			// Thinker Header
 			D_RBSWriteUInt8(a_Stream, 'M');
 			D_RBSWriteUInt8(a_Stream, 'E');
+			
+			// Get Thinker
+			Elevator = (elevator_t*)CurThinker;
+			
+			// Dump Info
+			D_RBSWriteUInt8(a_Stream, Elevator->type);
+			D_RBSWriteUInt32(a_Stream, Elevator->sector - sectors);
+			D_RBSWriteInt32(a_Stream, Elevator->direction);
+			D_RBSWriteInt32(a_Stream, Elevator->floordestheight);
+			D_RBSWriteInt32(a_Stream, Elevator->ceilingdestheight);
+			D_RBSWriteInt32(a_Stream, Elevator->speed);
 		}
 		
 		// T_MoveFloor(floormove_t* floor)
@@ -757,14 +1079,20 @@ void P_SGBS_Thinkers(D_RBlockStream_t* const a_Stream)
 			// Thinker Header
 			D_RBSWriteUInt8(a_Stream, 'M');
 			D_RBSWriteUInt8(a_Stream, 'F');
-		}
-		
-		// T_MovePlane(sector_t* sector, fixed_t speed, fixed_t dest, bool_t crush, int floorOrCeiling, int direction)
-		else if (CurThinker->function.acv == T_MovePlane)
-		{
-			// Thinker Header
-			D_RBSWriteUInt8(a_Stream, 'M');
-			D_RBSWriteUInt8(a_Stream, 'P');
+			
+			// Get Thinker
+			FloorMove = (floormove_t*)CurThinker;
+			
+			// DumpInfo
+			D_RBSWriteUInt8(a_Stream, FloorMove->type);
+			D_RBSWriteUInt8(a_Stream, FloorMove->crush);
+			D_RBSWriteUInt32(a_Stream, FloorMove->sector - sectors);
+			D_RBSWriteInt32(a_Stream, FloorMove->direction);
+			D_RBSWriteInt32(a_Stream, FloorMove->newspecial);
+			D_RBSWriteInt32(a_Stream, FloorMove->oldspecial);
+			D_RBSWriteInt32(a_Stream, FloorMove->texture);
+			D_RBSWriteInt32(a_Stream, FloorMove->floordestheight);
+			D_RBSWriteInt32(a_Stream, FloorMove->speed);
 		}
 		
 		// T_PlatRaise(plat_t* plat)
@@ -773,6 +1101,23 @@ void P_SGBS_Thinkers(D_RBlockStream_t* const a_Stream)
 			// Thinker Header
 			D_RBSWriteUInt8(a_Stream, 'P');
 			D_RBSWriteUInt8(a_Stream, 'R');
+			
+			// Get Thinker
+			Plat = (plat_t*)CurThinker;
+			
+			// Dump Info
+			D_RBSWriteUInt32(a_Stream, Plat->sector - sectors);
+			D_RBSWriteInt32(a_Stream, Plat->speed);
+			D_RBSWriteInt32(a_Stream, Plat->low);
+			D_RBSWriteInt32(a_Stream, Plat->high);
+			D_RBSWriteInt32(a_Stream, Plat->wait);
+			D_RBSWriteInt32(a_Stream, Plat->count);
+			D_RBSWriteInt32(a_Stream, Plat->tag);
+			D_RBSWriteUInt8(a_Stream, Plat->status);
+			D_RBSWriteUInt8(a_Stream, Plat->oldstatus);
+			D_RBSWriteUInt8(a_Stream, Plat->crush);
+			D_RBSWriteUInt8(a_Stream, Plat->type);
+			D_RBSWritePointer(a_Stream, Plat->list);
 		}
 		
 		// T_Pusher(pusher_t* p)
@@ -781,6 +1126,20 @@ void P_SGBS_Thinkers(D_RBlockStream_t* const a_Stream)
 			// Thinker Header
 			D_RBSWriteUInt8(a_Stream, 'P');
 			D_RBSWriteUInt8(a_Stream, 'U');
+			
+			// Get Thinker
+			Pusher = (pusher_t*)CurThinker;
+			
+			// Dump Info
+			D_RBSWriteUInt8(a_Stream, Pusher->type);
+			D_RBSWritePointer(a_Stream, Pusher->source);
+			D_RBSWriteInt32(a_Stream, Pusher->x_mag);
+			D_RBSWriteInt32(a_Stream, Pusher->y_mag);
+			D_RBSWriteInt32(a_Stream, Pusher->magnitude);
+			D_RBSWriteInt32(a_Stream, Pusher->radius);
+			D_RBSWriteInt32(a_Stream, Pusher->x);
+			D_RBSWriteInt32(a_Stream, Pusher->y);
+			D_RBSWriteInt32(a_Stream, Pusher->affectee);
 		}
 		
 		// T_Scroll(scroll_t* s)
@@ -789,6 +1148,20 @@ void P_SGBS_Thinkers(D_RBlockStream_t* const a_Stream)
 			// Thinker Header
 			D_RBSWriteUInt8(a_Stream, 'S');
 			D_RBSWriteUInt8(a_Stream, 'C');
+			
+			// Get Thinker
+			Scroll = (scroll_t*)CurThinker;
+			
+			// Dump Info
+			D_RBSWriteInt32(a_Stream, Scroll->dx);
+			D_RBSWriteInt32(a_Stream, Scroll->dy);
+			D_RBSWriteInt32(a_Stream, Scroll->affectee);
+			D_RBSWriteInt32(a_Stream, Scroll->control);
+			D_RBSWriteInt32(a_Stream, Scroll->last_height);
+			D_RBSWriteInt32(a_Stream, Scroll->vdx);
+			D_RBSWriteInt32(a_Stream, Scroll->vdy);
+			D_RBSWriteInt32(a_Stream, Scroll->accel);
+			D_RBSWriteUInt8(a_Stream, Scroll->type);
 		}
 		
 		// T_StrobeFlash(strobe_t* flash)
@@ -797,6 +1170,17 @@ void P_SGBS_Thinkers(D_RBlockStream_t* const a_Stream)
 			// Thinker Header
 			D_RBSWriteUInt8(a_Stream, 'S');
 			D_RBSWriteUInt8(a_Stream, 'F');
+			
+			// Get Thinker
+			Strobe = (strobe_t*)CurThinker;
+			
+			// Dump Info
+			D_RBSWriteUInt32(a_Stream, Strobe->sector - sectors);
+			D_RBSWriteInt32(a_Stream, Strobe->count);
+			D_RBSWriteInt32(a_Stream, Strobe->minlight);
+			D_RBSWriteInt32(a_Stream, Strobe->maxlight);
+			D_RBSWriteInt32(a_Stream, Strobe->darktime);
+			D_RBSWriteInt32(a_Stream, Strobe->brighttime);
 		}
 		
 		// T_VerticalDoor(vldoor_t* door)
@@ -805,6 +1189,19 @@ void P_SGBS_Thinkers(D_RBlockStream_t* const a_Stream)
 			// Thinker Header
 			D_RBSWriteUInt8(a_Stream, 'V');
 			D_RBSWriteUInt8(a_Stream, 'D');
+			
+			// Get Thinker
+			VLDoor = (vldoor_t*)CurThinker;
+			
+			// Dump Info
+			D_RBSWriteUInt8(a_Stream, VLDoor->type);
+			D_RBSWriteUInt32(a_Stream, VLDoor->sector - sectors);
+			D_RBSWriteInt32(a_Stream, VLDoor->topheight);
+			D_RBSWriteInt32(a_Stream, VLDoor->speed);
+			D_RBSWriteUInt8(a_Stream, VLDoor->direction);
+			D_RBSWriteInt32(a_Stream, VLDoor->topwait);
+			D_RBSWriteInt32(a_Stream, VLDoor->topcountdown);
+			D_RBSWriteUInt32(a_Stream, VLDoor->line - lines);
 		}
 		
 		// End

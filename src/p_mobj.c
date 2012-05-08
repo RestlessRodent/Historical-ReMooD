@@ -1672,6 +1672,11 @@ void P_SpawnPlayer(mapthing_t* mthing)
 	p->flamecount = 0;
 	p->flyheight = 0;
 	
+	// GhostlyDeath <May 7, 2012> -- Don't effort bob the new player
+	p->MoveMom = 0;
+	p->TargetViewZ = p->viewheight;
+	p->FakeMom[0] = p->FakeMom[1] = p->FakeMom[2] = 0;
+	
 	// setup gun psprite
 	P_SetupPsprites(p);
 	
