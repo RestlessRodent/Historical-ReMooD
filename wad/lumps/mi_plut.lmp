@@ -11,7 +11,7 @@ defaultsettings
 	sky1 SKY1
 
 map MAP01 "Congo"
-	creator "Milo Casali or Dario Casali"
+	creator "Milo Casali"
 	cluster 1
 	next MAP02
 	secretnext MAP01
@@ -21,7 +21,7 @@ map MAP01 "Congo"
 	music D_RUNNIN
 
 map MAP02 "Well of Souls"
-	creator "Milo Casali or Dario Casali"
+	creator "Dario Casali"
 	cluster 1
 	next MAP03
 	secretnext MAP02
@@ -31,7 +31,7 @@ map MAP02 "Well of Souls"
 	music D_STALKS
 	
 map MAP03 "Aztec"
-	creator "Milo Casali or Dario Casali"
+	creator "Milo Casali"
 	cluster 1
 	next MAP04
 	secretnext MAP03
@@ -41,7 +41,7 @@ map MAP03 "Aztec"
 	music D_COUNTD
 	
 map MAP04 "Caged"
-	creator "Milo Casali or Dario Casali"
+	creator "Dario Casali"
 	cluster 1
 	next MAP05
 	secretnext MAP04
@@ -51,7 +51,7 @@ map MAP04 "Caged"
 	music D_BETWEE
 
 map MAP05 "Ghost Town"
-	creator "Milo Casali or Dario Casali"
+	creator "Milo Casali"
 	cluster 1
 	next MAP06
 	secretnext MAP05
@@ -61,7 +61,7 @@ map MAP05 "Ghost Town"
 	music D_DOOM
 
 map MAP06 "Baron's Lair"
-	creator "Milo Casali or Dario Casali"
+	creator "Dario Casali"
 	cluster 1
 	next MAP07
 	secretnext MAP06
@@ -71,7 +71,7 @@ map MAP06 "Baron's Lair"
 	music D_THE_DA
 
 map MAP07 "Caughtyard"
-	creator "Milo Casali or Dario Casali"
+	creator "Dario Casali"
 	cluster 1
 	next MAP08
 	secretnext MAP07
@@ -82,7 +82,7 @@ map MAP07 "Caughtyard"
 	map07special
 
 map MAP08 "Realm"
-	creator "Milo Casali or Dario Casali"
+	creator "Milo Casali"
 	cluster 1
 	next MAP09
 	secretnext MAP08
@@ -102,7 +102,7 @@ map MAP09 "Abbattoire"
 	music D_IN_CIT
 
 map MAP10 "Onslaught"
-	creator "Milo Casali or Dario Casali"
+	creator "Dario Casali"
 	cluster 1
 	next MAP11
 	secretnext MAP10
@@ -112,7 +112,7 @@ map MAP10 "Onslaught"
 	music D_DEAD
 
 map MAP11 "Haunted"
-	creator "Milo Casali or Dario Casali"
+	creator "Dario Casali"
 	cluster 1
 	next MAP12
 	secretnext MAP11
@@ -125,7 +125,7 @@ defaultsettings
 	sky1 SKY2
 
 map MAP12 "Speed"
-	creator "Milo Casali or Dario Casali"
+	creator "Milo Casali"
 	cluster 1
 	next MAP13
 	secretnext MAP12
@@ -135,7 +135,7 @@ map MAP12 "Speed"
 	music D_THEDA2
 	
 map MAP13 "The Crypt"
-	creator "Milo Casali or Dario Casali"
+	creator "Milo Casali"
 	cluster 1
 	next MAP14
 	secretnext MAP13
@@ -145,7 +145,7 @@ map MAP13 "The Crypt"
 	music D_DOOM2
 	
 map MAP14 "Genesis"
-	creator "Milo Casali or Dario Casali"
+	creator "Dario Casali"
 	cluster 1
 	next MAP15
 	secretnext MAP14
@@ -155,7 +155,7 @@ map MAP14 "Genesis"
 	music D_DDTBL2
 
 map MAP15 "The Twilight"
-	creator "Milo Casali or Dario Casali"
+	creator "Milo Casali"
 	cluster 1
 	next MAP16
 	secretnext MAP31
@@ -165,7 +165,7 @@ map MAP15 "The Twilight"
 	music D_RUNNI2
 
 map MAP16 "The Omen"
-	creator "Milo Casali or Dario Casali"
+	creator "Milo Casali"
 	cluster 1
 	next MAP17
 	secretnext MAP16
@@ -175,7 +175,7 @@ map MAP16 "The Omen"
 	music D_DEAD2
 
 map MAP17 "Compound"
-	creator "Milo Casali or Dario Casali"
+	creator "Dario Casali"
 	cluster 1
 	next MAP18
 	secretnext MAP17
@@ -185,7 +185,7 @@ map MAP17 "Compound"
 	music D_STLKS3
 
 map MAP18 "Neurosphere"
-	creator "Milo Casali or Dario Casali"
+	creator "Milo Casali"
 	cluster 1
 	next MAP19
 	secretnext MAP18
@@ -195,7 +195,7 @@ map MAP18 "Neurosphere"
 	music D_ROMERO
 
 map MAP19 "NME"
-	creator "Milo Casali or Dario Casali"
+	creator "Milo Casali"
 	cluster 1
 	next MAP20
 	secretnext MAP19
@@ -205,7 +205,7 @@ map MAP19 "NME"
 	music D_SHAWN2
 	
 map MAP20 "The Death Domain"
-	creator "Milo Casali or Dario Casali"
+	creator "Dario Casali"
 	cluster 1
 	next MAP21
 	secretnext MAP20
@@ -218,7 +218,7 @@ defaultsettings
 	sky1 SKY3
 	
 map MAP21 "Slayer"
-	creator "Milo Casali or Dario Casali"
+	creator "Milo Casali"
 	cluster 1
 	next MAP22
 	secretnext MAP21
@@ -228,7 +228,7 @@ map MAP21 "Slayer"
 	music D_COUNT2
 	
 map MAP22 "Impossible Mission"
-	creator "Milo Casali or Dario Casali"
+	creator "Dario Casali"
 	cluster 1
 	next MAP23
 	secretnext MAP22
@@ -238,7 +238,7 @@ map MAP22 "Impossible Mission"
 	music D_DDTBL3
 	
 map MAP23 "Tombstone"
-	creator "Milo Casali or Dario Casali"
+	creator "Milo Casali"
 	cluster 1
 	next MAP24
 	secretnext MAP23
@@ -248,7 +248,7 @@ map MAP23 "Tombstone"
 	music D_AMPIE
 	
 map MAP24 "The Final Frontier"
-	creator "Milo Casali or Dario Casali"
+	creator "Dario Casali"
 	cluster 1
 	next MAP25
 	secretnext MAP24
@@ -258,7 +258,7 @@ map MAP24 "The Final Frontier"
 	music D_THEDA3
 	
 map MAP25 "The Temple of Darkness"
-	creator "Milo Casali or Dario Casali"
+	creator "Milo Casali"
 	cluster 1
 	next MAP26
 	secretnext MAP25
@@ -268,7 +268,7 @@ map MAP25 "The Temple of Darkness"
 	music D_ADRIAN
 	
 map MAP26 "Bunker"
-	creator "Milo Casali or Dario Casali"
+	creator "Dario Casali"
 	cluster 1
 	next MAP27
 	secretnext MAP26
@@ -278,7 +278,7 @@ map MAP26 "Bunker"
 	music D_MESSG2
 	
 map MAP27 "Anti-Christ"
-	creator "Milo Casali or Dario Casali"
+	creator "Milo Casali"
 	cluster 1
 	next MAP28
 	secretnext MAP27
@@ -288,7 +288,7 @@ map MAP27 "Anti-Christ"
 	music D_ROMER2
 	
 map MAP28 "The Sewers"
-	creator "Milo Casali or Dario Casali"
+	creator "Dario Casali"
 	cluster 1
 	next MAP29
 	secretnext MAP28
@@ -298,7 +298,7 @@ map MAP28 "The Sewers"
 	music D_TENSE
 	
 map MAP29 "Odyssey of Noises"
-	creator "Milo Casali or Dario Casali"
+	creator "Milo Casali"
 	cluster 1
 	next MAP30
 	secretnext MAP29
@@ -308,7 +308,7 @@ map MAP29 "Odyssey of Noises"
 	music D_SHAWN3
 	
 map MAP30 "The Gateway of Hell"
-	creator "Milo Casali or Dario Casali"
+	creator "Milo Casali"
 	cluster 1
 	next EndGameC
 	secretnext MAP30
@@ -318,7 +318,7 @@ map MAP30 "The Gateway of Hell"
 	music D_OPENIN
 	
 map MAP31 "Cyberden"
-	creator "Milo Casali or Dario Casali"
+	creator "Dario Casali"
 	cluster 1
 	next MAP16
 	secretnext MAP32
