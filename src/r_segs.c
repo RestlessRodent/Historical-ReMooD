@@ -227,7 +227,11 @@ static void R_DrawWallSplats()
 		mfloorclip = floorclip;
 		mceilingclip = ceilingclip;
 		
-		patch = W_CachePatchNum(splat->patch, PU_CACHE);
+		patch = V_ImageGetPatch(splat->Image, NULL);
+		
+		// No patch image?
+		if (!patch)
+			continue;
 		
 		// clip splat range to seg range left
 		/*if (x1 < ds_p->x1)
@@ -316,6 +320,8 @@ static void R_DrawWallSplats()
 			
 		}
 		
+		// No longer need the patch image
+		Z_ChangeTag(patch, PU_CACHE);
 	}							// next splat
 	
 	colfunc = basecolfunc;

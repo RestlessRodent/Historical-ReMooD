@@ -1302,8 +1302,10 @@ static bool_t GAMEKEYDOWN(D_ProfileEx_t* const a_Profile, const uint8_t a_Key)
 	uint32_t CurrentButton;
 	
 	/* Check Keyboard */
-	if (l_KeyDown[a_Profile->Ctrls[a_Key][0]] || l_KeyDown[a_Profile->Ctrls[a_Key][1]] || l_KeyDown[a_Profile->Ctrls[a_Key][2]] || l_KeyDown[a_Profile->Ctrls[a_Key][3]])
-		return true;
+	for (i = 0; i < 4; i++)
+		if (a_Profile->Ctrls[a_Key][i] >= 0 && a_Profile->Ctrls[a_Key][i] < NUMIKEYBOARDKEYS)
+			if (l_KeyDown[a_Profile->Ctrls[a_Key][i]])
+				return true;
 	
 	/* Check Joysticks */
 	if (a_Profile->Flags & DPEXF_GOTJOY)

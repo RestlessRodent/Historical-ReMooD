@@ -373,7 +373,7 @@ void P_XYMovement(mobj_t* mo)
 			xmove = ymove = 0;
 		}
 		
-		if (!P_TryMove(mo, ptryx, ptryy, true))	//SoM: 4/10/2000
+		if (!P_TryMove(mo, ptryx, ptryy, true, &ptryx, &ptryy))	//SoM: 4/10/2000
 		{
 			// blocked move
 			
@@ -427,7 +427,12 @@ void P_XYMovement(mobj_t* mo)
 					misl.dx = mo->momx;
 					misl.dy = mo->momy;
 					frac = P_InterceptVector(&divl, &misl);
-					R_AddWallSplat(blockingline, P_PointOnLineSide(mo->x, mo->y, blockingline), "A_DMG3", mo->z, frac, SPLATDRAWMODE_SHADE);
+					R_AddWallSplat(
+							blockingline,
+							P_PointOnLineSide(mo->x, mo->y, blockingline),
+							(mo->info->RMissileSplat ? mo->info->RMissileSplat : "A_DMG3"),
+							mo->z, frac, SPLATDRAWMODE_SHADE
+						);
 				}
 #endif
 				// --------------------------------------------------------- SPLAT TEST
@@ -469,8 +474,8 @@ void P_XYMovement(mobj_t* mo)
 	// slow down in water, not too much for playability issues
 	if (P_EXGSGetValue(PEXGSBID_COSLOWINWATER) && (mo->eflags & MF_UNDERWATER))
 	{
-		mo->momx = FixedMul(mo->momx, FRICTION * 3 / 4);
-		mo->momy = FixedMul(mo->momy, FRICTION * 3 / 4);
+		mo->momx = FixedMul(mo->momx, FixedMul(FRICTION, P_EXGSGetFixed(PEXGSBID_GAMEWATERFRICTION)));
+		mo->momy = FixedMul(mo->momy, FixedMul(FRICTION, P_EXGSGetFixed(PEXGSBID_GAMEWATERFRICTION)));
 		return;
 	}
 	
@@ -551,6 +556,7 @@ void P_ZMovement(mobj_t* mo)
 		else if (mo->flags2 & MF2_ONMOBJ)
 			mo->player->viewheight = mo->height + mo->player->bob;
 	}
+	
 	// adjust height
 	mo->z += mo->momz;
 	
@@ -645,7 +651,8 @@ void P_ZMovement(mobj_t* mo)
 				// after hitting the ground (hard),
 				// and utter appropriate sound.
 				mo->player->deltaviewheight = mo->momz >> 3;
-				S_StartSound(&mo->NoiseThinker, sfx_oof);
+				if (mo->RXFlags[0] & MFREXA_ISPLAYEROBJECT)
+					S_StartSound(&mo->NoiseThinker, sfx_oof);
 			}
 			// set it once and not continuously
 			if (mo->z < mo->floorz)
@@ -704,7 +711,7 @@ void P_ZMovement(mobj_t* mo)
 		mo->z = mo->ceilingz - mo->height;
 		
 		//added:22-02-98: player avatar hits his head on the ceiling, ouch!
-		if (mo->player && (P_EXGSGetValue(PEXGSBID_COOUCHONCEILING)) && !(mo->player->cheats & CF_FLYAROUND) && !(mo->flags2 & MF2_FLY) && mo->momz > 8 * FRACUNIT)
+		if (mo->player && (mo->RXFlags[0] & MFREXA_ISPLAYEROBJECT) && (P_EXGSGetValue(PEXGSBID_COOUCHONCEILING)) && !(mo->player->cheats & CF_FLYAROUND) && !(mo->flags2 & MF2_FLY) && mo->momz > 8 * FRACUNIT)
 			S_StartSound(&mo->NoiseThinker, sfx_ouch);
 		
 		if (mo->flags2 & MF2_BOUNCES)
@@ -740,7 +747,7 @@ void P_ZMovement(mobj_t* mo)
 	// z friction in water
 	if (P_EXGSGetValue(PEXGSBID_COWATERZFRICTION) && ((mo->eflags & MF_TOUCHWATER) || (mo->eflags & MF_UNDERWATER)) && !(mo->flags & (MF_MISSILE | MF_SKULLFLY)))
 	{
-		mo->momz = FixedMul(mo->momz, FRICTION * 3 / 4);
+		mo->momz = FixedMul(mo->momz, FixedMul(FRICTION, P_EXGSGetFixed(PEXGSBID_GAMEWATERFRICTION)));
 	}
 	
 }
@@ -918,7 +925,8 @@ static void PlayerLandedOnThing(mobj_t* mo, mobj_t* onmobj)
 	}
 	else if (mo->momz < -8 * FRACUNIT && !mo->player->chickenTics)
 	{
-		S_StartSound(&mo->NoiseThinker, sfx_oof);
+		if (mo->RXFlags[0] & MFREXA_ISPLAYEROBJECT)
+			S_StartSound(&mo->NoiseThinker, sfx_oof);
 	}
 }
 
@@ -1011,6 +1019,7 @@ void P_MobjThinker(mobj_t* mobj)
 		if ((mobj->thinker.function.acv == (actionf_v) (-1)))
 			return;				// mobj was removed
 	}
+	
 	if (mobj->flags2 & MF2_FLOATBOB)
 	{
 		// Floating item bobbing motion
@@ -1331,6 +1340,9 @@ void P_RemoveMobj(mobj_t* mobj)
 	if (!mobj)
 		return;
 	
+	// GhostlyDeath <May 8, 2012> -- Remove from queue
+	P_RemoveFromBodyQueue(mobj);
+	
 	if ((mobj->flags & MF_SPECIAL) && !(mobj->flags & MF_DROPPED) && !(mobj->RXFlags[0] & MFREXA_NOALTDMRESPAWN))
 	{
 		itemrespawnque[iquehead] = mobj->spawnpoint;
@@ -1570,6 +1582,20 @@ void P_RespawnWeapons(void)
 		// here don't increment freeslot
 	}
 	iquehead = freeslot;
+}
+
+/* P_RemoveFromBodyQueue() -- Remove body from queue */
+void P_RemoveFromBodyQueue(mobj_t* const a_Mo)
+{
+	size_t i;
+	
+	/* Look for it and remove */
+	for (i = 0; i < BODYQUESIZE; i++)
+		if (bodyque[i] == a_Mo)
+		{
+			bodyque[i] = NULL;
+			break;
+		}
 }
 
 //
@@ -1949,6 +1975,7 @@ bool_t PTR_BloodTraverse(intercept_t* in, void* a_Data)
 	line_t* li;
 	divline_t divl;
 	fixed_t frac;
+	mobj_t* BleedThing = a_Data;
 	
 	fixed_t z;
 	
@@ -1980,7 +2007,14 @@ bool_t PTR_BloodTraverse(intercept_t* in, void* a_Data)
 hitline:
 		P_MakeDivline(li, &divl);
 		frac = P_InterceptVector(&divl, &trace);
-		R_AddWallSplat(li, P_PointOnLineSide(bloodspawnpointx, bloodspawnpointy, li), "BLUDC0", z, frac, SPLATDRAWMODE_TRANS);
+		R_AddWallSplat(
+				li,
+				P_PointOnLineSide(bloodspawnpointx, bloodspawnpointy, li),
+				(BleedThing && BleedThing->info->RBloodSplat ? BleedThing->info->RBloodSplat : "BLUDC0"),
+				z,
+				frac,
+				SPLATDRAWMODE_TRANS
+			);
 		return false;
 	}
 	//continue
@@ -1992,7 +2026,7 @@ hitline:
 // the new SpawnBlood : this one first calls P_SpawnBlood for the usual blood sprites
 // then spawns blood splats around on walls
 //
-void P_SpawnBloodSplats(fixed_t x, fixed_t y, fixed_t z, int damage, fixed_t momx, fixed_t momy)
+void P_SpawnBloodSplats(fixed_t x, fixed_t y, fixed_t z, int damage, fixed_t momx, fixed_t momy, mobj_t* const a_BleedThing)
 {
 #ifdef WALLSPLATS
 //static int  counter =0;
@@ -2004,7 +2038,7 @@ void P_SpawnBloodSplats(fixed_t x, fixed_t y, fixed_t z, int damage, fixed_t mom
 	int i;
 #endif
 	// spawn the usual falling blood sprites at location
-	P_SpawnBlood(x, y, z, damage);
+	P_SpawnBlood(x, y, z, damage, a_BleedThing);
 	//CONL_PrintF ("spawned blood counter %d\n", counter++);
 	if (!P_EXGSGetValue(PEXGSBID_COENABLEBLOODSPLATS))
 		return;
@@ -2046,7 +2080,7 @@ void P_SpawnBloodSplats(fixed_t x, fixed_t y, fixed_t z, int damage, fixed_t mom
 		x2 = x + distance * finecosine[anglesplat >> ANGLETOFINESHIFT];
 		y2 = y + distance * finesine[anglesplat >> ANGLETOFINESHIFT];
 		
-		P_PathTraverse(x, y, x2, y2, PT_ADDLINES, PTR_BloodTraverse, NULL);
+		P_PathTraverse(x, y, x2, y2, PT_ADDLINES, PTR_BloodTraverse, a_BleedThing);
 	}
 #endif
 }
@@ -2055,12 +2089,18 @@ void P_SpawnBloodSplats(fixed_t x, fixed_t y, fixed_t z, int damage, fixed_t mom
 // spawn a blood sprite with falling z movement, at location
 // the duration and first sprite frame depends on the damage level
 // the more damage, the longer is the sprite animation
-void P_SpawnBlood(fixed_t x, fixed_t y, fixed_t z, int damage)
+void P_SpawnBlood(fixed_t x, fixed_t y, fixed_t z, int damage, mobj_t* const a_BleedThing)
 {
 	mobj_t* th;
 	
 	z += P_SignedRandom() << 10;
-	th = P_SpawnMobj(x, y, z, INFO_GetTypeByName(__REMOOD_GETBLOODKIND));
+	th = P_SpawnMobj(
+			x, y, z,
+			INFO_GetTypeByName(
+				(a_BleedThing && a_BleedThing->info->RBloodSpewClass ?
+						a_BleedThing->info->RBloodSpewClass :
+						__REMOOD_GETBLOODKIND))
+		);
 	
 	// GhostlyDeath <April 12, 2012> -- 1.28 and up added blood spewing
 	if (P_EXGSGetValue(PEXGSBID_CORANDOMBLOODDIR))
@@ -2132,7 +2172,7 @@ bool_t P_CheckMissileSpawn(mobj_t* th)
 	th->y += (th->momy >> 1);
 	th->z += (th->momz >> 1);
 	
-	if (!P_TryMove(th, th->x, th->y, false))
+	if (!P_TryMove(th, th->x, th->y, false, NULL, NULL))
 	{
 		P_ExplodeMissile(th);
 		return false;
@@ -2579,6 +2619,9 @@ void P_MorphObjectClass(mobj_t* const a_Mo, const mobjtype_t a_NewClass)
 	RadiusP = FixedDiv(a_Mo->radius, OldI->radius);
 	HeightP = FixedDiv(a_Mo->height, OldI->height);
 	
+	/* Remove from body queue */
+	P_RemoveFromBodyQueue(a_Mo);
+	
 	/* Remove position */
 	P_UnsetThingPosition(a_Mo);
 	
@@ -2652,17 +2695,26 @@ void P_MorphObjectClass(mobj_t* const a_Mo, const mobjtype_t a_NewClass)
 /* P_MobjOnSameTeam() -- Determines whether two objects are on the same team */
 bool_t P_MobjOnSameTeam(mobj_t* const a_ThisMo, mobj_t* const a_OtherMo)
 {
+	bool_t IsThisPlayer, IsOtherPlayer;
+	
 	/* Check */
 	if (!a_ThisMo || !a_OtherMo)
 		return false;
+		
+	/* Determine if this is a standard player or a monster player */
+	IsThisPlayer = IsOtherPlayer = false;
+	if (/*a_ThisMo->player &&*/ (a_ThisMo->RXFlags[0] & MFREXA_ISPLAYEROBJECT))
+		IsThisPlayer = true;
+	if (/*a_OtherMo->player &&*/ (a_OtherMo->RXFlags[0] & MFREXA_ISPLAYEROBJECT))
+		IsOtherPlayer = true;
 	
 	/* Self object is always on the same team */
 	if (a_ThisMo == a_OtherMo)
 		return true;
 	
 	/* Player and friendly monster */
-	if ((a_ThisMo->player && (a_OtherMo->flags2 & MF2_FRIENDLY)) ||
-		((a_OtherMo->player && (a_ThisMo->flags2 & MF2_FRIENDLY))))
+	if ((IsThisPlayer && (a_OtherMo->flags2 & MF2_FRIENDLY)) ||
+		((IsOtherPlayer && (a_ThisMo->flags2 & MF2_FRIENDLY))))
 		return true;
 	
 	/* Monsters on the same skin team */
@@ -2678,7 +2730,7 @@ bool_t P_MobjOnSameTeam(mobj_t* const a_ThisMo, mobj_t* const a_OtherMo)
 		return false;
 	
 	/* Monsters and other monsters */
-	if (!a_ThisMo->player && !a_OtherMo->player)
+	if (!IsThisPlayer && !IsOtherPlayer)
 		return true;
 	
 	/* Not on same team */

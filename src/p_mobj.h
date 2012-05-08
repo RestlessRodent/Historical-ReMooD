@@ -580,6 +580,7 @@ void P_ClearMobjRefs(mobj_t* const a_Mo);
 	#define P_RefMobj(t,s,r) P_RefMobjReal((t), (s), (r))
 #endif
 
+void P_RemoveFromBodyQueue(mobj_t* const a_Mo);
 void P_MorphObjectClass(mobj_t* const a_Mo, const mobjtype_t a_NewClass);
 bool_t P_MobjOnSameTeam(mobj_t* const a_ThisMo, mobj_t* const a_OtherMo);
 

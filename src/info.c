@@ -130,6 +130,8 @@ void A_FireOldBFG();
 void A_FireGenericProjectile();
 void A_NextFrameIfMoving();
 
+void A_GenericMonsterMissile();
+
 /*****************************************************************************/
 
 char** sprnames = NULL;
@@ -389,6 +391,10 @@ bool_t INFO_RMODH_MapObjects(Z_Table_t* const a_Table, const WL_WADFile_t* const
 	ThisObject.RDropClass = D_RMODGetValueString(a_Table, "DropsClass", NULL);
 	ThisObject.RFamilyClass = D_RMODGetValueString(a_Table, "BaseFamily", NULL);
 	ThisObject.RBrainExplodeThing = D_RMODGetValueString(a_Table, "BrainExplodeClass", NULL);
+	ThisObject.RMissileSplat = D_RMODGetValueString(a_Table, "MissileSplat", NULL);
+	ThisObject.RBloodSplat = D_RMODGetValueString(a_Table, "BloodSplat", NULL);
+	ThisObject.RBloodSpewClass = D_RMODGetValueString(a_Table, "BloodSpewClass", NULL);
+	ThisObject.RGenericMissile = D_RMODGetValueString(a_Table, "GenericMissile", NULL);
 	
 	// Integer Values
 	ThisObject.doomednum = D_RMODGetValueInt(a_Table, "DoomEdNum", 0);
@@ -1011,6 +1017,7 @@ actionf_t INFO_FunctionPtrByName(const char* const a_Name)
 	else if (strcasecmp("FireOldBFG", a_Name) == 0) RetVal.acv = A_FireOldBFG;
 	else if (strcasecmp("FireGenericProjectile", a_Name) == 0) RetVal.acv = A_FireGenericProjectile;
 	else if (strcasecmp("NextFrameIfMoving", a_Name) == 0) RetVal.acv = A_NextFrameIfMoving;
+	else if (strcasecmp("GenericMonsterMissile", a_Name) == 0) RetVal.acv = A_GenericMonsterMissile;
 	
 	/* Not found? */
 	return RetVal;

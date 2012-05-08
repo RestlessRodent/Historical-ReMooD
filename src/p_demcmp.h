@@ -209,6 +209,9 @@ typedef enum P_EXGSBitID_e
 	PEXGSBID_COIMPROVEPATHTRAVERSE,				// Smooth out path traversing
 	PEXGSBID_PLJUMPGRAVITY,						// Player Jump Gravity
 	PEXGSBID_FUNNOLOCKEDDOORS,					// No Doors are locked
+	PEXGSBID_GAMEAIRFRICTION,					// Friction in air
+	PEXGSBID_GAMEWATERFRICTION,					// Friction in water
+	PEXGSBID_GAMEMIDWATERFRICTION,				// Friction in water (not on ground)
 	
 	PEXGSNUMBITIDS
 } P_EXGSBitID_t;

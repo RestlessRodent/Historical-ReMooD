@@ -3291,52 +3291,7 @@ void V_RenderPD(V_PDString_t* const PDStr);
 ********************************************************************************
 *******************************************************************************/
 
-/*** CONSTANTS ***/
-
-/* V_ImageType_t -- Native image type */
-typedef enum V_ImageType_e
-{
-	VIT_PATCH,									// Image is a patch
-	VIT_PIC,									// Image is a pic_t
-	VIT_RAW,									// A raw image (flat)
-	
-	NUMVIMAGETYPES
-} V_ImageType_t;
-
 /*** STRUCTURES ***/
-
-/* V_Image_t -- A single image */
-struct V_Image_s
-{
-	/* Info */
-	int32_t					Width;				// Image width
-	int32_t					Height;				// Image height
-	int32_t					Offset[2];			// Image offsets
-	
-	uint32_t				PixelCount;			// Number of pixels in image
-	int32_t					TotalUsage;			// Total usage
-	int32_t					UseCount[3];		// Usage count for data (patch, pic, raw)
-	int8_t					NativeType;			// Native image type
-	bool_t					HasTrans;			// Has transprency
-	int						PUTagLevel;			// Current PU_ Tag
-	bool_t					DoDelete;			// Do image deletion
-	WadIndex_t				Index;				// Index of this image (for find)
-	char					Name[MAXUIANAME];	// Name of the image (for find)
-	uint32_t				NameHash;			// Hash for the name (if applicable)
-	int32_t				Conf[NUMVIMAGETYPES];	// Confidence
-	
-	/* WAD Related */
-	const struct WL_WADEntry_s*	wData;			// New WAD Access (WL)
-	
-	/* Data */
-	struct patch_s*			dPatch;				// patch_t Compatible
-	struct pic_s*			dPic;				// pic_t Compatible
-	uint8_t*				dRaw;				// Raw image (flat)
-	
-	/* Cache Chain */
-	struct V_Image_s*		iPrev;				// Previous image
-	struct V_Image_s*		iNext;				// Next image
-};
 
 /* V_WLImageHolder_t -- Holds linked list for images, per WAD */
 typedef struct V_WLImageHolder_s

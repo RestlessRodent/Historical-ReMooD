@@ -1953,7 +1953,7 @@ void SF_MoveCamera()
 		}
 	}
 	
-	if ((x != camera->x || y != camera->y) && !P_TryMove(camera, x, y, true))
+	if ((x != camera->x || y != camera->y) && !P_TryMove(camera, x, y, true, NULL, NULL))
 	{
 		script_error("Illegal camera move\n");
 		return;

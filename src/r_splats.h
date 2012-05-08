@@ -56,7 +56,6 @@
 // WALL SPLATS are patches drawn on top of wall segs
 struct wallsplat_s
 {
-	WadIndex_t patch;			// lump id.
 	vertex_t v1;				// vertices along the linedef
 	vertex_t v2;
 	fixed_t top;
@@ -66,6 +65,7 @@ struct wallsplat_s
 	//short       xofs, yofs;
 	//int         tictime;
 	line_t* line;				// the parent line of the splat seg
+	V_Image_t* Image;							// What the splat looks like
 	struct wallsplat_s* next;
 };
 typedef struct wallsplat_s wallsplat_t;

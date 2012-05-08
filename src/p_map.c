@@ -377,7 +377,7 @@ static bool_t PIT_CheckThing(mobj_t* thing, void* a_Arg)
 		// damage / explode
 		damage = ((P_Random() % 8) + 1) * tmthing->info->damage;
 		if (P_DamageMobj(thing, tmthing, tmthing->target, damage) && (thing->flags & MF_NOBLOOD) == 0 && P_EXGSGetValue(PEXGSBID_COENABLEBLOODSPLATS))
-			P_SpawnBloodSplats(tmthing->x, tmthing->y, tmthing->z, damage, thing->momx, thing->momy);
+			P_SpawnBloodSplats(tmthing->x, tmthing->y, tmthing->z, damage, thing->momx, thing->momy, thing);
 			
 		// don't traverse any more
 		return false;
@@ -519,7 +519,7 @@ bool_t PIT_CheckLine(line_t* ld, void* a_Arg)
 			return false;		// explicitly blocking everything
 		
 		if (!(tmthing->RXFlags[1] & MFREXB_IGNOREBLOCKMONS))
-			if (!(tmthing->player) && ld->flags & ML_BLOCKMONSTERS)
+			if (!(tmthing->player && (tmthing->RXFlags[0] & MFREXA_ISPLAYEROBJECT)) && ld->flags & ML_BLOCKMONSTERS)
 				return false;		// block monsters only
 	}
 	// set openrange, opentop, openbottom
@@ -844,6 +844,7 @@ bool_t PIT_CheckLineDet(line_t* ld, void* a_Arg)
 		return true;
 		
 	// A line has been hit
+	blockingline = ld;
 	
 	// The moving thing's destination position will cross
 	// the given line.
@@ -867,7 +868,7 @@ bool_t PIT_CheckLineDet(line_t* ld, void* a_Arg)
 			return false;		// explicitly blocking everything
 		
 		if (!(tmthing->RXFlags[1] & MFREXB_IGNOREBLOCKMONS))
-			if (!(tmthing->player) && ld->flags & ML_BLOCKMONSTERS)
+			if (!(tmthing->player && (tmthing->RXFlags[0] & MFREXA_ISPLAYEROBJECT)) && ld->flags & ML_BLOCKMONSTERS)
 				return false;		// block monsters only
 	}
 		
@@ -1165,7 +1166,7 @@ static bool_t PS_SubTryMove(mobj_t* thing, fixed_t x, fixed_t y, bool_t allowdro
 }
 
 /* P_TryMove() -- Trying move */
-bool_t P_TryMove(mobj_t* thing, fixed_t x, fixed_t y, bool_t allowdropoff)
+bool_t P_TryMove(mobj_t* thing, fixed_t x, fixed_t y, bool_t allowdropoff, fixed_t* const a_OutX, fixed_t* const a_OutY)
 {
 #define MAXMOVETRIES 4
 	bool_t MoveUp;
@@ -1175,20 +1176,22 @@ bool_t P_TryMove(mobj_t* thing, fixed_t x, fixed_t y, bool_t allowdropoff)
 	fixed_t zx, zy;
 	fixed_t fx, fy;
 	fixed_t MoveFrac;
-	fixed_t i, Dist;
+	fixed_t i, Dist, zIn, zOut;
 	bool_t OKs[MAXMOVETRIES];
+	line_t* BlockLine;
 	
 	/* Smooth Traversing */
 	// GhostlyDeath <April 27, 2012> -- Improve Traversing
 	if (P_EXGSGetValue(PEXGSBID_COIMPROVEPATHTRAVERSE))
 	{
 		// No clipping?
-		if ((thing->flags & MF_NOCLIP) || (thing->player && thing->player->cheats & CF_NOCLIP))
-			return true;
+		if ((thing->flags & MF_NOCLIP) || (thing->player && (thing->player->cheats & CF_NOCLIP)))
+			return PS_SubTryMove(thing, x, y, allowdropoff, 0);
 		
 		// Clear OKs
 		memset(&OKs, 0, sizeof(OKs));
 		OKs[0] = true;	// First move is always OK!
+		BlockLine = NULL;
 		
 		// Set move fraction
 		MoveFrac = FixedDiv(1 << FRACBITS, MAXMOVETRIES << FRACBITS);
@@ -1210,7 +1213,7 @@ bool_t P_TryMove(mobj_t* thing, fixed_t x, fixed_t y, bool_t allowdropoff)
 			return PS_SubTryMove(thing, dx, dy, allowdropoff, 0);
 		
 		// Run through tries
-		for (i = 1; i < MAXMOVETRIES; i++)
+		for (i = 1; i <= MAXMOVETRIES; i++)
 		{
 			// Position to check
 			mx = ox + FixedMul(zx, (MoveFrac * i));
@@ -1225,10 +1228,19 @@ bool_t P_TryMove(mobj_t* thing, fixed_t x, fixed_t y, bool_t allowdropoff)
 					fx = mx;
 					fy = my;
 				}
+				else	// The line that blocked this thing from moving
+					BlockLine = blockingline;
 		}
 		
 		// Move to the furthest guessed position now
 		PS_SubTryMove(thing, fx, fy, allowdropoff, 0);
+		blockingline = BlockLine;	// It may never have hit this line, so just in case!
+		
+		// Change positional pointers
+		if (a_OutX)
+			*a_OutX = fx;
+		if (a_OutY)
+			*a_OutY = fy;
 		
 		// Now check each position and see if anything returned false
 		for (i = 0; i < MAXMOVETRIES; i++)
@@ -1481,8 +1493,8 @@ retry:
 	{
 		// the move most have hit the middle, so stairstep
 stairstep:
-		if (!P_TryMove(mo, mo->x, mo->y + mo->momy, true))	//SoM: 4/10/2000
-			P_TryMove(mo, mo->x + mo->momx, mo->y, true);	//Allow things to
+		if (!P_TryMove(mo, mo->x, mo->y + mo->momy, true, NULL, NULL))	//SoM: 4/10/2000
+			P_TryMove(mo, mo->x + mo->momx, mo->y, true, NULL, NULL);	//Allow things to
 		return;					//drop off.
 	}
 	// fudge a bit to make sure it doesn't hit
@@ -1492,7 +1504,7 @@ stairstep:
 		newx = FixedMul(mo->momx, bestslidefrac);
 		newy = FixedMul(mo->momy, bestslidefrac);
 		
-		if (!P_TryMove(mo, mo->x + newx, mo->y + newy, true))
+		if (!P_TryMove(mo, mo->x + newx, mo->y + newy, true, NULL, NULL))
 			goto stairstep;
 	}
 	// Now continue along the wall.
@@ -1513,7 +1525,7 @@ stairstep:
 	mo->momx = tmxmove;
 	mo->momy = tmymove;
 	
-	if (!P_TryMove(mo, mo->x + tmxmove, mo->y + tmymove, true))
+	if (!P_TryMove(mo, mo->x + tmxmove, mo->y + tmymove, true, NULL, NULL))
 	{
 		goto retry;
 	}
@@ -1909,7 +1921,16 @@ hitline:
 			
 			P_MakeDivline(li, &divl);
 			frac = P_InterceptVector(&divl, &trace);
-			R_AddWallSplat(li, sectorside, "A_DMG1", z, frac, SPLATDRAWMODE_SHADE);
+			R_AddWallSplat(
+					li,
+					sectorside,
+					(Player && Player->weaponinfo[Player->readyweapon]->TracerSplat ?
+						Player->weaponinfo[Player->readyweapon]->TracerSplat :
+						"A_DMG1"),
+					z,
+					frac,
+					SPLATDRAWMODE_SHADE
+				);
 		}
 #endif
 		// --------------------------------------------------------- SPLAT TEST
@@ -2008,7 +2029,7 @@ hitline:
 		if ((in->d.thing->flags & MF_NOBLOOD) || (Player && Player->weaponinfo[Player->readyweapon]->WeaponFlags & WF_NOBLEEDTARGET))
 			P_SpawnPuff(x, y, z);
 		else
-			P_SpawnBlood(x, y, z, la_damage);
+			P_SpawnBlood(x, y, z, la_damage, th);
 	}
 	
 	if (la_damage)
@@ -2024,10 +2045,10 @@ hitline:
 			P_SpawnPuff(x, y, z);
 		else
 		{
-			P_SpawnBlood(x, y, z, la_damage);	//P_SpawnPuff(x, y, z);
+			P_SpawnBlood(x, y, z, la_damage, th);	//P_SpawnPuff(x, y, z);
 			
 			if (hitplane)
-				P_SpawnBloodSplats(x, y, z, la_damage, trace.dx, trace.dy);
+				P_SpawnBloodSplats(x, y, z, la_damage, trace.dx, trace.dy, th);
 		}
 	}
 	
@@ -2277,7 +2298,7 @@ bool_t PIT_RadiusAttack(mobj_t* thing, void* a_Arg)
 		}
 		// must be in direct path
 		if (P_DamageMobj(thing, bombspot, bombsource, damage) && (thing->flags & MF_NOBLOOD) == 0 && P_EXGSGetValue(PEXGSBID_COENABLEBLOODSPLATS))
-			P_SpawnBloodSplats(thing->x, thing->y, thing->z, damage, momx, momy);
+			P_SpawnBloodSplats(thing->x, thing->y, thing->z, damage, momx, momy, thing);
 	}
 	
 	return true;

@@ -1032,6 +1032,17 @@ void P_MovePsprites(player_t* player)
 	pspdef_t* psp;
 	state_t* state;
 	
+	// GhostlyDeath <May 8, 2012> -- If playing as monster, do not move sprites
+	if (player->mo && !(player->mo->RXFlags[0] & MFREXA_ISPLAYEROBJECT))
+	{
+		// Only handle attack button
+		if (player->cmd.buttons & BT_ATTACK)
+			player->attackdown = true;
+		else
+			player->attackdown = false;
+		return;
+	}
+	
 	psp = &player->psprites[0];
 	for (i = 0; i < NUMPSPRITES; i++, psp++)
 	{
@@ -1354,6 +1365,7 @@ bool_t P_RMODH_WeaponsAmmo(Z_Table_t* const a_Table, const WL_WADFile_t* const a
 		TempWeapon.AmmoClass = D_RMODGetValueString(a_Table, "Ammo", NULL);
 		TempWeapon.ReplacePuffType = D_RMODGetValueString(a_Table, "PuffClass", NULL);
 		TempWeapon.GenericProjectile = D_RMODGetValueString(a_Table, "GenericProjectile", NULL);
+		TempWeapon.TracerSplat = D_RMODGetValueString(a_Table, "TracerSplat", NULL);
 		
 		// Weapon ID (A somewhat unique number)
 		TempWeapon.WeaponID = (((uint32_t)(M_Random() & 0xFF)) | ((++WeaponIDBase) << 8)) | 0x80000000UL;

@@ -67,6 +67,7 @@ Located within /util/rtestwad/ inside of The ReMooD Mercurial Repository.
 
 Doom Editor Numbers For Stuff
 
- * 27300 -- BFGTenK -- BFG From Quake 3 (Mockup)
+ * 27300 -- BFGTenK -- BFG From Quake 3 (Mockup).
  * 27301 -- Marble -- A marble you can shove around.
+ * 27302 -- CandleMonster -- Hell's Worst Offender.
 

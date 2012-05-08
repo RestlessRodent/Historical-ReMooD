@@ -205,6 +205,10 @@ typedef struct
 	fixed_t RBounceFactor;						// Bounce Multiplier
 	fixed_t RAirGravity;						// Gravity while in air
 	fixed_t RWaterGravity;						// Gravity while in water
+	char* RMissileSplat;						// Splat when missile hits wall
+	char* RBloodSplat;							// Splat when bleeding
+	char* RBloodSpewClass;						// Bleeds this class
+	char* RGenericMissile;						// Generic Monster Missile Attack
 } mobjinfo_t;
 
 extern mobjinfo_t** mobjinfo;

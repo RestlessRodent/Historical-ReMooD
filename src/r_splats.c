@@ -91,6 +91,7 @@ static wallsplat_t* R_AllocWallSplat(void)
 				CONL_PrintF("WARNING - R_AllocWallSplat: Line has no splats (%s:%i).\n", __FILE__, __LINE__);
 				return NULL;
 			}
+			
 			// GhostlyDeath <November 3, 2010> -- Remove NULL dereference
 			for (p_splat = li->splats; p_splat && p_splat->next; p_splat = p_splat->next)
 				if (p_splat->next == splat)
@@ -118,13 +119,12 @@ void R_AddWallSplat(line_t* wallline, int sectorside, char* patchname, fixed_t t
 	fixed_t LineLength;
 	fixed_t FracSplat;
 	fixed_t Offset;
-	WadIndex_t PatchId;
-	patch_t* Patch;
 	wallsplat_t* Rover;
 	wallsplat_t* Next;
 	sector_t* BackSector = NULL;
 	int* yOffset = NULL;
 	wallsplat_t Temp;
+	V_Image_t* SplatImage;
 	
 	/* Check */
 	// Proper arguments
@@ -140,15 +140,11 @@ void R_AddWallSplat(line_t* wallline, int sectorside, char* patchname, fixed_t t
 		return;
 		
 	/* Pre-init some variables */
-	// Get ID
-	PatchId = W_CheckNumForName(patchname);
+	// Find picture
+	SplatImage = V_ImageFindA(patchname);
 	
-	// See if the patch really exists
-	if (PatchId == INVALIDLUMP)
+	if (!SplatImage)
 		return;
-		
-	// Allocate patch
-	Patch = W_CachePatchNum(PatchId, PU_CACHE);
 	
 	// Get side of sector
 	sectorside ^= 1;
@@ -169,8 +165,8 @@ void R_AddWallSplat(line_t* wallline, int sectorside, char* patchname, fixed_t t
 	}
 	// Get offset of splat along the line
 	LineLength = P_SegLength((seg_t*) wallline);
-	Offset = FixedMul(wallfrac, LineLength) - (Patch->width << (FRACBITS - 1));
-	FracSplat = FixedDiv(((Patch->width << FRACBITS) >> 1), LineLength);
+	Offset = FixedMul(wallfrac, LineLength) - (SplatImage->Width << (FRACBITS - 1));
+	FracSplat = FixedDiv(((SplatImage->Width << FRACBITS) >> 1), LineLength);
 	wallfrac -= FracSplat;
 	
 	// Splat off wall?
@@ -201,7 +197,7 @@ void R_AddWallSplat(line_t* wallline, int sectorside, char* patchname, fixed_t t
 	memset(&Temp, 0, sizeof(Temp));
 	
 	// Basic
-	Temp.patch = PatchId;
+	Temp.Image = SplatImage;
 	Temp.top = top;
 	Temp.flags = flags;
 	Temp.offset = Offset;
@@ -245,7 +241,7 @@ void R_AddWallSplat(line_t* wallline, int sectorside, char* patchname, fixed_t t
 		while (Rover)
 		{
 			// Same patch id?
-			if (Rover->patch == PatchId)
+			if (Rover->Image && Rover->Image->wData == SplatImage->wData)
 				// Near offset?
 				if ((abs((Rover->offset >> FRACBITS) - (Offset >> FRACBITS)) < 8) && (abs((Rover->top >> FRACBITS) - (top >> FRACBITS)) < 8))
 				{
@@ -257,6 +253,7 @@ void R_AddWallSplat(line_t* wallline, int sectorside, char* patchname, fixed_t t
 					// Break out
 					break;
 				}
+			
 			// Next?
 			if (Rover->next)
 				Rover = Rover->next;
@@ -278,3 +275,4 @@ void R_AddWallSplat(line_t* wallline, int sectorside, char* patchname, fixed_t t
 	}
 }
 #endif							// WALLSPLATS
+

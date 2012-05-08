@@ -107,7 +107,10 @@ void P_CalcHeight(player_t* player)
 	subsector_t* SubS;
 	
 	/* Base */
-	ViewHeight = cv_viewheight.value << FRACBITS;
+	if (player->mo->RXFlags[0] & MFREXA_ISPLAYEROBJECT)
+		ViewHeight = cv_viewheight.value << FRACBITS;
+	else
+		ViewHeight = player->mo->height - 15;
 	
 	// Calculate bobbing
 	player->bob = ((FixedMul(player->FakeMom[0], player->FakeMom[0]) + FixedMul(player->FakeMom[1], player->FakeMom[1]))) >> 2;
@@ -311,9 +314,7 @@ void P_MovePlayer(player_t* player)
 		}
 		
 		if (cmd->sidemove && onground)
-		{
 			P_Thrust(player, player->mo->angle - ANG90, cmd->sidemove * 2048);
-		}
 		
 		player->aiming = (signed char)cmd->aiming;
 	}
@@ -340,9 +341,9 @@ void P_MovePlayer(player_t* player)
 				// half forward speed when waist under water
 				// a little better grip if feets touch the ground
 				if (!onground)
-					movepushforward >>= 1;
+					movepushforward = FixedMul(movepushforward, P_EXGSGetFixed(PEXGSBID_GAMEMIDWATERFRICTION));
 				else
-					movepushforward = movepushforward * 3 / 4;
+					movepushforward = FixedMul(movepushforward, P_EXGSGetFixed(PEXGSBID_GAMEWATERFRICTION));
 					
 				if (gametic > player->flushdelay + TICRATE)
 				{
@@ -354,7 +355,7 @@ void P_MovePlayer(player_t* player)
 			{
 				// allow very small movement while in air for gameplay
 				if (!onground)
-					movepushforward >>= 3;
+					movepushforward = FixedMul(movepushforward, P_EXGSGetFixed(PEXGSBID_GAMEAIRFRICTION));
 			}
 			
 			P_Thrust(player, player->mo->angle, movepushforward);
@@ -366,9 +367,9 @@ void P_MovePlayer(player_t* player)
 			if (player->mo->eflags & MF_UNDERWATER)
 			{
 				if (!onground)
-					movepushside >>= 1;
+					movepushside = FixedMul(movepushside, P_EXGSGetFixed(PEXGSBID_GAMEMIDWATERFRICTION));
 				else
-					movepushside = movepushside * 3 / 4;
+					movepushside = FixedMul(movepushside, P_EXGSGetFixed(PEXGSBID_GAMEWATERFRICTION));
 					
 				if (gametic > player->flushdelay + TICRATE)
 				{
@@ -377,10 +378,11 @@ void P_MovePlayer(player_t* player)
 				}
 			}
 			else if (!onground)
-				movepushside >>= 3;
+				movepushside = FixedMul(movepushside, P_EXGSGetFixed(PEXGSBID_GAMEAIRFRICTION));
 				
 			P_Thrust(player, player->mo->angle - ANG90, movepushside);
 		}
+		
 		// GhostlyDeath <October 23, 2010> -- Slow down
 		if (!cmd->forwardmove && !cmd->sidemove)
 			player->MoveMom >>= 1;
@@ -1014,7 +1016,9 @@ void P_PlayerThink(player_t* player)
 	{
 		if (!player->usedown)
 		{
-			P_UseLines(player);
+			// GhostlyDeath <May 8, 2012> -- Only allow players to use things
+			if (player->mo->RXFlags[0] & MFREXA_ISPLAYEROBJECT)
+				P_UseLines(player);
 			player->usedown = true;
 		}
 	}

@@ -917,7 +917,7 @@ static const char* PS_GetMobjNoun(mobj_t* const a_Mobj, bool_t* const a_Special,
 	else
 	{
 		// If the mobj is a player, use that player's name
-		if (a_Mobj->player)
+		if (a_Mobj->player && (a_Mobj->RXFlags[0] & MFREXA_ISPLAYEROBJECT))
 		{
 			// Special
 			if (a_Special)
@@ -1380,7 +1380,7 @@ bool_t P_DamageMobj(mobj_t* target, mobj_t* inflictor, mobj_t* source, int damag
 		// added team play and teamdamage (view logboris at 13-8-98 to understand)
 		if (P_EXGSGetValue(PEXGSBID_CODISABLETEAMPLAY) ||	// support old demo version
 		        cv_teamdamage.value || damage > 1000 ||	// telefrag
-		        source == target || !source || !source->player || (cv_deathmatch.value && (!cv_teamplay.value || !ST_SameTeam(source->player, player))))
+		        source == target || !source || !(target->RXFlags[0] & MFREXA_ISPLAYEROBJECT) || !(source->player && (source->RXFlags[0] & MFREXA_ISPLAYEROBJECT)) || (cv_deathmatch.value && (!cv_teamplay.value || !ST_SameTeam(source->player, player))))
 		{
 			player->health -= damage;	// mirror mobj health here for Dave
 			if (player->health < 0)

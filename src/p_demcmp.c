@@ -457,6 +457,18 @@ static P_EXGSVariable_t l_GSVars[PEXGSNUMBITIDS] =
 	{PEXGST_INTEGER, PEXGSBID_FUNNOLOCKEDDOORS, "fun_nolockeddoors", "No Locked Door",
 		"All doors are unlocked and do not need keys.", PEXGSGM_ANY, PEXGSDR_NOCHECK, 0, {0, 1}, 0,
 		PEXGSMC_FUN},
+	
+	{PEXGST_FLOAT, PEXGSBID_GAMEAIRFRICTION, "game_airfriction", "Friction In Air",
+		"This modifies the amount of friction in the air, the higher the easier it is to move.", PEXGSGM_ANY, PEXGSDR_NOCHECK, 0, {0, 8192}, 8192,
+		PEXGSMC_GAME},
+	
+	{PEXGST_FLOAT, PEXGSBID_GAMEWATERFRICTION, "game_waterfriction", "Friction In Water",
+		"This modifies the amount of friction in water, the higher the easier it is to move.", PEXGSGM_ANY, PEXGSDR_NOCHECK, 0, {0, 49152}, 49152,
+		PEXGSMC_GAME},
+		
+	{PEXGST_FLOAT, PEXGSBID_GAMEMIDWATERFRICTION, "game_midwaterfriction", "Friction In Mid-Water",
+		"This modifies the amount of friction in water when not touching the ground, the higher the easier it is to move.", PEXGSGM_ANY, PEXGSDR_NOCHECK, 0, {0, 32768}, 32768,
+		PEXGSMC_GAME},
 };
 
 /*** FUNCTIONS ***/

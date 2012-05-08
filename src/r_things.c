@@ -1267,6 +1267,10 @@ void R_DrawPlayerSprites(void)
 	
 	int kikhak;
 	
+	// GhostlyDeath <May 8, 2012> -- If playing as monster do not draw sprites
+	if (viewplayer->mo && !(viewplayer->mo->RXFlags[0] & MFREXA_ISPLAYEROBJECT))
+		return;
+	
 	// get light level
 	if (viewplayer->mo->subsector->sector->numlights)
 	{

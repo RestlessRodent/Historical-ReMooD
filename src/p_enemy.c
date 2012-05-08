@@ -296,7 +296,7 @@ static bool_t P_Move(mobj_t* actor)
 	tryx = actor->x + __REMOOD_GETSPEEDMO(actor) * xspeed[actor->movedir];
 	tryy = actor->y + __REMOOD_GETSPEEDMO(actor) * yspeed[actor->movedir];
 	
-	if (!P_TryMove(actor, tryx, tryy, false))
+	if (!P_TryMove(actor, tryx, tryy, false, NULL, NULL))
 	{
 		// open any specials
 		if (actor->flags & MF_FLOAT && floatok)
@@ -1615,75 +1615,92 @@ void A_SkullAttack(mobj_t* actor, player_t* player, pspdef_t* psp)
 	angle_t an;
 	int dist;
 	
-	if (!actor->target)
-		return;
-		
-	dest = actor->target;
-	actor->flags |= MF_SKULLFLY;
-	S_StartSound(&actor->NoiseThinker, S_SoundIDForName(actor->info->RAttackSound));
 	A_FaceTarget(actor, player, psp);
 	
-	if (!actor->player && cv_predictingmonsters.value)	//added by AC for predmonsters
-	{
+	// Non-player Monster, No target
+	if (!actor->target && !actor->player)
+		return;
 	
-		bool_t canHit;
-		fixed_t px, py, pz;
-		int t, time;
-		subsector_t* sec;
-		
-		dist = P_AproxDistance(dest->x - actor->x, dest->y - actor->y);
-		time = dist / SKULLSPEED;
-		time = P_AproxDistance(dest->x + dest->momx * time - actor->x, dest->y + dest->momy * time - actor->y) / SKULLSPEED;
-		
-		canHit = 0;
-		t = time + 4;
-		do
-		{
-			t -= 4;
-			if (t < 1)
-				t = 1;
-			px = dest->x + dest->momx * t;
-			py = dest->y + dest->momy * t;
-			pz = dest->z + dest->momz * t;
-			canHit = P_CheckSight2(actor, dest, px, py, pz);
-		}
-		while (!canHit && (t > 1));
-		
-		sec = R_PointInSubsector(px, py);
-		if (!sec)
-			sec = dest->subsector;
-			
-		if (pz < sec->sector->floorheight)
-			pz = sec->sector->floorheight;
-		else if (pz > sec->sector->ceilingheight)
-			pz = sec->sector->ceilingheight - dest->height;
-			
-		an = R_PointToAngle2(actor->x, actor->y, px, py);
-		
-		// fuzzy player
-		if (dest->flags & MF_SHADOW)
-		{
-			an += P_SignedRandom() << 20;
-		}
-		
-		actor->angle = an;
-		an >>= ANGLETOFINESHIFT;
-		actor->momx = FixedMul(SKULLSPEED, finecosine[an]);
-		actor->momy = FixedMul(SKULLSPEED, finesine[an]);
-		
-		actor->momz = (pz + (dest->height >> 1) - actor->z) / t;
-	}
-	else
+	// Player Monster, No target
+	else if (!actor->target && actor->player)
 	{
+		actor->flags |= MF_SKULLFLY;
+		S_StartSound(&actor->NoiseThinker, S_SoundIDForName(actor->info->RAttackSound));
+		
 		an = actor->angle >> ANGLETOFINESHIFT;
 		actor->momx = FixedMul(SKULLSPEED, finecosine[an]);
 		actor->momy = FixedMul(SKULLSPEED, finesine[an]);
-		dist = P_AproxDistance(dest->x - actor->x, dest->y - actor->y);
-		dist = dist / SKULLSPEED;
+	}
+	
+	// There is a target
+	else
+	{	
+		dest = actor->target;
+		actor->flags |= MF_SKULLFLY;
+		S_StartSound(&actor->NoiseThinker, S_SoundIDForName(actor->info->RAttackSound));
+	
+		if (!actor->player && cv_predictingmonsters.value)	//added by AC for predmonsters
+		{
+	
+			bool_t canHit;
+			fixed_t px, py, pz;
+			int t, time;
+			subsector_t* sec;
 		
-		if (dist < 1)
-			dist = 1;
-		actor->momz = (dest->z + (dest->height >> 1) - actor->z) / dist;
+			dist = P_AproxDistance(dest->x - actor->x, dest->y - actor->y);
+			time = dist / SKULLSPEED;
+			time = P_AproxDistance(dest->x + dest->momx * time - actor->x, dest->y + dest->momy * time - actor->y) / SKULLSPEED;
+		
+			canHit = 0;
+			t = time + 4;
+			do
+			{
+				t -= 4;
+				if (t < 1)
+					t = 1;
+				px = dest->x + dest->momx * t;
+				py = dest->y + dest->momy * t;
+				pz = dest->z + dest->momz * t;
+				canHit = P_CheckSight2(actor, dest, px, py, pz);
+			}
+			while (!canHit && (t > 1));
+		
+			sec = R_PointInSubsector(px, py);
+			if (!sec)
+				sec = dest->subsector;
+			
+			if (pz < sec->sector->floorheight)
+				pz = sec->sector->floorheight;
+			else if (pz > sec->sector->ceilingheight)
+				pz = sec->sector->ceilingheight - dest->height;
+			
+			an = R_PointToAngle2(actor->x, actor->y, px, py);
+		
+			// fuzzy player
+			if (dest->flags & MF_SHADOW)
+			{
+				an += P_SignedRandom() << 20;
+			}
+		
+			actor->angle = an;
+			an >>= ANGLETOFINESHIFT;
+			actor->momx = FixedMul(SKULLSPEED, finecosine[an]);
+			actor->momy = FixedMul(SKULLSPEED, finesine[an]);
+		
+			actor->momz = (pz + (dest->height >> 1) - actor->z) / t;
+		}
+		else
+		{
+			an = actor->angle >> ANGLETOFINESHIFT;
+			actor->momx = FixedMul(SKULLSPEED, finecosine[an]);
+			actor->momy = FixedMul(SKULLSPEED, finesine[an]);
+			dist = P_AproxDistance(dest->x - actor->x, dest->y - actor->y);
+			dist = dist / SKULLSPEED;
+		
+			if (dist < 1)
+				dist = 1;
+			actor->momz = (dest->z + (dest->height >> 1) - actor->z) / dist;
+		}
 	}
 }
 
@@ -1744,7 +1761,7 @@ void P_PainShootSkull(mobj_t* actor, angle_t angle, player_t* player, pspdef_t* 
 	newmobj = P_SpawnMobj(x, y, z, TargetType);
 	
 	// Check for movements.
-	if (!P_TryMove(newmobj, newmobj->x, newmobj->y, false))
+	if (!P_TryMove(newmobj, newmobj->x, newmobj->y, false, NULL, NULL))
 	{
 		// kill it immediately
 		P_DamageMobj(newmobj, actor, actor, 10000);
@@ -2077,6 +2094,26 @@ void A_CloseShotgun2(mobj_t* mo, player_t* player, pspdef_t* psp)
 {
 	S_StartSound(&mo->NoiseThinker, sfx_dbcls);
 	A_ReFire(mo, player, psp);
+}
+
+/* A_GenericMonsterMissile() -- Generic Monster Projectile */
+void A_GenericMonsterMissile(mobj_t* actor, player_t* player, pspdef_t* psp)
+{
+	mobj_t* Missile;
+		
+	A_FaceTarget(actor, player, psp);
+	
+	if (!actor->player && !actor->target)
+		return;
+	
+	// launch a missile
+	if (actor->info->RGenericMissile)
+	{
+		Missile = P_SpawnMissile(actor, actor->target, INFO_GetTypeByName(actor->info->RGenericMissile));
+	
+		if (Missile)
+			Missile->RXAttackAttackType = PRXAT_RANGED;
+	}
 }
 
 static mobj_t* braintargets[32];
