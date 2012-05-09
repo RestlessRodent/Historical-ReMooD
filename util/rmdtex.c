@@ -1099,6 +1099,7 @@ int main(int argc, char** argv)
 #define MAXARGS 4
 	char Buf[BUFSIZE];
 	char Arg[MAXARGS][BUFSIZE];
+	char PreElem[BUFSIZE];
 	char* Args[MAXARGS];
 	char Ext[5];
 	char* p;
@@ -1113,11 +1114,12 @@ int main(int argc, char** argv)
 	uint32_t u32, llIndexOff, llNumLumps, lllOff, lllSize;
 	char llName[9];
 	uint8_t* Data;
+	char* pe,* oldPE;
 	
 	/* Check */
 	if (argc < 3)
 	{
-		fprintf(stderr, "Usage: %s <wadinfo.txt> <output.wad>\n", argv[0]);
+		fprintf(stderr, "Usage: %s <wadinfo.txt> <output.wad> <prefix>\n", argv[0]);
 		return EXIT_FAILURE;
 	}
 	
@@ -1253,7 +1255,11 @@ int main(int argc, char** argv)
 				if (c_LumpDirs[ld].Extensions[i][0])
 				{
 					memset(Buf, 0, sizeof(Buf));
-					strncpy(Buf, c_LumpDirs[ld].Dir, BUFSIZE);
+					
+					if (argc >= 3)
+						strncpy(Buf, argv[3], BUFSIZE);
+					
+					strncat(Buf, c_LumpDirs[ld].Dir, BUFSIZE);
 					strncat(Buf, "/", BUFSIZE);
 					
 					// Alias?

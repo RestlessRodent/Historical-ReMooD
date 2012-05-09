@@ -219,7 +219,7 @@ export __INT_OBJ := objs
 
 # Default
 .PHONY: all
-all:			$(__INT_OBJ) ____make.___
+all:			wad $(__INT_OBJ) ____make.___
 				@$(MAKE) -f ____make.___ all
 
 # Clean
@@ -227,20 +227,16 @@ clean:			$(__INT_OBJ) ____make.___
 				@$(MAKE) -f ____make.___ clean
 
 # The game
-remood:			$(__INT_OBJ) ____make.___
+remood:			wad $(__INT_OBJ) ____make.___
 				@$(MAKE) -f ____make.___ remood
 
 # Object directory
 $(__INT_OBJ):	
 				$(__INT_RUNCOMMAND,mkdir $@)
 
-# RMDTEX -- DeuTex Clone For ReMooD
-rmdtext.exe:	util/rmdtex.c
-				@$(__INT_HOSTCC) -o $@ $<
-
 # ReMooD.WAD
 $(__INT_BIN)/remood.wad:	rmdtext.exe
-							@$(call __INT_RUNCOMMAND,$(__INT_RUNCURDIR)rmdtext.exe wad/wadinfo.txt $@)
+							@$(call __INT_RUNCOMMAND,$(__INT_RUNCURDIR)rmdtext.exe wad/wadinfo.txt $@ wad/)
 
 wad:						bin/remood.wad
 
@@ -263,3 +259,6 @@ ____bild.exe:	____makc.___ ____cdef.___
 ____make.___:	____bild.exe
 				@$(call __INT_RUNCOMMAND,$(__INT_RUNCURDIR)____bild.exe ____cdef.___ ____mtmp.___ $@)
 
+# RMDTEX -- DeuTex Clone For ReMooD
+rmdtext.exe:	util/rmdtex.c
+				@$(__INT_HOSTCC) -o $@ $<
