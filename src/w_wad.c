@@ -57,6 +57,7 @@
 #include "i_system.h"
 #include "md5.h"
 #include "v_video.h"
+#include "console.h"
 
 // WAD DATA
 #include "m_argv.h"
@@ -114,6 +115,117 @@ static char l_SearchList[MAXSEARCHBUFFER][PATH_MAX];	// Places to look for WADs
 static size_t l_SearchCount = 0;	// Number of places to look
 
 /*** FUNCTIONS ***/
+
+/* WLS_MultiCom() -- Multi command handler */
+static CONL_ExitCode_t WLS_MultiCom(const uint32_t a_ArgC, const char** const a_ArgV)
+{
+#define POPARRAY 64
+	WL_WADFile_t* WAD, *NewWAD, *ReMooDWAD;
+	WL_WADFile_t* WArray[POPARRAY];
+	int32_t i;
+	
+	/* Push Another WAD */
+	if (strcasecmp(a_ArgV[0], "wadpush") == 0)
+	{
+		// Not enough args?
+		if (a_ArgV < 2)
+		{
+			CONL_PrintF("%s <wad>", a_ArgV[0]);
+			return CLE_FAILURE;
+		}
+		
+		// Try opening the WAD
+		WAD = WL_OpenWAD(a_ArgV[1]);
+		
+		// Failed?
+		if (!WAD)
+		{
+			CONL_PrintF("WAD: Failed to open WAD\n");
+			return CLE_FAILURE;
+		}
+		
+		// Add to VWAD stack
+		WL_PushWAD(WAD);
+		
+		// Success!
+		return CLE_SUCCESS;
+	}
+	
+	/* Pop Top-Most WAD */
+	else if (strcasecmp(a_ArgV[0], "wadpop") == 0)
+	{
+		WAD = WL_IterateVWAD(NULL, false);
+		
+		// Find ReMooD.WAD
+		ReMooDWAD = WL_IterateVWAD(NULL, true);
+		ReMooDWAD = WL_IterateVWAD(ReMooDWAD, true);
+		
+		// Make sure it isn't remood.wad
+		if (!WAD || (WAD && WAD == ReMooDWAD))
+		{
+			CONL_PrintF("WAD: Nothing to pop\n");
+			return CLE_FAILURE;
+		}
+		
+		// Pop it
+		WL_PopWAD();
+		
+		// Success!
+		return CLE_SUCCESS;
+	}
+	
+	/* Change IWAD */
+	else if (strcasecmp(a_ArgV[0], "wadiwad") == 0)
+	{
+		// Not enough args?
+		if (a_ArgV < 2)
+		{
+			CONL_PrintF("%s <iwad>", a_ArgV[0]);
+			return CLE_FAILURE;
+		}
+		
+		// Open the specified IWAD (will need it)
+		NewWAD = WL_OpenWAD(a_ArgV[1]);
+		
+		// Failed to open?
+		if (!NewWAD)
+		{
+			CONL_PrintF("WAD: Failed to open WAD\n");
+			return CLE_FAILURE;
+		}
+		
+		// Lock OCCB (Massive changes)
+		WL_LockOCCB(true);
+		
+		// Clear array
+		memset(WArray, 0, sizeof(WArray));
+		
+		// First pop all WADs
+		while ((WAD = WL_PopWAD()))
+			if (i < POPARRAY - 1)
+				WArray[i++] = WAD;
+		
+		// Push new IWAD
+		WL_PushWAD(NewWAD);
+		
+		// Push remaining WADs
+		for (i = i - 1; i >= 0; i--)
+			WL_PushWAD(WArray[i]);
+		
+		// Unlock OCCB (Done with changes)
+		WL_LockOCCB(false);
+	}
+	
+	return CLE_FAILURE;
+}
+
+/* WL_Init() -- Initializes the WL Code */
+void WL_Init(void)
+{
+	CONL_AddCommand("wadpush", WLS_MultiCom);
+	CONL_AddCommand("wadpop", WLS_MultiCom);
+	CONL_AddCommand("wadiwad", WLS_MultiCom);
+}
 
 /* WL_BaseName() -- Returns the base name of the passed filename */
 static const char* WL_BaseName(const char* const a_File)

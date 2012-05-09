@@ -200,6 +200,7 @@ typedef struct WL_EntryStream_s WL_EntryStream_t;
 const char* WL_BaseNameEx(const char* const a_File);
 
 // WAD Handling
+void WL_Init(void);
 const WL_WADFile_t* WL_OpenWAD(const char* const a_PathName);
 void WL_CloseWAD(const WL_WADFile_t* const a_WAD);
 bool_t WL_LocateWAD(const char* const a_Name, const char* const a_MD5, char* const a_OutPath, const size_t a_OutSize);

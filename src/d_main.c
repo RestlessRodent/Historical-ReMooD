@@ -1570,6 +1570,7 @@ void D_DoomMain(void)
 	M_CheatInit();						// Initialize Cheats
 	D_NCSInit();						// Initialize Network Code
 	ST_InitEx();						// Extended Status Bar
+	WL_Init();							// Initialize WL Code
 	
 	D_CreateProfileEx("guest");			// Create guest account
 	/**************************/
