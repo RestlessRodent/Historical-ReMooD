@@ -141,7 +141,7 @@ typedef enum I_KeyBoardKey_e
 	IKBK_TILDE,
 	
 	// Cool Keys
-	IKBK_DELETE = 0x7F,
+	IKBK_KDELETE = 0x7F,
 	IKBK_HOME,
 	IKBK_END,
 	IKBK_INSERT,
