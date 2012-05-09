@@ -209,7 +209,7 @@ static CONL_ExitCode_t WLS_MultiCom(const uint32_t a_ArgC, const char** const a_
 		WL_PushWAD(NewWAD);
 		
 		// Push remaining WADs
-		for (i = i - 1; i >= 0; i--)
+		for (i = i - 2; i >= 0; i--)
 			WL_PushWAD(WArray[i]);
 		
 		// Unlock OCCB (Done with changes)

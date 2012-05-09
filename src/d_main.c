@@ -1046,12 +1046,16 @@ const D_IWADInfoEx_t c_IWADInfos[] =
 	{NULL, NULL, NULL, NULL, NULL, NULL, NULL, 0, 0, COREGAME_DOOM, false, NULL, 0, 0}
 };
 
-/*** LOCALS ***/
+/*** GLOBALS ***/
 
 CoreGame_t g_CoreGame = COREGAME_UNKNOWN;		// Core game mode
 const void* g_ReMooDPtr = NULL;					// Pointer to remood.wad
 const char* g_IWADMapInfoName = NULL;			// Name of IWAD MAPINFO
 uint32_t g_IWADFlags = 0;						// IWAD Flags
+
+/*** LOCALS ***/
+
+static char l_IWADSum[33];						// IWAD Sum
 
 /*** FUNCTIONS ***/
 
@@ -1131,6 +1135,16 @@ static bool_t DS_DetectGameMode(const bool_t a_Pushed, const struct WL_WADFile_s
 		return true;
 	}
 	
+	// Determine if the IWAD changed
+	for (i = 0; i <= 32; i++)
+		if (l_IWADSum[i] != BaseWAD->SimpleSumChars[i])
+		{
+			if (devparm)
+				CONL_PrintF("DS_DetectGameMode: IWAD Signature Changed.\n");
+			g_CoreGame = COREGAME_UNKNOWN;
+			break;
+		}
+	
 	// Is the stack already placed?
 	if (g_CoreGame != COREGAME_UNKNOWN)
 	{
@@ -1138,6 +1152,10 @@ static bool_t DS_DetectGameMode(const bool_t a_Pushed, const struct WL_WADFile_s
 			CONL_PrintF("DS_DetectGameMode: Already detected, no need to detect.\n");
 		return true;
 	}
+	
+	// Copy IWAD sum to sum
+	for (i = 0; i <= 32; i++)
+		l_IWADSum[i] = BaseWAD->SimpleSumChars[i];
 	
 	/* Debug */
 	if (devparm)
@@ -1289,9 +1307,9 @@ void D_LoadGameFilesEx(void)
 	/* Register game identifier, based on pushes */
 	if (devparm)
 		CONL_PrintF("D_LoadGameFilesEx: Registering mode detector.\n");
-	if (!WL_RegisterOCCB(DS_DetectGameMode, 1))
+	if (!WL_RegisterOCCB(DS_DetectGameMode, WLDCO_IWADDETECT))
 		I_Error("D_LoadGameFilesEx: Failed to register IWAD OCCB!");
-	if (!WL_RegisterOCCB(DS_DetectReMooDWAD, 2))
+	if (!WL_RegisterOCCB(DS_DetectReMooDWAD, WLDCO_RWADDETECT))
 		I_Error("D_LoadGameFilesEx: Failed to register ReMooD OCCB!");
 	
 	/* Clear */

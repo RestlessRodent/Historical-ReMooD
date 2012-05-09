@@ -262,7 +262,7 @@ uint32_t INFO_TransparencyByName(const char* const a_Name);
 // mobj is intentional. Why? So in -fast you could make certain monsters fast
 // and not others with the same type. You could have a slowdown type weapon that
 // when used with fast monsters negates the fast speed?
-#define __REMOOD_GETSPEEDMO(mo) ((((mo)->RXFlags[0] & MFREXA_ENABLEFASTSPEED) && cv_fastmonsters.value) ? (mo)->info->RFastSpeed : (mo)->info->speed)
+#define __REMOOD_GETSPEEDMO(mo) ((((((mo)->RXFlags[0] & MFREXA_ENABLEFASTSPEED) && cv_fastmonsters.value) ? (mo)->info->RFastSpeed : (mo)->info->speed)) >> (((mo)->flags & MF_MISSILE) ? 0 : 16))
 
 #endif
 

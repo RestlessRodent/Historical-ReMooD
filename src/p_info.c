@@ -267,33 +267,37 @@ static bool_t PS_ParseMapInfo(P_LevelInfoHolder_t* const a_Holder, const WL_WADE
 				CurrentInfo = NULL;
 			}
 			
-			// Setup level title?
-			if (!CurrentInfo->Title)
+			// Setup Defaults
+			if (CurrentInfo)
 			{
-				// Set as MAPINFO level
-				CurrentInfo->SetBits[0] = PLIBL_MAPINFO;
-				
-				// Ignore any whitespace
-				for (; *p && (*p == ' ' || *p == '\t'); p++)
-					;
-				
-				// Ignore any quotes
-				if (*p == '\"')
+				// Setup level title?
+				if (!CurrentInfo->Title)
 				{
-					// Null the quote away
-					*(p++) = '\0';
+					// Set as MAPINFO level
+					CurrentInfo->SetBits[0] = PLIBL_MAPINFO;
 				
-					// Find the next quote, null that then die
-					for (q = p; *q; q++)
-						if (*q == '\"')
-						{
-							*q = '\0';
-							break;
-						}
+					// Ignore any whitespace
+					for (; *p && (*p == ' ' || *p == '\t'); p++)
+						;
+				
+					// Ignore any quotes
+					if (*p == '\"')
+					{
+						// Null the quote away
+						*(p++) = '\0';
+				
+						// Find the next quote, null that then die
+						for (q = p; *q; q++)
+							if (*q == '\"')
+							{
+								*q = '\0';
+								break;
+							}
+					}
+				
+					// Place level name here
+					CurrentInfo->Title = Z_StrDup(p, PU_WLDKRMOD, NULL);
 				}
-				
-				// Place level name here
-				CurrentInfo->Title = Z_StrDup(p, PU_WLDKRMOD, NULL);
 			}
 			
 			// Copy default settings?
@@ -913,6 +917,46 @@ static bool_t PS_WLInfoOCCB(const bool_t a_Pushed, const struct WL_WADFile_s* co
 	if (devparm)
 		CONL_PrintF("PS_WLInfoOCCB: Building composite...\n");
 	
+	/* Clear level info composite */
+	if (l_CompInfos)
+	{
+		// Clear subs
+		for (i = 0; i < l_NumCompInfos; i++)
+			if (l_CompInfos[i])
+				if (l_CompInfos[i]->IsComposite)
+				{
+					// Clear out strings
+					// Copy fields over (all but authors)
+					for (Field = 0; !c_PMIFields[Field].IsEnd; Field++)
+					{
+						// Get source
+						vP = (void*)(((uintptr_t)l_CompInfos[i]) + c_PMIFields[Field].Offset);
+					
+						// Which type now?
+						switch (c_PMIFields[Field].Type)
+						{
+								// Copy String
+							case PPMFIFT_STRING:
+								if (*((char**)vP))
+									Z_Free(*((char**)vP));
+								break;
+								
+								// Nothing to be freed
+							default:
+								break;
+						}
+					}
+					
+					// Clear self away
+					Z_Free(l_CompInfos[i]);
+				}
+		
+		// Clear master
+		Z_Free(l_CompInfos);
+	}
+	l_CompInfos = NULL;
+	l_NumCompInfos = 0;
+	
 	/* First, The IWAD must get their MAPINFOs loaded from remood.wad */
 	// IWAD is always first
 	Rover = WL_IterateVWAD(NULL, true);
@@ -934,26 +978,6 @@ static bool_t PS_WLInfoOCCB(const bool_t a_Pushed, const struct WL_WADFile_s* co
 		// Set as parsed
 		Holder->IWADParsed = true;
 	}
-	
-	/* Clear level info composite */
-	if (l_CompInfos)
-	{
-		// Clear subs
-		for (i = 0; i < l_NumCompInfos; i++)
-			if (l_CompInfos[i])
-				if (l_CompInfos[i]->IsComposite)
-				{
-					// Clear out strings
-					
-					// Clear self away
-					Z_Free(l_CompInfos[i]);
-				}
-		
-		// Clear master
-		Z_Free(l_CompInfos);
-	}
-	l_CompInfos = NULL;
-	l_NumCompInfos = 0;
 	
 	/* Now merge all the level information into a composite form */
 	for (Rover = WL_IterateVWAD(NULL, true); Rover; Rover = WL_IterateVWAD(Rover, true))

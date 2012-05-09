@@ -783,6 +783,8 @@ static bool_t VS_VideoWADOrderCB(const bool_t a_Pushed, const struct WL_WADFile_
 	/* Load colormaps */
 	V_InitializeColormaps();
 	
+	/* Clear all defined image info */
+	
 	return true;
 }
 

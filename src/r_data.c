@@ -689,6 +689,16 @@ static bool_t RS_TextureOrderChange(const bool_t a_Pushed, const struct WL_WADFi
 		Z_HashDeleteTable(l_TextureHashes);
 	l_TextureHashes = NULL;
 	
+	// Delete sprites
+	if (g_ExSprites)
+		Z_Free(g_ExSprites);
+	if (sprites)
+		Z_Free(sprites);
+	g_ExSprites = NULL;
+	g_NumExSprites = 0;
+	sprites = NULL;
+	numsprites = 0;
+	
 	/* Go through WAD files in reverse order */
 	// Why reverse? So later textures take precedence, when a texture is to be
 	// slapped onto the pointer list, see if a texture of the same name already

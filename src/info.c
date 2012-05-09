@@ -515,6 +515,12 @@ bool_t INFO_RMODO_MapObjects(const bool_t a_Pushed, const struct WL_WADFile_s* c
 	sprnames = NULL;
 	NUMSPRITES = 0;
 	
+	/* Remove All Objects Pre-Defined */
+	if (mobjinfo)
+		Z_Free(mobjinfo);
+	mobjinfo = NULL;
+	NUMMOBJTYPES = 0;
+	
 	// Add first state, an S_NULL
 	Z_ResizeArray((void**)&states, sizeof(*states), NUMSTATES, NUMSTATES + 1);
 	states[NUMSTATES++] = &StaticSNull;
@@ -593,13 +599,6 @@ bool_t INFO_RMODO_MapObjects(const bool_t a_Pushed, const struct WL_WADFile_s* c
 		// Dereference Classes
 		if (TempObject->RFamilyClass)
 			TempObject->RBaseFamily = INFO_GetTypeByName(TempObject->RFamilyClass);
-		
-		// Fix Object Speed (non-missiles do not use fractional units)
-		if (!(TempObject->flags & MF_MISSILE))
-		{
-			TempObject->speed >>= FRACBITS;
-			TempObject->RFastSpeed >>= FRACBITS;
-		}
 		
 		// Setup States
 		for (z = 0; z < NUMINFOOBJECTSTATEGROUPS; z++)

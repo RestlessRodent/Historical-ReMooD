@@ -65,6 +65,8 @@ typedef enum WL_DataPDCOrder_e
 /* WL_DataOCCBOrder_t -- Orders for data handling (OCCBs) */
 typedef enum WL_DataOCCBOrder_e
 {
+	WLDCO_IWADDETECT = 1,			// IWAD Detection
+	WLDCO_RWADDETECT = 2,			// ReMooD.WAD Detection
 	WLDCO_RMOD = 30,				// ReMooD Map Object Data
 	WLDCO_VFONTS = 75,				// Fonts
 	WLDCO_TEXTURES = 75,			// Textures
