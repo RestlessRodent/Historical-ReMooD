@@ -2080,7 +2080,13 @@ bool_t CONL_DrawConsole(void)
 	/* Not active, draw per player messages */
 	else
 	{
-		n = g_SplitScreen + 1;
+		// On intermission, only draw player 1's stuff
+		if (gamestate == GS_INTERMISSION)
+			n = 1;
+		
+		// Otherwise for each player
+		else
+			n = g_SplitScreen + 1;
 		
 		// Limit, just in case
 		if (n > MAXSPLITSCREEN)

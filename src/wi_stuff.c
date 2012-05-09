@@ -383,7 +383,7 @@ static patch_t** lnames;
 *** CONSTANTS ***
 ****************/
 
-#define WIDPLIMIT 16
+#define WIDPLIMIT 12
 
 /*****************
 *** STRUCTURES ***
@@ -394,6 +394,14 @@ typedef struct WI_PlayerInfo_s
 {
 	player_t* Player;
 	int32_t Rank;
+	bool_t LocalPlayer;
+	int8_t ScreenNum;
+	char PlayerName[MAXPLAYERNAME + 1];
+	
+	/* Stats */
+	int32_t Kills;
+	int32_t Items;
+	int32_t Secrets;
 } WI_PlayerInfo_t;
 
 /*************
@@ -403,6 +411,7 @@ typedef struct WI_PlayerInfo_s
 static V_Image_t* l_PicINTER = NULL;
 static WI_PlayerInfo_t l_DrawPlayers[MAXPLAYERS];
 static size_t l_NumDrawPlayers;
+static int32_t l_TotalKills, l_TotalItems, l_TotalSecrets;
 
 /****************
 *** FUNCTIONS ***
@@ -1195,10 +1204,13 @@ void WI_Drawer(void)
 #define BUFSIZE 64
 	char Buf[BUFSIZE];
 	size_t i, j;
-	int32_t xBase, yBase, yAdd, y;
+	int32_t xBase, yBase, yAdd, y, dp, k;
 	bool_t IsOnScreen;
 	uint32_t DrawFlags;
 	int8_t ScreenNum;
+	const char* Title;
+	int32_t Val;
+	bool_t Flash, All;
 	
 	/* Generic Drawing */
 	// Draw interpic
@@ -1239,53 +1251,162 @@ void WI_Drawer(void)
 	yBase = 30;
 	yAdd = V_FontHeight(VFONT_SMALL) + 1;
 	
+	if (l_NumDrawPlayers == 1)
+		Flash = false;
+	else
+		Flash = true;
+	
 	// Draw player sort
-	for (y = 0, i = 0; i < l_NumDrawPlayers; i++, y += yAdd + 1)
+	for (y = 0, i = 0; i < l_NumDrawPlayers + 3; i++, y += yAdd + 1)
 	{
 		// Clear
-		IsOnScreen = false;
-		
-		// Determine extra stuff
-		ScreenNum = 0;
-		for (j = 0; j < MAXSPLITSCREEN; j++)
-			if (g_PlayerInSplit[j])
-				if ((l_DrawPlayers[i].Player - players) == consoleplayer[j])
-				{
-					IsOnScreen = true;
-					ScreenNum = j;
-					break;
-				}
-		
-		// Draw player band
-		V_DrawColorBoxEx(
-				VEX_TRANS(VEX_TRANS50) | VEX_COLORMAP(VEX_MAP_GREEN) | VEX_PCOLOR(l_DrawPlayers[i].Player->skincolor) ,
-				120, 0, yBase + y, 320, yBase + y + yAdd);
-		
-		// Options
 		DrawFlags = 0;
-		if (IsOnScreen)
-			DrawFlags = VFO_COLOR(VEX_MAP_BRIGHTWHITE);
+		dp = i;
+		dp--;
+		All = false;
 		
-		// Draw Rank
-		snprintf(Buf, BUFSIZE - 1, "%i.", l_DrawPlayers[i].Rank + 1);
-		V_DrawStringA(
-				VFONT_SMALL,
-				DrawFlags,
-				Buf,
-				xBase, yBase + y
-			);
+		// Drawing A Player
+		if (dp >= 0 && dp < l_NumDrawPlayers)
+		{
+			// Color based on rank
+				// Gold -- First
+			if (Flash && l_DrawPlayers[dp].Rank == 0)
+				DrawFlags = VFO_COLOR(VEX_MAP_GOLD);
+				// Silver -- Second
+			else if (Flash && l_DrawPlayers[dp].Rank == 1)
+				DrawFlags = VFO_COLOR(VEX_MAP_WHITE);
+				// Bronze -- Third
+			else if (Flash && l_DrawPlayers[dp].Rank == 2)
+				DrawFlags = VFO_COLOR(VEX_MAP_BROWN);
+				// All other places are insignifant
+			else
+			{
+				// Local Players are distinguished
+				if (l_DrawPlayers[dp].LocalPlayer)
+					DrawFlags = VFO_COLOR(VEX_MAP_BRIGHTWHITE);
+				
+				// Others are not
+				else
+					DrawFlags = VFO_COLOR(VEX_MAP_RED);
+			}
+			
+			// Draw player band (their skin color)
+			V_DrawColorBoxEx(
+					VEX_TRANS(VEX_TRANS50) | VEX_COLORMAP(VEX_MAP_GREEN) |
+						VEX_PCOLOR(l_DrawPlayers[dp].Player->skincolor),
+					120, 0, yBase + y, 320, yBase + y + yAdd);
+			
+			// Draw Rank
+			snprintf(Buf, BUFSIZE - 1, "%i.", l_DrawPlayers[dp].Rank + 1);
+			V_DrawStringA(
+					VFONT_SMALL,
+					DrawFlags,
+					Buf,
+					xBase, yBase + y
+				);
 		
-		// Draw player name
-		if (IsOnScreen)
-			snprintf(Buf, BUFSIZE - 1, "%s (P%i)", D_NCSGetPlayerName(l_DrawPlayers[i].Player - players), ScreenNum + 1);
+			// Draw player name
+			if (l_DrawPlayers[dp].LocalPlayer)
+				snprintf(Buf, BUFSIZE - 1, "%s (P%i)", l_DrawPlayers[dp].PlayerName, l_DrawPlayers[dp].ScreenNum + 1);
+			else
+				snprintf(Buf, BUFSIZE - 1, "%s", l_DrawPlayers[dp].PlayerName);
+			V_DrawStringA(
+					VFONT_SMALL,
+					DrawFlags,
+					Buf,
+					xBase + 20, yBase + y
+				);
+		}
+		
+		// Headers are of different color
+		else if (dp < 0)
+		{
+			DrawFlags = VFO_COLOR(VEX_MAP_RED);
+			
+			// Draw Players Header
+			snprintf(Buf, BUFSIZE - 1, "%s", "PLAYERS");
+			V_DrawStringA(
+					VFONT_SMALL,
+					DrawFlags,
+					Buf,
+					xBase + 20, yBase + y
+				);
+		}
+		
+		// As are footers
+		else if (dp == l_NumDrawPlayers)
+			DrawFlags = VFO_COLOR(VEX_MAP_YELLOW);
+			
+		// Draw Map Totals
 		else
-			snprintf(Buf, BUFSIZE - 1, "%s", D_NCSGetPlayerName(l_DrawPlayers[i].Player - players));
-		V_DrawStringA(
-				VFONT_SMALL,
-				DrawFlags,
-				Buf,
-				xBase + 20, yBase + y
-			);
+		{
+			DrawFlags = VFO_COLOR(VEX_MAP_GREEN);
+			All = true;
+			
+			// Draw Totals Header
+			snprintf(Buf, BUFSIZE - 1, "%s", "MAP TOTALS");
+			V_DrawStringA(
+					VFONT_SMALL,
+					DrawFlags,
+					Buf,
+					xBase + 20, yBase + y
+				);
+		}
+		
+		// Single-player/Cooperative
+		if (!cv_deathmatch.value)
+		{
+			for (k = 0; k < 3; k++)
+			{
+				Val = 0;
+				
+				// Secrets
+				if (k == 0)
+				{
+					if (dp >= 0)
+						Val = (dp < l_NumDrawPlayers ? l_DrawPlayers[dp].Secrets :
+								(!All ? l_TotalSecrets : totalsecret));
+					Title = "SCRT";
+				}
+				
+				// Items
+				else if (k == 1)
+				{
+					if (dp >= 0)
+						Val = (dp < l_NumDrawPlayers ? l_DrawPlayers[dp].Items :
+								(!All ? l_TotalItems : totalitems));
+					Title = "ITEM";
+				}
+				
+				// Kills
+				else if (k == 2)
+				{
+					if (dp >= 0)
+						Val = (dp < l_NumDrawPlayers ? l_DrawPlayers[dp].Kills :
+								(!All ? l_TotalKills : totalkills));
+					Title = "KILL";
+				}
+				
+				// Which to draw?
+				if (dp >= 0)
+					snprintf(Buf, BUFSIZE - 1, "%i", Val);
+				else
+					snprintf(Buf, BUFSIZE - 1, "%s", Title);
+				
+				// Draw
+				V_DrawStringA(
+						VFONT_SMALL,
+						DrawFlags,
+						Buf,
+						(320 - (xBase << 1)) - (35 * (k + 1)), yBase + y
+					);
+			}
+		}
+		
+		// Deathmatch
+		else
+		{
+		}
 	}
 	
 #if 0
@@ -1323,6 +1444,7 @@ static void WI_initVariables(wbstartstruct_t* wbstartstruct)
 	size_t i, j, k;
 	WI_PlayerInfo_t TempDP[MAXPLAYERS];
 	size_t NumTempDP;
+	player_t* Player;
 	
 	wbs = wbstartstruct;
 	
@@ -1365,6 +1487,7 @@ static void WI_initVariables(wbstartstruct_t* wbstartstruct)
 	// Clear
 	memset(l_DrawPlayers, 0, sizeof(l_DrawPlayers));
 	l_NumDrawPlayers = 0;
+	l_TotalKills = l_TotalItems = l_TotalSecrets = 0;
 	
 	memset(TempDP, 0, sizeof(TempDP));
 	NumTempDP = 0;
@@ -1373,7 +1496,27 @@ static void WI_initVariables(wbstartstruct_t* wbstartstruct)
 	for (i = 0; i < MAXPLAYERS; i++)
 		if (playeringame[i])
 		{
-			TempDP[NumTempDP].Player = &players[i];
+			Player = TempDP[NumTempDP].Player = &players[i];
+			
+			// Add totals
+			l_TotalKills += Player->killcount;
+			l_TotalItems += Player->itemcount;
+			l_TotalSecrets += Player->secretcount;
+			
+			// Determine if is local player (on screen)
+			for (k = 0; k < MAXSPLITSCREEN; k++)
+				if (g_PlayerInSplit[k] && i == consoleplayer[k])
+				{
+					TempDP[NumTempDP].LocalPlayer = true;
+					TempDP[NumTempDP].ScreenNum = k;
+					break;
+				}
+			
+			// Setup fields
+			strncpy(TempDP[NumTempDP].PlayerName, D_NCSGetPlayerName(i), MAXPLAYERNAME - 1);
+			TempDP[NumTempDP].Kills = Player->killcount;
+			TempDP[NumTempDP].Items = Player->itemcount;
+			TempDP[NumTempDP].Secrets = Player->secretcount;
 			TempDP[NumTempDP++].Rank = i;
 		}
 	

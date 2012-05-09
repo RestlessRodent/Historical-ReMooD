@@ -746,18 +746,6 @@ void P_SGBS_MapData(D_RBlockStream_t* const a_Stream)
 	// End
 	D_RBSRecordBlock(a_Stream);
 	
-	/* Item Respawns */
-	//extern mapthing_t* itemrespawnque[ITEMQUESIZE];
-	//extern tic_t itemrespawntime[ITEMQUESIZE];
-	//extern int iquehead;
-	//extern int iquetail;
-	
-	// Begin
-	D_RBSBaseBlock(a_Stream, "SGMR");
-	
-	// End
-	D_RBSRecordBlock(a_Stream);
-	
 	/* Touching Sector Lists */
 	//msecnode_t* sector_list = NULL;
 	
@@ -781,6 +769,19 @@ void P_SGBS_MapData(D_RBlockStream_t* const a_Stream)
 	
 	// Begin
 	D_RBSBaseBlock(a_Stream, "SGME");
+	
+	// End
+	D_RBSRecordBlock(a_Stream);
+	
+	/* Others */
+	//extern mapthing_t* itemrespawnque[ITEMQUESIZE];
+	//extern tic_t itemrespawntime[ITEMQUESIZE];
+	//extern int iquehead;
+	//extern int iquetail;
+	//totalkills, totalitems
+	
+	// Begin
+	D_RBSBaseBlock(a_Stream, "SGMR");
 	
 	// End
 	D_RBSRecordBlock(a_Stream);

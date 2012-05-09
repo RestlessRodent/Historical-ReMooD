@@ -442,8 +442,9 @@ typedef struct subsector_s
 	int validcount;
 	
 	// GhostlyDeath <April 23, 2012> -- Bots
-	void** BotNodes;
-	size_t NumBotNodes;
+	bool_t NodesInit;							// Subsector mapped
+	void** BotNodes;							// Node in subsector
+	size_t NumBotNodes;							// Number of nodes in this subsector
 } subsector_t;
 
 // SoM: 3/6/200

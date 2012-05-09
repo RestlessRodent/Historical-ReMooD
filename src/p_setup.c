@@ -1728,6 +1728,7 @@ bool_t P_ExClearLevel(void)
 	S_StopSounds();
 	R_ClearLevelSplats();
 	P_ClearRecursiveSound();
+	B_ClearNodes();
 	
 	/* Free all level tags */
 	Z_FreeTags(PU_LEVEL, PU_PURGELEVEL - 1);
@@ -1745,6 +1746,10 @@ bool_t P_ExClearLevel(void)
 	// Body Queue
 	memset(bodyque, 0, sizeof(bodyque));
 	bodyqueslot = true;
+	
+	// Totals
+	totalkills = 0;
+	totalitems = 0;
 
 	/* Always succeeds */
 	return true;

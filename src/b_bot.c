@@ -176,6 +176,8 @@ static bool_t l_InitialNodeGen = false;			// Initial Nodes Generated
 static B_BotNode_t* l_PlayerNodes[MAXPLAYERS];	// Player Node locations
 static tic_t l_PlayerLastTime = 0;				// Last generation time
 
+
+
 /************************
 *** PRIVATE FUNCTIONS ***
 ************************/
@@ -503,12 +505,87 @@ static bool_t BS_CheckNodeSafeTraverser(intercept_t* in, void* const a_Data)
 	}
 }
 
+/* BS_FinalizeSubSector() -- Finalize Subsector */
+static bool_t BS_FinalizeSubSector(subsector_t* const a_SubSector, const fixed_t a_X, const fixed_t a_Y)
+{
+	subsector_t* SubS;
+	fixed_t dx, dy, Pow;
+	int x, y, m, i;
+	
+	/* Check */
+	if (!a_SubSector)
+		return false;
+	
+	/* Ignore if already initialized */
+	if (a_SubSector->NodesInit)
+		return false;
+		
+	/* Set as initialized */
+	a_SubSector->NodesInit = true;
+	
+	/* Create spread */
+	for (m = 1; m <= 3; m++)
+	{
+		// Get power
+		Pow = BOTMINNODEDIST;
+		//for (i = 0; i < m; i++)
+		//	Pow = FixedMul(Pow, BOTMINNODEDIST);
+		
+		// Offset away
+		for (x = -1; x <= 1; x++)
+			for (y = -1; y <= 1; y++)
+			{
+				// Ignore self
+				if (x == 0 && y == 0)
+					continue;
+				
+				// Get difference
+				dx = a_X + (Pow * x);
+				dy = a_Y + (Pow * y);
+				
+				// Get subsector at this point
+				SubS = R_IsPointInSubsector(dx, dy);
+				
+				// Nothing here?
+				if (!SubS)
+					continue;
+				
+				// Point is in this subsector
+				else if (SubS == a_SubSector)
+				{
+					// Add to node array
+					if (g_BotDebug)
+					{
+						P_SpawnMobj(
+								dx,
+								dy,
+								SubS->sector->floorheight,
+								INFO_GetTypeByName("ReMooDBotDebugNode")
+							);
+					}
+				}
+				
+				// Point is in another subsector
+				else
+				{
+					// Not initialized? Init then
+					if (!SubS->NodesInit)
+						BS_FinalizeSubSector(SubS, dx, dy);
+				}
+			}
+	}
+	
+	/* Success! */
+	return true;
+}
+
 /* BS_GetNodeAtPos() -- Get node at position */
 static B_BotNode_t* BS_GetNodeAtPos(const fixed_t a_X, const fixed_t a_Y, const int32_t a_Rec)
 {
 	subsector_t* SpotSS = NULL;
 	B_BotNode_t* CurNode, *LinkNode;
-	fixed_t Dist;
+	B_BotNode_t* ClosestNode;
+	fixed_t Dist, CloseDist;
 	size_t i;
 	int32_t x, y, LinkXID, LinkYID;
 	bool_t Failed;
@@ -528,6 +605,37 @@ static B_BotNode_t* BS_GetNodeAtPos(const fixed_t a_X, const fixed_t a_Y, const 
 	if (!SpotSS)
 		return NULL;
 	
+	/* Check for initialization */
+	if (!SpotSS->NodesInit)
+		BS_FinalizeSubSector(SpotSS, PlaceX, PlaceY);
+	
+	/* Find the closest node here */
+	ClosestNode = NULL;
+	for (i = 0; i < SpotSS->NumBotNodes; i++)
+	{
+		// Get current node
+		CurNode = SpotSS->BotNodes[i];
+		
+		// Get distance
+		Dist = P_AproxDistance(PlaceX - CurNode->Pos[0], PlaceY - CurNode->Pos[1]);
+		
+		// Distance is close
+		if (Dist < BOTMINNODEDIST)
+			break;
+		
+		// Otherwise see if it is better
+		if (!ClosestNode || (ClosestNode && Dist < CloseDist))
+		{
+			// Better now
+			ClosestNode = CurNode;
+			CloseDist = Dist;
+		}
+	}
+	
+	/* Return the closest node */
+	return ClosestNode;
+	
+#if 0
 	/* Go through nodes in subsector */
 	for (CurNode = NULL, i = 0; i < SpotSS->NumBotNodes; i++)
 	{
@@ -696,10 +804,11 @@ static B_BotNode_t* BS_GetNodeAtPos(const fixed_t a_X, const fixed_t a_Y, const 
 				}
 			}
 	}
-#endif
 	
 	/* Return the current node */
 	return CurNode;
+#endif
+#endif
 }
 
 /* BS_UpdateCurrentPos() -- Updates the bot's current position */
@@ -1008,6 +1117,11 @@ static void BS_ThinkBlindStraightLine(B_BotData_t* const a_BotData, ticcmd_t* co
 void B_InitNodes(void)
 {
 	l_InitialNodeGen = false;
+}
+
+/* B_ClearNodes() -- Clears all bot nodes */
+void B_ClearNodes(void)
+{
 }
 
 /* B_InitBot() -- Initializes Bot */
