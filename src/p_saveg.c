@@ -66,8 +66,18 @@ static CONL_ExitCode_t CLC_SaveGame(const uint32_t a_ArgC, const char** const a_
 	}
 	
 	/* Save the game */
-	if (P_SaveGameEx(NULL, a_ArgV[1], strlen(a_ArgV[1]), NULL, NULL))
-		return CLE_SUCCESS;
+	if (strcasecmp(a_ArgV[0], "save") == 0)
+	{
+		if (P_SaveGameEx(NULL, a_ArgV[1], strlen(a_ArgV[1]), NULL, NULL))
+			return CLE_SUCCESS;
+	}
+	
+	/* Load the game */
+	else if (strcasecmp(a_ArgV[0], "load") == 0)
+	{
+		if (P_LoadGameEx(NULL, a_ArgV[1], strlen(a_ArgV[1]), NULL, NULL))
+			return CLE_SUCCESS;
+	}
 	
 	/* Return success always */
 	return CLE_FAILURE;
@@ -78,6 +88,7 @@ void P_InitSGConsole(void)
 {
 	/* Add command */
 	CONL_AddCommand("save", CLC_SaveGame);
+	CONL_AddCommand("load", CLC_SaveGame);
 }
 
 /* P_SaveGameStream() -- Save game into specified stream */
@@ -139,7 +150,7 @@ bool_t P_CheckSizeEx(size_t Need)
 }
 
 /* P_SaveGameEx() -- Extended savegame */
-bool_t P_SaveGameEx(const char* SaveName, char* ExtFileName, size_t ExtFileNameLen, size_t* SaveLen, uint8_t** Origin)
+bool_t P_SaveGameEx(const char* SaveName, const char* ExtFileName, size_t ExtFileNameLen, size_t* SaveLen, uint8_t** Origin)
 {
 	bool_t OK = false;
 	D_RBlockStream_t* BS = D_RBSCreateFileStream(ExtFileName);
@@ -151,20 +162,270 @@ bool_t P_SaveGameEx(const char* SaveName, char* ExtFileName, size_t ExtFileNameL
 }
 
 /* P_LoadGameEx() -- Load an extended save game */
-bool_t P_LoadGameEx(const char* FileName, char* ExtFileName, size_t ExtFileNameLen, size_t* SaveLen, uint8_t** Origin)
+bool_t P_LoadGameEx(const char* FileName, const char* ExtFileName, size_t ExtFileNameLen, size_t* SaveLen, uint8_t** Origin)
 {
-	return false;
+	bool_t OK = false;
+	D_RBlockStream_t* BS = D_RBSCreateFileStream(ExtFileName);
+	
+	if (BS)
+	{
+		// Clear the level and set title screen (JUST IN CASE!)
+		P_ExClearLevel();
+		gamestate = GS_DEMOSCREEN;
+		
+		// Load the game
+		OK = P_LoadGameFromBS(BS);
+	}
+	
+	return OK;
+}
+
+/* PLG_FutureDeref_t -- Future derefence list */
+typedef struct PLG_FutureDeref_s
+{
+	uint64_t UniqPtr;							// Unique Pointer
+	void* SetVal;								// Set to this value (ptr)	
+	
+	void*** ChangePtr;							// Memory to change
+	size_t NumChangePtr;						// Numbers to change
+} PLG_FutureDeref_t;
+
+// Deref Data
+static PLG_FutureDeref_t* l_Derefs = NULL;
+static size_t l_NumDerefs = 0;
+
+/* PLGS_SetRef() -- Set reference */
+// This allocates something is pointed to
+static void PLGS_SetRef(const uint32_t a_UniqPtr, void* const a_SetVal)
+{
+}
+
+/* PLGS_DeRef() -- Dereference addition */
+static void PLGS_DeRef(const uint32_t a_UniqPtr, void** const a_PtrRef)
+{
 }
 
 /* P_LoadGameFromBS() -- Load game from block stream */
 bool_t P_LoadGameFromBS(D_RBlockStream_t* const a_Stream)
 {
+#define BUFSIZE 256
+	char Buf[BUFSIZE];
+	char BufB[BUFSIZE];
+	char Header[5];
+	uint8_t VerLeg, VerMaj, VerMin, VerRel;
+	uint8_t CharBit, CheckBit;
+	const WL_WADFile_t* WAD;
+	uint8_t u8;
+	uint32_t u32;
+	int32_t i, j, k, l;
+	
+	mapthing_t* MapThing;
+	sector_t* Sector;
+	
 	/* Check */
 	if (!a_Stream)
 		return false;
 	
+	/* Clear Future Ref */
+		
+	/* Constantly Read Blocks */
+	memset(Header, 0, sizeof(Header));
+	memset(Buf, 0, sizeof(Buf));
+	while (D_RBSPlayBlock(a_Stream, Header))
+	{
+		if (devparm)
+			CONL_PrintF("LOAD: Read %s\n", Header);
+		
+		// SGVR -- Version
+		if (strcasecmp(Header, "SGVR") == 0)
+		{
+			// Read version markers
+			VerLeg = D_RBSReadUInt8(a_Stream);
+			VerMaj = D_RBSReadUInt8(a_Stream);
+			VerMin = D_RBSReadUInt8(a_Stream);
+			VerRel = D_RBSReadUInt8(a_Stream);
+			
+			// Print Info
+			CONL_PrintF("LOAD: Loading Version %i.%i%c (%i)\n",
+					VerMaj, VerMin, VerRel,
+					VerLeg
+				);
+			
+			// Read Other Info
+			D_RBSReadString(a_Stream, Buf, BUFSIZE - 1);
+			CONL_PrintF("LOAD: Release \"%s\"\n", Buf);
+			D_RBSReadString(a_Stream, Buf, BUFSIZE - 1);
+			CONL_PrintF("LOAD: Fully known as %s\n", Buf);
+			D_RBSReadString(a_Stream, Buf, BUFSIZE - 1);
+			CONL_PrintF("LOAD: For more info, see %s\n", Buf);
+		}
+		
+		// Current Loaded WADS
+		else if (strcasecmp(Header, "SGVW") == 0)
+		{
+			// Lock OCCB and Pop all WADs
+			WL_LockOCCB(true);
+			while (WL_PopWAD())
+				;
+			
+			// Keep reading WADs
+			while ((CharBit = D_RBSReadUInt8(a_Stream)) != 'E')
+			{
+				// Read file and DOS Names
+				memset(Buf, 0, sizeof(Buf));
+				memset(BufB, 0, sizeof(BufB));
+				
+				D_RBSReadString(a_Stream, Buf, BUFSIZE - 1);
+				D_RBSReadString(a_Stream, BufB, BUFSIZE - 1);
+				
+				// Open the WAD and if that failed, try the DOSNAME
+				if (!(WAD = WL_OpenWAD(Buf)))
+					WAD = WL_OpenWAD(BufB);
+				
+				// Failed?
+				if (!WAD)
+				{
+					CONL_PrintF("LOAD: Savegame requires \"%s\" (%s) but you do not have that WAD.\n",
+						Buf, BufB);
+					return false;
+				}
+				
+				// Check some bits
+				CheckBit = D_RBSReadUInt8(a_Stream); // IP
+				CheckBit = D_RBSReadUInt8(a_Stream); // WN
+				CheckBit = D_RBSReadUInt8(a_Stream); // VI
+				
+				// Ignore index offset sizes and such
+				u32 = D_RBSReadUInt32(a_Stream);
+				u32 = D_RBSReadUInt32(a_Stream);
+				u32 = D_RBSReadUInt32(a_Stream);
+				
+				// Ignore integer sums
+				for (i = 0; i < 8; i++)
+					u32 = D_RBSReadUInt32(a_Stream);
+				
+				// Compare MD5/SS against WAD
+				for (i = 0; i < 64; i++)
+					CheckBit = D_RBSReadUInt8(a_Stream);
+				
+				// Push WAD
+				WL_PushWAD(WAD);
+			}
+			
+			// Unlock OCCB
+			WL_LockOCCB(false);
+		}
+		
+		// Game state info
+		else if (strcasecmp(Header, "SGZS") == 0)
+		{
+			// Read Timing Information
+			gametic = D_RBSReadUInt32(a_Stream);
+			D_SyncNetSetMapTime(D_RBSReadUInt32(a_Stream));
+			D_RBSReadUInt32(a_Stream);	// Ignore real time, not that important
+			
+			// Read State Info
+			gamestate = D_RBSReadUInt8(a_Stream);
+			u8 = D_RBSReadUInt8(a_Stream);	// Ignore demorecording
+			u8 = D_RBSReadUInt8(a_Stream);	// Ignore demoplayback
+			multiplayer = D_RBSReadUInt8(a_Stream);
+			
+			// Read Map Name
+			memset(Buf, 0, sizeof(Buf));
+			D_RBSReadString(a_Stream, Buf, BUFSIZE - 1);
+			
+			// Find level
+			g_CurrentLevelInfo = P_FindLevelByNameEx(Buf, NULL);
+		}
+		
+		// SGMV -- Map Vertexes
+		else if (strcasecmp(Header, "SGMV") == 0)
+		{
+			// Read Count
+			numvertexes = D_RBSReadUInt32(a_Stream);
+			vertexes = Z_Malloc(sizeof(*vertexes) * numvertexes, PU_LEVEL, NULL);
+			
+			// Read every vertex
+			for (i = 0; i < numvertexes; i++)
+			{
+				vertexes[i].x = D_RBSReadInt32(a_Stream);
+				vertexes[i].y = D_RBSReadInt32(a_Stream);
+			}
+		}
+		
+		// SGMS -- Map Sectors
+		else if (strcasecmp(Header, "SGMS") == 0)
+		{
+			numsectors = D_RBSReadUInt32(a_Stream);
+			sectors = Z_Malloc(sizeof(*sectors) * numsectors, PU_LEVEL, NULL);
+			
+			// Read every sector
+			for (i = 0; i < numsectors; i++)
+			{
+				// Get Current
+				Sector = &sectors[i];
+				
+				// Read in
+			}
+		}
+		
+		// SGMT -- Map Thing
+		else if (strcasecmp(Header, "SGMT") == 0)
+		{
+			// Read Count
+			nummapthings = D_RBSReadUInt32(a_Stream);
+			mapthings = Z_Malloc(sizeof(*mapthings) * nummapthings, PU_LEVEL, NULL);
+			
+			// Read every map thing
+			for (i = 0; i < nummapthings; i++)
+			{
+				// Set pointer reference
+				MapThing = &mapthings[i];
+				PLGS_SetRef(D_RBSReadPointer(a_Stream), MapThing);
+				
+				// Read the remainder
+				MapThing->x = D_RBSReadInt16(a_Stream);
+				MapThing->y = D_RBSReadInt16(a_Stream);
+				MapThing->z = D_RBSReadInt16(a_Stream);
+				MapThing->angle = D_RBSReadInt16(a_Stream);
+				MapThing->type = D_RBSReadInt16(a_Stream);
+				MapThing->options = D_RBSReadInt16(a_Stream);
+				PLGS_DeRef(D_RBSReadPointer(a_Stream), (void**)&MapThing->mobj);
+				MapThing->IsHexen = D_RBSReadUInt8(a_Stream);
+				MapThing->HeightOffset = D_RBSReadInt16(a_Stream);
+				MapThing->ID = D_RBSReadUInt16(a_Stream);
+				MapThing->Special = D_RBSReadUInt8(a_Stream);
+				for (j = 0; j < 5; j++)
+					MapThing->Args[i] = D_RBSReadUInt8(a_Stream);
+				MapThing->MoType = D_RBSReadUInt32(a_Stream);
+				MapThing->MarkedWeapon = D_RBSReadUInt8(a_Stream);
+			}
+		}
+		
+		// SGMR -- Other Map Stuff
+		else if (strcasecmp(Header, "SGMR") == 0)
+		{
+			// Read Player Starts
+			j = D_RBSReadUInt32(a_Stream);
+			for (k = 0; k < j; k++)
+			{
+				u32 = D_RBSReadUInt32(a_Stream);
+				if (k < MAXPLAYERS && u32 >= 0 && u32 < nummapthings)
+					playerstarts[k] = &mapthings[u32];
+			}
+		}
+		
+		// SGEE -- End Stream
+		else if (strcasecmp(Header, "SGEE") == 0)
+			break;
+		
+		// Clear Header for next block movement
+		memset(Header, 0, sizeof(Header));
+	}
+	
 	/* Success */
 	return true;
+#undef BUFSIZE
 }
 
 // Save Game Prototypes
@@ -201,12 +462,12 @@ bool_t P_SaveGameToBS(D_RBlockStream_t* const a_Stream)
 	P_SGBS_Time(a_Stream);
 	P_SGBS_Version(a_Stream);
 	P_SGBS_WAD(a_Stream);
+	P_SGBS_State(a_Stream);
 	P_SGBS_NetProfiles(a_Stream);
 	P_SGBS_SplitPlayers(a_Stream);
 	P_SGBS_Players(a_Stream);
 	P_SGBS_MapData(a_Stream);
 	P_SGBS_Thinkers(a_Stream);
-	P_SGBS_State(a_Stream);
 	
 	/* Write End Header */
 	// Save Game End Exit
@@ -275,6 +536,8 @@ void P_SGBS_WAD(D_RBlockStream_t* const a_Stream)
 	/* Iterate all VWADs */	
 	for (CurVWAD = WL_IterateVWAD(NULL, true); CurVWAD; CurVWAD = WL_IterateVWAD(CurVWAD, true))
 	{
+		D_RBSWriteUInt8(a_Stream, 'B');
+		
 		// Print WAD Names
 		D_RBSWriteString(a_Stream, CurVWAD->__Private.__FileName);
 		D_RBSWriteString(a_Stream, CurVWAD->__Private.__DOSName);
@@ -285,9 +548,9 @@ void P_SGBS_WAD(D_RBlockStream_t* const a_Stream)
 		D_RBSWriteUInt8(a_Stream, (CurVWAD->__Private.__IsValid ? 'V' : 'I'));
 		
 		// Print Some WAD Identification
-		D_RBSWriteUInt8(a_Stream, CurVWAD->NumEntries);
-		D_RBSWriteUInt8(a_Stream, CurVWAD->__Private.__IndexOff);
-		D_RBSWriteUInt8(a_Stream, CurVWAD->__Private.__Size);
+		D_RBSWriteUInt32(a_Stream, CurVWAD->NumEntries);
+		D_RBSWriteUInt32(a_Stream, CurVWAD->__Private.__IndexOff);
+		D_RBSWriteUInt32(a_Stream, CurVWAD->__Private.__Size);
 		
 		// Print WAD Sums
 		for (i = 0; i < 4; i++)
@@ -299,6 +562,7 @@ void P_SGBS_WAD(D_RBlockStream_t* const a_Stream)
 		for (i = 0; i < 32; i++)
 			D_RBSWriteUInt8(a_Stream, CurVWAD->SimpleSumChars[i]);
 	}
+	D_RBSWriteUInt8(a_Stream, 'E');
 	
 	/* Record Block */
 	D_RBSRecordBlock(a_Stream);
@@ -614,8 +878,9 @@ void PS_SGBS_DumpMapThing(D_RBlockStream_t* const a_Stream, mapthing_t* const Ma
 // Left: AFHKMQWXY
 void P_SGBS_MapData(D_RBlockStream_t* const a_Stream)
 {
-	size_t i;
+	size_t i, j;
 	mapthing_t* MapThing;
+	sector_t* Sector;
 	
 	/* Vertexes */
 	// Begin
@@ -635,6 +900,114 @@ void P_SGBS_MapData(D_RBlockStream_t* const a_Stream)
 	/* Sectors */
 	// Begin
 	D_RBSBaseBlock(a_Stream, "SGMS");
+	
+	// Put sectors
+	D_RBSWriteUInt32(a_Stream, numsectors);
+	for (i = 0; i < numsectors; i++)
+	{
+		// Get Current
+		Sector = &sectors[i];
+		
+		// Dump
+		D_RBSWriteInt32(a_Stream, Sector->floorheight);
+		D_RBSWriteInt32(a_Stream, Sector->ceilingheight);
+		D_RBSWriteInt32(a_Stream, Sector->nexttag);
+		D_RBSWriteInt32(a_Stream, Sector->firsttag);
+		D_RBSWriteInt32(a_Stream, Sector->validcount);
+		D_RBSWriteInt32(a_Stream, Sector->stairlock);
+		D_RBSWriteInt32(a_Stream, Sector->prevsec);
+		D_RBSWriteInt32(a_Stream, Sector->nextsec);
+		D_RBSWriteInt32(a_Stream, Sector->floor_xoffs);
+		D_RBSWriteInt32(a_Stream, Sector->floor_yoffs);
+		D_RBSWriteInt32(a_Stream, Sector->ceiling_xoffs);
+		D_RBSWriteInt32(a_Stream, Sector->ceiling_yoffs);
+		D_RBSWriteInt32(a_Stream, Sector->heightsec);
+		D_RBSWriteInt32(a_Stream, Sector->altheightsec);
+		D_RBSWriteInt32(a_Stream, Sector->floorlightsec);
+		D_RBSWriteInt32(a_Stream, Sector->ceilinglightsec);
+		D_RBSWriteInt32(a_Stream, Sector->teamstartsec);
+		D_RBSWriteInt32(a_Stream, Sector->bottommap);
+		D_RBSWriteInt32(a_Stream, Sector->midmap);
+		D_RBSWriteInt32(a_Stream, Sector->topmap);
+		D_RBSWriteInt32(a_Stream, Sector->validsort);
+		D_RBSWriteInt32(a_Stream, FLOAT_TO_FIXED(Sector->lineoutLength));
+		
+		D_RBSWriteUInt32(a_Stream, Sector->special);
+		D_RBSWriteUInt32(a_Stream, Sector->oldspecial);
+		//D_RBSWriteUInt32(a_Stream, Sector->xxxxxxxxx);
+		//D_RBSWriteUInt32(a_Stream, Sector->xxxxxxxxx);
+		//D_RBSWriteUInt32(a_Stream, Sector->xxxxxxxxx);
+		
+		D_RBSWriteInt16(a_Stream, Sector->floorpic);
+		D_RBSWriteInt16(a_Stream, Sector->ceilingpic);
+		D_RBSWriteInt16(a_Stream, Sector->lightlevel);
+		D_RBSWriteInt16(a_Stream, Sector->tag);
+		D_RBSWriteInt16(a_Stream, Sector->soundtraversed);
+		D_RBSWriteInt16(a_Stream, Sector->floortype);
+		
+		// Arrays
+		for (j = 0; j < 4; j++)
+		{
+			D_RBSWriteInt32(a_Stream, Sector->blockbox[j]);
+			D_RBSWriteInt32(a_Stream, Sector->BBox[j]);
+		}
+		
+		// Variable
+		
+		// Pointers
+		D_RBSWritePointer(a_Stream, Sector->soundtarget);
+
+#if 0
+// origin for any sounds played by the sector
+S_NoiseThinker_t soundorg;
+
+
+// list of mobjs in sector
+mobj_t* thinglist;
+
+//SoM: 3/6/2000: Start boom extra stuff
+// thinker_t for reversable actions
+void* floordata;			// make thinkers on
+void* ceilingdata;			// floors, ceilings, lighting,
+void* lightingdata;			// independent of one another
+
+// list of mobjs that are at least partially in the sector
+// thinglist is a subset of touching_thinglist
+struct msecnode_s* touching_thinglist;	// phares 3/14/98
+//SoM: 3/6/2000: end stuff...
+
+int linecount;
+struct line_s** lines;		// [linecount] size
+
+//SoM: 2/23/2000: Improved fake floor hack
+ffloor_t* ffloors;
+int* attached;
+int numattached;
+lightlist_t* lightlist;
+int numlights;
+bool_t moved;
+
+bool_t added;
+
+// SoM: 4/3/2000: per-sector colormaps!
+extracolormap_t* extra_colormap;
+
+// ----- for special tricks with HW renderer -----
+bool_t pseudoSector;
+bool_t virtualFloor;
+fixed_t virtualFloorheight;
+bool_t virtualCeiling;
+fixed_t virtualCeilingheight;
+linechain_t* sectorLines;
+struct sector_s** stackList;
+// ----- end special tricks -----
+
+// ReMooD Additions
+char* FloorTexture;							// Name of floor texture
+char* CeilingTexture;						// Name of ceiling texture
+size_t SoundSecRef;							// Reference to sound sector
+#endif
+	}
 	
 	// End
 	D_RBSRecordBlock(a_Stream);
@@ -719,33 +1092,6 @@ void P_SGBS_MapData(D_RBlockStream_t* const a_Stream)
 	// End
 	D_RBSRecordBlock(a_Stream);
 	
-	/* Deathmatch Starts */
-	//PS_SGBS_DumpMapThing
-	// deathmatchstarts[numdmstarts]
-	// Begin
-	D_RBSBaseBlock(a_Stream, "SGMD");
-	
-	// End
-	D_RBSRecordBlock(a_Stream);
-	
-	/* Player Starts */
-	// playerstarts[mthing->type - 1] = mthing;
-	
-	// Begin
-	D_RBSBaseBlock(a_Stream, "SGMC");
-	
-	// End
-	D_RBSRecordBlock(a_Stream);
-	
-	/* Boss Brain Spots */
-	// braintargets[numbraintargets]
-	
-	// Begin
-	D_RBSBaseBlock(a_Stream, "SGMO");
-	
-	// End
-	D_RBSRecordBlock(a_Stream);
-	
 	/* Touching Sector Lists */
 	//msecnode_t* sector_list = NULL;
 	
@@ -774,14 +1120,24 @@ void P_SGBS_MapData(D_RBlockStream_t* const a_Stream)
 	D_RBSRecordBlock(a_Stream);
 	
 	/* Others */
+	// playerstarts[mthing->type - 1] = mthing;
+	// deathmatchstarts[numdmstarts]
+	// braintargets[numbraintargets]
 	//extern mapthing_t* itemrespawnque[ITEMQUESIZE];
 	//extern tic_t itemrespawntime[ITEMQUESIZE];
 	//extern int iquehead;
 	//extern int iquetail;
 	//totalkills, totalitems
+	//mobj_t* bodyque[BODYQUESIZE];
+	//int bodyqueslot;
 	
 	// Begin
 	D_RBSBaseBlock(a_Stream, "SGMR");
+	
+	// Player Starts
+	D_RBSWriteUInt32(a_Stream, MAXPLAYERS);
+	for (i = 0; i < MAXPLAYERS; i++)
+		D_RBSWriteUInt32(a_Stream, playerstarts[i] - mapthings);
 	
 	// End
 	D_RBSRecordBlock(a_Stream);
@@ -1237,6 +1593,9 @@ void P_SGBS_State(D_RBlockStream_t* const a_Stream)
 	D_RBSWriteUInt8(a_Stream, demorecording);
 	D_RBSWriteUInt8(a_Stream, demoplayback);
 	D_RBSWriteUInt8(a_Stream, multiplayer);
+	
+	// Write Current Level name
+	D_RBSWriteString(a_Stream, g_CurrentLevelInfo->LumpName);
 	
 	// End
 	D_RBSRecordBlock(a_Stream);

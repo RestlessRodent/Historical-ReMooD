@@ -320,6 +320,7 @@ const WL_WADFile_t* WL_OpenWAD(const char* const a_PathName)
 	uint8_t u8;
 	uint32_t u32;
 	WL_WADEntry_t* ThisEntry;
+	WL_WADFile_t* WAD;
 	
 	/* Check */
 	if (!a_PathName)
@@ -328,6 +329,26 @@ const WL_WADFile_t* WL_OpenWAD(const char* const a_PathName)
 	/* First locate the WAD */
 	if (!WL_LocateWAD(a_PathName, NULL, FoundWAD, PATH_MAX))
 		return NULL;
+		
+#if defined(_WIN32)
+	#define __REMOOD_PATHCOMPFUNC strcasecmp
+#else
+	#define __REMOOD_PATHCOMPFUNC strcmp
+#endif
+	
+	// Determine if the WAD is already open (don't load WADs twice!)
+		// This is important in networked situations and save games
+	for (WAD = l_LFirstWAD; WAD; WAD = WAD->__Private.__PrevWAD)
+	{
+		// Compare name (path and base name)
+		if (__REMOOD_PATHCOMPFUNC(FoundWAD, WAD->__Private.__PathName) == 0 ||
+			strcasecmp(WL_BaseNameEx(FoundWAD), WAD->__Private.__FileName) == 0)
+		{
+			CONL_PrintF("WL_OpenWAD: \"%s\" is already open!\n", FoundWAD);
+			return WAD;
+		}
+	}
+#undef __REMOOD_PATHCOMPFUNC
 		
 	// Debug
 	if (devparm)

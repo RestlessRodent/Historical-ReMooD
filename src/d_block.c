@@ -280,7 +280,7 @@ static size_t DS_RBSFile_RecordF(struct D_RBlockStream_s* const a_Stream)
 	
 	/* Write Header */
 	fwrite(a_Stream->BlkHeader, 4, 1, File);
-	BlockLen = a_Stream->BlkSize;
+	BlockLen = LittleSwapUInt32(a_Stream->BlkSize);
 	fwrite(&BlockLen, sizeof(BlockLen), 1, File);
 	
 	/* Determine Quicksum */
@@ -289,6 +289,7 @@ static size_t DS_RBSFile_RecordF(struct D_RBlockStream_s* const a_Stream)
 			QuickSum ^= (((uint8_t*)a_Stream->BlkData)[i]) << ((i & 2) ? 4 : 0);
 		else
 			QuickSum ^= (~(((uint8_t*)a_Stream->BlkData)[i])) << ((i & 2) ? 6 : 2);
+	QuickSum = LittleSwapUInt32(QuickSum);
 	fwrite(&QuickSum, sizeof(QuickSum), 1, File);
 	
 	/* Write Data */
@@ -298,6 +299,59 @@ static size_t DS_RBSFile_RecordF(struct D_RBlockStream_s* const a_Stream)
 	fflush(File);
 	
 	return RetVal;
+}
+
+/* DS_RBSFile_PlayF() -- Play from file */
+bool_t DS_RBSFile_PlayF(struct D_RBlockStream_s* const a_Stream)
+{
+	FILE* File;
+	char Header[5];
+	uint32_t Len, Sum;
+	void* Data;
+	
+	/* Check */
+	if (!a_Stream)
+		return 0;
+		
+	/* Get Data */
+	File = (FILE*)a_Stream->Data;
+	
+	/* Flush for read */
+	fflush(File);
+	
+	/* Read Header */
+	// Clear
+	memset(Header, 0, sizeof(Header));
+	Len = Sum = 0;
+	Data = NULL;
+	
+	// Start reading
+	fread(&Header, 4, 1, File);
+	fread(&Len, sizeof(Len), 1, File);
+	Len = LittleSwapUInt32(Len);
+	fread(&Sum, sizeof(Sum), 1, File);
+	Sum = LittleSwapUInt32(Sum);
+	
+	if (Len > 0)
+	{
+		Data = Z_Malloc(Len, PU_STATIC, NULL);
+		if (fread(Data, Len, 1, File) < 1)
+		{
+			Z_Free(Data);
+			return false;
+		}
+	}
+	
+	/* Initialize Block */
+	D_RBSBaseBlock(a_Stream, Header);
+	
+	/* Write Data to Block */
+	D_RBSWriteChunk(a_Stream, Data, Len);
+	if (Data)
+		Z_Free(Data);
+	
+	/* Success! */
+	return true;
 }
 
 /****************
@@ -327,6 +381,7 @@ D_RBlockStream_t* D_RBSCreateFileStream(const char* const a_PathName)
 	/* Setup Data */
 	New->Data = File;
 	New->RecordF = DS_RBSFile_RecordF;
+	New->PlayF = DS_RBSFile_PlayF;
 	
 	/* Return Stream */
 	return New;
@@ -363,6 +418,7 @@ void D_RBSBaseBlock(D_RBlockStream_t* const a_Stream, const char* const a_Header
 	/* Create a fresh block */
 	a_Stream->BlkBufferSize = RBLOCKBUFSIZE;
 	a_Stream->BlkData = Z_Malloc(a_Stream->BlkBufferSize, PU_BLOCKSTREAM, NULL);
+	a_Stream->ReadOff = 0;
 	
 	// Copy header
 	memmove(a_Stream->BlkHeader, a_Header, (strlen(a_Header) >= 4 ? 4 : strlen(a_Header)));
@@ -378,6 +434,24 @@ void D_RBSRecordBlock(D_RBlockStream_t* const a_Stream)
 	/* Call recorder */
 	if (a_Stream->RecordF)
 		a_Stream->RecordF(a_Stream);
+}
+
+/* D_RBSRecordBlock() -- Plays the current block from the stream */
+bool_t D_RBSPlayBlock(D_RBlockStream_t* const a_Stream, char* const a_Header)
+{
+	/* Check */
+	if (!a_Stream)
+		return;
+	
+	/* Call recorder */
+	if (a_Stream->PlayF)
+		if (a_Stream->PlayF(a_Stream))
+		{
+			if (a_Header)
+				memmove(a_Header, a_Stream->BlkHeader, sizeof(a_Stream->BlkHeader));
+			return true;
+		}
+	return false;
 }
 
 /* D_RBSWriteChunk() -- Write data chunk into block */
@@ -453,5 +527,93 @@ void D_RBSWritePointer(D_RBlockStream_t* const a_Stream, const void* const a_Ptr
 		XP &= ~0xFFU;
 		XP >>= 8U;
 	}
+}
+
+/* D_RBSReadChunk() -- Reads Chunk */
+size_t D_RBSReadChunk(D_RBlockStream_t* const a_Stream, void* const a_Data, const size_t a_Size)
+{
+	ssize_t Count;
+	size_t Read;
+	
+	/* Check */
+	if (!a_Stream || !a_Data || !a_Size)
+		return 0;
+	
+	/* Counting Read */
+	Read = 0;
+	for (Count = a_Size; Count > 0; Count--)
+		if (a_Stream->ReadOff < a_Stream->BlkSize)
+			((uint8_t*)a_Data)[Read++] = a_Stream->BlkData[a_Stream->ReadOff++];
+	
+	/* Return read amount */
+	return Read;
+}
+
+#define BP_MERGE(a,b) a##b
+#define __REMOOD_RBSQUICKREAD(w,x) x BP_MERGE(D_RBSRead,w)(D_RBlockStream_t* const a_Stream)\
+{\
+	x Ret;\
+	D_RBSReadChunk(a_Stream, &Ret, sizeof(Ret));\
+	return Ret;\
+}
+
+__REMOOD_RBSQUICKREAD(Int8,int8_t);
+__REMOOD_RBSQUICKREAD(Int16,int16_t);
+__REMOOD_RBSQUICKREAD(Int32,int32_t);
+__REMOOD_RBSQUICKREAD(UInt8,uint8_t);
+__REMOOD_RBSQUICKREAD(UInt16,uint16_t);
+__REMOOD_RBSQUICKREAD(UInt32,uint32_t);
+
+/* D_RBSReadString() -- Read String */
+size_t D_RBSReadString(D_RBlockStream_t* const a_Stream, char* const a_Out, const size_t a_OutSize)
+{
+	size_t i;
+	uint8_t Char;
+	
+	/* Check */
+	if (!a_Stream || !a_Out || !a_OutSize)
+		return 0;
+	
+	/* Read variable string data */
+	for (i = 0; ; i++)
+	{
+		// Read Character
+		Char = D_RBSReadUInt8(a_Stream);
+		
+		// End of string?
+		if (!Char)
+		{
+			// Append NUL, if possible
+			if (i < a_OutSize)
+				a_Out[i] = 0;
+			break;
+		}
+		
+		// Otherwise add to the output
+		if (i < a_OutSize)
+			a_Out[i] = Char;
+	}
+	
+	/* Return read count */
+	return i;	
+}
+
+/* D_RBSReadPointer() -- Reads pointer */
+uint64_t D_RBSReadPointer(D_RBlockStream_t* const a_Stream)
+{
+	size_t i;
+	uint8_t SizeOf;
+	uint64_t OP;
+	
+	/* Read sizeof() */
+	SizeOf = D_RBSReadUInt8(a_Stream);
+	
+	/* Read in pointer bits */
+	OP = 0;
+	for (i = 0; i < SizeOf; i++)
+		OP |= ((uint64_t)D_RBSReadUInt8(a_Stream)) << ((UINT64_C(8) * ((uint64_t)i)));
+	
+	/* Return the number */
+	return OP;
 }
 

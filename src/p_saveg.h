@@ -54,8 +54,8 @@ bool_t P_LoadGameStream(D_TStreamSource_t* const a_Stream);
 void P_SaveGame(void);
 bool_t P_LoadGame(void);
 
-bool_t P_LoadGameEx(const char* FileName, char* ExtFileName, size_t ExtFileNameLen, size_t* SaveLen, uint8_t** Origin);
-bool_t P_SaveGameEx(const char* Desc, char* ExtFileName, size_t ExtFileNameLen, size_t* SaveLen, uint8_t** Origin);
+bool_t P_LoadGameEx(const char* FileName, const char* ExtFileName, size_t ExtFileNameLen, size_t* SaveLen, uint8_t** Origin);
+bool_t P_SaveGameEx(const char* Desc, const char* ExtFileName, size_t ExtFileNameLen, size_t* SaveLen, uint8_t** Origin);
 
 bool_t P_LoadGameFromBS(D_RBlockStream_t* const a_Stream);
 bool_t P_SaveGameToBS(D_RBlockStream_t* const a_Stream);

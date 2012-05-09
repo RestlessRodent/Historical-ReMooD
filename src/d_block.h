@@ -170,9 +170,11 @@ typedef struct D_RBlockStream_s
 	uint8_t* BlkData;							// Data
 	size_t BlkSize;								// Block Size
 	size_t BlkBufferSize;						// Size of buffer
+	size_t ReadOff;								// Read Offset
 	
 	/* Functions */
 	size_t (*RecordF)(struct D_RBlockStream_s* const a_Stream);
+	bool_t (*PlayF)(struct D_RBlockStream_s* const a_Stream);
 } D_RBlockStream_t;
 
 /****************
@@ -184,6 +186,8 @@ D_RBlockStream_t* D_RBSCreateNetStream(I_NetSocket_t* const a_NetSocket);
 void D_RBSCloseStream(D_RBlockStream_t* const a_Stream);
 
 void D_RBSBaseBlock(D_RBlockStream_t* const a_Stream, const char* const a_Header);
+
+bool_t D_RBSPlayBlock(D_RBlockStream_t* const a_Stream, char* const a_Header);
 void D_RBSRecordBlock(D_RBlockStream_t* const a_Stream);
 
 size_t D_RBSWriteChunk(D_RBlockStream_t* const a_Stream, const void* const a_Data, const size_t a_Size);
@@ -197,6 +201,18 @@ void D_RBSWriteUInt32(D_RBlockStream_t* const a_Stream, const uint32_t a_Val);
 
 void D_RBSWriteString(D_RBlockStream_t* const a_Stream, const char* const a_Val);
 void D_RBSWritePointer(D_RBlockStream_t* const a_Stream, const void* const a_Ptr);
+
+size_t D_RBSReadChunk(D_RBlockStream_t* const a_Stream, void* const a_Data, const size_t a_Size);
+
+int8_t D_RBSReadInt8(D_RBlockStream_t* const a_Stream);
+int16_t D_RBSReadInt16(D_RBlockStream_t* const a_Stream);
+int32_t D_RBSReadInt32(D_RBlockStream_t* const a_Stream);
+uint8_t D_RBSReadUInt8(D_RBlockStream_t* const a_Stream);
+uint16_t D_RBSReadUInt16(D_RBlockStream_t* const a_Stream);
+uint32_t D_RBSReadUInt32(D_RBlockStream_t* const a_Stream);
+
+size_t D_RBSReadString(D_RBlockStream_t* const a_Stream, char* const a_Out, const size_t a_OutSize);
+uint64_t D_RBSReadPointer(D_RBlockStream_t* const a_Stream);
 
 #endif /* __D_BLOCK_H__ */
 
