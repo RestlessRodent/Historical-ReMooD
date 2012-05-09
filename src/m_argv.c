@@ -128,7 +128,9 @@ void M_PushSpecialParametersAsOne(const bool_t plusplus)
 					CONL_PrintFUL(SRCSTR__M_ARGV_C__EXECP, L"%s", s);
 			}
 #endif
-			COM_BufAddText(s);
+			
+			// GhostlyDeath <May 9, 2012> -- Execute on new console instead
+			CONL_InputF(s);
 			i--;
 		}
 	}
