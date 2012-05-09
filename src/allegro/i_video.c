@@ -165,7 +165,7 @@ const uint8_t c_AllegroToReMooDKey[KEY_MAX] =	// Converts an Allegro key to a Re
 	IKBK_FORWARDSLASH,			//  KEY_SLASH
 	IKBK_SPACE,					//  KEY_SPACE
 	IKBK_INSERT,				//  KEY_INSERT
-	IKBK_DELETE,				//  KEY_DEL
+	IKBK_KDELETE,				//  KEY_DEL
 	IKBK_HOME,					//  KEY_HOME
 	IKBK_END,					//  KEY_END
 	IKBK_PAGEUP,				//  KEY_PGUP

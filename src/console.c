@@ -409,12 +409,12 @@ bool_t CONCTI_HandleEvent(CONCTI_Inputter_t* const a_Input, const I_EventEx_t* c
 			
 			// Delete Characters
 		case IKBK_BACKSPACE:
-		case IKBK_DELETE:
+		case IKBK_KDELETE:
 			// Reset history mark
 			a_Input->HistorySpot = -1;
 			
 			// Find character to delete
-			j = a_Input->CursorPos - (Code == IKBK_DELETE ? 0 : 1);
+			j = a_Input->CursorPos - (Code == IKBK_KDELETE ? 0 : 1);
 			
 			for (MBRover = a_Input->ChainRoot, i = 0; MBRover; i++)
 			{

@@ -304,7 +304,7 @@ static int IS_NewKeyToOldKey(const uint8_t a_New)
 			return KEY_LEFTARROW;
 		case IKBK_RIGHT:
 			return KEY_RIGHTARROW;
-		case IKBK_DELETE:
+		case IKBK_KDELETE:
 			return KEY_DEL;
 		case IKBK_HOME:
 			return KEY_HOME;

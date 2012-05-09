@@ -393,7 +393,7 @@ const uint8_t c_SDLToReMooDKey[SDLK_LAST] =	// Converts an SDL key to a ReMooD K
 	IKBK_NULL,					// EMPTY
 	IKBK_NULL,					// EMPTY
 	IKBK_NULL,					// EMPTY
-	IKBK_DELETE,				// SDLK_DELETE
+	IKBK_KDELETE,				// SDLK_DELETE
 	IKBK_NULL,					// EMPTY
 	IKBK_NULL,					// EMPTY
 	IKBK_NULL,					// EMPTY
