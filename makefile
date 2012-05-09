@@ -214,6 +214,7 @@ endif
 ##############/
 
 # Object Location
+export __INT_BIN := bin
 export __INT_OBJ := objs
 
 # Default
@@ -232,6 +233,16 @@ remood:			$(__INT_OBJ) ____make.___
 # Object directory
 $(__INT_OBJ):	
 				$(__INT_RUNCOMMAND,mkdir $@)
+
+# RMDTEX -- DeuTex Clone For ReMooD
+rmdtext.exe:	util/rmdtex.c
+				@$(__INT_HOSTCC) -o $@ $<
+
+# ReMooD.WAD
+$(__INT_BIN)/remood.wad:	rmdtext.exe
+							@$(call __INT_RUNCOMMAND,$(__INT_RUNCURDIR)rmdtext.exe wad/wadinfo.txt $@)
+
+wad:						bin/remood.wad
 
 ###################################
 ### MAGICAL MAKEFILE GENERATION ###
