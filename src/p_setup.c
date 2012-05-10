@@ -1750,6 +1750,10 @@ bool_t P_ExClearLevel(void)
 	// Totals
 	totalkills = 0;
 	totalitems = 0;
+	
+	// Map Data
+	nummapthings = numvertexes = numsegs = numsectors = numsubsectors = numnodes = numlines = numsides = 0;
+	mapthings = vertexes = segs = sectors = subsectors = nodes = lines = sides = NULL;
 
 	/* Always succeeds */
 	return true;

@@ -179,6 +179,8 @@ void SCR_Startup(void)
 	// GhostlyDeath <November 5, 2010> -- Fixed point scale
 	vid.fxdupx = FixedDiv(vid.width << FRACBITS, BASEVIDWIDTH << FRACBITS);
 	vid.fxdupy = FixedDiv(vid.height << FRACBITS, BASEVIDHEIGHT << FRACBITS);
+	vid.fxdivx = FixedDiv(1 << FRACBITS, vid.fxdupx);
+	vid.fxdivy = FixedDiv(1 << FRACBITS, vid.fxdupy);
 	
 	// GhostlyDeath <November 5, 2010> -- Use fixed point scale
 	vid.fdupx = FIXED_TO_FLOAT(vid.fxdupx);
@@ -222,6 +224,8 @@ void SCR_Recalc(void)
 	// GhostlyDeath <November 5, 2010> -- Fixed point scale
 	vid.fxdupx = FixedDiv(vid.width << FRACBITS, BASEVIDWIDTH << FRACBITS);
 	vid.fxdupy = FixedDiv(vid.height << FRACBITS, BASEVIDHEIGHT << FRACBITS);
+	vid.fxdivx = FixedDiv(1 << FRACBITS, vid.fxdupx);
+	vid.fxdivy = FixedDiv(1 << FRACBITS, vid.fxdupy);
 	
 	// GhostlyDeath <November 5, 2010> -- Use fixed point scale
 	vid.fdupx = FIXED_TO_FLOAT(vid.fxdupx);

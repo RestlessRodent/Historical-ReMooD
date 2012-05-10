@@ -122,6 +122,8 @@ typedef struct CONL_PlayerMessage_s
 **************/
 
 bool_t g_EarlyBootConsole = false;				// Early Boot Console
+int32_t g_MousePos[2] = {0, 0};					// Mouse Position
+bool_t g_MouseDown = false;						// Mouse is down
 
 /*************
 *** LOCALS ***
@@ -1561,6 +1563,17 @@ void CONL_Ticker(void)
 #endif /* __REMOOD_DEDICATED */
 }
 
+/* CONL_DrawMouse() -- Draws the mouse */
+void CONL_DrawMouse(void)
+{
+	V_Image_t* CurPic;
+	
+	CurPic = V_ImageFindA("MOUSECUR");
+	
+	if (CurPic)
+		V_ImageDraw(0, CurPic, g_MousePos[0], g_MousePos[1], NULL);
+}
+
 /* CONL_HandleEvent() -- Handles extended event for the console */
 bool_t CONL_HandleEvent(const I_EventEx_t* const a_Event)
 {
@@ -1588,6 +1601,14 @@ bool_t CONL_HandleEvent(const I_EventEx_t* const a_Event)
 	/* Don't handle events during startup */
 	if (con_startup || g_EarlyBootConsole)
 		return false;
+	
+	/* Update Mouse Position */
+	if (a_Event->Type == IET_MOUSE)
+	{
+		g_MouseDown = (a_Event->Data.Mouse.Down && a_Event->Data.Mouse.Button == 1);
+		g_MousePos[0] = FixedMul(a_Event->Data.Mouse.Pos[0] << FRACBITS, vid.fxdivx) >> FRACBITS;
+		g_MousePos[1] = FixedMul(a_Event->Data.Mouse.Pos[1] << FRACBITS, vid.fxdivy) >> FRACBITS;
+	}
 	
 	/* Handle Virtual OSK Events? */
 	if (CONL_IsActive())
@@ -1873,7 +1894,7 @@ static const struct
 		{0},
 		{2, 1, {IKBK_ALT, 0, 0}, {"AL", NULL, NULL}},
 		{0},
-		{6, 1, {IKBK_SPACE, 0, 0}, {"SPACE", NULL, NULL}},
+		{6, 1, {IKBK_SPACE, 0, 0}, {" ", " ", " "}},
 		{0},
 		{0},
 		{0},
@@ -1912,6 +1933,8 @@ void CONLS_DrawOSK(const int32_t a_X, const int32_t a_Y, const int32_t a_W, cons
 	size_t i, j, Shift;
 	bool_t IsSelected;
 	uint32_t DrawFlags;
+	I_EventEx_t VirtEvent;
+	int32_t x, y, ex, ey;
 	
 	/* Check */
 	if (a_SplitP >= MAXSPLITSCREEN)
@@ -1939,14 +1962,35 @@ void CONLS_DrawOSK(const int32_t a_X, const int32_t a_Y, const int32_t a_W, cons
 			}
 			
 			// Draw it
+			x = a_X + (9 * j);
+			y = a_Y + (9 * i);
+			ex = x + 8;
+			ey = y + 8;
 			V_DrawStringA(
 					VFONT_OEM,
 					DrawFlags,
 					l_OSKLayout[i][j].UTFKey[(l_OSKLayout[i][j].VirtOnly ? 0 : Shift)],
-					a_X + (9 * j),
-					a_Y + (9 * i)
+					x,
+					y
 				);
+			
+			// Mouse in spot?
+			if (g_MousePos[0] >= x && g_MousePos[0] <= ex)
+				if (g_MousePos[1] >= y && g_MousePos[1] <= ey)
+				{
+					// Clear
+					memset(&VirtEvent, 0, sizeof(VirtEvent));
+					
+					// Set
+					VirtEvent.Type = IET_SYNTHOSK;
+					VirtEvent.Data.SynthOSK.PNum = a_SplitP;
+					VirtEvent.Data.SynthOSK.Direct |= 0x8000 | (i & 0xF) | ((j & 0xFF) << 8);
+					I_EventExPush(&VirtEvent);
+				}
 		}
+	
+	/* Draw Mouse */
+	CONL_DrawMouse();
 }
 
 /* CONL_OSKHandleEvent() -- Handle on screen keyboard event */
@@ -1957,6 +2001,7 @@ bool_t CONL_OSKHandleEvent(const I_EventEx_t* const a_Event, const size_t a_Play
 	int8_t Shift;
 	uint32_t ThisTime;
 	I_EventEx_t FakeEvent;
+	uint8_t r, c;
 	
 	/* Check */
 	if (!a_Event || a_PlayerNum < 0 || a_PlayerNum >= MAXSPLITSCREEN)
@@ -1973,8 +2018,35 @@ bool_t CONL_OSKHandleEvent(const I_EventEx_t* const a_Event, const size_t a_Play
 	/* Limit movement */
 	ThisTime = I_GetTimeMS();
 	
+	/* Direct? */
+	if (a_Event->Data.SynthOSK.Direct & 0x8000)
+	{
+		r = (a_Event->Data.SynthOSK.Direct & 0xF);
+		c = (a_Event->Data.SynthOSK.Direct & 0xFF0) >> 8;
+		
+		// Valid Move?
+		if (r >= 0 && r < LOSKROWS && c >= 0 && c < LOSKCOLS)
+		{
+			// No key here?
+			while (!l_OSKLayout[r][c].KeySize)
+				c--;
+			
+			// And not already there?
+			if (l_OSKSel[a_Event->Data.SynthOSK.PNum][0] != r ||
+				l_OSKSel[a_Event->Data.SynthOSK.PNum][1] != c)
+			{
+				// Emit sound to inform user
+				S_StartSound(NULL, sfx_oskmov);
+			
+				// Place selected here
+				l_OSKSel[a_Event->Data.SynthOSK.PNum][0] = r;
+				l_OSKSel[a_Event->Data.SynthOSK.PNum][1] = c;
+			}
+		}
+	}
+	
 	/* Move Around Board */
-	if (ThisTime >= (l_OSKLast[a_Event->Data.SynthOSK.PNum][0] + 250))
+	else if (ThisTime >= (l_OSKLast[a_Event->Data.SynthOSK.PNum][0] + 250))
 	{
 		l_OSKLast[a_Event->Data.SynthOSK.PNum][0] = ThisTime;
 		
@@ -2003,10 +2075,14 @@ bool_t CONL_OSKHandleEvent(const I_EventEx_t* const a_Event, const size_t a_Play
 	}
 	
 	/* Type On Board */
-	if (a_Event->Data.SynthOSK.Press)
+	if (a_Event->Data.SynthOSK.Press || g_MouseDown)
 		if (ThisTime >= (l_OSKLast[a_Event->Data.SynthOSK.PNum][1] + 250))
 		{
 			l_OSKLast[a_Event->Data.SynthOSK.PNum][1] = ThisTime;
+			
+			// Get pos
+			r = l_OSKSel[a_Event->Data.SynthOSK.PNum][0];
+			c = l_OSKSel[a_Event->Data.SynthOSK.PNum][1];
 		
 			// Emit sound to inform user
 			S_StartSound(NULL, sfx_osktyp);
@@ -2018,7 +2094,7 @@ bool_t CONL_OSKHandleEvent(const I_EventEx_t* const a_Event, const size_t a_Play
 				int8_t Shift;
 			
 				// Virtual Only?
-				VirtOnly = l_OSKLayout[l_OSKSel[a_Event->Data.SynthOSK.PNum][0]][l_OSKSel[a_Event->Data.SynthOSK.PNum][1]].VirtOnly;
+				VirtOnly = l_OSKLayout[r][c].VirtOnly;
 			
 				// Determine Shift
 				Shift = 0;
@@ -2029,10 +2105,10 @@ bool_t CONL_OSKHandleEvent(const I_EventEx_t* const a_Event, const size_t a_Play
 				memset(&FakeEvent, 0, sizeof(FakeEvent));
 				FakeEvent.Type = IET_KEYBOARD;
 				FakeEvent.Data.Keyboard.Down = true;
-				FakeEvent.Data.Keyboard.KeyCode = l_OSKLayout[l_OSKSel[a_Event->Data.SynthOSK.PNum][0]][l_OSKSel[a_Event->Data.SynthOSK.PNum][1]].IkbkKey[Shift];
+				FakeEvent.Data.Keyboard.KeyCode = l_OSKLayout[r][c].IkbkKey[Shift];
 			
-				if (!VirtOnly)
-					FakeEvent.Data.Keyboard.Character = V_ExtMBToWChar(l_OSKLayout[l_OSKSel[a_Event->Data.SynthOSK.PNum][0]][l_OSKSel[a_Event->Data.SynthOSK.PNum][1]].UTFKey[Shift], NULL);
+				if (!VirtOnly || FakeEvent.Data.Keyboard.KeyCode == IKBK_SPACE)
+					FakeEvent.Data.Keyboard.Character = V_ExtMBToWChar(l_OSKLayout[r][c].UTFKey[Shift], NULL);
 				
 				// Push it
 				I_EventExPush(&FakeEvent);
@@ -2343,7 +2419,7 @@ bool_t CONL_DrawConsole(void)
 		}
 		
 		// Draw scrollbar
-		if (!con_startup)
+		if (!con_startup && Out->CountLine)
 		{
 			// Pixels per line (of all the console lines)
 			by = conH / Out->CountLine;

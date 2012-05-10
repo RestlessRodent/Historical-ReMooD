@@ -52,6 +52,7 @@ typedef enum Z_MemoryTag_e
 	PU_STATIC = 1,				// Never freed
 	
 	PU_BLOCKSTREAM,				// Block Streams
+	PU_SGPTRREF,								// Save Game Pointer References
 	
 	PU_WLDKRMOD,				// WAD Level and RMOD
 	PU_SOUND,

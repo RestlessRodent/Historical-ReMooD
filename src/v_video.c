@@ -4067,12 +4067,12 @@ void V_ImageDrawScaledIntoBuffer(const uint32_t a_Flags, V_Image_t* const a_Imag
 #define __REMOOD_ONESHORT
 
 	uint8_t* RawData;
-	int32_t x, y, w, h, xx, yy, i, c, Mask;
+	int32_t x, y, w, h, xx, yy, i, c, Mask, vvx, vvy;
 	
 	int32_t sX, sY, tW, tY, px;
 	uint8_t* dP;
 	uint8_t* sP;
-	fixed_t XFrac, YFrac, sxX, sxY, xw, xh, dxY, ESXy;
+	fixed_t XFrac, YFrac, sxX, sxY, xw, xh, dxY, ESXy, limxw, limxh;
 	uint8_t* ColorMap;
 	uint8_t* ColorMapE;
 	uint8_t* TransMap;
@@ -4160,6 +4160,8 @@ void V_ImageDrawScaledIntoBuffer(const uint32_t a_Flags, V_Image_t* const a_Imag
 	// fixed_t variants
 	xw = w << FRACBITS;
 	xh = h << FRACBITS;
+	limxw = a_DestWidth << FRACBITS;
+	limxh = a_DestHeight << FRACBITS;
 	
 	// Scale start position?
 	if (!((a_Flags & VEX_NOSCALESTART) ||	// Don't scale at all
@@ -4301,10 +4303,12 @@ void V_ImageDrawScaledIntoBuffer(const uint32_t a_Flags, V_Image_t* const a_Imag
 			{
 				// Obtain source and destination pointers (for row base)
 				sP = RawData + (w * (sxY >> FRACBITS));
-				dP = a_DestBuffer + (a_DestPitch * yy) + x;
+				vvx = x;
+				vvy = (a_DestPitch * yy);
+				dP = a_DestBuffer + vvy + vvx;
 			
 				// Scaled row draw
-				for (sxX = 0; sxX < xw; sxX += XFrac)
+				for (sxX = 0; sxX < xw && vvx < vid.width; sxX += XFrac, vvx++)
 					*(dP++) = TransMap[(ColorMap[ColorMapE[sP[sxX >> FRACBITS]]] << 8) + (*dP)];
 			}
 		
@@ -4315,10 +4319,12 @@ void V_ImageDrawScaledIntoBuffer(const uint32_t a_Flags, V_Image_t* const a_Imag
 				// Obtain source and destination pointers (for row base)
 				px = 0;
 				sP = RawData + (w * (sxY >> FRACBITS));
-				dP = a_DestBuffer + (a_DestPitch * yy) + x;
+				vvx = x;
+				vvy = (a_DestPitch * yy);
+				dP = a_DestBuffer + vvy + vvx;
 			
 				// Scaled row draw
-				for (sxX = 0; sxX < xw; sxX += XFrac)
+				for (sxX = 0; sxX < xw && vvx < vid.width; sxX += XFrac, vvx++)
 					*(dP++) = ColorMap[ColorMapE[sP[sxX >> FRACBITS]]];
 				
 				if ((sxX - XFrac) & 0xFFFF)

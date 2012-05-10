@@ -61,6 +61,7 @@ CONSBACK ~ RMD_CB_D
 
 # Graphics
 [graphics]
+MOUSECUR	0	0
 A_DMG1	0	0
 A_DMG2	0	0
 A_DMG3	0	0

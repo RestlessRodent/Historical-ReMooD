@@ -87,7 +87,8 @@ uint8_t graphics_started = 0;
 bool_t allow_fullscreen = false;
 
 /* My stuff */
-static bool_t l_MouseOK = false;	// OK to use the mouse code?
+static bool_t l_MouseOK = false;				// OK to use the mouse code?
+static bool_t l_NoMouseGrab = false;			// Don't grab mouse
 
 /*****************
 *** STRUCTURES ***
@@ -484,7 +485,7 @@ void I_DoMouseGrabbing(void)
 	// Dedicated Server, Watching demo, not playing, in a menu, in the console
 	New = !(dedicated || demoplayback || menuactive);
 	
-	if (New != Grabbed)
+	if (New != Grabbed && !l_NoMouseGrab)
 	{
 		// Change grab
 		I_MouseGrab(New);
@@ -498,11 +499,16 @@ void I_DoMouseGrabbing(void)
 void I_StartupMouse(void)
 {
 	/* Check parameter */
+	// Disable Mouse?
 	if (M_CheckParm("-nomouse"))
 	{
 		CONL_PrintF("I_StartupMouse: -nomouse is preventing mice from being used.\n");
 		return;
 	}
+	
+	// Disable Grabbing?
+	if (M_CheckParm("-nomousegrab"))
+		l_NoMouseGrab = true;
 	
 	/* Enabling the mouse */
 	if (cv_use_mouse.value)
@@ -517,6 +523,7 @@ void I_StartupMouse(void)
 			CONL_PrintF("I_StartupMouse: There is no mouse\n");
 			return;
 		}
+		
 		// Enable
 		CONL_PrintF("I_StartupMouse: Mouse enabled.\n");
 		l_MouseOK = true;

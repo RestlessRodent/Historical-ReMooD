@@ -70,6 +70,7 @@ typedef struct viddef_s
 	int dupx, dupy;				// scale 1,2,3 value for menus & overlays
 	fixed_t fxdupx;				// GhostlyDeath <November 5, 2010> -- Fixed scaling
 	fixed_t fxdupy;				// GhostlyDeath <November 5, 2010> -- Fixed scaling
+	fixed_t fxdivx, fxdivy;		// GhostlyDeath <May 10, 2012> -- Inverse of fxdup
 	float fdupx, fdupy;			// same as dupx,dupy but exact value when aspect ratio isn't 320/200
 	int centerofs;				// centering for the scaled menu gfx
 	int bpp;					// BYTES per pixel: 1=256color

@@ -222,6 +222,8 @@ extern const CONL_VarPossibleValue_t c_CVPVVexColor[];
 extern const CONL_VarPossibleValue_t c_CVPVFont[];
 
 extern bool_t g_EarlyBootConsole;				// Early Boot Console
+extern int32_t g_MousePos[2];					// Mouse Position
+extern bool_t g_MouseDown;						// Mouse is down
 
 /*****************
 *** PROTOTYPES ***
@@ -274,6 +276,8 @@ bool_t CONL_HandleEvent(const I_EventEx_t* const a_Event);
 void CONL_Ticker(void);
 bool_t CONL_DrawConsole(void);
 
+void CONL_DrawMouse(void);
+void CONLS_DrawOSK(const int32_t a_X, const int32_t a_Y, const int32_t a_W, const int32_t a_H, const uint32_t a_SplitP);
 bool_t CONL_OSKSetVisible(const size_t a_PlayerNum, const bool_t a_IsVis);
 bool_t CONL_OSKHandleEvent(const I_EventEx_t* const a_Event, const size_t a_PlayerNum);
 

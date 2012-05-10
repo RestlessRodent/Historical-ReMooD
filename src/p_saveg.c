@@ -198,6 +198,9 @@ static size_t l_NumDerefs = 0;
 // This allocates something is pointed to
 static void PLGS_SetRef(const uint64_t a_UniqPtr, void* const a_SetVal)
 {
+	size_t i;
+	PLG_FutureDeref_t* Def;
+	
 	/* If pointer is zero, it points to nowhere */
 	if (!a_UniqPtr)
 		return;
@@ -205,11 +208,37 @@ static void PLGS_SetRef(const uint64_t a_UniqPtr, void* const a_SetVal)
 	/* Debug */
 	if (devparm)
 		CONL_PrintF("RefTo %u -> %p\n", (uint32_t)a_UniqPtr, a_SetVal);
+		
+	/* Look in dereference list */
+	Def = NULL;
+	// If it already is in there, add to things to deref
+	for (i = 0; i < l_NumDerefs; i++)
+		if (l_Derefs[i].UniqPtr == a_UniqPtr)
+		{
+			Def = &l_Derefs[i];
+			break;
+		}
+	
+	/* Otherwise add to the back */
+	if (!Def)
+	{
+		Z_ResizeArray((void**)&l_Derefs, sizeof(*l_Derefs), l_NumDerefs, l_NumDerefs + 1);
+		Def = &l_Derefs[l_NumDerefs++];
+		Z_ChangeTag(l_Derefs, PU_SGPTRREF);
+	}
+	
+	/* Set */
+	if (!Def->UniqPtr)
+		Def->UniqPtr = a_UniqPtr;
+	Def->SetVal = a_SetVal;
 }
 
 /* PLGS_DeRef() -- Dereference addition */
 static void PLGS_DeRef(const uint64_t a_UniqPtr, void** const a_PtrRef)
 {
+	size_t i;
+	PLG_FutureDeref_t* Def;
+	
 	/* If pointer is zero, it points to nowhere */
 	if (!a_UniqPtr)
 		return;
@@ -217,6 +246,34 @@ static void PLGS_DeRef(const uint64_t a_UniqPtr, void** const a_PtrRef)
 	/* Debug */
 	if (devparm)
 		CONL_PrintF("DeRef %p -> %u\n", a_PtrRef, (uint32_t)a_UniqPtr);
+	
+	/* Look in dereference list */
+	Def = NULL;
+	// If it already is in there, add to things to deref
+	for (i = 0; i < l_NumDerefs; i++)
+		if (l_Derefs[i].UniqPtr == a_UniqPtr)
+		{
+			Def = &l_Derefs[i];
+			break;
+		}
+	
+	/* Otherwise add to the back */
+	if (!Def)
+	{
+		Z_ResizeArray((void**)&l_Derefs, sizeof(*l_Derefs), l_NumDerefs, l_NumDerefs + 1);
+		Def = &l_Derefs[l_NumDerefs++];
+		Z_ChangeTag(l_Derefs, PU_SGPTRREF);
+	}
+	
+	/* Set */
+	if (!Def->UniqPtr)
+		Def->UniqPtr = a_UniqPtr;
+	
+	Z_ResizeArray(
+			(void**)&Def->ChangePtr, sizeof(*Def->ChangePtr), 
+			Def->NumChangePtr, Def->NumChangePtr + 1);
+	Def->ChangePtr[Def->NumChangePtr++] = a_PtrRef;
+	Z_ChangeTag(Def->ChangePtr, PU_SGPTRREF);
 }
 
 /*****************************************************************************/
@@ -390,6 +447,7 @@ __REMOOD_PRWSBASE(uint8_t,uint8);
 __REMOOD_PRWSBASE(uint16_t,uint16);
 __REMOOD_PRWSBASE(uint32_t,uint32);
 __REMOOD_PRWSBASE(uint64_t,uint64);
+__REMOOD_PRWSBASE(size_t,sizet);
 
 #undef __REMOOD_PRWSBASE
 
@@ -428,8 +486,14 @@ static const struct
 	{sizeof(uint64_t), PRWS_uint64},							// PSTC_UINT64
 	{sizeof(intptr_t),},							// PSTC_INTPTR
 	{sizeof(uintptr_t),},							// PSTC_UINTPTR
-	{sizeof(size_t),},								// PSTC_SIZET
+	{sizeof(size_t), PRWS_sizet},								// PSTC_SIZET
 	{sizeof(ssize_t),},							// PSTC_SSIZET
+};
+
+// l_RecChars -- Record characters
+static const char l_RecChars[NUMPSRCS] =
+{
+	'c', 's', 'i', 'C', 'S', 'I', 's', 'p'
 };
 
 /*** FUNCTIONS ***/
@@ -442,17 +506,34 @@ bool_t P_SGBiWayReadOrWrite(
 		void* const a_Ptr,
 		const size_t a_Size,
 		const P_SGBWTypeC_t a_NativeType,
-		const P_SGBWTypeRec_t a_RecType
+		const P_SGBWTypeRec_t a_RecType,
+		const char* const a_File, const int a_Line
 	)
 {
+	uint8_t Marker;
+	
+	/* Read Data Marker */
+	if (a_Load)
+		Marker = D_RBSReadUInt8(a_Stream);
+	
 	/* Sanity Checks */
 	if (devparm)
 	{
+		// I/O Type mismatch
+		if (a_Load)
+			if (Marker != l_RecChars[a_RecType])
+				CONL_PrintF("WARNING: IOT Mismatch (%c vs %c) [@ %s:%i]\n",
+						(unsigned int)Marker, (unsigned int)l_RecChars[a_RecType], a_File, a_Line);
+		
 		// Size and native size don't match and it isn't a reference to pointer
 		if (a_Size != l_NativeData[a_NativeType].Size && a_NativeType != PSTC_POINTERIS)
-			CONL_PrintF("WARNING: NTS Mismatch (%u vs %u)\n",
-					(unsigned int)a_Size, (unsigned int)l_NativeData[a_NativeType].Size);
+			CONL_PrintF("WARNING: NTS Mismatch (%u vs %u) [@ %s:%i]\n",
+					(unsigned int)a_Size, (unsigned int)l_NativeData[a_NativeType].Size, a_File, a_Line);
 	}
+	
+	/* Write Data Marker */
+	if (!a_Load)
+		D_RBSWriteUInt8(a_Stream, l_RecChars[a_RecType]);
 	
 	/* Handle Native Read/Write */
 	if (l_NativeData[a_NativeType].RWFunc)
@@ -480,16 +561,24 @@ bool_t P_SGBiWayReadStr(D_RBlockStream_t* const a_Stream, char** const a_Ptr, ch
 	return true;
 }
 
+/* PS_SGBiWayDH() -- Debug Header */
+static char* PS_SGBiWayDH(char* const a_Str)
+{
+	if (devparm)
+		CONL_PrintF("SAVE DEBUG: Begin \"%s\"\n", a_Str);
+	return a_Str;
+}
+
 /* P_SGBiWayBS() -- Saving function that goes both ways */
 // This one should be clean and neat
 bool_t P_SGBiWayBS(D_RBlockStream_t* const a_Stream, const bool_t a_Load)
 {
 	// __HEADER -- Determines if header matches or starts a new one
-#define __HEADER(s) (a_Load ? (strcasecmp((s), Header) == 0) : (D_RBSBaseBlock(a_Stream, (s))))
+#define __HEADER(s) (a_Load ? (strcasecmp((s), PS_SGBiWayDH(Header)) == 0) : (D_RBSBaseBlock(a_Stream, PS_SGBiWayDH(s))))
 	// __REC -- Write: Continues (done with block so who cares); Read: Record block
 #define __REC if (a_Load) continue; else D_RBSRecordBlock(a_Stream)
 	// __BI -- Reads or loads data
-#define __BI(x,nt,rc) P_SGBiWayReadOrWrite(a_Stream, a_Load, &x, sizeof(x), PSTC_##nt, PSRC_##rc)
+#define __BI(x,nt,rc) P_SGBiWayReadOrWrite(a_Stream, a_Load, &x, sizeof(x), PSTC_##nt, PSRC_##rc, __FILE__, __LINE__)
 	// __BISTRZ -- Z_Malloced String
 #define __BISTRZ(x) (a_Load ? P_SGBiWayReadStr(a_Stream,&x,Buf,BUFSIZE) : D_RBSWriteString(a_Stream, x))
 	// __BISTRB -- Buffered String
@@ -514,6 +603,8 @@ bool_t P_SGBiWayBS(D_RBlockStream_t* const a_Stream, const bool_t a_Load)
 	uint16_t u16;
 	uint32_t u32, u32b;
 	tic_t tt;
+	fixed_t fxt;
+	void* vp;
 	
 	/* Check */
 	if (!a_Stream)
@@ -781,10 +872,199 @@ bool_t P_SGBiWayBS(D_RBlockStream_t* const a_Stream, const bool_t a_Load)
 			__REC;
 		}
 		
+		// Map Vertexes
+		if (__HEADER("SGMA"))
+		{
+			// Dump
+			u32 = numvertexes;
+			__BI(u32,UINT32,UINT32);
+			numvertexes = u32;
+			if (a_Load)
+				vertexes = Z_Malloc(sizeof(*vertexes) * numvertexes, PU_LEVEL, &vertexes);
+			for (i = 0; i < u32; i++)
+			{
+				__BI(vertexes[i],POINTERIS,POINTER);
+				__BI(vertexes[i].x,FIXEDT,INT32);
+				__BI(vertexes[i].y,FIXEDT,INT32);
+			}
+			
+			// Record
+			__REC;
+		}
+		
+		// Map Segs
+		if (__HEADER("SGMB"))
+		{
+			// Dump
+			u32 = numsegs;
+			__BI(u32,UINT32,UINT32);
+			numsegs = u32;
+			if (a_Load)
+				segs = Z_Malloc(sizeof(*segs) * numsegs, PU_LEVEL, &segs);
+			for (i = 0; i < u32; i++)
+			{
+				__BI(segs[i],POINTERIS,POINTER);
+				__BI(segs[i].v1,POINTERTO,POINTER);
+				__BI(segs[i].v2,POINTERTO,POINTER);
+				__BI(segs[i].side,INT,INT8);
+				__BI(segs[i].offset,FIXEDT,INT32);
+				__BI(segs[i].angle,ANGLET,UINT32);
+				__BI(segs[i].sidedef,POINTERTO,POINTER);
+				__BI(segs[i].linedef,POINTERTO,POINTER);
+				__BI(segs[i].frontsector,POINTERTO,POINTER);
+				__BI(segs[i].backsector,POINTERTO,POINTER);
+				__BI(segs[i].lightmaps,POINTERTO,POINTER);
+				for (j = 0; j < 2; j++)
+					__BI(segs[i].VertexID[j],UINT32,UINT32);
+				__BI(segs[i].LineID,UINT32,UINT32);
+				
+				fxt = FLOAT_TO_FIXED(segs[i].length);
+				__BI(fxt,FIXEDT,INT32);
+				segs[i].length = FIXED_TO_FLOAT(fxt);
+				
+				u32 = segs[i].numlights;
+				__BI(u32,UINT32,UINT32);
+				segs[i].numlights = u32;
+				if (a_Load)
+					segs[i].rlights = Z_Malloc(sizeof(*segs[i].rlights) * segs[i].numlights, PU_LEVEL, NULL);
+				for (j = 0; j < u32; j++)
+				{
+					__BI(segs[i].rlights[j].height,FIXEDT,INT32);
+					__BI(segs[i].rlights[j].heightstep,FIXEDT,INT32);
+					__BI(segs[i].rlights[j].botheight,FIXEDT,INT32);
+					__BI(segs[i].rlights[j].botheightstep,FIXEDT,INT32);
+					__BI(segs[i].rlights[j].lightlevel,INT16,INT16);
+					__BI(segs[i].rlights[j].flags,INT,INT32);
+					__BI(segs[i].rlights[j].lightnum,INT,INT32);
+					__BI(segs[i].rlights[j].extra_colormap,POINTERTO,POINTER);
+					__BI(segs[i].rlights[j].rcolormap,POINTERTO,POINTER);
+				}
+			}
+			
+			// Record
+			__REC;
+		}
+		
+		// Map Sectors
+		if (__HEADER("SGMC"))
+		{
+			// Dump
+			u32 = numsectors;
+			__BI(u32,UINT32,UINT32);
+			numsectors = u32;
+			if (a_Load)
+				sectors = Z_Malloc(sizeof(*sectors) * numsectors, PU_LEVEL, &sectors);
+			for (i = 0; i < u32; i++)
+			{
+				__BI(sectors[i],POINTERIS,POINTER);
+				
+				__BI(sectors[i].floorheight,FIXEDT,INT32);
+				__BI(sectors[i].ceilingheight,FIXEDT,INT32);
+				__BI(sectors[i].floor_xoffs,FIXEDT,INT32);
+				__BI(sectors[i].floor_yoffs,FIXEDT,INT32);
+				__BI(sectors[i].ceiling_xoffs,FIXEDT,INT32);
+				__BI(sectors[i].ceiling_yoffs,FIXEDT,INT32);
+				__BI(sectors[i].virtualFloorheight,FIXEDT,INT32);
+				__BI(sectors[i].virtualCeilingheight,FIXEDT,INT32);
+				for (j = 0; j < 4; j++)
+					__BI(sectors[i].BBox[j],FIXEDT,INT32);
+				
+				__BI(sectors[i].floorpic,SHORT,INT16);
+				__BI(sectors[i].ceilingpic,SHORT,INT16);
+				__BI(sectors[i].lightlevel,SHORT,INT16);
+				__BI(sectors[i].tag,SHORT,INT16);
+				__BI(sectors[i].soundtraversed,SHORT,INT16);
+				__BI(sectors[i].floortype,SHORT,INT16);
+				
+				__BI(sectors[i].nexttag,INT,INT32);
+				__BI(sectors[i].firsttag,INT,INT32);
+				__BI(sectors[i].validcount,INT,INT32);
+				__BI(sectors[i].stairlock,INT,INT32);
+				__BI(sectors[i].prevsec,INT,INT32);
+				__BI(sectors[i].nextsec,INT,INT32);
+				__BI(sectors[i].heightsec,INT,INT32);
+				__BI(sectors[i].altheightsec,INT,INT32);
+				__BI(sectors[i].floorlightsec,INT,INT32);
+				__BI(sectors[i].ceilinglightsec,INT,INT32);
+				__BI(sectors[i].teamstartsec,INT,INT32);
+				__BI(sectors[i].bottommap,INT,INT32);
+				__BI(sectors[i].midmap,INT,INT32);
+				__BI(sectors[i].topmap,INT,INT32);
+				__BI(sectors[i].validsort,INT,INT32);
+				for (j = 0; j < 4; j++)
+					__BI(sectors[i].blockbox[j],INT,INT32);
+					
+				__BI(sectors[i].moved,BOOLT,UINT8);
+				__BI(sectors[i].added,BOOLT,UINT8);
+				__BI(sectors[i].pseudoSector,BOOLT,UINT8);
+				__BI(sectors[i].virtualFloor,BOOLT,UINT8);
+				__BI(sectors[i].virtualCeiling,BOOLT,UINT8);
+				
+				__BI(sectors[i].special,UINT32,UINT32);
+				__BI(sectors[i].oldspecial,UINT32,UINT32);
+				
+				__BI(sectors[i].SoundSecRef,SIZET,UINT32);
+				
+				__BI(sectors[i].soundtarget,POINTERTO,POINTER);
+				__BI(sectors[i].thinglist,POINTERTO,POINTER);
+				__BI(sectors[i].extra_colormap,POINTERTO,POINTER);
+				
+				fxt = FLOAT_TO_FIXED(sectors[i].lineoutLength);
+				__BI(fxt,FIXEDT,INT32);
+				sectors[i].lineoutLength = FIXED_TO_FLOAT(fxt);
+				
+				// Arrays
+					// Lines that make up sector
+				u32 = sectors[i].linecount;
+				__BI(u32,UINT32,UINT32);
+				sectors[i].linecount = u32;
+				if (a_Load)
+					sectors[i].lines = Z_Malloc(sizeof(*sectors[i].lines) * sectors[i].linecount, PU_LEVEL, NULL);
+				for (j = 0; j < u32; j++)
+					__BI(sectors[i].lines[j],POINTERTO,POINTER);
+			}
+			
+			// Record
+			__REC;
+#if 0
+// origin for any sounds played by the sector
+S_NoiseThinker_t soundorg;
+
+//SoM: 3/6/2000: Start boom extra stuff
+// thinker_t for reversable actions
+void* floordata;			// make thinkers on
+void* ceilingdata;			// floors, ceilings, lighting,
+void* lightingdata;			// independent of one another
+
+// list of mobjs that are at least partially in the sector
+// thinglist is a subset of touching_thinglist
+struct msecnode_s* touching_thinglist;	// phares 3/14/98
+//SoM: 3/6/2000: end stuff...
+
+
+//SoM: 2/23/2000: Improved fake floor hack
+ffloor_t* ffloors;
+int* attached;
+int numattached;
+lightlist_t* lightlist;
+int numlights;
+
+// ----- for special tricks with HW renderer -----
+linechain_t* sectorLines;
+struct sector_s** stackList;
+// ----- end special tricks -----
+
+// ReMooD Additions
+char* FloorTexture;							// Name of floor texture
+char* CeilingTexture;						// Name of ceiling texture
+#endif
+		}
+		
 		// Game State -- After Map Data Is Loaded
 		if (__HEADER("SGGT"))
 		{
 			// doomstat.h
+				// Player Starts
 			u32 = MAXPLAYERS;
 			__BI(u32,UINT32,UINT32);
 			for (i = 0; i < u32; i++)
@@ -796,6 +1076,19 @@ bool_t P_SGBiWayBS(D_RBlockStream_t* const a_Stream, const bool_t a_Load)
 					playerstarts[i] = &mapthings[u32];
 			}
 			
+			// p_setup.h
+				// Deathmatch Starts
+			u32 = numdmstarts;
+			__BI(u32,UINT32,UINT32);
+			for (i = 0; i < u32; i++)
+			{
+				u32b = deathmatchstarts[i] - mapthings;
+				__BI(u32b,UINT32,UINT32);
+				deathmatchstarts[i] = NULL;
+				if (u32 >= 0 && u32 < nummapthings)
+					deathmatchstarts[i] = &mapthings[u32];
+			}
+			
 			// Record
 			__REC;
 		}
@@ -804,6 +1097,29 @@ bool_t P_SGBiWayBS(D_RBlockStream_t* const a_Stream, const bool_t a_Load)
 		// If saving, don't continue
 		if (!a_Load)
 			Continue = false;
+	}
+	
+	/* Handle Pointer References */
+	if (a_Load)
+	{
+		// Go through each one and Reference everything
+		for (i = 0; i < l_NumDerefs; i++)
+			for (j = 0; j < l_Derefs[i].NumChangePtr; j++)
+			{
+				vp = *(l_Derefs[i].ChangePtr[j]);
+				*(l_Derefs[i].ChangePtr[j]) = l_Derefs[i].SetVal;
+				
+				if (devparm)
+					CONL_PrintF("SAVE DEBUG: %p set to %p (was %p)\n",
+							(l_Derefs[i].ChangePtr[j]),
+							l_Derefs[i].SetVal, vp
+						);
+			}
+
+		// Free all references
+		Z_FreeTags(PU_SGPTRREF, PU_SGPTRREF);
+		l_Derefs = NULL;
+		l_NumDerefs = 0;
 	}
 	
 	/* Success? */
