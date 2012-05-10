@@ -919,6 +919,7 @@ static int32_t l_MouseMove[2] = {0, 0};			// Mouse movement (x/y)
 static bool_t l_KeyDown[NUMIKEYBOARDKEYS];		// Keys that are down
 static uint32_t l_JoyButtons[MAXLOCALJOYS];		// Local Joysticks
 static int16_t l_JoyAxis[MAXLOCALJOYS][MAXJOYAXIS];
+static D_NetPlayer_t* l_FirstNetPlayer = NULL;	// First Net Player
 
 /*** FUNCTIONS ***/
 
@@ -2061,6 +2062,16 @@ D_NetPlayer_t* D_NCSAllocNetPlayer(void)
 	/* Allocate */
 	New = Z_Malloc(sizeof(D_NetPlayer_t), PU_STATIC, NULL);
 	
+	/* Link */
+	if (!l_FirstNetPlayer)
+		l_FirstNetPlayer = New;
+	else
+	{
+		l_FirstNetPlayer->ChainPrev = l_FirstNetPlayer;
+		New->ChainNext = l_FirstNetPlayer;
+		l_FirstNetPlayer = New;
+	}
+	
 	/* Set properties */
 	// UUID (hopefully random)
 	for (i = 0; i < (MAXPLAYERNAME * 2) - 1; i++)
@@ -2084,6 +2095,31 @@ D_NetPlayer_t* D_NCSAllocNetPlayer(void)
 	
 	/* Return New */
 	return New;
+}
+
+/* D_NCSFindNetPlayer() -- Finds a net player */
+D_NetPlayer_t* D_NCSFindNetPlayer(const char* const a_Name)
+{
+	D_NetPlayer_t* Rover;
+	
+	/* Check */
+	if (!a_Name)
+		return NULL;
+	
+	/* Rove */
+	for (Rover = l_FirstNetPlayer; Rover; Rover = Rover->ChainPrev)
+	{
+		// Match?
+		if (strcmp(a_Name, Rover->UUID) == 0)
+			return Rover;
+			
+		// Match?
+		if (strcmp(a_Name, Rover->AccountName) == 0)
+			return Rover;
+	}
+	
+	/* Not Found */
+	return NULL;
 }
 
 /* D_NCSGetPlayerName() -- Get player name */

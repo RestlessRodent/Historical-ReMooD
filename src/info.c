@@ -645,6 +645,9 @@ void INFO_StateNormalize(const size_t a_MergeBase, const size_t a_MergeCount)
 	/* Normalize state references */
 	for (i = a_MergeBase; i < a_MergeBase + a_MergeCount; i++)
 	{
+		// State number here
+		states[i]->StateNum = i;
+		
 		// Reference states and functions
 		states[i]->sprite = INFO_SpriteNumByName(states[i]->HoldSprite, true);
 		

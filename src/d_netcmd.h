@@ -144,6 +144,7 @@ typedef struct D_NetPlayer_s
 	struct D_ProfileEx_s* Profile;				// Linked Profile
 	struct player_s* Player;					// Attached Player
 	char UUID[MAXPLAYERNAME * 2];				// Network Player Unique ID
+	char AccountName[MAXPLAYERNAME];			// Networked player account
 	
 	/* Player Control */
 	// Sync
@@ -163,6 +164,9 @@ typedef struct D_NetPlayer_s
 	
 	/* Bot Related */
 	struct B_BotData_s* BotData;				// Bot Data
+	
+	struct D_NetPlayer_s* ChainPrev;			// Previous
+	struct D_NetPlayer_s* ChainNext;			// Next
 } D_NetPlayer_t;
 
 /*** GLOBALS ***/
@@ -188,6 +192,7 @@ void D_NCSNetMergeTics(ticcmd_t* const a_DestCmd, const ticcmd_t* const a_SrcLis
 bool_t D_NCSHandleEvent(const I_EventEx_t* const a_Event);
 
 D_NetPlayer_t* D_NCSAllocNetPlayer(void);
+D_NetPlayer_t* D_NCSFindNetPlayer(const char* const a_Name);
 
 const char* D_NCSGetPlayerName(const uint32_t a_PlayerID);
 

@@ -1415,6 +1415,20 @@ bool_t P_RMODO_WeaponsAmmo(const bool_t a_Pushed, const struct WL_WADFile_s* con
 	MergeBase = (size_t)-1;
 	
 	/* Clear old weapons and ammo */
+	// Player Arrays (otherwise, kaboom!)
+	for (i = 0; i < MAXPLAYERS; i++)
+	{
+		if (players[i].weaponowned)
+			Z_Free(players[i].weaponowned);
+		players[i].weaponowned = NULL;
+		if (players[i].ammo)
+			Z_Free(players[i].ammo);
+		players[i].ammo = NULL;
+		if (players[i].maxammo)
+			Z_Free(players[i].maxammo);
+		players[i].maxammo = NULL;
+	}
+	
 	// Weapons
 	if (wpnlev1info)
 		Z_Free(wpnlev1info);

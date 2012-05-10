@@ -196,13 +196,27 @@ static size_t l_NumDerefs = 0;
 
 /* PLGS_SetRef() -- Set reference */
 // This allocates something is pointed to
-static void PLGS_SetRef(const uint32_t a_UniqPtr, void* const a_SetVal)
+static void PLGS_SetRef(const uint64_t a_UniqPtr, void* const a_SetVal)
 {
+	/* If pointer is zero, it points to nowhere */
+	if (!a_UniqPtr)
+		return;
+	
+	/* Debug */
+	if (devparm)
+		CONL_PrintF("RefTo %u -> %p\n", (uint32_t)a_UniqPtr, a_SetVal);
 }
 
 /* PLGS_DeRef() -- Dereference addition */
-static void PLGS_DeRef(const uint32_t a_UniqPtr, void** const a_PtrRef)
+static void PLGS_DeRef(const uint64_t a_UniqPtr, void** const a_PtrRef)
 {
+	/* If pointer is zero, it points to nowhere */
+	if (!a_UniqPtr)
+		return;
+	
+	/* Debug */
+	if (devparm)
+		CONL_PrintF("DeRef %p -> %u\n", a_PtrRef, (uint32_t)a_UniqPtr);
 }
 
 /*****************************************************************************/
@@ -237,9 +251,13 @@ typedef enum P_SGBWTypeC_e
 	PSTC_UINT,									// unsigned int
 	PSTC_ULONG,									// unsigned long
 	PSTC_FIXEDT,								// fixed_t
+	PSTC_BOOLT,									// bool_t
+	PSTC_TICT,									// tic_t
+	PSTC_ANGLET,								// angle_t
 	PSTC_FLOAT,									// float
 	PSTC_DOUBLE,								// double
-	PSTC_POINTER,								// void*
+	PSTC_POINTERTO,								// void* -- Points to something
+	PSTC_POINTERIS,								// void* -- Is pointed at
 	PSTC_STRING,								// char*
 	PSTC_INT8,									// Int8
 	PSTC_INT16,									// Int16
@@ -274,29 +292,78 @@ typedef enum P_SGBWTypeRec_e
 
 /*** STATICS ***/
 
+/* PRWS_DRPointer() -- Pointer to something */
+static bool_t PRWS_DRPointer(D_RBlockStream_t* const a_Stream, const bool_t a_Load, const P_SGBWTypeRec_t a_RecType, void* a_Ptr)
+{
+	uint64_t pID;
+	
+	/* Only accept pointer inputs/outputs */
+	if (a_RecType != PSRC_POINTER)
+		return false;
+	
+	/* If Saving, Dump Pointer */
+	if (!a_Load)
+		D_RBSWritePointer(a_Stream, *((void**)a_Ptr));
+	
+	/* If Loading, Get pointer and mark ref */
+	else
+	{
+		pID = D_RBSReadPointer(a_Stream);
+		PLGS_DeRef(pID, ((void**)a_Ptr));
+		*((void**)a_Ptr) = NULL;
+	}
+	
+	/* Success */
+	return true;
+}
+
+/* PRWS_SRPointer() -- This is a pointer (that is pointed to) */
+static bool_t PRWS_SRPointer(D_RBlockStream_t* const a_Stream, const bool_t a_Load, const P_SGBWTypeRec_t a_RecType, void* a_Ptr)
+{
+	uint64_t pID;
+	
+	/* Only accept pointer inputs/outputs */
+	if (a_RecType != PSRC_POINTER)
+		return false;
+	
+	/* If Saving, Dump Pointer */
+	if (!a_Load)
+		D_RBSWritePointer(a_Stream, *((void**)a_Ptr));
+	
+	/* If Loading, Get pointer and mark ref */
+	else
+	{
+		pID = D_RBSReadPointer(a_Stream);
+		PLGS_SetRef(pID, (void**)a_Ptr);
+	}
+	
+	/* Success */
+	return true;
+}
+
 // __REMOOD_PRWSBASE -- Handles basic integer types (they are all the same anyway)
 #define __REMOOD_PRWSBASE(x,y) static bool_t PRWS_##y(D_RBlockStream_t* const a_Stream, const bool_t a_Load, const P_SGBWTypeRec_t a_RecType, void* a_Ptr)\
 {\
 	if (a_Load)\
 		switch (a_RecType)\
 		{\
-			case PSRC_INT8: *((x*)a_Ptr) = D_RBSReadInt8(a_Stream);\
-			case PSRC_INT16: *((x*)a_Ptr) = D_RBSReadInt16(a_Stream);\
-			case PSRC_INT32: *((x*)a_Ptr) = D_RBSReadInt32(a_Stream);\
-			case PSRC_UINT8: *((x*)a_Ptr) = D_RBSReadUInt8(a_Stream);\
-			case PSRC_UINT16: *((x*)a_Ptr) = D_RBSReadUInt16(a_Stream);\
-			case PSRC_UINT32: *((x*)a_Ptr) = D_RBSReadUInt32(a_Stream);\
+			case PSRC_INT8: *((x*)a_Ptr) = D_RBSReadInt8(a_Stream); break;\
+			case PSRC_INT16: *((x*)a_Ptr) = D_RBSReadInt16(a_Stream); break;\
+			case PSRC_INT32: *((x*)a_Ptr) = D_RBSReadInt32(a_Stream); break;\
+			case PSRC_UINT8: *((x*)a_Ptr) = D_RBSReadUInt8(a_Stream); break;\
+			case PSRC_UINT16: *((x*)a_Ptr) = D_RBSReadUInt16(a_Stream); break;\
+			case PSRC_UINT32: *((x*)a_Ptr) = D_RBSReadUInt32(a_Stream); break;\
 			default: return false;\
 		}\
 	else\
 		switch (a_RecType)\
 		{\
-			case PSRC_INT8: D_RBSWriteInt8(a_Stream, *((x*)a_Ptr));\
-			case PSRC_INT16: D_RBSWriteInt16(a_Stream, *((x*)a_Ptr));\
-			case PSRC_INT32: D_RBSWriteInt32(a_Stream, *((x*)a_Ptr));\
-			case PSRC_UINT8: D_RBSWriteUInt8(a_Stream, *((x*)a_Ptr));\
-			case PSRC_UINT16: D_RBSWriteUInt16(a_Stream, *((x*)a_Ptr));\
-			case PSRC_UINT32: D_RBSWriteUInt32(a_Stream, *((x*)a_Ptr));\
+			case PSRC_INT8: D_RBSWriteInt8(a_Stream, *((x*)a_Ptr)); break;\
+			case PSRC_INT16: D_RBSWriteInt16(a_Stream, *((x*)a_Ptr)); break;\
+			case PSRC_INT32: D_RBSWriteInt32(a_Stream, *((x*)a_Ptr)); break;\
+			case PSRC_UINT8: D_RBSWriteUInt8(a_Stream, *((x*)a_Ptr)); break;\
+			case PSRC_UINT16: D_RBSWriteUInt16(a_Stream, *((x*)a_Ptr)); break;\
+			case PSRC_UINT32: D_RBSWriteUInt32(a_Stream, *((x*)a_Ptr)); break;\
 			default: return false;\
 		}\
 	return true;\
@@ -312,6 +379,17 @@ __REMOOD_PRWSBASE(unsigned short,unsignedshort);
 __REMOOD_PRWSBASE(unsigned int,unsignedint);
 __REMOOD_PRWSBASE(unsigned long,unsignedlong);
 __REMOOD_PRWSBASE(fixed_t,fixedt);
+__REMOOD_PRWSBASE(bool_t,boolt);
+__REMOOD_PRWSBASE(tic_t,tict);
+__REMOOD_PRWSBASE(angle_t,anglet);
+__REMOOD_PRWSBASE(int8_t,int8);
+__REMOOD_PRWSBASE(int16_t,int16);
+__REMOOD_PRWSBASE(int32_t,int32);
+__REMOOD_PRWSBASE(int64_t,int64);
+__REMOOD_PRWSBASE(uint8_t,uint8);
+__REMOOD_PRWSBASE(uint16_t,uint16);
+__REMOOD_PRWSBASE(uint32_t,uint32);
+__REMOOD_PRWSBASE(uint64_t,uint64);
 
 #undef __REMOOD_PRWSBASE
 
@@ -332,18 +410,22 @@ static const struct
 	{sizeof(unsigned int), PRWS_unsignedint},	// PSTC_UINT
 	{sizeof(unsigned long), PRWS_unsignedlong},	// PSTC_ULONG
 	{sizeof(fixed_t), PRWS_fixedt},				// PSTC_FIXEDT
+	{sizeof(bool_t), PRWS_boolt},				// PSTC_BOOLT
+	{sizeof(tic_t), PRWS_tict},				// PSTC_TICT
+	{sizeof(angle_t), PRWS_anglet},				// PSTC_ANGLET
 	{sizeof(float),},								// PSTC_FLOAT
 	{sizeof(double),},								// PSTC_DOUBLE
-	{sizeof(void*),},								// PSTC_POINTER
+	{sizeof(void*), PRWS_DRPointer},				// PSTC_POINTERTO
+	{sizeof(void*), PRWS_SRPointer},				// PSTC_POINTERIS
 	{sizeof(char*),},								// PSTC_STRING
-	{sizeof(int8_t),},								// PSTC_INT8
-	{sizeof(int16_t),},							// PSTC_INT16
-	{sizeof(int32_t),},							// PSTC_INT32
-	{sizeof(int64_t),},							// PSTC_INT64
-	{sizeof(uint8_t),},							// PSTC_UINT8
-	{sizeof(uint16_t),},							// PSTC_UINT16
-	{sizeof(uint32_t),},							// PSTC_UINT32
-	{sizeof(uint64_t),},							// PSTC_UINT64
+	{sizeof(int8_t), PRWS_int8},								// PSTC_INT8
+	{sizeof(int16_t), PRWS_int16},							// PSTC_INT16
+	{sizeof(int32_t), PRWS_int32},							// PSTC_INT32
+	{sizeof(int64_t), PRWS_int64},							// PSTC_INT64
+	{sizeof(uint8_t), PRWS_uint8},							// PSTC_UINT8
+	{sizeof(uint16_t), PRWS_uint16},							// PSTC_UINT16
+	{sizeof(uint32_t), PRWS_uint32},							// PSTC_UINT32
+	{sizeof(uint64_t), PRWS_uint64},							// PSTC_UINT64
 	{sizeof(intptr_t),},							// PSTC_INTPTR
 	{sizeof(uintptr_t),},							// PSTC_UINTPTR
 	{sizeof(size_t),},								// PSTC_SIZET
@@ -366,8 +448,8 @@ bool_t P_SGBiWayReadOrWrite(
 	/* Sanity Checks */
 	if (devparm)
 	{
-		// Size and native size don't match
-		if (a_Size != l_NativeData[a_NativeType].Size)
+		// Size and native size don't match and it isn't a reference to pointer
+		if (a_Size != l_NativeData[a_NativeType].Size && a_NativeType != PSTC_POINTERIS)
 			CONL_PrintF("WARNING: NTS Mismatch (%u vs %u)\n",
 					(unsigned int)a_Size, (unsigned int)l_NativeData[a_NativeType].Size);
 	}
@@ -378,20 +460,60 @@ bool_t P_SGBiWayReadOrWrite(
 	return false;
 }
 
+/* P_SGBiWayReadStr() -- Read string and Z_StrDup it */
+bool_t P_SGBiWayReadStr(D_RBlockStream_t* const a_Stream, char** const a_Ptr, char* const a_Buf, const size_t a_BufSize)
+{
+	/* Clear */
+	//memset(a_Buf, 0, sizeof(a_Buf) * a_BufSize);
+	
+	/* Read String */
+	D_RBSReadString(a_Stream, a_Buf, a_BufSize - 1);
+	
+	/* Dupe it */
+	if (a_Ptr)
+	{
+		if (*a_Ptr)
+			Z_Free(*a_Ptr);
+		*a_Ptr = Z_StrDup(a_Buf, PU_STATIC, NULL);
+	}
+	
+	return true;
+}
+
 /* P_SGBiWayBS() -- Saving function that goes both ways */
 // This one should be clean and neat
 bool_t P_SGBiWayBS(D_RBlockStream_t* const a_Stream, const bool_t a_Load)
 {
 	// __HEADER -- Determines if header matches or starts a new one
-#define __HEADER(s) (a_Load ? (strcasecmp((s), Header)) : (D_RBSBaseBlock(a_Stream, (s))))
-	// __REC -- Only records block
-#define __REC (a_Load ? JunkityJunk = 0 : D_RBSRecordBlock(a_Stream))
+#define __HEADER(s) (a_Load ? (strcasecmp((s), Header) == 0) : (D_RBSBaseBlock(a_Stream, (s))))
+	// __REC -- Write: Continues (done with block so who cares); Read: Record block
+#define __REC if (a_Load) continue; else D_RBSRecordBlock(a_Stream)
 	// __BI -- Reads or loads data
 #define __BI(x,nt,rc) P_SGBiWayReadOrWrite(a_Stream, a_Load, &x, sizeof(x), PSTC_##nt, PSRC_##rc)
+	// __BISTRZ -- Z_Malloced String
+#define __BISTRZ(x) (a_Load ? P_SGBiWayReadStr(a_Stream,&x,Buf,BUFSIZE) : D_RBSWriteString(a_Stream, x))
+	// __BISTRB -- Buffered String
+#define __BISTRB(buf,bs) (a_Load ? P_SGBiWayReadStr(a_Stream,NULL,buf,bs) : D_RBSWriteString(a_Stream, buf))
+	
+	//D_RBSWriteString(D_RBlockStream_t* const a_Stream, const char* const a_Val);
+	//D_RBSReadString(D_RBlockStream_t* const a_Stream, char* const a_Out, const size_t a_OutSize);
 
+#define BUFSIZE 512
 	bool_t Continue;
 	char Header[5];
-	char JunkityJunk;
+	char Buf[512];
+	
+	uint8_t SaveMaj, SaveMin, SaveRel, SaveLeg;
+	
+	ssize_t i, j, k;
+	
+	int8_t i8;
+	int16_t i16;
+	int32_t i32;
+	uint8_t u8;
+	uint16_t u16;
+	uint32_t u32, u32b;
+	tic_t tt;
 	
 	/* Check */
 	if (!a_Stream)
@@ -414,11 +536,267 @@ bool_t P_SGBiWayBS(D_RBlockStream_t* const a_Stream, const bool_t a_Load)
 				break;
 		
 		//////////////////////////////
-		// Game State
+		// Game Version
+		if (__HEADER("SGVR"))
+		{
+			// Legacy Version
+			u8 = VERSION;
+			__BI(u8,UINT8,UINT8);
+			SaveLeg = u8;
+			
+			// ReMooD Version
+			u8 = REMOOD_MAJORVERSION;
+			__BI(u8,UINT8,UINT8);
+			SaveMaj = u8;
+			u8 = REMOOD_MINORVERSION;
+			__BI(u8,UINT8,UINT8);
+			SaveMin = u8;
+			u8 = REMOOD_RELEASEVERSION;
+			__BI(u8,UINT8,UINT8);
+			SaveRel = u8;
+			
+			// Print Version Info
+			CONL_PrintF("SAVE: Version %hhu.%hhu%c (%hhu).\n", SaveMaj, SaveMin, SaveRel, SaveLeg);
+			
+			// Record
+			__REC;
+		}
+		
+		// Game State -- Before Map Data Is Loaded
 		if (__HEADER("SGGS"))
 		{
+			// doomstat.h
 			__BI(gamestate,INT,UINT8);
+			__BI(gameskill,INT,UINT8);
+			__BI(gameepisode,UINT8,UINT8);
+			__BI(gamemap,UINT8,UINT8);
+			__BI(gametic,TICT,UINT32);
+			__BI(paused,BOOLT,UINT8);
+			__BI(multiplayer,BOOLT,UINT8);
+			__BI(totalkills,INT,UINT32);
+			__BI(totalitems,INT,UINT32);
+			__BI(totalsecret,INT,UINT32);
+			__BI(bodyqueslot,INT,UINT32);
+			__BI(g_CoreGame,INT,UINT8);			// Just in case!
+			__BI(g_IWADFlags,UINT32,UINT32);
 			
+			u32 = MAXSPLITSCREENPLAYERS;
+			__BI(u32,UINT32,UINT32);
+			for (i = 0; i < u32; i++)
+			{
+				__BI(consoleplayer[i],INT,UINT8);
+				__BI(displayplayer[i],INT,UINT8);
+			}
+			
+			u32 = BODYQUESIZE;
+			__BI(u32,UINT32,UINT32);
+			for (i = 0; i < u32; i++)
+				__BI(bodyque[i],POINTERTO,POINTER);
+			
+			// d_net.h
+			tt = D_SyncNetMapTime();
+			__BI(tt,TICT,UINT32);
+			D_SyncNetSetMapTime(tt);
+			
+			// Record
+			__REC;
+		}
+		
+		// Players -- Players in the game
+		if (__HEADER("SGPL"))
+		{
+			// d_player.h
+			u32 = MAXPLAYERS;
+			__BI(u32,UINT32,UINT32);
+			for (i = 0; i < u32; i++)
+			{
+				__BI(players[i],POINTERIS,POINTER);
+				__BI(players[i].mo,POINTERTO,POINTER);
+				__BI(players[i].rain1,POINTERTO,POINTER);
+				__BI(players[i].rain2,POINTERTO,POINTER);
+				__BI(players[i].attacker,POINTERTO,POINTER);
+				
+				__BI(players[i].aiming,ANGLET,UINT32);
+				
+				__BI(players[i].viewz,FIXEDT,INT32);
+				__BI(players[i].viewheight,FIXEDT,INT32);
+				__BI(players[i].deltaviewheight,FIXEDT,INT32);
+				__BI(players[i].bob,FIXEDT,INT32);
+				__BI(players[i].MoveMom,FIXEDT,INT32);
+				__BI(players[i].TargetViewZ,FIXEDT,INT32);
+				
+				__BI(players[i].playerstate,INT,UINT8);
+				__BI(players[i].health,INT,INT32);
+				__BI(players[i].armorpoints,INT,INT32);
+				__BI(players[i].cheats,INT,INT32);
+				__BI(players[i].refire,INT,INT32);
+				__BI(players[i].killcount,INT,INT32);
+				__BI(players[i].itemcount,INT,INT32);
+				__BI(players[i].secretcount,INT,INT32);
+				__BI(players[i].damagecount,INT,INT32);
+				__BI(players[i].bonuscount,INT,INT32);
+				__BI(players[i].specialsector,INT,INT32);
+				__BI(players[i].extralight,INT,INT32);
+				__BI(players[i].fixedcolormap,INT,INT32);
+				__BI(players[i].skincolor,INT,INT32);
+				__BI(players[i].skin,INT,INT32);
+				__BI(players[i].chickenTics,INT,INT32);
+				__BI(players[i].chickenPeck,INT,INT32);
+				__BI(players[i].flamecount,INT,INT32);
+				__BI(players[i].flyheight,INT,INT32);
+				__BI(players[i].inventorySlotNum,INT,INT32);
+				__BI(players[i].inv_ptr,INT,INT32);
+				__BI(players[i].st_curpos,INT,INT32);
+				__BI(players[i].st_inventoryTics,INT,INT32);
+				__BI(players[i].flushdelay,INT,INT32);
+				__BI(players[i].readyweapon,INT,INT32);
+				__BI(players[i].pendingweapon,INT,INT32);
+				
+				__BI(players[i].backpack,BOOLT,UINT8);
+				__BI(players[i].originalweaponswitch,BOOLT,UINT8);
+				__BI(players[i].autoaim_toggle,BOOLT,UINT8);
+				__BI(players[i].attackdown,BOOLT,UINT8);
+				__BI(players[i].usedown,BOOLT,UINT8);
+				__BI(players[i].jumpdown,BOOLT,UINT8);
+				__BI(players[i].didsecret,BOOLT,UINT8);
+				
+				__BI(players[i].armortype,UINT8,UINT8);
+				
+				__BI(players[i].addfrags,UINT16,UINT16);
+				
+				__BI(players[i].cards,UINT32,UINT32);
+				
+				// Structures
+					// Tic Command
+				__BI(players[i].cmd.forwardmove,INT8,INT8);
+				__BI(players[i].cmd.sidemove,INT8,INT8);
+				__BI(players[i].cmd.angleturn,INT16,INT16);
+				__BI(players[i].cmd.aiming,UINT16,UINT16);
+				__BI(players[i].cmd.buttons,UINT16,UINT16);
+				__BI(players[i].cmd.artifact,UINT8,UINT8);
+				__BI(players[i].cmd.XNewWeapon,UINT8,UINT8);
+				__BI(players[i].cmd.BaseAngleTurn,INT16,INT16);
+				
+					// Camera
+				__BI(players[i].camera.chase,BOOLT,UINT8);
+				__BI(players[i].camera.aiming,ANGLET,UINT32);
+				__BI(players[i].camera.fixedcolormap,INT,UINT32);
+				__BI(players[i].camera.viewheight,FIXEDT,INT32);
+				__BI(players[i].camera.startangle,ANGLET,UINT32);
+				__BI(players[i].camera.mo,POINTERTO,POINTER);
+					
+					// Weapon Info
+				u8 = (players[i].weaponinfo == wpnlev2info ? 1 : 0);
+				__BI(u8,UINT8,UINT8);
+				players[i].weaponinfo = (u8 == 1 ? wpnlev2info : wpnlev1info);
+				
+				// Arrays
+					// Health/Armor Limitations
+				for (j = 0; j < 2; j++)
+				{
+					__BI(players[i].MaxHealth[j],INT32,INT32);
+					__BI(players[i].MaxArmor[j],INT32,INT32);
+				}
+				
+					// Fake momentum
+				for (j = 0; j < 3; j++)
+					__BI(players[i].FakeMom[j],FIXEDT,INT32);
+				
+					// Frags
+				u32 = MAXPLAYERS;
+				__BI(u32,UINT32,UINT32);
+				for (j = 0; j < u32; j++)
+					__BI(players[i].frags[j],UINT16,UINT16);
+					
+					// Weapons
+				if (!players[i].weaponowned)
+					players[i].weaponowned = Z_Malloc(sizeof(*players[i].weaponowned) * NUMWEAPONS, PU_STATIC, NULL);
+				
+				u32 = NUMWEAPONS;
+				__BI(u32,UINT32,UINT32);
+				for (j = 0; j < u32; j++)
+					__BI(players[i].weaponowned[j],BOOLT,UINT8);
+				
+					// Ammo
+				if (!players[i].ammo)
+					players[i].ammo = Z_Malloc(sizeof(*players[i].ammo) * NUMAMMO, PU_STATIC, NULL);
+				if (!players[i].maxammo)
+					players[i].maxammo = Z_Malloc(sizeof(*players[i].maxammo) * NUMAMMO, PU_STATIC, NULL);
+				u32 = NUMAMMO;
+				__BI(u32,UINT32,UINT32);
+				for (j = 0; j < u32; j++)
+				{
+					__BI(players[i].ammo[j],INT,INT32);
+					__BI(players[i].maxammo[j],INT,INT32);
+				}
+				
+					// Powers
+				u32 = NUMPOWERS;
+				__BI(u32,UINT32,UINT32);
+				for (j = 0; j < u32; j++)
+					__BI(players[i].powers[j],INT,INT32);
+					
+					// Inventory
+				u32 = NUMINVENTORYSLOTS;
+				__BI(u32,UINT32,UINT32);
+				for (j = 0; j < u32; j++)
+				{
+					__BI(players[i].inventory[j].type,UINT8,UINT8);
+					__BI(players[i].inventory[j].count,UINT8,UINT8);
+				}
+				
+					// PSprites
+				u32 = NUMPSPRITES;
+				__BI(u32,UINT32,UINT32);
+				for (j = 0; j < u32; j++)
+				{
+					u32b = 0;
+					if (players[i].psprites[j].state)
+						u32b = players[i].psprites[j].state->StateNum;
+					__BI(u32b,UINT32,UINT32);
+					players[i].psprites[j].state = states[u32b];
+					__BI(players[i].psprites[j].tics,INT,INT32);
+					__BI(players[i].psprites[j].sx,FIXEDT,INT32);
+					__BI(players[i].psprites[j].sy,FIXEDT,INT32);
+				}
+				
+				// Profile Information
+				memset(Buf, 0, sizeof(Buf));
+				if (!a_Load && players[i].ProfileEx)
+					strncpy(Buf, players[i].ProfileEx->UUID, BUFSIZE - 1);
+				__BISTRB(Buf,BUFSIZE);
+				if (a_Load)
+					players[i].ProfileEx = D_FindProfileEx(Buf);
+				
+				// NetPlayer Information
+				memset(Buf, 0, sizeof(Buf));
+				if (!a_Load && players[i].NetPlayer)
+					strncpy(Buf, players[i].NetPlayer->UUID, BUFSIZE - 1);
+				__BISTRB(Buf,BUFSIZE);
+				if (a_Load)
+					players[i].NetPlayer = D_NCSFindNetPlayer(Buf);
+			}
+			
+			// Record
+			__REC;
+		}
+		
+		// Game State -- After Map Data Is Loaded
+		if (__HEADER("SGGT"))
+		{
+			// doomstat.h
+			u32 = MAXPLAYERS;
+			__BI(u32,UINT32,UINT32);
+			for (i = 0; i < u32; i++)
+			{
+				u32b = playerstarts[i] - mapthings;
+				__BI(u32b,UINT32,UINT32);
+				playerstarts[i] = NULL;
+				if (u32 >= 0 && u32 < nummapthings)
+					playerstarts[i] = &mapthings[u32];
+			}
+			
+			// Record
 			__REC;
 		}
 		
@@ -431,8 +809,11 @@ bool_t P_SGBiWayBS(D_RBlockStream_t* const a_Stream, const bool_t a_Load)
 	/* Success? */
 	return true;
 #undef __BI
+#undef __BISTRZ
+#undef __BISTRB
 #undef __HEADER
 #undef __REC
+#undef BUFSIZE
 }
 
 /*****************************************************************************/

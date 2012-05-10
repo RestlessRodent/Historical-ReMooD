@@ -66,6 +66,7 @@ typedef enum StatePriorities_e
 
 typedef struct
 {
+	statenum_t StateNum;						// State number
 	spritenum_t sprite;
 	int32_t frame;				//faB: we use the upper 16bits for translucency
 	//     and other shade effects
