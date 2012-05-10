@@ -1916,10 +1916,48 @@ void D_NCSNetTicTransmit(D_NetPlayer_t* const a_NPp, ticcmd_t* const a_TicCmd)
 	size_t i, SID;
 	ticcmd_t* DestTic;
 	ticcmd_t Merge;
+	I_EventEx_t OSKEvent;
 	
 	/* Check */
 	if (!a_NPp || !a_TicCmd)
 		return;
+	
+	/* Determine Local Screen */
+	for (SID = 0; SID < MAXSPLITSCREEN; SID++)
+		if (g_PlayerInSplit[SID] && (a_NPp->Player - players) == consoleplayer[SID])
+			break;
+		
+	/* Create Synthetic OSK Events */
+	// These are player movement based
+	// Right/Left Movement
+	memset(&OSKEvent, 0, sizeof(OSKEvent));
+	
+	// Set type
+	OSKEvent.Type = IET_SYNTHOSK;
+	OSKEvent.Data.SynthOSK.PNum = SID;
+	
+	// Right/Left
+	if ((a_TicCmd->sidemove) >= (c_sidemove[0] >> 1) || (a_TicCmd->BaseAngleTurn) <= -(c_angleturn[2] >> 1))
+		OSKEvent.Data.SynthOSK.Right = 1;
+	else if ((a_TicCmd->sidemove) <= -(c_sidemove[0] >> 1) || (a_TicCmd->BaseAngleTurn) >= (c_angleturn[2] >> 1))
+		OSKEvent.Data.SynthOSK.Right = -1;
+	
+	// Up/Down
+	if ((a_TicCmd->forwardmove) <= -(c_forwardmove[0] >> 1))
+		OSKEvent.Data.SynthOSK.Down = 1;
+	else if ((a_TicCmd->forwardmove) >= (c_forwardmove[0] >> 1))
+		OSKEvent.Data.SynthOSK.Down = -1;
+	
+	// Press
+	if (a_TicCmd->buttons & BT_ATTACK)
+		OSKEvent.Data.SynthOSK.Press = 1;
+	
+	// Push Event
+	if (OSKEvent.Data.SynthOSK.Right || OSKEvent.Data.SynthOSK.Down || OSKEvent.Data.SynthOSK.Press)	
+		I_EventExPush(&OSKEvent);
+	
+	// if the OSK is visible do not transmit
+		// TODO FIXME
 	
 	/* Remote Game */
 	if (!D_SyncNetIsSolo())
@@ -1937,13 +1975,11 @@ void D_NCSNetTicTransmit(D_NetPlayer_t* const a_NPp, ticcmd_t* const a_TicCmd)
 		D_NCSNetMergeTics(&Merge, a_NPp->TicCmd, a_NPp->TicTotal);
 		
 		// Set local view angle
-		for (SID = 0; SID < MAXSPLITSCREEN; SID++)
-			if (g_PlayerInSplit[SID] && (a_NPp->Player - players) == consoleplayer[SID])
-			{
-				localangle[SID] += Merge.BaseAngleTurn << 16;
-				Merge.angleturn = localangle[SID] >> 16;
-				break;
-			}
+		if (SID < MAXSPLITSCREEN)
+		{
+			localangle[SID] += Merge.BaseAngleTurn << 16;
+			Merge.angleturn = localangle[SID] >> 16;
+		}
 		
 		// Only use this tic (single player game)
 		a_NPp->TicCmd[0] = Merge;

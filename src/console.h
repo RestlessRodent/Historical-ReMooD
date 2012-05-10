@@ -274,6 +274,9 @@ bool_t CONL_HandleEvent(const I_EventEx_t* const a_Event);
 void CONL_Ticker(void);
 bool_t CONL_DrawConsole(void);
 
+bool_t CONL_OSKSetVisible(const size_t a_PlayerNum, const bool_t a_IsVis);
+bool_t CONL_OSKHandleEvent(const I_EventEx_t* const a_Event, const size_t a_PlayerNum);
+
 /*** Console Commands ***/
 // Variable Commands
 CONL_ExitCode_t CLC_CVarList(const uint32_t a_ArgC, const char** const a_ArgV);

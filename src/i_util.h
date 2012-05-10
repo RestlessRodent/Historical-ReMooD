@@ -197,6 +197,7 @@ typedef enum I_EventType_e
 	IET_MOUSE,					// Mouse event
 	IET_JOYSTICK,				// Joystick event
 	IET_QUIT,					// X button was pressed
+	IET_SYNTHOSK,				// Synthetic On Screen Keyboard
 	
 	NUMIEVENTTYPES
 } I_EventType_t;
@@ -270,6 +271,15 @@ typedef struct I_EventEx_s
 			uint8_t Axis;		// Which axis was moved
 			int16_t Value;		// Axis position
 		} Joystick;				// Joystick action
+		
+		struct
+		{
+			uint8_t PNum;		// Player Number
+			int8_t Right;		// Right movement
+			int8_t Down;		// Down movement
+			uint8_t Press;		// Press Button
+			uint8_t Shift;		// Shifted
+		} SynthOSK;				// Synthetic OSK
 	} Data;						// Event data
 } I_EventEx_t;
 

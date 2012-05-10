@@ -235,7 +235,7 @@ $(__INT_OBJ):
 				$(__INT_RUNCOMMAND,mkdir $@)
 
 # ReMooD.WAD
-$(__INT_BIN)/remood.wad:	rmdtext.exe
+$(__INT_BIN)/remood.wad:	rmdtext.exe wad/wadinfo.txt
 							@$(call __INT_RUNCOMMAND,$(__INT_RUNCURDIR)rmdtext.exe wad/wadinfo.txt $@ wad/)
 
 wad:						bin/remood.wad

@@ -338,6 +338,8 @@ typedef enum
 	
 	// GhostlyDeath <May 2, 2012> -- Synth Sounds
 	sfx_zzzzza,
+	sfx_oskmov,
+	sfx_osktyp,
 	
 	// free slots for S_AddSoundFx() at run-time --------------------
 	sfx_freeslot0,

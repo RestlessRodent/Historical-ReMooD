@@ -1588,6 +1588,16 @@ bool_t CONL_HandleEvent(const I_EventEx_t* const a_Event)
 	/* Don't handle events during startup */
 	if (con_startup || g_EarlyBootConsole)
 		return false;
+	
+	/* Handle Virtual OSK Events? */
+	if (CONL_IsActive())
+	{
+		CONL_OSKSetVisible(0, true);
+		if (CONL_OSKHandleEvent(a_Event, 0))
+			return true;
+	}
+	else
+		CONL_OSKSetVisible(0, false);
 		
 	/* Only handle keyboard events */
 	if (a_Event->Type != IET_KEYBOARD)
@@ -1633,8 +1643,11 @@ bool_t CONL_HandleEvent(const I_EventEx_t* const a_Event)
 		}
 		
 		// Handle input line
-		else if (CONCTI_HandleEvent(l_CONLInputter, a_Event))
-			return true;		// it ate the event
+		else
+		{
+			if (CONCTI_HandleEvent(l_CONLInputter, a_Event))
+				return true;		// it ate the event
+		}
 			
 		// Always eat everything
 		return true;
@@ -1749,6 +1762,298 @@ void CONL_EarlyBootTic(const char* const a_Message, const bool_t a_DoTic)
 	/* Update Screen */
 	I_FinishUpdate();
 #undef BUFSIZE
+}
+
+/* l_OSKLayout -- On Screen Keyboard */
+// --- STANDARD BOARD ---        -- EXTRA --
+// ` 1 2 3 4 5 6 7 8 9 0 - =  BP IN HM PU 14/3 keys 
+// T  q w e r t y u i o p [ ] \  DL EN PD 14/3 keys
+// CL  a s d f g h j k l ; ' RET          13/0 keys
+// SH   z x c v b n m , . /   SH    UA    12/1 keys
+// CT AL      space        AL CT LA DA RA 5/3 keys
+#define LOSKROWS 5
+#define LOSKCOLS 17
+static const struct
+{
+	// 0 = Lower, 1 = Caps, 2 = International
+		// Remember key codes are used for input, UTF is for character input!
+	int8_t KeySize;
+	int8_t VirtOnly;
+	I_KeyBoardKey_t IkbkKey[3];
+	char* UTFKey[3];
+} l_OSKLayout[LOSKROWS][LOSKCOLS] =	//
+{
+	// ` 1 2 3 4 5 6 7 8 9 0 - =  BP IN HM PU 14/3 keys 
+	{
+		{1, 0, {IKBK_GRAVE, IKBK_TILDE, IKBK_NULL}, {"`", "~", ""}},
+		{1, 0, {IKBK_1, IKBK_EXCLAIM, IKBK_NULL}, {"1", "!", ""}},
+		{1, 0, {IKBK_2, IKBK_AT, IKBK_NULL}, {"2", "@", ""}},
+		{1, 0, {IKBK_3, IKBK_HASH, IKBK_NULL}, {"3", "#", ""}},
+		{1, 0, {IKBK_4, IKBK_DOLLAR, IKBK_NULL}, {"4", "$", ""}},
+		{1, 0, {IKBK_5, IKBK_PERCENT, IKBK_NULL}, {"5", "%", ""}},
+		{1, 0, {IKBK_6, IKBK_CARET, IKBK_NULL}, {"6", "^", ""}},
+		{1, 0, {IKBK_7, IKBK_AMPERSAND, IKBK_NULL}, {"7", "&", ""}},
+		{1, 0, {IKBK_8, IKBK_ASTERISK, IKBK_NULL}, {"8", "*", ""}},
+		{1, 0, {IKBK_9, IKBK_LEFTPARENTHESES, IKBK_NULL}, {"9", "(", ""}},
+		{1, 0, {IKBK_0, IKBK_RIGHTPARENTHESES, IKBK_NULL}, {"0", ")", ""}},
+		{1, 0, {IKBK_MINUS, IKBK_UNDERSCORE, IKBK_NULL}, {"-", "_", ""}},
+		{1, 0, {IKBK_EQUALS, IKBK_PLUS, IKBK_NULL}, {"=", "+", ""}},
+		{1, 1, {IKBK_BACKSPACE, 0, 0}, {"\xE2\x8C\xAB", NULL, NULL}},
+		
+		{1, 1, {IKBK_INSERT, 0, 0}, {"#", NULL, NULL}},
+		{1, 1, {IKBK_HOME, 0, 0}, {"#", NULL, NULL}},
+		{1, 1, {IKBK_PAGEUP, 0, 0}, {"#", NULL, NULL}},
+	},
+	
+	// T  q w e r t y u i o p [ ] \  DL EN PD 14/3 keys
+	{
+		{1, 1, {IKBK_TAB, 0, 0}, {"#", NULL, NULL}},
+		{1, 0, {IKBK_Q, IKBK_Q, IKBK_NULL}, {"q", "Q", ""}},
+		{1, 0, {IKBK_W, IKBK_W, IKBK_NULL}, {"w", "W", ""}},
+		{1, 0, {IKBK_E, IKBK_E, IKBK_NULL}, {"e", "E", ""}},
+		{1, 0, {IKBK_R, IKBK_R, IKBK_NULL}, {"r", "R", ""}},
+		{1, 0, {IKBK_T, IKBK_T, IKBK_NULL}, {"t", "T", ""}},
+		{1, 0, {IKBK_Y, IKBK_Y, IKBK_NULL}, {"y", "Y", ""}},
+		{1, 0, {IKBK_U, IKBK_U, IKBK_NULL}, {"u", "U", ""}},
+		{1, 0, {IKBK_I, IKBK_I, IKBK_NULL}, {"i", "I", ""}},
+		{1, 0, {IKBK_O, IKBK_O, IKBK_NULL}, {"o", "O", ""}},
+		{1, 0, {IKBK_P, IKBK_P, IKBK_NULL}, {"p", "P", ""}},
+		{1, 0, {IKBK_LEFTBRACKET, IKBK_LEFTBRACE, IKBK_NULL}, {"[", "{", ""}},
+		{1, 0, {IKBK_RIGHTBRACKET, IKBK_RIGHTBRACE, IKBK_NULL}, {"]", "}", ""}},
+		{1, 0, {IKBK_BACKSLASH, IKBK_PIPE, IKBK_NULL}, {"\\", "|", ""}},
+		
+		{1, 1, {IKBK_KDELETE, 0, 0}, {"#", NULL, NULL}},
+		{1, 1, {IKBK_END, 0, 0}, {"#N", NULL, NULL}},
+		{1, 1, {IKBK_PAGEDOWN, 0, 0}, {"#", NULL, NULL}},
+	},
+	
+	// CL  a s d f g h j k l ; ' RET  13 keys
+	{
+		{1, 1, {IKBK_CAPSLOCK, 0, 0}, {"#", NULL, NULL}},
+		{1, 0, {IKBK_A, IKBK_A, IKBK_NULL}, {"a", "A", ""}},
+		{1, 0, {IKBK_S, IKBK_S, IKBK_NULL}, {"s", "S", ""}},
+		{1, 0, {IKBK_D, IKBK_D, IKBK_NULL}, {"d", "D", ""}},
+		{1, 0, {IKBK_F, IKBK_F, IKBK_NULL}, {"f", "F", ""}},
+		{1, 0, {IKBK_G, IKBK_G, IKBK_NULL}, {"g", "G", ""}},
+		{1, 0, {IKBK_H, IKBK_H, IKBK_NULL}, {"h", "H", ""}},
+		{1, 0, {IKBK_J, IKBK_J, IKBK_NULL}, {"j", "J", ""}},
+		{1, 0, {IKBK_K, IKBK_K, IKBK_NULL}, {"k", "K", ""}},
+		{1, 0, {IKBK_L, IKBK_L, IKBK_NULL}, {"l", "L", ""}},
+		{1, 0, {IKBK_SEMICOLON, IKBK_COLON, IKBK_NULL}, {";", ":", ""}},
+		{1, 0, {IKBK_APOSTROPHE, IKBK_QUOTE, IKBK_NULL}, {"\'", "\"", ""}},
+		{2, 1, {IKBK_RETURN, 0, 0}, {"RT", NULL, NULL}},
+		{0},
+	},
+	
+	// SH   z x c v b n m , . /   SH    UA    12/1 keys
+	{
+		{2, 1, {IKBK_SHIFT, 0, 0}, {"SH", NULL, NULL}},
+		{0},
+		{1, 0, {IKBK_Z, IKBK_Z, IKBK_NULL}, {"z", "Z", ""}},
+		{1, 0, {IKBK_X, IKBK_X, IKBK_NULL}, {"x", "X", ""}},
+		{1, 0, {IKBK_C, IKBK_C, IKBK_NULL}, {"c", "C", ""}},
+		{1, 0, {IKBK_V, IKBK_V, IKBK_NULL}, {"v", "V", ""}},
+		{1, 0, {IKBK_B, IKBK_B, IKBK_NULL}, {"b", "B", ""}},
+		{1, 0, {IKBK_N, IKBK_N, IKBK_NULL}, {"n", "N", ""}},
+		{1, 0, {IKBK_M, IKBK_M, IKBK_NULL}, {"m", "M", ""}},
+		{1, 0, {IKBK_COMMA, IKBK_LESSTHAN, IKBK_NULL}, {",", "<", ""}},
+		{1, 0, {IKBK_PERIOD, IKBK_GREATERTHAN, IKBK_NULL}, {".", ">", ""}},
+		{1, 0, {IKBK_FORWARDSLASH, IKBK_QUESTION, IKBK_NULL}, {"/", "?", ""}},
+		{2, 1, {IKBK_SHIFT, 0, 0}, {"SH", NULL, NULL}},
+		{0},
+		
+		{0},
+		{1, 1, {IKBK_UP, 0, 0}, {"#", NULL, NULL}},
+		{0},
+	},
+	
+	// CT AL      space        AL CT  5 keys
+	{
+		{2, 1, {IKBK_CTRL, 0, 0}, {"CT", NULL, NULL}},
+		{0},
+		{2, 1, {IKBK_ALT, 0, 0}, {"AL", NULL, NULL}},
+		{0},
+		{6, 1, {IKBK_SPACE, 0, 0}, {"SPACE", NULL, NULL}},
+		{0},
+		{0},
+		{0},
+		{0},
+		{0},
+		{2, 1, {IKBK_ALT, 0, 0}, {"AL", NULL, NULL}},
+		{0},
+		{2, 1, {IKBK_CTRL, 0, 0}, {"CT", NULL, NULL}},
+		{0},
+		
+		{1, 1, {IKBK_LEFT, 0, 0}, {"#", NULL, NULL}},
+		{1, 1, {IKBK_DOWN, 0, 0}, {"#", NULL, NULL}},
+		{1, 1, {IKBK_RIGHT, 0, 0}, {"#", NULL, NULL}},
+	},
+};
+
+static int8_t l_OSKSel[MAXSPLITSCREEN][2];
+static uint32_t l_OSKLast[MAXSPLITSCREEN][2];
+static bool_t l_OSKVis[MAXSPLITSCREEN];
+static int32_t l_OSKShift[MAXSPLITSCREEN];
+
+/* CONL_OSKSetVisible() -- Sets OSK Visibility */
+bool_t CONL_OSKSetVisible(const size_t a_PlayerNum, const bool_t a_IsVis)
+{
+	/* Check */
+	if (a_PlayerNum < 0 || a_PlayerNum >= MAXSPLITSCREEN)
+		return false;
+	
+	/* Set and return */
+	return (l_OSKVis[a_PlayerNum] = a_IsVis);
+}
+
+/* CONLS_DrawOSK() -- Draws On-Screen-Keyboard */
+void CONLS_DrawOSK(const int32_t a_X, const int32_t a_Y, const int32_t a_W, const int32_t a_H, const uint32_t a_SplitP)
+{
+	size_t i, j, Shift;
+	bool_t IsSelected;
+	uint32_t DrawFlags;
+	
+	/* Check */
+	if (a_SplitP >= MAXSPLITSCREEN)
+		return;
+	
+	/* Draw The Layout */
+	Shift = l_OSKShift[a_SplitP];
+	for (i = 0; i < LOSKROWS; i++)
+		for (j = 0; j < LOSKCOLS; j += (l_OSKLayout[i][j].KeySize ? l_OSKLayout[i][j].KeySize : 1))
+		{
+			// Determine if it is selected
+			IsSelected = false;
+			if (l_OSKSel[a_SplitP][0] == i && l_OSKSel[a_SplitP][1] == j)
+				IsSelected = true;
+			
+			// Flags to draw with
+			if (!IsSelected)
+				DrawFlags = VFO_COLOR(VEX_MAP_WHITE);
+			else
+			{
+				if (gametic & 0x8)
+					DrawFlags = VFO_COLOR(VEX_MAP_YELLOW);
+				else
+					DrawFlags = VFO_COLOR(VEX_MAP_RED);
+			}
+			
+			// Draw it
+			V_DrawStringA(
+					VFONT_OEM,
+					DrawFlags,
+					l_OSKLayout[i][j].UTFKey[(l_OSKLayout[i][j].VirtOnly ? 0 : Shift)],
+					a_X + (9 * j),
+					a_Y + (9 * i)
+				);
+		}
+}
+
+/* CONL_OSKHandleEvent() -- Handle on screen keyboard event */
+// OSK Events are virtually synthetic, really!
+bool_t CONL_OSKHandleEvent(const I_EventEx_t* const a_Event, const size_t a_PlayerNum)
+{
+	bool_t VirtOnly;
+	int8_t Shift;
+	uint32_t ThisTime;
+	I_EventEx_t FakeEvent;
+	
+	/* Check */
+	if (!a_Event || a_PlayerNum < 0 || a_PlayerNum >= MAXSPLITSCREEN)
+		return false;
+	
+	/* Only Handle OSK Events */
+	if (a_Event->Type != IET_SYNTHOSK)
+		return false;
+	
+	/* Not visible? Ignore */
+	if (!l_OSKVis[a_Event->Data.SynthOSK.PNum])
+		return false;
+	
+	/* Limit movement */
+	ThisTime = I_GetTimeMS();
+	
+	/* Move Around Board */
+	if (ThisTime >= (l_OSKLast[a_Event->Data.SynthOSK.PNum][0] + 250))
+	{
+		l_OSKLast[a_Event->Data.SynthOSK.PNum][0] = ThisTime;
+		
+		// Emit sound to inform user
+		S_StartSound(NULL, sfx_oskmov);
+		
+		// Move, but keep doing it if on a bad key 
+		do
+		{
+			// Move Around
+			l_OSKSel[a_Event->Data.SynthOSK.PNum][0] += a_Event->Data.SynthOSK.Down;
+			l_OSKSel[a_Event->Data.SynthOSK.PNum][1] += a_Event->Data.SynthOSK.Right;
+		
+			// Move around rows
+			if (l_OSKSel[a_Event->Data.SynthOSK.PNum][0] < 0)
+				l_OSKSel[a_Event->Data.SynthOSK.PNum][0] = LOSKROWS - 1;
+			else if (l_OSKSel[a_Event->Data.SynthOSK.PNum][0] >= LOSKROWS)
+				l_OSKSel[a_Event->Data.SynthOSK.PNum][0] = 0;
+	
+			// Move around columns
+			if (l_OSKSel[a_Event->Data.SynthOSK.PNum][1] < 0)
+				l_OSKSel[a_Event->Data.SynthOSK.PNum][1] = LOSKCOLS - 1;
+			else if (l_OSKSel[a_Event->Data.SynthOSK.PNum][1] >= LOSKCOLS)
+				l_OSKSel[a_Event->Data.SynthOSK.PNum][1] = 0;
+		} while (!l_OSKLayout[l_OSKSel[a_Event->Data.SynthOSK.PNum][0]][l_OSKSel[a_Event->Data.SynthOSK.PNum][1]].KeySize);
+	}
+	
+	/* Type On Board */
+	if (a_Event->Data.SynthOSK.Press)
+		if (ThisTime >= (l_OSKLast[a_Event->Data.SynthOSK.PNum][1] + 250))
+		{
+			l_OSKLast[a_Event->Data.SynthOSK.PNum][1] = ThisTime;
+		
+			// Emit sound to inform user
+			S_StartSound(NULL, sfx_osktyp);
+		
+			// Typing into console
+			if (!a_PlayerNum)
+			{
+				bool_t VirtOnly;
+				int8_t Shift;
+			
+				// Virtual Only?
+				VirtOnly = l_OSKLayout[l_OSKSel[a_Event->Data.SynthOSK.PNum][0]][l_OSKSel[a_Event->Data.SynthOSK.PNum][1]].VirtOnly;
+			
+				// Determine Shift
+				Shift = 0;
+				if (!VirtOnly)
+					Shift = l_OSKShift[a_Event->Data.SynthOSK.PNum];
+			
+				// Create fake keyboard event
+				memset(&FakeEvent, 0, sizeof(FakeEvent));
+				FakeEvent.Type = IET_KEYBOARD;
+				FakeEvent.Data.Keyboard.Down = true;
+				FakeEvent.Data.Keyboard.KeyCode = l_OSKLayout[l_OSKSel[a_Event->Data.SynthOSK.PNum][0]][l_OSKSel[a_Event->Data.SynthOSK.PNum][1]].IkbkKey[Shift];
+			
+				if (!VirtOnly)
+					FakeEvent.Data.Keyboard.Character = V_ExtMBToWChar(l_OSKLayout[l_OSKSel[a_Event->Data.SynthOSK.PNum][0]][l_OSKSel[a_Event->Data.SynthOSK.PNum][1]].UTFKey[Shift], NULL);
+				
+				// Push it
+				I_EventExPush(&FakeEvent);
+				
+				// Let go of key
+				FakeEvent.Data.Keyboard.Down = false;
+				I_EventExPush(&FakeEvent);
+				
+				// If it was shift, toggle shift
+				if (FakeEvent.Data.Keyboard.KeyCode == IKBK_SHIFT)
+					l_OSKShift[a_Event->Data.SynthOSK.PNum] ^= 1;
+			}
+		
+			// Typing into player chat string
+			else
+			{
+			}
+		}
+	
+	/* Un-handled */
+	return false;
 }
 
 /* CONL_DrawConsole() -- Draws the console */
@@ -2075,6 +2380,10 @@ bool_t CONL_DrawConsole(void)
 			
 			V_DrawColorBoxEx(VEX_COLORMAP(VEX_MAP_BLACK) | Options, CONLSCROLLBACK, 1, bw, CONLPADDING - 1, bh);
 		}
+		
+		// Draw OSK
+		if (!con_startup)
+			CONLS_DrawOSK(80, 120, 320, 100, 0);
 	}
 	
 	/* Not active, draw per player messages */
