@@ -311,7 +311,7 @@ bool_t DS_RBSFile_PlayF(struct D_RBlockStream_s* const a_Stream)
 	
 	/* Check */
 	if (!a_Stream)
-		return 0;
+		return false;
 		
 	/* Get Data */
 	File = (FILE*)a_Stream->Data;
@@ -325,13 +325,21 @@ bool_t DS_RBSFile_PlayF(struct D_RBlockStream_s* const a_Stream)
 	Len = Sum = 0;
 	Data = NULL;
 	
-	// Start reading
-	fread(&Header, 4, 1, File);
-	fread(&Len, sizeof(Len), 1, File);
+	// Start reading and be sure to check if the read failed!!!
+	if (fread(&Header, 4, 1, File) < 1)
+		return false;
+		
+	if (fread(&Len, sizeof(Len), 1, File) < 1)
+		return false;
+	
+	if (fread(&Sum, sizeof(Sum), 1, File) < 1)
+		return false;
+	
+	// Endian Correct Values
 	Len = LittleSwapUInt32(Len);
-	fread(&Sum, sizeof(Sum), 1, File);
 	Sum = LittleSwapUInt32(Sum);
 	
+	// Read data, if possible (Len could be zero (empty block?))
 	if (Len > 0)
 	{
 		Data = Z_Malloc(Len, PU_STATIC, NULL);
@@ -402,11 +410,12 @@ void D_RBSCloseStream(D_RBlockStream_t* const a_Stream)
 }
 
 /* D_RBSBaseBlock() -- Base block */
-void D_RBSBaseBlock(D_RBlockStream_t* const a_Stream, const char* const a_Header)
+// This used to return void, but I need it to return true for the SaveGame code
+bool_t D_RBSBaseBlock(D_RBlockStream_t* const a_Stream, const char* const a_Header)
 {
 	/* Check */
 	if (!a_Stream || !a_Header)
-		return;
+		return false;
 	
 	/* Clear Everything */
 	memset(a_Stream->BlkHeader, 0, sizeof(a_Stream->BlkHeader));
@@ -422,6 +431,9 @@ void D_RBSBaseBlock(D_RBlockStream_t* const a_Stream, const char* const a_Header
 	
 	// Copy header
 	memmove(a_Stream->BlkHeader, a_Header, (strlen(a_Header) >= 4 ? 4 : strlen(a_Header)));
+	
+	/* Success */
+	return true;
 }
 
 /* D_RBSRecordBlock() -- Records the current block to the stream */
@@ -451,6 +463,7 @@ bool_t D_RBSPlayBlock(D_RBlockStream_t* const a_Stream, char* const a_Header)
 				memmove(a_Header, a_Stream->BlkHeader, sizeof(a_Stream->BlkHeader));
 			return true;
 		}
+	
 	return false;
 }
 

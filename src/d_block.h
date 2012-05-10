@@ -185,7 +185,7 @@ D_RBlockStream_t* D_RBSCreateFileStream(const char* const a_PathName);
 D_RBlockStream_t* D_RBSCreateNetStream(I_NetSocket_t* const a_NetSocket);
 void D_RBSCloseStream(D_RBlockStream_t* const a_Stream);
 
-void D_RBSBaseBlock(D_RBlockStream_t* const a_Stream, const char* const a_Header);
+bool_t D_RBSBaseBlock(D_RBlockStream_t* const a_Stream, const char* const a_Header);
 
 bool_t D_RBSPlayBlock(D_RBlockStream_t* const a_Stream, char* const a_Header);
 void D_RBSRecordBlock(D_RBlockStream_t* const a_Stream);

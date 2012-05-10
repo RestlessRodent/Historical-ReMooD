@@ -205,6 +205,239 @@ static void PLGS_DeRef(const uint32_t a_UniqPtr, void** const a_PtrRef)
 {
 }
 
+/*****************************************************************************/
+/*****************************************************************************/
+// Super Merged Save Handling -- This replaces any existing separate load/save
+// formats and instead merges them into a single function.
+
+// [05/10 01:25:27 AM] <@GhostlyDeath> Or really functions that move both ways
+// [05/10 01:25:33 AM] <@GhostlyDeath> yeah that would work much better
+// [05/10 01:25:39 AM] <@GhostlyDeath> Call the SAME function
+// [05/10 01:25:40 AM] <@GhostlyDeath> BUT
+// [05/10 01:25:48 AM] <@GhostlyDeath> depending on read/write a different action is performed
+// [05/10 01:25:56 AM] <@GhostlyDeath> to in reality it is just a single piece of coe
+// [05/10 01:25:57 AM] <@GhostlyDeath> but
+// [05/10 01:26:05 AM] <@GhostlyDeath> It would be capable of read/writing to both at once
+// [05/10 01:26:16 AM] <@GhostlyDeath> And I wouldn't need to worry about syncing at all
+// [05/10 01:26:29 AM] <@GhostlyDeath> Since the function calls would be the same
+// [05/10 01:26:31 AM] <@GhostlyDeath> cool
+
+/*** CONSTANTS ***/
+
+/* P_SGBWTypeC_t -- Type in C */
+typedef enum P_SGBWTypeC_e
+{
+	PSTC_CHAR,									// char
+	PSTC_SCHAR,									// signed char
+	PSTC_SHORT,									// (signed) short
+	PSTC_INT,									// (signed) int
+	PSTC_LONG,									// (signed) long
+	PSTC_UCHAR,									// unsigned char
+	PSTC_USHORT,								// unsigned short
+	PSTC_UINT,									// unsigned int
+	PSTC_ULONG,									// unsigned long
+	PSTC_FIXEDT,								// fixed_t
+	PSTC_FLOAT,									// float
+	PSTC_DOUBLE,								// double
+	PSTC_POINTER,								// void*
+	PSTC_STRING,								// char*
+	PSTC_INT8,									// Int8
+	PSTC_INT16,									// Int16
+	PSTC_INT32,									// Int32
+	PSTC_INT64,									// Int64
+	PSTC_UINT8,									// UInt8
+	PSTC_UINT16,								// UInt16
+	PSTC_UINT32,								// UInt32
+	PSTC_UINT64,								// UInt64
+	PSTC_INTPTR,								// intptr_t
+	PSTC_UINTPTR,								// uintptr_t
+	PSTC_SIZET,									// size_t
+	PSTC_SSIZET,								// ssize_t
+	
+	NUMPSTCS
+} P_SGBWTypeC_t;
+
+/* P_SGBWTypeRec_t -- Type in block */
+typedef enum P_SGBWTypeRec_e
+{
+	PSRC_INT8,									// Int8
+	PSRC_INT16,									// Int16
+	PSRC_INT32,									// Int32
+	PSRC_UINT8,									// UInt8
+	PSRC_UINT16,								// UInt16
+	PSRC_UINT32,								// UInt32
+	PSRC_STRING,								// String
+	PSRC_POINTER,								// Pointer
+	
+	NUMPSRCS
+} P_SGBWTypeRec_t;
+
+/*** STATICS ***/
+
+// __REMOOD_PRWSBASE -- Handles basic integer types (they are all the same anyway)
+#define __REMOOD_PRWSBASE(x,y) static bool_t PRWS_##y(D_RBlockStream_t* const a_Stream, const bool_t a_Load, const P_SGBWTypeRec_t a_RecType, void* a_Ptr)\
+{\
+	if (a_Load)\
+		switch (a_RecType)\
+		{\
+			case PSRC_INT8: *((x*)a_Ptr) = D_RBSReadInt8(a_Stream);\
+			case PSRC_INT16: *((x*)a_Ptr) = D_RBSReadInt16(a_Stream);\
+			case PSRC_INT32: *((x*)a_Ptr) = D_RBSReadInt32(a_Stream);\
+			case PSRC_UINT8: *((x*)a_Ptr) = D_RBSReadUInt8(a_Stream);\
+			case PSRC_UINT16: *((x*)a_Ptr) = D_RBSReadUInt16(a_Stream);\
+			case PSRC_UINT32: *((x*)a_Ptr) = D_RBSReadUInt32(a_Stream);\
+			default: return false;\
+		}\
+	else\
+		switch (a_RecType)\
+		{\
+			case PSRC_INT8: D_RBSWriteInt8(a_Stream, *((x*)a_Ptr));\
+			case PSRC_INT16: D_RBSWriteInt16(a_Stream, *((x*)a_Ptr));\
+			case PSRC_INT32: D_RBSWriteInt32(a_Stream, *((x*)a_Ptr));\
+			case PSRC_UINT8: D_RBSWriteUInt8(a_Stream, *((x*)a_Ptr));\
+			case PSRC_UINT16: D_RBSWriteUInt16(a_Stream, *((x*)a_Ptr));\
+			case PSRC_UINT32: D_RBSWriteUInt32(a_Stream, *((x*)a_Ptr));\
+			default: return false;\
+		}\
+	return true;\
+}
+
+__REMOOD_PRWSBASE(char,char);
+__REMOOD_PRWSBASE(signed char,signedchar);
+__REMOOD_PRWSBASE(signed short,signedshort);
+__REMOOD_PRWSBASE(signed int,signedint);
+__REMOOD_PRWSBASE(signed long,signedlong);
+__REMOOD_PRWSBASE(unsigned char,unsignedchar);
+__REMOOD_PRWSBASE(unsigned short,unsignedshort);
+__REMOOD_PRWSBASE(unsigned int,unsignedint);
+__REMOOD_PRWSBASE(unsigned long,unsignedlong);
+__REMOOD_PRWSBASE(fixed_t,fixedt);
+
+#undef __REMOOD_PRWSBASE
+
+// l_NativeData -- Native data handlers
+static const struct
+{
+	size_t Size;								// Size of data
+	bool_t (*RWFunc)(D_RBlockStream_t* const a_Stream, const bool_t a_Load, const P_SGBWTypeRec_t a_RecType, void* a_Ptr);
+} l_NativeData[NUMPSTCS] =
+{
+	{sizeof(char), PRWS_char},					// PSTC_CHAR
+	{sizeof(signed char), PRWS_signedchar},		// PSTC_SCHAR
+	{sizeof(signed short), PRWS_signedshort},	// PSTC_SHORT
+	{sizeof(signed int), PRWS_signedint},		// PSTC_INT
+	{sizeof(signed long), PRWS_signedlong},		// PSTC_LONG
+	{sizeof(unsigned char), PRWS_unsignedchar},	// PSTC_UCHAR
+	{sizeof(unsigned short), PRWS_unsignedshort},	// PSTC_USHORT
+	{sizeof(unsigned int), PRWS_unsignedint},	// PSTC_UINT
+	{sizeof(unsigned long), PRWS_unsignedlong},	// PSTC_ULONG
+	{sizeof(fixed_t), PRWS_fixedt},				// PSTC_FIXEDT
+	{sizeof(float),},								// PSTC_FLOAT
+	{sizeof(double),},								// PSTC_DOUBLE
+	{sizeof(void*),},								// PSTC_POINTER
+	{sizeof(char*),},								// PSTC_STRING
+	{sizeof(int8_t),},								// PSTC_INT8
+	{sizeof(int16_t),},							// PSTC_INT16
+	{sizeof(int32_t),},							// PSTC_INT32
+	{sizeof(int64_t),},							// PSTC_INT64
+	{sizeof(uint8_t),},							// PSTC_UINT8
+	{sizeof(uint16_t),},							// PSTC_UINT16
+	{sizeof(uint32_t),},							// PSTC_UINT32
+	{sizeof(uint64_t),},							// PSTC_UINT64
+	{sizeof(intptr_t),},							// PSTC_INTPTR
+	{sizeof(uintptr_t),},							// PSTC_UINTPTR
+	{sizeof(size_t),},								// PSTC_SIZET
+	{sizeof(ssize_t),},							// PSTC_SSIZET
+};
+
+/*** FUNCTIONS ***/
+
+/* P_SGBiWayReadOrWrite() -- Read or write data */
+// This one should be dirty and ugly
+bool_t P_SGBiWayReadOrWrite(
+		D_RBlockStream_t* const a_Stream,
+		const bool_t a_Load,
+		void* const a_Ptr,
+		const size_t a_Size,
+		const P_SGBWTypeC_t a_NativeType,
+		const P_SGBWTypeRec_t a_RecType
+	)
+{
+	/* Sanity Checks */
+	if (devparm)
+	{
+		// Size and native size don't match
+		if (a_Size != l_NativeData[a_NativeType].Size)
+			CONL_PrintF("WARNING: NTS Mismatch (%u vs %u)\n",
+					(unsigned int)a_Size, (unsigned int)l_NativeData[a_NativeType].Size);
+	}
+	
+	/* Handle Native Read/Write */
+	if (l_NativeData[a_NativeType].RWFunc)
+		return l_NativeData[a_NativeType].RWFunc(a_Stream, a_Load, a_RecType, a_Ptr);
+	return false;
+}
+
+/* P_SGBiWayBS() -- Saving function that goes both ways */
+// This one should be clean and neat
+bool_t P_SGBiWayBS(D_RBlockStream_t* const a_Stream, const bool_t a_Load)
+{
+	// __HEADER -- Determines if header matches or starts a new one
+#define __HEADER(s) (a_Load ? (strcasecmp((s), Header)) : (D_RBSBaseBlock(a_Stream, (s))))
+	// __REC -- Only records block
+#define __REC (a_Load ? JunkityJunk = 0 : D_RBSRecordBlock(a_Stream))
+	// __BI -- Reads or loads data
+#define __BI(x,nt,rc) P_SGBiWayReadOrWrite(a_Stream, a_Load, &x, sizeof(x), PSTC_##nt, PSRC_##rc)
+
+	bool_t Continue;
+	char Header[5];
+	char JunkityJunk;
+	
+	/* Check */
+	if (!a_Stream)
+		return false;
+	
+	/* Debug */
+	CONL_PrintF("%s the game...\n", (a_Load ? "Loading" : "Saving"));
+	
+	/* Clear */
+	Continue = true;
+	
+	/* Infinite Loop */
+	while (Continue)
+	{
+		//////////////////////////////
+		// If loading, read block (play it back)
+		memset(Header, 0, sizeof(Header));
+		if (a_Load)
+			if (!(Continue = D_RBSPlayBlock(a_Stream, Header)))
+				break;
+		
+		//////////////////////////////
+		// Game State
+		if (__HEADER("SGGS"))
+		{
+			__BI(gamestate,INT,UINT8);
+			
+			__REC;
+		}
+		
+		//////////////////////////////
+		// If saving, don't continue
+		if (!a_Load)
+			Continue = false;
+	}
+	
+	/* Success? */
+	return true;
+#undef __BI
+#undef __HEADER
+#undef __REC
+}
+
+/*****************************************************************************/
+/*****************************************************************************/
+
 /* P_LoadGameFromBS() -- Load game from block stream */
 bool_t P_LoadGameFromBS(D_RBlockStream_t* const a_Stream)
 {
@@ -218,6 +451,9 @@ bool_t P_LoadGameFromBS(D_RBlockStream_t* const a_Stream)
 	uint8_t u8;
 	uint32_t u32;
 	int32_t i, j, k, l;
+	
+	/* Do bi-way */
+	return P_SGBiWayBS(a_Stream, true);
 	
 	mapthing_t* MapThing;
 	sector_t* Sector;
@@ -447,6 +683,9 @@ bool_t P_SaveGameToBS(D_RBlockStream_t* const a_Stream)
 	/* Check */
 	if (!a_Stream)
 		return false;
+		
+	/* Do bi-way */
+	return P_SGBiWayBS(a_Stream, false);
 		
 	/* Create Header Block */
 	// Save Game Save Stream
