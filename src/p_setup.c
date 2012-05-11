@@ -1984,14 +1984,15 @@ static void PS_ExSegInit(seg_t* const a_Seg)
 }
 
 /* PS_ExThingInit() -- Initializes extra data in thing */
-static void PS_ExThingInit(mapthing_t* const a_Thing)
+static void PS_ExThingInit(mapthing_t* const a_Thing, const uint32_t a_Flags)
 {
 	/* Check */
 	if (!a_Thing)
 		return;
 	
 	/* Spawn it */
-	P_SpawnMapThing(a_Thing);	
+	if (!(a_Flags & PEXLL_NOSPAWNMAPTHING))
+		P_SpawnMapThing(a_Thing);	
 }
 
 /* PS_ExMungeNodeData() -- Munges together node data */
@@ -2068,7 +2069,7 @@ void PS_ExMungeNodeData(void)
 }
 
 /* P_ExLoadLevel() -- Loads a new level */
-bool_t P_ExLoadLevel(P_LevelInfoEx_t* const a_Info, const bool_t a_ApplyOptions)
+bool_t P_ExLoadLevel(P_LevelInfoEx_t* const a_Info, const uint32_t a_Flags)
 {
 #define BUFSIZE 512
 #define LOADSHIFT 6
@@ -2098,16 +2099,17 @@ bool_t P_ExLoadLevel(P_LevelInfoEx_t* const a_Info, const bool_t a_ApplyOptions)
 	g_CurrentLevelInfo = a_Info;
 	
 	/* Respawn all players */
-	for (i = 0; i < MAXPLAYERS; i++)
-		if (playeringame[i])
-		{
-			// Revive dead players
-			if (!players[i].mo || players[i].playerstate == PST_DEAD)
-				players[i].playerstate = PST_REBORN;
+	if (!(a_Flags & PEXLL_NOPLREVIVE))
+		for (i = 0; i < MAXPLAYERS; i++)
+			if (playeringame[i])
+			{
+				// Revive dead players
+				if (!players[i].mo || players[i].playerstate == PST_DEAD)
+					players[i].playerstate = PST_REBORN;
 				
-			// Remove map object here
-			players[i].mo = NULL;
-		}
+				// Remove map object here
+				players[i].mo = NULL;
+			}
 		
 	/* Debug */
 	if (devparm)
@@ -2596,7 +2598,7 @@ bool_t P_ExLoadLevel(P_LevelInfoEx_t* const a_Info, const bool_t a_ApplyOptions)
 				}
 				
 				// Init
-				PS_ExThingInit(ThingP);
+				PS_ExThingInit(ThingP, a_Flags);
 			}
 			
 			// Close stream
@@ -2605,21 +2607,29 @@ bool_t P_ExLoadLevel(P_LevelInfoEx_t* const a_Info, const bool_t a_ApplyOptions)
 	}
 	
 	/* Spawn map specials */
-	P_SpawnSpecials();
-	P_InitBrainTarget();
-	
-	/* Pre-Finalize */
-	// Set the level time to zero
-	D_SyncNetSetMapTime(0);
+	if (!(a_Flags & PEXLL_NOSPAWNSPECIALS))
+		P_SpawnSpecials();
+	if (!(a_Flags & PEXLL_NOINITBRAIN))
+		P_InitBrainTarget();
 	
 	/* Finalize */
-	P_ExFinalizeLevel();
+	if (!(a_Flags & PEXLL_NOFINALIZE))
+	{
+		// Set the level time to zero
+		D_SyncNetSetMapTime(0);
+	
+		// Finalize
+		P_ExFinalizeLevel();
+	}
 	
 	/* Set state to playing */
 	D_NCSNetSetState(DNS_PLAYING);
 #undef BUFSIZE
 #undef LOADMASK
 #undef LOADSHIFT
+	
+	/* Success */
+	return true;
 }
 
 /* P_ExFinalizeLevel() -- Finalizes the level so that it can be joined */

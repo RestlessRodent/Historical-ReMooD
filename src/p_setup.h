@@ -85,6 +85,18 @@ extern char* levelmapname;
 ********************************************************************************
 *******************************************************************************/
 
+/*** CONSTANTS ***/
+
+/* P_ExLLFlags_t -- Load level flags */
+typedef enum P_ExLLFlags_e
+{
+	PEXLL_NOPLREVIVE			= 0x0000001,	// Do not revive players
+	PEXLL_NOSPAWNMAPTHING		= 0x0000002,	// Do not spawn map things
+	PEXLL_NOSPAWNSPECIALS		= 0x0000004,	// Do not spawn specials
+	PEXLL_NOINITBRAIN			= 0x0000008,	// Do not initialize brain targets
+	PEXLL_NOFINALIZE			= 0x0000010,	// Do not finalize the level
+} P_ExLLFlags_t;
+
 /*** STRUCTURES ***/
 
 /*** PROTOTYPES ***/
@@ -92,7 +104,7 @@ void P_InitSetupEx(void);
 
 bool_t P_ExClearLevel(void);
 
-bool_t P_ExLoadLevel(P_LevelInfoEx_t* const a_Info, const bool_t a_ApplyOptions);
+bool_t P_ExLoadLevel(P_LevelInfoEx_t* const a_Info, const uint32_t a_Flags);
 bool_t P_ExFinalizeLevel(void);
 
 #endif

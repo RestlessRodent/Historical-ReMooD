@@ -60,6 +60,8 @@ bool_t P_SaveGameEx(const char* Desc, const char* ExtFileName, size_t ExtFileNam
 bool_t P_LoadGameFromBS(D_RBlockStream_t* const a_Stream);
 bool_t P_SaveGameToBS(D_RBlockStream_t* const a_Stream);
 
+bool_t P_SGDXSpec(D_RBlockStream_t* const a_Stream, bool_t a_Load);
+
 extern uint8_t* save_p;
 
 #endif

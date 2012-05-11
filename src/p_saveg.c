@@ -225,7 +225,7 @@ static void PLGS_SetRef(const uint64_t a_UniqPtr, void* const a_SetVal)
 	
 	/* Set */
 	Def->UniqPtr = a_UniqPtr;
-	if (!Def->SetVal)
+	if (!Def->SetVal || Def->SetVal == a_SetVal)
 		Def->SetVal = a_SetVal;
 	else
 	{
@@ -1190,14 +1190,16 @@ bool_t P_SGBiWayBS(D_RBlockStream_t* const a_Stream, const bool_t a_Load)
 				__BI(sectors[i].numlights,INT,INT32);
 				__BI(sectors[i].LLSelf,BOOLT,UINT8);
 					// Lightself is self (sector malloc)
-				if (sectors[i].LLSelf)
+				if (true/*sectors[i].LLSelf*/)
 				{
+					// Allocate
+					if (a_Load)
+						sectors[i].lightlist = Z_Malloc(sizeof(*sectors[i].lightlist) * sectors[i].numlights, PU_LEVEL, NULL);
+					__BI((*sectors[i].lightlist),POINTERISDIRECT,POINTER);
+					
 					// Go through each light
 					for (j = 0; j < sectors[i].numlights; j++)
 					{
-						// Ref Self
-						__BI(sectors[i].lightlist[j],POINTERISDIRECT,POINTER);
-						
 						// Dump light data
 						__BI(sectors[i].lightlist[j].height,FIXEDT,INT32);
 						__BI(sectors[i].lightlist[j].flags,INT,INT32);
@@ -2069,11 +2071,6 @@ else if (a_Thinker->function.acv == T_VerticalDoor)	return 'o';
 	
 	/* Success? */
 	return true;
-#undef __BI
-#undef __BISTRZ
-#undef __BISTRB
-#undef __HEADER
-#undef __REC
 #undef BUFSIZE
 }
 
@@ -2095,6 +2092,7 @@ bool_t P_LoadGameFromBS(D_RBlockStream_t* const a_Stream)
 	int32_t i, j, k, l;
 	
 	/* Do bi-way */
+	return P_SGDXSpec(a_Stream, true);
 	return P_SGBiWayBS(a_Stream, true);
 	
 	mapthing_t* MapThing;
@@ -2327,6 +2325,7 @@ bool_t P_SaveGameToBS(D_RBlockStream_t* const a_Stream)
 		return false;
 		
 	/* Do bi-way */
+	return P_SGDXSpec(a_Stream, false);
 	return P_SGBiWayBS(a_Stream, false);
 		
 	/* Create Header Block */
@@ -5900,3 +5899,162 @@ bool_t P_LoadGame(void)
 }
 
 #endif
+
+/*****************************************************************************/
+/*****************************************************************************/
+/*****************************************************************************/
+
+/* P_SGDXDataSpec_t -- Save Game Data Extended Specification */
+typedef struct P_SGDXDataSpec_s
+{
+	bool_t AtEnd;								// Is At End?
+	ptrdiff_t OffSet;							// Offset to native
+	size_t SizeOf;								// Size of native
+	P_SGBWTypeC_t CType;						// C Type
+	P_SGBWTypeRec_t RType;						// Record Type
+} P_SGDXDataSpec_t;
+
+// __SPEC -- Member Info
+#define __SPEC(s,m,ct,rt) {false, offsetof(s,m), sizeof((*(((s*)0))).m), PSTC_##ct, PSRC_##rt}
+#define __ENDSPEC {true}
+
+/*****************************************************************************/
+
+/*** SPECIFICATIONS ***/
+
+// c_SectorSpec -- sector_t Info
+static const P_SGDXDataSpec_t c_SectorSpec[] =
+{
+	__SPEC(sector_t,floorheight,FIXEDT,INT32),
+	
+	__ENDSPEC,
+};
+
+/*** FUNCTIONS ***/
+
+/* PS_SGDXDoStruct() -- Saves/Loads structure specification */
+static bool_t PS_SGDXDoStruct(D_RBlockStream_t* const a_Stream, const bool_t a_Load, void* const a_Base, const P_SGDXDataSpec_t* const a_Spec)
+{
+	size_t i;
+	uint64_t pMark;
+	
+	/* Check */
+	if (!a_Stream || !a_Base || !a_Spec)
+		return false;
+	
+	/* Dump/Identify Pointer to Struct */
+	// If loading, read pointer and remember for future ref. Something most
+		// likely points to this structure.
+	if (a_Load)
+	{
+		pMark = D_RBSReadPointer(a_Stream);
+		PLGS_SetRef(pMark, a_Base);
+	}
+	
+	// If saving, write pointer.
+	else
+		D_RBSWritePointer(a_Stream, a_Base);
+	
+	/* Go through each spec */
+	for (i = 0; !a_Spec[i].AtEnd; i++)
+	{
+		// Debug
+		if (devparm)
+			CONL_PrintF("Sim: %p+%4u (%2u,%2u)\n",
+					((uint8_t*)a_Base) + a_Spec[i].OffSet,
+					(unsigned)a_Spec[i].SizeOf, a_Spec[i].CType, a_Spec[i].RType
+				);
+		
+		// Save/load each member
+	}
+	
+	/* Success? */
+	return true;
+}
+
+/* P_SGDXDoArray() -- Do array of some type */
+	// a_ArrayP -- Pointer to array
+	// a_MemSz -- Size of array members
+	// a_SizeP -- Pointer to array count (&numwhatever)
+	// a_SizeSz -- Size of array count (sizeof(numwhatever))
+	// a_SizeType -- Native type for array count (INT,SIZE,UINT32,etc.)
+bool_t P_SGDXDoArray(D_RBlockStream_t* const a_Stream, const bool_t a_Load, void** const a_ArrayP, const size_t a_MemSz, void* const a_SizeP, const size_t a_SizeSz, const P_SGBWTypeC_t a_SizeType, const Z_MemoryTag_t a_PUTag)
+{
+	uint32_t u32;
+	
+	/* Check */
+	if (!a_Stream || !a_ArrayP || !a_MemSz || !a_SizeP || !a_SizeSz)
+		return false;
+	
+	/* Read/Write Array Size */
+	u32 = 0;
+	
+	/* Loading */
+	if (a_Load)
+	{
+		// Set local size
+		
+		// Allocate
+		*a_ArrayP = Z_Malloc(a_MemSz * u32, a_PUTag, NULL);
+	}
+	
+	/* Saving */
+	else
+	{
+		// Do nothing
+		if (devparm)
+			CONL_PrintF("Sim: Array %p[%4u] (ElemSz %u)\n",
+					a_ArrayP, u32, (unsigned)a_MemSz
+				);
+	}
+	
+	/* Success? */
+	return true;
+}
+
+#define __INITARRAY(ar,co,ct,pu) P_SGDXDoArray(a_Stream, a_Load, &ar, sizeof(*ar), &co, sizeof(co), PSTC_##ct,pu)
+
+/* P_SGDXSpec() -- Save/Load Game via specification */
+bool_t P_SGDXSpec(D_RBlockStream_t* const a_Stream, const bool_t a_Load)
+{
+	bool_t Continue;
+	char Header[5];
+	size_t i;
+	
+	/* Check */
+	if (!a_Stream)
+		return false;
+	
+	/* Read/Dump Everything */
+	Continue = true;
+	while (Continue)
+	{
+		// SGSC -- Sectors
+		if (__HEADER("SGSC"))
+		{
+			__INITARRAY(sectors,numsectors,INT,PU_LEVEL);
+			for (i = 0; i < numsectors; i++)
+				PS_SGDXDoStruct(a_Stream, a_Load, &sectors[i], c_SectorSpec);
+			
+			// Record
+			__REC;
+		}
+		
+		// If Saving, Terminate
+		if (!a_Load)
+			break;
+	}
+	
+	/* Parse Pointer Reference Tables */
+	if (a_Load)
+	{
+	}
+	
+	/* Success? */
+	return true;
+}
+
+/*****************************************************************************/
+/*****************************************************************************/
+/*****************************************************************************/
+

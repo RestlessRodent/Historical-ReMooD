@@ -825,3 +825,4 @@ extern fixed_t* cachedxstep;
 extern fixed_t* cachedystep;
 
 #endif
+
