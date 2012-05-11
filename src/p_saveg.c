@@ -606,6 +606,9 @@ bool_t P_SGBiWayBS(D_RBlockStream_t* const a_Stream, const bool_t a_Load)
 	fixed_t fxt;
 	void* vp;
 	
+	ffloor_t* FFLRover;
+	msecnode_t* MSNode;
+	
 	/* Check */
 	if (!a_Stream)
 		return false;
@@ -956,7 +959,22 @@ bool_t P_SGBiWayBS(D_RBlockStream_t* const a_Stream, const bool_t a_Load)
 				sectors = Z_Malloc(sizeof(*sectors) * numsectors, PU_LEVEL, &sectors);
 			for (i = 0; i < u32; i++)
 			{
+				// Pointer to this sector
 				__BI(sectors[i],POINTERIS,POINTER);
+				
+				//// Pointers Needed By 3D Floors ////
+				__BI(sectors[i].lightlevel,POINTERIS,POINTER);
+					// Floor Relation
+				__BI(sectors[i].floorheight,POINTERIS,POINTER);
+				__BI(sectors[i].floorpic,POINTERIS,POINTER);
+				__BI(sectors[i].floor_xoffs,POINTERIS,POINTER);
+				__BI(sectors[i].floor_yoffs,POINTERIS,POINTER);
+					// Ceiling Relation
+				__BI(sectors[i].ceilingheight,POINTERIS,POINTER);
+				__BI(sectors[i].ceilingpic,POINTERIS,POINTER);
+				__BI(sectors[i].ceiling_xoffs,POINTERIS,POINTER);
+				__BI(sectors[i].ceiling_yoffs,POINTERIS,POINTER);
+				//////////////////////////////////////
 				
 				__BI(sectors[i].floorheight,FIXEDT,INT32);
 				__BI(sectors[i].ceilingheight,FIXEDT,INT32);
@@ -1006,58 +1024,204 @@ bool_t P_SGBiWayBS(D_RBlockStream_t* const a_Stream, const bool_t a_Load)
 				__BI(sectors[i].SoundSecRef,SIZET,UINT32);
 				
 				__BI(sectors[i].soundtarget,POINTERTO,POINTER);
+				__BI(sectors[i].floordata,POINTERTO,POINTER);
+				__BI(sectors[i].ceilingdata,POINTERTO,POINTER);
+				__BI(sectors[i].lightingdata,POINTERTO,POINTER);
 				__BI(sectors[i].thinglist,POINTERTO,POINTER);
 				__BI(sectors[i].extra_colormap,POINTERTO,POINTER);
+				__BI(sectors[i].touching_thinglist,POINTERTO,POINTER);
 				
+				// Strings
+				__BISTRZ(sectors[i].FloorTexture);
+				__BISTRZ(sectors[i].CeilingTexture);
+				
+				// Floating Points
 				fxt = FLOAT_TO_FIXED(sectors[i].lineoutLength);
 				__BI(fxt,FIXEDT,INT32);
 				sectors[i].lineoutLength = FIXED_TO_FLOAT(fxt);
 				
+				// Structures
+					// Sound Originator
+				__BI(sectors[i].soundorg.Flags,UINT32,UINT32);
+				__BI(sectors[i].soundorg.x,FIXEDT,INT32);
+				__BI(sectors[i].soundorg.y,FIXEDT,INT32);
+				__BI(sectors[i].soundorg.z,FIXEDT,INT32);
+				__BI(sectors[i].soundorg.momx,FIXEDT,INT32);
+				__BI(sectors[i].soundorg.momy,FIXEDT,INT32);
+				__BI(sectors[i].soundorg.momz,FIXEDT,INT32);
+				__BI(sectors[i].soundorg.Pitch,FIXEDT,INT32);
+				__BI(sectors[i].soundorg.Volume,FIXEDT,INT32);
+				__BI(sectors[i].soundorg.Angle,ANGLET,UINT32);
+				
 				// Arrays
 					// Lines that make up sector
-				u32 = sectors[i].linecount;
-				__BI(u32,UINT32,UINT32);
-				sectors[i].linecount = u32;
+				u32b = sectors[i].linecount;
+				__BI(u32b,UINT32,UINT32);
+				sectors[i].linecount = u32b;
 				if (a_Load)
-					sectors[i].lines = Z_Malloc(sizeof(*sectors[i].lines) * sectors[i].linecount, PU_LEVEL, NULL);
-				for (j = 0; j < u32; j++)
+					sectors[i].lines =
+						Z_Malloc(sizeof(*sectors[i].lines) * sectors[i].linecount, PU_LEVEL, NULL);
+				for (j = 0; j < u32b; j++)
 					__BI(sectors[i].lines[j],POINTERTO,POINTER);
+					
+					// Attached Sectors
+				u32b = sectors[i].numattached;
+				__BI(u32b,UINT32,UINT32);
+				sectors[i].numattached = u32b;
+				if (a_Load)
+					sectors[i].attached =
+						Z_Malloc(sizeof(*sectors[i].attached) * sectors[i].numattached,
+							PU_LEVEL, NULL);
+				for (j = 0; j < u32b; j++)
+					__BI(sectors[i].attached[j],INT,INT32);
+				
+				// Light List -- Either owned by itself or a reference to another
+				__BI(sectors[i].numlights,INT,INT32);
+				__BI(sectors[i].LLSelf,BOOLT,UINT8);
+					// Lightself is self (sector malloc)
+				if (sectors[i].LLSelf)
+				{
+					// Go through each light
+					for (j = 0; j < sectors[i].numlights; j++)
+					{
+						// Ref Self
+						__BI(sectors[i].lightlist[j],POINTERIS,POINTER);
+						
+						// Dump light data
+						__BI(sectors[i].lightlist[j].height,FIXEDT,INT32);
+						__BI(sectors[i].lightlist[j].flags,INT,INT32);
+						__BI(sectors[i].lightlist[j].lightlevel,POINTERTO,POINTER);
+						__BI(sectors[i].lightlist[j].extra_colormap,POINTERTO,POINTER);
+						__BI(sectors[i].lightlist[j].caster,POINTERTO,POINTER);
+					}
+				}
+				
+					// Owned by another sector
+				else
+					__BI(sectors[i].lightlist,POINTERTO,POINTER);
+				
+				//// 3D Floors in Sector (Exists as linked list) ////
+				u8 = ((a_Load || (!a_Load && !sectors[i].ffloors)) ? 'E' : 'F');
+				__BI(u8,UINT8,UINT8);
+				FFLRover = NULL;
+				while (u8 == 'F')
+				{
+					// Thinker whether floor needs creation or loop is ending
+						// Saving?
+					if (!a_Load)
+					{
+						// Set with initial floor?
+						if (!FFLRover)
+							FFLRover = sectors[i].ffloors;
+					}
+						// Loading?
+					else
+					{
+						// Allocate new floor out of nowhere, it will be
+						// rescued with a reference pointer eventually, at least
+						// I hope it does.
+						FFLRover = Z_Malloc(sizeof(*FFLRover), PU_LEVEL, NULL);
+					}
+					
+					// Dump IsPointer of current floor
+					__BI(FFLRover,POINTERIS,POINTER);
+					
+					// Dump Floor Data
+					__BI(FFLRover->topheight,POINTERTO,POINTER);
+					__BI(FFLRover->toppic,POINTERTO,POINTER);
+					__BI(FFLRover->toplightlevel,POINTERTO,POINTER);
+					__BI(FFLRover->topxoffs,POINTERTO,POINTER);
+					__BI(FFLRover->topyoffs,POINTERTO,POINTER);
+					__BI(FFLRover->bottomheight,POINTERTO,POINTER);
+					__BI(FFLRover->bottompic,POINTERTO,POINTER);
+					__BI(FFLRover->bottomxoffs,POINTERTO,POINTER);
+					__BI(FFLRover->bottomyoffs,POINTERTO,POINTER);
+					__BI(FFLRover->master,POINTERTO,POINTER);
+					__BI(FFLRover->target,POINTERTO,POINTER);
+					__BI(FFLRover->next,POINTERTO,POINTER);
+					__BI(FFLRover->prev,POINTERTO,POINTER);
+					__BI(FFLRover->OwnerMobj,POINTERTO,POINTER);
+					__BI(FFLRover->delta,FIXEDT,INT32);
+					__BI(FFLRover->secnum,INT,INT32);
+					__BI(FFLRover->lastlight,INT,INT32);
+					__BI(FFLRover->alpha,INT,INT32);
+					__BI(FFLRover->flags,INT,UINT32);
+					
+					// Determine what to do now
+						// Saving?
+					if (!a_Load)
+					{
+						// Go to the next floor
+						FFLRover = FFLRover->next;
+						
+						// Write exist marker
+						u8 = (FFLRover ? 'F' : 'E');
+						__BI(u8,UINT8,UINT8);
+					}
+						// Loading?
+					else
+					{
+						// Read existence marker to see if needing to continue
+						u8 = 'E';
+						__BI(u8,UINT8,UINT8);
+					}
+				}
+				/////////////////////////////////////////////////////
+				
+				// Untouched
+				//linechain_t* sectorLines;
+				//struct sector_s** stackList;
 			}
 			
 			// Record
 			__REC;
-#if 0
-// origin for any sounds played by the sector
-S_NoiseThinker_t soundorg;
-
-//SoM: 3/6/2000: Start boom extra stuff
-// thinker_t for reversable actions
-void* floordata;			// make thinkers on
-void* ceilingdata;			// floors, ceilings, lighting,
-void* lightingdata;			// independent of one another
-
-// list of mobjs that are at least partially in the sector
-// thinglist is a subset of touching_thinglist
-struct msecnode_s* touching_thinglist;	// phares 3/14/98
-//SoM: 3/6/2000: end stuff...
-
-
-//SoM: 2/23/2000: Improved fake floor hack
-ffloor_t* ffloors;
-int* attached;
-int numattached;
-lightlist_t* lightlist;
-int numlights;
-
-// ----- for special tricks with HW renderer -----
-linechain_t* sectorLines;
-struct sector_s** stackList;
-// ----- end special tricks -----
-
-// ReMooD Additions
-char* FloorTexture;							// Name of floor texture
-char* CeilingTexture;						// Name of ceiling texture
-#endif
+		}
+		
+		// Records all msecnode_t*, ffloor_t*
+		if (__HEADER("SGMD"))
+		{
+			//// Fake Floors ////
+//ffloor_t** g_PFakeFloors = NULL;				// Fake Floors
+//size_t g_NumPFakeFloors = 0;					// Number of them
+			/////////////////////
+			
+			//// Touching Sector Nodes ////
+			// Dump
+			__BI(g_NumMSecNodes,SIZET,UINT32);
+			
+			// Loading? Allocate
+			if (a_Load)
+				g_MSecNodes = Z_Malloc(sizeof(*g_MSecNodes) * g_NumMSecNodes, PU_LEVEL, NULL);
+			
+			// Go through each one
+			for (i = 0; i < g_NumMSecNodes; i++)
+			{
+				// Get Current
+					// Loading allocates
+				if (a_Load)
+					MSNode = g_MSecNodes[i] = Z_Malloc(sizeof(*g_MSecNodes[i]), PU_LEVEL, NULL);
+					
+					// Saving gets the already existing one
+				else
+					MSNode = g_MSecNodes[i];
+				
+				// Dump pointer to this node
+					// Don't use MSNode because that is a local
+				__BI(g_MSecNodes[i],POINTERIS,POINTER);
+				
+				// Dump information (mostly pointers)
+				__BI(MSNode->m_sector,POINTERTO,POINTER);
+				__BI(MSNode->m_thing,POINTERTO,POINTER);
+				__BI(MSNode->m_tprev,POINTERTO,POINTER);
+				__BI(MSNode->m_tnext,POINTERTO,POINTER);
+				__BI(MSNode->m_sprev,POINTERTO,POINTER);
+				__BI(MSNode->m_snext,POINTERTO,POINTER);
+				__BI(MSNode->visited,BOOLT,UINT8);
+			}
+			///////////////////////////////
+			
+			// Record
+			__REC;
 		}
 		
 		// Game State -- After Map Data Is Loaded

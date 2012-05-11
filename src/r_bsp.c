@@ -739,6 +739,7 @@ void R_Subsector(int num)
 		{
 			frontsector->numlights = sub->sector->numlights = 0;
 			R_Prep3DFloors(frontsector);
+			sub->sector->LLSelf = false;
 			sub->sector->lightlist = frontsector->lightlist;
 			sub->sector->numlights = frontsector->numlights;
 			sub->sector->moved = frontsector->moved = false;
@@ -860,6 +861,7 @@ void R_Prep3DFloors(sector_t* sector)
 		sector->lightlist = Z_Malloc(sizeof(lightlist_t) * count, PU_LEVEL, 0);
 		memset(sector->lightlist, 0, sizeof(lightlist_t) * count);
 		sector->numlights = count;
+		sector->LLSelf = true;
 	}
 	else
 		memset(sector->lightlist, 0, sizeof(lightlist_t) * count);

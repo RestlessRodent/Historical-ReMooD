@@ -2645,9 +2645,17 @@ bool_t P_CheckSector(sector_t* sector, bool_t crunch)
 
 static msecnode_t* headsecnode = NULL;
 
+// GhostlyDeath <May 10, 2012> -- Sector Node List (Save Game Support)
+msecnode_t** g_MSecNodes = NULL;				// Active sector nodes
+size_t g_NumMSecNodes = 0;						// Number of sector nodes
+
 void P_Initsecnode(void)
 {
 	headsecnode = NULL;
+
+	// GhostlyDeath <May 10, 2012> -- Sector Node List (Save Game Support)
+	g_MSecNodes = NULL;
+	g_NumMSecNodes = 0;
 }
 
 // P_GetSecnode() retrieves a node from the freelist. The calling routine
@@ -2663,7 +2671,23 @@ msecnode_t* P_GetSecnode()
 		headsecnode = headsecnode->m_snext;
 	}
 	else
+	{
 		node = Z_Malloc(sizeof(*node), PU_LEVEL, NULL);
+		
+		// GhostlyDeath <May 10, 2012> -- Sector Node List (Save Game Support)
+			// Sector nodes never get freed, so this list will collect with any
+			// new nodes that do get created.
+		Z_ResizeArray((void**)&g_MSecNodes, sizeof(*g_MSecNodes),
+						g_NumMSecNodes, g_NumMSecNodes + 1);
+		g_MSecNodes[g_NumMSecNodes++] = node;
+		
+		if (devparm)
+			CONL_PrintF("P_GetSecnode: New %p @ %u\n", node, (unsigned)g_NumMSecNodes - 1);
+		
+		// Make sure it gets deleted!
+		Z_ChangeTag(g_MSecNodes, PU_LEVEL);
+	}
+	
 	return (node);
 }
 

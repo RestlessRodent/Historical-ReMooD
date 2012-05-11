@@ -170,6 +170,10 @@ typedef struct ffloor_s
 	struct mobj_s* OwnerMobj;
 } ffloor_t;
 
+// GhostlyDeath <May 10, 2012> -- Fake Floor List (For Savegames)
+extern ffloor_t** g_PFakeFloors;				// Fake Floors
+extern size_t g_NumPFakeFloors;					// Number of them
+
 // SoM: This struct holds information for shadows casted by 3D floors.
 // This information is contained inside the sector_t and is used as the base
 // information for casted shadows.
@@ -288,8 +292,11 @@ typedef struct sector_s
 	ffloor_t* ffloors;
 	int* attached;
 	int numattached;
+	
+	bool_t LLSelf;								// True if lightlist is Z_Malloc()
 	lightlist_t* lightlist;
 	int numlights;
+	
 	bool_t moved;
 	
 	int validsort;				//if == validsort allready been sorted
@@ -473,6 +480,9 @@ typedef struct msecnode_s
 	struct msecnode_s* m_snext;	// next msecnode_t for this sector
 	bool_t visited;				// killough 4/4/98, 4/7/98: used in search algorithms
 } msecnode_t;
+
+extern msecnode_t** g_MSecNodes;				// Active sector nodes
+extern size_t g_NumMSecNodes;					// Number of sector nodes
 
 //Hurdler: 04/12/2000: for now, only used in hardware mode
 //                     maybe later for software as well?

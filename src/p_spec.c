@@ -2388,6 +2388,7 @@ void P_AddFakeFloor(sector_t* sec, sector_t* sec2, line_t* master, int flags)
 	ffloor = Z_Malloc(sizeof(ffloor_t), PU_LEVEL, NULL);
 	ffloor->secnum = sec2 - sectors;
 	ffloor->target = sec;
+	
 	ffloor->bottomheight = &sec2->floorheight;
 	ffloor->bottompic = &sec2->floorpic;
 	//ffloor->bottomlightlevel = &sec2->lightlevel;
@@ -2417,6 +2418,11 @@ void P_AddFakeFloor(sector_t* sec, sector_t* sec2, line_t* master, int flags)
 	P_AddFFloor(sec, ffloor);
 }
 
+// GhostlyDeath <May 10, 2012> -- Fake Floor List (For Savegames)
+ffloor_t** g_PFakeFloors = NULL;				// Fake Floors
+size_t g_NumPFakeFloors = 0;					// Number of them
+
+/* P_AddFFloor() -- Adds new 3D floor */
 void P_AddFFloor(sector_t* sec, ffloor_t* ffloor)
 {
 	ffloor_t* rover;
