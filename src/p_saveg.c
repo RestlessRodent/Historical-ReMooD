@@ -205,10 +205,6 @@ static void PLGS_SetRef(const uint64_t a_UniqPtr, void* const a_SetVal)
 	if (!a_UniqPtr)
 		return;
 	
-	/* Debug */
-	if (devparm)
-		CONL_PrintF("RefTo %u -> %p\n", (uint32_t)a_UniqPtr, a_SetVal);
-		
 	/* Look in dereference list */
 	Def = NULL;
 	// If it already is in there, add to things to deref
@@ -228,9 +224,15 @@ static void PLGS_SetRef(const uint64_t a_UniqPtr, void* const a_SetVal)
 	}
 	
 	/* Set */
-	if (!Def->UniqPtr)
-		Def->UniqPtr = a_UniqPtr;
-	Def->SetVal = a_SetVal;
+	Def->UniqPtr = a_UniqPtr;
+	if (!Def->SetVal)
+		Def->SetVal = a_SetVal;
+	else
+	{
+		if (devparm)
+			CONL_PrintF("SAVE WARNING: Pointer already set? (%p >> %p)\n",
+					Def->SetVal, a_SetVal);
+	}
 }
 
 /* PLGS_DeRef() -- Dereference addition */
@@ -242,10 +244,6 @@ static void PLGS_DeRef(const uint64_t a_UniqPtr, void** const a_PtrRef)
 	/* If pointer is zero, it points to nowhere */
 	if (!a_UniqPtr)
 		return;
-	
-	/* Debug */
-	if (devparm)
-		CONL_PrintF("DeRef %p -> %u\n", a_PtrRef, (uint32_t)a_UniqPtr);
 	
 	/* Look in dereference list */
 	Def = NULL;
@@ -314,7 +312,8 @@ typedef enum P_SGBWTypeC_e
 	PSTC_FLOAT,									// float
 	PSTC_DOUBLE,								// double
 	PSTC_POINTERTO,								// void* -- Points to something
-	PSTC_POINTERIS,								// void* -- Is pointed at
+	PSTC_POINTERIS,								// void* -- Is pointed at (arrays)
+	PSTC_POINTERISLOCAL,						// void* -- Is pointed at (local)
 	PSTC_STRING,								// char*
 	PSTC_INT8,									// Int8
 	PSTC_INT16,									// Int16
@@ -350,13 +349,17 @@ typedef enum P_SGBWTypeRec_e
 /*** STATICS ***/
 
 /* PRWS_DRPointer() -- Pointer to something */
-static bool_t PRWS_DRPointer(D_RBlockStream_t* const a_Stream, const bool_t a_Load, const P_SGBWTypeRec_t a_RecType, void* a_Ptr)
+static bool_t PRWS_DRPointer(D_RBlockStream_t* const a_Stream, const bool_t a_Load, const P_SGBWTypeRec_t a_RecType, void* a_Ptr, const P_SGBWTypeC_t a_CType)
 {
 	uint64_t pID;
 	
 	/* Only accept pointer inputs/outputs */
 	if (a_RecType != PSRC_POINTER)
+	{
+		if (devparm)
+			CONL_PrintF("WARNING: RPointer not as ptr (%c vs %c)\n", a_RecType, PSRC_POINTER);
 		return false;
+	}
 	
 	/* If Saving, Dump Pointer */
 	if (!a_Load)
@@ -367,7 +370,7 @@ static bool_t PRWS_DRPointer(D_RBlockStream_t* const a_Stream, const bool_t a_Lo
 	{
 		pID = D_RBSReadPointer(a_Stream);
 		PLGS_DeRef(pID, ((void**)a_Ptr));
-		*((void**)a_Ptr) = NULL;
+		*((void**)a_Ptr) = NULL;	// FIXME: See if this causes problems?
 	}
 	
 	/* Success */
@@ -375,13 +378,17 @@ static bool_t PRWS_DRPointer(D_RBlockStream_t* const a_Stream, const bool_t a_Lo
 }
 
 /* PRWS_SRPointer() -- This is a pointer (that is pointed to) */
-static bool_t PRWS_SRPointer(D_RBlockStream_t* const a_Stream, const bool_t a_Load, const P_SGBWTypeRec_t a_RecType, void* a_Ptr)
+static bool_t PRWS_SRPointer(D_RBlockStream_t* const a_Stream, const bool_t a_Load, const P_SGBWTypeRec_t a_RecType, void* a_Ptr, const P_SGBWTypeC_t a_CType)
 {
 	uint64_t pID;
 	
 	/* Only accept pointer inputs/outputs */
 	if (a_RecType != PSRC_POINTER)
+	{
+		if (devparm)
+			CONL_PrintF("WARNING: SPointer not as ptr (%c vs %c)\n", a_RecType, PSRC_POINTER);
 		return false;
+	}
 	
 	/* If Saving, Dump Pointer */
 	if (!a_Load)
@@ -391,7 +398,10 @@ static bool_t PRWS_SRPointer(D_RBlockStream_t* const a_Stream, const bool_t a_Lo
 	else
 	{
 		pID = D_RBSReadPointer(a_Stream);
-		PLGS_SetRef(pID, *((void**)a_Ptr));
+		if (a_CType == PSTC_POINTERISLOCAL)	// Locals pointing to stuff
+			PLGS_SetRef(pID, ((void**)a_Ptr));
+		else		// Arrays
+			PLGS_SetRef(pID, *((void**)a_Ptr));
 	}
 	
 	/* Success */
@@ -399,7 +409,7 @@ static bool_t PRWS_SRPointer(D_RBlockStream_t* const a_Stream, const bool_t a_Lo
 }
 
 // __REMOOD_PRWSBASE -- Handles basic integer types (they are all the same anyway)
-#define __REMOOD_PRWSBASE(x,y) static bool_t PRWS_##y(D_RBlockStream_t* const a_Stream, const bool_t a_Load, const P_SGBWTypeRec_t a_RecType, void* a_Ptr)\
+#define __REMOOD_PRWSBASE(x,y) static bool_t PRWS_##y(D_RBlockStream_t* const a_Stream, const bool_t a_Load, const P_SGBWTypeRec_t a_RecType, void* a_Ptr, const P_SGBWTypeC_t a_CType)\
 {\
 	if (a_Load)\
 		switch (a_RecType)\
@@ -455,7 +465,7 @@ __REMOOD_PRWSBASE(size_t,sizet);
 static const struct
 {
 	size_t Size;								// Size of data
-	bool_t (*RWFunc)(D_RBlockStream_t* const a_Stream, const bool_t a_Load, const P_SGBWTypeRec_t a_RecType, void* a_Ptr);
+	bool_t (*RWFunc)(D_RBlockStream_t* const a_Stream, const bool_t a_Load, const P_SGBWTypeRec_t a_RecType, void* a_Ptr, const P_SGBWTypeC_t a_CType);
 } l_NativeData[NUMPSTCS] =
 {
 	{sizeof(char), PRWS_char},					// PSTC_CHAR
@@ -471,11 +481,12 @@ static const struct
 	{sizeof(bool_t), PRWS_boolt},				// PSTC_BOOLT
 	{sizeof(tic_t), PRWS_tict},				// PSTC_TICT
 	{sizeof(angle_t), PRWS_anglet},				// PSTC_ANGLET
-	{sizeof(float),},								// PSTC_FLOAT
-	{sizeof(double),},								// PSTC_DOUBLE
-	{sizeof(void*), PRWS_DRPointer},				// PSTC_POINTERTO
-	{sizeof(void*), PRWS_SRPointer},				// PSTC_POINTERIS
-	{sizeof(char*),},								// PSTC_STRING
+	{sizeof(float),},							// PSTC_FLOAT
+	{sizeof(double),},							// PSTC_DOUBLE
+	{sizeof(void*), PRWS_DRPointer},			// PSTC_POINTERTO
+	{sizeof(void*), PRWS_SRPointer},			// PSTC_POINTERIS
+	{sizeof(void*), PRWS_SRPointer},			// PSTC_POINTERISLOCAL
+	{sizeof(char*),},							// PSTC_STRING
 	{sizeof(int8_t), PRWS_int8},								// PSTC_INT8
 	{sizeof(int16_t), PRWS_int16},							// PSTC_INT16
 	{sizeof(int32_t), PRWS_int32},							// PSTC_INT32
@@ -537,7 +548,7 @@ bool_t P_SGBiWayReadOrWrite(
 	
 	/* Handle Native Read/Write */
 	if (l_NativeData[a_NativeType].RWFunc)
-		return l_NativeData[a_NativeType].RWFunc(a_Stream, a_Load, a_RecType, a_Ptr);
+		return l_NativeData[a_NativeType].RWFunc(a_Stream, a_Load, a_RecType, a_Ptr, a_NativeType);
 	return false;
 }
 
@@ -567,6 +578,36 @@ static char* PS_SGBiWayDH(char* const a_Str)
 	if (devparm)
 		CONL_PrintF("SAVE DEBUG: Begin \"%s\"\n", a_Str);
 	return a_Str;
+}
+
+void P_MobjNullThinker(mobj_t* mobj);
+
+/* PS_IDThinkerType() -- Identifies the thinker type */
+static uint8_t PS_IDThinkerType(thinker_t* const a_Thinker)
+{
+	/* Check */
+	if (!a_Thinker)
+		return '?';
+	
+	/* Go through each one */
+	if (a_Thinker->function.acv == P_MobjNullThinker)	return 'a';
+	else if (a_Thinker->function.acv == P_MobjThinker)	return 'b';
+	else if (a_Thinker->function.acv == T_FireFlicker)	return 'c';
+	else if (a_Thinker->function.acv == T_Friction)		return 'd';
+	else if (a_Thinker->function.acv == T_Glow)			return 'e';
+	else if (a_Thinker->function.acv == T_LightFade)	return 'f';
+	else if (a_Thinker->function.acv == T_LightFlash)	return 'g';
+	else if (a_Thinker->function.acv == T_MoveCeiling)	return 'h';
+	else if (a_Thinker->function.acv == T_MoveElevator)	return 'i';
+	else if (a_Thinker->function.acv == T_MoveFloor)	return 'j';
+	else if (a_Thinker->function.acv == T_PlatRaise)	return 'k';
+	else if (a_Thinker->function.acv == T_Pusher)		return 'l';
+	else if (a_Thinker->function.acv == T_Scroll)		return 'm';
+	else if (a_Thinker->function.acv == T_StrobeFlash)	return 'n';
+	else if (a_Thinker->function.acv == T_VerticalDoor)	return 'o';
+	
+	/* Unknown */
+	return '?';
 }
 
 /* P_SGBiWayBS() -- Saving function that goes both ways */
@@ -602,12 +643,16 @@ bool_t P_SGBiWayBS(D_RBlockStream_t* const a_Stream, const bool_t a_Load)
 	uint8_t u8;
 	uint16_t u16;
 	uint32_t u32, u32b;
+	uint64_t u64;
 	tic_t tt;
 	fixed_t fxt;
 	void* vp;
 	
 	ffloor_t* FFLRover;
 	msecnode_t* MSNode;
+	
+	thinker_t* Thinker, *OldThinker;
+	mobj_t* Mobj;
 	
 	/* Check */
 	if (!a_Stream)
@@ -680,6 +725,13 @@ bool_t P_SGBiWayBS(D_RBlockStream_t* const a_Stream, const bool_t a_Load)
 			{
 				__BI(consoleplayer[i],INT,UINT8);
 				__BI(displayplayer[i],INT,UINT8);
+				
+				// g_game.h
+				__BI(localangle[i],ANGLET,UINT32);
+				__BI(localaiming[i],INT,UINT32);
+				
+				// g_netcmd.h
+				__BI(g_PlayerInSplit[i],BOOLT,UINT8);
 			}
 			
 			u32 = BODYQUESIZE;
@@ -697,6 +749,23 @@ bool_t P_SGBiWayBS(D_RBlockStream_t* const a_Stream, const bool_t a_Load)
 			__BI(u8,UINT8,UINT8);
 			P_SetRandIndex(u8);
 			
+			// g_game.h
+			u32 = MAXPLAYERS;
+			__BI(u32,UINT32,UINT32);
+			for (i = 0; i < u32; i++)
+			{
+				__BISTRB(player_names[i],MAXPLAYERNAME);
+				__BISTRB(team_names[i],MAXPLAYERNAME * 2);
+				__BI(playeringame[i],BOOLT,UINT8);
+			}
+			
+			__BISTRB(gamemapname,GAMEMAPNAMESIZE);
+			__BI(nomonsters,BOOLT,UINT8);
+			__BI(levelstarttic,TICT,UINT32);
+			
+			// d_netcmd.h
+			__BI(g_SplitScreen,INT,INT32);
+			
 			// Record
 			__REC;
 		}
@@ -704,12 +773,13 @@ bool_t P_SGBiWayBS(D_RBlockStream_t* const a_Stream, const bool_t a_Load)
 		// Players -- Players in the game
 		if (__HEADER("SGPL"))
 		{
-			// d_player.h
+			// g_game.h/d_player.h
 			u32 = MAXPLAYERS;
 			__BI(u32,UINT32,UINT32);
 			for (i = 0; i < u32; i++)
 			{
 				__BI(players[i],POINTERIS,POINTER);
+				
 				__BI(players[i].mo,POINTERTO,POINTER);
 				__BI(players[i].rain1,POINTERTO,POINTER);
 				__BI(players[i].rain2,POINTERTO,POINTER);
@@ -1383,6 +1453,43 @@ bool_t P_SGBiWayBS(D_RBlockStream_t* const a_Stream, const bool_t a_Load)
 			__REC;
 		}
 		
+		// REJECT and BLOCKMAP
+		if (__HEADER("SGMI"))
+		{
+			// Save the reject (will take up TONS of room)
+				// g_RJMSize * 2
+			__BI(g_RJMSize,SIZET,UINT32);
+			if (a_Load)
+				rejectmatrix = Z_Malloc(sizeof(*rejectmatrix) * g_RJMSize, PU_LEVEL,
+									(void**)rejectmatrix);
+			for (i = 0; i < g_RJMSize; i++)
+				__BI(rejectmatrix[i],UINT8,UINT8);
+			
+			// Save the blockmap
+				// As above, can get pretty big
+			__BI(g_BMLSize,SIZET,UINT32);
+			if (a_Load)
+			{
+				blockmaplump = Z_Malloc(sizeof(*blockmaplump) * g_BMLSize, PU_LEVEL,
+									(void**)blockmaplump);
+				blockmap = blockmaplump + 4;	// Needed for compat
+			}
+			for (i = 0; i < g_BMLSize; i++)
+				__BI(blockmaplump,LONG,INT32);
+			
+				// Block Map origins
+			__BI(bmapwidth,INT,INT32);
+			__BI(bmapheight,INT,INT32);
+			__BI(bmaporgx,FIXEDT,INT32);
+			__BI(bmaporgy,FIXEDT,INT32);
+				
+				// Blocklinks
+			if (a_Load)
+				blocklinks = Z_Malloc(sizeof(*blocklinks) * (bmapwidth * bmapheight), PU_LEVEL, (void**)&blocklinks);
+			for (i = 0; i < (bmapwidth * bmapheight); i++)
+				__BI(blocklinks[i],POINTERTO,POINTER);
+		}
+		
 		// Game State -- After Map Data Is Loaded
 		if (__HEADER("SGGT"))
 		{
@@ -1416,6 +1523,230 @@ bool_t P_SGBiWayBS(D_RBlockStream_t* const a_Stream, const bool_t a_Load)
 			__REC;
 		}
 		
+		// Thinkers -- The whole mass of them!
+			// This dual load/save code does not work well with thinkers. So I
+			// have to hack around it to get it to work.
+		if (__HEADER("SGTH"))
+		{
+			// Store/Recover thinkercap linked list
+			//for (Thinker = &thinkercap;
+			
+#if 0
+			// If Saving, start at head thinker
+			Thinker = NULL;
+			OldThinker = &thinkercap;
+			if (!a_Load)
+				Thinker = OldThinker->next;
+				
+			// Dump Base Cap pointers
+			__BI(OldThinker->next,POINTERTO,POINTER);
+			__BI(OldThinker->prev,POINTERTO,POINTER);
+			
+			// Go through the list
+			do
+			{
+				// Determine what to do
+					// Loading?
+				if (a_Load)
+					u8 = '?';	// Unknown Thinker
+					// Saving?
+				else
+					u8 = PS_IDThinkerType(Thinker);
+				
+				// Load/Save Type
+				__BI(u8,UINT8,UINT8);
+				
+				// Dump Pointer
+				__BI(OldThinker->next,POINTERIS,POINTER);
+				
+				// Save thinker data
+				switch (u8)
+				{
+						// P_MobjNullThinker, P_MobjThinker
+					case 'a':
+					case 'b':
+						// Reference it
+							// Load
+						if (a_Load)
+						{
+							Mobj = Thinker = Z_Malloc(sizeof(*Mobj), PU_LEVEL, NULL);
+							Thinker->function.acv = (u8 == 'a' ? P_MobjNullThinker : P_MobjThinker);
+						}
+							// Save
+						else
+							Mobj = Thinker;
+						
+						// Dump Data
+						__BI(Mobj->x,FIXEDT,INT32);
+						__BI(Mobj->y,FIXEDT,INT32);
+						__BI(Mobj->z,FIXEDT,INT32);
+						__BI(Mobj->floorz,FIXEDT,INT32);
+						__BI(Mobj->ceilingz,FIXEDT,INT32);
+						__BI(Mobj->radius,FIXEDT,INT32);
+						__BI(Mobj->height,FIXEDT,INT32);
+						__BI(Mobj->momx,FIXEDT,INT32);
+						__BI(Mobj->momy,FIXEDT,INT32);
+						__BI(Mobj->momz,FIXEDT,INT32);
+						__BI(Mobj->MaxZObtained,FIXEDT,INT32);
+						
+						__BI(Mobj->snext,POINTERTO,POINTER);
+						__BI(Mobj->sprev,POINTERTO,POINTER);
+						__BI(Mobj->bnext,POINTERTO,POINTER);
+						__BI(Mobj->bprev,POINTERTO,POINTER);
+						__BI(Mobj->subsector,POINTERTO,POINTER);
+						__BI(Mobj->target,POINTERTO,POINTER);
+						__BI(Mobj->player,POINTERTO,POINTER);
+						__BI(Mobj->spawnpoint,POINTERTO,POINTER);
+						__BI(Mobj->tracer,POINTERTO,POINTER);
+						__BI(Mobj->touching_sectorlist,POINTERTO,POINTER);
+						__BI(Mobj->ChildFloor,POINTERTO,POINTER);
+						
+						__BI(Mobj->angle,ANGLET,UINT32);
+						
+						__BI(Mobj->RemoveMo,BOOLT,UINT8);
+						
+						__BI(Mobj->sprite,INT,UINT32);
+						__BI(Mobj->frame,INT,INT32);
+						__BI(Mobj->skin,INT,INT32);
+						__BI(Mobj->tics,INT,INT32);
+						__BI(Mobj->type,INT,INT32);
+						__BI(Mobj->flags,INT,INT32);
+						__BI(Mobj->eflags,INT,INT32);
+						__BI(Mobj->flags2,INT,INT32);
+						__BI(Mobj->special1,INT,INT32);
+						__BI(Mobj->special2,INT,INT32);
+						__BI(Mobj->health,INT,INT32);
+						__BI(Mobj->movedir,INT,INT32);
+						__BI(Mobj->movecount,INT,INT32);
+						__BI(Mobj->reactiontime,INT,INT32);
+						__BI(Mobj->threshold,INT,INT32);
+						__BI(Mobj->lastlook,INT,INT32);
+						__BI(Mobj->friction,INT,INT32);
+						__BI(Mobj->movefactor,INT,INT32);
+						__BI(Mobj->dropped_ammo_count,INT,INT32);
+						__BI(Mobj->RXShotWithWeapon,INT,INT32);
+						__BI(Mobj->RXAttackAttackType,INT,INT32);
+						__BI(Mobj->RemType,INT,INT32);
+						__BI(Mobj->SkinTeamColor,INT,INT32);
+						
+						__BI(Mobj->XFlagsA,UINT32,UINT32);
+						__BI(Mobj->XFlagsB,UINT32,UINT32);
+						__BI(Mobj->XFlagsC,UINT32,UINT32);
+						__BI(Mobj->XFlagsD,UINT32,UINT32);
+						
+						for (i = 0; i < NUMINFORXFIELDS; i++)
+							__BI(Mobj->RXFlags[i],UINT32,UINT32);
+						
+						// State -- Can be tricky
+						if (!a_Load && Mobj->state)
+							__BI(Mobj->state->StateNum,INT,UINT32);
+						else
+						{
+							u32 = 0;
+							__BI(u32,UINT32,UINT32);
+							if (u32 >= 0 && u32 < NUMSTATES)
+								Mobj->state = states[u32];
+						}
+						
+						// Map Object OnTop Ref
+						for (i = 0; i < 2; i++)
+						{
+							// Count
+							__BI(Mobj->MoOnCount[i],SIZET,UINT32);
+							
+							// Allocate?
+							if (a_Load)
+								Mobj->MoOn[i] = Z_Malloc(sizeof(*Mobj->MoOn[i]) * Mobj->MoOnCount[i],
+													PU_STATIC, NULL);
+							
+							// Dump Refs
+							for (j = 0; j < Mobj->MoOnCount[i]; j++)
+								__BI(Mobj->MoOn[i][j],POINTERTO,POINTER);
+						}
+						
+						// Dump Reference Counts
+						u32 = NUMPMOBJREFTYPES;
+						__BI(u32,UINT32,UINT32);
+						for (i = 0; i < u32; i++)
+						{
+							// Base Counts
+							__BI(Mobj->RefCount[i],INT32,INT32);
+							__BI(Mobj->RefListSz[i],SIZET,UINT32);
+							
+							// Allocate?
+							if (a_Load)
+								Mobj->RefList[i] = Z_Malloc(sizeof(*Mobj->RefList[i]) * Mobj->RefListSz[i],
+														PU_LEVEL, NULL);
+							
+							// Reference List
+							for (j = 0; j < Mobj->RefListSz[i]; j++)
+								__BI(Mobj->RefList[i][j],POINTERTO,POINTER);
+						}
+						
+						// Noise Thinker
+						__BI(Mobj->NoiseThinker.Flags,UINT32,UINT32);
+						__BI(Mobj->NoiseThinker.x,FIXEDT,INT32);
+						__BI(Mobj->NoiseThinker.y,FIXEDT,INT32);
+						__BI(Mobj->NoiseThinker.z,FIXEDT,INT32);
+						__BI(Mobj->NoiseThinker.momx,FIXEDT,INT32);
+						__BI(Mobj->NoiseThinker.momy,FIXEDT,INT32);
+						__BI(Mobj->NoiseThinker.momz,FIXEDT,INT32);
+						__BI(Mobj->NoiseThinker.Pitch,FIXEDT,INT32);
+						__BI(Mobj->NoiseThinker.Volume,FIXEDT,INT32);
+						__BI(Mobj->NoiseThinker.Angle,ANGLET,UINT32);
+						
+						// Reference info based on type
+						Mobj->info = mobjinfo[Mobj->type];
+						break;
+						
+						// Unknown
+					default:
+						Thinker = Z_Malloc(sizeof(*Thinker), PU_LEVEL, NULL);
+						break;
+				}
+				
+				// Dump Thinker Chains
+				__BI(Thinker->prev,POINTERTO,POINTER);
+				__BI(Thinker->next,POINTERTO,POINTER);
+#if 0		
+if (a_Thinker->function.acv == P_MobjNullThinker)		return 'a';
+else if (a_Thinker->function.acv == P_MobjThinker)	return 'b';
+else if (a_Thinker->function.acv == T_FireFlicker)	return 'c';
+else if (a_Thinker->function.acv == T_Friction)	return 'd';
+else if (a_Thinker->function.acv == T_Glow)	return 'e';
+else if (a_Thinker->function.acv == T_LightFade)	return 'f';
+else if (a_Thinker->function.acv == T_LightFlash)	return 'g';
+else if (a_Thinker->function.acv == T_MoveCeiling)	return 'h';
+else if (a_Thinker->function.acv == T_MoveElevator)	return 'i';
+else if (a_Thinker->function.acv == T_MoveFloor)	return 'j';
+else if (a_Thinker->function.acv == T_PlatRaise)	return 'k';
+else if (a_Thinker->function.acv == T_Pusher)	return 'l';
+else if (a_Thinker->function.acv == T_Scroll)	return 'm';
+else if (a_Thinker->function.acv == T_StrobeFlash)	return 'n';
+else if (a_Thinker->function.acv == T_VerticalDoor)	return 'o';
+#endif
+				// Remember Old
+				OldThinker = Thinker;
+				
+				// Action to perform
+				if (!a_Load)	// If saving, go to next thinker
+					Thinker = Thinker->next;
+				
+				// At thinkercap?
+				if (!a_Load && Thinker == &thinkercap)
+				{
+					// Save ? to end reading it
+					u8 = '?';
+					__BI(u8,UINT8,UINT8);
+					break;
+				}
+			} while (u8 != '?');
+#endif
+
+			// Record
+			__REC;
+		}
+		
 		//////////////////////////////
 		// If saving, don't continue
 		if (!a_Load)
@@ -1427,18 +1758,40 @@ bool_t P_SGBiWayBS(D_RBlockStream_t* const a_Stream, const bool_t a_Load)
 	{
 		// Go through each one and Reference everything
 		for (i = 0; i < l_NumDerefs; i++)
-			if (l_Derefs[i].SetVal)
-				for (j = 0; j < l_Derefs[i].NumChangePtr; j++)
-				{
-					vp = *(l_Derefs[i].ChangePtr[j]);
-					*(l_Derefs[i].ChangePtr[j]) = l_Derefs[i].SetVal;
+		{
+			// Missing value to set?
+			if (!l_Derefs[i].SetVal)
+				continue;
+			
+			// Go through change list
+			for (j = 0; j < l_Derefs[i].NumChangePtr; j++)
+			{
+				vp = *(l_Derefs[i].ChangePtr[j]);
+				*(l_Derefs[i].ChangePtr[j]) = l_Derefs[i].SetVal;
+				l_Derefs[i].ChangePtr[j] = NULL;	// Clear for future checking
 				
-					if (devparm)
-						CONL_PrintF("SAVE DEBUG: %p set to %p (was %p)\n",
-								(l_Derefs[i].ChangePtr[j]),
-								l_Derefs[i].SetVal, vp
-							);
-				}
+				if (devparm)
+					CONL_PrintF("SAVE DEBUG: %p set to %p (was %p)\n",
+							(l_Derefs[i].ChangePtr[j]),
+							l_Derefs[i].SetVal, vp
+						);
+			}
+		}
+		
+		// If debugging go through again
+#if 0
+		if (devparm)
+			for (i = 0; i < l_NumDerefs; i++)
+				for (j = 0; j < l_Derefs[i].NumChangePtr; j++)
+					if (l_Derefs[i].ChangePtr[j])
+					{
+						CONL_PrintF("SAVE DEBUG: %p waiting (by %p, sv = %p)\n",
+									l_Derefs[i].ChangePtr[j],
+									((void*)((uintptr_t)l_Derefs[i].UniqPtr)),
+									l_Derefs[i].SetVal
+								);
+					}
+#endif
 
 		// Free all references
 		Z_FreeTags(PU_SGPTRREF, PU_SGPTRREF);

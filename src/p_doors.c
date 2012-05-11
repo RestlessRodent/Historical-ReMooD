@@ -340,7 +340,7 @@ int EV_DoDoor(line_t* line, vldoor_e type, fixed_t speed)
 		// new door thinker
 		rtn = 1;
 		door = Z_Malloc(sizeof(*door), PU_LEVSPEC, 0);
-		P_AddThinker(&door->thinker);
+		P_AddThinker(&door->thinker, PTT_VERTICALDOOR);
 		sec->ceilingdata = door;	//SoM: 3/6/2000
 		
 		door->thinker.function.acp1 = (actionf_p1) T_VerticalDoor;
@@ -440,7 +440,7 @@ void EV_OpenDoor(int sectag, int speed, int wait_time)
 			
 		// new door thinker
 		door = Z_Malloc(sizeof(*door), PU_LEVSPEC, 0);
-		P_AddThinker(&door->thinker);
+		P_AddThinker(&door->thinker, PTT_VERTICALDOOR);
 		sec->ceilingdata = door;
 		
 		door->thinker.function.acp1 = (actionf_p1) T_VerticalDoor;
@@ -489,7 +489,7 @@ void EV_CloseDoor(int sectag, int speed)
 			
 		// new door thinker
 		door = Z_Malloc(sizeof(*door), PU_LEVSPEC, 0);
-		P_AddThinker(&door->thinker);
+		P_AddThinker(&door->thinker, PTT_VERTICALDOOR);
 		sec->ceilingdata = door;
 		
 		door->thinker.function.acp1 = (actionf_p1) T_VerticalDoor;
@@ -616,7 +616,7 @@ int EV_VerticalDoor(line_t* line, mobj_t* thing)
 	
 	// new door thinker
 	door = Z_Malloc(sizeof(*door), PU_LEVSPEC, 0);
-	P_AddThinker(&door->thinker);
+	P_AddThinker(&door->thinker, PTT_VERTICALDOOR);
 	sec->ceilingdata = door;	//SoM:3/6/2000
 	door->thinker.function.acp1 = (actionf_p1) T_VerticalDoor;
 	door->sector = sec;
@@ -668,7 +668,7 @@ void P_SpawnDoorCloseIn30(sector_t* sec)
 	
 	door = Z_Malloc(sizeof(*door), PU_LEVSPEC, 0);
 	
-	P_AddThinker(&door->thinker);
+	P_AddThinker(&door->thinker, PTT_VERTICALDOOR);
 	
 	sec->ceilingdata = door;	//SoM: 3/6/2000
 	sec->special = 0;
@@ -691,7 +691,7 @@ void P_SpawnDoorRaiseIn5Mins(sector_t* sec, int secnum)
 	
 	door = Z_Malloc(sizeof(*door), PU_LEVSPEC, 0);
 	
-	P_AddThinker(&door->thinker);
+	P_AddThinker(&door->thinker, PTT_VERTICALDOOR);
 	
 	sec->ceilingdata = door;	//SoM: 3/6/2000
 	sec->special = 0;

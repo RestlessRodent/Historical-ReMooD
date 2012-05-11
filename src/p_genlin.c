@@ -104,7 +104,7 @@ manual_floor:
 		// new floor thinker
 		rtn = 1;
 		floor = Z_Malloc(sizeof(floormove_t), PU_LEVSPEC, 0);
-		P_AddThinker(&floor->thinker);
+		P_AddThinker(&floor->thinker, PTT_MOVEFLOOR);
 		sec->floordata = floor;
 		floor->thinker.function.acp1 = (actionf_p1) T_MoveFloor;
 		floor->crush = Crsh;
@@ -289,7 +289,7 @@ manual_ceiling:
 		// new ceiling thinker
 		rtn = 1;
 		ceiling = Z_Malloc(sizeof(ceiling_t), PU_LEVSPEC, 0);
-		P_AddThinker(&ceiling->thinker);
+		P_AddThinker(&ceiling->thinker, PTT_MOVECEILING);
 		sec->ceilingdata = ceiling;
 		ceiling->thinker.function.acp1 = (actionf_p1) T_MoveCeiling;
 		ceiling->crush = Crsh;
@@ -483,7 +483,7 @@ manual_lift:
 		// Setup the plat thinker
 		rtn = 1;
 		plat = Z_Malloc(sizeof(*plat), PU_LEVSPEC, 0);
-		P_AddThinker(&plat->thinker);
+		P_AddThinker(&plat->thinker, PTT_PLATRAISE);
 		
 		plat->sector = sec;
 		plat->sector->floordata = plat;
@@ -641,7 +641,7 @@ manual_stair:
 		// new floor thinker
 		rtn = 1;
 		floor = Z_Malloc(sizeof(*floor), PU_LEVSPEC, 0);
-		P_AddThinker(&floor->thinker);
+		P_AddThinker(&floor->thinker, PTT_MOVEFLOOR);
 		sec->floordata = floor;
 		floor->thinker.function.acp1 = (actionf_p1) T_MoveFloor;
 		floor->direction = Dirn ? 1 : -1;
@@ -738,7 +738,7 @@ manual_stair:
 				secnum = newsecnum;
 				floor = Z_Malloc(sizeof(*floor), PU_LEVSPEC, 0);
 				
-				P_AddThinker(&floor->thinker);
+				P_AddThinker(&floor->thinker, PTT_MOVEFLOOR);
 				
 				sec->floordata = floor;
 				floor->thinker.function.acp1 = (actionf_p1) T_MoveFloor;
@@ -818,7 +818,7 @@ manual_crusher:
 		// new ceiling thinker
 		rtn = 1;
 		ceiling = Z_Malloc(sizeof(*ceiling), PU_LEVSPEC, 0);
-		P_AddThinker(&ceiling->thinker);
+		P_AddThinker(&ceiling->thinker, PTT_MOVECEILING);
 		sec->ceilingdata = ceiling;
 		ceiling->thinker.function.acp1 = (actionf_p1) T_MoveCeiling;
 		ceiling->crush = true;
@@ -912,7 +912,7 @@ manual_locked:
 		// new door thinker
 		rtn = 1;
 		door = Z_Malloc(sizeof(*door), PU_LEVSPEC, 0);
-		P_AddThinker(&door->thinker);
+		P_AddThinker(&door->thinker, PTT_VERTICALDOOR);
 		sec->ceilingdata = door;
 		
 		door->thinker.function.acp1 = (actionf_p1) T_VerticalDoor;
@@ -1013,7 +1013,7 @@ manual_door:
 		// new door thinker
 		rtn = 1;
 		door = Z_Malloc(sizeof(*door), PU_LEVSPEC, 0);
-		P_AddThinker(&door->thinker);
+		P_AddThinker(&door->thinker, PTT_VERTICALDOOR);
 		sec->ceilingdata = door;
 		
 		door->thinker.function.acp1 = (actionf_p1) T_VerticalDoor;
@@ -1154,7 +1154,7 @@ bool_t EV_HExDoGenPlat(line_t* const a_Line, mobj_t* const a_Object)
 		// Create new plat here
 		Ret = true;
 		NewPlat = Z_Malloc(sizeof(*NewPlat), PU_LEVSPEC, 0);
-		P_AddThinker(&NewPlat->thinker);
+		P_AddThinker(&NewPlat->thinker, PTT_PLATRAISE);
 		
 		// Base plat stuff
 		NewPlat->sector = CurSec;

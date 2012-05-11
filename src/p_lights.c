@@ -75,7 +75,7 @@ void P_SpawnFireFlicker(sector_t* sector)
 	
 	flick = Z_Malloc(sizeof(*flick), PU_LEVSPEC, 0);
 	
-	P_AddThinker(&flick->thinker);
+	P_AddThinker(&flick->thinker, PTT_FIREFLICKER);
 	
 	flick->thinker.function.acp1 = (actionf_p1) T_FireFlicker;
 	flick->sector = sector;
@@ -124,7 +124,7 @@ void P_SpawnLightFlash(sector_t* sector)
 	
 	flash = Z_Malloc(sizeof(*flash), PU_LEVSPEC, 0);
 	
-	P_AddThinker(&flash->thinker);
+	P_AddThinker(&flash->thinker, PTT_LIGHTFLASH);
 	
 	flash->thinker.function.acp1 = (actionf_p1) T_LightFlash;
 	flash->sector = sector;
@@ -172,7 +172,7 @@ void P_SpawnStrobeFlash(sector_t* sector, int fastOrSlow, int inSync)
 	
 	flash = Z_Malloc(sizeof(*flash), PU_LEVSPEC, 0);
 	
-	P_AddThinker(&flash->thinker);
+	P_AddThinker(&flash->thinker, PTT_STROBEFLASH);
 	
 	flash->sector = sector;
 	flash->darktime = fastOrSlow;
@@ -327,7 +327,7 @@ void P_SpawnGlowingLight(sector_t* sector)
 	
 	g = Z_Malloc(sizeof(*g), PU_LEVSPEC, 0);
 	
-	P_AddThinker(&g->thinker);
+	P_AddThinker(&g->thinker, PTT_GLOW);
 	
 	g->sector = sector;
 	g->minlight = P_FindMinSurroundingLight(sector, sector->lightlevel);
@@ -357,7 +357,7 @@ void P_FadeLight(int tag, int destvalue, int speed)
 		ll = Z_Malloc(sizeof(*ll), PU_LEVSPEC, 0);
 		ll->thinker.function.acp1 = (actionf_p1) T_LightFade;
 		
-		P_AddThinker(&ll->thinker);	// add thinker
+		P_AddThinker(&ll->thinker, PTT_LIGHTFADE);	// add thinker
 		
 		ll->sector = sector;
 		ll->destlevel = destvalue;

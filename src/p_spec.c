@@ -3170,7 +3170,7 @@ static void Add_Scroller(int type, fixed_t dx, fixed_t dy, int control, int affe
 	if ((s->control = control) != -1)
 		s->last_height = sectors[control].floorheight + sectors[control].ceilingheight;
 	s->affectee = affectee;
-	P_AddThinker(&s->thinker);
+	P_AddThinker(&s->thinker, PTT_SCROLL);
 }
 
 // Adds wall scroller. Scroll amount is rotated with respect to wall's
@@ -3293,7 +3293,7 @@ static void Add_Friction(int friction, int movefactor, int affectee)
 	f->friction = friction;
 	f->movefactor = movefactor;
 	f->affectee = affectee;
-	P_AddThinker(&f->thinker);
+	P_AddThinker(&f->thinker, PTT_FRICTION);
 }
 
 //Function to apply friction to all the things in a sector.
@@ -3434,7 +3434,7 @@ static void Add_Pusher(int type, int x_mag, int y_mag, mobj_t* source, int affec
 		p->y = p->source->y;
 	}
 	p->affectee = affectee;
-	P_AddThinker(&p->thinker);
+	P_AddThinker(&p->thinker, PTT_PUSHER);
 }
 
 // PIT_PushThing determines the angle and magnitude of the effect.

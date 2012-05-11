@@ -104,7 +104,7 @@ void P_RemoveRecursiveSound(mobj_t* const a_Mo);
 extern thinker_t thinkercap;
 
 void P_InitThinkers(void);
-void P_AddThinker(thinker_t* thinker);
+void P_AddThinker(thinker_t* thinker, const P_ThinkerType_t a_Type);
 void P_RemoveThinker(thinker_t* thinker);
 
 //
@@ -268,6 +268,8 @@ void P_RadiusAttack(mobj_t* spot, mobj_t* source, int damage);
 // P_SETUP
 //
 extern uint8_t* rejectmatrix;	// for fast sight rejection
+extern size_t g_RJMSize;						// Size of reject matrix
+extern size_t g_BMLSize;		// Block map lump size
 extern long* blockmaplump;		// offsets in blockmap are from here
 extern long* blockmap;			// Big blockmap SSNTails
 extern int bmapwidth;

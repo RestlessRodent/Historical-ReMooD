@@ -185,7 +185,7 @@ uint8_t demoversion = VERSION;
 
 uint8_t gameepisode;
 uint8_t gamemap;
-char gamemapname[MAX_WADPATH];	// an external wad filename
+char gamemapname[GAMEMAPNAMESIZE];	// an external wad filename
 
 gamemode_t gamemode = indetermined;	// Game Mode - identify IWAD as shareware, retail etc.
 gamemission_t gamemission = doom;
@@ -1866,7 +1866,7 @@ void G_InitNew(skill_t skill, char* mapname, bool_t resetplayer)
 	if (FIL_CheckExtension(mapname))
 	{
 		// external map file
-		strncpy(gamemapname, mapname, MAX_WADPATH);
+		strncpy(gamemapname, mapname, GAMEMAPNAMESIZE);
 		gameepisode = 1;
 		gamemap = 1;
 	}

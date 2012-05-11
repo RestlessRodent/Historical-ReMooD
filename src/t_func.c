@@ -2124,7 +2124,7 @@ void SF_MoveFloor()
 			continue;
 			
 		floor = Z_Malloc(sizeof(floormove_t), PU_LEVSPEC, 0);
-		P_AddThinker(&floor->thinker);
+		P_AddThinker(&floor->thinker, PTT_MOVEFLOOR);
 		sec->floordata = floor;
 		floor->thinker.function.acp1 = (actionf_p1) T_MoveFloor;
 		floor->type = -1;		// not done by line
@@ -2216,7 +2216,7 @@ void SF_MoveCeiling()
 			continue;
 			
 		ceiling = Z_Malloc(sizeof(*ceiling), PU_LEVSPEC, 0);
-		P_AddThinker(&ceiling->thinker);
+		P_AddThinker(&ceiling->thinker, PTT_MOVECEILING);
 		sec->ceilingdata = ceiling;
 		ceiling->thinker.function.acp1 = (actionf_p1) T_MoveCeiling;
 		ceiling->type = genCeiling;	// not done by line

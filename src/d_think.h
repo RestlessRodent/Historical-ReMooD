@@ -60,13 +60,37 @@ typedef union
 //  an actor.
 typedef actionf_t think_t;
 
+/* P_ThinkerType_t -- Type of thinker this is */
+typedef enum P_ThinkerType_e
+{
+	PTT_CAP,									// Thinker Cap
+	PTT_VERTICALDOOR,							// T_VerticalDoor/vldoor_t
+	PTT_FIREFLICKER,							// T_FireFlicker/fireflicker_t
+	PTT_LIGHTFLASH,								// T_LightFlash/lightflash_t
+	PTT_STROBEFLASH,							// T_StrobeFlash/strobe_t
+	PTT_GLOW,									// T_Glow/glow_t
+	PTT_LIGHTFADE,								// T_LightFade/lightlevel_t
+	PTT_MOVEFLOOR,								// T_MoveFloor/floormove_t
+	PTT_MOVECEILING,							// T_MoveCeiling/ceiling_t
+	PTT_PLATRAISE,								// T_PlatRaise/plat_t
+	PTT_MOVEELEVATOR,							// T_MoveElevator/elevator_t
+	PTT_SCROLL,									// T_Scroll/scroll_t
+	PTT_FRICTION,								// T_Friction/friction_t
+	PTT_PUSHER,									// T_Pusher/pusher_t
+	PTT_MOBJ,									// P_MobjThinker/mobj_t
+	
+	NUMPTHINKERTYPES
+} P_ThinkerType_t; 
+
 // Doubly linked list of actors.
 typedef struct thinker_s
 {
+	P_ThinkerType_t Type;
 	struct thinker_s* prev;
 	struct thinker_s* next;
 	think_t function;
-	
 } thinker_t;
+
+extern const size_t g_ThinkerSizes[NUMPTHINKERTYPES];
 
 #endif

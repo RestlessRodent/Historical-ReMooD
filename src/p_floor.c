@@ -395,7 +395,7 @@ int EV_DoFloor(line_t* line, floor_e floortype)
 		// new floor thinker
 		rtn = 1;
 		floor = Z_Malloc(sizeof(*floor), PU_LEVSPEC, 0);
-		P_AddThinker(&floor->thinker);
+		P_AddThinker(&floor->thinker, PTT_MOVEFLOOR);
 		sec->floordata = floor;	//SoM: 2/5/2000
 		floor->thinker.function.acp1 = (actionf_p1) T_MoveFloor;
 		floor->type = floortype;
@@ -674,7 +674,7 @@ int EV_BuildStairs(line_t* line, stair_e type)
 		// create new floor thinker for first step
 		rtn = 1;
 		floor = Z_Malloc(sizeof(*floor), PU_LEVSPEC, 0);
-		P_AddThinker(&floor->thinker);
+		P_AddThinker(&floor->thinker, PTT_MOVEFLOOR);
 		sec->floordata = floor;
 		floor->thinker.function.acp1 = (actionf_p1) T_MoveFloor;
 		floor->direction = 1;
@@ -752,7 +752,7 @@ int EV_BuildStairs(line_t* line, stair_e type)
 				
 				// create and initialize a thinker for the next step
 				floor = Z_Malloc(sizeof(*floor), PU_LEVSPEC, 0);
-				P_AddThinker(&floor->thinker);
+				P_AddThinker(&floor->thinker, PTT_MOVEFLOOR);
 				
 				sec->floordata = floor;	//jff 2/22/98
 				floor->thinker.function.acp1 = (actionf_p1) T_MoveFloor;
@@ -833,7 +833,7 @@ int EV_DoDonut(line_t* line)
 			
 			//  Spawn rising slime
 			floor = Z_Malloc(sizeof(*floor), PU_LEVSPEC, 0);
-			P_AddThinker(&floor->thinker);
+			P_AddThinker(&floor->thinker, PTT_MOVEFLOOR);
 			s2->floordata = floor;	//jff 2/22/98
 			floor->thinker.function.acp1 = (actionf_p1) T_MoveFloor;
 			floor->type = donutRaise;
@@ -847,7 +847,7 @@ int EV_DoDonut(line_t* line)
 			
 			//  Spawn lowering donut-hole pillar
 			floor = Z_Malloc(sizeof(*floor), PU_LEVSPEC, 0);
-			P_AddThinker(&floor->thinker);
+			P_AddThinker(&floor->thinker, PTT_MOVEFLOOR);
 			s1->floordata = floor;	//jff 2/22/98
 			floor->thinker.function.acp1 = (actionf_p1) T_MoveFloor;
 			floor->type = lowerFloor;
@@ -893,7 +893,7 @@ int EV_DoElevator(line_t* line, elevator_e elevtype)
 		// create and initialize new elevator thinker
 		rtn = 1;
 		elevator = Z_Malloc(sizeof(*elevator), PU_LEVSPEC, 0);
-		P_AddThinker(&elevator->thinker);
+		P_AddThinker(&elevator->thinker, PTT_MOVEELEVATOR);
 		sec->floordata = elevator;	//jff 2/22/98
 		sec->ceilingdata = elevator;	//jff 2/22/98
 		elevator->thinker.function.acp1 = (actionf_p1) T_MoveElevator;

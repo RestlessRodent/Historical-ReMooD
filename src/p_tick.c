@@ -52,6 +52,26 @@ tic_t leveltime;
 // Both the head and tail of the thinker list.
 thinker_t thinkercap;
 
+// g_ThinkerSizes -- Size of each thinker
+const size_t g_ThinkerSizes[NUMPTHINKERTYPES] =
+{
+	sizeof(thinker_t),			// PTT_CAP,				// Thinker Cap
+	sizeof(vldoor_t),			// PTT_VERTICALDOOR,	// T_VerticalDoor/vldoor_t
+	sizeof(fireflicker_t),		// PTT_FIREFLICKER,		// T_FireFlicker/fireflicker_t
+	sizeof(lightflash_t),		// PTT_LIGHTFLASH,		// T_LightFlash/lightflash_t
+	sizeof(strobe_t),			// PTT_STROBEFLASH,		// T_StrobeFlash/strobe_t
+	sizeof(glow_t),				// PTT_GLOW,			// T_Glow/glow_t
+	sizeof(lightlevel_t),		// PTT_LIGHTFADE,		// T_LightFade/lightlevel_t
+	sizeof(floormove_t),		// PTT_MOVEFLOOR,		// T_MoveFloor/floormove_t
+	sizeof(ceiling_t),			// PTT_MOVECEILING,		// T_MoveCeiling/ceiling_t
+	sizeof(plat_t),				// PTT_PLATRAISE,		// T_PlatRaise/plat_t
+	sizeof(elevator_t),			// PTT_MOVEELEVATOR,	// T_MoveElevator/elevator_t
+	sizeof(scroll_t),			// PTT_SCROLL,			// T_Scroll/scroll_t
+	sizeof(friction_t),			// PTT_FRICTION,		// T_Friction/friction_t
+	sizeof(pusher_t),			// PTT_PUSHER,			// T_Pusher/pusher_t
+	sizeof(mobj_t),				// PTT_MOBJ,			// P_MobjThinker/mobj_t
+};
+
 //
 // P_InitThinkers
 //
@@ -59,14 +79,17 @@ void P_InitThinkers(void)
 {
 	// TODO FIXME: Fix memory leak here!
 	thinkercap.prev = thinkercap.next = &thinkercap;
+	thinkercap.Type = PTT_CAP;
 }
 
 //
 // P_AddThinker
 // Adds a new thinker at the end of the list.
 //
-void P_AddThinker(thinker_t* thinker)
+void P_AddThinker(thinker_t* thinker, const P_ThinkerType_t a_Type)
 {
+	thinker->Type = a_Type;	
+	
 	thinkercap.prev->next = thinker;
 	thinker->next = &thinkercap;
 	thinker->prev = thinkercap.prev;

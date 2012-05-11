@@ -43,7 +43,9 @@ extern char player_names[MAXPLAYERS][MAXPLAYERNAME];
 extern char team_names[MAXPLAYERS][MAXPLAYERNAME * 2];
 
 extern bool_t nomonsters;		// checkparm of -nomonsters
-extern char gamemapname[128];
+
+#define GAMEMAPNAMESIZE 128
+extern char gamemapname[GAMEMAPNAMESIZE];
 
 extern player_t players[MAXPLAYERS];
 extern bool_t playeringame[MAXPLAYERS];

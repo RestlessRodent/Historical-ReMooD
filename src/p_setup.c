@@ -139,6 +139,7 @@ long* blockmap;					// int for large maps
 
 // offsets in blockmap are from here
 long* blockmaplump;				// Big blockmap SSNTails
+size_t g_BMLSize = 0;							// Block map lump size
 
 // origin of block map
 fixed_t bmaporgx;
@@ -154,7 +155,8 @@ mobj_t** blocklinks;
 // Without special effect, this could be
 //  used as a PVS lookup as well.
 //
-uint8_t* rejectmatrix;
+uint8_t* rejectmatrix = NULL;
+size_t g_RJMSize = 0;							// Size of reject matrix
 
 // Maintain single and multi player starting spots.
 mapthing_t* deathmatchstarts[MAX_DM_STARTS];
@@ -2468,6 +2470,7 @@ bool_t P_ExLoadLevel(P_LevelInfoEx_t* const a_Info, const bool_t a_ApplyOptions)
 			// Set loading screen info
 			CONL_LoadingScreenSetSubEnd(k >> LOADSHIFT);
 			
+			g_BMLSize = (k + 4);
 			blockmaplump = Z_Malloc(sizeof(*blockmap) * (k + 4), PU_LEVEL, (void**)&blockmap);
 			blockmap = blockmaplump + 4;	// Needed for compat
 			
@@ -2514,7 +2517,7 @@ bool_t P_ExLoadLevel(P_LevelInfoEx_t* const a_Info, const bool_t a_ApplyOptions)
 		if (Stream)
 		{
 			// matrix size is (numsectors * numsectors) / 8;
-			k = ((numsectors * numsectors) / 8);
+			g_RJMSize = k = ((numsectors * numsectors) / 8);
 			rejectmatrix = Z_Malloc(sizeof(*rejectmatrix) * (k + 1), PU_LEVEL, (void**)&rejectmatrix);
 			
 			// Set loading screen info
