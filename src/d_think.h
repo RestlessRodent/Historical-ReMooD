@@ -91,6 +91,16 @@ typedef struct thinker_s
 	think_t function;
 } thinker_t;
 
-extern const size_t g_ThinkerSizes[NUMPTHINKERTYPES];
+extern thinker_t** g_ThinkerList;				// List of thinkers
+extern size_t g_NumThinkerList;					// Thinkers in list
+
+/* G_ThinkerInfo_t -- Thinker info (save games) */
+typedef struct G_ThinkerInfo_s
+{
+	size_t Size;
+	actionf_t Func;
+} G_ThinkerInfo_t;
+
+extern const G_ThinkerInfo_t g_ThinkerData[NUMPTHINKERTYPES];				// Thinker Data
 
 #endif

@@ -52,25 +52,29 @@ tic_t leveltime;
 // Both the head and tail of the thinker list.
 thinker_t thinkercap;
 
-// g_ThinkerSizes -- Size of each thinker
-const size_t g_ThinkerSizes[NUMPTHINKERTYPES] =
+// g_ThinkerData -- Size of each thinker
+extern const G_ThinkerInfo_t g_ThinkerData[NUMPTHINKERTYPES] =
 {
-	sizeof(thinker_t),			// PTT_CAP,				// Thinker Cap
-	sizeof(vldoor_t),			// PTT_VERTICALDOOR,	// T_VerticalDoor/vldoor_t
-	sizeof(fireflicker_t),		// PTT_FIREFLICKER,		// T_FireFlicker/fireflicker_t
-	sizeof(lightflash_t),		// PTT_LIGHTFLASH,		// T_LightFlash/lightflash_t
-	sizeof(strobe_t),			// PTT_STROBEFLASH,		// T_StrobeFlash/strobe_t
-	sizeof(glow_t),				// PTT_GLOW,			// T_Glow/glow_t
-	sizeof(lightlevel_t),		// PTT_LIGHTFADE,		// T_LightFade/lightlevel_t
-	sizeof(floormove_t),		// PTT_MOVEFLOOR,		// T_MoveFloor/floormove_t
-	sizeof(ceiling_t),			// PTT_MOVECEILING,		// T_MoveCeiling/ceiling_t
-	sizeof(plat_t),				// PTT_PLATRAISE,		// T_PlatRaise/plat_t
-	sizeof(elevator_t),			// PTT_MOVEELEVATOR,	// T_MoveElevator/elevator_t
-	sizeof(scroll_t),			// PTT_SCROLL,			// T_Scroll/scroll_t
-	sizeof(friction_t),			// PTT_FRICTION,		// T_Friction/friction_t
-	sizeof(pusher_t),			// PTT_PUSHER,			// T_Pusher/pusher_t
-	sizeof(mobj_t),				// PTT_MOBJ,			// P_MobjThinker/mobj_t
+	{sizeof(thinker_t), {NULL}},				// PTT_CAP
+	{sizeof(vldoor_t), {T_VerticalDoor}},		// PTT_VERTICALDOOR
+	{sizeof(fireflicker_t), {T_FireFlicker}},	// PTT_FIREFLICKER
+	{sizeof(lightflash_t), {T_LightFlash}},		// PTT_LIGHTFLASH
+	{sizeof(strobe_t), {T_StrobeFlash}},		// PTT_STROBEFLASH
+	{sizeof(glow_t), {T_Glow}},					// PTT_GLOW
+	{sizeof(lightlevel_t), {T_LightFade}},		// PTT_LIGHTFADE
+	{sizeof(floormove_t), {T_MoveFloor}},		// PTT_MOVEFLOOR
+	{sizeof(ceiling_t), {T_MoveCeiling}},		// PTT_MOVECEILING
+	{sizeof(plat_t), {T_PlatRaise}},			// PTT_PLATRAISE
+	{sizeof(elevator_t), {T_MoveElevator}},		// PTT_MOVEELEVATOR
+	{sizeof(scroll_t), {T_Scroll}},				// PTT_SCROLL
+	{sizeof(friction_t), {T_Friction}},			// PTT_FRICTION
+	{sizeof(pusher_t), {T_Pusher}},				// PTT_PUSHER
+	{sizeof(mobj_t), {P_MobjThinker}},			// PTT_MOBJ
 };
+
+
+thinker_t** g_ThinkerList = NULL;				// List of thinkers
+size_t g_NumThinkerList = 0;					// Thinkers in list
 
 //
 // P_InitThinkers
@@ -80,6 +84,8 @@ void P_InitThinkers(void)
 	// TODO FIXME: Fix memory leak here!
 	thinkercap.prev = thinkercap.next = &thinkercap;
 	thinkercap.Type = PTT_CAP;
+	g_ThinkerList = NULL;
+	g_NumThinkerList = 0;
 }
 
 //
@@ -88,12 +94,32 @@ void P_InitThinkers(void)
 //
 void P_AddThinker(thinker_t* thinker, const P_ThinkerType_t a_Type)
 {
+	size_t i;
+	
+	/* Set Type */
 	thinker->Type = a_Type;	
 	
+	/* Set Links */
 	thinkercap.prev->next = thinker;
 	thinker->next = &thinkercap;
 	thinker->prev = thinkercap.prev;
 	thinkercap.prev = thinker;
+	
+	/* Add to static list */
+	// Find an empty spot in the list
+	for (i = 0; i < g_NumThinkerList; i++)
+		if (!g_ThinkerList[i])
+		{
+			g_ThinkerList[i] = thinker;
+			return;
+		}
+	
+	// Otherwise, add to end
+	Z_ResizeArray((void**)&g_ThinkerList, sizeof(g_ThinkerList), g_NumThinkerList, g_NumThinkerList + 1);
+	g_ThinkerList[g_NumThinkerList++] = thinker;
+	
+	// Make sure it gets freed
+	Z_ChangeTag(g_ThinkerList, PU_LEVEL);
 }
 
 //
@@ -103,8 +129,15 @@ void P_AddThinker(thinker_t* thinker, const P_ThinkerType_t a_Type)
 //
 void P_RemoveThinker(thinker_t* thinker)
 {
+	size_t i;
+	
 	// FIXME: NOP.
 	thinker->function.acv = (actionf_v) (-1);
+	
+	// Remove from list
+	for (i = 0; i < g_NumThinkerList; i++)
+		if (g_ThinkerList[i] == thinker)
+			g_ThinkerList[i] = NULL;
 }
 
 //
@@ -112,6 +145,7 @@ void P_RemoveThinker(thinker_t* thinker)
 //
 void P_RunThinkers(void)
 {
+	size_t i;
 	thinker_t* currentthinker;
 	
 	currentthinker = thinkercap.next;
@@ -187,3 +221,4 @@ void P_Ticker(void)
 		D_SyncNetSetMapTime(++LocalTic);
 	}
 }
+

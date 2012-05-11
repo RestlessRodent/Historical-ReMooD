@@ -313,7 +313,7 @@ typedef enum P_SGBWTypeC_e
 	PSTC_DOUBLE,								// double
 	PSTC_POINTERTO,								// void* -- Points to something
 	PSTC_POINTERIS,								// void* -- Is pointed at (arrays)
-	PSTC_POINTERISLOCAL,						// void* -- Is pointed at (local)
+	PSTC_POINTERISDIRECT,						// void* -- Is pointed at (local)
 	PSTC_STRING,								// char*
 	PSTC_INT8,									// Int8
 	PSTC_INT16,									// Int16
@@ -392,13 +392,18 @@ static bool_t PRWS_SRPointer(D_RBlockStream_t* const a_Stream, const bool_t a_Lo
 	
 	/* If Saving, Dump Pointer */
 	if (!a_Load)
-		D_RBSWritePointer(a_Stream, *((void**)a_Ptr));
+	{
+		if (a_CType == PSTC_POINTERISDIRECT)	// Locals pointing to stuff
+			D_RBSWritePointer(a_Stream, ((void**)a_Ptr));
+		else
+			D_RBSWritePointer(a_Stream, *((void**)a_Ptr));
+	}
 	
 	/* If Loading, Get pointer and mark ref */
 	else
 	{
 		pID = D_RBSReadPointer(a_Stream);
-		if (a_CType == PSTC_POINTERISLOCAL)	// Locals pointing to stuff
+		if (a_CType == PSTC_POINTERISDIRECT)	// Locals pointing to stuff
 			PLGS_SetRef(pID, ((void**)a_Ptr));
 		else		// Arrays
 			PLGS_SetRef(pID, *((void**)a_Ptr));
@@ -485,7 +490,7 @@ static const struct
 	{sizeof(double),},							// PSTC_DOUBLE
 	{sizeof(void*), PRWS_DRPointer},			// PSTC_POINTERTO
 	{sizeof(void*), PRWS_SRPointer},			// PSTC_POINTERIS
-	{sizeof(void*), PRWS_SRPointer},			// PSTC_POINTERISLOCAL
+	{sizeof(void*), PRWS_SRPointer},			// PSTC_POINTERISDIRECT
 	{sizeof(char*),},							// PSTC_STRING
 	{sizeof(int8_t), PRWS_int8},								// PSTC_INT8
 	{sizeof(int16_t), PRWS_int16},							// PSTC_INT16
@@ -533,11 +538,15 @@ bool_t P_SGBiWayReadOrWrite(
 		// I/O Type mismatch
 		if (a_Load)
 			if (Marker != l_RecChars[a_RecType])
+			{
 				CONL_PrintF("WARNING: IOT Mismatch (%c vs %c) [@ %s:%i]\n",
 						(unsigned int)Marker, (unsigned int)l_RecChars[a_RecType], a_File, a_Line);
+				
+				I_Error("IOT mismatch");
+			}
 		
 		// Size and native size don't match and it isn't a reference to pointer
-		if (a_Size != l_NativeData[a_NativeType].Size && a_NativeType != PSTC_POINTERIS)
+		if (a_Size != l_NativeData[a_NativeType].Size && a_NativeType != PSTC_POINTERIS && a_NativeType != PSTC_POINTERISDIRECT)
 			CONL_PrintF("WARNING: NTS Mismatch (%u vs %u) [@ %s:%i]\n",
 					(unsigned int)a_Size, (unsigned int)l_NativeData[a_NativeType].Size, a_File, a_Line);
 	}
@@ -635,7 +644,7 @@ bool_t P_SGBiWayBS(D_RBlockStream_t* const a_Stream, const bool_t a_Load)
 	
 	uint8_t SaveMaj, SaveMin, SaveRel, SaveLeg;
 	
-	ssize_t i, j, k;
+	ssize_t i, j, k, l;
 	
 	int8_t i8;
 	int16_t i16;
@@ -651,7 +660,7 @@ bool_t P_SGBiWayBS(D_RBlockStream_t* const a_Stream, const bool_t a_Load)
 	ffloor_t* FFLRover;
 	msecnode_t* MSNode;
 	
-	thinker_t* Thinker, *OldThinker;
+	thinker_t* Thinker, *OldThinker, *ThinkRove;
 	mobj_t* Mobj;
 	
 	/* Check */
@@ -773,12 +782,16 @@ bool_t P_SGBiWayBS(D_RBlockStream_t* const a_Stream, const bool_t a_Load)
 		// Players -- Players in the game
 		if (__HEADER("SGPL"))
 		{
+			// If Loading, memset player info
+			if (a_Load)
+				memset(players, 0, sizeof(players));
+			
 			// g_game.h/d_player.h
 			u32 = MAXPLAYERS;
 			__BI(u32,UINT32,UINT32);
 			for (i = 0; i < u32; i++)
 			{
-				__BI(players[i],POINTERIS,POINTER);
+				__BI(players[i],POINTERISDIRECT,POINTER);
 				
 				__BI(players[i].mo,POINTERTO,POINTER);
 				__BI(players[i].rain1,POINTERTO,POINTER);
@@ -961,7 +974,7 @@ bool_t P_SGBiWayBS(D_RBlockStream_t* const a_Stream, const bool_t a_Load)
 				vertexes = Z_Malloc(sizeof(*vertexes) * numvertexes, PU_LEVEL, (void**)&vertexes);
 			for (i = 0; i < u32; i++)
 			{
-				__BI(vertexes[i],POINTERIS,POINTER);
+				__BI(vertexes[i],POINTERISDIRECT,POINTER);
 				__BI(vertexes[i].x,FIXEDT,INT32);
 				__BI(vertexes[i].y,FIXEDT,INT32);
 			}
@@ -981,9 +994,16 @@ bool_t P_SGBiWayBS(D_RBlockStream_t* const a_Stream, const bool_t a_Load)
 				segs = Z_Malloc(sizeof(*segs) * numsegs, PU_LEVEL, (void**)&segs);
 			for (i = 0; i < u32; i++)
 			{
-				__BI(segs[i],POINTERIS,POINTER);
-				__BI(segs[i].v1,POINTERTO,POINTER);
-				__BI(segs[i].v2,POINTERTO,POINTER);
+				__BI(segs[i],POINTERISDIRECT,POINTER);
+				
+				u32b = segs[i].v1 - vertexes;
+				__BI(u32b,UINT32,UINT32);
+				segs[i].v1 = &vertexes[u32b];
+				
+				u32b = segs[i].v2 - vertexes;
+				__BI(u32b,UINT32,UINT32);
+				segs[i].v2 = &vertexes[u32b];
+				
 				__BI(segs[i].side,INT,INT8);
 				__BI(segs[i].offset,FIXEDT,INT32);
 				__BI(segs[i].angle,ANGLET,UINT32);
@@ -1035,20 +1055,20 @@ bool_t P_SGBiWayBS(D_RBlockStream_t* const a_Stream, const bool_t a_Load)
 			for (i = 0; i < u32; i++)
 			{
 				// Pointer to this sector
-				__BI(sectors[i],POINTERIS,POINTER);
+				__BI(sectors[i],POINTERISDIRECT,POINTER);
 				
 				//// Pointers Needed By 3D Floors ////
-				__BI(sectors[i].lightlevel,POINTERIS,POINTER);
+				__BI(sectors[i].lightlevel,POINTERISDIRECT,POINTER);
 					// Floor Relation
-				__BI(sectors[i].floorheight,POINTERIS,POINTER);
-				__BI(sectors[i].floorpic,POINTERIS,POINTER);
-				__BI(sectors[i].floor_xoffs,POINTERIS,POINTER);
-				__BI(sectors[i].floor_yoffs,POINTERIS,POINTER);
+				__BI(sectors[i].floorheight,POINTERISDIRECT,POINTER);
+				__BI(sectors[i].floorpic,POINTERISDIRECT,POINTER);
+				__BI(sectors[i].floor_xoffs,POINTERISDIRECT,POINTER);
+				__BI(sectors[i].floor_yoffs,POINTERISDIRECT,POINTER);
 					// Ceiling Relation
-				__BI(sectors[i].ceilingheight,POINTERIS,POINTER);
-				__BI(sectors[i].ceilingpic,POINTERIS,POINTER);
-				__BI(sectors[i].ceiling_xoffs,POINTERIS,POINTER);
-				__BI(sectors[i].ceiling_yoffs,POINTERIS,POINTER);
+				__BI(sectors[i].ceilingheight,POINTERISDIRECT,POINTER);
+				__BI(sectors[i].ceilingpic,POINTERISDIRECT,POINTER);
+				__BI(sectors[i].ceiling_xoffs,POINTERISDIRECT,POINTER);
+				__BI(sectors[i].ceiling_yoffs,POINTERISDIRECT,POINTER);
 				//////////////////////////////////////
 				
 				__BI(sectors[i].floorheight,FIXEDT,INT32);
@@ -1160,7 +1180,7 @@ bool_t P_SGBiWayBS(D_RBlockStream_t* const a_Stream, const bool_t a_Load)
 					for (j = 0; j < sectors[i].numlights; j++)
 					{
 						// Ref Self
-						__BI(sectors[i].lightlist[j],POINTERIS,POINTER);
+						__BI(sectors[i].lightlist[j],POINTERISDIRECT,POINTER);
 						
 						// Dump light data
 						__BI(sectors[i].lightlist[j].height,FIXEDT,INT32);
@@ -1284,7 +1304,7 @@ bool_t P_SGBiWayBS(D_RBlockStream_t* const a_Stream, const bool_t a_Load)
 			for (i = 0; i < u32; i++)
 			{
 				// Self
-				__BI(subsectors[i],POINTERIS,POINTER);
+				__BI(subsectors[i],POINTERISDIRECT,POINTER);
 				
 				// Dump
 				__BI(subsectors[i].sector,POINTERTO,POINTER);
@@ -1310,7 +1330,7 @@ bool_t P_SGBiWayBS(D_RBlockStream_t* const a_Stream, const bool_t a_Load)
 			for (i = 0; i < u32; i++)
 			{
 				// Self
-				__BI(nodes[i],POINTERIS,POINTER);
+				__BI(nodes[i],POINTERISDIRECT,POINTER);
 				
 				// Dump
 				__BI(nodes[i].x,FIXEDT,INT32);
@@ -1342,11 +1362,17 @@ bool_t P_SGBiWayBS(D_RBlockStream_t* const a_Stream, const bool_t a_Load)
 			for (i = 0; i < u32; i++)
 			{
 				// Self
-				__BI(lines[i],POINTERIS,POINTER);
+				__BI(lines[i],POINTERISDIRECT,POINTER);
 				
 				// Dump
-				__BI(lines[i].v1,POINTERTO,POINTER);
-				__BI(lines[i].v2,POINTERTO,POINTER);
+				u32b = lines[i].v1 - vertexes;
+				__BI(u32b,UINT32,UINT32);
+				lines[i].v1 = &vertexes[u32b];
+				
+				u32b = lines[i].v2 - vertexes;
+				__BI(u32b,UINT32,UINT32);
+				lines[i].v2 = &vertexes[u32b];
+				
 				__BI(lines[i].frontsector,POINTERTO,POINTER);
 				__BI(lines[i].backsector,POINTERTO,POINTER);
 				__BI(lines[i].specialdata,POINTERTO,POINTER);
@@ -1393,7 +1419,7 @@ bool_t P_SGBiWayBS(D_RBlockStream_t* const a_Stream, const bool_t a_Load)
 			for (i = 0; i < u32; i++)
 			{
 				// Locator Pointer
-				__BI(sides[i],POINTERIS,POINTER);
+				__BI(sides[i],POINTERISDIRECT,POINTER);
 				
 				// Dump
 				__BI(sides[i].textureoffset,FIXEDT,INT32);
@@ -1428,7 +1454,7 @@ bool_t P_SGBiWayBS(D_RBlockStream_t* const a_Stream, const bool_t a_Load)
 			for (i = 0; i < u32; i++)
 			{
 				// Current Pointer
-				__BI(mapthings[i],POINTERIS,POINTER);
+				__BI(mapthings[i],POINTERISDIRECT,POINTER);
 				
 				// Dump
 				__BI(mapthings[i].x,SHORT,INT16);
@@ -1454,14 +1480,13 @@ bool_t P_SGBiWayBS(D_RBlockStream_t* const a_Stream, const bool_t a_Load)
 		}
 		
 		// REJECT and BLOCKMAP
-		if (__HEADER("SGMI"))
+		if (__HEADER("SGMJ"))
 		{
 			// Save the reject (will take up TONS of room)
 				// g_RJMSize * 2
 			__BI(g_RJMSize,SIZET,UINT32);
 			if (a_Load)
-				rejectmatrix = Z_Malloc(sizeof(*rejectmatrix) * g_RJMSize, PU_LEVEL,
-									(void**)rejectmatrix);
+				rejectmatrix = Z_Malloc(sizeof(*rejectmatrix) * g_RJMSize, PU_LEVEL, NULL);
 			for (i = 0; i < g_RJMSize; i++)
 				__BI(rejectmatrix[i],UINT8,UINT8);
 			
@@ -1470,8 +1495,7 @@ bool_t P_SGBiWayBS(D_RBlockStream_t* const a_Stream, const bool_t a_Load)
 			__BI(g_BMLSize,SIZET,UINT32);
 			if (a_Load)
 			{
-				blockmaplump = Z_Malloc(sizeof(*blockmaplump) * g_BMLSize, PU_LEVEL,
-									(void**)blockmaplump);
+				blockmaplump = Z_Malloc(sizeof(*blockmaplump) * g_BMLSize, PU_LEVEL, NULL);
 				blockmap = blockmaplump + 4;	// Needed for compat
 			}
 			for (i = 0; i < g_BMLSize; i++)
@@ -1485,9 +1509,12 @@ bool_t P_SGBiWayBS(D_RBlockStream_t* const a_Stream, const bool_t a_Load)
 				
 				// Blocklinks
 			if (a_Load)
-				blocklinks = Z_Malloc(sizeof(*blocklinks) * (bmapwidth * bmapheight), PU_LEVEL, (void**)&blocklinks);
+				blocklinks = Z_Malloc(sizeof(*blocklinks) * (bmapwidth * bmapheight), PU_LEVEL, NULL);
 			for (i = 0; i < (bmapwidth * bmapheight); i++)
 				__BI(blocklinks[i],POINTERTO,POINTER);
+			
+			// Record
+			__REC;
 		}
 		
 		// Game State -- After Map Data Is Loaded
@@ -1528,6 +1555,190 @@ bool_t P_SGBiWayBS(D_RBlockStream_t* const a_Stream, const bool_t a_Load)
 			// have to hack around it to get it to work.
 		if (__HEADER("SGTH"))
 		{
+			// Save/Restore Thinkercap
+				// Be sure to store the is of it, for references
+			__BI(thinkercap,POINTERIS,POINTER);
+			__BI(thinkercap.Type,INT,UINT8);
+			__BI(thinkercap.next,POINTERTO,POINTER);
+			__BI(thinkercap.prev,POINTERTO,POINTER);
+			
+			// Save thinker list
+			__BI(g_NumThinkerList,SIZET,UINT32);
+			if (a_Load)
+				g_ThinkerList = Z_Malloc(sizeof(*g_ThinkerList) * g_NumThinkerList, PU_LEVEL, NULL);
+			// Go through each one
+			for (i = 0; i < g_NumThinkerList; i++)
+			{
+				// Dump Thinker if Saving
+				if (!a_Load)
+				{
+					Thinker = g_ThinkerList[i];
+					__BI(Thinker->Type,INT,UINT8);
+				}
+				
+				// Load Thinker when loading
+				else
+				{
+					// Load the type
+					u8 = 0;
+					__BI(u8,UINT8,UINT8);
+					
+					// Check bounds (making sure it is valid)
+					if (u8 < 0 || u8 >= NUMPTHINKERTYPES)
+						u8 = PTT_CAP;
+					
+					// Allocate and place in spot
+					Thinker = g_ThinkerList[i] = Z_Malloc(g_ThinkerData[u8].Size, PU_LEVEL, NULL);
+					
+					// Set Type and function
+					Thinker->Type = u8;
+					Thinker->function = g_ThinkerData[u8].Func;
+				}
+				
+				// Dump IS Pointer
+				__BI(g_ThinkerList[i],POINTERIS,POINTER);
+				
+				// Dump thinker chain
+				__BI(Thinker->next,POINTERTO,POINTER);
+				__BI(Thinker->prev,POINTERTO,POINTER);
+				
+				// Dump info about object
+				switch (Thinker->Type)
+				{
+						// Map Object
+					case PTT_MOBJ:
+						// Clone
+						Mobj = (mobj_t*)Thinker;
+						
+						// Start Dumping
+						__BI(Mobj->x,FIXEDT,INT32);
+						__BI(Mobj->y,FIXEDT,INT32);
+						__BI(Mobj->z,FIXEDT,INT32);
+						__BI(Mobj->floorz,FIXEDT,INT32);
+						__BI(Mobj->ceilingz,FIXEDT,INT32);
+						__BI(Mobj->radius,FIXEDT,INT32);
+						__BI(Mobj->height,FIXEDT,INT32);
+						__BI(Mobj->momx,FIXEDT,INT32);
+						__BI(Mobj->momy,FIXEDT,INT32);
+						__BI(Mobj->momz,FIXEDT,INT32);
+						__BI(Mobj->MaxZObtained,FIXEDT,INT32);
+
+						__BI(Mobj->snext,POINTERTO,POINTER);
+						__BI(Mobj->sprev,POINTERTO,POINTER);
+						__BI(Mobj->bnext,POINTERTO,POINTER);
+						__BI(Mobj->bprev,POINTERTO,POINTER);
+						__BI(Mobj->subsector,POINTERTO,POINTER);
+						__BI(Mobj->target,POINTERTO,POINTER);
+						__BI(Mobj->player,POINTERTO,POINTER);
+						__BI(Mobj->spawnpoint,POINTERTO,POINTER);
+						__BI(Mobj->tracer,POINTERTO,POINTER);
+						__BI(Mobj->touching_sectorlist,POINTERTO,POINTER);
+						__BI(Mobj->ChildFloor,POINTERTO,POINTER);
+
+						__BI(Mobj->angle,ANGLET,UINT32);
+
+						__BI(Mobj->RemoveMo,BOOLT,UINT8);
+
+						__BI(Mobj->sprite,INT,UINT32);
+						__BI(Mobj->frame,INT,INT32);
+						__BI(Mobj->skin,INT,INT32);
+						__BI(Mobj->tics,INT,INT32);
+						__BI(Mobj->type,INT,INT32);
+						__BI(Mobj->flags,INT,INT32);
+						__BI(Mobj->eflags,INT,INT32);
+						__BI(Mobj->flags2,INT,INT32);
+						__BI(Mobj->special1,INT,INT32);
+						__BI(Mobj->special2,INT,INT32);
+						__BI(Mobj->health,INT,INT32);
+						__BI(Mobj->movedir,INT,INT32);
+						__BI(Mobj->movecount,INT,INT32);
+						__BI(Mobj->reactiontime,INT,INT32);
+						__BI(Mobj->threshold,INT,INT32);
+						__BI(Mobj->lastlook,INT,INT32);
+						__BI(Mobj->friction,INT,INT32);
+						__BI(Mobj->movefactor,INT,INT32);
+						__BI(Mobj->dropped_ammo_count,INT,INT32);
+						__BI(Mobj->RXShotWithWeapon,INT,INT32);
+						__BI(Mobj->RXAttackAttackType,INT,INT32);
+						__BI(Mobj->RemType,INT,INT32);
+						__BI(Mobj->SkinTeamColor,INT,INT32);
+
+						__BI(Mobj->XFlagsA,UINT32,UINT32);
+						__BI(Mobj->XFlagsB,UINT32,UINT32);
+						__BI(Mobj->XFlagsC,UINT32,UINT32);
+						__BI(Mobj->XFlagsD,UINT32,UINT32);
+
+						for (l = 0; l < NUMINFORXFIELDS; l++)
+							__BI(Mobj->RXFlags[l],UINT32,UINT32);
+
+						// State -- Can be tricky
+						if (!a_Load && Mobj->state)
+							__BI(Mobj->state->StateNum,INT,UINT32);
+						else
+						{
+							u32 = 0;
+							__BI(u32,UINT32,UINT32);
+							if (u32 >= 0 && u32 < NUMSTATES)
+								Mobj->state = states[u32];
+						}
+
+						// Map Object OnTop Ref
+						for (l = 0; l < 2; l++)
+						{
+							// Count
+							__BI(Mobj->MoOnCount[l],SIZET,UINT32);
+	
+							// Allocate?
+							if (a_Load && Mobj->MoOnCount[l])
+								Mobj->MoOn[l] = Z_Malloc(sizeof(*Mobj->MoOn[l]) * Mobj->MoOnCount[l],
+													PU_STATIC, NULL);
+	
+							// Dump Refs
+							for (j = 0; j < Mobj->MoOnCount[l]; j++)
+								__BI(Mobj->MoOn[l][j],POINTERTO,POINTER);
+						}
+
+						// Dump Reference Counts
+						u32 = NUMPMOBJREFTYPES;
+						__BI(u32,UINT32,UINT32);
+						for (l = 0; l < u32; l++)
+						{
+							// Base Counts
+							__BI(Mobj->RefCount[l],INT32,INT32);
+							__BI(Mobj->RefListSz[l],SIZET,UINT32);
+	
+							// Allocate?
+							if (a_Load)
+								Mobj->RefList[l] = Z_Malloc(sizeof(*Mobj->RefList[l]) * Mobj->RefListSz[l],
+														PU_LEVEL, NULL);
+	
+							// Reference List
+							for (j = 0; j < Mobj->RefListSz[l]; j++)
+								__BI(Mobj->RefList[l][j],POINTERTO,POINTER);
+						}
+
+						// Noise Thinker
+						__BI(Mobj->NoiseThinker.Flags,UINT32,UINT32);
+						__BI(Mobj->NoiseThinker.x,FIXEDT,INT32);
+						__BI(Mobj->NoiseThinker.y,FIXEDT,INT32);
+						__BI(Mobj->NoiseThinker.z,FIXEDT,INT32);
+						__BI(Mobj->NoiseThinker.momx,FIXEDT,INT32);
+						__BI(Mobj->NoiseThinker.momy,FIXEDT,INT32);
+						__BI(Mobj->NoiseThinker.momz,FIXEDT,INT32);
+						__BI(Mobj->NoiseThinker.Pitch,FIXEDT,INT32);
+						__BI(Mobj->NoiseThinker.Volume,FIXEDT,INT32);
+						__BI(Mobj->NoiseThinker.Angle,ANGLET,UINT32);
+
+						// Reference info based on type
+						Mobj->info = mobjinfo[Mobj->type];
+						break;
+						
+						// Unknown!?
+					default:
+						break;
+				}
+			}
+			
 			// Store/Recover thinkercap linked list
 			//for (Thinker = &thinkercap;
 			
@@ -1768,13 +1979,16 @@ else if (a_Thinker->function.acv == T_VerticalDoor)	return 'o';
 			{
 				vp = *(l_Derefs[i].ChangePtr[j]);
 				*(l_Derefs[i].ChangePtr[j]) = l_Derefs[i].SetVal;
-				l_Derefs[i].ChangePtr[j] = NULL;	// Clear for future checking
 				
+#if 0
 				if (devparm)
 					CONL_PrintF("SAVE DEBUG: %p set to %p (was %p)\n",
 							(l_Derefs[i].ChangePtr[j]),
 							l_Derefs[i].SetVal, vp
 						);
+#endif
+				
+				l_Derefs[i].ChangePtr[j] = NULL;	// Clear for future checking
 			}
 		}
 		
@@ -1785,7 +1999,7 @@ else if (a_Thinker->function.acv == T_VerticalDoor)	return 'o';
 				for (j = 0; j < l_Derefs[i].NumChangePtr; j++)
 					if (l_Derefs[i].ChangePtr[j])
 					{
-						CONL_PrintF("SAVE DEBUG: %p waiting (by %p, sv = %p)\n",
+						CONL_PrintF("SAVE DEBUG: Missed %p (by %p, sv = %p)\n",
 									l_Derefs[i].ChangePtr[j],
 									((void*)((uintptr_t)l_Derefs[i].UniqPtr)),
 									l_Derefs[i].SetVal
@@ -1797,6 +2011,14 @@ else if (a_Thinker->function.acv == T_VerticalDoor)	return 'o';
 		Z_FreeTags(PU_SGPTRREF, PU_SGPTRREF);
 		l_Derefs = NULL;
 		l_NumDerefs = 0;
+	}
+	
+	/* Final Cleaning Up */
+	// Repair thinkercap chain (it appears to get unlinked)
+	if (a_Load)
+	{
+		thinkercap.next->prev = &thinkercap;
+		thinkercap.prev->next = &thinkercap;
 	}
 	
 	/* Success? */
