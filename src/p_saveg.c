@@ -391,7 +391,7 @@ static bool_t PRWS_SRPointer(D_RBlockStream_t* const a_Stream, const bool_t a_Lo
 	else
 	{
 		pID = D_RBSReadPointer(a_Stream);
-		PLGS_SetRef(pID, (void**)a_Ptr);
+		PLGS_SetRef(pID, *((void**)a_Ptr));
 	}
 	
 	/* Success */
@@ -692,6 +692,11 @@ bool_t P_SGBiWayBS(D_RBlockStream_t* const a_Stream, const bool_t a_Load)
 			__BI(tt,TICT,UINT32);
 			D_SyncNetSetMapTime(tt);
 			
+			// m_random.h
+			u8 = P_GetRandIndex();
+			__BI(u8,UINT8,UINT8);
+			P_SetRandIndex(u8);
+			
 			// Record
 			__REC;
 		}
@@ -883,7 +888,7 @@ bool_t P_SGBiWayBS(D_RBlockStream_t* const a_Stream, const bool_t a_Load)
 			__BI(u32,UINT32,UINT32);
 			numvertexes = u32;
 			if (a_Load)
-				vertexes = Z_Malloc(sizeof(*vertexes) * numvertexes, PU_LEVEL, &vertexes);
+				vertexes = Z_Malloc(sizeof(*vertexes) * numvertexes, PU_LEVEL, (void**)&vertexes);
 			for (i = 0; i < u32; i++)
 			{
 				__BI(vertexes[i],POINTERIS,POINTER);
@@ -903,7 +908,7 @@ bool_t P_SGBiWayBS(D_RBlockStream_t* const a_Stream, const bool_t a_Load)
 			__BI(u32,UINT32,UINT32);
 			numsegs = u32;
 			if (a_Load)
-				segs = Z_Malloc(sizeof(*segs) * numsegs, PU_LEVEL, &segs);
+				segs = Z_Malloc(sizeof(*segs) * numsegs, PU_LEVEL, (void**)&segs);
 			for (i = 0; i < u32; i++)
 			{
 				__BI(segs[i],POINTERIS,POINTER);
@@ -956,7 +961,7 @@ bool_t P_SGBiWayBS(D_RBlockStream_t* const a_Stream, const bool_t a_Load)
 			__BI(u32,UINT32,UINT32);
 			numsectors = u32;
 			if (a_Load)
-				sectors = Z_Malloc(sizeof(*sectors) * numsectors, PU_LEVEL, &sectors);
+				sectors = Z_Malloc(sizeof(*sectors) * numsectors, PU_LEVEL, (void**)&sectors);
 			for (i = 0; i < u32; i++)
 			{
 				// Pointer to this sector
@@ -1101,71 +1106,10 @@ bool_t P_SGBiWayBS(D_RBlockStream_t* const a_Stream, const bool_t a_Load)
 					__BI(sectors[i].lightlist,POINTERTO,POINTER);
 				
 				//// 3D Floors in Sector (Exists as linked list) ////
-				u8 = ((a_Load || (!a_Load && !sectors[i].ffloors)) ? 'E' : 'F');
-				__BI(u8,UINT8,UINT8);
-				FFLRover = NULL;
-				while (u8 == 'F')
-				{
-					// Thinker whether floor needs creation or loop is ending
-						// Saving?
-					if (!a_Load)
-					{
-						// Set with initial floor?
-						if (!FFLRover)
-							FFLRover = sectors[i].ffloors;
-					}
-						// Loading?
-					else
-					{
-						// Allocate new floor out of nowhere, it will be
-						// rescued with a reference pointer eventually, at least
-						// I hope it does.
-						FFLRover = Z_Malloc(sizeof(*FFLRover), PU_LEVEL, NULL);
-					}
-					
-					// Dump IsPointer of current floor
-					__BI(FFLRover,POINTERIS,POINTER);
-					
-					// Dump Floor Data
-					__BI(FFLRover->topheight,POINTERTO,POINTER);
-					__BI(FFLRover->toppic,POINTERTO,POINTER);
-					__BI(FFLRover->toplightlevel,POINTERTO,POINTER);
-					__BI(FFLRover->topxoffs,POINTERTO,POINTER);
-					__BI(FFLRover->topyoffs,POINTERTO,POINTER);
-					__BI(FFLRover->bottomheight,POINTERTO,POINTER);
-					__BI(FFLRover->bottompic,POINTERTO,POINTER);
-					__BI(FFLRover->bottomxoffs,POINTERTO,POINTER);
-					__BI(FFLRover->bottomyoffs,POINTERTO,POINTER);
-					__BI(FFLRover->master,POINTERTO,POINTER);
-					__BI(FFLRover->target,POINTERTO,POINTER);
-					__BI(FFLRover->next,POINTERTO,POINTER);
-					__BI(FFLRover->prev,POINTERTO,POINTER);
-					__BI(FFLRover->OwnerMobj,POINTERTO,POINTER);
-					__BI(FFLRover->delta,FIXEDT,INT32);
-					__BI(FFLRover->secnum,INT,INT32);
-					__BI(FFLRover->lastlight,INT,INT32);
-					__BI(FFLRover->alpha,INT,INT32);
-					__BI(FFLRover->flags,INT,UINT32);
-					
-					// Determine what to do now
-						// Saving?
-					if (!a_Load)
-					{
-						// Go to the next floor
-						FFLRover = FFLRover->next;
-						
-						// Write exist marker
-						u8 = (FFLRover ? 'F' : 'E');
-						__BI(u8,UINT8,UINT8);
-					}
-						// Loading?
-					else
-					{
-						// Read existence marker to see if needing to continue
-						u8 = 'E';
-						__BI(u8,UINT8,UINT8);
-					}
-				}
+				// This used to be a big ordeal a revision before this one.
+				// However A solution I devised for a different structure works
+				// perfectly here too.
+				__BI(sectors[i].ffloors,POINTERTO,POINTER);
 				/////////////////////////////////////////////////////
 				
 				// Untouched
@@ -1181,8 +1125,46 @@ bool_t P_SGBiWayBS(D_RBlockStream_t* const a_Stream, const bool_t a_Load)
 		if (__HEADER("SGMD"))
 		{
 			//// Fake Floors ////
-//ffloor_t** g_PFakeFloors = NULL;				// Fake Floors
-//size_t g_NumPFakeFloors = 0;					// Number of them
+			// Dump
+			__BI(g_NumPFakeFloors,SIZET,UINT32);
+			
+			// Loading? Allocate
+			if (a_Load)
+				g_PFakeFloors = Z_Malloc(sizeof(*g_PFakeFloors) * g_NumPFakeFloors, PU_LEVEL, NULL);
+			
+			// Go through each one
+			for (i = 0; i < g_NumPFakeFloors; i++)
+			{
+				// Get Current
+				if (a_Load)		// Needs allocation
+					g_PFakeFloors[i] = Z_Malloc(sizeof(*g_PFakeFloors[i]), PU_LEVEL, NULL);
+				FFLRover = g_PFakeFloors[i];
+				
+				// Dump IsPointer of current floor
+					// Don't use FFLRover because it is a local!
+				__BI(g_PFakeFloors[i],POINTERIS,POINTER);
+	
+				// Dump Floor Data
+				__BI(FFLRover->topheight,POINTERTO,POINTER);
+				__BI(FFLRover->toppic,POINTERTO,POINTER);
+				__BI(FFLRover->toplightlevel,POINTERTO,POINTER);
+				__BI(FFLRover->topxoffs,POINTERTO,POINTER);
+				__BI(FFLRover->topyoffs,POINTERTO,POINTER);
+				__BI(FFLRover->bottomheight,POINTERTO,POINTER);
+				__BI(FFLRover->bottompic,POINTERTO,POINTER);
+				__BI(FFLRover->bottomxoffs,POINTERTO,POINTER);
+				__BI(FFLRover->bottomyoffs,POINTERTO,POINTER);
+				__BI(FFLRover->master,POINTERTO,POINTER);
+				__BI(FFLRover->target,POINTERTO,POINTER);
+				__BI(FFLRover->next,POINTERTO,POINTER);
+				__BI(FFLRover->prev,POINTERTO,POINTER);
+				__BI(FFLRover->OwnerMobj,POINTERTO,POINTER);
+				__BI(FFLRover->delta,FIXEDT,INT32);
+				__BI(FFLRover->secnum,INT,INT32);
+				__BI(FFLRover->lastlight,INT,INT32);
+				__BI(FFLRover->alpha,INT,INT32);
+				__BI(FFLRover->flags,INT,UINT32);
+			}
 			/////////////////////
 			
 			//// Touching Sector Nodes ////
@@ -1197,13 +1179,9 @@ bool_t P_SGBiWayBS(D_RBlockStream_t* const a_Stream, const bool_t a_Load)
 			for (i = 0; i < g_NumMSecNodes; i++)
 			{
 				// Get Current
-					// Loading allocates
-				if (a_Load)
-					MSNode = g_MSecNodes[i] = Z_Malloc(sizeof(*g_MSecNodes[i]), PU_LEVEL, NULL);
-					
-					// Saving gets the already existing one
-				else
-					MSNode = g_MSecNodes[i];
+				if (a_Load)		// Needs allocation
+					g_MSecNodes[i] = Z_Malloc(sizeof(*g_MSecNodes[i]), PU_LEVEL, NULL);
+				MSNode = g_MSecNodes[i];
 				
 				// Dump pointer to this node
 					// Don't use MSNode because that is a local
@@ -1219,6 +1197,187 @@ bool_t P_SGBiWayBS(D_RBlockStream_t* const a_Stream, const bool_t a_Load)
 				__BI(MSNode->visited,BOOLT,UINT8);
 			}
 			///////////////////////////////
+			
+			// Record
+			__REC;
+		}
+		
+		// Map SubSectors (subsector_t)
+		if (__HEADER("SGME"))
+		{
+			// Dump
+			u32 = numsubsectors;
+			__BI(u32,UINT32,UINT32);
+			numsubsectors = u32;
+			if (a_Load)
+				subsectors = Z_Malloc(sizeof(*subsectors) * numsubsectors, PU_LEVEL, (void**)&subsectors);
+			for (i = 0; i < u32; i++)
+			{
+				// Self
+				__BI(subsectors[i],POINTERIS,POINTER);
+				
+				// Dump
+				__BI(subsectors[i].sector,POINTERTO,POINTER);
+				__BI(subsectors[i].splats,POINTERTO,POINTER);
+				__BI(subsectors[i].numlines,SHORT,INT16);
+				__BI(subsectors[i].firstline,SHORT,INT16);
+				__BI(subsectors[i].validcount,INT,INT32);
+			}
+			
+			// Record
+			__REC;
+		}
+		
+		// Map Nodes (node_t)
+		if (__HEADER("SGMF"))
+		{
+			// Dump
+			u32 = numnodes;
+			__BI(u32,UINT32,UINT32);
+			numnodes = u32;
+			if (a_Load)
+				nodes = Z_Malloc(sizeof(*nodes) * numnodes, PU_LEVEL, (void**)&nodes);
+			for (i = 0; i < u32; i++)
+			{
+				// Self
+				__BI(nodes[i],POINTERIS,POINTER);
+				
+				// Dump
+				__BI(nodes[i].x,FIXEDT,INT32);
+				__BI(nodes[i].y,FIXEDT,INT32);
+				__BI(nodes[i].dx,FIXEDT,INT32);
+				__BI(nodes[i].dy,FIXEDT,INT32);
+				
+				for (j = 0; j < 2; j++)
+				{
+					for (k = 0; k < 4; k++)
+						__BI(nodes[i].bbox[j][k],FIXEDT,INT32);
+					__BI(nodes[i].children[j],USHORT,UINT16);
+				}
+			}
+			
+			// Record
+			__REC;
+		}
+		
+		// Map Lines (line_t)
+		if (__HEADER("SGMG"))
+		{
+			// Dump
+			u32 = numlines;
+			__BI(u32,UINT32,UINT32);
+			numlines = u32;
+			if (a_Load)
+				lines = Z_Malloc(sizeof(*lines) * numlines, PU_LEVEL, (void**)&lines);
+			for (i = 0; i < u32; i++)
+			{
+				// Self
+				__BI(lines[i],POINTERIS,POINTER);
+				
+				// Dump
+				__BI(lines[i].v1,POINTERTO,POINTER);
+				__BI(lines[i].v2,POINTERTO,POINTER);
+				__BI(lines[i].frontsector,POINTERTO,POINTER);
+				__BI(lines[i].backsector,POINTERTO,POINTER);
+				__BI(lines[i].specialdata,POINTERTO,POINTER);
+				__BI(lines[i].splats,POINTERTO,POINTER);
+				__BI(lines[i].dx,FIXEDT,INT32);
+				__BI(lines[i].dy,FIXEDT,INT32);
+				__BI(lines[i].flags,SHORT,INT16);
+				__BI(lines[i].special,UINT32,UINT32);
+				__BI(lines[i].tag,SHORT,INT16);
+				__BI(lines[i].slopetype,INT,UINT8);
+				__BI(lines[i].validcount,INT,INT32);
+				__BI(lines[i].tranlump,INT,INT32);
+				__BI(lines[i].firsttag,INT,INT32);
+				__BI(lines[i].nexttag,INT,INT32);
+				__BI(lines[i].ecolormap,INT,INT32);
+				__BI(lines[i].HexenSpecial,UINT8,UINT8);
+				
+				for (j = 0; j < 2; j++)
+				{
+					__BI(lines[i].sidenum[j],SHORT,INT16);
+					__BI(lines[i].VertexNum[j],SIZET,UINT32);
+				}
+					
+				for (j = 0; j < 4; j++)
+					__BI(lines[i].bbox[j],FIXEDT,INT32);
+				
+				for (j = 0; j < 5; j++)
+					__BI(lines[i].ACSArgs[j],UINT8,UINT8);
+			}
+			
+			// Record
+			__REC;
+		}
+		
+		// Map Sides (side_t)
+		if (__HEADER("SGMH"))
+		{
+			// Dump
+			u32 = numsides;
+			__BI(u32,UINT32,UINT32);
+			numsides = u32;
+			if (a_Load)
+				sides = Z_Malloc(sizeof(*sides) * numsides, PU_LEVEL, (void**)&sides);
+			for (i = 0; i < u32; i++)
+			{
+				// Locator Pointer
+				__BI(sides[i],POINTERIS,POINTER);
+				
+				// Dump
+				__BI(sides[i].textureoffset,FIXEDT,INT32);
+				__BI(sides[i].rowoffset,FIXEDT,INT32);
+				__BI(sides[i].ScaleX,FIXEDT,INT32);
+				__BI(sides[i].ScaleY,FIXEDT,INT32);
+				__BI(sides[i].toptexture,SHORT,INT16);
+				__BI(sides[i].bottomtexture,SHORT,INT16);
+				__BI(sides[i].midtexture,SHORT,INT16);
+				__BI(sides[i].sector,POINTERTO,POINTER);
+				__BI(sides[i].VFlip,BOOLT,UINT8);
+				__BI(sides[i].special,UINT32,UINT32);
+				__BI(sides[i].SectorNum,SIZET,UINT32);
+				
+				for (j = 0; j < 3; j++)
+					__BISTRZ(sides[i].WallTextures[j]);
+			}
+			
+			// Record
+			__REC;
+		}
+		
+		// Map Things (mapthing_t)
+		if (__HEADER("SGMI"))
+		{
+			// Dump
+			u32 = nummapthings;
+			__BI(u32,UINT32,UINT32);
+			nummapthings = u32;
+			if (a_Load)
+				mapthings = Z_Malloc(sizeof(*mapthings) * nummapthings, PU_LEVEL, (void**)&mapthings);
+			for (i = 0; i < u32; i++)
+			{
+				// Current Pointer
+				__BI(mapthings[i],POINTERIS,POINTER);
+				
+				// Dump
+				__BI(mapthings[i].x,SHORT,INT16);
+				__BI(mapthings[i].y,SHORT,INT16);
+				__BI(mapthings[i].z,SHORT,INT16);
+				__BI(mapthings[i].angle,SHORT,INT16);
+				__BI(mapthings[i].type,SHORT,INT16);
+				__BI(mapthings[i].options,SHORT,INT16);
+				__BI(mapthings[i].IsHexen,BOOLT,UINT8);
+				__BI(mapthings[i].MarkedWeapon,BOOLT,UINT8);
+				__BI(mapthings[i].MoType,INT,UINT32);
+				__BI(mapthings[i].Special,UINT8,UINT8);
+				__BI(mapthings[i].ID,UINT16,UINT16);
+				__BI(mapthings[i].HeightOffset,INT16,INT16);
+				__BI(mapthings[i].mobj,POINTERTO,POINTER);
+				
+				for (j = 0; j < 5; j++)
+					__BI(mapthings[i].Args[j],UINT8,UINT8);
+			}
 			
 			// Record
 			__REC;
@@ -1268,17 +1427,18 @@ bool_t P_SGBiWayBS(D_RBlockStream_t* const a_Stream, const bool_t a_Load)
 	{
 		// Go through each one and Reference everything
 		for (i = 0; i < l_NumDerefs; i++)
-			for (j = 0; j < l_Derefs[i].NumChangePtr; j++)
-			{
-				vp = *(l_Derefs[i].ChangePtr[j]);
-				*(l_Derefs[i].ChangePtr[j]) = l_Derefs[i].SetVal;
+			if (l_Derefs[i].SetVal)
+				for (j = 0; j < l_Derefs[i].NumChangePtr; j++)
+				{
+					vp = *(l_Derefs[i].ChangePtr[j]);
+					*(l_Derefs[i].ChangePtr[j]) = l_Derefs[i].SetVal;
 				
-				if (devparm)
-					CONL_PrintF("SAVE DEBUG: %p set to %p (was %p)\n",
-							(l_Derefs[i].ChangePtr[j]),
-							l_Derefs[i].SetVal, vp
-						);
-			}
+					if (devparm)
+						CONL_PrintF("SAVE DEBUG: %p set to %p (was %p)\n",
+								(l_Derefs[i].ChangePtr[j]),
+								l_Derefs[i].SetVal, vp
+							);
+				}
 
 		// Free all references
 		Z_FreeTags(PU_SGPTRREF, PU_SGPTRREF);

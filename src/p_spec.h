@@ -1234,14 +1234,6 @@ typedef enum P_EXSLineTrigger_s
 
 /*** STRUCTURES ***/
 
-/* P_EXSLineType_t -- Line special type */
-typedef struct P_EXSLineType_s
-{
-	uint16_t ID;								// Line Trigger ID
-	P_EXSLineTrigger_t Trigger;					// Trigger to activate
-	bool_t Repeats;								// Trigger repeats
-} P_EXSLineType_t;
-
 /*** FUNCTIONS ***/
 
 bool_t P_RMODH_Specials(Z_Table_t* const a_Table, const WL_WADFile_t* const a_WAD, const D_RMODPrivates_t a_ID, D_RMODPrivate_t* const a_Private);

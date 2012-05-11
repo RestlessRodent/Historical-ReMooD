@@ -1754,7 +1754,11 @@ bool_t P_ExClearLevel(void)
 	// Map Data
 	nummapthings = numvertexes = numsegs = numsectors = numsubsectors = numnodes = numlines = numsides = 0;
 	mapthings = vertexes = segs = sectors = subsectors = nodes = lines = sides = NULL;
-
+	
+	// 3D Floors
+	g_PFakeFloors = NULL;
+	g_NumPFakeFloors = 0;
+	
 	/* Always succeeds */
 	return true;
 }

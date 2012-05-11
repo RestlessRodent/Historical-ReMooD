@@ -2681,8 +2681,8 @@ msecnode_t* P_GetSecnode()
 						g_NumMSecNodes, g_NumMSecNodes + 1);
 		g_MSecNodes[g_NumMSecNodes++] = node;
 		
-		if (devparm)
-			CONL_PrintF("P_GetSecnode: New %p @ %u\n", node, (unsigned)g_NumMSecNodes - 1);
+		//if (devparm)
+		//	CONL_PrintF("P_GetSecnode: New %p @ %u\n", node, (unsigned)g_NumMSecNodes - 1);
 		
 		// Make sure it gets deleted!
 		Z_ChangeTag(g_MSecNodes, PU_LEVEL);

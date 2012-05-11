@@ -2426,7 +2426,32 @@ size_t g_NumPFakeFloors = 0;					// Number of them
 void P_AddFFloor(sector_t* sec, ffloor_t* ffloor)
 {
 	ffloor_t* rover;
+	size_t i;
+	bool_t Found;
 	
+	// GhostlyDeath <May 10, 2012> -- Fake Floor List (For Savegames)
+		// See if the floor is already in the floor list
+	Found = false;
+	for (i = 0; i < g_NumPFakeFloors; i++)
+		if (ffloor == g_PFakeFloors[i])
+		{
+			Found = true;
+			break;
+		}
+	
+	// If it was not found, resize the list
+	if (!Found)
+	{	
+		// Resize and add
+		Z_ResizeArray((void**)&g_PFakeFloors, sizeof(*g_PFakeFloors),
+			g_NumPFakeFloors, g_NumPFakeFloors + 1);
+		g_PFakeFloors[g_NumPFakeFloors++] = ffloor;
+		
+		// Make sure it gets free when the level is cleared
+		Z_ChangeTag(g_PFakeFloors, PU_LEVEL);
+	}
+	
+	/* Sector has no floors attached */
 	if (!sec->ffloors)
 	{
 		sec->ffloors = ffloor;
@@ -2435,6 +2460,7 @@ void P_AddFFloor(sector_t* sec, ffloor_t* ffloor)
 		return;
 	}
 	
+	/* Add to end of floor list */
 	for (rover = sec->ffloors; rover->next; rover = rover->next);
 	
 	rover->next = ffloor;

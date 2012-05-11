@@ -60,3 +60,4 @@ uint8_t P_GetRandIndex(void);
 void P_SetRandIndex(uint8_t rindex);
 
 #endif
+

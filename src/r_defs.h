@@ -373,8 +373,6 @@ typedef enum
 	ST_NEGATIVE
 } slopetype_t;
 
-struct P_EXSLineType_s;
-
 typedef struct line_s
 {
 	// Vertices, from v1 to v2.
@@ -424,7 +422,6 @@ typedef struct line_s
 	
 	// ReMooD Additions
 	size_t VertexNum[2];						// IDs for vertexes
-	struct P_EXSLineType_s* LineSpecial;		// Specialized Special
 	
 	// Hexen
 	uint8_t HexenSpecial;						// Hexen special ID
