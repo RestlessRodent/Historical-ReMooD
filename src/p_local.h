@@ -185,6 +185,7 @@ extern size_t g_NumBossSpitList;
 // when pushing a line
 //#define MAXSPECIALCROSS 16
 
+extern int spechit_max;
 extern int* spechit;			//SoM: 3/15/2000: Limit removal
 extern int numspechit;
 

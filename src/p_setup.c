@@ -1760,6 +1760,9 @@ bool_t P_ExClearLevel(void)
 	// 3D Floors
 	g_PFakeFloors = NULL;
 	g_NumPFakeFloors = 0;
+	spechit_max = NULL;
+	spechit = NULL;
+	numspechit = 0;
 	
 	/* Always succeeds */
 	return true;

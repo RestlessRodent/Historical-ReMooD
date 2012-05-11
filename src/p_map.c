@@ -249,15 +249,16 @@ bool_t P_TeleportMove(mobj_t* thing, fixed_t x, fixed_t y)
 //                       MOVEMENT ITERATOR FUNCTIONS
 // =========================================================================
 
+int spechit_max = 0;
 static void add_spechit(line_t* ld)
 {
-	static int spechit_max = 0;
-	
 	//SoM: 3/15/2000: Boom limit removal.
 	if (numspechit >= spechit_max)
 	{
 		spechit_max = spechit_max ? spechit_max * 2 : 16;
-		spechit = (int*)realloc(spechit, sizeof(int) * spechit_max);
+		
+		Z_ResizeArray((void**)&spechit, sizeof(*spechit), numspechit, spechit_max);
+		Z_ChangeTag(spechit, PU_LEVEL);
 	}
 	
 	spechit[numspechit] = ld - lines;

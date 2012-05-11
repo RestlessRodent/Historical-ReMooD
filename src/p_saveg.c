@@ -775,6 +775,14 @@ bool_t P_SGBiWayBS(D_RBlockStream_t* const a_Stream, const bool_t a_Load)
 			// d_netcmd.h
 			__BI(g_SplitScreen,INT,INT32);
 			
+			// p_info.h
+			memset(Buf, 0, sizeof(Buf));
+			if (g_CurrentLevelInfo)
+				strncpy(Buf, g_CurrentLevelInfo->LumpName, BUFSIZE - 1);
+			__BISTRB(Buf,BUFSIZE);
+			if (a_Load)
+				g_CurrentLevelInfo = P_FindLevelByNameEx(Buf, NULL);
+			
 			// Record
 			__REC;
 		}
@@ -886,17 +894,17 @@ bool_t P_SGBiWayBS(D_RBlockStream_t* const a_Stream, const bool_t a_Load)
 				
 					// Frags
 				u32 = MAXPLAYERS;
-				__BI(u32,UINT32,UINT32);
-				for (j = 0; j < u32; j++)
+				__BI(u32b,UINT32,UINT32);
+				for (j = 0; j < u32b; j++)
 					__BI(players[i].frags[j],UINT16,UINT16);
 					
 					// Weapons
 				if (!players[i].weaponowned)
 					players[i].weaponowned = Z_Malloc(sizeof(*players[i].weaponowned) * NUMWEAPONS, PU_STATIC, NULL);
 				
-				u32 = NUMWEAPONS;
-				__BI(u32,UINT32,UINT32);
-				for (j = 0; j < u32; j++)
+				u32b = NUMWEAPONS;
+				__BI(u32b,UINT32,UINT32);
+				for (j = 0; j < u32b; j++)
 					__BI(players[i].weaponowned[j],BOOLT,UINT8);
 				
 					// Ammo
@@ -904,39 +912,47 @@ bool_t P_SGBiWayBS(D_RBlockStream_t* const a_Stream, const bool_t a_Load)
 					players[i].ammo = Z_Malloc(sizeof(*players[i].ammo) * NUMAMMO, PU_STATIC, NULL);
 				if (!players[i].maxammo)
 					players[i].maxammo = Z_Malloc(sizeof(*players[i].maxammo) * NUMAMMO, PU_STATIC, NULL);
-				u32 = NUMAMMO;
-				__BI(u32,UINT32,UINT32);
-				for (j = 0; j < u32; j++)
+				u32b = NUMAMMO;
+				__BI(u32b,UINT32,UINT32);
+				for (j = 0; j < u32b; j++)
 				{
 					__BI(players[i].ammo[j],INT,INT32);
 					__BI(players[i].maxammo[j],INT,INT32);
 				}
 				
 					// Powers
-				u32 = NUMPOWERS;
-				__BI(u32,UINT32,UINT32);
-				for (j = 0; j < u32; j++)
+				u32b = NUMPOWERS;
+				__BI(u32b,UINT32,UINT32);
+				for (j = 0; j < u32b; j++)
 					__BI(players[i].powers[j],INT,INT32);
 					
 					// Inventory
-				u32 = NUMINVENTORYSLOTS;
-				__BI(u32,UINT32,UINT32);
-				for (j = 0; j < u32; j++)
+				u32b = NUMINVENTORYSLOTS;
+				__BI(u32b,UINT32,UINT32);
+				for (j = 0; j < u32b; j++)
 				{
 					__BI(players[i].inventory[j].type,UINT8,UINT8);
 					__BI(players[i].inventory[j].count,UINT8,UINT8);
 				}
 				
 					// PSprites
-				u32 = NUMPSPRITES;
-				__BI(u32,UINT32,UINT32);
-				for (j = 0; j < u32; j++)
+				u32b = NUMPSPRITES;
+				__BI(u32b,UINT32,UINT32);
+				for (j = 0; j < u32b; j++)
 				{
 					u32b = 0;
 					if (players[i].psprites[j].state)
 						u32b = players[i].psprites[j].state->StateNum;
+					else
+						u32b = ~0;
+						
 					__BI(u32b,UINT32,UINT32);
-					players[i].psprites[j].state = states[u32b];
+					
+					if (u32b != (~0))
+						players[i].psprites[j].state = states[u32b];
+					else
+						u32b = NULL;
+					
 					__BI(players[i].psprites[j].tics,INT,INT32);
 					__BI(players[i].psprites[j].sx,FIXEDT,INT32);
 					__BI(players[i].psprites[j].sy,FIXEDT,INT32);
@@ -1020,12 +1036,12 @@ bool_t P_SGBiWayBS(D_RBlockStream_t* const a_Stream, const bool_t a_Load)
 				__BI(fxt,FIXEDT,INT32);
 				segs[i].length = FIXED_TO_FLOAT(fxt);
 				
-				u32 = segs[i].numlights;
-				__BI(u32,UINT32,UINT32);
-				segs[i].numlights = u32;
+				u32b = segs[i].numlights;
+				__BI(u32b,UINT32,UINT32);
+				segs[i].numlights = u32b;
 				if (a_Load)
 					segs[i].rlights = Z_Malloc(sizeof(*segs[i].rlights) * segs[i].numlights, PU_LEVEL, NULL);
-				for (j = 0; j < u32; j++)
+				for (j = 0; j < u32b; j++)
 				{
 					__BI(segs[i].rlights[j].height,FIXEDT,INT32);
 					__BI(segs[i].rlights[j].heightstep,FIXEDT,INT32);
@@ -1232,7 +1248,7 @@ bool_t P_SGBiWayBS(D_RBlockStream_t* const a_Stream, const bool_t a_Load)
 				
 				// Dump IsPointer of current floor
 					// Don't use FFLRover because it is a local!
-				__BI(g_PFakeFloors[i],POINTERIS,POINTER);
+				__BI((*g_PFakeFloors[i]),POINTERISDIRECT,POINTER);
 	
 				// Dump Floor Data
 				__BI(FFLRover->topheight,POINTERTO,POINTER);
@@ -1275,7 +1291,7 @@ bool_t P_SGBiWayBS(D_RBlockStream_t* const a_Stream, const bool_t a_Load)
 				
 				// Dump pointer to this node
 					// Don't use MSNode because that is a local
-				__BI(g_MSecNodes[i],POINTERIS,POINTER);
+				__BI((*g_MSecNodes[i]),POINTERISDIRECT,POINTER);
 				
 				// Dump information (mostly pointers)
 				__BI(MSNode->m_sector,POINTERTO,POINTER);
@@ -1499,7 +1515,7 @@ bool_t P_SGBiWayBS(D_RBlockStream_t* const a_Stream, const bool_t a_Load)
 				blockmap = blockmaplump + 4;	// Needed for compat
 			}
 			for (i = 0; i < g_BMLSize; i++)
-				__BI(blockmaplump,LONG,INT32);
+				__BI(blockmaplump[i],LONG,INT32);
 			
 				// Block Map origins
 			__BI(bmapwidth,INT,INT32);
@@ -1529,8 +1545,8 @@ bool_t P_SGBiWayBS(D_RBlockStream_t* const a_Stream, const bool_t a_Load)
 				u32b = playerstarts[i] - mapthings;
 				__BI(u32b,UINT32,UINT32);
 				playerstarts[i] = NULL;
-				if (u32 >= 0 && u32 < nummapthings)
-					playerstarts[i] = &mapthings[u32];
+				if (u32b >= 0 && u32b < nummapthings)
+					playerstarts[i] = &mapthings[u32b];
 			}
 			
 			// p_setup.h
@@ -1542,9 +1558,18 @@ bool_t P_SGBiWayBS(D_RBlockStream_t* const a_Stream, const bool_t a_Load)
 				u32b = deathmatchstarts[i] - mapthings;
 				__BI(u32b,UINT32,UINT32);
 				deathmatchstarts[i] = NULL;
-				if (u32 >= 0 && u32 < nummapthings)
-					deathmatchstarts[i] = &mapthings[u32];
+				if (u32b >= 0 && u32b < nummapthings)
+					deathmatchstarts[i] = &mapthings[u32b];
 			}
+			
+			// p_map.c
+				// Spechits
+			__BI(spechit_max,INT,INT32);
+			__BI(numspechit,INT,INT32);
+			if (a_Load)
+				spechit = Z_Malloc(sizeof(*spechit) * spechit_max, PU_LEVEL, NULL);
+			for (i = 0; i < numspechit; i++)
+				__BI(spechit[i],INT,INT32);
 			
 			// Record
 			__REC;
@@ -1557,7 +1582,7 @@ bool_t P_SGBiWayBS(D_RBlockStream_t* const a_Stream, const bool_t a_Load)
 		{
 			// Save/Restore Thinkercap
 				// Be sure to store the is of it, for references
-			__BI(thinkercap,POINTERIS,POINTER);
+			__BI(thinkercap,POINTERISDIRECT,POINTER);
 			__BI(thinkercap.Type,INT,UINT8);
 			__BI(thinkercap.next,POINTERTO,POINTER);
 			__BI(thinkercap.prev,POINTERTO,POINTER);
@@ -1572,6 +1597,19 @@ bool_t P_SGBiWayBS(D_RBlockStream_t* const a_Stream, const bool_t a_Load)
 				// Dump Thinker if Saving
 				if (!a_Load)
 				{
+					// No Thinker Here?
+					if (!g_ThinkerList[i])
+						u8 = 'N';
+					else
+						u8 = 'K';
+					
+					// Save
+					__BI(u8,UINT8,UINT8);
+					
+					// Skip?
+					if (u8 == 'N')
+						continue;
+					
 					Thinker = g_ThinkerList[i];
 					__BI(Thinker->Type,INT,UINT8);
 				}
@@ -1579,6 +1617,14 @@ bool_t P_SGBiWayBS(D_RBlockStream_t* const a_Stream, const bool_t a_Load)
 				// Load Thinker when loading
 				else
 				{
+					// Determie if thinker is NULL, or not
+					u8 = 'N';
+					__BI(u8,UINT8,UINT8);
+					
+					// If it is NULL continue on
+					if (u8 == 'N')
+						continue;
+					
 					// Load the type
 					u8 = 0;
 					__BI(u8,UINT8,UINT8);
@@ -1596,7 +1642,7 @@ bool_t P_SGBiWayBS(D_RBlockStream_t* const a_Stream, const bool_t a_Load)
 				}
 				
 				// Dump IS Pointer
-				__BI(g_ThinkerList[i],POINTERIS,POINTER);
+				__BI((*g_ThinkerList[i]),POINTERISDIRECT,POINTER);
 				
 				// Dump thinker chain
 				__BI(Thinker->next,POINTERTO,POINTER);
@@ -1768,7 +1814,7 @@ bool_t P_SGBiWayBS(D_RBlockStream_t* const a_Stream, const bool_t a_Load)
 				__BI(u8,UINT8,UINT8);
 				
 				// Dump Pointer
-				__BI(OldThinker->next,POINTERIS,POINTER);
+				__BI(OldThinker->next,POINTERISDIRECT,POINTER);
 				
 				// Save thinker data
 				switch (u8)
