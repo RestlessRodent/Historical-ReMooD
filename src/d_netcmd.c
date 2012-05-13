@@ -1858,6 +1858,8 @@ void D_NCSNetUpdateAll(void)
 	/* Update All Players */
 	for (i = 0; i < MAXPLAYERS; i++)
 		D_NCSNetUpdateSingle(&players[i]);
+	
+	D_NCUpdate();
 }
 
 /* D_NCSNetUpdateSingleTic() -- Single tic update */

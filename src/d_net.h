@@ -61,7 +61,13 @@ typedef struct D_NetController_s
 	I_NetHost_t NetTo;							// Where to send to
 	I_NetHost_t NetFrom;						// Where to recieve from
 	
+	/* Streaming */
+	bool_t IsLocal;								// Is this a local thing?
 	struct D_RBlockStream_s* BlockStream;		// Block stream
+	uint32_t Ping;								// Ping delay
+	
+	/* Versioning */
+	uint8_t VerLeg, VerMaj, VerMin, VerRel;		// Versions of ReMooD
 } D_NetController_t;
 
 /*****************
@@ -79,6 +85,17 @@ bool_t D_SyncNetUpdate(void);
 bool_t D_SyncNetIsSolo(void);
 
 bool_t D_CheckNetGame(void);
+
+/*****************************************************************************/
+
+/*** GLOBALS ***/
+
+extern uint32_t g_NetStat[4];					// Network stats
+
+/*** FUNCTIONS ***/
+
+D_NetController_t* D_NCAllocController(void);
+void D_NCUpdate(void);
 
 #endif							/* __D_NET_H__ */
 

@@ -239,6 +239,8 @@ consvar_t cv_vid_drawfps = { "vid_drawfps", "0", CV_SAVE, CV_YesNo, NULL };
 
 void D_Display(void)
 {
+#define BUFSIZE 96
+	char Buf[BUFSIZE];
 	static bool_t menuactivestate = false;
 	static gamestate_t oldgamestate = -1;
 	static int borderdrawcount;
@@ -448,6 +450,15 @@ void D_Display(void)
 	// GhostlyDeath <May 6, 2012> -- Network Update
 	D_SyncNetUpdate();
 	
+	// GhostlyDeath <May 12, 2012> -- Net Dev
+	if (g_NetDev)
+	{
+		snprintf(Buf, BUFSIZE - 1, "Bk/s: {3%u{z / {4%u{z", g_NetStat[0], g_NetStat[1]);
+		V_DrawStringA(VFONT_OEM, VFO_NOSCALEPATCH, Buf, 0, 100);
+		snprintf(Buf, BUFSIZE - 1, "By/s: {3%u{zB / {4%u{zB", g_NetStat[2], g_NetStat[3]);
+		V_DrawStringA(VFONT_OEM, VFO_NOSCALEPATCH, Buf, 0, 108);
+	}
+	
 	// GhostlyDeath <July 8, 2009> -- Add FPS Counter
 	if (cv_vid_drawfps.value)
 	{
@@ -527,6 +538,7 @@ void D_Display(void)
 	}
 	
 	ST_Invalidate();
+#undef BUFSIZE
 }
 
 // =========================================================================

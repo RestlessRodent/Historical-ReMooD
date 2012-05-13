@@ -175,20 +175,31 @@ typedef struct D_RBlockStream_s
 	/* Functions */
 	size_t (*RecordF)(struct D_RBlockStream_s* const a_Stream);
 	bool_t (*PlayF)(struct D_RBlockStream_s* const a_Stream);
+	bool_t (*FlushF)(struct D_RBlockStream_s* const a_Stream);
+	
+	/* Stream Stat */
+	uint32_t StatBlock[2];						// Block stats
+	uint32_t StatBytes[2];						// Byte stats
 } D_RBlockStream_t;
 
 /****************
 *** FUNCTIONS ***
 ****************/
 
+D_RBlockStream_t* D_RBSCreateLoopBackStream(void);
 D_RBlockStream_t* D_RBSCreateFileStream(const char* const a_PathName);
 D_RBlockStream_t* D_RBSCreateNetStream(I_NetSocket_t* const a_NetSocket);
 void D_RBSCloseStream(D_RBlockStream_t* const a_Stream);
 
+void D_RBSStatStream(D_RBlockStream_t* const a_Stream, uint32_t* const a_ReadBk, uint32_t* const a_WriteBk, uint32_t* const a_ReadBy, uint32_t* const a_WriteBy);
+void D_RBSUnStatStream(D_RBlockStream_t* const a_Stream);
+
 bool_t D_RBSBaseBlock(D_RBlockStream_t* const a_Stream, const char* const a_Header);
+bool_t D_RBSRenameHeader(D_RBlockStream_t* const a_Stream, const char* const a_Header);
 
 bool_t D_RBSPlayBlock(D_RBlockStream_t* const a_Stream, char* const a_Header);
 void D_RBSRecordBlock(D_RBlockStream_t* const a_Stream);
+bool_t D_RBSFlushStream(D_RBlockStream_t* const a_Stream);
 
 size_t D_RBSWriteChunk(D_RBlockStream_t* const a_Stream, const void* const a_Data, const size_t a_Size);
 

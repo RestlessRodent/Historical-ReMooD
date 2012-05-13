@@ -363,8 +363,181 @@ bool_t DS_RBSFile_PlayF(struct D_RBlockStream_s* const a_Stream)
 }
 
 /****************
+*** LOOP BACK ***
+****************/
+
+/* DS_RBSLoopBackHold_t -- Holding store */
+typedef struct DS_RBSLoopBackHold_s
+{
+	uint32_t FlushID;							// Current flush ID
+	char Header[5];								// Header
+	uint8_t* Data;								// Data
+	size_t Size;								// Size
+} DS_RBSLoopBackHold_t;
+
+/* DS_RBSLoopBackData_t -- Loop back device */
+typedef struct DS_RBSLoopBackData_s
+{
+	uint32_t FlushID;							// FlushID
+	DS_RBSLoopBackHold_t** Q;					// Blocks in Q
+	size_t SizeQ;								// Size of Q
+} DS_RBSLoopBackData_t;
+
+/* DS_RBSLoopBack_RecordF() -- Records a block */
+size_t DS_RBSLoopBack_RecordF(struct D_RBlockStream_s* const a_Stream)
+{
+	size_t i;
+	DS_RBSLoopBackData_t* LoopData;
+	DS_RBSLoopBackHold_t* Hold;
+	
+	/* Check */
+	if (!a_Stream)
+		return 0;
+	
+	/* Get Data */
+	LoopData = (DS_RBSLoopBackData_t*)a_Stream->Data;
+	
+	// Check
+	if (!LoopData)
+		return 0;
+	
+	/* Find spot to record at */
+	Hold = NULL;
+	for (i = 0; i < LoopData->SizeQ; i++)
+		if (!LoopData->Q[i])
+		{
+			Hold = LoopData->Q[i] = Z_Malloc(sizeof(DS_RBSLoopBackHold_t), PU_BLOCKSTREAM, NULL);
+			break;
+		}
+	
+	// No blank spots?
+	if (!Hold)
+	{
+		Z_ResizeArray((void**)&LoopData->Q, sizeof(*LoopData->Q),
+						LoopData->SizeQ, LoopData->SizeQ + 1);
+		Hold = LoopData->Q[LoopData->SizeQ++] =
+				Z_Malloc(sizeof(DS_RBSLoopBackHold_t), PU_BLOCKSTREAM, NULL);
+	}
+	
+	/* Store info in hold */
+	// Copy header
+	memmove(Hold->Header, a_Stream->BlkHeader, 4);
+	
+	// Clone Data
+	Hold->FlushID = LoopData->FlushID;
+	Hold->Size = a_Stream->BlkSize;
+	Hold->Data = Z_Malloc(Hold->Size, PU_BLOCKSTREAM, NULL);
+	memmove(Hold->Data, a_Stream->BlkData, Hold->Size);
+	
+	/* Return value does not matter */
+	return 1;
+}
+
+/* DS_RBSLoopBack_PlayF() -- Backs a block back */
+bool_t DS_RBSLoopBack_PlayF(struct D_RBlockStream_s* const a_Stream)
+{
+	DS_RBSLoopBackData_t* LoopData;
+	DS_RBSLoopBackHold_t* Hold;
+	size_t i;
+	
+	/* Check */
+	if (!a_Stream)
+		return false;
+	
+	/* Get Data */
+	LoopData = (DS_RBSLoopBackData_t*)a_Stream->Data;
+	
+	// Check
+	if (!LoopData)
+		return false;
+	
+	/* Nothing recorded? */
+	if (!LoopData->SizeQ)
+		return false;
+	
+	/* Nothing in the Q? */
+	if (!LoopData->Q[0])
+		return false;
+	
+	/* Get current hold */
+	Hold = LoopData->Q[0];
+	
+	// See if it after the current flush level
+	if (LoopData->FlushID <= Hold->FlushID)
+		return false;
+	
+	/* Create Base Block */
+	D_RBSBaseBlock(a_Stream, Hold->Header);
+	
+	// Write all our data in it
+	D_RBSWriteChunk(a_Stream, Hold->Data, Hold->Size);
+	
+	/* Free Hold */
+	if (Hold->Data)
+		Z_Free(Hold->Data);
+	Z_Free(Hold);
+	LoopData->Q[0] = NULL;
+	
+	// Move everything down
+	if (LoopData->SizeQ > 1)
+		memmove(LoopData->Q[0], LoopData->Q + 1, LoopData->SizeQ - 1);
+	
+	/* Something read */
+	return true;
+}
+
+/* DS_RBSLoopBack_FlushF() -- Flush block stream */
+bool_t DS_RBSLoopBack_FlushF(struct D_RBlockStream_s* const a_Stream)
+{
+	DS_RBSLoopBackData_t* LoopData;
+	
+	/* Check */
+	if (!a_Stream)
+		return false;
+	
+	/* Get Data */
+	LoopData = (DS_RBSLoopBackData_t*)a_Stream->Data;
+	
+	// Check
+	if (!LoopData)
+		return false;
+	
+	/* No data in Q */
+	if (!LoopData->SizeQ)
+		return false;
+	
+	/* Q is empty */
+	if (!LoopData->Q[0])
+		return false;
+		
+	/* Increase flush ID */
+	LoopData->FlushID++;
+	
+	/* Nothing done */
+	return true;
+}
+
+/****************
 *** FUNCTIONS ***
 ****************/
+
+/* D_RBSCreateLoopBackStream() -- Creates loop back stream */
+D_RBlockStream_t* D_RBSCreateLoopBackStream(void)
+{
+	D_RBlockStream_t* New;
+	
+	/* Create block stream */
+	New = Z_Malloc(sizeof(*New), PU_BLOCKSTREAM, NULL);
+	
+	/* Set Functions */
+	New->Data = Z_Malloc(sizeof(DS_RBSLoopBackData_t), PU_BLOCKSTREAM, NULL);
+	New->RecordF = DS_RBSLoopBack_RecordF;
+	New->PlayF = DS_RBSLoopBack_PlayF;
+	New->FlushF = DS_RBSLoopBack_FlushF;
+	
+	/* Return */
+	return New;
+}
 
 /* D_RBSCreateFileStream() -- Create file stream */
 D_RBlockStream_t* D_RBSCreateFileStream(const char* const a_PathName)
@@ -409,6 +582,39 @@ void D_RBSCloseStream(D_RBlockStream_t* const a_Stream)
 		return;
 }
 
+/* D_RBSStatStream() -- Obtain stream stats */
+void D_RBSStatStream(D_RBlockStream_t* const a_Stream, uint32_t* const a_ReadBk, uint32_t* const a_WriteBk, uint32_t* const a_ReadBy, uint32_t* const a_WriteBy)
+{
+	/* Check */
+	if (!a_Stream)
+		return;
+	
+	/* Return Stats */
+	if (a_ReadBk)
+		*a_ReadBk = a_Stream->StatBlock[0];
+	if (a_WriteBk)
+		*a_WriteBk = a_Stream->StatBlock[1];
+		
+	if (a_ReadBy)
+		*a_ReadBy = a_Stream->StatBytes[0];
+	if (a_WriteBy)
+		*a_WriteBy = a_Stream->StatBytes[1];
+}
+
+/* D_RBSUnStatStream() -- Clear stream stats */
+void D_RBSUnStatStream(D_RBlockStream_t* const a_Stream)
+{
+	size_t i;
+	
+	/* Check */
+	if (!a_Stream)
+		return;
+	
+	/* Reset */
+	for (i = 0; i < 2; i++)
+		a_Stream->StatBlock[i] = a_Stream->StatBytes[i] = 0;
+}
+
 /* D_RBSBaseBlock() -- Base block */
 // This used to return void, but I need it to return true for the SaveGame code
 bool_t D_RBSBaseBlock(D_RBlockStream_t* const a_Stream, const char* const a_Header)
@@ -436,6 +642,20 @@ bool_t D_RBSBaseBlock(D_RBlockStream_t* const a_Stream, const char* const a_Head
 	return true;
 }
 
+/* D_RBSRenameHeader() -- Rename block */
+bool_t D_RBSRenameHeader(D_RBlockStream_t* const a_Stream, const char* const a_Header)
+{
+	/* Check */
+	if (!a_Stream || !a_Header)
+		return false;
+	
+	/* Copy header */
+	memmove(a_Stream->BlkHeader, a_Header, (strlen(a_Header) >= 4 ? 4 : strlen(a_Header)));
+	
+	/* Success */
+	return true;
+}
+
 /* D_RBSRecordBlock() -- Records the current block to the stream */
 void D_RBSRecordBlock(D_RBlockStream_t* const a_Stream)
 {
@@ -446,6 +666,10 @@ void D_RBSRecordBlock(D_RBlockStream_t* const a_Stream)
 	/* Call recorder */
 	if (a_Stream->RecordF)
 		a_Stream->RecordF(a_Stream);
+		
+	/* Increase stats */
+	a_Stream->StatBlock[1]++;
+	a_Stream->StatBytes[1] += a_Stream->BlkSize;
 }
 
 /* D_RBSRecordBlock() -- Plays the current block from the stream */
@@ -459,11 +683,33 @@ bool_t D_RBSPlayBlock(D_RBlockStream_t* const a_Stream, char* const a_Header)
 	if (a_Stream->PlayF)
 		if (a_Stream->PlayF(a_Stream))
 		{
+			// Stats
+			a_Stream->StatBlock[0]++;
+			a_Stream->StatBytes[0] += a_Stream->BlkSize;
+			
+			// Copy header
 			if (a_Header)
 				memmove(a_Header, a_Stream->BlkHeader, sizeof(a_Stream->BlkHeader));
+				
+			// Read a block
 			return true;
 		}
 	
+	return false;
+}
+
+/* D_RBSFlushStream() -- Flush stream */
+bool_t D_RBSFlushStream(D_RBlockStream_t* const a_Stream)
+{
+	/* Check */
+	if (!a_Stream)
+		return;
+	
+	/* Call flusher */
+	if (a_Stream->FlushF)
+		return a_Stream->FlushF(a_Stream);
+	
+	/* Flusher not called */
 	return false;
 }
 

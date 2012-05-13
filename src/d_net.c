@@ -43,6 +43,8 @@
 #include "d_clisrv.h"
 #include "z_zone.h"
 #include "i_util.h"
+#include "d_block.h"
+#include "console.h"
 
 /*************
 *** LOCALS ***
@@ -187,8 +189,58 @@ bool_t D_SyncNetUpdate(void)
 	/* Update all networked players */
 	D_NCSNetUpdateAll();
 	
+	/* Update network code */
+	D_NCUpdate();
+	
 	/* Success */
 	return true;
+}
+
+/*****************************************************************************/
+
+/*** GLOBALS ***/
+uint32_t g_NetStat[4] = {0, 0, 0, 0};			// Network stats
+
+/*** LOCALS ***/
+
+static D_NetController_t* l_LocalController = NULL;
+static D_NetController_t** l_Controllers = NULL;
+static size_t l_NumControllers = 0;
+static uint32_t l_LocalStat[4];					// Local Stats
+
+/*** FUNCTIONS ***/
+
+/* D_NCAllocController() -- Allocates a network controler */
+D_NetController_t* D_NCAllocController(void)
+{
+	size_t i;
+	bool_t Added;
+	D_NetController_t* NewNC;
+	
+	/* Allocate */
+	NewNC = Z_Malloc(sizeof(*NewNC), PU_NETWORK, NULL);
+	
+	/* Add to list */
+	// Find blank spot
+	Added = false;
+	for (i = 0; i < l_NumControllers; i++)
+		if (!l_Controllers[i] == NULL)
+		{
+			l_Controllers[i] = NewNC;
+			Added = true;
+			break;
+		}
+	
+	// Not added? Resize
+	if (!Added)
+	{
+		Z_ResizeArray((void**)&l_Controllers, sizeof(*l_Controllers),
+						l_NumControllers, l_NumControllers + 1);
+		l_Controllers[l_NumControllers++] = NewNC;
+	}
+	
+	/* Return it */
+	return NewNC;
 }
 
 /* D_CheckNetGame() -- Checks whether the game was started on the network */
@@ -205,6 +257,155 @@ bool_t D_CheckNetGame(void)
 	netgame = false;
 	if (netgame)
 		netgame = false;
+	
+	/* Controlled Networking */
+	// GhostlyDeath <May 12, 2012> -- Controlled Networking
+	
+	// Create local controller
+	l_LocalController = D_NCAllocController();
+	l_LocalController->IsLocal = true;
+	l_LocalController->BlockStream = D_RBSCreateLoopBackStream();
+	
 	return ret;
+}
+
+/* D_NCUpdate() -- Update all networking stuff */
+void D_NCUpdate(void)
+{
+#define BUFSIZE 512
+	char Buf[BUFSIZE];
+	char Header[5];
+	size_t nc, i;
+	D_NetController_t* CurCtrl;
+	D_RBlockStream_t* Stream;
+	
+	uint32_t u32, u32b, u32c, u32d;
+	
+	bool_t SendPing, AnythingWritten;
+	uint32_t ThisTime, DiffTime;
+	static uint32_t LastTime;
+	
+	/* Init */
+	memset(Header, 0, sizeof(Header));
+	
+	/* Get Current Time */
+	ThisTime = I_GetTimeMS();
+	
+	// Send pings?
+	SendPing = false;
+	if (ThisTime > LastTime + 1000)
+	{
+		DiffTime = ThisTime - LastTime;
+		LastTime = ThisTime;
+		SendPing = true;
+	}
+	
+	/* Go through every controller */
+	for (nc = 0; nc < l_NumControllers; nc++)
+	{
+		// Get current
+		CurCtrl = l_Controllers[nc];
+		
+		// Nothing here?
+		if (!CurCtrl)
+			continue;
+		
+		// Init some things
+		Stream = CurCtrl->BlockStream;
+		
+		// Send ping command
+		if (SendPing)
+		{
+			// Clear stream stats
+			D_RBSUnStatStream(Stream);
+			for (i = 0; i < 4; i++)
+			{
+				g_NetStat[i] = l_LocalStat[i];
+				l_LocalStat[i] = 0;
+			}
+			
+			// Create ping
+			D_RBSBaseBlock(Stream, "PING");
+			D_RBSWriteUInt32(Stream, ThisTime);
+			D_RBSWriteUInt32(Stream, DiffTime);
+			
+			// Record it
+			D_RBSRecordBlock(Stream);
+		}
+		
+		// Collect some infos
+		else
+		{
+			// Stats
+			D_RBSStatStream(Stream, &u32, &u32b, &u32c, &u32d);
+			
+			// Add to local
+			l_LocalStat[0] = u32;
+			l_LocalStat[1] = u32b;
+			l_LocalStat[2] = u32c;
+			l_LocalStat[3] = u32d;
+		}
+		
+		// Constantly read blocks (packets)
+		while (D_RBSPlayBlock(Stream, Header))
+		{
+			// PING -- Ping Request
+			if (strcasecmp("PING", Header) == 0)
+			{
+				// Send a PONG back to it
+				D_RBSRenameHeader(Stream, "PONG");
+				D_RBSRecordBlock(Stream);
+			}
+			
+			// PONG -- Ping Reply
+			else if (strcasecmp("PONG", Header) == 0)
+			{
+				CurCtrl->Ping = ThisTime - D_RBSReadUInt32(Stream);
+			}
+			
+			// VERR -- Version Request
+			else if (strcasecmp("VERR", Header) == 0)
+			{
+				// Create version reply
+				D_RBSBaseBlock(Stream, "VERI");
+				
+				// Put in info
+				D_RBSWriteUInt8(Stream, VERSION);
+				D_RBSWriteUInt8(Stream, REMOOD_MAJORVERSION);
+				D_RBSWriteUInt8(Stream, REMOOD_MINORVERSION);
+				D_RBSWriteUInt8(Stream, REMOOD_RELEASEVERSION);
+				D_RBSWriteString(Stream, REMOOD_FULLVERSIONSTRING);
+				D_RBSWriteString(Stream, REMOOD_URL);
+				
+				// Send it away
+				D_RBSRecordBlock(Stream);
+			}
+			
+			// VERI -- Version Information
+			else if (strcasecmp("VERI", Header) == 0)
+			{
+				// Read version info
+				CurCtrl->VerLeg = D_RBSReadUInt8(Stream);
+				CurCtrl->VerMaj = D_RBSReadUInt8(Stream);
+				CurCtrl->VerMin = D_RBSReadUInt8(Stream);
+				CurCtrl->VerRel = D_RBSReadUInt8(Stream);
+			}
+			
+			// MESG -- Generic Message
+			else if (strcasecmp("MESG", Header) == 0)
+			{
+				// Get Message
+				memset(Buf, 0, sizeof(Buf));
+				D_RBSReadString(Stream, Buf, BUFSIZE - 1);
+				
+				// Print
+				CONL_PrintF("%s\n", Buf);
+			}
+		}
+		
+		// Flush commands (Send them together, if possible)
+		D_RBSFlushStream(Stream);
+	}
+#undef BUFSIZE
 }
 
