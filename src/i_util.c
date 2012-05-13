@@ -269,9 +269,10 @@ void I_OsPolling(void)
 		
 		// Translate
 		if (!CONL_HandleEvent(&Event))
-			if (!M_MenuExHandleEvent(&Event))
-				if (!D_NCSHandleEvent(&Event))
-					I_EventToOldDoom(&Event);
+			if (!M_ExUIHandleEvent(&Event))
+				if (!M_MenuExHandleEvent(&Event))
+					if (!D_NCSHandleEvent(&Event))
+						I_EventToOldDoom(&Event);
 	}
 }
 

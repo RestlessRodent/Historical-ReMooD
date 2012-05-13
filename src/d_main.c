@@ -439,6 +439,9 @@ void D_Display(void)
 	// Draw the menus
 	M_MenuExDrawer();
 	
+	// GhostlyDeath <May 12, 2012> -- Extended UI Draw
+	M_ExUIDrawer();
+	
 	// Draw the console on the menu (if it is opened anyway)
 	CONL_DrawConsole();
 		

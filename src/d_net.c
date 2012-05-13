@@ -207,3 +207,4 @@ bool_t D_CheckNetGame(void)
 		netgame = false;
 	return ret;
 }
+

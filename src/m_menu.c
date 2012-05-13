@@ -1868,3 +1868,184 @@ void M_MenuExDrawer(void)
 #endif /* __REMOOD_DEDICATED */
 }
 
+/*******************************************************************************
+********************************************************************************
+*******************************************************************************/
+
+/*** CONSTANTS ***/
+
+#define MAXUIBUTTONS 32
+
+/*** STRUCTURES ***/
+
+/* M_UILocalBox_t -- Local message box */
+typedef struct M_UILocalBox_s
+{
+	M_ExMBType_t Type;							// Message Box Type
+	uint32_t MessageID;							// ID of message
+	MBCallBackFunc_t CallBack;					// Callback when message pressed
+	const char* Title;							// Title
+	const char* Message;						// Message
+	uint32_t SelButton;							// Selected Button
+	uint32_t NumButtons;						// Number of buttons
+	int32_t x, y, w, h;							// Box Size
+	int32_t tX, tY, mX, mY;						// Message Positions
+	
+	struct
+	{
+		int32_t x, y, w, h;						// Position and size
+		const char* Text;						// Text on button
+	} Buttons[MAXUIBUTTONS];
+} M_UILocalBox_t;
+
+#define MUIBOXFONT VFONT_SMALL
+
+/*** LOCALS ***/
+
+static M_UILocalBox_t** l_UIBoxes = NULL;
+static size_t l_NumUIBoxes = 0;
+
+/*** FUNCTIONS ***/
+
+/* M_ExUIMessageBox() -- Creates a new message box */
+bool_t M_ExUIMessageBox(const M_ExMBType_t a_Type, const uint32_t a_MessageID, const char* const a_Title, const char* const a_Message, const MBCallBackFunc_t a_CallBack)
+{
+#define UISPACING 12
+#define UIMIDSPACE (UISPACING >> 1)
+	M_UILocalBox_t* New;
+	int32_t tW, tH, mW, mH, bW, bX, bY;
+	size_t i;
+	
+	/* Create at end of stack */
+	Z_ResizeArray((void**)&l_UIBoxes, sizeof(*l_UIBoxes), l_NumUIBoxes, l_NumUIBoxes + 1);
+	New = l_UIBoxes[l_NumUIBoxes++] = Z_Malloc(sizeof(M_UILocalBox_t), PU_STATIC, NULL);
+	
+	/* Fill with info */
+	New->MessageID = a_MessageID;
+	New->Title = a_Title;
+	New->Message = a_Message;
+	New->CallBack = a_CallBack;
+	
+	/* Create Buttons */
+	if (a_Type & MEXMBT_DONTCARE)
+	{
+		// Get last button
+		i = New->NumButtons++;
+		New->Buttons[i].Text = "Don't Care";
+		New->Buttons[i].w = V_StringWidthA(MUIBOXFONT, 0, New->Buttons[i].Text);
+		New->Buttons[i].h = V_StringHeightA(MUIBOXFONT, 0, New->Buttons[i].Text);
+	}
+	
+	/* Size everything down */
+	// Get size of strings
+	tW = V_StringWidthA(MUIBOXFONT, 0, New->Title);
+	tH = V_StringHeightA(MUIBOXFONT, 0, New->Title);
+	mW = V_StringWidthA(MUIBOXFONT, 0, New->Message);
+	mH = V_StringHeightA(MUIBOXFONT, 0, New->Message);
+	
+	// Determine box size and position
+	New->w = (mW > tW ? mW : tW) + UISPACING;
+	New->h = mH + tH + (UIMIDSPACE * 3) + ((New->NumButtons) ? New->Buttons[0].h + UIMIDSPACE: 0);
+	New->x = 160 - (New->w >> 1);
+	New->y = 100 - (New->h >> 1);
+	
+	// Determine message locations
+	New->tX = 160 - (tW >> 1);
+	New->tY = New->y + UIMIDSPACE;
+	New->mX = 160 - (mW >> 1);
+	New->mY = New->tY + tH + UIMIDSPACE;
+	
+	if (New->NumButtons)
+	{
+		bY = New->mY + mH + UIMIDSPACE;
+	}
+	
+	/* Go through and order buttons */
+	// Determine button width
+	bW = 0;
+	for (i = 0; i < New->NumButtons; i++)
+		bW += New->Buttons[i].w + UIMIDSPACE;
+	bX = 160 - (bW >> 1);
+	
+	// Select positions
+	for (i = 0; i < New->NumButtons; i++)
+	{
+		New->Buttons[i].x = bX;
+		bX += New->Buttons[i].w + UIMIDSPACE;
+		New->Buttons[i].y = bY;
+	}
+	
+	/* Success */
+	return true;
+#undef UIMIDSPACE
+#undef UISPACING
+}
+
+/* M_ExUIHandleEvent() -- Handle event */
+bool_t M_ExUIHandleEvent(const I_EventEx_t* const a_Event)
+{
+	/* Check */
+	if (a_Event)
+		return false;
+	
+	/* Un-Handled */
+	return false;
+}
+
+/* M_ExUIDrawer() -- UI Drawer */
+void M_ExUIDrawer(void)
+{
+	M_UILocalBox_t* Box;
+	size_t i;
+	uint32_t a_Flags;
+	
+	/* Draw Messages? */
+	if (l_NumUIBoxes)
+	{
+		// Get box at top of stack
+		Box = l_UIBoxes[l_NumUIBoxes - 1];
+		
+		// Box exists?
+		if (Box)
+		{
+			// Draw Faded Message Background
+			V_DrawFadeConsBackEx(
+					VEX_COLORMAP(VEX_MAP_BRIGHTWHITE),
+					Box->x, Box->y, Box->x + Box->w, Box->y + Box->h
+				);
+			
+			// Draw Title/Message Pair
+			V_DrawStringA(
+					MUIBOXFONT, VFO_COLOR(VEX_MAP_GREEN), Box->Title,
+					Box->tX, Box->tY
+				);
+			V_DrawStringA(
+					MUIBOXFONT, VFO_COLOR(VEX_MAP_WHITE), Box->Message,
+					Box->mX, Box->mY
+				);
+			
+			// Draw Buttons
+			for (i = 0; i < Box->NumButtons; i++)
+			{
+				if (i == Box->SelButton)
+				{
+					if (gametic & 0x8)
+						a_Flags = VFO_COLOR(VEX_MAP_RED);
+					else
+						a_Flags = VFO_COLOR(VEX_MAP_YELLOW);
+				}
+				else
+					a_Flags = VFO_COLOR(VEX_MAP_GRAY);
+				V_DrawStringA(
+						MUIBOXFONT, a_Flags, Box->Buttons[i].Text,
+						Box->Buttons[i].x, Box->Buttons[i].y
+					);
+			}
+		}
+		
+		// Draw Mouse
+		CONL_DrawMouse();
+	}
+}
+
+

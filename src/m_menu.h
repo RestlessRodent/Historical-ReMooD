@@ -341,5 +341,32 @@ bool_t M_MenuExRMODOrder(const bool_t a_Pushed, const struct WL_WADFile_s* const
 bool_t M_MenuExHandleEvent(const I_EventEx_t* const a_Event);
 void M_MenuExDrawer(void);
 
+/*******************************************************************************
+********************************************************************************
+*******************************************************************************/
+
+/*** CONSTANTS ***/
+
+/* M_ExMBType_t -- Message Box Type */
+typedef enum M_ExMBType_e
+{
+	MEXMBT_OK						= 0x0001,	// OK
+	MEXMBT_YES						= 0x0002,	// Yes
+	MEXMBT_NO						= 0x0004,	// No
+	MEXMBT_CANCEL					= 0x0008,	// Cancel
+	MEXMBT_DONTCARE					= 0x0010,	// Don't Care
+} M_ExMBType_t;
+
+/*** STRUCTURES ***/
+
+typedef void (*MBCallBackFunc_t)(const uint32_t a_MessageID, const M_ExMBType_t a_Response, const char** const a_TitleP, const char** const a_MessageP);
+
+/*** FUNCTIONS ***/
+
+bool_t M_ExUIMessageBox(const M_ExMBType_t a_Type, const uint32_t a_MessageID, const char* const a_Title, const char* const a_Message, const MBCallBackFunc_t a_CallBack);
+
+bool_t M_ExUIHandleEvent(const I_EventEx_t* const a_Event);
+void M_ExUIDrawer(void);
+
 #endif
 

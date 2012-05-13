@@ -81,3 +81,4 @@ bool_t D_SyncNetIsSolo(void);
 bool_t D_CheckNetGame(void);
 
 #endif							/* __D_NET_H__ */
+

@@ -50,6 +50,7 @@
 #include "p_saveg.h"
 #include "console.h"
 #include "p_demcmp.h"
+#include "m_menu.h"
 
 /****************
 *** FUNCTIONS ***
@@ -334,14 +335,14 @@ typedef enum P_SGBWTypeC_e
 /* P_SGBWTypeRec_t -- Type in block */
 typedef enum P_SGBWTypeRec_e
 {
+	PSRC_STRING,								// String
+	PSRC_POINTER,								// Pointer
 	PSRC_INT8,									// Int8
 	PSRC_INT16,									// Int16
 	PSRC_INT32,									// Int32
 	PSRC_UINT8,									// UInt8
 	PSRC_UINT16,								// UInt16
 	PSRC_UINT32,								// UInt32
-	PSRC_STRING,								// String
-	PSRC_POINTER,								// Pointer
 	
 	NUMPSRCS
 } P_SGBWTypeRec_t;
@@ -5904,6 +5905,7 @@ bool_t P_LoadGame(void)
 /*****************************************************************************/
 /*****************************************************************************/
 
+
 /* P_SGDXDataSpec_t -- Save Game Data Extended Specification */
 typedef struct P_SGDXDataSpec_s
 {
@@ -5914,11 +5916,61 @@ typedef struct P_SGDXDataSpec_s
 	P_SGBWTypeRec_t RType;						// Record Type
 } P_SGDXDataSpec_t;
 
+/* P_SGDXTypeIO_t -- Type I/O */
+typedef struct P_SGDXTypeIO_s
+{
+	const char* VarName;						// Name of variable
+	P_SGBWTypeC_t CType;						// C Type
+	//[NUMPSRCS];
+} P_SGDXTypeIO_t;
+
 // __SPEC -- Member Info
 #define __SPEC(s,m,ct,rt) {false, offsetof(s,m), sizeof((*(((s*)0))).m), PSTC_##ct, PSRC_##rt}
 #define __ENDSPEC {true}
 
 /*****************************************************************************/
+
+/*** I/O ***/
+
+#define __IODEF(nt,ctc,xx) {#ctc, nt}
+
+// c_IOTable -- I/O Table
+static const P_SGDXTypeIO_t c_IOTable[NUMPSTCS] =
+{
+	__IODEF(PSTC_CHAR,char,),
+	__IODEF(PSTC_SCHAR,signed char,),
+	__IODEF(PSTC_SHORT,signed short int,),
+	__IODEF(PSTC_INT,signed int,),
+	__IODEF(PSTC_LONG,signed long int,),
+	__IODEF(PSTC_UCHAR,unsigned char,),
+	__IODEF(PSTC_USHORT,unsigned short int,),
+	__IODEF(PSTC_UINT,unsigned int,),
+	__IODEF(PSTC_ULONG,unsigned long int,),
+	__IODEF(PSTC_FIXEDT,fixed_t,),
+	__IODEF(PSTC_BOOLT,bool_t,),
+	__IODEF(PSTC_TICT,tic_t,),
+	__IODEF(PSTC_ANGLET,angle_t,),
+	__IODEF(PSTC_FLOAT,float,),
+	__IODEF(PSTC_DOUBLE,double,),
+	__IODEF(PSTC_POINTERTO,void*,),
+	__IODEF(PSTC_POINTERIS,void*,),
+	__IODEF(PSTC_POINTERISDIRECT,void*,),
+	__IODEF(PSTC_STRING,char*,),
+	__IODEF(PSTC_INT8,int8_t,),
+	__IODEF(PSTC_INT16,int16_t,),
+	__IODEF(PSTC_INT32,int32_t,),
+	__IODEF(PSTC_INT64,int64_t,),
+	__IODEF(PSTC_UINT8,uint8_t,),
+	__IODEF(PSTC_UINT16,uint16_t,),
+	__IODEF(PSTC_UINT32,uint32_t,),
+	__IODEF(PSTC_UINT64,uint64_t,),
+	__IODEF(PSTC_INTPTR,intptr_t,),
+	__IODEF(PSTC_UINTPTR,uintptr_t,),
+	__IODEF(PSTC_SIZET,size_t,),
+	__IODEF(PSTC_SSIZET,ssize_t,),
+};
+
+#undef __IODEF
 
 /*** SPECIFICATIONS ***/
 
@@ -5931,6 +5983,11 @@ static const P_SGDXDataSpec_t c_SectorSpec[] =
 };
 
 /*** FUNCTIONS ***/
+
+/* PS_SGDXReadWriteData() -- Read/Write Data */
+static bool_t PS_SGDXReadWriteData(D_RBlockStream_t* const a_Stream, const bool_t a_Load, void* const a_Ptr, const size_t a_Size, const P_SGBWTypeC_t a_CType, const P_SGBWTypeRec_t a_RType)
+{
+}
 
 /* PS_SGDXDoStruct() -- Saves/Loads structure specification */
 static bool_t PS_SGDXDoStruct(D_RBlockStream_t* const a_Stream, const bool_t a_Load, void* const a_Base, const P_SGDXDataSpec_t* const a_Spec)
@@ -5966,6 +6023,7 @@ static bool_t PS_SGDXDoStruct(D_RBlockStream_t* const a_Stream, const bool_t a_L
 				);
 		
 		// Save/load each member
+		PS_SGDXReadWriteData(a_Stream, a_Load, (void*)(((uint8_t*)a_Base) + a_Spec[i].OffSet), a_Spec[i].SizeOf, a_Spec[i].CType, a_Spec[i].RType);
 	}
 	
 	/* Success? */
@@ -6024,6 +6082,8 @@ bool_t P_SGDXSpec(D_RBlockStream_t* const a_Stream, const bool_t a_Load)
 	/* Check */
 	if (!a_Stream)
 		return false;
+		
+	M_ExUIMessageBox(MEXMBT_DONTCARE, 123, "Hello", "You just saved the game!", NULL);
 	
 	/* Read/Dump Everything */
 	Continue = true;
