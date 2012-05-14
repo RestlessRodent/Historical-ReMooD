@@ -222,7 +222,43 @@ static D_NetController_t** l_Controllers = NULL;
 static size_t l_NumControllers = 0;
 static uint32_t l_LocalStat[4];					// Local Stats
 
+static D_NetClient_t** l_Clients = NULL;		// Networked Clients
+static size_t l_NumClients = 0;					// Number of net clients
+
 /*** FUNCTIONS ***/
+
+/* D_NCAllocClient() -- Creates a new network client */
+D_NetClient_t* D_NCAllocClient(void)
+{
+}
+
+/* D_NCFindClientByNetPlayer() -- Finds client by net player */
+D_NetClient_t* D_NCFindClientByNetPlayer(D_NetPlayer_t* const a_NetPlayer)
+{
+	/* Check */
+	if (!a_NetPlayer)
+		return NULL;
+}
+
+/* D_NCFindClientByHost() -- Finds client by host name */
+D_NetClient_t* D_NCFindClientByHost(I_HostAddress_t* const a_Host)
+{
+	/* Check */
+	if (!a_Host)
+		return NULL;
+}
+
+/* D_NCFindClientByPlayer() -- Find client by player */
+D_NetClient_t* D_NCFindClientByPlayer(player_t* const a_Player)
+{
+	/* Check */
+	if (!a_Player)
+		return NULL;
+}
+
+
+
+
 
 /* D_NCAllocController() -- Allocates a network controler */
 D_NetController_t* D_NCAllocController(void)
@@ -261,6 +297,7 @@ D_NetController_t* D_NCAllocController(void)
 bool_t D_CheckNetGame(void)
 {
 	bool_t ret = false;
+	size_t i;
 	
 	// I_InitNetwork sets doomcom and netgame
 	// check and initialize the network driver
@@ -278,9 +315,25 @@ bool_t D_CheckNetGame(void)
 	// Create local controller
 	l_LocalController = D_NCAllocController();
 	l_LocalController->IsLocal = true;
-	l_LocalController->BlockStream = D_RBSCreateLoopBackStream();
 	l_LocalController->IsServer = true;
 	l_LocalController->IsServerLink = true;
+	
+	// Create local UDP socket
+	for (i = 0; i < 10; i++)
+	{
+		l_LocalController->NetSock = I_NetOpenSocket(true, NULL, __REMOOD_BASEPORT + i);
+		
+		// Worked?
+		if (l_LocalController->NetSock)
+		{
+			l_LocalController->BlockStream = D_RBSCreateNetStream(l_LocalController->NetSock);
+			break;
+		}
+	}
+	
+	// If no network socket was created, create loopback socket
+	if (!l_LocalController->NetSock)
+		l_LocalController->BlockStream = D_RBSCreateLoopBackStream();
 	
 	return ret;
 }

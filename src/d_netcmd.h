@@ -31,8 +31,8 @@
 //              commands are executed through the command buffer
 //              like console commands
 
-#ifndef __D_NETCMD__
-#define __D_NETCMD__
+#ifndef __D_NETCMD_H__
+#define __D_NETCMD_H__
 
 #include "doomdef.h"
 #include "command.h"
@@ -156,6 +156,7 @@ typedef struct D_NetPlayer_s
 	char DisplayName[MAXPLAYERNAME];			// Name to show in network games
 	D_NetState_t NetState;						// Current network state
 	D_NetController_t* NetCtrl;					// Net Controller
+	D_NetClient_t* NetClient;					// Network Client
 	
 	// Desync
 	

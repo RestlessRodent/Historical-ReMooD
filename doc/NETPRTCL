@@ -39,6 +39,8 @@ Network Protocol:
 ######### BLOCKS
 ###########################
 
+### MESSAGES EVERYONE UNDERSTANDS ###
+
 PING	-- Ping Request
 		u32	Current Time
 		u32 Time Difference (from last ping)
@@ -61,14 +63,117 @@ VERI	-- Version Information
 MESG	-- Generic Message
 		str Message String
 
-MAPC	-- Map Change [Local & Server]
-		str Map Lump Name
+### CLIENT -> MASTERSERVER ###
+
+LOGI	-- Log-In
+
+LOGO	-- Log-Out
+
+GLST	-- Request Server List
+
+FRND	-- Friend-List Modification (Log-Ins Only)
+
+SMTP	-- Messages
+
+### MASTERSERVER -> CLIENT ###
+
+### SERVER -> MASTERSERVER ###
+
+### MASTERSERVER -> SERVER ###
+		
+### CLIENT -> SERVER ###
+
+INFO	-- Game Information
+			$$$ GENERAL $$$$
+		str	Host UUID
+				> The Server's UUID (Dedicated: Random, C/S: Host NetPlayer)
+		u8	Legacy Version
+		u8	Major Version
+		u8	Minor Version
+		u8	Release Version
+		str	Full Version String
+				> Usually: 1.0a "Stuffed Cabbage"
+		str Port URL
+				> Usually: http://remood.org/
+		
+			$$$ WADS $$$
+		..
+		u8	WAD Marker
+				> 'W': Means read this WAD
+				> 'E': Means stop reading WADs
+		str	Base Name
+				> This is usually the WAD you want
+				> "doom2.wad", "longwadname.wad"
+		str DOS Name
+				> DOS Name of the WAD
+				> "DOOM2.WAD", "LONGWADN.WAD"
+		str	Simple Sum
+				> This is a ReMooD Generic Quicksum
+		str	MD5 Sum
+				> MD5 Generated Hash
+				> Can be zero length
+		u8	Other Sum Type
+				> To be determined
+		str Other Sum Value
+				> To be determined
+		..
+			$$$ GAME INFO $$$
+		u8	Server Kind
+				> 0 = Local Server (Unjoinable)
+				> 1 = General Server
+				> 2 = Master Server
+				> 3 = Demo Server
+		u32	Delay
+				> This is the actual game delay (synced)
+		u32	Current Game Time in Server
+		u32	Current Server UNIX Time
+		u32	Next Join Window (in Game Time)
+			
+			$$$ PLAYER INFO $$$
+		u16	Players In Game (playeringame[] count)
+		u16 Max Players (MAXPLAYERS)
+		u16 Max Clients (Maximum Clients permitted to join)
+		
+		..
+		u16	Player ID
+		u8	Player Type Mask
+				> 0x01 = LOCAL	(A split-screen player on said server)
+				> 0x02 = BOT	(A programmed player, artificial)
+				> 0x04 = REMOTE	(A remote player)
+				> 0x08 = DEMO	(A demo player)
+				> 0x10 = SPEC	(A spectator)
+		str	Client UUID
+				> Unique Identifer identifying this client
+				> Multiple players with the same UUID are on the same screen.
+		str	Account Name
+				> This is the short account name of the player
+		str	Display Name
+				> This is the name that players see, note that there may be colors in it.
+		u32	Ping To Server
+		u32	Estimated client to server delay (halfping)
+		u32	Estimated server to client delay (halfping)
+		i32	Frags
+		i32	Deaths
+		i32	Score
+		u32 Color
+				> This is the player's color
+				> When Team Mode is on, this is the team color
+		u32 TeamColor
+				> The color team, used in CTF, Counter-Op, etc.
+		..
+		
+			$$$ MODE INFO $$$
 
 LPRJ	-- Local Player Request Join [Local & Server]
 		str	UUID of Joining Player (NetPlayer)
 		str Account Name (NetPlayer)
 		str Display Name (Profile)
 		u8	Player Color (Profile)
+
+### SERVER -> CLIENT ###
+
+MAPC	-- Map Change [Local & Server]
+		str Map Lump Name
 
 PJOK	-- Player Join OK [!Local & Server]
 		str NetPlayer UUID (Unique Player Identification)
@@ -84,7 +189,4 @@ PJOK	-- Player Join OK [!Local & Server]
 		str	Account Name (Profile)
 		str	Display Name (Profile)
 		u8	Color (Profile)
-
-
-
 

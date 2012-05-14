@@ -177,6 +177,9 @@ typedef struct D_RBlockStream_s
 	bool_t (*PlayF)(struct D_RBlockStream_s* const a_Stream);
 	bool_t (*FlushF)(struct D_RBlockStream_s* const a_Stream);
 	
+	size_t (*NetRecordF)(struct D_RBlockStream_s* const a_Stream, I_HostAddress_t* const a_Host);
+	bool_t (*NetPlayF)(struct D_RBlockStream_s* const a_Stream, I_HostAddress_t* const a_Host);
+	
 	/* Stream Stat */
 	uint32_t StatBlock[2];						// Block stats
 	uint32_t StatBytes[2];						// Byte stats
@@ -199,6 +202,10 @@ bool_t D_RBSRenameHeader(D_RBlockStream_t* const a_Stream, const char* const a_H
 
 bool_t D_RBSPlayBlock(D_RBlockStream_t* const a_Stream, char* const a_Header);
 void D_RBSRecordBlock(D_RBlockStream_t* const a_Stream);
+
+bool_t D_RBSPlayNetBlock(D_RBlockStream_t* const a_Stream, char* const a_Header, I_HostAddress_t* const a_Host);
+void D_RBSRecordNetBlock(D_RBlockStream_t* const a_Stream, I_HostAddress_t* const a_Host);
+
 bool_t D_RBSFlushStream(D_RBlockStream_t* const a_Stream);
 
 size_t D_RBSWriteChunk(D_RBlockStream_t* const a_Stream, const void* const a_Data, const size_t a_Size);

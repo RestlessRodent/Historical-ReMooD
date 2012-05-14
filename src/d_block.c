@@ -527,6 +527,22 @@ bool_t DS_RBSLoopBack_FlushF(struct D_RBlockStream_s* const a_Stream)
 	return true;
 }
 
+/**************
+*** NETWORK ***
+**************/
+
+/* DS_RBSNet_NetRecordF() -- Write block to network */
+size_t DS_RBSNet_NetRecordF(struct D_RBlockStream_s* const a_Stream, I_HostAddress_t* const a_Host)
+{
+	return 0;
+}
+
+/* DS_RBSNet_NetPlayF() -- Play block from the network */
+bool_t DS_RBSNet_NetPlayF(struct D_RBlockStream_s* const a_Stream, I_HostAddress_t* const a_Host)
+{
+	return false;
+}
+
 /****************
 *** FUNCTIONS ***
 ****************/
@@ -581,7 +597,22 @@ D_RBlockStream_t* D_RBSCreateFileStream(const char* const a_PathName)
 /* D_RBSCreateNetStream() -- Create network stream */
 D_RBlockStream_t* D_RBSCreateNetStream(I_NetSocket_t* const a_NetSocket)
 {
-	return NULL;
+	FILE* File;
+	D_RBlockStream_t* New;
+	
+	/* Check */
+	if (!a_NetSocket)
+		return NULL;
+	
+	/* Create block stream */
+	New = Z_Malloc(sizeof(*New), PU_BLOCKSTREAM, NULL);
+	
+	/* Setup Data */
+	New->NetRecordF = DS_RBSNet_NetRecordF;
+	New->NetPlayF = DS_RBSNet_NetPlayF;
+	
+	/* Return Stream */
+	return New;
 }
 
 /* D_RBSCloseStream() -- Closes File Stream */
@@ -676,6 +707,8 @@ void D_RBSRecordBlock(D_RBlockStream_t* const a_Stream)
 	/* Call recorder */
 	if (a_Stream->RecordF)
 		a_Stream->RecordF(a_Stream);
+	else if (a_Stream->NetRecordF)
+		a_Stream->NetRecordF(a_Stream, NULL);
 		
 	/* Increase stats */
 	a_Stream->StatBlock[1]++;
@@ -690,7 +723,9 @@ bool_t D_RBSPlayBlock(D_RBlockStream_t* const a_Stream, char* const a_Header)
 		return;
 	
 	/* Call recorder */
+	// Local
 	if (a_Stream->PlayF)
+	{
 		if (a_Stream->PlayF(a_Stream))
 		{
 			// Stats
@@ -704,8 +739,92 @@ bool_t D_RBSPlayBlock(D_RBlockStream_t* const a_Stream, char* const a_Header)
 			// Read a block
 			return true;
 		}
+	}
+	
+	// Networked
+	else if (a_Stream->NetPlayF)
+	{
+		if (a_Stream->NetPlayF(a_Stream, NULL))
+		{
+			// Stats
+			a_Stream->StatBlock[0]++;
+			a_Stream->StatBytes[0] += a_Stream->BlkSize;
+			
+			// Copy header
+			if (a_Header)
+				memmove(a_Header, a_Stream->BlkHeader, sizeof(a_Stream->BlkHeader));
+				
+			// Read a block
+			return true;
+		}
+	}
 	
 	return false;
+}
+
+/* D_RBSPlayNetBlock() -- Plays net block */
+bool_t D_RBSPlayNetBlock(D_RBlockStream_t* const a_Stream, char* const a_Header, I_HostAddress_t* const a_Host)
+{
+	/* Check */
+	if (!a_Stream)
+		return;
+	
+	/* Call recorder */
+	// Networked
+	if (a_Stream->NetPlayF)
+	{
+		if (a_Stream->NetPlayF(a_Stream, a_Host))
+		{
+			// Stats
+			a_Stream->StatBlock[0]++;
+			a_Stream->StatBytes[0] += a_Stream->BlkSize;
+			
+			// Copy header
+			if (a_Header)
+				memmove(a_Header, a_Stream->BlkHeader, sizeof(a_Stream->BlkHeader));
+				
+			// Read a block
+			return true;
+		}
+	}
+	
+	// Local
+	else if (a_Stream->PlayF)
+	{
+		if (a_Stream->PlayF(a_Stream))
+		{
+			// Stats
+			a_Stream->StatBlock[0]++;
+			a_Stream->StatBytes[0] += a_Stream->BlkSize;
+			
+			// Copy header
+			if (a_Header)
+				memmove(a_Header, a_Stream->BlkHeader, sizeof(a_Stream->BlkHeader));
+				
+			// Read a block
+			return true;
+		}
+	}
+	
+	return false;
+}
+
+/* D_RBSRecordNetBlock() -- Record net block */
+void D_RBSRecordNetBlock(D_RBlockStream_t* const a_Stream, I_HostAddress_t* const a_Host)
+{
+	/* Check */
+	if (!a_Stream)
+		return;
+	
+	/* Call recorder */
+	if (a_Stream->NetRecordF)
+		a_Stream->NetRecordF(a_Stream, a_Host);
+	else if (a_Stream->RecordF)
+		a_Stream->RecordF(a_Stream);
+		
+	/* Increase stats */
+	a_Stream->StatBlock[1]++;
+	a_Stream->StatBytes[1] += a_Stream->BlkSize;
 }
 
 /* D_RBSFlushStream() -- Flush stream */

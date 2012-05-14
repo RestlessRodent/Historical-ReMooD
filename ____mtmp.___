@@ -88,7 +88,7 @@ endif
 `en
 	__XX_EXESUFFIX = .exe
 	__XX_ICFLAGS  = -D__REMOOD_SYSTEM_WINDOWS
-	__XX_ILDFLAGS = -lmingw32 -mwindows
+	__XX_ILDFLAGS = -lws2_32 -lmingw32 -mwindows
 	__XX_DEFINTRF ?= sdl
 	__XX_EXTRAOBJ = $(__XX_RC)/remood.rc
 

@@ -370,38 +370,67 @@ typedef struct I_SoundDriver_s
 	size_t Size;				// Private size
 } I_SoundDriver_t;
 
-struct I_NetDriver_s;
+/*****************************************************************************/
+/********* BEGIN STOLEN NETWORKING CODE FROM MY SUPER SECRET PROJECT *********/
 
-/* I_NetHost_t -- A network host */
-typedef struct I_NetHost_s
+#define __REMOOD_BASEPORT 29500
+
+/* I_NetIPVersionNum_t -- IP version number */
+typedef enum I_NetIPVersionNum_s
 {
-	/* Easy Stuff */
-	char Hostname[MAXHOSTNAME];	// Hostname of this nethost
-	
-	/* IP Addresses */
+	INIPVN_IPV4						= 0x01U,	// IPv4 Capable Address
+	INIPVN_IPV6						= 0x02U,	// IPv6 Capable Address
+} I_NetIPVersionNum_t;
+
+typedef struct I_NetSocket_s I_NetSocket_t;		// Network socket
+
+/* I_HostAddress_t -- Address to a host somewhere */
+typedef struct I_HostAddress_s
+{
+	uint8_t IPvX;								// Which IP version?
+	uint32_t Port;								// Remote port for communication
 	struct
 	{
-		uint8_t Addr[16];		// Address
-		uint16_t Port;			// Port
-	} IP[2];					// 0 = v4, 1 = v6
-} I_NetHost_t;
+		union
+		{
+			uint32_t u;							// Integer
+			uint16_t s[2];						// Shorts
+			uint8_t b[4];						// Bytes
+		} v4;									// IPv4 Address
+		
+		union
+		{
+			uint64_t ll[2];						// Long Longs
+			uint32_t u[4];						// Integers
+			uint16_t s[8];						// Shorts
+			uint8_t b[16];						// Bytes
+		} v6;
+	} Host;										// IP Data
+} I_HostAddress_t;
 
-/* I_NetSocket_t -- A network socket */
-typedef struct I_NetSocket_s
-{
-	/* Driver Stuff */
-	struct I_NetDriver_s* Driver;	// Driver for socket
-	uint8_t ProtocolID;			// Driver related protocol
-	I_NetHost_t* Bind;			// Bind to host
-	
-	/* Private per driver */
-	int FD;						// File Descriptor
-	void* CFile;				// C File
-} I_NetSocket_t;
+/********** END STOLEN NETWORKING CODE FROM MY SUPER SECRET PROJECT **********/
+/*****************************************************************************/
 
 /****************
 *** FUNCTIONS ***
 ****************/
+
+/*****************************************************************************/
+/********* BEGIN STOLEN NETWORKING CODE FROM MY SUPER SECRET PROJECT *********/
+
+/*** i_utlnet.c ***/
+bool_t I_NetNameToHost(I_HostAddress_t* const a_Host, const char* const a_Name);
+bool_t I_NetHostToName(const I_HostAddress_t* const a_Host, char* const a_Out, const size_t a_OutSize);
+
+I_NetSocket_t* I_NetOpenSocket(const bool_t a_Server, const I_HostAddress_t* const a_Host, const uint16_t a_Port);
+void I_NetCloseSocket(I_NetSocket_t* const a_Socket);
+size_t I_NetReadyBytes(I_NetSocket_t* const a_Socket, const size_t a_Bytes);
+
+size_t I_NetSend(I_NetSocket_t* const a_Socket, const I_HostAddress_t* const a_Host, const void* const a_InData, const size_t a_Len);
+size_t I_NetRecv(I_NetSocket_t* const a_Socket, I_HostAddress_t* const a_Host, void* const a_OutData, const size_t a_Len);
+
+/********** END STOLEN NETWORKING CODE FROM MY SUPER SECRET PROJECT **********/
+/*****************************************************************************/
 
 /*** i_util.c ***/
 void I_EventExPush(const I_EventEx_t* const a_Event);

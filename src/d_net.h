@@ -59,8 +59,8 @@ typedef struct D_NetController_s
 	
 	/* Socket Stuff */
 	I_NetSocket_t* NetSock;						// Network Socket
-	I_NetHost_t NetTo;							// Where to send to
-	I_NetHost_t NetFrom;						// Where to recieve from
+	I_HostAddress_t NetTo;						// Where to send to
+	I_HostAddress_t NetFrom;					// Where to recieve from
 	
 	/* Streaming */
 	bool_t IsLocal;								// Is this a local thing?
@@ -72,6 +72,22 @@ typedef struct D_NetController_s
 	bool_t IsServer;							// Is the server
 	bool_t IsServerLink;						// This controller links to server (arb)
 } D_NetController_t;
+
+/* D_NetClient_t -- Network Client */
+typedef struct D_NetClient_s
+{
+	/* Player Ownership */
+	struct D_NetPlayer_s** Arbs;				// Arbitrating net players
+	size_t NumArbs;								// Number of arbs
+	
+	/* Location and Pathing */
+	I_HostAddress_t Address;					// Address to client
+	struct D_RBlockStream_s* WriteStream;		// Stream to write to
+	
+	/* Flags */
+	bool_t IsLocal;								// Local client
+	bool_t IsServer;							// Is a server
+} D_NetClient_t;
 
 /*****************
 *** PROTOTYPES ***
@@ -95,6 +111,8 @@ bool_t D_CheckNetGame(void);
 
 /*** STRUCTURES ***/
 
+struct player_s;
+
 typedef void (*D_NCQCFunc_t)(void* const a_Data);
 
 /*** GLOBALS ***/
@@ -102,6 +120,11 @@ typedef void (*D_NCQCFunc_t)(void* const a_Data);
 extern uint32_t g_NetStat[4];					// Network stats
 
 /*** FUNCTIONS ***/
+
+D_NetClient_t* D_NCAllocClient(void);
+D_NetClient_t* D_NCFindClientByNetPlayer(struct D_NetPlayer_s* const a_NetPlayer);
+D_NetClient_t* D_NCFindClientByHost(I_HostAddress_t* const a_Host);
+D_NetClient_t* D_NCFindClientByPlayer(struct player_s* const a_Player);
 
 D_NetController_t* D_NCAllocController(void);
 void D_NCUpdate(void);
