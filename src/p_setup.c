@@ -1670,6 +1670,15 @@ static CONL_ExitCode_t PCLC_Map(const uint32_t a_ArgC, const char** const a_ArgV
 	if (a_ArgC < 2)
 		return CLE_INVALIDARGUMENT;
 	
+	/* Request Map */
+#if defined(__REMOOD_NCSNET)
+	// Send request
+	D_NCCommRequestMap(a_ArgV[1]);
+	
+	// Return success
+	return CLE_SUCCESS;
+#else
+	
 	/* Locate map */
 	Info = P_FindLevelByNameEx(a_ArgV[1], NULL);
 	
@@ -1706,6 +1715,7 @@ static CONL_ExitCode_t PCLC_Map(const uint32_t a_ArgC, const char** const a_ArgV
 	
 	/* Failed */
 	return CLE_FAILURE;
+#endif
 }
 
 /* P_InitSetupEx() -- Initializes extended setup code */
@@ -1733,7 +1743,7 @@ bool_t P_ExClearLevel(void)
 	B_ClearNodes();
 	
 	/* Free all level tags */
-	Z_FreeTags(PU_LEVEL, PU_PURGELEVEL - 1);
+	Z_FreeTags(PU_LEVEL, PU_ENDLEVELTAGS);
 	
 	/* Wipe cameras */
 	for (i = 0; i < MAXPLAYERS; i++)
@@ -2094,6 +2104,7 @@ bool_t P_ExLoadLevel(P_LevelInfoEx_t* const a_Info, const uint32_t a_Flags)
 	
 	/* Set state to loading */
 	D_NCSNetSetState(DNS_LOADING);
+	D_NCUpdate();
 	
 	/* Set global info */
 	g_CurrentLevelInfo = a_Info;
@@ -2124,6 +2135,7 @@ bool_t P_ExLoadLevel(P_LevelInfoEx_t* const a_Info, const uint32_t a_Flags)
 	
 	/* Load Map Data */
 	// Load vertex data (Non-Textual Format)
+	D_NCUpdate();
 	CONL_LoadingScreenIncrMaj("Loading vertexes", 0);
 	if (!a_Info->Type.Text && (Entry = a_Info->EntryPtr[PLIEDS_VERTEXES]))
 	{
@@ -2164,6 +2176,7 @@ bool_t P_ExLoadLevel(P_LevelInfoEx_t* const a_Info, const uint32_t a_Flags)
 	}
 	
 	// Load sector data (Non-Textual Format)
+	D_NCUpdate();
 	CONL_LoadingScreenIncrMaj("Loading sectors", 0);
 	if (!a_Info->Type.Text && (Entry = a_Info->EntryPtr[PLIEDS_SECTORS]))
 	{
@@ -2218,6 +2231,7 @@ bool_t P_ExLoadLevel(P_LevelInfoEx_t* const a_Info, const uint32_t a_Flags)
 	}
 	
 	// Load Side-Def Data (Non-Textual Format)
+	D_NCUpdate();
 	CONL_LoadingScreenIncrMaj("Loading side defs", 0);
 	if (!a_Info->Type.Text && (Entry = a_Info->EntryPtr[PLIEDS_SIDEDEFS]))
 	{
@@ -2268,6 +2282,7 @@ bool_t P_ExLoadLevel(P_LevelInfoEx_t* const a_Info, const uint32_t a_Flags)
 	}
 	
 	// Load Line-Def Data (Non-Textual Format)
+	D_NCUpdate();
 	CONL_LoadingScreenIncrMaj("Loading line defs", 0);
 	if (!a_Info->Type.Text && (Entry = a_Info->EntryPtr[PLIEDS_LINEDEFS]))
 	{
@@ -2324,6 +2339,7 @@ bool_t P_ExLoadLevel(P_LevelInfoEx_t* const a_Info, const uint32_t a_Flags)
 	}
 	
 	// Load Sub-Sector Data
+	D_NCUpdate();
 	CONL_LoadingScreenIncrMaj("Loading sub sectors", 0);
 	if ((Entry = a_Info->EntryPtr[PLIEDS_SSECTORS]))
 	{
@@ -2364,6 +2380,7 @@ bool_t P_ExLoadLevel(P_LevelInfoEx_t* const a_Info, const uint32_t a_Flags)
 	}
 	
 	// Load Node Data
+	D_NCUpdate();
 	CONL_LoadingScreenIncrMaj("Loading nodes", 0);
 	if ((Entry = a_Info->EntryPtr[PLIEDS_NODES]))
 	{
@@ -2413,6 +2430,7 @@ bool_t P_ExLoadLevel(P_LevelInfoEx_t* const a_Info, const uint32_t a_Flags)
 	}
 	
 	// Load Seg Data
+	D_NCUpdate();
 	CONL_LoadingScreenIncrMaj("Loading segs", 0);
 	if ((Entry = a_Info->EntryPtr[PLIEDS_SEGS]))
 	{
@@ -2457,6 +2475,7 @@ bool_t P_ExLoadLevel(P_LevelInfoEx_t* const a_Info, const uint32_t a_Flags)
 	}
 	
 	// Load the Block Map
+	D_NCUpdate();
 	CONL_LoadingScreenIncrMaj("Loading block map", 0);
 	if ((Entry = a_Info->EntryPtr[PLIEDS_BLOCKMAP]))
 	{
@@ -2512,6 +2531,7 @@ bool_t P_ExLoadLevel(P_LevelInfoEx_t* const a_Info, const uint32_t a_Flags)
 	}
 	
 	// Load the Reject
+	D_NCUpdate();
 	CONL_LoadingScreenIncrMaj("Loading reject", 0);
 	if ((Entry = a_Info->EntryPtr[PLIEDS_REJECT]))
 	{
@@ -2544,10 +2564,12 @@ bool_t P_ExLoadLevel(P_LevelInfoEx_t* const a_Info, const uint32_t a_Flags)
 	}
 	
 	// Munge Node Data
+	D_NCUpdate();
 	CONL_LoadingScreenIncrMaj("Merging renderer data", 0);
 	PS_ExMungeNodeData();
 	
 	// Load Things (Non-Textual Format)
+	D_NCUpdate();
 	CONL_LoadingScreenIncrMaj("Loading things", 0);
 	if (!a_Info->Type.Text && (Entry = a_Info->EntryPtr[PLIEDS_THINGS]))
 	{

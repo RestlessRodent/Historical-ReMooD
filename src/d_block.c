@@ -414,9 +414,10 @@ size_t DS_RBSLoopBack_RecordF(struct D_RBlockStream_s* const a_Stream)
 	if (!Hold)
 	{
 		Z_ResizeArray((void**)&LoopData->Q, sizeof(*LoopData->Q),
-						LoopData->SizeQ, LoopData->SizeQ + 1);
+						LoopData->SizeQ, LoopData->SizeQ + 2);
 		Hold = LoopData->Q[LoopData->SizeQ++] =
 				Z_Malloc(sizeof(DS_RBSLoopBackHold_t), PU_BLOCKSTREAM, NULL);
+		LoopData->SizeQ++;
 	}
 	
 	/* Store info in hold */
@@ -424,10 +425,10 @@ size_t DS_RBSLoopBack_RecordF(struct D_RBlockStream_s* const a_Stream)
 	memmove(Hold->Header, a_Stream->BlkHeader, 4);
 	
 	// Clone Data
-	Hold->FlushID = LoopData->FlushID;
 	Hold->Size = a_Stream->BlkSize;
 	Hold->Data = Z_Malloc(Hold->Size, PU_BLOCKSTREAM, NULL);
 	memmove(Hold->Data, a_Stream->BlkData, Hold->Size);
+	Hold->FlushID = LoopData->FlushID + 1;
 	
 	/* Return value does not matter */
 	return 1;
@@ -475,12 +476,21 @@ bool_t DS_RBSLoopBack_PlayF(struct D_RBlockStream_s* const a_Stream)
 	/* Free Hold */
 	if (Hold->Data)
 		Z_Free(Hold->Data);
+	Hold->Data = NULL;
 	Z_Free(Hold);
 	LoopData->Q[0] = NULL;
 	
 	// Move everything down
-	if (LoopData->SizeQ > 1)
-		memmove(LoopData->Q[0], LoopData->Q + 1, LoopData->SizeQ - 1);
+	if (LoopData->SizeQ >= 1)
+	{
+		for (i = 0; i < LoopData->SizeQ - 1; i++)
+			LoopData->Q[i] = LoopData->Q[i + 1];
+		LoopData->Q[i] = NULL;
+	}
+	
+	// Nothing left?
+	if (!LoopData->Q[0])
+		LoopData->FlushID = 1;
 	
 	/* Something read */
 	return true;
@@ -848,6 +858,9 @@ size_t D_RBSReadString(D_RBlockStream_t* const a_Stream, char* const a_Out, cons
 		if (i < a_OutSize)
 			a_Out[i] = Char;
 	}
+	
+	/* Always put NUL at very end */
+	a_Out[a_OutSize - 1] = 0;
 	
 	/* Return read count */
 	return i;	

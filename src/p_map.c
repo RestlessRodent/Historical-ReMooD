@@ -1031,7 +1031,7 @@ static bool_t PS_SubTryMove(mobj_t* thing, fixed_t x, fixed_t y, bool_t allowdro
 	if (a_Flags & PSTMF_DONTACTUALLYMOVE)
 		Flags |= PCMIF_NOSHOOTLINE;
 	
-	if (Flags & PSTMF_DETCHECKPOSITION)
+	if (a_Flags & PSTMF_DETCHECKPOSITION)
 	{
 		if (!P_CheckPositionDetermine(thing, x, y, 0))
 		{
@@ -1041,7 +1041,7 @@ static bool_t PS_SubTryMove(mobj_t* thing, fixed_t x, fixed_t y, bool_t allowdro
 	}
 	else
 	{
-		if ((Flags & PSTMF_IGNOREPOSCHECK))
+		if ((a_Flags & PSTMF_IGNOREPOSCHECK))
 			return false;
 		else
 		{
@@ -1178,10 +1178,11 @@ bool_t P_TryMove(mobj_t* thing, fixed_t x, fixed_t y, bool_t allowdropoff, fixed
 	fixed_t fx, fy;
 	fixed_t MoveFrac;
 	fixed_t i, Dist, zIn, zOut;
-	bool_t OKs[MAXMOVETRIES];
+	bool_t OKs[MAXMOVETRIES], FailNow;
 	line_t* BlockLine;
 	
 	/* Smooth Traversing */
+#if 0
 	// GhostlyDeath <April 27, 2012> -- Improve Traversing
 	if (P_EXGSGetValue(PEXGSBID_COIMPROVEPATHTRAVERSE))
 	{
@@ -1214,6 +1215,7 @@ bool_t P_TryMove(mobj_t* thing, fixed_t x, fixed_t y, bool_t allowdropoff, fixed
 			return PS_SubTryMove(thing, dx, dy, allowdropoff, 0);
 		
 		// Run through tries
+		FailNow = false;
 		for (i = 1; i <= MAXMOVETRIES; i++)
 		{
 			// Position to check
@@ -1222,15 +1224,21 @@ bool_t P_TryMove(mobj_t* thing, fixed_t x, fixed_t y, bool_t allowdropoff, fixed
 			
 			// This spot OK?
 			if (R_IsPointInSubsector(mx, my))
-				if (PS_SubTryMove(thing, mx, my, allowdropoff, PSTMF_DONTACTUALLYMOVE | PSTMF_DETCHECKPOSITION))
+				if (PS_SubTryMove(thing, mx, my, allowdropoff, PSTMF_DONTACTUALLYMOVE | PSTMF_DETCHECKPOSITION)/* || FailNow*/)
 				{
 					// Set OK and set furthest x/y pos
-					OKs[i] = true;
+					OKs[i] = (FailNow ? false: true);
 					fx = mx;
 					fy = my;
+					
+					if (FailNow)
+						break;
 				}
 				else	// The line that blocked this thing from moving
+				{
 					BlockLine = blockingline;
+					FailNow = true;
+				}
 		}
 		
 		// Move to the furthest guessed position now
@@ -1251,9 +1259,10 @@ bool_t P_TryMove(mobj_t* thing, fixed_t x, fixed_t y, bool_t allowdropoff, fixed
 		// Never returned false!
 		return true;
 	}
+#endif
 	
 	/* Non-Smooth Traversing */
-	else
+	//else
 	{
 		return PS_SubTryMove(thing, x, y, allowdropoff, 0);
 	}
@@ -1449,7 +1458,7 @@ void P_SlideMove(mobj_t* mo)
 	fixed_t leady;
 	fixed_t trailx;
 	fixed_t traily;
-	fixed_t newx;
+	fixed_t newx, oX, oY;
 	fixed_t newy;
 	int hitcount;
 	
@@ -1526,7 +1535,7 @@ stairstep:
 	mo->momx = tmxmove;
 	mo->momy = tmymove;
 	
-	if (!P_TryMove(mo, mo->x + tmxmove, mo->y + tmymove, true, NULL, NULL))
+	if (!P_TryMove(mo, mo->x + tmxmove, mo->y + tmymove, true, &oX, &oY))
 	{
 		goto retry;
 	}

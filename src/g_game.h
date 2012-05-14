@@ -115,7 +115,10 @@ void G_NextLevel(void);
 void G_Ticker(void);
 bool_t G_Responder(event_t* ev);
 bool_t G_Downgrade(int version);
-void G_AddPlayer(int playernum);
+
+player_t* G_AddPlayer(int playernum);
+void G_InitPlayer(player_t* const a_Player);
+
 bool_t G_CheckDemoStatus(void);
 void G_ReadDemoTiccmd(ticcmd_t* cmd, int playernum);
 void G_WriteDemoTiccmd(ticcmd_t* cmd, int playernum);

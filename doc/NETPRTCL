@@ -1,0 +1,90 @@
+Network Protocol:
+
+###########################
+######### SOURCE INFORMATION
+###########################
+
+                +-------------------+
+                |      SERVER       |
+                +-------------------+
+                | sv IsLocal = true |
+                | sv IsServer= true |
+                | - - - - - - - - - |
+                | c1 IsLocal = false|
+                | c1 IsServer= true |
+                | - - - - - - - - - |
+                | c2 IsLocal = false|
+                | c2 IsServer= true |
+               	+-------------------|
+                  /               \
+                 /                 \
+                /                   \
+               /                     \
+              /                       \
+             /                         \
+    +-------------------+     +-------------------+
+    |      CLIENT 1     |     |      CLIENT 2     |
+    +-------------------+     +-------------------+
+    | sv IsLocal = false|     | sv IsLocal = false|
+    | sv IsServer= true |     | sv IsServer= true |
+    | - - - - - - - - - |     | - - - - - - - - - |
+    | c1 IsLocal = true |     | c1 IsLocal = false|
+    | c1 IsServer= false|     | c1 IsServer= false|
+    | - - - - - - - - - |     | - - - - - - - - - |
+    | c2 IsLocal = false|     | c2 IsLocal = true |
+    | c2 IsServer= false|     | c2 IsServer= false|
+   	+-------------------+     +-------------------+
+
+###########################
+######### BLOCKS
+###########################
+
+PING	-- Ping Request
+		u32	Current Time
+		u32 Time Difference (from last ping)
+
+PONG	-- Ping Reply
+		u32 Original Time
+		u32 Original Time Different
+		u32 Current Time
+
+VERR	-- Version Request
+
+VERI	-- Version Information
+		u8	Legacy Version
+		u8	Major Version
+		u8	Minor Version
+		u8	Release Version
+		str	Full Version Identification String
+		str URL
+
+MESG	-- Generic Message
+		str Message String
+
+MAPC	-- Map Change [Local & Server]
+		str Map Lump Name
+
+LPRJ	-- Local Player Request Join [Local & Server]
+		str	UUID of Joining Player (NetPlayer)
+		str Account Name (NetPlayer)
+		str Display Name (Profile)
+		u8	Player Color (Profile)
+
+PJOK	-- Player Join OK [!Local & Server]
+		str NetPlayer UUID (Unique Player Identification)
+		u8	Player Number (players[x])
+		u8	Probable Screen ID
+				> This is the server's guess whether or not the player is on your
+				> screen or not. This is zero when it is most likely not on
+				> your screen and other values are the guessed screen numbers.
+		str Profile UUID (Profile)
+				> This is only sent to the controller that requested the join.
+				> This makes determining whether this is YOUR player.
+		str	Account Name (NetProfile)
+		str	Account Name (Profile)
+		str	Display Name (Profile)
+		u8	Color (Profile)
+
+
+
+

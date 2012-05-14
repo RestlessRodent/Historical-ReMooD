@@ -61,9 +61,11 @@ typedef enum Z_MemoryTag_e
 	PU_DAVE,
 	PU_HWRPATCHINFO,
 	PU_HWRPATCHCOLMIPMAP,
+	
 	PU_LEVEL,
 	PU_LEVSPEC,
 	PU_HWRPLANE,
+	PU_ENDLEVELTAGS,
 	
 	/* Cache */
 	PU_PURGELEVEL = 100,		// Freed when needed

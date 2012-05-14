@@ -1053,19 +1053,9 @@ static CONL_ExitCode_t DS_NCSNetCommand(const uint32_t a_ArgC, const char** cons
 	// Add Player to Game
 	if (strcasecmp(a_ArgV[1], "addplayer") == 0)
 	{
-		p = D_NCSAddLocalPlayer((a_ArgC >= 3 ? a_ArgV[2] : "guest"));
-		
-		if (p)
-		{
-			i = p - players;
-		
-			CONL_PrintF("Net: Added local player %i.\n", i);
-		}
-		else
-		{
-			CONL_PrintF("Net: Failed to add local player.\n");
-			return CLE_FAILURE;
-		}
+		CONL_PrintF("NET: Requesting the server add local player.\n");
+		D_NCSR_RequestNewPlayer(D_FindProfileEx((a_ArgC >= 3 ? a_ArgV[2] : "guest")));
+		return CLE_SUCCESS;
 	}
 	
 	// Add Bot to game

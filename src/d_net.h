@@ -48,6 +48,7 @@
 
 struct D_NetPlayer_s;
 struct D_RBlockStream_s;
+struct D_ProfileEx_s;
 
 /* D_NetController_t() -- Network Controller */
 typedef struct D_NetController_s
@@ -66,8 +67,10 @@ typedef struct D_NetController_s
 	struct D_RBlockStream_s* BlockStream;		// Block stream
 	uint32_t Ping;								// Ping delay
 	
-	/* Versioning */
+	/* Game Stuff */
 	uint8_t VerLeg, VerMaj, VerMin, VerRel;		// Versions of ReMooD
+	bool_t IsServer;							// Is the server
+	bool_t IsServerLink;						// This controller links to server (arb)
 } D_NetController_t;
 
 /*****************
@@ -88,6 +91,12 @@ bool_t D_CheckNetGame(void);
 
 /*****************************************************************************/
 
+#define __REMOOD_NCSNET
+
+/*** STRUCTURES ***/
+
+typedef void (*D_NCQCFunc_t)(void* const a_Data);
+
 /*** GLOBALS ***/
 
 extern uint32_t g_NetStat[4];					// Network stats
@@ -96,6 +105,20 @@ extern uint32_t g_NetStat[4];					// Network stats
 
 D_NetController_t* D_NCAllocController(void);
 void D_NCUpdate(void);
+void D_NCAddQueueCommand(const D_NCQCFunc_t a_Func, void* const a_Data);
+void D_NCRunCommands(void);
+
+D_NetController_t* D_NCGetLocal(void);
+D_NetController_t* D_NCGetServer(void);
+D_NetController_t* D_NCGetServerLink(void);
+
+void D_NCCommRequestMap(const char* const a_Map);
+
+/*** NCSR Funcs ***/
+void D_NCSR_RequestNewPlayer(struct D_ProfileEx_s* a_Profile);
+
+/*** NCQC Funcs ***/
+void D_NCQC_MapChange(void* const a_Data);
 
 #endif							/* __D_NET_H__ */
 

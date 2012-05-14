@@ -45,6 +45,7 @@
 #include "i_util.h"
 #include "d_block.h"
 #include "console.h"
+#include "p_info.h"
 
 /*************
 *** LOCALS ***
@@ -198,10 +199,23 @@ bool_t D_SyncNetUpdate(void)
 
 /*****************************************************************************/
 
+/*** STRUCTURES ***/
+
+/* D_NetQueueCommand_t -- Net queue */
+typedef struct D_NetQueueCommand_s
+{
+	D_NCQCFunc_t Func;							// Function to execute
+	void* Data;									// Data to pass
+} D_NetQueueCommand_t;
+
 /*** GLOBALS ***/
+
 uint32_t g_NetStat[4] = {0, 0, 0, 0};			// Network stats
 
 /*** LOCALS ***/
+
+static D_NetQueueCommand_t** l_ComQueue = NULL;	// Command Queue
+static size_t l_NumComQueue = 0;				// Number of commands
 
 static D_NetController_t* l_LocalController = NULL;
 static D_NetController_t** l_Controllers = NULL;
@@ -265,8 +279,66 @@ bool_t D_CheckNetGame(void)
 	l_LocalController = D_NCAllocController();
 	l_LocalController->IsLocal = true;
 	l_LocalController->BlockStream = D_RBSCreateLoopBackStream();
+	l_LocalController->IsServer = true;
+	l_LocalController->IsServerLink = true;
 	
 	return ret;
+}
+
+/* D_NCAddQueueCommand() -- Add command */
+void D_NCAddQueueCommand(const D_NCQCFunc_t a_Func, void* const a_Data)
+{
+	size_t i;
+	D_NetQueueCommand_t* NQC;	
+	
+	/* Add somewhere in an empty spot */
+	NQC = NULL;
+	for (i = 0; i < l_NumComQueue; i++)
+		if (!l_ComQueue[i])
+		{
+			NQC = l_ComQueue[i] = Z_Malloc(sizeof(*NQC), PU_NETWORK, NULL);
+			break;
+		}
+	
+	// No Spot?
+	if (!NQC)
+	{
+		Z_ResizeArray((void**)&l_ComQueue, sizeof(*l_ComQueue), l_NumComQueue, l_NumComQueue + 1);
+		NQC = l_ComQueue[l_NumComQueue++] = Z_Malloc(sizeof(*NQC), PU_NETWORK, NULL);
+	}
+	
+	/* Slap data in */
+	NQC->Func = a_Func;
+	NQC->Data = a_Data;
+}
+
+/* D_NCRunCommands() -- Run all commands in Queue */
+void D_NCRunCommands(void)
+{
+	size_t i;
+	D_NetQueueCommand_t* NQC;
+	
+	/* Go through each one */
+	while (l_NumComQueue && l_ComQueue[0])
+	{
+		// Get
+		NQC = l_ComQueue[0];
+		
+		// Check
+		if (!NQC)
+			break;
+		
+		// Execute
+		NQC->Func(NQC->Data);
+		
+		// Wipe away
+		Z_Free(NQC);
+		
+		// Move all down
+		l_ComQueue[0] = NULL;
+		memmove(l_ComQueue, l_ComQueue + 1, sizeof(*l_ComQueue) * (l_NumComQueue - 1));
+		l_ComQueue[l_NumComQueue - 1] = NULL;
+	}
 }
 
 /* D_NCUpdate() -- Update all networking stuff */
@@ -275,15 +347,23 @@ void D_NCUpdate(void)
 #define BUFSIZE 512
 	char Buf[BUFSIZE];
 	char Header[5];
-	size_t nc, i;
-	D_NetController_t* CurCtrl;
-	D_RBlockStream_t* Stream;
+	size_t nc, i, j, p;
+	D_NetController_t* CurCtrl, *OtherCtrl, *HostCtrl;
+	D_RBlockStream_t* Stream, *OtherStream;
+	
+	D_NetPlayer_t* NetPlayer;
+	D_ProfileEx_t* Profile;
+	player_t* DoomPlayer;
 	
 	uint32_t u32, u32b, u32c, u32d;
+	uint8_t u8;
 	
 	bool_t SendPing, AnythingWritten;
 	uint32_t ThisTime, DiffTime;
 	static uint32_t LastTime;
+	
+	/* Get Host */
+	HostCtrl = l_LocalController;
 	
 	/* Init */
 	memset(Header, 0, sizeof(Header));
@@ -354,6 +434,7 @@ void D_NCUpdate(void)
 			{
 				// Send a PONG back to it
 				D_RBSRenameHeader(Stream, "PONG");
+				D_RBSWriteUInt32(Stream, ThisTime);
 				D_RBSRecordBlock(Stream);
 			}
 			
@@ -401,6 +482,210 @@ void D_NCUpdate(void)
 				// Print
 				CONL_PrintF("%s\n", Buf);
 			}
+			
+			// MAPC -- Map Change
+			else if (strcasecmp("MAPC", Header) == 0)
+			{
+				// Only accept if from a server
+				if (CurCtrl->IsServer)
+				{
+					// Read map name
+					memset(Buf, 0, sizeof(Buf));
+					D_RBSReadString(Stream, Buf, BUFSIZE - 1);
+					
+					// Add to command queue
+					D_NCAddQueueCommand(D_NCQC_MapChange, Z_StrDup(Buf, PU_NETWORK, NULL));
+				}
+			}
+			
+			// LPRJ -- Local Player, Request Join (Split screen)
+			else if (strcasecmp("LPRJ", Header) == 0)
+			{
+				// Only accept if we are the server
+				if (HostCtrl->IsServer && HostCtrl->IsLocal)
+				{
+					// Get Player UUID/AccountName
+					memset(Buf, 0, sizeof(Buf));
+					D_RBSReadString(Stream, Buf, BUFSIZE - 1);
+					
+					// Find player
+					NetPlayer = D_NCSFindNetPlayer(Buf);
+					
+					// Find free player spot
+					for (p = 0; p < MAXPLAYERS; p++)
+						if (!playeringame[p])
+							break;
+					
+					// Only resume request joining when there is no player
+						// And the current local player count fits local players
+						// And there is a free player spot
+					if (!NetPlayer && CurCtrl->NumArbs < MAXSPLITSCREEN && p < MAXPLAYERS)
+					{
+						// Create player
+						NetPlayer = D_NCSAllocNetPlayer();
+						
+						// Copy UUID Over
+						strncpy(NetPlayer->UUID, Buf, MAXPLAYERNAME * 2);
+						
+						// Add to arbitrating players
+						Z_ResizeArray((void**)&CurCtrl->Arbs, sizeof(*CurCtrl->Arbs),
+								CurCtrl->NumArbs, CurCtrl->NumArbs + 1);
+						CurCtrl->Arbs[CurCtrl->NumArbs++] = NetPlayer;
+						
+						// Create Profile
+						D_RBSReadString(Stream, NetPlayer->AccountName, MAXPLAYERNAME);
+						
+						// If server split, use local profile
+						if (CurCtrl->IsLocal)
+						{
+							// Try finding it
+							Profile = D_FindProfileEx(NetPlayer->AccountName);
+							
+							// If not found, make fresh then
+							if (!Profile)
+								Profile = D_CreateProfileEx(NetPlayer->AccountName);
+						}
+						
+						// Otherwise use remote profile
+						else
+							Profile = D_CreateProfileEx(NetPlayer->AccountName);
+						
+						// Fill info
+						if (CurCtrl->IsLocal)	// Server Split
+							Profile->Flags |= DPEXT_LOCAL;
+						else					// Client split
+							Profile->Flags |= DPEXT_NETWORK;
+						D_RBSReadString(Stream, Profile->DisplayName, MAXPLAYERNAME);
+						Profile->Color = D_RBSReadUInt8(Stream);
+						
+						// Inform everyone that a player has joined
+						for (j = 0; j < l_NumControllers; j++)
+						{
+							// Get Other
+							OtherCtrl = l_Controllers[j];
+		
+							// Nothing here?
+							if (!OtherCtrl)
+								continue;
+		
+							// Init some things
+							OtherStream = OtherCtrl->BlockStream;
+							
+							// Write player join OK
+							D_RBSBaseBlock(OtherStream, "PJOK");
+							D_RBSWriteString(OtherStream, NetPlayer->UUID);
+							D_RBSWriteUInt8(OtherStream, p);
+							if (OtherStream == CurCtrl)
+							{
+								D_RBSWriteUInt8(OtherStream, CurCtrl->NumArbs);
+								D_RBSWriteString(OtherStream, Profile->UUID);
+							}
+							else
+							{
+								D_RBSWriteUInt8(OtherStream, 0);
+								D_RBSWriteString(OtherStream, "");
+							}
+							D_RBSWriteString(OtherStream, NetPlayer->AccountName);
+							D_RBSWriteString(OtherStream, Profile->AccountName);
+							D_RBSWriteString(OtherStream, Profile->DisplayName);
+							D_RBSWriteUInt8(OtherStream, Profile->Color);
+							D_RBSRecordBlock(OtherStream);
+						}
+						
+						// Create Player In Local Server
+						DoomPlayer = G_AddPlayer(p);
+						DoomPlayer->NetPlayer = NetPlayer;
+						DoomPlayer->ProfileEx = Profile;
+						Profile->NetPlayer = NetPlayer;
+						NetPlayer->Player = DoomPlayer;
+						NetPlayer->Profile = Profile;
+						G_InitPlayer(DoomPlayer);
+						
+						// Check split screen
+						if (CurCtrl->IsLocal)
+							for (j = 0; j < MAXSPLITSCREEN; j++)
+								if (!g_PlayerInSplit[j])
+								{
+									g_PlayerInSplit[j] = true;
+									consoleplayer[j] = displayplayer[j] = p;
+									
+									g_SplitScreen = j;
+									break;
+								}
+					}
+				}
+			}
+			
+			// PJOK -- Player Join OK
+			else if (strcasecmp("PJOK", Header) == 0)
+			{
+				// Only accept if from a server and non-local
+					// Non-local because if it is local then the player would
+					// already be in the structures.
+				if (CurCtrl->IsServer && !CurCtrl->IsLocal && CurCtrl != HostCtrl)
+				{
+					// Create network player
+					NetPlayer = D_NCSAllocNetPlayer();
+					
+					// Add to arbitrating players
+					Z_ResizeArray((void**)&CurCtrl->Arbs, sizeof(*CurCtrl->Arbs),
+							CurCtrl->NumArbs, CurCtrl->NumArbs + 1);
+					CurCtrl->Arbs[CurCtrl->NumArbs++] = NetPlayer;
+					
+					// Read NetPlayer UUID and the local player number
+					D_RBSReadString(Stream, NetPlayer->UUID, MAXPLAYERNAME * 2);
+					p = D_RBSReadUInt8(Stream);
+					
+					// Determine if the player is our own screen player
+					u8 = D_RBSReadUInt8(Stream);
+					D_RBSReadString(Stream, Buf, BUFSIZE);
+					
+					// See if it is worth looking for a profile
+					if (u8)
+						Profile = D_FindProfileEx(NetPlayer->UUID);
+					
+					// No profile found or remote profile
+					if (!Profile)
+					{
+						// Create blank slate
+						u8 = 0;
+						Profile = D_CreateProfileEx(NetPlayer->UUID);
+						
+						// Fill with guessed info
+						Profile->Type = DPEXT_NETWORK;
+						D_RBSReadString(Stream, NetPlayer->AccountName, MAXPLAYERNAME);
+						D_RBSReadString(Stream, Profile->AccountName, MAXPLAYERNAME);
+						D_RBSReadString(Stream, Profile->DisplayName, MAXPLAYERNAME);
+						Profile->Color = D_RBSReadUInt8(Stream);
+					}
+					else
+						Profile->Type = DPEXT_LOCAL;
+					
+					// Create Player In Local Game
+					DoomPlayer = G_AddPlayer(p);
+					DoomPlayer->NetPlayer = NetPlayer;
+					DoomPlayer->ProfileEx = Profile;
+					Profile->NetPlayer = NetPlayer;
+					NetPlayer->Player = DoomPlayer;
+					NetPlayer->Profile = Profile;
+					G_InitPlayer(DoomPlayer);
+					
+					// Add player to split screen
+					if (u8)
+					{
+						// Find free screen
+						for (j = 0; j < MAXSPLITSCREEN; j++)
+							if (!g_PlayerInSplit[j])
+							{
+								g_PlayerInSplit[j] = true;
+								consoleplayer[j] = displayplayer[j] = p;
+								
+								g_SplitScreen = j;
+								break;
+							}
+					}
+				}
+			}
 		}
 		
 		// Flush commands (Send them together, if possible)
@@ -408,4 +693,155 @@ void D_NCUpdate(void)
 	}
 #undef BUFSIZE
 }
+
+/* DS_NCGetCont() -- Get controller */
+static D_NetController_t* DS_NCGetCont(const bool_t a_Local, const bool_t a_Server, const bool_t a_ServerLink)
+{
+	size_t i;
+	D_NetController_t* CurCtrl;
+	
+	/* Look through all controllers */
+	for (i = 0; i < l_NumControllers; i++)
+	{
+		// Get current
+		CurCtrl = l_Controllers[i];
+		
+		// Check
+		if (!CurCtrl)
+			continue;
+		
+		// See if it local, server, or is link to server
+		if ((a_Local && CurCtrl->IsLocal) || 
+			(a_Server && CurCtrl->IsServer) ||
+			(a_ServerLink && CurCtrl->IsServerLink))
+			return CurCtrl;
+	}
+	
+	/* Nothing found */
+	return NULL;
+}
+
+/* D_NCGetLocal() -- Get local connection */
+D_NetController_t* D_NCGetLocal(void)
+{
+	return DS_NCGetCont(true, false, false);
+}
+
+/* D_NCGetServer() -- Get Server */
+D_NetController_t* D_NCGetServer(void)
+{
+	return DS_NCGetCont(false, true, false);
+}
+
+/* D_NCGetServerLink() -- Get stream connected to server */
+D_NetController_t* D_NCGetServerLink(void)
+{
+	return DS_NCGetCont(false, false, true);
+}
+
+/* D_NCCommRequestMap() */
+void D_NCCommRequestMap(const char* const a_Map)
+{
+	D_NetController_t* Ctrl;
+	size_t i;
+	
+	/* Check */
+	if (!a_Map)
+		return;
+	
+	/* Find Server Player */
+	Ctrl = D_NCGetServer();
+	
+	// Not found?
+	if (!Ctrl)
+		return;
+	
+	/* Check if the server is also local */
+	// This means we don't own the game
+	if (!Ctrl->IsLocal)
+		return;
+	
+	/* Send map change to server */
+	for (i = 0; i < l_NumControllers; i++)
+	{
+		// Get controller
+		Ctrl = l_Controllers[i];
+		
+		// Bad?
+		if (!Ctrl)
+			continue;
+		
+		// Not the server?
+		if (!Ctrl->IsServer)
+			continue;
+		
+		// Write map message
+		D_RBSBaseBlock(Ctrl->BlockStream, "MAPC");
+		D_RBSWriteString(Ctrl->BlockStream, a_Map);
+		D_RBSRecordBlock(Ctrl->BlockStream);
+	}
+}
+
+/*** NCSR FUNCTIONS ***/
+
+/* D_NCSR_RequestNewPlayer() -- Requests that a local profile join remote server */
+void D_NCSR_RequestNewPlayer(struct D_ProfileEx_s* a_Profile)
+{
+	D_NetController_t* Ctrl;
+	D_RBlockStream_t* Stream;
+	size_t i;
+	
+	/* Check */
+	if (!a_Profile)
+		return;
+	
+	/* Find Server Player */
+	Ctrl = D_NCGetServer();
+	
+	// Not found?
+	if (!Ctrl)
+		return;
+		
+	// Use server stream
+	Stream = Ctrl->BlockStream;
+	
+	/* Tell server to add player */
+	D_RBSBaseBlock(Stream, "LPRJ");
+	D_RBSWriteString(Stream, a_Profile->UUID);
+	D_RBSWriteString(Stream, a_Profile->AccountName);
+	D_RBSWriteString(Stream, a_Profile->DisplayName);
+	D_RBSWriteUInt8(Stream, a_Profile->Color);
+	D_RBSRecordBlock(Stream);
+}
+
+/*** NCQC FUNCTIONS ***/
+
+/* D_NCQC_MapChange() -- Change Map */
+void D_NCQC_MapChange(void* const a_Data)
+{
+	char* MapName;
+	P_LevelInfoEx_t* Info;
+	
+	/* Check */
+	if (!a_Data)
+		return;
+	
+	/* Get Map */
+	MapName = (char*)a_Data;
+	
+	/* Switch to that level */
+	// Try finding the level
+	Info = P_FindLevelByNameEx(MapName, NULL);
+	
+	// Load the level
+	if (!Info)
+		CONL_PrintF("NET: Could not find level.\n");
+	else
+		if (!P_ExLoadLevel(Info, 0))
+			CONL_PrintF("NET: Could not load level.\n");
+	
+	/* Free string (was Z_StrDup) */
+	Z_Free(a_Data);
+}
+
 

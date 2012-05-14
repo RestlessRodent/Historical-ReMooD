@@ -666,6 +666,9 @@ void G_Ticker(void)
 	int buf;
 	ticcmd_t* cmd;
 	
+	// GhostlyDeath <May 13, 2012> -- Run Commands
+	D_NCRunCommands();
+	
 	// do player reborns if needed
 	if (gamestate == GS_LEVEL)
 	{
@@ -1440,12 +1443,24 @@ void G_DoReborn(int playernum)
 	}
 }
 
-void G_AddPlayer(int playernum)
+/* G_AddPlayer() -- Adds player to game */
+player_t* G_AddPlayer(int playernum)
 {
 	player_t* p = &players[playernum];
+	playeringame[playernum] = true;
 	
 	p->playerstate = PST_REBORN;
 	p->weaponinfo = wpnlev1info;
+	
+	return &players[playernum];
+}
+
+/* G_InitPlayer() -- Initializes Player */
+void G_InitPlayer(player_t* const a_Player)
+{
+	/* Check */
+	if (!a_Player)
+		return;
 }
 
 // DOOM Par Times
