@@ -1098,12 +1098,18 @@ StringGroupEX_t UnicodeStrings[NUMUNICODESTRINGS] =
 	{"INTERMISSION_NETPAR", "Par"},
 	
 	/*** CONSOLE VARIABLE HINTS ***/
-	{                   "CVHINT_CONSCREENHEIGHT", "Height of the console."},
-	{                      "CVHINT_CONBACKCOLOR", "Background color of the console."},
-	{                           "CVHINT_CONFONT", "Font to draw the console with."},
-	{                      "CVHINT_CONMONOSPACE", "Draw the console font as monospaced."},
-	{                          "CVHINT_CONSCALE", "Scales the text of the console (high resolution)."},
-	{                     "CVHINT_CONTESTSTRING", "Variable to test strings (escape/unescape)."},
+	{           "CVHINT_CONSCREENHEIGHT", "Height of the console."},
+	{              "CVHINT_CONBACKCOLOR", "Background color of the console."},
+	{                   "CVHINT_CONFONT", "Font to draw the console with."},
+	{              "CVHINT_CONMONOSPACE", "Draw the console font as monospaced."},
+	{                  "CVHINT_CONSCALE", "Scales the text of the console (high resolution)."},
+	{             "CVHINT_CONTESTSTRING", "Variable to test strings (escape/unescape)."},
+	
+	{					 "CVHINT_SVNAME", "The visible name of the server."},
+	{					  "CVHINT_SVURL", "The web site for this server."},
+	{				   "CVHINT_SVWADURL", "Location where WADs should be downloaded from."},
+	{					  "CVHINT_SVIRC", "The IRC Channel for this server."},
+	{					 "CVHINT_SVMOTD", "The message displayed to clients when joining."},
 };
 
 /* DS_NameOfString() -- Returns name of pointer to string */

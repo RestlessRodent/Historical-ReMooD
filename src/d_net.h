@@ -122,7 +122,9 @@ void D_NCAddQueueCommand(const D_NCQCFunc_t a_Func, void* const a_Data);
 void D_NCRunCommands(void);
 
 /*** NSZZ Funcs ***/
-void D_NSZZ_SendINFO(struct D_RBlockStream_s* a_Stream);
+void D_NSZZ_SendINFO(struct D_RBlockStream_s* a_Stream, const uint32_t a_LocalTime);
+bool_t D_NSZZ_SendINFX(struct D_RBlockStream_s* a_Stream, size_t* const a_It);
+void D_NSZZ_SendMOTD(struct D_RBlockStream_s* a_Stream);
 
 /*** NCSR Funcs ***/
 void D_NCSR_RequestMap(const char* const a_Map);

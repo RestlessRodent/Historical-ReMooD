@@ -46,6 +46,7 @@
 #include "d_block.h"
 #include "console.h"
 #include "p_info.h"
+#include "p_demcmp.h"
 
 /*************
 *** LOCALS ***
@@ -220,6 +221,54 @@ static uint32_t l_LocalStat[4];					// Local Stats
 static D_NetClient_t** l_Clients = NULL;		// Networked Clients
 static size_t l_NumClients = 0;					// Number of net clients
 
+// sv_name -- Name of Server
+CONL_StaticVar_t l_SVName =
+{
+	CLVT_STRING, NULL, CLVF_SAVE,
+	"sv_name", DSTR_CVHINT_SVNAME, CLVVT_STRING, "Untitled ReMooD Server",
+	NULL
+};
+
+// sv_email -- Administrator E-Mail of Server
+CONL_StaticVar_t l_SVEMail =
+{
+	CLVT_STRING, NULL, CLVF_SAVE,
+	"sv_email", DSTR_CVHINT_SVEMAIL, CLVVT_STRING, "nobody@localhost",
+	NULL
+};
+
+// sv_url -- Administrator URL of Server
+CONL_StaticVar_t l_SVURL =
+{
+	CLVT_STRING, NULL, CLVF_SAVE,
+	"sv_url", DSTR_CVHINT_SVURL, CLVVT_STRING, "http://remood.org/",
+	NULL
+};
+
+// sv_wadurl -- Where WADs should be downloaded from
+CONL_StaticVar_t l_SVWADURL =
+{
+	CLVT_STRING, NULL, CLVF_SAVE,
+	"sv_wadurl", DSTR_CVHINT_SVURL, CLVVT_STRING, "http://remood.org/wads/",
+	NULL
+};
+
+// sv_irc -- Administrator IRC Channel of Server
+CONL_StaticVar_t l_SVIRC =
+{
+	CLVT_STRING, NULL, CLVF_SAVE,
+	"sv_irc", DSTR_CVHINT_SVIRC, CLVVT_STRING, "irc://irc.oftc.net/remood",
+	NULL
+};
+
+// sv_motd -- Message Of The Day
+CONL_StaticVar_t l_SVMOTD =
+{
+	CLVT_STRING, NULL, CLVF_SAVE,
+	"sv_motd", DSTR_CVHINT_SVMOTD, CLVVT_STRING, "Welcome to ReMooD! Enjoy your stay!",
+	NULL
+};
+
 /*** FUNCTIONS ***/
 
 /* D_NCAllocClient() -- Creates a new network client */
@@ -282,6 +331,14 @@ bool_t D_CheckNetGame(void)
 	netgame = false;
 	if (netgame)
 		netgame = false;
+	
+	/* Register variables */
+	CONL_VarRegister(&l_SVName);
+	CONL_VarRegister(&l_SVEMail);
+	CONL_VarRegister(&l_SVURL);
+	CONL_VarRegister(&l_SVWADURL);
+	CONL_VarRegister(&l_SVIRC);
+	CONL_VarRegister(&l_SVMOTD);
 		
 	/* Create LoopBack Client */
 	Client = D_NCAllocClient();
@@ -392,7 +449,7 @@ void D_NCUpdate(void)
 	size_t nc, snum, i;
 	I_HostAddress_t FromAddress;
 	
-	bool_t SendPing;
+	bool_t SendPing, ReSend;
 	uint32_t ThisTime, DiffTime;
 	static uint32_t LastTime;
 	
@@ -523,7 +580,7 @@ void D_NCUpdate(void)
 					
 					// Send Server Info
 					D_RBSWriteUInt8(GenOut, 'R');	// Auto-remote end
-					D_NSZZ_SendINFO(GenOut);
+					D_NSZZ_SendINFO(GenOut, ThisTime);
 					
 					// Send away
 					D_RBSRecordNetBlock(GenOut, &FromAddress);
@@ -550,14 +607,51 @@ void D_NCUpdate(void)
 					D_RBSWriteUInt32(GenOut, u32b);
 					
 					// Send Server Info
-					D_NSZZ_SendINFO(GenOut);
+					D_NSZZ_SendINFO(GenOut, ThisTime);
 					
 					// Send away
 					D_RBSRecordNetBlock(GenOut, &FromAddress);
+					
+					// Write INFX
+					ReSend = false;
+					i = 0;
+					do
+					{
+						D_RBSBaseBlock(GenOut, "INFX");
+						D_RBSWriteUInt32(GenOut, u32a);
+						D_RBSWriteUInt32(GenOut, u32b);
+					
+						// Send Server Info
+						ReSend = D_NSZZ_SendINFX(GenOut, &i);
+					
+						// Send away
+						D_RBSRecordNetBlock(GenOut, &FromAddress);
+					} while (ReSend);
+					
+					// Send MOTD
+					D_RBSBaseBlock(GenOut, "MOTD");
+					D_RBSWriteUInt32(GenOut, u32a);
+					D_RBSWriteUInt32(GenOut, u32b);
+					D_NSZZ_SendMOTD(GenOut);
+					D_RBSRecordNetBlock(GenOut, &FromAddress);
+					
+					// Send INFT
+					for (i = 0; i < 2; i++)
+					{
+						D_RBSBaseBlock(GenOut, "INFT");
+						D_RBSWriteUInt32(GenOut, u32a);
+						D_RBSWriteUInt32(GenOut, u32b);
+						D_RBSRecordNetBlock(GenOut, &FromAddress);
+					}
 				}
 				
 				// Client -- Recieve Game Info
 				else if (D_RBSCompareHeader("INFO", Header))
+				{
+				}
+				
+				// Client -- Recieve Game Info Extended
+				else if (D_RBSCompareHeader("INFX", Header))
 				{
 				}
 				
@@ -1006,13 +1100,111 @@ void D_NCSR_RequestNewPlayer(struct D_ProfileEx_s* a_Profile)
 /*** NSZZ FUNCTIONS ***/
 
 /* D_NSZZ_SendINFO() -- Send server info */
-void D_NSZZ_SendINFO(struct D_RBlockStream_s* a_Stream)
+void D_NSZZ_SendINFO(struct D_RBlockStream_s* a_Stream, const uint32_t a_LocalTime)
 {
-	/* Wfrite Version */
+	const WL_WADFile_t* Rover;
+	
+	/* Write Version */
 	D_RBSWriteUInt8(a_Stream, VERSION);
 	D_RBSWriteUInt8(a_Stream, REMOOD_MAJORVERSION);
 	D_RBSWriteUInt8(a_Stream, REMOOD_MINORVERSION);
 	D_RBSWriteUInt8(a_Stream, REMOOD_RELEASEVERSION);
+	D_RBSWriteString(a_Stream, REMOOD_VERSIONCODESTRING);
+	
+	/* Write Time Info */
+	D_RBSWriteUInt32(a_Stream, a_LocalTime);
+	D_RBSWriteUInt32(a_Stream, time(NULL));
+	D_RBSWriteUInt32(a_Stream, D_SyncNetMapTime());
+	D_RBSWriteUInt32(a_Stream, 0);
+	
+	/* Write Server Name */
+	D_RBSWriteString(a_Stream, l_SVName.Value->String);
+	D_RBSWriteString(a_Stream, l_SVEMail.Value->String);
+	D_RBSWriteString(a_Stream, l_SVURL.Value->String);
+	D_RBSWriteString(a_Stream, l_SVWADURL.Value->String);
+	D_RBSWriteString(a_Stream, l_SVIRC.Value->String);
+	
+	/* Write WAD Info */
+	for (Rover = WL_IterateVWAD(NULL, true); Rover; Rover = WL_IterateVWAD(Rover, true))
+	{
+		// Write start
+		D_RBSWriteUInt8(a_Stream, 'W');
+		
+		// TODO: Optional WAD
+		D_RBSWriteUInt8(a_Stream, 'R');
+		
+		// Write Names for WAD (DOS and Base)
+		D_RBSWriteString(a_Stream, WL_GetWADName(Rover, false));
+		D_RBSWriteString(a_Stream, WL_GetWADName(Rover, true));
+		
+		// Write File Sums
+		D_RBSWriteString(a_Stream, Rover->SimpleSumChars);
+		D_RBSWriteString(a_Stream, Rover->CheckSumChars);
+	}
+	
+	// End List
+	D_RBSWriteUInt8(a_Stream, 'X');
+	
+	/* Level Name */
+	switch (gamestate)
+	{
+			// In Game
+		case GS_LEVEL:
+			D_RBSWriteString(a_Stream, (g_CurrentLevelInfo ? g_CurrentLevelInfo->LumpName : "<UNKNOWN"));
+			break;
+			
+			// Non-Games
+		case GS_INTERMISSION: D_RBSWriteString(a_Stream, "<INTERMISSION>"); break;
+		case GS_FINALE: D_RBSWriteString(a_Stream, "<STORY>"); break;
+		case GS_DEMOSCREEN: D_RBSWriteString(a_Stream, "<TITLESCREEN>"); break;
+			
+			// Unknown
+		default:
+			D_RBSWriteString(a_Stream, "<UNKNOWN>");
+			break;
+	}
+}
+
+/* D_NSZZ_SendINFX() -- Extended Info */
+// This sends all variables
+bool_t D_NSZZ_SendINFX(struct D_RBlockStream_s* a_Stream, size_t* const a_It)
+{
+	size_t EndIt;
+	P_EXGSVariable_t* XVar;
+	
+	/* Get End */
+	EndIt = *a_It + 5;
+	
+	/* Loop */
+	for (; *a_It < EndIt && *a_It < PEXGSNUMBITIDS; (*a_It)++)
+	{
+		// Write Marker
+		D_RBSWriteUInt8(a_Stream, 'V');
+		
+		// Get Var
+		XVar = P_EXGSVarForBit(*a_It);
+		
+		if (!XVar)
+			continue;
+		
+		// Write Name and value
+		D_RBSWriteString(a_Stream, XVar->Name);
+		D_RBSWriteUInt32(a_Stream, (XVar->WasSet ? XVar->ActualVal : XVar->DefaultVal));
+	}
+	
+	/* End */
+	D_RBSWriteUInt8(a_Stream, 'E');
+	
+	/* More variables available? */
+	if (*a_It < PEXGSNUMBITIDS)
+		return true;
+	return false;
+}
+
+/* D_NSZZ_SendMOTD() -- Send Message Of The Day */
+void D_NSZZ_SendMOTD(struct D_RBlockStream_s* a_Stream)
+{
+	D_RBSWriteString(a_Stream, l_SVMOTD.Value->String);
 }
 
 /*** NCQC FUNCTIONS ***/

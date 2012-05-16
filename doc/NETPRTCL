@@ -162,8 +162,80 @@ LPRJ	-- Local Player Request Join [Local & Server]
 ### SERVER -> CLIENT ###
 
 INFO	-- Info About Current Server
-		u32 Low Cookie
-		u32 High Cookie
+		u32 Low Cookie (This is copied from RINF)
+		u32 High Cookie (This is copied from RINF)
+		
+		u8	Legacy Version (200)
+		u8	Major Version (1)
+		u8	Minor Version (0)
+		u8	Release Version (a)
+		str	Release Name ("Stuffed Cabbage")
+		
+		u32	Server Local Time (From Start, in millis)
+		u32	Server UNIX Time
+		u32	Server Map Time
+		u32	Server Delay (The actually felt delay of the game)
+		
+		str	Server Name (sv_name)
+		str	Contact E-Mail (sv_email)
+		str	Web Site (sv_url)
+		str	Location where WADs should be downloaded from (sv_wadurl)
+		str	IRC Channel (sv_irc)
+		
+		..
+		u8	WAD Marker ('W' == WAD, 'X' == Stop Reading WADs)
+		--
+		u8	Required or optional
+				> R = Required
+				> O = Optional
+				> All other values should be deemed required
+		str	DOS Name of WAD
+				> Unless your launcher runs on DOS, this should be read and
+				> ignored. However it is also an alternate search name for
+				> WADs.
+		str	Base Name of WAD
+				> This is the base name for WAD Files. This is the one you
+				> should likely use.
+		str	Simple Sum
+				> This is a basic checksum to compare whether you have the
+				> correct WAD or not.
+				> If the length is zero, it is not used.
+		str	MD5 Sum
+				> This is the MD5 sum.
+				> The same rules as the Simple Sum apply
+		--
+		..
+		
+		str	Name of the current level
+				> "<TITLESCREEN>" -- Server is on the title screen
+				> "<INTERMISSION>" -- Server is on the intermission
+				> "<STORY>" -- Server is on some story screen
+
+MOTD	-- Message of the Day
+		u32 Low Cookie (This is copied from RINF)
+		u32 High Cookie (This is copied from RINF)
+		str	Message
+
+INFX	-- Extended Info (Game Variables)
+		u32 Low Cookie (This is copied from RINF)
+		u32 High Cookie (This is copied from RINF)
+		..
+		u8	Game Variable, 'V' = Parse, 'E' = Stop
+		--
+		str	Variable Name
+		u32	Variable Value
+		--
+		..
+
+INFT	-- INFO Terminate (Stop handling)
+				> This is sent twice after the server is finished sending the
+				> packets on game information. This is pretty much only used
+				> for launchers and such that can't support recieving
+				> multiple packets (currently such as Doomseeker). So if your
+				> launcher is like this, then only stop reading when this
+				> message is reached.
+		u32 Low Cookie (This is copied from RINF)
+		u32 High Cookie (This is copied from RINF)
 
 
 MAPC	-- Map Change [Local & Server]
