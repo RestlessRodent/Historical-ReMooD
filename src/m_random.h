@@ -59,5 +59,8 @@ uint8_t P_GetRandIndex(void);
 
 void P_SetRandIndex(uint8_t rindex);
 
+extern uint8_t* g_RandomData;					// Random Data
+extern uint32_t g_RandomDataSize;				// Size of random data
+
 #endif
 

@@ -591,6 +591,7 @@ bool_t DS_RBSNet_NetPlayF(struct D_RBlockStream_s* const a_Stream, I_HostAddress
 	char Header[5];
 	uint32_t Len;
 	void* Data;
+	size_t RetVal;
 	
 	/* Check */
 	if (!a_Stream)
@@ -611,7 +612,7 @@ bool_t DS_RBSNet_NetPlayF(struct D_RBlockStream_s* const a_Stream, I_HostAddress
 	
 	/* Read data from socket */
 	memset(NetData->ReadBuf, 0, IRBSNETSOCKBUFSIZE);
-	if (I_NetRecv(Socket, a_Host, NetData->ReadBuf, IRBSNETSOCKBUFSIZE) < 8)
+	if ((RetVal = I_NetRecv(Socket, a_Host, NetData->ReadBuf, IRBSNETSOCKBUFSIZE)) < 8)
 		return false;
 	
 	/* Extract information */

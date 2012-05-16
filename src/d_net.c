@@ -482,8 +482,11 @@ void D_NCUpdate(void)
 			{
 				// Debug?
 				if (devparm)
-					D_SyncNetDebugMessage("%i Got \"%c%c%c%c\"...",
-						(int)nc, Header[0], Header[1], Header[2], Header[3]);
+					D_SyncNetDebugMessage("%i Got \"%c%c%c%c\" (From %08x:%i)...",
+						(int)nc, Header[0], Header[1], Header[2], Header[3],
+							SwapUInt32(FromAddress.Host.v4.u),
+							FromAddress.Port
+						);
 				
 				// Everything -- Ping request
 				if (D_RBSCompareHeader("PING", Header))
@@ -1005,7 +1008,7 @@ void D_NCSR_RequestNewPlayer(struct D_ProfileEx_s* a_Profile)
 /* D_NSZZ_SendINFO() -- Send server info */
 void D_NSZZ_SendINFO(struct D_RBlockStream_s* a_Stream)
 {
-	/* Write Version */
+	/* Wfrite Version */
 	D_RBSWriteUInt8(a_Stream, VERSION);
 	D_RBSWriteUInt8(a_Stream, REMOOD_MAJORVERSION);
 	D_RBSWriteUInt8(a_Stream, REMOOD_MINORVERSION);

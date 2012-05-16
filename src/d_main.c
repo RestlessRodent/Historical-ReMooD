@@ -1068,6 +1068,9 @@ const void* g_ReMooDPtr = NULL;					// Pointer to remood.wad
 const char* g_IWADMapInfoName = NULL;			// Name of IWAD MAPINFO
 uint32_t g_IWADFlags = 0;						// IWAD Flags
 
+uint8_t* g_RandomData = NULL;					// Random Data
+uint32_t g_RandomDataSize = 0;					// Size of random data
+
 /*** LOCALS ***/
 
 static char l_IWADSum[33];						// IWAD Sum
@@ -1106,6 +1109,7 @@ static const char* DS_FieldNumber(const char* const a_Str, const size_t a_Num)
 static bool_t DS_DetectReMooDWAD(const bool_t a_Pushed, const struct WL_WADFile_s* const a_WAD)
 {
 	const WL_WADFile_t* Rover;
+	const WL_WADEntry_t* Entry;
 	
 	/* Clear always */
 	g_ReMooDPtr = NULL;
@@ -1122,6 +1126,25 @@ static bool_t DS_DetectReMooDWAD(const bool_t a_Pushed, const struct WL_WADFile_
 			return true;
 		}
 	}
+	
+	/* Load Data */
+	Entry = WL_FindEntry(Rover, 0, "____DATA");
+	
+	// Not found?
+	if (!Entry)
+	{
+		g_ReMooDPtr = NULL;
+		return false;
+	}
+	
+	// Free
+	if (g_RandomData)
+		Z_Free(g_RandomData);
+	
+	// Load
+	g_RandomDataSize = Entry->Size;
+	g_RandomData = Z_Malloc(g_RandomDataSize, PU_STATIC, NULL);
+	WL_ReadData(Entry, 0, g_RandomData, g_RandomDataSize);
 	
 	/* Success */
 	return true;

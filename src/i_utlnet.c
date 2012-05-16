@@ -456,7 +456,7 @@ size_t I_NetSend(I_NetSocket_t* const a_Socket, const I_HostAddress_t* const a_H
 		
 	// Convert address to host
 	if (a_Host)
-		IS_NetAddrNativeToWrap(a_Host, (struct sockaddr*)&Addr);
+		IS_NetAddrWrapToNative(a_Host, (!i ? &Addr : NULL), (i ? &Addr : NULL));
 	
 	// Receive from it
 	SockLen = sizeof(Addr);

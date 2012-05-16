@@ -61,7 +61,7 @@ uint8_t rndtable[256] =
 	120, 163, 236, 249
 };
 
-static uint8_t rndindex = 0;
+static uint32_t rndindex = 0;
 static uint8_t prndindex = 0;
 
 #ifndef DEBUGRANDOM
@@ -112,7 +112,28 @@ int P_SignedRandom2(char* a, int b)
 
 uint8_t M_Random(void)
 {
-	return rndtable[++rndindex];
+	uint8_t RetVal;
+	
+	/* Use larger random table */
+	if (g_RandomData)
+	{
+		// Get
+		RetVal = g_RandomData[++rndindex];
+	
+		// Limit
+		if (rndindex >= g_RandomDataSize)
+			rndindex = 0;
+	
+		// Return
+		return RetVal;
+	}
+	
+	/* Use generic random */
+	else
+	{
+		rndindex = ++rndindex & 0xFF;
+		return rndtable[rndindex];
+	}
 }
 
 void M_ClearRandom(void)
