@@ -50,6 +50,8 @@ PONG	-- Ping Reply
 		u32 Original Time Different
 		u32 Current Time
 
+
+
 VERR	-- Version Request
 
 VERI	-- Version Information
@@ -62,26 +64,13 @@ VERI	-- Version Information
 
 MESG	-- Generic Message
 		str Message String
-
-### CLIENT -> MASTERSERVER ###
-
-LOGI	-- Log-In
-
-LOGO	-- Log-Out
-
-GLST	-- Request Server List
-
-FRND	-- Friend-List Modification (Log-Ins Only)
-
-SMTP	-- Messages
-
-### MASTERSERVER -> CLIENT ###
-
-### SERVER -> MASTERSERVER ###
-
-### MASTERSERVER -> SERVER ###
 		
 ### CLIENT -> SERVER ###
+
+RINF	-- Request Game Info
+		u32 Low Cookie
+		u32 High Cookie
+
 
 INFO	-- Game Information
 			$$$ GENERAL $$$$
@@ -172,6 +161,11 @@ LPRJ	-- Local Player Request Join [Local & Server]
 
 ### SERVER -> CLIENT ###
 
+INFO	-- Info About Current Server
+		u32 Low Cookie
+		u32 High Cookie
+
+
 MAPC	-- Map Change [Local & Server]
 		str Map Lump Name
 
@@ -189,4 +183,24 @@ PJOK	-- Player Join OK [!Local & Server]
 		str	Account Name (Profile)
 		str	Display Name (Profile)
 		u8	Color (Profile)
+
+###########################
+######### MASTER SERVER PROTOCOL
+###########################
+
+### CLIENT -> MASTERSERVER ###
+
+MSRQ	-- Request Server List
+		u32	Low Cookie
+		u32 High Cookie
+
+### MASTERSERVER -> CLIENT ###
+
+MSLS	-- Server List
+		u32	Low Cookie
+		u32 High Cookie
+
+### SERVER -> MASTERSERVER ###
+
+### MASTERSERVER -> SERVER ###
 

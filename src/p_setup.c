@@ -1673,7 +1673,7 @@ static CONL_ExitCode_t PCLC_Map(const uint32_t a_ArgC, const char** const a_ArgV
 	/* Request Map */
 #if defined(__REMOOD_NCSNET)
 	// Send request
-	D_NCCommRequestMap(a_ArgV[1]);
+	D_NCSR_RequestMap(a_ArgV[1]);
 	
 	// Return success
 	return CLE_SUCCESS;

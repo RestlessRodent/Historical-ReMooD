@@ -192,11 +192,13 @@ typedef struct D_RBlockStream_s
 D_RBlockStream_t* D_RBSCreateLoopBackStream(void);
 D_RBlockStream_t* D_RBSCreateFileStream(const char* const a_PathName);
 D_RBlockStream_t* D_RBSCreateNetStream(I_NetSocket_t* const a_NetSocket);
+D_RBlockStream_t* D_RBSCreatePerfectStream(D_RBlockStream_t* const a_Wrapped);
 void D_RBSCloseStream(D_RBlockStream_t* const a_Stream);
 
 void D_RBSStatStream(D_RBlockStream_t* const a_Stream, uint32_t* const a_ReadBk, uint32_t* const a_WriteBk, uint32_t* const a_ReadBy, uint32_t* const a_WriteBy);
 void D_RBSUnStatStream(D_RBlockStream_t* const a_Stream);
 
+bool_t D_RBSCompareHeader(const char* const a_A, const char* const a_B);
 bool_t D_RBSBaseBlock(D_RBlockStream_t* const a_Stream, const char* const a_Header);
 bool_t D_RBSRenameHeader(D_RBlockStream_t* const a_Stream, const char* const a_Header);
 

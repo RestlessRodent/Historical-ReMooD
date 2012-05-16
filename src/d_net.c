@@ -182,8 +182,6 @@ tic_t D_SyncNetAllReady(void)
 /* D_SyncNetUpdate() -- Update synchronized networking */
 bool_t D_SyncNetUpdate(void)
 {
-	D_SyncNetDebugMessage("Update...\n");
-	
 	/* Old Update Code */
 	NetUpdate();
 	
@@ -217,9 +215,6 @@ uint32_t g_NetStat[4] = {0, 0, 0, 0};			// Network stats
 static D_NetQueueCommand_t** l_ComQueue = NULL;	// Command Queue
 static size_t l_NumComQueue = 0;				// Number of commands
 
-static D_NetController_t* l_LocalController = NULL;
-static D_NetController_t** l_Controllers = NULL;
-static size_t l_NumControllers = 0;
 static uint32_t l_LocalStat[4];					// Local Stats
 
 static D_NetClient_t** l_Clients = NULL;		// Networked Clients
@@ -230,6 +225,20 @@ static size_t l_NumClients = 0;					// Number of net clients
 /* D_NCAllocClient() -- Creates a new network client */
 D_NetClient_t* D_NCAllocClient(void)
 {
+	size_t i;
+	D_NetClient_t* New;
+	
+	/* Allocate */
+	New = Z_Malloc(sizeof(*New), PU_NETWORK, NULL);
+	
+	/* Find free spot in list */
+	for (i = 0; i < l_NumClients; i++)
+		if (!l_Clients[i])
+			return (l_Clients[i] = New);
+	
+	/* Append to end */
+	Z_ResizeArray((void**)&l_Clients, sizeof(*l_Clients), l_NumClients, l_NumClients + 1);
+	return (l_Clients[l_NumClients++] = New);
 }
 
 /* D_NCFindClientByNetPlayer() -- Finds client by net player */
@@ -249,53 +258,18 @@ D_NetClient_t* D_NCFindClientByHost(I_HostAddress_t* const a_Host)
 }
 
 /* D_NCFindClientByPlayer() -- Find client by player */
-D_NetClient_t* D_NCFindClientByPlayer(player_t* const a_Player)
+D_NetClient_t* D_NCFindClientByPlayer(struct player_s* const a_Player)
 {
 	/* Check */
 	if (!a_Player)
 		return NULL;
 }
 
-
-
-
-
-/* D_NCAllocController() -- Allocates a network controler */
-D_NetController_t* D_NCAllocController(void)
-{
-	size_t i;
-	bool_t Added;
-	D_NetController_t* NewNC;
-	
-	/* Allocate */
-	NewNC = Z_Malloc(sizeof(*NewNC), PU_NETWORK, NULL);
-	
-	/* Add to list */
-	// Find blank spot
-	Added = false;
-	for (i = 0; i < l_NumControllers; i++)
-		if (!l_Controllers[i] == NULL)
-		{
-			l_Controllers[i] = NewNC;
-			Added = true;
-			break;
-		}
-	
-	// Not added? Resize
-	if (!Added)
-	{
-		Z_ResizeArray((void**)&l_Controllers, sizeof(*l_Controllers),
-						l_NumControllers, l_NumControllers + 1);
-		l_Controllers[l_NumControllers++] = NewNC;
-	}
-	
-	/* Return it */
-	return NewNC;
-}
-
 /* D_CheckNetGame() -- Checks whether the game was started on the network */
 bool_t D_CheckNetGame(void)
 {
+	I_NetSocket_t* Socket;
+	D_NetClient_t* Client;
 	bool_t ret = false;
 	size_t i;
 	
@@ -308,32 +282,47 @@ bool_t D_CheckNetGame(void)
 	netgame = false;
 	if (netgame)
 		netgame = false;
-	
-	/* Controlled Networking */
-	// GhostlyDeath <May 12, 2012> -- Controlled Networking
-	
-	// Create local controller
-	l_LocalController = D_NCAllocController();
-	l_LocalController->IsLocal = true;
-	l_LocalController->IsServer = true;
-	l_LocalController->IsServerLink = true;
-	
-	// Create local UDP socket
-	for (i = 0; i < 10; i++)
-	{
-		l_LocalController->NetSock = I_NetOpenSocket(true, NULL, __REMOOD_BASEPORT + i);
 		
-		// Worked?
-		if (l_LocalController->NetSock)
-		{
-			l_LocalController->BlockStream = D_RBSCreateNetStream(l_LocalController->NetSock);
-			break;
-		}
-	}
+	/* Create LoopBack Client */
+	Client = D_NCAllocClient();
+	Client->CoreStream = D_RBSCreateLoopBackStream();
 	
-	// If no network socket was created, create loopback socket
-	if (!l_LocalController->NetSock)
-		l_LocalController->BlockStream = D_RBSCreateLoopBackStream();
+	// Create perfection Wrapper
+	Client->PerfectStream = D_RBSCreatePerfectStream(Client->CoreStream);
+	
+	// Set read/writes for all streams
+	Client->Streams[DNCSP_READ] = Client->CoreStream;
+	Client->Streams[DNCSP_WRITE] = Client->CoreStream;
+	Client->Streams[DNCSP_PERFECTREAD] = Client->PerfectStream;
+	Client->Streams[DNCSP_PERFECTWRITE] = Client->PerfectStream;
+	
+	/* Create Local Network Client */
+	// Attempt creating a UDP Server
+	Socket = NULL;
+	for (i = 0; i < 20 && !Socket; i++)
+		Socket = I_NetOpenSocket(true, NULL, __REMOOD_BASEPORT + i);
+	
+	// Initial input/output of stream
+	if (Socket)
+	{
+		// Allocate
+		Client = D_NCAllocClient();
+		
+		// Copy socket
+		Client->NetSock = Socket;
+		
+		// Create stream from it
+		Client->CoreStream = D_RBSCreateNetStream(Client->NetSock);
+		
+		// Create encapsulated perfect stream
+		Client->PerfectStream = D_RBSCreatePerfectStream(Client->CoreStream);
+	
+		// Set read/writes for all streams
+		Client->Streams[DNCSP_READ] = Client->CoreStream;
+		Client->Streams[DNCSP_WRITE] = Client->CoreStream;
+		Client->Streams[DNCSP_PERFECTREAD] = Client->PerfectStream;
+		Client->Streams[DNCSP_PERFECTWRITE] = Client->PerfectStream;
+	}
 	
 	return ret;
 }
@@ -397,6 +386,190 @@ void D_NCRunCommands(void)
 /* D_NCUpdate() -- Update all networking stuff */
 void D_NCUpdate(void)
 {
+	char Header[5];
+	D_RBlockStream_t* Stream, *OutStream, *GenOut;
+	D_NetClient_t* NetClient;
+	size_t nc, snum, i;
+	I_HostAddress_t FromAddress;
+	
+	bool_t SendPing;
+	uint32_t ThisTime, DiffTime;
+	static uint32_t LastTime;
+	
+	uint32_t u32a, u32b, u32c, u32d;
+	
+	/* Send Ping Request? */
+	ThisTime = I_GetTimeMS();
+	
+	// Send pings?
+	SendPing = false;
+	if (ThisTime > LastTime + 1000)
+	{
+		DiffTime = ThisTime - LastTime;
+		LastTime = ThisTime;
+		SendPing = true;
+		
+		// Set global stat count to current local stats
+		for (i = 0; i < 4; i++)
+			g_NetStat[i] = l_LocalStat[i];
+	}
+	
+	/* Clear local stats */
+	// This is for traffic monitoring
+	for (i = 0; i < 4; i++)
+		l_LocalStat[i] = 0;
+	
+	/* Go through each client and read/write commands */
+	for (nc = 0; nc < l_NumClients; nc++)
+	{
+		// Get current
+		NetClient = l_Clients[nc];
+		
+		// Failed?
+		if (!NetClient)
+			continue;
+		
+		// Initialize some things
+		memset(&FromAddress, 0, sizeof(FromAddress));
+		
+		// Use base stream initially
+		Stream = NetClient->CoreStream;
+		
+		// Sending a ping?
+			// If sending, send command and unstat stream
+		if (SendPing)
+		{
+			// Unstat the stream
+			D_RBSUnStatStream(Stream);
+			
+			// Build PING command
+			D_RBSBaseBlock(Stream, "PING");
+			D_RBSWriteUInt32(Stream, ThisTime);
+			D_RBSWriteUInt32(Stream, DiffTime);
+			D_RBSRecordBlock(Stream);	// Send to default destination
+		}
+			// Otherwise, Stat the stream and add to local counts
+		else
+		{
+			// Stat it
+			D_RBSStatStream(Stream, &u32a, &u32b, &u32c, &u32d);
+			
+			// Add to local
+			l_LocalStat[0] += u32a;
+			l_LocalStat[1] += u32b;
+			l_LocalStat[2] += u32c;
+			l_LocalStat[3] += u32d;
+		}
+		
+		// Read from the "Perfect" Stream
+			// The perfect stream knows whether a packet is perfect or not and
+			// if a perfect packet is not yet ready it won't return any of them
+			// Also, a read stream might not exist, a client could be using
+			// another clients stream for reading, this would be the case for
+			// network games over UDP. Why? Becuase all network players write
+			// to the server (the local client) for commands.
+		Stream = NetClient->Streams[DNCSP_PERFECTREAD];
+		OutStream = NetClient->Streams[DNCSP_PERFECTWRITE];
+		
+		GenOut = NetClient->Streams[DNCSP_WRITE];
+		
+		// Constantly read command packets
+		memset(Header, 0, sizeof(Header));
+		if (Stream)
+		{
+			// Constantly Read
+			while (D_RBSPlayNetBlock(Stream, Header, &FromAddress))
+			{
+				// Debug?
+				if (devparm)
+					D_SyncNetDebugMessage("%i Got \"%c%c%c%c\"...",
+						(int)nc, Header[0], Header[1], Header[2], Header[3]);
+				
+				// Everything -- Ping request
+				if (D_RBSCompareHeader("PING", Header))
+				{
+					// Send PONG back to the from address (using generic stream)
+					u32a = D_RBSReadUInt32(Stream);		// Rem: ThisTime
+					u32b = D_RBSReadUInt32(Stream);		// Rem: DiffTime
+					u32c = ThisTime;					// Loc: ThisTime
+					
+					// Create response and send away
+					D_RBSBaseBlock(GenOut, "PONG");
+					D_RBSWriteUInt32(GenOut, u32a);
+					D_RBSWriteUInt32(GenOut, u32b);
+					D_RBSWriteUInt32(GenOut, u32c);
+					D_RBSRecordNetBlock(GenOut, &FromAddress);
+				}
+				
+				// Everything -- Pong reply
+				else if (D_RBSCompareHeader("PONG", Header))
+				{
+				}
+				
+				// Master Server -- Request List
+				else if (D_RBSCompareHeader("MSRQ", Header))
+				{
+					// Read Cookie (Basic Security)
+					u32a = D_RBSReadUInt32(Stream);
+					u32b = D_RBSReadUInt32(Stream);
+					
+					// Setup Base Info
+					D_RBSBaseBlock(GenOut, "MSLS");
+					D_RBSWriteUInt32(GenOut, u32a);
+					D_RBSWriteUInt32(GenOut, u32b);
+					
+					// Send Server Info
+					D_RBSWriteUInt8(GenOut, 'R');	// Auto-remote end
+					D_NSZZ_SendINFO(GenOut);
+					
+					// Send away
+					D_RBSRecordNetBlock(GenOut, &FromAddress);
+				}
+				
+				// Master Server -- List
+				else if (D_RBSCompareHeader("MSLS", Header))
+				{
+					// Read Cookie (Basic Security)
+					u32a = D_RBSReadUInt32(Stream);
+					u32b = D_RBSReadUInt32(Stream);
+				}
+				
+				// Server -- Request Game Info
+				else if (D_RBSCompareHeader("RINF", Header))
+				{
+					// Read Cookie (Basic Security)
+					u32a = D_RBSReadUInt32(Stream);
+					u32b = D_RBSReadUInt32(Stream);
+					
+					// Write INFO
+					D_RBSBaseBlock(GenOut, "INFO");
+					D_RBSWriteUInt32(GenOut, u32a);
+					D_RBSWriteUInt32(GenOut, u32b);
+					
+					// Send Server Info
+					D_NSZZ_SendINFO(GenOut);
+					
+					// Send away
+					D_RBSRecordNetBlock(GenOut, &FromAddress);
+				}
+				
+				// Client -- Recieve Game Info
+				else if (D_RBSCompareHeader("INFO", Header))
+				{
+				}
+				
+				// Clear from address
+				memset(&FromAddress, 0, sizeof(FromAddress));
+				memset(Header, 0, sizeof(Header));
+			}
+			
+			// Flush write streams
+			D_RBSFlushStream(OutStream);
+			D_RBSFlushStream(GenOut);
+		}
+	}
+	
+#if 0
 #define BUFSIZE 512
 	char Buf[BUFSIZE];
 	char Header[5];
@@ -745,56 +918,15 @@ void D_NCUpdate(void)
 		D_RBSFlushStream(Stream);
 	}
 #undef BUFSIZE
+#endif
 }
 
-/* DS_NCGetCont() -- Get controller */
-static D_NetController_t* DS_NCGetCont(const bool_t a_Local, const bool_t a_Server, const bool_t a_ServerLink)
-{
-	size_t i;
-	D_NetController_t* CurCtrl;
-	
-	/* Look through all controllers */
-	for (i = 0; i < l_NumControllers; i++)
-	{
-		// Get current
-		CurCtrl = l_Controllers[i];
-		
-		// Check
-		if (!CurCtrl)
-			continue;
-		
-		// See if it local, server, or is link to server
-		if ((a_Local && CurCtrl->IsLocal) || 
-			(a_Server && CurCtrl->IsServer) ||
-			(a_ServerLink && CurCtrl->IsServerLink))
-			return CurCtrl;
-	}
-	
-	/* Nothing found */
-	return NULL;
-}
+/*** NCSR FUNCTIONS ***/
 
-/* D_NCGetLocal() -- Get local connection */
-D_NetController_t* D_NCGetLocal(void)
+/* D_NCSR_RequestMap() -- Requests that the map changes */
+void D_NCSR_RequestMap(const char* const a_Map)
 {
-	return DS_NCGetCont(true, false, false);
-}
-
-/* D_NCGetServer() -- Get Server */
-D_NetController_t* D_NCGetServer(void)
-{
-	return DS_NCGetCont(false, true, false);
-}
-
-/* D_NCGetServerLink() -- Get stream connected to server */
-D_NetController_t* D_NCGetServerLink(void)
-{
-	return DS_NCGetCont(false, false, true);
-}
-
-/* D_NCCommRequestMap() */
-void D_NCCommRequestMap(const char* const a_Map)
-{
+#if 0
 	D_NetController_t* Ctrl;
 	size_t i;
 	
@@ -833,13 +965,13 @@ void D_NCCommRequestMap(const char* const a_Map)
 		D_RBSWriteString(Ctrl->BlockStream, a_Map);
 		D_RBSRecordBlock(Ctrl->BlockStream);
 	}
+#endif
 }
-
-/*** NCSR FUNCTIONS ***/
 
 /* D_NCSR_RequestNewPlayer() -- Requests that a local profile join remote server */
 void D_NCSR_RequestNewPlayer(struct D_ProfileEx_s* a_Profile)
 {
+#if 0
 	D_NetController_t* Ctrl;
 	D_RBlockStream_t* Stream;
 	size_t i;
@@ -865,6 +997,19 @@ void D_NCSR_RequestNewPlayer(struct D_ProfileEx_s* a_Profile)
 	D_RBSWriteString(Stream, a_Profile->DisplayName);
 	D_RBSWriteUInt8(Stream, a_Profile->Color);
 	D_RBSRecordBlock(Stream);
+#endif
+}
+
+/*** NSZZ FUNCTIONS ***/
+
+/* D_NSZZ_SendINFO() -- Send server info */
+void D_NSZZ_SendINFO(struct D_RBlockStream_s* a_Stream)
+{
+	/* Write Version */
+	D_RBSWriteUInt8(a_Stream, VERSION);
+	D_RBSWriteUInt8(a_Stream, REMOOD_MAJORVERSION);
+	D_RBSWriteUInt8(a_Stream, REMOOD_MINORVERSION);
+	D_RBSWriteUInt8(a_Stream, REMOOD_RELEASEVERSION);
 }
 
 /*** NCQC FUNCTIONS ***/

@@ -50,45 +50,6 @@ struct D_NetPlayer_s;
 struct D_RBlockStream_s;
 struct D_ProfileEx_s;
 
-/* D_NetController_t() -- Network Controller */
-typedef struct D_NetController_s
-{
-	/* Arbitration for players */
-	struct D_NetPlayer_s** Arbs;				// Players this controller controls
-	size_t NumArbs;								// Number of them
-	
-	/* Socket Stuff */
-	I_NetSocket_t* NetSock;						// Network Socket
-	I_HostAddress_t NetTo;						// Where to send to
-	I_HostAddress_t NetFrom;					// Where to recieve from
-	
-	/* Streaming */
-	bool_t IsLocal;								// Is this a local thing?
-	struct D_RBlockStream_s* BlockStream;		// Block stream
-	uint32_t Ping;								// Ping delay
-	
-	/* Game Stuff */
-	uint8_t VerLeg, VerMaj, VerMin, VerRel;		// Versions of ReMooD
-	bool_t IsServer;							// Is the server
-	bool_t IsServerLink;						// This controller links to server (arb)
-} D_NetController_t;
-
-/* D_NetClient_t -- Network Client */
-typedef struct D_NetClient_s
-{
-	/* Player Ownership */
-	struct D_NetPlayer_s** Arbs;				// Arbitrating net players
-	size_t NumArbs;								// Number of arbs
-	
-	/* Location and Pathing */
-	I_HostAddress_t Address;					// Address to client
-	struct D_RBlockStream_s* WriteStream;		// Stream to write to
-	
-	/* Flags */
-	bool_t IsLocal;								// Local client
-	bool_t IsServer;							// Is a server
-} D_NetClient_t;
-
 /*****************
 *** PROTOTYPES ***
 *****************/
@@ -113,6 +74,36 @@ bool_t D_CheckNetGame(void);
 
 struct player_s;
 
+/* D_NCStreamPath_t -- Communication Paths */
+typedef enum D_NCStreamPath_e
+{
+	DNCSP_READ,									// Standard Read Stream
+	DNCSP_WRITE,								// Standard Write Stream
+	DNCSP_PERFECTREAD,							// Perfect Read Stream
+	DNCSP_PERFECTWRITE,							// Perfect Write Stream	
+	
+	NUMDNCSTREAMS
+} D_NCStreamPath_t;
+
+/* D_NetClient_t -- Network Client */
+typedef struct D_NetClient_s
+{
+	/* Player Ownership */
+	struct D_NetPlayer_s** Arbs;				// Arbitrating net players
+	size_t NumArbs;								// Number of arbs
+	
+	/* Location and Pathing */
+	I_HostAddress_t Address;					// Address to client
+	I_NetSocket_t* NetSock;						// Network socket
+	struct D_RBlockStream_s* CoreStream;		// Core stream
+	struct D_RBlockStream_s* PerfectStream;		// Core stream
+	struct D_RBlockStream_s* Streams[NUMDNCSTREAMS];	// Client Streams
+	
+	/* Flags */
+	bool_t IsLocal;								// Local client
+	bool_t IsServer;							// Is a server
+} D_NetClient_t;
+
 typedef void (*D_NCQCFunc_t)(void* const a_Data);
 
 /*** GLOBALS ***/
@@ -126,18 +117,15 @@ D_NetClient_t* D_NCFindClientByNetPlayer(struct D_NetPlayer_s* const a_NetPlayer
 D_NetClient_t* D_NCFindClientByHost(I_HostAddress_t* const a_Host);
 D_NetClient_t* D_NCFindClientByPlayer(struct player_s* const a_Player);
 
-D_NetController_t* D_NCAllocController(void);
 void D_NCUpdate(void);
 void D_NCAddQueueCommand(const D_NCQCFunc_t a_Func, void* const a_Data);
 void D_NCRunCommands(void);
 
-D_NetController_t* D_NCGetLocal(void);
-D_NetController_t* D_NCGetServer(void);
-D_NetController_t* D_NCGetServerLink(void);
-
-void D_NCCommRequestMap(const char* const a_Map);
+/*** NSZZ Funcs ***/
+void D_NSZZ_SendINFO(struct D_RBlockStream_s* a_Stream);
 
 /*** NCSR Funcs ***/
+void D_NCSR_RequestMap(const char* const a_Map);
 void D_NCSR_RequestNewPlayer(struct D_ProfileEx_s* a_Profile);
 
 /*** NCQC Funcs ***/

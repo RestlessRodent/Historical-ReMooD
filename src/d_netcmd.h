@@ -155,7 +155,6 @@ typedef struct D_NetPlayer_s
 	tic_t LastLocalTic;							// Last local tic time
 	char DisplayName[MAXPLAYERNAME];			// Name to show in network games
 	D_NetState_t NetState;						// Current network state
-	D_NetController_t* NetCtrl;					// Net Controller
 	D_NetClient_t* NetClient;					// Network Client
 	
 	// Desync

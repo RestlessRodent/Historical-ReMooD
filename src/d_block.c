@@ -531,15 +531,184 @@ bool_t DS_RBSLoopBack_FlushF(struct D_RBlockStream_s* const a_Stream)
 *** NETWORK ***
 **************/
 
+/* I_RBSNetSockData_t -- Network Socket Data */
+typedef struct I_RBSNetSockData_s
+{
+#define IRBSNETSOCKBUFSIZE 2048
+	I_NetSocket_t* Socket;						// Socket
+	uint8_t ReadBuf[IRBSNETSOCKBUFSIZE];		// Read Buffer Fill
+} I_RBSNetSockData_t;
+
 /* DS_RBSNet_NetRecordF() -- Write block to network */
 size_t DS_RBSNet_NetRecordF(struct D_RBlockStream_s* const a_Stream, I_HostAddress_t* const a_Host)
 {
-	return 0;
+	I_RBSNetSockData_t* NetData;
+	I_NetSocket_t* Socket;
+	size_t RetVal, sz, i;
+	uint32_t BlockSize;
+	uint8_t* TBuf = NULL;
+	
+	/* Check */
+	if (!a_Stream)
+		return 0;
+	
+	/* Get Data */
+	NetData = a_Stream->Data;
+	
+	if (!NetData)
+		return 0;
+	
+	/* Get socket */
+	Socket = NetData->Socket;
+	
+	/* Create temporary buffer for sending */
+	sz = 4 + 4 + a_Stream->BlkSize;
+	TBuf = Z_Malloc(sz, PU_BLOCKSTREAM, NULL);//alloca(sz);
+	
+	// Write to it
+		// Header
+	for (i = 0; i < 4; i++)
+		TBuf[i] = a_Stream->BlkHeader[i];
+	((uint32_t*)TBuf)[1] = LittleSwapUInt32((uint32_t)a_Stream->BlkSize);
+	memmove(&(((uint32_t*)TBuf)[2]), a_Stream->BlkData, a_Stream->BlkSize);
+	
+	/* Send the entire buffer */
+	// Sending 4 different packets alone could cause fragmentation and out of
+	// order problems (which is REALLY not wanted). So this way, at least this
+	// is not much of a problem.
+	RetVal = I_NetSend(Socket, a_Host, TBuf, sz);
+	
+	/* Clean up and return */
+	Z_Free(TBuf);
+	return RetVal;
 }
 
 /* DS_RBSNet_NetPlayF() -- Play block from the network */
 bool_t DS_RBSNet_NetPlayF(struct D_RBlockStream_s* const a_Stream, I_HostAddress_t* const a_Host)
 {
+	I_RBSNetSockData_t* NetData;
+	I_NetSocket_t* Socket;
+	char Header[5];
+	uint32_t Len;
+	void* Data;
+	
+	/* Check */
+	if (!a_Stream)
+		return false;
+	
+	/* Get Data */
+	NetData = a_Stream->Data;
+	
+	if (!NetData)
+		return 0;
+	
+	/* Get socket */
+	Socket = NetData->Socket;
+	
+	// Check
+	if (!Socket)
+		return false;
+	
+	/* Read data from socket */
+	memset(NetData->ReadBuf, 0, IRBSNETSOCKBUFSIZE);
+	if (I_NetRecv(Socket, a_Host, NetData->ReadBuf, IRBSNETSOCKBUFSIZE) < 8)
+		return false;
+	
+	/* Extract information */
+	memset(Header, 0, sizeof(Header));
+	memmove(Header, NetData->ReadBuf, 4);
+	memmove(&Len, NetData->ReadBuf + 4, 4);
+	
+	// Swap Len
+	Len = LittleSwapUInt32(Len);
+	
+	// Limit
+	if (Len >= IRBSNETSOCKBUFSIZE - 8)
+		Len = IRBSNETSOCKBUFSIZE - 8 - 1;
+	
+	// Length Limit?
+	if (!Len)
+		return false;
+	
+	/* Write data into block */
+	D_RBSBaseBlock(a_Stream, Header);
+	D_RBSWriteChunk(a_Stream, NetData->ReadBuf + 8, Len);
+	
+	/* Was played back */
+	return true;
+}
+
+/*********************
+*** PERFECT STREAM ***
+*********************/
+
+/* DS_RBSPerfectData_t -- Perfect Stream */
+typedef struct DS_RBSPerfectData_s
+{
+	D_RBlockStream_t* WrapStream;				// Stream to wrap
+} DS_RBSPerfectData_t;
+
+/* DS_RBSPerfect_NetRecordF() -- Write block to perfect stream */
+size_t DS_RBSPerfect_NetRecordF(struct D_RBlockStream_s* const a_Stream, I_HostAddress_t* const a_Host)
+{
+	return 0;
+}
+
+/* DS_RBSPerfect_NetPlayF() -- Play block from the perfect stream */
+bool_t DS_RBSPerfect_NetPlayF(struct D_RBlockStream_s* const a_Stream, I_HostAddress_t* const a_Host)
+{
+	char Header[5];
+	DS_RBSPerfectData_t* Data;
+	bool_t OrigRetVal;
+	
+	/* Check */
+	if (!a_Stream)
+		return false;
+	
+	/* Get Data */
+	Data = a_Stream->Data;
+	
+	// Nothing there?
+	if (!Data)
+		return false;
+	
+	/* Go through ordered stream */
+	// And determine if there are any blocks that are OK and queued
+	
+	/* Constantly read blocks */
+	for (;;)
+	{
+		// Clear
+		memset(Header, 0, sizeof(Header));
+		OrigRetVal = D_RBSPlayNetBlock(Data->WrapStream, Header, a_Host);
+	
+		// If no block was read, return
+		if (!OrigRetVal)
+			return false;
+	
+		// Perfect Block
+		if (D_RBSCompareHeader("PERF", Header))
+		{
+			// Read this block and check to see if it is ordered enough and is
+			// fully checksummed and correct. If the block is good return it,
+			// otherwise add it to a queue to wait on ordered blocks. Also do
+			// handling of retransmission and such.
+		}
+	
+		// Normal Block
+		else
+		{
+			// Duplicate the data as needed
+				// Don't worry about host because that was copied already (ptrs)
+			D_RBSBaseBlock(a_Stream, Header);
+			D_RBSWriteChunk(a_Stream, Data->WrapStream->BlkData, Data->WrapStream->BlkSize);
+		
+			// Return the original value returned
+			return OrigRetVal;
+		}
+	}
+	
+	/* Nothing was returned */
 	return false;
 }
 
@@ -599,6 +768,7 @@ D_RBlockStream_t* D_RBSCreateNetStream(I_NetSocket_t* const a_NetSocket)
 {
 	FILE* File;
 	D_RBlockStream_t* New;
+	I_RBSNetSockData_t* NetData;
 	
 	/* Check */
 	if (!a_NetSocket)
@@ -608,8 +778,37 @@ D_RBlockStream_t* D_RBSCreateNetStream(I_NetSocket_t* const a_NetSocket)
 	New = Z_Malloc(sizeof(*New), PU_BLOCKSTREAM, NULL);
 	
 	/* Setup Data */
+	New->Data = NetData = Z_Malloc(sizeof(*NetData), PU_BLOCKSTREAM, NULL);
 	New->NetRecordF = DS_RBSNet_NetRecordF;
 	New->NetPlayF = DS_RBSNet_NetPlayF;
+	
+	/* Load into data */
+	NetData->Socket = a_NetSocket;
+	
+	/* Return Stream */
+	return New;
+}
+
+/* D_RBSCreatePerfectStream() -- Creates a wrapped "Perfect" Stream */
+D_RBlockStream_t* D_RBSCreatePerfectStream(D_RBlockStream_t* const a_Wrapped)
+{
+	D_RBlockStream_t* New;
+	DS_RBSPerfectData_t* Data;
+	
+	/* Check */
+	if (!a_Wrapped)
+		return NULL;
+	
+	/* Create block stream */
+	New = Z_Malloc(sizeof(*New), PU_BLOCKSTREAM, NULL);
+	
+	/* Setup Data */
+	New->Data = Data = Z_Malloc(sizeof(*Data), PU_BLOCKSTREAM, NULL);
+	New->NetRecordF = DS_RBSPerfect_NetRecordF;
+	New->NetPlayF = DS_RBSPerfect_NetPlayF;
+	
+	// Load stuff into data
+	Data->WrapStream = a_Wrapped;
 	
 	/* Return Stream */
 	return New;
@@ -654,6 +853,21 @@ void D_RBSUnStatStream(D_RBlockStream_t* const a_Stream)
 	/* Reset */
 	for (i = 0; i < 2; i++)
 		a_Stream->StatBlock[i] = a_Stream->StatBytes[i] = 0;
+}
+
+/* D_RBSCompareHeader() -- Compares headers */
+bool_t D_RBSCompareHeader(const char* const a_A, const char* const a_B)
+{
+	/* Check */
+	if (!a_A || !a_B)
+		return false;
+	
+	/* Compare */
+	if (strcasecmp(a_A, a_B) == 0)
+		return true;
+	
+	/* No match */
+	return false;
 }
 
 /* D_RBSBaseBlock() -- Base block */
@@ -734,7 +948,7 @@ bool_t D_RBSPlayBlock(D_RBlockStream_t* const a_Stream, char* const a_Header)
 			
 			// Copy header
 			if (a_Header)
-				memmove(a_Header, a_Stream->BlkHeader, sizeof(a_Stream->BlkHeader));
+				memmove(a_Header, a_Stream->BlkHeader, 4);
 				
 			// Read a block
 			return true;
@@ -752,7 +966,7 @@ bool_t D_RBSPlayBlock(D_RBlockStream_t* const a_Stream, char* const a_Header)
 			
 			// Copy header
 			if (a_Header)
-				memmove(a_Header, a_Stream->BlkHeader, sizeof(a_Stream->BlkHeader));
+				memmove(a_Header, a_Stream->BlkHeader, 4);
 				
 			// Read a block
 			return true;
@@ -781,7 +995,7 @@ bool_t D_RBSPlayNetBlock(D_RBlockStream_t* const a_Stream, char* const a_Header,
 			
 			// Copy header
 			if (a_Header)
-				memmove(a_Header, a_Stream->BlkHeader, sizeof(a_Stream->BlkHeader));
+				memmove(a_Header, a_Stream->BlkHeader, 4);
 				
 			// Read a block
 			return true;
