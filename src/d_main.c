@@ -358,7 +358,7 @@ void D_Display(void)
 						activeylookup = ylookup;
 						memcpy(ylookup, ylookup2, viewheight * sizeof(ylookup[0]));
 						
-						R_RenderPlayerView(&players[displayplayer[1]]);
+						R_RenderPlayerView(&players[displayplayer[1]], 1);
 						
 						viewwindowy = 0;
 						activeylookup = ylookup;
@@ -370,7 +370,7 @@ void D_Display(void)
 					if (players[displayplayer[0]].mo)
 					{
 						activeylookup = ylookup;
-						R_RenderPlayerView(&players[displayplayer[0]]);
+						R_RenderPlayerView(&players[displayplayer[0]], 0);
 					}
 					break;
 				case 2:
@@ -387,7 +387,7 @@ void D_Display(void)
 							if (g_SplitScreen > 1)
 								viewwindowy = vid.height / 2;
 								
-							R_RenderPlayerView(&players[displayplayer[i]]);
+							R_RenderPlayerView(&players[displayplayer[i]], i);
 							
 							viewwindowx = 0;
 							viewwindowy = 0;

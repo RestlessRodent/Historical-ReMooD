@@ -227,7 +227,10 @@ uint8_t gammatable[5][256] =
 RGBA_t* pLocalPalette = NULL;
 
 RGBA_t** l_DoomPals = NULL;
+uint8_t** l_MappedDoomPals = NULL;
 size_t l_NumDoomPals = 0;
+
+unsigned char NearestColor(unsigned char r, unsigned char g, unsigned char b);
 
 /* LoadPalette() -- yucky name, loads a palette for usage */
 // GhostlyDeath <December 14, 2011> -- Updated to WL
@@ -238,6 +241,8 @@ void LoadPalette(char* lumpname)
 	uint8_t* PlayPal;
 	fixed_t pR[256], pG[256], pB[256];
 	const WL_WADEntry_t* PalEntry;
+	RGBA_t* RGBData;
+	uint8_t* MappedData;
 	
 	/* There are no VWADs? */
 	if (!WL_IterateVWAD(NULL, true))
@@ -361,6 +366,35 @@ void LoadPalette(char* lumpname)
 	
 	/* Don't need this local anymore */
 	Z_Free(PlayPal);
+	
+	/* Re-map PLAYPAL entries into the colormapped variety */
+	// This is for split screen usage
+	
+	// Remove old mappings
+	if (l_MappedDoomPals)
+	{
+		for (i = 0; i < l_NumDoomPals; i++)
+			Z_Free(l_MappedDoomPals[i]);
+		Z_Free(l_MappedDoomPals);
+		l_MappedDoomPals = NULL;
+	}
+	
+	// Re-Allocate
+	l_MappedDoomPals = Z_Malloc(sizeof(*l_MappedDoomPals) * l_NumDoomPals, PU_STATIC, NULL);
+	
+	// Run through each palette, of each color
+	for (i = 0; i < l_NumDoomPals; i++)
+	{
+		// Get RGB Array
+		RGBData = l_DoomPals[i];
+		
+		// Allocate mapped copy
+		l_MappedDoomPals[i] = MappedData = Z_Malloc(256, PU_STATIC, NULL);
+		
+		// Convert all colors
+		for (j = 0; j < 256; j++)
+			MappedData[j] = NearestColor(RGBData[j].s.red, RGBData[j].s.green, RGBData[j].s.blue);
+	}
 }
 
 /* V_SetPalette() -- Set the current palette */
@@ -426,6 +460,15 @@ uint8_t* V_GetPalette(int palettenum)
 		return l_DoomPals[0];
 	else
 		return l_DoomPals[palettenum];
+}
+
+/* V_GetPaletteMapped() -- Gets colormapped version of palette */
+uint8_t* V_GetPaletteMapped(int palettenum)
+{
+	if (palettenum < 0 || palettenum >= l_NumDoomPals || !l_DoomPals[palettenum])
+		return l_MappedDoomPals[0];
+	else
+		return l_MappedDoomPals[palettenum];
 }
 
 /* V_SetPaletteLump -- Set the current palette based on the lump */

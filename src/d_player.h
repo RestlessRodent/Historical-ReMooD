@@ -179,6 +179,7 @@ typedef struct player_s
 	// For screen flashing (red or bright).
 	int damagecount;
 	int bonuscount;
+	uint8_t PalChoice;							// Palette to display for player
 	
 	// Who did damage (NULL for floors/ceilings).
 	mobj_t* attacker;

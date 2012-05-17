@@ -72,6 +72,7 @@ int* columnofs;
 //                      COLUMN DRAWING CODE STUFF
 // =========================================================================
 
+lighttable_t* dc_GlobalMap = NULL;
 lighttable_t* dc_colormap;
 int dc_x;
 int dc_yl;
@@ -594,7 +595,7 @@ void R_DrawColumn_8(void)
 	{
 		// Re-map color indices from wall texture column
 		//  using a lighting/special effects LUT.
-		*dest = dc_colormap[dc_source[(frac >> FRACBITS) & 127]];
+		*dest = dc_GlobalMap[dc_colormap[dc_source[(frac >> FRACBITS) & 127]]];
 		
 		dest += dc_drawymove;
 		frac += fracstep;
@@ -663,7 +664,7 @@ void R_DrawColumn_8(void)
 				//  using a lighting/special effects LUT.
 				// heightmask is the Tutti-Frutti fix -- killough
 
-				*dest = colormap[source[frac >> FRACBITS]];
+				*dest = dc_GlobalMap[colormap[source[frac >> FRACBITS]]];
 				dest += dc_drawymove;
 				if ((frac += fracstep) >= heightmask)
 					frac -= heightmask;
@@ -674,15 +675,15 @@ void R_DrawColumn_8(void)
 		{
 			while ((count -= 2) >= 0)	// texture height is a power of 2 -- killough
 			{
-				*dest = colormap[source[(frac >> FRACBITS) & heightmask]];
+				*dest = dc_GlobalMap[colormap[source[(frac >> FRACBITS) & heightmask]]];
 				dest += dc_drawymove;
 				frac += fracstep;
-				*dest = colormap[source[(frac >> FRACBITS) & heightmask]];
+				*dest = dc_GlobalMap[colormap[source[(frac >> FRACBITS) & heightmask]]];
 				dest += dc_drawymove;
 				frac += fracstep;
 			}
 			if (count & 1)
-				*dest = colormap[source[(frac >> FRACBITS) & heightmask]];
+				*dest = dc_GlobalMap[colormap[source[(frac >> FRACBITS) & heightmask]]];
 		}
 	}
 }
@@ -724,7 +725,7 @@ void R_DrawSkyColumn_8(void)
 	{
 		// Re-map color indices from wall texture column
 		//  using a lighting/special effects LUT.
-		*dest = dc_colormap[dc_source[(frac >> FRACBITS) & 255]];
+		*dest = dc_GlobalMap[dc_colormap[dc_source[(frac >> FRACBITS) & 255]]];
 		
 		dest += dc_drawymove;
 		frac += fracstep;
@@ -790,7 +791,7 @@ void R_DrawSkyColumn_8(void)
 				//  using a lighting/special effects LUT.
 				// heightmask is the Tutti-Frutti fix -- killough
 
-				*dest = colormap[source[frac >> FRACBITS]];
+				*dest = dc_GlobalMap[colormap[source[frac >> FRACBITS]]];
 				dest += dc_drawymove;
 				if ((frac += fracstep) >= heightmask)
 					frac -= heightmask;
@@ -801,15 +802,15 @@ void R_DrawSkyColumn_8(void)
 		{
 			while ((count -= 2) >= 0)	// texture height is a power of 2 -- killough
 			{
-				*dest = colormap[source[(frac >> FRACBITS) & heightmask]];
+				*dest = dc_GlobalMap[colormap[source[(frac >> FRACBITS) & heightmask]]];
 				dest += dc_drawymove;
 				frac += fracstep;
-				*dest = colormap[source[(frac >> FRACBITS) & heightmask]];
+				*dest = dc_GlobalMap[colormap[source[(frac >> FRACBITS) & heightmask]]];
 				dest += dc_drawymove;
 				frac += fracstep;
 			}
 			if (count & 1)
-				*dest = colormap[source[(frac >> FRACBITS) & heightmask]];
+				*dest = dc_GlobalMap[colormap[source[(frac >> FRACBITS) & heightmask]]];
 		}
 	}
 }
@@ -859,7 +860,7 @@ void R_DrawFuzzColumn_8(void)
 		//  a pixel that is either one column
 		//  left or right of the current one.
 		// Add index from colormap to index.
-		*dest = colormaps[6 * 256 + dest[fuzzoffset[fuzzpos]]];
+		*dest = dc_GlobalMap[colormaps[6 * 256 + dest[fuzzoffset[fuzzpos]]]];
 		
 		// Clamp table lookup index.
 		if (++fuzzpos == FUZZTABLE)
@@ -945,7 +946,7 @@ void R_DrawShadeColumn_8(void)
 	// Here we do an additional index re-mapping.
 	do
 	{
-		*dest = *(colormaps + (dc_source[frac >> FRACBITS] << 8) + (*dest));
+		*dest = dc_GlobalMap[*(colormaps + (dc_source[frac >> FRACBITS] << 8) + (*dest))];
 		dest += dc_drawymove;
 		frac += fracstep;
 	}
@@ -981,7 +982,7 @@ void R_DrawTranslucentColumn_8(void)
 	// Here we do an additional index re-mapping.
 	do
 	{
-		*dest = dc_colormap[*(dc_transmap + (dc_source[frac >> FRACBITS] << 8) + (*dest))];
+		*dest = dc_GlobalMap[dc_colormap[*(dc_transmap + (dc_source[frac >> FRACBITS] << 8) + (*dest))]];
 		dest += dc_drawymove;
 		frac += fracstep;
 	}
@@ -1044,7 +1045,7 @@ void R_DrawTranslucentColumn_8(void)
 				//  using a lighting/special effects LUT.
 				// heightmask is the Tutti-Frutti fix -- killough
 
-				*dest = dc_colormap[*(dc_transmap + (source[frac >> FRACBITS] << 8) + (*dest))];
+				*dest = dc_GlobalMap[dc_colormap[*(dc_transmap + (source[frac >> FRACBITS] << 8) + (*dest))]];
 				dest += dc_drawymove;
 				if ((frac += fracstep) >= heightmask)
 					frac -= heightmask;
@@ -1055,15 +1056,15 @@ void R_DrawTranslucentColumn_8(void)
 		{
 			while ((count -= 2) >= 0)	// texture height is a power of 2 -- killough
 			{
-				*dest = dc_colormap[*(dc_transmap + (source[frac >> FRACBITS] << 8) + (*dest))];
+				*dest = dc_GlobalMap[dc_colormap[*(dc_transmap + (source[frac >> FRACBITS] << 8) + (*dest))]];
 				dest += dc_drawymove;
 				frac += fracstep;
-				*dest = dc_colormap[*(dc_transmap + (source[frac >> FRACBITS] << 8) + (*dest))];
+				*dest = dc_GlobalMap[dc_colormap[*(dc_transmap + (source[frac >> FRACBITS] << 8) + (*dest))]];
 				dest += dc_drawymove;
 				frac += fracstep;
 			}
 			if (count & 1)
-				*dest = dc_colormap[*(dc_transmap + (source[frac >> FRACBITS] << 8) + (*dest))];
+				*dest = dc_GlobalMap[dc_colormap[*(dc_transmap + (source[frac >> FRACBITS] << 8) + (*dest))]];
 		}
 	}
 }
@@ -1122,7 +1123,7 @@ void R_DrawTranslatedTranslucentColumn_8(void)
 				//  using a lighting/special effects LUT.
 				// heightmask is the Tutti-Frutti fix -- killough
 				
-				*dest = dc_colormap[*(dc_transmap + (dc_colormap[dc_translation[dc_source[frac >> FRACBITS]]] << 8) + (*dest))];
+				*dest = dc_GlobalMap[dc_colormap[*(dc_transmap + (dc_colormap[dc_translation[dc_source[frac >> FRACBITS]]] << 8) + (*dest))]];
 				
 				dest += dc_drawymove;
 				if ((frac += fracstep) >= heightmask)
@@ -1134,16 +1135,16 @@ void R_DrawTranslatedTranslucentColumn_8(void)
 		{
 			while ((count -= 2) >= 0)	// texture height is a power of 2 -- killough
 			{
-				*dest = dc_colormap[*(dc_transmap + (dc_colormap[dc_translation[dc_source[frac >> FRACBITS]]] << 8) + (*dest))];
+				*dest = dc_GlobalMap[dc_colormap[*(dc_transmap + (dc_colormap[dc_translation[dc_source[frac >> FRACBITS]]] << 8) + (*dest))]];
 				dest += dc_drawymove;
 				frac += fracstep;
-				*dest = dc_colormap[*(dc_transmap + (dc_colormap[dc_translation[dc_source[frac >> FRACBITS]]] << 8) + (*dest))];
+				*dest = dc_GlobalMap[dc_colormap[*(dc_transmap + (dc_colormap[dc_translation[dc_source[frac >> FRACBITS]]] << 8) + (*dest))]];
 				dest += dc_drawymove;
 				frac += fracstep;
 			}
 			if (count & 1)
 			{
-				*dest = dc_colormap[*(dc_transmap + (dc_colormap[dc_translation[dc_source[frac >> FRACBITS]]] << 8) + (*dest))];
+				*dest = dc_GlobalMap[dc_colormap[*(dc_transmap + (dc_colormap[dc_translation[dc_source[frac >> FRACBITS]]] << 8) + (*dest))]];
 			}
 		}
 	}
@@ -1184,7 +1185,7 @@ void R_DrawTranslatedColumn_8(void)
 		//  used with PLAY sprites.
 		// Thus the "green" ramp of the player 0 sprite
 		//  is mapped to gray, red, black/indigo.
-		*dest = dc_colormap[dc_translation[dc_source[frac >> FRACBITS]]];
+		*dest = dc_GlobalMap[dc_colormap[dc_translation[dc_source[frac >> FRACBITS]]]];
 		
 		dest += vid.width;
 		
@@ -1226,7 +1227,7 @@ void R_DrawSpan_8(void)
 	{
 		// Lookup pixel from flat texture tile,
 		//  re-index using light/colormap.
-		*dest++ = ds_colormap[ds_source[((yfrac >> (16 - 6)) & (0x3f << 6)) | (xfrac >> 16)]];
+		*dest++ = dc_GlobalMap[ds_colormap[ds_source[((yfrac >> (16 - 6)) & (0x3f << 6)) | (xfrac >> 16)]]];
 		
 		// Next step in u,v.
 		xfrac += ds_xstep;
@@ -1263,7 +1264,7 @@ void R_DrawSpan_8(void)
 		count = count;
 		// Lookup pixel from flat texture tile,
 		//  re-index using light/colormap.
-		*dest++ = ds_colormap[ds_source[((yfrac >> (16 - flatsubtract)) & (flatmask)) | (xfrac >> 16)]];
+		*dest++ = dc_GlobalMap[ds_colormap[ds_source[((yfrac >> (16 - flatsubtract)) & (flatmask)) | (xfrac >> 16)]]];
 
 		// Next step in u,v.
 		xfrac += ds_xstep;
@@ -1313,7 +1314,7 @@ void R_DrawTranslucentSpan_8(void)
 		//  re-index using light/colormap.
 		//      *dest++ = ds_colormap[ds_source[spot]];
 //              *dest++ = ds_colormap[*(ds_transmap + (ds_source[spot] << 8) + (*dest))];
-		*dest++ = ds_colormap[*(ds_transmap + (ds_source[((yfrac >> (16 - flatsubtract)) & (flatmask)) | (xfrac >> 16)] << 8) + (*dest))];
+		*dest++ = dc_GlobalMap[ds_colormap[*(ds_transmap + (ds_source[((yfrac >> (16 - flatsubtract)) & (flatmask)) | (xfrac >> 16)] << 8) + (*dest))]];
 		
 		// Next step in u,v.
 		xfrac += xstep;
@@ -1406,20 +1407,20 @@ void R_DrawFogSpan_8(void)
 	
 	while (count >= 4)
 	{
-		dest[0] = colormap[dest[0]];
+		dest[0] = dc_GlobalMap[colormap[dest[0]]];
 		
-		dest[1] = colormap[dest[1]];
+		dest[1] = dc_GlobalMap[colormap[dest[1]]];
 		
-		dest[2] = colormap[dest[2]];
+		dest[2] = dc_GlobalMap[colormap[dest[2]]];
 		
-		dest[3] = colormap[dest[3]];
+		dest[3] = dc_GlobalMap[colormap[dest[3]]];
 		
 		dest += 4;
 		count -= 4;
 	}
 	
 	while (count--)
-		*dest++ = colormap[*dest];
+		*dest++ = dc_GlobalMap[colormap[*dest]];
 }
 
 //SoM: Fog wall.
@@ -1450,7 +1451,7 @@ void R_DrawFogColumn_8(void)
 	do
 	{
 		//Simple. Apply the colormap to what's allready on the screen.
-		*dest = dc_colormap[*dest];
+		*dest = dc_GlobalMap[dc_colormap[*dest]];
 		dest += dc_drawymove;
 	}
 	while (count--);

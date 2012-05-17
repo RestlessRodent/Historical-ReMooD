@@ -1191,9 +1191,18 @@ void R_RenderPlayerViewEx(player_t* player, int quarter)
 	//player->mo->flags &= ~MF_NOSECTOR;	// don't show self (uninit) clientprediction code
 }
 
-void R_RenderPlayerView(player_t* player)
+void R_RenderPlayerView(player_t* player, const size_t a_Screen)
 {
+	// GhostlyDeath <May 17, 2012> -- Split Screen Colormapping
+	if (g_SplitScreen > 0)
+		dc_GlobalMap = V_GetPaletteMapped(player->PalChoice);
+	else
+		dc_GlobalMap = V_GetPaletteMapped(0);
+	
 	R_RenderPlayerViewEx(player, 0);
+	
+	// Reset map
+	dc_GlobalMap = V_GetPaletteMapped(0);
 }
 
 // =========================================================================

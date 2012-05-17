@@ -67,6 +67,7 @@ void V_Init(void);
 #define VPALSMOOTHCOUNT 2		// Must be power of 2, higher number means smoother palette transition
 void V_SetPalette(int palettenum);
 uint8_t* V_GetPalette(int palettenum);
+uint8_t* V_GetPaletteMapped(int palettenum);
 
 void V_SetPaletteLump(char* pal);
 

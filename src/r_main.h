@@ -145,7 +145,7 @@ void R_ExecuteSetViewSize(void);
 void R_SetupFrame(player_t* player);
 
 // Called by G_Drawer.
-void R_RenderPlayerView(player_t* player);
+void R_RenderPlayerView(player_t* player, const size_t a_Screen);
 
 // add commands related to engine, at game startup
 void R_RegisterEngineStuff(void);

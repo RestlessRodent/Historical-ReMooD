@@ -49,6 +49,9 @@ extern int* columnofs;
 // COLUMN DRAWING CODE STUFF
 // -------------------------
 
+// GhostlyDeath <May 17, 2012> -- Global Map (affects EVERYTHING)
+extern lighttable_t* dc_GlobalMap;
+
 extern lighttable_t* dc_colormap;
 extern lighttable_t* dc_wcolormap;	//added:24-02-98:WATER!
 extern int dc_x;

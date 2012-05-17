@@ -1582,6 +1582,13 @@ static void STS_DrawPlayerBarEx(const size_t a_PID, const int32_t a_X, const int
 	/* Get profile of player */
 	Profile = ConsoleP->ProfileEx;
 	
+	/* We are looking at another player */
+	if (ConsoleP != DisplayP)
+	{
+		// Put warning if the player is under attack
+			// TODO
+	}
+	
 	/* Which status bar type to draw? */
 	// Overlay
 	if (true)
@@ -1615,6 +1622,7 @@ static void STS_DrawPlayerBarEx(const size_t a_PID, const int32_t a_X, const int
 /* ST_DrawPlayerBarsEx() -- Draw player status bars */
 void ST_DrawPlayerBarsEx(void)
 {
+	player_t* ConsoleP, *DisplayP;
 	int p, x, y, w, h;
 	
 	/* Screen division? */
@@ -1634,10 +1642,18 @@ void ST_DrawPlayerBarsEx(void)
 	/* Draw each player */
 	for (p = 0; p < g_SplitScreen + 1; p++)
 	{
+		// Get players to draw for
+		ConsoleP = &players[consoleplayer[p]];
+		DisplayP = &players[displayplayer[p]];
+		
+		// Modify palette?
+		if (g_SplitScreen == 0)	// Only 1 player inside
+			V_SetPalette(DisplayP->PalChoice);
+		
 		// Draw Bar
 		STS_DrawPlayerBarEx(p, x, y, w, h);
 		
-		// Add to coords
+		// Add to coords (finished drawing everything)
 		if (g_SplitScreen == 1)
 			y += h;
 		else if (g_SplitScreen > 1)
@@ -1650,7 +1666,6 @@ void ST_DrawPlayerBarsEx(void)
 				y += h;
 			}
 		}
-		
 	}
 }
 
@@ -1662,6 +1677,7 @@ void ST_InitEx(void)
 /* ST_TickerEx() -- Extended Ticker */
 void ST_TickerEx(void)
 {
+	player_t* Player;
 	int ChosePal = 0;
 	int BaseDam = 0, BzFade;
 	size_t p;
@@ -1669,10 +1685,67 @@ void ST_TickerEx(void)
 	/* Update for all players */
 	for (p = 0; p < MAXPLAYERS; p++)
 	{
+		// Get player
+		Player = &players[p];
+		
 		// No player here?
 		if (!playeringame[p])
 			continue;
 		
+		// Player Palette
+			// Reset variables -- Otherwise palettes "stick"
+		ChosePal = BaseDam = BzFade = 0;
+		
+			// Berserker fade
+		BaseDam = Player->damagecount;
+	
+		if (Player->powers[pw_strength])
+		{
+			BzFade = 12 - (Player->powers[pw_strength] >> 6);
+		
+			if (BzFade > BaseDam)
+				BaseDam = BzFade;
+		}
+	
+			// Player is hurt?
+		if (BaseDam)
+		{
+			// Division is number of palettes
+			ChosePal = FixedMul(NUMREDPALS << FRACBITS, FixedDiv((BaseDam) << FRACBITS, 100 << FRACBITS)) >> FRACBITS;
+			ChosePal++;				// +7
+			//ChosePal = (plyr->damagecount * (10000 / NUMREDPALS) ) / 100;
+		
+			// Don't exceed
+			if (ChosePal >= NUMREDPALS)
+				ChosePal = NUMREDPALS - 1;
+			
+			// Offset
+			ChosePal += STARTREDPALS;
+		}
+	
+			// Player got an item
+		else if (Player->bonuscount)
+		{
+			// Division is number of palettes
+			ChosePal = FixedMul(NUMBONUSPALS << FRACBITS, FixedDiv((Player->bonuscount) << FRACBITS, 100 << FRACBITS)) >> FRACBITS;
+			ChosePal++;				// +7
+		
+			// Don't exceed
+			if (ChosePal >= NUMBONUSPALS)
+				ChosePal = NUMBONUSPALS - 1;
+			
+			// Offset
+			ChosePal += STARTBONUSPALS;
+		}
+	
+			// Player has radiation suit
+		else if (Player->powers[pw_ironfeet] > 4 * 32 || Player->powers[pw_ironfeet] & 8)
+		{
+			ChosePal = RADIATIONPAL;
+		}
+		
+		// Set palette to what was chosen
+		Player->PalChoice = ChosePal;
 	}
 }
 
