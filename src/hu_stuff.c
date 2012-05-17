@@ -477,10 +477,7 @@ void HU_Ticker(void)
 		{
 			if (playeringame[consoleplayer[i]])
 			{
-				if (gamekeydown[gamecontrol[i][gc_scores][0]] || gamekeydown[gamecontrol[i][gc_scores][1]])
-					hu_showscores = !chat_on;
-				else
-					hu_showscores = playerdeadview;	//hack from P_DeathThink()
+				hu_showscores = playerdeadview;	//hack from P_DeathThink()
 			}
 		}
 	}
@@ -582,13 +579,6 @@ bool_t HU_Responder(event_t* ev)
 	
 	if (!chat_on)
 	{
-		// enter chat mode
-		if (ev->data1 == gamecontrol[gc_talkkey][0] || ev->data1 == gamecontrol[gc_talkkey][1])
-		{
-			eatkey = chat_on = true;
-			w_chat[0] = 0;
-			HU_queueChatChar(HU_BROADCAST);
-		}
 	}
 	else
 	{

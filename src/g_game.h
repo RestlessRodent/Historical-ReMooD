@@ -87,7 +87,6 @@ extern CV_PossibleValue_t skill_cons_t[];
 extern CV_PossibleValue_t exmy_cons_t[];
 
 /* Prototypes */
-void Command_Turbo_f(void);
 char* G_BuildMapName(int episode, int map);
 short G_ClipAimingPitch(int* aiming);
 void G_DoReborn(int playernum);

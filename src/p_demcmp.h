@@ -192,6 +192,9 @@ typedef enum P_EXGSBitID_e
 	PEXGSBID_GAMEAIRFRICTION,					// Friction in air
 	PEXGSBID_GAMEWATERFRICTION,					// Friction in water
 	PEXGSBID_GAMEMIDWATERFRICTION,				// Friction in water (not on ground)
+	PEXGSBID_GAMEALLOWLEVELEXIT,				// Allow Exiting the game
+	PEXGSBID_GAMEALLOWROCKETJUMP,				// Allow Rocket Jumping
+	PEXGSBID_PLALLOWAUTOAIM,					// Allow Auto-Aiming
 	
 	PEXGSNUMBITIDS
 } P_EXGSBitID_t;

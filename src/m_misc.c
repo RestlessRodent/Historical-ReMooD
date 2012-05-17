@@ -275,9 +275,6 @@ void M_FirstLoadConfig(void)
 	
 	memset(ReMooDHome, 0, sizeof(ReMooDHome));
 	
-	// Setup Default Controls
-	G_Controldefault();
-	
 	// 1. Check -config
 	if (!ConfigMode && M_CheckParm("-config") && M_IsNextParm())
 	{
@@ -486,7 +483,6 @@ void M_SaveConfig(char* filename)
 	//FIXME: save key aliases if ever implemented..
 	
 	CV_SaveVariables(f);
-	G_SaveKeySetting(f);
 	
 	fclose(f);
 	

@@ -253,7 +253,6 @@ consvar_t cv_showmessages = { "showmessages", "1", CV_SAVE | CV_CALL | CV_NOINIT
 	ShowMessage_OnChange
 };
 consvar_t cv_disabledemos = { "disabledemos", "0", CV_SAVE, CV_YesNo };
-consvar_t cv_allowturbo = { "allowturbo", "0", CV_NETVAR | CV_CALL, CV_YesNo, AllowTurbo_OnChange };
 consvar_t cv_mousemove = { "mousemove", "1", CV_SAVE, CV_OnOff };
 consvar_t cv_mousemove2 = { "mousemove2", "1", CV_SAVE, CV_OnOff };
 consvar_t cv_joystickfreelook = { "joystickfreelook", "0", CV_SAVE, CV_OnOff };
@@ -457,55 +456,8 @@ uint8_t BestWeapon(player_t* player)
 	return 0;
 }
 
-#define GAMEKEYDOWN(x) (gamekeydown[gamecontrol[player][x][0]] || gamekeydown[gamecontrol[player][x][1]])
-
 static fixed_t originalforwardmove[2] = { 0x19, 0x32 };
 static fixed_t originalsidemove[2] = { 0x18, 0x28 };
-
-void AllowTurbo_OnChange(void)
-{
-	if (!cv_allowturbo.value && netgame)
-	{
-		// like turbo 100
-		forwardmove[0] = originalforwardmove[0];
-		forwardmove[1] = originalforwardmove[1];
-		sidemove[0] = originalsidemove[0];
-		sidemove[1] = originalsidemove[1];
-	}
-}
-
-//  turbo <10-255>
-//
-void Command_Turbo_f(void)
-{
-	int scale = 200;
-	
-	if (!cv_allowturbo.value && netgame)
-	{
-		CONL_PrintF("This server don't allow turbo\n");
-		return;
-	}
-	
-	if (COM_Argc() != 2)
-	{
-		CONL_PrintF("turbo <10-255> : set turbo");
-		return;
-	}
-	
-	scale = atoi(COM_Argv(1));
-	
-	if (scale < 10)
-		scale = 10;
-	if (scale > 255)
-		scale = 255;
-		
-	CONL_PrintF("turbo scale: %i%%\n", scale);
-	
-	forwardmove[0] = originalforwardmove[0] * scale / 100;
-	forwardmove[1] = originalforwardmove[1] * scale / 100;
-	sidemove[0] = originalsidemove[0] * scale / 100;
-	sidemove[1] = originalsidemove[1] * scale / 100;
-}
 
 //
 // G_DoLoadLevel
@@ -556,11 +508,6 @@ void G_DoLoadLevel(bool_t resetplayer)
 	for (i = 0; i < MAXPLAYERS; i++)
 		if (players[i].camera.chase)
 			P_ResetCamera(&players[i]);
-		
-	// clear cmd building stuff
-	memset(gamekeydown, 0, sizeof(gamekeydown));
-	joyxmove = joyymove = 0;
-	mousex = mousey = 0;
 	
 	// clear hud messages remains (usually from game startup)
 	HU_ClearFSPics();
@@ -628,8 +575,6 @@ bool_t G_Responder(event_t* ev)
 		if (F_Responder(ev))
 			return true;		// finale ate the event
 	}
-	// update keys current state
-	G_MapEventsToControls(ev);
 	
 	switch (ev->type)
 	{

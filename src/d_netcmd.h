@@ -81,7 +81,6 @@ extern consvar_t cv_teamdamage;
 extern consvar_t cv_fraglimit;
 extern consvar_t cv_timelimit;
 extern uint32_t timelimitintics;
-extern consvar_t cv_allowturbo;
 extern consvar_t cv_allowexitlevel;
 
 extern consvar_t cv_netstat;

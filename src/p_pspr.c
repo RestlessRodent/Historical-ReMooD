@@ -674,7 +674,7 @@ void P_BulletSlope(mobj_t* mo)
 	angle_t an;
 	
 	//added:18-02-98: if AUTOAIM, try to aim at something
-	if (!mo->player->autoaim_toggle || !DEMOCVAR(allowautoaim).value || !P_EXGSGetValue(PEXGSBID_COMOUSEAIM))
+	if (!mo->player->autoaim_toggle || !P_EXGSGetValue(PEXGSBID_PLALLOWAUTOAIM) || !P_EXGSGetValue(PEXGSBID_COMOUSEAIM))
 		goto notagetfound;
 		
 	// see which target is to be aimed at

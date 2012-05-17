@@ -2156,7 +2156,7 @@ void P_ProcessSpecialSector(player_t* player, sector_t* sector, bool_t instantda
 				if (instantdamage)
 					P_DamageMobj(player->mo, NULL, NULL, 20);
 					
-				if ((player->health <= 10) && cv_allowexitlevel.value)
+				if ((player->health <= 10) && P_EXGSGetValue(PEXGSBID_GAMEALLOWLEVELEXIT))
 					G_ExitLevel();
 				break;
 				

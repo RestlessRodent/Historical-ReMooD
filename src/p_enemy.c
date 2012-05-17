@@ -2042,7 +2042,7 @@ void A_BossDeath(mobj_t* mo, player_t* player, pspdef_t* psp)
 	// Level Exiting Last
 	if ((CheckFlags & MULTISPECFLAGS) && g_CurrentLevelInfo->ExitOnSpecial)
 	{
-		if (cv_allowexitlevel.value)
+		if (P_EXGSGetValue(PEXGSBID_GAMEALLOWLEVELEXIT))
 			G_ExitLevel();
 	}
 #undef MULTISPECFLAGS
@@ -2219,7 +2219,7 @@ void A_BrainExplode(mobj_t* mo, player_t* player, pspdef_t* psp)
 
 void A_BrainDie(mobj_t* mo, player_t* player, pspdef_t* psp)
 {
-	if (cv_allowexitlevel.value)
+	if (P_EXGSGetValue(PEXGSBID_GAMEALLOWLEVELEXIT))
 		G_ExitLevel();
 }
 

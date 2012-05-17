@@ -221,7 +221,6 @@ consvar_t cv_timelimit = { "timelimit", "0", CV_NETVAR | CV_CALL | CV_NOINIT, CV
 consvar_t cv_deathmatch = { "deathmatch", "0", CV_NETVAR | CV_CALL, deathmatch_cons_t,
 	Deahtmatch_OnChange
 };
-consvar_t cv_allowexitlevel = { "allowexitlevel", "1", CV_NETVAR, CV_YesNo, NULL };
 
 consvar_t cv_netstat = { "netstat", "0", 0, CV_OnOff };
 
@@ -255,16 +254,10 @@ void D_RegisterClientCommands(void)
 	COM_AddCommand("addfile", Command_Addfile);
 	COM_AddCommand("pause", Command_Pause);
 	
-	COM_AddCommand("turbo", Command_Turbo_f);	// turbo speed
 	COM_AddCommand("version", Command_Version_f);
 	COM_AddCommand("quit", Command_Quit_f);
 	
 	COM_AddCommand("chatmacro", Command_Chatmacro_f);	// hu_stuff.c
-	
-	COM_AddCommand("setcontrol1", Command_Setcontrol_f);
-	COM_AddCommand("setcontrol2", Command_Setcontrol_f);
-	COM_AddCommand("setcontrol3", Command_Setcontrol_f);
-	COM_AddCommand("setcontrol4", Command_Setcontrol_f);
 	
 	COM_AddCommand("frags", Command_Frags_f);
 	COM_AddCommand("teamfrags", Command_TeamFrags_f);
@@ -368,9 +361,6 @@ void D_RegisterClientCommands(void)
 	CV_RegisterVar(&cv_use_mouse2);
 	CV_RegisterVar(&cv_invertmouse2);
 	CV_RegisterVar(&cv_alwaysfreelook2);
-	CV_RegisterVar(&cv_mousemove2);
-	CV_RegisterVar(&cv_mousesens2);
-	CV_RegisterVar(&cv_mlooksens2);
 	CV_RegisterVar(&cv_joystickfreelook);
 	
 	// WARNING : the order is important when inititing mouse2
@@ -379,29 +369,10 @@ void D_RegisterClientCommands(void)
 #ifdef LMOUSE2
 	CV_RegisterVar(&cv_mouse2opt);
 #endif
-	CV_RegisterVar(&cv_mousesens);
-	CV_RegisterVar(&cv_mousesensy);
-	CV_RegisterVar(&cv_mlooksens);
-	CV_RegisterVar(&cv_controlperkey);
-	CV_RegisterVar(&cv_legacymouse);
-	CV_RegisterVar(&cv_m_legacymouse);
-	CV_RegisterVar(&cv_m_classicalt);
-	CV_RegisterVar(&cv_m_xsensitivity);
-	CV_RegisterVar(&cv_m_ysensitivity);
-	CV_RegisterVar(&cv_m_xaxismode);
-	CV_RegisterVar(&cv_m_yaxismode);
-	CV_RegisterVar(&cv_m_xaxissecmode);
-	CV_RegisterVar(&cv_m_yaxissecmode);
 	
 	CV_RegisterVar(&cv_use_mouse);
 	CV_RegisterVar(&cv_use_joystick);
 	CV_RegisterVar(&cv_use_joyids);
-	CV_RegisterVar(&cv_allowjump);
-	CV_RegisterVar(&cv_allowrocketjump);
-	CV_RegisterVar(&cv_allowautoaim);
-	CV_RegisterVar(&cv_forceautoaim);
-	CV_RegisterVar(&cv_allowturbo);
-	CV_RegisterVar(&cv_allowexitlevel);
 	
 	//s_sound.c
 	CV_RegisterVar(&cv_soundvolume);
@@ -429,7 +400,6 @@ void D_RegisterClientCommands(void)
 	CV_RegisterVar(&cv_scr_height);
 	CV_RegisterVar(&cv_fragsweaponfalling);
 	CV_RegisterVar(&cv_classicblood);
-	CV_RegisterVar(&cv_classicrocketblast);
 	CV_RegisterVar(&cv_classicmeleerange);
 	CV_RegisterVar(&cv_classicmonsterlogic);
 	

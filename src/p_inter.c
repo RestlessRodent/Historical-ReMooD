@@ -1304,7 +1304,7 @@ bool_t P_DamageMobj(mobj_t* target, mobj_t* inflictor, mobj_t* source, int damag
 		
 		   if (source && demo_version >= 124 && (demo_version < 129 || !cv_allowrocketjump.value))
 		 */
-		if (source && P_EXGSGetValue(PEXGSBID_COROCKETZTHRUST) && (!P_EXGSGetValue(PEXGSBID_COALLOWROCKETJUMPING) || !DEMOCVAR(allowrocketjump).value))
+		if (source && P_EXGSGetValue(PEXGSBID_COROCKETZTHRUST) && (!P_EXGSGetValue(PEXGSBID_COALLOWROCKETJUMPING) || !P_EXGSGetValue(PEXGSBID_GAMEALLOWROCKETJUMP)))
 		{
 			int dist, z;
 			
@@ -1330,7 +1330,7 @@ bool_t P_DamageMobj(mobj_t* target, mobj_t* inflictor, mobj_t* source, int damag
 			amomz = FixedMul(thrust, finesine[ang]);
 		}
 		else					//SoM: 2/28/2000: Added new function.
-			if (P_EXGSGetValue(PEXGSBID_COALLOWROCKETJUMPING) && DEMOCVAR(allowrocketjump).value)
+			if (P_EXGSGetValue(PEXGSBID_COALLOWROCKETJUMPING) && P_EXGSGetValue(PEXGSBID_GAMEALLOWROCKETJUMP))
 			{
 				fixed_t delta1 = abs(inflictor->z - target->z);
 				fixed_t delta2 = abs(inflictor->z - (target->z + target->height));

@@ -1587,6 +1587,7 @@ void D_DoomMain(void)
 	
 	/*** New Initialization ***/
 	/* Core */
+	CONL_PrintF(text[Z_INIT_NUM]);
 	Z_Init();
 	CONL_Init(4096, 1024);
 	
@@ -1724,10 +1725,6 @@ void D_DoomMain(void)
 		}
 		autostart = true;
 	}
-	
-	CONL_PrintF(text[Z_INIT_NUM]);
-	
-	G_InitKeys();
 		
 	CONL_PrintF(text[W_INIT_NUM]);
 	// load wad, including the main wad file

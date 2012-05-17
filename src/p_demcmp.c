@@ -376,6 +376,19 @@ static P_EXGSVariable_t l_GSVars[PEXGSNUMBITIDS] =
 	{PEXGST_FLOAT, PEXGSBID_GAMEMIDWATERFRICTION, "game_midwaterfriction", "Friction In Mid-Water",
 		"This modifies the amount of friction in water when not touching the ground, the higher the easier it is to move.", PEXGSGM_ANY, PEXGSDR_NOCHECK, 0, {0, 32768}, 32768,
 		PEXGSMC_GAME},
+	
+	{PEXGST_INTEGER, PEXGSBID_GAMEALLOWLEVELEXIT, "game_allowlevelexit", "Allow Level Exiting",
+		"Allows players or monsters to exit the level.", PEXGSGM_ANY, PEXGSDR_NOCHECK, 0, {0, 1}, 1,
+		PEXGSMC_GAME},
+	
+	{PEXGST_INTEGER, PEXGSBID_GAMEALLOWROCKETJUMP, "game_allowrocketjump", "Allow Rocket Jumping",
+		"Enables the use of rocket jumping.", PEXGSGM_ANY, PEXGSDR_NOCHECK, 0, {0, 1}, 0,
+		PEXGSMC_GAME},
+		
+	{PEXGST_INTEGER, PEXGSBID_PLALLOWAUTOAIM, "pl_allowautoaim", "Allow Auto-Aiming",
+		"Allows players to aim vertically automatically.", PEXGSGM_ANY, PEXGSDR_NOCHECK, 0, {0, 1}, 1,
+		PEXGSMC_PLAYERS},
+	
 };
 
 /*** FUNCTIONS ***/
