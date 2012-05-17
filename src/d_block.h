@@ -171,6 +171,7 @@ typedef struct D_RBlockStream_s
 	size_t BlkSize;								// Block Size
 	size_t BlkBufferSize;						// Size of buffer
 	size_t ReadOff;								// Read Offset
+	bool_t Marked;								// Marked?
 	
 	/* Functions */
 	size_t (*RecordF)(struct D_RBlockStream_s* const a_Stream);
@@ -197,6 +198,7 @@ void D_RBSCloseStream(D_RBlockStream_t* const a_Stream);
 
 void D_RBSStatStream(D_RBlockStream_t* const a_Stream, uint32_t* const a_ReadBk, uint32_t* const a_WriteBk, uint32_t* const a_ReadBy, uint32_t* const a_WriteBy);
 void D_RBSUnStatStream(D_RBlockStream_t* const a_Stream);
+bool_t D_RBSMarkedStream(D_RBlockStream_t* const a_Stream);
 
 bool_t D_RBSCompareHeader(const char* const a_A, const char* const a_B);
 bool_t D_RBSBaseBlock(D_RBlockStream_t* const a_Stream, const char* const a_Header);

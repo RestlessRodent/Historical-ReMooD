@@ -269,6 +269,22 @@ CONL_StaticVar_t l_SVMOTD =
 	NULL
 };
 
+// sv_connectpassword -- Password needed to connect
+CONL_StaticVar_t l_SVConnectPassword =
+{
+	CLVT_STRING, NULL, CLVF_SAVE,
+	"sv_connectpassword", DSTR_CVHINT_SVCONNECTPASSWORD, CLVVT_STRING, "",
+	NULL
+};
+
+// sv_joinpassword -- Password needed to join
+CONL_StaticVar_t l_SVJoinPassword =
+{
+	CLVT_STRING, NULL, CLVF_SAVE,
+	"sv_joinpassword", DSTR_CVHINT_SVJOINPASSWORD, CLVVT_STRING, "",
+	NULL
+};
+
 /*** FUNCTIONS ***/
 
 /* D_NCAllocClient() -- Creates a new network client */
@@ -288,6 +304,21 @@ D_NetClient_t* D_NCAllocClient(void)
 	/* Append to end */
 	Z_ResizeArray((void**)&l_Clients, sizeof(*l_Clients), l_NumClients, l_NumClients + 1);
 	return (l_Clients[l_NumClients++] = New);
+}
+
+/* D_NCFindClientIsServer() -- Find client that is the server */
+D_NetClient_t* D_NCFindClientIsServer(void)
+{
+	size_t i;
+	
+	/* Look through list */
+	for (i = 0; i < l_NumClients; i++)
+		if (l_Clients[i])
+			if (l_Clients[i]->IsServer)
+				return l_Clients[i];
+	
+	/* Not Found */
+	return NULL;
 }
 
 /* D_NCFindClientByNetPlayer() -- Finds client by net player */
@@ -339,6 +370,8 @@ bool_t D_CheckNetGame(void)
 	CONL_VarRegister(&l_SVWADURL);
 	CONL_VarRegister(&l_SVIRC);
 	CONL_VarRegister(&l_SVMOTD);
+	CONL_VarRegister(&l_SVConnectPassword);
+	CONL_VarRegister(&l_SVJoinPassword);
 		
 	/* Create LoopBack Client */
 	Client = D_NCAllocClient();
@@ -352,6 +385,10 @@ bool_t D_CheckNetGame(void)
 	Client->Streams[DNCSP_WRITE] = Client->CoreStream;
 	Client->Streams[DNCSP_PERFECTREAD] = Client->PerfectStream;
 	Client->Streams[DNCSP_PERFECTWRITE] = Client->PerfectStream;
+	
+	// Set as local and server
+	Client->IsLocal = true;
+	Client->IsServer = true;
 	
 	/* Create Local Network Client */
 	// Attempt creating a UDP Server
@@ -379,6 +416,10 @@ bool_t D_CheckNetGame(void)
 		Client->Streams[DNCSP_WRITE] = Client->CoreStream;
 		Client->Streams[DNCSP_PERFECTREAD] = Client->PerfectStream;
 		Client->Streams[DNCSP_PERFECTWRITE] = Client->PerfectStream;
+		
+		// Set as local and server
+		Client->IsLocal = true;
+		Client->IsServer = true;
 	}
 	
 	return ret;
@@ -545,6 +586,12 @@ void D_NCUpdate(void)
 							FromAddress.Port
 						);
 				
+				////////////////////////////////////////////////////////////////
+				////////////////////////////////////////////////////////////////
+				////////////////
+				//////////////// NON-PERFECT PACKETS
+				////////////////
+				
 				// Everything -- Ping request
 				if (D_RBSCompareHeader("PING", Header))
 				{
@@ -653,6 +700,21 @@ void D_NCUpdate(void)
 				// Client -- Recieve Game Info Extended
 				else if (D_RBSCompareHeader("INFX", Header))
 				{
+				}
+				
+				
+				////////////////////////////////////////////////////////////////
+				////////////////////////////////////////////////////////////////
+				////////////////
+				//////////////// PERFECT PACKETS
+				////////////////
+				else if (D_RBSMarkedStream(Stream))
+				{
+					// Debug?
+					if (devparm)
+						D_SyncNetDebugMessage("Perfect!");
+					
+					// Commands
 				}
 				
 				// Clear from address
@@ -1023,46 +1085,59 @@ void D_NCUpdate(void)
 /* D_NCSR_RequestMap() -- Requests that the map changes */
 void D_NCSR_RequestMap(const char* const a_Map)
 {
-#if 0
-	D_NetController_t* Ctrl;
+	D_NetClient_t* Server;
+	P_LevelInfoEx_t* Info;
 	size_t i;
+	bool_t LocalHit;
 	
 	/* Check */
 	if (!a_Map)
 		return;
 	
-	/* Find Server Player */
-	Ctrl = D_NCGetServer();
+	/* Find Server */
+	Server = D_NCFindClientIsServer();
 	
 	// Not found?
-	if (!Ctrl)
+	if (!Server)
 		return;
 	
-	/* Check if the server is also local */
-	// This means we don't own the game
-	if (!Ctrl->IsLocal)
-		return;
-	
-	/* Send map change to server */
-	for (i = 0; i < l_NumControllers; i++)
+	// Found server, but we are not the server
+	if (!Server->IsServer)
 	{
-		// Get controller
-		Ctrl = l_Controllers[i];
-		
-		// Bad?
-		if (!Ctrl)
-			continue;
-		
-		// Not the server?
-		if (!Ctrl->IsServer)
-			continue;
-		
-		// Write map message
-		D_RBSBaseBlock(Ctrl->BlockStream, "MAPC");
-		D_RBSWriteString(Ctrl->BlockStream, a_Map);
-		D_RBSRecordBlock(Ctrl->BlockStream);
+		CONL_OutputU(DSTR_NET_YOUARENOTTHESERVER, "");
+		return;
 	}
-#endif
+	
+	/* Find level */
+	Info = P_FindLevelByNameEx(a_Map, NULL);
+	
+	// Check
+	if (!Info)
+	{
+		CONL_OutputU(DSTR_NET_LEVELNOTFOUND, "%s", a_Map);
+		return;
+	}
+	
+	/* Inform that everyone should change the map */
+	LocalHit = false;	// Prevent sending via double-client
+	for (i = 0; i < l_NumClients; i++)
+	{
+		// Skip empty spots
+		if (!l_Clients[i])
+			continue;
+		
+		// Send packet?
+		if ((l_Clients[i]->IsLocal && !LocalHit) || (!l_Clients[i]->IsLocal))
+		{
+			D_RBSBaseBlock(l_Clients[i]->Streams[DNCSP_PERFECTWRITE], "MAPC");
+			D_RBSWriteString(l_Clients[i]->Streams[DNCSP_PERFECTWRITE], a_Map);
+			D_RBSRecordNetBlock(l_Clients[i]->Streams[DNCSP_PERFECTWRITE], &l_Clients[i]->Address);
+		}
+		
+		// Set local
+		if (l_Clients[i]->IsLocal)
+			LocalHit = true;
+	}
 }
 
 /* D_NCSR_RequestNewPlayer() -- Requests that a local profile join remote server */
@@ -1103,6 +1178,7 @@ void D_NCSR_RequestNewPlayer(struct D_ProfileEx_s* a_Profile)
 void D_NSZZ_SendINFO(struct D_RBlockStream_s* a_Stream, const uint32_t a_LocalTime)
 {
 	const WL_WADFile_t* Rover;
+	uint8_t u8;
 	
 	/* Write Version */
 	D_RBSWriteUInt8(a_Stream, VERSION);
@@ -1123,6 +1199,19 @@ void D_NSZZ_SendINFO(struct D_RBlockStream_s* a_Stream, const uint32_t a_LocalTi
 	D_RBSWriteString(a_Stream, l_SVURL.Value->String);
 	D_RBSWriteString(a_Stream, l_SVWADURL.Value->String);
 	D_RBSWriteString(a_Stream, l_SVIRC.Value->String);
+	
+	/* Passwords */
+	// Connect Password
+	u8 = '-';
+	if (strlen(l_SVConnectPassword.Value->String) > 0)
+		u8 = 'P';
+	D_RBSWriteUInt8(a_Stream, u8);
+	
+	// Join Password
+	u8 = '-';
+	if (strlen(l_SVJoinPassword.Value->String) > 0)
+		u8 = 'J';
+	D_RBSWriteUInt8(a_Stream, u8);
 	
 	/* Write WAD Info */
 	for (Rover = WL_IterateVWAD(NULL, true); Rover; Rover = WL_IterateVWAD(Rover, true))

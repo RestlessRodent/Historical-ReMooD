@@ -182,6 +182,9 @@ INFO	-- Info About Current Server
 		str	Location where WADs should be downloaded from (sv_wadurl)
 		str	IRC Channel (sv_irc)
 		
+		u8	'P' Requires Connecting Password
+		u8	'J'	Required Joining Password (once connected)
+		
 		..
 		u8	WAD Marker ('W' == WAD, 'X' == Stop Reading WADs)
 		--
@@ -275,4 +278,23 @@ MSLS	-- Server List
 ### SERVER -> MASTERSERVER ###
 
 ### MASTERSERVER -> SERVER ###
+
+###########################
+######### PERFECT PACKETS
+###########################
+
+PERF	-- Perfect Packet
+		u8	Reponse Code
+		u32	Key[0]
+		u32	Key[1]
+		u32	Key[2]
+		u32	Key[3]
+		u32	Packet Number
+		u32	CheckSum of Data
+		u32	Header of packet
+		u32	Size of packet
+		u32	Mask Encoding (XOR of all the above)
+		..
+		u8	Packet Data
+		..
 

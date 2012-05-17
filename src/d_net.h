@@ -113,6 +113,7 @@ extern uint32_t g_NetStat[4];					// Network stats
 /*** FUNCTIONS ***/
 
 D_NetClient_t* D_NCAllocClient(void);
+D_NetClient_t* D_NCFindClientIsServer(void);
 D_NetClient_t* D_NCFindClientByNetPlayer(struct D_NetPlayer_s* const a_NetPlayer);
 D_NetClient_t* D_NCFindClientByHost(I_HostAddress_t* const a_Host);
 D_NetClient_t* D_NCFindClientByPlayer(struct player_s* const a_Player);

@@ -1110,6 +1110,12 @@ StringGroupEX_t UnicodeStrings[NUMUNICODESTRINGS] =
 	{				   "CVHINT_SVWADURL", "Location where WADs should be downloaded from."},
 	{					  "CVHINT_SVIRC", "The IRC Channel for this server."},
 	{					 "CVHINT_SVMOTD", "The message displayed to clients when joining."},
+	{		  "CVHINT_SVCONNECTPASSWORD", "The password needed to connect to a server."},
+	{			 "CVHINT_SVJOINPASSWORD", "The password needed to join the game."},
+	
+	/*** NETWORK STUFF ***/
+	{			"NET_YOUARENOTTHESERVER", "You are not the server."},
+	{				 "NET_LEVELNOTFOUND", "Level not found."},
 };
 
 /* DS_NameOfString() -- Returns name of pointer to string */
