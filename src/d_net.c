@@ -332,9 +332,40 @@ D_NetClient_t* D_NCFindClientByNetPlayer(D_NetPlayer_t* const a_NetPlayer)
 /* D_NCFindClientByHost() -- Finds client by host name */
 D_NetClient_t* D_NCFindClientByHost(I_HostAddress_t* const a_Host)
 {
+	size_t i, j;
+	
 	/* Check */
 	if (!a_Host)
 		return NULL;
+	
+	/* Go through each client and compare the host */
+	for (i = 0; i < l_NumClients; i++)
+		if (l_Clients[i])
+		{
+			// Port mismatch?
+			if (a_Host->Port != l_Clients[i]->Address.Port)
+				continue;
+			
+			// Host match? (v4)
+			if (a_Host->IPvX & INIPVN_IPV4)
+				if (a_Host->Host.v4.u == l_Clients[i]->Address.Host.v4.u)
+					return l_Clients[i];
+			
+			// Host match? (v6)
+			if (a_Host->IPvX & INIPVN_IPV6)
+			{
+				for (j = 0; j < 4; j++)
+					if (a_Host->Host.v6.u[j] != l_Clients[i]->Address.Host.v6.u[j])
+						break;
+				
+				// Matched?
+				if (j >= 4)
+					return l_Clients[i];
+			}
+		}
+	
+	/* Not Found */
+	return NULL;
 }
 
 /* D_NCFindClientByPlayer() -- Find client by player */
@@ -484,17 +515,24 @@ void D_NCRunCommands(void)
 /* D_NCUpdate() -- Update all networking stuff */
 void D_NCUpdate(void)
 {
+#define BUFSIZE 512
+	char Buf[BUFSIZE];
 	char Header[5];
 	D_RBlockStream_t* Stream, *OutStream, *GenOut;
-	D_NetClient_t* NetClient;
-	size_t nc, snum, i;
+	D_NetClient_t* NetClient, *OtherClient;
+	size_t nc, snum, i, p, j;
 	I_HostAddress_t FromAddress;
+	D_NetPlayer_t* NetPlayer;
+	D_ProfileEx_t* Profile;
+	player_t* DoomPlayer;
 	
 	bool_t SendPing, ReSend;
 	uint32_t ThisTime, DiffTime;
 	static uint32_t LastTime;
 	
+	bool_t DoContinue;
 	uint32_t u32a, u32b, u32c, u32d;
+	uint8_t u8a, u8b;
 	
 	/* Send Ping Request? */
 	ThisTime = I_GetTimeMS();
@@ -586,135 +624,260 @@ void D_NCUpdate(void)
 							FromAddress.Port
 						);
 				
-				////////////////////////////////////////////////////////////////
-				////////////////////////////////////////////////////////////////
-				////////////////
-				//////////////// NON-PERFECT PACKETS
-				////////////////
+	////////////////////////////////////////////////////////////////
+	////////////////////////////////////////////////////////////////
+	////////////////
+	//////////////// NON-PERFECT PACKETS
+	////////////////
+	
+	// Everything -- Ping request
+	if (D_RBSCompareHeader("PING", Header))
+	{
+		// Send PONG back to the from address (using generic stream)
+		u32a = D_RBSReadUInt32(Stream);		// Rem: ThisTime
+		u32b = D_RBSReadUInt32(Stream);		// Rem: DiffTime
+		u32c = ThisTime;					// Loc: ThisTime
+		
+		// Create response and send away
+		D_RBSBaseBlock(GenOut, "PONG");
+		D_RBSWriteUInt32(GenOut, u32a);
+		D_RBSWriteUInt32(GenOut, u32b);
+		D_RBSWriteUInt32(GenOut, u32c);
+		D_RBSRecordNetBlock(GenOut, &FromAddress);
+	}
+	
+	// Everything -- Pong reply
+	else if (D_RBSCompareHeader("PONG", Header))
+	{
+	}
+	
+	// Master Server -- Request List
+	else if (D_RBSCompareHeader("MSRQ", Header))
+	{
+		// Read Cookie (Basic Security)
+		u32a = D_RBSReadUInt32(Stream);
+		u32b = D_RBSReadUInt32(Stream);
+		
+		// Setup Base Info
+		D_RBSBaseBlock(GenOut, "MSLS");
+		D_RBSWriteUInt32(GenOut, u32a);
+		D_RBSWriteUInt32(GenOut, u32b);
+		
+		// Send Server Info
+		D_RBSWriteUInt8(GenOut, 'R');	// Auto-remote end
+		D_NSZZ_SendINFO(GenOut, ThisTime);
+		
+		// Send away
+		D_RBSRecordNetBlock(GenOut, &FromAddress);
+	}
+	
+	// Master Server -- List
+	else if (D_RBSCompareHeader("MSLS", Header))
+	{
+		// Read Cookie (Basic Security)
+		u32a = D_RBSReadUInt32(Stream);
+		u32b = D_RBSReadUInt32(Stream);
+	}
+	
+	// Server -- Request Game Info
+	else if (D_RBSCompareHeader("RINF", Header))
+	{
+		// Read Cookie (Basic Security)
+		u32a = D_RBSReadUInt32(Stream);
+		u32b = D_RBSReadUInt32(Stream);
+		
+		// Write INFO
+		D_RBSBaseBlock(GenOut, "INFO");
+		D_RBSWriteUInt32(GenOut, u32a);
+		D_RBSWriteUInt32(GenOut, u32b);
+		
+		// Send Server Info
+		D_NSZZ_SendINFO(GenOut, ThisTime);
+		
+		// Send away
+		D_RBSRecordNetBlock(GenOut, &FromAddress);
+		
+		// Write INFX
+		ReSend = false;
+		i = 0;
+		do
+		{
+			D_RBSBaseBlock(GenOut, "INFX");
+			D_RBSWriteUInt32(GenOut, u32a);
+			D_RBSWriteUInt32(GenOut, u32b);
+		
+			// Send Server Info
+			ReSend = D_NSZZ_SendINFX(GenOut, &i);
+		
+			// Send away
+			D_RBSRecordNetBlock(GenOut, &FromAddress);
+		} while (ReSend);
+		
+		// Send MOTD
+		D_RBSBaseBlock(GenOut, "MOTD");
+		D_RBSWriteUInt32(GenOut, u32a);
+		D_RBSWriteUInt32(GenOut, u32b);
+		D_NSZZ_SendMOTD(GenOut);
+		D_RBSRecordNetBlock(GenOut, &FromAddress);
+		
+		// Send INFT
+		for (i = 0; i < 2; i++)
+		{
+			D_RBSBaseBlock(GenOut, "INFT");
+			D_RBSWriteUInt32(GenOut, u32a);
+			D_RBSWriteUInt32(GenOut, u32b);
+			D_RBSRecordNetBlock(GenOut, &FromAddress);
+		}
+	}
+	
+	// Client -- Recieve Game Info
+	else if (D_RBSCompareHeader("INFO", Header))
+	{
+	}
+	
+	// Client -- Recieve Game Info Extended
+	else if (D_RBSCompareHeader("INFX", Header))
+	{
+	}
+	
+	////////////////////////////////////////////////////////////////
+	////////////////////////////////////////////////////////////////
+	////////////////
+	//////////////// PERFECT PACKETS
+	////////////////
+	else if (D_RBSMarkedStream(Stream))
+	{
+		// Debug?
+		if (devparm)
+			D_SyncNetDebugMessage("Perfect!");
+		
+		// MAPC -- Map Change
+		if (D_RBSCompareHeader("MAPC", Header))
+		{
+			// Only accept if from a server
+			if (NetClient->IsServer)
+			{
+				// Read map name
+				memset(Buf, 0, sizeof(Buf));
+				D_RBSReadString(Stream, Buf, BUFSIZE - 1);
+		
+				// Add to command queue
+				D_NCAddQueueCommand(D_NCQC_MapChange, Z_StrDup(Buf, PU_NETWORK, NULL));
+			}
+		}
+		
+		// LPRJ -- Local Player, Request Join
+		else if (D_RBSCompareHeader("LPRJ", Header))
+		{
+			// Only accept if is a server
+			if (NetClient->IsServer && NetClient->IsLocal)
+			{
+				// Find the client that wants to do this
+				OtherClient = D_NCFindClientByHost(&FromAddress);
 				
-				// Everything -- Ping request
-				if (D_RBSCompareHeader("PING", Header))
-				{
-					// Send PONG back to the from address (using generic stream)
-					u32a = D_RBSReadUInt32(Stream);		// Rem: ThisTime
-					u32b = D_RBSReadUInt32(Stream);		// Rem: DiffTime
-					u32c = ThisTime;					// Loc: ThisTime
-					
-					// Create response and send away
-					D_RBSBaseBlock(GenOut, "PONG");
-					D_RBSWriteUInt32(GenOut, u32a);
-					D_RBSWriteUInt32(GenOut, u32b);
-					D_RBSWriteUInt32(GenOut, u32c);
-					D_RBSRecordNetBlock(GenOut, &FromAddress);
-				}
+				// Nothing found?
+				if (!OtherClient)
+					CONL_OutputU(DSTR_NET_BADCLIENT, "");
 				
-				// Everything -- Pong reply
-				else if (D_RBSCompareHeader("PONG", Header))
-				{
-				}
+				// Read the UUID
+				D_RBSReadString(Stream, Buf, BUFSIZE - 1);
 				
-				// Master Server -- Request List
-				else if (D_RBSCompareHeader("MSRQ", Header))
+				// Only if one was found is it parsed
+					// If not, maybe someone else is screwing with the server?
+				DoContinue = true;
+				if (OtherClient)
 				{
-					// Read Cookie (Basic Security)
-					u32a = D_RBSReadUInt32(Stream);
-					u32b = D_RBSReadUInt32(Stream);
-					
-					// Setup Base Info
-					D_RBSBaseBlock(GenOut, "MSLS");
-					D_RBSWriteUInt32(GenOut, u32a);
-					D_RBSWriteUInt32(GenOut, u32b);
-					
-					// Send Server Info
-					D_RBSWriteUInt8(GenOut, 'R');	// Auto-remote end
-					D_NSZZ_SendINFO(GenOut, ThisTime);
-					
-					// Send away
-					D_RBSRecordNetBlock(GenOut, &FromAddress);
-				}
-				
-				// Master Server -- List
-				else if (D_RBSCompareHeader("MSLS", Header))
-				{
-					// Read Cookie (Basic Security)
-					u32a = D_RBSReadUInt32(Stream);
-					u32b = D_RBSReadUInt32(Stream);
-				}
-				
-				// Server -- Request Game Info
-				else if (D_RBSCompareHeader("RINF", Header))
-				{
-					// Read Cookie (Basic Security)
-					u32a = D_RBSReadUInt32(Stream);
-					u32b = D_RBSReadUInt32(Stream);
-					
-					// Write INFO
-					D_RBSBaseBlock(GenOut, "INFO");
-					D_RBSWriteUInt32(GenOut, u32a);
-					D_RBSWriteUInt32(GenOut, u32b);
-					
-					// Send Server Info
-					D_NSZZ_SendINFO(GenOut, ThisTime);
-					
-					// Send away
-					D_RBSRecordNetBlock(GenOut, &FromAddress);
-					
-					// Write INFX
-					ReSend = false;
-					i = 0;
-					do
+					// Client is arbing too many?
+					if (DoContinue && OtherClient->NumArbs >= MAXSPLITSCREEN)
 					{
-						D_RBSBaseBlock(GenOut, "INFX");
-						D_RBSWriteUInt32(GenOut, u32a);
-						D_RBSWriteUInt32(GenOut, u32b);
+						CONL_OutputU(DSTR_NET_EXCEEDEDSPLIT, "");
+						DoContinue = false;
+					}
 					
-						// Send Server Info
-						ReSend = D_NSZZ_SendINFX(GenOut, &i);
+					// Check for free player slots
+					for (p = 0; p < MAXPLAYERS; p++)
+						if (!playeringame[p])
+							break;
 					
-						// Send away
-						D_RBSRecordNetBlock(GenOut, &FromAddress);
-					} while (ReSend);
-					
-					// Send MOTD
-					D_RBSBaseBlock(GenOut, "MOTD");
-					D_RBSWriteUInt32(GenOut, u32a);
-					D_RBSWriteUInt32(GenOut, u32b);
-					D_NSZZ_SendMOTD(GenOut);
-					D_RBSRecordNetBlock(GenOut, &FromAddress);
-					
-					// Send INFT
-					for (i = 0; i < 2; i++)
+					// No Free Slots
+					if (DoContinue && p >= MAXPLAYERS)
 					{
-						D_RBSBaseBlock(GenOut, "INFT");
-						D_RBSWriteUInt32(GenOut, u32a);
-						D_RBSWriteUInt32(GenOut, u32b);
-						D_RBSRecordNetBlock(GenOut, &FromAddress);
+						CONL_OutputU(DSTR_NET_ATMAXPLAYERS, "");
+						DoContinue = false;
+					}
+					
+					// Done, add to arbitration and inform everyone
+					if (DoContinue)
+					{
+						// Create netplayer combo for this person
+						NetPlayer = D_NCSAllocNetPlayer();
+						NetPlayer->NetClient = OtherClient;
+						
+						// Create a profile for this player
+						if (NetClient == OtherClient)	// Same system
+							Profile = D_FindProfileEx(Buf);	// Use existing one
+						
+						// Read Player Account Name
+						D_RBSReadString(Stream, Buf, BUFSIZE - 1);
+						
+						// Failed to find it? Then create it
+						if (!Profile)
+							Profile = D_CreateProfileEx(Buf);
+							
+						// Read Player Display Name
+						D_RBSReadString(Stream, Buf, BUFSIZE - 1);
+						
+						// Mark profile as remote and copy display name
+						if (NetClient != OtherClient)
+						{
+							Profile->Type = DPEXT_NETWORK;	// Set remote
+							strncpy(Profile->DisplayName, Buf, MAXPLAYERNAME - 1);
+							
+							// Read Color
+							Profile->Color = D_RBSReadUInt8(Stream);
+						}
+						
+						// Set at arbs point
+						OtherClient->Arbs[OtherClient->NumArbs++] = NetPlayer;
+						
+						// Create Player Locally
+						DoomPlayer = G_AddPlayer(p);
+						DoomPlayer->NetPlayer = NetPlayer;
+						DoomPlayer->ProfileEx = Profile;
+						Profile->NetPlayer = NetPlayer;
+						NetPlayer->Player = DoomPlayer;
+						NetPlayer->Profile = Profile;
+						G_InitPlayer(DoomPlayer);
+						
+						// Check split screen
+						if (NetClient->IsLocal)
+							for (j = 0; j < MAXSPLITSCREEN; j++)
+								if (!g_PlayerInSplit[j])
+								{
+									g_PlayerInSplit[j] = true;
+									consoleplayer[j] = displayplayer[j] = p;
+									
+									g_SplitScreen = j;
+									break;
+								}
+						
+						// Inform everyone else (when they aren't local)
+						for (i = 0; i < l_NumClients; i++)
+							if (l_Clients[i])
+								if (!l_Clients[i]->IsLocal)
+								{
+									
+								}
 					}
 				}
-				
-				// Client -- Recieve Game Info
-				else if (D_RBSCompareHeader("INFO", Header))
-				{
-				}
-				
-				// Client -- Recieve Game Info Extended
-				else if (D_RBSCompareHeader("INFX", Header))
-				{
-				}
-				
-				
-				////////////////////////////////////////////////////////////////
-				////////////////////////////////////////////////////////////////
-				////////////////
-				//////////////// PERFECT PACKETS
-				////////////////
-				else if (D_RBSMarkedStream(Stream))
-				{
-					// Debug?
-					if (devparm)
-						D_SyncNetDebugMessage("Perfect!");
-					
-					// Commands
+			}
+		}
+
+	////////////////
+	//////////////// DONE
+	////////////////
+	////////////////////////////////////////////////////////////////
+	////////////////////////////////////////////////////////////////
 				}
 				
 				// Clear from address
@@ -1076,8 +1239,9 @@ void D_NCUpdate(void)
 		// Flush commands (Send them together, if possible)
 		D_RBSFlushStream(Stream);
 	}
-#undef BUFSIZE
 #endif
+
+#undef BUFSIZE
 }
 
 /*** NCSR FUNCTIONS ***/
@@ -1143,33 +1307,31 @@ void D_NCSR_RequestMap(const char* const a_Map)
 /* D_NCSR_RequestNewPlayer() -- Requests that a local profile join remote server */
 void D_NCSR_RequestNewPlayer(struct D_ProfileEx_s* a_Profile)
 {
-#if 0
-	D_NetController_t* Ctrl;
+	D_NetClient_t* Server;
 	D_RBlockStream_t* Stream;
-	size_t i;
 	
 	/* Check */
 	if (!a_Profile)
 		return;
 	
-	/* Find Server Player */
-	Ctrl = D_NCGetServer();
+	/* Find Server */
+	Server = D_NCFindClientIsServer();
 	
 	// Not found?
-	if (!Ctrl)
+	if (!Server)
 		return;
-		
-	// Use server stream
-	Stream = Ctrl->BlockStream;
 	
 	/* Tell server to add player */
+	// Use server stream
+	Stream = Server->Streams[DNCSP_PERFECTWRITE];
+	
+	// Put Data
 	D_RBSBaseBlock(Stream, "LPRJ");
 	D_RBSWriteString(Stream, a_Profile->UUID);
 	D_RBSWriteString(Stream, a_Profile->AccountName);
 	D_RBSWriteString(Stream, a_Profile->DisplayName);
 	D_RBSWriteUInt8(Stream, a_Profile->Color);
-	D_RBSRecordBlock(Stream);
-#endif
+	D_RBSRecordNetBlock(Stream, &Server->Address);
 }
 
 /*** NSZZ FUNCTIONS ***/

@@ -1116,6 +1116,9 @@ StringGroupEX_t UnicodeStrings[NUMUNICODESTRINGS] =
 	/*** NETWORK STUFF ***/
 	{			"NET_YOUARENOTTHESERVER", "You are not the server."},
 	{				 "NET_LEVELNOTFOUND", "Level not found."},
+	{				 "NET_EXCEEDEDSPLIT", "Client wants a player, but exceeds split-screen limit."},
+	{				  "NET_ATMAXPLAYERS", "Client wants a player, but there are too many players."},
+	{					 "NET_BADCLIENT", "Client wants a player, but the client is invalid."},
 };
 
 /* DS_NameOfString() -- Returns name of pointer to string */

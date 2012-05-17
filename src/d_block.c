@@ -1027,7 +1027,7 @@ static size_t DS_RBSPerfect_NetRecordF(struct D_RBlockStream_s* const a_Stream, 
 				PerfectData->WriteQ[b] = NULL;
 				
 				// Increase count
-				Key->NextWriteNum++;
+				//Key->NextWriteNum++;
 				continue;
 			}
 			
@@ -1216,6 +1216,7 @@ static bool_t DS_RBSPerfect_NetPlayF(struct D_RBlockStream_s* const a_Stream, I_
 		// No key found? probably revoked, delete block
 		if (!Key)
 		{
+			fprintf(stderr, "REVOKED!!\n");
 			if (Hold->Data)
 				Z_Free(Hold->Data);
 			Hold->Data = NULL;
@@ -1226,6 +1227,7 @@ static bool_t DS_RBSPerfect_NetPlayF(struct D_RBlockStream_s* const a_Stream, I_
 		
 		// If the block does not match the current read pos, skip it
 		// This would mean that we got blocks out of order
+		fprintf(stderr, "rc %u == %u\n", Hold->PacketNum, Key->NextReadNum);
 		if (Hold->PacketNum != Key->NextReadNum)
 			continue;	// Still want to keep it though!
 		
@@ -1244,6 +1246,7 @@ static bool_t DS_RBSPerfect_NetPlayF(struct D_RBlockStream_s* const a_Stream, I_
 		Z_Free(Hold);
 		PerfectData->ReadQ[b] = NULL;
 		Key->NextReadNum++;
+		fprintf(stderr, "next %i\n", (int)Key->NextReadNum);
 		a_Stream->Marked = true;	// and set perfection!
 		return true;
 	}
@@ -1431,7 +1434,7 @@ static bool_t DS_RBSPerfect_NetPlayF(struct D_RBlockStream_s* const a_Stream, I_
 						
 						// Use blank spot?
 						if (BlankSpot > 0 && BlankSpot < PerfectData->SizeReadQ)
-							Hold = PerfectData->ReadQ[b] = Z_Malloc(sizeof(*Hold), PU_BLOCKSTREAM, NULL);
+							Hold = PerfectData->ReadQ[BlankSpot] = Z_Malloc(sizeof(*Hold), PU_BLOCKSTREAM, NULL);
 					
 						// Otherwise resize
 						else
