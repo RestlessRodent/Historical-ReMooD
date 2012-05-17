@@ -484,7 +484,7 @@ void I_DoMouseGrabbing(void)
 		
 	/* Don't grab if... */
 	// Dedicated Server, Watching demo, not playing, in a menu, in the console
-	New = !(dedicated || demoplayback || menuactive);
+	New = !(dedicated || demoplayback || menuactive || CONL_IsActive());
 	
 	if (New != Grabbed && !l_NoMouseGrab)
 	{

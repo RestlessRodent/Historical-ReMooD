@@ -342,17 +342,22 @@ D_NetClient_t* D_NCFindClientByHost(I_HostAddress_t* const a_Host)
 	for (i = 0; i < l_NumClients; i++)
 		if (l_Clients[i])
 		{
+			// Nothing set? And is 0.0.0.0
+			if (!a_Host->IPvX && !l_Clients[i]->Address.IPvX)
+				if (a_Host->Host.v4.u == 0 && l_Clients[i]->Address.Host.v4.u == 0)
+					return l_Clients[i];
+			
 			// Port mismatch?
 			if (a_Host->Port != l_Clients[i]->Address.Port)
 				continue;
 			
 			// Host match? (v4)
-			if (a_Host->IPvX & INIPVN_IPV4)
+			if ((a_Host->IPvX & INIPVN_IPV4) && (l_Clients[i]->Address.IPvX & INIPVN_IPV4))
 				if (a_Host->Host.v4.u == l_Clients[i]->Address.Host.v4.u)
 					return l_Clients[i];
 			
 			// Host match? (v6)
-			if (a_Host->IPvX & INIPVN_IPV6)
+			if ((a_Host->IPvX & INIPVN_IPV6) && (l_Clients[i]->Address.IPvX & INIPVN_IPV6))
 			{
 				for (j = 0; j < 4; j++)
 					if (a_Host->Host.v6.u[j] != l_Clients[i]->Address.Host.v6.u[j])
@@ -777,7 +782,7 @@ void D_NCUpdate(void)
 				
 				// Nothing found?
 				if (!OtherClient)
-					CONL_OutputU(DSTR_NET_BADCLIENT, "");
+					CONL_OutputU(DSTR_NET_BADCLIENT, "\n");
 				
 				// Read the UUID
 				D_RBSReadString(Stream, Buf, BUFSIZE - 1);
@@ -790,7 +795,7 @@ void D_NCUpdate(void)
 					// Client is arbing too many?
 					if (DoContinue && OtherClient->NumArbs >= MAXSPLITSCREEN)
 					{
-						CONL_OutputU(DSTR_NET_EXCEEDEDSPLIT, "");
+						CONL_OutputU(DSTR_NET_EXCEEDEDSPLIT, "\n");
 						DoContinue = false;
 					}
 					
@@ -802,7 +807,7 @@ void D_NCUpdate(void)
 					// No Free Slots
 					if (DoContinue && p >= MAXPLAYERS)
 					{
-						CONL_OutputU(DSTR_NET_ATMAXPLAYERS, "");
+						CONL_OutputU(DSTR_NET_ATMAXPLAYERS, "\n");
 						DoContinue = false;
 					}
 					
@@ -838,6 +843,8 @@ void D_NCUpdate(void)
 						}
 						
 						// Set at arbs point
+						Z_ResizeArray((void**)&OtherClient->Arbs, sizeof(*OtherClient->Arbs),
+								OtherClient->NumArbs, OtherClient->NumArbs + 1);
 						OtherClient->Arbs[OtherClient->NumArbs++] = NetPlayer;
 						
 						// Create Player Locally
@@ -850,7 +857,7 @@ void D_NCUpdate(void)
 						G_InitPlayer(DoomPlayer);
 						
 						// Check split screen
-						if (NetClient->IsLocal)
+						if (NetClient == OtherClient)
 							for (j = 0; j < MAXSPLITSCREEN; j++)
 								if (!g_PlayerInSplit[j])
 								{
@@ -858,6 +865,7 @@ void D_NCUpdate(void)
 									consoleplayer[j] = displayplayer[j] = p;
 									
 									g_SplitScreen = j;
+									R_ExecuteSetViewSize();
 									break;
 								}
 						
@@ -1268,7 +1276,7 @@ void D_NCSR_RequestMap(const char* const a_Map)
 	// Found server, but we are not the server
 	if (!Server->IsServer)
 	{
-		CONL_OutputU(DSTR_NET_YOUARENOTTHESERVER, "");
+		CONL_OutputU(DSTR_NET_YOUARENOTTHESERVER, "\n");
 		return;
 	}
 	
@@ -1278,7 +1286,7 @@ void D_NCSR_RequestMap(const char* const a_Map)
 	// Check
 	if (!Info)
 	{
-		CONL_OutputU(DSTR_NET_LEVELNOTFOUND, "%s", a_Map);
+		CONL_OutputU(DSTR_NET_LEVELNOTFOUND, "%s\n", a_Map);
 		return;
 	}
 	

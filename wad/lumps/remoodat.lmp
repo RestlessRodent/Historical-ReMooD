@@ -18503,7 +18503,7 @@ MapTouchSpecial "SOUL"
 	Message "DEP_GOTSUPER";
 	HealthAmount "100";
 	IsCapMaxStat "true";
-	Sound "getpow";
+	PickupSound "getpow";
 }
 
 // MEGA -- Megasphere
@@ -18515,7 +18515,7 @@ MapTouchSpecial "MEGA"
 	ArmorAmount "200";
 	IsCapMaxStat "true";
 	IsGreaterArmorClass "true";
-	Sound "getpow";
+	PickupSound "getpow";
 }
 
 
