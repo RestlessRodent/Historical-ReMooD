@@ -1466,12 +1466,6 @@ static bool_t DS_RBSPerfect_NetPlayF(struct D_RBlockStream_s* const a_Stream, I_
 						Hold->Size = PerfPkSize;
 						Hold->Data = Z_Malloc(Hold->Size, PU_BLOCKSTREAM, NULL);
 						memmove(Hold->Data, &PerfectData->WrapStream->BlkData[37], Hold->Size);
-	/* Standard */
-	uint8_t* Data;								// Data
-	size_t Size;								// Size
-	
-	/* Perfect Networking */
-	uint32_t ReTryCount;						// Retransmit count
 					}
 				}
 				
@@ -1522,6 +1516,34 @@ static bool_t DS_RBSPerfect_NetPlayF(struct D_RBlockStream_s* const a_Stream, I_
 			else if (PerfResp == 'A')
 			{
 				// Find matching write block and set as acknowledged
+				for (b = 0; b < PerfectData->SizeWriteQ; b++)
+				{
+					// Get Current Hold
+					Hold = PerfectData->WriteQ[b];
+					
+					// Nothing here?
+					if (!Hold)
+					{
+						Hold = NULL;
+						continue;
+					}
+					
+					// Compare key
+					for (z = 0; z < 4; z++)
+						if (Hold->Key[z] != PerfKey[z])
+							break;
+					
+					// Compare packet num and check z also
+					if (z < 4 || Hold->PacketNum != PerfPkNum)
+					{
+						Hold = NULL;
+						continue;
+					}
+					
+					// Found the block, mark as acknowledged
+					Hold->BlockAck = true;
+					break;
+				}
 				
 				// Modified with response
 				continue;
