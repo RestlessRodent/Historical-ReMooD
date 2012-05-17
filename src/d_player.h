@@ -107,8 +107,6 @@ typedef struct camera_s
 // ========================================================================
 typedef struct player_s
 {
-	ProfileInfo_t* profile;
-	
 	mobj_t* mo;
 	// added 1-6-98: for movement prediction
 	playerstate_t playerstate;

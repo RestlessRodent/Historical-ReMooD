@@ -276,9 +276,6 @@ void D_RegisterClientCommands(void)
 	
 	COM_AddCommand("kill", Command_Kill);
 	
-	/* GhostlyDeath <June 6, 2008> -- Register demo compatibility variables */
-	DC_RegisterDemoCompVars();
-	
 	// Slow mo
 	CV_RegisterVar(&cv_g_gamespeed);
 	
@@ -356,9 +353,6 @@ void D_RegisterClientCommands(void)
 	
 	COM_AddCommand("load", Command_Load_f);
 	COM_AddCommand("save", Command_Save_f);
-	
-	//FIXME: not to be here.. but needs be done for config loading
-	CV_RegisterVar(&cv_usegamma);
 	
 	//m_menu.c
 	CV_RegisterVar(&cv_crosshair);
@@ -676,9 +670,6 @@ void Command_Map_f(void)
 		multiplayer = true;
 	localgame = true;
 	G_StopDemo();
-	
-	M_UnLockGameCVARS();
-	DC_SetMenuGameOptions(0);
 	
 	gamestate = wipegamestate = GS_NULL;
 	for (i = 0; i < MAXSPLITSCREENPLAYERS; i++)

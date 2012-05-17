@@ -36,34 +36,6 @@
 #include "command.h"
 #include "d_netcmd.h"
 
-enum
-{
-	PC_NAME,
-	PC_COLOR,
-	PC_SKIN,
-	PC_AUTOAIM,
-	
-	MAXPROFILECVARS
-};
-
-typedef struct ProfileInfo_s
-{
-	char name[MAXPLAYERNAME];
-	consvar_t cvars[MAXPROFILECVARS];
-	
-	struct ProfileInfo_s* prev;
-	struct ProfileInfo_s* next;
-} ProfileInfo_t;
-
-extern ProfileInfo_t NonLocalProfile;
-
-void PROF_Init(void);
-void PROF_Shutdown(void);
-void PROF_HandleVAR(char* arg0, char* arg1);
-
-void M_StartProfiler(int choice);
-void M_ProfilePrompt(int player);
-
 /************************
 *** EXTENDED PROFILES ***
 ************************/

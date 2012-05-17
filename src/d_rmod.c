@@ -104,13 +104,6 @@ static const D_RMODHandler_t c_RMODHandlers[NUMDRMODPRIVATES] =
 		V_WidgetRMODOrder,
 	},
 	
-	// Menus
-	{
-		"menu",
-		M_MenuExRMODHandle,
-		M_MenuExRMODOrder,
-	},
-	
 	/* Objects */
 	// Objects
 	{

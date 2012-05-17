@@ -57,8 +57,6 @@ extern uint8_t* screens[5];
 extern int dirtybox[4];
 
 extern uint8_t gammatable[5][256];
-extern consvar_t cv_ticrate;
-extern consvar_t cv_usegamma;
 
 // Allocates buffer screens, call before R_Init.
 void V_Init(void);

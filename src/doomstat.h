@@ -147,7 +147,6 @@ extern bool_t digmusic;			// SSNTails 12-13-2002
 //  status bar explicitely.
 extern bool_t statusbaractive;
 
-extern bool_t menuactive;		// Menu overlayed?
 extern bool_t paused;			// Game Pause?
 
 extern bool_t nodrawers;

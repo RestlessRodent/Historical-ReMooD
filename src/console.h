@@ -332,6 +332,8 @@ extern bool_t g_QuietConsole;	// Mute startup console
 ********************************************************************************
 *******************************************************************************/
 
+#define DEMOCVAR(x) cv_##x 
+
 // for debugging shopuld be replaced by nothing later.. so debug is inactive
 #define LOG(x) CONS_Printf(x)
 

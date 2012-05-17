@@ -806,6 +806,10 @@ const char* CONL_VarSetStr(CONL_StaticVar_t* a_Var, const CONL_VariableState_t a
 		}
 	}
 	
+	/* Call callback function, if possible */
+	if (a_Var->ChangeFunc)
+		a_Var->ChangeFunc(RealVar, a_Var);
+	
 	/* Return new value */
 	return a_Var->Value[a_State].String;
 #undef BUFSIZE
@@ -1546,9 +1550,6 @@ static void COM_ExecuteString(char* text)
 	}
 	
 	// GhostlyDeath <July 8, 2008> -- If it starts with profile have the profile manager handle it
-	if (strncmp(com_argv[0], "profile", 7) == 0)
-		PROF_HandleVAR(com_argv[0], com_argv[1]);
-	else
 	{
 		// check cvars
 		// Hurdler: added at Ebola's request ;)

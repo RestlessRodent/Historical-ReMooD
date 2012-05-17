@@ -50,15 +50,26 @@
 // Each screen is [vid.width*vid.height];
 uint8_t* screens[5];
 
-CV_PossibleValue_t gamma_cons_t[] = { {0, "MIN"}
-	, {4, "MAX"}
-	, {0, NULL}
+/*** GAMMA CVAR ***/
+// c_CVPVVidGamma -- Gamme Limitation
+const CONL_VarPossibleValue_t c_CVPVVidGamma[] =
+{
+	// End
+	{0, "MINVAL"},
+	{4, "MAXVAL"},
+	{0, NULL},
 };
 
-void CV_usegamma_OnChange(void);
+bool_t V_VIDGammaOnChange(CONL_ConVariable_t* const a_Var, CONL_StaticVar_t* const a_StaticVar);
 
-consvar_t cv_ticrate = { "vid_ticrate", "0", 0, CV_OnOff, NULL };
-consvar_t cv_usegamma = { "gamma", "0", CV_SAVE | CV_CALL, gamma_cons_t, CV_usegamma_OnChange };
+// vid_gamma -- Screen Gamma
+CONL_StaticVar_t l_VIDGamma =
+{
+	CLVT_INTEGER, &c_CVPVVidGamma, CLVF_SAVE,
+	"vid_gamma", DSTR_CVHINT_SVJOINPASSWORD, CLVVT_BAR, "0",
+	V_VIDGammaOnChange
+};
+/******************/
 
 // Now where did these came from?
 uint8_t gammatable[5][256] =
@@ -478,7 +489,8 @@ void V_SetPaletteLump(char* pal)
 	I_SetPalette(l_DoomPals);
 }
 
-void CV_usegamma_OnChange(void)
+/* V_VIDGammaOnChange() -- Gamma is changed */
+bool_t V_VIDGammaOnChange(CONL_ConVariable_t* const a_Var, CONL_StaticVar_t* const a_StaticVar)
 {
 	// reload palette
 	LoadPalette("PLAYPAL");

@@ -798,15 +798,6 @@ void P_PlayerThink(player_t* player)
 	if (!player->mo)
 		I_Error("p_playerthink : players[%d].mo == NULL", player - players);
 #endif
-		
-	// GhostlyDeath <July 10, 2008> -- Profile Check
-	if (!player->profile && !demoplayback && !menuactive)
-		for (i = 0; i < g_SplitScreen + 1; i++)
-			if (playeringame[consoleplayer[i]] && player == &players[consoleplayer[i]])
-			{
-				M_ProfilePrompt(i);
-				break;
-			}
 	
 	// fixme: do this in the cheat code
 	if (player->cheats & CF_NOCLIP)

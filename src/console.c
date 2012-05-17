@@ -1468,7 +1468,7 @@ size_t CONL_InputU(const UnicodeStringID_t a_StrID, const char* const a_Format, 
 /* CONL_IsActive() -- Returns true if the console is active */
 bool_t CONL_IsActive(void)
 {
-	return (l_CONLActive && !menuactive) || con_startup;
+	return (l_CONLActive && !M_ExUIActive()) || con_startup;
 }
 
 /* CONL_SetActive() -- Sets whether the console is active or not */

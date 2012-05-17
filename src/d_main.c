@@ -195,10 +195,6 @@ void D_ProcessEvents(void)
 		else if (ev->type == ev_keyup && ev->data1 == KEY_SHIFT)
 			shiftdown = false;
 			
-		// Menu input
-		if (M_Responder(ev))
-			continue;			// menu ate the event
-			
 		// console input
 		if (CON_Responder(ev))
 			continue;			// ate the event
@@ -335,7 +331,7 @@ void D_Display(void)
 		{
 			// the menu may draw over parts out of the view window,
 			// which are refreshed only when needed
-			if (menuactive || menuactivestate || !viewactivestate)
+			if (M_ExUIActive() || menuactivestate || !viewactivestate)
 				borderdrawcount = 3;
 				
 			if (borderdrawcount)
@@ -418,11 +414,11 @@ void D_Display(void)
 	if (gamestate != oldgamestate && gamestate != GS_LEVEL)
 		V_SetPalette(0);
 		
-	menuactivestate = menuactive;
+	menuactivestate = M_ExUIActive();
 	oldgamestate = wipegamestate = gamestate;
 	
 	// draw pause pic
-	if (paused && (!menuactive || netgame) && (gamestate == GS_LEVEL || gamestate == GS_INTERMISSION))
+	if (paused && (!M_ExUIActive() || netgame) && (gamestate == GS_LEVEL || gamestate == GS_INTERMISSION))
 	{
 		patch_t* patch;
 		
@@ -437,9 +433,6 @@ void D_Display(void)
 	vid.recalc = 0;
 	
 	//CON_Drawer();
-	
-	// Draw the menus
-	M_MenuExDrawer();
 	
 	// GhostlyDeath <May 12, 2012> -- Extended UI Draw
 	M_ExUIDrawer();
@@ -522,7 +515,7 @@ void D_Display(void)
 		// Do other stuff
 		I_OsPolling();
 		I_UpdateNoBlit();
-		M_Drawer();				// menu is drawn even on top of wipes
+		M_ExUIDrawer();
 		I_FinishUpdate();		// page flip or blit buffer
 	}
 	while (!done && I_GetTime() < (unsigned)y);
@@ -852,13 +845,7 @@ void D_DoAdvanceDemo(void)
 void D_StartTitle(void)
 {
 	int i;
-	
-	// Clear Profiles
-	for (i = 0; i < MAXPLAYERS; i++)
-		players[i].profile = NULL;
 		
-	MainDef.menuitems[1].status |= IT_DISABLED2;
-	
 	gameaction = ga_nothing;
 	playerdeadview = false;
 	for (i = 0; i < MAXSPLITSCREENPLAYERS; i++)
@@ -1841,11 +1828,7 @@ void D_DoomMain(void)
 	P_Info_AddCommands();
 	R_RegisterEngineStuff();
 	S_RegisterSoundStuff();
-	PROF_Init();
 	CV_RegisterVar(&cv_screenslink);
-	
-	CONL_PrintF(text[M_INIT_NUM]);
-	M_Init();
 	
 	//Fab:29-04-98: do some dirty chatmacros strings initialisation
 	HU_HackChatmacros();

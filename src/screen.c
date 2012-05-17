@@ -194,7 +194,6 @@ void SCR_Startup(void)
 	vid.centerofs = 0;
 	
 	V_Init();
-	CV_RegisterVar(&cv_ticrate);
 	
 	V_SetPalette(0);
 }

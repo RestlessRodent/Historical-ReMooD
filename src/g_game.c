@@ -203,6 +203,7 @@ tic_t demostarttime;			// for comparative timing purposes
 bool_t netgame;					// only true if packets are broadcast
 bool_t multiplayer;
 bool_t serverside;
+bool_t localgame;
 bool_t playeringame[MAXPLAYERS];
 player_t players[MAXPLAYERS];
 
@@ -857,7 +858,6 @@ void G_PlayerReborn(int player)
 	int itemcount;
 	int secretcount;
 	uint16_t addfrags;
-	ProfileInfo_t* prof;
 	bool_t* weaponowned;
 	int* ammo;
 	int* maxammo;
@@ -874,7 +874,6 @@ void G_PlayerReborn(int player)
 	
 	PEp = players[player].ProfileEx;
 	NPp = players[player].NetPlayer;
-	prof = players[player].profile;
 	
 	memcpy(frags, players[player].frags, sizeof(frags));
 	addfrags = players[player].addfrags;
@@ -954,7 +953,6 @@ void G_PlayerReborn(int player)
 	for (i = 0; i < NUMAMMO; i++)
 		p->ammo[i] = ammoinfo[i]->StartingAmmo;
 	
-	p->profile = prof;
 	players[player].ProfileEx = PEp;
 	players[player].NetPlayer = NPp;
 	
@@ -1833,13 +1831,6 @@ void G_DeferedInitNew(skill_t skill, char* mapname, int StartSplitScreenGame)
 	
 	G_Downgrade(VERSION);
 	paused = false;
-	
-	// NULL profiles
-	for (i = 0; i < MAXPLAYERS; i++)
-		players[i].profile = NULL;
-		
-	// Enable End Game option
-	MainDef.menuitems[1].status &= ~IT_DISABLED2;
 	
 	//CV_Set(&cv_splitscreen, va("%d", StartSplitScreenGame));
 	

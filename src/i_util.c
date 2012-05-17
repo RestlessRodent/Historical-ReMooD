@@ -186,8 +186,6 @@ bool_t I_EventExPop(I_EventEx_t* const a_Event)
 	return true;
 }
 
-void M_QuitDOOM(int choice);
-
 /* I_OsPolling() -- Handles operating system polling (all of it) */
 void I_OsPolling(void)
 {
@@ -263,16 +261,14 @@ void I_OsPolling(void)
 		// Quit event?
 		if (Event.Type == IET_QUIT)
 		{
-			M_QuitDOOM(0);
 			continue;
 		}
 		
 		// Translate
 		if (!CONL_HandleEvent(&Event))
 			if (!M_ExUIHandleEvent(&Event))
-				if (!M_MenuExHandleEvent(&Event))
-					if (!D_NCSHandleEvent(&Event))
-						I_EventToOldDoom(&Event);
+				if (!D_NCSHandleEvent(&Event))
+					I_EventToOldDoom(&Event);
 	}
 }
 
@@ -484,7 +480,7 @@ void I_DoMouseGrabbing(void)
 		
 	/* Don't grab if... */
 	// Dedicated Server, Watching demo, not playing, in a menu, in the console
-	New = !(dedicated || demoplayback || menuactive || CONL_IsActive());
+	New = !(dedicated || demoplayback || M_ExUIActive() || CONL_IsActive());
 	
 	if (New != Grabbed && !l_NoMouseGrab)
 	{

@@ -109,7 +109,7 @@ extern consvar_t cv_g_gamespeed;
 /* D_SyncNetIsPaused() -- Returns true if the game is paused */
 bool_t D_SyncNetIsPaused(void)
 {
-	if (paused || (!netgame && menuactive && !demoplayback))
+	if (paused || (!netgame && M_ExUIActive() && !demoplayback))
 		return true;
 	return false;
 }

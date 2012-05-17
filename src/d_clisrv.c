@@ -97,7 +97,6 @@ consvar_t cv_maxplayers = { "sv_maxplayers", __STRINGIZE(MAXPLAYERS), CV_NETVAR,
 //
 void D_QuitNetGame(void)
 {
-	MainDef.menuitems[1].status |= IT_DISABLED2;
 }
 
 // is there a game running
@@ -286,7 +285,6 @@ void NetUpdate(void)
 	if (!demoplayback)
 		neededtic = maketic;
 		
-	M_Ticker();
 	CONL_Ticker();
 	//CON_Ticker();
 }

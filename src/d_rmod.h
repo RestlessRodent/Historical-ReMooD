@@ -50,7 +50,6 @@ typedef enum D_RMODPrivates_e
 {
 	/* GUI */
 	DRMODP_WIDGET,								// Widgets
-	DRMODP_MENU,								// Menu related stuff
 	
 	/* Objects, Weapons, Ammo, etc. */
 	DRMODP_MAPOBJECT,							// "MapObject"
