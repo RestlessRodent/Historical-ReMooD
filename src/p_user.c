@@ -784,6 +784,7 @@ bool_t P_CanUseWeapon(player_t* const a_Player, const weapontype_t a_Weapon)
 	return true;
 }
 
+/* P_PlayerThink() -- Player thinking */
 void P_PlayerThink(player_t* player)
 {
 	ticcmd_t* cmd;
@@ -793,11 +794,16 @@ void P_PlayerThink(player_t* player)
 	int waterz;
 	int i, j, k, l;
 	angle_t delta;
-	
-#ifdef PARANOIA
+
+	// GhostlyDeath <May 17, 2012> -- Instead of crashing, spawn a player
 	if (!player->mo)
-		I_Error("p_playerthink : players[%d].mo == NULL", player - players);
-#endif
+	{
+		// In the middle of nowhere could be better than nothing
+		player->mo = P_SpawnMobj(0, 0, 0, INFO_GetTypeByName("DoomPlayer"));
+		
+		// Set as reborn
+		player->playerstate = PST_REBORN;
+	}
 	
 	// fixme: do this in the cheat code
 	if (player->cheats & CF_NOCLIP)
@@ -818,16 +824,9 @@ void P_PlayerThink(player_t* player)
 		player->mo->flags &= ~MF_JUSTATTACKED;
 	}
 	
+	// GhostlyDeath <May 17, 2012> -- If player is reborning still, reborn again
 	if (player->playerstate == PST_REBORN)
-	{
-		return;
-#ifdef PARANOIA
-		I_Error("player %d is in PST_REBORN\n");
-#else
-		// it is not "normal" but far to be critical
-		return;
-#endif
-	}
+		G_DoReborn(player - players);
 		
 	if (player->playerstate == PST_DEAD)
 	{

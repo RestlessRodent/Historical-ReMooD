@@ -1113,6 +1113,8 @@ StringGroupEX_t UnicodeStrings[NUMUNICODESTRINGS] =
 	{		  "CVHINT_SVCONNECTPASSWORD", "The password needed to connect to a server."},
 	{			 "CVHINT_SVJOINPASSWORD", "The password needed to join the game."},
 	
+	{			 "CVHINT_RCUTWALLDETAIL", "Lower the detail of wall textures to reduce memory usage at the cost of quality."},
+	
 	/*** NETWORK STUFF ***/
 	{			"NET_YOUARENOTTHESERVER", "You are not the server."},
 	{				 "NET_LEVELNOTFOUND", "Level not found."},

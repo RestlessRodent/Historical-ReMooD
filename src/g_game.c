@@ -939,7 +939,7 @@ bool_t G_CheckSpot(int playernum, mapthing_t* mthing, const bool_t a_NoFirstMo)
 			// first spawn of level, before corpses
 			for (i = 0; i < playernum; i++)
 				// added 15-1-98 check if player is in game (mistake from id)
-				if (playeringame[i] && players[i].mo->x == mthing->x << FRACBITS && players[i].mo->y == mthing->y << FRACBITS)
+				if (playeringame[i] && (players[i].mo && players[i].mo->x == mthing->x << FRACBITS && players[i].mo->y == mthing->y << FRACBITS))
 					return false;
 			return true;
 		}
@@ -1392,18 +1392,37 @@ player_t* G_AddPlayer(int playernum)
 	player_t* p = &players[playernum];
 	playeringame[playernum] = true;
 	
+	/* Initialize */
 	p->playerstate = PST_REBORN;
 	p->weaponinfo = wpnlev1info;
+	p->autoaim_toggle = true;
 	
+	/* Initialize */
+	G_InitPlayer(p);
+	
+	/* Return it */
 	return &players[playernum];
 }
 
 /* G_InitPlayer() -- Initializes Player */
 void G_InitPlayer(player_t* const a_Player)
 {
+	size_t i;
+	
 	/* Check */
 	if (!a_Player)
 		return;
+	
+	/* Clear Totals */
+	a_Player->addfrags = 0;
+	a_Player->killcount = a_Player->itemcount = a_Player->secretcount = 0;
+	
+	for (i = 0; i < MAXPLAYERS; i++)
+		a_Player->frags[i] = 0;
+	
+	/* Find if the player is on the screen */
+	
+	/* Match angle */
 }
 
 // DOOM Par Times

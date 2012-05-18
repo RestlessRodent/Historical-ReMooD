@@ -43,6 +43,7 @@
 #include "z_zone.h"
 #include "p_setup.h"			//levelflats
 #include "v_video.h"			//pLoaclPalette
+#include "console.h"
 
 #ifdef _WIN32
 #include "malloc.h"
@@ -74,6 +75,14 @@ lighttable_t* colormaps = NULL;
 int flatmemory;
 int spritememory;
 int texturememory;
+
+// con_monospace -- Draw as monospaced
+CONL_StaticVar_t l_RCutWallDetail =
+{
+	CLVT_INTEGER, c_CVPVBoolean, CLVF_SAVE,
+	"r_cutwalldetail", DSTR_CVHINT_RCUTWALLDETAIL, CLVVT_STRING, "false",
+	NULL
+};
 
 //
 // MAPTEXTURE_T CACHING
@@ -670,7 +679,23 @@ static bool_t RS_TextureOrderChange(const bool_t a_Pushed, const struct WL_WADFi
 	/* Clear texture count */
 	// Free pointer array
 	if (textures)
+	{
+		// Go through textures and free anything extra inside
+		for (i = 0; i < numtextures; i++)
+		{
+			if (textures[i]->ColumnOffs)
+				Z_Free(textures[i]->ColumnOffs);
+			if (textures[i]->Composite)
+				Z_Free(textures[i]->Composite);
+			if (textures[i]->Cache)
+				Z_Free(textures[i]->Cache);
+			if (textures[i]->FlatCache)
+				Z_Free(textures[i]->FlatCache);
+		}
+		
+		// Now free it
 		Z_Free(textures);
+	}
 	textures = NULL;
 	
 	// Clear count
@@ -1214,8 +1239,9 @@ uint8_t* R_GetFlat(int flatlumpnum)
 /* R_GenerateTexture() -- Generates a texture (loads from cache) */
 uint8_t* R_GenerateTexture(int texnum)
 {
-	uint8_t* Buffer;
-	uint8_t* dd;
+	uint8_t* Buffer, *MaskBuffer;
+	uint8_t* dd, *ddEnd, *AddMark;
+	uint8_t iX, iY;
 	uint32_t w, h, x, y, z;
 	size_t p, c, PatchSize;
 	texture_t* Texture;
@@ -1223,10 +1249,17 @@ uint8_t* R_GenerateTexture(int texnum)
 	patch_t* PatchT;
 	R_PatchInfo_t* PInfo;
 	size_t Size;
+	bool_t BitA, BitB;
+	bool_t Cut;
 	
 	/* Check */
 	if (texnum < 0 || texnum >= numtextures)
 		return NULL;
+	
+	/* Cut Texture */
+	Cut = false;
+	if (l_RCutWallDetail.Value[0].Int)
+		Cut = true;
 	
 	/* Quick info */
 	Texture = textures[texnum];
@@ -1253,6 +1286,7 @@ uint8_t* R_GenerateTexture(int texnum)
 	Texture->CacheSize = 0;
 	
 	/* Allocate buffer based on size */
+	MaskBuffer = NULL;
 	Buffer = Z_Malloc(sizeof(*Buffer) * (w * h), PU_WLDKRMOD, NULL);
 	
 	/* Drawing a flat? */
@@ -1274,6 +1308,12 @@ uint8_t* R_GenerateTexture(int texnum)
 	/* Drawing a wall? */
 	else
 	{
+		// Craete secondary masking buffer
+		MaskBuffer = Z_Malloc(sizeof(*Buffer) * (w * h), PU_WLDKRMOD, NULL);
+		
+		// Set the mask buffer to the opposite of zero
+		memset(MaskBuffer, 0xFF, sizeof(*Buffer) * (w * h));
+
 		// For every patch in the texture, draw
 		for (p = 0; p < Texture->patchcount; p++)
 		{
@@ -1284,38 +1324,143 @@ uint8_t* R_GenerateTexture(int texnum)
 			if (!PInfo->Image)
 				PInfo->Image = V_ImageLoadE(PInfo->Entry);
 		
-			// Draw into buffer
+			// Draw into buffer and into masking buffer
+				// Plain
 			V_ImageDrawScaledIntoBuffer(VEX_IGNOREOFFSETS, PInfo->Image, Texture->patches[p].originx, Texture->patches[p].originy, 0, 0, 1 << (FRACBITS), 1 << (FRACBITS), NULL, Buffer, w, w, h, 1 << FRACBITS, 1 << FRACBITS, 1.0, 1.0);
+				// Masking
+			V_ImageDrawScaledIntoBuffer(VEX_IGNOREOFFSETS, PInfo->Image, Texture->patches[p].originx, Texture->patches[p].originy, 0, 0, 1 << (FRACBITS), 1 << (FRACBITS), NULL, MaskBuffer, w, w, h, 1 << FRACBITS, 1 << FRACBITS, 1.0, 1.0);
 		}
 	}
 	
 	/* Create column data based on picture */
 	Texture->ColumnOffs = Z_Malloc(sizeof(*Texture->ColumnOffs) * w, PU_WLDKRMOD, NULL);
-	Texture->Cache = Z_Malloc((w * h) + (6 * w), PU_CACHE, NULL);
+	Texture->CacheSize = (w * (h * 3)) + (6 * w);
+	Texture->Cache = Z_Malloc(Texture->CacheSize, PU_CACHE, &Texture->Cache);
+	
+	// Prepare
+	dd = Texture->Cache;
+	ddEnd = (dd + Texture->CacheSize) - 2;
+	z = 0;
 	
 	// Copy in data
-	dd = Texture->Cache;
-	z = 0;
-	for (x = 0; x < w; x++)
+		// No mask buffer (flats)
+	if (!MaskBuffer)
 	{
-		// Offset here
-		Texture->ColumnOffs[x] = dd - Texture->Cache;
+		for (x = 0; x < w && dd < ddEnd; x++)
+		{
+			// Offset here
+			Texture->ColumnOffs[x] = dd - Texture->Cache;
 		
-		// Place posts
-		*(dd++) = 0;	// offset
-		*(dd++) = h;	// size
-		*(dd++) = 0;	// junk
+			// Place posts
+			*(dd++) = 0;	// offset
+			*(dd++) = h;	// size
+			*(dd++) = 0;	// junk
 		
-		for (y = 0; y < h; y++)
-			//*(dd++) = x + y + w + h;
-			*(dd++) = Buffer[(w * y) + x];
+			for (y = 0; y < h; y++)
+				//*(dd++) = x + y + w + h;
+				*(dd++) = Buffer[(w * y) + x];
 		
-		*(dd++) = 0;	// junk
-		*(dd++) = 0xFFU;	// end
+			*(dd++) = 0;	// junk
+			*(dd++) = 0xFFU;	// end
+		}
+	}
+		// Mask Buffer (walls)
+	else
+	{
+		// Go through each column
+		for (x = 0; x < w && dd < ddEnd; x++)
+		{
+			// Cutting texture?
+			if (Cut)
+				// Odd column
+				if ((x & 1) == 1)
+				{
+					// Set to column of previous
+					Texture->ColumnOffs[x] = Texture->ColumnOffs[x - 1];
+					
+					// Skip initializing it
+					continue;
+				}
+			
+			// Initialize
+			BitA = BitB = false;
+			AddMark = NULL;
+			
+			// Go through all the columns
+			for (y = 0; y < h; y++)
+			{
+				// Get current pixels here
+				iX = Buffer[(w * y) + x];
+				iY = MaskBuffer[(w * y) + x];
+				
+				// Parsing nothing
+				if (!BitA)
+				{
+					// Untouched pixel?
+					if (iX == 0 && iY == 255)
+						continue;
+					
+					// It is different, create column here
+					if (!BitB)	// First time?
+					{
+						Texture->ColumnOffs[x] = dd - Texture->Cache;
+						BitB = true;
+					}
+					
+					// Put column here
+					*(dd++) = y;	// Offset
+					AddMark = dd;		// Remember pointer to size
+					*(dd++) = 1;	// Size
+					*(dd++) = 0;	// Junk
+					
+					// Put initial byte here
+					*(dd++) = iX;
+					
+					// Set bit
+					BitA = true;
+				}
+				
+				// Parsing a column
+				else
+				{
+					// Untouched pixel?
+					if (iX == 0 && iY == 255)
+					{
+						// End it now
+						*(dd++) = 0;	// junk
+						
+						// Clear vars
+						BitA = false;
+						AddMark = NULL;
+						continue;
+					}
+					
+					// Put into column data
+					if (*AddMark < 255)	// Don't make crazy big posts
+					{
+						(*AddMark) += 1;	// increase post height
+						*(dd++) = iX;		// The pixel itself
+					}
+				}
+			}
+			
+			// Column never initialized? (A completely blank column)
+			if (!BitB)
+				Texture->ColumnOffs[x] = dd - Texture->Cache;
+			
+			// Column in middle of read
+			else if (BitA)
+				*(dd++) = 0;	// junk
+			
+			// End the column
+			*(dd++) = 0xFFU;	// end
+		}
 	}
 	
 	/* No longer need the buffer */
 	Z_Free(Buffer);
+	if (MaskBuffer)
+		Z_Free(MaskBuffer);
 	
 	/* Return cache */
 	return Texture->Cache;
@@ -1826,6 +1971,9 @@ char* R_ColormapNameForNum(int num)
 //
 void R_InitData(void)
 {
+	// GhostlyDeath <May 17, 2012> -- Cut wall detail
+	CONL_VarRegister(&l_RCutWallDetail);
+	
 	CONL_PrintF("\nInitFlats...");
 	R_InitFlats();
 	

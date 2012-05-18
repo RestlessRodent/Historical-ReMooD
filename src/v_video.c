@@ -3823,8 +3823,12 @@ const struct patch_s* V_ImageGetPatch(V_Image_t* const a_Image, size_t* const a_
 #else
 	uint8_t* RawImage;
 	uint8_t* RawData;
-	size_t BaseSize, TotalSize, i;
+	size_t BaseSize, TotalSize, i, y, h;
 	uint32_t Temp;
+	
+	uint8_t* id, *od, *EndD;
+	uint8_t* COff, *CSize;
+	uint8_t* BufA, *BufB;
 	
 	/* Not for dedicated server */
 	if (g_DedicatedServer)
@@ -3854,6 +3858,7 @@ const struct patch_s* V_ImageGetPatch(V_Image_t* const a_Image, size_t* const a_
 		BaseSize = sizeof(*a_Image->dPatch) + (sizeof(uint32_t) * a_Image->Width);
 		TotalSize = BaseSize + a_Image->wData->Size;
 		a_Image->dPatch = Z_Malloc(TotalSize, PU_STATIC, &a_Image->dPatch);
+		a_Image->dPatchEnd = EndD = ((uint8_t*)a_Image->dPatch) + TotalSize;
 		
 		// Return size
 		if (a_ByteSize)
@@ -3885,6 +3890,42 @@ const struct patch_s* V_ImageGetPatch(V_Image_t* const a_Image, size_t* const a_
 				a_Image->dPatch->columnofs[i] = Temp;
 			else
 				a_Image->dPatch->columnofs[i] = 0;
+			
+			// Correct any mistakes people and utilities made
+			id = ((uint8_t*)a_Image->dPatch) + a_Image->dPatch->columnofs[i];
+			
+			// Way past the end?
+			if (id >= EndD)
+			{
+				a_Image->dPatch->columnofs[i] = 0;	// NULL it out
+				continue;
+			}
+			
+			// While not at end
+			while (*id != 0xFF)
+			{
+				// Obtain pointers to stuff
+				COff = id++;	// Offset
+				CSize = id++;	// Length
+				id++;			// Holder
+				
+				// Go through the data
+				h = *CSize + 1;	// 1 for that extra byte
+				
+				// Loop it
+				for (y = 0; y < h; y++)
+					// Exceeds data bounds?
+					if (id >= EndD)	// Nuke the post!
+					{
+						*COff = 0xFF;
+						y = 9999999;	// Go extremely off
+						break;
+					}
+					
+					// Conitnue on
+					else
+						id++;
+			}
 		}
 		
 		// Return the freshly loaded image
@@ -4281,7 +4322,7 @@ void V_ImageDrawScaledIntoBuffer(const uint32_t a_Flags, V_Image_t* const a_Imag
 	
 	/* If the image is a patch_t then draw it as a patch */
 	// Since patches have "holes" for transparency
-#if 0
+#if 1
 	if (a_Image->NativeType == VIT_PATCH)
 	{
 		// Load the patch
@@ -4296,6 +4337,10 @@ void V_ImageDrawScaledIntoBuffer(const uint32_t a_Flags, V_Image_t* const a_Imag
 		{
 			// Get source
 			sP = ((uint8_t*)RawPatch) + RawPatch->columnofs[sxX >> FRACBITS];
+			
+			// Past the end?
+			if (sP >= a_Image->dPatchEnd)
+				continue;
 			
 			// While there are no more columns
 			while (*sP != 0xFF)

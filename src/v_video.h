@@ -382,6 +382,9 @@ typedef struct V_Image_s
 	/* Cache Chain */
 	struct V_Image_s*		iPrev;				// Previous image
 	struct V_Image_s*		iNext;				// Next image
+	
+	/* Size */
+	void* dPatchEnd;							// End of patch data
 } V_Image_t;
 
 // Load and Destroy
