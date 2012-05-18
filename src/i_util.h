@@ -419,6 +419,7 @@ typedef struct I_HostAddress_s
 /********* BEGIN STOLEN NETWORKING CODE FROM MY SUPER SECRET PROJECT *********/
 
 /*** i_utlnet.c ***/
+bool_t I_NetCompareHost(const I_HostAddress_t* const a_A, const I_HostAddress_t* const a_B);
 bool_t I_NetNameToHost(I_HostAddress_t* const a_Host, const char* const a_Name);
 bool_t I_NetHostToName(const I_HostAddress_t* const a_Host, char* const a_Out, const size_t a_OutSize);
 

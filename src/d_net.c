@@ -381,6 +381,83 @@ D_NetClient_t* D_NCFindClientByPlayer(struct player_s* const a_Player)
 		return NULL;
 }
 
+/* DS_ConnectMultiCom() -- Connection multi-command */
+static CONL_ExitCode_t DS_ConnectMultiCom(const uint32_t a_ArgC, const char** const a_ArgV)
+{
+	D_NetClient_t* ServerNC;
+	I_HostAddress_t Host;
+	
+	/* Clear Host */
+	memset(&Host, 0, sizeof(Host));
+	
+	/* Connect */
+	if (strcasecmp("connect", a_ArgV[0]) == 0)
+	{
+		// Not enough args?
+		if (a_ArgC < 2)
+		{
+			CONL_PrintF("%s <address> (password) (join password)", a_ArgV[0]);
+			return CLE_FAILURE;
+		}
+		
+		// Get hostname
+		if (!I_NetNameToHost(&Host, a_ArgV[1]))
+		{
+			CONL_OutputU(DSTR_NET_BADHOSTRESOLVE, "\n");
+			return CLE_FAILURE;
+		}
+		
+		// Attempt connect to server
+		D_NCClientize(&Host, (a_ArgC >= 3 ? : a_ArgV[2]), (a_ArgC >= 4 ? : a_ArgV[3]));
+		
+		return CLE_SUCCESS;
+	}
+	
+	/* Disconnect */
+	if (strcasecmp("disconnect", a_ArgV[0]) == 0)
+	{
+		// Disconnect
+		D_NCDisconnect();
+		
+		// Success!
+		return CLE_SUCCESS;
+	}
+	
+	/* Reconnect */
+	if (strcasecmp("reconnect", a_ArgV[0]) == 0)
+	{
+		// Find server host
+		ServerNC = D_NCFindClientIsServer();
+		
+		// No server found?
+		if (!ServerNC)
+			return CLE_FAILURE;
+		
+		// We are the server?
+		if (ServerNC->IsServer && ServerNC->IsLocal)
+		{
+			CONL_OutputU(DSTR_NET_RECONNECTYOUARESERVER, "\n");
+			return CLE_FAILURE;
+		}
+		
+		// Copy host
+		memmove(&Host, &ServerNC->Address, sizeof(Host));
+		
+		// Disconnect
+		D_NCDisconnect();
+		
+		// Connect to server
+			// TODO FIXME: Server Password
+		D_NCClientize(&Host, NULL, NULL);
+		
+		// Success! I hope
+		return CLE_SUCCESS;
+	}
+	
+	/* Failure */
+	return CLE_FAILURE;
+}
+
 /* D_CheckNetGame() -- Checks whether the game was started on the network */
 bool_t D_CheckNetGame(void)
 {
@@ -398,6 +475,11 @@ bool_t D_CheckNetGame(void)
 	netgame = false;
 	if (netgame)
 		netgame = false;
+	
+	/* Register server commands */
+	CONL_AddCommand("connect", DS_ConnectMultiCom);
+	CONL_AddCommand("disconnect", DS_ConnectMultiCom);
+	CONL_AddCommand("reconnect", DS_ConnectMultiCom);
 	
 	/* Register variables */
 	CONL_VarRegister(&l_SVName);
@@ -515,6 +597,182 @@ void D_NCRunCommands(void)
 		memmove(l_ComQueue, l_ComQueue + 1, sizeof(*l_ComQueue) * (l_NumComQueue - 1));
 		l_ComQueue[l_NumComQueue - 1] = NULL;
 	}
+}
+
+/* D_NCDisconnect() -- Disconnect from existing server */
+void D_NCDisconnect(void)
+{
+	size_t i;
+	
+	/* Clear all player information */
+	// Just wipe ALL of it!
+	memset(players, 0, sizeof(players));
+	memset(playeringame, 0, sizeof(playeringame));
+	memset(displayplayer, 0, sizeof(displayplayer));
+	memset(consoleplayer, 0, sizeof(consoleplayer));
+	memset(g_PlayerInSplit, 0, sizeof(g_PlayerInSplit));
+	g_SplitScreen = -1;
+	
+	/* Destroy the level */
+	P_ExClearLevel();
+	
+	/* Go back to the title screen */
+	gamestate = GS_DEMOSCREEN;
+	
+	/* Clear Command Queue */
+	// Don't wait stray commands being executed now!
+		// TODO FIXME: Slight memory leak if the stuff in queue isn't freed
+	for (i = 0; i < l_NumComQueue; i++)
+		if (l_ComQueue[i])
+		{
+			Z_Free(l_ComQueue[i]);
+			l_ComQueue[i] = NULL;
+		}
+	
+	/* Clear non-local NetClients */
+	// Also set all local stuff as servers
+	for (i = 0; i < l_NumClients; i++)
+		if (l_Clients[i])
+		{
+			// Not Local
+			if (!l_Clients[i]->IsLocal)
+			{
+				// Free streams, if any
+				if (l_Clients[i]->CoreStream)
+					D_RBSCloseStream(l_Clients[i]->CoreStream);
+				if (l_Clients[i]->PerfectStream)
+					D_RBSCloseStream(l_Clients[i]->PerfectStream);
+					
+				// Close socket, if any
+				if (l_Clients[i]->NetSock)
+					I_NetCloseSocket(l_Clients[i]->NetSock);
+				
+				// Free it
+				Z_Free(l_Clients[i]);
+				l_Clients[i] = NULL;
+			}
+			
+			// Is Local
+			else
+				l_Clients[i]->IsServer = true;
+		}
+}
+
+/* D_NCServize() -- Turn into server */
+void D_NCServize(void)
+{
+	/* First Disconnect */
+	// This does most of the work for us
+	D_NCDisconnect();
+}
+
+/* D_NCClientize() -- Turn into client and connect to server */
+void D_NCClientize(I_HostAddress_t* const a_Host, const char* const a_Pass, const char* const a_JoinPass)
+{
+	size_t i;
+	D_NetClient_t* Server;
+	D_NetClient_t* NetClient;
+	I_NetSocket_t* Socket;
+	D_RBlockStream_t* Stream;
+	
+	/* Check */
+	if (!a_Host)
+		return;
+	
+	/* See if already connected to this server */
+	Server = D_NCFindClientByHost(a_Host);
+	
+	// Server was found and isn't local
+	if (Server && !Server->IsLocal)
+		// Compare address for a match
+		if (I_NetCompareHost(&Server->Address, a_Host))
+		{
+			CONL_OutputU(DSTR_NET_CONNECTINGTOSAMESERVER, "\n");
+			return;
+		}
+	
+	/* First Disconnect */
+	D_NCDisconnect();
+	
+	/* Try creating socket to server */
+	for (i = 0; i < 10; i++)
+	{
+		Socket = I_NetOpenSocket(false, a_Host, __REMOOD_BASEPORT + i);
+		
+		// Was created?
+		if (Socket)
+			break;
+	}
+	
+	// Failed to create?
+	if (!Socket)
+	{
+		CONL_OutputU(DSTR_NET_CONNECTNOSOCKET, "\n");
+		return;
+	}
+	
+	/* Revoke self serverness */
+	for (i = 0; i < l_NumClients; i++)
+		if (l_Clients[i])
+			l_Clients[i]->IsServer = false;
+	
+	/* Create NetClient for server */
+	NetClient = D_NCAllocClient();
+	
+	// Fill stuff in it
+	NetClient->NetSock = Socket;
+	
+	// Create stream from it
+	NetClient->CoreStream = D_RBSCreateNetStream(NetClient->NetSock);
+	
+	// Create encapsulated perfect stream
+	NetClient->PerfectStream = D_RBSCreatePerfectStream(NetClient->CoreStream);
+	
+	// Create streams for server connection
+	NetClient->Streams[DNCSP_READ] = NetClient->CoreStream;
+	NetClient->Streams[DNCSP_WRITE] = NetClient->CoreStream;
+	NetClient->Streams[DNCSP_PERFECTREAD] = NetClient->PerfectStream;
+	NetClient->Streams[DNCSP_PERFECTWRITE] = NetClient->PerfectStream;
+	
+	// Set as server
+	NetClient->IsServer = true;
+	
+	/* Prepare for connection to server */
+	gamestate = GS_WAITFORJOINWINDOW;
+	
+	/* Send connection command to server */
+	// Send perfect write packets
+	Stream = NetClient->Streams[DNCSP_PERFECTWRITE];
+	
+	// Write out the data
+	D_RBSBaseBlock(Stream, "CONN");
+	
+	// Write version
+	D_RBSWriteUInt8(Stream, VERSION);
+	D_RBSWriteUInt8(Stream, REMOOD_MAJORVERSION);
+	D_RBSWriteUInt8(Stream, REMOOD_MINORVERSION);
+	D_RBSWriteUInt8(Stream, REMOOD_RELEASEVERSION);
+	
+	// Passwords
+	D_RBSWriteString(Stream, (a_Pass ? a_Pass : ""));
+	D_RBSWriteString(Stream, (a_JoinPass ? a_JoinPass : ""));
+	
+	// Send to server
+	D_RBSRecordNetBlock(Stream, a_Host);
+	
+	/* Print message to avid player */
+	CONL_OutputU(DSTR_NET_CONNECTINGTOSERVER, "\n");
+}
+
+/* D_NCHostOnBanList() -- Checks whether a host is on your banlist */
+bool_t D_NCHostOnBanList(I_HostAddress_t* const a_Host)
+{
+	/* Check */
+	if (!a_Host)
+		return false;
+	
+	/* No ban found */
+	return false;
 }
 
 /* D_NCUpdate() -- Update all networking stuff */

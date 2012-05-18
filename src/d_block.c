@@ -819,6 +819,9 @@ static DS_RBSPerfectKey_t* DS_RBSPerfect_IntFindKey(struct D_RBlockStream_s* con
 		else
 		{
 			// Match IP
+			if (!I_NetCompareHost(a_Host, &Key->RemHost))
+				continue;
+			
 			for (i = 0; i < 4; i++)
 				if (a_Host->Host.v6.u[i] != Key->RemHost.Host.v6.u[i])
 					break;

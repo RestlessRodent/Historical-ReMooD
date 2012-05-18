@@ -119,6 +119,60 @@ static bool_t l_IPv6 = false;					// using IPv6 Mode
 
 /*** COMMUNICATION ***/
 
+/* I_NetCompareHost() -- Returns true if the hosts are the same */
+bool_t I_NetCompareHost(const I_HostAddress_t* const a_A, const I_HostAddress_t* const a_B)
+{
+	bool_t Match;
+	size_t i;
+	
+	/* Check */
+	if (!a_A || !a_B)
+		return false;
+	
+	/* No IP Data at all? */
+	if (!a_A->IPvX && !a_B->IPvX)
+		return true;	// Set as successful (since nothing matches nothing)
+	
+	/* Port Mismatch */
+	if (a_A->Port != a_B->Port)
+		return false;
+	
+	/* Prepare IP matches */
+	Match = false;
+	
+	/* IPv4 */
+	if (!Match && (a_A->IPvX & INIPVN_IPV4) && (a_B->IPvX & INIPVN_IPV4))
+	{
+		Match = true;
+		
+		// Check
+		if (a_A->Host.v4.u != a_B->Host.v4.u)
+			Match = false;
+		
+		// Matched?
+		if (Match)
+			return true;
+	}
+	
+	/* IPv6 */
+	if (!Match && (a_A->IPvX & INIPVN_IPV4) && (a_B->IPvX & INIPVN_IPV4))
+	{
+		Match = true;
+		
+		// Check
+		for (i = 0; i < 4; i++)
+			if (a_A->Host.v6.u[i] != a_B->Host.v6.u[i])
+				Match = false;
+		
+		// Matched?
+		if (Match)
+			return true;
+	}
+	
+	/* Was Not Matched */
+	return false;
+}
+
 #if !defined(__MSDOS__)
 /* IS_NetAddrWrapToNative() -- Convert wrapped host to native address */
 static void IS_NetAddrWrapToNative(const I_HostAddress_t* const a_Host, struct sockaddr_in* const a_V4, struct sockaddr_in6* const a_V6)
@@ -488,20 +542,56 @@ size_t I_NetRecv(I_NetSocket_t* const a_Socket, I_HostAddress_t* const a_Host, v
 // work hopefully!
 bool_t I_NetNameToHost(I_HostAddress_t* const a_Host, const char* const a_Name)
 {
+#define BUFSIZE	256
+#if defined(_WIN32)
+	struct hostent* Ent;
+#else
+	size_t i;
+	struct addrinfo AddrInfo;
+	struct addrinfo* Find, *Rover;
+	struct sockaddr_in6 SockInfoSix;
+	struct sockaddr_in SockInfoFour;
+#endif
+	char Buf[BUFSIZE];
+	char* PortP;
+	uint16_t MatchPort;
+
+	/* Check */
+	if (!a_Host || !a_Name)
+		return false;
+	
+	/* Extract port (if any) */
+	memset(Buf, 0, sizeof(Buf));
+	strncpy(Buf, a_Name, BUFSIZE - 1);
+	PortP = strchr(Buf, ':');
+	
+	// No :, presume default port
+	if (!PortP)
+		MatchPort = __REMOOD_BASEPORT;
+	
+	// Otherwise, take the name out
+	else
+	{
+		// Erase it
+		*PortP = 0;
+		
+		// Move it up
+		PortP++;
+		
+		// Translate to integer
+		MatchPort = atoi(PortP);
+	}
+
+	/* Do system specifics now */
 #if defined(__MSDOS__)
 	/* DOS Does not support networking */
 	return false;
 	
 #elif defined(_WIN32)
 	/* WinXP+ supports getnameinfo() etc. but I want Win98 Support */
-	struct hostent* Ent;
-	
-	/* Check */
-	if (!a_Host || !a_Name)
-		return false;
 	
 	/* Obtain host info */
-	Ent = gethostbyname(a_Name);
+	Ent = gethostbyname(Buf);
 	
 	// No IP found?
 	if (!Ent)
@@ -513,21 +603,13 @@ bool_t I_NetNameToHost(I_HostAddress_t* const a_Host, const char* const a_Name)
 	
 	/* Convert */
 	IS_NetAddrNativeToWrap(a_Host, Ent->h_addr);
+	a_Host->Port = MatchPort;
 	
 	/* Success! */
 	return true;
 	
 #elif !defined(_WIN32) || (defined(_WIN32) && _WIN32_WINNT >= 0x0501)
 	/* Otherwise, use the good stuff */
-	size_t i;
-	struct addrinfo AddrInfo;
-	struct addrinfo* Find, *Rover;
-	struct sockaddr_in6 SockInfoSix;
-	struct sockaddr_in SockInfoFour;
-	
-	/* Check */
-	if (!a_Host || !a_Name)
-		return false;
 	
 	/* Clear all */
 	memset(a_Host, 0, sizeof(*a_Host));
@@ -544,7 +626,7 @@ bool_t I_NetNameToHost(I_HostAddress_t* const a_Host, const char* const a_Name)
 #endif
 	
 	/* Get address info */
-	if (getaddrinfo(a_Name, NULL, &AddrInfo, &Find) != 0)
+	if (getaddrinfo(Buf, NULL, &AddrInfo, &Find) != 0)
 		return false;
 	
 	/* Rove through addresses */
@@ -610,9 +692,16 @@ bool_t I_NetNameToHost(I_HostAddress_t* const a_Host, const char* const a_Name)
 	
 	/* Return true ONLY if an IP was found */
 	if (a_Host->IPvX)
+	{
+		a_Host->Port = MatchPort;
 		return true;
+	}
+	
+	/* No match found */
 	return false;
 #endif
+
+#undef BUFSIZE
 }
 
 /* I_NetHostToName() -- Converts a host to a named address */

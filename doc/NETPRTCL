@@ -71,11 +71,19 @@ RINF	-- Request Game Info
 		u32 Low Cookie
 		u32 High Cookie
 		
-LPRJ	-- Local Player Request Join [Local & Server]
+*LPRJ	-- Local Player Request Join [Local & Server]
 		str	UUID of Joining Player (Profile)
 		str Account Name (Profile)
 		str Display Name (Profile)
 		u8	Player Color (Profile)
+
+*CONN	-- Connection Request
+		u8	Legacy Version
+		u8	Major Version
+		u8	Minor Version
+		u8	Release Version
+		str Password (for connecting to this server)
+		str Join Password (for joining the game)
 
 ### SERVER -> CLIENT ###
 
@@ -158,12 +166,24 @@ INFT	-- INFO Terminate (Stop handling)
 		u32 Low Cookie (This is copied from RINF)
 		u32 High Cookie (This is copied from RINF)
 
-MAPC	-- Map Change [Local & Server]
+*MAPC	-- Map Change [Local & Server]
 		str Map Lump Name
 
+*FOFF	-- Fudge Off!
+				> When a client recieves it, it should call the disconnect func
+		u8	Reason Code
+				> 'C' = Maximum Clients obtained
+				> 'P' = Bad Connect Password
+				> 'B' = Banned
+				> 'K' = Kicked
+				> 'F' = Consistency Failure (Game desynced)
+				> 'W' = Incorrect WAD Files
+				> 'I' = Server I_Error()ed
+				> 'L' = Login Required
+		str	Reason
+				> The message to be displayed after termination
 
-
-PJOK	-- Player Join OK [!Local & Server]
+*PJOK	-- Player Join OK [!Local & Server]
 		str NetPlayer UUID (Unique Player Identification)
 		u8	Player Number (players[x])
 		u8	Probable Screen ID

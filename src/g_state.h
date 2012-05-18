@@ -54,7 +54,10 @@ typedef enum
 	GS_DEMOSCREEN,				// looking at a demo
 	//legacy
 	GS_DEDICATEDSERVER,			// added 27-4-98 : new state for dedicated server
-	GS_WAITINGPLAYERS			// added 3-9-98 : waiting player in net game
+	GS_WAITINGPLAYERS,			// added 3-9-98 : waiting player in net game
+	
+	// GhostlyDeath <May 17, 2012> -- Waiting for join window
+	GS_WAITFORJOINWINDOW,						// Player must wait to join
 } gamestate_t;
 
 typedef enum

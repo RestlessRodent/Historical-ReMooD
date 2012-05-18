@@ -1121,6 +1121,11 @@ StringGroupEX_t UnicodeStrings[NUMUNICODESTRINGS] =
 	{				 "NET_EXCEEDEDSPLIT", "Client wants a player, but exceeds split-screen limit."},
 	{				  "NET_ATMAXPLAYERS", "Client wants a player, but there are too many players."},
 	{					 "NET_BADCLIENT", "Client wants a player, but the client is invalid."},
+	{		"NET_CONNECTINGTOSAMESERVER", "You are trying to connect to the same server you are already connected to, disconnect first."},
+	{			   "NET_CONNECTNOSOCKET", "Failed to create socket to connect to server."},
+	{           "NET_CONNECTINGTOSERVER", "Connecting to server..."},
+	{		 "NET_RECONNECTYOUARESERVER", "Cannot reconnect to the server, because you are the server."},
+	{				"NET_BADHOSTRESOLVE", "Cannot resolve hostname."},
 	
 	/*** DEPRECATED STRINGS ***/
 	{                              "DEP_D_DEVSTR", "Development mode ON.\n"},
