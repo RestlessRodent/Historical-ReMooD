@@ -857,15 +857,19 @@ static DS_RBSPerfectKey_t* DS_RBSPerfect_IntFindKey(struct D_RBlockStream_s* con
 		Key->ExpireLessThan = true;
 	
 	/* Generate Hopefully Random Key Data */
-	for (i = 0; i < 4; i++)
-	{
-		// Base
-		Key->Key[i] = ThisTime * (i + 1);
+	if (a_InKey)
+		for (i = 0; i < 4; i++)
+			Key->Key[i] = a_InKey[i];
+	else
+		for (i = 0; i < 4; i++)
+		{
+			// Base
+			Key->Key[i] = ThisTime * (i + 1);
 		
-		// Cycle
-		for (j = 0; j < 16; j++)
-			Key->Key[i] ^= (j + (M_Random() * M_Random()) + (((uintptr_t)a_PerfectData) - ((uintptr_t)a_InKey))) << ((j + i) & 24);
-	}
+			// Cycle
+			for (j = 0; j < 16; j++)
+				Key->Key[i] ^= (j + (M_Random() * M_Random()) + (((uintptr_t)a_PerfectData) - ((uintptr_t)a_InKey))) << ((j + i) & 24);
+		}
 	
 	/* Place in empty spot */
 	// First known
