@@ -87,6 +87,10 @@ RINF	-- Request Game Info
 
 *DISC	-- Disconnect
 
+*REDY	-- Ready to Play
+
+*WADQ	-- Query for WADS
+
 ### SERVER -> CLIENT ###
 
 INFO	-- Info About Current Server

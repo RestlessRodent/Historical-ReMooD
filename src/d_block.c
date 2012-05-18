@@ -260,6 +260,23 @@ D_TBlockErr_t D_BlockSend(D_TStreamSource_t* const a_Stream, D_TBlock_t** const 
 *** FILE STREAM ***
 ******************/
 
+/* DS_RBSFile_DeleteF() -- Delete file stream */
+static void DS_RBSFile_DeleteF(struct D_RBlockStream_s* const a_Stream)
+{
+	FILE* File;
+	
+	/* Check */
+	if (!a_Stream)
+		return;
+	
+	/* Close file? */
+	if (a_Stream->Data)
+	{
+		fclose((FILE*)a_Stream->Data);
+		a_Stream->Data = NULL;
+	}
+}
+
 /* DS_RBSFile_RecordF() -- Records the current block */
 static size_t DS_RBSFile_RecordF(struct D_RBlockStream_s* const a_Stream)
 {
@@ -382,6 +399,37 @@ typedef struct DS_RBSLoopBackData_s
 	DS_RBSLoopBackHold_t** Q;					// Blocks in Q
 	size_t SizeQ;								// Size of Q
 } DS_RBSLoopBackData_t;
+
+/* DS_RBSLoopBack_DeleteF() -- Delete loopback stream */
+static void DS_RBSLoopBack_DeleteF(struct D_RBlockStream_s* const a_Stream)
+{
+	size_t i;
+	DS_RBSLoopBackData_t* LoopData;
+	DS_RBSLoopBackHold_t* Hold;
+	
+	/* Check */
+	if (!a_Stream)
+		return;
+	
+	/* Get Data */
+	LoopData = (DS_RBSLoopBackData_t*)a_Stream->Data;
+	
+	// Check
+	if (!LoopData)
+		return;
+	
+	/* Destroy all blocks */
+	if (LoopData->Q)
+	{
+		for (i = 0; i < LoopData->SizeQ; i++)
+			if (!LoopData->Q[i])
+				Z_Free(LoopData->Q[i]);
+		Z_Free(LoopData->Q);
+	}
+	
+	/* Free Data */
+	Z_Free(LoopData);
+}
 
 /* DS_RBSLoopBack_RecordF() -- Records a block */
 size_t DS_RBSLoopBack_RecordF(struct D_RBlockStream_s* const a_Stream)
@@ -538,6 +586,26 @@ typedef struct I_RBSNetSockData_s
 	I_NetSocket_t* Socket;						// Socket
 	uint8_t ReadBuf[IRBSNETSOCKBUFSIZE];		// Read Buffer Fill
 } I_RBSNetSockData_t;
+
+/* DS_RBSNet_DeleteF() -- Delete network stream */
+static void DS_RBSNet_DeleteF(struct D_RBlockStream_s* const a_Stream)
+{
+	I_NetSocket_t* Socket;
+	I_RBSNetSockData_t* NetData;
+	
+	/* Check */
+	if (!a_Stream)
+		return;
+	
+	/* Get Data */
+	NetData = a_Stream->Data;
+	
+	if (!NetData)
+		return;
+	
+	/* Free Data */
+	Z_Free(NetData);
+}
 
 /* DS_RBSNet_NetRecordF() -- Write block to network */
 size_t DS_RBSNet_NetRecordF(struct D_RBlockStream_s* const a_Stream, I_HostAddress_t* const a_Host)
@@ -703,6 +771,55 @@ typedef struct DS_RBSPerfectData_s
 	bool_t Debug;								// Debug it
 } DS_RBSPerfectData_t;
 
+/* DS_RBSPerfect_DeleteF() -- Delete perfect stream */
+static void DS_RBSPerfect_DeleteF(struct D_RBlockStream_s* const a_Stream)
+{
+	size_t i;
+	DS_RBSPerfectData_t* PerfectData;
+	
+	/* Check */
+	if (!a_Stream)
+		return;
+	
+	/* Get Data */
+	PerfectData = (DS_RBSPerfectData_t*)a_Stream->Data;
+	
+	// Check
+	if (!PerfectData)
+		return;
+	
+	/* Delete blocks */
+	// Read Queue
+	if (PerfectData->ReadQ)
+	{
+		for (i = 0; i < PerfectData->SizeReadQ; i++)
+			if (PerfectData->ReadQ[i])
+				Z_Free(PerfectData->ReadQ[i]);
+		Z_Free(PerfectData->ReadQ);
+	}
+			
+	// Write Queue
+	if (PerfectData->WriteQ)
+	{
+		for (i = 0; i < PerfectData->SizeWriteQ; i++)
+			if (PerfectData->WriteQ[i])
+				Z_Free(PerfectData->WriteQ[i]);
+		Z_Free(PerfectData->WriteQ);
+	}
+	
+	/* Delete keys */
+	if (PerfectData->Keys)
+	{
+		for (i = 0; i < PerfectData->NumKeys; i++)
+			if (PerfectData->Keys[i])
+				Z_Free(PerfectData->Keys[i]);
+		Z_Free(PerfectData->Keys);
+	}
+	
+	/* Delete Data */
+	Z_Free(PerfectData);
+}
+
 /* DS_RBSPerfect_IntFindKey() -- Finds the correct key this belongs to */
 static DS_RBSPerfectKey_t* DS_RBSPerfect_IntFindKey(struct D_RBlockStream_s* const a_Stream, DS_RBSPerfectData_t* const a_PerfectData, const uint32_t* const a_InKey, I_HostAddress_t* const a_Host)
 {
@@ -732,6 +849,13 @@ static DS_RBSPerfectKey_t* DS_RBSPerfect_IntFindKey(struct D_RBlockStream_s* con
 			continue;
 		}
 		
+		// Key expires? Revoke it
+		if ((!Key->ExpireLessThan && ThisTime >= Key->ExpireTime) ||
+			(Key->ExpireLessThan && Key->ExpireTime >= ThisTime))
+		{
+			Key->Revoke = true;
+		}
+		
 		// Revoke Key?
 		if (Key->Revoke)
 		{
@@ -759,6 +883,7 @@ static DS_RBSPerfectKey_t* DS_RBSPerfect_IntFindKey(struct D_RBlockStream_s* con
 						if (Hold->Data)
 							Z_Free(Hold->Data);
 						Hold->Data = NULL;
+						Z_Free(Hold);
 						a_PerfectData->ReadQ[b] = NULL;
 					}
 				}
@@ -781,14 +906,15 @@ static DS_RBSPerfectKey_t* DS_RBSPerfect_IntFindKey(struct D_RBlockStream_s* con
 						if (Hold->Data)
 							Z_Free(Hold->Data);
 						Hold->Data = NULL;
+						Z_Free(Hold);
 						a_PerfectData->WriteQ[b] = NULL;
 					}
 				}
 			
 			// Delete self key
 			Z_Free(Key);
-			a_PerfectData->Keys[k] = NULL;
-			continue;
+			Key = a_PerfectData->Keys[k] = NULL;
+			return NULL;	// Was revoked
 		}
 		
 		// If a key was passed, compare it
@@ -802,17 +928,6 @@ static DS_RBSPerfectKey_t* DS_RBSPerfect_IntFindKey(struct D_RBlockStream_s* con
 			// No match?
 			if (i < 4)
 				continue;
-			
-			// Bump expiration
-			Key->LastTime = Key->CreateTime;
-			Key->ExpireTime = Key->LastTime + PERFECTKEYEXPIRETIME;
-	
-			Key->ExpireLessThan = false;
-			if (Key->ExpireTime < Key->LastTime)
-				Key->ExpireLessThan = true;
-			
-			// Return matched key
-			return Key;
 		}
 		
 		// Otherwise do host based authentication
@@ -821,33 +936,32 @@ static DS_RBSPerfectKey_t* DS_RBSPerfect_IntFindKey(struct D_RBlockStream_s* con
 			// Match IP
 			if (!I_NetCompareHost(a_Host, &Key->RemHost))
 				continue;
-			
-			for (i = 0; i < 4; i++)
-				if (a_Host->Host.v6.u[i] != Key->RemHost.Host.v6.u[i])
-					break;
-			
-			// No match?
-			if (i < 4)
-				continue;
-				
-			// Bump expiration
-			Key->LastTime = Key->CreateTime;
-			Key->ExpireTime = Key->LastTime + PERFECTKEYEXPIRETIME;
-	
-			Key->ExpireLessThan = false;
-			if (Key->ExpireTime < Key->LastTime)
-				Key->ExpireLessThan = true;
-			
-			// Return matched key
-			return Key;
 		}
+	
+		// Bump expiration
+		Key->LastTime = ThisTime;
+		Key->ExpireTime = Key->LastTime + PERFECTKEYEXPIRETIME;
+
+		Key->ExpireLessThan = false;
+		if (Key->ExpireTime < Key->LastTime)
+			Key->ExpireLessThan = true;
+		
+		// Return matched key
+		return Key;
 	}
 	
 	/* If this point was reached then the key does not exist */
+	// Use pre-existing blank spot
+	if (FbK > 0 && FbK < a_PerfectData->NumKeys)
+		Key = a_PerfectData->Keys[FbK] = Z_Malloc(sizeof(*Key), PU_STATIC, NULL);
+	
 	// Resize the key array
-	Z_ResizeArray((void**)&a_PerfectData->Keys, sizeof(*a_PerfectData->Keys),
-		a_PerfectData->NumKeys, a_PerfectData->NumKeys + 1);
-	Key = a_PerfectData->Keys[a_PerfectData->NumKeys++] = Z_Malloc(sizeof(*Key), PU_STATIC, NULL);
+	else
+	{
+		Z_ResizeArray((void**)&a_PerfectData->Keys, sizeof(*a_PerfectData->Keys),
+			a_PerfectData->NumKeys, a_PerfectData->NumKeys + 1);
+		Key = a_PerfectData->Keys[a_PerfectData->NumKeys++] = Z_Malloc(sizeof(*Key), PU_STATIC, NULL);
+	}
 	
 	// Setup key info
 	memmove(&Key->RemHost, a_Host, sizeof(*a_Host));
@@ -1007,11 +1121,17 @@ static size_t DS_RBSPerfect_NetRecordF(struct D_RBlockStream_s* const a_Stream, 
 								(unsigned)b
 						);
 				
-				// Delete block
-				if (Hold->Data)
-					Z_Free(Hold->Data);
-				Hold->Data = NULL;
-				Z_Free(Hold);
+				// Delete block, only IF this spot is blank
+					// because if a key was revoked as we tried to grab it, then
+					// this could be invalid!
+				if (PerfectData->WriteQ[b])
+				{
+					if (Hold->Data)
+						Z_Free(Hold->Data);
+					Hold->Data = NULL;
+					Z_Free(Hold);
+				}
+				
 				PerfectData->WriteQ[b] = NULL;
 				continue;
 			}
@@ -1620,6 +1740,7 @@ D_RBlockStream_t* D_RBSCreateLoopBackStream(void)
 	New->RecordF = DS_RBSLoopBack_RecordF;
 	New->PlayF = DS_RBSLoopBack_PlayF;
 	New->FlushF = DS_RBSLoopBack_FlushF;
+	New->DeleteF = DS_RBSLoopBack_DeleteF;
 	
 	/* Return */
 	return New;
@@ -1649,6 +1770,7 @@ D_RBlockStream_t* D_RBSCreateFileStream(const char* const a_PathName)
 	New->Data = File;
 	New->RecordF = DS_RBSFile_RecordF;
 	New->PlayF = DS_RBSFile_PlayF;
+	New->DeleteF = DS_RBSFile_DeleteF;
 	
 	/* Return Stream */
 	return New;
@@ -1672,6 +1794,7 @@ D_RBlockStream_t* D_RBSCreateNetStream(I_NetSocket_t* const a_NetSocket)
 	New->Data = NetData = Z_Malloc(sizeof(*NetData), PU_BLOCKSTREAM, NULL);
 	New->NetRecordF = DS_RBSNet_NetRecordF;
 	New->NetPlayF = DS_RBSNet_NetPlayF;
+	New->DeleteF = DS_RBSNet_DeleteF;
 	
 	/* Load into data */
 	NetData->Socket = a_NetSocket;
@@ -1698,6 +1821,7 @@ D_RBlockStream_t* D_RBSCreatePerfectStream(D_RBlockStream_t* const a_Wrapped)
 	New->NetRecordF = DS_RBSPerfect_NetRecordF;
 	New->NetPlayF = DS_RBSPerfect_NetPlayF;
 	New->FlushF = DS_RBSPerfect_FlushF;
+	New->DeleteF = DS_RBSPerfect_DeleteF;
 	
 	// Load stuff into data
 	Data->WrapStream = a_Wrapped;
@@ -1716,6 +1840,13 @@ void D_RBSCloseStream(D_RBlockStream_t* const a_Stream)
 	/* Check */
 	if (!a_Stream)
 		return;
+	
+	/* Call deletion */
+	if (a_Stream->DeleteF)
+		a_Stream->DeleteF(a_Stream);
+	
+	/* Free it */
+	Z_Free(a_Stream);
 }
 
 /* D_RBSStatStream() -- Obtain stream stats */

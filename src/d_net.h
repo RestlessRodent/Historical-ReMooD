@@ -105,8 +105,10 @@ typedef struct D_NetClient_s
 	bool_t IsLocal;								// Local client
 	bool_t IsServer;							// Is a server
 	
-	/* DNS Info */
+	/* Other Info */
 	char ReverseDNS[NETCLIENTRHLEN];			// Hostname of player
+	bool_t ReadyToPlay;							// Client is ready to play
+	bool_t SaveGameSent;						// Save game was sent
 } D_NetClient_t;
 
 typedef void (*D_NCQCFunc_t)(void* const a_Data);
@@ -146,6 +148,15 @@ void D_NSZZ_SendFullWADS(struct D_RBlockStream_s* a_Stream, I_HostAddress_t* con
 /*** NCSR Funcs ***/
 void D_NCSR_RequestMap(const char* const a_Map);
 void D_NCSR_RequestNewPlayer(struct D_ProfileEx_s* a_Profile);
+void D_NCSR_RequestWAD(const char* const a_WADSum);
+void D_NCSR_RequestServerWADs(void);
+void D_NCSR_SendServerReady(void);
+
+/**** NCHE Funcs ***/
+struct D_NetPlayer_s;
+struct D_ProfileEx_s;
+
+void D_NCHE_ServerCreatePlayer(const size_t a_pNum, struct D_NetPlayer_s* const a_NetPlayer, struct D_ProfileEx_s* const a_Profile, D_NetClient_t* const a_NetClient);
 
 /*** NCQC Funcs ***/
 void D_NCQC_MapChange(void* const a_Data);

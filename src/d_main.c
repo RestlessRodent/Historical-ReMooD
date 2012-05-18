@@ -1028,7 +1028,7 @@ const D_IWADInfoEx_t c_IWADInfos[] =
 		COREGAME_DOOM,
 		true,
 		"MI_DOOM1",
-		CIF_SHAREWARE,
+		CIF_SHAREWARE | CIF_DOWNLOADABLE,
 		
 		doom,
 		shareware
@@ -1046,6 +1046,95 @@ const D_IWADInfoEx_t c_IWADInfos[] =
 
 	/* Last */
 	{NULL, NULL, NULL, NULL, NULL, NULL, NULL, 0, 0, COREGAME_DOOM, false, NULL, 0, 0}
+};
+
+// l_BlockSums -- Checksums to disallow downloading from
+const char* const l_BlockSums[] =
+{
+	/* DOOM IWADS */
+	//"",			// DOOM2 1.666g SS
+	"d9153ced9fd5b898b36cc5844e35b520",			// DOOM2 1.666g MD5
+	//"",			// DOOM2 1.666g SHA1
+	"242f10836fceb0e422624d6de13b139f",			// DOOM2 1.666 SS
+	"30e3c2d0350b67bfbf47271970b74b2f",			// DOOM2 1.666 MD5
+	"6d559b7ceece4f5ad457415049711992370d520a",	// DOOM2 1.666 SHA1
+	"7784d4247a35bc87991c84f98d93c65e",			// DOOM2 1.7 SS
+	"ea74a47a791fdef2e9f2ea8b8a9da13b",			// DOOM2 1.7 MD5
+	"78009057420b792eacff482021db6fe13b370dcc",	// DOOM2 1.7 SHA1
+	"7789d42b7a35bc80991984f38d97c65f",			// DOOM2 1.7a SS
+	"d7a07e5d3f4625074312bc299d7ed33f",			// DOOM2 1.7a MD5
+	"70192b8d5aba65c7e633a7c7bcfe7e3e90640c97",	// DOOM2 1.7a SHA1
+	"7861decfa520bf778cfe84cc7a7e1d81",			// DOOM2 1.8 SS
+	"c236745bb01d89bbb866c8fed81b6f8c",			// DOOM2 1.8 MD5
+	"79c283b18e61b9a989cfd3e0f19a42ea98fda551",	// DOOM2 1.8 SHA1
+	"6ff4def4bd24c6943540c790fbfe2642",			// DOOM2 1.9 SS
+	"25e1459ca71d321525f84628f45ca8cd",			// DOOM2 1.9 MD5
+	"7ec7652fcfce8ddc6e801839291f0e28ef1d5ae7",	// DOOM2 1.9 SHA1
+	
+	"ef78414fa1e6719f2ccec95174da8a23",			// DOOM 1.1 SS
+	"981b03e6d1dc033301aa3095acc437ce",			// DOOM 1.1 MD5
+	"df0040ccb29cc1622e74ceb3b7793a2304cca2c8",	// DOOM 1.1 SHA1
+	"089b90826946715a24e39c5ed50871f5",			// DOOM 1.2 SS
+	"792fd1fea023d61210857089a7c1e351",			// DOOM 1.2 MD5
+	"b5f86a559642a2b3bdfb8a75e91c8da97f057fe6",	// DOOM 1.2 SHA1
+	//"",			// DOOM 1.6b SS
+	"464e3723a7e7f97039ac9fd057096adb",			// DOOM 1.6b MD5
+	"0a2205d1b97bcc6f3221d3291c83b0e7",			// DOOM 1.666 SS
+	"54978d12de87f162b9bcc011676cb3c0",			// DOOM 1.666 MD5
+	"2e89b86859acd9fc1e552f587b710751efcffa8e",	// DOOM 1.666 SHA1
+	"68aada20496c137493f60edb9f3808ff",			// DOOM 1.8 SS
+	"11e1cd216801ea2657723abc86ecb01f",			// DOOM 1.8 MD5
+	"2c8212631b37f21ad06d18b5638c733a75e179ff",	// DOOM 1.8 SHA1
+	"69abda21496c137592f70edb9e3f08fe",			// DOOM 1.9 SS
+	"1cd63c5ddff1bf8ce844237f580e9cf3",			// DOOM 1.9 MD5
+	"7742089b4468a736cadb659a7deca3320fe6dcbd",	// DOOM 1.9 SHA1
+	
+	"befb2905b2b5df3e43a36e84e920f71f",			// ULTIMATE SS
+	"c4fe9fd920207691a9f493668e0a2083",			// ULTIMATE MD5
+	"9b07b02ab3c275a6a7570c3f73cc20d63a0e3833",	// ULTIMATE SHA1
+	
+	"7ee851eb6711fa859dd3c649402382d5",			// PLUTONIA SS
+	"75c8cf89566741fa9d22447604053bd7",			// PLUTONIA MD5
+	"90361e2a538d2388506657252ae41aceeb1ba360",	// PLUTONIA SHA1
+	
+	"109bf7725eeb8b11cc30cd42c81d9ae4",			// TNT SS
+	"4e158d9953c79ccf97bd0663244cc6b6",			// TNT MD5
+	"9fbc66aedef7fe3bae0986cdb9323d2b8db4c9d3",	// TNT SHA1
+	
+	/* HERETIC IWADS */
+	"84ca588353e6880718c823198ee81b60",			// HERETIC 1.0 SS
+	"3117e399cdb4298eaa3941625f4b2923",			// HERETIC 1.0 MD5
+	"b5a6cc79cde48d97905b44282e82c4c966a23a87",	// HERETIC 1.0 SHA1
+	"f955093027c473826fb87d5881a80b23",			// HERETIC 1.2 SS
+	"1e4cb4ef075ad344dd63971637307e04",			// HERETIC 1.2 MD5
+	"a54c5d30629976a649119c5ce8babae2ddfb1a60",	// HERETIC 1.2 SHA1
+	"29ec38a4b4a0892a70dee3b8c81d7dee",			// HERETIC 1.3 SS
+	"66d686b1ed6d35ff103f15dbd30e0341",			// HERETIC 1.3 MD5
+	"f489d479371df32f6d280a0cb23b59a35ba2b833",	// HERETIC 1.3 SHA1
+	
+	/* HEXEN IWADS */
+	"fe2102421d9c1cc6d8d59a2ec870824a",			// HEXEN 1.0 SS
+	"b2543a03521365261d0a0f74d5dd90f0",			// HEXEN 1.0 MD5
+	"ac129c4331bf26f0f080c4a56aaa40d64969c98a",	// HEXEN 1.0 SHA1
+	"423998e1207c104f4ba55f41e4fc5cce",			// HEXEN 1.1 SS
+	"abb033caf81e26f12a2103e1fa25453f",			// HEXEN 1.1 MD5
+	"4b53832f0733c1e29e5f1de2428e5475e891af29",	// HEXEN 1.1 SHA1
+	"b18fca9d5d185ed3a7012fe5914d8960",			// HEXEN DK 1.0 SS
+	"1077432e2690d390c256ac908b5f4efa",			// HEXEN DK 1.0 MD5
+	"c3065527d62b05a930fe75fe8181a64fb1982976",	// HEXEN DK 1.0 SHA1
+	"518e096d7a95e2d1ad946cc4576961c0",			// HEXEN DK 1.1 SS
+	"78d5898e99e220e4de64edaa0e479593",			// HEXEN DK 1.1 MD5
+	"081f6a2024643b54ef4a436a85508539b6d20a1e",	// HEXEN DK 1.1 SHA1
+	
+	/* STRIFE IWADS */
+	"f62842c1d50d990588599037a1de39a2",			// STRIFE 1.0 SS
+	"8f2d3a6a289f5d2f2f9c1eec02b47299",			// STRIFE 1.0 MD5
+	"eb0f3e157b35c34d5a598701f775e789ec85b4ae",	// STRIFE 1.0 SHA1
+	"d25f1923a6801a23646ea0923ced6bc6",			// STRIFE 1.2 SS
+	"2fed2031a5b03892106e0f117f17901f",			// STRIFE 1.2 MD5
+	"64c13b951a845ca7f8081f68138a6181557458d1",	// STRIFE 1.2 SHA1
+	
+	NULL
 };
 
 /*** GLOBALS ***/
@@ -1318,6 +1407,24 @@ static bool_t DS_DetectGameMode(const bool_t a_Pushed, const struct WL_WADFile_s
 	Z_Free(Confidence);
 	
 	return true;
+}
+
+/* D_CheckWADBlacklist() -- Checks the blacklist */
+bool_t D_CheckWADBlacklist(const char* const a_Sum)
+{
+	size_t i;
+	
+	/* Check */
+	if (!a_Sum)
+		return false;
+	
+	/* Go through list */
+	for (i = 0; l_BlockSums[i]; i++)
+		if (strcasecmp(a_Sum, l_BlockSums[i]) == 0)
+			return true;
+	
+	/* Not found */
+	return false;
 }
 
 /* D_LoadGameFiles() -- Finds the game data */

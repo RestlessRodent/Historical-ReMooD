@@ -47,6 +47,7 @@
 #include "console.h"
 #include "p_info.h"
 #include "p_demcmp.h"
+#include "d_main.h"
 
 /*************
 *** LOCALS ***
@@ -538,6 +539,8 @@ bool_t D_CheckNetGame(void)
 	// Set as local and server
 	Client->IsLocal = true;
 	Client->IsServer = true;
+	Client->ReadyToPlay = true;
+	Client->SaveGameSent = true;
 	
 	/* Create Local Network Client */
 	// Attempt creating a UDP Server
@@ -569,6 +572,8 @@ bool_t D_CheckNetGame(void)
 		// Set as local and server
 		Client->IsLocal = true;
 		Client->IsServer = true;
+		Client->ReadyToPlay = true;
+		Client->SaveGameSent = true;
 	}
 	
 	return ret;
@@ -686,10 +691,10 @@ void D_NCDisconnect(void)
 			if (!l_Clients[i]->IsLocal)
 			{
 				// Free streams, if any
-				if (l_Clients[i]->CoreStream)
-					D_RBSCloseStream(l_Clients[i]->CoreStream);
 				if (l_Clients[i]->PerfectStream)
 					D_RBSCloseStream(l_Clients[i]->PerfectStream);
+				if (l_Clients[i]->CoreStream)
+					D_RBSCloseStream(l_Clients[i]->CoreStream);
 					
 				// Close socket, if any
 				if (l_Clients[i]->NetSock)
@@ -702,7 +707,12 @@ void D_NCDisconnect(void)
 			
 			// Is Local
 			else
+			{
+				l_Clients[i]->ReadyToPlay = true;
 				l_Clients[i]->IsServer = true;
+				l_Clients[i]->ReadyToPlay = true;
+				l_Clients[i]->SaveGameSent = true;
+			}
 		}
 }
 
@@ -762,7 +772,11 @@ void D_NCClientize(I_HostAddress_t* const a_Host, const char* const a_Pass, cons
 	/* Revoke self serverness */
 	for (i = 0; i < l_NumClients; i++)
 		if (l_Clients[i])
+		{
 			l_Clients[i]->IsServer = false;
+			l_Clients[i]->ReadyToPlay = false;
+			l_Clients[i]->SaveGameSent = false;
+		}
 	
 	/* Create NetClient for server */
 	NetClient = D_NCAllocClient();
@@ -848,7 +862,7 @@ void D_NCUpdate(void)
 	static uint32_t LastKeep;
 	static uint32_t LastTime;
 	
-	bool_t DoContinue;
+	bool_t DoContinue, IsOK;
 	uint32_t u32a, u32b, u32c, u32d;
 	uint8_t u8a, u8b, u8c, u8d;
 	
@@ -1099,6 +1113,42 @@ void D_NCUpdate(void)
 			}
 		}
 		
+		// REDY -- Client is ready
+		else if (D_RBSCompareHeader("REDY", Header))
+		{
+			// Only accept if is a server
+			if (!(NetClient->IsServer && NetClient->IsLocal))
+				continue;
+			
+			// Find the client that wants to do this
+			OtherClient = D_NCFindClientByHost(&FromAddress);
+			
+			// Nothing found?
+			if (!OtherClient)
+				continue;
+			
+			// Mark as ready
+			OtherClient->ReadyToPlay = true;
+		}
+		
+		// WADQ -- Query WADS
+		else if (D_RBSCompareHeader("WADQ", Header))
+		{
+			// Only accept if is a server
+			if (!(NetClient->IsServer && NetClient->IsLocal))
+				continue;
+			
+			// Find the client that wants to do this
+			OtherClient = D_NCFindClientByHost(&FromAddress);
+			
+			// Nothing found?
+			if (!OtherClient)
+				continue;
+			
+			// Send WAD configuration
+			D_NSZZ_SendFullWADS(OutStream, &FromAddress);
+		}
+		
 		// WADS -- Server's WAD Configuration
 		else if (D_RBSCompareHeader("WADS", Header))
 		{
@@ -1146,17 +1196,34 @@ void D_NCUpdate(void)
 				if (!FoundWAD && u8b != 'R')
 				{
 					DoContinue = false;
+					IsOK = true;
 					
+					// See if SS is on blacklist
+					D_RBSReadString(Stream, Buf, BUFSIZE - 1);
+					if (!D_CheckWADBlacklist(Buf))
+						IsOK = false;
+					
+					// See if MD5 is on blacklist
+					j = strlen(Buf);
+					D_RBSReadString(Stream, Buf + j + 1, (BUFSIZE - j) - 2);
+					if (!D_CheckWADBlacklist(Buf + j + 1))
+						IsOK = false;
+						
 					// Request WAD Download, if possible
+					if (IsOK)
+						D_NCSR_RequestWAD(Buf);
 				}
 				
 				// WAD was found, push it
 				else
+				{
+					// Push to the stack
 					WL_PushWAD(FoundWAD);
-				
-				// Ignore SUMs
-				D_RBSReadString(Stream, Buf, BUFSIZE - 1);
-				D_RBSReadString(Stream, Buf, BUFSIZE - 1);
+					
+					// Ignore SUMs
+					D_RBSReadString(Stream, Buf, BUFSIZE - 1);
+					D_RBSReadString(Stream, Buf, BUFSIZE - 1);
+				}
 			} while (u8a == 'W');
 			
 			// Failed to find a WAD
@@ -1179,6 +1246,10 @@ void D_NCUpdate(void)
 			
 			// UnLock OCCB
 			WL_LockOCCB(false);
+			
+			// Success! Tell server we are ready for the join window
+			if (DoContinue)
+				D_NCSR_SendServerReady();
 		}
 		
 		// WELC -- Connection successful
@@ -1295,102 +1366,78 @@ void D_NCUpdate(void)
 				
 				// Nothing found?
 				if (!OtherClient)
+				{
 					CONL_OutputU(DSTR_NET_BADCLIENT, "\n");
+					continue;
+				}
+				
+				// Client not ready?
+				if (!OtherClient->ReadyToPlay)
+					continue;
+				
+				// Client was not sent savegame?
+				if (!OtherClient->IsLocal && !OtherClient->SaveGameSent)
+					continue;
 				
 				// Read the UUID
 				D_RBSReadString(Stream, Buf, BUFSIZE - 1);
 				
 				// Only if one was found is it parsed
 					// If not, maybe someone else is screwing with the server?
-				DoContinue = true;
-				if (OtherClient)
+				// Client is arbing too many?
+				if (OtherClient->NumArbs >= MAXSPLITSCREEN)
 				{
-					// Client is arbing too many?
-					if (DoContinue && OtherClient->NumArbs >= MAXSPLITSCREEN)
-					{
-						CONL_OutputU(DSTR_NET_EXCEEDEDSPLIT, "\n");
-						DoContinue = false;
-					}
-					
-					// Check for free player slots
-					for (p = 0; p < MAXPLAYERS; p++)
-						if (!playeringame[p])
-							break;
-					
-					// No Free Slots
-					if (DoContinue && p >= MAXPLAYERS)
-					{
-						CONL_OutputU(DSTR_NET_ATMAXPLAYERS, "\n");
-						DoContinue = false;
-					}
-					
-					// Done, add to arbitration and inform everyone
-					if (DoContinue)
-					{
-						// Create netplayer combo for this person
-						NetPlayer = D_NCSAllocNetPlayer();
-						NetPlayer->NetClient = OtherClient;
-						
-						// Create a profile for this player
-						if (NetClient == OtherClient)	// Same system
-							Profile = D_FindProfileEx(Buf);	// Use existing one
-						
-						// Read Player Account Name
-						D_RBSReadString(Stream, Buf, BUFSIZE - 1);
-						
-						// Failed to find it? Then create it
-						if (!Profile)
-							Profile = D_CreateProfileEx(Buf);
-							
-						// Read Player Display Name
-						D_RBSReadString(Stream, Buf, BUFSIZE - 1);
-						
-						// Mark profile as remote and copy display name
-						if (NetClient != OtherClient)
-						{
-							Profile->Type = DPEXT_NETWORK;	// Set remote
-							strncpy(Profile->DisplayName, Buf, MAXPLAYERNAME - 1);
-							
-							// Read Color
-							Profile->Color = D_RBSReadUInt8(Stream);
-						}
-						
-						// Set at arbs point
-						Z_ResizeArray((void**)&OtherClient->Arbs, sizeof(*OtherClient->Arbs),
-								OtherClient->NumArbs, OtherClient->NumArbs + 1);
-						OtherClient->Arbs[OtherClient->NumArbs++] = NetPlayer;
-						
-						// Create Player Locally
-						DoomPlayer = G_AddPlayer(p);
-						DoomPlayer->NetPlayer = NetPlayer;
-						DoomPlayer->ProfileEx = Profile;
-						Profile->NetPlayer = NetPlayer;
-						NetPlayer->Player = DoomPlayer;
-						NetPlayer->Profile = Profile;
-						G_InitPlayer(DoomPlayer);
-						
-						// Check split screen
-						if (NetClient == OtherClient)
-							for (j = 0; j < MAXSPLITSCREEN; j++)
-								if (!g_PlayerInSplit[j])
-								{
-									g_PlayerInSplit[j] = true;
-									consoleplayer[j] = displayplayer[j] = p;
-									
-									g_SplitScreen = j;
-									R_ExecuteSetViewSize();
-									break;
-								}
-						
-						// Inform everyone else (when they aren't local)
-						for (i = 0; i < l_NumClients; i++)
-							if (l_Clients[i])
-								if (!l_Clients[i]->IsLocal)
-								{
-									
-								}
-					}
+					CONL_OutputU(DSTR_NET_EXCEEDEDSPLIT, "\n");
+					continue;
 				}
+				
+				// Check for free player slots
+				for (p = 0; p < MAXPLAYERS; p++)
+					if (!playeringame[p])
+						break;
+				
+				// No Free Slots
+				if (p >= MAXPLAYERS)
+				{
+					CONL_OutputU(DSTR_NET_ATMAXPLAYERS, "\n");
+					continue;
+				}
+				
+				// Create netplayer combo for this person
+				NetPlayer = D_NCSAllocNetPlayer();
+				NetPlayer->NetClient = OtherClient;
+				
+				// Create a profile for this player
+				if (NetClient == OtherClient)	// Same system
+					Profile = D_FindProfileEx(Buf);	// Use existing one
+				
+				// Read Player Account Name
+				D_RBSReadString(Stream, Buf, BUFSIZE - 1);
+				
+				// Failed to find it? Then create it
+				if (!Profile)
+					Profile = D_CreateProfileEx(Buf);
+					
+				// Read Player Display Name
+				D_RBSReadString(Stream, Buf, BUFSIZE - 1);
+				
+				// Mark profile as remote and copy display name
+				if (NetClient != OtherClient)
+				{
+					Profile->Type = DPEXT_NETWORK;	// Set remote
+					strncpy(Profile->DisplayName, Buf, MAXPLAYERNAME - 1);
+					
+					// Read Color
+					Profile->Color = D_RBSReadUInt8(Stream);
+				}
+				
+				// Set at arbs point
+				Z_ResizeArray((void**)&OtherClient->Arbs, sizeof(*OtherClient->Arbs),
+						OtherClient->NumArbs, OtherClient->NumArbs + 1);
+				OtherClient->Arbs[OtherClient->NumArbs++] = NetPlayer;
+				
+				// Queue Request
+				D_NCHE_ServerCreatePlayer(p, NetPlayer, Profile, OtherClient);
 			}
 		}
 
@@ -1853,6 +1900,77 @@ void D_NCSR_RequestNewPlayer(struct D_ProfileEx_s* a_Profile)
 	D_RBSWriteString(Stream, a_Profile->DisplayName);
 	D_RBSWriteUInt8(Stream, a_Profile->Color);
 	D_RBSRecordNetBlock(Stream, &Server->Address);
+}
+
+/* D_NCSR_RequestWAD() -- Request WAD from server */
+void D_NCSR_RequestWAD(const char* const a_WADSum)
+{
+	/* Check */
+	if (!a_WADSum)
+		return;
+}
+
+/* D_NCSR_RequestServerWADs() -- Request the server send WAD Info */
+void D_NCSR_RequestServerWADs(void)
+{
+}
+
+/* D_NCSR_SendServerReady() -- Tell server we are ready */
+void D_NCSR_SendServerReady(void)
+{
+}
+
+/*** NCHE FUNCTIONS ***/
+
+/* D_NCHE_ServerCreatePlayer() -- Server creates player */
+void D_NCHE_ServerCreatePlayer(const size_t a_pNum, struct D_NetPlayer_s* const a_NetPlayer, struct D_ProfileEx_s* const a_Profile, D_NetClient_t* const a_NetClient)
+{
+	size_t i, j;
+	D_NetClient_t* Server;
+	player_t* DoomPlayer;
+	
+	/* Create Player Locally */
+	DoomPlayer = G_AddPlayer(a_pNum);
+	DoomPlayer->NetPlayer = a_NetPlayer;
+	DoomPlayer->ProfileEx = a_Profile;
+	a_Profile->NetPlayer = a_NetPlayer;
+	a_NetPlayer->Player = DoomPlayer;
+	a_NetPlayer->Profile = a_Profile;
+	G_InitPlayer(DoomPlayer);
+	
+	/* See if we are the server */
+	Server = D_NCFindClientIsServer();
+	
+	// Not found?
+	if (!Server)
+		return;
+	
+	// Check split screen
+		// If we are the server
+	if (a_NetClient == Server || a_NetClient->IsLocal)
+	{
+		for (j = 0; j < MAXSPLITSCREEN; j++)
+			if (!g_PlayerInSplit[j])
+			{
+				g_PlayerInSplit[j] = true;
+				consoleplayer[j] = displayplayer[j] = a_pNum;
+				
+				g_SplitScreen = j;
+				R_ExecuteSetViewSize();
+				break;
+			}
+	}
+	
+	// Inform everyone else if we are the server
+	if (Server->IsLocal)
+	{
+		for (i = 0; i < l_NumClients; i++)
+			if (l_Clients[i])
+				if (!l_Clients[i]->IsLocal)
+				{
+				
+				}
+	}
 }
 
 /*** NSZZ FUNCTIONS ***/

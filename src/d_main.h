@@ -73,4 +73,7 @@ void D_PageDrawer(const char* const a_LumpName);
 void D_AdvanceDemo(void);
 void D_StartTitle(void);
 
+bool_t D_CheckWADBlacklist(const char* const a_Sum);
+
 #endif							//__D_MAIN__
+

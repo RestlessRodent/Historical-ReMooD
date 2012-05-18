@@ -181,6 +181,8 @@ typedef struct D_RBlockStream_s
 	size_t (*NetRecordF)(struct D_RBlockStream_s* const a_Stream, I_HostAddress_t* const a_Host);
 	bool_t (*NetPlayF)(struct D_RBlockStream_s* const a_Stream, I_HostAddress_t* const a_Host);
 	
+	void (*DeleteF)(struct D_RBlockStream_s* const a_Stream);
+	
 	/* Stream Stat */
 	uint32_t StatBlock[2];						// Block stats
 	uint32_t StatBytes[2];						// Byte stats
