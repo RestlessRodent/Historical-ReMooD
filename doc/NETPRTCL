@@ -85,6 +85,8 @@ RINF	-- Request Game Info
 		str Password (for connecting to this server)
 		str Join Password (for joining the game)
 
+*DISC	-- Disconnect
+
 ### SERVER -> CLIENT ###
 
 INFO	-- Info About Current Server
@@ -187,6 +189,32 @@ INFT	-- INFO Terminate (Stop handling)
 				> 'V' = Version Mismatch
 		str	Reason
 				> The message to be displayed after termination
+
+*WADS	-- Server's Current WAD Selection
+		..
+		u8	WAD Marker ('W' == WAD, 'X' == Stop Reading WADs)
+		--
+		u8	Required or optional
+				> R = Required
+				> O = Optional
+				> All other values should be deemed required
+		str	DOS Name of WAD
+				> Unless your launcher runs on DOS, this should be read and
+				> ignored. However it is also an alternate search name for
+				> WADs.
+		str	Base Name of WAD
+				> This is the base name for WAD Files. This is the one you
+				> should likely use.
+		str	Simple Sum
+				> This is a basic checksum to compare whether you have the
+				> correct WAD or not.
+				> If the length is zero, it is not used.
+		str	MD5 Sum
+				> This is the MD5 sum.
+				> The same rules as the Simple Sum apply
+		--
+		..
+
 
 *PJOK	-- Player Join OK [!Local & Server]
 		str NetPlayer UUID (Unique Player Identification)

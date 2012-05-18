@@ -1126,6 +1126,7 @@ StringGroupEX_t UnicodeStrings[NUMUNICODESTRINGS] =
 	{           "NET_CONNECTINGTOSERVER", "Connecting to server..."},
 	{		 "NET_RECONNECTYOUARESERVER", "Cannot reconnect to the server, because you are the server."},
 	{				"NET_BADHOSTRESOLVE", "Cannot resolve hostname."},
+	{			   "NET_CLIENTCONNECTED", "Client $1 has connected."},
 	
 	/*** DEPRECATED STRINGS ***/
 	{                              "DEP_D_DEVSTR", "Development mode ON.\n"},

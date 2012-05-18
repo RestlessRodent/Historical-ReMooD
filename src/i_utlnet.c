@@ -707,6 +707,9 @@ bool_t I_NetNameToHost(I_HostAddress_t* const a_Host, const char* const a_Name)
 /* I_NetHostToName() -- Converts a host to a named address */
 bool_t I_NetHostToName(const I_HostAddress_t* const a_Host, char* const a_Out, const size_t a_OutSize)
 {
+#define BUFSIZE 64
+	char Buf[BUFSIZE];
+
 #if defined(__MSDOS__)
 	/* DOS Does not support networking */
 	return false;
@@ -743,6 +746,11 @@ bool_t I_NetHostToName(const I_HostAddress_t* const a_Host, char* const a_Out, c
 	
 	/* Copy string */
 	strncpy(a_Out, Ent->h_name, a_OutSize - 1);
+	if (a_Host->Port)
+	{
+		snprintf(Buf, BUFSIZE - 1, ":%hu", a_Host->Port);
+		strncat(a_Out, Buf, a_OutSize);
+	}
 	
 	/* Success! */
 	return true;
@@ -777,7 +785,14 @@ bool_t I_NetHostToName(const I_HostAddress_t* const a_Host, char* const a_Out, c
 		// Get name of host
 		if (getnameinfo((struct sockaddr*)&SockInfoSix, sizeof(SockInfoSix), a_Out, a_OutSize, NULL, 0, 0) == 0)
 			if (a_Out[0] != '\0')
+			{
+				if (a_Host->Port)
+				{
+					snprintf(Buf, BUFSIZE - 1, ":%hu", a_Host->Port);
+					strncat(a_Out, Buf, a_OutSize);
+				}
 				RetVal = true;	// It worked!
+			}
 	}
 	
 	/* Second, try IPv4 */
@@ -796,7 +811,14 @@ bool_t I_NetHostToName(const I_HostAddress_t* const a_Host, char* const a_Out, c
 		// Get name of host
 		if (getnameinfo((struct sockaddr*)&SockInfoFour, sizeof(SockInfoFour), a_Out, a_OutSize, NULL, 0, 0) == 0)
 			if (a_Out[0] != '\0')
+			{
+				if (a_Host->Port)
+				{
+					snprintf(Buf, BUFSIZE - 1, ":%hu", a_Host->Port);
+					strncat(a_Out, Buf, a_OutSize);
+				}
 				RetVal = true;	// It worked!
+			}
 	}
 	
 	/* Return */

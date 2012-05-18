@@ -70,6 +70,8 @@ bool_t D_CheckNetGame(void);
 
 #define __REMOOD_NCSNET
 
+#define NETCLIENTRHLEN					256		// Reverse host length
+
 /*** STRUCTURES ***/
 
 struct player_s;
@@ -102,6 +104,9 @@ typedef struct D_NetClient_s
 	/* Flags */
 	bool_t IsLocal;								// Local client
 	bool_t IsServer;							// Is a server
+	
+	/* DNS Info */
+	char ReverseDNS[NETCLIENTRHLEN];			// Hostname of player
 } D_NetClient_t;
 
 typedef void (*D_NCQCFunc_t)(void* const a_Data);
@@ -125,6 +130,7 @@ void D_NCUpdate(void);
 void D_NCAddQueueCommand(const D_NCQCFunc_t a_Func, void* const a_Data);
 void D_NCRunCommands(void);
 
+void D_NCQueueDisconnect(void);
 void D_NCDisconnect(void);
 void D_NCServize(void);
 void D_NCClientize(I_HostAddress_t* const a_Host, const char* const a_Pass, const char* const a_JoinPass);
@@ -135,6 +141,7 @@ bool_t D_NCHostOnBanList(I_HostAddress_t* const a_Host);
 void D_NSZZ_SendINFO(struct D_RBlockStream_s* a_Stream, const uint32_t a_LocalTime);
 bool_t D_NSZZ_SendINFX(struct D_RBlockStream_s* a_Stream, size_t* const a_It);
 void D_NSZZ_SendMOTD(struct D_RBlockStream_s* a_Stream);
+void D_NSZZ_SendFullWADS(struct D_RBlockStream_s* a_Stream, I_HostAddress_t* const a_Host);
 
 /*** NCSR Funcs ***/
 void D_NCSR_RequestMap(const char* const a_Map);

@@ -630,6 +630,19 @@ void D_NCRunCommands(void)
 	}
 }
 
+/* DS_NCDoDisconnect() -- Performs actual disconnect */
+static void DS_NCDoDisconnect(void* const a_Data)
+{
+	/* Do the disconnect */
+	D_NCDisconnect();
+}
+
+/* D_NCQueueDisconnect() -- Queue Disconnect */
+void D_NCQueueDisconnect(void)
+{
+	D_NCAddQueueCommand(DS_NCDoDisconnect, NULL);
+}
+
 /* D_NCDisconnect() -- Disconnect from existing server */
 void D_NCDisconnect(void)
 {
@@ -756,6 +769,7 @@ void D_NCClientize(I_HostAddress_t* const a_Host, const char* const a_Pass, cons
 	
 	// Fill stuff in it
 	NetClient->NetSock = Socket;
+	memmove(&NetClient->Address, a_Host, sizeof(*a_Host));
 	
 	// Create stream from it
 	NetClient->CoreStream = D_RBSCreateNetStream(NetClient->NetSock);
@@ -824,8 +838,14 @@ void D_NCUpdate(void)
 	D_ProfileEx_t* Profile;
 	player_t* DoomPlayer;
 	
+	const WL_WADFile_t* RemIWAD;
+	const WL_WADFile_t* RemRWAD;
+	const WL_WADFile_t* FoundWAD;
+	
+	bool_t SendKeep;
 	bool_t SendPing, ReSend;
 	uint32_t ThisTime, DiffTime;
+	static uint32_t LastKeep;
 	static uint32_t LastTime;
 	
 	bool_t DoContinue;
@@ -835,9 +855,9 @@ void D_NCUpdate(void)
 	/* Send Ping Request? */
 	ThisTime = I_GetTimeMS();
 	
-	// Send pings?
+	// Send pings? Every 10s
 	SendPing = false;
-	if (ThisTime > LastTime + 1000)
+	if (ThisTime > LastTime + 10000)
 	{
 		DiffTime = ThisTime - LastTime;
 		LastTime = ThisTime;
@@ -846,6 +866,16 @@ void D_NCUpdate(void)
 		// Set global stat count to current local stats
 		for (i = 0; i < 4; i++)
 			g_NetStat[i] = l_LocalStat[i];
+	}
+	
+	// Send keep alive? Every minute
+		// Because perfect connections that idle for too long will eventually
+		// get revoked.
+	SendKeep = false;
+	if (ThisTime > LastKeep + 60000)
+	{
+		LastKeep = ThisTime;
+		SendKeep = true;
 	}
 	
 	/* Clear local stats */
@@ -866,33 +896,42 @@ void D_NCUpdate(void)
 		// Initialize some things
 		memset(&FromAddress, 0, sizeof(FromAddress));
 		
-		// Use base stream initially
-		Stream = NetClient->CoreStream;
+		// Determine streams to use
+		Stream = NetClient->Streams[DNCSP_PERFECTREAD];
+		OutStream = NetClient->Streams[DNCSP_PERFECTWRITE];
+		GenOut = NetClient->Streams[DNCSP_WRITE];
 		
 		// Sending a ping?
 			// If sending, send command and unstat stream
 		if (SendPing)
 		{
 			// Unstat the stream
-			D_RBSUnStatStream(Stream);
+			D_RBSUnStatStream(GenOut);
 			
 			// Build PING command
-			D_RBSBaseBlock(Stream, "PING");
-			D_RBSWriteUInt32(Stream, ThisTime);
-			D_RBSWriteUInt32(Stream, DiffTime);
-			D_RBSRecordBlock(Stream);	// Send to default destination
+			D_RBSBaseBlock(GenOut, "PING");
+			D_RBSWriteUInt32(GenOut, ThisTime);
+			D_RBSWriteUInt32(GenOut, DiffTime);
+			D_RBSRecordNetBlock(GenOut, &NetClient->Address);
 		}
 			// Otherwise, Stat the stream and add to local counts
 		else
 		{
 			// Stat it
-			D_RBSStatStream(Stream, &u32a, &u32b, &u32c, &u32d);
+			D_RBSStatStream(GenOut, &u32a, &u32b, &u32c, &u32d);
 			
 			// Add to local
 			l_LocalStat[0] += u32a;
 			l_LocalStat[1] += u32b;
 			l_LocalStat[2] += u32c;
 			l_LocalStat[3] += u32d;
+		}
+		
+		// Send Keepalive to the perfect stream?
+		if (SendKeep)
+		{
+			D_RBSBaseBlock(OutStream, "KEEP");
+			D_RBSRecordNetBlock(OutStream, &NetClient->Address);
 		}
 		
 		// Read from the "Perfect" Stream
@@ -902,10 +941,6 @@ void D_NCUpdate(void)
 			// another clients stream for reading, this would be the case for
 			// network games over UDP. Why? Becuase all network players write
 			// to the server (the local client) for commands.
-		Stream = NetClient->Streams[DNCSP_PERFECTREAD];
-		OutStream = NetClient->Streams[DNCSP_PERFECTWRITE];
-		
-		GenOut = NetClient->Streams[DNCSP_WRITE];
 		
 		// Constantly read command packets
 		memset(Header, 0, sizeof(Header));
@@ -1064,10 +1099,104 @@ void D_NCUpdate(void)
 			}
 		}
 		
+		// WADS -- Server's WAD Configuration
+		else if (D_RBSCompareHeader("WADS", Header))
+		{
+			// Only accept if from a server and we aren't local
+			if (!(NetClient->IsServer && !NetClient->IsLocal))
+				continue;
+				
+			// Get current IWAD and ReMooD.WAD
+			RemIWAD = WL_IterateVWAD(NULL, true);
+			RemRWAD = WL_IterateVWAD(RemIWAD, true);
+			
+			// Lock OCCB
+			WL_LockOCCB(true);
+			
+			// Pop all wads
+			while (WL_PopWAD())
+				;
+			
+			// Read all WADs
+			DoContinue = true;
+			do
+			{
+				// Read Marker
+				u8a = D_RBSReadUInt8(Stream);
+				
+				// End?
+				if (u8a == 'X')
+					break;
+				
+				// Read whether WAD is required or not (this is important)
+				u8b = D_RBSReadUInt8(Stream);
+				
+				// Read DOS Name -- And try opening that...
+				D_RBSReadString(Stream, Buf, BUFSIZE - 1);
+				
+				FoundWAD = WL_OpenWAD(Buf);
+				
+				// Read Normal Name -- And try opening that if DOS failed us...
+				D_RBSReadString(Stream, Buf, BUFSIZE - 1);
+				
+				if (!FoundWAD)
+					FoundWAD = WL_OpenWAD(Buf);
+				
+				// No WAD was found at all and it is required
+				if (!FoundWAD && u8b != 'R')
+				{
+					DoContinue = false;
+					
+					// Request WAD Download, if possible
+				}
+				
+				// WAD was found, push it
+				else
+					WL_PushWAD(FoundWAD);
+				
+				// Ignore SUMs
+				D_RBSReadString(Stream, Buf, BUFSIZE - 1);
+				D_RBSReadString(Stream, Buf, BUFSIZE - 1);
+			} while (u8a == 'W');
+			
+			// Failed to find a WAD
+			if (!DoContinue)
+			{
+				// Make sure there is an IWAD
+				FoundWAD = WL_IterateVWAD(NULL, true);
+				
+				// If there isn't (we are very lacking today)
+				if (!FoundWAD)
+				{
+					// Push original IWAD and RWAD
+					WL_PushWAD(RemIWAD);
+					WL_PushWAD(RemRWAD);
+					
+					// Disconnect from server
+					D_NCQueueDisconnect();
+				}
+			}
+			
+			// UnLock OCCB
+			WL_LockOCCB(false);
+		}
+		
 		// WELC -- Connection successful
 		else if (D_RBSCompareHeader("WELC", Header))
 		{
+			// Only accept if from a server and we aren't local
+			if (!(NetClient->IsServer && !NetClient->IsLocal))
+				continue;
+			
 			// Request MOTD from server (so it can be displayed)
+		}
+		
+		// DISC -- Disconnection Request
+		else if (D_RBSCompareHeader("DISC", Header))
+		{
+			// Only accept from non-local clients
+			if (!(!NetClient->IsServer && !NetClient->IsLocal))
+				continue;
 		}
 		
 		// CONN -- Connection Request
@@ -1112,39 +1241,47 @@ void D_NCUpdate(void)
 				}
 			
 			// Successfully connected, add client to network clients
+			OtherClient = D_NCAllocClient();
+			
+			// Set information
+			memmove(&OtherClient->Address, &FromAddress, sizeof(FromAddress));
+			
+			// Set output streams to the current stream
+			I_NetHostToName(&FromAddress, OtherClient->ReverseDNS, NETCLIENTRHLEN);
+			OtherClient->Streams[DNCSP_WRITE] = NetClient->Streams[DNCSP_WRITE];
+			OtherClient->Streams[DNCSP_PERFECTWRITE] = NetClient->Streams[DNCSP_PERFECTWRITE];
 			
 			// Send welcome message
-			D_RBSBaseBlock(Stream, "WELC");
-			D_RBSRecordNetBlock(Stream, &FromAddress);
+			D_RBSBaseBlock(OutStream, "WELC");
+			D_RBSRecordNetBlock(OutStream, &FromAddress);
 			
-			/*u8	Legacy Version
-			u8	Major Version
-			u8	Minor Version
-			u8	Release Version
-			str Password (for connecting to this server)
-			str Join Password (for joining the game)*/
+			// Send the currently loaded WADs
+			D_NSZZ_SendFullWADS(OutStream, &FromAddress);
+			
+			// Inform the server of the join
+			CONL_OutputU(DSTR_NET_CLIENTCONNECTED, "%s\n", OtherClient->ReverseDNS);
 		}
 		
 		// FOFF -- Server told us to get lost
 		else if (D_RBSCompareHeader("FOFF", Header))
 		{
 			// Only accept if from a server and we aren't local
-			if (NetClient->IsServer && !NetClient->IsLocal)
-			{
-				// Extract reason why
-				u8a = D_RBSReadUInt8(Stream);				// Code
-				memset(Buf, 0, sizeof(Buf));
-				D_RBSReadString(Stream, Buf, BUFSIZE - 1);	// Reason
-				
-				// Write to console
-				CONL_PrintF("%c: %s\n", u8a, Buf);
-				
-				// Disconnect
-				D_NCDisconnect();
-				
-				// Tell the user why
-				//M_ExUIMessageBox(const M_ExMBType_t a_Type, const uint32_t a_MessageID, const char* const a_Title, const char* const a_Message, const MBCallBackFunc_t a_CallBack);
-			}
+			if (!(NetClient->IsServer && !NetClient->IsLocal))
+				continue;
+			
+			// Extract reason why
+			u8a = D_RBSReadUInt8(Stream);				// Code
+			memset(Buf, 0, sizeof(Buf));
+			D_RBSReadString(Stream, Buf, BUFSIZE - 1);	// Reason
+			
+			// Write to console
+			CONL_PrintF("%c: %s\n", u8a, Buf);
+			
+			// Disconnect
+			D_NCDisconnect();
+			
+			// Tell the user why
+			//M_ExUIMessageBox(const M_ExMBType_t a_Type, const uint32_t a_MessageID, const char* const a_Title, const char* const a_Message, const MBCallBackFunc_t a_CallBack);
 		}
 		
 		// LPRJ -- Local Player, Request Join
@@ -1840,6 +1977,39 @@ bool_t D_NSZZ_SendINFX(struct D_RBlockStream_s* a_Stream, size_t* const a_It)
 void D_NSZZ_SendMOTD(struct D_RBlockStream_s* a_Stream)
 {
 	D_RBSWriteString(a_Stream, l_SVMOTD.Value->String);
+}
+
+/* D_NSZZ_SendFullWADS() -- Send WADs of Server */
+void D_NSZZ_SendFullWADS(struct D_RBlockStream_s* a_Stream, I_HostAddress_t* const a_Host)
+{
+	const WL_WADFile_t* Rover;
+	
+	/* Block */
+	D_RBSBaseBlock(a_Stream, "WADS");
+	
+	/* Write WAD Info */
+	for (Rover = WL_IterateVWAD(NULL, true); Rover; Rover = WL_IterateVWAD(Rover, true))
+	{
+		// Write start
+		D_RBSWriteUInt8(a_Stream, 'W');
+		
+		// TODO: Optional WAD
+		D_RBSWriteUInt8(a_Stream, 'R');
+		
+		// Write Names for WAD (DOS and Base)
+		D_RBSWriteString(a_Stream, WL_GetWADName(Rover, false));
+		D_RBSWriteString(a_Stream, WL_GetWADName(Rover, true));
+		
+		// Write File Sums
+		D_RBSWriteString(a_Stream, Rover->SimpleSumChars);
+		D_RBSWriteString(a_Stream, Rover->CheckSumChars);
+	}
+	
+	// End List
+	D_RBSWriteUInt8(a_Stream, 'X');
+	
+	/* Record it */
+	D_RBSRecordNetBlock(a_Stream, a_Host);
 }
 
 /*** NCQC FUNCTIONS ***/
