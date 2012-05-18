@@ -381,6 +381,37 @@ D_NetClient_t* D_NCFindClientByPlayer(struct player_s* const a_Player)
 		return NULL;
 }
 
+/* D_NCFudgeOffHostStream() -- Fudge off host by stream */
+void D_NCFudgeOffHostStream(I_HostAddress_t* const a_Host, struct D_RBlockStream_s* a_Stream, const char a_Code, const char* const a_Reason)
+{
+	/* Check */
+	if (!a_Host || !a_Stream)
+		return;
+	
+	/* Send FOFF Message */
+	D_RBSBaseBlock(a_Stream, "FOFF");
+	D_RBSWriteUInt8(a_Stream, a_Code);
+	D_RBSWriteString(a_Stream, a_Reason);
+	D_RBSRecordNetBlock(a_Stream, a_Host);
+	
+	/* Destroy client structure */
+}
+
+/* D_NCFudgeOffClient() -- Disconnect client */
+void D_NCFudgeOffClient(D_NetClient_t* const a_Client, const char a_Code, const char* const a_Reason)
+{
+	/* Check */
+	if (!a_Client)
+		return;
+	
+	/* Make sure we aren't telling ourself to fudge off */
+	if (a_Client->IsLocal)
+		return;
+	
+	/* Send FOFF Message */
+	D_NCFudgeOffHostStream(&a_Client->Address, a_Client->Streams[DNCSP_PERFECTWRITE], a_Code, a_Reason);
+}
+
 /* DS_ConnectMultiCom() -- Connection multi-command */
 static CONL_ExitCode_t DS_ConnectMultiCom(const uint32_t a_ArgC, const char** const a_ArgV)
 {
@@ -408,7 +439,7 @@ static CONL_ExitCode_t DS_ConnectMultiCom(const uint32_t a_ArgC, const char** co
 		}
 		
 		// Attempt connect to server
-		D_NCClientize(&Host, (a_ArgC >= 3 ? : a_ArgV[2]), (a_ArgC >= 4 ? : a_ArgV[3]));
+		D_NCClientize(&Host, (a_ArgC >= 3 ? a_ArgV[2] : ""), (a_ArgC >= 4 ? a_ArgV[3] : ""));
 		
 		return CLE_SUCCESS;
 	}
@@ -613,6 +644,10 @@ void D_NCDisconnect(void)
 	memset(g_PlayerInSplit, 0, sizeof(g_PlayerInSplit));
 	g_SplitScreen = -1;
 	
+	// Initialize some players some
+	for (i = 0; i < MAXPLAYERS; i++)
+		G_InitPlayer(&players[i]);
+	
 	/* Destroy the level */
 	P_ExClearLevel();
 	
@@ -795,7 +830,7 @@ void D_NCUpdate(void)
 	
 	bool_t DoContinue;
 	uint32_t u32a, u32b, u32c, u32d;
-	uint8_t u8a, u8b;
+	uint8_t u8a, u8b, u8c, u8d;
 	
 	/* Send Ping Request? */
 	ThisTime = I_GetTimeMS();
@@ -1026,6 +1061,89 @@ void D_NCUpdate(void)
 		
 				// Add to command queue
 				D_NCAddQueueCommand(D_NCQC_MapChange, Z_StrDup(Buf, PU_NETWORK, NULL));
+			}
+		}
+		
+		// WELC -- Connection successful
+		else if (D_RBSCompareHeader("WELC", Header))
+		{
+			// Request MOTD from server (so it can be displayed)
+		}
+		
+		// CONN -- Connection Request
+		else if (D_RBSCompareHeader("CONN", Header))
+		{
+			// Read Version
+			u8a = D_RBSReadUInt8(Stream);
+			u8b = D_RBSReadUInt8(Stream);
+			u8c = D_RBSReadUInt8(Stream);
+			u8d = D_RBSReadUInt8(Stream);
+			
+			// Version Mismatch?
+			if (u8a != VERSION &&
+				u8b != REMOOD_MAJORVERSION &&
+				u8c != REMOOD_MINORVERSION &&
+				u8d != REMOOD_RELEASEVERSION)
+			{
+				snprintf(Buf, BUFSIZE - 1, "You need to version %i.%i%c (%i) and not version %i.%i%c (%i)",
+						REMOOD_MAJORVERSION,
+						REMOOD_MINORVERSION,
+						REMOOD_RELEASEVERSION,
+						VERSION,
+						
+						u8b, u8c, u8d, u8a
+					);
+				D_NCFudgeOffHostStream(&FromAddress, Stream, 'V', Buf);
+				continue;
+			}
+			
+			// Compare connect password
+				// Read password
+			memset(Buf, 0, sizeof(Buf));
+			D_RBSReadString(Stream, Buf, BUFSIZE - 1);
+			
+			// Only if password is set
+			if (strlen(l_SVConnectPassword.Value->String) > 0)
+				if (strcasecmp(Buf, l_SVConnectPassword.Value->String) != 0)
+				{
+					snprintf(Buf, BUFSIZE - 1, "Incorrect password");
+					D_NCFudgeOffHostStream(&FromAddress, Stream, 'P', Buf);
+					continue;
+				}
+			
+			// Successfully connected, add client to network clients
+			
+			// Send welcome message
+			D_RBSBaseBlock(Stream, "WELC");
+			D_RBSRecordNetBlock(Stream, &FromAddress);
+			
+			/*u8	Legacy Version
+			u8	Major Version
+			u8	Minor Version
+			u8	Release Version
+			str Password (for connecting to this server)
+			str Join Password (for joining the game)*/
+		}
+		
+		// FOFF -- Server told us to get lost
+		else if (D_RBSCompareHeader("FOFF", Header))
+		{
+			// Only accept if from a server and we aren't local
+			if (NetClient->IsServer && !NetClient->IsLocal)
+			{
+				// Extract reason why
+				u8a = D_RBSReadUInt8(Stream);				// Code
+				memset(Buf, 0, sizeof(Buf));
+				D_RBSReadString(Stream, Buf, BUFSIZE - 1);	// Reason
+				
+				// Write to console
+				CONL_PrintF("%c: %s\n", u8a, Buf);
+				
+				// Disconnect
+				D_NCDisconnect();
+				
+				// Tell the user why
+				//M_ExUIMessageBox(const M_ExMBType_t a_Type, const uint32_t a_MessageID, const char* const a_Title, const char* const a_Message, const MBCallBackFunc_t a_CallBack);
 			}
 		}
 		
@@ -1532,7 +1650,7 @@ void D_NCSR_RequestMap(const char* const a_Map)
 		return;
 	
 	// Found server, but we are not the server
-	if (!Server->IsServer)
+	if (!Server->IsLocal)
 	{
 		CONL_OutputU(DSTR_NET_YOUARENOTTHESERVER, "\n");
 		return;

@@ -716,10 +716,15 @@ void G_Ticker(void)
 		case GS_DEMOSCREEN:
 			D_PageTicker();
 			break;
+		
+			// Waiting for join window
+		case GS_WAITFORJOINWINDOW:
+			break;
 			
 		case GS_WAITINGPLAYERS:
 		case GS_DEDICATEDSERVER:
 		case GS_NULL:
+		default:
 			// do nothing
 			break;
 	}

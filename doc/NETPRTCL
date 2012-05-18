@@ -169,6 +169,8 @@ INFT	-- INFO Terminate (Stop handling)
 *MAPC	-- Map Change [Local & Server]
 		str Map Lump Name
 
+*WELC	-- Connection Successful!
+
 *FOFF	-- Fudge Off!
 				> When a client recieves it, it should call the disconnect func
 		u8	Reason Code
@@ -180,6 +182,9 @@ INFT	-- INFO Terminate (Stop handling)
 				> 'W' = Incorrect WAD Files
 				> 'I' = Server I_Error()ed
 				> 'L' = Login Required
+				> 'D' = Taking too long to connect
+				> 'H' = High ping limitation hit
+				> 'V' = Version Mismatch
 		str	Reason
 				> The message to be displayed after termination
 
