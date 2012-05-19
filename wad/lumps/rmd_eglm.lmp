@@ -9,7 +9,7 @@
 # statements with the lines to match.
 
 DOOR 0x3c00
-@	TRIGGER [ 0 0x0003 w1 wr s1 sr g1 gr p1 pr ]
+@	TRIGGER [ 0 0x0007 w1 wr s1 sr g1 gr p1 pr ]
 @	SPEED [ 3 0x0018 slow normal fast turbo ]
 @	KIND [ 5 0x0060 owc oso cwo csc ]
 @	MONSTER [ 7 0x0080 nomonster monster ]

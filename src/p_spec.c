@@ -700,6 +700,12 @@ sector_t* P_FindModelCeilingSector(fixed_t ceildestheight, int secnum)
 //SoM: 3/7/2000: Killough wrote this to improve the process.
 int P_FindSectorFromLineTag(line_t* line, int start)
 {
+	/* Backside */
+	if (!line)
+		// Return the line we sent it
+		return start;
+	
+	/* Find Sector */
 	start = start >= 0 ? sectors[start].nexttag : sectors[(unsigned)line->tag % (unsigned)numsectors].firsttag;
 	while (start >= 0 && sectors[start].tag != line->tag)
 		start = sectors[start].nexttag;
@@ -4014,13 +4020,22 @@ int P_GetThingFloorType(mobj_t* thing)
 
 /*** STRUCTURES ***/
 
+/* PS_SpecialMapSub_t -- Sub mapping */
+typedef struct PS_SpecialMapSub_s
+{
+	char EnumName[SPECMAXFIELDSZ];				// Enumeration Name
+	uint32_t Value;								// Value
+} PS_SpecialMapSub_t;
+
 /* PS_SpecialMapMinor_t -- Minor mapping */
 typedef struct PS_SpecialMapMinor_s
 {
 	char OptName[SPECMAXFIELDSZ];				// Option Name
-	uint32_t Value;								// Value
 	uint32_t Shift;								// Shift value
 	uint32_t Mask;								// Mask for value
+	
+	PS_SpecialMapSub_t* Subs;					// Subs
+	size_t NumSubs;								// Number of subs
 } PS_SpecialMapMinor_t;
 
 /* PS_SpecialMapMajor_t -- Major mapping */
@@ -4048,7 +4063,7 @@ static bool_t PS_ExtraSpecialOCCB(const bool_t a_Pushed, const struct WL_WADFile
 	const WL_WADEntry_t* Entry;
 	const WL_WADEntry_t* MapperEntry;
 	WL_EntryStream_t* Stream;
-	size_t i;
+	size_t i, j, k;
 	char Buf[BUFSIZE];
 	char* p, *TokStr;
 	int32_t Val;
@@ -4056,6 +4071,8 @@ static bool_t PS_ExtraSpecialOCCB(const bool_t a_Pushed, const struct WL_WADFile
 	uint32_t Source, Target, Type, Temp;
 	bool_t IgnoreTarg;
 	
+	PS_SpecialMapSub_t* ThisSub;
+	PS_SpecialMapMinor_t* ThisMinor;
 	PS_SpecialMapMajor_t* ThisMajor;
 	PS_SpecialMapMajor_t* Majors;
 	size_t NumMajors;
@@ -4071,6 +4088,7 @@ static bool_t PS_ExtraSpecialOCCB(const bool_t a_Pushed, const struct WL_WADFile
 	// This makes it less static!
 	MapperEntry = WL_FindEntry(NULL, 0, "RMD_EGLM");
 	
+	// Go through it
 	if (MapperEntry)
 	{
 		// Open stream
@@ -4112,6 +4130,62 @@ static bool_t PS_ExtraSpecialOCCB(const bool_t a_Pushed, const struct WL_WADFile
 					// No major? Skip
 					if (!ThisMajor)
 						continue;
+					
+					// Ignore indicator comment
+					TokStr = strtok(NULL, __REMOOD_MAPTOKEN);
+					if (!TokStr)
+						continue;
+					
+					// Make sure [ is reached
+					TokStr = strtok(NULL, __REMOOD_MAPTOKEN);
+					if (!TokStr || (TokStr && strcasecmp(TokStr, "[") != 0))
+						continue;
+					
+					// Create Minor
+					Z_ResizeArray((void**)&ThisMajor->Minors, sizeof(*ThisMajor->Minors),
+							ThisMajor->NumMinors, ThisMajor->NumMinors + 1);
+					ThisMinor = &ThisMajor->Minors[ThisMajor->NumMinors++];
+					
+					// Read Shift
+					TokStr = strtok(NULL, __REMOOD_MAPTOKEN);
+					if (!TokStr)
+						continue;
+					ThisMinor->Shift = strtol(TokStr, NULL, 10);
+					
+					// Read Mask
+					TokStr = strtok(NULL, __REMOOD_MAPTOKEN);
+					if (!TokStr)
+						continue;
+					ThisMinor->Mask = strtol(TokStr, NULL, 16);
+					
+					// Debug
+					if (devparm)
+						CONL_PrintF(">>> = %i %x\n", ThisMinor->Shift, ThisMinor->Mask);
+					
+					// Clear initial value
+					Target = 0;
+					
+					// Read sub values now
+					for (;;)
+					{
+						// Get token
+						TokStr = strtok(NULL, __REMOOD_MAPTOKEN);
+						if (!TokStr || (TokStr && strcasecmp(TokStr, "]") == 0))
+							break;
+						
+						// Add to sub
+						Z_ResizeArray((void**)&ThisMinor->Subs, sizeof(*ThisMinor->Subs),
+								ThisMinor->NumSubs, ThisMinor->NumSubs + 1);
+						ThisSub = &ThisMinor->Subs[ThisMinor->NumSubs++];
+						
+						// Copy Values
+						strncat(ThisSub->EnumName, TokStr, SPECMAXFIELDSZ - 1);
+						ThisSub->Value = Target++;
+						
+						// Debug
+						if (devparm)
+							CONL_PrintF(">>>> %s = %i\n", ThisSub->EnumName, ThisSub->Value);
+					}
 				}
 				
 				// Major Definition
@@ -4120,6 +4194,9 @@ static bool_t PS_ExtraSpecialOCCB(const bool_t a_Pushed, const struct WL_WADFile
 					// Make a new spot at the end
 					Z_ResizeArray((void**)&Majors, sizeof(*Majors), NumMajors, NumMajors + 1);
 					ThisMajor = &Majors[NumMajors++];
+					
+					// Copy into major
+					strncat(ThisMajor->TypeName, TokStr, SPECMAXFIELDSZ - 1);
 					
 					// Get name
 					TokStr = strtok(NULL, __REMOOD_MAPTOKEN);
@@ -4131,21 +4208,12 @@ static bool_t PS_ExtraSpecialOCCB(const bool_t a_Pushed, const struct WL_WADFile
 						continue;
 					}
 					
-					// Copy into major
-					strncat(ThisMajor->TypeName, TokStr, SPECMAXFIELDSZ);
-					
-					// Get base value (the initial OR)
-					TokStr = strtok(NULL, __REMOOD_MAPTOKEN);
-					
-					// Missing?
-					if (!TokStr)
-					{
-						ThisMajor = NULL;
-						continue;
-					}
-					
 					// Set Value (from hex)
 					ThisMajor->BaseInt = strtol(TokStr, NULL, 16);
+					
+					// Debug
+					if (devparm)
+						CONL_PrintF(">> %s = %i\n", ThisMajor->TypeName, ThisMajor->BaseInt);
 				}
 			}
 #undef __REMOOD_MAPTOKEN
@@ -4186,6 +4254,7 @@ static bool_t PS_ExtraSpecialOCCB(const bool_t a_Pushed, const struct WL_WADFile
 				i = 0;
 				IgnoreTarg = false;
 				Source = Target = Type = 0;
+				ThisMajor = NULL;
 				
 				// Why not use strtok(), It is fun and on top of that! insecure!
 				TokStr = strtok(Buf, " ");
@@ -4197,7 +4266,6 @@ static bool_t PS_ExtraSpecialOCCB(const bool_t a_Pushed, const struct WL_WADFile
 				// Parse loop
 				do
 				{
-					
 					// Get Target Type?
 					if (i == 0)
 					{
@@ -4227,383 +4295,65 @@ static bool_t PS_ExtraSpecialOCCB(const bool_t a_Pushed, const struct WL_WADFile
 						i++;
 					}
 					
-					// Get Type (Door, Floor, etc.)
+					// Find Major Type
 					else if (i == 2)
 					{
-						// Standard -> Boom Mappers
-						if (strcasecmp(TokStr, "DOOR") == 0)
-							Type = GenDoorBase;
-						else if (strcasecmp(TokStr, "LOCKDOOR") == 0)
-							Type = GenLockedBase;
-						else if (strcasecmp(TokStr, "FLOOR") == 0)
-							Type = GenFloorBase;
-						else if (strcasecmp(TokStr, "CEILING") == 0)
-							Type = GenCeilingBase;
-						else if (strcasecmp(TokStr, "PLAT") == 0)
-							Type = GenLiftBase;
-						else if (strcasecmp(TokStr, "STAIR") == 0)
-							Type = GenStairsBase;
-						else if (strcasecmp(TokStr, "CRUSHER") == 0)
-							Type = GenCrusherBase;
-						
-						// ReMooD Extended Mappers
-						else if (strcasecmp(TokStr, "XFLOOR") == 0)
-							Type = EVGENHE_TYPEBASE(EVGHET_XFLOOR);
-						else if (strcasecmp(TokStr, "XPLAT") == 0)
-							Type = EVGENHE_TYPEBASE(EVGHET_XPLAT);
-						else if (strcasecmp(TokStr, "EXIT") == 0)
-							Type = EVGENHE_TYPEBASE(EVGHET_XEXIT);
-						else if (strcasecmp(TokStr, "XTELEPORT") == 0)
-							Type = EVGENHE_TYPEBASE(EVGHET_XTELEPORT);
-						else
-							break;
-							
 						// Next token
 						i++;
+						
+						// Find matching major
+						ThisMajor = NULL;
+						for (j = 0; j < NumMajors; j++)
+							if (strcasecmp(TokStr, Majors[j].TypeName) == 0)
+							{
+								ThisMajor = &Majors[j];
+								break;
+							}
+						
+						// No major found?
+						if (!ThisMajor)
+							continue;
+						
+						// Set target
+						Type = Target = ThisMajor->BaseInt;
 					}
 					
-					// Get Trigger
-					else if (i == 3)
-					{
-						// Clear
-						Temp = 0;
-						
-						if (!IgnoreTarg)
-						{
-							// Which one? Standard (Mappable to Boom)
-							if (strcasecmp(TokStr, "W1") == 0)
-								Temp = WalkOnce;
-							else if (strcasecmp(TokStr, "WR") == 0)
-								Temp = WalkMany;
-							else if (strcasecmp(TokStr, "S1") == 0)
-								Temp = SwitchOnce;
-							else if (strcasecmp(TokStr, "SR") == 0)
-								Temp = SwitchMany;
-							else if (strcasecmp(TokStr, "G1") == 0)
-								Temp = GunOnce;
-							else if (strcasecmp(TokStr, "GR") == 0)
-								Temp = GunMany;
-							else if (strcasecmp(TokStr, "P1") == 0)
-								Temp = PushOnce;
-							else if (strcasecmp(TokStr, "PR") == 0)
-								Temp = PushMany;
-						
-							// Or it in
-							Target |= (Temp << TriggerTypeShift) & TriggerType;
-						}
-
-						// Next token
-						i++;
-					}
-					
-					// Determine flags and other stuff
+					// Handle field enums
 					else
 					{
-#define __REMOOD_BASEQKT(prop,val,shift,mask) (strcasecmp(TokStr, (prop)) == 0) Target = (Target & (~(mask))) | (((val) << (shift)) & (mask))
-#define __REMOOD_IQKT(p,v,s,m) if __REMOOD_BASEQKT((p),(v),(s),(m))
-#define __REMOOD_EQKT(p,v,s,m) else if __REMOOD_BASEQKT((p),(v),(s),(m))
-
-#define __REMOOD_EXHANDLESPEED \
-	__REMOOD_IQKT("SLOWEST", EVGHES_SLOWEST, EVGENGE_SPEEDSHIFT, EVGENGE_SPEEDMASK); \
-	__REMOOD_EQKT("SLOWER", EVGHES_SLOWER, EVGENGE_SPEEDSHIFT, EVGENGE_SPEEDMASK); \
-	__REMOOD_EQKT("SLOW", EVGHES_SLOW, EVGENGE_SPEEDSHIFT, EVGENGE_SPEEDMASK); \
-	__REMOOD_EQKT("NORMAL", EVGHES_NORMAL, EVGENGE_SPEEDSHIFT, EVGENGE_SPEEDMASK); \
-	__REMOOD_EQKT("FAST", EVGHES_FAST, EVGENGE_SPEEDSHIFT, EVGENGE_SPEEDMASK); \
-	__REMOOD_EQKT("FASTER", EVGHES_FASTER, EVGENGE_SPEEDSHIFT, EVGENGE_SPEEDMASK); \
-	__REMOOD_EQKT("FASTEST", EVGHES_FASTEST, EVGENGE_SPEEDSHIFT, EVGENGE_SPEEDMASK); \
-	__REMOOD_EQKT("INSTANT", EVGHES_INSTANT, EVGENGE_SPEEDSHIFT, EVGENGE_SPEEDMASK);
-
-#define __REMOOD_EXHANDLEFCDWAIT \
-	__REMOOD_IQKT("WAIT1S", EVGHEFCDW_WAIT1S, EVGENGE_FCDWAITSHIFT, EVGENGE_FCDWAITMASK); \
-	__REMOOD_EQKT("WAIT3S", EVGHEFCDW_WAIT3S, EVGENGE_FCDWAITSHIFT, EVGENGE_FCDWAITMASK); \
-	__REMOOD_EQKT("WAIT4S", EVGHEFCDW_WAIT4S, EVGENGE_FCDWAITSHIFT, EVGENGE_FCDWAITMASK); \
-	__REMOOD_EQKT("WAIT5S", EVGHEFCDW_WAIT5S, EVGENGE_FCDWAITSHIFT, EVGENGE_FCDWAITMASK); \
-	__REMOOD_EQKT("WAIT9S", EVGHEFCDW_WAIT9S, EVGENGE_FCDWAITSHIFT, EVGENGE_FCDWAITMASK); \
-	__REMOOD_EQKT("WAIT10S", EVGHEFCDW_WAIT10S, EVGENGE_FCDWAITSHIFT, EVGENGE_FCDWAITMASK); \
-	__REMOOD_EQKT("WAIT30S", EVGHEFCDW_WAIT30S, EVGENGE_FCDWAITSHIFT, EVGENGE_FCDWAITMASK); \
-	__REMOOD_EQKT("WAIT60S", EVGHEFCDW_WAIT60S, EVGENGE_FCDWAITSHIFT, EVGENGE_FCDWAITMASK);
-
-#define __REMOOD_EXHANDLEFCPTYPE \
-	__REMOOD_IQKT("LHFPERP", EVGHEPLATT_LHFPERP, EVGENGE_FCPTYPESHIFT, EVGENGE_FCPTYPEMASK);	\
-	__REMOOD_EQKT("CEILTOGGLE", EVGHEPLATT_CEILTOGGLE, EVGENGE_FCPTYPESHIFT, EVGENGE_FCPTYPEMASK); \
-	__REMOOD_EQKT("DWUS", EVGHEPLATT_DWUS, EVGENGE_FCPTYPESHIFT, EVGENGE_FCPTYPEMASK); \
-	__REMOOD_EQKT("RAISE32", EVGHEPLATT_RAISE32, EVGENGE_FCPTYPESHIFT, EVGENGE_FCPTYPEMASK); \
-	__REMOOD_EQKT("RAISE24", EVGHEPLATT_RAISE24, EVGENGE_FCPTYPESHIFT, EVGENGE_FCPTYPEMASK); \
-	__REMOOD_EQKT("NNF", EVGHEPLATT_NNF, EVGENGE_FCPTYPESHIFT, EVGENGE_FCPTYPEMASK);
-
-						// Handle Door Stuff
-						if (Type == GenDoorBase)
+						// No major found?
+						if (!ThisMajor)
+							continue;
+						
+						// Find matching enum
+						ThisSub = NULL;
+						for (j = 0; j < ThisMajor->NumMinors && !ThisSub; j++)
 						{
-							// Speed
-							__REMOOD_IQKT("SLOW", SpeedSlow, DoorSpeedShift, DoorSpeed);
-							__REMOOD_EQKT("NORMAL", SpeedNormal, DoorSpeedShift, DoorSpeed);
-							__REMOOD_EQKT("FAST", SpeedFast, DoorSpeedShift, DoorSpeed);
-							__REMOOD_EQKT("TURBO", SpeedTurbo, DoorSpeedShift, DoorSpeed);
-								
-							// Wait
-							__REMOOD_EQKT("WAIT1S", PGLGOD_WAITONE, DoorDelayShift, DoorDelay);
-							__REMOOD_EQKT("WAIT4S", PGLGOD_WAITFOUR, DoorDelayShift, DoorDelay);
-							__REMOOD_EQKT("WAIT9S", PGLGOD_WAITNINE, DoorDelayShift, DoorDelay);
-							__REMOOD_EQKT("WAIT30S", PGLGOD_WAITTHIRTY, DoorDelayShift, DoorDelay);
+							// Quick
+							ThisMinor = &ThisMajor->Minors[j];
+							ThisSub = NULL;
 							
-							// Monster
-							__REMOOD_EQKT("MONSTER", 1, DoorMonsterShift, DoorMonster);
+							// Loop
+							for (k = 0; k < ThisMinor->NumSubs; k++)
+								if (strcasecmp(TokStr, ThisMinor->Subs[k].EnumName) == 0)
+								{
+									ThisSub = &ThisMinor->Subs[k];
+									break;
+								}
 							
-							// Kind
-							__REMOOD_EQKT("OWC", PGLGDK_ODC, DoorKindShift, DoorKind);
-							__REMOOD_EQKT("OSO", PGLGDK_O, DoorKindShift, DoorKind);
-							__REMOOD_EQKT("CSO", PGLGDK_CDO, DoorKindShift, DoorKind);
-							__REMOOD_EQKT("CSC", PGLGDK_C, DoorKindShift, DoorKind);
+							// Found?
+							if (ThisSub)
+								break;
 						}
 						
-						// Locked Doors
-						else if (Type == GenLockedBase)
-						{
-							// Speed
-							__REMOOD_IQKT("SLOW", SpeedSlow, LockedSpeedShift, LockedSpeed);
-							__REMOOD_EQKT("NORMAL", SpeedNormal, LockedSpeedShift, LockedSpeed);
-							__REMOOD_EQKT("FAST", SpeedFast, LockedSpeedShift, LockedSpeed);
-							__REMOOD_EQKT("TURBO", SpeedTurbo, LockedSpeedShift, LockedSpeed);
-							
-							// Kind
-							__REMOOD_EQKT("OWC", PGLGLDK_ODC, LockedKindShift, LockedKind);
-							__REMOOD_EQKT("OSO", PGLGLDK_O, LockedKindShift, LockedKind);
-							
-							// Lock Type
-							__REMOOD_EQKT("ANY", AnyKey_, LockedKeyShift, LockedKey);
-							__REMOOD_EQKT("REDCARD", RCard, LockedKeyShift, LockedKey);
-							__REMOOD_EQKT("YELLOWCARD", YCard, LockedKeyShift, LockedKey);
-							__REMOOD_EQKT("BLUECARD", BCard, LockedKeyShift, LockedKey);
-							__REMOOD_EQKT("REDSKULL", RSkull, LockedKeyShift, LockedKey);
-							__REMOOD_EQKT("YELLOWSKULL", YSkull, LockedKeyShift, LockedKey);
-							__REMOOD_EQKT("BLUESKULL", BSkull, LockedKeyShift, LockedKey);
-							__REMOOD_EQKT("ALL", AllKeys, LockedKeyShift, LockedKey);
-							
-							// Skull is key?
-							__REMOOD_EQKT("SKULLISCARD", 1, LockedNKeysShift, LockedNKeys);
-						}
+						// Not found?
+						if (!ThisSub)
+							continue;
 						
-						// Floors
-						else if (Type == GenFloorBase)
-						{
-							// Speed
-							__REMOOD_IQKT("SLOW", SpeedSlow, FloorSpeedShift, FloorSpeed);
-							__REMOOD_EQKT("NORMAL", SpeedNormal, FloorSpeedShift, FloorSpeed);
-							__REMOOD_EQKT("FAST", SpeedFast, FloorSpeedShift, FloorSpeed);
-							__REMOOD_EQKT("TURBO", SpeedTurbo, FloorSpeedShift, FloorSpeed);
-							
-							// Model
-							__REMOOD_EQKT("NUMCO", FNumericModel, FloorModelShift, FloorModel);
-							__REMOOD_EQKT("TRGCO", FTriggerModel, FloorModelShift, FloorModel);
-							
-							// Direction
-							__REMOOD_EQKT("UP", 1, FloorDirectionShift, FloorDirection);
-							__REMOOD_EQKT("DOWN", 0, FloorDirectionShift, FloorDirection);
-							
-							// Target
-							__REMOOD_EQKT("HNF", FtoHnF, FloorTargetShift, FloorTarget);
-							__REMOOD_EQKT("LNF", FtoLnF, FloorTargetShift, FloorTarget);
-							__REMOOD_EQKT("NNF", FtoNnF, FloorTargetShift, FloorTarget);
-							__REMOOD_EQKT("LNC", FtoLnC, FloorTargetShift, FloorTarget);
-							__REMOOD_EQKT("CEILING", FtoC, FloorTargetShift, FloorTarget);
-							__REMOOD_EQKT("ASLT", FbyST, FloorTargetShift, FloorTarget);
-							__REMOOD_EQKT("ABS24", Fby24, FloorTargetShift, FloorTarget);
-							__REMOOD_EQKT("ABS32", Fby32, FloorTargetShift, FloorTarget);
-							
-							// Change
-							__REMOOD_EQKT("NOCHANGE", FNoChg, FloorChangeShift, FloorChange);
-							__REMOOD_EQKT("TXZ", FChgZero, FloorChangeShift, FloorChange);
-							__REMOOD_EQKT("TXONLY", FChgTxt, FloorChangeShift, FloorChange);
-							__REMOOD_EQKT("TXTY", FChgTyp, FloorChangeShift, FloorChange);
-							
-							// Crush
-							__REMOOD_EQKT("CRUSH", 1, FloorCrushShift, FloorCrush);
-						}
-						
-						// Ceilings
-						else if (Type == GenCeilingBase)
-						{
-							// Speed
-							__REMOOD_IQKT("SLOW", SpeedSlow, CeilingSpeedShift, CeilingSpeed);
-							__REMOOD_EQKT("NORMAL", SpeedNormal, CeilingSpeedShift, CeilingSpeed);
-							__REMOOD_EQKT("FAST", SpeedFast, CeilingSpeedShift, CeilingSpeed);
-							__REMOOD_EQKT("TURBO", SpeedTurbo, CeilingSpeedShift, CeilingSpeed);
-							
-							// Model
-							__REMOOD_EQKT("NUMCO", CNumericModel, CeilingModelShift, CeilingModel);
-							__REMOOD_EQKT("TRGCO", CTriggerModel, CeilingModelShift, CeilingModel);
-							
-							// Direction
-							__REMOOD_EQKT("UP", 1, CeilingDirectionShift, CeilingDirection);
-							__REMOOD_EQKT("DOWN", 0, CeilingDirectionShift, CeilingDirection);
-							
-							// Target
-							__REMOOD_EQKT("HNC", CtoHnC, CeilingTargetShift, CeilingTarget);
-							__REMOOD_EQKT("LNC", CtoLnC, CeilingTargetShift, CeilingTarget);
-							__REMOOD_EQKT("NNC", CtoNnC, CeilingTargetShift, CeilingTarget);
-							__REMOOD_EQKT("HNF", CtoHnF, CeilingTargetShift, CeilingTarget);
-							__REMOOD_EQKT("FLOOR", CtoF, CeilingTargetShift, CeilingTarget);
-							__REMOOD_EQKT("ASLT", CbyST, CeilingTargetShift, CeilingTarget);
-							__REMOOD_EQKT("ABS24", Cby24, CeilingTargetShift, CeilingTarget);
-							__REMOOD_EQKT("ABS32", Cby32, CeilingTargetShift, CeilingTarget);
-							
-							// Change
-							__REMOOD_EQKT("NOCHANGE", CNoChg, CeilingChangeShift, CeilingChange);
-							__REMOOD_EQKT("TXZ", CChgZero, CeilingChangeShift, CeilingChange);
-							__REMOOD_EQKT("TXONLY", CChgTxt, CeilingChangeShift, CeilingChange);
-							__REMOOD_EQKT("TXTY", CChgTyp, CeilingChangeShift, CeilingChange);
-							
-							// Crush
-							__REMOOD_EQKT("CRUSH", 1, CeilingCrushShift, CeilingCrush);
-						}
-						
-						// Lifts
-						else if (Type == GenLiftBase)
-						{
-							// Speed
-							__REMOOD_IQKT("SLOW", SpeedSlow, LiftSpeedShift, LiftSpeed);
-							__REMOOD_EQKT("NORMAL", SpeedNormal, LiftSpeedShift, LiftSpeed);
-							__REMOOD_EQKT("FAST", SpeedFast, LiftSpeedShift, LiftSpeed);
-							__REMOOD_EQKT("TURBO", SpeedTurbo, LiftSpeedShift, LiftSpeed);
-							
-							// Monster
-							__REMOOD_EQKT("MONSTER", 1, LiftMonsterShift, LiftMonster);
-								
-							// Delay
-							__REMOOD_EQKT("WAIT1S", PGLGLD_WAITONE, LiftDelayShift, LiftDelay);
-							__REMOOD_EQKT("WAIT3S", PGLGLD_WAITTHREE, LiftDelayShift, LiftDelay);
-							__REMOOD_EQKT("WAIT5S", PGLGLD_WAITFIVE, LiftDelayShift, LiftDelay);
-							__REMOOD_EQKT("WAIT10S", PGLGLD_WAITTEN, LiftDelayShift, LiftDelay);
-							
-							// Target
-							__REMOOD_EQKT("LNF", F2LnF, LiftTargetShift, LiftTarget);
-							__REMOOD_EQKT("NNF", F2NnF, LiftTargetShift, LiftTarget);
-							__REMOOD_EQKT("LNC", F2LnC, LiftTargetShift, LiftTarget);
-							__REMOOD_EQKT("LHFPERP", LnF2HnF, LiftTargetShift, LiftTarget);
-						}
-						
-						// Stairs
-						else if (Type == GenStairsBase)
-						{
-							// Speed
-							__REMOOD_IQKT("SLOW", SpeedSlow, StairSpeedShift, StairSpeed);
-							__REMOOD_EQKT("NORMAL", SpeedNormal, StairSpeedShift, StairSpeed);
-							__REMOOD_EQKT("FAST", SpeedFast, StairSpeedShift, StairSpeed);
-							__REMOOD_EQKT("TURBO", SpeedTurbo, StairSpeedShift, StairSpeed);
-							
-							// Direction
-							__REMOOD_EQKT("UP", 1, StairDirectionShift, StairDirection);
-							__REMOOD_EQKT("DOWN", 0, StairDirectionShift, StairDirection);
-							
-							// Ignore?
-							__REMOOD_EQKT("IGNORE", 1, StairIgnoreShift, StairIgnore);
-								
-							// Monsters
-							__REMOOD_EQKT("MONSTER", 1, StairMonsterShift, StairMonster);
-							
-							// Step Amount
-							__REMOOD_EQKT("STEP4", PGLGSS_STEPFOUR, StairStepShift, StairStep);
-							__REMOOD_EQKT("STEP8", PGLGSS_STEPEIGHT, StairStepShift, StairStep);
-							__REMOOD_EQKT("STEP16", PGLGSS_STEPSIXTEEN, StairStepShift, StairStep);
-							__REMOOD_EQKT("STEP32", PGLGSS_STEPTWENTYFOUR, StairStepShift, StairStep);
-						}
-						
-						// Crushers
-						else if (Type == GenCrusherBase)
-						{
-							// Speed
-							__REMOOD_IQKT("SLOW", SpeedSlow, CrusherSpeedShift, CrusherSpeed);
-							__REMOOD_EQKT("NORMAL", SpeedNormal, CrusherSpeedShift, CrusherSpeed);
-							__REMOOD_EQKT("FAST", SpeedFast, CrusherSpeedShift, CrusherSpeed);
-							__REMOOD_EQKT("TURBO", SpeedTurbo, CrusherSpeedShift, CrusherSpeed);
-							
-							// Monster
-							__REMOOD_EQKT("MONSTER", 1, CrusherMonsterShift, CrusherMonster);
-							
-							// Silent
-							__REMOOD_EQKT("SILENT", 1, CrusherSilentShift, CrusherSilent);
-						}
-						
-						// EXTENDED XFloor
-						else if (Type == EVGENHE_TYPEBASE(EVGHET_XFLOOR))
-						{
-							// Speed
-							__REMOOD_EXHANDLESPEED;
-							
-							// Wait
-							__REMOOD_EXHANDLEFCDWAIT;
-							
-							// Type
-							
-							// Monsters and players?
-							__REMOOD_IQKT("MONSTER", 1, EVGENGE_MONSTERSHIFT, EVGENGE_MONSTERMASK);
-							__REMOOD_EQKT("PLAYER", 1, EVGENGE_PLAYERSHIFT, EVGENGE_PLAYERMASK);
-							
-							// Change
-							__REMOOD_EQKT("NOCHANGE", FNoChg, EVGENGE_FCFMODESHIFT, EVGENGE_FCFMODEMASK);
-							__REMOOD_EQKT("TXZ", FChgZero, EVGENGE_FCFMODESHIFT, EVGENGE_FCFMODEMASK);
-							__REMOOD_EQKT("TXONLY", FChgTxt, EVGENGE_FCFMODESHIFT, EVGENGE_FCFMODEMASK);
-							__REMOOD_EQKT("TXTY", FChgTyp, EVGENGE_FCFMODESHIFT, EVGENGE_FCFMODEMASK);
-						}
-						
-						// EXTENDED XPlat
-						else if (Type == EVGENHE_TYPEBASE(EVGHET_XPLAT))
-						{
-							// Speed
-							__REMOOD_EXHANDLESPEED;
-							
-							// Wait
-							__REMOOD_EXHANDLEFCDWAIT;
-							
-							// Type
-							__REMOOD_EXHANDLEFCPTYPE;
-							
-							// Monsters and players?
-							__REMOOD_IQKT("MONSTER", 1, EVGENGE_MONSTERSHIFT, EVGENGE_MONSTERMASK);
-							__REMOOD_EQKT("PLAYER", 1, EVGENGE_PLAYERSHIFT, EVGENGE_PLAYERMASK);
-							
-							// Change
-							__REMOOD_EQKT("NOCHANGE", FNoChg, EVGENGE_FCPMODESHIFT, EVGENGE_FCPMODEMASK);
-							__REMOOD_EQKT("TXZ", FChgZero, EVGENGE_FCPMODESHIFT, EVGENGE_FCPMODEMASK);
-							__REMOOD_EQKT("TXONLY", FChgTxt, EVGENGE_FCPMODESHIFT, EVGENGE_FCPMODEMASK);
-							__REMOOD_EQKT("TXTY", FChgTyp, EVGENGE_FCPMODESHIFT, EVGENGE_FCPMODEMASK);
-						}
-						
-						// EXTENDED Exit
-						else if (Type == EVGENHE_TYPEBASE(EVGHET_XEXIT))
-						{
-							// Monsters and players?
-							__REMOOD_IQKT("MONSTER", 1, EVGENGE_MONSTERSHIFT, EVGENGE_MONSTERMASK);
-							__REMOOD_EQKT("PLAYER", 1, EVGENGE_PLAYERSHIFT, EVGENGE_PLAYERMASK);
-							
-							// Exit types
-							__REMOOD_IQKT("NORMAL", 0, EVGENGE_EXITSECRETSHIFT, EVGENGE_EXITSECRETMASK);
-							__REMOOD_EQKT("SECRET", 1, EVGENGE_EXITSECRETSHIFT, EVGENGE_EXITSECRETMASK);
-							
-							// Hubbed?
-							__REMOOD_IQKT("HUB", 1, EVGENGE_EXITHUBSHIFT, EVGENGE_EXITHUBMASK);
-						}
-						
-						// EXTENDED Teleports
-						else if (Type == EVGENHE_TYPEBASE(EVGHET_XTELEPORT))
-						{
-							// Monsters and players?
-							__REMOOD_IQKT("MONSTER", 1, EVGENGE_MONSTERSHIFT, EVGENGE_MONSTERMASK);
-							__REMOOD_EQKT("PLAYER", 1, EVGENGE_PLAYERSHIFT, EVGENGE_PLAYERMASK);
-							
-							// Silent?
-							__REMOOD_IQKT("SILENT", 1, EVGENGE_TELESILENTSHIFT, EVGENGE_TELESILENTMASK);
-							__REMOOD_IQKT("REVERSE", 1, EVGENGE_TELEREVERSESHIFT, EVGENGE_TELEREVERSEMASK);
-							__REMOOD_IQKT("LWST", 1, EVGENGE_TELELWSTSHIFT, EVGENGE_TELELWSTMASK);
-						}
+						// Clear old bits from target then set
+						Target &= ~ThisMinor->Mask;
+						Target |= (ThisSub->Value << ThisMinor->Shift) & ThisMinor->Mask;
 					}
-					
-#undef __REMOOD_BASEQKT
-#undef __REMOOD_IQKT
-#undef __REMOOD_EQKT
-#undef __REMOOD_EXHANDLESPEED
-#undef __REMOOD_EXHANDLEFCDWAIT
-#undef __REMOOD_EXHANDLEFCPTYPE
 				} while ((TokStr = strtok(NULL, " ")));
 				
 				// OR target to type
@@ -4632,7 +4382,12 @@ static bool_t PS_ExtraSpecialOCCB(const bool_t a_Pushed, const struct WL_WADFile
 	{
 		for (i = 0; i < NumMajors; i++)
 			if (Majors[i].Minors)
+			{
+				for (j = 0; j < Majors[i].NumMinors; j++)
+					if (Majors[i].Minors[j].Subs)
+						Z_Free(Majors[i].Minors[j].Subs);
 				Z_Free(Majors[i].Minors);
+			}
 		Z_Free(Majors);
 	}
 	

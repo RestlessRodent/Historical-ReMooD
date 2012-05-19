@@ -973,6 +973,7 @@ int EV_DoGenDoor(line_t* line, mobj_t* const a_Object)
 	bool_t manual;
 	vldoor_t* door;
 	unsigned value = (unsigned)line->special - GenDoorBase;
+	bool_t OpDirection;
 	
 	// parse the bit fields in the line's special type
 	
@@ -991,24 +992,54 @@ int EV_DoGenDoor(line_t* line, mobj_t* const a_Object)
 			return rtn;
 		secnum = sec - sectors;
 		manual = true;
-		goto manual_door;
+	}
+	else
+	{
+		secnum = -1;
+		rtn = 0;
 	}
 	
-	secnum = -1;
-	rtn = 0;
-	
 	// if not manual do all sectors tagged the same as the line
-	while ((secnum = P_FindSectorFromLineTag(line, secnum)) >= 0)
+	while ((secnum = P_FindSectorFromLineTag((manual ? NULL : line), secnum)) >= 0)
 	{
 		sec = &sectors[secnum];
-manual_door:
+		
 		// Do not start another function if ceiling already moving
 		if (P_SectorActive(ceiling_special, sec))
 		{
 			if (!manual)
 				continue;
 			else
+			{
+				// Get existing special
+				door = sec->ceilingdata;
+				
+				// Just in case
+				if (!door)
+					return rtn;
+				
+				// GhostlyDeath <May 19, 2012> -- Change direction here
+				if (door->type != genBlazeOpen && door->type != genOpen &&
+					door->type != genBlazeClose && door->type != genClose)
+				{
+						// Moving Door
+					if (door->direction > 0)
+						door->direction = -1;
+					else if (door->direction < 0)
+						door->direction = 1;
+					
+						// At Rest
+					else
+					{
+						if (door->type == genBlazeRaise || door->type == genRaise)
+							door->direction = -1;
+						else if (door->type == genBlazeClose || door->type == genClose)
+							door->direction = 1;
+					}
+				}
+				
 				return rtn;
+			}
 		}
 		// new door thinker
 		rtn = 1;
