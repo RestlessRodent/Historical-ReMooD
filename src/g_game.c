@@ -623,7 +623,16 @@ void G_Ticker(void)
 			if (playeringame[i])
 			{
 				if (players[i].playerstate == PST_REBORN)
-					G_DoReborn(i);
+				{
+					// Player is on monster's side
+					if (players[i].CounterOpPlayer)
+						P_ControlNewMonster(&players[i]);
+						
+					// Otherwise make player
+					else
+						G_DoReborn(i);
+				}
+				
 				if (players[i].st_inventoryTics)
 					players[i].st_inventoryTics--;
 			}

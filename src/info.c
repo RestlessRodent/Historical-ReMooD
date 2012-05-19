@@ -745,6 +745,7 @@ static bool_t INFO_RMODInnerStateHandler(Z_Table_t* const a_Sub, void* const a_D
 	StateP->FrameID = CurFrameID;
 	StateP->Marker = MarkerVal;
 	StateP->ObjectID = HelperP->ObjectID;
+	StateP->IOSG = IOSG;
 	
 	// DeHackEd Support
 	StateP->DehackEdID = D_RMODGetValueInt(a_Sub, "DeHackEdNum", 0);

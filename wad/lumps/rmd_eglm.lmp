@@ -1,0 +1,17 @@
+# Extended Generic Line Mappings
+# Without this, RMD_EGLL is quite useless.
+# Although you can change the data here you will not produce the desired result
+# if you expect types to do other things. What I mean is that if you were to say
+# change the door trigger to another number, it would be of another type. So
+# this file is for internal usage for the most part.
+# So, avoid changing this file since the primary purpose is to make the code
+# in p_spec.c extendable and lightweight and without having over 9000 if
+# statements with the lines to match.
+
+DOOR 0x3c00
+@	TRIGGER [ 0 0x0003 w1 wr s1 sr g1 gr p1 pr ]
+@	SPEED [ 3 0x0018 slow normal fast turbo ]
+@	KIND [ 5 0x0060 owc oso cwo csc ]
+@	MONSTER [ 7 0x0080 nomonster monster ]
+@	DELAY [ 8 0x0300 wait1s wait4s wait9s wait30s ]
+

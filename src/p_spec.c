@@ -4009,6 +4009,30 @@ int P_GetThingFloorType(mobj_t* thing)
 *** EXTRA STUFF ***
 ******************/
 
+/*** CONSTANTS ***/
+#define SPECMAXFIELDSZ						64	// Max field size
+
+/*** STRUCTURES ***/
+
+/* PS_SpecialMapMinor_t -- Minor mapping */
+typedef struct PS_SpecialMapMinor_s
+{
+	char OptName[SPECMAXFIELDSZ];				// Option Name
+	uint32_t Value;								// Value
+	uint32_t Shift;								// Shift value
+	uint32_t Mask;								// Mask for value
+} PS_SpecialMapMinor_t;
+
+/* PS_SpecialMapMajor_t -- Major mapping */
+typedef struct PS_SpecialMapMajor_s
+{
+	char TypeName[SPECMAXFIELDSZ];				// Name of major trigger type
+	uint32_t BaseInt;							// Base Integer
+	
+	PS_SpecialMapMinor_t* Minors;				// Minors
+	size_t NumMinors;							// Number of them
+} PS_SpecialMapMajor_t;
+
 /*** GLOBALS ***/
 P_BossSpitEntry_t* g_BossSpitList = NULL;		// List of things to spit out
 size_t g_NumBossSpitList = 0;					// Count of those things
@@ -4022,6 +4046,7 @@ static bool_t PS_ExtraSpecialOCCB(const bool_t a_Pushed, const struct WL_WADFile
 {
 #define BUFSIZE 512
 	const WL_WADEntry_t* Entry;
+	const WL_WADEntry_t* MapperEntry;
 	WL_EntryStream_t* Stream;
 	size_t i;
 	char Buf[BUFSIZE];
@@ -4031,6 +4056,10 @@ static bool_t PS_ExtraSpecialOCCB(const bool_t a_Pushed, const struct WL_WADFile
 	uint32_t Source, Target, Type, Temp;
 	bool_t IgnoreTarg;
 	
+	PS_SpecialMapMajor_t* ThisMajor;
+	PS_SpecialMapMajor_t* Majors;
+	size_t NumMajors;
+	
 	/* Load LineDef Specials */
 	// Clear
 	if (g_ReGenMap)
@@ -4038,6 +4067,95 @@ static bool_t PS_ExtraSpecialOCCB(const bool_t a_Pushed, const struct WL_WADFile
 	g_ReGenMap = NULL;
 	g_NumReGenMap = 0;
 	
+	/* Parse mappings data */
+	// This makes it less static!
+	MapperEntry = WL_FindEntry(NULL, 0, "RMD_EGLM");
+	
+	if (MapperEntry)
+	{
+		// Open stream
+		Stream = WL_StreamOpen(MapperEntry);
+		
+		// Did it work?
+		if (Stream)
+		{
+#define __REMOOD_MAPTOKEN " \t\r\n"
+			// Check unicode
+			WL_StreamCheckUnicode(Stream);
+			
+			// Init
+			ThisMajor = NULL;
+			Majors = NULL;
+			NumMajors = 0;
+			
+			// While there is no end
+			while (!WL_StreamEOF(Stream))
+			{
+				// Read into buffer
+				memset(Buf, 0, sizeof(Buf));
+				WL_StreamReadLine(Stream, Buf, BUFSIZE);
+				
+				// If it starts with a #, a comment
+				if (Buf[0] == '#')
+					continue;
+				
+				// Why not use strtok(), It is fun and on top of that! insecure!
+				TokStr = strtok(Buf, __REMOOD_MAPTOKEN);
+				
+				// No token
+				if (!TokStr)
+					continue;
+				
+				// Minor Definition
+				if (strcasecmp(TokStr, "@") == 0)
+				{
+					// No major? Skip
+					if (!ThisMajor)
+						continue;
+				}
+				
+				// Major Definition
+				else
+				{
+					// Make a new spot at the end
+					Z_ResizeArray((void**)&Majors, sizeof(*Majors), NumMajors, NumMajors + 1);
+					ThisMajor = &Majors[NumMajors++];
+					
+					// Get name
+					TokStr = strtok(NULL, __REMOOD_MAPTOKEN);
+					
+					// Missing?
+					if (!TokStr)
+					{
+						ThisMajor = NULL;
+						continue;
+					}
+					
+					// Copy into major
+					strncat(ThisMajor->TypeName, TokStr, SPECMAXFIELDSZ);
+					
+					// Get base value (the initial OR)
+					TokStr = strtok(NULL, __REMOOD_MAPTOKEN);
+					
+					// Missing?
+					if (!TokStr)
+					{
+						ThisMajor = NULL;
+						continue;
+					}
+					
+					// Set Value (from hex)
+					ThisMajor->BaseInt = strtol(TokStr, NULL, 16);
+				}
+			}
+#undef __REMOOD_MAPTOKEN
+			
+			// Close stream
+			WL_StreamClose(Stream);
+		}
+	}
+	
+	/* Parse Line Specials */
 	// Load from lump (if it exists)
 	Entry = WL_FindEntry(NULL, 0, "RMD_EGLL");
 	
@@ -4507,6 +4625,15 @@ static bool_t PS_ExtraSpecialOCCB(const bool_t a_Pushed, const struct WL_WADFile
 			// Close stream
 			WL_StreamClose(Stream);
 		}
+	}
+	
+	/* Free special mapping */
+	if (Majors)
+	{
+		for (i = 0; i < NumMajors; i++)
+			if (Majors[i].Minors)
+				Z_Free(Majors[i].Minors);
+		Z_Free(Majors);
 	}
 	
 	/* Load boss spitters */

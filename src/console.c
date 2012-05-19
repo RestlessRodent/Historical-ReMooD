@@ -2989,6 +2989,9 @@ bool_t CONL_LoadingScreenSet(const int32_t a_NumSteps)
 	l_CLSBaseDrawn = false;
 	if (I_GetTimeMS() - l_CLSBaseTic >= CCLSLOADINGSCREENWAIT)
 		CONLS_DrawLoadingScreen(false);
+	
+	/* Send to server */
+	D_NCSR_SendLoadingStatus(l_CLSProgress[0][0], l_CLSProgress[0][1], l_CLSProgress[1][0], l_CLSProgress[1][1]);
 	return true;
 }
 
@@ -3009,6 +3012,9 @@ bool_t CONL_LoadingScreenIncrMaj(const char* const a_Message, const int32_t a_Nu
 	l_CLSBaseDrawn = false;
 	if (I_GetTimeMS() - l_CLSBaseTic >= CCLSLOADINGSCREENWAIT)
 		CONLS_DrawLoadingScreen(false);
+		
+	/* Send to server */
+	D_NCSR_SendLoadingStatus(l_CLSProgress[0][0], l_CLSProgress[0][1], l_CLSProgress[1][0], l_CLSProgress[1][1]);
 	return true;
 }
 
@@ -3021,6 +3027,9 @@ bool_t CONL_LoadingScreenIncrSub(void)
 	/* Draw and return */
 	if (I_GetTimeMS() - l_CLSBaseTic >= CCLSLOADINGSCREENWAIT)
 		CONLS_DrawLoadingScreen(true);
+		
+	/* Send to server */
+	D_NCSR_SendLoadingStatus(l_CLSProgress[0][0], l_CLSProgress[0][1], l_CLSProgress[1][0], l_CLSProgress[1][1]);
 	return true;
 }
 
@@ -3033,6 +3042,9 @@ bool_t CONL_LoadingScreenSetSubEnd(const int32_t a_NumSteps)
 	/* Draw and return */
 	if (I_GetTimeMS() - l_CLSBaseTic >= 2000)
 		CONLS_DrawLoadingScreen(true);
+		
+	/* Send to server */
+	D_NCSR_SendLoadingStatus(l_CLSProgress[0][0], l_CLSProgress[0][1], l_CLSProgress[1][0], l_CLSProgress[1][1]);
 	return true;
 }
 

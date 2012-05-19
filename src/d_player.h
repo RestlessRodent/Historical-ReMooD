@@ -240,6 +240,9 @@ typedef struct player_s
 	// Health
 	int32_t MaxHealth[2];						// Max Health
 	int32_t MaxArmor[2];						// Max Armor
+	
+	// Counter-Operative
+	bool_t CounterOpPlayer;						// On the monster's side
 } player_t;
 
 //

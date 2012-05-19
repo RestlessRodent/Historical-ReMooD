@@ -89,6 +89,7 @@ typedef struct
 	char* Function;								// Function Name
 	uint32_t SpriteID;							// Frame Sprite ID
 	uint32_t DehackEdID;						// Dehacked ID
+	uint8_t IOSG;								// State Group
 } state_t;
 
 #define S_NULL 0

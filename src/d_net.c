@@ -1920,6 +1920,11 @@ void D_NCSR_SendServerReady(void)
 {
 }
 
+/* D_NCSR_SendLoadingStatus() -- Tell the server we are loading something */
+void D_NCSR_SendLoadingStatus(const int32_t a_MajIs, const int32_t a_MajOf, const int32_t a_MinIs, const int32_t a_MinOf)
+{
+}
+
 /*** NCHE FUNCTIONS ***/
 
 /* D_NCHE_ServerCreatePlayer() -- Server creates player */

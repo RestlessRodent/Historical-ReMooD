@@ -107,10 +107,13 @@ void P_CalcHeight(player_t* player)
 	subsector_t* SubS;
 	
 	/* Base */
+	// Player
 	if (player->mo->RXFlags[0] & MFREXA_ISPLAYEROBJECT)
 		ViewHeight = cv_viewheight.value << FRACBITS;
-	else
-		ViewHeight = player->mo->height - 15;
+	
+	// Monster
+	else	// height * (41 / 56)
+		ViewHeight = FixedMul(player->mo->height, 47981);
 	
 	// Calculate bobbing
 	player->bob = ((FixedMul(player->FakeMom[0], player->FakeMom[0]) + FixedMul(player->FakeMom[1], player->FakeMom[1]))) >> 2;

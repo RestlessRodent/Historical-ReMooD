@@ -252,8 +252,8 @@ void P_XYFriction(mobj_t* mo, fixed_t oldx, fixed_t oldy, bool_t oldfriction)
 	        && mo->momy < STOPSPEED && (!player || (player->cmd.forwardmove == 0 && player->cmd.sidemove == 0)))
 	{
 		// if in a walking frame, stop moving
-		if (player && !(mo->RXFlags[0] & MFREXA_NOPLAYERWALK))
-			if (player->mo->state->FrameID < 4)
+		if (player && (mo->RXFlags[1] & MFREXB_USEPLAYERMOVEMENT) && !(mo->RXFlags[0] & MFREXA_NOPLAYERWALK))
+			if (player->mo->state->IOSG == IOSG_ACTIVE && player->mo->state->FrameID < 4)
 				P_SetMobjState(player->mo, player->mo->info->spawnstate);
 		
 		mo->momx = 0;
@@ -451,7 +451,7 @@ void P_XYMovement(mobj_t* mo)
 	while (xmove || ymove);
 	
 	// slow down
-	if (player)
+	if (player && (mo->RXFlags[1] & MFREXB_USEPLAYERMOVEMENT))
 	{
 		if (player->cheats & CF_NOMOMENTUM)
 		{
@@ -755,7 +755,7 @@ void P_ZMovement(mobj_t* mo)
 //
 // P_NightmareRespawn
 //
-void P_NightmareRespawn(mobj_t* mobj)
+void P_NightmareRespawn(mobj_t* mobj, const bool_t a_ForceRespawn)
 {
 	fixed_t x;
 	fixed_t y;
@@ -1153,7 +1153,7 @@ void P_MobjThinker(mobj_t* mobj)
 		if (P_Random() > 4)
 			return;
 			
-		P_NightmareRespawn(mobj);
+		P_NightmareRespawn(mobj, false);
 	}
 	
 }
@@ -2735,5 +2735,114 @@ bool_t P_MobjOnSameTeam(mobj_t* const a_ThisMo, mobj_t* const a_OtherMo)
 	
 	/* Not on same team */
 	return false;
+}
+
+/* P_ControlNewMonster() -- Control new monster, as player */
+void P_ControlNewMonster(struct player_s* const a_Player)
+{
+#define MAXCTRLCANDIDATES 16
+	thinker_t* oldthinker;
+	thinker_t* currentthinker;
+	mobj_t* mo;
+	mobj_t* Cands[MAXCTRLCANDIDATES];
+	size_t i, c;
+	
+	/* Check */
+	if (!a_Player)
+		return;
+		
+	/* Clear Candidate List */
+	c = 0;
+	memset(Cands, 0, sizeof(Cands));
+	
+	/* Go through all thinkers */
+	// Figure out current thinker
+	oldthinker = (thinker_t*)a_Player->mo;
+	
+	if (!oldthinker)
+	{
+		oldthinker = &thinkercap;
+		currentthinker = thinkercap.next;
+	}
+	else
+		currentthinker = oldthinker->next;
+	
+	// Look through thinkers
+	for (; currentthinker != oldthinker; currentthinker = currentthinker->next)
+	{
+		// Not a mobj?
+		if (!((currentthinker->function.acp1 == (actionf_p1) P_MobjThinker)))
+			continue;
+		
+		// Make mo
+		mo = (mobj_t*)currentthinker;
+	
+		// Ourself?
+		if (a_Player->mo == mo)
+			continue;
+		
+		// Controlled by a player?
+		if (mo->player)
+			continue;
+		
+		// Not a monster?
+		if (!(mo->flags & MF_COUNTKILL) && !(mo->RXFlags[0] & MFREXA_ISMONSTER))
+			continue;
+		
+		// Dead?
+		if (mo->health <= 0 || (mo->flags & MF_CORPSE))
+			continue;
+		
+		// Candidate?
+		if (P_Random() & 1)
+			Cands[c++] = mo;
+		
+		if (c >= MAXCTRLCANDIDATES)
+			break;
+	}
+	
+	/* Choose a random candidate */
+	if (c > 0)
+	{
+		// Random
+		mo = Cands[P_Random() % c];
+		
+		// Take posession of this monster
+		a_Player->mo->player = NULL;	// Old body owns no player now
+		a_Player->mo = mo;				// Use this new body
+		mo->player = a_Player;			// Set as this body
+		a_Player->playerstate = PST_LIVE;
+	
+		// Setup player health
+		a_Player->health = mo->health;
+	
+		// Set local angle
+		for (i = 0; i < MAXSPLITSCREEN; i++)
+			if (g_PlayerInSplit[i])
+				if (consoleplayer[i] == a_Player - players)
+				{
+					localangle[i] = mo->angle;
+					break;
+				}
+		
+		// Took control of something
+		return;
+	}
+	
+	/* If this point was reach, no object was associated */
+	// Which means everything else is dead, so if this is the case
+	// Ressurect self
+	if (a_Player->mo)
+	{
+		P_NightmareRespawn(a_Player->mo, true);
+		
+		a_Player->playerstate = PST_LIVE;
+	}
+	
+	// But if that fails? Create a random monster
+	else
+	{
+	}
+#undef MAXCTRLCANDIDATES
 }
 

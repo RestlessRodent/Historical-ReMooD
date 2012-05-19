@@ -151,6 +151,7 @@ void D_NCSR_RequestNewPlayer(struct D_ProfileEx_s* a_Profile);
 void D_NCSR_RequestWAD(const char* const a_WADSum);
 void D_NCSR_RequestServerWADs(void);
 void D_NCSR_SendServerReady(void);
+void D_NCSR_SendLoadingStatus(const int32_t a_MajIs, const int32_t a_MajOf, const int32_t a_MinIs, const int32_t a_MinOf);
 
 /**** NCHE Funcs ***/
 struct D_NetPlayer_s;
