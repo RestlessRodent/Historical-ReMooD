@@ -1568,12 +1568,21 @@ static void STS_DrawPlayerBarEx(const size_t a_PID, const int32_t a_X, const int
 	D_ProfileEx_t* Profile;
 	V_Image_t* vi;
 	VideoFont_t Font;
+	weapontype_t ReadyWeapon;
+	ammotype_t AmmoType;
+	bool_t BigLetters, IsMonster;
 	
 	/* Init */
 	if (a_W < 320)
+	{
+		BigLetters = false;
 		Font = VFONT_SMALL;
+	}
 	else
+	{
+		BigLetters = true;
 		Font = VFONT_STATUSBARLARGE;
+	}
 	
 	/* Get players to draw for */
 	ConsoleP = &players[consoleplayer[a_PID]];
@@ -1589,13 +1598,22 @@ static void STS_DrawPlayerBarEx(const size_t a_PID, const int32_t a_X, const int
 			// TODO
 	}
 	
+	/* Obtain some info */
+	ReadyWeapon = DisplayP->readyweapon;
+	AmmoType = DisplayP->weaponinfo[DisplayP->readyweapon]->ammo;
+	
+	/* Monster? */
+	IsMonster = false;
+	if (DisplayP->mo && ((DisplayP->mo->flags & MF_COUNTKILL) || (DisplayP->mo->RXFlags[0] & MFREXA_ISMONSTER)))
+		IsMonster = true;
+	
 	/* Which status bar type to draw? */
 	// Overlay
 	if (true)
 	{
+		//// HEALTH
 		// Draw Health Icon
-		vi = V_ImageFindA("sbohealt");
-		
+		vi = V_ImageFindA((IsMonster ? "sbohealg" : "sbohealt"));
 		if (vi)
 			V_ImageDraw(
 					0, vi,
@@ -1608,9 +1626,61 @@ static void STS_DrawPlayerBarEx(const size_t a_PID, const int32_t a_X, const int
 		snprintf(Buf, BUFSIZE - 1, "%i", DisplayP->health);
 		V_DrawStringA(
 				Font, 0, Buf,
-				a_X + STS_SBX(Profile, 8, a_W, a_H) + 20,
-				a_Y + STS_SBY(Profile, 192, a_W, a_H) - 12
+				a_X + STS_SBX(Profile, 8, a_W, a_H) + 20 - (BigLetters ? 0 : 2),
+				a_Y + STS_SBY(Profile, 192, a_W, a_H) - 12 - (BigLetters ? 4 : 0)
 			);
+		
+		//// ARMOR
+		if (!IsMonster)
+		{
+			// Draw Armor Icon
+			if (!DisplayP->armortype)
+				vi = V_ImageFindA("sboempty");
+			else if (DisplayP->armortype == 1)
+				vi = V_ImageFindA("sboarmwk");
+			else
+				vi = V_ImageFindA("sboarmor");
+			if (vi)
+				V_ImageDraw(
+						0, vi,
+						a_X + STS_SBX(Profile, 96, a_W, a_H),
+						a_Y + STS_SBY(Profile, 192, a_W, a_H) - 16,
+						NULL
+					);
+		
+			// Draw Armor Text
+			snprintf(Buf, BUFSIZE - 1, "%i", DisplayP->armorpoints);
+			V_DrawStringA(
+					Font, 0, Buf,
+					a_X + STS_SBX(Profile, 96, a_W, a_H) + 20 - (BigLetters ? 0 : 2),
+					a_Y + STS_SBY(Profile, 192, a_W, a_H) - 12 - (BigLetters ? 4 : 0)
+				);
+		}
+		
+		//// WEAPON/AMMO
+		if (!IsMonster)
+		{
+			// Draw Icon
+			vi = V_ImageFindA((DisplayP->weaponinfo[ReadyWeapon]->SBOGraphic ? DisplayP->weaponinfo[ReadyWeapon]->SBOGraphic : "sboempty"));
+			if (vi)
+				V_ImageDraw(
+						0, vi,
+						a_X + STS_SBX(Profile, 240, a_W, a_H),
+						a_Y + STS_SBY(Profile, 192, a_W, a_H) - 16,
+						NULL
+					);
+		
+			// Draw Ammo Text
+			if (AmmoType < 0 || AmmoType >= NUMAMMO)
+				snprintf(Buf, BUFSIZE - 1, "-", DisplayP->ammo[AmmoType]);
+			else
+				snprintf(Buf, BUFSIZE - 1, "%i", DisplayP->ammo[AmmoType]);
+			V_DrawStringA(
+					Font, 0, Buf,
+					a_X + STS_SBX(Profile, 240, a_W, a_H) + 20 - (BigLetters ? 0 : 2),
+					a_Y + STS_SBY(Profile, 192, a_W, a_H) - 12 - (BigLetters ? 4 : 0)
+				);
+		}
 	}
 	
 	/* Draw Object Overlays */
@@ -1624,6 +1694,7 @@ void ST_DrawPlayerBarsEx(void)
 {
 	player_t* ConsoleP, *DisplayP;
 	int p, x, y, w, h;
+	bool_t BigLetters;
 	
 	/* Screen division? */
 	// Initial
@@ -1638,6 +1709,10 @@ void ST_DrawPlayerBarsEx(void)
 	// 3+ split
 	if (g_SplitScreen >= 2)
 		w /= 2;
+		
+	/* Use standard palette */
+	if (g_SplitScreen != 0)
+		V_SetPalette(0);
 	
 	/* Draw each player */
 	for (p = 0; p < g_SplitScreen + 1; p++)

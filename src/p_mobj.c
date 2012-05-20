@@ -253,7 +253,7 @@ void P_XYFriction(mobj_t* mo, fixed_t oldx, fixed_t oldy, bool_t oldfriction)
 	{
 		// if in a walking frame, stop moving
 		if (player && (mo->RXFlags[1] & MFREXB_USEPLAYERMOVEMENT) && !(mo->RXFlags[0] & MFREXA_NOPLAYERWALK))
-			if (player->mo->state->IOSG == IOSG_ACTIVE && player->mo->state->FrameID < 4)
+			if (player->mo->state->IOSG == IOSG_PLAYERRUN && player->mo->state->FrameID < 4)
 				P_SetMobjState(player->mo, player->mo->info->spawnstate);
 		
 		mo->momx = 0;
@@ -778,12 +778,13 @@ void P_NightmareRespawn(mobj_t* mobj, const bool_t a_ForceRespawn)
 	}
 	
 	// somthing is occupying it's position?
-	if (!P_CheckPosition(mobj, x, y, 0))
-		return;					// no respwan
+	if (!a_ForceRespawn)
+		if (!P_CheckPosition(mobj, x, y, 0))
+			return;					// no respwan
 		
 	// spawn a teleport fog at old spot
 	// because of removal of the body?
-	if (mthing->options & MTF_FS_SPAWNED)
+	if (!mthing || (mthing && mthing->options & MTF_FS_SPAWNED))
 		mo = P_SpawnMobj(mobj->x, mobj->y, mobj->z + (0), INFO_GetTypeByName("TeleportFog"));
 	else
 		mo = P_SpawnMobj(mobj->x, mobj->y, mobj->subsector->sector->floorheight + (0), INFO_GetTypeByName("TeleportFog"));
@@ -800,7 +801,7 @@ void P_NightmareRespawn(mobj_t* mobj, const bool_t a_ForceRespawn)
 	// spawn it
 	if (mobj->info->flags & MF_SPAWNCEILING)
 		z = ONCEILINGZ;
-	else if (mthing->options & MTF_FS_SPAWNED)
+	else if (!mthing || (mthing && mthing->options & MTF_FS_SPAWNED))
 		z = mobj->z;
 	else
 		z = ONFLOORZ;
@@ -1780,8 +1781,9 @@ void P_SpawnMapThing(mapthing_t* mthing)
 		// loaded, or in network event later when player join game
 		// TODO: GhostlyDeath -- This has to do with voodoo dolls!
 		if (!cv_deathmatch.value && ((playeringame[pid] && !players[pid].mo) || P_EXGSGetValue(PEXGSBID_COVOODOODOLLS)))
-			P_SpawnPlayer(mthing);
-			
+			if (!players[pid].CounterOpPlayer)
+				P_SpawnPlayer(mthing);
+		
 		return;
 	}
 	// check for apropriate skill level
@@ -2794,8 +2796,13 @@ void P_ControlNewMonster(struct player_s* const a_Player)
 			continue;
 		
 		// Candidate?
-		if (P_Random() & 1)
+		if (!c)
 			Cands[c++] = mo;
+		else
+		{
+			if (P_Random() & 1)
+				Cands[c++] = mo;
+		}
 		
 		if (c >= MAXCTRLCANDIDATES)
 			break;
@@ -2808,7 +2815,8 @@ void P_ControlNewMonster(struct player_s* const a_Player)
 		mo = Cands[P_Random() % c];
 		
 		// Take posession of this monster
-		a_Player->mo->player = NULL;	// Old body owns no player now
+		if (a_Player->mo)
+			a_Player->mo->player = NULL;	// Old body owns no player now
 		a_Player->mo = mo;				// Use this new body
 		mo->player = a_Player;			// Set as this body
 		a_Player->playerstate = PST_LIVE;

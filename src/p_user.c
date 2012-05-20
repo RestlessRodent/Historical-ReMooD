@@ -801,11 +801,19 @@ void P_PlayerThink(player_t* player)
 	// GhostlyDeath <May 17, 2012> -- Instead of crashing, spawn a player
 	if (!player->mo)
 	{
-		// In the middle of nowhere could be better than nothing
-		player->mo = P_SpawnMobj(0, 0, 0, INFO_GetTypeByName("DoomPlayer"));
+		// Counter-Op Player?
+		if (player->CounterOpPlayer)
+			P_ControlNewMonster(player);
 		
-		// Set as reborn
-		player->playerstate = PST_REBORN;
+		// Still bad?
+		if (!player->mo)
+		{
+			// In the middle of nowhere could be better than nothing
+			player->mo = P_SpawnMobj(0, 0, 0, INFO_GetTypeByName("DoomPlayer"));
+		
+			// Set as reborn
+			player->playerstate = PST_REBORN;
+		}
 	}
 	
 	// fixme: do this in the cheat code
@@ -908,7 +916,8 @@ void P_PlayerThink(player_t* player)
 	}
 		
 	// check special sectors : damage & secrets
-	P_PlayerInSpecialSector(player);
+	if (player->mo->RXFlags[0] & MFREXA_ISPLAYEROBJECT)
+		P_PlayerInSpecialSector(player);
 	
 	//
 	// water splashes
