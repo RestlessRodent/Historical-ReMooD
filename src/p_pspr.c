@@ -1370,6 +1370,10 @@ bool_t P_RMODH_WeaponsAmmo(Z_Table_t* const a_Table, const WL_WADFile_t* const a
 		// Weapon ID (A somewhat unique number)
 		TempWeapon.WeaponID = (((uint32_t)(M_Random() & 0xFF)) | ((++WeaponIDBase) << 8)) | 0x80000000UL;
 		
+		// Bot Metrics
+		if ((Value = Z_TableGetValue(a_Table, "BotMetric")))
+			TempWeapon.BotMetric = INFO_BotMetricByName(Value);
+		
 		// Handle States
 		//WAT.Local = LocalStuff;
 		//WAT.Weapon = &TempWeapon;

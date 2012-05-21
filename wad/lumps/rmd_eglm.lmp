@@ -8,12 +8,32 @@
 # in p_spec.c extendable and lightweight and without having over 9000 if
 # statements with the lines to match.
 
+### BOOM GENERALIZED ###
+
 DOOR 0x3c00
 @	TRIGGER [ 0 0x0007 w1 wr s1 sr g1 gr p1 pr ]
 @	SPEED [ 3 0x0018 slow normal fast turbo ]
 @	KIND [ 5 0x0060 owc oso cwo csc ]
 @	MONSTER [ 7 0x0080 nomonster monster ]
 @	DELAY [ 8 0x0300 wait1s wait4s wait9s wait30s ]
+
+LOCKDOOR 0x3800
+@	TRIGGER [ 0 0x0007 w1 wr s1 sr g1 gr p1 pr ]
+@	SPEED [ 3 0x0018 slow normal fast turbo ]
+@	KIND [ 5 0x0060 owc oso ]
+@	KEY [ 6 0x01c0 anykey redcard bluecard yellowcard redskull blueskull yellowskull ]
+@	SKULLISCARD [ 9 0x0200 skullisnotcard skulliscard ]
+
+FLOOR 0x6000
+@	TRIGGER [ 0 0x0007 w1 wr s1 sr g1 gr p1 pr ]
+@	SPEED [ 3 0x0018 slow normal fast turbo ]
+@	MODEL [ 5 0x0020 trgco numco ]
+@	DIRECTION [ 6 0x0040 down up ]
+@	TARGET [ 7 0x0380 hnf lnf nnf lnc ceiling aslt abs24 abs32 ]
+@	CHANGE [ 10 0x0c00 nochange txz txonly txty ]
+@	CRUSH [ 12 0x1000 nocrush crush ]
+
+### REMOOD EXTENDED ###
 
 EXIT 0x98000000
 @	TRIGGER [ 0 0x0007 w1 wr s1 sr g1 gr p1 pr ]

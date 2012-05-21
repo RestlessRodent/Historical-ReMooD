@@ -980,6 +980,9 @@ struct player_s* D_NCSAddBotPlayer(const char* const a_ProfileID)
 	// Clear everything
 	memset(&players[p], 0, sizeof(players[p]));
 	
+	// Init
+	G_AddPlayer(p);
+	
 	// Set as reborn	
 	players[p].playerstate = PST_REBORN;
 	
@@ -1029,6 +1032,18 @@ static CONL_ExitCode_t DS_NCSNetCommand(const uint32_t a_ArgC, const char** cons
 			i = p - players;
 		
 			CONL_PrintF("Net: Added bot %i.\n", i);
+			
+			// Debugging? Split screen the bot
+			if (g_BotDebug || M_CheckParm("-devbots"))
+			{
+				if (g_SplitScreen < MAXSPLITSCREEN)
+				{
+					consoleplayer[g_SplitScreen + 1] = displayplayer[g_SplitScreen + 1] = i;
+					g_PlayerInSplit[g_SplitScreen + 1] = true;
+					g_SplitScreen++;
+					R_ExecuteSetViewSize();
+				}
+			}
 		}
 		else
 		{
@@ -1784,6 +1799,7 @@ void D_NCSNetUpdateSingle(struct player_s* a_Player)
 				NPp->BotData = B_InitBot(NPp);
 			
 			// Build bot tic command
+			TicCmd = &NPp->TicCmd[i];
 			B_BuildBotTicCmd(NPp->BotData, TicCmd);
 			break;
 			

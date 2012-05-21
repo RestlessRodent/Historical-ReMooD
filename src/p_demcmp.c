@@ -389,6 +389,9 @@ static P_EXGSVariable_t l_GSVars[PEXGSNUMBITIDS] =
 		"Allows players to aim vertically automatically.", PEXGSGM_ANY, PEXGSDR_NOCHECK, 0, {0, 1}, 1,
 		PEXGSMC_PLAYERS},
 	
+	{PEXGST_INTEGER, PEXGSBID_PLFORCEWEAPONSWITCH, "pl_forceweaponswitch", "Force Weapon Switch",
+		"Forces weapon switches on pickup. [Doom <= 1.09]", PEXGSGM_ANY, PEXGSDR_ATMOST, 109, {0, 1}, 0,
+		PEXGSMC_PLAYERS},
 };
 
 /*** FUNCTIONS ***/

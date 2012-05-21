@@ -401,5 +401,8 @@ typedef struct P_RMODTouchSpecial_s
 extern size_t g_RMODNumTouchSpecials;
 extern P_RMODTouchSpecial_t** g_RMODTouchSpecials;
 
+P_RMODTouchSpecial_t* P_RMODTouchSpecialForSprite(const uint32_t a_SprNum);
+P_RMODTouchSpecial_t* P_RMODTouchSpecialForCode(const uint32_t a_Code);
+
 #endif							// __P_LOCAL__
 

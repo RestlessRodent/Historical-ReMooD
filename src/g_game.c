@@ -830,6 +830,7 @@ void G_PlayerReborn(int player)
 	bool_t originalweaponswitch;
 	bool_t autoaim;
 	int skin;					//Fab: keep same skin
+	int32_t TotalFrags, TotalDeaths;
 	
 	PEp = players[player].ProfileEx;
 	NPp = players[player].NetPlayer;
@@ -839,6 +840,8 @@ void G_PlayerReborn(int player)
 	killcount = players[player].killcount;
 	itemcount = players[player].itemcount;
 	secretcount = players[player].secretcount;
+	TotalFrags = players[player].TotalFrags;
+	TotalDeaths = players[player].TotalDeaths;
 	
 	weaponowned = players[player].weaponowned;
 	ammo = players[player].ammo;
@@ -859,6 +862,8 @@ void G_PlayerReborn(int player)
 	players[player].killcount = killcount;
 	players[player].itemcount = itemcount;
 	players[player].secretcount = secretcount;
+	players[player].TotalFrags = TotalFrags;
+	players[player].TotalDeaths = TotalDeaths;
 	
 	// Weapons
 	if (!weaponowned)
@@ -1430,6 +1435,7 @@ void G_InitPlayer(player_t* const a_Player)
 	/* Clear Totals */
 	a_Player->addfrags = 0;
 	a_Player->killcount = a_Player->itemcount = a_Player->secretcount = 0;
+	a_Player->TotalFrags = a_Player->TotalDeaths = 0;
 	
 	for (i = 0; i < MAXPLAYERS; i++)
 		a_Player->frags[i] = 0;

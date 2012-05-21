@@ -195,6 +195,7 @@ typedef enum P_EXGSBitID_e
 	PEXGSBID_GAMEALLOWLEVELEXIT,				// Allow Exiting the game
 	PEXGSBID_GAMEALLOWROCKETJUMP,				// Allow Rocket Jumping
 	PEXGSBID_PLALLOWAUTOAIM,					// Allow Auto-Aiming
+	PEXGSBID_PLFORCEWEAPONSWITCH,				// Force Weapon Switching
 	
 	PEXGSNUMBITIDS
 } P_EXGSBitID_t;

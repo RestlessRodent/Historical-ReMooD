@@ -68,6 +68,8 @@ typedef enum B_BotActionSub_e
 	BBAS_FOLLOWNEARESTPLAYER,					// Follows the nearest player
 	BBAS_BLINDSTRAIGHTNAV,						// Same as Straight nav but nodeless
 	
+	BBAS_GHOSTLYAI,								// New AI Test
+	
 	NUMBBOTACTIONSUBS,
 	
 	BBAS_NORMALAI = BBAS_FOLLOWNEARESTPLAYER
@@ -85,6 +87,36 @@ typedef enum B_BuildBotPathFlags_e
 {
 	BBBPF_INSERT				= 0x00000001,	// Insert nodes instead of deleting them all
 } B_BuildBotPathFlags_t;
+
+/* B_GhostChance_t -- Chances for the bot */
+typedef enum B_GhostChance_e
+{
+	BGC_EXPLOREMAP,
+	BGC_DEFENDSELF,
+	BGC_ATTACKENEMY,
+	BGC_GRABWEAPONS,
+	BGC_GRABAMMO,
+	BGC_GRABITEMS,
+	BGC_DEFENDALLY,
+	BGC_MODESPECIFIC,	
+	
+	NUMGHOSTCHANCES
+} B_GhostChance_t;
+
+// c_GhostChanceNames -- Chance names
+static const char* const c_GhostChanceNames[NUMGHOSTCHANCES] =
+{
+	"EXP",
+	"DEF",
+	"ATK",
+	"WEP",
+	"AMM",
+	"ITM",
+	"PRO",
+	"MOD",
+};
+
+#define MAXADJCHECK		32
 
 /*****************
 *** STRUCTURES ***
@@ -143,6 +175,20 @@ struct B_BotData_s
 	
 	// Follow Player
 	uint32_t FPTargetAim;						// Target Aim
+	
+	// Ghostly AI
+	uint32_t GHOSTLastChanceTime;				// Time of last chance update
+	int32_t GHOSTChances[NUMGHOSTCHANCES];		// Chances of action
+	B_GhostChance_t GHOSTMainPri, GHOSTSubPri;	// Bot Priority
+	
+	mobj_t* GHOSTPickupMo;						// Object to pickup
+	uint32_t GHOSTBelayPickup;					// Belay pickups to a later date
+	mobj_t* GHOSTAttackMo;						// Target to attack
+	sector_t* GHOSTLastSec;						// Last sector
+	sector_t* GHOSTAdj[MAXADJCHECK];			// Adjacent sectors
+	int32_t GHOSTNumAdj;						// Number of them
+	bool_t GHOSTSSGRightHand;					// Right handed SSG
+	uint32_t GHOSTSSGHandTime;					// Time to swap hands
 };
 
 /**************
@@ -176,8 +222,6 @@ static bool_t l_InitialNodeGen = false;			// Initial Nodes Generated
 static B_BotNode_t* l_PlayerNodes[MAXPLAYERS];	// Player Node locations
 static tic_t l_PlayerLastTime = 0;				// Last generation time
 
-
-
 /************************
 *** PRIVATE FUNCTIONS ***
 ************************/
@@ -192,6 +236,29 @@ static int BS_Random(B_BotData_t* const a_BotData)
 static uint16_t BS_PointsToAngleTurn(const fixed_t a_x1, const fixed_t a_y1, const fixed_t a_x2, const fixed_t a_y2)
 {
 	return R_PointToAngle2(a_x1, a_y1, a_x2, a_y2) >> 16;
+}
+
+/* BS_MoveToAndAimAtFrom() -- Aim at target and move to one at the same time */
+static void BS_MoveToAndAimAtFrom(const fixed_t a_x1, const fixed_t a_y1, const fixed_t a_x2, const fixed_t a_y2, const fixed_t a_AimX, const fixed_t a_AimY, int16_t* const a_AngleTurn, int8_t* const a_Forward, int8_t* const a_Side)
+{
+	angle_t AimAng;
+	angle_t MoveAng, DiffAng;
+	
+	/* Determine all angles */
+	AimAng = R_PointToAngle2(a_x1, a_y1, a_AimX, a_AimY);
+	MoveAng = R_PointToAngle2(a_x1, a_y1, a_x2, a_y2);
+	DiffAng = MoveAng - AimAng;
+	
+	/* Do aiming first */
+	*a_AngleTurn = AimAng >> 16;
+	
+	/* Then calculate side movements and such */
+	*a_Forward = FixedMul(
+		((fixed_t)c_forwardmove[1]) << FRACBITS,
+		finecosine[DiffAng >> ANGLETOFINESHIFT]) >> FRACBITS;
+	*a_Side = -(FixedMul(
+		((fixed_t)c_forwardmove[1]) << FRACBITS,
+		finesine[(DiffAng) >> ANGLETOFINESHIFT]) >> FRACBITS);
 }
 
 /* BS_AngleDiff() -- Difference of angle */
@@ -556,12 +623,12 @@ static bool_t BS_FinalizeSubSector(subsector_t* const a_SubSector, const fixed_t
 					// Add to node array
 					if (g_BotDebug)
 					{
-						P_SpawnMobj(
+						/*P_SpawnMobj(
 								dx,
 								dy,
 								SubS->sector->floorheight,
 								INFO_GetTypeByName("ReMooDBotDebugNode")
-							);
+							);*/
 					}
 				}
 				
@@ -1109,6 +1176,686 @@ static void BS_ThinkBlindStraightLine(B_BotData_t* const a_BotData, ticcmd_t* co
 		a_BotData->ActSub = BBAS_NORMALAI;
 }
 
+/* BS_ThinkGhostlyAI() -- My own simplified AI */
+static void BS_ThinkGhostlyAI(B_BotData_t* const a_BotData, ticcmd_t* const a_TicCmd)
+{
+#define BUFSIZE 64
+	char Buf[BUFSIZE];
+	mobj_t* Mo, *MoRover, *BestMo, *TargMo;
+	player_t* Player;
+	fixed_t x, y, z, BestDist, Dist, tx, ty, tz;
+	sector_t* CurSec;
+	subsector_t* CurSubS;
+	int32_t i, j, k;
+	weapontype_t MyGun;
+	ammotype_t MyAmmo;
+	
+	angle_t Angle;
+	P_RMODTouchSpecial_t* TouchSpecial;
+	bool_t DoStop, DoOK, DoingPickup;
+	sector_t* SecRoverA, *SecRoverB;
+	
+	/* Check */
+	if (!a_BotData || !a_TicCmd)
+		return;
+	
+	/* Obtain the bots current location */
+	Player = a_BotData->Player;
+	Mo = Player->mo;
+	x = Mo->x;
+	y = Mo->y;
+	z = Mo->z;
+	CurSubS = Mo->subsector;
+	CurSec = CurSubS->sector;
+	
+	/* Build adjacency list? */
+	if (a_BotData->GHOSTLastSec != CurSec)
+	{
+		// Init
+		memset(a_BotData->GHOSTAdj, 0, sizeof(a_BotData->GHOSTAdj));
+		a_BotData->GHOSTAdj[0] = CurSec;
+		a_BotData->GHOSTNumAdj = 1;
+		DoStop = false;
+		DoOK = true;
+		k = 0;
+		
+		// Loop
+		while (k < a_BotData->GHOSTNumAdj)
+		{
+			// Go through the "last" check sector
+			SecRoverA = a_BotData->GHOSTAdj[k++];
+	
+			// Reset
+			DoStop = true;
+	
+			// Look in list
+			if (SecRoverA)
+				for (i = 0; i < SecRoverA->NumAdj; i++)
+				{
+					// Get rover at this pos
+					SecRoverB = SecRoverA->Adj[i];
+	
+					// Make sure it isn't already in our queue
+					for (j = 0; j < a_BotData->GHOSTNumAdj; j++)
+						if (SecRoverB == a_BotData->GHOSTAdj[j])
+							break;
+	
+					// it wasn't so add it
+					if (j >= a_BotData->GHOSTNumAdj)
+					{
+						if (a_BotData->GHOSTNumAdj < MAXADJCHECK - 1)
+							a_BotData->GHOSTAdj[a_BotData->GHOSTNumAdj++] = SecRoverB;
+					}
+				}
+		}
+		
+		// Update sector
+		a_BotData->GHOSTLastSec = CurSec;
+	}
+	
+	/* Do some invalidation checks */
+	// Bad attack target
+	BestMo = a_BotData->GHOSTAttackMo;
+	
+	// Check
+	if (BestMo)
+	{
+		// Dead?
+		if (BestMo)
+			if (BestMo->health < 0 || (BestMo->flags & MF_CORPSE) ||
+					!(BestMo->flags & MF_SHOOTABLE))
+				BestMo = NULL;
+	}
+	
+	// Invalidated?
+	if (!BestMo)
+		a_BotData->GHOSTAttackMo = NULL;
+	
+	// Bad Pickup Target?
+	BestMo = a_BotData->GHOSTPickupMo;
+	
+	// Attempt to invalidate
+	if (BestMo)
+	{
+		// Not a pickup?
+		if (BestMo)
+			if (!(BestMo->flags & MF_SPECIAL))
+				BestMo = NULL;
+		
+		// Height difference?
+		if (BestMo)
+			if (abs(BestMo->z - Mo->z) > (24 << FRACBITS))
+				BestMo = NULL;
+	}
+	
+	// Changed?
+	if (!BestMo)
+		a_BotData->GHOSTPickupMo = NULL;
+	
+	/* Update Chances */
+	if (gametic > a_BotData->GHOSTLastChanceTime + TICRATE)
+	{
+		// Clear all chances
+		memset(a_BotData->GHOSTChances, 0, sizeof(a_BotData->GHOSTChances));
+		
+		// Always explore somewhat
+		a_BotData->GHOSTChances[BGC_EXPLOREMAP] += 20;
+		
+		// Find another object to attack
+		if (!a_BotData->GHOSTAttackMo)
+		{
+			// Look in nearby sectors for things to shoot
+			BestMo = NULL;
+			BestDist = MISSILERANGE;
+		
+			for (i = 0; i < a_BotData->GHOSTNumAdj; i++)
+			{
+				for (MoRover = a_BotData->GHOSTAdj[i]->thinglist; MoRover;
+						MoRover = MoRover->snext)
+				{
+					// Ignore self
+					if (Mo == MoRover)
+						continue;
+					
+					// Not shootable? Ignore
+					if (!(MoRover->flags & MF_SHOOTABLE))
+						continue;
+					
+					// Dead?
+					if (MoRover->health <= 0 || (MoRover->flags & MF_CORPSE))
+						continue;
+					
+					// Object is on the same team?
+						// Don't want to target or kill our own buddies!
+					if (P_MobjOnSameTeam(Mo, MoRover))
+						continue;
+					
+					// Can't be seen? (CPU Intensive)
+					if (!P_CheckSight(Mo, MoRover))
+						continue;
+				
+					// Determine distance
+					Dist = P_AproxDistance(
+								MoRover->x - Mo->x,
+								MoRover->y - Mo->y
+							);
+				
+					// Closer?
+					if (Dist < BestDist)
+					{
+						BestDist = Dist;
+						BestMo = MoRover;
+					}
+					
+					// More enemies here?
+					if (MoRover->player)	// Make players more likely a target
+						a_BotData->GHOSTChances[BGC_ATTACKENEMY] += 10;
+					a_BotData->GHOSTChances[BGC_ATTACKENEMY] += 2;
+				}
+			}
+			
+			// Nothing found?
+			if (!BestMo)
+			{
+				a_BotData->GHOSTAttackMo = NULL;
+				
+				// Someone attacking us?
+				if (Player->attacker)
+				{
+					if (!P_MobjOnSameTeam(Mo, Player->attacker) &&
+						Player->attacker->health > 0)
+						a_BotData->GHOSTAttackMo = Player->attacker;
+				}
+			}
+			else
+				a_BotData->GHOSTAttackMo = BestMo;
+		}
+		
+		// Picking up junk? (and can pickup stuff)
+		DoingPickup = false;
+		if (gametic >= a_BotData->GHOSTBelayPickup &&
+			(Mo->flags & MF_PICKUP))
+		{
+			DoingPickup = true;
+			
+			// Count how many weapons the bot has
+			for (k = 0, j = 0; j < NUMWEAPONS; j++)
+				if (Player->weaponowned[j])
+					k++;
+		
+			// Not many guns? Find a new gun
+			if (k < 4)
+				a_BotData->GHOSTChances[BGC_GRABWEAPONS] += (50 * (4 - k));
+		
+			// Not much ammo? Less than 1/4th? (50 bullets, 12 shells, 12 rockets, 75 cells)
+			MyGun = Player->readyweapon;
+			MyAmmo = Player->weaponinfo[MyGun]->ammo;
+		
+			if (MyAmmo >= 0 && MyAmmo < NUMAMMO)	
+				if (Player->ammo[MyAmmo] <= (Player->maxammo[MyAmmo] / 4))
+					a_BotData->GHOSTChances[BGC_GRABAMMO] += 75;
+				// If at half, then don't worry so much
+				else if (Player->ammo[MyAmmo] <= (Player->maxammo[MyAmmo] / 2))
+					a_BotData->GHOSTChances[BGC_GRABAMMO] += 25;
+			
+			// Low Health? (Builds up to higher value)
+			if (Mo->health < 25)
+				a_BotData->GHOSTChances[BGC_GRABITEMS] += 100;
+			if (Mo->health < 50)
+				a_BotData->GHOSTChances[BGC_GRABITEMS] += 50;
+			if (Mo->health < 75)
+				a_BotData->GHOSTChances[BGC_GRABITEMS] += 25;
+		}
+		
+		// Do other things besides picking up junk
+		if (!DoingPickup)
+		{
+			// Under attack? Defend self
+			if (Player->damagecount > 5 || (Player->attacker && Player->attacker->health > 0))
+				a_BotData->GHOSTChances[BGC_DEFENDSELF] += (20 + (Player->damagecount / 10));
+		}
+		
+		// Attacking something?
+		if (a_BotData->GHOSTAttackMo)
+			a_BotData->GHOSTChances[BGC_ATTACKENEMY] += 25;
+		
+		// Confident in one's abilities?
+		if (a_BotData->GHOSTAttackMo &&
+				(Mo->health >= 25 || !(Mo->RXFlags[0] & MFREXA_ISPLAYEROBJECT)))
+			a_BotData->GHOSTChances[BGC_ATTACKENEMY] += (DoingPickup ? 33 : 75);
+		
+		// Under attack? Defend self (Do again regardless of picking junk up)
+		if (Player->damagecount > 5 || (Player->attacker && Player->attacker->health > 0))
+			a_BotData->GHOSTChances[BGC_DEFENDSELF] += 20 + (Player->damagecount / 10);
+		
+		// Set last time
+		a_BotData->GHOSTLastChanceTime = gametic;
+	
+		// Determine which action to perform
+		// MainPri -- The primary action to perform
+		// SubPri  -- The secondary action to perform (while main)
+		// The secondary action is for dual action
+		a_BotData->GHOSTMainPri = 0;
+		a_BotData->GHOSTSubPri = 0;
+	
+		// First find the main thing to do
+		for (i = 0; i < NUMGHOSTCHANCES; i++)
+			if (a_BotData->GHOSTChances[i] > a_BotData->GHOSTChances[a_BotData->GHOSTMainPri])
+				a_BotData->GHOSTMainPri = i;
+	
+		// Then find the secondary thing to do
+		for (i = 0; i < NUMGHOSTCHANCES; i++)
+			if (i != a_BotData->GHOSTMainPri)
+				if (a_BotData->GHOSTChances[i] > a_BotData->GHOSTChances[a_BotData->GHOSTSubPri])
+					a_BotData->GHOSTSubPri = i;
+	}
+	
+	// Debug
+	if (g_BotDebug)
+	{
+		snprintf(Buf, BUFSIZE - 1, "Act: %s/%s (sec: %u, atk: %s, pck: %s)",
+				c_GhostChanceNames[a_BotData->GHOSTMainPri],
+				c_GhostChanceNames[a_BotData->GHOSTSubPri],
+				CurSec - sectors,
+				(a_BotData->GHOSTAttackMo ? a_BotData->GHOSTAttackMo->info->RClassName : "Null"),
+				(a_BotData->GHOSTPickupMo ? a_BotData->GHOSTPickupMo->info->RClassName : "Null")
+			);
+		if (Player - players < 4)
+			V_DrawStringA(VFONT_PRBOOMHUD, 0, Buf, 0,
+				(Player == &players[0] ? 190 :
+				(Player == &players[1] ? 180 :
+				(Player == &players[2] ? 170 : 160)))
+			);
+	}
+	
+	/* Which main priority? */
+	switch (a_BotData->GHOSTMainPri)
+	{
+			// Explores the level (to build nodes, move to new scenery)
+		case BGC_EXPLOREMAP:
+			a_TicCmd->buttons = 0;
+			a_TicCmd->forwardmove = 0;
+			a_TicCmd->sidemove = 0;
+			break;
+			
+			// Attacks the enemy
+		case BGC_DEFENDSELF:
+		case BGC_ATTACKENEMY:
+			// Get attack target
+			BestMo = a_BotData->GHOSTAttackMo;
+			MyGun = Player->readyweapon;
+			MyAmmo = Player->weaponinfo[MyGun]->ammo;
+			
+			// Check if object can be seen
+			if (BestMo && !P_CheckSight(Mo, BestMo))
+				BestMo = NULL;
+			
+			// Attacking something?
+			if (BestMo)
+			{
+				// Get distance
+				Dist = P_AproxDistance(
+							BestMo->x - Mo->x,
+							BestMo->y - Mo->y
+						);
+				
+				// Attack/Defensive Run
+				if (true)//(a_BotData->GHOSTSubPri == BGC_DEFENDSELF)
+				{
+					// Weapon has which metric?
+					switch (Player->weaponinfo[MyGun]->BotMetric)
+					{
+							// SSG Dance
+						case INFOBM_WEAPONSSGDANCE:
+							// Target is far away
+							if (Dist > (512 << FRACBITS))
+							{
+								// Charge at enemy
+								a_TicCmd->buttons |= BT_ATTACK;
+								a_TicCmd->forwardmove = c_forwardmove[1];
+								a_TicCmd->angleturn =
+									BS_PointsToAngleTurn(
+											Mo->x, Mo->y,
+											BestMo->x, BestMo->y
+										);
+							}
+							
+							// Target is too close
+							else if (Dist < (64 << FRACBITS))
+							{
+								// Back away
+								a_TicCmd->buttons |= BT_ATTACK;
+								a_TicCmd->forwardmove = -c_forwardmove[1];
+								a_TicCmd->angleturn =
+									BS_PointsToAngleTurn(
+											Mo->x, Mo->y,
+											BestMo->x, BestMo->y
+										);
+								
+								// Strafe at hand direction
+								a_TicCmd->sidemove = c_sidemove[1] *
+										(a_BotData->GHOSTSSGRightHand ? 1 : 0);
+							}
+							
+							// Target in nice range
+							else
+							{
+								// Change hand SSG is in? (affects the attack vector)
+								if (gametic > a_BotData->GHOSTSSGHandTime)
+								{
+									a_BotData->GHOSTSSGRightHand = !a_BotData->GHOSTSSGRightHand;
+									a_BotData->GHOSTSSGHandTime = gametic + (TICRATE * 3);
+								}
+								
+								// Depending on the hand the gun is in, offset walk destination
+									// Move to right side of enemy
+								if (a_BotData->GHOSTSSGRightHand)
+									Angle = (BestMo->angle + ANG90);
+									// Move to left side of enemy
+								else
+									Angle = (BestMo->angle - ANG90);
+								
+								// Project
+								tx = FixedMul(finecosine[Angle >> ANGLETOFINESHIFT],
+													96 << FRACBITS);
+								ty = FixedMul(finesine[Angle >> ANGLETOFINESHIFT],
+													96 << FRACBITS);
+								
+								// Move to that position and fire!
+								a_TicCmd->buttons |= BT_ATTACK;
+								BS_MoveToAndAimAtFrom(
+										Mo->x, Mo->y,
+										BestMo->x + tx, BestMo->y + ty,
+										BestMo->x, BestMo->y,
+										&a_TicCmd->angleturn,
+										&a_TicCmd->forwardmove, &a_TicCmd->sidemove
+									);
+							}
+							break;
+							
+							// Melee (Charge at enemy)
+						case INFOBM_WEAPONMELEE:
+							a_TicCmd->buttons |= BT_ATTACK;
+							a_TicCmd->forwardmove = c_forwardmove[1];
+							a_TicCmd->angleturn =
+								BS_PointsToAngleTurn(
+										Mo->x, Mo->y,
+										BestMo->x, BestMo->y
+									);
+							break;
+							
+							// Lay down fire
+						case INFOBM_WEAPONLAYDOWN:
+							break;
+							
+							// BFG
+						case INFOBM_WEAPONBFG:
+							break;
+							
+							// Spray Plasma
+								// Spray all over the damn place and move backwards
+						case INFOBM_SPRAYPLASMA:
+							a_TicCmd->buttons |= BT_ATTACK;
+							a_TicCmd->angleturn =
+								BS_PointsToAngleTurn(
+										Mo->x, Mo->y,
+										BestMo->x, BestMo->y
+									);
+							break;
+							
+							// Mid-Range
+								// Keep some distance and keep firing
+						case INFOBM_WEAPONMIDRANGE:
+						default:
+							// Move further away?
+							if (Dist < (384 << FRACBITS))
+								a_TicCmd->forwardmove = -c_forwardmove[1];
+							
+							// Move closer?
+							else if (Dist > (512 << FRACBITS))
+								a_TicCmd->forwardmove = c_forwardmove[1];
+							
+							// Good enough
+							else
+								a_TicCmd->forwardmove = 0;
+							
+							// Turn twords object and shoot it
+							a_TicCmd->buttons |= BT_ATTACK;
+							a_TicCmd->angleturn =
+								BS_PointsToAngleTurn(
+										Mo->x, Mo->y,
+										BestMo->x, BestMo->y
+									);
+							break;
+					}
+				}
+			
+				// Other attack postures
+				else
+				{
+					// Turn twords object and shoot it
+					a_TicCmd->buttons |= BT_ATTACK;
+					a_TicCmd->angleturn =
+						BS_PointsToAngleTurn(
+								Mo->x, Mo->y,
+								BestMo->x, BestMo->y
+							);
+				}
+			}
+			
+			// Attacking Nothing?
+			else
+			{
+				// Make sub better
+				a_BotData->GHOSTMainPri = a_BotData->GHOSTSubPri;
+				a_BotData->GHOSTSubPri = 0;
+			}
+			break;
+			
+			// Grabs items on the ground (health, weapons, ammo)
+		case BGC_GRABWEAPONS:
+		case BGC_GRABAMMO:
+		case BGC_GRABITEMS:
+			// Look for new object?
+			BestMo = a_BotData->GHOSTPickupMo;
+			TargMo = a_BotData->GHOSTAttackMo;
+			
+			// Build adjacency list
+			if (!BestMo)
+			{
+				// Look in nearby sector for junk on the ground
+				BestMo = NULL;
+				BestDist = MISSILERANGE;
+			
+				for (i = 0; i < a_BotData->GHOSTNumAdj; i++)
+					for (MoRover = a_BotData->GHOSTAdj[i]->thinglist; MoRover;
+							MoRover = MoRover->snext)
+					{
+						// Ignore self
+						if (Mo == MoRover)
+							continue;
+						
+						// Not a pickup? Ignore
+						if (!(MoRover->flags & MF_SPECIAL))
+							continue;
+						
+						// Wrong Metric?
+						if ((a_BotData->GHOSTMainPri == BGC_GRABWEAPONS &&
+									MoRover->info->RBotMetric != INFOBM_WEAPON) ||
+							(a_BotData->GHOSTMainPri == BGC_GRABAMMO &&
+									MoRover->info->RBotMetric != INFOBM_AMMO) ||
+							(a_BotData->GHOSTMainPri == BGC_GRABITEMS &&
+									(MoRover->info->RBotMetric == INFOBM_WEAPON ||
+										MoRover->info->RBotMetric == INFOBM_AMMO)))
+							continue;
+						
+						// Height difference?
+						if (abs(MoRover->z - Mo->z) > (24 << FRACBITS))
+							continue;
+						
+						// Obtain touch special
+						TouchSpecial = P_RMODTouchSpecialForSprite(MoRover->state->sprite);
+						
+						// Not a known toucher
+						if (!TouchSpecial)
+							continue;
+						
+						// Item gives weapon?
+						if (TouchSpecial->ActGiveWeapon >= 0 &&
+								TouchSpecial->ActGiveWeapon < NUMWEAPONS)
+						{
+							// Weapon stay is off?
+							if (cv_deathmatch.value >= 2)
+							{
+								MyAmmo = Player->weaponinfo[TouchSpecial->ActGiveWeapon]->ammo;
+								
+								// Enough ammo?
+								if (MyAmmo >= 0 && MyAmmo < NUMAMMO)
+									if (Player->weaponowned[TouchSpecial->ActGiveWeapon])
+										if (Player->ammo[MyAmmo] > (Player->maxammo[MyAmmo] / 2))
+										continue;
+							}
+							
+							// Weapon stay is on
+							else
+							{
+								// Already own it?
+								if (Player->weaponowned[TouchSpecial->ActGiveWeapon])
+									continue;
+							}
+						}
+						
+						// Item gives ammo?
+						if (TouchSpecial->ActGiveAmmo >= 0 &&
+								TouchSpecial->ActGiveAmmo < NUMAMMO)
+						{
+							// Got enough ammo for that weapon already?
+							if (Player->ammo[TouchSpecial->ActGiveAmmo] > (Player->maxammo[TouchSpecial->ActGiveAmmo] / 2))
+								continue;
+						}
+						
+						// Item gives health? (don't pickup bad ones)
+						if (TouchSpecial->HealthAmount > 0)
+						{
+							// Got enough health to use this?
+							if (Player->health + TouchSpecial->HealthAmount >
+								(TouchSpecial->CapNormStat ? 100 : 200))
+								continue;
+						}
+						
+						// Item gives armor?
+						if (TouchSpecial->ArmorAmount > 0)
+						{
+							// Got enough health to use this?
+							if (Player->health + TouchSpecial->ArmorAmount >
+								(TouchSpecial->CapNormStat ? 100 : 200))
+								continue;
+							
+							// Worse armor class? (Don't lose our good armor)
+							if (TouchSpecial->ArmorClass < Player->armortype)
+								if (TouchSpecial->ArmorClass > 0)
+									if (Player->armorpoints >= 75)
+											continue;
+						}
+						
+						// Can't be seen? (CPU Intensive)
+						if (!P_CheckSight(Mo, MoRover))
+							continue;
+					
+						// Determine distance
+						Dist = P_AproxDistance(
+									MoRover->x - Mo->x,
+									MoRover->y - Mo->y
+								);
+					
+						// Closer?
+						if (Dist < BestDist)
+						{
+							BestDist = Dist;
+							BestMo = MoRover;
+						}
+					}
+			}
+			
+			// Found something to pickup?
+				// Then move to it
+			if (BestMo)
+			{
+				// Target this thing
+				if (g_BotDebug)
+					if (((gametic / TICRATE) % 2) == 0)
+						;//P_SpawnMobj(BestMo->x, BestMo->y, BestMo->z, INFO_GetTypeByName("ReMooDBotDebugTarget"));
+				
+				// Target cannot be seen?
+				if (TargMo)
+					if (!P_CheckSight(Mo, TargMo))
+						TargMo = NULL;
+				
+				// If attacking an enemy, face them instead
+				if (TargMo && (a_BotData->GHOSTSubPri == BGC_ATTACKENEMY ||
+					a_BotData->GHOSTSubPri == BGC_DEFENDSELF))
+				{
+					BS_MoveToAndAimAtFrom(
+							Mo->x, Mo->y,
+							TargMo->x, TargMo->y,
+							BestMo->x, BestMo->y,
+							&a_TicCmd->angleturn, &a_TicCmd->forwardmove, &a_TicCmd->sidemove
+						);
+				}
+				
+				// Do the move
+				else
+				{
+					a_TicCmd->forwardmove = c_forwardmove[1];
+					a_TicCmd->angleturn =
+							BS_PointsToAngleTurn(
+									Mo->x, Mo->y,
+									BestMo->x, BestMo->y
+								);
+				}
+				
+				
+				// Get distance
+				Dist = P_AproxDistance(
+							BestMo->x - Mo->x,
+							BestMo->y - Mo->y
+						);
+				
+				// Keep moving to this object if we are not too close
+				if (Dist > (12 >> FRACBITS))
+					a_BotData->GHOSTPickupMo = BestMo;
+				else
+					a_BotData->GHOSTPickupMo = NULL;
+			}
+				// If nothing was found, belay items
+			else
+			{
+				// Make sub better
+				a_BotData->GHOSTMainPri = a_BotData->GHOSTSubPri;
+				a_BotData->GHOSTSubPri = 0;
+				
+				// Don't pickup items for a short delay
+				a_BotData->GHOSTBelayPickup = gametic + (TICRATE * 2);
+			}
+			
+			break;
+			
+			// Defends an ally (team games, CTF flag carrier)
+		case BGC_DEFENDALLY:
+			break;
+			
+			// Mode specific (run to/defend flags)
+		case BGC_MODESPECIFIC:
+			break;
+		
+			// Unknown
+		default:
+			break;
+	}
+#undef MAXADJCHECK
+#undef BUFSIZE
+}
+
 /****************
 *** FUNCTIONS ***
 ****************/
@@ -1142,6 +1889,7 @@ B_BotData_t* B_InitBot(D_NetPlayer_t* const a_NPp)
 	/* Initial Node Generation? */
 	if (!l_InitialNodeGen)
 	{
+#if 0
 		// Run through every map object
 		for (currentthinker = thinkercap.next; currentthinker != &thinkercap; currentthinker = currentthinker->next)
 		{
@@ -1159,6 +1907,7 @@ B_BotData_t* B_InitBot(D_NetPlayer_t* const a_NPp)
 			if ((mo->flags & (MF_SPECIAL | MF_SHOOTABLE)) || (mo->RXFlags[1] & MFREXB_INITBOTNODES))
 				BS_GetNodeAtPos(mo->x, mo->y, BOTINITNODERECOURSE);
 		}
+#endif
 		
 		// Generated, so don't bother again
 		l_InitialNodeGen = true;
@@ -1170,7 +1919,7 @@ B_BotData_t* B_InitBot(D_NetPlayer_t* const a_NPp)
 	/* Set Data */
 	New->NetPlayer = a_NPp;
 	New->Player = New->NetPlayer->Player;
-	New->ActSub = BBAS_FOLLOWNEARESTPLAYER;
+	New->ActSub = BBAS_GHOSTLYAI;//BBAS_FOLLOWNEARESTPLAYER;
 	
 	/* Set and return */
 	a_NPp->BotData = New;
@@ -1239,6 +1988,13 @@ void B_BuildBotTicCmd(B_BotData_t* const a_BotData, ticcmd_t* const a_TicCmd)
 			{
 				a_BotData->IsDead = true;
 				a_BotData->DeathTime = gametic;
+				
+				a_BotData->GHOSTLastChanceTime = 0;
+				a_BotData->GHOSTMainPri = 0;
+				a_BotData->GHOSTSubPri = 0;
+				a_BotData->GHOSTPickupMo = NULL;
+				a_BotData->GHOSTAttackMo = NULL;
+				a_BotData->GHOSTBelayPickup = 0;
 			}
 			
 			// Is still dead, wait 2 seconds to respawn
@@ -1274,6 +2030,11 @@ void B_BuildBotTicCmd(B_BotData_t* const a_BotData, ticcmd_t* const a_TicCmd)
 				case BBAS_BLINDSTRAIGHTNAV:
 					BS_ThinkBlindStraightLine(a_BotData, a_TicCmd);
 					break;
+					
+					// Ghostly AI
+				case BBAS_GHOSTLYAI:
+					BS_ThinkGhostlyAI(a_BotData, a_TicCmd);
+					break;
 				
 					// Unknown
 				default:
@@ -1285,5 +2046,38 @@ void B_BuildBotTicCmd(B_BotData_t* const a_BotData, ticcmd_t* const a_TicCmd)
 		default:
 			break;
 	}
+}
+
+/* B_RemoveMobj() -- Remove map object */
+void B_RemoveMobj(void* const a_Mo)
+{
+	D_NetPlayer_t* NetPlayer;
+	B_BotData_t* BotData;
+	size_t i;
+	
+	/* Go through all players */
+	for (i = 0; i < MAXPLAYERS; i++)
+		if (playeringame[i])
+		{
+			// Get netplayer
+			NetPlayer = players[i].NetPlayer;
+			
+			// Check
+			if (!NetPlayer)
+				continue;
+			
+			// Get bot
+			BotData = NetPlayer->BotData;
+			
+			// Check
+			if (!BotData)
+				continue;
+			
+			// Clear mos
+			if (BotData->GHOSTPickupMo == a_Mo)
+				BotData->GHOSTPickupMo = NULL;
+			if (BotData->GHOSTAttackMo == a_Mo)
+				BotData->GHOSTAttackMo = NULL;
+		}
 }
 

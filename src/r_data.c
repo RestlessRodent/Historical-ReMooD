@@ -1019,9 +1019,16 @@ static bool_t RS_TextureOrderChange(const bool_t a_Pushed, const struct WL_WADFi
 	if (sprites)
 		Z_Free(sprites);
 	sprites = NULL;
+
+	// Create touch special quick back (bots)
+	if (g_SprTouchSpecials)
+		Z_Free(g_SprTouchSpecials);
+	g_SprTouchSpecials = NULL;
 	
 	numsprites = NUMSPRITES;
 	sprites = Z_Malloc(sizeof(*sprites) * numsprites, PU_WLDKRMOD, (void**)&sprites);
+	g_SprTouchSpecials =
+		Z_Malloc(sizeof(*g_SprTouchSpecials) * numsprites, PU_WLDKRMOD, (void**)&g_SprTouchSpecials);
 	
 	for (i = 0; i < numsprites; i++)
 	{
@@ -1042,6 +1049,9 @@ static bool_t RS_TextureOrderChange(const bool_t a_Pushed, const struct WL_WADFi
 			if (g_ExSprites[j].Code == Code)
 			{
 				sprites[i] = g_ExSprites[j];
+				
+				// GhostlyDeath <May 21, 2012> -- Find touch special for this one
+				g_SprTouchSpecials[i] = P_RMODTouchSpecialForCode(Code);
 				break;
 			}
 		}

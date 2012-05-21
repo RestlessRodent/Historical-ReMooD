@@ -1339,6 +1339,12 @@ size_t CONL_PrintF(const char* const a_Format, ...)
 	static bool_t AlreadyDrawn = false;
 	bool_t Drew;
 	
+	uint32_t ThisTime;
+	static uint32_t LastTime;
+	
+	/* Get the time */
+	ThisTime = I_GetTimeMS();
+	
 	/* Check */
 	if (!a_Format)
 		return 0;
@@ -1357,8 +1363,12 @@ size_t CONL_PrintF(const char* const a_Format, ...)
 			Drew = CONL_DrawConsole();
 			
 			if ((!g_EarlyBootConsole && Drew) || g_EarlyBootConsole)
-				I_FinishUpdate();	// page flip or blit buffer
-			
+				if (!LastTime || (ThisTime > LastTime + 250))
+				{
+					I_FinishUpdate();
+					LastTime = ThisTime;
+				}
+				
 			if (!g_EarlyBootConsole)
 				AlreadyDrawn = true;
 		}
@@ -1695,10 +1705,15 @@ void CONL_EarlyBootTic(const char* const a_Message, const bool_t a_DoTic)
 	uint8_t BMPc, Char;
 	uint32_t BarBits;
 	fixed_t Frac;
+	uint32_t ThisTime;
+	static uint32_t LastTime;
 	
 	/* Not in early boot console? */
 	if (!g_EarlyBootConsole)
 		return;
+	
+	/* Get the time */
+	ThisTime = I_GetTimeMS();
 	
 	/* Tick it */
 	if (a_DoTic)
@@ -1784,7 +1799,12 @@ void CONL_EarlyBootTic(const char* const a_Message, const bool_t a_DoTic)
 #undef SIDESPACE
 	
 	/* Update Screen */
-	I_FinishUpdate();
+	// Only update every 1/4th of a second (4fps)
+	if (!LastTime || (ThisTime > LastTime + 250))
+	{
+		I_FinishUpdate();
+		LastTime = ThisTime;
+	}
 #undef BUFSIZE
 }
 
@@ -2905,6 +2925,11 @@ static void CONLS_DrawLoadingScreen(const bool_t a_QuickDraw)
 	uint32_t BarBits;
 	fixed_t Frac;
 	V_Image_t* BGImage;
+	uint32_t ThisTime;
+	static uint32_t LastTime;
+	
+	/* Get the time */
+	ThisTime = I_GetTimeMS();
 	
 	/* Clear screen if not quick drawing */
 	if (!a_QuickDraw || (l_CLSDoBase && !l_CLSBaseDrawn))
@@ -2967,7 +2992,12 @@ static void CONLS_DrawLoadingScreen(const bool_t a_QuickDraw)
 	}
 	
 	/* Update Screen */
-	I_FinishUpdate();
+	// Only update every 1/4th of a second (4fps)
+	if (!LastTime || (ThisTime > LastTime + 250))
+	{
+		I_FinishUpdate();
+		LastTime = ThisTime;
+	}
 }
 
 /* CONL_LoadingScreenSet() -- Set loading screen */

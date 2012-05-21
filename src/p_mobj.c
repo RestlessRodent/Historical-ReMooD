@@ -1344,6 +1344,9 @@ void P_RemoveMobj(mobj_t* mobj)
 	// GhostlyDeath <May 8, 2012> -- Remove from queue
 	P_RemoveFromBodyQueue(mobj);
 	
+	// GhostlyDeath <May 21, 2012> -- Remove from bots
+	B_RemoveMobj(mobj);
+	
 	if ((mobj->flags & MF_SPECIAL) && !(mobj->flags & MF_DROPPED) && !(mobj->RXFlags[0] & MFREXA_NOALTDMRESPAWN))
 	{
 		itemrespawnque[iquehead] = mobj->spawnpoint;
@@ -1813,7 +1816,7 @@ void P_SpawnMapThing(mapthing_t* mthing)
 		if (mthing->type == mobjinfo[i]->doomednum)
 			break;
 			
-	if (i == NUMMOBJTYPES)
+	if (i >= NUMMOBJTYPES)
 	{
 		CONL_PrintF("\2P_SpawnMapThing: Unknown type %i at (%i, %i)\n", mthing->type, mthing->x, mthing->y);
 		return;
@@ -2703,6 +2706,10 @@ bool_t P_MobjOnSameTeam(mobj_t* const a_ThisMo, mobj_t* const a_OtherMo)
 	if (!a_ThisMo || !a_OtherMo)
 		return false;
 		
+	/* Self object is always on the same team */
+	if (a_ThisMo == a_OtherMo)
+		return true;
+	
 	/* Determine if this is a standard player or a monster player */
 	IsThisPlayer = IsOtherPlayer = false;
 	if (/*a_ThisMo->player &&*/ (a_ThisMo->RXFlags[0] & MFREXA_ISPLAYEROBJECT))
@@ -2710,13 +2717,36 @@ bool_t P_MobjOnSameTeam(mobj_t* const a_ThisMo, mobj_t* const a_OtherMo)
 	if (/*a_OtherMo->player &&*/ (a_OtherMo->RXFlags[0] & MFREXA_ISPLAYEROBJECT))
 		IsOtherPlayer = true;
 	
-	/* Self object is always on the same team */
-	if (a_ThisMo == a_OtherMo)
+	/* Cooperative Players */
+	if (!cv_deathmatch.value && IsThisPlayer && IsOtherPlayer)
 		return true;
+	
+	/* Deathmatch Players */
+	if (cv_deathmatch.value && IsThisPlayer && IsOtherPlayer)
+	{
+		// Team play?
+		if (cv_teamplay.value)
+		{
+			// On same team?
+			if (a_ThisMo->player->skincolor == a_OtherMo->player->skincolor)
+				return true;
+		}
+		
+		// Free-For-All
+		else
+			return false;
+	}
 	
 	/* Player and friendly monster */
 	if ((IsThisPlayer && (a_OtherMo->flags2 & MF2_FRIENDLY)) ||
 		((IsOtherPlayer && (a_ThisMo->flags2 & MF2_FRIENDLY))))
+		return true;
+	
+	/* Player and monster on the same colored team? */
+	if ((IsThisPlayer && !IsOtherPlayer && a_ThisMo->player &&
+			a_ThisMo->player->skincolor == a_OtherMo->SkinTeamColor - 1) ||
+		(IsOtherPlayer && !IsThisPlayer && a_OtherMo->player &&
+			a_OtherMo->player->skincolor == a_ThisMo->SkinTeamColor - 1))
 		return true;
 	
 	/* Monsters on the same skin team */

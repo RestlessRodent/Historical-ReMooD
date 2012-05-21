@@ -243,6 +243,10 @@ typedef struct player_s
 	
 	// Counter-Operative
 	bool_t CounterOpPlayer;						// On the monster's side
+	
+	// Kill Totals
+	int32_t TotalFrags;							// Total kills
+	int32_t TotalDeaths;						// Total deaths
 } player_t;
 
 //

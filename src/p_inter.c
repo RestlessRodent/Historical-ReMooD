@@ -205,6 +205,10 @@ bool_t P_GiveWeapon(player_t* player, weapontype_t weapon, bool_t dropped)
 		// TODO FIXME: Reimplement player weapon order
 //		if (player->originalweaponswitch || player->favoritweapon[weapon] > player->favoritweapon[player->readyweapon])
 //			player->pendingweapon = weapon;	// do like Doom2 original
+		
+		// GhostlyDeath <May 20, 2012> -- Force weapon switch
+		if (P_EXGSGetValue(PEXGSBID_PLFORCEWEAPONSWITCH))
+			player->pendingweapon = weapon;
 			
 		//added:16-01-98:changed consoleplayer to displayplayer
 		//               (hear the sounds from the viewpoint)
@@ -242,6 +246,10 @@ bool_t P_GiveWeapon(player_t* player, weapontype_t weapon, bool_t dropped)
 		// TODO FIXME: Reimplement player weapon order
 //		if (player->originalweaponswitch || player->favoritweapon[weapon] > player->favoritweapon[player->readyweapon])
 //			player->pendingweapon = weapon;	// Doom2 original stuff
+		
+		// GhostlyDeath <May 20, 2012> -- Force weapon switch
+		if (P_EXGSGetValue(PEXGSBID_PLFORCEWEAPONSWITCH))
+			player->pendingweapon = weapon;
 	}
 	
 	return (gaveweapon || gaveammo);
@@ -425,7 +433,7 @@ bool_t P_TouchSpecialThing(mobj_t* special, mobj_t* toucher)
 	fixed_t delta;
 	int sound;
 	P_RMODTouchSpecial_t* Current;
-	bool_t OKStat, NewWear, PickedUp;
+	bool_t OKStat, NewWear, PickedUp, CancelRemove;
 	int32_t Target, Max, Amount;
 	
 	delta = special->z - toucher->z;
@@ -465,6 +473,9 @@ bool_t P_TouchSpecialThing(mobj_t* special, mobj_t* toucher)
 			if (!Current->MonsterCanGrab)
 				return false;
 		
+		// Cancel removal
+		CancelRemove = false;
+		
 		// Weapon
 		if (player)
 		{
@@ -473,7 +484,13 @@ bool_t P_TouchSpecialThing(mobj_t* special, mobj_t* toucher)
 			{
 				OKStat |= P_GiveWeapon(player, Current->ActGiveWeapon, special->flags & MF_DROPPED);
 				if (OKStat)
+				{
 					PickedUp = true;
+					
+					// Cancel removal in coop/dm
+					if (cv_deathmatch.value < 2)
+						CancelRemove = true;
+				}
 			}
 			
 			// Give Ammo?
@@ -513,7 +530,8 @@ bool_t P_TouchSpecialThing(mobj_t* special, mobj_t* toucher)
 			// Limit Health?
 			if (Target >= Max)
 			{
-				NewWear = false;
+				if (toucher->health >= Max)
+					NewWear = false;
 				Amount = Max;
 			}
 			else
@@ -551,7 +569,8 @@ bool_t P_TouchSpecialThing(mobj_t* special, mobj_t* toucher)
 			// Limit Armor?
 			if (Target >= Max)
 			{
-				NewWear = false;
+				if (player->armorpoints >= Max)
+					NewWear = false;
 				Amount = Max;
 			}
 			else
@@ -630,7 +649,7 @@ bool_t P_TouchSpecialThing(mobj_t* special, mobj_t* toucher)
 			P_KillMobj(toucher, special, special);
 		
 		// Remove if we used it? or remove regardless
-		if ((Current->KeepNotNeeded && OKStat) || !Current->KeepNotNeeded || Current->RemoveAlways)
+		if (!CancelRemove && ((Current->KeepNotNeeded && OKStat) || !Current->KeepNotNeeded || Current->RemoveAlways))
 			P_RemoveMobj(special);
 		
 		// Message?
@@ -1088,6 +1107,10 @@ void P_KillMobj(mobj_t* target, mobj_t* inflictor, mobj_t* source)
 	
 	extern consvar_t cv_solidcorpse;
 	
+	// GhostlyDeath <May 22, 2012> -- Death total
+	if (target->player)
+		target->player->TotalDeaths++;
+	
 	// dead target is no more shootable
 	if (!cv_solidcorpse.value)
 		target->flags &= ~MF_SHOOTABLE;
@@ -1148,6 +1171,7 @@ void P_KillMobj(mobj_t* target, mobj_t* inflictor, mobj_t* source)
 		// count frags if player killed player
 		if (target->player)
 		{
+			source->player->TotalFrags++;
 			source->player->frags[target->player - players]++;
 			
 			// check fraglimit cvar
@@ -1166,7 +1190,10 @@ void P_KillMobj(mobj_t* target, mobj_t* inflictor, mobj_t* source)
 	{
 		// count environment kills against you (you fragged yourself!)
 		if (!source)
+		{
+			target->player->TotalFrags--;
 			target->player->frags[target->player - players]++;
+		}
 			
 		target->flags &= ~MF_SOLID;	// does not block
 		target->flags2 &= ~MF2_FLY;

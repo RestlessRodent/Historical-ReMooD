@@ -135,6 +135,7 @@ void A_GenericMonsterMissile();
 /*****************************************************************************/
 
 char** sprnames = NULL;
+void** g_SprTouchSpecials = NULL;				// Sprite touch special markers
 size_t NUMSPRITES = 0;
 state_t** states = 0;
 size_t NUMSTATES = 0;
@@ -459,7 +460,14 @@ bool_t INFO_RMODH_MapObjects(Z_Table_t* const a_Table, const WL_WADFile_t* const
 		// Find translation color
 		for (i = 0; i < MAXSKINCOLORS; i++)
 			if (strcasecmp(Value, Color_Names[i]) == 0)
+			{
 				ThisObject.flags |= ((((uint32_t)i) << MF_TRANSSHIFT) & MF_TRANSLATION);
+				break;
+			}
+		
+	// Bot Metrics
+	if ((Value = Z_TableGetValue(a_Table, "BotMetric")))
+		ThisObject.RBotMetric = INFO_BotMetricByName(Value);
 	
 	// Object ID (semi-unique)
 	ThisObject.ObjectID = (((uint32_t)(M_Random() & 0xFF)) | ((++ObjectIDBase) << 8));
@@ -745,7 +753,7 @@ static bool_t INFO_RMODInnerStateHandler(Z_Table_t* const a_Sub, void* const a_D
 	StateP->FrameID = CurFrameID;
 	StateP->Marker = MarkerVal;
 	StateP->ObjectID = HelperP->ObjectID;
-	StateP->IOSG = IOSG;
+	StateP->IOSG = HelperP->StateGroup;
 	
 	// DeHackEd Support
 	StateP->DehackEdID = D_RMODGetValueInt(a_Sub, "DeHackEdNum", 0);
@@ -1087,5 +1095,40 @@ uint32_t INFO_TransparencyByName(const char* const a_Name)
 	
 	// Return
 	return TransNum;
+}
+
+/* INFO_BotMetricByName() -- Returns metric by name */
+INFO_BotObjMetric_t INFO_BotMetricByName(const char* const a_Name)
+{
+	/* Check */
+	if (!a_Name)
+		return INFOBM_DEFAULT;
+	
+	/* Compare */
+	if (strcasecmp(a_Name, "Default") == 0) return INFOBM_DEFAULT;
+	else if (strcasecmp(a_Name, "DoomPlayer") == 0) return INFOBM_DOOMPLAYER;
+	else if (strcasecmp(a_Name, "WeakMonster") == 0) return INFOBM_WEAKMONSTER;
+	else if (strcasecmp(a_Name, "NormalMonster") == 0) return INFOBM_NORMALMONSTER;
+	else if (strcasecmp(a_Name, "StrongMonster") == 0) return INFOBM_STRONGMONSTER;
+	else if (strcasecmp(a_Name, "ArchVile") == 0) return INFOBM_ARCHVILE;
+	else if (strcasecmp(a_Name, "Projectile") == 0) return INFOBM_PROJECTILE;
+	else if (strcasecmp(a_Name, "Barrel") == 0) return INFOBM_BARREL;
+	else if (strcasecmp(a_Name, "LightArmor") == 0) return INFOBM_LIGHTARMOR;
+	else if (strcasecmp(a_Name, "HeavyArmor") == 0) return INFOBM_HEAVYARMOR;
+	else if (strcasecmp(a_Name, "LightHealth") == 0) return INFOBM_LIGHTHEALTH;
+	else if (strcasecmp(a_Name, "HeavyHealth") == 0) return INFOBM_HEAVYHEALTH;
+	else if (strcasecmp(a_Name, "KeyCard") == 0) return INFOBM_KEYCARD;
+	else if (strcasecmp(a_Name, "Ammo") == 0) return INFOBM_AMMO;
+	else if (strcasecmp(a_Name, "Weapon") == 0) return INFOBM_WEAPON;
+	
+	else if (strcasecmp(a_Name, "Melee") == 0) return INFOBM_WEAPONMELEE;
+	else if (strcasecmp(a_Name, "MidRange") == 0) return INFOBM_WEAPONMIDRANGE;
+	else if (strcasecmp(a_Name, "LayDown") == 0) return INFOBM_WEAPONLAYDOWN;
+	else if (strcasecmp(a_Name, "SprayPlasma") == 0) return INFOBM_SPRAYPLASMA;
+	else if (strcasecmp(a_Name, "BFG") == 0) return INFOBM_WEAPONBFG;
+	else if (strcasecmp(a_Name, "SSGDance") == 0) return INFOBM_WEAPONSSGDANCE;
+	
+	/* Unknown */
+	return INFOBM_DEFAULT;
 }
 

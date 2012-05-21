@@ -2655,9 +2655,9 @@ bool_t P_RMODH_Specials(Z_Table_t* const a_Table, const WL_WADFile_t* const a_WA
 			TempTouch.GiveAmmo = D_RMODGetValueString(a_Table, "GiveAmmo", NULL);
 				
 				// Boolean
+			TempTouch.CapNormStat = D_RMODGetValueBool(a_Table, "IsCapNormStat", false);
 			TempTouch.CapMaxStat = D_RMODGetValueBool(a_Table, "IsCapMaxStat", false);
 			TempTouch.GreaterArmorClass = D_RMODGetValueBool(a_Table, "IsGreaterArmorClass", false);
-			TempTouch.CapNormStat = D_RMODGetValueBool(a_Table, "IsCapNormStat", false);
 			TempTouch.KeepNotNeeded = D_RMODGetValueBool(a_Table, "IsKeepIfNotNeeded", false);
 			TempTouch.RemoveAlways = D_RMODGetValueBool(a_Table, "IsRemoveAlways", false);
 			TempTouch.MonsterCanGrab = D_RMODGetValueBool(a_Table, "IsMonsterGrab", false);
@@ -2791,7 +2791,38 @@ bool_t P_RMODO_Specials(const bool_t a_Pushed, const struct WL_WADFile_s* const 
 	return true;
 }
 
-// Parses command line parameters.
+/* P_RMODTouchSpecialForSprite() -- Find touch special via sprite */
+P_RMODTouchSpecial_t* P_RMODTouchSpecialForSprite(const uint32_t a_SprNum)
+{
+	/* Check */
+	if (a_SprNum < 0 || a_SprNum >= NUMSPRITES)
+		return NULL;
+	
+	/* Return preknown array */
+	return g_SprTouchSpecials[a_SprNum];
+}
+
+/* P_RMODTouchSpecialForCode() -- Find touch special via code */
+P_RMODTouchSpecial_t* P_RMODTouchSpecialForCode(const uint32_t a_Code)
+{
+	size_t i;
+	P_RMODTouchSpecial_t* Current;
+	
+	/* Look through list */
+	for (i = 0; i < g_RMODNumTouchSpecials; i++)
+	{
+		// Get current
+		Current = g_RMODTouchSpecials[i];
+		
+		// Got it?
+		if (Current->ActSpriteID == a_Code)
+			return Current;
+	}
+	
+	/* Not Found */
+	return NULL;
+}
+
 /* P_SpawnSpecials() -- Spawns sector specials (damagers, lights, floors, etc.) */
 void P_SpawnSpecials(void)
 {

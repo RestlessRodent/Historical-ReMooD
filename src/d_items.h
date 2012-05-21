@@ -170,6 +170,7 @@ typedef struct
 	char* ReplaceFireSound;						// Replacement Fire Sound
 	char* GenericProjectile;					// Generic Projectile
 	char* TracerSplat;							// Splat when tracing
+	INFO_BotObjMetric_t BotMetric;				// Bot Metric
 	
 	// State References
 	statenum_t* FlashStates;					// Weapon flash states

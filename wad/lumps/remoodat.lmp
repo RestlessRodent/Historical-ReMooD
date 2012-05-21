@@ -55,6 +55,8 @@ MapObject "DoomPlayer"
 	UsePlayerMovement "true";
 	CanUseWeapons "true";
 	
+	BotMetric "DoomPlayer";
+	
 	State "SpawnState"
 	{
 		Frame "1"
@@ -418,6 +420,8 @@ MapObject "Zombieman"
 	IsSolid "true";
 	IsShootable "true";
 	IsKillCountable "true";
+	
+	BotMetric "WeakMonster";
 	
 	State "SpawnState"
 	{
@@ -816,6 +820,8 @@ MapObject "Sergeant"
 	IsSolid "true";
 	IsShootable "true";
 	IsKillCountable "true";
+	
+	BotMetric "WeakMonster";
 	
 	State "SpawnState"
 	{
@@ -1227,6 +1233,8 @@ MapObject "Archvile"
 	IsKillCountable "true";
 	NoThreshold "true";
 	NotARetaliateTarget "true";
+	
+	BotMetric "ArchVile";
 	
 	State "SpawnState"
 	{
@@ -2136,6 +2144,8 @@ MapObject "Revenant"
 	IsKillCountable "true";
 	HalfMissileRange "true";
 	
+	BotMetric "NormalMonster";
+	
 	State "SpawnState"
 	{
 		Frame "1"
@@ -2575,6 +2585,8 @@ MapObject "TracerShot"
 	IsDropOff "true";
 	IsMissile "true";
 	
+	BotMetric "Projectile";
+	
 	State "SpawnState"
 	{
 		Frame "1"
@@ -2752,6 +2764,8 @@ MapObject "Mancubus"
 	IsShootable "true";
 	IsKillCountable "true";
 	DoDeadSimpleSpecialSix "true";
+	
+	BotMetric "StrongMonster";
 	
 	State "SpawnState"
 	{
@@ -3272,6 +3286,8 @@ MapObject "MancubusShot"
 	IsDropOff "true";
 	IsMissile "true";
 	
+	BotMetric "Projectile";
+	
 	State "SpawnState"
 	{
 		Frame "1"
@@ -3364,6 +3380,8 @@ MapObject "HeavyWeaponDude"
 	IsSolid "true";
 	IsShootable "true";
 	IsKillCountable "true";
+	
+	BotMetric "MediumMonster";
 	
 	State "SpawnState"
 	{
@@ -3794,6 +3812,8 @@ MapObject "Imp"
 	IsSolid "true";
 	IsShootable "true";
 	IsKillCountable "true";
+	
+	BotMetric "WeakMonster";
 	
 	State "SpawnState"
 	{
@@ -4230,6 +4250,8 @@ MapObject "Demon"
 	IsShootable "true";
 	IsKillCountable "true";
 	
+	BotMetric "MediumMonster";
+	
 	State "SpawnState"
 	{
 		Frame "1"
@@ -4576,6 +4598,8 @@ MapObject "Specter"
 	IsShootable "true";
 	IsFuzzyShadow "true";
 	IsKillCountable "true";
+	
+	BotMetric "MediumMonster";
 	
 	State "SpawnState"
 	{
@@ -4925,6 +4949,8 @@ MapObject "Cacodemon"
 	IsFloating "true";
 	IsKillCountable "true";
 	
+	BotMetric "MediumMonster";
+	
 	State "SpawnState"
 	{
 		Frame "1"
@@ -5182,6 +5208,8 @@ MapObject "BaronOfHell"
 	IsShootable "true";
 	IsKillCountable "true";
 	DoBaronSpecial "true";
+	
+	BotMetric "StrongMonster";
 	
 	State "SpawnState"
 	{
@@ -5578,6 +5606,8 @@ MapObject "BaronShot"
 	EnableFastSpeed "true";
 	NoLineCrossTrigger "true";
 	
+	BotMetric "Projectile";
+	
 	State "SpawnState"
 	{
 		Frame "1"
@@ -5670,6 +5700,8 @@ MapObject "HellKnight"
 	IsSolid "true";
 	IsShootable "true";
 	IsKillCountable "true";
+	
+	BotMetric "MediumMonster";
 	
 	State "SpawnState"
 	{
@@ -6065,6 +6097,8 @@ MapObject "LostSoul"
 	HalfMissileRange "true";
 	KeepGravityWhenKilled "true";
 	
+	BotMetric "WeakMonster";
+	
 	State "SpawnState"
 	{
 		Frame "1"
@@ -6311,6 +6345,8 @@ MapObject "Spiderdemon"
 	PlaySoundsEverywhere "true";
 	ExplosionProof "true";
 	DoSpiderSpecial "true";
+	
+	BotMetric "StrongMonster";
 	
 	State "SpawnState"
 	{
@@ -6690,6 +6726,8 @@ MapObject "Arachnotron"
 	IsShootable "true";
 	IsKillCountable "true";
 	DoDeadSimpleSpecialSeven "true";
+	
+	BotMetric "MediumMonster";
 	
 	State "SpawnState"
 	{
@@ -7379,6 +7417,8 @@ MapObject "Cyberdemon"
 	ExplosionProof "true";
 	DoCyberSpecial "true";
 	
+	BotMetric "StrongMonster";
+	
 	State "SpawnState"
 	{
 		Frame "1"
@@ -7714,6 +7754,8 @@ MapObject "PainElemental"
 	IsFloating "true";
 	IsKillCountable "true";
 	
+	BotMetric "MediumMonster";
+	
 	State "SpawnState"
 	{
 		Frame "1"
@@ -8033,6 +8075,8 @@ MapObject "WolfSS"
 	IsSolid "true";
 	IsShootable "true";
 	IsKillCountable "true";
+	
+	BotMetric "WeakMonster";
 	
 	State "SpawnState"
 	{
@@ -8479,6 +8523,8 @@ MapObject "CommanderKeen"
 	IsKillCountable "true";
 	DoSixSixSixDoorOpen "true";
 	
+	BotMetric "WeakMonster";
+	
 	State "SpawnState"
 	{
 		Frame "1"
@@ -8668,6 +8714,8 @@ MapObject "BossBrain"
 	IsSolid "true";
 	IsShootable "true";
 	
+	BotMetric "WeakMonster";
+	
 	State "SpawnState"
 	{
 		Frame "1"
@@ -8830,6 +8878,8 @@ MapObject "BossSpawnSpot"
 	NoSectorLinks "true";
 	NoBlockMap "true";
 	IsBossBrainTarget "true";
+	
+	BotMetric "Projectile";
 }
 
 // Object -- BossSpawnCube
@@ -8858,6 +8908,8 @@ MapObject "BossSpawnCube"
 	IsDropOff "true";
 	NoClipping "true";
 	IsMissile "true";
+	
+	BotMetric "Projectile";
 	
 	State "SpawnState"
 	{
@@ -9069,6 +9121,8 @@ MapObject "ExplosiveBarrel"
 	NoBleeding "true";
 	CarriesKiller "true";
 	
+	BotMetric "Barrel";
+	
 	State "SpawnState"
 	{
 		Frame "1"
@@ -9182,6 +9236,8 @@ MapObject "ImpShot"
 	EnableFastSpeed "true";
 	NoLineCrossTrigger "true";
 	
+	BotMetric "Projectile";
+	
 	State "SpawnState"
 	{
 		Frame "1"
@@ -9278,6 +9334,8 @@ MapObject "CacodemonShot"
 	EnableFastSpeed "true";
 	NoLineCrossTrigger "true";
 	
+	BotMetric "Projectile";
+	
 	State "SpawnState"
 	{
 		Frame "1"
@@ -9371,6 +9429,8 @@ MapObject "RocketShot"
 	IsDropOff "true";
 	IsMissile "true";
 	NoLineCrossTrigger "true";
+	
+	BotMetric "Projectile";
 	
 	State "SpawnState"
 	{
@@ -9492,6 +9552,8 @@ MapObject "PlasmaShot"
 	IsMissile "true";
 	NoLineCrossTrigger "true";
 	
+	BotMetric "Projectile";
+	
 	State "SpawnState"
 	{
 		Frame "1"
@@ -9609,6 +9671,8 @@ MapObject "BFGShot"
 	IsDropOff "true";
 	IsMissile "true";
 	NoLineCrossTrigger "true";
+	
+	BotMetric "Projectile";
 	
 	State "SpawnState"
 	{
@@ -9739,6 +9803,8 @@ MapObject "ArachnotronShot"
 	NoGravity "true";
 	IsDropOff "true";
 	IsMissile "true";
+	
+	BotMetric "Projectile";
 	
 	State "SpawnState"
 	{
@@ -10388,6 +10454,8 @@ MapObject "GreenArmor"
 	
 	IsSpecial "true";
 	
+	BotMetric "LightArmor";
+	
 	State "SpawnState"
 	{
 		Frame "1"
@@ -10435,6 +10503,8 @@ MapObject "BlueArmor"
 	ActiveSound "none";
 	
 	IsSpecial "true";
+	
+	BotMetric "HeavyArmor";
 	
 	State "SpawnState"
 	{
@@ -10484,6 +10554,8 @@ MapObject "HealthBonus"
 	
 	IsSpecial "true";
 	IsItemCountable "true";
+	
+	BotMetric "LightHealth";
 	
 	State "SpawnState"
 	{
@@ -10573,6 +10645,8 @@ MapObject "ArmorBonus"
 	IsSpecial "true";
 	IsItemCountable "true";
 	
+	BotMetric "LightArmor";
+	
 	State "SpawnState"
 	{
 		Frame "1"
@@ -10661,6 +10735,8 @@ MapObject "BlueCard"
 	IsSpecial "true";
 	NotInDeathmatch "true";
 	
+	BotMetric "KeyCard";
+	
 	State "SpawnState"
 	{
 		Frame "1"
@@ -10709,6 +10785,8 @@ MapObject "RedCard"
 	
 	IsSpecial "true";
 	NotInDeathmatch "true";
+	
+	BotMetric "KeyCard";
 	
 	State "SpawnState"
 	{
@@ -10759,6 +10837,8 @@ MapObject "YellowCard"
 	IsSpecial "true";
 	NotInDeathmatch "true";
 	
+	BotMetric "KeyCard";
+	
 	State "SpawnState"
 	{
 		Frame "1"
@@ -10807,6 +10887,8 @@ MapObject "YellowSkull"
 	
 	IsSpecial "true";
 	NotInDeathmatch "true";
+	
+	BotMetric "KeyCard";
 	
 	State "SpawnState"
 	{
@@ -10857,6 +10939,8 @@ MapObject "RedSkull"
 	IsSpecial "true";
 	NotInDeathmatch "true";
 	
+	BotMetric "KeyCard";
+	
 	State "SpawnState"
 	{
 		Frame "1"
@@ -10906,6 +10990,8 @@ MapObject "BlueSkull"
 	IsSpecial "true";
 	NotInDeathmatch "true";
 	
+	BotMetric "KeyCard";
+	
 	State "SpawnState"
 	{
 		Frame "1"
@@ -10954,6 +11040,8 @@ MapObject "StimPack"
 	
 	IsSpecial "true";
 	
+	BotMetric "LightHealth";
+	
 	State "SpawnState"
 	{
 		Frame "1"
@@ -10990,6 +11078,8 @@ MapObject "MediKit"
 	ActiveSound "none";
 	
 	IsSpecial "true";
+	
+	BotMetric "HeavyHealth";
 	
 	State "SpawnState"
 	{
@@ -11029,6 +11119,8 @@ MapObject "SoulSphere"
 	IsSpecial "true";
 	IsItemCountable "true";
 	IsPowerup "true";
+	
+	BotMetric "HeavyHealth";
 	
 	State "SpawnState"
 	{
@@ -11132,6 +11224,8 @@ MapObject "InvulnSphere"
 	IsPowerup "true";
 	NoRespawnInAltDM "true";
 	
+	BotMetric "HeavyHealth";
+	
 	State "SpawnState"
 	{
 		Frame "1"
@@ -11209,6 +11303,8 @@ MapObject "Berserker"
 	IsItemCountable "true";
 	IsPowerup "true";
 	
+	BotMetric "HeavyHealth";
+	
 	State "SpawnState"
 	{
 		Frame "1"
@@ -11249,6 +11345,8 @@ MapObject "InvisSphere"
 	IsItemCountable "true";
 	IsPowerup "true";
 	NoRespawnInAltDM "true";
+	
+	BotMetric "DefensePowerup";
 	
 	State "SpawnState"
 	{
@@ -11326,6 +11424,8 @@ MapObject "RadiationSuit"
 	IsSpecial "true";
 	IsPowerup "true";
 	
+	BotMetric "DefensePowerup";
+	
 	State "SpawnState"
 	{
 		Frame "1"
@@ -11365,6 +11465,8 @@ MapObject "ComputerMap"
 	IsSpecial "true";
 	IsItemCountable "true";
 	IsPowerup "true";
+	
+	BotMetric "DefensePowerup";
 	
 	State "SpawnState"
 	{
@@ -11461,6 +11563,8 @@ MapObject "LightAmpVisor"
 	IsItemCountable "true";
 	IsPowerup "true";
 	
+	BotMetric "OffensivePowerup";
+	
 	State "SpawnState"
 	{
 		Frame "1"
@@ -11510,6 +11614,8 @@ MapObject "MegaSphere"
 	IsSpecial "true";
 	IsItemCountable "true";
 	IsPowerup "true";
+	
+	BotMetric "HeavyHealth";
 	
 	State "SpawnState"
 	{
@@ -11586,6 +11692,8 @@ MapObject "SmallClipAmmo"
 	
 	IsSpecial "true";
 	
+	BotMetric "Ammo";
+	
 	State "SpawnState"
 	{
 		Frame "1"
@@ -11622,6 +11730,8 @@ MapObject "LargeClipAmmo"
 	ActiveSound "none";
 	
 	IsSpecial "true";
+	
+	BotMetric "Ammo";
 	
 	State "SpawnState"
 	{
@@ -11660,6 +11770,8 @@ MapObject "SmallRocketAmmo"
 	
 	IsSpecial "true";
 	
+	BotMetric "Ammo";
+	
 	State "SpawnState"
 	{
 		Frame "1"
@@ -11696,6 +11808,8 @@ MapObject "LargeRocketAmmo"
 	ActiveSound "none";
 	
 	IsSpecial "true";
+	
+	BotMetric "Ammo";
 	
 	State "SpawnState"
 	{
@@ -11734,6 +11848,8 @@ MapObject "SmallCellAmmo"
 	
 	IsSpecial "true";
 	
+	BotMetric "Ammo";
+	
 	State "SpawnState"
 	{
 		Frame "1"
@@ -11770,6 +11886,8 @@ MapObject "LargeCellAmmo"
 	ActiveSound "none";
 	
 	IsSpecial "true";
+	
+	BotMetric "Ammo";
 	
 	State "SpawnState"
 	{
@@ -11808,6 +11926,8 @@ MapObject "SmallShellAmmo"
 	
 	IsSpecial "true";
 	
+	BotMetric "Ammo";
+	
 	State "SpawnState"
 	{
 		Frame "1"
@@ -11845,6 +11965,8 @@ MapObject "LargeShellAmmo"
 	
 	IsSpecial "true";
 	
+	BotMetric "Ammo";
+	
 	State "SpawnState"
 	{
 		Frame "1"
@@ -11881,6 +12003,8 @@ MapObject "Backpack"
 	ActiveSound "none";
 	
 	IsSpecial "true";
+	
+	BotMetric "Ammo";
 	
 	State "SpawnState"
 	{
@@ -11920,6 +12044,8 @@ MapObject "BFG"
 	IsSpecial "true";
 	MarkRestoreWeapon "true";
 	
+	BotMetric "Weapon";
+	
 	State "SpawnState"
 	{
 		Frame "1"
@@ -11957,6 +12083,8 @@ MapObject "Chaingun"
 	
 	IsSpecial "true";
 	MarkRestoreWeapon "true";
+	
+	BotMetric "Weapon";
 	
 	State "SpawnState"
 	{
@@ -11996,6 +12124,8 @@ MapObject "Chainsaw"
 	IsSpecial "true";
 	MarkRestoreWeapon "true";
 	
+	BotMetric "Weapon";
+	
 	State "SpawnState"
 	{
 		Frame "1"
@@ -12033,6 +12163,8 @@ MapObject "RocketLauncher"
 	
 	IsSpecial "true";
 	MarkRestoreWeapon "true";
+	
+	BotMetric "Weapon";
 	
 	State "SpawnState"
 	{
@@ -12072,6 +12204,8 @@ MapObject "PlasmaRifle"
 	IsSpecial "true";
 	MarkRestoreWeapon "true";
 	
+	BotMetric "Weapon";
+	
 	State "SpawnState"
 	{
 		Frame "1"
@@ -12110,6 +12244,8 @@ MapObject "Shotgun"
 	IsSpecial "true";
 	MarkRestoreWeapon "true";
 	
+	BotMetric "Weapon";
+	
 	State "SpawnState"
 	{
 		Frame "1"
@@ -12147,6 +12283,8 @@ MapObject "SuperShotgun"
 	
 	IsSpecial "true";
 	MarkRestoreWeapon "true";
+	
+	BotMetric "Weapon";
 	
 	State "SpawnState"
 	{
@@ -15108,6 +15246,8 @@ MapObject "LegacyDog"
 	IsShootable "true";
 	IsKillCountable "true";
 	
+	BotMetric "MediumMonster";
+	
 	State "SpawnState"
 	{
 		Frame "1"
@@ -16627,6 +16767,8 @@ MapWeapon "Fist"
 	IsSwitchFromNoAmmo "true";
 	IsStartingWeapon "true";
 	
+	BotMetric "Melee";
+	
 	State "PrimaryBringUpState"
 	{
 		Frame "1"
@@ -16733,6 +16875,8 @@ MapWeapon "Pistol"
 	IsDoom "true";
 	IsSwitchFromNoAmmo "true";
 	IsStartingWeapon "true";
+	
+	BotMetric "MidRange";
 	
 	State "PrimaryBringUpState"
 	{
@@ -16854,6 +16998,8 @@ MapWeapon "Shotgun"
 	DroppedObject "Shotgun";
 	SpriteYOffset "0";
 	IsDoom "true";
+	
+	BotMetric "MidRange";
 	
 	State "PrimaryBringUpState"
 	{
@@ -17032,6 +17178,8 @@ MapWeapon "Chaingun"
 	SpriteYOffset "0";
 	IsDoom "true";
 	
+	BotMetric "MidRange";
+	
 	State "PrimaryBringUpState"
 	{
 		Frame "1"
@@ -17156,6 +17304,8 @@ MapWeapon "RocketLauncher"
 	SpriteYOffset "0";
 	IsDoom "true";
 	NoAutoFire "true";
+	
+	BotMetric "LayDown";
 	
 	State "PrimaryBringUpState"
 	{
@@ -17303,6 +17453,8 @@ MapWeapon "PlasmaRifle"
 	IsDoom "true";
 	IsNotShareware "true";
 	
+	BotMetric "SprayPlasma";
+	
 	State "PrimaryBringUpState"
 	{
 		Frame "1"
@@ -17418,6 +17570,8 @@ MapWeapon "BFGNineK"
 	IsDoom "true";
 	IsNotShareware "true";
 	NoAutoFire "true";
+	
+	BotMetric "BFG";
 	
 	State "PrimaryBringUpState"
 	{
@@ -17557,6 +17711,8 @@ MapWeapon "Chainsaw"
 	NoThrust "true";
 	IdleNoise "sawidl";
 	
+	BotMetric "Melee";
+	
 	State "PrimaryBringUpState"
 	{
 		Frame "1"
@@ -17656,6 +17812,8 @@ MapWeapon "SuperShotgun"
 	SpriteYOffset "0";
 	IsDoom "true";
 	IsInCommercial "true";
+	
+	BotMetric "SSGDance";
 	
 	State "PrimaryBringUpState"
 	{
@@ -17848,6 +18006,8 @@ MapWeapon "BetaBFG"
 	IsDoom "true";
 	IsNotShareware "true";
 	NoAutoFire "true";
+	
+	BotMetric "SprayPlasma";
 	
 	State "PrimaryBringUpState"
 	{
@@ -18516,6 +18676,15 @@ MapTouchSpecial "MEGA"
 	IsCapMaxStat "true";
 	IsGreaterArmorClass "true";
 	PickupSound "getpow";
+}
+
+// MEDI -- Med-Kit
+MapTouchSpecial "MEDI"
+{
+	Message "DEP_GOTMEDIKIT";
+	HealthAmount "25";
+	IsCapNormStat "true";
+	IsKeepIfNotNeeded "true";
 }
 
 

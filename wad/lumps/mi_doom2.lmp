@@ -89,7 +89,7 @@ map MAP08 "Tricks and Traps"
 	levelnum 8
 	par 120
 	titlepatch CWILV07
-	music D_DTTBLU
+	music D_DDTBLU
 
 map MAP09 "The Pit"
 	creator "Sandy Petersen"

@@ -104,19 +104,14 @@ void M_PushSpecialParametersAsOne(const bool_t plusplus)
 			for (; i < myargc && myargv[i][0] != '+' && myargv[i][0] != '-'; i++)
 			{
 				strncat(s, " ", BUFSIZE);
-				if (!onetime)
-				{
-					strncat(s, "\"", BUFSIZE);
-					onetime = true;
-				}
-				strncat(s, myargv[i], BUFSIZE);
-			}
-			if (onetime)
-			{
 				strncat(s, "\"", BUFSIZE);
-				onetime = false;
+				strncat(s, myargv[i], BUFSIZE);
+				strncat(s, "\"", BUFSIZE);
 			}
+			
 			strncat(s, "\n", BUFSIZE);
+			
+			fprintf(stderr, ">>>>>>>>> \"%s\"\n", s);
 			
 			// push it
 #if 0

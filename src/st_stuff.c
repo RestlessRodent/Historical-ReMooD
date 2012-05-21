@@ -1671,14 +1671,39 @@ static void STS_DrawPlayerBarEx(const size_t a_PID, const int32_t a_X, const int
 					);
 		
 			// Draw Ammo Text
-			if (AmmoType < 0 || AmmoType >= NUMAMMO)
-				snprintf(Buf, BUFSIZE - 1, "-", DisplayP->ammo[AmmoType]);
-			else
-				snprintf(Buf, BUFSIZE - 1, "%i", DisplayP->ammo[AmmoType]);
+			if (DisplayP->ammo)
+			{
+				if (AmmoType < 0 || AmmoType >= NUMAMMO)
+					snprintf(Buf, BUFSIZE - 1, "-");
+				else
+					snprintf(Buf, BUFSIZE - 1, "%i", DisplayP->ammo[AmmoType]);
+				V_DrawStringA(
+						Font, 0, Buf,
+						a_X + STS_SBX(Profile, 240, a_W, a_H) + 20 - (BigLetters ? 0 : 2),
+						a_Y + STS_SBY(Profile, 192, a_W, a_H) - 12 - (BigLetters ? 4 : 0)
+					);
+			}
+		}
+		
+		//// FRAGS
+		if (cv_deathmatch.value)
+		{
+			// Draw Icon
+			vi = V_ImageFindA("sbofrags");
+			if (vi)
+				V_ImageDraw(
+						0, vi,
+						a_X + STS_SBX(Profile, 240, a_W, a_H),
+						a_Y + STS_SBY(Profile, 8, a_W, a_H),
+						NULL
+					);
+		
+			// Draw Frags Text
+			snprintf(Buf, BUFSIZE - 1, "%i", DisplayP->TotalFrags);
 			V_DrawStringA(
 					Font, 0, Buf,
 					a_X + STS_SBX(Profile, 240, a_W, a_H) + 20 - (BigLetters ? 0 : 2),
-					a_Y + STS_SBY(Profile, 192, a_W, a_H) - 12 - (BigLetters ? 4 : 0)
+					a_Y + STS_SBY(Profile, 8, a_W, a_H) - (BigLetters ? 4 : 0)
 				);
 		}
 	}

@@ -1759,6 +1759,11 @@ bool_t P_ExClearLevel(void)
 	memset(bodyque, 0, sizeof(bodyque));
 	bodyqueslot = true;
 	
+	// Respawn queue
+	memset(itemrespawnque, 0, sizeof(itemrespawnque));
+	memset(itemrespawntime, 0, sizeof(itemrespawntime));
+	iquehead = iquetail = 0;
+	
 	// Totals
 	totalkills = 0;
 	totalitems = 0;
@@ -2009,9 +2014,9 @@ static void PS_ExThingInit(mapthing_t* const a_Thing, const uint32_t a_Flags)
 void PS_ExMungeNodeData(void)
 {
 	line_t** LineBuffer;
-	size_t i, j, Total, OldCount;
+	size_t i, j, k, Total, OldCount;
 	fixed_t BBox[4];
-	sector_t* SectorP;
+	sector_t* SectorP, *OtherSec;
 	int block;
 	
 	/* Set loading screen info */
@@ -2050,6 +2055,31 @@ void PS_ExMungeNodeData(void)
 			
 			// Put last spot as this line
 			SectorP->lines[SectorP->linecount++] = &lines[i];
+			
+			// GhostlyDeath <May 20, 2012> -- Adjacent sector list
+				// Get opposite end
+			if (lines[i].frontsector == SectorP)
+				OtherSec = lines[i].backsector;
+			else
+				OtherSec = lines[i].frontsector;
+			
+				// The other sector is different and is valid
+			if (SectorP && OtherSec && OtherSec != SectorP)
+			{
+				// Find other sector in our own chain
+				for (k = 0; k < SectorP->NumAdj; k++)
+					if (OtherSec == SectorP->Adj[k])
+						break;
+				
+				// Not found? Add to the end
+				if (k >= SectorP->NumAdj)
+				{
+					Z_ResizeArray((void**)&SectorP->Adj, sizeof(*SectorP->Adj),
+							SectorP->NumAdj, SectorP->NumAdj + 1);
+					SectorP->Adj[SectorP->NumAdj++] = OtherSec;
+					Z_ChangeTag(SectorP->Adj, PU_LEVEL);
+				}
+			}
 			
 			// Add to sector bounding box
 			M_AddToBox(SectorP->BBox, lines[i].v1->x, lines[i].v1->y);

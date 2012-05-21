@@ -96,6 +96,7 @@ typedef struct
 
 extern size_t NUMSPRITES;
 extern char** sprnames;
+extern void** g_SprTouchSpecials;				// Sprite touch special markers
 
 extern state_t** states;
 extern size_t NUMSTATES;
@@ -138,6 +139,35 @@ typedef enum INFO_ObjectStateGroup_e
 	
 	NUMPWEAPONSTATEGROUPS,
 } INFO_ObjectStateGroup_t;
+
+/* INFO_BotObjMetric_t -- Bot metric */
+typedef enum INFO_BotObjMetric_e
+{
+	INFOBM_DEFAULT,								// Guess!
+	INFOBM_DOOMPLAYER,							// A player
+	INFOBM_WEAKMONSTER,							// A weak monster (zombies, imps, etc.)
+	INFOBM_NORMALMONSTER,						// A normal monster (not weak, not strong)
+	INFOBM_STRONGMONSTER,						// A strong monster (lots of hp, powerful weapons)
+	INFOBM_ARCHVILE,							// Arch-Vile (try to stay out of sight)
+	INFOBM_PROJECTILE,							// This should be dodged (if we don't own it)
+	INFOBM_BARREL,								// Explosive barrel (use when needed)
+	INFOBM_LIGHTARMOR,							// Item
+	INFOBM_HEAVYARMOR,							// Item
+	INFOBM_LIGHTHEALTH,							// Item
+	INFOBM_HEAVYHEALTH,							// Item
+	INFOBM_KEYCARD,								// Key
+	INFOBM_AMMO,								// Key
+	INFOBM_WEAPON,								// Key
+	
+	INFOBM_WEAPONMELEE,							// Melee Weapon
+	INFOBM_WEAPONMIDRANGE,						// Middle Range Weapon
+	INFOBM_WEAPONLAYDOWN,						// Lay down surpressing fire
+	INFOBM_SPRAYPLASMA,							// Spray plasma all over
+	INFOBM_WEAPONBFG,							// BFG
+	INFOBM_WEAPONSSGDANCE,						// SuperShotgun
+	
+	NUMINFOBOTOBJMETRICS
+} INFO_BotObjMetric_t;
 
 typedef INFO_ObjectStateGroup_t P_WeaponStateGroup_t;
 
@@ -211,6 +241,8 @@ typedef struct
 	char* RBloodSplat;							// Splat when bleeding
 	char* RBloodSpewClass;						// Bleeds this class
 	char* RGenericMissile;						// Generic Monster Missile Attack
+	
+	INFO_BotObjMetric_t RBotMetric;				// Metric for bot
 } mobjinfo_t;
 
 extern mobjinfo_t** mobjinfo;
@@ -250,6 +282,7 @@ spritenum_t INFO_SpriteNumByName(const char* const a_Name, bool_t a_Create);
 actionf_t INFO_FunctionPtrByName(const char* const a_Name);
 int INFO_PriorityByName(const char* const a_Name);
 uint32_t INFO_TransparencyByName(const char* const a_Name);
+INFO_BotObjMetric_t INFO_BotMetricByName(const char* const a_Name);
 
 /*** HELPFUL MACROS ***/
 // Yuck! TODO: Make these real functions

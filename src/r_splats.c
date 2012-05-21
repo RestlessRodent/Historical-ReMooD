@@ -88,7 +88,8 @@ static wallsplat_t* R_AllocWallSplat(void)
 			// GhostlyDeath <November 3, 2010> -- PARANOIA removal
 			if (!li->splats)
 			{
-				CONL_PrintF("WARNING - R_AllocWallSplat: Line has no splats (%s:%i).\n", __FILE__, __LINE__);
+				if (devparm)
+					CONL_PrintF("WARNING - R_AllocWallSplat: Line has no splats (%s:%i).\n", __FILE__, __LINE__);
 				return NULL;
 			}
 			
@@ -267,7 +268,8 @@ void R_AddWallSplat(line_t* wallline, int sectorside, char* patchname, fixed_t t
 				if (Rover->next)	// Probably always false
 				{
 					*(Rover->next) = Temp;
-					Rover->next->next = NULL;
+					if (Rover->next)	// Could have been NULLed!
+						Rover->next->next = NULL;
 				}
 				break;
 			}

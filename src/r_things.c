@@ -622,10 +622,12 @@ static void R_DrawVisSprite(vissprite_t* vis, int x1, int x2)
 	int texturecolumn;
 	fixed_t frac;
 	patch_t* patch = NULL;
+	size_t ByteSize;
 	
 	//Fab:R_InitSprites now sets a wad lump number
 	//patch = W_CacheLumpNum(vis->patch, PU_CACHE);
-	patch = V_ImageGetPatch(vis->Image, NULL);
+	ByteSize = 0;
+	patch = V_ImageGetPatch(vis->Image, &ByteSize);
 	
 	if (!patch)
 		return;
@@ -678,6 +680,8 @@ static void R_DrawVisSprite(vissprite_t* vis, int x1, int x2)
 	spryscale = vis->scale;
 	sprtopscreen = centeryfrac - FixedMul(dc_texturemid, spryscale);
 	windowtop = windowbottom = sprbotscreen = INT_MAX;
+	
+	Z_ChangeTag(patch, PU_STATIC);
 	
 	for (dc_x = vis->x1; dc_x <= vis->x2; dc_x++, frac += vis->xiscale)
 	{

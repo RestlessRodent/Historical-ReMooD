@@ -3895,7 +3895,7 @@ const struct patch_s* V_ImageGetPatch(V_Image_t* const a_Image, size_t* const a_
 			id = ((uint8_t*)a_Image->dPatch) + a_Image->dPatch->columnofs[i];
 			
 			// Way past the end?
-			if (id >= EndD)
+			if (id < (((uint8_t*)a_Image->dPatch) + BaseSize) || id >= EndD)
 			{
 				a_Image->dPatch->columnofs[i] = 0;	// NULL it out
 				continue;
@@ -4166,7 +4166,7 @@ void V_ImageDrawScaledIntoBuffer(const uint32_t a_Flags, V_Image_t* const a_Imag
 	int32_t x, y, w, h, xx, yy, i, c, Mask, vvx, vvy;
 	
 	int32_t sX, sY, tW, tY, px;
-	uint8_t* dP;
+	uint8_t* dP, *dPend;
 	uint8_t* sP;
 	fixed_t XFrac, YFrac, sxX, sxY, xw, xh, dxY, ESXy, limxw, limxh;
 	uint8_t* ColorMap;
@@ -4348,6 +4348,7 @@ void V_ImageDrawScaledIntoBuffer(const uint32_t a_Flags, V_Image_t* const a_Imag
 				// Get destination
 				Pixel = FixedMul(((fixed_t)(*sP)) << FRACBITS, a_YScale) >> FRACBITS;
 				dP = a_DestBuffer + (a_DestPitch * (y + ((fixed_t)Pixel))) + (xx);
+				dPend = a_DestBuffer + (a_DestPitch * a_DestHeight);
 				sP++;
 				
 				// Get count
@@ -4358,7 +4359,7 @@ void V_ImageDrawScaledIntoBuffer(const uint32_t a_Flags, V_Image_t* const a_Imag
 				sxY = 0;
 				if (TransMap)
 				{
-					for (i = 0; i < c; i++)
+					for (i = 0; i < c && dP < dPend; i++)
 						for (ESXy = (sxY & _FIXED_FRAC); ESXy < FRACUNIT; ESXy += YFrac, sxY += YFrac)
 						{
 							Pixel = sP[i];
@@ -4368,7 +4369,7 @@ void V_ImageDrawScaledIntoBuffer(const uint32_t a_Flags, V_Image_t* const a_Imag
 				}
 				else
 				{
-					for (i = 0; i < c; i++)
+					for (i = 0; i < c && dP < dPend; i++)
 						for (ESXy = (sxY & _FIXED_FRAC); ESXy < FRACUNIT; ESXy += YFrac, sxY += YFrac)
 						{
 							Pixel = sP[i];
