@@ -4168,7 +4168,7 @@ void V_ImageDrawScaledIntoBuffer(const uint32_t a_Flags, V_Image_t* const a_Imag
 	int32_t sX, sY, tW, tY, px;
 	uint8_t* dP, *dPend;
 	uint8_t* sP;
-	fixed_t XFrac, YFrac, sxX, sxY, xw, xh, dxY, ESXy, limxw, limxh;
+	fixed_t XFrac, YFrac, sxX, sxY, xw, xh, dxY, ESXy, limxw, limxh, Off;
 	uint8_t* ColorMap;
 	uint8_t* ColorMapE;
 	uint8_t* TransMap;
@@ -4346,8 +4346,8 @@ void V_ImageDrawScaledIntoBuffer(const uint32_t a_Flags, V_Image_t* const a_Imag
 			while (*sP != 0xFF)
 			{
 				// Get destination
-				Pixel = FixedMul(((fixed_t)(*sP)) << FRACBITS, a_YScale) >> FRACBITS;
-				dP = a_DestBuffer + (a_DestPitch * (y + ((fixed_t)Pixel))) + (xx);
+				Off = FixedMul(((fixed_t)(*sP)) << FRACBITS, a_YScale) >> FRACBITS;
+				dP = a_DestBuffer + (a_DestPitch * (y + ((fixed_t)Off))) + (xx);
 				dPend = a_DestBuffer + (a_DestPitch * a_DestHeight);
 				sP++;
 				

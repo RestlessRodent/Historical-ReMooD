@@ -189,6 +189,8 @@ struct B_BotData_s
 	int32_t GHOSTNumAdj;						// Number of them
 	bool_t GHOSTSSGRightHand;					// Right handed SSG
 	uint32_t GHOSTSSGHandTime;					// Time to swap hands
+	
+	B_GhostBot_t GHOSTData;						// Ghost Data
 };
 
 /**************

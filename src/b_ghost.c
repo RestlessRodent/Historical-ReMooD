@@ -28,50 +28,14 @@
 // -----------------------------------------------------------------------------
 // DESCRIPTION: Bot Code
 
-#ifndef __B_BOT_H__
-#define __B_BOT_H__
-
 /***************
 *** INCLUDES ***
 ***************/
 
-#include "d_netcmd.h"
-#include "d_prof.h"
-#include "d_ticcmd.h"
-
-/*****************
-*** STRUCTURES ***
-*****************/
-
-typedef struct B_BotData_s B_BotData_t;
-
-/* B_GhostBot_t -- GhostlyBots information */
-typedef struct B_GhostBot_s
-{
-} B_GhostBot_t;
-
-/**************
-*** GLOBALS ***
-**************/
-
-extern bool_t g_BotDebug;						// Debugging Bots
+#include "b_bot.h"
 
 /****************
 *** FUNCTIONS ***
 ****************/
-
-/*** B_BOT.C ***/
-B_BotData_t* B_InitBot(D_NetPlayer_t* const a_NPp);
-void B_InitNodes(void);
-void B_ClearNodes(void);
-
-void B_BuildBotTicCmd(B_BotData_t* const a_BotData, ticcmd_t* const a_TicCmd);
-
-void B_RemoveMobj(void* const a_Mo);
-
-/*** B_GHOST.C ***/
-
-
-#endif /* __B_BOT_H__ */
 
 
