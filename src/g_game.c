@@ -707,6 +707,7 @@ void G_Ticker(void)
 	switch (gamestate)
 	{
 		case GS_LEVEL:
+			B_GHOST_Ticker();
 			P_Ticker();			// tic the game
 			ST_Ticker();
 			AM_Ticker();

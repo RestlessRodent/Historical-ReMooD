@@ -2019,6 +2019,9 @@ void PS_ExMungeNodeData(void)
 	sector_t* SectorP, *OtherSec;
 	int block;
 	
+	/* Pre-Init */
+	memset(g_GlobalBoundBox, 0, sizeof(g_GlobalBoundBox));
+	
 	/* Set loading screen info */
 	CONL_LoadingScreenSetSubEnd(3);
 	
@@ -2084,6 +2087,10 @@ void PS_ExMungeNodeData(void)
 			// Add to sector bounding box
 			M_AddToBox(SectorP->BBox, lines[i].v1->x, lines[i].v1->y);
 			M_AddToBox(SectorP->BBox, lines[i].v2->x, lines[i].v2->y);
+			
+			// Add to global bounding box
+			M_AddToBox(g_GlobalBoundBox, lines[i].v1->x, lines[i].v1->y);
+			M_AddToBox(g_GlobalBoundBox, lines[i].v2->x, lines[i].v2->y);
 			
 			// Sound Origin
 			SectorP->soundorg.x = (SectorP->BBox[BOXRIGHT] + SectorP->BBox[BOXLEFT]) / 2;

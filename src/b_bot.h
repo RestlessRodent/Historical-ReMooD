@@ -39,6 +39,10 @@
 #include "d_prof.h"
 #include "d_ticcmd.h"
 
+#include "r_defs.h"
+#include "r_state.h"
+#include "p_mobj.h"
+
 /*****************
 *** STRUCTURES ***
 *****************/
@@ -56,6 +60,9 @@ typedef struct B_GhostBot_s
 
 extern bool_t g_BotDebug;						// Debugging Bots
 
+/*** B_GHOST.C ***/
+extern fixed_t g_GlobalBoundBox[4];				// Global bounding box
+
 /****************
 *** FUNCTIONS ***
 ****************/
@@ -70,7 +77,9 @@ void B_BuildBotTicCmd(B_BotData_t* const a_BotData, ticcmd_t* const a_TicCmd);
 void B_RemoveMobj(void* const a_Mo);
 
 /*** B_GHOST.C ***/
-
+void B_GHOST_Ticker(void);
+void B_GHOST_ClearLevel(void);
+void B_GHOST_InitLevel(void);
 
 #endif /* __B_BOT_H__ */
 

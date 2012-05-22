@@ -1866,6 +1866,7 @@ static void BS_ThinkGhostlyAI(B_BotData_t* const a_BotData, ticcmd_t* const a_Ti
 void B_InitNodes(void)
 {
 	l_InitialNodeGen = false;
+	B_GHOST_InitLevel();
 }
 
 /* B_ClearNodes() -- Clears all bot nodes */

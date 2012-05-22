@@ -54,6 +54,7 @@ typedef enum Z_MemoryTag_e
 	PU_BLOCKSTREAM,				// Block Streams
 	PU_SGPTRREF,								// Save Game Pointer References
 	PU_NETWORK,									// Networking Stuff
+	PU_BOTS,									// Bot Stuff
 	
 	PU_WLDKRMOD,				// WAD Level and RMOD
 	PU_SOUND,
