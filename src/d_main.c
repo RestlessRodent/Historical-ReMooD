@@ -1199,9 +1199,13 @@ static bool_t DS_DetectReMooDWAD(const bool_t a_Pushed, const struct WL_WADFile_
 		{
 			// Set to this WAD and return
 			g_ReMooDPtr = Rover;
-			return true;
+			break;
 		}
 	}
+
+	/* Failed to find remood.wad? */
+	if (!g_ReMooDPtr)
+		I_Error("Failed to find ReMooD.WAD");
 	
 	/* Load Data */
 	Entry = WL_FindEntry(Rover, 0, "____DATA");

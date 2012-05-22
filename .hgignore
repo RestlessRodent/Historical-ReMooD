@@ -66,3 +66,6 @@ glob:remoodex.cfg
 glob:desktop.ini
 syntax: glob
 proj/vc6/ReMooD.opt
+proj/vc6/Debug/RMDTex.pch
+proj/vc6/Release/RMDTex.pch
+proj/vc6/RMDTex.plg

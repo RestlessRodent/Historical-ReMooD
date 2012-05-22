@@ -61,6 +61,16 @@ LINK32=link.exe
 # SUBTRACT BASE LINK32 /pdb:none
 # ADD LINK32 kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib alleg.lib winmm.lib ws2_32.lib /nologo /subsystem:windows /debug /machine:I386 /out:"..\..\bin\remood-dbg.exe" /pdbtype:sept
 # SUBTRACT LINK32 /pdb:none
+# Begin Custom Build
+ProjDir=.
+TargetDir=\cygwin\home\Steven\ReMooD\bin
+InputPath=\cygwin\home\Steven\ReMooD\bin\remood-dbg.exe
+SOURCE="$(InputPath)"
+
+"$(TargetDir)\remood.wad" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
+	$(TargetDir)\rmdtex.exe  $(ProjDir)\..\..\wad\wadinfo.txt  $(TargetDir)\remood.wad  $(ProjDir)\..\..\wad\ 
+
+# End Custom Build
 
 !ELSEIF  "$(CFG)" == "ReMooD - Win32 Release Allegro"
 
@@ -90,8 +100,18 @@ BSC32=bscmake.exe
 LINK32=link.exe
 # ADD BASE LINK32 kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib SDL.lib SDLmain.lib winmm.lib /nologo /subsystem:console /machine:I386 /out:"..\..\bin\remood.exe"
 # SUBTRACT BASE LINK32 /pdb:none
-# ADD LINK32 kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib alleg.lib winmm.lib  ws2_32.lib /nologo /subsystem:windows /machine:I386 /out:"..\..\bin\remood.exe"
+# ADD LINK32 kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib alleg.lib winmm.lib ws2_32.lib /nologo /subsystem:windows /machine:I386 /out:"..\..\bin\remood.exe"
 # SUBTRACT LINK32 /pdb:none
+# Begin Custom Build
+ProjDir=.
+TargetDir=\cygwin\home\Steven\ReMooD\bin
+InputPath=\cygwin\home\Steven\ReMooD\bin\remood.exe
+SOURCE="$(InputPath)"
+
+"$(TargetDir)\remood.wad" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
+	$(TargetDir)\rmdtex.exe  $(ProjDir)\..\..\wad\wadinfo.txt  $(TargetDir)\remood.wad  $(ProjDir)\..\..\wad\ 
+
+# End Custom Build
 
 !ELSEIF  "$(CFG)" == "ReMooD - Win32 Debug SDL"
 
@@ -121,8 +141,18 @@ BSC32=bscmake.exe
 LINK32=link.exe
 # ADD BASE LINK32 kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib SDL.lib SDLmain.lib winmm.lib /nologo /subsystem:console /debug /machine:I386 /out:"..\..\bin\remood-dbg.exe" /pdbtype:sept
 # SUBTRACT BASE LINK32 /pdb:none
-# ADD LINK32 kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib SDL.lib SDLmain.lib winmm.lib  ws2_32.lib /nologo /subsystem:console /debug /machine:I386 /out:"..\..\bin\remood-dbg.exe" /pdbtype:sept
+# ADD LINK32 kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib SDL.lib SDLmain.lib winmm.lib ws2_32.lib /nologo /subsystem:console /debug /machine:I386 /out:"..\..\bin\remood-dbg.exe" /pdbtype:sept
 # SUBTRACT LINK32 /pdb:none
+# Begin Custom Build
+ProjDir=.
+TargetDir=\cygwin\home\Steven\ReMooD\bin
+InputPath=\cygwin\home\Steven\ReMooD\bin\remood-dbg.exe
+SOURCE="$(InputPath)"
+
+"$(TargetDir)\remood.wad" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
+	$(TargetDir)\rmdtex.exe  $(ProjDir)\..\..\wad\wadinfo.txt  $(TargetDir)\remood.wad  $(ProjDir)\..\..\wad\ 
+
+# End Custom Build
 
 !ELSEIF  "$(CFG)" == "ReMooD - Win32 Release SDL"
 
@@ -152,8 +182,18 @@ BSC32=bscmake.exe
 LINK32=link.exe
 # ADD BASE LINK32 kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib SDL.lib SDLmain.lib winmm.lib /nologo /subsystem:console /machine:I386 /out:"..\..\bin\remood.exe"
 # SUBTRACT BASE LINK32 /pdb:none
-# ADD LINK32 kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib SDL.lib SDLmain.lib winmm.lib  ws2_32.lib /nologo /subsystem:console /machine:I386 /out:"..\..\bin\remood.exe"
+# ADD LINK32 kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib SDL.lib SDLmain.lib winmm.lib ws2_32.lib /nologo /subsystem:console /machine:I386 /out:"..\..\bin\remood.exe"
 # SUBTRACT LINK32 /pdb:none
+# Begin Custom Build
+ProjDir=.
+TargetDir=\cygwin\home\Steven\ReMooD\bin
+InputPath=\cygwin\home\Steven\ReMooD\bin\remood.exe
+SOURCE="$(InputPath)"
+
+"$(TargetDir)\remood.wad" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
+	$(TargetDir)\rmdtex.exe  $(ProjDir)\..\..\wad\wadinfo.txt  $(TargetDir)\remood.wad  $(ProjDir)\..\..\wad\ 
+
+# End Custom Build
 
 !ENDIF 
 

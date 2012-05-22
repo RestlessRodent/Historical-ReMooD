@@ -4049,6 +4049,10 @@ static bool_t PS_ExtraSpecialOCCB(const bool_t a_Pushed, const struct WL_WADFile
 	PS_SpecialMapMajor_t* ThisMajor;
 	PS_SpecialMapMajor_t* Majors;
 	size_t NumMajors;
+
+	/* Init */
+	Majors = ThisMajor = ThisMinor = ThisSub = NULL;
+	NumMajors = 0;
 	
 	/* Load LineDef Specials */
 	// Clear

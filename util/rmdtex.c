@@ -29,10 +29,38 @@
 
 #include <stdio.h>
 #include <stdlib.h>
-#include <stdint.h>
 #include <stddef.h>
 #include <limits.h>
 #include <string.h>
+#include <ctype.h>
+
+/* C99 Complaint Compilers */
+#if (__STDC_VERSION__ >= 199901L) || defined(__GNUC__) || defined(__WATCOMC__)
+	#include <stdint.h>
+
+/* Microsoft Visual C++ */
+#elif defined(_MSC_VER)
+	typedef signed __int8 int8_t;
+	typedef signed __int16 int16_t;
+	typedef signed __int32 int32_t;
+	typedef signed __int64 int64_t;
+	typedef unsigned __int8 uint8_t;
+	typedef unsigned __int16 uint16_t;
+	typedef unsigned __int32 uint32_t;
+	typedef unsigned __int64 uint64_t;
+	
+	#define strncasecmp strnicmp
+	#define strcasecmp stricmp
+	#define snprintf _snprintf
+#endif
+
+#ifndef PATH_MAX
+	#ifdef MAX_PATH
+		#define PATH_MAX MAX_PATH
+	#else
+		#define PATH_MAX 4096
+	#endif
+#endif
 
 /********************
 *** BYTE SWAPPING ***
@@ -604,10 +632,10 @@ static int Handler_PatchT(struct LumpDir_s* const a_LumpDir, FILE* const File, c
 	}
 	
 	/* Get posts */
-	Posts = malloc(sizeof(*Posts) * Image->Width);
-	NumPosts = malloc(sizeof(*NumPosts) * Image->Width);
-	memset(Posts, 0, sizeof(Posts));
-	memset(NumPosts, 0, sizeof(NumPosts));
+	Posts = malloc(sizeof(*Posts) * (Image->Width + 1));
+	NumPosts = malloc(sizeof(*NumPosts) * (Image->Width + 1));
+	memset(Posts, 0, sizeof(*Posts) * (Image->Width + 1));
+	memset(NumPosts, 0, sizeof(*NumPosts) * (Image->Width + 1));
 	
 	// go through each columns
 	for (x = 0; x < Image->Width; x++)

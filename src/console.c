@@ -2214,6 +2214,12 @@ bool_t CONL_DrawConsole(void)
 		// Get character dimensions
 		bw = V_FontWidth(l_CONFont.Value[0].Int);
 		bh = V_FontHeight(l_CONFont.Value[0].Int);
+
+		// Bad character dimensions?
+		if (bw <= 0)
+			bw = 1;
+		if (bh <= 0)
+			bh = 1;
 		
 		// Default background draw flags
 		BackFlags = VEX_COLORMAP(l_CONBackColor.Value[0].Int);
