@@ -59,7 +59,7 @@ BSC32=bscmake.exe
 LINK32=link.exe
 # ADD BASE LINK32 kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib SDL.lib SDLmain.lib winmm.lib /nologo /subsystem:console /debug /machine:I386 /out:"..\..\bin\remood-dbg.exe" /pdbtype:sept
 # SUBTRACT BASE LINK32 /pdb:none
-# ADD LINK32 kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib alleg.lib winmm.lib /nologo /subsystem:windows /debug /machine:I386 /out:"..\..\bin\remood-dbg.exe" /pdbtype:sept
+# ADD LINK32 kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib alleg.lib winmm.lib ws2_32.lib /nologo /subsystem:windows /debug /machine:I386 /out:"..\..\bin\remood-dbg.exe" /pdbtype:sept
 # SUBTRACT LINK32 /pdb:none
 
 !ELSEIF  "$(CFG)" == "ReMooD - Win32 Release Allegro"
@@ -90,7 +90,7 @@ BSC32=bscmake.exe
 LINK32=link.exe
 # ADD BASE LINK32 kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib SDL.lib SDLmain.lib winmm.lib /nologo /subsystem:console /machine:I386 /out:"..\..\bin\remood.exe"
 # SUBTRACT BASE LINK32 /pdb:none
-# ADD LINK32 kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib alleg.lib winmm.lib /nologo /subsystem:windows /machine:I386 /out:"..\..\bin\remood.exe"
+# ADD LINK32 kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib alleg.lib winmm.lib  ws2_32.lib /nologo /subsystem:windows /machine:I386 /out:"..\..\bin\remood.exe"
 # SUBTRACT LINK32 /pdb:none
 
 !ELSEIF  "$(CFG)" == "ReMooD - Win32 Debug SDL"
@@ -121,7 +121,7 @@ BSC32=bscmake.exe
 LINK32=link.exe
 # ADD BASE LINK32 kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib SDL.lib SDLmain.lib winmm.lib /nologo /subsystem:console /debug /machine:I386 /out:"..\..\bin\remood-dbg.exe" /pdbtype:sept
 # SUBTRACT BASE LINK32 /pdb:none
-# ADD LINK32 kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib SDL.lib SDLmain.lib winmm.lib /nologo /subsystem:console /debug /machine:I386 /out:"..\..\bin\remood-dbg.exe" /pdbtype:sept
+# ADD LINK32 kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib SDL.lib SDLmain.lib winmm.lib  ws2_32.lib /nologo /subsystem:console /debug /machine:I386 /out:"..\..\bin\remood-dbg.exe" /pdbtype:sept
 # SUBTRACT LINK32 /pdb:none
 
 !ELSEIF  "$(CFG)" == "ReMooD - Win32 Release SDL"
@@ -152,7 +152,7 @@ BSC32=bscmake.exe
 LINK32=link.exe
 # ADD BASE LINK32 kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib SDL.lib SDLmain.lib winmm.lib /nologo /subsystem:console /machine:I386 /out:"..\..\bin\remood.exe"
 # SUBTRACT BASE LINK32 /pdb:none
-# ADD LINK32 kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib SDL.lib SDLmain.lib winmm.lib /nologo /subsystem:console /machine:I386 /out:"..\..\bin\remood.exe"
+# ADD LINK32 kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib SDL.lib SDLmain.lib winmm.lib  ws2_32.lib /nologo /subsystem:console /machine:I386 /out:"..\..\bin\remood.exe"
 # SUBTRACT LINK32 /pdb:none
 
 !ENDIF 
@@ -324,10 +324,6 @@ SOURCE=..\..\src\m_random.c
 # Begin Source File
 
 SOURCE=..\..\src\p_ceilng.c
-# End Source File
-# Begin Source File
-
-SOURCE=..\..\src\p_chex.c
 # End Source File
 # Begin Source File
 
@@ -750,6 +746,18 @@ SOURCE=..\..\src\allegro\i_video.c
 
 # End Source File
 # End Group
+# Begin Group "b_"
+
+# PROP Default_Filter ""
+# Begin Source File
+
+SOURCE=..\..\src\b_bot.c
+# End Source File
+# Begin Source File
+
+SOURCE=..\..\src\b_ghost.c
+# End Source File
+# End Group
 # Begin Source File
 
 SOURCE=..\..\src\command.c
@@ -757,6 +765,10 @@ SOURCE=..\..\src\command.c
 # Begin Source File
 
 SOURCE=..\..\src\console.c
+# End Source File
+# Begin Source File
+
+SOURCE=..\..\src\dbopl.c
 # End Source File
 # Begin Source File
 
@@ -817,6 +829,14 @@ SOURCE=..\..\src\z_zone.c
 # Begin Source File
 
 SOURCE=..\..\src\am_map.h
+# End Source File
+# Begin Source File
+
+SOURCE=..\..\src\b_bot.h
+# End Source File
+# Begin Source File
+
+SOURCE=..\..\src\bootdata.h
 # End Source File
 # Begin Source File
 
@@ -893,6 +913,10 @@ SOURCE=..\..\src\d_think.h
 # Begin Source File
 
 SOURCE=..\..\src\d_ticcmd.h
+# End Source File
+# Begin Source File
+
+SOURCE=..\..\src\dbopl.h
 # End Source File
 # Begin Source File
 

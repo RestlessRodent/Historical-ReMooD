@@ -37,6 +37,8 @@
 *** INCLUDES ***
 ***************/
 
+#include "doomtype.h"
+
 #if defined(__MSDOS__)
 	// DOS Has Nothing
 
@@ -48,6 +50,19 @@
 	
 	#define __REMOOD_SOCKETCLOSE closesocket
 	#define __REMOOD_DONTWAITMSG 0
+
+	#if defined(_MSC_VER)
+		#if (_MSC_VER > 1200)
+			#define __REMOOD_ENABLEIPV6
+		#else
+			// VC6 lacks some newer types
+			typedef int32_t socklen_t;
+			struct sockaddr_storage
+			{
+				uint8_t Junk[256];
+			};
+		#endif
+	#endif
 #else
 	// POSIX Sockets
 	#include <sys/socket.h>
@@ -59,6 +74,8 @@
 	
 	#define __REMOOD_SOCKETCLOSE close
 	#define __REMOOD_DONTWAITMSG MSG_DONTWAIT
+
+	#define __REMOOD_ENABLEIPV6
 #endif
 
 #include "i_util.h"
@@ -89,7 +106,9 @@ struct I_NetSocket_s
 	int SockFD[2];								// Socket descriptor (from socket)
 	int TCPFD[2];								// TCP descriptor (after accept)
 	struct sockaddr_in v4Addr;					// IPv4 Address
+#if defined(__REMOOD_ENABLEIPV6)
 	struct sockaddr_in6 v6Addr;					// IPv6 Address
+#endif
 	
 	/* Socket Buffers */
 	struct
@@ -199,6 +218,7 @@ static void IS_NetAddrWrapToNative(const I_HostAddress_t* const a_Host, struct s
 	}
 	
 	/* Convert to v6 */
+#if defined(__REMOOD_ENABLEIPV6)
 	if (a_V6)
 	{
 		a_V6->sin6_family = AF_INET6;
@@ -207,6 +227,7 @@ static void IS_NetAddrWrapToNative(const I_HostAddress_t* const a_Host, struct s
 		for (i = 0; i < 16; i++)
 			a_V6->sin6_addr.s6_addr[i] = a_Host->Host.v6.b[i];
 	}
+#endif
 }
 #endif
 
@@ -240,6 +261,7 @@ static void IS_NetAddrNativeToWrap(I_HostAddress_t* const a_Host, const struct s
 			a_Host->Host.v4.b[i] = (T4 >> ((3-i) * 8U)) & 0xFFU;
 	}
 	
+#if defined(__REMOOD_ENABLEIPV6)
 	/* IPv6 Address */
 	else if (((struct sockaddr_in6*)a_SockAddr)->sin6_family == AF_INET6)
 	{
@@ -251,6 +273,7 @@ static void IS_NetAddrNativeToWrap(I_HostAddress_t* const a_Host, const struct s
 		for (i = 0; i < 16; i++)
 			a_Host->Host.v6.b[i] = ((struct sockaddr_in6*)a_SockAddr)->sin6_addr.s6_addr[i];
 	}
+#endif
 	
 	/* Convert v4 address to v6? */
 }
@@ -268,7 +291,9 @@ I_NetSocket_t* I_NetOpenSocket(const bool_t a_Server, const I_HostAddress_t* con
 	int SockOpt;
 	int* pSockFD;
 	size_t i;
+#if defined(__REMOOD_ENABLEIPV6)
 	struct in6_addr Any6 = IN6ADDR_ANY_INIT;
+#endif
 	struct sockaddr* Addr;
 	socklen_t SockLen;
 	unsigned long NBVal;
@@ -300,6 +325,7 @@ I_NetSocket_t* I_NetOpenSocket(const bool_t a_Server, const I_HostAddress_t* con
 			TempSock.IPvX |= INIPVN_IPV4;
 	}
 	
+#if defined(__REMOOD_ENABLEIPV6)
 	/* Make IPv6 socket */
 	else
 	{
@@ -324,7 +350,8 @@ I_NetSocket_t* I_NetOpenSocket(const bool_t a_Server, const I_HostAddress_t* con
 				TempSock.BadOnlySix = true;
 		}
 	}
-	
+#endif
+
 	if (!(TempSock.IPvX & INIPVN_IPV4) && !(TempSock.IPvX & INIPVN_IPV6))
 		return NULL;
 	
@@ -332,6 +359,7 @@ I_NetSocket_t* I_NetOpenSocket(const bool_t a_Server, const I_HostAddress_t* con
 	TempSock.UDP = true;
 	
 	/* Start opening ports */
+#if defined(__REMOOD_ENABLEIPV6)
 	// Open port on v6 side
 	if (TempSock.IPvX & INIPVN_IPV6)
 	{
@@ -345,6 +373,7 @@ I_NetSocket_t* I_NetOpenSocket(const bool_t a_Server, const I_HostAddress_t* con
 		// Copy port
 		TempSock.v6Addr.sin6_port = htons(a_Port);
 	}
+#endif
 	
 	// Open port on v4 side
 	if (TempSock.IPvX & INIPVN_IPV4)
@@ -369,6 +398,7 @@ I_NetSocket_t* I_NetOpenSocket(const bool_t a_Server, const I_HostAddress_t* con
 		pSockFD = &TempSock.SockFD[0];
 	}
 	
+#if defined(__REMOOD_ENABLEIPV6)
 	// IPv6?
 	else
 	{
@@ -376,6 +406,7 @@ I_NetSocket_t* I_NetOpenSocket(const bool_t a_Server, const I_HostAddress_t* con
 		SockLen = sizeof(TempSock.v6Addr);
 		pSockFD = &TempSock.SockFD[1];
 	}
+#endif
 		
 	// Set non-block socket
 #if !defined(_WIN32)

@@ -193,7 +193,7 @@ static fixed_t __REMOOD_INLINE __REMOOD_UNUSED FixedDiv(fixed_t a, fixed_t b)
 	if (b == 0)
 		return 0x7FFFFFFF | (a & 0x80000000);
 	else
-		return (((int64_t)a) << (int64_t)FRACBITS) / ((int64_t)b);
+		return (fixed_t)((((((int64_t)a) << (int64_t)FRACBITS) / ((int64_t)b)) & INT64_C(0xFFFFFFFF)));
 #endif
 }
 

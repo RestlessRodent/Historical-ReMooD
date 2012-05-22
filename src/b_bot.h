@@ -52,6 +52,7 @@ typedef struct B_BotData_s B_BotData_t;
 /* B_GhostBot_t -- GhostlyBots information */
 typedef struct B_GhostBot_s
 {
+	uint8_t Junk;								// Junk Data
 } B_GhostBot_t;
 
 /**************

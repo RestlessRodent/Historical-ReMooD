@@ -49,6 +49,7 @@
 #include "r_splats.h"			//faB: in dev.
 #include "p_demcmp.h"
 #include "m_cheat.h"
+#include "b_bot.h"
 
 // protos.
 CV_PossibleValue_t viewheight_cons_t[] = { {16, "MIN"}
@@ -126,7 +127,10 @@ bool_t P_SetMobjState(mobj_t* mobj, statenum_t state)
 	static int recursion;		// detects recursion
 	statenum_t i = state;		// initial state
 	bool_t ret = true;			// return value
-	statenum_t tempstate[NUMSTATES];	// for use with recursion
+	statenum_t* tempstate;	// for use with recursion
+
+	// GhostlyDeath <May 21, 2012> -- Allocate locally for VC6
+	tempstate = Z_Malloc(sizeof(*tempstate) * NUMSTATES, PU_STATIC, NULL);
 	
 	// GhostlyDeath <April 23, 2012> -- Seen cycles
 	if (!seenstate_tab || OldNumStates != NUMSTATES)
@@ -140,7 +144,7 @@ bool_t P_SetMobjState(mobj_t* mobj, statenum_t state)
 	seenstate = seenstate_tab;
 	
 	if (recursion++)			// if recursion detected,
-		memset(seenstate = tempstate, 0, sizeof tempstate);	// clear state table
+		memset(seenstate = tempstate, 0, sizeof(*tempstate) * NUMSTATES);	// clear state table
 		
 	do
 	{
@@ -185,7 +189,10 @@ bool_t P_SetMobjState(mobj_t* mobj, statenum_t state)
 	if (!--recursion)
 		for (; (state = seenstate[i]); i = state - 1)
 			seenstate[i] = 0;	// killough 4/9/98: erase memory of states
-			
+	
+	// Free local storage
+	Z_Free(tempstate);
+
 	return ret;
 }
 
@@ -2437,9 +2444,6 @@ mobj_t* P_RefMobjReal(const P_MobjRefType_t a_Type, mobj_t* const a_SourceRef, m
 		ChangePtr = &a_SourceRef->target;
 	else if (a_Type == PMRT_TRACER)
 		ChangePtr = &a_SourceRef->tracer;
-		
-	struct mobj_s** RefList[NUMPMOBJREFTYPES];	// Reference List
-	size_t RefListSz[NUMPMOBJREFTYPES];			// Size of reference list
 	
 	/* Remove old reference */
 	if (*ChangePtr)

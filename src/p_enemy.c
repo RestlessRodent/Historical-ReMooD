@@ -731,6 +731,8 @@ seeyou:
 	P_SetMobjState(actor, actor->info->seestate);
 }
 
+void A_FaceTarget(mobj_t* actor, player_t* player, pspdef_t* psp);
+
 //
 // A_Chase
 // Actor has a melee attack,
@@ -2198,7 +2200,6 @@ void A_BrainExplode(mobj_t* mo, player_t* player, pspdef_t* psp)
 	int y;
 	int z;
 	mobj_t* th;
-	mobjtype_t SpawnThing;
 	
 	x = (P_SignedRandom() << 11) + mo->x;
 	y = mo->y;

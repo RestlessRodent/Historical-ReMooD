@@ -202,6 +202,8 @@ void Chip__GenerateBlock2(Chip *self, Bitu total, Bit32s* output );
 
 // haleyjd 09/09/10: Not standard C.
 #ifdef _MSC_VER
-#define inline __inline
+	#ifndef inline
+		#define inline __inline
+	#endif
 #endif
 

@@ -64,3 +64,5 @@ glob:ReMooD_private.rc
 glob:ReMooD_private.h
 glob:remoodex.cfg
 glob:desktop.ini
+syntax: glob
+proj/vc6/ReMooD.opt

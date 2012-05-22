@@ -36,225 +36,10 @@
 
 #include "d_block.h"
 #include "z_zone.h"
-
-/*****************
-*** STRUCTURES ***
-*****************/
-
-/* D_TBlock_s -- Transport block */
-struct D_TBlock_s
-{
-	uint32_t Magic;								// Block magic
-	uint32_t Flags;								// Flags for blokc
-	uint32_t DataSize;							// Size of block
-	void* Data;									// Block Data
-};
-
-/**************************
-*** GENERIC FILE STREAM ***
-**************************/
-
-/* D_GFS_DeleteStream() -- Delete file stream */
-void D_GFS_DeleteStream(struct D_TStreamSource_s* const a_Stream)
-{
-	/* Check */
-	if (!a_Stream)
-		return;
-	
-	/* Close file */
-	if (a_Stream->Data)
-		fclose(a_Stream->Data);
-}
-
-/* D_GFS_Send() -- Write data to file */
-D_TBlockErr_t D_GFS_Send(struct D_TStreamSource_s* const a_Stream, D_TBlock_t** const a_BlkPtrIn, const uint32_t a_TFlags, D_TStreamStat_t* const a_StatPtr, void** const a_DataPtr)
-{
-	FILE* f;
-	size_t Total;
-	
-	/* Check */
-	if (!a_Stream || !a_BlkPtrIn || !*a_BlkPtrIn || !a_DataPtr)
-		return DTBE_INVALIDARGUMENT;
-		
-	/* Get origin file */
-	f = (FILE*)a_Stream->Data;
-	
-	/* Write data */
-	Total = 0;
-	
-	if (fwrite(&(*a_BlkPtrIn)->Magic, 4, 1, f) > 0)
-		Total += 4;
-	if (fwrite(&(*a_BlkPtrIn)->DataSize, 4, 1, f) > 0)
-		Total += 4;
-	if (fwrite((*a_BlkPtrIn)->Data, (*a_BlkPtrIn)->DataSize, 1, f) > 0)
-		Total += (*a_BlkPtrIn)->DataSize;
-	
-	/* Stat */
-	if (a_StatPtr)
-	{
-		a_StatPtr->LastTime[0] = I_GetTimeMS();
-		a_StatPtr->BlkXMit[0]++;
-		a_StatPtr->ByteXMit[0] += Total;
-	}
-	
-	/* Success */
-	return DTBE_SUCCESS;
-}
-
-/* D_GFS_Recv() -- Read data from file */
-D_TBlockErr_t D_GFS_Recv(struct D_TStreamSource_s* const a_Stream, D_TBlock_t** const a_BlkPtrOut, const uint32_t a_TFlags, D_TStreamStat_t* const a_StatPtr, void** const a_DataPtr)
-{
-}
-
-/* D_CreateFileInStream() -- Create file input (read) stream */
-D_TStreamSource_t* D_CreateFileInStream(const char* const a_PathName)
-{
-	return NULL;
-}
-
-/* D_CreateFileOutStream() -- Create file output (write) stream */
-D_TStreamSource_t* D_CreateFileOutStream(const char* const a_PathName)
-{
-	D_TStreamSource_t* New;
-	FILE* f;
-	
-	/* Check */
-	if (!a_PathName)
-		return NULL;
-	
-	/* Try opening the file */
-	f = fopen(a_PathName, "w+b");
-	
-	// Check
-	if (!f)
-		return NULL;
-	
-	/* Create */
-	New = Z_Malloc(sizeof(*New), PU_STATIC, NULL);
-	
-	/* Fill */
-	New->Data = f;
-	New->FuncSend = D_GFS_Send;
-	New->FuncDeleteStream = D_GFS_DeleteStream;
-	
-	/* Return */
-	return New;
-}
-
-/****************
-*** FUNCTIONS ***
-****************/
-
-/* D_BlockStreamDelete() -- Delete stream */
-void D_BlockStreamDelete(D_TStreamSource_t* const a_Stream)
-{
-	if (!a_Stream)
-		return;
-	
-	/* Call delete func */
-	if (a_Stream->FuncDeleteStream)
-		a_Stream->FuncDeleteStream(a_Stream);
-	
-	/* Free */
-	Z_Free(a_Stream);
-}
-
-/* D_BlockNew() -- Creates a new block */
-D_TBlock_t* D_BlockNew(const uint32_t a_Magic, const uint32_t a_Flags, const uint32_t a_Size, void** const a_DataPtr)
-{
-	D_TBlock_t* New;
-	
-	/* Create */
-	New = Z_Malloc(sizeof(*New), PU_STATIC, NULL);
-	
-	/* Fill */
-	New->Magic = a_Magic;
-	New->Flags = a_Flags;
-	
-	// Is there possible data?
-	if (a_DataPtr)
-	{
-		New->DataSize = a_Size;
-		New->Data = Z_Malloc(New->DataSize, PU_STATIC, NULL);
-		
-		*a_DataPtr = New->Data;
-	}
-	
-	/* Return */
-	return New;
-}
-
-/* D_CharToMagic() -- Character stream to magic */
-uint32_t D_CharToMagic(const char* const a_CharMagic)
-{
-	uint32_t Ret;
-	const char* p;
-	
-	/* Check */
-	if (!a_CharMagic)
-		return 0;
-	
-	/* Run */
-	for (Ret = 0, p = a_CharMagic; *p; p++)
-	{
-		Ret <<= 8;
-		Ret |= *p;
-	}
-	
-	return Ret;
-}
-
-/* D_BlockFree() -- Frees an allocated block */
-void D_BlockFree(D_TBlock_t* const a_Block)
-{
-	/* Check */
-	if (!a_Block)
-		return;
-	
-	/* Free data if it exists */
-	if (a_Block->Data)
-		Z_Free(a_Block->Data);
-	a_Block->Data = NULL;
-	
-	/* Clear */
-	a_Block->Magic = 0;
-	a_Block->Flags = 0;
-	a_Block->DataSize = 0;
-	
-	/* Free */
-	Z_Free(a_Block);
-}
-
-/* D_BlockRecv() -- Receive block */
-D_TBlockErr_t D_BlockRecv(D_TStreamSource_t* const a_Stream, D_TBlock_t** const a_BlkPtr)
-{
-	/* Check */
-	if (!a_Stream || !a_BlkPtr)
-		return DTBE_INVALIDARGUMENT;
-	
-	/* Check if there is a recv func */
-	if (!a_Stream->FuncRecv)
-		return DTBE_NOTTHISDIRECTION;
-	
-	/* Use function */
-	return a_Stream->FuncRecv(a_Stream, a_BlkPtr, a_Stream->BlockDefFlags, &a_Stream->Stat, &a_Stream->Data);
-}
-
-/* D_BlockSend() -- Send block */
-D_TBlockErr_t D_BlockSend(D_TStreamSource_t* const a_Stream, D_TBlock_t** const a_BlkPtr)
-{
-	if (!a_Stream || !a_BlkPtr)
-		return DTBE_INVALIDARGUMENT;
-		
-	/* Check if there is a send func */
-	if (!a_Stream->FuncSend)
-		return DTBE_NOTTHISDIRECTION;
-	
-	/* Use function */
-	return a_Stream->FuncSend(a_Stream, a_BlkPtr, a_Stream->BlockDefFlags, &a_Stream->Stat, &a_Stream->Data);
-}
-
-/*****************************************************************************/
+#include "console.h"
+#include "i_system.h"
+#include "m_random.h"
+#include "m_misc.h"
 
 /******************
 *** FILE STREAM ***
@@ -263,8 +48,6 @@ D_TBlockErr_t D_BlockSend(D_TStreamSource_t* const a_Stream, D_TBlock_t** const 
 /* DS_RBSFile_DeleteF() -- Delete file stream */
 static void DS_RBSFile_DeleteF(struct D_RBlockStream_s* const a_Stream)
 {
-	FILE* File;
-	
 	/* Check */
 	if (!a_Stream)
 		return;
@@ -405,7 +188,6 @@ static void DS_RBSLoopBack_DeleteF(struct D_RBlockStream_s* const a_Stream)
 {
 	size_t i;
 	DS_RBSLoopBackData_t* LoopData;
-	DS_RBSLoopBackHold_t* Hold;
 	
 	/* Check */
 	if (!a_Stream)
@@ -590,7 +372,6 @@ typedef struct I_RBSNetSockData_s
 /* DS_RBSNet_DeleteF() -- Delete network stream */
 static void DS_RBSNet_DeleteF(struct D_RBlockStream_s* const a_Stream)
 {
-	I_NetSocket_t* Socket;
 	I_RBSNetSockData_t* NetData;
 	
 	/* Check */
@@ -613,7 +394,6 @@ size_t DS_RBSNet_NetRecordF(struct D_RBlockStream_s* const a_Stream, I_HostAddre
 	I_RBSNetSockData_t* NetData;
 	I_NetSocket_t* Socket;
 	size_t RetVal, sz, i;
-	uint32_t BlockSize;
 	uint8_t* TBuf = NULL;
 	
 	/* Check */
@@ -658,7 +438,6 @@ bool_t DS_RBSNet_NetPlayF(struct D_RBlockStream_s* const a_Stream, I_HostAddress
 	I_NetSocket_t* Socket;
 	char Header[5];
 	uint32_t Len;
-	void* Data;
 	size_t RetVal;
 	
 	/* Check */
@@ -1006,7 +785,7 @@ static DS_RBSPerfectKey_t* DS_RBSPerfect_IntFindKey(struct D_RBlockStream_s* con
 /* DS_RBSPerfect_NetRecordF() -- Write block to perfect stream */
 static size_t DS_RBSPerfect_NetRecordF(struct D_RBlockStream_s* const a_Stream, I_HostAddress_t* const a_Host)
 {
-	size_t i, k, b, z;
+	size_t i, b, z;
 	DS_RBSPerfectData_t* PerfectData;
 	DS_RBSPerfectHold_t* Hold;
 	DS_RBSPerfectKey_t* Key;
@@ -1247,29 +1026,11 @@ static size_t DS_RBSPerfect_NetRecordF(struct D_RBlockStream_s* const a_Stream, 
 							MaskEnc
 						);
 			}
-			
-			
-	uint32_t PacketNum;
-	uint32_t CheckSum;							// Simplified Checksum
-	uint32_t ClockTime;							// Time packet was stored
-	uint32_t AutoRackTime;						// time to retransmit
-	bool_t RackTimeIsLess;						// Less than
-	bool_t ReTransmit;							// Retransmit block
-	bool_t BlockAck;							// Block acknowledged
-	I_HostAddress_t RemHost;					// Remote Host
 		}
 		
 		// Stop sending packets like crazy;
 		KeepSending = false;
 	} while (KeepSending);
-	
-		
-	uint32_t PacketNum;
-	uint32_t CheckSum;							// Simplified Checksum
-	uint32_t ClockTime;							// Time packet was stored
-	bool_t ReTransmit;							// Retransmit block
-	bool_t BlockAck;							// Block acknowledged
-	
 	
 #if 0
 	/* Store info in hold */
@@ -1281,12 +1042,10 @@ static size_t DS_RBSPerfect_NetRecordF(struct D_RBlockStream_s* const a_Stream, 
 	Hold->Data = Z_Malloc(Hold->Size, PU_BLOCKSTREAM, NULL);
 	memmove(Hold->Data, a_Stream->BlkData, Hold->Size);
 	Hold->FlushID = LoopData->FlushID + 1;
-	
+#endif
+
 	/* Return value does not matter */
 	return 1;
-
-	return 0;
-#endif
 }
 
 /* DS_RBSPerfect_NetPlayF() -- Play block from the perfect stream */
@@ -1761,7 +1520,7 @@ D_RBlockStream_t* D_RBSCreateFileStream(const char* const a_PathName)
 	
 	// Failed?
 	if (!File)
-		return;
+		return NULL;
 	
 	/* Create block stream */
 	New = Z_Malloc(sizeof(*New), PU_BLOCKSTREAM, NULL);
@@ -1779,7 +1538,6 @@ D_RBlockStream_t* D_RBSCreateFileStream(const char* const a_PathName)
 /* D_RBSCreateNetStream() -- Create network stream */
 D_RBlockStream_t* D_RBSCreateNetStream(I_NetSocket_t* const a_NetSocket)
 {
-	FILE* File;
 	D_RBlockStream_t* New;
 	I_RBSNetSockData_t* NetData;
 	
@@ -1971,7 +1729,7 @@ bool_t D_RBSPlayBlock(D_RBlockStream_t* const a_Stream, char* const a_Header)
 {
 	/* Check */
 	if (!a_Stream)
-		return;
+		return false;
 	
 	/* Call recorder */
 	// Local
@@ -2018,7 +1776,7 @@ bool_t D_RBSPlayNetBlock(D_RBlockStream_t* const a_Stream, char* const a_Header,
 {
 	/* Check */
 	if (!a_Stream)
-		return;
+		return false;
 	
 	/* Call recorder */
 	// Networked
@@ -2083,7 +1841,7 @@ bool_t D_RBSFlushStream(D_RBlockStream_t* const a_Stream)
 {
 	/* Check */
 	if (!a_Stream)
-		return;
+		return false;
 	
 	/* Call flusher */
 	if (a_Stream->FlushF)
@@ -2160,7 +1918,7 @@ void D_RBSWritePointer(D_RBlockStream_t* const a_Stream, const void* const a_Ptr
 	/* Write all the pointer bits (for UUID in a way) */
 	XP = (uint64_t)((uintptr_t)a_Ptr);
 	for (i = 0; i < sizeof(a_Ptr); i++)
-		D_RBSWriteUInt8(a_Stream, ((XP >> ((UINT64_C(8) * ((uint64_t)i)))) & UINT64_C(0xFF)));
+		D_RBSWriteUInt8(a_Stream, (uint8_t)(((XP >> ((UINT64_C(8) * ((uint64_t)i)))) & UINT64_C(0xFF))));
 		//OP |= ((uint64_t)D_RBSReadUInt8(a_Stream)) << ((UINT64_C(8) * ((uint64_t)i)));
 }
 

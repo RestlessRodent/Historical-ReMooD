@@ -1335,7 +1335,9 @@ uint64_t I_GetFreeMemory(uint64_t* const a_TotalMem)
 	
 	/* Windows 32-bit */
 #elif defined(_WIN32)
-	
+	// TODO FIXME
+	return 0;
+
 	/* Linux */
 #elif defined(__linux__)
 	// TODO: This could probably be improved, but it is only called in few places

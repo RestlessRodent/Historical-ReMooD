@@ -32,6 +32,8 @@
 *** INCLUDES ***
 ***************/
 
+#include <time.h>
+
 #include "doomtype.h"
 #include "doomdef.h"
 #include "g_game.h"
@@ -48,6 +50,7 @@
 #include "p_info.h"
 #include "p_demcmp.h"
 #include "d_main.h"
+#include "m_menu.h"
 
 /*************
 *** LOCALS ***

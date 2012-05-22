@@ -147,6 +147,7 @@ void P_RunThinkers(void)
 {
 	size_t i;
 	thinker_t* currentthinker;
+	thinker_t* removeit;
 	
 	currentthinker = thinkercap.next;
 	while (currentthinker != &thinkercap)
@@ -157,8 +158,6 @@ void P_RunThinkers(void)
 		
 		if (currentthinker->function.acv == (actionf_v) (-1))
 		{
-			void* removeit;
-			
 			// time to remove it
 			currentthinker->next->prev = currentthinker->prev;
 			currentthinker->prev->next = currentthinker->next;

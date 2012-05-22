@@ -152,7 +152,15 @@
 	typedef unsigned __int64 uint64_t;
 
 	// Stuff MSVC <= 6 Lacks
-	typedef size_t uintptr_t;
+	#if _MSC_VER <= 1200
+		typedef int32_t ssize_t;
+		typedef size_t uintptr_t;
+		typedef ssize_t intptr_t;
+
+		#define UINT32_C(x) x
+		#define INT64_C(x) x##i64
+		#define UINT64_C(x) x##ui64
+	#endif
 	
 	#define __REMOOD_LL_SUFFIX(a) a##i64
 	#define __REMOOD_ULL_SUFFIX(a) a##ui64

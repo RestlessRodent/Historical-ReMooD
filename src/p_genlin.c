@@ -1417,10 +1417,10 @@ bool_t EV_TryGenTrigger(line_t* const a_Line, const int a_Side, mobj_t* const a_
 					(a_Object->player && !(a_Object->RXFlags[0] & MFREXA_ISPLAYEROBJECT)))
 			{
 				if (!(a_Line->special & DoorMonster) && !(a_Flags & EVTGTF_FORCEUSE))
-					return;		// monsters disallowed from this door
+					return false;		// monsters disallowed from this door
 				
 				if (a_Line->flags & ML_SECRET)	// they can't open secret doors either
-					return;
+					return false;
 			}
 			
 			// Only accept push w/o tag
@@ -1559,7 +1559,7 @@ bool_t EV_TryGenTrigger(line_t* const a_Line, const int a_Side, mobj_t* const a_
 		else
 		{
 			// Not map start
-			if (TrigMode != EVTGT_MAPSTART)
+			if (a_Type != EVTGT_MAPSTART)
 				return false;
 			
 			// Never use map starts again

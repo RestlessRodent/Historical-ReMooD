@@ -1018,6 +1018,9 @@ static const char* PS_GetMobjNoun(mobj_t* const a_Mobj, bool_t* const a_Special,
 				return (a_Mobj->info->RNiceName ? a_Mobj->info->RNiceName : a_Mobj->info->RClassName);
 		}
 	}
+
+	/* No name */
+	return NULL;
 }
 
 /* P_DeathMessages() -- Display message of thing dying */
@@ -1488,7 +1491,7 @@ bool_t P_DamageMobj(mobj_t* target, mobj_t* inflictor, mobj_t* source, int damag
 		// If this is another player, do not target
 		if (P_EXGSGetValue(PEXGSBID_FUNNOTARGETPLAYER))
 			if (source->player)
-				return;
+				return takedamage;
 		
 		// if not intent on another player,
 		// chase after this one

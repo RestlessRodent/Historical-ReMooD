@@ -45,9 +45,6 @@
 
 void P_InitSGConsole(void);
 
-bool_t P_SaveGameStream(D_TStreamSource_t* const a_Stream);
-bool_t P_LoadGameStream(D_TStreamSource_t* const a_Stream);
-
 // Persistent storage/archiving.
 // These are the load / save game routines.
 

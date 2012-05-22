@@ -2508,61 +2508,9 @@ typedef enum P_RMODSpecialTrigger_e
 
 /*** STRUCTURES ***/
 
-/* P_RMODSpecialEffect_t -- RMOD Special Effect */
-typedef struct P_RMODSpecialEffect_s
-{
-	/* Line Only */
-	bool_t Repeatable;							// Can be repeated
-	bool_t Triggers[NUMPRMODSPECTRIGGERS];		// Triggers to activate
-	bool_t TriggerSides[2];						// Side to trigger on
-	
-	/* Sector Only */
-	
-	/* Lines and Sectors */
-	P_RMODSpecialEffectType_t Type;				// Type of effect
-	
-	union
-	{
-		struct
-		{
-			bool_t OnFloor;						// [s] Damage when on floor
-			bool_t OnCeiling;					// [s] Damage when on ceiling
-			bool_t In3DFloor;					// [s] Damage when inside 3D Floor (swimming?)
-			bool_t InSector;					// [s] Damage when inside sector (but not 3D floor)
-			bool_t DelaySync;					// [s] true == Damage at gametic % Delay, false == damage at (gametic - playerentertic) % Delay
-			tic_t Delay;						// [s] [s] Delay damage
-			int32_t Damage;						// [*] Damage to deal every Delay tics
-		} Damage;								// Damage effect
-	} Data;										// Effect Data
-} P_RMODSpecialEffect_t;
-
-/* P_RMODSpecialInfo_t -- RMOD Special */
-typedef struct P_RMODSpecialInfo_s
-{
-	bool_t IsLine;								// Is a line special?
-	uint32_t TypeID;							// Type ID (activator)
-	
-	size_t NumEffects;							// Number of effects
-	P_RMODSpecialEffect_t* Effects;				// Effects
-	
-	union
-	{
-		struct
-		{
-		} Line;									// Line Data
-		
-		struct
-		{
-		} Sector;								// Sector Data
-	} Data;										// Data
-} P_RMODSpecialInfo_t;
-
 /* P_RMODSpecials_t -- RMOD Specials */
 typedef struct P_RMODSpecials_s
 {
-	size_t NumInfos;							// Number of infos
-	P_RMODSpecialInfo_t* Infos;					// Info table
-	
 	size_t NumTouchers;							// Number of touch specials
 	P_RMODTouchSpecial_t* Touchers;				// Touch specials
 } P_RMODSpecials_t;
@@ -2584,7 +2532,6 @@ bool_t P_RMODH_Specials(Z_Table_t* const a_Table, const WL_WADFile_t* const a_WA
 {
 	const char* TableName;
 	const char* Value;
-	P_RMODSpecialInfo_t TempInfo;
 	P_RMODTouchSpecial_t TempTouch;
 	D_RMODPrivate_t* RealPrivate;
 	P_RMODSpecials_t* Specs;
@@ -2608,7 +2555,6 @@ bool_t P_RMODH_Specials(Z_Table_t* const a_Table, const WL_WADFile_t* const a_WA
 	Specs = RealPrivate->Data;
 	
 	/* Clear */
-	memset(&TempInfo, 0, sizeof(TempInfo));
 	memset(&TempTouch, 0, sizeof(TempTouch));
 	
 	/* General Stuff */
@@ -2629,10 +2575,6 @@ bool_t P_RMODH_Specials(Z_Table_t* const a_Table, const WL_WADFile_t* const a_WA
 	/* Which special ID to handle? */
 	switch (a_ID)
 	{
-			// Sector specials
-		case DRMODP_SPECSECTOR:
-			return true;
-			
 			// Touch specials
 		case DRMODP_SPECTOUCH:
 			// Copy name to sprite

@@ -92,39 +92,6 @@ void P_InitSGConsole(void)
 	CONL_AddCommand("load", CLC_SaveGame);
 }
 
-/* P_SaveGameStream() -- Save game into specified stream */
-bool_t P_SaveGameStream(D_TStreamSource_t* const a_Stream)
-{
-	D_TBlock_t* NB;
-	void* d;
-	
-	/* Check */
-	if (!a_Stream)
-		return false;
-	
-	/* Print message */
-	CONL_OutputF("{4Saving game...");
-	
-	/* "HELO" Block */
-	NB = D_BlockNew(D_CharToMagic("HELO"), 0, 256, &d);
-	snprintf(d, 256, "ReMooD %i.%i%c (%s)", REMOOD_MAJORVERSION, REMOOD_MINORVERSION, REMOOD_RELEASEVERSION, REMOOD_VERSIONCODESTRING);
-	D_BlockSend(a_Stream, &NB);
-	
-	/* Print message */
-	CONL_OutputF("done!{z\n");
-	
-	return true;
-}
-
-/* P_LoadGameStream() -- Load game into specified stream */
-bool_t P_LoadGameStream(D_TStreamSource_t* const a_Stream)
-{
-	/* Check */
-	if (!a_Stream)
-		return false;
-}
-
-
 #define VERSIONSIZE 16
 uint8_t* save_p = NULL;			// Pointer to the data
 
@@ -2091,13 +2058,12 @@ bool_t P_LoadGameFromBS(D_RBlockStream_t* const a_Stream)
 	uint8_t u8;
 	uint32_t u32;
 	int32_t i, j, k, l;
+	mapthing_t* MapThing;
+	sector_t* Sector;
 	
 	/* Do bi-way */
 	return P_SGDXSpec(a_Stream, true);
 	return P_SGBiWayBS(a_Stream, true);
-	
-	mapthing_t* MapThing;
-	sector_t* Sector;
 	
 	/* Check */
 	if (!a_Stream)
