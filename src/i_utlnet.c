@@ -576,7 +576,7 @@ size_t I_NetRecv(I_NetSocket_t* const a_Socket, I_HostAddress_t* const a_Host, v
 bool_t I_NetNameToHost(I_HostAddress_t* const a_Host, const char* const a_Name)
 {
 #if defined(__MSDOS__)
-	return false
+	return false;
 	
 #else
 #define BUFSIZE	256
