@@ -447,10 +447,12 @@ void I_NetCloseSocket(I_NetSocket_t* const a_Socket)
 	if (!a_Socket)
 		return;
 	
-	/* Close all open files */
+	/* Close all open sockets */
+#if !defined(__MSDOS__)
 	for (i = 0; i < 2; i++)
 		if (a_Socket->SockFD[i] >= 0)
 			__REMOOD_SOCKETCLOSE(a_Socket->SockFD[i]);
+#endif
 	
 	/* Free away */
 	Z_Free(a_Socket);
@@ -573,6 +575,10 @@ size_t I_NetRecv(I_NetSocket_t* const a_Socket, I_HostAddress_t* const a_Host, v
 // work hopefully!
 bool_t I_NetNameToHost(I_HostAddress_t* const a_Host, const char* const a_Name)
 {
+#if defined(__MSDOS__)
+	return false
+	
+#else
 #define BUFSIZE	256
 #if defined(_WIN32)
 	struct hostent* Ent;
@@ -733,6 +739,7 @@ bool_t I_NetNameToHost(I_HostAddress_t* const a_Host, const char* const a_Name)
 #endif
 
 #undef BUFSIZE
+#endif
 }
 
 /* I_NetHostToName() -- Converts a host to a named address */
