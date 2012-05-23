@@ -160,15 +160,15 @@ void B_GHOST_Ticker(void)
 	}
 	
 	/* Build unimatrix */
-	// Do 10 at a time (since there are lots of unimatrixes)
+	// Do 20 at a time (since there are lots of unimatrixes)
 	if (l_UMBuild < (l_UMSize[0] * l_UMSize[1]))
 	{
-		for (zz = 0; zz < 10; zz++)
-		{
-			// Debug
-			if (g_BotDebug)
-				CONL_PrintF("GHOSTBOT: Building unimatrix %u\n", (unsigned)l_UMBuild);
+		// Debug
+		if (g_BotDebug)
+			CONL_PrintF("GHOSTBOT: Building unimatrix %u\n", (unsigned)l_UMBuild);
 		
+		for (zz = 0; zz < 20; zz++)
+		{
 			// Build them
 			if (l_UMBuild < (l_UMSize[0] * l_UMSize[1]))
 			{

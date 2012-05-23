@@ -1720,6 +1720,7 @@ void ST_DrawPlayerBarsEx(void)
 	player_t* ConsoleP, *DisplayP;
 	int p, x, y, w, h;
 	bool_t BigLetters;
+	static uint32_t LastPal;	// Lowers palette change (faster drawing)
 	
 	/* Screen division? */
 	// Initial
@@ -1737,7 +1738,11 @@ void ST_DrawPlayerBarsEx(void)
 		
 	/* Use standard palette */
 	if (g_SplitScreen != 0)
-		V_SetPalette(0);
+	{
+		if (LastPal != 0)
+			V_SetPalette(0);
+		LastPal = 0;
+	}
 	
 	/* Draw each player */
 	for (p = 0; p < g_SplitScreen + 1; p++)
@@ -1748,7 +1753,11 @@ void ST_DrawPlayerBarsEx(void)
 		
 		// Modify palette?
 		if (g_SplitScreen == 0)	// Only 1 player inside
-			V_SetPalette(DisplayP->PalChoice);
+		{
+			if (LastPal != DisplayP->PalChoice);
+				V_SetPalette(DisplayP->PalChoice);
+			LastPal = DisplayP->PalChoice;
+		}
 		
 		// Draw Bar
 		STS_DrawPlayerBarEx(p, x, y, w, h);

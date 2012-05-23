@@ -916,7 +916,7 @@ const D_IWADInfoEx_t c_IWADInfos[] =
 		"6ff4def4bd24c6943540c790fbfe2642",
 		"25e1459ca71d321525f84628f45ca8cd",
 		"7ec7652fcfce8ddc6e801839291f0e28ef1d5ae7",
-		"MAP01\0GRASS1\0MAP31\0MAP32\0\0",
+		"MAP01\0GRASS1\0MAP16\0MAP31\0MAP32\0!E2M1\0!E2M2\0!E2M3\0!E2M4\0!E2M5\0!E2M6\0!E2M7\0!E2M8\0!E2M9\0!E3M1\0!E3M3\0!E3M3\0!E3M4\0!E3M5\0!E3M6\0!E3M7\0!E3M8\0!E3M9\0!E4M1\0!E4M2\0!E4M3\0!E4M4\0!E4M5\0!E4M6\0!E4M7\0!E4M8\0!E4M9\0\0",
 		14604584,
 		2919,
 		
@@ -937,7 +937,7 @@ const D_IWADInfoEx_t c_IWADInfos[] =
 		"109bf7725eeb8b11cc30cd42c81d9ae4",
 		"4e158d9953c79ccf97bd0663244cc6b6",
 		"9fbc66aedef7fe3bae0986cdb9323d2b8db4c9d3",
-		"MAP01\0GRASS1\0MAP31\0MAP32\0\0",
+		"MAP01\0GRASS1\0MAP16\0MAP31\0MAP32\0!E2M1\0!E2M2\0!E2M3\0!E2M4\0!E2M5\0!E2M6\0!E2M7\0!E2M8\0!E2M9\0!E3M1\0!E3M3\0!E3M3\0!E3M4\0!E3M5\0!E3M6\0!E3M7\0!E3M8\0!E3M9\0!E4M1\0!E4M2\0!E4M3\0!E4M4\0!E4M5\0!E4M6\0!E4M7\0!E4M8\0!E4M9\0\0",
 		14604584,
 		3101,
 		
@@ -958,7 +958,7 @@ const D_IWADInfoEx_t c_IWADInfos[] =
 		"7ee851eb6711fa859dd3c649402382d5",
 		"75c8cf89566741fa9d22447604053bd7",
 		"90361e2a538d2388506657252ae41aceeb1ba360",
-		"MAP01\0GRASS1\0MAP31\0MAP32\0\0",
+		"MAP01\0GRASS1\0MAP16\0MAP31\0MAP32\0!E2M1\0!E2M2\0!E2M3\0!E2M4\0!E2M5\0!E2M6\0!E2M7\0!E2M8\0!E2M9\0!E3M1\0!E3M3\0!E3M3\0!E3M4\0!E3M5\0!E3M6\0!E3M7\0!E3M8\0!E3M9\0!E4M1\0!E4M2\0!E4M3\0!E4M4\0!E4M5\0!E4M6\0!E4M7\0!E4M8\0!E4M9\0\0",
 		17373080,
 		2984,
 		
@@ -979,7 +979,7 @@ const D_IWADInfoEx_t c_IWADInfos[] =
 		"befb2905b2b5df3e43a36e84e920f71f",
 		"c4fe9fd920207691a9f493668e0a2083",
 		"9b07b02ab3c275a6a7570c3f73cc20d63a0e3833",
-		"E1M1\0E2M1\0E3M1\0E4M1\0\0",
+		"E2M1\0E2M2\0E2M3\0E2M4\0E2M5\0E2M6\0E2M7\0E2M8\0E2M9\0E3M1\0E3M3\0E3M3\0E3M4\0E3M5\0E3M6\0E3M7\0E3M8\0E3M9\0DPHOOF\0BFGGA0\0HEADA1\0CYBRA1\0SPIDA1D1\0E4M1\0E4M2\0E4M3\0E4M4\0E4M5\0E4M6\0E4M7\0E4M8\0E4M9\0\0",
 		12408292,
 		2306,
 		
@@ -1000,7 +1000,7 @@ const D_IWADInfoEx_t c_IWADInfos[] =
 		"69abda21496c137592f70edb9e3f08fe",
 		"1cd63c5ddff1bf8ce844237f580e9cf3",
 		"7742089b4468a736cadb659a7deca3320fe6dcbd",
-		"E1M1\0E2M1\0E3M1\0\0",
+		"E2M1\0E2M2\0E2M3\0E2M4\0E2M5\0E2M6\0E2M7\0E2M8\0E2M9\0E3M1\0E3M3\0E3M3\0E3M4\0E3M5\0E3M6\0E3M7\0E3M8\0E3M9\0DPHOOF\0BFGGA0\0HEADA1\0CYBRA1\0SPIDA1D1\0!E4M1\0!E4M2\0!E4M3\0!E4M4\0!E4M5\0!E4M6\0!E4M7\0!E4M8\0!E4M9\0\0",
 		11124736,
 		2194,
 		
@@ -1021,7 +1021,7 @@ const D_IWADInfoEx_t c_IWADInfos[] =
 		"b9e51b0a0174fb0f52f0f641a06164d7",
 		"f0cefca49926d00903cf57551d901abe",
 		"5b2e249b9c5133ec987b3ea77596381dc0d6bc1d",
-		"E1M1\0!E2M1\0!E3M1\0!E4M1\0\0",
+		"!E2M1\0!E2M2\0!E2M3\0!E2M4\0!E2M5\0!E2M6\0!E2M7\0!E2M8\0!E2M9\0!E3M1\0!E3M3\0!E3M3\0!E3M4\0!E3M5\0!E3M6\0!E3M7\0!E3M8\0!E3M9\0!DPHOOF\0!BFGGA0\0!HEADA1\0!CYBRA1\0!SPIDA1D1\0!E4M1\0!E4M2\0!E4M3\0!E4M4\0!E4M5\0!E4M6\0!E4M7\0!E4M8\0!E4M9\0\0",
 		4196020,
 		1264,
 		
@@ -1844,61 +1844,6 @@ void D_DoomMain(void)
 		
 	// GhostlyDeath <October 24, 2010> -- Load WAD Data
 	W_LoadData();
-	
-	//Hurdler: someone wants to keep those lines?
-	//BP: i agree with you why should be registered to play someone wads ?
-	//    unfotunately most addistional wad have more texture and monsters
-	//    that sharware wad do, so there will miss resourse :(
-	
-	//added:28-02-98: check for Ultimate doom.
-	//if ( (gamemode==registered) && (W_CheckNumForName("E4M1") > 0) )
-	//    gamemode = retail;
-	
-	// Check for -file in shareware
-	if (modifiedgame)
-	{
-		// These are the lumps that will be checked in IWAD,
-		// if any one is not present, execution will be aborted.
-		char name[23][8] =
-		{
-			"e2m1", "e2m2", "e2m3", "e2m4", "e2m5", "e2m6", "e2m7", "e2m8",
-			"e2m9",
-			"e3m1", "e3m3", "e3m3", "e3m4", "e3m5", "e3m6", "e3m7", "e3m8",
-			"e3m9",
-			"dphoof", "bfgga0", "heada1", "cybra1", "spida1d1"
-		};
-		int i;
-		
-		if (gamemode == shareware)
-			CONL_PrintF("\nYou shouldn't use -file with the shareware version. Register!");
-			
-		// Check for fake IWAD with right name,
-		// but w/o all the lumps of the registered version.
-		if (gamemode == registered)
-			for (i = 0; i < 23; i++)
-				if (W_CheckNumForName(name[i]) == INVALIDLUMP)
-					CONL_PrintF("\nThis is not the registered version.");
-	}
-	// If additonal PWAD files are used, print modified banner
-	if (modifiedgame)
-		CONL_PrintF(text[MODIFIED_NUM]);
-		
-	// Check and print which version is executed.
-	switch (gamemode)
-	{
-		case shareware:
-		case indetermined:
-			CONL_PrintF(text[SHAREWARE_NUM]);
-			break;
-		case registered:
-		case retail:
-		case commercial:
-			CONL_PrintF(text[COMERCIAL_NUM]);
-			break;
-		default:
-			// Ouch.
-			break;
-	}
 	cht_Init();
 	
 	//---------------------------------------------------- READY SCREEN

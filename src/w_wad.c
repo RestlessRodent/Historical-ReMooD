@@ -650,16 +650,57 @@ const WL_WADFile_t* WL_IterateVWAD(const WL_WADFile_t* const a_WAD, const bool_t
 		
 		// Backwards used to need roving, not anymore (speed!)
 		else
-			return l_LLastVWAD;
+		{
+			// Anti-Shareware
+			if (g_IWADFlags & CIF_SHAREWARE)
+			{
+				Rover = l_LFirstVWAD;
+				
+				// Use the WAD after the IWAD
+				if (Rover)
+					return Rover->NextVWAD;
+				else
+					return Rover;
+			}
+			
+			// Return the last WAD
+			else
+				return l_LLastVWAD;
+		}
 	}
 	
 	/* Non-null means iterate to the next */
 	else
 	{
-		if (a_Forwards)
-			return a_WAD->NextVWAD;
+		// Anti-Shareware
+		if (g_IWADFlags & CIF_SHAREWARE)
+		{
+			if (a_Forwards)
+			{
+				// Return the next one if this is the first
+				if (a_WAD == l_LFirstVWAD)
+					return a_WAD->NextVWAD;
+				else
+					return NULL;
+			}
+			else
+			{
+				// Return the first WAD if this is the next after the first
+				if (a_WAD == l_LFirstVWAD->NextVWAD)
+					return l_LFirstVWAD;
+				else
+					return NULL;
+			}
+		}
+		
+		// Normal
 		else
-			return a_WAD->PrevVWAD;
+		{
+			if (a_Forwards)
+				return a_WAD->NextVWAD;
+			else
+				return a_WAD->PrevVWAD;
+		}
 	}
 	
 	/* ??? */
@@ -1376,6 +1417,7 @@ struct WL_EntryStream_s
 	uint8_t* Cache;								// Stream cache
 	uint32_t CacheSize;							// Size of cache
 	uint32_t CacheOffset;						// Offset of cache data
+	uint32_t CacheRealBase;						// Real offset base
 	
 	uint32_t StreamOffset;						// Offset of stream
 	uint32_t StreamSize;						// Size of stream
@@ -1484,15 +1526,88 @@ bool_t WL_StreamEOF(WL_EntryStream_t* const a_Stream)
 	return false;
 }
 
+/* WLS_StreamBufferChunk() -- Buffer this offset */
+static bool_t WLS_StreamBufferChunk(WL_EntryStream_t* const a_Stream, const size_t a_Offset)
+{
+	uint32_t WantedChunk;
+	
+	/* Check */
+	if (!a_Stream)
+		return false;
+	
+	/* Determine the chunk we want */
+	WantedChunk = a_Offset / a_Stream->CacheSize;
+	
+	/* Chunk differs? */
+	if (WantedChunk != a_Stream->CacheOffset)
+	{
+		// Clean the old cache
+		memset(a_Stream->Cache, 0, a_Stream->CacheSize);
+		
+		// Set new location chunk
+		a_Stream->CacheOffset = WantedChunk;
+		
+		// Determine the position of where to start reading
+		a_Stream->CacheRealBase = WantedChunk * a_Stream->CacheSize;
+		
+		// Read it in
+		WL_ReadData(a_Stream->Entry, a_Stream->CacheRealBase, a_Stream->Cache, a_Stream->CacheSize);
+		
+		// Success!
+		return true;
+	}
+	
+	/* Otherwise if it is the same, do nothing */
+	else
+		return false;
+}
+
 /* WL_StreamRawRead() -- Reads a raw stream */
 size_t WL_StreamRawRead(WL_EntryStream_t* const a_Stream, const size_t a_Offset, void* const a_Out, const size_t a_OutSize)
 {
-#if 1
+#if 0
+	size_t Expected;
+	
 	/* Check */
 	if (!a_Stream || !a_Out || !a_OutSize)
 		return 0;
 	
 	return WL_ReadData(a_Stream->Entry, a_Offset, a_Out, a_OutSize);
+#elif 1
+	uint32_t Left, CurOff, ChunkOff, ChunkCount;
+	
+	/* Check */
+	if (!a_Stream || !a_Out || !a_OutSize)
+		return 0;
+	
+	/* Initialize */
+	Left = a_OutSize;
+	CurOff = 0;
+	
+	/* Keep reading until nothing is left */
+	while (Left > 0)
+	{
+		// Buffer in area for stream
+		WLS_StreamBufferChunk(a_Stream,  a_Offset + CurOff);
+		
+		// Determine base chunk to read and how much of it to read
+		ChunkOff = (a_Offset + CurOff)	 - a_Stream->CacheRealBase;
+		ChunkCount = a_Stream->CacheSize - ChunkOff;
+		
+		// Exceeds?
+		if (ChunkCount > Left)
+			ChunkCount = Left;
+		
+		// Copy
+		memmove((void*)(((uintptr_t)a_Out) + CurOff), a_Stream->Cache + ChunkOff, ChunkCount);
+		
+		// Add offset and remove left
+		Left -= ChunkCount;
+		CurOff += ChunkCount;
+	}
+	
+	/* Return read count */
+	return CurOff;
 #else
 	size_t Left, Done, ToCopy;
 	
