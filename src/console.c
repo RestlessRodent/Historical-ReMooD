@@ -796,7 +796,9 @@ int32_t CONCTI_DrawInput(CONCTI_Inputter_t* const a_Input, const uint32_t a_Opti
 	
 	if ((gametic >> 4) & 1)
 		V_DrawCharacterA(a_Input->Font, Options, (a_Input->Overwrite ? 0x7F : '_'), bx, a_y);
-		
+	
+	/* Return new position */
+	return x;
 #endif /* __REMOOD_DEDICATED */
 }
 
@@ -1006,7 +1008,7 @@ static void CONLFF_InputFF(const char* const a_Buf)
 	// This makes command processing hell of alot easier
 	// So calling console functions is like main(argc, argv)
 	// Handle ; in inputs
-	for (n = a_Buf; *n;)
+	for (j = 0, n = a_Buf; *n;)
 	{
 		ArgC = Current = 0;
 		ArgV = NULL;
@@ -2662,6 +2664,7 @@ size_t CONL_EscapeString(char* const a_Dest, const size_t a_Size, const char* co
 		else
 		{
 			// See if it is already escaped
+			j = 0;
 			if (!IgnoreEscape && *s != '\\')
 				for (j = 0; l_EscapeChars[j].From; j++)
 					if (*s == l_EscapeChars[j].From)
@@ -2721,6 +2724,7 @@ size_t CONL_UnEscapeString(char* const a_Dest, const size_t a_Size, const char* 
 			return (d - a_Dest);
 		
 		// Determine if string is an escape string
+		j = 0;
 		if (*s == '\\')
 			for (j = 0; l_EscapeChars[j].From; j++)
 				if (strncasecmp(s, l_EscapeChars[j].To, strlen(l_EscapeChars[j].To)) == 0)

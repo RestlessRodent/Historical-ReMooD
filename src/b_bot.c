@@ -203,7 +203,7 @@ bool_t g_BotDebug = false;						// Debugging Bots
 *** LOCALS ***
 *************/
 
-static const c_LinkOp[3] = {2, 1, 0};
+static const int c_LinkOp[3] = {2, 1, 0};
 
 static const fixed_t c_forwardmove[2] = { 25, 50 };
 static const fixed_t c_sidemove[2] = { 24, 40 };
@@ -1883,7 +1883,7 @@ B_BotData_t* B_InitBot(D_NetPlayer_t* const a_NPp)
 	
 	/* Check */
 	if (!a_NPp)
-		return;
+		return NULL;
 	
 	/* Debugging? */
 	if (M_CheckParm("-devbots"))

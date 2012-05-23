@@ -29,6 +29,10 @@
 			/>
 			<Tool
 				Name="VCCustomBuildTool"
+				Description="Building ReMooD.WAD"
+				CommandLine="$(OutDir)\rmdtex.exe $(InputDir)\..\..\wad\wadinfo.txt $(OutDir)\remood.wad $(InputDir)\..\..\wad\"
+				AdditionalDependencies=""
+				Outputs="$(OutDir)\remood.wad"
 			/>
 			<Tool
 				Name="VCXMLDataGeneratorTool"
@@ -45,7 +49,7 @@
 				Optimization="0"
 				FavorSizeOrSpeed="0"
 				AdditionalIncludeDirectories="..\..\src\;..\..\src\sdl\;..\..\src\"
-				PreprocessorDefinitions="WIN32;_WIN32;_DEBUG;_CRT_SECURE_NO_WARNINGS,__REMOOD_SYSTEM_WINDOWS,__REMOOD_INTERFACE_SDL"
+				PreprocessorDefinitions="WIN32;_WIN32;_DEBUG;_CRT_SECURE_NO_WARNINGS,__REMOOD_SYSTEM_WINDOWS,__REMOOD_INTERFACE_SDL,_CRT_SECURE_NO_DEPRECATE"
 				KeepComments="true"
 				StringPooling="false"
 				MinimalRebuild="false"
@@ -73,7 +77,7 @@
 			<Tool
 				Name="VCLinkerTool"
 				UseUnicodeResponseFiles="false"
-				AdditionalDependencies="winmm.lib wsock32.lib kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib SDL.lib shell32.lib SDLmain.lib"
+				AdditionalDependencies="winmm.lib wsock32.lib kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib SDL.lib shell32.lib SDLmain.lib ws2_32.lib"
 				OutputFile="$(OutDir)\remood-dbg.exe"
 				GenerateDebugInformation="true"
 				AssemblyDebug="1"
@@ -120,6 +124,10 @@
 			/>
 			<Tool
 				Name="VCCustomBuildTool"
+				Description="Building ReMooD.WAD"
+				CommandLine="$(OutDir)\rmdtex.exe $(InputDir)\..\..\wad\wadinfo.txt $(OutDir)\remood.wad $(InputDir)\..\..\wad\"
+				AdditionalDependencies=""
+				Outputs="$(OutDir)\remood.wad"
 			/>
 			<Tool
 				Name="VCXMLDataGeneratorTool"
@@ -137,7 +145,7 @@
 				EnableIntrinsicFunctions="true"
 				FavorSizeOrSpeed="1"
 				AdditionalIncludeDirectories="..\..\src\;..\..\src\sdl\"
-				PreprocessorDefinitions="WIN32,_WIN32,NDEBUG,_CRT_SECURE_NO_WARNINGS,__REMOOD_SYSTEM_WINDOWS,__REMOOD_INTERFACE_SDL"
+				PreprocessorDefinitions="WIN32,_WIN32,NDEBUG,_CRT_SECURE_NO_WARNINGS,__REMOOD_SYSTEM_WINDOWS,__REMOOD_INTERFACE_SDL,_CRT_SECURE_NO_DEPRECATE,_CRT_SECURE_NO_DEPRECATE"
 				StringPooling="true"
 				RuntimeLibrary="2"
 				EnableFunctionLevelLinking="false"
@@ -157,7 +165,7 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="winmm.lib wsock32.lib kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib SDL.lib shell32.lib SDLmain.lib"
+				AdditionalDependencies="winmm.lib wsock32.lib kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib SDL.lib shell32.lib SDLmain.lib ws2_32.lib"
 				OutputFile="$(OutDir)\remood.exe"
 				IgnoreAllDefaultLibraries="false"
 				GenerateDebugInformation="true"
@@ -205,6 +213,10 @@
 			/>
 			<Tool
 				Name="VCCustomBuildTool"
+				Description="Building ReMooD.WAD"
+				CommandLine="$(OutDir)\rmdtex.exe $(InputDir)\..\..\wad\wadinfo.txt $(OutDir)\remood.wad $(InputDir)\..\..\wad\"
+				AdditionalDependencies=""
+				Outputs="$(OutDir)\remood.wad"
 			/>
 			<Tool
 				Name="VCXMLDataGeneratorTool"
@@ -222,7 +234,7 @@
 				EnableIntrinsicFunctions="false"
 				FavorSizeOrSpeed="0"
 				AdditionalIncludeDirectories="..\..\src\;..\..\src\sdl\"
-				PreprocessorDefinitions="WIN32,_WIN32,_DEBUG,_CRT_SECURE_NO_WARNINGS,__REMOOD_SYSTEM_WINDOWS,__REMOOD_INTERFACE_ALLEGRO"
+				PreprocessorDefinitions="WIN32,_WIN32,_DEBUG,_CRT_SECURE_NO_WARNINGS,__REMOOD_SYSTEM_WINDOWS,__REMOOD_INTERFACE_ALLEGRO,_CRT_SECURE_NO_DEPRECATE"
 				StringPooling="false"
 				ExceptionHandling="0"
 				BasicRuntimeChecks="3"
@@ -246,7 +258,7 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="winmm.lib wsock32.lib kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib shell32.lib alleg.lib"
+				AdditionalDependencies="winmm.lib wsock32.lib kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib shell32.lib alleg.lib ws2_32.lib"
 				OutputFile="$(OutDir)\remood-dbg.exe"
 				IgnoreAllDefaultLibraries="false"
 				GenerateDebugInformation="true"
@@ -296,6 +308,10 @@
 			/>
 			<Tool
 				Name="VCCustomBuildTool"
+				Description="Building ReMooD.WAD"
+				CommandLine="$(OutDir)\rmdtex.exe $(InputDir)\..\..\wad\wadinfo.txt $(OutDir)\remood.wad $(InputDir)\..\..\wad\"
+				AdditionalDependencies=""
+				Outputs="$(OutDir)\remood.wad"
 			/>
 			<Tool
 				Name="VCXMLDataGeneratorTool"
@@ -313,7 +329,7 @@
 				EnableIntrinsicFunctions="true"
 				FavorSizeOrSpeed="1"
 				AdditionalIncludeDirectories="..\..\src\;..\..\src\sdl\"
-				PreprocessorDefinitions="WIN32,_WIN32,NDEBUG,_CRT_SECURE_NO_WARNINGS,__REMOOD_SYSTEM_WINDOWS,__REMOOD_INTERFACE_ALLEGRO"
+				PreprocessorDefinitions="WIN32,_WIN32,NDEBUG,_CRT_SECURE_NO_WARNINGS,__REMOOD_SYSTEM_WINDOWS,__REMOOD_INTERFACE_ALLEGRO,_CRT_SECURE_NO_DEPRECATE"
 				StringPooling="true"
 				RuntimeLibrary="2"
 				EnableFunctionLevelLinking="false"
@@ -333,7 +349,7 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="winmm.lib wsock32.lib kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib shell32.lib alleg.lib"
+				AdditionalDependencies="winmm.lib wsock32.lib kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib shell32.lib alleg.lib ws2_32.lib"
 				OutputFile="$(OutDir)\remood.exe"
 				IgnoreAllDefaultLibraries="false"
 				GenerateDebugInformation="true"
@@ -995,14 +1011,6 @@
 					>
 				</File>
 				<File
-					RelativePath="..\..\src\p_chex.c"
-					>
-				</File>
-				<File
-					RelativePath="..\..\src\p_chex.h"
-					>
-				</File>
-				<File
 					RelativePath="..\..\src\p_demcmp.c"
 					>
 				</File>
@@ -1476,6 +1484,26 @@
 				</File>
 			</Filter>
 		</Filter>
+		<Filter
+			Name="Bots (b_)"
+			>
+			<File
+				RelativePath="..\..\src\b_bot.c"
+				>
+			</File>
+			<File
+				RelativePath="..\..\src\b_bot.h"
+				>
+			</File>
+			<File
+				RelativePath="..\..\src\b_ghost.c"
+				>
+			</File>
+		</Filter>
+		<File
+			RelativePath="..\..\src\bootdata.h"
+			>
+		</File>
 		<File
 			RelativePath="..\..\src\byteptr.h"
 			>
@@ -1502,6 +1530,14 @@
 		</File>
 		<File
 			RelativePath="..\..\src\console.h"
+			>
+		</File>
+		<File
+			RelativePath="..\..\src\dbopl.c"
+			>
+		</File>
+		<File
+			RelativePath="..\..\src\dbopl.h"
 			>
 		</File>
 		<File
@@ -1582,6 +1618,22 @@
 		</File>
 		<File
 			RelativePath="..\..\src\sounds.h"
+			>
+		</File>
+		<File
+			RelativePath="..\..\src\t_comp.h"
+			>
+		</File>
+		<File
+			RelativePath="..\..\src\t_dscc.c"
+			>
+		</File>
+		<File
+			RelativePath="..\..\src\t_dsvm.c"
+			>
+		</File>
+		<File
+			RelativePath="..\..\src\t_dsvm.h"
 			>
 		</File>
 		<File

@@ -508,6 +508,7 @@ bool_t INFO_RMODO_MapObjects(const bool_t a_Pushed, const struct WL_WADFile_s* c
 	statenum_t* StateRef;
 	
 	/* Reset */
+	MergeCount = 0;
 	MergeBase = (size_t)-1;
 	
 	/* Reset States */
@@ -834,6 +835,9 @@ static bool_t INFO_RMODInnerStateHandler(Z_Table_t* const a_Sub, void* const a_D
 			StateP->SimNext |= (IOSG << 16) | 1;
 		}
 	}
+
+	/* Always return true */
+	return true;
 }
 
 /* INFO_RMODStateHandlers() -- State handler */

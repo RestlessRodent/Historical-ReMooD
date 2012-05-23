@@ -587,6 +587,13 @@ static uint8_t PS_IDThinkerType(thinker_t* const a_Thinker)
 	return '?';
 }
 
+/* PS_WRAPPED_D_RBSWriteString() -- Wrapped for MSVC */
+bool_t PS_WRAPPED_D_RBSWriteString(D_RBlockStream_t* const a_Stream, const char* const a_Val)
+{
+	D_RBSWriteString(a_Stream, a_Val);
+	return true;
+}
+
 /* P_SGBiWayBS() -- Saving function that goes both ways */
 // This one should be clean and neat
 bool_t P_SGBiWayBS(D_RBlockStream_t* const a_Stream, const bool_t a_Load)
@@ -598,9 +605,9 @@ bool_t P_SGBiWayBS(D_RBlockStream_t* const a_Stream, const bool_t a_Load)
 	// __BI -- Reads or loads data
 #define __BI(x,nt,rc) P_SGBiWayReadOrWrite(a_Stream, a_Load, &x, sizeof(x), PSTC_##nt, PSRC_##rc, __FILE__, __LINE__)
 	// __BISTRZ -- Z_Malloced String
-#define __BISTRZ(x) (a_Load ? P_SGBiWayReadStr(a_Stream,&x,Buf,BUFSIZE) : D_RBSWriteString(a_Stream, x))
+#define __BISTRZ(x) (a_Load ? P_SGBiWayReadStr(a_Stream,&x,Buf,BUFSIZE) : PS_WRAPPED_D_RBSWriteString(a_Stream, x))
 	// __BISTRB -- Buffered String
-#define __BISTRB(buf,bs) (a_Load ? P_SGBiWayReadStr(a_Stream,NULL,buf,bs) : D_RBSWriteString(a_Stream, buf))
+#define __BISTRB(buf,bs) (a_Load ? P_SGBiWayReadStr(a_Stream,NULL,buf,bs) : PS_WRAPPED_D_RBSWriteString(a_Stream, buf))
 	
 	//D_RBSWriteString(D_RBlockStream_t* const a_Stream, const char* const a_Val);
 	//D_RBSReadString(D_RBlockStream_t* const a_Stream, char* const a_Out, const size_t a_OutSize);

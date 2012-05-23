@@ -1333,10 +1333,42 @@ uint64_t I_GetFreeMemory(uint64_t* const a_TotalMem)
 	// Return free memory
 	return FreeMemFo.free_linear_address_space_in_pages * PageSize;
 	
+	/* Windows 64-bit */
+#elif defined(_WIN64)
+	MEMORYSTATUSEX MemStatEx;
+
+	/* Obtain status info */
+	memset(&MemStatEx, 0, sizeof(MemStatEx));
+	MemStatEx.dwLength = sizeof(MemStatEx);
+	
+	// Try getting it
+	if (GlobalMemoryStatusEx(&MemStatEx) == 0)
+		return DEFAULTMEMCOUNT;
+
+	// Return figures
+	if (a_TotalMem)
+		*a_TotalMem = MemStatEx.ullTotalPhys + (MemStatEx.ullTotalPageFile / 4);
+
+	// Return free memory
+	return MemStatEx.ullAvailPhys + (MemStatEx.ullAvailPageFile / 4);
+	
 	/* Windows 32-bit */
 #elif defined(_WIN32)
-	// TODO FIXME
-	return 0;
+	MEMORYSTATUS MemStat;
+
+	/* Obtain status info */
+	memset(&MemStat, 0, sizeof(MemStat));
+	MemStat.dwLength = sizeof(MemStat);
+
+	// Get Info
+	GlobalMemoryStatus(&MemStat);
+
+	// Return total
+	if (a_TotalMem)
+		*a_TotalMem = MemStat.dwTotalPhys + (MemStat.dwTotalPageFile / 4);
+
+	// Return free memory
+	return MemStat.dwAvailPhys + (MemStat.dwAvailPageFile / 4);
 
 	/* Linux */
 #elif defined(__linux__)
