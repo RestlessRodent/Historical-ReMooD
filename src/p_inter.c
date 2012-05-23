@@ -482,7 +482,12 @@ bool_t P_TouchSpecialThing(mobj_t* special, mobj_t* toucher)
 			// Give gun?
 			if (Current->ActGiveWeapon != NUMWEAPONS)
 			{
-				OKStat |= P_GiveWeapon(player, Current->ActGiveWeapon, special->flags & MF_DROPPED);
+				// Give weapon?
+				if (cv_deathmatch.value == 2 ||
+					(cv_deathmatch.value < 2 && !player->weaponowned[Current->ActGiveWeapon]))
+					OKStat |= P_GiveWeapon(player, Current->ActGiveWeapon, special->flags & MF_DROPPED);
+				
+				// Remove?
 				if (OKStat)
 				{
 					PickedUp = true;
@@ -722,22 +727,6 @@ bool_t P_TouchSpecialThing(mobj_t* special, mobj_t* toucher)
 			if (!multiplayer)
 				break;
 			return;
-			
-			// medikits, heals
-		case SPR_STIM:
-			if (!P_GiveBody(player, 10))
-				return;
-			PS_PickupMessage(toucher, special, GOTSTIM);	// TODO
-			break;
-			
-		case SPR_MEDI:
-			if (!P_GiveBody(player, 25))
-				return;
-			if (player->health < 25)
-				PS_PickupMessage(toucher, special, GOTMEDINEED);
-			else
-				PS_PickupMessage(toucher, special, GOTMEDIKIT);
-			break;
 			
 			// power ups
 		case SPR_PINV:

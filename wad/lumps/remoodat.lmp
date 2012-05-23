@@ -18687,4 +18687,13 @@ MapTouchSpecial "MEDI"
 	IsKeepIfNotNeeded "true";
 }
 
+// STIM -- Stim-Pack
+MapTouchSpecial "STIM"
+{
+	Message "DEP_GOTSTIM";
+	HealthAmount "10";
+	IsCapNormStat "true";
+	IsKeepIfNotNeeded "true";
+}
+
 

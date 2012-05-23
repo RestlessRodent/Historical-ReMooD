@@ -1114,6 +1114,8 @@ StringGroupEX_t UnicodeStrings[NUMUNICODESTRINGS] =
 	{			 "CVHINT_SVJOINPASSWORD", "The password needed to join the game."},
 	
 	{			 "CVHINT_RCUTWALLDETAIL", "Lower the detail of wall textures to reduce memory usage at the cost of quality."},
+	{			 "CVHINT_RCUTWALLDETAIL", "Lower the detail of wall textures to reduce memory usage at the cost of quality."},
+	{				 "CVHINT_RFAKESSPAL", "Fake the palette changing when using split-screen."},
 	
 	/*** NETWORK STUFF ***/
 	{			"NET_YOUARENOTTHESERVER", "You are not the server."},

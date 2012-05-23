@@ -49,6 +49,7 @@
 #include "t_func.h"
 #include "am_map.h"
 #include "d_main.h"
+#include "console.h"
 
 // Fineangles in the SCREENWIDTH wide window.
 #define FIELDOFVIEW             2048
@@ -146,6 +147,14 @@ CV_PossibleValue_t grtranslucenthud_cons_t[] = { {1, "MIN"}, {255, "MAX"}, {0, N
 consvar_t cv_grtranslucenthud = { "gr_translucenthud", "255", CV_SAVE | CV_CALL, grtranslucenthud_cons_t, R_SetViewSize };	//Hurdler: support translucent HUD
 
 consvar_t cv_screenshotdir = { "screenshotdir", "", CV_SAVE, NULL };
+
+// r_monospace -- Draw as monospaced
+CONL_StaticVar_t l_RFakeSSPal =
+{
+	CLVT_INTEGER, c_CVPVBoolean, CLVF_SAVE,
+	"r_fakesspal", DSTR_CVHINT_RFAKESSPAL, CLVVT_STRING, "true",
+	NULL
+};
 
 // added 16-6-98:splitscreen
 
@@ -1026,6 +1035,7 @@ void R_RenderPlayerViewEx(player_t* player, int quarter)
 {
 	register uint8_t* dest;
 	int x, y, a, b, c, d;
+	uint8_t* ExtraMap;
 	
 	R_SetupFrame(player);
 	
@@ -1119,20 +1129,25 @@ void R_RenderPlayerViewEx(player_t* player, int quarter)
 	D_SyncNetUpdate();
 	
 	//player->mo->flags &= ~MF_NOSECTOR;	// don't show self (uninit) clientprediction code
+	
+	// GhostlyDeath <May 22, 2012> -- Fake palette hacking
+	if (g_SplitScreen > 0 && l_RFakeSSPal.Value[0].Int)
+	{
+		// Get the map
+		if (player->PalChoice > 0)
+			ExtraMap = V_GetPaletteMapped(player->PalChoice);
+		else
+			ExtraMap = NULL;	// If non-default, don't waste time!
+		
+		// If the map was obtained, apply it
+		if (ExtraMap)
+			V_DrawColorMapEx(VEX_NOSCALESTART | VEX_NOSCALESCREEN, ExtraMap, viewwindowx, viewwindowy, viewwindowx + viewwidth, viewwindowy + viewheight);
+	}
 }
 
 void R_RenderPlayerView(player_t* player, const size_t a_Screen)
 {
-	// GhostlyDeath <May 17, 2012> -- Split Screen Colormapping
-	if (g_SplitScreen > 0)
-		dc_GlobalMap = V_GetPaletteMapped(player->PalChoice);
-	else
-		dc_GlobalMap = V_GetPaletteMapped(0);
-	
 	R_RenderPlayerViewEx(player, 0);
-	
-	// Reset map
-	dc_GlobalMap = V_GetPaletteMapped(0);
 }
 
 // =========================================================================
@@ -1163,4 +1178,7 @@ void R_RegisterEngineStuff(void)
 	CV_RegisterVar(&cv_grtranslucenthud);
 	
 	CV_RegisterVar(&cv_screenshotdir);
+	
+	// GhostlyDeath <May 22, 2012> -- Fake split screen palettes
+	CONL_VarRegister(&l_RFakeSSPal);
 }

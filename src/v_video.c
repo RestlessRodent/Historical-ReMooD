@@ -1420,6 +1420,78 @@ void V_DrawColorBoxEx(const uint32_t a_Flags, const uint8_t a_Color, const int32
 	}
 }
 
+/* V_DrawColorMapEx() -- Applies colormap to screen */
+void V_DrawColorMapEx(const uint32_t a_Flags, const uint8_t* const a_ColorMap, const int32_t a_x1, const int32_t a_y1, const int32_t a_x2, const int32_t a_y2)
+{
+	int X1, Y1, X2, Y2;
+	int x, y, i, w;
+	uint8_t* buf, *buf2;
+	uint32_t c, Mask;
+	
+	/* Check */
+	if (!a_ColorMap)
+		return;
+	
+	/* Flags */
+	// Unscaled
+	if (a_Flags & VEX_NOSCALESTART)
+	{
+		X1 = a_x1;
+		Y1 = a_y1;
+		X2 = a_x2;
+		Y2 = a_y2;
+	}
+	// Scaled
+	else
+	{
+		X1 = (float)a_x1 *(float)vid.fdupx;
+		Y1 = (float)a_y1 *(float)vid.fdupy;
+		X2 = (float)a_x2 *(float)vid.fdupx;
+		Y2 = (float)a_y2 *(float)vid.fdupy;
+	}
+	
+	/* Normalize */
+	// Other way
+	if (X2 < X1)
+	{
+		x = X2;
+		X2 = X1;
+		X1 = x;
+	}
+	
+	if (Y2 < Y1)
+	{
+		x = Y2;
+		Y2 = Y1;
+		Y1 = x;
+	}
+	// Squash off screen
+	if (X1 < 0)
+		X1 = 0;
+	if (X2 >= vid.width)
+		X2 = vid.width;
+	if (Y1 < 0)
+		Y1 = 0;
+	if (Y2 >= vid.height)
+		Y2 = vid.height;
+		
+	// Not visible?
+	if (X1 == X2 || Y1 == Y2 || X1 >= vid.width || X2 < 0 || Y1 >= vid.height || Y2 < 0)
+		return;
+	
+	// Loop
+	for (y = Y1; y < Y2; y ++)
+	{
+		// Set buf
+		buf = (int*)(screens[0] + (vid.width * y) + X1);
+		i = (((intptr_t)buf) & (intptr_t)7);
+		
+		// Loop entire row
+		for (x = 0; x < (X2 - X1); x++)
+			((uint8_t*)buf)[x] = a_ColorMap[((uint8_t*)buf)[x]];
+	}
+}
+
 /* V_DrawPatchEx() -- Extended patch drawing function */
 // GhostlyDeath <March 3, 2011> -- Take V_DrawPatchEx() from NewReMooD (improved version)
 void V_DrawPatchEx(const uint32_t Flags, const int x, const int y, const patch_t* const Patch, const uint8_t* const ExtraMap)

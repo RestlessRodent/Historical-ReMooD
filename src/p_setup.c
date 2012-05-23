@@ -2019,11 +2019,18 @@ void PS_ExMungeNodeData(void)
 	sector_t* SectorP, *OtherSec;
 	int block;
 	
-	/* Pre-Init */
-	memset(g_GlobalBoundBox, 0, sizeof(g_GlobalBoundBox));
-	
 	/* Set loading screen info */
-	CONL_LoadingScreenSetSubEnd(3);
+	CONL_LoadingScreenSetSubEnd(4);
+	
+	/* Global Bound Box */
+	CONL_LoadingScreenIncrSub();
+	
+	// Clear box
+	M_ClearBox(g_GlobalBoundBox);
+	
+	// Add to global bounding box
+	for (i = 0; i < numvertexes; i++)
+		M_AddToBox(g_GlobalBoundBox, vertexes[i].x, vertexes[i].y);
 	
 	/* Initialize block links */
 	CONL_LoadingScreenIncrSub();
@@ -2087,10 +2094,6 @@ void PS_ExMungeNodeData(void)
 			// Add to sector bounding box
 			M_AddToBox(SectorP->BBox, lines[i].v1->x, lines[i].v1->y);
 			M_AddToBox(SectorP->BBox, lines[i].v2->x, lines[i].v2->y);
-			
-			// Add to global bounding box
-			M_AddToBox(g_GlobalBoundBox, lines[i].v1->x, lines[i].v1->y);
-			M_AddToBox(g_GlobalBoundBox, lines[i].v2->x, lines[i].v2->y);
 			
 			// Sound Origin
 			SectorP->soundorg.x = (SectorP->BBox[BOXRIGHT] + SectorP->BBox[BOXLEFT]) / 2;
@@ -2445,10 +2448,10 @@ bool_t P_ExLoadLevel(P_LevelInfoEx_t* const a_Info, const uint32_t a_Flags)
 				NodeP = &nodes[i];
 				
 				// Read
-				NodeP->x = ((fixed_t)WL_StreamReadLittleInt16(Stream)) <<  FRACBITS;
-				NodeP->y = ((fixed_t)WL_StreamReadLittleInt16(Stream)) <<  FRACBITS;
-				NodeP->dx = ((fixed_t)WL_StreamReadLittleInt16(Stream)) <<  FRACBITS;
-				NodeP->dy = ((fixed_t)WL_StreamReadLittleInt16(Stream)) <<  FRACBITS;
+				NodeP->x = ((fixed_t)WL_StreamReadLittleInt16(Stream)) << FRACBITS;
+				NodeP->y = ((fixed_t)WL_StreamReadLittleInt16(Stream)) << FRACBITS;
+				NodeP->dx = ((fixed_t)WL_StreamReadLittleInt16(Stream)) << FRACBITS;
+				NodeP->dy = ((fixed_t)WL_StreamReadLittleInt16(Stream)) << FRACBITS;
 				
 				for (k = 0; k < 2; k++)
 					for (j = 0; j < 4; j++)

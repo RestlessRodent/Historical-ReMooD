@@ -219,6 +219,7 @@ const uint8_t* V_ReturnColormapPtr(const VEX_ColorList_t Color);
 /* Drawing Functions */
 void V_DrawFadeConsBackEx(const uint32_t Flags, const int x1, const int y1, const int x2, const int y2);
 void V_DrawColorBoxEx(const uint32_t a_Flags, const uint8_t a_Color, const int32_t a_x1, const int32_t a_y1, const int32_t a_x2, const int32_t a_y2);
+void V_DrawColorMapEx(const uint32_t a_Flags, const uint8_t* const a_ColorMap, const int32_t a_x1, const int32_t a_y1, const int32_t a_x2, const int32_t a_y2);
 void V_DrawPatchEx(const uint32_t Flags, const int x, const int y, const patch_t* const Patch, const uint8_t* const ExtraMap);
 
 /* Compatability */

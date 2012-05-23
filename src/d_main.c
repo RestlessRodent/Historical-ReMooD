@@ -378,10 +378,15 @@ void D_Display(void)
 						{
 							activeylookup = ylookup4[i];
 							
-							if (g_SplitScreen % 2 == 1)
+							if (i % 2 == 1)
 								viewwindowx = vid.width / 2;
-							if (g_SplitScreen > 1)
+							else
+								viewwindowx = 0;
+							
+							if (i > 1)
 								viewwindowy = vid.height / 2;
+							else
+								viewwindowy = 0;
 								
 							R_RenderPlayerView(&players[displayplayer[i]], i);
 							
@@ -393,7 +398,7 @@ void D_Display(void)
 									((i == 1 || i == 3) ? vid.width >> 1 : 0),
 							        ((i == 2 || i == 3) ? vid.height >> 1 : 0),
 							        (((i == 1 || i == 3) ? vid.width >> 1 : 0)) + (vid.width >> 1),
-							        ( ((i == 2 || i == 3) ? vid.height >> 1 : 0)) + (vid.height >> 1)
+							        (((i == 2 || i == 3) ? vid.height >> 1 : 0)) + (vid.height >> 1)
 								);
 					}
 					break;
