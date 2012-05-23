@@ -2,61 +2,64 @@
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
     <Filter Include="Interfaces">
-      <UniqueIdentifier>{b972eb9c-c5bd-470e-84f6-356569befdb0}</UniqueIdentifier>
+      <UniqueIdentifier>{f0e931ee-9179-4179-87d1-7a9ead4376b5}</UniqueIdentifier>
     </Filter>
     <Filter Include="Interfaces\SDL">
-      <UniqueIdentifier>{d4874809-a0c7-4c21-a860-6d98dd905b6f}</UniqueIdentifier>
+      <UniqueIdentifier>{52790064-6172-4a1b-9eaa-29425a7154e6}</UniqueIdentifier>
     </Filter>
     <Filter Include="Interfaces\Allegro">
-      <UniqueIdentifier>{499be076-bd0d-4483-902d-3b3c6714b25f}</UniqueIdentifier>
+      <UniqueIdentifier>{3ff7f713-7c06-498e-9e89-3b596d9028fc}</UniqueIdentifier>
     </Filter>
     <Filter Include="v_ %28Video%29">
-      <UniqueIdentifier>{5833e26b-de0f-4ade-ac30-f9643054ac3c}</UniqueIdentifier>
+      <UniqueIdentifier>{f9bf1da5-8033-47bd-80be-52b793162570}</UniqueIdentifier>
     </Filter>
     <Filter Include="w_ %28WADs%29">
-      <UniqueIdentifier>{196c3c89-ce9e-4e75-9fc2-42dc597d4808}</UniqueIdentifier>
+      <UniqueIdentifier>{9a6ce2a9-1762-4aca-a03a-72eddd162691}</UniqueIdentifier>
     </Filter>
     <Filter Include="wi_ %28Intermission%29">
-      <UniqueIdentifier>{f6e4ea69-a0c9-4f31-b7c7-620f0a0b63cf}</UniqueIdentifier>
+      <UniqueIdentifier>{1464f622-8212-4358-b89d-d41d30c77cff}</UniqueIdentifier>
     </Filter>
     <Filter Include="z_ %28Memory%29">
-      <UniqueIdentifier>{20cbd7cf-939e-46ee-b1a3-9404e12986f3}</UniqueIdentifier>
+      <UniqueIdentifier>{d034c957-b75c-4485-ba99-f705c9343821}</UniqueIdentifier>
     </Filter>
     <Filter Include="Doom">
-      <UniqueIdentifier>{6b552da1-1655-49ad-aba8-0aa257f2e8bb}</UniqueIdentifier>
+      <UniqueIdentifier>{94f090ec-5532-41d6-a642-6aee71438ad8}</UniqueIdentifier>
     </Filter>
     <Filter Include="Doom\r_ %28Renderer%29">
-      <UniqueIdentifier>{e330b060-f6e0-4482-9f4c-5df4e897f884}</UniqueIdentifier>
+      <UniqueIdentifier>{e9be5b13-9846-454c-b394-3d3d6a8447e1}</UniqueIdentifier>
     </Filter>
     <Filter Include="Doom\s_ %28Sound%29">
-      <UniqueIdentifier>{71dce9a6-599b-4773-ab51-7442794262b6}</UniqueIdentifier>
+      <UniqueIdentifier>{bef53ca1-7ed8-4a4c-aa6f-e99d64e15b46}</UniqueIdentifier>
     </Filter>
     <Filter Include="Doom\p_ %28Logic%29">
-      <UniqueIdentifier>{a7f94823-f85b-4a3c-8764-fd02143f4501}</UniqueIdentifier>
+      <UniqueIdentifier>{4c7cd118-33c8-4cd4-89e9-e4c23db422a9}</UniqueIdentifier>
     </Filter>
     <Filter Include="Doom\st_ %28Status Bar%29">
-      <UniqueIdentifier>{b470387b-3ac6-425d-a056-2ee8cf0fe61c}</UniqueIdentifier>
+      <UniqueIdentifier>{53c7c4af-23e7-48b6-b746-4bb7a64d0432}</UniqueIdentifier>
     </Filter>
     <Filter Include="Doom\t_ %28FraggleScript/ReMooD Script%29">
-      <UniqueIdentifier>{3d42ed41-6b7e-4ec3-9d12-05ea8e69add8}</UniqueIdentifier>
+      <UniqueIdentifier>{0ef90482-b46a-43a8-b77b-3114da557f5f}</UniqueIdentifier>
     </Filter>
     <Filter Include="Doom\m_ %28Misc%29">
-      <UniqueIdentifier>{07aadbcc-b712-4530-a84f-e5446a1795a2}</UniqueIdentifier>
+      <UniqueIdentifier>{df3faf40-9aad-45ea-a1b7-7e84c472be7c}</UniqueIdentifier>
     </Filter>
     <Filter Include="Doom\hu_ %28HUD%29">
-      <UniqueIdentifier>{fba7349f-b1a4-48e0-b687-035dd17648c5}</UniqueIdentifier>
+      <UniqueIdentifier>{c3e03389-fb3c-4ee4-80d4-5882911787a3}</UniqueIdentifier>
     </Filter>
     <Filter Include="Doom\g_ %28Game%29">
-      <UniqueIdentifier>{4c3161d8-510b-4b69-94c3-a89155bbf52c}</UniqueIdentifier>
+      <UniqueIdentifier>{6360c8f9-54e8-4fdf-8be6-4be4d976f890}</UniqueIdentifier>
     </Filter>
     <Filter Include="Doom\f_ %28Finale%29">
-      <UniqueIdentifier>{c5b43eaf-aea7-44ad-a5eb-33a2f9518ca3}</UniqueIdentifier>
+      <UniqueIdentifier>{eef86095-9413-4ffc-8320-e643af1679bb}</UniqueIdentifier>
     </Filter>
     <Filter Include="Doom\d_ %28Doom%29">
-      <UniqueIdentifier>{af8d540e-011f-43e9-8fd0-3d473959f087}</UniqueIdentifier>
+      <UniqueIdentifier>{2f3c064b-b304-4582-8823-afc034c0b93b}</UniqueIdentifier>
     </Filter>
     <Filter Include="Doom\am_ %28Automap%29">
-      <UniqueIdentifier>{78930e6e-efec-4a8a-9f2a-04afbbf723c4}</UniqueIdentifier>
+      <UniqueIdentifier>{69d4e6e1-b276-4cac-86a8-1672d61e8017}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Bots %28b_%29">
+      <UniqueIdentifier>{8db2e146-1590-4303-b0b9-c315bebe61ea}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -131,9 +134,6 @@
     </ClInclude>
     <ClInclude Include="..\..\src\s_sound.h">
       <Filter>Doom\s_ %28Sound%29</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\src\p_chex.h">
-      <Filter>Doom\p_ %28Logic%29</Filter>
     </ClInclude>
     <ClInclude Include="..\..\src\p_demcmp.h">
       <Filter>Doom\p_ %28Logic%29</Filter>
@@ -291,10 +291,15 @@
     <ClInclude Include="..\..\src\am_map.h">
       <Filter>Doom\am_ %28Automap%29</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\src\b_bot.h">
+      <Filter>Bots %28b_%29</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\bootdata.h" />
     <ClInclude Include="..\..\src\byteptr.h" />
     <ClInclude Include="..\..\src\c_lib.h" />
     <ClInclude Include="..\..\src\command.h" />
     <ClInclude Include="..\..\src\console.h" />
+    <ClInclude Include="..\..\src\dbopl.h" />
     <ClInclude Include="..\..\src\dehacked.h" />
     <ClInclude Include="..\..\src\doomdata.h" />
     <ClInclude Include="..\..\src\doomdef.h" />
@@ -306,6 +311,8 @@
     <ClInclude Include="..\..\src\md5.h" />
     <ClInclude Include="..\..\src\screen.h" />
     <ClInclude Include="..\..\src\sounds.h" />
+    <ClInclude Include="..\..\src\t_comp.h" />
+    <ClInclude Include="..\..\src\t_dsvm.h" />
     <ClInclude Include="..\..\src\tables.h" />
   </ItemGroup>
   <ItemGroup>
@@ -400,9 +407,6 @@
       <Filter>Doom\s_ %28Sound%29</Filter>
     </ClCompile>
     <ClCompile Include="..\..\src\p_ceilng.c">
-      <Filter>Doom\p_ %28Logic%29</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\src\p_chex.c">
       <Filter>Doom\p_ %28Logic%29</Filter>
     </ClCompile>
     <ClCompile Include="..\..\src\p_demcmp.c">
@@ -579,15 +583,24 @@
     <ClCompile Include="..\..\src\am_map.c">
       <Filter>Doom\am_ %28Automap%29</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\src\b_bot.c">
+      <Filter>Bots %28b_%29</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\b_ghost.c">
+      <Filter>Bots %28b_%29</Filter>
+    </ClCompile>
     <ClCompile Include="..\..\src\c_lib.c" />
     <ClCompile Include="..\..\src\command.c" />
     <ClCompile Include="..\..\src\console.c" />
+    <ClCompile Include="..\..\src\dbopl.c" />
     <ClCompile Include="..\..\src\dehacked.c" />
     <ClCompile Include="..\..\src\dstrings.c" />
     <ClCompile Include="..\..\src\info.c" />
     <ClCompile Include="..\..\src\md5.c" />
     <ClCompile Include="..\..\src\screen.c" />
     <ClCompile Include="..\..\src\sounds.c" />
+    <ClCompile Include="..\..\src\t_dscc.c" />
+    <ClCompile Include="..\..\src\t_dsvm.c" />
     <ClCompile Include="..\..\src\tables.c" />
   </ItemGroup>
   <ItemGroup>

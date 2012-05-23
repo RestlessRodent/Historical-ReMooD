@@ -9,6 +9,10 @@
       <Configuration>Debug (SDL)</Configuration>
       <Platform>Win32</Platform>
     </ProjectConfiguration>
+    <ProjectConfiguration Include="Debug|Win32">
+      <Configuration>Debug</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
     <ProjectConfiguration Include="Release (Allegro)|Win32">
       <Configuration>Release (Allegro)</Configuration>
       <Platform>Win32</Platform>
@@ -19,10 +23,40 @@
     </ProjectConfiguration>
   </ItemGroup>
   <PropertyGroup Label="Globals">
-    <ProjectGuid>{21F53109-2C62-4666-95CE-80A6C42AB29F}</ProjectGuid>
+    <ProjectGuid>{864683B0-3583-49E0-BDDB-96F48A5F58FC}</ProjectGuid>
     <RootNamespace>ReMooD</RootNamespace>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release (Allegro)|Win32'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug (Allegro)|Win32'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release (SDL)|Win32'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug (SDL)|Win32'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release (Allegro)|Win32'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug (Allegro)|Win32'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release (SDL)|Win32'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug (SDL)|Win32'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+  </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release (Allegro)|Win32'" Label="Configuration">
     <ConfigurationType>Application</ConfigurationType>
     <CharacterSet>NotSet</CharacterSet>
@@ -57,6 +91,36 @@
   <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Debug (SDL)|Win32'" Label="PropertySheets">
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
   </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Release (Allegro)|Win32'" Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Debug (Allegro)|Win32'" Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Release (SDL)|Win32'" Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Debug (SDL)|Win32'" Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Release (Allegro)|Win32'" Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Debug (Allegro)|Win32'" Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Release (SDL)|Win32'" Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Debug (SDL)|Win32'" Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup>
     <_ProjectFileVersion>10.0.30319.1</_ProjectFileVersion>
@@ -70,11 +134,17 @@
     <IntDir Condition="'$(Configuration)|$(Platform)'=='Release (Allegro)|Win32'">$(Configuration)\</IntDir>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug (SDL)|Win32'">
+    <CustomBuildStep>
+      <Message>Building ReMooD.WAD</Message>
+      <Command>$(OutDir)rmdtex.exe $(ProjectDir)\..\..\wad\wadinfo.txt $(OutDir)remood.wad $(ProjectDir)\..\..\wad\</Command>
+      <Inputs>%(Inputs)</Inputs>
+      <Outputs>$(OutDir)remood.wad;%(Outputs)</Outputs>
+    </CustomBuildStep>
     <ClCompile>
       <Optimization>Disabled</Optimization>
       <FavorSizeOrSpeed>Neither</FavorSizeOrSpeed>
       <AdditionalIncludeDirectories>..\..\src\;..\..\src\sdl\;..\..\src\;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-      <PreprocessorDefinitions>WIN32;_WIN32;_DEBUG;_CRT_SECURE_NO_WARNINGS;__REMOOD_SYSTEM_WINDOWS;__REMOOD_INTERFACE_SDL;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>WIN32;_WIN32;_DEBUG;_CRT_SECURE_NO_WARNINGS;__REMOOD_SYSTEM_WINDOWS;__REMOOD_INTERFACE_SDL;_CRT_SECURE_NO_DEPRECATE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <PreprocessKeepComments>true</PreprocessKeepComments>
       <StringPooling>false</StringPooling>
       <MinimalRebuild>false</MinimalRebuild>
@@ -92,7 +162,7 @@
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
     <Link>
-      <AdditionalDependencies>winmm.lib;wsock32.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;SDL.lib;shell32.lib;SDLmain.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>winmm.lib;wsock32.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;SDL.lib;shell32.lib;SDLmain.lib;ws2_32.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <OutputFile>$(OutDir)remood-dbg.exe</OutputFile>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <AssemblyDebug>true</AssemblyDebug>
@@ -102,12 +172,18 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release (SDL)|Win32'">
+    <CustomBuildStep>
+      <Message>Building ReMooD.WAD</Message>
+      <Command>$(OutDir)rmdtex.exe $(ProjectDir)\..\..\wad\wadinfo.txt $(OutDir)remood.wad $(ProjectDir)\..\..\wad\</Command>
+      <Inputs>%(Inputs)</Inputs>
+      <Outputs>$(OutDir)remood.wad;%(Outputs)</Outputs>
+    </CustomBuildStep>
     <ClCompile>
       <Optimization>MaxSpeed</Optimization>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
       <AdditionalIncludeDirectories>..\..\src\;..\..\src\sdl\;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-      <PreprocessorDefinitions>WIN32;_WIN32;NDEBUG;_CRT_SECURE_NO_WARNINGS;__REMOOD_SYSTEM_WINDOWS;__REMOOD_INTERFACE_SDL;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>WIN32;_WIN32;NDEBUG;_CRT_SECURE_NO_WARNINGS;__REMOOD_SYSTEM_WINDOWS;__REMOOD_INTERFACE_SDL;_CRT_SECURE_NO_DEPRECATE;_CRT_SECURE_NO_DEPRECATE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <StringPooling>true</StringPooling>
       <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
       <FunctionLevelLinking>false</FunctionLevelLinking>
@@ -118,24 +194,29 @@
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
     <Link>
-      <AdditionalDependencies>winmm.lib;wsock32.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;SDL.lib;shell32.lib;SDLmain.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>winmm.lib;wsock32.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;SDL.lib;shell32.lib;SDLmain.lib;ws2_32.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <OutputFile>$(OutDir)remood.exe</OutputFile>
       <IgnoreAllDefaultLibraries>false</IgnoreAllDefaultLibraries>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <SubSystem>Windows</SubSystem>
       <OptimizeReferences>true</OptimizeReferences>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
-      <RandomizedBaseAddress>false</RandomizedBaseAddress>
       <TargetMachine>MachineX86</TargetMachine>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug (Allegro)|Win32'">
+    <CustomBuildStep>
+      <Message>Building ReMooD.WAD</Message>
+      <Command>$(OutDir)rmdtex.exe $(ProjectDir)\..\..\wad\wadinfo.txt $(OutDir)remood.wad $(ProjectDir)\..\..\wad\</Command>
+      <Inputs>%(Inputs)</Inputs>
+      <Outputs>$(OutDir)remood.wad;%(Outputs)</Outputs>
+    </CustomBuildStep>
     <ClCompile>
       <Optimization>Disabled</Optimization>
       <IntrinsicFunctions>false</IntrinsicFunctions>
       <FavorSizeOrSpeed>Neither</FavorSizeOrSpeed>
       <AdditionalIncludeDirectories>..\..\src\;..\..\src\sdl\;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-      <PreprocessorDefinitions>WIN32;_WIN32;_DEBUG;_CRT_SECURE_NO_WARNINGS;__REMOOD_SYSTEM_WINDOWS;__REMOOD_INTERFACE_ALLEGRO;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>WIN32;_WIN32;_DEBUG;_CRT_SECURE_NO_WARNINGS;__REMOOD_SYSTEM_WINDOWS;__REMOOD_INTERFACE_ALLEGRO;_CRT_SECURE_NO_DEPRECATE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <StringPooling>false</StringPooling>
       <ExceptionHandling>
       </ExceptionHandling>
@@ -150,7 +231,7 @@
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
     <Link>
-      <AdditionalDependencies>winmm.lib;wsock32.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;shell32.lib;alleg.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>winmm.lib;wsock32.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;shell32.lib;alleg.lib;ws2_32.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <OutputFile>$(OutDir)remood-dbg.exe</OutputFile>
       <IgnoreAllDefaultLibraries>false</IgnoreAllDefaultLibraries>
       <GenerateDebugInformation>true</GenerateDebugInformation>
@@ -161,17 +242,22 @@
       </OptimizeReferences>
       <EnableCOMDATFolding>
       </EnableCOMDATFolding>
-      <RandomizedBaseAddress>false</RandomizedBaseAddress>
       <TargetMachine>MachineX86</TargetMachine>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release (Allegro)|Win32'">
+    <CustomBuildStep>
+      <Message>Building ReMooD.WAD</Message>
+      <Command>$(OutDir)rmdtex.exe $(ProjectDir)\..\..\wad\wadinfo.txt $(OutDir)remood.wad $(ProjectDir)\..\..\wad\</Command>
+      <Inputs>%(Inputs)</Inputs>
+      <Outputs>$(OutDir)remood.wad;%(Outputs)</Outputs>
+    </CustomBuildStep>
     <ClCompile>
       <Optimization>MaxSpeed</Optimization>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
       <AdditionalIncludeDirectories>..\..\src\;..\..\src\sdl\;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-      <PreprocessorDefinitions>WIN32;_WIN32;NDEBUG;_CRT_SECURE_NO_WARNINGS;__REMOOD_SYSTEM_WINDOWS;__REMOOD_INTERFACE_ALLEGRO;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>WIN32;_WIN32;NDEBUG;_CRT_SECURE_NO_WARNINGS;__REMOOD_SYSTEM_WINDOWS;__REMOOD_INTERFACE_ALLEGRO;_CRT_SECURE_NO_DEPRECATE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <StringPooling>true</StringPooling>
       <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
       <FunctionLevelLinking>false</FunctionLevelLinking>
@@ -182,14 +268,13 @@
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
     <Link>
-      <AdditionalDependencies>winmm.lib;wsock32.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;shell32.lib;alleg.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>winmm.lib;wsock32.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;shell32.lib;alleg.lib;ws2_32.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <OutputFile>$(OutDir)remood.exe</OutputFile>
       <IgnoreAllDefaultLibraries>false</IgnoreAllDefaultLibraries>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <SubSystem>Windows</SubSystem>
       <OptimizeReferences>true</OptimizeReferences>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
-      <RandomizedBaseAddress>false</RandomizedBaseAddress>
       <TargetMachine>MachineX86</TargetMachine>
     </Link>
   </ItemDefinitionGroup>
@@ -218,7 +303,6 @@
     <ClInclude Include="..\..\src\r_state.h" />
     <ClInclude Include="..\..\src\r_things.h" />
     <ClInclude Include="..\..\src\s_sound.h" />
-    <ClInclude Include="..\..\src\p_chex.h" />
     <ClInclude Include="..\..\src\p_demcmp.h" />
     <ClInclude Include="..\..\src\p_fab.h" />
     <ClInclude Include="..\..\src\p_info.h" />
@@ -271,10 +355,13 @@
     <ClInclude Include="..\..\src\d_think.h" />
     <ClInclude Include="..\..\src\d_ticcmd.h" />
     <ClInclude Include="..\..\src\am_map.h" />
+    <ClInclude Include="..\..\src\b_bot.h" />
+    <ClInclude Include="..\..\src\bootdata.h" />
     <ClInclude Include="..\..\src\byteptr.h" />
     <ClInclude Include="..\..\src\c_lib.h" />
     <ClInclude Include="..\..\src\command.h" />
     <ClInclude Include="..\..\src\console.h" />
+    <ClInclude Include="..\..\src\dbopl.h" />
     <ClInclude Include="..\..\src\dehacked.h" />
     <ClInclude Include="..\..\src\doomdata.h" />
     <ClInclude Include="..\..\src\doomdef.h" />
@@ -286,6 +373,8 @@
     <ClInclude Include="..\..\src\md5.h" />
     <ClInclude Include="..\..\src\screen.h" />
     <ClInclude Include="..\..\src\sounds.h" />
+    <ClInclude Include="..\..\src\t_comp.h" />
+    <ClInclude Include="..\..\src\t_dsvm.h" />
     <ClInclude Include="..\..\src\tables.h" />
   </ItemGroup>
   <ItemGroup>
@@ -356,7 +445,6 @@
     <ClCompile Include="..\..\src\r_things.c" />
     <ClCompile Include="..\..\src\s_sound.c" />
     <ClCompile Include="..\..\src\p_ceilng.c" />
-    <ClCompile Include="..\..\src\p_chex.c" />
     <ClCompile Include="..\..\src\p_demcmp.c" />
     <ClCompile Include="..\..\src\p_doors.c" />
     <ClCompile Include="..\..\src\p_enemy.c" />
@@ -415,15 +503,20 @@
     <ClCompile Include="..\..\src\d_rdf.c" />
     <ClCompile Include="..\..\src\d_rmod.c" />
     <ClCompile Include="..\..\src\am_map.c" />
+    <ClCompile Include="..\..\src\b_bot.c" />
+    <ClCompile Include="..\..\src\b_ghost.c" />
     <ClCompile Include="..\..\src\c_lib.c" />
     <ClCompile Include="..\..\src\command.c" />
     <ClCompile Include="..\..\src\console.c" />
+    <ClCompile Include="..\..\src\dbopl.c" />
     <ClCompile Include="..\..\src\dehacked.c" />
     <ClCompile Include="..\..\src\dstrings.c" />
     <ClCompile Include="..\..\src\info.c" />
     <ClCompile Include="..\..\src\md5.c" />
     <ClCompile Include="..\..\src\screen.c" />
     <ClCompile Include="..\..\src\sounds.c" />
+    <ClCompile Include="..\..\src\t_dscc.c" />
+    <ClCompile Include="..\..\src\t_dsvm.c" />
     <ClCompile Include="..\..\src\tables.c" />
   </ItemGroup>
   <ItemGroup>
@@ -432,6 +525,12 @@
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="..\..\rc\remood.rc" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="RMDTex.vcxproj">
+      <Project>{31d1512f-b0d7-4c91-9d4f-b3e1a09326d5}</Project>
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+    </ProjectReference>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
