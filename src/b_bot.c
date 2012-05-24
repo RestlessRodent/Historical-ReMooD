@@ -2013,36 +2013,8 @@ void B_BuildBotTicCmd(B_BotData_t* const a_BotData, ticcmd_t* const a_TicCmd)
 			// Unmark as dead
 			a_BotData->IsDead = false;
 			
-			// Update to current position
-			BS_UpdateCurrentPos(a_BotData);
-			
-			// Which action subroutine?
-			switch (a_BotData->ActSub)
-			{
-					// Try moving in straight lines (to build navigation)
-				case BBAS_STRAIGHTNAV:
-					BS_ThinkStraightLine(a_BotData, a_TicCmd);
-					break;
-					
-					// Follows the nearest player
-				case BBAS_FOLLOWNEARESTPLAYER:
-					BS_ThinkFollowNearestPlayer(a_BotData, a_TicCmd);
-					break;
-					
-					// Blind straight navigation
-				case BBAS_BLINDSTRAIGHTNAV:
-					BS_ThinkBlindStraightLine(a_BotData, a_TicCmd);
-					break;
-					
-					// Ghostly AI
-				case BBAS_GHOSTLYAI:
-					BS_ThinkGhostlyAI(a_BotData, a_TicCmd);
-					break;
-				
-					// Unknown
-				default:
-					break;
-			}
+			// Call Ghost thinker
+			B_GHOST_Think(&a_BotData->GHOSTData, a_TicCmd);
 			break;
 		
 			// Unknown

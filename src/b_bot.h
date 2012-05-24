@@ -43,6 +43,12 @@
 #include "r_state.h"
 #include "p_mobj.h"
 
+/****************
+*** CONSTANTS ***
+****************/
+
+#define MAXBOTJOBS 32
+
 /*****************
 *** STRUCTURES ***
 *****************/
@@ -53,6 +59,15 @@ typedef struct B_BotData_s B_BotData_t;
 typedef struct B_GhostBot_s
 {
 	uint8_t Junk;								// Junk Data
+	ticcmd_t* TicCmdPtr;						// Pointer to tic command
+	
+	struct
+	{
+		bool_t JobHere;							// A Job is here
+		bool_t (*JobFunc)(struct B_GhostBot_s* a_GhostBot, const size_t a_JobID);
+		int32_t Priority;						// Job Priority
+		uint32_t Sleep;							// Job Sleeping (wait until tic happens)
+	} Jobs[MAXBOTJOBS];							// Bot's Jobs
 } B_GhostBot_t;
 
 /**************
@@ -81,6 +96,8 @@ void B_RemoveMobj(void* const a_Mo);
 void B_GHOST_Ticker(void);
 void B_GHOST_ClearLevel(void);
 void B_GHOST_InitLevel(void);
+
+void B_GHOST_Think(B_GhostBot_t* const a_GhostBot, ticcmd_t* const a_TicCmd);
 
 #endif /* __B_BOT_H__ */
 

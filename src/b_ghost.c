@@ -38,20 +38,40 @@
 #include "p_mobj.h"
 #include "p_local.h"
 #include "r_main.h"
+#include "doomstat.h"
 
 /****************
 *** CONSTANTS ***
 ****************/
 
+#define BOTMINNODEDIST		(32 << FRACBITS)	// Minimum node distance
 #define MAXBGADJDEPTH					32		// Max Adjaceny Depth
 #define UNIMATRIXDIV		(32 << FRACBITS)	// Division of the unimatrix
 #define UNIMATRIXSIZE					(128)	// Size of the unimatrix
 
 #define UNIMATRIXPHYSSIZE	(FixedMul(UNIMATRIXDIV, UNIMATRIXSIZE << FRACBITS))
 
+static const int8_t c_LinkOp[3] = {2, 1, 0};
+
 /*****************
 *** STRUCTURES ***
 *****************/
+
+/* B_GhostNode_t -- A Node */
+typedef struct B_GhostNode_s
+{
+	fixed_t x;									// X Position
+	fixed_t y;									// Y Position
+	
+	fixed_t FloorZ;								// Z of floor
+	fixed_t CeilingZ;							// Z of ceiling
+	
+	struct
+	{
+		struct B_GhostNode_s* Node;				// Node connected to
+		fixed_t Dist;							// Distance to node
+	} Links[3][3];								// Chain Links
+} B_GhostNode_t;
 
 /* B_Unimatrix_t -- A large grid portion of the map */
 typedef struct B_Unimatrix_s
@@ -64,6 +84,9 @@ typedef struct B_Unimatrix_s
 	
 	sector_t** Sectors;							// Sectors inside unimatrix
 	size_t NumSectors;							// Number of sectors in it
+	
+	B_GhostNode_t** Nodes;						// Nodes in unimatrix
+	size_t NumNodes;							// Number of those nodes
 } B_Unimatrix_t;
 
 /* B_LineSet_t -- A set of lines */
@@ -100,552 +123,342 @@ static size_t l_UMBuild = 0;					// Umimatrix Build Number
 
 // SubSector Mesh
 static bool_t l_SSMCreated = false;				// Mesh created?
+static fixed_t l_GFloorZ, l_GCeilingZ;			// Scanned floor and ceiling position
+static int32_t l_SSBuildChain = 0;				// Final Stage Chaining
 
 /****************
 *** FUNCTIONS ***
 ****************/
 
-/* B_GHOST_SplitPoly() -- Splits polygon */
-bool_t B_GHOST_SplitPoly(B_LineSet_t* const a_LineSet, B_LineSet_t** const a_A, B_LineSet_t** const a_B, const fixed_t a_x1, const fixed_t a_y1, const fixed_t a_x2, const fixed_t a_y2)
+/* BS_UnimatrixAtPos() -- Returns Unimatrix at this position */
+B_Unimatrix_t* BS_UnimatrixAtPos(const fixed_t a_X, const fixed_t a_Y)
 {
-	fixed_t SplitSlope, SplitB;
-	fixed_t SegSlope, SegB;
-	fixed_t IntX, IntY;
-	B_LineSet_t* Rover;
-	B_LineSet_t* MarkA, *MarkB;
-	fixed_t IntAMx, IntAMy, IntBMx, IntBMy;
-	B_LineSet_t* MarkAa, *MarkAb, *MarkBa, *MarkBb;
-	B_LineSet_t* TempSet, *ASeg, *BSeg;
-	bool_t Looped;
-	int32_t i, vNum;
+	fixed_t RealX, RealY;
+	int32_t Location;
 	
-	B_LineSet_t** WorkMark;
-	B_LineSet_t** WorkA, **WorkB;
-	fixed_t WorkIx, WorkIy;
+	/* Fix Coordinate */
+	RealX = a_X - l_UMBase[0];
+	RealY = a_Y - l_UMBase[1];
 	
-	/* Check */
-	if (!a_LineSet || !a_A || !a_B)
-		return false;
+	/* Shrink to unimatrix base */
+	RealX = FixedDiv(RealX, UNIMATRIXPHYSSIZE);
+	RealY = FixedDiv(RealY, UNIMATRIXPHYSSIZE);
 	
-	/* Debug */
-	fprintf(stderr, "With (%f, %f) -> (%f, %f)\n",
-		FIXED_TO_FLOAT(a_x1), FIXED_TO_FLOAT(a_y1),
-		FIXED_TO_FLOAT(a_x2), FIXED_TO_FLOAT(a_y2));
+	// Shift Down
+	RealX >>= FRACBITS;
+	RealY >>= FRACBITS;
 	
-	/* Get slope info of line */
-	// Division
-	if (a_x2 - a_x1)
-		SplitSlope = FixedDiv(a_y2 - a_y1, a_x2 - a_x1);
-	else
-		SplitSlope = ~((fixed_t)0);
+	/* Out of bounds? */
+	if (RealX < 0 || RealX >= l_UMSize[0] || RealY < 0 || RealY >= l_UMSize[1])
+		return NULL;
 	
-	// Base positions (y = mx + b, solve for b)
-	// So: b = y - mx	
-	SplitB = a_y1 - FixedMul(SplitSlope, a_x1);
+	/* Determine location */
+	// Get location
+	Location = (RealY * l_UMSize[0]) + RealX;
 	
-	/* Begin dividing */
-	Looped = false;
-	MarkA = MarkB = NULL;
-	for (vNum = 0, Rover = a_LineSet; !Looped || (Looped && Rover != a_LineSet); Rover = Rover->Next, vNum++)
-	{
-		// Looped
-		Looped = true;
-		
-		// Find slope and b of this current line
-		if (Rover->ve[0] - Rover->vs[0])
-			SegSlope = FixedDiv(Rover->ve[1] - Rover->vs[1], Rover->ve[0] - Rover->vs[0]);
-		else
-			SegSlope = ~((fixed_t)0);
-		SegB = Rover->vs[1] - FixedMul(SegSlope, Rover->vs[0]);
-		
-		// Parallel? Never intercepts
-		if (SplitSlope == SegSlope)
-			continue;
-		
-		// Find interception point
-			// Split is vertical
-		if (SplitSlope == ~((fixed_t)0))
-		{
-			fprintf(stderr, "%i sv\n", vNum);
-			
-			// X is already known
-			IntX = a_x1;
-			
-			// But the X in y = mx + b
-			IntY = FixedMul(SegSlope, IntX) + SegB;
-		}
-		
-			// Segment is vertical
-		else if (SegSlope == ~((fixed_t)0))
-		{
-			fprintf(stderr, "%i gv\n", vNum);
-			
-			// X is already known
-			IntX = Rover->vs[0];
-			
-			// But the X in y = mx + b
-			IntY = FixedMul(SplitSlope, IntX) + SplitB;
-		}
-		
-			// Both non-vertical
-		else
-		{
-			fprintf(stderr, "%i, nv\n", vNum);
-			
-			// 0 = (m1 - m2)x + (b1 - b2), solve for x
-			// So: (b1 - b2) / (m1 - m2) = x
-			IntX = FixedDiv(SplitB - SegB, SplitSlope - SegSlope);
-		
-			// Then put it in the y = mx + b
-			IntY = FixedMul(SplitSlope, IntX) + SplitB;
-		}
-		
-		// Determine if the interception point is off the line
-		if (((Rover->ve[0] > Rover->vs[0]) && (IntX < Rover->vs[0] || IntX > Rover->ve[0])) ||
-			((Rover->ve[0] < Rover->vs[0]) && (IntX > Rover->vs[0] || IntX < Rover->ve[0])))
-		{
-			fprintf(stderr, "Int (%f, %f) outside [(%f, %f), (%f, %f)]\n",
-					FIXED_TO_FLOAT(IntX), FIXED_TO_FLOAT(IntY),
-					FIXED_TO_FLOAT(Rover->vs[0]), FIXED_TO_FLOAT(Rover->vs[1]),
-					FIXED_TO_FLOAT(Rover->ve[0]), FIXED_TO_FLOAT(Rover->ve[1])
-				);
-			continue;
-		}
-		
-		fprintf(stderr, "Split! %i\n", vNum);
-		
-		// Mark lines
-		if (!MarkA)
-		{
-			MarkA = Rover;
-			IntAMx = IntX;
-			IntAMy = IntY;
-		}
-		else
-		{
-			MarkB = Rover;
-			IntBMx = IntX;
-			IntBMy = IntY;
-			break;	// No more processing needs to be done
-		}
-	}
-	
-	/* No Interception at all? */
-	if (!MarkA || !MarkB)
-	{
-		fprintf(stderr, "No marks: %p %p\n", MarkA, MarkB);
-		return false;
-	}
-	
-	/* Split the polygon at the marks */
-	fprintf(stderr, "Double marked!\n");
-	
-	// Split the lines
-	for (i = 0; i < 2; i++)
-	{
-		// Line A
-		if (!i)
-		{
-			WorkIx = IntAMx;
-			WorkIy = IntAMy;
-			WorkMark = &MarkA;
-			WorkA = &MarkAa;
-			WorkB = &MarkAb;
-		}
-		
-		// Line B
-		else
-		{
-			WorkIx = IntBMx;
-			WorkIy = IntBMy;
-			WorkMark = &MarkB;
-			WorkA = &MarkBa;
-			WorkB = &MarkBb;
-		}
-		
-		// Create new segment
-		(*WorkB) = Z_Malloc(sizeof(*(*WorkB)), PU_BOTS, NULL);
-		(*WorkB)->vs[0] = WorkIx;
-		(*WorkB)->vs[1] = WorkIy;
-		(*WorkB)->ve[0] = (*WorkMark)->ve[0];
-		(*WorkB)->ve[1] = (*WorkMark)->ve[1];
-	
-		// Reduce the original line
-		(*WorkA) = (*WorkMark);
-		(*WorkA)->ve[0] = WorkIx;
-		(*WorkA)->ve[1] = WorkIy;
-		
-		// Relink chains
-			// Start from the next back
-		(*WorkMark)->Next->Prev = (*WorkB);
-		(*WorkB)->Next = (*WorkMark)->Next;
-			// Link in second segment
-		(*WorkB)->Prev = (*WorkA);
-		(*WorkA)->Next = (*WorkB);
-	}
-	
-	// Create two new line segments for the split line itself
-	// Remember that B goes in the opposite direction
-		// Allocate new segments
-	ASeg = Z_Malloc(sizeof(*ASeg), PU_BOTS, NULL);
-	BSeg = Z_Malloc(sizeof(*BSeg), PU_BOTS, NULL);
-	
-	// Chain the segments correctly first
-	ASeg->Next = MarkBb;
-	ASeg->Prev = MarkAa;
-	BSeg->Next = MarkAb;
-	BSeg->Prev = MarkBa;
-	
-	// Correct chains of new line
-	ASeg->Prev->Next = ASeg;
-	ASeg->Next->Prev = ASeg;
-	BSeg->Prev->Next = BSeg;
-	BSeg->Next->Prev = BSeg;
-	
-	// Set position of lines
-		// First
-	ASeg->vs[0] = ASeg->Prev->ve[0];
-	ASeg->vs[1] = ASeg->Prev->ve[1];
-	ASeg->ve[0] = ASeg->Next->vs[0];
-	ASeg->ve[1] = ASeg->Next->vs[1];
-		// Second
-	BSeg->vs[0] = BSeg->Prev->ve[0];
-	BSeg->vs[1] = BSeg->Prev->ve[1];
-	BSeg->ve[0] = BSeg->Next->vs[0];
-	BSeg->ve[1] = BSeg->Next->vs[1];
-	
-	/* Return the split line as the new "base" */
-	*a_A = ASeg;
-	*a_B = BSeg;
-	
-	/* Debug */
-	Looped = false;
-	for (i = 0; i < 2; i++)
-	{
-		WorkMark = (!i ? &ASeg : &BSeg);
-		
-		Looped = false;
-		for (Rover = (*WorkMark); !Looped || (Looped && Rover != (*WorkMark)); Rover = Rover->Next)
-		{
-			Looped = true;
-			
-			// Check points agreement
-			if (((*WorkMark)->Prev->ve[0] != (*WorkMark)->vs[0]) ||
-				((*WorkMark)->Prev->ve[1] != (*WorkMark)->vs[1]) ||
-				((*WorkMark)->ve[0] != (*WorkMark)->Next->vs[0]) ||
-				((*WorkMark)->ve[1] != (*WorkMark)->Next->vs[1]))
-				I_Error("Points disagree");
-		}
-	}
-	
-	/* Success! */
-	return true;
+	/* Return it */
+	return &l_UMGrid[Location];
 }
 
-/* BS_GHOST_PolyCenter() -- Obtains polygon center */
-void BS_GHOST_PolyCenter(B_LineSet_t* const a_LineSet, fixed_t* const a_Xp, fixed_t* const a_Yp)
+/* BS_GHOSTCheckNodeTrav() -- Checks whether the node is in a "good" spot */
+static bool_t BS_GHOSTCheckNodeTrav(intercept_t* in, void* const a_Data)
 {
-#if 1
-#define MAXPOLYSIDES 128
-	fixed_t px[MAXPOLYSIDES];
-	fixed_t py[MAXPOLYSIDES];
-	fixed_t cx[MAXPOLYSIDES];
-	fixed_t cy[MAXPOLYSIDES];
-	bool_t Did[MAXPOLYSIDES][MAXPOLYSIDES];
-	fixed_t BaseX, BaseY;
-	fixed_t TotalX, TotalY;
-	size_t nSides, nCenters;
-	int32_t i, j, k;
-	B_LineSet_t* Rover, *Next;
-	bool_t OK;
+	line_t* li;
+	mobj_t* mo;
 	
-	/* Clear */
-	memset(px, 0, sizeof(px));
-	memset(py, 0, sizeof(py));
-	memset(cx, 0, sizeof(cx));
-	memset(cy, 0, sizeof(cy));
-	
-	/* Obtain mid points of all lines on the polygons */
-	nSides = 0;
-	for (OK = false, Rover = a_LineSet; !OK || (OK && Rover != a_LineSet); Rover = Rover->Next)
+	/* Lines */
+	if (in->isaline)
 	{
-		OK = true;
-		Next = Rover->Next;
+		// Get line
+		li = in->d.line;
 		
-		if (nSides < MAXPOLYSIDES - 1)
-		{
-			px[nSides] = FixedDiv(Next->vs[0] + Rover->vs[0], 2 << FRACBITS);
-			py[nSides++] = FixedDiv(Next->vs[1] + Rover->vs[1], 2 << FRACBITS);
-		}
-	};
-	
-	/* Obtain the mid points of all mid points, that are not adjacent */
-	// This loop shrinks the input polygon
-	// Do this four times
-	for (k = 0; k < 4; k++)
-	{
-		// Clear dids
-		memset(Did, 0, sizeof(Did));
+		// Cannot cross two sided line
+		if (!(li->flags & ML_TWOSIDED))
+			return false;
 		
-		// Prepare centering
-		nCenters = 0;
-		for (i = 0; i < nSides; i++)
-			for (j = 0; j < nSides; j++)
-			{
-				// Adjacent?
-				if (j == i || j == i - 1 || j == i + 1 ||
-					(i == 0 && j == nSides - 1) ||
-					(i == nSides - 1 && j == 0))
-					continue;
-				
-				// Did already?
-				if (Did[i][j])
-					continue;
+		// Cannot cross impassible line
+		if (li->flags & ML_BLOCKING)
+			return false;
 			
-				if (nCenters < MAXPOLYSIDES - 1)
-				{
-					cx[nCenters] = FixedDiv(px[j] + px[i], 2 << FRACBITS);
-					cy[nCenters++] = FixedDiv(py[j] + py[i], 2 << FRACBITS);
-					Did[i][j] = true;	// Did it
-				}
-			}
+		// Get sector floor and ceiling z
+		if (li->frontsector->floorheight > l_GFloorZ)
+			l_GFloorZ = li->frontsector->floorheight;
+		if (li->backsector->floorheight > l_GFloorZ)
+			l_GFloorZ = li->backsector->floorheight;
 		
-		// Move over old stuff
-		memmove(px, cx, sizeof(px));
-		memmove(py, cy, sizeof(py));
-		nSides = nCenters;
+		if (li->frontsector->ceilingheight > l_GCeilingZ)
+			l_GCeilingZ = li->frontsector->ceilingheight;
+		if (li->backsector->ceilingheight > l_GCeilingZ)
+			l_GCeilingZ = li->backsector->ceilingheight;
+		
+		// Cannot fit inside of sector?
+		if ((l_GCeilingZ - l_GFloorZ) < (56 << FRACBITS))
+			return false;
+		
+		// Everything seems OK
+		return true;
 	}
 	
-	/* Calculate the base of all the points */
-	BaseX = BaseY = 31000 << FRACBITS;
-	for (i = 0; i < nSides; i++)
+	/* Things */
+	else
 	{
-		if (px[i] < BaseX)
-			BaseX = px[i];
-		if (py[i] < BaseY)
-			BaseY = py[i];
+		// Get Object
+		mo = in->d.thing;
+		
+		/* Don't hit solid things */
+		if (mo->flags & (MF_SOLID))
+			return false;
+		
+		return true;
 	}
-	
-	/* Subtract all the midpoints by the base */
-	for (i = 0; i < nSides; i++)
-	{
-		px[i] -= BaseX;
-		py[i] -= BaseY;
-	}
-	
-	/* Average all of the midpoints */
-	TotalX = TotalY = 0;
-	for (i = 0; i < nSides; i++)
-	{
-		TotalX += px[i];
-		TotalY += py[i];
-	}
-	
-	/* Dive the total by the point count */
-	TotalX = FixedDiv(TotalX, nSides << FRACBITS);
-	TotalY = FixedDiv(TotalY, nSides << FRACBITS);
-	
-	/* The base is probably here */
-	*a_Xp = TotalX + BaseX;
-	*a_Yp = TotalY + BaseY;
+}
 
-#undef MAXPOLYSIDES
-#else
-#define MULCUT		FRACUNIT
-	fixed_t AreaTotal, AreaTotalB, gx, gy;
-	B_LineSet_t* Rover, *Next;
-	bool_t OK;
+/* B_GHOST_NodeNearPos() -- Get node near position */
+B_GhostNode_t* B_GHOST_NodeNearPos(const fixed_t a_X, const fixed_t a_Y)
+{
+	B_Unimatrix_t* UniMatrix;
+	B_GhostNode_t* CurrentNode;
+	fixed_t Dist;
+	size_t i;
 	
-	/* Check */
-	if (!a_LineSet)
-		return;
-		
-	/* Clear */
-	*a_Xp = 0;
-	*a_Yp = 0;
+	/* Get Unimatrix here */
+	UniMatrix = BS_UnimatrixAtPos(a_X, a_Y);
 	
-	/* Calculate the area */
-	// Vertex Totals
-	AreaTotal = 0;
-	for (OK = false, Rover = a_LineSet; !OK || (OK && Rover != a_LineSet); Rover = Rover->Next)
+	/* Nothing here? */
+	if (!UniMatrix)
+		return NULL;
+	
+	/* Look through nodes there */
+	// Go through all nodes here
+	for (i = 0; i < UniMatrix->NumNodes; i++)
 	{
-		OK = true;
-		Next = Rover->Next;
+		// Get current node
+		CurrentNode = UniMatrix->Nodes[i];
 		
-		AreaTotal += 
-			FixedMul(
-					FixedMul(Rover->vs[0], MULCUT),
-					FixedMul(Next->vs[1], MULCUT)
-				) -
-			FixedMul(
-					FixedMul(Next->vs[0], MULCUT),
-					FixedMul(Rover->vs[1], MULCUT)
-				);
+		// Get distance
+		Dist = P_AproxDistance(a_X - CurrentNode->x, a_Y - CurrentNode->y);
+		
+		// Distance is close
+		if (Dist < BOTMINNODEDIST)
+			return CurrentNode;
 	}
 	
-	// Divide it
-	AreaTotal = FixedDiv(AreaTotal, 2 << FRACBITS);
+	/* None Found */
+	return NULL;
+}
+
+/* B_GHOST_CreateNodeAtPos() -- Creates node at point */
+B_GhostNode_t* B_GHOST_CreateNodeAtPos(const fixed_t a_X, const fixed_t a_Y)
+{
+	B_GhostNode_t* New;
+	subsector_t* SubS;
+	B_GhostNode_t* Rover;
+	size_t i;
+	fixed_t RealX, RealY, Dist;
+	bool_t Failed;
+	B_Unimatrix_t* ThisMatrix;
+	B_GhostNode_t* CurrentNode, *NearNode;
 	
-	/* Find centroid now */
-	AreaTotalB = 0;
-	gx = gy = 0;
-	for (OK = false, Rover = a_LineSet; !OK || (OK && Rover != a_LineSet); Rover = Rover->Next)
+	/* Init */
+	RealX = a_X;
+	RealY = a_Y;
+	
+	/* Truncate the coordinates to a 16-grid */
+	RealX &= ~1048575;
+	RealY &= ~1048575;
+	
+	/* See if there is a subsector here */
+	// Because this spot could be in the middle of nowhere
+	SubS = R_IsPointInSubsector(RealX, RealY);
+	
+	// If nothing is there, forget it
+	if (!SubS)
+		return NULL;
+	
+	// Don't add any nodes that are close to this spot
+	NearNode = B_GHOST_NodeNearPos(RealX, RealY);
+	
+	// There was something close by
+	if (NearNode)
+		return NULL;
+	
+	/* Get Unimatrix */
+	ThisMatrix = BS_UnimatrixAtPos(RealX, RealY);
+	
+	// No matrix?
+	if (!ThisMatrix)
+		return NULL;
+	
+	/* Determine Node Validity */
+	// Init
+	l_GFloorZ = SubS->sector->floorheight;
+	l_GCeilingZ = SubS->sector->ceilingheight;
+	Failed = false;
+	
+	// See if it is possible to even create a node here
+	// The bots will blindly run to a node it cannot reach because
+	// there happens to be a wall where the node is directly attached
+	// to it.
+	if (!Failed && !P_PathTraverse(
+				RealX - (BOTMINNODEDIST >> 1),
+				RealY - (BOTMINNODEDIST >> 1),
+				RealX + (BOTMINNODEDIST >> 1),
+				RealY + (BOTMINNODEDIST >> 1),
+				PT_ADDLINES,
+				BS_GHOSTCheckNodeTrav,
+				NULL
+			))
+		Failed = true;
+	
+	// Draw line from thing corner (corss section TL to BR)
+	if (!Failed && !P_PathTraverse(
+				RealX - (BOTMINNODEDIST >> 1),
+				RealY + (BOTMINNODEDIST >> 1),
+				RealX + (BOTMINNODEDIST >> 1),
+				RealY - (BOTMINNODEDIST >> 1),
+				PT_ADDLINES,
+				BS_GHOSTCheckNodeTrav,
+				NULL
+			))
+		Failed = true;
+	
+	/* Failed to worked? */
+	if (Failed)
+		return NULL;
+	
+	/* Create new node */
+	New = Z_Malloc(sizeof(*New), PU_BOTS, NULL);
+	
+	// Init
+	New->x = RealX;
+	New->y = RealY;
+	New->FloorZ = l_GFloorZ;
+	New->CeilingZ = l_GCeilingZ;
+	
+	/* Add to subsector links */
+	Z_ResizeArray((void**)&SubS->GhostNodes, sizeof(*SubS->GhostNodes),
+		SubS->NumGhostNodes, SubS->NumGhostNodes + 1);
+	SubS->GhostNodes[SubS->NumGhostNodes++] = New;
+	
+	/* Add everything to the unimatrix */
+	// Add subsector to unimatrix
+	for (i = 0; i < ThisMatrix->NumSubSecs; i++)
+		if (ThisMatrix->SubSecs[i] == SubS)
+			break;
+	
+	if (i >= ThisMatrix->NumSubSecs)
 	{
-		OK = true;
-		Next = Rover->Next;
-		
-		AreaTotalB = 
-			FixedMul(
-					FixedMul(Rover->vs[0], MULCUT),
-					FixedMul(Next->vs[1], MULCUT)
-				) -
-			FixedMul(
-					FixedMul(Next->vs[0], MULCUT),
-					FixedMul(Rover->vs[1], MULCUT)
-				);
-		
-		gx += FixedMul(FixedMul(Rover->vs[0], MULCUT) + FixedMul(Next->vs[0], MULCUT), AreaTotalB);
-		gy += FixedMul(FixedMul(Rover->vs[1], MULCUT) + FixedMul(Next->vs[1], MULCUT), AreaTotalB);
+		Z_ResizeArray((void**)&ThisMatrix->SubSecs, sizeof(*ThisMatrix->SubSecs),
+				ThisMatrix->NumSubSecs, ThisMatrix->NumSubSecs + 1);
+		ThisMatrix->SubSecs[ThisMatrix->NumSubSecs++] = SubS;
 	}
 	
-	/* Divide */
-	*a_Xp = FixedDiv(FixedDiv(gx, FixedMul(6 << FRACBITS, AreaTotal)), MULCUT);
-	*a_Yp = FixedDiv(FixedDiv(gy, FixedMul(6 << FRACBITS, AreaTotal)), MULCUT);
-#endif
+	// Add sector to unimatrix
+	for (i = 0; i < ThisMatrix->NumSectors; i++)
+		if (ThisMatrix->Sectors[i] == SubS->sector)
+			break;
+	
+	if (i >= ThisMatrix->NumSectors)
+	{
+		Z_ResizeArray((void**)&ThisMatrix->Sectors, sizeof(*ThisMatrix->Sectors),
+				ThisMatrix->NumSectors, ThisMatrix->NumSectors + 1);
+		ThisMatrix->Sectors[ThisMatrix->NumSectors++] = SubS->sector;
+	}
+	
+	// Add node to unimatrix
+	Z_ResizeArray((void**)&ThisMatrix->Nodes, sizeof(*ThisMatrix->Nodes),
+			ThisMatrix->NumNodes, ThisMatrix->NumNodes + 1);
+	ThisMatrix->Nodes[ThisMatrix->NumNodes++] = New;
+	
+	/* Debug */
+	P_SpawnMobj(
+			RealX,
+			RealY,
+			l_GFloorZ,
+			INFO_GetTypeByName("ReMooDBotDebugNode")
+		);
+		
+	/* Return the new node */
+	return New;
 }
 
 /* B_GHOST_RecursiveSplitMap() -- Recursively split the map */
-bool_t B_GHOST_RecursiveSplitMap(const node_t* const a_Node, B_LineSet_t* const a_LineSet)
+// Normally this would have been for subsector shapes, but that is too much
+// of a pain in the ass to do. I cannot seem to get it working at all, so i'm
+// giving up on that and instead doing bounding boxes for navigation. It is
+// shittier and less precise but it is hell of alot easier to implement!
+// Although this is shitter, it is alot faster since people will probably not
+// want to wait 5 minutes for polygonal meshes to build. If the map isn't that
+// square it will be less accurate. So on levels such as MAP02 it can work good
+// but on some very curvy levels, maybe not so much.
+bool_t B_GHOST_RecursiveSplitMap(const node_t* const a_Node)
 {
-	size_t i, Side, SideB;
-	B_LineSet_t* Rover;
-	bool_t OK;
-	B_LineSet_t* PolyA, *PolyB, *Temp, *ExtraA, *ExtraB;
-	static FILE* DebugFile;
-	static uint32_t DebugSet;
-	fixed_t x, y, xb, yb;
-	subsector_t* SubS, *SubSB, *PointSub;
-	seg_t* Seg;
+	int8_t Side, i, j;
+	fixed_t x1, y1, x2, y2;
+	
+	fixed_t* px, *py;
+	fixed_t cx, cy, dx, dy;
+	subsector_t* SubS;
 	
 	/* Check */
-	if (!a_Node || !a_LineSet)
+	if (!a_Node)
 		return false;
 	
-	/* Debug */
-	// Create?
-	if (!DebugFile)
-		DebugFile = fopen("PolyLog", "wt");
-	
-	/* Split along node */
-	PolyA = PolyB = NULL;
-	if (!B_GHOST_SplitPoly(a_LineSet, &PolyA, &PolyB,
-				a_Node->x, a_Node->y,
-				a_Node->x + a_Node->dx, a_Node->y + a_Node->dy))
-	{
-		I_Error("No split found for poly\n");
-		return false;		// Oops!
-	}
-	
-	// Get center of one of the polygons
-	BS_GHOST_PolyCenter(PolyA, &x, &y);
-	BS_GHOST_PolyCenter(PolyB, &xb, &yb);
-	
-	// Get subsectors
-	SubS = R_PointInSubsector(x, y);
-	SubSB = R_PointInSubsector(xb, yb);
-	
-	// Determine sides the split polygons are on
-	Side = R_PointOnSide(x, y, a_Node);
-	SideB = R_PointOnSide(xb, yb, a_Node);
-	
-	// If the polygons are on the same side, use a hopefully better method
-	if (Side == SideB)
-	{
-		fprintf(stderr, "(%i, %i), (%i, %i)\n", x >> FRACBITS, y >> FRACBITS, xb >> FRACBITS, yb >> FRACBITS);
-		I_Error("Point on same side!\n");
-	}
-	
-	// Polygons on wrong side?
-	if (Side != 0)
-	{
-		// Polygon A is not on the front side of the node, so swap
-		Temp = PolyA;
-		PolyA = PolyB;
-		PolyB = Temp;
-	}
-	
-	/* Handle Each Side */
+	/* Go through sides */
 	for (i = 0; i < 2; i++)
 	{
-		// Subsector?
+		// Side is a subsector
 		if (a_Node->children[i] & NF_SUBSECTOR)
 		{
-#if 0
-			// Get current polygon and subsector
-			SubS = &subsectors[a_Node->children[Side] & (~NF_SUBSECTOR)];
-			Temp = (!Side ? PolyA : PolyB);
+			// Get bounds for subsector
+				// A bounding box consists of four short values (top, bottom,
+				// left and right) giving the upper and lower bounds of the y
+				// coordinate and the lower and upper bounds of the x coordinate
+				// (in that order).
+			x1 = a_Node->bbox[i][2];
+			y1 = a_Node->bbox[i][1];
+			x2 = a_Node->bbox[i][3];
+			y2 = a_Node->bbox[i][0];
 			
-			// Split them all by the segs
-			for (i = 0; i < SubS->numlines; i++)
+			// Get the center of that box (easy to get)
+			cx = FixedDiv(x1 + x2, 2 << FRACBITS);
+			cy = FixedDiv(y1 + y2, 2 << FRACBITS);
+			
+			// Create a node there
+			B_GHOST_CreateNodeAtPos(cx, cy);
+			
+			// Go through each 4 corners and midpoint that and the center
+			// this creates a web of sorts
+			for (j = 0; j < 4; j++)
 			{
-				// Get current seg
-				Seg = &segs[SubS->firstline + i];
-				
-				// Split by this seg line
-				if (!B_GHOST_SplitPoly(Temp, &ExtraA, &ExtraB,
-						Seg->v1->x, Seg->v1->y,
-						Seg->v2->x, Seg->v2->y))
-					continue;	// Oops!
-				
-				// Determine which polygon is in this subsector
-				BS_GHOST_PolyCenter(ExtraA, &x, &y);
-				PointSub = R_IsPointInSubsector(x, y);
-				
-				// Which side to take?
-				if (PointSub == SubS)
-					Temp = ExtraA;
+				// Which now?
+				if ((j & 1) == 0)
+					px = &x1;
 				else
-					Temp = ExtraB;
+					px = &x2;
+				if (j < 2)
+					py = &y1;
+				else
+					py = &y2;
+				
+				// Get the midpoint of those between the center
+				dx = FixedDiv(*px + cx, 2 << FRACBITS);
+				dy = FixedDiv(*py + cy, 2 << FRACBITS);
+				
+				// Create node there
+				B_GHOST_CreateNodeAtPos(dx, dy);
 			}
-			
-			// Get center of this polygon
-			BS_GHOST_PolyCenter(Temp, &x, &y);
-			
-			// Spawn something there to see it
-			P_SpawnMobj(x, y, ONFLOORZ, INFO_GetTypeByName("ReMooDBotDebugNode"));
-
-			// Write output
-			fprintf(stderr, "SubSector:\n");
-			fprintf(DebugFile, "\"Set %u\"\n", DebugSet);
-			for (OK = false, Rover = Temp; !OK || (OK && Rover != Temp); Rover = Rover->Next)
-			{
-				OK = true;
-				fprintf(DebugFile, "%g %g\n", FIXED_TO_FLOAT(Rover->vs[0]), FIXED_TO_FLOAT(Rover->vs[1]));
-				fflush(DebugFile);
-		
-				fprintf(stderr, "\t(%g, %g) -> (%g, %g)\n",
-						FIXED_TO_FLOAT(Rover->vs[0]), FIXED_TO_FLOAT(Rover->vs[1]),
-						FIXED_TO_FLOAT(Rover->ve[0]), FIXED_TO_FLOAT(Rover->ve[1])
-					);
-			}
-			fprintf(DebugFile, "%g %g\n", FIXED_TO_FLOAT(Rover->vs[0]), FIXED_TO_FLOAT(Rover->vs[1]));
-			fflush(DebugFile);
-			
-			fprintf(DebugFile, "\n");
-			fprintf(stderr, "\n");
-			DebugSet++;
-#endif
 		}
 		
-		// Node
+		// Side is another node
 		else
 		{
-			// Split again
-			B_GHOST_RecursiveSplitMap(&nodes[a_Node->children[i]], (!i ? PolyA : PolyB));
+			// Just recourse into it
+			B_GHOST_RecursiveSplitMap(&nodes[a_Node->children[i]]);
 		}
 	}
 	
-	/* Success! */
+	/* Success */
 	return true;
 }
 
@@ -660,9 +473,11 @@ void B_GHOST_Ticker(void)
 	size_t* BNumAdj = NULL;
 	B_Unimatrix_t* UniMatrix;
 	B_LineSet_t* InitSet, *OldSet, *FirstSet;
+	B_GhostNode_t* CurrentNode, *NearNode;
 	
-	fixed_t x, y, z;
+	fixed_t x, y, z, dx, dy;
 	int32_t uX, uY;
+	int8_t lox, loy;
 	
 	/* Adjanceny chains not yet complete? */
 	if (l_BBuildAdj < l_BNumSecs)
@@ -727,7 +542,6 @@ void B_GHOST_Ticker(void)
 			CONL_PrintF("GHOSTBOT: Building unimatrix %u\n", (unsigned)l_UMBuild);
 		
 		for (zz = 0; zz < 20; zz++)
-		{
 			// Build them
 			if (l_UMBuild < (l_UMSize[0] * l_UMSize[1]))
 			{
@@ -749,7 +563,6 @@ void B_GHOST_Ticker(void)
 				// Go to the next one, next time
 				l_UMBuild++;
 			}
-		}
 			
 		// Return for later processing
 		return;
@@ -758,48 +571,73 @@ void B_GHOST_Ticker(void)
 	/* Build SubSector Mesh Map */
 	if (!l_SSMCreated)
 	{
-		// Create initial set
-			// Top
-		FirstSet = InitSet = Z_Malloc(sizeof(*InitSet), PU_BOTS, NULL);
-		InitSet->vs[0] = g_GlobalBoundBox[BOXBOTTOM];
-		InitSet->vs[1] = g_GlobalBoundBox[BOXLEFT];
-		InitSet->ve[0] = g_GlobalBoundBox[BOXBOTTOM];
-		InitSet->ve[1] = g_GlobalBoundBox[BOXRIGHT];
-			// Right
-		OldSet = InitSet;
-		InitSet->Next = Z_Malloc(sizeof(*InitSet), PU_BOTS, NULL);
-		InitSet = InitSet->Next;
-		InitSet->Prev = OldSet;
-		InitSet->vs[0] = OldSet->ve[0];
-		InitSet->vs[1] = OldSet->ve[1];
-		InitSet->ve[0] = g_GlobalBoundBox[BOXTOP];
-		InitSet->ve[1] = g_GlobalBoundBox[BOXRIGHT];
-			// Bottom
-		OldSet = InitSet;
-		InitSet->Next = Z_Malloc(sizeof(*InitSet), PU_BOTS, NULL);
-		InitSet = InitSet->Next;
-		InitSet->Prev = OldSet;
-		InitSet->vs[0] = OldSet->ve[0];
-		InitSet->vs[1] = OldSet->ve[1];
-		InitSet->ve[0] = g_GlobalBoundBox[BOXTOP];
-		InitSet->ve[1] = g_GlobalBoundBox[BOXLEFT];
-			// Left
-		OldSet = InitSet;
-		InitSet->Next = Z_Malloc(sizeof(*InitSet), PU_BOTS, NULL);
-		InitSet = InitSet->Next;
-		InitSet->Prev = OldSet;
-		InitSet->vs[0] = OldSet->ve[0];
-		InitSet->vs[1] = OldSet->ve[1];
-		InitSet->ve[0] = g_GlobalBoundBox[BOXBOTTOM];
-		InitSet->ve[1] = g_GlobalBoundBox[BOXLEFT];
-		InitSet->Next = FirstSet;
-		FirstSet->Prev = InitSet;
-		
 		// Recursive map generation
-		B_GHOST_RecursiveSplitMap(&nodes[numnodes - 1], FirstSet);
+		B_GHOST_RecursiveSplitMap(&nodes[numnodes - 1]);
 		
 		// Don't do anything else
 		l_SSMCreated = true;
+		return;
+	}
+	
+	/* Build node links */
+	if (l_SSBuildChain < (l_UMSize[0] * l_UMSize[1]))
+	{
+		// Go through unimatrixes chain
+		for (zz = 0; zz < 20; zz++)
+			if (l_SSBuildChain < (l_UMSize[0] * l_UMSize[1]))
+			{
+				// Get Current
+				UniMatrix = &l_UMGrid[l_SSBuildChain++];
+				
+				// Go through all nodes here
+				for (i = 0; i < UniMatrix->NumNodes; i++)
+				{
+					// Get current node
+					CurrentNode = UniMatrix->Nodes[i];
+					
+					// Project all around node to find other nodes
+					for (x = -1; x <= 1; x++)
+						for (y = -1; y <= 1; y++)
+						{
+							// Zero?
+							if (x == 0 || y == 0)
+								continue;
+								
+							// Project
+							dx = CurrentNode->x + (BOTMINNODEDIST * x);
+							dy = CurrentNode->y + (BOTMINNODEDIST * y);
+							
+							// Try and locate nearby nodes
+							NearNode = B_GHOST_NodeNearPos(dx, dy);
+					
+							// No node?
+							if (!NearNode)
+							{
+								// Try a deeper reach
+								dx = dx + (BOTMINNODEDIST * x);
+								dy = dx + (BOTMINNODEDIST * y);
+								
+								// Try again
+								NearNode = B_GHOST_NodeNearPos(dx, dy);
+								
+								// Still nothing
+								if (!NearNode)
+									continue;
+							}
+							
+							// Check to see if path can be traversed
+							
+							// Movement to node is possible, link it
+							lox = c_LinkOp[x + 1];
+							loy = c_LinkOp[y + 1];
+							CurrentNode->Links[lox][loy].Node = NearNode;
+							CurrentNode->Links[lox][loy].Dist = P_AproxDistance(
+									dx - CurrentNode->x, dy - CurrentNode->y);
+						}
+				}
+			}
+		
+		// For next time
 		return;
 	}
 }
@@ -831,6 +669,7 @@ void B_GHOST_ClearLevel(void)
 	
 	/* Clear mesh map */
 	l_SSMCreated = false;
+	l_SSBuildChain = 0;
 	
 	/* Clear anything extra there may be */
 	Z_FreeTags(PU_BOTS, PU_BOTS);
@@ -871,4 +710,39 @@ void B_GHOST_InitLevel(void)
 			);
 }
 
+/* B_GHOST_Think() -- Bot thinker routine */
+void B_GHOST_Think(B_GhostBot_t* const a_GhostBot, ticcmd_t* const a_TicCmd)
+{
+	size_t J;
+	
+	/* Check */
+	if (!a_GhostBot || !a_TicCmd)
+		return;
+	
+	/* Clear tic command */
+	memset(a_TicCmd, 0, sizeof(*a_TicCmd));
+	
+	/* Init */
+	a_GhostBot->TicCmdPtr = a_TicCmd;
+	
+	/* Go through jobs and execute them */
+	for (J = 0; J < MAXBOTJOBS; J++)
+		if (a_GhostBot->Jobs[J].JobHere)
+		{
+			// Sleeping job?
+			if (gametic < a_GhostBot->Jobs[J].Sleep)
+				continue;
+			
+			// Execute
+			if (a_GhostBot->Jobs[J].JobFunc)
+				if (!a_GhostBot->Jobs[J].JobFunc(a_GhostBot, J))
+				{
+					// Delete job
+					a_GhostBot->Jobs[J].JobHere = false;
+					a_GhostBot->Jobs[J].Priority = 0;
+					a_GhostBot->Jobs[J].Sleep = 0;
+					a_GhostBot->Jobs[J].JobFunc = NULL;
+				}
+		}
+}
 

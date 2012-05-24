@@ -452,6 +452,9 @@ typedef struct subsector_s
 	bool_t NodesInit;							// Subsector mapped
 	void** BotNodes;							// Node in subsector
 	size_t NumBotNodes;							// Number of nodes in this subsector
+	
+	void** GhostNodes;
+	size_t NumGhostNodes;
 } subsector_t;
 
 // SoM: 3/6/200
