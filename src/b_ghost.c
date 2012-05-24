@@ -37,6 +37,7 @@
 #include "m_bbox.h"
 #include "p_mobj.h"
 #include "p_local.h"
+#include "r_main.h"
 
 /****************
 *** CONSTANTS ***
@@ -200,8 +201,8 @@ bool_t B_GHOST_SplitPoly(B_LineSet_t* const a_LineSet, B_LineSet_t** const a_A, 
 		}
 		
 		// Determine if the interception point is off the line
-		if (((Rover->ve[0] >= Rover->vs[0]) && (IntX < Rover->vs[0] || IntX > Rover->ve[0])) ||
-			((Rover->ve[0] <= Rover->vs[0]) && (IntX > Rover->vs[0] || IntX < Rover->ve[0])))
+		if (((Rover->ve[0] > Rover->vs[0]) && (IntX < Rover->vs[0] || IntX > Rover->ve[0])) ||
+			((Rover->ve[0] < Rover->vs[0]) && (IntX > Rover->vs[0] || IntX < Rover->ve[0])))
 		{
 			fprintf(stderr, "Int (%f, %f) outside [(%f, %f), (%f, %f)]\n",
 					FIXED_TO_FLOAT(IntX), FIXED_TO_FLOAT(IntY),
@@ -317,6 +318,26 @@ bool_t B_GHOST_SplitPoly(B_LineSet_t* const a_LineSet, B_LineSet_t** const a_A, 
 	*a_A = ASeg;
 	*a_B = BSeg;
 	
+	/* Debug */
+	Looped = false;
+	for (i = 0; i < 2; i++)
+	{
+		WorkMark = (!i ? &ASeg : &BSeg);
+		
+		Looped = false;
+		for (Rover = (*WorkMark); !Looped || (Looped && Rover != (*WorkMark)); Rover = Rover->Next)
+		{
+			Looped = true;
+			
+			// Check points agreement
+			if (((*WorkMark)->Prev->ve[0] != (*WorkMark)->vs[0]) ||
+				((*WorkMark)->Prev->ve[1] != (*WorkMark)->vs[1]) ||
+				((*WorkMark)->ve[0] != (*WorkMark)->Next->vs[0]) ||
+				((*WorkMark)->ve[1] != (*WorkMark)->Next->vs[1]))
+				I_Error("Points disagree");
+		}
+	}
+	
 	/* Success! */
 	return true;
 }
@@ -430,7 +451,7 @@ void BS_GHOST_PolyCenter(B_LineSet_t* const a_LineSet, fixed_t* const a_Xp, fixe
 
 #undef MAXPOLYSIDES
 #else
-#define MULCUT		16384
+#define MULCUT		FRACUNIT
 	fixed_t AreaTotal, AreaTotalB, gx, gy;
 	B_LineSet_t* Rover, *Next;
 	bool_t OK;
@@ -494,21 +515,21 @@ void BS_GHOST_PolyCenter(B_LineSet_t* const a_LineSet, fixed_t* const a_Xp, fixe
 }
 
 /* B_GHOST_RecursiveSplitMap() -- Recursively split the map */
-void B_GHOST_RecursiveSplitMap(const node_t* const a_Node, B_LineSet_t* const a_LineSet)
+bool_t B_GHOST_RecursiveSplitMap(const node_t* const a_Node, B_LineSet_t* const a_LineSet)
 {
-	size_t i, Side;
+	size_t i, Side, SideB;
 	B_LineSet_t* Rover;
 	bool_t OK;
 	B_LineSet_t* PolyA, *PolyB, *Temp, *ExtraA, *ExtraB;
 	static FILE* DebugFile;
 	static uint32_t DebugSet;
-	fixed_t x, y;
-	subsector_t* SubS, *PointSub;
+	fixed_t x, y, xb, yb;
+	subsector_t* SubS, *SubSB, *PointSub;
 	seg_t* Seg;
 	
 	/* Check */
 	if (!a_Node || !a_LineSet)
-		return;
+		return false;
 	
 	/* Debug */
 	// Create?
@@ -520,16 +541,32 @@ void B_GHOST_RecursiveSplitMap(const node_t* const a_Node, B_LineSet_t* const a_
 	if (!B_GHOST_SplitPoly(a_LineSet, &PolyA, &PolyB,
 				a_Node->x, a_Node->y,
 				a_Node->x + a_Node->dx, a_Node->y + a_Node->dy))
-		return;		// Oops!
+	{
+		I_Error("No split found for poly\n");
+		return false;		// Oops!
+	}
 	
 	// Get center of one of the polygons
 	BS_GHOST_PolyCenter(PolyA, &x, &y);
+	BS_GHOST_PolyCenter(PolyB, &xb, &yb);
 	
-	fprintf(stderr, "PolyA center is (%f, %f)\n", FIXED_TO_FLOAT(x), FIXED_TO_FLOAT(y));
-
+	// Get subsectors
+	SubS = R_PointInSubsector(x, y);
+	SubSB = R_PointInSubsector(xb, yb);
+	
 	// Determine sides the split polygons are on
-		// ret 0 = front, 1 = back
-	if (R_PointOnSide(x, y, a_Node) != 0)
+	Side = R_PointOnSide(x, y, a_Node);
+	SideB = R_PointOnSide(xb, yb, a_Node);
+	
+	// If the polygons are on the same side, use a hopefully better method
+	if (Side == SideB)
+	{
+		fprintf(stderr, "(%i, %i), (%i, %i)\n", x >> FRACBITS, y >> FRACBITS, xb >> FRACBITS, yb >> FRACBITS);
+		I_Error("Point on same side!\n");
+	}
+	
+	// Polygons on wrong side?
+	if (Side != 0)
 	{
 		// Polygon A is not on the front side of the node, so swap
 		Temp = PolyA;
@@ -538,11 +575,12 @@ void B_GHOST_RecursiveSplitMap(const node_t* const a_Node, B_LineSet_t* const a_
 	}
 	
 	/* Handle Each Side */
-	for (Side = 0; Side < 2; Side++)
+	for (i = 0; i < 2; i++)
 	{
 		// Subsector?
-		if (a_Node->children[Side] & NF_SUBSECTOR)
+		if (a_Node->children[i] & NF_SUBSECTOR)
 		{
+#if 0
 			// Get current polygon and subsector
 			SubS = &subsectors[a_Node->children[Side] & (~NF_SUBSECTOR)];
 			Temp = (!Side ? PolyA : PolyB);
@@ -596,15 +634,19 @@ void B_GHOST_RecursiveSplitMap(const node_t* const a_Node, B_LineSet_t* const a_
 			fprintf(DebugFile, "\n");
 			fprintf(stderr, "\n");
 			DebugSet++;
+#endif
 		}
 		
 		// Node
 		else
 		{
 			// Split again
-			B_GHOST_RecursiveSplitMap(&nodes[a_Node->children[Side]], (!Side ? PolyA : PolyB));
+			B_GHOST_RecursiveSplitMap(&nodes[a_Node->children[i]], (!i ? PolyA : PolyB));
 		}
 	}
+	
+	/* Success! */
+	return true;
 }
 
 /* B_GHOST_Ticker() -- Bot Ticker */
