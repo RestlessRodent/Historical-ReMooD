@@ -1364,7 +1364,8 @@ bool_t EV_TryGenTrigger(line_t* const a_Line, const int a_Side, mobj_t* const a_
 		TrigMode = (a_Line->special & TriggerType) >> TriggerTypeShift;
 		
 		// Trigger only once?
-		*a_UseAgain = (TrigMode & 1);
+		if (a_UseAgain)
+			*a_UseAgain = (TrigMode & 1);
 		
 		// Lose that bit
 		TrigMode &= ~1;
@@ -1525,7 +1526,8 @@ bool_t EV_TryGenTrigger(line_t* const a_Line, const int a_Side, mobj_t* const a_
 			TrigMode = (a_Line->special & EVGENGE_TRIGMASK) >> EVGENGE_TRIGSHIFT;
 			
 			// Trigger only once?
-			*a_UseAgain = (TrigMode & 1);
+			if (a_UseAgain)
+				*a_UseAgain = (TrigMode & 1);
 			
 			// Lose the many bit
 			TrigMode &= ~1;
@@ -1563,7 +1565,8 @@ bool_t EV_TryGenTrigger(line_t* const a_Line, const int a_Side, mobj_t* const a_
 				return false;
 			
 			// Never use map starts again
-			*a_UseAgain = false;
+			if (a_UseAgain)
+				*a_UseAgain = false;
 		}
 		
 		// Activate Extended Triggers

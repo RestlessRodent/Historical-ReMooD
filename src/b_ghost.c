@@ -673,8 +673,6 @@ void B_GHOST_Ticker(void)
 									continue;
 							}
 							
-							fprintf(stderr, "LINKS!\n");
-							
 							// Check to see if path can be traversed
 							
 							// Movement to node is possible, link it
