@@ -702,15 +702,10 @@ void B_GHOST_ClearLevel(void)
 	/* Wipe adjacent sector data */
 	if (l_BAdj && l_BNumAdj)
 	{
-		// Destroy lists
-		for (i = 0; i < l_BNumSecs; i++)
-			if (l_BAdj[i])
-				Z_Free(l_BAdj[i]);
-		
 		Z_Free(l_BAdj);
 		Z_Free(l_BNumAdj);
-		l_BAdj = l_BNumAdj = NULL;
-		l_BNumSecs = l_BBuildAdj = 0;
+		l_BAdj = NULL;
+		l_BNumAdj = l_BNumSecs = l_BBuildAdj = 0;
 	}
 	
 	/* Destroy the unimatrix */

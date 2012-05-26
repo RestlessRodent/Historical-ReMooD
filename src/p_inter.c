@@ -445,6 +445,7 @@ bool_t P_TouchSpecialThing(mobj_t* special, mobj_t* toucher)
 		// out of reach
 		return false;
 	}
+	
 	// Dead thing touching.
 	// Can happen with a sliding player corpse.
 	if (toucher->health <= 0 || toucher->flags & MF_CORPSE)
@@ -484,7 +485,8 @@ bool_t P_TouchSpecialThing(mobj_t* special, mobj_t* toucher)
 			{
 				// Give weapon?
 				if (cv_deathmatch.value == 2 ||
-					(cv_deathmatch.value < 2 && !player->weaponowned[Current->ActGiveWeapon]))
+					(cv_deathmatch.value < 2 && !player->weaponowned[Current->ActGiveWeapon]) ||
+					(special->flags & MF_DROPPED))
 					OKStat |= P_GiveWeapon(player, Current->ActGiveWeapon, special->flags & MF_DROPPED);
 				
 				// Remove?
@@ -494,7 +496,7 @@ bool_t P_TouchSpecialThing(mobj_t* special, mobj_t* toucher)
 					
 					// Cancel removal in coop/dm
 					if (cv_deathmatch.value < 2)
-						CancelRemove = true;
+						CancelRemove = !(special->flags & MF_DROPPED);
 				}
 			}
 			
