@@ -158,6 +158,14 @@ CONL_StaticVar_t l_CONBackColor =
 	NULL
 };
 
+// con_forecolor -- Foreground color of the console
+CONL_StaticVar_t l_CONForeColor =
+{
+	CLVT_INTEGER, c_CVPVVexColor, CLVF_SAVE,
+	"con_forecolor", DSTR_CVHINT_CONFORECOLOR, CLVVT_STRING, "Green",
+	NULL
+};
+
 // con_font -- Console Font
 CONL_StaticVar_t l_CONFont =
 {
@@ -1167,6 +1175,7 @@ bool_t CONL_Init(const uint32_t a_OutBS, const uint32_t a_InBS)
 	{
 		CONL_VarRegister(&l_CONScreenHeight);
 		CONL_VarRegister(&l_CONBackColor);
+		CONL_VarRegister(&l_CONForeColor);
 		CONL_VarRegister(&l_CONFont);
 		CONL_VarRegister(&l_CONMonoSpace);
 		CONL_VarRegister(&l_CONScale);
@@ -2388,8 +2397,14 @@ bool_t CONL_DrawConsole(void)
 				
 				// Non console special control (Legacy)
 				else if (*p > 7)
-					bx = V_DrawCharacterMB(l_CONFont.Value[0].Int, Options, TempFill, x, y, &BSkip, &Options);
+				{
+					// Color reset?
+					if ((Options & VFO_COLORMASK) == 0)
+						Options |= VFO_COLOR(l_CONForeColor.Value[0].Int);
 					
+					bx = V_DrawCharacterMB(l_CONFont.Value[0].Int, Options, TempFill, x, y, &BSkip, &Options);
+				}
+									
 				// Normal character
 				else
 				{

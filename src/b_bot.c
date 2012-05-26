@@ -2014,6 +2014,9 @@ void B_BuildBotTicCmd(B_BotData_t* const a_BotData, ticcmd_t* const a_TicCmd)
 			a_BotData->IsDead = false;
 			
 			// Call Ghost thinker
+			a_BotData->GHOSTData.BotData = a_BotData;
+			a_BotData->GHOSTData.Player = Player;
+			a_BotData->GHOSTData.Mo = Player->mo;
 			B_GHOST_Think(&a_BotData->GHOSTData, a_TicCmd);
 			break;
 		

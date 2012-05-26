@@ -53,6 +53,10 @@
 
 static const int8_t c_LinkOp[3] = {2, 1, 0};
 
+static const fixed_t c_forwardmove[2] = { 25, 50 };
+static const fixed_t c_sidemove[2] = { 24, 40 };
+static const fixed_t c_angleturn[3] = { 640, 1280, 320 };	// + slow turn
+
 /*****************
 *** STRUCTURES ***
 *****************/
@@ -129,6 +133,35 @@ static int32_t l_SSBuildChain = 0;				// Final Stage Chaining
 /****************
 *** FUNCTIONS ***
 ****************/
+
+/* BS_PointsToAngleTurn() -- Convert points to angle turn */
+static uint16_t BS_PointsToAngleTurn(const fixed_t a_x1, const fixed_t a_y1, const fixed_t a_x2, const fixed_t a_y2)
+{
+	return R_PointToAngle2(a_x1, a_y1, a_x2, a_y2) >> 16;
+}
+
+/* BS_MoveToAndAimAtFrom() -- Aim at target and move to one at the same time */
+static void BS_MoveToAndAimAtFrom(const fixed_t a_x1, const fixed_t a_y1, const fixed_t a_x2, const fixed_t a_y2, const fixed_t a_AimX, const fixed_t a_AimY, int16_t* const a_AngleTurn, int8_t* const a_Forward, int8_t* const a_Side)
+{
+	angle_t AimAng;
+	angle_t MoveAng, DiffAng;
+	
+	/* Determine all angles */
+	AimAng = R_PointToAngle2(a_x1, a_y1, a_AimX, a_AimY);
+	MoveAng = R_PointToAngle2(a_x1, a_y1, a_x2, a_y2);
+	DiffAng = MoveAng - AimAng;
+	
+	/* Do aiming first */
+	*a_AngleTurn = AimAng >> 16;
+	
+	/* Then calculate side movements and such */
+	*a_Forward = FixedMul(
+		((fixed_t)c_forwardmove[1]) << FRACBITS,
+		finecosine[DiffAng >> ANGLETOFINESHIFT]) >> FRACBITS;
+	*a_Side = -(FixedMul(
+		((fixed_t)c_forwardmove[1]) << FRACBITS,
+		finesine[(DiffAng) >> ANGLETOFINESHIFT]) >> FRACBITS);
+}
 
 /* BS_UnimatrixAtPos() -- Returns Unimatrix at this position */
 B_Unimatrix_t* BS_UnimatrixAtPos(const fixed_t a_X, const fixed_t a_Y)
@@ -214,11 +247,11 @@ static bool_t BS_GHOSTCheckNodeTrav(intercept_t* in, void* const a_Data)
 }
 
 /* B_GHOST_NodeNearPos() -- Get node near position */
-B_GhostNode_t* B_GHOST_NodeNearPos(const fixed_t a_X, const fixed_t a_Y)
+B_GhostNode_t* B_GHOST_NodeNearPos(const fixed_t a_X, const fixed_t a_Y, const bool_t a_Any)
 {
 	B_Unimatrix_t* UniMatrix;
-	B_GhostNode_t* CurrentNode;
-	fixed_t Dist;
+	B_GhostNode_t* CurrentNode, *Best;
+	fixed_t Dist, BestDist;
 	size_t i;
 	
 	/* Get Unimatrix here */
@@ -229,6 +262,10 @@ B_GhostNode_t* B_GHOST_NodeNearPos(const fixed_t a_X, const fixed_t a_Y)
 		return NULL;
 	
 	/* Look through nodes there */
+	// Clear best
+	Best = NULL;
+	BestDist = 0;
+	
 	// Go through all nodes here
 	for (i = 0; i < UniMatrix->NumNodes; i++)
 	{
@@ -241,10 +278,21 @@ B_GhostNode_t* B_GHOST_NodeNearPos(const fixed_t a_X, const fixed_t a_Y)
 		// Distance is close
 		if (Dist < BOTMINNODEDIST)
 			return CurrentNode;
+		
+		// Better?
+		if (!Best || (Best && Dist < BestDist))
+		{
+			Best = CurrentNode;
+			BestDist = Dist;
+		}
 	}
 	
 	/* None Found */
-	return NULL;
+	// Return the best candidate
+	if (a_Any)
+		return Best;
+	else
+		return NULL;
 }
 
 /* B_GHOST_CreateNodeAtPos() -- Creates node at point */
@@ -276,7 +324,7 @@ B_GhostNode_t* B_GHOST_CreateNodeAtPos(const fixed_t a_X, const fixed_t a_Y)
 		return NULL;
 	
 	// Don't add any nodes that are close to this spot
-	NearNode = B_GHOST_NodeNearPos(RealX, RealY);
+	NearNode = B_GHOST_NodeNearPos(RealX, RealY, false);
 	
 	// There was something close by
 	if (NearNode)
@@ -608,31 +656,35 @@ void B_GHOST_Ticker(void)
 							dy = CurrentNode->y + (BOTMINNODEDIST * y);
 							
 							// Try and locate nearby nodes
-							NearNode = B_GHOST_NodeNearPos(dx, dy);
+							NearNode = B_GHOST_NodeNearPos(dx, dy, true);
 					
 							// No node?
 							if (!NearNode)
 							{
 								// Try a deeper reach
 								dx = dx + (BOTMINNODEDIST * x);
-								dy = dx + (BOTMINNODEDIST * y);
+								dy = dy + (BOTMINNODEDIST * y);
 								
 								// Try again
-								NearNode = B_GHOST_NodeNearPos(dx, dy);
+								NearNode = B_GHOST_NodeNearPos(dx, dy, true);
 								
 								// Still nothing
 								if (!NearNode)
 									continue;
 							}
 							
+							fprintf(stderr, "LINKS!\n");
+							
 							// Check to see if path can be traversed
 							
 							// Movement to node is possible, link it
-							lox = c_LinkOp[x + 1];
-							loy = c_LinkOp[y + 1];
+							lox = x + 1;
+							loy = y + 1;
 							CurrentNode->Links[lox][loy].Node = NearNode;
 							CurrentNode->Links[lox][loy].Dist = P_AproxDistance(
 									dx - CurrentNode->x, dy - CurrentNode->y);
+							NearNode->Links[c_LinkOp[lox]][c_LinkOp[loy]].Node = CurrentNode;
+							NearNode->Links[c_LinkOp[lox]][c_LinkOp[loy]].Dist = CurrentNode->Links[lox][loy].Dist;
 						}
 				}
 			}
@@ -710,10 +762,73 @@ void B_GHOST_InitLevel(void)
 			);
 }
 
+/* BS_GHOST_JOB_RandomNav() -- Random navigation */
+static bool_t BS_GHOST_JOB_RandomNav(struct B_GhostBot_s* a_GhostBot, const size_t a_JobID)
+{
+	B_GhostNode_t* ThisNode;
+	B_GhostNode_t* TargetNode;
+	int32_t lox, loy;
+	
+	/* Check */
+	if (!a_GhostBot)
+		return false;
+	
+	/* Find node in random direction, and move to it */
+	if (!a_GhostBot->RoamX && !a_GhostBot->RoamY)
+		a_GhostBot->RoamX = a_GhostBot->RoamY = -1;
+	
+	/* Get link operation */
+	lox = a_GhostBot->RoamX + 1;
+	loy = a_GhostBot->RoamY + 1;
+	
+	/* See if there is a target there */
+	// Get current node
+	ThisNode = (B_GhostNode_t*)a_GhostBot->AtNode;
+	
+	// No current node?
+	if (!ThisNode)
+		return true;
+	
+	// Get node to try to move to
+	TargetNode = ThisNode->Links[lox][loy].Node;
+	
+	// No node there?
+	if (!TargetNode)
+	{
+		// Increase X pos
+		a_GhostBot->RoamX++;
+		
+		// Increase Y pos
+		if (a_GhostBot->RoamX > 1)
+		{
+			a_GhostBot->RoamX = -1;
+			a_GhostBot->RoamY++;
+			
+			if (a_GhostBot->RoamY > 1)
+				a_GhostBot->RoamY = -1;
+		}
+		
+		// Hit zero zero?
+		if (!a_GhostBot->RoamX && !a_GhostBot->RoamY)
+			a_GhostBot->RoamX++;
+		
+		// Keep this job
+		return true;
+	}
+	
+	/* Face that node */
+	a_GhostBot->TicCmdPtr->forwardmove = c_forwardmove[1];
+	a_GhostBot->TicCmdPtr->angleturn = BS_PointsToAngleTurn(a_GhostBot->Mo->x, a_GhostBot->Mo->y, TargetNode->x, TargetNode->y);
+	
+	/* Keep random navigation */
+	return true;
+}
+
 /* B_GHOST_Think() -- Bot thinker routine */
 void B_GHOST_Think(B_GhostBot_t* const a_GhostBot, ticcmd_t* const a_TicCmd)
 {
-	size_t J;
+	size_t J, i, j;
+	int32_t MoveTarg, AttackTarg;
 	
 	/* Check */
 	if (!a_GhostBot || !a_TicCmd)
@@ -722,8 +837,41 @@ void B_GHOST_Think(B_GhostBot_t* const a_GhostBot, ticcmd_t* const a_TicCmd)
 	/* Clear tic command */
 	memset(a_TicCmd, 0, sizeof(*a_TicCmd));
 	
+	/* Bot needs initialization? */
+	if (!a_GhostBot->Initted)
+	{
+		// Add 
+		a_GhostBot->Jobs[0].JobHere = true;
+		a_GhostBot->Jobs[0].JobFunc = BS_GHOST_JOB_RandomNav;
+		
+		// Set as initialized
+		a_GhostBot->Initted = true;
+	}
+	
 	/* Init */
 	a_GhostBot->TicCmdPtr = a_TicCmd;
+	a_GhostBot->AtNode = B_GHOST_NodeNearPos(a_GhostBot->Mo->x, a_GhostBot->Mo->y, true);
+	
+	/* Debug Movement */
+	if (a_GhostBot->AtNode)
+	{
+		if ((gametic % TICRATE) == 0)
+			for (i = 0; i < 3; i++)
+				for (j = 0; j < 3; j++)
+				{
+					if (((B_GhostNode_t*)a_GhostBot->AtNode)->Links[i][j].Node)
+					{
+						fprintf(stderr, "%p\n", ((B_GhostNode_t*)a_GhostBot->AtNode)->Links[i][j].Node);
+						fprintf(stderr, "linked\n");
+						P_SpawnMobj(
+								((B_GhostNode_t*)a_GhostBot->AtNode)->Links[i][j].Node->x,
+								((B_GhostNode_t*)a_GhostBot->AtNode)->Links[i][j].Node->y,
+								ONFLOORZ,
+								INFO_GetTypeByName("ReMooDBotDebugTarget")
+							);
+					}
+				}
+	}
 	
 	/* Go through jobs and execute them */
 	for (J = 0; J < MAXBOTJOBS; J++)
@@ -744,5 +892,64 @@ void B_GHOST_Think(B_GhostBot_t* const a_GhostBot, ticcmd_t* const a_TicCmd)
 					a_GhostBot->Jobs[J].JobFunc = NULL;
 				}
 		}
+	
+	/* Move to designated target, shoot designated target */
+	// Find the most important target
+	MoveTarg = AttackTarg = -1;
+	
+	// Go through them all
+	for (i = 0; i < MAXBOTTARGETS; i++)
+		if (a_GhostBot->Targets[i].IsSet)
+		{
+			// Move target?
+			if (a_GhostBot->Targets[i].MoveTarget)
+			{
+				if ((MoveTarg == -1) ||
+					(MoveTarg >= 0 && a_GhostBot->Targets[i].Priority >
+						a_GhostBot->Targets[MoveTarg].Priority))
+					MoveTarg = i;
+			}
+			
+			// Attack Target
+			else
+			{
+				if ((AttackTarg == -1) ||
+					(AttackTarg >= 0 && a_GhostBot->Targets[i].Priority >
+						a_GhostBot->Targets[AttackTarg].Priority))
+					AttackTarg = i;
+			}
+		}
+	
+	/* Commence Movement/Attacking? */
+	if (MoveTarg != -1 && AttackTarg != -1)
+	{
+		// Move to target
+		if (MoveTarg == -1 && AttackTarg != -1)
+		{
+			a_GhostBot->TicCmdPtr->forwardmove = c_forwardmove[1];
+			a_GhostBot->TicCmdPtr->angleturn = BS_PointsToAngleTurn(a_GhostBot->Mo->x, a_GhostBot->Mo->y, a_GhostBot->Targets[MoveTarg].x, a_GhostBot->Targets[MoveTarg].y);
+		}
+		
+		// Aim at target
+		else if (MoveTarg != -1 && AttackTarg == -1)
+		{
+			a_GhostBot->TicCmdPtr->buttons |= BT_ATTACK;
+			a_GhostBot->TicCmdPtr->angleturn = BS_PointsToAngleTurn(a_GhostBot->Mo->x, a_GhostBot->Mo->y, a_GhostBot->Targets[AttackTarg].x, a_GhostBot->Targets[AttackTarg].y);
+		}
+		
+		// Dual movement
+		else
+		{
+			a_GhostBot->TicCmdPtr->buttons |= BT_ATTACK;
+			BS_MoveToAndAimAtFrom(
+					a_GhostBot->Mo->x, a_GhostBot->Mo->y,
+					a_GhostBot->Targets[MoveTarg].x, a_GhostBot->Targets[MoveTarg].y,
+					a_GhostBot->Targets[AttackTarg].x, a_GhostBot->Targets[AttackTarg].y,
+					&a_GhostBot->TicCmdPtr->angleturn,
+					&a_GhostBot->TicCmdPtr->forwardmove,
+					&a_GhostBot->TicCmdPtr->sidemove
+				);
+		}
+	}
 }
 

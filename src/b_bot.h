@@ -42,12 +42,15 @@
 #include "r_defs.h"
 #include "r_state.h"
 #include "p_mobj.h"
+#include "d_player.h"
 
 /****************
 *** CONSTANTS ***
 ****************/
 
-#define MAXBOTJOBS 32
+#define MAXBOTJOBS							32	// Maximum Jobs
+
+#define MAXBOTTARGETS						16	// Max target designated
 
 /*****************
 *** STRUCTURES ***
@@ -60,6 +63,22 @@ typedef struct B_GhostBot_s
 {
 	uint8_t Junk;								// Junk Data
 	ticcmd_t* TicCmdPtr;						// Pointer to tic command
+	bool_t Initted;								// Initialized
+	void* AtNode;								// At node
+	B_BotData_t* BotData;						// Data
+	player_t* Player;							// Player
+	mobj_t* Mo;									// Mo
+	
+	int32_t RoamX, RoamY;						// Roaming X/Y
+	
+	struct
+	{
+		bool_t IsSet;							// Target Set
+		bool_t MoveTarget;						// Movement target
+		uint32_t ExpireTic;						// Action expires at this time
+		int32_t Priority;						// Priority
+		fixed_t x, y;							// X/Y Target
+	} Targets[MAXBOTTARGETS];					// Bot target
 	
 	struct
 	{
