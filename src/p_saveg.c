@@ -5967,6 +5967,9 @@ __REMOOD_SGDXIH(ui,unsigned int);
 __REMOOD_SGDXIH(uli,unsigned long int);
 
 __REMOOD_SGDXIH(fixedt,fixed_t);
+__REMOOD_SGDXIH(boolt,bool_t);
+__REMOOD_SGDXIH(tict,tic_t);
+__REMOOD_SGDXIH(anglet,angle_t);
 
 #undef __REMOOD_SGDXIH
 
@@ -5985,9 +5988,9 @@ static const P_SGDXTypeIO_t c_IOTable[NUMPSTCS] =
 	__IODEF(PSTC_UINT,unsigned int,__REMOOD_SGDXIHM(ui)),
 	__IODEF(PSTC_ULONG,unsigned long int,__REMOOD_SGDXIHM(uli)),
 	__IODEF(PSTC_FIXEDT,fixed_t,__REMOOD_SGDXIHM(fixedt)),
-	__IODEF(PSTC_BOOLT,bool_t,NULL),
-	__IODEF(PSTC_TICT,tic_t,NULL),
-	__IODEF(PSTC_ANGLET,angle_t,NULL),
+	__IODEF(PSTC_BOOLT,bool_t,__REMOOD_SGDXIHM(boolt)),
+	__IODEF(PSTC_TICT,tic_t,__REMOOD_SGDXIHM(tict)),
+	__IODEF(PSTC_ANGLET,angle_t,__REMOOD_SGDXIHM(anglet)),
 	__IODEF(PSTC_FLOAT,float,NULL),
 	__IODEF(PSTC_DOUBLE,double,NULL),
 	__IODEF(PSTC_POINTERTO,void*,NULL),
@@ -6017,6 +6020,73 @@ static const P_SGDXTypeIO_t c_IOTable[NUMPSTCS] =
 static const P_SGDXDataSpec_t c_SectorSpec[] =
 {
 	__SPEC(sector_t,floorheight,FIXEDT,INT32),
+	__SPEC(sector_t,ceilingheight,FIXEDT,INT32),
+	__SPEC(sector_t,floorpic,SHORT,INT16),
+	__SPEC(sector_t,ceilingpic,SHORT,INT16),
+	__SPEC(sector_t,lightlevel,SHORT,INT16),
+	__SPEC(sector_t,special,UINT32,UINT32),
+	__SPEC(sector_t,oldspecial,UINT32,UINT32),
+	__SPEC(sector_t,tag,SHORT,INT16),
+	__SPEC(sector_t,nexttag,INT,INT32),
+	__SPEC(sector_t,firsttag,INT,INT32),
+	__SPEC(sector_t,soundtraversed,SHORT,INT16),
+	__SPEC(sector_t,floortype,SHORT,INT16),
+	__SPEC(sector_t,blockbox[0],INT,INT32),
+	__SPEC(sector_t,blockbox[1],INT,INT32),
+	__SPEC(sector_t,blockbox[2],INT,INT32),
+	__SPEC(sector_t,blockbox[3],INT,INT32),
+	__SPEC(sector_t,validcount,INT,INT32),
+	__SPEC(sector_t,stairlock,INT,INT32),
+	__SPEC(sector_t,prevsec,INT,INT32),
+	__SPEC(sector_t,nextsec,INT,INT32),
+	__SPEC(sector_t,floor_xoffs,FIXEDT,INT32),
+	__SPEC(sector_t,floor_yoffs,FIXEDT,INT32),
+	__SPEC(sector_t,ceiling_xoffs,FIXEDT,INT32),
+	__SPEC(sector_t,ceiling_yoffs,FIXEDT,INT32),
+	__SPEC(sector_t,heightsec,INT,INT32),
+	__SPEC(sector_t,altheightsec,INT,INT32),
+	__SPEC(sector_t,floorlightsec,INT,INT32),
+	__SPEC(sector_t,ceilinglightsec,INT,INT32),
+	__SPEC(sector_t,teamstartsec,INT,INT32),
+	__SPEC(sector_t,bottommap,INT,INT32),
+	__SPEC(sector_t,midmap,INT,INT32),
+	__SPEC(sector_t,topmap,INT,INT32),
+
+#if 0
+	struct msecnode_s* touching_thinglist;	// phares 3/14/98
+	int linecount;
+	struct line_s** lines;		// [linecount] size
+	ffloor_t* ffloors;
+	int* attached;
+	int numattached;
+	bool_t LLSelf;								// True if lightlist is Z_Malloc()
+	lightlist_t* lightlist;
+	int numlights;
+	bool_t moved;
+	int validsort;				//if == validsort allready been sorted
+	bool_t added;
+	extracolormap_t* extra_colormap;
+	bool_t pseudoSector;
+	bool_t virtualFloor;
+	fixed_t virtualFloorheight;
+	bool_t virtualCeiling;
+	fixed_t virtualCeilingheight;
+	linechain_t* sectorLines;
+	struct sector_s** stackList;
+	double lineoutLength;
+	char* FloorTexture;							// Name of floor texture
+	char* CeilingTexture;						// Name of ceiling texture
+	fixed_t BBox[4];							// Sector bounding box
+	size_t SoundSecRef;							// Reference to sound sector
+	struct sector_s** Adj;						// Adjacent sectors
+	size_t NumAdj;								// Number of adjacent sectors
+	mobj_t* thinglist;
+	mobj_t* soundtarget;
+	S_NoiseThinker_t soundorg;
+	void* floordata;			// make thinkers on
+	void* ceilingdata;			// floors, ceilings, lighting,
+	void* lightingdata;			// independent of one another
+#endif
 	
 	__ENDSPEC,
 };
@@ -6120,6 +6190,7 @@ bool_t P_SGDXDoArray(D_RBlockStream_t* const a_Stream, const bool_t a_Load, void
 }
 
 #define __INITARRAY(ar,co,ct,pu) P_SGDXDoArray(a_Stream, a_Load, &ar, sizeof(*ar), &co, sizeof(co), PSTC_##ct,pu)
+#define __BI(x,nt,rc) PS_SGDXReadWriteData(a_Stream, a_Load, &x, sizeof(x), PSRC_##rc, PSTC_##nt, NULL)
 
 /* P_SGDXSpec() -- Save/Load Game via specification */
 bool_t P_SGDXSpec(D_RBlockStream_t* const a_Stream, const bool_t a_Load)
@@ -6155,6 +6226,15 @@ bool_t P_SGDXSpec(D_RBlockStream_t* const a_Stream, const bool_t a_Load)
 			__INITARRAY(sectors,numsectors,INT,PU_LEVEL);
 			for (i = 0; i < numsectors; i++)
 				PS_SGDXDoStruct(a_Stream, a_Load, &sectors[i], c_SectorSpec);
+			
+			// Record
+			__REC;
+		}
+		
+		// SGST -- State
+		if (__HEADER("SGST"))
+		{
+			__BI(gamestate,INT,INT32);
 			
 			// Record
 			__REC;

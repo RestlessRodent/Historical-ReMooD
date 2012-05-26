@@ -40,100 +40,6 @@
 #include "z_zone.h"
 #include "t_script.h"
 
-//
-// CHANGE THE TEXTURE OF A WALL SWITCH TO ITS OPPOSITE
-//
-switchlist_t oldalphSwitchList[] =
-{
-	// Doom shareware episode 1 switches
-	{"SW1BRCOM", "SW2BRCOM", 1}
-	,
-	{"SW1BRN1", "SW2BRN1", 1}
-	,
-	{"SW1BRN2", "SW2BRN2", 1}
-	,
-	{"SW1BRNGN", "SW2BRNGN", 1}
-	,
-	{"SW1BROWN", "SW2BROWN", 1}
-	,
-	{"SW1COMM", "SW2COMM", 1}
-	,
-	{"SW1COMP", "SW2COMP", 1}
-	,
-	{"SW1DIRT", "SW2DIRT", 1}
-	,
-	{"SW1EXIT", "SW2EXIT", 1}
-	,
-	{"SW1GRAY", "SW2GRAY", 1}
-	,
-	{"SW1GRAY1", "SW2GRAY1", 1}
-	,
-	{"SW1METAL", "SW2METAL", 1}
-	,
-	{"SW1PIPE", "SW2PIPE", 1}
-	,
-	{"SW1SLAD", "SW2SLAD", 1}
-	,
-	{"SW1STARG", "SW2STARG", 1}
-	,
-	{"SW1STON1", "SW2STON1", 1}
-	,
-	{"SW1STON2", "SW2STON2", 1}
-	,
-	{"SW1STONE", "SW2STONE", 1}
-	,
-	{"SW1STRTN", "SW2STRTN", 1}
-	,
-	
-	// Doom registered episodes 2&3 switches
-	{"SW1BLUE", "SW2BLUE", 2}
-	,
-	{"SW1CMT", "SW2CMT", 2}
-	,
-	{"SW1GARG", "SW2GARG", 2}
-	,
-	{"SW1GSTON", "SW2GSTON", 2}
-	,
-	{"SW1HOT", "SW2HOT", 2}
-	,
-	{"SW1LION", "SW2LION", 2}
-	,
-	{"SW1SATYR", "SW2SATYR", 2}
-	,
-	{"SW1SKIN", "SW2SKIN", 2}
-	,
-	{"SW1VINE", "SW2VINE", 2}
-	,
-	{"SW1WOOD", "SW2WOOD", 2}
-	,
-	
-	// Doom II switches
-	{"SW1PANEL", "SW2PANEL", 3}
-	,
-	{"SW1ROCK", "SW2ROCK", 3}
-	,
-	{"SW1MET2", "SW2MET2", 3}
-	,
-	{"SW1WDMET", "SW2WDMET", 3}
-	,
-	{"SW1BRIK", "SW2BRIK", 3}
-	,
-	{"SW1MOD1", "SW2MOD1", 3}
-	,
-	{"SW1ZIM", "SW2ZIM", 3}
-	,
-	{"SW1STON6", "SW2STON6", 3}
-	,
-	{"SW1TEK", "SW2TEK", 3}
-	,
-	{"SW1MARB", "SW2MARB", 3}
-	,
-	{"SW1SKULL", "SW2SKULL", 3}
-	,
-	
-	{"\0", "\0", 0}
-};
-
 //SoM: 3/22/2000: Switch limit removal
 //int             switchlist[MAXSWITCHES * 2];
 
@@ -150,82 +56,102 @@ button_t buttonlist[MAXBUTTONS];
 //SoM: 3/22/2000: Use boom code.
 void P_InitSwitchList(void)
 {
-	int i, index = 0;
-	int episode;
-	switchlist_t* alphSwitchList;
+	int32_t i, j, t;
+	const WL_WADEntry_t* Entry;
+	WL_EntryStream_t* Stream;
+	uint16_t Flag;
+	char Texts[2][9];
 	
-	switch (gamemode)
-	{
-		case registered:
-		case retail:
-			episode = 2;
-			break;
-		case commercial:
-			episode = 3;
-			break;
-		default:
-			episode = 1;
-	}
+	/* Locate SWITCHES */
+	Entry = WL_FindEntry(NULL, 0, "SWITCHES");
 	
-	//SoM: 3/22/2000: No Switches lump? Use old table!
-	if (W_CheckNumForName("SWITCHES") != -1)
+	// Not found?
+	if (!Entry)
+		return;
+	
+	// Open stream
+	Stream = WL_StreamOpen(Entry);
+	
+	// Failed?
+	if (!Stream)
+		return;
+	
+	/* Free? */
+	if (switchlist)
+		Z_Free(switchlist);
+	switchlist = NULL;
+	max_numswitches = numswitches = 0;
+	
+	/* Load switches data */
+	max_numswitches = (Entry->Size / 20) * 2;
+	numswitches = max_numswitches / 2;
+	switchlist = Z_Malloc(sizeof(*switchlist) * ((numswitches + 1) * 2), PU_STATIC, NULL);
+	
+	// Parse Data
+	for (i = 0; i < numswitches; i++)
 	{
-		alphSwitchList = (switchlist_t*) W_CacheLumpName("SWITCHES", PU_STATIC);
-		// endian conversion only when loading from extra lump
-		for (i = 0; alphSwitchList[i].episode != 0; i++)
-			alphSwitchList[i].episode = LittleSwapInt16(alphSwitchList[i].episode);
-	}
-	else
-		alphSwitchList = oldalphSwitchList;
+		// Read off and on textures
+		memset(Texts, 0, sizeof(Texts));
 		
-	// initialization for artificial levels without switches (yes, they exist!)
-	if (NULL == switchlist)
-		switchlist = malloc(sizeof(*switchlist));
-		
-	for (i = 0; alphSwitchList[i].episode != 0; i++)
-	{
-		if (index + 1 >= max_numswitches)
-			switchlist = realloc(switchlist, sizeof* switchlist * (max_numswitches = max_numswitches ? max_numswitches * 2 : 8));
-			
-		if (alphSwitchList[i].episode <= episode && (alphSwitchList[i].episode == 4))
+		for (t = 0; t < 2; t++)
 		{
-			switchlist[index++] = R_TextureNumForName(alphSwitchList[i].name1);
-			switchlist[index++] = R_TextureNumForName(alphSwitchList[i].name2);
+			for (j = 0; j < 9; j++)
+				Texts[t][j] = WL_StreamReadUInt8(Stream);
+			Texts[t][8] = 0;
 		}
+		
+		// Read Bits
+		Flag = WL_StreamReadLittleUInt16(Stream);
+		
+		// End?
+		if (!Flag)
+			break;
+		
+		// Load
+		switchlist[(i * 2)] = R_TextureNumForName(Texts[0]);
+		switchlist[(i * 2) + 1] = R_TextureNumForName(Texts[1]);
 	}
 	
-	numswitches = index / 2;
-	switchlist[index] = -1;
-	
-	//SoM: 3/22/2000: Don't change tag if not from lump
-	if (alphSwitchList != oldalphSwitchList)
-		Z_ChangeTag(alphSwitchList, PU_CACHE);
+	/* Finish off */
+	switchlist[(i * 2)] = -1;
 }
 
-//
-// Start a button counting down till it turns off.
-//
+/* P_StartButton() -- Adds a press button */
 void P_StartButton(line_t* line, bwhere_e w, int texture, int time)
 {
 	int i;
+	int Chose;
 	
-	// See if button is already pressed
+	/* See if button is already pressed */
 	for (i = 0; i < MAXBUTTONS; i++)
 		if (buttonlist[i].btimer && buttonlist[i].line == line)
 			return;
-			
-	for (i = 0; i < MAXBUTTONS; i++)
+	
+	/* Find button to use */
+	for (Chose = 0, i = 0; i < MAXBUTTONS; i++)
+	{
+		// Empty slot?
 		if (!buttonlist[i].btimer)
 		{
-			buttonlist[i].line = line;
-			buttonlist[i].where = w;
-			buttonlist[i].btexture = texture;
-			buttonlist[i].btimer = time;
-			buttonlist[i].soundorg = (mobj_t*)&line->frontsector->soundorg;
-			return;
+			Chose = i;
+			break;
 		}
 		
-	I_Error("P_StartButton: no button slots left!");
+		// Non-empty
+		else
+		{
+			// Use an earlier button
+			if (buttonlist[i].btimer < buttonlist[Chose].btimer)
+				Chose = i;
+		}
+	}
+	
+	/* Set the chosen button */
+	buttonlist[Chose].line = line;
+	buttonlist[Chose].where = w;
+	buttonlist[Chose].btexture = texture;
+	buttonlist[Chose].btimer = time;
+	buttonlist[Chose].soundorg = (mobj_t*)&line->frontsector->soundorg;
 }
 
 //
@@ -252,9 +178,14 @@ void P_ChangeSwitchTexture(line_t* line, int useAgain)
 	// EXIT SWITCH?
 	if (line->special == 11)
 		sound = sfx_swtchx;
-		
+	
 	for (i = 0; i < numswitches * 2; i++)
 	{
+		// Bad texture?
+		if (switchlist[i] <= 0 || switchlist[i ^ 1] <= 0)
+			continue;
+		
+		// Do translation
 		if (switchlist[i] == texTop)
 		{
 			S_StartSound(buttonlist->soundorg, sound);
@@ -262,33 +193,27 @@ void P_ChangeSwitchTexture(line_t* line, int useAgain)
 			
 			if (useAgain)
 				P_StartButton(line, top, switchlist[i], BUTTONTIME);
+			
+			return;
+		}
+		else if (switchlist[i] == texMid)
+		{
+			S_StartSound(buttonlist->soundorg, sound);
+			sides[line->sidenum[0]].midtexture = switchlist[i ^ 1];
+			if (useAgain)
+				P_StartButton(line, middle, switchlist[i], BUTTONTIME);
 				
 			return;
 		}
-		else
+		else if (switchlist[i] == texBot)
 		{
-			if (switchlist[i] == texMid)
-			{
-				S_StartSound(buttonlist->soundorg, sound);
-				sides[line->sidenum[0]].midtexture = switchlist[i ^ 1];
-				if (useAgain)
-					P_StartButton(line, middle, switchlist[i], BUTTONTIME);
-					
-				return;
-			}
-			else
-			{
-				if (switchlist[i] == texBot)
-				{
-					S_StartSound(buttonlist->soundorg, sound);
-					sides[line->sidenum[0]].bottomtexture = switchlist[i ^ 1];
-					
-					if (useAgain)
-						P_StartButton(line, bottom, switchlist[i], BUTTONTIME);
-						
-					return;
-				}
-			}
+			S_StartSound(buttonlist->soundorg, sound);
+			sides[line->sidenum[0]].bottomtexture = switchlist[i ^ 1];
+			
+			if (useAgain)
+				P_StartButton(line, bottom, switchlist[i], BUTTONTIME);
+				
+			return;
 		}
 	}
 }

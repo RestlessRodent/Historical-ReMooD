@@ -79,144 +79,100 @@ typedef struct
 	int speed;
 } anim_t;
 
-//
-//      source animation definition
-//
-#pragma pack(1)					//Hurdler: 04/04/2000: I think pragma is more portable
-typedef struct
-{
-	char istexture;				// if false, it is a flat
-	char endname[9];
-	char startname[9];
-	int speed;
-} animdef_t;
-
-#pragma pack()
-
 #define MAXANIMS     32
 
 //SoM: 3/7/2000: New sturcture without limits.
-static anim_t* lastanim;
-static anim_t* anims;
-static size_t maxanims;
+static anim_t* lastanim = NULL;
+static anim_t* anims = NULL;
+static size_t maxanims = 0;
 
-//
-// P_InitPicAnims
-//
-
-// Floor/ceiling animation sequences,
-//  defined by first and last frame,
-//  i.e. the flat (64x64 tile) name to
-//  be used.
-// The full animation sequence is given
-//  using all the flats between the start
-//  and end entry, in the order found in
-//  the WAD file.
-//
-animdef_t harddefs[] =
-{
-	// DOOM II flat animations.
-	{false, "NUKAGE3", "NUKAGE1", 8},
-	{false, "FWATER4", "FWATER1", 8},
-	{false, "SWATER4", "SWATER1", 8},
-	{false, "LAVA4", "LAVA1", 8},
-	{false, "BLOOD3", "BLOOD1", 8},
-	
-	{false, "RROCK08", "RROCK05", 8},
-	{false, "SLIME04", "SLIME01", 8},
-	{false, "SLIME08", "SLIME05", 8},
-	{false, "SLIME12", "SLIME09", 8},
-	
-	// animated textures
-	{true, "BLODGR4", "BLODGR1", 8},
-	{true, "SLADRIP3", "SLADRIP1", 8},
-	
-	{true, "BLODRIP4", "BLODRIP1", 8},
-	{true, "FIREWALL", "FIREWALA", 8},
-	{true, "GSTFONT3", "GSTFONT1", 8},
-	{true, "FIRELAVA", "FIRELAV3", 8},
-	{true, "FIREMAG3", "FIREMAG1", 8},
-	{true, "FIREBLU2", "FIREBLU1", 8},
-	{true, "ROCKRED3", "ROCKRED1", 8},
-	
-	{true, "BFALL4", "BFALL1", 8},
-	{true, "SFALL4", "SFALL1", 8},
-	{true, "WFALL4", "WFALL1", 8},
-	{true, "DBRAIN4", "DBRAIN1", 8},
-	
-	// heretic
-	{false, "FLTWAWA3", "FLTWAWA1", 8},	// Water
-	{false, "FLTSLUD3", "FLTSLUD1", 8},	// Sludge
-	{false, "FLTTELE4", "FLTTELE1", 6},	// Teleport
-	{false, "FLTFLWW3", "FLTFLWW1", 9},	// River - West
-	{false, "FLTLAVA4", "FLTLAVA1", 8},	// Lava
-	{false, "FLATHUH4", "FLATHUH1", 8},	// Super Lava
-	{true, "LAVAFL3", "LAVAFL1", 6},	// Texture: Lavaflow
-	{true, "WATRWAL3", "WATRWAL1", 4},	// Texture: Waterfall
-	
-	{-1}
-};
-
-//
-//      Animating line specials
-//
-
-//
-// Init animated textures
-// - now called at level loading P_SetupLevel()
-//
-
-static animdef_t* animdefs;
-
-//SoM: 3/7/2000: Use new boom method of reading lump from wad file.
+/* P_InitPicAnims() -- Animated Textures */
 void P_InitPicAnims(void)
 {
-	//  Init animation
-	int i;
+	int32_t i, j, t;
+	const WL_WADEntry_t* Entry;
+	WL_EntryStream_t* Stream;
+	uint8_t Flag;
+	char Texts[2][9];
+	int32_t Time;
 	
-	if (W_CheckNumForName("ANIMATED") != -1)
-		animdefs = (animdef_t*) W_CacheLumpName("ANIMATED", PU_STATIC);
-	else
-		animdefs = harddefs;
-		
-	for (i = 0; animdefs[i].istexture != -1; i++, maxanims++);
-	anims = (anim_t*) malloc(sizeof(anim_t) * (maxanims + 1));
+	/* Locate ANIMATED */
+	Entry = WL_FindEntry(NULL, 0, "ANIMATED");
 	
-	lastanim = anims;
-	for (i = 0; animdefs[i].istexture != -1; i++)
+	// Not found?
+	if (!Entry)
+		return;
+	
+	// Open stream
+	Stream = WL_StreamOpen(Entry);
+	
+	// Failed?
+	if (!Stream)
+		return;
+	
+	/* Free? */
+	if (anims)
+		Z_Free(anims);
+	anims = NULL;
+	maxanims = NULL;
+	
+	/* Load animation data */
+	maxanims = Entry->Size / 23;
+	anims = Z_Malloc(sizeof(*anims) * (maxanims + 1), PU_STATIC, NULL);
+	
+	// Parse data
+	for (i = 0; i < maxanims; i++)
 	{
-	
-		if (animdefs[i].istexture)
+		// Read Marker
+		Flag = WL_StreamReadUInt8(Stream);
+		
+		// End?
+		if (Flag == 255)
+			break;
+		
+		// Read last and first textures
+		memset(Texts, 0, sizeof(Texts));
+		
+		for (t = 0; t < 2; t++)
 		{
-			// different episode ?
-			if (R_CheckTextureNumForName(animdefs[i].startname) == -1)
-				continue;
-				
-			lastanim->picnum = R_TextureNumForName(animdefs[i].endname);
-			lastanim->basepic = R_TextureNumForName(animdefs[i].startname);
+			for (j = 0; j < 9; j++)
+				Texts[t][j] = WL_StreamReadUInt8(Stream);
+			Texts[t][8] = 0;
 		}
+		
+		// Read time
+		Time = WL_StreamReadLittleInt32(Stream);
+		
+		// Fill in real info
+		anims[i].istexture = (Flag == 1 ? true : false);
+		anims[i].speed = Time;
+		
+		// Texture?
+		if (anims[i].istexture)
+		{
+			anims[i].picnum = R_TextureNumForName(Texts[0]);
+			anims[i].basepic = R_TextureNumForName(Texts[1]);
+		}
+		
+		// Flat
 		else
 		{
-			if ((W_CheckNumForName(animdefs[i].startname)) == -1)
-				continue;
-				
-			lastanim->picnum = R_FlatNumForName(animdefs[i].endname);
-			lastanim->basepic = R_FlatNumForName(animdefs[i].startname);
+			anims[i].picnum = R_GetFlatNumForName(Texts[0]);
+			anims[i].basepic = R_GetFlatNumForName(Texts[1]);
 		}
 		
-		lastanim->istexture = (bool_t)animdefs[i].istexture;
-		lastanim->numpics = lastanim->picnum - lastanim->basepic + 1;
-		
-		if (lastanim->numpics < 2)
-			I_Error("P_InitPicAnims: bad cycle from %s to %s", animdefs[i].startname, animdefs[i].endname);
-			
-		lastanim->speed = LittleSwapInt32(animdefs[i].speed);
-		lastanim++;
+		// Get number of pictures
+		anims[i].numpics = anims[i].picnum - anims[i].basepic;
+		if (anims[i].numpics < 0)
+			anims[i].numpics = 0;
 	}
-	lastanim->istexture = -1;
 	
-	if (animdefs != harddefs)
-		Z_ChangeTag(animdefs, PU_CACHE);
+	// Last animation is nothing
+	lastanim = &anims[i];
+	lastanim->istexture = ((bool_t)-1);
+	
+	/* Close Stream */
+	WL_StreamClose(Stream);
 }
 
 //  Check for flats in levelflats, that are part
@@ -225,37 +181,6 @@ void P_InitPicAnims(void)
 //SoM: 3/16/2000: Changed parameter from pointer to "anims" entry number
 void P_FindAnimatedFlat(int animnum)
 {
-	int i;
-	int startflatnum, endflatnum;
-	levelflat_t* foundflats = levelflats;
-	
-	startflatnum = anims[animnum].basepic;
-	endflatnum = anims[animnum].picnum;
-	
-	// note: high word of lumpnum is the wad number
-	if ((startflatnum >> 16) != (endflatnum >> 16))
-		I_Error("AnimatedFlat start %s not in same wad as end %s\n", animdefs[animnum].startname, animdefs[animnum].endname);
-		
-	//
-	// now search through the levelflats if this anim flat sequence is used
-	//
-	for (i = 0; i < numlevelflats; i++, foundflats++)
-	{
-		// is that levelflat from the flat anim sequence ?
-		if (foundflats->lumpnum >= startflatnum && foundflats->lumpnum <= endflatnum)
-		{
-			foundflats->baselumpnum = startflatnum;
-			foundflats->animseq = foundflats->lumpnum - startflatnum;
-			foundflats->numpics = endflatnum - startflatnum + 1;
-			foundflats->speed = anims[animnum].speed;
-			
-			if (devparm)
-				CONL_PrintF
-				("animflat: %#03d name:%.8s animseq:%d numpics:%d speed:%d\n",
-				 i, foundflats->name, foundflats->animseq, foundflats->numpics, foundflats->speed);
-		}
-	}
-	
 }
 
 //
@@ -263,16 +188,6 @@ void P_FindAnimatedFlat(int animnum)
 //
 void P_SetupLevelFlatAnims(void)
 {
-	int i;
-	
-	// the original game flat anim sequences
-	for (i = 0; anims[i].istexture != -1; i++)
-	{
-		if (!anims[i].istexture)
-		{
-			P_FindAnimatedFlat(i);
-		}
-	}
 }
 
 //
@@ -2314,22 +2229,7 @@ void P_UpdateSpecials(void)
 		for (i = anim->basepic; i < anim->basepic + anim->numpics; i++)
 		{
 			pic = anim->basepic + ((leveltime / anim->speed + i) % anim->numpics);
-			if (anim->istexture)
-				textures[i]->Translation = pic;
-		}
-	}
-	
-	//  ANIMATE FLATS
-	//Fab:FIXME: do not check the non-animate flat.. link the animated ones?
-	// note: its faster than the original anywaysince it animates only
-	//    flats used in the level, and there's usually very few of them
-	foundflats = levelflats;
-	for (i = 0; i < numlevelflats; i++, foundflats++)
-	{
-		if (foundflats->speed)	// it is an animated flat
-		{
-			// update the levelflat lump number
-			foundflats->lumpnum = foundflats->baselumpnum + ((leveltime / foundflats->speed + foundflats->animseq) % foundflats->numpics);
+			textures[i]->Translation = pic;
 		}
 	}
 	

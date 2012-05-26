@@ -1753,6 +1753,9 @@ bool_t P_ExClearLevel(void)
 	/* Re-initialize */
 	P_Initsecnode();
 	P_InitThinkers();
+	P_InitSwitchList();
+	P_InitPicAnims();
+	P_SetupLevelFlatAnims();
 	
 	/* Re-init some things */
 	// Body Queue

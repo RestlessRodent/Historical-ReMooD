@@ -38,6 +38,8 @@ RMD_EGLM
 _GNUGPL_
 __E_RMX
 __E_RMD
+SWITCHES
+ANIMATED
 
 # pic_ts
 [picts]

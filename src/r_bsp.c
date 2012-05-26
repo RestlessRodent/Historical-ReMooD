@@ -760,7 +760,7 @@ void R_Subsector(int num)
 	if ((frontsector->floorheight < viewz || (frontsector->heightsec != -1 && sectors[frontsector->heightsec].ceilingpic == skyflatnum)))
 	{
 		floorplane = R_FindPlane(frontsector->floorheight,
-		                         frontsector->floorpic, floorlightlevel, frontsector->floor_xoffs, frontsector->floor_yoffs, floorcolormap, NULL);
+		                         textures[frontsector->floorpic]->Translation, floorlightlevel, frontsector->floor_xoffs, frontsector->floor_yoffs, floorcolormap, NULL);
 	}
 	else
 		floorplane = NULL;
@@ -769,7 +769,7 @@ void R_Subsector(int num)
 	        || frontsector->ceilingpic == skyflatnum || (frontsector->heightsec != -1 && sectors[frontsector->heightsec].floorpic == skyflatnum)))
 	{
 		ceilingplane = R_FindPlane(frontsector->ceilingheight,
-		                           frontsector->ceilingpic, ceilinglightlevel, frontsector->ceiling_xoffs, frontsector->ceiling_yoffs, ceilingcolormap, NULL);
+		                           textures[frontsector->ceilingpic]->Translation, ceilinglightlevel, frontsector->ceiling_xoffs, frontsector->ceiling_yoffs, ceilingcolormap, NULL);
 	}
 	else
 		ceilingplane = NULL;
