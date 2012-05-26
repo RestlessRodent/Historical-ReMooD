@@ -514,7 +514,7 @@ void HU_queueChatChar(char c)
 {
 	if (((head + 1) & (QUEUESIZE - 1)) == tail)
 	{
-		plr->message = HUSTR_MSGU;	//message not send
+		//plr->message = HUSTR_MSGU;	//message not send
 	}
 	else
 	{
@@ -1218,16 +1218,16 @@ void HU_HackChatmacros(void)
 	int i;
 	
 	// this is either the original text, or dehacked ones
-	cv_chatmacro0.defaultvalue = HUSTR_CHATMACRO0;
-	cv_chatmacro1.defaultvalue = HUSTR_CHATMACRO1;
-	cv_chatmacro2.defaultvalue = HUSTR_CHATMACRO2;
-	cv_chatmacro3.defaultvalue = HUSTR_CHATMACRO3;
-	cv_chatmacro4.defaultvalue = HUSTR_CHATMACRO4;
-	cv_chatmacro5.defaultvalue = HUSTR_CHATMACRO5;
-	cv_chatmacro6.defaultvalue = HUSTR_CHATMACRO6;
-	cv_chatmacro7.defaultvalue = HUSTR_CHATMACRO7;
-	cv_chatmacro8.defaultvalue = HUSTR_CHATMACRO8;
-	cv_chatmacro9.defaultvalue = HUSTR_CHATMACRO9;
+	cv_chatmacro0.defaultvalue = "";//HUSTR_CHATMACRO0;
+	cv_chatmacro1.defaultvalue = "";//HUSTR_CHATMACRO1;
+	cv_chatmacro2.defaultvalue = "";//HUSTR_CHATMACRO2;
+	cv_chatmacro3.defaultvalue = "";//HUSTR_CHATMACRO3;
+	cv_chatmacro4.defaultvalue = "";//HUSTR_CHATMACRO4;
+	cv_chatmacro5.defaultvalue = "";//HUSTR_CHATMACRO5;
+	cv_chatmacro6.defaultvalue = "";//HUSTR_CHATMACRO6;
+	cv_chatmacro7.defaultvalue = "";//HUSTR_CHATMACRO7;
+	cv_chatmacro8.defaultvalue = "";//HUSTR_CHATMACRO8;
+	cv_chatmacro9.defaultvalue = "";//HUSTR_CHATMACRO9;
 	
 	// link chatmacros to cvars
 	chat_macros[0] = &cv_chatmacro0;

@@ -515,10 +515,10 @@ void Command_CheatNoClip_f(void)
 
 	plyr->cheats ^= CF_NOCLIP;
 
-	if (plyr->cheats & CF_NOCLIP)
-		CONL_PrintF(STSTR_NCON);
-	else
-		CONL_PrintF(STSTR_NCOFF);
+	//if (plyr->cheats & CF_NOCLIP)
+	//	CONL_PrintF(STSTR_NCON);
+	//else
+	//	CONL_PrintF(STSTR_NCOFF);
 
 }
 
@@ -544,10 +544,10 @@ void Command_CheatGod_f(void)
 			plyr->mo->health = god_health;
 
 		plyr->health = god_health;
-		CONL_PrintF("%s\n", STSTR_DQDON);
+		//CONL_PrintF("%s\n", STSTR_DQDON);
 	}
-	else
-		CONL_PrintF("%s\n", STSTR_DQDOFF);
+	//else
+	//	CONL_PrintF("%s\n", STSTR_DQDOFF);
 }
 
 void Command_CheatGimme_f(void)

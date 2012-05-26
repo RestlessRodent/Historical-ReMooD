@@ -1559,44 +1559,8 @@ void P_InitWeapons()
 {
 }
 
-//SoM: Moved from hu_stuff.c
-#define HU_TITLE  (text[HUSTR_E1M1_NUM + (gameepisode-1)*9+gamemap-1])
-#define HU_TITLE2 (text[HUSTR_1_NUM + gamemap-1])
-#define HU_TITLEP (text[PHUSTR_1_NUM + gamemap-1])
-#define HU_TITLET (text[THUSTR_1_NUM + gamemap-1])
-#define HU_TITLEH (text[HERETIC_E1M1_NUM + (gameepisode-1)*9+gamemap-1])
-
 unsigned char* levelname;
 
-void P_FindLevelName()
-{
-	extern char* maplumpname;
-	
-	// determine the level name
-	// there are a number of sources from which it can come from,
-	// getting the right one is the tricky bit =)
-	// info level name from level lump (p_info.c) ?
-	
-	if (*info_levelname)
-		levelname = info_levelname;
-	// not a new level or dehacked level names ?
-	else if (!newlevel/* || deh_loaded*/)
-	{
-		if (isMAPxy(maplumpname))
-			levelname = gamemission == pack_tnt ? HU_TITLET : gamemission == pack_plut ? HU_TITLEP : HU_TITLE2;
-		else if (isExMy(maplumpname))
-			levelname = HU_TITLE;
-		else
-			levelname = maplumpname;
-	}
-	else						//  otherwise just put "new level"
-	{
-		static char newlevelstr[50];
-		
-		sprintf(newlevelstr, "%s: new level", maplumpname);
-		levelname = newlevelstr;
-	}
-}
 
 //-------------------------------------------------------------------------
 //
@@ -1715,7 +1679,7 @@ void P_LoadLevelInfo(int lumpnum)
 	Z_Free(readline);
 	
 	P_InitWeapons();
-	P_FindLevelName();
+	levelname = NULL;
 	
 	//Set the gravity for the level!
 	if (cv_gravity.value != gravity)
@@ -1756,27 +1720,3 @@ char* P_LevelName()
 	return levelname;
 }
 
-// todo : make this use mapinfo lump
-char* P_LevelNameByNum(int episode, int map)
-{
-	switch (gamemode)
-	{
-		case shareware:
-		case registered:
-		case retail:
-			return text[HUSTR_E1M1_NUM + (episode - 1) * 9 + map - 1];
-		case commercial:
-			switch (gamemission)
-			{
-				case pack_tnt:
-					return text[THUSTR_1_NUM + map - 1];
-				case pack_plut:
-					return text[PHUSTR_1_NUM + map - 1];
-				default:
-					return text[HUSTR_1_NUM + map - 1];
-			}
-		default:
-			break;
-	}
-	return "New map";
-}

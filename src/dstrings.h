@@ -14,9 +14,7 @@
 //      :oO8@@@@@@@@@@Oo.
 //         .oCOOOOOCc.                                      http://remood.org/
 // -----------------------------------------------------------------------------
-// Copyright (C) 1993-1996 by id Software, Inc.
-// Copyright (C) 1998-2000 by DooM Legacy Team.
-// Copyright (C) 2008-2012 GhostlyDeath (ghostlydeath@gmail.com)
+// Copyright (C) 2008-2012 GhostlyDeath <ghostlydeath@remood.org>
 // -----------------------------------------------------------------------------
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
@@ -35,43 +33,7 @@
 
 #include "doomtype.h"
 
-// All important printed strings.
-// Language selection (message strings).
-// Use -DFRENCH etc.
-
-#ifdef FRENCH
-#include "d_french.h"
-#else
-#include "d_englsh.h"
-#endif
-
-// Misc. other strings.
-#define SAVEGAMENAME    "remoodsv"
-
-extern char savegamename[256];
-
-//
-// File locations,
-//  relative to current position.
-// Path names are OS-sensitive.
-//
-#define DEVMAPS "devmaps"
-#define DEVDATA "devdata"
-
-// Not done in french?
-
-// QuitDOOM messages
-//added:02-01-98: "22 messages - 7 fucking messages = 15 cool messages" !
-#define NUM_QUITMESSAGES   15
-
-extern char* endmsg[];
-
-/******************************************************************************/
-
-/******************************************************************************/
-
-/******************************************************************************/
-
+/* UnicodeStringID_t -- String IDs */
 typedef enum
 {
 	/* Menus */
@@ -899,6 +861,7 @@ typedef enum
 	NUMUNICODESTRINGS
 } UnicodeStringID_t;
 
+/* StringGroupEX_t -- String data holder */
 typedef struct StringGroupEX_s
 {
 	const char* const id;
@@ -916,3 +879,4 @@ const char* DS_NameOfString(char** const WCharStr);
 const char** DS_FindStringRef(const char* const a_StrID);
 
 #endif							/* __DSTRINGS_H__ */
+

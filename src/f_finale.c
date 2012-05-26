@@ -70,6 +70,7 @@ void F_CastDrawer(void);
 //
 void F_StartFinale(void)
 {
+#if 0
 	gamestate = GS_FINALE;
 	
 	if (info_intertext)
@@ -171,7 +172,7 @@ void F_StartFinale(void)
 	
 	finalestage = 0;
 	finalecount = 0;
-	
+#endif
 }
 
 bool_t F_Responder(event_t* event)
@@ -350,6 +351,7 @@ bool_t castattacking;
 
 void F_StartCast(void)
 {
+#if 0
 	int i;
 	
 	for (i = 0; i < 17; i++)
@@ -365,6 +367,7 @@ void F_StartCast(void)
 	castonmelee = 0;
 	castattacking = false;
 	S_ChangeMusic(mus_evil, true);
+#endif
 }
 
 //
@@ -662,6 +665,7 @@ void F_BunnyScroll(void)
 //
 void F_Drawer(void)
 {
+#if 0
 	if (finalestage == 2)
 	{
 		F_CastDrawer();
@@ -691,5 +695,5 @@ void F_Drawer(void)
 				break;
 		}
 	}
-	
+#endif
 }

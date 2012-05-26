@@ -268,10 +268,12 @@ void* statcopy;					// for statistics driver
 
 void ShowMessage_OnChange(void)
 {
+#if 0
 	if (!cv_showmessages.value)
 		CONL_PrintF("%s\n", MSGOFF);
 	else
 		CONL_PrintF("%s\n", MSGON);
+#endif
 }
 
 //  Build an original game map name from episode and map number,

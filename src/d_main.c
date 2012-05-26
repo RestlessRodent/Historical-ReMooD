@@ -1703,7 +1703,7 @@ void D_DoomMain(void)
 	
 	/*** New Initialization ***/
 	/* Core */
-	CONL_PrintF(text[Z_INIT_NUM]);
+	CONL_PrintF("Initializing the memory manager...\n");
 	Z_Init();
 	CONL_Init(4096, 1024);
 	
@@ -1753,42 +1753,7 @@ void D_DoomMain(void)
 	CONL_PrintF("%s\n", legacy);
 	
 	if (devparm)
-		CONL_PrintF(D_DEVSTR);
-		
-	// default savegame
-	strcpy(savegamename, text[NORM_SAVEI_NUM]);
-	
-	// add any files specified on the command line with -file wadfile
-	// to the wad list
-	//
-	// convenience hack to allow -wart e m to add a wad file
-	// prepend a tilde to the filename so wadfile will be reloadable
-	p = M_CheckParm("-wart");
-	if (p)
-	{
-		myargv[p][4] = 'p';		// big hack, change to -warp
-		
-		// Map name handling.
-		switch (gamemode)
-		{
-			case shareware:
-			case retail:
-			case registered:
-				sprintf(file, "~" DEVMAPS "E%cM%c.wad", myargv[p + 1][0], myargv[p + 2][0]);
-				CONL_PrintF("Warping to Episode %s, Map %s.\n", myargv[p + 1], myargv[p + 2]);
-				break;
-				
-			case commercial:
-			default:
-				p = atoi(myargv[p + 1]);
-				if (p < 10)
-					sprintf(file, "~" DEVMAPS "cdata/map0%i.wad", p);
-				else
-					sprintf(file, "~" DEVMAPS "cdata/map%i.wad", p);
-				break;
-		}
-		D_AddFile(file);
-	}
+		CONL_PrintF("Development mode activated!\n");
 	
 	if (M_CheckParm("-file"))
 	{
@@ -1841,9 +1806,9 @@ void D_DoomMain(void)
 		}
 		autostart = true;
 	}
-		
-	CONL_PrintF(text[W_INIT_NUM]);
+	
 	// load wad, including the main wad file
+	CONL_PrintF("Implemented the Lite-WAD Substructure...\n");
 	if (W_InitMultipleFiles(startupwadfiles) == 0)
 		I_Error("A WAD file was not found\n");
 		
@@ -1871,9 +1836,6 @@ void D_DoomMain(void)
 	//CONL_PrintF (text[I_INIT_NUM]);
 	//I_InitJoystick ();
 	
-	// we need the font of the console
-	CONL_PrintF(text[HU_INIT_NUM]);
-	HU_Init();
 	
 	g_EarlyBootConsole = false;
 	COM_Init();
@@ -1931,7 +1893,6 @@ void D_DoomMain(void)
 	if (M_CheckParm("-avg"))
 	{
 		COM_BufAddText("timelimit 20\n");
-		CONL_PrintF(text[AUSTIN_NUM]);
 	}
 	// turbo option, is not meant to be saved in config, still
 	// supported at cmd-line for compatibility
@@ -1941,19 +1902,20 @@ void D_DoomMain(void)
 	// push all "+" parameter at the command buffer
 	M_PushSpecialParameters();
 	
-	CONL_PrintF(text[R_INIT_NUM]);
+	CONL_PrintF("Initializing the renderer state...\n");
 	R_Init();
 	
 	//
 	// setting up sound
 	//
-	CONL_PrintF(text[S_SETSOUND_NUM]);
+	CONL_PrintF("Initializing sound...\n");
 	nosound = M_CheckParm("-nosound");
 	nomusic = M_CheckParm("-nomusic");	// WARNING: DOS version initmusic in I_StartupSound
 	digmusic = M_CheckParm("-digmusic");	// SSNTails 12-13-2002
 	S_Init(cv_soundvolume.value, cv_musicvolume.value);
 	
-	CONL_PrintF(text[ST_INIT_NUM]);
+	CONL_PrintF("Initializing the HUD...\n");
+	HU_Init();
 	ST_Init();
 	
 	////////////////////////////////
@@ -1962,23 +1924,9 @@ void D_DoomMain(void)
 	T_Init();
 	
 	// init all NETWORK
-	CONL_PrintF(text[D_CHECKNET_NUM]);
 	if (D_CheckNetGame())
 		autostart = true;
 		
-	// check for a driver that wants intermission stats
-	p = M_CheckParm("-statcopy");
-	if (p && p < myargc - 1)
-	{
-		I_Error("Sorry but statcopy isn't supported at this time\n");
-		/*
-		   // for statistics driver
-		   extern  void*   statcopy;
-		
-		   statcopy = (void*)atoi(myargv[p+1]);
-		   CONL_PrintF (text[STATREG_NUM]);
-		 */
-	}
 	// start the apropriate game based on parms
 	p = M_CheckParm("-record");
 	if (p && p < myargc - 1)
@@ -2041,3 +1989,4 @@ void D_DoomMain(void)
 			
 	}
 }
+

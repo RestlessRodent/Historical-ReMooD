@@ -739,20 +739,20 @@ bool_t AM_Responder(event_t* ev)
 			case AM_FOLLOWKEY:
 				followplayer[am_DrawPlayer] = !followplayer[am_DrawPlayer];
 				f_oldloc[am_DrawPlayer].x = INT_MAX;
-				plr[am_DrawPlayer]->message = followplayer[am_DrawPlayer] ? AMSTR_FOLLOWON : AMSTR_FOLLOWOFF;
+				//plr[am_DrawPlayer]->message = followplayer[am_DrawPlayer] ? AMSTR_FOLLOWON : AMSTR_FOLLOWOFF;
 				break;
 			case AM_GRIDKEY:
 				grid = !grid;
-				plr[am_DrawPlayer]->message = grid ? AMSTR_GRIDON : AMSTR_GRIDOFF;
+				//plr[am_DrawPlayer]->message = grid ? AMSTR_GRIDON : AMSTR_GRIDOFF;
 				break;
 			case AM_MARKKEY:
-				sprintf(buffer, "%s %d", AMSTR_MARKEDSPOT, markpointnum[am_DrawPlayer]);
-				plr[am_DrawPlayer]->message = buffer;
+				//sprintf(buffer, "%s %d", AMSTR_MARKEDSPOT, markpointnum[am_DrawPlayer]);
+				//plr[am_DrawPlayer]->message = buffer;
 				AM_addMark();
 				break;
 			case AM_CLEARMARKKEY:
 				AM_clearMarks();
-				plr[am_DrawPlayer]->message = AMSTR_MARKSCLEARED;
+				//plr[am_DrawPlayer]->message = AMSTR_MARKSCLEARED;
 				break;
 			default:
 				cheatstate = 0;

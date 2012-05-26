@@ -292,7 +292,7 @@ int EV_DoLockedDoor(line_t* line, vldoor_e type, mobj_t* thing, fixed_t speed)
 		case 133:
 			if (((!(p->cards & it_bluecard) && !(p->cards & it_blueskull))))
 			{
-				p->message = PD_BLUEO;
+				//p->message = PD_BLUEO;
 				S_StartSound(&p->mo->NoiseThinker, sfx_oof);	//SoM: 3/6/200: killough's idea
 				return 0;
 			}
@@ -302,7 +302,7 @@ int EV_DoLockedDoor(line_t* line, vldoor_e type, mobj_t* thing, fixed_t speed)
 		case 135:
 			if (((!(p->cards & it_redcard) && !(p->cards & it_redskull))))
 			{
-				p->message = PD_REDO;
+				//p->message = PD_REDO;
 				S_StartSound(&p->mo->NoiseThinker, sfx_oof);	//SoM: 3/6/200: killough's idea
 				return 0;
 			}
@@ -312,7 +312,7 @@ int EV_DoLockedDoor(line_t* line, vldoor_e type, mobj_t* thing, fixed_t speed)
 		case 137:
 			if (((!(p->cards & it_yellowcard) && !(p->cards & it_yellowskull))))
 			{
-				p->message = PD_YELLOWO;
+				//p->message = PD_YELLOWO;
 				S_StartSound(&p->mo->NoiseThinker, sfx_oof);	//SoM: 3/6/200: killough's idea
 				return 0;
 			}
@@ -531,7 +531,7 @@ int EV_VerticalDoor(line_t* line, mobj_t* thing)
 				return 0;
 			if (((!(player->cards & it_bluecard) && !(player->cards & it_blueskull))))
 			{
-				player->message = PD_BLUEK;
+				//player->message = PD_BLUEK;
 				S_StartSound(&player->mo->NoiseThinker, sfx_oof);	//SoM: 3/6/2000: Killough's idea
 				return 0;
 			}
@@ -544,7 +544,7 @@ int EV_VerticalDoor(line_t* line, mobj_t* thing)
 				
 			if (((!(player->cards & it_yellowcard) && !(player->cards & it_yellowskull))))
 			{
-				player->message = PD_YELLOWK;
+				//player->message = PD_YELLOWK;
 				S_StartSound(&player->mo->NoiseThinker, sfx_oof);	//SoM: 3/6/2000: Killough's idea
 				return 0;
 			}
@@ -557,7 +557,7 @@ int EV_VerticalDoor(line_t* line, mobj_t* thing)
 				
 			if (((!(player->cards & it_redcard) && !(player->cards & it_redskull))))
 			{
-				player->message = PD_REDK;
+				//player->message = PD_REDK;
 				S_StartSound(&player->mo->NoiseThinker, sfx_oof);	//SoM: 3/6/2000: Killough's idea
 				return 0;
 			}

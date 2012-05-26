@@ -822,7 +822,7 @@ bool_t P_CanUnlockGenDoor(line_t* line, player_t* player)
 			        !(player->cards & it_redskull) &&
 			        !(player->cards & it_bluecard) && !(player->cards & it_blueskull) && !(player->cards & it_yellowcard) && !(player->cards & it_yellowskull))
 			{
-				player->message = PD_ANY;
+				//player->message = PD_ANY;
 				S_StartSound(&player->mo->NoiseThinker, sfx_oof);
 				return false;
 			}
@@ -830,7 +830,7 @@ bool_t P_CanUnlockGenDoor(line_t* line, player_t* player)
 		case RCard:
 			if (!(player->cards & it_redcard) && (!skulliscard || !(player->cards & it_redskull)))
 			{
-				player->message = skulliscard ? PD_REDK : PD_REDC;
+				//player->message = skulliscard ? PD_REDK : PD_REDC;
 				S_StartSound(&player->mo->NoiseThinker, sfx_oof);
 				return false;
 			}
@@ -838,7 +838,7 @@ bool_t P_CanUnlockGenDoor(line_t* line, player_t* player)
 		case BCard:
 			if (!(player->cards & it_bluecard) && (!skulliscard || !(player->cards & it_blueskull)))
 			{
-				player->message = skulliscard ? PD_BLUEK : PD_BLUEC;
+				//player->message = skulliscard ? PD_BLUEK : PD_BLUEC;
 				S_StartSound(&player->mo->NoiseThinker, sfx_oof);
 				return false;
 			}
@@ -846,7 +846,7 @@ bool_t P_CanUnlockGenDoor(line_t* line, player_t* player)
 		case YCard:
 			if (!(player->cards & it_yellowcard) && (!skulliscard || !(player->cards & it_yellowskull)))
 			{
-				player->message = skulliscard ? PD_YELLOWK : PD_YELLOWC;
+				//player->message = skulliscard ? PD_YELLOWK : PD_YELLOWC;
 				S_StartSound(&player->mo->NoiseThinker, sfx_oof);
 				return false;
 			}
@@ -854,7 +854,7 @@ bool_t P_CanUnlockGenDoor(line_t* line, player_t* player)
 		case RSkull:
 			if (!(player->cards & it_redskull) && (!skulliscard || !(player->cards & it_redcard)))
 			{
-				player->message = skulliscard ? PD_REDK : PD_REDS;
+				//player->message = skulliscard ? PD_REDK : PD_REDS;
 				S_StartSound(&player->mo->NoiseThinker, sfx_oof);
 				return false;
 			}
@@ -862,7 +862,7 @@ bool_t P_CanUnlockGenDoor(line_t* line, player_t* player)
 		case BSkull:
 			if (!(player->cards & it_blueskull) && (!skulliscard || !(player->cards & it_bluecard)))
 			{
-				player->message = skulliscard ? PD_BLUEK : PD_BLUES;
+				//player->message = skulliscard ? PD_BLUEK : PD_BLUES;
 				S_StartSound(&player->mo->NoiseThinker, sfx_oof);
 				return false;
 			}
@@ -870,7 +870,7 @@ bool_t P_CanUnlockGenDoor(line_t* line, player_t* player)
 		case YSkull:
 			if (!(player->cards & it_yellowskull) && (!skulliscard || !(player->cards & it_yellowcard)))
 			{
-				player->message = skulliscard ? PD_YELLOWK : PD_YELLOWS;
+				//player->message = skulliscard ? PD_YELLOWK : PD_YELLOWS;
 				S_StartSound(&player->mo->NoiseThinker, sfx_oof);
 				return false;
 			}
@@ -881,7 +881,7 @@ bool_t P_CanUnlockGenDoor(line_t* line, player_t* player)
 			         !(player->cards & it_redskull) ||
 			         !(player->cards & it_bluecard) || !(player->cards & it_blueskull) || !(player->cards & it_yellowcard) || !(player->cards & it_yellowskull)))
 			{
-				player->message = PD_ALL6;
+				//player->message = PD_ALL6;
 				S_StartSound(&player->mo->NoiseThinker, sfx_oof);
 				return false;
 			}
@@ -891,7 +891,7 @@ bool_t P_CanUnlockGenDoor(line_t* line, player_t* player)
 			         (!(player->cards & it_bluecard) &&
 			          !(player->cards & it_blueskull)) || (!(player->cards & it_yellowcard) && !(player->cards & it_yellowskull))))
 			{
-				player->message = PD_ALL3;
+				//player->message = PD_ALL3;
 				S_StartSound(&player->mo->NoiseThinker, sfx_oof);
 				return false;
 			}

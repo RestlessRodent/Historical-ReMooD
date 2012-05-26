@@ -304,7 +304,6 @@ void M_FirstLoadConfig(void)
 	{
 		I_mkdir("c:\\doomdata", 700);
 		strcpy(configfile, "c:/doomdata/" CONFIGFILENAME);
-		strcpy(savegamename, text[CDROM_SAVEI_NUM]);
 		snprintf(SaveGameLocation, MAX_WADPATH, "c:\\doomdata");
 		
 		ConfigMode = 1;
@@ -357,7 +356,6 @@ void M_FirstLoadConfig(void)
 			I_mkdir(ReMooDHome, 0700);
 			snprintf(configfile, MAX_WADPATH, "%s/%s", ReMooDHome, CONFIGFILENAME);
 			snprintf(SaveGameLocation, MAX_WADPATH, "%s", ReMooDHome);
-			strcatbf(savegamename, ReMooDHome, "/");
 			CONL_PrintF("D_DoomMain: Using %s as the master configuration.\n", configfile);
 			ConfigMode = 1;
 		}
@@ -410,7 +408,6 @@ void M_FirstLoadConfig(void)
 			I_mkdir(ReMooDHome, 0700);
 			snprintf(configfile, MAX_WADPATH, "%s\\%s", ReMooDHome, CONFIGFILENAME);
 			snprintf(SaveGameLocation, MAX_WADPATH, "%s", ReMooDHome);
-			strcatbf(savegamename, ReMooDHome, "\\");
 			CONL_PrintF("D_DoomMain: Using %s as the master configuration.\n", configfile);
 			ConfigMode = 1;
 		}
