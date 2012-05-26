@@ -33,7 +33,7 @@ FLOOR 0x6000
 @	CHANGE [ 10 0x0c00 nochange txz txonly txty ]
 @	CRUSH [ 12 0x1000 nocrush crush ]
 
-LIFT 0x3400
+PLAT 0x3400
 @	TRIGGER [ 0 0x0007 w1 wr s1 sr g1 gr p1 pr ]
 @	SPEED [ 3 0x0018 slow normal fast turbo ]
 @	MONSTER [ 5 0x0020 nomonster monster ]
@@ -42,8 +42,16 @@ LIFT 0x3400
 
 ### REMOOD EXTENDED ###
 
+XPLAT 0x48000000
+@	TRIGGER [ 0 0x00000007 w1 wr s1 sr g1 gr p1 pr ]
+@	MONSTER [ 3 0x00000008 nomonster monster ]
+@	PLAYER [ 4 0x00000010 noplayer player ]
+@	SPEED [ 5 0x000000E0 slowest slower slow normal fast faster fastest instant ]
+@	WAIT [ 8 0x00000700 wait1s wait3s wait4s wait5s wait9s wait10s wait30s wait60s ]
+@	MODE [ 14 0x0001C000 nochange txz txonly txty ]
+
 EXIT 0x98000000
-@	TRIGGER [ 0 0x0007 w1 wr s1 sr g1 gr p1 pr ]
+@	TRIGGER [ 0 0x00000007 w1 wr s1 sr g1 gr p1 pr ]
 @	MONSTER [ 3 0x00000008 nomonster monster ]
 @	PLAYER [ 4 0x00000010 noplayer player ]
 @	SECRET [ 5 0x00000020 normal secret ]

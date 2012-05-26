@@ -2781,6 +2781,20 @@ void P_SpawnSpecials(void)
 	P_SpawnFriction();			//New friction model using linedefs
 	P_SpawnPushers();			//New pusher model using linedefs
 	
+	
+	/* Go through all lines and spawn map specials */
+	for (i = 0; i < numlines; i++)
+	{
+		// Ignore special-less lines
+		if (!lines[i].special)
+			continue;
+		
+		// Execute any map start specials
+		if (EV_TryGenTrigger(&lines[i], -1, NULL, EVTGT_MAPSTART, 0, NULL))
+			lines[i].special = 0;	// Clear special
+	}
+	
+#if 0
 	//  Init line EFFECTs
 	for (i = 0; i < numlines; i++)
 	{
@@ -2921,6 +2935,7 @@ void P_SpawnSpecials(void)
 				}
 		}
 	}
+#endif
 #endif
 }
 
