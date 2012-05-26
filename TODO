@@ -45,16 +45,8 @@ mark as completed, too bad there is no ASCII checkmark.
  * v_video:		Add back support for characters with accents and such along with
  				other international characters.
  
- * v_video:		Make the patch drawing functions in the image code actually
- 				secure so someone won't crash the game with a badly malformed
- 				patch.
- 
  * v_video:		Add support for tall patches to be drawn.
- 
- * makefile:	Add back WAD building to the makefile and make it mandatory and
- 				dependable so you don't have to wad/makewad.sh. Would also have
- 				to make it work on MSVC too.
- 
+
  * remootex:	Rewrite the old crusty program that was basically a proof of
  				concept into something much more reliable and better.
  
@@ -106,16 +98,9 @@ mark as completed, too bad there is no ASCII checkmark.
  
  * p_chex:		Make this an internal DeHackEd Patch and put it in remood.wad.
  
- * g_input:		Delete the way normal input is done and do it a profile way so
- 				that there are no more console variables that define keys.
- 
  * dehacked:	RMODize this to make it fit with RMOD and not be so constant.
  
  * p_???:		Make P_CheckSight() stop at 3D floors.
- 
- * *:			Remove all that demoversion < > <= >= junk and just make them
- 				all game varaibles (so one could easily support old demos or
- 				possibly even record older demos -complevel).
  
  * p_???:		Fixup Vanilla and older Legacy Demo suports so the ancient
  				demos play.
@@ -136,9 +121,6 @@ mark as completed, too bad there is no ASCII checkmark.
  * *:			Switch from the WL_StreamXXX() to something a bit more generic
  				similar to the block layer. This way networks, files, etc.
  				will use the same code.
- 
- * d_block:		Implement more of the block layer, and in fact make it much
- 				better, lighter, and faster.
  
  * v_video:		How about implementing compressed textures to conserve memory,
  				although this would come at a speed loss, it could benefit as
@@ -161,6 +143,25 @@ mark as completed, too bad there is no ASCII checkmark.
 COMPLETED TODOS:
 
  * info:		RMODize everything.
+ 
+ * d_block:		Implement more of the block layer, and in fact make it much
+ 				better, lighter, and faster.
+
+ * *:			Remove all that demoversion < > <= >= junk and just make them
+ 				all game varaibles (so one could easily support old demos or
+ 				possibly even record older demos -complevel).
+ 
+ * makefile:	Add back WAD building to the makefile and make it mandatory and
+ 				dependable so you don't have to wad/makewad.sh. Would also have
+ 				to make it work on MSVC too.
+ 
+ * v_video:		Make the patch drawing functions in the image code actually
+ 				secure so someone won't crash the game with a badly malformed
+ 				patch.
+
+ * g_input:		Delete the way normal input is done and do it a profile way so
+ 				that there are no more console variables that define keys.
+ 
 
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 

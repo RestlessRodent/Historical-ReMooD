@@ -189,3 +189,4 @@ consvar_t* CV_Export(void);
 consvar_t* CV_FindVar(char* name);
 
 #endif							// __COMMAND_H__
+
