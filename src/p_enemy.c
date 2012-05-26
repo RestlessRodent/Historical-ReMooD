@@ -51,7 +51,7 @@ consvar_t cv_solidcorpse = { "solidcorpse", "0", CV_NETVAR | CV_SAVE, CV_OnOff }
 consvar_t cv_fastmonsters = { "fastmonsters", "0", CV_NETVAR | CV_CALL, CV_OnOff,
                               FastMonster_OnChange
                             };
-consvar_t cv_predictingmonsters = { "predictingmonsters", "0", CV_NETVAR | CV_SAVE, CV_OnOff };	//added by AC for predmonsters
+
 consvar_t cv_classicmonsterlogic = { "classicmonsterlogic", "0", CV_NETVAR | CV_SAVE, CV_YesNo };
 
 //
@@ -1641,7 +1641,7 @@ void A_SkullAttack(mobj_t* actor, player_t* player, pspdef_t* psp)
 		actor->flags |= MF_SKULLFLY;
 		S_StartSound(&actor->NoiseThinker, S_SoundIDForName(actor->info->RAttackSound));
 	
-		if (!actor->player && cv_predictingmonsters.value)	//added by AC for predmonsters
+		if (!actor->player && P_EXGSGetValue(PEXGSBID_MONPREDICTMISSILES))	//added by AC for predmonsters
 		{
 	
 			bool_t canHit;

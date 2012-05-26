@@ -1506,7 +1506,7 @@ D_RBlockStream_t* D_RBSCreateLoopBackStream(void)
 }
 
 /* D_RBSCreateFileStream() -- Create file stream */
-D_RBlockStream_t* D_RBSCreateFileStream(const char* const a_PathName)
+D_RBlockStream_t* D_RBSCreateFileStream(const char* const a_PathName, const bool_t a_Overwrite)
 {
 	FILE* File;
 	D_RBlockStream_t* New;
@@ -1516,7 +1516,7 @@ D_RBlockStream_t* D_RBSCreateFileStream(const char* const a_PathName)
 		return NULL;
 	
 	/* Open r/w file */
-	File = fopen(a_PathName, "a+b");
+	File = fopen(a_PathName, (a_Overwrite ? "w+b" : "a+b"));
 	
 	// Failed?
 	if (!File)

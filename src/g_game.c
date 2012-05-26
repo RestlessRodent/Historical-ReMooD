@@ -1850,11 +1850,6 @@ void G_InitNew(skill_t skill, char* mapname, bool_t resetplayer)
 		
 	M_ClearRandom();
 	
-	if (skill == sk_nightmare)
-	{
-		CV_SetValue(&cv_respawnmonsters, 1);
-		CV_SetValue(&cv_fastmonsters, 1);
-	}
 	// for internal maps only
 	if (FIL_CheckExtension(mapname))
 	{

@@ -392,6 +392,26 @@ static P_EXGSVariable_t l_GSVars[PEXGSNUMBITIDS] =
 	{PEXGST_INTEGER, PEXGSBID_PLFORCEWEAPONSWITCH, "pl_forceweaponswitch", "Force Weapon Switch",
 		"Forces weapon switches on pickup. [Doom <= 1.09]", PEXGSGM_ANY, PEXGSDR_ATMOST, 109, {0, 1}, 0,
 		PEXGSMC_PLAYERS},
+	
+	{PEXGST_INTEGER, PEXGSBID_PLDROPWEAPONS, "pl_dropweapons", "Drop Weapons on Death",
+		"Drops the player's weapon when they are killed.", PEXGSGM_ANY, PEXGSDR_NOCHECK, 0, {0, 1}, 0,
+		PEXGSMC_PLAYERS},
+	
+	{PEXGST_INTEGER, PEXGSBID_PLINFINITEAMMO, "pl_infiniteammo", "Infinite Ammo",
+		"Ammo is never depleted and lasts forever.", PEXGSGM_ANY, PEXGSDR_NOCHECK, 0, {0, 1}, 0,
+		PEXGSMC_PLAYERS},
+	
+	{PEXGST_INTEGER, PEXGSBID_GAMEHERETICGIBBING, "game_hereticgibbing", "Heretic Gibbing",
+		"Objects that can be gibbed are much easier to gib.", PEXGSGM_HERETIC, PEXGSDR_NOCHECK, 0, {0, 1}, 1,
+		PEXGSMC_PLAYERS},
+	
+	{PEXGST_INTEGER, PEXGSBID_MONPREDICTMISSILES, "mon_predictmissile", "Predict Missiles",
+		"Monsters predict missile targets and aim accordingly.", PEXGSGM_ANY, PEXGSDR_NOCHECK, 0, {0, 1}, 0,
+		PEXGSMC_MONSTERS},
+		
+	{PEXGST_INTEGER, PEXGSBID_MONRESPAWNMONSTERSTIME, "mon_respawnmonsterstime", "Monster Respawn Delay",
+		"Time in seconds before monsters are respawned.", PEXGSGM_ANY, PEXGSDR_NOCHECK, 0, {0, 12}, 12,
+		PEXGSMC_MONSTERS},
 };
 
 /*** FUNCTIONS ***/

@@ -64,8 +64,6 @@ extern consvar_t cv_mlooksens2;
 // normaly in p_mobj but the .h in not read !
 extern consvar_t cv_itemrespawntime;
 extern consvar_t cv_itemrespawn;
-extern consvar_t cv_respawnmonsters;
-extern consvar_t cv_respawnmonsterstime;
 
 
 // 02-08-98      : r_things.c

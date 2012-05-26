@@ -190,7 +190,7 @@ bool_t P_CheckAmmo(player_t* player)
 	
 	ammo = player->weaponinfo[player->readyweapon]->ammo;
 	
-	if (cv_infiniteammo.value)
+	if (P_EXGSGetValue(PEXGSBID_PLINFINITEAMMO))
 		return true;
 		
 	// Minimal amount for one shot varies.
@@ -347,7 +347,7 @@ void A_TicWeapon(mobj_t* mo, player_t* player, pspdef_t* psp)
 /* P_ReduceAmmo() -- Reduces player ammo */
 void P_ReduceAmmo(player_t* player)
 {
-	if (!cv_infiniteammo.value)
+	if (!P_EXGSGetValue(PEXGSBID_PLINFINITEAMMO))
 		player->ammo[player->weaponinfo[player->readyweapon]->ammo] -= player->weaponinfo[player->readyweapon]->ammopershoot;
 }
 
@@ -803,7 +803,7 @@ void A_FireCGun(mobj_t* mo, player_t* player, pspdef_t* psp)
 	
 	S_StartSound(&player->mo->NoiseThinker, sfx_pistol);
 	
-	if (!cv_infiniteammo.value)
+	if (!P_EXGSGetValue(PEXGSBID_PLINFINITEAMMO))
 		if (!player->ammo[player->weaponinfo[player->readyweapon]->ammo])
 			return;
 			

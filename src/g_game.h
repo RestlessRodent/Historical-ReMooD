@@ -78,7 +78,6 @@ extern consvar_t cv_showmessages;
 extern consvar_t cv_disabledemos;
 extern consvar_t cv_fastmonsters;
 extern consvar_t cv_joystickfreelook;
-extern consvar_t cv_predictingmonsters;	//added by AC for predmonsters
 extern angle_t localangle[MAXSPLITSCREENPLAYERS];
 extern int localaiming[MAXSPLITSCREENPLAYERS];	// should be a angle_t but signed
 

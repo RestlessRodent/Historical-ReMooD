@@ -196,6 +196,11 @@ typedef enum P_EXGSBitID_e
 	PEXGSBID_GAMEALLOWROCKETJUMP,				// Allow Rocket Jumping
 	PEXGSBID_PLALLOWAUTOAIM,					// Allow Auto-Aiming
 	PEXGSBID_PLFORCEWEAPONSWITCH,				// Force Weapon Switching
+	PEXGSBID_PLDROPWEAPONS,						// Drop Player Weapons
+	PEXGSBID_PLINFINITEAMMO,					// Drop Player Weapons
+	PEXGSBID_GAMEHERETICGIBBING,				// Heretic Gibbing
+	PEXGSBID_MONPREDICTMISSILES,				// cv_predictingmonsters
+	PEXGSBID_MONRESPAWNMONSTERSTIME,			// cv_respawnmonsterstime
 	
 	PEXGSNUMBITIDS
 } P_EXGSBitID_t;

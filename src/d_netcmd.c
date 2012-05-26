@@ -276,14 +276,9 @@ void D_RegisterClientCommands(void)
 	CV_RegisterVar(&cv_itemrespawntime);
 	CV_RegisterVar(&cv_itemrespawn);
 	CV_RegisterVar(&cv_spawnmonsters);
-	CV_RegisterVar(&cv_respawnmonsters);
-	CV_RegisterVar(&cv_respawnmonsterstime);
 	CV_RegisterVar(&cv_fastmonsters);
-	CV_RegisterVar(&cv_predictingmonsters);	//added by AC for predmonsters
 	CV_RegisterVar(&cv_splats);
 	CV_RegisterVar(&cv_maxsplats);
-	CV_RegisterVar(&cv_infiniteammo);
-	CV_RegisterVar(&cv_g_gibrules);
 	
 	//
 	// register main variables
@@ -398,7 +393,6 @@ void D_RegisterClientCommands(void)
 	CV_RegisterVar(&cv_scr_depth);
 	CV_RegisterVar(&cv_scr_width);
 	CV_RegisterVar(&cv_scr_height);
-	CV_RegisterVar(&cv_fragsweaponfalling);
 	CV_RegisterVar(&cv_classicblood);
 	CV_RegisterVar(&cv_classicmeleerange);
 	CV_RegisterVar(&cv_classicmonsterlogic);

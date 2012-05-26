@@ -82,7 +82,7 @@ typedef struct D_RBlockStream_s
 ****************/
 
 D_RBlockStream_t* D_RBSCreateLoopBackStream(void);
-D_RBlockStream_t* D_RBSCreateFileStream(const char* const a_PathName);
+D_RBlockStream_t* D_RBSCreateFileStream(const char* const a_PathName, const bool_t a_Overwrite);
 D_RBlockStream_t* D_RBSCreateNetStream(I_NetSocket_t* const a_NetSocket);
 D_RBlockStream_t* D_RBSCreatePerfectStream(D_RBlockStream_t* const a_Wrapped);
 void D_RBSCloseStream(D_RBlockStream_t* const a_Stream);

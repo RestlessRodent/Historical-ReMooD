@@ -50,11 +50,6 @@
 
 #define BONUSADD        6
 
-// a weapon is found with two clip loads,
-// a big item has five clip loads
-consvar_t cv_fragsweaponfalling = { "fragsweaponfalling", "0", CV_NETVAR, CV_YesNo };
-consvar_t cv_infiniteammo = { "infiniteammo", "0", CV_NETVAR, CV_YesNo };
-
 // added 4-2-98 (Boris) for dehacked patch
 // (i don't like that but do you see another solution ?)
 int MAXHEALTH = 100;
@@ -1072,20 +1067,6 @@ static int P_AmmoInWeapon(player_t* player)
 	return ammo == am_noammo ? 0 : ammo_count ? ammo_count : -1;
 }
 
-// Rule for gibbing
-CV_PossibleValue_t GibRules_cons_t[] =
-{
-	{0, "Doom"}
-	,							// < 100% health required for gibbing
-	{1, "Heretic"}
-	,							// < 50% health required for gibbing
-	
-	{0, NULL}
-};
-
-consvar_t cv_g_gibrules = { "g_gibrules", "1", CV_SAVE, GibRules_cons_t };
-
-
 // P_KillMobj
 //
 //      source is the attacker,
@@ -1097,7 +1078,7 @@ void P_KillMobj(mobj_t* target, mobj_t* inflictor, mobj_t* source)
 	mobjtype_t item = 0;
 	mobj_t* mo;
 	int drop_ammo_count = 0;
-	int i;
+	int i, GibTarget;
 	
 	extern consvar_t cv_solidcorpse;
 	
@@ -1199,7 +1180,12 @@ void P_KillMobj(mobj_t* target, mobj_t* inflictor, mobj_t* source)
 				localaiming[i] = 0;
 	}
 	
-	if (((target->health < -(target->info->spawnhealth >> cv_g_gibrules.value))) && target->info->xdeathstate)
+	// Gib Target
+	GibTarget = target->info->spawnhealth;
+	if (P_EXGSGetValue(PEXGSBID_GAMEHERETICGIBBING))
+		GibTarget >>= 1;
+	
+	if (target->health < -GibTarget && target->info->xdeathstate)
 		P_SetMobjState(target, target->info->xdeathstate);
 	else
 		P_SetMobjState(target, target->info->deathstate);
@@ -1217,7 +1203,7 @@ void P_KillMobj(mobj_t* target, mobj_t* inflictor, mobj_t* source)
 	item = NUMMOBJTYPES;
 	
 	// Frags Weapon Falling support
-	if (target->player && cv_fragsweaponfalling.value)
+	if (target->player && P_EXGSGetValue(PEXGSBID_PLDROPWEAPONS))
 	{
 		drop_ammo_count = P_AmmoInWeapon(target->player);
 		//if (!drop_ammo_count)
@@ -1240,7 +1226,7 @@ void P_KillMobj(mobj_t* target, mobj_t* inflictor, mobj_t* source)
 		mo = P_SpawnMobj(target->x, target->y, (!P_EXGSGetValue(PEXGSBID_COSPAWNDROPSONMOFLOORZ) ? ONFLOORZ : target->floorz), item);
 		mo->flags |= MF_DROPPED;	// special versions of items
 	
-		if (!cv_fragsweaponfalling.value)
+		if (!P_EXGSGetValue(PEXGSBID_PLDROPWEAPONS))
 			drop_ammo_count = 0;	// Doom default ammo count
 		
 		mo->dropped_ammo_count = drop_ammo_count;

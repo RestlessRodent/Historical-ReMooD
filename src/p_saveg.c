@@ -121,7 +121,7 @@ bool_t P_CheckSizeEx(size_t Need)
 bool_t P_SaveGameEx(const char* SaveName, const char* ExtFileName, size_t ExtFileNameLen, size_t* SaveLen, uint8_t** Origin)
 {
 	bool_t OK = false;
-	D_RBlockStream_t* BS = D_RBSCreateFileStream(ExtFileName);
+	D_RBlockStream_t* BS = D_RBSCreateFileStream(ExtFileName, true);
 	
 	if (BS)
 		OK = P_SaveGameToBS(BS);
@@ -133,7 +133,7 @@ bool_t P_SaveGameEx(const char* SaveName, const char* ExtFileName, size_t ExtFil
 bool_t P_LoadGameEx(const char* FileName, const char* ExtFileName, size_t ExtFileNameLen, size_t* SaveLen, uint8_t** Origin)
 {
 	bool_t OK = false;
-	D_RBlockStream_t* BS = D_RBSCreateFileStream(ExtFileName);
+	D_RBlockStream_t* BS = D_RBSCreateFileStream(ExtFileName, false);
 	
 	if (BS)
 	{
@@ -5894,7 +5894,7 @@ typedef struct P_SGDXTypeIO_s
 {
 	const char* VarName;						// Name of variable
 	P_SGBWTypeC_t CType;						// C Type
-	//[NUMPSRCS];
+	bool_t (*IOFunc)(D_RBlockStream_t* const a_Stream, const bool_t a_Load, const P_SGBWTypeRec_t a_RecType, const P_SGBWTypeC_t a_CType, void* const a_ValPtr, const size_t a_ValSize, int32_t* const a_Copy);
 } P_SGDXTypeIO_t;
 
 // __SPEC -- Member Info
@@ -5905,45 +5905,111 @@ typedef struct P_SGDXTypeIO_s
 
 /*** I/O ***/
 
-#define __IODEF(nt,ctc,xx) {#ctc, nt}
+#if 0
+	PSRC_STRING,								// String
+	PSRC_POINTER,								// Pointer
+	PSRC_INT8,									// Int8
+	PSRC_INT16,									// Int16
+	PSRC_INT32,									// Int32
+	PSRC_UINT8,									// UInt8
+	PSRC_UINT16,								// UInt16
+	PSRC_UINT32,								// UInt32
+#endif
+
+#define __REMOOD_SGDXIHM(xxnamexx) PS_SGDXIntHandler_##xxnamexx
+#define __REMOOD_SGDXIH(xxnamexx,xxnativexx) static bool_t PS_SGDXIntHandler_##xxnamexx(D_RBlockStream_t* const a_Stream, const bool_t a_Load, const P_SGBWTypeRec_t a_RecType, const P_SGBWTypeC_t a_CType, void* const a_ValPtr, const size_t a_ValSize, int32_t* const a_Copy)\
+{\
+	if (a_Load)\
+	{\
+		switch (a_RecType)\
+		{\
+			case PSRC_INT8: *((xxnativexx*)a_ValPtr) = D_RBSReadInt8(a_Stream); break;\
+			case PSRC_INT16: *((xxnativexx*)a_ValPtr) = D_RBSReadInt16(a_Stream); break;\
+			case PSRC_INT32: *((xxnativexx*)a_ValPtr) = D_RBSReadInt32(a_Stream); break;\
+			case PSRC_UINT8: *((xxnativexx*)a_ValPtr) = D_RBSReadUInt8(a_Stream); break;\
+			case PSRC_UINT16: *((xxnativexx*)a_ValPtr) = D_RBSReadUInt16(a_Stream); break;\
+			case PSRC_UINT32: *((xxnativexx*)a_ValPtr) = D_RBSReadUInt32(a_Stream); break;\
+			default: return false;\
+		}\
+		\
+		if (a_Copy)\
+			*a_Copy = *((xxnativexx*)a_ValPtr);\
+	}\
+	else\
+	{\
+		switch (a_RecType)\
+		{\
+			case PSRC_INT8: D_RBSWriteInt8(a_Stream, *((xxnativexx*)a_ValPtr)); break;\
+			case PSRC_INT16: D_RBSWriteInt16(a_Stream, *((xxnativexx*)a_ValPtr)); break;\
+			case PSRC_INT32: D_RBSWriteInt32(a_Stream, *((xxnativexx*)a_ValPtr)); break;\
+			case PSRC_UINT8: D_RBSWriteUInt8(a_Stream, *((xxnativexx*)a_ValPtr)); break;\
+			case PSRC_UINT16: D_RBSWriteUInt16(a_Stream, *((xxnativexx*)a_ValPtr)); break;\
+			case PSRC_UINT32: D_RBSWriteUInt32(a_Stream, *((xxnativexx*)a_ValPtr)); break;\
+			default: return false;\
+		}\
+		\
+		if (a_Copy)\
+			*a_Copy = *((xxnativexx*)a_ValPtr);\
+	}\
+	return true;\
+}
+
+__REMOOD_SGDXIH(char,char);
+__REMOOD_SGDXIH(schar,signed char);
+__REMOOD_SGDXIH(uchar,unsigned char);
+
+__REMOOD_SGDXIH(ssi,signed short int);
+__REMOOD_SGDXIH(si,signed int);
+__REMOOD_SGDXIH(sli,signed long int);
+
+__REMOOD_SGDXIH(usi,unsigned short int);
+__REMOOD_SGDXIH(ui,unsigned int);
+__REMOOD_SGDXIH(uli,unsigned long int);
+
+__REMOOD_SGDXIH(fixedt,fixed_t);
+
+#undef __REMOOD_SGDXIH
+
+#define __IODEF(nt,ctc,func) {#ctc, nt, func}
 
 // c_IOTable -- I/O Table
 static const P_SGDXTypeIO_t c_IOTable[NUMPSTCS] =
 {
-	__IODEF(PSTC_CHAR,char,),
-	__IODEF(PSTC_SCHAR,signed char,),
-	__IODEF(PSTC_SHORT,signed short int,),
-	__IODEF(PSTC_INT,signed int,),
-	__IODEF(PSTC_LONG,signed long int,),
-	__IODEF(PSTC_UCHAR,unsigned char,),
-	__IODEF(PSTC_USHORT,unsigned short int,),
-	__IODEF(PSTC_UINT,unsigned int,),
-	__IODEF(PSTC_ULONG,unsigned long int,),
-	__IODEF(PSTC_FIXEDT,fixed_t,),
-	__IODEF(PSTC_BOOLT,bool_t,),
-	__IODEF(PSTC_TICT,tic_t,),
-	__IODEF(PSTC_ANGLET,angle_t,),
-	__IODEF(PSTC_FLOAT,float,),
-	__IODEF(PSTC_DOUBLE,double,),
-	__IODEF(PSTC_POINTERTO,void*,),
-	__IODEF(PSTC_POINTERIS,void*,),
-	__IODEF(PSTC_POINTERISDIRECT,void*,),
-	__IODEF(PSTC_STRING,char*,),
-	__IODEF(PSTC_INT8,int8_t,),
-	__IODEF(PSTC_INT16,int16_t,),
-	__IODEF(PSTC_INT32,int32_t,),
-	__IODEF(PSTC_INT64,int64_t,),
-	__IODEF(PSTC_UINT8,uint8_t,),
-	__IODEF(PSTC_UINT16,uint16_t,),
-	__IODEF(PSTC_UINT32,uint32_t,),
-	__IODEF(PSTC_UINT64,uint64_t,),
-	__IODEF(PSTC_INTPTR,intptr_t,),
-	__IODEF(PSTC_UINTPTR,uintptr_t,),
-	__IODEF(PSTC_SIZET,size_t,),
-	__IODEF(PSTC_SSIZET,ssize_t,),
+	__IODEF(PSTC_CHAR,char,__REMOOD_SGDXIHM(char)),
+	__IODEF(PSTC_SCHAR,signed char,__REMOOD_SGDXIHM(schar)),
+	__IODEF(PSTC_SHORT,signed short int,__REMOOD_SGDXIHM(ssi)),
+	__IODEF(PSTC_INT,signed int,__REMOOD_SGDXIHM(si)),
+	__IODEF(PSTC_LONG,signed long int,__REMOOD_SGDXIHM(sli)),
+	__IODEF(PSTC_UCHAR,unsigned char,__REMOOD_SGDXIHM(uchar)),
+	__IODEF(PSTC_USHORT,unsigned short int,__REMOOD_SGDXIHM(usi)),
+	__IODEF(PSTC_UINT,unsigned int,__REMOOD_SGDXIHM(ui)),
+	__IODEF(PSTC_ULONG,unsigned long int,__REMOOD_SGDXIHM(uli)),
+	__IODEF(PSTC_FIXEDT,fixed_t,__REMOOD_SGDXIHM(fixedt)),
+	__IODEF(PSTC_BOOLT,bool_t,NULL),
+	__IODEF(PSTC_TICT,tic_t,NULL),
+	__IODEF(PSTC_ANGLET,angle_t,NULL),
+	__IODEF(PSTC_FLOAT,float,NULL),
+	__IODEF(PSTC_DOUBLE,double,NULL),
+	__IODEF(PSTC_POINTERTO,void*,NULL),
+	__IODEF(PSTC_POINTERIS,void*,NULL),
+	__IODEF(PSTC_POINTERISDIRECT,void*,NULL),
+	__IODEF(PSTC_STRING,char*,NULL),
+	__IODEF(PSTC_INT8,int8_t,NULL),
+	__IODEF(PSTC_INT16,int16_t,NULL),
+	__IODEF(PSTC_INT32,int32_t,NULL),
+	__IODEF(PSTC_INT64,int64_t,NULL),
+	__IODEF(PSTC_UINT8,uint8_t,NULL),
+	__IODEF(PSTC_UINT16,uint16_t,NULL),
+	__IODEF(PSTC_UINT32,uint32_t,NULL),
+	__IODEF(PSTC_UINT64,uint64_t,NULL),
+	__IODEF(PSTC_INTPTR,intptr_t,NULL),
+	__IODEF(PSTC_UINTPTR,uintptr_t,NULL),
+	__IODEF(PSTC_SIZET,size_t,NULL),
+	__IODEF(PSTC_SSIZET,ssize_t,NULL),
 };
 
 #undef __IODEF
+#undef __REMOOD_SGDXIHM
 
 /*** SPECIFICATIONS ***/
 
@@ -5958,8 +6024,19 @@ static const P_SGDXDataSpec_t c_SectorSpec[] =
 /*** FUNCTIONS ***/
 
 /* PS_SGDXReadWriteData() -- Read/Write Data */
-static bool_t PS_SGDXReadWriteData(D_RBlockStream_t* const a_Stream, const bool_t a_Load, void* const a_Ptr, const size_t a_Size, const P_SGBWTypeC_t a_CType, const P_SGBWTypeRec_t a_RType)
+static bool_t PS_SGDXReadWriteData(D_RBlockStream_t* const a_Stream, const bool_t a_Load, void* const a_Ptr, const size_t a_Size, const P_SGBWTypeC_t a_CType, const P_SGBWTypeRec_t a_RType, int32_t* const a_Copy)
 {
+	P_SGDXTypeIO_t* IO;
+	
+	/* Get IO */
+	IO = &c_IOTable[a_CType];
+	
+	/* Use Function */
+	if (IO->IOFunc)
+		return IO->IOFunc(a_Stream, a_Load, a_RType, a_CType, a_Ptr, a_Size, a_Copy);
+	
+	/* Nothing */
+	return false;
 }
 
 /* PS_SGDXDoStruct() -- Saves/Loads structure specification */
@@ -5996,7 +6073,7 @@ static bool_t PS_SGDXDoStruct(D_RBlockStream_t* const a_Stream, const bool_t a_L
 				);
 		
 		// Save/load each member
-		PS_SGDXReadWriteData(a_Stream, a_Load, (void*)(((uint8_t*)a_Base) + a_Spec[i].OffSet), a_Spec[i].SizeOf, a_Spec[i].CType, a_Spec[i].RType);
+		PS_SGDXReadWriteData(a_Stream, a_Load, (void*)(((uint8_t*)a_Base) + a_Spec[i].OffSet), a_Spec[i].SizeOf, a_Spec[i].CType, a_Spec[i].RType, NULL);
 	}
 	
 	/* Success? */
@@ -6011,22 +6088,21 @@ static bool_t PS_SGDXDoStruct(D_RBlockStream_t* const a_Stream, const bool_t a_L
 	// a_SizeType -- Native type for array count (INT,SIZE,UINT32,etc.)
 bool_t P_SGDXDoArray(D_RBlockStream_t* const a_Stream, const bool_t a_Load, void** const a_ArrayP, const size_t a_MemSz, void* const a_SizeP, const size_t a_SizeSz, const P_SGBWTypeC_t a_SizeType, const Z_MemoryTag_t a_PUTag)
 {
-	uint32_t u32;
+	int32_t i32;
 	
 	/* Check */
 	if (!a_Stream || !a_ArrayP || !a_MemSz || !a_SizeP || !a_SizeSz)
 		return false;
 	
 	/* Read/Write Array Size */
-	u32 = 0;
+	// Use the preexisting handler!
+	PS_SGDXReadWriteData(a_Stream, a_Load, a_SizeP, a_SizeSz, a_SizeType, PSRC_UINT32, &i32);
 	
 	/* Loading */
 	if (a_Load)
 	{
-		// Set local size
-		
 		// Allocate
-		*a_ArrayP = Z_Malloc(a_MemSz * u32, a_PUTag, NULL);
+		*a_ArrayP = Z_Malloc(a_MemSz * i32, a_PUTag, NULL);
 	}
 	
 	/* Saving */
@@ -6035,7 +6111,7 @@ bool_t P_SGDXDoArray(D_RBlockStream_t* const a_Stream, const bool_t a_Load, void
 		// Do nothing
 		if (devparm)
 			CONL_PrintF("Sim: Array %p[%4u] (ElemSz %u)\n",
-					a_ArrayP, u32, (unsigned)a_MemSz
+					a_ArrayP, i32, (unsigned)a_MemSz
 				);
 	}
 	
@@ -6050,7 +6126,8 @@ bool_t P_SGDXSpec(D_RBlockStream_t* const a_Stream, const bool_t a_Load)
 {
 	bool_t Continue;
 	char Header[5];
-	size_t i;
+	size_t i, j;
+	void* vp;
 	
 	/* Check */
 	if (!a_Stream)
@@ -6062,6 +6139,16 @@ bool_t P_SGDXSpec(D_RBlockStream_t* const a_Stream, const bool_t a_Load)
 	Continue = true;
 	while (Continue)
 	{
+		//////////////////////////////
+		// If loading, read block (play it back)
+		memset(Header, 0, sizeof(Header));
+		if (a_Load)
+			if (!(Continue = D_RBSPlayBlock(a_Stream, Header)))
+				break;
+		
+		//////////////////////////////
+		// Save specific data
+		
 		// SGSC -- Sectors
 		if (__HEADER("SGSC"))
 		{
@@ -6081,6 +6168,27 @@ bool_t P_SGDXSpec(D_RBlockStream_t* const a_Stream, const bool_t a_Load)
 	/* Parse Pointer Reference Tables */
 	if (a_Load)
 	{
+		// Go through each one and Reference everything
+		for (i = 0; i < l_NumDerefs; i++)
+		{
+			// Missing value to set?
+			if (!l_Derefs[i].SetVal)
+				continue;
+			
+			// Go through change list
+			for (j = 0; j < l_Derefs[i].NumChangePtr; j++)
+			{
+				vp = *(l_Derefs[i].ChangePtr[j]);
+				*(l_Derefs[i].ChangePtr[j]) = l_Derefs[i].SetVal;
+				
+				l_Derefs[i].ChangePtr[j] = NULL;	// Clear for future checking
+			}
+		}
+		
+		// Free all references
+		Z_FreeTags(PU_SGPTRREF, PU_SGPTRREF);
+		l_Derefs = NULL;
+		l_NumDerefs = 0;
 	}
 	
 	/* Success? */

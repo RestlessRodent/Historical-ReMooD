@@ -833,8 +833,6 @@ void P_NightmareRespawn(mobj_t* mobj, const bool_t a_ForceRespawn)
 }
 
 consvar_t cv_spawnmonsters = { "spawnmonsters", "1", CV_NETVAR, CV_YesNo };
-consvar_t cv_respawnmonsters = { "respawnmonsters", "0", CV_NETVAR, CV_OnOff };
-consvar_t cv_respawnmonsterstime = { "respawnmonsterstime", "12", CV_NETVAR, CV_Unsigned };
 
 //
 // P_MobjCheckWater : check for water, set stuff in mobj_t struct for
@@ -1152,7 +1150,7 @@ void P_MobjThinker(mobj_t* mobj)
 			
 		mobj->movecount++;
 		
-		if (mobj->movecount < cv_respawnmonsterstime.value * TICRATE)
+		if (mobj->movecount < P_EXGSGetValue(PEXGSBID_MONRESPAWNMONSTERSTIME) * TICRATE)
 			return;
 			
 		if (leveltime % (32))
@@ -2229,7 +2227,7 @@ mobj_t* P_SpawnMissile(mobj_t* source, mobj_t* dest, mobjtype_t type)
 		
 	P_RefMobj(PMRT_TARGET, th, source);		// where it came from
 	
-	if (DEMOCVAR(predictingmonsters).value)	//added by AC for predmonsters
+	if (P_EXGSGetValue(PEXGSBID_MONPREDICTMISSILES))	//added by AC for predmonsters
 	{
 		bool_t canHit;
 		fixed_t px, py, pz;

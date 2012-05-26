@@ -57,6 +57,8 @@
 #include "hu_stuff.h"
 #include "d_main.h"
 
+#include "p_demcmp.h"
+
 //protos
 void ST_createWidgets(void);
 
@@ -857,7 +859,7 @@ static void ST_drawWidgets(bool_t refresh)
 	for (i = 0; i < 4; i++)
 	{
 		//Fix me: Gotta close hud and reopen it for this to take effect.
-		if (!cv_infiniteammo.value)
+		if (!P_EXGSGetValue(PEXGSBID_PLINFINITEAMMO))
 		{
 			STlib_updateNum(&w_ammo[i], refresh);
 			STlib_updateNum(&w_maxammo[i], refresh);
@@ -1673,7 +1675,7 @@ static void STS_DrawPlayerBarEx(const size_t a_PID, const int32_t a_X, const int
 			// Draw Ammo Text
 			if (DisplayP->ammo)
 			{
-				if (AmmoType < 0 || AmmoType >= NUMAMMO)
+				if (AmmoType < 0 || AmmoType >= NUMAMMO || P_EXGSGetValue(PEXGSBID_PLINFINITEAMMO))
 					snprintf(Buf, BUFSIZE - 1, "-");
 				else
 					snprintf(Buf, BUFSIZE - 1, "%i", DisplayP->ammo[AmmoType]);
