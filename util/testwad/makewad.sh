@@ -1,7 +1,7 @@
 #!/bin/sh
 
 gcc ../../util/rmdtex.c
-./a.out wadinfo.txt ../../rtestwad.wad
+./a.out wadinfo.txt ../../rtestwad.wad ./
 
 ## if we aren't already inside
 #cd wad

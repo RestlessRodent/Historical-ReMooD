@@ -57,3 +57,22 @@ EXIT 0x98000000
 @	SECRET [ 5 0x00000020 normal secret ]
 @	HUB [ 6 0x00000040 nohub hub ]
 
+FAKEFLOOR 0x10000000
+@	FLAG [ 0 0x00000001 notexists exists ]
+@	FLAG [ 1 0x00000002 notsolid solid ]
+@	FLAG [ 2 0x00000004 notrendersides rendersides ]
+@	FLAG [ 3 0x00000008 notrenderplanes renderplanes ]
+@	FLAG [ 4 0x00000010 notswimmable swimmable ]
+@	FLAG [ 5 0x00000020 notnoshade noshade ]
+@	FLAG [ 6 0x00000040 notcutsolids cutsolids ]
+@	FLAG [ 7 0x00000080 notcutextra cutextra ]
+@	FLAG [ 8 0x00000100 notcutsprites cutsprites ]
+@	FLAG [ 9 0x00000200 notbothplanes bothplanes ]
+@	FLAG [ 10 0x00000400 notextra extra ]
+@	FLAG [ 11 0x00000800 nottranslucent translucent ]
+@	FLAG [ 12 0x00001000 notfog fog ]
+@	FLAG [ 13 0x00002000 notinvertplanes invertplanes ]
+@	FLAG [ 14 0x00004000 notallsides allsides ]
+@	FLAG [ 15 0x00008000 notinvertsides invertsides ]
+@	FLAG [ 16 0x00010000 notdoubleshadow doubleshadow ]	
+

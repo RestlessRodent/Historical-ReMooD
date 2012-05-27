@@ -139,14 +139,16 @@ void R_Init(void);
 extern bool_t setsizeneeded;
 void R_SetViewSize(void);
 
-// do it (sometimes explicitly called)
-void R_ExecuteSetViewSize(void);
-
-void R_SetupFrame(player_t* player);
-
-// Called by G_Drawer.
-void R_RenderPlayerView(player_t* player, const size_t a_Screen);
-
 // add commands related to engine, at game startup
 void R_RegisterEngineStuff(void);
+
+/*** DOOM RENDERER ***/
+void R_ExecuteSetViewSize_DOOM(void);
+void R_RenderPlayerView_DOOM(player_t* player, const size_t a_Screen);
+
+/*** GENERIC CALLS ***/
+extern void (*R_ExecuteSetViewSize)(void);
+extern void (*R_RenderPlayerView)(player_t* player, const size_t a_Screen);
+
 #endif
+

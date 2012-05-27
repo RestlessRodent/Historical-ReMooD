@@ -435,6 +435,10 @@ void R_RenderMaskedSegRange(drawseg_t* ds, int x1, int x2)
 	rw_scalestep = ds->scalestep;
 	spryscale = ds->scale1 + (x1 - ds->x1) * rw_scalestep;
 	
+	// GhostlyDeath <May 26, 2012> -- Multi-Patch two sided textures are merged now
+	colfunc_2s = R_DrawMaskedColumn;
+	
+#if 1
 	//faB: handle case where multipatch texture is drawn on a 2sided wall, multi-patch textures
 	//     are not stored per-column with post info anymore in Doom Legacy
 	if (textures[texnum]->patchcount == 1)
@@ -444,6 +448,7 @@ void R_RenderMaskedSegRange(drawseg_t* ds, int x1, int x2)
 		colfunc_2s = R_Render2sidedMultiPatchColumn;	//render multipatch with no holes (no post_t info)
 		column2s_length = textures[texnum]->height;
 	}
+#endif
 	
 	// Setup lighting based on the presence/lack-of 3D floors.
 	dc_numlights = 0;
@@ -683,7 +688,7 @@ void R_RenderThickSideRange(drawseg_t* ds, int x1, int x2, ffloor_t* ffloor)
 			x = 10;
 		
 		// Use this transparency
-		ds_transmap = transtables + ((10 - x) * 0x10000);
+		dc_transmap = transtables + ((10 - x) * 0x10000);
 #else
 		// Hacked up support for alpha value in software mode SSNTails 09-24-2002
 		if (ffloor->alpha < 64)
@@ -802,7 +807,11 @@ void R_RenderThickSideRange(drawseg_t* ds, int x1, int x2, ffloor_t* ffloor)
 	
 	if (fixedcolormap)
 		dc_colormap = fixedcolormap;
-		
+
+	// GhostlyDeath <May 26, 2012> -- Textures are single pieces now
+	colfunc_2s = R_DrawMaskedColumn;
+	
+#if 1
 	//faB: handle case where multipatch texture is drawn on a 2sided wall, multi-patch textures
 	//     are not stored per-column with post info anymore in Doom Legacy
 	if (textures[texnum]->patchcount == 1)
@@ -812,6 +821,7 @@ void R_RenderThickSideRange(drawseg_t* ds, int x1, int x2, ffloor_t* ffloor)
 		colfunc_2s = R_Render2sidedMultiPatchColumn;	//render multipatch with no holes (no post_t info)
 		column2s_length = textures[texnum]->height;
 	}
+#endif
 	
 	// draw the columns
 	for (dc_x = x1; dc_x <= x2; dc_x++)
@@ -1328,7 +1338,7 @@ void R_StoreWallRange(int start, int stop)
 			
 			for (i = 0; i < maxdrawsegs; i++)
 				if (!drawsegs[i].frontscale)
-					drawsegs[i].frontscale = Z_Malloc(sizeof(fixed_t) * MAXSEGS, PU_STATIC, NULL);
+					drawsegs[i].frontscale = Z_Malloc(sizeof(*drawsegs[i].frontscale) * MAXSEGS, PU_STATIC, NULL);
 		}
 		else
 		{
@@ -1342,7 +1352,7 @@ void R_StoreWallRange(int start, int stop)
 			
 			for (i = 0; i < maxdrawsegs; i++)
 				if (!drawsegs[i].frontscale)
-					drawsegs[i].frontscale = Z_Malloc(sizeof(fixed_t) * MAXSEGS, PU_STATIC, NULL);
+					drawsegs[i].frontscale = Z_Malloc(sizeof(*drawsegs[i].frontscale) * MAXSEGS, PU_STATIC, NULL);
 		}
 		
 		if (firstseg)

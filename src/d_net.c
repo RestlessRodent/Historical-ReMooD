@@ -51,6 +51,7 @@
 #include "p_demcmp.h"
 #include "d_main.h"
 #include "m_menu.h"
+#include "r_main.h"
 
 /*************
 *** LOCALS ***

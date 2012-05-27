@@ -114,6 +114,7 @@ typedef enum CONL_VariableFlags_e
 												// (except by internal calls)
 	CLVF_TRIPLESTATE			= 0x00000020U,	// Variable has multiple states
 												// That is, any set affects state
+	CLVF_NOISY					= 0x00000040U,	// Creates lots of noise
 } CONL_VariableFlags_t;
 
 /* CONL_VariableVisibleType_t -- How to show the variable (in the menu) */

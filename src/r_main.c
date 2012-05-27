@@ -51,6 +51,9 @@
 #include "d_main.h"
 #include "console.h"
 
+#include "rx_main.h"
+#include "rh_main.h"
+
 // Fineangles in the SCREENWIDTH wide window.
 #define FIELDOFVIEW             2048
 
@@ -646,7 +649,7 @@ void R_SetViewSize(void)
 
 // now uses screen variables cv_viewsize, cv_detaillevel
 //
-void R_ExecuteSetViewSize(void)
+void R_ExecuteSetViewSize_DOOM(void)
 {
 	fixed_t cosadj;
 	fixed_t dy;
@@ -1031,7 +1034,7 @@ void R_SetupFrame(player_t* player)
 
 void R_DrawPlayerSprites(void);
 
-void R_RenderPlayerViewEx(player_t* player, int quarter)
+void R_RenderPlayerViewEx_DOOM(player_t* player, int quarter)
 {
 	register uint8_t* dest;
 	int x, y, a, b, c, d;
@@ -1145,17 +1148,85 @@ void R_RenderPlayerViewEx(player_t* player, int quarter)
 	}
 }
 
-void R_RenderPlayerView(player_t* player, const size_t a_Screen)
+void R_RenderPlayerView_DOOM(player_t* player, const size_t a_Screen)
 {
-	R_RenderPlayerViewEx(player, 0);
+	R_RenderPlayerViewEx_DOOM(player, 0);
 }
 
 // =========================================================================
 //                    ENGINE COMMANDS & VARS
 // =========================================================================
 
+void (*R_ExecuteSetViewSize)(void) = NULL;
+void (*R_RenderPlayerView)(player_t* player, const size_t a_Screen) = NULL;
+
+// c_CVPVRRenderer -- Renderer to use
+static const CONL_VarPossibleValue_t c_CVPVRRenderer[] =
+{
+	{0, "Legacy"},
+	{1, "ReMooD"},
+	{2, "Heretic"},
+	
+	// End
+	{0, NULL},
+};
+
+/* RS_RRendererChange() -- Renderer Value Changed */
+static bool_t RS_RRendererChange(CONL_ConVariable_t* const a_Var, CONL_StaticVar_t* const a_StaticVar)
+{
+	/* Notice */
+	CONL_PrintF("Selecting Renderer ");
+	
+	/* Legacy? */
+	if (a_StaticVar->Value[0].Int == 0)
+	{
+		CONL_PrintF("Legacy");
+		
+		R_ExecuteSetViewSize = R_ExecuteSetViewSize_DOOM;
+		R_RenderPlayerView = R_RenderPlayerView_DOOM;
+	}
+	
+	/* ReMooD? */
+	else if (a_StaticVar->Value[0].Int == 1)
+	{
+		CONL_PrintF("ReMooD");
+		
+		R_ExecuteSetViewSize = R_ExecuteSetViewSize_REMOOD;
+		R_RenderPlayerView = R_RenderPlayerView_REMOOD;
+	}
+	
+	/* Heretic? */
+	else if (a_StaticVar->Value[0].Int == 2)
+	{
+		CONL_PrintF("Heretic");
+		
+		R_ExecuteSetViewSize = R_ExecuteSetViewSize_HERETIC;
+		R_RenderPlayerView = R_RenderPlayerView_HERETIC;
+	}
+	
+	/* Notice */
+	CONL_PrintF("\n");
+	
+	/* Success! */
+	return true;
+}
+
+// r_renderer -- Which renderer to use
+CONL_StaticVar_t l_RRenderer =
+{
+	CLVT_INTEGER, c_CVPVRRenderer, CLVF_SAVE | CLVF_NOISY,
+	"r_renderer", DSTR_CVHINT_RRENDERER, CLVVT_STRING, "Legacy",
+	RS_RRendererChange
+};
+
+/* R_RegisterEngineStuff() -- Registers rendering stuff */
 void R_RegisterEngineStuff(void)
 {
+	/* Base Render Init */
+	R_ExecuteSetViewSize = R_ExecuteSetViewSize_DOOM;
+	R_RenderPlayerView = R_RenderPlayerView_DOOM;	
+	/********************/
+	
 	//26-07-98
 	CV_RegisterVar(&cv_gravity);
 	
@@ -1181,4 +1252,5 @@ void R_RegisterEngineStuff(void)
 	
 	// GhostlyDeath <May 22, 2012> -- Fake split screen palettes
 	CONL_VarRegister(&l_RFakeSSPal);
+	CONL_VarRegister(&l_RRenderer);
 }

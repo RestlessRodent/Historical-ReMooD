@@ -1338,11 +1338,16 @@ bool_t EV_HExDoGenPlat(line_t* const a_Line, mobj_t* const a_Object)
 
 /****************************************************************************/
 
+void P_AddFakeFloor(sector_t* sec, sector_t* sec2, line_t* master, int flags);
+
 /* EV_TryGenTrigger() -- Tries to trigger a line */
 bool_t EV_TryGenTrigger(line_t* const a_Line, const int a_Side, mobj_t* const a_Object, const EV_TryGenType_t a_Type, const uint32_t a_Flags, bool_t* const a_UseAgain)
 {
 	triggertype_e TrigMode;
 	uint32_t TypeBase;
+	uint32_t u32;
+	int32_t i, j, k;
+	sector_t* Sector;
 	
 	/* Check */
 	if (!a_Line)
@@ -1617,6 +1622,26 @@ bool_t EV_TryGenTrigger(line_t* const a_Line, const int a_Side, mobj_t* const a_
 					(a_Line->special & EVGENHE_XDAMGMASK) >> EVGENHE_XDAMGSHIFT);
 				return true;
 			}
+		}
+			
+			// Fake Floor
+		else if (TypeBase == EVGHET_YFAKEFLOORS)
+		{
+			fprintf(stderr, "SPAWN FLOOR\n");
+			
+			// Extract 3D Floor flags
+			u32 = a_Line->special & 0xFFFFFFU;
+			
+			// Create floors for sectors
+			//i = sides[*a_Line->sidenum].sector - sectors;
+			
+			// Add fake floors to everything tagged
+			j = -1;
+			while ((j = P_FindSectorFromLineTag(a_Line, j)) >= 0)
+				P_AddFakeFloor(&sectors[j], a_Line->frontsector, a_Line, u32);
+			
+			// Success!
+			return true;
 		}
 	}
 	

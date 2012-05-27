@@ -321,6 +321,7 @@ StringGroupEX_t UnicodeStrings[NUMUNICODESTRINGS] =
 	{			 "CVHINT_RCUTWALLDETAIL", "Lower the detail of wall textures to reduce memory usage at the cost of quality."},
 	{			 "CVHINT_RCUTWALLDETAIL", "Lower the detail of wall textures to reduce memory usage at the cost of quality."},
 	{				 "CVHINT_RFAKESSPAL", "Fake the palette changing when using split-screen."},
+	{				  "CVHINT_RRENDERER", "Which renderer platform to utilize."},
 	
 	/*** NETWORK STUFF ***/
 	{			"NET_YOUARENOTTHESERVER", "You are not the server."},

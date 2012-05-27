@@ -113,7 +113,6 @@ const CONL_VarPossibleValue_t c_CVPVClamp[] =
 	{0, NULL},
 };
 
-
 // g_CVPVInteger -- Signed Integer
 const CONL_VarPossibleValue_t c_CVPVInteger[] =
 {
@@ -122,7 +121,6 @@ const CONL_VarPossibleValue_t c_CVPVInteger[] =
 	{32767, "MAXVAL"},
 	{0, NULL},
 };
-
 
 // g_CVPVPositive -- Positive Integer
 const CONL_VarPossibleValue_t c_CVPVPositive[] =
@@ -133,7 +131,6 @@ const CONL_VarPossibleValue_t c_CVPVPositive[] =
 	{0, NULL},
 };
 
-
 // g_CVPVNegative -- Negative Integer
 const CONL_VarPossibleValue_t c_CVPVNegative[] =
 {
@@ -142,7 +139,6 @@ const CONL_VarPossibleValue_t c_CVPVNegative[] =
 	{0, "MAXVAL"},
 	{0, NULL},
 };
-
 
 // g_CVPVBoolean -- Boolean
 const CONL_VarPossibleValue_t c_CVPVBoolean[] =
