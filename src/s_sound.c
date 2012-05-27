@@ -844,9 +844,6 @@ void S_Start(void)
 	//  if (commercial && mnum > mus_e3m9)
 	//      mnum -= mus_e3m9;
 	
-	/*if (info_music && *info_music)
-	   S_ChangeMusicName(info_music, true);
-	   else */
 	S_ChangeMusic(mnum, true);
 	
 	//nextcleanup = 15;

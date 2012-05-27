@@ -1844,7 +1844,6 @@ void D_DoomMain(void)
 	D_AddDeathmatchCommands();
 	ST_AddCommands();
 	T_AddCommands();
-	P_Info_AddCommands();
 	R_RegisterEngineStuff();
 	S_RegisterSoundStuff();
 	CV_RegisterVar(&cv_screenslink);

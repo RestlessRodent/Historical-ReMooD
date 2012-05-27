@@ -350,7 +350,7 @@ void T_DelayedScripts()
 	runningscript_t* current, *next;
 	int i;
 	
-	if (!info_scripts)
+	//if (!info_scripts)
 		return;					// no level scripts
 		
 	current = runningscripts.next;

@@ -1505,7 +1505,7 @@ void AM_Drawer(void)
 		
 			y = BASEVIDHEIGHT - (ST_HEIGHT) - 1;
 		
-			V_DrawStringA(VFONT_SMALL, 0, P_LevelName(), 20, y - V_StringHeightA(VFONT_SMALL, 0, P_LevelName()));
+			V_DrawStringA(VFONT_SMALL, 0, P_LevelNameEx(), 20, y - V_StringHeightA(VFONT_SMALL, 0, P_LevelNameEx()));
 		}
 	}
 }
