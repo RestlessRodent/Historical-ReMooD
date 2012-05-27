@@ -15,7 +15,6 @@
 //         .oCOOOOOCc.                                      http://remood.org/
 // -----------------------------------------------------------------------------
 // Copyright (C) 2011-2012 GhostlyDeath <ghostlydeath@remood.org>
-// Copyright(C) 2000 Simon Howard
 // -----------------------------------------------------------------------------
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
@@ -117,7 +116,7 @@ static const struct
 } c_PMIFields[MAXPINFOSETFLAGS] =
 {
 	{false, PPMFIFT_STRING, NULL, "levelname", offsetof(P_LevelInfoEx_t, Title)},
-	{false, PPMFIFT_STRING, "creator", "author", offsetof(P_LevelInfoEx_t, Author)},
+	{false, PPMFIFT_STRING, "creator", "creator", offsetof(P_LevelInfoEx_t, Author)},
 	{false, PPMFIFT_STRING, "music", "music", offsetof(P_LevelInfoEx_t, Music)},
 	{false, PPMFIFT_STRING, "titlepatch", "levelpic", offsetof(P_LevelInfoEx_t, LevelPic)},
 	{false, PPMFIFT_STRING, "sky1", "skyname", offsetof(P_LevelInfoEx_t, SkyTexture)},
@@ -150,6 +149,202 @@ static const struct
 	// End
 	{true, MAXPPMFIFIELDTYPES, NULL, NULL, 0},
 };
+
+/* PS_ParseLumpHeader() -- Parses lump header */
+static bool_t PS_ParseLumpHeader(P_LevelInfoEx_t* const a_CurrentInfo, WL_EntryStream_t* const a_Stream)
+{
+#define BUFSIZE 512
+	char Buf[BUFSIZE];
+	char* SideA, *SideB;
+	int32_t n;
+	size_t i, FNum;
+	
+	char* p, *q;
+	char* TokenP;
+	
+	char** StrValP;
+	char** StrValS;
+	
+	int32_t* IntValP;
+	int32_t* IntValS;
+	
+	fixed_t* FixedValP;
+	fixed_t* FixedValS;
+	
+	bool_t* BoolValP;
+	bool_t* BoolValS;
+	
+	void* vP;
+	void* vS;
+	
+	/* Check */
+	if (!a_CurrentInfo || !a_Stream)
+		return 0;
+	
+	/* Go back to start of info */
+	WL_StreamSeek(a_Stream, a_CurrentInfo->BlockPos[PIBT_LEVELINFO][0], false);
+	
+	/* Keep reading lines */
+	for (;;)
+	{
+		// EOS?
+		if (WL_StreamEOF(a_Stream))
+			break;
+		
+		// Read a fresh line from the buffer
+		memset(Buf, 0, sizeof(Buf));
+		WL_StreamReadLine(a_Stream, Buf, BUFSIZE - 1);
+		
+		// Now past the end?
+		if (WL_StreamTell(a_Stream) > a_CurrentInfo->BlockPos[PIBT_LEVELINFO][1])
+			break;
+		
+		// Debug
+		if (devparm)
+			CONL_PrintF("PS_ParseLumpHeader: \"%s\"\n", Buf);
+		
+		// Remove leading whitespace
+		while (Buf[0] == ' ' || Buf[0] == '\t' || Buf[0] == '\r' || Buf[0] == '\n')
+			memmove(&Buf[0], &Buf[1], BUFSIZE - 1);
+		
+		// Completely blank line?
+		if (!Buf[0])
+			continue;
+		
+		// Comment?
+		if (Buf[0] == '/' && Buf[1] == '/')
+			continue;
+		
+		// Determine sides
+		SideA = Buf;				// Always the start
+		SideB = strchr(Buf, '=');	// Find equal sign
+		
+		// No equal sign?
+		if (!SideB)
+			continue;
+		
+		// Set the start of side b to NULL
+		*(SideB++) = 0;
+		
+		// Remove beginning white space on b side
+		while (SideB[0] == ' ' || SideB[0] == '\t' || SideB[0] == '\r' || SideB[0] == '\n')
+			SideB++;
+		
+		// Remove whitespace at end of sides
+		// A
+		for (n = strlen(SideA);
+			n >= 1 && (SideA[n - 1] == ' ' || SideA[n - 1] == '\t' ||
+			SideA[n - 1] == '\r' || SideA[n - 1] == '\n'); n--)
+			SideA[n - 1] = 0;
+		
+		// B
+		for (n = strlen(SideB);
+			n >= 1 && (SideB[n - 1] == ' ' || SideB[n - 1] == '\t' ||
+			SideB[n - 1] == '\r' || SideB[n - 1] == '\n'); n--)
+			SideB[n - 1] = 0;
+		
+		/* Debug */
+		if (devparm)
+			CONL_PrintF("PS_ParseLumpHeader: \"%s\" == \"%s\"\n", SideA, SideB);
+			
+		// Look through list for a match
+		for (FNum = 0; !c_PMIFields[FNum].IsEnd; FNum++)
+			if (c_PMIFields[FNum].NewInfo)
+				if (strcasecmp(SideA, c_PMIFields[FNum].NewInfo) == 0)
+					break;
+		
+		// Reached end?
+		if (c_PMIFields[FNum].IsEnd)
+		{
+			if (devparm)
+				CONL_PrintF("PS_ParseLumpHeader: Unknown \"%s\".\n", SideA);
+			continue;
+		}
+		
+		// Check to see if already set or the default is unset
+			// But have MAPINFO levels replace each other
+		if (a_CurrentInfo->SetBits[FNum] > PLIBL_LUMPHEADER)
+		{
+			if (devparm)
+				CONL_PrintF("PS_ParseLumpHeader: Already defined at higher level (this: %i, at: %i).\n", PLIBL_MAPINFO, a_CurrentInfo->SetBits[FNum]);
+			continue;	// Skip it then
+		}
+		
+		// Setup
+		p = SideB;
+		
+		// GhostlyDeath <May 5, 2012> -- Ignore any quotes
+		if (*p == '\"')
+		{
+			// Null the quote away
+			*(p++) = '\0';
+			
+			// Find the next quote, null that then die
+			for (q = p; *q; q++)
+				if (*q == '\"')
+				{
+					*q = '\0';
+					break;
+				}
+		}
+		
+		// Set the bit flag then (with LUMPHEADER level)
+		a_CurrentInfo->SetBits[FNum] = PLIBL_LUMPHEADER;
+		
+		// Get field location
+		vP = (void*)(((uintptr_t)a_CurrentInfo) + c_PMIFields[FNum].Offset);
+		
+		// Depending on the type, set the value
+			// String
+		if (c_PMIFields[FNum].Type == PPMFIFT_STRING)
+		{
+			// Get actual pointer
+			StrValP = (char**)vP;
+			
+			// Delete string?
+			if (*StrValP)
+				Z_Free(*StrValP);
+			
+			// Set value
+			*StrValP = Z_StrDup(p, PU_WLDKRMOD, NULL);
+			
+			// Debug
+			if (devparm)
+				CONL_PrintF("PS_ParseLumpHeader: \"%s\" set to \"%s\".\n", c_PMIFields[FNum].NewInfo, *StrValP);
+		}
+			// Integer
+		else if (c_PMIFields[FNum].Type == PPMFIFT_INTEGER)
+		{
+			// Get actual pointer
+			IntValP = (char**)vP;
+			
+			// Set value
+			*IntValP = atoi(p);
+			
+			// Debug
+			if (devparm)
+				CONL_PrintF("PS_ParseLumpHeader: \"%s\" set to \'%i\'.\n", c_PMIFields[FNum].NewInfo, *IntValP);
+		}
+			
+			// Bool
+		else if (c_PMIFields[FNum].Type == PPMFIFT_BOOL)
+		{
+			// Get source and dest
+			BoolValP = (bool_t*)vP;
+		
+			// Set to true!
+			*BoolValP = true;
+			
+			// Debug
+			if (devparm)
+				CONL_PrintF("PS_ParseLumpHeader: \"%s\" flagged.\n", c_PMIFields[FNum].MapInfo);
+		}
+	}
+	
+	/* Success! */
+	return true;
+#undef BUFSIZE
+}
 
 /* PS_ParseMapInfo() -- Parses map info */
 static bool_t PS_ParseMapInfo(P_LevelInfoHolder_t* const a_Holder, const WL_WADEntry_t* a_MIEntry)
@@ -849,7 +1044,9 @@ static bool_t P_WLInfoCreator(const WL_WADFile_t* const a_WAD, const uint32_t a_
 			// Determine block locations
 			if (PS_LevelInfoGetBlockPoints(CurrentInfo, CurrentInfo->EntryPtr[PLIEDS_HEADER], ReadStream))
 			{
-				// Parse [level info]
+				// Check if PIBT_LEVELINFO exists
+				if (CurrentInfo->BlockPos[PIBT_LEVELINFO][1] - CurrentInfo->BlockPos[PIBT_LEVELINFO][0] > 0)
+					PS_ParseLumpHeader(CurrentInfo, ReadStream);
 			}
 		}
 		
