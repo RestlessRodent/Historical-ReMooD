@@ -131,3 +131,4 @@ int I_GetKey(void);
 #endif
 
 #endif							// __DOOMDEF__
+

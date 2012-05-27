@@ -403,6 +403,7 @@ void parse_include(char* lumpname)
 	char* saved_rover;
 	char* x;
 	
+#if 0
 	if (-1 == (lumpnum = W_CheckNumForName(lumpname)))
 	{
 		x = lumpname;
@@ -421,6 +422,9 @@ void parse_include(char* lumpname)
 	}
 	
 	lump = W_CacheLumpNum(lumpnum, PU_STATIC);
+#endif
+	script_error("include lump '%s' not found!\n", lumpname);
+	return;
 	
 	// realloc bigger for NULL at end
 	// SoM: REALLOC does not seem to work! So we alloc here and copy....

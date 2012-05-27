@@ -113,6 +113,20 @@ static wallsplat_t* R_AllocWallSplat(void)
 	return splat;
 }
 
+/* P_SegLength() -- Length of seg */
+float P_SegLength(seg_t* seg)
+{
+#define crapmul (1.0f / 65536.0f)
+	double dx, dy;
+	
+	// make a vector (start at origin)
+	dx = (seg->v2->x - seg->v1->x) * crapmul;
+	dy = (seg->v2->y - seg->v1->y) * crapmul;
+	
+	return sqrt(dx * dx + dy * dy) * FRACUNIT;
+#undef crapmul
+}
+
 /* R_AddWallSplat() -- Adds a splat to a wall */
 // GhostlyDeath <Octover 23, 2010> -- Rewritten. If a splat is near another splat replace that splat.
 void R_AddWallSplat(line_t* wallline, int sectorside, char* patchname, fixed_t top, fixed_t wallfrac, int flags)

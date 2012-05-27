@@ -232,7 +232,6 @@ S_SoundChannel_t* S_PlayEntryOnChannel(const uint32_t a_Channel, WX_WADEntry_t* 
 		return NULL;
 		
 	/* Use entry */
-	WX_UseEntry(a_Entry, true);
 	Data = WX_CacheEntry(a_Entry);
 	
 	/* Read basic stuff */
@@ -242,10 +241,7 @@ S_SoundChannel_t* S_PlayEntryOnChannel(const uint32_t a_Channel, WX_WADEntry_t* 
 	Length = ReadUInt16(&p);
 	
 	if (!Freq || !Length || Header != 3)
-	{
-		WX_UseEntry(a_Entry, false);
 		return NULL;
-	}
 	
 	/* Set channel info */
 	l_DoomChannels[a_Channel].Entry = a_Entry;
@@ -308,10 +304,6 @@ void S_StopChannel(const uint32_t a_Channel)
 		return;
 		
 	/* Clear channel out */
-	// Check for entry
-	if (l_DoomChannels[a_Channel].Entry)
-		WX_UseEntry(l_DoomChannels[a_Channel].Entry, false);
-		
 	// Clear stuff
 	l_DoomChannels[a_Channel].Origin = NULL;
 	l_DoomChannels[a_Channel].MoveRate = 1 << FRACBITS;

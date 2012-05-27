@@ -826,8 +826,6 @@ void Z_Init(void)
 		LoopSize -= LoopSize >> 2;	// Cut down by 1/4th
 }
 
-size_t WX_ClearUnused(void);
-
 /* Z_MallocWrappee() -- Allocate memory */
 void* Z_MallocWrappee(const size_t Size, const Z_MemoryTag_t Tag, void** const Ref _ZMGD_WRAPPEE)
 {
@@ -966,7 +964,7 @@ void* Z_MallocWrappee(const size_t Size, const Z_MemoryTag_t Tag, void** const R
 		// Clear cache blocks and unused lumps
 		k = l_MainZone->FreeMemory;
 		i = Z_FreeTags(PU_PURGELEVEL, NUMZTAGS);
-		j = WX_ClearUnused();
+		j = 0;
 		
 		if (devparm)
 			CONL_PrintF("Z_MallocReal: Nearly out of memory, freed %u lumps, %u blocks (Freed %u bytes).\n", j, i, l_MainZone->FreeMemory - k);

@@ -3305,7 +3305,7 @@ void CON_Init(void)
 	CON_InputInit();
 	
 	// load console background pic
-	con_backpic = (pic_t*)W_CacheLumpName("RMD_CB_D", PU_STATIC);
+	//con_backpic = (pic_t*)W_CacheLumpName("RMD_CB_D", PU_STATIC);
 	
 	// borders MUST be there
 	//con_bordleft  = (pic_t*) W_CacheLumpName ("CBLEFT",PU_STATIC);

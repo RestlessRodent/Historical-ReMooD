@@ -264,7 +264,7 @@ void F_TextWrite(void)
 	int cy;
 	
 	// erase the entire screen to a tiled background
-	V_DrawFlatFill(0, 0, vid.width, vid.height, W_GetNumForName(finaleflat));
+	//V_DrawFlatFill(0, 0, vid.width, vid.height, W_GetNumForName(finaleflat));
 	
 	// draw some of the text onto the screen
 	cx = 10;
@@ -563,9 +563,9 @@ void F_CastDrawer(void)
 	lump = sprframe->lumppat[0];	//Fab: see R_InitSprites for more
 	flip = (bool_t)sprframe->flip[0];
 	
-	patch = W_CachePatchNum(lump, PU_CACHE);
+	//patch = W_CachePatchNum(lump, PU_CACHE);
 	
-	V_DrawScaledPatch(BASEVIDWIDTH >> 1, 170, flip ? V_FLIPPEDPATCH : 0, patch);
+	//V_DrawScaledPatch(BASEVIDWIDTH >> 1, 170, flip ? V_FLIPPEDPATCH : 0, patch);
 }
 
 //
@@ -621,8 +621,10 @@ void F_BunnyScroll(void)
 	int stage;
 	static int laststage;
 	
+#if 0
 	p1 = W_CachePatchName("PFUB2", PU_LEVEL);
 	p2 = W_CachePatchName("PFUB1", PU_LEVEL);
+#endif
 	
 	scrolled = 320 - (finalecount - 230) / 2;
 	if (scrolled > 320)
@@ -642,7 +644,7 @@ void F_BunnyScroll(void)
 		return;
 	if (finalecount < 1180)
 	{
-		V_DrawScaledPatch((320 - 13 * 8) / 2, (200 - 8 * 8) / 2, 0, W_CachePatchName("END0", PU_CACHE));
+		//V_DrawScaledPatch((320 - 13 * 8) / 2, (200 - 8 * 8) / 2, 0, W_CachePatchName("END0", PU_CACHE));
 		laststage = 0;
 		return;
 	}
@@ -657,7 +659,7 @@ void F_BunnyScroll(void)
 	}
 	
 	sprintf(name, "END%i", stage);
-	V_DrawScaledPatch((320 - 13 * 8) / 2, (200 - 8 * 8) / 2, 0, W_CachePatchName(name, PU_CACHE));
+	//V_DrawScaledPatch((320 - 13 * 8) / 2, (200 - 8 * 8) / 2, 0, W_CachePatchName(name, PU_CACHE));
 }
 
 //

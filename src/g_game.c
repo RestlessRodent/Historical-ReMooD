@@ -169,7 +169,6 @@ consvar_t cv_newdeathmatch = { "newdeathmatch", "3", CV_HIDEN, deathmatch_cons_t
 bool_t G_CheckDemoStatus(void);
 void G_ReadDemoTiccmd(ticcmd_t* cmd, int playernum);
 void G_WriteDemoTiccmd(ticcmd_t* cmd, int playernum);
-void G_InitNew(skill_t skill, char* mapname, bool_t resetplayer);
 
 void G_DoCompleted(void);
 void G_DoVictory(void);
@@ -466,55 +465,6 @@ static fixed_t originalsidemove[2] = { 0x18, 0x28 };
 //
 void G_DoLoadLevel(bool_t resetplayer)
 {
-	int i;
-	int j = 0;
-	char tMap[9];
-	
-	levelstarttic = gametic;	// for time calculation
-	
-	if (wipegamestate == GS_LEVEL)
-		wipegamestate = -1;		// force a wipe
-		
-	gamestate = GS_LEVEL;
-	for (i = 0; i < MAXPLAYERS; i++)
-	{
-		if (resetplayer || (playeringame[i] && players[i].playerstate == PST_DEAD))
-			players[i].playerstate = PST_REBORN;
-			
-		if (playeringame[i])
-			j++;
-			
-		memset(players[i].frags, 0, sizeof(players[i].frags));
-		players[i].addfrags = 0;
-	}
-	
-	multiplayer = j > 1;
-	
-	if (!P_SetupLevel(gameepisode, gamemap, gameskill, gamemapname[0] ? gamemapname : NULL))
-	{
-		// fail so reset game stuff
-		Command_ExitGame_f();
-		return;
-	}
-	//BOT_InitLevelBots ();
-	
-	displayplayer[0] = consoleplayer[0];	// view the guy you are playing
-	if ((g_SplitScreen <= 0))
-		displayplayer[1] = consoleplayer[0];
-	else
-		for (i = 0; i < MAXSPLITSCREENPLAYERS; i++)
-			displayplayer[i] = consoleplayer[i];
-			
-	gameaction = ga_nothing;
-	
-	for (i = 0; i < MAXPLAYERS; i++)
-		if (players[i].camera.chase)
-			P_ResetCamera(&players[i]);
-	
-	// clear hud messages remains (usually from game startup)
-	HU_ClearFSPics();
-	CON_ClearHUD();
-	
 }
 
 //
@@ -746,25 +696,6 @@ void G_Ticker(void)
 // PLAYER STRUCTURE FUNCTIONS
 // also see P_SpawnPlayer in P_Things
 //
-
-//
-// G_InitPlayer
-// Called at the start.
-// Called by the game initialization functions.
-//
-
-/* BP:UNUSED !
-void G_InitPlayer (int player)
-{
-    player_t*   p;
-
-    // set up the saved info
-    p = &players[player];
-
-    // clear everything else to defaults
-    G_PlayerReborn (player);
-}
-*/
 
 //
 // G_PlayerFinishLevel
@@ -1446,6 +1377,10 @@ void G_InitPlayer(player_t* const a_Player)
 	/* Find if the player is on the screen */
 	
 	/* Match angle */
+	
+	/* Update Camera */
+	if (a_Player->camera.chase)
+		P_ResetCamera(a_Player);
 }
 
 // DOOM Par Times
@@ -1804,91 +1739,6 @@ void G_DoSaveGame(int savegameslot, char* savedescription)
 	
 	gameaction = ga_nothing;
 #endif
-}
-
-//
-// G_InitNew
-//  Can be called by the startup code or the menu task,
-//  consoleplayer, displayplayer, playeringame[] should be set.
-//
-// Boris comment : single player start game
-void G_DeferedInitNew(skill_t skill, char* mapname, int StartSplitScreenGame)
-{
-	int i;
-	
-	G_Downgrade(VERSION);
-	paused = false;
-	
-	//CV_Set(&cv_splitscreen, va("%d", StartSplitScreenGame));
-	
-	COM_BufAddText(va("map \"%s\" -skill %d -monsters 1\n", mapname, skill + 1));
-}
-
-//
-// This is the map command interpretation something like Command_Map_f
-//
-// called at : map cmd execution, doloadgame, doplaydemo
-void G_InitNew(skill_t skill, char* mapname, bool_t resetplayer)
-{
-	//added:27-02-98: disable selected features for compatibility with
-	//                older demos, plus reset new features as default
-	if (!G_Downgrade(demoversion))
-	{
-		CONL_PrintF("Cannot Downgrade engine\n");
-		D_StartTitle();
-		return;
-	}
-	
-	if (paused)
-	{
-		paused = false;
-		S_ResumeMusic();
-	}
-	
-	if (skill > sk_nightmare)
-		skill = sk_nightmare;
-		
-	M_ClearRandom();
-	
-	// for internal maps only
-	if (FIL_CheckExtension(mapname))
-	{
-		// external map file
-		strncpy(gamemapname, mapname, GAMEMAPNAMESIZE);
-		gameepisode = 1;
-		gamemap = 1;
-	}
-	else
-	{
-		// internal game map
-		// well this  check is useless because it is done before (d_netcmd.c::command_map_f)
-		// but in case of for demos....
-		if (W_CheckNumForName(mapname) == -1)
-		{
-			CONL_PrintF("\2Internal game map '%s' not found\n" "(use .wad extension for external maps)\n", mapname);
-			Command_ExitGame_f();
-			return;
-		}
-		
-		gamemapname[0] = 0;		// means not an external wad file
-		if (gamemode == commercial)	//doom2
-		{
-			gamemap = atoi(mapname + 3);	// get xx out of MAPxx
-			gameepisode = 1;
-		}
-		else
-		{
-			gamemap = mapname[3] - '0';	// ExMy
-			gameepisode = mapname[1] - '0';
-		}
-	}
-	
-	gameskill = skill;
-	playerdeadview = false;
-	automapactive = false;
-	automapoverlay = false;
-	
-	G_DoLoadLevel(resetplayer);
 }
 
 //added:03-02-98:

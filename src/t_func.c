@@ -2327,7 +2327,7 @@ void SF_FloorTexture()
 	}
 	
 	t_return.type = svt_string;
-	t_return.value.s = P_FlatNameForNum(sectors[secnum].floorpic);
+	//t_return.value.s = P_FlatNameForNum(sectors[secnum].floorpic);
 }
 
 void SF_SectorColormap()
@@ -2418,7 +2418,7 @@ void SF_CeilingTexture()
 	}
 	
 	t_return.type = svt_string;
-	t_return.value.s = P_FlatNameForNum(sectors[secnum].ceilingpic);
+	//t_return.value.s = P_FlatNameForNum(sectors[secnum].ceilingpic);
 }
 
 void SF_ChangeHubLevel()
@@ -2462,7 +2462,7 @@ void SF_StartSkill()
 	
 	skill = intvalue(t_argv[0]) - 1;
 	
-	G_DeferedInitNew(skill, G_BuildMapName(1, 1), false);
+	//G_DeferedInitNew(skill, G_BuildMapName(1, 1), false);
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -2967,7 +2967,7 @@ void SF_NewHUPic()
 	}
 	
 	t_return.type = svt_int;
-	t_return.value.i = HU_GetFSPic(W_GetNumForName(stringvalue(t_argv[0])), intvalue(t_argv[1]), intvalue(t_argv[2]));
+	//t_return.value.i = HU_GetFSPic(W_GetNumForName(stringvalue(t_argv[0])), intvalue(t_argv[1]), intvalue(t_argv[2]));
 	return;
 }
 
@@ -2992,7 +2992,7 @@ void SF_ModifyHUPic()
 		return;
 	}
 	
-	if (HU_ModifyFSPic(intvalue(t_argv[0]), W_GetNumForName(stringvalue(t_argv[1])), intvalue(t_argv[2]), intvalue(t_argv[3])) == -1)
+	//if (HU_ModifyFSPic(intvalue(t_argv[0]), W_GetNumForName(stringvalue(t_argv[1])), intvalue(t_argv[2]), intvalue(t_argv[3])) == -1)
 		script_error("modifyhypic: invalid sfpic handle %i\n", intvalue(t_argv[0]));
 	return;
 }

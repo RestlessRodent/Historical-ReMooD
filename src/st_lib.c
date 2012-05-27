@@ -50,7 +50,7 @@ patch_t* sttminus;
 
 void STlib_init(void)
 {
-	sttminus = (patch_t*)W_CachePatchName("STTMINUS", PU_STATIC);
+	//sttminus = (patch_t*)W_CachePatchName("STTMINUS", PU_STATIC);
 }
 
 // Initialize number widget

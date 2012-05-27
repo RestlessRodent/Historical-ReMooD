@@ -1814,170 +1814,9 @@ size_t WL_StreamReadLine(WL_EntryStream_t* const a_Stream, char* const a_Buf, co
 	return RetVal;
 }
 
-/*********************
-*** W_ DEPRECATION ***
-*********************/
-
-#define OLDWPDCKEY		0x77444C4FU
-
-/* W_NumWadFiles() -- Returns the number of WADs */
-size_t __REMOOD_DEPRECATED W_NumWadFiles(void)
-{
-	return 0;
-}
-
-/* W_GetWadForNum() -- Get WAD for this number */
-WadFile_t* __REMOOD_DEPRECATED W_GetWadForNum(size_t Num)
-{
-	return NULL;
-}
-
-/* W_GetWadForName() -- Returns WAD for this name */
-WadFile_t* __REMOOD_DEPRECATED W_GetWadForName(char* Name)
-{
-	return NULL;
-}
-
-/* W_GetEntry() -- Translates an index to an entry */
-WadEntry_t* __REMOOD_DEPRECATED W_GetEntry(WadIndex_t lump)
-{
-	return NULL;
-}
-
-/* W_LumpsSoFar() -- Returns the number of lumps passed so far */
-WadIndex_t __REMOOD_DEPRECATED W_LumpsSoFar(WadFile_t* wadid)
-{
-	return 0;
-}
-
-/* W_InitMultipleFiles() -- Initializes multiple file inputs */
-// This is the main code for loading WADs
-WadIndex_t __REMOOD_DEPRECATED W_InitMultipleFiles(char** filenames)
-{
-	size_t i;
-	WadIndex_t OK;
-	const WL_WADFile_t* File;
-	
-	/* Check */
-	if (!filenames)
-		return 0;
-	
-	/* Lock OCCB */
-	WL_LockOCCB(true);
-	
-	/* Run through filename list */
-	for (OK = 0, i = 0; filenames[i]; i++)
-		if ((File = WL_OpenWAD(filenames[i])))
-		{
-			// This one worked
-			OK++;
-			
-			// Push to stack
-			WL_PushWAD(File);
-		}
-		
-	/* Unlock OCCB */
-	WL_LockOCCB(false);
-	
-	/* Return OK count */
-	return OK;
-}
-
-void __REMOOD_DEPRECATED W_Shutdown(void);
-int __REMOOD_DEPRECATED W_LoadWadFile(char* filename);
-
-/* W_Reload() -- Reloads the WAD for level update */
-void __REMOOD_DEPRECATED W_Reload(void)
-{
-	// Not used at all
-}
-
-WadIndex_t __REMOOD_DEPRECATED W_BiCheckNumForName(char* name, int forwards);
-
-
-/* W_CheckNumForName() -- Attempts to locate a lump for the given name */
-WadIndex_t __REMOOD_DEPRECATED W_CheckNumForName(char* name)
-{
-	return INVALIDLUMP;
-}
-
-WadIndex_t __REMOOD_DEPRECATED W_CheckNumForNamePwad(char* name, size_t wadid, WadIndex_t startlump);
-
-/* W_CheckNumForNamePwadPtr() -- Locates a lump index in this specific WAD only */
-WadIndex_t __REMOOD_DEPRECATED W_CheckNumForNamePwadPtr(char* name, WadFile_t* wadid, WadIndex_t startlump)
-{
-	return INVALIDLUMP;
-}
-
-/* W_GetNumForName() -- Locate lump by name, crash if not found */
-WadIndex_t __REMOOD_DEPRECATED W_GetNumForName(char* name)
-{
-	I_Error("W_GetNumForName: Not impl.");
-	return INVALIDLUMP;
-}
-
-WadIndex_t __REMOOD_DEPRECATED W_GetNumForNameFirst(char* name);
-
-/* W_LumpLength() -- Returns length of lump */
-size_t __REMOOD_DEPRECATED W_LumpLength(WadIndex_t lump)
-{
-	return 0;
-}
-
-/* W_ReadLumpHeader() -- Reads first size bytes of lump */
-size_t __REMOOD_DEPRECATED W_ReadLumpHeader(WadIndex_t lump, void* dest, size_t size)
-{
-	return 0;
-}
-
-/* W_ReadLump() -- Reads entire lump unto dest */
-void __REMOOD_DEPRECATED W_ReadLump(WadIndex_t lump, void* dest)
-{
-}
-
-/* W_CacheLumpNum() -- Caches a lump by number */
-void* __REMOOD_DEPRECATED W_CacheLumpNum(WadIndex_t lump, size_t PU)
-{
-	return NULL;
-}
-
-/* W_CacheLumpName() -- Caches a lump */
-void* __REMOOD_DEPRECATED W_CacheLumpName(char* name, size_t PU)
-{
-	return NULL;
-}
-
-/* W_CachePatchName() -- Caches a lump as a patch */
-void* __REMOOD_DEPRECATED W_CachePatchName(char* name, size_t PU)
-{
-	return NULL;
-}
-
-/* W_LoadData() -- Loads private data */
-void __REMOOD_DEPRECATED W_LoadData(void)
-{
-	// Not to be used at all
-}
-
-/* W_FindWad() -- Locates a WAD File */
-bool_t __REMOOD_DEPRECATED W_FindWad(const char* Name, const char* MD5, char* OutPath, const size_t OutSize)
-{
-	/* This function is exactly the same */
-	return WL_LocateWAD(Name, MD5, OutPath, OutSize);
-}
-
-/* W_CachePatchNum() -- Caches a patch by its number */
-void* __REMOOD_DEPRECATED W_CachePatchNum(const WadIndex_t Lump, size_t PU)
-{
-	return NULL;
-}
-
 /**********************
 *** WX_ DEPRECATION ***
 **********************/
-
-bool_t __REMOOD_DEPRECATED WX_Init(void);
-bool_t __REMOOD_DEPRECATED WX_LocateWAD(const char* const a_Name, const char* const a_MD5, char* const a_OutPath, const size_t a_OutSize);
 
 /* WX_EntryForName() -- Returns an entry for a name */
 WX_WADEntry_t* __REMOOD_DEPRECATED WX_EntryForName(WX_WADFile_t* const a_WAD, const char* const a_Name, const bool_t a_Forwards)
@@ -2006,12 +1845,6 @@ void* __REMOOD_DEPRECATED WX_CacheEntry(WX_WADEntry_t* const a_Entry)
 	return a_Entry->__Private.__WXClone;
 }
 
-/* WX_UseEntry() -- Marks an entry as used */
-size_t __REMOOD_DEPRECATED WX_UseEntry(WX_WADEntry_t* const a_Entry, const bool_t a_Use)
-{
-	return 0;
-}
-
 /* WX_GetEntrySize() -- Return size of entry */
 size_t __REMOOD_DEPRECATED WX_GetEntrySize(WX_WADEntry_t* const a_Entry)
 {
@@ -2020,10 +1853,37 @@ size_t __REMOOD_DEPRECATED WX_GetEntrySize(WX_WADEntry_t* const a_Entry)
 	return a_Entry->Size;
 }
 
-/* WX_ClearUnused() -- Clear unused data */
-size_t __REMOOD_DEPRECATED WX_ClearUnused(void)
+
+/* W_InitMultipleFiles() -- Initializes multiple file inputs */
+// This is the main code for loading WADs
+size_t W_InitMultipleFiles(char** filenames)
 {
-	// Does nothing
-	return 0;
+	size_t i;
+	size_t OK;
+	const WL_WADFile_t* File;
+	
+	/* Check */
+	if (!filenames)
+		return 0;
+	
+	/* Lock OCCB */
+	WL_LockOCCB(true);
+	
+	/* Run through filename list */
+	for (OK = 0, i = 0; filenames[i]; i++)
+		if ((File = WL_OpenWAD(filenames[i])))
+		{
+			// This one worked
+			OK++;
+			
+			// Push to stack
+			WL_PushWAD(File);
+		}
+		
+	/* Unlock OCCB */
+	WL_LockOCCB(false);
+	
+	/* Return OK count */
+	return OK;
 }
 

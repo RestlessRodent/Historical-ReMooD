@@ -290,7 +290,7 @@ void HU_LoadWadData(void)
 	{
 		sprintf(buffer, "STCFN%.3d", j);
 		j++;
-		hu_font[i] = (patch_t*)W_CachePatchName(buffer, PU_STATIC);
+		//hu_font[i] = (patch_t*)W_CachePatchName(buffer, PU_STATIC);
 	}
 	
 	// cache the crosshairs, dont bother to know which one is being used,
@@ -298,7 +298,7 @@ void HU_LoadWadData(void)
 	for (i = 0; i < HU_CROSSHAIRS; i++)
 	{
 		sprintf(buffer, "CROSHAI%c", '1' + i);
-		crosshair[i] = (patch_t*)W_CachePatchName(buffer, PU_STATIC);
+		//crosshair[i] = (patch_t*)W_CachePatchName(buffer, PU_STATIC);
 	}
 }
 
@@ -931,12 +931,12 @@ void HU_DrawFSPics()
 			continue;
 			
 		if (!piclist[i].data)
-			piclist[i].data = (patch_t*)W_CachePatchNum(piclist[i].lumpnum, PU_STATIC);
+			;//piclist[i].data = (patch_t*)W_CachePatchNum(piclist[i].lumpnum, PU_STATIC);
 			
 		if ((piclist[i].xpos + piclist[i].data->width) < 0 || (piclist[i].ypos + piclist[i].data->height) < 0)
 			continue;
 			
-		V_DrawScaledPatch(piclist[i].xpos, piclist[i].ypos, 0, piclist[i].data);
+		//V_DrawScaledPatch(piclist[i].xpos, piclist[i].ypos, 0, piclist[i].data);
 	}
 }
 
@@ -1096,7 +1096,7 @@ void HU_drawDeathmatchRankings(void)
 	// draw the ranking title panel
 	if ((g_SplitScreen <= 0))
 	{
-		p = W_CachePatchName("RANKINGS", PU_CACHE);
+		//p = W_CachePatchName("RANKINGS", PU_CACHE);
 		//V_DrawScaledPatch((BASEVIDWIDTH - p->width) / 2, 5, 0, p);
 	}
 	// count frags for each present player

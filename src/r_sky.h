@@ -58,14 +58,6 @@ void R_DrawSkyColumn(void);
 // Called once at startup.
 void R_InitSkyMap(void);
 
-// call after skytexture is set to adapt for old/new skies
-void R_SetupSkyDraw(void);
-
-void R_StorePortalRange(void);
-void R_InitPortals();
-void R_ClearPortals();
-void R_DrawPortals();
-
 void R_SetSkyScale(void);
 
 #endif

@@ -225,6 +225,10 @@ typedef enum bool_e
 #endif
 #endif
 
+// Max WAD Path
+#ifndef MAX_WADPATH
+	#define MAX_WADPATH PATH_MAX
+#endif
 
 /***************************
 *** DATA READING/WRITING ***

@@ -92,8 +92,6 @@ void G_DoReborn(int playernum);
 bool_t G_DeathMatchSpawnPlayer(int playernum);
 void G_CoopSpawnPlayer(int playernum);
 void G_PlayerReborn(int player);
-void G_InitNew(skill_t skill, char* mapname, bool_t resetplayer);
-void G_DeferedInitNew(skill_t skill, char* mapname, int StartSplitScreenGame);
 void G_DoLoadLevel(bool_t resetplayer);
 void G_DeferedPlayDemo(char* demo);
 void G_LoadGame(int slot);		// Can be called by the startup code or M_Responder
@@ -120,7 +118,6 @@ void G_InitPlayer(player_t* const a_Player);
 bool_t G_CheckDemoStatus(void);
 void G_ReadDemoTiccmd(ticcmd_t* cmd, int playernum);
 void G_WriteDemoTiccmd(ticcmd_t* cmd, int playernum);
-void G_InitNew(skill_t skill, char* mapname, bool_t resetplayer);
 void G_DoCompleted(void);
 void G_DoVictory(void);
 void G_DoWorldDone(void);

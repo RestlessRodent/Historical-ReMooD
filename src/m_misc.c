@@ -599,7 +599,7 @@ void M_ScreenShot(void)
 	if (i < 10000)
 	{
 		// save the pcx file
-		ret = WritePCXfile(lbmname, linear, vid.width, vid.height, W_CacheLumpName("PLAYPAL", PU_CACHE));
+		//ret = WritePCXfile(lbmname, linear, vid.width, vid.height, W_CacheLumpName("PLAYPAL", PU_CACHE));
 	}
 	
 	if (ret)

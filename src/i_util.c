@@ -1087,9 +1087,6 @@ void I_ShutdownSystem(void)
 			memset(EDData[c], 0, 4000);
 			memmove(EDData[c], Temp, (Size <= 4000 ? Size : 4000));
 		}
-		
-		// Unuse the entry (not needed any more)
-		WX_UseEntry(Entry, false);
 	}
 	
 	/* Pre exit func */

@@ -2697,8 +2697,6 @@ void P_SpawnSpecials(void)
 	int episode;
 	
 	episode = 1;
-	if (W_CheckNumForName("texture2") >= 0)
-		episode = 2;
 		
 	//  Init special SECTORs.
 	sector = sectors;

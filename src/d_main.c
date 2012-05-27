@@ -122,6 +122,7 @@ void D_AdvanceDemo(void);
 void VID_PrepareModeList(void);	// FIXME: very dirty; will use a proper include file
 #endif
 
+#define MAX_WADFILES 128						// Max passed via -file
 char* startupwadfiles[MAX_WADFILES];
 
 bool_t devparm;					// started game with -devparm
@@ -431,7 +432,7 @@ void D_Display(void)
 			y = 4;
 		else
 			y = viewwindowy + 4;
-		patch = W_CachePatchName("M_PAUSE", PU_CACHE);
+		//patch = W_CachePatchName("M_PAUSE", PU_CACHE);
 		//V_DrawScaledPatch(viewwindowx + (BASEVIDWIDTH - LittleSwapInt16(patch->width)) / 2, y, 0, patch);
 	}
 	//added:24-01-98:vid size change is now finished if it was on...
@@ -1611,7 +1612,7 @@ void D_AddPWADs(void)
 			
 			// Find it
 			if (PWADArg)
-				if (W_FindWad(PWADArg, NULL, WADPath, 256))
+				if (WL_LocateWAD(PWADArg, NULL, WADPath, 256))
 				{
 					// Add it
 					D_AddFile(WADPath);
@@ -1808,12 +1809,10 @@ void D_DoomMain(void)
 	}
 	
 	// load wad, including the main wad file
-	CONL_PrintF("Implemented the Lite-WAD Substructure...\n");
+	CONL_PrintF("Initializing the Lite-WAD Subsystem...\n");
 	if (W_InitMultipleFiles(startupwadfiles) == 0)
 		I_Error("A WAD file was not found\n");
-		
-	// GhostlyDeath <October 24, 2010> -- Load WAD Data
-	W_LoadData();
+	
 	cht_Init();
 	
 	//---------------------------------------------------- READY SCREEN
@@ -1952,9 +1951,11 @@ void D_DoomMain(void)
 			strcat(tmp, M_GetNextParm());
 		}
 		
-		// GhostlyDeath <July 6, 20008> -- Enable playback of internal demos again
+#if 0
+		// GhostlyDeath <July 6, 2008> -- Enable playback of internal demos again
 		if (W_CheckNumForName(tmp) == INVALIDLUMP)
 			FIL_DefaultExtension(tmp, ".lmp");
+#endif
 			
 		CONL_PrintF("Playing demo %s.\n", tmp);
 		

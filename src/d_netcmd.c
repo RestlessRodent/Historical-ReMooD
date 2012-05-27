@@ -84,7 +84,6 @@ void Command_Stopdemo_f(void);
 void Command_Map_f(void);
 void Command_Restart_f(void);
 
-void Command_Addfile(void);
 void Command_Pause(void);
 
 void Command_Frags_f(void);
@@ -246,12 +245,10 @@ void D_RegisterClientCommands(void)
 	COM_AddCommand("playdemo", Command_Playdemo_f);
 	COM_AddCommand("timedemo", Command_Timedemo_f);
 	COM_AddCommand("stopdemo", Command_Stopdemo_f);
-	COM_AddCommand("map", Command_Map_f);
 	COM_AddCommand("restartlevel", Command_Restart_f);
 	COM_AddCommand("exitgame", Command_ExitGame_f);
 	COM_AddCommand("exitlevel", Command_ExitLevel_f);
 	
-	COM_AddCommand("addfile", Command_Addfile);
 	COM_AddCommand("pause", Command_Pause);
 	
 	COM_AddCommand("version", Command_Version_f);
@@ -586,73 +583,6 @@ void Command_Stopdemo_f(void)
 	CONL_PrintF("Stopped demo.\n");
 }
 
-//  Warp to map code.
-//  Called either from map <mapname> console command, or idclev cheat.
-//
-void Command_Map_f(void)
-{
-	char buf[MAX_WADPATH + 3];
-	
-#define MAPNAME &buf[2]
-	int i;
-	int skill;
-	
-	if (COM_Argc() < 2 || COM_Argc() > 7)
-	{
-		CONL_PrintF("map <mapname> [-skill <1..5>] [-monsters <0/1>] [-noresetplayers]: warp to map\n");
-		return;
-	}
-	
-	strncpy(MAPNAME, COM_Argv(1), MAX_WADPATH);
-	
-	// internal wad lump
-	if (W_CheckNumForName(MAPNAME) == -1)
-	{
-		CONL_PrintF("\2Internal game map '%s' not found\n" "(use .wad extension for external maps)\n", MAPNAME);
-		return;
-	}
-	
-	if ((i = COM_CheckParm("-skill")) != 0)
-		skill = atoi(COM_Argv(i + 1)) - 1;
-	else
-		skill = gameskill;
-		
-	if ((i = COM_CheckParm("-monsters")) != 0)
-		nomonsters = (atoi(COM_Argv(i + 1)) == 0);
-	else
-		nomonsters = (nomonsters != 0);
-		
-	if (demoplayback)
-		COM_BufAddText("stopdemo\n");
-		
-	// this leave the actual game if needed
-	server = false;
-	netgame = false;
-	if (!g_SplitScreen)
-		multiplayer = false;
-	else
-		multiplayer = true;
-	localgame = true;
-	G_StopDemo();
-	
-	gamestate = wipegamestate = GS_NULL;
-	for (i = 0; i < MAXSPLITSCREENPLAYERS; i++)
-	{
-		consoleplayer[i] = i;
-		displayplayer[i] = i;
-	}
-	for (i = 0; i < MAXPLAYERS; i++)
-		playeringame[i] = 0;
-		
-	for (i = 0; i < g_SplitScreen + 1; i++)
-		playeringame[i] = 1;
-		
-		
-	precache = false;
-	G_InitNew(skill, MAPNAME, 1);
-	precache = false;
-}
-
 void Command_Restart_f(void)
 {
 	if (netgame)
@@ -677,20 +607,6 @@ void Command_Pause(void)
 		I_PauseSong(0);
 	else
 		I_ResumeSong(0);
-}
-
-//  Add a pwad at run-time
-//  Search for sounds, maps, musics, etc..
-//
-void Command_Addfile(void)
-{
-	if (COM_Argc() != 2)
-	{
-		CONL_PrintF("addfile <wadfile.wad> : load wad file\n");
-		return;
-	}
-	
-	P_AddWadFile(COM_Argv(1), NULL);
 }
 
 // =========================================================================

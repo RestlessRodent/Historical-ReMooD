@@ -1,18 +1,18 @@
 // -*- Mode: C; indent-tabs-mode: t; c-basic-offset: 4; tab-width: 4 -*-
 // -----------------------------------------------------------------------------
-//		 :oCCCCOCoc.
-//	 .cCO8OOOOOOOOO8Oo:
+//         :oCCCCOCoc.
+//     .cCO8OOOOOOOOO8Oo:
 //   .oOO8OOOOOOOOOOOOOOOCc
-//  cO8888:		 .:oOOOOC.												TM
-// :888888:   :CCCc   .oOOOOC.	 ###	  ###					#########
-// C888888:   .ooo:   .C########   #####  #####  ######	######  ##########
-// O888888:		 .oO###	###  #####  ##### ########  ######## ####	###
-// C888888:   :8O.   .C##########  ### #### ### ##	##  ##	## ####	###
-// :8@@@@8:   :888c   o###		 ### #### ### ########  ######## ##########
-//  :8@@@@C   C@@@@   oo########   ###  ##  ###  ######	######  #########
-//	cO@@@@@@@@@@@@@@@@@Oc0
-//	  :oO8@@@@@@@@@@Oo.
-//		 .oCOOOOOCc.									  http://remood.org/
+//  cO8888:         .:oOOOOC.                                                TM
+// :888888:   :CCCc   .oOOOOC.     ###      ###                    #########
+// C888888:   .ooo:   .C########   #####  #####  ######    ######  ##########
+// O888888:         .oO###    ###  #####  ##### ########  ######## ####    ###
+// C888888:   :8O.   .C##########  ### #### ### ##    ##  ##    ## ####    ###
+// :8@@@@8:   :888c   o###         ### #### ### ########  ######## ##########
+//  :8@@@@C   C@@@@   oo########   ###  ##  ###  ######    ######  #########
+//    cO@@@@@@@@@@@@@@@@@Oc0
+//      :oO8@@@@@@@@@@Oo.
+//         .oCOOOOOCc.                                      http://remood.org/
 // -----------------------------------------------------------------------------
 // Copyright (C) 2011-2012 GhostlyDeath <ghostlydeath@gmail.com>
 // -----------------------------------------------------------------------------
@@ -1640,9 +1640,6 @@ int I_RegisterSong(const char* const a_Lump)
 	{
 		// Debug
 		CONL_PrintF("I_RegisterSong: Song format is not supported (Type = %i)!\n", New.Type);
-		
-		// Unuse the data (so it gets freed)
-		WX_UseEntry(New.Entry, false);
 		return 0;
 	}
 	
@@ -1657,13 +1654,11 @@ int I_RegisterSong(const char* const a_Lump)
 		if (!I_DumpTemporary(SongPath, BUFSIZE, New.Data, New.EntryLength))
 		{
 			CONL_PrintF("I_RegisterSong: Failed to file to disk!\n");
-			WX_UseEntry(New.Entry, false);
 			return 0;
 		}
 		
 		// Copy pathname
 		New.PathName = Z_StrDup(SongPath, PU_STATIC, NULL);
-		WX_UseEntry(Entry, false);	// Always unuse the enrty once in a file
 	}
 	
 	/* Add to the song list */
@@ -1710,10 +1705,6 @@ void I_UnRegisterSong(int handle)
 		l_LocalSongs[i].Driver->Stop(l_LocalSongs[i].Driver, l_LocalSongs[i].DriverHandle);
 		
 	/* Clear away some stuff */
-	// If the driver does not have external data, it relies on an entry, unuse it (not needed)
-	if (!l_LocalSongs[i].Driver->ExternalData)
-		WX_UseEntry(l_LocalSongs[i].Entry, false);
-		
 	// File name
 	if (l_LocalSongs[i].PathName)
 		Z_Free(l_LocalSongs[i].PathName);

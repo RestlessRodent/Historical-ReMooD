@@ -517,6 +517,7 @@ static uint8_t* maplump;		// pointer to the raw data for the automap background.
 //
 static void AM_loadPics(void)
 {
+#if 0
 	int i;
 	char namebuf[9];
 	
@@ -529,6 +530,7 @@ static void AM_loadPics(void)
 		maplump = W_CacheLumpName("AUTOPAGE", PU_STATIC);
 	else
 		maplump = NULL;
+#endif
 }
 
 static void AM_unloadPics(void)

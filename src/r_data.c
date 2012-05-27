@@ -1510,31 +1510,9 @@ void R_LoadTextures(void)
 		I_Error("R_LoadTextures: Failed to register OCCB.\n");
 }
 
-/* R_CheckNumForNameList() -- Find flat */
-WadIndex_t R_CheckNumForNameList(char* name, lumplist_t* list, int listsize)
-{
-	int i;
-	WadIndex_t lump = INVALIDLUMP;
-	
-	for (i = listsize - 1; i > -1; i--)
-	{
-		lump = W_CheckNumForNamePwadPtr(name, list[i].WadFile, list[i].firstlump);
-		
-		// TODO -- GhostlyDeath <June 21, 2009> -- Check this validity here
-		if ((lump - W_LumpsSoFar(list[i].WadFile)) > (list[i].firstlump + list[i].numlumps) || lump == INVALIDLUMP)
-			continue;
-		else
-			return lump;
-	}
-	
-	return INVALIDLUMP;
-}
-
-lumplist_t* colormaplumps;
-int numcolormaplumps;
-
 void R_InitExtraColormaps()
 {
+#if 0
 	WadFile_t* scout = NULL;
 	uint32_t i;
 	int Start = 0;
@@ -1592,10 +1570,8 @@ void R_InitExtraColormaps()
 	   colormaplumps[numcolormaplumps].numlumps = endnum - (startnum + 1);
 	   numcolormaplumps++;
 	   } */
+#endif
 }
-
-lumplist_t* flats;
-int numflatlists;
 
 extern int numwadfiles;
 
@@ -1708,6 +1684,7 @@ void R_ClearColormaps()
 
 int R_ColormapNumForName(char* name)
 {
+#if 0
 	int lump, i;
 	
 	if (num_extra_colormaps == MAXCOLORMAPS)
@@ -1738,6 +1715,7 @@ int R_ColormapNumForName(char* name)
 	
 	num_extra_colormaps++;
 	return num_extra_colormaps - 1;
+#endif
 }
 
 // SoM:
@@ -1959,6 +1937,7 @@ int RoundUp(double number)
 
 char* R_ColormapNameForNum(int num)
 {
+#if 0
 	if (num == -1)
 		return "NONE";
 		
@@ -1969,7 +1948,8 @@ char* R_ColormapNameForNum(int num)
 		return "INLEVEL";
 		
 	return (W_GetWadForNum(foundcolormaps[num] >> 16))->Index[foundcolormaps[num] & 0xffff].Name;
-	
+#endif
+	return NULL;
 	//return wadfiles[foundcolormaps[num] >> 16]->lumpinfo[foundcolormaps[num] & 0xffff].name;
 }
 
@@ -2002,155 +1982,8 @@ void R_InitData(void)
 // Preloads all relevant graphics for the level.
 //
 
-// BP: rules : no extern in c !!!
-//     slution put a new function in p_setup.c or put this in global (not recommended)
-// SoM: Ok.. Here it goes. This function is in p_setup.c and caches the flats.
-int P_PrecacheLevelFlats();
 
 void R_PrecacheLevel(void)
 {
-//  char*               flatpresent; //SoM: 4/18/2000: No longer used
-	char* texturepresent;
-	char* spritepresent;
-	
-	int i;
-	int j;
-	int k;
-	int lump;
-	
-	thinker_t* th;
-	spriteframe_t* sf;
-	
-	//int numgenerated;  //faB:debug
-	
-	if (demoplayback)
-		return;
-		
-	// do not flush the memory, Z_Malloc twice with same user
-	// will cause error in Z_CheckHeap(), 19991022 by Kin
-	
-	// Precache flats.
-	/*flatpresent = alloca(numflats);
-	   memset (flatpresent,0,numflats);
-	
-	   // Check for used flats
-	   for (i=0 ; i<numsectors ; i++)
-	   {
-	   #ifdef PARANOIA
-	   if( sectors[i].floorpic<0 || sectors[i].floorpic>numflats )
-	   I_Error("sectors[%d].floorpic=%d out of range [0..%d]\n",i,sectors[i].floorpic,numflats);
-	   if( sectors[i].ceilingpic<0 || sectors[i].ceilingpic>numflats )
-	   I_Error("sectors[%d].ceilingpic=%d out of range [0..%d]\n",i,sectors[i].ceilingpic,numflats);
-	   #endif
-	   flatpresent[sectors[i].floorpic] = 1;
-	   flatpresent[sectors[i].ceilingpic] = 1;
-	   }
-	
-	   flatmemory = 0;
-	
-	   for (i=0 ; i<numflats ; i++)
-	   {
-	   if (flatpresent[i])
-	   {
-	   lump = firstflat + i;
-	   if(devparm)
-	   flatmemory += W_LumpLength(lump);
-	   R_GetFlat (lump);
-	   //            W_CacheLumpNum(lump, PU_CACHE);
-	   }
-	   } */
-	flatmemory = P_PrecacheLevelFlats();
-	
-	//
-	// Precache textures.
-	//
-	// no need to precache all software textures in 3D mode
-	// (note they are still used with the reference software view)
-	texturepresent = Z_Malloc(numflats, PU_WLDKRMOD, NULL);
-	memset(texturepresent, 0, numtextures);
-	
-	for (i = 0; i < numsides; i++)
-	{
-		//Hurdler: huh, a potential bug here????
-		if (sides[i].toptexture < numtextures)
-			texturepresent[sides[i].toptexture] = 1;
-		if (sides[i].midtexture < numtextures)
-			texturepresent[sides[i].midtexture] = 1;
-		if (sides[i].bottomtexture < numtextures)
-			texturepresent[sides[i].bottomtexture] = 1;
-	}
-	
-	// Sky texture is always present.
-	// Note that F_SKY1 is the name used to
-	//  indicate a sky floor/ceiling as a flat,
-	//  while the sky texture is stored like
-	//  a wall texture, with an episode dependend
-	//  name.
-	texturepresent[skytexture] = 1;
-	
-	//if (devparm)
-	//    CONL_PrintF("Generating textures..\n");
-	
-	texturememory = 0;
-	for (i = 0; i < numtextures; i++)
-	{
-		if (!texturepresent[i])
-			continue;
-			
-		//texture = textures[i];
-		//if (texturecache[i] == NULL)
-		//	R_GenerateTexture(i);
-		//numgenerated++;
-		
-		// note: pre-caching individual patches that compose textures became
-		//       obsolete since we now cache entire composite textures
-		
-		//for (j=0 ; j<texture->patchcount ; j++)
-		//{
-		//    lump = texture->patches[j].patch;
-		//    texturememory += W_LumpLength(lump);
-		//    W_CacheLumpNum(lump , PU_CACHE);
-		//}
-	}
-	//CONL_PrintF ("total mem for %d textures: %d k\n",numgenerated,texturememory>>10);
-	
-	//
-	// Precache sprites.
-	//
-	spritepresent = Z_Malloc(numsprites, PU_WLDKRMOD, NULL);
-	memset(spritepresent, 0, numsprites);
-	
-	for (th = thinkercap.next; th != &thinkercap; th = th->next)
-	{
-		if (th->function.acp1 == (actionf_p1) P_MobjThinker)
-			spritepresent[((mobj_t*)th)->sprite] = 1;
-	}
-	
-	spritememory = 0;
-	for (i = 0; i < numsprites; i++)
-	{
-		if (!spritepresent[i])
-			continue;
-			
-		for (j = 0; j < sprites[i].numframes; j++)
-		{
-			sf = &sprites[i].spriteframes[j];
-			for (k = 0; k < 8; k++)
-			{
-				//Fab: see R_InitSprites for more about lumppat,lumpid
-				lump = /*firstspritelump + */ sf->lumppat[k];
-				if (devparm)
-					spritememory += W_LumpLength(lump);
-				W_CachePatchNum(lump, PU_CACHE);
-			}
-		}
-	}
-	
-	//FIXME: this is no more correct with glide render mode
-	if (devparm)
-	{
-		CONL_PrintF("Precache level done:\n"
-		            "flatmemory:    %ld k\n" "texturememory: %ld k\n" "spritememory:  %ld k\n", flatmemory >> 10, texturememory >> 10, spritememory >> 10);
-	}
 }
 

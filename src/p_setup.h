@@ -73,8 +73,6 @@ extern mapthing_t* mapthings;
 // NOT called by W_Ticker. Fixme.
 bool_t P_SetupLevel(int episode, int map, skill_t skill, char* mapname);
 
-bool_t P_AddWadFile(char* wadfilename, char** firstmapname);
-
 subsector_t* R_PointInSubsector(fixed_t x, fixed_t y);
 
 extern bool_t newlevel;

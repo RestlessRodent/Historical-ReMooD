@@ -969,108 +969,11 @@ void ST_Drawer(bool_t refresh)
 
 static void ST_loadGraphics(void)
 {
-
-	int i;
-	char namebuf[9];
-	
-	// Load the numbers, tall and short
-	for (i = 0; i < 10; i++)
-	{
-		sprintf(namebuf, "STTNUM%d", i);
-		tallnum[i] = (patch_t*)W_CachePatchName(namebuf, PU_STATIC);
-		
-		sprintf(namebuf, "STYSNUM%d", i);
-		shortnum[i] = (patch_t*)W_CachePatchName(namebuf, PU_STATIC);
-	}
-	
-	// Load percent key.
-	//Note: why not load STMINUS here, too?
-	tallpercent = (patch_t*)W_CachePatchName("STTPRCNT", PU_STATIC);
-	
-	// key cards
-	for (i = 0; i < (NUMCARDS + (NUMCARDS >> 1)); i++)
-	{
-		sprintf(namebuf, "STKEYS%d", i);
-		keys[i] = (patch_t*)W_CachePatchName(namebuf, PU_STATIC);
-	}
-	
-	// arms background
-	armsbg = (patch_t*)W_CachePatchName("STARMS", PU_STATIC);
-	
-	// arms ownership widgets
-	for (i = 0; i < 6; i++)
-	{
-		sprintf(namebuf, "STGNUM%d", i + 2);
-		
-		// gray #
-		arms[i][0] = (patch_t*)W_CachePatchName(namebuf, PU_STATIC);
-		
-		// yellow #
-		arms[i][1] = shortnum[i + 2];
-	}
-	
-	// status bar background bits
-	sbar = (patch_t*)W_CachePatchName("STBAR", PU_STATIC);
-	
-	// the original Doom uses 'STF' as base name for all face graphics
-	ST_loadFaceGraphics("STF");
 }
 
 // made separate so that skins code can reload custom face graphics
 void ST_loadFaceGraphics(char* facestr)
 {
-	int i, j;
-	int facenum;
-	char namelump[9];
-	char* namebuf;
-	
-	//hack: make sure base face name is no more than 3 chars
-	// bug: core dump fixed 19990220 by Kin
-	if (strlen(facestr) > 3)
-		facestr[3] = '\0';
-	strcpy(namelump, facestr);	// copy base name
-	namebuf = namelump;
-	while (*namebuf > ' ')
-		namebuf++;
-		
-	// face states
-	facenum = 0;
-	for (i = 0; i < ST_NUMPAINFACES; i++)
-	{
-		for (j = 0; j < ST_NUMSTRAIGHTFACES; j++)
-		{
-			sprintf(namebuf, "ST%d%d", i, j);
-			faces[facenum++] = W_CachePatchName(namelump, PU_STATIC);
-		}
-		sprintf(namebuf, "TR%d0", i);	// turn right
-		faces[facenum++] = W_CachePatchName(namelump, PU_STATIC);
-		sprintf(namebuf, "TL%d0", i);	// turn left
-		faces[facenum++] = W_CachePatchName(namelump, PU_STATIC);
-		sprintf(namebuf, "OUCH%d", i);	// ouch!
-		faces[facenum++] = W_CachePatchName(namelump, PU_STATIC);
-		sprintf(namebuf, "EVL%d", i);	// evil grin ;)
-		faces[facenum++] = W_CachePatchName(namelump, PU_STATIC);
-		sprintf(namebuf, "KILL%d", i);	// pissed off
-		faces[facenum++] = W_CachePatchName(namelump, PU_STATIC);
-	}
-	strcpy(namebuf, "GOD0");
-	faces[facenum++] = W_CachePatchName(namelump, PU_STATIC);
-	strcpy(namebuf, "DEAD0");
-	faces[facenum++] = W_CachePatchName(namelump, PU_STATIC);
-	
-	// face backgrounds for different player colors
-	//added:08-02-98: uses only STFB0, which is remapped to the right
-	//                colors using the player translation tables, so if
-	//                you add new player colors, it is automatically
-	//                used for the statusbar.
-	strcpy(namebuf, "B0");
-	i = W_CheckNumForName(namelump);
-	if (i != -1)
-		faceback = (patch_t*)W_CachePatchNum(i, PU_STATIC);
-	else
-		faceback = (patch_t*)W_CachePatchName("STFB0", PU_STATIC);
-		
-	ST_Invalidate();
 }
 
 static void ST_loadData(void)
@@ -1080,48 +983,11 @@ static void ST_loadData(void)
 
 void ST_unloadGraphics(void)
 {
-
-	int i;
-	
-	// unload the numbers, tall and short
-	for (i = 0; i < 10; i++)
-	{
-		Z_ChangeTag(tallnum[i], PU_CACHE);
-		Z_ChangeTag(shortnum[i], PU_CACHE);
-	}
-	// unload tall percent
-	Z_ChangeTag(tallpercent, PU_CACHE);
-	
-	// unload arms background
-	Z_ChangeTag(armsbg, PU_CACHE);
-	
-	// unload gray #'s
-	for (i = 0; i < 6; i++)
-		Z_ChangeTag(arms[i][0], PU_CACHE);
-		
-	// unload the key cards
-	for (i = 0; i < NUMCARDS + (NUMCARDS >> 1); i++)
-		Z_ChangeTag(keys[i], PU_CACHE);
-		
-	Z_ChangeTag(sbar, PU_CACHE);
-	
-	ST_unloadFaceGraphics();
-	
-	// Note: nobody ain't seen no unloading
-	//   of stminus yet. Dude.
-	
 }
 
 // made separate so that skins code can reload custom face graphics
 void ST_unloadFaceGraphics(void)
 {
-	int i;
-	
-	for (i = 0; i < ST_NUMFACES; i++)
-		Z_ChangeTag(faces[i], PU_CACHE);
-		
-	// face background
-	Z_ChangeTag(faceback, PU_CACHE);
 }
 
 void ST_unloadData(void)
@@ -1296,13 +1162,14 @@ void ST_Init(void)
 	{
 		case commercial:
 			// DOOM II border patch, original was GRNROCK
-			st_borderpatchnum = W_GetNumForName("GRNROCK");
+			//st_borderpatchnum = W_GetNumForName("GRNROCK");
 			break;
 		default:
 			// DOOM border patch.
-			st_borderpatchnum = W_GetNumForName("FLOOR7_2");
+			//st_borderpatchnum = W_GetNumForName("FLOOR7_2");
+			break;
 	}
-	scr_borderpatch = W_CacheLumpNum(st_borderpatchnum, PU_STATIC);
+	//scr_borderpatch = W_CacheLumpNum(st_borderpatchnum, PU_STATIC);
 	
 	veryfirsttime = 0;
 	
@@ -1311,9 +1178,9 @@ void ST_Init(void)
 	//
 	// cache the status bar overlay icons  (fullscreen mode)
 	//
-	sbohealth = W_GetNumForName("SBOHEALT");
-	sbofrags = W_GetNumForName("SBOFRAGS");
-	sboarmor = W_GetNumForName("SBOARMOR");
+	//sbohealth = W_GetNumForName("SBOHEALT");
+	//sbofrags = W_GetNumForName("SBOFRAGS");
+	//sboarmor = W_GetNumForName("SBOARMOR");
 	
 	for (i = 0; i < NUMWEAPONS; i++)
 	{
