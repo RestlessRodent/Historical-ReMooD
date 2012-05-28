@@ -821,6 +821,15 @@
 					<LI><B>Recursive include detected.</B> -- An include eventually includes itself or a script that was previous included by a parent include.</LI>
 					<LI><B>Failed to open include stream.</B> -- Failed to open a stream that is able to read the include itself. If this error occurs it signifies an error in ReMooD itself.</LI>
 					<LI><B>Script error while including.</B> -- There was an error inside the include, a message for the include should also be printed for reference.</LI>
+					<LI><B>Script inside another script or function.</B>, or <B>Function inside another script or function.</B> -- A script or function was defined, but it was defined within an existing script or function, which is illegal.</LI>
+					<LI><B>Expected a number to follow script.</B> -- Scripts are identified by the number following it and as such are required to be numbers.</LI>
+					<LI><B>Expected `{` to follow script identifier.</B> -- Scripts are defined within blocks and as such require a bracket to define them.</LI>
+					<LI><B>Script identifiers cannot be negative.</B> -- A script was defined but the identifer it used was a negative number</B></LI>
+					<LI><B>Went outside the global scope.</B> -- The script went outside of the global scope, that is an extra '}' may have been specified.</LI>
+					<LI><B>Expected end of expression.</B> -- Expected the end of the expression but it did not get that, perhaps there is a missing semi-colon.</LI>
+					<LI><B>Could not solve expression.</B> -- The compiler was unable to solve the expression passed to it.</LI>
+					<LI><B>Too many closing parenthesis.</B> -- Too many closing parenthesis in expression.</LI>
+					<LI><B>Using reserved word as variable name.</B> -- Variable is named after a reserved word.</LI>
 				</UL>
 			</P>
 			</DIV>

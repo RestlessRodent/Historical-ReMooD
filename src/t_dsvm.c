@@ -37,6 +37,98 @@
 #include "t_dsvm.h"
 #include "doomstat.h"
 
+/****************
+*** CONSTANTS ***
+****************/
+
+/* T_VMExprType_t -- Expression Types */
+typedef enum T_VMExprType_e
+{
+	TVMET_NULL,									// NULL expression
+	TVMET_DECLARETYPE,							// Declare variable type
+	TVMET_DECLAREVAR,							// Declare variable	name
+	TVMET_IDENT,								// Identifier of sorts
+	TVMET_FUNCTION,								// Function
+	TVMET_OPERATOR,								// Operator
+	TVMET_OPENPAR,								// Open Parenthesis
+	TVMET_CLOSEPAR,								// Close Parenthesis
+	TVMET_NUMBER,								// A Number
+	TVMET_STRING,								// A string
+	TVMET_FUNCARGSPLIT,							// Splits function arguments
+	
+	NUMTVMEXPRTYPES
+} T_VMExprType_t;
+
+/*****************
+*** STRUCTURES ***
+*****************/
+
+/* T_VMVarType_t -- Variable Type Handler */
+typedef struct T_VMVarType_s
+{
+	const char* Name;							// Variable Type Name
+} T_VMVarType_t;
+
+/* T_VMVariable_t -- VM Variable */
+typedef struct T_VMVariable_s
+{
+	char* Name;									// Variable Name
+	const T_VMVarType_t* Handler;				// Type Handler
+} T_VMVariable_t;
+
+/* T_VMFunc_t -- VM Function */
+typedef struct T_VMFunc_s
+{
+	/* Function Properties */
+	char* FuncName;								// Name of function
+	struct T_VMFunc_s* Parent;					// Parent function (scope)
+	
+	/* Visible Variables */
+	T_VMVariable_t** Vars;						// Variables
+	size_t NumVars;								// Number of variables
+	
+	/* Links */
+	struct T_VMFunc_s* Prev;					// Previous function
+	struct T_VMFunc_s* Next;					// Next function
+} T_VMFunc_t;
+
+/* T_VMExpr_t -- VM Expression */
+typedef struct T_VMExpr_s
+{
+	char* Token;								// Token Value
+	T_VMExprType_t Type;						// Type of expression
+	const T_VMVarType_t* TypeNameHandle;		// Declaration hander
+	int32_t ParNum;								// Parenthesis Number
+	T_VMVariable_t* ActualVar;					// Actual Variable
+	T_VMVariable_t* DumpVar;					// Dump Variable
+} T_VMExpr_t;
+
+/****************
+*** CONSTANTS ***
+****************/
+
+// c_VMTypes -- Virtual machine data types
+static const T_VMVarType_t c_VMTypes[] =
+{
+	{"int"},
+	{"hub"},
+	{"const"},
+	{"fixed"},
+	{"mobj"},
+	{"string"},
+	
+	{NULL},
+};
+
+// c_VMReserved -- Reserved VM words
+static const char* const c_VMReserved[] =
+{
+	"int", "hub", "const", "fixed", "mobj", "string", "script", "function",
+	"include",
+	
+	NULL, NULL
+};
+
 /*************
 *** LOCALS ***
 *************/
@@ -46,9 +138,277 @@ static int32_t l_ScopeDepth = 0;				// Depth of scopes
 static const WL_WADEntry_t** l_IncStack = NULL;	// Include Stack
 static size_t l_NumIncStack = 0;				// Thing on the stack
 
+static T_VMFunc_t* l_VMFirstFunc = NULL;		// First Function
+static T_VMFunc_t* l_VMCurFunc = NULL;			// Current Virtual Function
+
+static T_VMExpr_t* l_VMExpr = NULL;				// VM Expressions
+static size_t l_NumVMExpr = 0;					// Number of them
+
 /****************
 *** FUNCTIONS ***
 ****************/
+
+/* T_DSVM_ScriptError() -- Error script */
+void T_DSVM_ScriptError(const char* const a_Str, const uint32_t a_Line)
+{
+	/* Play sound and print message */
+	S_StartSound(NULL, sfx_lotime);
+	CONL_PrintF("Script Error (%s%s%u): %s\n",
+			(l_NumIncStack ? l_IncStack[l_NumIncStack - 1]->Name : ""),
+			(l_NumIncStack ? ":" : ""),
+			a_Line,
+			a_Str
+		);
+}
+
+/* TS_VMCreateFunc() -- Creates a function */
+static T_VMFunc_t* TS_VMCreateFunc(const char* const a_Name, T_VMFunc_t* const a_Parent)
+{
+	T_VMFunc_t* New;
+	
+	/* Check */
+	if (!a_Name)
+		return NULL;
+	
+	/* Allocate */
+	New = Z_Malloc(sizeof(*New), PU_STATIC, NULL);
+	
+	/* Initialize */
+	// Name and parent
+	New->FuncName = Z_StrDup(a_Name, PU_STATIC, NULL);
+	New->Parent = a_Parent;
+	
+	/* Chain */
+	if (!l_VMFirstFunc)
+		l_VMFirstFunc = New;
+	else
+	{
+		l_VMFirstFunc->Prev = New;
+		New->Next = l_VMFirstFunc;
+		l_VMFirstFunc = New;
+	}
+	
+	/* Debug */
+	if (devparm)
+		CONL_PrintF("SCRIPT: Created function \"%s\"\n", New->FuncName);
+	
+	/* Return it */
+	return New;
+}
+
+/* TS_VMCreateVar() -- Creates a variable */
+static T_VMVariable_t* TS_VMCreateVar(const char* const a_Name, const T_VMVarType_t* const a_Handler)
+{
+	T_VMVariable_t* New;
+	
+	/* Check */
+	if (!a_Name)
+		return NULL;
+	
+	/* Allocate New Variable */
+	New = Z_Malloc(sizeof(*New), PU_STATIC, NULL);
+	
+	/* Add to back of function variables */
+	Z_ResizeArray((void**)&l_VMCurFunc->Vars, sizeof(*l_VMCurFunc->Vars),
+		l_VMCurFunc->NumVars, l_VMCurFunc->NumVars + 1);
+	l_VMCurFunc->Vars[l_VMCurFunc->NumVars++] = New;
+	
+	/* Fill variable info */
+	New->Name = Z_StrDup(a_Name, PU_STATIC, NULL);
+	New->Handler = a_Handler;
+	
+	/* Debug */
+	if (devparm)
+		CONL_PrintF("SCRIPT: Created variable \"%s\" (%s)\n", New->Name, l_VMCurFunc->FuncName);
+	
+	/* Return it */
+	return New;
+}
+
+/* TS_VMClearExpr() -- Clears loaded expression */
+static void TS_VMClearExpr(void)
+{
+	size_t i;
+	
+	/* Free Data Inside */
+	for (i = 0; i < l_NumVMExpr; i++)
+	{
+		// Token
+		if (l_VMExpr[i].Token)
+			Z_Free(l_VMExpr[i].Token);
+	}
+	
+	/* Free expr list */
+	if (l_VMExpr)
+		Z_Free(l_VMExpr);
+	l_VMExpr = NULL;
+	l_NumVMExpr = NULL;
+	
+	/* Debug */
+	if (devparm)
+		CONL_PrintF("--\n");
+}
+
+/* TS_VMPushExpr() -- Push to expression */
+static T_VMExpr_t* TS_VMPushExpr(const char* const a_Token)
+{
+	size_t i;
+	
+	/* Check */
+	if (!a_Token)
+		return NULL;
+	
+	/* Resize */
+	Z_ResizeArray((void**)&l_VMExpr, sizeof(*l_VMExpr), l_NumVMExpr, l_NumVMExpr + 1);
+	i = l_NumVMExpr++;
+	
+	/* Fill Info */
+	l_VMExpr[i].Token = Z_StrDup(a_Token, PU_STATIC, NULL);
+	
+	/* Debug */
+	if (devparm)
+		CONL_PrintF("++\"%s\"\n", l_VMExpr[i].Token);
+	
+	/* Return it */
+	return &l_VMExpr[i];
+}
+
+/* TS_VMSolveExpr() -- Attempts solving expression */
+static bool_t TS_VMSolveExpr(void)
+{
+#define BUFSIZE 512
+	static uint32_t TempVarNum;
+	char Buf[BUFSIZE];
+	size_t i, t, r;
+	T_VMExpr_t* This;
+	int32_t ParStack;
+	bool_t DidDeclType;
+	
+	/* No Expression Loaded? */
+	if (!l_NumVMExpr)
+		return true;
+	
+	/* Pre-Process Expressions */
+	DidDeclType = false;
+	for (i = 0; i < l_NumVMExpr; i++)
+	{
+		// Get this
+		This = &l_VMExpr[i];
+		
+		// Declaring Variable Type?
+		if (This->Type == TVMET_NULL)
+			for (t = 0; c_VMTypes[t].Name; t++)
+				if (strcasecmp(c_VMTypes[t].Name, This->Token) == 0)
+				{
+					// Did not declare type
+					if (!DidDeclType)
+					{
+						DidDeclType = true;
+						This->Type = TVMET_DECLARETYPE;
+						This->TypeNameHandle = &c_VMTypes[t];
+					}
+					
+					break;
+				}
+		
+		// Create variable?
+		if (This->Type == TVMET_NULL)
+			if (i > 0)
+				if (l_VMExpr[i - 1].Type == TVMET_DECLARETYPE)
+				{
+					// Check reserved words
+					for (r = 0; c_VMReserved[r]; r++)
+						if (strcasecmp(This->Token, c_VMReserved[r]) == 0)
+							break;
+					
+					// Reserved?
+					if (c_VMReserved[r])
+					{
+						T_DSVM_ScriptError("Using reserved word as variable name.", 0);
+						return false;
+					}
+					
+					// Set as declaration
+					This->Type = TVMET_DECLAREVAR;
+				}
+		
+		// Alpha-numeric identifier
+		if (This->Type == TVMET_NULL)
+			if ((This->Token[0] >= 'a' && This->Token[0] <= 'z') ||
+				(This->Token[0] >= 'A' && This->Token[0] <= 'Z') ||
+				(This->Token[0] == '_'))
+				This->Type = TVMET_IDENT;
+		
+		// Parenthesis?
+		if (This->Type == TVMET_NULL)
+			if (strcasecmp(This->Token, "(") == 0)
+				This->Type = TVMET_OPENPAR;
+			else if (strcasecmp(This->Token, ")") == 0)
+				This->Type = TVMET_CLOSEPAR;
+		
+		// String?
+		if (This->Type == TVMET_NULL)
+			if (This->Token[0] == '\"')
+				This->Type = TVMET_STRING;
+		
+		// Number
+		if (This->Type == TVMET_NULL)
+			if (This->Token[0] >= '0' && This->Token[0] <= '9')
+				This->Type = TVMET_NUMBER;
+		
+		// Function split?
+		if (This->Type == TVMET_NULL)
+			if (strcasecmp(This->Token, ",") == 0)
+				This->Type = TVMET_FUNCARGSPLIT;
+		
+		// Everything else is an operator
+		if (This->Type == TVMET_NULL)
+			This->Type = TVMET_OPERATOR;
+	}
+	
+	/* Process Again */
+	for (i = 0; i < l_NumVMExpr; i++)
+	{
+		// Get this
+		This = &l_VMExpr[i];
+		
+		// Modify parenthesis stack?
+		if (This->Type == TVMET_OPENPAR)
+			ParStack++;
+		else if (This->Type == TVMET_CLOSEPAR)
+			ParStack--;
+		
+		// Declaring variable?
+			// Create with this name
+		if (This->Type == TVMET_DECLAREVAR)
+			This->ActualVar = TS_VMCreateVar(This->Token, NULL);
+		
+		// Operator?
+			// Create variable for temporary operation
+		if (This->Type == TVMET_OPERATOR)
+		{
+			++TempVarNum;
+			snprintf(Buf, BUFSIZE - 1, "#__tempvar_%u", TempVarNum);
+			This->DumpVar = TS_VMCreateVar(Buf, l_VMExpr[i - 1].TypeNameHandle);
+		}
+		
+		// Set Parenthesis ID
+		This->ParNum = ParStack;
+		
+		// Bad Parenthesis Stack?
+		if (ParStack < 0)
+		{
+			T_DSVM_ScriptError("Too many closing parenthesis.", 0);
+			return false;
+		}
+	}
+	
+	/* Start Solving */
+	
+	/* Success! */
+	return true;
+#undef BUFSIZE
+}
 
 /* T_DSVM_ReadToken() -- Reads Token */
 bool_t T_DSVM_ReadToken(WL_EntryStream_t* const a_Stream, const size_t a_End, size_t* const a_Row, char* const a_Buf, const size_t a_BufSize)
@@ -77,6 +437,10 @@ bool_t T_DSVM_ReadToken(WL_EntryStream_t* const a_Stream, const size_t a_End, si
 		// Ignore Whitespace
 		if ((!ReadString && (Char == ' ' || Char == '\t')) || (Char == '\r' || Char == '\n'))
 		{
+			// New Row?
+			if (a_Row)
+				*a_Row += 1;
+			
 			// If something was read, return it
 			if (ReadSomething)
 				return true;
@@ -107,7 +471,11 @@ bool_t T_DSVM_ReadToken(WL_EntryStream_t* const a_Stream, const size_t a_End, si
 					
 					// New line?
 					if (Char == '\n')
+					{
+						if (a_Row)
+							*a_Row += 1;
 						break;
+					}
 				}
 				
 				// Return if we read something
@@ -203,14 +571,6 @@ bool_t T_DSVM_ReadToken(WL_EntryStream_t* const a_Stream, const size_t a_End, si
 	return false;
 }
 
-/* T_DSVM_ScriptError() -- Error script */
-void T_DSVM_ScriptError(const char* const a_Str, const uint32_t a_Line)
-{
-	/* Play sound and print message */
-	S_StartSound(NULL, sfx_lotime);
-	CONL_PrintF("Script Error (Line %u): %s\n", a_Line, a_Str);
-}
-
 /* T_DSVM_CompileStream() -- Compiles a stream */
 bool_t T_DSVM_CompileStream(WL_EntryStream_t* const a_Stream, const size_t a_End)
 {
@@ -221,7 +581,7 @@ bool_t T_DSVM_CompileStream(WL_EntryStream_t* const a_Stream, const size_t a_End
 	bool_t ScriptProblem, QuickRet;
 	const WL_WADEntry_t* Entry;
 	WL_EntryStream_t* IncStream;
-	int32_t i, j, n;
+	int32_t i, j, n, s;
 
 	/* Check */
 	if (!a_Stream)
@@ -360,6 +720,129 @@ bool_t T_DSVM_CompileStream(WL_EntryStream_t* const a_Stream, const size_t a_End
 			// Continue onto the next token
 			continue;
 		}
+		
+		// Script Number
+		else if (strcasecmp(Buf, "script") == 0)
+		{
+			// Script inside a scope?
+			if (l_ScopeDepth > 0)
+			{
+				T_DSVM_ScriptError("Script inside another script or function.", Row);
+				ScriptProblem = true;
+				break;
+			}
+			
+			// Read script number, and expect digits
+			QuickRet = T_DSVM_ReadToken(a_Stream, a_End, &Row, Buf, BUFSIZE - 1);
+			n = strlen(Buf);
+			for (i = 0; i < n; i++)
+				if (Buf[i] < '0' || Buf[i] > '9')
+					break;
+			if (!QuickRet || i < n)
+			{
+				T_DSVM_ScriptError("Expected a number to follow script.", Row);
+				ScriptProblem = true;
+				break;
+			}
+			
+			// Get the script number
+			s = strtol(Buf, NULL, 10);
+			
+			// Negative?
+			if (s < 0)
+			{
+				T_DSVM_ScriptError("Script identifiers cannot be negative.", Row);
+				ScriptProblem = true;
+				break;
+			}
+			
+			// Expect a '{' now
+			QuickRet = T_DSVM_ReadToken(a_Stream, a_End, &Row, Buf, BUFSIZE - 1);
+			if (!QuickRet || (QuickRet && strcasecmp(Buf, "{") != 0))
+			{
+				T_DSVM_ScriptError("Expected `{` to follow script identifier.", Row);
+				ScriptProblem = true;
+				break;
+			}
+			
+			// Create function for script
+			snprintf(ExtraBuf, BUFSIZE - 1, "@__script_%i", s);
+			l_VMCurFunc = TS_VMCreateFunc(ExtraBuf, l_VMCurFunc);
+			l_ScopeDepth++;
+		}
+		
+		// Custom Function
+		else if (strcasecmp(Buf, "function") == 0)
+		{
+			// Script inside a scope?
+			if (l_ScopeDepth > 0)
+			{
+				T_DSVM_ScriptError("Function inside another script or function.", Row);
+				ScriptProblem = true;
+				break;
+			}
+		}
+		
+		// Scope Termination
+		else if (strcasecmp(Buf, "}") == 0)
+		{
+			// Go Up
+			l_VMCurFunc = l_VMCurFunc->Parent;
+			l_ScopeDepth--;
+			
+			// Went way outside scope?
+			if (l_ScopeDepth < 0 || !l_VMCurFunc)
+			{
+				T_DSVM_ScriptError("Went outside the global scope.", Row);
+				ScriptProblem = true;
+				break;
+			}
+		}
+		
+		// Standard Expression
+		else
+		{
+			// Init expression
+			TS_VMClearExpr();
+			
+			// Expression Loop
+			do
+			{
+				// ; is end of expression
+				if (strcasecmp(Buf, ";") == 0)
+				{
+					QuickRet = true;
+					break;
+				}
+				
+				// Push to stack
+				TS_VMPushExpr(Buf);
+			} while ((QuickRet = T_DSVM_ReadToken(a_Stream, a_End, &Row, Buf, BUFSIZE - 1)));
+			
+			// Failed?
+			if (!QuickRet)
+			{
+				TS_VMClearExpr();
+				T_DSVM_ScriptError("Expected end of expression.", Row);
+				ScriptProblem = true;
+				return;
+			}
+			
+			// Try solving it
+			QuickRet = TS_VMSolveExpr();
+			
+			// Failed to solve?
+			if (!QuickRet)
+			{
+				TS_VMClearExpr();
+				T_DSVM_ScriptError("Could not solve expression.", Row);
+				ScriptProblem = true;
+				return;
+			}
+			
+			// Clear it
+			TS_VMClearExpr();
+		}
 	}
 	
 	/* Pop from stack */
@@ -386,14 +869,62 @@ bool_t T_DSVM_CompileStream(WL_EntryStream_t* const a_Stream, const size_t a_End
 /* T_DSVM_Cleanup() -- Cleanup */
 bool_t T_DSVM_Cleanup(void)
 {
+	size_t v;
+	T_VMFunc_t* Rover, *Next;
+	T_VMVariable_t* ThisVar;
+	
 	/* Reset Vars */
 	l_ScopeDepth = 0;
 	
 	/* Free up things */
+	// Stack
 	if (l_IncStack)
 		Z_Free(l_IncStack);
 	l_IncStack = NULL;
 	l_NumIncStack = 0;
+	
+	// Functions
+	l_VMCurFunc = NULL;
+	
+	for (Rover = l_VMFirstFunc; Rover; Rover = Next)
+	{
+		// Get Next
+		Next = Rover->Next;
+		
+		// Clear function info
+		Z_Free(Rover->FuncName);
+		
+		// Clear variables
+		if (Rover->Vars)
+		{
+			// Free stuff in variables
+			for (v = 0; v < Rover->NumVars; v++)
+			{
+				// Get current
+				ThisVar = Rover->Vars[v];
+				
+				// Free info
+				if (ThisVar->Name)
+					Z_Free(ThisVar->Name);
+				
+				// Free the actual variable
+				Z_Free(ThisVar);
+			}
+			
+			// Free list
+			Z_Free(Rover->Vars);
+		}
+		
+		// Clear function itself
+		Z_Free(Rover);
+	}
+	
+	// Expression
+	TS_VMClearExpr();
+	
+	/* Initialize for new script */
+	// Create global function
+	l_VMCurFunc = TS_VMCreateFunc("@__global", NULL);
 	
 	/* Success! */
 	return true;
