@@ -443,6 +443,7 @@ sfxinfo_t S_sfx[NUMSFX] =
 	{ "zzzzza", false, 64, 0, -1, -1, 0},
 	{ "oskmov", false, 64, 0, -1, -1, 0},
 	{ "osktyp", false, 64, 0, -1, -1, 0},
+	{ "lotime", false, 64, 0, -1, -1, 0},
 };
 
 // Prepare free sfx slots to add sfx at run time

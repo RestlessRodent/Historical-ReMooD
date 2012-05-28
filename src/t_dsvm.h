@@ -36,11 +36,13 @@
 #include "w_wad.h"
 
 /*****************
+*** STRUCTURES ***
+*****************/
+
+/*****************
 *** PROTOTYPES ***
 *****************/
 
-/* t_dsvm.c -- Core Machine */
-void T_DSVMDebugMessage(const char* const a_Format, ...);
+bool_t T_DSVM_Cleanup(void);
+bool_t T_DSVM_CompileStream(WL_EntryStream_t* const a_Stream, const size_t a_End);
 
-/* t_dscc.c -- Script Compiler */
-int32_t T_DSVMCompileScript(const WadIndex_t a_Index, WX_WADEntry_t* const a_Entry);

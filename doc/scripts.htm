@@ -798,6 +798,34 @@
 		<!-- ###################
 		         REMOOD SCRIPT
 		     ################### -->
+		<DIV id="remoodscript">
+		<H1>ReMooD Script</H1>
+		<P>
+			<!-- About -->
+			<DIV id="remoodscript_about">
+			<H2>About</H2>
+			<P>
+			</P>
+			</DIV>
+			
+			<!-- Errors -->
+			<DIV id="remoodscript_errors">
+			<H2>Errors</H2>
+			<P>
+				<UL>
+					<LI><B>Include inside function or script.</B> -- An include direction was used within a function or script block. You may only include outside of functions and scripts.</LI>
+					<LI><B>Expected `(` to follow include.</B>, or <B>Expected `)` to follow include.</B> -- Includes are like-functions in that they require parenthesis after and before the include directive.</LI>
+					<LI><B>Expected `;` to follow include.</B> -- Includes must be terminated by a ; after the closing parenthesis.</LI>
+					<LI><B>Includes must be double quoted as strings.</B> -- The include to be parsed was not passed with a double quoted string.</LI>
+					<LI><B>Include not found.</B> -- Attempted to include a lump that does not exist.</LI>
+					<LI><B>Recursive include detected.</B> -- An include eventually includes itself or a script that was previous included by a parent include.</LI>
+					<LI><B>Failed to open include stream.</B> -- Failed to open a stream that is able to read the include itself. If this error occurs it signifies an error in ReMooD itself.</LI>
+					<LI><B>Script error while including.</B> -- There was an error inside the include, a message for the include should also be printed for reference.</LI>
+				</UL>
+			</P>
+			</DIV>
+		</P>
+		</DIV>
 		     
 		<!-- ###################
 		       REMOOD ASSEMBLY

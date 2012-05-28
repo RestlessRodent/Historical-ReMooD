@@ -340,6 +340,7 @@ typedef enum
 	sfx_zzzzza,
 	sfx_oskmov,
 	sfx_osktyp,
+	sfx_lotime,
 	
 	// free slots for S_AddSoundFx() at run-time --------------------
 	sfx_freeslot0,

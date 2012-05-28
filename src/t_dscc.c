@@ -40,8 +40,3 @@
 *** FUNCTIONS ***
 ****************/
 
-/* T_DSVMCompileScript() -- Compile Scripts */
-int32_t T_DSVMCompileScript(const WadIndex_t a_Index, WX_WADEntry_t* const a_Entry)
-{
-	return -1;
-}

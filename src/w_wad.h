@@ -227,6 +227,7 @@ size_t WL_ReadData(const WL_WADEntry_t* const a_Entry, const size_t a_Offset, vo
 // WAD Stream Buffer
 WL_EntryStream_t* WL_StreamOpen(const WL_WADEntry_t* const a_Entry);
 void WL_StreamClose(WL_EntryStream_t* const a_Stream);
+const WL_WADEntry_t* WL_StreamGetEntry(WL_EntryStream_t* const a_Stream);
 
 uint32_t WL_StreamTell(WL_EntryStream_t* const a_Stream);
 uint32_t WL_StreamSeek(WL_EntryStream_t* const a_Stream, const uint32_t a_NewPos, const bool_t a_End);

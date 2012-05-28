@@ -1470,6 +1470,17 @@ void WL_StreamClose(WL_EntryStream_t* const a_Stream)
 	Z_Free(a_Stream);
 }
 
+/* WL_StreamGetEntry() -- Get stream's entry */
+const WL_WADEntry_t* WL_StreamGetEntry(WL_EntryStream_t* const a_Stream)
+{
+	/* Check */
+	if (!a_Stream)
+		return NULL;
+	
+	/* Return it */
+	return a_Stream->Entry;
+}
+
 /* WL_StreamTell() -- Return current position of stream */
 uint32_t WL_StreamTell(WL_EntryStream_t* const a_Stream)
 {
