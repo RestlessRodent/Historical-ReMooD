@@ -46,8 +46,6 @@
 
 /* includes ************************/
 
-#include <stdio.h>
-#include <stdarg.h>
 #include "command.h"
 #include "doomtype.h"
 #include "doomdef.h"

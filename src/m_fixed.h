@@ -34,6 +34,7 @@
 #define __M_FIXED__
 
 #include "doomtype.h"
+#include "doomdef.h"
 
 //
 // Fixed point, 32bit as 16.16.
@@ -56,8 +57,6 @@ typedef int32_t fixed_t;
 #define FIXED_TO_FLOAT(x) (((float)(x)) / 65536.0)
 #define FLOAT_TO_FIXED(x) (((fixed_t)(((float)(x)) * 65536.0)))
 
-//#define FIXEDBREAKVANILLA
-
 /* FixedRound() -- Round a fixed point number */
 static fixed_t __REMOOD_FORCEINLINE __REMOOD_UNUSED FixedRound(const fixed_t a)
 {
@@ -73,52 +72,6 @@ static fixed_t __REMOOD_FORCEINLINE __REMOOD_UNUSED FixedRound(const fixed_t a)
 		return (a & _FIXED_INT) + 1;
 	else
 		return (a & _FIXED_INT);
-}
-
-/* FixedMul() -- Multiply two fixed numbers */
-static fixed_t __REMOOD_INLINE __REMOOD_UNUSED FixedMul(fixed_t a, fixed_t b)
-{
-#if defined(__x86_64__) || defined(__amd64__) || defined(_M_X64) || defined(__POWERPC__) || defined(_M_PPC)
-	return ((int64_t)a * (int64_t)b) >> _FIXED_FRACBITS;
-	
-#else
-	// Copyright (C) 2010-2012 GhostlyDeath (ghostlydeath@gmail.com / ghostlydeath@remood.org)
-	register uint32_t w, x, y, z;
-	register uint32_t Af, Ai, Bf, Bi;
-	
-	if (a & _FIXED_SIGN)
-	{
-		Af = ((-a) & _FIXED_FRAC);
-		Ai = ((-a) & _FIXED_INT) >> _FIXED_FRACBITS;
-	}
-	else
-	{
-		Af = (a & _FIXED_FRAC);
-		Ai = (a & _FIXED_INT) >> _FIXED_FRACBITS;
-	}
-	
-	if (b & _FIXED_SIGN)
-	{
-		Bf = ((-b) & _FIXED_FRAC);
-		Bi = ((-b) & _FIXED_INT) >> _FIXED_FRACBITS;
-	}
-	else
-	{
-		Bf = (b & _FIXED_FRAC);
-		Bi = (b & _FIXED_INT) >> _FIXED_FRACBITS;
-	}
-	
-	// Multiply portions
-	w = (Af * Bf) >> _FIXED_FRACBITS;
-	x = Ai * Bf;
-	y = Af * Bi;
-	z = (Ai * Bi) << _FIXED_FRACBITS;
-	
-	// Return result
-	if ((a ^ b) & _FIXED_SIGN)	// Only negative result if pos/neg
-		return -((int32_t)(w + x + y + z));
-	return (w + x + y + z);
-#endif
 }
 
 /* FixedPtInv() -- Inverse of fixed point */
@@ -180,21 +133,60 @@ static fixed_t __REMOOD_INLINE __REMOOD_UNUSED FixedInv(const fixed_t a)
 	}
 }
 
+/* FixedMul() -- Multiply two fixed numbers */
+static fixed_t __REMOOD_INLINE __REMOOD_UNUSED FixedMul(fixed_t a, fixed_t b)
+{
+#if defined(__x86_64__) || defined(__amd64__) || defined(_M_X64) || defined(__POWERPC__) || defined(_M_PPC) || defined(__palmos__)
+	return ((int64_t)a * (int64_t)b) >> _FIXED_FRACBITS;
+	
+#else
+	// Copyright (C) 2010-2012 GhostlyDeath (ghostlydeath@gmail.com / ghostlydeath@remood.org)
+	register uint32_t w, x, y, z;
+	register uint32_t Af, Ai, Bf, Bi;
+	
+	if (a & _FIXED_SIGN)
+	{
+		Af = ((-a) & _FIXED_FRAC);
+		Ai = ((-a) & _FIXED_INT) >> _FIXED_FRACBITS;
+	}
+	else
+	{
+		Af = (a & _FIXED_FRAC);
+		Ai = (a & _FIXED_INT) >> _FIXED_FRACBITS;
+	}
+	
+	if (b & _FIXED_SIGN)
+	{
+		Bf = ((-b) & _FIXED_FRAC);
+		Bi = ((-b) & _FIXED_INT) >> _FIXED_FRACBITS;
+	}
+	else
+	{
+		Bf = (b & _FIXED_FRAC);
+		Bi = (b & _FIXED_INT) >> _FIXED_FRACBITS;
+	}
+	
+	// Multiply portions
+	w = (Af * Bf) >> _FIXED_FRACBITS;
+	x = Ai * Bf;
+	y = Af * Bi;
+	z = (Ai * Bi) << _FIXED_FRACBITS;
+	
+	// Return result
+	if ((a ^ b) & _FIXED_SIGN)	// Only negative result if pos/neg
+		return -((int32_t)(w + x + y + z));
+	return (w + x + y + z);
+#endif
+}
+
 /* FixedDiv() -- Divide two fixed numbers */
 static fixed_t __REMOOD_INLINE __REMOOD_UNUSED FixedDiv(fixed_t a, fixed_t b)
 {
-	// Copyright (C) 2010-2012 GhostlyDeath (ghostlydeath@gmail.com / ghostlydeath@remood.org)
-#ifdef FIXEDBREAKVANILLA
-	if (a == b)
-		return _FIXED_ONE;
-	else
-		return FixedMul(a, FixedInv(b));	// TODO -- Breaks vanilla
-#else
 	if (b == 0)
 		return 0x7FFFFFFF | (a & 0x80000000);
 	else
 		return (fixed_t)((((((int64_t)a) << (int64_t)FRACBITS) / ((int64_t)b)) & INT64_C(0xFFFFFFFF)));
-#endif
 }
 
 #endif							/* __M_FIXED_H__ */
+

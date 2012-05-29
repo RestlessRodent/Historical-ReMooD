@@ -30,8 +30,6 @@
 // -----------------------------------------------------------------------------
 // DESCRIPTION: holds the weapon info for now...
 
-#include <stdio.h>
-
 // We are referring to sprite numbers.
 #include "info.h"
 #include "d_items.h"

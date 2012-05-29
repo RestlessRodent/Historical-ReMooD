@@ -31,6 +31,8 @@
 // DESCRIPTION: the automap code
 
 /* Includes */
+#include "doomtype.h"
+#include "m_fixed.h"
 #include "doomdef.h"
 #include "doomstat.h"
 #include "g_game.h"

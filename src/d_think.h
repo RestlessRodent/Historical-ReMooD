@@ -35,6 +35,8 @@
 #ifndef __D_THINK__
 #define __D_THINK__
 
+#include "doomtype.h"
+
 //
 // Experimental stuff.
 // To compile this as "ANSI C with classes"

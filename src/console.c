@@ -66,10 +66,6 @@
 #include "st_stuff.h"
 #include "r_defs.h"
 
-#ifndef _WIN32
-#include <unistd.h>
-#endif
-
 /****************
 *** CONSTANTS ***
 ****************/

@@ -33,22 +33,6 @@
 //              parse command line parameters, configure game parameters (turbo),
 //              and call the startup functions.
 
-#ifdef LINUX
-#include <sys/stat.h>
-#include <sys/types.h>
-#endif
-
-#ifndef _WIN32
-#include <unistd.h>				// for access
-#else
-#include <direct.h>
-#endif
-#include <fcntl.h>
-
-#ifdef __OS2__
-#include "I_os2.h"
-#endif
-
 #include "doomdef.h"
 
 #include "command.h"

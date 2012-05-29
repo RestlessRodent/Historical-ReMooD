@@ -387,6 +387,96 @@ do
 			"$BBROOT/bb.sh" win32_allegro
 			;;
 			
+			# Palm OS
+		palmos)
+			echo "$COOLPREFIX Building Palm OS PRC" 1>&2
+			
+			# Check if peal needs to be extracted
+			echo "$COOLPREFIX Checking for PEAL" 1>&2
+			if  [ ! -d "peal-2005_4_14" ]
+			then
+				# Download from remood.org
+				if [ ! -f "peal-2005_4_14.tar.gz" ]
+				then
+					wget -c http://remood.org/downloads/peal-2005_4_14.tar.gz -O peal-2005_4_14.tar.gz
+				fi
+				
+				# Extract
+				if ! tar -xvvf "peal-2005_4_14.tar.gz"
+				then
+					echo "$COOLPREFIX Failed to extract PEAL" 1>&2
+					exit 1
+				fi
+				
+				# Fix Compilation Problems
+					# Extra Qualifier
+				sed 's/Relocation::asElf/asElf/' < peal-2005_4_14/postlink/relocation.h > $$
+				mv $$ peal-2005_4_14/postlink/relocation.h
+				
+					# Callocs and Mallocs Missing
+				sed 's/#include <stdint.h>/#include <stdlib.h>\n#include <stdint.h>/' < peal-2005_4_14/postlink/got.h > $$
+				mv $$ peal-2005_4_14/postlink/got.h
+				sed 's/#include <string.h>/#include <stdlib.h>\n#include <string.h>/' < peal-2005_4_14/postlink/stringtable.h > $$
+				mv $$ peal-2005_4_14/postlink/stringtable.h
+				
+					# perror
+				sed 's/#include <unistd.h>/#include <stdio.h>\n#include <unistd.h>/' < peal-2005_4_14/postlink/image.cc > $$
+				mv $$ peal-2005_4_14/postlink/image.cc
+				
+					# find (which is in <algorithm>
+				sed 's/#include <string>/#include <algorithm>\n#include <string>/' < peal-2005_4_14/postlink/symbol.cc > $$
+				mv $$ peal-2005_4_14/postlink/symbol.cc
+				sed 's/#include <string>/#include <algorithm>\n#include <string>/' < peal-2005_4_14/postlink/section.cc > $$
+				mv $$ peal-2005_4_14/postlink/section.cc
+				
+			fi
+			
+			# Check if PARM needs to be extracted
+			echo "$COOLPREFIX Checking for PARM" 1>&2
+			if  [ ! -d "parm" ]
+			then
+				# Download from remood.org
+				if [ ! -f "parm.zip" ]
+				then
+					wget -c http://remood.org/downloads/parm.zip -O parm.zip
+				fi
+				
+				# Extract
+				if ! unzip parm.zip
+				then
+					echo "$COOLPREFIX Failed to extract PARM" 1>&2
+					exit 1
+				else
+					# Lowercase it
+					mv PARM parm
+				fi
+			fi
+			
+			# Compile PEAL
+			echo "$COOLPREFIX Compiling PEAL" 1>&2
+			cd peal-2005_4_14
+			cd postlink
+			make clean
+			make
+			
+			# Test it
+			./peal-postlink
+			
+			# Get out of the directory
+			cd ..
+			cd ..
+			
+			# Compile ReMooD Now
+			echo "$COOLPREFIX Now Compiling..." 1>&2
+			make clean USEINTERFACE=palmos TOOLPREFIX="arm-palmos-"
+			if ! make USEINTERFACE=palmos TOOLPREFIX="arm-palmos-"
+			then
+				echo "$COOLPREFIX Failed" 1>&2
+				exit 1
+			fi
+			
+			;;
+			
 			# Test Suite
 		test)
 			echo "$COOLPREFIX Prepare test with build" 1>&2

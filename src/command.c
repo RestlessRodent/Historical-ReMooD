@@ -1608,35 +1608,6 @@ static void COM_Echo_f(void)
 //
 static void COM_Exec_f(void)
 {
-	int length;
-	uint8_t* buf = NULL;
-	
-	if (COM_Argc() != 2)
-	{
-		CONL_PrintF("exec <filename> : run a script file\n");
-		return;
-	}
-// load file
-
-	length = FIL_ReadFile(COM_Argv(1), &buf);
-	//CONL_PrintF ("debug file length : %d\n",length);
-	
-	if (!buf)
-	{
-		CONL_PrintF("couldn't execute file %s\n", COM_Argv(1));
-		return;
-	}
-	
-	CONL_PrintF("executing %s\n", COM_Argv(1));
-	
-// insert text file into the command buffer
-
-	COM_BufInsertText(buf);
-	
-// free buffer
-
-	Z_Free(buf);
-	
 }
 
 // Delay execution of the rest of the commands to the next frame,

@@ -32,8 +32,6 @@
 *** INCLUDES ***
 ***************/
 
-#include <stdio.h>
-
 #include "d_block.h"
 #include "z_zone.h"
 #include "console.h"

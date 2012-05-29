@@ -29,8 +29,6 @@
 // DESCRIPTION: ReMooD Demo Format
 
 #include "d_rdf.h"
-#include <stdio.h>
-#include <stdlib.h>
 
 #define DPF_C_MASK			7
 #define DPF_C_OFFSET		0

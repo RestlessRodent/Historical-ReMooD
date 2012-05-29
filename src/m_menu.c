@@ -38,11 +38,6 @@
 //      an integer multiple of the original size, so that the graphics look
 //      good.
 
-#ifndef _WIN32
-#include <unistd.h>
-#endif
-#include <fcntl.h>
-
 #include "am_map.h"
 
 #include "doomdef.h"

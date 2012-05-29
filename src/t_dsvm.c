@@ -1,4 +1,4 @@
-// -*- Mode: C; indent-tabs-mode: t; c-basic-offset: 4; tab-width: 4 -*-
+	// -*- Mode: C; indent-tabs-mode: t; c-basic-offset: 4; tab-width: 4 -*-
 // -----------------------------------------------------------------------------
 //         :oCCCCOCoc.
 //     .cCO8OOOOOOOOO8Oo:
@@ -378,6 +378,17 @@ static bool_t TS_VMSolveExpr(void)
 		else if (This->Type == TVMET_CLOSEPAR)
 			ParStack--;
 		
+		// Inside Parenthesis
+		if (i > 0)
+		{
+			if (l_VMExpr[i - 1].Type == TVMET_OPENPAR)
+				ParStack++;
+			else if (l_VMExpr[i - 1].Type == TVMET_CLOSEPAR)
+				ParStack--;
+		}
+		
+
+#if 0
 		// Declaring variable?
 			// Create with this name
 		if (This->Type == TVMET_DECLAREVAR)
@@ -391,6 +402,7 @@ static bool_t TS_VMSolveExpr(void)
 			snprintf(Buf, BUFSIZE - 1, "#__tempvar_%u", TempVarNum);
 			This->DumpVar = TS_VMCreateVar(Buf, l_VMExpr[i - 1].TypeNameHandle);
 		}
+#endif
 		
 		// Set Parenthesis ID
 		This->ParNum = ParStack;
@@ -401,6 +413,32 @@ static bool_t TS_VMSolveExpr(void)
 			T_DSVM_ScriptError("Too many closing parenthesis.", 0);
 			return false;
 		}
+	}
+	
+	/* Debug */
+	if (devparm)
+	{
+		// Print Token
+		for (i = 0; i < l_NumVMExpr; i++)
+		{
+			// Get this
+			This = &l_VMExpr[i];
+		
+			// Token
+			CONL_PrintF("%s ", This->Token);
+		}
+		CONL_PrintF("\n");
+		
+		// Other things
+		for (i = 0; i < l_NumVMExpr; i++)
+		{
+			// Get this
+			This = &l_VMExpr[i];
+		
+			// Token
+			CONL_PrintF("%*i ", strlen(This->Token), This->ParNum);
+		}
+		CONL_PrintF("\n");
 	}
 	
 	/* Start Solving */

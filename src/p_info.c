@@ -31,9 +31,6 @@
 // or "exmx" lump. This contains new info such as: the level name, music
 // lump to be played, par time etc.
 
-#include <stdio.h>
-#include <stdlib.h>
-
 #include "doomstat.h"
 #include "doomdef.h"
 #include "command.h"

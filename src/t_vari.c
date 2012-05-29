@@ -57,8 +57,6 @@
 
 /* includes ************************/
 
-#include <stdio.h>
-#include <string.h>
 #include "z_zone.h"
 
 #include "t_script.h"

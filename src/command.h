@@ -38,7 +38,6 @@
 	#warning Inclusion of command.h is deprecated.
 #endif
 
-#include <stdio.h>
 #include "doomtype.h"
 
 //===================================

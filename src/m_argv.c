@@ -30,8 +30,6 @@
 // -----------------------------------------------------------------------------
 // DESCRIPTION:
 
-#include <string.h>
-
 #include "doomdef.h"
 #include "command.h"
 

@@ -73,7 +73,7 @@ __INT_COMMONLDFLAGS := -lm
 
 # Debugging?
 ifdef DEBUG
-	__INT_MCFLAGS := -g3 -O0 -D_DEBUG
+	__INT_MCFLAGS := -g3 -O0 -D_DEBUG -Wall
 	__INT_MLDFLAGS := -g3 -O0
 	__INT_RCFLAGS := -D_DEBUG
 	export __INT_OBJPREFIX := d

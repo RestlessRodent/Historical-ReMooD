@@ -32,8 +32,6 @@
 *** INCLUDES ***
 ***************/
 
-#include <time.h>
-
 #include "doomtype.h"
 #include "doomdef.h"
 #include "g_game.h"

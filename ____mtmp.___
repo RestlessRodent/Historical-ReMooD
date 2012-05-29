@@ -203,11 +203,11 @@ endif
 
 # PalmOS
 `ei ?__palmos__
-	__XX_EXESUFFIX =
+	__XX_EXESUFFIX = bin
 	__XX_OBJPREFIX = o
-	__XX_ICFLAGS  = -D__REMOOD_SYSTEM_PALMOS
+	__XX_ICFLAGS  = -D__REMOOD_SYSTEM_PALMOS -D__REMOOD_USECCSTUB -Isrc
 	__XX_ILDFLAGS =
-	__XX_DEFINTRF ?= headless
+	__XX_DEFINTRF ?= palmos
 	__XX_EXTRAOBJ = 
 	
 # Unknown

@@ -43,11 +43,6 @@
 #ifndef __PREPRO_H__
 #define __PREPRO_H__
 
-#ifdef FREEBSD
-#if __FreeBSD__ < 5
-#include <machine/types.h>
-#endif
-#endif
 typedef struct section_s section_t;
 
 #if !defined(FREEBSD) && !defined(SOLARIS)

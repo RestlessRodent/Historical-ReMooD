@@ -55,8 +55,6 @@
 
 /* includes ************************/
 
-#include <stdio.h>
-#include <string.h>
 #include "command.h"
 #include "doomstat.h"
 #include "w_wad.h"

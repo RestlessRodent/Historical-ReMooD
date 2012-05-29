@@ -42,41 +42,47 @@
 /* Windows */
 // windows.h is huge as hell and slows down the compile, maybe it can be removed?
 #ifdef _WIN32
-// Provided we aren't on Win64, target Windows 98!
-#if !defined(_WIN64)
-#undef WINVER
-#undef _WIN32_WINDOWS
-#undef _WIN32_IE
+	// Provided we aren't on Win64, target Windows 98!
+	#if !defined(_WIN64)
+		#undef WINVER
+		#undef _WIN32_WINDOWS
+		#undef _WIN32_IE
 
-#define WINVER 0x0410
-#define _WIN32_WINDOWS 0x0410
-#define _WIN32_IE 0x0500
-#endif
+		#define WINVER 0x0410
+		#define _WIN32_WINDOWS 0x0410
+		#define _WIN32_IE 0x0500
+	#endif
 
-// Lean and mean!
-#define WIN32_LEAN_AND_MEAN
+	// Lean and mean!
+	#define WIN32_LEAN_AND_MEAN
 
-// Now include
-#include <windows.h>
-#include <io.h>
+	// Now include
+	#include <windows.h>
+	#include <io.h>
+	#include <shlobj.h>
 #endif
 
 /* Required Stuff */
-#include <stdarg.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <limits.h>
+#if defined(__REMOOD_USECCSTUB)
+	#include "ccstub.h"
+#else
+	#include <stdarg.h>
+	#include <stdio.h>
+	#include <stdlib.h>
+	#include <string.h>
+	#include <limits.h>
 
-#include <stddef.h>
-#include <sys/types.h>
-#include <sys/stat.h>
-#include <ctype.h>
-#include <math.h>
+	#include <stddef.h>
+	#include <sys/types.h>
+	#include <sys/stat.h>
+	#include <ctype.h>
+	#include <math.h>
+	#include <time.h>
 
-/* UNIX */
-#if defined(__unix__)
-#include <unistd.h>
+	// UNIX
+	#if defined(__unix__)
+		#include <unistd.h>
+	#endif
 #endif
 
 /* DJGPP */
@@ -96,35 +102,35 @@
 
 /* Just check for big endian */
 #if !defined(__REMOOD_BIG_ENDIAN) && !defined(__REMOOD_LITTLE_ENDIAN)
-// GCC has endian.h (but only on linux)
-#if defined(__GNUC__) && defined(__linux__)
-#include <endian.h>
+	// GCC has endian.h (but only on linux)
+	#if defined(__GNUC__) && defined(__linux__)
+		#include <endian.h>
 
-#if defined(BYTE_ORDER) && (BYTE_ORDER == BIG_ENDIAN)
-#define __REMOOD_BIG_ENDIAN 1
-#elif defined(__BYTE_ORDER) && (__BYTE_ORDER == __BIG_ENDIAN)
-#define __REMOOD_BIG_ENDIAN 1
-#endif
-#endif
+		#if defined(BYTE_ORDER) && (BYTE_ORDER == BIG_ENDIAN)
+			#define __REMOOD_BIG_ENDIAN 1
+		#elif defined(__BYTE_ORDER) && (__BYTE_ORDER == __BIG_ENDIAN)
+			#define __REMOOD_BIG_ENDIAN 1
+		#endif
+	#endif
 
-// Known Big endian systems
-#if !defined(__REMOOD_BIG_ENDIAN)
-#if defined(__MIPSEB__) || defined(__BIG_ENDIAN__)
-#define __REMOOD_BIG_ENDIAN 1
-#endif
-#endif
+	// Known Big endian systems
+	#if !defined(__REMOOD_BIG_ENDIAN)
+		#if defined(__MIPSEB__) || defined(__BIG_ENDIAN__)
+			#define __REMOOD_BIG_ENDIAN 1
+		#endif
+	#endif
 
-// Otherwise it is little
-#if !defined(__REMOOD_BIG_ENDIAN) && !defined(__REMOOD_LITTLE_ENDIAN)
-#define __REMOOD_LITTLE_ENDIAN 1
-#endif
+	// Otherwise it is little
+	#if !defined(__REMOOD_BIG_ENDIAN) && !defined(__REMOOD_LITTLE_ENDIAN)
+		#define __REMOOD_LITTLE_ENDIAN 1
+	#endif
 #endif
 
 // Doubly be sure
 #if !defined(__REMOOD_BIG_ENDIAN) && !defined(__REMOOD_LITTLE_ENDIAN)
-#error Error No endian set
+	#error Error No endian set
 #elif defined(__REMOOD_BIG_ENDIAN) && defined(__REMOOD_LITTLE_ENDIAN)
-#error Error Both endians set
+	#error Error Both endians set
 #endif
 
 /***********************
@@ -133,12 +139,39 @@
 
 #if !defined(__REMOOD_IGNORE_FIXEDTYPES)
 
+/* Palm OS */
+#if defined(__palmos__)
+	#include <PalmTypes.h>
+	
+	typedef Int8 int8_t;
+	typedef Int16 int16_t;
+	typedef Int32 int32_t;
+	typedef UInt8 uint8_t;
+	typedef UInt16 uint16_t;
+	typedef UInt32 uint32_t;
+	
+	typedef signed long long int64_t;
+	typedef unsigned long long uint64_t;
+	
+	typedef int32_t intptr_t;
+	typedef uint32_t uintptr_t;
+	
+	typedef intptr_t ssize_t;
+	typedef __SIZE_TYPE__ size_t;
+	
+	#define UINT32_C(x) x
+	#define INT64_C(x) x##ll
+	#define UINT64_C(x) x##ull
+	
+	#define __REMOOD_LL_SUFFIX(a) INT64_C(a)
+	#define __REMOOD_ULL_SUFFIX(a) UINT64_C(a)
+
 /* C99 Complaint Compilers */
-#if (__STDC_VERSION__ >= 199901L) || defined(__GNUC__) || defined(__WATCOMC__)
+#elif (__STDC_VERSION__ >= 199901L) || defined(__GNUC__) || defined(__WATCOMC__)
 	#include <stdint.h>
 
-	#define __REMOOD_LL_SUFFIX(a) a##LL
-	#define __REMOOD_ULL_SUFFIX(a) a##ULL
+	#define __REMOOD_LL_SUFFIX(a) INT64_C(a)
+	#define __REMOOD_ULL_SUFFIX(a) UINT64_C(a)
 
 /* Microsoft Visual C++ */
 #elif defined(_MSC_VER)
@@ -173,32 +206,54 @@
 ***********/
 
 /* bool_t -- Boolean, true or false */
-typedef enum bool_e
-{
-	false,
-	true
-} bool_t;
+#if defined(__palmos__)
+	typedef Boolean bool_t;
+#else
+	typedef enum bool_e
+	{
+		false,
+		true
+	} bool_t;
+#endif
 
 /*****************
 *** C KEYWORDS ***
 *****************/
 
 // Keywords
-#if defined(__GNUC__)
-#define __REMOOD_INLINE inline
-#define __REMOOD_FORCEINLINE __attribute__((always_inline))
-#define __REMOOD_UNUSED __attribute__((unused))
-#define __REMOOD_DEPRECATED __attribute__((deprecated))
+
+#if defined(__palmos__)
+	#if defined(__NO_INLINE__)
+		#define __REMOOD_INLINE
+	#else
+		#define __REMOOD_INLINE inline
+	#endif
+	#define __REMOOD_FORCEINLINE
+	#define __REMOOD_UNUSED
+	#define __REMOOD_DEPRECATED
+#elif defined(__GNUC__)
+	#define __REMOOD_INLINE inline
+	#define __REMOOD_FORCEINLINE __attribute__((always_inline))
+	#define __REMOOD_UNUSED __attribute__((unused))
+	#define __REMOOD_DEPRECATED __attribute__((deprecated))
 #elif defined(_MSC_VER)
-#define __REMOOD_INLINE _inline
-#define __REMOOD_FORCEINLINE __forceinline
-#define __REMOOD_UNUSED
-#define __REMOOD_DEPRECATED
+	#define __REMOOD_INLINE _inline
+	#define __REMOOD_FORCEINLINE __forceinline
+	#define __REMOOD_UNUSED
+	#define __REMOOD_DEPRECATED
 #else
-#define __REMOOD_INLINE inline
-#define __REMOOD_FORCEINLINE
-#define __REMOOD_UNUSED
-#define __REMOOD_DEPRECATED
+	#define __REMOOD_INLINE inline
+	#define __REMOOD_FORCEINLINE
+	#define __REMOOD_UNUSED
+	#define __REMOOD_DEPRECATED
+#endif
+
+/***************************
+*** TARGET COMPATIBILITY ***
+***************************/
+
+/* Palm OS */
+#if defined(__REMOOD_SYSTEM_PALMOS)
 #endif
 
 /*****************************

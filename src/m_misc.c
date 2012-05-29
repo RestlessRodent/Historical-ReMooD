@@ -34,19 +34,6 @@
 //      File i/o
 //      Common used routines
 
-/*#ifndef _WIN32
-#include <unistd.h>
-#else
-#include <windows.h>
-#endif*/
-
-#include <fcntl.h>
-
-#ifdef __APPLE__
-#include <unistd.h>
-#endif
-
-
 #include "doomdef.h"
 #include "g_game.h"
 #include "m_misc.h"
@@ -60,73 +47,9 @@
 #include "dstrings.h"
 #include "i_system.h"
 
-#ifdef _WIN32
-#include <shlobj.h>
-#endif
-
-
 // ==========================================================================
 //                         FILE INPUT / OUTPUT
 // ==========================================================================
-
-//
-// FIL_WriteFile
-//
-#ifndef O_BINARY
-#define O_BINARY 0
-#endif
-
-bool_t FIL_WriteFile(char const* name, void* source, int length)
-{
-	int handle;
-	int count;
-	
-	handle = open(name, O_WRONLY | O_CREAT | O_TRUNC | O_BINARY, 0666);
-	
-	if (handle == -1)
-		return false;
-		
-	count = write(handle, source, length);
-	close(handle);
-	
-	if (count < length)
-		return false;
-		
-	return true;
-}
-
-//
-// FIL_ReadFile : return length, 0 on error
-//
-//Fab:26-04-98:
-//  appends a zero uint8_t at the end
-int FIL_ReadFile(char const* name, uint8_t** buffer)
-{
-	int handle, count, length;
-	struct stat fileinfo;
-	uint8_t* buf;
-	
-	handle = open(name, O_RDONLY | O_BINARY, 0666);
-	if (handle == -1)
-		return 0;
-		
-	if (fstat(handle, &fileinfo) == -1)
-		return 0;
-		
-	length = fileinfo.st_size;
-	buf = Z_Malloc(length + 1, PU_STATIC, 0);
-	count = read(handle, buf, length);
-	close(handle);
-	
-	if (count < length)
-		return 0;
-		
-	//Fab:26-04-98:append 0 uint8_t for script text files
-	buf[length] = 0;
-	
-	*buffer = buf;
-	return length;
-}
 
 //
 // checks if needed, and add default extension to filename
@@ -521,54 +444,6 @@ typedef struct
 //
 bool_t WritePCXfile(char* filename, uint8_t* data, int width, int height, uint8_t* palette)
 {
-	int i;
-	int length;
-	pcx_t* pcx;
-	uint8_t* pack;
-	
-	pcx = Z_Malloc(width * height * 2 + 1000, PU_STATIC, NULL);
-	
-	pcx->manufacturer = 0x0a;	// PCX id
-	pcx->version = 5;			// 256 color
-	pcx->encoding = 1;			// uncompressed
-	pcx->bits_per_pixel = 8;	// 256 color
-	pcx->xmin = 0;
-	pcx->ymin = 0;
-	pcx->xmax = LittleSwapInt16(width - 1);
-	pcx->ymax = LittleSwapInt16(height - 1);
-	pcx->hres = LittleSwapInt16(width);
-	pcx->vres = LittleSwapInt16(height);
-	memset(pcx->palette, 0, sizeof(pcx->palette));
-	pcx->color_planes = 1;		// chunky image
-	pcx->bytes_per_line = LittleSwapInt16(width);
-	pcx->palette_type = LittleSwapInt16(1);	// not a grey scale
-	memset(pcx->filler, 0, sizeof(pcx->filler));
-	
-	// pack the image
-	pack = &pcx->data;
-	
-	for (i = 0; i < width * height; i++)
-	{
-		if ((*data & 0xc0) != 0xc0)
-			*pack++ = *data++;
-		else
-		{
-			*pack++ = 0xc1;
-			*pack++ = *data++;
-		}
-	}
-	
-	// write the palette
-	*pack++ = 0x0c;				// palette ID byte
-	for (i = 0; i < 768; i++)
-		*pack++ = *palette++;
-		
-	// write output file
-	length = pack - (uint8_t*)pcx;
-	i = FIL_WriteFile(filename, pcx, length);
-	
-	Z_Free(pcx);
-	return i;
 }
 
 //

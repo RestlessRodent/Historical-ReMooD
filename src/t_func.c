@@ -52,7 +52,6 @@
 
 /* includes ************************/
 
-#include <stdio.h>
 #include "command.h"
 #include "doomstat.h"
 #include "doomtype.h"

@@ -32,8 +32,6 @@
 #define __W_WAD_H__
 
 #include "doomtype.h"
-#include <stdio.h>
-#include <stdlib.h>
 #include "z_zone.h"
 
 /*************

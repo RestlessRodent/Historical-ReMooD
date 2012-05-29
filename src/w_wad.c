@@ -29,24 +29,6 @@
 // DESCRIPTION:
 //      Handles WAD file header, directory, lump I/O.
 
-// added for linux 19990220 by Kin
-#ifdef LINUX
-#define O_BINARY 0
-#endif
-
-#ifndef __APPLE_CC__
-#ifndef FREEBSD
-#include <malloc.h>
-#endif
-#endif
-#include <fcntl.h>
-#ifndef _WIN32
-#include <unistd.h>
-#endif
-
-#include <string.h>
-#include <errno.h>
-
 #include "doomdef.h"
 #include "doomtype.h"
 #include "w_wad.h"
