@@ -78,7 +78,7 @@ void D_SyncNetDebugMessage(const char* const a_Format, ...)
 	va_end(ArgPtr);
 	
 	// Print
-	fprintf(stderr, "%s\n", Text);
+	CONL_PrintF("%s\n", Text);
 #undef BUFSIZE
 }
 

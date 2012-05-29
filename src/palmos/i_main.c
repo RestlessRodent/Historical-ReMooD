@@ -41,16 +41,16 @@
 *** FUNCTIONS ***
 ****************/
 
-/* main() -- Main entry point */
-int main(int argc, char** argv)
+/* PilotMain() -- Main Entry Point */
+UInt32 PilotMain(UInt16 cmd, void* cmdPBP, UInt16 launchFlags)
 {
 	/* Set command line */
-	I_CommonCommandLine(&argc, &argv, NULL);
-	
+	I_CommonCommandLine(NULL, NULL, NULL);
+
 	/* Run the game */
 	D_DoomMain();
 	D_DoomLoop();
 	
-	/* Success! */
-	return EXIT_SUCCESS;
+	return 0;
 }
+

@@ -69,7 +69,7 @@ export __INT_HOSTCC := $(__INT_HOSTPREFIX)gcc
 #####################
 
 __INT_COMMONCFLAGS  := -fno-strict-aliasing
-__INT_COMMONLDFLAGS := -lm
+__INT_COMMONLDFLAGS :=
 
 # Debugging?
 ifdef DEBUG

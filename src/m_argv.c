@@ -109,8 +109,6 @@ void M_PushSpecialParametersAsOne(const bool_t plusplus)
 			
 			strncat(s, "\n", BUFSIZE);
 			
-			fprintf(stderr, ">>>>>>>>> \"%s\"\n", s);
-			
 			// push it
 #if 0
 			if (devparm)

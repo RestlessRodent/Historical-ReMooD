@@ -65,7 +65,7 @@ endif
 	__XX_EXESUFFIX = .exe
 	__XX_OBJPREFIX = a
 	__XX_ICFLAGS  = -D__REMOOD_SYSTEM_DOS -Ilib/glib/include
-	__XX_ILDFLAGS = -lglib
+	__XX_ILDFLAGS = -lm -lglib
 	__XX_DEFINTRF ?= allegro
 	__XX_EXTRAOBJ = 
 
@@ -74,7 +74,7 @@ endif
 	__XX_EXESUFFIX = .exe
 	__XX_OBJPREFIX = b
 	__XX_ICFLAGS  = -D__REMOOD_SYSTEM_WINCE
-	__XX_ILDFLAGS =
+	__XX_ILDFLAGS = -lm
 	__XX_DEFINTRF ?= win36c
 	__XX_EXTRAOBJ = 
 
@@ -88,7 +88,7 @@ endif
 `en
 	__XX_EXESUFFIX = .exe
 	__XX_ICFLAGS  = -D__REMOOD_SYSTEM_WINDOWS
-	__XX_ILDFLAGS = -lws2_32 -lmingw32 -mwindows
+	__XX_ILDFLAGS = -lm -lws2_32 -lmingw32 -mwindows
 	__XX_DEFINTRF ?= sdl
 	__XX_EXTRAOBJ = $(__XX_RC)/remood.rc
 
@@ -97,7 +97,7 @@ endif
 	__XX_EXESUFFIX = 
 	__XX_OBJPREFIX = d
 	__XX_ICFLAGS  = -D__REMOOD_SYSTEM_UNIX -D__REMOOD_SYSTEM_LINUX
-	__XX_ILDFLAGS =
+	__XX_ILDFLAGS = -lm
 	__XX_DEFINTRF ?= sdl
 	__XX_EXTRAOBJ = 
 
@@ -108,7 +108,7 @@ endif
 		__XX_EXESUFFIX = 
 		__XX_OBJPREFIX = e
 		__XX_ICFLAGS  = -D__REMOOD_SYSTEM_UNIX -D__REMOOD_SYSTEM_MACOSX
-		__XX_ILDFLAGS =
+		__XX_ILDFLAGS = -lm
 		__XX_DEFINTRF ?= sdl
 		__XX_EXTRAOBJ = 
 	
@@ -117,7 +117,7 @@ endif
 		__XX_EXESUFFIX = 
 		__XX_OBJPREFIX = f
 		__XX_ICFLAGS  = -D__REMOOD_SYSTEM_MACOS
-		__XX_ILDFLAGS =
+		__XX_ILDFLAGS = -lm
 		__XX_DEFINTRF ?= sdl
 		__XX_EXTRAOBJ = 
 	
@@ -131,7 +131,7 @@ endif
 		__XX_EXESUFFIX = 
 		__XX_OBJPREFIX = g
 		__XX_ICFLAGS  = -D__REMOOD_SYSTEM_UNIX -D__REMOOD_SYSTEM_CYGWIN
-		__XX_ILDFLAGS =
+		__XX_ILDFLAGS = -lm
 		__XX_DEFINTRF ?= sdl
 		__XX_EXTRAOBJ = 
 	
@@ -140,7 +140,7 @@ endif
 		__XX_EXESUFFIX = 
 		__XX_OBJPREFIX = h
 		__XX_ICFLAGS  = -D__REMOOD_SYSTEM_UNIX -D__REMOOD_SYSTEM_INTERIX
-		__XX_ILDFLAGS =
+		__XX_ILDFLAGS = -lm
 		__XX_DEFINTRF ?= sdl
 		__XX_EXTRAOBJ = 
 	
@@ -149,7 +149,7 @@ endif
 		__XX_EXESUFFIX = 
 		__XX_OBJPREFIX = i
 		__XX_ICFLAGS  = -D__REMOOD_SYSTEM_UNIX -D__REMOOD_SYSTEM_BSD
-		__XX_ILDFLAGS =
+		__XX_ILDFLAGS = -lm
 		__XX_DEFINTRF ?= sdl
 		__XX_EXTRAOBJ = 
 	
@@ -158,7 +158,7 @@ endif
 		__XX_EXESUFFIX = 
 		__XX_OBJPREFIX = j
 		__XX_ICFLAGS  = -D__REMOOD_SYSTEM_UNIX -D__REMOOD_SYSTEM_BSD
-		__XX_ILDFLAGS =
+		__XX_ILDFLAGS = -lm
 		__XX_DEFINTRF ?= sdl
 		__XX_EXTRAOBJ = 
 	
@@ -167,7 +167,7 @@ endif
 		__XX_EXESUFFIX = 
 		__XX_OBJPREFIX = k
 		__XX_ICFLAGS  = -D__REMOOD_SYSTEM_UNIX -D__REMOOD_SYSTEM_BSD
-		__XX_ILDFLAGS =
+		__XX_ILDFLAGS = -lm
 		__XX_DEFINTRF ?= sdl
 		__XX_EXTRAOBJ = 
 	
@@ -176,7 +176,7 @@ endif
 		__XX_EXESUFFIX = 
 		__XX_OBJPREFIX = l
 		__XX_ICFLAGS  = -D__REMOOD_SYSTEM_UNIX -D__REMOOD_SYSTEM_SOLARIS
-		__XX_ILDFLAGS =
+		__XX_ILDFLAGS = -lm
 		__XX_DEFINTRF ?= sdl
 		__XX_EXTRAOBJ = 
 	
@@ -185,7 +185,7 @@ endif
 		__XX_EXESUFFIX = 
 		__XX_OBJPREFIX = m
 		__XX_ICFLAGS  = -D__REMOOD_SYSTEM_UNIX
-		__XX_ILDFLAGS =
+		__XX_ILDFLAGS = -lm
 		__XX_DEFINTRF ?= sdl
 		__XX_EXTRAOBJ = 
 	
@@ -197,16 +197,16 @@ endif
 	__XX_EXESUFFIX =
 	__XX_OBJPREFIX = n
 	__XX_ICFLAGS  = -D__REMOOD_SYSTEM_AMIGA
-	__XX_ILDFLAGS =
+	__XX_ILDFLAGS = -lm
 	__XX_DEFINTRF ?= sdl
 	__XX_EXTRAOBJ = 
 
 # PalmOS
 `ei ?__palmos__
-	__XX_EXESUFFIX = bin
+	__XX_EXESUFFIX = .bin
 	__XX_OBJPREFIX = o
-	__XX_ICFLAGS  = -D__REMOOD_SYSTEM_PALMOS -D__REMOOD_USECCSTUB -Isrc
-	__XX_ILDFLAGS =
+	__XX_ICFLAGS  = -D__REMOOD_SYSTEM_PALMOS -D__REMOOD_USECCSTUB -Isrc -mshort-load-bytes -ffixed-r9
+	__XX_ILDFLAGS = -mfloat-abi=softfp -nostartfiles -nodefaultlibs -nostdlib -mshort-load-bytes -ffixed-r9
 	__XX_DEFINTRF ?= palmos
 	__XX_EXTRAOBJ = 
 	
@@ -253,6 +253,14 @@ else
 				__XX_FPREFIX = h
 				__XX_FCFLAGS = -D__REMOOD_INTERFACE_HEADLESS
 				__XX_FLDFLAGS = 
+			else
+				# PalmOS interface
+				ifeq (palmos,$(strip $(__XX_DEFINTRF)))
+					__XX_IFACEDIR = palmos
+					__XX_FPREFIX = p
+					__XX_FCFLAGS = -D__REMOOD_INTERFACE_PALMOS
+					__XX_FLDFLAGS = 
+				endif
 			endif
 		endif
 	endif
@@ -296,7 +304,7 @@ remood:													$(__XX_BIN)/remood$(__INT_EXESUFFIX)$(__XX_EXESUFFIX)
 # The actual binary
 $(__XX_BIN)/remood$(__INT_EXESUFFIX)$(__XX_EXESUFFIX):	$(__XX_OBJS)
 														@echo [LD] $(notdir $@)
-														@$(__INT_CC) -o $@ $(__XX_OBJS) $(__XX_LDFLAGS)
+														$(__INT_CC) -o $@ $(__XX_OBJS) $(__XX_LDFLAGS)
 
 # Source files in src/
 $(__XX_OBJ)/%.$(__XX_OBJPRIME):							$(__XX_SRC)/%.c

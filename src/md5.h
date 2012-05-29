@@ -29,6 +29,8 @@
 // -----------------------------------------------------------------------------
 // DESCRIPTION:
 
+#if !defined(__palmos__)
+
 #ifndef _MD5_H
 #define _MD5_H 1
 
@@ -151,3 +153,6 @@ extern int md5_stream __P((FILE* stream, void* resblock));
 extern void* md5_buffer __P((const char* buffer, size_t len, void* resblock));
 
 #endif
+
+#endif
+

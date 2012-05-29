@@ -38,6 +38,30 @@
 
 #include "ccstub.h"
 
+/****************
+*** FUNCTIONS ***
+****************/
+
+/* mkdir() -- Makes directory */
+int mkdir(const char* const a_PathName)
+{
+	// NOT IMPLEMENTED
+	return 0;
+}
+
+/* socket() -- Opens Socket */
+int socket(int domain, int type, int protocol)
+{
+#if defined(__palmos__)
+	/* Palm OS */
+	return -1;
+	
+#else
+	/* NOT IMPLEMENTED */
+	return -1;
+#endif
+}
+
 /*****************************************************************************/
 
 #endif /* __REMOOD_USECCSTUB */

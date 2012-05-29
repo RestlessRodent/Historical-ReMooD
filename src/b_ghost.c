@@ -854,8 +854,6 @@ void B_GHOST_Think(B_GhostBot_t* const a_GhostBot, ticcmd_t* const a_TicCmd)
 				{
 					if (((B_GhostNode_t*)a_GhostBot->AtNode)->Links[i][j].Node)
 					{
-						fprintf(stderr, "%p\n", ((B_GhostNode_t*)a_GhostBot->AtNode)->Links[i][j].Node);
-						fprintf(stderr, "linked\n");
 						P_SpawnMobj(
 								((B_GhostNode_t*)a_GhostBot->AtNode)->Links[i][j].Node->x,
 								((B_GhostNode_t*)a_GhostBot->AtNode)->Links[i][j].Node->y,

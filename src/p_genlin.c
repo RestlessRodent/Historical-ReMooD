@@ -1627,8 +1627,6 @@ bool_t EV_TryGenTrigger(line_t* const a_Line, const int a_Side, mobj_t* const a_
 			// Fake Floor
 		else if (TypeBase == EVGHET_YFAKEFLOORS)
 		{
-			fprintf(stderr, "SPAWN FLOOR\n");
-			
 			// Extract 3D Floor flags
 			u32 = a_Line->special & 0xFFFFFFU;
 			

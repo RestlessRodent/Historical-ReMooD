@@ -33,6 +33,7 @@
 #ifndef __M_FIXED__
 #define __M_FIXED__
 
+#include "ccstub.h"
 #include "doomtype.h"
 #include "doomdef.h"
 

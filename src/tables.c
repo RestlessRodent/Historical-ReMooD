@@ -96,7 +96,7 @@ int SlopeDiv(unsigned num, unsigned den)
 #endif
 #endif
 
-int finetangent[4096] =
+fixed_t finetangent[4096] =
 {
 	-170910304, -56965752, -34178904, -24413316, -18988036, -15535599,
 	-13145455, -11392683,
@@ -623,7 +623,7 @@ int finetangent[4096] =
 	170910304
 };
 
-int finesine[10240] =
+fixed_t finesine[10240] =
 {
 	25, 75, 125, 175, 226, 276, 326, 376,
 	427, 477, 527, 578, 628, 678, 728, 779,

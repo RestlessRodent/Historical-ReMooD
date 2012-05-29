@@ -1478,8 +1478,6 @@ void D_LoadGameFilesEx(void)
 				// Get field
 				Field = DS_FieldNumber(c_IWADInfos[i].BaseName, j);
 				
-				fprintf(stderr, "%i == %s\n", (int)j, Field);
-				
 				// No more fields
 				if (!Field)
 					break;

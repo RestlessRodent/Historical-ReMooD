@@ -33,25 +33,28 @@
 ***************/
 
 /* System */
-// On UNIX include the standard header
-#if defined(__unix__)
-#include <unistd.h>				// Standard Stuff
-#endif
+#if !defined(__REMOOD_USECCSTUB)
+	// On UNIX include the standard header
+	#if defined(__unix__)
+	#include <unistd.h>				// Standard Stuff
+	#endif
 
-// On Windows include windows.h
-#if defined(_WIN32)
-#include <windows.h>
-#endif
+	// On Windows include windows.h
+	#if defined(_WIN32)
+	#include <windows.h>
+	#endif
 
-// On DOS include dos.h (and conio.h for colors)
-#if defined(__MSDOS__)
-#include <dos.h>
-#include <conio.h>
-#include <dpmi.h>
-#endif
+	// On DOS include dos.h (and conio.h for colors)
+	#if defined(__MSDOS__)
+	#include <dos.h>
+	#include <conio.h>
+	#include <dpmi.h>
+	#endif
 
-// Include the standard C stuff here
-#include <stdlib.h>
+	// Include the standard C stuff here
+	#include <stdlib.h>
+
+#endif
 
 /* Local */
 #include "i_util.h"
@@ -1112,7 +1115,7 @@ void I_ShutdownSystem(void)
 /* I_mkdir() -- Creates a new directory */
 int I_mkdir(const char* a_Path, int a_UNIXPowers)
 {
-#if defined(__REMOOD_SYSTEM_WINDOWS)
+#if defined(__REMOOD_SYSTEM_WINDOWS) || defined(__REMOOD_USECCSTUB)
 	return mkdir(a_Path);
 	
 #else

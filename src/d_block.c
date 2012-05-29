@@ -1100,7 +1100,6 @@ static bool_t DS_RBSPerfect_NetPlayF(struct D_RBlockStream_s* const a_Stream, I_
 		// No key found? probably revoked, delete block
 		if (!Key)
 		{
-			fprintf(stderr, "REVOKED!!\n");
 			if (Hold->Data)
 				Z_Free(Hold->Data);
 			Hold->Data = NULL;
@@ -1111,7 +1110,6 @@ static bool_t DS_RBSPerfect_NetPlayF(struct D_RBlockStream_s* const a_Stream, I_
 		
 		// If the block does not match the current read pos, skip it
 		// This would mean that we got blocks out of order
-		fprintf(stderr, "rc %u == %u\n", Hold->PacketNum, Key->NextReadNum);
 		if (Hold->PacketNum != Key->NextReadNum)
 			continue;	// Still want to keep it though!
 		
@@ -1130,7 +1128,6 @@ static bool_t DS_RBSPerfect_NetPlayF(struct D_RBlockStream_s* const a_Stream, I_
 		Z_Free(Hold);
 		PerfectData->ReadQ[b] = NULL;
 		Key->NextReadNum++;
-		fprintf(stderr, "next %i\n", (int)Key->NextReadNum);
 		a_Stream->Marked = true;	// and set perfection!
 		return true;
 	}
@@ -1272,7 +1269,6 @@ static bool_t DS_RBSPerfect_NetPlayF(struct D_RBlockStream_s* const a_Stream, I_
 					// As long as the following are met:
 					// - The block isn't from the past
 					// - The block isn't already stored
-				fprintf(stderr, "comp %u %u\n", PerfPkNum, Key->NextReadNum);
 				if (PerfPkNum >= Key->NextReadNum)
 				{
 					// Find blocks already in queue that match this key
@@ -1314,8 +1310,6 @@ static bool_t DS_RBSPerfect_NetPlayF(struct D_RBlockStream_s* const a_Stream, I_
 					// Pre-existing block not found
 					if (!Hold)
 					{
-						fprintf(stderr, "PUSH READ!\n");
-						
 						// Use blank spot?
 						if (BlankSpot > 0 && BlankSpot < PerfectData->SizeReadQ)
 							Hold = PerfectData->ReadQ[BlankSpot] = Z_Malloc(sizeof(*Hold), PU_BLOCKSTREAM, NULL);

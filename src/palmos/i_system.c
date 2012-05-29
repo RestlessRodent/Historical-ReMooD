@@ -33,43 +33,6 @@
 ***************/
 
 /* System */
-#include <stdint.h>
-
-#if !defined(__REMOOD_SYSTEM_WINDOWS)
-#include <sys/stat.h>
-#endif
-
-/* Local */
-#include "doomtype.h"
-
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#ifndef _WIN32
-#include <unistd.h>
-#else
-#include <direct.h>				// for mkdir
-#include <windows.h>
-#endif
-#include <fcntl.h>
-#include <time.h>
-
-#ifdef LINUX
-#ifndef FREEBSD
-#include <sys/vfs.h>
-#else
-#include <sys/param.h>
-#include <sys/mount.h>
-
-/*For meminfo*/
-#include <sys/types.h>
-#include <kvm.h>
-#include <nlist.h>
-#include <sys/vmmeter.h>
-#include <fcntl.h>
-#endif
-#endif
-
 #include "doomdef.h"
 #include "m_misc.h"
 #include "i_system.h"
@@ -87,17 +50,11 @@ extern void D_PostEvent(event_t*);
 //
 void I_OutputMsg(char* fmt, ...)
 {
-	va_list argptr;
-	
-	va_start(argptr, fmt);
-	vfprintf(stderr, fmt, argptr);
-	va_end(argptr);
 }
 
 /* I_OutputText() -- Output text to console */
 void I_OutputText(const char* const a_Text)
 {
-	fputs(a_Text, stderr);
 }
 
 void I_StartupKeyboard(void)
@@ -140,18 +97,7 @@ void I_Tactile(int on, int off, int total)
 /* I_GetTimeMS() -- Returns time since the game started (in MS) */
 uint32_t I_GetTimeMS(void)
 {
-	static clock_t FirstClock;
-	clock_t ThisClock = 0;
-	
-	/* Get current clock */
-	ThisClock = clock();
-	
-	// FirstClock not set?
-	if (!FirstClock)
-		FirstClock = ThisClock;
-		
-	/* Return time passed */
-	return ((ThisClock - FirstClock) * 1000) / CLOCKS_PER_SEC;
+	return 0;
 }
 
 //
@@ -180,21 +126,6 @@ uint8_t* I_AllocLow(int length)
 //
 void I_Error(char* error, ...)
 {
-	va_list argptr;
-	char txt[512];
-	
-	if (devparm)
-		abort();
-		
-	// Message first.
-	va_start(argptr, error);
-	fprintf(stderr, "Error: ");
-	vfprintf(stderr, error, argptr);
-	fprintf(stderr, "\n");
-	va_end(argptr);
-	
-	fflush(stderr);
-	
 	// Shutdown. Here might be other errors.
 	if (demorecording)
 		G_CheckDemoStatus();

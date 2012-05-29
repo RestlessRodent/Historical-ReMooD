@@ -33,8 +33,6 @@
 ***************/
 
 /* System */
-#include <stdlib.h>
-#include <stdint.h>
 
 /* Local */
 #include "doomtype.h"

@@ -29,6 +29,8 @@
 // -----------------------------------------------------------------------------
 // DESCRIPTION:
 
+#if !defined(__palmos__)
+
 #ifdef HAVE_CONFIG_H
 #include <config.h>
 #endif
@@ -413,3 +415,6 @@ struct md5_ctx* ctx;
 	ctx->C = C;
 	ctx->D = D;
 }
+
+#endif
+

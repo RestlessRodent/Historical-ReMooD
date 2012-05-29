@@ -63,6 +63,11 @@
 			};
 		#endif
 	#endif
+	
+#elif defined(__palmos__)
+	// Palm OS Sockets
+	#define __MSDOS__	// Define as DOS for now
+						// NetLib sockets can be done later on
 #else
 	// POSIX Sockets
 	#include <sys/socket.h>
@@ -409,6 +414,7 @@ I_NetSocket_t* I_NetOpenSocket(const bool_t a_Server, const I_HostAddress_t* con
 #endif
 		
 	// Set non-block socket
+#if !defined(__palmos__)
 #if !defined(_WIN32)
 	SockOpt = fcntl(*pSockFD, F_GETFL, 0);
 	SockOpt |= O_NONBLOCK;
@@ -417,6 +423,7 @@ I_NetSocket_t* I_NetOpenSocket(const bool_t a_Server, const I_HostAddress_t* con
 	// Win32 uses ioctlsocket()
 	NBVal = 1;
 	ioctlsocket(*pSockFD, FIONBIO, &NBVal);
+#endif
 #endif
 	
 	// Bind to address

@@ -452,8 +452,6 @@ static uint32_t BS_BuildBotPath(B_BotData_t* const a_BotData, B_BotNode_t* const
 					// Get that node there
 					CheckNode = AtNode->Links[x + 1][y + 1];
 					
-					//fprintf(stderr, "node to (%i, %i) is %p\n", x, y, CheckNode);
-					
 					// Node is there?
 					if (CheckNode)
 						// Walkable?
@@ -1040,9 +1038,6 @@ static void BS_ThinkFollowNearestPlayer(B_BotData_t* const a_BotData, ticcmd_t* 
 		if (p >= MAXPLAYERS)
 			return;
 		
-		if (g_BotDebug)
-			fprintf(stderr, "Bot: Traverse to player %i.\n", (int)p);
-	
 		// No players found?
 		if (!Player || !ToPlayer)
 			return;
@@ -1071,8 +1066,6 @@ static void BS_ThinkFollowNearestPlayer(B_BotData_t* const a_BotData, ticcmd_t* 
 		// End of iteration? Clear everything
 		if (a_BotData->PivotIt >= a_BotData->NumPivotNodes)
 		{
-			fprintf(stderr, "Bot: Target reached\n");
-			
 			if (a_BotData->PathNodes)
 				Z_Free(a_BotData->PathNodes);
 			a_BotData->PathNodes = NULL;
@@ -1087,8 +1080,6 @@ static void BS_ThinkFollowNearestPlayer(B_BotData_t* const a_BotData, ticcmd_t* 
 		// Continue down iterator.
 		else
 		{
-			fprintf(stderr, "Bot: Move to node\n");
-			
 			// Spawn Debug here
 			if (g_BotDebug)
 			{
