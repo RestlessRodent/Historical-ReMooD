@@ -937,6 +937,9 @@ void A_FireOldBFG(mobj_t* mo, player_t* player, pspdef_t* psp)
 	/* Get player object */
 	pMo = player->mo;
 	
+	if (!P_CheckAmmo(player))
+		return;
+	
 	// Reduce ammo
 	P_ReduceAmmo(player);
 	
