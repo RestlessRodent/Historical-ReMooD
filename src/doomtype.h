@@ -62,6 +62,11 @@
 	#include <shlobj.h>
 #endif
 
+/* Palm OS Ugly Includes */
+#if defined(__palmos__)
+	#include "pealstub.h"
+#endif
+
 /* Required Stuff */
 #if defined(__REMOOD_USECCSTUB)
 	#include "ccstub.h"

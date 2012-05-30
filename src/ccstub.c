@@ -38,6 +38,20 @@
 
 #include "ccstub.h"
 
+#if defined(__palmos__)
+	#include <PalmOS.h>
+	#include <StringMgr.h>
+	#include <VFSMgr.h>
+	#include <PceNativeCall.h>
+#endif
+
+/**************
+*** GLOBALS ***
+**************/
+
+const void *gEmulStateP = 0;
+Call68KFuncType *gCall68KFuncP = 0;
+
 /****************
 *** FUNCTIONS ***
 ****************/

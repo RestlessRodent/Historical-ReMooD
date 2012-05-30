@@ -50,6 +50,7 @@
 	#include <NetMgr.h>							// Networking
 	#include <VFSMgr.h>							// File Handling
 	#include <unix_stdarg.h>					// va_list
+	#include <StringMgr.h>						// Strings
 #endif
 
 /*******************
@@ -96,6 +97,21 @@
 	
 	#define R_OK vfsFileAttrReadOnly
 	#define W_OK vfsFileAttrReadOnly	// All files are writeable mostly
+	
+	// Functions that can just be defined away
+	#define strcasecmp StrCaselessCompare
+	#define strncasecmp StrNCaselessCompare
+	#define strcmp StrCompare
+	#define strncmp StrNCompare
+	#define memmove MemMove
+	#define memcpy MemMove
+	#define memcmp MemCmp
+	#define malloc MemPtrNew
+	#define atoi StrAToI
+	#define memset(s,c,n) MemSet((s), (n), (c))
+	#define strlen StrLen
+	#define strcat StrCat
+	#define strncat StrNCat
 #endif
 
 /*****************

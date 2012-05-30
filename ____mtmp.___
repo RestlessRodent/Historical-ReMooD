@@ -206,7 +206,7 @@ endif
 	__XX_EXESUFFIX = .bin
 	__XX_OBJPREFIX = o
 	__XX_ICFLAGS  = -D__REMOOD_SYSTEM_PALMOS -D__REMOOD_USECCSTUB -Isrc -mshort-load-bytes -ffixed-r9
-	__XX_ILDFLAGS = -mfloat-abi=softfp -nostartfiles -nodefaultlibs -nostdlib -mshort-load-bytes -ffixed-r9
+	__XX_ILDFLAGS = arm-palmos-gcc-pace_gen.o armfloats.ar -mfloat-abi=softfp -nostartfiles -nodefaultlibs -nostdlib -mshort-load-bytes -ffixed-r9
 	__XX_DEFINTRF ?= palmos
 	__XX_EXTRAOBJ = 
 	
@@ -304,7 +304,7 @@ remood:													$(__XX_BIN)/remood$(__INT_EXESUFFIX)$(__XX_EXESUFFIX)
 # The actual binary
 $(__XX_BIN)/remood$(__INT_EXESUFFIX)$(__XX_EXESUFFIX):	$(__XX_OBJS)
 														@echo [LD] $(notdir $@)
-														$(__INT_CC) -o $@ $(__XX_OBJS) $(__XX_LDFLAGS)
+														@$(__INT_CC) -o $@ $(__XX_OBJS) $(__XX_LDFLAGS)
 
 # Source files in src/
 $(__XX_OBJ)/%.$(__XX_OBJPRIME):							$(__XX_SRC)/%.c

@@ -391,6 +391,14 @@ do
 		palmos)
 			echo "$COOLPREFIX Building Palm OS PRC" 1>&2
 			
+			# Download Floating Point Object
+			echo "$COOLPREFIX Checking for GCCs floatlib" 1>&2
+			if [ ! -f "arm-palmos-gcc-floatlib.o" ]
+			then
+				# Download from remood.org
+				wget -c http://remood.org/downloads/arm-palmos-gcc-floatlib.o -O arm-palmos-gcc-floatlib.o
+			fi
+			
 			# Check if peal needs to be extracted
 			echo "$COOLPREFIX Checking for PEAL" 1>&2
 			if  [ ! -d "peal-2005_4_14" ]
@@ -469,7 +477,7 @@ do
 			# Compile ReMooD Now
 			echo "$COOLPREFIX Now Compiling..." 1>&2
 			make clean USEINTERFACE=palmos TOOLPREFIX="arm-palmos-"
-			if ! make USEINTERFACE=palmos TOOLPREFIX="arm-palmos-"
+			if ! make USEINTERFACE=palmos TOOLPREFIX="arm-palmos-" CFLAGS="-Iparm -Ipeal-2005_4_14/arm"
 			then
 				echo "$COOLPREFIX Failed" 1>&2
 				exit 1
