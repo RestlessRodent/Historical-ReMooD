@@ -1483,8 +1483,10 @@ struct Z_HashTable_s
 /*** FUNCTIONS ***/
 
 /* Z_Hash() -- Hashes a string */
+// The input string is case insensitive
 uint32_t Z_Hash(const char* const a_Str)
 {
+#if defined(__REMOOD_OLDHASHFUNC)
 	uint32_t Ret = 0;
 	size_t i;
 	
@@ -1498,6 +1500,37 @@ uint32_t Z_Hash(const char* const a_Str)
 		
 	/* Return */
 	return Ret;
+#else
+	register int i;
+	
+	uint32_t Val;
+	uint32_t Ret = 0;
+	static const uint32_t c_Primes[16] =
+	{
+		0, 1, 2, 3, 5, 7, 11, 13, 17, 19, 29, 31,	// Base
+		29, 19, 17, 13,	// For Masking
+	};
+	
+	/* Check */
+	if (!a_Str)
+		return 0;
+		
+	/* Hash loop */
+	// A = 0x41 Z = 0x5A
+	// a = 0x61 z = 0x7A
+	// Diff is 32, or 0x20
+	for (i = 0; a_Str[i]; i++)
+	{
+		// Current Value (Remove caps, hopefully)
+		Val = a_Str[i] & (~0x20);
+		
+		// Modify return value
+		Ret ^= (Val << c_Primes[Val & 15]) | (Val << c_Primes[Val & 75]);
+	}
+		
+	/* Return */
+	return Ret;
+#endif
 }
 
 /* Z_HashCreateTable() -- Creates a new hashing table */

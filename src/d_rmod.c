@@ -452,7 +452,7 @@ static bool_t DS_RMODPDC(const struct WL_WADFile_s* const a_WAD, const uint32_t 
 			// Find handler for this table type
 			tP = Z_TableName(CurrentTable);
 			
-			fprintf(stderr, "Cache from %s\n", tP);
+			//fprintf(stderr, "Cache from %s\n", tP);
 	
 			// Sanity check
 			if (!tP)
