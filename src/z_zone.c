@@ -1525,7 +1525,7 @@ uint32_t Z_Hash(const char* const a_Str)
 		Val = a_Str[i] & (~0x20);
 		
 		// Modify return value
-		Ret ^= (Val << c_Primes[Val & 15]) | (Val << c_Primes[Val & 75]);
+		Ret ^= (Val << c_Primes[i & 15]);// | (Val << c_Primes[31 - (Val & 7)]);
 	}
 		
 	/* Return */
