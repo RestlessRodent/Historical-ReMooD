@@ -1212,8 +1212,17 @@ size_t I_GetStorageDir(char* const a_Out, const size_t a_Size, const I_DataStora
 	/* Clear */
 	memset(a_Out, 0, sizeof(*a_Out) * a_Size);
 	
+	/* Windows Systems */
+#if defined(_WIN32)
+	
+	/* DOS */
+#elif defined(__MSDOS__)
+	// Use C:\DOOMDATA and make sure it exists
+	strncat(a_Out, "c:/doomdata", a_Size);	
+	I_mkdir(a_Out, 0);
+	
 	/* UNIX Systems */
-#if defined(__unix__)
+#elif defined(__unix__)
 	// Get XDG Config directory
 	if ((Env = getenv((a_Type == DST_CONFIG ? "XDG_CONFIG_HOME" : "XDG_DATA_HOME"))))
 	{
@@ -1256,15 +1265,6 @@ size_t I_GetStorageDir(char* const a_Out, const size_t a_Size, const I_DataStora
 		I_mkdir(a_Out, 0);
 	}
 	
-	/* Windows Systems */
-#elif defined(_WIN32)
-	
-	/* DOS */
-#elif defined(__MSDOS__)
-	// Use C:\DOOMDATA and make sure it exists
-	strncat(a_Out, "c:/doomdata", a_Size);	
-	I_mkdir(a_Out, 0);
-
 	/* Other */
 #else
 	

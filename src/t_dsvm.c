@@ -962,6 +962,7 @@ bool_t T_DSVM_Cleanup(void)
 	
 	/* Initialize for new script */
 	// Create global function
+	l_VMCurFunc = l_VMFirstFunc = NULL;
 	l_VMCurFunc = TS_VMCreateFunc("@__global", NULL);
 	
 	/* Success! */

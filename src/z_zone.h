@@ -167,6 +167,7 @@ Z_Table_t* Z_TableUp(Z_Table_t* const a_Table);
 const char* Z_TableName(Z_Table_t* const a_Table);
 Z_Table_t* Z_FindSubTable(Z_Table_t* const a_Table, const char* const a_Key, const bool_t a_Create);
 const char* Z_TableGetValue(Z_Table_t* const a_Table, const char* const a_SubKey);
+int32_t Z_TableGetValueInt(Z_Table_t* const a_Table, const char* const a_SubKey, bool_t* const a_Found);
 bool_t Z_TableSetValue(Z_Table_t* const a_Table, const char* const a_SubKey, const char* const a_NewValue);
 void Z_TableClearValue(Z_Table_t* const a_Table, const char* const a_SubKey);
 void Z_TablePrint(Z_Table_t* const a_Table, const char* const a_Prefix);
@@ -174,6 +175,10 @@ bool_t Z_TableMergeInto(Z_Table_t* const a_Target, const Z_Table_t* const a_Sour
 bool_t Z_TableSuperCallback(Z_Table_t* const a_Table, bool_t (*a_Callback) (Z_Table_t* const a_Sub, void* const a_Data), void* const a_Data);
 
 const char* Z_TableGetValueOrElse(Z_Table_t* const a_Table, const char* const a_SubKey, const char* a_ElseOr);
+
+struct D_RBlockStream_s;
+void Z_TableStoreToStream(Z_Table_t* const a_Table, struct D_RBlockStream_s* const a_Stream);
+Z_Table_t* Z_TableStreamToStore(struct D_RBlockStream_s* const a_Stream);
 
 /*****************************************************************************/
 

@@ -121,7 +121,7 @@ bool_t P_CheckSizeEx(size_t Need)
 bool_t P_SaveGameEx(const char* SaveName, const char* ExtFileName, size_t ExtFileNameLen, size_t* SaveLen, uint8_t** Origin)
 {
 	bool_t OK = false;
-	D_RBlockStream_t* BS = D_RBSCreateFileStream(ExtFileName, true);
+	D_RBlockStream_t* BS = D_RBSCreateFileStream(ExtFileName, DRBSSF_OVERWRITE);
 	
 	if (BS)
 		OK = P_SaveGameToBS(BS);
@@ -133,7 +133,7 @@ bool_t P_SaveGameEx(const char* SaveName, const char* ExtFileName, size_t ExtFil
 bool_t P_LoadGameEx(const char* FileName, const char* ExtFileName, size_t ExtFileNameLen, size_t* SaveLen, uint8_t** Origin)
 {
 	bool_t OK = false;
-	D_RBlockStream_t* BS = D_RBSCreateFileStream(ExtFileName, false);
+	D_RBlockStream_t* BS = D_RBSCreateFileStream(ExtFileName, DRBSSF_READONLY);
 	
 	if (BS)
 	{

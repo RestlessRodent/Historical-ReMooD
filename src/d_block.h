@@ -44,6 +44,13 @@
 
 #define RBLOCKBUFSIZE					128		// Block buffer size
 
+/* D_RBSStreamFlags_t -- Flags for streams */
+typedef enum D_RBSStreamFlags_s
+{
+	DRBSSF_OVERWRITE				= 0x0001,	// Overwrite existing file
+	DRBSSF_READONLY					= 0x0002,	// Create Read Only Stream
+} D_RBSStreamFlags_t;
+
 /*****************
 *** STRUCTURES ***
 *****************/
@@ -53,6 +60,7 @@ typedef struct D_RBlockStream_s
 {
 	/* Info */
 	void* Data;									// Private Data
+	uint32_t Flags;								// Flags (if ever needed)
 	
 	/* Current Block */
 	char BlkHeader[4];							// Block identifier
@@ -82,7 +90,7 @@ typedef struct D_RBlockStream_s
 ****************/
 
 D_RBlockStream_t* D_RBSCreateLoopBackStream(void);
-D_RBlockStream_t* D_RBSCreateFileStream(const char* const a_PathName, const bool_t a_Overwrite);
+D_RBlockStream_t* D_RBSCreateFileStream(const char* const a_PathName, const uint32_t a_Flags);
 D_RBlockStream_t* D_RBSCreateNetStream(I_NetSocket_t* const a_NetSocket);
 D_RBlockStream_t* D_RBSCreatePerfectStream(D_RBlockStream_t* const a_Wrapped);
 void D_RBSCloseStream(D_RBlockStream_t* const a_Stream);

@@ -584,10 +584,6 @@ const WL_WADFile_t* WL_OpenWAD(const char* const a_PathName)
 		Z_HashAddEntry(NewWAD->__Private.__EntryHashes, ThisEntry->Hash, ThisEntry);
 	}
 	
-	/* Run Data Registration */
-	for (i = 0; i < l_NumPDC; i++)
-		WL_GetPrivateData(NewWAD, l_PDCp[i]->Key, NULL);
-	
 	/* Success */
 	NewWAD->__Private.__IsValid = true;
 	
@@ -598,8 +594,12 @@ const WL_WADFile_t* WL_OpenWAD(const char* const a_PathName)
 	if (devparm)
 	{
 		u32 = NewWAD->NumEntries;
-		CONL_PrintF("WL_OpenWAD: Loaded \"%s\"%s%s [%u Entries, %s]\n", NewWAD->__Private.__DOSName, (NewWAD->__Private.__IsIWAD ? "*" : ""), (NewWAD->__Private.__IsWAD ? "" : "+"), u32, NewWAD->SimpleSumChars);
+		CONL_PrintF("WL_OpenWAD: Added \"%s\"%s%s [%u Entries, %s]\n", NewWAD->__Private.__DOSName, (NewWAD->__Private.__IsIWAD ? "*" : ""), (NewWAD->__Private.__IsWAD ? "" : "+"), u32, NewWAD->SimpleSumChars);
 	}
+	
+	/* Run Data Registration */
+	for (i = 0; i < l_NumPDC; i++)
+		WL_GetPrivateData(NewWAD, l_PDCp[i]->Key, NULL);
 		
 	/* Return the generated WAD */
 	return NewWAD;

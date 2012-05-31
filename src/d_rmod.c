@@ -38,6 +38,7 @@
 #include "console.h"
 #include "z_zone.h"
 #include "w_wad.h"
+#include "d_block.h"							// Cache
 
 // RMOD Handlers are here
 #include "v_widget.h"
@@ -333,11 +334,14 @@ static bool_t DS_RMODPDC(const struct WL_WADFile_s* const a_WAD, const uint32_t 
 	Z_Table_t* CurrentTable;
 	const char* tP;
 	D_RMODWADStuff_t* Stuff;
+	D_RBlockStream_t* CacheStream;
+	uint32_t u32a, u32b;
 	
 	static bool_t CheckRecursive = false;
 	
 	const char* ErrorText;
 	char TokVals[2][BUFSIZE];
+	bool_t DoCache = false;
 	
 	/* Recursive call? */
 	if (CheckRecursive)
@@ -366,257 +370,414 @@ static bool_t DS_RMODPDC(const struct WL_WADFile_s* const a_WAD, const uint32_t 
 	// Initial Stuff
 	Stuff->WAD = a_WAD;
 	
-	// Info
+	/* REMOODAT ZTABLE CACHE */
+	// Determine pathname for cache file
+		// Stored in ReMooD Data Directory
+	memset(TokVals[0], 0, sizeof(TokVals[0]));
+	memset(TokVals[1], 0, sizeof(TokVals[1]));
+	
+	// Directory to place at
+	I_GetStorageDir(TokVals[0], BUFSIZE - 1, DST_DATA);
+	
+	// Filename to write to, then convert to lowercase
+	snprintf(TokVals[1], BUFSIZE - 1, "%s", a_WAD->__Private.__DOSName);
+	tP = strchr(TokVals[1], '.');
+	if (tP)
+		(*((char*)tP)) = 0;
+	strncat(TokVals[1], ".dat", BUFSIZE - 1);
+	C_strlwr(TokVals[1]);
+	
+	// Append
+	strncat(TokVals[0], "/", BUFSIZE - 1);
+	strncat(TokVals[0], TokVals[1], BUFSIZE - 1);
+	
+	// Try opening the stream RO
 	if (devparm)
-		CONL_PrintF("DS_RMODPDC: Parsing REMOODAT...\n");
+		CONL_PrintF("DS_RMODPDC: Attempting cache \"%s\"...\n", TokVals[0]);
+	CacheStream = D_RBSCreateFileStream(TokVals[0], DRBSSF_READONLY);
+	
+	// If it failed, it does not exist
+	if (!CacheStream)
+		DoCache = false;
+	
+	// Otherwise read the first block and determine whether it is cache worthy
 	else
-		CONL_EarlyBootTic("Parsing REMOODAT", true);
-	
-	/* Use streamer */
-	DataStream = WL_StreamOpen(DataEntry);
-	
-	// Failed?
-	if (!DataStream)
 	{
-		if (devparm)
-			CONL_PrintF("DS_RMODPDC: Failed to open stream.\n");
-		CheckRecursive = false;
-		return false;
+		// Intially use the cache
+		DoCache = true;
+		
+		// Read the first block
+		memset(TokVals[1], 0, sizeof(TokVals[1]));
+		if (!D_RBSPlayBlock(CacheStream, TokVals[1]))
+			DoCache = false;
+		else
+		{
+			// Not the header we expected?
+			if (!D_RBSCompareHeader("PWAD", TokVals[1]))
+				DoCache = false;
+				
+			// Read into it more
+			else
+			{
+				// Read Values
+				u32a = D_RBSReadUInt32(CacheStream);
+				u32b = D_RBSReadUInt32(CacheStream);
+				memset(TokVals[1], 0, sizeof(TokVals[1]));
+				D_RBSReadString(CacheStream, TokVals[1], sizeof(TokVals[1]));
+			
+				// If neither of them match! This is a different WAD
+				if (u32a != a_WAD->__Private.__IndexOff ||
+					u32b != a_WAD->__Private.__Size ||
+					strcmp(TokVals[1], a_WAD->SimpleSumChars))
+					DoCache = false;
+			}
+		}
+		
+		// Invalid, Non-Matching, Or Out of Date
+		if (!DoCache)
+		{
+			D_RBSCloseStream(CacheStream);
+			CacheStream = NULL;
+		}
 	}
 	
-	/* Determine text type */
-	WL_StreamCheckUnicode(DataStream);
-	
-	/* Begin stream parse */
-	// Prepare info
-	memset(&Info, 0, sizeof(Info));
-	
-	Info.Stream = DataStream;
-	Info.TokenSize = TOKENBUFSIZE;
-	Info.StreamEnd = DataEntry->Size;
-	
-	// Reset variables
-	Expected = 0;
-	ErrorText = NULL;
-	Deepness = 0;
-	CurrentTable = NULL;
-		
-	// Token read loop
-	while (DS_RMODReadToken(&Info))
+	/* Cached REMOODAT */
+	// Although the same table functions are called (for simplicity)
+	// Parsing the file structure isn't needed at all
+	if (DoCache)
 	{
-		// Closing Brace -- Step out of a grouplet
-		if (Expected == 0 && Info.Token[0] == '}')
+		// Restore table from the block cache
+		while ((CurrentTable = Z_TableStreamToStore(CacheStream)))
 		{
-			// Decrease deepness
-			Deepness--;
+			// Find handler for this table type
+			tP = Z_TableName(CurrentTable);
 			
-			// Too deep?
-			if (Deepness < 0)
+			fprintf(stderr, "Cache from %s\n", tP);
+	
+			// Sanity check
+			if (!tP)
 			{
-				ErrorText = "Too many closing braces \'}\'";
+				ErrorText = "Table has no name?";
 				break;
 			}
+	
+			// Copy until # is found
+			n = strlen(tP);
+			for (i = 0; i < n; i++)
+				if (tP[i] == '#')
+					break;
+				else
+					TokVals[1][i] = tP[i];
+			TokVals[1][i] = 0;
 			
-			// Change the current table
-			if (CurrentTable)
-			{
-				// No deepness
-				if (Deepness == 0)
+			// Look in list for a match
+			for (i = 0; i < NUMDRMODPRIVATES; i++)
+				if (strcasecmp(TokVals[1], c_RMODHandlers[i].TableType) == 0)
 				{
-					// Find handler for this table type
-					tP = Z_TableName(CurrentTable);
-					
-					// Sanity check
-					if (!tP)
+					// Call handler
+					if (c_RMODHandlers[i].HandleFunc)
+						if (!c_RMODHandlers[i].HandleFunc(CurrentTable, a_WAD, i, &Stuff->Private[i]))
+						CONL_PrintF("DS_RMODPDC: Handler for \"%s\" failed.\n", TokVals[1]);
+			
+					// No more handling needed
+					break;
+				}
+	
+			// Not found?
+			if (i == NUMDRMODPRIVATES)
+				CONL_PrintF("DS_RMODPDC: No data handler for \"%s\".\n", TokVals[1]);
+	
+			// Destroy table, not needed
+			Z_TableDestroy(CurrentTable);
+			CurrentTable = NULL;
+		}
+	}
+	
+	/* Non-Cached REMOODAT */
+	else
+	{
+		// Prepare for cache write
+		CacheStream = D_RBSCreateFileStream(TokVals[0], DRBSSF_OVERWRITE);
+		
+		// Write Information header to the stream
+		if (CacheStream)
+		{
+			// WAD Information Header
+			D_RBSBaseBlock(CacheStream, "PWAD");
+			D_RBSWriteUInt32(CacheStream, a_WAD->__Private.__IndexOff);
+			D_RBSWriteUInt32(CacheStream, a_WAD->__Private.__Size);
+			D_RBSWriteString(CacheStream, a_WAD->SimpleSumChars);
+			D_RBSRecordBlock(CacheStream);
+		}
+		
+		// Info
+		if (devparm)
+			CONL_PrintF("DS_RMODPDC: Parsing REMOODAT...\n");
+		else
+			CONL_EarlyBootTic("Parsing REMOODAT", true);
+	
+		// Use streamer
+		DataStream = WL_StreamOpen(DataEntry);
+	
+		// Failed?
+		if (!DataStream)
+		{
+			if (devparm)
+				CONL_PrintF("DS_RMODPDC: Failed to open stream.\n");
+			CheckRecursive = false;
+			return false;
+		}
+	
+		// Determine text type
+		WL_StreamCheckUnicode(DataStream);
+	
+		// Begin stream parse
+		// Prepare info
+		memset(&Info, 0, sizeof(Info));
+	
+		Info.Stream = DataStream;
+		Info.TokenSize = TOKENBUFSIZE;
+		Info.StreamEnd = DataEntry->Size;
+	
+		// Reset variables
+		Expected = 0;
+		ErrorText = NULL;
+		Deepness = 0;
+		CurrentTable = NULL;
+		
+		// Token read loop
+		while (DS_RMODReadToken(&Info))
+		{
+			// Closing Brace -- Step out of a grouplet
+			if (Expected == 0 && Info.Token[0] == '}')
+			{
+				// Decrease deepness
+				Deepness--;
+			
+				// Too deep?
+				if (Deepness < 0)
+				{
+					ErrorText = "Too many closing braces \'}\'";
+					break;
+				}
+			
+				// Change the current table
+				if (CurrentTable)
+				{
+					// No deepness
+					if (Deepness == 0)
 					{
-						ErrorText = "Table has no name?";
-						break;
-					}
+						// Find handler for this table type
+						tP = Z_TableName(CurrentTable);
 					
-					// Copy until # is found
-					n = strlen(tP);
-					for (i = 0; i < n; i++)
-						if (tP[i] == '#')
-							break;
-						else
-							TokVals[0][i] = tP[i];
-					
-					// Look in list for a match
-					for (i = 0; i < NUMDRMODPRIVATES; i++)
-						if (strcasecmp(TokVals[0], c_RMODHandlers[i].TableType) == 0)
+						// Sanity check
+						if (!tP)
 						{
-							// Call handler
-							if (c_RMODHandlers[i].HandleFunc)
-								if (!c_RMODHandlers[i].HandleFunc(CurrentTable, a_WAD, i, &Stuff->Private[i]))
-								CONL_PrintF("DS_RMODPDC: Handler for \"%s\" failed.\n", TokVals[0]);
-							
-							// No more handling needed
+							ErrorText = "Table has no name?";
 							break;
 						}
 					
-					// Not found?
-					if (i == NUMDRMODPRIVATES)
-						CONL_PrintF("DS_RMODPDC: No data handler for \"%s\".\n", TokVals[0]);
+						// Copy until # is found
+						n = strlen(tP);
+						for (i = 0; i < n; i++)
+							if (tP[i] == '#')
+								break;
+							else
+								TokVals[0][i] = tP[i];
+						TokVals[0][i] = 0;
+						
+						// Cache the table for future usage
+						Z_TableStoreToStream(CurrentTable, CacheStream);
 					
-					// Destroy table, not needed
-					Z_TableDestroy(CurrentTable);
-					CurrentTable = NULL;
-				}
+						// Look in list for a match
+						for (i = 0; i < NUMDRMODPRIVATES; i++)
+							if (strcasecmp(TokVals[0], c_RMODHandlers[i].TableType) == 0)
+							{
+								// Call handler
+								if (c_RMODHandlers[i].HandleFunc)
+									if (!c_RMODHandlers[i].HandleFunc(CurrentTable, a_WAD, i, &Stuff->Private[i]))
+									CONL_PrintF("DS_RMODPDC: Handler for \"%s\" failed.\n", TokVals[0]);
+							
+								// No more handling needed
+								break;
+							}
+					
+						// Not found?
+						if (i == NUMDRMODPRIVATES)
+							CONL_PrintF("DS_RMODPDC: No data handler for \"%s\".\n", TokVals[0]);
+					
+						// Destroy table, not needed
+						Z_TableDestroy(CurrentTable);
+						CurrentTable = NULL;
+					}
 				
-				// Otherwise, go up a table
-				else
-					CurrentTable = Z_TableUp(CurrentTable);
-			}
-		}
-		
-		// Property -- Add to buffer
-		else if (Expected == 0)
-		{
-			// Remember the token
-			strncpy(TokVals[0], Info.Token, BUFSIZE);
-			
-			// Expect Value now
-			Expected++;
-			
-			// Lowercase the property
-			n = strlen(TokVals[0]);
-			for (i = 0; i < n; i++)
-			{
-				// Lowercase
-				TokVals[0][i] = tolower(TokVals[0][i]);
-				
-				// Not alphanumeric?
-				if (!((TokVals[0][i] >= '0' && TokVals[0][i] <= '9') || (TokVals[0][i] >= 'a' && TokVals[0][i] <= 'z')))
-				{
-					ErrorText = "Properties must use only alphanumeric characters (a-z, A-Z, and 0-9)";
-					break;
+					// Otherwise, go up a table
+					else
+						CurrentTable = Z_TableUp(CurrentTable);
 				}
 			}
-			
-			// Error?
-			if (ErrorText)
-				break;
-			
-			// Only limit of 64 characters
-			if (strlen(TokVals[0]) >= 64)
-			{
-				ErrorText = "Properties are limited to 64 characters";
-				break;
-			}
-		}
 		
-		// Value -- Add to buffer
-		else if (Expected == 1)
-		{
-			// Remember the token
-			strncpy(TokVals[1], Info.Token, BUFSIZE);
-			
-			// Must start and end with quotes
-			n = strlen(TokVals[1]);
-			if (TokVals[1][0] != '\"' && TokVals[1][n - 1] != '\"')
+			// Property -- Add to buffer
+			else if (Expected == 0)
 			{
-				ErrorText = "Values must be quoted";
-				break;
-			}
+				// Remember the token
+				strncpy(TokVals[0], Info.Token, BUFSIZE);
 			
-			// Move over and and remove last character (quote purge)
-			TokVals[1][n - 1] = 0;
-			memmove(&TokVals[1][0], &TokVals[1][1], sizeof(TokVals[1]) - (sizeof(*TokVals[1]) * 1));
+				// Expect Value now
+				Expected++;
 			
-			// Expect type now
-			Expected++;
-		}
-		
-		// Type -- Type of Prop/Val, Table or entry?
-		else
-		{
-			// Check for illegal type first
-			if (Info.Token[0] != '{' && Info.Token[0] != ';')
-			{
-				ErrorText = "Expected { or ; after value";
-				break;
-			}
-			
-			// If it is a table, create new table
-			if (Info.Token[0] == '{')
-			{			
-				// Make value lowercase
-				n = strlen(TokVals[1]);
+				// Lowercase the property
+				n = strlen(TokVals[0]);
 				for (i = 0; i < n; i++)
 				{
 					// Lowercase
-					TokVals[1][i] = tolower(TokVals[1][i]);
-			
+					TokVals[0][i] = tolower(TokVals[0][i]);
+				
 					// Not alphanumeric?
-					if (!((TokVals[1][i] >= '0' && TokVals[1][i] <= '9') || (TokVals[1][i] >= 'a' && TokVals[1][i] <= 'z')))
+					if (!((TokVals[0][i] >= '0' && TokVals[0][i] <= '9') || (TokVals[0][i] >= 'a' && TokVals[0][i] <= 'z')))
 					{
-						ErrorText = "Table names (values) must use only alphanumeric characters (a-z, A-Z, and 0-9)";
+						ErrorText = "Properties must use only alphanumeric characters (a-z, A-Z, and 0-9)";
 						break;
 					}
 				}
-				
-				// Problem?
+			
+				// Error?
 				if (ErrorText)
 					break;
-				
+			
 				// Only limit of 64 characters
-				if (strlen(TokVals[1]) >= 64)
+				if (strlen(TokVals[0]) >= 64)
 				{
-					ErrorText = "Table names are limited to 64 characters";
+					ErrorText = "Properties are limited to 64 characters";
 					break;
 				}
-					
-				// Concat # onto name
-				strncat(TokVals[0], "#", BUFSIZE);
-				
-				// Concat value onto name
-				strncat(TokVals[0], TokVals[1], BUFSIZE);
-				
-				// Create table (or subtable)
-				if (Deepness == 0)	// Table
-				{
-					// Create the table with the specified value/key
-					CurrentTable = Z_TableCreate(TokVals[0]);
-				}
-				else				// Subtable
-				{
-					// Create a sub table
-					CurrentTable = Z_FindSubTable(CurrentTable, TokVals[0], true);
-				}
-				
-				// Increase deepness
-				Deepness++;
 			}
+		
+			// Value -- Add to buffer
+			else if (Expected == 1)
+			{
+				// Remember the token
+				strncpy(TokVals[1], Info.Token, BUFSIZE);
 			
-			// Otherwise, it is a property, add to table
+				// Must start and end with quotes
+				n = strlen(TokVals[1]);
+				if (TokVals[1][0] != '\"' && TokVals[1][n - 1] != '\"')
+				{
+					ErrorText = "Values must be quoted";
+					break;
+				}
+			
+				// Move over and and remove last character (quote purge)
+				TokVals[1][n - 1] = 0;
+				memmove(&TokVals[1][0], &TokVals[1][1], sizeof(TokVals[1]) - (sizeof(*TokVals[1]) * 1));
+			
+				// Expect type now
+				Expected++;
+			}
+		
+			// Type -- Type of Prop/Val, Table or entry?
 			else
 			{
-				// Cannot have properties at level 0
-				if (Deepness == 0)
+				// Check for illegal type first
+				if (Info.Token[0] != '{' && Info.Token[0] != ';')
 				{
-					ErrorText = "Properties must be within tables";
+					ErrorText = "Expected { or ; after value";
 					break;
 				}
-				
-				// Add to table
-				Z_TableSetValue(CurrentTable, TokVals[0], TokVals[1]);
-			}
 			
-			// Reset expected and clear buffers
-			Expected = 0;
-			memset(TokVals, 0, sizeof(TokVals));
+				// If it is a table, create new table
+				if (Info.Token[0] == '{')
+				{			
+					// Make value lowercase
+					n = strlen(TokVals[1]);
+					for (i = 0; i < n; i++)
+					{
+						// Lowercase
+						TokVals[1][i] = tolower(TokVals[1][i]);
+			
+						// Not alphanumeric?
+						if (!((TokVals[1][i] >= '0' && TokVals[1][i] <= '9') || (TokVals[1][i] >= 'a' && TokVals[1][i] <= 'z')))
+						{
+							ErrorText = "Table names (values) must use only alphanumeric characters (a-z, A-Z, and 0-9)";
+							break;
+						}
+					}
+				
+					// Problem?
+					if (ErrorText)
+						break;
+				
+					// Only limit of 64 characters
+					if (strlen(TokVals[1]) >= 64)
+					{
+						ErrorText = "Table names are limited to 64 characters";
+						break;
+					}
+					
+					// Concat # onto name
+					strncat(TokVals[0], "#", BUFSIZE);
+				
+					// Concat value onto name
+					strncat(TokVals[0], TokVals[1], BUFSIZE);
+				
+					// Create table (or subtable)
+					if (Deepness == 0)	// Table
+					{
+						// Create the table with the specified value/key
+						CurrentTable = Z_TableCreate(TokVals[0]);
+					}
+					else				// Subtable
+					{
+						// Create a sub table
+						CurrentTable = Z_FindSubTable(CurrentTable, TokVals[0], true);
+					}
+				
+					// Increase deepness
+					Deepness++;
+				}
+			
+				// Otherwise, it is a property, add to table
+				else
+				{
+					// Cannot have properties at level 0
+					if (Deepness == 0)
+					{
+						ErrorText = "Properties must be within tables";
+						break;
+					}
+				
+					// Add to table
+					Z_TableSetValue(CurrentTable, TokVals[0], TokVals[1]);
+				}
+			
+				// Reset expected and clear buffers
+				Expected = 0;
+				memset(TokVals, 0, sizeof(TokVals));
+			}
+		}
+	
+		// Was there a problem?
+		if (Info.TokenProblem)
+			CONL_PrintF("DS_RMODPDC: Token error \"%s\" at row %i, column %i.\n", Info.TokenProblem, Info.CurRow + 1, Info.CurCol);
+	
+		if (ErrorText)
+			CONL_PrintF("DS_RMODPDC: Parse error \"%s\" at row %i, column %i.\n", ErrorText, Info.CurRow + 1, Info.CurCol);
+	
+		// Free streamer
+		WL_StreamClose(DataStream);
+		
+		// Finish off Cache
+		if (CacheStream)
+		{
+			// Done Marker
+			D_RBSBaseBlock(CacheStream, "DONE");
+			D_RBSRecordBlock(CacheStream);
 		}
 	}
 	
-	// Was there a problem?
-	if (Info.TokenProblem)
-		CONL_PrintF("DS_RMODPDC: Token error \"%s\" at row %i, column %i.\n", Info.TokenProblem, Info.CurRow + 1, Info.CurCol);
-	
-	if (ErrorText)
-		CONL_PrintF("DS_RMODPDC: Parse error \"%s\" at row %i, column %i.\n", ErrorText, Info.CurRow + 1, Info.CurCol);
-	
-	/* Free streamer */
-	WL_StreamClose(DataStream);
+	/* Close stream if it was left open */
+	if (CacheStream)
+		D_RBSCloseStream(CacheStream);
 	
 	/* Unmark recursive */
 	CheckRecursive = false;
@@ -708,16 +869,20 @@ fixed_t D_RMODGetValueFixed(Z_Table_t* const a_Table, const char* const a_Value,
 /* D_RMODGetValueInt() -- Get RMOD Value Int */
 int32_t D_RMODGetValueInt(Z_Table_t* const a_Table, const char* const a_Value, const int32_t a_MissingVal)
 {
-	const char* Value;
+	int32_t Value;
+	bool_t Found;
 	
 	/* Check */
 	if (!a_Table || !a_Value)
 		return a_MissingVal;
+		
+	/* Obtain value */
+	Value = Z_TableGetValueInt(a_Table, a_Value, &Found);
 	
-	if (!(Value = Z_TableGetValue(a_Table, a_Value)))
-		return a_MissingVal;
-	else
-		return atoi(Value);
+	// if it was found, return that value, otherwise the default
+	if (Found)
+		return Value;
+	return a_MissingVal;
 }
 
 /* D_RMODGetValueInt() -- Get RMOD Value Int */

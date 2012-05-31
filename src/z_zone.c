@@ -39,6 +39,7 @@
 #include "doomdef.h"
 #include "m_argv.h"
 #include "console.h"
+#include "d_block.h"
 
 /****************
 *** CONSTANTS ***
@@ -1639,6 +1640,7 @@ typedef struct Z_TableIndex_s
 	char* SubKey;				// Key for index
 	uint32_t SubHash;			// Hash for subkey
 	char* Value;				// Value for index
+	int32_t IntValue;			// Integer Value
 } Z_TableIndex_t;
 
 /* Z_TableEntry_t -- A single entry in a table */
@@ -1910,6 +1912,38 @@ const char* Z_TableGetValue(Z_Table_t* const a_Table, const char* const a_SubKey
 	return NULL;
 }
 
+/* Z_TableGetValueInt() -- Returns pre-determined key integer value */
+int32_t Z_TableGetValueInt(Z_Table_t* const a_Table, const char* const a_SubKey, bool_t* const a_Found)
+{
+	Z_TableEntry_t* Entry;
+	
+	/* Clear Found */
+	if (a_Found)
+		*a_Found = false;
+	
+	/* Check */
+	if (!a_Table || !a_SubKey)
+		return 0;
+		
+	/* Find entry */
+	Entry = Z_FindTableEntry(a_Table, a_SubKey, false, NULL);
+	
+	// If we found the entry it must be an entry
+	if (Entry)
+		if (!Entry->IsTable)
+		{
+			// Set Found
+			if (a_Found)
+				*a_Found = true;
+			
+			// Get Value
+			return Entry->Data.Index.IntValue;
+		}
+			
+	/* Was either not found or was a table */
+	return 0;
+}
+
 /* Z_TableSetValue() -- Set a value for a subkey */
 bool_t Z_TableSetValue(Z_Table_t* const a_Table, const char* const a_SubKey, const char* const a_NewValue)
 {
@@ -1932,11 +1966,13 @@ bool_t Z_TableSetValue(Z_Table_t* const a_Table, const char* const a_SubKey, con
 			Entry->Data.Index.SubKey = Z_StrDup(a_SubKey, PU_STATIC, NULL);
 			Entry->Data.Index.SubHash = Z_Hash(Entry->Data.Index.SubKey);
 		}
+		
 		// if an old value exists, clear it
 		if (Entry->Data.Index.Value)
 			Z_Free(Entry->Data.Index.Value);
 			
 		Entry->Data.Index.Value = Z_StrDup(a_NewValue, PU_STATIC, NULL);
+		Entry->Data.Index.IntValue = strtol(Entry->Data.Index.Value, NULL, 0);
 		
 		// Success!
 		return true;
@@ -2031,5 +2067,166 @@ const char* Z_TableGetValueOrElse(Z_Table_t* const a_Table, const char* const a_
 	// There is a value
 	else
 		return Value;
+}
+
+/* Z_TableStoreToStream() -- Dumps table to stream */
+void Z_TableStoreToStream(Z_Table_t* const a_Table, struct D_RBlockStream_s* const a_Stream)
+{
+	size_t i;
+	Z_TableEntry_t* ThisEnt;
+	
+	/* Check */
+	if (!a_Table || !a_Stream)
+		return;
+	
+	/* Write Table Marker Header */
+	// Write Table Key
+	D_RBSBaseBlock(a_Stream, "TABL");
+	D_RBSWriteString(a_Stream, a_Table->Key);
+	D_RBSRecordBlock(a_Stream);
+	
+	// Go through all entries
+	for (i = 0; i < a_Table->NumEntries; i++)
+	{
+		// Get
+		ThisEnt = a_Table->Entries[i];
+		if (!ThisEnt)
+			continue;
+		
+		// Is a table?
+		if (ThisEnt->IsTable)	// Recourse
+			Z_TableStoreToStream(ThisEnt->Data.TableLink, a_Stream);
+		
+		// Is normal entry
+		else
+		{
+			// Begin Entry Information
+			D_RBSBaseBlock(a_Stream, "DATA");
+			
+			// Write it out
+			D_RBSWriteString(a_Stream, ThisEnt->Data.Index.SubKey);
+			D_RBSWriteString(a_Stream, ThisEnt->Data.Index.Value);
+			
+			// End
+			D_RBSRecordBlock(a_Stream);
+		}
+	}
+	
+	/* End Table */
+	D_RBSBaseBlock(a_Stream, "ENDT");
+	D_RBSRecordBlock(a_Stream);
+}
+
+/* Z_TableStreamToStore() -- Restores table that was previously dumped */
+Z_Table_t* Z_TableStreamToStore(struct D_RBlockStream_s* const a_Stream)
+{
+#define BUFSIZE 256
+	char Header[5];
+	char Buf[BUFSIZE];
+	char Buf2[BUFSIZE];
+	Z_Table_t* RootTable, *CurrentTable;
+	int32_t Depth;
+	
+	/* Check */
+	if (!a_Stream)
+		return;
+	
+	/* Hopefully read table header */
+	// Init
+	Depth = 0;
+	memset(Header, 0, sizeof(Header));
+	RootTable = CurrentTable = NULL;
+	
+	// Constant Read
+	while (D_RBSPlayBlock(a_Stream, Header))
+	{
+		// End of Table?
+		if (D_RBSCompareHeader("ENDT", Header))
+		{
+			// Go back up
+			Depth--;
+			if (CurrentTable)
+				CurrentTable = CurrentTable->ParentTable;
+			
+			// Break out?
+			if (Depth <= 0)
+				break;
+		}
+		
+		// Start of Table?
+		else if (D_RBSCompareHeader("TABL", Header))
+		{
+			// Read Table Key
+			//memset(Buf, 0, sizeof(Buf));
+			D_RBSReadString(a_Stream, Buf, BUFSIZE - 1);
+			
+			// Creating root table?
+			if (!RootTable)
+				RootTable = CurrentTable = Z_TableCreate(Buf);
+			
+			// Sub-Table
+			else
+				// Find the sub table and set current
+				CurrentTable = Z_FindSubTable(CurrentTable, Buf, true);
+			
+			// Increase table depth
+			Depth++;
+		}
+		
+		// Single Entry?
+		else if (D_RBSCompareHeader("DATA", Header))
+		{
+			// Clear, just in case
+			//memset(Buf, 0, sizeof(Buf));
+			//memset(Buf2, 0, sizeof(Buf2));
+			
+			// Read strings
+			D_RBSReadString(a_Stream, Buf, BUFSIZE);	// Key
+			D_RBSReadString(a_Stream, Buf2, BUFSIZE);	// Value
+			
+			// Create sub entry
+			Z_TableSetValue(CurrentTable, Buf, Buf2);
+		}
+	}
+	
+	/* Return the root table */
+	return RootTable;
+	
+	//Z_Table_t* Z_FindSubTable(Z_Table_t* const a_Table, const char* const a_Key, const bool_t a_Create);
+	//bool_t Z_TableSetValue(Z_Table_t* const a_Table, const char* const a_SubKey, const char* const a_NewValue);
+#undef BUFSIZE
+	
+#if 0
+		/* Z_TableIndex_t -- Table properties */
+typedef struct Z_TableIndex_s
+{
+	char* SubKey;				// Key for index
+	uint32_t SubHash;			// Hash for subkey
+	char* Value;				// Value for index
+	int32_t IntValue;			// Integer Value
+} Z_TableIndex_t;
+
+/* Z_TableEntry_t -- A single entry in a table */
+typedef struct Z_TableEntry_s
+{
+	bool_t IsTable;				// Is a table link
+	union
+	{
+		Z_TableIndex_t Index;	// Key index
+		Z_Table_t* TableLink;	// Link to another table
+	} Data;						// Data for entry
+} Z_TableEntry_t;
+
+/* Z_Table_t -- A table */
+struct Z_Table_s
+{
+	char* Key;					// Table key
+	uint32_t Hash;				// Hash for table key
+	Z_TableEntry_t** Entries;	// Entries as pointers to
+	size_t NumEntries;			// Number of entries
+	Z_HashTable_t* EntryHashes;	// Subentry hash lookup
+	Z_Table_t* ParentTable;		// Owner table
+};
+#endif
 }
 

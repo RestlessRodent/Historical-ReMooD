@@ -1498,7 +1498,7 @@ D_RBlockStream_t* D_RBSCreateLoopBackStream(void)
 }
 
 /* D_RBSCreateFileStream() -- Create file stream */
-D_RBlockStream_t* D_RBSCreateFileStream(const char* const a_PathName, const bool_t a_Overwrite)
+D_RBlockStream_t* D_RBSCreateFileStream(const char* const a_PathName, const uint32_t a_Flags)
 {
 	FILE* File;
 	D_RBlockStream_t* New;
@@ -1507,8 +1507,8 @@ D_RBlockStream_t* D_RBSCreateFileStream(const char* const a_PathName, const bool
 	if (!a_PathName)
 		return NULL;
 	
-	/* Open r/w file */
-	File = fopen(a_PathName, (a_Overwrite ? "w+b" : "a+b"));
+	/* Open r or r/w file */
+	File = fopen(a_PathName, (((a_Flags & DRBSSF_READONLY) ? "r" : ((a_Flags & DRBSSF_OVERWRITE) ? "w+b" : "a+b"))));
 	
 	// Failed?
 	if (!File)
@@ -1518,6 +1518,7 @@ D_RBlockStream_t* D_RBSCreateFileStream(const char* const a_PathName, const bool
 	New = Z_Malloc(sizeof(*New), PU_BLOCKSTREAM, NULL);
 	
 	/* Setup Data */
+	New->Flags = a_Flags;
 	New->Data = File;
 	New->RecordF = DS_RBSFile_RecordF;
 	New->PlayF = DS_RBSFile_PlayF;
