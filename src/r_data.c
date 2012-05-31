@@ -345,7 +345,7 @@ static bool_t RS_TexturePDCreate(const struct WL_WADFile_s* const a_WAD, const u
 			WL_StreamSeek(Stream, Holder->TextureOffsets[j], false);
 			
 			// Set internal order
-			Holder->Textures[z].InternalOrder = j;
+			Holder->Textures[z].InternalOrder = z;
 			
 			// Read texture name
 			for (Continue = true, k = 0; k < 8; k++)
@@ -479,6 +479,9 @@ static bool_t RS_TexturePDCreate(const struct WL_WADFile_s* const a_WAD, const u
 		{
 			// Copy name
 			strncat(Holder->Textures[i].name, Entry->Name, 8);
+			
+			// Uppercase it
+			C_strupr(Holder->Textures[i].name);
 			
 			// Set internal order to what i is
 			Holder->Textures[i].InternalOrder = i;
@@ -814,7 +817,7 @@ static bool_t RS_TextureOrderChange(const bool_t a_Pushed, const struct WL_WADFi
 					{
 						// Reference then set order
 						textures[b] = &Holder->Textures[i];
-						textures[b]->CombinedOrder = (OrderMul << 16) + textures[b]->InternalOrder;
+						textures[b]->CombinedOrder = (OrderMul << 16) + textures[i]->InternalOrder;
 						
 						// Increment b, the base write index
 						b++;

@@ -109,7 +109,7 @@ typedef struct
 
 //
 // Animation.
-// There is another anim_t used in p_spec.
+// There is another wianim_t used in p_spec.
 //
 typedef struct
 {
@@ -151,7 +151,7 @@ typedef struct
 	// used by RANDOM and LEVEL when animating
 	int state;
 	
-} anim_t;
+} wianim_t;
 
 static point_t doomlnodes[NUMEPISODES][NUMMAPS] =
 {
@@ -200,7 +200,7 @@ static point_t doomlnodes[NUMEPISODES][NUMMAPS] =
 // Using patches saves a lot of space,
 //  as they replace 320x200 full screen frames.
 //
-static anim_t epsd0animinfo[] =
+static wianim_t epsd0animinfo[] =
 {
 	{ANIM_ALWAYS, TICRATE / 3, 3, {224, 104}},
 	{ANIM_ALWAYS, TICRATE / 3, 3, {184, 160}},
@@ -214,7 +214,7 @@ static anim_t epsd0animinfo[] =
 	{ANIM_ALWAYS, TICRATE / 3, 3, {64, 24}}
 };
 
-static anim_t epsd1animinfo[] =
+static wianim_t epsd1animinfo[] =
 {
 	{ANIM_LEVEL, TICRATE / 3, 1, {128, 136}, 1},
 	{ANIM_LEVEL, TICRATE / 3, 1, {128, 136}, 2},
@@ -227,7 +227,7 @@ static anim_t epsd1animinfo[] =
 	{ANIM_LEVEL, TICRATE / 3, 1, {128, 136}, 8}
 };
 
-static anim_t epsd2animinfo[] =
+static wianim_t epsd2animinfo[] =
 {
 	{ANIM_ALWAYS, TICRATE / 3, 3, {104, 168}},
 	{ANIM_ALWAYS, TICRATE / 3, 3, {40, 136}},
@@ -239,12 +239,12 @@ static anim_t epsd2animinfo[] =
 
 static int NUMANIMS[NUMEPISODES] =
 {
-	sizeof(epsd0animinfo) / sizeof(anim_t),
-	sizeof(epsd1animinfo) / sizeof(anim_t),
-	sizeof(epsd2animinfo) / sizeof(anim_t)
+	sizeof(epsd0animinfo) / sizeof(wianim_t),
+	sizeof(epsd1animinfo) / sizeof(wianim_t),
+	sizeof(epsd2animinfo) / sizeof(wianim_t)
 };
 
-static anim_t* anims[NUMEPISODES] =
+static wianim_t* wianims[NUMEPISODES] =
 {
 	epsd0animinfo,
 	epsd1animinfo,
@@ -452,7 +452,7 @@ static void WI_drawOnLnode(int n, patch_t* c[])
 static void WI_initAnimatedBack(void)
 {
 	int i;
-	anim_t* a;
+	wianim_t* a;
 	
 	if (gamemode == commercial)
 		return;
@@ -462,7 +462,7 @@ static void WI_initAnimatedBack(void)
 		
 	for (i = 0; i < NUMANIMS[wbs->epsd]; i++)
 	{
-		a = &anims[wbs->epsd][i];
+		a = &wianims[wbs->epsd][i];
 		
 		// init variables
 		a->ctr = -1;
@@ -481,7 +481,7 @@ static void WI_initAnimatedBack(void)
 static void WI_updateAnimatedBack(void)
 {
 	int i;
-	anim_t* a;
+	wianim_t* a;
 	
 	if (gamemode == commercial)
 		return;
@@ -491,7 +491,7 @@ static void WI_updateAnimatedBack(void)
 		
 	for (i = 0; i < NUMANIMS[wbs->epsd]; i++)
 	{
-		a = &anims[wbs->epsd][i];
+		a = &wianims[wbs->epsd][i];
 		
 		if (bcnt >= a->nexttic)
 		{
@@ -515,7 +515,7 @@ static void WI_updateAnimatedBack(void)
 					break;
 					
 				case ANIM_LEVEL:
-					// gawd-awful hack for level anims
+					// gawd-awful hack for level wianims
 					if (!(state == StatCount && i == 7) && wbs->next == a->data1)
 					{
 						a->ctr++;

@@ -1522,7 +1522,7 @@ uint32_t Z_Hash(const char* const a_Str)
 	for (i = 0; a_Str[i]; i++)
 	{
 		// Current Value (Remove caps, hopefully)
-		Val = a_Str[i] & (~0x20);
+		Val = /*toupper*/(a_Str[i]) & (~0x20);
 		
 		// Modify return value
 		Ret ^= (Val << c_Primes[i & 15]);// | (Val << c_Primes[31 - (Val & 7)]);

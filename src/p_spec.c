@@ -138,7 +138,11 @@ void P_InitPicAnims(void)
 			for (j = 0; j < 9; j++)
 				Texts[t][j] = WL_StreamReadUInt8(Stream);
 			Texts[t][8] = 0;
+			
+			// Upper case
+			C_strupr(Texts[t]);
 		}
+		
 		
 		// Read time
 		Time = WL_StreamReadLittleInt32(Stream);
@@ -162,7 +166,7 @@ void P_InitPicAnims(void)
 		}
 		
 		// Get number of pictures
-		anims[i].numpics = anims[i].picnum - anims[i].basepic;
+		anims[i].numpics = (anims[i].picnum - anims[i].basepic) + 1;
 		if (anims[i].numpics < 0)
 			anims[i].numpics = 0;
 	}
@@ -2226,11 +2230,12 @@ void P_UpdateSpecials(void)
 	//  ANIMATE TEXTURES
 	for (anim = anims; anim < lastanim; anim++)
 	{
-		for (i = anim->basepic; i < anim->basepic + anim->numpics; i++)
-		{
-			pic = anim->basepic + ((leveltime / anim->speed + i) % anim->numpics);
-			textures[i]->Translation = pic;
-		}
+		if (anim->basepic && anim->picnum)
+			for (i = anim->basepic; i < anim->basepic + anim->numpics; i++)
+			{
+				pic = anim->basepic + ((leveltime / anim->speed + i) % anim->numpics);
+				textures[i]->Translation = pic;
+			}
 	}
 	
 	//  DO BUTTONS
