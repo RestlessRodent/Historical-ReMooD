@@ -1768,7 +1768,7 @@ void CONL_EarlyBootTic(const char* const a_Message, const bool_t a_DoTic)
 	
 		/* Draw Message Text */
 		yB = 160;	// Base near the bottom somewhere
-		for (x = 0, c = EarlyBuf; *c; c++, x += 8)
+		for (x = 0, c = EarlyBuf; *c, x < 320 - 9; c++, x += 8)
 		{
 			// Get better character
 			Char = toupper(*c) - '!';
