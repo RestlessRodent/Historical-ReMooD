@@ -628,10 +628,8 @@ bool_t P_TouchSpecialThing(mobj_t* special, mobj_t* toucher)
 		{
 			// Counts as an item?
 			if (special->flags & MF_COUNTITEM)
-			{
 				player->itemcount++;
-				player->bonuscount += BONUSADD;
-			}
+			player->bonuscount += BONUSADD;
 			
 			//added:16-01-98:consoleplayer -> displayplayer (hear sounds from viewpoint)
 			for (i = 0; i < g_SplitScreen + 1; i++)
