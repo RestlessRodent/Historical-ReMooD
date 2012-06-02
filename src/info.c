@@ -142,6 +142,8 @@ size_t NUMSTATES = 0;
 mobjinfo_t** mobjinfo = NULL;
 mobjtype_t NUMMOBJTYPES = 0;
 
+#define LOCALSTATEJUMPS						64	// Local State Jumping
+
 /* INFO_LocalObjects_t -- Local map objects */
 typedef struct INFO_LocalObjects_s
 {
@@ -152,6 +154,7 @@ typedef struct INFO_LocalObjects_s
 	// States used by defined objects
 	state_t** ObjectStates;
 	size_t NumObjectStates;
+	size_t MaxObjectStates;
 } INFO_LocalObjects_t;
 
 /* INFO_FlagInfo_t -- Flag Information */
@@ -477,6 +480,7 @@ bool_t INFO_RMODH_MapObjects(Z_Table_t* const a_Table, const WL_WADFile_t* const
 		
 	Helper.StatesRef = &LocalStuff->ObjectStates;
 	Helper.NumStatesRef = &LocalStuff->NumObjectStates;
+	Helper.MaxStatesRef = &LocalStuff->MaxObjectStates;
 	Helper.StateForName = INFO_RMODObjectStateForName;
 	Helper.InputPtr = &ThisObject;
 	Helper.ObjectID = ThisObject.ObjectID;
@@ -744,8 +748,14 @@ static bool_t INFO_RMODInnerStateHandler(Z_Table_t* const a_Sub, void* const a_D
 	// Missing still?
 	if (!StateP)
 	{
-		// Resize and place at end
-		Z_ResizeArray((void**)&(*HelperP->StatesRef), sizeof(*(*HelperP->StatesRef)), (*HelperP->NumStatesRef), (*HelperP->NumStatesRef) + 1);
+		// Max array too small?
+		if ((*HelperP->NumStatesRef) >= (*HelperP->MaxStatesRef))
+		{
+			Z_ResizeArray((void**)&(*HelperP->StatesRef), sizeof(*(*HelperP->StatesRef)), (*HelperP->MaxStatesRef), (*HelperP->MaxStatesRef) + LOCALSTATEJUMPS);
+			(*HelperP->MaxStatesRef) += LOCALSTATEJUMPS;
+		}
+		
+		// Place here
 		StateP = (*HelperP->StatesRef)[(*HelperP->NumStatesRef)++] = Z_Malloc(sizeof(*StateP), PU_WLDKRMOD, NULL);
 	}
 	

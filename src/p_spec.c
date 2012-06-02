@@ -2442,7 +2442,7 @@ bool_t P_RMODH_Specials(Z_Table_t* const a_Table, const WL_WADFile_t* const a_WA
 	P_RMODSpecials_t* Specs;
 	
 	/* Obtain private info for sector data */
-	RealPrivate = D_GetRMODPrivate(a_WAD, DRMODP_SPECSECTOR);
+	RealPrivate = D_GetRMODPrivate(a_WAD, DRMODP_SPECTOUCH);
 	
 	// No real private?
 	if (!RealPrivate)
@@ -2463,11 +2463,6 @@ bool_t P_RMODH_Specials(Z_Table_t* const a_Table, const WL_WADFile_t* const a_WA
 	memset(&TempTouch, 0, sizeof(TempTouch));
 	
 	/* General Stuff */
-	// Type ID is required for lines and specials!
-	if (a_ID == DRMODP_SPECSECTOR)
-		if (!(Value = Z_TableGetValue(a_Table, "TypeId")))
-			return false;
-	
 	// Handle effects
 	//Z_TableSuperCallback(a_Table, PS_RMODSpecialEffects, (void*)TempMenu);
 	
@@ -2541,7 +2536,7 @@ bool_t P_RMODO_Specials(const bool_t a_Pushed, const struct WL_WADFile_s* const 
 	size_t i, j;
 	
 	/* Only allow from sector */
-	if (a_ID != DRMODP_SPECSECTOR)
+	if (a_ID != DRMODP_SPECTOUCH)
 		return true;		// Fake true
 	
 	/* Merge touch specials */
@@ -2555,7 +2550,7 @@ bool_t P_RMODO_Specials(const bool_t a_Pushed, const struct WL_WADFile_s* const 
 	for (RoveWAD = WL_IterateVWAD(NULL, true); RoveWAD; RoveWAD = WL_IterateVWAD(RoveWAD, true))
 	{
 		// Obtain private RMOD Stuff
-		RMODPrivate = D_GetRMODPrivate(RoveWAD, DRMODP_SPECSECTOR);
+		RMODPrivate = D_GetRMODPrivate(RoveWAD, DRMODP_SPECTOUCH);
 		
 		// Not found? Ignore this WAD then
 		if (!RMODPrivate)

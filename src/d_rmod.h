@@ -48,9 +48,6 @@
 /* D_RMODPrivates_t -- RMOD Private info */
 typedef enum D_RMODPrivates_e
 {
-	/* GUI */
-	DRMODP_WIDGET,								// Widgets
-	
 	/* Objects, Weapons, Ammo, etc. */
 	DRMODP_MAPOBJECT,							// "MapObject"
 	DRMODP_ITEMAMMO,							// "MapAmmo"
@@ -58,7 +55,6 @@ typedef enum D_RMODPrivates_e
 	DRMODP_ITEMWEAPON,							// "MapWeapon"
 	
 	/* Specials */
-	DRMODP_SPECSECTOR,							// "MapSectorSpecial"
 		// MapTouchSpecial needs weapons and ammo to be registered first
 	DRMODP_SPECTOUCH,							// "MapTouchSpecial"
 	

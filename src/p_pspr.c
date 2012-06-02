@@ -1152,6 +1152,7 @@ typedef struct P_LocalWeaponsAndAmmo_s
 	
 	state_t** WeaponStates;
 	size_t NumWeaponStates;
+	size_t MaxWeaponStates;
 } P_LocalWeaponsAndAmmo_t;
 
 /* P_WepAmmoTransfer_t -- Transfer handler */
@@ -1387,6 +1388,7 @@ bool_t P_RMODH_WeaponsAmmo(Z_Table_t* const a_Table, const WL_WADFile_t* const a
 		
 		Helper.StatesRef = &LocalStuff->WeaponStates;
 		Helper.NumStatesRef = &LocalStuff->NumWeaponStates;
+		Helper.MaxStatesRef = &LocalStuff->MaxWeaponStates;
 		Helper.StateForName = PS_RMODWeaponStateForName;
 		Helper.InputPtr = &TempWeapon;
 		Helper.ObjectID = TempWeapon.WeaponID;

@@ -96,15 +96,8 @@ typedef struct D_RMODWADStuff_s
 *************/
 
 // c_RMODHandlers -- Handlers for RMOD
-static const D_RMODHandler_t c_RMODHandlers[NUMDRMODPRIVATES] =
+static const D_RMODHandler_t c_RMODHandlers[NUMDRMODPRIVATES + 1] =
 {
-	// Widgets
-	{
-		"widget",
-		V_WidgetRMODHandle,
-		V_WidgetRMODOrder,
-	},
-	
 	/* Objects */
 	// Objects
 	{
@@ -127,20 +120,19 @@ static const D_RMODHandler_t c_RMODHandlers[NUMDRMODPRIVATES] =
 		NULL,
 	},
 	
-	/* Specials */
-	// Sectors
-	{
-		"MapSectorSpecial",
-		P_RMODH_Specials,
-		P_RMODO_Specials,
-	},
-	
 	// Touchers
 	{
 		"MapTouchSpecial",
 		P_RMODH_Specials,
-		NULL,
+		P_RMODO_Specials,
 	},
+	
+	// End
+	{
+		NULL,
+		NULL,
+		NULL,
+	}
 };
 
 /****************

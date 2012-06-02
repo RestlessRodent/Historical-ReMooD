@@ -269,6 +269,7 @@ typedef struct INFO_RMODStateHelper_s
 	
 	state_t*** StatesRef;						// Reference to stored states
 	size_t* NumStatesRef;						// Reference to number of states
+	size_t* MaxStatesRef;						// Reference to max states
 	size_t BaseStateNum;						// Base state to start from
 } INFO_RMODStateHelper_t;
 
