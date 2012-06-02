@@ -1150,7 +1150,11 @@ typedef struct P_LocalWeaponsAndAmmo_s
 	ammoinfo_t** Ammo;
 	size_t NumAmmo;
 	
+#if defined(__REMOOD_USEFLATTERSTATES)
+	state_t* WeaponStates;
+#else
 	state_t** WeaponStates;
+#endif
 	size_t NumWeaponStates;
 	size_t MaxWeaponStates;
 } P_LocalWeaponsAndAmmo_t;
@@ -1547,7 +1551,7 @@ bool_t P_RMODO_WeaponsAmmo(const bool_t a_Pushed, const struct WL_WADFile_s* con
 			
 			// Reference every single state
 			for (j = 0, i = Base; i < Base + Count; i++, j++)
-				states[i] = LocalStuff->WeaponStates[j];
+				states[i] = __REMOOD_REFSTATE(LocalStuff->WeaponStates[j]);
 		}
 	}
 	

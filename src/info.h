@@ -41,6 +41,14 @@
 #include "d_rmod.h"
 #include "z_zone.h"
 
+#define __REMOOD_USEFLATTERSTATES
+
+#if defined(__REMOOD_USEFLATTERSTATES)
+	#define __REMOOD_REFSTATE(x) (&(x))
+#else
+	#define __REMOOD_REFSTATE(x) ((x))
+#endif
+
 typedef int32_t spritenum_t;
 typedef int32_t statenum_t;
 
@@ -267,7 +275,11 @@ typedef struct INFO_RMODStateHelper_s
 	INFO_ObjectStateGroup_t StateGroup;			// Current State Group
 	uint32_t* StateValueP;						// Reference State
 	
+#if defined(__REMOOD_USEFLATTERSTATES)
+	state_t** StatesRef;						// Reference to stored states
+#else
 	state_t*** StatesRef;						// Reference to stored states
+#endif
 	size_t* NumStatesRef;						// Reference to number of states
 	size_t* MaxStatesRef;						// Reference to max states
 	size_t BaseStateNum;						// Base state to start from

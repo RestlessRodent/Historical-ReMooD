@@ -152,7 +152,11 @@ typedef struct INFO_LocalObjects_s
 	size_t NumObjects;
 	
 	// States used by defined objects
+#if defined(__REMOOD_USEFLATTERSTATES)
+	state_t* ObjectStates;
+#else
 	state_t** ObjectStates;
+#endif
 	size_t NumObjectStates;
 	size_t MaxObjectStates;
 } INFO_LocalObjects_t;
@@ -599,7 +603,7 @@ bool_t INFO_RMODO_MapObjects(const bool_t a_Pushed, const struct WL_WADFile_s* c
 			
 			// Reference every single state
 			for (j = 0, i = Base; i < Base + Count; i++, j++)
-				states[i] = LocalStuff->ObjectStates[j];
+				states[i] = __REMOOD_REFSTATE(LocalStuff->ObjectStates[j]);
 		}
 	}
 	
@@ -739,9 +743,9 @@ static bool_t INFO_RMODInnerStateHandler(Z_Table_t* const a_Sub, void* const a_D
 	// See if it already exists
 	StateP = NULL;
 	for (i = 0; i < (*HelperP->NumStatesRef); i++)
-		if (HelperP->ObjectID == (*HelperP->StatesRef)[i]->ObjectID && MarkerVal == (*HelperP->StatesRef)[i]->Marker)
+		if (HelperP->ObjectID == __REMOOD_REFSTATE((*HelperP->StatesRef)[i])->ObjectID && MarkerVal == __REMOOD_REFSTATE((*HelperP->StatesRef)[i])->Marker)
 		{
-			StateP = (*HelperP->StatesRef)[i];
+			StateP = __REMOOD_REFSTATE((*HelperP->StatesRef)[i]);
 			break;
 		}
 	
@@ -756,7 +760,11 @@ static bool_t INFO_RMODInnerStateHandler(Z_Table_t* const a_Sub, void* const a_D
 		}
 		
 		// Place here
+#if defined(__REMOOD_USEFLATTERSTATES)
+		StateP = &((*HelperP->StatesRef)[(*HelperP->NumStatesRef)++]);
+#else
 		StateP = (*HelperP->StatesRef)[(*HelperP->NumStatesRef)++] = Z_Malloc(sizeof(*StateP), PU_WLDKRMOD, NULL);
+#endif
 	}
 	
 	/* Fill state with info */
