@@ -40,6 +40,7 @@
 #include "w_wad.h"
 #include "z_zone.h"
 #include "m_fixed.h"
+#include "d_block.h"
 
 /****************
 *** CONSTANTS ***
@@ -73,6 +74,7 @@ typedef struct D_RMODPrivate_s
 } D_RMODPrivate_t;
 
 typedef bool_t (*D_RMODHandleFunc_t)(Z_Table_t* const a_Table, const WL_WADFile_t* const a_WAD, const D_RMODPrivates_t a_ID, D_RMODPrivate_t* const a_Private);
+typedef bool_t (*D_RMODCleanerFunc_t)(Z_Table_t* const a_Table, const WL_WADFile_t* const a_WAD, const D_RMODPrivates_t a_ID, D_RMODPrivate_t* const a_Private);
 typedef bool_t (*D_RMODOCCBFunc_t)(const bool_t a_Pushed, const struct WL_WADFile_s* const a_WAD, const D_RMODPrivates_t a_ID);
 
 /*****************

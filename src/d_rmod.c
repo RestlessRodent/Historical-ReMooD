@@ -82,6 +82,7 @@ typedef struct D_RMODHandler_s
 	const char* TableType;						// Type of table
 	D_RMODHandleFunc_t HandleFunc;				// Handler function
 	D_RMODOCCBFunc_t OrderFunc;					// OCCB Variant
+	D_RMODCleanerFunc_t CleanFunc;				// RMOD Cleanup
 } D_RMODHandler_t;
 
 /* D_RMODWADStuff_t -- Stuff in for a WAD */
@@ -104,6 +105,7 @@ static const D_RMODHandler_t c_RMODHandlers[NUMDRMODPRIVATES + 1] =
 		"MapObject",
 		INFO_RMODH_MapObjects,
 		INFO_RMODO_MapObjects,
+		NULL,
 	},
 	
 	// Ammo
@@ -111,12 +113,14 @@ static const D_RMODHandler_t c_RMODHandlers[NUMDRMODPRIVATES + 1] =
 		"MapAmmo",
 		P_RMODH_WeaponsAmmo,
 		P_RMODO_WeaponsAmmo,
+		NULL,
 	},
 	
 	// Weapons
 	{
 		"MapWeapon",
 		P_RMODH_WeaponsAmmo,
+		NULL,
 		NULL,
 	},
 	
@@ -125,10 +129,12 @@ static const D_RMODHandler_t c_RMODHandlers[NUMDRMODPRIVATES + 1] =
 		"MapTouchSpecial",
 		P_RMODH_Specials,
 		P_RMODO_Specials,
+		NULL,
 	},
 	
 	// End
 	{
+		NULL,
 		NULL,
 		NULL,
 		NULL,
