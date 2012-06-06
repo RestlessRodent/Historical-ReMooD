@@ -99,14 +99,15 @@ char __REMOOD_DEPRECATED* Z_Strdup(const char* const String, const Z_MemoryTag_t
 void Z_DebugMarkBlock(void* const Ptr, const char* const String);
 void Z_SetLockBack(void* const Ptr, bool_t (*LockBack) (void* const, const Z_LockBackAction_t, const uintptr_t, const uintptr_t));
 
-void Z_RegisterCommands(void);
+extern void (*Z_RegisterCommands)(void);
 
 /* Memory */
 #if defined(_DEBUG)				// DEBUG
 #define _ZMGD_WRAPPEE , const char* const File, const int Line
 
-#define Z_Malloc(s,t,r) Z_MallocWrappee((s),(t),(r),__FILE__,__LINE__)
-#define Z_MallocAlign(s,t,r,a) Z_MallocWrappee((s),(t),(r),__FILE__,__LINE__)
+#define Z_MallocEx(s,t,r,f) Z_MallocExWrappee((s),(t),(r),(f),__FILE__,__LINE__)
+#define Z_Malloc(s,t,r) Z_MallocExWrappee((s),(t),(r),0,__FILE__,__LINE__)
+#define Z_MallocAlign(s,t,r,a) Z_MallocExWrappee((s),(t),(r),0,__FILE__,__LINE__)
 #define Z_Free(p) Z_FreeWrappee((p),__FILE__,__LINE__)
 #define Z_FreeTags(l,h) Z_FreeTagsWrappee((l),(h),__FILE__,__LINE__)
 #define Z_ChangeTag(p,t) Z_ChangeTagWrappee((p),(t),__FILE__,__LINE__)
@@ -120,8 +121,9 @@ void Z_DupFileLine(void* const a_Dest, void* const a_Src);
 #else							// NOT DEBUGGING
 #define _ZMGD_WRAPPEE
 
-#define Z_Malloc(s,t,r) Z_MallocWrappee((s),(t),(r))
-#define Z_MallocAlign(s,t,r,a) Z_MallocWrappee((s),(t),(r))
+#define Z_MallocEx(s,t,r,f) Z_MallocExWrappee((s),(t),(r),(f))
+#define Z_Malloc(s,t,r) Z_MallocExWrappee((s),(t),(r),0)
+#define Z_MallocAlign(s,t,r,a) Z_MallocExWrappee((s),(t),(r),0)
 #define Z_Free(p) Z_FreeWrappee((p))
 #define Z_FreeTags(l,h) Z_FreeTagsWrappee((l),(h))
 #define Z_ChangeTag(p,t) Z_ChangeTagWrappee((p),(t))
@@ -132,11 +134,11 @@ void Z_DupFileLine(void* const a_Dest, void* const a_Src);
 #endif
 
 // Prototypes
-void* Z_MallocWrappee(const size_t Size, const Z_MemoryTag_t Tag, void** Ref _ZMGD_WRAPPEE);
-void Z_FreeWrappee(void* const Ptr _ZMGD_WRAPPEE);
-size_t Z_FreeTagsWrappee(const Z_MemoryTag_t LowTag, const Z_MemoryTag_t HighTag _ZMGD_WRAPPEE);
-Z_MemoryTag_t Z_GetTagFromPtrWrappee(void* const Ptr _ZMGD_WRAPPEE);
-Z_MemoryTag_t Z_ChangeTagWrappee(void* const Ptr, const Z_MemoryTag_t NewTag _ZMGD_WRAPPEE);
+extern void* (*Z_MallocExWrappee)(const size_t a_Size, const Z_MemoryTag_t a_Tag, void** a_Ref, const uint32_t a_Flags _ZMGD_WRAPPEE);
+extern void (*Z_FreeWrappee)(void* const Ptr _ZMGD_WRAPPEE);
+extern size_t (*Z_FreeTagsWrappee)(const Z_MemoryTag_t LowTag, const Z_MemoryTag_t HighTag _ZMGD_WRAPPEE);
+extern Z_MemoryTag_t (*Z_GetTagFromPtrWrappee)(void* const Ptr _ZMGD_WRAPPEE);
+extern Z_MemoryTag_t (*Z_ChangeTagWrappee)(void* const Ptr, const Z_MemoryTag_t NewTag _ZMGD_WRAPPEE);
 
 char* Z_StrDupWrappee(const char* const String, const Z_MemoryTag_t Tag, void** Ref _ZMGD_WRAPPEE);
 void Z_ResizeArrayWrappee(void** const PtrPtr, const size_t ElemSize, const size_t OldSize, const size_t NewSize _ZMGD_WRAPPEE);
