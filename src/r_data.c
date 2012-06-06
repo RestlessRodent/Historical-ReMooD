@@ -305,7 +305,7 @@ static bool_t RS_TexturePDCreate(const struct WL_WADFile_s* const a_WAD, const u
 			}
 			
 			// Close stream
-			WL_StreamClose(Entry);
+			WL_StreamClose(Stream);
 		}
 	}
 	

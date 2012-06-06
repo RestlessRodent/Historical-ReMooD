@@ -1819,6 +1819,7 @@ void D_DoomMain(void)
 	
 	
 	g_EarlyBootConsole = false;
+	V_SetPalette(0);
 	COM_Init();
 	CON_Init();
 	
