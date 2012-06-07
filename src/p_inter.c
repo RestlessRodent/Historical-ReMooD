@@ -1158,9 +1158,13 @@ void P_KillMobj(mobj_t* target, mobj_t* inflictor, mobj_t* source)
 		// even those caused by other monsters
 		players[0].killcount++;
 	}
+	
 	// if a player avatar dies...
 	if (target->player)
 	{
+		// GhostlyDeath <June 6, 2012> -- Remember ready weapon
+		target->player->DeadWeapon = target->player->readyweapon;
+		
 		// count environment kills against you (you fragged yourself!)
 		if (!source)
 		{
@@ -1200,8 +1204,8 @@ void P_KillMobj(mobj_t* target, mobj_t* inflictor, mobj_t* source)
 	// GhostlyDeath <March 6, 2012> -- Use invalid object	
 	item = NUMMOBJTYPES;
 	
-	// Frags Weapon Falling support
-	if (target->player && P_EXGSGetValue(PEXGSBID_PLDROPWEAPONS))
+	// Drop weapons when player is killed (non-monster players only)
+	if (target->player && (target->RXFlags[0] & MFREXA_ISPLAYEROBJECT) && P_EXGSGetValue(PEXGSBID_PLDROPWEAPONS))
 	{
 		drop_ammo_count = P_AmmoInWeapon(target->player);
 		//if (!drop_ammo_count)
@@ -1210,6 +1214,22 @@ void P_KillMobj(mobj_t* target, mobj_t* inflictor, mobj_t* source)
 		// Which item to drop?
 		if (target->player->weaponinfo[target->player->readyweapon]->DropWeaponClass)
 			item = INFO_GetTypeByName(target->player->weaponinfo[target->player->readyweapon]->DropWeaponClass);
+		
+		// GhostlyDeath <June 6, 2012> -- Weapon was dropped by player, so
+		// find the first weapon. This is the case when
+		if (item)
+		{
+			// Set weapon as un-owned
+			target->player->weaponowned[target->player->DeadWeapon] = false;
+			
+			// Switch to the first weapon that the player owns instead
+			for (i = 0; i < NUMWEAPONS; i++)
+				if (target->player->weaponowned[i])
+				{
+					target->player->DeadWeapon = i;
+					break;
+				}
+		}
 	}
 	else
 	{
@@ -1350,6 +1370,7 @@ bool_t P_DamageMobj(mobj_t* target, mobj_t* inflictor, mobj_t* source, int damag
 	}
 	
 	takedamage = false;
+	
 	// player specific
 	if (player && (target->flags & MF_CORPSE) == 0)
 	{
@@ -1382,6 +1403,19 @@ bool_t P_DamageMobj(mobj_t* target, mobj_t* inflictor, mobj_t* source, int damag
 			damage -= saved;
 		}
 		
+		player->attacker = source;
+	}
+	else
+		takedamage = true;
+	
+	// GhostlyDeath <June 6, 2012> -- Team Damage?
+	if (source && target)
+		if (!P_MobjDamageTeam(source, target, inflictor))
+			return false;
+		
+	// Player Specific	
+	if (player && (target->flags & MF_CORPSE) == 0)
+	{
 		// added team play and teamdamage (view logboris at 13-8-98 to understand)
 		if (P_EXGSGetValue(PEXGSBID_CODISABLETEAMPLAY) ||	// support old demo version
 		        cv_teamdamage.value || damage > 1000 ||	// telefrag
@@ -1401,10 +1435,7 @@ bool_t P_DamageMobj(mobj_t* target, mobj_t* inflictor, mobj_t* source, int damag
 			if (player == &players[consoleplayer[0]])
 				I_Tactile(40, 10, 40 + (damage < 100 ? damage : 100) * 2);
 		}
-		player->attacker = source;
 	}
-	else
-		takedamage = true;
 	
 	if (takedamage)
 		if (target->RXFlags[1] & MFREXB_DONTTAKEDAMAGE)

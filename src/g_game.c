@@ -765,6 +765,7 @@ void G_PlayerReborn(int player)
 	bool_t autoaim;
 	int skin;					//Fab: keep same skin
 	int32_t TotalFrags, TotalDeaths;
+	bool_t Given;
 	
 	PEp = players[player].ProfileEx;
 	NPp = players[player].NetPlayer;
@@ -865,6 +866,36 @@ void G_PlayerReborn(int player)
 	// GhostlyDeath <April 26, 2012> -- Health and Armor
 	p->MaxHealth[0] = p->MaxArmor[0] = 100;
 	p->MaxHealth[1] = p->MaxArmor[1] = 200;
+	
+	// GhostlyDeath <June 6, 2012> -- Stat Mods
+	if (P_EXGSGetValue(PEXGSBID_PLSPAWNWITHMAXSTATS))
+	{
+		p->health = p->MaxHealth[1];
+		p->armorpoints = p->MaxArmor[1];
+		p->armortype = 2;
+	}
+	
+	// GhostlyDeath <June 6, 2012> -- Weapon Mods
+	for (i = 0; i < NUMWEAPONS; i++)
+	{
+		// Clear
+		Given = false;
+		
+		// Normal Gun?
+		if (P_EXGSGetValue(PEXGSBID_PLSPAWNWITHMAXGUNS))
+			if (!(p->weaponinfo[i]->WeaponFlags & WF_SUPERWEAPON))
+				p->weaponowned[i] |= Given |= true;
+				
+		// Super Gun?
+		if (P_EXGSGetValue(PEXGSBID_PLSPAWNWITHSUPERGUNS))
+			if ((p->weaponinfo[i]->WeaponFlags & WF_SUPERWEAPON))
+				p->weaponowned[i] |= Given |= true;
+		
+		// Gave something? Then give max ammo
+		if (Given)
+			if (p->weaponinfo[i]->ammo >= 0 && p->weaponinfo[i]->ammo < NUMAMMO)
+				p->ammo[p->weaponinfo[i]->ammo] = p->maxammo[p->weaponinfo[i]->ammo];
+	}
 }
 
 //

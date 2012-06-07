@@ -1360,6 +1360,8 @@ bool_t P_RMODH_WeaponsAmmo(Z_Table_t* const a_Table, const WL_WADFile_t* const a
 			TempWeapon.WeaponFlags |= WF_INEXTENDED;
 		if (D_RMODGetValueBool(a_Table, "NoBleedTarget", false))
 			TempWeapon.WeaponFlags |= WF_NOBLEEDTARGET;
+		if (D_RMODGetValueBool(a_Table, "IsSuperWeapon", false))
+			TempWeapon.WeaponFlags |= WF_SUPERWEAPON;
 		
 		// Get Fixed
 		TempWeapon.PSpriteSY = D_RMODGetValueFixed(a_Table, "SpriteYOffset", 0);

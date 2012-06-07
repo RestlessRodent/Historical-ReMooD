@@ -317,6 +317,7 @@ static void R_DrawVisSprite(vissprite_t* vis, int x1, int x2)
 		
 	dc_colormap = vis->colormap;
 	dc_drawymove = vid.rowbytes;
+	dc_translation = NULL;
 	
 	// Support for translated and translucent sprites. SSNTails 11-11-2002
 	if (vis->mobjflags & MF_TRANSLATION && vis->transmap)
@@ -325,6 +326,7 @@ static void R_DrawVisSprite(vissprite_t* vis, int x1, int x2)
 		dc_transmap = vis->transmap;
 		dc_translation = translationtables - 256 + ((vis->mobjflags & MF_TRANSLATION) >> (MF_TRANSSHIFT - 8));
 	}
+	
 	if (vis->colormap == VIS_SMOKESHADE)
 	{
 		// shadecolfunc uses 'colormaps'
@@ -351,6 +353,41 @@ static void R_DrawVisSprite(vissprite_t* vis, int x1, int x2)
 		else
 			dc_colormap = &vis->extra_colormap->colormap[dc_colormap - colormaps];
 	}
+	
+	// GhostlyDeath <June 6, 2012> -- Friendly/Team Monster (funny colors)
+	if (!(vis->RXFlags[0] & MFREXA_ISPLAYEROBJECT))
+	{
+		// Friendly Monsters (Inverted brightness)
+		if (vis->mobjflags2 & MF2_FRIENDLY)
+		{
+			if (vis->transmap)
+			{
+				colfunc = transtransfunc;
+				dc_transmap = vis->transmap;
+			}
+			else
+				colfunc = transcolfunc;
+		
+			// Re-translate
+			dc_translation = &translationtables[(((vis->mobjflags & MF_TRANSLATION) >> MF_TRANSSHIFT) + 15) << 8];
+		}
+		
+		// Team Monsters
+		if (vis->MoSkinColor)
+		{
+			if (vis->transmap)
+			{
+				colfunc = transtransfunc;
+				dc_transmap = vis->transmap;
+			}
+			else
+				colfunc = transcolfunc;
+		
+			// Re-translate
+			dc_translation = &translationtables[(31 + (vis->MoSkinColor - 1)) << 8];
+		}
+	}
+	
 	if (!dc_colormap)
 		dc_colormap = colormaps;
 		
@@ -497,7 +534,7 @@ static void R_ProjectSprite(mobj_t* thing)
 	int lump;
 	unsigned rot;
 	bool_t flip;
-	int index;
+	int index, w;
 	vissprite_t* vis;
 	angle_t ang;
 	fixed_t iscale;
@@ -648,6 +685,10 @@ static void R_ProjectSprite(mobj_t* thing)
 	vis->Distance = TDist;
 	vis->heightsec = heightsec;	//SoM: 3/17/2000
 	vis->mobjflags = thing->flags;
+	vis->mobjflags2 = thing->flags2;
+	for (w = 0; w < NUMINFORXFIELDS; w++)
+		vis->RXFlags[w] = thing->RXFlags[w];
+	vis->MoSkinColor = thing->SkinTeamColor;
 	vis->scale = yscale;		//<<detailshift;
 	vis->gx = thing->x;
 	vis->gy = thing->y;
@@ -790,7 +831,7 @@ void R_DrawPSprite(pspdef_t* psp)
 {
 	fixed_t tx;
 	int x1;
-	int x2;
+	int x2, w;
 	spritedef_t* sprdef;
 	spriteframe_t* sprframe;
 	int lump;
@@ -850,6 +891,10 @@ void R_DrawPSprite(pspdef_t* psp)
 	// store information in a vissprite
 	vis = &avis;
 	vis->mobjflags = 0;
+	vis->mobjflags2 = 0;
+	vis->MoSkinColor = 0;
+	for (w = 0; w < NUMINFORXFIELDS; w++)
+		vis->RXFlags[w] = 0;
 	if (g_SplitScreen == 1)
 		vis->texturemid = (120 << (FRACBITS)) + FRACUNIT / 2 - (psp->sy - SprInfo->TopOffset);
 	else

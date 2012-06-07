@@ -412,6 +412,24 @@ static P_EXGSVariable_t l_GSVars[PEXGSNUMBITIDS] =
 	{PEXGST_INTEGER, PEXGSBID_MONRESPAWNMONSTERSTIME, "mon_respawnmonsterstime", "Monster Respawn Delay",
 		"Time in seconds before monsters are respawned.", PEXGSGM_ANY, PEXGSDR_NOCHECK, 0, {0, 12}, 12,
 		PEXGSMC_MONSTERS},
+		
+	
+	{PEXGST_INTEGER, PEXGSBID_PLSPAWNWITHMAXGUNS, "pl_spawnwithmaxguns", "Spawn With Non-Super Weapons",
+		"When a player is spawned, they have all non-super weapons.", PEXGSGM_ANY, PEXGSDR_NOCHECK, 0, {0, 1}, 0,
+		PEXGSMC_PLAYERS},
+		
+	{PEXGST_INTEGER, PEXGSBID_PLSPAWNWITHSUPERGUNS, "pl_spawnwithsuperguns", "Spawn With Super Weapons",
+		"When a player is spawned, they have all super weapons.", PEXGSGM_ANY, PEXGSDR_NOCHECK, 0, {0, 1}, 0,
+		PEXGSMC_PLAYERS},
+		
+	{PEXGST_INTEGER, PEXGSBID_PLSPAWNWITHMAXSTATS, "pl_spawnwithmaxstats", "Spawn With Max Stats",
+		"When a player is spawned, they have max health and armor.", PEXGSGM_ANY, PEXGSDR_NOCHECK, 0, {0, 1}, 0,
+		PEXGSMC_PLAYERS},
+	
+	{PEXGST_INTEGER, PEXGSBID_GAMESPAWNPICKUPS, "game_spawnpickups", "Spawn Pickups",
+		"Spawn pickups on map load.", PEXGSGM_ANY, PEXGSDR_NOCHECK, 0, {0, 1}, 1,
+		PEXGSMC_GAME},
+	
 };
 
 /*** FUNCTIONS ***/

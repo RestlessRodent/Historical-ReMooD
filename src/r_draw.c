@@ -293,7 +293,7 @@ static bool_t RS_TransTableOCCB(const bool_t a_Pushed, const struct WL_WADFile_s
 		Z_Free(translationtables);
 	
 	// Allocate table area
-	translationtables = Z_Malloc(256 * (MAXSKINCOLORS - 1), PU_STATIC, NULL);
+	translationtables = Z_Malloc(256 * ((MAXSKINCOLORS * 3) - 1), PU_STATIC, NULL);
 	
 	// Load lump
 	Entry = WL_FindEntry(NULL, 0, "RMD_PMAP");
@@ -302,14 +302,14 @@ static bool_t RS_TransTableOCCB(const bool_t a_Pushed, const struct WL_WADFile_s
 	if (Entry)
 	{
 		// Read data from lump
-		WL_ReadData(Entry, 0, translationtables, 256 * (MAXSKINCOLORS - 1));
+		WL_ReadData(Entry, 0, translationtables, 256 * ((MAXSKINCOLORS * 3) - 1));
 	}
 	
 	// Not found, do base translations (ouch)
 	else
 	{
 		// Just don't translate at all!
-		for (i = 0; i < 256 * (MAXSKINCOLORS - 1); i++)
+		for (i = 0; i < 256 * ((MAXSKINCOLORS * 3) - 1); i++)
 			translationtables[i] = i & 0xFF;
 	}
 	

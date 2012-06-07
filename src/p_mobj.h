@@ -333,8 +333,9 @@ typedef enum mobjflagrexb_e
 /* P_MobjRefType_t -- Reference type */
 typedef enum P_MobjRefType_e
 {
-	PMRT_TARGET,
-	PMRT_TRACER,
+	PMRT_TARGET,								// ->target
+	PMRT_TRACER,								// ->tracer
+	PMRT_FOLLOWPLAYER,							// ->FollowPlayer
 	
 	NUMPMOBJREFTYPES
 } P_MobjRefType_t;
@@ -545,6 +546,9 @@ typedef struct mobj_s
 	// GhostlyDeath <April 29, 2012> -- Teams
 	int32_t SkinTeamColor;						// player skincolor + 1 Team
 	
+	// GhostlyDeath <June 6, 2012> -- Follow Player (Friendlies)
+	struct mobj_s* FollowPlayer;				// Following Player
+	
 	// Owners
 #if 0
 	struct mobj_s* RootOwner;	// Root owner of this object (first mobj in owner chain)
@@ -584,7 +588,12 @@ void P_NightmareRespawn(mobj_t* mobj, const bool_t a_ForceRespawn);
 
 void P_RemoveFromBodyQueue(mobj_t* const a_Mo);
 void P_MorphObjectClass(mobj_t* const a_Mo, const mobjtype_t a_NewClass);
+
+bool_t P_MobjIsTeamlessMonster(mobj_t* const a_ThisMo);
+bool_t P_MobjOnSameFamily(mobj_t* const a_ThisMo, mobj_t* const a_OtherMo);
 bool_t P_MobjOnSameTeam(mobj_t* const a_ThisMo, mobj_t* const a_OtherMo);
+bool_t P_MobjDamageTeam(mobj_t* const a_ThisMo, mobj_t* const a_OtherMo, mobj_t* const a_Inflictor);
+
 struct player_s;
 void P_ControlNewMonster(struct player_s* const a_Player);
 

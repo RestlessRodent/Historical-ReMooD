@@ -342,12 +342,18 @@ static bool_t PIT_CheckThing(mobj_t* thing, void* a_Arg)
 			return true;		// overhead
 		if (tmthing->z + tmthing->height < thing->z)
 			return true;		// underneath
-			
-		if (tmthing->target && (tmthing->target->type == thing->type || (tmthing->target->info->RBaseFamily && thing->info->RBaseFamily && tmthing->target->info->RBaseFamily == thing->info->RBaseFamily)))
+		
+		// Don't hit self with missile
+		if (thing == tmthing->target)
+			return true;
+		
+		// Only harm things in differing families
+		if (!P_MobjOnSameFamily(tmthing->target, thing))
 		{
-			// Don't hit same species as originator.
-			if (thing == tmthing->target)
-				return true;
+#if 0
+		if ((tmthing->target && (tmthing->target->type == thing->type || (tmthing->target->info->RBaseFamily && thing->info->RBaseFamily && tmthing->target->info->RBaseFamily == thing->info->RBaseFamily))) && P_MobjOnSameTeam(thing, tmthing->target))
+		//if (tmthing->target && P_MobjOnSameFamily())
+		{
 			
 			// Explode, but do no damage.
 			// Let players missile other players.
@@ -356,29 +362,35 @@ static bool_t PIT_CheckThing(mobj_t* thing, void* a_Arg)
 				if (!P_EXGSGetValue(PEXGSBID_FUNINFIGHTING))
 					return false;
 		}
+#endif
 		
-		if (!(thing->flags & MF_SHOOTABLE))
-		{
-			// didn't do any damage
-			return !(thing->flags & MF_SOLID);
-		}
-		// more heretic stuff
-		if (tmthing->flags2 & MF2_RIP)
-		{
-			damage = ((P_Random() & 3) + 2) * tmthing->info->damage;
-			if (thing->flags2 & MF2_PUSHABLE && !(tmthing->flags2 & MF2_CANNOTPUSH))
+			if (!(thing->flags & MF_SHOOTABLE))
 			{
-				// Push thing
-				thing->momx += tmthing->momx >> 2;
-				thing->momy += tmthing->momy >> 2;
+				// didn't do any damage
+				return !(thing->flags & MF_SOLID);
 			}
-			numspechit = 0;
-			return (true);
+			// more heretic stuff
+			if (tmthing->flags2 & MF2_RIP)
+			{
+				damage = ((P_Random() & 3) + 2) * tmthing->info->damage;
+				if (thing->flags2 & MF2_PUSHABLE && !(tmthing->flags2 & MF2_CANNOTPUSH))
+				{
+					// Push thing
+					thing->momx += tmthing->momx >> 2;
+					thing->momy += tmthing->momy >> 2;
+				}
+				numspechit = 0;
+				return (true);
+			}
+		
+			// damage / explode
+			damage = ((P_Random() % 8) + 1) * tmthing->info->damage;
+			
+			if (P_DamageMobj(thing, tmthing, tmthing->target, damage) &&
+					(thing->flags & MF_NOBLOOD) == 0 &&
+					P_EXGSGetValue(PEXGSBID_COENABLEBLOODSPLATS))
+				P_SpawnBloodSplats(tmthing->x, tmthing->y, tmthing->z, damage, thing->momx, thing->momy, thing);
 		}
-		// damage / explode
-		damage = ((P_Random() % 8) + 1) * tmthing->info->damage;
-		if (P_DamageMobj(thing, tmthing, tmthing->target, damage) && (thing->flags & MF_NOBLOOD) == 0 && P_EXGSGetValue(PEXGSBID_COENABLEBLOODSPLATS))
-			P_SpawnBloodSplats(tmthing->x, tmthing->y, tmthing->z, damage, thing->momx, thing->momy, thing);
 			
 		// don't traverse any more
 		return false;

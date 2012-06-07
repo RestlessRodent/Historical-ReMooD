@@ -845,6 +845,8 @@ uint32_t g_CheatFlags = 0;						// Global cheat flags
 void MS_CHEAT_FreezeTime(player_t* const a_Player, const uint32_t a_ArgC, const char** const a_ArgV);
 void MS_CHEAT_Give(player_t* const a_Player, const uint32_t a_ArgC, const char** const a_ArgV);
 void MS_CHEAT_Summon(player_t* const a_Player, const uint32_t a_ArgC, const char** const a_ArgV);
+void MS_CHEAT_SummonFriend(player_t* const a_Player, const uint32_t a_ArgC, const char** const a_ArgV);
+void MS_CHEAT_SummonTeam(player_t* const a_Player, const uint32_t a_ArgC, const char** const a_ArgV);
 void MS_CHEAT_God(player_t* const a_Player, const uint32_t a_ArgC, const char** const a_ArgV);
 void MS_CHEAT_Morph(player_t* const a_Player, const uint32_t a_ArgC, const char** const a_ArgV);
 
@@ -854,6 +856,8 @@ static M_SingleCheat_t l_LocalCheats[] =
 	{"freezetime", MS_CHEAT_FreezeTime},
 	{"give", MS_CHEAT_Give},
 	{"summon", MS_CHEAT_Summon},
+	{"summonfriend", MS_CHEAT_SummonFriend},
+	{"summonteam", MS_CHEAT_SummonTeam},
 	{"god", MS_CHEAT_God},
 	{"morph", MS_CHEAT_Morph},
 	
@@ -920,6 +924,7 @@ void MS_CHEAT_Summon(player_t* const a_Player, const uint32_t a_ArgC, const char
 	mobjtype_t Obj;
 	mobj_t* Mo;
 	size_t Count, i;
+	bool_t Friend;
 	
 	/* Check Arguments */
 	if (!a_Player || a_ArgC < 1)
@@ -966,6 +971,147 @@ void MS_CHEAT_Summon(player_t* const a_Player, const uint32_t a_ArgC, const char
 				
 		// Modify angle
 		Mo->angle = a_Player->mo->angle;
+		
+		// Add distance
+		Distance += BaseDist;
+	}
+}
+
+/* MS_CHEAT_SummonFriend() -- Spawn an object in front of the player */
+void MS_CHEAT_SummonFriend(player_t* const a_Player, const uint32_t a_ArgC, const char** const a_ArgV)
+{
+	fixed_t Distance, BaseDist;
+	mobjtype_t Obj;
+	mobj_t* Mo;
+	size_t Count, i;
+	bool_t Friend;
+	
+	/* Check Arguments */
+	if (!a_Player || a_ArgC < 1)
+		return;
+	
+	/* Get Count */
+	if (a_ArgC > 1)
+		Count = atoi(a_ArgV[1]);
+	else
+		Count = 1;
+	
+	/* Look it up by name */
+	Obj = INFO_GetTypeByName(a_ArgV[0]);
+	
+	// Invalid?
+	if (Obj == NUMMOBJTYPES)
+		return;
+		
+	/* Spawn it away from the player */
+	BaseDist = Distance = (a_Player->mo->info->radius * 2) + (mobjinfo[Obj]->radius * 2);
+
+	// Spawn it
+	for (i = 0; i < Count; i++)
+	{
+		Mo = P_SpawnMobj(
+				a_Player->mo->x +
+					FixedMul(Distance,
+						finecosine[a_Player->mo->angle >> ANGLETOFINESHIFT]),
+				a_Player->mo->y + FixedMul(Distance, finesine[a_Player->mo->angle >> ANGLETOFINESHIFT]),
+				a_Player->mo->z,
+				Obj
+			);
+		
+		// Failed to spawn?
+		if (!Mo)
+			break;
+		
+		// If respawning more than 1 and the rest cannot be seen, respawn
+		if (Count > 1 && !P_CheckSight(a_Player->mo, Mo))
+		{
+			P_RemoveMobj(Mo);
+			continue;
+		}
+				
+		// Modify angle
+		Mo->angle = a_Player->mo->angle;
+		
+		// Make friendly
+		Mo->flags2 |= MF2_FRIENDLY;
+		
+		// Add distance
+		Distance += BaseDist;
+	}
+}
+
+
+/* MS_CHEAT_SummonTeam() -- Spawn an object in front of the player */
+void MS_CHEAT_SummonTeam(player_t* const a_Player, const uint32_t a_ArgC, const char** const a_ArgV)
+{
+	fixed_t Distance, BaseDist;
+	mobjtype_t Obj;
+	mobj_t* Mo;
+	int32_t Count, i;
+	int32_t TeamNum;
+	bool_t Friend;
+	
+	/* Check Arguments */
+	if (!a_Player || a_ArgC < 2)
+		return;
+	
+	/* Get Team number */
+	TeamNum = atoi(a_ArgV[0]);
+	
+	// bad?
+	if (TeamNum < 0 || TeamNum > MAXSKINCOLORS)
+		return;
+	
+	/* Get Count */
+	if (a_ArgC > 2)
+		Count = atoi(a_ArgV[2]);
+	else
+		Count = 1;
+	
+	// Cap?
+	if (Count < 1)
+		Count = 1;
+	else if (Count > 256)
+		Count = 256;
+	
+	/* Look it up by name */
+	Obj = INFO_GetTypeByName(a_ArgV[1]);
+	
+	// Invalid?
+	if (Obj == NUMMOBJTYPES)
+		return;
+		
+	/* Spawn it away from the player */
+	BaseDist = Distance = (a_Player->mo->info->radius * 2) + (mobjinfo[Obj]->radius * 2);
+
+	// Spawn it
+	for (i = 0; i < Count; i++)
+	{
+		Mo = P_SpawnMobj(
+				a_Player->mo->x +
+					FixedMul(Distance,
+						finecosine[a_Player->mo->angle >> ANGLETOFINESHIFT]),
+				a_Player->mo->y + FixedMul(Distance, finesine[a_Player->mo->angle >> ANGLETOFINESHIFT]),
+				a_Player->mo->z,
+				Obj
+			);
+		
+		// Failed to spawn?
+		if (!Mo)
+			break;
+		
+		// If respawning more than 1 and the rest cannot be seen, respawn
+		if (Count > 1 && !P_CheckSight(a_Player->mo, Mo))
+		{
+			P_RemoveMobj(Mo);
+			continue;
+		}
+				
+		// Modify angle
+		Mo->angle = a_Player->mo->angle;
+		
+		// Make friendly
+		Mo->SkinTeamColor = TeamNum;
 		
 		// Add distance
 		Distance += BaseDist;

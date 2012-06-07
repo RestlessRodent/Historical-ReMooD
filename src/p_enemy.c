@@ -676,6 +676,10 @@ void A_Look(mobj_t* actor, player_t* player, pspdef_t* psp)
 		if (targ && targ->player)
 			targ = NULL;
 	
+	// GhostlyDeath <June 6, 2012> -- Target is on your team
+	if (targ && P_MobjOnSameTeam(targ, actor))
+		targ = NULL;
+	
 	if (targ && (targ->flags & MF_SHOOTABLE))
 	{
 		P_RefMobj(PMRT_TARGET, actor, targ);
@@ -1306,6 +1310,12 @@ bool_t PIT_VileCheck(mobj_t* thing, void* a_Arg)
 		
 	if (thing->tics != -1)
 		return true;			// not lying still yet
+		
+	
+	// GhostlyDeath <June 6, 2012> -- Player on same team as us?
+	if (thing->RXFlags[0] & MFREXA_ISPLAYEROBJECT)
+		if (P_MobjOnSameTeam(thing, TheVile))
+			return true;
 	
 	// GhostlyDeath <April 16, 2012> -- Arch-Viles can ressurect anything variable
 	if (!P_EXGSGetValue(PEXGSBID_MONARCHVILEANYRESPAWN))
@@ -1392,9 +1402,25 @@ void A_VileChase(mobj_t* actor, player_t* player, pspdef_t* psp)
 						corpsehit->height = info->height;
 						corpsehit->radius = info->radius;
 					}
+					
 					corpsehit->flags = info->flags;
 					corpsehit->health = info->spawnhealth;
 					P_RefMobj(PMRT_TARGET, corpsehit, NULL);
+					
+					// Target is player?
+					if (corpsehit->player)
+					{
+						corpsehit->player->playerstate = PST_LIVE;
+						corpsehit->player->health = corpsehit->health;
+						corpsehit->player->pendingweapon = corpsehit->player->DeadWeapon;
+					}
+					
+					// GhostlyDeath <June 6, 2012> -- Re-align resurrected to monster team
+					corpsehit->flags2 &= ~MF2_FRIENDLY;
+					if (actor->flags2 & MF2_FRIENDLY)
+						corpsehit->flags2 = MF2_FRIENDLY;
+					corpsehit->SkinTeamColor = actor->SkinTeamColor;
+					
 					return;
 				}
 			}
@@ -1772,6 +1798,10 @@ void P_PainShootSkull(mobj_t* actor, angle_t angle, player_t* player, pspdef_t* 
 	
 	P_RefMobj(PMRT_TARGET, newmobj, actor->target);
 	A_SkullAttack(newmobj, player, psp);
+	
+	// GhostlyDeath <June 6, 2012> -- Make on same side as PE
+	newmobj->SkinTeamColor = actor->SkinTeamColor;
+	newmobj->flags2 |= actor->flags2 & MF2_FRIENDLY;
 }
 
 //

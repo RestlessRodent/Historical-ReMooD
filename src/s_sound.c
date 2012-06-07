@@ -126,7 +126,7 @@ consvar_t precachesound = { "precachesound", "0", CV_SAVE, CV_OnOff };
 consvar_t cv_rndsoundpitch = { "rndsoundpitch", "Off", CV_SAVE, CV_OnOff };
 
 CV_PossibleValue_t soundvolume_cons_t[] = { {0, "MIN"}, {31, "MAX"}, {0, NULL} };
-consvar_t cv_soundvolume = { "snd_soundvolume", "15", CV_SAVE | CV_CALL, soundvolume_cons_t, S_UpdateCVARVolumes };
+consvar_t cv_soundvolume = { "snd_soundvolume", "31", CV_SAVE | CV_CALL, soundvolume_cons_t, S_UpdateCVARVolumes };
 consvar_t cv_musicvolume = { "snd_musicvolume", "15", CV_SAVE | CV_CALL, soundvolume_cons_t, S_UpdateCVARVolumes };
 
 /*************

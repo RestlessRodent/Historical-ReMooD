@@ -1405,6 +1405,10 @@ void P_RemoveMobj(mobj_t* mobj)
 				// Remove Tracer
 				if (players[i].mo->tracer)
 					P_RefMobj(PMRT_TRACER, players[i].mo, NULL);
+				
+				// Remove Follow Player
+				if (players[i].mo->FollowPlayer)
+					P_RefMobj(PMRT_FOLLOWPLAYER, players[i].mo, NULL);
 			}
 		}
 	
@@ -1729,7 +1733,7 @@ void P_SpawnPlayer(mapthing_t* mthing)
 	
 	if (p->camera.chase)
 		P_ResetCamera(p);
-	
+		
 	// GhostlyDeath <April 20, 2012> -- Telefrag whatever was here
 	if (P_EXGSGetValue(PEXGSBID_PLSPAWNTELEFRAG))
 	{
@@ -1794,6 +1798,7 @@ void P_SpawnMapThing(mapthing_t* mthing)
 		
 		return;
 	}
+	
 	// check for apropriate skill level
 	if (!multiplayer && (mthing->options & 16))
 		return;
@@ -1826,6 +1831,10 @@ void P_SpawnMapThing(mapthing_t* mthing)
 		CONL_PrintF("\2P_SpawnMapThing: Unknown type %i at (%i, %i)\n", mthing->type, mthing->x, mthing->y);
 		return;
 	}
+	
+	// GhostlyDeath <June 6, 2012> -- Spawn Pickups?
+	if (!P_EXGSGetValue(PEXGSBID_GAMESPAWNPICKUPS) && (mobjinfo[i]->flags & MF_SPECIAL))
+		return;
 	
 	// GhostlyDeath <March 6, 2012> -- Set thing ID and mark with weapon if possible
 	mthing->MoType = i;
@@ -2442,6 +2451,8 @@ mobj_t* P_RefMobjReal(const P_MobjRefType_t a_Type, mobj_t* const a_SourceRef, m
 		ChangePtr = &a_SourceRef->target;
 	else if (a_Type == PMRT_TRACER)
 		ChangePtr = &a_SourceRef->tracer;
+	else if (a_Type == PMRT_FOLLOWPLAYER)
+		ChangePtr == &a_SourceRef->FollowPlayer;
 	
 	/* Remove old reference */
 	if (*ChangePtr)
@@ -2699,6 +2710,144 @@ void P_MorphObjectClass(mobj_t* const a_Mo, const mobjtype_t a_NewClass)
 	P_SetThingPosition(a_Mo);
 }
 
+/* P_MobjOnSameFamily() -- Determines whether two objects are the same family */
+bool_t P_MobjOnSameFamily(mobj_t* const a_ThisMo, mobj_t* const a_OtherMo)
+{
+	bool_t IsThisPlayer, IsOtherPlayer;
+	
+	/* Check */
+	if (!a_ThisMo || !a_OtherMo)
+		return false;
+	
+	/* Self */
+	if (a_ThisMo == a_OtherMo)
+		return true;
+	
+	/* Determine if this is a standard player or a monster player */
+	IsThisPlayer = IsOtherPlayer = false;
+	if ((a_ThisMo->RXFlags[0] & MFREXA_ISPLAYEROBJECT))
+		IsThisPlayer = true;
+	if ((a_OtherMo->RXFlags[0] & MFREXA_ISPLAYEROBJECT))
+		IsOtherPlayer = true;
+	
+	/* Players are never on the same family */
+	if (IsThisPlayer || IsOtherPlayer)
+		return false;
+		
+	/* When infighting, never on same family */
+	if (P_EXGSGetValue(PEXGSBID_FUNINFIGHTING))
+		return false;
+	
+	/* Not on same team? */
+	if (!P_MobjOnSameTeam(a_ThisMo, a_OtherMo))
+		return false;
+	
+	/* Thing Type Match */
+	if (a_ThisMo->type == a_OtherMo->type)
+		return true;
+		
+	/* Base Family Matching */
+	if (a_ThisMo->info->RBaseFamily || a_OtherMo->info->RBaseFamily)
+	{
+		// This Family vs Other Type
+		if (a_ThisMo->info->RBaseFamily &&
+			a_ThisMo->info->RBaseFamily == a_OtherMo->type)
+			return true;
+		
+		// Other Family vs This Type
+		if (a_OtherMo->info->RBaseFamily &&
+			a_OtherMo->info->RBaseFamily == a_ThisMo->type)
+			return true;
+		
+		// Same Family
+		if (a_ThisMo->info->RBaseFamily == a_OtherMo->info->RBaseFamily)
+			return true;
+	}
+	
+	/* Un-Handled */
+	return false;
+}
+
+/* P_MobjDamageTeam() -- Determines whether two objects will hurt each other */
+bool_t P_MobjDamageTeam(mobj_t* const a_ThisMo, mobj_t* const a_OtherMo, mobj_t* const a_Inflictor)
+{
+	bool_t IsThisPlayer, IsOtherPlayer;
+	
+	/* Check */
+	if (!a_ThisMo || !a_OtherMo)
+		return true;
+	
+	/* Always hurt self */
+	if (a_ThisMo == a_OtherMo)
+		return true;
+	
+	/* Determine if this is a standard player or a monster player */
+	IsThisPlayer = IsOtherPlayer = false;
+	if ((a_ThisMo->RXFlags[0] & MFREXA_ISPLAYEROBJECT))
+		IsThisPlayer = true;
+	if ((a_OtherMo->RXFlags[0] & MFREXA_ISPLAYEROBJECT))
+		IsOtherPlayer = true;
+	
+	/* Team Play Enabled */
+	if (!P_EXGSGetValue(PEXGSBID_CODISABLETEAMPLAY) && cv_teamplay.value)
+	{
+		// Team Damage is On -- Always do damage
+		if (cv_teamdamage.value)
+			return true;
+		
+		// Off, check for differing team
+		else
+		{
+			// Don't hurt same team
+			if (P_MobjOnSameTeam(a_ThisMo, a_OtherMo))
+				return false;
+		}
+	}
+	
+	/* Team Play Disabled */
+	else
+	{
+		// Involving only players
+		if (IsThisPlayer && IsOtherPlayer)
+		{
+			// Cooperative
+			if (!cv_deathmatch.value)
+			{
+				// If team damage is on, hurt
+				if (cv_teamdamage.value)
+					return true;
+				
+				// Otherwise, don't hurt
+				else
+					return false;
+			}
+			
+			// Deathmatch
+			else
+			{
+				// Always hurt
+				return true;
+			}
+		}
+		
+		// Inter-Monster involvement
+		else
+		{
+			// Inflictor is a missile
+			if (a_Inflictor && a_Inflictor->flags & MF_MISSILE)
+				// Don't hurt same family
+				return !P_MobjOnSameFamily(a_ThisMo, a_OtherMo);
+			
+			// Otherwise, always hurt
+			else
+				return true;
+		}
+	}
+	
+	/* Un-Handled */
+	return true;
+}
+
 /* P_MobjOnSameTeam() -- Determines whether two objects are on the same team */
 bool_t P_MobjOnSameTeam(mobj_t* const a_ThisMo, mobj_t* const a_OtherMo)
 {
@@ -2744,23 +2893,67 @@ bool_t P_MobjOnSameTeam(mobj_t* const a_ThisMo, mobj_t* const a_OtherMo)
 		((IsOtherPlayer && (a_ThisMo->flags2 & MF2_FRIENDLY))))
 		return true;
 	
-	/* Player and monster on the same colored team? */
-	if ((IsThisPlayer && !IsOtherPlayer && a_ThisMo->player &&
-			a_ThisMo->player->skincolor == a_OtherMo->SkinTeamColor - 1) ||
-		(IsOtherPlayer && !IsThisPlayer && a_OtherMo->player &&
-			a_OtherMo->player->skincolor == a_ThisMo->SkinTeamColor - 1))
-		return true;
-	
-	/* Monsters on the same skin team */
-	if (a_ThisMo->SkinTeamColor > 0 && a_OtherMo->SkinTeamColor > 0)
-		// Same team?
-		if (a_ThisMo->SkinTeamColor == a_OtherMo->SkinTeamColor)
+	/* Monster Teams */
+	// Team Play Enabled
+	if (cv_teamplay.value)
+	{
+		// Player and monster on the same colored team?
+		if ((IsThisPlayer && !IsOtherPlayer && a_ThisMo->player &&
+				a_ThisMo->player->skincolor == a_OtherMo->SkinTeamColor - 1) ||
+			(IsOtherPlayer && !IsThisPlayer && a_OtherMo->player &&
+				a_OtherMo->player->skincolor == a_ThisMo->SkinTeamColor - 1))
 			return true;
+	
+		// Monsters on the same skin team
+		if (a_ThisMo->SkinTeamColor > 0 && a_OtherMo->SkinTeamColor > 0)
+		{
+			// Same team?
+			if (a_ThisMo->SkinTeamColor == a_OtherMo->SkinTeamColor)
+				return true;
+			
+			// Different Team
+			else
+				return false;
+		}
+	}
+	
+	// Team Play Disabled
+	else
+	{
+		// Cooperative
+		if (!cv_deathmatch.value)
+		{
+			// Player and teamed monster
+			if ((IsThisPlayer && !IsOtherPlayer && a_OtherMo->SkinTeamColor > 0) ||
+				(!IsThisPlayer && IsOtherPlayer && a_ThisMo->SkinTeamColor > 0))
+				return true;
+			
+			// Other teamed monsters
+			if (!IsThisPlayer && !IsOtherPlayer && a_ThisMo->SkinTeamColor && a_OtherMo->SkinTeamColor)
+				return true;
+		}
+		
+		// Deathmatch
+		else
+		{
+		}
+	}
 	
 	/* Monsters on a team vs teamless monsters */
 	if (a_ThisMo->SkinTeamColor > 0 && !a_OtherMo->SkinTeamColor)
 		return false;
 	if (!a_ThisMo->SkinTeamColor && a_OtherMo->SkinTeamColor > 0)
+		return false;
+	
+	/* Friendly monsters and other friendly monsters */
+	if ((!IsThisPlayer && !IsOtherPlayer) &&
+		(((a_ThisMo->flags2 & MF2_FRIENDLY) && (a_OtherMo->flags2 & MF2_FRIENDLY))))
+		return true;
+	
+	/* Friendly monster and non-friendly monster */
+	if ((!IsThisPlayer && !IsOtherPlayer) &&
+		(((a_ThisMo->flags2 & MF2_FRIENDLY) && !(a_OtherMo->flags2 & MF2_FRIENDLY)) ||
+		(!(a_ThisMo->flags2 & MF2_FRIENDLY) && (a_OtherMo->flags2 & MF2_FRIENDLY))))
 		return false;
 	
 	/* Monsters and other monsters */

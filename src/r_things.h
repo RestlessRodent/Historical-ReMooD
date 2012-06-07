@@ -38,7 +38,7 @@
 // GhostlyDeath <July 24, 2011> -- Remove sprite limit
 #define NUMSPRITEBUMPS	512
 
-#define MAXVISSPRITES   256		// added 2-2-98 was 128
+#define MAXVISSPRITES   512		// added 2-2-98 was 128
 
 // Constant arrays used for psprite clipping
 //  and initializing clipping.

@@ -136,6 +136,7 @@ typedef enum WeaponFlags_e
 	
 	WF_INEXTENDED				= 0x00001000,	// Appears in extended mode
 	WF_NOBLEEDTARGET			= 0x00002000,	// Do not need target
+	WF_SUPERWEAPON				= 0x00004000,	// Is a Super Weapon
 } WeaponFlags_t;
 
 // Weapon info: sprite frames, ammunition use.

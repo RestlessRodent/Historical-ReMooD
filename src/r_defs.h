@@ -715,7 +715,10 @@ typedef struct vissprite_s
 	//Fab:29-04-98: for MF_SHADOW sprites, which translucency table to use
 	uint8_t* transmap;
 	
-	int mobjflags;
+	uint32_t mobjflags;
+	uint32_t mobjflags2;
+	uint32_t RXFlags[NUMINFORXFIELDS];
+	int MoSkinColor;
 	
 	// SoM: 3/6/2000: height sector for underwater/fake ceiling support
 	int heightsec;

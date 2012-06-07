@@ -197,10 +197,14 @@ typedef enum P_EXGSBitID_e
 	PEXGSBID_PLALLOWAUTOAIM,					// Allow Auto-Aiming
 	PEXGSBID_PLFORCEWEAPONSWITCH,				// Force Weapon Switching
 	PEXGSBID_PLDROPWEAPONS,						// Drop Player Weapons
-	PEXGSBID_PLINFINITEAMMO,					// Drop Player Weapons
+	PEXGSBID_PLINFINITEAMMO,					// Infinite Ammo
 	PEXGSBID_GAMEHERETICGIBBING,				// Heretic Gibbing
 	PEXGSBID_MONPREDICTMISSILES,				// cv_predictingmonsters
 	PEXGSBID_MONRESPAWNMONSTERSTIME,			// cv_respawnmonsterstime
+	PEXGSBID_PLSPAWNWITHMAXGUNS,				// Spawn With All Guns
+	PEXGSBID_PLSPAWNWITHSUPERGUNS,				// Spawn With Super Guns
+	PEXGSBID_PLSPAWNWITHMAXSTATS,				// Spawn With Max Stats
+	PEXGSBID_GAMESPAWNPICKUPS,					// Spawn Game Pickups
 	
 	PEXGSNUMBITIDS
 } P_EXGSBitID_t;

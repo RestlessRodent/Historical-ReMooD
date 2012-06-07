@@ -17570,6 +17570,7 @@ MapWeapon "BFGNineK"
 	IsDoom "true";
 	IsNotShareware "true";
 	NoAutoFire "true";
+	IsSuperWeapon "true";
 	
 	BotMetric "BFG";
 	
@@ -18006,6 +18007,7 @@ MapWeapon "BetaBFG"
 	IsDoom "true";
 	IsNotShareware "true";
 	NoAutoFire "true";
+	IsSuperWeapon "true";
 	
 	BotMetric "SprayPlasma";
 	
