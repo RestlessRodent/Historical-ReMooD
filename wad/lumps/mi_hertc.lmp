@@ -1,0 +1,84 @@
+defaultsettings
+	sucktime 1
+	entersound BOWSHT
+	intermusic MUS_INTR
+	bordertexture FLOOR00
+	gravity 800
+
+defaultsettings
+	exitpic MAPE1
+	enterpic MAPE1
+	sky1 SKY1
+
+map E1M1 "The Docks"
+	cluster 1
+	next E1M2
+	secretnext E1M9
+	levelnum 1
+	creator "Unknown"
+	music MUS_E1M1
+
+map E1M2 "The Dungeons"
+	cluster 1
+	next E1M3
+	secretnext E1M9
+	levelnum 2
+	creator "Unknown"
+	music MUS_E1M2
+	
+map E1M3 "The Gatehouse"
+	cluster 1
+	next E1M4
+	secretnext E1M9
+	levelnum 3
+	creator "Unknown"
+	music MUS_E1M3
+	
+map E1M4 "The Guard Tower"
+	cluster 1
+	next E1M5
+	secretnext E1M9
+	levelnum 4
+	creator "Unknown"
+	music MUS_E1M4
+	
+map E1M5 "The Citadel"
+	cluster 1
+	next E1M6
+	secretnext E1M9
+	levelnum 5
+	creator "Unknown"
+	music MUS_E1M5
+	
+map E1M6 "The Cathedral"
+	cluster 1
+	next E1M7
+	secretnext E1M9
+	levelnum 6
+	creator "Unknown"
+	music MUS_E1M6
+	
+map E1M7 "The Crypts"
+	cluster 1
+	next E1M8
+	secretnext E1M9
+	levelnum 7
+	creator "Unknown"
+	music MUS_E1M7
+	
+map E1M8 "Hell's Maw"
+	cluster 1
+	next EndGame1
+	secretnext E1M9
+	levelnum 8
+	creator "Unknown"
+	music MUS_E1M8
+	
+map E1M9 "The Graveyard"
+	cluster 1
+	next E1M7
+	secretnext E1M9
+	levelnum 9
+	creator "Unknown"
+	music MUS_E1M9
+

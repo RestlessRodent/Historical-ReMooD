@@ -1183,7 +1183,7 @@ static const char* DS_FieldNumber(const char* const a_Str, const size_t a_Num)
 		
 		// Move up
 		n++;
-		f += strlen(f);
+		f += strlen(f) + 1;
 	}
 	
 	/* Not found */
