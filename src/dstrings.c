@@ -858,6 +858,9 @@ StringGroupEX_t UnicodeStrings[NUMUNICODESTRINGS] =
 	{                            "DEP_DOOMUTITLE", "The Ultimate DOOM Startup"},
 	{                             "DEP_DOOMTITLE", "DOOM Registered Startup"},
 	{                            "DEP_DOOM1TITLE", "DOOM Shareware Startup"},
+	
+	/*** OTHER GAME STUFF ***/
+	{					"FOUNDSECRET", "You found a secret area!"},
 };
 
 /* DS_NameOfString() -- Returns name of pointer to string */

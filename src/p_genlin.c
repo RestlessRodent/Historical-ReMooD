@@ -40,6 +40,7 @@
 #include "s_sound.h"
 #include "z_zone.h"
 #include "p_spec.h"
+#include "p_inter.h"
 
 /*
   SoM: 3/9/2000: Copied this entire file from Boom sources to Legacy sources.
@@ -1339,6 +1340,8 @@ bool_t EV_HExDoGenPlat(line_t* const a_Line, mobj_t* const a_Object)
 /****************************************************************************/
 
 void P_AddFakeFloor(sector_t* sec, sector_t* sec2, line_t* master, int flags);
+void Add_Friction(int friction, int movefactor, int affectee);
+void Add_Pusher(int type, int x_mag, int y_mag, mobj_t* source, int affectee);
 
 /* EV_TryGenTrigger() -- Tries to trigger a line */
 bool_t EV_TryGenTrigger(line_t* const a_Line, const int a_Side, mobj_t* const a_Object, const EV_TryGenType_t a_Type, const uint32_t a_Flags, bool_t* const a_UseAgain)
@@ -1346,8 +1349,13 @@ bool_t EV_TryGenTrigger(line_t* const a_Line, const int a_Side, mobj_t* const a_
 	triggertype_e TrigMode;
 	uint32_t TypeBase;
 	uint32_t u32;
-	int32_t i, j, k;
+	int32_t i, j, k, s;
 	sector_t* Sector;
+	
+	mobj_t* thing;
+	int length;					// line length controls magnitude
+	int friction;				// friction value to be applied during movement
+	int movefactor;				// applied to each player move to simulate inertia
 	
 	/* Check */
 	if (!a_Line)
@@ -1356,6 +1364,9 @@ bool_t EV_TryGenTrigger(line_t* const a_Line, const int a_Side, mobj_t* const a_
 	/* Ignore Non-Special Lines */
 	if (a_Line->special == 0)
 		return false;
+	
+	/* Clear */
+	i = j = k = s = 0;
 	
 	/* Debug */
 	if (devparm)
@@ -1641,14 +1652,268 @@ bool_t EV_TryGenTrigger(line_t* const a_Line, const int a_Side, mobj_t* const a_
 			// Success!
 			return true;
 		}
+			
+			// Transfers
+		else if (TypeBase == EVGHET_YTRANSFER)
+		{
+			// Which type?
+			switch ((a_Line->special & EVGENGE_TRANSFERMASK) >> EVGENGE_TRANSFERSHIFT)
+			{
+				case EVGHEXFT_FLIGHT:
+					break;
+					
+				case EVGHEXFT_FRICTION:
+					length = P_AproxDistance(a_Line->dx, a_Line->dy) >> FRACBITS;
+					friction = (0x1EB8 * length) / 0x80 + 0xD000;
+			
+					if (friction > FRACUNIT)
+						friction = FRACUNIT;
+					if (friction < 0)
+						friction = 0;
+				
+					// The following check might seem odd. At the time of movement,
+					// the move distance is multiplied by 'friction/0x10000', so a
+					// higher friction value actually means 'less friction'.
+			
+					if (friction > ORIG_FRICTION)	// ice
+						movefactor = ((0x10092 - friction) * (0x70)) / 0x158;
+					else
+						movefactor = ((friction - 0xDB34) * (0xA)) / 0x80;
+				
+					// killough 8/28/98: prevent odd situations
+					if (movefactor < 32)
+						movefactor = 32;
+				
+					for (s = -1; (s = P_FindSectorFromLineTag(a_Line, s)) >= 0;)
+						Add_Friction(friction, movefactor, s);
+					break;
+					
+				case EVGHEXFT_WIND:
+					for (s = -1; (s = P_FindSectorFromLineTag(a_Line, s)) >= 0;)
+						Add_Pusher(p_wind, a_Line->dx, a_Line->dy, NULL, s);
+					break;
+					
+				case EVGHEXFT_CURRENT:
+					for (s = -1; (s = P_FindSectorFromLineTag(a_Line, s)) >= 0;)
+						Add_Pusher(p_current, a_Line->dx, a_Line->dy, NULL, s);
+					break;
+					
+				case EVGHEXFT_POINTFORCE:
+					for (s = -1; (s = P_FindSectorFromLineTag(a_Line, s)) >= 0;)
+					{
+						thing = P_GetPushThing(s);
+						if (thing)	// No thing means no effect
+							Add_Pusher(p_push, a_Line->dx, a_Line->dy, thing, s);
+					}
+					break;
+					
+				case EVGHEXFT_HEIGHTS:
+					for (s = -1; (s = P_FindSectorFromLineTag(a_Line, s)) >= 0;)
+						sectors[s].heightsec = a_Line->frontsector - sectors;
+					break;
+					
+				case EVGHEXFT_TRANSLUCENCY:
+					break;
+					
+				case EVGHEXFT_CLIGHT:
+					break;
+					
+				case EVGHEXFT_SKYFLIPPED:
+					i = 1;
+				case EVGHEXFT_SKY:
+					for (s = -1; (s = P_FindSectorFromLineTag(a_Line, s)) >= 0;)
+					{
+						sectors[s].AltSkyTexture = sides[a_Line->sidenum[0]].midtexture;
+						sectors[s].AltSkyFlipped = !!i;
+					}
+					break;
+					
+				case EVGHEXFT_DRAWHEIGHTS:
+					for (s = -1; (s = P_FindSectorFromLineTag(a_Line, s)) >= 0;)
+					{
+						sectors[s].heightsec = a_Line->frontsector - sectors;
+						sectors[s].altheightsec = 1;
+					}
+					break;
+					
+				case EVGHEXFT_CREATECOLORMAP:
+					break;
+					
+				case EVGHEXFT_TRANSID1:
+				case EVGHEXFT_TRANSID2:
+				case EVGHEXFT_TRANSID3:
+				case EVGHEXFT_TRANSID4:
+				case EVGHEXFT_TRANSID5:
+					break;
+					
+				case EVGHEXFT_UPCURRENT:
+					for (s = -1; (s = P_FindSectorFromLineTag(a_Line, s)) >= 0;)
+						Add_Pusher(p_upcurrent, a_Line->dx, a_Line->dy, NULL, s);
+					break;
+					
+				case EVGHEXFT_DOWNCURRENT:
+					for (s = -1; (s = P_FindSectorFromLineTag(a_Line, s)) >= 0;)
+						Add_Pusher(p_downcurrent, a_Line->dx, a_Line->dy, NULL, s);
+					break;
+					
+				case EVGHEXFT_UPWIND:
+					for (s = -1; (s = P_FindSectorFromLineTag(a_Line, s)) >= 0;)
+						Add_Pusher(p_upwind, a_Line->dx, a_Line->dy, NULL, s);
+					break;
+					
+				case EVGHEXFT_DOWNWIND:
+					for (s = -1; (s = P_FindSectorFromLineTag(a_Line, s)) >= 0;)
+						Add_Pusher(p_downwind, a_Line->dx, a_Line->dy, NULL, s);
+					break;
+					
+				default:
+					break;
+			}
+			
+			// Success!
+			return true;
+		}
 	}
 	
 	/* Failed */
 	return false;
 }
 
+/* P_ProcessSpecialSectorEx() -- Handles object in special sector */
+void P_ProcessSpecialSectorEx(const EV_TryGenType_t a_Type, mobj_t* const a_Mo, player_t* const a_Player, sector_t* const a_Sector, const bool_t a_InstaDamage)
+{
+	bool_t REx, EffectMonster, IsMonsterMo, DoDam;
+	uint32_t Bits;
+	
+	/* Only accept walk and start */
+	if (a_Type != EVTGT_WALK && a_Type != EVTGT_MAPSTART)
+		return;
+		
+	/* See if the ReMooD bit is set */
+	REx = false;
+	if (a_Sector->special & UINT32_C(0x80000000))
+		REx = true;
+	
+	/* See if object is a monster */
+	IsMonsterMo = false;
+	if (a_Mo)
+		IsMonsterMo = !(a_Mo->RXFlags[0] & MFREXA_ISPLAYEROBJECT);
+	
+	// Effects Monster?
+	EffectMonster = false;
+	
+	/* Spawn Map Start Triggers */
+	if (a_Type == EVTGT_MAPSTART)
+	{
+		// Spawn Light Specials?
+		Bits = (a_Sector->special & UINT32_C(0x1F));
+		
+		// Which Lighting?
+		switch (Bits)
+		{
+			case 1:		// randomoff
+				P_SpawnLightFlash(a_Sector);
+				break;
+			
+			case 4:		// damblinkhalfsec
+				a_Sector->special |= 3 << DAMAGE_SHIFT;	//SoM: 3/8/2000: put damage bits in
+			case 2:		// blinkhalfsec
+				P_SpawnStrobeFlash(a_Sector, FASTDARK, 0);
+				break;
+			
+			case 3:		// blinksec
+				P_SpawnStrobeFlash(a_Sector, SLOWDARK, 0);
+				break;
+			
+			case 8:		// oscillates
+				P_SpawnGlowingLight(a_Sector);
+				break;
+			
+			case 12:	// syncblinkhalfsec
+				P_SpawnStrobeFlash(a_Sector, SLOWDARK, 1);
+				break;
+			
+			case 13:	// syncblinksec
+				P_SpawnStrobeFlash(a_Sector, FASTDARK, 1);
+				break;
+			
+			case 17:	// flickers
+				P_SpawnFireFlicker(a_Sector);
+				break;
+			
+			default:	// unknown
+				break;
+		}
+		
+		// Secret?
+		if (a_Sector->special & 0x80)
+			totalsecret++;
+	}
+	
+	/* Otherwise process walking specials */
+	else
+	{
+		// Damage
+		if (!IsMonsterMo || (IsMonsterMo && EffectMonster))
+			switch ((a_Sector->special & DAMAGE_MASK) >> DAMAGE_SHIFT)
+			{
+				case 1:			// 2/5 damage per 31 ticks
+					if (!(a_Mo->RXFlags[1] & MFREXB_NOFLOORDAMAGE))
+						if (a_InstaDamage)
+							P_DamageMobj(a_Mo, NULL, NULL, 5);
+					break;
+				
+				case 2:			// 5/10 damage per 31 ticks
+					if (!(a_Mo->RXFlags[1] & MFREXB_NOFLOORDAMAGE))
+						if (a_InstaDamage)
+							P_DamageMobj(a_Mo, NULL, NULL, 10);
+					break;
+				
+				case 3:			// 10/20 damage per 31 ticks
+					// Even if no damage, damage may still occur
+					DoDam = false;
+					if (!(a_Mo->RXFlags[1] & MFREXB_NOFLOORDAMAGE))
+						DoDam = true;
+					else	// Possible Radiation Suit Is On
+						DoDam = (P_Random() < 5);
+					
+					if (DoDam && a_InstaDamage)
+						P_DamageMobj(a_Mo, NULL, NULL, 10);
+					break;
+					
+				case 0:			// no damage
+				default:
+					break;
+			}
+		
+		// Secret
+		if (a_Player && a_Sector->special & SECRET_MASK)
+		{
+			a_Player->secretcount++;
+			a_Sector->special &= ~SECRET_MASK;
+			
+			// Secret Message
+			if (!cv_deathmatch.value)
+				P_PlayerMessage(PPM_SECRET, a_Mo, NULL, PTROFUNICODESTRING(DSTR_FOUNDSECRET));
+		}
+		
+		// Exit Level?
+		if (a_Player && a_Sector->special & REXEXIT_MASK)
+		{
+			// Remove god mode cheat
+			a_Player->cheats &= ~CF_GODMODE;
+			
+			// Enough Health
+			if (a_Mo->health <= 10)
+				G_ExitLevel();
+		}
+	}
+}
+
+/****************************************************************************/
+
 /* EV_DoomToGenTrigger() -- Translate old Doom Lines to generalized ones */
-uint32_t EV_DoomToGenTrigger(const uint32_t a_Input)
+uint32_t EV_DoomToGenTrigger(const bool_t a_Sector, const uint32_t a_Input)
 {
 	size_t i;
 	
@@ -1658,15 +1923,16 @@ uint32_t EV_DoomToGenTrigger(const uint32_t a_Input)
 	
 	/* Check through list */
 	for (i = 0; i < g_NumReGenMap; i++)
-		if (g_ReGenMap[i].Source == a_Input)
-			return g_ReGenMap[i].Target;
+		if (g_ReGenMap[i].Sector == a_Sector)
+			if (g_ReGenMap[i].Source == a_Input)
+				return g_ReGenMap[i].Target;
 	
 	/* Otherwise return input */
 	return a_Input;
 }
 
 /* EV_HexenToGenTrigger() -- Hexen to general trigger */
-uint32_t EV_HexenToGenTrigger(const uint32_t a_Flags, const uint8_t a_Input, const uint8_t* const a_Args)
+uint32_t EV_HexenToGenTrigger(const bool_t a_Sector, const uint32_t a_Flags, const uint8_t a_Input, const uint8_t* const a_Args)
 {
 	EV_GenHEActivator_t Trig;
 	

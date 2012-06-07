@@ -1,0 +1,32 @@
+# Extended Generic Sector Mappings
+# Without this, RMD_EGSL is quite useless.
+# Although you can change the data here you will not produce the desired result
+# if you expect types to do other things. What I mean is that if you were to say
+# change the door trigger to another number, it would be of another type. So
+# this file is for internal usage for the most part.
+# So, avoid changing this file since the primary purpose is to make the code
+# in p_spec.c extendable and lightweight and without having over 9000 if
+# statements with the lines to match.
+
+### BOOM GENERALIZED ###
+
+BOOMSECTOR 0x0
+@	LIGHTING [ 0 0x1F normal randomoff blinkhalfsec blinksec damblinkhalfsec unusedfive unusedsix unusedseven oscillates unusedninve unusedten unusedeleven syncblinkhalfsec syncblinksec unusedfourteen unusedfifteen unusedsixteen flickers unusedeighteen unusednineteen unusedtwenty unusedtwentyone unusedtwentytwo unusedtwnetythree unusedtwentyfour unusedtwentyfive unusedtwentysix unusedtwentyseven unusedtwentyeight unusedtwentynine unusedthirty unusedthirtyone ]
+@	DAMAGE [ 5 0x60 nodamage damfive damten damtwenty ]
+@	SECRET [ 7 0x80 nosecret secret ]
+@	FRICTION [ 8 0x100 nofriction friction ]
+@	WIND [ 9 0x200 nowind wind ]
+@	SOUND [ 10 0x400 sounds nosounds ]
+@	MOVESOUND [ 11 0x800 movesounds nomovesounds ]
+
+### REMOOD EXTENDED ###
+REMOODSECTOR 0x80000000
+@	LIGHTING [ 0 0x1F normal randomoff blinkhalfsec blinksec damblinkhalfsec unusedfive unusedsix unusedseven oscillates unusedninve unusedten unusedeleven syncblinkhalfsec syncblinksec unusedfourteen unusedfifteen unusedsixteen flickers unusedeighteen unusednineteen unusedtwenty unusedtwentyone unusedtwentytwo unusedtwnetythree unusedtwentyfour unusedtwentyfive unusedtwentysix unusedtwentyseven unusedtwentyeight unusedtwentynine unusedthirty unusedthirtyone ]
+@	DAMAGE [ 5 0x60 nodamage damfive damten damtwenty ]
+@	SECRET [ 7 0x80 nosecret secret ]
+@	FRICTION [ 8 0x100 nofriction friction ]
+@	WIND [ 9 0x200 nowind wind ]
+@	SOUND [ 10 0x400 sounds nosounds ]
+@	MOVESOUND [ 11 0x800 movesounds nomovesounds ]
+@	EXIT [ 12 0x1000 noexit exit ]
+

@@ -685,6 +685,8 @@ int EV_PortalTeleport(line_t* line, mobj_t* thing, int side);
 #define PUSH_MASK       0x200
 #define PUSH_SHIFT      9
 
+#define REXEXIT_MASK	0x1000
+
 //jff 02/04/98 Define masks, shifts, for fields in
 // generalized linedef types
 
@@ -854,6 +856,7 @@ typedef enum EV_TryGenTypeFlags_e
 /* EV_ReGenMap_t -- Re-Generalize Map */
 typedef struct EV_ReGenMap_s
 {
+	bool_t Sector;								// Applies to sector
 	uint32_t Source;							// Source Type
 	uint32_t Target;							// Target Type
 } EV_ReGenMap_t;
@@ -872,8 +875,10 @@ int EV_DoGenDoor(line_t* line, mobj_t* const a_Object);
 int EV_DoGenLockedDoor(line_t* line, mobj_t* const a_Object);
 
 bool_t EV_TryGenTrigger(line_t* const a_Line, const int a_Side, mobj_t* const a_Object, const EV_TryGenType_t a_Type, const uint32_t a_Flags, bool_t* const a_UseAgain);
-uint32_t EV_DoomToGenTrigger(const uint32_t a_Input);
-uint32_t EV_HexenToGenTrigger(const uint32_t a_Flags, const uint8_t a_Input, const uint8_t* const a_Args);
+void P_ProcessSpecialSectorEx(const EV_TryGenType_t a_Type, mobj_t* const a_Mo, player_t* const a_Player, sector_t* const a_Sector, const bool_t a_InstaDamage);
+
+uint32_t EV_DoomToGenTrigger(const bool_t a_Sector, const uint32_t a_Input);
+uint32_t EV_HexenToGenTrigger(const bool_t a_Sector, const uint32_t a_Flags, const uint8_t a_Input, const uint8_t* const a_Args);
 
 /****** EXTENDED HIGH GENERALIZATION ******/
 
@@ -958,6 +963,32 @@ typedef enum EV_GenHEFCPType_e
 	EVGHEPLATT_NNF,								// Next to Next Floor
 } EV_GenHEFType_t;
 
+/* EV_GenHEXFerType_t -- Generalized transfer type */
+typedef enum EV_GenHEXFerType_e
+{
+	EVGHEXFT_FLIGHT,
+	EVGHEXFT_FRICTION,
+	EVGHEXFT_WIND,
+	EVGHEXFT_CURRENT,
+	EVGHEXFT_POINTFORCE,
+	EVGHEXFT_HEIGHTS,
+	EVGHEXFT_TRANSLUCENCY,
+	EVGHEXFT_CLIGHT,
+	EVGHEXFT_SKY,
+	EVGHEXFT_DRAWHEIGHTS,
+	EVGHEXFT_CREATECOLORMAP,
+	EVGHEXFT_TRANSID1,
+	EVGHEXFT_TRANSID2,
+	EVGHEXFT_TRANSID3,
+	EVGHEXFT_TRANSID4,
+	EVGHEXFT_TRANSID5,
+	EVGHEXFT_UPCURRENT,
+	EVGHEXFT_DOWNCURRENT,
+	EVGHEXFT_UPWIND,
+	EVGHEXFT_DOWNWIND,
+	EVGHEXFT_SKYFLIPPED,
+} EV_GenHEXFerType_t;
+
 /*** SHIFTS ***/
 
 // BASE
@@ -1009,6 +1040,10 @@ typedef enum EV_GenHEFCPType_e
 #define EVGENGE_TELEREVERSESHIFT	UINT32_C(6)
 #define EVGENGE_TELELWSTMASK		UINT32_C(0x00000080)
 #define EVGENGE_TELELWSTSHIFT		UINT32_C(7)
+
+// XTRANSFER
+#define EVGENGE_TRANSFERMASK		UINT32_C(0x0000FFFF)
+#define EVGENGE_TRANSFERSHIFT		UINT32_C(0)
 
 /******************************************/
 
@@ -1172,6 +1207,7 @@ typedef struct
 #define MORE_FRICTION_MOMENTUM 15000	// mud factor based on momentum
 #define ORIG_FRICTION          0xE800	// original value
 #define ORIG_FRICTION_FACTOR   2048	// original value
+#define PUSH_FACTOR 7
 
 //SoM: 3/9/2000: Otherwise, the compiler whines!
 void T_Friction(friction_t* f);

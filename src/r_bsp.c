@@ -760,7 +760,7 @@ void R_Subsector(int num)
 	if ((frontsector->floorheight < viewz || (frontsector->heightsec != -1 && sectors[frontsector->heightsec].ceilingpic == skyflatnum)))
 	{
 		floorplane = R_FindPlane(frontsector->floorheight,
-		                         textures[frontsector->floorpic]->Translation, floorlightlevel, frontsector->floor_xoffs, frontsector->floor_yoffs, floorcolormap, NULL);
+		                         textures[frontsector->floorpic]->Translation, floorlightlevel, frontsector->floor_xoffs, frontsector->floor_yoffs, floorcolormap, NULL, frontsector);
 	}
 	else
 		floorplane = NULL;
@@ -769,7 +769,7 @@ void R_Subsector(int num)
 	        || frontsector->ceilingpic == skyflatnum || (frontsector->heightsec != -1 && sectors[frontsector->heightsec].floorpic == skyflatnum)))
 	{
 		ceilingplane = R_FindPlane(frontsector->ceilingheight,
-		                           textures[frontsector->ceilingpic]->Translation, ceilinglightlevel, frontsector->ceiling_xoffs, frontsector->ceiling_yoffs, ceilingcolormap, NULL);
+		                           textures[frontsector->ceilingpic]->Translation, ceilinglightlevel, frontsector->ceiling_xoffs, frontsector->ceiling_yoffs, ceilingcolormap, NULL, frontsector);
 	}
 	else
 		ceilingplane = NULL;
@@ -795,7 +795,7 @@ void R_Subsector(int num)
 				ffloor[numffloors].plane =
 				    R_FindPlane(*rover->bottomheight, *rover->bottompic,
 				                *frontsector->lightlist[light].lightlevel,
-				                *rover->bottomxoffs, *rover->bottomyoffs, frontsector->lightlist[light].extra_colormap, rover);
+				                *rover->bottomxoffs, *rover->bottomyoffs, frontsector->lightlist[light].extra_colormap, rover, frontsector);
 				                
 				ffloor[numffloors].height = *rover->bottomheight;
 				ffloor[numffloors].ffloor = rover;
@@ -811,7 +811,7 @@ void R_Subsector(int num)
 				ffloor[numffloors].plane =
 				    R_FindPlane(*rover->topheight, *rover->toppic,
 				                *frontsector->lightlist[light].lightlevel,
-				                *rover->topxoffs, *rover->topyoffs, frontsector->lightlist[light].extra_colormap, rover);
+				                *rover->topxoffs, *rover->topyoffs, frontsector->lightlist[light].extra_colormap, rover, frontsector);
 				ffloor[numffloors].height = *rover->topheight;
 				ffloor[numffloors].ffloor = rover;
 				numffloors++;

@@ -368,16 +368,17 @@ int mega_health = 200;
 
 // eof Boris
 
-/* PS_PickupMessage() -- Handles pickup messages */
-void PS_PickupMessage(mobj_t* const a_Picker, mobj_t* const a_Upper, const char** const a_MessageRef)
+/* P_PlayerMessage() -- Handles player messages */
+void P_PlayerMessage(const P_PMType_t a_Type, mobj_t* const a_Picker, mobj_t* const a_Upper, const char** const a_MessageRef)
 {
 #define BUFSIZE 128
 	int LocalPlayer, i;
 	char Buf[BUFSIZE];
 	D_ProfileEx_t* Prof;
+	uint8_t Color;
 	
 	/* Check */
-	if (!a_Picker || !a_Upper || !a_MessageRef)
+	if (!a_Picker || !a_MessageRef)
 		return;
 	
 	/* Message references nothing */
@@ -410,8 +411,18 @@ void PS_PickupMessage(mobj_t* const a_Picker, mobj_t* const a_Upper, const char*
 		
 	// Send pickup color
 	if (Prof)
-		if (Prof->ColorPickup >= 0 && Prof->ColorPickup < NUMVEXCOLORS)
-			CONL_PrintF("{%c", (Prof->ColorPickup < 10 ? '0' + Prof->ColorPickup : 'a' + (Prof->ColorPickup - 10)));
+	{
+		if (a_Type == PPM_PICKUP)
+			Color = Prof->ColorPickup;
+		else if (a_Type == PPM_SECRET)
+			Color = Prof->ColorSecret;
+		else
+			Color = 0;
+		
+		// Print Color
+		if (Color >= 0 && Color < NUMVEXCOLORS)
+			CONL_PrintF("{%c", (Color < 10 ? '0' + Color : 'a' + (Color - 10)));
+	}
 	
 	// Send actual message
 	CONL_PrintF("%s{z\n", Buf);
@@ -654,7 +665,7 @@ bool_t P_TouchSpecialThing(mobj_t* special, mobj_t* toucher)
 		
 		// Message?
 		if (Current->PickupMsgRef)
-			PS_PickupMessage(toucher, special, Current->PickupMsgRef);
+			P_PlayerMessage(PPM_PICKUP, toucher, special, Current->PickupMsgRef);
 		
 		// Don't process anymore
 		return true;
@@ -672,7 +683,7 @@ bool_t P_TouchSpecialThing(mobj_t* special, mobj_t* toucher)
 		case SPR_BKEY:
 			if (P_GiveCard(player, it_bluecard))
 			{
-				PS_PickupMessage(toucher, special, GOTBLUECARD);
+				P_PlayerMessage(toucher, special, GOTBLUECARD);
 			}
 			if (!multiplayer)
 				break;
@@ -681,7 +692,7 @@ bool_t P_TouchSpecialThing(mobj_t* special, mobj_t* toucher)
 		case SPR_YKEY:
 			if (P_GiveCard(player, it_yellowcard))
 			{
-				PS_PickupMessage(toucher, special, GOTYELWCARD);
+				P_PlayerMessage(toucher, special, GOTYELWCARD);
 			}
 			if (!multiplayer)
 				break;
@@ -690,7 +701,7 @@ bool_t P_TouchSpecialThing(mobj_t* special, mobj_t* toucher)
 		case SPR_RKEY:
 			if (P_GiveCard(player, it_redcard))
 			{
-				PS_PickupMessage(toucher, special, GOTREDCARD);
+				P_PlayerMessage(toucher, special, GOTREDCARD);
 			}
 			if (!multiplayer)
 				break;
@@ -699,7 +710,7 @@ bool_t P_TouchSpecialThing(mobj_t* special, mobj_t* toucher)
 		case SPR_BSKU:
 			if (P_GiveCard(player, it_blueskull))
 			{
-				PS_PickupMessage(toucher, special, GOTBLUESKUL);
+				P_PlayerMessage(toucher, special, GOTBLUESKUL);
 			}
 			if (!multiplayer)
 				break;
@@ -708,7 +719,7 @@ bool_t P_TouchSpecialThing(mobj_t* special, mobj_t* toucher)
 		case SPR_YSKU:
 			if (P_GiveCard(player, it_yellowskull))
 			{
-				PS_PickupMessage(toucher, special, GOTYELWSKUL);
+				P_PlayerMessage(toucher, special, GOTYELWSKUL);
 			}
 			if (!multiplayer)
 				break;
@@ -717,7 +728,7 @@ bool_t P_TouchSpecialThing(mobj_t* special, mobj_t* toucher)
 		case SPR_RSKU:
 			if (P_GiveCard(player, it_redskull))
 			{
-				PS_PickupMessage(toucher, special, GOTREDSKULL);
+				P_PlayerMessage(toucher, special, GOTREDSKULL);
 			}
 			if (!multiplayer)
 				break;
@@ -727,14 +738,14 @@ bool_t P_TouchSpecialThing(mobj_t* special, mobj_t* toucher)
 		case SPR_PINV:
 			if (!P_GivePower(player, pw_invulnerability))
 				return;
-			PS_PickupMessage(toucher, special, GOTINVUL);
+			P_PlayerMessage(toucher, special, GOTINVUL);
 			sound = sfx_getpow;
 			break;
 			
 		case SPR_PSTR:
 			if (!P_GivePower(player, pw_strength))
 				return;
-			PS_PickupMessage(toucher, special, GOTBERSERK);
+			P_PlayerMessage(toucher, special, GOTBERSERK);
 			if (player->readyweapon != wp_fist)
 				player->pendingweapon = wp_fist;
 			sound = sfx_getpow;
@@ -743,28 +754,28 @@ bool_t P_TouchSpecialThing(mobj_t* special, mobj_t* toucher)
 		case SPR_PINS:
 			if (!P_GivePower(player, pw_invisibility))
 				return;
-			PS_PickupMessage(toucher, special, GOTINVIS);
+			P_PlayerMessage(toucher, special, GOTINVIS);
 			sound = sfx_getpow;
 			break;
 			
 		case SPR_SUIT:
 			if (!P_GivePower(player, pw_ironfeet))
 				return;
-			PS_PickupMessage(toucher, special, GOTSUIT);
+			P_PlayerMessage(toucher, special, GOTSUIT);
 			sound = sfx_getpow;
 			break;
 			
 		case SPR_PMAP:
 			if (!P_GivePower(player, pw_allmap))
 				return;
-			PS_PickupMessage(toucher, special, GOTMAP);
+			P_PlayerMessage(toucher, special, GOTMAP);
 			sound = sfx_getpow;
 			break;
 			
 		case SPR_PVIS:
 			if (!P_GivePower(player, pw_infrared))
 				return;
-			PS_PickupMessage(toucher, special, GOTVISOR);
+			P_PlayerMessage(toucher, special, GOTVISOR);
 			sound = sfx_getpow;
 			break;
 			
@@ -777,7 +788,7 @@ bool_t P_TouchSpecialThing(mobj_t* special, mobj_t* toucher)
 			}
 			for (i = 0; i < NUMAMMO; i++)
 				P_GiveAmmo(player, i, ammoinfo[i].ClipAmmo);
-			PS_PickupMessage(toucher, special, GOTBACKPACK);
+			P_PlayerMessage(toucher, special, GOTBACKPACK);
 			break;
 
 			

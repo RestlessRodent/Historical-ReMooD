@@ -327,6 +327,8 @@ typedef struct sector_s
 	char* CeilingTexture;						// Name of ceiling texture
 	fixed_t BBox[4];							// Sector bounding box
 	size_t SoundSecRef;							// Reference to sound sector
+	int32_t AltSkyTexture;						// Alternate Sky Texture
+	bool_t AltSkyFlipped;						// Flipped Alternate Sky
 	
 	struct sector_s** Adj;						// Adjacent sectors
 	size_t NumAdj;								// Number of adjacent sectors
@@ -742,7 +744,6 @@ typedef struct vissprite_s
 	
 	// GhostlyDeath <February 24, 2012> -- Image to draw
 	void* Image;								// Image to draw for sprite
-	
 } vissprite_t;
 
 /* R_SpriteInfoEx_t -- Extended sprite information */

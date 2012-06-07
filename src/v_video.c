@@ -1675,7 +1675,7 @@ typedef enum V_FontNameRule_e
 	VFNR_UNIVERSAL,							// [UFNnhhhh] Universal Font Number
 	VFNR_STCFN,								// [STCFNddd] Doom STCFN Decimal
 	VFNR_FONTX,								// [FONTnddd] Heretic, Odamex Decimal
-	VFNR_PRBOOM,							// [DIG     ] PrBoom Decimal
+	VFNR_BOOM,								// [DIG     ] PrBoom Decimal
 	VFNR_STBARNUM,							// [STTNUMd ] Status bar numbers
 	
 	NUMVFONTNAMERULES
@@ -1763,13 +1763,13 @@ static V_FontInfo_t l_LocalFonts[NUMVIDEOFONTS] =
 		{VFNR_UNIVERSAL, VFNR_NULL},
 	},
 	
-	// PrBoom HUD Font
+	// Boom HUD Font
 	{
 		true,
-		"PrBoom HUD",
-		"prboom",
+		"Boom HUD",
+		"boom",
 		{"UFNJ", "DIG", "UFNJ", "DIG"},
-		{VFNR_UNIVERSAL, VFNR_PRBOOM},
+		{VFNR_UNIVERSAL, VFNR_BOOM},
 	},
 	
 	// ReMooD Console Font
@@ -1992,7 +1992,7 @@ static bool_t VS_DetectByName(const char* const a_Name, uint16_t* const a_HexOut
 			return true;
 	}
 	
-	// [DIG     ] PrBoom Decimal (VFNR_PRBOOM)
+	// [DIG     ] Boom Decimal (VFNR_BOOM)
 	
 	// [STTNUMd ] Status bar numbers (VFNR_STBARNUM)
 	if ((strlen(a_Name) == 7 &&
@@ -2147,7 +2147,7 @@ static V_UniChar_t* VS_AddCharacter(const bool_t a_Local, V_LocalFontStuff_t* co
 		{	
 			// Which translation?
 				// Doom
-			if (a_Font == VFONT_STATUSBARSMALL || a_Font == VFONT_PRBOOMHUD ||
+			if (a_Font == VFONT_STATUSBARSMALL || a_Font == VFONT_BOOMHUD ||
 				a_Font == VFONT_OEM || a_Font == VFONT_SMALL_DOOM || a_Font == VFONT_LARGE_DOOM)
 				VCP = VCP_DOOM;
 				

@@ -182,6 +182,10 @@ D_ProfileEx_t* D_CreateProfileEx(const char* const a_Name)
 	
 	// Default Colors
 	New->ColorPickup = VEX_MAP_WHITE;
+	New->ColorSecret = VEX_MAP_BRIGHTWHITE;
+	
+	// Default Sounds
+	New->SoundSecret = sfx_secret;
 	
 	/* Link */
 	if (!l_FirstProfile)

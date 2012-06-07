@@ -342,6 +342,9 @@ typedef enum
 	sfx_osktyp,
 	sfx_lotime,
 	
+	// GhostlyDeath <June 7, 2012> -- Secrets
+	sfx_secret,
+	
 	// free slots for S_AddSoundFx() at run-time --------------------
 	sfx_freeslot0,
 	//

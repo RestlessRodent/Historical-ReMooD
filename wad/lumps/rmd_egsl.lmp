@@ -1,0 +1,23 @@
+# Extended Generic Sector Language
+
+### STANDARD DOOM ###
+
+# Normal
+1 DOOM BOOMSECTOR randomoff
+2 DOOM BOOMSECTOR blinkhalfsec
+3 DOOM BOOMSECTOR blinksec
+4 DOOM BOOMSECTOR damblinkhalfsec
+5 DOOM BOOMSECTOR damten
+7 DOOM BOOMSECTOR damfive
+8 DOOM BOOMSECTOR oscillates
+9 DOOM BOOMSECTOR secret
+#10 DOOM BOOMSECTOR <30 sec door close>
+12 DOOM BOOMSECTOR syncblinkhalfsec
+13 DOOM BOOMSECTOR syncblinksec
+#14 DOOM BOOMSECTOR <300 sec door open>
+16 DOOM BOOMSECTOR damtwenty
+17 DOOM BOOMSECTOR flickers
+
+# ReMooD
+11 DOOM REMOODSECTOR damtwenty exit
+

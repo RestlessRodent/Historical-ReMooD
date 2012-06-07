@@ -859,6 +859,9 @@ typedef enum
 	DSTR_DEP_DOOMTITLE,
 	DSTR_DEP_DOOM1TITLE,
 	
+	/* Other Game Stuff */
+	DSTR_FOUNDSECRET,
+	
 	NUMUNICODESTRINGS
 } UnicodeStringID_t;
 

@@ -286,7 +286,7 @@ visplane_t* new_visplane(unsigned hash)
 //               meme hauteur, meme flattexture, meme lightlevel.
 //               Sinon en alloue un autre.
 //	"seeks a visplane having values ​​identical: same height, same flattexture, even lightlevel. Otherwise allocates another."
-visplane_t* R_FindPlane(fixed_t height, int picnum, int lightlevel, fixed_t xoff, fixed_t yoff, extracolormap_t* planecolormap, ffloor_t* ffloor)
+visplane_t* R_FindPlane(fixed_t height, int picnum, int lightlevel, fixed_t xoff, fixed_t yoff, extracolormap_t* planecolormap, ffloor_t* ffloor, sector_t* const a_Sector)
 {
 	visplane_t* check;
 	unsigned hash;				//SoM: 3/23/2000
@@ -308,7 +308,9 @@ visplane_t* R_FindPlane(fixed_t height, int picnum, int lightlevel, fixed_t xoff
 		        lightlevel == check->lightlevel &&
 		        xoff == check->xoffs &&
 		        yoff == check->yoffs &&
-		        planecolormap == check->extra_colormap && !ffloor && !check->ffloor && check->viewz == viewz && check->viewangle == viewangle)
+		        planecolormap == check->extra_colormap && !ffloor && !check->ffloor && check->viewz == viewz && check->viewangle == viewangle &&
+		        
+		        check->SkyTexture == a_Sector->AltSkyTexture)
 			return check;
 			
 	check = new_visplane(hash);
@@ -324,6 +326,18 @@ visplane_t* R_FindPlane(fixed_t height, int picnum, int lightlevel, fixed_t xoff
 	check->ffloor = ffloor;
 	check->viewz = viewz;
 	check->viewangle = viewangle;
+	check->Sector = a_Sector;
+	
+	if (check->Sector->AltSkyTexture)
+	{
+		check->SkyTexture = check->Sector->AltSkyTexture;
+		check->SkyTextureMid = 100 << FRACBITS;
+	}
+	else
+	{
+		check->SkyTexture = skytexture;
+		check->SkyTextureMid = skytexturemid;
+	}
 	
 	memset(check->top, 0xff, sizeof(unsigned short) * vid.width);
 	
@@ -385,6 +399,19 @@ visplane_t* R_CheckPlane(visplane_t* pl, int start, int stop)
 		new_pl->ffloor = pl->ffloor;
 		new_pl->viewz = pl->viewz;
 		new_pl->viewangle = pl->viewangle;
+		new_pl->Sector = pl->Sector;
+		
+		if (pl->Sector->AltSkyTexture)
+		{
+			new_pl->SkyTexture = pl->Sector->AltSkyTexture;
+			new_pl->SkyTextureMid = 100 << FRACBITS;
+		}
+		else
+		{
+			new_pl->SkyTexture = skytexture;
+			new_pl->SkyTextureMid = skytexturemid;
+		}
+		
 		pl = new_pl;
 		pl->minx = start;
 		pl->maxx = stop;
@@ -507,9 +534,10 @@ void R_DrawPlanes(void)
 					dc_colormap = fixedcolormap;
 				else
 #endif
-					dc_colormap = colormaps;
-				dc_texturemid = skytexturemid;
-				dc_texheight = (textures[skytexture]->XHeight) >> FRACBITS;
+				dc_colormap = colormaps;
+				dc_texturemid = pl->SkyTextureMid;
+				dc_texheight = (textures[pl->SkyTexture]->XHeight) >> FRACBITS;
+				
 				for (x = pl->minx; x <= pl->maxx; x++)
 				{
 					dc_yl = pl->top[x];
@@ -519,7 +547,7 @@ void R_DrawPlanes(void)
 					{
 						angle = (viewangle + xtoviewangle[x]) >> ANGLETOSKYSHIFT;
 						dc_x = x;
-						dc_source = R_GetColumn(skytexture, angle);
+						dc_source = R_GetColumn(pl->SkyTexture, angle);
 						skycolfunc();
 					}
 				}

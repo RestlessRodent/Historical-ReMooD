@@ -44,6 +44,18 @@ void P_CheckFragLimit(player_t* p);
 void P_KillMobj(mobj_t* target, mobj_t* inflictor, mobj_t* source);
 bool_t P_GiveBody(player_t* player, int num);
 
+/* P_PMType_t -- Player Message Type */
+typedef enum P_PMType_e
+{
+	PPM_UNKNOWN,								// Unknown
+	PPM_PICKUP, 								// Object Picked up
+	PPM_SECRET,									// Found a secret
+	
+	NUMPPMTYPES
+} P_PMType_t;
+
+void P_PlayerMessage(const P_PMType_t a_Type, mobj_t* const a_Picker, mobj_t* const a_Upper, const char** const a_MessageRef);
+
 //added:28-02-98: boooring handling of thing(s) on top of thing(s)
 
 /* BUGGY CODE

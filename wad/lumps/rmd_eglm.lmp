@@ -74,5 +74,8 @@ FAKEFLOOR 0x10000000
 @	FLAG [ 13 0x00002000 notinvertplanes invertplanes ]
 @	FLAG [ 14 0x00004000 notallsides allsides ]
 @	FLAG [ 15 0x00008000 notinvertsides invertsides ]
-@	FLAG [ 16 0x00010000 notdoubleshadow doubleshadow ]	
+@	FLAG [ 16 0x00010000 notdoubleshadow doubleshadow ]
+
+TRANSFER 0x20000000
+@	MODE [ 0 0xFFFF flight friction wind current pointforce heights translucency clight sky drawheights createcolormap transid1 transid2 transid3 transid4 transid5 upcurrent downcurrent upwind downwind skyflipped ]
 

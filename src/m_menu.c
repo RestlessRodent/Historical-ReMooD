@@ -109,6 +109,12 @@ typedef struct M_UILocalBox_s
 	} Buttons[MAXUIBUTTONS];
 } M_UILocalBox_t;
 
+/* M_UIMenu_t -- Interface Menu */
+typedef struct M_UIMenu_s
+{
+	uint8_t Junk;								// Junk
+} M_UIMenu_t;
+
 #define MUIBOXFONT VFONT_SMALL
 
 /*** LOCALS ***/

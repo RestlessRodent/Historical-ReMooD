@@ -52,6 +52,9 @@ typedef struct visplane_s
 	int lightlevel;
 	int minx;
 	int maxx;
+	sector_t* Sector;							// Sector to draw
+	int32_t SkyTexture;							// Sky Texture
+	fixed_t SkyTextureMid;						// Sky Texture Mid
 	
 	//SoM: 4/3/2000: Colormaps per sector!
 	extracolormap_t* extra_colormap;
@@ -111,7 +114,7 @@ void R_MakeSpans(int x, int t1, int b1, int t2, int b2);
 
 void R_DrawPlanes(void);
 
-visplane_t* R_FindPlane(fixed_t height, int picnum, int lightlevel, fixed_t xoff, fixed_t yoff, extracolormap_t* planecolormap, ffloor_t* ffloor);
+visplane_t* R_FindPlane(fixed_t height, int picnum, int lightlevel, fixed_t xoff, fixed_t yoff, extracolormap_t* planecolormap, ffloor_t* ffloor, sector_t* const a_Sector);
 
 visplane_t* R_CheckPlane(visplane_t* pl, int start, int stop);
 

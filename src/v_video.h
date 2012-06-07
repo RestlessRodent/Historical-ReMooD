@@ -242,7 +242,7 @@ typedef enum
 	
 	/* Real Fonts */
 	VFONT_STATUSBARSMALL,		// Defined by Doom
-	VFONT_PRBOOMHUD,			// Defined by PrBoom
+	VFONT_BOOMHUD,				// Defined by Boom
 	VFONT_OEM,					// Defined by ReMooD
 	VFONT_USERSPACEA,			// User Defined Font (No port should use this at all, this is for the people!)
 	VFONT_USERSPACEB,			// User Defined Font (No port should use this at all, this is for the people!)

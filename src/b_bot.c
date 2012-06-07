@@ -1454,7 +1454,7 @@ static void BS_ThinkGhostlyAI(B_BotData_t* const a_BotData, ticcmd_t* const a_Ti
 				(a_BotData->GHOSTPickupMo ? a_BotData->GHOSTPickupMo->info->RClassName : "Null")
 			);
 		if (Player - players < 4)
-			V_DrawStringA(VFONT_PRBOOMHUD, 0, Buf, 0,
+			V_DrawStringA(VFONT_BOOMHUD, 0, Buf, 0,
 				(Player == &players[0] ? 190 :
 				(Player == &players[1] ? 180 :
 				(Player == &players[2] ? 170 : 160)))
