@@ -1078,7 +1078,7 @@ void R_InitExSpriteInfo(R_SpriteInfoEx_t* const a_Info)
 		return;
 	
 	/* Get image from entry */
-	a_Info->Image = V_ImageLoadE(a_Info->Entry);
+	a_Info->Image = V_ImageLoadE(a_Info->Entry, VCP_NONE);
 	
 	// Get properties
 	if (a_Info->Image)
@@ -1217,7 +1217,7 @@ uint8_t* R_GetFlat(int flatlumpnum)
 		
 		// Load image
 		else
-			Image = Texture->FlatImage = V_ImageLoadE(Texture->FlatEntry);
+			Image = Texture->FlatImage = V_ImageLoadE(Texture->FlatEntry, VCP_NONE);
 		
 		// Draw into buffer
 		if (Image)
@@ -1235,7 +1235,7 @@ uint8_t* R_GetFlat(int flatlumpnum)
 		
 			// Image needs loading?
 			if (!PInfo->Image)
-				PInfo->Image = V_ImageLoadE(PInfo->Entry);
+				PInfo->Image = V_ImageLoadE(PInfo->Entry, VCP_NONE);
 		
 			// Draw into buffer
 			V_ImageDrawScaledIntoBuffer(VEX_IGNOREOFFSETS, PInfo->Image, Texture->patches[p].originx, Texture->patches[p].originy, 0, 0, 1 << (FRACBITS), 1 << (FRACBITS), NULL, Texture->FlatCache, w, w, h, 1 << FRACBITS, 1 << FRACBITS, 1.0, 1.0);
@@ -1311,7 +1311,7 @@ uint8_t* R_GenerateTexture(int texnum)
 		
 		// Load image
 		else
-			Image = Texture->FlatImage = V_ImageLoadE(Texture->FlatEntry);
+			Image = Texture->FlatImage = V_ImageLoadE(Texture->FlatEntry, VCP_NONE);
 		
 		// Draw into buffer
 		if (Image)
@@ -1335,7 +1335,7 @@ uint8_t* R_GenerateTexture(int texnum)
 		
 			// Image needs loading?
 			if (!PInfo->Image)
-				PInfo->Image = V_ImageLoadE(PInfo->Entry);
+				PInfo->Image = V_ImageLoadE(PInfo->Entry, VCP_NONE);
 		
 			// Draw into buffer and into masking buffer
 				// Plain

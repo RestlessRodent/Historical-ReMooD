@@ -405,7 +405,11 @@ bool_t INFO_RMODH_MapObjects(Z_Table_t* const a_Table, const WL_WADFile_t* const
 	ThisObject.RGenericMissile = D_RMODGetValueString(a_Table, "GenericMissile", NULL);
 	
 	// Integer Values
-	ThisObject.doomednum = D_RMODGetValueInt(a_Table, "DoomEdNum", 0);
+	ThisObject.EdNum[COREGAME_DOOM] = D_RMODGetValueInt(a_Table, "DoomEdNum", 0);
+	ThisObject.EdNum[COREGAME_HERETIC] = D_RMODGetValueInt(a_Table, "HereticEdNum", 0);
+	ThisObject.EdNum[COREGAME_HEXEN] = D_RMODGetValueInt(a_Table, "HexenEdNum", 0);
+	ThisObject.EdNum[COREGAME_STRIFE] = D_RMODGetValueInt(a_Table, "StrifeEdNum", 0);
+	
 	ThisObject.RDehackEdID = D_RMODGetValueInt(a_Table, "DeHackEdNum", 0);
 	ThisObject.spawnhealth = D_RMODGetValueInt(a_Table, "SpawnHealth", 0);
 	ThisObject.reactiontime = D_RMODGetValueInt(a_Table, "ReactionTime", 0);

@@ -881,6 +881,10 @@ void G_PlayerReborn(int player)
 		// Clear
 		Given = false;
 		
+		// Locked weapon?
+		if (!P_WeaponIsUnlocked(i))
+			continue;
+		
 		// Normal Gun?
 		if (P_EXGSGetValue(PEXGSBID_PLSPAWNWITHMAXGUNS))
 			if (!(p->weaponinfo[i]->WeaponFlags & WF_SUPERWEAPON))

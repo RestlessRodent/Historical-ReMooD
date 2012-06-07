@@ -16763,6 +16763,7 @@ MapWeapon "Fist"
 	PickupAmmo "0";
 	SpriteYOffset "0";
 	IsDoom "true";
+	IsHeretic "true";
 	IsBerserkToggle "true";
 	IsSwitchFromNoAmmo "true";
 	IsStartingWeapon "true";

@@ -629,6 +629,10 @@ static void R_ProjectSprite(mobj_t* thing)
 	// Initialize sprite
 	R_InitExSpriteInfo(SprInfo);
 	
+	// No sprite?
+	if (!SprInfo)
+		return;
+	
 	// calculate edges of the shape
 	tx -= SprInfo->Offset;
 	x1 = (centerxfrac + FixedMul(tx, xscale)) >> FRACBITS;
@@ -850,6 +854,11 @@ void R_DrawPSprite(pspdef_t* psp)
 	if ((psp->state->frame & FF_FRAMEMASK) >= sprdef->numframes)
 		I_Error("R_ProjectSprite: invalid sprite frame %i : %i for %s", psp->state->sprite, psp->state->frame, sprnames[psp->state->sprite]);
 #endif
+	
+	// GhostlyDeath <June 7, 2012> -- No sprite defined at all
+	if (!sprdef->spriteframes)
+		return;
+
 	sprframe = &sprdef->spriteframes[psp->state->frame & FF_FRAMEMASK];
 	
 #ifdef PARANOIA

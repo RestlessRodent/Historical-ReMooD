@@ -350,6 +350,16 @@ typedef enum V_ImageType_e
 	NUMVIMAGETYPES
 } V_ImageType_t;
 
+/* V_ColorPal_t -- Color palette for image */
+typedef enum V_ColorPal_e
+{
+	VCP_NONE,									// No palette mapping
+	VCP_DOOM,									// Doom Palette
+	VCP_HERETIC,								// Heretic Palette
+	
+	NUMVCOLORPALS
+} V_ColorPal_t;
+
 /*** STRUCTURES ***/
 
 /* V_Image_t -- A single image */
@@ -371,6 +381,7 @@ typedef struct V_Image_s
 	char					Name[MAXUIANAME];	// Name of the image (for find)
 	uint32_t				NameHash;			// Hash for the name (if applicable)
 	int32_t				Conf[NUMVIMAGETYPES];	// Confidence
+	V_ColorPal_t			NativePal;			// Native Palette
 	
 	/* WAD Related */
 	const struct WL_WADEntry_s*	wData;			// New WAD Access (WL)
@@ -389,8 +400,8 @@ typedef struct V_Image_s
 } V_Image_t;
 
 // Load and Destroy
-V_Image_t* V_ImageLoadE(const WL_WADEntry_t* const a_Entry);
-V_Image_t* V_ImageFindA(const char* const a_Name);
+V_Image_t* V_ImageLoadE(const WL_WADEntry_t* const a_Entry, const V_ColorPal_t a_Pal);
+V_Image_t* V_ImageFindA(const char* const a_Name, const V_ColorPal_t a_Pal);
 void V_ImageDestroy(V_Image_t* const a_Image);
 
 // Access

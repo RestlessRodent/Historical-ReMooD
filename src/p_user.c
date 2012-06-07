@@ -746,7 +746,25 @@ bool_t P_WeaponIsUnlocked(const weapontype_t a_Weapon)
 	/* Check */
 	if (a_Weapon < 0 || a_Weapon >= NUMWEAPONS)
 		return false;
+	
+	/* Wrong Game? */
+	// Playing Doom but weapon doesn't belong in Doom
+	if (g_CoreGame == COREGAME_DOOM && !(wpnlev1info[a_Weapon]->WeaponFlags & WF_ISDOOM))
+		return false;
 		
+	// Playing Heretic but weapon doesn't belong in Heretic
+	if (g_CoreGame == COREGAME_HERETIC && !(wpnlev1info[a_Weapon]->WeaponFlags & WF_ISHERETIC))
+		return false;
+		
+	// Playing Hexen but weapon doesn't belong in Hexen
+	if (g_CoreGame == COREGAME_HEXEN && !(wpnlev1info[a_Weapon]->WeaponFlags & WF_ISHEXEN))
+		return false;
+		
+	// Playing Strife but weapon doesn't belong in Strife
+	if (g_CoreGame == COREGAME_STRIFE && !(wpnlev1info[a_Weapon]->WeaponFlags & WF_ISSTRIFE))
+		return false;
+	
+	/* Specific Modes */
 	// Playing in shareware and the gun is not in shareware
 	if ((g_IWADFlags & CIF_SHAREWARE) && (wpnlev1info[a_Weapon]->WeaponFlags & WF_NOTSHAREWARE))
 		return false;

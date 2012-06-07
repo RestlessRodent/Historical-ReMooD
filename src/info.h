@@ -181,7 +181,7 @@ typedef INFO_ObjectStateGroup_t P_WeaponStateGroup_t;
 
 typedef struct
 {
-	int doomednum;
+	int32_t EdNum[6];
 	statenum_t spawnstate;
 	int spawnhealth;
 	statenum_t seestate;

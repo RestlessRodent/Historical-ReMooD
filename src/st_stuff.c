@@ -1450,7 +1450,11 @@ static void STS_DrawPlayerBarEx(const size_t a_PID, const int32_t a_X, const int
 	else
 	{
 		BigLetters = true;
-		Font = VFONT_STATUSBARLARGE;
+		
+		if (g_CoreGame == COREGAME_HERETIC)
+			Font = VFONT_LARGE_HERETIC;
+		else
+			Font = VFONT_STATUSBARLARGE;
 	}
 	
 	/* Get players to draw for */
@@ -1482,7 +1486,7 @@ static void STS_DrawPlayerBarEx(const size_t a_PID, const int32_t a_X, const int
 	{
 		//// HEALTH
 		// Draw Health Icon
-		vi = V_ImageFindA((IsMonster ? "sbohealg" : "sbohealt"));
+		vi = V_ImageFindA((IsMonster ? "sbohealg" : "sbohealt"), VCP_DOOM);
 		if (vi)
 			V_ImageDraw(
 					0, vi,
@@ -1504,11 +1508,11 @@ static void STS_DrawPlayerBarEx(const size_t a_PID, const int32_t a_X, const int
 		{
 			// Draw Armor Icon
 			if (!DisplayP->armortype)
-				vi = V_ImageFindA("sboempty");
+				vi = V_ImageFindA("sboempty", VCP_DOOM);
 			else if (DisplayP->armortype == 1)
-				vi = V_ImageFindA("sboarmwk");
+				vi = V_ImageFindA("sboarmwk", VCP_DOOM);
 			else
-				vi = V_ImageFindA("sboarmor");
+				vi = V_ImageFindA("sboarmor", VCP_DOOM);
 			if (vi)
 				V_ImageDraw(
 						0, vi,
@@ -1530,7 +1534,7 @@ static void STS_DrawPlayerBarEx(const size_t a_PID, const int32_t a_X, const int
 		if (!IsMonster)
 		{
 			// Draw Icon
-			vi = V_ImageFindA((DisplayP->weaponinfo[ReadyWeapon]->SBOGraphic ? DisplayP->weaponinfo[ReadyWeapon]->SBOGraphic : "sboempty"));
+			vi = V_ImageFindA((DisplayP->weaponinfo[ReadyWeapon]->SBOGraphic ? DisplayP->weaponinfo[ReadyWeapon]->SBOGraphic : "sboempty"), VCP_DOOM);
 			if (vi)
 				V_ImageDraw(
 						0, vi,
@@ -1558,7 +1562,7 @@ static void STS_DrawPlayerBarEx(const size_t a_PID, const int32_t a_X, const int
 		if (cv_deathmatch.value)
 		{
 			// Draw Icon
-			vi = V_ImageFindA("sbofrags");
+			vi = V_ImageFindA("sbofrags", VCP_DOOM);
 			if (vi)
 				V_ImageDraw(
 						0, vi,

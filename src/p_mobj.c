@@ -1510,7 +1510,7 @@ void P_RespawnSpecials(void)
 	
 	// find which type to spawn
 	for (i = 0; i < NUMMOBJTYPES; i++)
-		if (mthing->type == mobjinfo[i]->doomednum)
+		if (mthing->type == mobjinfo[i]->EdNum[g_CoreGame])
 			break;
 			
 	// spawn it
@@ -1823,7 +1823,7 @@ void P_SpawnMapThing(mapthing_t* mthing)
 		
 	// find which type to spawn (woo hacky and I like it)
 	for (i = 0; i < NUMMOBJTYPES; i++)
-		if (mthing->type == mobjinfo[i]->doomednum)
+		if (mthing->type == mobjinfo[i]->EdNum[g_CoreGame])
 			break;
 			
 	if (i >= NUMMOBJTYPES)

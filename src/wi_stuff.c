@@ -1184,7 +1184,7 @@ static void WI_loadData(void)
 	{
 		// INTERPIC
 		if (g_CurrentLevelInfo->InterPic)
-			l_PicINTER = V_ImageFindA(g_CurrentLevelInfo->InterPic);
+			l_PicINTER = V_ImageFindA(g_CurrentLevelInfo->InterPic, VCP_NONE);
 	}
 	
 	

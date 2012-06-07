@@ -1588,7 +1588,7 @@ void CONL_DrawMouse(void)
 {
 	V_Image_t* CurPic;
 	
-	CurPic = V_ImageFindA("MOUSECUR");
+	CurPic = V_ImageFindA("MOUSECUR", VCP_DOOM);
 	
 	if (CurPic)
 		V_ImageDraw(0, CurPic, g_MousePos[0], g_MousePos[1], NULL);
@@ -2239,7 +2239,7 @@ bool_t CONL_DrawConsole(void)
 		{
 			// Load background?
 			if (!BackPic)
-				BackPic = V_ImageFindA("RMD_CB_D");
+				BackPic = V_ImageFindA("RMD_CB_D", VCP_DOOM);
 				
 			// Blit to entire screen
 			if (!con_startup || BootLines == -1)	// Draw only once here
@@ -2962,7 +2962,7 @@ static void CONLS_DrawLoadingScreen(const bool_t a_QuickDraw)
 		memset(screens[0], 0, vid.rowbytes * vid.height);
 		
 		// Draw ReMooD Background
-		BGImage = V_ImageFindA("RMD_LLOA");
+		BGImage = V_ImageFindA("RMD_LLOA", VCP_DOOM);
 		V_ImageDraw(0, BGImage, 0, 0, NULL);
 		V_ImageDestroy(BGImage);
 		

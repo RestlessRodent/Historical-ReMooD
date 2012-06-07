@@ -675,7 +675,7 @@ void D_PageDrawer(const char* const a_LumpName)
 		return;
 	
 	/* Find image */
-	Image = V_ImageFindA(a_LumpName);
+	Image = V_ImageFindA(a_LumpName, VCP_NONE);
 	
 	// Not found?
 	if (!Image)
@@ -1025,6 +1025,25 @@ const D_IWADInfoEx_t c_IWADInfos[] =
 	},
 	
 	// Heretic Extended
+	{
+		"Heretic: Shadow of the Serpent Riders",
+		"hereticssr\0hereticsotsr\0hereticsosr\0\0",
+		"heretic.wad\0blasphem.wad\0\0",
+		"29ec38a4b4a0892a70dee3b8c81d7dee",
+		"66d686b1ed6d35ff103f15dbd30e0341",
+		"f489d479371df32f6d280a0cb23b59a35ba2b833",
+		"ADVISOR\0M_HTIC\0BARBACK\0E2M1\0E2M2\0E2M3\0E2M4\0E2M5\0E2M6\0E2M7\0E2M8\0E2M9\0E3M1\0E3M3\0E3M3\0E3M4\0E3M5\0E3M6\0E3M7\0E3M8\0E3M9\0E4M1\0E4M2\0E4M3\0E4M4\0E4M5\0E4M6\0E4M7\0E4M8\0E4M9\0\0E5M1\0E5M2\0E5M3\0E5M4\0E5M5\0E5M6\0E5M7\0E5M8\0E5M9\0\0",
+		0,//12408292,
+		2633,//2306,
+		
+		COREGAME_HERETIC,
+		false,
+		"MI_HERTC",
+		CIF_CANFILE | CIF_REGISTERED | CIF_EXTENDED,
+		
+		heretic,
+		heretic
+	},
 	
 	// Heretic Registered
 	
@@ -1703,7 +1722,7 @@ void D_DoomMain(void)
 	g_EarlyBootConsole = true;
 	
 	/* Adapters */
-	V_ImageFindA(NULL);					// Bump image loaders
+	V_ImageFindA(NULL, 0);				// Bump image loaders
 	D_InitRMOD();						// Initialize RMOD
 	V_MapGraphicalCharacters();			// Unicode chars
 	P_PrepareLevelInfoEx();				// Level information

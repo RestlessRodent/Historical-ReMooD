@@ -1023,6 +1023,7 @@ void V_InitializeColormaps(void)
 	size_t i, j, m, n;
 	uint8_t* Maps;
 	const WL_WADEntry_t* Entry;
+	const char* CMAPName;
 	
 	/* Destroy old maps */
 	for (i = 0; i < NUMVEXCOLORS; i++)
@@ -1045,7 +1046,16 @@ void V_InitializeColormaps(void)
 	}
 	
 	/* Obtain maps */
-	Entry = WL_FindEntry(NULL, 0, "RMD_CMAP");
+	// Which?
+	if (g_CoreGame == COREGAME_DOOM)
+		CMAPName = "RMD_CMAP";
+	else if (g_CoreGame == COREGAME_HERETIC)
+		CMAPName = "RMD_CMAQ";
+	else
+		CMAPName = NULL;
+	
+	// Get
+	Entry = WL_FindEntry(NULL, 0, CMAPName);
 	
 	// Failed?
 	if (!Entry)
@@ -1850,7 +1860,7 @@ static V_FontInfo_t l_LocalFonts[NUMVIDEOFONTS] =
 static V_UniChar_t l_VSpace[NUMVIDEOFONTS];			// Virtual space character
 static V_UniChar_t*** l_CGroups[NUMVIDEOFONTS];		// Composite group
 static V_UniChar_t* l_UnknownLink[NUMVIDEOFONTS];	// Unknown character for each font
-static size_t l_FontRemap[NUMVIDEOFONTS];	// Remaps for each font
+static VideoFont_t l_FontRemap[NUMVIDEOFONTS];	// Remaps for each font
 
 /*** FUNCTIONS ***/
 
@@ -1946,7 +1956,41 @@ static bool_t VS_DetectByName(const char* const a_Name, uint16_t* const a_HexOut
 		return true;
 	}
 	
-	// [FONTnddd] Heretic, Odamex Decimal (VFNR_FONTX)
+	// [FONTnddd] Heretic Decimal (VFNR_FONTX)
+	if (strlen(a_Name) >= 6 &&
+		strncasecmp(a_Name, "FONT", 4) == 0 &&
+		isalpha(a_Name[4]) && isdigit(a_Name[5]))
+	{
+		// Set Rule
+		*a_RuleOut = VFNR_FONTX;
+		
+		// Get Number
+		*a_HexOut = 0;
+		for (i = 5; i < 8; i++)
+		{
+			// Make sure it is valid
+			if (!a_Name[i] || !isdigit(a_Name[i]))
+				break;
+			
+			// Add number
+			*a_HexOut *= 10;	// Mul old number
+			*a_HexOut += a_Name[i] - '0';
+		}
+		
+		// Offset by 32 (space)
+		*a_HexOut += 32;
+			
+		// Which Font? Small or Big?
+		*a_FontOut = 0;
+		if (a_Name[4] == 'A' || a_Name[4] == 'a')
+			*a_FontOut = VFONT_SMALL_HERETIC;
+		else if (a_Name[4] == 'B' || a_Name[4] == 'b')
+			*a_FontOut = VFONT_LARGE_HERETIC;
+		
+		// Success!
+		if (*a_FontOut)
+			return true;
+	}
 	
 	// [DIG     ] PrBoom Decimal (VFNR_PRBOOM)
 	
@@ -2047,6 +2091,7 @@ static V_UniChar_t* VS_AddCharacter(const bool_t a_Local, V_LocalFontStuff_t* co
 	uint16_t Master, Slave;
 	V_UniChar_t* CharP;
 	int32_t w, h, xo, yo;
+	V_ColorPal_t VCP;
 	
 	/* Not for dedicated server */
 	if (g_DedicatedServer)
@@ -2099,9 +2144,22 @@ static V_UniChar_t* VS_AddCharacter(const bool_t a_Local, V_LocalFontStuff_t* co
 		
 		// Load initial image (but only if it is not virtual)
 		if (CharP != VVIRTUALSPACECHAR)
-		{
+		{	
+			// Which translation?
+				// Doom
+			if (a_Font == VFONT_STATUSBARSMALL || a_Font == VFONT_PRBOOMHUD ||
+				a_Font == VFONT_OEM || a_Font == VFONT_SMALL_DOOM || a_Font == VFONT_LARGE_DOOM)
+				VCP = VCP_DOOM;
+				
+				// Heretic
+			else if (a_Font == VFONT_SMALL_HERETIC || a_Font == VFONT_LARGE_HERETIC)
+				VCP = VCP_HERETIC;
+			else
+				VCP = VCP_NONE;
+			
+			// Load it
 			CharP->Entry = a_Entry;
-			CharP->Image = V_ImageLoadE(CharP->Entry);
+			CharP->Image = V_ImageLoadE(CharP->Entry, VCP);
 		
 			// Obtain size of character (include offsets)
 			V_ImageSizePos(CharP->Image, &w, &h, &xo, &yo);
@@ -3341,10 +3399,94 @@ typedef struct V_WLImageHolder_s
 
 /*** LOCALS ***/
 
+// Palette Mapping
+static CoreGame_t l_VSGamePal;					// Current Game Palette
+static uint8_t* l_VSPalMap[NUMVCOLORPALS];		// Color translation tables
+
 static bool_t l_VSImageBooted = false;
 static uint32_t l_VSImageAreaLimit = 0;			// Maximum picture size
 
 /*** FUNCTIONS ***/
+
+/* VS_GetPalMap() -- */
+uint8_t* VS_GetPalMap(V_Image_t* const a_Image)
+{
+	uint16_t i;
+	WL_WADEntry_t* Entry;
+	V_ColorPal_t OneOne, TransA;
+	const char* TransAName;
+	
+	/* 1:1 Mapping missing? */
+	if (!l_VSPalMap[0])
+	{
+		l_VSPalMap[0] = Z_Malloc(sizeof(*l_VSPalMap[0]) * 256, PU_STATIC, NULL);
+		for (i = 0; i < 256; i++)
+			l_VSPalMap[0][i] = i;
+	}
+	
+	/* Check */
+	if (!a_Image || g_CoreGame == COREGAME_UNKNOWN)
+		return l_VSPalMap[0];		// Return 1:1 Map
+	
+	/* Wrong Game? */
+	if (l_VSGamePal != g_CoreGame)
+	{
+		// Free possibly
+		for (i = 1; i < NUMVCOLORPALS; i++)
+			if (l_VSPalMap[i])
+			{
+				Z_Free(l_VSPalMap[i]);
+				l_VSPalMap[i] = NULL;
+			}
+		
+		// Maps for Doom
+		if (g_CoreGame == COREGAME_DOOM)
+		{
+			OneOne = VCP_DOOM;
+			TransA = VCP_HERETIC;
+			TransAName = "rmd_ph2d";
+		}
+		
+		// Maps for Heretic
+		else if (g_CoreGame == COREGAME_HERETIC)
+		{
+			OneOne = VCP_HERETIC;
+			TransA = VCP_DOOM;
+			TransAName = "rmd_pd2h";
+		}
+		
+		// 1:1 Mapping
+		l_VSPalMap[OneOne] = Z_Malloc(sizeof(*l_VSPalMap[OneOne]) * 256, PU_STATIC, NULL);
+		for (i = 0; i < 256; i++)
+			l_VSPalMap[OneOne][i] = i;
+		
+		// Translated (Palette A)
+		Entry = WL_FindEntry(NULL, 0, TransAName);
+		
+		// If entry is not found, do 1:1 of it instead
+		if (!Entry)
+		{
+			l_VSPalMap[TransA] = Z_Malloc(sizeof(*l_VSPalMap[TransA]) * 256, PU_STATIC, NULL);
+			for (i = 0; i < 256; i++)
+				l_VSPalMap[TransA][i] = i;
+		}
+		
+		// Otherwise load up the lump
+		else
+		{
+			l_VSPalMap[TransA] = Z_Malloc(sizeof(*l_VSPalMap[TransA]) * 256, PU_STATIC, NULL);
+			WL_ReadData(Entry, 0, l_VSPalMap[TransA], 256);
+		}
+		
+		// Set Game
+		l_VSGamePal = g_CoreGame;
+	}
+	
+	/* Return specified mapping from image */
+	if (l_VSPalMap[a_Image->NativePal])
+		return l_VSPalMap[a_Image->NativePal];
+	return l_VSPalMap[0];
+}
 
 /* VS_HashImageCompare() -- Compares hash with image */
 // a_A = const char* char
@@ -3416,7 +3558,7 @@ static void VS_InitialBoot(void)
 }
 
 /* V_ImageLoadE() -- Loads a specific entry as an image */
-V_Image_t* V_ImageLoadE(const WL_WADEntry_t* const a_Entry)
+V_Image_t* V_ImageLoadE(const WL_WADEntry_t* const a_Entry, const V_ColorPal_t a_Pal)
 {
 	/*** DEDICATED SERVER ***/
 #if defined(__REMOOD_DEDICATED)
@@ -3529,6 +3671,7 @@ V_Image_t* V_ImageLoadE(const WL_WADEntry_t* const a_Entry)
 	New->wData = a_Entry;
 	strncpy(New->Name, a_Entry->Name, MAXUIANAME);
 	New->NameHash = Z_Hash(New->Name);
+	New->NativePal = a_Pal;
 	
 	// Copy confidence
 	for (i = 0; i < NUMVIMAGETYPES; i++)
@@ -3623,7 +3766,7 @@ V_Image_t* V_ImageLoadE(const WL_WADEntry_t* const a_Entry)
 
 /* V_ImageFindA() -- Loads an image by name */
 // Essentially a wrapper around V_ImageLoadE()
-V_Image_t* V_ImageFindA(const char* const a_Name)
+V_Image_t* V_ImageFindA(const char* const a_Name, const V_ColorPal_t a_Pal)
 {
 	/*** DEDICATED SERVER ***/
 #if defined(__REMOOD_DEDICATED)
@@ -3677,7 +3820,7 @@ V_Image_t* V_ImageFindA(const char* const a_Name)
 		
 		// Was an entry found? If so, try loading an image from it
 		if (Entry)
-			return V_ImageLoadE(Entry);
+			return V_ImageLoadE(Entry, a_Pal);
 	}
 	
 	/* Failure */
@@ -3808,9 +3951,11 @@ const struct patch_s* V_ImageGetPatch(V_Image_t* const a_Image, size_t* const a_
 	size_t BaseSize, TotalSize, i, y, h;
 	uint32_t Temp;
 	
-	uint8_t* id, *od, *EndD;
+	uint8_t* id, *od, *EndD, *bid;
 	uint8_t* COff, *CSize;
 	uint8_t* BufA, *BufB;
+	
+	uint8_t* PalMap;
 	
 	/* Not for dedicated server */
 	if (g_DedicatedServer)
@@ -3834,6 +3979,9 @@ const struct patch_s* V_ImageGetPatch(V_Image_t* const a_Image, size_t* const a_
 	// Just load it from the WAD data
 	if (a_Image->NativeType == VIT_PATCH)
 	{
+		// Get palette mapping
+		PalMap = VS_GetPalMap(a_Image);
+		
 		// Load the patch_t in an endian friendly and structure size friendly
 		// way. So even if there is structure padding, it still works!
 		// Allocate the base patch_t plus the base post data.
@@ -3904,9 +4052,15 @@ const struct patch_s* V_ImageGetPatch(V_Image_t* const a_Image, size_t* const a_
 						break;
 					}
 					
-					// Conitnue on
+					// Contunue on
 					else
+					{
+						// Re-map colors
+						*id = PalMap[*id];
+						
+						// Go on
 						id++;
+					}
 			}
 		}
 		
@@ -3944,6 +4098,9 @@ const struct pic_s* V_ImageGetPic(V_Image_t* const a_Image, size_t* const a_Byte
 	uint8_t* RawImage;
 	size_t TotalSize;
 	
+	uint8_t* PalMap;
+	uint32_t u;
+	
 	/* Not for dedicated server */
 	if (g_DedicatedServer)
 		return NULL;
@@ -3956,10 +4113,10 @@ const struct pic_s* V_ImageGetPic(V_Image_t* const a_Image, size_t* const a_Byte
 	if (a_Image->dPic)
 	{
 		// Change to static
-		Z_ChangeTag(a_Image->dRaw, PU_STATIC);
+		Z_ChangeTag(a_Image->dPic, PU_STATIC);
 		
 		// Return picture
-		return a_Image->dRaw;
+		return a_Image->dPic;
 	}
 	
 	/* If the picture is natively a pic_t */
@@ -3971,6 +4128,9 @@ const struct pic_s* V_ImageGetPic(V_Image_t* const a_Image, size_t* const a_Byte
 	/* If the image is not a pic_t */
 	else
 	{
+		// Get palette mapping
+		PalMap = VS_GetPalMap(a_Image);
+		
 		// Raw easily translate to a pic_t, so use that
 		RawImage = V_ImageGetRaw(a_Image, a_ByteSize);
 		
@@ -3992,6 +4152,10 @@ const struct pic_s* V_ImageGetPic(V_Image_t* const a_Image, size_t* const a_Byte
 		
 		// Copy raw image data as a whole (real easy!)
 		memmove(&((pic_t*)a_Image->dPic)->data[0], RawImage, a_Image->PixelCount * sizeof(uint8_t));
+		
+		// Remap colors
+		for (u = 0; u < a_Image->PixelCount; u++)
+			((pic_t*)a_Image->dPic)->data[u] = PalMap[((pic_t*)a_Image->dPic)->data[u]];
 		
 		// Return the converted image
 		return a_Image->dPic;
@@ -4017,6 +4181,7 @@ uint8_t* V_ImageGetRaw(V_Image_t* const a_Image, size_t* const a_ByteSize)
 	uint8_t* p;
 	uint8_t Count;
 	size_t TotalSize;
+	uint8_t* PalMap;
 	
 	/* Not for dedicated server */
 	if (g_DedicatedServer)
@@ -4035,6 +4200,9 @@ uint8_t* V_ImageGetRaw(V_Image_t* const a_Image, size_t* const a_ByteSize)
 		// Return raw image
 		return a_Image->dRaw;
 	}
+	
+	// Get palette mapping
+	PalMap = VS_GetPalMap(a_Image);
 
 	/* If the picture is natively a raw image */
 	// Just load it from the WAD data (raw is the easiest)
@@ -4050,6 +4218,10 @@ uint8_t* V_ImageGetRaw(V_Image_t* const a_Image, size_t* const a_ByteSize)
 		
 		// Load WAD data straight into buffer
 		WL_ReadData(a_Image->wData, 0, a_Image->dRaw, a_Image->PixelCount * sizeof(uint8_t));
+		
+		// Re-Map Colors
+		for (x = 0; x < a_Image->PixelCount; x++)
+			a_Image->dRaw[x] = PalMap[a_Image->dRaw[x]];
 	} 
 	
 	/* If the image is not a raw image */
@@ -4068,6 +4240,10 @@ uint8_t* V_ImageGetRaw(V_Image_t* const a_Image, size_t* const a_ByteSize)
 		
 			// Load WAD data straight into buffer with offset
 			WL_ReadData(a_Image->wData, 8, a_Image->dRaw, a_Image->PixelCount * sizeof(uint8_t));
+			
+			// Re-Map Colors
+			for (x = 0; x < a_Image->PixelCount; x++)
+				a_Image->dRaw[x] = PalMap[a_Image->dRaw[x]];
 		}
 		
 		// Otherwise if it is a patch_t, translation is required
@@ -4111,7 +4287,7 @@ uint8_t* V_ImageGetRaw(V_Image_t* const a_Image, size_t* const a_ByteSize)
 				
 					// Draw into destination
 					for (i = 0; i < Count; i++)
-						a_Image->dRaw[(a_Image->Width * (dy++)) + x] = *(p++);
+						a_Image->dRaw[(a_Image->Width * (dy++)) + x] = PalMap[*(p++)];
 				
 					// Ignore
 					p++;

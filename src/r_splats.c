@@ -156,7 +156,7 @@ void R_AddWallSplat(line_t* wallline, int sectorside, char* patchname, fixed_t t
 		
 	/* Pre-init some variables */
 	// Find picture
-	SplatImage = V_ImageFindA(patchname);
+	SplatImage = V_ImageFindA(patchname, VCP_NONE);
 	
 	if (!SplatImage)
 		return;

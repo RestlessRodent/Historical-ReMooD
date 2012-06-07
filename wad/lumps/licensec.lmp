@@ -15,7 +15,7 @@ Lumps Copyright (C) id Software <http://idsoftware.com/>
 
 Lumps Copyright (C) Raven Software <>
 
-Lumps Copyright (C) 2006-2011 GhostlyDeath <ghostly@remood.org>
+Lumps Copyright (C) 2006-2012 GhostlyDeath <ghostly@remood.org>
 	graphics/rankings.ppm [DFSG, DRAWN USING LARGE FONT]
 	graphics/ufna0300.ppm [DRAWN FROM SCRATCH]
 	graphics/ufna0301.ppm [DRAWN FROM SCRATCH]
@@ -180,8 +180,8 @@ Lumps Copyright (C) 2006-2011 GhostlyDeath <ghostly@remood.org>
 	lumps/__e_rmx.lmp
 	lumps/rmd_cmpd.lmp
 	lumps/rmd_cmph.lmp
-	lumps/rmd_pd2h.lmp [!!!, USES NON-FREE DOOM PLAYPAL AND HERETIC PLAYPAL]
-	lumps/rmd_ph2d.lmp [!!!, USES NON-FREE DOOM PLAYPAL AND HERETIC PLAYPAL]
+	lumps/rmd_pd2h.lmp [FreeDoom + Blasphemer Palettes]
+	lumps/rmd_ph2d.lmp [FreeDoom + Blasphemer Palettes]
 	lumps/rmd_tr10.lmp
 	lumps/rmd_tr20.lmp
 	lumps/rmd_tr50.lmp
