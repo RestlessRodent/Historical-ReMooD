@@ -662,7 +662,7 @@ int EV_VerticalDoor(line_t* line, mobj_t* thing)
 //
 // Spawn a door that closes after 30 seconds
 //
-void P_SpawnDoorCloseIn30(sector_t* sec)
+vldoor_t* P_SpawnDoorCloseIn(sector_t* sec, const uint32_t a_Tics, const uint32_t a_Type)
 {
 	vldoor_t* door;
 	
@@ -676,16 +676,23 @@ void P_SpawnDoorCloseIn30(sector_t* sec)
 	door->thinker.function.acp1 = (actionf_p1) T_VerticalDoor;
 	door->sector = sec;
 	door->direction = 0;
-	door->type = normalDoor;
+	door->type = a_Type;
 	door->speed = VDOORSPEED;
-	door->topcountdown = 30 * 35;
+	door->topcountdown = a_Tics;
 	door->line = NULL;			//SoM: Remember the line that triggered the door.
+	
+	return door;
+}
+
+void P_SpawnDoorCloseIn30(sector_t* sec)
+{
+	P_SpawnDoorCloseIn(sec, 30 * 35, normalDoor);
 }
 
 //
 // Spawn a door that opens after 5 minutes
 //
-void P_SpawnDoorRaiseIn5Mins(sector_t* sec, int secnum)
+vldoor_t* P_SpawnDoorRaiseIn(sector_t* sec, const bool_t a_InitWait, const uint32_t a_Tics, const uint32_t a_Type)
 {
 	vldoor_t* door;
 	
@@ -698,14 +705,21 @@ void P_SpawnDoorRaiseIn5Mins(sector_t* sec, int secnum)
 	
 	door->thinker.function.acp1 = (actionf_p1) T_VerticalDoor;
 	door->sector = sec;
-	door->direction = 2;
-	door->type = raiseIn5Mins;
+	door->direction = (a_InitWait ? 2 : 1);
+	door->type = a_Type;
 	door->speed = VDOORSPEED;
 	door->topheight = P_FindLowestCeilingSurrounding(sec);
 	door->topheight -= 4 * FRACUNIT;
 	door->topwait = VDOORWAIT;
-	door->topcountdown = 5 * 60 * 35;
+	door->topcountdown = a_Tics;
 	door->line = NULL;			//SoM: 3/6/2000: You know....
+	
+	return door;
+}
+
+void P_SpawnDoorRaiseIn5Mins(sector_t* sec, int secnum)
+{
+	P_SpawnDoorRaiseIn(sec, true, 5 * 60 * 35, raiseIn5Mins);
 }
 
 // ==========================================================================

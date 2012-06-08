@@ -384,8 +384,10 @@ void EV_CloseDoor(int sectag, int speed);
 int EV_DoLockedDoor(line_t* line, vldoor_e type, mobj_t* thing, fixed_t speed);
 
 void T_VerticalDoor(vldoor_t* door);
+vldoor_t* P_SpawnDoorCloseIn(sector_t* sec, const uint32_t a_Tics, const uint32_t a_Type);
 void P_SpawnDoorCloseIn30(sector_t* sec);
 
+vldoor_t* P_SpawnDoorRaiseIn(sector_t* sec, const bool_t a_InitWait, const uint32_t a_Tics, const uint32_t a_Type);
 void P_SpawnDoorRaiseIn5Mins(sector_t* sec, int secnum);
 
 #if 0							// UNUSED
@@ -637,6 +639,9 @@ typedef struct					//SoM: 3/6/2000: Elevator struct.
 	fixed_t PerpWait;							// Perp Wait Amount
 	fixed_t PerpTicsLeft;						// Time left until perp moves
 	line_t* CallLine;							// Calling Line
+	fixed_t PDoorSpeed;							// Elevator Door speed
+	int OldDirection;							// Old movement direction
+	bool_t Dinged;								// Elevator Dinged
 } elevator_t;
 
 #define ELEVATORSPEED (FRACUNIT*4)	//SoM: 3/6/2000
@@ -1092,10 +1097,14 @@ typedef enum EV_GenHEElevType_e
 // XELEVATOR
 #define EVGENGE_ELEVSILENTMASK		UINT32_C(0x00000100)
 #define EVGENGE_ELEVSILENTSHIFT		UINT32_C(8)
-#define EVGENGE_ELEVTYPEMASK		UINT32_C(0x00000700)
+#define EVGENGE_ELEVTYPEMASK		UINT32_C(0x00000E00)
 #define EVGENGE_ELEVTYPESHIFT		UINT32_C(9)
-#define EVGENGE_ELEVWAITMASK		UINT32_C(0x00003800)
-#define EVGENGE_ELEVWAITSHIFT		UINT32_C(11)
+#define EVGENGE_ELEVWAITMASK		UINT32_C(0x00007000)
+#define EVGENGE_ELEVWAITSHIFT		UINT32_C(12)
+#define EVGENGE_ELEVDOORMASK		UINT32_C(0x00008000)
+#define EVGENGE_ELEVDOORSHIFT		UINT32_C(15)
+#define EVGENGE_ELEVDSPEEDMASK		UINT32_C(0x00070000)
+#define EVGENGE_ELEVDSPEEDSHIFT		UINT32_C(16)
 
 /******************************************/
 

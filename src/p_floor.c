@@ -332,44 +332,292 @@ void T_MoveFloor(floormove_t* floor)
 //
 // SoM: 3/6/2000: The function moves the plane differently based on direction, so if it's
 // traveling really fast, the floor and ceiling won't hit each other and stop the lift.
+// GhostlyDeath <June 8, 2012> -- Perpetual Elevator Enhanced
 void T_MoveElevator(elevator_t* elevator)
 {
+	vldoor_t* NewDoor;
 	result_e res = 0;
+	bool_t StartMove, WaitingOnDoor;
+	fixed_t LowFloor, HighFloor, ThisFloor;
+	line_t* AdjLine;
+	sector_t* AdjSector;
+	int32_t i;
 	
-	if (elevator->direction < 0)	// moving down
-	{
-		res = T_MovePlane		//jff 4/7/98 reverse order of ceiling/floor
-		      (elevator->sector, elevator->speed, elevator->ceilingdestheight, 0, 1,	// move floor
-		       elevator->direction);
-		if (res == ok || res == pastdest)	// jff 4/7/98 don't move ceil if blocked
-			T_MovePlane(elevator->sector, elevator->speed, elevator->floordestheight, 0, 0,	// move ceiling
-			            elevator->direction);
-	}
-	else						// up
-	{
-		res = T_MovePlane		//jff 4/7/98 reverse order of ceiling/floor
-		      (elevator->sector, elevator->speed, elevator->floordestheight, 0, 0,	// move ceiling
-		       elevator->direction);
-		if (res == ok || res == pastdest)	// jff 4/7/98 don't move floor if blocked
-			T_MovePlane(elevator->sector, elevator->speed, elevator->ceilingdestheight, 0, 1,	// move floor
-			            elevator->direction);
-	}
-	
-	// make floor move sound
-	if (!elevator->Silent)
-		if (!(leveltime % (8)))
-			S_StartSound((mobj_t*)&elevator->sector->soundorg, sfx_stnmov);
-		
-	if (res == pastdest)		// if destination height acheived
+	/* Stop Elevator */
+	if (elevator->type == EVGHEELEVT_STOPPERP)
 	{
 		elevator->sector->floordata = NULL;	//jff 2/22/98
 		elevator->sector->ceilingdata = NULL;	//jff 2/22/98
-		
+	
 		// make floor stop sound
 		if (!elevator->Silent)
 			S_StartSound((mobj_t*)&elevator->sector->soundorg, sfx_pstop);
-		
+	
 		P_RemoveThinker(&elevator->thinker);	// remove elevator from actives
+	}
+	
+	/* Moving Perpetual Elevator */
+	else if (elevator->type == EVGHEELEVT_PERPUP || elevator->type == EVGHEELEVT_PERPDOWN)
+	{
+		// Perp Elevator Stopped
+		if (elevator->direction == 0)
+		{
+			// Clear
+			StartMove = false;
+			WaitingOnDoor = false;
+			
+			// Elevator being called?
+			if (elevator->CallLine)
+			{
+				// Always start moving
+				StartMove = true;
+			}
+			
+			// Normal elevator move
+			else
+			{
+				// Still waiting?
+				if (--elevator->PerpTicsLeft > 0)
+					return;
+				
+				// Done waiting, start to move
+				StartMove = true;
+			}
+			
+			// Going to move elevator
+			if (StartMove)
+			{
+				// Close any nearby doors and make sure they are closed too
+				// If any doors are still open, then don't move yet
+				for (i = 0; i < elevator->sector->linecount; i++)
+				{
+					// Get current line
+					AdjLine = elevator->sector->lines[i];
+					
+					// Not part of an elevator
+					if ((AdjLine->special & EVGENHE_TYPEMASK) != EVGENHE_TYPEBASE(EVGHET_XELEVATOR))
+						continue;
+					
+					// Not an elevator door?
+					if (!((AdjLine->special & ~(EVGENHE_TYPEMASK)) & EVGENGE_ELEVDOORMASK))
+						continue;
+					
+					// Get Adjacent Sector (front or back side)
+					if (AdjLine->frontsector == elevator->sector)
+						AdjSector = AdjLine->backsector;
+					else
+						AdjSector = AdjLine->frontsector;
+					
+					// No sector on other side?
+					if (!AdjSector)
+						continue;
+					
+					// See if sector is closed (ceil = floor)
+					if (AdjSector->ceilingheight == AdjSector->floorheight)
+						continue;	// Don't bother it
+					
+					// Waiting on door
+					WaitingOnDoor = true;
+					
+					// If door was not told to close, then close it
+					if (!AdjSector->ceilingdata)
+					{
+						NewDoor = P_SpawnDoorCloseIn(AdjSector, 1, doorclose);
+						NewDoor->direction = -1;
+						NewDoor->speed = elevator->PDoorSpeed;
+					}
+				}
+				
+				// Ding bell to indicate moving
+				if (!elevator->Silent)
+					if (!elevator->Dinged)
+					{
+						S_StartSound((mobj_t*)&elevator->sector->soundorg, sfx_elvcal);
+						elevator->Dinged = true;
+					}
+				
+				// Waiting on a door to close
+				if (WaitingOnDoor)
+					return;
+					
+				// Was called
+				if (elevator->CallLine)
+				{
+					// Move Down?
+					if (elevator->sector->floorheight > elevator->CallLine->frontsector->floorheight)
+						elevator->direction = -1;
+					
+					// Move Up?
+					else if (elevator->sector->floorheight < elevator->CallLine->frontsector->floorheight)
+						elevator->direction = 1;
+					
+					// Heights are simple
+					elevator->floordestheight = elevator->CallLine->frontsector->floorheight;
+					elevator->ceilingdestheight = elevator->floordestheight + (elevator->sector->ceilingheight - elevator->sector->floorheight);
+				}
+				
+				// Resume normal direction
+				else
+				{
+					// Get lowest and highest floors
+					ThisFloor = elevator->sector->floorheight;
+					LowFloor = P_FindNextLowestFloor(elevator->sector, elevator->sector->floorheight);
+					HighFloor = P_FindNextHighestFloor(elevator->sector, elevator->sector->floorheight);
+					
+					// Determine position to move to
+						// Continue moving down?
+					if (elevator->OldDirection < 0)
+					{
+						if (LowFloor < ThisFloor)
+							elevator->direction = -1;
+						else
+							elevator->direction = 1;	// Go up!
+					}
+						// Continue moving up?
+					else
+					{
+						if (HighFloor > ThisFloor)
+							elevator->direction = 1;
+						else
+							elevator->direction = -1;	// Go down!
+					}
+					
+					// Start actually moving it
+					if (elevator->direction < 0)
+						elevator->floordestheight = LowFloor;
+					else
+						elevator->floordestheight = HighFloor;
+					elevator->ceilingdestheight = elevator->floordestheight + (elevator->sector->ceilingheight - elevator->sector->floorheight);
+				}
+				
+				// Clear calling line (moving to it, hopefully)
+				elevator->CallLine = NULL;
+			}
+		}
+		
+		// Perp Elevator Moving
+		else
+		{
+			// Down
+			if (elevator->direction < 0)
+			{
+				res = T_MovePlane		//jff 4/7/98 reverse order of ceiling/floor
+					  (elevator->sector, elevator->speed, elevator->ceilingdestheight, 0, 1,	// move floor
+					   elevator->direction);
+				if (res == ok || res == pastdest)	// jff 4/7/98 don't move ceil if blocked
+					T_MovePlane(elevator->sector, elevator->speed, elevator->floordestheight, 0, 0,	// move ceiling
+							    elevator->direction);
+			}
+			
+			// Up
+			else
+			{
+				res = T_MovePlane		//jff 4/7/98 reverse order of ceiling/floor
+					  (elevator->sector, elevator->speed, elevator->floordestheight, 0, 0,	// move ceiling
+					   elevator->direction);
+				if (res == ok || res == pastdest)	// jff 4/7/98 don't move floor if blocked
+					T_MovePlane(elevator->sector, elevator->speed, elevator->ceilingdestheight, 0, 1,	// move floor
+							    elevator->direction);
+			}
+			
+			// make floor move sound
+			if (!elevator->Silent)
+				if (!(leveltime % (8)))
+					S_StartSound((mobj_t*)&elevator->sector->soundorg, sfx_stnmov);
+					
+			// Elevator reached destination
+			if (res == pastdest)
+			{
+				// Ding the elevator bell
+				if (!elevator->Silent)
+					S_StartSound((mobj_t*)&elevator->sector->soundorg, sfx_elvcal);
+				
+				// Setup elevator wait
+				elevator->OldDirection = elevator->direction;
+				elevator->direction = 0;
+				elevator->PerpTicsLeft = elevator->PerpWait;
+				elevator->Dinged = false;
+				
+				// Clear Calling Line if at this level
+				if (elevator->CallLine)
+					if (elevator->CallLine->frontsector->floorheight == elevator->sector->floorheight)
+						elevator->CallLine = NULL;
+				
+				// Open any nearby doors
+				for (i = 0; i < elevator->sector->linecount; i++)
+				{
+					// Get current line
+					AdjLine = elevator->sector->lines[i];
+					
+					// Not part of an elevator
+					if ((AdjLine->special & EVGENHE_TYPEMASK) != EVGENHE_TYPEBASE(EVGHET_XELEVATOR))
+						continue;
+					
+					// Not an elevator door?
+					if (!((AdjLine->special & ~(EVGENHE_TYPEMASK)) & EVGENGE_ELEVDOORMASK))
+						continue;
+					
+					// Get Adjacent Sector (front or back side)
+					if (AdjLine->frontsector == elevator->sector)
+						AdjSector = AdjLine->backsector;
+					else
+						AdjSector = AdjLine->frontsector;
+					
+					// No sector on other side?
+					if (!AdjSector)
+						continue;
+					
+					// Door is not on this floor?
+					if (elevator->sector->floorheight != AdjSector->floorheight)
+						continue;	// Don't bother it
+					
+					// Open the door
+					NewDoor = P_SpawnDoorRaiseIn(AdjSector, false, 1, dooropen);
+					NewDoor->direction = 1;
+					NewDoor->speed = elevator->PDoorSpeed;
+				}
+			}
+		}
+	}
+	
+	/* Moving Generic Boom Elevator */
+	else
+	{
+		if (elevator->direction < 0)	// moving down
+		{
+			res = T_MovePlane		//jff 4/7/98 reverse order of ceiling/floor
+				  (elevator->sector, elevator->speed, elevator->ceilingdestheight, 0, 1,	// move floor
+				   elevator->direction);
+			if (res == ok || res == pastdest)	// jff 4/7/98 don't move ceil if blocked
+				T_MovePlane(elevator->sector, elevator->speed, elevator->floordestheight, 0, 0,	// move ceiling
+					        elevator->direction);
+		}
+		else						// up
+		{
+			res = T_MovePlane		//jff 4/7/98 reverse order of ceiling/floor
+				  (elevator->sector, elevator->speed, elevator->floordestheight, 0, 0,	// move ceiling
+				   elevator->direction);
+			if (res == ok || res == pastdest)	// jff 4/7/98 don't move floor if blocked
+				T_MovePlane(elevator->sector, elevator->speed, elevator->ceilingdestheight, 0, 1,	// move floor
+					        elevator->direction);
+		}
+	
+		// make floor move sound
+		if (!elevator->Silent)
+			if (!(leveltime % (8)))
+				S_StartSound((mobj_t*)&elevator->sector->soundorg, sfx_stnmov);
+	
+		if (res == pastdest)		// if destination height acheived
+		{
+			elevator->sector->floordata = NULL;	//jff 2/22/98
+			elevator->sector->ceilingdata = NULL;	//jff 2/22/98
+		
+			// make floor stop sound
+			if (!elevator->Silent)
+				S_StartSound((mobj_t*)&elevator->sector->soundorg, sfx_pstop);
+		
+			P_RemoveThinker(&elevator->thinker);	// remove elevator from actives
+		}
 	}
 }
 

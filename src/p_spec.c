@@ -3697,7 +3697,7 @@ static bool_t PS_ExtraSpecialOCCB(const bool_t a_Pushed, const struct WL_WADFile
 							CONL_PrintF(">> %s = %i\n", ThisMajor->TypeName, ThisMajor->BaseInt);
 					}
 				}
-	#undef __REMOOD_MAPTOKEN
+#undef __REMOOD_MAPTOKEN
 			
 				// Close stream
 				WL_StreamClose(Stream);

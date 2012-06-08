@@ -1162,10 +1162,10 @@ static const int32_t c_HEFWaits[] =
 /* EV_HExDoGenElevator() -- Generic Elevator */
 bool_t EV_HExDoGenElevator(line_t* const a_Line, mobj_t* const a_Object)
 {
-	EV_GenHESpeed_t HEFSpeed;
+	EV_GenHESpeed_t HEFSpeed, HEFDoorSpeed;
 	EV_GenHEElevType_t HEFType;
 	EV_GenHEFCDWait_t HEFWait;
-	bool_t HEFSilent;
+	bool_t HEFSilent, HEFDoor;
 	bool_t Ret, StnMove, IsPerp;
 	int SectorNum;
 	sector_t* CurSec;
@@ -1180,6 +1180,12 @@ bool_t EV_HExDoGenElevator(line_t* const a_Line, mobj_t* const a_Object)
 	HEFSpeed = (a_Line->special & EVGENGE_SPEEDMASK) >> EVGENGE_SPEEDSHIFT;
 	HEFType = (a_Line->special & EVGENGE_ELEVTYPEMASK) >> EVGENGE_ELEVTYPESHIFT;
 	HEFWait = (a_Line->special & EVGENGE_ELEVWAITMASK) >> EVGENGE_ELEVWAITSHIFT;
+	HEFDoorSpeed = (a_Line->special & EVGENGE_ELEVDSPEEDMASK) >> EVGENGE_ELEVDSPEEDSHIFT;
+	HEFDoor = (a_Line->special & EVGENGE_ELEVDOORMASK) >> EVGENGE_ELEVDOORSHIFT;
+	
+	/* Ignore Doors */
+	if (HEFDoor)
+		return false;
 	
 	/* Init */
 	Ret = false;
@@ -1214,17 +1220,21 @@ bool_t EV_HExDoGenElevator(line_t* const a_Line, mobj_t* const a_Object)
 				// Stopping Elevator
 				if (HEFType == EVGHEELEVT_STOPPERP)
 				{
-					ElevThinker->Type = EVGHEELEVT_STOPPERP;
+					ElevThinker->type = EVGHEELEVT_STOPPERP;
 				}
 				
 				// Calling Elevator
 				else
 				{
-					// Set elevator destination line to the current trigger line
-					ElevThinker->CallLine = a_Line;
+					// Only call when elevator is not on this floor
+					if (a_Line->frontsector->floorheight != ElevThinker->sector->floorheight)
+					{
+						// Set elevator destination line to the current trigger line
+						ElevThinker->CallLine = a_Line;
 				
-					// Emit Sound in sector where line is
-					S_StartSound((mobj_t*)&a_Line->frontsector->soundorg, sfx_elvcal);
+						// Emit Sound in sector where line is
+						S_StartSound((mobj_t*)&a_Line->backsector->soundorg, sfx_elvcal);
+					}
 				}
 				
 				// Set True
@@ -1259,6 +1269,8 @@ bool_t EV_HExDoGenElevator(line_t* const a_Line, mobj_t* const a_Object)
 		ElevThinker->PerpWait = c_HEFWaits[HEFWait];
 		ElevThinker->PerpTicsLeft = ElevThinker->PerpWait;
 		ElevThinker->Silent = HEFSilent;
+		ElevThinker->PDoorSpeed = c_HEFSpeeds[HEFDoorSpeed];
+		ElevThinker->CallLine = NULL;
 		
 		// Which floor destination?
 			// Call Current Floor

@@ -62,8 +62,10 @@ ELEVATOR 0x78000000
 @	PLAYER [ 4 0x00000010 noplayer player ]
 @	SPEED [ 5 0x000000E0 slowest slower slow normal fast faster fastest instant ]
 @	SILENT [ 8 0x00000100 nosilent silent ]
-@	TYPE [ 9 0x00000700 nhf nlf cf perpup perpdown callperp stopperp ]
-@	WAIT [ 11 0x00003800 wait1s wait3s wait4s wait5s wait9s wait10s wait30s wait60s ]
+@	TYPE [ 9 0x00000E00 nhf nlf cf perpup perpdown callperp stopperp ]
+@	WAIT [ 12 0x00007000 wait1s wait3s wait4s wait5s wait9s wait10s wait30s wait60s ]
+@	DOOR [ 15 0x00008000 nodoor door ]
+@	DOORSPEED [ 16 0x00070000 doorslowest doorslower doorslow doornormal doorfast doorfaster doorfastest doorinstant ]
 
 XTELEPORT 0xA8000000
 @	TRIGGER [ 0 0x00000007 w1 wr s1 sr g1 gr p1 pr ]
