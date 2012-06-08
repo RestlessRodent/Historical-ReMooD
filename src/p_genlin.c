@@ -1134,6 +1134,221 @@ int EV_DoGenDoor(line_t* line, mobj_t* const a_Object)
 
 /****************************************************************************/
 
+/* c_HEFSpeeds -- Speeds of things */
+static const fixed_t c_HEFSpeeds[] =
+{
+	PLATSPEED / 8,
+	PLATSPEED / 4,
+	PLATSPEED / 2,
+	PLATSPEED,
+	PLATSPEED * 2,
+	PLATSPEED * 4,
+	PLATSPEED * 8,
+	1000 << FRACBITS
+};
+
+static const int32_t c_HEFWaits[] =
+{
+	1 * TICRATE,
+	3 * TICRATE,
+	4 * TICRATE,
+	5 * TICRATE,
+	9 * TICRATE,
+	10 * TICRATE,
+	30 * TICRATE,
+	60 * TICRATE,
+};
+
+/* EV_HExDoGenElevator() -- Generic Elevator */
+bool_t EV_HExDoGenElevator(line_t* const a_Line, mobj_t* const a_Object)
+{
+	EV_GenHESpeed_t HEFSpeed;
+	EV_GenHEElevType_t HEFType;
+	EV_GenHEFCDWait_t HEFWait;
+	bool_t HEFSilent;
+	bool_t Ret, StnMove, IsPerp;
+	int SectorNum;
+	sector_t* CurSec;
+	elevator_t* ElevThinker;
+	
+	/* Check */
+	if (!a_Line)
+		return false;
+		
+	/* Get Properties */
+	HEFSilent = (a_Line->special & EVGENGE_ELEVSILENTMASK) >> EVGENGE_ELEVSILENTSHIFT;
+	HEFSpeed = (a_Line->special & EVGENGE_SPEEDMASK) >> EVGENGE_SPEEDSHIFT;
+	HEFType = (a_Line->special & EVGENGE_ELEVTYPEMASK) >> EVGENGE_ELEVTYPESHIFT;
+	HEFWait = (a_Line->special & EVGENGE_ELEVWAITMASK) >> EVGENGE_ELEVWAITSHIFT;
+	
+	/* Init */
+	Ret = false;
+	
+	// Run through everything
+	SectorNum = -1;
+	while ((SectorNum = P_FindSectorFromLineTag(a_Line, SectorNum)) >= 0)
+	{
+		// Get current sector
+		CurSec = &sectors[SectorNum];
+		
+		// If the sector is active, ignore it, possibly
+		//if (P_SectorActive(floor_special, CurSec) || P_SectorActive(ceiling_special, CurSec))
+		if (CurSec->floordata || CurSec->ceilingdata)
+		{
+			// Determine if elevator is perp
+			IsPerp = false;
+			
+			ElevThinker = CurSec->floordata;
+			if (ElevThinker && ElevThinker->thinker.function.acp1 == (actionf_p1)T_MoveElevator)
+				if (ElevThinker->type == EVGHEELEVT_PERPUP || ElevThinker->type == EVGHEELEVT_PERPDOWN)
+					IsPerp = true;
+					
+			ElevThinker = CurSec->ceilingdata;
+			if (ElevThinker && ElevThinker->thinker.function.acp1 == (actionf_p1)T_MoveElevator)
+				if (ElevThinker->type == EVGHEELEVT_PERPUP || ElevThinker->type == EVGHEELEVT_PERPDOWN)
+					IsPerp = true;
+			
+			// Call Perpetual Elevator?
+			if (IsPerp && (HEFType == EVGHEELEVT_CALLPERP || HEFType == EVGHEELEVT_STOPPERP))
+			{
+				// Stopping Elevator
+				if (HEFType == EVGHEELEVT_STOPPERP)
+				{
+					ElevThinker->Type = EVGHEELEVT_STOPPERP;
+				}
+				
+				// Calling Elevator
+				else
+				{
+					// Set elevator destination line to the current trigger line
+					ElevThinker->CallLine = a_Line;
+				
+					// Emit Sound in sector where line is
+					S_StartSound((mobj_t*)&a_Line->frontsector->soundorg, sfx_elvcal);
+				}
+				
+				// Set True
+				Ret = true;
+			}
+			
+			// Go to the next sector
+			continue;
+		}
+		
+		// Create elevator thinker for sector
+		ElevThinker = Z_Malloc(sizeof(*ElevThinker), PU_LEVSPEC, NULL);
+		P_AddThinker(&ElevThinker->thinker, PTT_MOVEELEVATOR);
+		ElevThinker->thinker.function.acp1 = (actionf_p1)T_MoveElevator;
+		
+		// Set Sector Floor and Ceiling
+		CurSec->floordata = ElevThinker;	//jff 2/22/98
+		CurSec->ceilingdata = ElevThinker;	//jff 2/22/98
+		
+		// Direction?
+			// Up
+		if (HEFType == EVGHEELEVT_UP || HEFType == EVGHEELEVT_PERPUP)
+			ElevThinker->direction = 1;
+			// Down
+		else
+			ElevThinker->direction = -1;
+		
+		// Others
+		ElevThinker->type = HEFType;
+		ElevThinker->sector = CurSec;
+		ElevThinker->speed = c_HEFSpeeds[HEFSpeed];
+		ElevThinker->PerpWait = c_HEFWaits[HEFWait];
+		ElevThinker->PerpTicsLeft = ElevThinker->PerpWait;
+		ElevThinker->Silent = HEFSilent;
+		
+		// Which floor destination?
+			// Call Current Floor
+		if (HEFType == EVGHEELEVT_CURRENT)
+		{
+			ElevThinker->floordestheight = a_Line->frontsector->floorheight;
+			ElevThinker->direction = ElevThinker->floordestheight > CurSec->floorheight ? 1 : -1;
+		}
+			// Down
+		else if (ElevThinker->direction == -1)
+			ElevThinker->floordestheight = P_FindNextLowestFloor(CurSec, CurSec->floorheight);
+			
+			// Up
+		else
+			ElevThinker->floordestheight = P_FindNextHighestFloor(CurSec, CurSec->floorheight);
+		
+		// Ceiling height is always floor offset based
+		ElevThinker->ceilingdestheight = ElevThinker->floordestheight + CurSec->ceilingheight - CurSec->floorheight;
+		
+		// Success
+		Ret = true;
+	}
+	
+	/* Return whether anything was done */
+	return Ret;
+	
+#if defined(_ASODHPAIUSDIAS)
+	int secnum;
+	int rtn;
+	sector_t* sec;
+	elevator_t* elevator;
+	
+	secnum = -1;
+	rtn = 0;
+	// act on all sectors with the same tag as the triggering linedef
+	while ((secnum = P_FindSectorFromLineTag(line, secnum)) >= 0)
+	{
+		sec = &sectors[secnum];
+		
+		// If either floor or ceiling is already activated, skip it
+		if (sec->floordata || sec->ceilingdata)	//jff 2/22/98
+			continue;
+			
+		// create and initialize new elevator thinker
+		rtn = 1;
+		elevator = Z_Malloc(sizeof(*elevator), PU_LEVSPEC, 0);
+		P_AddThinker(&elevator->thinker, PTT_MOVEELEVATOR);
+		sec->floordata = elevator;	//jff 2/22/98
+		sec->ceilingdata = elevator;	//jff 2/22/98
+		elevator->thinker.function.acp1 = (actionf_p1) T_MoveElevator;
+		elevator->type = elevtype;
+		
+		// set up the fields according to the type of elevator action
+		switch (elevtype)
+		{
+				// elevator down to next floor
+			case elevateDown:
+				elevator->direction = -1;
+				elevator->sector = sec;
+				elevator->speed = ELEVATORSPEED;
+				elevator->floordestheight = P_FindNextLowestFloor(sec, sec->floorheight);
+				elevator->ceilingdestheight = elevator->floordestheight + sec->ceilingheight - sec->floorheight;
+				break;
+				
+				// elevator up to next floor
+			case elevateUp:
+				elevator->direction = 1;
+				elevator->sector = sec;
+				elevator->speed = ELEVATORSPEED;
+				elevator->floordestheight = P_FindNextHighestFloor(sec, sec->floorheight);
+				elevator->ceilingdestheight = elevator->floordestheight + sec->ceilingheight - sec->floorheight;
+				break;
+				
+				// elevator to floor height of activating switch's front sector
+			case elevateCurrent:
+				elevator->sector = sec;
+				elevator->speed = ELEVATORSPEED;
+				elevator->floordestheight = line->frontsector->floorheight;
+				elevator->ceilingdestheight = elevator->floordestheight + sec->ceilingheight - sec->floorheight;
+				elevator->direction = elevator->floordestheight > sec->floorheight ? 1 : -1;
+				break;
+				
+			default:
+				break;
+		}
+	}
+	return rtn;
+#endif
+}
+
 /* EV_HExDoGenPlat() -- Do high extended generalized platform */
 bool_t EV_HExDoGenPlat(line_t* const a_Line, mobj_t* const a_Object)
 {
@@ -1171,7 +1386,7 @@ bool_t EV_HExDoGenPlat(line_t* const a_Line, mobj_t* const a_Object)
 	}
 	
 	/* Create plats when needed */
-	SectorNum = -1; 
+	SectorNum = -1;
 	
 	// Run through everything
 	while ((SectorNum = P_FindSectorFromLineTag(a_Line, SectorNum)) >= 0)
@@ -1275,41 +1490,11 @@ bool_t EV_HExDoGenPlat(line_t* const a_Line, mobj_t* const a_Object)
 		}
 		
 		// Speed
-		if (HEFSpeed == EVGHES_SLOWEST)
-			NewPlat->speed = PLATSPEED / 8;
-		else if (HEFSpeed == EVGHES_SLOWER)
-			NewPlat->speed = PLATSPEED / 4;
-		else if (HEFSpeed == EVGHES_SLOW)
-			NewPlat->speed = PLATSPEED / 2;
-		else if (HEFSpeed == EVGHES_NORMAL)
-			NewPlat->speed = PLATSPEED;
-		else if (HEFSpeed == EVGHES_FAST)
-			NewPlat->speed = PLATSPEED * 2;
-		else if (HEFSpeed == EVGHES_FASTER)
-			NewPlat->speed = PLATSPEED * 4;
-		else if (HEFSpeed == EVGHES_FASTEST)
-			NewPlat->speed = PLATSPEED * 8;
+		NewPlat->speed = c_HEFSpeeds[HEFSpeed];
 		
 		// Wait
 		if (HEFType == EVGHEPLATT_LHFPERP || HEFType == EVGHEPLATT_CEILTOGGLE)
-		{
-			if (HEFWait == EVGHEFCDW_WAIT1S)
-				NewPlat->wait = 1 * TICRATE;
-			else if (HEFWait == EVGHEFCDW_WAIT3S)
-				NewPlat->wait = 3 * TICRATE;
-			else if (HEFWait == EVGHEFCDW_WAIT4S)
-				NewPlat->wait = 4 * TICRATE;
-			else if (HEFWait == EVGHEFCDW_WAIT5S)
-				NewPlat->wait = 5 * TICRATE;
-			else if (HEFWait == EVGHEFCDW_WAIT9S)
-				NewPlat->wait = 9 * TICRATE;
-			else if (HEFWait == EVGHEFCDW_WAIT10S)
-				NewPlat->wait = 10 * TICRATE;
-			else if (HEFWait == EVGHEFCDW_WAIT30S)
-				NewPlat->wait = 30 * TICRATE;
-			else if (HEFWait == EVGHEFCDW_WAIT60S)
-				NewPlat->wait = 60 * TICRATE;
-		}
+			NewPlat->wait = c_HEFWaits[HEFWait];
 		
 		// Make noise
 		S_StartSound((S_NoiseThinker_t*)&CurSec->soundorg, (StnMove ? sfx_stnmov : sfx_pstart));
@@ -1585,10 +1770,13 @@ bool_t EV_TryGenTrigger(line_t* const a_Line, const int a_Side, mobj_t* const a_
 				*a_UseAgain = false;
 		}
 		
-		// Activate Extended Triggers
+		//////////// STANDARD ////////////
 			// Plat
 		if (TypeBase == EVGHET_XPLAT)
 			return EV_HExDoGenPlat(a_Line, a_Object);
+		
+		else if (TypeBase == EVGHET_XELEVATOR)
+			return EV_HExDoGenElevator(a_Line, a_Object);
 			
 			// Teleport
 		else if (TypeBase == EVGHET_XTELEPORT)
@@ -1634,7 +1822,8 @@ bool_t EV_TryGenTrigger(line_t* const a_Line, const int a_Side, mobj_t* const a_
 				return true;
 			}
 		}
-			
+		
+		//////////// MAP CREATION ////////////
 			// Fake Floor
 		else if (TypeBase == EVGHET_YFAKEFLOORS)
 		{

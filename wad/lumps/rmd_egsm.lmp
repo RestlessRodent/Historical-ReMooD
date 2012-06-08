@@ -34,3 +34,5 @@ REMOODSECTOR 0x80000000
 @	DOWIND [ 17 0x20000 nowind wind ]
 @	SPEED [ 18 0x1C0000 push5 push10 push15 push20 push25 push30 push35 push70 ]
 @	HEREFRICT [ 21 0x200000 nohereticfriction hereticfriction ]
+
+

@@ -90,7 +90,8 @@ static const P_EXGSNiceVersion_t l_NiceVersions[] =
 static P_EXGSVariable_t l_GSVars[PEXGSNUMBITIDS] =
 {
 	{PEXGST_INTEGER, PEXGSBID_NOTHINGHERE, "nothinghere", "Nothing",
-		"Nothing is here"},
+		"Nothing is here", PEXGSGM_ANY, PEXGSDR_NOCHECK, 0, {0, 0}, 0,
+		PEXGSMC_NONE, PEXGSDA_YESNO},
 		
 	{PEXGST_INTEGER, PEXGSBID_COENABLEBLOODSPLATS, "co_enablebloodsplats", "Enable Blood Splats",
 		"Enables blood spats on walls. [Legacy >= 1.29]", PEXGSGM_ANY, PEXGSDR_ATLEAST, 129, {0, 1}, 1,
@@ -419,7 +420,7 @@ static P_EXGSVariable_t l_GSVars[PEXGSNUMBITIDS] =
 		"This is the amount of pushing force used when jumping.", PEXGSGM_ANY, PEXGSDR_NOCHECK, 0, {0, (6 * FRACUNIT)}, (6 * FRACUNIT),
 		PEXGSMC_PLAYERS},
 		
-	{PEXGST_INTEGER, PEXGSBID_FUNNOLOCKEDDOORS, "fun_nolockeddoors", "No Locked Door",
+	{PEXGST_INTEGER, PEXGSBID_FUNNOLOCKEDDOORS, "fun_nolockeddoors", "No Locked Doors",
 		"All doors are unlocked and do not need keys.", PEXGSGM_ANY, PEXGSDR_NOCHECK, 0, {0, 1}, 0,
 		PEXGSMC_FUN, PEXGSDA_YESNO},
 	
@@ -490,7 +491,7 @@ static P_EXGSVariable_t l_GSVars[PEXGSNUMBITIDS] =
 		
 	{PEXGST_INTEGER, PEXGSBID_COHERETICFRICTION, "co_hereticfriction", "Heretic Friction",
 		"Use Heretic Friction", PEXGSGM_HERETIC, PEXGSDR_ATLEAST, 0, {0, 1}, 0,
-		PEXGSMC_COMPAT, PEXGSDA_YESNO},
+		PEXGSMC_HERETIC, PEXGSDA_YESNO},
 };
 
 /*** FUNCTIONS ***/

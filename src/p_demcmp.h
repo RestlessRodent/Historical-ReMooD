@@ -106,13 +106,14 @@ typedef enum P_EXGSGameMode_e
 /* P_EXGSMenuCategory_t -- Menu category */
 typedef enum P_EXGSMenuCategory_s
 {
-	PEXGSMC_MISC,								// Misc. Settings
-	PEXGSMC_COMPAT,								// Compatibility Option
-	PEXGSMC_FUN,								// Fun Settings! =D yay!
-	PEXGSMC_HERETIC,							// Heretic Settings
-	PEXGSMC_MONSTERS,							// Monster Settings
+	PEXGSMC_NONE,								// Nothing
 	PEXGSMC_GAME,								// Game Settings
 	PEXGSMC_PLAYERS,							// Players
+	PEXGSMC_MONSTERS,							// Monster Settings
+	PEXGSMC_MISC,								// Misc. Settings
+	PEXGSMC_FUN,								// Fun Settings! =D yay!
+	PEXGSMC_HERETIC,							// Heretic Settings
+	PEXGSMC_COMPAT,								// Compatibility Option
 	
 	NUMPEXGSMENUCATEGORIES
 } P_EXGSMenuCategory_t;

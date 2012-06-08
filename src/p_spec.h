@@ -627,12 +627,16 @@ typedef struct
 typedef struct					//SoM: 3/6/2000: Elevator struct.
 {
 	thinker_t thinker;
-	elevator_e type;
+	uint32_t type;								// ReMooD Enhanced
 	sector_t* sector;
 	int direction;
 	fixed_t floordestheight;
 	fixed_t ceilingdestheight;
 	fixed_t speed;
+	bool_t Silent;								// Silent
+	fixed_t PerpWait;							// Perp Wait Amount
+	fixed_t PerpTicsLeft;						// Time left until perp moves
+	line_t* CallLine;							// Calling Line
 } elevator_t;
 
 #define ELEVATORSPEED (FRACUNIT*4)	//SoM: 3/6/2000
@@ -652,8 +656,6 @@ int EV_BuildStairs(line_t* line, stair_e type);
 int EV_DoFloor(line_t* line, floor_e floortype);
 
 int EV_DoChange(line_t* line, change_e changetype);	//SoM: 3/16/2000
-
-int EV_DoElevator(line_t* line, elevator_e elevtype);	//SoM: 3/16/2000
 
 void T_MoveFloor(floormove_t* floor);
 
@@ -1019,6 +1021,18 @@ typedef enum EV_GenHEXFerType_e
 	EVGHEXFT_SKYFLIPPED,
 } EV_GenHEXFerType_t;
 
+/* EV_GenHEElevType_t -- Generic Elevator Type */
+typedef enum EV_GenHEElevType_e
+{
+	EVGHEELEVT_UP,
+	EVGHEELEVT_DOWN,
+	EVGHEELEVT_CURRENT,
+	EVGHEELEVT_PERPUP,
+	EVGHEELEVT_PERPDOWN,
+	EVGHEELEVT_CALLPERP,
+	EVGHEELEVT_STOPPERP,
+} EV_GenHEElevType_t;
+
 /*** SHIFTS ***/
 
 // BASE
@@ -1074,6 +1088,14 @@ typedef enum EV_GenHEXFerType_e
 // XTRANSFER
 #define EVGENGE_TRANSFERMASK		UINT32_C(0x0000FFFF)
 #define EVGENGE_TRANSFERSHIFT		UINT32_C(0)
+
+// XELEVATOR
+#define EVGENGE_ELEVSILENTMASK		UINT32_C(0x00000100)
+#define EVGENGE_ELEVSILENTSHIFT		UINT32_C(8)
+#define EVGENGE_ELEVTYPEMASK		UINT32_C(0x00000700)
+#define EVGENGE_ELEVTYPESHIFT		UINT32_C(9)
+#define EVGENGE_ELEVWAITMASK		UINT32_C(0x00003800)
+#define EVGENGE_ELEVWAITSHIFT		UINT32_C(11)
 
 /******************************************/
 

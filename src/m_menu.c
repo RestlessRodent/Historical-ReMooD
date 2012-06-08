@@ -86,6 +86,15 @@
 
 #define MAXUIBUTTONS 32
 
+/* M_UIItemType_t -- Type of UI Item */
+typedef enum M_UIItemType_e
+{
+	MUIIT_NORMAL,								// Normal Item
+	MUIIT_HEADER,								// Header Item	
+	
+	NUMUIITEMTYPES
+} M_UIItemType_t;
+
 /*** STRUCTURES ***/
 
 /* M_UILocalBox_t -- Local message box */
@@ -113,8 +122,11 @@ typedef struct M_UILocalBox_s
 /* M_UIItem_t -- Menu Item */
 typedef struct M_UIItem_s
 {
+	M_UIItemType_t Type;						// Type of item
 	const char* Text;							// Item Text
 	const char* Value;							// Value
+	const char** TextRef;						// Item Text (i18n)
+	const char** ValueRef;						// Value (i18n)
 } M_UIItem_t;
 
 /* M_UIMenu_t -- Interface Menu */
@@ -150,6 +162,14 @@ CONL_StaticVar_t l_MenuFont =
 	NULL
 };
 
+// menu_headercolor -- Color of menu items
+CONL_StaticVar_t l_MenuHeaderColor =
+{
+	CLVT_INTEGER, c_CVPVVexColor, CLVF_SAVE,
+	"menu_headercolor", DSTR_CVHINT_MENUHEADERCOLOR, CLVVT_STRING, "Green",
+	NULL
+};
+
 // menu_itemcolor -- Color of menu items
 CONL_StaticVar_t l_MenuItemColor =
 {
@@ -182,6 +202,7 @@ void M_MenuExInit(void)
 {
 	CONL_VarRegister(&l_MenuFont);
 	CONL_VarRegister(&l_MenuCompact);
+	CONL_VarRegister(&l_MenuHeaderColor);
 	CONL_VarRegister(&l_MenuItemColor);
 	CONL_VarRegister(&l_MenuValColor);
 }
@@ -211,6 +232,9 @@ void M_ExMenuDrawer(void)
 	M_UIMenuHandler_t* TopMenu;
 	M_UIMenu_t* UI;
 	M_UIItem_t* Item;
+	const char* TitleStr;
+	const char* ValStr;
+	uint32_t DrawFlags;
 	
 	/* Draw for each player */
 	for (i = 0; i < (g_SplitScreen > 0 ? g_SplitScreen + 1 : 1); i++)
@@ -245,18 +269,39 @@ void M_ExMenuDrawer(void)
 			// Get Item
 			Item = &UI->Items[j];
 			
+			// Get Strings
+				// Text
+			if (Item->TextRef)
+				TitleStr = *Item->TextRef;
+			else
+				TitleStr = Item->Text;
+				
+				// Value
+			if (Item->ValueRef)
+				ValStr = *Item->ValueRef;
+			else
+				ValStr = Item->Value;
+			
+			// Draw Flags
+			DrawFlags = 0;
+			
+			if (Item->Type == MUIIT_HEADER)
+				DrawFlags |= VFO_COLOR(l_MenuHeaderColor.Value[0].Int);
+			else
+				DrawFlags |= VFO_COLOR(l_MenuItemColor.Value[0].Int);
+			
 			// Draw Item Text
 			xa = V_DrawStringA(
 					l_MenuFont.Value[0].Int,
-					VFO_COLOR(l_MenuItemColor.Value[0].Int),
-					Item->Text, x, y
+					DrawFlags,
+					TitleStr, x, y
 				);
 			
 			// Value to draw?
 			if (Item->Value)
 			{
 				// Get Dimensions of value
-				V_StringDimensionsA(l_MenuFont.Value[0].Int, 0, Item->Value, &ValW, &ValH);
+				V_StringDimensionsA(l_MenuFont.Value[0].Int, 0, ValStr, &ValW, &ValH);
 				
 				// X position is given
 				xb = (ScrX + (ScrW - 10)) - ValW;
@@ -270,7 +315,7 @@ void M_ExMenuDrawer(void)
 				V_DrawStringA(
 						l_MenuFont.Value[0].Int,
 						VFO_COLOR(l_MenuValColor.Value[0].Int),
-						Item->Value, xb, yb
+						ValStr, xb, yb
 					);
 			}
 		}
@@ -301,26 +346,117 @@ M_UIMenuHandler_t* M_ExPushMenu(M_UIMenu_t* const a_UI)
 M_UIMenu_t* M_ExTemplateMakeGameVars(const int32_t a_Mode)
 {
 	M_UIMenu_t* New;
-	int32_t i;
+	int32_t i, j, k, b, w, z;
 	P_EXGSVariable_t* Bit;
+	P_EXGSVariable_t** SortedBits;
+	P_EXGSMenuCategory_t LastCat;
+	
+	/* Sort bits */
+	SortedBits = Z_Malloc(sizeof(*SortedBits) * PEXGSNUMBITIDS, PU_STATIC, NULL);
+	
+	// Init
+	for (i = 0; i < PEXGSNUMBITIDS; i++)
+		SortedBits[i] = P_EXGSVarForBit(i);
+	
+	// Sort by category first
+	for (i = 0; i < PEXGSNUMBITIDS; i++)
+	{
+		// Initial
+		b = i;
+		
+		// Find next lowest
+		for (j = i + 1; j < PEXGSNUMBITIDS; j++)
+			if (SortedBits[j]->Category < SortedBits[b]->Category)
+				b = j;
+		
+		// Swap
+		Bit = SortedBits[i];
+		SortedBits[i] = SortedBits[b];
+		SortedBits[b] = Bit;
+	}
+	
+	// Sort by name now
+	LastCat = 0;
+	for (w = z = i = 0; i <= PEXGSNUMBITIDS; i++)
+	{
+		// Change of category? or ran out!
+		if (i == PEXGSNUMBITIDS || LastCat != SortedBits[i]->Category)
+		{
+			// Sort sub items
+			for (j = w; j < z; j++)
+			{
+				// Initial
+				b = j;
+		
+				// Find next lowest
+				for (k = j + 1; k < z; k++)
+					if (strcasecmp(SortedBits[k]->MenuTitle, SortedBits[b]->MenuTitle) < 0)
+						b = k;
+		
+				// Swap
+				Bit = SortedBits[j];
+				SortedBits[j] = SortedBits[b];
+				SortedBits[b] = Bit;
+			}
+			
+			// Setup for future sort
+			if (i < PEXGSNUMBITIDS)
+				LastCat = SortedBits[i]->Category;
+			w = z = i;
+		}
+		
+		// Un-changed
+		else
+		{
+			z++;	// Increase end spot
+		}
+	}
 	
 	/* Allocate */
 	New = Z_Malloc(sizeof(*New), PU_STATIC, NULL);
 	
 	/* Quick */
-	New->NumItems = PEXGSNUMBITIDS;
+	New->NumItems = PEXGSNUMBITIDS + NUMPEXGSMENUCATEGORIES;
 	New->Items = Z_Malloc(sizeof(*New->Items) * New->NumItems, PU_STATIC, NULL);
 	
 	/* Hack Up Variables */
-	for (i = 0; i < New->NumItems; i++)
+	LastCat = 0;
+	for (j = 0, i = 0; i < New->NumItems; i++)
 	{
+		// Overflow?
+		if (j >= PEXGSNUMBITIDS)
+			continue;
+		
 		// Get Bit
-		Bit = P_EXGSVarForBit(i);
+		Bit = SortedBits[j++];
+		
+		// No Category?
+		if (Bit->Category == PEXGSMC_NONE)
+			continue;
+		
+		// Category change?
+		if (LastCat != Bit->Category)
+		{
+			// We want to put the header for the next category always
+			LastCat = Bit->Category;
+			
+			// Print Category Header
+			New->Items[i].Type = MUIIT_HEADER;
+			//New->Items[i].Text = "*** CATEGORY ***";
+			New->Items[i].TextRef = PTROFUNICODESTRING((DSTR_MENUGAMEVAR_CATNONE + LastCat));
+			
+			// Write on next item
+			LastCat = Bit->Category;
+			i++;
+		}
 		
 		// Set
 		New->Items[i].Text = Bit->MenuTitle;
 		New->Items[i].Value = Bit->StrVal;
 	}
+	
+	/* Cleanup */
+	Z_Free(SortedBits);
 	
 	/* Return */
 	return New;

@@ -285,6 +285,16 @@ StringGroupEX_t UnicodeStrings[NUMUNICODESTRINGS] =
 	{"MENU_OTHER_PLAYERDCONTROLS", "Player 4's Controls"},
 	{"MENU_OPTIONS_BINARYSAVES", "Binary Saves"},
 	
+	{			   "MENUGAMEVAR_CATNONE", ""},
+	{			   "MENUGAMEVAR_CATGAME", "*** GAME ***"},
+	{			"MENUGAMEVAR_CATPLAYERS", "*** PLAYERS ***"},
+	{		   "MENUGAMEVAR_CATMONSTERS", "*** MONSTERS ***"},
+	{			   "MENUGAMEVAR_CATMISC", "*** MISC ***"},
+	{				"MENUGAMEVAR_CATFUN", "*** FUN ***"},
+	{			"MENUGAMEVAR_CATHERETIC", "*** HERETIC ***"},
+	{			 "MENUGAMEVAR_CATCOMPAT", "*** COMPATIBILITY ***"},
+	
+	/*** INTERMISSION ***/
 	{"INTERMISSION_FINISHED", "Finished"},
 	{"INTERMISSION_ENTERING", "Entering"},
 	{"INTERMISSION_KILLS", "Kills"},
@@ -311,8 +321,9 @@ StringGroupEX_t UnicodeStrings[NUMUNICODESTRINGS] =
 	{             "CVHINT_CONTESTSTRING", "Variable to test strings (escape/unescape)."},
 	
 	{				   "CVHINT_MENUFONT", "Font used to draw menu items."},
-	{			  "CVHINT_MENUITEMCOLOR", "Colored used to draw menu items."},
-	{			  "CVHINT_MENUVALSCOLOR", "Colored used to draw menu values."},
+	{			  "CVHINT_MENUITEMCOLOR", "Color used to draw menu items."},
+	{			  "CVHINT_MENUVALSCOLOR", "Color used to draw menu values."},
+	{			"CVHINT_MENUHEADERCOLOR", "Color used to draw item headers."},
 	
 	{					 "CVHINT_SVNAME", "The visible name of the server."},
 	{					  "CVHINT_SVURL", "The web site for this server."},

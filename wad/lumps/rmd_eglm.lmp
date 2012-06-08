@@ -40,7 +40,38 @@ PLAT 0x3400
 @	DELAY [ 6 0x00c0 wait1s wait3s wait5s wait10s ]
 @	TARGET [ 8 0x0300 lnf nnf lnc lhfperp ]
 
+CRUSHER 0x2F80
+@	TRIGGER [ 0 0x0007 w1 wr s1 sr g1 gr p1 pr ]
+@	SPEED [ 3 0x0018 slow normal fast turbo ]
+@	MONSTER [ 5 0x0020 nomonster monster ]
+@	SILENT [ 6 0x0040 notsilent silent ]
+
+STAIR 0x3000
+@	TRIGGER [ 0 0x0007 w1 wr s1 sr g1 gr p1 pr ]
+@	SPEED [ 3 0x0018 slow normal fast turbo ]
+@	MONSTER [ 5 0x0020 nomonster monster ]
+@	STEPAMOUNT [ 6 0x00c0 step4 step8 step16 step32 ]
+@	DIRECTION [ 8 0x0100 down up ]
+@	IGNORE [ 9 0x0200 noignore ignore ]
+
 ### REMOOD EXTENDED ###
+
+ELEVATOR 0x78000000
+@	TRIGGER [ 0 0x00000007 w1 wr s1 sr g1 gr p1 pr ]
+@	MONSTER [ 3 0x00000008 nomonster monster ]
+@	PLAYER [ 4 0x00000010 noplayer player ]
+@	SPEED [ 5 0x000000E0 slowest slower slow normal fast faster fastest instant ]
+@	SILENT [ 8 0x00000100 nosilent silent ]
+@	TYPE [ 9 0x00000700 nhf nlf cf perpup perpdown callperp stopperp ]
+@	WAIT [ 11 0x00003800 wait1s wait3s wait4s wait5s wait9s wait10s wait30s wait60s ]
+
+XTELEPORT 0xA8000000
+@	TRIGGER [ 0 0x00000007 w1 wr s1 sr g1 gr p1 pr ]
+@	MONSTER [ 3 0x00000008 nomonster monster ]
+@	PLAYER [ 4 0x00000010 noplayer player ]
+@	SILENT [ 5 0x00000020 nosilent silent ]
+@	REVERSE [ 6 0x00000040 noreverse reverse ]
+@	LWST [ 7 0x00000080 tptits lwst ]
 
 XPLAT 0x48000000
 @	TRIGGER [ 0 0x00000007 w1 wr s1 sr g1 gr p1 pr ]
@@ -48,7 +79,8 @@ XPLAT 0x48000000
 @	PLAYER [ 4 0x00000010 noplayer player ]
 @	SPEED [ 5 0x000000E0 slowest slower slow normal fast faster fastest instant ]
 @	WAIT [ 8 0x00000700 wait1s wait3s wait4s wait5s wait9s wait10s wait30s wait60s ]
-@	MODE [ 14 0x0001C000 nochange txz txonly txty ]
+@	TYPE [ 11 0x00003800 lhfperp ceiltoggle dwus raise24 raise32 nnf typeunusedsix typeunusedseven ]
+@	MODE [ 14 0x0001C000 nochange txz txonly txty modeunusedfive modeunusedsix modeunusedseven ]
 
 EXIT 0x98000000
 @	TRIGGER [ 0 0x00000007 w1 wr s1 sr g1 gr p1 pr ]

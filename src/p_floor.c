@@ -356,17 +356,20 @@ void T_MoveElevator(elevator_t* elevator)
 	}
 	
 	// make floor move sound
-	if (!(leveltime % (8)))
-		S_StartSound((mobj_t*)&elevator->sector->soundorg, sfx_stnmov);
+	if (!elevator->Silent)
+		if (!(leveltime % (8)))
+			S_StartSound((mobj_t*)&elevator->sector->soundorg, sfx_stnmov);
 		
 	if (res == pastdest)		// if destination height acheived
 	{
 		elevator->sector->floordata = NULL;	//jff 2/22/98
 		elevator->sector->ceilingdata = NULL;	//jff 2/22/98
-		P_RemoveThinker(&elevator->thinker);	// remove elevator from actives
 		
 		// make floor stop sound
-		S_StartSound((mobj_t*)&elevator->sector->soundorg, sfx_pstop);
+		if (!elevator->Silent)
+			S_StartSound((mobj_t*)&elevator->sector->soundorg, sfx_pstop);
+		
+		P_RemoveThinker(&elevator->thinker);	// remove elevator from actives
 	}
 }
 
@@ -862,76 +865,3 @@ int EV_DoDonut(line_t* line)
 	return rtn;
 }
 
-// SoM: Boom elevator support.
-//
-// EV_DoElevator
-//
-// Handle elevator linedef types
-//
-// Passed the linedef that triggered the elevator and the elevator action
-//
-// jff 2/22/98 new type to move floor and ceiling in parallel
-//
-int EV_DoElevator(line_t* line, elevator_e elevtype)
-{
-	int secnum;
-	int rtn;
-	sector_t* sec;
-	elevator_t* elevator;
-	
-	secnum = -1;
-	rtn = 0;
-	// act on all sectors with the same tag as the triggering linedef
-	while ((secnum = P_FindSectorFromLineTag(line, secnum)) >= 0)
-	{
-		sec = &sectors[secnum];
-		
-		// If either floor or ceiling is already activated, skip it
-		if (sec->floordata || sec->ceilingdata)	//jff 2/22/98
-			continue;
-			
-		// create and initialize new elevator thinker
-		rtn = 1;
-		elevator = Z_Malloc(sizeof(*elevator), PU_LEVSPEC, 0);
-		P_AddThinker(&elevator->thinker, PTT_MOVEELEVATOR);
-		sec->floordata = elevator;	//jff 2/22/98
-		sec->ceilingdata = elevator;	//jff 2/22/98
-		elevator->thinker.function.acp1 = (actionf_p1) T_MoveElevator;
-		elevator->type = elevtype;
-		
-		// set up the fields according to the type of elevator action
-		switch (elevtype)
-		{
-				// elevator down to next floor
-			case elevateDown:
-				elevator->direction = -1;
-				elevator->sector = sec;
-				elevator->speed = ELEVATORSPEED;
-				elevator->floordestheight = P_FindNextLowestFloor(sec, sec->floorheight);
-				elevator->ceilingdestheight = elevator->floordestheight + sec->ceilingheight - sec->floorheight;
-				break;
-				
-				// elevator up to next floor
-			case elevateUp:
-				elevator->direction = 1;
-				elevator->sector = sec;
-				elevator->speed = ELEVATORSPEED;
-				elevator->floordestheight = P_FindNextHighestFloor(sec, sec->floorheight);
-				elevator->ceilingdestheight = elevator->floordestheight + sec->ceilingheight - sec->floorheight;
-				break;
-				
-				// elevator to floor height of activating switch's front sector
-			case elevateCurrent:
-				elevator->sector = sec;
-				elevator->speed = ELEVATORSPEED;
-				elevator->floordestheight = line->frontsector->floorheight;
-				elevator->ceilingdestheight = elevator->floordestheight + sec->ceilingheight - sec->floorheight;
-				elevator->direction = elevator->floordestheight > sec->floorheight ? 1 : -1;
-				break;
-				
-			default:
-				break;
-		}
-	}
-	return rtn;
-}
