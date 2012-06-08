@@ -1784,6 +1784,16 @@ void P_ProcessSpecialSectorEx(const EV_TryGenType_t a_Type, mobj_t* const a_Mo, 
 {
 	bool_t REx, EffectMonster, IsMonsterMo, DoDam;
 	uint32_t Bits;
+	static const int pushTab[8] = {
+		2048*5,
+		2048*10,
+		2048*15,
+		2048*20,
+		2048*25,
+		2048*30,
+		2048*35,
+		2048*70
+	};
 	
 	/* Only accept walk and start */
 	if (a_Type != EVTGT_WALK && a_Type != EVTGT_MAPSTART)
@@ -1860,13 +1870,19 @@ void P_ProcessSpecialSectorEx(const EV_TryGenType_t a_Type, mobj_t* const a_Mo, 
 				case 1:			// 2/5 damage per 31 ticks
 					if (!(a_Mo->RXFlags[1] & MFREXB_NOFLOORDAMAGE))
 						if (a_InstaDamage)
+						{
 							P_DamageMobj(a_Mo, NULL, NULL, 5);
+							P_HitFloor(a_Mo);
+						}
 					break;
 				
 				case 2:			// 5/10 damage per 31 ticks
 					if (!(a_Mo->RXFlags[1] & MFREXB_NOFLOORDAMAGE))
 						if (a_InstaDamage)
+						{
 							P_DamageMobj(a_Mo, NULL, NULL, 10);
+							P_HitFloor(a_Mo);
+						}
 					break;
 				
 				case 3:			// 10/20 damage per 31 ticks
@@ -1878,7 +1894,10 @@ void P_ProcessSpecialSectorEx(const EV_TryGenType_t a_Type, mobj_t* const a_Mo, 
 						DoDam = (P_Random() < 5);
 					
 					if (DoDam && a_InstaDamage)
+					{
 						P_DamageMobj(a_Mo, NULL, NULL, 10);
+						P_HitFloor(a_Mo);
+					}
 					break;
 					
 				case 0:			// no damage
@@ -1887,7 +1906,7 @@ void P_ProcessSpecialSectorEx(const EV_TryGenType_t a_Type, mobj_t* const a_Mo, 
 			}
 		
 		// Secret
-		if (a_Player && a_Sector->special & SECRET_MASK)
+		if (a_Player && (a_Sector->special & SECRET_MASK))
 		{
 			a_Player->secretcount++;
 			a_Sector->special &= ~SECRET_MASK;
@@ -1895,6 +1914,12 @@ void P_ProcessSpecialSectorEx(const EV_TryGenType_t a_Type, mobj_t* const a_Mo, 
 			// Secret Message
 			if (!cv_deathmatch.value)
 				P_PlayerMessage(PPM_SECRET, a_Mo, NULL, PTROFUNICODESTRING(DSTR_FOUNDSECRET));
+		}
+		
+		// Scrolly Thrust
+		if (a_Player && (a_Sector->special & REXS_SCROLLMASK))
+		{
+			P_Thrust(a_Player, ANG45 * ((a_Sector->special & REXS_DIRMASK) >> REXS_DIRSHIFT), pushTab[(a_Sector->special & REXS_SPEEDMASK) >> REXS_SPEEDSHIFT]);
 		}
 		
 		// Exit Level?

@@ -263,7 +263,10 @@ void P_FireWeapon(player_t* player)
 		newstate = player->weaponinfo[player->readyweapon]->atkstate;
 	
 	P_SetPsprite(player, ps_weapon, newstate);
-	P_NoiseAlert(player->mo, player->mo);
+	
+	// GhostlyDeath <June 7, 2012> -- Allow silenced weapons
+	if (!(player->weaponinfo[player->readyweapon]->WeaponFlags & WF_NONOISEALERT))
+		P_NoiseAlert(player->mo, player->mo);
 }
 
 //
@@ -1362,6 +1365,8 @@ bool_t P_RMODH_WeaponsAmmo(Z_Table_t* const a_Table, const WL_WADFile_t* const a
 			TempWeapon.WeaponFlags |= WF_NOBLEEDTARGET;
 		if (D_RMODGetValueBool(a_Table, "IsSuperWeapon", false))
 			TempWeapon.WeaponFlags |= WF_SUPERWEAPON;
+		if (D_RMODGetValueBool(a_Table, "NoNoiseAlert", false))
+			TempWeapon.WeaponFlags |= WF_NONOISEALERT;
 		
 		// Get Fixed
 		TempWeapon.PSpriteSY = D_RMODGetValueFixed(a_Table, "SpriteYOffset", 0);

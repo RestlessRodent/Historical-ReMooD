@@ -685,7 +685,37 @@ int EV_PortalTeleport(line_t* line, mobj_t* thing, int side);
 #define PUSH_MASK       0x200
 #define PUSH_SHIFT      9
 
-#define REXEXIT_MASK	0x1000
+/* REXWindPushDir_t -- Wind push direction */
+typedef enum REXWindPushDir_s
+{
+	RWXWPD_EAST,
+	RWXWPD_NORTHEAST,
+	RWXWPD_NORTH,
+	RWXWPD_NORTHWEST,
+	RWXWPD_WEST,
+	RWXWPD_SOUTHWEST,
+	RWXWPD_SOUTH,
+	RWXWPD_SOUTHEAST,
+	
+	NUMREXWINDPUSHDIRS
+} REXWindPushDir_t;
+
+#define REXEXIT_MASK		UINT32_C(0x1000)
+
+#define REXS_DIRMASK		UINT32_C(0xE000)
+#define REXS_DIRSHIFT		UINT32_C(13)
+
+#define REXS_SCROLLMASK		UINT32_C(0x10000)
+#define REXS_SCROLLSHIFT	UINT32_C(16)
+
+#define REXS_WINDMASK		UINT32_C(0x20000)
+#define REXS_WINDSHIFT		UINT32_C(17)
+
+#define REXS_SPEEDMASK		UINT32_C(0x1C0000)
+#define REXS_SPEEDSHIFT		UINT32_C(18)
+
+#define REXS_HFRICTMASK		UINT32_C(0x1C0000)
+#define REXS_HFRICTSHIFT	UINT32_C(18)
 
 //jff 02/04/98 Define masks, shifts, for fields in
 // generalized linedef types

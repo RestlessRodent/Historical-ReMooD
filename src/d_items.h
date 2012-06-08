@@ -135,8 +135,9 @@ typedef enum WeaponFlags_e
 	WF_NOTHRUST					= 0x00000800,	// No thrusting the enemy
 	
 	WF_INEXTENDED				= 0x00001000,	// Appears in extended mode
-	WF_NOBLEEDTARGET			= 0x00002000,	// Do not need target
+	WF_NOBLEEDTARGET			= 0x00002000,	// Do not bleed target
 	WF_SUPERWEAPON				= 0x00004000,	// Is a Super Weapon
+	WF_NONOISEALERT				= 0x00008000,	// Does not alert to noise
 } WeaponFlags_t;
 
 // Weapon info: sprite frames, ammunition use.

@@ -1733,6 +1733,7 @@ void D_DoomMain(void)
 	D_NCSInit();						// Initialize Network Code
 	ST_InitEx();						// Extended Status Bar
 	WL_Init();							// Initialize WL Code
+	M_MenuExInit();						// Initialize Menu
 	
 	D_CreateProfileEx("guest");			// Create guest account
 	/**************************/

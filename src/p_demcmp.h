@@ -57,6 +57,8 @@
 
 /*** CONSTANTS ***/
 
+#define PEXGSSTRBUFSIZE						32	// String Buffer Size
+
 /* P_EXGSType_t -- Setting type for said setting */
 typedef enum P_EXGSType_e
 {
@@ -65,6 +67,16 @@ typedef enum P_EXGSType_e
 	
 	NUMPEXGSTYPES
 } P_EXGSType_t;
+
+/* P_EXGSDisplayAs_t -- Display as whichever value */
+typedef enum P_EXGSDisplayAs_e
+{
+	PEXGSDA_INTEGER,							// Plain Integer
+	PEXGSDA_YESNO,								// Yes/No
+	PEXGSDA_TIMESECS,							// Time in Seconds
+	
+	NUMPEXGSDISPLAYAS
+} P_EXGSDisplayAs_t;
 
 /* P_EXGSDemoRange_t -- Range for demo compatibility */
 typedef enum P_EXGSDemoRange_e
@@ -205,6 +217,7 @@ typedef enum P_EXGSBitID_e
 	PEXGSBID_PLSPAWNWITHSUPERGUNS,				// Spawn With Super Guns
 	PEXGSBID_PLSPAWNWITHMAXSTATS,				// Spawn With Max Stats
 	PEXGSBID_GAMESPAWNPICKUPS,					// Spawn Game Pickups
+	PEXGSBID_COHERETICFRICTION,					// Allow Heretic Friction
 	
 	PEXGSNUMBITIDS
 } P_EXGSBitID_t;
@@ -226,10 +239,14 @@ typedef struct P_EXGSVariable_s
 	const int32_t DemoVal[2];					// Demo values (false, true)
 	const int32_t DefaultVal;					// Default value wherever
 	P_EXGSMenuCategory_t Category;				// Category for item
+	P_EXGSDisplayAs_t DisplayAs;				// Display as this
 	
 	// Settings
 	bool_t WasSet;								// Was Set to value?
 	int32_t ActualVal;							// Actually set value
+	
+	// String Value
+	char StrVal[PEXGSSTRBUFSIZE];				// String Value
 } P_EXGSVariable_t;
 
 /*** FUNCTIONS ***/

@@ -268,11 +268,36 @@ void P_XYFriction(mobj_t* mo, fixed_t oldx, fixed_t oldy, bool_t oldfriction)
 	}
 	else
 	{
-		if (oldfriction)
+		// Flying Friction
+		if (mo->flags2 & MF2_FLY && !(mo->z <= mo->floorz) && !(mo->flags2 & MF2_ONMOBJ))
+		{
+                mo->momx = FixedMul(mo->momx, FRICTION_FLY);
+                mo->momy = FixedMul(mo->momy, FRICTION_FLY);
+		}
+		
+		// Heretic Friction
+		else if (P_EXGSGetValue(PEXGSBID_COHERETICFRICTION))
+		{
+            if (mo->subsector->sector->special & REXS_HFRICTMASK)      // Friction_Low
+            {
+                mo->momx = FixedMul(mo->momx, FRICTION_LOW);
+                mo->momy = FixedMul(mo->momy, FRICTION_LOW);
+            }
+            else
+            {
+                mo->momx = FixedMul(mo->momx, FRICTION);
+                mo->momy = FixedMul(mo->momy, FRICTION);
+            }
+		}
+		
+		// Old Friction
+		else if (oldfriction)
 		{
 			mo->momx = FixedMul(mo->momx, FRICTION);
 			mo->momy = FixedMul(mo->momy, FRICTION);
 		}
+		
+		// Boom Friction
 		else
 		{
 			//SoM: 3/28/2000: Use boom friction.
@@ -286,6 +311,7 @@ void P_XYFriction(mobj_t* mo, fixed_t oldx, fixed_t oldy, bool_t oldfriction)
 				mo->momx = FixedMul(mo->momx, mo->friction);
 				mo->momy = FixedMul(mo->momy, mo->friction);
 			}
+			
 			mo->friction = ORIG_FRICTION;
 		}
 	}
@@ -299,9 +325,20 @@ void P_XYMovement(mobj_t* mo)
 	fixed_t xmove;
 	fixed_t ymove;
 	fixed_t oldx, oldy;			//reducing bobbing/momentum on ice
+	uint32_t Special;
 	
 	//when up against walls
-	static int windTab[3] = { 2048 * 5, 2048 * 10, 2048 * 25 };
+	static const int windTab[8] = {
+		2048*5,
+		2048*10,
+		2048*15,
+		2048*20,
+		2048*25,
+		2048*30,
+		2048*35,
+		2048*70
+	};
+	
 	
 	//added:18-02-98: if it's stopped
 	if (!mo->momx && !mo->momy)
@@ -317,33 +354,14 @@ void P_XYMovement(mobj_t* mo)
 		}
 		return;
 	}
+	
 	if (mo->flags2 & MF2_WINDTHRUST)
 	{
-		int special = mo->subsector->sector->special;
+		Special = mo->subsector->sector->special;
 		
-		switch (special)
-		{
-			case 40:
-			case 41:
-			case 42:			// Wind_East
-				P_ThrustMobj(mo, 0, windTab[special - 40]);
-				break;
-			case 43:
-			case 44:
-			case 45:			// Wind_North
-				P_ThrustMobj(mo, ANG90, windTab[special - 43]);
-				break;
-			case 46:
-			case 47:
-			case 48:			// Wind_South
-				P_ThrustMobj(mo, ANG270, windTab[special - 46]);
-				break;
-			case 49:
-			case 50:
-			case 51:			// Wind_West
-				P_ThrustMobj(mo, ANG180, windTab[special - 49]);
-				break;
-		}
+		// Windy Thrust
+		if (Special & REXS_WINDMASK)
+			P_ThrustMobj(mo, ANG45 * ((Special & REXS_DIRMASK) >> REXS_DIRSHIFT), windTab[(Special & REXS_SPEEDMASK) >> REXS_SPEEDSHIFT]);
 	}
 	
 	player = mo->player;		//valid only if player avatar
@@ -2149,12 +2167,7 @@ void P_SpawnBlood(fixed_t x, fixed_t y, fixed_t z, int damage, mobj_t* const a_B
 	bloodthing = th;
 }
 
-//---------------------------------------------------------------------------
-//
-// FUNC P_HitFloor
-//
-//---------------------------------------------------------------------------
-
+/* P_HitFloor() -- Object hits floor */
 int P_HitFloor(mobj_t* thing)
 {
 	mobj_t* mo;
@@ -2165,8 +2178,14 @@ int P_HitFloor(mobj_t* thing)
 		// don't splash if landing on the edge above water/lava/etc....
 		return (FLOOR_SOLID);
 	}
+	
 	floortype = P_GetThingFloorType(thing);
 	
+	// GhostlyDeath <June 7, 2012> -- No splash effects?
+	if (!(thing->RXFlags[0] & MFREXA_NOWATERSPLASH))
+		return floortype;
+	
+	// Legacy Water
 	if (floortype == FLOOR_WATER)
 		P_SpawnSplash(thing, thing->floorz);
 		

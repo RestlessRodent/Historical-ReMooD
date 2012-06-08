@@ -2014,7 +2014,7 @@ void CONLS_DrawOSK(const int32_t a_X, const int32_t a_Y, const int32_t a_W, cons
 					// Set
 					VirtEvent.Type = IET_SYNTHOSK;
 					VirtEvent.Data.SynthOSK.PNum = a_SplitP;
-					VirtEvent.Data.SynthOSK.Direct |= 0x8000 | (i & 0xF) | ((j & 0xFF) << 8);
+					VirtEvent.Data.SynthOSK.Direct |= 0x800000 | (i & 0xF) | ((j & 0xFF) << 8);
 					I_EventExPush(&VirtEvent);
 				}
 		}
@@ -2049,9 +2049,9 @@ bool_t CONL_OSKHandleEvent(const I_EventEx_t* const a_Event, const size_t a_Play
 	ThisTime = I_GetTimeMS();
 	
 	/* Direct? */
-	if (a_Event->Data.SynthOSK.Direct & 0x8000)
+	if (a_Event->Data.SynthOSK.Direct & 0x800000)
 	{
-		r = (a_Event->Data.SynthOSK.Direct & 0xF);
+		r = (a_Event->Data.SynthOSK.Direct & 0x00F);
 		c = (a_Event->Data.SynthOSK.Direct & 0xFF0) >> 8;
 		
 		// Valid Move?

@@ -3460,133 +3460,6 @@ mobj_t* P_GetPushThing(int s)
 
 mobj_t LavaInflictor;
 
-//----------------------------------------------------------------------------
-//
-// PROC P_HerePlayerInSpecialSector
-//
-// Called every tic frame that the player origin is in a special sector.
-//
-//----------------------------------------------------------------------------
-
-void P_HerePlayerInSpecialSector(player_t* player)
-{
-	sector_t* sector;
-	
-	static int pushTab[5] =
-	{
-		2048 * 5,
-		2048 * 10,
-		2048 * 25,
-		2048 * 30,
-		2048 * 35
-	};
-	
-	sector = player->mo->subsector->sector;
-	// Player is not touching the floor
-	if (player->mo->z != sector->floorheight)
-		return;
-		
-	switch (sector->special)
-	{
-		case 7:				// Damage_Sludge
-			if (!(leveltime & 31))
-			{
-				P_DamageMobj(player->mo, NULL, NULL, 4);
-			}
-			break;
-		case 5:				// Damage_LavaWimpy
-			if (!(leveltime & 15))
-			{
-				P_DamageMobj(player->mo, &LavaInflictor, NULL, 5);
-				P_HitFloor(player->mo);
-			}
-			break;
-		case 16:				// Damage_LavaHefty
-			if (!(leveltime & 15))
-			{
-				P_DamageMobj(player->mo, &LavaInflictor, NULL, 8);
-				P_HitFloor(player->mo);
-			}
-			break;
-		case 4:				// Scroll_EastLavaDamage
-			P_Thrust(player, 0, 2048 * 28);
-			if (!(leveltime & 15))
-			{
-				P_DamageMobj(player->mo, &LavaInflictor, NULL, 5);
-				P_HitFloor(player->mo);
-			}
-			break;
-		case 9:				// SecretArea
-			player->secretcount++;
-			sector->special = 0;
-			break;
-		case 11:				// Exit_SuperDamage (DOOM E1M8 finale)
-			/*
-			   player->cheats &= ~CF_GODMODE;
-			   if(!(leveltime&0x1f))
-			   {
-			   P_DamageMobj(player->mo, NULL, NULL, 20);
-			   }
-			   if(player->health <= 10)
-			   {
-			   G_ExitLevel();
-			   }
-			 */
-			break;
-			
-		case 25:
-		case 26:
-		case 27:
-		case 28:
-		case 29:				// Scroll_North
-			P_Thrust(player, ANG90, pushTab[sector->special - 25]);
-			break;
-		case 20:
-		case 21:
-		case 22:
-		case 23:
-		case 24:				// Scroll_East
-			P_Thrust(player, 0, pushTab[sector->special - 20]);
-			break;
-		case 30:
-		case 31:
-		case 32:
-		case 33:
-		case 34:				// Scroll_South
-			P_Thrust(player, ANG270, pushTab[sector->special - 30]);
-			break;
-		case 35:
-		case 36:
-		case 37:
-		case 38:
-		case 39:				// Scroll_West
-			P_Thrust(player, ANG180, pushTab[sector->special - 35]);
-			break;
-			
-		case 40:
-		case 41:
-		case 42:
-		case 43:
-		case 44:
-		case 45:
-		case 46:
-		case 47:
-		case 48:
-		case 49:
-		case 50:
-		case 51:
-			// Wind specials are handled in (P_mobj):P_XYMovement
-			break;
-			
-		case 15:				// Friction_Low
-			// Only used in (P_mobj):P_XYMovement and (P_user):P_Thrust
-			break;
-			
-		default:
-			CONL_PrintF("P_PlayerInSpecialSector: " "unknown special %i\n", sector->special);
-	}
-}
-
 //---------------------------------------------------------------------------
 //
 // FUNC P_GetThingFloorType
@@ -3893,7 +3766,9 @@ static bool_t PS_ExtraSpecialOCCB(const bool_t a_Pushed, const struct WL_WADFile
 						{
 							// Check for game compatibilities
 							if (strcasecmp(TokStr, "ALL") != 0)
-								if ((strcasecmp(TokStr, "DOOM") == 0 && g_CoreGame != COREGAME_DOOM) ||
+								if (
+									(strcasecmp(TokStr, "DOOMHERETIC") == 0 && !(g_CoreGame == COREGAME_DOOM || g_CoreGame == COREGAME_HERETIC)) ||
+									(strcasecmp(TokStr, "DOOM") == 0 && g_CoreGame != COREGAME_DOOM) ||
 									(strcasecmp(TokStr, "HERETIC") == 0 && g_CoreGame != COREGAME_HERETIC) ||
 									(strcasecmp(TokStr, "HEXEN") == 0 && g_CoreGame != COREGAME_HEXEN) ||
 									(strcasecmp(TokStr, "STRIFE") == 0 && g_CoreGame != COREGAME_STRIFE))

@@ -191,7 +191,7 @@ const CONL_VarPossibleValue_t c_CVPVFont[] =
 	{0, "Small"},								// VFONT_SMALL
 	{1, "Large"},								// VFONT_LARGE
 	{2, "StatusBarSmall"},						// VFONT_STATUSBARSMALL
-	{3, "PrBoom"},								// VFONT_PRBOOMHUD
+	{3, "Boom"},								// VFONT_BOOMHUD
 	{4, "OEM"},									// VFONT_OEM
 	{5, "UserA"},								// VFONT_USERSPACEA
 	{6, "UserB"},								// VFONT_USERSPACEB

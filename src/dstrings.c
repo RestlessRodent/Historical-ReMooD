@@ -310,6 +310,10 @@ StringGroupEX_t UnicodeStrings[NUMUNICODESTRINGS] =
 	{                  "CVHINT_CONSCALE", "Scales the text of the console (high resolution)."},
 	{             "CVHINT_CONTESTSTRING", "Variable to test strings (escape/unescape)."},
 	
+	{				   "CVHINT_MENUFONT", "Font used to draw menu items."},
+	{			  "CVHINT_MENUITEMCOLOR", "Colored used to draw menu items."},
+	{			  "CVHINT_MENUVALSCOLOR", "Colored used to draw menu values."},
+	
 	{					 "CVHINT_SVNAME", "The visible name of the server."},
 	{					  "CVHINT_SVURL", "The web site for this server."},
 	{				   "CVHINT_SVWADURL", "Location where WADs should be downloaded from."},

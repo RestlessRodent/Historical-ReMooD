@@ -279,7 +279,7 @@ typedef struct I_EventEx_s
 			int8_t Down;		// Down movement
 			uint8_t Press;		// Press Button
 			uint8_t Shift;		// Shifted
-			uint16_t Direct;	// Direct Change
+			uint32_t Direct;	// Direct Change
 		} SynthOSK;				// Synthetic OSK
 	} Data;						// Event data
 } I_EventEx_t;

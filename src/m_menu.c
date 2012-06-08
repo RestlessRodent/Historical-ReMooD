@@ -76,6 +76,7 @@
 #include "v_widget.h"
 
 #include "i_util.h"
+#include "p_demcmp.h"
 
 /*******************************************************************************
 ********************************************************************************
@@ -109,11 +110,27 @@ typedef struct M_UILocalBox_s
 	} Buttons[MAXUIBUTTONS];
 } M_UILocalBox_t;
 
+/* M_UIItem_t -- Menu Item */
+typedef struct M_UIItem_s
+{
+	const char* Text;							// Item Text
+	const char* Value;							// Value
+} M_UIItem_t;
+
 /* M_UIMenu_t -- Interface Menu */
 typedef struct M_UIMenu_s
 {
 	uint8_t Junk;								// Junk
+	
+	M_UIItem_t* Items;							// Items
+	size_t NumItems;							// Number of Items
 } M_UIMenu_t;
+
+/* M_UIMenuHandler_t -- Menu Handler */
+typedef struct M_UIMenuHandler_s
+{
+	M_UIMenu_t* UIMenu;							// Defined UI Menu
+} M_UIMenuHandler_t;
 
 #define MUIBOXFONT VFONT_SMALL
 
@@ -122,7 +139,60 @@ typedef struct M_UIMenu_s
 static M_UILocalBox_t** l_UIBoxes = NULL;
 static size_t l_NumUIBoxes = 0;
 
-/*** FUNCTIONS ***/
+static M_UIMenuHandler_t** l_UIMenus[MAXSPLITSCREEN];
+static size_t l_NumUIMenus[MAXSPLITSCREEN];
+
+// menu_font -- Menu Font
+CONL_StaticVar_t l_MenuFont =
+{
+	CLVT_INTEGER, c_CVPVFont, CLVF_SAVE,
+	"menu_font", DSTR_CVHINT_MENUFONT, CLVVT_STRING, "SMALL",
+	NULL
+};
+
+// menu_itemcolor -- Color of menu items
+CONL_StaticVar_t l_MenuItemColor =
+{
+	CLVT_INTEGER, c_CVPVVexColor, CLVF_SAVE,
+	"menu_itemcolor", DSTR_CVHINT_MENUITEMCOLOR, CLVVT_STRING, "Red",
+	NULL
+};
+
+// menu_valcolor -- Color of menu items
+CONL_StaticVar_t l_MenuValColor =
+{
+	CLVT_INTEGER, c_CVPVVexColor, CLVF_SAVE,
+	"menu_valcolor", DSTR_CVHINT_MENUVALSCOLOR, CLVVT_STRING, "BrightWhite",
+	NULL
+};
+
+
+// menu_compact -- Compact Menu
+CONL_StaticVar_t l_MenuCompact =
+{
+	CLVT_INTEGER, c_CVPVBoolean, CLVF_SAVE,
+	"menu_compact", DSTR_CVHINT_CONMONOSPACE, CLVVT_STRING, "false",
+	NULL
+};
+
+/*** MENU FUNCTIONS ***/
+
+/* M_MenuExInit() -- Init Menu */
+void M_MenuExInit(void)
+{
+	CONL_VarRegister(&l_MenuFont);
+	CONL_VarRegister(&l_MenuCompact);
+	CONL_VarRegister(&l_MenuItemColor);
+	CONL_VarRegister(&l_MenuValColor);
+}
+
+/* M_ExMenuHandleEvent() -- Handles Menu Events */
+bool_t M_ExMenuHandleEvent(const I_EventEx_t* const a_Event)
+{
+	return false;
+}
+
+/*** MB FUNCTIONS ***/
 
 /* M_ExUIActive() -- Returns true if UI is active */
 bool_t M_ExUIActive(void)
@@ -130,6 +200,130 @@ bool_t M_ExUIActive(void)
 	if (l_NumUIBoxes)
 		return true;
 	return false;
+}
+
+/* M_ExMenuDrawer() -- Draws Menu */
+void M_ExMenuDrawer(void)
+{
+	int32_t ScrX, ScrY, ScrW, ScrH;
+	int ValW, ValH;
+	int32_t i, j, x, y, xa, ya, xb, yb;
+	M_UIMenuHandler_t* TopMenu;
+	M_UIMenu_t* UI;
+	M_UIItem_t* Item;
+	
+	/* Draw for each player */
+	for (i = 0; i < (g_SplitScreen > 0 ? g_SplitScreen + 1 : 1); i++)
+	{
+		// Get screen size
+		ScrX = 0;
+		ScrY = 0;
+		ScrW = 320;
+		ScrH = 200;
+		
+		// Get top menu
+		TopMenu = l_UIMenus[i];
+		
+		// Menu Here?
+		if (!TopMenu)
+			continue;
+		
+		// Get UI
+		UI = TopMenu->UIMenu;
+		
+		// Draw Title
+		V_DrawStringA(VFONT_LARGE, 0, "Title", 0, 0);
+		
+		// Base Position
+		x = ScrX + 10;
+		y = ScrY + V_FontHeight(VFONT_LARGE) + 4;
+		ya = V_FontHeight(l_MenuFont.Value[0].Int) + 2;
+		
+		// Draw each option
+		for (j = ((gametic / TICRATE) % UI->NumItems); j < UI->NumItems && y < ((ScrY + ScrH) - 30); j++, y += ya)
+		{
+			// Get Item
+			Item = &UI->Items[j];
+			
+			// Draw Item Text
+			xa = V_DrawStringA(
+					l_MenuFont.Value[0].Int,
+					VFO_COLOR(l_MenuItemColor.Value[0].Int),
+					Item->Text, x, y
+				);
+			
+			// Value to draw?
+			if (Item->Value)
+			{
+				// Get Dimensions of value
+				V_StringDimensionsA(l_MenuFont.Value[0].Int, 0, Item->Value, &ValW, &ValH);
+				
+				// X position is given
+				xb = (ScrX + (ScrW - 10)) - ValW;
+				
+				// If menu is not compact add some more stuff
+				if (!l_MenuCompact.Value[0].Int)
+					y += ya;
+				yb = y;
+				
+				// Draw
+				V_DrawStringA(
+						l_MenuFont.Value[0].Int,
+						VFO_COLOR(l_MenuValColor.Value[0].Int),
+						Item->Value, xb, yb
+					);
+			}
+		}
+	}
+}
+
+/* M_ExPushMenu() -- Pushes menu to handle stack */
+M_UIMenuHandler_t* M_ExPushMenu(M_UIMenu_t* const a_UI)
+{
+	M_UIMenuHandler_t* New;
+	
+	/* Check */
+	if (!a_UI)
+		return NULL;
+		
+	/* Allocate */
+	New = Z_Malloc(sizeof(*New), PU_STATIC, NULL);
+	
+	/* Setup */
+	New->UIMenu = a_UI;
+	
+	/* Add to end of stack */
+	Z_ResizeArray((void**)&l_UIMenus[0], sizeof(*l_UIMenus[0]), l_NumUIMenus[0], l_NumUIMenus[0] + 1);
+	l_UIMenus[l_NumUIMenus[0]++] = New;
+}
+
+/* M_ExTemplateMakeGameVars() -- Make Game Variable Template */
+M_UIMenu_t* M_ExTemplateMakeGameVars(const int32_t a_Mode)
+{
+	M_UIMenu_t* New;
+	int32_t i;
+	P_EXGSVariable_t* Bit;
+	
+	/* Allocate */
+	New = Z_Malloc(sizeof(*New), PU_STATIC, NULL);
+	
+	/* Quick */
+	New->NumItems = PEXGSNUMBITIDS;
+	New->Items = Z_Malloc(sizeof(*New->Items) * New->NumItems, PU_STATIC, NULL);
+	
+	/* Hack Up Variables */
+	for (i = 0; i < New->NumItems; i++)
+	{
+		// Get Bit
+		Bit = P_EXGSVarForBit(i);
+		
+		// Set
+		New->Items[i].Text = Bit->MenuTitle;
+		New->Items[i].Value = Bit->StrVal;
+	}
+	
+	/* Return */
+	return New;
 }
 
 /* M_ExUIMessageBox() -- Creates a new message box */
@@ -359,8 +553,8 @@ bool_t M_ExUIHandleEvent(const I_EventEx_t* const a_Event)
 		}
 	}
 	
-	/* Un-Handled */
-	return false;
+	/* Un-Handled Possibly? */
+	return M_ExMenuHandleEvent(a_Event);
 }
 
 /* M_ExUIDrawer() -- UI Drawer */
@@ -433,6 +627,10 @@ void M_ExUIDrawer(void)
 		// Draw Mouse
 		CONL_DrawMouse();
 	}
+	
+	/* Draw Menus? */
+	else
+		M_ExMenuDrawer();
 }
 
 
