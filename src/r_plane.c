@@ -268,9 +268,9 @@ visplane_t* new_visplane(unsigned hash)
 	if (!check)
 	{
 		check = Z_Malloc(sizeof(visplane_t), PU_STATIC, 0);
-		check->top = Z_Malloc(sizeof(unsigned short) * (vid.width + 2), PU_STATIC, NULL);
+		check->top = Z_Malloc(sizeof(*check->top) * (vid.width + 2), PU_STATIC, NULL);
 		check->top = &check->top[1];
-		check->bottom = Z_Malloc(sizeof(unsigned short) * (vid.width + 2), PU_STATIC, NULL);
+		check->bottom = Z_Malloc(sizeof(*check->top) * (vid.width + 2), PU_STATIC, NULL);
 		check->bottom = &check->bottom[1];
 	}
 	else if (!(freetail = freetail->next))
@@ -339,7 +339,7 @@ visplane_t* R_FindPlane(fixed_t height, int picnum, int lightlevel, fixed_t xoff
 		check->SkyTextureMid = skytexturemid;
 	}
 	
-	memset(check->top, 0xff, sizeof(unsigned short) * vid.width);
+	memset(check->top, 0xff, sizeof(*check->top) * vid.width);
 	
 	return check;
 }

@@ -63,12 +63,8 @@ typedef struct visplane_s
 	
 	//faB: words sucks .. should get rid of that.. but eats memory
 	//added:08-02-98: THIS IS UNSIGNED! VERY IMPORTANT!!
-	unsigned short pad1;
-	unsigned short* top;
-	unsigned short pad2;
-	unsigned short pad3;
-	unsigned short* bottom;
-	unsigned short pad4;
+	uint16_t* top;
+	uint16_t* bottom;
 	
 	int high, low;				// SoM: R_PlaneBounds should set these.
 	
