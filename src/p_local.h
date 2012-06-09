@@ -396,10 +396,21 @@ typedef struct P_RMODTouchSpecial_s
 	int32_t AmmoMul;							// Ammo multiplier
 } P_RMODTouchSpecial_t;
 
+/* P_RMODKey_t -- Key definition */
+typedef struct P_RMODKey_s
+{
+	uint32_t IDNum;								// ID Number
+	uint32_t BoomID;							// Boom ID
+	bool_t IsSkull;								// Is Skull Key
+} P_RMODKey_t;
+
 /*** GLOBALS ***/
 
 extern size_t g_RMODNumTouchSpecials;
 extern P_RMODTouchSpecial_t** g_RMODTouchSpecials;
+
+extern size_t g_RMODNumKeys;
+extern P_RMODKey_t** g_RMODKeys;
 
 P_RMODTouchSpecial_t* P_RMODTouchSpecialForSprite(const uint32_t a_SprNum);
 P_RMODTouchSpecial_t* P_RMODTouchSpecialForCode(const uint32_t a_Code);

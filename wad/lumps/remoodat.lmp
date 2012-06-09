@@ -16661,7 +16661,6 @@ MapKey "BlueCard"
 	Id "1";
 	BoomId "2";
 	Color "Blue";
-	Type "Card";
 	Icon "stkeys0";
 }
 
@@ -16670,7 +16669,7 @@ MapKey "BlueSkull"
 	Id "4";
 	BoomId "5";
 	Color "Blue";
-	Type "Skull";
+	IsSkull "true";
 	Icon "stkeys3";
 }
 
@@ -16679,7 +16678,6 @@ MapKey "YellowCard"
 	Id "2";
 	BoomId "3";
 	Color "Yellow";
-	Type "Card";
 	Icon "stkeys1";
 }
 
@@ -16688,7 +16686,7 @@ MapKey "YellowSkull"
 	Id "5";
 	BoomId "6";
 	Color "Yellow";
-	Type "Skull";
+	IsSkull "true";
 	Icon "stkeys4";
 }
 
@@ -16697,7 +16695,6 @@ MapKey "RedCard"
 	Id "3";
 	BoomId "1";
 	Color "Red";
-	Type "Card";
 	Icon "stkeys2";
 }
 
@@ -16706,7 +16703,7 @@ MapKey "RedSkull"
 	Id "6";
 	BoomId "4";
 	Color "Red";
-	Type "Skull";
+	IsSkull "true";
 	Icon "stkeys5";
 }
 

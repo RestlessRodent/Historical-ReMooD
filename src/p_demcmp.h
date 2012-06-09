@@ -264,8 +264,8 @@ fixed_t P_EXGSGetFixed(const P_EXGSBitID_t a_Bit);
 // General Functions
 bool_t P_EXGSRegisterStuff(void);
 bool_t P_EXGSSetVersionLevel(const uint32_t a_Level);
-int32_t P_EXGSSetValue(const P_EXGSBitID_t a_Bit, const int32_t a_Value);
-int32_t P_EXGSSetValueStr(const P_EXGSBitID_t a_Bit, const char* const a_Value);
+int32_t P_EXGSSetValue(const bool_t a_Master, const P_EXGSBitID_t a_Bit, const int32_t a_Value);
+int32_t P_EXGSSetValueStr(const bool_t a_Master, const P_EXGSBitID_t a_Bit, const char* const a_Value);
 
 #endif							/* __P_DEMCMP_H__ */
 

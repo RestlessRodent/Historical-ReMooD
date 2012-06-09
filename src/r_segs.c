@@ -1338,7 +1338,7 @@ void R_StoreWallRange(int start, int stop)
 			
 			for (i = 0; i < maxdrawsegs; i++)
 				if (!drawsegs[i].frontscale)
-					drawsegs[i].frontscale = Z_Malloc(sizeof(*drawsegs[i].frontscale) * MAXSEGS, PU_STATIC, NULL);
+					drawsegs[i].frontscale = Z_Malloc(sizeof(*drawsegs[i].frontscale) * (MAXSEGS + 1), PU_STATIC, NULL);
 		}
 		else
 		{
@@ -1352,7 +1352,7 @@ void R_StoreWallRange(int start, int stop)
 			
 			for (i = 0; i < maxdrawsegs; i++)
 				if (!drawsegs[i].frontscale)
-					drawsegs[i].frontscale = Z_Malloc(sizeof(*drawsegs[i].frontscale) * MAXSEGS, PU_STATIC, NULL);
+					drawsegs[i].frontscale = Z_Malloc(sizeof(*drawsegs[i].frontscale) * (MAXSEGS + 1), PU_STATIC, NULL);
 		}
 		
 		if (firstseg)

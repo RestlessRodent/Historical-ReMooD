@@ -3640,8 +3640,8 @@ static bool_t PS_ExtraSpecialOCCB(const bool_t a_Pushed, const struct WL_WADFile
 						ThisMinor->Mask = strtol(TokStr, NULL, 16);
 					
 						// Debug
-						if (devparm)
-							CONL_PrintF(">>> = %i %x\n", ThisMinor->Shift, ThisMinor->Mask);
+						//if (devparm)
+						//	CONL_PrintF(">>> = %i %x\n", ThisMinor->Shift, ThisMinor->Mask);
 					
 						// Clear initial value
 						Target = 0;
@@ -3664,8 +3664,8 @@ static bool_t PS_ExtraSpecialOCCB(const bool_t a_Pushed, const struct WL_WADFile
 							ThisSub->Value = Target++;
 						
 							// Debug
-							if (devparm)
-								CONL_PrintF(">>>> %s = %i\n", ThisSub->EnumName, ThisSub->Value);
+							//if (devparm)
+							//	CONL_PrintF(">>>> %s = %i\n", ThisSub->EnumName, ThisSub->Value);
 						}
 					}
 				
@@ -3693,8 +3693,8 @@ static bool_t PS_ExtraSpecialOCCB(const bool_t a_Pushed, const struct WL_WADFile
 						ThisMajor->BaseInt = strtol(TokStr, NULL, 16);
 					
 						// Debug
-						if (devparm)
-							CONL_PrintF(">> %s = %i\n", ThisMajor->TypeName, ThisMajor->BaseInt);
+						//if (devparm)
+						//	CONL_PrintF(">> %s = %i\n", ThisMajor->TypeName, ThisMajor->BaseInt);
 					}
 				}
 #undef __REMOOD_MAPTOKEN

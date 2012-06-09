@@ -394,18 +394,18 @@ void SCR_ReclassBuffers(void)
 	/* (Re)allocate */
 	// Width
 	xtoviewangle = Z_Malloc(sizeof(angle_t) * (vid.width + 1), PU_STATIC, NULL);
-	columnofs = Z_Malloc(sizeof(int) * vid.width, PU_STATIC, NULL);
-	floorclip = Z_Malloc(sizeof(short) * vid.width, PU_STATIC, NULL);
-	ceilingclip = Z_Malloc(sizeof(short) * vid.width, PU_STATIC, NULL);
-	frontscale = Z_Malloc(sizeof(fixed_t) * vid.width, PU_STATIC, NULL);
-	distscale = Z_Malloc(sizeof(fixed_t) * vid.width, PU_STATIC, NULL);
+	columnofs = Z_Malloc(sizeof(*columnofs) * vid.width, PU_STATIC, NULL);
+	floorclip = Z_Malloc(sizeof(*floorclip) * (vid.width + 1), PU_STATIC, NULL);
+	ceilingclip = Z_Malloc(sizeof(*ceilingclip) * (vid.width + 1), PU_STATIC, NULL);
+	frontscale = Z_Malloc(sizeof(*frontscale) * vid.width, PU_STATIC, NULL);
+	distscale = Z_Malloc(sizeof(*distscale) * vid.width, PU_STATIC, NULL);
 #ifdef BORIS_FIX
-	last_ceilingclip = Z_Malloc(sizeof(short) * vid.width, PU_STATIC, NULL);
-	last_floorclip = Z_Malloc(sizeof(short) * vid.width, PU_STATIC, NULL);
+	last_ceilingclip = Z_Malloc(sizeof(*last_ceilingclip) * vid.width, PU_STATIC, NULL);
+	last_floorclip = Z_Malloc(sizeof(*last_floorclip) * vid.width, PU_STATIC, NULL);
 #endif
-	negonearray = Z_Malloc(sizeof(short) * vid.width, PU_STATIC, NULL);
-	screenheightarray = Z_Malloc(sizeof(short) * vid.width, PU_STATIC, NULL);
-	solidsegs = Z_Malloc(sizeof(cliprange_t) * MAXSEGS, PU_STATIC, NULL);
+	negonearray = Z_Malloc(sizeof(*negonearray) * vid.width, PU_STATIC, NULL);
+	screenheightarray = Z_Malloc(sizeof(*screenheightarray) * vid.width, PU_STATIC, NULL);
+	solidsegs = Z_Malloc(sizeof(*solidsegs) * MAXSEGS, PU_STATIC, NULL);
 	
 	// Height
 	ylookup = Z_Malloc(sizeof(uint8_t*) * vid.height, PU_STATIC, NULL);

@@ -3537,6 +3537,7 @@ static void VS_WLImagePDCRemove(const struct WL_WADFile_s* a_WAD)
 	// Constant image killing
 	while (HI->ImageChain)
 		V_ImageDestroy(HI->ImageChain);
+	HI->ImageChain = NULL;
 	
 	// Delete hash table
 	Z_HashDeleteTable(HI->ImageHashes);

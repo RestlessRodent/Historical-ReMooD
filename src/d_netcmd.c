@@ -1578,6 +1578,14 @@ static void D_NCSLocalBuildTicCmd(D_NetPlayer_t* const a_NPp, ticcmd_t* const a_
 		}
 	}
 	
+	// Inventory
+	if (GAMEKEYDOWN(Profile, DPEXIC_NEXTINVENTORY))
+		a_TicCmd->InventoryBits = TICCMD_INVRIGHT;
+	else if (GAMEKEYDOWN(Profile, DPEXIC_PREVINVENTORY))
+		a_TicCmd->InventoryBits = TICCMD_INVLEFT;
+	else if (GAMEKEYDOWN(Profile, DPEXIC_USEINVENTORY))
+		a_TicCmd->InventoryBits = TICCMD_INVUSE;
+	
 	/* Handle special functions */
 	// Coop Spy
 	if (GAMEKEYDOWN(Profile, DPEXIC_COOPSPY))

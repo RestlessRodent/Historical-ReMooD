@@ -95,6 +95,12 @@ typedef enum M_UIItemType_e
 	NUMUIITEMTYPES
 } M_UIItemType_t;
 
+/* M_UIItemFlags_t -- Item Flags */
+typedef enum M_UIItemFlags_e
+{
+	MUIIF_NOPARK		= UINT32_C(0x0000001),	// No parking
+} M_UIItemFlags_t;
+
 /*** STRUCTURES ***/
 
 /* M_UILocalBox_t -- Local message box */
@@ -119,14 +125,21 @@ typedef struct M_UILocalBox_s
 	} Buttons[MAXUIBUTTONS];
 } M_UILocalBox_t;
 
+struct M_UIMenu_s;
+
 /* M_UIItem_t -- Menu Item */
 typedef struct M_UIItem_s
 {
+	struct M_UIMenu_s* Menu;					// Menu Owner
+	uint32_t Flags;								// Flags
 	M_UIItemType_t Type;						// Type of item
 	const char* Text;							// Item Text
 	const char* Value;							// Value
 	const char** TextRef;						// Item Text (i18n)
 	const char** ValueRef;						// Value (i18n)
+	
+	int32_t DataBits;							// Anything needed for data
+	bool_t (*LRValChangeFunc)(struct M_UIMenu_s* const a_Menu, struct M_UIItem_s* const a_Item, const bool_t a_More);
 } M_UIItem_t;
 
 /* M_UIMenu_t -- Interface Menu */
@@ -142,6 +155,11 @@ typedef struct M_UIMenu_s
 typedef struct M_UIMenuHandler_s
 {
 	M_UIMenu_t* UIMenu;							// Defined UI Menu
+	int32_t CurItem;							// Current Selected Item
+	int32_t OldCurItem;							// Old Selected Item
+	int32_t StartOff;							// Starting Offset
+	int32_t IPS;								// Known IPS
+	int32_t OSKWait;							// OSK Wait
 } M_UIMenuHandler_t;
 
 #define MUIBOXFONT VFONT_SMALL
@@ -210,6 +228,144 @@ void M_MenuExInit(void)
 /* M_ExMenuHandleEvent() -- Handles Menu Events */
 bool_t M_ExMenuHandleEvent(const I_EventEx_t* const a_Event)
 {
+	int32_t i, RowPos, RowEnd;
+	M_UIMenuHandler_t* TopMenu;
+	M_UIMenu_t* UI;
+	bool_t Up;
+	
+	/* Control for each player */
+	for (i = 0; i < (g_SplitScreen > 0 ? g_SplitScreen + 1 : 1); i++)
+	{
+		// Get top menu
+		TopMenu = l_UIMenus[i];
+		
+		// Menu Here?
+		if (!TopMenu)
+			continue;
+		
+		// Get UI
+		UI = TopMenu->UIMenu;
+		Up = false;
+		
+		// Which key command?
+		if (a_Event->Type == IET_SYNTHOSK)
+		{
+			// Not this player?
+			if (a_Event->Data.SynthOSK.PNum != i)
+				continue;
+			
+			// Waiting on OSK?
+			if (gametic < TopMenu->OSKWait)
+				continue;
+			
+			// Move menu up/down?
+			if (a_Event->Data.SynthOSK.Down != 0)
+			{
+				TopMenu->CurItem += a_Event->Data.SynthOSK.Down;
+				Up = a_Event->Data.SynthOSK.Down > 0;
+			}
+			
+			// Change value left/right?
+			else if (a_Event->Data.SynthOSK.Right != 0)
+			{
+				if (UI->Items[TopMenu->CurItem].LRValChangeFunc)
+					if (UI->Items[TopMenu->CurItem].LRValChangeFunc(UI, &UI->Items[TopMenu->CurItem], a_Event->Data.SynthOSK.Right > 0))
+						S_StartSound(NULL, sfx_stnmov);
+			}
+			
+			// Un-handled
+			else
+				continue;
+			
+			// Handled somewhere
+			TopMenu->OSKWait = gametic + (TICRATE >> 2);
+		}
+		
+		// Normal Menu access (Only by Player 1)
+		else if (i == 0 && a_Event->Type == IET_KEYBOARD && a_Event->Data.Keyboard.Down)
+		{
+			continue;
+		}
+		else
+			continue;
+		
+		// Non-parkable Item?
+		for (;;)
+		{
+			// Passed items?
+			if (TopMenu->CurItem < 0)
+				TopMenu->StartOff = TopMenu->CurItem = TopMenu->UIMenu->NumItems - 1;
+			else if (TopMenu->CurItem >= TopMenu->UIMenu->NumItems)
+				TopMenu->StartOff = TopMenu->CurItem = 0;
+			
+			// Non-parkable item?
+			if (TopMenu->UIMenu->Items[TopMenu->CurItem].Flags & MUIIF_NOPARK)
+				if (Up)
+					TopMenu->CurItem++;
+				else
+					TopMenu->CurItem--;
+			else
+				break;
+		}
+		
+		// Item changed? Play sound
+		if (TopMenu->CurItem != TopMenu->OldCurItem)
+			S_StartSound(NULL, sfx_pstop);
+		
+		// Change view?
+		for (;;)
+		{
+			// Really small menu?
+			if (UI->NumItems <= 5)
+			{
+				TopMenu->StartOff = 0;
+				break;
+			}
+			
+			// Try to bound
+			RowPos = TopMenu->CurItem - TopMenu->StartOff;
+			RowEnd = TopMenu->StartOff + TopMenu->IPS;
+		
+			// Absolute At Start?
+			if (TopMenu->CurItem < 2)
+			{
+				TopMenu->StartOff = 0;
+				break;
+			}
+			
+			// First 2 items
+			else if (RowPos < 2)
+				TopMenu->StartOff--;
+		
+			// Last 2 items
+			else if (RowPos > TopMenu->IPS - 2)
+				TopMenu->StartOff++;
+			
+			// In the middle
+			else
+				break;
+		
+			// Capped?
+			if (TopMenu->StartOff < 0)
+				TopMenu->StartOff = 0;
+			else if (TopMenu->StartOff + TopMenu->IPS >= UI->NumItems)
+				TopMenu->StartOff = UI->NumItems - TopMenu->IPS;
+		}
+		
+#if 0
+			// First 3 items?
+		if (TopMenu->CurItem < 3)
+			TopMenu->StartOff = 0;
+			// Last 3 items?
+		else if (TopMenu->CurItem > (TopMenu->StartOff + TopMenu->IPS))
+			TopMenu->StartOff = (TopMenu->StartOff + (TopMenu->IPS - 3));
+#endif
+
+		//TopMenu->StartOff = TopMenu->CurItem;
+		TopMenu->OldCurItem = TopMenu->CurItem;
+	}
+	
+	/* Un-Handled */
 	return false;
 }
 
@@ -239,11 +395,31 @@ void M_ExMenuDrawer(void)
 	/* Draw for each player */
 	for (i = 0; i < (g_SplitScreen > 0 ? g_SplitScreen + 1 : 1); i++)
 	{
-		// Get screen size
+		// Get base screen size
 		ScrX = 0;
 		ScrY = 0;
 		ScrW = 320;
 		ScrH = 200;
+		
+		// 2+ Split = Half Height
+		if (g_SplitScreen > 0)
+			ScrH >>= 1;
+		
+		// 3+ Split = Half Width
+		if (g_SplitScreen > 1)
+			ScrW >>= 1;
+		
+		// Modify h/w?
+			// 2 player
+		if (g_SplitScreen == 1)
+			ScrY = ScrH * (i & 1);
+		
+			// 3/4 player
+		else if (g_SplitScreen > 1)
+		{
+			ScrX = ScrW * (i & 1);
+			ScrY = ScrH * ((i >> 1) & 1);
+		}
 		
 		// Get top menu
 		TopMenu = l_UIMenus[i];
@@ -256,15 +432,16 @@ void M_ExMenuDrawer(void)
 		UI = TopMenu->UIMenu;
 		
 		// Draw Title
-		V_DrawStringA(VFONT_LARGE, 0, "Title", 0, 0);
+		V_DrawStringA(VFONT_LARGE, 0, "Title", 0, 2);
 		
 		// Base Position
 		x = ScrX + 10;
 		y = ScrY + V_FontHeight(VFONT_LARGE) + 4;
 		ya = V_FontHeight(l_MenuFont.Value[0].Int) + 2;
+		TopMenu->IPS = ((ScrH - 20) - y) / ya;
 		
 		// Draw each option
-		for (j = ((gametic / TICRATE) % UI->NumItems); j < UI->NumItems && y < ((ScrY + ScrH) - 30); j++, y += ya)
+		for (j = TopMenu->StartOff; j < UI->NumItems && y < ((ScrY + ScrH) - 20); j++, y += ya)
 		{
 			// Get Item
 			Item = &UI->Items[j];
@@ -288,7 +465,20 @@ void M_ExMenuDrawer(void)
 			if (Item->Type == MUIIT_HEADER)
 				DrawFlags |= VFO_COLOR(l_MenuHeaderColor.Value[0].Int);
 			else
-				DrawFlags |= VFO_COLOR(l_MenuItemColor.Value[0].Int);
+			{
+				// Selected (Show indicator)
+				if (j == TopMenu->CurItem)
+				{
+					if (gametic & 0x8)
+						DrawFlags |= VFO_COLOR(VEX_MAP_YELLOW);
+					else
+						DrawFlags |= VFO_COLOR(VEX_MAP_RED);
+				}
+				
+				// Un-Selected
+				else
+					DrawFlags |= VFO_COLOR(l_MenuItemColor.Value[0].Int);
+			}
 			
 			// Draw Item Text
 			xa = V_DrawStringA(
@@ -337,9 +527,36 @@ M_UIMenuHandler_t* M_ExPushMenu(M_UIMenu_t* const a_UI)
 	/* Setup */
 	New->UIMenu = a_UI;
 	
+	/* Don't park on unparkable items */
+	while (New->CurItem < a_UI->NumItems && (a_UI->Items[New->CurItem].Flags & MUIIF_NOPARK))
+		New->CurItem++;
+	
 	/* Add to end of stack */
 	Z_ResizeArray((void**)&l_UIMenus[0], sizeof(*l_UIMenus[0]), l_NumUIMenus[0], l_NumUIMenus[0] + 1);
 	l_UIMenus[l_NumUIMenus[0]++] = New;
+}
+
+/* MS_GameVar_LRValChange() -- Game variable value changer callback */
+static bool_t MS_GameVar_LRValChange(struct M_UIMenu_s* const a_Menu, struct M_UIItem_s* const a_Item, const bool_t a_More)
+{
+	P_EXGSVariable_t* Bit;
+	int32_t OldVal, NewVal;
+	
+	/* Get bit */
+	Bit = P_EXGSVarForBit(a_Item->DataBits);
+	
+	// Failed?
+	if (!Bit)
+		return false;
+	
+	/* Get values and attempt change */
+	OldVal = P_EXGSGetValue(Bit->BitID);
+	NewVal = P_EXGSSetValue(false, Bit->BitID, OldVal + (a_More ? 1 : -1));
+	
+	// Success? Only if actually changed
+	if (NewVal != OldVal)
+		return true;
+	return false;
 }
 
 /* M_ExTemplateMakeGameVars() -- Make Game Variable Template */
@@ -352,20 +569,20 @@ M_UIMenu_t* M_ExTemplateMakeGameVars(const int32_t a_Mode)
 	P_EXGSMenuCategory_t LastCat;
 	
 	/* Sort bits */
-	SortedBits = Z_Malloc(sizeof(*SortedBits) * PEXGSNUMBITIDS, PU_STATIC, NULL);
+	SortedBits = Z_Malloc(sizeof(*SortedBits) * (PEXGSNUMBITIDS - 1), PU_STATIC, NULL);
 	
 	// Init
-	for (i = 0; i < PEXGSNUMBITIDS; i++)
-		SortedBits[i] = P_EXGSVarForBit(i);
+	for (i = 1; i < PEXGSNUMBITIDS; i++)
+		SortedBits[i - 1] = P_EXGSVarForBit(i);
 	
 	// Sort by category first
-	for (i = 0; i < PEXGSNUMBITIDS; i++)
+	for (i = 0; i < (PEXGSNUMBITIDS - 1); i++)
 	{
 		// Initial
 		b = i;
 		
 		// Find next lowest
-		for (j = i + 1; j < PEXGSNUMBITIDS; j++)
+		for (j = i + 1; j < (PEXGSNUMBITIDS - 1); j++)
 			if (SortedBits[j]->Category < SortedBits[b]->Category)
 				b = j;
 		
@@ -377,10 +594,10 @@ M_UIMenu_t* M_ExTemplateMakeGameVars(const int32_t a_Mode)
 	
 	// Sort by name now
 	LastCat = 0;
-	for (w = z = i = 0; i <= PEXGSNUMBITIDS; i++)
+	for (w = z = i = 0; i <= (PEXGSNUMBITIDS - 1); i++)
 	{
 		// Change of category? or ran out!
-		if (i == PEXGSNUMBITIDS || LastCat != SortedBits[i]->Category)
+		if (i == (PEXGSNUMBITIDS - 1) || LastCat != SortedBits[i]->Category)
 		{
 			// Sort sub items
 			for (j = w; j < z; j++)
@@ -400,7 +617,7 @@ M_UIMenu_t* M_ExTemplateMakeGameVars(const int32_t a_Mode)
 			}
 			
 			// Setup for future sort
-			if (i < PEXGSNUMBITIDS)
+			if (i < (PEXGSNUMBITIDS - 1))
 				LastCat = SortedBits[i]->Category;
 			w = z = i;
 		}
@@ -416,15 +633,19 @@ M_UIMenu_t* M_ExTemplateMakeGameVars(const int32_t a_Mode)
 	New = Z_Malloc(sizeof(*New), PU_STATIC, NULL);
 	
 	/* Quick */
-	New->NumItems = PEXGSNUMBITIDS + NUMPEXGSMENUCATEGORIES;
+	New->NumItems = (PEXGSNUMBITIDS - 1) + NUMPEXGSMENUCATEGORIES;
 	New->Items = Z_Malloc(sizeof(*New->Items) * New->NumItems, PU_STATIC, NULL);
 	
 	/* Hack Up Variables */
 	LastCat = 0;
 	for (j = 0, i = 0; i < New->NumItems; i++)
 	{
+		// Don't park by default
+		New->Items[i].Flags |= MUIIF_NOPARK;
+		New->Items[i].Menu = New;
+		
 		// Overflow?
-		if (j >= PEXGSNUMBITIDS)
+		if (j >= (PEXGSNUMBITIDS - 1))
 			continue;
 		
 		// Get Bit
@@ -453,6 +674,9 @@ M_UIMenu_t* M_ExTemplateMakeGameVars(const int32_t a_Mode)
 		// Set
 		New->Items[i].Text = Bit->MenuTitle;
 		New->Items[i].Value = Bit->StrVal;
+		New->Items[i].Flags &= ~MUIIF_NOPARK;	// Park here
+		New->Items[i].LRValChangeFunc = MS_GameVar_LRValChange;
+		New->Items[i].DataBits = Bit->BitID;
 	}
 	
 	/* Cleanup */

@@ -74,6 +74,18 @@ typedef enum
 #define TICCMD_RECEIVED 1
 #define TICCMD_XY       2
 #define BT_FLYDOWN      4
+
+typedef enum
+{
+	TICCMD_NOTHING,								// Do nothing
+	TICCMD_INVLEFT,								// Move Inventory Left
+	TICCMD_INVRIGHT,							// Move Inventory Right
+	TICCMD_INVUSE,								// Use Inventory
+};
+
+#define TICCMD_INVACTSHIFT	UINT32_C(0)			// Action Shift
+#define TICCMD_INVACTMASK	UINT32_C(0x3)		// Action Mask
+
 typedef struct
 {
 	int8_t forwardmove;			// *2048 for move
@@ -87,6 +99,8 @@ typedef struct
 	// Extended tic command stuff
 	uint8_t XNewWeapon;							// New weapon to switch to
 	int16_t BaseAngleTurn;						// Base angle turning
+	uint8_t InventoryBits;						// Inventory Control
 } ticcmd_t;
 
 #endif
+

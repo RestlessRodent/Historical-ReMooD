@@ -635,7 +635,7 @@ static CONL_ExitCode_t PS_EXGSGeneralComm(const uint32_t a_ArgC, const char** co
 				return CLE_UNKNOWNVARIABLE;
 			
 			// Set value
-			P_EXGSSetValueStr(Var->BitID, a_ArgV[2]);
+			P_EXGSSetValueStr(false, Var->BitID, a_ArgV[2]);
 			
 			return CLE_SUCCESS;
 		}
@@ -817,14 +817,14 @@ bool_t P_EXGSSetVersionLevel(const uint32_t a_Level)
 			}
 		
 		// Set value
-		P_EXGSSetValue(l_GSVars[i].BitID, l_GSVars[i].DemoVal[IsTrue]);
+		P_EXGSSetValue(false, l_GSVars[i].BitID, l_GSVars[i].DemoVal[IsTrue]);
 	}
 	
 	return true;
 }
 
 /* P_EXGSSetValue() -- Sets value of variable */
-int32_t P_EXGSSetValue(const P_EXGSBitID_t a_Bit, const int32_t a_Value)
+int32_t P_EXGSSetValue(const bool_t a_Master, const P_EXGSBitID_t a_Bit, const int32_t a_Value)
 {
 	P_EXGSVariable_t* Var;
 	
@@ -834,6 +834,14 @@ int32_t P_EXGSSetValue(const P_EXGSBitID_t a_Bit, const int32_t a_Value)
 	// Nothing?
 	if (!Var)
 		return 0;
+	
+	/* Not permitted to change value? */
+	if (!D_SyncNetIsArbiter() && !a_Master)
+	{
+		if (Var->WasSet)
+			return Var->ActualVal;
+		return Var->DefaultVal;
+	}
 	
 	/* Set value */
 	Var->WasSet = true;
@@ -851,7 +859,7 @@ int32_t P_EXGSSetValue(const P_EXGSBitID_t a_Bit, const int32_t a_Value)
 }
 
 /* P_EXGSSetValueStr() -- Sets value by string */
-int32_t P_EXGSSetValueStr(const P_EXGSBitID_t a_Bit, const char* const a_Value)
+int32_t P_EXGSSetValueStr(const bool_t a_Master, const P_EXGSBitID_t a_Bit, const char* const a_Value)
 {
 	int32_t SetVal;
 	P_EXGSVariable_t* Var;
@@ -871,6 +879,6 @@ int32_t P_EXGSSetValueStr(const P_EXGSBitID_t a_Bit, const char* const a_Value)
 	SetVal = strtol(a_Value, NULL, 0);
 	
 	/* Return the value */
-	return P_EXGSSetValue(a_Bit, SetVal);
+	return P_EXGSSetValue(a_Master, a_Bit, SetVal);
 }
 
