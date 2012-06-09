@@ -142,6 +142,8 @@ typedef struct M_UIItem_s
 	bool_t (*LRValChangeFunc)(struct M_UIMenu_s* const a_Menu, struct M_UIItem_s* const a_Item, const bool_t a_More);
 } M_UIItem_t;
 
+struct M_UIMenuHandler_s;
+
 /* M_UIMenu_t -- Interface Menu */
 typedef struct M_UIMenu_s
 {
@@ -149,6 +151,8 @@ typedef struct M_UIMenu_s
 	
 	M_UIItem_t* Items;							// Items
 	size_t NumItems;							// Number of Items
+	
+	void (*CleanerFunc)(struct M_UIMenuHandler_s* const a_Handler, struct M_UIMenu_s* const a_UIMenu);
 } M_UIMenu_t;
 
 /* M_UIMenuHandler_t -- Menu Handler */
@@ -228,16 +232,20 @@ void M_MenuExInit(void)
 /* M_ExMenuHandleEvent() -- Handles Menu Events */
 bool_t M_ExMenuHandleEvent(const I_EventEx_t* const a_Event)
 {
-	int32_t i, RowPos, RowEnd;
+	int32_t i, RowPos, RowEnd, DoDown, DoRight;
 	M_UIMenuHandler_t* TopMenu;
 	M_UIMenu_t* UI;
-	bool_t Up;
+	bool_t Up, DoCancel;
 	
 	/* Control for each player */
 	for (i = 0; i < (g_SplitScreen > 0 ? g_SplitScreen + 1 : 1); i++)
 	{
+		// No menus for this player?
+		if (!l_NumUIMenus[i])
+			continue;
+		
 		// Get top menu
-		TopMenu = l_UIMenus[i];
+		TopMenu = l_UIMenus[i][l_NumUIMenus[i] - 1];
 		
 		// Menu Here?
 		if (!TopMenu)
@@ -246,6 +254,8 @@ bool_t M_ExMenuHandleEvent(const I_EventEx_t* const a_Event)
 		// Get UI
 		UI = TopMenu->UIMenu;
 		Up = false;
+		DoRight = DoDown = 0;
+		DoCancel = false;
 		
 		// Which key command?
 		if (a_Event->Type == IET_SYNTHOSK)
@@ -260,18 +270,11 @@ bool_t M_ExMenuHandleEvent(const I_EventEx_t* const a_Event)
 			
 			// Move menu up/down?
 			if (a_Event->Data.SynthOSK.Down != 0)
-			{
-				TopMenu->CurItem += a_Event->Data.SynthOSK.Down;
-				Up = a_Event->Data.SynthOSK.Down > 0;
-			}
+				DoDown = a_Event->Data.SynthOSK.Down;
 			
 			// Change value left/right?
 			else if (a_Event->Data.SynthOSK.Right != 0)
-			{
-				if (UI->Items[TopMenu->CurItem].LRValChangeFunc)
-					if (UI->Items[TopMenu->CurItem].LRValChangeFunc(UI, &UI->Items[TopMenu->CurItem], a_Event->Data.SynthOSK.Right > 0))
-						S_StartSound(NULL, sfx_stnmov);
-			}
+				DoRight = a_Event->Data.SynthOSK.Right;
 			
 			// Un-handled
 			else
@@ -284,10 +287,55 @@ bool_t M_ExMenuHandleEvent(const I_EventEx_t* const a_Event)
 		// Normal Menu access (Only by Player 1)
 		else if (i == 0 && a_Event->Type == IET_KEYBOARD && a_Event->Data.Keyboard.Down)
 		{
-			continue;
+			switch (a_Event->Data.Keyboard.KeyCode)
+			{
+				case IKBK_LEFT:
+					DoRight = -1;
+					break;
+				
+				case IKBK_RIGHT:
+					DoRight = 1;
+					break;
+				
+				case IKBK_DOWN:
+					DoDown = 1;
+					break;
+				
+				case IKBK_UP:
+					DoDown = -1;
+					break;
+				
+				case IKBK_ESCAPE:
+					DoCancel = true;
+					break;
+				
+				default:
+					continue;
+			}
 		}
 		else
 			continue;
+			
+		// Cancel Menu
+		if (DoCancel)
+		{
+			// Pop Menu
+			M_ExPopMenu(i);
+			return true;	// always handled
+		}
+		
+		// Up/Down?
+		if (DoDown != 0)
+		{
+			TopMenu->CurItem += DoDown;
+			Up = DoDown > 0;
+		}
+		
+		// Left/Right?
+		if (DoRight != 0)
+			if (UI->Items[TopMenu->CurItem].LRValChangeFunc)
+				if (UI->Items[TopMenu->CurItem].LRValChangeFunc(UI, &UI->Items[TopMenu->CurItem], DoRight > 0))
+					S_StartSound(NULL, sfx_stnmov);
 		
 		// Non-parkable Item?
 		for (;;)
@@ -351,18 +399,12 @@ bool_t M_ExMenuHandleEvent(const I_EventEx_t* const a_Event)
 			else if (TopMenu->StartOff + TopMenu->IPS >= UI->NumItems)
 				TopMenu->StartOff = UI->NumItems - TopMenu->IPS;
 		}
-		
-#if 0
-			// First 3 items?
-		if (TopMenu->CurItem < 3)
-			TopMenu->StartOff = 0;
-			// Last 3 items?
-		else if (TopMenu->CurItem > (TopMenu->StartOff + TopMenu->IPS))
-			TopMenu->StartOff = (TopMenu->StartOff + (TopMenu->IPS - 3));
-#endif
 
 		//TopMenu->StartOff = TopMenu->CurItem;
 		TopMenu->OldCurItem = TopMenu->CurItem;
+		
+		// Was handled
+		return true;
 	}
 	
 	/* Un-Handled */
@@ -395,6 +437,10 @@ void M_ExMenuDrawer(void)
 	/* Draw for each player */
 	for (i = 0; i < (g_SplitScreen > 0 ? g_SplitScreen + 1 : 1); i++)
 	{
+		// No menus for this player?
+		if (!l_NumUIMenus[i])
+			continue;
+		
 		// Get base screen size
 		ScrX = 0;
 		ScrY = 0;
@@ -422,7 +468,7 @@ void M_ExMenuDrawer(void)
 		}
 		
 		// Get top menu
-		TopMenu = l_UIMenus[i];
+		TopMenu = l_UIMenus[i][l_NumUIMenus[i] - 1];
 		
 		// Menu Here?
 		if (!TopMenu)
@@ -512,13 +558,42 @@ void M_ExMenuDrawer(void)
 	}
 }
 
+/* M_ExPopMenu() -- Pops menu from stack */
+void M_ExPopMenu(const uint8_t a_Player)
+{
+	M_UIMenuHandler_t* Handler;
+	
+	/* Check */
+	if (a_Player < 0 || a_Player >= MAXSPLITSCREEN)
+		return;
+		
+	/* No menus for player? */
+	if (l_NumUIMenus[a_Player] <= 0)
+		return;
+	
+	/* Get top item */
+	Handler = l_UIMenus[a_Player][l_NumUIMenus[a_Player] - 1];
+	
+	// Call cleaners
+	if (Handler->UIMenu->CleanerFunc)
+		Handler->UIMenu->CleanerFunc(Handler, Handler->UIMenu);
+	
+	// Free handler
+	Z_Free(Handler);
+	
+	/* Downsize array */
+	l_UIMenus[a_Player][l_NumUIMenus[a_Player] - 1] = NULL;
+	Z_ResizeArray((void**)&l_UIMenus[a_Player], sizeof(*l_UIMenus[a_Player]), l_NumUIMenus[a_Player], l_NumUIMenus[a_Player] - 1);
+	l_NumUIMenus[a_Player]--;
+}
+
 /* M_ExPushMenu() -- Pushes menu to handle stack */
-M_UIMenuHandler_t* M_ExPushMenu(M_UIMenu_t* const a_UI)
+M_UIMenuHandler_t* M_ExPushMenu(const uint8_t a_Player, M_UIMenu_t* const a_UI)
 {
 	M_UIMenuHandler_t* New;
 	
 	/* Check */
-	if (!a_UI)
+	if (!a_UI || a_Player < 0 || a_Player >= MAXSPLITSCREEN)
 		return NULL;
 		
 	/* Allocate */
@@ -532,15 +607,22 @@ M_UIMenuHandler_t* M_ExPushMenu(M_UIMenu_t* const a_UI)
 		New->CurItem++;
 	
 	/* Add to end of stack */
-	Z_ResizeArray((void**)&l_UIMenus[0], sizeof(*l_UIMenus[0]), l_NumUIMenus[0], l_NumUIMenus[0] + 1);
-	l_UIMenus[l_NumUIMenus[0]++] = New;
+	Z_ResizeArray((void**)&l_UIMenus[a_Player], sizeof(*l_UIMenus[a_Player]), l_NumUIMenus[a_Player], l_NumUIMenus[a_Player] + 1);
+	l_UIMenus[a_Player][l_NumUIMenus[a_Player]++] = New;
+}
+
+/* MS_GenericCleanerFunc() -- Generic Menu Cleaner */
+static void MS_GenericCleanerFunc(struct M_UIMenuHandler_s* const a_Handler, struct M_UIMenu_s* const a_UIMenu)
+{
+	Z_Free(a_Handler->UIMenu->Items);
+	Z_Free(a_Handler->UIMenu);
 }
 
 /* MS_GameVar_LRValChange() -- Game variable value changer callback */
 static bool_t MS_GameVar_LRValChange(struct M_UIMenu_s* const a_Menu, struct M_UIItem_s* const a_Item, const bool_t a_More)
 {
 	P_EXGSVariable_t* Bit;
-	int32_t OldVal, NewVal;
+	int32_t OldVal, NewVal, ModVal;
 	
 	/* Get bit */
 	Bit = P_EXGSVarForBit(a_Item->DataBits);
@@ -548,10 +630,26 @@ static bool_t MS_GameVar_LRValChange(struct M_UIMenu_s* const a_Menu, struct M_U
 	// Failed?
 	if (!Bit)
 		return false;
+		
+	/* Value change amount? */
+	if (Bit->Type == PEXGST_FLOAT)
+	{
+		if (a_More)
+			ModVal = 8192;
+		else
+			ModVal = -8192;
+	}
+	else
+	{
+		if (a_More)
+			ModVal = 1;
+		else
+			ModVal = -1;
+	}
 	
 	/* Get values and attempt change */
 	OldVal = P_EXGSGetValue(Bit->BitID);
-	NewVal = P_EXGSSetValue(false, Bit->BitID, OldVal + (a_More ? 1 : -1));
+	NewVal = P_EXGSSetValue(false, Bit->BitID, OldVal + ModVal);
 	
 	// Success? Only if actually changed
 	if (NewVal != OldVal)
@@ -635,6 +733,7 @@ M_UIMenu_t* M_ExTemplateMakeGameVars(const int32_t a_Mode)
 	/* Quick */
 	New->NumItems = (PEXGSNUMBITIDS - 1) + NUMPEXGSMENUCATEGORIES;
 	New->Items = Z_Malloc(sizeof(*New->Items) * New->NumItems, PU_STATIC, NULL);
+	New->CleanerFunc = MS_GenericCleanerFunc;
 	
 	/* Hack Up Variables */
 	LastCat = 0;

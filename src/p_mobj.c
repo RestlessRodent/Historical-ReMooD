@@ -2472,6 +2472,17 @@ mobj_t* P_RefMobjReal(const P_MobjRefType_t a_Type, mobj_t* const a_SourceRef, m
 		ChangePtr = &a_SourceRef->tracer;
 	else if (a_Type == PMRT_FOLLOWPLAYER)
 		ChangePtr == &a_SourceRef->FollowPlayer;
+	else
+		ChangePtr = NULL;
+	
+	/* Nothing to change? */
+	// Oops!
+	if (!ChangePtr)
+	{
+		if (devparm)
+			CONL_PrintF("Unknown ref type %u?\n", a_Type);
+		return NULL;
+	}
 	
 	/* Remove old reference */
 	if (*ChangePtr)

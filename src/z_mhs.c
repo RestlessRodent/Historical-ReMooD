@@ -156,6 +156,10 @@ void Z_MHC_FreeWrappee(void* const Ptr _ZMGD_WRAPPEE)
 	if (AllocBlock->RefPtr)
 		*AllocBlock->RefPtr = NULL;
 	
+	/* Invalidate */
+	AllocBlock->Start = ZEND;
+	AllocBlock->End = ZSTART;
+	
 	/* Un-Chain */
 	if (AllocBlock->Prev)
 		AllocBlock->Prev->Next = AllocBlock->Next;

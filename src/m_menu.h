@@ -73,5 +73,7 @@ bool_t M_ExUIMessageBox(const M_ExMBType_t a_Type, const uint32_t a_MessageID, c
 bool_t M_ExUIHandleEvent(const I_EventEx_t* const a_Event);
 void M_ExUIDrawer(void);
 
+void M_ExPopMenu(const uint8_t a_Player);
+
 #endif
 

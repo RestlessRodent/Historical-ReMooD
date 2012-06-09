@@ -241,6 +241,7 @@ typedef struct P_EXGSVariable_s
 	const int32_t DefaultVal;					// Default value wherever
 	P_EXGSMenuCategory_t Category;				// Category for item
 	P_EXGSDisplayAs_t DisplayAs;				// Display as this
+	const CONL_VarPossibleValue_t* Possible;	// Possible values
 	
 	// Settings
 	bool_t WasSet;								// Was Set to value?

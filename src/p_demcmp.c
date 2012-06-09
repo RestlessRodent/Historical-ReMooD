@@ -51,6 +51,43 @@ typedef struct P_EXGSNiceVersion_s
 
 /*** LOCALS ***/
 
+// c_PEXGSPVInteger -- Signed Integer
+const CONL_VarPossibleValue_t c_PEXGSPVInteger[] =
+{
+	// End
+	{-32767, "MINVAL"},
+	{32767, "MAXVAL"},
+	{0, NULL},
+};
+
+// c_PEXGSPVPositive -- Positive Integer
+const CONL_VarPossibleValue_t c_PEXGSPVPositive[] =
+{
+	// End
+	{0, "MINVAL"},
+	{32767, "MAXVAL"},
+	{0, NULL},
+};
+
+// c_PEXGSPVBoolean -- Boolean
+const CONL_VarPossibleValue_t c_PEXGSPVBoolean[] =
+{
+	// False
+	{0, "no"},
+	{0, "off"},
+	{0, "false"},
+	
+	// True
+	{1, "yes"},
+	{1, "on"},
+	{1, "true"},
+	
+	// End
+	{0, "MINVAL"},
+	{1, "MAXVAL"},
+	{0, NULL},
+};
+
 // l_NiceVersions -- Nice names for versions
 static const P_EXGSNiceVersion_t l_NiceVersions[] =
 {
@@ -91,268 +128,268 @@ static P_EXGSVariable_t l_GSVars[PEXGSNUMBITIDS] =
 {
 	{PEXGST_INTEGER, PEXGSBID_NOTHINGHERE, "nothinghere", "Nothing",
 		"Nothing is here", PEXGSGM_ANY, PEXGSDR_NOCHECK, 0, {0, 0}, 0,
-		PEXGSMC_NONE, PEXGSDA_YESNO},
+		PEXGSMC_NONE, PEXGSDA_YESNO, c_PEXGSPVBoolean},
 		
 	{PEXGST_INTEGER, PEXGSBID_COENABLEBLOODSPLATS, "co_enablebloodsplats", "Enable Blood Splats",
 		"Enables blood spats on walls. [Legacy >= 1.29]", PEXGSGM_ANY, PEXGSDR_ATLEAST, 129, {0, 1}, 1,
-		PEXGSMC_COMPAT, PEXGSDA_YESNO},
+		PEXGSMC_COMPAT, PEXGSDA_YESNO, c_PEXGSPVBoolean},
 		
 	{PEXGST_INTEGER, PEXGSBID_CORANDOMLASTLOOK, "co_randomlastlook", "Randomize Monster Last Look",
 		"Randomize monster's last look (player to target). [Legacy >= 1.29]", PEXGSGM_ANY, PEXGSDR_ATLEAST, 129, {0, 1}, 1,
-		PEXGSMC_COMPAT, PEXGSDA_YESNO},
+		PEXGSMC_COMPAT, PEXGSDA_YESNO, c_PEXGSPVBoolean},
 		
 	{PEXGST_INTEGER, PEXGSBID_COUNSHIFTVILERAISE, "co_unshiftvileraise", "Unshift Arch-Vile Resurrection",
 		"Multiply the corpse height by 4 on resurrects. [Legacy < 1.29]", PEXGSGM_ANY, PEXGSDR_LESSTHAN, 129, {0, 1}, 0,
-		PEXGSMC_COMPAT, PEXGSDA_YESNO},
+		PEXGSMC_COMPAT, PEXGSDA_YESNO, c_PEXGSPVBoolean},
 		
 	{PEXGST_INTEGER, PEXGSBID_COMODIFYCORPSE, "co_modifycorpse", "Modify Corpse (Solid Corpses)",
 		"Enables correct corpse modification for solid corpses. [Legacy >= 1.31]", PEXGSGM_ANY, PEXGSDR_ATLEAST, 131, {0, 1}, 1,
-		PEXGSMC_COMPAT, PEXGSDA_YESNO},
+		PEXGSMC_COMPAT, PEXGSDA_YESNO, c_PEXGSPVBoolean},
 		
 	// Smoke trails appear in v1.11, but only for rockets
 	{PEXGST_INTEGER, PEXGSBID_CONOSMOKETRAILS, "co_nosmoketrails", "No Smoke Trails",
 		"Disable smoke trails on rockets and lost souls [Legacy < 1.11]", PEXGSGM_ANY, PEXGSDR_LESSTHAN, 111, {0, 1}, 0,
-		PEXGSMC_COMPAT, PEXGSDA_YESNO},
+		PEXGSMC_COMPAT, PEXGSDA_YESNO, c_PEXGSPVBoolean},
 	
 	// 1.25 and up, a new smoke sprite is used, rather than tracer smoke.	
 	{PEXGST_INTEGER, PEXGSBID_COUSEREALSMOKE, "co_userealsmoke", "Use Real Smoke For Trails",
 		"Use actual smoke rather than tracers for trails. [Legacy >= 1.25]", PEXGSGM_ANY, PEXGSDR_ATLEAST, 125, {0, 1}, 1,
-		PEXGSMC_COMPAT, PEXGSDA_YESNO},
+		PEXGSMC_COMPAT, PEXGSDA_YESNO, c_PEXGSPVBoolean},
 	
 	{PEXGST_INTEGER, PEXGSBID_COOLDCUTCORPSERADIUS, "co_oldcutcorpseradius", "Cut Corpse Radius (Solid Corpse)",
 		"Reduce corpse radius, when co_modifycorpse is off. [Legacy >= 1.12]", PEXGSGM_ANY, PEXGSDR_GREATERTHAN, 112, {0, 1}, 1,
-		PEXGSMC_COMPAT, PEXGSDA_YESNO},
+		PEXGSMC_COMPAT, PEXGSDA_YESNO, c_PEXGSPVBoolean},
 		
 	{PEXGST_INTEGER, PEXGSBID_COSPAWNDROPSONMOFLOORZ, "co_spawndropsonmofloorz", "Spawn Drops on Fake-Floor",
 		"Item drops on the fake floor not on the sector floor. [Legacy >= 1.32]", PEXGSGM_ANY, PEXGSDR_ATLEAST, 132, {0, 1}, 1,
-		PEXGSMC_COMPAT, PEXGSDA_YESNO},
+		PEXGSMC_COMPAT, PEXGSDA_YESNO, c_PEXGSPVBoolean},
 		
 	{PEXGST_INTEGER, PEXGSBID_CODISABLETEAMPLAY, "co_disableteamplay", "Disable Team Play",
 		"Disable support for team play. [Legacy < 1.25]", PEXGSGM_ANY, PEXGSDR_LESSTHAN, 125, {0, 1}, 0,
-		PEXGSMC_COMPAT, PEXGSDA_YESNO},
+		PEXGSMC_COMPAT, PEXGSDA_YESNO, c_PEXGSPVBoolean},
 		
 	{PEXGST_INTEGER, PEXGSBID_COSLOWINWATER, "co_moveslowinwater", "Move Slower In Water",
 		"Move slower when underwater (in 3D Water). [Legacy >= 1.28]", PEXGSGM_ANY, PEXGSDR_ATLEAST, 128, {0, 1}, 1,
-		PEXGSMC_COMPAT, PEXGSDA_YESNO},
+		PEXGSMC_COMPAT, PEXGSDA_YESNO, c_PEXGSPVBoolean},
 		
 	{PEXGST_INTEGER, PEXGSBID_COSLIDEOFFMOFLOOR, "co_slideoffmofloor", "Dead Things Slide Off Fake Floors",
 		"Slide off the near floor not the real one (3D floors). [Legacy >= 1.32]", PEXGSGM_ANY, PEXGSDR_ATLEAST, 132, {0, 1}, 1,
-		PEXGSMC_COMPAT, PEXGSDA_YESNO},
+		PEXGSMC_COMPAT, PEXGSDA_YESNO, c_PEXGSPVBoolean},
 		
 	{PEXGST_INTEGER, PEXGSBID_COOLDFRICTIONMOVE, "co_oldfrictionmove", "Old Friction Movement",
 		"Use old friction when moving. [Legacy < 1.32]", PEXGSGM_ANY, PEXGSDR_LESSTHAN, 132, {0, 1}, 0,
-		PEXGSMC_COMPAT, PEXGSDA_YESNO},
+		PEXGSMC_COMPAT, PEXGSDA_YESNO, c_PEXGSPVBoolean},
 		
 	{PEXGST_INTEGER, PEXGSBID_COOUCHONCEILING, "co_ouchonceiling", "Go Ouch When Hitting Ceiling",
 		"Go ouch when hitting the ceiling. [Legacy >= 1.12]", PEXGSGM_ANY, PEXGSDR_ATLEAST, 112, {0, 1}, 1,
-		PEXGSMC_COMPAT, PEXGSDA_YESNO},
+		PEXGSMC_COMPAT, PEXGSDA_YESNO, c_PEXGSPVBoolean},
 		
 	{PEXGST_INTEGER, PEXGSBID_COENABLESPLASHES, "co_enablesplashes", "Enable Water Splashes",
 		"Enable splashes on the water. [Legacy >= 1.25]", PEXGSGM_ANY, PEXGSDR_ATLEAST, 125, {0, 1}, 1,
-		PEXGSMC_COMPAT, PEXGSDA_YESNO},
+		PEXGSMC_COMPAT, PEXGSDA_YESNO, c_PEXGSPVBoolean},
 		
 	{PEXGST_INTEGER, PEXGSBID_COENABLEFLOORSMOKE, "co_enablefloorsmoke", "Enable Floor Damage Smoke",
 		"Enable smoke when on a damaging floor. [Legacy >= 1.25]", PEXGSGM_ANY, PEXGSDR_ATLEAST, 125, {0, 1}, 1,
-		PEXGSMC_COMPAT, PEXGSDA_YESNO},
+		PEXGSMC_COMPAT, PEXGSDA_YESNO, c_PEXGSPVBoolean},
 		
 	{PEXGST_INTEGER, PEXGSBID_COENABLESMOKE, "co_enablesmoke", "Enable Smoke",
 		"Enable smoke. [Legacy >= 1.25]", PEXGSGM_ANY, PEXGSDR_ATLEAST, 125, {0, 1}, 1,
-		PEXGSMC_COMPAT, PEXGSDA_YESNO},
+		PEXGSMC_COMPAT, PEXGSDA_YESNO, c_PEXGSPVBoolean},
 		
 	{PEXGST_INTEGER, PEXGSBID_CODAMAGEONLAND, "co_damageonland", "Instant-Damage On Special Floors",
 		"Damage when landing on a damaging floor. [Legacy >= 1.25]", PEXGSGM_ANY, PEXGSDR_ATLEAST, 125, {0, 1}, 1,
-		PEXGSMC_COMPAT, PEXGSDA_YESNO},
+		PEXGSMC_COMPAT, PEXGSDA_YESNO, c_PEXGSPVBoolean},
 		
 	{PEXGST_INTEGER, PEXGSBID_COABSOLUTEANGLE, "co_absoluteangle", "Use Absolute Angles",
 		"Use absolute angle rather than relative angle. [Legacy >= 1.25]", PEXGSGM_ANY, PEXGSDR_ATLEAST, 125, {0, 1}, 1,
-		PEXGSMC_COMPAT, PEXGSDA_YESNO},
+		PEXGSMC_COMPAT, PEXGSDA_YESNO, c_PEXGSPVBoolean},
 		
 	{PEXGST_INTEGER, PEXGSBID_COOLDJUMPOVER, "co_oldjumpover", "Old Jump Over",
 		"Use old jump over code. [Legacy < 1.28]", PEXGSGM_ANY, PEXGSDR_LESSTHAN, 128, {0, 1}, 0,
-		PEXGSMC_COMPAT, PEXGSDA_YESNO},
+		PEXGSMC_COMPAT, PEXGSDA_YESNO, c_PEXGSPVBoolean},
 		
 	{PEXGST_INTEGER, PEXGSBID_COENABLESPLATS, "co_enablesplats", "Enable Splats",
 		"Enable splats. [Legacy >= 1.28]", PEXGSGM_ANY, PEXGSDR_ATLEAST, 128, {0, 1}, 1,
-		PEXGSMC_COMPAT, PEXGSDA_YESNO},
+		PEXGSMC_COMPAT, PEXGSDA_YESNO, c_PEXGSPVBoolean},
 		
 	{PEXGST_INTEGER, PEXGSBID_COOLDFLATPUSHERCODE, "co_oldflatpushercode", "Old Pusher/Puller Code",
 		"Use pusher/puller code that cannot handle 3D Floors. [Legacy <= 1.40]", PEXGSGM_ANY, PEXGSDR_ATMOST, 140, {0, 1}, 0,
-		PEXGSMC_COMPAT, PEXGSDA_YESNO},
+		PEXGSMC_COMPAT, PEXGSDA_YESNO, c_PEXGSPVBoolean},
 		
 	{PEXGST_INTEGER, PEXGSBID_COSPAWNPLAYERSEARLY, "co_spawnplayersearly", "Spawn Players Earlier",
 		"Spawn players while the map is loading. [Legacy >= 1.28]", PEXGSGM_ANY, PEXGSDR_ATLEAST, 128, {0, 1}, 1,
-		PEXGSMC_COMPAT, PEXGSDA_YESNO},
+		PEXGSMC_COMPAT, PEXGSDA_YESNO, c_PEXGSPVBoolean},
 		
 	{PEXGST_INTEGER, PEXGSBID_COENABLEUPDOWNSHOOT, "co_enableupdownshoot", "Enable Up/Down Aim",
 		"Enable shooting up/down when not aiming at something. [Legacy >= 1.28]", PEXGSGM_ANY, PEXGSDR_ATLEAST, 128, {0, 1}, 1,
-		PEXGSMC_COMPAT, PEXGSDA_YESNO},
+		PEXGSMC_COMPAT, PEXGSDA_YESNO, c_PEXGSPVBoolean},
 		
 	{PEXGST_INTEGER, PEXGSBID_CONOUNDERWATERCHECK, "co_nounderwatercheck", "No Underwater Check",
 		"Do not check for an object being underwater. [Legacy < 1.28]", PEXGSGM_ANY, PEXGSDR_LESSTHAN, 128, {0, 1}, 0,
-		PEXGSMC_COMPAT, PEXGSDA_YESNO},
+		PEXGSMC_COMPAT, PEXGSDA_YESNO, c_PEXGSPVBoolean},
 		
 	{PEXGST_INTEGER, PEXGSBID_COSPLASHTRANSWATER, "co_transwatersplash", "Water Transition Splash",
 		"Causes splashes when transitioning from/to water [Legacy >= 1.32]", PEXGSGM_ANY, PEXGSDR_ATLEAST, 132, {0, 1}, 1,
-		PEXGSMC_COMPAT, PEXGSDA_YESNO},
+		PEXGSMC_COMPAT, PEXGSDA_YESNO, c_PEXGSPVBoolean},
 		
 	{PEXGST_INTEGER, PEXGSBID_COUSEOLDZCHECK, "co_useoldzcheck", "Old Z Check",
 		"Use old Z checking code rather than Heretic's. [Legacy < 1.31]", PEXGSGM_ANY, PEXGSDR_LESSTHAN, 131, {0, 1}, 0,
-		PEXGSMC_COMPAT, PEXGSDA_YESNO},
+		PEXGSMC_COMPAT, PEXGSDA_YESNO, c_PEXGSPVBoolean},
 		
 	{PEXGST_INTEGER, PEXGSBID_COCHECKXYMOVE, "co_checkxymove", "Check X/Y Movement",
 		"Check X/Y Movement (When co_useoldzcheck is enabled). [Legacy >= 1.12]", PEXGSGM_ANY, PEXGSDR_ATLEAST, 112, {0, 1}, 1,
-		PEXGSMC_COMPAT, PEXGSDA_YESNO},
+		PEXGSMC_COMPAT, PEXGSDA_YESNO, c_PEXGSPVBoolean},
 		
 	{PEXGST_INTEGER, PEXGSBID_COWATERZFRICTION, "co_waterzfriction", "Water Z Friction",
 		"Apply Z friction movement when underwater. [Legacy >= 1.28]", PEXGSGM_ANY, PEXGSDR_ATLEAST, 128, {0, 1}, 1,
-		PEXGSMC_COMPAT, PEXGSDA_YESNO},
+		PEXGSMC_COMPAT, PEXGSDA_YESNO, c_PEXGSPVBoolean},
 		
 	{PEXGST_INTEGER, PEXGSBID_CORANOMLASTLOOKSPAWN, "co_randomlastlookspawn", "Randomize Last Look (Spawn)",
 		"Choose random player when object spawns. [Legacy < 1.29]", PEXGSGM_ANY, PEXGSDR_LESSTHAN, 129, {0, 1}, 0,
-		PEXGSMC_COMPAT, PEXGSDA_YESNO},
+		PEXGSMC_COMPAT, PEXGSDA_YESNO, c_PEXGSPVBoolean},
 		
 	{PEXGST_INTEGER, PEXGSBID_COALWAYSRETURNDEADSPMISSILE, "co_alwaysretdeadspmissile", "Return Dead Missiles",
 		"Always return the missile spawned even if it dies. [Legacy < 1.31]", PEXGSGM_ANY, PEXGSDR_LESSTHAN, 131, {0, 1}, 0,
-		PEXGSMC_COMPAT, PEXGSDA_YESNO},
+		PEXGSMC_COMPAT, PEXGSDA_YESNO, c_PEXGSPVBoolean},
 		
 	{PEXGST_INTEGER, PEXGSBID_COUSEMOUSEAIMING, "co_usemouseaiming", "Allow Mouse To Aim",
 		"Use mouse aiming when not aimed at another object. [Legacy >= 1.28]", PEXGSGM_ANY, PEXGSDR_ATLEAST, 128, {0, 1}, 1,
-		PEXGSMC_COMPAT, PEXGSDA_YESNO},
+		PEXGSMC_COMPAT, PEXGSDA_YESNO, c_PEXGSPVBoolean},
 		
 	{PEXGST_INTEGER, PEXGSBID_COFIXPLAYERMISSILEANGLE, "co_fixplayermissileangle", "Fix Player Missiles",
 		"Fix player missiles being fired to be more accurate. [Legacy >= 1.28]", PEXGSGM_ANY, PEXGSDR_ATLEAST, 128, {0, 1}, 1,
-		PEXGSMC_COMPAT, PEXGSDA_YESNO},
+		PEXGSMC_COMPAT, PEXGSDA_YESNO, c_PEXGSPVBoolean},
 		
 	{PEXGST_INTEGER, PEXGSBID_COREMOVEMOINSKYZ, "co_removemissileinskyz", "Remove Missiles In Sky",
 		"When Z movement is performed in a sky, do not explode. [Legacy >= 1.29]", PEXGSGM_ANY, PEXGSDR_ATLEAST, 129, {0, 1}, 1,
-		PEXGSMC_COMPAT, PEXGSDA_YESNO},
+		PEXGSMC_COMPAT, PEXGSDA_YESNO, c_PEXGSPVBoolean},
 		
 	{PEXGST_INTEGER, PEXGSBID_COFORCEAUTOAIM, "co_forceautoaim", "Force Auto-Aim",
 		"Always force auto-aim. [Legacy <= 1.11]", PEXGSGM_ANY, PEXGSDR_ATMOST, 111, {0, 1}, 0,
-		PEXGSMC_COMPAT, PEXGSDA_YESNO},
+		PEXGSMC_COMPAT, PEXGSDA_YESNO, c_PEXGSPVBoolean},
 		
 	{PEXGST_INTEGER, PEXGSBID_COFORCEBERSERKSWITCH, "co_forceberserkswitch", "Force Berserk Switch",
 		"Force switching to berserk-enabled weapons in slots. [Legacy < 1.28]", PEXGSGM_ANY, PEXGSDR_LESSTHAN, 128, {0, 1}, 0,
-		PEXGSMC_COMPAT, PEXGSDA_YESNO},
+		PEXGSMC_COMPAT, PEXGSDA_YESNO, c_PEXGSPVBoolean},
 		
 	{PEXGST_INTEGER, PEXGSBID_CODOUBLEPICKUPCHECK, "co_doublepickupcheck", "Double-Check Pickup",
 		"Double check for pickups rather than just once. [Legacy >= 1.32]", PEXGSGM_ANY, PEXGSDR_ATLEAST, 132, {0, 1}, 1,
-		PEXGSMC_COMPAT, PEXGSDA_YESNO},
+		PEXGSMC_COMPAT, PEXGSDA_YESNO, c_PEXGSPVBoolean},
 		
 	{PEXGST_INTEGER, PEXGSBID_CODISABLEMISSILEIMPACTCHECK, "co_disablemissileimpactcheck", "No Missile Impact Check",
 		"Disable the checking of missile impacts. [Legacy < 1.32]", PEXGSGM_ANY, PEXGSDR_LESSTHAN, 132, {0, 1}, 0,
-		PEXGSMC_COMPAT, PEXGSDA_YESNO},
+		PEXGSMC_COMPAT, PEXGSDA_YESNO, c_PEXGSPVBoolean},
 		
 	{PEXGST_INTEGER, PEXGSBID_COMISSILESPLATONWALL, "co_missilesplatsonwalls", "Enable Missile Splats on Walls",
 		"When missiles hit walls, they splat it. [Legacy >= 1.29]", PEXGSGM_ANY, PEXGSDR_ATLEAST, 129, {0, 1}, 1,
-		PEXGSMC_COMPAT, PEXGSDA_YESNO},
+		PEXGSMC_COMPAT, PEXGSDA_YESNO, c_PEXGSPVBoolean},
 		
 	{PEXGST_INTEGER, PEXGSBID_CONEWBLOODHITSCANCODE, "co_newbloodhitscancode", "Blood Splat Tracers",
 		"Use newer blood spawning code when tracing hitscans. [Legacy >= 1.25]", PEXGSGM_ANY, PEXGSDR_ATLEAST, 125, {0, 1}, 1,
-		PEXGSMC_COMPAT, PEXGSDA_YESNO},
+		PEXGSMC_COMPAT, PEXGSDA_YESNO, c_PEXGSPVBoolean},
 		
 	{PEXGST_INTEGER, PEXGSBID_CONEWAIMINGCODE, "co_newaimingcode", "New Aiming Code",
 		"Use newer aiming code in P_AimLineAttack(). [Legacy >= 1.28]", PEXGSGM_ANY, PEXGSDR_ATLEAST, 128, {0, 1}, 1,
-		PEXGSMC_COMPAT, PEXGSDA_YESNO},
+		PEXGSMC_COMPAT, PEXGSDA_YESNO, c_PEXGSPVBoolean},
 		
 	{PEXGST_INTEGER, PEXGSBID_COMISSILESPECHIT, "co_missilespechit", "Missiles Trigger Special Line Hits",
 		"Missiles can trigger special line hits. [Legacy >= 1.32]", PEXGSGM_ANY, PEXGSDR_ATLEAST, 132, {0, 1}, 1,
-		PEXGSMC_COMPAT, PEXGSDA_YESNO},
+		PEXGSMC_COMPAT, PEXGSDA_YESNO, c_PEXGSPVBoolean},
 		
 	{PEXGST_INTEGER, PEXGSBID_COHITSCANSSLIDEONFLATS, "co_hitscanslidesonflats", "Hitscans Slide On Floor",
 		"Hitscans slide on flats. [Legacy < 1.12]", PEXGSGM_ANY, PEXGSDR_LESSTHAN, 112, {0, 1}, 0,
-		PEXGSMC_COMPAT, PEXGSDA_YESNO},
+		PEXGSMC_COMPAT, PEXGSDA_YESNO, c_PEXGSPVBoolean},
 		
 	{PEXGST_INTEGER, PEXGSBID_CONONSOLIDPASSTHRUOLD, "co_nonsolidpassthruold", "No Solid Pass-Thru A",
 		"Non-solid objects pass through others (Old trigger). [Legacy < 1.12]", PEXGSGM_ANY, PEXGSDR_LESSTHAN, 112, {0, 1}, 0,
-		PEXGSMC_COMPAT, PEXGSDA_YESNO},
+		PEXGSMC_COMPAT, PEXGSDA_YESNO, c_PEXGSPVBoolean},
 		
 	{PEXGST_INTEGER, PEXGSBID_CONONSOLIDPASSTHRUNEW, "co_nonsolidpassthrunew", "No Solid Pass-Thru B",
 		"Non-solid objects pass through others (New trigger). [Legacy >= 1.32]", PEXGSGM_ANY, PEXGSDR_ATLEAST, 132, {0, 1}, 1,
-		PEXGSMC_COMPAT, PEXGSDA_YESNO},
+		PEXGSMC_COMPAT, PEXGSDA_YESNO, c_PEXGSPVBoolean},
 		
 	{PEXGST_INTEGER, PEXGSBID_COJUMPCHECK, "co_checkjumpover", "Check For Jump Over",
 		"Allow jump over to take effect. [Legacy >= 1.12]", PEXGSGM_ANY, PEXGSDR_ATLEAST, 112, {0, 1}, 1,
-		PEXGSMC_COMPAT, PEXGSDA_YESNO},
+		PEXGSMC_COMPAT, PEXGSDA_YESNO, c_PEXGSPVBoolean},
 		
 	{PEXGST_INTEGER, PEXGSBID_COLINEARMAPTRAVERSE, "co_linearmaptraverse", "Linear Map Traverse",
 		"Loads a new map rather than starting from fresh. [Legacy < 1.29]", PEXGSGM_ANY, PEXGSDR_LESSTHAN, 129, {0, 1}, 0,
-		PEXGSMC_COMPAT, PEXGSDA_YESNO},
+		PEXGSMC_COMPAT, PEXGSDA_YESNO, c_PEXGSPVBoolean},
 		
 	{PEXGST_INTEGER, PEXGSBID_COONLYTWENTYDMSPOTS, "co_onlytwentydmspots", "Limit to 20 DM Starts",
 		"Support only 20 DM starts rather than 64. [Legacy < 1.23]", PEXGSGM_ANY, PEXGSDR_LESSTHAN, 123, {0, 1}, 0,
-		PEXGSMC_COMPAT, PEXGSDA_YESNO},
+		PEXGSMC_COMPAT, PEXGSDA_YESNO, c_PEXGSPVBoolean},
 		
 	{PEXGST_INTEGER, PEXGSBID_COALLOWSTUCKSPAWNS, "co_allowstuckspawns", "Allow stuck DM spawns",
 		"Allow players getting stuck in others in DM spots. [Legacy < 1.13]", PEXGSGM_ANY, PEXGSDR_LESSTHAN, 113, {0, 1}, 0,
-		PEXGSMC_COMPAT, PEXGSDA_YESNO},
+		PEXGSMC_COMPAT, PEXGSDA_YESNO, c_PEXGSPVBoolean},
 		
 	{PEXGST_INTEGER, PEXGSBID_COUSEOLDBLOOD, "co_useoldblood", "Use Old Doom Blood",
 		"Uses standard Doom blood rather than Legacy blood. [Legacy < 130]", PEXGSGM_ANY, PEXGSDR_LESSTHAN, 130, {0, 1}, 0,
-		PEXGSMC_COMPAT, PEXGSDA_YESNO},
+		PEXGSMC_COMPAT, PEXGSDA_YESNO, c_PEXGSPVBoolean},
 		
 	{PEXGST_INTEGER, PEXGSBID_FUNMONSTERFFA, "fun_monsterffa", "Monster Free For All",
 		"Monsters enter a Free For All and attack anything in sight.", PEXGSGM_ANY, PEXGSDR_NOCHECK, 0, {0, 0}, 0,
-		PEXGSMC_FUN, PEXGSDA_YESNO},
+		PEXGSMC_FUN, PEXGSDA_YESNO, c_PEXGSPVBoolean},
 		
 	{PEXGST_INTEGER, PEXGSBID_FUNINFIGHTING, "fun_monsterinfight", "Monsters Infight",
 		"Monsters attack monsters of the same race.", PEXGSGM_ANY, PEXGSDR_NOCHECK, 0, {0, 0}, 0,
-		PEXGSMC_FUN, PEXGSDA_YESNO},
+		PEXGSMC_FUN, PEXGSDA_YESNO, c_PEXGSPVBoolean},
 		
 	{PEXGST_INTEGER, PEXGSBID_COCORRECTVILETARGET, "co_correctviletarget", "Correct Position Of Vile Vire",
 		"Correct the position of the Arch-Vile target fire. [ReMooD >= 1.0a]", PEXGSGM_ANY, PEXGSDR_ATLEAST, 200, {0, 1}, 1,
-		PEXGSMC_COMPAT, PEXGSDA_YESNO},
+		PEXGSMC_COMPAT, PEXGSDA_YESNO, c_PEXGSPVBoolean},
 		
 	{PEXGST_INTEGER, PEXGSBID_FUNMONSTERSMISSMORE, "fun_monstersmissmore", "Monsters Miss More",
 		"Monsters miss their target more.", PEXGSGM_ANY, PEXGSDR_NOCHECK, 0, {0, 0}, 0,
-		PEXGSMC_FUN, PEXGSDA_YESNO},
+		PEXGSMC_FUN, PEXGSDA_YESNO, c_PEXGSPVBoolean},
 		
 	{PEXGST_INTEGER, PEXGSBID_COMORECRUSHERBLOOD, "co_morecrusherblood", "More Crusher Blood",
 		"Make crushers spew more blood. [Legacy < 1.32]", PEXGSGM_ANY, PEXGSDR_LESSTHAN, 132, {0, 1}, 0,
-		PEXGSMC_COMPAT, PEXGSDA_YESNO},
+		PEXGSMC_COMPAT, PEXGSDA_YESNO, c_PEXGSPVBoolean},
 		
 	{PEXGST_INTEGER, PEXGSBID_CORANDOMBLOODDIR, "co_randomblooddir", "Random Blood Direction",
 		"Spew blood in a random direction. [Legacy >= 1.28]", PEXGSGM_ANY, PEXGSDR_ATLEAST, 128, {0, 1}, 1,
-		PEXGSMC_COMPAT, PEXGSDA_YESNO},
+		PEXGSMC_COMPAT, PEXGSDA_YESNO, c_PEXGSPVBoolean},
 		
 	{PEXGST_INTEGER, PEXGSBID_COINFINITEROCKETZ, "co_infiniterocketz", "Infinite Rocket Z Range",
 		"Rocket damage distance on Z is infinite. [Legacy < 1.12]", PEXGSGM_ANY, PEXGSDR_LESSTHAN, 112, {0, 1}, 0,
-		PEXGSMC_COMPAT, PEXGSDA_YESNO},
+		PEXGSMC_COMPAT, PEXGSDA_YESNO, c_PEXGSPVBoolean},
 		
 	{PEXGST_INTEGER, PEXGSBID_COALLOWROCKETJUMPING, "co_allowrocketjump", "Allow Rocket Jumping",
 		"Allow support for rocket jumping. [Legacy >= 1.29]", PEXGSGM_ANY, PEXGSDR_ATLEAST, 129, {0, 1}, 1,
-		PEXGSMC_COMPAT, PEXGSDA_YESNO},
+		PEXGSMC_COMPAT, PEXGSDA_YESNO, c_PEXGSPVBoolean},
 		
 	{PEXGST_INTEGER, PEXGSBID_COROCKETZTHRUST, "co_rocketzthrust", "Rocket Z Thrust",
 		"Allow thrusting on the Z plane from rockets. [Legacy >= 1.24]", PEXGSGM_ANY, PEXGSDR_ATLEAST, 124, {0, 1}, 1,
-		PEXGSMC_COMPAT, PEXGSDA_YESNO},
+		PEXGSMC_COMPAT, PEXGSDA_YESNO, c_PEXGSPVBoolean},
 		
 	{PEXGST_INTEGER, PEXGSBID_COLIMITMONSTERZMATTACK, "co_limitmonsterzmattack", "Limit Monster Z Melee Range",
 		"Limits Z Melee Attack range (stops melee from cliffs). [Legacy > 1.11]", PEXGSGM_ANY, PEXGSDR_MORETHAN, 111, {0, 1}, 1,
-		PEXGSMC_COMPAT, PEXGSDA_YESNO},
+		PEXGSMC_COMPAT, PEXGSDA_YESNO, c_PEXGSPVBoolean},
 		
 	{PEXGST_INTEGER, PEXGSBID_HEREMONSTERTHRESH, "here_monsterthresh", "Heretic Monster Threshold",
 		"Use Heretic Threshold Logic. [Heretic]", PEXGSGM_HERETIC, PEXGSDR_NOCHECK, 0, {0, 1}, 0,
-		PEXGSMC_HERETIC, PEXGSDA_YESNO},
+		PEXGSMC_HERETIC, PEXGSDA_YESNO, c_PEXGSPVBoolean},
 		
 	{PEXGST_INTEGER, PEXGSBID_COVOODOODOLLS, "co_voodoodolls", "Enable Voodoo Dolls",
 		"Enable spawning of Voodoo Dolls. [Legacy < 1.28]", PEXGSGM_ANY, PEXGSDR_LESSTHAN, 128, {0, 1}, 0,
-		PEXGSMC_COMPAT, PEXGSDA_YESNO},
+		PEXGSMC_COMPAT, PEXGSDA_YESNO, c_PEXGSPVBoolean},
 	
 	// Extra Puff in A_SmokeTrailer() before v1.25
 	{PEXGST_INTEGER, PEXGSBID_COEXTRATRAILPUFF, "co_extratrailpuff", "Extra Smoke Trails",
 		"Add extra puff for smoke. [Legacy < 1.25]", PEXGSGM_ANY, PEXGSDR_LESSTHAN, 125, {0, 1}, 0,
-		PEXGSMC_COMPAT, PEXGSDA_YESNO},
+		PEXGSMC_COMPAT, PEXGSDA_YESNO, c_PEXGSPVBoolean},
 	
 	// - Soul trails existed since 1.25, so that is the first ver?
 	{PEXGST_INTEGER, PEXGSBID_COLOSTSOULTRAILS, "co_lostsoultrails", "Lost Soul Trails",
 		"Lost souls emit smoke. [Legacy >= 1.25]", PEXGSGM_ANY, PEXGSDR_ATLEAST, 125, {0, 1}, 1,
-		PEXGSMC_COMPAT, PEXGSDA_YESNO},
+		PEXGSMC_COMPAT, PEXGSDA_YESNO, c_PEXGSPVBoolean},
 	
 	// In Legacy 1.11, two sided walls were transparent!
 	{PEXGST_INTEGER, PEXGSBID_COTRANSTWOSIDED, "co_transtwosided", "Transparent 2D Walls",
 		"Transparent two sided walls. [Legacy = 1.11]", PEXGSGM_ANY, PEXGSDR_EQUALS, 111, {0, 1}, 0,
-		PEXGSMC_COMPAT, PEXGSDA_YESNO},
+		PEXGSMC_COMPAT, PEXGSDA_YESNO, c_PEXGSPVBoolean},
 		
 	// - Exists in v1.25
 	// - Mentioned that it changed in v1.24
@@ -360,138 +397,138 @@ static P_EXGSVariable_t l_GSVars[PEXGSNUMBITIDS] =
 	// - Possibly appeared in v1.23?
 	{PEXGST_INTEGER, PEXGSBID_COENABLEBLOODTIME, "co_enablebloodtime", "Enable Blood Time",
 		"Enables setting blood time. [Legacy >= 1.23]", PEXGSGM_ANY, PEXGSDR_ATLEAST, 123, {0, 1}, 1,
-		PEXGSMC_COMPAT, PEXGSDA_YESNO},
+		PEXGSMC_COMPAT, PEXGSDA_YESNO, c_PEXGSPVBoolean},
 	
 	// Since v1.12, there was jumping
 	{PEXGST_INTEGER, PEXGSBID_COENABLEJUMPING, "co_enablejumping", "Enable Jumping",
 		"Enables Jumping Support [Legacy >= 1.12]", PEXGSGM_ANY, PEXGSDR_ATLEAST, 112, {0, 1}, 1,
-		PEXGSMC_COMPAT, PEXGSDA_YESNO},
+		PEXGSMC_COMPAT, PEXGSDA_YESNO, c_PEXGSPVBoolean},
 	
 	// After v1.11, Enable mouse aiming
 	{PEXGST_INTEGER, PEXGSBID_COMOUSEAIM, "co_mouseaim", "Enable Mouse Aiming",
 		"Enable mouse aiming [Legacy > 1.11]", PEXGSGM_ANY, PEXGSDR_MORETHAN, 111, {0, 1}, 1,
-		PEXGSMC_COMPAT, PEXGSDA_YESNO},
+		PEXGSMC_COMPAT, PEXGSDA_YESNO, c_PEXGSPVBoolean},
 	
 	{PEXGST_INTEGER, PEXGSBID_MONRESPAWNMONSTERS, "mon_respawnmonsters", "Respawn Monsters",
 		"Monsters come back to life after a short delay.", PEXGSGM_ANY, PEXGSDR_NOCHECK, 0, {0, 1}, 0,
-		PEXGSMC_MONSTERS, PEXGSDA_YESNO},
+		PEXGSMC_MONSTERS, PEXGSDA_YESNO, c_PEXGSPVBoolean},
 	
 	{PEXGST_INTEGER, PEXGSBID_FUNNOTARGETPLAYER, "fun_noplayertarget", "No Player Targetting",
 		"Monsters are incapable of targetting players.", PEXGSGM_ANY, PEXGSDR_NOCHECK, 0, {0, 1}, 0,
-		PEXGSMC_FUN, PEXGSDA_YESNO},
+		PEXGSMC_FUN, PEXGSDA_YESNO, c_PEXGSPVBoolean},
 	
 	{PEXGST_INTEGER, PEXGSBID_MONARCHVILEANYRESPAWN, "mon_archvileanyrespawn", "Arch-Viles Respawn Anything",
 		"Arch-Viles can ressurect anything regardless if it can be or not.", PEXGSGM_ANY, PEXGSDR_NOCHECK, 0, {0, 1}, 0,
-		PEXGSMC_FUN, PEXGSDA_YESNO},
+		PEXGSMC_FUN, PEXGSDA_YESNO, c_PEXGSPVBoolean},
 	
 	{PEXGST_INTEGER, PEXGSBID_COOLDCHECKPOSITION, "co_oldcheckposition", "Old Position Checking",
 		"Use old P_CheckPosition() Code. [Legacy < 1.42]", PEXGSGM_ANY, PEXGSDR_LESSTHAN, 142, {0, 1}, 0,
-		PEXGSMC_COMPAT, PEXGSDA_YESNO},
+		PEXGSMC_COMPAT, PEXGSDA_YESNO, c_PEXGSPVBoolean},
 	
 	{PEXGST_INTEGER, PEXGSBID_COLESSSPAWNSTICKING, "co_lessspawnsticking", "Less Spawn Spot Sticking",
 		"Make players getting stuck inside other players less likely to occur. [ReMooD >= 1.0a]", PEXGSGM_ANY, PEXGSDR_ATLEAST, 200, {0, 1}, 1,
-		PEXGSMC_COMPAT, PEXGSDA_YESNO},
+		PEXGSMC_COMPAT, PEXGSDA_YESNO, c_PEXGSPVBoolean},
 	
 	{PEXGST_INTEGER, PEXGSBID_PLSPAWNTELEFRAG, "pl_spawntelefrag", "Tele-Frag When Spawning",
 		"Tele-frag when a player respawns (to empty the spot). [ReMooD >= 1.0a]", PEXGSGM_ANY, PEXGSDR_ATLEAST, 200, {0, 1}, 1,
-		PEXGSMC_PLAYERS, PEXGSDA_YESNO},
+		PEXGSMC_PLAYERS, PEXGSDA_YESNO, c_PEXGSPVBoolean},
 	
 	{PEXGST_INTEGER, PEXGSBID_GAMEONEHITKILLS, "game_onehitkills", "One Hit Kills",
 		"Any recieved damage kills.", PEXGSGM_ANY, PEXGSDR_NOCHECK, 0, {0, 1}, 0,
-		PEXGSMC_GAME, PEXGSDA_YESNO},
+		PEXGSMC_GAME, PEXGSDA_YESNO, c_PEXGSPVBoolean},
 	
 	{PEXGST_INTEGER, PEXGSBID_COBETTERPLCORPSEREMOVAL, "co_betterplbodyqueue", "Better Body Management",
 		"Better management of player bodies so they do not litter everywhere. [ReMooD >= 1.0a]", PEXGSGM_ANY, PEXGSDR_ATLEAST, 200, {0, 1}, 1,
-		PEXGSMC_COMPAT, PEXGSDA_YESNO},
+		PEXGSMC_COMPAT, PEXGSDA_YESNO, c_PEXGSPVBoolean},
 	
 	{PEXGST_INTEGER, PEXGSBID_PLSPAWNCLUSTERING, "pl_spawnclustering", "Spawn Spot Clustering",
 		"Adds extra spawn spots near other spawn spots for more players. [ReMooD >= 1.0a]", PEXGSGM_ANY, PEXGSDR_ATLEAST, 200, {0, 1}, 1,
-		PEXGSMC_PLAYERS, PEXGSDA_YESNO},
+		PEXGSMC_PLAYERS, PEXGSDA_YESNO, c_PEXGSPVBoolean},
 	
 	{PEXGST_INTEGER, PEXGSBID_COIMPROVEDMOBJONMOBJ, "co_improvedmobjonmobj", "Improved Object on Object",
 		"Improves handling of objects on top of other objects. [ReMooD >= 1.0a]", PEXGSGM_ANY, PEXGSDR_ATLEAST, 200, {0, 0}, 0,
-		PEXGSMC_COMPAT, PEXGSDA_YESNO},
+		PEXGSMC_COMPAT, PEXGSDA_YESNO, c_PEXGSPVBoolean},
 	
 	{PEXGST_INTEGER, PEXGSBID_COIMPROVEPATHTRAVERSE, "co_improvepathtraverse", "Improve Traversing Move",
 		"Smooth out position moving. [ReMooD >= 1.0a]", PEXGSGM_ANY, PEXGSDR_ATLEAST, 200, {0, 1}, 1,
-		PEXGSMC_COMPAT, PEXGSDA_YESNO},
+		PEXGSMC_COMPAT, PEXGSDA_YESNO, c_PEXGSPVBoolean},
 	
 	{PEXGST_FLOAT, PEXGSBID_PLJUMPGRAVITY, "pl_jumpgravity", "Jump Gravity",
 		"This is the amount of pushing force used when jumping.", PEXGSGM_ANY, PEXGSDR_NOCHECK, 0, {0, (6 * FRACUNIT)}, (6 * FRACUNIT),
-		PEXGSMC_PLAYERS},
+		PEXGSMC_PLAYERS, 0, NULL},
 		
 	{PEXGST_INTEGER, PEXGSBID_FUNNOLOCKEDDOORS, "fun_nolockeddoors", "No Locked Doors",
 		"All doors are unlocked and do not need keys.", PEXGSGM_ANY, PEXGSDR_NOCHECK, 0, {0, 1}, 0,
-		PEXGSMC_FUN, PEXGSDA_YESNO},
+		PEXGSMC_FUN, PEXGSDA_YESNO, c_PEXGSPVBoolean},
 	
 	{PEXGST_FLOAT, PEXGSBID_GAMEAIRFRICTION, "game_airfriction", "Friction In Air",
 		"This modifies the amount of friction in the air, the higher the easier it is to move.", PEXGSGM_ANY, PEXGSDR_NOCHECK, 0, {0, 8192}, 8192,
-		PEXGSMC_GAME},
+		PEXGSMC_GAME, 0, NULL},
 	
 	{PEXGST_FLOAT, PEXGSBID_GAMEWATERFRICTION, "game_waterfriction", "Friction In Water",
 		"This modifies the amount of friction in water, the higher the easier it is to move.", PEXGSGM_ANY, PEXGSDR_NOCHECK, 0, {0, 49152}, 49152,
-		PEXGSMC_GAME},
+		PEXGSMC_GAME, 0, NULL},
 		
 	{PEXGST_FLOAT, PEXGSBID_GAMEMIDWATERFRICTION, "game_midwaterfriction", "Friction In Mid-Water",
 		"This modifies the amount of friction in water when not touching the ground, the higher the easier it is to move.", PEXGSGM_ANY, PEXGSDR_NOCHECK, 0, {0, 32768}, 32768,
-		PEXGSMC_GAME},
+		PEXGSMC_GAME, 0, NULL},
 	
 	{PEXGST_INTEGER, PEXGSBID_GAMEALLOWLEVELEXIT, "game_allowlevelexit", "Allow Level Exiting",
 		"Allows players or monsters to exit the level.", PEXGSGM_ANY, PEXGSDR_NOCHECK, 0, {0, 1}, 1,
-		PEXGSMC_GAME, PEXGSDA_YESNO},
+		PEXGSMC_GAME, PEXGSDA_YESNO, c_PEXGSPVBoolean},
 	
 	{PEXGST_INTEGER, PEXGSBID_GAMEALLOWROCKETJUMP, "game_allowrocketjump", "Allow Rocket Jumping",
 		"Enables the use of rocket jumping.", PEXGSGM_ANY, PEXGSDR_NOCHECK, 0, {0, 1}, 0,
-		PEXGSMC_GAME, PEXGSDA_YESNO},
+		PEXGSMC_GAME, PEXGSDA_YESNO, c_PEXGSPVBoolean},
 		
 	{PEXGST_INTEGER, PEXGSBID_PLALLOWAUTOAIM, "pl_allowautoaim", "Allow Auto-Aiming",
 		"Allows players to aim vertically automatically.", PEXGSGM_ANY, PEXGSDR_NOCHECK, 0, {0, 1}, 1,
-		PEXGSMC_PLAYERS, PEXGSDA_YESNO},
+		PEXGSMC_PLAYERS, PEXGSDA_YESNO, c_PEXGSPVBoolean},
 	
 	{PEXGST_INTEGER, PEXGSBID_PLFORCEWEAPONSWITCH, "pl_forceweaponswitch", "Force Weapon Switch",
 		"Forces weapon switches on pickup. [Doom <= 1.09]", PEXGSGM_ANY, PEXGSDR_ATMOST, 109, {0, 1}, 0,
-		PEXGSMC_PLAYERS, PEXGSDA_YESNO},
+		PEXGSMC_PLAYERS, PEXGSDA_YESNO, c_PEXGSPVBoolean},
 	
 	{PEXGST_INTEGER, PEXGSBID_PLDROPWEAPONS, "pl_dropweapons", "Drop Weapons on Death",
 		"Drops the player's weapon when they are killed.", PEXGSGM_ANY, PEXGSDR_NOCHECK, 0, {0, 1}, 0,
-		PEXGSMC_PLAYERS, PEXGSDA_YESNO},
+		PEXGSMC_PLAYERS, PEXGSDA_YESNO, c_PEXGSPVBoolean},
 	
 	{PEXGST_INTEGER, PEXGSBID_PLINFINITEAMMO, "pl_infiniteammo", "Infinite Ammo",
 		"Ammo is never depleted and lasts forever.", PEXGSGM_ANY, PEXGSDR_NOCHECK, 0, {0, 1}, 0,
-		PEXGSMC_PLAYERS, PEXGSDA_YESNO},
+		PEXGSMC_PLAYERS, PEXGSDA_YESNO, c_PEXGSPVBoolean},
 	
 	{PEXGST_INTEGER, PEXGSBID_GAMEHERETICGIBBING, "game_hereticgibbing", "Heretic Gibbing",
 		"Objects that can be gibbed are much easier to gib.", PEXGSGM_HERETIC, PEXGSDR_NOCHECK, 0, {0, 1}, 1,
-		PEXGSMC_PLAYERS, PEXGSDA_YESNO},
+		PEXGSMC_PLAYERS, PEXGSDA_YESNO, c_PEXGSPVBoolean},
 	
 	{PEXGST_INTEGER, PEXGSBID_MONPREDICTMISSILES, "mon_predictmissile", "Predict Missiles",
 		"Monsters predict missile targets and aim accordingly.", PEXGSGM_ANY, PEXGSDR_NOCHECK, 0, {0, 1}, 0,
-		PEXGSMC_MONSTERS, PEXGSDA_YESNO},
+		PEXGSMC_MONSTERS, PEXGSDA_YESNO, c_PEXGSPVBoolean},
 		
 	{PEXGST_INTEGER, PEXGSBID_MONRESPAWNMONSTERSTIME, "mon_respawnmonsterstime", "Monster Respawn Delay",
 		"Time in seconds before monsters are respawned.", PEXGSGM_ANY, PEXGSDR_NOCHECK, 0, {0, 12}, 12,
-		PEXGSMC_MONSTERS, PEXGSDA_TIMESECS},
+		PEXGSMC_MONSTERS, PEXGSDA_TIMESECS, c_PEXGSPVPositive},
 		
 	
 	{PEXGST_INTEGER, PEXGSBID_PLSPAWNWITHMAXGUNS, "pl_spawnwithmaxguns", "Spawn With Non-Super Weapons",
 		"When a player is spawned, they have all non-super weapons.", PEXGSGM_ANY, PEXGSDR_NOCHECK, 0, {0, 1}, 0,
-		PEXGSMC_PLAYERS, PEXGSDA_YESNO},
+		PEXGSMC_PLAYERS, PEXGSDA_YESNO, c_PEXGSPVBoolean},
 		
 	{PEXGST_INTEGER, PEXGSBID_PLSPAWNWITHSUPERGUNS, "pl_spawnwithsuperguns", "Spawn With Super Weapons",
 		"When a player is spawned, they have all super weapons.", PEXGSGM_ANY, PEXGSDR_NOCHECK, 0, {0, 1}, 0,
-		PEXGSMC_PLAYERS, PEXGSDA_YESNO},
+		PEXGSMC_PLAYERS, PEXGSDA_YESNO, c_PEXGSPVBoolean},
 		
 	{PEXGST_INTEGER, PEXGSBID_PLSPAWNWITHMAXSTATS, "pl_spawnwithmaxstats", "Spawn With Max Stats",
 		"When a player is spawned, they have max health and armor.", PEXGSGM_ANY, PEXGSDR_NOCHECK, 0, {0, 1}, 0,
-		PEXGSMC_PLAYERS, PEXGSDA_YESNO},
+		PEXGSMC_PLAYERS, PEXGSDA_YESNO, c_PEXGSPVBoolean},
 	
 	{PEXGST_INTEGER, PEXGSBID_GAMESPAWNPICKUPS, "game_spawnpickups", "Spawn Pickups",
 		"Spawn pickups on map load.", PEXGSGM_ANY, PEXGSDR_NOCHECK, 0, {0, 1}, 1,
-		PEXGSMC_GAME, PEXGSDA_YESNO},
+		PEXGSMC_GAME, PEXGSDA_YESNO, c_PEXGSPVBoolean},
 		
 	{PEXGST_INTEGER, PEXGSBID_COHERETICFRICTION, "co_hereticfriction", "Heretic Friction",
 		"Use Heretic Friction", PEXGSGM_HERETIC, PEXGSDR_ATLEAST, 0, {0, 1}, 0,
-		PEXGSMC_HERETIC, PEXGSDA_YESNO},
+		PEXGSMC_HERETIC, PEXGSDA_YESNO, c_PEXGSPVBoolean},
 };
 
 /*** FUNCTIONS ***/
@@ -566,7 +603,7 @@ fixed_t P_EXGSGetFixed(const P_EXGSBitID_t a_Bit)
 
 typedef struct M_UIMenuHandler_s M_UIMenuHandler_t;
 typedef struct M_UIMenu_s M_UIMenu_t;
-M_UIMenuHandler_t* M_ExPushMenu(M_UIMenu_t* const a_UI);
+M_UIMenuHandler_t* M_ExPushMenu(const uint8_t a_Player, M_UIMenu_t* const a_UI);
 M_UIMenu_t* M_ExTemplateMakeGameVars(const int32_t a_Mode);
 
 /* PS_EXGSGeneralComm() -- General command for game settings */
@@ -578,7 +615,7 @@ static CONL_ExitCode_t PS_EXGSGeneralComm(const uint32_t a_ArgC, const char** co
 	/* Pop Menu */
 	if (strcasecmp(a_ArgV[0], "menugamevar") == 0)
 	{
-		M_ExPushMenu(M_ExTemplateMakeGameVars(0));
+		M_ExPushMenu(0, M_ExTemplateMakeGameVars(0));
 	}
 	
 	/* Game Settings Control */
@@ -827,6 +864,8 @@ bool_t P_EXGSSetVersionLevel(const uint32_t a_Level)
 int32_t P_EXGSSetValue(const bool_t a_Master, const P_EXGSBitID_t a_Bit, const int32_t a_Value)
 {
 	P_EXGSVariable_t* Var;
+	int32_t MinVal, MaxVal, i, pv;
+	bool_t Possibly;
 	
 	/* Get variable first */
 	Var = P_EXGSVarForBit(a_Bit);
@@ -843,11 +882,60 @@ int32_t P_EXGSSetValue(const bool_t a_Master, const P_EXGSBitID_t a_Bit, const i
 		return Var->DefaultVal;
 	}
 	
-	/* Set value */
-	Var->WasSet = true;
-	Var->ActualVal = a_Value;
-	
 	/* Perform value limiting on it (enum) */
+	Possibly = false;
+	if (Var->Possible)
+	{
+		pv = 0;
+		
+		// Check values and obtain min/max too
+		for (i = 0; Var->Possible[i].StrAlias; i++)
+		{
+			// Min?
+			if (strcasecmp("MINVAL", Var->Possible[i].StrAlias) == 0)
+				MinVal = Var->Possible[i].IntVal;
+			
+			// Max?
+			else if (strcasecmp("MAXVAL", Var->Possible[i].StrAlias) == 0)
+				MaxVal = Var->Possible[i].IntVal;
+			
+			// Exact Match?
+			else if (Var->Possible[i].IntVal == a_Value)
+			{
+				Possibly = true;
+				pv = Var->Possible[i].IntVal;
+			}
+		}
+		
+		// Found value? Use pv
+		if (Possibly)
+		{
+			Var->WasSet = true;
+			Var->ActualVal = pv;
+		}
+		
+		// Otherwise, cap between min/max
+		else
+		{
+			if (a_Value < MinVal)
+				Var->ActualVal = MinVal;
+			else if (a_Value > MaxVal)
+				Var->ActualVal = MaxVal;
+			else
+				Var->ActualVal = a_Value;
+			
+			// Set to true, since it would be set anyways
+			Var->WasSet = true;
+			Possibly = true;
+		}
+	}
+	
+	/* Set value */
+	if (!Possibly)
+	{
+		Var->WasSet = true;
+		Var->ActualVal = a_Value;
+	}
 	
 	/* Call value change function */
 	
@@ -861,8 +949,9 @@ int32_t P_EXGSSetValue(const bool_t a_Master, const P_EXGSBitID_t a_Bit, const i
 /* P_EXGSSetValueStr() -- Sets value by string */
 int32_t P_EXGSSetValueStr(const bool_t a_Master, const P_EXGSBitID_t a_Bit, const char* const a_Value)
 {
-	int32_t SetVal;
+	int32_t SetVal, i;
 	P_EXGSVariable_t* Var;
+	bool_t Possibly;
 	
 	/* Check */
 	if (!a_Value)
@@ -875,8 +964,20 @@ int32_t P_EXGSSetValueStr(const bool_t a_Master, const P_EXGSBitID_t a_Bit, cons
 	if (!Var)
 		return 0;
 	
+	/* See if string matches possible value */
+	Possibly = false;
+	if (Var->Possible)
+		for (i = 0; Var->Possible[i].StrAlias; i++)
+			if (strcasecmp(a_Value, Var->Possible[i].StrAlias) == 0)
+			{
+				Possibly = true;
+				SetVal = Var->Possible[i].IntVal;
+				break;
+			}
+	
 	/* See which value to use here */
-	SetVal = strtol(a_Value, NULL, 0);
+	if (!Possibly)
+		SetVal = strtol(a_Value, NULL, 0);
 	
 	/* Return the value */
 	return P_EXGSSetValue(a_Master, a_Bit, SetVal);
