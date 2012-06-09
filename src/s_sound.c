@@ -382,6 +382,8 @@ void S_StartSoundAtVolume(S_NoiseThinker_t* a_Origin, int sound_id, int volume)
 		
 	/* Get closest listener, emitter, and distance */
 	Dist = S_GetListenerEmitterWithDist(NULL, a_Origin, &Listener, &Emitter);
+	if (Dist < 0)
+		Dist = -Dist;
 	
 	// The further the sound is the lower the priority
 	MyP = S_sfx[sound_id].priority;
