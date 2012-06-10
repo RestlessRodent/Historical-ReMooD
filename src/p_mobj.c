@@ -1868,7 +1868,7 @@ void P_SpawnMapThing(mapthing_t* mthing)
 		return;
 		
 	// don't spawn any monsters if -nomonsters
-	if (!cv_spawnmonsters.value && ((mobjinfo[i]->RXFlags[0] & MFREXA_ISMONSTER) || (mobjinfo[i]->flags & MF_COUNTKILL)))
+	if (!P_EXGSGetValue(PEXGSBID_MONSPAWNMONSTERS) && ((mobjinfo[i]->RXFlags[0] & MFREXA_ISMONSTER) || (mobjinfo[i]->flags & MF_COUNTKILL)))
 		return;
 		
 	// spawn it

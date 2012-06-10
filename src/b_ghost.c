@@ -70,6 +70,8 @@ typedef struct B_GhostNode_s
 	fixed_t FloorZ;								// Z of floor
 	fixed_t CeilingZ;							// Z of ceiling
 	
+	subsector_t* SubS;							// Subsector here
+	
 	struct
 	{
 		struct B_GhostNode_s* Node;				// Node connected to
@@ -247,11 +249,11 @@ static bool_t BS_GHOSTCheckNodeTrav(intercept_t* in, void* const a_Data)
 }
 
 /* B_GHOST_NodeNearPos() -- Get node near position */
-B_GhostNode_t* B_GHOST_NodeNearPos(const fixed_t a_X, const fixed_t a_Y, const bool_t a_Any)
+B_GhostNode_t* B_GHOST_NodeNearPos(const fixed_t a_X, const fixed_t a_Y, const fixed_t a_Z, const bool_t a_Any)
 {
 	B_Unimatrix_t* UniMatrix;
 	B_GhostNode_t* CurrentNode, *Best;
-	fixed_t Dist, BestDist;
+	fixed_t Dist, ZDist, BestDist, BestZDist;
 	size_t i;
 	
 	/* Get Unimatrix here */
@@ -275,7 +277,11 @@ B_GhostNode_t* B_GHOST_NodeNearPos(const fixed_t a_X, const fixed_t a_Y, const b
 		// Get distance
 		Dist = P_AproxDistance(a_X - CurrentNode->x, a_Y - CurrentNode->y);
 		
-		// Distance is close
+		// Too high?
+		if (CurrentNode->FloorZ > (a_Z + (24 >> FRACBITS)))
+			continue;
+		
+		// Distance is close (and is in stepping range)
 		if (Dist < BOTMINNODEDIST)
 			return CurrentNode;
 		
@@ -311,9 +317,9 @@ B_GhostNode_t* B_GHOST_CreateNodeAtPos(const fixed_t a_X, const fixed_t a_Y)
 	RealX = a_X;
 	RealY = a_Y;
 	
-	/* Truncate the coordinates to a 16-grid */
-	RealX &= ~1048575;
-	RealY &= ~1048575;
+	/* Truncate the coordinates to a 32-grid */
+	RealX &= ~2097151;//~1048575;
+	RealY &= ~2097151;//~1048575;
 	
 	/* See if there is a subsector here */
 	// Because this spot could be in the middle of nowhere
@@ -324,7 +330,7 @@ B_GhostNode_t* B_GHOST_CreateNodeAtPos(const fixed_t a_X, const fixed_t a_Y)
 		return NULL;
 	
 	// Don't add any nodes that are close to this spot
-	NearNode = B_GHOST_NodeNearPos(RealX, RealY, false);
+	NearNode = B_GHOST_NodeNearPos(RealX, RealY, SubS->sector->floorheight, false);
 	
 	// There was something close by
 	if (NearNode)
@@ -382,6 +388,7 @@ B_GhostNode_t* B_GHOST_CreateNodeAtPos(const fixed_t a_X, const fixed_t a_Y)
 	New->y = RealY;
 	New->FloorZ = l_GFloorZ;
 	New->CeilingZ = l_GCeilingZ;
+	New->SubS = SubS;
 	
 	/* Add to subsector links */
 	Z_ResizeArray((void**)&SubS->GhostNodes, sizeof(*SubS->GhostNodes),
@@ -508,6 +515,91 @@ bool_t B_GHOST_RecursiveSplitMap(const node_t* const a_Node)
 	
 	/* Success */
 	return true;
+}
+
+/* BS_GhostNTNPFirst() -- Helps determine whether point is reachable */
+// This is done for the initial node creation and as such it also determines
+// if a switch or line trigger is needed for activation.
+static bool_t BS_GhostNTNPFirst(intercept_t* in, void* const a_Data)
+{
+	line_t* li;
+	
+	/* A Line */
+	if (in->isaline)
+	{
+		// Get line
+		li = in->d.line;
+		
+		// Cannot cross two sided line
+		if (!(li->flags & ML_TWOSIDED))
+			return false;
+		
+		// Cannot cross impassible line
+		if (li->flags & ML_BLOCKING)
+			return false;
+		
+		// Cannot fit inside of sector
+			// Front Side
+		if ((li->frontsector->ceilingheight - li->frontsector->floorheight) < (56 << FRACBITS))
+			return false;
+			// Back Side
+		if ((li->backsector->ceilingheight - li->backsector->floorheight) < (56 << FRACBITS))
+			return false;
+		
+		// Everything seems OK
+		return true;
+	}
+	
+	/* A Thing */
+	else
+	{
+		// Things are checked later
+		return false;
+	}
+}
+
+/* BS_CheckNodeToNode() -- Checks whether a node can be traveled to */
+static bool_t BS_CheckNodeToNode(B_GhostBot_t* const a_Bot, B_GhostNode_t* const a_Start, B_GhostNode_t* const a_End, const bool_t a_FirstTime)
+{
+	/* Check */
+	if (!a_Start || !a_End || (!a_FirstTime && !a_Bot))
+		return false;
+	
+	/* First Time Determination? */
+	// This one takes awhile
+	if (a_FirstTime)
+	{
+		// Quick Height Determination
+			// Too big a step up
+		if (a_End->FloorZ > a_Start->FloorZ + (24 << FRACBITS))
+			return false;
+			
+			// Ceiling height incompatible
+		else if ((a_Start->CeilingZ - a_End->FloorZ < (56 << FRACBITS)) ||
+				(a_End->CeilingZ - a_Start->FloorZ < (56 << FRACBITS)))
+			return false;
+		
+		// Draw line to node (slower)
+		if (!P_PathTraverse(
+				a_Start->x,
+				a_Start->y,
+				a_End->x,
+				a_End->y,
+				PT_ADDLINES,
+				BS_GhostNTNPFirst,
+				NULL
+			))
+			return false;
+		
+		// Reachable
+		return true;
+	}
+	
+	/* Other times */
+	else
+	{
+		return true;
+	}
 }
 
 /* B_GHOST_Ticker() -- Bot Ticker */
@@ -656,7 +748,11 @@ void B_GHOST_Ticker(void)
 							dy = CurrentNode->y + (BOTMINNODEDIST * y);
 							
 							// Try and locate nearby nodes
-							NearNode = B_GHOST_NodeNearPos(dx, dy, true);
+							NearNode = B_GHOST_NodeNearPos(dx, dy, CurrentNode->FloorZ, true);
+							
+							// Self? Unref
+							if (NearNode == CurrentNode)
+								NearNode = NULL;
 					
 							// No node?
 							if (!NearNode)
@@ -666,7 +762,11 @@ void B_GHOST_Ticker(void)
 								dy = dy + (BOTMINNODEDIST * y);
 								
 								// Try again
-								NearNode = B_GHOST_NodeNearPos(dx, dy, true);
+								NearNode = B_GHOST_NodeNearPos(dx, dy, CurrentNode->FloorZ, true);
+								
+								// Self? Unref
+								if (NearNode == CurrentNode)
+									NearNode = NULL;
 								
 								// Still nothing
 								if (!NearNode)
@@ -674,6 +774,8 @@ void B_GHOST_Ticker(void)
 							}
 							
 							// Check to see if path can be traversed
+							if (!BS_CheckNodeToNode(NULL, CurrentNode, NearNode, true))
+								continue;
 							
 							// Movement to node is possible, link it
 							lox = x + 1;
@@ -760,7 +862,7 @@ static bool_t BS_GHOST_JOB_RandomNav(struct B_GhostBot_s* a_GhostBot, const size
 {
 	B_GhostNode_t* ThisNode;
 	B_GhostNode_t* TargetNode;
-	int32_t lox, loy;
+	int32_t lox, loy, i;
 	
 	/* Check */
 	if (!a_GhostBot)
@@ -785,8 +887,13 @@ static bool_t BS_GHOST_JOB_RandomNav(struct B_GhostBot_s* a_GhostBot, const size
 	// Get node to try to move to
 	TargetNode = ThisNode->Links[lox][loy].Node;
 	
-	// No node there?
-	if (!TargetNode)
+	// Try traversing to that node there
+	if (TargetNode)
+		if (!BS_CheckNodeToNode(a_GhostBot, ThisNode, TargetNode, false))
+			TargetNode = NULL;
+	
+	// No node there? Or we are at that node
+	if (!TargetNode || TargetNode == a_GhostBot->AtNode)
 	{
 		// Increase X pos
 		a_GhostBot->RoamX++;
@@ -809,9 +916,21 @@ static bool_t BS_GHOST_JOB_RandomNav(struct B_GhostBot_s* a_GhostBot, const size
 		return true;
 	}
 	
-	/* Face that node */
-	a_GhostBot->TicCmdPtr->forwardmove = c_forwardmove[1];
-	a_GhostBot->TicCmdPtr->angleturn = BS_PointsToAngleTurn(a_GhostBot->Mo->x, a_GhostBot->Mo->y, TargetNode->x, TargetNode->y);
+	/* Set Destination There */
+	for (i = 0; i < MAXBOTTARGETS; i++)
+		if (!a_GhostBot->Targets[i].IsSet)
+		{
+			a_GhostBot->Targets[i].IsSet = true;
+			a_GhostBot->Targets[i].MoveTarget = true;
+			a_GhostBot->Targets[i].ExpireTic = gametic + (TICRATE >> 1);
+			a_GhostBot->Targets[i].Priority = 25;
+			a_GhostBot->Targets[i].x = TargetNode->x;
+			a_GhostBot->Targets[i].y = TargetNode->y;
+			break;
+		}
+	
+	/* Sleep Job */
+	a_GhostBot->Jobs[a_JobID].Sleep = gametic + (TICRATE >> 1);
 	
 	/* Keep random navigation */
 	return true;
@@ -822,6 +941,7 @@ void B_GHOST_Think(B_GhostBot_t* const a_GhostBot, ticcmd_t* const a_TicCmd)
 {
 	size_t J, i, j;
 	int32_t MoveTarg, AttackTarg;
+	bool_t Blip;
 	
 	/* Check */
 	if (!a_GhostBot || !a_TicCmd)
@@ -843,11 +963,29 @@ void B_GHOST_Think(B_GhostBot_t* const a_GhostBot, ticcmd_t* const a_TicCmd)
 	
 	/* Init */
 	a_GhostBot->TicCmdPtr = a_TicCmd;
-	a_GhostBot->AtNode = B_GHOST_NodeNearPos(a_GhostBot->Mo->x, a_GhostBot->Mo->y, true);
+	a_GhostBot->AtNode = B_GHOST_NodeNearPos(a_GhostBot->Mo->x, a_GhostBot->Mo->y, a_GhostBot->Mo->z, true);
+	
+	// At new location?
+	Blip = false;
+	if (a_GhostBot->AtNode != a_GhostBot->OldNode)
+	{
+		a_GhostBot->OldNode = a_GhostBot->AtNode;
+		Blip = true;
+	}
 	
 	/* Debug Movement */
 	if (a_GhostBot->AtNode)
 	{
+		// Blip node handovers
+		if (Blip)
+			P_SpawnMobj(
+					((B_GhostNode_t*)a_GhostBot->AtNode)->x,
+					((B_GhostNode_t*)a_GhostBot->AtNode)->y,
+					ONFLOORZ,
+					INFO_GetTypeByName("ReMooDBotDebugPath")
+				);
+			
+			// Targets
 		if ((gametic % TICRATE) == 0)
 			for (i = 0; i < 3; i++)
 				for (j = 0; j < 3; j++)
@@ -863,6 +1001,12 @@ void B_GHOST_Think(B_GhostBot_t* const a_GhostBot, ticcmd_t* const a_TicCmd)
 					}
 				}
 	}
+	
+	/* Go through targets and expire any of them */
+	for (i = 0; i < MAXBOTTARGETS; i++)
+		if (a_GhostBot->Targets[i].IsSet)
+			if (gametic > a_GhostBot->Targets[i].ExpireTic)
+				memset(&a_GhostBot->Targets[i], 0, sizeof(a_GhostBot->Targets[i]));
 	
 	/* Go through jobs and execute them */
 	for (J = 0; J < MAXBOTJOBS; J++)
@@ -912,17 +1056,17 @@ void B_GHOST_Think(B_GhostBot_t* const a_GhostBot, ticcmd_t* const a_TicCmd)
 		}
 	
 	/* Commence Movement/Attacking? */
-	if (MoveTarg != -1 && AttackTarg != -1)
+	if (MoveTarg != -1 || AttackTarg != -1)
 	{
 		// Move to target
-		if (MoveTarg == -1 && AttackTarg != -1)
+		if (MoveTarg != -1 && AttackTarg == -1)
 		{
 			a_GhostBot->TicCmdPtr->forwardmove = c_forwardmove[1];
 			a_GhostBot->TicCmdPtr->angleturn = BS_PointsToAngleTurn(a_GhostBot->Mo->x, a_GhostBot->Mo->y, a_GhostBot->Targets[MoveTarg].x, a_GhostBot->Targets[MoveTarg].y);
 		}
 		
 		// Aim at target
-		else if (MoveTarg != -1 && AttackTarg == -1)
+		else if (MoveTarg == -1 && AttackTarg != -1)
 		{
 			a_GhostBot->TicCmdPtr->buttons |= BT_ATTACK;
 			a_GhostBot->TicCmdPtr->angleturn = BS_PointsToAngleTurn(a_GhostBot->Mo->x, a_GhostBot->Mo->y, a_GhostBot->Targets[AttackTarg].x, a_GhostBot->Targets[AttackTarg].y);

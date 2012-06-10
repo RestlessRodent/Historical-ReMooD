@@ -16600,7 +16600,7 @@ MapObject "ReMooDBotDebugPath"
 			DeHackEdNum "99990";
 			Sprite "RBDY";
 			Frame "0";
-			Tics "70";
+			Tics "35";
 			FullBright "true";
 			ViewPriority "Effects";
 			Next "0";
@@ -16639,6 +16639,46 @@ MapObject "ReMooDBotDebugTarget"
 		{
 			DeHackEdNum "99990";
 			Sprite "RBDY";
+			Frame "0";
+			Tics "35";
+			FullBright "true";
+			ViewPriority "Effects";
+			Next "0";
+		}
+	}
+}
+
+// Object -- ReMooDBotDebugQuestion -- This indicates the path the bot is thinking about this spot
+MapObject "ReMooDBotDebugQuestion"
+{
+	NiceName "Bot Question";
+	DoomEdNum "-1";
+	DeHackEdNum "9997";
+	SpawnHealth "1000";
+	Damage "0";
+	ReactionTime "0";
+	Mass "1";
+	Speed "0";
+	PainChance "0";
+	Height "1";
+	Radius "1";
+	WakeSound "none";
+	AttackSound "none";
+	PainSound "none";
+	DeathSound "none";
+	ActiveSound "none";
+	
+	NoBlockMap "true";
+	NoGravity "true";
+	TranslationColor "Bright White";
+	FloatBobbing "true";
+	
+	State "SpawnState"
+	{
+		Frame "1"
+		{
+			DeHackEdNum "99990";
+			Sprite "RBDX";
 			Frame "0";
 			Tics "35";
 			FullBright "true";

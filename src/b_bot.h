@@ -65,6 +65,7 @@ typedef struct B_GhostBot_s
 	ticcmd_t* TicCmdPtr;						// Pointer to tic command
 	bool_t Initted;								// Initialized
 	void* AtNode;								// At node
+	void* OldNode;								// Old node
 	B_BotData_t* BotData;						// Data
 	player_t* Player;							// Player
 	mobj_t* Mo;									// Mo

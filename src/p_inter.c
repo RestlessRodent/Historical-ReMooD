@@ -181,7 +181,12 @@ bool_t P_GiveWeapon(player_t* player, weapontype_t weapon, bool_t dropped)
 	bool_t gaveweapon;
 	int ammo_count;
 	int i;
+	ammotype_t AmmoType;
 	
+	/* Obtain Ammo Type */
+	AmmoType = player->weaponinfo[weapon]->ammo;
+	
+	/* Coop/DM Mode */
 	if (P_EXGSGetValue(PEXGSBID_GAMEKEEPWEAPONS) && !dropped)
 	{
 		// leave placed weapons forever on net games
@@ -191,11 +196,14 @@ bool_t P_GiveWeapon(player_t* player, weapontype_t weapon, bool_t dropped)
 		player->bonuscount += BONUSADD;
 		player->weaponowned[weapon] = true;
 		
-		if (P_EXGSGetValue(PEXGSBID_GAMEDEATHMATCH))
-			P_GiveAmmo(player, player->weaponinfo[weapon]->ammo, 5 * ammoinfo[player->weaponinfo[weapon]->ammo]->ClipAmmo);
-		else
-			P_GiveAmmo(player, player->weaponinfo[weapon]->ammo, player->weaponinfo[weapon]->GetAmmo);
-			
+		if (AmmoType >= 0 && AmmoType < NUMAMMO)
+		{
+			if (P_EXGSGetValue(PEXGSBID_GAMEDEATHMATCH))
+				P_GiveAmmo(player, player->weaponinfo[weapon]->ammo, 5 * ammoinfo[player->weaponinfo[weapon]->ammo]->ClipAmmo);
+			else
+				P_GiveAmmo(player, player->weaponinfo[weapon]->ammo, player->weaponinfo[weapon]->GetAmmo);
+		}
+		
 		// Boris hack preferred weapons order...
 		// TODO FIXME: Reimplement player weapon order
 //		if (player->originalweaponswitch || player->favoritweapon[weapon] > player->favoritweapon[player->readyweapon])
@@ -213,7 +221,7 @@ bool_t P_GiveWeapon(player_t* player, weapontype_t weapon, bool_t dropped)
 		return false;
 	}
 	
-	if (player->weaponinfo[weapon]->ammo != am_noammo)
+	if (AmmoType >= 0 && AmmoType < NUMAMMO)
 	{
 		// give one clip with a dropped weapon,
 		// two clips with a found weapon
