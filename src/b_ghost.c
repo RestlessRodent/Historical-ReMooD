@@ -936,6 +936,95 @@ static bool_t BS_GHOST_JOB_RandomNav(struct B_GhostBot_s* a_GhostBot, const size
 	return true;
 }
 
+/* BS_GHOST_JOB_ShootStuff() -- Shoot Nearby Stuff */
+static bool_t BS_GHOST_JOB_ShootStuff(struct B_GhostBot_s* a_GhostBot, const size_t a_JobID)
+{
+#define CLOSEMOS 8
+	int32_t s, i, m;
+	sector_t* CurSec;
+	mobj_t* Mo;
+	mobj_t* ListMos[CLOSEMOS];
+	
+	/* Sleep Job */
+	a_GhostBot->Jobs[a_JobID].Sleep = gametic + (TICRATE >> 1);
+	
+	/* Clear object list */
+	memset(ListMos, 0, sizeof(ListMos));
+	m = 0;
+	
+	/* Go through adjacent sectors */
+	// Get current sector
+	s = a_GhostBot->Mo->subsector->sector - sectors;
+	
+	// Start Roving
+	for (i = 0; i < l_BNumAdj[s]; i++)
+	{
+		// Get Current sector here
+		CurSec = l_BAdj[s][i];
+		
+		// Failed?
+		if (!CurSec)
+			break;
+		
+		// Go through all things in the chains
+		for (Mo = CurSec->thinglist; Mo; Mo = Mo->snext)
+		{
+			// Object is ourself!
+			if (Mo == a_GhostBot->Mo)
+				continue;
+			
+			// Object is missing some flags?
+			if (!(Mo->flags & MF_SHOOTABLE))
+				continue;
+			
+			// Object has some flags?
+			if (Mo->flags & MF_CORPSE)
+				continue;
+			
+			// Object is dead?
+			if (Mo->health <= 0)
+				continue;
+			
+			// Object on same team
+			if (P_MobjOnSameTeam(a_GhostBot->Mo, Mo))
+				continue;
+			
+			// Object is not seen?
+			if (!P_CheckSight(a_GhostBot->Mo, Mo))
+				continue;
+			
+			// Set in chain
+			if (m < CLOSEMOS)
+				ListMos[m++] = Mo;
+		}
+	}
+	
+	/* Put objects into the target list */
+	for (s = 0, i = 0; s < m && i < MAXBOTTARGETS; i++)
+		if (!a_GhostBot->Targets[i].IsSet)
+		{
+			// Setup
+			a_GhostBot->Targets[i].IsSet = true;
+			a_GhostBot->Targets[i].MoveTarget = false;
+			a_GhostBot->Targets[i].ExpireTic = gametic + (TICRATE >> 1);
+			a_GhostBot->Targets[i].Priority = (-ListMos[s]->health) + 100;
+			a_GhostBot->Targets[i].x = ListMos[s]->x;
+			a_GhostBot->Targets[i].y = ListMos[s]->y;
+			a_GhostBot->Targets[i].Key = (uintptr_t)ListMos[s];
+			
+			// Update List
+			s++;
+			break;
+		}
+
+//static sector_t* (*l_BAdj)[MAXBGADJDEPTH] = NULL;	// Adjacent sector list
+//static size_t* l_BNumAdj = NULL;				// Number of adjacent sectors
+//static size_t l_BNumSecs = 0;					// Number of sectors
+
+	return true;
+#undef CLOSEMOS
+}
+
 /* B_GHOST_Think() -- Bot thinker routine */
 void B_GHOST_Think(B_GhostBot_t* const a_GhostBot, ticcmd_t* const a_TicCmd)
 {
@@ -953,9 +1042,13 @@ void B_GHOST_Think(B_GhostBot_t* const a_GhostBot, ticcmd_t* const a_TicCmd)
 	/* Bot needs initialization? */
 	if (!a_GhostBot->Initted)
 	{
-		// Add 
+		// Add Random Navigation
 		a_GhostBot->Jobs[0].JobHere = true;
 		a_GhostBot->Jobs[0].JobFunc = BS_GHOST_JOB_RandomNav;
+		
+		// Add Shooting things
+		a_GhostBot->Jobs[1].JobHere = true;
+		a_GhostBot->Jobs[1].JobFunc = BS_GHOST_JOB_ShootStuff;
 		
 		// Set as initialized
 		a_GhostBot->Initted = true;

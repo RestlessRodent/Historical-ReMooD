@@ -921,7 +921,7 @@ static CONL_ExitCode_t DS_NCSNetCommand(const uint32_t a_ArgC, const char** cons
 			// Debugging? Split screen the bot
 			if (g_BotDebug || M_CheckParm("-devbots"))
 			{
-				if (g_SplitScreen < MAXSPLITSCREEN)
+				if (g_SplitScreen < MAXSPLITSCREEN - 1)
 				{
 					consoleplayer[g_SplitScreen + 1] = displayplayer[g_SplitScreen + 1] = i;
 					g_PlayerInSplit[g_SplitScreen + 1] = true;

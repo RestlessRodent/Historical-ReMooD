@@ -79,6 +79,7 @@ typedef struct B_GhostBot_s
 		uint32_t ExpireTic;						// Action expires at this time
 		int32_t Priority;						// Priority
 		fixed_t x, y;							// X/Y Target
+		uintptr_t Key;							// Key
 	} Targets[MAXBOTTARGETS];					// Bot target
 	
 	struct
