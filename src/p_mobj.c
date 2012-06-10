@@ -1820,18 +1820,19 @@ void P_SpawnMapThing(mapthing_t* mthing)
 		return;
 	}
 	
-	// check for apropriate skill level
-	if (!multiplayer && (mthing->options & 16))
+	// Multiplayer Spawns
+	if (!P_EXGSGetValue(PEXGSBID_GAMESPAWNMULTIPLAYER) && (mthing->options & 16))
 		return;
 		
 	//SoM: 4/7/2000: Implement "not deathmatch" thing flag
-	if (multiplayer && P_EXGSGetValue(PEXGSBID_GAMEDEATHMATCH) && (mthing->options & 32))
+	if (P_EXGSGetValue(PEXGSBID_GAMEDEATHMATCH) && (mthing->options & 32))
 		return;
 		
 	//SoM: 4/7/2000: Implement "not cooperative" thing flag
-	if (multiplayer && !P_EXGSGetValue(PEXGSBID_GAMEDEATHMATCH) && (mthing->options & 64))
+	if (!P_EXGSGetValue(PEXGSBID_GAMEDEATHMATCH) && (mthing->options & 64))
 		return;
-		
+	
+	// check for apropriate skill level
 	if (gameskill == sk_baby)
 		bit = 1;
 	else if (gameskill == sk_nightmare)

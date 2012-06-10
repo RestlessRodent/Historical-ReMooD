@@ -1429,8 +1429,9 @@ bool_t P_DamageMobj(mobj_t* target, mobj_t* inflictor, mobj_t* source, int damag
 	
 	// GhostlyDeath <June 6, 2012> -- Team Damage?
 	if (source && target)
-		if (!P_MobjDamageTeam(source, target, inflictor))
-			return false;
+		if (damage < 1000)	// Allow telefrags!
+			if (!P_MobjDamageTeam(source, target, inflictor))
+				return false;
 		
 	// Player Specific	
 	if (player && (target->flags & MF_CORPSE) == 0)

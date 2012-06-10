@@ -231,6 +231,7 @@ typedef enum P_EXGSBitID_e
 	PEXGSBID_MONSTATICRESPAWNTIME,				// Static monster respawn time
 	PEXGSBID_PLFASTERWEAPONS,					// Faster Player Weapons
 	PEXGSBID_MONSPAWNMONSTERS,					// Spawn Monsters
+	PEXGSBID_GAMESPAWNMULTIPLAYER,				// Spawn multi-player stuff
 	
 	PEXGSNUMBITIDS
 } P_EXGSBitID_t;

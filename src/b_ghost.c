@@ -39,6 +39,7 @@
 #include "p_local.h"
 #include "r_main.h"
 #include "doomstat.h"
+#include "g_game.h"
 
 /****************
 *** CONSTANTS ***
@@ -426,12 +427,12 @@ B_GhostNode_t* B_GHOST_CreateNodeAtPos(const fixed_t a_X, const fixed_t a_Y)
 	ThisMatrix->Nodes[ThisMatrix->NumNodes++] = New;
 	
 	/* Debug */
-	P_SpawnMobj(
+	/*P_SpawnMobj(
 			RealX,
 			RealY,
 			l_GFloorZ,
 			INFO_GetTypeByName("ReMooDBotDebugNode")
-		);
+		);*/
 		
 	/* Return the new node */
 	return New;
@@ -722,6 +723,10 @@ void B_GHOST_Ticker(void)
 	/* Build node links */
 	if (l_SSBuildChain < (l_UMSize[0] * l_UMSize[1]))
 	{
+		// Debug
+		if (g_BotDebug)
+			CONL_PrintF("GHOSTBOT: Building links for %u\n", (unsigned)l_SSBuildChain);
+		
 		// Go through unimatrixes chain
 		for (zz = 0; zz < 20; zz++)
 			if (l_SSBuildChain < (l_UMSize[0] * l_UMSize[1]))
@@ -944,6 +949,7 @@ static bool_t BS_GHOST_JOB_ShootStuff(struct B_GhostBot_s* a_GhostBot, const siz
 	sector_t* CurSec;
 	mobj_t* Mo;
 	mobj_t* ListMos[CLOSEMOS];
+	int slope;
 	
 	/* Sleep Job */
 	a_GhostBot->Jobs[a_JobID].Sleep = gametic + (TICRATE >> 1);
@@ -993,29 +999,59 @@ static bool_t BS_GHOST_JOB_ShootStuff(struct B_GhostBot_s* a_GhostBot, const siz
 			if (!P_CheckSight(a_GhostBot->Mo, Mo))
 				continue;
 			
+			// See if autoaim acquires a friendly target
+			slope = P_AimLineAttack(a_GhostBot->Mo, a_GhostBot->Mo->angle, MISSILERANGE, NULL);
+			
+			if (linetarget && P_MobjOnSameTeam(a_GhostBot->Mo, linetarget))
+				continue;
+			
 			// Set in chain
 			if (m < CLOSEMOS)
 				ListMos[m++] = Mo;
 		}
 	}
 	
+	/* Go through objects and update pre-existings */
+	for (i = 0; i < MAXBOTTARGETS; i++)
+		if (a_GhostBot->Targets[i].IsSet)
+			for (s = 0; s < m; s++)
+				if (ListMos[s] && a_GhostBot->Targets[i].Key == (uintptr_t)ListMos[s])
+				{
+					// Update This
+					a_GhostBot->Targets[i].ExpireTic += (TICRATE >> 1);
+					a_GhostBot->Targets[i].Priority += 10;	// Make it a bit more important
+					a_GhostBot->Targets[i].x = ListMos[s]->x;
+					a_GhostBot->Targets[i].y = ListMos[s]->y;
+					a_GhostBot->Targets[i].Key = (uintptr_t)ListMos[s];
+					
+					// Force Attacking
+					a_GhostBot->TicCmdPtr->buttons |= BT_ATTACK;
+					
+					// Clear from current
+					ListMos[s] = NULL;
+				}
+	
 	/* Put objects into the target list */
 	for (s = 0, i = 0; s < m && i < MAXBOTTARGETS; i++)
-		if (!a_GhostBot->Targets[i].IsSet)
-		{
-			// Setup
-			a_GhostBot->Targets[i].IsSet = true;
-			a_GhostBot->Targets[i].MoveTarget = false;
-			a_GhostBot->Targets[i].ExpireTic = gametic + (TICRATE >> 1);
-			a_GhostBot->Targets[i].Priority = (-ListMos[s]->health) + 100;
-			a_GhostBot->Targets[i].x = ListMos[s]->x;
-			a_GhostBot->Targets[i].y = ListMos[s]->y;
-			a_GhostBot->Targets[i].Key = (uintptr_t)ListMos[s];
+		if (ListMos[s])
+			if (!a_GhostBot->Targets[i].IsSet)
+			{
+				// Setup
+				a_GhostBot->Targets[i].IsSet = true;
+				a_GhostBot->Targets[i].MoveTarget = false;
+				a_GhostBot->Targets[i].ExpireTic = gametic + (TICRATE >> 1);
+				a_GhostBot->Targets[i].Priority = (-ListMos[s]->health) + 100;
+				a_GhostBot->Targets[i].x = ListMos[s]->x;
+				a_GhostBot->Targets[i].y = ListMos[s]->y;
+				a_GhostBot->Targets[i].Key = (uintptr_t)ListMos[s];
+				
+				// Force Attacking
+				a_GhostBot->TicCmdPtr->buttons |= BT_ATTACK;
 			
-			// Update List
-			s++;
-			break;
-		}
+				// Update List
+				s++;
+				break;
+			}
 
 //static sector_t* (*l_BAdj)[MAXBGADJDEPTH] = NULL;	// Adjacent sector list
 //static size_t* l_BNumAdj = NULL;				// Number of adjacent sectors
@@ -1023,6 +1059,64 @@ static bool_t BS_GHOST_JOB_ShootStuff(struct B_GhostBot_s* a_GhostBot, const siz
 
 	return true;
 #undef CLOSEMOS
+}
+
+
+/* BS_GHOST_JOB_GunControl() -- Determine weapon changing */
+static bool_t BS_GHOST_JOB_GunControl(struct B_GhostBot_s* a_GhostBot, const size_t a_JobID)
+{
+#define MAXGUNSWITCHERS 32
+	int32_t i, b;
+	int32_t SwitchChance[MAXGUNSWITCHERS];
+	fixed_t AmmoCount;
+	ammotype_t AmmoType;
+	
+	/* Sleep Job */
+	a_GhostBot->Jobs[a_JobID].Sleep = gametic << 2;
+	
+	/* Determine guns to switch to */
+	for (i = 0; i < MAXGUNSWITCHERS && i < NUMWEAPONS; i++)
+	{
+		// Not owned?
+		if (!a_GhostBot->Player->weaponowned[i])
+		{
+			SwitchChance[i] = -1000;
+			continue;
+		}
+		
+		// Base chance is weapon power
+		SwitchChance[i] = a_GhostBot->Player->weaponinfo[i]->SwitchOrder;
+		
+		// Get ammo amount
+		AmmoType = a_GhostBot->Player->weaponinfo[i]->ammo;
+		
+		if (AmmoType >= 0 && AmmoType < NUMAMMO)
+			AmmoCount = FixedDiv(a_GhostBot->Player->ammo[AmmoType] << FRACBITS,
+					a_GhostBot->Player->maxammo[AmmoType] << FRACBITS);
+		else
+			AmmoCount = 32768;
+		
+		// Modified by the amount of ammo the weapon holds
+		SwitchChance[i] = FixedMul(SwitchChance[i] << FRACBITS, AmmoCount);
+	}
+	
+	/* Find gun to switch to */
+	// Most wanted to switch to
+	for (i = 0, b = 0; i < MAXGUNSWITCHERS && i < NUMWEAPONS; i++)
+		if (SwitchChance[i] > SwitchChance[b])
+			b = i;
+		
+	/* Not using this gun? */
+	// Switch to that gun
+	if (a_GhostBot->Player->readyweapon != b && a_GhostBot->Player->pendingweapon != b)
+	{
+		a_GhostBot->TicCmdPtr->buttons |= BT_CHANGE;
+		a_GhostBot->TicCmdPtr->XNewWeapon = b;
+	}
+	
+	/* Always keep this job */
+	return true;
+#undef MAXGUNSWITCHERS
 }
 
 /* B_GHOST_Think() -- Bot thinker routine */
@@ -1050,6 +1144,10 @@ void B_GHOST_Think(B_GhostBot_t* const a_GhostBot, ticcmd_t* const a_TicCmd)
 		a_GhostBot->Jobs[1].JobHere = true;
 		a_GhostBot->Jobs[1].JobFunc = BS_GHOST_JOB_ShootStuff;
 		
+		// Gun Control
+		a_GhostBot->Jobs[2].JobHere = true;
+		a_GhostBot->Jobs[2].JobFunc = BS_GHOST_JOB_GunControl;
+		
 		// Set as initialized
 		a_GhostBot->Initted = true;
 	}
@@ -1069,30 +1167,41 @@ void B_GHOST_Think(B_GhostBot_t* const a_GhostBot, ticcmd_t* const a_TicCmd)
 	/* Debug Movement */
 	if (a_GhostBot->AtNode)
 	{
-		// Blip node handovers
-		if (Blip)
-			P_SpawnMobj(
-					((B_GhostNode_t*)a_GhostBot->AtNode)->x,
-					((B_GhostNode_t*)a_GhostBot->AtNode)->y,
-					ONFLOORZ,
-					INFO_GetTypeByName("ReMooDBotDebugPath")
-				);
+		j = 0;
+		for (i = 0; i < MAXSPLITSCREEN; i++)
+			if (g_PlayerInSplit[i] && consoleplayer[i] == (a_GhostBot->Player - players))
+			{
+				j = 1;
+				break;
+			}
+		
+		if (j == 1)
+		{
+			// Blip node handovers
+			if (Blip)
+				P_SpawnMobj(
+						((B_GhostNode_t*)a_GhostBot->AtNode)->x,
+						((B_GhostNode_t*)a_GhostBot->AtNode)->y,
+						((B_GhostNode_t*)a_GhostBot->AtNode)->FloorZ,
+						INFO_GetTypeByName("ReMooDBotDebugPath")
+					);
 			
 			// Targets
-		if ((gametic % TICRATE) == 0)
-			for (i = 0; i < 3; i++)
-				for (j = 0; j < 3; j++)
-				{
-					if (((B_GhostNode_t*)a_GhostBot->AtNode)->Links[i][j].Node)
+			if ((gametic % TICRATE) == 0)
+				for (i = 0; i < 3; i++)
+					for (j = 0; j < 3; j++)
 					{
-						P_SpawnMobj(
-								((B_GhostNode_t*)a_GhostBot->AtNode)->Links[i][j].Node->x,
-								((B_GhostNode_t*)a_GhostBot->AtNode)->Links[i][j].Node->y,
-								ONFLOORZ,
-								INFO_GetTypeByName("ReMooDBotDebugTarget")
-							);
+						if (((B_GhostNode_t*)a_GhostBot->AtNode)->Links[i][j].Node)
+						{
+							P_SpawnMobj(
+									((B_GhostNode_t*)a_GhostBot->AtNode)->Links[i][j].Node->x,
+									((B_GhostNode_t*)a_GhostBot->AtNode)->Links[i][j].Node->y,
+									((B_GhostNode_t*)a_GhostBot->AtNode)->Links[i][j].Node->FloorZ,
+									INFO_GetTypeByName("ReMooDBotDebugTarget")
+								);
+						}
 					}
-				}
+		}
 	}
 	
 	/* Go through targets and expire any of them */

@@ -602,6 +602,10 @@ static P_EXGSVariable_t l_GSVars[PEXGSNUMBITIDS] =
 		"Monsters are spawned when the level loads.", PEXGSGM_ANY, PEXGSDR_NOCHECK, 0, {0, 1}, 1,
 		PEXGSMC_MONSTERS, PEXGSDA_YESNO, c_PEXGSPVBoolean, NULL},
 	
+	{PEXGST_INTEGER, PEXGSBID_GAMESPAWNMULTIPLAYER, "game_spawnmultiplayer", "Spawn Multi-Player Objects",
+		"Spawn any items that are marked multiplayer (extra weapons, monsters, etc.)", PEXGSGM_ANY, PEXGSDR_NOCHECK, 0, {0, 1}, 0,
+		PEXGSMC_GAME, PEXGSDA_YESNO, c_PEXGSPVBoolean, NULL},
+	
 };
 
 /*** FUNCTIONS ***/
