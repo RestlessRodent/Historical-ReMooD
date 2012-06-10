@@ -301,6 +301,9 @@ bool_t P_ExClearLevel(void)
 	totalkills = 0;
 	totalitems = 0;
 	
+	// Time
+	leveltime = 0;
+	
 	// Map Data
 	nummapthings = numvertexes = numsegs = numsectors = numsubsectors = numnodes = numlines = numsides = 0;
 	mapthings = vertexes = segs = sectors = subsectors = nodes = lines = sides = NULL;
@@ -1250,7 +1253,7 @@ bool_t P_ExFinalizeLevel(void)
 	for (i = 0; i < MAXPLAYERS; i++)
 		if (playeringame[i] && !players[i].mo)
 			// Use cluster spawns
-			if (cv_deathmatch.value)
+			if (P_EXGSGetValue(PEXGSBID_GAMEDEATHMATCH))
 				G_DeathMatchSpawnPlayer(i);
 			else
 				G_CoopSpawnPlayer(i);

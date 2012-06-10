@@ -45,6 +45,7 @@
 #include "console.h"
 #include "p_info.h"
 #include "dstrings.h"
+#include "p_demcmp.h"
 
 //
 // Data needed to add patches to full screen intermission pics.
@@ -1157,7 +1158,7 @@ void WI_Ticker(void)
 	switch (state)
 	{
 		case StatCount:
-			if (cv_deathmatch.value)
+			if (P_EXGSGetValue(PEXGSBID_GAMEDEATHMATCH))
 				WI_updateDeathmatchStats();
 			else if (multiplayer)
 				WI_updateNetgameStats();
@@ -1354,7 +1355,7 @@ void WI_Drawer(void)
 		}
 		
 		// Single-player/Cooperative
-		if (!cv_deathmatch.value)
+		if (!P_EXGSGetValue(PEXGSBID_GAMEDEATHMATCH))
 		{
 			for (k = 0; k < 3; k++)
 			{
@@ -1556,7 +1557,7 @@ void WI_Start(wbstartstruct_t* wbstartstruct)
 	WI_loadData();
 	
 	/* Initialize Stats */
-	if (cv_deathmatch.value)
+	if (P_EXGSGetValue(PEXGSBID_GAMEDEATHMATCH))
 		WI_initDeathmatchStats();
 	else if (multiplayer)
 		WI_initNetgameStats();

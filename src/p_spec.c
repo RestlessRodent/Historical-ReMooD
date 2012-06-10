@@ -2224,7 +2224,7 @@ void P_UpdateSpecials(void)
 	levelflat_t* foundflats;	// for flat animation
 	
 	//  LEVEL TIMER
-	if (cv_timelimit.value && (uint32_t)cv_timelimit.value < leveltime)
+	if (P_EXGSGetValue(PEXGSBID_GAMETIMELIMIT) && (((uint32_t)P_EXGSGetValue(PEXGSBID_GAMETIMELIMIT)) * (TICRATE * 60)) < leveltime)
 		G_ExitLevel();
 		
 	//  ANIMATE TEXTURES

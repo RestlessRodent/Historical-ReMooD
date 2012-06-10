@@ -54,6 +54,15 @@ STAIR 0x3000
 @	DIRECTION [ 8 0x0100 down up ]
 @	IGNORE [ 9 0x0200 noignore ignore ]
 
+CEILING 0x4000
+@	TRIGGER [ 0 0x0007 w1 wr s1 sr g1 gr p1 pr ]
+@	SPEED [ 3 0x0018 slow normal fast turbo ]
+@	MODEL [ 5 0x0020 trgco numco ]
+@	DIRECTION [ 6 0x0040 down up ]
+@	TARGET [ 7 0x0380 hnc lnc nnc hnf floor aslt abs24 abs32 ]
+@	CHANGE [ 10 0x0c00 nochange txz txonly txty ]
+@	CRUSH [ 12 0x1000 nocrush crush ]
+
 ### REMOOD EXTENDED ###
 
 ELEVATOR 0x78000000

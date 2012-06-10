@@ -1115,7 +1115,7 @@ bool_t P_PlayerOnSameTeam(player_t* const a_A, player_t* const a_B)
 		return true;
 	
 	/* Coop? */
-	if (!cv_deathmatch.value)
+	if (!P_EXGSGetValue(PEXGSBID_GAMEDEATHMATCH))
 		return true;
 	
 	/* Not the same */

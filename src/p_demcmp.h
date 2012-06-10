@@ -74,6 +74,8 @@ typedef enum P_EXGSDisplayAs_e
 	PEXGSDA_INTEGER,							// Plain Integer
 	PEXGSDA_YESNO,								// Yes/No
 	PEXGSDA_TIMESECS,							// Time in Seconds
+	PEXGSDA_STRING,								// Show as string
+	PEXGSDA_TIMEMINS,							// Time in Minutes
 	
 	NUMPEXGSDISPLAYAS
 } P_EXGSDisplayAs_t;
@@ -219,6 +221,16 @@ typedef enum P_EXGSBitID_e
 	PEXGSBID_PLSPAWNWITHMAXSTATS,				// Spawn With Max Stats
 	PEXGSBID_GAMESPAWNPICKUPS,					// Spawn Game Pickups
 	PEXGSBID_COHERETICFRICTION,					// Allow Heretic Friction
+	PEXGSBID_GAMEDEATHMATCH,					// Deathmatch Mode
+	PEXGSBID_PLSPAWNWITHALLKEYS,				// Spawn With All Keys
+	PEXGSBID_GAMEKEEPWEAPONS,					// Keep Weapons on the Floor
+	PEXGSBID_GAMETEAMPLAY,						// Team Play
+	PEXGSBID_GAMETEAMDAMAGE,					// Team Damage
+	PEXGSBID_GAMEFRAGLIMIT,						// Frag Limit
+	PEXGSBID_GAMETIMELIMIT,						// Time Limit
+	PEXGSBID_MONSTATICRESPAWNTIME,				// Static monster respawn time
+	PEXGSBID_PLFASTERWEAPONS,					// Faster Player Weapons
+	PEXGSBID_MONSPAWNMONSTERS,					// Spawn Monsters
 	
 	PEXGSNUMBITIDS
 } P_EXGSBitID_t;
@@ -242,6 +254,7 @@ typedef struct P_EXGSVariable_s
 	P_EXGSMenuCategory_t Category;				// Category for item
 	P_EXGSDisplayAs_t DisplayAs;				// Display as this
 	const CONL_VarPossibleValue_t* Possible;	// Possible values
+	void (*ChangeFunc)(struct P_EXGSVariable_s* const a_Bit);
 	
 	// Settings
 	bool_t WasSet;								// Was Set to value?

@@ -667,7 +667,7 @@ static void ST_updateFaceWidget(void)
 
 bool_t ST_SameTeam(player_t* a, player_t* b)
 {
-	switch (cv_teamplay.value)
+	switch (P_EXGSGetValue(PEXGSBID_GAMETEAMPLAY))
 	{
 		case 0:
 			return false;
@@ -690,7 +690,7 @@ int ST_PlayerFrags(int playernum)
 	frags = players[playernum].addfrags;
 	for (i = 0; i < MAXPLAYERS; i++)
 	{
-		if ((cv_teamplay.value == 0 && i != playernum) || (cv_teamplay.value && !ST_SameTeam(&players[i], &players[playernum])))
+		if ((!P_EXGSGetValue(PEXGSBID_GAMETEAMPLAY) && i != playernum) || (P_EXGSGetValue(PEXGSBID_GAMETEAMPLAY) && !ST_SameTeam(&players[i], &players[playernum])))
 			frags += players[playernum].frags[i];
 		else
 			frags -= players[playernum].frags[i];
@@ -752,13 +752,13 @@ static void ST_updateWidgets(void)
 	ST_updateFaceWidget();
 	
 	// used by the w_armsbg widget
-	st_notdeathmatch = !cv_deathmatch.value;
+	st_notdeathmatch = !P_EXGSGetValue(PEXGSBID_GAMEDEATHMATCH);
 	
 	// used by w_arms[] widgets
-	st_armson = st_statusbaron && !cv_deathmatch.value;
+	st_armson = st_statusbaron && !P_EXGSGetValue(PEXGSBID_GAMEDEATHMATCH);
 	
 	// used by w_frags widget
-	st_fragson = cv_deathmatch.value && st_statusbaron;
+	st_fragson = P_EXGSGetValue(PEXGSBID_GAMEDEATHMATCH) && st_statusbaron;
 	
 	st_fragscount = ST_PlayerFrags(statusbarplayer);
 	
@@ -849,10 +849,10 @@ static void ST_drawWidgets(bool_t refresh)
 	int i;
 	
 	// used by w_arms[] widgets
-	st_armson = st_statusbaron && !cv_deathmatch.value;
+	st_armson = st_statusbaron && !P_EXGSGetValue(PEXGSBID_GAMEDEATHMATCH);
 	
 	// used by w_frags widget
-	st_fragson = cv_deathmatch.value && st_statusbaron;
+	st_fragson = P_EXGSGetValue(PEXGSBID_GAMEDEATHMATCH) && st_statusbaron;
 	
 	STlib_updateNum(&w_ready, refresh);
 	
@@ -1559,7 +1559,7 @@ static void STS_DrawPlayerBarEx(const size_t a_PID, const int32_t a_X, const int
 		}
 		
 		//// FRAGS
-		if (cv_deathmatch.value)
+		if (P_EXGSGetValue(PEXGSBID_GAMEDEATHMATCH))
 		{
 			// Draw Icon
 			vi = V_ImageFindA("sbofrags", VCP_DOOM);

@@ -1170,12 +1170,15 @@ void P_MobjThinker(mobj_t* mobj)
 		
 		if (mobj->movecount < P_EXGSGetValue(PEXGSBID_MONRESPAWNMONSTERSTIME) * TICRATE)
 			return;
+		
+		if (!P_EXGSGetValue(PEXGSBID_MONSTATICRESPAWNTIME))
+		{
+			if (leveltime % (32))
+				return;
 			
-		if (leveltime % (32))
-			return;
-			
-		if (P_Random() > 4)
-			return;
+			if (P_Random() > 4)
+				return;
+		}
 			
 		P_NightmareRespawn(mobj, false);
 	}
@@ -1738,7 +1741,7 @@ void P_SpawnPlayer(mapthing_t* mthing)
 	P_SetupPsprites(p);
 	
 	// give all cards in death match mode
-	if (cv_deathmatch.value)
+	if (P_EXGSGetValue(PEXGSBID_GAMEDEATHMATCH) || P_EXGSGetValue(PEXGSBID_PLSPAWNWITHALLKEYS))
 		p->cards = it_allkeys;
 		
 	if (playernum == consoleplayer[0])
@@ -1810,7 +1813,7 @@ void P_SpawnMapThing(mapthing_t* mthing)
 		// old version spawn player now, new version spawn player when level is
 		// loaded, or in network event later when player join game
 		// TODO: GhostlyDeath -- This has to do with voodoo dolls!
-		if (!cv_deathmatch.value && ((playeringame[pid] && !players[pid].mo) || P_EXGSGetValue(PEXGSBID_COVOODOODOLLS)))
+		if (!P_EXGSGetValue(PEXGSBID_GAMEDEATHMATCH) && ((playeringame[pid] && !players[pid].mo) || P_EXGSGetValue(PEXGSBID_COVOODOODOLLS)))
 			if (!players[pid].CounterOpPlayer)
 				P_SpawnPlayer(mthing);
 		
@@ -1822,11 +1825,11 @@ void P_SpawnMapThing(mapthing_t* mthing)
 		return;
 		
 	//SoM: 4/7/2000: Implement "not deathmatch" thing flag
-	if (multiplayer && cv_deathmatch.value && (mthing->options & 32))
+	if (multiplayer && P_EXGSGetValue(PEXGSBID_GAMEDEATHMATCH) && (mthing->options & 32))
 		return;
 		
 	//SoM: 4/7/2000: Implement "not cooperative" thing flag
-	if (multiplayer && !cv_deathmatch.value && (mthing->options & 64))
+	if (multiplayer && !P_EXGSGetValue(PEXGSBID_GAMEDEATHMATCH) && (mthing->options & 64))
 		return;
 		
 	if (gameskill == sk_baby)
@@ -1861,7 +1864,7 @@ void P_SpawnMapThing(mapthing_t* mthing)
 		mthing->MarkedWeapon = true;
 	
 	// don't spawn keycards and players in deathmatch
-	if (cv_deathmatch.value && mobjinfo[i]->flags & MF_NOTDMATCH)
+	if (P_EXGSGetValue(PEXGSBID_GAMEDEATHMATCH) && mobjinfo[i]->flags & MF_NOTDMATCH)
 		return;
 		
 	// don't spawn any monsters if -nomonsters
@@ -2819,10 +2822,10 @@ bool_t P_MobjDamageTeam(mobj_t* const a_ThisMo, mobj_t* const a_OtherMo, mobj_t*
 		IsOtherPlayer = true;
 	
 	/* Team Play Enabled */
-	if (!P_EXGSGetValue(PEXGSBID_CODISABLETEAMPLAY) && cv_teamplay.value)
+	if (!P_EXGSGetValue(PEXGSBID_CODISABLETEAMPLAY) && P_EXGSGetValue(PEXGSBID_GAMETEAMPLAY))
 	{
 		// Team Damage is On -- Always do damage
-		if (cv_teamdamage.value)
+		if (P_EXGSGetValue(PEXGSBID_GAMETEAMDAMAGE))
 			return true;
 		
 		// Off, check for differing team
@@ -2841,10 +2844,10 @@ bool_t P_MobjDamageTeam(mobj_t* const a_ThisMo, mobj_t* const a_OtherMo, mobj_t*
 		if (IsThisPlayer && IsOtherPlayer)
 		{
 			// Cooperative
-			if (!cv_deathmatch.value)
+			if (!P_EXGSGetValue(PEXGSBID_GAMEDEATHMATCH))
 			{
 				// If team damage is on, hurt
-				if (cv_teamdamage.value)
+				if (P_EXGSGetValue(PEXGSBID_GAMETEAMDAMAGE))
 					return true;
 				
 				// Otherwise, don't hurt
@@ -2899,14 +2902,14 @@ bool_t P_MobjOnSameTeam(mobj_t* const a_ThisMo, mobj_t* const a_OtherMo)
 		IsOtherPlayer = true;
 	
 	/* Cooperative Players */
-	if (!cv_deathmatch.value && IsThisPlayer && IsOtherPlayer)
+	if (!P_EXGSGetValue(PEXGSBID_GAMEDEATHMATCH) && IsThisPlayer && IsOtherPlayer)
 		return true;
 	
 	/* Deathmatch Players */
-	if (cv_deathmatch.value && IsThisPlayer && IsOtherPlayer)
+	if (P_EXGSGetValue(PEXGSBID_GAMEDEATHMATCH) && IsThisPlayer && IsOtherPlayer)
 	{
 		// Team play?
-		if (cv_teamplay.value)
+		if (P_EXGSGetValue(PEXGSBID_GAMETEAMPLAY))
 		{
 			// On same team?
 			if (a_ThisMo->player->skincolor == a_OtherMo->player->skincolor)
@@ -2925,7 +2928,7 @@ bool_t P_MobjOnSameTeam(mobj_t* const a_ThisMo, mobj_t* const a_OtherMo)
 	
 	/* Monster Teams */
 	// Team Play Enabled
-	if (cv_teamplay.value)
+	if (P_EXGSGetValue(PEXGSBID_GAMETEAMPLAY))
 	{
 		// Player and monster on the same colored team?
 		if ((IsThisPlayer && !IsOtherPlayer && a_ThisMo->player &&
@@ -2951,7 +2954,7 @@ bool_t P_MobjOnSameTeam(mobj_t* const a_ThisMo, mobj_t* const a_OtherMo)
 	else
 	{
 		// Cooperative
-		if (!cv_deathmatch.value)
+		if (!P_EXGSGetValue(PEXGSBID_GAMEDEATHMATCH))
 		{
 			// Player and teamed monster
 			if ((IsThisPlayer && !IsOtherPlayer && a_OtherMo->SkinTeamColor > 0) ||

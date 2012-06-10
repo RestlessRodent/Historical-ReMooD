@@ -474,7 +474,7 @@ void G_DoLoadLevel(bool_t resetplayer)
 bool_t G_Responder(event_t* ev)
 {
 	// allow spy mode changes even during the demo
-	if (gamestate == GS_LEVEL && ev->type == ev_keydown && ev->data1 == KEY_F12 && (singledemo || !cv_deathmatch.value))
+	if (gamestate == GS_LEVEL && ev->type == ev_keydown && ev->data1 == KEY_F12 && (singledemo || !P_EXGSGetValue(PEXGSBID_GAMEDEATHMATCH)))
 	{
 		// spy mode
 		do
@@ -939,13 +939,13 @@ bool_t G_CheckSpot(int playernum, mapthing_t* mthing, const bool_t a_NoFirstMo)
 	// check for respawn in team-sector
 	if (ss->sector->teamstartsec)
 	{
-		if (cv_teamplay.value == 1)
+		if (P_EXGSGetValue(PEXGSBID_GAMETEAMPLAY) == 1)
 		{
 			// color
 			if (players[playernum].skincolor != (ss->sector->teamstartsec - 1))	// -1 because wanted to know when it is set
 				return false;
 		}
-		else if (cv_teamplay.value == 2)
+		else if (P_EXGSGetValue(PEXGSBID_GAMETEAMPLAY) == 2)
 		{
 			// skins
 			if (players[playernum].skin != (ss->sector->teamstartsec - 1))	// -1 because wanted to know when it is set
@@ -1073,7 +1073,7 @@ bool_t G_ClusterSpawnPlayer(const int PlayerID, const bool_t a_CheckOp)
 	
 	/* Which spots to prefer? */
 	// Deathmatch
-	if (cv_deathmatch.value || (!cv_deathmatch.value && a_CheckOp))
+	if (P_EXGSGetValue(PEXGSBID_GAMEDEATHMATCH) || (!P_EXGSGetValue(PEXGSBID_GAMEDEATHMATCH) && a_CheckOp))
 	{
 		PreDiamond = false;
 		RandomSpot = true;
@@ -1083,7 +1083,7 @@ bool_t G_ClusterSpawnPlayer(const int PlayerID, const bool_t a_CheckOp)
 	}
 	
 	// Coop
-	else if (!cv_deathmatch.value || (cv_deathmatch.value && a_CheckOp))
+	else if (!P_EXGSGetValue(PEXGSBID_GAMEDEATHMATCH) || (P_EXGSGetValue(PEXGSBID_GAMEDEATHMATCH) && a_CheckOp))
 	{
 		PreDiamond = true;
 		RandomSpot = false;
@@ -1093,7 +1093,7 @@ bool_t G_ClusterSpawnPlayer(const int PlayerID, const bool_t a_CheckOp)
 	}
 	
 	/* Determine offset base */
-	if (a_CheckOp || cv_deathmatch.value)
+	if (a_CheckOp || P_EXGSGetValue(PEXGSBID_GAMEDEATHMATCH))
 		bx = by = 2;
 	else
 		bx = by = 4;
@@ -1364,7 +1364,7 @@ void G_DoReborn(int playernum)
 			player->mo->flags2 &= ~MF2_DONTDRAW;
 		}
 		// spawn at random spot if in death match
-		if (cv_deathmatch.value)
+		if (P_EXGSGetValue(PEXGSBID_GAMEDEATHMATCH))
 		{
 			if (G_DeathMatchSpawnPlayer(playernum))
 				return;

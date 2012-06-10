@@ -402,7 +402,7 @@ void SF_GameMode()
 {
 	t_return.type = svt_int;
 	
-	if (cv_deathmatch.value)	// Deathmatch!
+	if (P_EXGSGetValue(PEXGSBID_GAMEDEATHMATCH))	// Deathmatch!
 		t_return.value.i = 2;
 	else if (netgame || multiplayer)	// Cooperative
 		t_return.value.i = 1;

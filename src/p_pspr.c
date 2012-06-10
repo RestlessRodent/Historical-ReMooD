@@ -89,6 +89,11 @@ void P_SetPsprite(player_t* player, int position, statenum_t stnum)
 		psp->state = state;
 		psp->tics = state->tics;	// could be 0
 		
+		// GhostlyDeath <June 9, 2012> -- Faster Weapons
+		if (P_EXGSGetValue(PEXGSBID_PLFASTERWEAPONS))
+			if (psp->tics > 1)
+				psp->tics = 1;
+		
 		/* UNUSED
 		   if (state->misc1)
 		   {

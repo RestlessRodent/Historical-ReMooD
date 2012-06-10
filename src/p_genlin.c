@@ -41,6 +41,7 @@
 #include "z_zone.h"
 #include "p_spec.h"
 #include "p_inter.h"
+#include "p_demcmp.h"
 
 /*
   SoM: 3/9/2000: Copied this entire file from Boom sources to Legacy sources.
@@ -2113,7 +2114,7 @@ void P_ProcessSpecialSectorEx(const EV_TryGenType_t a_Type, mobj_t* const a_Mo, 
 			a_Sector->special &= ~SECRET_MASK;
 			
 			// Secret Message
-			if (!cv_deathmatch.value)
+			if (!P_EXGSGetValue(PEXGSBID_GAMEDEATHMATCH))
 				P_PlayerMessage(PPM_SECRET, a_Mo, NULL, PTROFUNICODESTRING(DSTR_FOUNDSECRET));
 		}
 		

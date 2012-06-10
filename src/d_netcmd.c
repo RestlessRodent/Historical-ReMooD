@@ -209,16 +209,13 @@ consvar_t cv_teamplay = { "teamplay", "0", CV_NETVAR | CV_CALL, teamplay_cons_t,
 };
 consvar_t cv_teamdamage = { "teamdamage", "0", CV_NETVAR, CV_OnOff };
 
-consvar_t cv_fraglimit = { "fraglimit", "0", CV_NETVAR | CV_CALL | CV_NOINIT, fraglimit_cons_t,
-	FragLimit_OnChange
+consvar_t cv_fraglimit = { "fraglimit", "0", CV_NETVAR, fraglimit_cons_t
 };
 
-consvar_t cv_timelimit = { "timelimit", "0", CV_NETVAR | CV_CALL | CV_NOINIT, CV_Unsigned,
-	TimeLimit_OnChange
+consvar_t cv_timelimit = { "timelimit", "0", CV_NETVAR, CV_Unsigned
 };
 
-consvar_t cv_deathmatch = { "deathmatch", "0", CV_NETVAR | CV_CALL, deathmatch_cons_t,
-	Deahtmatch_OnChange
+consvar_t cv_deathmatch = { "deathmatch", "0", CV_NETVAR, deathmatch_cons_t
 };
 
 consvar_t cv_netstat = { "netstat", "0", 0, CV_OnOff };
@@ -676,29 +673,7 @@ void Command_Quit_f(void)
 	I_Quit();
 }
 
-void FragLimit_OnChange(void)
-{
-	int i;
-	
-	if (cv_fraglimit.value > 0)
-	{
-		for (i = 0; i < MAXPLAYERS; i++)
-			P_CheckFragLimit(&players[i]);
-	}
-}
-
 uint32_t timelimitintics = 0;
-
-void TimeLimit_OnChange(void)
-{
-	if (cv_timelimit.value)
-	{
-		CONL_PrintF("Levels will end after %d minute(s).\n", cv_timelimit.value);
-		timelimitintics = cv_timelimit.value * 60 * TICRATE;
-	}
-	else
-		CONL_PrintF("Time limit disabled\n");
-}
 
 void P_RespawnWeapons(void);
 void Deahtmatch_OnChange(void)

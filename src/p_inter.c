@@ -182,7 +182,7 @@ bool_t P_GiveWeapon(player_t* player, weapontype_t weapon, bool_t dropped)
 	int ammo_count;
 	int i;
 	
-	if (multiplayer && (cv_deathmatch.value != 2) && !dropped)
+	if (P_EXGSGetValue(PEXGSBID_GAMEKEEPWEAPONS) && !dropped)
 	{
 		// leave placed weapons forever on net games
 		if (player->weaponowned[weapon])
@@ -191,7 +191,7 @@ bool_t P_GiveWeapon(player_t* player, weapontype_t weapon, bool_t dropped)
 		player->bonuscount += BONUSADD;
 		player->weaponowned[weapon] = true;
 		
-		if (cv_deathmatch.value)
+		if (P_EXGSGetValue(PEXGSBID_GAMEDEATHMATCH))
 			P_GiveAmmo(player, player->weaponinfo[weapon]->ammo, 5 * ammoinfo[player->weaponinfo[weapon]->ammo]->ClipAmmo);
 		else
 			P_GiveAmmo(player, player->weaponinfo[weapon]->ammo, player->weaponinfo[weapon]->GetAmmo);
@@ -490,8 +490,8 @@ bool_t P_TouchSpecialThing(mobj_t* special, mobj_t* toucher)
 			if (Current->ActGiveWeapon != NUMWEAPONS)
 			{
 				// Give weapon?
-				if (cv_deathmatch.value == 2 ||
-					(cv_deathmatch.value < 2 && !player->weaponowned[Current->ActGiveWeapon]) ||
+				if (!P_EXGSGetValue(PEXGSBID_GAMEKEEPWEAPONS) ||
+					(P_EXGSGetValue(PEXGSBID_GAMEKEEPWEAPONS) && !player->weaponowned[Current->ActGiveWeapon]) ||
 					(special->flags & MF_DROPPED))
 					OKStat |= P_GiveWeapon(player, Current->ActGiveWeapon, special->flags & MF_DROPPED);
 				
@@ -501,7 +501,7 @@ bool_t P_TouchSpecialThing(mobj_t* special, mobj_t* toucher)
 					PickedUp = true;
 					
 					// Cancel removal in coop/dm
-					if (cv_deathmatch.value < 2)
+					if (P_EXGSGetValue(PEXGSBID_GAMEKEEPWEAPONS))
 						CancelRemove = !(special->flags & MF_DROPPED);
 				}
 			}
@@ -1044,7 +1044,7 @@ static void P_DeathMessages(mobj_t* target, mobj_t* inflictor, mobj_t* source)
 // WARNING : check cv_fraglimit>0 before call this function !
 void P_CheckFragLimit(player_t* p)
 {
-	if (cv_teamplay.value)
+	if (P_EXGSGetValue(PEXGSBID_GAMETEAMPLAY))
 	{
 		int fragteam = 0, i;
 		
@@ -1052,12 +1052,12 @@ void P_CheckFragLimit(player_t* p)
 			if (ST_SameTeam(p, &players[i]))
 				fragteam += ST_PlayerFrags(i);
 				
-		if (cv_fraglimit.value <= fragteam)
+		if (P_EXGSGetValue(PEXGSBID_GAMEFRAGLIMIT) <= fragteam)
 			G_ExitLevel();
 	}
 	else
 	{
-		if (cv_fraglimit.value <= ST_PlayerFrags(p - players))
+		if (P_EXGSGetValue(PEXGSBID_GAMEFRAGLIMIT) <= ST_PlayerFrags(p - players))
 			G_ExitLevel();
 	}
 }
@@ -1159,7 +1159,7 @@ void P_KillMobj(mobj_t* target, mobj_t* inflictor, mobj_t* source)
 			source->player->frags[target->player - players]++;
 			
 			// check fraglimit cvar
-			if (cv_fraglimit.value)
+			if (P_EXGSGetValue(PEXGSBID_GAMEFRAGLIMIT))
 				P_CheckFragLimit(source->player);
 		}
 	}
@@ -1429,8 +1429,8 @@ bool_t P_DamageMobj(mobj_t* target, mobj_t* inflictor, mobj_t* source, int damag
 	{
 		// added team play and teamdamage (view logboris at 13-8-98 to understand)
 		if (P_EXGSGetValue(PEXGSBID_CODISABLETEAMPLAY) ||	// support old demo version
-		        cv_teamdamage.value || damage > 1000 ||	// telefrag
-		        source == target || !source || !(target->RXFlags[0] & MFREXA_ISPLAYEROBJECT) || !(source->player && (source->RXFlags[0] & MFREXA_ISPLAYEROBJECT)) || (cv_deathmatch.value && (!cv_teamplay.value || !ST_SameTeam(source->player, player))))
+		        P_EXGSGetValue(PEXGSBID_GAMETEAMDAMAGE) || damage > 1000 ||	// telefrag
+		        source == target || !source || !(target->RXFlags[0] & MFREXA_ISPLAYEROBJECT) || !(source->player && (source->RXFlags[0] & MFREXA_ISPLAYEROBJECT)) || (P_EXGSGetValue(PEXGSBID_GAMEDEATHMATCH) && (!P_EXGSGetValue(PEXGSBID_GAMETEAMPLAY) || !ST_SameTeam(source->player, player))))
 		{
 			player->health -= damage;	// mirror mobj health here for Dave
 			if (player->health < 0)
