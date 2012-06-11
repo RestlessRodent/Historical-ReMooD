@@ -606,6 +606,18 @@ static bool_t PS_ParseMapInfo(P_LevelInfoHolder_t* const a_Holder, const WL_WADE
 					}
 			}
 			
+			// However find the first space afterwards and nuke that
+			else
+			{
+				// Hunt it down
+				for (q = p; *q; q++)
+					if (*q == ' ')
+					{
+						*q = '\0';
+						break;
+					}
+			}
+			
 			// Set the bit flag then (with MAPINFO level)
 			CurrentInfo->SetBits[FNum] = PLIBL_MAPINFO;
 			
