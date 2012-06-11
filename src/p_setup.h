@@ -93,6 +93,7 @@ typedef enum P_ExLLFlags_e
 	PEXLL_NOSPAWNSPECIALS		= 0x0000004,	// Do not spawn specials
 	PEXLL_NOINITBRAIN			= 0x0000008,	// Do not initialize brain targets
 	PEXLL_NOFINALIZE			= 0x0000010,	// Do not finalize the level
+	PEXLL_NOCLEARLEVEL			= 0x0000020,	// Does not clear the level
 } P_ExLLFlags_t;
 
 /*** STRUCTURES ***/

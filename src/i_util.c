@@ -612,6 +612,7 @@ int VID_ClosestMode(int* const a_WidthP, int* const a_HeightP, const bool_t a_Fu
 				BestMode = i;
 				break;			// it is here!
 			}
+			
 			// Otherwise, set the best mode as long as height diff is lower
 			else if (abs((int32_t)l_Modes[i].Height - (int32_t)*a_HeightP) < abs((int32_t)l_Modes[BestMode].Height - (int32_t)*a_HeightP))
 				BestMode = i;

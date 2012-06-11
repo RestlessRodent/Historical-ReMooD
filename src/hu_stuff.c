@@ -923,6 +923,9 @@ void HU_DrawFSPics()
 {
 	int i;
 	
+	if (!piclist)
+		return;
+	
 	for (i = 0; i < maxpicsize; i++)
 	{
 		if (piclist[i].lumpnum == -1 || piclist[i].draw == false)

@@ -116,9 +116,11 @@ size_t D_RBSWriteChunk(D_RBlockStream_t* const a_Stream, const void* const a_Dat
 void D_RBSWriteInt8(D_RBlockStream_t* const a_Stream, const int8_t a_Val);
 void D_RBSWriteInt16(D_RBlockStream_t* const a_Stream, const int16_t a_Val);
 void D_RBSWriteInt32(D_RBlockStream_t* const a_Stream, const int32_t a_Val);
+void D_RBSWriteInt64(D_RBlockStream_t* const a_Stream, const int64_t a_Val);
 void D_RBSWriteUInt8(D_RBlockStream_t* const a_Stream, const uint8_t a_Val);
 void D_RBSWriteUInt16(D_RBlockStream_t* const a_Stream, const uint16_t a_Val);
 void D_RBSWriteUInt32(D_RBlockStream_t* const a_Stream, const uint32_t a_Val);
+void D_RBSWriteUInt64(D_RBlockStream_t* const a_Stream, const uint64_t a_Val);
 
 void D_RBSWriteString(D_RBlockStream_t* const a_Stream, const char* const a_Val);
 void D_RBSWritePointer(D_RBlockStream_t* const a_Stream, const void* const a_Ptr);
@@ -128,9 +130,11 @@ size_t D_RBSReadChunk(D_RBlockStream_t* const a_Stream, void* const a_Data, cons
 int8_t D_RBSReadInt8(D_RBlockStream_t* const a_Stream);
 int16_t D_RBSReadInt16(D_RBlockStream_t* const a_Stream);
 int32_t D_RBSReadInt32(D_RBlockStream_t* const a_Stream);
+int64_t D_RBSReadInt64(D_RBlockStream_t* const a_Stream);
 uint8_t D_RBSReadUInt8(D_RBlockStream_t* const a_Stream);
 uint16_t D_RBSReadUInt16(D_RBlockStream_t* const a_Stream);
 uint32_t D_RBSReadUInt32(D_RBlockStream_t* const a_Stream);
+uint64_t D_RBSReadUInt64(D_RBlockStream_t* const a_Stream);
 
 size_t D_RBSReadString(D_RBlockStream_t* const a_Stream, char* const a_Out, const size_t a_OutSize);
 uint64_t D_RBSReadPointer(D_RBlockStream_t* const a_Stream);

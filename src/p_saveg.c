@@ -302,14 +302,16 @@ typedef enum P_SGBWTypeC_e
 /* P_SGBWTypeRec_t -- Type in block */
 typedef enum P_SGBWTypeRec_e
 {
-	PSRC_STRING,								// String
-	PSRC_POINTER,								// Pointer
 	PSRC_INT8,									// Int8
 	PSRC_INT16,									// Int16
 	PSRC_INT32,									// Int32
+	PSRC_INT64,									// Int64
 	PSRC_UINT8,									// UInt8
 	PSRC_UINT16,								// UInt16
 	PSRC_UINT32,								// UInt32
+	PSRC_UINT64,								// UInt64
+	PSRC_STRING,								// String
+	PSRC_POINTER,								// Pointer
 	
 	NUMPSRCS
 } P_SGBWTypeRec_t;
@@ -390,9 +392,11 @@ static bool_t PRWS_SRPointer(D_RBlockStream_t* const a_Stream, const bool_t a_Lo
 			case PSRC_INT8: *((x*)a_Ptr) = D_RBSReadInt8(a_Stream); break;\
 			case PSRC_INT16: *((x*)a_Ptr) = D_RBSReadInt16(a_Stream); break;\
 			case PSRC_INT32: *((x*)a_Ptr) = D_RBSReadInt32(a_Stream); break;\
+			case PSRC_INT64: *((x*)a_Ptr) = D_RBSReadInt64(a_Stream); break;\
 			case PSRC_UINT8: *((x*)a_Ptr) = D_RBSReadUInt8(a_Stream); break;\
 			case PSRC_UINT16: *((x*)a_Ptr) = D_RBSReadUInt16(a_Stream); break;\
 			case PSRC_UINT32: *((x*)a_Ptr) = D_RBSReadUInt32(a_Stream); break;\
+			case PSRC_UINT64: *((x*)a_Ptr) = D_RBSReadUInt64(a_Stream); break;\
 			default: return false;\
 		}\
 	else\
@@ -401,9 +405,11 @@ static bool_t PRWS_SRPointer(D_RBlockStream_t* const a_Stream, const bool_t a_Lo
 			case PSRC_INT8: D_RBSWriteInt8(a_Stream, *((x*)a_Ptr)); break;\
 			case PSRC_INT16: D_RBSWriteInt16(a_Stream, *((x*)a_Ptr)); break;\
 			case PSRC_INT32: D_RBSWriteInt32(a_Stream, *((x*)a_Ptr)); break;\
+			case PSRC_INT64: D_RBSWriteInt64(a_Stream, *((x*)a_Ptr)); break;\
 			case PSRC_UINT8: D_RBSWriteUInt8(a_Stream, *((x*)a_Ptr)); break;\
 			case PSRC_UINT16: D_RBSWriteUInt16(a_Stream, *((x*)a_Ptr)); break;\
 			case PSRC_UINT32: D_RBSWriteUInt32(a_Stream, *((x*)a_Ptr)); break;\
+			case PSRC_UINT64: D_RBSWriteUInt64(a_Stream, *((x*)a_Ptr)); break;\
 			default: return false;\
 		}\
 	return true;\
@@ -477,7 +483,7 @@ static const struct
 // l_RecChars -- Record characters
 static const char l_RecChars[NUMPSRCS] =
 {
-	'c', 's', 'i', 'C', 'S', 'I', 's', 'p'
+	'c', 's', 'i', 'l', 'C', 'S', 'I', 'L', 's', 'p'
 };
 
 /*** FUNCTIONS ***/
@@ -5916,6 +5922,36 @@ typedef struct P_SGDXTypeIO_s
 	PSRC_UINT32,								// UInt32
 #endif
 
+
+/* PRWS_DRPointer() -- Pointer to something */
+static bool_t PS_SGDXPointerHandler(D_RBlockStream_t* const a_Stream, const bool_t a_Load, const P_SGBWTypeRec_t a_RecType, const P_SGBWTypeC_t a_CType, void* const a_ValPtr, const size_t a_ValSize, int32_t* const a_Copy)
+{
+	uint64_t pID;
+	
+	/* Only accept pointer inputs/outputs */
+	if (a_RecType != PSRC_POINTER)
+	{
+		if (devparm)
+			CONL_PrintF("WARNING: RPointer not as ptr (%c vs %c)\n", a_RecType, PSRC_POINTER);
+		return false;
+	}
+	
+	/* If Saving, Dump Pointer */
+	if (!a_Load)
+		D_RBSWritePointer(a_Stream, *((void**)a_ValPtr));
+	
+	/* If Loading, Get pointer and mark ref */
+	else
+	{
+		pID = D_RBSReadPointer(a_Stream);
+		PLGS_DeRef(pID, ((void**)a_ValPtr));
+		*((void**)a_ValPtr) = NULL;	// FIXME: See if this causes problems?
+	}
+	
+	/* Success */
+	return true;
+}
+
 #define __REMOOD_SGDXIHM(xxnamexx) PS_SGDXIntHandler_##xxnamexx
 #define __REMOOD_SGDXIH(xxnamexx,xxnativexx) static bool_t PS_SGDXIntHandler_##xxnamexx(D_RBlockStream_t* const a_Stream, const bool_t a_Load, const P_SGBWTypeRec_t a_RecType, const P_SGBWTypeC_t a_CType, void* const a_ValPtr, const size_t a_ValSize, int32_t* const a_Copy)\
 {\
@@ -5971,6 +6007,15 @@ __REMOOD_SGDXIH(boolt,bool_t);
 __REMOOD_SGDXIH(tict,tic_t);
 __REMOOD_SGDXIH(anglet,angle_t);
 
+__REMOOD_SGDXIH(int8,int8_t);
+__REMOOD_SGDXIH(int16,int16_t);
+__REMOOD_SGDXIH(int32,int32_t);
+__REMOOD_SGDXIH(int64,int64_t);
+__REMOOD_SGDXIH(uint8,uint8_t);
+__REMOOD_SGDXIH(uint16,uint16_t);
+__REMOOD_SGDXIH(uint32,uint32_t);
+__REMOOD_SGDXIH(uint64,uint64_t);
+
 #undef __REMOOD_SGDXIH
 
 #define __IODEF(nt,ctc,func) {#ctc, nt, func}
@@ -5993,18 +6038,18 @@ static const P_SGDXTypeIO_t c_IOTable[NUMPSTCS] =
 	__IODEF(PSTC_ANGLET,angle_t,__REMOOD_SGDXIHM(anglet)),
 	__IODEF(PSTC_FLOAT,float,NULL),
 	__IODEF(PSTC_DOUBLE,double,NULL),
-	__IODEF(PSTC_POINTERTO,void*,NULL),
+	__IODEF(PSTC_POINTERTO,void*,PS_SGDXPointerHandler),
 	__IODEF(PSTC_POINTERIS,void*,NULL),
 	__IODEF(PSTC_POINTERISDIRECT,void*,NULL),
 	__IODEF(PSTC_STRING,char*,NULL),
-	__IODEF(PSTC_INT8,int8_t,NULL),
-	__IODEF(PSTC_INT16,int16_t,NULL),
-	__IODEF(PSTC_INT32,int32_t,NULL),
-	__IODEF(PSTC_INT64,int64_t,NULL),
-	__IODEF(PSTC_UINT8,uint8_t,NULL),
-	__IODEF(PSTC_UINT16,uint16_t,NULL),
-	__IODEF(PSTC_UINT32,uint32_t,NULL),
-	__IODEF(PSTC_UINT64,uint64_t,NULL),
+	__IODEF(PSTC_INT8,int8_t,__REMOOD_SGDXIHM(int8)),
+	__IODEF(PSTC_INT16,int16_t,__REMOOD_SGDXIHM(int16)),
+	__IODEF(PSTC_INT32,int32_t,__REMOOD_SGDXIHM(int32)),
+	__IODEF(PSTC_INT64,int64_t,__REMOOD_SGDXIHM(int64)),
+	__IODEF(PSTC_UINT8,uint8_t,__REMOOD_SGDXIHM(uint8)),
+	__IODEF(PSTC_UINT16,uint16_t,__REMOOD_SGDXIHM(uint16)),
+	__IODEF(PSTC_UINT32,uint32_t,__REMOOD_SGDXIHM(uint32)),
+	__IODEF(PSTC_UINT64,uint64_t,__REMOOD_SGDXIHM(uint64)),
 	__IODEF(PSTC_INTPTR,intptr_t,NULL),
 	__IODEF(PSTC_UINTPTR,uintptr_t,NULL),
 	__IODEF(PSTC_SIZET,size_t,NULL),
@@ -6015,6 +6060,54 @@ static const P_SGDXTypeIO_t c_IOTable[NUMPSTCS] =
 #undef __REMOOD_SGDXIHM
 
 /*** SPECIFICATIONS ***/
+
+// c_MapThingSpec -- Map thing specification
+static const P_SGDXDataSpec_t c_MapThingSpec[] =
+{
+	__SPEC(mapthing_t,x,SHORT,INT32),
+	__SPEC(mapthing_t,y,SHORT,INT32),
+	__SPEC(mapthing_t,z,SHORT,INT32),
+	__SPEC(mapthing_t,angle,SHORT,INT32),
+	__SPEC(mapthing_t,type,SHORT,INT32),
+	__SPEC(mapthing_t,options,SHORT,INT32),
+	__SPEC(mapthing_t,mobj,POINTERTO,POINTER),
+	__SPEC(mapthing_t,IsHexen,BOOLT,UINT8),
+	__SPEC(mapthing_t,HeightOffset,INT16,INT16),
+	__SPEC(mapthing_t,ID,UINT16,UINT16),
+	__SPEC(mapthing_t,Special,UINT8,UINT8),
+	__SPEC(mapthing_t,Args[0],UINT8,UINT8),
+	__SPEC(mapthing_t,Args[1],UINT8,UINT8),
+	__SPEC(mapthing_t,Args[2],UINT8,UINT8),
+	__SPEC(mapthing_t,Args[3],UINT8,UINT8),
+	__SPEC(mapthing_t,Args[4],UINT8,UINT8),
+	__SPEC(mapthing_t,MoType,INT,UINT32),
+	__SPEC(mapthing_t,MarkedWeapon,BOOLT,UINT8),
+	
+	__ENDSPEC,
+};
+
+// c_VertexSpec -- vertex_t info
+static const P_SGDXDataSpec_t c_VertexSpec[] =
+{
+	__SPEC(vertex_t,x,FIXEDT,INT32),
+	__SPEC(vertex_t,y,FIXEDT,INT32),
+	
+	__ENDSPEC,
+};
+
+// c_LineSpec -- line_t info
+static const P_SGDXDataSpec_t c_LineSpec[] =
+{
+	
+	__ENDSPEC,
+};
+
+// c_SideSpec -- side_t info
+static const P_SGDXDataSpec_t c_SideSpec[] =
+{
+	
+	__ENDSPEC,
+};
 
 // c_SectorSpec -- sector_t Info
 static const P_SGDXDataSpec_t c_SectorSpec[] =
@@ -6101,12 +6194,36 @@ static bool_t PS_SGDXReadWriteData(D_RBlockStream_t* const a_Stream, const bool_
 	/* Get IO */
 	IO = &c_IOTable[a_CType];
 	
+	if (devparm)
+		fprintf(stderr, "%s %2u %2u (%2u)\n", (a_Load ? "Read" : "Write"), (unsigned)a_CType, (unsigned)a_RType, (unsigned)a_Size);
+	
 	/* Use Function */
 	if (IO->IOFunc)
 		return IO->IOFunc(a_Stream, a_Load, a_RType, a_CType, a_Ptr, a_Size, a_Copy);
 	
 	/* Nothing */
 	return false;
+}
+
+
+/* P_SGBSGDXReadStr() -- Read string and possibly Z_StrDup it */
+bool_t P_SGBSGDXReadStr(D_RBlockStream_t* const a_Stream, char** const a_Ptr, char* const a_Buf, const size_t a_BufSize)
+{
+	/* Clear */
+	//memset(a_Buf, 0, sizeof(a_Buf) * a_BufSize);
+	
+	/* Read String */
+	D_RBSReadString(a_Stream, a_Buf, a_BufSize - 1);
+	
+	/* Dupe it */
+	if (a_Ptr)
+	{
+		if (*a_Ptr)
+			Z_Free(*a_Ptr);
+		*a_Ptr = Z_StrDup(a_Buf, PU_STATIC, NULL);
+	}
+	
+	return true;
 }
 
 /* PS_SGDXDoStruct() -- Saves/Loads structure specification */
@@ -6189,22 +6306,40 @@ bool_t P_SGDXDoArray(D_RBlockStream_t* const a_Stream, const bool_t a_Load, void
 	return true;
 }
 
+#ifdef __BI
+	#undef __BI
+#endif
+#ifdef __BISTRZ
+	#undef __BISTRZ
+#endif
+#ifdef __BISTRB
+	#undef __BISTRB
+#endif	
+
 #define __INITARRAY(ar,co,ct,pu) P_SGDXDoArray(a_Stream, a_Load, &ar, sizeof(*ar), &co, sizeof(co), PSTC_##ct,pu)
-#define __BI(x,nt,rc) PS_SGDXReadWriteData(a_Stream, a_Load, &x, sizeof(x), PSRC_##rc, PSTC_##nt, NULL)
+#define __BI(x,nt,rc) PS_SGDXReadWriteData(a_Stream, a_Load, &x, sizeof(x), PSTC_##nt, PSRC_##rc, NULL)
+
+	// __BISTRZ -- Z_Malloced String
+#define __BISTRZ(x) (a_Load ? P_SGDXReadStr(a_Stream,&x,Buf,BUFSIZE) : PS_WRAPPED_D_RBSWriteString(a_Stream, x))
+	// __BISTRB -- Buffered String
+#define __BISTRB(buf,bs) (a_Load ? P_SGBSGDXReadStr(a_Stream,NULL,buf,bs) : PS_WRAPPED_D_RBSWriteString(a_Stream, buf))
 
 /* P_SGDXSpec() -- Save/Load Game via specification */
 bool_t P_SGDXSpec(D_RBlockStream_t* const a_Stream, const bool_t a_Load)
 {
+#define BUFSIZE 128
+	char Buf[BUFSIZE];
 	bool_t Continue;
 	char Header[5];
 	size_t i, j;
 	void* vp;
+	int32_t i32;
 	
 	/* Check */
 	if (!a_Stream)
 		return false;
 		
-	M_ExUIMessageBox(MEXMBT_DONTCARE, 123, "Hello", "You just saved the game!", NULL);
+	//M_ExUIMessageBox(MEXMBT_DONTCARE, 123, "Hello", "You just saved the game!", NULL);
 	
 	/* Read/Dump Everything */
 	Continue = true;
@@ -6219,6 +6354,99 @@ bool_t P_SGDXSpec(D_RBlockStream_t* const a_Stream, const bool_t a_Load)
 		
 		//////////////////////////////
 		// Save specific data
+		
+		// SGGV -- Game Variables
+		if (__HEADER("SGGV"))
+		{
+			
+			
+			// Record
+			__REC;
+		}
+		
+		// SGPW -- PWADs
+		if (__HEADER("SGPW"))
+		{
+			// Record
+			__REC;
+		}
+		
+		// SGMP -- Map Level
+		if (__HEADER("SGMP"))
+		{
+			// Save/Restore Map Level
+				// Save
+			if (!a_Load)
+				strncpy(Buf, g_CurrentLevelInfo->LumpName, BUFSIZE - 1);
+			__BISTRB(Buf,BUFSIZE - 1);
+			__BI(gamestate,INT,INT32);
+			__BI(gameaction,INT,INT32);
+			
+			// Load Level Base
+			if (a_Load)
+				P_ExLoadLevel(P_FindLevelByNameEx(Buf, 0), PEXLL_NOSPAWNSPECIALS | PEXLL_NOSPAWNMAPTHING | PEXLL_NOINITBRAIN | PEXLL_NOFINALIZE | PEXLL_NOCLEARLEVEL);
+				
+			// Record
+			__REC;	
+		}
+		
+		// SGMI -- Misc.
+		if (__HEADER("SGMI"))
+		{
+			// Map Things
+			__INITARRAY(mapthings,nummapthings,INT,PU_LEVEL);
+			for (i = 0; i < nummapthings; i++)
+				PS_SGDXDoStruct(a_Stream, a_Load, &mapthings[i], c_MapThingSpec);
+			
+			// Player Starts
+			for (i = 0; i < MAXPLAYERS; i++)
+				__BI(playerstarts[i],POINTERTO,POINTER);
+			
+			// Record
+			__REC;
+		}
+		
+		// SGTH -- Thinkers
+		if (__HEADER("SGTH"))
+		{
+			// Record
+			__REC;
+		}
+		
+#if 0
+		// SGVX -- Vertexes
+		if (__HEADER("SGVX"))
+		{
+			__INITARRAY(vertexes,numvertexes,INT,PU_LEVEL);
+			for (i = 0; i < numvertexes; i++)
+				PS_SGDXDoStruct(a_Stream, a_Load, &vertexes[i], c_VertexSpec);
+			
+			// Record
+			__REC;
+		}
+		
+		// SGLD -- LineDefs
+		if (__HEADER("SGLD"))
+		{
+			__INITARRAY(lines,numlines,INT,PU_LEVEL);
+			for (i = 0; i < numlines; i++)
+				PS_SGDXDoStruct(a_Stream, a_Load, &lines[i], c_LineSpec);
+			
+			// Record
+			__REC;
+		}
+		
+		
+		// SGSD -- SideDefs
+		if (__HEADER("SGSD"))
+		{
+			__INITARRAY(sides,numsides,INT,PU_LEVEL);
+			for (i = 0; i < numsides; i++)
+				PS_SGDXDoStruct(a_Stream, a_Load, &sides[i], c_SideSpec);
+			
+			// Record
+			__REC;
+		}
 		
 		// SGSC -- Sectors
 		if (__HEADER("SGSC"))
@@ -6239,6 +6467,7 @@ bool_t P_SGDXSpec(D_RBlockStream_t* const a_Stream, const bool_t a_Load)
 			// Record
 			__REC;
 		}
+#endif
 		
 		// If Saving, Terminate
 		if (!a_Load)
@@ -6273,6 +6502,7 @@ bool_t P_SGDXSpec(D_RBlockStream_t* const a_Stream, const bool_t a_Load)
 	
 	/* Success? */
 	return true;
+#undef BUFSIZE
 }
 
 /*****************************************************************************/

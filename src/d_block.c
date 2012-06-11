@@ -1880,9 +1880,11 @@ size_t D_RBSWriteChunk(D_RBlockStream_t* const a_Stream, const void* const a_Dat
 __REMOOD_RBSQUICK(Int8,int8_t);
 __REMOOD_RBSQUICK(Int16,int16_t);
 __REMOOD_RBSQUICK(Int32,int32_t);
+__REMOOD_RBSQUICK(Int64,int64_t);
 __REMOOD_RBSQUICK(UInt8,uint8_t);
 __REMOOD_RBSQUICK(UInt16,uint16_t);
 __REMOOD_RBSQUICK(UInt32,uint32_t);
+__REMOOD_RBSQUICK(UInt64,uint64_t);
 
 /* D_RBSWriteString() -- Write Version String */
 void D_RBSWriteString(D_RBlockStream_t* const a_Stream, const char* const a_Val)
@@ -1946,9 +1948,11 @@ size_t D_RBSReadChunk(D_RBlockStream_t* const a_Stream, void* const a_Data, cons
 __REMOOD_RBSQUICKREAD(Int8,int8_t);
 __REMOOD_RBSQUICKREAD(Int16,int16_t);
 __REMOOD_RBSQUICKREAD(Int32,int32_t);
+__REMOOD_RBSQUICKREAD(Int64,int64_t);
 __REMOOD_RBSQUICKREAD(UInt8,uint8_t);
 __REMOOD_RBSQUICKREAD(UInt16,uint16_t);
 __REMOOD_RBSQUICKREAD(UInt32,uint32_t);
+__REMOOD_RBSQUICKREAD(UInt64,uint64_t);
 
 /* D_RBSReadString() -- Read String */
 size_t D_RBSReadString(D_RBlockStream_t* const a_Stream, char* const a_Out, const size_t a_OutSize)

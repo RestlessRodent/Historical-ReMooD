@@ -313,13 +313,7 @@ typedef struct sector_s
 	fixed_t virtualCeilingheight;
 	linechain_t* sectorLines;
 	struct sector_s** stackList;
-#ifdef SOLARIS
-	// Until we get Z_MallocAlign sorted out, make this a float
-	// so that we don't get alignment problems.
-	float lineoutLength;
-#else
 	double lineoutLength;
-#endif
 	// ----- end special tricks -----
 	
 	// ReMooD Additions

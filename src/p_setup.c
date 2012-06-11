@@ -271,6 +271,7 @@ bool_t P_ExClearLevel(void)
 	R_ClearLevelSplats();
 	P_ClearRecursiveSound();
 	B_ClearNodes();
+	HU_ClearFSPics();
 	
 	/* Free all level tags */
 	Z_FreeTags(PU_LEVEL, PU_ENDLEVELTAGS);
@@ -713,7 +714,8 @@ bool_t P_ExLoadLevel(P_LevelInfoEx_t* const a_Info, const uint32_t a_Flags)
 	
 	/* Clear level data */
 	CONL_LoadingScreenIncrMaj("Clearing level", 0);
-	P_ExClearLevel();
+	if (!(a_Flags & PEXLL_NOCLEARLEVEL))
+		P_ExClearLevel();
 	
 	/* Load Map Data */
 	// Load vertex data (Non-Textual Format)
@@ -1286,7 +1288,6 @@ bool_t P_ExFinalizeLevel(void)
 		G_InitPlayer(&players[i]);
 	
 	// clear hud messages remains (usually from game startup)
-	HU_ClearFSPics();
 	CON_ClearHUD();
 	
 	/* Compile Level Scripts */

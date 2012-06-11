@@ -137,6 +137,12 @@ static int32_t l_SSBuildChain = 0;				// Final Stage Chaining
 *** FUNCTIONS ***
 ****************/
 
+/* BS_Random() -- Random Number */
+static int BS_Random(B_GhostBot_t* const a_Bot)
+{
+	return M_Random();
+}
+
 /* BS_PointsToAngleTurn() -- Convert points to angle turn */
 static uint16_t BS_PointsToAngleTurn(const fixed_t a_x1, const fixed_t a_y1, const fixed_t a_x2, const fixed_t a_y2)
 {
@@ -874,8 +880,13 @@ static bool_t BS_GHOST_JOB_RandomNav(struct B_GhostBot_s* a_GhostBot, const size
 		return false;
 	
 	/* Find node in random direction, and move to it */
-	if (!a_GhostBot->RoamX && !a_GhostBot->RoamY)
-		a_GhostBot->RoamX = a_GhostBot->RoamY = -1;
+	while (!a_GhostBot->RoamX && !a_GhostBot->RoamY)
+	{
+		a_GhostBot->RoamX = BS_Random(a_GhostBot) % 3;
+		a_GhostBot->RoamY = BS_Random(a_GhostBot) % 3;
+		a_GhostBot->RoamX -= 1;
+		a_GhostBot->RoamY -= 1;
+	}
 	
 	/* Get link operation */
 	lox = a_GhostBot->RoamX + 1;
@@ -1025,7 +1036,8 @@ static bool_t BS_GHOST_JOB_ShootStuff(struct B_GhostBot_s* a_GhostBot, const siz
 					a_GhostBot->Targets[i].Key = (uintptr_t)ListMos[s];
 					
 					// Force Attacking
-					a_GhostBot->TicCmdPtr->buttons |= BT_ATTACK;
+					if (a_GhostBot->Player->pendingweapon < 0)
+						a_GhostBot->TicCmdPtr->buttons |= BT_ATTACK;
 					
 					// Clear from current
 					ListMos[s] = NULL;
@@ -1046,7 +1058,8 @@ static bool_t BS_GHOST_JOB_ShootStuff(struct B_GhostBot_s* a_GhostBot, const siz
 				a_GhostBot->Targets[i].Key = (uintptr_t)ListMos[s];
 				
 				// Force Attacking
-				a_GhostBot->TicCmdPtr->buttons |= BT_ATTACK;
+				if (a_GhostBot->Player->pendingweapon < 0)
+					a_GhostBot->TicCmdPtr->buttons |= BT_ATTACK;
 			
 				// Update List
 				s++;
@@ -1270,7 +1283,8 @@ void B_GHOST_Think(B_GhostBot_t* const a_GhostBot, ticcmd_t* const a_TicCmd)
 		// Aim at target
 		else if (MoveTarg == -1 && AttackTarg != -1)
 		{
-			a_GhostBot->TicCmdPtr->buttons |= BT_ATTACK;
+			if (a_GhostBot->Player->pendingweapon < 0)
+				a_GhostBot->TicCmdPtr->buttons |= BT_ATTACK;
 			a_GhostBot->TicCmdPtr->angleturn = BS_PointsToAngleTurn(a_GhostBot->Mo->x, a_GhostBot->Mo->y, a_GhostBot->Targets[AttackTarg].x, a_GhostBot->Targets[AttackTarg].y);
 		}
 		
