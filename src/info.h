@@ -300,7 +300,7 @@ INFO_BotObjMetric_t INFO_BotMetricByName(const char* const a_Name);
 /*** HELPFUL MACROS ***/
 // Yuck! TODO: Make these real functions
 
-// __REMOOD_BLOODTIMECONST -- use cv_bloodtime.value instead here
+// __REMOOD_BLOODTIMECONST -- use P_EXGSGetValue(PEXGSBID_GAMEBLOODTIME) instead here
 #define __REMOOD_BLOODTIMECONST 0x1
 
 // __REMOOD_GETBLOODKIND -- or "LegacyOldDoomBlood"
@@ -310,7 +310,7 @@ INFO_BotObjMetric_t INFO_BotMetricByName(const char* const a_Name);
 // mobj is intentional. Why? So in -fast you could make certain monsters fast
 // and not others with the same type. You could have a slowdown type weapon that
 // when used with fast monsters negates the fast speed?
-#define __REMOOD_GETSPEEDMO(mo) ((((((mo)->RXFlags[0] & MFREXA_ENABLEFASTSPEED) && cv_fastmonsters.value) ? (mo)->info->RFastSpeed : (mo)->info->speed)) >> (((mo)->flags & MF_MISSILE) ? 0 : 16))
+#define __REMOOD_GETSPEEDMO(mo) ((((((mo)->RXFlags[0] & MFREXA_ENABLEFASTSPEED) && P_EXGSGetValue(PEXGSBID_MONFASTMONSTERS)) ? (mo)->info->RFastSpeed : (mo)->info->speed)) >> (((mo)->flags & MF_MISSILE) ? 0 : 16))
 
 #endif
 

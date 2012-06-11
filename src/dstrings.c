@@ -287,6 +287,7 @@ StringGroupEX_t UnicodeStrings[NUMUNICODESTRINGS] =
 	
 	{			   "MENUGAMEVAR_CATNONE", ""},
 	{			   "MENUGAMEVAR_CATGAME", "*** GAME ***"},
+	{			   "MENUGAMEVAR_CATITEMS", "*** ITEMS ***"},
 	{			"MENUGAMEVAR_CATPLAYERS", "*** PLAYERS ***"},
 	{		   "MENUGAMEVAR_CATMONSTERS", "*** MONSTERS ***"},
 	{			   "MENUGAMEVAR_CATMISC", "*** MISC ***"},

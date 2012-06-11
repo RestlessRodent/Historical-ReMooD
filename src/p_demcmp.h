@@ -110,6 +110,7 @@ typedef enum P_EXGSMenuCategory_s
 {
 	PEXGSMC_NONE,								// Nothing
 	PEXGSMC_GAME,								// Game Settings
+	PEXGSMC_ITEMS,								// Item Settings
 	PEXGSMC_PLAYERS,							// Players
 	PEXGSMC_MONSTERS,							// Monster Settings
 	PEXGSMC_MISC,								// Misc. Settings
@@ -219,11 +220,11 @@ typedef enum P_EXGSBitID_e
 	PEXGSBID_PLSPAWNWITHMAXGUNS,				// Spawn With All Guns
 	PEXGSBID_PLSPAWNWITHSUPERGUNS,				// Spawn With Super Guns
 	PEXGSBID_PLSPAWNWITHMAXSTATS,				// Spawn With Max Stats
-	PEXGSBID_GAMESPAWNPICKUPS,					// Spawn Game Pickups
+	PEXGSBID_ITEMSSPAWNPICKUPS,					// Spawn Game Pickups
 	PEXGSBID_COHERETICFRICTION,					// Allow Heretic Friction
 	PEXGSBID_GAMEDEATHMATCH,					// Deathmatch Mode
 	PEXGSBID_PLSPAWNWITHALLKEYS,				// Spawn With All Keys
-	PEXGSBID_GAMEKEEPWEAPONS,					// Keep Weapons on the Floor
+	PEXGSBID_ITEMSKEEPWEAPONS,					// Keep Weapons on the Floor
 	PEXGSBID_GAMETEAMPLAY,						// Team Play
 	PEXGSBID_GAMETEAMDAMAGE,					// Team Damage
 	PEXGSBID_GAMEFRAGLIMIT,						// Frag Limit
@@ -232,6 +233,12 @@ typedef enum P_EXGSBitID_e
 	PEXGSBID_PLFASTERWEAPONS,					// Faster Player Weapons
 	PEXGSBID_MONSPAWNMONSTERS,					// Spawn Monsters
 	PEXGSBID_GAMESPAWNMULTIPLAYER,				// Spawn multi-player stuff
+	PEXGSBID_ITEMRESPAWNITEMS,					// Respawn Items
+	PEXGSBID_ITEMRESPAWNITEMSTIME,				// Respawn Item Time
+	PEXGSBID_MONFASTMONSTERS,					// Monsters are fast
+	PEXGSBID_GAMESOLIDCORPSES,					// Corpses are solid
+	PEXGSBID_GAMEBLOODTIME,						// Time blood stays around
+	PEXGSBID_GAMEGRAVITY,						// Level Gravity amount
 	
 	PEXGSNUMBITIDS
 } P_EXGSBitID_t;

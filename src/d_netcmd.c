@@ -1178,6 +1178,8 @@ static bool_t GAMEKEYDOWN(D_ProfileEx_t* const a_Profile, const uint8_t a_Key)
 	return false;
 }
 
+short G_ClipAimingPitch(int* aiming);
+
 /* D_NCSLocalBuildTicCmd() -- Build local tic command */
 static void D_NCSLocalBuildTicCmd(D_NetPlayer_t* const a_NPp, ticcmd_t* const a_TicCmd, size_t* const a_SIDp)
 {
@@ -1187,8 +1189,8 @@ static void D_NCSLocalBuildTicCmd(D_NetPlayer_t* const a_NPp, ticcmd_t* const a_
 	int32_t TargetMove;
 	size_t i, PID, SID;
 	int8_t SensMod, MoveMod, MouseMod, MoveSpeed, TurnSpeed;
-	int32_t SideMove, ForwardMove, BaseAT;
-	bool_t IsTurning, GunInSlot;
+	int32_t SideMove, ForwardMove, BaseAT, BaseAM;
+	bool_t IsTurning, GunInSlot, ResetAim;
 	int slot, j, l, k;
 	weapontype_t newweapon;
 	weapontype_t SlotList[MAXWEAPONSLOTS];
@@ -1227,8 +1229,8 @@ static void D_NCSLocalBuildTicCmd(D_NetPlayer_t* const a_NPp, ticcmd_t* const a_
 		*a_SIDp = SID;
 	
 	/* Reset Some Things */
-	SideMove = ForwardMove = BaseAT = 0;
-	IsTurning = false;
+	SideMove = ForwardMove = BaseAT = BaseAM = 0;
+	IsTurning = ResetAim = false;
 	
 	/* Modifiers */
 	// Mouse Sensitivity
@@ -1334,7 +1336,8 @@ static void D_NCSLocalBuildTicCmd(D_NetPlayer_t* const a_NPp, ticcmd_t* const a_
 					
 					// Up/Down Look
 				case DPEXCMA_LOOKY:
-					localaiming[SID] += TargetMove << 19;
+					BaseAM += TargetMove << 3;
+					//localaiming[SID] += TargetMove << 19;
 					break;
 				
 					// Unknown
@@ -1403,13 +1406,17 @@ static void D_NCSLocalBuildTicCmd(D_NetPlayer_t* const a_NPp, ticcmd_t* const a_
 		
 	// Looking
 	if (GAMEKEYDOWN(Profile, DPEXIC_LOOKCENTER))
-		localaiming[SID] = 0;
+		ResetAim = true;
+		//localaiming[SID] = 0;
 	else
 	{
 		if (GAMEKEYDOWN(Profile, DPEXIC_LOOKUP))
-			localaiming[SID] += Profile->LookUpDownSpeed;
+			BaseAM += Profile->LookUpDownSpeed >> 16;
+			//localaiming[SID] += Profile->LookUpDownSpeed;
+		
 		if (GAMEKEYDOWN(Profile, DPEXIC_LOOKDOWN))
-			localaiming[SID] -= Profile->LookUpDownSpeed;
+			BaseAM -= Profile->LookUpDownSpeed >> 16;
+			//localaiming[SID] -= Profile->LookUpDownSpeed;
 	}
 	
 	// Weapons
@@ -1610,6 +1617,8 @@ static void D_NCSLocalBuildTicCmd(D_NetPlayer_t* const a_NPp, ticcmd_t* const a_
 	
 	/* Turning */
 	a_TicCmd->BaseAngleTurn = BaseAT;
+	a_TicCmd->BaseAiming = BaseAM;
+	a_TicCmd->ResetAim = ResetAim;
 	
 	/* Set from localaiming and such */
 	// Don't change angle when teleporting
@@ -1623,7 +1632,7 @@ static void D_NCSLocalBuildTicCmd(D_NetPlayer_t* const a_NPp, ticcmd_t* const a_
 #endif
 	
 	// Local aiming (y look)
-	a_TicCmd->aiming = G_ClipAimingPitch(&localaiming[SID]);
+	//a_TicCmd->aiming = G_ClipAimingPitch(&localaiming[SID]);
 #undef MAXWEAPONSLOTS
 }
 
@@ -1844,6 +1853,17 @@ void D_NCSNetTicTransmit(D_NetPlayer_t* const a_NPp, ticcmd_t* const a_TicCmd)
 			Merge.angleturn = localangle[SID] >> 16;
 		}
 		
+		// Set local aiming angle
+		if (SID < MAXSPLITSCREEN)
+		{
+			if (Merge.ResetAim)
+				localaiming[SID] = 0;
+			else
+				localaiming[SID] += Merge.BaseAiming << 16;
+			Merge.aiming = G_ClipAimingPitch(&localaiming[SID]);
+			//Merge.aiming = localaiming[SID] >> 16;
+		}
+		
 		// Only use this tic (single player game)
 		a_NPp->TicCmd[0] = Merge;
 		a_NPp->TicTotal = 1;
@@ -1855,7 +1875,7 @@ void D_NCSNetMergeTics(ticcmd_t* const a_DestCmd, const ticcmd_t* const a_SrcLis
 {
 #define __REMOOD_SWIRVYANGLE
 	size_t i, j;
-	int32_t FM, SM, AT;
+	int32_t FM, SM, AT, AM;
 	fixed_t xDiv;
 	
 	/* Check */
@@ -1864,7 +1884,7 @@ void D_NCSNetMergeTics(ticcmd_t* const a_DestCmd, const ticcmd_t* const a_SrcLis
 	
 	/* Merge Variadic Stuff */
 	// Super merging
-	FM = SM = AT = 0;
+	FM = SM = AT = AM = 0;
 	for (j = 0; j < a_NumSrc; j++)
 	{
 		FM += a_SrcList[j].forwardmove;
@@ -1872,12 +1892,18 @@ void D_NCSNetMergeTics(ticcmd_t* const a_DestCmd, const ticcmd_t* const a_SrcLis
 
 #if defined(__REMOOD_SWIRVYANGLE)
 		AT += a_SrcList[j].BaseAngleTurn;
+		AM += a_SrcList[j].BaseAiming;
 #else
 		// Use the furthest aiming angle
 		if (abs(a_SrcList[j].BaseAngleTurn) > abs(AT))
 			AT = a_SrcList[j].BaseAngleTurn;
+		if (abs(a_SrcList[j].BaseAiming) > abs(AM))
+			AM = a_SrcList[j].BaseAiming;
 #endif
 		
+		// Reset aim?
+		a_DestCmd->ResetAim |= a_SrcList[j].ResetAim;
+			
 		// Merge weapon here
 		if (!a_DestCmd->XNewWeapon)
 			a_DestCmd->XNewWeapon = a_SrcList[j].XNewWeapon;
@@ -1887,6 +1913,8 @@ void D_NCSNetMergeTics(ticcmd_t* const a_DestCmd, const ticcmd_t* const a_SrcLis
 		
 		// Merge Buttons
 		a_DestCmd->buttons |= a_SrcList[j].buttons;
+		
+		a_DestCmd->aiming = a_SrcList[j].aiming;
 	}
 
 	// Do some math
@@ -1905,12 +1933,20 @@ void D_NCSNetMergeTics(ticcmd_t* const a_DestCmd, const ticcmd_t* const a_SrcLis
 	else if (AT < -32000)
 		AT = -32000;
 	
+	// Cap
+	if (AM > 32000)
+		AM = 32000;
+	else if (AM < -32000)
+		AM = -32000;
+	
 	// Try now
 	a_DestCmd->BaseAngleTurn = FixedDiv(AT << FRACBITS, xDiv) >> FRACBITS;
+	a_DestCmd->BaseAiming = FixedDiv(AM << FRACBITS, xDiv) >> FRACBITS;
 #else
 	// Use furthest angle
 	//AT /= ((int32_t)(a_NumSrc));
 	a_DestCmd->BaseAngleTurn = AT;
+	a_DestCmd->BaseAiming = AM;
 #endif
 }
 

@@ -127,12 +127,12 @@ static const P_EXGSNiceVersion_t l_NiceVersions[] =
 	{0, NULL},
 };
 
-/* P_EXGSChangeFunc_GAMEKEEPWEAPONS() -- GAMEKEEPWEAPONS Changed */
-void P_EXGSChangeFunc_GAMEKEEPWEAPONS(struct P_EXGSVariable_s* const a_Bit)
+/* P_EXGSChangeFunc_ITEMSKEEPWEAPONS() -- ITEMSKEEPWEAPONS Changed */
+void P_EXGSChangeFunc_ITEMSKEEPWEAPONS(struct P_EXGSVariable_s* const a_Bit)
 {
 	/* Weapons are now being keeped */
 	// So respawn them all
-	if (P_EXGSGetValue(PEXGSBID_GAMEKEEPWEAPONS))
+	if (P_EXGSGetValue(PEXGSBID_ITEMSKEEPWEAPONS))
 		P_RespawnWeapons();
 }
 
@@ -531,7 +531,7 @@ static P_EXGSVariable_t l_GSVars[PEXGSNUMBITIDS] =
 	
 	{PEXGST_INTEGER, PEXGSBID_GAMEHERETICGIBBING, "game_hereticgibbing", "Heretic Gibbing",
 		"Objects that can be gibbed are much easier to gib.", PEXGSGM_HERETIC, PEXGSDR_NOCHECK, 0, {0, 1}, 1,
-		PEXGSMC_PLAYERS, PEXGSDA_YESNO, c_PEXGSPVBoolean, NULL},
+		PEXGSMC_HERETIC, PEXGSDA_YESNO, c_PEXGSPVBoolean, NULL},
 	
 	{PEXGST_INTEGER, PEXGSBID_MONPREDICTMISSILES, "mon_predictmissile", "Predict Missiles",
 		"Monsters predict missile targets and aim accordingly.", PEXGSGM_ANY, PEXGSDR_NOCHECK, 0, {0, 1}, 0,
@@ -554,9 +554,9 @@ static P_EXGSVariable_t l_GSVars[PEXGSNUMBITIDS] =
 		"When a player is spawned, they have max health and armor.", PEXGSGM_ANY, PEXGSDR_NOCHECK, 0, {0, 1}, 0,
 		PEXGSMC_PLAYERS, PEXGSDA_YESNO, c_PEXGSPVBoolean, NULL},
 	
-	{PEXGST_INTEGER, PEXGSBID_GAMESPAWNPICKUPS, "game_spawnpickups", "Spawn Pickups",
+	{PEXGST_INTEGER, PEXGSBID_ITEMSSPAWNPICKUPS, "item_spawnpickups", "Spawn Pickups",
 		"Spawn pickups on map load.", PEXGSGM_ANY, PEXGSDR_NOCHECK, 0, {0, 1}, 1,
-		PEXGSMC_GAME, PEXGSDA_YESNO, c_PEXGSPVBoolean, NULL},
+		PEXGSMC_ITEMS, PEXGSDA_YESNO, c_PEXGSPVBoolean, NULL},
 		
 	{PEXGST_INTEGER, PEXGSBID_COHERETICFRICTION, "co_hereticfriction", "Heretic Friction",
 		"Use Heretic Friction", PEXGSGM_HERETIC, PEXGSDR_ATLEAST, 0, {0, 1}, 0,
@@ -570,9 +570,9 @@ static P_EXGSVariable_t l_GSVars[PEXGSNUMBITIDS] =
 		"When a player is spawned, they have every key.", PEXGSGM_ANY, PEXGSDR_NOCHECK, 0, {0, 1}, 0,
 		PEXGSMC_PLAYERS, PEXGSDA_YESNO, c_PEXGSPVBoolean, NULL},
 		
-	{PEXGST_INTEGER, PEXGSBID_GAMEKEEPWEAPONS, "game_keepweapons", "Keep Weapons On Floor",
+	{PEXGST_INTEGER, PEXGSBID_ITEMSKEEPWEAPONS, "item_keepweapons", "Keep Weapons On Floor",
 		"Keep weapons on the ground when picked up.", PEXGSGM_ANY, PEXGSDR_NOCHECK, 0, {0, 1}, 1,
-		PEXGSMC_GAME, PEXGSDA_YESNO, c_PEXGSPVBoolean, P_EXGSChangeFunc_GAMEKEEPWEAPONS},
+		PEXGSMC_ITEMS, PEXGSDA_YESNO, c_PEXGSPVBoolean, P_EXGSChangeFunc_ITEMSKEEPWEAPONS},
 		
 	{PEXGST_INTEGER, PEXGSBID_GAMETEAMPLAY, "game_teamplay", "Enable Team Play",
 		"Enable team mode, teams of different colors vs others.", PEXGSGM_ANY, PEXGSDR_NOCHECK, 0, {0, 1}, 0,
@@ -606,6 +606,30 @@ static P_EXGSVariable_t l_GSVars[PEXGSNUMBITIDS] =
 		"Spawn any items that are marked multiplayer (extra weapons, monsters, etc.)", PEXGSGM_ANY, PEXGSDR_NOCHECK, 0, {0, 1}, 0,
 		PEXGSMC_GAME, PEXGSDA_YESNO, c_PEXGSPVBoolean, NULL},
 	
+	{PEXGST_INTEGER, PEXGSBID_ITEMRESPAWNITEMS, "item_respawnitems", "Respawn Items",
+		"Items are respawned after they are picked up.", PEXGSGM_ANY, PEXGSDR_NOCHECK, 0, {0, 1}, 0,
+		PEXGSMC_ITEMS, PEXGSDA_YESNO, c_PEXGSPVBoolean, NULL},
+		
+	{PEXGST_INTEGER, PEXGSBID_ITEMRESPAWNITEMSTIME, "item_respawnitemstime", "Item Respawn Delay",
+		"Time in seconds before items are respawned.", PEXGSGM_ANY, PEXGSDR_NOCHECK, 0, {0, 30}, 30,
+		PEXGSMC_ITEMS, PEXGSDA_TIMESECS, c_PEXGSPVPositive, NULL},
+	
+	{PEXGST_INTEGER, PEXGSBID_MONFASTMONSTERS, "mon_spawnmonsters", "Fast Monsters",
+		"Monster move faster and their attacks are also faster.", PEXGSGM_ANY, PEXGSDR_NOCHECK, 0, {0, 1}, 0,
+		PEXGSMC_MONSTERS, PEXGSDA_YESNO, c_PEXGSPVBoolean, NULL},
+		
+	{PEXGST_INTEGER, PEXGSBID_GAMESOLIDCORPSES, "game_solidcorpses", "Solid Corpses",
+		"Corpses on the ground are solidified and could be killed again.", PEXGSGM_ANY, PEXGSDR_NOCHECK, 0, {0, 1}, 0,
+		PEXGSMC_GAME, PEXGSDA_YESNO, c_PEXGSPVBoolean, NULL},
+		
+	{PEXGST_INTEGER, PEXGSBID_GAMEBLOODTIME, "game_bloodtime", "Blood Time",
+		"Time in seconds blood will last on the gound.", PEXGSGM_ANY, PEXGSDR_NOCHECK, 0, {0, 20}, 20,
+		PEXGSMC_GAME, PEXGSDA_TIMESECS, c_PEXGSPVPositive, NULL},
+		
+	{PEXGST_FLOAT, PEXGSBID_GAMEGRAVITY, "game_gravity", "Gravity",
+		"The multiplier to the amount of downward force to apply to players that are in the air.", PEXGSGM_ANY, PEXGSDR_NOCHECK, 0, {0, (1 * FRACUNIT)}, (1 * FRACUNIT),
+		PEXGSMC_GAME, 0, NULL, NULL},
+		
 };
 
 /*** FUNCTIONS ***/

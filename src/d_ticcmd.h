@@ -99,7 +99,9 @@ typedef struct
 	// Extended tic command stuff
 	uint8_t XNewWeapon;							// New weapon to switch to
 	int16_t BaseAngleTurn;						// Base angle turning
+	int16_t BaseAiming;							// Base Aiming
 	uint8_t InventoryBits;						// Inventory Control
+	bool_t ResetAim;							// Reset Aim
 } ticcmd_t;
 
 #endif

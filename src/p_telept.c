@@ -38,6 +38,7 @@
 #include "s_sound.h"
 
 #include "r_main.h"				//SoM: 3/16/2000
+#include "p_demcmp.h"
 
 bool_t P_Teleport(mobj_t* thing, fixed_t x, fixed_t y, angle_t angle)
 {

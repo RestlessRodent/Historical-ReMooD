@@ -1067,7 +1067,7 @@ void R_RenderPlayerViewEx_DOOM(player_t* player, int quarter)
 	
 	// draw the psprites on top of everything
 	//  but does not draw on side views
-	if (!viewangleoffset && !player->camera.chase && cv_psprites.value && !script_camera_on)
+	if (!viewangleoffset && !player->camera.chase && (!player->ProfileEx || (player->ProfileEx && player->ProfileEx->DrawPSprites)) && !script_camera_on)
 		R_DrawPlayerSprites();
 		
 	// GhostlyDeath -- warp the view

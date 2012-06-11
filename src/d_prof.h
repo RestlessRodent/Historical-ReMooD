@@ -190,6 +190,7 @@ typedef struct D_ProfileEx_s
 	uint8_t ColorPickup;						// Color for pickups
 	uint8_t ColorSecret;						// Secret Found Color
 	int32_t SoundSecret;						// Sound to play when Secret Found
+	bool_t DrawPSprites;						// Draw Player Sprites
 } D_ProfileEx_t;
 
 /*** FUNCTIONS ***/

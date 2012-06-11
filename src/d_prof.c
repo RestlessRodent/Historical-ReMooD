@@ -187,6 +187,9 @@ D_ProfileEx_t* D_CreateProfileEx(const char* const a_Name)
 	// Default Sounds
 	New->SoundSecret = sfx_secret;
 	
+	// Default other options
+	New->DrawPSprites = true;
+	
 	/* Link */
 	if (!l_FirstProfile)
 		l_FirstProfile = New;

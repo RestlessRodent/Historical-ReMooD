@@ -187,7 +187,7 @@ bool_t P_GiveWeapon(player_t* player, weapontype_t weapon, bool_t dropped)
 	AmmoType = player->weaponinfo[weapon]->ammo;
 	
 	/* Coop/DM Mode */
-	if (P_EXGSGetValue(PEXGSBID_GAMEKEEPWEAPONS) && !dropped)
+	if (P_EXGSGetValue(PEXGSBID_ITEMSKEEPWEAPONS) && !dropped)
 	{
 		// leave placed weapons forever on net games
 		if (player->weaponowned[weapon])
@@ -498,8 +498,8 @@ bool_t P_TouchSpecialThing(mobj_t* special, mobj_t* toucher)
 			if (Current->ActGiveWeapon != NUMWEAPONS)
 			{
 				// Give weapon?
-				if (!P_EXGSGetValue(PEXGSBID_GAMEKEEPWEAPONS) ||
-					(P_EXGSGetValue(PEXGSBID_GAMEKEEPWEAPONS) && !player->weaponowned[Current->ActGiveWeapon]) ||
+				if (!P_EXGSGetValue(PEXGSBID_ITEMSKEEPWEAPONS) ||
+					(P_EXGSGetValue(PEXGSBID_ITEMSKEEPWEAPONS) && !player->weaponowned[Current->ActGiveWeapon]) ||
 					(special->flags & MF_DROPPED))
 					OKStat |= P_GiveWeapon(player, Current->ActGiveWeapon, special->flags & MF_DROPPED);
 				
@@ -509,7 +509,7 @@ bool_t P_TouchSpecialThing(mobj_t* special, mobj_t* toucher)
 					PickedUp = true;
 					
 					// Cancel removal in coop/dm
-					if (P_EXGSGetValue(PEXGSBID_GAMEKEEPWEAPONS))
+					if (P_EXGSGetValue(PEXGSBID_ITEMSKEEPWEAPONS))
 						CancelRemove = !(special->flags & MF_DROPPED);
 				}
 			}
@@ -1097,14 +1097,12 @@ void P_KillMobj(mobj_t* target, mobj_t* inflictor, mobj_t* source)
 	int drop_ammo_count = 0;
 	int i, GibTarget;
 	
-	extern consvar_t cv_solidcorpse;
-	
 	// GhostlyDeath <May 22, 2012> -- Death total
 	if (target->player)
 		target->player->TotalDeaths++;
 	
 	// dead target is no more shootable
-	if (!cv_solidcorpse.value)
+	if (!P_EXGSGetValue(PEXGSBID_GAMESOLIDCORPSES))
 		target->flags &= ~MF_SHOOTABLE;
 		
 	target->flags &= ~(MF_FLOAT | MF_SKULLFLY);

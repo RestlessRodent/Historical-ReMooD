@@ -3024,16 +3024,16 @@ static void P_FakeZMovement(mobj_t* mo)
 	else if (mo->flags2 & MF2_LOGRAV)
 	{
 		if (mo->momz == 0)
-			mo->momz = -(cv_gravity.value >> 3) * 2;
+			mo->momz = -(P_EXGSGetValue(PEXGSBID_GAMEGRAVITY) >> 3) * 2;
 		else
-			mo->momz -= cv_gravity.value >> 3;
+			mo->momz -= P_EXGSGetValue(PEXGSBID_GAMEGRAVITY) >> 3;
 	}
 	else if (!(mo->flags & MF_NOGRAVITY))
 	{
 		if (mo->momz == 0)
-			mo->momz = -cv_gravity.value * 2;
+			mo->momz = -P_EXGSGetValue(PEXGSBID_GAMEGRAVITY) * 2;
 		else
-			mo->momz -= cv_gravity.value;
+			mo->momz -= P_EXGSGetValue(PEXGSBID_GAMEGRAVITY);
 	}
 	
 	if (mo->z + mo->height > mo->ceilingz)

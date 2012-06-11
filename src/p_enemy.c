@@ -792,7 +792,7 @@ void A_Chase(mobj_t* actor, player_t* player, pspdef_t* psp)
 	if (actor->flags & MF_JUSTATTACKED)
 	{
 		actor->flags &= ~MF_JUSTATTACKED;
-		if (!cv_fastmonsters.value)
+		if (!P_EXGSGetValue(PEXGSBID_MONFASTMONSTERS))
 			P_NewChaseDir(actor);
 		return;
 	}
@@ -811,7 +811,7 @@ void A_Chase(mobj_t* actor, player_t* player, pspdef_t* psp)
 		// check for missile attack
 		if (actor->info->missilestate)
 		{
-			if (!cv_fastmonsters.value && actor->movecount)
+			if (!P_EXGSGetValue(PEXGSBID_MONFASTMONSTERS) && actor->movecount)
 			{
 				goto nomissile;
 			}
@@ -1880,7 +1880,7 @@ void A_Pain(mobj_t* actor, player_t* player, pspdef_t* psp)
 void A_Fall(mobj_t* actor, player_t* player, pspdef_t* psp)
 {
 	// actor is on ground, it can be walked over
-	if (!cv_solidcorpse.value)
+	if (!P_EXGSGetValue(PEXGSBID_GAMESOLIDCORPSES))
 		actor->flags &= ~MF_SOLID;
 	if (P_EXGSGetValue(PEXGSBID_COMODIFYCORPSE))
 	{

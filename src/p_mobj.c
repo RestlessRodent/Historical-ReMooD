@@ -102,10 +102,10 @@ void P_AdjMobjStateTics(mobj_t* const a_Object)
 	if (P_EXGSGetValue(PEXGSBID_COENABLEBLOODTIME))
 		if (a_Object->state->ExtraStateFlags & __REMOOD_BLOODTIMECONST)
 		{
-			if (cv_bloodtime.value <= 0)
+			if (P_EXGSGetValue(PEXGSBID_GAMEBLOODTIME) <= 0)
 				a_Object->tics = 0;
 			else
-				a_Object->tics = (cv_bloodtime.value * TICRATE) - 16;
+				a_Object->tics = (P_EXGSGetValue(PEXGSBID_GAMEBLOODTIME) * TICRATE) - 16;
 		}
 }
 
@@ -160,7 +160,7 @@ bool_t P_SetMobjState(mobj_t* mobj, statenum_t state)
 		mobj->state = st;
 		
 		// GhostlyDeath <March 5, 2012> -- Remove hack in p_enemy -fast onchange
-		if (cv_fastmonsters.value && st->RMODFastTics)
+		if (st->RMODFastTics && P_EXGSGetValue(PEXGSBID_MONFASTMONSTERS))
 			mobj->tics = st->RMODFastTics;
 		else
 			mobj->tics = st->tics;
@@ -695,9 +695,9 @@ void P_ZMovement(mobj_t* mo)
 	else if (mo->flags2 & MF2_LOGRAV)
 	{
 		if (mo->momz == 0)
-			mo->momz = -(cv_gravity.value >> 3) * 2;
+			mo->momz = -(P_EXGSGetValue(PEXGSBID_GAMEGRAVITY) >> 3) * 2;
 		else
-			mo->momz -= cv_gravity.value >> 3;
+			mo->momz -= P_EXGSGetValue(PEXGSBID_GAMEGRAVITY) >> 3;
 	}
 	else if (!(mo->flags & MF_NOGRAVITY))	// Gravity here!
 	{
@@ -708,7 +708,7 @@ void P_ZMovement(mobj_t* mo)
 		//     (this is done in P_Mobjthinker below normally)
 		mo->eflags &= ~MF_JUSTHITFLOOR;
 		
-		gravityadd = -cv_gravity.value;
+		gravityadd = -P_EXGSGetValue(PEXGSBID_GAMEGRAVITY);
 		
 		// if waist under water, slow down the fall
 		if (mo->eflags & MF_UNDERWATER)
@@ -1495,7 +1495,7 @@ void P_RespawnSpecials(void)
 	int i;
 	
 	// only respawn items in deathmatch
-	if (!cv_itemrespawn.value)
+	if (!P_EXGSGetValue(PEXGSBID_ITEMRESPAWNITEMS))
 		return;					//
 		
 	// nothing left to respawn?
@@ -1504,7 +1504,7 @@ void P_RespawnSpecials(void)
 		
 	// the first item in the queue is the first to respawn
 	// wait at least 30 seconds
-	if (leveltime - itemrespawntime[iquetail] < (tic_t)cv_itemrespawntime.value * TICRATE)
+	if (leveltime - itemrespawntime[iquetail] < (tic_t)P_EXGSGetValue(PEXGSBID_ITEMRESPAWNITEMSTIME) * TICRATE)
 		return;
 		
 	mthing = itemrespawnque[iquetail];
@@ -1855,7 +1855,7 @@ void P_SpawnMapThing(mapthing_t* mthing)
 	}
 	
 	// GhostlyDeath <June 6, 2012> -- Spawn Pickups?
-	if (!P_EXGSGetValue(PEXGSBID_GAMESPAWNPICKUPS) && (mobjinfo[i]->flags & MF_SPECIAL))
+	if (!P_EXGSGetValue(PEXGSBID_ITEMSSPAWNPICKUPS) && (mobjinfo[i]->flags & MF_SPECIAL))
 		return;
 	
 	// GhostlyDeath <March 6, 2012> -- Set thing ID and mark with weapon if possible

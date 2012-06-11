@@ -57,6 +57,7 @@
 #define MAGIC_JUNK              1234
 #define MAX_MACE_SPOTS          8
 
+
 mobjtype_t PuffType;
 
 //
@@ -1075,26 +1076,6 @@ void P_MovePsprites(player_t* player)
 	player->psprites[ps_flash].sx = player->psprites[ps_weapon].sx;
 	player->psprites[ps_flash].sy = player->psprites[ps_weapon].sy;
 }
-
-// P_pspr.c
-
-/*
-#include "doomdef.h"
-#include "g_game.h"
-#include "p_local.h"
-#include "r_main.h"
-#include "r_state.h"
-#include "s_sound.h"
-#include "m_random.h"
-*/
-// Macros
-
-#define LOWERSPEED FRACUNIT*6
-#define RAISESPEED FRACUNIT*6
-#define WEAPONBOTTOM 128*FRACUNIT
-#define WEAPONTOP 32*FRACUNIT
-#define MAGIC_JUNK 1234
-#define MAX_MACE_SPOTS 8
 
 static int MaceSpotCount;
 static struct
