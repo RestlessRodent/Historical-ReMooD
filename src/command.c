@@ -91,7 +91,7 @@ struct CONL_ConVariable_s
 	char* VirtualValue;							// Virtual Value
 	
 	/* Value */
-	CONL_VarValue_t Value[MAXCONLVARSTATES];	// Value of variable (actual)
+	CONL_VarValue_t Value;						// Value of variable (actual)
 	char* Name;									// Name
 	uint32_t Hash;								// Hash of name
 };
@@ -351,7 +351,7 @@ static CONL_ConVariable_t* CONLS_PushVar(const char* const a_Name, CONL_StaticVa
 	if (NewVar->StaticLink)
 	{
 		// Set value stuff
-		NewVar->StaticLink->Value = NewVar->Value;
+		NewVar->StaticLink->Value = &NewVar->Value;
 		
 		// And real link
 		NewVar->StaticLink->RealLink = NewVar;
@@ -475,7 +475,6 @@ bool_t CONL_VarSetLoaded(const bool_t a_Loaded)
 CONL_ConVariable_t* CONL_VarRegister(CONL_StaticVar_t* const a_StaticVar)
 {
 	CONL_ConVariable_t* NewVar;
-	CONL_VariableState_t vs;
 	
 	/* Check */
 	if (!a_StaticVar)
@@ -497,14 +496,14 @@ CONL_ConVariable_t* CONL_VarRegister(CONL_StaticVar_t* const a_StaticVar)
 		
 		// Set static stuff
 		NewVar->StaticLink = a_StaticVar;
-		NewVar->StaticLink->Value = NewVar->Value;
+		NewVar->StaticLink->Value = &NewVar->Value;
 		NewVar->StaticLink->RealLink = NewVar;
 		
 		// If the value is loaded
 		if (NewVar->LoadedValue && NewVar->VirtualValue)
 		{
 			// Set with it
-			CONL_VarSetStr(NewVar->StaticLink, CLVS_NORMAL, NewVar->VirtualValue);
+			CONL_VarSetStr(NewVar->StaticLink, NewVar->VirtualValue);
 			
 			// Clear
 			Z_Free(NewVar->VirtualValue);
@@ -516,13 +515,9 @@ CONL_ConVariable_t* CONL_VarRegister(CONL_StaticVar_t* const a_StaticVar)
 		else
 		{
 			// Since it was never loaded with a config, we want the default
-			CONL_VarSetStr(NewVar->StaticLink, CLVS_NORMAL, NewVar->StaticLink->DefaultValue);
+			CONL_VarSetStr(NewVar->StaticLink, NewVar->StaticLink->DefaultValue);
 		}
 		
-		// Set other states to no string
-		if (a_StaticVar->Flags & CLVF_TRIPLESTATE)
-			for (vs = CLVS_NORMAL + 1; vs < MAXCONLVARSTATES; vs++)
-				NewVar->Value[vs].String = Z_StrDup("", PU_STATIC, NULL);
 		
 		// Return the same variable
 		return NewVar;
@@ -532,12 +527,7 @@ CONL_ConVariable_t* CONL_VarRegister(CONL_StaticVar_t* const a_StaticVar)
 	NewVar = CONLS_PushVar(a_StaticVar->VarName, a_StaticVar);
 	
 	// Set with default value
-	CONL_VarSetStr(NewVar->StaticLink, CLVS_NORMAL, NewVar->StaticLink->DefaultValue);
-	
-	// Set other states to no string
-	if (a_StaticVar->Flags & CLVF_TRIPLESTATE)
-		for (vs = CLVS_NORMAL + 1; vs < MAXCONLVARSTATES; vs++)
-			NewVar->Value[vs].String = Z_StrDup("", PU_STATIC, NULL);
+	CONL_VarSetStr(NewVar->StaticLink, NewVar->StaticLink->DefaultValue);
 	
 	/* Success */
 	return NewVar;
@@ -584,14 +574,14 @@ CONL_StaticVar_t* CONL_VarLocate(const char* const a_Name)
 }
 
 /* CONL_VarSetStrByName() -- Set variable by its name */
-const char* CONL_VarSetStrByName(const char* const a_Var, const CONL_VariableState_t a_State, const char* const a_NewVal)
+const char* CONL_VarSetStrByName(const char* const a_Var, const char* const a_NewVal)
 {
 #define BUFSIZE 512
 	char Buf[BUFSIZE];
 	CONL_ConVariable_t* FoundVar;
 	
 	/* Check */
-	if (!a_Var || a_State < 0 || a_State >= MAXCONLVARSTATES || !a_NewVal)
+	if (!a_Var || !a_NewVal)
 		return NULL;
 	
 	/* Unescape value */
@@ -621,7 +611,7 @@ const char* CONL_VarSetStrByName(const char* const a_Var, const CONL_VariableSta
 		{
 			// Use the real variable set (the one you are supposed to use)
 			// It returns the corrected value
-			return CONL_VarSetStr(FoundVar->StaticLink, a_State, a_NewVal);
+			return CONL_VarSetStr(FoundVar->StaticLink, a_NewVal);
 		}
 		
 		// No value for this variable?
@@ -641,7 +631,7 @@ const char* CONL_VarSetStrByName(const char* const a_Var, const CONL_VariableSta
 }
 
 /* CONL_VarSetStr() -- Sets variable value, and returns actual set value */
-const char* CONL_VarSetStr(CONL_StaticVar_t* a_Var, const CONL_VariableState_t a_State, const char* const a_NewVal)
+const char* CONL_VarSetStr(CONL_StaticVar_t* a_Var, const char* const a_NewVal)
 {
 #define BUFSIZE 256
 	char Buf[BUFSIZE];
@@ -654,11 +644,7 @@ const char* CONL_VarSetStr(CONL_StaticVar_t* a_Var, const CONL_VariableState_t a
 	const char* StoppedAt;
 	
 	/* Check */
-	if (!a_Var || a_State < 0 || a_State >= MAXCONLVARSTATES || !a_NewVal)
-		return NULL;
-	
-	/* Multi/Single State Collision? */
-	if (a_State != 0 && !(a_Var->Flags & CLVF_TRIPLESTATE))
+	if (!a_Var || !a_NewVal)
 		return NULL;
 	
 	/* Get real variable */
@@ -669,9 +655,9 @@ const char* CONL_VarSetStr(CONL_StaticVar_t* a_Var, const CONL_VariableState_t a
 		return NULL;
 		
 	/* Free old string in this spot */
-	if (RealVar->Value[a_State].String)
-		Z_Free(RealVar->Value[a_State].String);
-	RealVar->Value[a_State].String = NULL;
+	if (RealVar->Value.String)
+		Z_Free(RealVar->Value.String);
+	RealVar->Value.String = NULL;
 	
 	/* Variable is a string */
 	if (a_Var->Type == CLVT_STRING)
@@ -681,7 +667,7 @@ const char* CONL_VarSetStr(CONL_StaticVar_t* a_Var, const CONL_VariableState_t a
 		CONL_UnEscapeString(Buf, BUFSIZE, a_NewVal);
 		
 		// Set string (a copy)
-		RealVar->Value[a_State].String = Z_StrDup(Buf, PU_STATIC, NULL);
+		RealVar->Value.String = Z_StrDup(Buf, PU_STATIC, NULL);
 	}
 	
 	/* Variable is a number type */
@@ -751,11 +737,11 @@ const char* CONL_VarSetStr(CONL_StaticVar_t* a_Var, const CONL_VariableState_t a
 		if (GotPossible)
 		{
 			// Set integer and fixed with the found possible value
-			RealVar->Value[a_State].Int = a_Var->Possible[PossibleNum].IntVal;
-			RealVar->Value[a_State].Fixed = RealVar->Value[a_State].Int << FRACBITS;
+			RealVar->Value.Int = a_Var->Possible[PossibleNum].IntVal;
+			RealVar->Value.Fixed = RealVar->Value.Int << FRACBITS;
 			
 			// Set string to possible value that was found
-			RealVar->Value[a_State].String = Z_StrDup(a_Var->Possible[PossibleNum].StrAlias, PU_STATIC, NULL);
+			RealVar->Value.String = Z_StrDup(a_Var->Possible[PossibleNum].StrAlias, PU_STATIC, NULL);
 		}
 		
 		// Not found, so cap to min/max
@@ -771,8 +757,8 @@ const char* CONL_VarSetStr(CONL_StaticVar_t* a_Var, const CONL_VariableState_t a
 					IntVal = MaxVal;
 				
 				// Set values
-				RealVar->Value[a_State].Int = IntVal;
-				RealVar->Value[a_State].Fixed = IntVal << FRACBITS;
+				RealVar->Value.Int = IntVal;
+				RealVar->Value.Fixed = IntVal << FRACBITS;
 				
 				// Convert to string
 				snprintf(Buf, BUFSIZE, "%i", IntVal);
@@ -789,8 +775,8 @@ const char* CONL_VarSetStr(CONL_StaticVar_t* a_Var, const CONL_VariableState_t a
 					DblVal = (double)MaxVal;
 				
 				// Set values
-				RealVar->Value[a_State].Int = (int32_t)DblVal;
-				RealVar->Value[a_State].Fixed = FLOAT_TO_FIXED(DblVal);
+				RealVar->Value.Int = (int32_t)DblVal;
+				RealVar->Value.Fixed = FLOAT_TO_FIXED(DblVal);
 				
 				// Convert to string
 				snprintf(Buf, BUFSIZE, "%f", DblVal);
@@ -798,7 +784,7 @@ const char* CONL_VarSetStr(CONL_StaticVar_t* a_Var, const CONL_VariableState_t a
 			}
 			
 			// Set string value
-			RealVar->Value[a_State].String = Z_StrDup((GotPossible ? Buf : ""), PU_STATIC, NULL);
+			RealVar->Value.String = Z_StrDup((GotPossible ? Buf : ""), PU_STATIC, NULL);
 		}
 	}
 	
@@ -807,18 +793,18 @@ const char* CONL_VarSetStr(CONL_StaticVar_t* a_Var, const CONL_VariableState_t a
 		a_Var->ChangeFunc(RealVar, a_Var);
 	
 	/* Return new value */
-	return a_Var->Value[a_State].String;
+	return a_Var->Value->String;
 #undef BUFSIZE
 }
 
 /* CONL_VarSetInt() -- Sets variable value, and returns actual set value */
-int32_t CONL_VarSetInt(CONL_StaticVar_t* a_Var, const CONL_VariableState_t a_State, const int32_t a_NewVal)
+int32_t CONL_VarSetInt(CONL_StaticVar_t* a_Var, const int32_t a_NewVal)
 {
 #define BUFSIZE 128
 	char Buf[BUFSIZE];
 	
 	/* Check */
-	if (!a_Var || a_State < 0 || a_State >= MAXCONLVARSTATES)
+	if (!a_Var)
 		return 0;
 	
 	/* Send to string handler */
@@ -826,8 +812,8 @@ int32_t CONL_VarSetInt(CONL_StaticVar_t* a_Var, const CONL_VariableState_t a_Sta
 	snprintf(Buf, BUFSIZE, "%i", a_NewVal);
 	
 	// Send and return
-	if (CONL_VarSetStr(a_Var, a_State, Buf))
-		return a_Var->Value[a_State].Int;
+	if (CONL_VarSetStr(a_Var, Buf))
+		return a_Var->Value->Int;
 	
 	/* Returned NULL? */
 	return 0;
@@ -835,13 +821,13 @@ int32_t CONL_VarSetInt(CONL_StaticVar_t* a_Var, const CONL_VariableState_t a_Sta
 }
 
 /* CONL_VarSetFixed() -- Sets variable value, and returns actual set value */
-fixed_t CONL_VarSetFixed(CONL_StaticVar_t* a_Var, const CONL_VariableState_t a_State, const fixed_t a_NewVal)
+fixed_t CONL_VarSetFixed(CONL_StaticVar_t* a_Var, const fixed_t a_NewVal)
 {
 #define BUFSIZE 128
 	char Buf[BUFSIZE];
 	
 	/* Check */
-	if (!a_Var || a_State < 0 || a_State >= MAXCONLVARSTATES)
+	if (!a_Var)
 		return 0;
 	
 	/* Send to string handler */
@@ -849,8 +835,8 @@ fixed_t CONL_VarSetFixed(CONL_StaticVar_t* a_Var, const CONL_VariableState_t a_S
 	snprintf(Buf, BUFSIZE, "%f", FIXED_TO_FLOAT(a_NewVal));
 	
 	// Send and return
-	if (CONL_VarSetStr(a_Var, a_State, Buf))
-		return a_Var->Value[a_State].Fixed;
+	if (CONL_VarSetStr(a_Var, Buf))
+		return a_Var->Value->Fixed;
 	
 	/* Returned NULL? */
 	return 0;
@@ -1046,7 +1032,7 @@ CONL_ExitCode_t CLC_CVarList(const uint32_t a_ArgC, const char** const a_ArgV)
 			CONL_PrintF("{1%c", (Flags & CLVF_SERVERSTATE	? 'v' : ' '));
 			CONL_PrintF("{3%c", (Flags & CLVF_CLIENTSTATE	? 'c' : ' '));
 			CONL_PrintF("{b%c", (Flags & CLVF_READONLY		? 'R' : ' '));
-			CONL_PrintF("{e%c", (Flags & CLVF_TRIPLESTATE	? 'T' : ' '));
+			CONL_PrintF("{e%c", (Flags & CLVF_NOISY			? 'N' : ' '));
 		}
 		
 		// Print nothing, if otherwise
@@ -1059,40 +1045,12 @@ CONL_ExitCode_t CLC_CVarList(const uint32_t a_ArgC, const char** const a_ArgV)
 		// A registered variable
 		if (CurVar->StaticLink)
 		{
-			// Multi-state
-			if (CurVar->StaticLink->Flags & CLVF_TRIPLESTATE)
-			{
-				// Open brace
-				CONL_PrintF("{b{{");
-				
-				for (j = 0; j < MAXCONLVARSTATES; j++)
-				{
-					// Escape string
-					memset(Buf, 0, sizeof(Buf));
-					CONL_EscapeString(Buf, BUFSIZE, CurVar->StaticLink->Value[j].String);
-				
-					// Value in quotes
-					CONL_PrintF("{z\"{2%s{z\"{z", CurVar->StaticLink->Value[j].String);
-					
-					// Comma?
-					if (j < MAXCONLVARSTATES - 1)
-						CONL_PrintF("{z, ");
-				}
-				
-				// Close brace
-				CONL_PrintF("{b}{z\n");
-			}
+			// Escape string
+			memset(Buf, 0, sizeof(Buf));
+			CONL_EscapeString(Buf, BUFSIZE, CurVar->StaticLink->Value[0].String);
 			
-			// Single state
-			else
-			{
-				// Escape string
-				memset(Buf, 0, sizeof(Buf));
-				CONL_EscapeString(Buf, BUFSIZE, CurVar->StaticLink->Value[0].String);
-				
-				// Print
-				CONL_PrintF("{z\"{2%s{z\"{z\n", Buf);
-			}
+			// Print
+			CONL_PrintF("{z\"{2%s{z\"{z\n", Buf);
 		}
 		
 		// Non-registered variable
@@ -1121,7 +1079,7 @@ CONL_ExitCode_t CLC_CVarSet(const uint32_t a_ArgC, const char** const a_ArgV)
 		return CLE_INVALIDARGUMENT;
 	
 	/* Set value */
-	RealValue = CONL_VarSetStrByName(a_ArgV[1], CLVS_NORMAL, a_ArgV[2]);
+	RealValue = CONL_VarSetStrByName(a_ArgV[1], a_ArgV[2]);
 	
 	// Escape string
 	memset(Buf, 0, sizeof(Buf));

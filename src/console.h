@@ -90,16 +90,6 @@ typedef enum CONL_VariableType_e
 	NUMCONLVARIABLETYPES
 } CONL_VariableType_t;
 
-/* CONL_VariableState_t -- State of a variable */
-typedef enum CONL_VariableState_e
-{
-	CLVS_NORMAL,								// Normal Variable
-	CLVS_NEXTGAME,								// Next Game
-	CLVS_DEMOCOMPAT,							// Demo Compatibility
-	
-	MAXCONLVARSTATES
-} CONL_VariableState_t;
-
 /* CONL_VariableFlags_t -- Flags for variables */
 typedef enum CONL_VariableFlags_e
 {
@@ -112,8 +102,6 @@ typedef enum CONL_VariableFlags_e
 												// for client info).
 	CLVF_READONLY				= 0x00000010U,	// Variable cannot be changed
 												// (except by internal calls)
-	CLVF_TRIPLESTATE			= 0x00000020U,	// Variable has multiple states
-												// That is, any set affects state
 	CLVF_NOISY					= 0x00000040U,	// Creates lots of noise
 } CONL_VariableFlags_t;
 
@@ -251,11 +239,11 @@ CONL_ConVariable_t* CONL_VarRegister(CONL_StaticVar_t* const a_StaticVar);
 
 bool_t CONL_StaticVarByNum(const size_t a_Num, CONL_StaticVar_t** const a_VarP);
 CONL_StaticVar_t* CONL_VarLocate(const char* const a_Name);
-const char* CONL_VarSetStrByName(const char* const a_Var, const CONL_VariableState_t a_State, const char* const a_NewVal);
+const char* CONL_VarSetStrByName(const char* const a_Var, const char* const a_NewVal);
 
-const char* CONL_VarSetStr(CONL_StaticVar_t* a_Var, const CONL_VariableState_t a_State, const char* const a_NewVal);
-int32_t CONL_VarSetInt(CONL_StaticVar_t* a_Var, const CONL_VariableState_t a_State, const int32_t a_NewVal);
-fixed_t CONL_VarSetFixed(CONL_StaticVar_t* a_Var, const CONL_VariableState_t a_State, const fixed_t a_NewVal);
+const char* CONL_VarSetStr(CONL_StaticVar_t* a_Var, const char* const a_NewVal);
+int32_t CONL_VarSetInt(CONL_StaticVar_t* a_Var, const int32_t a_NewVal);
+fixed_t CONL_VarSetFixed(CONL_StaticVar_t* a_Var, const fixed_t a_NewVal);
 
 /*** Base Console ***/
 bool_t CONL_Init(const uint32_t a_OutBS, const uint32_t a_InBS);

@@ -339,9 +339,9 @@ void SCR_SetDefaultMode(void)
 	CV_SetValue(&cv_scr_depth, vid.bpp * 8);
 	
 	if (M_CheckParm("-window"))
-		CV_SetValue(&cv_fullscreen, 0);
+		CONL_VarSetStrByName("scr_fullscreen", "no");
 	else if (M_CheckParm("-fullscreen"))
-		CV_SetValue(&cv_fullscreen, 1);
+		CONL_VarSetStrByName("scr_fullscreen", "yes");
 		
 	//    CV_SetValue (&cv_fullscreen, !vid.u.windowed); metzgermeister: unnecessary?
 }
