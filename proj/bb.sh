@@ -352,19 +352,16 @@ do
 			cp -v "bin/remood.exe" "$$/"
 			cp -v "$BBREMOOD/bin/remood.wad" "$$/"
 			cp -v "allegw32/bin/alleg42.dll" "$$/"
+			cp -v "$BBREMOOD/doc/manual.pdf" "$$/"
 			cp -v "$BBREMOOD/AUTHORS" "$$/"
-			cp -v "$BBREMOOD/INSTALL" "$$/"
 			cp -v "$BBREMOOD/LICENSE" "$$/"
-			cp -v "$BBREMOOD/NEWS" "$$/"
-			cp -v "$BBREMOOD/README" "$$/"
-			cp -v "$BBREMOOD/README.cmp" "$$/"
 			cp -v "$BBREMOOD/version" "$$/"
 			
 			# Go into dir
 			cd "$$/"
 			
 			# Convert to DOS format
-			unix2dos -o AUTHORS INSTALL LICENSE NEWS README README.cmp version
+			unix2dos -o AUTHORS LICENSE version
 			
 			# Zip files into an archive
 			rm -f "../remood_${REMOODVERSIONSTRIP}_win32.zip"
