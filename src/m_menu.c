@@ -213,7 +213,7 @@ CONL_StaticVar_t l_MenuValColor =
 CONL_StaticVar_t l_MenuCompact =
 {
 	CLVT_INTEGER, c_CVPVBoolean, CLVF_SAVE,
-	"menu_compact", DSTR_CVHINT_CONMONOSPACE, CLVVT_STRING, "false",
+	"menu_compact", DSTR_CVHINT_CONMONOSPACE, CLVVT_STRING, "true",
 	NULL
 };
 

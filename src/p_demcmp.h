@@ -239,6 +239,9 @@ typedef enum P_EXGSBitID_e
 	PEXGSBID_GAMESOLIDCORPSES,					// Corpses are solid
 	PEXGSBID_GAMEBLOODTIME,						// Time blood stays around
 	PEXGSBID_GAMEGRAVITY,						// Level Gravity amount
+	PEXGSBID_MONENABLECLEANUP,					// Cleanup Dead monsters
+	PEXGSBID_MONCLEANUPRESPTIME,				// Time it takes to cleanup respawnable monsters
+	PEXGSBID_MONCLEANUPNONRTIME,				// Time it takes to cleanup non-respawnable monsters
 	
 	PEXGSNUMBITIDS
 } P_EXGSBitID_t;

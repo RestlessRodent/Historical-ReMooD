@@ -550,6 +550,10 @@ typedef struct mobj_s
 	// GhostlyDeath <June 6, 2012> -- Follow Player (Friendlies)
 	struct mobj_s* FollowPlayer;				// Following Player
 	
+	// GhostlyDeath <June 12, 2012> -- Object Cleanup
+	uint32_t TimeThinking[2];					// Time spent thinking
+	uint32_t TimeFromDead[2];					// Time being dead
+	
 	// Owners
 #if 0
 	struct mobj_s* RootOwner;	// Root owner of this object (first mobj in owner chain)

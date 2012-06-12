@@ -1020,12 +1020,58 @@ void P_MobjThinker(mobj_t* mobj)
 	bool_t checkedpos = false;	//added:22-02-98:
 	size_t i, j;
 	thinker_t Hold;
+	uint32_t* TicA, TimeBase;
 	
 	if (g_CheatFlags & MCF_FREEZETIME)
 	{
 		// Only players are not frozen
 		if (!mobj->player)
 			return;
+	}
+	
+	// GhostlyDeath <June 12, 2012> -- Object Timers
+	for (i = 0; i < 2; i++)
+	{
+		// Set the correct array
+		if (!i)
+			TicA = mobj->TimeThinking;
+		else
+			TicA = mobj->TimeFromDead;
+		
+		// Increase counter
+		TicA[0]++;
+		
+		// Crossed minute?
+		if (TicA[0] >= (35 * 60))
+		{
+			// Reset to zero
+			TicA[0] = 0;
+			
+			// Add
+			TicA[1]++;
+		}
+	}
+	
+	// If object is not dead, reset dead time
+	if (mobj->health > 0 && !(mobj->flags & MF_CORPSE))
+		mobj->TimeFromDead[0] = mobj->TimeFromDead[1] = 0;
+	
+	// Remove object that has been dead for a long time?
+	else if (!mobj->player && P_EXGSGetValue(PEXGSBID_MONENABLECLEANUP))
+	{
+		// Get time base
+		if (mobj->info->raisestate)
+			TimeBase = P_EXGSGetValue(PEXGSBID_MONCLEANUPRESPTIME);
+		else
+			TimeBase = P_EXGSGetValue(PEXGSBID_MONCLEANUPNONRTIME);
+		
+		// Exceeded?
+		if (mobj->TimeFromDead[1] >= TimeBase)
+		{
+			// Remove object
+			P_RemoveMobj(mobj);
+			return;
+		}
 	}
 	
 	// check mobj against possible water content, before movement code

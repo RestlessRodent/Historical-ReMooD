@@ -630,6 +630,18 @@ static P_EXGSVariable_t l_GSVars[PEXGSNUMBITIDS] =
 		"The multiplier to the amount of downward force to apply to players that are in the air.", PEXGSGM_ANY, PEXGSDR_NOCHECK, 0, {0, (1 * FRACUNIT)}, (1 * FRACUNIT),
 		PEXGSMC_GAME, 0, NULL, NULL},
 		
+	{PEXGST_INTEGER, PEXGSBID_MONENABLECLEANUP, "mon_enablecleanup", "Enable Corpse Cleanup",
+		"Enable clean up of dead monsters. [ReMooD >= 1.0a]", PEXGSGM_ANY, PEXGSDR_ATLEAST, 200, {0, 1}, 1,
+		PEXGSMC_MONSTERS, PEXGSDA_YESNO, c_PEXGSPVBoolean, NULL},
+		
+	{PEXGST_INTEGER, PEXGSBID_MONCLEANUPRESPTIME, "mon_cleanupresptime", "Respawnable Cleanup Time",
+		"Time in minutes before dead respawnable monsters are cleaned up.", PEXGSGM_ANY, PEXGSDR_NOCHECK, 0, {0, 120}, 120,
+		PEXGSMC_MONSTERS, PEXGSDA_TIMEMINS, c_PEXGSPVPositive, NULL},
+		
+	{PEXGST_INTEGER, PEXGSBID_MONCLEANUPNONRTIME, "mon_cleanupnonresptime", "Non-Respawnable Cleanup Time",
+		"Time in minutes before dead respawnable monsters are cleaned up.", PEXGSGM_ANY, PEXGSDR_NOCHECK, 0, {0, 60}, 60,
+		PEXGSMC_MONSTERS, PEXGSDA_TIMEMINS, c_PEXGSPVPositive, NULL},
+		
 };
 
 /*** FUNCTIONS ***/
