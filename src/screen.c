@@ -342,8 +342,6 @@ void SCR_SetDefaultMode(void)
 		CONL_VarSetStrByName("scr_fullscreen", "no");
 	else if (M_CheckParm("-fullscreen"))
 		CONL_VarSetStrByName("scr_fullscreen", "yes");
-		
-	//    CV_SetValue (&cv_fullscreen, !vid.u.windowed); metzgermeister: unnecessary?
 }
 
 // Change fullscreen on/off according to cv_fullscreen

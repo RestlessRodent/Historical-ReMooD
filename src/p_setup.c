@@ -449,6 +449,20 @@ static void PS_ExLineDefInit(line_t* const a_LineDef)
 			*SecRef = sides[a_LineDef->sidenum[i]].sector;
 		}
 	
+	/* Incorrectly set two sided line? */
+	if ((a_LineDef->flags & ML_TWOSIDED) && ((!a_LineDef->frontsector && a_LineDef->backsector) || (a_LineDef->frontsector && !a_LineDef->backsector)))
+	{
+		// Clear two sided bit
+		a_LineDef->flags &= ~ML_TWOSIDED;
+		
+		// Back but no front?
+		if (!a_LineDef->frontsector)
+		{
+			a_LineDef->frontsector = a_LineDef->backsector;
+			a_LineDef->backsector = NULL;
+		}
+	}
+	
 	/* Calculate the real line special (generalized) */
 	// Hexen
 	if (a_LineDef->HexenSpecial)
