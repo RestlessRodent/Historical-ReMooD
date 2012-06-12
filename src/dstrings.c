@@ -339,6 +339,8 @@ StringGroupEX_t UnicodeStrings[NUMUNICODESTRINGS] =
 	{				 "CVHINT_RFAKESSPAL", "Fake the palette changing when using split-screen."},
 	{				  "CVHINT_RRENDERER", "Which renderer platform to utilize."},
 	
+	{			  "CVHINT_SCRFULLSCREEN", "Use fullscreen vidoe mode"},
+	
 	/*** NETWORK STUFF ***/
 	{			"NET_YOUARENOTTHESERVER", "You are not the server."},
 	{				 "NET_LEVELNOTFOUND", "Level not found."},

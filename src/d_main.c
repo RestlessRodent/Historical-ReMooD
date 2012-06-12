@@ -1668,6 +1668,7 @@ void D_DoomMain(void)
 	int startepisode;
 	int startmap;
 	bool_t autostart;
+	D_ProfileEx_t* GuestProf;
 	
 	// GhostlyDeath <November 18, 2008> -- Move devparm up here
 	devparm = M_CheckParm("-devparm");
@@ -1735,7 +1736,8 @@ void D_DoomMain(void)
 	WL_Init();							// Initialize WL Code
 	M_MenuExInit();						// Initialize Menu
 	
-	D_CreateProfileEx("guest");			// Create guest account
+	GuestProf = D_CreateProfileEx("guest");	// Create guest account
+	GuestProf->Flags |= DPEXF_DONTSAVE;	// Never save guest account
 	/**************************/
 	
 	// GhostlyDeath <December 14, 2011> -- Use extended identify version

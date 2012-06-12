@@ -96,6 +96,14 @@ consvar_t cv_scr_height = { "scr_height", "400", CV_SAVE, CV_Unsigned };
 consvar_t cv_scr_depth = { "scr_depth", "8 bits", CV_SAVE, scr_depth_cons_t };
 consvar_t cv_fullscreen = { "fullscreen", "No", CV_SAVE | CV_CALL, CV_YesNo, SCR_ChangeFullscreen };
 
+// con_scale -- Scale the console text
+CONL_StaticVar_t l_SCRFullScreen =
+{
+	CLVT_INTEGER, c_CVPVBoolean, CLVF_SAVE,
+	"scr_fullscreen", DSTR_CVHINT_SCRFULLSCREEN, CLVVT_STRING, "false",
+	NULL
+};
+
 // =========================================================================
 //                           SCREEN VARIABLES
 // =========================================================================
@@ -170,6 +178,8 @@ void SCR_Startup(void)
 {
 	if (dedicated)
 		return;
+	
+	CONL_VarRegister(&l_SCRFullScreen);
 		
 	if (!graphics_started)
 		return;

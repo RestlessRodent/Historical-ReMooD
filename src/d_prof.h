@@ -59,6 +59,7 @@ typedef enum D_ProfileExFlags_e
 	DPEXF_GOTJOY				= 0x00000002,	// Controls a joystick
 	DPEXF_PLAYING				= 0x00000004,	// Is playing the game
 	DPEXF_SLOWTURNING			= 0x00000008,	// Enables Slow Turning
+	DPEXF_DONTSAVE				= 0x00000010,	// Don't save in configs
 } D_ProfileExFlags_t;
 
 /* D_ProfileExBotFlags_t -- Bot Flags */

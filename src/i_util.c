@@ -664,6 +664,8 @@ bool_t VID_AddMode(const int a_Width, const int a_Height, const bool_t a_Fullscr
 	return true;
 }
 
+extern CONL_StaticVar_t l_SCRFullScreen;
+
 /* VID_SetMode() -- Sets the specified video mode */
 // Funny thing is, despite returning an int, Legacy never checked if it worked!
 int VID_SetMode(int a_ModeNum)
@@ -673,7 +675,7 @@ int VID_SetMode(int a_ModeNum)
 		return 0;				// Failure despite not being checked!
 		
 	/* Try to set the mode */
-	if (!I_SetVideoMode(l_Modes[a_ModeNum].Width, l_Modes[a_ModeNum].Height, cv_fullscreen.value))
+	if (!I_SetVideoMode(l_Modes[a_ModeNum].Width, l_Modes[a_ModeNum].Height, l_SCRFullScreen.Value[0].Int))
 		return false;
 	return true;
 }

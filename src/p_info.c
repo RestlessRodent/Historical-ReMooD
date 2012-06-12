@@ -415,6 +415,10 @@ static bool_t PS_ParseMapInfo(P_LevelInfoHolder_t* const a_Holder, const WL_WADE
 			if (i < BUFSIZE)
 				Token[i++] = *p;
 		
+		// Comment?
+		if (Token[0] == ';')
+			continue;
+		
 		// Skip whitespace
 		for (; *p && (*p == ' ' || *p == '\t'); p++)
 			;
