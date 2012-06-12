@@ -872,7 +872,7 @@ void I_ShowEndTxt(const uint8_t* const a_TextData)
 	if ((p = getenv("COLUMNS")))
 		Cols = atoi(p);
 	else
-		Cols = 80;
+		Cols = 79;
 		
 	/* Load ENDTXT */
 	for (i = 0; i < 4000; i += 2)
@@ -881,7 +881,7 @@ void I_ShowEndTxt(const uint8_t* const a_TextData)
 		c = (i >> 1) % 80;
 		
 		// Add a newline
-		if (c == 0 && Cols > 80)
+		if (c == 0 && Cols != 80)
 			I_TextModeNextLine();
 		
 		// Print character

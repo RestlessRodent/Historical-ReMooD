@@ -499,8 +499,9 @@ CONL_ConVariable_t* CONL_VarRegister(CONL_StaticVar_t* const a_StaticVar)
 		NewVar->StaticLink->Value = &NewVar->Value;
 		NewVar->StaticLink->RealLink = NewVar;
 		
-		// If the value is loaded
-		if (NewVar->LoadedValue && NewVar->VirtualValue)
+		// Value was set to something before config was loaded "+something"?
+		// If the value is loaded from config
+		if ((!NewVar->LoadedValue && NewVar->VirtualValue) || (NewVar->LoadedValue && NewVar->VirtualValue))
 		{
 			// Set with it
 			CONL_VarSetStr(NewVar->StaticLink, NewVar->VirtualValue);
@@ -594,13 +595,18 @@ const char* CONL_VarSetStrByName(const char* const a_Var, const char* const a_Ne
 		// If the variable is virtualized, return that
 		if (FoundVar->IsVirtual)
 		{
-			// Replace the loaded value
-			if (FoundVar->VirtualValue)
-				Z_Free(FoundVar->VirtualValue);
-			FoundVar->VirtualValue = NULL;
+			// But if it is virtualized it was set before config load
+			// i.e. + params
+			if (!l_CONLVarLoaded)
+			{
+				// Replace the loaded value
+				if (FoundVar->VirtualValue)
+					Z_Free(FoundVar->VirtualValue);
+				FoundVar->VirtualValue = NULL;
 			
-			// Put it there
-			FoundVar->VirtualValue = Z_StrDup(Buf, PU_STATIC, NULL);
+				// Put it there
+				FoundVar->VirtualValue = Z_StrDup(Buf, PU_STATIC, NULL);
+			}
 			
 			// Return the loaded value
 			return (const char*)FoundVar->VirtualValue;

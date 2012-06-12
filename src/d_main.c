@@ -1716,6 +1716,7 @@ void D_DoomMain(void)
 			I_Error("D_Main: Failed to initialize the widget handler.");
 	
 	/* Start Graphics REALLY early! */
+	SCR_SetDefaultMode();				// Screen Size
 	CONL_PrintF("I_StartupGraphics...\n");
 	I_StartupGraphics();
 	SCR_Startup();

@@ -334,11 +334,11 @@ void SCR_CheckDefaultMode(void)
 void SCR_SetDefaultMode(void)
 {
 	// remember the default screen size
-	CV_SetValue(&cv_scr_width, vid.width);
-	CV_SetValue(&cv_scr_height, vid.height);
-	CV_SetValue(&cv_scr_depth, vid.bpp * 8);
+	//CV_SetValue(&cv_scr_width, vid.width);
+	//CV_SetValue(&cv_scr_height, vid.height);
+	//CV_SetValue(&cv_scr_depth, vid.bpp * 8);
 	
-	if (M_CheckParm("-window"))
+	if (M_CheckParm("-window") || M_CheckParm("-w") || M_CheckParm("-win") || M_CheckParm("-windowed") || M_CheckParm("-nofullscreen"))
 		CONL_VarSetStrByName("scr_fullscreen", "no");
 	else if (M_CheckParm("-fullscreen"))
 		CONL_VarSetStrByName("scr_fullscreen", "yes");
