@@ -112,6 +112,7 @@ typedef int32_t ammotype_t;
 
 #define wp_nochange				-1
 #define am_noammo				-1
+#define am_all					-2
 
 /* WeaponFlags_t -- Flags for weapons */
 typedef enum WeaponFlags_e

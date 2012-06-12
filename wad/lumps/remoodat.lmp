@@ -18586,6 +18586,16 @@ MapTouchSpecial "SBOX"
 	AmmoMul "5";
 }
 
+// BPAK -- Backpack
+MapTouchSpecial "BPAK"
+{
+	Message "DEP_GOTBACKPACK";
+	GiveAmmo "All";
+	AmmoMul "1";
+	MaxAmmoMul "2";
+	SetBackpack "true";
+}
+
 // BFUG -- BFG9000
 MapTouchSpecial "BFUG"
 {

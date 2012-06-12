@@ -202,9 +202,22 @@ bool_t P_CheckAmmo(player_t* player)
 	// Minimal amount for one shot varies.
 	count = player->weaponinfo[player->readyweapon]->ammopershoot;
 	
+	// GhostlyDeath <June 12, 2012> -- All Ammo
+	if (ammo == am_all)
+	{
+		// Check all ammo types
+		for (i = 0; i < NUMAMMO; i++)
+			if (player->ammo[i] < count)
+				break;
+		
+		// Enough ammo?
+		if (i >= NUMAMMO)
+			return true;
+	}
+	
 	// Some do not need ammunition anyway.
 	// Return if current ammunition sufficient.
-	if (ammo == am_noammo || player->ammo[ammo] >= count)
+	else if (ammo == am_noammo || player->ammo[ammo] >= count)
 		return true;
 		
 	// Out of ammo, pick a weapon to change to.
@@ -1112,6 +1125,12 @@ ammotype_t INFO_GetAmmoByName(const char* const a_Name)
 	/* Check */
 	if (!a_Name)
 		return am_noammo;
+	
+	/* Special Names */
+	if (strcasecmp(a_Name, "noammo") == 0)
+		return am_noammo;
+	else if (strcasecmp(a_Name, "all") == 0)
+		return am_all;
 	
 	/* Loop */
 	for (i = 0; i < NUMAMMO; i++)

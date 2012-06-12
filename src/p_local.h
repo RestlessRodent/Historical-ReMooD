@@ -360,6 +360,19 @@ bool_t P_CanUseWeapon(player_t* const a_Player, const weapontype_t a_Weapon);
 
 #define PMAXRTSFIELDSIZE					32	// Max size of field in touch specials
 
+/* P_RMODTouchSpecialFlags_t -- Touch specials for flags */
+typedef enum P_RMODTouchSpecialFlags_e
+{
+	PMTSF_KEEPNOTNEEDED		= UINT32_C(0x0001),	// Keep when not needed
+	PMTSF_REMOVEALWAYS		= UINT32_C(0x0002),	// Remove always
+	PMTSF_MONSTERCANGRAB	= UINT32_C(0x0004),	// Monster can grab item
+	PMTSF_DEVALUE			= UINT32_C(0x0008),	// Allow devaluing
+	PMTSF_CAPNORMSTAT		= UINT32_C(0x0010),	// Cap to normal stats
+	PMTSF_CAPMAXSTAT		= UINT32_C(0x0020),	// Cap to max stats
+	PMTSF_GREATERARMORCLASS	= UINT32_C(0x0040),	// Use when armor class is better
+	PMTSF_SETBACKPACK		= UINT32_C(0x0080),	// Modify max ammo when !backpack
+} P_RMODTouchSpecialFlags_t;
+
 /*** STRUCTURES ***/
 
 /* P_RMODTouchSpecial_t -- Special toucher for RMOD */
@@ -374,12 +387,9 @@ typedef struct P_RMODTouchSpecial_s
 	/* Modifiers */
 	char* GiveWeapon;							// Weapon to give
 	char* GiveAmmo;								// Ammo to give
-	bool_t KeepNotNeeded;						// Keep when not needed
-	bool_t RemoveAlways;						// Always remove this thing
-	bool_t MonsterCanGrab;						// Monster can grab item
-	bool_t DeValue;								// Devalued
 	
 	/* Actual */
+	uint32_t Flags;								// Flags
 	spritenum_t ActSpriteNum;					// Sprite number to match
 	weapontype_t ActGiveWeapon;					// Actual weapon to give
 	ammotype_t ActGiveAmmo;						// Actual ammo to give
@@ -389,12 +399,10 @@ typedef struct P_RMODTouchSpecial_s
 	int8_t ArmorClass;							// Armor Class
 	int32_t ArmorAmount;						// Armor Amount
 	int32_t HealthAmount;						// Health Amount
-	bool_t CapNormStat;							// Cap normal stat
-	bool_t CapMaxStat;							// Cap max stat
-	bool_t GreaterArmorClass;					// Better Armor Class
 	
 	/* Weapons and Ammo */
 	int32_t AmmoMul;							// Ammo multiplier
+	int32_t MaxAmmoMul;							// Max ammo multiplier
 } P_RMODTouchSpecial_t;
 
 /* P_RMODKey_t -- Key definition */

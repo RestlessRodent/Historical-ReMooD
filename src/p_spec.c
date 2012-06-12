@@ -2497,19 +2497,29 @@ bool_t P_RMODH_Specials(Z_Table_t* const a_Table, const WL_WADFile_t* const a_WA
 			TempTouch.GiveAmmo = D_RMODGetValueString(a_Table, "GiveAmmo", NULL);
 				
 				// Boolean
-			TempTouch.CapNormStat = D_RMODGetValueBool(a_Table, "IsCapNormStat", false);
-			TempTouch.CapMaxStat = D_RMODGetValueBool(a_Table, "IsCapMaxStat", false);
-			TempTouch.GreaterArmorClass = D_RMODGetValueBool(a_Table, "IsGreaterArmorClass", false);
-			TempTouch.KeepNotNeeded = D_RMODGetValueBool(a_Table, "IsKeepIfNotNeeded", false);
-			TempTouch.RemoveAlways = D_RMODGetValueBool(a_Table, "IsRemoveAlways", false);
-			TempTouch.MonsterCanGrab = D_RMODGetValueBool(a_Table, "IsMonsterGrab", false);
-			TempTouch.DeValue = D_RMODGetValueBool(a_Table, "IsDeValue", false);
+			if (D_RMODGetValueBool(a_Table, "IsKeepIfNotNeeded", false))
+				TempTouch.Flags |= PMTSF_KEEPNOTNEEDED;
+			if (D_RMODGetValueBool(a_Table, "IsRemoveAlways", false))
+				TempTouch.Flags |= PMTSF_REMOVEALWAYS;
+			if (D_RMODGetValueBool(a_Table, "IsMonsterGrab", false))
+				TempTouch.Flags |= PMTSF_MONSTERCANGRAB;
+			if (D_RMODGetValueBool(a_Table, "IsDeValue", false))
+				TempTouch.Flags |= PMTSF_DEVALUE;
+			if (D_RMODGetValueBool(a_Table, "IsCapNormStat", false))
+				TempTouch.Flags |= PMTSF_CAPNORMSTAT;
+			if (D_RMODGetValueBool(a_Table, "IsCapMaxStat", false))
+				TempTouch.Flags |= PMTSF_CAPMAXSTAT;
+			if (D_RMODGetValueBool(a_Table, "IsGreaterArmorClass", false))
+				TempTouch.Flags |= PMTSF_GREATERARMORCLASS;
+			if (D_RMODGetValueBool(a_Table, "SetBackpack", false))
+				TempTouch.Flags |= PMTSF_SETBACKPACK;
 			
 				// Integer
 			TempTouch.ArmorClass = D_RMODGetValueInt(a_Table, "ArmorClass", 0);
 			TempTouch.ArmorAmount = D_RMODGetValueInt(a_Table, "ArmorAmount", 0);
 			TempTouch.HealthAmount = D_RMODGetValueInt(a_Table, "HealthAmount", 0);
 			TempTouch.AmmoMul = D_RMODGetValueInt(a_Table, "AmmoMul", 1);
+			TempTouch.MaxAmmoMul = D_RMODGetValueInt(a_Table, "MaxAmmoMul", 1);
 			
 			// Append to back of touch list
 			Z_ResizeArray((void**)&Specs->Touchers, sizeof(*Specs->Touchers), Specs->NumTouchers, Specs->NumTouchers + 1);

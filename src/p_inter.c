@@ -443,7 +443,7 @@ void P_PlayerMessage(const P_PMType_t a_Type, mobj_t* const a_Picker, mobj_t* co
 bool_t P_TouchSpecialThing(mobj_t* special, mobj_t* toucher)
 {
 	player_t* player;
-	int i;
+	int i, j, k, n;
 	fixed_t delta;
 	int sound;
 	P_RMODTouchSpecial_t* Current;
@@ -485,7 +485,7 @@ bool_t P_TouchSpecialThing(mobj_t* special, mobj_t* toucher)
 		// Check if monster is grabbing and cannot pick this thing up
 		if (!player)
 			// Monster cannot pickup thing
-			if (!Current->MonsterCanGrab)
+			if (!(Current->Flags & PMTSF_MONSTERCANGRAB))
 				return false;
 		
 		// Cancel removal
@@ -515,21 +515,50 @@ bool_t P_TouchSpecialThing(mobj_t* special, mobj_t* toucher)
 			}
 			
 			// Give Ammo?
-			if (Current->ActGiveAmmo != NUMAMMO && Current->ActGiveAmmo != am_noammo)
+			if ((Current->ActGiveAmmo >= 0 && Current->ActGiveAmmo < NUMAMMO && Current->ActGiveAmmo != am_noammo) || Current->ActGiveAmmo == am_all)
 			{
-				Amount = ammoinfo[Current->ActGiveAmmo]->ClipAmmo * Current->AmmoMul;
+				// Giving all ammo
+				if (Current->ActGiveAmmo == am_all)
+				{
+					j = 0;
+					n = NUMAMMO;
+				}
 				
-				// Dropped ammo?
-				if (special->flags & MF_DROPPED)
-					Amount /= 2;
+				// Giving only single ammo type
+				else
+				{
+					j = Current->ActGiveAmmo;
+					n = j + 1;
+				}
 				
-				// No ammo?
-				if (Amount <= 0)
-					Amount = 1;
+				// Give ammo types
+				for (; j < n; j++)
+				{
+					Amount = ammoinfo[j]->ClipAmmo * Current->AmmoMul;
 				
-				OKStat |= P_GiveAmmo(player, Current->ActGiveAmmo, Amount);
-				if (OKStat)
-					PickedUp = true;
+					// Dropped ammo?
+					if (special->flags & MF_DROPPED)
+						Amount /= 2;
+				
+					// No ammo?
+					if (Amount <= 0)
+						Amount = 1;
+				
+					OKStat |= P_GiveAmmo(player, j, Amount);
+					if (OKStat)
+						PickedUp = true;
+						
+					// Modify max ammo?
+					// When setbackpack is cleared or it is set and we don't have a backpack
+					if ((!(Current->Flags & PMTSF_SETBACKPACK)) || ((Current->Flags & PMTSF_SETBACKPACK) && !player->backpack))
+						player->maxammo[j] *= Current->MaxAmmoMul;
+				}
+				
+				// Set backpack?
+				if (OKStat || PickedUp)
+					if ((Current->Flags & PMTSF_SETBACKPACK) && !player->backpack)
+						if (Current->Flags & PMTSF_SETBACKPACK)
+							player->backpack = true;
 			}
 		}	
 		
@@ -541,9 +570,9 @@ bool_t P_TouchSpecialThing(mobj_t* special, mobj_t* toucher)
 			NewWear = true;
 			
 			// Determine caps?
-			if (Current->CapNormStat)
+			if ((Current->Flags & PMTSF_CAPNORMSTAT))
 				Max = player->MaxHealth[0];
-			else if (Current->CapMaxStat)
+			else if ((Current->Flags & PMTSF_CAPMAXSTAT))
 				Max = player->MaxHealth[1];
 			else
 				Max = 9999999;
@@ -563,11 +592,11 @@ bool_t P_TouchSpecialThing(mobj_t* special, mobj_t* toucher)
 				Amount = Target;
 			
 			// Allow devaluing
-			if (Current->DeValue && toucher->health >= Max)
+			if ((Current->Flags & PMTSF_DEVALUE) && toucher->health >= Max)
 				Amount = Max;
 			
 			// Not Needed? Reverse of that
-			if (!(!NewWear && Current->KeepNotNeeded))
+			if (!(!NewWear && (Current->Flags & PMTSF_KEEPNOTNEEDED)))
 			{
 				// Change Health
 				if (player)
@@ -588,9 +617,9 @@ bool_t P_TouchSpecialThing(mobj_t* special, mobj_t* toucher)
 			NewWear = true;
 			
 			// Determine caps?
-			if (Current->CapNormStat)
+			if ((Current->Flags & PMTSF_CAPNORMSTAT))
 				Max = player->MaxArmor[0];
-			else if (Current->CapMaxStat)
+			else if ((Current->Flags & PMTSF_CAPMAXSTAT))
 				Max = player->MaxArmor[1];
 			else
 				Max = 9999999;
@@ -610,11 +639,11 @@ bool_t P_TouchSpecialThing(mobj_t* special, mobj_t* toucher)
 				Amount = Target;
 			
 			// Allow devaluing
-			if (Current->DeValue && player->armorpoints >= Max)
+			if ((Current->Flags & PMTSF_DEVALUE) && player->armorpoints >= Max)
 				Amount = Max;
 			
 			// Not Needed? Reverse of that
-			if (!(!NewWear && Current->KeepNotNeeded))
+			if (!(!NewWear && (Current->Flags & PMTSF_KEEPNOTNEEDED)))
 			{
 				// Change Armor
 				player->armorpoints = Amount;
@@ -630,7 +659,7 @@ bool_t P_TouchSpecialThing(mobj_t* special, mobj_t* toucher)
 					Target = Current->ArmorClass;
 				
 					// Limited?
-					if (Current->GreaterArmorClass)
+					if ((Current->Flags & PMTSF_GREATERARMORCLASS))
 						Max = player->armortype;
 					else
 						Max = 0;
@@ -684,7 +713,7 @@ bool_t P_TouchSpecialThing(mobj_t* special, mobj_t* toucher)
 			P_KillMobj(toucher, special, special);
 		
 		// Remove if we used it? or remove regardless
-		if (!CancelRemove && ((Current->KeepNotNeeded && OKStat) || !Current->KeepNotNeeded || Current->RemoveAlways))
+		if (!CancelRemove && (((Current->Flags & PMTSF_KEEPNOTNEEDED) && OKStat) || !(Current->Flags & PMTSF_KEEPNOTNEEDED) || (Current->Flags & PMTSF_REMOVEALWAYS)))
 			P_RemoveMobj(special);
 		
 		// Message?
