@@ -2503,6 +2503,7 @@ bool_t P_RMODH_Specials(Z_Table_t* const a_Table, const WL_WADFile_t* const a_WA
 			TempTouch.KeepNotNeeded = D_RMODGetValueBool(a_Table, "IsKeepIfNotNeeded", false);
 			TempTouch.RemoveAlways = D_RMODGetValueBool(a_Table, "IsRemoveAlways", false);
 			TempTouch.MonsterCanGrab = D_RMODGetValueBool(a_Table, "IsMonsterGrab", false);
+			TempTouch.DeValue = D_RMODGetValueBool(a_Table, "IsDeValue", false);
 			
 				// Integer
 			TempTouch.ArmorClass = D_RMODGetValueInt(a_Table, "ArmorClass", 0);

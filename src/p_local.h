@@ -377,6 +377,7 @@ typedef struct P_RMODTouchSpecial_s
 	bool_t KeepNotNeeded;						// Keep when not needed
 	bool_t RemoveAlways;						// Always remove this thing
 	bool_t MonsterCanGrab;						// Monster can grab item
+	bool_t DeValue;								// Devalued
 	
 	/* Actual */
 	spritenum_t ActSpriteNum;					// Sprite number to match

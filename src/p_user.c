@@ -154,17 +154,19 @@ void P_CalcHeight(player_t* player)
 			Diff = FixedDiv(abs(player->TargetViewZ - (player->viewz + bob)), 2 << FRACBITS);
 			player->viewz += Diff;
 		}
+		
 		// Above
 		else if (player->viewz + bob > player->TargetViewZ)
 		{
 			Diff = FixedDiv(abs(player->TargetViewZ - (player->viewz + bob)), 2 << FRACBITS);
 			player->viewz -= Diff;
 		}
+		
 		// Clip viewz Player object
 		if (player->viewz > player->mo->z + (player->mo->height + (player->mo->height >> 2)))
 			player->viewz = player->mo->z + (player->mo->height + (player->mo->height >> 2));
-		if (player->viewz < player->mo->z + (player->mo->height - (player->mo->height >> 1)))
-			player->viewz = player->mo->z + (player->mo->height - (player->mo->height >> 1));
+		if (player->viewz < player->mo->z + (player->mo->height >> 1))
+			player->viewz = player->mo->z + (player->mo->height >> 1);
 	}
 	
 	/* Clip viewz */

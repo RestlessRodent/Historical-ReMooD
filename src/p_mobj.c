@@ -1703,6 +1703,7 @@ void P_SpawnPlayer(mapthing_t* mthing)
 	mobj->skin = p->skin;
 	
 	mobj->angle = ANG45 * (mthing->angle / 45);
+	
 	for (i = 0; i < MAXSPLITSCREENPLAYERS; i++)
 		if (g_PlayerInSplit[i])
 			if (playernum == consoleplayer[i])

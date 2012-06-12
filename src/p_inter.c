@@ -552,11 +552,19 @@ bool_t P_TouchSpecialThing(mobj_t* special, mobj_t* toucher)
 			if (Target >= Max)
 			{
 				if (toucher->health >= Max)
+				{
+					Amount = toucher->health;
 					NewWear = false;
-				Amount = Max;
+				}
+				else
+					Amount = Max;
 			}
 			else
 				Amount = Target;
+			
+			// Allow devaluing
+			if (Current->DeValue && toucher->health >= Max)
+				Amount = Max;
 			
 			// Not Needed? Reverse of that
 			if (!(!NewWear && Current->KeepNotNeeded))
@@ -591,11 +599,19 @@ bool_t P_TouchSpecialThing(mobj_t* special, mobj_t* toucher)
 			if (Target >= Max)
 			{
 				if (player->armorpoints >= Max)
+				{
+					Amount = player->armorpoints;
 					NewWear = false;
-				Amount = Max;
+				}
+				else
+					Amount = Max;
 			}
 			else
 				Amount = Target;
+			
+			// Allow devaluing
+			if (Current->DeValue && player->armorpoints >= Max)
+				Amount = Max;
 			
 			// Not Needed? Reverse of that
 			if (!(!NewWear && Current->KeepNotNeeded))

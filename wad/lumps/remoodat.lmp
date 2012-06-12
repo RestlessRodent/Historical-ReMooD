@@ -18667,6 +18667,7 @@ MapTouchSpecial "ARM1"
 	IsCapNormStat "true";
 	IsCapMaxStat "true";
 	IsGreaterArmorClass "true";
+	IsKeepIfNotNeeded "true";
 }
 
 // ARM2 -- Blue Armor
@@ -18677,6 +18678,7 @@ MapTouchSpecial "ARM2"
 	ArmorAmount "200";
 	IsCapMaxStat "true";
 	IsGreaterArmorClass "true";
+	IsKeepIfNotNeeded "true";
 }
 
 // BON1 -- Health Bonus
