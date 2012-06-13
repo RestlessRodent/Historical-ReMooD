@@ -124,7 +124,7 @@ bool_t P_SaveGameEx(const char* SaveName, const char* ExtFileName, size_t ExtFil
 	D_RBlockStream_t* BS = D_RBSCreateFileStream(ExtFileName, DRBSSF_OVERWRITE);
 	
 	if (BS)
-		OK = P_SaveGameToBS(BS);
+		OK = P_SaveGameToBS(BS, NULL);
 	
 	return OK;
 }
@@ -142,7 +142,7 @@ bool_t P_LoadGameEx(const char* FileName, const char* ExtFileName, size_t ExtFil
 		gamestate = GS_DEMOSCREEN;
 		
 		// Load the game
-		OK = P_LoadGameFromBS(BS);
+		OK = P_LoadGameFromBS(BS, NULL);
 	}
 	
 	return OK;
@@ -556,8 +556,13 @@ bool_t P_SGBiWayReadStr(D_RBlockStream_t* const a_Stream, char** const a_Ptr, ch
 }
 
 /* PS_SGBiWayDH() -- Debug Header */
-static char* PS_SGBiWayDH(char* const a_Str)
+static char* PS_SGBiWayDH(char* const a_Str, I_HostAddress_t* const a_NetAddr, I_HostAddress_t* const a_InAddr)
 {
+	/* Compare netaddr and inaddr */
+	if (a_NetAddr && a_InAddr)
+		if (!I_NetCompareHost(a_NetAddr, a_InAddr))
+			return "";	// Drop header
+	
 	if (devparm)
 		CONL_PrintF("SAVE DEBUG: Begin \"%s\"\n", a_Str);
 	return a_Str;
@@ -605,9 +610,9 @@ bool_t PS_WRAPPED_D_RBSWriteString(D_RBlockStream_t* const a_Stream, const char*
 bool_t P_SGBiWayBS(D_RBlockStream_t* const a_Stream, const bool_t a_Load)
 {
 	// __HEADER -- Determines if header matches or starts a new one
-#define __HEADER(s) (a_Load ? (strcasecmp((s), PS_SGBiWayDH(Header)) == 0) : (D_RBSBaseBlock(a_Stream, PS_SGBiWayDH(s))))
+#define __HEADER(s) (a_Load ? (strcasecmp((s), PS_SGBiWayDH(Header, a_NetAddr, &InAddr)) == 0) : (D_RBSBaseBlock(a_Stream, PS_SGBiWayDH(s, NULL, NULL))))
 	// __REC -- Write: Continues (done with block so who cares); Read: Record block
-#define __REC if (a_Load) continue; else D_RBSRecordBlock(a_Stream)
+#define __REC if (a_Load) HitBlock = true; else D_RBSRecordNetBlock(a_Stream, a_NetAddr)
 	// __BI -- Reads or loads data
 #define __BI(x,nt,rc) P_SGBiWayReadOrWrite(a_Stream, a_Load, &x, sizeof(x), PSTC_##nt, PSRC_##rc, __FILE__, __LINE__)
 	// __BISTRZ -- Z_Malloced String
@@ -619,6 +624,7 @@ bool_t P_SGBiWayBS(D_RBlockStream_t* const a_Stream, const bool_t a_Load)
 	//D_RBSReadString(D_RBlockStream_t* const a_Stream, char* const a_Out, const size_t a_OutSize);
 
 #define BUFSIZE 512
+#if 0
 	bool_t Continue;
 	char Header[5];
 	char Buf[512];
@@ -637,6 +643,7 @@ bool_t P_SGBiWayBS(D_RBlockStream_t* const a_Stream, const bool_t a_Load)
 	tic_t tt;
 	fixed_t fxt;
 	void* vp;
+	bool_t HitBlock;
 	
 	ffloor_t* FFLRover;
 	msecnode_t* MSNode;
@@ -2053,13 +2060,14 @@ else if (a_Thinker->function.acv == T_VerticalDoor)	return 'o';
 	/* Success? */
 	return true;
 #undef BUFSIZE
+#endif
 }
 
 /*****************************************************************************/
 /*****************************************************************************/
 
 /* P_LoadGameFromBS() -- Load game from block stream */
-bool_t P_LoadGameFromBS(D_RBlockStream_t* const a_Stream)
+bool_t P_LoadGameFromBS(D_RBlockStream_t* const a_Stream, I_HostAddress_t* const a_NetAddr)
 {
 #define BUFSIZE 256
 	char Buf[BUFSIZE];
@@ -2075,7 +2083,7 @@ bool_t P_LoadGameFromBS(D_RBlockStream_t* const a_Stream)
 	sector_t* Sector;
 	
 	/* Do bi-way */
-	return P_SGDXSpec(a_Stream, true);
+	return P_SGDXSpec(a_Stream, a_NetAddr, true);
 	return P_SGBiWayBS(a_Stream, true);
 	
 	/* Check */
@@ -2296,7 +2304,7 @@ void P_SGBS_Thinkers(D_RBlockStream_t* const a_Stream);
 void P_SGBS_State(D_RBlockStream_t* const a_Stream);
 
 /* P_SaveGameToBS() -- Save game to block stream */
-bool_t P_SaveGameToBS(D_RBlockStream_t* const a_Stream)
+bool_t P_SaveGameToBS(D_RBlockStream_t* const a_Stream, I_HostAddress_t* const a_NetAddr)
 {
 	const char* c;
 	
@@ -2305,7 +2313,7 @@ bool_t P_SaveGameToBS(D_RBlockStream_t* const a_Stream)
 		return false;
 		
 	/* Do bi-way */
-	return P_SGDXSpec(a_Stream, false);
+	return P_SGDXSpec(a_Stream, a_NetAddr, false);
 	return P_SGBiWayBS(a_Stream, false);
 		
 	/* Create Header Block */
@@ -6325,7 +6333,7 @@ bool_t P_SGDXDoArray(D_RBlockStream_t* const a_Stream, const bool_t a_Load, void
 #define __BISTRB(buf,bs) (a_Load ? P_SGBSGDXReadStr(a_Stream,NULL,buf,bs) : PS_WRAPPED_D_RBSWriteString(a_Stream, buf))
 
 /* P_SGDXSpec() -- Save/Load Game via specification */
-bool_t P_SGDXSpec(D_RBlockStream_t* const a_Stream, const bool_t a_Load)
+bool_t P_SGDXSpec(D_RBlockStream_t* const a_Stream, I_HostAddress_t* const a_NetAddr, const bool_t a_Load)
 {
 #define BUFSIZE 128
 	char Buf[BUFSIZE];
@@ -6334,6 +6342,8 @@ bool_t P_SGDXSpec(D_RBlockStream_t* const a_Stream, const bool_t a_Load)
 	size_t i, j;
 	void* vp;
 	int32_t i32;
+	bool_t HitBlock;
+	I_HostAddress_t InAddr;
 	
 	/* Check */
 	if (!a_Stream)
@@ -6349,8 +6359,12 @@ bool_t P_SGDXSpec(D_RBlockStream_t* const a_Stream, const bool_t a_Load)
 		// If loading, read block (play it back)
 		memset(Header, 0, sizeof(Header));
 		if (a_Load)
-			if (!(Continue = D_RBSPlayBlock(a_Stream, Header)))
+		{
+			memset(&InAddr, 0, sizeof(InAddr));
+			if (!(Continue = D_RBSPlayNetBlock(a_Stream, Header, &InAddr)))
 				break;
+			HitBlock = false;	// Check when a valid block was read
+		}
 		
 		//////////////////////////////
 		// Save specific data
@@ -6470,7 +6484,8 @@ bool_t P_SGDXSpec(D_RBlockStream_t* const a_Stream, const bool_t a_Load)
 #endif
 		
 		// If Saving, Terminate
-		if (!a_Load)
+			// Or hit an invalid block when loading
+		if (!a_Load || (a_Load && !HitBlock))
 			break;
 	}
 	

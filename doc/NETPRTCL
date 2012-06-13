@@ -201,6 +201,7 @@ INFT	-- INFO Terminate (Stop handling)
 		u8	Required or optional
 				> R = Required
 				> O = Optional
+				> N = Required, but only by name
 				> All other values should be deemed required
 		str	DOS Name of WAD
 				> Unless your launcher runs on DOS, this should be read and
@@ -219,6 +220,7 @@ INFT	-- INFO Terminate (Stop handling)
 		--
 		..
 
+*REDY	-- Ready for join synchronization
 
 *PJOK	-- Player Join OK [!Local & Server]
 		str NetPlayer UUID (Unique Player Identification)

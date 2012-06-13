@@ -85,7 +85,15 @@ void D_SyncNetDebugMessage(const char* const a_Format, ...)
 /* D_SyncNetIsArbiter() -- Do we control the game? */
 bool_t D_SyncNetIsArbiter(void)
 {
-	return true;
+	D_NetClient_t* Server;
+	Server = D_NCFindClientIsServer();
+	
+	/* Which? */
+	if (!Server)
+		return false;
+	
+	/* Return if local */
+	return Server->IsLocal;
 }
 
 /* D_SyncNetSetMapTime() -- Sets the new map time */
@@ -845,6 +853,7 @@ void D_NCUpdate(void)
 {
 #define BUFSIZE 512
 	char Buf[BUFSIZE];
+	char ZBuf[BUFSIZE];
 	char Header[5];
 	D_RBlockStream_t* Stream, *OutStream, *GenOut;
 	D_NetClient_t* NetClient, *OtherClient;
@@ -853,10 +862,14 @@ void D_NCUpdate(void)
 	D_NetPlayer_t* NetPlayer;
 	D_ProfileEx_t* Profile;
 	player_t* DoomPlayer;
+	char* charp;
+	char* chara[5];
+	const char* charc;
 	
 	const WL_WADFile_t* RemIWAD;
 	const WL_WADFile_t* RemRWAD;
 	const WL_WADFile_t* FoundWAD;
+	const WL_WADFile_t* LastWAD;
 	
 	bool_t SendKeep;
 	bool_t SendPing, ReSend;
@@ -864,7 +877,7 @@ void D_NCUpdate(void)
 	static uint32_t LastKeep;
 	static uint32_t LastTime;
 	
-	bool_t DoContinue, IsOK;
+	bool_t DoContinue, IsOK, OrderOK;
 	uint32_t u32a, u32b, u32c, u32d;
 	uint8_t u8a, u8b, u8c, u8d;
 	
@@ -1131,6 +1144,9 @@ void D_NCUpdate(void)
 			
 			// Mark as ready
 			OtherClient->ReadyToPlay = true;
+			
+			// Send Save Game
+			D_NCHE_SendSaveGame(OtherClient);
 		}
 		
 		// WADQ -- Query WADS
@@ -1157,11 +1173,150 @@ void D_NCUpdate(void)
 			// Only accept if from a server and we aren't local
 			if (!(NetClient->IsServer && !NetClient->IsLocal))
 				continue;
-				
+			
 			// Get current IWAD and ReMooD.WAD
 			RemIWAD = WL_IterateVWAD(NULL, true);
 			RemRWAD = WL_IterateVWAD(RemIWAD, true);
+			FoundWAD = WL_IterateVWAD(NULL, true);
 			
+			// Reset
+			OrderOK = true;
+			DoContinue = true;
+			
+			// Read Input WADs
+			CONL_PrintF("*** Server WADs ***\n");
+			do
+			{
+				// Clear Buffers
+				memset(ZBuf, 0, sizeof(ZBuf));
+				
+				// Read Marker
+				u8a = D_RBSReadUInt8(Stream);
+				
+				// End?
+				if (u8a == 'X')
+					break;
+				
+				// Optional Bit
+				u8b = D_RBSReadUInt8(Stream);
+				
+				// Read DOS Name, Real Name, SS, MD5
+				for (j = 0; j < 4; j++)
+				{
+					D_RBSReadString(Stream, Buf, BUFSIZE - 1);
+					strncat(ZBuf, Buf, BUFSIZE - 1);
+					
+					if (j < 3)
+						strncat(ZBuf, "\1", BUFSIZE - 1);
+				}
+				
+				// Convert all \1s to \0s
+				memset(chara, 0, sizeof(chara));
+				j = 0;
+				charp = ZBuf;
+				chara[j++] = charp;
+				while ((charp = strchr(charp, 1)))
+				{
+					*(charp++) = 0;
+					chara[j++] = charp;
+				}
+				
+				// Print WAD
+				charp = ZBuf;
+				CONL_PrintF("%c: \"%s\"/\"%s\": [SS=%s, MD5=%s]\n",
+					u8b, chara[0], chara[1], chara[2], chara[3]);
+				charp += strlen(charp) + 1;
+				
+				// Compare current WAD to server
+				IsOK = false;
+				if (OrderOK)
+				{
+					// Compare name or sum?
+					if (u8b == 'N')
+						charc = FoundWAD->__Private.__DOSName;
+					else
+						charc = FoundWAD->SimpleSumChars;
+					
+					// Compare True
+					if (strcasecmp(charc, (u8b == 'N' ? chara[0] : chara[2])) == 0)
+					{
+						// Set as OK
+						IsOK = true;
+					}
+					
+					// Mismatch
+					else
+					{
+						// Message
+						CONL_PrintF("\"%s\" [%s] != \"%s\" [%s]\n",
+								FoundWAD->__Private.__DOSName,
+								FoundWAD->SimpleSumChars,
+								
+								chara[0],
+								chara[2]
+							);
+						
+						// WADs were never popped
+						if (u8b != 'O')	// Ignore optionals
+							if (OrderOK)
+							{
+								// Lock OCCB
+								WL_LockOCCB(true);
+								
+								// Pop until the current WAD
+								do
+								{
+									LastWAD = WL_PopWAD();
+								}
+								while (LastWAD != FoundWAD);
+							
+								// Set as popped
+								OrderOK = false;
+							}
+					}
+				}
+				
+				// WAD was not OK (missing?)
+				if (!OrderOK && !IsOK)
+				{
+					// Try loading the WAD
+						// DOS Name
+					FoundWAD = WL_OpenWAD(chara[0]);
+					
+					// Real Name?
+					if (!FoundWAD)
+						FoundWAD = WL_OpenWAD(chara[1]);
+					
+					// Still failed?
+					if (!FoundWAD)
+					{
+						// Not ready to join the game
+						DoContinue = false;
+						
+						// Request WAD from server
+						D_NCSR_RequestWAD(chara[2]);
+					}
+					
+					// Otherwise Push it
+					else
+						WL_PushWAD(FoundWAD);
+				}
+				
+				// Otherwise, iterate to the next WAD
+				else
+					FoundWAD = WL_IterateVWAD(FoundWAD, true);
+			} while (u8a != 'X');
+			CONL_PrintF("*******************\n");
+			
+			// UnLock OCCB if WADs were changed
+			if (!OrderOK)
+				WL_LockOCCB(false);
+			
+			// Inform server that we are ready for save game transmit
+			if (DoContinue)
+				D_NCSR_SendServerReady();
+				
+#if 0
 			// Lock OCCB
 			WL_LockOCCB(true);
 			
@@ -1170,6 +1325,7 @@ void D_NCUpdate(void)
 				;
 			
 			// Read all WADs
+			OrderOK = true;
 			DoContinue = true;
 			do
 			{
@@ -1252,6 +1408,7 @@ void D_NCUpdate(void)
 			// Success! Tell server we are ready for the join window
 			if (DoContinue)
 				D_NCSR_SendServerReady();
+#endif
 		}
 		
 		// WELC -- Connection successful
@@ -1369,7 +1526,8 @@ void D_NCUpdate(void)
 				// Nothing found?
 				if (!OtherClient)
 				{
-					CONL_OutputU(DSTR_NET_BADCLIENT, "\n");
+					if (devparm)
+						CONL_OutputU(DSTR_NET_BADCLIENT, "\n");
 					continue;
 				}
 				
@@ -1920,6 +2078,23 @@ void D_NCSR_RequestServerWADs(void)
 /* D_NCSR_SendServerReady() -- Tell server we are ready */
 void D_NCSR_SendServerReady(void)
 {
+	D_NetClient_t* Server;
+	D_RBlockStream_t* Stream;
+	
+	/* Find Server */
+	Server = D_NCFindClientIsServer();
+	
+	// Not found?
+	if (!Server)
+		return;
+	
+	/* Tell server to add player */
+	// Use server stream
+	Stream = Server->Streams[DNCSP_PERFECTWRITE];
+	
+	// Put Data
+	D_RBSBaseBlock(Stream, "REDY");
+	D_RBSRecordNetBlock(Stream, &Server->Address);
 }
 
 /* D_NCSR_SendLoadingStatus() -- Tell the server we are loading something */
@@ -1954,6 +2129,7 @@ void D_NCHE_ServerCreatePlayer(const size_t a_pNum, struct D_NetPlayer_s* const 
 	
 	// Check split screen
 		// If we are the server
+		// If this is the local client
 	if (a_NetClient == Server || a_NetClient->IsLocal)
 	{
 		for (j = 0; j < MAXSPLITSCREEN; j++)
@@ -2108,18 +2284,23 @@ void D_NSZZ_SendMOTD(struct D_RBlockStream_s* a_Stream)
 void D_NSZZ_SendFullWADS(struct D_RBlockStream_s* a_Stream, I_HostAddress_t* const a_Host)
 {
 	const WL_WADFile_t* Rover;
+	int i;
 	
 	/* Block */
 	D_RBSBaseBlock(a_Stream, "WADS");
 	
 	/* Write WAD Info */
-	for (Rover = WL_IterateVWAD(NULL, true); Rover; Rover = WL_IterateVWAD(Rover, true))
+	for (i = 0, Rover = WL_IterateVWAD(NULL, true); Rover; Rover = WL_IterateVWAD(Rover, true), i++)
 	{
 		// Write start
 		D_RBSWriteUInt8(a_Stream, 'W');
 		
-		// TODO: Optional WAD
-		D_RBSWriteUInt8(a_Stream, 'R');
+		// ReMooD.WAD is name matched only
+		if (i == 1)
+			D_RBSWriteUInt8(a_Stream, 'N');
+		else
+			// TODO: Optional WADs
+			D_RBSWriteUInt8(a_Stream, 'R');
 		
 		// Write Names for WAD (DOS and Base)
 		D_RBSWriteString(a_Stream, WL_GetWADName(Rover, false));
@@ -2135,6 +2316,30 @@ void D_NSZZ_SendFullWADS(struct D_RBlockStream_s* a_Stream, I_HostAddress_t* con
 	
 	/* Record it */
 	D_RBSRecordNetBlock(a_Stream, a_Host);
+}
+
+/* D_NCHE_SendSaveGame() -- Send savegame to client */
+void D_NCHE_SendSaveGame(D_NetClient_t* const a_Client)
+{
+	struct D_RBlockStream_s* Stream;
+	
+	/* Check */
+	if (!a_Client)
+		return;
+	
+	/* Set Info */
+	Stream = a_Client->Streams[DNCSP_PERFECTWRITE];
+	
+	/* Send Start */
+	D_RBSBaseBlock(Stream, "SAVE");
+	D_RBSRecordNetBlock(Stream, &a_Client->Address);
+	
+	/* Send Save */
+	P_SaveGameToBS(Stream, &a_Client->Address);
+	
+	/* Send End */
+	D_RBSBaseBlock(Stream, "SAVX");
+	D_RBSRecordNetBlock(Stream, &a_Client->Address);
 }
 
 /*** NCQC FUNCTIONS ***/

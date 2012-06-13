@@ -572,6 +572,66 @@ static bool_t P_LookForPlayers(mobj_t* actor, bool_t allaround)
 	BestMo = NULL;
 	BestDist = 20000 << FRACBITS;
 	
+#if 0
+	// Look through adjacent sectors
+	sector = actor->subsector->sector;
+	for (c = 0; c < sector->NumAdj && !BestMo; c++)
+		// Thing chains
+		for (mo = sector->Adj[c]->thinglist; mo && !BestMo; mo = mo->snext)
+		{
+			// Ourself?
+			if (actor == mo)
+				continue;
+				
+			// Not Shootable?
+			if (!(mo->flags & MF_SHOOTABLE))
+				continue;
+		
+			// Dead?
+			if ((mo->health <= 0) || (mo->flags & MF_CORPSE))
+				continue;
+			
+			// A player? and cannot target them?
+			if ((mo->RXFlags[0] & MFREXA_ISPLAYEROBJECT) && P_EXGSGetValue(PEXGSBID_FUNNOTARGETPLAYER))
+				continue;
+			
+			// On the same team?
+			if (P_MobjOnSameTeam(actor, mo))
+				if (!(P_EXGSGetValue(PEXGSBID_FUNMONSTERFFA)))
+					continue;
+					
+			// Is it in view?
+			if (!P_CheckSight(actor, mo))
+				continue;
+			
+			// Look all around?
+			if (!allaround)
+			{
+				an = R_PointToAngle2(actor->x, actor->y, mo->x, mo->y) - actor->angle;
+
+				if (an > ANG90 && an < ANG270)
+				{
+					dist = P_AproxDistance(mo->x - actor->x, mo->y - actor->y);
+				
+					// if real close, react anyway
+					if (dist > MELEERANGE)
+						continue;	// behind back
+				}
+			}
+		
+			// Distance Check
+			dist = P_AproxDistance(actor->x - mo->x, actor->y - mo->y);
+			if (dist < BestDist)
+			{
+				BestDist = dist;
+				BestMo = mo;
+			
+				// Distance is REALLY close? Then target that thing
+				if (BestDist < (128 << FRACBITS))
+					break;
+			}
+		}
+#else
 	// Look through thinkers
 	for (currentthinker = thinkercap.next; currentthinker != &thinkercap; currentthinker = currentthinker->next)
 	{
@@ -634,6 +694,7 @@ static bool_t P_LookForPlayers(mobj_t* actor, bool_t allaround)
 				break;
 		}
 	}
+#endif
 	
 	// Found best?
 	if (BestMo)

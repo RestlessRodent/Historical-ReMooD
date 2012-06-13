@@ -158,6 +158,7 @@ struct D_NetPlayer_s;
 struct D_ProfileEx_s;
 
 void D_NCHE_ServerCreatePlayer(const size_t a_pNum, struct D_NetPlayer_s* const a_NetPlayer, struct D_ProfileEx_s* const a_Profile, D_NetClient_t* const a_NetClient);
+void D_NCHE_SendSaveGame(D_NetClient_t* const a_Client);
 
 /*** NCQC Funcs ***/
 void D_NCQC_MapChange(void* const a_Data);
