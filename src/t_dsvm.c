@@ -63,6 +63,8 @@ typedef enum T_VMExprType_e
 *** STRUCTURES ***
 *****************/
 
+struct T_VMFunc_s;
+
 /* T_VMVarType_t -- Variable Type Handler */
 typedef struct T_VMVarType_s
 {
@@ -76,6 +78,14 @@ typedef struct T_VMVariable_s
 	const T_VMVarType_t* Handler;				// Type Handler
 } T_VMVariable_t;
 
+/* T_VMLabel_t -- VM Label */
+typedef struct T_VMLabel_s
+{
+	char* Name;									// Name
+	struct T_VMFunc_s* Func;					// Function that owns this
+	uint32_t ExecPtr;							// Execution Point
+} T_VMLabel_t;
+
 /* T_VMFunc_t -- VM Function */
 typedef struct T_VMFunc_s
 {
@@ -86,10 +96,15 @@ typedef struct T_VMFunc_s
 	/* Visible Variables */
 	T_VMVariable_t** Vars;						// Variables
 	size_t NumVars;								// Number of variables
+	T_VMLabel_t** Labels;						// Function labels
+	size_t NumLabels;							// Number of labels
 	
 	/* Links */
 	struct T_VMFunc_s* Prev;					// Previous function
 	struct T_VMFunc_s* Next;					// Next function
+	
+	/* Function Execution Data */
+	uint32_t CodeSize;							// Size of code
 } T_VMFunc_t;
 
 /* T_VMExpr_t -- VM Expression */
@@ -159,6 +174,36 @@ void T_DSVM_ScriptError(const char* const a_Str, const uint32_t a_Line)
 			a_Line,
 			a_Str
 		);
+}
+
+/* TS_VMInjectLabel() -- Inject label at call point */
+static T_VMLabel_t* TS_VMInjectLabel(const char* const a_Name, T_VMFunc_t* const a_Parent)
+{
+	T_VMLabel_t* New;
+	
+	/* Check */
+	if (!a_Name)
+		return NULL;
+	
+	/* Allocate New Variable */
+	New = Z_Malloc(sizeof(*New), PU_STATIC, NULL);
+	
+	/* Add to back of function variables */
+	Z_ResizeArray((void**)&l_VMCurFunc->Labels, sizeof(*l_VMCurFunc->Labels),
+		l_VMCurFunc->NumLabels, l_VMCurFunc->NumLabels + 1);
+	l_VMCurFunc->Labels[l_VMCurFunc->NumLabels++] = New;
+	
+	/* Fill variable info */
+	New->Name = Z_StrDup(a_Name, PU_STATIC, NULL);
+	New->Func = a_Parent;
+	New->ExecPtr = a_Parent->CodeSize;
+	
+	/* Debug */
+	if (devparm)
+		CONL_PrintF("SCRIPT: Created label \"%s\" (%s) @ %#06x\n", New->Name, l_VMCurFunc->FuncName, New->ExecPtr);
+	
+	/* Return it */
+	return New;
 }
 
 /* TS_VMCreateFunc() -- Creates a function */
@@ -274,7 +319,8 @@ static T_VMExpr_t* TS_VMPushExpr(const char* const a_Token)
 }
 
 /* TS_VMSolveExpr() -- Attempts solving expression */
-static bool_t TS_VMSolveExpr(void)
+// This creates actual code, handles functions such as jumping, etc.
+static bool_t TS_VMSolveExpr(const char* const a_ScopeFunc, T_VMFunc_t* const a_VMFunc)
 {
 #define BUFSIZE 512
 	static uint32_t TempVarNum;
@@ -449,7 +495,7 @@ static bool_t TS_VMSolveExpr(void)
 }
 
 /* T_DSVM_ReadToken() -- Reads Token */
-bool_t T_DSVM_ReadToken(WL_EntryStream_t* const a_Stream, const size_t a_End, size_t* const a_Row, char* const a_Buf, const size_t a_BufSize)
+bool_t T_DSVM_ReadToken(WL_EntryStream_t* const a_Stream, const size_t a_End, uint32_t* const a_Row, char* const a_Buf, const size_t a_BufSize)
 {
 	bool_t ReadSomething;
 	char Char;
@@ -476,8 +522,9 @@ bool_t T_DSVM_ReadToken(WL_EntryStream_t* const a_Stream, const size_t a_End, si
 		if ((!ReadString && (Char == ' ' || Char == '\t')) || (Char == '\r' || Char == '\n'))
 		{
 			// New Row?
-			if (a_Row)
-				*a_Row += 1;
+			if (Char == '\n')
+				if (a_Row)
+					*a_Row += 1;
 			
 			// If something was read, return it
 			if (ReadSomething)
@@ -612,18 +659,27 @@ bool_t T_DSVM_ReadToken(WL_EntryStream_t* const a_Stream, const size_t a_End, si
 /* T_DSVM_CompileStream() -- Compiles a stream */
 bool_t T_DSVM_CompileStream(WL_EntryStream_t* const a_Stream, const size_t a_End)
 {
+#define MAXSCOPES 32
 #define BUFSIZE 512
 	char Buf[BUFSIZE];
 	char ExtraBuf[BUFSIZE];
-	size_t Row;
-	bool_t ScriptProblem, QuickRet;
+	uint32_t Row;
+	bool_t ScriptProblem, QuickRet, TraversedScope;
 	const WL_WADEntry_t* Entry;
 	WL_EntryStream_t* IncStream;
 	int32_t i, j, n, s;
+	
+	uint32_t ScopeStack[MAXSCOPES], u32;
+	uint8_t ScopePos;
+	static uint32_t SScopeID;
 
 	/* Check */
 	if (!a_Stream)
 		return false;
+	
+	/* Initialize some things */
+	memset(ScopeStack, 0, sizeof(ScopeStack));
+	ScopePos = 0;
 	
 	/* Debug */
 	if (devparm)
@@ -673,6 +729,7 @@ bool_t T_DSVM_CompileStream(WL_EntryStream_t* const a_Stream, const size_t a_End
 			}
 			
 			// Trim Quotes
+			memset(ExtraBuf, 0, sizeof(ExtraBuf));
 			strncpy(ExtraBuf, Buf + 1, strlen(Buf) - 2);
 			
 			// Read token, and expect a ')'
@@ -712,6 +769,7 @@ bool_t T_DSVM_CompileStream(WL_EntryStream_t* const a_Stream, const size_t a_End
 				if (!Entry)
 				{
 					T_DSVM_ScriptError("Include not found.", Row);
+					T_DSVM_ScriptError(ExtraBuf, Row);
 					ScriptProblem = true;
 					break;
 				}
@@ -807,6 +865,17 @@ bool_t T_DSVM_CompileStream(WL_EntryStream_t* const a_Stream, const size_t a_End
 			snprintf(ExtraBuf, BUFSIZE - 1, "@__script_%i", s);
 			l_VMCurFunc = TS_VMCreateFunc(ExtraBuf, l_VMCurFunc);
 			l_ScopeDepth++;
+			
+			// Set into stack
+			ScopeStack[ScopePos++] = ~s;
+			
+			// Exceeded scope depth?
+			if (ScopePos >= MAXSCOPES)
+			{
+				T_DSVM_ScriptError("Exceeded maximum scope depth.", Row);
+				ScriptProblem = true;
+				break;
+			}
 		}
 		
 		// Custom Function
@@ -824,6 +893,13 @@ bool_t T_DSVM_CompileStream(WL_EntryStream_t* const a_Stream, const size_t a_End
 		// Scope Termination
 		else if (strcasecmp(Buf, "}") == 0)
 		{
+			// Pop from stack (place function end marker here?)
+			u32 = ScopeStack[ScopePos - 1];
+			snprintf(ExtraBuf, BUFSIZE - 1, "@__endscope_pre_%i", u32);
+			TS_VMInjectLabel(ExtraBuf, l_VMCurFunc);
+			
+			ScopePos--;
+			
 			// Go Up
 			l_VMCurFunc = l_VMCurFunc->Parent;
 			l_ScopeDepth--;
@@ -835,6 +911,18 @@ bool_t T_DSVM_CompileStream(WL_EntryStream_t* const a_Stream, const size_t a_End
 				ScriptProblem = true;
 				break;
 			}
+			
+			// Exceeded scope depth?
+			if (ScopePos >= MAXSCOPES)
+			{
+				T_DSVM_ScriptError("Exceeded maximum scope depth.", Row);
+				ScriptProblem = true;
+				break;
+			}
+			
+			// Place label after in standard function area
+			snprintf(ExtraBuf, BUFSIZE - 1, "@__endscope_%i", u32);
+			TS_VMInjectLabel(ExtraBuf, l_VMCurFunc);
 		}
 		
 		// Standard Expression
@@ -842,13 +930,26 @@ bool_t T_DSVM_CompileStream(WL_EntryStream_t* const a_Stream, const size_t a_End
 		{
 			// Init expression
 			TS_VMClearExpr();
+			TraversedScope = false;
 			
 			// Expression Loop
 			do
 			{
-				// ; is end of expression
-				if (strcasecmp(Buf, ";") == 0)
+				// ; or { is end of expression
+				if (strcasecmp(Buf, ";") == 0 || strcasecmp(Buf, "{") == 0)
 				{
+					// Sub-block?
+					if (strcasecmp(Buf, "{") == 0)
+					{
+						// Create function for scope
+						// Expressions should be evaluation before scopes but they
+						// need to know which scope to jump to. So an if parsed
+						// will either call @__scope_ or just jump to @__endscope_
+						u32 = ++SScopeID;
+						snprintf(ExtraBuf, BUFSIZE - 1, "@__scope_%i", u32);
+						TraversedScope = true;
+					}
+					
 					QuickRet = true;
 					break;
 				}
@@ -867,7 +968,7 @@ bool_t T_DSVM_CompileStream(WL_EntryStream_t* const a_Stream, const size_t a_End
 			}
 			
 			// Try solving it
-			QuickRet = TS_VMSolveExpr();
+			QuickRet = TS_VMSolveExpr(ExtraBuf, l_VMCurFunc);
 			
 			// Failed to solve?
 			if (!QuickRet)
@@ -876,6 +977,28 @@ bool_t T_DSVM_CompileStream(WL_EntryStream_t* const a_Stream, const size_t a_End
 				T_DSVM_ScriptError("Could not solve expression.", Row);
 				ScriptProblem = true;
 				return;
+			}
+			
+			// Call traverses a scope `if (something) {`
+			if (TraversedScope)
+			{ 
+				l_VMCurFunc = TS_VMCreateFunc(ExtraBuf, l_VMCurFunc);
+				l_ScopeDepth++;
+			
+				// Set into stack
+				ScopeStack[ScopePos++] = u32;
+
+				// Exceeded scope depth?
+				if (ScopePos >= MAXSCOPES)
+				{
+					T_DSVM_ScriptError("Exceeded maximum scope depth.", Row);
+					ScriptProblem = true;
+					break;
+				}
+				
+				// Place label after in standard function area
+				snprintf(ExtraBuf, BUFSIZE - 1, "@__scope_init_%i", u32);
+				TS_VMInjectLabel(ExtraBuf, l_VMCurFunc);
 			}
 			
 			// Clear it
@@ -910,6 +1033,7 @@ bool_t T_DSVM_Cleanup(void)
 	size_t v;
 	T_VMFunc_t* Rover, *Next;
 	T_VMVariable_t* ThisVar;
+	T_VMLabel_t* ThisLabel;
 	
 	/* Reset Vars */
 	l_ScopeDepth = 0;
@@ -951,6 +1075,27 @@ bool_t T_DSVM_Cleanup(void)
 			
 			// Free list
 			Z_Free(Rover->Vars);
+		}
+		
+		// Clear labels
+		if (Rover->Labels)
+		{
+			// Free stuff in variables
+			for (v = 0; v < Rover->NumLabels; v++)
+			{
+				// Get current
+				ThisLabel = Rover->Labels[v];
+				
+				// Free info
+				if (ThisLabel->Name)
+					Z_Free(ThisLabel->Name);
+				
+				// Free the actual variable
+				Z_Free(ThisLabel);
+			}
+			
+			// Free list
+			Z_Free(Rover->Labels);
 		}
 		
 		// Clear function itself
