@@ -15861,6 +15861,7 @@ MapObject "RedFlag"
 	NoThingClipping "true";
 	ForceInitializeBotNodes "true";
 	TranslationColor "light red";
+	IsDoomColored "true";
 	
 	State "SpawnState"
 	{
@@ -15970,6 +15971,7 @@ MapObject "BlueFlag"
 	NoThingClipping "true";
 	ForceInitializeBotNodes "true";
 	TranslationColor "light blue";
+	IsDoomColored "true";
 	
 	State "SpawnState"
 	{
@@ -16077,6 +16079,7 @@ MapObject "GreenFlag"
 	ActiveSound "none";
 	
 	ForceInitializeBotNodes "true";
+	IsDoomColored "true";
 	
 	State "SpawnState"
 	{
@@ -16186,6 +16189,7 @@ MapObject "YellowFlag"
 	NoThingClipping "true";
 	ForceInitializeBotNodes "true";
 	TranslationColor "Yellow";
+	IsDoomColored "true";
 	
 	State "SpawnState"
 	{
@@ -16295,6 +16299,7 @@ MapObject "NeutralFlag"
 	NoThingClipping "true";
 	ForceInitializeBotNodes "true";
 	TranslationColor "White";
+	IsDoomColored "true";
 	
 	State "SpawnState"
 	{

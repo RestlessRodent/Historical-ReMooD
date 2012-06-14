@@ -105,9 +105,9 @@ void P_SetPsprite(player_t* player, int position, statenum_t stnum)
 		 */
 		// Call action routine.
 		// Modified handling.
-		if (state->action.acp3)
+		if (state->action.acp5)
 		{
-			state->action.acp3(player->mo, player, psp);
+			state->action.acp5(player->mo, player, psp, state->ArgC, state->ArgV);
 			if (!psp->state)
 				break;
 		}
@@ -304,7 +304,7 @@ void P_DropWeapon(player_t* player)
 // Follows after getting weapon up,
 // or after previous attack/fire sequence.
 //
-void A_WeaponReady(mobj_t* mo, player_t* player, pspdef_t* psp)
+void A_WeaponReady(mobj_t* mo, player_t* player, pspdef_t* psp, const INFO_StateArgsNum_t a_ArgC, INFO_StateArgsParm_t* const a_ArgV)
 {
 
 	// get out of attack state
@@ -352,7 +352,7 @@ void A_WeaponReady(mobj_t* mo, player_t* player, pspdef_t* psp)
 }
 
 // client prediction stuff
-void A_TicWeapon(mobj_t* mo, player_t* player, pspdef_t* psp)
+void A_TicWeapon(mobj_t* mo, player_t* player, pspdef_t* psp, const INFO_StateArgsNum_t a_ArgC, INFO_StateArgsParm_t* const a_ArgV)
 {
 	if ((void*)psp->state->action.acp2 == (void*)A_WeaponReady && psp->tics == psp->state->tics)
 	{
@@ -378,7 +378,7 @@ void P_ReduceAmmo(player_t* player)
 // The player can re-fire the weapon
 // without lowering it entirely.
 //
-void A_ReFire(mobj_t* mo, player_t* player, pspdef_t* psp)
+void A_ReFire(mobj_t* mo, player_t* player, pspdef_t* psp, const INFO_StateArgsNum_t a_ArgC, INFO_StateArgsParm_t* const a_ArgV)
 {
 
 	// check for fire
@@ -395,7 +395,7 @@ void A_ReFire(mobj_t* mo, player_t* player, pspdef_t* psp)
 	}
 }
 
-void A_CheckReload(mobj_t* mo, player_t* player, pspdef_t* psp)
+void A_CheckReload(mobj_t* mo, player_t* player, pspdef_t* psp, const INFO_StateArgsNum_t a_ArgC, INFO_StateArgsParm_t* const a_ArgV)
 {
 	P_CheckAmmo(player);
 #if 0
@@ -409,7 +409,7 @@ void A_CheckReload(mobj_t* mo, player_t* player, pspdef_t* psp)
 // Lowers current weapon,
 //  and changes weapon at bottom.
 //
-void A_Lower(mobj_t* mo, player_t* player, pspdef_t* psp)
+void A_Lower(mobj_t* mo, player_t* player, pspdef_t* psp, const INFO_StateArgsNum_t a_ArgC, INFO_StateArgsParm_t* const a_ArgV)
 {
 	if (player->chickenTics)
 		psp->sy = WEAPONBOTTOM;
@@ -445,7 +445,7 @@ void A_Lower(mobj_t* mo, player_t* player, pspdef_t* psp)
 //
 // A_Raise
 //
-void A_Raise(mobj_t* mo, player_t* player, pspdef_t* psp)
+void A_Raise(mobj_t* mo, player_t* player, pspdef_t* psp, const INFO_StateArgsNum_t a_ArgC, INFO_StateArgsParm_t* const a_ArgV)
 {
 	psp->sy -= RAISESPEED;
 	
@@ -462,7 +462,7 @@ void A_Raise(mobj_t* mo, player_t* player, pspdef_t* psp)
 //
 // A_GunFlash
 //
-void A_GunFlash(mobj_t* mo, player_t* player, pspdef_t* psp)
+void A_GunFlash(mobj_t* mo, player_t* player, pspdef_t* psp, const INFO_StateArgsNum_t a_ArgC, INFO_StateArgsParm_t* const a_ArgV)
 {
 	P_SetMobjState(player->mo, player->mo->info->RPlayerRangedAttackState);
 	P_SetPsprite(player, ps_flash, player->weaponinfo[player->readyweapon]->flashstate);
@@ -489,7 +489,7 @@ mobjtype_t PS_GetPuffType(player_t* player)
 //
 // A_Punch
 //
-void A_Punch(mobj_t* mo, player_t* player, pspdef_t* psp)
+void A_Punch(mobj_t* mo, player_t* player, pspdef_t* psp, const INFO_StateArgsNum_t a_ArgC, INFO_StateArgsParm_t* const a_ArgV)
 {
 	angle_t angle;
 	angle_t* locang = NULL;
@@ -560,7 +560,7 @@ void A_Punch(mobj_t* mo, player_t* player, pspdef_t* psp)
 //
 // A_Saw
 //
-void A_Saw(mobj_t* mo, player_t* player, pspdef_t* psp)
+void A_Saw(mobj_t* mo, player_t* player, pspdef_t* psp, const INFO_StateArgsNum_t a_ArgC, INFO_StateArgsParm_t* const a_ArgV)
 {
 	angle_t angle;
 	angle_t* locang = NULL;
@@ -647,7 +647,7 @@ void A_Saw(mobj_t* mo, player_t* player, pspdef_t* psp)
 //
 // A_FireMissile : rocket launcher fires a rocket
 //
-void A_FireMissile(mobj_t* mo, player_t* player, pspdef_t* psp)
+void A_FireMissile(mobj_t* mo, player_t* player, pspdef_t* psp, const INFO_StateArgsNum_t a_ArgC, INFO_StateArgsParm_t* const a_ArgV)
 {
 	P_ReduceAmmo(player);
 	
@@ -658,7 +658,7 @@ void A_FireMissile(mobj_t* mo, player_t* player, pspdef_t* psp)
 //
 // A_FireBFG
 //
-void A_FireBFG(mobj_t* mo, player_t* player, pspdef_t* psp)
+void A_FireBFG(mobj_t* mo, player_t* player, pspdef_t* psp, const INFO_StateArgsNum_t a_ArgC, INFO_StateArgsParm_t* const a_ArgV)
 {
 	P_ReduceAmmo(player);
 	//added:16-02-98:added player arg3
@@ -668,7 +668,7 @@ void A_FireBFG(mobj_t* mo, player_t* player, pspdef_t* psp)
 //
 // A_FirePlasma
 //
-void A_FirePlasma(mobj_t* mo, player_t* player, pspdef_t* psp)
+void A_FirePlasma(mobj_t* mo, player_t* player, pspdef_t* psp, const INFO_StateArgsNum_t a_ArgC, INFO_StateArgsParm_t* const a_ArgV)
 {
 	int StateDiff;
 	
@@ -753,7 +753,7 @@ void P_GunShot(mobj_t* mo, bool_t accurate)
 //
 // A_FirePistol
 //
-void A_FirePistol(mobj_t* mo, player_t* player, pspdef_t* psp)
+void A_FirePistol(mobj_t* mo, player_t* player, pspdef_t* psp, const INFO_StateArgsNum_t a_ArgC, INFO_StateArgsParm_t* const a_ArgV)
 {
 	S_StartSound(&player->mo->NoiseThinker, sfx_pistol);
 	
@@ -771,7 +771,7 @@ void A_FirePistol(mobj_t* mo, player_t* player, pspdef_t* psp)
 //
 // A_FireShotgun
 //
-void A_FireShotgun(mobj_t* mo, player_t* player, pspdef_t* psp)
+void A_FireShotgun(mobj_t* mo, player_t* player, pspdef_t* psp, const INFO_StateArgsNum_t a_ArgC, INFO_StateArgsParm_t* const a_ArgV)
 {
 	int i;
 	
@@ -790,7 +790,7 @@ void A_FireShotgun(mobj_t* mo, player_t* player, pspdef_t* psp)
 //
 // A_FireShotgun2 (SuperShotgun)
 //
-void A_FireShotgun2(mobj_t* mo, player_t* player, pspdef_t* psp)
+void A_FireShotgun2(mobj_t* mo, player_t* player, pspdef_t* psp, const INFO_StateArgsNum_t a_ArgC, INFO_StateArgsParm_t* const a_ArgV)
 {
 	int i;
 	angle_t angle;
@@ -819,7 +819,7 @@ void A_FireShotgun2(mobj_t* mo, player_t* player, pspdef_t* psp)
 //
 // A_FireCGun
 //
-void A_FireCGun(mobj_t* mo, player_t* player, pspdef_t* psp)
+void A_FireCGun(mobj_t* mo, player_t* player, pspdef_t* psp, const INFO_StateArgsNum_t a_ArgC, INFO_StateArgsParm_t* const a_ArgV)
 {
 	int StateDiff;
 	
@@ -846,17 +846,17 @@ void A_FireCGun(mobj_t* mo, player_t* player, pspdef_t* psp)
 //
 // Flash light when fire gun
 //
-void A_Light0(mobj_t* mo, player_t* player, pspdef_t* psp)
+void A_Light0(mobj_t* mo, player_t* player, pspdef_t* psp, const INFO_StateArgsNum_t a_ArgC, INFO_StateArgsParm_t* const a_ArgV)
 {
 	player->extralight = 0;
 }
 
-void A_Light1(mobj_t* mo, player_t* player, pspdef_t* psp)
+void A_Light1(mobj_t* mo, player_t* player, pspdef_t* psp, const INFO_StateArgsNum_t a_ArgC, INFO_StateArgsParm_t* const a_ArgV)
 {
 	player->extralight = 1;
 }
 
-void A_Light2(mobj_t* mo, player_t* player, pspdef_t* psp)
+void A_Light2(mobj_t* mo, player_t* player, pspdef_t* psp, const INFO_StateArgsNum_t a_ArgC, INFO_StateArgsParm_t* const a_ArgV)
 {
 	player->extralight = 2;
 }
@@ -865,7 +865,7 @@ void A_Light2(mobj_t* mo, player_t* player, pspdef_t* psp)
 // A_BFGSpray
 // Spawn a BFG explosion on every monster in view
 //
-void A_BFGSpray(mobj_t* mo, player_t* player, pspdef_t* psp)
+void A_BFGSpray(mobj_t* mo, player_t* player, pspdef_t* psp, const INFO_StateArgsNum_t a_ArgC, INFO_StateArgsParm_t* const a_ArgV)
 {
 	int i;
 	int j;
@@ -920,13 +920,13 @@ void A_BFGSpray(mobj_t* mo, player_t* player, pspdef_t* psp)
 //
 // A_BFGsound
 //
-void A_BFGsound(mobj_t* mo, player_t* player, pspdef_t* psp)
+void A_BFGsound(mobj_t* mo, player_t* player, pspdef_t* psp, const INFO_StateArgsNum_t a_ArgC, INFO_StateArgsParm_t* const a_ArgV)
 {
 	S_StartSound(&mo->NoiseThinker, sfx_bfg);
 }
 
 /* A_FireGenericProjectile() -- Fires a generic projectile */
-void A_FireGenericProjectile(mobj_t* mo, player_t* player, pspdef_t* psp)
+void A_FireGenericProjectile(mobj_t* mo, player_t* player, pspdef_t* psp, const INFO_StateArgsNum_t a_ArgC, INFO_StateArgsParm_t* const a_ArgV)
 {
 	/* Reduce ammo */
 	P_ReduceAmmo(player);
@@ -947,7 +947,7 @@ void A_FireGenericProjectile(mobj_t* mo, player_t* player, pspdef_t* psp)
 // stating it? But eitherway, this is modified for ReMooD purposes.
 
 /* A_FireOldBFG() -- Fires the BFG from Beta Doom */
-void A_FireOldBFG(mobj_t* mo, player_t* player, pspdef_t* psp)
+void A_FireOldBFG(mobj_t* mo, player_t* player, pspdef_t* psp, const INFO_StateArgsNum_t a_ArgC, INFO_StateArgsParm_t* const a_ArgV)
 {
 	angle_t la, lb, lc;
 	mobj_t* pMo, *BallMo;

@@ -174,8 +174,8 @@ bool_t P_SetMobjState(mobj_t* mobj, statenum_t state)
 		// Modified handling.
 		// Call action functions when the state is set
 		
-		if (st->action.acp3)
-			st->action.acp3(mobj, mobj->player, NULL);
+		if (st->action.acp5)
+			st->action.acp5(mobj, mobj->player, NULL, st->ArgC, st->ArgV);
 			
 		seenstate[state] = 1 + st->nextstate;	// killough 4/9/98
 		

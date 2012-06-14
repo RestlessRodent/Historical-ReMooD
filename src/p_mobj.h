@@ -329,6 +329,7 @@ typedef enum mobjflagrexb_e
 	MFREXB_USEPLAYERMOVEMENT	= 0x000000800U,	// Use player movement
 	MFREXB_CANUSEWEAPONS		= 0x000001000U,	// Can use player weapons
 	MFREXB_NOFLOORDAMAGE		= 0x000002000U,	// No damage on the floor
+	MFREXB_ISDOOMPALETTE		= 0x000004000U,	// Uses Doom Palette
 } mobjflagrexb_t;
 
 /* P_MobjRefType_t -- Reference type */

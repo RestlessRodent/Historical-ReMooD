@@ -296,7 +296,7 @@ static bool_t RS_TransTableOCCB(const bool_t a_Pushed, const struct WL_WADFile_s
 	translationtables = Z_Malloc(256 * ((MAXSKINCOLORS * 3) - 1), PU_STATIC, NULL);
 	
 	// Load lump
-	Entry = WL_FindEntry(NULL, 0, "RMD_PMAP");
+	Entry = WL_FindEntry(NULL, 0, (g_CoreGame == COREGAME_HERETIC ? "RMD_PMAQ" : "RMD_PMAP"));
 	
 	// Found?
 	if (Entry)

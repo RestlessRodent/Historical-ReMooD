@@ -296,6 +296,6 @@ typedef struct
 	
 } wbstartstruct_t;
 
-void A_TicWeapon(mobj_t* mo, player_t* player, pspdef_t* psp);
+void A_TicWeapon(mobj_t* mo, player_t* player, pspdef_t* psp, const INFO_StateArgsNum_t a_ArgC, INFO_StateArgsParm_t* const a_ArgV);
 
 #endif

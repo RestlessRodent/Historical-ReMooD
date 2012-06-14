@@ -830,7 +830,7 @@ typedef union V_ColorEntry_s
 const uint8_t* V_ReturnColormapPtr(const VEX_ColorList_t Color)
 {
 	/* Check */
-	if (Color < 0 || Color >= NUMVEXCOLORS)
+	if (Color < 0 || Color >= (NUMVEXCOLORS * 2))
 		return NULL;
 	return l_ColorMaps[Color];
 }
@@ -1026,7 +1026,7 @@ void V_InitializeColormaps(void)
 	const char* CMAPName;
 	
 	/* Destroy old maps */
-	for (i = 0; i < NUMVEXCOLORS; i++)
+	for (i = 0; i < (NUMVEXCOLORS * 2); i++)
 		if (l_ColorMaps[i])
 		{
 			Z_Free(l_ColorMaps[i]);
@@ -1034,7 +1034,7 @@ void V_InitializeColormaps(void)
 		}
 		
 	/* Allocate maps, and initialize */
-	for (i = 0; i < NUMVEXCOLORS; i++)
+	for (i = 0; i < (NUMVEXCOLORS * 2); i++)
 	{
 		// Does not exist?
 		if (!l_ColorMaps[i])
@@ -1062,7 +1062,7 @@ void V_InitializeColormaps(void)
 		return;
 		
 	/* Constant read in the lump and set the translation stuff */
-	for (m = 0, i = 0; i < NUMVEXCOLORS; i++)
+	for (m = 0, i = 0; i < (NUMVEXCOLORS * 2); i++)
 		for (j = 0; j < 256 && m < Entry->Size; j++, m++)
 			WL_ReadData(Entry, m, &l_ColorMaps[i][j], sizeof(l_ColorMaps[i][j]));
 }
@@ -2741,11 +2741,11 @@ uint16_t V_ExtMBToWChar(const char* MBChar, size_t* const BSkip)
 					MBChar++;
 					Temp = tolower(*MBChar);
 					
-					if ((Temp >= '0' && Temp <= '9') || (Temp >= 'a' && Temp <= 'z'))
+					if ((Temp >= '0' && Temp <= '9') || (Temp >= 'a' && Temp <= 'f'))
 					{
 						if (Temp >= '0' && Temp <= '9')
 							Feed |= ((Temp - '0') & 0xFU) << 4;
-						else if (Temp >= 'a' && Feed <= 'f')
+						else if (Temp >= 'a' && Temp <= 'f')
 							Feed |= (((Temp - 'a') + 10U) & 0xFU) << 4;
 						else
 							Feed |= 0xF1FFU;
@@ -2758,11 +2758,11 @@ uint16_t V_ExtMBToWChar(const char* MBChar, size_t* const BSkip)
 						MBChar++;
 						Temp = tolower(*MBChar);
 						
-						if ((Temp >= '0' && Temp <= '9') || (Temp >= 'a' && Temp <= 'z'))
+						if ((Temp >= '0' && Temp <= '9') || (Temp >= 'a' && Temp <= 'f'))
 						{
 							if (Temp >= '0' && Temp <= '9')
 								Feed |= ((Temp - '0') & 0xFU);
-							else if (Temp >= 'a' && Feed <= 'f')
+							else if (Temp >= 'a' && Temp <= 'f')
 								Feed |= (((Temp - 'a') + 10U) & 0xFU);
 							else
 								Feed |= 0xF1FFU;
@@ -3096,6 +3096,7 @@ int V_DrawCharacterMB(const VideoFont_t a_Font, const uint32_t a_Options, const 
 		if (WChar >= 0 && WChar < 16)
 		{
 			*a_OptionsMod &= ~VFO_COLORMASK;
+			*a_OptionsMod &= ~VFO_PCOLMASK;		// Remove (interferes)
 			*a_OptionsMod |= VFO_COLOR(WChar & 0xF);
 		}
 		
@@ -3104,6 +3105,14 @@ int V_DrawCharacterMB(const VideoFont_t a_Font, const uint32_t a_Options, const 
 		{
 			*a_OptionsMod &= ~VFO_TRANSMASK;
 			*a_OptionsMod |= VFO_TRANS((WChar - 16) & 0xF);
+		}
+		
+		// Player Color
+		else if (WChar >= 0x70 && WChar <= 0x7F)
+		{
+			*a_OptionsMod &= ~VFO_COLORMASK;	// Remove color (interferes)
+			*a_OptionsMod &= ~VFO_PCOLMASK;
+			*a_OptionsMod |= VFO_PCOL((WChar - 0x70) & 0xF);
 		}
 		
 		// Underlined?
@@ -3118,7 +3127,7 @@ int V_DrawCharacterMB(const VideoFont_t a_Font, const uint32_t a_Options, const 
 		// Clear attributes
 		else if (WChar == ('z' - 'a') + 10)
 		{
-			*a_OptionsMod &= ~(VFO_COLORMASK | VFO_TRANSMASK | VFO_UNDERLINE);
+			*a_OptionsMod &= ~(VFO_COLORMASK | VFO_PCOLMASK | VFO_TRANSMASK | VFO_UNDERLINE);
 		}
 		
 		// Always return 0, there is no space here
@@ -4362,7 +4371,7 @@ void V_ImageDrawScaledIntoBuffer(const uint32_t a_Flags, V_Image_t* const a_Imag
 		Mask = (a_Flags & VEX_COLORMASK) >> VEX_COLORSHIFT;
 		
 		if (Mask > 0)
-			ColorMapE = translationtables[Mask];
+			ColorMapE = V_ReturnColormapPtr(16 + Mask);//translationtables[Mask];
 		else
 			ColorMapE = V_ReturnColormapPtr(VEX_MAP_NONE);
 	}

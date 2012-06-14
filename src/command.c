@@ -952,6 +952,25 @@ CONL_ExitCode_t CLC_ExecFile(const uint32_t a_ArgC, const char** const a_ArgV)
 #undef BUFSIZE
 }
 
+/* CLC_Echo() -- Echo text */
+CONL_ExitCode_t CLC_Echo(const uint32_t a_ArgC, const char** const a_ArgV)
+{
+	int i;
+	
+	/* Print all args */
+	for (i = 1; i < a_ArgC; i++)
+	{
+		CONL_PrintF("%s", a_ArgV[i]);
+		
+		if (i < a_ArgC - 1)
+			CONL_PrintF(" ");
+	}
+	CONL_PrintF("\n");
+	
+	/* Always works */
+	return CLE_SUCCESS;
+}
+
 /* CLC_Exclamation() -- Runs command and reverses error status */
 CONL_ExitCode_t CLC_Exclamation(const uint32_t a_ArgC, const char** const a_ArgV)
 {

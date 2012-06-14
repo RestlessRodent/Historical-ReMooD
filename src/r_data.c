@@ -1065,7 +1065,7 @@ static bool_t RS_TextureOrderChange(const bool_t a_Pushed, const struct WL_WADFi
 }
 
 /* R_InitExSpriteInfo() -- Initialize extended sprite info */
-void R_InitExSpriteInfo(R_SpriteInfoEx_t* const a_Info)
+void R_InitExSpriteInfo(R_SpriteInfoEx_t* const a_Info, const V_ColorPal_t a_ColorPal)
 {
 	int32_t w, h, xo, yo;
 	
@@ -1078,7 +1078,7 @@ void R_InitExSpriteInfo(R_SpriteInfoEx_t* const a_Info)
 		return;
 	
 	/* Get image from entry */
-	a_Info->Image = V_ImageLoadE(a_Info->Entry, VCP_NONE);
+	a_Info->Image = V_ImageLoadE(a_Info->Entry, a_ColorPal);
 	
 	// Get properties
 	if (a_Info->Image)

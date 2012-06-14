@@ -72,6 +72,14 @@ typedef enum StatePriorities_e
 	STP_PROJECTILES = 101,		// Stuff flying though the air
 } StatePriorities_t;
 
+/* INFO_StateArgsParm_t -- State arguments */
+typedef uint8_t INFO_StateArgsNum_t;
+typedef struct INFO_StateArgsParm_s
+{
+	char* String;								// String Argument
+	int32_t IntVal;								// Numberic Value
+} INFO_StateArgsParm_t;
+
 typedef struct
 {
 	statenum_t StateNum;						// State number
@@ -98,6 +106,9 @@ typedef struct
 	uint32_t SpriteID;							// Frame Sprite ID
 	uint32_t DehackEdID;						// Dehacked ID
 	uint8_t IOSG;								// State Group
+	
+	INFO_StateArgsNum_t ArgC;					// Argument Count
+	INFO_StateArgsParm_t* ArgV;					// Function Arguments
 } state_t;
 
 #define S_NULL 0

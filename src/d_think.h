@@ -47,6 +47,8 @@ typedef void (*actionf_v) ();
 typedef void (*actionf_p1) (void*);
 typedef void (*actionf_p2) (void*, void*);
 typedef void (*actionf_p3) (void*, void*, void*);
+typedef void (*actionf_p4) (void*, void*, void*, void*);
+typedef void (*actionf_p5) (void*, void*, void*, uint8_t, void*);
 
 typedef union
 {
@@ -54,7 +56,8 @@ typedef union
 	actionf_p1 acp1;
 	actionf_p2 acp2;
 	actionf_p3 acp3;
-	
+	actionf_p4 acp4;
+	actionf_p5 acp5;
 } actionf_t;
 
 // Historically, "think_t" is yet another

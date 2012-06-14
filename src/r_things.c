@@ -627,7 +627,7 @@ static void R_ProjectSprite(mobj_t* thing)
 #endif
 
 	// Initialize sprite
-	R_InitExSpriteInfo(SprInfo);
+	R_InitExSpriteInfo(SprInfo, ((thing->RXFlags[1] & MFREXB_ISDOOMPALETTE) ? VCP_DOOM : VCP_NONE));
 	
 	// No sprite?
 	if (!SprInfo)
@@ -873,7 +873,7 @@ void R_DrawPSprite(pspdef_t* psp)
 	flip = (bool_t)sprframe->ExFlip[0];
 	
 	// Initialize sprite
-	R_InitExSpriteInfo(SprInfo);
+	R_InitExSpriteInfo(SprInfo, VCP_NONE);
 	
 	// calculate edges of the shape
 	

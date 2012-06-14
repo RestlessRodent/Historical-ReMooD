@@ -280,6 +280,7 @@ CONL_ExitCode_t CLC_Version(const uint32_t a_ArgC, const char** const a_ArgV);
 CONL_ExitCode_t CLC_Dep(const uint32_t a_ArgC, const char** const a_ArgV);
 CONL_ExitCode_t CLC_Exec(const uint32_t a_ArgC, const char** const a_ArgV);
 CONL_ExitCode_t CLC_ExecFile(const uint32_t a_ArgC, const char** const a_ArgV);
+CONL_ExitCode_t CLC_Echo(const uint32_t a_ArgC, const char** const a_ArgV);
 CONL_ExitCode_t CLC_Exclamation(const uint32_t a_ArgC, const char** const a_ArgV);
 CONL_ExitCode_t CLC_Question(const uint32_t a_ArgC, const char** const a_ArgV);
 

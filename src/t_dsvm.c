@@ -55,6 +55,7 @@ typedef enum T_VMExprType_e
 	TVMET_NUMBER,								// A Number
 	TVMET_STRING,								// A string
 	TVMET_FUNCARGSPLIT,							// Splits function arguments
+	TVMET_COMMA,								// Comma
 	
 	NUMTVMEXPRTYPES
 } T_VMExprType_t;
@@ -114,9 +115,17 @@ typedef struct T_VMExpr_s
 	T_VMExprType_t Type;						// Type of expression
 	const T_VMVarType_t* TypeNameHandle;		// Declaration hander
 	int32_t ParNum;								// Parenthesis Number
+	int32_t CommaCount;							// Comma number encountered
 	T_VMVariable_t* ActualVar;					// Actual Variable
 	T_VMVariable_t* DumpVar;					// Dump Variable
 } T_VMExpr_t;
+
+/* T_VMExprHold_t -- Expression holder */
+typedef struct T_VMExprHold_s
+{
+	T_VMExpr_t* VMExpr;							// Expressions
+	size_t NumVMExpr;							// Number of VM expressions
+} T_VMExprHold_t;
 
 /****************
 *** CONSTANTS ***
@@ -155,9 +164,6 @@ static size_t l_NumIncStack = 0;				// Thing on the stack
 
 static T_VMFunc_t* l_VMFirstFunc = NULL;		// First Function
 static T_VMFunc_t* l_VMCurFunc = NULL;			// Current Virtual Function
-
-static T_VMExpr_t* l_VMExpr = NULL;				// VM Expressions
-static size_t l_NumVMExpr = 0;					// Number of them
 
 /****************
 *** FUNCTIONS ***
@@ -271,31 +277,31 @@ static T_VMVariable_t* TS_VMCreateVar(const char* const a_Name, const T_VMVarTyp
 }
 
 /* TS_VMClearExpr() -- Clears loaded expression */
-static void TS_VMClearExpr(void)
+static void TS_VMClearExpr(T_VMExprHold_t* const a_Hold)
 {
 	size_t i;
 	
 	/* Free Data Inside */
-	for (i = 0; i < l_NumVMExpr; i++)
+	for (i = 0; i < a_Hold->NumVMExpr; i++)
 	{
 		// Token
-		if (l_VMExpr[i].Token)
-			Z_Free(l_VMExpr[i].Token);
+		if (a_Hold->VMExpr[i].Token)
+			Z_Free(a_Hold->VMExpr[i].Token);
 	}
 	
 	/* Free expr list */
-	if (l_VMExpr)
-		Z_Free(l_VMExpr);
-	l_VMExpr = NULL;
-	l_NumVMExpr = NULL;
+	if (a_Hold->VMExpr)
+		Z_Free(a_Hold->VMExpr);
+	a_Hold->VMExpr = NULL;
+	a_Hold->NumVMExpr = NULL;
 	
 	/* Debug */
-	if (devparm)
-		CONL_PrintF("--\n");
+	//if (devparm)
+	//	CONL_PrintF("--\n");
 }
 
 /* TS_VMPushExpr() -- Push to expression */
-static T_VMExpr_t* TS_VMPushExpr(const char* const a_Token)
+static T_VMExpr_t* TS_VMPushExpr(T_VMExprHold_t* const a_Hold, const char* const a_Token)
 {
 	size_t i;
 	
@@ -304,42 +310,42 @@ static T_VMExpr_t* TS_VMPushExpr(const char* const a_Token)
 		return NULL;
 	
 	/* Resize */
-	Z_ResizeArray((void**)&l_VMExpr, sizeof(*l_VMExpr), l_NumVMExpr, l_NumVMExpr + 1);
-	i = l_NumVMExpr++;
+	Z_ResizeArray((void**)&a_Hold->VMExpr, sizeof(*a_Hold->VMExpr), a_Hold->NumVMExpr, a_Hold->NumVMExpr + 1);
+	i = a_Hold->NumVMExpr++;
 	
 	/* Fill Info */
-	l_VMExpr[i].Token = Z_StrDup(a_Token, PU_STATIC, NULL);
+	a_Hold->VMExpr[i].Token = Z_StrDup(a_Token, PU_STATIC, NULL);
 	
 	/* Debug */
-	if (devparm)
-		CONL_PrintF("++\"%s\"\n", l_VMExpr[i].Token);
+	//if (devparm)
+	//	CONL_PrintF("++\"%s\"\n", a_Hold->VMExpr[i].Token);
 	
 	/* Return it */
-	return &l_VMExpr[i];
+	return &a_Hold->VMExpr[i];
 }
 
 /* TS_VMSolveExpr() -- Attempts solving expression */
 // This creates actual code, handles functions such as jumping, etc.
-static bool_t TS_VMSolveExpr(const char* const a_ScopeFunc, T_VMFunc_t* const a_VMFunc)
+static bool_t TS_VMSolveExpr(T_VMExprHold_t* const a_Hold, const char* const a_ScopeFunc, T_VMFunc_t* const a_VMFunc)
 {
 #define BUFSIZE 512
 	static uint32_t TempVarNum;
 	char Buf[BUFSIZE];
 	size_t i, t, r;
 	T_VMExpr_t* This;
-	int32_t ParStack;
+	int32_t ParStack, HighPar;
 	bool_t DidDeclType;
 	
 	/* No Expression Loaded? */
-	if (!l_NumVMExpr)
+	if (!a_Hold->NumVMExpr)
 		return true;
 	
 	/* Pre-Process Expressions */
 	DidDeclType = false;
-	for (i = 0; i < l_NumVMExpr; i++)
+	for (i = 0; i < a_Hold->NumVMExpr; i++)
 	{
 		// Get this
-		This = &l_VMExpr[i];
+		This = &a_Hold->VMExpr[i];
 		
 		// Declaring Variable Type?
 		if (This->Type == TVMET_NULL)
@@ -360,7 +366,7 @@ static bool_t TS_VMSolveExpr(const char* const a_ScopeFunc, T_VMFunc_t* const a_
 		// Create variable?
 		if (This->Type == TVMET_NULL)
 			if (i > 0)
-				if (l_VMExpr[i - 1].Type == TVMET_DECLARETYPE)
+				if (a_Hold->VMExpr[i - 1].Type == TVMET_DECLARETYPE)
 				{
 					// Check reserved words
 					for (r = 0; c_VMReserved[r]; r++)
@@ -413,10 +419,14 @@ static bool_t TS_VMSolveExpr(const char* const a_ScopeFunc, T_VMFunc_t* const a_
 	}
 	
 	/* Process Again */
-	for (i = 0; i < l_NumVMExpr; i++)
+	// Parenthesis
+		// This groups parenthesis statements together in a fashion.
+		// This helps on the order to operate things on in the future.
+	HighPar = 0;
+	for (i = 0; i < a_Hold->NumVMExpr; i++)
 	{
 		// Get this
-		This = &l_VMExpr[i];
+		This = &a_Hold->VMExpr[i];
 		
 		// Modify parenthesis stack?
 		if (This->Type == TVMET_OPENPAR)
@@ -427,28 +437,15 @@ static bool_t TS_VMSolveExpr(const char* const a_ScopeFunc, T_VMFunc_t* const a_
 		// Inside Parenthesis
 		if (i > 0)
 		{
-			if (l_VMExpr[i - 1].Type == TVMET_OPENPAR)
+			if (a_Hold->VMExpr[i - 1].Type == TVMET_OPENPAR)
 				ParStack++;
-			else if (l_VMExpr[i - 1].Type == TVMET_CLOSEPAR)
+			else if (a_Hold->VMExpr[i - 1].Type == TVMET_CLOSEPAR)
 				ParStack--;
 		}
 		
-
-#if 0
-		// Declaring variable?
-			// Create with this name
-		if (This->Type == TVMET_DECLAREVAR)
-			This->ActualVar = TS_VMCreateVar(This->Token, NULL);
-		
-		// Operator?
-			// Create variable for temporary operation
-		if (This->Type == TVMET_OPERATOR)
-		{
-			++TempVarNum;
-			snprintf(Buf, BUFSIZE - 1, "#__tempvar_%u", TempVarNum);
-			This->DumpVar = TS_VMCreateVar(Buf, l_VMExpr[i - 1].TypeNameHandle);
-		}
-#endif
+		// Greater?
+		if (ParStack + 1 >= HighPar)
+			HighPar = ParStack + 1;
 		
 		// Set Parenthesis ID
 		This->ParNum = ParStack;
@@ -461,30 +458,102 @@ static bool_t TS_VMSolveExpr(const char* const a_ScopeFunc, T_VMFunc_t* const a_
 		}
 	}
 	
+	// Function arguments (commas)
+		// This groups comma selectors together, this is used by the next parse
+		// step to group function arguments into their own sections.
+	ParStack = 0;
+	for (i = 0; i < a_Hold->NumVMExpr; i++)
+	{
+		// Get this
+		This = &a_Hold->VMExpr[i];
+		
+		if (a_Hold->VMExpr[i].Type == TVMET_FUNCARGSPLIT)
+			ParStack++;
+		
+		// Comma operator
+		if (i > 0 && a_Hold->VMExpr[i - 1].Type == TVMET_FUNCARGSPLIT)
+			ParStack++;
+		
+		// Set comma count
+		This->CommaCount = ParStack;
+	}
+	
+	// Split parenthetical counts with commas
+		// This runs through parenthesis lists and creates a similarly grouped
+		// sections of which to evaluate expressions with.
+	ParStack = 0;
+	for (i = 0; i < a_Hold->NumVMExpr; i++)
+	{
+		// Get this
+		This = &a_Hold->VMExpr[i];
+		
+		//
+	}
+	
+#if 0
+		// Declaring variable?
+			// Create with this name
+		if (This->Type == TVMET_DECLAREVAR)
+			This->ActualVar = TS_VMCreateVar(This->Token, NULL);
+		
+		// Operator?
+			// Create variable for temporary operation
+		if (This->Type == TVMET_OPERATOR)
+		{
+			++TempVarNum;
+			snprintf(Buf, BUFSIZE - 1, "#__tempvar_%u", TempVarNum);
+			This->DumpVar = TS_VMCreateVar(Buf, a_Hold->VMExpr[i - 1].TypeNameHandle);
+		}
+#endif
+	
 	/* Debug */
 	if (devparm)
 	{
+#define EXTRAROOM 4
 		// Print Token
-		for (i = 0; i < l_NumVMExpr; i++)
+		for (i = 0; i < a_Hold->NumVMExpr; i++)
 		{
 			// Get this
-			This = &l_VMExpr[i];
+			This = &a_Hold->VMExpr[i];
 		
 			// Token
-			CONL_PrintF("%s ", This->Token);
+			CONL_PrintF("%*s ", strlen(This->Token) + EXTRAROOM, This->Token);
 		}
 		CONL_PrintF("\n");
 		
 		// Other things
-		for (i = 0; i < l_NumVMExpr; i++)
+		for (i = 0; i < a_Hold->NumVMExpr; i++)
 		{
 			// Get this
-			This = &l_VMExpr[i];
+			This = &a_Hold->VMExpr[i];
 		
 			// Token
-			CONL_PrintF("%*i ", strlen(This->Token), This->ParNum);
+			CONL_PrintF("%*i ", strlen(This->Token) + EXTRAROOM, This->ParNum);
 		}
 		CONL_PrintF("\n");
+		
+		// Type
+		for (i = 0; i < a_Hold->NumVMExpr; i++)
+		{
+			// Get this
+			This = &a_Hold->VMExpr[i];
+		
+			// Token
+			CONL_PrintF("%*c ", strlen(This->Token) + EXTRAROOM, This->Type + 'A');
+		}
+		CONL_PrintF("\n");
+		
+		// Comma Count
+		for (i = 0; i < a_Hold->NumVMExpr; i++)
+		{
+			// Get this
+			This = &a_Hold->VMExpr[i];
+		
+			// Token
+			CONL_PrintF("%*i ", strlen(This->Token) + EXTRAROOM, This->CommaCount);
+		}
+		CONL_PrintF("\n");
+#undef EXTRAROOM
 	}
 	
 	/* Start Solving */
@@ -672,12 +741,15 @@ bool_t T_DSVM_CompileStream(WL_EntryStream_t* const a_Stream, const size_t a_End
 	uint32_t ScopeStack[MAXSCOPES], u32;
 	uint8_t ScopePos;
 	static uint32_t SScopeID;
+	
+	T_VMExprHold_t BootExpr;
 
 	/* Check */
 	if (!a_Stream)
 		return false;
 	
 	/* Initialize some things */
+	memset(&BootExpr, 0, sizeof(BootExpr));
 	memset(ScopeStack, 0, sizeof(ScopeStack));
 	ScopePos = 0;
 	
@@ -929,7 +1001,7 @@ bool_t T_DSVM_CompileStream(WL_EntryStream_t* const a_Stream, const size_t a_End
 		else
 		{
 			// Init expression
-			TS_VMClearExpr();
+			TS_VMClearExpr(&BootExpr);
 			TraversedScope = false;
 			
 			// Expression Loop
@@ -955,25 +1027,25 @@ bool_t T_DSVM_CompileStream(WL_EntryStream_t* const a_Stream, const size_t a_End
 				}
 				
 				// Push to stack
-				TS_VMPushExpr(Buf);
+				TS_VMPushExpr(&BootExpr, Buf);
 			} while ((QuickRet = T_DSVM_ReadToken(a_Stream, a_End, &Row, Buf, BUFSIZE - 1)));
 			
 			// Failed?
 			if (!QuickRet)
 			{
-				TS_VMClearExpr();
+				TS_VMClearExpr(&BootExpr);
 				T_DSVM_ScriptError("Expected end of expression.", Row);
 				ScriptProblem = true;
 				return;
 			}
 			
 			// Try solving it
-			QuickRet = TS_VMSolveExpr(ExtraBuf, l_VMCurFunc);
+			QuickRet = TS_VMSolveExpr(&BootExpr, ExtraBuf, l_VMCurFunc);
 			
 			// Failed to solve?
 			if (!QuickRet)
 			{
-				TS_VMClearExpr();
+				TS_VMClearExpr(&BootExpr);
 				T_DSVM_ScriptError("Could not solve expression.", Row);
 				ScriptProblem = true;
 				return;
@@ -1002,7 +1074,7 @@ bool_t T_DSVM_CompileStream(WL_EntryStream_t* const a_Stream, const size_t a_End
 			}
 			
 			// Clear it
-			TS_VMClearExpr();
+			TS_VMClearExpr(&BootExpr);
 		}
 	}
 	
@@ -1103,7 +1175,7 @@ bool_t T_DSVM_Cleanup(void)
 	}
 	
 	// Expression
-	TS_VMClearExpr();
+	//TS_VMClearExpr(&BootExpr);
 	
 	/* Initialize for new script */
 	// Create global function

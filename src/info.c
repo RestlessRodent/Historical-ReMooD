@@ -285,6 +285,9 @@ static const INFO_FlagInfo_t c_xRXFlagsB[] =
 	{MFREXB_IGNOREBLOCKMONS, "IgnoreBlockMonsterLines"},
 	{MFREXB_USEPLAYERMOVEMENT, "UsePlayerMovement"},
 	{MFREXB_CANUSEWEAPONS, "CanUseWeapons"},
+	{MFREXB_NOFLOORDAMAGE, "NoFloorDamage"},
+	{MFREXB_ISDOOMPALETTE, "IsDoomColored"},
+	
 	{0, NULL},
 };
 

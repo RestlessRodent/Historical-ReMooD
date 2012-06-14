@@ -68,7 +68,7 @@ static dirtype_t diags[] =
 	DI_NORTHWEST, DI_NORTHEAST, DI_SOUTHWEST, DI_SOUTHEAST
 };
 
-void A_Fall(mobj_t* actor, player_t* player, pspdef_t* psp);
+void A_Fall(mobj_t* actor, player_t* player, pspdef_t* psp, const INFO_StateArgsNum_t a_ArgC, INFO_StateArgsParm_t* const a_ArgV);
 
 void FastMonster_OnChange(void)
 {
@@ -716,7 +716,7 @@ static bool_t P_LookForPlayers(mobj_t* actor, bool_t allaround)
 // A_Look
 // Stay in state until a player is sighted.
 //
-void A_Look(mobj_t* actor, player_t* player, pspdef_t* psp)
+void A_Look(mobj_t* actor, player_t* player, pspdef_t* psp, const INFO_StateArgsNum_t a_ArgC, INFO_StateArgsParm_t* const a_ArgV)
 {
 	mobj_t* targ;
 	
@@ -796,14 +796,14 @@ seeyou:
 	P_SetMobjState(actor, actor->info->seestate);
 }
 
-void A_FaceTarget(mobj_t* actor, player_t* player, pspdef_t* psp);
+void A_FaceTarget(mobj_t* actor, player_t* player, pspdef_t* psp, const INFO_StateArgsNum_t a_ArgC, INFO_StateArgsParm_t* const a_ArgV);
 
 //
 // A_Chase
 // Actor has a melee attack,
 // so it tries to close as fast as possible
 //
-void A_Chase(mobj_t* actor, player_t* player, pspdef_t* psp)
+void A_Chase(mobj_t* actor, player_t* player, pspdef_t* psp, const INFO_StateArgsNum_t a_ArgC, INFO_StateArgsParm_t* const a_ArgV)
 {
 	int delta;
 	
@@ -893,7 +893,7 @@ void A_Chase(mobj_t* actor, player_t* player, pspdef_t* psp)
 		if (actor->player->attackdown)
 		{
 			// Face target?
-			A_FaceTarget(actor, actor->player, NULL);
+			A_FaceTarget(actor, player, psp, a_ArgC, a_ArgV);
 			
 			// Melee State?
 			if (actor->info->meleestate && P_CheckMeleeRange(actor))
@@ -936,7 +936,7 @@ nomissile:
 //
 // A_FaceTarget
 //
-void A_FaceTarget(mobj_t* actor, player_t* player, pspdef_t* psp)
+void A_FaceTarget(mobj_t* actor, player_t* player, pspdef_t* psp, const INFO_StateArgsNum_t a_ArgC, INFO_StateArgsParm_t* const a_ArgV)
 {
 	// GhostlyDeath <April 29, 2012> -- Player controlled monsters
 	if (actor->player)
@@ -963,14 +963,14 @@ void A_FaceTarget(mobj_t* actor, player_t* player, pspdef_t* psp)
 //
 // A_PosAttack
 //
-void A_PosAttack(mobj_t* actor, player_t* player, pspdef_t* psp)
+void A_PosAttack(mobj_t* actor, player_t* player, pspdef_t* psp, const INFO_StateArgsNum_t a_ArgC, INFO_StateArgsParm_t* const a_ArgV)
 {
 	int angle;
 	int damage;
 	int slope;
 	
 	PuffType = INFO_GetTypeByName("BulletPuff");
-	A_FaceTarget(actor, player, psp);
+	A_FaceTarget(actor, player, psp, a_ArgC, a_ArgV);
 	
 	if (!actor->player && !actor->target)
 		return;
@@ -987,7 +987,7 @@ void A_PosAttack(mobj_t* actor, player_t* player, pspdef_t* psp)
 	P_LineAttack(actor, angle, MISSILERANGE, slope, damage, NULL);
 }
 
-void A_SPosAttack(mobj_t* actor, player_t* player, pspdef_t* psp)
+void A_SPosAttack(mobj_t* actor, player_t* player, pspdef_t* psp, const INFO_StateArgsNum_t a_ArgC, INFO_StateArgsParm_t* const a_ArgV)
 {
 	int i;
 	int angle;
@@ -996,7 +996,7 @@ void A_SPosAttack(mobj_t* actor, player_t* player, pspdef_t* psp)
 	int slope;
 	
 	PuffType = INFO_GetTypeByName("BulletPuff");
-	A_FaceTarget(actor, player, psp);
+	A_FaceTarget(actor, player, psp, a_ArgC, a_ArgV);
 	
 	if (!actor->player && !actor->target)
 		return;
@@ -1015,7 +1015,7 @@ void A_SPosAttack(mobj_t* actor, player_t* player, pspdef_t* psp)
 	}
 }
 
-void A_CPosAttack(mobj_t* actor, player_t* player, pspdef_t* psp)
+void A_CPosAttack(mobj_t* actor, player_t* player, pspdef_t* psp, const INFO_StateArgsNum_t a_ArgC, INFO_StateArgsParm_t* const a_ArgV)
 {
 	int angle;
 	int bangle;
@@ -1023,7 +1023,7 @@ void A_CPosAttack(mobj_t* actor, player_t* player, pspdef_t* psp)
 	int slope;
 	
 	PuffType = INFO_GetTypeByName("BulletPuff");
-	A_FaceTarget(actor, player, psp);
+	A_FaceTarget(actor, player, psp, a_ArgC, a_ArgV);
 	
 	if (!actor->player && !actor->target)
 		return;
@@ -1042,10 +1042,10 @@ void A_CPosAttack(mobj_t* actor, player_t* player, pspdef_t* psp)
 	P_LineAttack(actor, angle, MISSILERANGE, slope, damage, NULL);
 }
 
-void A_CPosRefire(mobj_t* actor, player_t* player, pspdef_t* psp)
+void A_CPosRefire(mobj_t* actor, player_t* player, pspdef_t* psp, const INFO_StateArgsNum_t a_ArgC, INFO_StateArgsParm_t* const a_ArgV)
 {
 	// keep firing unless target got out of sight
-	A_FaceTarget(actor, player, psp);
+	A_FaceTarget(actor, player, psp, a_ArgC, a_ArgV);
 	
 	if (P_Random() < 40)
 		return;
@@ -1063,10 +1063,10 @@ void A_CPosRefire(mobj_t* actor, player_t* player, pspdef_t* psp)
 	}
 }
 
-void A_SpidRefire(mobj_t* actor, player_t* player, pspdef_t* psp)
+void A_SpidRefire(mobj_t* actor, player_t* player, pspdef_t* psp, const INFO_StateArgsNum_t a_ArgC, INFO_StateArgsParm_t* const a_ArgV)
 {
 	// keep firing unless target got out of sight
-	A_FaceTarget(actor, player, psp);
+	A_FaceTarget(actor, player, psp, a_ArgC, a_ArgV);
 	
 	if (P_Random() < 10)
 		return;
@@ -1084,11 +1084,11 @@ void A_SpidRefire(mobj_t* actor, player_t* player, pspdef_t* psp)
 	}
 }
 
-void A_BspiAttack(mobj_t* actor, player_t* player, pspdef_t* psp)
+void A_BspiAttack(mobj_t* actor, player_t* player, pspdef_t* psp, const INFO_StateArgsNum_t a_ArgC, INFO_StateArgsParm_t* const a_ArgV)
 {
 	mobj_t* Missile;
 		
-	A_FaceTarget(actor, player, psp);
+	A_FaceTarget(actor, player, psp, a_ArgC, a_ArgV);
 	
 	if (!actor->player && !actor->target)
 		return;
@@ -1104,12 +1104,12 @@ void A_BspiAttack(mobj_t* actor, player_t* player, pspdef_t* psp)
 //
 // A_TroopAttack
 //
-void A_TroopAttack(mobj_t* actor, player_t* player, pspdef_t* psp)
+void A_TroopAttack(mobj_t* actor, player_t* player, pspdef_t* psp, const INFO_StateArgsNum_t a_ArgC, INFO_StateArgsParm_t* const a_ArgV)
 {
 	int damage;
 	mobj_t* Missile;
 	
-	A_FaceTarget(actor, player, psp);
+	A_FaceTarget(actor, player, psp, a_ArgC, a_ArgV);
 	
 	if (!actor->player && !actor->target)
 		return;
@@ -1133,11 +1133,11 @@ void A_TroopAttack(mobj_t* actor, player_t* player, pspdef_t* psp)
 		Missile->RXAttackAttackType = PRXAT_RANGED;
 }
 
-void A_SargAttack(mobj_t* actor, player_t* player, pspdef_t* psp)
+void A_SargAttack(mobj_t* actor, player_t* player, pspdef_t* psp, const INFO_StateArgsNum_t a_ArgC, INFO_StateArgsParm_t* const a_ArgV)
 {
 	int damage;
 		
-	A_FaceTarget(actor, player, psp);
+	A_FaceTarget(actor, player, psp, a_ArgC, a_ArgV);
 	
 	if (!actor->player && !actor->target)
 		return;
@@ -1152,12 +1152,12 @@ void A_SargAttack(mobj_t* actor, player_t* player, pspdef_t* psp)
 	}
 }
 
-void A_HeadAttack(mobj_t* actor, player_t* player, pspdef_t* psp)
+void A_HeadAttack(mobj_t* actor, player_t* player, pspdef_t* psp, const INFO_StateArgsNum_t a_ArgC, INFO_StateArgsParm_t* const a_ArgV)
 {
 	int damage;
 	mobj_t* Missile;
 		
-	A_FaceTarget(actor, player, psp);
+	A_FaceTarget(actor, player, psp, a_ArgC, a_ArgV);
 	
 	if (!actor->player && !actor->target)
 		return;
@@ -1180,11 +1180,11 @@ void A_HeadAttack(mobj_t* actor, player_t* player, pspdef_t* psp)
 		Missile->RXAttackAttackType = PRXAT_RANGED;
 }
 
-void A_CyberAttack(mobj_t* actor, player_t* player, pspdef_t* psp)
+void A_CyberAttack(mobj_t* actor, player_t* player, pspdef_t* psp, const INFO_StateArgsNum_t a_ArgC, INFO_StateArgsParm_t* const a_ArgV)
 {
 	mobj_t* Missile;
 	
-	A_FaceTarget(actor, player, psp);
+	A_FaceTarget(actor, player, psp, a_ArgC, a_ArgV);
 	
 	if (!actor->player && !actor->target)
 		return;
@@ -1196,7 +1196,7 @@ void A_CyberAttack(mobj_t* actor, player_t* player, pspdef_t* psp)
 		Missile->RXAttackAttackType = PRXAT_RANGED;
 }
 
-void A_BruisAttack(mobj_t* actor, player_t* player, pspdef_t* psp)
+void A_BruisAttack(mobj_t* actor, player_t* player, pspdef_t* psp, const INFO_StateArgsNum_t a_ArgC, INFO_StateArgsParm_t* const a_ArgV)
 {
 	int damage;
 	mobj_t* Missile;
@@ -1226,11 +1226,11 @@ void A_BruisAttack(mobj_t* actor, player_t* player, pspdef_t* psp)
 //
 // A_SkelMissile
 //
-void A_SkelMissile(mobj_t* actor, player_t* player, pspdef_t* psp)
+void A_SkelMissile(mobj_t* actor, player_t* player, pspdef_t* psp, const INFO_StateArgsNum_t a_ArgC, INFO_StateArgsParm_t* const a_ArgV)
 {
 	mobj_t* mo;
 		
-	A_FaceTarget(actor, player, psp);
+	A_FaceTarget(actor, player, psp, a_ArgC, a_ArgV);
 	
 	if (!actor->player && !actor->target)
 		return;
@@ -1250,7 +1250,7 @@ void A_SkelMissile(mobj_t* actor, player_t* player, pspdef_t* psp)
 
 int TRACEANGLE = 0xc000000;
 
-void A_Tracer(mobj_t* actor, player_t* player, pspdef_t* psp)
+void A_Tracer(mobj_t* actor, player_t* player, pspdef_t* psp, const INFO_StateArgsNum_t a_ArgC, INFO_StateArgsParm_t* const a_ArgV)
 {
 	angle_t exact;
 	fixed_t dist;
@@ -1319,9 +1319,9 @@ void A_Tracer(mobj_t* actor, player_t* player, pspdef_t* psp)
 		actor->momz += FRACUNIT / 8;
 }
 
-void A_SkelWhoosh(mobj_t* actor, player_t* player, pspdef_t* psp)
+void A_SkelWhoosh(mobj_t* actor, player_t* player, pspdef_t* psp, const INFO_StateArgsNum_t a_ArgC, INFO_StateArgsParm_t* const a_ArgV)
 {
-	A_FaceTarget(actor, player, psp);
+	A_FaceTarget(actor, player, psp, a_ArgC, a_ArgV);
 	
 	if (!actor->player && !actor->target)
 		return;
@@ -1331,11 +1331,11 @@ void A_SkelWhoosh(mobj_t* actor, player_t* player, pspdef_t* psp)
 	S_StartSound(&actor->NoiseThinker, sfx_skeswg);
 }
 
-void A_SkelFist(mobj_t* actor, player_t* player, pspdef_t* psp)
+void A_SkelFist(mobj_t* actor, player_t* player, pspdef_t* psp, const INFO_StateArgsNum_t a_ArgC, INFO_StateArgsParm_t* const a_ArgV)
 {
 	int damage;
 		
-	A_FaceTarget(actor, player, psp);
+	A_FaceTarget(actor, player, psp, a_ArgC, a_ArgV);
 	
 	if (!actor->player && !actor->target)
 		return;
@@ -1404,7 +1404,7 @@ bool_t PIT_VileCheck(mobj_t* thing, void* a_Arg)
 // A_VileChase
 // Check for ressurecting a body
 //
-void A_VileChase(mobj_t* actor, player_t* player, pspdef_t* psp)
+void A_VileChase(mobj_t* actor, player_t* player, pspdef_t* psp, const INFO_StateArgsNum_t a_ArgC, INFO_StateArgsParm_t* const a_ArgV)
 {
 	int xl;
 	int xh;
@@ -1441,7 +1441,7 @@ void A_VileChase(mobj_t* actor, player_t* player, pspdef_t* psp)
 					// got one!
 					temp = actor->target;
 					P_RefMobj(PMRT_TARGET, actor, corpsehit);
-					A_FaceTarget(actor, player, psp);
+					A_FaceTarget(actor, player, psp, a_ArgC, a_ArgV);
 					P_RefMobj(PMRT_TARGET, actor, temp);
 					
 					// GhostlyDeath <March 6, 2012> -- Use healing state (but only if it is set)
@@ -1489,13 +1489,13 @@ void A_VileChase(mobj_t* actor, player_t* player, pspdef_t* psp)
 	}
 	
 	// Return to normal attack.
-	A_Chase(actor, player, psp);
+	A_Chase(actor, player, psp, a_ArgC, a_ArgV);
 }
 
 //
 // A_VileStart
 //
-void A_VileStart(mobj_t* actor, player_t* player, pspdef_t* psp)
+void A_VileStart(mobj_t* actor, player_t* player, pspdef_t* psp, const INFO_StateArgsNum_t a_ArgC, INFO_StateArgsParm_t* const a_ArgV)
 {
 	S_StartSound(&actor->NoiseThinker, sfx_vilatk);
 }
@@ -1504,21 +1504,21 @@ void A_VileStart(mobj_t* actor, player_t* player, pspdef_t* psp)
 // A_Fire
 // Keep fire in front of player unless out of sight
 //
-void A_Fire(mobj_t* actor, player_t* player, pspdef_t* psp);
+void A_Fire(mobj_t* actor, player_t* player, pspdef_t* psp, const INFO_StateArgsNum_t a_ArgC, INFO_StateArgsParm_t* const a_ArgV);
 
-void A_StartFire(mobj_t* actor, player_t* player, pspdef_t* psp)
+void A_StartFire(mobj_t* actor, player_t* player, pspdef_t* psp, const INFO_StateArgsNum_t a_ArgC, INFO_StateArgsParm_t* const a_ArgV)
 {
 	S_StartSound(&actor->NoiseThinker, sfx_flamst);
-	A_Fire(actor, player, psp);
+	A_Fire(actor, player, psp, a_ArgC, a_ArgV);
 }
 
-void A_FireCrackle(mobj_t* actor, player_t* player, pspdef_t* psp)
+void A_FireCrackle(mobj_t* actor, player_t* player, pspdef_t* psp, const INFO_StateArgsNum_t a_ArgC, INFO_StateArgsParm_t* const a_ArgV)
 {
 	S_StartSound(&actor->NoiseThinker, sfx_flame);
-	A_Fire(actor, player, psp);
+	A_Fire(actor, player, psp, a_ArgC, a_ArgV);
 }
 
-void A_Fire(mobj_t* actor, player_t* player, pspdef_t* psp)
+void A_Fire(mobj_t* actor, player_t* player, pspdef_t* psp, const INFO_StateArgsNum_t a_ArgC, INFO_StateArgsParm_t* const a_ArgV)
 {
 	mobj_t* dest;
 	unsigned an;
@@ -1544,11 +1544,11 @@ void A_Fire(mobj_t* actor, player_t* player, pspdef_t* psp)
 // A_VileTarget
 // Spawn the hellfire
 //
-void A_VileTarget(mobj_t* actor, player_t* player, pspdef_t* psp)
+void A_VileTarget(mobj_t* actor, player_t* player, pspdef_t* psp, const INFO_StateArgsNum_t a_ArgC, INFO_StateArgsParm_t* const a_ArgV)
 {
 	mobj_t* fog;
 		
-	A_FaceTarget(actor, player, psp);
+	A_FaceTarget(actor, player, psp, a_ArgC, a_ArgV);
 	
 	if (!actor->target)
 		return;
@@ -1561,18 +1561,18 @@ void A_VileTarget(mobj_t* actor, player_t* player, pspdef_t* psp)
 	P_RefMobj(PMRT_TRACER, actor, fog);
 	P_RefMobj(PMRT_TARGET, fog, actor);
 	P_RefMobj(PMRT_TRACER, fog, actor->target);
-	A_Fire(fog, player, psp);
+	A_Fire(fog, player, psp, a_ArgC, a_ArgV);
 }
 
 //
 // A_VileAttack
 //
-void A_VileAttack(mobj_t* actor, player_t* player, pspdef_t* psp)
+void A_VileAttack(mobj_t* actor, player_t* player, pspdef_t* psp, const INFO_StateArgsNum_t a_ArgC, INFO_StateArgsParm_t* const a_ArgV)
 {
 	mobj_t* fire;
 	int an;
 		
-	A_FaceTarget(actor, player, psp);
+	A_FaceTarget(actor, player, psp, a_ArgC, a_ArgV);
 	
 	if (!actor->target)
 		return;
@@ -1608,18 +1608,18 @@ void A_VileAttack(mobj_t* actor, player_t* player, pspdef_t* psp)
 //
 #define FATSPREAD       (ANG90/8)
 
-void A_FatRaise(mobj_t* actor, player_t* player, pspdef_t* psp)
+void A_FatRaise(mobj_t* actor, player_t* player, pspdef_t* psp, const INFO_StateArgsNum_t a_ArgC, INFO_StateArgsParm_t* const a_ArgV)
 {
-	A_FaceTarget(actor, player, psp);
+	A_FaceTarget(actor, player, psp, a_ArgC, a_ArgV);
 	S_StartSound(&actor->NoiseThinker, sfx_manatk);
 }
 
-void A_FatAttack1(mobj_t* actor, player_t* player, pspdef_t* psp)
+void A_FatAttack1(mobj_t* actor, player_t* player, pspdef_t* psp, const INFO_StateArgsNum_t a_ArgC, INFO_StateArgsParm_t* const a_ArgV)
 {
 	mobj_t* mo;
 	int an;
 	
-	A_FaceTarget(actor, player, psp);
+	A_FaceTarget(actor, player, psp, a_ArgC, a_ArgV);
 	// Change direction  to ...
 	actor->angle += FATSPREAD;
 	mo = P_SpawnMissile(actor, actor->target, INFO_GetTypeByName("MancubusShot"));
@@ -1639,12 +1639,12 @@ void A_FatAttack1(mobj_t* actor, player_t* player, pspdef_t* psp)
 	}
 }
 
-void A_FatAttack2(mobj_t* actor, player_t* player, pspdef_t* psp)
+void A_FatAttack2(mobj_t* actor, player_t* player, pspdef_t* psp, const INFO_StateArgsNum_t a_ArgC, INFO_StateArgsParm_t* const a_ArgV)
 {
 	mobj_t* mo;
 	int an;
 	
-	A_FaceTarget(actor, player, psp);
+	A_FaceTarget(actor, player, psp, a_ArgC, a_ArgV);
 	// Now here choose opposite deviation.
 	actor->angle -= FATSPREAD;
 	mo = P_SpawnMissile(actor, actor->target, INFO_GetTypeByName("MancubusShot"));
@@ -1664,12 +1664,12 @@ void A_FatAttack2(mobj_t* actor, player_t* player, pspdef_t* psp)
 	}
 }
 
-void A_FatAttack3(mobj_t* actor, player_t* player, pspdef_t* psp)
+void A_FatAttack3(mobj_t* actor, player_t* player, pspdef_t* psp, const INFO_StateArgsNum_t a_ArgC, INFO_StateArgsParm_t* const a_ArgV)
 {
 	mobj_t* mo;
 	int an;
 	
-	A_FaceTarget(actor, player, psp);
+	A_FaceTarget(actor, player, psp, a_ArgC, a_ArgV);
 	
 	mo = P_SpawnMissile(actor, actor->target, INFO_GetTypeByName("MancubusShot"));
 	if (mo)
@@ -1698,13 +1698,13 @@ void A_FatAttack3(mobj_t* actor, player_t* player, pspdef_t* psp)
 //
 #define SKULLSPEED              (20*FRACUNIT)
 
-void A_SkullAttack(mobj_t* actor, player_t* player, pspdef_t* psp)
+void A_SkullAttack(mobj_t* actor, player_t* player, pspdef_t* psp, const INFO_StateArgsNum_t a_ArgC, INFO_StateArgsParm_t* const a_ArgV)
 {
 	mobj_t* dest;
 	angle_t an;
 	int dist;
 	
-	A_FaceTarget(actor, player, psp);
+	A_FaceTarget(actor, player, psp, a_ArgC, a_ArgV);
 	
 	// Non-player Monster, No target
 	if (!actor->target && !actor->player)
@@ -1797,7 +1797,7 @@ void A_SkullAttack(mobj_t* actor, player_t* player, pspdef_t* psp)
 // P_PainShootSkull
 // Spawn a lost soul and launch it at the target
 //
-void P_PainShootSkull(mobj_t* actor, angle_t angle, player_t* player, pspdef_t* psp)
+void P_PainShootSkull(mobj_t* actor, angle_t angle, player_t* player, pspdef_t* psp, const INFO_StateArgsNum_t a_ArgC, INFO_StateArgsParm_t* const a_ArgV)
 {
 	fixed_t x;
 	fixed_t y;
@@ -1858,7 +1858,7 @@ void P_PainShootSkull(mobj_t* actor, angle_t angle, player_t* player, pspdef_t* 
 	}
 	
 	P_RefMobj(PMRT_TARGET, newmobj, actor->target);
-	A_SkullAttack(newmobj, player, psp);
+	A_SkullAttack(newmobj, player, psp, a_ArgC, a_ArgV);
 	
 	// GhostlyDeath <June 6, 2012> -- Make on same side as PE
 	newmobj->SkinTeamColor = actor->SkinTeamColor;
@@ -1869,25 +1869,25 @@ void P_PainShootSkull(mobj_t* actor, angle_t angle, player_t* player, pspdef_t* 
 // A_PainAttack
 // Spawn a lost soul and launch it at the target
 //
-void A_PainAttack(mobj_t* actor, player_t* player, pspdef_t* psp)
+void A_PainAttack(mobj_t* actor, player_t* player, pspdef_t* psp, const INFO_StateArgsNum_t a_ArgC, INFO_StateArgsParm_t* const a_ArgV)
 {
-	A_FaceTarget(actor, player, psp);
+	A_FaceTarget(actor, player, psp, a_ArgC, a_ArgV);
 	
 	if (!actor->player && !actor->target)
 		return;
 		
-	P_PainShootSkull(actor, actor->angle, player, psp);
+	P_PainShootSkull(actor, actor->angle, player, psp, a_ArgC, a_ArgV);
 }
 
-void A_PainDie(mobj_t* actor, player_t* player, pspdef_t* psp)
+void A_PainDie(mobj_t* actor, player_t* player, pspdef_t* psp, const INFO_StateArgsNum_t a_ArgC, INFO_StateArgsParm_t* const a_ArgV)
 {
-	A_Fall(actor, player, psp);
-	P_PainShootSkull(actor, actor->angle + ANG90, player, psp);
-	P_PainShootSkull(actor, actor->angle + ANG180, player, psp);
-	P_PainShootSkull(actor, actor->angle + ANG270, player, psp);
+	A_Fall(actor, player, psp, a_ArgC, a_ArgV);
+	P_PainShootSkull(actor, actor->angle + ANG90, player, psp, a_ArgC, a_ArgV);
+	P_PainShootSkull(actor, actor->angle + ANG180, player, psp, a_ArgC, a_ArgV);
+	P_PainShootSkull(actor, actor->angle + ANG270, player, psp, a_ArgC, a_ArgV);
 }
 
-void A_Scream(mobj_t* actor, player_t* player, pspdef_t* psp)
+void A_Scream(mobj_t* actor, player_t* player, pspdef_t* psp, const INFO_StateArgsNum_t a_ArgC, INFO_StateArgsParm_t* const a_ArgV)
 {
 	int sound;
 	
@@ -1924,12 +1924,12 @@ void A_Scream(mobj_t* actor, player_t* player, pspdef_t* psp)
 		S_StartSound(&actor->NoiseThinker, sound);
 }
 
-void A_XScream(mobj_t* actor, player_t* player, pspdef_t* psp)
+void A_XScream(mobj_t* actor, player_t* player, pspdef_t* psp, const INFO_StateArgsNum_t a_ArgC, INFO_StateArgsParm_t* const a_ArgV)
 {
 	S_StartSound(&actor->NoiseThinker, sfx_slop);
 }
 
-void A_Pain(mobj_t* actor, player_t* player, pspdef_t* psp)
+void A_Pain(mobj_t* actor, player_t* player, pspdef_t* psp, const INFO_StateArgsNum_t a_ArgC, INFO_StateArgsParm_t* const a_ArgV)
 {
 	if (actor->info->RPainSound)
 		S_StartSound(&actor->NoiseThinker, S_SoundIDForName(actor->info->RPainSound));
@@ -1938,7 +1938,7 @@ void A_Pain(mobj_t* actor, player_t* player, pspdef_t* psp)
 //
 //  A dying thing falls to the ground (monster deaths)
 //
-void A_Fall(mobj_t* actor, player_t* player, pspdef_t* psp)
+void A_Fall(mobj_t* actor, player_t* player, pspdef_t* psp, const INFO_StateArgsNum_t a_ArgC, INFO_StateArgsParm_t* const a_ArgV)
 {
 	// actor is on ground, it can be walked over
 	if (!P_EXGSGetValue(PEXGSBID_GAMESOLIDCORPSES))
@@ -1957,7 +1957,7 @@ void A_Fall(mobj_t* actor, player_t* player, pspdef_t* psp)
 //
 // A_Explode
 //
-void A_Explode(mobj_t* actor, player_t* player, pspdef_t* psp)
+void A_Explode(mobj_t* actor, player_t* player, pspdef_t* psp, const INFO_StateArgsNum_t a_ArgC, INFO_StateArgsParm_t* const a_ArgV)
 {
 	int damage = 128;
 	
@@ -2002,7 +2002,7 @@ static state_t* P_FinalState(statenum_t state)
 // Possibly trigger special effects
 // if on first boss level
 //
-void A_BossDeath(mobj_t* mo, player_t* player, pspdef_t* psp)
+void A_BossDeath(mobj_t* mo, player_t* player, pspdef_t* psp, const INFO_StateArgsNum_t a_ArgC, INFO_StateArgsParm_t* const a_ArgV)
 {
 	bool_t OK;
 	thinker_t* th;
@@ -2146,55 +2146,55 @@ void A_BossDeath(mobj_t* mo, player_t* player, pspdef_t* psp)
 // DOOM II special, map 32.
 // Uses special tag 666.
 //
-void A_KeenDie(mobj_t* mo, player_t* player, pspdef_t* psp)
+void A_KeenDie(mobj_t* mo, player_t* player, pspdef_t* psp, const INFO_StateArgsNum_t a_ArgC, INFO_StateArgsParm_t* const a_ArgV)
 {
-	A_Fall(mo, player, psp);
+	A_Fall(mo, player, psp, a_ArgC, a_ArgV);
 	
-	A_BossDeath(mo, player, psp);
+	A_BossDeath(mo, player, psp, a_ArgC, a_ArgV);
 }
 
-void A_Hoof(mobj_t* mo, player_t* player, pspdef_t* psp)
+void A_Hoof(mobj_t* mo, player_t* player, pspdef_t* psp, const INFO_StateArgsNum_t a_ArgC, INFO_StateArgsParm_t* const a_ArgV)
 {
 	S_StartSound(&mo->NoiseThinker, sfx_hoof);
-	A_Chase(mo, player, psp);
+	A_Chase(mo, player, psp, a_ArgC, a_ArgV);
 }
 
-void A_Metal(mobj_t* mo, player_t* player, pspdef_t* psp)
+void A_Metal(mobj_t* mo, player_t* player, pspdef_t* psp, const INFO_StateArgsNum_t a_ArgC, INFO_StateArgsParm_t* const a_ArgV)
 {
 	S_StartSound(&mo->NoiseThinker, sfx_metal);
-	A_Chase(mo, player, psp);
+	A_Chase(mo, player, psp, a_ArgC, a_ArgV);
 }
 
-void A_BabyMetal(mobj_t* mo, player_t* player, pspdef_t* psp)
+void A_BabyMetal(mobj_t* mo, player_t* player, pspdef_t* psp, const INFO_StateArgsNum_t a_ArgC, INFO_StateArgsParm_t* const a_ArgV)
 {
 	S_StartSound(&mo->NoiseThinker, sfx_bspwlk);
-	A_Chase(mo, player, psp);
+	A_Chase(mo, player, psp, a_ArgC, a_ArgV);
 }
 
-void A_OpenShotgun2(mobj_t* mo, player_t* player, pspdef_t* psp)
+void A_OpenShotgun2(mobj_t* mo, player_t* player, pspdef_t* psp, const INFO_StateArgsNum_t a_ArgC, INFO_StateArgsParm_t* const a_ArgV)
 {
 	S_StartSound(&mo->NoiseThinker, sfx_dbopn);
 }
 
-void A_LoadShotgun2(mobj_t* mo, player_t* player, pspdef_t* psp)
+void A_LoadShotgun2(mobj_t* mo, player_t* player, pspdef_t* psp, const INFO_StateArgsNum_t a_ArgC, INFO_StateArgsParm_t* const a_ArgV)
 {
 	S_StartSound(&mo->NoiseThinker, sfx_dbload);
 }
 
-void A_ReFire(mobj_t* mo, player_t* player, pspdef_t* psp);
+void A_ReFire(mobj_t* mo, player_t* player, pspdef_t* psp, const INFO_StateArgsNum_t a_ArgC, INFO_StateArgsParm_t* const a_ArgV);
 
-void A_CloseShotgun2(mobj_t* mo, player_t* player, pspdef_t* psp)
+void A_CloseShotgun2(mobj_t* mo, player_t* player, pspdef_t* psp, const INFO_StateArgsNum_t a_ArgC, INFO_StateArgsParm_t* const a_ArgV)
 {
 	S_StartSound(&mo->NoiseThinker, sfx_dbcls);
-	A_ReFire(mo, player, psp);
+	A_ReFire(mo, player, psp, a_ArgC, a_ArgV);
 }
 
 /* A_GenericMonsterMissile() -- Generic Monster Projectile */
-void A_GenericMonsterMissile(mobj_t* actor, player_t* player, pspdef_t* psp)
+void A_GenericMonsterMissile(mobj_t* actor, player_t* player, pspdef_t* psp, const INFO_StateArgsNum_t a_ArgC, INFO_StateArgsParm_t* const a_ArgV)
 {
 	mobj_t* Missile;
 		
-	A_FaceTarget(actor, player, psp);
+	A_FaceTarget(actor, player, psp, a_ArgC, a_ArgV);
 	
 	if (!actor->player && !actor->target)
 		return;
@@ -2239,17 +2239,17 @@ void P_InitBrainTarget()
 	}
 }
 
-void A_BrainAwake(mobj_t* mo, player_t* player, pspdef_t* psp)
+void A_BrainAwake(mobj_t* mo, player_t* player, pspdef_t* psp, const INFO_StateArgsNum_t a_ArgC, INFO_StateArgsParm_t* const a_ArgV)
 {
 	S_StartSound(NULL, sfx_bossit);
 }
 
-void A_BrainPain(mobj_t* mo, player_t* player, pspdef_t* psp)
+void A_BrainPain(mobj_t* mo, player_t* player, pspdef_t* psp, const INFO_StateArgsNum_t a_ArgC, INFO_StateArgsParm_t* const a_ArgV)
 {
 	S_StartSound(NULL, sfx_bospn);
 }
 
-void A_BrainScream(mobj_t* mo, player_t* player, pspdef_t* psp)
+void A_BrainScream(mobj_t* mo, player_t* player, pspdef_t* psp, const INFO_StateArgsNum_t a_ArgC, INFO_StateArgsParm_t* const a_ArgV)
 {
 	int x;
 	int y;
@@ -2285,7 +2285,7 @@ void A_BrainScream(mobj_t* mo, player_t* player, pspdef_t* psp)
 	S_StartSound(NULL, sfx_bosdth);
 }
 
-void A_BrainExplode(mobj_t* mo, player_t* player, pspdef_t* psp)
+void A_BrainExplode(mobj_t* mo, player_t* player, pspdef_t* psp, const INFO_StateArgsNum_t a_ArgC, INFO_StateArgsParm_t* const a_ArgV)
 {
 	int x;
 	int y;
@@ -2309,13 +2309,13 @@ void A_BrainExplode(mobj_t* mo, player_t* player, pspdef_t* psp)
 		th->tics = 1;
 }
 
-void A_BrainDie(mobj_t* mo, player_t* player, pspdef_t* psp)
+void A_BrainDie(mobj_t* mo, player_t* player, pspdef_t* psp, const INFO_StateArgsNum_t a_ArgC, INFO_StateArgsParm_t* const a_ArgV)
 {
 	if (P_EXGSGetValue(PEXGSBID_GAMEALLOWLEVELEXIT))
 		G_ExitLevel();
 }
 
-void A_BrainSpit(mobj_t* mo, player_t* player, pspdef_t* psp)
+void A_BrainSpit(mobj_t* mo, player_t* player, pspdef_t* psp, const INFO_StateArgsNum_t a_ArgC, INFO_StateArgsParm_t* const a_ArgV)
 {
 	mobj_t* targ;
 	mobj_t* newmobj;
@@ -2344,16 +2344,16 @@ void A_BrainSpit(mobj_t* mo, player_t* player, pspdef_t* psp)
 	}
 }
 
-void A_SpawnFly(mobj_t* mo, player_t* player, pspdef_t* psp);
+void A_SpawnFly(mobj_t* mo, player_t* player, pspdef_t* psp, const INFO_StateArgsNum_t a_ArgC, INFO_StateArgsParm_t* const a_ArgV);
 
 // travelling cube sound
-void A_SpawnSound(mobj_t* mo, player_t* player, pspdef_t* psp)
+void A_SpawnSound(mobj_t* mo, player_t* player, pspdef_t* psp, const INFO_StateArgsNum_t a_ArgC, INFO_StateArgsParm_t* const a_ArgV)
 {
 	S_StartSound(&mo->NoiseThinker, sfx_boscub);
-	A_SpawnFly(mo, player, psp);
+	A_SpawnFly(mo, player, psp, a_ArgC, a_ArgV);
 }
 
-void A_SpawnFly(mobj_t* mo, player_t* player, pspdef_t* psp)
+void A_SpawnFly(mobj_t* mo, player_t* player, pspdef_t* psp, const INFO_StateArgsNum_t a_ArgC, INFO_StateArgsParm_t* const a_ArgV)
 {
 	mobj_t* newmobj;
 	mobj_t* fog;
@@ -2399,7 +2399,7 @@ void A_SpawnFly(mobj_t* mo, player_t* player, pspdef_t* psp)
 	P_RemoveMobj(mo);
 }
 
-void A_PlayerScream(mobj_t* mo, player_t* player, pspdef_t* psp)
+void A_PlayerScream(mobj_t* mo, player_t* player, pspdef_t* psp, const INFO_StateArgsNum_t a_ArgC, INFO_StateArgsParm_t* const a_ArgV)
 {
 	// Default death sound.
 	int sound = sfx_pldeth;
@@ -2414,7 +2414,7 @@ void A_PlayerScream(mobj_t* mo, player_t* player, pspdef_t* psp)
 }
 
 /* A_NextFrameIfMoving() -- Goes to the next frame if the object is moving */
-void A_NextFrameIfMoving(mobj_t* mo, player_t* player, pspdef_t* psp)
+void A_NextFrameIfMoving(mobj_t* mo, player_t* player, pspdef_t* psp, const INFO_StateArgsNum_t a_ArgC, INFO_StateArgsParm_t* const a_ArgV)
 {
 	/* Moving */
 	if (mo->momx || mo->momy)

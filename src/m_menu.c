@@ -698,13 +698,13 @@ M_UIMenu_t* M_ExTemplateMakeGameVars(const int32_t a_Mode)
 		if (i == (PEXGSNUMBITIDS - 1) || LastCat != SortedBits[i]->Category)
 		{
 			// Sort sub items
-			for (j = w; j < z; j++)
+			for (j = w; j <= z; j++)
 			{
 				// Initial
 				b = j;
 		
 				// Find next lowest
-				for (k = j + 1; k < z; k++)
+				for (k = j + 1; k <= z; k++)
 					if (strcasecmp(SortedBits[k]->MenuTitle, SortedBits[b]->MenuTitle) < 0)
 						b = k;
 		
