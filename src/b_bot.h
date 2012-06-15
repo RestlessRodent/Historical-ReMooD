@@ -52,6 +52,16 @@
 
 #define MAXBOTTARGETS						16	// Max target designated
 
+/* B_GhostAtkPosture_t -- Attack posture for bot */
+typedef enum B_GhostAtkPosture_e
+{
+	BGAP_DEFENSE,								// Lean twords Defense
+	BGAP_MIDDLE,								// Neither offensive or defensive
+	BGAP_OFFENSE,								// Lean twords Offence	
+		
+	NUMBGHOSTATKPOSTURE
+} B_GhostAtkPosture_t;
+
 /*****************
 *** STRUCTURES ***
 *****************/
@@ -89,6 +99,11 @@ typedef struct B_GhostBot_s
 		int32_t Priority;						// Job Priority
 		uint32_t Sleep;							// Job Sleeping (wait until tic happens)
 	} Jobs[MAXBOTJOBS];							// Bot's Jobs
+	
+	struct
+	{
+		B_GhostAtkPosture_t Posture;			// Bot Posture
+	} AISpec;									// AI Specification
 } B_GhostBot_t;
 
 /**************

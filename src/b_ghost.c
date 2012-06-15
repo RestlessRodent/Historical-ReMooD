@@ -62,6 +62,17 @@ static const fixed_t c_angleturn[3] = { 640, 1280, 320 };	// + slow turn
 *** STRUCTURES ***
 *****************/
 
+/* B_BotTemplate_t -- Bot Template */
+typedef struct B_BotTemplate_s
+{
+	const char* AccountName;					// Account Name
+	const char* DisplayName;					// Display Name
+	uint8_t SkinColor;							// Skin Color
+	const char* WeaponOrder;					// Weapon Order
+	B_GhostAtkPosture_t Posture;				// Posture
+	const char* HexenClass;						// Favorite Weapon Class
+} B_BotTemplate_t;
+
 /* B_GhostNode_t -- A Node */
 typedef struct B_GhostNode_s
 {
@@ -105,6 +116,45 @@ typedef struct B_LineSet_s
 	struct B_LineSet_s* Next;					// Next line
 	struct B_LineSet_s* Prev;					// Previous line
 } B_LineSet_t;
+
+/****************
+*** CONSTANTS ***
+****************/
+
+/* c_BotTemplates -- Bot template */
+static const B_BotTemplate_t c_BotTemplates[] =
+{
+	{
+		"GhostlyBot",							// Account Name
+		"{2Ghostly{x7cBot",						// Display Name
+		0xC,									// Color: Orange
+		"",
+		BGAP_DEFENSE,							// Posture
+		"Mage",									// Hexen Class
+	},
+	
+	{
+		"FreeBOT",								// Account Name
+		"FreeBOT",								// Display Name
+		0xF,									// Color: Pink
+		"SuperShotgun BFG PlasmaRifle RocketLauncher Chaingun Shotgun Pistol Chainsaw Fist",
+		BGAP_MIDDLE,							// Posture
+		"Cleric",								// Hexen Class
+	},
+	
+	{
+		"MP2Bot",								// Account Name
+		"{9MP{62{BBot",							// Display Name
+		0x8,									// Color: Dark Blue
+		"BFG Firemace Bloodscourge Wraithverge Quietus SuperShotgun Hellstaff FrostShards Firestorm HammerOfRetribution RocketLauncher EthrealCrossBow ArcOfDeath SerpentStaff TimonsAxe PlasmaRifle PheonixRod Sapphire MaceOfContrition SpikedGauntlets Chaingun DragonClaw Shotgun ElvenWannd Pistol Gauntlets Chainsaw Staff Fist",
+		BGAP_OFFENSE,							// Posture
+		"Mage",									// Hexen Class
+	},
+	
+	{
+		NULL,
+	}
+};
 
 /**************
 *** GLOBALS ***
@@ -1160,6 +1210,9 @@ void B_GHOST_Think(B_GhostBot_t* const a_GhostBot, ticcmd_t* const a_TicCmd)
 		// Gun Control
 		a_GhostBot->Jobs[2].JobHere = true;
 		a_GhostBot->Jobs[2].JobFunc = BS_GHOST_JOB_GunControl;
+		
+		// Randomize Posture
+		a_GhostBot->AISpec.Posture = BS_Random(a_GhostBot) % NUMBGHOSTATKPOSTURE;
 		
 		// Set as initialized
 		a_GhostBot->Initted = true;
