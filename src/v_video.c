@@ -3095,8 +3095,7 @@ int V_DrawCharacterMB(const VideoFont_t a_Font, const uint32_t a_Options, const 
 		// Color change?
 		if (WChar >= 0 && WChar < 16)
 		{
-			*a_OptionsMod &= ~VFO_COLORMASK;
-			*a_OptionsMod &= ~VFO_PCOLMASK;		// Remove (interferes)
+			*a_OptionsMod &= ~(VFO_COLORMASK | VFO_PCOLMASK | VFO_PCOLSET);	// Old Color
 			*a_OptionsMod |= VFO_COLOR(WChar & 0xF);
 		}
 		
@@ -3110,9 +3109,8 @@ int V_DrawCharacterMB(const VideoFont_t a_Font, const uint32_t a_Options, const 
 		// Player Color
 		else if (WChar >= 0x70 && WChar <= 0x7F)
 		{
-			*a_OptionsMod &= ~VFO_COLORMASK;	// Remove color (interferes)
-			*a_OptionsMod &= ~VFO_PCOLMASK;
-			*a_OptionsMod |= VFO_PCOL((WChar - 0x70) & 0xF);
+			*a_OptionsMod &= ~(VFO_COLORMASK | VFO_PCOLMASK | VFO_PCOLSET);	// Old Color
+			*a_OptionsMod |= VFO_PCOL((WChar - 0x70U) & 0xFU) | VFO_PCOLSET;
 		}
 		
 		// Underlined?
@@ -3127,7 +3125,7 @@ int V_DrawCharacterMB(const VideoFont_t a_Font, const uint32_t a_Options, const 
 		// Clear attributes
 		else if (WChar == ('z' - 'a') + 10)
 		{
-			*a_OptionsMod &= ~(VFO_COLORMASK | VFO_PCOLMASK | VFO_TRANSMASK | VFO_UNDERLINE);
+			*a_OptionsMod &= ~(VFO_COLORMASK | VFO_PCOLMASK | VFO_PCOLSET | VFO_TRANSMASK | VFO_UNDERLINE);
 		}
 		
 		// Always return 0, there is no space here
@@ -3145,7 +3143,9 @@ int V_DrawCharacterMB(const VideoFont_t a_Font, const uint32_t a_Options, const 
 	// Color/Trans options
 	DrawFlags |= VEX_COLORMAP((a_Options & VFO_COLORMASK) >> VFO_COLORSHIFT);
 	DrawFlags |= VEX_TRANS((a_Options & VFO_TRANSMASK) >> VFO_TRANSSHIFT);
-	DrawFlags |= VEX_PCOLOR((a_Options & VFO_PCOLMASK) >> VFO_PCOLSHIFT);
+	
+	if (a_Options & VFO_PCOLSET)
+		DrawFlags |= VEX_COLORSET | VEX_PCOLOR((a_Options & VFO_PCOLMASK) >> VFO_PCOLSHIFT);
 	
 	// Scale options
 	if (a_Options & VFO_NOSCALESTART)
@@ -4365,16 +4365,15 @@ void V_ImageDrawScaledIntoBuffer(const uint32_t a_Flags, V_Image_t* const a_Imag
 	/* Get extra map */
 	if (a_ExtraMap)
 		ColorMapE = a_ExtraMap;
-	else
+	else if (a_Flags & VEX_COLORSET)
 	{
 		// Use player translation tables?
-		Mask = (a_Flags & VEX_COLORMASK) >> VEX_COLORSHIFT;
+		Mask = ((a_Flags & VEX_COLORMASK) >> VEX_COLORSHIFT) & 0xFU;
 		
-		if (Mask > 0)
-			ColorMapE = V_ReturnColormapPtr(16 + Mask);//translationtables[Mask];
-		else
-			ColorMapE = V_ReturnColormapPtr(VEX_MAP_NONE);
+		ColorMapE = V_ReturnColormapPtr(16 + Mask);
 	}
+	else
+		ColorMapE = V_ReturnColormapPtr(VEX_MAP_NONE);
 		
 	/* Handle transparency */
 	// Transparency OK

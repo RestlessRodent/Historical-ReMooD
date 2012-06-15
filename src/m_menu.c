@@ -217,7 +217,76 @@ CONL_StaticVar_t l_MenuCompact =
 	NULL
 };
 
+M_UIMenuHandler_t* M_ExPushMenu(const uint8_t a_Player, M_UIMenu_t* const a_UI);
+
 /*** MENU FUNCTIONS ***/
+
+/* MS_ExGeneralComm() -- Menu Commands */
+static CONL_ExitCode_t MS_ExGeneralComm(const uint32_t a_ArgC, const char** const a_ArgV)
+{
+	M_UIMenu_t* New;
+	int32_t i;
+	
+	static const char* const c_ColorTestStrs[33] =
+	{
+		"{zDefault (z)",
+		
+		"{0Default (0)",
+		"{1Red (1)",
+		"{2Orange (2)",
+		"{3Yellow (3)",
+		"{4Green (4)",
+		"{5Cyan (5)",
+		"{6Blue (6)",
+		"{7Magenta (7)",
+		"{8Brown (8)",
+		"{9Bright White (9)",
+		"{aWhite (a)",
+		"{bGray (b)",
+		"{cBlack (c)",
+		"{dFuscia (d)",
+		"{eGold (e)",
+		"{fTek Green (f)",
+		
+		"{x70Green (x70)",
+		"{x71Gray (x71)",
+		"{x72Brown (x72)",
+		"{x73Red (x73)",
+		"{x74Light Gray (x74)",
+		"{x75Light Brown (x75)",
+		"{x76Light Red (x76)",
+		"{x77Light Blue (x77)",
+		"{x78Blue (x78)",
+		"{x79Yellow (x79)",
+		"{x7aBeige (x7a)",
+		"{x7bWhite (x7b)",
+		"{x7cOrange (x7c)",
+		"{x7dTan (x7d)",
+		"{x7eBlack (x7e)",
+		"{x7fPink (x7f)",
+	};
+	
+	/* Color Test */
+	if (strcasecmp(a_ArgV[0], "menucolortest") == 0)
+	{
+		// Allocate
+		New = Z_Malloc(sizeof(*New), PU_STATIC, NULL);
+	
+		// Quick
+		New->NumItems = 33;
+		New->Items = Z_Malloc(sizeof(*New->Items) * New->NumItems, PU_STATIC, NULL);
+		New->CleanerFunc = NULL;
+		
+		// Set Strings
+		for (i = 0; i < 33; i++)
+		{
+			New->Items[i].Menu = New;
+			New->Items[i].Text = c_ColorTestStrs[i];
+		}
+		
+		M_ExPushMenu(0, New);
+	}
+}
 
 /* M_MenuExInit() -- Init Menu */
 void M_MenuExInit(void)
@@ -227,12 +296,14 @@ void M_MenuExInit(void)
 	CONL_VarRegister(&l_MenuHeaderColor);
 	CONL_VarRegister(&l_MenuItemColor);
 	CONL_VarRegister(&l_MenuValColor);
+	
+	CONL_AddCommand("menucolortest", MS_ExGeneralComm);
 }
 
 /* M_ExMenuHandleEvent() -- Handles Menu Events */
 bool_t M_ExMenuHandleEvent(const I_EventEx_t* const a_Event)
 {
-	int32_t i, RowPos, RowEnd, DoDown, DoRight;
+	int32_t i, RowPos, RowEnd, DoDown, DoRight, z;
 	M_UIMenuHandler_t* TopMenu;
 	M_UIMenu_t* UI;
 	bool_t Up, DoCancel;
@@ -361,7 +432,7 @@ bool_t M_ExMenuHandleEvent(const I_EventEx_t* const a_Event)
 			S_StartSound(NULL, sfx_pstop);
 		
 		// Change view?
-		for (;;)
+		for (z = 0; z < 10; z++)
 		{
 			// Really small menu?
 			if (UI->NumItems <= 5)
@@ -504,6 +575,15 @@ void M_ExMenuDrawer(void)
 				ValStr = *Item->ValueRef;
 			else
 				ValStr = Item->Value;
+			
+			// Draw Cursor
+			if (j == TopMenu->CurItem)
+				if (gametic & 0x4)
+					V_DrawCharacterMB(
+						l_MenuFont.Value[0].Int,
+						VFO_COLOR(VEX_MAP_BRIGHTWHITE),
+						"*", x - 10, y, NULL, NULL
+					);
 			
 			// Draw Flags
 			DrawFlags = 0;

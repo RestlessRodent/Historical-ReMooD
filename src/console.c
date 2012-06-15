@@ -705,7 +705,7 @@ int32_t CONCTI_DrawInput(CONCTI_Inputter_t* const a_Input, const uint32_t a_Opti
 		return 0;
 	
 	/* Default check */
-	DefaultOptions = a_Options & (VFO_COLORMASK | VFO_PCOLMASK | VFO_TRANSMASK);
+	DefaultOptions = a_Options & (VFO_COLORMASK | VFO_PCOLMASK | VFO_PCOLSET | VFO_TRANSMASK);
 	
 	/* Do virtualization of character representations */
 	// This is for displaying actual colorization and effects, etc.
@@ -781,7 +781,7 @@ int32_t CONCTI_DrawInput(CONCTI_Inputter_t* const a_Input, const uint32_t a_Opti
 		
 		// If no color/trans is set, set default
 		if (DefaultOptions)
-			if (!(Options & (VFO_COLORMASK | VFO_PCOLMASK | VFO_TRANSMASK)))
+			if (!(Options & (VFO_COLORMASK | VFO_PCOLMASK | VFO_PCOLSET | VFO_TRANSMASK)))
 				Options |= DefaultOptions;
 		
 		// Go to next character in chain
@@ -795,7 +795,7 @@ int32_t CONCTI_DrawInput(CONCTI_Inputter_t* const a_Input, const uint32_t a_Opti
 		
 	// Draw box/underscore here (blinked)
 	Options = a_Options;
-	Options &= ~(VFO_COLORMASK | VFO_PCOLMASK);
+	Options &= ~(VFO_COLORMASK | VFO_PCOLMASK | VEX_COLORSET);
 	Options |= VFO_COLOR(VEX_MAP_BRIGHTWHITE);
 	
 	if ((gametic >> 4) & 1)
@@ -2396,7 +2396,7 @@ bool_t CONL_DrawConsole(void)
 				else if (*p > 7)
 				{
 					// Color reset?
-					if ((Options & (VFO_COLORMASK | VFO_PCOLMASK)) == 0)
+					if ((Options & (VFO_COLORMASK | VFO_PCOLMASK | VEX_COLORSET)) == 0)
 						Options |= VFO_COLOR(l_CONForeColor.Value[0].Int);
 					
 					bx = V_DrawCharacterMB(l_CONFont.Value[0].Int, Options, TempFill, x, y, &BSkip, &Options);
@@ -2563,7 +2563,7 @@ bool_t CONL_DrawConsole(void)
 					x = bx;
 					p = &l_CONLMessageQ[i][j].Text[0];
 					DefaultOptions = Options = l_CONLMessageQ[i][j].Flags;
-					DefaultOptions &= (VFO_PCOLMASK | VFO_COLORMASK | VFO_TRANSMASK);
+					DefaultOptions &= (VFO_PCOLMASK | VFO_PCOLSET | VFO_COLORMASK | VFO_TRANSMASK);
 					
 					// Draw single character
 					while (*p)
@@ -2573,7 +2573,7 @@ bool_t CONL_DrawConsole(void)
 						
 						// Reset attributes?
 						if (DefaultOptions)
-							if (!(Options & (VFO_COLORMASK | VFO_TRANSMASK | VFO_PCOLMASK)))
+							if (!(Options & (VFO_COLORMASK | VFO_TRANSMASK | VFO_PCOLSET | VFO_PCOLMASK)))
 								Options |= DefaultOptions;
 						
 						// Never over trans

@@ -135,6 +135,7 @@ extern consvar_t cv_vid_drawfps;
 #define VEX_SKIPEVEN			0x00000400	// Don't draw even pixels
 #define VEX_SECONDBUFFER		0x00000800	// Draw in second video buffer
 #define VEX_IGNOREOFFSETS		0x00001000	// Ignore image origins
+#define VEX_COLORSET			0x00002000	// Player Color Specified
 
 /* Color mapping */
 typedef enum VEX_ColorList_s
@@ -276,6 +277,7 @@ typedef enum
 #define VFO_LEFTFLOW		0x00400000	// Like RTL but not swapped
 #define VFO_UNDERLINE		0x00800000	// Underline text
 
+#define VFO_PCOLSET			0x10000000	// Player Color Specified
 #define VFO_PCOLMASK		0x0F000000	// Player Color Mapping
 #define VFO_PCOLSHIFT		24
 #define VFO_PCOL(x)			(((x) << VFO_PCOLSHIFT) & VFO_PCOLMASK)
