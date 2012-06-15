@@ -248,6 +248,7 @@ typedef struct player_s
 	// Kill Totals
 	int32_t TotalFrags;							// Total kills
 	int32_t TotalDeaths;						// Total deaths
+	uint32_t FraggerID;							// Fragger ID
 } player_t;
 
 //

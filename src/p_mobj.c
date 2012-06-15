@@ -788,6 +788,7 @@ void P_NightmareRespawn(mobj_t* mobj, const bool_t a_ForceRespawn)
 	subsector_t* ss;
 	mobj_t* mo;
 	mapthing_t* mthing;
+	int KCMode;
 	
 	mthing = mobj->spawnpoint;
 	
@@ -845,6 +846,22 @@ void P_NightmareRespawn(mobj_t* mobj, const bool_t a_ForceRespawn)
 		mo->flags |= MF_AMBUSH;
 		
 	mo->reactiontime = 18;
+	
+	KCMode = P_EXGSGetValue(PEXGSBID_MONKILLCOUNTMODE);
+	if (KCMode == 1)		// Count only once
+		mo->flags &= ~MF_COUNTKILL;
+	
+	else if (KCMode == 2)	// Only Count Dead Monsters
+	{
+		// Reduce level kills
+		g_MapKIS[0]--;
+		
+		// Player killed it?
+		if (mobj->KillerPlayer)
+			if (playeringame[mobj->KillerPlayer - 1])
+				if (players[mobj->KillerPlayer - 1].FraggerID == mobj->FraggerID)
+					players[mobj->KillerPlayer - 1].killcount--;
+	}
 	
 	// remove the old monster,
 	P_RemoveMobj(mobj);
@@ -1209,7 +1226,11 @@ void P_MobjThinker(mobj_t* mobj)
 		if (!P_EXGSGetValue(PEXGSBID_MONRESPAWNMONSTERS))
 			return;
 			
-		if (!(mobj->flags & MF_COUNTKILL))
+		if (!(mobj->RXFlags[0] & MFREXA_ISMONSTER))
+			return;
+		
+		// GhostlyDeath <June 15, 2012> -- No Nightmare Respawn
+		if (mobj->RXFlags[1] & MFREXB_NONMRESPAWN)
 			return;
 			
 		mobj->movecount++;
@@ -3096,7 +3117,7 @@ void P_ControlNewMonster(struct player_s* const a_Player)
 			continue;
 		
 		// Not a monster?
-		if (!(mo->flags & MF_COUNTKILL) && !(mo->RXFlags[0] & MFREXA_ISMONSTER))
+		if (!(mo->RXFlags[0] & MFREXA_ISMONSTER))
 			continue;
 		
 		// Dead?

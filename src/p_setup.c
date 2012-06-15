@@ -303,6 +303,7 @@ bool_t P_ExClearLevel(void)
 	// Totals
 	totalkills = 0;
 	totalitems = 0;
+	totalsecret = 0;
 	memset(g_MapKIS, 0, sizeof(g_MapKIS));
 	
 	// Time

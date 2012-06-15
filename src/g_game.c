@@ -1377,6 +1377,7 @@ void G_DoReborn(int playernum)
 /* G_AddPlayer() -- Adds player to game */
 player_t* G_AddPlayer(int playernum)
 {
+	int i;
 	player_t* p = &players[playernum];
 	playeringame[playernum] = true;
 	
@@ -1384,6 +1385,14 @@ player_t* G_AddPlayer(int playernum)
 	p->playerstate = PST_REBORN;
 	p->weaponinfo = wpnlev1info;
 	p->autoaim_toggle = true;
+	
+	/* Build Fragger ID */
+	p->FraggerID = 0;
+	for (i = 0; i < 31; i++)
+	{
+		p->FraggerID <<= 1;
+		p->FraggerID ^= M_Random();
+	}
 	
 	/* Initialize */
 	G_InitPlayer(p);

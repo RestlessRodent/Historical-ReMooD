@@ -288,6 +288,7 @@ static const INFO_FlagInfo_t c_xRXFlagsB[] =
 	{MFREXB_NOFLOORDAMAGE, "NoFloorDamage"},
 	{MFREXB_ISDOOMPALETTE, "IsDoomColored"},
 	{MFREXB_SPITBIT, "SpitBitSet"},
+	{MFREXB_NONMRESPAWN, "NoNightmareRespawn"},
 	
 	{0, NULL},
 };

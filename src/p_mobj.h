@@ -315,22 +315,23 @@ typedef enum mobjflagrexa_e
 // GhostlyDeath <March 7, 2012> -- Extended flags here
 typedef enum mobjflagrexb_e
 {
-	MFREXB_DOMAPSEVENSPECA		= 0x000000001U,	// DOOM2.WAD MAP07 (666) [A_BossDeath]
-	MFREXB_DOMAPSEVENSPECB		= 0x000000002U,	// DOOM2.WAD MAP07 (667) [A_BossDeath]
-	MFREXB_DOBARONSPECIAL		= 0x000000004U,	// Triggers baron special [A_BossDeath]
-	MFREXB_DOCYBERSPECIAL		= 0x000000008U,	// Triggers cyber special [A_BossDeath]
-	MFREXB_DOSPIDERSPECIAL		= 0x000000010U,	// Triggers spider special [A_BossDeath]
-	MFREXB_DODOORSIXTHREEOPEN	= 0x000000020U,	// When this thing dies, blaze a door open [A_BossDeath]
-	MFREXB_INITBOTNODES			= 0x000000040U,	// Initialize With bot nodes
-	MFREXB_DONTTAKEDAMAGE		= 0x000000080U,	// Do not actually take damage
-	MFREXB_ISHIGHBOUNCER		= 0x000000100U,	// Bounces High
-	MFREXB_NONMISSILEFLBOUNCE	= 0x000000200U,	// Bounce on floor without being MF_MISSILE
-	MFREXB_IGNOREBLOCKMONS		= 0x000000400U,	// Ignore monster blocking lines
-	MFREXB_USEPLAYERMOVEMENT	= 0x000000800U,	// Use player movement
-	MFREXB_CANUSEWEAPONS		= 0x000001000U,	// Can use player weapons
-	MFREXB_NOFLOORDAMAGE		= 0x000002000U,	// No damage on the floor
-	MFREXB_ISDOOMPALETTE		= 0x000004000U,	// Uses Doom Palette
-	MFREXB_SPITBIT				= 0x000008000U,	// Brain Spit Something (easy shifter)
+	MFREXB_DOMAPSEVENSPECA		= 0x00000001U,	// DOOM2.WAD MAP07 (666) [A_BossDeath]
+	MFREXB_DOMAPSEVENSPECB		= 0x00000002U,	// DOOM2.WAD MAP07 (667) [A_BossDeath]
+	MFREXB_DOBARONSPECIAL		= 0x00000004U,	// Triggers baron special [A_BossDeath]
+	MFREXB_DOCYBERSPECIAL		= 0x00000008U,	// Triggers cyber special [A_BossDeath]
+	MFREXB_DOSPIDERSPECIAL		= 0x00000010U,	// Triggers spider special [A_BossDeath]
+	MFREXB_DODOORSIXTHREEOPEN	= 0x00000020U,	// When this thing dies, blaze a door open [A_BossDeath]
+	MFREXB_INITBOTNODES			= 0x00000040U,	// Initialize With bot nodes
+	MFREXB_DONTTAKEDAMAGE		= 0x00000080U,	// Do not actually take damage
+	MFREXB_ISHIGHBOUNCER		= 0x00000100U,	// Bounces High
+	MFREXB_NONMISSILEFLBOUNCE	= 0x00000200U,	// Bounce on floor without being MF_MISSILE
+	MFREXB_IGNOREBLOCKMONS		= 0x00000400U,	// Ignore monster blocking lines
+	MFREXB_USEPLAYERMOVEMENT	= 0x00000800U,	// Use player movement
+	MFREXB_CANUSEWEAPONS		= 0x00001000U,	// Can use player weapons
+	MFREXB_NOFLOORDAMAGE		= 0x00002000U,	// No damage on the floor
+	MFREXB_ISDOOMPALETTE		= 0x00004000U,	// Uses Doom Palette
+	MFREXB_SPITBIT				= 0x00008000U,	// Brain Spit Something (easy shifter)
+	MFREXB_NONMRESPAWN			= 0x00010000U,	// Cannot be respawned
 } mobjflagrexb_t;
 
 /* P_MobjRefType_t -- Reference type */
@@ -554,7 +555,11 @@ typedef struct mobj_s
 	
 	// GhostlyDeath <June 12, 2012> -- Object Cleanup
 	uint32_t TimeThinking[2];					// Time spent thinking
-	uint32_t TimeFromDead[2];					// Time being dead
+	uint32_t TimeFromDead[2];					// Time being dead'
+	
+	// GhostlyDeath <June 15, 2012> -- Player who killed this thing
+	int32_t KillerPlayer;						// Player Killer
+	uint32_t FraggerID;							// Fragger ID of Player
 	
 	// Owners
 #if 0

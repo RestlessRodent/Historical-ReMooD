@@ -1270,6 +1270,7 @@ void WI_Drawer(void)
 		if (dp >= 0 && dp < l_NumDrawPlayers)
 		{
 			// Color based on rank
+#if 0
 				// Gold -- First
 			if (Flash && l_DrawPlayers[dp].Rank == 0)
 				DrawFlags = VFO_COLOR(VEX_MAP_GOLD);
@@ -1281,6 +1282,7 @@ void WI_Drawer(void)
 				DrawFlags = VFO_COLOR(VEX_MAP_BROWN);
 				// All other places are insignifant
 			else
+#endif
 			{
 				// Local Players are distinguished
 				if (l_DrawPlayers[dp].LocalPlayer)

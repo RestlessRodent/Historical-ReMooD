@@ -245,6 +245,7 @@ typedef enum P_EXGSBitID_e
 	PEXGSBID_GAMESKILL,							// Current Game Skill Level
 	PEXGSBID_PLHALFDAMAGE,						// Take Half Damage
 	PEXGSBID_PLDOUBLEAMMO,						// Receive Double Ammo
+	PEXGSBID_MONKILLCOUNTMODE,					// Kill Count Mode
 	
 	PEXGSNUMBITIDS
 } P_EXGSBitID_t;

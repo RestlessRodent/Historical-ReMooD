@@ -1208,12 +1208,15 @@ void P_KillMobj(mobj_t* target, mobj_t* inflictor, mobj_t* source)
 	P_DeathMessages(target, inflictor, source);
 	
 	// if killed by a player
+	target->KillerPlayer = NULL;
 	if (source && source->player)
 	{
 		// count for intermission
 		if (target->flags & MF_COUNTKILL)
 		{
 			source->player->killcount++;
+			target->KillerPlayer = (source->player - players) + 1;
+			target->FraggerID = source->player->FraggerID;
 			g_MapKIS[0]++;
 		}
 			
@@ -1228,13 +1231,18 @@ void P_KillMobj(mobj_t* target, mobj_t* inflictor, mobj_t* source)
 				P_CheckFragLimit(source->player);
 		}
 	}
-	else if (!multiplayer && (target->flags & MF_COUNTKILL))
+	else if (target->flags & MF_COUNTKILL)
 	{
 		// count all monster deaths,
 		// even those caused by other monsters
-		//players[0].killcount++;
+		// But unlike Doom, they aren't given to player 1
 		g_MapKIS[0]++;
 	}
+	
+	// GhostlyDeath <June 15, 2012> -- Kill count once?
+	if (target->flags & MF_COUNTKILL)
+		if (P_EXGSGetValue(PEXGSBID_MONKILLCOUNTMODE) == 1)
+			target->flags &= ~MF_COUNTKILL;
 	
 	// if a player avatar dies...
 	if (target->player)

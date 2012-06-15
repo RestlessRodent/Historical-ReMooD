@@ -1414,6 +1414,8 @@ void A_VileChase(mobj_t* actor, player_t* player, pspdef_t* psp, const INFO_Stat
 	int bx;
 	int by;
 	
+	int KCMode;
+	
 	mobjinfo_t* info;
 	mobj_t* temp;
 	
@@ -1481,6 +1483,22 @@ void A_VileChase(mobj_t* actor, player_t* player, pspdef_t* psp, const INFO_Stat
 					if (actor->flags2 & MF2_FRIENDLY)
 						corpsehit->flags2 = MF2_FRIENDLY;
 					corpsehit->SkinTeamColor = actor->SkinTeamColor;
+					
+					// GhostlyDeath <June 15, 2012> -- Modify kill counts
+					KCMode = P_EXGSGetValue(PEXGSBID_MONKILLCOUNTMODE);
+					if (KCMode == 1)		// Once
+						corpsehit->flags &= ~MF_COUNTKILL;
+					else if (KCMode == 2)	// Only Count Dead Monsters
+					{
+						// Reduce level kills
+						g_MapKIS[0]--;
+						
+						// Player killed it?
+						if (corpsehit->KillerPlayer)
+							if (playeringame[corpsehit->KillerPlayer - 1])
+								if (players[corpsehit->KillerPlayer - 1].FraggerID == corpsehit->FraggerID)
+									players[corpsehit->KillerPlayer - 1].killcount--;
+					}
 					
 					return;
 				}

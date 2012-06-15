@@ -150,6 +150,19 @@ const CONL_VarPossibleValue_t c_PEXGSPVSkill[] =
 	{0, NULL},
 };
 
+/* c_PEXGSPVKillCountMode -- Kill Count Mode */
+const CONL_VarPossibleValue_t c_PEXGSPVKillCountMode[] =
+{
+	{0, "Always"},
+	{1, "Once"},
+	{2, "Deads"},
+	
+	// End
+	{0, "MINVAL"},
+	{2, "MAXVAL"},
+	{0, NULL},
+};
+
 // l_NiceVersions -- Nice names for versions
 static const P_EXGSNiceVersion_t l_NiceVersions[] =
 {
@@ -702,6 +715,10 @@ static P_EXGSVariable_t l_GSVars[PEXGSNUMBITIDS] =
 	{PEXGST_INTEGER, PEXGSBID_PLDOUBLEAMMO, "pl_doubleammo", "Get Double Ammo",
 		"Players recieve double the amount of ammo they pickup.", PEXGSGM_ANY, PEXGSDR_NOCHECK, 0, {0, 1}, 0,
 		PEXGSMC_PLAYERS, PEXGSDA_YESNO, c_PEXGSPVBoolean, NULL},
+	
+	{PEXGST_INTEGER, PEXGSBID_MONKILLCOUNTMODE, "mon_killcountmode", "Kill Count Mode",
+		"Specifies the mode at which kill totals are calculated.", PEXGSGM_ANY, PEXGSDR_NOCHECK, 0, {0, 0}, 0,
+		PEXGSMC_MONSTERS, PEXGSDA_STRING, c_PEXGSPVKillCountMode, NULL},
 };
 
 /*** FUNCTIONS ***/
