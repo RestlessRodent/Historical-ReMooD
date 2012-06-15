@@ -287,6 +287,7 @@ static const INFO_FlagInfo_t c_xRXFlagsB[] =
 	{MFREXB_CANUSEWEAPONS, "CanUseWeapons"},
 	{MFREXB_NOFLOORDAMAGE, "NoFloorDamage"},
 	{MFREXB_ISDOOMPALETTE, "IsDoomColored"},
+	{MFREXB_SPITBIT, "SpitBitSet"},
 	
 	{0, NULL},
 };

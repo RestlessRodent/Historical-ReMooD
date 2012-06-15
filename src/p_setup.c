@@ -165,6 +165,8 @@ int numdmstarts;
 //mapthing_t**    deathmatch_p;
 mapthing_t* playerstarts[MAXPLAYERS];
 
+int32_t g_MapKIS[3] = {0, 0, 0};
+
 void P_SetupLevelSky(void)
 {
 	/* Load Sky */
@@ -301,6 +303,7 @@ bool_t P_ExClearLevel(void)
 	// Totals
 	totalkills = 0;
 	totalitems = 0;
+	memset(g_MapKIS, 0, sizeof(g_MapKIS));
 	
 	// Time
 	leveltime = 0;

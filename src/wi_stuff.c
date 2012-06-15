@@ -410,7 +410,7 @@ typedef struct WI_PlayerInfo_s
 *************/
 
 static V_Image_t* l_PicINTER = NULL;
-static WI_PlayerInfo_t l_DrawPlayers[MAXPLAYERS];
+static WI_PlayerInfo_t l_DrawPlayers[MAXPLAYERS + 1];
 static size_t l_NumDrawPlayers;
 static int32_t l_TotalKills, l_TotalItems, l_TotalSecrets;
 
@@ -1292,10 +1292,11 @@ void WI_Drawer(void)
 			}
 			
 			// Draw player band (their skin color)
-			V_DrawColorBoxEx(
-					VEX_TRANS(VEX_TRANS50) | VEX_COLORMAP(VEX_MAP_GREEN) |
-						VEX_PCOLOR(l_DrawPlayers[dp].Player->skincolor),
-					120, 0, yBase + y, 320, yBase + y + yAdd);
+			if (l_DrawPlayers[dp].Player)
+				V_DrawColorBoxEx(
+						VEX_TRANS(VEX_TRANS50) | VEX_COLORMAP(VEX_MAP_GREEN) |
+							VEX_PCOLOR(l_DrawPlayers[dp].Player->skincolor),
+						120, 0, yBase + y, 320, yBase + y + yAdd);
 			
 			// Draw Rank
 			snprintf(Buf, BUFSIZE - 1, "%i.", l_DrawPlayers[dp].Rank + 1);
@@ -1443,7 +1444,7 @@ void WI_Drawer(void)
 static void WI_initVariables(wbstartstruct_t* wbstartstruct)
 {
 	size_t i, j, k;
-	WI_PlayerInfo_t TempDP[MAXPLAYERS];
+	WI_PlayerInfo_t TempDP[MAXPLAYERS + 1];
 	size_t NumTempDP;
 	player_t* Player;
 	
@@ -1520,6 +1521,32 @@ static void WI_initVariables(wbstartstruct_t* wbstartstruct)
 			TempDP[NumTempDP].Secrets = Player->secretcount;
 			TempDP[NumTempDP++].Rank = i;
 		}
+	
+	// Un-Claimed Kills/Items/Secrets?
+	if (!P_EXGSGetValue(PEXGSBID_GAMEDEATHMATCH))
+		if (l_TotalKills < g_MapKIS[0] || l_TotalItems < g_MapKIS[1] || l_TotalSecrets < g_MapKIS[2])
+		{
+			strncpy(TempDP[NumTempDP].PlayerName, "Un-Claimed", MAXPLAYERNAME - 1);
+			
+			// Kills
+			if (l_TotalKills < g_MapKIS[0])
+				TempDP[NumTempDP].Kills = g_MapKIS[0] - l_TotalKills;
+			
+			// Items
+			if (l_TotalItems < g_MapKIS[1])
+				TempDP[NumTempDP].Items = g_MapKIS[1] - l_TotalItems;
+			
+			// Secrets
+			if (l_TotalSecrets < g_MapKIS[2])
+				TempDP[NumTempDP].Secrets = g_MapKIS[2] - l_TotalSecrets;
+			
+			// Rank Last Always
+			TempDP[NumTempDP++].Rank = i;
+		}
+	
+	l_TotalKills = g_MapKIS[0];
+	l_TotalItems = g_MapKIS[1];
+	l_TotalSecrets = g_MapKIS[2];
 	
 	// Sort players based on statistics
 	

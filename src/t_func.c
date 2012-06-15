@@ -393,7 +393,7 @@ void SF_Message()
 void SF_GameSkill()
 {
 	t_return.type = svt_int;
-	t_return.value.i = gameskill + 1;	//make 1-5, rather than 0-4
+	t_return.value.i = P_EXGSGetValue(PEXGSBID_GAMESKILL) + 1;	//make 1-5, rather than 0-4
 }
 
 // Returns what type of game is going on - Deathmatch, CoOp, or Single Player.

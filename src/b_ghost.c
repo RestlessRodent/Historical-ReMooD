@@ -70,6 +70,7 @@ typedef struct B_BotTemplate_s
 	uint8_t SkinColor;							// Skin Color
 	const char* WeaponOrder;					// Weapon Order
 	B_GhostAtkPosture_t Posture;				// Posture
+	B_GhostCoopMode_t CoopMode;					// Coop Mode
 	const char* HexenClass;						// Favorite Weapon Class
 } B_BotTemplate_t;
 
@@ -130,6 +131,7 @@ static const B_BotTemplate_t c_BotTemplates[] =
 		0xC,									// Color: Orange
 		"",
 		BGAP_DEFENSE,							// Posture
+		BGCM_UVMAX,								// Coop Mode
 		"Mage",									// Hexen Class
 	},
 	
@@ -139,6 +141,7 @@ static const B_BotTemplate_t c_BotTemplates[] =
 		0xF,									// Color: Pink
 		"SuperShotgun BFG PlasmaRifle RocketLauncher Chaingun Shotgun Pistol Chainsaw Fist",
 		BGAP_MIDDLE,							// Posture
+		BGCM_UVALLMAX,							// Coop Mode
 		"Cleric",								// Hexen Class
 	},
 	
@@ -148,6 +151,7 @@ static const B_BotTemplate_t c_BotTemplates[] =
 		0x8,									// Color: Dark Blue
 		"BFG Firemace Bloodscourge Wraithverge Quietus SuperShotgun Hellstaff FrostShards Firestorm HammerOfRetribution RocketLauncher EthrealCrossBow ArcOfDeath SerpentStaff TimonsAxe PlasmaRifle PheonixRod Sapphire MaceOfContrition SpikedGauntlets Chaingun DragonClaw Shotgun ElvenWannd Pistol Gauntlets Chainsaw Staff Fist",
 		BGAP_OFFENSE,							// Posture
+		BGCM_EXITRUN,							// Coop Mode
 		"Mage",									// Hexen Class
 	},
 	

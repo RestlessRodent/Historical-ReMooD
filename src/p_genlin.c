@@ -2111,6 +2111,7 @@ void P_ProcessSpecialSectorEx(const EV_TryGenType_t a_Type, mobj_t* const a_Mo, 
 		if (a_Player && (a_Sector->special & SECRET_MASK))
 		{
 			a_Player->secretcount++;
+			g_MapKIS[2]++;
 			a_Sector->special &= ~SECRET_MASK;
 			
 			// Secret Message

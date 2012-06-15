@@ -1269,7 +1269,7 @@ mobj_t* P_SpawnMobj(fixed_t x, fixed_t y, fixed_t z, mobjtype_t type)
 	
 	mobj->health = info->spawnhealth;
 	
-	if (gameskill != sk_nightmare)
+	if (P_EXGSGetValue(PEXGSBID_GAMESKILL) != sk_nightmare)
 		mobj->reactiontime = info->reactiontime;
 		
 	if (P_EXGSGetValue(PEXGSBID_CORANOMLASTLOOKSPAWN) && !(mobj->RXFlags[0] & MFREXA_NORANDOMPLAYERLOOK))
@@ -1823,6 +1823,7 @@ void P_SpawnMapThing(mapthing_t* mthing)
 	fixed_t x;
 	fixed_t y;
 	fixed_t z;
+	skill_t Skill;
 	
 	// GhostlyDeath <March 6, 2012> -- Clear thing ID
 	mthing->MoType = NUMMOBJTYPES;
@@ -1880,12 +1881,13 @@ void P_SpawnMapThing(mapthing_t* mthing)
 		return;
 	
 	// check for apropriate skill level
-	if (gameskill == sk_baby)
+	Skill = P_EXGSGetValue(PEXGSBID_GAMESKILL);
+	if (Skill == sk_baby)
 		bit = 1;
-	else if (gameskill == sk_nightmare)
+	else if (Skill == sk_nightmare)
 		bit = 4;
 	else
-		bit = 1 << (gameskill - 1);
+		bit = 1 << (Skill - 1);
 		
 	if (!(mthing->options & bit))
 		return;

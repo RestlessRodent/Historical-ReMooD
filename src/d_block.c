@@ -38,6 +38,7 @@
 #include "i_system.h"
 #include "m_random.h"
 #include "m_misc.h"
+#include "c_lib.h"
 
 /******************
 *** FILE STREAM ***
@@ -124,7 +125,7 @@ bool_t DS_RBSFile_PlayF(struct D_RBlockStream_s* const a_Stream)
 	Data = NULL;
 	
 	// Start reading and be sure to check if the read failed!!!
-	if (fread(&Header, 4, 1, File) < 1)
+	if (fread(&Header[0], 4, 1, File) < 1)
 		return false;
 		
 	if (fread(&Len, sizeof(Len), 1, File) < 1)

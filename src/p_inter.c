@@ -89,6 +89,7 @@ bool_t P_GiveAmmo(player_t* player, ammotype_t ammo, int count)
 	int oldammo;
 	size_t i;
 	weapontype_t ChoseWeapon;
+	skill_t Skill;
 	
 	if (ammo == am_noammo)
 		return false;
@@ -108,7 +109,9 @@ bool_t P_GiveAmmo(player_t* player, ammotype_t ammo, int count)
 	   else
 	   num = clipammo[ammo]/2;
 	 */
-	if (gameskill == sk_baby || gameskill == sk_nightmare)
+	 
+	Skill = P_EXGSGetValue(PEXGSBID_GAMESKILL);
+	if (Skill == sk_baby || Skill == sk_nightmare || P_EXGSGetValue(PEXGSBID_PLDOUBLEAMMO))
 	{
 		// give double ammo in trainer mode,
 		// you'll need in nightmare
@@ -692,7 +695,11 @@ bool_t P_TouchSpecialThing(mobj_t* special, mobj_t* toucher)
 		{
 			// Counts as an item?
 			if (special->flags & MF_COUNTITEM)
+			{
 				player->itemcount++;
+				g_MapKIS[1]++;
+			}
+			
 			player->bonuscount += BONUSADD;
 			
 			//added:16-01-98:consoleplayer -> displayplayer (hear sounds from viewpoint)
@@ -704,6 +711,10 @@ bool_t P_TouchSpecialThing(mobj_t* special, mobj_t* toucher)
 			// For Monster
 		else
 		{
+			// Counts as item?
+			if (special->flags & MF_COUNTITEM)
+				g_MapKIS[1]++;
+			
 			// Emit sound from monster
 			S_StartSound(toucher, sound);
 		}
@@ -1201,7 +1212,10 @@ void P_KillMobj(mobj_t* target, mobj_t* inflictor, mobj_t* source)
 	{
 		// count for intermission
 		if (target->flags & MF_COUNTKILL)
+		{
 			source->player->killcount++;
+			g_MapKIS[0]++;
+		}
 			
 		// count frags if player killed player
 		if (target->player)
@@ -1218,7 +1232,8 @@ void P_KillMobj(mobj_t* target, mobj_t* inflictor, mobj_t* source)
 	{
 		// count all monster deaths,
 		// even those caused by other monsters
-		players[0].killcount++;
+		//players[0].killcount++;
+		g_MapKIS[0]++;
 	}
 	
 	// if a player avatar dies...
@@ -1346,9 +1361,11 @@ bool_t P_DamageMobj(mobj_t* target, mobj_t* inflictor, mobj_t* source, int damag
 	}
 	
 	player = target->player;
-	if (player && gameskill == sk_baby)
-		damage >>= 1;			// take half damage in trainer mode
-		
+	
+	if (target->RXFlags[0] & MFREXA_ISPLAYEROBJECT)
+		if (P_EXGSGetValue(PEXGSBID_GAMESKILL) == sk_baby || P_EXGSGetValue(PEXGSBID_PLHALFDAMAGE))
+			damage >>= 1;		// take half damage in trainer mode
+	
 	// Special damage types
 	if (inflictor)
 	{

@@ -101,6 +101,55 @@ const CONL_VarPossibleValue_t c_PEXGSPVTeamPlay[] =
 	{0, NULL},
 };
 
+// c_PEXGSPVSkill -- Current Skill Level
+const CONL_VarPossibleValue_t c_PEXGSPVSkill[] =
+{
+	// I'm Too Young To Die
+	{0, "I\'m Too Young To Die"},
+	{0, "Thou Needeth A Wet-Nurse"},
+	{0, "baby"},
+	{0, "itytd"},
+	{0, "tnawn"},
+	
+	// Hey, Not Too Rough
+	{1, "Hey, Not Too Rough"},
+	{1, "Yellowbellies-R-Us"},
+	{1, "easy"},
+	{1, "hntr"},
+	{1, "ntr"},
+	{1, "yru"},
+	{1, "ybru"},
+	
+	// Hurt Me Plenty
+	{2, "Hurt Me Plenty"},
+	{2, "Bringest Them Oneth"},
+	{2, "medium"},
+	{2, "hmp"},
+	{2, "bto"},
+	
+	// Ultra-Violence
+	{3, "Ultra-Violence"},
+	{3, "Thou Art A Smite-Meister"},
+	{3, "hard"},
+	{3, "uv"},
+	{3, "taasm"},
+	{3, "tasm"},
+	
+	// Nightmare!
+	{4, "Nightmare!"},
+	{4, "Black Plague Posseses Thee"},
+	{4, "nightmare"},
+	{4, "nm"},
+	{4, "nmare"},
+	{4, "bppt"},
+	{4, "plague"},
+	
+	// End
+	{0, "MINVAL"},
+	{4, "MAXVAL"},
+	{0, NULL},
+};
+
 // l_NiceVersions -- Nice names for versions
 static const P_EXGSNiceVersion_t l_NiceVersions[] =
 {
@@ -641,7 +690,18 @@ static P_EXGSVariable_t l_GSVars[PEXGSNUMBITIDS] =
 	{PEXGST_INTEGER, PEXGSBID_MONCLEANUPNONRTIME, "mon_cleanupnonresptime", "Non-Respawnable Cleanup Time",
 		"Time in minutes before dead respawnable monsters are cleaned up.", PEXGSGM_ANY, PEXGSDR_NOCHECK, 0, {0, 60}, 60,
 		PEXGSMC_MONSTERS, PEXGSDA_TIMEMINS, c_PEXGSPVPositive, NULL},
+	
+	{PEXGST_INTEGER, PEXGSBID_GAMESKILL, "game_skill", "Skill Level",
+		"The current difficulty of the level, the higher the more monsters that appear.", PEXGSGM_ANY, PEXGSDR_NOCHECK, 0, {0, 2}, 2,
+		PEXGSMC_GAME, PEXGSDA_STRING, c_PEXGSPVSkill, NULL},
+	
+	{PEXGST_INTEGER, PEXGSBID_PLHALFDAMAGE, "pl_halfdamage", "Take Half Damage",
+		"Players recieve only half of normal damage they recieve.", PEXGSGM_ANY, PEXGSDR_NOCHECK, 0, {0, 1}, 0,
+		PEXGSMC_PLAYERS, PEXGSDA_YESNO, c_PEXGSPVBoolean, NULL},
 		
+	{PEXGST_INTEGER, PEXGSBID_PLDOUBLEAMMO, "pl_doubleammo", "Get Double Ammo",
+		"Players recieve double the amount of ammo they pickup.", PEXGSGM_ANY, PEXGSDR_NOCHECK, 0, {0, 1}, 0,
+		PEXGSMC_PLAYERS, PEXGSDA_YESNO, c_PEXGSPVBoolean, NULL},
 };
 
 /*** FUNCTIONS ***/

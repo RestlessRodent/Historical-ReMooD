@@ -1396,10 +1396,14 @@ player_t* G_AddPlayer(int playernum)
 void G_InitPlayer(player_t* const a_Player)
 {
 	size_t i;
+	int32_t pNum;
 	
 	/* Check */
 	if (!a_Player)
 		return;
+	
+	/* Get Playe Number */
+	pNum = a_Player - players;
 	
 	/* Clear Totals */
 	a_Player->addfrags = 0;
@@ -1416,25 +1420,11 @@ void G_InitPlayer(player_t* const a_Player)
 	/* Update Camera */
 	if (a_Player->camera.chase)
 		P_ResetCamera(a_Player);
+	
+	/* Default Name of Player */
+	memset(player_names[pNum], 0, sizeof(*player_names[pNum] * MAXPLAYERNAME));
+	snprintf(player_names[pNum], MAXPLAYERNAME - 1, "Player %i", (pNum + 1));
 }
-
-// DOOM Par Times
-static const int pars[4][10] =
-{
-	{0},
-	{0, 30, 75, 120, 90, 165, 180, 180, 30, 165},
-	{0, 90, 90, 90, 120, 90, 360, 240, 30, 170},
-	{0, 90, 45, 90, 150, 90, 90, 165, 30, 135}
-};
-
-// DOOM II Par Times
-static const int cpars[32] =
-{
-	30, 90, 120, 120, 90, 150, 120, 120, 270, 90,	//  1-10
-	210, 150, 150, 150, 210, 150, 420, 150, 210, 150,	// 11-20
-	240, 150, 180, 150, 150, 300, 330, 420, 300, 180,	// 21-30
-	120, 30						// 31-32
-};
 
 //
 // G_DoCompleted

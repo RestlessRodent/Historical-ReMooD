@@ -242,6 +242,9 @@ typedef enum P_EXGSBitID_e
 	PEXGSBID_MONENABLECLEANUP,					// Cleanup Dead monsters
 	PEXGSBID_MONCLEANUPRESPTIME,				// Time it takes to cleanup respawnable monsters
 	PEXGSBID_MONCLEANUPNONRTIME,				// Time it takes to cleanup non-respawnable monsters
+	PEXGSBID_GAMESKILL,							// Current Game Skill Level
+	PEXGSBID_PLHALFDAMAGE,						// Take Half Damage
+	PEXGSBID_PLDOUBLEAMMO,						// Receive Double Ammo
 	
 	PEXGSNUMBITIDS
 } P_EXGSBitID_t;

@@ -52,6 +52,19 @@
 
 #define MAXBOTTARGETS						16	// Max target designated
 
+/* B_GhostCoopMode_t -- Coop Mode */
+typedef enum B_GhostCoopMode_e
+{
+	BGCM_MAXKILLS,								// 100% Kills
+	BGCM_UVMAX,									// 100% Kills and Secrets
+	BGCM_UVALLMAX,								// 100% Kills, Items, Secrets
+	BGCM_MAXSECRETS,							// 100% Secrets
+	BGCM_MAXITEMS,								// 100% Items
+	BGCM_EXITRUN,								// Exit Running
+	
+	NUMBGHOSTCOOPMODES
+} B_GhostCoopMode_t;
+
 /* B_GhostAtkPosture_t -- Attack posture for bot */
 typedef enum B_GhostAtkPosture_e
 {
@@ -103,6 +116,7 @@ typedef struct B_GhostBot_s
 	struct
 	{
 		B_GhostAtkPosture_t Posture;			// Bot Posture
+		B_GhostCoopMode_t CoopMode;				// Coop Mode
 	} AISpec;									// AI Specification
 } B_GhostBot_t;
 

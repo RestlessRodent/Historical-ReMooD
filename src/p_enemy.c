@@ -2320,11 +2320,11 @@ void A_BrainSpit(mobj_t* mo, player_t* player, pspdef_t* psp, const INFO_StateAr
 	mobj_t* targ;
 	mobj_t* newmobj;
 	
-	static int easy = 0;
-	
-	easy ^= 1;
-	if (gameskill <= sk_easy && (!easy))
-		return;
+	// GhostlyDeath <June 15, 2012> -- Flip the spit bit
+	mo->RXFlags[1] ^= MFREXB_SPITBIT;
+	if (P_EXGSGetValue(PEXGSBID_GAMESKILL) <= sk_easy)
+		if (!(mo->RXFlags[1] & MFREXB_SPITBIT))
+			return;
 		
 	if (numbraintargets > 0)
 	{
