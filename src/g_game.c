@@ -1903,7 +1903,7 @@ void G_ReadDemoTiccmd(ticcmd_t* cmd, int playernum)
 		memcpy(cmd, &(oldcmd[playernum]), sizeof(ticcmd_t));
 	}
 #else
-	G_CheckDemoStatus();
+	//G_CheckDemoStatus();
 	return;
 #endif
 }

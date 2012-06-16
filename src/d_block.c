@@ -161,6 +161,74 @@ bool_t DS_RBSFile_PlayF(struct D_RBlockStream_s* const a_Stream)
 	return true;
 }
 
+/******************
+*** FILE STREAM ***
+******************/
+
+/* DS_RBSWL_DeleteF() -- Delete file stream */
+static void DS_RBSWL_DeleteF(struct D_RBlockStream_s* const a_Stream)
+{
+	/* Check */
+	if (!a_Stream)
+		return;
+}
+
+/* DS_RBSWL_RecordF() -- Records the current block */
+static size_t DS_RBSWL_RecordF(struct D_RBlockStream_s* const a_Stream)
+{
+	// Recording blocks is not supported for WL Streams (read-only!)
+	return 0;
+}
+
+/* DS_RBSWL_PlayF() -- Play from file */
+bool_t DS_RBSWL_PlayF(struct D_RBlockStream_s* const a_Stream)
+{
+	WL_EntryStream_t* Stream;
+	char Header[5];
+	uint32_t Len, Sum, i;
+	void* Data;
+	
+	/* Check */
+	if (!a_Stream)
+		return false;
+		
+	/* Get Data */
+	Stream = (WL_EntryStream_t*)a_Stream->Data;
+	
+	/* Read Header */
+	// Clear
+	memset(Header, 0, sizeof(Header));
+	Len = Sum = 0;
+	Data = NULL;
+	
+	// Read Header
+	for (i = 0; i < 4; i++)
+		Header[i] = WL_StreamReadChar(Stream);
+	
+	// Read Length and Sum
+	Len = WL_StreamReadLittleUInt32(Stream);
+	Sum = WL_StreamReadLittleUInt32(Stream);
+	
+	// Read data, if possible (Len could be zero (empty block?))
+	if (Len > 0)
+	{
+		Data = Z_Malloc(Len, PU_STATIC, NULL);
+		WL_StreamRawRead(Stream, WL_StreamTell(Stream), Data, Len);
+		WL_StreamSeek(Stream, WL_StreamTell(Stream) + Len, false);
+	}
+	
+	/* Initialize Block */
+	D_RBSBaseBlock(a_Stream, Header);
+	
+	/* Write Data to Block */
+	D_RBSWriteChunk(a_Stream, Data, Len);
+	if (Data)
+		Z_Free(Data);
+	
+	/* Success! */
+	return true;
+}
+
 /****************
 *** LOOP BACK ***
 ****************/
@@ -1495,6 +1563,28 @@ D_RBlockStream_t* D_RBSCreateLoopBackStream(void)
 	New->DeleteF = DS_RBSLoopBack_DeleteF;
 	
 	/* Return */
+	return New;
+}
+
+/* D_RBSCreateWLStream() -- Creates a stream that wraps an entry stream */
+D_RBlockStream_t* D_RBSCreateWLStream(WL_EntryStream_t* const a_Stream)
+{
+	D_RBlockStream_t* New;
+	
+	/* Check */
+	if (!a_Stream)
+		return NULL;
+	
+	/* Create block stream */
+	New = Z_Malloc(sizeof(*New), PU_BLOCKSTREAM, NULL);
+	
+	/* Setup Data */
+	New->Data = a_Stream;
+	New->RecordF = DS_RBSWL_RecordF;
+	New->PlayF = DS_RBSWL_PlayF;
+	New->DeleteF = DS_RBSWL_DeleteF;
+	
+	/* Return Stream */
 	return New;
 }
 

@@ -37,6 +37,7 @@
 
 #include "doomtype.h"
 #include "d_net.h"
+#include "w_wad.h"
 
 /****************
 *** CONSTANTS ***
@@ -90,6 +91,7 @@ typedef struct D_RBlockStream_s
 ****************/
 
 D_RBlockStream_t* D_RBSCreateLoopBackStream(void);
+D_RBlockStream_t* D_RBSCreateWLStream(WL_EntryStream_t* const a_Stream);
 D_RBlockStream_t* D_RBSCreateFileStream(const char* const a_PathName, const uint32_t a_Flags);
 D_RBlockStream_t* D_RBSCreateNetStream(I_NetSocket_t* const a_NetSocket);
 D_RBlockStream_t* D_RBSCreatePerfectStream(D_RBlockStream_t* const a_Wrapped);
