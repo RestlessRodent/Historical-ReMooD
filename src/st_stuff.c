@@ -1627,9 +1627,11 @@ void ST_DrawPlayerBarsEx(void)
 		// Modify palette?
 		if (g_SplitScreen == 0)	// Only 1 player inside
 		{
-			if (LastPal != DisplayP->PalChoice);
+			if (LastPal != DisplayP->PalChoice)
+			{
 				V_SetPalette(DisplayP->PalChoice);
-			LastPal = DisplayP->PalChoice;
+				LastPal = DisplayP->PalChoice;
+			}
 		}
 		
 		// Draw Bar
