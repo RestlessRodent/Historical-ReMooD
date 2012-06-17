@@ -193,7 +193,7 @@ void TryRunTics(tic_t realtics)
 				LastTic++;
 				
 				// Increase local time
-				D_SyncNetSetMapTime(++LocalTic);
+				D_SyncNetSetMapTime(++XXLocalTic);
 			}
 		}
 		

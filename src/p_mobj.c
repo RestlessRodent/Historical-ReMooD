@@ -1294,7 +1294,7 @@ mobj_t* P_SpawnMobj(fixed_t x, fixed_t y, fixed_t z, mobjtype_t type)
 		mobj->reactiontime = info->reactiontime;
 		
 	if (P_EXGSGetValue(PEXGSBID_CORANOMLASTLOOKSPAWN) && !(mobj->RXFlags[0] & MFREXA_NORANDOMPLAYERLOOK))
-		mobj->lastlook = P_Random() % MAXPLAYERS;
+		mobj->lastlook = P_Random() % P_EXGSGetValue(PEXGSBID_COLASTLOOKMAXPLAYERS);
 	else
 		mobj->lastlook = -1;	// stuff moved in P_enemy.P_LookForPlayer
 		

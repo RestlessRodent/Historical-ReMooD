@@ -260,6 +260,7 @@ typedef enum P_EXGSBitID_e
 	PEXGSBID_CONEWSSGSPREAD,					// New SSG Spread
 	PEXGSBID_COMONSTERLOOKFORMONSTER,			// Monsters can look for monsters
 	PEXGSBID_COOLDTHINGHEIGHTS,					// Old Thing Heights
+	PEXGSBID_COLASTLOOKMAXPLAYERS,				// Last Look Max Players
 	
 	PEXGSNUMBITIDS
 } P_EXGSBitID_t;

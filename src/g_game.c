@@ -2309,9 +2309,10 @@ bool_t G_DEMO_Vanilla_StartPlaying(struct G_CurrentDemo_s* a_Current)
 	P_EXGSSetValue(true, PEXGSBID_GAMETEAMDAMAGE, 1);
 	P_EXGSSetValue(true, PEXGSBID_GAMEHERETICGIBBING, 0);
 	P_EXGSSetValue(true, PEXGSBID_GAMEAIRFRICTION, 0);	// No movement in air!
+	P_EXGSSetValue(true, PEXGSBID_COLASTLOOKMAXPLAYERS, 4);	// Only 4 MAXPLAYERS
 	
 	/* Reset Indexes */
-	D_SyncNetSetMapTime(1);
+	D_SyncNetSetMapTime(0);
 	P_SetRandIndex(0);
 	
 	/* Setup Players */

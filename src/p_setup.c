@@ -1240,7 +1240,7 @@ bool_t P_ExLoadLevel(P_LevelInfoEx_t* const a_Info, const uint32_t a_Flags)
 	if (!(a_Flags & PEXLL_NOFINALIZE))
 	{
 		// Set the level time to zero
-		D_SyncNetSetMapTime(0);
+		//D_SyncNetSetMapTime(0);
 	
 		// Finalize
 		P_ExFinalizeLevel();

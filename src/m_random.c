@@ -69,6 +69,16 @@ static uint8_t prndindex = 0;
 // P_Random is used throughout all the p_xxx game code.
 uint8_t P_Random()
 {
+#if 0
+	static bool_t did;
+	static FILE* f;
+	if (!did)
+	{
+		f = fopen("pprnd", "wt");
+		did = true;
+	}
+	fprintf(f, "%u\n", D_SyncNetMapTime());
+#endif
 	return rndtable[++prndindex];
 }
 
@@ -134,7 +144,7 @@ uint8_t M_Random(void)
 	/* Use generic random */
 	else
 	{
-		rndindex = ++rndindex & 0xFF;
+		rndindex = (rndindex + 1) & 0xFF;
 		return rndtable[rndindex];
 	}
 }

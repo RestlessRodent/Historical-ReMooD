@@ -2038,22 +2038,24 @@ hitline:
 	// it appears that the bullet hits the 3D floor but it actually just hits
 	// the line behind it. Thus allowing a bullet to hit things under a 3D
 	// floor and still be clipped a 3D floor.
-	if (th->subsector->sector->ffloors)
-	{
-		sector_t* sector = th->subsector->sector;
-		ffloor_t* rover;
-		
-		for (rover = sector->ffloors; rover; rover = rover->next)
+	if (P_EXGSGetValue(PEXGSBID_COSHOOTCHECKFAKEFLOOR))
+		if (th->subsector->sector->ffloors)
 		{
-			if (!(rover->flags & FF_SOLID))
-				continue;
+			sector_t* sector = th->subsector->sector;
+			ffloor_t* rover;
+		
+			for (rover = sector->ffloors; rover; rover = rover->next)
+			{
+				if (!(rover->flags & FF_SOLID))
+					continue;
 				
-			if (dir == -1 && *rover->topheight < lastz && *rover->topheight > th->z + th->height)
-				return true;
-			if (dir == 1 && *rover->bottomheight > lastz && *rover->bottomheight < th->z)
-				return true;
+				if (dir == -1 && *rover->topheight < lastz && *rover->topheight > th->z + th->height)
+					return true;
+				if (dir == 1 && *rover->bottomheight > lastz && *rover->bottomheight < th->z)
+					return true;
+			}
 		}
-	}
+	
 	// hit thing
 	// position a bit closer
 	frac = in->frac - FixedDiv(10 * FRACUNIT, attackrange);

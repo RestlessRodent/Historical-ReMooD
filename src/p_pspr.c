@@ -760,7 +760,7 @@ void P_GunShot(mobj_t* mo, bool_t accurate)
 			angle += P_SignedRandom() << 18;
 	}
 	
-	Args.Flags |= PLAF_THRUMOBJ;
+	//Args.Flags |= PLAF_THRUMOBJ;
 	P_LineAttack(mo, angle, MISSILERANGE, bulletslope, damage, &Args);
 }
 

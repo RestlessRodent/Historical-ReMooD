@@ -163,6 +163,15 @@ const CONL_VarPossibleValue_t c_PEXGSPVKillCountMode[] =
 	{0, NULL},
 };
 
+/* c_PEXGSPVLastLookMP -- Last Look Modulo */
+const CONL_VarPossibleValue_t c_PEXGSPVLastLookMP[] =
+{
+	// End
+	{1, "MINVAL"},
+	{MAXPLAYERS, "MAXVAL"},
+	{0, NULL},
+};
+
 // l_NiceVersions -- Nice names for versions
 static const P_EXGSNiceVersion_t l_NiceVersions[] =
 {
@@ -763,6 +772,10 @@ static P_EXGSVariable_t l_GSVars[PEXGSNUMBITIDS] =
 	{PEXGST_INTEGER, PEXGSBID_COOLDTHINGHEIGHTS, "co_oldthingheights", "Use Old Thing Heights",
 		"Use the older heights of objects that were changed in Legacy. [Legacy < ].32]", PEXGSGM_ANY, PEXGSDR_LESSTHAN, 132, {0, 1}, 0,
 		PEXGSMC_COMPAT, PEXGSDA_YESNO, c_PEXGSPVBoolean, NULL},
+	
+	{PEXGST_INTEGER, PEXGSBID_COLASTLOOKMAXPLAYERS, "co_lastlookmaxplayers", "Last Look MAXPLAYERS",
+		"This is the modulo value when calculating the randomized last look for spawns.", PEXGSGM_ANY, PEXGSDR_NOCHECK, 0, {32, 32}, 32,
+		PEXGSMC_COMPAT, PEXGSDA_INTEGER, c_PEXGSPVLastLookMP, NULL},
 };
 
 /*** FUNCTIONS ***/
