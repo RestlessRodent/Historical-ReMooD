@@ -2320,7 +2320,7 @@ bool_t G_DEMO_Vanilla_StartPlaying(struct G_CurrentDemo_s* a_Current)
 			playeringame[i] = true;
 			
 			// Initialize Player
-			G_InitPlayer(i);
+			G_InitPlayer(&players[i]);
 			
 			// Name it by player ID
 			PlName = NULL;
@@ -2404,7 +2404,7 @@ bool_t G_DEMO_Vanilla_ReadTicCmd(struct G_CurrentDemo_s* a_Current, ticcmd_t* co
 	
 	a_Cmd->buttons = WL_StreamReadUInt8(a_Current->WLStream);
 	
-	CONL_PrintF("%i, F: %+3d, S: %+3d, T: %+6d\n", a_PlayerNum, a_Cmd->forwardmove, a_Cmd->sidemove, a_Cmd->angleturn);
+	//CONL_PrintF("%i, F: %+3d, S: %+3d, T: %+6d\n", a_PlayerNum, a_Cmd->forwardmove, a_Cmd->sidemove, a_Cmd->angleturn);
 	
 	/* Success! */
 	return true;
