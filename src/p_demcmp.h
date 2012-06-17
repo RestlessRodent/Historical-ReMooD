@@ -102,6 +102,8 @@ typedef enum P_EXGSGameMode_e
 {
 	PEXGSGM_DOOM						= 0x01,	// Doom
 	PEXGSGM_HERETIC						= 0x02,	// Heretic
+	PEXGSGM_HEXEN						= 0x04,	// Hexen
+	PEXGSGM_STRIFE						= 0x08,	// Strife
 	
 	PEXGSGM_ANY = PEXGSGM_DOOM | PEXGSGM_HERETIC,
 } P_EXGSGameMode_t;
@@ -293,6 +295,7 @@ fixed_t P_EXGSGetFixed(const P_EXGSBitID_t a_Bit);
 
 // General Functions
 bool_t P_EXGSRegisterStuff(void);
+bool_t P_EXGSSetAllDefaults(void);
 bool_t P_EXGSSetVersionLevel(const uint32_t a_Level);
 int32_t P_EXGSSetValue(const bool_t a_Master, const P_EXGSBitID_t a_Bit, const int32_t a_Value);
 int32_t P_EXGSSetValueStr(const bool_t a_Master, const P_EXGSBitID_t a_Bit, const char* const a_Value);

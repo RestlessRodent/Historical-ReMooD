@@ -1,2 +1,3 @@
+doom_111.lmp	-longtics Demo (1.91 Hack)
 legc_111.lmp	Doom Legacy 1.11 (Doom II, MAP01 - MAP05)
 

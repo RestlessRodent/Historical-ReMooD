@@ -146,7 +146,10 @@ typedef struct G_CurrentDemo_s
 	void* CFile;								// CFile
 	WL_EntryStream_t* WLStream;					// Demo Streamer (Raw)
 	D_RBlockStream_t* RBSStream;				// Block Streamer
+	void* Data;									// Internal Data
 } G_CurrentDemo_t;
+
+extern tic_t g_DemoTime;
 
 const G_DemoFactory_t* G_DemoFactoryByName(const char* const a_Name);
 G_CurrentDemo_t* G_DemoPlay(WL_EntryStream_t* const a_Stream, const G_DemoFactory_t* const a_Factory);

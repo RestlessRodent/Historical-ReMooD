@@ -546,6 +546,7 @@ const WL_WADFile_t* WL_OpenWAD(const char* const a_PathName)
 				ThisEntry->Size = ThisEntry->__Private.__InternalSize;
 		}
 	}
+	
 	// This is a standard lump (make WAD a single entry containing the entire file)
 	else
 	{
@@ -557,6 +558,7 @@ const WL_WADFile_t* WL_OpenWAD(const char* const a_PathName)
 		ThisEntry = NewWAD->Entries = Z_Malloc(sizeof(WL_WADEntry_t), PU_STATIC, NULL);
 		
 		// Set size and such
+		ThisEntry->Owner = NewWAD;
 		ThisEntry->__Private.__Offset = 0;
 		ThisEntry->Size = ThisEntry->__Private.__InternalSize = NewWAD->__Private.__Size;
 		

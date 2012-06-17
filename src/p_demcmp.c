@@ -1030,6 +1030,12 @@ bool_t P_EXGSRegisterStuff(void)
 	return true;
 }
 
+/* P_EXGSSetAllDefaults() -- Set all values to defaults */
+bool_t P_EXGSSetAllDefaults(void)
+{
+	return true;
+}
+
 /* P_EXGSSetVersionLevel() -- Set version level to a specific compatibility level */
 bool_t P_EXGSSetVersionLevel(const uint32_t a_Level)
 {
@@ -1049,8 +1055,10 @@ bool_t P_EXGSSetVersionLevel(const uint32_t a_Level)
 			continue;
 		
 		// Wrong Game?
-		if (((l_GSVars[i].GameFlags & PEXGSGM_DOOM) && g_CoreGame != COREGAME_DOOM) ||
-			((l_GSVars[i].GameFlags & PEXGSGM_HERETIC) && g_CoreGame != COREGAME_HERETIC))
+		if ((g_CoreGame == COREGAME_DOOM && !(l_GSVars[i].GameFlags & PEXGSGM_DOOM)) ||
+			(g_CoreGame == COREGAME_HERETIC && !(l_GSVars[i].GameFlags & PEXGSGM_HERETIC)) ||
+			(g_CoreGame == COREGAME_HEXEN && !(l_GSVars[i].GameFlags & PEXGSGM_HEXEN)) ||
+			(g_CoreGame == COREGAME_STRIFE && !(l_GSVars[i].GameFlags & PEXGSGM_STRIFE)))
 			IsTrue = false;
 			
 		// Which comparison?

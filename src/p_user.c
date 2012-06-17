@@ -275,19 +275,11 @@ void P_MovePlayer(player_t* player)
 	fixed_t MoveAmount;
 	
 	cmd = &player->cmd;
-
-#if 0
-#ifndef ABSOLUTEANGLE
-	player->mo->angle += (cmd->angleturn << 16);
-#else
+	
 	if (!P_EXGSGetValue(PEXGSBID_COABSOLUTEANGLE))
-		player->mo->angle += (cmd->angleturn << 16);
+		player->mo->angle += (((int32_t)cmd->angleturn) << 16);
 	else
-		player->mo->angle = (cmd->angleturn << 16);
-#endif
-#else
-	player->mo->angle = (cmd->angleturn << 16);
-#endif
+		player->mo->angle = (((int32_t)cmd->angleturn) << 16);
 	
 	// GhostlyDeath <August 26, 2011> -- Update listener angle (for sounds)
 	player->mo->NoiseThinker.Angle = player->mo->angle;
@@ -847,9 +839,8 @@ void P_PlayerThink(player_t* player)
 	if (player->mo->flags & MF_JUSTATTACKED)
 	{
 // added : now angle turn is a absolute value not relative
-#ifndef ABSOLUTEANGLE
-		cmd->angleturn = 0;
-#endif
+		if (!P_EXGSGetValue(PEXGSBID_COABSOLUTEANGLE))
+			cmd->angleturn = 0;
 		cmd->forwardmove = 0xc800 / 512;
 		cmd->sidemove = 0;
 		player->mo->flags &= ~MF_JUSTATTACKED;

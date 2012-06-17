@@ -563,6 +563,7 @@ void G_Ticker(void)
 	uint32_t i;
 	int buf;
 	ticcmd_t* cmd;
+	tic_t ThisTime;
 	
 	// GhostlyDeath <May 13, 2012> -- Run Commands
 	D_NCRunCommands();
@@ -610,49 +611,56 @@ void G_Ticker(void)
 	//buf = D_SyncNetMapTime() % BACKUPTICS;
 	
 	// read/write demo and check turbo cheat
-	for (i = 0; i < MAXPLAYERS; i++)
+	ThisTime = D_SyncNetMapTime();
+	if (ThisTime > g_DemoTime)
 	{
-		// BP: i==0 for playback of demos 1.29 now new players is added with xcmd
-		if ((playeringame[i] || i == 0) && !dedicated)
+		for (i = 0; i < MAXPLAYERS; i++)
 		{
-			cmd = &players[i].cmd;
+			// BP: i==0 for playback of demos 1.29 now new players is added with xcmd
+			if ((playeringame[i] || i == 0) && !dedicated)
+			{
+				cmd = &players[i].cmd;
 			
-			if (demoplayback)
-				G_ReadDemoTiccmd(cmd, i);
-			else
-			{
-				// Determine net player existence
-				if (players[i].NetPlayer)
-					// Tic count > 0?
-					if (players[i].NetPlayer->TicTotal > 0)
-					{
-						// Copy the oldest command
-						memcpy(cmd, &players[i].NetPlayer->TicCmd[0], sizeof(ticcmd_t));
+				if (demoplayback)
+					G_ReadDemoTiccmd(cmd, i);
+				else
+				{
+					// Determine net player existence
+					if (players[i].NetPlayer)
+						// Tic count > 0?
+						if (players[i].NetPlayer->TicTotal > 0)
+						{
+							// Copy the oldest command
+							memcpy(cmd, &players[i].NetPlayer->TicCmd[0], sizeof(ticcmd_t));
 						
-						// Reduce down buffered commands
-						players[i].NetPlayer->TicTotal--;
+							// Reduce down buffered commands
+							players[i].NetPlayer->TicTotal--;
 						
-						// Replace all the old commands
-						memmove(
-								&players[i].NetPlayer->TicCmd[0],
-								&players[i].NetPlayer->TicCmd[1],
-								sizeof(ticcmd_t) * (MAXDNETTICCMDCOUNT - 1)
-							);
-					}
-			}
+							// Replace all the old commands
+							memmove(
+									&players[i].NetPlayer->TicCmd[0],
+									&players[i].NetPlayer->TicCmd[1],
+									sizeof(ticcmd_t) * (MAXDNETTICCMDCOUNT - 1)
+								);
+						}
+				}
 				
-			if (demorecording)
-				G_WriteDemoTiccmd(cmd, i);
+				if (demorecording)
+					G_WriteDemoTiccmd(cmd, i);
 				
-			// check for turbo cheats
-			if (cmd->forwardmove > TURBOTHRESHOLD && !(gametic % (32)) && ((gametic / (32)) & 3) == i)
-			{
-				static char turbomessage[80];
+				// check for turbo cheats
+				if (cmd->forwardmove > TURBOTHRESHOLD && !(gametic % (32)) && ((gametic / (32)) & 3) == i)
+				{
+					static char turbomessage[80];
 				
-				sprintf(turbomessage, "%s is turbo!", player_names[i]);
-				players[consoleplayer[0]].message = turbomessage;
+					sprintf(turbomessage, "%s is turbo!", player_names[i]);
+					players[consoleplayer[0]].message = turbomessage;
+				}
 			}
 		}
+		
+		// Set new time
+		g_DemoTime = ThisTime;
 	}
 	
 	// do main actions
@@ -754,6 +762,7 @@ void G_PlayerReborn(int player)
 	bool_t* weaponowned;
 	int* ammo;
 	int* maxammo;
+	uint32_t FraggerID;
 	
 	D_ProfileEx_t* PEp;
 	D_NetPlayer_t* NPp;
@@ -777,6 +786,7 @@ void G_PlayerReborn(int player)
 	secretcount = players[player].secretcount;
 	TotalFrags = players[player].TotalFrags;
 	TotalDeaths = players[player].TotalDeaths;
+	FraggerID = players[player].FraggerID;
 	
 	weaponowned = players[player].weaponowned;
 	ammo = players[player].ammo;
@@ -799,6 +809,7 @@ void G_PlayerReborn(int player)
 	players[player].secretcount = secretcount;
 	players[player].TotalFrags = TotalFrags;
 	players[player].TotalDeaths = TotalDeaths;
+	players[player].FraggerID = FraggerID;
 	
 	// Weapons
 	if (!weaponowned)
@@ -1130,7 +1141,7 @@ bool_t G_ClusterSpawnPlayer(const int PlayerID, const bool_t a_CheckOp)
 			for (y = -by; y <= by; y++)
 			{
 				// Coop -- Spawn in pre-made diamond
-				if (SpawnDiamond)
+				if (!P_EXGSGetValue(PEXGSBID_GAMEDEATHMATCH))
 				{
 					if (!SpawnDiamond[x + bx][y + by])
 						continue;
@@ -2147,8 +2158,210 @@ bool_t G_CheckDemoStatus(void)
 *** VANILLA FACTORY ***
 **********************/
 
+/* D_VanillaDemoData_t -- Vanilla Data */
+typedef struct G_VanillaDemoData_s
+{
+	uint8_t VerMarker;
+	uint8_t Skill, Episode, Map, Players[4];
+	uint8_t Deathmatch, Respawn, Fast, NoMonsters, POV;
+	bool_t MultiPlayer;
+	bool_t LongTics;
+} D_VanillaDemoData_t;
+
+/* G_DEMO_Vanilla_StartPlaying() -- Starts playing Vanilla Demo */
 bool_t G_DEMO_Vanilla_StartPlaying(struct G_CurrentDemo_s* a_Current)
 {
+	char LevelName[9];
+	int32_t i, j;
+	uint8_t VerMarker;
+	uint8_t Skill, Episode, Map, Players[4];
+	uint8_t Deathmatch, Respawn, Fast, NoMonsters, POV;
+	D_VanillaDemoData_t* Data;
+	const char* PlName;
+	
+	/* Check */
+	if (!a_Current)
+		return false;
+	
+	/* Read Version Marker */
+	VerMarker = WL_StreamReadUInt8(a_Current->WLStream);
+	
+	/* Which Demo Format? */
+	// Doom 1.2 and Heretic
+	if (VerMarker <= 4)
+	{
+		Skill = VerMarker;
+		Episode = WL_StreamReadUInt8(a_Current->WLStream);
+		Map = WL_StreamReadUInt8(a_Current->WLStream);
+		
+		// Read Players
+		for (i = 0; i < 4; i++)
+			Players[i] = WL_StreamReadUInt8(a_Current->WLStream);
+		
+		// Hack Version ID
+		if (g_CoreGame == COREGAME_DOOM)
+			VerMarker = 102;
+		else
+			VerMarker = 103;
+	}
+	
+	// Doom 1.4 and up
+	else
+	{
+		Skill = WL_StreamReadUInt8(a_Current->WLStream);
+		Episode = WL_StreamReadUInt8(a_Current->WLStream);
+		Map = WL_StreamReadUInt8(a_Current->WLStream);
+		Deathmatch = WL_StreamReadUInt8(a_Current->WLStream);
+		Respawn = WL_StreamReadUInt8(a_Current->WLStream);
+		Fast = WL_StreamReadUInt8(a_Current->WLStream);
+		NoMonsters = WL_StreamReadUInt8(a_Current->WLStream);
+		POV = WL_StreamReadUInt8(a_Current->WLStream);
+		
+		// Read Players
+		for (i = 0; i < 4; i++)
+			Players[i] = WL_StreamReadUInt8(a_Current->WLStream);
+	}
+	
+	/* Fill Data */
+	Data = a_Current->Data = Z_Malloc(sizeof(*Data), PU_STATIC, NULL);
+	
+	/* Clone */
+	Data->VerMarker = VerMarker;
+	Data->Skill = Skill;
+	Data->Episode = Episode;
+	Data->Map = Map;
+	Data->Deathmatch = Deathmatch;
+	Data->Respawn = Respawn;
+	Data->Fast = Fast;
+	Data->NoMonsters = NoMonsters;
+	Data->POV = POV;
+	
+	for (i = 0; i < 4; i++)
+	{
+		Data->Players[i] = Players[i];
+		
+		// Multi-Player?
+		if (Data->Players[i] && i > 0)
+			Data->MultiPlayer = true;
+	}
+	
+	/* Long Tics? */
+	if (Data->VerMarker == 111)
+	{
+		// Set as 1.09 Demo with longtics
+		Data->LongTics = true;
+		VerMarker = Data->VerMarker = 109;
+	}
+	
+	/* Setup Game Rules */
+	P_EXGSSetAllDefaults();
+	P_EXGSSetVersionLevel(VerMarker);
+	
+	// Options
+	P_EXGSSetValue(true, PEXGSBID_GAMESKILL, Data->Skill);
+	P_EXGSSetValue(true, PEXGSBID_GAMEDEATHMATCH, Data->Deathmatch);
+	P_EXGSSetValue(true, PEXGSBID_MONFASTMONSTERS, Data->Fast);
+	P_EXGSSetValue(true, PEXGSBID_MONRESPAWNMONSTERS, Data->Respawn);
+	P_EXGSSetValue(true, PEXGSBID_MONSPAWNMONSTERS, !Data->NoMonsters);
+	
+	// Based on Game Mode
+		// Solo/Coop
+	if (Data->Deathmatch == 0)
+	{
+		// Coop
+		if (Data->MultiPlayer)
+		{
+			P_EXGSSetValue(true, PEXGSBID_GAMESPAWNMULTIPLAYER, 1);
+			P_EXGSSetValue(true, PEXGSBID_ITEMSKEEPWEAPONS, 1);
+		}
+		
+		// Solo
+		else
+		{
+			P_EXGSSetValue(true, PEXGSBID_GAMESPAWNMULTIPLAYER, 0);
+			P_EXGSSetValue(true, PEXGSBID_ITEMSKEEPWEAPONS, 0);
+		}
+	}
+		// DM
+	else
+	{
+		// Shared Flags
+		P_EXGSSetValue(true, PEXGSBID_GAMESPAWNMULTIPLAYER, 1);
+		
+		// DM
+		if (Data->Deathmatch == 1)
+		{
+			P_EXGSSetValue(true, PEXGSBID_ITEMSKEEPWEAPONS, 1);
+			P_EXGSSetValue(true, PEXGSBID_ITEMRESPAWNITEMS, 0);
+		}
+		
+		// AltDM
+		else
+		{
+			P_EXGSSetValue(true, PEXGSBID_ITEMSKEEPWEAPONS, 0);
+			P_EXGSSetValue(true, PEXGSBID_ITEMRESPAWNITEMS, 1);
+		}
+	}
+	
+	/* Reset Indexes */
+	D_SyncNetSetMapTime(0);
+	P_SetRandIndex(0);
+	
+	/* Setup Players */
+	memset(playeringame, 0, sizeof(playeringame));
+	memset(g_PlayerInSplit, 0, sizeof(g_PlayerInSplit));
+	g_SplitScreen = -1;
+	
+	// Set them all up (split-screen)
+	for (j = 0, i = 0; i < 4; i++)
+		if (Data->Players[i])
+		{
+			// Set as in game
+			playeringame[i] = true;
+			
+			// Initialize Player
+			G_InitPlayer(i);
+			
+			// Name it by player ID
+			PlName = NULL;
+			switch (i)
+			{
+				case 0: PlName = "{x70Green"; break;
+				case 1: PlName = "{x71Indigo"; break;
+				case 2: PlName = "{x72Brown"; break;
+				case 3: PlName = "{x73Red"; break;
+				default: break;
+			}
+			
+			if (PlName)
+				strncpy(player_names[i], PlName, MAXPLAYERNAME - 1);
+			
+			// Put in split screen
+			if (j < 4)
+			{
+				g_SplitScreen++;
+				g_PlayerInSplit[j] = true;
+				consoleplayer[j] = displayplayer[j] = i;
+				j++;
+			}
+		}
+	
+	// Recalc Split-screen
+	R_ExecuteSetViewSize();
+	
+	/* Load The Map */
+	// MAPxx
+	if (g_IWADFlags & CIF_COMMERCIAL)
+		snprintf(LevelName, 8, "MAP%02d", Data->Map);
+	
+	// ExMx
+	else
+		snprintf(LevelName, 8, "E%1.1dM%1.1d", Data->Episode, Data->Map);
+		
+	// Load it, hopefully
+	P_ExLoadLevel(P_FindLevelByNameEx(LevelName, 0), 0);
+	
+	/* Success! */
 	return true;
 }
 
@@ -2161,8 +2374,40 @@ bool_t G_DEMO_Vanilla_CheckDemo(struct G_CurrentDemo_s* a_Current)
 {
 }
 
+/* G_DEMO_Vanilla_ReadTicCmd() -- Reads tic command from demo */
 bool_t G_DEMO_Vanilla_ReadTicCmd(struct G_CurrentDemo_s* a_Current, ticcmd_t* const a_Cmd, const int32_t a_PlayerNum)
 {
+	D_VanillaDemoData_t* Data;
+	
+	/* Check */
+	if (!a_Current || !a_Cmd || a_PlayerNum < 0 || a_PlayerNum >= 4)
+		return false;
+	
+	/* Get */
+	Data = a_Current->Data;
+	
+	/* Clear Command */
+	memset(a_Cmd, 0, sizeof(*a_Cmd));
+	
+	/* Read player's command */
+	a_Cmd->forwardmove = WL_StreamReadInt8(a_Current->WLStream);
+	a_Cmd->sidemove = WL_StreamReadInt8(a_Current->WLStream);
+	
+	// 1.91?
+	if (Data->LongTics)
+	{
+		a_Cmd->angleturn = WL_StreamReadInt8(a_Current->WLStream);
+		a_Cmd->angleturn |= ((int16_t)WL_StreamReadInt8(a_Current->WLStream)) << 8;
+	}
+	else
+		a_Cmd->angleturn = ((int16_t)WL_StreamReadInt8(a_Current->WLStream)) << 8;
+	
+	a_Cmd->buttons = WL_StreamReadUInt8(a_Current->WLStream);
+	
+	CONL_PrintF("%i, F: %+3d, S: %+3d, T: %+6d\n", a_PlayerNum, a_Cmd->forwardmove, a_Cmd->sidemove, a_Cmd->angleturn);
+	
+	/* Success! */
+	return true;
 }
 
 bool_t G_DEMO_Vanilla_WriteTicCmd(struct G_CurrentDemo_s* a_Current, const ticcmd_t* const a_Cmd, const int32_t a_PlayerNum)
@@ -2172,6 +2417,10 @@ bool_t G_DEMO_Vanilla_WriteTicCmd(struct G_CurrentDemo_s* a_Current, const ticcm
 /*******************
 *** DEMO FACTORY ***
 *******************/
+
+/*** GLOBALS ***/
+
+tic_t g_DemoTime = 0;							// Current demo read time
 
 /*** LOCALS ***/
 
@@ -2190,22 +2439,65 @@ static const G_DemoFactory_t c_DemoFactories[] =
 		G_DEMO_Vanilla_CheckDemo,
 		G_DEMO_Vanilla_ReadTicCmd,
 		G_DEMO_Vanilla_WriteTicCmd
-	}	
+	},
 	
 	// End
 	{NULL},
-}
+};
 
 /*** FUNCTIONS ***/
 
 /* G_DemoFactoryByName() -- Get factory by name */
 const G_DemoFactory_t* G_DemoFactoryByName(const char* const a_Name)
 {
+	size_t i;
+	
+	/* Check */
+	if (!a_Name)
+		return NULL;
+	
+	/* Find */
+	for (i = 0; c_DemoFactories[i].FactoryName; i++)
+		if (strcasecmp(a_Name, c_DemoFactories[i].FactoryName) == 0)
+			return &c_DemoFactories[i];
+	
+	/* Not found */
+	return NULL;
 }
 
 /* G_DemoPlay() -- Plays demo with factory */
 G_CurrentDemo_t* G_DemoPlay(WL_EntryStream_t* const a_Stream, const G_DemoFactory_t* const a_Factory)
 {
+	G_CurrentDemo_t* New;
+	
+	/* Allocate Demo */
+	New = Z_Malloc(sizeof(*New), PU_STATIC, NULL);
+	
+	/* Use factory */
+	// Given Factory
+	if (a_Factory)
+		New->Factory = a_Factory;
+	
+	// Auto-Detect Factory
+	else
+	{
+		// Just use Vanilla Factory for now
+		New->Factory = G_DemoFactoryByName("vanilla");
+	}
+	
+	/* Set Other Stuff */
+	New->WLStream = a_Stream;
+	
+	/* Internally play it */
+	if (New->Factory->StartPlayingFunc)
+		if (!New->Factory->StartPlayingFunc(New))
+		{
+			Z_Free(New);
+			return NULL;
+		}
+	
+	/* Return it */
+	return New;
 }
 
 void G_RecordDemo(char* name)
@@ -2239,6 +2531,7 @@ void G_DoPlayDemo(char* defdemoname)
 {
 	const WL_WADEntry_t* Entry;
 	WL_EntryStream_t* Stream;
+	G_CurrentDemo_t* Demo;
 	
 	/* Check */
 	if (!defdemoname)
@@ -2259,7 +2552,12 @@ void G_DoPlayDemo(char* defdemoname)
 		return;
 	
 	/* Play demo in any factory */
-	G_DemoPlay(Stream, NULL)
+	Demo = G_DemoPlay(Stream, NULL);
+	
+	/* Set as playing */
+	demoplayback = true;
+	l_PlayDemo = Demo;
+	g_DemoTime = 0;
 }
 
 void G_TimeDemo(char* name)
