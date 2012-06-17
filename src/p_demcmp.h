@@ -250,6 +250,13 @@ typedef enum P_EXGSBitID_e
 	PEXGSBID_PLDOUBLEAMMO,						// Receive Double Ammo
 	PEXGSBID_MONKILLCOUNTMODE,					// Kill Count Mode
 	PEXGSBID_COOLDBFGSPRAY,						// Old BFG Spraying
+	PEXGSBID_COEXPLODEHITFLOOR,					// HitFloor on explode
+	PEXGSBID_COBOMBTHRUFLOOR,					// Bomb through floors
+	PEXGSBID_COOLDEXPLOSIONS,					// Old Explosion Code
+	PEXGSBID_COAIMCHECKFAKEFLOOR,				// Check 3D Floors when aiming
+	PEXGSBID_CONEWGUNSHOTCODE,					// Use New Gunshot code
+	PEXGSBID_COSHOOTCHECKFAKEFLOOR,				// Check 3D When Shooting
+	PEXGSBID_COSHOOTFLOORCLIPPING,				// Clip gunshots to the floor
 	
 	PEXGSNUMBITIDS
 } P_EXGSBitID_t;

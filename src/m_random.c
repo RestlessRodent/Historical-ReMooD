@@ -80,7 +80,7 @@ int P_SignedRandom()
 {
 	int r = P_Random();
 	
-	return r - P_Random();
+	return r - ((int)P_Random());
 }
 
 #else

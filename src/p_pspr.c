@@ -696,8 +696,9 @@ void P_BulletSlope(mobj_t* mo)
 	angle_t an;
 	
 	//added:18-02-98: if AUTOAIM, try to aim at something
-	if (!mo->player->autoaim_toggle || !P_EXGSGetValue(PEXGSBID_PLALLOWAUTOAIM) || !P_EXGSGetValue(PEXGSBID_COMOUSEAIM))
-		goto notagetfound;
+	if (!P_EXGSGetValue(PEXGSBID_COFORCEAUTOAIM))
+		if (!mo->player->autoaim_toggle || !P_EXGSGetValue(PEXGSBID_PLALLOWAUTOAIM) || !P_EXGSGetValue(PEXGSBID_COMOUSEAIM))
+			goto notagetfound;
 		
 	// see which target is to be aimed at
 	an = mo->angle;
@@ -707,19 +708,23 @@ void P_BulletSlope(mobj_t* mo)
 	{
 		an += 1 << 26;
 		bulletslope = P_AimLineAttack(mo, an, 16 * 64 * FRACUNIT, NULL);
+		
 		if (!linetarget)
 		{
 			an -= 2 << 26;
 			bulletslope = P_AimLineAttack(mo, an, 16 * 64 * FRACUNIT, NULL);
 		}
-		if (!linetarget)
-		{
+		
+		// GhostlyDeath <June 17, 2012> -- Only when mouse aiming is angle used
+		if (P_EXGSGetValue(PEXGSBID_COMOUSEAIM))
+			if (!linetarget)
+			{
 notagetfound:
-			if (P_EXGSGetValue(PEXGSBID_COENABLEUPDOWNSHOOT))
-				bulletslope = AIMINGTOSLOPE(mo->player->aiming);
-			else
-				bulletslope = (mo->player->aiming << FRACBITS) / 160;
-		}
+				if (P_EXGSGetValue(PEXGSBID_COENABLEUPDOWNSHOOT))
+					bulletslope = AIMINGTOSLOPE(mo->player->aiming);
+				else
+					bulletslope = (mo->player->aiming << FRACBITS) / 160;
+			}
 	}
 }
 
@@ -742,8 +747,17 @@ void P_GunShot(mobj_t* mo, bool_t accurate)
 	
 	if (!accurate)
 	{
-		angle += (P_Random() << 18);	// WARNING: don't put this in one line
-		angle -= (P_Random() << 18);	// else this expretion is ambiguous (evaluation order not diffined)
+		// GhostlyDeath <June 17, 2012> -- Demo Comp
+			// This seems pretty ugly and is probably what breaks demos
+		if (P_EXGSGetValue(PEXGSBID_CONEWGUNSHOTCODE))
+		{
+			angle += (P_Random() << 18);	// WARNING: don't put this in one line
+			angle -= (P_Random() << 18);	// else this expretion is ambiguous (evaluation order not diffined)
+		}
+		
+		// Can really just use signed random here.
+		else
+			angle += P_SignedRandom() << 18;
 	}
 	
 	Args.Flags |= PLAF_THRUMOBJ;

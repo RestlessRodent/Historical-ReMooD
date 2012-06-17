@@ -1625,69 +1625,72 @@ bool_t PTR_AimTraverse(intercept_t* in, void* a_Data)
 		
 		if (topslope <= bottomslope)
 			return false;		// stop
-			
-		if (li->frontsector->ffloors || li->backsector->ffloors)
-		{
-			int frontflag;
-			
-			dir = aimslope > 0 ? 1 : aimslope < 0 ? -1 : 0;
-			
-			frontflag = P_PointOnLineSide(shootthing->x, shootthing->y, li);
-			
-			//SoM: Check 3D FLOORS!
-			if (li->frontsector->ffloors)
+		
+		// GhostlyDeath <June 17, 2012> -- Demo Comp
+		if (P_EXGSGetValue(PEXGSBID_COAIMCHECKFAKEFLOOR))
+			if (li->frontsector->ffloors || li->backsector->ffloors)
 			{
-				ffloor_t* rover = li->frontsector->ffloors;
-				fixed_t highslope, lowslope;
-				
-				for (; rover; rover = rover->next)
-				{
-					if (!(rover->flags & FF_SOLID) || !(rover->flags & FF_EXISTS))
-						continue;
-						
-					highslope = FixedDiv(*rover->topheight - shootz, dist);
-					lowslope = FixedDiv(*rover->bottomheight - shootz, dist);
-					if ((aimslope >= lowslope && aimslope <= highslope))
-						return false;
-						
-					if (lastz > *rover->topheight && dir == -1 && aimslope < highslope)
-						frontflag |= 0x2;
-						
-					if (lastz < *rover->bottomheight && dir == 1 && aimslope > lowslope)
-						frontflag |= 0x2;
-				}
-			}
+				int frontflag;
 			
-			if (li->backsector->ffloors)
-			{
-				ffloor_t* rover = li->backsector->ffloors;
-				fixed_t highslope, lowslope;
-				
-				for (; rover; rover = rover->next)
+				dir = aimslope > 0 ? 1 : aimslope < 0 ? -1 : 0;
+			
+				frontflag = P_PointOnLineSide(shootthing->x, shootthing->y, li);
+			
+				//SoM: Check 3D FLOORS!
+				if (li->frontsector->ffloors)
 				{
-					if (!(rover->flags & FF_SOLID) || !(rover->flags & FF_EXISTS))
-						continue;
+					ffloor_t* rover = li->frontsector->ffloors;
+					fixed_t highslope, lowslope;
+				
+					for (; rover; rover = rover->next)
+					{
+						if (!(rover->flags & FF_SOLID) || !(rover->flags & FF_EXISTS))
+							continue;
 						
-					highslope = FixedDiv(*rover->topheight - shootz, dist);
-					lowslope = FixedDiv(*rover->bottomheight - shootz, dist);
-					if ((aimslope >= lowslope && aimslope <= highslope))
-						return false;
+						highslope = FixedDiv(*rover->topheight - shootz, dist);
+						lowslope = FixedDiv(*rover->bottomheight - shootz, dist);
+						if ((aimslope >= lowslope && aimslope <= highslope))
+							return false;
 						
-					if (lastz > *rover->topheight && dir == -1 && aimslope < highslope)
-						frontflag |= 0x4;
+						if (lastz > *rover->topheight && dir == -1 && aimslope < highslope)
+							frontflag |= 0x2;
 						
-					if (lastz < *rover->bottomheight && dir == 1 && aimslope > lowslope)
-						frontflag |= 0x4;
+						if (lastz < *rover->bottomheight && dir == 1 && aimslope > lowslope)
+							frontflag |= 0x2;
+					}
 				}
+			
+				if (li->backsector->ffloors)
+				{
+					ffloor_t* rover = li->backsector->ffloors;
+					fixed_t highslope, lowslope;
+				
+					for (; rover; rover = rover->next)
+					{
+						if (!(rover->flags & FF_SOLID) || !(rover->flags & FF_EXISTS))
+							continue;
+						
+						highslope = FixedDiv(*rover->topheight - shootz, dist);
+						lowslope = FixedDiv(*rover->bottomheight - shootz, dist);
+						if ((aimslope >= lowslope && aimslope <= highslope))
+							return false;
+						
+						if (lastz > *rover->topheight && dir == -1 && aimslope < highslope)
+							frontflag |= 0x4;
+						
+						if (lastz < *rover->bottomheight && dir == 1 && aimslope > lowslope)
+							frontflag |= 0x4;
+					}
+				}
+				if ((!(frontflag & 0x1) && frontflag & 0x2) || (frontflag & 0x1 && frontflag & 0x4))
+					return false;
 			}
-			if ((!(frontflag & 0x1) && frontflag & 0x2) || (frontflag & 0x1 && frontflag & 0x4))
-				return false;
-		}
 		
 		lastz = FixedMul(aimslope, dist) + shootz;
 		
 		return true;			// shot continues
 	}
+	
 	// shoot a thing
 	th = in->d.thing;
 	if (th == shootthing)
@@ -1807,6 +1810,7 @@ bool_t PTR_ShootTraverse(intercept_t* in, void* a_Data)
 			if (slope > aimslope)
 				goto hitline;
 		}
+		
 		// hit upper texture ?
 		if (li->frontsector->ceilingheight != li->backsector->ceilingheight)
 		{
@@ -1818,61 +1822,63 @@ bool_t PTR_ShootTraverse(intercept_t* in, void* a_Data)
 				goto hitline;
 		}
 		
-		if (li->frontsector->ffloors || li->backsector->ffloors)
-		{
-			int frontflag;
-			
-			frontflag = P_PointOnLineSide(shootthing->x, shootthing->y, li);
-			
-			//SoM: Check 3D FLOORS!
-			if (li->frontsector->ffloors)
+		// GhostlyDeath <June 17, 2012> -- Demo Comp
+		if (P_EXGSGetValue(PEXGSBID_COSHOOTCHECKFAKEFLOOR))
+			if (li->frontsector->ffloors || li->backsector->ffloors)
 			{
-				ffloor_t* rover = li->frontsector->ffloors;
-				fixed_t highslope, lowslope;
-				
-				for (; rover; rover = rover->next)
-				{
-					if (!(rover->flags & FF_SOLID) || !(rover->flags & FF_EXISTS))
-						continue;
-						
-					highslope = FixedDiv(*rover->topheight - shootz, dist);
-					lowslope = FixedDiv(*rover->bottomheight - shootz, dist);
-					if ((aimslope >= lowslope && aimslope <= highslope))
-						goto hitline;
-						
-					if (lastz > *rover->topheight && dir == -1 && aimslope < highslope)
-						frontflag |= 0x2;
-						
-					if (lastz < *rover->bottomheight && dir == 1 && aimslope > lowslope)
-						frontflag |= 0x2;
-				}
-			}
+				int frontflag;
 			
-			if (li->backsector->ffloors)
-			{
-				ffloor_t* rover = li->backsector->ffloors;
-				fixed_t highslope, lowslope;
-				
-				for (; rover; rover = rover->next)
+				frontflag = P_PointOnLineSide(shootthing->x, shootthing->y, li);
+			
+				//SoM: Check 3D FLOORS!
+				if (li->frontsector->ffloors)
 				{
-					if (!(rover->flags & FF_SOLID) || !(rover->flags & FF_EXISTS))
-						continue;
+					ffloor_t* rover = li->frontsector->ffloors;
+					fixed_t highslope, lowslope;
+				
+					for (; rover; rover = rover->next)
+					{
+						if (!(rover->flags & FF_SOLID) || !(rover->flags & FF_EXISTS))
+							continue;
 						
-					highslope = FixedDiv(*rover->topheight - shootz, dist);
-					lowslope = FixedDiv(*rover->bottomheight - shootz, dist);
-					if ((aimslope >= lowslope && aimslope <= highslope))
-						goto hitline;
+						highslope = FixedDiv(*rover->topheight - shootz, dist);
+						lowslope = FixedDiv(*rover->bottomheight - shootz, dist);
+						if ((aimslope >= lowslope && aimslope <= highslope))
+							goto hitline;
 						
-					if (lastz > *rover->topheight && dir == -1 && aimslope < highslope)
-						frontflag |= 0x4;
+						if (lastz > *rover->topheight && dir == -1 && aimslope < highslope)
+							frontflag |= 0x2;
 						
-					if (lastz < *rover->bottomheight && dir == 1 && aimslope > lowslope)
-						frontflag |= 0x4;
+						if (lastz < *rover->bottomheight && dir == 1 && aimslope > lowslope)
+							frontflag |= 0x2;
+					}
 				}
+			
+				if (li->backsector->ffloors)
+				{
+					ffloor_t* rover = li->backsector->ffloors;
+					fixed_t highslope, lowslope;
+				
+					for (; rover; rover = rover->next)
+					{
+						if (!(rover->flags & FF_SOLID) || !(rover->flags & FF_EXISTS))
+							continue;
+						
+						highslope = FixedDiv(*rover->topheight - shootz, dist);
+						lowslope = FixedDiv(*rover->bottomheight - shootz, dist);
+						if ((aimslope >= lowslope && aimslope <= highslope))
+							goto hitline;
+						
+						if (lastz > *rover->topheight && dir == -1 && aimslope < highslope)
+							frontflag |= 0x4;
+						
+						if (lastz < *rover->bottomheight && dir == 1 && aimslope > lowslope)
+							frontflag |= 0x4;
+					}
+				}
+				if ((!(frontflag & 0x1) && frontflag & 0x2) || (frontflag & 0x1 && frontflag & 0x4))
+					goto hitline;
 			}
-			if ((!(frontflag & 0x1) && frontflag & 0x2) || (frontflag & 0x1 && frontflag & 0x4))
-				goto hitline;
-		}
 		lastz = FixedMul(aimslope, dist) + shootz;
 		
 		// shot continues
@@ -1888,74 +1894,77 @@ hitline:
 		distz = FixedMul(aimslope, dist);	//z add between gun z and hit z
 		z = shootz + distz;		// hit z on wall
 		
+		// GhostlyDeath <June 17, 2012> -- Demo Comp
 		//added:17-02-98: clip shots on floor and ceiling
 		//                use a simple triangle stuff a/b = c/d ...
 		// BP:13-3-99: fix the side usage
 		hitplane = false;
-		sectorside = P_PointOnLineSide(shootthing->x, shootthing->y, li);
-		if (li->sidenum[sectorside] != -1)	// can happen in nocliping mode
+		if (P_EXGSGetValue(PEXGSBID_COSHOOTFLOORCLIPPING))
 		{
-			sector = sides[li->sidenum[sectorside]].sector;
-			floorz = sector->floorheight;
-			ceilingz = sector->ceilingheight;
-			if (sector->ffloors)
+			sectorside = P_PointOnLineSide(shootthing->x, shootthing->y, li);
+			if (li->sidenum[sectorside] != -1)	// can happen in nocliping mode
 			{
-				ffloor_t* rover;
-				
-				for (rover = sector->ffloors; rover; rover = rover->next)
+				sector = sides[li->sidenum[sectorside]].sector;
+				floorz = sector->floorheight;
+				ceilingz = sector->ceilingheight;
+				if (sector->ffloors)
 				{
-					if (!(rover->flags & FF_SOLID))
-						continue;
+					ffloor_t* rover;
+				
+					for (rover = sector->ffloors; rover; rover = rover->next)
+					{
+						if (!(rover->flags & FF_SOLID))
+							continue;
 						
-					if (dir == 1 && *rover->bottomheight < ceilingz && *rover->bottomheight > lastz)
-						ceilingz = *rover->bottomheight;
-					if (dir == -1 && *rover->topheight > floorz && *rover->topheight < lastz)
-						floorz = *rover->topheight;
+						if (dir == 1 && *rover->bottomheight < ceilingz && *rover->bottomheight > lastz)
+							ceilingz = *rover->bottomheight;
+						if (dir == -1 && *rover->topheight > floorz && *rover->topheight < lastz)
+							floorz = *rover->topheight;
+					}
+				}
+			
+				if ((z > ceilingz) && distz)
+				{
+					clipz = ceilingz - shootz;
+					frac = FixedDiv(FixedMul(frac, clipz), distz);
+					hitplane = true;
+				}
+				else if ((z < floorz) && distz)
+				{
+					clipz = shootz - floorz;
+					frac = -FixedDiv(FixedMul(frac, clipz), distz);
+					hitplane = true;
+				}
+				if (sector->ffloors)
+				{
+					if (dir == 1 && z > ceilingz)
+						z = ceilingz;
+					if (dir == -1 && z < floorz)
+						z = floorz;
 				}
 			}
+		
+			//SPLAT TEST ----------------------------------------------------------
+			if (!hitplane && P_EXGSGetValue(PEXGSBID_COMISSILESPLATONWALL))
+			{
+				divline_t divl;
+				fixed_t frac;
 			
-			if ((z > ceilingz) && distz)
-			{
-				clipz = ceilingz - shootz;
-				frac = FixedDiv(FixedMul(frac, clipz), distz);
-				hitplane = true;
+				P_MakeDivline(li, &divl);
+				frac = P_InterceptVector(&divl, &trace);
+				R_AddWallSplat(
+						li,
+						sectorside,
+						(Player && Player->weaponinfo[Player->readyweapon]->TracerSplat ?
+							Player->weaponinfo[Player->readyweapon]->TracerSplat :
+							"A_DMG1"),
+						z,
+						frac,
+						SPLATDRAWMODE_SHADE
+					);
 			}
-			else if ((z < floorz) && distz)
-			{
-				clipz = shootz - floorz;
-				frac = -FixedDiv(FixedMul(frac, clipz), distz);
-				hitplane = true;
-			}
-			if (sector->ffloors)
-			{
-				if (dir == 1 && z > ceilingz)
-					z = ceilingz;
-				if (dir == -1 && z < floorz)
-					z = floorz;
-			}
+			// --------------------------------------------------------- SPLAT TEST
 		}
-		//SPLAT TEST ----------------------------------------------------------
-#ifdef WALLSPLATS
-		if (!hitplane && P_EXGSGetValue(PEXGSBID_COMISSILESPLATONWALL))
-		{
-			divline_t divl;
-			fixed_t frac;
-			
-			P_MakeDivline(li, &divl);
-			frac = P_InterceptVector(&divl, &trace);
-			R_AddWallSplat(
-					li,
-					sectorside,
-					(Player && Player->weaponinfo[Player->readyweapon]->TracerSplat ?
-						Player->weaponinfo[Player->readyweapon]->TracerSplat :
-						"A_DMG1"),
-					z,
-					frac,
-					SPLATDRAWMODE_SHADE
-				);
-		}
-#endif
-		// --------------------------------------------------------- SPLAT TEST
 		
 		x = trace.x + FixedMul(trace.dx, frac);
 		y = trace.y + FixedMul(trace.dy, frac);
@@ -1972,6 +1981,7 @@ hitline:
 				diffheights = true;
 				hitplane = false;
 			}
+			
 			// it's a sky hack wall
 			if ((!hitplane &&	//added:18-02-98:not for shots on planes
 			        li->backsector && diffheights &&	//added:18-02-98:skip only REAL sky hacks
@@ -1980,13 +1990,16 @@ hitline:
 				return false;
 		}
 		
-		if (sector && sector->ffloors)
-		{
-			if (dir == 1 && z + (16 << FRACBITS) > ceilingz)
-				z = ceilingz - (16 << FRACBITS);
-			if (dir == -1 && z < floorz)
-				z = floorz;
-		}
+		// GhostlyDeath <June 17, 2012> -- Demo Comp
+		if (P_EXGSGetValue(PEXGSBID_COSHOOTCHECKFAKEFLOOR))
+			if (sector && sector->ffloors)
+			{
+				if (dir == 1 && z + (16 << FRACBITS) > ceilingz)
+					z = ceilingz - (16 << FRACBITS);
+				if (dir == -1 && z < floorz)
+					z = floorz;
+			}
+		
 		// Spawn bullet puffs.
 		P_SpawnPuff(x, y, z);
 		
@@ -2157,6 +2170,7 @@ void P_LineAttack(mobj_t* t1, angle_t angle, fixed_t distance, fixed_t slope, in
 {
 	fixed_t x2;
 	fixed_t y2;
+	fixed_t cosangle;
 	
 	angle >>= ANGLETOFINESHIFT;
 	shootthing = t1;
@@ -2170,7 +2184,7 @@ void P_LineAttack(mobj_t* t1, angle_t angle, fixed_t distance, fixed_t slope, in
 	}
 	else
 	{
-		fixed_t cosangle = finecosine[t1->player->aiming >> ANGLETOFINESHIFT];
+		cosangle = finecosine[t1->player->aiming >> ANGLETOFINESHIFT];
 		
 		x2 = t1->x + FixedMul(FixedMul(distance, finecosine[angle]), cosangle);
 		y2 = t1->y + FixedMul(FixedMul(distance, finesine[angle]), cosangle);
@@ -2271,6 +2285,8 @@ bool_t PIT_RadiusAttack(mobj_t* thing, void* a_Arg)
 	fixed_t dy;
 	fixed_t dz;
 	fixed_t dist;
+	int damage = 0;
+	fixed_t momx = 0, momy = 0;
 	
 	if (!(thing->flags & MF_SHOOTABLE))
 		return true;
@@ -2302,25 +2318,39 @@ bool_t PIT_RadiusAttack(mobj_t* thing, void* a_Arg)
 	if (dist >= bombdamage)
 		return true;			// out of range
 		
-	if (thing->floorz > bombspot->z && bombspot->ceilingz < thing->z)
-		return true;
+	// GhostlyDeath <June 17, 2012> -- Demo Compatibility
+	if (!P_EXGSGetValue(PEXGSBID_COBOMBTHRUFLOOR))
+	{
+		if (thing->floorz > bombspot->z && bombspot->ceilingz < thing->z)
+			return true;
 		
-	if (thing->ceilingz < bombspot->z && bombspot->floorz > thing->z)
-		return true;
+		if (thing->ceilingz < bombspot->z && bombspot->floorz > thing->z)
+			return true;
+	}
 		
 	if (P_CheckSight(thing, bombspot))
 	{
-		int damage = bombdamage - dist;
-		int momx = 0, momy = 0;
+		damage = bombdamage - dist;
 		
-		if (dist)
+		// GhostlyDeath <June 17, 2012> -- Demo Comp
+		if (P_EXGSGetValue(PEXGSBID_COOLDEXPLOSIONS))
 		{
-			momx = (thing->x - bombspot->x) / dist;
-			momy = (thing->y - bombspot->y) / dist;
+			P_DamageMobj(thing, bombspot, bombsource, damage);
 		}
-		// must be in direct path
-		if (P_DamageMobj(thing, bombspot, bombsource, damage) && (thing->flags & MF_NOBLOOD) == 0 && P_EXGSGetValue(PEXGSBID_COENABLEBLOODSPLATS))
-			P_SpawnBloodSplats(thing->x, thing->y, thing->z, damage, momx, momy, thing);
+		
+		// Legacy 1.32+ Explosions
+		else
+		{
+			if (dist)
+			{
+				momx = (thing->x - bombspot->x) / dist;
+				momy = (thing->y - bombspot->y) / dist;
+			}
+		
+			// must be in direct path
+			if (P_DamageMobj(thing, bombspot, bombsource, damage) && (thing->flags & MF_NOBLOOD) == 0 && P_EXGSGetValue(PEXGSBID_COENABLEBLOODSPLATS))
+				P_SpawnBloodSplats(thing->x, thing->y, thing->z, damage, momx, momy, thing);
+		}
 	}
 	
 	return true;

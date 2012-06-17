@@ -1986,7 +1986,10 @@ void A_Explode(mobj_t* actor, player_t* player, pspdef_t* psp, const INFO_StateA
 	}
 	
 	P_RadiusAttack(actor, actor->target, damage);
-	P_HitFloor(actor);
+	
+	// GhostlyDeath <June 17, 2012> -- Demo Comp
+	if (P_EXGSGetValue(PEXGSBID_COEXPLODEHITFLOOR))
+		P_HitFloor(actor);
 }
 
 static state_t* P_FinalState(statenum_t state)

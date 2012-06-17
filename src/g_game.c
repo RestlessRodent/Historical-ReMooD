@@ -2326,6 +2326,9 @@ bool_t G_DEMO_Vanilla_StartPlaying(struct G_CurrentDemo_s* a_Current)
 			// Initialize Player
 			G_InitPlayer(&players[i]);
 			
+			// Set Color
+			players[i].skincolor = i;
+			
 			// Name it by player ID
 			PlName = NULL;
 			switch (i)

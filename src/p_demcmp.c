@@ -721,7 +721,35 @@ static P_EXGSVariable_t l_GSVars[PEXGSNUMBITIDS] =
 		PEXGSMC_MONSTERS, PEXGSDA_STRING, c_PEXGSPVKillCountMode, NULL},
 		
 	{PEXGST_INTEGER, PEXGSBID_COOLDBFGSPRAY, "co_oldbfgspray", "Old BFG Spray",
-		"Use BFG Ball owner as inflictor rather than the ball itself [Legacy < ].32]", PEXGSGM_ANY, PEXGSDR_LESSTHAN, 132, {0, 1}, 0,
+		"Use BFG Ball owner as inflictor rather than the ball itself. [Legacy < ].32]", PEXGSGM_ANY, PEXGSDR_LESSTHAN, 132, {0, 1}, 0,
+		PEXGSMC_COMPAT, PEXGSDA_YESNO, c_PEXGSPVBoolean, NULL},
+		
+	{PEXGST_INTEGER, PEXGSBID_COEXPLODEHITFLOOR, "co_explodehitfloor", "Hit Floor When A_Explode",
+		"When a state calls A_Explode() the floor is hit. [Legacy >= ].32]", PEXGSGM_ANY, PEXGSDR_ATLEAST, 132, {0, 1}, 1,
+		PEXGSMC_COMPAT, PEXGSDA_YESNO, c_PEXGSPVBoolean, NULL},
+		
+	{PEXGST_INTEGER, PEXGSBID_COBOMBTHRUFLOOR, "co_bombthrufloor", "Bomb Through Floor",
+		"Explosions bleed through floors. [Legacy < ].32]", PEXGSGM_ANY, PEXGSDR_LESSTHAN, 132, {0, 1}, 0,
+		PEXGSMC_COMPAT, PEXGSDA_YESNO, c_PEXGSPVBoolean, NULL},
+
+	{PEXGST_INTEGER, PEXGSBID_COOLDEXPLOSIONS, "co_oldexplosions", "Use Old Explosions",
+		"Use older explosion code which cannot handle certain aspects. [Legacy < ].32]", PEXGSGM_ANY, PEXGSDR_LESSTHAN, 132, {0, 1}, 0,
+		PEXGSMC_COMPAT, PEXGSDA_YESNO, c_PEXGSPVBoolean, NULL},
+		
+	{PEXGST_INTEGER, PEXGSBID_COAIMCHECKFAKEFLOOR, "co_aimcheckfakefloor", "Check 3D Floor When Aiming",
+		"Checks local 3D floors to determine if it is possible to aim through them. [Legacy >= ].32]", PEXGSGM_ANY, PEXGSDR_ATLEAST, 132, {0, 1}, 1,
+		PEXGSMC_COMPAT, PEXGSDA_YESNO, c_PEXGSPVBoolean, NULL},
+		
+	{PEXGST_INTEGER, PEXGSBID_CONEWGUNSHOTCODE, "co_newgunshotcode", "Use New Gunshot Code",
+		"Use logically incorrect gunshot code. [Legacy >= ].32]", PEXGSGM_ANY, PEXGSDR_ATLEAST, 132, {0, 1}, 1,
+		PEXGSMC_COMPAT, PEXGSDA_YESNO, c_PEXGSPVBoolean, NULL},
+		
+	{PEXGST_INTEGER, PEXGSBID_COSHOOTCHECKFAKEFLOOR, "co_shootcheckfakefloor", "Check 3D Floor When Shooting",
+		"Checks local 3D floors to determine if it is possible to shoot through them. [Legacy >= ].32]", PEXGSGM_ANY, PEXGSDR_ATLEAST, 132, {0, 1}, 1,
+		PEXGSMC_COMPAT, PEXGSDA_YESNO, c_PEXGSPVBoolean, NULL},
+	
+	{PEXGST_INTEGER, PEXGSBID_COSHOOTFLOORCLIPPING, "co_shootfloorclipping", "Clip Tracers To Surface",
+		"When tracing clip against the floor rather than going through it. [Legacy >= ].32]", PEXGSGM_ANY, PEXGSDR_ATLEAST, 132, {0, 1}, 1,
 		PEXGSMC_COMPAT, PEXGSDA_YESNO, c_PEXGSPVBoolean, NULL},
 };
 
