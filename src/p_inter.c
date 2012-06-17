@@ -1383,6 +1383,7 @@ bool_t P_DamageMobj(mobj_t* target, mobj_t* inflictor, mobj_t* source, int damag
 				break;
 		}
 	}
+	
 	// Some close combat weapons should not
 	// inflict thrust and push the victim out of reach,
 	// thus kick away unless using the chainsaw.
@@ -1459,13 +1460,14 @@ bool_t P_DamageMobj(mobj_t* target, mobj_t* inflictor, mobj_t* source, int damag
 	takedamage = false;
 	
 	// player specific
-	if (player && (target->flags & MF_CORPSE) == 0)
+	if (player && (target->RXFlags[0] & MFREXA_ISPLAYEROBJECT) && (target->flags & MF_CORPSE) == 0)
 	{
 		// end of game hell hack
 		if (target->subsector->sector->special == 11 && damage >= target->health)
 		{
 			damage = target->health - 1;
 		}
+		
 		// Below certain threshold,
 		// ignore damage in GOD mode, or with INVUL power.
 		if (damage < 1000 && ((player->cheats & CF_GODMODE) || player->powers[pw_invulnerability]))
@@ -1502,7 +1504,7 @@ bool_t P_DamageMobj(mobj_t* target, mobj_t* inflictor, mobj_t* source, int damag
 				return false;
 		
 	// Player Specific	
-	if (player && (target->flags & MF_CORPSE) == 0)
+	if (player && (target->RXFlags[0] & MFREXA_ISPLAYEROBJECT) && (target->flags & MF_CORPSE) == 0)
 	{
 		// added team play and teamdamage (view logboris at 13-8-98 to understand)
 		if (P_EXGSGetValue(PEXGSBID_CODISABLETEAMPLAY) ||	// support old demo version

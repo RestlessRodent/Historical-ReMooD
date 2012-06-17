@@ -751,6 +751,11 @@ static P_EXGSVariable_t l_GSVars[PEXGSNUMBITIDS] =
 	{PEXGST_INTEGER, PEXGSBID_COSHOOTFLOORCLIPPING, "co_shootfloorclipping", "Clip Tracers To Surface",
 		"When tracing clip against the floor rather than going through it. [Legacy >= ].32]", PEXGSGM_ANY, PEXGSDR_ATLEAST, 132, {0, 1}, 1,
 		PEXGSMC_COMPAT, PEXGSDA_YESNO, c_PEXGSPVBoolean, NULL},
+		
+	{PEXGST_INTEGER, PEXGSBID_CONEWSSGSPREAD, "co_newssgspread", "Use New SSG Spread",
+		"Use a subtle change in the SSG spread code. [Legacy >= ].32]", PEXGSGM_ANY, PEXGSDR_ATLEAST, 132, {0, 1}, 1,
+		PEXGSMC_COMPAT, PEXGSDA_YESNO, c_PEXGSPVBoolean, NULL},
+		
 };
 
 /*** FUNCTIONS ***/

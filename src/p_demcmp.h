@@ -257,6 +257,7 @@ typedef enum P_EXGSBitID_e
 	PEXGSBID_CONEWGUNSHOTCODE,					// Use New Gunshot code
 	PEXGSBID_COSHOOTCHECKFAKEFLOOR,				// Check 3D When Shooting
 	PEXGSBID_COSHOOTFLOORCLIPPING,				// Clip gunshots to the floor
+	PEXGSBID_CONEWSSGSPREAD,					// New SSG Spread
 	
 	PEXGSNUMBITIDS
 } P_EXGSBitID_t;

@@ -2166,13 +2166,14 @@ typedef struct G_VanillaDemoData_s
 	uint8_t Deathmatch, Respawn, Fast, NoMonsters, POV;
 	bool_t MultiPlayer;
 	bool_t LongTics;
+	D_RBlockStream_t* PMPStream;				// Debug Stream
 } D_VanillaDemoData_t;
 
 /* G_DEMO_Vanilla_StartPlaying() -- Starts playing Vanilla Demo */
 bool_t G_DEMO_Vanilla_StartPlaying(struct G_CurrentDemo_s* a_Current)
 {
 	char LevelName[9];
-	int32_t i, j;
+	int32_t i, j, p;
 	uint8_t VerMarker;
 	uint8_t Skill, Episode, Map, Players[4];
 	uint8_t Deathmatch, Respawn, Fast, NoMonsters, POV;
@@ -2368,6 +2369,11 @@ bool_t G_DEMO_Vanilla_StartPlaying(struct G_CurrentDemo_s* a_Current)
 	// Load it, hopefully
 	P_ExLoadLevel(P_FindLevelByNameEx(LevelName, 0), 0);
 	
+	/* PMP Debug */
+	// for each player per tic: PMPL 16 ??? <x> <y> <z>
+	if ((p = M_CheckParm("-vanillapmp")) && M_IsNextParm())
+		Data->PMPStream = D_RBSCreateFileStream(M_GetNextParm(), DRBSSF_READONLY);
+	
 	/* Success! */
 	return true;
 }
@@ -2387,12 +2393,52 @@ bool_t G_DEMO_Vanilla_ReadTicCmd(struct G_CurrentDemo_s* a_Current, ticcmd_t* co
 	D_VanillaDemoData_t* Data;
 	uint8_t ButtonCodes;
 	
+	uint32_t u32;
+	int32_t i32;
+	char Header[5];
+	
 	/* Check */
 	if (!a_Current || !a_Cmd || a_PlayerNum < 0 || a_PlayerNum >= 4)
 		return false;
 	
 	/* Get */
 	Data = a_Current->Data;
+	
+	/* PMP */
+	if (Data->PMPStream)
+		if (D_RBSPlayBlock(Data->PMPStream, Header))
+		{
+			// Read/Check gametic
+			u32 = D_RBSReadUInt32(Data->PMPStream);
+			if (u32 > 0 && D_SyncNetMapTime() > 0)
+				if (u32 != D_SyncNetMapTime())
+					I_Error("PMP: gametic/MapTime Mismatch");
+			
+			if (u32 > 0 && D_SyncNetMapTime() > 0)
+			{
+				// Read/Check X Position
+				i32 = D_RBSReadInt32(Data->PMPStream);
+				if (abs(i32 - players[a_PlayerNum].mo->x) >= (8 << FRACBITS))
+					I_Error("PMP: X Mismatch");
+				
+				// Read/Check Y Position
+				i32 = D_RBSReadInt32(Data->PMPStream);
+				if (abs(i32 - players[a_PlayerNum].mo->y) >= (8 << FRACBITS))
+					I_Error("PMP: Y Mismatch");
+				
+				// Read/Check Z Position
+				i32 = D_RBSReadInt32(Data->PMPStream);
+				if (abs(i32 - players[a_PlayerNum].mo->z) >= (8 << FRACBITS))
+					I_Error("PMP: Z Mismatch");
+			}
+		}
+		
+		// Ended?
+		else
+		{
+			D_RBSCloseStream(Data->PMPStream);
+			Data->PMPStream = NULL;
+		}
 	
 	/* Clear Command */
 	memset(a_Cmd, 0, sizeof(*a_Cmd));

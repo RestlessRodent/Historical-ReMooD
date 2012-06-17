@@ -808,7 +808,8 @@ void A_FireShotgun2(mobj_t* mo, player_t* player, pspdef_t* psp, const INFO_Stat
 {
 	int i;
 	angle_t angle;
-	int damage;
+	int damage, slope;
+	bool_t NewSpread;
 	
 	PuffType = PS_GetPuffType(player);
 	S_StartSound(&player->mo->NoiseThinker, sfx_dshtgn);
@@ -820,12 +821,22 @@ void A_FireShotgun2(mobj_t* mo, player_t* player, pspdef_t* psp, const INFO_Stat
 	
 	P_BulletSlope(player->mo);
 	
+	// GhostlyDeath <June 17, 2012> -- Demo Comp (1.32 moved PR around)
+	NewSpread = false;
+	if (P_EXGSGetValue(PEXGSBID_CONEWSSGSPREAD))
+		NewSpread = true;
+	
 	for (i = 0; i < 20; i++)
 	{
-		int slope = bulletslope + (P_SignedRandom() << 5);
-		
+		if (NewSpread)
+			slope = bulletslope + (P_SignedRandom() << 5);
+	
 		damage = 5 * (P_Random() % 3 + 1);
 		angle = player->mo->angle + (P_SignedRandom() << 19);
+		
+		if (!NewSpread)
+			slope = bulletslope + (P_SignedRandom() << 5);
+		
 		P_LineAttack(player->mo, angle, MISSILERANGE, slope, damage, NULL);
 	}
 }

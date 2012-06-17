@@ -78,9 +78,12 @@ uint8_t P_Random()
 // GhostlyDeath <April 12, 2012> -- Whoever thought this, does not know C! Perhaps that is why it is so buggy!
 int P_SignedRandom()
 {
-	int r = P_Random();
+	int a, b;
 	
-	return r - ((int)P_Random());
+	a = P_Random();
+	b = P_Random();
+	
+	return a - b;
 }
 
 #else

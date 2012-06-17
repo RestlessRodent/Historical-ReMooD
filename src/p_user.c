@@ -342,10 +342,10 @@ void P_MovePlayer(player_t* player)
 				else
 					movepushforward = FixedMul(movepushforward, P_EXGSGetFixed(PEXGSBID_GAMEWATERFRICTION));
 					
-				if (gametic > player->flushdelay + TICRATE)
+				if (D_SyncNetMapTime() > player->flushdelay + TICRATE)
 				{
 					S_StartSound(&player->mo->NoiseThinker, sfx_floush);
-					player->flushdelay = gametic;
+					player->flushdelay = D_SyncNetMapTime();
 				}
 			}
 			else
@@ -368,10 +368,10 @@ void P_MovePlayer(player_t* player)
 				else
 					movepushside = FixedMul(movepushside, P_EXGSGetFixed(PEXGSBID_GAMEWATERFRICTION));
 					
-				if (gametic > player->flushdelay + TICRATE)
+				if (D_SyncNetMapTime() > player->flushdelay + TICRATE)
 				{
 					S_StartSound(&player->mo->NoiseThinker, sfx_floush);
-					player->flushdelay = gametic;
+					player->flushdelay = D_SyncNetMapTime();
 				}
 			}
 			else if (!onground)
@@ -415,10 +415,10 @@ void P_MovePlayer(player_t* player)
 			if (player->mo->eflags & MF_UNDERWATER)
 			{
 				player->mo->momz = P_EXGSGetFixed(PEXGSBID_PLJUMPGRAVITY) / 2;
-				if (gametic > player->flushdelay + TICRATE)
+				if (D_SyncNetMapTime() > player->flushdelay + TICRATE)
 				{
 					S_StartSound(&player->mo->NoiseThinker, sfx_floush);
-					player->flushdelay = gametic;
+					player->flushdelay = D_SyncNetMapTime();
 				}
 			}
 			else
@@ -940,7 +940,7 @@ void P_PlayerThink(player_t* player)
 	if (P_EXGSGetValue(PEXGSBID_COENABLESPLASHES) && player->specialsector >= 887 && player->specialsector <= 888)
 	{
 		if ((player->mo->momx > (2 * FRACUNIT) || player->mo->momx < (-2 * FRACUNIT) || player->mo->momy > (2 * FRACUNIT) || player->mo->momy < (-2 * FRACUNIT) || player->mo->momz > (2 * FRACUNIT)) &&	// jump out of water
-		        !(gametic % (32)))
+		        !(D_SyncNetMapTime() % (32)))
 		{
 			//
 			// make sure we disturb the surface of water (we touch it)

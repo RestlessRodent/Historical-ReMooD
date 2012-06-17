@@ -170,6 +170,7 @@ void TryRunTics(tic_t realtics)
 			D_DoAdvanceDemo();
 			continue;
 		}
+		
 		// Set local time and target time
 		LocalTic = I_GetTime();
 		
@@ -186,6 +187,7 @@ void TryRunTics(tic_t realtics)
 			// Set last tic
 			LastTic++;
 		}
+		
 		// Otherwise no updating is needed
 		else
 		{
