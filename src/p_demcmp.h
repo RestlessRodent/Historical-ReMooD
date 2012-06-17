@@ -261,6 +261,7 @@ typedef enum P_EXGSBitID_e
 	PEXGSBID_COMONSTERLOOKFORMONSTER,			// Monsters can look for monsters
 	PEXGSBID_COOLDTHINGHEIGHTS,					// Old Thing Heights
 	PEXGSBID_COLASTLOOKMAXPLAYERS,				// Last Look Max Players
+	PEXGSBID_COMOVECHECKFAKEFLOOR,				// Check Fake floor when moving
 	
 	PEXGSNUMBITIDS
 } P_EXGSBitID_t;

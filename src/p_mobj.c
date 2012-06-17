@@ -547,27 +547,28 @@ void P_ZMovement(mobj_t* mo)
 	if (mo->z > mo->MaxZObtained)
 		mo->MaxZObtained = mo->z;
 	
-// Intercept the stupid 'fall through 3dfloors' bug SSNTails 06-13-2002
-	if (mo->subsector->sector->ffloors)
-	{
-		ffloor_t* rover;
-		fixed_t delta1;
-		fixed_t delta2;
-		int thingtop = mo->z + mo->height;
-		
-		for (rover = mo->subsector->sector->ffloors; rover; rover = rover->next)
+	// Intercept the stupid 'fall through 3dfloors' bug SSNTails 06-13-2002
+	if (P_EXGSGetValue(PEXGSBID_COMOVECHECKFAKEFLOOR))
+		if (mo->subsector->sector->ffloors)
 		{
-			if (!(rover->flags & FF_SOLID) || !(rover->flags & FF_EXISTS))
-				continue;
+			ffloor_t* rover;
+			fixed_t delta1;
+			fixed_t delta2;
+			int thingtop = mo->z + mo->height;
+		
+			for (rover = mo->subsector->sector->ffloors; rover; rover = rover->next)
+			{
+				if (!(rover->flags & FF_SOLID) || !(rover->flags & FF_EXISTS))
+					continue;
 				
-			delta1 = mo->z - (*rover->bottomheight + ((*rover->topheight - *rover->bottomheight) / 2));
-			delta2 = thingtop - (*rover->bottomheight + ((*rover->topheight - *rover->bottomheight) / 2));
-			if (*rover->topheight > mo->floorz && abs(delta1) < abs(delta2))
-				mo->floorz = *rover->topheight;
-			if (*rover->bottomheight < mo->ceilingz && abs(delta1) >= abs(delta2))
-				mo->ceilingz = *rover->bottomheight;
+				delta1 = mo->z - (*rover->bottomheight + ((*rover->topheight - *rover->bottomheight) / 2));
+				delta2 = thingtop - (*rover->bottomheight + ((*rover->topheight - *rover->bottomheight) / 2));
+				if (*rover->topheight > mo->floorz && abs(delta1) < abs(delta2))
+					mo->floorz = *rover->topheight;
+				if (*rover->bottomheight < mo->ceilingz && abs(delta1) >= abs(delta2))
+					mo->ceilingz = *rover->bottomheight;
+			}
 		}
-	}
 	
 	if (mo->player)
 	{
@@ -1038,6 +1039,7 @@ void P_MobjThinker(mobj_t* mobj)
 	size_t i, j;
 	thinker_t Hold;
 	uint32_t* TicA, TimeBase;
+	bool_t ZMoveOffFloor;
 	
 	if (g_CheatFlags & MCF_FREEZETIME)
 	{
@@ -1265,6 +1267,7 @@ mobj_t* P_SpawnMobj(fixed_t x, fixed_t y, fixed_t z, mobjtype_t type)
 	state_t* st;
 	mobjinfo_t* info;
 	int i;
+	static uint32_t LastOrder;
 	
 	/* Check Type */
 	if (type < 0 || type >= NUMMOBJTYPES)
@@ -1274,6 +1277,7 @@ mobj_t* P_SpawnMobj(fixed_t x, fixed_t y, fixed_t z, mobjtype_t type)
 	memset(mobj, 0, sizeof(*mobj));
 	info = mobjinfo[type];
 	
+	mobj->SpawnOrder = ++LastOrder;
 	mobj->type = type;
 	mobj->info = info;
 	mobj->x = x;
@@ -2431,7 +2435,7 @@ mobj_t* P_SPMAngle(mobj_t* source, mobjtype_t type, angle_t angle)
 	an = angle;
 	
 	//added:16-02-98: autoaim is now a toggle
-	if ((source->player->autoaim_toggle && P_EXGSGetValue(PEXGSBID_PLALLOWAUTOAIM)))
+	if (P_EXGSGetValue(PEXGSBID_COFORCEAUTOAIM) || ((source->player->autoaim_toggle && P_EXGSGetValue(PEXGSBID_PLALLOWAUTOAIM))))
 	{
 		// see which target is to be aimed at
 		slope = P_AimLineAttack(source, an, 16 * 64 * FRACUNIT, NULL);
@@ -2457,13 +2461,14 @@ mobj_t* P_SPMAngle(mobj_t* source, mobjtype_t type, angle_t angle)
 	//added:18-02-98: if not autoaim, or if the autoaim didnt aim something,
 	//                use the mouseaiming
 	
-	if (!(source->player->autoaim_toggle && P_EXGSGetValue(PEXGSBID_PLALLOWAUTOAIM)) || (!linetarget && P_EXGSGetValue(PEXGSBID_COMOUSEAIM)))
-	{
-		if (P_EXGSGetValue(PEXGSBID_COUSEMOUSEAIMING))
-			slope = AIMINGTOSLOPE(source->player->aiming);
-		else
-			slope = (source->player->aiming << FRACBITS) / 160;
-	}
+	if (!P_EXGSGetValue(PEXGSBID_COFORCEAUTOAIM))
+		if (!(source->player->autoaim_toggle && P_EXGSGetValue(PEXGSBID_PLALLOWAUTOAIM)) || (!linetarget && P_EXGSGetValue(PEXGSBID_COMOUSEAIM)))
+		{
+			if (P_EXGSGetValue(PEXGSBID_COUSEMOUSEAIMING))
+				slope = AIMINGTOSLOPE(source->player->aiming);
+			else
+				slope = (source->player->aiming << FRACBITS) / 160;
+		}
 	
 	x = source->x;
 	y = source->y;

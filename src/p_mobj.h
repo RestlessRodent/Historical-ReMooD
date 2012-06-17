@@ -542,6 +542,7 @@ typedef struct mobj_s
 	
 	// Properties
 	fixed_t MaxZObtained;						// Max Z Obtained while in air
+	uint32_t SpawnOrder;						// Object Spawn Order
 	
 	// GhostlyDeath <April 26, 2012> -- Improved mobj on mobj
 	struct mobj_s** MoOn[2];					// Objects on top/bottom

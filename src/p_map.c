@@ -275,7 +275,7 @@ typedef struct P_PITCTSettings_s
 static bool_t PIT_CheckThing(mobj_t* thing, void* a_Arg)
 {
 	fixed_t blockdist;
-	bool_t solid;
+	bool_t solid, Dammed;
 	int damage;
 	P_PITCTSettings_t* SettingsP = a_Arg;
 	
@@ -350,25 +350,12 @@ static bool_t PIT_CheckThing(mobj_t* thing, void* a_Arg)
 		// Only harm things in differing families
 		if (!P_MobjOnSameFamily(tmthing->target, thing))
 		{
-#if 0
-		if ((tmthing->target && (tmthing->target->type == thing->type || (tmthing->target->info->RBaseFamily && thing->info->RBaseFamily && tmthing->target->info->RBaseFamily == thing->info->RBaseFamily))) && P_MobjOnSameTeam(thing, tmthing->target))
-		//if (tmthing->target && P_MobjOnSameFamily())
-		{
-			
-			// Explode, but do no damage.
-			// Let players missile other players.
-			if (!(thing->RXFlags[0] & MFREXA_ISPLAYEROBJECT))
-				//DarkWolf95:November 21, 2003: Monsters Infight!
-				if (!P_EXGSGetValue(PEXGSBID_FUNINFIGHTING))
-					return false;
-		}
-#endif
-		
 			if (!(thing->flags & MF_SHOOTABLE))
 			{
 				// didn't do any damage
 				return !(thing->flags & MF_SOLID);
 			}
+			
 			// more heretic stuff
 			if (tmthing->flags2 & MF2_RIP)
 			{
@@ -384,10 +371,10 @@ static bool_t PIT_CheckThing(mobj_t* thing, void* a_Arg)
 			}
 		
 			// damage / explode
-			damage = ((P_Random() % 8) + 1) * tmthing->info->damage;
+			damage = ((int32_t)((P_Random() % 8) + 1)) * tmthing->info->damage;
 			
-			if (P_DamageMobj(thing, tmthing, tmthing->target, damage) &&
-					(thing->flags & MF_NOBLOOD) == 0 &&
+			Dammed = P_DamageMobj(thing, tmthing, tmthing->target, damage);
+			if (Dammed && (thing->flags & MF_NOBLOOD) == 0 &&
 					P_EXGSGetValue(PEXGSBID_COENABLEBLOODSPLATS))
 				P_SpawnBloodSplats(tmthing->x, tmthing->y, tmthing->z, damage, thing->momx, thing->momy, thing);
 		}
@@ -626,26 +613,27 @@ bool_t P_CheckPosition(mobj_t* thing, fixed_t x, fixed_t y, uint32_t a_Flags)
 	
 	//SoM: 3/23/2000: Check list of fake floors and see if
 	//tmfloorz/tmceilingz need to be altered.
-	if (newsubsec->sector->ffloors)
-	{
-		ffloor_t* rover;
-		fixed_t delta1;
-		fixed_t delta2;
-		int thingtop = thing->z + thing->height;
-		
-		for (rover = newsubsec->sector->ffloors; rover; rover = rover->next)
+	if (P_EXGSGetValue(PEXGSBID_COMOVECHECKFAKEFLOOR))
+		if (newsubsec->sector->ffloors)
 		{
-			if (!(rover->flags & FF_SOLID) || !(rover->flags & FF_EXISTS))
-				continue;
+			ffloor_t* rover;
+			fixed_t delta1;
+			fixed_t delta2;
+			int thingtop = thing->z + thing->height;
+		
+			for (rover = newsubsec->sector->ffloors; rover; rover = rover->next)
+			{
+				if (!(rover->flags & FF_SOLID) || !(rover->flags & FF_EXISTS))
+					continue;
 				
-			delta1 = thing->z - (*rover->bottomheight + ((*rover->topheight - *rover->bottomheight) / 2));
-			delta2 = thingtop - (*rover->bottomheight + ((*rover->topheight - *rover->bottomheight) / 2));
-			if (*rover->topheight > tmfloorz && abs(delta1) < abs(delta2))
-				tmfloorz = tmdropoffz = *rover->topheight;
-			if (*rover->bottomheight < tmceilingz && abs(delta1) >= abs(delta2))
-				tmceilingz = *rover->bottomheight;
+				delta1 = thing->z - (*rover->bottomheight + ((*rover->topheight - *rover->bottomheight) / 2));
+				delta2 = thingtop - (*rover->bottomheight + ((*rover->topheight - *rover->bottomheight) / 2));
+				if (*rover->topheight > tmfloorz && abs(delta1) < abs(delta2))
+					tmfloorz = tmdropoffz = *rover->topheight;
+				if (*rover->bottomheight < tmceilingz && abs(delta1) >= abs(delta2))
+					tmceilingz = *rover->bottomheight;
+			}
 		}
-	}
 	// tmfloorthing is set when tmfloorz comes from a thing's top
 	tmfloorthing = NULL;
 	

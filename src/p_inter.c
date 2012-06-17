@@ -1453,7 +1453,7 @@ bool_t P_DamageMobj(mobj_t* target, mobj_t* inflictor, mobj_t* source, int damag
 				if (delta1 >= delta2 && inflictor->momz < 0)
 					amomz = -amomz;
 			}
-			
+				
 		target->momz += amomz;
 	}
 	

@@ -78,6 +78,7 @@ uint8_t P_Random()
 		did = true;
 	}
 	fprintf(f, "%u\n", D_SyncNetMapTime());
+	fflush(f);
 #endif
 	return rndtable[++prndindex];
 }
