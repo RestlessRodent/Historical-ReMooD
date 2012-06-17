@@ -1826,122 +1826,7 @@ bool_t G_Downgrade(int version)
 	return true;
 }
 
-//
-// DEMO RECORDING
-//
-
-#define ZT_FWD          0x01
-#define ZT_SIDE         0x02
-#define ZT_ANGLE        0x04
-#define ZT_BUTTONS      0x08
-#define ZT_AIMING       0x10
-#define ZT_CHAT         0x20	// no more used
-#define ZT_EXTRADATA    0x40
-#define DEMOMARKER      0x80	// demoend
-
-ticcmd_t oldcmd[MAXPLAYERS];
-
-/* G_DemoInfo_t -- Info about current demo */
-typedef struct G_DemoInfo_s
-{
-	WL_WADEntry_t* Entry;						// Entry Playing
-	uint16_t DemoVersion;						// Version of Demo
-	WL_EntryStream_t* EntryStream;				// Entry Stream
-} G_DemoInfo_t;
-
-G_DemoInfo_t* g_CurDemoInfo = NULL;				// Current Demo
-
-/* G_ReadDemoTiccmd() -- Read tic command */
-void G_ReadDemoTiccmd(ticcmd_t* cmd, int playernum)
-{
-	/* Check */
-	if (!cmd || !g_CurDemoInfo)
-		return;
-	
 #if 0
-	if (*demo_p == DEMOMARKER)
-	{
-		// end of demo data stream
-		G_CheckDemoStatus();
-		return;
-	}
-	if (demoversion < 112)
-	{
-		cmd->forwardmove = READCHAR(demo_p);
-		cmd->sidemove = READCHAR(demo_p);
-		cmd->angleturn = READBYTE(demo_p) << 8;
-		cmd->buttons = READBYTE(demo_p);
-		cmd->aiming = 0;
-	}
-	else
-	{
-		char ziptic = *demo_p++;
-		
-		if (ziptic & ZT_FWD)
-			oldcmd[playernum].forwardmove = READCHAR(demo_p);
-		if (ziptic & ZT_SIDE)
-			oldcmd[playernum].sidemove = READCHAR(demo_p);
-		if (ziptic & ZT_ANGLE)
-		{
-			if (demoversion < 125)
-				oldcmd[playernum].angleturn = READBYTE(demo_p) << 8;
-			else
-				oldcmd[playernum].angleturn = READSHORT(demo_p);
-		}
-		if (ziptic & ZT_BUTTONS)
-			oldcmd[playernum].buttons = READBYTE(demo_p);
-		if (ziptic & ZT_AIMING)
-		{
-			if (demoversion < 128)
-				oldcmd[playernum].aiming = READCHAR(demo_p);
-			else
-				oldcmd[playernum].aiming = READSHORT(demo_p);
-		}
-		if (ziptic & ZT_CHAT)
-			demo_p++;
-			
-		memcpy(cmd, &(oldcmd[playernum]), sizeof(ticcmd_t));
-	}
-#else
-	//G_CheckDemoStatus();
-	return;
-#endif
-}
-
-void G_WriteDemoTiccmd(ticcmd_t* cmd, int playernum)
-{
-}
-
-//
-// G_RecordDemo
-//
-void G_RecordDemo(char* name)
-{
-	int i;
-	int maxsize;
-	
-	RDF_DEMO_PrepareRecording(name);
-	
-	demorecording = true;
-}
-
-/* G_BeginRecording() -- Records an RDF Demo */
-void G_BeginRecording(void)
-{
-	RDF_DEMO_StartRecording();
-}
-
-//
-// G_PlayDemo
-//
-
-void G_DeferedPlayDemo(char* name)
-{
-	COM_BufAddText("playdemo \"");
-	COM_BufAddText(name);
-	COM_BufAddText("\"\n");
-}
-
 /* G_DoPlayDemo() -- Plays A demo */
 void G_DoPlayDemo(char* defdemoname)
 {
@@ -2136,7 +2021,9 @@ no_demo:
 	DC_SetDemoOptions(demoversion);
 #endif
 }
+#endif
 
+#if 0
 //
 // G_TimeDemo
 //             NOTE: name is a full filename for external demos
@@ -2164,6 +2051,7 @@ void G_TimeDemo(char* name)
 	demostarttime = I_GetTime();
 	G_DeferedPlayDemo(name);
 }
+#endif
 
 void G_DoneLevelLoad(void)
 {
@@ -2183,6 +2071,7 @@ void G_DoneLevelLoad(void)
 ===================
 */
 
+#if 0
 // reset engine variable set for the demos
 // called from stopdemo command, map command, and g_checkdemoStatus.
 void G_StopDemo(void)
@@ -2247,5 +2136,171 @@ bool_t G_CheckDemoStatus(void)
 	}
 	
 	return false;
+}
+#endif
+
+/******************************************************************************
+*******************************************************************************
+******************************************************************************/
+
+/**********************
+*** VANILLA FACTORY ***
+**********************/
+
+bool_t G_DEMO_Vanilla_StartPlaying(struct G_CurrentDemo_s* a_Current)
+{
+	return true;
+}
+
+bool_t G_DEMO_Vanilla_StopPlaying(struct G_CurrentDemo_s* a_Current)
+{
+	return false;
+}
+
+bool_t G_DEMO_Vanilla_CheckDemo(struct G_CurrentDemo_s* a_Current)
+{
+}
+
+bool_t G_DEMO_Vanilla_ReadTicCmd(struct G_CurrentDemo_s* a_Current, ticcmd_t* const a_Cmd, const int32_t a_PlayerNum)
+{
+}
+
+bool_t G_DEMO_Vanilla_WriteTicCmd(struct G_CurrentDemo_s* a_Current, const ticcmd_t* const a_Cmd, const int32_t a_PlayerNum)
+{
+}
+
+/*******************
+*** DEMO FACTORY ***
+*******************/
+
+/*** LOCALS ***/
+
+static G_CurrentDemo_t* l_PlayDemo = NULL;		// Demo being played
+static G_CurrentDemo_t* l_RecDemo = NULL;		// Demo being recorded
+
+/*** FACTORIES ***/
+
+static const G_DemoFactory_t c_DemoFactories[] =
+{
+	// Vanilla Factory
+	{
+		"vanilla",
+		G_DEMO_Vanilla_StartPlaying,
+		G_DEMO_Vanilla_StopPlaying,
+		G_DEMO_Vanilla_CheckDemo,
+		G_DEMO_Vanilla_ReadTicCmd,
+		G_DEMO_Vanilla_WriteTicCmd
+	}	
+	
+	// End
+	{NULL},
+}
+
+/*** FUNCTIONS ***/
+
+/* G_DemoFactoryByName() -- Get factory by name */
+const G_DemoFactory_t* G_DemoFactoryByName(const char* const a_Name)
+{
+}
+
+/* G_DemoPlay() -- Plays demo with factory */
+G_CurrentDemo_t* G_DemoPlay(WL_EntryStream_t* const a_Stream, const G_DemoFactory_t* const a_Factory)
+{
+}
+
+void G_RecordDemo(char* name)
+{
+}
+
+/* G_StopDemo() -- Stops recording demo */
+void G_StopDemo(void)
+{
+	/* Stop Playing Demo */
+	if (demoplayback)
+	{
+		// No longer playing
+		demoplayback = false;
+	}
+	
+	/* Stop Recording Demo */
+	if (demorecording)
+	{
+		// No longer recording
+		demorecording = false;
+	}
+}
+
+void G_BeginRecording(void)
+{
+}
+
+/* G_DoPlayDemo() -- Plays demo */
+void G_DoPlayDemo(char* defdemoname)
+{
+	const WL_WADEntry_t* Entry;
+	WL_EntryStream_t* Stream;
+	
+	/* Check */
+	if (!defdemoname)
+		return;
+	
+	/* Find entry of demo */
+	Entry = WL_FindEntry(NULL, 0, defdemoname);
+	
+	// Not found?
+	if (!Entry)
+		return;
+	
+	/* Open stream */
+	Stream = WL_StreamOpen(Entry);
+	
+	// Failed?
+	if (!Stream)
+		return;
+	
+	/* Play demo in any factory */
+	G_DemoPlay(Stream, NULL)
+}
+
+void G_TimeDemo(char* name)
+{
+}
+
+/* G_DeferedPlayDemo() -- Defers playing back demo */
+void G_DeferedPlayDemo(char* name)
+{
+	COM_BufAddText("playdemo \"");
+	COM_BufAddText(name);
+	COM_BufAddText("\"\n");
+}
+
+/* G_CheckDemoStatus() -- Sees if a demo should end */
+bool_t G_CheckDemoStatus(void)
+{
+	return false;
+}
+
+/* G_ReadDemoTiccmd() -- Reads demo tic command */
+void G_ReadDemoTiccmd(ticcmd_t* cmd, int playernum)
+{
+	/* Not Playing Demo? */
+	if (!demoplayback)
+		return;
+	
+	/* Read tic command */
+	if (l_PlayDemo->Factory->ReadTicCmdFunc)
+		l_PlayDemo->Factory->ReadTicCmdFunc(l_PlayDemo, cmd, playernum);
+}
+
+/* G_WriteDemoTiccmd() -- Writes demo tic command */
+void G_WriteDemoTiccmd(ticcmd_t* cmd, int playernum)
+{
+	/* Not Recording Demo? */
+	if (!demorecording)
+		return;
+	
+	/* Write tic command */
+	if (l_RecDemo->Factory->WriteTicCmdFunc)
+		l_RecDemo->Factory->WriteTicCmdFunc(l_PlayDemo, cmd, playernum);
 }
 

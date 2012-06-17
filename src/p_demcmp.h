@@ -297,19 +297,5 @@ bool_t P_EXGSSetVersionLevel(const uint32_t a_Level);
 int32_t P_EXGSSetValue(const bool_t a_Master, const P_EXGSBitID_t a_Bit, const int32_t a_Value);
 int32_t P_EXGSSetValueStr(const bool_t a_Master, const P_EXGSBitID_t a_Bit, const char* const a_Value);
 
-/*******************
-*** DEMO FACTORY ***
-*******************/
-
-typedef bool_t (*P_DEMO_ReadTicCmdType_t)(struct P_CurrentDemo_s* a_Current, ticcmd_t* const a_Cmd, const int32_t a_PlayerNum);
-typedef bool_t (*P_DEMO_WriteTicCmdType_t)(struct P_CurrentDemo_s* a_Current, const ticcmd_t* const a_Cmd, const int32_t a_PlayerNum);
-
-/* P_CurrentDemo_t -- Current Demo Info */
-typedef struct P_CurrentDemo_s
-{
-	P_DEMO_ReadTicCmdType_t ReadTicCmdFunc;
-	P_DEMO_WriteTicCmdType_t WriteTicCmdFunc;
-} P_CurrentDemo_t;
-
 #endif							/* __P_DEMCMP_H__ */
 

@@ -93,18 +93,11 @@ bool_t G_DeathMatchSpawnPlayer(int playernum);
 void G_CoopSpawnPlayer(int playernum);
 void G_PlayerReborn(int player);
 void G_DoLoadLevel(bool_t resetplayer);
-void G_DeferedPlayDemo(char* demo);
 void G_LoadGame(int slot);		// Can be called by the startup code or M_Responder
 void G_DoLoadGame(int slot);	// Can be called by the startup code or M_Responder
 void G_DoSaveGame(int slot, char* description);	// Called by M_Responder.
 void G_SaveGame(int slot, char* description);	// Called by M_Responder.
-void G_RecordDemo(char* name);	// Only called by startup code.
-void G_BeginRecording(void);
-void G_DoPlayDemo(char* defdemoname);
-void G_TimeDemo(char* name);
 void G_DoneLevelLoad(void);
-void G_StopDemo(void);
-bool_t G_CheckDemoStatus(void);
 void G_ExitLevel(void);
 void G_SecretExitLevel(void);
 void G_NextLevel(void);
@@ -115,9 +108,6 @@ bool_t G_Downgrade(int version);
 player_t* G_AddPlayer(int playernum);
 void G_InitPlayer(player_t* const a_Player);
 
-bool_t G_CheckDemoStatus(void);
-void G_ReadDemoTiccmd(ticcmd_t* cmd, int playernum);
-void G_WriteDemoTiccmd(ticcmd_t* cmd, int playernum);
 void G_DoCompleted(void);
 void G_DoVictory(void);
 void G_DoWorldDone(void);
@@ -125,4 +115,51 @@ void G_DoWorldDone(void);
 extern uint8_t* demo_p;
 extern uint8_t* demoend;
 
+/*******************
+*** DEMO FACTORY ***
+*******************/
+
+struct G_CurrentDemo_s;
+
+typedef bool_t (*G_DEMO_StartPlayingType_t)(struct G_CurrentDemo_s* a_Current);
+typedef bool_t (*G_DEMO_StopPlayingType_t)(struct G_CurrentDemo_s* a_Current);
+typedef bool_t (*G_DEMO_CheckDemoType_t)(struct G_CurrentDemo_s* a_Current);
+typedef bool_t (*G_DEMO_ReadTicCmdType_t)(struct G_CurrentDemo_s* a_Current, ticcmd_t* const a_Cmd, const int32_t a_PlayerNum);
+typedef bool_t (*G_DEMO_WriteTicCmdType_t)(struct G_CurrentDemo_s* a_Current, const ticcmd_t* const a_Cmd, const int32_t a_PlayerNum);
+
+/* G_DemoFactory_t -- Demo Factory */
+typedef struct G_DemoFactory_s
+{
+	const char* FactoryName;					// Name of factory
+	G_DEMO_StartPlayingType_t StartPlayingFunc;	// Starts playing demo
+	G_DEMO_StartPlayingType_t StopPlayingFunc;	// Stops playing demo
+	G_DEMO_CheckDemoType_t CheckDemoFunc;		// Check Demo's Status (quit)
+	G_DEMO_ReadTicCmdType_t ReadTicCmdFunc;		// Reads tic command
+	G_DEMO_WriteTicCmdType_t WriteTicCmdFunc;	// Writes tic command
+} G_DemoFactory_t;
+
+/* G_CurrentDemo_t -- Current Demo Info */
+typedef struct G_CurrentDemo_s
+{
+	bool_t Out;									// Demo is out (being written)
+	const G_DemoFactory_t* Factory;				// Factory for demo
+	void* CFile;								// CFile
+	WL_EntryStream_t* WLStream;					// Demo Streamer (Raw)
+	D_RBlockStream_t* RBSStream;				// Block Streamer
+} G_CurrentDemo_t;
+
+const G_DemoFactory_t* G_DemoFactoryByName(const char* const a_Name);
+G_CurrentDemo_t* G_DemoPlay(WL_EntryStream_t* const a_Stream, const G_DemoFactory_t* const a_Factory);
+
+void G_RecordDemo(char* name);	// Only called by startup code.
+void G_StopDemo(void);
+void G_BeginRecording(void);
+void G_DoPlayDemo(char* defdemoname);
+void G_TimeDemo(char* name);
+void G_DeferedPlayDemo(char* demo);
+bool_t G_CheckDemoStatus(void);
+void G_ReadDemoTiccmd(ticcmd_t* cmd, int playernum);
+void G_WriteDemoTiccmd(ticcmd_t* cmd, int playernum);
+
 #endif							/* __G_GAME_H__ */
+

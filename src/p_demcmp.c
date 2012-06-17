@@ -1218,7 +1218,3 @@ int32_t P_EXGSSetValueStr(const bool_t a_Master, const P_EXGSBitID_t a_Bit, cons
 	return P_EXGSSetValue(a_Master, a_Bit, SetVal);
 }
 
-/*******************
-*** DEMO FACTORY ***
-*******************/
-
