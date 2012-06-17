@@ -249,6 +249,7 @@ typedef enum P_EXGSBitID_e
 	PEXGSBID_PLHALFDAMAGE,						// Take Half Damage
 	PEXGSBID_PLDOUBLEAMMO,						// Receive Double Ammo
 	PEXGSBID_MONKILLCOUNTMODE,					// Kill Count Mode
+	PEXGSBID_COOLDBFGSPRAY,						// Old BFG Spraying
 	
 	PEXGSNUMBITIDS
 } P_EXGSBitID_t;

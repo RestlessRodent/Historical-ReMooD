@@ -719,6 +719,10 @@ static P_EXGSVariable_t l_GSVars[PEXGSNUMBITIDS] =
 	{PEXGST_INTEGER, PEXGSBID_MONKILLCOUNTMODE, "mon_killcountmode", "Kill Count Mode",
 		"Specifies the mode at which kill totals are calculated.", PEXGSGM_ANY, PEXGSDR_NOCHECK, 0, {0, 0}, 0,
 		PEXGSMC_MONSTERS, PEXGSDA_STRING, c_PEXGSPVKillCountMode, NULL},
+		
+	{PEXGST_INTEGER, PEXGSBID_COOLDBFGSPRAY, "co_oldbfgspray", "Old BFG Spray",
+		"Use BFG Ball owner as inflictor rather than the ball itself [Legacy < ].32]", PEXGSGM_ANY, PEXGSDR_LESSTHAN, 132, {0, 1}, 0,
+		PEXGSMC_COMPAT, PEXGSDA_YESNO, c_PEXGSPVBoolean, NULL},
 };
 
 /*** FUNCTIONS ***/

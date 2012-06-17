@@ -908,9 +908,15 @@ void A_BFGSpray(mobj_t* mo, player_t* player, pspdef_t* psp, const INFO_StateArg
 		damage = 0;
 		for (j = 0; j < 15; j++)
 			damage += (P_Random() & 7) + 1;
-			
-		//BP: use extramobj as inflictor so we have the good death message
-		P_DamageMobj(linetarget, extrabfg, mo->target, damage);
+		
+		// GhostlyDeath <June 17, 2012> -- Compatible BFG
+		if (P_EXGSGetValue(PEXGSBID_COOLDBFGSPRAY))
+			P_DamageMobj(linetarget, mo->target, mo->target, damage);
+		
+		// This breaks demo comp all for obituaries! Great!
+		else
+			//BP: use extramobj as inflictor so we have the good death message
+			P_DamageMobj(linetarget, extrabfg, mo->target, damage);
 	}
 	
 	// Set owner weapon to BFG, etc.
