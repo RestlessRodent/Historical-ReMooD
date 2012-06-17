@@ -802,6 +802,7 @@ bool_t P_CanUseWeapon(player_t* const a_Player, const weapontype_t a_Weapon)
 /* P_PlayerThink() -- Player thinking */
 void P_PlayerThink(player_t* player)
 {
+#define MAXWEAPONSLOTS 12
 	ticcmd_t* cmd;
 	weapontype_t newweapon;
 	int slot;
@@ -809,6 +810,9 @@ void P_PlayerThink(player_t* player)
 	int waterz;
 	int i, j, k, l;
 	angle_t delta;
+	
+	bool_t GunInSlot;
+	weapontype_t SlotList[MAXWEAPONSLOTS];
 
 	// GhostlyDeath <May 17, 2012> -- Instead of crashing, spawn a player
 	if (!player->mo)
@@ -939,7 +943,7 @@ void P_PlayerThink(player_t* player)
 		        !(gametic % (32)))
 		{
 			//
-			// make sur we disturb the surface of water (we touch it)
+			// make sure we disturb the surface of water (we touch it)
 			//
 			if (player->specialsector == 887)
 				//FLAT TEXTURE 'FWATER'
@@ -982,7 +986,103 @@ void P_PlayerThink(player_t* player)
 		// Slot based switching?
 		if (cmd->buttons & BT_EXTRAWEAPON)
 		{
-			// DEPRECATED, DON'T USE AT ALL!!!
+			// ONLY USED FOR OLD VANILLA DEMOS
+			GunInSlot = false;
+			l = 0;
+		
+			// Figure out weapons that belong in this slot
+			for (j = 0, i = 0; i < NUMWEAPONS; i++)
+				if (P_CanUseWeapon(player, i))
+				{
+					// Weapon not in this slot?
+					if (player->weaponinfo[i]->SlotNum != slot)
+						continue;
+				
+					// Place in slot list before the highest
+					if (j < (MAXWEAPONSLOTS - 1))
+					{
+						// Just place here
+						if (j == 0)
+						{
+							// Current weapon is in this slot?
+							if (player->readyweapon == i)
+							{
+								GunInSlot = true;
+								l = j;
+							}
+						
+							// Place in last spot
+							SlotList[j++] = i;
+						}
+					
+						// Otherwise more work is needed
+						else
+						{
+							// Start from high to low
+								// When the order is lower, we know to insert now
+							for (k = 0; k < j; k++)
+								if (player->weaponinfo[i]->SwitchOrder < player->weaponinfo[SlotList[k]]->SwitchOrder)
+								{
+									// Current gun may need shifting
+									if (!GunInSlot)
+									{
+										// Current weapon is in this slot?
+										if (player->readyweapon == i)
+										{
+											GunInSlot = true;
+											l = k;
+										}
+									}
+								
+									// Possibly shift gun
+									else
+									{
+										// If the current gun is higher then this gun
+										// then it will be off by whatever is more
+										if (player->weaponinfo[SlotList[l]]->SwitchOrder > player->weaponinfo[i]->SwitchOrder)
+											l++;
+									}
+								
+									// move up
+									memmove(&SlotList[k + 1], &SlotList[k], sizeof(SlotList[k]) * (MAXWEAPONSLOTS - k - 1));
+								
+									// Place in slightly upper spot
+									SlotList[k] = i;
+									j++;
+								
+									// Don't add it anymore
+									break;
+								}
+						
+							// Can't put it anywhere? Goes at end then
+							if (k == j)
+							{
+								// Current weapon is in this slot?
+								if (player->readyweapon == i)
+								{
+									GunInSlot = true;
+									l = k;
+								}
+							
+								// Put
+								SlotList[j++] = i;
+							}
+						}
+					}
+				}
+		
+			// No guns in this slot? Then don't switch to anything
+			if (j == 0)
+				newweapon = player->readyweapon;
+		
+			// If the current gun is in this slot, go to the next in the slot
+			else if (GunInSlot)		// from [best - worst]
+				newweapon = SlotList[((l - 1) + j) % j];
+		
+			// Otherwise, switch to the best gun there
+			else
+				// Set it to the highest valued gun
+				newweapon = SlotList[j - 1];
 		}
 		
 		// Weapon ID based switching
@@ -1094,6 +1194,7 @@ void P_PlayerThink(player_t* player)
 	}
 	else
 		player->fixedcolormap = 0;
+#undef MAXWEAPONSLOTS
 }
 
 /* P_PlayerOnSameTeam() -- Returns true if the player is on the same team */

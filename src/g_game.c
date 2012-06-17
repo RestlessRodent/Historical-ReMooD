@@ -2303,6 +2303,10 @@ bool_t G_DEMO_Vanilla_StartPlaying(struct G_CurrentDemo_s* a_Current)
 		}
 	}
 	
+	// Other Settings
+	P_EXGSSetValue(true, PEXGSBID_GAMETEAMDAMAGE, 1);
+	P_EXGSSetValue(true, PEXGSBID_GAMEHERETICGIBBING, 0);
+	
 	/* Reset Indexes */
 	D_SyncNetSetMapTime(0);
 	P_SetRandIndex(0);
@@ -2378,6 +2382,7 @@ bool_t G_DEMO_Vanilla_CheckDemo(struct G_CurrentDemo_s* a_Current)
 bool_t G_DEMO_Vanilla_ReadTicCmd(struct G_CurrentDemo_s* a_Current, ticcmd_t* const a_Cmd, const int32_t a_PlayerNum)
 {
 	D_VanillaDemoData_t* Data;
+	uint8_t ButtonCodes;
 	
 	/* Check */
 	if (!a_Current || !a_Cmd || a_PlayerNum < 0 || a_PlayerNum >= 4)
@@ -2402,7 +2407,24 @@ bool_t G_DEMO_Vanilla_ReadTicCmd(struct G_CurrentDemo_s* a_Current, ticcmd_t* co
 	else
 		a_Cmd->angleturn = ((int16_t)WL_StreamReadInt8(a_Current->WLStream)) << 8;
 	
-	a_Cmd->buttons = WL_StreamReadUInt8(a_Current->WLStream);
+	/* Button codes require re-handling */
+	// They are different in Vanilla Demos
+	ButtonCodes = WL_StreamReadUInt8(a_Current->WLStream);
+	
+	// Fire Weapon?
+	if (ButtonCodes & 1)
+		a_Cmd->buttons |= BT_ATTACK;
+	
+	// Use?
+	if (ButtonCodes & 2)
+		a_Cmd->buttons |= BT_USE;
+	
+	// Change gun?
+	if (ButtonCodes & 4)
+		a_Cmd->buttons |= BT_CHANGE | BT_EXTRAWEAPON;	// Slot based change
+	
+	// Resort weapon over
+	a_Cmd->buttons |= ((((ButtonCodes & 0x38) >> 3)) << BT_SLOTSHIFT) & BT_SLOTMASK;
 	
 	//CONL_PrintF("%i, F: %+3d, S: %+3d, T: %+6d\n", a_PlayerNum, a_Cmd->forwardmove, a_Cmd->sidemove, a_Cmd->angleturn);
 	
