@@ -8722,6 +8722,7 @@ MapObject "BossBrain"
 	Speed "0";
 	PainChance "1";
 	Height "64";
+	OldHeight "16";
 	Radius "16";
 	WakeSound "none";
 	AttackSound "none";
@@ -9127,6 +9128,7 @@ MapObject "ExplosiveBarrel"
 	Speed "0";
 	PainChance "0";
 	Height "32";
+	OldHeight "42";
 	Radius "10";
 	WakeSound "none";
 	AttackSound "none";
@@ -12332,6 +12334,7 @@ MapObject "TechLamp1"
 	Speed "0";
 	PainChance "0";
 	Height "72";
+	OldHeight "16";
 	Radius "16";
 	WakeSound "none";
 	AttackSound "none";
@@ -12403,6 +12406,7 @@ MapObject "TechLamp2"
 	Speed "0";
 	PainChance "0";
 	Height "56";
+	OldHeight "16";
 	Radius "16";
 	WakeSound "none";
 	AttackSound "none";
@@ -12474,6 +12478,7 @@ MapObject "ShortLamp"
 	Speed "0";
 	PainChance "0";
 	Height "48";
+	OldHeight "16";
 	Radius "16";
 	WakeSound "none";
 	AttackSound "none";
@@ -12512,6 +12517,7 @@ MapObject "GreenTallColumn"
 	Speed "0";
 	PainChance "0";
 	Height "52";
+	OldHeight "16";
 	Radius "16";
 	WakeSound "none";
 	AttackSound "none";
@@ -12549,6 +12555,7 @@ MapObject "GreenShortColumn"
 	Speed "0";
 	PainChance "0";
 	Height "40";
+	OldHeight "16";
 	Radius "16";
 	WakeSound "none";
 	AttackSound "none";
@@ -12586,6 +12593,7 @@ MapObject "RedTallColumn"
 	Speed "0";
 	PainChance "0";
 	Height "52";
+	OldHeight "16";
 	Radius "16";
 	WakeSound "none";
 	AttackSound "none";
@@ -12623,6 +12631,7 @@ MapObject "RedShortColumn"
 	Speed "0";
 	PainChance "0";
 	Height "40";
+	OldHeight "16";
 	Radius "16";
 	WakeSound "none";
 	AttackSound "none";
@@ -12660,6 +12669,7 @@ MapObject "RedSkullColumn"
 	Speed "0";
 	PainChance "0";
 	Height "40";
+	OldHeight "16";
 	Radius "16";
 	WakeSound "none";
 	AttackSound "none";
@@ -12697,6 +12707,7 @@ MapObject "GreenHeartColumn"
 	Speed "0";
 	PainChance "0";
 	Height "40";
+	OldHeight "16";
 	Radius "16";
 	WakeSound "none";
 	AttackSound "none";
@@ -12819,6 +12830,7 @@ MapObject "FloatingSkulls"
 	Speed "0";
 	PainChance "0";
 	Height "48";
+	OldHeight "16";
 	Radius "16";
 	WakeSound "none";
 	AttackSound "none";
@@ -12879,6 +12891,7 @@ MapObject "GrayShortTree"
 	Speed "0";
 	PainChance "0";
 	Height "64";
+	OldHeight "16";
 	Radius "16";
 	WakeSound "none";
 	AttackSound "none";
@@ -12916,6 +12929,7 @@ MapObject "BlueTallTorch"
 	Speed "0";
 	PainChance "0";
 	Height "64";
+	OldHeight "16";
 	Radius "16";
 	WakeSound "none";
 	AttackSound "none";
@@ -12987,6 +13001,7 @@ MapObject "GreenTallTorch"
 	Speed "0";
 	PainChance "0";
 	Height "64";
+	OldHeight "16";
 	Radius "16";
 	WakeSound "none";
 	AttackSound "none";
@@ -13062,6 +13077,7 @@ MapObject "RedTallTorch"
 	Speed "0";
 	PainChance "0";
 	Height "64";
+	OldHeight "16";
 	Radius "16";
 	WakeSound "none";
 	AttackSound "none";
@@ -13137,6 +13153,7 @@ MapObject "BlueShortTorch"
 	Speed "0";
 	PainChance "0";
 	Height "40";
+	OldHeight "16";
 	Radius "16";
 	WakeSound "none";
 	AttackSound "none";
@@ -13208,6 +13225,7 @@ MapObject "GreenShortTorch"
 	Speed "0";
 	PainChance "0";
 	Height "40";
+	OldHeight "16";
 	Radius "16";
 	WakeSound "none";
 	AttackSound "none";
@@ -13283,6 +13301,7 @@ MapObject "RedShortTorch"
 	Speed "0";
 	PainChance "0";
 	Height "40";
+	OldHeight "16";
 	Radius "16";
 	WakeSound "none";
 	AttackSound "none";
@@ -13358,6 +13377,7 @@ MapObject "ThornySpikes"
 	Speed "0";
 	PainChance "0";
 	Height "40";
+	OldHeight "16";
 	Radius "16";
 	WakeSound "none";
 	AttackSound "none";
@@ -13395,6 +13415,7 @@ MapObject "TechPillar"
 	Speed "0";
 	PainChance "0";
 	Height "120";
+	OldHeight "16";
 	Radius "16";
 	WakeSound "none";
 	AttackSound "none";
@@ -13469,6 +13490,7 @@ MapObject "Candelabra"
 	Speed "0";
 	PainChance "0";
 	Height "56";
+	OldHeight "16";
 	Radius "16";
 	WakeSound "none";
 	AttackSound "none";
@@ -14277,6 +14299,7 @@ MapObject "HeadShishkabob"
 	Speed "0";
 	PainChance "0";
 	Height "64";
+	OldHeight "16";
 	Radius "16";
 	WakeSound "none";
 	AttackSound "none";
@@ -14350,6 +14373,7 @@ MapObject "HeadOnStick"
 	Speed "0";
 	PainChance "0";
 	Height "56";
+	OldHeight "16";
 	Radius "16";
 	WakeSound "none";
 	AttackSound "none";
@@ -14387,6 +14411,7 @@ MapObject "SkullsAndCandles"
 	Speed "0";
 	PainChance "0";
 	Height "48";
+	OldHeight "16";
 	Radius "16";
 	WakeSound "none";
 	AttackSound "none";
@@ -14436,6 +14461,7 @@ MapObject "ImpaledZombieman"
 	Speed "0";
 	PainChance "0";
 	Height "64";
+	OldHeight "16";
 	Radius "16";
 	WakeSound "none";
 	AttackSound "none";
@@ -14473,6 +14499,7 @@ MapObject "TwitchingImpaledZombieman"
 	Speed "0";
 	PainChance "0";
 	Height "64";
+	OldHeight "16";
 	Radius "16";
 	WakeSound "none";
 	AttackSound "none";
@@ -14520,6 +14547,7 @@ MapObject "LargeTree"
 	Speed "0";
 	PainChance "0";
 	Height "96";
+	OldHeight "16";
 	Radius "32";
 	WakeSound "none";
 	AttackSound "none";
@@ -14557,6 +14585,7 @@ MapObject "FlamingBarrel"
 	Speed "0";
 	PainChance "0";
 	Height "30";
+	OldHeight "16";
 	Radius "16";
 	WakeSound "none";
 	AttackSound "none";

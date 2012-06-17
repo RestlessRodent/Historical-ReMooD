@@ -591,6 +591,7 @@ void G_Ticker(void)
 			}
 		}
 	}
+	
 	// do things to change the game state
 	while (gameaction != ga_nothing)
 		switch (gameaction)
@@ -612,8 +613,8 @@ void G_Ticker(void)
 	
 	// read/write demo and check turbo cheat
 	ThisTime = D_SyncNetMapTime();
-	if (ThisTime > g_DemoTime)
-	{
+	//if (ThisTime > g_DemoTime)
+	//{
 		for (i = 0; i < MAXPLAYERS; i++)
 		{
 			// BP: i==0 for playback of demos 1.29 now new players is added with xcmd
@@ -661,7 +662,7 @@ void G_Ticker(void)
 		
 		// Set new time
 		g_DemoTime = ThisTime;
-	}
+	//}
 	
 	// do main actions
 	switch (gamestate)
@@ -2307,9 +2308,10 @@ bool_t G_DEMO_Vanilla_StartPlaying(struct G_CurrentDemo_s* a_Current)
 	// Other Settings
 	P_EXGSSetValue(true, PEXGSBID_GAMETEAMDAMAGE, 1);
 	P_EXGSSetValue(true, PEXGSBID_GAMEHERETICGIBBING, 0);
+	P_EXGSSetValue(true, PEXGSBID_GAMEAIRFRICTION, 0);	// No movement in air!
 	
 	/* Reset Indexes */
-	D_SyncNetSetMapTime(0);
+	D_SyncNetSetMapTime(1);
 	P_SetRandIndex(0);
 	
 	/* Setup Players */

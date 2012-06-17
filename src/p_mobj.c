@@ -916,15 +916,15 @@ void P_MobjCheckWater(mobj_t* mobj)
 		{
 			if (!(rover->flags & FF_SWIMMABLE) || rover->flags & FF_SOLID)
 				continue;
-			if (*rover->topheight <= mobj->z || *rover->bottomheight > (mobj->z + (mobj->info->height >> 1)))
+			if (*rover->topheight <= mobj->z || *rover->bottomheight > (mobj->z + (__REMOOD_GETHEIGHT(mobj->info) >> 1)))
 				continue;
 				
-			if (mobj->z + mobj->info->height > *rover->topheight)
+			if (mobj->z + __REMOOD_GETHEIGHT(mobj->info) > *rover->topheight)
 				mobj->eflags |= MF_TOUCHWATER;
 			else
 				mobj->eflags &= ~MF_TOUCHWATER;
 				
-			if (mobj->z + (mobj->info->height >> 1) < *rover->topheight)
+			if (mobj->z + (__REMOOD_GETHEIGHT(mobj->info) >> 1) < *rover->topheight)
 				mobj->eflags |= MF_UNDERWATER;
 			else
 				mobj->eflags &= ~MF_UNDERWATER;
@@ -1279,7 +1279,7 @@ mobj_t* P_SpawnMobj(fixed_t x, fixed_t y, fixed_t z, mobjtype_t type)
 	mobj->x = x;
 	mobj->y = y;
 	mobj->radius = info->radius;
-	mobj->height = info->height;
+	mobj->height = __REMOOD_GETHEIGHT(info);
 	mobj->flags = info->flags;
 	mobj->flags2 = info->flags2;
 	mobj->RXShotWithWeapon = NUMWEAPONS;
@@ -1365,7 +1365,7 @@ mobj_t* P_SpawnMobj(fixed_t x, fixed_t y, fixed_t z, mobjtype_t type)
 		
 	}
 	else if (z == ONCEILINGZ)
-		mobj->z = mobj->ceilingz - mobj->info->height;
+		mobj->z = mobj->ceilingz - __REMOOD_GETHEIGHT(mobj->info);
 	else if (z == FLOATRANDZ)
 	{
 		fixed_t space = ((mobj->ceilingz) - (mobj->height)) - mobj->floorz;
@@ -2739,7 +2739,7 @@ void P_MorphObjectClass(mobj_t* const a_Mo, const mobjtype_t a_NewClass)
 	/* Obtain stat differentials */
 	HealthP = FixedDiv(a_Mo->health << FRACBITS, OldI->spawnhealth << FRACBITS);
 	RadiusP = FixedDiv(a_Mo->radius, OldI->radius);
-	HeightP = FixedDiv(a_Mo->height, OldI->height);
+	HeightP = FixedDiv(a_Mo->height, __REMOOD_GETHEIGHT(OldI));
 	
 	/* Remove from body queue */
 	P_RemoveFromBodyQueue(a_Mo);
@@ -2751,7 +2751,7 @@ void P_MorphObjectClass(mobj_t* const a_Mo, const mobjtype_t a_NewClass)
 	a_Mo->type = a_NewClass;
 	a_Mo->health = FixedMul(NewI->spawnhealth << FRACBITS, HealthP) >> FRACBITS;
 	a_Mo->radius = FixedMul(NewI->radius, RadiusP);
-	a_Mo->height = FixedMul(NewI->height, HeightP);
+	a_Mo->height = FixedMul(__REMOOD_GETHEIGHT(NewI), HeightP);
 	a_Mo->info = NewI;
 	
 	// Setup player health

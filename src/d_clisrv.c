@@ -132,6 +132,8 @@ void TryRunTics(tic_t realtics)
 {
 	static tic_t LastTic;
 	tic_t LocalTic, TargetTic;
+	
+	tic_t XXLocalTic, XXSNAR;
 
 	// Init
 	LocalTic = 0;
@@ -177,15 +179,22 @@ void TryRunTics(tic_t realtics)
 		// Update the client if it is needed
 		if (LocalTic > LastTic)
 		{
-			// Run game ticker and increment the gametic
-			G_Ticker();
-			gametic++;
+			// While the game is behind, update it
+			while ((XXLocalTic = D_SyncNetMapTime()) < (XXSNAR = D_SyncNetAllReady()))
+			{
+				// Run game ticker and increment the gametic
+				G_Ticker();
+				gametic++;
 			
-			// Update music
-			I_UpdateMusic();
+				// Update music
+				I_UpdateMusic();
 			
-			// Set last tic
-			LastTic++;
+				// Set last tic
+				LastTic++;
+				
+				// Increase local time
+				D_SyncNetSetMapTime(++LocalTic);
+			}
 		}
 		
 		// Otherwise no updating is needed

@@ -1519,6 +1519,7 @@ stairstep:
 			P_TryMove(mo, mo->x + mo->momx, mo->y, true, NULL, NULL);	//Allow things to
 		return;					//drop off.
 	}
+	
 	// fudge a bit to make sure it doesn't hit
 	bestslidefrac -= 0x800;
 	if (bestslidefrac > 0)
@@ -1831,54 +1832,58 @@ bool_t PTR_ShootTraverse(intercept_t* in, void* a_Data)
 				frontflag = P_PointOnLineSide(shootthing->x, shootthing->y, li);
 			
 				//SoM: Check 3D FLOORS!
-				if (li->frontsector->ffloors)
-				{
-					ffloor_t* rover = li->frontsector->ffloors;
-					fixed_t highslope, lowslope;
-				
-					for (; rover; rover = rover->next)
+				if (P_EXGSGetValue(PEXGSBID_COSHOOTCHECKFAKEFLOOR))
+					if (li->frontsector->ffloors)
 					{
-						if (!(rover->flags & FF_SOLID) || !(rover->flags & FF_EXISTS))
-							continue;
-						
-						highslope = FixedDiv(*rover->topheight - shootz, dist);
-						lowslope = FixedDiv(*rover->bottomheight - shootz, dist);
-						if ((aimslope >= lowslope && aimslope <= highslope))
-							goto hitline;
-						
-						if (lastz > *rover->topheight && dir == -1 && aimslope < highslope)
-							frontflag |= 0x2;
-						
-						if (lastz < *rover->bottomheight && dir == 1 && aimslope > lowslope)
-							frontflag |= 0x2;
-					}
-				}
-			
-				if (li->backsector->ffloors)
-				{
-					ffloor_t* rover = li->backsector->ffloors;
-					fixed_t highslope, lowslope;
+						ffloor_t* rover = li->frontsector->ffloors;
+						fixed_t highslope, lowslope;
 				
-					for (; rover; rover = rover->next)
-					{
-						if (!(rover->flags & FF_SOLID) || !(rover->flags & FF_EXISTS))
-							continue;
+						for (; rover; rover = rover->next)
+						{
+							if (!(rover->flags & FF_SOLID) || !(rover->flags & FF_EXISTS))
+								continue;
 						
-						highslope = FixedDiv(*rover->topheight - shootz, dist);
-						lowslope = FixedDiv(*rover->bottomheight - shootz, dist);
-						if ((aimslope >= lowslope && aimslope <= highslope))
-							goto hitline;
+							highslope = FixedDiv(*rover->topheight - shootz, dist);
+							lowslope = FixedDiv(*rover->bottomheight - shootz, dist);
+							if ((aimslope >= lowslope && aimslope <= highslope))
+								goto hitline;
 						
-						if (lastz > *rover->topheight && dir == -1 && aimslope < highslope)
-							frontflag |= 0x4;
+							if (lastz > *rover->topheight && dir == -1 && aimslope < highslope)
+								frontflag |= 0x2;
 						
-						if (lastz < *rover->bottomheight && dir == 1 && aimslope > lowslope)
-							frontflag |= 0x4;
+							if (lastz < *rover->bottomheight && dir == 1 && aimslope > lowslope)
+								frontflag |= 0x2;
+						}
 					}
-				}
+				
+				if (P_EXGSGetValue(PEXGSBID_COSHOOTCHECKFAKEFLOOR))
+					if (li->backsector->ffloors)
+					{
+						ffloor_t* rover = li->backsector->ffloors;
+						fixed_t highslope, lowslope;
+				
+						for (; rover; rover = rover->next)
+						{
+							if (!(rover->flags & FF_SOLID) || !(rover->flags & FF_EXISTS))
+								continue;
+						
+							highslope = FixedDiv(*rover->topheight - shootz, dist);
+							lowslope = FixedDiv(*rover->bottomheight - shootz, dist);
+							if ((aimslope >= lowslope && aimslope <= highslope))
+								goto hitline;
+						
+							if (lastz > *rover->topheight && dir == -1 && aimslope < highslope)
+								frontflag |= 0x4;
+						
+							if (lastz < *rover->bottomheight && dir == 1 && aimslope > lowslope)
+								frontflag |= 0x4;
+						}
+					}
+				
 				if ((!(frontflag & 0x1) && frontflag & 0x2) || (frontflag & 0x1 && frontflag & 0x4))
 					goto hitline;
 			}
+		
 		lastz = FixedMul(aimslope, dist) + shootz;
 		
 		// shot continues

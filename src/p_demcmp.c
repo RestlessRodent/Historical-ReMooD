@@ -755,7 +755,14 @@ static P_EXGSVariable_t l_GSVars[PEXGSNUMBITIDS] =
 	{PEXGST_INTEGER, PEXGSBID_CONEWSSGSPREAD, "co_newssgspread", "Use New SSG Spread",
 		"Use a subtle change in the SSG spread code. [Legacy >= ].32]", PEXGSGM_ANY, PEXGSDR_ATLEAST, 132, {0, 1}, 1,
 		PEXGSMC_COMPAT, PEXGSDA_YESNO, c_PEXGSPVBoolean, NULL},
+	
+	{PEXGST_INTEGER, PEXGSBID_COMONSTERLOOKFORMONSTER, "co_monsterlookmonster", "Monsters Look For Other Monsters",
+		"This enables monsters to look for other monsters. [ReMooD >= 1.0a]", PEXGSGM_ANY, PEXGSDR_ATLEAST, 200, {0, 1}, 1,
+		PEXGSMC_COMPAT, PEXGSDA_YESNO, c_PEXGSPVBoolean, NULL},
 		
+	{PEXGST_INTEGER, PEXGSBID_COOLDTHINGHEIGHTS, "co_oldthingheights", "Use Old Thing Heights",
+		"Use the older heights of objects that were changed in Legacy. [Legacy < ].32]", PEXGSGM_ANY, PEXGSDR_LESSTHAN, 132, {0, 1}, 0,
+		PEXGSMC_COMPAT, PEXGSDA_YESNO, c_PEXGSPVBoolean, NULL},
 };
 
 /*** FUNCTIONS ***/

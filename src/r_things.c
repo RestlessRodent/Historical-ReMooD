@@ -1015,7 +1015,7 @@ void R_DrawPlayerSprites(void)
 	// get light level
 	if (viewplayer->mo->subsector->sector->numlights)
 	{
-		light = R_GetPlaneLight(viewplayer->mo->subsector->sector, viewplayer->mo->z + viewplayer->mo->info->height, false);
+		light = R_GetPlaneLight(viewplayer->mo->subsector->sector, viewplayer->mo->z + viewplayer->mo->info->Height, false);
 		lightnum = (*viewplayer->mo->subsector->sector->lightlist[i].lightlevel >> LIGHTSEGSHIFT) + extralight;
 	}
 	else

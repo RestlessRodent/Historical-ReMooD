@@ -567,6 +567,10 @@ static bool_t P_LookForPlayers(mobj_t* actor, bool_t allaround)
 			return true;
 	}
 	
+	// GhostlyDeath <June 17, 2012> -- Old Demo and Nothing Found?
+	if (!P_EXGSGetValue(PEXGSBID_COMONSTERLOOKFORMONSTER))
+		return false;	// Nothing found
+	
 	/* Then look for other monsters */
 	// Find closest target
 	BestMo = NULL;
@@ -1462,7 +1466,7 @@ void A_VileChase(mobj_t* actor, player_t* player, pspdef_t* psp, const INFO_Stat
 						corpsehit->height <<= 2;
 					else
 					{
-						corpsehit->height = info->height;
+						corpsehit->height = __REMOOD_GETHEIGHT(info);
 						corpsehit->radius = info->radius;
 					}
 					

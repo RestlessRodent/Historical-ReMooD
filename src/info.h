@@ -210,7 +210,8 @@ typedef struct
 	int deathsound;
 	fixed_t speed;
 	fixed_t radius;
-	fixed_t height;
+	fixed_t Height;								// Standard Height
+	fixed_t OldHeight;							// < 1.32 Height
 	int mass;
 	int damage;
 	int activesound;
@@ -322,6 +323,9 @@ INFO_BotObjMetric_t INFO_BotMetricByName(const char* const a_Name);
 // and not others with the same type. You could have a slowdown type weapon that
 // when used with fast monsters negates the fast speed?
 #define __REMOOD_GETSPEEDMO(mo) ((((((mo)->RXFlags[0] & MFREXA_ENABLEFASTSPEED) && P_EXGSGetValue(PEXGSBID_MONFASTMONSTERS)) ? (mo)->info->RFastSpeed : (mo)->info->speed)) >> (((mo)->flags & MF_MISSILE) ? 0 : 16))
+
+// __REMOOD_GETHEIGHT -- Get Height of info object
+#define __REMOOD_GETHEIGHT(inf) (((inf)->OldHeight && P_EXGSGetValue(PEXGSBID_COOLDTHINGHEIGHTS)) ? ((inf)->OldHeight) : ((inf)->Height))
 
 #endif
 

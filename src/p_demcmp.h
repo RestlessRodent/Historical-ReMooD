@@ -258,6 +258,8 @@ typedef enum P_EXGSBitID_e
 	PEXGSBID_COSHOOTCHECKFAKEFLOOR,				// Check 3D When Shooting
 	PEXGSBID_COSHOOTFLOORCLIPPING,				// Clip gunshots to the floor
 	PEXGSBID_CONEWSSGSPREAD,					// New SSG Spread
+	PEXGSBID_COMONSTERLOOKFORMONSTER,			// Monsters can look for monsters
+	PEXGSBID_COOLDTHINGHEIGHTS,					// Old Thing Heights
 	
 	PEXGSNUMBITIDS
 } P_EXGSBitID_t;

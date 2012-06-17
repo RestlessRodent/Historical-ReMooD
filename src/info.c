@@ -428,7 +428,8 @@ bool_t INFO_RMODH_MapObjects(Z_Table_t* const a_Table, const WL_WADFile_t* const
 	ThisObject.speed = D_RMODGetValueFixed(a_Table, "Speed", 0);
 	ThisObject.RFastSpeed = D_RMODGetValueFixed(a_Table, "FastSpeed", 0);
 	ThisObject.radius = D_RMODGetValueFixed(a_Table, "Radius", 0);
-	ThisObject.height = D_RMODGetValueFixed(a_Table, "Height", 0);
+	ThisObject.Height = D_RMODGetValueFixed(a_Table, "Height", 0);
+	ThisObject.OldHeight = D_RMODGetValueFixed(a_Table, "OldHeight", 0);
 	ThisObject.painchance = FixedMul(D_RMODGetValueFixed(a_Table, "PainChance", 0), (255 << FRACBITS)) >> FRACBITS;
 	ThisObject.RBounceFactor = D_RMODGetValueFixed(a_Table, "BounceFactor", (1 << FRACBITS));
 	

@@ -1177,7 +1177,7 @@ void SF_Resurrect()
 		mo->height <<= 2;
 	else
 	{
-		mo->height = mo->info->height;
+		mo->height = __REMOOD_GETHEIGHT(mo->info);
 		mo->radius = mo->info->radius;
 	}
 	
