@@ -699,6 +699,9 @@ void G_Ticker(void)
 			// do nothing
 			break;
 	}
+	
+	/* Check Demo */
+	G_CheckDemoStatus();
 }
 
 //
@@ -2180,6 +2183,7 @@ bool_t G_DEMO_Vanilla_StartPlaying(struct G_CurrentDemo_s* a_Current)
 	uint8_t Deathmatch, Respawn, Fast, NoMonsters, POV;
 	D_VanillaDemoData_t* Data;
 	const char* PlName;
+	const P_LevelInfoEx_t* LevelInfo;
 	
 	/* Check */
 	if (!a_Current)
@@ -2223,6 +2227,22 @@ bool_t G_DEMO_Vanilla_StartPlaying(struct G_CurrentDemo_s* a_Current)
 		for (i = 0; i < 4; i++)
 			Players[i] = WL_StreamReadUInt8(a_Current->WLStream);
 	}
+	
+	/* Determine if the map is legal */
+	// MAPxx
+	if (g_IWADFlags & CIF_COMMERCIAL)
+		snprintf(LevelName, 8, "MAP%02d", Map);
+	
+	// ExMx
+	else
+		snprintf(LevelName, 8, "E%1.1dM%1.1d", Episode, Map);
+	
+	// Attempt locate
+	LevelInfo = P_FindLevelByNameEx(LevelName, 0);
+	
+	// Not found?
+	if (!LevelInfo)
+		return false;
 	
 	/* Fill Data */
 	Data = a_Current->Data = Z_Malloc(sizeof(*Data), PU_STATIC, NULL);
@@ -2311,6 +2331,11 @@ bool_t G_DEMO_Vanilla_StartPlaying(struct G_CurrentDemo_s* a_Current)
 	P_EXGSSetValue(true, PEXGSBID_GAMEAIRFRICTION, 0);	// No movement in air!
 	P_EXGSSetValue(true, PEXGSBID_COLASTLOOKMAXPLAYERS, 4);	// Only 4 MAXPLAYERS
 	
+	if (Data->MultiPlayer)	// multiplayer/netgame
+		P_EXGSSetValue(true, PEXGSBID_COMULTIPLAYER, 1);
+	else
+		P_EXGSSetValue(true, PEXGSBID_COMULTIPLAYER, 0);
+	
 	/* Reset Indexes */
 	D_SyncNetSetMapTime(0);
 	P_SetRandIndex(0);
@@ -2361,16 +2386,8 @@ bool_t G_DEMO_Vanilla_StartPlaying(struct G_CurrentDemo_s* a_Current)
 	R_ExecuteSetViewSize();
 	
 	/* Load The Map */
-	// MAPxx
-	if (g_IWADFlags & CIF_COMMERCIAL)
-		snprintf(LevelName, 8, "MAP%02d", Data->Map);
-	
-	// ExMx
-	else
-		snprintf(LevelName, 8, "E%1.1dM%1.1d", Data->Episode, Data->Map);
-		
 	// Load it, hopefully
-	P_ExLoadLevel(P_FindLevelByNameEx(LevelName, 0), 0);
+	P_ExLoadLevel(LevelInfo, 0);
 	
 	/* PMP Debug */
 	// for each player per tic: PMPL 16 ??? <x> <y> <z>
@@ -2381,13 +2398,59 @@ bool_t G_DEMO_Vanilla_StartPlaying(struct G_CurrentDemo_s* a_Current)
 	return true;
 }
 
+/* G_DEMO_Vanilla_StopPlaying() -- Stop playing vanilla demo */
 bool_t G_DEMO_Vanilla_StopPlaying(struct G_CurrentDemo_s* a_Current)
 {
-	return false;
+	D_VanillaDemoData_t* Data;
+	
+	/* Check */
+	if (!a_Current)
+		return false;
+		
+	/* Get */
+	Data = a_Current->Data;
+	
+	// No data?
+	if (!Data)
+		return false;
+	
+	/* Delete used data */
+	Z_Free(Data);
+	
+	/* Success! */
+	return true;
 }
 
+/* G_DEMO_Vanilla_CheckDemo() -- See if vanilla demo is over */
 bool_t G_DEMO_Vanilla_CheckDemo(struct G_CurrentDemo_s* a_Current)
 {
+	D_VanillaDemoData_t* Data;
+	
+	/* Check */
+	if (!a_Current)
+		return true;
+		
+	/* Get */
+	Data = a_Current->Data;
+	
+	// No data?
+	if (!Data)
+		return true;
+	
+	/* Playing Demo */
+	if (!a_Current->Out)
+	{
+		// Stream ended?
+		if (WL_StreamEOF(a_Current->WLStream))
+			return true;
+	}
+	
+	/* Recording Demo */
+	else
+	{
+	}
+	
+	return false;
 }
 
 /* G_DEMO_Vanilla_ReadTicCmd() -- Reads tic command from demo */
@@ -2492,6 +2555,16 @@ bool_t G_DEMO_Vanilla_WriteTicCmd(struct G_CurrentDemo_s* a_Current, const ticcm
 *** DEMO FACTORY ***
 *******************/
 
+/*** STRUCTURES ***/
+
+/* G_DemoLink_t -- Demo chain link */
+typedef struct G_DemoLink_s
+{
+	char* Name;									// Demo Name
+	
+	struct G_DemoLink_s* Next;					// Next in queue
+} G_DemoLink_t;
+
 /*** GLOBALS ***/
 
 tic_t g_DemoTime = 0;							// Current demo read time
@@ -2500,6 +2573,7 @@ tic_t g_DemoTime = 0;							// Current demo read time
 
 static G_CurrentDemo_t* l_PlayDemo = NULL;		// Demo being played
 static G_CurrentDemo_t* l_RecDemo = NULL;		// Demo being recorded
+static G_DemoLink_t* l_DemoQ = NULL;			// Demo Queue
 
 /*** FACTORIES ***/
 
@@ -2537,6 +2611,78 @@ const G_DemoFactory_t* G_DemoFactoryByName(const char* const a_Name)
 	
 	/* Not found */
 	return NULL;
+}
+
+/* G_DemoQueue() -- Add Demo to Queue */
+void G_DemoQueue(const char* const a_Name)
+{
+	G_DemoLink_t* New;
+	G_DemoLink_t* Rover;
+	
+	/* Check */
+	if (!a_Name)
+		return;
+	
+	/* Enqueue */
+	New = Z_Malloc(sizeof(*New), PU_STATIC, NULL);
+	
+	// Clone
+	New->Name = Z_StrDup(a_Name, PU_STATIC, NULL);
+	
+	/* Chain to end */
+	if (!l_DemoQ)
+		l_DemoQ = New;
+	else
+	{
+		for (Rover = l_DemoQ; Rover->Next; Rover = Rover->Next);
+		
+		Rover->Next = New;
+	}
+}
+
+/* G_PlayNextQ() -- Play next in Q */
+bool_t G_PlayNextQ(void)
+{
+	char DOSName[14];
+	G_DemoLink_t* QNext;
+	size_t i, j, k, n;
+	char c;
+	
+	/* Check */
+	if (!l_DemoQ)
+		return false;
+		
+	/* Play */
+	// Get next
+	QNext = l_DemoQ->Next;
+	
+	// Formalize the name (DOS it!)
+	memset(DOSName, 0, sizeof(DOSName));
+	n = strlen(l_DemoQ->Name);
+	for (i = 0, j = 0, k = 0; i < n; i++)
+	{
+		c = l_DemoQ->Name[i];
+
+		// A valid enough character
+		if (isalnum(c) || c == '-' || c == '_' || c == '~')
+		{
+			if (j < 8)
+				DOSName[j++] = toupper(c);
+		}
+
+		// Is the character a dot?
+		if (c == '.')
+			break;
+	}
+	
+	// Free current, Set Next
+	Z_Free(l_DemoQ->Name);
+	Z_Free(l_DemoQ);
+	l_DemoQ = QNext;
+	
+	// Play it
+	G_DeferedPlayDemo(DOSName);//G_DoPlayDemo(DOSName);
+	return true;
 }
 
 /* G_DemoPlay() -- Plays demo with factory */
@@ -2578,22 +2724,70 @@ void G_RecordDemo(char* name)
 {
 }
 
+void G_StopDemoRecord(void)
+{
+}
+
+/* G_StopDemoPlay() -- Stops playing demo */
+void G_StopDemoPlay(void)
+{
+	bool_t QuitDoom, Advance;
+	
+	/* Not playing? */
+	if (!demoplayback)
+		return;
+	
+	/* Call handled stop demo */
+	if (l_PlayDemo->Factory->StopPlayingFunc)
+		l_PlayDemo->Factory->StopPlayingFunc(l_PlayDemo);
+		
+	// Clear reference
+	Z_Free(l_PlayDemo);
+	
+	/* No longer playing */
+	l_PlayDemo = NULL;
+	demoplayback = false;
+	gamestate = wipegamestate = GS_NULL;
+	
+	/* What to do? */
+	QuitDoom = Advance = false;
+	
+	if (singledemo)
+	{
+		// Playing another demo?
+		if (G_PlayNextQ())
+			QuitDoom = false;
+		
+		// No demos left to play
+		else
+			QuitDoom = true;
+	}
+	else
+		Advance = true;
+	
+	/* Stop recording if advancing/quitting */
+	if ((QuitDoom || Advance) && demorecording)
+		G_StopDemoRecord();
+	
+	/* Quitting? */
+	if (QuitDoom)
+		I_Quit();
+	
+	// Advance
+	else if (Advance)
+		D_AdvanceDemo();
+}
+
 /* G_StopDemo() -- Stops recording demo */
 void G_StopDemo(void)
 {
 	/* Stop Playing Demo */
 	if (demoplayback)
-	{
-		// No longer playing
-		demoplayback = false;
-	}
+		G_StopDemoPlay();
 	
 	/* Stop Recording Demo */
 	if (demorecording)
-	{
-		// No longer recording
-		demorecording = false;
-	}
+		G_StopDemoRecord();
 }
 
 void G_BeginRecording(void)
@@ -2625,6 +2819,9 @@ void G_DoPlayDemo(char* defdemoname)
 	if (!Stream)
 		return;
 	
+	/* Stop currently playing demo */
+	G_StopDemoPlay();
+	
 	/* Play demo in any factory */
 	Demo = G_DemoPlay(Stream, NULL);
 	
@@ -2649,7 +2846,28 @@ void G_DeferedPlayDemo(char* name)
 /* G_CheckDemoStatus() -- Sees if a demo should end */
 bool_t G_CheckDemoStatus(void)
 {
-	return false;
+	bool_t RetVal = false;
+	
+	/* Playing Demo? */
+	if (demoplayback)
+		if (l_PlayDemo->Factory->CheckDemoFunc)
+			if (l_PlayDemo->Factory->CheckDemoFunc(l_PlayDemo))
+			{
+				G_StopDemoPlay();
+				RetVal = true;
+			}
+	
+	/* Playing Demo? */
+	if (demorecording)
+		if (l_RecDemo->Factory->CheckDemoFunc)
+			if (l_RecDemo->Factory->CheckDemoFunc(l_RecDemo));
+			{
+				G_StopDemoRecord();
+				RetVal = true;
+			}
+	
+	/* Return checked status, if any */
+	return RetVal;
 }
 
 /* G_ReadDemoTiccmd() -- Reads demo tic command */

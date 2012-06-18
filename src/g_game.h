@@ -132,7 +132,7 @@ typedef struct G_DemoFactory_s
 {
 	const char* FactoryName;					// Name of factory
 	G_DEMO_StartPlayingType_t StartPlayingFunc;	// Starts playing demo
-	G_DEMO_StartPlayingType_t StopPlayingFunc;	// Stops playing demo
+	G_DEMO_StopPlayingType_t StopPlayingFunc;	// Stops playing demo
 	G_DEMO_CheckDemoType_t CheckDemoFunc;		// Check Demo's Status (quit)
 	G_DEMO_ReadTicCmdType_t ReadTicCmdFunc;		// Reads tic command
 	G_DEMO_WriteTicCmdType_t WriteTicCmdFunc;	// Writes tic command
@@ -152,10 +152,14 @@ typedef struct G_CurrentDemo_s
 extern tic_t g_DemoTime;
 
 const G_DemoFactory_t* G_DemoFactoryByName(const char* const a_Name);
+void G_DemoQueue(const char* const a_Name);
+bool_t G_PlayNextQ(void);
 G_CurrentDemo_t* G_DemoPlay(WL_EntryStream_t* const a_Stream, const G_DemoFactory_t* const a_Factory);
 
 void G_RecordDemo(char* name);	// Only called by startup code.
 void G_StopDemo(void);
+void G_StopDemoRecord(void);
+void G_StopDemoPlay(void);
 void G_BeginRecording(void);
 void G_DoPlayDemo(char* defdemoname);
 void G_TimeDemo(char* name);

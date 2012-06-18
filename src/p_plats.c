@@ -38,6 +38,7 @@
 #include "r_state.h"
 #include "z_zone.h"
 #include "m_random.h"
+#include "p_demcmp.h"
 
 //SoM: 3/7/2000: Use boom's limitless format.
 platlist_t* activeplats;
@@ -120,7 +121,7 @@ void T_PlatRaise(plat_t* plat)
 				//jff 1/26/98 remove the plat if it bounced so it can be tried again
 				//only affects plats that raise and bounce
 				
-				if (boomsupport)
+				if (P_EXGSGetValue(PEXGSBID_COBOOMSUPPORT))
 				{
 					switch (plat->type)
 					{

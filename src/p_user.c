@@ -322,7 +322,7 @@ void P_MovePlayer(player_t* player)
 		player->aiming = cmd->aiming << 16;
 		if (player->chickenTics)
 			movefactor = 2500;
-		if (boomsupport && variable_friction)
+		if (P_EXGSGetValue(PEXGSBID_COBOOMSUPPORT) && variable_friction)
 		{
 			//SoM: This seems to be buggy! Can anyone figure out why??
 			movefactor = P_GetMoveFactor(player->mo);

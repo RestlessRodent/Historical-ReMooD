@@ -38,6 +38,7 @@
 #include "r_state.h"
 #include "s_sound.h"
 #include "z_zone.h"
+#include "p_demcmp.h"
 
 #if 0
 //
@@ -137,7 +138,7 @@ void T_VerticalDoor(vldoor_t* door)
 					case genBlazeClose:
 						door->sector->ceilingdata = NULL;	// SoM: 3/6/2000
 						P_RemoveThinker(&door->thinker);	// unlink and free
-						if (boomsupport)	//SoM: Removes the double closing sound of doors.
+						if (P_EXGSGetValue(PEXGSBID_COBOOMSUPPORT))	//SoM: Removes the double closing sound of doors.
 							S_StartSound((mobj_t*)&door->sector->soundorg, sfx_bdcls);
 						break;
 						
@@ -167,7 +168,7 @@ void T_VerticalDoor(vldoor_t* door)
 				//SoM: 3/6/2000: Code to turn lighting off in tagged sectors.
 				// Hurdler: FIXME: there is a bug in map27 with door->line not being correct
 				//                 after a save game / load game
-				if (boomsupport && door->line && door->line->tag)
+				if (P_EXGSGetValue(PEXGSBID_COBOOMSUPPORT) && door->line && door->line->tag)
 				{
 					if (door->line->special > GenLockedBase && (door->line->special & 6) == 6)
 						EV_TurnTagLightsOff(door->line);
@@ -241,7 +242,7 @@ void T_VerticalDoor(vldoor_t* door)
 						break;
 				}
 				//SoM: 3/6/2000: turn lighting on in tagged sectors of manual doors
-				if (boomsupport && door->line && door->line->tag)
+				if (P_EXGSGetValue(PEXGSBID_COBOOMSUPPORT) && door->line && door->line->tag)
 				{
 					if (door->line->special > GenLockedBase && (door->line->special & 6) == 6)	//jff 3/9/98 all manual doors
 						EV_LightTurnOn(door->line, 0);

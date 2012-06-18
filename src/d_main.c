@@ -1669,6 +1669,8 @@ void D_DoomMain(void)
 	int startmap;
 	bool_t autostart;
 	D_ProfileEx_t* GuestProf;
+	char* PWADArg = NULL;
+	char WADPath[256];
 	
 	// GhostlyDeath <November 18, 2008> -- Move devparm up here
 	devparm = M_CheckParm("-devparm");
@@ -1930,7 +1932,47 @@ void D_DoomMain(void)
 	// init all NETWORK
 	if (D_CheckNetGame())
 		autostart = true;
-		
+
+	// GhostlyDeath <June 18, 2012> -- Demo Queues (woo!)
+	if (M_CheckParm("-playdemo"))
+		while (M_IsNextParm())
+		{
+			// Get it
+			PWADArg = M_GetNextParm();
+			
+			// See if we can find it on the disk
+			if (PWADArg)
+			{
+				// It was found, add it
+				if (WL_LocateWAD(PWADArg, NULL, WADPath, 256))
+				{
+					// Add it
+					D_AddFile(WADPath);
+					
+					// Modify Game
+					modifiedgame = true;
+				}
+				
+				// Must be an internal demo then
+				else
+				{
+				}
+				
+				// Add to queue
+				G_DemoQueue(WL_BaseNameEx(PWADArg));
+				singledemo = true;
+			}
+		}
+	
+	// Playing any demos?
+	if (singledemo)
+	{
+		autostart = true;
+		gamestate = wipegamestate = GS_NULL;
+		G_PlayNextQ();
+	}
+	
+#if 0
 	// start the apropriate game based on parms
 	p = M_CheckParm("-record");
 	if (p && p < myargc - 1)
@@ -1938,6 +1980,7 @@ void D_DoomMain(void)
 		G_RecordDemo(myargv[p + 1]);
 		autostart = true;
 	}
+	
 	// demo doesn't need anymore to be added with D_AddFile()
 	p = M_CheckParm("-playdemo");
 	if (!p)
@@ -1975,6 +2018,7 @@ void D_DoomMain(void)
 		
 		return;
 	}
+#endif
 	
 	p = M_CheckParm("-loadgame");
 	if (p && p < myargc - 1)

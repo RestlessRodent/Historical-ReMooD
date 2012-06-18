@@ -1850,8 +1850,16 @@ void D_NCSNetTicTransmit(D_NetPlayer_t* const a_NPp, ticcmd_t* const a_TicCmd)
 		if (SID < MAXSPLITSCREEN)
 			if (!a_NPp->Player || (a_NPp->Player && a_NPp->Player->mo && !a_NPp->Player->mo->reactiontime))
 			{
-				localangle[SID] += Merge.BaseAngleTurn << 16;
-				Merge.angleturn = localangle[SID] >> 16;
+				// Absolute Angles
+				if (P_EXGSGetValue(PEXGSBID_COABSOLUTEANGLE))
+				{
+					localangle[SID] += Merge.BaseAngleTurn << 16;
+					Merge.angleturn = localangle[SID] >> 16;
+				}
+				
+				// Doom Angles
+				else
+					Merge.angleturn = Merge.BaseAngleTurn;
 			}
 		
 		// Set local aiming angle

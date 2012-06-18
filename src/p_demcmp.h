@@ -262,6 +262,8 @@ typedef enum P_EXGSBitID_e
 	PEXGSBID_COOLDTHINGHEIGHTS,					// Old Thing Heights
 	PEXGSBID_COLASTLOOKMAXPLAYERS,				// Last Look Max Players
 	PEXGSBID_COMOVECHECKFAKEFLOOR,				// Check Fake floor when moving
+	PEXGSBID_COMULTIPLAYER,						// Multiplayer Format
+	PEXGSBID_COBOOMSUPPORT,						// boomsupport Flag
 	
 	PEXGSNUMBITIDS
 } P_EXGSBitID_t;
@@ -272,8 +274,8 @@ typedef enum P_EXGSBitID_e
 typedef struct P_EXGSVariable_s
 {
 	// Base
-	P_EXGSType_t Type;							// Type of value to conform to
-	P_EXGSBitID_t BitID;						// BitID of flag
+	const P_EXGSType_t Type;					// Type of value to conform to
+	const P_EXGSBitID_t BitID;					// BitID of flag
 	const char* Name;							// Name of game setting
 	const char* MenuTitle;						// Title for menus
 	const char* Description;					// Description
@@ -305,6 +307,8 @@ P_EXGSVariable_t* P_EXGSVarForName(const char* const a_Name);
 // Value Getter
 int32_t P_EXGSGetValue(const P_EXGSBitID_t a_Bit);
 fixed_t P_EXGSGetFixed(const P_EXGSBitID_t a_Bit);
+
+int32_t P_EXGSGetNextValue(const P_EXGSBitID_t a_Bit, const bool_t a_Right);
 
 // General Functions
 bool_t P_EXGSRegisterStuff(void);

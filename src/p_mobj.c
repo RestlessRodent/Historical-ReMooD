@@ -428,7 +428,7 @@ void P_XYMovement(mobj_t* mo)
 				if (ceilingline && ceilingline->backsector &&
 				        ceilingline->backsector->ceilingpic == skyflatnum &&
 				        ceilingline->frontsector && ceilingline->frontsector->ceilingpic == skyflatnum && mo->subsector->sector->ceilingheight == mo->ceilingz)
-					if (!boomsupport || mo->z > ceilingline->backsector->ceilingheight)	//SoM: 4/7/2000: DEMO'S
+					if (!P_EXGSGetValue(PEXGSBID_COBOOMSUPPORT) || mo->z > ceilingline->backsector->ceilingheight)	//SoM: 4/7/2000: DEMO'S
 					{
 						// Hack to prevent missiles exploding
 						// against the sky.

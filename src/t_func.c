@@ -404,7 +404,7 @@ void SF_GameMode()
 	
 	if (P_EXGSGetValue(PEXGSBID_GAMEDEATHMATCH))	// Deathmatch!
 		t_return.value.i = 2;
-	else if (netgame || multiplayer)	// Cooperative
+	else if (P_EXGSGetValue(PEXGSBID_COMULTIPLAYER))	// Cooperative
 		t_return.value.i = 1;
 	else						// Single Player
 		t_return.value.i = 0;

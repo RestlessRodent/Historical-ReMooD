@@ -148,7 +148,7 @@ int P_GetMoveFactor(mobj_t* mo)
 	
 	int momentum, friction;
 	
-	if (boomsupport && variable_friction && !(mo->flags & (MF_NOGRAVITY | MF_NOCLIP)))
+	if (P_EXGSGetValue(PEXGSBID_COBOOMSUPPORT) && variable_friction && !(mo->flags & (MF_NOGRAVITY | MF_NOCLIP)))
 	{
 		friction = mo->friction;
 		if (friction == ORIG_FRICTION)	// normal floor
@@ -1105,7 +1105,7 @@ static bool_t PS_SubTryMove(mobj_t* thing, fixed_t x, fixed_t y, bool_t allowdro
 		if ((thing->flags & MF_MISSILE) && tmfloorz > thing->z)
 			CheckMissileImpact(thing, Flags);
 			
-		if (!boomsupport || !allowdropoff)
+		if (!P_EXGSGetValue(PEXGSBID_COBOOMSUPPORT) || !allowdropoff)
 			if (!(thing->flags & (MF_DROPOFF | MF_FLOAT)) && !tmfloorthing && tmfloorz - tmdropoffz > MAXSTEPMOVE)
 				return false;	// don't stand over a dropoff
 	}
@@ -2232,7 +2232,7 @@ bool_t PTR_UseTraverse(intercept_t* in, void* a_Data)
 	
 	// can't use for than one special line in a row
 	// SoM: USE MORE THAN ONE!
-	if (boomsupport && (in->d.line->flags & ML_PASSUSE))
+	if (P_EXGSGetValue(PEXGSBID_COBOOMSUPPORT) && (in->d.line->flags & ML_PASSUSE))
 		return true;
 	else
 		return false;
@@ -2622,7 +2622,7 @@ bool_t P_CheckSector(sector_t* sector, bool_t crunch)
 {
 	msecnode_t* n;
 	
-	if (!boomsupport)			// use the old routine for old demos though
+	if (!P_EXGSGetValue(PEXGSBID_COBOOMSUPPORT))			// use the old routine for old demos though
 		return P_ChangeSector(sector, crunch);
 		
 	nofit = false;

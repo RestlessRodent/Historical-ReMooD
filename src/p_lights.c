@@ -37,6 +37,7 @@
 #include "r_state.h"
 #include "z_zone.h"
 #include "m_random.h"
+#include "p_demcmp.h"
 
 // =========================================================================
 //                           FIRELIGHT FLICKER
@@ -284,7 +285,7 @@ int EV_LightTurnOn(line_t* line, int bright)
 				}
 			}
 			sector->lightlevel = tbright;
-			if (!boomsupport)
+			if (!P_EXGSGetValue(PEXGSBID_COBOOMSUPPORT))
 				bright = tbright;
 		}
 	}

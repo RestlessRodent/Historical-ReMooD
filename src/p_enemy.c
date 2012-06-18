@@ -448,6 +448,7 @@ static void P_NewChaseDir(mobj_t* actor)
 		if (P_TryWalk(actor))
 			return;
 	}
+	
 	// randomly determine direction of search
 	if (P_Random() & 1)
 	{
@@ -503,20 +504,25 @@ static bool_t P_LookForPlayers(mobj_t* actor, bool_t allaround)
 	mobj_t* BestMo;
 	thinker_t* currentthinker;
 	bool_t LoopOK;
+	int32_t MaxPlayers;
+	
+	/* Get Max Players */
+	// Demo Compat
+	MaxPlayers = P_EXGSGetValue(PEXGSBID_COLASTLOOKMAXPLAYERS);
 	
 	/* Look for players */
 	if (!P_EXGSGetValue(PEXGSBID_FUNNOTARGETPLAYER))
 	{
 		sector = actor->subsector->sector;
-	
+		
 		// BP: first time init, this allow minimum lastlook changes
 		if (actor->lastlook < 0 && P_EXGSGetValue(PEXGSBID_CORANDOMLASTLOOK))
-			actor->lastlook = P_Random() % MAXPLAYERS;
+			actor->lastlook = P_Random() % MaxPlayers;
 	
 		c = 0;
-		stop = (actor->lastlook - 1) & PLAYERSMASK;
+		stop = (actor->lastlook - 1) & (MaxPlayers - 1);
 	
-		for (LoopOK = false;; actor->lastlook = (actor->lastlook + 1) & PLAYERSMASK)
+		for (LoopOK = false;; actor->lastlook = (actor->lastlook + 1) & (MaxPlayers - 1))
 		{
 			// done looking
 			if (actor->lastlook == stop)
@@ -535,8 +541,9 @@ static bool_t P_LookForPlayers(mobj_t* actor, bool_t allaround)
 				continue;
 			
 			// Player and monster on the same team?
-			if (P_MobjOnSameTeam(actor, player->mo))
-				continue;
+			if (!P_EXGSGetValue(PEXGSBID_CODISABLETEAMPLAY))
+				if (P_MobjOnSameTeam(actor, player->mo))
+					continue;
 	
 			if (player->health <= 0)
 				continue;			// dead
@@ -810,6 +817,10 @@ void A_FaceTarget(mobj_t* actor, player_t* player, pspdef_t* psp, const INFO_Sta
 void A_Chase(mobj_t* actor, player_t* player, pspdef_t* psp, const INFO_StateArgsNum_t a_ArgC, INFO_StateArgsParm_t* const a_ArgV)
 {
 	int delta;
+	skill_t Skill;
+	
+	// GhostlyDeath <June 17, 2012> -- Get Skill
+	Skill = P_EXGSGetValue(PEXGSBID_GAMESKILL);
 	
 	if (actor->reactiontime)
 		actor->reactiontime--;
@@ -873,6 +884,7 @@ void A_Chase(mobj_t* actor, player_t* player, pspdef_t* psp, const INFO_StateArg
 			P_SetMobjState(actor, actor->info->meleestate);
 			return;
 		}
+		
 		// check for missile attack
 		if (actor->info->missilestate)
 		{
@@ -920,7 +932,7 @@ void A_Chase(mobj_t* actor, player_t* player, pspdef_t* psp, const INFO_StateArg
 	// ?
 nomissile:
 	// possibly choose another target
-	if (multiplayer && !actor->threshold && !P_CheckSight(actor, actor->target))
+	if (P_EXGSGetValue(PEXGSBID_COMULTIPLAYER) && !actor->threshold && !P_CheckSight(actor, actor->target))
 	{
 		if (P_LookForPlayers(actor, true))
 			return;				// got a new target

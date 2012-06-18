@@ -37,6 +37,7 @@
 #include "r_state.h"
 #include "s_sound.h"
 #include "z_zone.h"
+#include "p_demcmp.h"
 
 // ==========================================================================
 //                              FLOORS
@@ -62,7 +63,7 @@ result_e T_MovePlane(sector_t* sector, fixed_t speed, fixed_t dest, bool_t crush
 			{
 				case -1:
 					//SoM: 3/20/2000: Make splash when platform floor hits water
-					if (boomsupport && sector->heightsec != -1 && sector->altheightsec == 1)
+					if (P_EXGSGetValue(PEXGSBID_COBOOMSUPPORT) && sector->heightsec != -1 && sector->altheightsec == 1)
 					{
 						if ((sector->floorheight - speed) <
 						        sectors[sector->heightsec].floorheight && sector->floorheight > sectors[sector->heightsec].floorheight)
@@ -99,13 +100,13 @@ result_e T_MovePlane(sector_t* sector, fixed_t speed, fixed_t dest, bool_t crush
 					// Moving a floor up
 					// keep floor from moving thru ceilings
 					//SoM: 3/20/2000: Make splash when platform floor hits water
-					if (boomsupport && sector->heightsec != -1 && sector->altheightsec == 1)
+					if (P_EXGSGetValue(PEXGSBID_COBOOMSUPPORT) && sector->heightsec != -1 && sector->altheightsec == 1)
 					{
 						if ((sector->floorheight + speed) >
 						        sectors[sector->heightsec].floorheight && sector->floorheight < sectors[sector->heightsec].floorheight)
 							S_StartSound((mobj_t*)&sector->soundorg, sfx_gloop);
 					}
-					destheight = (!boomsupport || dest < sector->ceilingheight) ? dest : sector->ceilingheight;
+					destheight = (!P_EXGSGetValue(PEXGSBID_COBOOMSUPPORT) || dest < sector->ceilingheight) ? dest : sector->ceilingheight;
 					if (sector->floorheight + speed > destheight)
 					{
 						lastpos = sector->floorheight;
@@ -126,7 +127,7 @@ result_e T_MovePlane(sector_t* sector, fixed_t speed, fixed_t dest, bool_t crush
 						flag = P_CheckSector(sector, crush);
 						if (flag == true)
 						{
-							if (!boomsupport)
+							if (!P_EXGSGetValue(PEXGSBID_COBOOMSUPPORT))
 							{
 								if (crush == true)
 									return crushed;
@@ -145,7 +146,7 @@ result_e T_MovePlane(sector_t* sector, fixed_t speed, fixed_t dest, bool_t crush
 			switch (direction)
 			{
 				case -1:
-					if (boomsupport && sector->heightsec != -1 && sector->altheightsec == 1)
+					if (P_EXGSGetValue(PEXGSBID_COBOOMSUPPORT) && sector->heightsec != -1 && sector->altheightsec == 1)
 					{
 						if ((sector->ceilingheight - speed) <
 						        sectors[sector->heightsec].floorheight && sector->ceilingheight > sectors[sector->heightsec].floorheight)
@@ -153,7 +154,7 @@ result_e T_MovePlane(sector_t* sector, fixed_t speed, fixed_t dest, bool_t crush
 					}
 					// moving a ceiling down
 					// keep ceiling from moving thru floors
-					destheight = (!boomsupport || dest > sector->floorheight) ? dest : sector->floorheight;
+					destheight = (!P_EXGSGetValue(PEXGSBID_COBOOMSUPPORT) || dest > sector->floorheight) ? dest : sector->floorheight;
 					if (sector->ceilingheight - speed < destheight)
 					{
 						lastpos = sector->ceilingheight;
@@ -186,7 +187,7 @@ result_e T_MovePlane(sector_t* sector, fixed_t speed, fixed_t dest, bool_t crush
 					break;
 					
 				case 1:
-					if (boomsupport && sector->heightsec != -1 && sector->altheightsec == 1)
+					if (P_EXGSGetValue(PEXGSBID_COBOOMSUPPORT) && sector->heightsec != -1 && sector->altheightsec == 1)
 					{
 						if ((sector->ceilingheight + speed) >
 						        sectors[sector->heightsec].floorheight && sector->ceilingheight < sectors[sector->heightsec].floorheight)
@@ -764,7 +765,7 @@ int EV_DoFloor(line_t* line, floor_e floortype)
 					int minsize = INT_MAX;
 					side_t* side;
 					
-					if (boomsupport)
+					if (P_EXGSGetValue(PEXGSBID_COBOOMSUPPORT))
 						minsize = 32000 << FRACBITS;	//SoM: 3/6/2000: ???
 					floor->direction = 1;
 					floor->sector = sec;
@@ -775,17 +776,17 @@ int EV_DoFloor(line_t* line, floor_e floortype)
 						{
 							side = getSide(secnum, i, 0);
 							// jff 8/14/98 don't scan texture 0, its not real
-							if (side->bottomtexture > 0 || (!boomsupport && !side->bottomtexture))
+							if (side->bottomtexture > 0 || (!P_EXGSGetValue(PEXGSBID_COBOOMSUPPORT) && !side->bottomtexture))
 								if (textures[side->bottomtexture]->XHeight < minsize)
 									minsize = textures[side->bottomtexture]->XHeight;
 							side = getSide(secnum, i, 1);
 							// jff 8/14/98 don't scan texture 0, its not real
-							if (side->bottomtexture > 0 || (!boomsupport && !side->bottomtexture))
+							if (side->bottomtexture > 0 || (!P_EXGSGetValue(PEXGSBID_COBOOMSUPPORT) && !side->bottomtexture))
 								if (textures[side->bottomtexture]->XHeight < minsize)
 									minsize = textures[side->bottomtexture]->XHeight;
 						}
 					}
-					if (!boomsupport)
+					if (!P_EXGSGetValue(PEXGSBID_COBOOMSUPPORT))
 						floor->floordestheight = floor->sector->floorheight + minsize;
 					else
 					{
@@ -938,19 +939,19 @@ int EV_BuildStairs(line_t* line, stair_e type)
 			case build8:
 				speed = FLOORSPEED / 4;
 				stairsize = 8 * FRACUNIT;
-				if (boomsupport)
+				if (P_EXGSGetValue(PEXGSBID_COBOOMSUPPORT))
 					floor->crush = false;	//jff 2/27/98 fix uninitialized crush field
 				break;
 			case turbo16:
 				speed = FLOORSPEED * 4;
 				stairsize = 16 * FRACUNIT;
-				if (boomsupport)
+				if (P_EXGSGetValue(PEXGSBID_COBOOMSUPPORT))
 					floor->crush = true;	//jff 2/27/98 fix uninitialized crush field
 				break;
 			default:
 				speed = FLOORSPEED;
 				stairsize = type;
-				if (boomsupport)
+				if (P_EXGSGetValue(PEXGSBID_COBOOMSUPPORT))
 					floor->crush = true;	//jff 2/27/98 fix uninitialized crush field
 				break;
 		}
@@ -988,14 +989,14 @@ int EV_BuildStairs(line_t* line, stair_e type)
 				if (tsec->floorpic != texture)
 					continue;
 					
-				if (!boomsupport)	// jff 6/19/98 prevent double stepsize
+				if (!P_EXGSGetValue(PEXGSBID_COBOOMSUPPORT))	// jff 6/19/98 prevent double stepsize
 					height += stairsize;	// jff 6/28/98 change demo compatibility
 					
 				// if sector's floor already moving, look for another
 				if (P_SectorActive(floor_special, tsec))	//jff 2/22/98
 					continue;
 					
-				if (boomsupport)	// jff 6/19/98 increase height AFTER continue
+				if (P_EXGSGetValue(PEXGSBID_COBOOMSUPPORT))	// jff 6/19/98 increase height AFTER continue
 					height += stairsize;	// jff 6/28/98 change demo compatibility
 					
 				sec = tsec;
@@ -1013,7 +1014,7 @@ int EV_BuildStairs(line_t* line, stair_e type)
 				floor->floordestheight = height;
 				floor->type = buildStair;	//jff 3/31/98 do not leave uninited
 				//jff 2/27/98 fix uninitialized crush field
-				if (boomsupport)
+				if (P_EXGSGetValue(PEXGSBID_COBOOMSUPPORT))
 					floor->crush = type == build8 ? false : true;
 				ok = 1;
 				break;
@@ -1062,7 +1063,7 @@ int EV_DoDonut(line_t* line)
 		// pillar must be two-sided
 		
 		// do not start the donut if the pool is already moving
-		if (boomsupport && P_SectorActive(floor_special, s2))
+		if (P_EXGSGetValue(PEXGSBID_COBOOMSUPPORT) && P_SectorActive(floor_special, s2))
 			continue;			//jff 5/7/98
 			
 		// find a two sided line around the pool whose other side isn't the pillar
@@ -1070,7 +1071,7 @@ int EV_DoDonut(line_t* line)
 		{
 			//jff 3/29/98 use true two-sidedness, not the flag
 			// killough 4/5/98: changed demo_compatibility to compatibility
-			if (!boomsupport)
+			if (!P_EXGSGetValue(PEXGSBID_COBOOMSUPPORT))
 			{
 				if ((!s2->lines[i]->flags & ML_TWOSIDED) || (s2->lines[i]->backsector == s1))
 					continue;

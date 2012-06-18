@@ -389,7 +389,7 @@ const WL_WADFile_t* WL_OpenWAD(const char* const a_PathName)
 		c = NewWAD->__Private.__FileName[i];
 		
 		// A valid enough character
-		if (isalnum(c) || c == '_' || c == '~')
+		if (isalnum(c) || c == '-' || c == '_' || c == '~')
 		{
 			// Normal Name
 			if (!Dot)
@@ -902,6 +902,7 @@ bool_t WL_LocateWAD(const char* const a_Name, const char* const a_MD5, char* con
 		strncpy(l_SearchList[l_SearchCount++], "", PATH_MAX);
 		strncpy(l_SearchList[l_SearchCount++], ".", PATH_MAX);
 		strncpy(l_SearchList[l_SearchCount++], "bin", PATH_MAX);
+		I_GetStorageDir(l_SearchList[l_SearchCount++], PATH_MAX - 1, DST_DATA);
 		
 		// -waddir argument
 		if (M_CheckParm("-waddir"))

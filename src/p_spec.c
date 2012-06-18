@@ -228,7 +228,7 @@ sector_t* getSector(int currentSector, int line, int side)
 //SoM: 3/7/2000: Use the boom method
 int twoSided(int sector, int line)
 {
-	return boomsupport ? ((sectors[sector].lines[line])->sidenum[1] != -1) : ((sectors[sector].lines[line])->flags & ML_TWOSIDED);
+	return P_EXGSGetValue(PEXGSBID_COBOOMSUPPORT) ? ((sectors[sector].lines[line])->sidenum[1] != -1) : ((sectors[sector].lines[line])->flags & ML_TWOSIDED);
 }
 
 //
@@ -239,7 +239,7 @@ int twoSided(int sector, int line)
 //SoM: 3/7/2000: Use boom method.
 sector_t* getNextSector(line_t* line, sector_t* sec)
 {
-	if (!boomsupport)
+	if (!P_EXGSGetValue(PEXGSBID_COBOOMSUPPORT))
 	{
 		if (!(line->flags & ML_TWOSIDED))
 			return NULL;
@@ -247,7 +247,7 @@ sector_t* getNextSector(line_t* line, sector_t* sec)
 	
 	if (line->frontsector == sec)
 	{
-		if (!boomsupport || line->backsector != sec)
+		if (!P_EXGSGetValue(PEXGSBID_COBOOMSUPPORT) || line->backsector != sec)
 			return line->backsector;
 		else
 			return NULL;
@@ -429,7 +429,7 @@ fixed_t P_FindLowestCeilingSurrounding(sector_t* sec)
 	fixed_t height = INT_MAX;
 	int foundsector = 0;
 	
-	if (boomsupport)
+	if (P_EXGSGetValue(PEXGSBID_COBOOMSUPPORT))
 		height = 32000 * FRACUNIT;	//SoM: 3/7/2000: Remove ovf
 		
 	for (i = 0; i < sec->linecount; i++)
@@ -491,7 +491,7 @@ fixed_t P_FindShortestTextureAround(int secnum)
 	int i;
 	sector_t* sec = &sectors[secnum];
 	
-	if (boomsupport)
+	if (P_EXGSGetValue(PEXGSBID_COBOOMSUPPORT))
 		minsize = 32000 << FRACBITS;
 		
 	for (i = 0; i < sec->linecount; i++)
@@ -525,7 +525,7 @@ fixed_t P_FindShortestUpperAround(int secnum)
 	int i;
 	sector_t* sec = &sectors[secnum];
 	
-	if (boomsupport)
+	if (P_EXGSGetValue(PEXGSBID_COBOOMSUPPORT))
 		minsize = 32000 << FRACBITS;
 		
 	for (i = 0; i < sec->linecount; i++)
@@ -563,7 +563,7 @@ sector_t* P_FindModelFloorSector(fixed_t floordestheight, int secnum)
 	
 	sec = &sectors[secnum];
 	linecount = sec->linecount;
-	for (i = 0; i < (!boomsupport && sec->linecount < linecount ? sec->linecount : linecount); i++)
+	for (i = 0; i < (!P_EXGSGetValue(PEXGSBID_COBOOMSUPPORT) && sec->linecount < linecount ? sec->linecount : linecount); i++)
 	{
 		if (twoSided(secnum, i))
 		{
@@ -597,7 +597,7 @@ sector_t* P_FindModelCeilingSector(fixed_t ceildestheight, int secnum)
 	
 	sec = &sectors[secnum];
 	linecount = sec->linecount;
-	for (i = 0; i < (!boomsupport && sec->linecount < linecount ? sec->linecount : linecount); i++)
+	for (i = 0; i < (!P_EXGSGetValue(PEXGSBID_COBOOMSUPPORT) && sec->linecount < linecount ? sec->linecount : linecount); i++)
 	{
 		if (twoSided(secnum, i))
 		{
@@ -829,7 +829,7 @@ bool_t P_CanUnlockGenDoor(line_t* line, player_t* player)
 //
 size_t P_SectorActive(special_e t, sector_t* sec)
 {
-	if (!boomsupport)
+	if (!P_EXGSGetValue(PEXGSBID_COBOOMSUPPORT))
 		return sec->floordata || sec->ceilingdata || sec->lightingdata;
 	else
 		switch (t)
@@ -857,7 +857,7 @@ size_t P_SectorActive(special_e t, sector_t* sec)
 //
 int P_CheckTag(line_t* line)
 {
-	if (!boomsupport)
+	if (!P_EXGSGetValue(PEXGSBID_COBOOMSUPPORT))
 		return 1;
 		
 	if (line->tag)
@@ -2981,7 +2981,7 @@ void T_Friction(friction_t* f)
 	msecnode_t* node;
 	bool_t foundfloor = false;
 	
-	if (!boomsupport || !variable_friction)
+	if (!P_EXGSGetValue(PEXGSBID_COBOOMSUPPORT) || !variable_friction)
 		return;
 		
 	sec = sectors + f->affectee;

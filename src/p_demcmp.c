@@ -69,6 +69,15 @@ const CONL_VarPossibleValue_t c_PEXGSPVPositive[] =
 	{0, NULL},
 };
 
+// c_PEXGSPVFixed -- Signed Fixed Value
+const CONL_VarPossibleValue_t c_PEXGSPVFixed[] =
+{
+	// End
+	{-32767 << FRACBITS, "MINVAL"},
+	{32767 << FRACBITS, "MAXVAL"},
+	{0, NULL},
+};
+
 // c_PEXGSPVBoolean -- Boolean
 const CONL_VarPossibleValue_t c_PEXGSPVBoolean[] =
 {
@@ -166,6 +175,14 @@ const CONL_VarPossibleValue_t c_PEXGSPVKillCountMode[] =
 /* c_PEXGSPVLastLookMP -- Last Look Modulo */
 const CONL_VarPossibleValue_t c_PEXGSPVLastLookMP[] =
 {
+	// Powers of 2
+	{1, "1"},
+	{2, "2"},
+	{4, "4"},
+	{8, "8"},
+	{16, "16"},
+	{32, "32"},	
+	
 	// End
 	{1, "MINVAL"},
 	{MAXPLAYERS, "MAXVAL"},
@@ -558,7 +575,7 @@ static P_EXGSVariable_t l_GSVars[PEXGSNUMBITIDS] =
 	
 	{PEXGST_FLOAT, PEXGSBID_PLJUMPGRAVITY, "pl_jumpgravity", "Jump Gravity",
 		"This is the amount of pushing force used when jumping.", PEXGSGM_ANY, PEXGSDR_NOCHECK, 0, {0, (6 * FRACUNIT)}, (6 * FRACUNIT),
-		PEXGSMC_PLAYERS, 0, NULL, NULL},
+		PEXGSMC_PLAYERS, 0, c_PEXGSPVFixed, NULL},
 		
 	{PEXGST_INTEGER, PEXGSBID_FUNNOLOCKEDDOORS, "fun_nolockeddoors", "No Locked Doors",
 		"All doors are unlocked and do not need keys.", PEXGSGM_ANY, PEXGSDR_NOCHECK, 0, {0, 1}, 0,
@@ -566,15 +583,15 @@ static P_EXGSVariable_t l_GSVars[PEXGSNUMBITIDS] =
 	
 	{PEXGST_FLOAT, PEXGSBID_GAMEAIRFRICTION, "game_airfriction", "Friction In Air",
 		"This modifies the amount of friction in the air, the higher the easier it is to move.", PEXGSGM_ANY, PEXGSDR_NOCHECK, 0, {0, 8192}, 8192,
-		PEXGSMC_GAME, 0, NULL, NULL},
+		PEXGSMC_GAME, 0, c_PEXGSPVFixed, NULL},
 	
 	{PEXGST_FLOAT, PEXGSBID_GAMEWATERFRICTION, "game_waterfriction", "Friction In Water",
 		"This modifies the amount of friction in water, the higher the easier it is to move.", PEXGSGM_ANY, PEXGSDR_NOCHECK, 0, {0, 49152}, 49152,
-		PEXGSMC_GAME, 0, NULL, NULL},
+		PEXGSMC_GAME, 0, c_PEXGSPVFixed, NULL},
 		
 	{PEXGST_FLOAT, PEXGSBID_GAMEMIDWATERFRICTION, "game_midwaterfriction", "Friction In Mid-Water",
 		"This modifies the amount of friction in water when not touching the ground, the higher the easier it is to move.", PEXGSGM_ANY, PEXGSDR_NOCHECK, 0, {0, 32768}, 32768,
-		PEXGSMC_GAME, 0, NULL},
+		PEXGSMC_GAME, 0, c_PEXGSPVFixed, NULL},
 	
 	{PEXGST_INTEGER, PEXGSBID_GAMEALLOWLEVELEXIT, "game_allowlevelexit", "Allow Level Exiting",
 		"Allows players or monsters to exit the level.", PEXGSGM_ANY, PEXGSDR_NOCHECK, 0, {0, 1}, 1,
@@ -699,7 +716,7 @@ static P_EXGSVariable_t l_GSVars[PEXGSNUMBITIDS] =
 		
 	{PEXGST_FLOAT, PEXGSBID_GAMEGRAVITY, "game_gravity", "Gravity",
 		"The multiplier to the amount of downward force to apply to players that are in the air.", PEXGSGM_ANY, PEXGSDR_NOCHECK, 0, {0, (1 * FRACUNIT)}, (1 * FRACUNIT),
-		PEXGSMC_GAME, 0, NULL, NULL},
+		PEXGSMC_GAME, 0, c_PEXGSPVFixed, NULL},
 		
 	{PEXGST_INTEGER, PEXGSBID_MONENABLECLEANUP, "mon_enablecleanup", "Enable Corpse Cleanup",
 		"Enable clean up of dead monsters. [ReMooD >= 1.0a]", PEXGSGM_ANY, PEXGSDR_ATLEAST, 200, {0, 1}, 1,
@@ -781,6 +798,13 @@ static P_EXGSVariable_t l_GSVars[PEXGSNUMBITIDS] =
 		"Checks 3D floors during movement. [Legacy >= ].32]", PEXGSGM_ANY, PEXGSDR_ATLEAST, 132, {0, 1}, 1,
 		PEXGSMC_COMPAT, PEXGSDA_YESNO, c_PEXGSPVBoolean, NULL},
 	
+	{PEXGST_INTEGER, PEXGSBID_COMULTIPLAYER, "co_multiplayer", "Multi-Player Mode",
+		"Enables multiplayer mode checks.", PEXGSGM_ANY, PEXGSDR_NOCHECK, 0, {0, 1}, 0,
+		PEXGSMC_COMPAT, PEXGSDA_INTEGER, c_PEXGSPVBoolean, NULL},
+	
+	{PEXGST_INTEGER, PEXGSBID_COBOOMSUPPORT, "co_boomsupport", "Boom Support",
+		"Allows changes used from Boom in certain areas. [Legacy >= ].32]", PEXGSGM_ANY, PEXGSDR_ATLEAST, 132, {0, 1}, 1,
+		PEXGSMC_COMPAT, PEXGSDA_YESNO, c_PEXGSPVBoolean, NULL},
 };
 
 /*** FUNCTIONS ***/
@@ -851,6 +875,87 @@ int32_t P_EXGSGetValue(const P_EXGSBitID_t a_Bit)
 fixed_t P_EXGSGetFixed(const P_EXGSBitID_t a_Bit)
 {
 	return P_EXGSGetValue(a_Bit);
+}
+
+/* P_EXGSGetNextValue() -- Gets the next value in a certain direction */
+int32_t P_EXGSGetNextValue(const P_EXGSBitID_t a_Bit, const bool_t a_Right)
+{
+	P_EXGSVariable_t* Var;
+	int32_t MinVal, MaxVal, ReqVal, i;
+	int32_t ixMi, ixMa;
+	
+	/* Get variable first */
+	Var = P_EXGSVarForBit(a_Bit);
+	
+	// Nothing?
+	if (!Var)
+		return 0;
+	
+	/* Get Min/Max Values */
+	// Possible Values
+	ixMi = ixMa = -1;
+	if (Var->Possible)
+		// Check values and obtain min/max too
+		for (i = 0; Var->Possible[i].StrAlias; i++)
+		{
+			// Min?
+			if (strcasecmp("MINVAL", Var->Possible[i].StrAlias) == 0)
+			{
+				ixMi = i;
+				MinVal = Var->Possible[i].IntVal;
+			}
+			
+			// Max?
+			else if (strcasecmp("MAXVAL", Var->Possible[i].StrAlias) == 0)
+			{
+				ixMa = i;
+				MaxVal = Var->Possible[i].IntVal;
+			}
+		}
+	
+	// There are no possible values
+	else
+	{
+		MinVal = c_PEXGSPVFixed[0].IntVal;
+		MaxVal = c_PEXGSPVFixed[1].IntVal;
+	}
+	
+	/* Start at the curernt value */
+	if (Var->WasSet)
+		ReqVal = Var->ActualVal;
+	else
+		ReqVal = Var->DefaultVal;
+	
+	/* Loop until the next is found */
+	for (;;)
+	{
+		// Value at maximum? Return max
+		if (a_Right && ReqVal >= MaxVal)
+			return MaxVal;
+		
+		// Value at minimum? Return minimum
+		else if (!a_Right && ReqVal <= MinVal)
+			return MinVal;
+		
+		// Move value by single unit
+		if (Var->Type == PEXGST_FLOAT)
+			ReqVal += 8192 * (a_Right ? 1 : -1);	// Move by .125
+		else
+			ReqVal += (a_Right ? 1 : -1);			// Move by 1
+		
+		// There are no enumerated value ranges
+		if (ixMi == 0 || ixMa == 0)
+			return ReqVal;
+		
+		// Hit exact value? Then return it
+		else
+			for (i = 0; Var->Possible[i].StrAlias; i++)
+				if (ReqVal == Var->Possible[i].IntVal)
+					return ReqVal;
+	}
+	
+	/* Return the requested value */
+	return ReqVal;
 }
 
 typedef struct M_UIMenuHandler_s M_UIMenuHandler_t;

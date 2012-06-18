@@ -712,24 +712,11 @@ static bool_t MS_GameVar_LRValChange(struct M_UIMenu_s* const a_Menu, struct M_U
 		return false;
 		
 	/* Value change amount? */
-	if (Bit->Type == PEXGST_FLOAT)
-	{
-		if (a_More)
-			ModVal = 8192;
-		else
-			ModVal = -8192;
-	}
-	else
-	{
-		if (a_More)
-			ModVal = 1;
-		else
-			ModVal = -1;
-	}
+	ModVal = P_EXGSGetNextValue(Bit->BitID, a_More);
 	
 	/* Get values and attempt change */
 	OldVal = P_EXGSGetValue(Bit->BitID);
-	NewVal = P_EXGSSetValue(false, Bit->BitID, OldVal + ModVal);
+	NewVal = P_EXGSSetValue(false, Bit->BitID, ModVal);
 	
 	// Success? Only if actually changed
 	if (NewVal != OldVal)
