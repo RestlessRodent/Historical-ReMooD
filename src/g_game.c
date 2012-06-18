@@ -2171,6 +2171,7 @@ typedef struct G_VanillaDemoData_s
 	bool_t MultiPlayer;
 	bool_t LongTics;
 	D_RBlockStream_t* PMPStream;				// Debug Stream
+	bool_t WroteHeader;							// Wrote header
 } D_VanillaDemoData_t;
 
 /* G_DEMO_Vanilla_StartPlaying() -- Starts playing Vanilla Demo */
@@ -2421,6 +2422,58 @@ bool_t G_DEMO_Vanilla_StopPlaying(struct G_CurrentDemo_s* a_Current)
 	return true;
 }
 
+/* G_DEMO_Vanilla_StartRecord() -- Starts recording vanilla demo */
+bool_t G_DEMO_Vanilla_StartRecord(struct G_CurrentDemo_s* a_Current)
+{
+	uint8_t VerMarker;
+	D_VanillaDemoData_t* Data;
+	
+	/* Check */
+	if (!a_Current)
+		return false;
+		
+	/* Fill Data */
+	Data = a_Current->Data = Z_Malloc(sizeof(*Data), PU_STATIC, NULL);
+	
+	/* Write version marker */
+	Data->VerMarker = VerMarker = 111;
+	Data->LongTics = true;
+	fwrite(&VerMarker, 1, 1, a_Current->CFile);
+	fflush(a_Current->CFile);
+	
+	/* Success! */
+	return true;
+}
+
+/* G_DEMO_Vanilla_StopRecord() -- Stops recording vanilla demo */
+bool_t G_DEMO_Vanilla_StopRecord(struct G_CurrentDemo_s* a_Current)
+{
+	uint8_t Marker;
+	D_VanillaDemoData_t* Data;
+	
+	/* Check */
+	if (!a_Current)
+		return false;
+		
+	/* Get */
+	Data = a_Current->Data;
+	
+	// No data?
+	if (!Data)
+		return false;
+	
+	/* Write marker byte */
+	Marker = 0x80;
+	fwrite(&Marker, 1, 1, a_Current->CFile);
+	fflush(a_Current->CFile);
+	
+	/* Delete used data */
+	Z_Free(Data);
+	
+	/* Success! */
+	return true;
+}
+
 /* G_DEMO_Vanilla_CheckDemo() -- See if vanilla demo is over */
 bool_t G_DEMO_Vanilla_CheckDemo(struct G_CurrentDemo_s* a_Current)
 {
@@ -2450,6 +2503,7 @@ bool_t G_DEMO_Vanilla_CheckDemo(struct G_CurrentDemo_s* a_Current)
 	{
 	}
 	
+	/* Still playing/recording */
 	return false;
 }
 
@@ -2549,6 +2603,114 @@ bool_t G_DEMO_Vanilla_ReadTicCmd(struct G_CurrentDemo_s* a_Current, ticcmd_t* co
 
 bool_t G_DEMO_Vanilla_WriteTicCmd(struct G_CurrentDemo_s* a_Current, const ticcmd_t* const a_Cmd, const int32_t a_PlayerNum)
 {
+	uint8_t Bits;
+	int8_t IntV, i;
+	D_VanillaDemoData_t* Data;
+	
+	/* Check */
+	if (!a_Current || !a_Cmd || a_PlayerNum < 0 || a_PlayerNum >= 4)
+		return false;
+	
+	/* Get */
+	Data = a_Current->Data;
+	
+	// Missing?
+	if (!Data)
+		return false;
+	
+	/* Remaining header not yet written? */
+	if (!Data->WroteHeader)
+		if (g_CurrentLevelInfo)
+		{
+			Bits = P_EXGSGetValue(PEXGSBID_GAMESKILL);
+			fwrite(&Bits, 1, 1, a_Current->CFile);
+			
+			Bits = g_CurrentLevelInfo->EpisodeNum;
+			fwrite(&Bits, 1, 1, a_Current->CFile);
+			
+			Bits = g_CurrentLevelInfo->LevelNum;
+			fwrite(&Bits, 1, 1, a_Current->CFile);
+			
+			Bits = P_EXGSGetValue(PEXGSBID_GAMEDEATHMATCH);
+			fwrite(&Bits, 1, 1, a_Current->CFile);
+			
+			Bits = P_EXGSGetValue(PEXGSBID_MONRESPAWNMONSTERS);
+			fwrite(&Bits, 1, 1, a_Current->CFile);
+			
+			Bits = P_EXGSGetValue(PEXGSBID_MONFASTMONSTERS);
+			fwrite(&Bits, 1, 1, a_Current->CFile);
+			
+			Bits = !P_EXGSGetValue(PEXGSBID_MONSPAWNMONSTERS);
+			fwrite(&Bits, 1, 1, a_Current->CFile);
+			
+			Bits = 0;
+			fwrite(&Bits, 1, 1, a_Current->CFile);
+			
+			// Read Players
+			for (i = 0; i < 4; i++)
+			{
+				Bits = playeringame[i];
+				fwrite(&Bits, 1, 1, a_Current->CFile);
+			}
+			
+			// Wrote header
+			Data->WroteHeader = true;
+		}
+	
+	/* Write tic commands as long as header was written */
+	if (Data->WroteHeader)
+	{
+		// Movement
+		IntV = a_Cmd->forwardmove;
+		fwrite(&IntV, 1, 1, a_Current->CFile);
+		
+		IntV = a_Cmd->sidemove;
+		fwrite(&IntV, 1, 1, a_Current->CFile);
+		
+		// Turning
+			// Long tics
+		if (Data->LongTics)
+		{
+			IntV = (a_Cmd->angleturn & 0x00FF);
+			fwrite(&IntV, 1, 1, a_Current->CFile);
+			
+			IntV = (a_Cmd->angleturn & 0xFF00) >> 8;
+			fwrite(&IntV, 1, 1, a_Current->CFile);
+		}
+			// Normal
+		else
+		{
+			IntV = (a_Cmd->angleturn & 0xFF00) >> 8;
+			fwrite(&IntV, 1, 1, a_Current->CFile);
+		}
+		
+		// Buttons
+		Bits = 0;
+		
+		// Fire Weapon?
+		if (a_Cmd->buttons &  BT_ATTACK)
+			Bits |= 1;
+	
+		// Use?
+		if (a_Cmd->buttons & BT_USE)
+			Bits |= 2;
+	
+		// Change gun?
+		if ((a_Cmd->buttons & (BT_CHANGE | BT_EXTRAWEAPON)) == (BT_CHANGE | BT_EXTRAWEAPON))
+			Bits |= 4;
+		
+		// Resort weapon over
+		Bits |= (((a_Cmd->buttons & BT_SLOTMASK) >> BT_SLOTSHIFT) << 3) & 0x38;
+		
+		// Write
+		fwrite(&Bits, 1, 1, a_Current->CFile);
+	}
+	
+	/* Flush */
+	fflush(a_Current->CFile);
+	
+	/* Success! */
+	return true;
 }
 
 /*******************
@@ -2582,8 +2744,11 @@ static const G_DemoFactory_t c_DemoFactories[] =
 	// Vanilla Factory
 	{
 		"vanilla",
+		false,
 		G_DEMO_Vanilla_StartPlaying,
 		G_DEMO_Vanilla_StopPlaying,
+		G_DEMO_Vanilla_StartRecord,
+		G_DEMO_Vanilla_StopRecord,
 		G_DEMO_Vanilla_CheckDemo,
 		G_DEMO_Vanilla_ReadTicCmd,
 		G_DEMO_Vanilla_WriteTicCmd
@@ -2724,8 +2889,27 @@ void G_RecordDemo(char* name)
 {
 }
 
+/* G_StopDemoRecord() -- Stops recording demo */
 void G_StopDemoRecord(void)
 {
+	/* Not recording */
+	if (!demorecording)
+		return;
+		
+	/* Call handled stop demo */
+	if (l_RecDemo->Factory->StopRecordFunc)
+		l_RecDemo->Factory->StopRecordFunc(l_RecDemo);
+	
+	/* Close any files and streams */
+	if (l_RecDemo->CFile)
+		fclose(l_RecDemo->CFile);
+	if (l_RecDemo->RBSStream)
+		D_RBSCloseStream(l_RecDemo->RBSStream);
+	
+	/* Free current */
+	Z_Free(l_RecDemo);
+	l_RecDemo = NULL;
+	demorecording = false;
 }
 
 /* G_StopDemoPlay() -- Stops playing demo */
@@ -2790,8 +2974,52 @@ void G_StopDemo(void)
 		G_StopDemoRecord();
 }
 
-void G_BeginRecording(void)
+/* G_BeginRecording() -- Begin recording demo */
+void G_BeginRecording(const char* const a_Output, const char* const a_FactoryName)
 {
+	const G_DemoFactory_t* Factory;
+	G_CurrentDemo_t* New;
+	D_RBlockStream_t* RBSStream;				// Block Streamer
+	void* CFile;								// CFile
+	
+	/* Check */
+	if (!a_Output || !a_FactoryName)
+		return;
+	
+	/* Get Factory */
+	Factory = G_DemoFactoryByName(a_FactoryName);
+	
+	// Failed?
+	if (!Factory)
+		return;
+		
+	/* Setup file */
+	RBSStream = CFile = NULL;
+	if (Factory->DoesRBS)
+		RBSStream = D_RBSCreateFileStream(a_Output, DRBSSF_OVERWRITE);
+	else
+		CFile = fopen(a_Output, "wb");
+		
+	// Failed?
+	if (!CFile && !RBSStream)
+		return;
+	
+	/* Create Demo */
+	New = Z_Malloc(sizeof(*New), PU_STATIC, NULL);
+	
+	// Set Stuff
+	New->Out = true;
+	New->Factory = Factory;
+	New->CFile = CFile;
+	New->RBSStream = RBSStream;
+	
+	/* Call recorder start */
+	if (New->Factory->StartRecordFunc)
+		New->Factory->StartRecordFunc(New);
+	
+	/* Set as playing demo */
+	l_RecDemo = New;
+	demorecording = true;
 }
 
 /* G_DoPlayDemo() -- Plays demo */
@@ -2860,7 +3088,7 @@ bool_t G_CheckDemoStatus(void)
 	/* Playing Demo? */
 	if (demorecording)
 		if (l_RecDemo->Factory->CheckDemoFunc)
-			if (l_RecDemo->Factory->CheckDemoFunc(l_RecDemo));
+			if (l_RecDemo->Factory->CheckDemoFunc(l_RecDemo))
 			{
 				G_StopDemoRecord();
 				RetVal = true;
@@ -2891,6 +3119,6 @@ void G_WriteDemoTiccmd(ticcmd_t* cmd, int playernum)
 	
 	/* Write tic command */
 	if (l_RecDemo->Factory->WriteTicCmdFunc)
-		l_RecDemo->Factory->WriteTicCmdFunc(l_PlayDemo, cmd, playernum);
+		l_RecDemo->Factory->WriteTicCmdFunc(l_RecDemo, cmd, playernum);
 }
 

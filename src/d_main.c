@@ -546,9 +546,6 @@ void D_DoomLoop(void)
 	tic_t oldentertics, entertic, realtics, rendertimeout = -1;
 	uint32_t FPSNowTime, FPSLastTime, FPSLastTic = 0;
 	int32_t MissedRenders = 0;
-	
-	if (demorecording)
-		G_BeginRecording();
 		
 	// user settings
 	COM_BufAddText("exec autoexec.cfg\n");
@@ -1778,6 +1775,38 @@ void D_DoomMain(void)
 		while (M_IsNextParm())
 			D_AddFile(M_GetNextParm());
 	}
+	
+	// GhostlyDeath <June 18, 2012> -- Demo Queues (woo!)
+	if (M_CheckParm("-playdemo"))
+		while (M_IsNextParm())
+		{
+			// Get it
+			PWADArg = M_GetNextParm();
+			
+			// See if we can find it on the disk
+			if (PWADArg)
+			{
+				// It was found, add it
+				if (WL_LocateWAD(PWADArg, NULL, WADPath, 256))
+				{
+					// Add it
+					D_AddFile(WADPath);
+					
+					// Modify Game
+					modifiedgame = true;
+				}
+				
+				// Must be an internal demo then
+				else
+				{
+				}
+				
+				// Add to queue
+				G_DemoQueue(WL_BaseNameEx(PWADArg));
+				singledemo = true;
+			}
+		}
+	
 	// get skill / episode / map from parms
 	gameskill = sk_medium;
 	startepisode = 1;
@@ -1817,6 +1846,8 @@ void D_DoomMain(void)
 	
 	// load wad, including the main wad file
 	CONL_PrintF("Initializing the Lite-WAD Subsystem...\n");
+	
+	// Start WADs
 	if (W_InitMultipleFiles(startupwadfiles) == 0)
 		I_Error("A WAD file was not found\n");
 	
@@ -1932,37 +1963,6 @@ void D_DoomMain(void)
 	// init all NETWORK
 	if (D_CheckNetGame())
 		autostart = true;
-
-	// GhostlyDeath <June 18, 2012> -- Demo Queues (woo!)
-	if (M_CheckParm("-playdemo"))
-		while (M_IsNextParm())
-		{
-			// Get it
-			PWADArg = M_GetNextParm();
-			
-			// See if we can find it on the disk
-			if (PWADArg)
-			{
-				// It was found, add it
-				if (WL_LocateWAD(PWADArg, NULL, WADPath, 256))
-				{
-					// Add it
-					D_AddFile(WADPath);
-					
-					// Modify Game
-					modifiedgame = true;
-				}
-				
-				// Must be an internal demo then
-				else
-				{
-				}
-				
-				// Add to queue
-				G_DemoQueue(WL_BaseNameEx(PWADArg));
-				singledemo = true;
-			}
-		}
 	
 	// Playing any demos?
 	if (singledemo)
@@ -1971,6 +1971,14 @@ void D_DoomMain(void)
 		gamestate = wipegamestate = GS_NULL;
 		G_PlayNextQ();
 	}
+	
+	// Recording Demo?
+	if (M_CheckParm("-record"))
+		if (M_IsNextParm())
+		{
+			PWADArg = M_GetNextParm();
+			G_BeginRecording(PWADArg, (M_IsNextParm() ? M_GetNextParm() : "remood"));
+		}
 	
 #if 0
 	// start the apropriate game based on parms

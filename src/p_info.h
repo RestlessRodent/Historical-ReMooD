@@ -143,6 +143,8 @@ typedef struct P_LevelInfoEx_s
 	bool_t OpenDoorOnSpecial;					// Open door on special action
 	bool_t LowerFloorOnSpecial;					// Floor lowers on special
 	bool_t KillMonstersOnSpecial;				// Kills other monsters on special
+	int32_t LevelNum;							// Level number
+	int32_t EpisodeNum;							// Episode Number
 } P_LevelInfoEx_t;
 
 /*** GLOBALS ***/

@@ -123,6 +123,8 @@ struct G_CurrentDemo_s;
 
 typedef bool_t (*G_DEMO_StartPlayingType_t)(struct G_CurrentDemo_s* a_Current);
 typedef bool_t (*G_DEMO_StopPlayingType_t)(struct G_CurrentDemo_s* a_Current);
+typedef bool_t (*G_DEMO_StartRecordType_t)(struct G_CurrentDemo_s* a_Current);
+typedef bool_t (*G_DEMO_StopRecordType_t)(struct G_CurrentDemo_s* a_Current);
 typedef bool_t (*G_DEMO_CheckDemoType_t)(struct G_CurrentDemo_s* a_Current);
 typedef bool_t (*G_DEMO_ReadTicCmdType_t)(struct G_CurrentDemo_s* a_Current, ticcmd_t* const a_Cmd, const int32_t a_PlayerNum);
 typedef bool_t (*G_DEMO_WriteTicCmdType_t)(struct G_CurrentDemo_s* a_Current, const ticcmd_t* const a_Cmd, const int32_t a_PlayerNum);
@@ -131,8 +133,11 @@ typedef bool_t (*G_DEMO_WriteTicCmdType_t)(struct G_CurrentDemo_s* a_Current, co
 typedef struct G_DemoFactory_s
 {
 	const char* FactoryName;					// Name of factory
+	bool_t DoesRBS;								// Doe RBS Stream
 	G_DEMO_StartPlayingType_t StartPlayingFunc;	// Starts playing demo
 	G_DEMO_StopPlayingType_t StopPlayingFunc;	// Stops playing demo
+	G_DEMO_StartRecordType_t StartRecordFunc;	// Starts recording demo
+	G_DEMO_StopRecordType_t StopRecordFunc;		// Stops recording demo
 	G_DEMO_CheckDemoType_t CheckDemoFunc;		// Check Demo's Status (quit)
 	G_DEMO_ReadTicCmdType_t ReadTicCmdFunc;		// Reads tic command
 	G_DEMO_WriteTicCmdType_t WriteTicCmdFunc;	// Writes tic command
@@ -160,7 +165,7 @@ void G_RecordDemo(char* name);	// Only called by startup code.
 void G_StopDemo(void);
 void G_StopDemoRecord(void);
 void G_StopDemoPlay(void);
-void G_BeginRecording(void);
+void G_BeginRecording(const char* const a_Output, const char* const a_FactoryName);
 void G_DoPlayDemo(char* defdemoname);
 void G_TimeDemo(char* name);
 void G_DeferedPlayDemo(char* demo);

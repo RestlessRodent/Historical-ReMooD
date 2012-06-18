@@ -125,6 +125,9 @@ static const struct
 	{false, PPMFIFT_STRING, NULL, "consolecmd", offsetof(P_LevelInfoEx_t, BootCommand)},
 	{false, PPMFIFT_WIDEBITFIELD, NULL, "defaultweapons", offsetof(P_LevelInfoEx_t, Weapons)},
 	
+	{false, PPMFIFT_INTEGER, "levelnum", "mapnumber", offsetof(P_LevelInfoEx_t, LevelNum)},
+	{false, PPMFIFT_INTEGER, "cluster", "episodenumber", offsetof(P_LevelInfoEx_t, EpisodeNum)},
+	
 	// Level special endings
 	{false, PPMFIFT_BOOL, "map07special", NULL, offsetof(P_LevelInfoEx_t, MapSevenSpecial)},
 	{false, PPMFIFT_BOOL, "baronspecial", NULL, offsetof(P_LevelInfoEx_t, BaronSpecial)},
