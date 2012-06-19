@@ -103,6 +103,7 @@ void P_CalcHeight(player_t* player)
 	fixed_t ViewHeight;
 	fixed_t Diff;
 	fixed_t bob;
+	fixed_t AvgMomX, AvgMomY;
 	int angle;
 	subsector_t* SubS;
 	
@@ -116,7 +117,32 @@ void P_CalcHeight(player_t* player)
 		ViewHeight = FixedMul(player->mo->height, 47981);
 	
 	// Calculate bobbing
-	player->bob = ((FixedMul(player->FakeMom[0], player->FakeMom[0]) + FixedMul(player->FakeMom[1], player->FakeMom[1]))) >> 2;
+		// Middle
+	if (!player->ProfileEx || (player->ProfileEx && player->ProfileEx->BobMode == 1))
+	{
+		AvgMomX = (player->FakeMom[0] + player->mo->momx) >> 1;
+		AvgMomY = (player->FakeMom[1] + player->mo->momy) >> 1;
+	}
+		// Doom
+	else if (player->ProfileEx && player->ProfileEx->BobMode == 0)
+	{
+		AvgMomX = player->mo->momx;
+		AvgMomY = player->mo->momy;
+	}
+		// Effort
+	else if (player->ProfileEx && player->ProfileEx->BobMode == 2)
+	{
+		AvgMomX = player->FakeMom[0];
+		AvgMomY = player->FakeMom[1];
+	}
+		// No Bobbing
+	else
+	{
+		AvgMomX = 0;
+		AvgMomY = 0;
+	}
+	
+	player->bob = ((FixedMul(AvgMomX, AvgMomX) + FixedMul(AvgMomY, AvgMomY))) >> 2;
 	
 	if (player->bob > MAXBOB)
 		player->bob = MAXBOB;

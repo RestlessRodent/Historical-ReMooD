@@ -189,6 +189,7 @@ D_ProfileEx_t* D_CreateProfileEx(const char* const a_Name)
 	
 	// Default other options
 	New->DrawPSprites = true;
+	New->BobMode = 1;							// Middle bobbing mode
 	
 	/* Link */
 	if (!l_FirstProfile)

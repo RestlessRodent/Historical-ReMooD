@@ -211,12 +211,6 @@ bool_t G_DEMO_Vanilla_StartPlaying(struct G_CurrentDemo_s* a_Current)
 		}
 	}
 	
-	// Other Settings
-	P_EXGSSetValue(true, PEXGSBID_GAMETEAMDAMAGE, 1);
-	P_EXGSSetValue(true, PEXGSBID_GAMEHERETICGIBBING, 0);
-	P_EXGSSetValue(true, PEXGSBID_GAMEAIRFRICTION, 0);	// No movement in air!
-	P_EXGSSetValue(true, PEXGSBID_COLASTLOOKMAXPLAYERS, 4);	// Only 4 MAXPLAYERS
-	
 	if (Data->MultiPlayer)	// multiplayer/netgame
 		P_EXGSSetValue(true, PEXGSBID_COMULTIPLAYER, 1);
 	else
@@ -239,6 +233,7 @@ bool_t G_DEMO_Vanilla_StartPlaying(struct G_CurrentDemo_s* a_Current)
 			playeringame[i] = true;
 			
 			// Initialize Player
+			G_AddPlayer(i);
 			G_InitPlayer(&players[i]);
 			
 			// Set Color

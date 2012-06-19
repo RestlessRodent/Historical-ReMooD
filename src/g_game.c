@@ -1396,6 +1396,9 @@ player_t* G_AddPlayer(int playernum)
 	player_t* p = &players[playernum];
 	playeringame[playernum] = true;
 	
+	/* Wipe */
+	memset(p, 0, sizeof(*p));
+	
 	/* Initialize */
 	p->playerstate = PST_REBORN;
 	p->weaponinfo = wpnlev1info;

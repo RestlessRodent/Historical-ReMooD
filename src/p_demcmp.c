@@ -1265,6 +1265,19 @@ bool_t P_EXGSSetVersionLevel(const uint32_t a_Level)
 		P_EXGSSetValue(false, l_GSVars[i].BitID, l_GSVars[i].DemoVal[IsTrue]);
 	}
 	
+	/* Complex stuff */
+	if (a_Level <= 109)
+		P_EXGSSetValue(true, PEXGSBID_GAMETEAMDAMAGE, 1);
+	
+	if (a_Level <= 109)
+		P_EXGSSetValue(true, PEXGSBID_GAMEHERETICGIBBING, 0);
+		
+	if (a_Level <= 109)
+		P_EXGSSetValue(true, PEXGSBID_GAMEAIRFRICTION, 0);
+		
+	if (a_Level <= 109)
+		P_EXGSSetValue(true, PEXGSBID_COLASTLOOKMAXPLAYERS, 4);
+	
 	return true;
 }
 
