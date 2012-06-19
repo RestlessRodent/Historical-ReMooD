@@ -1668,6 +1668,7 @@ void D_DoomMain(void)
 	D_ProfileEx_t* GuestProf;
 	char* PWADArg = NULL;
 	char WADPath[256];
+	char* v;
 	
 	// GhostlyDeath <November 18, 2008> -- Move devparm up here
 	devparm = M_CheckParm("-devparm");
@@ -1786,8 +1787,16 @@ void D_DoomMain(void)
 			// See if we can find it on the disk
 			if (PWADArg)
 			{
+				// Get argument and strip @ (direct decoder choice)
+				memset(file, 0, sizeof(file));
+				strncpy(file, PWADArg, 255);
+				v = strchr(file, '@');
+				
+				if (v)
+					*v = 0;
+				
 				// It was found, add it
-				if (WL_LocateWAD(PWADArg, NULL, WADPath, 256))
+				if (WL_LocateWAD(file, NULL, WADPath, 256))
 				{
 					// Add it
 					D_AddFile(WADPath);

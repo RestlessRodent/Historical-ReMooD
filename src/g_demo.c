@@ -40,6 +40,7 @@
 #include "m_misc.h"
 #include "m_argv.h"
 #include "p_setup.h"
+#include "r_main.h"
 
 /**********************
 *** VANILLA FACTORY ***
@@ -820,10 +821,11 @@ void G_DemoQueue(const char* const a_Name)
 /* G_PlayNextQ() -- Play next in Q */
 bool_t G_PlayNextQ(void)
 {
-	char DOSName[14];
+	char DOSName[32];
 	G_DemoLink_t* QNext;
 	size_t i, j, k, n;
 	char c;
+	char* At;
 	
 	/* Check */
 	if (!l_DemoQ)
@@ -846,19 +848,33 @@ bool_t G_PlayNextQ(void)
 			if (j < 8)
 				DOSName[j++] = toupper(c);
 		}
+		
+		// Special specifier
+		if (c == '@')
+			break;
 
 		// Is the character a dot?
 		if (c == '.')
 			break;
 	}
 	
+	// At sign in original name?
+	At = strchr(l_DemoQ->Name, '@');
+	
 	// Free current, Set Next
 	Z_Free(l_DemoQ->Name);
 	Z_Free(l_DemoQ);
 	l_DemoQ = QNext;
 	
-	// Play it
-	G_DeferedPlayDemo(DOSName);//G_DoPlayDemo(DOSName);
+	// Append anything that was after the @ sign
+	if (At)
+	{
+		strncat(DOSName, "@", 32);
+		strncat(DOSName, ++At, 32);
+	}
+	
+	// Use specified name
+	G_DeferedPlayDemo(DOSName);
 	return true;
 }
 
@@ -1058,17 +1074,39 @@ void G_BeginRecording(const char* const a_Output, const char* const a_FactoryNam
 /* G_DoPlayDemo() -- Plays demo */
 void G_DoPlayDemo(char* defdemoname)
 {
+	char Base[12];
 	const WL_WADEntry_t* Entry;
 	WL_EntryStream_t* Stream;
 	G_CurrentDemo_t* Demo;
-	const char* at;
+	char* At;
+	const G_DemoFactory_t* Factory;
 	
 	/* Check */
 	if (!defdemoname)
 		return;
 	
+	/* At sign in name? */
+	// Get Base name
+	memset(Base, 0, sizeof(Base));
+	strncpy(Base, defdemoname, 11);
+	
+	// Find it
+	At = strchr(Base, '@');
+	
+	if (At)
+	{
+		*(At++) = 0;
+	
+		// Find Factory
+		Factory = G_DemoFactoryByName(defdemoname + (At - Base));
+	}
+	
+	// No Factory specified
+	else
+		Factory = NULL;
+	
 	/* Find entry of demo */
-	Entry = WL_FindEntry(NULL, 0, defdemoname);
+	Entry = WL_FindEntry(NULL, 0, Base);
 	
 	// Not found?
 	if (!Entry)
@@ -1085,7 +1123,7 @@ void G_DoPlayDemo(char* defdemoname)
 	G_StopDemoPlay();
 	
 	/* Play demo in any factory */
-	Demo = G_DemoPlay(Stream, NULL);
+	Demo = G_DemoPlay(Stream, Factory);
 	
 	// Failed?
 	if (!Demo)
