@@ -132,6 +132,7 @@ void TryRunTics(tic_t realtics)
 {
 	static tic_t LastTic;
 	tic_t LocalTic, TargetTic;
+	int STRuns;
 	
 	tic_t XXLocalTic, XXSNAR;
 
@@ -164,6 +165,7 @@ void TryRunTics(tic_t realtics)
 	}
 	
 	/* While the client is behind, update it to catch up */
+	STRuns = 0;
 	do
 	{
 		// If demo needs advancing
@@ -177,7 +179,7 @@ void TryRunTics(tic_t realtics)
 		LocalTic = I_GetTime();
 		
 		// Update the client if it is needed
-		if (LocalTic > LastTic)
+		if (singletics || LocalTic > LastTic)
 		{
 			// While the game is behind, update it
 			while ((XXLocalTic = D_SyncNetMapTime()) < (XXSNAR = D_SyncNetAllReady()))
@@ -194,16 +196,21 @@ void TryRunTics(tic_t realtics)
 				
 				// Increase local time
 				D_SyncNetSetMapTime(++XXLocalTic);
+				
+				// Single tics? -timedemo
+				if (singletics)
+					break;
 			}
 		}
 		
 		// Otherwise no updating is needed
 		else
 		{
-			I_WaitVBL(20);
+			if (!singletics)
+				I_WaitVBL(20);
 		}
 	}
-	while (LocalTic < LastTic);
+	while (!singletics && LocalTic < LastTic);
 	
 #if 0
 	if (neededtic > gametic)
@@ -280,6 +287,9 @@ void NetUpdate(void)
 	nowtime = D_GetTics();		//I_GetTime();
 	realtics = nowtime - gametime;
 	g_ProgramTic = I_GetTimeMS() / TICRATE;	//nowtime;
+	
+	if (singletics)
+		realtics = 1;
 	
 	if (realtics <= 0)			// nothing new to update
 		return;

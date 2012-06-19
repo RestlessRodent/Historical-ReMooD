@@ -50,6 +50,7 @@
 #include "d_main.h"
 #include "m_menu.h"
 #include "r_main.h"
+#include "doomstat.h"
 
 /*************
 *** LOCALS ***
@@ -163,6 +164,10 @@ tic_t D_SyncNetAllReady(void)
 #endif
 	
 	/*** END BIG HACK AREA ***/
+	
+	/* -timedemo */
+	if (singletics)
+		return l_MapTime + 1;
 	
 	/* If we are the server, we dictate time */
 	if (D_SyncNetIsArbiter())

@@ -1200,6 +1200,19 @@ bool_t P_EXGSRegisterStuff(void)
 /* P_EXGSSetAllDefaults() -- Set all values to defaults */
 bool_t P_EXGSSetAllDefaults(void)
 {
+	size_t i;
+	
+	/* Run through the list */
+	for (i = 0; i < PEXGSNUMBITIDS; i++)
+	{
+		// Clear values and unset
+		l_GSVars[i].WasSet = 0;
+		l_GSVars[i].ActualVal = 0;
+		
+		// Recreate string
+		PS_EXGSValToStr(&l_GSVars[i]);
+	}
+	
 	return true;
 }
 

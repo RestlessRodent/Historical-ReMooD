@@ -263,7 +263,7 @@ void D_Display(void)
 	}
 	// GhostlyDeath <June 16, 2010> -- Only wipe if we set screen link (otherwise cleanup is never done)
 	// save the current screen if about to wipe
-	if (cv_screenslink.value && gamestate != wipegamestate)
+	if (!singletics && cv_screenslink.value && gamestate != wipegamestate)
 	{
 		wipe = true;
 		wipe_StartScreen(0, 0, vid.width, vid.height);
@@ -1778,7 +1778,8 @@ void D_DoomMain(void)
 	}
 	
 	// GhostlyDeath <June 18, 2012> -- Demo Queues (woo!)
-	if (M_CheckParm("-playdemo"))
+	singletics = M_CheckParm("-timedemo");
+	if (M_CheckParm("-playdemo") || M_CheckParm("-timedemo"))
 		while (M_IsNextParm())
 		{
 			// Get it
