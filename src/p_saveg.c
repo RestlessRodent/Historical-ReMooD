@@ -6202,8 +6202,8 @@ static bool_t PS_SGDXReadWriteData(D_RBlockStream_t* const a_Stream, const bool_
 	/* Get IO */
 	IO = &c_IOTable[a_CType];
 	
-	if (devparm)
-		fprintf(stderr, "%s %2u %2u (%2u)\n", (a_Load ? "Read" : "Write"), (unsigned)a_CType, (unsigned)a_RType, (unsigned)a_Size);
+	//if (devparm)
+	//	fprintf(stderr, "%s %2u %2u (%2u)\n", (a_Load ? "Read" : "Write"), (unsigned)a_CType, (unsigned)a_RType, (unsigned)a_Size);
 	
 	/* Use Function */
 	if (IO->IOFunc)

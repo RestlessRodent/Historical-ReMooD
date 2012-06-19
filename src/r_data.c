@@ -760,6 +760,7 @@ static bool_t RS_TextureOrderChange(const bool_t a_Pushed, const struct WL_WADFi
 				
 				// Set combined order
 				textures[i]->CombinedOrder = (OrderMul << 16) + textures[i]->InternalOrder;
+				textures[i]->OrderMul = OrderMul;
 			}
 			
 			// Unset first
@@ -789,12 +790,14 @@ static bool_t RS_TextureOrderChange(const bool_t a_Pushed, const struct WL_WADFi
 	
 				FoundID = (uintptr_t)Z_HashFindEntry(l_TextureHashes, Hash, &TCF, false);
 				
-				// If it was found, then do not mark it
+				// If it was found, do not mark it
 				if (FoundID)
 					continue;
 				
-				// Found so mark it and increase total
+				// Not Found so mark it and increase total
 				Holder->Textures[i].Marked = true;
+				Holder->Textures[i].OrderMul = OrderMul;
+				Holder->Textures[i].CombinedOrder = (OrderMul << 16) + Holder->Textures[i].InternalOrder;
 				y++;
 			}
 			
@@ -817,7 +820,6 @@ static bool_t RS_TextureOrderChange(const bool_t a_Pushed, const struct WL_WADFi
 					{
 						// Reference then set order
 						textures[b] = &Holder->Textures[i];
-						textures[b]->CombinedOrder = (OrderMul << 16) + textures[i]->InternalOrder;
 						
 						// Increment b, the base write index
 						b++;

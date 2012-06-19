@@ -78,6 +78,8 @@
 #include "i_util.h"
 #include "p_demcmp.h"
 
+#include "r_data.h"
+
 /*******************************************************************************
 ********************************************************************************
 *******************************************************************************/
@@ -153,6 +155,8 @@ typedef struct M_UIMenu_s
 	size_t NumItems;							// Number of Items
 	
 	void (*CleanerFunc)(struct M_UIMenuHandler_s* const a_Handler, struct M_UIMenu_s* const a_UIMenu);
+	bool_t (*UnderDrawFunc)(struct M_UIMenuHandler_s* const a_Handler, struct M_UIMenu_s* const a_Menu, const int32_t a_X, const int32_t a_Y, const int32_t a_W, const int32_t a_H);
+	bool_t (*OverDrawFunc)(struct M_UIMenuHandler_s* const a_Handler, struct M_UIMenu_s* const a_Menu, const int32_t a_X, const int32_t a_Y, const int32_t a_W, const int32_t a_H);
 } M_UIMenu_t;
 
 /* M_UIMenuHandler_t -- Menu Handler */
@@ -221,6 +225,93 @@ M_UIMenuHandler_t* M_ExPushMenu(const uint8_t a_Player, M_UIMenu_t* const a_UI);
 
 /*** MENU FUNCTIONS ***/
 
+/* MS_TextureTestUnderDraw() -- Menu Under Drawer */
+static bool_t MS_TextureTestUnderDraw(struct M_UIMenuHandler_s* const a_Handler, struct M_UIMenu_s* const a_Menu, const int32_t a_X, const int32_t a_Y, const int32_t a_W, const int32_t a_H)
+{
+#define BUFSIZE 32
+	texture_t* Texture;
+	char Buf[BUFSIZE];
+	int32_t i;
+	
+	/* Check */
+	if (!a_Menu)
+		return;
+	
+	/* Get Texture Reference */
+	Texture = textures[a_Menu->Items[a_Handler->CurItem].DataBits];
+	
+	/* Draw Texture */
+	// Flat
+	if (Texture->IsFlat)
+	{
+		if (R_GetFlat(a_Menu->Items[a_Handler->CurItem].DataBits))
+			V_ImageDraw(0, Texture->FlatImage, a_X + (a_W >> 1), a_Y + ((a_H - Texture->height) - 5), NULL);
+	}
+	
+	// Wall
+	else
+	{
+	}
+	
+	/* Draw Info */
+	// Type
+	V_DrawStringA(VFONT_SMALL, VFO_COLOR(VEX_MAP_WHITE), (Texture->IsFlat ? "Flat" : "Wall"), a_X + (a_W >> 1), a_Y + 10);
+	
+	// Other Stuff
+	for (i = 0; i <= 7; i++)
+	{
+		// Clear
+		memset(Buf, 0, sizeof(Buf));
+		
+		// Set
+		switch (i)
+		{
+			case 1:
+				snprintf(Buf, BUFSIZE - 1, "Cb: %u", Texture->CombinedOrder);
+				break;
+			
+			case 2:
+				snprintf(Buf, BUFSIZE - 1, "Io: %u", Texture->InternalOrder);
+				break;
+			
+			case 3:
+				snprintf(Buf, BUFSIZE - 1, "w&: %x", Texture->WidthMask);
+				break;
+				
+			case 4:
+				snprintf(Buf, BUFSIZE - 1, "tr: %i", Texture->Translation);
+				break;
+				
+			case 5:
+				snprintf(Buf, BUFSIZE - 1, "cs: %u", Texture->CacheSize);
+				break;
+				
+			case 6:
+				snprintf(Buf, BUFSIZE - 1, "om: %u", Texture->OrderMul);
+				break;
+			
+			case 7:
+				if (!Texture->FlatEntry)
+					snprintf(Buf, BUFSIZE - 1, "PW: ---");
+				else
+					snprintf(Buf, BUFSIZE - 1, "PW: %s", (((const WL_WADEntry_t*)Texture->FlatEntry)->Owner->__Private.__DOSName));
+				break;
+				
+			case 0:
+			default:
+				snprintf(Buf, BUFSIZE - 1, "Dx: %ix%i", Texture->width, Texture->height);
+				break;
+		}
+		
+		// Draw
+		V_DrawStringA(VFONT_SMALL, VFO_COLOR(VEX_MAP_WHITE), Buf, a_X + (a_W >> 1), a_Y + (10 * (i + 2)));
+	}
+	
+	/* Keep Drawing */
+	return true;
+#undef BUFSIZE
+}
+
 /* MS_ExGeneralComm() -- Menu Commands */
 static CONL_ExitCode_t MS_ExGeneralComm(const uint32_t a_ArgC, const char** const a_ArgV)
 {
@@ -266,8 +357,31 @@ static CONL_ExitCode_t MS_ExGeneralComm(const uint32_t a_ArgC, const char** cons
 		"{x7fPink (x7f)",
 	};
 	
+	/* Texture Test */
+	if (strcasecmp(a_ArgV[0], "menutexturetest") == 0)
+	{
+		// Allocate
+		New = Z_Malloc(sizeof(*New), PU_STATIC, NULL);
+	
+		// Quick
+		New->NumItems = numtextures;
+		New->Items = Z_Malloc(sizeof(*New->Items) * New->NumItems, PU_STATIC, NULL);
+		New->CleanerFunc = NULL;
+		New->UnderDrawFunc = MS_TextureTestUnderDraw;
+		
+		// Set Strings
+		for (i = 0; i < numtextures; i++)
+		{
+			New->Items[i].Menu = New;
+			New->Items[i].Text = textures[i]->name;
+			New->Items[i].DataBits = i;
+		}
+		
+		M_ExPushMenu(0, New);
+	}
+	
 	/* Color Test */
-	if (strcasecmp(a_ArgV[0], "menucolortest") == 0)
+	else if (strcasecmp(a_ArgV[0], "menucolortest") == 0)
 	{
 		// Allocate
 		New = Z_Malloc(sizeof(*New), PU_STATIC, NULL);
@@ -298,6 +412,7 @@ void M_MenuExInit(void)
 	CONL_VarRegister(&l_MenuValColor);
 	
 	CONL_AddCommand("menucolortest", MS_ExGeneralComm);
+	CONL_AddCommand("menutexturetest", MS_ExGeneralComm);
 }
 
 /* M_ExMenuHandleEvent() -- Handles Menu Events */
@@ -548,6 +663,11 @@ void M_ExMenuDrawer(void)
 		// Get UI
 		UI = TopMenu->UIMenu;
 		
+		// Draw underneath
+		if (UI->UnderDrawFunc)
+			if (!UI->UnderDrawFunc(TopMenu, UI, ScrX, ScrY, ScrW, ScrH))
+				continue;
+		
 		// Draw Title
 		V_DrawStringA(VFONT_LARGE, 0, "Title", 0, 2);
 		
@@ -635,6 +755,11 @@ void M_ExMenuDrawer(void)
 					);
 			}
 		}
+		
+		// Draw over
+		if (UI->OverDrawFunc)
+			if (!UI->OverDrawFunc(TopMenu, UI, ScrX, ScrY, ScrW, ScrH))
+				continue;
 	}
 }
 

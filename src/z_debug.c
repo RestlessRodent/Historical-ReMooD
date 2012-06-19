@@ -129,7 +129,7 @@ bool_t ZP_DEBUG_NewZone(size_t* const SizePtr, Z_DEBUG_MemZone_t** const ZoneRef
 	ShiftSize = *SizePtr >> PARTSHIFT;
 	
 	/* Create an empty zone */
-	NewZone = malloc(sizeof(*NewZone));
+	NewZone = I_SysAlloc(sizeof(*NewZone));
 	
 	// Failed?
 	if (!NewZone)
@@ -139,12 +139,12 @@ bool_t ZP_DEBUG_NewZone(size_t* const SizePtr, Z_DEBUG_MemZone_t** const ZoneRef
 	memset(NewZone, 0, sizeof(*NewZone));
 	
 	/* Create huge chunk zone */
-	NewZone->DataChunk = malloc(ShiftSize << PARTSHIFT);
+	NewZone->DataChunk = I_SysAlloc(ShiftSize << PARTSHIFT);
 	
 	// Failed?
 	if (!NewZone->DataChunk)
 	{
-		free(NewZone);
+		I_SysFree(NewZone);
 		return false;
 	}
 	
@@ -152,13 +152,13 @@ bool_t ZP_DEBUG_NewZone(size_t* const SizePtr, Z_DEBUG_MemZone_t** const ZoneRef
 	memset(NewZone->DataChunk, 0, ShiftSize << PARTSHIFT);
 	
 	/* Create initial partitions */
-	NewZone->PartitionList = malloc(sizeof(*NewZone->PartitionList) * INITPARTCOUNT);
+	NewZone->PartitionList = I_SysAlloc(sizeof(*NewZone->PartitionList) * INITPARTCOUNT);
 	
 	// Failed?
 	if (!NewZone->PartitionList)
 	{
-		free(NewZone->DataChunk);
-		free(NewZone);
+		I_SysFree(NewZone->DataChunk);
+		I_SysFree(NewZone);
 		return false;
 	}
 	// Clear it out
@@ -239,7 +239,7 @@ void ZP_DEBUG_PartitionSplit(Z_DEBUG_MemPartition_t* const ToSplit, Z_DEBUG_MemP
 	if (l_MainZone->NumPartitions >= (l_MainZone->MaxPartitions - (INITPARTCOUNT >> 2)))
 	{
 		// Allocate
-		NewList = malloc(sizeof(Z_DEBUG_MemPartition_t) * (l_MainZone->MaxPartitions + INITPARTCOUNT));
+		NewList = I_SysAlloc(sizeof(Z_DEBUG_MemPartition_t) * (l_MainZone->MaxPartitions + INITPARTCOUNT));
 		
 		// Only if we successfully created a new list
 		if (NewList)
@@ -251,7 +251,7 @@ void ZP_DEBUG_PartitionSplit(Z_DEBUG_MemPartition_t* const ToSplit, Z_DEBUG_MemP
 			memmove(NewList, l_MainZone->PartitionList, sizeof(Z_DEBUG_MemPartition_t) * l_MainZone->MaxPartitions);
 			
 			// Free old stuff
-			free(l_MainZone->PartitionList);
+			I_SysFree(l_MainZone->PartitionList);
 			
 			// Set new list data
 			l_MainZone->PartitionList = NewList;

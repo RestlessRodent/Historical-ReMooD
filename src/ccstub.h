@@ -112,6 +112,13 @@
 	#define strlen StrLen
 	#define strcat StrCat
 	#define strncat StrNCat
+	#define strncpy StrNCopy
+	#define strcpy StrCopy
+	//#define isalnum TxtCharIsAlNum
+	//#define isspace TxtCharIsSpace
+	//#define isdigit TxtCharIsDigit
+	//#define isxdigit TxtCharIsHex
+	#define strchr StrChr
 #endif
 
 /*****************

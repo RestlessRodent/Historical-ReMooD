@@ -396,6 +396,15 @@ do
 				wget -c http://remood.org/downloads/arm-palmos-gcc-floatlib.o -O arm-palmos-gcc-floatlib.o
 			fi
 			
+			# Download Boot Lib
+			echo "$COOLPREFIX Checking for libarmboot.a" 1>&2
+			if [ ! -f "libarmboot.a" ]
+			then
+				# Download from remood.org and gunzip
+				wget -c http://remood.org/downloads/libarmboot.a.gz -O libarmboot.a.gz
+				gunzip libarmboot.a.gz
+			fi
+			
 			# Check if peal needs to be extracted
 			echo "$COOLPREFIX Checking for PEAL" 1>&2
 			if  [ ! -d "peal-2005_4_14" ]
@@ -474,7 +483,7 @@ do
 			# Compile ReMooD Now
 			echo "$COOLPREFIX Now Compiling..." 1>&2
 			make clean USEINTERFACE=palmos TOOLPREFIX="arm-palmos-"
-			if ! make USEINTERFACE=palmos TOOLPREFIX="arm-palmos-" CFLAGS="-Iparm -Ipeal-2005_4_14/arm"
+			if ! make USEINTERFACE=palmos TOOLPREFIX="arm-palmos-" CFLAGS="-Iparm -Ipeal-2005_4_14/arm" LDFLAGS="-lc libarmboot.a"
 			then
 				echo "$COOLPREFIX Failed" 1>&2
 				exit 1

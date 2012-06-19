@@ -131,6 +131,7 @@
      #define MINIZ_HAS_64BIT_REGISTERS 1
 */
 
+#include "doomtype.h"
 #include "z_zone.h"
 
 // Use these
@@ -142,7 +143,10 @@
 #ifndef MINIZ_HEADER_INCLUDED
 #define MINIZ_HEADER_INCLUDED
 
-#include <stdlib.h>
+#if defined(__palmos__)
+#else
+	#include <stdlib.h>
+#endif
 
 #if !defined(MINIZ_NO_TIME) && !defined(MINIZ_NO_ARCHIVE_APIS)
 #include <time.h>

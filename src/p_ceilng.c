@@ -319,7 +319,7 @@ int EV_DoCeiling(line_t* line, ceiling_e type)
 //SoM: 3/6/2000: Take advantage of the new Boom method for active ceilings.
 void P_AddActiveCeiling(ceiling_t* ceiling)
 {
-	ceilinglist_t* list = malloc(sizeof *list);
+	ceilinglist_t* list = Z_Malloc(sizeof *list, PU_STATIC, NULL);
 	
 	list->ceiling = ceiling;
 	ceiling->list = list;
@@ -341,7 +341,7 @@ void P_RemoveActiveCeiling(ceiling_t* ceiling)
 	P_RemoveThinker(&ceiling->thinker);
 	if ((*list->prev = list->next))
 		list->next->prev = list->prev;
-	free(list);
+	Z_Free(list);
 }
 
 //

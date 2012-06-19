@@ -125,10 +125,12 @@ typedef struct
 	void* FlatEntry;							// Entry for flat
 	bool_t Marked;								// Marked?
 	void* FlatImage;							// Image for flat
+	uint16_t OrderMul;							// Order Multiplier
 } texture_t;
 
 // all loaded and prepared textures from the start of the game
 extern texture_t** textures;
+extern int numtextures;
 
 //extern lighttable_t    *colormaps;
 extern CV_PossibleValue_t Color_cons_t[];
