@@ -800,7 +800,7 @@ static P_EXGSVariable_t l_GSVars[PEXGSNUMBITIDS] =
 	
 	{PEXGST_INTEGER, PEXGSBID_COMULTIPLAYER, "co_multiplayer", "Multi-Player Mode",
 		"Enables multiplayer mode checks.", PEXGSGM_ANY, PEXGSDR_NOCHECK, 0, {0, 1}, 0,
-		PEXGSMC_COMPAT, PEXGSDA_INTEGER, c_PEXGSPVBoolean, NULL},
+		PEXGSMC_COMPAT, PEXGSDA_YESNO, c_PEXGSPVBoolean, NULL},
 	
 	{PEXGST_INTEGER, PEXGSBID_COBOOMSUPPORT, "co_boomsupport", "Boom Support",
 		"Allows changes used from Boom in certain areas. [Legacy >= ].32]", PEXGSGM_ANY, PEXGSDR_ATLEAST, 132, {0, 1}, 1,
@@ -1055,7 +1055,7 @@ static CONL_ExitCode_t PS_EXGSGeneralComm(const uint32_t a_ArgC, const char** co
 		// Otherwise
 		else
 		{	
-			P_EXGSSetVersionLevel(atoi(a_ArgV[1]));
+			P_EXGSSetVersionLevel(false, atoi(a_ArgV[1]));
 		}
 		
 		// Success!
@@ -1217,7 +1217,7 @@ bool_t P_EXGSSetAllDefaults(void)
 }
 
 /* P_EXGSSetVersionLevel() -- Set version level to a specific compatibility level */
-bool_t P_EXGSSetVersionLevel(const uint32_t a_Level)
+bool_t P_EXGSSetVersionLevel(const bool_t a_Master, const uint32_t a_Level)
 {
 	size_t i;
 	bool_t IsTrue;
@@ -1275,21 +1275,21 @@ bool_t P_EXGSSetVersionLevel(const uint32_t a_Level)
 			}
 		
 		// Set value
-		P_EXGSSetValue(false, l_GSVars[i].BitID, l_GSVars[i].DemoVal[IsTrue]);
+		P_EXGSSetValue(a_Master, l_GSVars[i].BitID, l_GSVars[i].DemoVal[IsTrue]);
 	}
 	
 	/* Complex stuff */
 	if (a_Level <= 109)
-		P_EXGSSetValue(true, PEXGSBID_GAMETEAMDAMAGE, 1);
+		P_EXGSSetValue(a_Master, PEXGSBID_GAMETEAMDAMAGE, 1);
 	
 	if (a_Level <= 109)
-		P_EXGSSetValue(true, PEXGSBID_GAMEHERETICGIBBING, 0);
+		P_EXGSSetValue(a_Master, PEXGSBID_GAMEHERETICGIBBING, 0);
 		
 	if (a_Level <= 109)
-		P_EXGSSetValue(true, PEXGSBID_GAMEAIRFRICTION, 0);
+		P_EXGSSetValue(a_Master, PEXGSBID_GAMEAIRFRICTION, 0);
 		
 	if (a_Level <= 109)
-		P_EXGSSetValue(true, PEXGSBID_COLASTLOOKMAXPLAYERS, 4);
+		P_EXGSSetValue(a_Master, PEXGSBID_COLASTLOOKMAXPLAYERS, 4);
 	
 	return true;
 }

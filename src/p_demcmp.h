@@ -313,7 +313,7 @@ int32_t P_EXGSGetNextValue(const P_EXGSBitID_t a_Bit, const bool_t a_Right);
 // General Functions
 bool_t P_EXGSRegisterStuff(void);
 bool_t P_EXGSSetAllDefaults(void);
-bool_t P_EXGSSetVersionLevel(const uint32_t a_Level);
+bool_t P_EXGSSetVersionLevel(const bool_t a_Master, const uint32_t a_Level);
 int32_t P_EXGSSetValue(const bool_t a_Master, const P_EXGSBitID_t a_Bit, const int32_t a_Value);
 int32_t P_EXGSSetValueStr(const bool_t a_Master, const P_EXGSBitID_t a_Bit, const char* const a_Value);
 

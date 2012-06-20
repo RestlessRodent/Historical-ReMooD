@@ -798,7 +798,8 @@ void V_Init(void)
 *** LOCALS ***
 *************/
 
-static uint8_t* l_ColorMaps[NUMVEXCOLORS];	// Local colors
+static uint8_t* l_ColorMaps[NUMVEXCOLORS];		// Local colors
+static uint8_t* l_LifeBarColors;				// Life Bar Colors
 
 /*****************
 *** STRUCTURES ***
@@ -1025,6 +1026,28 @@ void V_InitializeColormaps(void)
 	const WL_WADEntry_t* Entry;
 	const char* CMAPName;
 	
+	/* Life Bars */
+	// Free
+	if (l_LifeBarColors)
+		Z_Free(l_LifeBarColors);
+	l_LifeBarColors = Z_Malloc(sizeof(*l_LifeBarColors) * 200, PU_STATIC, NULL);
+	
+	// Which?
+	if (g_CoreGame == COREGAME_DOOM)
+		CMAPName = "RMD_PLBD";
+	else if (g_CoreGame == COREGAME_HERETIC)
+		CMAPName = "RMD_PLBH";
+	else
+		CMAPName = NULL;
+		
+	// Get
+	Entry = WL_FindEntry(NULL, 0, CMAPName);
+		
+	// Constant read in the lump
+	if (Entry)
+		for (i = 0; i < 200; i++)
+			WL_ReadData(Entry, i, &l_LifeBarColors[i], sizeof(l_LifeBarColors[i]));
+	
 	/* Destroy old maps */
 	for (i = 0; i < (NUMVEXCOLORS * 2); i++)
 		if (l_ColorMaps[i])
@@ -1056,15 +1079,12 @@ void V_InitializeColormaps(void)
 	
 	// Get
 	Entry = WL_FindEntry(NULL, 0, CMAPName);
-	
-	// Failed?
-	if (!Entry)
-		return;
 		
 	/* Constant read in the lump and set the translation stuff */
-	for (m = 0, i = 0; i < (NUMVEXCOLORS * 2); i++)
-		for (j = 0; j < 256 && m < Entry->Size; j++, m++)
-			WL_ReadData(Entry, m, &l_ColorMaps[i][j], sizeof(l_ColorMaps[i][j]));
+	if (Entry)
+		for (m = 0, i = 0; i < (NUMVEXCOLORS * 2); i++)
+			for (j = 0; j < 256 && m < Entry->Size; j++, m++)
+				WL_ReadData(Entry, m, &l_ColorMaps[i][j], sizeof(l_ColorMaps[i][j]));
 }
 
 /* V_DrawFadeConsBackEx() -- Pixelate and add red tint */

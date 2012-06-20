@@ -1302,8 +1302,8 @@ bool_t P_ExFinalizeLevel(void)
 	B_InitNodes();
 	
 	/* Initialize Player */
-	for (i = 0; i < MAXPLAYERS; i++)
-		G_InitPlayer(&players[i]);
+	//for (i = 0; i < MAXPLAYERS; i++)
+	//	G_InitPlayer(&players[i]);
 	
 	// clear hud messages remains (usually from game startup)
 	CON_ClearHUD();

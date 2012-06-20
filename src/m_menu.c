@@ -451,7 +451,7 @@ bool_t M_ExMenuHandleEvent(const I_EventEx_t* const a_Event)
 				continue;
 			
 			// Waiting on OSK?
-			if (gametic < TopMenu->OSKWait)
+			if (g_ProgramTic < TopMenu->OSKWait)
 				continue;
 			
 			// Move menu up/down?
@@ -467,7 +467,7 @@ bool_t M_ExMenuHandleEvent(const I_EventEx_t* const a_Event)
 				continue;
 			
 			// Handled somewhere
-			TopMenu->OSKWait = gametic + (TICRATE >> 2);
+			TopMenu->OSKWait = g_ProgramTic + (TICRATE >> 2);
 		}
 		
 		// Normal Menu access (Only by Player 1)
@@ -698,7 +698,7 @@ void M_ExMenuDrawer(void)
 			
 			// Draw Cursor
 			if (j == TopMenu->CurItem)
-				if (gametic & 0x4)
+				if (g_ProgramTic & 0x4)
 					V_DrawCharacterMB(
 						l_MenuFont.Value[0].Int,
 						VFO_COLOR(VEX_MAP_BRIGHTWHITE),
@@ -715,7 +715,7 @@ void M_ExMenuDrawer(void)
 				// Selected (Show indicator)
 				if (j == TopMenu->CurItem)
 				{
-					if (gametic & 0x8)
+					if (g_ProgramTic & 0x8)
 						DrawFlags |= VFO_COLOR(VEX_MAP_YELLOW);
 					else
 						DrawFlags |= VFO_COLOR(VEX_MAP_RED);
@@ -1253,14 +1253,14 @@ void M_ExUIDrawer(void)
 				{
 					if (DisableDraw)
 					{
-						if (gametic & 0x8)
+						if (g_ProgramTic & 0x8)
 							a_Flags = VFO_COLOR(VEX_MAP_BLACK);
 						else
 							a_Flags = VFO_COLOR(VEX_MAP_WHITE);
 					}
 					else
 					{
-						if (gametic & 0x8)
+						if (g_ProgramTic & 0x8)
 							a_Flags = VFO_COLOR(VEX_MAP_RED);
 						else
 							a_Flags = VFO_COLOR(VEX_MAP_YELLOW);

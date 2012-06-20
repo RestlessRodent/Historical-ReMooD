@@ -47,7 +47,7 @@
 **********************/
 // Handles 1.0 through 1.9 demos
 
-/* D_VanillaDemoData_t -- Vanilla Data */
+/* G_VanillaDemoData_t -- Vanilla Data */
 typedef struct G_VanillaDemoData_s
 {
 	uint8_t VerMarker;
@@ -57,7 +57,8 @@ typedef struct G_VanillaDemoData_s
 	bool_t LongTics;
 	D_RBlockStream_t* PMPStream;				// Debug Stream
 	bool_t WroteHeader;							// Wrote header
-} D_VanillaDemoData_t;
+	bool_t EndDemo;								// EndDemo
+} G_VanillaDemoData_t;
 
 /* G_DEMO_Vanilla_StartPlaying() -- Starts playing Vanilla Demo */
 bool_t G_DEMO_Vanilla_StartPlaying(struct G_CurrentDemo_s* a_Current)
@@ -67,7 +68,7 @@ bool_t G_DEMO_Vanilla_StartPlaying(struct G_CurrentDemo_s* a_Current)
 	uint8_t VerMarker;
 	uint8_t Skill, Episode, Map, Players[4];
 	uint8_t Deathmatch, Respawn, Fast, NoMonsters, POV;
-	D_VanillaDemoData_t* Data;
+	G_VanillaDemoData_t* Data;
 	const char* PlName;
 	const P_LevelInfoEx_t* LevelInfo;
 	
@@ -163,7 +164,7 @@ bool_t G_DEMO_Vanilla_StartPlaying(struct G_CurrentDemo_s* a_Current)
 	
 	/* Setup Game Rules */
 	P_EXGSSetAllDefaults();
-	P_EXGSSetVersionLevel(VerMarker);
+	P_EXGSSetVersionLevel(true, VerMarker);
 	
 	// Options
 	P_EXGSSetValue(true, PEXGSBID_GAMESKILL, Data->Skill);
@@ -282,7 +283,7 @@ bool_t G_DEMO_Vanilla_StartPlaying(struct G_CurrentDemo_s* a_Current)
 /* G_DEMO_Vanilla_StopPlaying() -- Stop playing vanilla demo */
 bool_t G_DEMO_Vanilla_StopPlaying(struct G_CurrentDemo_s* a_Current)
 {
-	D_VanillaDemoData_t* Data;
+	G_VanillaDemoData_t* Data;
 	
 	/* Check */
 	if (!a_Current)
@@ -306,7 +307,7 @@ bool_t G_DEMO_Vanilla_StopPlaying(struct G_CurrentDemo_s* a_Current)
 bool_t G_DEMO_Vanilla_StartRecord(struct G_CurrentDemo_s* a_Current)
 {
 	uint8_t VerMarker;
-	D_VanillaDemoData_t* Data;
+	G_VanillaDemoData_t* Data;
 	
 	/* Check */
 	if (!a_Current)
@@ -329,7 +330,7 @@ bool_t G_DEMO_Vanilla_StartRecord(struct G_CurrentDemo_s* a_Current)
 bool_t G_DEMO_Vanilla_StopRecord(struct G_CurrentDemo_s* a_Current)
 {
 	uint8_t Marker;
-	D_VanillaDemoData_t* Data;
+	G_VanillaDemoData_t* Data;
 	
 	/* Check */
 	if (!a_Current)
@@ -357,7 +358,7 @@ bool_t G_DEMO_Vanilla_StopRecord(struct G_CurrentDemo_s* a_Current)
 /* G_DEMO_Vanilla_CheckDemo() -- See if vanilla demo is over */
 bool_t G_DEMO_Vanilla_CheckDemo(struct G_CurrentDemo_s* a_Current)
 {
-	D_VanillaDemoData_t* Data;
+	G_VanillaDemoData_t* Data;
 	
 	/* Check */
 	if (!a_Current)
@@ -368,6 +369,10 @@ bool_t G_DEMO_Vanilla_CheckDemo(struct G_CurrentDemo_s* a_Current)
 	
 	// No data?
 	if (!Data)
+		return true;
+	
+	/* Force Demo End */
+	if (Data->EndDemo)
 		return true;
 	
 	/* Playing Demo */
@@ -390,7 +395,7 @@ bool_t G_DEMO_Vanilla_CheckDemo(struct G_CurrentDemo_s* a_Current)
 /* G_DEMO_Vanilla_ReadTicCmd() -- Reads tic command from demo */
 bool_t G_DEMO_Vanilla_ReadTicCmd(struct G_CurrentDemo_s* a_Current, ticcmd_t* const a_Cmd, const int32_t a_PlayerNum)
 {
-	D_VanillaDemoData_t* Data;
+	G_VanillaDemoData_t* Data;
 	uint8_t ButtonCodes;
 	
 	uint32_t u32;
@@ -474,8 +479,10 @@ bool_t G_DEMO_Vanilla_ReadTicCmd(struct G_CurrentDemo_s* a_Current, ticcmd_t* co
 	
 	// Resort weapon over
 	a_Cmd->buttons |= ((((ButtonCodes & 0x38) >> 3)) << BT_SLOTSHIFT) & BT_SLOTMASK;
-	
-	//CONL_PrintF("%i, F: %+3d, S: %+3d, T: %+6d\n", a_PlayerNum, a_Cmd->forwardmove, a_Cmd->sidemove, a_Cmd->angleturn);
+
+	/* End of demo? */
+	if (a_Cmd->forwardmove == 0x80)
+		Data->EndDemo = true;
 	
 	/* Success! */
 	return true;
@@ -485,7 +492,7 @@ bool_t G_DEMO_Vanilla_WriteTicCmd(struct G_CurrentDemo_s* a_Current, const ticcm
 {
 	uint8_t Bits;
 	int8_t IntV, i;
-	D_VanillaDemoData_t* Data;
+	G_VanillaDemoData_t* Data;
 	
 	/* Check */
 	if (!a_Current || !a_Cmd || a_PlayerNum < 0 || a_PlayerNum >= 4)
@@ -600,12 +607,205 @@ bool_t G_DEMO_Vanilla_WriteTicCmd(struct G_CurrentDemo_s* a_Current, const ticcm
 
 /*** STRUCTURES ***/
 
+/* G_LegacyDemoData_t -- Legacy Data */
+typedef struct G_LegacyDemoData_s
+{
+	uint8_t VerMarker;							// Demo version
+	bool_t EndDemo;								// End of demo
+	
+	uint8_t Skill, Episode, Map, DM, MultiPlayer;
+	uint8_t Respawn, Fast, NoMonsters, DisplayP, TimeLimit;
+	bool_t Players[MAXPLAYERS];
+} G_LegacyDemoData_t;
+
 /*** FUNCTIONS ***/
 
 /* G_DEMO_Legacy_StartPlaying() -- Start playing Demo */
 bool_t G_DEMO_Legacy_StartPlaying(struct G_CurrentDemo_s* a_Current)
 {
-	return false;
+	int i, j, k;
+	char LevelName[9];
+	G_LegacyDemoData_t* Data;
+	uint8_t VerMarker, Skill, Episode, Map, DM, MultiPlayer;
+	uint8_t Respawn, Fast, NoMonsters, DisplayP, TimeLimit;
+	bool_t Players[MAXPLAYERS];
+	const P_LevelInfoEx_t* LevelInfo;
+	const char* PlName;
+	
+	/* Check */
+	if (!a_Current)
+		return false;
+	
+	/* Clear */
+	memset(Players, 0, sizeof(Players));
+	
+	/* Read Demo Info */
+	VerMarker = WL_StreamReadUInt8(a_Current->WLStream);
+	Skill = WL_StreamReadUInt8(a_Current->WLStream);
+	Episode = WL_StreamReadUInt8(a_Current->WLStream);
+	Map = WL_StreamReadUInt8(a_Current->WLStream);
+	
+	/* Locate Map (Only before 1.27) */
+	if (VerMarker < 127)
+	{
+		// MAPxx
+		if (g_IWADFlags & CIF_COMMERCIAL)
+			snprintf(LevelName, 8, "MAP%02d", Map);
+	
+		// ExMx
+		else
+			snprintf(LevelName, 8, "E%1.1dM%1.1d", Episode, Map);
+	
+		// Attempt locate
+		LevelInfo = P_FindLevelByNameEx(LevelName, 0);
+	
+		// Not found?
+		if (!LevelInfo)
+			return false;
+	}
+	else
+		LevelInfo = NULL;
+	
+	// Only Before 1.27
+	DM = WL_StreamReadUInt8(a_Current->WLStream);
+	
+	// Only Before 1.28
+	Respawn = WL_StreamReadUInt8(a_Current->WLStream);
+	Fast = WL_StreamReadUInt8(a_Current->WLStream);
+	
+	NoMonsters = WL_StreamReadUInt8(a_Current->WLStream);
+	DisplayP = WL_StreamReadUInt8(a_Current->WLStream);
+	
+	// 1.09
+	if (VerMarker <= 109)
+		for (i = 0; i < 4; i++)
+			Players[i] = WL_StreamReadUInt8(a_Current->WLStream);
+	
+	// 1.11+
+	else
+	{
+		TimeLimit = WL_StreamReadUInt8(a_Current->WLStream);
+		
+		if (VerMarker < 113)
+		{
+			for (i = 0; i < 8; i++)
+				Players[i] = WL_StreamReadUInt8(a_Current->WLStream);
+			
+			MultiPlayer = WL_StreamReadUInt8(a_Current->WLStream);
+		}
+		else
+		{
+			MultiPlayer = WL_StreamReadUInt8(a_Current->WLStream);
+			
+			for (i = 0; i < 32; i++)
+				Players[i] = WL_StreamReadUInt8(a_Current->WLStream);
+		}	
+	}
+	
+	/* Setup Players */
+	memset(playeringame, 0, sizeof(playeringame));
+	memset(g_PlayerInSplit, 0, sizeof(g_PlayerInSplit));
+	g_SplitScreen = -1;
+	
+	// Set them all up (split-screen)
+	for (j = 0, i = 0; i < 4; i++)
+		if (Players[i])
+		{
+			// Set as in game
+			playeringame[i] = true;
+			
+			// Initialize Player
+			G_AddPlayer(i);
+			G_InitPlayer(&players[i]);
+			
+			// Set Color
+			k = i % 11;
+			players[i].skincolor = k;
+			
+			// Name it by player ID
+			PlName = NULL;
+			switch (k)
+			{
+				case 0: PlName = "{x70Green"; break;
+				case 1: PlName = "{x71Indigo"; break;
+				case 2: PlName = "{x72Brown"; break;
+				case 3: PlName = "{x73Red"; break;
+				case 4: PlName = "{x74Light Gray"; break;
+				case 5: PlName = "{x75Light Brown"; break;
+				case 6: PlName = "{x76Light Red"; break;
+				case 7: PlName = "{x77Light Blue"; break;
+				case 8: PlName = "{x78Blue"; break;
+				case 9: PlName = "{x79Yellow"; break;
+				case 10: PlName = "{x7aBeige"; break;
+				default: break;
+			}
+			
+			if (PlName)
+				strncpy(player_names[i], PlName, MAXPLAYERNAME - 1);
+			
+			// Put in split screen
+			if (j < 4)
+			{
+				g_SplitScreen++;
+				g_PlayerInSplit[j] = true;
+				consoleplayer[j] = displayplayer[j] = i;
+				j++;
+			}
+		}
+	
+	/* Modify Settings required for level loading (as needed) */
+	// Set version to the specified value
+	P_EXGSSetVersionLevel(true, VerMarker);
+	
+	// DM Before 1.27
+	if (VerMarker < 127)
+		P_EXGSSetValue(true, PEXGSBID_GAMEDEATHMATCH, DM);
+	
+	// Respawn and Fast before 1.28
+	if (VerMarker < 128)
+	{
+		P_EXGSSetValue(true, PEXGSBID_MONRESPAWNMONSTERS, Respawn);
+		P_EXGSSetValue(true, PEXGSBID_MONFASTMONSTERS, Fast);
+		P_EXGSSetValue(true, PEXGSBID_GAMETIMELIMIT, TimeLimit);
+	}
+	
+	// Multiplayer
+	P_EXGSSetValue(true, PEXGSBID_COMULTIPLAYER, MultiPlayer);
+	
+	/* Load the level as per vanilla before 1.27 */
+	if (VerMarker < 127)
+	{
+		// Recalc Split-screen
+		R_ExecuteSetViewSize();
+		
+		// Load the map, hopefully
+		P_ExLoadLevel(LevelInfo, 0);
+	}
+	
+	/* Otherwise start waiting for players */
+	else
+		gamestate = wipegamestate = GS_WAITINGPLAYERS;
+	
+	/* Create Demo Info */
+	a_Current->Data = Data = Z_Malloc(sizeof(*Data), PU_STATIC, NULL);
+	
+	Data->VerMarker = VerMarker;
+	Data->Skill = Skill;
+	Data->Episode = Episode;
+	Data->Map = Map;
+	Data->DM = DM;
+	Data->MultiPlayer = MultiPlayer;
+	Data->Respawn = Respawn;
+	Data->Fast = Fast;
+	Data->NoMonsters = NoMonsters;
+	Data->DisplayP = DisplayP;
+	Data->TimeLimit = TimeLimit;
+	
+	for (i = 0; i < MAXPLAYERS; i++)
+		Data->Players[i] = Players[i];
+	
+	/* Success! */
+	return true;
 }
 
 /* G_DEMO_Legacy_StopPlaying() -- Stop playing demo */
@@ -635,7 +835,31 @@ bool_t G_DEMO_Legacy_CheckDemo(struct G_CurrentDemo_s* a_Current)
 /* G_DEMO_Legacy_ReadTicCmd() -- Read Tic Command */
 bool_t G_DEMO_Legacy_ReadTicCmd(struct G_CurrentDemo_s* a_Current, ticcmd_t* const a_Cmd, const int32_t a_PlayerNum)
 {
-	return false;
+	G_LegacyDemoData_t* Data;
+	
+	/* Check */
+	if (!a_Current)
+		return false;
+	
+	/* Obtain */
+	Data = a_Current->Data;
+	
+	// Check
+	if (!Data)
+		return false;
+	
+	/* Old Demo Format */
+	if (Data->VerMarker < 112)
+	{
+	}
+	
+	/* New Compact Demo Format */
+	else
+	{
+	}
+	
+	/* Success */
+	return true;
 }
 
 /* G_DEMO_Legacy_WriteTicCmd() -- Write Tic Commnd */

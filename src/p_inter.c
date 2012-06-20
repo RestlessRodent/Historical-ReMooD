@@ -1032,7 +1032,7 @@ static const char* PS_GetMobjNoun(mobj_t* const a_Mobj, bool_t* const a_Special,
 		{
 			// Not Special
 			if (a_Special)
-				*a_Special = true;
+				*a_Special = false;
 			
 			// If the source has a weapon attached to it 
 			if (a_Mobj->RXShotWithWeapon >= 0 && a_Mobj->RXShotWithWeapon < NUMWEAPONS)
@@ -1096,8 +1096,9 @@ static void P_DeathMessages(mobj_t* target, mobj_t* inflictor, mobj_t* source)
 	sNoun = PS_GetMobjNoun(source, &sSpecial, false, source);
 	
 	/* If neither side is special, who cares? */
-	/*if (!(tSpecial | sSpecial))
-	   return; */
+	// Only care for target specials
+	if (!(tSpecial/* | sSpecial*/))
+	   return;
 	
 	/* Print message */
 	CONL_PrintF("\x7{4%s{0 -> {5%s {2({3%s{2)\n", sNoun, tNoun, iNoun);

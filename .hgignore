@@ -81,3 +81,8 @@ proj/vc10/UpgradeLog3.XML
 proj/vc10/_UpgradeReport_Files/UpgradeReport_Minus.gif
 proj/vc10/_UpgradeReport_Files/UpgradeReport_Plus.gif
 proj/vc10/RMDTex.vcproj
+glob:peal-2005_4_14
+glob:parm
+glob:parm.zip
+glob:libarmboot.a
+relre:.*\.zip$

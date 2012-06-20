@@ -2550,7 +2550,7 @@ mobj_t* P_RefMobjReal(const P_MobjRefType_t a_Type, mobj_t* const a_SourceRef, m
 	else if (a_Type == PMRT_TRACER)
 		ChangePtr = &a_SourceRef->tracer;
 	else if (a_Type == PMRT_FOLLOWPLAYER)
-		ChangePtr == &a_SourceRef->FollowPlayer;
+		ChangePtr = &a_SourceRef->FollowPlayer;
 	else
 		ChangePtr = NULL;
 	
