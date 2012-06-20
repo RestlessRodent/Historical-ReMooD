@@ -1427,7 +1427,6 @@ static void D_NCSLocalBuildTicCmd(D_NetPlayer_t* const a_NPp, ticcmd_t* const a_
 		a_TicCmd->buttons |= BT_CHANGE;
 		a_TicCmd->XNewWeapon = DS_NCSNextWeapon(Player, 1);
 	}
-	
 		// Prev
 	else if (GAMEKEYDOWN(Profile, DPEXIC_PREVWEAPON))
 	{
@@ -1435,7 +1434,28 @@ static void D_NCSLocalBuildTicCmd(D_NetPlayer_t* const a_NPp, ticcmd_t* const a_
 		a_TicCmd->buttons |= BT_CHANGE;
 		a_TicCmd->XNewWeapon = DS_NCSNextWeapon(Player, -1);
 	}
-	
+		// Best Gun
+	else if (GAMEKEYDOWN(Profile, DPEXIC_BESTWEAPON))
+	{
+		newweapon = P_PlayerBestWeapon(Player, true);
+		
+		if (newweapon != Player->readyweapon)
+		{
+			a_TicCmd->buttons |= BT_CHANGE;
+			a_TicCmd->XNewWeapon = newweapon;
+		}
+	}
+		// Worst Gun
+	else if (GAMEKEYDOWN(Profile, DPEXIC_WORSTWEAPON))
+	{
+		newweapon = P_PlayerBestWeapon(Player, false);
+		
+		if (newweapon != Player->readyweapon)
+		{
+			a_TicCmd->buttons |= BT_CHANGE;
+			a_TicCmd->XNewWeapon = newweapon;
+		}
+	}
 		// Slots
 	else
 	{

@@ -264,6 +264,7 @@ typedef enum P_EXGSBitID_e
 	PEXGSBID_COMOVECHECKFAKEFLOOR,				// Check Fake floor when moving
 	PEXGSBID_COMULTIPLAYER,						// Multiplayer Format
 	PEXGSBID_COBOOMSUPPORT,						// boomsupport Flag
+	PEXGSBID_COSPAWNWITHFAVGUN,					// Spawn with favorite gun
 	
 	PEXGSNUMBITIDS
 } P_EXGSBitID_t;

@@ -54,9 +54,78 @@
 // (i don't like that but do you see another solution ?)
 int MAXHEALTH = 100;
 
+/* P_PlayerBestWeapon() -- Returns the best (or worst) weapon this player has */
+weapontype_t P_PlayerBestWeapon(player_t* const a_Player, const bool_t a_Best)
+{
+	int i, j, BestSlot, CurrentSlot;
+	weapontype_t Best;
+	
+	/* Check */
+	if (!a_Player)
+		return wp_nochange;
+	
+	/* Go through all weapons */
+	Best = wp_nochange;
+	for (i = 0; i < NUMWEAPONS; i++)
+	{
+		// Don't own this gun?
+		if (!a_Player->weaponowned[i])
+			continue;
+		
+		// Locked weapon?
+		if (!P_WeaponIsUnlocked(i))
+			continue;
+		
+		// Find slot where this weapon is
+		for (j = 0; j < NUMWEAPONS; j++)
+			if (a_Player->FavoriteWeapons[j] == i)
+			{
+				CurrentSlot = j;
+				break;
+			}
+		
+		// Better or worse weapon?
+		if (Best == wp_nochange ||
+			(a_Best && CurrentSlot > BestSlot) ||
+			(!a_Best && CurrentSlot < BestSlot))
+		{
+			Best = i;
+			BestSlot = CurrentSlot;
+		}
+	}
+	
+	/* None found? */
+	if (Best == wp_nochange)
+		return wp_nochange;
+	
+	/* Current is Best */
+	if (Best == a_Player->readyweapon)
+		return wp_nochange;
+	
+	/* Return Best */
+	return Best;
+}
+
+/* P_PlayerSwitchToFavorite() -- Switch to favorite weapon */
+void P_PlayerSwitchToFavorite(player_t* const a_Player, const bool_t a_JustSpawned)
+{
+	weapontype_t NewGun;
+	
+	/* Don't switch when not freshly reborn */
+	if (!(a_JustSpawned && P_EXGSGetValue(PEXGSBID_COSPAWNWITHFAVGUN)) && (a_Player->pendingweapon != wp_nochange))
+		return;
+	
+	/* Change to the best gun */
+	NewGun = P_PlayerBestWeapon(a_Player, true);
+
+	if (NewGun != a_Player->readyweapon)
+		a_Player->pendingweapon = NewGun;
+}
+
 //
 // GET STUFF
 //
+
 
 // added by Boris : preferred weapons order
 void VerifFavoritWeapon(player_t* player)
@@ -138,7 +207,7 @@ bool_t P_GiveAmmo(player_t* player, ammotype_t ammo, int count)
 	if (!player->originalweaponswitch)
 	{
 		if (player->ammo[player->weaponinfo[player->readyweapon]->ammo] < player->weaponinfo[player->readyweapon]->ammopershoot)
-			VerifFavoritWeapon(player);
+			P_PlayerSwitchToFavorite(player, false);
 		return true;
 	}
 	else
@@ -213,8 +282,12 @@ bool_t P_GiveWeapon(player_t* player, weapontype_t weapon, bool_t dropped)
 //			player->pendingweapon = weapon;	// do like Doom2 original
 		
 		// GhostlyDeath <May 20, 2012> -- Force weapon switch
-		if (P_EXGSGetValue(PEXGSBID_PLFORCEWEAPONSWITCH))
+		if (P_EXGSGetValue(PEXGSBID_PLFORCEWEAPONSWITCH) || player->originalweaponswitch)
 			player->pendingweapon = weapon;
+		
+		// Or Select Favorite
+		else
+			P_PlayerSwitchToFavorite(player, false);
 			
 		//added:16-01-98:changed consoleplayer to displayplayer
 		//               (hear the sounds from the viewpoint)
@@ -229,15 +302,11 @@ bool_t P_GiveWeapon(player_t* player, weapontype_t weapon, bool_t dropped)
 		// give one clip with a dropped weapon,
 		// two clips with a found weapon
 		if (dropped)
-		{
 			ammo_count = has_ammo_dropped ? (has_ammo_dropped < 0 ? 0 : has_ammo_dropped) : ammoinfo[player->weaponinfo[weapon]->ammo]->ClipAmmo;
-			//gaveammo = P_GiveAmmo (player, player->weaponinfo[weapon].ammo, clipammo[player->weaponinfo[weapon].ammo]);
-		}
 		else
-		{
-			//gaveammo = P_GiveAmmo (player, player->weaponinfo[weapon].ammo, player->weaponinfo[weapon].GetAmmo);
 			ammo_count = player->weaponinfo[weapon]->GetAmmo;
-		}
+		
+		// Give ammo, possibly
 		gaveammo = P_GiveAmmo(player, player->weaponinfo[weapon]->ammo, ammo_count);
 	}
 	else
@@ -254,8 +323,12 @@ bool_t P_GiveWeapon(player_t* player, weapontype_t weapon, bool_t dropped)
 //			player->pendingweapon = weapon;	// Doom2 original stuff
 		
 		// GhostlyDeath <May 20, 2012> -- Force weapon switch
-		if (P_EXGSGetValue(PEXGSBID_PLFORCEWEAPONSWITCH))
+		if (P_EXGSGetValue(PEXGSBID_PLFORCEWEAPONSWITCH) || player->originalweaponswitch)
 			player->pendingweapon = weapon;
+		
+		// Or Select Favorite
+		else
+			P_PlayerSwitchToFavorite(player, false);
 	}
 	
 	return (gaveweapon || gaveammo);

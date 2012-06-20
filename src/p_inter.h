@@ -33,10 +33,8 @@
 #ifndef __P_INTER__
 #define __P_INTER__
 
-// Boris hack : preferred weapons order
-void VerifFavoritWeapon(player_t* player);
-
-int FindBestWeapon(player_t* player);
+void P_PlayerSwitchToFavorite(player_t* const a_Player, const bool_t a_JustSpawned);
+weapontype_t P_PlayerBestWeapon(player_t* const a_Player, const bool_t a_Best);
 
 bool_t P_GivePower(player_t*, int);
 void P_CheckFragLimit(player_t* p);

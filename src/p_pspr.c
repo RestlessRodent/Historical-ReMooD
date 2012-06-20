@@ -224,7 +224,7 @@ bool_t P_CheckAmmo(player_t* player)
 	// Preferences are set here.
 	// added by Boris : preferred weapons order
 	if (!player->originalweaponswitch)
-		VerifFavoritWeapon(player);
+		P_PlayerSwitchToFavorite(player, false);
 	
 	/* Find the best weapon, when out of ammo */
 	// This uses NoAmmoOrder, the higher the better!

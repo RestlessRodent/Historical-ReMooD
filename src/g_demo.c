@@ -933,6 +933,7 @@ bool_t G_DEMO_Legacy_CheckDemo(struct G_CurrentDemo_s* a_Current)
 bool_t G_DEMO_Legacy_ReadTicCmd(struct G_CurrentDemo_s* a_Current, ticcmd_t* const a_Cmd, const int32_t a_PlayerNum)
 {
 	G_LegacyDemoData_t* Data;
+	uint8_t ButtonCodes;
 	
 	/* Check */
 	if (!a_Current)
@@ -944,10 +945,41 @@ bool_t G_DEMO_Legacy_ReadTicCmd(struct G_CurrentDemo_s* a_Current, ticcmd_t* con
 	// Check
 	if (!Data)
 		return false;
+
+	/* Clear Command */
+	memset(a_Cmd, 0, sizeof(*a_Cmd));
 	
 	/* Old Demo Format */
 	if (Data->VerMarker < 112)
 	{
+		// Read player's command
+		a_Cmd->forwardmove = WL_StreamReadInt8(a_Current->WLStream);
+		a_Cmd->sidemove = WL_StreamReadInt8(a_Current->WLStream);
+
+		// 1.91?
+		a_Cmd->angleturn = ((int16_t)WL_StreamReadInt8(a_Current->WLStream)) << 8;
+
+		// Button codes are different in old Legacy
+		ButtonCodes = WL_StreamReadUInt8(a_Current->WLStream);
+
+		// Fire Weapon?
+		if (ButtonCodes & 1)
+			a_Cmd->buttons |= BT_ATTACK;
+
+		// Use?
+		if (ButtonCodes & 2)
+			a_Cmd->buttons |= BT_USE;
+
+		// Change gun?
+		if (ButtonCodes & 4)
+			a_Cmd->buttons |= BT_CHANGE | BT_EXTRAWEAPON;	// Slot based change
+
+		// Resort weapon over
+		a_Cmd->buttons |= ((((ButtonCodes & 0x38) >> 3)) << BT_SLOTSHIFT) & BT_SLOTMASK;
+
+		// End of demo?
+		if (a_Cmd->forwardmove == 0x80)
+			Data->EndDemo = true;
 	}
 	
 	/* New Compact Demo Format */

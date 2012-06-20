@@ -747,8 +747,6 @@ void G_PlayerFinishLevel(int player)
 int initial_health = 100;		//MAXHEALTH;
 int initial_bullets = 50;
 
-void VerifFavoritWeapon(player_t* player);
-
 //
 // G_PlayerReborn
 // Called after a player dies
@@ -847,7 +845,6 @@ void G_PlayerReborn(int player)
 	p->health = initial_health;
 	
 	p->weaponinfo = wpnlev1info;
-	//p->weaponinfo = doomweaponinfo;
 	
 	// GhostlyDeath <April 13, 2012> -- Give player starting weapons
 	p->readyweapon = p->pendingweapon = NUMWEAPONS;
@@ -872,11 +869,6 @@ void G_PlayerReborn(int player)
 	
 	players[player].ProfileEx = PEp;
 	players[player].NetPlayer = NPp;
-	
-	// Boris stuff
-	if (!p->originalweaponswitch)
-		VerifFavoritWeapon(p);
-	//eof Boris
 	
 	for (i = 0; i < NUMAMMO; i++)
 		p->maxammo[i] = ammoinfo[i]->MaxAmmo;
@@ -918,6 +910,11 @@ void G_PlayerReborn(int player)
 			if (p->weaponinfo[i]->ammo >= 0 && p->weaponinfo[i]->ammo < NUMAMMO)
 				p->ammo[p->weaponinfo[i]->ammo] = p->maxammo[p->weaponinfo[i]->ammo];
 	}
+	
+	/* Switch to favorite weapon? */
+	// Before 1.0a, favorite weapons on spawn is not a happening thing
+	if (!p->originalweaponswitch)
+		P_PlayerSwitchToFavorite(p, true);
 }
 
 //
@@ -1473,6 +1470,11 @@ void G_InitPlayer(player_t* const a_Player)
 	/* Default Name of Player */
 	memset(player_names[pNum], 0, sizeof(*player_names[pNum] * MAXPLAYERNAME));
 	snprintf(player_names[pNum], MAXPLAYERNAME - 1, "Player %i", (pNum + 1));
+	
+	/* Default Weapon Order */
+	// Directly mapped weapon IDs
+	for (i = 0; i < NUMWEAPONS; i++)
+		a_Player->FavoriteWeapons[i] = i;
 }
 
 //
