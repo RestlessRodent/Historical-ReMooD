@@ -926,14 +926,56 @@ bool_t G_DEMO_Legacy_StopRecord(struct G_CurrentDemo_s* a_Current)
 /* G_DEMO_Legacy_CheckDemo() -- Check Status */
 bool_t G_DEMO_Legacy_CheckDemo(struct G_CurrentDemo_s* a_Current)
 {
+	G_LegacyDemoData_t* Data;
+	
+	/* Check */
+	if (!a_Current)
+		return true;
+		
+	/* Get */
+	Data = a_Current->Data;
+	
+	// No data?
+	if (!Data)
+		return true;
+	
+	/* Force Demo End */
+	if (Data->EndDemo)
+		return true;
+	
+	/* Playing Demo */
+	if (!a_Current->Out)
+	{
+		// Stream ended?
+		if (WL_StreamEOF(a_Current->WLStream))
+			return true;
+	}
+	
+	/* Recording Demo */
+	else
+	{
+	}
+	
+	/* Still playing/recording */
 	return false;
 }
+
+#define ZT_FWD 0x01
+#define ZT_SIDE 0x02
+#define ZT_ANGLE 0x04
+#define ZT_BUTTONS 0x08
+#define ZT_AIMING 0x10
+#define ZT_CHAT 0x20
+#define ZT_EXTRADATA 0x40
 
 /* G_DEMO_Legacy_ReadTicCmd() -- Read Tic Command */
 bool_t G_DEMO_Legacy_ReadTicCmd(struct G_CurrentDemo_s* a_Current, ticcmd_t* const a_Cmd, const int32_t a_PlayerNum)
 {
+#define TXTCMDBUFSIZE 256
+	char Buf[TXTCMDBUFSIZE];
 	G_LegacyDemoData_t* Data;
-	uint8_t ButtonCodes;
+	uint8_t ButtonCodes, ZipTic, ExtraCount, CmdID;
+	int32_t i;
 	
 	/* Check */
 	if (!a_Current)
@@ -955,8 +997,6 @@ bool_t G_DEMO_Legacy_ReadTicCmd(struct G_CurrentDemo_s* a_Current, ticcmd_t* con
 		// Read player's command
 		a_Cmd->forwardmove = WL_StreamReadInt8(a_Current->WLStream);
 		a_Cmd->sidemove = WL_StreamReadInt8(a_Current->WLStream);
-
-		// 1.91?
 		a_Cmd->angleturn = ((int16_t)WL_StreamReadInt8(a_Current->WLStream)) << 8;
 
 		// Button codes are different in old Legacy
@@ -985,10 +1025,80 @@ bool_t G_DEMO_Legacy_ReadTicCmd(struct G_CurrentDemo_s* a_Current, ticcmd_t* con
 	/* New Compact Demo Format */
 	else
 	{
+		// Read the Zip tic
+		ZipTic = WL_StreamReadUInt8(a_Current->WLStream);
+		
+		// End of demo?
+		if (ZipTic == 0x80)
+		{
+			Data->EndDemo = true;
+			return true;
+		}
+		
+		// Forward movement
+		if (ZipTic & ZT_FWD)
+			a_Cmd->forwardmove = WL_StreamReadInt8(a_Current->WLStream);
+		
+		// Side movement
+		if (ZipTic & ZT_SIDE)
+			a_Cmd->sidemove = WL_StreamReadInt8(a_Current->WLStream);
+		
+		// Angle turn
+		if (ZipTic & ZT_ANGLE)
+			if (Data->VerMarker < 125)
+			{
+				a_Cmd->angleturn = WL_StreamReadInt8(a_Current->WLStream);
+				a_Cmd->angleturn <<= 8;
+			}
+			else
+				a_Cmd->angleturn = WL_StreamReadInt16(a_Current->WLStream);
+		
+		// Buttons
+		if (ZipTic & ZT_BUTTONS)
+		{
+			ButtonCodes =  WL_StreamReadUInt8(a_Current->WLStream);
+		}
+		
+		// Aiming
+		if (ZipTic & ZT_AIMING)
+			a_Cmd->aiming = WL_StreamReadInt16(a_Current->WLStream);
+		
+		// Chat -- Not actually used?
+		if (ZipTic & ZT_CHAT)
+			ButtonCodes = WL_StreamReadUInt8(a_Current->WLStream);
+		
+		// Extra Data
+		if (ZipTic & ZT_EXTRADATA)
+		{
+			// Read Extra Count
+			ExtraCount = WL_StreamReadUInt8(a_Current->WLStream);
+			memset(Buf, 0, sizeof(Buf));
+			
+			// Old 1.12 Method
+			if (Data->VerMarker == 112)
+			{
+			}
+			
+			// New Text Commands
+			else
+			{
+				// Read Command ID
+				//CmdID = WL_StreamReadUInt8(a_Current->WLStream);
+				
+				// Read String
+				for (i = 0; i < ExtraCount; i++)
+					Buf[i] = WL_StreamReadUInt8(a_Current->WLStream);
+				
+				// Debug
+				if (devparm)
+					CONL_PrintF("Extra: \"%s\"\n", Buf);
+			}
+		}
 	}
 	
 	/* Success */
 	return true;
+#undef TXTCMDBUFSIZE
 }
 
 /* G_DEMO_Legacy_WriteTicCmd() -- Write Tic Commnd */
@@ -996,6 +1106,14 @@ bool_t G_DEMO_Legacy_WriteTicCmd(struct G_CurrentDemo_s* a_Current, const ticcmd
 {
 	return false;
 }
+
+#undef ZT_FWD
+#undef ZT_SIDE
+#undef ZT_ANGLE
+#undef ZT_BUTTONS
+#undef ZT_AIMING
+#undef ZT_CHAT
+#undef ZT_EXTRADATA
 
 /*********************
 *** REMOOD FACTORY ***

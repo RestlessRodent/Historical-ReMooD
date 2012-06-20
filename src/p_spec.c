@@ -3864,8 +3864,8 @@ static bool_t PS_ExtraSpecialOCCB(const bool_t a_Pushed, const struct WL_WADFile
 						g_ReGenMap[g_NumReGenMap++].Target = Target;
 					
 						// Debug
-						if (devparm)
-							CONL_PrintF("%s Mapped: %i -> %8x\n", (zzSpecType ? "Sector" : "Line"), Source, Target);
+						//if (devparm)
+						//	CONL_PrintF("%s Mapped: %i -> %8x\n", (zzSpecType ? "Sector" : "Line"), Source, Target);
 					}
 				}
 			
