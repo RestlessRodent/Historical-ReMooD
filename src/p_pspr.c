@@ -1329,6 +1329,7 @@ bool_t P_RMODH_WeaponsAmmo(Z_Table_t* const a_Table, const WL_WADFile_t* const a
 		TempWeapon.GetAmmo = D_RMODGetValueInt(a_Table, "PickupAmmo", 0);
 		TempWeapon.SlotNum = D_RMODGetValueInt(a_Table, "SlotNum", 0);
 		TempWeapon.NoAmmoOrder = D_RMODGetValueInt(a_Table, "NoAmmoSwitchOrder", 0);
+		TempWeapon.DEHId = D_RMODGetValueInt(a_Table, "DeHackEdID", -1);
 		
 		// Get Booleans
 		if (D_RMODGetValueBool(a_Table, "IsDoom", false))

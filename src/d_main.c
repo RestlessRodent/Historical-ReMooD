@@ -1688,6 +1688,7 @@ void D_DoomMain(void)
 	// GhostlyDeath <July 6, 2008> -- initialize fields
 	memset(player_names, 0, sizeof(player_names));
 	memset(team_names, 0, sizeof(team_names));
+	memset(players, 0, sizeof(players));
 	for (i = 0; i < MAXPLAYERS; i++)
 	{
 		sprintf(player_names[i], "Player %i", i + 1);

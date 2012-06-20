@@ -1288,8 +1288,13 @@ bool_t P_EXGSSetVersionLevel(const bool_t a_Master, const uint32_t a_Level)
 	if (a_Level <= 109)
 		P_EXGSSetValue(a_Master, PEXGSBID_GAMEAIRFRICTION, 0);
 		
+	// MAXPLAYERS Simulation
 	if (a_Level <= 109)
 		P_EXGSSetValue(a_Master, PEXGSBID_COLASTLOOKMAXPLAYERS, 4);
+	else if (a_Level < 113)
+		P_EXGSSetValue(a_Master, PEXGSBID_COLASTLOOKMAXPLAYERS, 8);
+	else
+		P_EXGSSetValue(a_Master, PEXGSBID_COLASTLOOKMAXPLAYERS, 32);
 	
 	return true;
 }

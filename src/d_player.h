@@ -147,6 +147,7 @@ typedef struct player_s
 	// Is wp_nochange if not changing.
 	weapontype_t pendingweapon;
 	weapontype_t DeadWeapon;					// Weapon held when dead
+	weapontype_t* FavoriteWeapons;				// Favorite Weapons
 	
 	bool_t* weaponowned;
 	int* ammo;

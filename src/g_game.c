@@ -764,6 +764,7 @@ void G_PlayerReborn(int player)
 	int secretcount;
 	uint16_t addfrags;
 	bool_t* weaponowned;
+	weapontype_t* FavoriteWeapons;
 	int* ammo;
 	int* maxammo;
 	uint32_t FraggerID;
@@ -792,6 +793,7 @@ void G_PlayerReborn(int player)
 	TotalDeaths = players[player].TotalDeaths;
 	FraggerID = players[player].FraggerID;
 	
+	FavoriteWeapons = players[player].FavoriteWeapons;
 	weaponowned = players[player].weaponowned;
 	ammo = players[player].ammo;
 	maxammo = players[player].maxammo;
@@ -814,6 +816,7 @@ void G_PlayerReborn(int player)
 	players[player].TotalFrags = TotalFrags;
 	players[player].TotalDeaths = TotalDeaths;
 	players[player].FraggerID = FraggerID;
+	players[player].FavoriteWeapons = FavoriteWeapons;
 	
 	// Weapons
 	if (!weaponowned)
@@ -1396,6 +1399,16 @@ player_t* G_AddPlayer(int playernum)
 	player_t* p = &players[playernum];
 	playeringame[playernum] = true;
 	
+	/* Just in case */
+	if (p->FavoriteWeapons)
+		Z_Free(p->FavoriteWeapons);
+	if (p->weaponowned)
+		Z_Free(p->weaponowned);
+	if (p->ammo)
+		Z_Free(p->ammo);
+	if (p->maxammo)
+		Z_Free(p->maxammo);
+	
 	/* Wipe */
 	memset(p, 0, sizeof(*p));
 	
@@ -1429,8 +1442,17 @@ void G_InitPlayer(player_t* const a_Player)
 	if (!a_Player)
 		return;
 	
-	/* Get Playe Number */
+	/* Get Player Number */
 	pNum = a_Player - players;
+	
+	/* Allocate */
+	// Guns
+	a_Player->FavoriteWeapons = Z_Malloc(sizeof(*a_Player->FavoriteWeapons) * NUMWEAPONS, PU_STATIC, NULL);
+	a_Player->weaponowned = Z_Malloc(sizeof(*a_Player->weaponowned) * NUMWEAPONS, PU_STATIC, NULL);
+	
+	// Ammo
+	a_Player->maxammo = Z_Malloc(sizeof(*a_Player->maxammo) * NUMAMMO, PU_STATIC, NULL);
+	a_Player->ammo = Z_Malloc(sizeof(*a_Player->ammo) * NUMAMMO, PU_STATIC, NULL);
 	
 	/* Clear Totals */
 	a_Player->addfrags = 0;

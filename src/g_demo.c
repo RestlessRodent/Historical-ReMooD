@@ -615,7 +615,12 @@ typedef struct G_LegacyDemoData_s
 	
 	uint8_t Skill, Episode, Map, DM, MultiPlayer;
 	uint8_t Respawn, Fast, NoMonsters, DisplayP, TimeLimit;
-	bool_t Players[MAXPLAYERS];
+	uint8_t Players[MAXPLAYERS];
+	uint8_t SkinColors[MAXPLAYERS];
+	
+	bool_t OrigSwitch[MAXPLAYERS];
+	uint8_t FavGuns[MAXPLAYERS][9];
+	char Names[MAXPLAYERS][MAXPLAYERNAME];
 } G_LegacyDemoData_t;
 
 /*** FUNCTIONS ***/
@@ -623,14 +628,19 @@ typedef struct G_LegacyDemoData_s
 /* G_DEMO_Legacy_StartPlaying() -- Start playing Demo */
 bool_t G_DEMO_Legacy_StartPlaying(struct G_CurrentDemo_s* a_Current)
 {
-	int i, j, k;
+	int i, j, k, l, ss;
 	char LevelName[9];
 	G_LegacyDemoData_t* Data;
 	uint8_t VerMarker, Skill, Episode, Map, DM, MultiPlayer;
 	uint8_t Respawn, Fast, NoMonsters, DisplayP, TimeLimit;
-	bool_t Players[MAXPLAYERS];
+	uint8_t Players[MAXPLAYERS];
+	uint8_t SkinColors[MAXPLAYERS];
+	bool_t OrigSwitch[MAXPLAYERS];
+	uint8_t FavGuns[MAXPLAYERS][9];
+	char Names[MAXPLAYERS][MAXPLAYERNAME];
 	const P_LevelInfoEx_t* LevelInfo;
 	const char* PlName;
+	char c;
 	
 	/* Check */
 	if (!a_Current)
@@ -638,6 +648,10 @@ bool_t G_DEMO_Legacy_StartPlaying(struct G_CurrentDemo_s* a_Current)
 	
 	/* Clear */
 	memset(Players, 0, sizeof(Players));
+	memset(SkinColors, 0, sizeof(SkinColors));
+	memset(OrigSwitch, 0, sizeof(OrigSwitch));
+	memset(FavGuns, 0, sizeof(FavGuns));
+	memset(Names, 0, sizeof(Names));
 	
 	/* Read Demo Info */
 	VerMarker = WL_StreamReadUInt8(a_Current->WLStream);
@@ -684,23 +698,71 @@ bool_t G_DEMO_Legacy_StartPlaying(struct G_CurrentDemo_s* a_Current)
 	// 1.11+
 	else
 	{
-		TimeLimit = WL_StreamReadUInt8(a_Current->WLStream);
+		// 1.25+? Adds timelimit here
+		if (VerMarker >= 125)
+			TimeLimit = WL_StreamReadUInt8(a_Current->WLStream);
 		
+		// before 1.13, max 8 players
 		if (VerMarker < 113)
 		{
+			// Read Player Info
 			for (i = 0; i < 8; i++)
+			{
+				// 1.11 Encodes players in game with their skin color with
+				// bit 1 set so...
 				Players[i] = WL_StreamReadUInt8(a_Current->WLStream);
+				
+				// If it isn't set, then make them not in game
+				if (!(Players[i] & 1))
+					Players[i] = false;
+				
+				// Otherwise extract their skin color from it
+				else
+					SkinColors[i] = Players[i] >> 1;
+			}
 			
-			MultiPlayer = WL_StreamReadUInt8(a_Current->WLStream);
+			// Read player preferences
+			for (i = 0; i < 8; i++)
+				if (Players[i])
+				{
+					// Name
+					for (j = 0; j < 21; j++)
+					{
+						c = WL_StreamReadUInt8(a_Current->WLStream);
+						
+						if (j < MAXPLAYERNAME - 1)
+							Names[i][j] = c;
+					}
+					
+					// Original Switch
+					OrigSwitch[i] = WL_StreamReadUInt8(a_Current->WLStream);
+					
+					// Favorite Guns
+					for (j = 0; j < 9; j++)
+					{
+						FavGuns[i][j] = WL_StreamReadUInt8(a_Current->WLStream);
+						
+						// For some reason, the guns are zero character based!
+						FavGuns[i][j] -= '0';
+					}
+				}
 		}
+		
+		// Otherwise 32 players are supported here
 		else
 		{
-			MultiPlayer = WL_StreamReadUInt8(a_Current->WLStream);
+			// 1.31+ saves multiplayer, but before it is implied
+			if (VerMarker >= 131)
+				MultiPlayer = WL_StreamReadUInt8(a_Current->WLStream);
 			
 			for (i = 0; i < 32; i++)
 				Players[i] = WL_StreamReadUInt8(a_Current->WLStream);
-		}	
+		}
 	}
+	
+	// Imply multiplayer?
+	if (VerMarker < 131)
+		MultiPlayer = Players[1];
 	
 	/* Setup Players */
 	memset(playeringame, 0, sizeof(playeringame));
@@ -708,7 +770,7 @@ bool_t G_DEMO_Legacy_StartPlaying(struct G_CurrentDemo_s* a_Current)
 	g_SplitScreen = -1;
 	
 	// Set them all up (split-screen)
-	for (j = 0, i = 0; i < 4; i++)
+	for (ss = 0, i = 0; i < MAXPLAYERS; i++)
 		if (Players[i])
 		{
 			// Set as in game
@@ -718,38 +780,59 @@ bool_t G_DEMO_Legacy_StartPlaying(struct G_CurrentDemo_s* a_Current)
 			G_AddPlayer(i);
 			G_InitPlayer(&players[i]);
 			
-			// Set Color
-			k = i % 11;
-			players[i].skincolor = k;
-			
-			// Name it by player ID
-			PlName = NULL;
-			switch (k)
+			// Before 1.13? has names and others provided by demos
+			if (VerMarker < 113)
 			{
-				case 0: PlName = "{x70Green"; break;
-				case 1: PlName = "{x71Indigo"; break;
-				case 2: PlName = "{x72Brown"; break;
-				case 3: PlName = "{x73Red"; break;
-				case 4: PlName = "{x74Light Gray"; break;
-				case 5: PlName = "{x75Light Brown"; break;
-				case 6: PlName = "{x76Light Red"; break;
-				case 7: PlName = "{x77Light Blue"; break;
-				case 8: PlName = "{x78Blue"; break;
-				case 9: PlName = "{x79Yellow"; break;
-				case 10: PlName = "{x7aBeige"; break;
-				default: break;
+				strncpy(player_names[i], Names[i], MAXPLAYERNAME);
+				
+				players[i].originalweaponswitch = OrigSwitch[i];
+				players[i].skincolor = SkinColors[i];
+				
+				// Map Dehacked weapons to REMOODAT guns
+				for (l = 0, j = 0; j < 9; j++)
+					// Find first gun with ID and use that
+					for (k = 0; k < NUMWEAPONS; k++)
+						if (wpnlev1info[k]->DEHId >= 0)
+							if (wpnlev1info[k]->DEHId == FavGuns[i][j])
+								players[i].FavoriteWeapons[l++] = k;
 			}
 			
-			if (PlName)
-				strncpy(player_names[i], PlName, MAXPLAYERNAME - 1);
+			// After that, it is provided by text commands
+			else
+			{
+				// Set Color
+				k = i % 11;
+				players[i].skincolor = k;
+			
+				// Name it by player ID
+				PlName = NULL;
+				switch (k)
+				{
+					case 0: PlName = "{x70Green"; break;
+					case 1: PlName = "{x71Indigo"; break;
+					case 2: PlName = "{x72Brown"; break;
+					case 3: PlName = "{x73Red"; break;
+					case 4: PlName = "{x74Light Gray"; break;
+					case 5: PlName = "{x75Light Brown"; break;
+					case 6: PlName = "{x76Light Red"; break;
+					case 7: PlName = "{x77Light Blue"; break;
+					case 8: PlName = "{x78Blue"; break;
+					case 9: PlName = "{x79Yellow"; break;
+					case 10: PlName = "{x7aBeige"; break;
+					default: break;
+				}
+			
+				if (PlName)
+					strncpy(player_names[i], PlName, MAXPLAYERNAME - 1);
+			}
 			
 			// Put in split screen
-			if (j < 4)
+			if (ss < 4)
 			{
 				g_SplitScreen++;
-				g_PlayerInSplit[j] = true;
-				consoleplayer[j] = displayplayer[j] = i;
-				j++;
+				g_PlayerInSplit[ss] = true;
+				consoleplayer[ss] = displayplayer[ss] = i;
+				ss++;
 			}
 		}
 	
@@ -766,21 +849,25 @@ bool_t G_DEMO_Legacy_StartPlaying(struct G_CurrentDemo_s* a_Current)
 	{
 		P_EXGSSetValue(true, PEXGSBID_MONRESPAWNMONSTERS, Respawn);
 		P_EXGSSetValue(true, PEXGSBID_MONFASTMONSTERS, Fast);
-		P_EXGSSetValue(true, PEXGSBID_GAMETIMELIMIT, TimeLimit);
+		
+		// Time limit after 1.25
+		if (VerMarker >= 125)
+			P_EXGSSetValue(true, PEXGSBID_GAMETIMELIMIT, TimeLimit);
 	}
+	
+	// -nomonsters
+	P_EXGSSetValue(true, PEXGSBID_MONSPAWNMONSTERS, !NoMonsters);
 	
 	// Multiplayer
 	P_EXGSSetValue(true, PEXGSBID_COMULTIPLAYER, MultiPlayer);
 	
+	// Recalc Split-screen
+	R_ExecuteSetViewSize();
+	
 	/* Load the level as per vanilla before 1.27 */
 	if (VerMarker < 127)
-	{
-		// Recalc Split-screen
-		R_ExecuteSetViewSize();
-		
 		// Load the map, hopefully
 		P_ExLoadLevel(LevelInfo, 0);
-	}
 	
 	/* Otherwise start waiting for players */
 	else
@@ -802,7 +889,17 @@ bool_t G_DEMO_Legacy_StartPlaying(struct G_CurrentDemo_s* a_Current)
 	Data->TimeLimit = TimeLimit;
 	
 	for (i = 0; i < MAXPLAYERS; i++)
+	{
 		Data->Players[i] = Players[i];
+		Data->SkinColors[i] = SkinColors[i];
+		Data->OrigSwitch[i] = OrigSwitch[i];
+		
+		for (j = 0; j < MAXPLAYERNAME; j++)
+			Data->Names[i][j] = Names[i][j];
+		
+		for (j = 0; j < 9; j++)
+			Data->FavGuns[i][j] = FavGuns[i][j];
+	}
 	
 	/* Success! */
 	return true;
@@ -1315,7 +1412,7 @@ void G_DoPlayDemo(char* defdemoname)
 	if (At)
 	{
 		*(At++) = 0;
-	
+		
 		// Find Factory
 		Factory = G_DemoFactoryByName(defdemoname + (At - Base));
 	}

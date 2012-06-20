@@ -154,6 +154,7 @@ typedef struct
 	statenum_t flashstate;
 	
 	// ReMooD Extended
+	int32_t DEHId;								// DeHackEd ID
 	char* DropWeaponClass;						// Thing to "drop" when a player dies
 	char* NiceName;								// Name of weapon (obit)
 	char* ClassName;							// Weapon class Name
