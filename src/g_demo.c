@@ -667,6 +667,10 @@ bool_t G_DEMO_Legacy_StartPlaying(struct G_CurrentDemo_s* a_Current)
 	memset(FavGuns, 0, sizeof(FavGuns));
 	memset(Names, 0, sizeof(Names));
 	
+	/* Reset Indexes */
+	D_SyncNetSetMapTime(0);
+	P_SetRandIndex(0);
+	
 	/* Read Demo Info */
 	VerMarker = WL_StreamReadUInt8(a_Current->WLStream);
 	Skill = WL_StreamReadUInt8(a_Current->WLStream);
@@ -855,6 +859,7 @@ bool_t G_DEMO_Legacy_StartPlaying(struct G_CurrentDemo_s* a_Current)
 	/* Modify Settings required for level loading (as needed) */
 	// Set version to the specified value
 	P_EXGSSetVersionLevel(true, VerMarker);
+	P_EXGSSetValue(true, PEXGSBID_GAMESKILL, Skill);
 	
 	// DM Before 1.27
 	if (VerMarker < 127)
@@ -1299,9 +1304,11 @@ static bool_t GS_DEMO_Legacy_HandleExtraCmd(struct G_CurrentDemo_s* a_Current, c
 				// Extra bits in there
 				if (Data->VerMarker >= 129)
 				{
-					u8c = !!(u8b & 2);
+					u8c = !(u8b & 2);
 					u8b &= 1;
 				}
+				else
+					u8c = 0;
 				
 				// Read map
 				memset(Buf, 0, sizeof(Buf));
