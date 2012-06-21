@@ -407,7 +407,7 @@ void P_RemoveAllActiveCeilings(void)
 	{
 		ceilinglist_t* next = activeceilings->next;
 		
-		free(activeceilings);
+		Z_Free(activeceilings);
 		activeceilings = next;
 	}
 }

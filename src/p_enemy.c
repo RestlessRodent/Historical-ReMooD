@@ -542,8 +542,9 @@ static bool_t P_LookForPlayers(mobj_t* actor, bool_t allaround)
 			
 			// Player and monster on the same team?
 			if (!P_EXGSGetValue(PEXGSBID_CODISABLETEAMPLAY))
-				if (P_MobjOnSameTeam(actor, player->mo))
-					continue;
+				if (P_EXGSGetValue(PEXGSBID_COENABLETEAMMONSTERS))
+					if (P_MobjOnSameTeam(actor, player->mo))
+						continue;
 	
 			if (player->health <= 0)
 				continue;			// dead
@@ -749,8 +750,10 @@ void A_Look(mobj_t* actor, player_t* player, pspdef_t* psp, const INFO_StateArgs
 			targ = NULL;
 	
 	// GhostlyDeath <June 6, 2012> -- Target is on your team
-	if (targ && P_MobjOnSameTeam(targ, actor))
-		targ = NULL;
+	if (P_EXGSGetValue(PEXGSBID_COENABLETEAMMONSTERS))
+		if (P_EXGSGetValue(PEXGSBID_GAMETEAMPLAY))
+			if (targ && P_MobjOnSameTeam(targ, actor))
+				targ = NULL;
 	
 	if (targ && (targ->flags & MF_SHOOTABLE))
 	{
@@ -836,8 +839,13 @@ void A_Chase(mobj_t* actor, player_t* player, pspdef_t* psp, const INFO_StateArg
 			actor->threshold = 0;
 		
 			// GhostlyDeath <April 21, 2012> -- Deref here to remove reference
-			P_RefMobj(PMRT_TARGET, actor, NULL);
+			if (P_EXGSGetValue(PEXGSBID_COMONSTERDEADTARGET))
+				P_RefMobj(PMRT_TARGET, actor, NULL);
 		}
+		
+		// There is a target, it is alive
+		else
+			actor->threshold--;
 	}
 	
 	// turn towards movement direction if not there yet

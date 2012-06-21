@@ -193,7 +193,7 @@ typedef enum P_EXGSBitID_e
 	PEXGSBID_COLOSTSOULTRAILS,					// Trails for lost souls
 	PEXGSBID_COTRANSTWOSIDED,					// Transparent Two Sided walls
 	PEXGSBID_COENABLEBLOODTIME,					// Enable Blood Time
-	PEXGSBID_COENABLEJUMPING,					// Enable Jumping
+	PEXGSBID_PLENABLEJUMPING,					// Enable Jumping
 	PEXGSBID_COMOUSEAIM,						// Aim by mouse
 	PEXGSBID_MONRESPAWNMONSTERS,				// Respawn Monsters
 	PEXGSBID_FUNNOTARGETPLAYER,					// Don't Target Players, ever!
@@ -266,6 +266,9 @@ typedef enum P_EXGSBitID_e
 	PEXGSBID_COBOOMSUPPORT,						// boomsupport Flag
 	PEXGSBID_COSPAWNWITHFAVGUN,					// Spawn with favorite gun
 	PEXGSBID_CONOSAWFACING,						// No facing when sawing
+	PEXGSBID_COENABLETEAMMONSTERS,				// Enable Teamable Monsters
+	PEXGSBID_COMONSTERDEADTARGET,				// Monsters stop targetting dead things
+	PEXGSBID_COJUMPREGARDLESS,					// Regardless Jump (legacy mishap)
 	
 	PEXGSNUMBITIDS
 } P_EXGSBitID_t;

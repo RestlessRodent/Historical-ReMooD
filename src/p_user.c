@@ -297,7 +297,7 @@ void P_MovePlayer(player_t* player)
 {
 	ticcmd_t* cmd;
 	int movefactor = 2048;		//For Boom friction
-	int fly = 0;
+	int fly = 0, i;
 	fixed_t MoveAmount;
 	
 	cmd = &player->cmd;
@@ -431,7 +431,8 @@ void P_MovePlayer(player_t* player)
 	// For some reason, despite cv_allowjump being false, you could still jump
 	// since the check was done in P_BuildTicCommand(). So despite not being
 	// allowed to jump, a hacked client could jump anyway. This fixes it here.
-	if (P_EXGSGetValue(PEXGSBID_COENABLEJUMPING))
+	i = P_EXGSGetValue(PEXGSBID_PLENABLEJUMPING);
+	if ((P_EXGSGetValue(PEXGSBID_COJUMPREGARDLESS) && !i) || i)
 	{
 		//added:22-02-98: jumping
 		if (cmd->buttons & BT_JUMP)

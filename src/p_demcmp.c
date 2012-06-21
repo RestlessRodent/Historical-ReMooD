@@ -520,9 +520,9 @@ static P_EXGSVariable_t l_GSVars[PEXGSNUMBITIDS] =
 		PEXGSMC_COMPAT, PEXGSDA_YESNO, c_PEXGSPVBoolean, NULL},
 	
 	// Since v1.12, there was jumping
-	{PEXGST_INTEGER, PEXGSBID_COENABLEJUMPING, "co_enablejumping", "Enable Jumping",
+	{PEXGST_INTEGER, PEXGSBID_PLENABLEJUMPING, "pl_enablejumping", "Enable Jumping",
 		"Enables Jumping Support [Legacy >= 1.12]", PEXGSGM_ANY, PEXGSDR_ATLEAST, 112, {0, 1}, 1,
-		PEXGSMC_COMPAT, PEXGSDA_YESNO, c_PEXGSPVBoolean, NULL},
+		PEXGSMC_PLAYERS, PEXGSDA_YESNO, c_PEXGSPVBoolean, NULL},
 	
 	// After v1.11, Enable mouse aiming
 	{PEXGST_INTEGER, PEXGSBID_COMOUSEAIM, "co_mouseaim", "Enable Mouse Aiming",
@@ -813,6 +813,18 @@ static P_EXGSVariable_t l_GSVars[PEXGSNUMBITIDS] =
 	{PEXGST_INTEGER, PEXGSBID_CONOSAWFACING, "co_nosawfacing", "No Chainsaw Facing",
 		"When chainsawing enemies you face their direction to continue harming them.", PEXGSGM_ANY, PEXGSDR_NOCHECK, 0, {0, 1}, 0,
 		PEXGSMC_COMPAT, PEXGSDA_YESNO, c_PEXGSPVBoolean, NULL},	
+	
+	{PEXGST_INTEGER, PEXGSBID_COENABLETEAMMONSTERS, "co_enableteammonsters", "Enable Team Monsters",
+		"Allows monsters to be placed on a team along with players. [ReMooD >= 1.0a]", PEXGSGM_ANY, PEXGSDR_ATLEAST, 200, {0, 1}, 1,
+		PEXGSMC_COMPAT, PEXGSDA_YESNO, c_PEXGSPVBoolean, NULL},
+		
+	{PEXGST_INTEGER, PEXGSBID_COMONSTERDEADTARGET, "co_monsterdeadtarget", "Monsters Untarget Dead",
+		"When the monster's target dies it no longer targets them. [ReMooD >= 1.0a]", PEXGSGM_ANY, PEXGSDR_ATLEAST, 200, {0, 1}, 1,
+		PEXGSMC_COMPAT, PEXGSDA_YESNO, c_PEXGSPVBoolean, NULL},
+		
+	{PEXGST_INTEGER, PEXGSBID_COJUMPREGARDLESS, "co_jumpregardless", "Ignore Jump Disable",
+		"This allows jumping regardless if it is enabled or not, this is for old demos. [ReMooD < 1.0a]", PEXGSGM_ANY, PEXGSDR_LESSTHAN, 200, {0, 1}, 0,
+		PEXGSMC_COMPAT, PEXGSDA_YESNO, c_PEXGSPVBoolean, NULL},
 };
 
 /*** FUNCTIONS ***/

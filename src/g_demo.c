@@ -1031,6 +1031,59 @@ typedef enum LegacyNetXCommand_s
 	MAXNETXCMD
 } LegacyNetXCommand_t;
 
+/* c_LegacyNetVars -- Legacy net variable mappings */
+static const struct
+{
+	uint16_t ID;								// Variable ID
+	const char* Name;							// Name of variable
+	P_EXGSBitID_t DirectBitMap;					// Direct bit mapping
+} c_LegacyNetVars[] =
+{
+	{0x6661, "sv_maxplayers"},
+	{0x20af, "teamplay", PEXGSBID_GAMETEAMPLAY},
+	{0x3352, "teamdamage", PEXGSBID_GAMETEAMDAMAGE},
+	{0x2a45, "fraglimit", PEXGSBID_GAMEFRAGLIMIT},
+	{0x2a74, "timelimit", PEXGSBID_GAMETIMELIMIT},	// breaks
+	{0x34c3, "deathmatch", PEXGSBID_GAMEDEATHMATCH},
+	{0x776e, "allowexitlevel", PEXGSBID_GAMEALLOWLEVELEXIT},
+	{0x37c8, "allowturbo"},
+	{0x2b96, "allowjump", PEXGSBID_PLENABLEJUMPING},
+	{0x5304, "allowautoaim", PEXGSBID_PLALLOWAUTOAIM},
+	{0x8cd2, "allowrocketjump", PEXGSBID_GAMEALLOWROCKETJUMP},
+	{0x43a8, "solidcorpse", PEXGSBID_GAMESOLIDCORPSES},
+	{0x55cd, "fastmonsters", PEXGSBID_MONFASTMONSTERS},
+	{0xa420, "predictingmonsters", PEXGSBID_MONPREDICTMISSILES},
+	{0x298f, "bloodtime", PEXGSBID_GAMEBLOODTIME},
+	{0x9fbe, "fragsweaponfalling", PEXGSBID_PLDROPWEAPONS},
+	{0x19b3, "gravity", PEXGSBID_GAMEGRAVITY},
+	{0x8e8d, "respawnmonsters", PEXGSBID_MONRESPAWNMONSTERS},
+	{0xaaa3, "respawnmonsterstime", PEXGSBID_MONRESPAWNMONSTERSTIME},
+	{0x8a30, "respawnitemtime", PEXGSBID_ITEMRESPAWNITEMSTIME},
+	{0x43c1, "respawnitem", PEXGSBID_ITEMRESPAWNITEMS},
+	{0x3752, "allowmlook", PEXGSBID_COUSEMOUSEAIMING},	// Check this!
+	{0, NULL},
+};
+
+/* GS_DEMO_Legacy_ComputeNetID() -- Computes Legacy Variable NetID */
+static uint16_t GS_DEMO_Legacy_ComputeNetID(const char* s)
+{
+	const static int premiers[16] = { 2, 3, 5, 7, 11, 13, 17, 19, 23, 29, 31, 37, 41, 43, 47, 53 };
+	int i;
+	uint16_t ret;
+
+	ret = 0;
+	i = 0;
+	
+	while (*s)
+	{
+		ret += (*s) * premiers[i];
+		s++;
+		i = (i + 1) % 16;
+	}
+	
+	return ret;
+}
+
 /* GS_DEMO_Legacy_HandleExtraCmd() -- Handles legacy extra data */
 static bool_t GS_DEMO_Legacy_HandleExtraCmd(struct G_CurrentDemo_s* a_Current, const G_LegacyExtraBuf_t* const a_ExtraBuf)
 {
@@ -1040,8 +1093,10 @@ static bool_t GS_DEMO_Legacy_HandleExtraCmd(struct G_CurrentDemo_s* a_Current, c
 	const uint8_t* d, *e;
 	G_LegacyDemoData_t* Data;
 	P_LevelInfoEx_t* Level;
+	player_t* Player;
+	weapontype_t FavGuns[9];
 	
-	int32_t i, j;
+	int32_t i, j, k, l;
 	
 	uint16_t u16a;
 	uint8_t u8a, u8b, u8c;
@@ -1060,6 +1115,7 @@ static bool_t GS_DEMO_Legacy_HandleExtraCmd(struct G_CurrentDemo_s* a_Current, c
 	/* Read ID */
 	d = a_ExtraBuf->Data;
 	e = d + a_ExtraBuf->Length;
+	Player = &players[a_ExtraBuf->PlayerID];
 	
 	/* Constant Loop */
 	while (d < e)
@@ -1074,10 +1130,103 @@ static bool_t GS_DEMO_Legacy_HandleExtraCmd(struct G_CurrentDemo_s* a_Current, c
 		// Which command?
 		switch (XID)
 		{
+				// 1
+				// u8a = skin color
+				// Buf = Name
 			case XD_NAMEANDCOLOR:
+				u8a = ReadUInt8(&d);
+				
+				// Read name
+				memset(Buf, 0, sizeof(Buf));
+					// Any Size
+				if (Data->VerMarker >= 128)
+				{
+					for (i = 0;;)
+					{
+						u8a = ReadUInt8(&d);
+					
+						// End?
+						if (!u8a)
+							break;
+					
+						// Slap into buffer
+						if (i < BUFSIZE - 1)
+							Buf[i++] = u8a;
+					}
+				}
+					// MAXPLAYERNAME size
+				else
+				{
+					for (i = 0; i < 21; i++)
+						Buf[i] = ReadUInt8(&d);
+					Buf[MAXPLAYERNAME - 1] = 0;
+				}
+				
+				// Set skin color
+				Player->skincolor = u8a;
+				if (Player->mo)
+					Player->mo->flags = (Player->mo->flags & ~MF_TRANSLATION) | ((Player->skincolor) << MF_TRANSSHIFT);
+				
+				// Info
+				CONL_PrintF("%s renamed to ", player_names[a_ExtraBuf->PlayerID]);
+				
+				// Clone name
+				strncpy(player_names[a_ExtraBuf->PlayerID], Buf, MAXPLAYERNAME);
+				
+				// TODO: SetPlayerSkin
+				if (Data->VerMarker < 120 || Data->VerMarker >= 125)
+				{
+					// Any Size
+					if (Data->VerMarker >= 128)
+					{
+						memset(Buf, 0, sizeof(Buf));
+						for (i = 0;;)
+						{
+							u8a = ReadUInt8(&d);
+					
+							// End?
+							if (!u8a)
+								break;
+					
+							// Slap into buffer
+							if (i < BUFSIZE - 1)
+								Buf[i++] = u8a;
+						}
+					}
+					
+					// MAXSKINNAME size
+					else
+					{
+						for (i = 0; i < 16; i++)
+							Buf[i] = ReadUInt8(&d);
+						Buf[MAXPLAYERNAME - 1] = 0;
+					}
+				}
+				
+				// Info
+				CONL_PrintF("\"%s\"\n", player_names[a_ExtraBuf->PlayerID]);
 				break;
-	
+				
+				// 2
 			case XD_WEAPONPREF:
+				// Original Weapon Switch
+				players[a_ExtraBuf->PlayerID].originalweaponswitch = ReadUInt8(&d);
+				
+				// Favorite Guns
+				for (j = 0; j < 9; j++)
+					FavGuns[j] = ReadUInt8(&d);
+				
+				// Auto aim control
+				players[a_ExtraBuf->PlayerID].autoaim_toggle = ReadUInt8(&d);
+				
+				// Map Dehacked weapons to REMOODAT guns
+				for (l = 0, j = 0; j < 9; j++)
+					// Find first gun with ID and use that
+					for (k = 0; k < NUMWEAPONS; k++)
+						if (P_WeaponIsUnlocked(k))
+							if (wpnlev1info[k]->DEHId >= 0)
+								if (wpnlev1info[k]->DEHId == FavGuns[j])
+									players[a_ExtraBuf->PlayerID].FavoriteWeapons[l++] = k;
 				break;
 	
 			case XD_EXIT:
@@ -1115,6 +1264,20 @@ static bool_t GS_DEMO_Legacy_HandleExtraCmd(struct G_CurrentDemo_s* a_Current, c
 					CONL_PrintF("LEGACY DEMO: NetVar %#04x \"%s\"\n", u16a, Buf);
 				
 				// Seek through table and virtual command
+				for (i = 0; c_LegacyNetVars[i].Name; i++)
+					if (u16a == c_LegacyNetVars[i].ID)
+					{
+						// Message
+						CONL_PrintF("Simulated change of \"%s\" to \"%s\".\n",
+								c_LegacyNetVars[i].Name,
+								Buf
+							);
+						
+						// If there is a bit here, change it
+						if (c_LegacyNetVars[i].DirectBitMap)
+							P_EXGSSetValueStr(true, c_LegacyNetVars[i].DirectBitMap, Buf);
+						break;
+					}
 				break;
 	
 			case XD_SAY:
