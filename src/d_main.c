@@ -295,6 +295,11 @@ void D_Display(void)
 		case GS_FINALE:
 			F_Drawer();
 			break;
+		
+			// GhostlyDeath <June 21, 2012> -- Waiting for players
+		case GS_WAITINGPLAYERS:
+			D_WaitingPlayersDrawer();
+			break;
 			
 		case GS_DEMOSCREEN:
 			D_PageDrawer(pagename);
@@ -682,6 +687,66 @@ void D_PageDrawer(const char* const a_LumpName)
 	V_ImageUsage(Image, true);
 	V_ImageDraw(0, Image, 0, 0, NULL);
 	V_ImageUsage(Image, false);
+}
+
+/* D_WaitingPlayersDrawer() -- Draws waiting players */
+// Before map start
+void D_WaitingPlayersDrawer(void)
+{
+#define BUFSIZE 32
+	char Buf[BUFSIZE];
+	static V_Image_t* BGImage;
+	int32_t i, y, ya, sw;
+	
+	/* Draw a nice picture */
+	// Load it first
+	if (!BGImage)
+		BGImage = V_ImageFindA("RMD_LLOA", VCP_DOOM);
+	
+	// Draw it
+	V_ImageDraw(0, BGImage, 0, 0, NULL);
+	
+	/* Draw Text */
+	// Notice
+	V_DrawStringA(VFONT_LARGE, 0, DS_GetString(DSTR_WFGS_TITLE), 10, 10);
+	
+	// Players currently inside
+	ya = V_FontHeight(VFONT_SMALL);
+	ya += (ya >> 1);
+	y = 10 + V_FontHeight(VFONT_LARGE) + ya;
+	for (i = 0; i < MAXPLAYERS + 1; i++, y += ya)
+	{
+		if (i > 0 && !playeringame[i - 1])
+			continue;
+		
+		// Player Name
+		V_DrawStringA(
+				VFONT_SMALL,
+				(i > 0 ? 0 : VFO_COLOR(VEX_MAP_BRIGHTWHITE)),
+				(i > 0 ? player_names[i - 1] : DS_GetString(DSTR_WFGS_PLAYERNAME)),
+				10, y
+			);
+		
+		// Ping
+		if (i == 0)
+			snprintf(Buf, BUFSIZE - 1, "%s", DS_GetString(DSTR_WFGS_PING));
+		else if (demoplayback)
+			snprintf(Buf, BUFSIZE - 1, "%s", DS_GetString(DSTR_WFGS_DEMOPLAYER));
+		else if (false)//host
+			snprintf(Buf, BUFSIZE - 1, "%s", DS_GetString(DSTR_WFGS_HOST));
+		else
+			snprintf(Buf, BUFSIZE - 1, "%i ms", 1337);
+		
+		// Get width
+		sw = V_StringWidthA(VFONT_SMALL, 0, Buf);
+		V_DrawStringA(
+				VFONT_SMALL,
+				(i > 0 ? 0 : VFO_COLOR(VEX_MAP_BRIGHTWHITE)),
+				Buf,
+				310 - sw, y
+			);
+	}
+#undef BUFSIZE
 }
 
 //

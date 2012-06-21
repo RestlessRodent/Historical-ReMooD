@@ -185,7 +185,9 @@ void TryRunTics(tic_t realtics)
 			while ((XXLocalTic = D_SyncNetMapTime()) < (XXSNAR = D_SyncNetAllReady()))
 			{
 				// Run game ticker and increment the gametic
+				G_DemoPreGTicker();
 				G_Ticker();
+				G_DemoPostGTicker();
 				gametic++;
 			
 				// Update music

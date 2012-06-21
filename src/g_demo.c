@@ -607,6 +607,14 @@ bool_t G_DEMO_Vanilla_WriteTicCmd(struct G_CurrentDemo_s* a_Current, const ticcm
 
 /*** STRUCTURES ***/
 
+/* G_LegacyExtraBuf_t -- Extra command buffer */
+typedef struct G_LegacyExtraBuf_s
+{
+	uint8_t PlayerID;							// Player ID
+	uint8_t Length;								// Length of data
+	uint8_t Data[256];							// Actual Data
+} G_LegacyExtraBuf_t;
+
 /* G_LegacyDemoData_t -- Legacy Data */
 typedef struct G_LegacyDemoData_s
 {
@@ -621,6 +629,12 @@ typedef struct G_LegacyDemoData_s
 	bool_t OrigSwitch[MAXPLAYERS];
 	uint8_t FavGuns[MAXPLAYERS][9];
 	char Names[MAXPLAYERS][MAXPLAYERNAME];
+	
+	G_LegacyExtraBuf_t** ExtraBufs;				// Extra Buffers
+	size_t NumExtraBufs;						// Number of extra buffers
+	
+	uint8_t DisplayPNode;						// Node of display player
+	ticcmd_t OldCmd;							// Old Tic Command
 } G_LegacyDemoData_t;
 
 /*** FUNCTIONS ***/
@@ -826,14 +840,15 @@ bool_t G_DEMO_Legacy_StartPlaying(struct G_CurrentDemo_s* a_Current)
 					strncpy(player_names[i], PlName, MAXPLAYERNAME - 1);
 			}
 			
-			// Put in split screen
-			if (ss < 4)
-			{
-				g_SplitScreen++;
-				g_PlayerInSplit[ss] = true;
-				consoleplayer[ss] = displayplayer[ss] = i;
-				ss++;
-			}
+			// Put in split screen (only before 1.13)
+			if (VerMarker < 113)
+				if (ss < 4)
+				{
+					g_SplitScreen++;
+					g_PlayerInSplit[ss] = true;
+					consoleplayer[ss] = displayplayer[ss] = i;
+					ss++;
+				}
 		}
 	
 	/* Modify Settings required for level loading (as needed) */
@@ -908,6 +923,32 @@ bool_t G_DEMO_Legacy_StartPlaying(struct G_CurrentDemo_s* a_Current)
 /* G_DEMO_Legacy_StopPlaying() -- Stop playing demo */
 bool_t G_DEMO_Legacy_StopPlaying(struct G_CurrentDemo_s* a_Current)
 {
+	size_t i;
+	G_LegacyDemoData_t* Data;
+	
+	/* Check */
+	if (!a_Current)
+		return true;
+		
+	/* Get */
+	Data = a_Current->Data;
+	
+	// No data?
+	if (!Data)
+		return true;
+	
+	/* Cleanup */
+	if (Data->ExtraBufs)
+	{
+		for (i = 0; i < Data->NumExtraBufs; i++)
+			if (Data->ExtraBufs[i])
+				Z_Free(Data->ExtraBufs[i]);
+		Z_Free(Data->ExtraBufs);
+	}
+	
+	// Data itself
+	Z_Free(Data);
+
 	return false;
 }
 
@@ -968,6 +1009,236 @@ bool_t G_DEMO_Legacy_CheckDemo(struct G_CurrentDemo_s* a_Current)
 #define ZT_CHAT 0x20
 #define ZT_EXTRADATA 0x40
 
+/* LegacyNetXCommand_t -- Legacy next commands */
+typedef enum LegacyNetXCommand_s
+{
+	XD_NAMEANDCOLOR = 1,
+	XD_WEAPONPREF,
+	XD_EXIT,
+	XD_QUIT,
+	XD_KICK,
+	XD_NETVAR,
+	XD_SAY,
+	XD_MAP,
+	XD_EXITLEVEL,
+	XD_LOADGAME,
+	XD_SAVEGAME,
+	XD_PAUSE,
+	XD_ADDPLAYER,
+	XD_ADDBOT,
+	XD_USEARTEFACT,
+	MAXNETXCMD
+} LegacyNetXCommand_t;
+
+/* GS_DEMO_Legacy_HandleExtraCmd() -- Handles legacy extra data */
+static bool_t GS_DEMO_Legacy_HandleExtraCmd(struct G_CurrentDemo_s* a_Current, const G_LegacyExtraBuf_t* const a_ExtraBuf)
+{
+#define BUFSIZE 256
+	char Buf[BUFSIZE];
+	uint8_t XID;
+	const uint8_t* d, *e;
+	G_LegacyDemoData_t* Data;
+	P_LevelInfoEx_t* Level;
+	
+	int32_t i, j;
+	
+	uint16_t u16a;
+	uint8_t u8a, u8b, u8c;
+	
+	/* Check */
+	if (!a_Current || !a_ExtraBuf)
+		return false;
+	
+	/* Obtain */
+	Data = a_Current->Data;
+	
+	// Check
+	if (!Data)
+		return false;
+	
+	/* Read ID */
+	d = a_ExtraBuf->Data;
+	e = d + a_ExtraBuf->Length;
+	
+	/* Constant Loop */
+	while (d < e)
+	{
+		// Get command code
+		XID = *(d++);
+	
+		// Debug
+		if (devparm)
+			CONL_PrintF("Got Legacy XCmd %i.\n", XID);
+	
+		// Which command?
+		switch (XID)
+		{
+			case XD_NAMEANDCOLOR:
+				break;
+	
+			case XD_WEAPONPREF:
+				break;
+	
+			case XD_EXIT:
+				break;
+	
+			case XD_QUIT:
+				break;
+	
+			case XD_KICK:
+				break;
+	
+				// 6
+				// u16a = NetVar ID
+				// Buf = Value to set to
+			case XD_NETVAR:
+				u16a = ReadUInt16(&d);
+				
+				// Read value to change to
+				memset(Buf, 0, sizeof(Buf));
+				for (i = 0;;)
+				{
+					u8a = ReadUInt8(&d);
+					
+					// End?
+					if (!u8a)
+						break;
+					
+					// Slap into buffer
+					if (i < BUFSIZE - 1)
+						Buf[i++] = u8a;
+				}
+				
+				// Debug
+				if (devparm)
+					CONL_PrintF("LEGACY DEMO: NetVar %#04x \"%s\"\n", u16a, Buf);
+				
+				// Seek through table and virtual command
+				break;
+	
+			case XD_SAY:
+				break;
+	
+				// 8
+				// u8a = Skill
+				// u8b = Extra (>= 1.28) , Nomonsters
+				// u8c = Reset Players
+			case XD_MAP:
+				// Read info
+				u8a = ReadUInt8(&d);
+				
+				if (Data->VerMarker >= 128)
+					u8b = ReadUInt8(&d);
+				else
+					u8b = 0;
+				
+				// Extra bits in there
+				if (Data->VerMarker >= 129)
+				{
+					u8c = !!(u8b & 2);
+					u8b &= 1;
+				}
+				
+				// Read map
+				memset(Buf, 0, sizeof(Buf));
+				for (i = 0;;)
+				{
+					u8a = ReadUInt8(&d);
+					
+					// End?
+					if (!u8a)
+						break;
+					
+					// Slap into buffer
+					if (i < BUFSIZE - 1)
+						Buf[i++] = u8a;
+				}
+				
+				// Find level
+				Level = P_FindLevelByNameEx(Buf, NULL);
+				
+				// It was not found =(
+				if (!Level)
+					CONL_PrintF("WARNING! Legacy demo wants map \"%s\" but that is not a real map.\n", Buf);
+				// Otherwise it was found
+				else
+				{
+					// Reborn dead players or forced reset?
+					for (i = 0; i < MAXPLAYERS; i++)
+						if (playeringame[i])
+							if (players[i].playerstate == PST_DEAD || (Data->VerMarker >= 129 && u8c))
+								players[i].playerstate = PST_REBORN;
+					
+					// Change monster spawning?
+					if (Data->VerMarker >= 128)
+						if (u8b)
+							P_EXGSSetValue(true, PEXGSBID_MONSPAWNMONSTERS, (u8b ? 0 : 1));
+					
+					// Load The level
+					P_ExLoadLevel(Level, 0);
+				}
+				break;
+	
+			case XD_EXITLEVEL:
+				break;
+	
+			case XD_LOADGAME:
+				break;
+	
+			case XD_SAVEGAME:
+				break;
+	
+			case XD_PAUSE:
+				break;
+			
+				// 13
+				// u8a = Node (Client ID)
+				// u8b = Player Number
+			case XD_ADDPLAYER:
+				u8a = ReadUInt8(&d);
+				u8b = ReadUInt8(&d);
+				
+				// This is the local demo player? If so then remember the local
+				// node for future splitscreen recapture (provided player 2
+				// appears later on in the game)
+				if (u8b == Data->DisplayP)
+					Data->DisplayPNode = u8a;
+				
+				// Add the player normally
+				playeringame[u8b] = true;
+				G_AddPlayer(u8b);
+				
+				// Splitscreen the player?
+				if (u8a == Data->DisplayPNode)
+					if (g_SplitScreen < 3)	// 0 = 1p, 1 = 2p, 2 = 3p, 3 = 4p
+					{
+						g_PlayerInSplit[g_SplitScreen + 1] = true;
+						consoleplayer[g_SplitScreen + 1] = displayplayer[g_SplitScreen + 1] = u8b;
+						g_SplitScreen++;
+						
+						// Recalc Split-screen
+						R_ExecuteSetViewSize();
+					}
+				break;
+	
+			case XD_ADDBOT:
+				break;
+	
+			case XD_USEARTEFACT:
+				break;
+	
+				// Unknown!
+			default:
+				CONL_PrintF("WARNING! Unknown extra command in Legacy Demo.\n");
+				break;
+		}
+	}
+	
+	/* Success! */
+	return true;
+#undef BUFSIZE
+}
+
 /* G_DEMO_Legacy_ReadTicCmd() -- Read Tic Command */
 bool_t G_DEMO_Legacy_ReadTicCmd(struct G_CurrentDemo_s* a_Current, ticcmd_t* const a_Cmd, const int32_t a_PlayerNum)
 {
@@ -976,6 +1247,7 @@ bool_t G_DEMO_Legacy_ReadTicCmd(struct G_CurrentDemo_s* a_Current, ticcmd_t* con
 	G_LegacyDemoData_t* Data;
 	uint8_t ButtonCodes, ZipTic, ExtraCount, CmdID;
 	int32_t i;
+	G_LegacyExtraBuf_t* NewBuf;
 	
 	/* Check */
 	if (!a_Current)
@@ -1037,21 +1309,21 @@ bool_t G_DEMO_Legacy_ReadTicCmd(struct G_CurrentDemo_s* a_Current, ticcmd_t* con
 		
 		// Forward movement
 		if (ZipTic & ZT_FWD)
-			a_Cmd->forwardmove = WL_StreamReadInt8(a_Current->WLStream);
+			Data->OldCmd.forwardmove = WL_StreamReadInt8(a_Current->WLStream);
 		
 		// Side movement
 		if (ZipTic & ZT_SIDE)
-			a_Cmd->sidemove = WL_StreamReadInt8(a_Current->WLStream);
+			Data->OldCmd.sidemove = WL_StreamReadInt8(a_Current->WLStream);
 		
 		// Angle turn
 		if (ZipTic & ZT_ANGLE)
 			if (Data->VerMarker < 125)
 			{
-				a_Cmd->angleturn = WL_StreamReadInt8(a_Current->WLStream);
-				a_Cmd->angleturn <<= 8;
+				Data->OldCmd.angleturn = WL_StreamReadInt8(a_Current->WLStream);
+				Data->OldCmd.angleturn <<= 8;
 			}
 			else
-				a_Cmd->angleturn = WL_StreamReadInt16(a_Current->WLStream);
+				Data->OldCmd.angleturn = WL_StreamReadInt16(a_Current->WLStream);
 		
 		// Buttons
 		if (ZipTic & ZT_BUTTONS)
@@ -1061,7 +1333,7 @@ bool_t G_DEMO_Legacy_ReadTicCmd(struct G_CurrentDemo_s* a_Current, ticcmd_t* con
 		
 		// Aiming
 		if (ZipTic & ZT_AIMING)
-			a_Cmd->aiming = WL_StreamReadInt16(a_Current->WLStream);
+			Data->OldCmd.aiming = WL_StreamReadInt16(a_Current->WLStream);
 		
 		// Chat -- Not actually used?
 		if (ZipTic & ZT_CHAT)
@@ -1082,9 +1354,6 @@ bool_t G_DEMO_Legacy_ReadTicCmd(struct G_CurrentDemo_s* a_Current, ticcmd_t* con
 			// New Text Commands
 			else
 			{
-				// Read Command ID
-				//CmdID = WL_StreamReadUInt8(a_Current->WLStream);
-				
 				// Read String
 				for (i = 0; i < ExtraCount; i++)
 					Buf[i] = WL_StreamReadUInt8(a_Current->WLStream);
@@ -1092,8 +1361,33 @@ bool_t G_DEMO_Legacy_ReadTicCmd(struct G_CurrentDemo_s* a_Current, ticcmd_t* con
 				// Debug
 				if (devparm)
 					CONL_PrintF("Extra: \"%s\"\n", Buf);
+				
+				// Enqueue it
+				NewBuf = Z_Malloc(sizeof(*NewBuf), PU_STATIC, NULL);
+				NewBuf->PlayerID = a_PlayerNum;
+				NewBuf->Length = ExtraCount;
+				memmove(NewBuf->Data, Buf, 256);
+				
+				// Find blank spot
+				for (i = 0; i < Data->NumExtraBufs; i++)
+					if (!Data->ExtraBufs[i])
+					{
+						Data->ExtraBufs[i] = NewBuf;
+						break;
+					}
+				
+				// No blank spot?
+				if (i >= Data->NumExtraBufs)
+				{
+					Z_ResizeArray((void**)&Data->ExtraBufs, sizeof(*Data->ExtraBufs),
+						Data->NumExtraBufs, Data->NumExtraBufs + 1);
+					Data->ExtraBufs[Data->NumExtraBufs++] = NewBuf;
+				}
 			}
 		}
+		
+		// Use old command
+		memmove(a_Cmd, &Data->OldCmd, sizeof(Data->OldCmd));
 	}
 	
 	/* Success */
@@ -1105,6 +1399,47 @@ bool_t G_DEMO_Legacy_ReadTicCmd(struct G_CurrentDemo_s* a_Current, ticcmd_t* con
 bool_t G_DEMO_Legacy_WriteTicCmd(struct G_CurrentDemo_s* a_Current, const ticcmd_t* const a_Cmd, const int32_t a_PlayerNum)
 {
 	return false;
+}
+
+/* G_DEMO_Legacy_PostGTickCmd() -- Post tic command */
+bool_t G_DEMO_Legacy_PostGTickCmd(struct G_CurrentDemo_s* a_Current)
+{
+	G_LegacyDemoData_t* Data;
+	size_t i;
+	
+	/* Check */
+	if (!a_Current)
+		return false;
+	
+	/* Obtain */
+	Data = a_Current->Data;
+	
+	// Check
+	if (!Data)
+		return false;
+	
+	/* Handle all the commands */
+	// No commands to execute
+	if (!Data->ExtraBufs)
+		return true;
+	
+	// While there is a command
+	while (Data->ExtraBufs[0])
+	{
+		// Handle the command
+		GS_DEMO_Legacy_HandleExtraCmd(a_Current, Data->ExtraBufs[0]);
+		
+		// Free the current
+		Z_Free(Data->ExtraBufs[0]);
+		
+		// Move everything down
+		for (i = 0; i < Data->NumExtraBufs - 1; i++)
+			Data->ExtraBufs[i] = Data->ExtraBufs[i + 1];
+		Data->ExtraBufs[Data->NumExtraBufs - 1] = NULL;
+	}
+	
+	/* Success */
+	return true;
 }
 
 #undef ZT_FWD
@@ -1204,7 +1539,9 @@ static const G_DemoFactory_t c_DemoFactories[] =
 		G_DEMO_Vanilla_StopRecord,
 		G_DEMO_Vanilla_CheckDemo,
 		G_DEMO_Vanilla_ReadTicCmd,
-		G_DEMO_Vanilla_WriteTicCmd
+		G_DEMO_Vanilla_WriteTicCmd,
+		NULL,
+		NULL,
 	},
 	
 	// Legacy Factory
@@ -1217,7 +1554,9 @@ static const G_DemoFactory_t c_DemoFactories[] =
 		G_DEMO_Legacy_StopRecord,
 		G_DEMO_Legacy_CheckDemo,
 		G_DEMO_Legacy_ReadTicCmd,
-		G_DEMO_Legacy_WriteTicCmd
+		G_DEMO_Legacy_WriteTicCmd,
+		NULL,
+		G_DEMO_Legacy_PostGTickCmd,
 	},
 	
 	// ReMooD Factory
@@ -1230,7 +1569,9 @@ static const G_DemoFactory_t c_DemoFactories[] =
 		G_DEMO_ReMooD_StopRecord,
 		G_DEMO_ReMooD_CheckDemo,
 		G_DEMO_ReMooD_ReadTicCmd,
-		G_DEMO_ReMooD_WriteTicCmd
+		G_DEMO_ReMooD_WriteTicCmd,
+		NULL,
+		NULL,
 	},
 	
 	// End
@@ -1662,5 +2003,37 @@ void G_WriteDemoTiccmd(ticcmd_t* cmd, int playernum)
 	/* Write tic command */
 	if (l_RecDemo->Factory->WriteTicCmdFunc)
 		l_RecDemo->Factory->WriteTicCmdFunc(l_RecDemo, cmd, playernum);
+}
+
+/* G_DemoPreGTicker() -- Pre demo ticker */
+void G_DemoPreGTicker(void)
+{
+	/* Playing Demo? */
+	if (demoplayback)
+		if (l_PlayDemo)
+			if (l_PlayDemo->Factory->PreGTickCmdFunc)
+				l_PlayDemo->Factory->PreGTickCmdFunc(l_PlayDemo);
+	
+	/* Recording Demo? */
+	if (demorecording)
+		if (l_RecDemo)
+			if (l_RecDemo->Factory->PreGTickCmdFunc)
+				l_RecDemo->Factory->PreGTickCmdFunc(l_RecDemo);
+}
+
+/* G_DemoPostGTicker() -- Post demo ticker */
+void G_DemoPostGTicker(void)
+{
+	/* Playing Demo? */
+	if (demoplayback)
+		if (l_PlayDemo)
+			if (l_PlayDemo->Factory->PostGTickCmdFunc)
+				l_PlayDemo->Factory->PostGTickCmdFunc(l_PlayDemo);
+	
+	/* Recording Demo? */
+	if (demorecording)
+		if (l_RecDemo)
+			if (l_RecDemo->Factory->PostGTickCmdFunc)
+				l_RecDemo->Factory->PostGTickCmdFunc(l_RecDemo);
 }
 

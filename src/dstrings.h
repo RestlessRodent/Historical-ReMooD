@@ -353,6 +353,12 @@ typedef enum UnicodeStringID_e
 	DSTR_NET_BADHOSTRESOLVE,
 	DSTR_NET_CLIENTCONNECTED,
 	
+	DSTR_WFGS_TITLE,
+	DSTR_WFGS_PLAYERNAME,
+	DSTR_WFGS_PING,
+	DSTR_WFGS_DEMOPLAYER,
+	DSTR_WFGS_HOST,
+	
 	/* Deprecated Strings */
 	DSTR_DEP_D_DEVSTR,
 	DSTR_DEP_D_CDROM,
@@ -892,8 +898,8 @@ typedef struct StringGroupEX_s
 
 StringGroupEX_t UnicodeStrings[NUMUNICODESTRINGS];
 
-#define PTROFUNICODESTRING(n) (&(UnicodeStrings[n].wcharstr))
-#define PTRTOUNICODESTRING(n) (UnicodeStrings[n].wcharstr)
+#define PTROFUNICODESTRING(n) (&(UnicodeStrings[(n)].wcharstr))
+#define PTRTOUNICODESTRING(n) (UnicodeStrings[(n)].wcharstr)
 #define DS_GetString(n) ((const char*)(UnicodeStrings[(UnicodeStringID_t)(n)].wcharstr))
 
 const char* DS_NameOfString(char** const WCharStr);

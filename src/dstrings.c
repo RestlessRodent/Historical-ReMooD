@@ -354,6 +354,12 @@ StringGroupEX_t UnicodeStrings[NUMUNICODESTRINGS] =
 	{				"NET_BADHOSTRESOLVE", "Cannot resolve hostname."},
 	{			   "NET_CLIENTCONNECTED", "Client $1 has connected."},
 	
+	{						"WFGS_TITLE", "Waiting For Game Start"},
+	{				   "WFGS_PLAYERNAME", "Player Name"},
+	{						 "WFGS_PING", "Ping"},
+	{				   "WFGS_DEMOPLAYER", "Demo"},
+	{						 "WFGS_HOST", "Host"},
+	
 	/*** DEPRECATED STRINGS ***/
 	{                              "DEP_D_DEVSTR", "Development mode ON.\n"},
 	{                               "DEP_D_CDROM", "CD-ROM Version: default.cfg from c:\\doomdata\n"},

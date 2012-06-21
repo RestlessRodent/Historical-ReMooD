@@ -129,6 +129,9 @@ typedef bool_t (*G_DEMO_CheckDemoType_t)(struct G_CurrentDemo_s* a_Current);
 typedef bool_t (*G_DEMO_ReadTicCmdType_t)(struct G_CurrentDemo_s* a_Current, ticcmd_t* const a_Cmd, const int32_t a_PlayerNum);
 typedef bool_t (*G_DEMO_WriteTicCmdType_t)(struct G_CurrentDemo_s* a_Current, const ticcmd_t* const a_Cmd, const int32_t a_PlayerNum);
 
+typedef bool_t (*G_DEMO_PreGTickCmdType_t)(struct G_CurrentDemo_s* a_Current);
+typedef bool_t (*G_DEMO_PostGTickCmdType_t)(struct G_CurrentDemo_s* a_Current);
+
 /* G_DemoFactory_t -- Demo Factory */
 typedef struct G_DemoFactory_s
 {
@@ -141,6 +144,8 @@ typedef struct G_DemoFactory_s
 	G_DEMO_CheckDemoType_t CheckDemoFunc;		// Check Demo's Status (quit)
 	G_DEMO_ReadTicCmdType_t ReadTicCmdFunc;		// Reads tic command
 	G_DEMO_WriteTicCmdType_t WriteTicCmdFunc;	// Writes tic command
+	G_DEMO_PreGTickCmdType_t PreGTickCmdFunc;	// Pre G_Ticker() Command
+	G_DEMO_PreGTickCmdType_t PostGTickCmdFunc;	// Post G_Ticker() Command
 } G_DemoFactory_t;
 
 /* G_CurrentDemo_t -- Current Demo Info */
@@ -170,8 +175,11 @@ void G_DoPlayDemo(char* defdemoname);
 void G_TimeDemo(char* name);
 void G_DeferedPlayDemo(char* demo);
 bool_t G_CheckDemoStatus(void);
+
 void G_ReadDemoTiccmd(ticcmd_t* cmd, int playernum);
 void G_WriteDemoTiccmd(ticcmd_t* cmd, int playernum);
+void G_DemoPreGTicker(void);
+void G_DemoPostGTicker(void);
 
 #endif							/* __G_GAME_H__ */
 
