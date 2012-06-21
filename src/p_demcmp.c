@@ -747,39 +747,39 @@ static P_EXGSVariable_t l_GSVars[PEXGSNUMBITIDS] =
 		PEXGSMC_MONSTERS, PEXGSDA_STRING, c_PEXGSPVKillCountMode, NULL},
 		
 	{PEXGST_INTEGER, PEXGSBID_COOLDBFGSPRAY, "co_oldbfgspray", "Old BFG Spray",
-		"Use BFG Ball owner as inflictor rather than the ball itself. [Legacy < ].32]", PEXGSGM_ANY, PEXGSDR_LESSTHAN, 132, {0, 1}, 0,
+		"Use BFG Ball owner as inflictor rather than the ball itself. [Legacy < 1.32]", PEXGSGM_ANY, PEXGSDR_LESSTHAN, 132, {0, 1}, 0,
 		PEXGSMC_COMPAT, PEXGSDA_YESNO, c_PEXGSPVBoolean, NULL},
 		
 	{PEXGST_INTEGER, PEXGSBID_COEXPLODEHITFLOOR, "co_explodehitfloor", "Hit Floor When A_Explode",
-		"When a state calls A_Explode() the floor is hit. [Legacy >= ].32]", PEXGSGM_ANY, PEXGSDR_ATLEAST, 132, {0, 1}, 1,
+		"When a state calls A_Explode() the floor is hit. [Legacy >= 1.32]", PEXGSGM_ANY, PEXGSDR_ATLEAST, 132, {0, 1}, 1,
 		PEXGSMC_COMPAT, PEXGSDA_YESNO, c_PEXGSPVBoolean, NULL},
 		
 	{PEXGST_INTEGER, PEXGSBID_COBOMBTHRUFLOOR, "co_bombthrufloor", "Bomb Through Floor",
-		"Explosions bleed through floors. [Legacy < ].32]", PEXGSGM_ANY, PEXGSDR_LESSTHAN, 132, {0, 1}, 0,
+		"Explosions bleed through floors. [Legacy < 1.32]", PEXGSGM_ANY, PEXGSDR_LESSTHAN, 132, {0, 1}, 0,
 		PEXGSMC_COMPAT, PEXGSDA_YESNO, c_PEXGSPVBoolean, NULL},
 
 	{PEXGST_INTEGER, PEXGSBID_COOLDEXPLOSIONS, "co_oldexplosions", "Use Old Explosions",
-		"Use older explosion code which cannot handle certain aspects. [Legacy < ].32]", PEXGSGM_ANY, PEXGSDR_LESSTHAN, 132, {0, 1}, 0,
+		"Use older explosion code which cannot handle certain aspects. [Legacy < 1.32]", PEXGSGM_ANY, PEXGSDR_LESSTHAN, 132, {0, 1}, 0,
 		PEXGSMC_COMPAT, PEXGSDA_YESNO, c_PEXGSPVBoolean, NULL},
 		
 	{PEXGST_INTEGER, PEXGSBID_COAIMCHECKFAKEFLOOR, "co_aimcheckfakefloor", "Check 3D Floor When Aiming",
-		"Checks local 3D floors to determine if it is possible to aim through them. [Legacy >= ].32]", PEXGSGM_ANY, PEXGSDR_ATLEAST, 132, {0, 1}, 1,
+		"Checks local 3D floors to determine if it is possible to aim through them. [Legacy >= 1.32]", PEXGSGM_ANY, PEXGSDR_ATLEAST, 132, {0, 1}, 1,
 		PEXGSMC_COMPAT, PEXGSDA_YESNO, c_PEXGSPVBoolean, NULL},
 		
 	{PEXGST_INTEGER, PEXGSBID_CONEWGUNSHOTCODE, "co_newgunshotcode", "Use New Gunshot Code",
-		"Use logically incorrect gunshot code. [Legacy >= ].32]", PEXGSGM_ANY, PEXGSDR_ATLEAST, 132, {0, 1}, 1,
+		"Use logically incorrect gunshot code. [Legacy >= 1.32]", PEXGSGM_ANY, PEXGSDR_ATLEAST, 132, {0, 1}, 1,
 		PEXGSMC_COMPAT, PEXGSDA_YESNO, c_PEXGSPVBoolean, NULL},
 		
 	{PEXGST_INTEGER, PEXGSBID_COSHOOTCHECKFAKEFLOOR, "co_shootcheckfakefloor", "Check 3D Floor When Shooting",
-		"Checks local 3D floors to determine if it is possible to shoot through them. [Legacy >= ].32]", PEXGSGM_ANY, PEXGSDR_ATLEAST, 132, {0, 1}, 1,
+		"Checks local 3D floors to determine if it is possible to shoot through them. [Legacy >= 1.32]", PEXGSGM_ANY, PEXGSDR_ATLEAST, 132, {0, 1}, 1,
 		PEXGSMC_COMPAT, PEXGSDA_YESNO, c_PEXGSPVBoolean, NULL},
 	
 	{PEXGST_INTEGER, PEXGSBID_COSHOOTFLOORCLIPPING, "co_shootfloorclipping", "Clip Tracers To Surface",
-		"When tracing clip against the floor rather than going through it. [Legacy >= ].32]", PEXGSGM_ANY, PEXGSDR_ATLEAST, 132, {0, 1}, 1,
+		"When tracing clip against the floor rather than going through it. [Legacy >= 1.32]", PEXGSGM_ANY, PEXGSDR_ATLEAST, 132, {0, 1}, 1,
 		PEXGSMC_COMPAT, PEXGSDA_YESNO, c_PEXGSPVBoolean, NULL},
 		
 	{PEXGST_INTEGER, PEXGSBID_CONEWSSGSPREAD, "co_newssgspread", "Use New SSG Spread",
-		"Use a subtle change in the SSG spread code. [Legacy >= ].32]", PEXGSGM_ANY, PEXGSDR_ATLEAST, 132, {0, 1}, 1,
+		"Use a subtle change in the SSG spread code. [Legacy >= 1.32]", PEXGSGM_ANY, PEXGSDR_ATLEAST, 132, {0, 1}, 1,
 		PEXGSMC_COMPAT, PEXGSDA_YESNO, c_PEXGSPVBoolean, NULL},
 	
 	{PEXGST_INTEGER, PEXGSBID_COMONSTERLOOKFORMONSTER, "co_monsterlookmonster", "Monsters Look For Other Monsters",
@@ -787,7 +787,7 @@ static P_EXGSVariable_t l_GSVars[PEXGSNUMBITIDS] =
 		PEXGSMC_COMPAT, PEXGSDA_YESNO, c_PEXGSPVBoolean, NULL},
 		
 	{PEXGST_INTEGER, PEXGSBID_COOLDTHINGHEIGHTS, "co_oldthingheights", "Use Old Thing Heights",
-		"Use the older heights of objects that were changed in Legacy. [Legacy < ].32]", PEXGSGM_ANY, PEXGSDR_LESSTHAN, 132, {0, 1}, 0,
+		"Use the older heights of objects that were changed in Legacy. [Legacy < 1.32]", PEXGSGM_ANY, PEXGSDR_LESSTHAN, 132, {0, 1}, 0,
 		PEXGSMC_COMPAT, PEXGSDA_YESNO, c_PEXGSPVBoolean, NULL},
 	
 	{PEXGST_INTEGER, PEXGSBID_COLASTLOOKMAXPLAYERS, "co_lastlookmaxplayers", "Last Look MAXPLAYERS",
@@ -795,7 +795,7 @@ static P_EXGSVariable_t l_GSVars[PEXGSNUMBITIDS] =
 		PEXGSMC_COMPAT, PEXGSDA_INTEGER, c_PEXGSPVLastLookMP, NULL},
 	
 	{PEXGST_INTEGER, PEXGSBID_COMOVECHECKFAKEFLOOR, "co_movecheckfakefloor", "Check 3D Floor When Moving",
-		"Checks 3D floors during movement. [Legacy >= ].32]", PEXGSGM_ANY, PEXGSDR_ATLEAST, 132, {0, 1}, 1,
+		"Checks 3D floors during movement. [Legacy >= 1.32]", PEXGSGM_ANY, PEXGSDR_ATLEAST, 132, {0, 1}, 1,
 		PEXGSMC_COMPAT, PEXGSDA_YESNO, c_PEXGSPVBoolean, NULL},
 	
 	{PEXGST_INTEGER, PEXGSBID_COMULTIPLAYER, "co_multiplayer", "Multi-Player Mode",
@@ -803,7 +803,7 @@ static P_EXGSVariable_t l_GSVars[PEXGSNUMBITIDS] =
 		PEXGSMC_COMPAT, PEXGSDA_YESNO, c_PEXGSPVBoolean, NULL},
 	
 	{PEXGST_INTEGER, PEXGSBID_COBOOMSUPPORT, "co_boomsupport", "Boom Support",
-		"Allows changes used from Boom in certain areas. [Legacy >= ].32]", PEXGSGM_ANY, PEXGSDR_ATLEAST, 132, {0, 1}, 1,
+		"Allows changes used from Boom in certain areas. [Legacy >= 1.32]", PEXGSGM_ANY, PEXGSDR_ATLEAST, 132, {0, 1}, 1,
 		PEXGSMC_COMPAT, PEXGSDA_YESNO, c_PEXGSPVBoolean, NULL},
 	
 	{PEXGST_INTEGER, PEXGSBID_COSPAWNWITHFAVGUN, "co_spawnwithfavgun", "Spawn With Favorite Gun",
@@ -825,6 +825,10 @@ static P_EXGSVariable_t l_GSVars[PEXGSNUMBITIDS] =
 	{PEXGST_INTEGER, PEXGSBID_COJUMPREGARDLESS, "co_jumpregardless", "Ignore Jump Disable",
 		"This allows jumping regardless if it is enabled or not, this is for old demos. [ReMooD < 1.0a]", PEXGSGM_ANY, PEXGSDR_LESSTHAN, 200, {0, 1}, 0,
 		PEXGSMC_COMPAT, PEXGSDA_YESNO, c_PEXGSPVBoolean, NULL},
+	
+	{PEXGST_INTEGER, PEXGSBID_COOLDLASTLOOKLOGIC, "co_oldlastlooklogic", "Use Old Lastlook Logic",
+		"Use older method of computing an object's last look target. [Legacy < 1.30]", PEXGSGM_ANY, PEXGSDR_LESSTHAN, 130, {0, 1}, 0,
+		PEXGSMC_COMPAT, PEXGSDA_YESNO, c_PEXGSPVBoolean, NULL},	
 };
 
 /*** FUNCTIONS ***/

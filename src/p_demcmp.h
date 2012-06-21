@@ -269,6 +269,7 @@ typedef enum P_EXGSBitID_e
 	PEXGSBID_COENABLETEAMMONSTERS,				// Enable Teamable Monsters
 	PEXGSBID_COMONSTERDEADTARGET,				// Monsters stop targetting dead things
 	PEXGSBID_COJUMPREGARDLESS,					// Regardless Jump (legacy mishap)
+	PEXGSBID_COOLDLASTLOOKLOGIC,				// Old lastlook Logic
 	
 	PEXGSNUMBITIDS
 } P_EXGSBitID_t;

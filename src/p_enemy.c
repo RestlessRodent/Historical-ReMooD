@@ -526,15 +526,32 @@ static bool_t P_LookForPlayers(mobj_t* actor, bool_t allaround)
 	
 		for (LoopOK = false;; actor->lastlook = (actor->lastlook + 1) & (MaxPlayers - 1))
 		{
-			// done looking
-			if (actor->lastlook == stop)
-				break;
+			// GhostlyDeath <June 21, 2012> -- Demo Compat
+			if (P_EXGSGetValue(PEXGSBID_COOLDLASTLOOKLOGIC))
+			{
+				// Player Missing
+				if (!playeringame[actor->lastlook])
+					continue;
+				
+				// Increment and possibly stop
+				if (c++ == 2 || actor->lastlook == stop)
+					break;
+			}
+			
+			// Legacy (and thus ReMooD) changed the order around, this one
+			// stops sooner rather than later
+			else
+			{
+				// done looking
+				if (actor->lastlook == stop)
+					break;
 	
-			if (!playeringame[actor->lastlook])
-				continue;
+				if (!playeringame[actor->lastlook])
+					continue;
 	
-			if (c++ == 2)
-				break;
+				if (c++ == 2)
+					break;
+			}
 	
 			player = &players[actor->lastlook];
 			
