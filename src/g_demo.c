@@ -575,13 +575,13 @@ bool_t G_DEMO_Vanilla_WriteTicCmd(struct G_CurrentDemo_s* a_Current, const ticcm
 		Bits = 0;
 		
 		// Fire Weapon?
-		if (a_Cmd->buttons &  BT_ATTACK)
+		if (a_Cmd->buttons & BT_ATTACK)
 			Bits |= 1;
 	
 		// Use?
 		if (a_Cmd->buttons & BT_USE)
 			Bits |= 2;
-	
+		
 		// Change gun?
 		if ((a_Cmd->buttons & (BT_CHANGE | BT_EXTRAWEAPON)) == (BT_CHANGE | BT_EXTRAWEAPON))
 			Bits |= 4;
@@ -806,9 +806,10 @@ bool_t G_DEMO_Legacy_StartPlaying(struct G_CurrentDemo_s* a_Current)
 				for (l = 0, j = 0; j < 9; j++)
 					// Find first gun with ID and use that
 					for (k = 0; k < NUMWEAPONS; k++)
-						if (wpnlev1info[k]->DEHId >= 0)
-							if (wpnlev1info[k]->DEHId == FavGuns[i][j])
-								players[i].FavoriteWeapons[l++] = k;
+						if (P_WeaponIsUnlocked(k))
+							if (wpnlev1info[k]->DEHId >= 0)
+								if (wpnlev1info[k]->DEHId == FavGuns[i][j])
+									players[i].FavoriteWeapons[l++] = k;
 			}
 			
 			// After that, it is provided by text commands
@@ -1248,6 +1249,7 @@ bool_t G_DEMO_Legacy_ReadTicCmd(struct G_CurrentDemo_s* a_Current, ticcmd_t* con
 	uint8_t ButtonCodes, ZipTic, ExtraCount, CmdID;
 	int32_t i;
 	G_LegacyExtraBuf_t* NewBuf;
+	uint8_t u8a, u8b;
 	
 	/* Check */
 	if (!a_Current)
@@ -1328,7 +1330,51 @@ bool_t G_DEMO_Legacy_ReadTicCmd(struct G_CurrentDemo_s* a_Current, ticcmd_t* con
 		// Buttons
 		if (ZipTic & ZT_BUTTONS)
 		{
+			// Read Base Codes
+			Data->OldCmd.buttons = 0;	// Clear!
 			ButtonCodes =  WL_StreamReadUInt8(a_Current->WLStream);
+			
+			// Attack
+			if (ButtonCodes & 1)
+				Data->OldCmd.buttons |= BT_ATTACK;
+			
+			// Use
+			if (ButtonCodes & 2)
+				Data->OldCmd.buttons |= BT_USE;
+			
+			// Jump
+			if (ButtonCodes & 64)
+				Data->OldCmd.buttons |= BT_JUMP;
+				
+			// Change gun?
+			if (ButtonCodes & 4)
+				// Slot based switching (BT_EXTRAWEAPON)
+				if (ButtonCodes & 128)
+				{
+					a_Cmd->buttons |= BT_CHANGE | BT_EXTRAWEAPON;	// Slot based change
+					a_Cmd->buttons |= ((((ButtonCodes & 0x38) >> 3)) << BT_SLOTSHIFT) & BT_SLOTMASK;
+				}
+				
+				// Specific Gun (!BT_EXTRAWEAPON)
+				else
+				{
+					// Extract Gun
+					u8a = (((ButtonCodes & 0x38) >> 3));
+					
+					// Locate DeHackEd Weapon
+					u8b = 0;
+					for (i = 0; i < NUMWEAPONS; i++)
+						if (P_WeaponIsUnlocked(i))
+							if (wpnlev1info[i]->DEHId == u8a)
+							{
+								u8b = i;
+								break;
+							}
+					
+					// Use new command rather than shifties
+					a_Cmd->buttons |= BT_CHANGE;
+					a_Cmd->XNewWeapon |= u8b;
+				}
 		}
 		
 		// Aiming

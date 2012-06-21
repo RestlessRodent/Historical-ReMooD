@@ -809,6 +809,10 @@ static P_EXGSVariable_t l_GSVars[PEXGSNUMBITIDS] =
 	{PEXGST_INTEGER, PEXGSBID_COSPAWNWITHFAVGUN, "co_spawnwithfavgun", "Spawn With Favorite Gun",
 		"Allows players to start with their favorite gun when they respawn. [ReMooD >= 1.0a]", PEXGSGM_ANY, PEXGSDR_ATLEAST, 200, {0, 1}, 1,
 		PEXGSMC_COMPAT, PEXGSDA_YESNO, c_PEXGSPVBoolean, NULL},
+	
+	{PEXGST_INTEGER, PEXGSBID_CONOSAWFACING, "co_nosawfacing", "No Chainsaw Facing",
+		"When chainsawing enemies you face their direction to continue harming them.", PEXGSGM_ANY, PEXGSDR_NOCHECK, 0, {0, 1}, 0,
+		PEXGSMC_COMPAT, PEXGSDA_YESNO, c_PEXGSPVBoolean, NULL},	
 };
 
 /*** FUNCTIONS ***/
@@ -1299,6 +1303,14 @@ bool_t P_EXGSSetVersionLevel(const bool_t a_Master, const uint32_t a_Level)
 		P_EXGSSetValue(a_Master, PEXGSBID_COLASTLOOKMAXPLAYERS, 8);
 	else
 		P_EXGSSetValue(a_Master, PEXGSBID_COLASTLOOKMAXPLAYERS, 32);
+	
+	// Legacys from 1.xx to 1.42 break the chainsaw facing somewhat
+#if 0
+	if (a_Level >= && a_Level <= 142)
+		P_EXGSSetValue(a_Master, PEXGSBID_CONOSAWFACING, 1);
+	else	// Otherwise it works fine
+		P_EXGSSetValue(a_Master, PEXGSBID_CONOSAWFACING, 0);
+#endif
 	
 	return true;
 }

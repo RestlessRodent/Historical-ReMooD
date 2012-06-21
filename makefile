@@ -244,6 +244,11 @@ wad:						bin/remood.wad
 ### MAGICAL MAKEFILE GENERATION ###
 ###################################
 
+# Phony WAD Target
+.PHONY:
+wad/wadinfo.txt:	
+					
+
 # Preprocessor for environment
 .PHONY: ____cdef.___
 ____cdef.___:	version
@@ -262,3 +267,5 @@ ____make.___:	____bild.exe
 # RMDTEX -- DeuTex Clone For ReMooD
 rmdtext.exe:	util/rmdtex.c
 				@$(__INT_HOSTCC) -o $@ $<
+
+

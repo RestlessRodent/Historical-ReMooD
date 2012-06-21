@@ -583,60 +583,64 @@ void A_Saw(mobj_t* mo, player_t* player, pspdef_t* psp, const INFO_StateArgsNum_
 		S_StartSound(&player->mo->NoiseThinker, sfx_sawful);
 		return;
 	}
+	
 	S_StartSound(&player->mo->NoiseThinker, sfx_sawhit);
 	
 	// turn to face target
-	angle = R_PointToAngle2(player->mo->x, player->mo->y, linetarget->x, linetarget->y);
-	if (angle - player->mo->angle > ANG180)
+	if (!P_EXGSGetValue(PEXGSBID_CONOSAWFACING))
 	{
-		if (angle - player->mo->angle < -ANG90 / 20)
-			player->mo->angle = angle + ANG90 / 21;
-		else
-			player->mo->angle -= ANG90 / 20;
-	}
-	else
-	{
-		if (angle - player->mo->angle > ANG90 / 20)
-			player->mo->angle = angle - ANG90 / 21;
-		else
-			player->mo->angle += ANG90 / 20;
-	}
-	
-	// GhostlyDeath -- Affect Local Aiming yknow
-	for (i = 0; i < MAXSPLITSCREENPLAYERS; i++)
-		if (playeringame[consoleplayer[i]] && player == &players[consoleplayer[i]])
-			locang = &localangle[i];
-			
-	if (locang)
-	{
-		angle_t victimangle = 0;
-		angle_t myangle = 0;
-		angle_t actualangle = 0;
-		angle_t virtualangle = 0;
-		int someactualangle = 0;
-		int somevirtualangle = 0;
-		int somemyangle = 0;
-		int someoffset = 0;
-		
-		// First Face the target
-		actualangle = R_PointToAngle2(player->mo->x, player->mo->y, linetarget->x, linetarget->y);
-		virtualangle = *locang;
-		myangle = *locang;
-		
-		someactualangle = actualangle >> 16;
-		somevirtualangle = virtualangle >> 16;
-		somemyangle = myangle >> 16;
-		
-		while (somevirtualangle != (someactualangle))
+		angle = R_PointToAngle2(player->mo->x, player->mo->y, linetarget->x, linetarget->y);
+		if (angle - player->mo->angle > ANG180)
 		{
-			if (somevirtualangle + someoffset < (someactualangle))
-				someoffset++;
-			else if (somevirtualangle + someoffset > (someactualangle))
-				someoffset--;
+			if (angle - player->mo->angle < -ANG90 / 20)
+				player->mo->angle = angle + ANG90 / 21;
 			else
+				player->mo->angle -= ANG90 / 20;
+		}
+		else
+		{
+			if (angle - player->mo->angle > ANG90 / 20)
+				player->mo->angle = angle - ANG90 / 21;
+			else
+				player->mo->angle += ANG90 / 20;
+		}
+	
+		// GhostlyDeath -- Affect Local Aiming yknow
+		for (i = 0; i < MAXSPLITSCREENPLAYERS; i++)
+			if (playeringame[consoleplayer[i]] && player == &players[consoleplayer[i]])
+				locang = &localangle[i];
+			
+		if (locang)
+		{
+			angle_t victimangle = 0;
+			angle_t myangle = 0;
+			angle_t actualangle = 0;
+			angle_t virtualangle = 0;
+			int someactualangle = 0;
+			int somevirtualangle = 0;
+			int somemyangle = 0;
+			int someoffset = 0;
+		
+			// First Face the target
+			actualangle = R_PointToAngle2(player->mo->x, player->mo->y, linetarget->x, linetarget->y);
+			virtualangle = *locang;
+			myangle = *locang;
+		
+			someactualangle = actualangle >> 16;
+			somevirtualangle = virtualangle >> 16;
+			somemyangle = myangle >> 16;
+		
+			while (somevirtualangle != (someactualangle))
 			{
-				*locang += (someoffset << 16);
-				break;
+				if (somevirtualangle + someoffset < (someactualangle))
+					someoffset++;
+				else if (somevirtualangle + someoffset > (someactualangle))
+					someoffset--;
+				else
+				{
+					*locang += (someoffset << 16);
+					break;
+				}
 			}
 		}
 	}

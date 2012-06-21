@@ -265,6 +265,7 @@ typedef enum P_EXGSBitID_e
 	PEXGSBID_COMULTIPLAYER,						// Multiplayer Format
 	PEXGSBID_COBOOMSUPPORT,						// boomsupport Flag
 	PEXGSBID_COSPAWNWITHFAVGUN,					// Spawn with favorite gun
+	PEXGSBID_CONOSAWFACING,						// No facing when sawing
 	
 	PEXGSNUMBITIDS
 } P_EXGSBitID_t;
