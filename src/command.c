@@ -1083,3 +1083,24 @@ CONL_ExitCode_t CLC_CVarSet(const uint32_t a_ArgC, const char** const a_ArgV)
 #undef BUFSIZE
 }
 
+/* CLC_Quit() -- Quit the game */
+CONL_ExitCode_t CLC_Quit(const uint32_t a_ArgC, const char** const a_ArgV)
+{
+	/* Noooooooo! */
+	I_Quit();
+	
+	/* Success */
+	return CLE_SUCCESS;
+}
+
+/* CLC_CloseConsole() -- Close the console */
+CONL_ExitCode_t CLC_CloseConsole(const uint32_t a_ArgC, const char** const a_ArgV)
+{
+	/* Close Console */
+	CONL_SetActive(false);
+	
+	/* Success */
+	return CLE_SUCCESS;
+}
+
+

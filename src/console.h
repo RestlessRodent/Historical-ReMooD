@@ -281,12 +281,13 @@ CONL_ExitCode_t CLC_CVarSet(const uint32_t a_ArgC, const char** const a_ArgV);
 
 // Base Commands
 CONL_ExitCode_t CLC_Version(const uint32_t a_ArgC, const char** const a_ArgV);
-CONL_ExitCode_t CLC_Dep(const uint32_t a_ArgC, const char** const a_ArgV);
 CONL_ExitCode_t CLC_Exec(const uint32_t a_ArgC, const char** const a_ArgV);
 CONL_ExitCode_t CLC_ExecFile(const uint32_t a_ArgC, const char** const a_ArgV);
 CONL_ExitCode_t CLC_Echo(const uint32_t a_ArgC, const char** const a_ArgV);
 CONL_ExitCode_t CLC_Exclamation(const uint32_t a_ArgC, const char** const a_ArgV);
 CONL_ExitCode_t CLC_Question(const uint32_t a_ArgC, const char** const a_ArgV);
+CONL_ExitCode_t CLC_Quit(const uint32_t a_ArgC, const char** const a_ArgV);
+CONL_ExitCode_t CLC_CloseConsole(const uint32_t a_ArgC, const char** const a_ArgV);
 
 /*** Configuration Files ***/
 size_t CONL_EscapeString(char* const a_Dest, const size_t a_Size, const char* const a_Src);

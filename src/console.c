@@ -1151,6 +1151,12 @@ bool_t CONL_Init(const uint32_t a_OutBS, const uint32_t a_InBS)
 	CONL_AddCommand("!", CLC_Exclamation);
 	CONL_AddCommand("?", CLC_Question);
 	
+	CONL_AddCommand("quit", CLC_Quit);
+	
+	CONL_AddCommand("exit", CLC_CloseConsole);
+	CONL_AddCommand("closeconsole", CLC_CloseConsole);
+	CONL_AddCommand("close", CLC_CloseConsole);
+	
 	/* Initialize the variable system */
 	CONL_VarLocate("theconsolesystemwasjustbooted");
 	
