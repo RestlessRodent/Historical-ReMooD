@@ -60,9 +60,68 @@ typedef enum M_ExMBType_e
 	MEXMBT_DONTCARE					= 0x0010,	// Don't Care
 } M_ExMBType_t;
 
+/* M_UIItemType_t -- Type of UI Item */
+typedef enum M_UIItemType_e
+{
+	MUIIT_NORMAL,								// Normal Item
+	MUIIT_HEADER,								// Header Item	
+	
+	NUMUIITEMTYPES
+} M_UIItemType_t;
+
+/* M_UIItemFlags_t -- Item Flags */
+typedef enum M_UIItemFlags_e
+{
+	MUIIF_NOPARK		= UINT32_C(0x0000001),	// No parking
+} M_UIItemFlags_t;
+
 /*** STRUCTURES ***/
 
 typedef void (*MBCallBackFunc_t)(const uint32_t a_MessageID, const M_ExMBType_t a_Response, const char** const a_TitleP, const char** const a_MessageP);
+
+
+struct M_UIMenu_s;
+
+/* M_UIItem_t -- Menu Item */
+typedef struct M_UIItem_s
+{
+	struct M_UIMenu_s* Menu;					// Menu Owner
+	uint32_t Flags;								// Flags
+	M_UIItemType_t Type;						// Type of item
+	const char* Text;							// Item Text
+	const char* Value;							// Value
+	const char** TextRef;						// Item Text (i18n)
+	const char** ValueRef;						// Value (i18n)
+	
+	int32_t DataBits;							// Anything needed for data
+	bool_t (*LRValChangeFunc)(struct M_UIMenu_s* const a_Menu, struct M_UIItem_s* const a_Item, const bool_t a_More);
+} M_UIItem_t;
+
+struct M_UIMenuHandler_s;
+
+/* M_UIMenu_t -- Interface Menu */
+typedef struct M_UIMenu_s
+{
+	uint8_t Junk;								// Junk
+	
+	M_UIItem_t* Items;							// Items
+	size_t NumItems;							// Number of Items
+	
+	void (*CleanerFunc)(struct M_UIMenuHandler_s* const a_Handler, struct M_UIMenu_s* const a_UIMenu);
+	bool_t (*UnderDrawFunc)(struct M_UIMenuHandler_s* const a_Handler, struct M_UIMenu_s* const a_Menu, const int32_t a_X, const int32_t a_Y, const int32_t a_W, const int32_t a_H);
+	bool_t (*OverDrawFunc)(struct M_UIMenuHandler_s* const a_Handler, struct M_UIMenu_s* const a_Menu, const int32_t a_X, const int32_t a_Y, const int32_t a_W, const int32_t a_H);
+} M_UIMenu_t;
+
+/* M_UIMenuHandler_t -- Menu Handler */
+typedef struct M_UIMenuHandler_s
+{
+	M_UIMenu_t* UIMenu;							// Defined UI Menu
+	int32_t CurItem;							// Current Selected Item
+	int32_t OldCurItem;							// Old Selected Item
+	int32_t StartOff;							// Starting Offset
+	int32_t IPS;								// Known IPS
+	int32_t OSKWait;							// OSK Wait
+} M_UIMenuHandler_t;
 
 /*** FUNCTIONS ***/
 
@@ -73,7 +132,10 @@ bool_t M_ExUIMessageBox(const M_ExMBType_t a_Type, const uint32_t a_MessageID, c
 bool_t M_ExUIHandleEvent(const I_EventEx_t* const a_Event);
 void M_ExUIDrawer(void);
 
+M_UIMenuHandler_t* M_ExPushMenu(const uint8_t a_Player, M_UIMenu_t* const a_UI);
 void M_ExPopMenu(const uint8_t a_Player);
+
+void M_GenericCleanerFunc(struct M_UIMenuHandler_s* const a_Handler, struct M_UIMenu_s* const a_UIMenu);
 
 #endif
 

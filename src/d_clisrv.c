@@ -168,6 +168,10 @@ void TryRunTics(tic_t realtics)
 		// Update the client if it is needed
 		if (singletics || LocalTic > LastTic)
 		{
+			// If the game is paused, don't do anything
+			if (D_SyncNetIsPaused())
+				break;
+			
 			// While the game is behind, update it
 			while ((XXLocalTic = D_SyncNetMapTime()) < (XXSNAR = D_SyncNetAllReady()))
 			{

@@ -245,6 +245,7 @@ void D_Display(void)
 	bool_t wipe;
 	bool_t redrawsbar;
 	bool_t viewactivestate = false;
+	V_Image_t* PausePic;
 	
 	if (dedicated)
 		return;
@@ -417,16 +418,12 @@ void D_Display(void)
 	oldgamestate = wipegamestate = gamestate;
 	
 	// draw pause pic
-	if (paused && (!M_ExUIActive() || netgame) && (gamestate == GS_LEVEL || gamestate == GS_INTERMISSION))
+	if (paused && (gamestate == GS_LEVEL || gamestate == GS_INTERMISSION))
 	{
-		patch_t* patch;
+		PausePic = V_ImageFindA("M_PAUSE", VCP_NONE);
 		
-		if (automapactive)
-			y = 4;
-		else
-			y = viewwindowy + 4;
-		//patch = W_CachePatchName("M_PAUSE", PU_CACHE);
-		//V_DrawScaledPatch(viewwindowx + (BASEVIDWIDTH - LittleSwapInt16(patch->width)) / 2, y, 0, patch);
+		if (PausePic)
+			V_ImageDraw(0, PausePic, (320 >> 1) - (PausePic->Width >> 1), 10, NULL);
 	}
 	//added:24-01-98:vid size change is now finished if it was on...
 	vid.recalc = 0;
@@ -455,6 +452,7 @@ void D_Display(void)
 	if (l_VIDDrawFPS.Value->Int)
 	{
 		// GhostlyDeath <july 8, 2009> -- Draw FPS
+		V_DrawCharacterA(VFONT_LARGE, 0, '0' + ((l_FPSTrueFPS / 1000) % 10), 320 - 80, 0);
 		V_DrawCharacterA(VFONT_LARGE, 0, '0' + ((l_FPSTrueFPS / 100) % 10), 320 - 70, 0);
 		V_DrawCharacterA(VFONT_LARGE, 0, '0' + ((l_FPSTrueFPS / 10) % 10), 320 - 60, 0);
 		V_DrawCharacterA(VFONT_LARGE, 0, '.', 320 - 50, 0);
@@ -578,6 +576,18 @@ void D_DoomLoop(void)
 	
 	FPSLastTime = I_GetTimeMS();
 	
+	// Playing any demos?
+	if (singledemo)
+	{
+		gameaction = ga_nothing;
+		gamestate = wipegamestate = GS_NULL;
+		G_PlayNextQ();
+	}
+	
+	// Otherwise start the title sequence
+	else
+		D_StartTitle();
+	
 	for (;;)
 	{
 		// get real tics
@@ -649,8 +659,8 @@ void D_DoomLoop(void)
 			
 			FPSLastTic = gametic;
 			
-			if (l_FPSTrueFPS > 999)
-				l_FPSTrueFPS = 999;
+			if (l_FPSTrueFPS > 9999)
+				l_FPSTrueFPS = 9999;
 			else if (l_FPSTrueFPS < 0)
 				l_FPSTrueFPS = 0;	// This can happen with fixed point numbers
 		}
@@ -799,7 +809,7 @@ void D_DoAdvanceDemo(void)
 			break;
 		case 1:
 			pagetic = 9999999;
-			G_DeferedPlayDemo("demo1");
+			G_DoPlayDemo("demo1");
 			break;
 		case 2:
 			pagetic = 200;
@@ -808,7 +818,7 @@ void D_DoAdvanceDemo(void)
 			break;
 		case 3:
 			pagetic = 9999999;
-			G_DeferedPlayDemo("demo2");
+			G_DoPlayDemo("demo2");
 			break;
 		case 4:
 			gamestate = GS_DEMOSCREEN;
@@ -826,11 +836,11 @@ void D_DoAdvanceDemo(void)
 			break;
 		case 5:
 			pagetic = 9999999;
-			G_DeferedPlayDemo("demo3");
+			G_DoPlayDemo("demo3");
 			break;
 		case 6:			// THE DEFINITIVE DOOM Special Edition demo
 			pagetic = 9999999;
-			G_DeferedPlayDemo("demo4");
+			G_DoPlayDemo("demo4");
 			break;
 	}
 	
@@ -1755,6 +1765,7 @@ void D_DoomMain(void)
 	ST_InitEx();						// Extended Status Bar
 	WL_Init();							// Initialize WL Code
 	M_MenuExInit();						// Initialize Menu
+	G_PrepareDemoStuff();				// Demos
 	
 	GuestProf = D_CreateProfileEx("guest");	// Create guest account
 	GuestProf->Flags |= DPEXF_DONTSAVE;	// Never save guest account
@@ -1991,14 +2002,6 @@ void D_DoomMain(void)
 	if (D_CheckNetGame())
 		autostart = true;
 	
-	// Playing any demos?
-	if (singledemo)
-	{
-		autostart = true;
-		gamestate = wipegamestate = GS_NULL;
-		G_PlayNextQ();
-	}
-	
 	// Recording Demo?
 	if (M_CheckParm("-record"))
 		if (M_IsNextParm())
@@ -2053,7 +2056,6 @@ void D_DoomMain(void)
 		
 		return;
 	}
-#endif
 	
 	p = M_CheckParm("-loadgame");
 	if (p && p < myargc - 1)
@@ -2073,5 +2075,6 @@ void D_DoomMain(void)
 			D_StartTitle();		// start up intro loop
 			
 	}
+#endif
 }
 

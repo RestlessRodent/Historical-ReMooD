@@ -119,8 +119,8 @@ tic_t D_SyncNetRealTime(void)
 /* D_SyncNetIsPaused() -- Returns true if the game is paused */
 bool_t D_SyncNetIsPaused(void)
 {
-	if (paused || (!netgame && M_ExUIActive() && !demoplayback))
-		return true;
+	//if (paused || (!netgame && M_ExUIActive() && !demoplayback))
+	//	return true;
 	return false;
 }
 
@@ -665,6 +665,16 @@ void D_NCQueueDisconnect(void)
 void D_NCDisconnect(void)
 {
 	size_t i;
+	
+	/* Demos? */
+	if (demoplayback)
+	{
+		// Don't quit when the demo stops
+		singledemo = false;
+		
+		// Stop it
+		G_StopDemoPlay();
+	}
 	
 	/* Clear all player information */
 	// Just wipe ALL of it!

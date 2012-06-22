@@ -562,6 +562,9 @@ typedef struct mobj_s
 	int32_t KillerPlayer;						// Player Killer
 	uint32_t FraggerID;							// Fragger ID of Player
 	
+	// GhostlyDeath <June 22, 2012> -- Interpolation
+	fixed_t DrawPos[3];							// Interpolated Draw Position
+	
 	// Owners
 #if 0
 	struct mobj_s* RootOwner;	// Root owner of this object (first mobj in owner chain)

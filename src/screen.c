@@ -96,7 +96,7 @@ CONL_StaticVar_t l_SCRWidth =
 CONL_StaticVar_t l_SCRHeight =
 {
 	CLVT_INTEGER, c_CVPVPositive, CLVF_SAVE,
-	"scr_height", DSTR_CVHINT_SCRHEIGHT, CLVVT_STRING, "640",
+	"scr_height", DSTR_CVHINT_SCRHEIGHT, CLVVT_STRING, "480",
 	NULL
 };
 
@@ -183,6 +183,8 @@ void SCR_Startup(void)
 	if (dedicated)
 		return;
 	
+	CONL_VarRegister(&l_SCRWidth);
+	CONL_VarRegister(&l_SCRHeight);
 	CONL_VarRegister(&l_SCRFullScreen);
 		
 	if (!graphics_started)

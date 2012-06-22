@@ -87,6 +87,7 @@ void G_NextLevel(void);
 void G_Ticker(void);
 bool_t G_Responder(event_t* ev);
 bool_t G_Downgrade(int version);
+void G_PrepareDemoStuff(void);
 
 player_t* G_AddPlayer(int playernum);
 void G_InitPlayer(player_t* const a_Player);

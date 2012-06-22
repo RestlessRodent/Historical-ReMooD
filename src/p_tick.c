@@ -187,8 +187,8 @@ void P_Ticker(void)
 {
 	int i;
 	
-	/* If the game is paused, don't do anything */
-	if (D_SyncNetIsPaused())
+	/* If the game is paused, do nothing */
+	if (paused)
 		return;
 	
 	// GhostlyDeath <May 6, 2012> -- Player tic update

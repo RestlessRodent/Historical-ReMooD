@@ -986,11 +986,6 @@ int32_t P_EXGSGetNextValue(const P_EXGSBitID_t a_Bit, const bool_t a_Right)
 	return ReqVal;
 }
 
-typedef struct M_UIMenuHandler_s M_UIMenuHandler_t;
-typedef struct M_UIMenu_s M_UIMenu_t;
-M_UIMenuHandler_t* M_ExPushMenu(const uint8_t a_Player, M_UIMenu_t* const a_UI);
-M_UIMenu_t* M_ExTemplateMakeGameVars(const int32_t a_Mode);
-
 /* PS_EXGSGeneralComm() -- General command for game settings */
 static CONL_ExitCode_t PS_EXGSGeneralComm(const uint32_t a_ArgC, const char** const a_ArgV)
 {

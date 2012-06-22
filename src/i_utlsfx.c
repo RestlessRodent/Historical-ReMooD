@@ -962,10 +962,10 @@ typedef enum
 /* opl_timer_t -- Timer for OPL */
 typedef struct
 {
-	unsigned int rate;		// Number of times the timer is advanced per sec.
-	unsigned int enabled;	 // Non-zero if timer is enabled.
-	unsigned int value;	   // Last value that was set.
-	unsigned int expire_time; // Calculated time that timer will expire.
+	unsigned int rate;							// Number of times the timer is advanced per sec.
+	unsigned int enabled;						// Non-zero if timer is enabled.
+	unsigned int value;							// Last value that was set.
+	unsigned int expire_time;					// Calculated time that timer will expire.
 } opl_timer_t;
 
 /* I_OPLEmData_t -- Emulated OPL Data */

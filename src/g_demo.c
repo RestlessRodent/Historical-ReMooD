@@ -634,7 +634,7 @@ typedef struct G_LegacyDemoData_s
 	size_t NumExtraBufs;						// Number of extra buffers
 	
 	uint8_t DisplayPNode;						// Node of display player
-	ticcmd_t OldCmd;							// Old Tic Command
+	ticcmd_t OldCmd[MAXPLAYERS];				// Old Tic Command
 } G_LegacyDemoData_t;
 
 /*** FUNCTIONS ***/
@@ -845,13 +845,15 @@ bool_t G_DEMO_Legacy_StartPlaying(struct G_CurrentDemo_s* a_Current)
 					strncpy(player_names[i], PlName, MAXPLAYERNAME - 1);
 			}
 			
-			// Put in split screen (only before 1.13)
-			if (VerMarker < 113)
+			// Put in split screen
+			// And before 1.30, only the display player (1.30 added ingame joining)
+				// But just make 1.30 use the first 4 players
+			if ((VerMarker < 130/* && ss == 0*/) || (VerMarker < 113))
 				if (ss < 4)
 				{
 					g_SplitScreen++;
 					g_PlayerInSplit[ss] = true;
-					consoleplayer[ss] = displayplayer[ss] = i;
+					displayplayer[ss] = consoleplayer[ss] = i;
 					ss++;
 				}
 		}
@@ -881,6 +883,7 @@ bool_t G_DEMO_Legacy_StartPlaying(struct G_CurrentDemo_s* a_Current)
 	
 	// Multiplayer
 	P_EXGSSetValue(true, PEXGSBID_COMULTIPLAYER, MultiPlayer);
+	P_EXGSSetValue(true, PEXGSBID_GAMESPAWNMULTIPLAYER, MultiPlayer);
 	
 	// Recalc Split-screen
 	R_ExecuteSetViewSize();
@@ -1141,6 +1144,11 @@ static bool_t GS_DEMO_Legacy_HandleExtraCmd(struct G_CurrentDemo_s* a_Current, c
 			case XD_NAMEANDCOLOR:
 				u8a = ReadUInt8(&d);
 				
+				// Set skin color
+				Player->skincolor = u8a;
+				if (Player->mo)
+					Player->mo->flags = (Player->mo->flags & ~MF_TRANSLATION) | ((Player->skincolor) << MF_TRANSSHIFT);
+				
 				// Read name
 				memset(Buf, 0, sizeof(Buf));
 					// Any Size
@@ -1166,11 +1174,6 @@ static bool_t GS_DEMO_Legacy_HandleExtraCmd(struct G_CurrentDemo_s* a_Current, c
 						Buf[i] = ReadUInt8(&d);
 					Buf[MAXPLAYERNAME - 1] = 0;
 				}
-				
-				// Set skin color
-				Player->skincolor = u8a;
-				if (Player->mo)
-					Player->mo->flags = (Player->mo->flags & ~MF_TRANSLATION) | ((Player->skincolor) << MF_TRANSSHIFT);
 				
 				// Info
 				CONL_PrintF("%s renamed to ", player_names[a_ExtraBuf->PlayerID]);
@@ -1359,7 +1362,26 @@ static bool_t GS_DEMO_Legacy_HandleExtraCmd(struct G_CurrentDemo_s* a_Current, c
 			case XD_SAVEGAME:
 				break;
 	
+				// 12
+				// u8a = Pause State
+				// u8b = Old pause state (messages)
 			case XD_PAUSE:
+				u8b = paused;
+				
+				// Before 1.31 it is just a toggle
+				if (Data->VerMarker < 131)
+					paused ^= 1;
+				
+				// However, onwards it is an actual set value
+				else
+				{
+					u8a = ReadUInt8(&d);
+					paused = !!u8a;
+				}
+				
+				// State changed?
+				if (u8b != paused)
+					CONL_PrintF("%s %spaused the game.\n", player_names[a_ExtraBuf->PlayerID], (paused ? "" : "un"));
 				break;
 			
 				// 13
@@ -1481,40 +1503,40 @@ bool_t G_DEMO_Legacy_ReadTicCmd(struct G_CurrentDemo_s* a_Current, ticcmd_t* con
 		
 		// Forward movement
 		if (ZipTic & ZT_FWD)
-			Data->OldCmd.forwardmove = WL_StreamReadInt8(a_Current->WLStream);
+			Data->OldCmd[a_PlayerNum].forwardmove = WL_StreamReadInt8(a_Current->WLStream);
 		
 		// Side movement
 		if (ZipTic & ZT_SIDE)
-			Data->OldCmd.sidemove = WL_StreamReadInt8(a_Current->WLStream);
+			Data->OldCmd[a_PlayerNum].sidemove = WL_StreamReadInt8(a_Current->WLStream);
 		
 		// Angle turn
 		if (ZipTic & ZT_ANGLE)
 			if (Data->VerMarker < 125)
 			{
-				Data->OldCmd.angleturn = WL_StreamReadInt8(a_Current->WLStream);
-				Data->OldCmd.angleturn <<= 8;
+				Data->OldCmd[a_PlayerNum].angleturn = WL_StreamReadInt8(a_Current->WLStream);
+				Data->OldCmd[a_PlayerNum].angleturn <<= 8;
 			}
 			else
-				Data->OldCmd.angleturn = WL_StreamReadInt16(a_Current->WLStream);
+				Data->OldCmd[a_PlayerNum].angleturn = WL_StreamReadInt16(a_Current->WLStream);
 		
 		// Buttons
 		if (ZipTic & ZT_BUTTONS)
 		{
 			// Read Base Codes
-			Data->OldCmd.buttons = 0;	// Clear!
+			Data->OldCmd[a_PlayerNum].buttons = 0;	// Clear!
 			ButtonCodes =  WL_StreamReadUInt8(a_Current->WLStream);
 			
 			// Attack
 			if (ButtonCodes & 1)
-				Data->OldCmd.buttons |= BT_ATTACK;
+				Data->OldCmd[a_PlayerNum].buttons |= BT_ATTACK;
 			
 			// Use
 			if (ButtonCodes & 2)
-				Data->OldCmd.buttons |= BT_USE;
+				Data->OldCmd[a_PlayerNum].buttons |= BT_USE;
 			
 			// Jump
 			if (ButtonCodes & 64)
-				Data->OldCmd.buttons |= BT_JUMP;
+				Data->OldCmd[a_PlayerNum].buttons |= BT_JUMP;
 				
 			// Change gun?
 			if (ButtonCodes & 4)
@@ -1549,7 +1571,7 @@ bool_t G_DEMO_Legacy_ReadTicCmd(struct G_CurrentDemo_s* a_Current, ticcmd_t* con
 		
 		// Aiming
 		if (ZipTic & ZT_AIMING)
-			Data->OldCmd.aiming = WL_StreamReadInt16(a_Current->WLStream);
+			Data->OldCmd[a_PlayerNum].aiming = WL_StreamReadInt16(a_Current->WLStream);
 		
 		// Chat -- Not actually used?
 		if (ZipTic & ZT_CHAT)
@@ -1603,7 +1625,7 @@ bool_t G_DEMO_Legacy_ReadTicCmd(struct G_CurrentDemo_s* a_Current, ticcmd_t* con
 		}
 		
 		// Use old command
-		memmove(a_Cmd, &Data->OldCmd, sizeof(Data->OldCmd));
+		memmove(a_Cmd, &Data->OldCmd[a_PlayerNum], sizeof(Data->OldCmd[a_PlayerNum]));
 	}
 	
 	/* Success */
@@ -1740,6 +1762,7 @@ tic_t g_DemoTime = 0;							// Current demo read time
 static G_CurrentDemo_t* l_PlayDemo = NULL;		// Demo being played
 static G_CurrentDemo_t* l_RecDemo = NULL;		// Demo being recorded
 static G_DemoLink_t* l_DemoQ = NULL;			// Demo Queue
+static bool_t l_CommandedDemo = false;			// Commanded demo
 
 /*** FACTORIES ***/
 
@@ -1795,6 +1818,31 @@ static const G_DemoFactory_t c_DemoFactories[] =
 };
 
 /*** FUNCTIONS ***/
+
+/* CLC_PlayDemo() -- Plays a demo */
+static CONL_ExitCode_t CLC_PlayDemo(const uint32_t a_ArgC, const char** const a_ArgV)
+{
+	/* Check */
+	if (a_ArgC < 2)
+	{
+		CONL_PrintF("Usage: %s <Demo Name>\n", a_ArgV[0]);
+		return CLE_FAILURE;
+	}
+	
+	/* Stop old demo from playing */
+	if (demoplayback)
+		G_StopDemo();
+	
+	/* Play Demo */
+	l_CommandedDemo = true;
+	G_DoPlayDemo(a_ArgV[1]);
+}
+
+/* G_PrepareDemoStuff() -- Registers any demo stuff */
+void G_PrepareDemoStuff(void)
+{
+	CONL_AddCommand("playdemo", CLC_PlayDemo);
+}
 
 /* G_DemoFactoryByName() -- Get factory by name */
 const G_DemoFactory_t* G_DemoFactoryByName(const char* const a_Name)
@@ -2018,8 +2066,13 @@ void G_StopDemoPlay(void)
 		else
 			QuitDoom = true;
 	}
-	else
+	else if (!l_CommandedDemo)
 		Advance = true;
+	else if (l_CommandedDemo)
+	{
+		l_CommandedDemo = false;
+		D_StartTitle();
+	}
 	
 	/* Stop recording if advancing/quitting */
 	if ((QuitDoom || Advance) && demorecording)
@@ -2165,6 +2218,7 @@ void G_TimeDemo(char* name)
 /* G_DeferedPlayDemo() -- Defers playing back demo */
 void G_DeferedPlayDemo(char* name)
 {
+	CONL_InputF("playdemo \"%s\"\n", name);
 }
 
 /* G_CheckDemoStatus() -- Sees if a demo should end */
