@@ -3673,7 +3673,7 @@ V_Image_t* V_ImageLoadE(const WL_WADEntry_t* const a_Entry, const V_ColorPal_t a
 	
 	// Determine if the image is a raw image
 	// The only raw images that ever get accessed would be flats really (ouch)
-	if (a_Entry->Size == 4096)
+	if (a_Entry->Size == 4096 || a_Entry->Size == 16384)
 		Conf[VIT_RAW] += 25;	// Not really that confident
 	
 	/* Find the most confident match */

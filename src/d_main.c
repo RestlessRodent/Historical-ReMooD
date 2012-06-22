@@ -271,6 +271,7 @@ void D_Display(void)
 		borderdrawcount = 3;
 		redrawsbar = true;
 	}
+	
 	// GhostlyDeath <June 16, 2010> -- Only wipe if we set screen link (otherwise cleanup is never done)
 	// save the current screen if about to wipe
 	if (!singletics && l_VIDScreenLink.Value->Int && gamestate != wipegamestate)
@@ -478,6 +479,7 @@ void D_Display(void)
 		V_DrawCharacterA(VFONT_OEM, 0, 'G', 320 - 16, 24);
 		V_DrawCharacterA(VFONT_OEM, 0, 'S', 320 - 8, 24);
 	}
+	
 	//I_BeginProfile();
 	I_FinishUpdate();			// page flip or blit buffer
 	//CONL_PrintF ("last frame update took %d\n", I_EndProfile());
@@ -821,7 +823,7 @@ void D_DoAdvanceDemo(void)
 		case 2:
 			pagetic = 200;
 			gamestate = GS_DEMOSCREEN;
-			pagename = "RMCREDIT";
+			pagename = (g_CoreGame == COREGAME_HERETIC ? "RMD_CR_H" : "RMD_CR_D");
 			break;
 		case 3:
 			pagetic = 9999999;

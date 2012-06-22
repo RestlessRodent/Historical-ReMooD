@@ -2023,6 +2023,14 @@ G_CurrentDemo_t* G_DemoPlay(WL_EntryStream_t* const a_Stream, const G_DemoFactor
 		WL_StreamSeek(a_Stream, 0, false);
 	}
 	
+	// No factory?
+	if (!New->Factory)
+	{
+		Z_Free(New);
+		G_DemoProblem(true, DSTR_BADDEMO_UNKNOWNFACTORY, "");
+		return NULL;
+	}
+	
 	/* Notice */
 	CONL_PrintF("Playing \"%s\" Demo\n", New->Factory->FactoryName);
 	

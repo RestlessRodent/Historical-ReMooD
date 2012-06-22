@@ -1169,6 +1169,7 @@ bool_t G_DeathMatchSpawnPlayer(int playernum)
 	for (j = 0; j < n; j++)
 	{
 		i = P_Random() % numdmstarts;
+		
 		if (G_CheckSpot(playernum, deathmatchstarts[i], false))
 		{
 			deathmatchstarts[i]->type = playernum + 1;

@@ -179,7 +179,7 @@ bool_t M_ExMenuHandleEvent(const I_EventEx_t* const a_Event)
 	bool_t Up, DoCancel;
 	
 	/* Control for each player */
-	for (i = 0; i < (g_SplitScreen > 0 ? g_SplitScreen + 1 : 1); i++)
+	for (i = 0; i < ((demoplayback || gamestate == GS_DEMOSCREEN) ? 1 : (g_SplitScreen > 0 ? g_SplitScreen + 1 : 1)); i++)
 	{
 		// No menus for this player?
 		if (!l_NumUIMenus[i])
@@ -357,8 +357,17 @@ bool_t M_ExMenuHandleEvent(const I_EventEx_t* const a_Event)
 /* M_ExUIActive() -- Returns true if UI is active */
 bool_t M_ExUIActive(void)
 {
-	if (l_NumUIBoxes || l_NumUIMenus[0] || l_NumUIMenus[1] || l_NumUIMenus[2] || l_NumUIMenus[3])
+	int32_t i;
+	
+	/* UI Boxes Open */
+	if (l_NumUIBoxes)
 		return true;
+	
+	/* Check menu count as per drawer/handler rules */
+	for (i = 0; i < ((demoplayback || gamestate == GS_DEMOSCREEN) ? 1 : (g_SplitScreen > 0 ? g_SplitScreen + 1 : 1)); i++)
+		if (l_NumUIMenus[i])
+			return true;
+	
 	return false;
 }
 
@@ -374,13 +383,18 @@ void M_ExMenuDrawer(void)
 	const char* TitleStr;
 	const char* ValStr;
 	uint32_t DrawFlags;
+	bool_t DrewAMenu;
 	
 	/* Draw for each player */
-	for (i = 0; i < (g_SplitScreen > 0 ? g_SplitScreen + 1 : 1); i++)
+	DrewAMenu = false;
+	for (i = 0; i < ((demoplayback || gamestate == GS_DEMOSCREEN) ? 1 : (g_SplitScreen > 0 ? g_SplitScreen + 1 : 1)); i++)
 	{
 		// No menus for this player?
 		if (!l_NumUIMenus[i])
 			continue;
+		
+		// Menu was drawn!
+		DrewAMenu = true;
 		
 		// Get base screen size
 		ScrX = 0;
@@ -388,24 +402,28 @@ void M_ExMenuDrawer(void)
 		ScrW = 320;
 		ScrH = 200;
 		
-		// 2+ Split = Half Height
-		if (g_SplitScreen > 0)
-			ScrH >>= 1;
-		
-		// 3+ Split = Half Width
-		if (g_SplitScreen > 1)
-			ScrW >>= 1;
-		
-		// Modify h/w?
-			// 2 player
-		if (g_SplitScreen == 1)
-			ScrY = ScrH * (i & 1);
-		
-			// 3/4 player
-		else if (g_SplitScreen > 1)
+		// Cover full menu in playback
+		if (!(demoplayback || gamestate == GS_DEMOSCREEN))
 		{
-			ScrX = ScrW * (i & 1);
-			ScrY = ScrH * ((i >> 1) & 1);
+			// 2+ Split = Half Height
+			if (g_SplitScreen > 0)
+				ScrH >>= 1;
+		
+			// 3+ Split = Half Width
+			if (g_SplitScreen > 1)
+				ScrW >>= 1;
+		
+			// Modify h/w?
+				// 2 player
+			if (g_SplitScreen == 1)
+				ScrY = ScrH * (i & 1);
+		
+				// 3/4 player
+			else if (g_SplitScreen > 1)
+			{
+				ScrX = ScrW * (i & 1);
+				ScrY = ScrH * ((i >> 1) & 1);
+			}
 		}
 		
 		// Get top menu
@@ -516,6 +534,10 @@ void M_ExMenuDrawer(void)
 			if (!UI->OverDrawFunc(TopMenu, UI, ScrX, ScrY, ScrW, ScrH))
 				continue;
 	}
+	
+	/* Draw Mouse */
+	if (DrewAMenu)
+		CONL_DrawMouse();
 }
 
 /* M_ExPopMenu() -- Pops menu from stack */
