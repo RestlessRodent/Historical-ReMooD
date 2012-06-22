@@ -187,6 +187,7 @@ CONL_StaticVar_t l_SNDReservedChannels =
 	NULL
 };
 
+bool_t S_VolumeVarsChanged(CONL_ConVariable_t* const a_Var, CONL_StaticVar_t* const a_StaticVar);
 
 // c_CVPVVolume -- Volume
 const CONL_VarPossibleValue_t c_CVPVVolume[] =
@@ -202,7 +203,7 @@ CONL_StaticVar_t l_SNDSoundVolume =
 {
 	CLVT_INTEGER, c_CVPVVolume, CLVF_SAVE,
 	"snd_soundvolume", DSTR_CVHINT_SNDSOUNDVOLUME, CLVVT_STRING, "15",
-	NULL
+	S_VolumeVarsChanged
 };
 
 // snd_musicvolume -- Volume of sound
@@ -210,7 +211,7 @@ CONL_StaticVar_t l_SNDMusicVolume =
 {
 	CLVT_INTEGER, c_CVPVVolume, CLVF_SAVE,
 	"snd_musicvolume", DSTR_CVHINT_SNDMUSICVOLUME, CLVVT_STRING, "15",
-	NULL
+	S_VolumeVarsChanged
 };
 
 /*************
@@ -781,6 +782,15 @@ void S_RegisterSoundStuff(void)
 	CONL_AddCommand("soundplay", SCLC_SoundMulti);
 		
 	/* Register Variables */
+	CONL_VarRegister(&l_SNDChannels);
+	CONL_VarRegister(&l_SNDReservedChannels);
+	CONL_VarRegister(&l_SNDMusicVolume);
+	CONL_VarRegister(&l_SNDSoundVolume);
+	CONL_VarRegister(&l_SNDDensity);
+	CONL_VarRegister(&l_SNDQuality);
+	CONL_VarRegister(&l_SNDSpeakerSetup);
+	CONL_VarRegister(&l_SNDBufferSize);
+	CONL_VarRegister(&l_SNDRandomPitch);
 	
 	// Everything was registered
 	cvRegged = true;
@@ -1182,6 +1192,13 @@ void S_UpdateCVARVolumes(void)
 	// of sounds being mixed.
 	if (l_SoundOK)
 		l_GlobalSoundVolume = FixedDiv(l_SNDSoundVolume.Value->Int << FRACBITS, 31 << FRACBITS);
+}
+
+/* S_VolumeVarsChanged() -- Volume variables changed */
+bool_t S_VolumeVarsChanged(CONL_ConVariable_t* const a_Var, CONL_StaticVar_t* const a_StaticVar)
+{
+	S_UpdateCVARVolumes();
+	return true;
 }
 
 void Command_SoundReset_f(void)

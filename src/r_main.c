@@ -1216,6 +1216,9 @@ CONL_StaticVar_t l_RRenderer =
 	RS_RRendererChange
 };
 
+extern CONL_StaticVar_t l_RDrawSplats;
+extern CONL_StaticVar_t l_RMaxSplats;
+
 /* R_RegisterEngineStuff() -- Registers rendering stuff */
 void R_RegisterEngineStuff(void)
 {
@@ -1227,5 +1230,9 @@ void R_RegisterEngineStuff(void)
 	// GhostlyDeath <May 22, 2012> -- Fake split screen palettes
 	CONL_VarRegister(&l_RFakeSSPal);
 	CONL_VarRegister(&l_RRenderer);
+	CONL_VarRegister(&l_RViewSize);
+	CONL_VarRegister(&l_RDrawSplats);
+	CONL_VarRegister(&l_RMaxSplats);
+	CONL_VarRegister(&l_RTransparency);
 }
 
