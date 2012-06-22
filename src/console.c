@@ -199,6 +199,14 @@ CONL_StaticVar_t l_CONTestString =
 	NULL
 };
 
+// con_pausegame -- Pause game when console is open
+CONL_StaticVar_t l_CONPauseGame =
+{
+	CLVT_INTEGER, c_CVPVBoolean, CLVF_SAVE,
+	"con_pausegame", DSTR_CVHINT_CONPAUSEGAME, CLVVT_STRING, "false",
+	NULL
+};
+
 #endif
 
 /****************
@@ -1187,6 +1195,7 @@ bool_t CONL_Init(const uint32_t a_OutBS, const uint32_t a_InBS)
 		CONL_VarRegister(&l_CONMonoSpace);
 		CONL_VarRegister(&l_CONScale);
 		CONL_VarRegister(&l_CONTestString);
+		CONL_VarRegister(&l_CONPauseGame);
 	}
 #endif
 

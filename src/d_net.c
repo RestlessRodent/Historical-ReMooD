@@ -116,11 +116,16 @@ tic_t D_SyncNetRealTime(void)
 	return I_GetTimeMS() / (tic_t)TICSPERMS;
 }
 
+extern CONL_StaticVar_t l_CONPauseGame;
+
 /* D_SyncNetIsPaused() -- Returns true if the game is paused */
+// NOTE THAT IS IS NOT THE SAME AS "paused". THIS IS ACTUAL TRUE PAUSES AS IF
+// SAY A MENU IS OPEN. IF SO, DEMOS ARE NOT WRITTEN TO AND THE MAP TIME IS NOT
+// INCREMENTED AT ALL.
 bool_t D_SyncNetIsPaused(void)
 {
-	//if (paused || (!netgame && M_ExUIActive() && !demoplayback))
-	//	return true;
+	if (D_SyncNetIsSolo() && !demoplayback && (M_ExUIActive() || (l_CONPauseGame.Value->Int && CONL_IsActive())))
+		return true;
 	return false;
 }
 

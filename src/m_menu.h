@@ -137,5 +137,7 @@ void M_ExPopMenu(const uint8_t a_Player);
 
 void M_GenericCleanerFunc(struct M_UIMenuHandler_s* const a_Handler, struct M_UIMenu_s* const a_UIMenu);
 
+M_UIMenu_t* M_ExTemplateMakeGameVars(const int32_t a_Mode);
+
 #endif
 

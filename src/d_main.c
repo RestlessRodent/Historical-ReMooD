@@ -612,6 +612,7 @@ void D_DoomLoop(void)
 		
 		// process tics (but maybe not if realtic==0)
 		TryRunTics(realtics);
+		
 		if (singletics || gametic > rendergametic)
 		{
 			l_FPSRanFPS++;
@@ -620,11 +621,7 @@ void D_DoomLoop(void)
 			rendertimeout = entertic + TICRATE / 17;
 			
 			//added:16-01-98:consoleplayer -> displayplayer (hear sounds from viewpoint)
-			if (!l_FPSPanic)
-			{
-				S_RepositionSounds();
-				S_UpdateSounds(false);	// move positional sounds
-			}
+			
 			// Update display, next frame, with current state.
 			D_Display();
 			supdate = false;
@@ -634,6 +631,16 @@ void D_DoomLoop(void)
 			l_FPSRanFPS++;
 			D_Display();
 		}
+		
+		// GhostlyDeath <June 22, 2012> -- Update sounds always, as long as the FPS
+		// is not in a panic mode. This is here because when the game is paused no
+		// sounds play because they are never updated!
+		if (!l_FPSPanic)
+		{
+			S_RepositionSounds();
+			S_UpdateSounds(false);	// move positional sounds
+		}
+		
 		// Sound mixing for the buffer is snychronous.
 		I_UpdateSound();
 		

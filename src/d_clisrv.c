@@ -168,6 +168,9 @@ void TryRunTics(tic_t realtics)
 		// Update the client if it is needed
 		if (singletics || LocalTic > LastTic)
 		{
+			// Update music
+			I_UpdateMusic();
+			
 			// If the game is paused, don't do anything
 			if (D_SyncNetIsPaused())
 				break;
@@ -180,9 +183,6 @@ void TryRunTics(tic_t realtics)
 				G_Ticker();
 				G_DemoPostGTicker();
 				gametic++;
-			
-				// Update music
-				I_UpdateMusic();
 			
 				// Set last tic
 				LastTic++;

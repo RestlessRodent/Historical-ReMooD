@@ -320,6 +320,7 @@ StringGroupEX_t UnicodeStrings[NUMUNICODESTRINGS] =
 	{              "CVHINT_CONMONOSPACE", "Draw the console font as monospaced."},
 	{                  "CVHINT_CONSCALE", "Scales the text of the console (high resolution)."},
 	{             "CVHINT_CONTESTSTRING", "Variable to test strings (escape/unescape)."},
+	{			   "CVHINT_CONPAUSEGAME", "Pause the game when the console is open."},
 	
 	{				   "CVHINT_MENUFONT", "Font used to draw menu items."},
 	{			  "CVHINT_MENUITEMCOLOR", "Color used to draw menu items."},

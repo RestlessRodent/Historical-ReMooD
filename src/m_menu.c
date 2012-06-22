@@ -357,7 +357,7 @@ bool_t M_ExMenuHandleEvent(const I_EventEx_t* const a_Event)
 /* M_ExUIActive() -- Returns true if UI is active */
 bool_t M_ExUIActive(void)
 {
-	if (l_NumUIBoxes)
+	if (l_NumUIBoxes || l_NumUIMenus[0] || l_NumUIMenus[1] || l_NumUIMenus[2] || l_NumUIMenus[3])
 		return true;
 	return false;
 }
