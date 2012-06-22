@@ -72,96 +72,6 @@
 #include "p_demcmp.h"
 #include "d_rdf.h"
 
-/* GhostlyDeath <July 5, 2008> from m_menu.c */
-CV_PossibleValue_t skill_cons_t[] = { {1, "I'm too young to die"}
-	, {2, "Hey, not too rough"}
-	, {3, "Hurt me plenty"}
-	, {4, "Ultra violence"}
-	, {5, "Nightmare!"}
-	, {0, NULL}
-};
-
-CV_PossibleValue_t map_cons_t[] = { {1, "map01"}
-	, {2, "map02"}
-	, {3, "map03"}
-	, {4, "map04"}
-	, {5, "map05"}
-	, {6, "map06"}
-	, {7, "map07"}
-	, {8, "map08"}
-	, {9, "map09"}
-	, {10, "map10"}
-	, {11, "map11"}
-	, {12, "map12"}
-	, {13, "map13"}
-	, {14, "map14"}
-	, {15, "map15"}
-	, {16, "map16"}
-	, {17, "map17"}
-	, {18, "map18"}
-	, {19, "map19"}
-	, {20, "map20"}
-	, {21, "map21"}
-	, {22, "map22"}
-	, {23, "map23"}
-	, {24, "map24"}
-	, {25, "map25"}
-	, {26, "map26"}
-	, {27, "map27"}
-	, {28, "map28"}
-	, {29, "map29"}
-	, {30, "map30"}
-	, {31, "map31"}
-	, {32, "map32"}
-	, {0, NULL}
-};
-
-CV_PossibleValue_t exmy_cons_t[] = { {11, "e1m1"}
-	, {12, "e1m2"}
-	, {13, "e1m3"}
-	, {14, "e1m4"}
-	, {15, "e1m5"}
-	, {16, "e1m6"}
-	, {17, "e1m7"}
-	, {18, "e1m8"}
-	, {19, "e1m9"}
-	, {21, "e2m1"}
-	, {22, "e2m2"}
-	, {23, "e2m3"}
-	, {24, "e2m4"}
-	, {25, "e2m5"}
-	, {26, "e2m6"}
-	, {27, "e2m7"}
-	, {28, "e2m8"}
-	, {29, "e2m9"}
-	, {31, "e3m1"}
-	, {32, "e3m2"}
-	, {33, "e3m3"}
-	, {34, "e3m4"}
-	, {35, "e3m5"}
-	, {36, "e3m6"}
-	, {37, "e3m7"}
-	, {38, "e3m8"}
-	, {39, "e3m9"}
-	, {41, "e4m1"}
-	, {42, "e4m2"}
-	, {43, "e4m3"}
-	, {44, "e4m4"}
-	, {45, "e4m5"}
-	, {46, "e4m6"}
-	, {47, "e4m7"}
-	, {48, "e4m8"}
-	, {49, "e4m9"}
-	, {0, NULL}
-};
-
-consvar_t cv_skill = { "skill", "4", CV_HIDEN, skill_cons_t };
-consvar_t cv_monsters = { "monsters", "0", CV_HIDEN, CV_YesNo };
-consvar_t cv_nextmap = { "nextmap", "1", CV_HIDEN, map_cons_t };
-
-extern CV_PossibleValue_t deathmatch_cons_t[];
-consvar_t cv_newdeathmatch = { "newdeathmatch", "3", CV_HIDEN, deathmatch_cons_t };
-
 // added 8-3-98 increse savegame size from 0x2c000 (180kb) to 512*1024
 #define SAVEGAMESIZE    (512*1024)
 #define SAVESTRINGSIZE  24
@@ -231,30 +141,6 @@ bool_t precache = false;		// if true, load all graphics at start
 wbstartstruct_t wminfo;			// parms for world map / intermission
 
 uint8_t* savebuffer;
-
-void ShowMessage_OnChange(void);
-void AllowTurbo_OnChange(void);
-
-CV_PossibleValue_t showmessages_cons_t[] = { {0, "Off"}, {1, "On"}, {2, "Not All"}, {0, NULL} };
-CV_PossibleValue_t crosshair_cons_t[] = { {0, "Off"}, {1, "Cross"}, {2, "Angle"}, {3, "Point"}, {0, NULL} };
-
-consvar_t cv_crosshair = { "crosshair", "0", CV_SAVE, crosshair_cons_t };
-
-//consvar_t cv_crosshairscale   = {"crosshairscale","0",CV_SAVE,CV_YesNo};
-consvar_t cv_autorun = { "autorun", "0", CV_SAVE, CV_OnOff };
-consvar_t cv_autorun2 = { "autorun2", "0", CV_SAVE, CV_OnOff };
-consvar_t cv_invertmouse = { "invertmouse", "0", CV_SAVE, CV_OnOff };
-consvar_t cv_alwaysfreelook = { "alwaysmlook", "0", CV_SAVE, CV_OnOff };
-consvar_t cv_invertmouse2 = { "invertmouse2", "0", CV_SAVE, CV_OnOff };
-consvar_t cv_alwaysfreelook2 = { "alwaysmlook2", "0", CV_SAVE, CV_OnOff };
-
-consvar_t cv_showmessages = { "showmessages", "1", CV_SAVE | CV_CALL | CV_NOINIT, showmessages_cons_t,
-	ShowMessage_OnChange
-};
-consvar_t cv_disabledemos = { "disabledemos", "0", CV_SAVE, CV_YesNo };
-consvar_t cv_mousemove = { "mousemove", "1", CV_SAVE, CV_OnOff };
-consvar_t cv_mousemove2 = { "mousemove2", "1", CV_SAVE, CV_OnOff };
-consvar_t cv_joystickfreelook = { "joystickfreelook", "0", CV_SAVE, CV_OnOff };
 
 // changed to 2d array 19990220 by Kin
 char player_names[MAXPLAYERS][MAXPLAYERNAME];
@@ -513,8 +399,6 @@ bool_t G_Responder(event_t* ev)
 		if (!multiplayer)
 			if (cht_Responder(ev))
 				return true;
-		if (HU_Responder(ev))
-			return true;		// chat ate the event
 		if (ST_Responder(ev))
 			return true;		// status window ate it
 		if (AM_Responder(ev))
@@ -533,7 +417,6 @@ bool_t G_Responder(event_t* ev)
 		case ev_keydown:
 			if (ev->data1 == KEY_PAUSE)
 			{
-				COM_BufAddText("pause\n");
 				return true;
 			}
 			return true;
@@ -672,7 +555,6 @@ void G_Ticker(void)
 			P_Ticker();			// tic the game
 			ST_Ticker();
 			AM_Ticker();
-			HU_Ticker();
 			ST_TickerEx();
 			break;
 			
@@ -952,24 +834,25 @@ bool_t G_CheckSpot(int playernum, mapthing_t* mthing, const bool_t a_NoFirstMo)
 	ss = R_PointInSubsector(x, y);
 	
 	// check for respawn in team-sector
-	if (ss->sector->teamstartsec)
-	{
-		if (P_EXGSGetValue(PEXGSBID_GAMETEAMPLAY) == 1)
+	if (!P_EXGSGetValue(PEXGSBID_CODISABLETEAMPLAY))
+		if (ss->sector->teamstartsec)
 		{
-			// color
-			if (players[playernum].skincolor != (ss->sector->teamstartsec - 1))	// -1 because wanted to know when it is set
-				return false;
+			if (P_EXGSGetValue(PEXGSBID_GAMETEAMPLAY) == 1)
+			{
+				// color
+				if (players[playernum].skincolor != (ss->sector->teamstartsec - 1))	// -1 because wanted to know when it is set
+					return false;
+			}
+			else if (P_EXGSGetValue(PEXGSBID_GAMETEAMPLAY) == 2)
+			{
+				// skins
+				if (players[playernum].skin != (ss->sector->teamstartsec - 1))	// -1 because wanted to know when it is set
+					return false;
+			}
 		}
-		else if (P_EXGSGetValue(PEXGSBID_GAMETEAMPLAY) == 2)
-		{
-			// skins
-			if (players[playernum].skin != (ss->sector->teamstartsec - 1))	// -1 because wanted to know when it is set
-				return false;
-		}
-	}
 	
 	// GhostlyDeath <April 21, 2012> -- Check 
-	if (a_NoFirstMo)
+	if (a_NoFirstMo && P_EXGSGetValue(PEXGSBID_CORADIALSPAWNCHECK))
 	{
 		if (!P_CheckPosRadius(x, y, 20 << FRACBITS))
 			return false;
@@ -1293,13 +1176,14 @@ bool_t G_DeathMatchSpawnPlayer(int playernum)
 			return true;
 		}
 	}
-	
+
+	// no good spot, so the player will probably get stuck
 	if (P_EXGSGetValue(PEXGSBID_COALLOWSTUCKSPAWNS))
 	{
-		// no good spot, so the player will probably get stuck
 		P_SpawnPlayer(playerstarts[playernum]);
 		return true;
 	}
+	
 	return false;
 }
 
@@ -1464,6 +1348,11 @@ void G_InitPlayer(player_t* const a_Player)
 	/* Match angle */
 	
 	/* Update Camera */
+	// Use default settings
+	a_Player->CamDist = 128 << FRACBITS;
+	a_Player->CamHeight = 20 << FRACBITS;
+	a_Player->CamSpeed = 16384;
+	
 	if (a_Player->camera.chase)
 		P_ResetCamera(a_Player);
 	
@@ -1567,29 +1456,6 @@ void G_NextLevel(void)
 	
 	if (secretexit)
 		players[consoleplayer[0]].didsecret = true;
-		
-	if (gamemode == commercial)
-	{
-		if (cv_deathmatch.value == 0)
-		{
-			switch (gamemap)
-			{
-				case 15:
-				case 31:
-					if (!secretexit)
-						break;
-				case 6:
-				case 11:
-				case 20:
-				case 30:
-					gameaction = ga_nothing;
-					F_StartFinale();
-					break;
-			}
-		}
-		else if (gamemap == 30)
-			wminfo.next = 0;	// wrap around in deathmatch
-	}
 }
 
 void G_DoWorldDone(void)
@@ -1652,7 +1518,6 @@ void G_DoWorldDone(void)
 //
 void G_LoadGame(int slot)
 {
-	COM_BufAddText(va("load %d\n", slot));
 }
 
 #define VERSIONSIZE             16
@@ -1729,8 +1594,6 @@ void G_DoLoadGame(int slot)
 //
 void G_SaveGame(int slot, char* description)
 {
-	if (server)
-		COM_BufAddText(va("save %d \"%s\"\n", slot, description));
 }
 
 void G_DoSaveGame(int savegameslot, char* savedescription)

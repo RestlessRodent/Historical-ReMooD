@@ -1633,17 +1633,7 @@ void V_DrawMappedPatch(const int x, const int y, const int scrn, const patch_t* 
 		Flags |= VEX_NOSCALESCREEN;
 	if (scrn & V_NOSCALESTART)
 		Flags |= VEX_NOSCALESTART;
-		
-	/* Color */
-	if (colormap == greenmap)
-		Flags |= VEX_MAP_RED << VEX_COLORMAPSHIFT;
-	else if (colormap == whitemap)
-		Flags |= VEX_MAP_BRIGHTWHITE << VEX_COLORMAPSHIFT;
-	else if (colormap == graymap)
-		Flags |= VEX_MAP_GRAY << VEX_COLORMAPSHIFT;
-	else if (colormap == orangemap)
-		Flags |= VEX_MAP_ORANGE << VEX_COLORMAPSHIFT;
-		
+	
 	/* Now Draw */
 	V_DrawPatchEx(Flags, x, y, patch, colormap);
 }

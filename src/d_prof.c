@@ -41,6 +41,7 @@
 #include "g_game.h"
 #include "dstrings.h"
 #include "s_sound.h"
+#include "p_local.h"
 
 /************************
 *** EXTENDED PROFILES ***
@@ -190,6 +191,13 @@ D_ProfileEx_t* D_CreateProfileEx(const char* const a_Name)
 	// Default other options
 	New->DrawPSprites = true;
 	New->BobMode = 1;							// Middle bobbing mode
+	New->ViewHeight = VIEWHEIGHT << FRACBITS;	// Player View Height
+	New->ChaseCam = false;						// Enable chase cam
+	New->CamDist = 128 << FRACBITS;				// Camera Distance (default)
+	New->CamHeight = 20 << FRACBITS;			// Camera Height
+	New->CamSpeed = 16384;						// Camera Speed
+	New->TransSBar = false;						// Transparent status bar
+	New->ScaledSBar = false;					// Scaled status bar
 	
 	/* Link */
 	if (!l_FirstProfile)

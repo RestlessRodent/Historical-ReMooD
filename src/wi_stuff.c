@@ -670,13 +670,13 @@ bool_t teamingame(int teamnum)
 {
 	int i;
 	
-	if (cv_teamplay.value == 1)
+	if (P_EXGSGetValue(PEXGSBID_GAMETEAMPLAY) == 1)
 	{
 		for (i = 0; i < MAXPLAYERS; i++)
 			if (playeringame[i] && players[i].skincolor == teamnum)
 				return true;
 	}
-	else if (cv_teamplay.value == 2)
+	else if (P_EXGSGetValue(PEXGSBID_GAMETEAMPLAY) == 2)
 	{
 		for (i = 0; i < MAXPLAYERS; i++)
 			if (playeringame[i] && players[i].skin == teamnum)

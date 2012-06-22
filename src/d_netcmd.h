@@ -40,61 +40,10 @@
 #include "i_util.h"
 #include "d_net.h"
 
-// console vars
-extern consvar_t cv_playername;
-extern consvar_t cv_playercolor;
-extern consvar_t cv_use_mouse;
-extern consvar_t cv_use_joystick;
-extern consvar_t cv_autoaim;
-extern consvar_t cv_controlperkey;
-
-// splitscreen with seconde mouse
-extern consvar_t cv_mouse2port;
-extern consvar_t cv_use_mouse2;
-
-#ifdef LMOUSE2
-extern consvar_t cv_mouse2opt;
-#endif
-extern consvar_t cv_invertmouse2;
-extern consvar_t cv_alwaysfreelook2;
-extern consvar_t cv_mousemove2;
-extern consvar_t cv_mousesens2;
-extern consvar_t cv_mlooksens2;
-
-// normaly in p_mobj but the .h in not read !
-extern consvar_t cv_itemrespawntime;
-extern consvar_t cv_itemrespawn;
-
-
-// 02-08-98      : r_things.c
-extern consvar_t cv_skin;
-
-// secondary splitscreen player
-extern consvar_t cv_playername2;
-extern consvar_t cv_playercolor2;
-extern consvar_t cv_skin2;
-
-extern consvar_t cv_teamplay;
-extern consvar_t cv_teamdamage;
-extern consvar_t cv_fraglimit;
-extern consvar_t cv_timelimit;
-extern uint32_t timelimitintics;
-extern consvar_t cv_allowexitlevel;
-
-extern consvar_t cv_netstat;
-extern consvar_t cv_translucency;
-extern consvar_t cv_splats;
-extern consvar_t cv_maxsplats;
-extern consvar_t cv_screenslink;
-
 // add game commands, needs cleanup
 void D_RegisterClientCommands(void);
 void D_SendPlayerConfig(void);
 void Command_ExitGame_f(void);
-
-extern CV_PossibleValue_t fraglimit_cons_t[];
-extern CV_PossibleValue_t teamplay_cons_t[];
-extern CV_PossibleValue_t deathmatch_cons_t[];
 
 /*****************************
 *** EXTENDED NETWORK STUFF ***

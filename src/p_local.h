@@ -50,9 +50,6 @@ extern int MAXHEALTH;			// 100
 #define VIEWHEIGHT               41
 #define VIEWHEIGHTS             "41"
 
-// default viewheight is changeable at console
-extern consvar_t cv_viewheight;	// p_mobj.c
-
 // mapblocks are used to check movement
 // against lines and things
 #define MAPBLOCKUNITS   128
@@ -85,13 +82,6 @@ extern consvar_t cv_viewheight;	// p_mobj.c
 //#define AIMINGTOSLOPE(aiming)   finetangent[(2048+(aiming>>ANGLETOFINESHIFT)) & FINEMASK]
 #define AIMINGTOSLOPE(aiming)   finesine[(aiming>>ANGLETOFINESHIFT) & FINEMASK]
 
-//26-07-98: p_mobj.c
-extern consvar_t cv_gravity;
-extern consvar_t cv_classicblood;
-
-// p_enemy.c
-extern consvar_t cv_classicmeleerange;
-extern consvar_t cv_classicmonsterlogic;
 
 void P_ClearRecursiveSound(void);
 void P_RemoveRecursiveSound(mobj_t* const a_Mo);
@@ -117,10 +107,6 @@ void P_DropWeapon(player_t* player);
 //
 // P_USER
 //
-
-extern consvar_t cv_cam_dist;
-extern consvar_t cv_cam_height;
-extern consvar_t cv_cam_speed;
 
 void P_ResetCamera(player_t* player);
 void P_PlayerThink(player_t* player);
@@ -346,8 +332,6 @@ void P_ExplodeMissile(mobj_t* mo);
 void P_Massacre(void);
 void P_AddBossSpot(fixed_t x, fixed_t y, angle_t angle);
 bool_t P_ChickenMorphPlayer(player_t* player);
-
-extern consvar_t cv_spawnmonsters;
 
 bool_t P_WeaponIsUnlocked(const weapontype_t a_Weapon);
 bool_t P_CanUseWeapon(player_t* const a_Player, const weapontype_t a_Weapon);

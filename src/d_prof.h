@@ -193,6 +193,11 @@ typedef struct D_ProfileEx_s
 	int32_t SoundSecret;						// Sound to play when Secret Found
 	bool_t DrawPSprites;						// Draw Player Sprites
 	int8_t BobMode;								// Bobbing Mode (Doom, Mid, Effort)
+	fixed_t ViewHeight;							// View Height
+	fixed_t CamDist, CamHeight, CamSpeed;		// Camera Properties
+	bool_t ChaseCam;							// Enable chase camera
+	bool_t TransSBar;							// Transparent Status Bar
+	bool_t ScaledSBar;							// Scaled Status Bar
 } D_ProfileEx_t;
 
 /*** FUNCTIONS ***/

@@ -54,6 +54,7 @@
 #include "r_main.h"
 #include "p_info.h"
 #include "d_main.h"
+#include "p_demcmp.h"
 
 // For use if I do walls with outsides/insides
 static uint8_t REDS = (256 - 5 * 16);
@@ -1375,7 +1376,7 @@ void AM_drawPlayers(void)
 			
 		p = &players[i];
 		
-		if ((cv_deathmatch.value && !singledemo) && p != plr[am_DrawPlayer])
+		if ((P_EXGSGetValue(PEXGSBID_GAMEDEATHMATCH) && !singledemo) && p != plr[am_DrawPlayer])
 			continue;
 			
 		if (p->powers[pw_invisibility])

@@ -829,6 +829,10 @@ static P_EXGSVariable_t l_GSVars[PEXGSNUMBITIDS] =
 	{PEXGST_INTEGER, PEXGSBID_COOLDLASTLOOKLOGIC, "co_oldlastlooklogic", "Use Old Lastlook Logic",
 		"Use older method of computing an object's last look target. [Legacy < 1.30]", PEXGSGM_ANY, PEXGSDR_LESSTHAN, 130, {0, 1}, 0,
 		PEXGSMC_COMPAT, PEXGSDA_YESNO, c_PEXGSPVBoolean, NULL},	
+		
+	{PEXGST_INTEGER, PEXGSBID_CORADIALSPAWNCHECK, "co_radialspawncheck", "Radial Spawn Check",
+		"Enable radial spawn checking to help prevent stuck spawns. [ReMooD >= 1.0a]", PEXGSGM_ANY, PEXGSDR_ATLEAST, 200, {0, 1}, 1,
+		PEXGSMC_COMPAT, PEXGSDA_YESNO, c_PEXGSPVBoolean, NULL},
 };
 
 /*** FUNCTIONS ***/

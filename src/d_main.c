@@ -179,11 +179,7 @@ void D_ProcessEvents(void)
 			shiftdown = true;
 		else if (ev->type == ev_keyup && ev->data1 == KEY_SHIFT)
 			shiftdown = false;
-			
-		// console input
-		if (CON_Responder(ev))
-			continue;			// ate the event
-			
+		
 		G_Responder(ev);
 	}
 }
@@ -201,22 +197,35 @@ void I_DoStartupMouse(void);    //win_sys.c
 // added comment : there is a wipe eatch change of the gamestate
 gamestate_t wipegamestate = GS_DEMOSCREEN;
 
-CV_PossibleValue_t screenslink_cons_t[] =
+// g_CVPVVidScreenLink -- Screen Link
+const CONL_VarPossibleValue_t c_CVPVVidScreenLink[] =
 {
-	{0, "None"}
-	,
-	{wipe_ColorXForm + 1, "Color"}
-	,
-	{wipe_Melt + 1, "Melt"}
-	,
-	{wipe_Blinds + 1, "Blinds"}
-	,
-	{0, NULL}
+	{0, "None"},
+	{wipe_ColorXForm + 1, "Color"},	
+	{wipe_Melt + 1, "Melt"},	
+	{wipe_Blinds + 1, "Blinds"},	
+	
+	// End
+	{0, "MINVAL"},
+	{1, "MAXVAL"},
+	{0, NULL},
 };
-consvar_t cv_screenslink = { "screenlink", "2", CV_SAVE, screenslink_cons_t };
 
-// GhostlyDeath <July 8, 2009> -- Add FPS Counter
-consvar_t cv_vid_drawfps = { "vid_drawfps", "0", CV_SAVE, CV_YesNo, NULL };
+// vid_screenlink -- Screen linking effect
+CONL_StaticVar_t l_VIDScreenLink =
+{
+	CLVT_INTEGER, c_CVPVVidScreenLink, CLVF_SAVE,
+	"vid_screenlink", DSTR_CVHINT_VIDSCREENLINK, CLVVT_STRING, "Melt",
+	NULL
+};
+
+// vid_drawfps -- Draw Frames Per Second
+CONL_StaticVar_t l_VIDDrawFPS =
+{
+	CLVT_INTEGER, c_CVPVBoolean, CLVF_SAVE,
+	"vid_drawfps", DSTR_CVHINT_VIDDRAWFPS, CLVVT_STRING, "No",
+	NULL
+};
 
 void D_Display(void)
 {
@@ -263,7 +272,7 @@ void D_Display(void)
 	}
 	// GhostlyDeath <June 16, 2010> -- Only wipe if we set screen link (otherwise cleanup is never done)
 	// save the current screen if about to wipe
-	if (!singletics && cv_screenslink.value && gamestate != wipegamestate)
+	if (!singletics && l_VIDScreenLink.Value->Int && gamestate != wipegamestate)
 	{
 		wipe = true;
 		wipe_StartScreen(0, 0, vid.width, vid.height);
@@ -281,7 +290,6 @@ void D_Display(void)
 		case GS_LEVEL:
 			if (!gametic)
 				break;
-			HU_Erase();
 			if (automapactive && !automapoverlay)
 				AM_Drawer();
 			if (wipe || menuactivestate || vid.recalc)
@@ -397,10 +405,6 @@ void D_Display(void)
 		
 		if (automapactive && automapoverlay)
 			AM_Drawer();
-			
-		HU_Drawer();
-		
-		ST_Drawer(redrawsbar);
 		
 		// GhostlyDeath <April 25, 2012> -- Extended Status Bar
 		ST_DrawPlayerBarsEx();
@@ -448,7 +452,7 @@ void D_Display(void)
 	}
 	
 	// GhostlyDeath <July 8, 2009> -- Add FPS Counter
-	if (cv_vid_drawfps.value)
+	if (l_VIDDrawFPS.Value->Int)
 	{
 		// GhostlyDeath <july 8, 2009> -- Draw FPS
 		V_DrawCharacterA(VFONT_LARGE, 0, '0' + ((l_FPSTrueFPS / 100) % 10), 320 - 70, 0);
@@ -486,7 +490,7 @@ void D_Display(void)
 //
 // wipe update
 //
-	if (!cv_screenslink.value)
+	if (!l_VIDScreenLink.Value->Int)
 		return;
 		
 	wipe_EndScreen(0, 0, vid.width, vid.height);
@@ -502,7 +506,7 @@ void D_Display(void)
 		}
 		while (!tics);
 		wipestart = nowtime;
-		done = wipe_ScreenWipe(cv_screenslink.value - 1, 0, 0, vid.width, vid.height, tics);
+		done = wipe_ScreenWipe(l_VIDScreenLink.Value->Int - 1, 0, 0, vid.width, vid.height, tics);
 		
 		// GhostlyDeath <May 5, 2012> -- Update Music
 		I_UpdateMusic();
@@ -522,7 +526,7 @@ void D_Display(void)
 		//  CONL_PrintFUL(SRCSTR__D_MAIN_C__WIPENEVERDONE, L"");
 		
 		// Force an end
-		wipe_ScreenWipe(cv_screenslink.value - 1, 0, 0, vid.width, vid.height, -tics);
+		wipe_ScreenWipe(l_VIDScreenLink.Value->Int - 1, 0, 0, vid.width, vid.height, -tics);
 	}
 	
 	ST_Invalidate();
@@ -553,7 +557,7 @@ void D_DoomLoop(void)
 	int32_t MissedRenders = 0;
 		
 	// user settings
-	COM_BufAddText("exec autoexec.cfg\n");
+	//COM_BufAddText("exec autoexec.cfg\n");
 	
 	// end of loading screen: CONL_PrintF() will no more call FinishUpdate()
 	con_startup = false;
@@ -770,113 +774,64 @@ void D_DoAdvanceDemo(void)
 	advancedemo = false;
 	gameaction = ga_nothing;
 	
-	if (cv_disabledemos.value)
-		demosequence = (demosequence + 1) % 3;
+	if (gamemode == retail)
+		demosequence = (demosequence + 1) % 7;
 	else
-	{
-		if (gamemode == retail)
-			demosequence = (demosequence + 1) % 7;
-		else
-			demosequence = (demosequence + 1) % 6;
-	}
+		demosequence = (demosequence + 1) % 6;
 	
-	if (cv_disabledemos.value)
+	switch (demosequence)
 	{
-		switch (demosequence)
-		{
-			case 0:
-				switch (gamemode)
-				{
-					case commercial:
-						pagename = "TITLEPIC";
-						pagetic = TICRATE * 11;
-						S_ChangeMusic(mus_dm2ttl, false);
-						break;
-					default:
-						pagename = "TITLEPIC";
-						pagetic = 170;
-						S_ChangeMusic(mus_intro, false);
-						break;
-				}
-				gamestate = GS_DEMOSCREEN;
-				break;
-			case 1:
-				pagetic = 200;
-				gamestate = GS_DEMOSCREEN;
-				pagename = "RMCREDIT";
-				break;
-			case 2:
-				gamestate = GS_DEMOSCREEN;
-				if (gamemode == commercial)
-				{
+		case 0:
+			switch (gamemode)
+			{
+				case commercial:
+					pagename = "TITLEPIC";
 					pagetic = TICRATE * 11;
-					pagename = "CREDIT";
 					S_ChangeMusic(mus_dm2ttl, false);
-				}
-				else
-				{
-					pagetic = 200;
-					pagename = "CREDIT";
-				}
-				break;
-		}
-	}
-	else
-	{
-		switch (demosequence)
-		{
-			case 0:
-				switch (gamemode)
-				{
-					case commercial:
-						pagename = "TITLEPIC";
-						pagetic = TICRATE * 11;
-						S_ChangeMusic(mus_dm2ttl, false);
-						break;
-					default:
-						pagename = "TITLEPIC";
-						pagetic = 170;
-						S_ChangeMusic(mus_intro, false);
-						break;
-				}
-				gamestate = GS_DEMOSCREEN;
-				break;
-			case 1:
-				pagetic = 9999999;
-				G_DeferedPlayDemo("demo1");
-				break;
-			case 2:
+					break;
+				default:
+					pagename = "TITLEPIC";
+					pagetic = 170;
+					S_ChangeMusic(mus_intro, false);
+					break;
+			}
+			gamestate = GS_DEMOSCREEN;
+			break;
+		case 1:
+			pagetic = 9999999;
+			G_DeferedPlayDemo("demo1");
+			break;
+		case 2:
+			pagetic = 200;
+			gamestate = GS_DEMOSCREEN;
+			pagename = "RMCREDIT";
+			break;
+		case 3:
+			pagetic = 9999999;
+			G_DeferedPlayDemo("demo2");
+			break;
+		case 4:
+			gamestate = GS_DEMOSCREEN;
+			if (gamemode == commercial)
+			{
+				pagetic = TICRATE * 11;
+				pagename = "CREDIT";
+				S_ChangeMusic(mus_dm2ttl, false);
+			}
+			else
+			{
 				pagetic = 200;
-				gamestate = GS_DEMOSCREEN;
-				pagename = "RMCREDIT";
-				break;
-			case 3:
-				pagetic = 9999999;
-				G_DeferedPlayDemo("demo2");
-				break;
-			case 4:
-				gamestate = GS_DEMOSCREEN;
-				if (gamemode == commercial)
-				{
-					pagetic = TICRATE * 11;
-					pagename = "CREDIT";
-					S_ChangeMusic(mus_dm2ttl, false);
-				}
-				else
-				{
-					pagetic = 200;
-					pagename = "CREDIT";
-				}
-				break;
-			case 5:
-				pagetic = 9999999;
-				G_DeferedPlayDemo("demo3");
-				break;
-			case 6:			// THE DEFINITIVE DOOM Special Edition demo
-				pagetic = 9999999;
-				G_DeferedPlayDemo("demo4");
-				break;
-		}
+				pagename = "CREDIT";
+			}
+			break;
+		case 5:
+			pagetic = 9999999;
+			G_DeferedPlayDemo("demo3");
+			break;
+		case 6:			// THE DEFINITIVE DOOM Special Edition demo
+			pagetic = 9999999;
+			G_DeferedPlayDemo("demo4");
+			break;
 	}
 	
 	// GhostlyDeath <August 27, 2011> -- Push all "++" parameter to the command buffer
@@ -899,14 +854,12 @@ void D_StartTitle(void)
 	int i;
 		
 	gameaction = ga_nothing;
-	playerdeadview = false;
 	for (i = 0; i < MAXSPLITSCREENPLAYERS; i++)
 		displayplayer[i] = consoleplayer[i] = 0;
 	statusbarplayer = 0;
 	demosequence = -1;
 	paused = false;
 	D_AdvanceDemo();
-	CON_ToggleOff();
 }
 
 //
@@ -1952,21 +1905,17 @@ void D_DoomMain(void)
 	
 	g_EarlyBootConsole = false;
 	V_SetPalette(0);
-	COM_Init();
-	CON_Init();
 	
 	D_RegisterClientCommands();	//Hurdler: be sure that this is called before D_CheckNetGame
-	D_AddDeathmatchCommands();
-	ST_AddCommands();
 	T_AddCommands();
 	R_RegisterEngineStuff();
 	S_RegisterSoundStuff();
-	CV_RegisterVar(&cv_screenslink);
+	
+	CONL_VarRegister(&l_VIDScreenLink);
+	CONL_VarRegister(&l_VIDDrawFPS);
 	
 	//Fab:29-04-98: do some dirty chatmacros strings initialisation
-	HU_HackChatmacros();
 	//--------------------------------------------------------- CONFIG.CFG
-	M_FirstLoadConfig();		// WARNING : this do a "COM_BufExecute()"
 	
 	VID_PrepareModeList();		// Regenerate Modelist according to cv_fullscreen
 	
@@ -1979,6 +1928,8 @@ void D_DoomMain(void)
 	// Initialize CD-Audio
 	if (!M_CheckParm("-nocd"))
 		I_InitCD();
+
+#if 0
 	if (M_CheckParm("-respawn"))
 		COM_BufAddText("respawnmonsters 1\n");
 	if (M_CheckParm("-teamplay"))
@@ -2011,6 +1962,7 @@ void D_DoomMain(void)
 	// supported at cmd-line for compatibility
 	if (M_CheckParm("-turbo") && M_IsNextParm())
 		COM_BufAddText(va("turbo %s\n", M_GetNextParm()));
+#endif
 		
 	// push all "+" parameter at the command buffer
 	M_PushSpecialParameters();
@@ -2025,10 +1977,9 @@ void D_DoomMain(void)
 	nosound = M_CheckParm("-nosound");
 	nomusic = M_CheckParm("-nomusic");	// WARNING: DOS version initmusic in I_StartupSound
 	digmusic = M_CheckParm("-digmusic");	// SSNTails 12-13-2002
-	S_Init(cv_soundvolume.value, cv_musicvolume.value);
+	S_Init(-1, -1);
 	
 	CONL_PrintF("Initializing the HUD...\n");
-	HU_Init();
 	ST_Init();
 	
 	////////////////////////////////
@@ -2116,7 +2067,7 @@ void D_DoomMain(void)
 			//added:27-02-98: reset the current version number
 			G_Downgrade(VERSION);
 			gameaction = ga_nothing;
-			COM_BufAddText(va("map \"%s\"\n", G_BuildMapName(startepisode, startmap)));
+			//COM_BufAddText(va("map \"%s\"\n", G_BuildMapName(startepisode, startmap)));
 		}
 		else
 			D_StartTitle();		// start up intro loop

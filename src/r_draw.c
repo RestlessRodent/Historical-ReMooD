@@ -196,11 +196,6 @@ char* Color_Names[MAXSKINCOLORS] =
 	"Pink",
 };
 
-CV_PossibleValue_t Color_cons_t[] = { {0, NULL}, {1, NULL}, {2, NULL}, {3, NULL},
-	{4, NULL}, {5, NULL}, {6, NULL}, {7, NULL},
-	{8, NULL}, {9, NULL}, {10, NULL}, {11, NULL}, {12, NULL}, {13, NULL}, {14, NULL}, {15, NULL}, {0, NULL}
-};
-
 /* RS_TransTableOCCB() -- Loads new translation tables */
 static bool_t RS_TransTableOCCB(const bool_t a_Pushed, const struct WL_WADFile_s* const a_WAD)
 {

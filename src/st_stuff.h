@@ -135,5 +135,9 @@ void SB_Init(void);
 void ST_DrawPlayerBarsEx(void);
 void ST_InitEx(void);
 
+int32_t ST_ExViewBarHeight(void);
+bool_t ST_ExSoloViewTransSBar(void);
+bool_t ST_ExSoloViewScaledSBar(void);
+
 #endif
 

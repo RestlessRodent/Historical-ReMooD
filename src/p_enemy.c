@@ -45,15 +45,6 @@
 
 void FastMonster_OnChange(void);
 
-// enable the solid corpses option : still not finished
-consvar_t cv_solidcorpse = { "solidcorpse", "0", CV_NETVAR | CV_SAVE, CV_OnOff };
-
-consvar_t cv_fastmonsters = { "fastmonsters", "0", CV_NETVAR | CV_CALL, CV_OnOff,
-                              FastMonster_OnChange
-                            };
-
-consvar_t cv_classicmonsterlogic = { "classicmonsterlogic", "0", CV_NETVAR | CV_SAVE, CV_YesNo };
-
 //
 // P_NewChaseDir related LUT.
 //
@@ -175,8 +166,6 @@ void P_NoiseAlert(mobj_t* target, mobj_t* emmiter)
 	validcount++;
 	P_RecursiveSound(emmiter->subsector->sector, 0);
 }
-
-consvar_t cv_classicmeleerange = { "classicmeleerange", "0", CV_NETVAR, CV_YesNo };
 
 //
 // P_CheckMeleeRange

@@ -65,25 +65,8 @@ extern bool_t singledemo;
 // gametic at level start
 extern tic_t levelstarttic;
 
-// used in game menu
-extern consvar_t cv_crosshair;
-
-//extern consvar_t  cv_crosshairscale;
-extern consvar_t cv_autorun;
-extern consvar_t cv_autorun2;
-extern consvar_t cv_invertmouse;
-extern consvar_t cv_alwaysfreelook;
-extern consvar_t cv_mousemove;
-extern consvar_t cv_showmessages;
-extern consvar_t cv_disabledemos;
-extern consvar_t cv_fastmonsters;
-extern consvar_t cv_joystickfreelook;
 extern angle_t localangle[MAXSPLITSCREENPLAYERS];
 extern int localaiming[MAXSPLITSCREENPLAYERS];	// should be a angle_t but signed
-
-extern CV_PossibleValue_t map_cons_t[];
-extern CV_PossibleValue_t skill_cons_t[];
-extern CV_PossibleValue_t exmy_cons_t[];
 
 /* Prototypes */
 char* G_BuildMapName(int episode, int map);

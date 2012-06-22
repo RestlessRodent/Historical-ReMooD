@@ -80,54 +80,138 @@ typedef struct S_SoundChannel_s
 *** GLOBALS ***
 **************/
 
-CV_PossibleValue_t SpeakerSetup_cons_t[] =
+// c_CVPVSpeakerSetup -- Speaker Setup
+const CONL_VarPossibleValue_t c_CVPVSpeakerSetup[] =
 {
 	{1, "Monaural"},
-	{2, "Stereo"},
-	{4, "Surround"},
-	{6, "Full Surround"},
+	{1, "Mono"},
 	
-	{0, NULL}
+	{2, "Stereo"},
+	{2, "Daul"},
+	
+	{4, "Surround"},
+	
+	{6, "Full Surround"},
+	{6, "FullSurround"},
+	
+	// End
+	{1, "MINVAL"},
+	{6, "MAXVAL"},
+	{0, NULL},
 };
 
-consvar_t cv_snd_speakersetup = { "snd_speakersetup", "2", CV_SAVE, SpeakerSetup_cons_t };
+// snd_speakersetup -- Speakers to use
+CONL_StaticVar_t l_SNDSpeakerSetup =
+{
+	CLVT_INTEGER, c_CVPVSpeakerSetup, CLVF_SAVE,
+	"snd_speakersetup", DSTR_CVHINT_SNDSPEAKERSETUP, CLVVT_STRING, "Stereo",
+	NULL
+};
 
-CV_PossibleValue_t SoundQuality_cons_t[] =
+// c_CVPVQuality -- Speaker Setup
+const CONL_VarPossibleValue_t c_CVPVQuality[] =
 {
 	{5512, "5 KHz"},
 	{11025, "11 KHz"},
 	{22050, "22 KHz"},
 	{44100, "44 KHz"},
 	
-	{0, NULL}
+	// End
+	{5512, "MINVAL"},
+	{44100, "MAXVAL"},
+	{0, NULL},
 };
 
-consvar_t cv_snd_soundquality = { "snd_soundquality", "11025", CV_SAVE, SoundQuality_cons_t };
+// snd_quality -- Sound Quality
+CONL_StaticVar_t l_SNDQuality =
+{
+	CLVT_INTEGER, c_CVPVQuality, CLVF_SAVE,
+	"snd_quality", DSTR_CVHINT_SNDQUALITY, CLVVT_STRING, "11025",
+	NULL
+};
 
-CV_PossibleValue_t SoundDensity_cons_t[] =
+// c_CVPVDensity -- Speaker Setup
+const CONL_VarPossibleValue_t c_CVPVDensity[] =
 {
 	{8, "8-bit"},
-	{16, "16-bit"},
+	{8, "8bit"},
+	{8, "Single"},
 	
-	{0, NULL}
+	{16, "16-bit"},
+	{16, "16bit"},
+	{16, "Double"},
+	
+	// End
+	{8, "MINVAL"},
+	{16, "MAXVAL"},
+	{0, NULL},
 };
 
-consvar_t cv_snd_sounddensity = { "snd_sounddensity", "8", CV_SAVE, SoundDensity_cons_t };
-consvar_t cv_snd_buffersize = { "snd_buffersize", "512", CV_SAVE, CV_Unsigned };
-consvar_t cv_snd_pcspeakerwave = { "snd_pcspeakerwave", "1", CV_SAVE, CV_Unsigned };
-consvar_t cv_snd_channels = { "snd_channels", "12", CV_SAVE, CV_Unsigned };
-consvar_t cv_snd_reservedchannels = { "snd_reservedchannels", "2", CV_SAVE, CV_Unsigned };
-consvar_t cv_snd_multithreaded = { "snd_multithreaded", "1", CV_SAVE, CV_OnOff };
-consvar_t cv_snd_output = { "snd_output", "Default", CV_SAVE };
-consvar_t cv_snd_device = { "snd_device", "auto", CV_SAVE };
+// snd_density -- Sound Density
+CONL_StaticVar_t l_SNDDensity =
+{
+	CLVT_INTEGER, c_CVPVDensity, CLVF_SAVE,
+	"snd_density", DSTR_CVHINT_SNDDENSITY, CLVVT_STRING, "8",
+	NULL
+};
 
-consvar_t stereoreverse = { "stereoreverse", "0", CV_SAVE, CV_OnOff };
-consvar_t precachesound = { "precachesound", "0", CV_SAVE, CV_OnOff };
-consvar_t cv_rndsoundpitch = { "rndsoundpitch", "Off", CV_SAVE, CV_OnOff };
+// snd_buffersize -- Buffer Size
+CONL_StaticVar_t l_SNDBufferSize =
+{
+	CLVT_INTEGER, c_CVPVPositive, CLVF_SAVE,
+	"snd_buffersize", DSTR_CVHINT_SNDBUFFERSIZE, CLVVT_STRING, "512",
+	NULL
+};
 
-CV_PossibleValue_t soundvolume_cons_t[] = { {0, "MIN"}, {31, "MAX"}, {0, NULL} };
-consvar_t cv_soundvolume = { "snd_soundvolume", "31", CV_SAVE | CV_CALL, soundvolume_cons_t, S_UpdateCVARVolumes };
-consvar_t cv_musicvolume = { "snd_musicvolume", "15", CV_SAVE | CV_CALL, soundvolume_cons_t, S_UpdateCVARVolumes };
+// snd_randompitch -- Randomized sound pitch
+CONL_StaticVar_t l_SNDRandomPitch =
+{
+	CLVT_INTEGER, c_CVPVBoolean, CLVF_SAVE,
+	"snd_randompitch", DSTR_CVHINT_SNDRANDOMPITCH, CLVVT_STRING, "false",
+	NULL
+};
+
+// snd_channels -- Number of channels
+CONL_StaticVar_t l_SNDChannels =
+{
+	CLVT_INTEGER, c_CVPVPositive, CLVF_SAVE,
+	"snd_channels", DSTR_CVHINT_SNDCHANNELS, CLVVT_STRING, "12",
+	NULL
+};
+
+// snd_reservedchannels -- Number of reserved channels
+CONL_StaticVar_t l_SNDReservedChannels =
+{
+	CLVT_INTEGER, c_CVPVPositive, CLVF_SAVE,
+	"snd_reservedchannels", DSTR_CVHINT_SNDRESERVEDCHANNELS, CLVVT_STRING, "2",
+	NULL
+};
+
+
+// c_CVPVVolume -- Volume
+const CONL_VarPossibleValue_t c_CVPVVolume[] =
+{
+	// End
+	{0, "MINVAL"},
+	{31, "MAXVAL"},
+	{0, NULL},
+};
+
+// snd_soundvolume -- Volume of sound
+CONL_StaticVar_t l_SNDSoundVolume =
+{
+	CLVT_INTEGER, c_CVPVVolume, CLVF_SAVE,
+	"snd_soundvolume", DSTR_CVHINT_SNDSOUNDVOLUME, CLVVT_STRING, "15",
+	NULL
+};
+
+// snd_musicvolume -- Volume of sound
+CONL_StaticVar_t l_SNDMusicVolume =
+{
+	CLVT_INTEGER, c_CVPVVolume, CLVF_SAVE,
+	"snd_musicvolume", DSTR_CVHINT_SNDMUSICVOLUME, CLVVT_STRING, "15",
+	NULL
+};
 
 /*************
 *** LOCALS ***
@@ -356,7 +440,6 @@ int S_SoundPlaying(S_NoiseThinker_t* a_Origin, int id)
 }
 
 void S_UpdateSingleChannel(S_SoundChannel_t* const a_Channel, S_NoiseThinker_t* const a_Listen, S_NoiseThinker_t* const a_Emit, const fixed_t a_Dist);
-extern consvar_t cv_g_gamespeed;
 
 /* S_StartSoundAtVolume() -- Starts playing a sound */
 void S_StartSoundAtVolume(S_NoiseThinker_t* a_Origin, int sound_id, int volume)
@@ -376,7 +459,7 @@ void S_StartSoundAtVolume(S_NoiseThinker_t* a_Origin, int sound_id, int volume)
 		
 	/* Get gamespeed */
 	// For slow motioning, cap to 0.25
-	GS = cv_g_gamespeed.value;
+	GS = 1 << FRACBITS;
 	if (GS < 16384)
 		GS = 16384;
 		
@@ -465,7 +548,7 @@ void S_StartSoundAtVolume(S_NoiseThinker_t* a_Origin, int sound_id, int volume)
 		Target->ChanVolume[i] = FixedDiv(volume << FRACBITS, 255 << FRACBITS);
 		
 	// Random sound pitch?
-	if (cv_rndsoundpitch.value)
+	if (l_SNDRandomPitch.Value->Int)
 	{
 		// Get value to adjust
 		RPA = FixedDiv((fixed_t) M_Random() << FRACBITS, 127 << FRACBITS);
@@ -698,17 +781,6 @@ void S_RegisterSoundStuff(void)
 	CONL_AddCommand("soundplay", SCLC_SoundMulti);
 		
 	/* Register Variables */
-	CV_RegisterVar(&cv_snd_speakersetup);
-	CV_RegisterVar(&cv_snd_soundquality);
-	CV_RegisterVar(&cv_snd_sounddensity);
-	CV_RegisterVar(&cv_snd_pcspeakerwave);
-	CV_RegisterVar(&cv_snd_channels);
-	CV_RegisterVar(&cv_snd_reservedchannels);
-	CV_RegisterVar(&cv_snd_multithreaded);
-	CV_RegisterVar(&cv_snd_output);
-	CV_RegisterVar(&cv_snd_device);
-	
-	CV_RegisterVar(&cv_snd_buffersize);
 	
 	// Everything was registered
 	cvRegged = true;
@@ -731,8 +803,8 @@ void S_Init(int sfxVolume, int musicVolume)
 	if (!M_CheckParm("-nosfx"))
 	{
 		// GhostlyDeath <January 20, 2012> -- To prevent a race, init channels here
-		l_NumDoomChannels = cv_snd_channels.value;
-		l_ReservedChannels = cv_snd_reservedchannels.value;
+		l_NumDoomChannels = l_SNDChannels.Value->Int;
+		l_ReservedChannels = l_SNDReservedChannels.Value->Int;
 	
 		if (!l_NumDoomChannels)
 			l_NumDoomChannels = 1;
@@ -757,7 +829,7 @@ void S_Init(int sfxVolume, int musicVolume)
 	/* Try getting a buffer */
 	if (l_SoundOK)
 	{
-		if (!(l_Len = I_SoundBufferRequest(IST_WAVEFORM, cv_snd_sounddensity.value, cv_snd_soundquality.value, cv_snd_speakersetup.value, cv_snd_buffersize.value)))
+		if (!(l_Len = I_SoundBufferRequest(IST_WAVEFORM, l_SNDDensity.Value->Int, l_SNDQuality.Value->Int, l_SNDSpeakerSetup.Value->Int, l_SNDBufferSize.Value->Int)))
 		{
 			l_Bits = l_Freq = l_Channels = l_Len = 0;
 			CONL_PrintF("S_Init: Failed to obtain a sound buffer.\n");
@@ -773,13 +845,13 @@ void S_Init(int sfxVolume, int musicVolume)
 				CONL_PrintF("S_Init: Sound is multi-threaded!\n");
 				
 			// Remember settings
-			l_Bits = cv_snd_sounddensity.value;
+			l_Bits = l_SNDDensity.Value->Int;
 			l_Freq = I_SoundGetFreq();
-			l_Channels = cv_snd_speakersetup.value;
+			l_Channels = l_SNDSpeakerSetup.Value->Int;
 			
 			// Frequency did not match
-			if (l_Freq != cv_snd_soundquality.value)
-				CONL_PrintF("S_Init: Requested %iHz but got %iHz\n", cv_snd_soundquality.value, l_Freq);
+			if (l_Freq != l_SNDQuality.Value->Int)
+				CONL_PrintF("S_Init: Requested %iHz but got %iHz\n", l_SNDQuality.Value->Int, l_Freq);
 		}
 	}
 	
@@ -1086,7 +1158,7 @@ void S_SetMusicVolume(int volume)
 {
 	/* Set variable */
 	if (l_MusicOK)
-		CV_SetValue(&cv_musicvolume, volume);
+		CONL_VarSetInt(&l_SNDMusicVolume, volume);
 }
 
 /* S_SetSfxVolume() -- Sets sound volume */
@@ -1094,7 +1166,7 @@ void S_SetSfxVolume(int volume)
 {
 	/* Set variable */
 	if (l_SoundOK)
-		CV_SetValue(&cv_soundvolume, volume);
+		CONL_VarSetInt(&l_SNDSoundVolume, volume);
 }
 
 /* S_UpdateCVARVolumes() -- CVAR Volumes changed */
@@ -1103,13 +1175,13 @@ void S_UpdateCVARVolumes(void)
 	/* Send values to interfaces */
 	// Music
 	if (l_MusicOK)
-		I_SetMusicVolume(cv_musicvolume.value * 8);
+		I_SetMusicVolume(l_SNDMusicVolume.Value->Int * 8);
 		
 	// Sound is not sent because it is dynamically modified by ReMooD.
 	// So instead of messing with mixer values, I can just lower the amplitude
 	// of sounds being mixed.
 	if (l_SoundOK)
-		l_GlobalSoundVolume = FixedDiv(cv_soundvolume.value << FRACBITS, 31 << FRACBITS);
+		l_GlobalSoundVolume = FixedDiv(l_SNDSoundVolume.Value->Int << FRACBITS, 31 << FRACBITS);
 }
 
 void Command_SoundReset_f(void)

@@ -125,9 +125,6 @@ extern bool_t localgame;
 // Only true if >1 player. netgame => multiplayer but not (multiplayer=>netgame)
 extern bool_t multiplayer;
 
-// Flag: true only if started as net deathmatch.
-// An enum might handle altdeath/cooperative better.
-extern consvar_t cv_deathmatch;
 
 // ========================================
 // Internal parameters for sound rendering.

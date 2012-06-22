@@ -107,15 +107,9 @@ void V_DrawFadeScreen(void);
 
 void VID_BlitLinearScreen(uint8_t* srcptr, uint8_t* destptr, int width, int height, int srcrowbytes, int destrowbytes);
 
-// GhostlyDeath <July 8, 2009> -- Add FPS Counter
-extern consvar_t cv_vid_drawfps;
-
 /*******************************************************************************
 ********************************************************************************
 *******************************************************************************/
-
-// GhostlyDeath <July 8, 2009> -- Add FPS Counter
-extern consvar_t cv_vid_drawfps;
 
 /*************************
 *** BASIC DRAWING CODE ***

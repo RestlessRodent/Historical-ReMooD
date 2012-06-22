@@ -338,8 +338,30 @@ StringGroupEX_t UnicodeStrings[NUMUNICODESTRINGS] =
 	{			 "CVHINT_RCUTWALLDETAIL", "Lower the detail of wall textures to reduce memory usage at the cost of quality."},
 	{				 "CVHINT_RFAKESSPAL", "Fake the palette changing when using split-screen."},
 	{				  "CVHINT_RRENDERER", "Which renderer platform to utilize."},
+	{				  "CVHINT_RVIEWSIZE", "The size of the screen to draw."},
+	{			  "CVHINT_RTRANSPARENCY", "Enables drawing of transparent images."},
+	{				"CVHINT_RDRAWSPLATS", "Enables drawing of splats on walls and floors."},
+	{				 "CVHINT_RMAXSPLATS", "Maximum amount of splats that can exist at one time."},
 	
-	{			  "CVHINT_SCRFULLSCREEN", "Use fullscreen vidoe mode"},
+	{			  "CVHINT_SCRFULLSCREEN", "Use fullscreen video mode."},
+	{				   "CVHINT_SCRWIDTH", "Width of the screen to use."},
+	{				  "CVHINT_SCRHEIGHT", "Height of the screen to use."},
+	
+	{			  "CVHINT_VIDSCREENLINK", "Special effect to perform when linking together screens."},
+	{				 "CVHINT_VIDDRAWFPS", "Draw frames per second on the screen."},
+	
+	{			   "CVHINT_IENABLEMOUSE", "Enable mouse input."},
+	{			"CVHINT_IENABLEJOYSTICK", "Enable joystick input."},
+	
+	{			"CVHINT_SNDSPEAKERSETUP", "Number of speakers to use."},
+	{				 "CVHINT_SNDQUALITY", "Quality of sound to be outputted."},
+	{				 "CVHINT_SNDDENSITY", "Density of the sound to use, the higher the better."},
+	{			  "CVHINT_SNDBUFFERSIZE", "Size of the sound buffer in size."},
+	{			 "CVHINT_SNDRANDOMPITCH", "Randomly Pitch Sounds."},
+	{				"CVHINT_SNDCHANNELS", "Number of sound channels to play."},
+	{		"CVHINT_SNDRESERVEDCHANNELS", "Number of channels to keep in reserve."},
+	{			 "CVHINT_SNDSOUNDVOLUME", "The volume at which sounds play at."},
+	{			 "CVHINT_SNDMUSICVOLUME", "The volume at which music plays at."},
 	
 	/*** NETWORK STUFF ***/
 	{			"NET_YOUARENOTTHESERVER", "You are not the server."},

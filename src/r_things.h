@@ -99,9 +99,6 @@ typedef struct
 extern int numskins;
 extern skin_t* skins;
 
-//extern CV_PossibleValue_t skin_cons_t[MAXSKINS+1];
-extern consvar_t cv_skin;
-
 //void    R_InitSkins (void);
 void SetPlayerSkin(int playernum, char* skinname);
 int R_SkinAvailable(char* name);

@@ -51,24 +51,6 @@
 #include "m_cheat.h"
 #include "b_bot.h"
 
-// protos.
-CV_PossibleValue_t viewheight_cons_t[] = { {16, "MIN"}
-	, {56, "MAX"}
-	, {0, NULL}
-};
-CV_PossibleValue_t maxsplats_cons_t[] = { {1, "MIN"}
-	, {MAXLEVELSPLATS, "MAX"}
-	, {0, NULL}
-};
-
-consvar_t cv_viewheight = { "viewheight", VIEWHEIGHTS, 0, viewheight_cons_t, NULL };
-
-//Fab:26-07-98:
-consvar_t cv_gravity = { "gravity", "1", CV_NETVAR | CV_FLOAT | CV_SHOWMODIF };
-consvar_t cv_splats = { "splats", "1", CV_SAVE, CV_OnOff };
-consvar_t cv_maxsplats = { "maxsplats", "512", CV_SAVE, maxsplats_cons_t, NULL };
-consvar_t cv_classicblood = { "classicblood", "0", CV_NETVAR | CV_SAVE, CV_YesNo, NULL };
-
 static const fixed_t FloatBobOffsets[64] =
 {
 	0, 51389, 102283, 152192,
@@ -88,8 +70,6 @@ static const fixed_t FloatBobOffsets[64] =
 	-370728, -332605, -291279, -247148,
 	-200637, -152193, -102284, -51389
 };
-
-extern consvar_t cv_bloodtime;
 
 /* P_AdjMobjStateTics() -- Adjust object state tics */
 void P_AdjMobjStateTics(mobj_t* const a_Object)
@@ -577,7 +557,10 @@ void P_ZMovement(mobj_t* mo)
 		{
 			mo->player->viewheight -= mo->floorz - mo->z;
 			
-			mo->player->deltaviewheight = ((cv_viewheight.value << FRACBITS) - mo->player->viewheight) >> 3;
+			if (mo->player->ProfileEx)
+				mo->player->deltaviewheight = ((mo->player->ProfileEx->ViewHeight) - mo->player->viewheight) >> 3;
+			else
+				mo->player->deltaviewheight = ((VIEWHEIGHT << FRACBITS) - mo->player->viewheight) >> 3;
 		}
 		else if (mo->flags2 & MF2_ONMOBJ)
 			mo->player->viewheight = mo->height + mo->player->bob;
@@ -867,8 +850,6 @@ void P_NightmareRespawn(mobj_t* mobj, const bool_t a_ForceRespawn)
 	// remove the old monster,
 	P_RemoveMobj(mobj);
 }
-
-consvar_t cv_spawnmonsters = { "spawnmonsters", "1", CV_NETVAR, CV_YesNo };
 
 //
 // P_MobjCheckWater : check for water, set stuff in mobj_t struct for
@@ -1547,9 +1528,6 @@ void P_RemoveMobj(mobj_t* mobj)
 	P_SetMobjToCrash(mobj);
 }
 
-consvar_t cv_itemrespawntime = { "respawnitemtime", "30", CV_NETVAR, CV_Unsigned };
-consvar_t cv_itemrespawn = { "respawnitem", "0", CV_NETVAR, CV_OnOff };
-
 //
 // P_RespawnSpecials
 //
@@ -1794,7 +1772,12 @@ void P_SpawnPlayer(mapthing_t* mthing)
 	p->rain2 = NULL;
 	p->extralight = 0;
 	p->fixedcolormap = 0;
-	p->viewheight = cv_viewheight.value << FRACBITS;
+	
+	if (p->ProfileEx)
+		p->viewheight = p->ProfileEx->ViewHeight;
+	else
+		p->viewheight = VIEWHEIGHT << FRACBITS;
+	
 	// added 2-12-98
 	p->viewz = p->mo->z + p->viewheight;
 	
@@ -1820,8 +1803,6 @@ void P_SpawnPlayer(mapthing_t* mthing)
 	{
 		// wake up the status bar
 		ST_Start();
-		// wake up the heads up text
-		HU_Start();
 	}
 	
 	if (p->camera.chase)

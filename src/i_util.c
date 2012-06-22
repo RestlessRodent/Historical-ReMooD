@@ -83,9 +83,6 @@
 *** GLOBALS ***
 **************/
 
-/* i_video.c -- Remove this garbage */
-consvar_t cv_vidwait = { "vid_wait", "1", CV_SAVE, CV_OnOff };
-
 uint8_t graphics_started = 0;
 bool_t allow_fullscreen = false;
 
@@ -122,6 +119,22 @@ static quitfuncptr quit_funcs[MAX_QUIT_FUNCS];
 static bool_t l_JoyOK = false;	// Joysticks OK
 static uint8_t l_NumJoys;		// Number of joysticks
 static uint8_t l_RealJoyMap[MAXJOYSTICKS];	// Joystick mappings
+
+// i_enablemouse -- Enable mouse input
+CONL_StaticVar_t l_IEnableMouse =
+{
+	CLVT_INTEGER, c_CVPVBoolean, CLVF_SAVE,
+	"i_enablemouse", DSTR_CVHINT_IENABLEMOUSE, CLVVT_STRING, "true",
+	NULL
+};
+
+// i_enablejoystick -- Enable joystick input
+CONL_StaticVar_t l_IEnableJoystick =
+{
+	CLVT_INTEGER, c_CVPVBoolean, CLVF_SAVE,
+	"i_enablejoystick", DSTR_CVHINT_IENABLEJOYSTICK, CLVVT_STRING, "true",
+	NULL
+};
 
 /****************
 *** FUNCTIONS ***
@@ -430,7 +443,7 @@ void I_StartupMouse(void)
 		l_NoMouseGrab = true;
 	
 	/* Enabling the mouse */
-	if (cv_use_mouse.value)
+	if (l_IEnableMouse.Value->Int)
 	{
 		// Enabled?
 		if (l_MouseOK)
@@ -478,7 +491,7 @@ void I_StartupMouse2(void)
 	}
 	
 	/* Enabling the mouse */
-	if (cv_use_mouse2.value)
+	if (l_IEnableMouse.Value->Int)
 	{
 		// Probe the mouse
 		if (!I_ProbeMouse(1))
@@ -518,7 +531,7 @@ void I_InitJoystick(void)
 	}
 	
 	/* Enabling the joystick */
-	if (cv_use_joystick.value)
+	if (l_IEnableJoystick.Value->Int)
 	{
 		// Enabled?
 		if (l_JoyOK)
@@ -1501,7 +1514,6 @@ void I_Quit(void)
 		G_CheckDemoStatus();
 	D_QuitNetGame();
 	// use this for 1.28 19990220 by Kin
-	M_SaveConfig(NULL);
 	I_ShutdownSystem();
 	exit(0);
 }

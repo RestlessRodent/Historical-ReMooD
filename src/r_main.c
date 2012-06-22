@@ -133,29 +133,36 @@ extracolormap_t extra_colormaps[MAXCOLORMAPS];
 // bumped light from gun blasts
 int extralight;
 
-consvar_t cv_chasecam = { "chasecam", "0", 0, CV_OnOff };
-consvar_t cv_allowmlook = { "allowmlook", "1", CV_NETVAR, CV_YesNo };
-
-consvar_t cv_psprites = { "playersprites", "1", 0, CV_OnOff };
-consvar_t cv_perspcorr = { "perspectivecrunch", "0", 0, CV_OnOff };
-
-CV_PossibleValue_t viewsize_cons_t[] = { {3, "MIN"}, {12, "MAX"}, {0, NULL} };
-CV_PossibleValue_t detaillevel_cons_t[] = { {0, "High"}, {1, "Low"}, {0, NULL} };
-
-consvar_t cv_viewsize = { "viewsize", "10", CV_SAVE | CV_CALL, viewsize_cons_t, R_SetViewSize };	//3-12
-consvar_t cv_detaillevel = { "detaillevel", "0", CV_SAVE | CV_CALL, detaillevel_cons_t, R_SetViewSize };	// UNUSED
-consvar_t cv_scalestatusbar = { "scalestatusbar", "0", CV_SAVE | CV_CALL, CV_YesNo, R_SetViewSize };
-
-CV_PossibleValue_t grtranslucenthud_cons_t[] = { {1, "MIN"}, {255, "MAX"}, {0, NULL} };
-consvar_t cv_grtranslucenthud = { "gr_translucenthud", "255", CV_SAVE | CV_CALL, grtranslucenthud_cons_t, R_SetViewSize };	//Hurdler: support translucent HUD
-
-consvar_t cv_screenshotdir = { "screenshotdir", "", CV_SAVE, NULL };
-
-// r_monospace -- Draw as monospaced
+// r_fakesspal -- Fake split screen palette changes
 CONL_StaticVar_t l_RFakeSSPal =
 {
 	CLVT_INTEGER, c_CVPVBoolean, CLVF_SAVE,
 	"r_fakesspal", DSTR_CVHINT_RFAKESSPAL, CLVVT_STRING, "true",
+	NULL
+};
+
+// r_transparency -- Enables Transparency Effects
+CONL_StaticVar_t l_RTransparency =
+{
+	CLVT_INTEGER, c_CVPVBoolean, CLVF_SAVE,
+	"r_transparency", DSTR_CVHINT_RTRANSPARENCY, CLVVT_STRING, "true",
+	NULL
+};
+
+// g_CVPVViewSize -- View Size Limits
+const CONL_VarPossibleValue_t c_CVPVViewSize[] =
+{
+	// End
+	{3, "MINVAL"},
+	{12, "MAXVAL"},
+	{0, NULL},
+};
+
+// r_viewsize -- Size of view
+CONL_StaticVar_t l_RViewSize =
+{
+	CLVT_INTEGER, c_CVPVViewSize, CLVF_SAVE,
+	"r_viewsize", DSTR_CVHINT_RVIEWSIZE, CLVVT_STRING, "11",
 	NULL
 };
 
@@ -524,8 +531,6 @@ void R_InitTables(void)
 	
 }
 
-// consvar_t cv_fov = {"fov","2048", CV_CALL | CV_NOINIT, NULL, R_ExecuteSetViewSize};
-
 //
 // R_InitTextureMapping
 //
@@ -657,6 +662,7 @@ void R_ExecuteSetViewSize_DOOM(void)
 	int j;
 	int level;
 	int startmap;
+	int st_overlay;
 	
 	int setdetail;
 	
@@ -668,30 +674,22 @@ void R_ExecuteSetViewSize_DOOM(void)
 		
 	setsizeneeded = false;
 	// no reduced view in splitscreen mode
-	if (g_SplitScreen && cv_viewsize.value < 11)
-		CV_SetValue(&cv_viewsize, 11);
+	if (g_SplitScreen && l_RViewSize.Value->Int < 11)
+		CONL_VarSetInt(&l_RViewSize, 11);
 		
-	setdetail = cv_detaillevel.value;
+	setdetail = 0;
 	
 	// status bar overlay at viewsize 11
-	st_overlay = (cv_viewsize.value == 11);
-	
-	// clamp detail level (actually ignore it, keep it for later who knows)
-	if (setdetail)
-	{
-		setdetail = 0;
-		CONL_PrintF("lower detail mode n.a.\n");
-		CV_SetValue(&cv_detaillevel, setdetail);
-	}
+	st_overlay = (l_RViewSize.Value->Int == 11);
 	
 	stbarheight = ST_HEIGHT;
 	
-	if ((g_SplitScreen <= 0) && cv_scalestatusbar.value || cv_viewsize.value >= 11)
+	if ((g_SplitScreen <= 0) && ST_ExSoloViewScaledSBar() || l_RViewSize.Value->Int >= 11)
 		stbarheight *= vid.fdupy;
 		
 		
 	//added 01-01-98: full screen view, without statusbar
-	if (g_SplitScreen || cv_viewsize.value > 10 || TRANSPARENTSTATUSBAR)
+	if (g_SplitScreen || l_RViewSize.Value->Int > 10 || ST_ExSoloViewTransSBar())
 	{
 		scaledviewwidth = vid.width;
 		viewheight = vid.height;
@@ -699,10 +697,10 @@ void R_ExecuteSetViewSize_DOOM(void)
 	else
 	{
 		//added 01-01-98: always a multiple of eight
-		scaledviewwidth = (cv_viewsize.value * vid.width / 10) & ~7;
+		scaledviewwidth = (l_RViewSize.Value->Int * vid.width / 10) & ~7;
 		//added:05-02-98: make viewheight multiple of 2 because sometimes
 		//                a line is not refreshed by R_DrawViewBorder()
-		viewheight = (cv_viewsize.value * (vid.height - stbarheight) / 10) & ~1;
+		viewheight = (l_RViewSize.Value->Int * (vid.height - stbarheight) / 10) & ~1;
 	}
 	
 	// added 16-6-98:splitscreen
@@ -917,13 +915,12 @@ void R_SetupFrame(player_t* player)
 	
 	extralight = player->extralight;
 	
-	// TODO FIXME: Profiled chase cameras
-	if (cv_chasecam.value && !player->camera.chase)
+	if (player->ChaseCam && !player->camera.chase)
 	{
 		P_ResetCamera(player);
 		player->camera.chase = true;
 	}
-	else if (!cv_chasecam.value)
+	else if (!player->ChaseCam)
 		player->camera.chase = false;
 		
 #ifdef FRAGGLESCRIPT
@@ -1227,30 +1224,8 @@ void R_RegisterEngineStuff(void)
 	R_RenderPlayerView = R_RenderPlayerView_DOOM;	
 	/********************/
 	
-	//26-07-98
-	CV_RegisterVar(&cv_gravity);
-	
-	CV_RegisterVar(&cv_chasecam);
-	CV_RegisterVar(&cv_allowmlook);
-	CV_RegisterVar(&cv_cam_dist);
-	CV_RegisterVar(&cv_cam_height);
-	CV_RegisterVar(&cv_cam_speed);
-	
-	CV_RegisterVar(&cv_viewsize);
-	CV_RegisterVar(&cv_psprites);
-//    CV_RegisterVar (&cv_fov);
-
-	// Default viewheight is changeable,
-	// initialized to standard viewheight
-	CV_RegisterVar(&cv_viewheight);
-	CV_RegisterVar(&cv_scalestatusbar);
-	CV_RegisterVar(&cv_transparentstatusbar);
-	CV_RegisterVar(&cv_transparentstatusbarmode);
-	CV_RegisterVar(&cv_grtranslucenthud);
-	
-	CV_RegisterVar(&cv_screenshotdir);
-	
 	// GhostlyDeath <May 22, 2012> -- Fake split screen palettes
 	CONL_VarRegister(&l_RFakeSSPal);
 	CONL_VarRegister(&l_RRenderer);
 }
+

@@ -46,6 +46,9 @@
 
 #include "p_demcmp.h"
 
+extern CONL_StaticVar_t l_RTransparency;
+extern CONL_StaticVar_t l_RDrawSplats;
+
 // OPTIMIZE: closed two sided lines as single sided
 
 // True if any of the segs textures might be visible.
@@ -257,7 +260,7 @@ static void R_DrawWallSplats()
 				colfunc = basecolfunc;
 				break;
 			case SPLATDRAWMODE_TRANS:
-				if (cv_translucency.value == 0)
+				if (l_RTransparency.Value->Int == 0)
 					colfunc = basecolfunc;
 				else
 				{
@@ -2048,7 +2051,7 @@ void R_StoreWallRange(int start, int stop)
 		}
 	}
 #ifdef BORIS_FIX
-	if (linedef->splats && cv_splats.value)
+	if (linedef->splats && l_RDrawSplats.Value->Int)
 	{
 		// SoM: Isn't a bit wasteful to copy the ENTIRE array for every drawseg?
 		memcpy(last_ceilingclip + ds_p->x1, ceilingclip + ds_p->x1, sizeof(short) * (ds_p->x2 - ds_p->x1 + 1));

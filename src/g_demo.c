@@ -2165,9 +2165,6 @@ void G_TimeDemo(char* name)
 /* G_DeferedPlayDemo() -- Defers playing back demo */
 void G_DeferedPlayDemo(char* name)
 {
-	COM_BufAddText("playdemo \"");
-	COM_BufAddText(name);
-	COM_BufAddText("\"\n");
 }
 
 /* G_CheckDemoStatus() -- Sees if a demo should end */

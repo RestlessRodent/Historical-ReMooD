@@ -116,8 +116,6 @@ tic_t D_SyncNetRealTime(void)
 	return I_GetTimeMS() / (tic_t)TICSPERMS;
 }
 
-extern consvar_t cv_g_gamespeed;
-
 /* D_SyncNetIsPaused() -- Returns true if the game is paused */
 bool_t D_SyncNetIsPaused(void)
 {

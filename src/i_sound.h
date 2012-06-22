@@ -58,14 +58,6 @@ void I_PlayCD(int track, bool_t looping);
 int I_SetVolumeCD(int volume);	// return 0 on failure
 
 extern uint8_t cdaudio_started;
-extern consvar_t cv_snd_speakersetup;
-extern consvar_t cv_snd_soundquality;
-extern consvar_t cv_snd_pcspeakerwave;
-extern consvar_t cv_snd_output;
-extern consvar_t cv_snd_device;
-extern consvar_t cv_snd_channels;
-extern consvar_t cv_snd_reservedchannels;
-extern consvar_t cv_snd_multithreaded;
-extern consvar_t cv_snd_sounddensity;
 
 #endif
+

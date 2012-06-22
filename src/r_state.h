@@ -124,8 +124,6 @@ extern angle_t aimingangle;
 extern angle_t bspangle;
 extern player_t* viewplayer;
 
-extern consvar_t cv_allowmlook;
-
 // GhostlyDeath -- angle_t in the .c? maybe I deleted it accidently
 extern angle_t clipangle;
 

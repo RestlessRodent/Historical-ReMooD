@@ -274,113 +274,6 @@ static int veryfirsttime = 1;
 // used for timing
 static unsigned int st_clock;
 
-// used for making messages go away
-static int st_msgcounter = 0;
-
-// used when in chat
-static st_chatstateenum_t st_chatstate;
-
-// whether left-side main status bar is active
-bool_t st_statusbaron;
-
-// whether status bar chat is active
-static bool_t st_chat;
-
-// value of st_chat before message popped up
-static bool_t st_oldchat;
-
-// whether chat window has the cursor on
-static bool_t st_cursoron;
-
-// !deathmatch
-static bool_t st_notdeathmatch;
-
-// !deathmatch && st_statusbaron
-static bool_t st_armson;
-
-// !deathmatch
-static bool_t st_fragson;
-
-// main bar left
-static patch_t* sbar;
-
-// 0-9, tall numbers
-static patch_t* tallnum[10];
-
-// tall % sign
-static patch_t* tallpercent;
-
-// 0-9, short, yellow (,different!) numbers
-static patch_t* shortnum[10];
-
-// 3 key-cards, 3 skulls, and 3 for both
-static patch_t* keys[NUMCARDS + (NUMCARDS >> 1)];
-
-// face status patches
-static patch_t* faces[ST_NUMFACES];
-
-// face background
-static patch_t* faceback;
-
-// main bar right
-static patch_t* armsbg;
-
-// weapon ownership patches
-static patch_t* arms[6][2];
-
-// ready-weapon widget
-static st_number_t w_ready;
-
-// in deathmatch only, summary of frags stats
-static st_number_t w_frags;
-
-// health widget
-static st_percent_t w_health;
-
-// arms background
-static st_binicon_t w_armsbg;
-
-// weapon ownership widgets
-static st_multicon_t w_arms[6];
-
-// face status widget
-static st_multicon_t w_faces;
-
-// keycard widgets
-static st_multicon_t w_keyboxes[3];
-
-// armor widget
-static st_percent_t w_armor;
-
-// ammo widgets
-static st_number_t w_ammo[4];
-
-// max ammo widgets
-static st_number_t w_maxammo[4];
-
-// number of frags so far in deathmatch
-static int st_fragscount;
-
-// used to use appopriately pained face
-static int st_oldhealth = -1;
-
-// used for evil grin
-//static bool_t oldweaponsowned[NUMWEAPONS];
-
-// count until face changes
-static int st_facecount = 0;
-
-// current face index, used by w_faces
-static int st_faceindex = 0;
-
-// holds key-type for each key box on bar
-static int keyboxes[3];
-
-// a random number per tick
-static int st_randomnumber;
-
-int overlaypnum;
-
 int stbarheight = ST_HEIGHT;
 int ST_Y = BASEVIDHEIGHT - ST_HEIGHT;
 int st_x = 0;
@@ -400,58 +293,8 @@ void ST_TransSTChange(void)
 	R_ExecuteSetViewSize();
 }
 
-CV_PossibleValue_t TransMode[] =
-{
-	{VEX_TRANSNONE, "0%"},
-	{VEX_TRANS10, "10%"},
-	{VEX_TRANS20, "20%"},
-	{VEX_TRANS30, "30%"},
-	{VEX_TRANS40, "40%"},
-	{VEX_TRANS50, "50%"},
-	{VEX_TRANS60, "60%"},
-	{VEX_TRANS70, "70%"},
-	{VEX_TRANS80, "80%"},
-	{VEX_TRANS90, "90%"},
-	{VEX_TRANSFULL, "100%"},
-	{VEX_TRANSFIRE, "Bright"},
-	{0, NULL},
-};
-
-consvar_t cv_transparentstatusbar = { "st_transparent", "0", CV_SAVE | CV_CALL, CV_YesNo, ST_TransSTChange };
-consvar_t cv_transparentstatusbarmode = { "st_transparentmode", "0", CV_SAVE, TransMode };
-
-//
-// STATUS BAR CODE
-//
-static void ST_refreshBackground(void)
-{
-	uint8_t* colormap;
-	
-	if (st_statusbaron)
-	{
-		int flags = (STTRANSPARENTSCREEN & 0xffff0000) | BG;
-		
-		// software mode copies patch to BG buffer,
-		// hardware modes directly draw the statusbar to the screen
-		V_DrawScaledPatch(st_x, ST_Y, flags, sbar);
-		
-		// draw the faceback for the statusbarplayer
-		if (plyr->skincolor == 0)
-			colormap = colormaps;
-		else
-			colormap = translationtables - 256 + (plyr->skincolor << 8);
-			
-		V_DrawMappedPatch(st_x + ST_FX, ST_Y, flags, faceback, colormap);
-		
-		// copy the statusbar buffer to the screen
-		if (!TRANSPARENTSTATUSBAR)
-			V_CopyRect(0, vid.height - stbarheight, BG, vid.width, stbarheight, 0, vid.height - stbarheight, FG);
-	}
-}
-
 void ST_ExternrefreshBackground(void)
 {
-	ST_refreshBackground();
 }
 
 // Respond to keyboard input events,
@@ -477,192 +320,6 @@ bool_t ST_Responder(event_t* ev)
 		
 	}
 	return false;
-}
-
-static int ST_calcPainOffset(void)
-{
-	int health;
-	static int lastcalc;
-	static int oldhealth = -1;
-	
-	health = plyr->health > 100 ? 100 : plyr->health;
-	
-	if (health != oldhealth)
-	{
-		lastcalc = ST_FACESTRIDE * (((100 - health) * ST_NUMPAINFACES) / 101);
-		oldhealth = health;
-	}
-	return lastcalc;
-}
-
-//
-// This is a not-very-pretty routine which handles
-//  the face states and their timing.
-// the precedence of expressions is:
-//  dead > evil grin > turned head > straight ahead
-//
-static void ST_updateFaceWidget(void)
-{
-	int i;
-	angle_t badguyangle;
-	angle_t diffang;
-	static int lastattackdown = -1;
-	static int priority = 0;
-	bool_t doevilgrin;
-	
-	if (priority < 10)
-	{
-		// dead
-		if (!plyr->health)
-		{
-			priority = 9;
-			st_faceindex = ST_DEADFACE;
-			st_facecount = 1;
-		}
-	}
-	
-	if (priority < 9)
-	{
-		if (plyr->bonuscount)
-		{
-			// picking up bonus
-			doevilgrin = false;
-			
-			for (i = 0; i < NUMWEAPONS; i++)
-			{
-				/*if (oldweaponsowned[i] != plyr->weaponowned[i])
-				{
-					doevilgrin = true;
-					oldweaponsowned[i] = plyr->weaponowned[i];
-				}*/
-			}
-			if (doevilgrin)
-			{
-				// evil grin if just picked up weapon
-				priority = 8;
-				st_facecount = ST_EVILGRINCOUNT;
-				st_faceindex = ST_calcPainOffset() + ST_EVILGRINOFFSET;
-			}
-		}
-		
-	}
-	
-	if (priority < 8)
-	{
-		if (plyr->damagecount && plyr->attacker && plyr->attacker != plyr->mo)
-		{
-			// being attacked
-			priority = 7;
-			
-			if (plyr->health - st_oldhealth > ST_MUCHPAIN)
-			{
-				st_facecount = ST_TURNCOUNT;
-				st_faceindex = ST_calcPainOffset() + ST_OUCHOFFSET;
-			}
-			else
-			{
-				badguyangle = R_PointToAngle2(plyr->mo->x, plyr->mo->y, plyr->attacker->x, plyr->attacker->y);
-				
-				if (badguyangle > plyr->mo->angle)
-				{
-					// whether right or left
-					diffang = badguyangle - plyr->mo->angle;
-					i = diffang > ANG180;
-				}
-				else
-				{
-					// whether left or right
-					diffang = plyr->mo->angle - badguyangle;
-					i = diffang <= ANG180;
-				}				// confusing, aint it?
-				
-				st_facecount = ST_TURNCOUNT;
-				st_faceindex = ST_calcPainOffset();
-				
-				if (diffang < ANG45)
-				{
-					// head-on
-					st_faceindex += ST_RAMPAGEOFFSET;
-				}
-				else if (i)
-				{
-					// turn face right
-					st_faceindex += ST_TURNOFFSET;
-				}
-				else
-				{
-					// turn face left
-					st_faceindex += ST_TURNOFFSET + 1;
-				}
-			}
-		}
-	}
-	
-	if (priority < 7)
-	{
-		// getting hurt because of your own damn stupidity
-		if (plyr->damagecount)
-		{
-			if (plyr->health - st_oldhealth > ST_MUCHPAIN)
-			{
-				priority = 7;
-				st_facecount = ST_TURNCOUNT;
-				st_faceindex = ST_calcPainOffset() + ST_OUCHOFFSET;
-			}
-			else
-			{
-				priority = 6;
-				st_facecount = ST_TURNCOUNT;
-				st_faceindex = ST_calcPainOffset() + ST_RAMPAGEOFFSET;
-			}
-			
-		}
-		
-	}
-	
-	if (priority < 6)
-	{
-		// rapid firing
-		if (plyr->attackdown)
-		{
-			if (lastattackdown == -1)
-				lastattackdown = ST_RAMPAGEDELAY;
-			else if (!--lastattackdown)
-			{
-				priority = 5;
-				st_faceindex = ST_calcPainOffset() + ST_RAMPAGEOFFSET;
-				st_facecount = 1;
-				lastattackdown = 1;
-			}
-		}
-		else
-			lastattackdown = -1;
-			
-	}
-	
-	if (priority < 5)
-	{
-		// invulnerability
-		if ((plyr->cheats & CF_GODMODE) || plyr->powers[pw_invulnerability])
-		{
-			priority = 4;
-			
-			st_faceindex = ST_GODFACE;
-			st_facecount = 1;
-			
-		}
-		
-	}
-	// look left or look right if the facecount has timed out
-	if (!st_facecount)
-	{
-		st_faceindex = ST_calcPainOffset() + (st_randomnumber % 3);
-		st_facecount = ST_STRAIGHTFACECOUNT;
-		priority = 0;
-	}
-	
-	st_facecount--;
-	
 }
 
 bool_t ST_SameTeam(player_t* a, player_t* b)
@@ -699,87 +356,10 @@ int ST_PlayerFrags(int playernum)
 	return frags;
 }
 
-static void ST_updateWidgets(void)
-{
-	static int largeammo = 1994;	// means "n/a"
-	int i;
-	
-	// GhostlyDeath <November 3, 2010> -- PARANOIA Removal
-	if (!plyr)
-	{
-		CONL_PrintF("WARNING - ST_updateWidgets: plyr is NULL (%s:%i).\n", __FILE__, __LINE__);
-		return;
-	}
-	// must redirect the pointer if the ready weapon has changed.
-	//  if (w_ready.data != plyr->readyweapon)
-	//  {
-	if (plyr->weaponinfo[plyr->readyweapon]->ammo == am_noammo)
-		w_ready.num = &largeammo;
-	else
-		w_ready.num = &plyr->ammo[plyr->weaponinfo[plyr->readyweapon]->ammo];
-	//{
-	// static int tic=0;
-	// static int dir=-1;
-	// if (!(tic&15))
-	//   plyr->ammo[weaponinfo[plyr->readyweapon].ammo]+=dir;
-	// if (plyr->ammo[weaponinfo[plyr->readyweapon].ammo] == -100)
-	//   dir = 1;
-	// tic++;
-	// }
-	w_ready.data = plyr->readyweapon;
-	
-	// if (*w_ready.on)
-	//  STlib_updateNum(&w_ready, true);
-	// refresh weapon change
-	//  }
-	
-	// update keycard multiple widgets
-	for (i = 0; i < 3; i++)
-	{
-		// GhostlyDeath <December 20, 2008> -- Boom Double keys
-		keyboxes[i] = (plyr->cards & (1 << i)) ? i : -1;
-		
-		if (plyr->cards & (1 << (i + 3)))
-		{
-			if (plyr->cards & (1 << i))
-				keyboxes[i] = i + 6;
-			else
-				keyboxes[i] = i + 3;
-		}
-	}
-	
-	// refresh everything if this is him coming back to life
-	ST_updateFaceWidget();
-	
-	// used by the w_armsbg widget
-	st_notdeathmatch = !P_EXGSGetValue(PEXGSBID_GAMEDEATHMATCH);
-	
-	// used by w_arms[] widgets
-	st_armson = st_statusbaron && !P_EXGSGetValue(PEXGSBID_GAMEDEATHMATCH);
-	
-	// used by w_frags widget
-	st_fragson = P_EXGSGetValue(PEXGSBID_GAMEDEATHMATCH) && st_statusbaron;
-	
-	st_fragscount = ST_PlayerFrags(statusbarplayer);
-	
-	// get rid of chat window if up because of message
-	if (!--st_msgcounter)
-		st_chat = st_oldchat;
-		
-}
-
 static bool_t st_stopped = true;
 
 void ST_Ticker(void)
 {
-	if (st_stopped)
-		return;
-		
-	st_clock++;
-	st_randomnumber = M_Random();
-	ST_updateWidgets();
-	st_oldhealth = plyr->health;
-	
 }
 
 static int st_palette = 0;
@@ -844,74 +424,8 @@ void ST_doPaletteStuff(void)
 		V_SetPalette(ChosePal);
 }
 
-static void ST_drawWidgets(bool_t refresh)
-{
-	int i;
-	
-	// used by w_arms[] widgets
-	st_armson = st_statusbaron && !P_EXGSGetValue(PEXGSBID_GAMEDEATHMATCH);
-	
-	// used by w_frags widget
-	st_fragson = P_EXGSGetValue(PEXGSBID_GAMEDEATHMATCH) && st_statusbaron;
-	
-	STlib_updateNum(&w_ready, refresh);
-	
-	for (i = 0; i < 4; i++)
-	{
-		//Fix me: Gotta close hud and reopen it for this to take effect.
-		if (!P_EXGSGetValue(PEXGSBID_PLINFINITEAMMO))
-		{
-			STlib_updateNum(&w_ammo[i], refresh);
-			STlib_updateNum(&w_maxammo[i], refresh);
-		}
-	}
-	
-	STlib_updatePercent(&w_health, refresh);
-	STlib_updatePercent(&w_armor, refresh);
-	
-	STlib_updateBinIcon(&w_armsbg, refresh);
-	
-	for (i = 0; i < 6; i++)
-		STlib_updateMultIcon(&w_arms[i], refresh);
-		
-	STlib_updateMultIcon(&w_faces, refresh);
-	
-	for (i = 0; i < 3; i++)
-		STlib_updateMultIcon(&w_keyboxes[i], refresh);
-		
-	STlib_updateNum(&w_frags, refresh);
-	
-}
-
-static void ST_doRefresh(void)
-{
-
-	// draw status bar background to off-screen buff
-	ST_refreshBackground();
-	
-	// and refresh all widgets
-	ST_drawWidgets(true);
-	
-	if (TRANSPARENTSTATUSBAR)
-	{
-		if (cv_scalestatusbar.value)
-			V_CopyRectTrans(0, vid.height - stbarheight, BG, vid.width, stbarheight, 0, vid.height - stbarheight, FG, cv_transparentstatusbarmode.value);
-		else
-			V_CopyRectTrans((vid.width >> 1) - (ST_WIDTH >> 1),	// X
-			                vid.height - stbarheight,	// Y
-			                BG,	// Source
-			                ST_WIDTH,	// W
-			                stbarheight,	// H
-			                (vid.width >> 1) - (ST_WIDTH >> 1),	// X
-			                vid.height - stbarheight,	// Y
-			                FG, cv_transparentstatusbarmode.value);
-	}
-}
-
 static void ST_diffDraw(void)
 {
-	// update all widgets
-	ST_drawWidgets(false);
 }
 
 void ST_Invalidate(void)
@@ -923,48 +437,6 @@ void ST_overlayDrawer(void);
 
 void ST_Drawer(bool_t refresh)
 {
-	int i;
-	
-	return;
-	
-	st_statusbaron = (cv_viewsize.value < 11) || (automapactive && !automapoverlay);
-	
-	//added:30-01-98:force a set of the palette by doPaletteStuff()
-	if (vid.recalc)
-		st_palette = -1;
-		
-	// Do red-/gold-shifts from damage/items
-	ST_doPaletteStuff();
-	
-	if (st_statusbaron)
-	{
-		// after ST_Start(), screen refresh needed, or vid mode change
-		if (st_firsttime || refresh || st_recalc || TRANSPARENTSTATUSBAR)
-		{
-			if (st_recalc)		//recalc widget coords after vid mode change
-			{
-				ST_createWidgets();
-				st_recalc = false;
-			}
-			st_firsttime = false;
-			ST_doRefresh();
-		}
-		else
-			// Otherwise, update as little as possible
-			ST_diffDraw();
-	}
-	else if (st_overlay)
-	{
-		for (i = 0; i < g_SplitScreen + 1; i++)
-		{
-			overlaypnum = i;
-			if (playeringame[displayplayer[i]])
-			{
-				plyr = &players[displayplayer[i]];
-				ST_overlayDrawer();
-			}
-		}
-	}
 }
 
 static void ST_loadGraphics(void)
@@ -978,7 +450,6 @@ void ST_loadFaceGraphics(char* facestr)
 
 static void ST_loadData(void)
 {
-	ST_loadGraphics();
 }
 
 void ST_unloadGraphics(void)
@@ -992,148 +463,18 @@ void ST_unloadFaceGraphics(void)
 
 void ST_unloadData(void)
 {
-	ST_unloadGraphics();
 }
 
 void ST_initData(void)
 {
-
-	int i;
-	
-	st_firsttime = true;
-	
-	//added:16-01-98:'link' the statusbar display to a player, which could be
-	//               another player than consoleplayer, for example, when you
-	//               change the view in a multiplayer demo with F12.
-	if (singledemo)
-		statusbarplayer = displayplayer[0];
-	else
-		statusbarplayer = consoleplayer[0];
-		
-	plyr = &players[statusbarplayer];
-	
-	st_clock = 0;
-	st_chatstate = StartChatState;
-	
-	st_statusbaron = true;
-	st_oldchat = st_chat = false;
-	st_cursoron = false;
-	
-	st_faceindex = 0;
-	st_palette = -1;
-	
-	st_oldhealth = -1;
-	
-	//for (i = 0; i < NUMWEAPONS; i++)
-	//	oldweaponsowned[i] = plyr->weaponowned[i];
-		
-	for (i = 0; i < 3; i++)
-		keyboxes[i] = -1;
-		
-	STlib_init();
-	
-}
-
-void ST_CalcPos(void)
-{
-	if (cv_scalestatusbar.value || cv_viewsize.value >= 11)
-	{
-		st_scalex = vid.fdupx;
-		st_scaley = vid.fdupy;
-		st_x = 0;				//((vid.width - ST_WIDTH * vid.dupx) >> 1) / vid.fdupx;
-		ST_Y = (vid.height - stbarheight) / vid.fdupy;
-	}
-	else
-	{
-		st_scalex = st_scaley = 1;
-		ST_Y = vid.height - stbarheight;
-		st_x = (vid.width - ST_WIDTH) >> 1;
-	}
-}
-
-//added:30-01-98: NOTE: this is called at any level start, view change,
-//                      and after vid mode change.
-void ST_createWidgets(void)
-{
-	int i;
-	
-	ST_CalcPos();
-	
-	// ready weapon ammo
-	STlib_initNum(&w_ready, st_x + ST_AMMOX, ST_AMMOY, tallnum, &plyr->ammo[plyr->weaponinfo[plyr->readyweapon]->ammo], &st_statusbaron, ST_AMMOWIDTH);
-	
-	// the last weapon type
-	w_ready.data = plyr->readyweapon;
-	
-	// health percentage
-	STlib_initPercent(&w_health, st_x + ST_HEALTHX, ST_HEALTHY, tallnum, &plyr->health, &st_statusbaron, tallpercent);
-	
-	// arms background
-	STlib_initBinIcon(&w_armsbg, st_x + ST_ARMSBGX, ST_ARMSBGY, armsbg, &st_notdeathmatch, &st_statusbaron);
-	
-	// weapons owned
-	for (i = 0; i < 6; i++)
-	{
-		STlib_initMultIcon(&w_arms[i],
-		                   st_x + ST_ARMSX + (i % 3) * ST_ARMSXSPACE,
-		                   ST_ARMSY + (i / 3) * ST_ARMSYSPACE, arms[i], (int*)&plyr->weaponowned[i + 1], &st_armson);
-	}
-	
-	// frags sum
-	STlib_initNum(&w_frags, st_x + ST_FRAGSX, ST_FRAGSY, tallnum, &st_fragscount, &st_fragson, ST_FRAGSWIDTH);
-	
-	// faces
-	STlib_initMultIcon(&w_faces, st_x + ST_FACESX, ST_FACESY, faces, &st_faceindex, &st_statusbaron);
-	
-	// armor percentage - should be colored later
-	STlib_initPercent(&w_armor, st_x + ST_ARMORX, ST_ARMORY, tallnum, &plyr->armorpoints, &st_statusbaron, tallpercent);
-	
-	// keyboxes 0-2
-	STlib_initMultIcon(&w_keyboxes[0], st_x + ST_KEY0X, ST_KEY0Y, keys, &keyboxes[0], &st_statusbaron);
-	
-	STlib_initMultIcon(&w_keyboxes[1], st_x + ST_KEY1X, ST_KEY1Y, keys, &keyboxes[1], &st_statusbaron);
-	
-	STlib_initMultIcon(&w_keyboxes[2], st_x + ST_KEY2X, ST_KEY2Y, keys, &keyboxes[2], &st_statusbaron);
-	
-	// ammo count (all four kinds)
-	STlib_initNum(&w_ammo[0], st_x + ST_AMMO0X, ST_AMMO0Y, shortnum, &plyr->ammo[0], &st_statusbaron, ST_AMMO0WIDTH);
-	
-	STlib_initNum(&w_ammo[1], st_x + ST_AMMO1X, ST_AMMO1Y, shortnum, &plyr->ammo[1], &st_statusbaron, ST_AMMO1WIDTH);
-	
-	STlib_initNum(&w_ammo[2], st_x + ST_AMMO2X, ST_AMMO2Y, shortnum, &plyr->ammo[2], &st_statusbaron, ST_AMMO2WIDTH);
-	
-	STlib_initNum(&w_ammo[3], st_x + ST_AMMO3X, ST_AMMO3Y, shortnum, &plyr->ammo[3], &st_statusbaron, ST_AMMO3WIDTH);
-	
-	// max ammo count (all four kinds)
-	STlib_initNum(&w_maxammo[0], st_x + ST_MAXAMMO0X, ST_MAXAMMO0Y, shortnum, &plyr->maxammo[0], &st_statusbaron, ST_MAXAMMO0WIDTH);
-	
-	STlib_initNum(&w_maxammo[1], st_x + ST_MAXAMMO1X, ST_MAXAMMO1Y, shortnum, &plyr->maxammo[1], &st_statusbaron, ST_MAXAMMO1WIDTH);
-	
-	STlib_initNum(&w_maxammo[2], st_x + ST_MAXAMMO2X, ST_MAXAMMO2Y, shortnum, &plyr->maxammo[2], &st_statusbaron, ST_MAXAMMO2WIDTH);
-	
-	STlib_initNum(&w_maxammo[3], st_x + ST_MAXAMMO3X, ST_MAXAMMO3Y, shortnum, &plyr->maxammo[3], &st_statusbaron, ST_MAXAMMO3WIDTH);
 }
 
 static void ST_Stop(void)
 {
-	if (st_stopped)
-		return;
-		
-	V_SetPalette(0);
-	
-	st_stopped = true;
 }
 
 void ST_Start(void)
 {
-	if (!st_stopped)
-		ST_Stop();
-		
-	ST_initData();
-	ST_createWidgets();
-	st_stopped = false;
-	st_recalc = false;			//added:02-02-98: widgets coords have been setup
-	// see ST_drawer()
 }
 
 //
@@ -1146,260 +487,12 @@ int st_borderpatchnum;
 
 void ST_Init(void)
 {
-	int i;
-	
-	// GhostlyDeath <January 7, 2012> -- Don't do anything here
-	return;
-	
-	if (dedicated)
-		return;
-		
-	//added:26-01-98:screens[4] is allocated at videomode setup, and
-	//               set at V_Init(), the first time being at SCR_Recalc()
-	
-	// choose and cache the default border patch
-	switch (gamemode)
-	{
-		case commercial:
-			// DOOM II border patch, original was GRNROCK
-			//st_borderpatchnum = W_GetNumForName("GRNROCK");
-			break;
-		default:
-			// DOOM border patch.
-			//st_borderpatchnum = W_GetNumForName("FLOOR7_2");
-			break;
-	}
-	//scr_borderpatch = W_CacheLumpNum(st_borderpatchnum, PU_STATIC);
-	
-	veryfirsttime = 0;
-	
-	ST_loadData();
-	
-	//
-	// cache the status bar overlay icons  (fullscreen mode)
-	//
-	//sbohealth = W_GetNumForName("SBOHEALT");
-	//sbofrags = W_GetNumForName("SBOFRAGS");
-	//sboarmor = W_GetNumForName("SBOARMOR");
-	
-	for (i = 0; i < NUMWEAPONS; i++)
-	{
-		//if (i > 0 && i != 7 && i <= 8)
-		//	sboammo[i] = W_GetNumForName(va("SBOAMMO%c", '0' + i));
-		//else
-		//	sboammo[i] = 0;
-	}
 }
 
 //added:16-01-98: change the status bar too, when pressing F12 while viewing
 //                 a demo.
 void ST_changeDemoView(void)
 {
-	//the same routine is called at multiplayer deathmatch spawn
-	// so it can be called multiple times
-	ST_Start();
-}
-
-// =========================================================================
-//                         STATUS BAR OVERLAY
-// =========================================================================
-
-consvar_t cv_stbaroverlay = { "overlay", "kahmf", CV_SAVE, NULL };
-
-bool_t st_overlay;
-
-void ST_AddCommands(void)
-{
-	CV_RegisterVar(&cv_stbaroverlay);
-}
-
-//  Draw a number, scaled, over the view
-//  Always draw the number completely since it's overlay
-//
-void ST_drawOverlayNum(int x,	// right border!
-                       int y, int num, patch_t** numpat, patch_t* percent)
-{
-	int w = (numpat[0]->width);
-	bool_t neg;
-	
-	// in the special case of 0, you draw 0
-	if (!num)
-	{
-		V_DrawScaledPatch(x - (w * vid.fdupx), y, FG | V_NOSCALESTART | V_TRANSLUCENTPATCH, numpat[0]);
-		return;
-	}
-	
-	neg = num < 0;
-	
-	if (neg)
-		num = -num;
-		
-	// draw the number
-	while (num)
-	{
-		x -= (w * vid.fdupx);
-		V_DrawScaledPatch(x, y, FG | V_NOSCALESTART | V_TRANSLUCENTPATCH, numpat[num % 10]);
-		num /= 10;
-	}
-	
-	// draw a minus sign if necessary
-	if (neg)
-		V_DrawScaledPatch(x - (8 * vid.fdupx), y, FG | V_NOSCALESTART | V_TRANSLUCENTPATCH, sttminus);
-}
-
-static __REMOOD_INLINE int SCY(int y)
-{
-	//31/10/99: fixed by Hurdler so it _works_ also in hardware mode
-	// do not scale to resolution for hardware accelerated
-	// because these modes always scale by default
-	y = y * vid.fdupy;			// scale to resolution
-	if (g_SplitScreen == 1)
-	{
-		y >>= 1;
-		if (overlaypnum == 1)
-			y += vid.height / 2;
-	}
-	else if (g_SplitScreen > 1)
-	{
-		y >>= 1;
-		if (overlaypnum == 2 || overlaypnum == 3)
-			y += vid.height / 2;
-	}
-	
-	return y;
-}
-
-static __REMOOD_INLINE int SCX(int x)
-{
-	x = x * vid.fdupx;
-	
-	if (g_SplitScreen > 1)
-	{
-		x >>= 1;
-		if (overlaypnum == 1 || overlaypnum == 3)
-			x += vid.width / 2;
-	}
-	
-	return x;
-}
-
-//  Draw the status bar overlay, customisable : the user choose which
-//  kind of information to overlay
-//
-
-#define NOTINTWOSPLIT(x) (g_SplitScreen > 1 ? (x) : 0)
-
-void ST_overlayDrawer(void)
-{
-#if 0
-	char* cmds;
-	char c;
-	char buf2[12];
-	int i;
-	
-	cmds = cv_stbaroverlay.string;
-	
-	while ((c = *cmds++))
-	{
-		if (c >= 'A' && c <= 'Z')
-			c = c + 'a' - 'A';
-		switch (c)
-		{
-			case 'h':			// draw health
-				if (g_SplitScreen <= 1)
-					ST_drawOverlayNum(SCX(50) + NOTINTWOSPLIT(8 * vid.fdupx), SCY(198) - (16 * vid.fdupy), plyr->health, tallnum, NULL);
-				else
-				{
-					snprintf(buf2, sizeof(buf2) / sizeof(char), "%i", plyr->health);
-					V_DrawStringA(VFONT_SMALL, VFO_NOSCALESTART, buf2, SCX(45 - V_StringWidthA(VFONT_SMALL, 0, buf2)), SCY(198) - 12 * vid.fdupy);
-				}
-				
-				V_DrawScalePic(SCX(52) + NOTINTWOSPLIT(8 * vid.fdupx), SCY(198) - 16 * vid.fdupy, 0, sbohealth);
-				break;
-				
-			case 'f':			// draw frags
-				st_fragscount = ST_PlayerFrags(plyr - players);
-				
-				if (cv_deathmatch.value)
-				{
-					ST_drawOverlayNum(SCX(300) - NOTINTWOSPLIT(8 * vid.fdupx), SCY(2), st_fragscount, tallnum, NULL);
-					
-					V_DrawScalePic(SCX(302) - NOTINTWOSPLIT(8 * vid.fdupx), SCY(2), 0, sbofrags);
-				}
-				break;
-				
-			case 'a':			// draw ammo
-				i = sboammo[plyr->readyweapon];
-				if (!cv_infiniteammo.value)
-				{
-					if (i)
-					{
-						if (g_SplitScreen <= 1)
-						{
-							ST_drawOverlayNum(SCX(234) - NOTINTWOSPLIT(32 * vid.fdupx),
-							                  SCY(198) - (16 * vid.fdupy), plyr->ammo[plyr->weaponinfo[plyr->readyweapon].ammo], tallnum, NULL);
-						}
-						else
-						{
-							snprintf(buf2, sizeof(buf2) / sizeof(char), "%i", plyr->ammo[plyr->weaponinfo[plyr->readyweapon].ammo]);
-							V_DrawStringA(VFONT_SMALL, VFO_NOSCALESTART, buf2, SCX(145 - V_StringWidthA(VFONT_SMALL, 0, buf2)), SCY(198) - 12 * vid.fdupy);
-						}
-						
-						V_DrawScalePic(SCX(236) - NOTINTWOSPLIT(32 * vid.fdupx), SCY(198) - (16 * vid.fdupy), 0, i);
-					}
-				}
-				break;
-				
-			case 'k':			// draw keys
-				c = 1;
-				for (i = 0; i < 3; i++)
-					// GhostlyDeath <December 20, 2008> -- Check for both cards
-					if ((plyr->cards & (1 << (i + 3))) && (plyr->cards & (1 << i)))
-						V_DrawScaledPatch(SCX(318) - (c++) * (ST_KEY0WIDTH * vid.fdupx), SCY(198) - ((16 + 8) * vid.fdupy), FG | V_NOSCALESTART, keys[i + 6]);
-					else if (plyr->cards & (1 << (i + 3)))	// first skull then card
-						V_DrawScaledPatch(SCX(318) - (c++) * (ST_KEY0WIDTH * vid.fdupx), SCY(198) - ((16 + 8) * vid.fdupy), FG | V_NOSCALESTART, keys[i + 3]);
-					else if (plyr->cards & (1 << i))
-						V_DrawScaledPatch(SCX(318) - (c++) * (ST_KEY0WIDTH * vid.fdupx), SCY(198) - ((16 + 8) * vid.fdupy), FG | V_NOSCALESTART, keys[i]);
-				break;
-				
-			case 'm':			// draw armor
-				if (g_SplitScreen <= 1)
-				{
-					ST_drawOverlayNum(SCX(300) - NOTINTWOSPLIT(8 * vid.fdupx), SCY(198) - (16 * vid.fdupy), plyr->armorpoints, tallnum, NULL);
-				}
-				else
-				{
-					snprintf(buf2, sizeof(buf2), "%i", plyr->armorpoints);
-					V_DrawStringA(VFONT_SMALL, VFO_NOSCALESTART, buf2, SCX(250 - V_StringWidthA(VFONT_SMALL, 0, buf2)), SCY(198) - 12 * vid.fdupy);
-				}
-				
-				V_DrawScalePic(SCX(302) - NOTINTWOSPLIT(8 * vid.fdupx), SCY(198) - (16 * vid.fdupy), 0, sboarmor);
-				break;
-				
-				// added by Hurdler for single player only
-			case 'e':			// number of monster killed
-				if ((!cv_deathmatch.value) && ((g_SplitScreen <= 0)))
-				{
-					char buf[16];
-					
-					snprintf(buf, sizeof(buf), "%d/%d", plyr->killcount, totalkills);
-					V_DrawStringA(VFONT_SMALL, VFO_NOSCALESTART, buf, SCX(318 - V_StringWidthA(VFONT_SMALL, 0, buf)), SCY(1));
-					
-				}
-				break;
-				
-			case 's':			// number of secrets found
-				if ((!cv_deathmatch.value) && ((g_SplitScreen <= 0)))
-				{
-					char buf[16];
-					
-					snprintf(buf, sizeof(buf), "%d/%d", plyr->secretcount, totalsecret);
-					V_DrawStringA(VFONT_SMALL, VFO_NOSCALESTART, buf, SCX(318 - V_StringWidthA(VFONT_SMALL, 0, buf)), SCY(11));
-				}
-				break;
-		}
-	}
-#endif
 }
 
 /*****************************************************************************/
@@ -1731,5 +824,22 @@ void ST_TickerEx(void)
 		// Set palette to what was chosen
 		Player->PalChoice = ChosePal;
 	}
+}
+
+/* ST_ExSoloViewTransSBar() -- Transparent status bar for single view */
+bool_t ST_ExSoloViewTransSBar(void)
+{
+	return false;
+}
+
+/* ST_ExSoloViewScaledSBar() -- Scaled status bar for single view */
+bool_t ST_ExSoloViewScaledSBar(void)
+{
+	return false;
+}
+
+/* ST_ExViewBarHeight() -- Status Bar Height */
+int32_t ST_ExViewBarHeight(void)
+{
 }
 

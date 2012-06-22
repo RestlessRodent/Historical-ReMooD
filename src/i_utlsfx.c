@@ -71,10 +71,6 @@
 *** GLOBALS ***
 **************/
 
-/* i_cdmus.c -- Remove this garbage */
-consvar_t cd_volume = { "cd_volume", "31", CV_SAVE };
-consvar_t cdUpdate = { "cd_update", "1", CV_SAVE };
-
 /*****************
 *** STRUCTURES ***
 *****************/

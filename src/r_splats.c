@@ -44,6 +44,31 @@ static wallsplat_t wallsplats[MAXLEVELSPLATS];	// WALL splats
 static int freewallsplat;
 #endif
 
+// g_CVPVMaxSplats -- Max splats to allow
+const CONL_VarPossibleValue_t c_CVPVMaxSplats[] =
+{
+	// End
+	{1, "MINVAL"},
+	{MAXLEVELSPLATS, "MAXVAL"},
+	{0, NULL},
+};
+
+// r_maxsplats -- Max splats to allow
+CONL_StaticVar_t l_RMaxSplats =
+{
+	CLVT_INTEGER, c_CVPVMaxSplats, CLVF_SAVE,
+	"r_maxsplats", DSTR_CVHINT_RMAXSPLATS, CLVVT_STRING, "true",
+	NULL
+};
+
+// r_drawsplats -- Enables Drawing of splats
+CONL_StaticVar_t l_RDrawSplats =
+{
+	CLVT_INTEGER, c_CVPVBoolean, CLVF_SAVE,
+	"r_drawsplats", DSTR_CVHINT_RDRAWSPLATS, CLVVT_STRING, "true",
+	NULL
+};
+
 // for floorsplats, accessed by asm code
 struct rastery_s* prastertab;
 
@@ -107,7 +132,7 @@ static wallsplat_t* R_AllocWallSplat(void)
 	
 	// for next allocation
 	freewallsplat++;
-	if ((freewallsplat >= cv_maxsplats.value) || (freewallsplat >= MAXLEVELSPLATS))
+	if ((freewallsplat >= l_RMaxSplats.Value->Int) || (freewallsplat >= MAXLEVELSPLATS))
 		freewallsplat = 0;
 		
 	return splat;
@@ -147,7 +172,7 @@ void R_AddWallSplat(line_t* wallline, int sectorside, char* patchname, fixed_t t
 		return;
 		
 	// Splats are actually enabled
-	if (!cv_splats.value)
+	if (!l_RDrawSplats.Value->Int)
 		return;
 		
 	// Demo version

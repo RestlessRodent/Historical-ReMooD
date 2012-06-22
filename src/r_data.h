@@ -132,9 +132,6 @@ typedef struct
 extern texture_t** textures;
 extern int numtextures;
 
-//extern lighttable_t    *colormaps;
-extern CV_PossibleValue_t Color_cons_t[];
-
 // Load TEXTURE1/TEXTURE2/PNAMES definitions, create lookup tables
 void R_LoadTextures(void);
 void R_FlushTextureCache(void);

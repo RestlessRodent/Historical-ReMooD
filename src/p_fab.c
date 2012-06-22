@@ -39,10 +39,6 @@
 #include "m_random.h"
 #include "p_demcmp.h"
 
-void Translucency_OnChange(void);
-
-consvar_t cv_translucency = { "translucency", "1", CV_CALL | CV_SAVE, CV_OnOff, Translucency_OnChange };
-
 //
 // Action routine, for the ROCKET thing.
 // This one adds trails of smoke to the rocket.
@@ -95,59 +91,3 @@ void A_SmokeTrailerSkull(mobj_t* actor)
 	A_SmokeTrailer(actor);
 }
 
-static bool_t resettrans = false;
-
-//  Set the translucency map for each frame state of mobj
-//
-void R_SetTrans(statenum_t state1, statenum_t state2, transnum_t transmap)
-{
-}
-
-void R_SetSmokeShade(statenum_t state1, statenum_t state2, bool_t smoke)
-{
-}
-
-//  hack the translucency in the states for a set of standard doom sprites
-//
-void P_SetTranslucencies(void)
-{
-}
-
-void Translucency_OnChange(void)
-{
-	if (cv_translucency.value == 0)
-		resettrans = true;
-	if (!fuzzymode)
-		P_SetTranslucencies();
-	resettrans = false;
-}
-
-// =======================================================================
-//                    FUNKY DEATHMATCH COMMANDS
-// =======================================================================
-
-void BloodTime_OnChange(void);
-
-CV_PossibleValue_t bloodtime_cons_t[] = { {1, "MIN"}, {3600, "MAX"}, {0, NULL} };
-
-// how much tics to last for the last (third) frame of blood (S_BLOODx)
-consvar_t cv_bloodtime = { "bloodtime", "20", CV_NETVAR | CV_CALL | CV_SAVE, bloodtime_cons_t,
-	BloodTime_OnChange
-};
-
-// Called when var. 'bloodtime' is changed : set the blood states duration
-//
-void BloodTime_OnChange(void)
-{
-	CONL_PrintF("blood lasts for %d seconds\n", cv_bloodtime.value);
-}
-
-void D_AddDeathmatchCommands(void)
-{
-	CV_RegisterVar(&cv_solidcorpse);	//p_enemy
-	
-	CV_RegisterVar(&cv_bloodtime);
-	
-	// BP:not realy in deathmatch but is just here
-	CV_RegisterVar(&cv_translucency);
-}

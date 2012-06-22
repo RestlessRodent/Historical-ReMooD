@@ -41,9 +41,6 @@
 
 /* Externals */
 extern bool_t server;
-extern consvar_t cv_playdemospeed;
-extern consvar_t cv_allownewplayer;
-extern consvar_t cv_maxplayers;
 
 /* Functions */
 void NetUpdate(void);			// Create any new ticcmds and broadcast to other players.

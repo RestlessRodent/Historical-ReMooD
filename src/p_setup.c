@@ -268,12 +268,10 @@ bool_t P_ExClearLevel(void)
 	S_StopMusic();
 	
 	/* Clear Stuff */
-	HU_ClearTips();
 	S_StopSounds();
 	R_ClearLevelSplats();
 	P_ClearRecursiveSound();
 	B_ClearNodes();
-	HU_ClearFSPics();
 	
 	/* Free all level tags */
 	Z_FreeTags(PU_LEVEL, PU_ENDLEVELTAGS);
@@ -1304,9 +1302,6 @@ bool_t P_ExFinalizeLevel(void)
 	/* Initialize Player */
 	//for (i = 0; i < MAXPLAYERS; i++)
 	//	G_InitPlayer(&players[i]);
-	
-	// clear hud messages remains (usually from game startup)
-	CON_ClearHUD();
 	
 	/* Compile Level Scripts */
 	if (g_CurrentLevelInfo->BlockPos[PIBT_SCRIPTS][1] -

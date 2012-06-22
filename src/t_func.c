@@ -297,7 +297,7 @@ void SF_Tip()
 	for (i = 0; i < t_argc; i++)
 		sprintf(tempstr, "%s%s", tempstr, stringvalue(t_argv[i]));
 		
-	HU_SetTip(tempstr, 53);
+	//HU_SetTip(tempstr, 53);
 	Z_Free(tempstr);
 }
 
@@ -330,7 +330,7 @@ void SF_TimedTip()
 		sprintf(tempstr, "%s%s", tempstr, stringvalue(t_argv[i]));
 		
 	//CONL_PrintF("%s\n", tempstr);
-	HU_SetTip(tempstr, tiptime);
+	//HU_SetTip(tempstr, tiptime);
 	Z_Free(tempstr);
 }
 
@@ -362,7 +362,7 @@ void SF_PlayerTip()
 		sprintf(tempstr, "%s%s", tempstr, stringvalue(t_argv[i]));
 		
 	//CONL_PrintF("%s\n", tempstr);
-	HU_SetTip(tempstr, 53);
+	//HU_SetTip(tempstr, 53);
 	Z_Free(tempstr);
 }
 
@@ -2551,8 +2551,8 @@ void SF_RunCommand()
 	int strsize = 0;
 	
 	// GhostlyDeath -- Add option to disallow command execution
-	if (!cv_scr_allowcommandexec.value)
-		return;
+	//if (!cv_scr_allowcommandexec.value)
+	//	return;
 		
 	for (i = 0; i < t_argc; i++)
 		strsize += strlen(stringvalue(t_argv[i]));
@@ -2563,7 +2563,7 @@ void SF_RunCommand()
 	for (i = 0; i < t_argc; i++)
 		sprintf(tempstr, "%s%s", tempstr, stringvalue(t_argv[i]));
 		
-	COM_BufAddText(tempstr);
+	//COM_BufAddText(tempstr);
 	Z_Free(tempstr);
 }
 
@@ -2577,6 +2577,7 @@ void SF_CheckCVar()
 	}
 	else
 	{
+#if 0
 		consvar_t* cvar;
 		
 		t_return.type = svt_string;
@@ -2588,6 +2589,7 @@ void SF_CheckCVar()
 		{
 			t_return.value.s = "";
 		}
+#endif
 	}
 }
 
@@ -2978,8 +2980,8 @@ void SF_DeleteHUPic()
 		return;
 	}
 	
-	if (HU_DeleteFSPic(intvalue(t_argv[0])) == -1)
-		script_error("deletehupic: Invalid sfpic handle: %i\n", intvalue(t_argv[0]));
+	//if (HU_DeleteFSPic(intvalue(t_argv[0])) == -1)
+	//	script_error("deletehupic: Invalid sfpic handle: %i\n", intvalue(t_argv[0]));
 	return;
 }
 
@@ -2992,7 +2994,7 @@ void SF_ModifyHUPic()
 	}
 	
 	//if (HU_ModifyFSPic(intvalue(t_argv[0]), W_GetNumForName(stringvalue(t_argv[1])), intvalue(t_argv[2]), intvalue(t_argv[3])) == -1)
-		script_error("modifyhypic: invalid sfpic handle %i\n", intvalue(t_argv[0]));
+	//	script_error("modifyhypic: invalid sfpic handle %i\n", intvalue(t_argv[0]));
 	return;
 }
 
@@ -3004,8 +3006,8 @@ void SF_SetHUPicDisplay()
 		return;
 	}
 	
-	if (HU_FSDisplay(intvalue(t_argv[0]), intvalue(t_argv[1]) > 0 ? 1 : 0) == -1)
-		script_error("sethupicdisplay: invalid pic handle %i\n", intvalue(t_argv[0]));
+	//if (HU_FSDisplay(intvalue(t_argv[0]), intvalue(t_argv[1]) > 0 ? 1 : 0) == -1)
+	//	script_error("sethupicdisplay: invalid pic handle %i\n", intvalue(t_argv[0]));
 }
 
 //////////////////////////////////////////////////////////////////////////

@@ -110,7 +110,10 @@ void P_CalcHeight(player_t* player)
 	/* Base */
 	// Player
 	if (player->mo->RXFlags[0] & MFREXA_ISPLAYEROBJECT)
-		ViewHeight = cv_viewheight.value << FRACBITS;
+		if (player->ProfileEx)
+			ViewHeight = player->ProfileEx->ViewHeight;
+		else
+			ViewHeight = VIEWHEIGHT << FRACBITS;
 	
 	// Monster
 	else	// height * (41 / 56)
@@ -611,10 +614,6 @@ void P_DeathThink(player_t* player)
 //#define VIEWCAM_DIST    (128<<FRACBITS)
 //#define VIEWCAM_HEIGHT  (20<<FRACBITS)
 
-consvar_t cv_cam_dist = { "cam_dist", "128", CV_FLOAT, NULL };
-consvar_t cv_cam_height = { "cam_height", "20", CV_FLOAT, NULL };
-consvar_t cv_cam_speed = { "cam_speed", "0.25", CV_FLOAT, NULL };
-
 void P_ResetCamera(player_t* player)
 {
 	fixed_t x;
@@ -624,7 +623,7 @@ void P_ResetCamera(player_t* player)
 	player->camera.chase = true;
 	x = player->mo->x;
 	y = player->mo->y;
-	z = player->mo->z + (cv_viewheight.value << FRACBITS);
+	z = player->mo->z + (VIEWHEIGHT << FRACBITS);
 	
 	// hey we should make sure that the sounds are heard from the camera
 	// instead of the marine's head : TO DO
@@ -706,10 +705,10 @@ void P_MoveChaseCamera(player_t* player)
 	angle = mo->angle;
 	
 	// sets ideal cam pos
-	dist = cv_cam_dist.value;
+	dist = player->CamDist;
 	x = mo->x - FixedMul(finecosine[(angle >> ANGLETOFINESHIFT) & FINEMASK], dist);
 	y = mo->y - FixedMul(finesine[(angle >> ANGLETOFINESHIFT) & FINEMASK], dist);
-	z = mo->z + (cv_viewheight.value << FRACBITS) + cv_cam_height.value;
+	z = mo->z + (VIEWHEIGHT << FRACBITS) + player->CamHeight;
 	
 	/*    P_PathTraverse ( mo->x, mo->y, x, y, PT_ADDLINES, PTR_UseTraverse, NULL); */
 	
@@ -741,9 +740,9 @@ void P_MoveChaseCamera(player_t* player)
 	player->camera.mo->angle = R_PointToAngle2(player->camera.mo->x, player->camera.mo->y, viewpointx, viewpointy);
 	
 	// folow the player
-	player->camera.mo->momx = FixedMul(x - player->camera.mo->x, cv_cam_speed.value);
-	player->camera.mo->momy = FixedMul(y - player->camera.mo->y, cv_cam_speed.value);
-	player->camera.mo->momz = FixedMul(z - player->camera.mo->z, cv_cam_speed.value);
+	player->camera.mo->momx = FixedMul(x - player->camera.mo->x, player->CamSpeed);
+	player->camera.mo->momy = FixedMul(y - player->camera.mo->y, player->CamSpeed);
+	player->camera.mo->momz = FixedMul(z - player->camera.mo->z, player->CamSpeed);
 	
 	// compute aming to look the viewed point
 	f1 = FIXED_TO_FLOAT(viewpointx - player->camera.mo->x);

@@ -92,6 +92,5 @@ extern mobj_t* t_trigger;
 
 void T_AddCommands();
 
-extern consvar_t cv_scr_allowcommandexec;
-
 #endif
+

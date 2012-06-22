@@ -79,15 +79,6 @@ typedef struct S_NoiseThinker_s
 *** GLOBALS ***
 **************/
 
-extern consvar_t stereoreverse;
-extern consvar_t cv_soundvolume;
-extern consvar_t cv_musicvolume;
-extern consvar_t cv_rndsoundpitch;
-extern consvar_t precachesound;
-extern CV_PossibleValue_t soundvolume_cons_t[];
-extern consvar_t cd_volume;
-extern consvar_t cdUpdate;
-
 /****************
 *** FUNCTIONS ***
 ****************/

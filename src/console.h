@@ -213,6 +213,10 @@ extern const CONL_VarPossibleValue_t c_CVPVFont[];
 extern bool_t g_EarlyBootConsole;				// Early Boot Console
 extern int32_t g_MousePos[2];					// Mouse Position
 extern bool_t g_MouseDown;						// Mouse is down
+extern bool_t g_QuietConsole;					// Mute startup console
+extern bool_t con_started;						// console has been initialised
+extern bool_t con_startup;						// true at game startup, screen need refreshing
+extern int con_clipviewtop;						// Console clip down
 
 /*****************
 *** PROTOTYPES ***
@@ -300,110 +304,5 @@ bool_t CONL_LoadingScreenSetSubEnd(const int32_t a_NumSteps);
 
 /******************************************************************************/
 
-/****************
-*** CONSTANTS ***
-****************/
-
-/*****************
-*** STRUCTURES ***
-*****************/
-
-/**************
-*** GLOBALS ***
-**************/
-
-extern bool_t g_QuietConsole;	// Mute startup console
-
-/****************
-*** FUNCTIONS ***
-****************/
-
-/*******************************************************************************
-********************************************************************************
-*******************************************************************************/
-
-#define DEMOCVAR(x) cv_##x 
-
-// for debugging shopuld be replaced by nothing later.. so debug is inactive
-#define LOG(x) CONS_Printf(x)
-
-void CON_Init(void);
-
-bool_t CON_Responder(event_t* ev);
-
-#ifdef __MACOS__
-#define  CON_BUFFERSIZE   4096	//my compiler cant handle local vars >32k
-#else
-#define  CON_BUFFERSIZE   16384
-#endif
-
-// TODO: choose max hud msg lines
-#define  CON_MAXHUDLINES      5
-
-// hold 32 last lines of input for history
-#define  CON_MAXPROMPTCHARS    256
-#define  CON_PROMPTCHAR        '>'
-
-extern bool_t con_startup;
-extern bool_t con_recalc;
-extern int con_tick;
-extern bool_t consoletoggle;
-extern bool_t consoleready;
-extern int con_destlines;
-extern int con_curlines;
-extern int con_clipviewtop;
-extern int con_hudlines;
-extern int con_hudtime[5];
-extern int con_clearlines;
-extern bool_t con_hudupdate;
-extern char* con_line;
-extern int con_cx;
-extern int con_cy;
-extern int con_totallines;
-extern int con_width;
-extern int con_scrollup;
-extern int con_lineowner[CON_MAXHUDLINES];
-extern char inputlines[32][CON_MAXPROMPTCHARS];
-extern int inputline;
-extern int inputhist;
-extern int input_cx;
-extern struct pic_s* con_backpic;
-extern struct pic_s* con_bordleft;
-extern struct pic_s* con_bordright;
-extern char con_buffer[CON_BUFFERSIZE];
-
-extern bool_t consoleready;		// GhostlyDeath -- extern this here
-
-// top clip value for view render: do not draw part of view hidden by console
-extern int con_clipviewtop;
-
-// 0 means console is off, or moving out
-extern int con_destlines;
-
-extern int con_clearlines;		// lines of top of screen to refresh
-extern bool_t con_hudupdate;	// hud messages have changed, need refresh
-extern int con_keymap;			//0 english, 1 french
-
-extern uint8_t* redmap;
-extern uint8_t* whitemap;
-extern uint8_t* greenmap;
-extern uint8_t* graymap;
-extern uint8_t* orangemap;
-
-extern consvar_t cons_msgtimeout;
-extern consvar_t cons_speed;
-extern consvar_t cons_height;
-extern consvar_t cons_backpic;
-
-void CON_ClearHUD(void);		// clear heads up messages
-
-void CON_Ticker(void);
-void CON_Drawer(void);
-void CONS_Error(char* msg);		// print out error msg, and wait a key
-
-// force console to move out
-void CON_ToggleOff(void);
-
-/******************************************************************************/
-
 #endif							/* __CONSOLE_H__ */
+

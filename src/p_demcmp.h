@@ -270,6 +270,7 @@ typedef enum P_EXGSBitID_e
 	PEXGSBID_COMONSTERDEADTARGET,				// Monsters stop targetting dead things
 	PEXGSBID_COJUMPREGARDLESS,					// Regardless Jump (legacy mishap)
 	PEXGSBID_COOLDLASTLOOKLOGIC,				// Old lastlook Logic
+	PEXGSBID_CORADIALSPAWNCHECK,				// Perform radial spawn check
 	
 	PEXGSNUMBITIDS
 } P_EXGSBitID_t;

@@ -682,20 +682,6 @@ bool_t R_CheckBBox(fixed_t* bspcoord)
 
 //Fab: hack, until water is finished
 fixed_t dev_waterheight = INT_MIN;
-void Command_Water_f(void)
-{
-	if (COM_Argc() < 2)
-	{
-		CONL_PrintF("dev_water [height] : set water level (development test)");
-		
-		if (players[consoleplayer[0]].mo)
-			dev_waterheight = players[consoleplayer[0]].mo->z + (16 << 16) + 1;
-			
-		return;
-	}
-	
-	dev_waterheight = (atoi(COM_Argv(1)) << 16) + 1;
-}
 
 drawseg_t* firstseg;
 

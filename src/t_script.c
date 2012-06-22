@@ -62,8 +62,6 @@
 #include "t_vari.h"
 #include "t_func.h"
 
-consvar_t cv_scr_allowcommandexec = { "scr_allowcommandexec", "0", CV_SAVE, CV_YesNo };
-
 void clear_runningscripts();
 
 //                  script tree:
@@ -96,8 +94,6 @@ runningscript_t runningscripts;	// first in chain
 
 void T_Init()
 {
-	CV_RegisterVar(&cv_scr_allowcommandexec);
-	
 	init_variables();
 	init_functions();
 }
@@ -225,52 +221,6 @@ void T_RunThingScript(int n)
 }
 
 // console scripting debugging commands
-
-void COM_T_DumpScript_f(void)
-{
-	script_t* script;
-	
-	if (COM_Argc() < 2)
-	{
-		CONL_PrintF("usage: T_DumpScript <scriptnum>\n");
-		return;
-	}
-	
-	if (!strcmp(COM_Argv(1), "global"))
-		script = &levelscript;
-	else
-		script = levelscript.children[atoi(COM_Argv(1))];
-		
-	if (!script)
-	{
-		CONL_PrintF("script '%s' not defined.\n", COM_Argv(1));
-		return;
-	}
-	
-	CONL_PrintF("%s\n", script->data);
-}
-
-void COM_T_RunScript_f(void)
-{
-	int sn;
-	
-	if (COM_Argc() < 2)
-	{
-		CONL_PrintF("Usage: T_RunScript <script>\n");
-		return;
-	}
-	
-	sn = atoi(COM_Argv(1));
-	
-	if (!levelscript.children[sn])
-	{
-		CONL_PrintF("script not defined\n");
-		return;
-	}
-	t_trigger = players[consoleplayer[0]].mo;
-	
-	T_RunScript(sn);
-}
 
 /************************
          PAUSING SCRIPTS
@@ -708,11 +658,6 @@ void spec_script()
 
 void T_AddCommands()
 {
-#ifdef FRAGGLESCRIPT
-	COM_AddCommand("t_dumpscript", COM_T_DumpScript_f);
-	COM_AddCommand("t_runscript", COM_T_RunScript_f);
-	COM_AddCommand("t_running", COM_T_Running_f);
-#endif
 }
 
 //---------------------------------------------------------------------------

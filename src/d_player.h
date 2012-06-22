@@ -234,6 +234,8 @@ typedef struct player_s
 	
 	// GhostlyDeath <March 6, 2012> -- Per-player (chase) camera
 	camera_t camera;
+	fixed_t CamDist, CamHeight, CamSpeed;		// Camera Properties
+	bool_t ChaseCam;							// Chase Camera
 	
 	/*** EXTENDED STUFF ***/
 	D_ProfileEx_t* ProfileEx;					// Extended Profiles

@@ -133,14 +133,6 @@ extern bool_t fuzzymode;
 extern int scr_bpp;
 extern uint8_t* scr_borderpatch;	// patch used to fill the view borders
 
-extern consvar_t cv_scr_width;
-extern consvar_t cv_scr_height;
-extern consvar_t cv_scr_depth;
-extern consvar_t cv_fullscreen;
-
-// wait for page flipping to end or not
-extern consvar_t cv_vidwait;
-
 // quick fix for tall/short skies, depending on bytesperpixel
 extern void (*skydrawerfunc[2]) (void);
 

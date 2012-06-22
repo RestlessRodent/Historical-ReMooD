@@ -256,50 +256,6 @@ void F_Ticker(void)
 //
 void F_TextWrite(void)
 {
-	int w;
-	int count;
-	char* ch;
-	int c;
-	int cx;
-	int cy;
-	
-	// erase the entire screen to a tiled background
-	//V_DrawFlatFill(0, 0, vid.width, vid.height, W_GetNumForName(finaleflat));
-	
-	// draw some of the text onto the screen
-	cx = 10;
-	cy = 10;
-	ch = finaletext;
-	
-	count = (finalecount - 10) / TEXTSPEED;
-	if (count < 0)
-		count = 0;
-	for (; count; count--)
-	{
-		c = *ch++;
-		if (!c)
-			break;
-		if (c == '\n')
-		{
-			cx = 10;
-			cy += 11;
-			continue;
-		}
-		
-		c = toupper(c) - HU_FONTSTART;
-		if (c < 0 || c > HU_FONTSIZE)
-		{
-			cx += 4;
-			continue;
-		}
-		
-		w = (hu_font[c]->width);
-		if (cx + w > vid.width)
-			break;
-		V_DrawScaledPatch(cx, cy, 0, hu_font[c]);
-		cx += w;
-	}
-	
 }
 
 //

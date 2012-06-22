@@ -65,8 +65,6 @@ static tic_t neededtic;
 // engine
 ticcmd_t netcmds[BACKUPTICS][MAXPLAYERS];
 
-consvar_t cv_playdemospeed = { "playdemospeed", "0", 0, CV_Unsigned };
-
 // -----------------------------------------------------------------
 //  Some extra data function for handle textcmd buffer
 // -----------------------------------------------------------------
@@ -79,16 +77,8 @@ static void D_Clearticcmd(int tic)
 		netcmds[tic % BACKUPTICS][i].angleturn = 0;	//&= ~TICCMD_RECEIVED;
 }
 
-CV_PossibleValue_t maxplayers_cons_t[] = { {1, "MIN"}
-	, {MAXPLAYERS, "MAX"}
-	, {0, NULL}
-};
-
 #define ___STRINGIZE(x) #x
 #define __STRINGIZE(x) ___STRINGIZE(x)
-
-consvar_t cv_allownewplayer = { "sv_allownewplayers", "1", 0, CV_OnOff };
-consvar_t cv_maxplayers = { "sv_maxplayers", __STRINGIZE(MAXPLAYERS), CV_NETVAR, maxplayers_cons_t, NULL, 32 };
 
 //
 // D_QuitNetGame
@@ -150,14 +140,11 @@ void TryRunTics(tic_t realtics)
 	if (singletics)
 		realtics = 1;
 		
-	if (realtics >= 1)
-		COM_BufExecute();
-		
 	D_SyncNetUpdate();
 	
 	if (demoplayback)
 	{
-		neededtic = gametic + realtics + cv_playdemospeed.value;
+		neededtic = gametic + realtics;
 		// start a game after a demo
 		maketic += realtics;
 		firstticstosend = maketic;

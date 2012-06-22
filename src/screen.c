@@ -84,19 +84,23 @@ bool_t fuzzymode = false;		// use original Doom fuzzy effect instead
 
 // of translucency
 
-CV_PossibleValue_t scr_depth_cons_t[] = { {8, "8 bits"}, {16, "16 bits"}, {24, "24 bits"}, {32, "32 bits"}, {
-		0,
-		NULL
-	}
+// scr_width -- Width of screen
+CONL_StaticVar_t l_SCRWidth =
+{
+	CLVT_INTEGER, c_CVPVPositive, CLVF_SAVE,
+	"scr_width", DSTR_CVHINT_SCRWIDTH, CLVVT_STRING, "640",
+	NULL
 };
 
-//added:03-02-98: default screen mode, as loaded/saved in config
-consvar_t cv_scr_width = { "scr_width", "640", CV_SAVE, CV_Unsigned };
-consvar_t cv_scr_height = { "scr_height", "400", CV_SAVE, CV_Unsigned };
-consvar_t cv_scr_depth = { "scr_depth", "8 bits", CV_SAVE, scr_depth_cons_t };
-consvar_t cv_fullscreen = { "fullscreen", "No", CV_SAVE | CV_CALL, CV_YesNo, SCR_ChangeFullscreen };
+// scr_height -- Height of screen
+CONL_StaticVar_t l_SCRHeight =
+{
+	CLVT_INTEGER, c_CVPVPositive, CLVF_SAVE,
+	"scr_height", DSTR_CVHINT_SCRHEIGHT, CLVVT_STRING, "640",
+	NULL
+};
 
-// con_scale -- Scale the console text
+// scr_fullscreen -- Fullscreen video mode
 CONL_StaticVar_t l_SCRFullScreen =
 {
 	CLVT_INTEGER, c_CVPVBoolean, CLVF_SAVE,
@@ -275,7 +279,6 @@ void SCR_Recalc(void)
 	R_SetViewSize();			//just set setsizeneeded true now ..
 	
 	// vid.recalc lasts only for the next refresh...
-	con_recalc = true;
 //    CON_ToggleOff ();  // make sure con height is right for new screen height
 
 	st_recalc = true;
@@ -323,9 +326,9 @@ void SCR_CheckDefaultMode(void)
 	}
 	else
 	{
-		CONL_PrintF("Default resolution: %d x %d (%d bits)\n", cv_scr_width.value, cv_scr_height.value, cv_scr_depth.value);
+		CONL_PrintF("Default resolution: %d x %d\n", l_SCRWidth.Value->Int, l_SCRHeight.Value->Int);
 		// see note above
-		setmodeneeded = VID_GetModeForSize(cv_scr_width.value, cv_scr_height.value) + 1;
+		setmodeneeded = VID_GetModeForSize(l_SCRWidth.Value->Int, l_SCRHeight.Value->Int) + 1;
 	}
 }
 
