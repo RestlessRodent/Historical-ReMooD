@@ -1888,12 +1888,13 @@ void P_SpawnMapThing(mapthing_t* mthing)
 	
 	// check for apropriate skill level
 	Skill = P_EXGSGetValue(PEXGSBID_GAMESKILL);
-	if (Skill == sk_baby)
-		bit = 1;
-	else if (Skill == sk_nightmare)
-		bit = 4;
+	
+	if (Skill <= sk_easy)
+		bit = 0x0001;
+	else if (Skill >= sk_hard)
+		bit = 0x0004;
 	else
-		bit = 1 << (Skill - 1);
+		bit = 0x0002;
 		
 	if (!(mthing->options & bit))
 		return;

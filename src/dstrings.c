@@ -908,6 +908,16 @@ StringGroupEX_t UnicodeStrings[NUMUNICODESTRINGS] =
 	
 	/*** OTHER GAME STUFF ***/
 	{					"FOUNDSECRET", "You found a secret area!"},
+	{              "NETPLAYERRENAMED", "$1 renamed to $2."},
+	{					 "GAMEPAUSED", "$1 paused the game."},
+	{				   "GAMEUNPAUSED", "$1 resumed the game."},
+	
+	/*** DEMO STUFF ***/
+	{		  "BADDEMO_LEVELNOTFOUND", "The level named \"$1\" was not found."},
+	{  "BADDEMO_LOADGAMENOTSUPPORTED", "Loading save games are not supported."},
+	{  "BADDEMO_SAVEGAMENOTSUPPORTED", "Saving games is not supported."},
+	{	 "BADDEMO_NETVARNOTSUPPORTED", "The variable $1 is not supported."},
+	{		   "BADDEMO_UNKNOWNXDCMD", "Unknown extra command $1."},
 };
 
 /* DS_NameOfString() -- Returns name of pointer to string */

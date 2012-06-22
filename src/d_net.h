@@ -66,6 +66,9 @@ bool_t D_SyncNetIsSolo(void);
 
 bool_t D_CheckNetGame(void);
 
+bool_t D_NetSetPlayerName(const int32_t a_PlayerID, const char* const a_Name);
+bool_t D_NetPlayerChangedPause(const int32_t a_PlayerID);
+
 /*****************************************************************************/
 
 #define __REMOOD_NCSNET

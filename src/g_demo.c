@@ -129,7 +129,10 @@ bool_t G_DEMO_Vanilla_StartPlaying(struct G_CurrentDemo_s* a_Current)
 	
 	// Not found?
 	if (!LevelInfo)
+	{
+		G_DemoProblem(true, DSTR_BADDEMO_LEVELNOTFOUND, "%s%i%i", LevelName, Episode, Map);
 		return false;
+	}
 	
 	/* Fill Data */
 	Data = a_Current->Data = Z_Malloc(sizeof(*Data), PU_STATIC, NULL);
@@ -465,24 +468,44 @@ bool_t G_DEMO_Vanilla_ReadTicCmd(struct G_CurrentDemo_s* a_Current, ticcmd_t* co
 	// They are different in Vanilla Demos
 	ButtonCodes = WL_StreamReadUInt8(a_Current->WLStream);
 	
-	// Fire Weapon?
-	if (ButtonCodes & 1)
-		a_Cmd->buttons |= BT_ATTACK;
+	// Special Action?
+	if (ButtonCodes & 0x80)
+	{
+		// Pause
+		if ((ButtonCodes & 3) == 1)
+		{
+			paused ^= 1;
+			D_NetPlayerChangedPause(a_PlayerNum);
+		}
+		
+		// Save Game
+		else if ((ButtonCodes & 3) == 2)
+			// Uh-oh!
+			G_DemoProblem(true, DSTR_BADDEMO_SAVEGAMENOTSUPPORTED, "");
+			
+		// End of Demo
+		else if (ButtonCodes == 0x80)
+			Data->EndDemo = true;
+	}
 	
-	// Use?
-	if (ButtonCodes & 2)
-		a_Cmd->buttons |= BT_USE;
+	// Normal Commands
+	else
+	{
+		// Fire Weapon?
+		if (ButtonCodes & 1)
+			a_Cmd->buttons |= BT_ATTACK;
 	
-	// Change gun?
-	if (ButtonCodes & 4)
-		a_Cmd->buttons |= BT_CHANGE | BT_EXTRAWEAPON;	// Slot based change
+		// Use?
+		if (ButtonCodes & 2)
+			a_Cmd->buttons |= BT_USE;
 	
-	// Resort weapon over
-	a_Cmd->buttons |= ((((ButtonCodes & 0x38) >> 3)) << BT_SLOTSHIFT) & BT_SLOTMASK;
-
-	/* End of demo? */
-	if (a_Cmd->forwardmove == 0x80)
-		Data->EndDemo = true;
+		// Change gun?
+		if (ButtonCodes & 4)
+			a_Cmd->buttons |= BT_CHANGE | BT_EXTRAWEAPON;	// Slot based change
+	
+		// Resort weapon over
+		a_Cmd->buttons |= ((((ButtonCodes & 0x38) >> 3)) << BT_SLOTSHIFT) & BT_SLOTMASK;
+	}
 	
 	/* Success! */
 	return true;
@@ -693,7 +716,10 @@ bool_t G_DEMO_Legacy_StartPlaying(struct G_CurrentDemo_s* a_Current)
 	
 		// Not found?
 		if (!LevelInfo)
+		{
+			G_DemoProblem(true, DSTR_BADDEMO_LEVELNOTFOUND, "%s%i%i", LevelName, Episode, Map);
 			return false;
+		}
 	}
 	else
 		LevelInfo = NULL;
@@ -1175,11 +1201,8 @@ static bool_t GS_DEMO_Legacy_HandleExtraCmd(struct G_CurrentDemo_s* a_Current, c
 					Buf[MAXPLAYERNAME - 1] = 0;
 				}
 				
-				// Info
-				CONL_PrintF("%s renamed to ", player_names[a_ExtraBuf->PlayerID]);
-				
-				// Clone name
-				strncpy(player_names[a_ExtraBuf->PlayerID], Buf, MAXPLAYERNAME);
+				// Change Name
+				D_NetSetPlayerName(a_ExtraBuf->PlayerID, Buf);
 				
 				// TODO: SetPlayerSkin
 				if (Data->VerMarker < 120 || Data->VerMarker >= 125)
@@ -1210,9 +1233,6 @@ static bool_t GS_DEMO_Legacy_HandleExtraCmd(struct G_CurrentDemo_s* a_Current, c
 						Buf[MAXPLAYERNAME - 1] = 0;
 					}
 				}
-				
-				// Info
-				CONL_PrintF("\"%s\"\n", player_names[a_ExtraBuf->PlayerID]);
 				break;
 				
 				// 2
@@ -1267,10 +1287,6 @@ static bool_t GS_DEMO_Legacy_HandleExtraCmd(struct G_CurrentDemo_s* a_Current, c
 						Buf[i++] = u8a;
 				}
 				
-				// Debug
-				if (devparm)
-					CONL_PrintF("LEGACY DEMO: NetVar %#04x \"%s\"\n", u16a, Buf);
-				
 				// Seek through table and virtual command
 				for (i = 0; c_LegacyNetVars[i].Name; i++)
 					if (u16a == c_LegacyNetVars[i].ID)
@@ -1286,6 +1302,10 @@ static bool_t GS_DEMO_Legacy_HandleExtraCmd(struct G_CurrentDemo_s* a_Current, c
 							P_EXGSSetValueStr(true, c_LegacyNetVars[i].DirectBitMap, Buf);
 						break;
 					}
+				
+				// Not found
+				if (!c_LegacyNetVars[i].Name)
+					G_DemoProblem(true, DSTR_BADDEMO_NETVARNOTSUPPORTED, "%#04x", u16a);
 				break;
 	
 			case XD_SAY:
@@ -1333,7 +1353,8 @@ static bool_t GS_DEMO_Legacy_HandleExtraCmd(struct G_CurrentDemo_s* a_Current, c
 				
 				// It was not found =(
 				if (!Level)
-					CONL_PrintF("WARNING! Legacy demo wants map \"%s\" but that is not a real map.\n", Buf);
+					G_DemoProblem(true, DSTR_BADDEMO_LEVELNOTFOUND, "%s%i%i", Buf, 0, 0);
+				
 				// Otherwise it was found
 				else
 				{
@@ -1381,7 +1402,7 @@ static bool_t GS_DEMO_Legacy_HandleExtraCmd(struct G_CurrentDemo_s* a_Current, c
 				
 				// State changed?
 				if (u8b != paused)
-					CONL_PrintF("%s %spaused the game.\n", player_names[a_ExtraBuf->PlayerID], (paused ? "" : "un"));
+					D_NetPlayerChangedPause(a_ExtraBuf->PlayerID);
 				break;
 			
 				// 13
@@ -1422,7 +1443,7 @@ static bool_t GS_DEMO_Legacy_HandleExtraCmd(struct G_CurrentDemo_s* a_Current, c
 	
 				// Unknown!
 			default:
-				CONL_PrintF("WARNING! Unknown extra command in Legacy Demo.\n");
+				G_DemoProblem(true, DSTR_BADDEMO_UNKNOWNXDCMD, "%#02x", XID);
 				break;
 		}
 	}
@@ -1460,32 +1481,51 @@ bool_t G_DEMO_Legacy_ReadTicCmd(struct G_CurrentDemo_s* a_Current, ticcmd_t* con
 	/* Old Demo Format */
 	if (Data->VerMarker < 112)
 	{
-		// Read player's command
-		a_Cmd->forwardmove = WL_StreamReadInt8(a_Current->WLStream);
-		a_Cmd->sidemove = WL_StreamReadInt8(a_Current->WLStream);
-		a_Cmd->angleturn = ((int16_t)WL_StreamReadInt8(a_Current->WLStream)) << 8;
+		// Special Action?
+		if (ButtonCodes & 0x80)
+		{
+			// Pause
+			if ((ButtonCodes & 3) == 1)
+			{
+				paused ^= 1;
+				D_NetPlayerChangedPause(a_PlayerNum);
+			}
+		
+			// Save Game
+			else if ((ButtonCodes & 3) == 2)
+				// Uh-oh!
+				G_DemoProblem(true, DSTR_BADDEMO_SAVEGAMENOTSUPPORTED, "");
+			
+			// End of Demo
+			else if (ButtonCodes == 0x80)
+				Data->EndDemo = true;
+		}
+		
+		else
+		{
+			// Read player's command
+			a_Cmd->forwardmove = WL_StreamReadInt8(a_Current->WLStream);
+			a_Cmd->sidemove = WL_StreamReadInt8(a_Current->WLStream);
+			a_Cmd->angleturn = ((int16_t)WL_StreamReadInt8(a_Current->WLStream)) << 8;
 
-		// Button codes are different in old Legacy
-		ButtonCodes = WL_StreamReadUInt8(a_Current->WLStream);
+			// Button codes are different in old Legacy
+			ButtonCodes = WL_StreamReadUInt8(a_Current->WLStream);
 
-		// Fire Weapon?
-		if (ButtonCodes & 1)
-			a_Cmd->buttons |= BT_ATTACK;
+			// Fire Weapon?
+			if (ButtonCodes & 1)
+				a_Cmd->buttons |= BT_ATTACK;
 
-		// Use?
-		if (ButtonCodes & 2)
-			a_Cmd->buttons |= BT_USE;
+			// Use?
+			if (ButtonCodes & 2)
+				a_Cmd->buttons |= BT_USE;
 
-		// Change gun?
-		if (ButtonCodes & 4)
-			a_Cmd->buttons |= BT_CHANGE | BT_EXTRAWEAPON;	// Slot based change
+			// Change gun?
+			if (ButtonCodes & 4)
+				a_Cmd->buttons |= BT_CHANGE | BT_EXTRAWEAPON;	// Slot based change
 
-		// Resort weapon over
-		a_Cmd->buttons |= ((((ButtonCodes & 0x38) >> 3)) << BT_SLOTSHIFT) & BT_SLOTMASK;
-
-		// End of demo?
-		if (a_Cmd->forwardmove == 0x80)
-			Data->EndDemo = true;
+			// Resort weapon over
+			a_Cmd->buttons |= ((((ButtonCodes & 0x38) >> 3)) << BT_SLOTSHIFT) & BT_SLOTMASK;
+		}
 	}
 	
 	/* New Compact Demo Format */
@@ -1595,10 +1635,6 @@ bool_t G_DEMO_Legacy_ReadTicCmd(struct G_CurrentDemo_s* a_Current, ticcmd_t* con
 				// Read String
 				for (i = 0; i < ExtraCount; i++)
 					Buf[i] = WL_StreamReadUInt8(a_Current->WLStream);
-				
-				// Debug
-				if (devparm)
-					CONL_PrintF("Extra: \"%s\"\n", Buf);
 				
 				// Enqueue it
 				NewBuf = Z_Malloc(sizeof(*NewBuf), PU_STATIC, NULL);
@@ -2302,5 +2338,28 @@ void G_DemoPostGTicker(void)
 		if (l_RecDemo)
 			if (l_RecDemo->Factory->PostGTickCmdFunc)
 				l_RecDemo->Factory->PostGTickCmdFunc(l_RecDemo);
+}
+
+/* G_DemoProblem() -- Problem with demo! Uh oh! */
+void G_DemoProblem(const bool_t a_IsError, const UnicodeStringID_t a_StrID, const char* const a_Format, ...)
+{
+	va_list ArgPtr;
+	
+	/* Check */
+	if (!a_Format)
+		return;
+	
+	/* Which sound to play? */
+	//if (a_IsError)
+	//	S_StartSound(NULL, sfx_lotime);
+	//else
+		S_StartSound(NULL, sfx_gerror);	
+	
+	/* Send to PrintV() */
+	va_start(ArgPtr, a_Format);
+	CONL_PrintF("{%c", (a_IsError ? '1' : '3'));
+	CONL_UnicodePrintV(false, a_StrID, a_Format, ArgPtr);
+	CONL_PrintF("\n");
+	va_end(ArgPtr);
 }
 

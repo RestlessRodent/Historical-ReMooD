@@ -336,13 +336,14 @@ typedef enum
 	sfx_dgdth,
 	sfx_dgpain,
 	
-	// GhostlyDeath -- ReMoOD Sounds
+	// GhostlyDeath -- ReMooD Sounds
 	sfx_zzzzza,
 	sfx_oskmov,
 	sfx_osktyp,
 	sfx_lotime,
 	sfx_secret,
 	sfx_elvcal,
+	sfx_gerror,
 	
 	// free slots for S_AddSoundFx() at run-time --------------------
 	sfx_freeslot0,

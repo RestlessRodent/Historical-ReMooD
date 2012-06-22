@@ -217,6 +217,51 @@ bool_t D_SyncNetUpdate(void)
 
 /*****************************************************************************/
 
+/* D_NetSetPlayerName() -- Sets name of player */
+bool_t D_NetSetPlayerName(const int32_t a_PlayerID, const char* const a_Name)
+{
+	uint32_t OldNameHash;
+	uint32_t NewNameHash;
+	char OldName[MAXPLAYERNAME + 1];
+	
+	/* Check */
+	if (a_PlayerID < 0 || a_PlayerID >= MAXPLAYERS || !a_Name)
+		return false;
+	
+	/* Hash old name */
+	memset(OldName, 0, sizeof(OldName));
+	strncpy(OldName, player_names[a_PlayerID], MAXPLAYERNAME);
+	OldNameHash = Z_Hash(player_names[a_PlayerID]);
+	
+	/* Copy name over */
+	strncpy(player_names[a_PlayerID], a_Name, MAXPLAYERNAME);
+	player_names[a_PlayerID][MAXPLAYERNAME - 1] = 0;
+	NewNameHash = Z_Hash(player_names[a_PlayerID]);
+	
+	/* Inform? */
+	if (OldNameHash != NewNameHash)
+		CONL_OutputU(DSTR_NETPLAYERRENAMED, "%s%s\n", OldName, player_names[a_PlayerID]);
+	
+	/* Success! */
+	return true;
+}
+
+/* D_NetPlayerChangedPause() -- Player changed the pause state */
+bool_t D_NetPlayerChangedPause(const int32_t a_PlayerID)
+{
+	/* Check */
+	if (a_PlayerID < 0 || a_PlayerID >= MAXPLAYERS)
+		return false;
+	
+	/* Paused or not paused? */
+	CONL_OutputU((paused ? DSTR_GAMEPAUSED : DSTR_GAMEUNPAUSED), "%s\n", player_names[a_PlayerID]);
+	
+	/* Success! */
+	return true;
+}
+
+/*****************************************************************************/
+
 /*** STRUCTURES ***/
 
 /* D_NetQueueCommand_t -- Net queue */

@@ -446,6 +446,7 @@ sfxinfo_t S_sfx[NUMSFX] =
 	{ "lotime", false, 64, 0, -1, -1, 0},
 	{ "secret", false, 64, 0, -1, -1, 0},
 	{ "elvcal", false, 64, 0, -1, -1, 0},
+	{ "gerror", false, 64, 0, -1, -1, 0},
 };
 
 // Prepare free sfx slots to add sfx at run time
