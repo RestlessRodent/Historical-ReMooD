@@ -1918,17 +1918,9 @@ void D_DoomMain(void)
 	CONL_PrintF("I_InitNetwork...\n");
 	I_InitNetwork();
 	
-	// now initted automatically by use_mouse var code
-	//CONL_PrintF("I_StartupMouse...\n");
-	//I_StartupMouse ();
-	
-	//CONL_PrintF ("I_StartupKeyboard...\n");
-	//I_StartupKeyboard (); // FIXME: this is a dummy, we can remove it!
-	
-	// now initialised automatically by use_joystick var code
-	//CONL_PrintF (text[I_INIT_NUM]);
-	//I_InitJoystick ();
-	
+	I_StartupMouse ();
+	I_StartupKeyboard();
+	I_InitJoystick();
 	
 	g_EarlyBootConsole = false;
 	V_SetPalette(0);

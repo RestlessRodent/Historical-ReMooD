@@ -430,6 +430,15 @@ void I_DoMouseGrabbing(void)
 /* I_StartupMouse() -- Initializes the mouse */
 void I_StartupMouse(void)
 {
+	static bool_t VarRegged;
+	
+	/* Register var? */
+	if (!VarRegged)
+	{
+		CONL_VarRegister(&l_IEnableMouse);
+		VarRegged = true;
+	}
+	
 	/* Check parameter */
 	// Disable Mouse?
 	if (M_CheckParm("-nomouse"))
@@ -522,6 +531,14 @@ void I_InitJoystick(void)
 	char CoolBuf[BUFSIZE];
 	uint32_t ID, NumAxis, NumButtons;
 	size_t i;
+	static bool_t VarRegged;
+	
+	/* Register var? */
+	if (!VarRegged)
+	{
+		CONL_VarRegister(&l_IEnableJoystick);
+		VarRegged = true;
+	}
 	
 	/* Check parameter */
 	if (M_CheckParm("-nojoy"))
