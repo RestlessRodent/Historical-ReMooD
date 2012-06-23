@@ -516,6 +516,10 @@ void D_Display(void)
 		I_UpdateNoBlit();
 		M_ExUIDrawer();
 		I_FinishUpdate();		// page flip or blit buffer
+		
+		// Appeal to the local timing code
+			// So that the game does not catch up during wipes!
+		D_SyncNetAppealTime();
 	}
 	while (!done && I_GetTime() < (unsigned)y);
 	
@@ -628,9 +632,11 @@ void D_DoomLoop(void)
 			D_Display();
 			supdate = false;
 		}
-		else if (rendertimeout < entertic)	// in case the server hang or netsplit
+		else if (gamestate == GS_DEMOSCREEN || rendertimeout < entertic)	// in case the server hang or netsplit
 		{
 			l_FPSRanFPS++;
+			if (gamestate == GS_DEMOSCREEN)
+				l_FPSPanic = false;	// Don't panic on titlescreen!
 			D_Display();
 		}
 		
@@ -878,6 +884,7 @@ void D_StartTitle(void)
 	statusbarplayer = 0;
 	demosequence = -1;
 	paused = false;
+	gamestate = GS_DEMOSCREEN;
 	D_AdvanceDemo();
 }
 

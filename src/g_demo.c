@@ -1799,6 +1799,7 @@ static G_CurrentDemo_t* l_PlayDemo = NULL;		// Demo being played
 static G_CurrentDemo_t* l_RecDemo = NULL;		// Demo being recorded
 static G_DemoLink_t* l_DemoQ = NULL;			// Demo Queue
 static bool_t l_CommandedDemo = false;			// Commanded demo
+static bool_t l_DemoServer = false;				// Server playing demos
 
 /*** FACTORIES ***/
 
@@ -2118,6 +2119,11 @@ void G_StopDemoPlay(void)
 		D_StartTitle();
 	}
 	
+	/* If not a server playing demos (demoplayback server) */
+	// Disconnect from "ourself"
+	if (!l_DemoServer)
+		D_NCDisconnect();
+	
 	/* Stop recording if advancing/quitting */
 	if ((QuitDoom || Advance) && demorecording)
 		G_StopDemoRecord();
@@ -2241,6 +2247,14 @@ void G_DoPlayDemo(char* defdemoname)
 	
 	/* Stop currently playing demo */
 	G_StopDemoPlay();
+	
+	/* If not a server playing demos (demoplayback server) */
+	// We need to switch to a server state before servers can be played.
+	if (!l_DemoServer)
+	{
+		D_NCDisconnect();
+		D_NCServize();
+	}
 	
 	/* Play demo in any factory */
 	Demo = G_DemoPlay(Stream, Factory);

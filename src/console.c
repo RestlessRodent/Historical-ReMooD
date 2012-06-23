@@ -811,7 +811,7 @@ int32_t CONCTI_DrawInput(CONCTI_Inputter_t* const a_Input, const uint32_t a_Opti
 	Options &= ~(VFO_COLORMASK | VFO_PCOLMASK | VEX_COLORSET);
 	Options |= VFO_COLOR(VEX_MAP_BRIGHTWHITE);
 	
-	if ((gametic >> 4) & 1)
+	if ((g_ProgramTic >> 4) & 1)
 		V_DrawCharacterA(a_Input->Font, Options, (a_Input->Overwrite ? 0x7F : '_'), bx, a_y);
 	
 	/* Return new position */
@@ -2005,7 +2005,7 @@ void CONLS_DrawOSK(const int32_t a_X, const int32_t a_Y, const int32_t a_W, cons
 				DrawFlags = VFO_COLOR(VEX_MAP_WHITE);
 			else
 			{
-				if (gametic & 0x8)
+				if (g_ProgramTic & 0x8)
 					DrawFlags = VFO_COLOR(VEX_MAP_YELLOW);
 				else
 					DrawFlags = VFO_COLOR(VEX_MAP_RED);

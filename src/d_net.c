@@ -56,7 +56,9 @@
 *** LOCALS ***
 *************/
 
-static tic_t l_MapTime = 0;		// Map local time
+static tic_t l_MapTime = 0;						// Map local time
+static tic_t l_BaseTime = 0;					// Base Game Time
+static tic_t l_LocalTime = 0;					// Local Time
 
 /****************
 *** FUNCTIONS ***
@@ -139,7 +141,6 @@ bool_t D_SyncNetIsSolo(void)
 // It returns the tics in the future that everyone is ready to move to
 tic_t D_SyncNetAllReady(void)
 {
-	static tic_t LocalTime = 0;
 	tic_t ThisTime, DiffTime;
 	
 	/*** START BIG HACK AREA ***/
@@ -176,13 +177,13 @@ tic_t D_SyncNetAllReady(void)
 	if (D_SyncNetIsArbiter())
 	{
 		// The map time is determined by the framerate
-		ThisTime = I_GetTimeMS() / TICSPERMS;
-		DiffTime = ThisTime - LocalTime;
+		ThisTime = (I_GetTimeMS() / TICSPERMS) - l_BaseTime;
+		DiffTime = ThisTime - l_LocalTime;
 		
 		if (DiffTime > 0)
 		{
 			// Return the time difference
-			LocalTime = ThisTime;
+			l_LocalTime = ThisTime;
 			return l_MapTime + DiffTime;
 		}
 		else
@@ -197,6 +198,12 @@ tic_t D_SyncNetAllReady(void)
 	
 	/* Fell through? */
 	return (tic_t)-1;
+}
+
+/* D_SyncNetAppealTime() -- Appeals to the time code */
+void D_SyncNetAppealTime(void)
+{
+	l_LocalTime = (I_GetTimeMS() / TICSPERMS) - l_BaseTime;
 }
 
 /* D_SyncNetUpdate() -- Update synchronized networking */
@@ -588,6 +595,7 @@ bool_t D_CheckNetGame(void)
 		
 	/* Create LoopBack Client */
 	Client = D_NCAllocClient();
+	Client->IsLocal = true;
 	Client->CoreStream = D_RBSCreateLoopBackStream();
 	
 	// Create perfection Wrapper
@@ -599,12 +607,6 @@ bool_t D_CheckNetGame(void)
 	Client->Streams[DNCSP_PERFECTREAD] = Client->PerfectStream;
 	Client->Streams[DNCSP_PERFECTWRITE] = Client->PerfectStream;
 	
-	// Set as local and server
-	Client->IsLocal = true;
-	Client->IsServer = true;
-	Client->ReadyToPlay = true;
-	Client->SaveGameSent = true;
-	
 	/* Create Local Network Client */
 	// Attempt creating a UDP Server
 	Socket = NULL;
@@ -614,8 +616,9 @@ bool_t D_CheckNetGame(void)
 	// Initial input/output of stream
 	if (Socket)
 	{
-		// Allocate
+		// Allocate local client
 		Client = D_NCAllocClient();
+		Client->IsLocal = true;
 		
 		// Copy socket
 		Client->NetSock = Socket;
@@ -631,12 +634,6 @@ bool_t D_CheckNetGame(void)
 		Client->Streams[DNCSP_WRITE] = Client->CoreStream;
 		Client->Streams[DNCSP_PERFECTREAD] = Client->PerfectStream;
 		Client->Streams[DNCSP_PERFECTWRITE] = Client->PerfectStream;
-		
-		// Set as local and server
-		Client->IsLocal = true;
-		Client->IsServer = true;
-		Client->ReadyToPlay = true;
-		Client->SaveGameSent = true;
 	}
 	
 	return ret;
@@ -792,9 +789,30 @@ void D_NCDisconnect(void)
 /* D_NCServize() -- Turn into server */
 void D_NCServize(void)
 {
+	int32_t i;
+	
 	/* First Disconnect */
 	// This does most of the work for us
 	D_NCDisconnect();
+	
+	/* Go through local clients and set as server */
+	for (i = 0; i < l_NumClients; i++)
+		if (l_Clients[i])
+		{
+			// Not Local
+			if (!l_Clients[i]->IsLocal)
+				continue;
+			
+			// Set as server (and fully ready)
+			l_Clients[i]->IsServer = true;
+			l_Clients[i]->ReadyToPlay = true;
+			l_Clients[i]->SaveGameSent = true;
+		}
+	
+	/* Rebase Time */
+	l_BaseTime = I_GetTimeMS() / TICSPERMS;
+	l_LocalTime = 0;
+	l_MapTime = 0;
 }
 
 /* D_NCClientize() -- Turn into client and connect to server */

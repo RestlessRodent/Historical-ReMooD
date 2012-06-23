@@ -140,7 +140,7 @@ void TryRunTics(tic_t realtics)
 	if (singletics)
 		realtics = 1;
 		
-	D_SyncNetUpdate();
+	//D_SyncNetUpdate();
 	
 	if (demoplayback)
 	{
@@ -151,17 +151,34 @@ void TryRunTics(tic_t realtics)
 		tictoclear = firstticstosend;
 	}
 	
+	// Title screen?
+	if (gamestate == GS_DEMOSCREEN)
+	{
+		LocalTic = I_GetTime();
+		
+		// No update needed?
+		if (LocalTic <= LastTic)
+		{
+			I_WaitVBL(20);
+			return;
+		}
+		
+		// If demo needs advancing
+		if (advancedemo)
+			D_DoAdvanceDemo();
+		
+		// Tic the title screen
+		D_PageTicker();
+		
+		// Set last time
+		LastTic = LocalTic;
+		return;
+	}
+	
 	/* While the client is behind, update it to catch up */
 	STRuns = 0;
 	do
 	{
-		// If demo needs advancing
-		if (advancedemo)
-		{
-			D_DoAdvanceDemo();
-			continue;
-		}
-		
 		// Set local time and target time
 		LocalTic = I_GetTime();
 		
@@ -176,8 +193,12 @@ void TryRunTics(tic_t realtics)
 				break;
 			
 			// While the game is behind, update it
-			while ((XXLocalTic = D_SyncNetMapTime()) < (XXSNAR = D_SyncNetAllReady()))
+			XXSNAR = D_SyncNetAllReady();
+			while ((XXLocalTic = D_SyncNetMapTime()) < XXSNAR)
 			{
+				// Update Net status
+				D_SyncNetUpdate();
+				
 				// Run game ticker and increment the gametic
 				G_DemoPreGTicker();
 				G_Ticker();
