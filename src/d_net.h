@@ -135,15 +135,19 @@ void D_NCFudgeOffHostStream(I_HostAddress_t* const a_Host, struct D_RBlockStream
 void D_NCFudgeOffClient(D_NetClient_t* const a_Client, const char a_Code, const char* const a_Reason);
 
 void D_NCUpdate(void);
+
 void D_NCAddQueueCommand(const D_NCQCFunc_t a_Func, void* const a_Data);
 void D_NCRunCommands(void);
 
 void D_NCQueueDisconnect(void);
+
 void D_NCDisconnect(void);
 void D_NCServize(void);
 void D_NCClientize(I_HostAddress_t* const a_Host, const char* const a_Pass, const char* const a_JoinPass);
 
 bool_t D_NCHostOnBanList(I_HostAddress_t* const a_Host);
+
+void D_NCZapNetPlayer(struct D_NetPlayer_s* const a_Player);
 
 /*** NSZZ Funcs ***/
 void D_NSZZ_SendINFO(struct D_RBlockStream_s* a_Stream, const uint32_t a_LocalTime);

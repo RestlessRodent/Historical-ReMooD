@@ -1407,6 +1407,14 @@ D_NetPlayer_t* D_NCSAllocNetPlayer(void)
 	return New;
 }
 
+/* D_NCSFreeNetPlayer() -- Frees a net player */
+void D_NCSFreeNetPlayer(D_NetPlayer_t* const a_NetPlayer)
+{
+	/* Check */
+	if (!a_NetPlayer)
+		return;
+}
+
 /* D_NCSFindNetPlayer() -- Finds a net player */
 D_NetPlayer_t* D_NCSFindNetPlayer(const char* const a_Name)
 {

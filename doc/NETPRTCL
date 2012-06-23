@@ -191,6 +191,7 @@ INFT	-- INFO Terminate (Stop handling)
 				> 'D' = Taking too long to connect
 				> 'H' = High ping limitation hit
 				> 'V' = Version Mismatch
+				> 'X' = Server Exit
 		str	Reason
 				> The message to be displayed after termination
 

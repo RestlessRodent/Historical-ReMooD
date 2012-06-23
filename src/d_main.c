@@ -775,6 +775,9 @@ void D_WaitingPlayersDrawer(void)
 				310 - sw, y
 			);
 	}
+	
+	/* Draw Mouse */
+	CONL_DrawMouse();
 #undef BUFSIZE
 }
 

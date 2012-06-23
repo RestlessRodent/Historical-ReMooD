@@ -52,6 +52,14 @@ typedef enum D_RBSStreamFlags_s
 	DRBSSF_READONLY					= 0x0002,	// Create Read Only Stream
 } D_RBSStreamFlags_t;
 
+/* D_RBSStreamIOCtl_t -- IOCtl Command for stream */
+typedef enum D_RBSStreamIOCtl_e
+{
+	DRBSIOCTL_ISPERFECT,						// Read: Is perfect?
+	
+	NUMDRBSSTREAMIOCTL
+} D_RBSStreamIOCtl_t;
+
 /*****************
 *** STRUCTURES ***
 *****************/
@@ -80,6 +88,7 @@ typedef struct D_RBlockStream_s
 	bool_t (*NetPlayF)(struct D_RBlockStream_s* const a_Stream, I_HostAddress_t* const a_Host);
 	
 	void (*DeleteF)(struct D_RBlockStream_s* const a_Stream);
+	bool_t (*IOCtlF)(struct D_RBlockStream_s* const a_Stream, const D_RBSStreamIOCtl_t a_IOCtl, int32_t* a_DataP);
 	
 	/* Stream Stat */
 	uint32_t StatBlock[2];						// Block stats
@@ -97,9 +106,11 @@ D_RBlockStream_t* D_RBSCreateNetStream(I_NetSocket_t* const a_NetSocket);
 D_RBlockStream_t* D_RBSCreatePerfectStream(D_RBlockStream_t* const a_Wrapped);
 void D_RBSCloseStream(D_RBlockStream_t* const a_Stream);
 
-void D_RBSStatStream(D_RBlockStream_t* const a_Stream, uint32_t* const a_ReadBk, uint32_t* const a_WriteBk, uint32_t* const a_ReadBy, uint32_t* const a_WriteBy);
-void D_RBSUnStatStream(D_RBlockStream_t* const a_Stream);
-bool_t D_RBSMarkedStream(D_RBlockStream_t* const a_Stream);
+void __REMOOD_DEPRECATED D_RBSStatStream(D_RBlockStream_t* const a_Stream, uint32_t* const a_ReadBk, uint32_t* const a_WriteBk, uint32_t* const a_ReadBy, uint32_t* const a_WriteBy);
+void __REMOOD_DEPRECATED D_RBSUnStatStream(D_RBlockStream_t* const a_Stream);
+bool_t __REMOOD_DEPRECATED D_RBSMarkedStream(D_RBlockStream_t* const a_Stream);
+
+bool_t D_RBSStreamIOCtl(D_RBlockStream_t* const a_Stream, const D_RBSStreamIOCtl_t a_IOCtl, int32_t* a_DataP);
 
 bool_t D_RBSCompareHeader(const char* const a_A, const char* const a_B);
 bool_t D_RBSBaseBlock(D_RBlockStream_t* const a_Stream, const char* const a_Header);

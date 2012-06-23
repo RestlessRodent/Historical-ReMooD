@@ -566,8 +566,8 @@ typedef struct DS_RBSPerfectKey_s
 {
 	uint32_t Key[4];
 	I_HostAddress_t RemHost;					// Remote Host
-	uint32_t NextReadNum;						// Next packet to read
-	uint32_t NextWriteNum;						// Next packet to write
+	uint64_t NextReadNum;						// Next packet to read
+	uint64_t NextWriteNum;						// Next packet to write
 	
 	uint32_t CreateTime;						// Time when key was created
 	uint32_t LastTime;							// Last activity time
@@ -586,7 +586,7 @@ typedef struct DS_RBSPerfectHold_s
 	
 	/* Perfect Networking */
 	uint32_t ReTryCount;						// Retransmit count
-	uint32_t PacketNum;							// Packet Number
+	uint64_t PacketNum;							// Packet Number
 	uint32_t CheckSum;							// Simplified Checksum
 	uint32_t ClockTime;							// Time packet was stored
 	uint32_t AutoRackTime;						// time to retransmit
@@ -705,11 +705,6 @@ static DS_RBSPerfectKey_t* DS_RBSPerfect_IntFindKey(struct D_RBlockStream_s* con
 		// Revoke Key?
 		if (Key->Revoke)
 		{
-			if (a_PerfectData->Debug)
-				CONL_PrintF("KEYDEV: %p -- Revoked %08x.%08x.%08x.%08x for %08x:%i.\n",
-					a_PerfectData, Key->Key[0], Key->Key[1], Key->Key[2], Key->Key[3],
-					Key->RemHost.Host.v4.u, Key->RemHost.Port);
-			
 			// Go through all read/write blocks and removed all matching keys
 				// Read Q
 			for (b = 0; b < a_PerfectData->SizeReadQ; b++)
@@ -839,12 +834,6 @@ static DS_RBSPerfectKey_t* DS_RBSPerfect_IntFindKey(struct D_RBlockStream_s* con
 	if (FbK > 0 && FbK < a_PerfectData->NumKeys)
 		a_PerfectData->Keys[FbK] = Key;
 	
-	/* Debug */
-	if (a_PerfectData->Debug)
-		CONL_PrintF("KEYDEV: %p -- Created %08x.%08x.%08x.%08x for %08x:%i.\n",
-			a_PerfectData, Key->Key[0], Key->Key[1], Key->Key[2], Key->Key[3],
-			a_Host->Host.v4.u, a_Host->Port);
-	
 	/* Return the new key */
 	return Key;
 }
@@ -859,6 +848,7 @@ static size_t DS_RBSPerfect_NetRecordF(struct D_RBlockStream_s* const a_Stream, 
 	bool_t KeepSending;
 	uint32_t ThisTime, MaskEnc;
 	D_RBlockStream_t* NormStream;
+	uint32_t PerfPkNumLow, PerfPkNumHi;
 	
 	/* Check */
 	if (!a_Stream)
@@ -960,13 +950,6 @@ static size_t DS_RBSPerfect_NetRecordF(struct D_RBlockStream_s* const a_Stream, 
 			// No key? Must have expired
 			if (!Key)
 			{
-				// Debug
-				if (PerfectData->Debug)
-					CONL_PrintF("KEYDEV: %p -- Block %u Key Expired.\n",
-							PerfectData,
-								(unsigned)b
-						);
-				
 				// Delete block, only IF this spot is blank
 					// because if a key was revoked as we tried to grab it, then
 					// this could be invalid!
@@ -985,13 +968,6 @@ static size_t DS_RBSPerfect_NetRecordF(struct D_RBlockStream_s* const a_Stream, 
 			// Packet was ACKed!
 			if (Hold->BlockAck)
 			{
-				// Debug
-				if (PerfectData->Debug)
-					CONL_PrintF("KEYDEV: %p -- Block %u ACKed.\n",
-							PerfectData,
-								(unsigned)b
-						);
-				
 				// Delete block
 				if (Hold->Data)
 					Z_Free(Hold->Data);
@@ -1037,6 +1013,7 @@ static size_t DS_RBSPerfect_NetRecordF(struct D_RBlockStream_s* const a_Stream, 
 			// Re-transmitting block?
 			if (Hold->ReTransmit)
 			{
+				//CONL_PrintF("retran!\n");
 				// Don't retransmit constantly
 				Hold->ReTransmit = false;
 				
@@ -1059,8 +1036,14 @@ static size_t DS_RBSPerfect_NetRecordF(struct D_RBlockStream_s* const a_Stream, 
 					MaskEnc ^= Hold->Key[z];
 				}
 					// Num
-				D_RBSWriteUInt32(NormStream, Hold->PacketNum);
-				MaskEnc ^= Hold->PacketNum;
+				PerfPkNumLow = Hold->PacketNum & (uint64_t)((~UINT32_C(0)));
+				PerfPkNumHi = Hold->PacketNum >> UINT64_C(32);
+				
+				D_RBSWriteUInt32(NormStream, PerfPkNumLow);
+				D_RBSWriteUInt32(NormStream, PerfPkNumHi);
+				
+				MaskEnc ^= PerfPkNumLow;
+				MaskEnc ^= PerfPkNumHi;
 					// Sum
 				D_RBSWriteUInt32(NormStream, Hold->CheckSum);
 				MaskEnc ^= Hold->CheckSum;
@@ -1081,35 +1064,12 @@ static size_t DS_RBSPerfect_NetRecordF(struct D_RBlockStream_s* const a_Stream, 
 				
 				// Record to stream
 				D_RBSRecordNetBlock(NormStream, &Hold->RemHost);
-				
-				if (PerfectData->Debug)
-					CONL_PrintF("KEYDEV: %p -- Sent PERF \"%s\" (R: %c, #:%u, X:%08x, z:%u) [%08x].\n",
-							PerfectData,
-								(uint32_t)Hold->Header,
-								'S',
-								(uint32_t)Hold->PacketNum,
-								(uint32_t)Hold->CheckSum,
-								(uint32_t)Hold->Size,
-							MaskEnc
-						);
 			}
 		}
 		
 		// Stop sending packets like crazy;
 		KeepSending = false;
 	} while (KeepSending);
-	
-#if 0
-	/* Store info in hold */
-	// Copy header
-	memmove(Hold->Header, a_Stream->BlkHeader, 4);
-	
-	// Clone Data
-	Hold->Size = a_Stream->BlkSize;
-	Hold->Data = Z_Malloc(Hold->Size, PU_BLOCKSTREAM, NULL);
-	memmove(Hold->Data, a_Stream->BlkData, Hold->Size);
-	Hold->FlushID = LoopData->FlushID + 1;
-#endif
 
 	/* Return value does not matter */
 	return 1;
@@ -1130,7 +1090,8 @@ static bool_t DS_RBSPerfect_NetPlayF(struct D_RBlockStream_s* const a_Stream, I_
 	
 	uint8_t PerfResp;
 	uint32_t PerfKey[4];
-	uint32_t PerfPkNum, PerfPkSum, PerfPkSize, PerfMaskEnc;
+	uint64_t PerfPkNum;
+	uint32_t PerfPkSum, PerfPkSize, PerfMaskEnc, PerfPkNumLow, PerfPkNumHi;
 	uint8_t PerfHeader[5];
 	uint32_t ConfirmMask, MaskEnc;
 	uint32_t BlockSum;
@@ -1226,7 +1187,13 @@ static bool_t DS_RBSPerfect_NetPlayF(struct D_RBlockStream_s* const a_Stream, I_
 			for (i = 0; i < 4; i++)
 				PerfKey[i] = D_RBSReadUInt32(PerfectData->WrapStream);
 			
-			PerfPkNum = D_RBSReadUInt32(PerfectData->WrapStream);
+			PerfPkNumLow = D_RBSReadUInt32(PerfectData->WrapStream);
+			PerfPkNumHi = D_RBSReadUInt32(PerfectData->WrapStream);
+			
+			PerfPkNum = PerfPkNumHi;
+			PerfPkNum <<= UINT64_C(32);
+			PerfPkNum |= PerfPkNumLow;
+			
 			PerfPkSum = D_RBSReadUInt32(PerfectData->WrapStream);
 			
 			PerfHeader[4] = 0;
@@ -1239,7 +1206,8 @@ static bool_t DS_RBSPerfect_NetPlayF(struct D_RBlockStream_s* const a_Stream, I_
 			// Confirm the value
 			ConfirmMask = 0;
 			ConfirmMask ^= PerfResp;
-			ConfirmMask ^= PerfPkNum;
+			ConfirmMask ^= PerfPkNumLow;
+			ConfirmMask ^= PerfPkNumHi;
 			ConfirmMask ^= PerfPkSum;
 			ConfirmMask ^= PerfPkSize;
 			ConfirmMask ^= PerfKey[0];
@@ -1251,19 +1219,12 @@ static bool_t DS_RBSPerfect_NetPlayF(struct D_RBlockStream_s* const a_Stream, I_
 			ConfirmMask ^= PerfHeader[2];
 			ConfirmMask ^= PerfHeader[3];
 			
+			//CONL_PrintF("%08x ?= %08x conf!\n", ConfirmMask, PerfMaskEnc);
+			
 			// Does not match?
 			if (ConfirmMask != PerfMaskEnc)
-			{
-				// Debug
-				if (PerfectData->Debug)
-					CONL_PrintF("KEYDEV: %p -- ENC MISMATCH [%08x != %08x]\n",
-							PerfectData,
-							PerfMaskEnc, ConfirmMask
-						);
-				
 				// It is lost to the sands of time
 				continue;
-			}
 			
 			// Find the key that owns this packet
 			Key = DS_RBSPerfect_IntFindKey(a_Stream, PerfectData, PerfKey, a_Host);
@@ -1275,64 +1236,29 @@ static bool_t DS_RBSPerfect_NetPlayF(struct D_RBlockStream_s* const a_Stream, I_
 			
 			// No Key?
 			if (!Key)
-			{
-				// Debug
-				if (PerfectData->Debug)
-					CONL_PrintF("KEYDEV: %p -- NO KEY FOR PACKET %08x.%08x.%08x.%08x\n",
-							PerfectData,
-							PerfKey[0], PerfKey[1], PerfKey[2], PerfKey[3]
-						);
 				continue;
-			}
 			
 			// Compare packet size
-			if (PerfPkSize != PerfectData->WrapStream->BlkSize - 37)
+			if (PerfPkSize != PerfectData->WrapStream->BlkSize - 41)
 			{
-				// Debug
-				if (PerfectData->Debug)
-					CONL_PrintF("KEYDEV: %p -- PAYLOAD SIZE MISMATCH [%u != %u]\n",
-							PerfectData,
-							PerfPkSize,
-							(uint32_t)((((uint32_t)PerfectData->WrapStream->BlkSize) - 37))
-						);
+				//CONL_PrintF("Not 41!\n");
 				continue;
 			}
-			
-			// Packet was recieved, needs further processing
-			if (PerfectData->Debug)
-				CONL_PrintF("KEYDEV: %p -- Got PERF \"%s\" (R: %c, #:%u, X:%08x, z:%u, k:%p) [%08x ?= %08x].\n",
-						PerfectData,
-							PerfHeader,
-							PerfResp,
-							PerfPkNum,
-							PerfPkSum,
-							PerfPkSize,
-							Key,
-						
-						PerfMaskEnc, ConfirmMask
-					);
 			
 			// Send Block
 			if (PerfResp == 'S')
 			{
+				//CONL_PrintF("send!\n");
+				
 				// Get the checksum of the data (to make sure it got through)
 				BlockSum = 0;
 				for (i = 0; i < PerfPkSize; i++)
-					BlockSum ^= ((uint32_t)(PerfectData->WrapStream->BlkData[i + 37])) << (i & 23);
+					BlockSum ^= ((uint32_t)(PerfectData->WrapStream->BlkData[i + 41])) << (i & 23);
 				
 				// Bad sum?
 				if (BlockSum != PerfPkSum)
-				{
-					// Debug
-					if (PerfectData->Debug)
-						CONL_PrintF("KEYDEV: %p -- CHECKSUM MISMATCH [%08x != %08x]\n",
-								PerfectData,
-								BlockSum, PerfPkSum
-							);
-					
 					// Ignore this block
 					continue;
-				}
 				
 				// Add block to the read queue
 					// As long as the following are met:
@@ -1415,7 +1341,7 @@ static bool_t DS_RBSPerfect_NetPlayF(struct D_RBlockStream_s* const a_Stream, I_
 						// Copy Data
 						Hold->Size = PerfPkSize;
 						Hold->Data = Z_Malloc(Hold->Size, PU_BLOCKSTREAM, NULL);
-						memmove(Hold->Data, &PerfectData->WrapStream->BlkData[37], Hold->Size);
+						memmove(Hold->Data, &PerfectData->WrapStream->BlkData[41], Hold->Size);
 					}
 				}
 				
@@ -1438,8 +1364,14 @@ static bool_t DS_RBSPerfect_NetPlayF(struct D_RBlockStream_s* const a_Stream, I_
 					MaskEnc ^= PerfKey[z];
 				}
 					// Num
-				D_RBSWriteUInt32(NormStream, PerfPkNum);
-				MaskEnc ^= PerfPkNum;
+				PerfPkNumLow = PerfPkNum & (uint64_t)((~UINT32_C(0)));
+				PerfPkNumHi = PerfPkNum >> UINT64_C(32);
+				
+				D_RBSWriteUInt32(NormStream, PerfPkNumLow);
+				D_RBSWriteUInt32(NormStream, PerfPkNumHi);
+				
+				MaskEnc ^= PerfPkNumLow;
+				MaskEnc ^= PerfPkNumHi;
 					// Sum
 				D_RBSWriteUInt32(NormStream, PerfPkSum);
 				MaskEnc ^= PerfPkSum;
@@ -1468,6 +1400,8 @@ static bool_t DS_RBSPerfect_NetPlayF(struct D_RBlockStream_s* const a_Stream, I_
 				// Find matching write block and set as acknowledged
 				for (b = 0; b < PerfectData->SizeWriteQ; b++)
 				{
+					//CONL_PrintF("ack!\n");
+					
 					// Get Current Hold
 					Hold = PerfectData->WriteQ[b];
 					
@@ -1541,6 +1475,23 @@ static bool_t DS_RBSPerfect_FlushF(struct D_RBlockStream_s* const a_Stream)
 	PerfectData->InFlush = false;
 	
 	return true;
+}
+
+/* DS_RBSPerfect_IOCtlF() -- IOCtl Controller */
+bool_t DS_RBSPerfect_IOCtlF(struct D_RBlockStream_s* const a_Stream, const D_RBSStreamIOCtl_t a_IOCtl, int32_t* a_DataP)
+{
+	/* Which IOCTL now? */
+	switch (a_IOCtl)
+	{
+			// Just read a perfect packet
+		case DRBSIOCTL_ISPERFECT:
+			*a_DataP = a_Stream->Marked;
+			return true;
+			
+			// Un-Handled
+		default:
+			return false;
+	}
 }
 
 /****************
@@ -1664,6 +1615,7 @@ D_RBlockStream_t* D_RBSCreatePerfectStream(D_RBlockStream_t* const a_Wrapped)
 	New->NetPlayF = DS_RBSPerfect_NetPlayF;
 	New->FlushF = DS_RBSPerfect_FlushF;
 	New->DeleteF = DS_RBSPerfect_DeleteF;
+	New->IOCtlF = DS_RBSPerfect_IOCtlF;
 	
 	// Load stuff into data
 	Data->WrapStream = a_Wrapped;
@@ -1689,6 +1641,21 @@ void D_RBSCloseStream(D_RBlockStream_t* const a_Stream)
 	
 	/* Free it */
 	Z_Free(a_Stream);
+}
+
+/* D_RBSStreamIOCtl() -- Call special IOCtl Handler on stream */
+bool_t D_RBSStreamIOCtl(D_RBlockStream_t* const a_Stream, const D_RBSStreamIOCtl_t a_IOCtl, int32_t* a_DataP)
+{
+	/* Check */
+	if (!a_Stream || !a_DataP || a_IOCtl < 0 || a_IOCtl >= NUMDRBSSTREAMIOCTL)
+		return false;
+	
+	/* Call IOCtl */
+	if (a_Stream->IOCtlF)
+		return a_Stream->IOCtlF(a_Stream, a_IOCtl, a_DataP);
+	
+	/* There is no IOCtl */
+	return false;
 }
 
 /* D_RBSStatStream() -- Obtain stream stats */

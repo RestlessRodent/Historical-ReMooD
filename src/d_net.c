@@ -480,7 +480,11 @@ void D_NCFudgeOffClient(D_NetClient_t* const a_Client, const char a_Code, const 
 		return;
 	
 	/* Send FOFF Message */
+	// To that particular client
 	D_NCFudgeOffHostStream(&a_Client->Address, a_Client->Streams[DNCSP_PERFECTWRITE], a_Code, a_Reason);
+	
+	/* Send Vaporize Player */
+	// To everyone else (for sync and demo usage)
 }
 
 /* DS_ConnectMultiCom() -- Connection multi-command */
@@ -493,7 +497,14 @@ static CONL_ExitCode_t DS_ConnectMultiCom(const uint32_t a_ArgC, const char** co
 	memset(&Host, 0, sizeof(Host));
 	
 	/* Connect */
-	if (strcasecmp("connect", a_ArgV[0]) == 0)
+	if (strcasecmp("startserver", a_ArgV[0]) == 0)
+	{
+		D_NCServize();
+		
+		return CLE_SUCCESS;
+	}
+	
+	else if (strcasecmp("connect", a_ArgV[0]) == 0)
 	{
 		// Not enough args?
 		if (a_ArgC < 2)
@@ -516,7 +527,7 @@ static CONL_ExitCode_t DS_ConnectMultiCom(const uint32_t a_ArgC, const char** co
 	}
 	
 	/* Disconnect */
-	if (strcasecmp("disconnect", a_ArgV[0]) == 0)
+	else if (strcasecmp("disconnect", a_ArgV[0]) == 0)
 	{
 		// Disconnect
 		D_NCDisconnect();
@@ -526,7 +537,7 @@ static CONL_ExitCode_t DS_ConnectMultiCom(const uint32_t a_ArgC, const char** co
 	}
 	
 	/* Reconnect */
-	if (strcasecmp("reconnect", a_ArgV[0]) == 0)
+	else if (strcasecmp("reconnect", a_ArgV[0]) == 0)
 	{
 		// Find server host
 		ServerNC = D_NCFindClientIsServer();
@@ -579,6 +590,7 @@ bool_t D_CheckNetGame(void)
 		netgame = false;
 	
 	/* Register server commands */
+	CONL_AddCommand("startserver", DS_ConnectMultiCom);
 	CONL_AddCommand("connect", DS_ConnectMultiCom);
 	CONL_AddCommand("disconnect", DS_ConnectMultiCom);
 	CONL_AddCommand("reconnect", DS_ConnectMultiCom);
@@ -711,7 +723,7 @@ void D_NCQueueDisconnect(void)
 /* D_NCDisconnect() -- Disconnect from existing server */
 void D_NCDisconnect(void)
 {
-	size_t i;
+	size_t i, j;
 	
 	/* Demos? */
 	if (demoplayback)
@@ -753,13 +765,28 @@ void D_NCDisconnect(void)
 		}
 	
 	/* Clear non-local NetClients */
-	// Also set all local stuff as servers
+	// And tell them to fudge off
 	for (i = 0; i < l_NumClients; i++)
 		if (l_Clients[i])
 		{
-			// Not Local
+			// Remove arbritation list
+			if (l_Clients[i]->NumArbs)
+			{
+				// Run through arbritation list and zap players
+				for (j = 0; j < l_Clients[i]->NumArbs; j++)
+					D_NCZapNetPlayer(l_Clients[i]->Arbs[j]);
+				
+				// Free it
+				Z_Free(l_Clients[i]->Arbs);
+				l_Clients[i]->NumArbs = 0;
+			}
+			
+			// Tell remote client that the server no longer exists.
 			if (!l_Clients[i]->IsLocal)
 			{
+				// Fudge off!
+				D_NCFudgeOffClient(l_Clients[i], 'X', "Server disconnected.");
+				
 				// Free streams, if any
 				if (l_Clients[i]->PerfectStream)
 					D_RBSCloseStream(l_Clients[i]->PerfectStream);
@@ -773,15 +800,6 @@ void D_NCDisconnect(void)
 				// Free it
 				Z_Free(l_Clients[i]);
 				l_Clients[i] = NULL;
-			}
-			
-			// Is Local
-			else
-			{
-				l_Clients[i]->ReadyToPlay = true;
-				l_Clients[i]->IsServer = true;
-				l_Clients[i]->ReadyToPlay = true;
-				l_Clients[i]->SaveGameSent = true;
 			}
 		}
 }
@@ -813,6 +831,10 @@ void D_NCServize(void)
 	l_BaseTime = I_GetTimeMS() / TICSPERMS;
 	l_LocalTime = 0;
 	l_MapTime = 0;
+	
+	/* Change gamestate to waiting for player */
+	gamestate = wipegamestate = GS_WAITINGPLAYERS;
+	S_ChangeMusicName("D_WAITIN", 1);			// Waiting for game to start
 }
 
 /* D_NCClientize() -- Turn into client and connect to server */
@@ -929,9 +951,143 @@ bool_t D_NCHostOnBanList(I_HostAddress_t* const a_Host)
 	return false;
 }
 
+/* D_NCZapNetPlayer() -- Zap net player */
+void D_NCZapNetPlayer(struct D_NetPlayer_s* const a_Player)
+{
+	/* Check */
+	if (!a_Player)
+		return;
+}
+
+/*****************************************************************************/
+
+/* D_NCMessageFlag_t -- Message Flags */
+typedef enum D_NCMessageFlag_e
+{
+	DNCMF_NORMAL					= 0x001,	// Accept: Non-Perfect
+	DNCMF_PERFECT					= 0x002,	// Accept: Perfect
+	DNCMF_CLIENT					= 0x004,	// Client Accepted (when joined)
+	DNCMF_SERVER					= 0x008,	// Server Accepted (when hosting)
+	DNCMF_HOST						= 0x010,	// Only accepted by game host (arb)
+} D_NCMessageFlag_t;
+
+struct D_NCMessageData_s;
+typedef bool_t (*D_NCMessageHandlerFunc_t)(struct D_NCMessageData_s* const a_Data);
+
+/* D_NCMessageType_t -- Message Type to handle */
+typedef struct D_NCMessageType_s
+{
+	int8_t Valid;								// Valid
+	uint32_t* HashPtr;							// Hash Ptr
+	char Header[5];								// Message Header
+	D_NCMessageHandlerFunc_t Func;				// Handler Func
+	D_NCMessageFlag_t Flags;					// Flags
+} D_NCMessageType_t;
+
+/* D_NCMessageData_t -- Message Data */
+typedef struct D_NCMessageData_s
+{
+	D_NCMessageType_t* Type;					// Type of message
+	D_NetClient_t* NetClient;					// Client it is from
+	D_RBlockStream_t* InStream;					// Stream to read from
+	D_RBlockStream_t* OutStream;				// Stream to write to
+	I_HostAddress_t* FromAddr;					// Address message is from
+	uint32_t FlagsMask;							// Mask for flags
+} D_NCMessageData_t;
+
+/*** FUNCTIONS ***/
+
+bool_t D_NCMH_LocalPlayerRJ(struct D_NCMessageData_s* const a_Data);
+
+// c_NCMessageCodes -- Local messages
+static const D_NCMessageType_t c_NCMessageCodes[] =
+{
+	//{"CONN", DNCMF_PERFECT | DNCMF_SERVER},
+	{1, {0}, "LPRJ", D_NCMH_LocalPlayerRJ, DNCMF_PERFECT | DNCMF_SERVER | DNCMF_HOST},
+	
+	// EOL
+	{0, NULL, ""},
+};
+
 /* D_NCUpdate() -- Update all networking stuff */
 void D_NCUpdate(void)
 {
+	int32_t nc, IsPerf, tN;
+	char Header[5];
+	I_HostAddress_t FromAddress;
+	D_NetClient_t* NetClient, *RemoteClient;
+	D_RBlockStream_t* PIn, *POut, *BOut;
+	bool_t IsServ, IsClient, IsHost;
+	
+	/* Go through each client and read/write commands */
+	for (nc = 0; nc < l_NumClients; nc++)
+	{
+		// Get current
+		NetClient = l_Clients[nc];
+		
+		// Failed?
+		if (!NetClient)
+			continue;
+		
+		// Set streams to read/write from
+		PIn = NetClient->Streams[DNCSP_PERFECTREAD];
+		POut = NetClient->Streams[DNCSP_PERFECTWRITE];
+		BOut = NetClient->Streams[DNCSP_WRITE];
+		
+		// Constantly read from the perfect input stream (if it is set)
+		while (PIn && D_RBSPlayNetBlock(PIn, Header, &FromAddress))
+		{
+			// Find the remote client that initiated this message
+			// If they aren't in the client chain then this returns NULL.
+			// If it does return NULL then that means they were never connected
+			// in the first place.
+			RemoteClient = D_NCFindClientByHost(&FromAddress);
+			
+			// Determine where this packet came from for flag checking
+				// Is Perfect Packet
+			IsPerf = 0;
+			D_RBSStreamIOCtl(PIn, DRBSIOCTL_ISPERFECT, &IsPerf);
+				// From Server
+			IsServ = NetClient->IsServer;
+				// From Client
+			IsClient = !IsServ;
+				// We are the host
+			IsHost = (NetClient->IsServer && NetClient->IsLocal);
+			
+			// Go through head table
+			for (tN = 0; c_NCMessageCodes[tN].Valid; tN++)
+			{
+				// Perfect but not set?
+				if (IsPerf && !(c_NCMessageCodes[tN].Flags & DNCMF_PERFECT))
+					continue;
+				
+				// Normal but not set?
+				if (!IsPerf && !(c_NCMessageCodes[tN].Flags & DNCMF_NORMAL))
+					continue;
+				
+				// From client but not accepted from client
+				if (IsClient && !(c_NCMessageCodes[tN].Flags & DNCMF_CLIENT))
+					continue;
+				
+				// From server but not accepted from server
+				if (IsServ && !(c_NCMessageCodes[tN].Flags & DNCMF_SERVER))
+					continue;
+				
+				// From somewhere but we are not the host of the game
+				if (IsHost && !(c_NCMessageCodes[tN].Flags & DNCMF_HOST))
+					continue;	
+				
+				CONL_PrintF("Check %s\n", c_NCMessageCodes[tN].Header);
+			}
+		}
+		
+		// Flush write streams so our commands are sent
+		D_RBSFlushStream(POut);
+		D_RBSFlushStream(BOut);
+	}
+
+
+#if 0
 #define BUFSIZE 512
 	char Buf[BUFSIZE];
 	char ZBuf[BUFSIZE];
@@ -2051,7 +2207,21 @@ void D_NCUpdate(void)
 #endif
 
 #undef BUFSIZE
+#endif
 }
+
+/* D_NCMH_LocalPlayerRJ() -- Player wants to join game */
+bool_t D_NCMH_LocalPlayerRJ(struct D_NCMessageData_s* const a_Data)
+{
+	/* Check */
+	if (!a_Data)
+		return false;
+	
+	/* Don't handle again */
+	return true;
+}
+
+/*****************************************************************************/
 
 /*** NCSR FUNCTIONS ***/
 
@@ -2141,6 +2311,10 @@ void D_NCSR_RequestNewPlayer(struct D_ProfileEx_s* a_Profile)
 	D_RBSWriteString(Stream, a_Profile->DisplayName);
 	D_RBSWriteUInt8(Stream, a_Profile->Color);
 	D_RBSRecordNetBlock(Stream, &Server->Address);
+	
+	// Debug
+	if (devparm)
+		CONL_PrintF("Request Sent!\n");
 }
 
 /* D_NCSR_RequestWAD() -- Request WAD from server */

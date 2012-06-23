@@ -199,6 +199,8 @@ typedef enum
 	mus_dm2ttl,
 	mus_dm2int,
 	
+	mus_waitin,
+	
 	mus_firstfreeslot,
 	// 64 free slots here
 	mus_lastfreeslot = mus_firstfreeslot + NUMMUSICFREESLOTS - 1,
