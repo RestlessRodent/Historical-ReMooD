@@ -82,7 +82,7 @@ struct D_ProfileEx_s;
 struct player_s;
 struct B_BotData_s;
 
-/* D_NetPlayer_t() -- Network Player */
+/* D_NetPlayer_t -- Network Player */
 typedef struct D_NetPlayer_s
 {
 	/* Generic */
@@ -91,6 +91,7 @@ typedef struct D_NetPlayer_s
 	struct player_s* Player;					// Attached Player
 	char UUID[MAXPLAYERNAME * 2];				// Network Player Unique ID
 	char AccountName[MAXPLAYERNAME];			// Networked player account
+	uint32_t ProcessID;							// Processing ID
 	
 	/* Player Control */
 	// Sync

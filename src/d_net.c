@@ -951,12 +951,49 @@ bool_t D_NCHostOnBanList(I_HostAddress_t* const a_Host)
 	return false;
 }
 
+/*****************************************************************************/
+
 /* D_NCZapNetPlayer() -- Zap net player */
 void D_NCZapNetPlayer(struct D_NetPlayer_s* const a_Player)
 {
 	/* Check */
 	if (!a_Player)
 		return;
+}
+
+/* D_NCReqAddPlayer() -- Requests that the server add local player */
+void D_NCReqAddPlayer(struct D_ProfileEx_s* a_Profile, const bool_t a_Bot)
+{
+	D_NetClient_t* Server;
+	D_RBlockStream_t* Stream;
+	
+	/* Check */
+	if (!a_Profile)
+		return;
+	
+	/* Only servers are allowed to add bots */
+	if (!D_SyncNetIsArbiter() && a_Bot)
+		return;
+	
+	/* Find server to send request to */
+	Server = D_NCFindClientIsServer();
+	
+	// Not found?
+	if (!Server)
+		return;
+	
+	/* Tell server to add player */
+	// Use server stream
+	Stream = Server->Streams[DNCSP_PERFECTWRITE];
+	
+	// Put Data
+	D_RBSBaseBlock(Stream, "LPRJ");
+	D_RBSWriteString(Stream, a_Profile->UUID);
+	D_RBSWriteString(Stream, a_Profile->AccountName);
+	D_RBSWriteString(Stream, a_Profile->DisplayName);
+	D_RBSWriteUInt8(Stream, a_Profile->Color);
+	D_RBSWriteUInt8(Stream, a_Bot);
+	D_RBSRecordNetBlock(Stream, &Server->Address);
 }
 
 /*****************************************************************************/
@@ -969,6 +1006,8 @@ typedef enum D_NCMessageFlag_e
 	DNCMF_CLIENT					= 0x004,	// Client Accepted (when joined)
 	DNCMF_SERVER					= 0x008,	// Server Accepted (when hosting)
 	DNCMF_HOST						= 0x010,	// Only accepted by game host (arb)
+	DNCMF_DEMO						= 0x020,	// Saved to demos
+	DNCMF_REMOTECL					= 0x040,	// Remote client must exist
 } D_NCMessageFlag_t;
 
 struct D_NCMessageData_s;
@@ -987,8 +1026,9 @@ typedef struct D_NCMessageType_s
 /* D_NCMessageData_t -- Message Data */
 typedef struct D_NCMessageData_s
 {
-	D_NCMessageType_t* Type;					// Type of message
+	const D_NCMessageType_t* Type;				// Type of message
 	D_NetClient_t* NetClient;					// Client it is from
+	D_NetClient_t* RemoteClient;				// Attached Remote Client
 	D_RBlockStream_t* InStream;					// Stream to read from
 	D_RBlockStream_t* OutStream;				// Stream to write to
 	I_HostAddress_t* FromAddr;					// Address message is from
@@ -1003,7 +1043,7 @@ bool_t D_NCMH_LocalPlayerRJ(struct D_NCMessageData_s* const a_Data);
 static const D_NCMessageType_t c_NCMessageCodes[] =
 {
 	//{"CONN", DNCMF_PERFECT | DNCMF_SERVER},
-	{1, {0}, "LPRJ", D_NCMH_LocalPlayerRJ, DNCMF_PERFECT | DNCMF_SERVER | DNCMF_HOST},
+	{1, {0}, "LPRJ", D_NCMH_LocalPlayerRJ, DNCMF_PERFECT | DNCMF_SERVER | DNCMF_HOST | DNCMF_REMOTECL},
 	
 	// EOL
 	{0, NULL, ""},
@@ -1018,6 +1058,7 @@ void D_NCUpdate(void)
 	D_NetClient_t* NetClient, *RemoteClient;
 	D_RBlockStream_t* PIn, *POut, *BOut;
 	bool_t IsServ, IsClient, IsHost;
+	D_NCMessageData_t Data;
 	
 	/* Go through each client and read/write commands */
 	for (nc = 0; nc < l_NumClients; nc++)
@@ -1035,8 +1076,13 @@ void D_NCUpdate(void)
 		BOut = NetClient->Streams[DNCSP_WRITE];
 		
 		// Constantly read from the perfect input stream (if it is set)
+		memset(Header, 0, sizeof(Header));
 		while (PIn && D_RBSPlayNetBlock(PIn, Header, &FromAddress))
 		{
+			// Debug
+			if (devparm)
+				CONL_PrintF("Read \"%s\"\n", Header);
+			
 			// Find the remote client that initiated this message
 			// If they aren't in the client chain then this returns NULL.
 			// If it does return NULL then that means they were never connected
@@ -1075,13 +1121,35 @@ void D_NCUpdate(void)
 				
 				// From somewhere but we are not the host of the game
 				if (IsHost && !(c_NCMessageCodes[tN].Flags & DNCMF_HOST))
-					continue;	
+					continue;
 				
-				CONL_PrintF("Check %s\n", c_NCMessageCodes[tN].Header);
+				// Requires a remote client exist (a connected player)
+				if ((c_NCMessageCodes[tN].Flags& DNCMF_REMOTECL) && !RemoteClient)
+					continue;
+				
+				// Clear data
+				memset(&Data, 0, sizeof(Data));
+				
+				// Fill Data
+				Data.Type = &c_NCMessageCodes[tN];
+				Data.NetClient = NetClient;
+				Data.RemoteClient = RemoteClient;
+				Data.InStream = PIn;
+				Data.OutStream = (IsPerf ? POut : BOut);
+				Data.FromAddr = &FromAddress;
+				
+				// Call handler
+				if (c_NCMessageCodes[tN].Func(&Data))
+					break;
 			}
+			
+			// Clear header for next read run
+			memset(Header, 0, sizeof(Header));
 		}
 		
 		// Flush write streams so our commands are sent
+			// Commands could be in the local loopback which are unsent until
+			// flushed.
 		D_RBSFlushStream(POut);
 		D_RBSFlushStream(BOut);
 	}
@@ -2213,9 +2281,109 @@ void D_NCUpdate(void)
 /* D_NCMH_LocalPlayerRJ() -- Player wants to join game */
 bool_t D_NCMH_LocalPlayerRJ(struct D_NCMessageData_s* const a_Data)
 {
+	char UUID[MAXPLAYERNAME * 2];
+	char AccountName[MAXPLAYERNAME];
+	char DisplayName[MAXPLAYERNAME];
+	uint8_t Color, Bot, Bits;
+	int32_t i, PlCount, FreeSlot;
+	uint32_t ProcessID;
+	D_RBlockStream_t* Stream;
+	
 	/* Check */
 	if (!a_Data)
 		return false;
+	
+	/* Read Message Data */
+	D_RBSReadString(Stream, UUID, MAXPLAYERNAME * 2);
+	D_RBSReadString(Stream, AccountName, MAXPLAYERNAME);
+	D_RBSReadString(Stream, DisplayName, MAXPLAYERNAME);
+	Color = D_RBSReadUInt8(Stream);
+	Bot = D_RBSReadUInt8(Stream);
+	
+	/* Disallow non-server from adding bots */
+	if (Bot && !a_Data->RemoteClient->IsServer)
+		return true;
+	
+	/* If not adding a bot, don't exceed non-bot arbs */
+	if (!Bot)
+	{
+		PlCount = 0;
+		for (i = 0; i < a_Data->RemoteClient->NumArbs; i++)
+			if (a_Data->RemoteClient->Arbs[i]->Type == DNPT_LOCAL ||
+				a_Data->RemoteClient->Arbs[i]->Type == DNPT_NETWORK)
+				PlCount++;
+	
+		// Exceeds max permitted splitscreen count?
+		if (PlCount >= MAXSPLITSCREEN)
+			return true;
+	}
+	
+	/* Find free player slot */
+	FreeSlot = -1;
+	for (i = 0; i < MAXPLAYERS; i++)
+		if (!playeringame[i])
+		{
+			FreeSlot = i;
+			break;
+		}
+	
+	// No slot found (too many players inside)
+	if (FreeSlot == -1)
+		return true;
+	
+	/* Appears that the join is OK, so join em in! */
+	// Create process ID for them (this is so the server doesn't add it's own
+	// local player twice for each listener, since multiple NetClients can point
+	// to the same place.)
+	ProcessID = Z_Hash(UUID) ^ Z_Hash(AccountName) ^ Z_Hash(DisplayName);
+	
+	// Modify bits some more (to hopefully prevent process ID attacks)
+		// Also someone could add the same profile over again (multiple guests)
+	for (i = 0; i < 31; i += 3)
+	{
+		// Generate Random Junk
+		Bits = (((int)(M_Random())) + ((int)I_GetTime() * (int)I_GetTime()));
+		
+		// XOR it in
+		ProcessID ^= ((uint32_t)Bits) << i;
+	}
+	
+	/* Send command to all clients */
+	for (i = 0; i < l_NumClients; i++)
+	{
+		// Missing?
+		if (!l_Clients[i])
+			continue;
+		
+		// Write message to them (perfect output)
+		Stream = l_Clients[i]->Streams[DNCSP_PERFECTWRITE];
+		
+		// Base
+		D_RBSBaseBlock(Stream, "PJOK");
+		
+		// Data
+		D_RBSWriteUInt32(Stream, ProcessID);
+		D_RBSWriteUInt8(Stream, FreeSlot);
+		D_RBSWriteUInt8(Stream, Bot);
+		D_RBSWriteString(Stream, UUID);
+		D_RBSWriteString(Stream, AccountName);
+		D_RBSWriteString(Stream, DisplayName);
+		D_RBSWriteUInt8(Stream, Color);
+		
+		// Send away
+		D_RBSRecordNetBlock(Stream, &l_Clients[i]->Address);
+	}
+	
+#if 0
+	D_RBSReadString(Stream, 
+	
+	D_RBSWriteString(Stream, a_Profile->UUID);
+	D_RBSWriteString(Stream, a_Profile->AccountName);
+	D_RBSWriteString(Stream, a_Profile->DisplayName);
+	D_RBSWriteUInt8(Stream, a_Profile->Color);
+	D_RBSWriteUInt8(Stream, a_Bot);
+	D_RBSRecordNetBlock(Stream, &Server->Address);
+#endif
 	
 	/* Don't handle again */
 	return true;

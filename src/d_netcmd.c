@@ -285,51 +285,19 @@ static CONL_ExitCode_t DS_NCSNetCommand(const uint32_t a_ArgC, const char** cons
 	// Add Player to Game
 	if (strcasecmp(a_ArgV[1], "addplayer") == 0)
 	{
-		CONL_PrintF("NET: Requesting the server add local player.\n");
-		D_NCSR_RequestNewPlayer(D_FindProfileEx((a_ArgC >= 3 ? a_ArgV[2] : "guest")));
+		if (devparm)
+			CONL_PrintF("NET: Requesting the server add local player.\n");
+		D_NCReqAddPlayer(D_FindProfileEx((a_ArgC >= 3 ? a_ArgV[2] : "guest")), false);
 		return CLE_SUCCESS;
 	}
 	
 	// Add Bot to game
 	else if (strcasecmp(a_ArgV[1], "addbot") == 0)
 	{
-		p = D_NCSAddBotPlayer((a_ArgC > 2 ? a_ArgV[2] : "guest"));
-		
-		if (p)
-		{
-			i = p - players;
-		
-			CONL_PrintF("Net: Added bot %i.\n", i);
-			
-			// Debugging? Split screen the bot
-			if (g_BotDebug || M_CheckParm("-devbots"))
-			{
-				if (g_SplitScreen < MAXSPLITSCREEN - 1)
-				{
-					consoleplayer[g_SplitScreen + 1] = displayplayer[g_SplitScreen + 1] = i;
-					g_PlayerInSplit[g_SplitScreen + 1] = true;
-					g_SplitScreen++;
-					R_ExecuteSetViewSize();
-				}
-			}
-		}
-		else
-		{
-			CONL_PrintF("Net: Failed to add bot.\n");
-			return CLE_FAILURE;
-		}
-	} 
-	
-	// Add as many bots as possible
-	else if (strcasecmp(a_ArgV[1], "addmaxbots") == 0)
-	{
-		while ((p = D_NCSAddBotPlayer((a_ArgC > 2 ? a_ArgV[2] : "default"))))
-		{
-			i = p - players;
-		
-			CONL_PrintF("Net: Added bot %i.\n", i);
-		}
-	} 
+		if (devparm)
+			CONL_PrintF("NET: Requesting the server add local bot.\n");
+		D_NCReqAddPlayer(D_FindProfileEx((a_ArgC >= 3 ? a_ArgV[2] : "guest")), true);
+	}
 	
 	/* Success */
 	return CLE_SUCCESS;

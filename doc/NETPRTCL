@@ -76,6 +76,7 @@ RINF	-- Request Game Info
 		str Account Name (Profile)
 		str Display Name (Profile)
 		u8	Player Color (Profile)
+		u8	Non-Zero if Bot
 
 *CONN	-- Connection Request
 		u8	Legacy Version

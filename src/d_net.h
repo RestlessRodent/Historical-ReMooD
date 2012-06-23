@@ -147,6 +147,7 @@ void D_NCClientize(I_HostAddress_t* const a_Host, const char* const a_Pass, cons
 
 bool_t D_NCHostOnBanList(I_HostAddress_t* const a_Host);
 
+void D_NCReqAddPlayer(struct D_ProfileEx_s* a_Profile, const bool_t a_Bot);
 void D_NCZapNetPlayer(struct D_NetPlayer_s* const a_Player);
 
 /*** NSZZ Funcs ***/
