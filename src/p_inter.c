@@ -1309,8 +1309,11 @@ void P_KillMobj(mobj_t* target, mobj_t* inflictor, mobj_t* source)
 	{
 		// count all monster deaths,
 		// even those caused by other monsters
-		// But unlike Doom, they aren't given to player 1
+		// But unlike Doom, they aren't given to player 1 except in compat mode
 		g_MapKIS[0]++;
+		
+		if (P_EXGSGetValue(PEXGSBID_COKILLSTOPLAYERONE) && !P_EXGSGetValue(PEXGSBID_COMULTIPLAYER))
+			players[0].killcount++;
 	}
 	
 	// GhostlyDeath <June 15, 2012> -- Kill count once?

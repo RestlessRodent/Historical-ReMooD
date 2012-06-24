@@ -680,13 +680,14 @@ void A_Look(mobj_t* actor, player_t* player, pspdef_t* psp, const INFO_StateArgs
 	mobj_t* targ;
 	
 	// GhostlyDeath <April 29, 2012> -- If a player move to movement state
-	if (actor->player)
-	{
-		actor->threshold = 0;
-		S_StartSound(&actor->NoiseThinker, S_SoundIDForName(actor->info->RSeeSound));
-		P_SetMobjState(actor, actor->info->seestate);
-		return;
-	}
+	if (P_EXGSGetValue(PEXGSBID_MONENABLEPLAYASMONSTER))
+		if (actor->player)
+		{
+			actor->threshold = 0;
+			S_StartSound(&actor->NoiseThinker, S_SoundIDForName(actor->info->RSeeSound));
+			P_SetMobjState(actor, actor->info->seestate);
+			return;
+		}
 	
 	actor->threshold = 0;		// any shot will wake up
 	targ = actor->subsector->sector->soundtarget;
@@ -768,6 +769,12 @@ void A_Chase(mobj_t* actor, player_t* player, pspdef_t* psp, const INFO_StateArg
 {
 	int delta;
 	skill_t Skill;
+	bool_t Controlled;
+	
+	// GhostlyDeath <June 23, 2012> -- Controlled monster?
+	Controlled = false;
+	if (P_EXGSGetValue(PEXGSBID_MONENABLEPLAYASMONSTER) && actor->player)
+		Controlled = true;
 	
 	// GhostlyDeath <June 17, 2012> -- Get Skill
 	Skill = P_EXGSGetValue(PEXGSBID_GAMESKILL);
@@ -776,7 +783,7 @@ void A_Chase(mobj_t* actor, player_t* player, pspdef_t* psp, const INFO_StateArg
 		actor->reactiontime--;
 		
 	// modify target threshold
-	if  (actor->threshold)
+	if (actor->threshold)
 	{
 		// No target or target is dead
 		if (!P_EXGSGetValue(PEXGSBID_HEREMONSTERTHRESH) && !actor->player && (!actor->target || actor->target->health <= 0 || (actor->target->flags & MF_CORPSE)))
@@ -795,7 +802,7 @@ void A_Chase(mobj_t* actor, player_t* player, pspdef_t* psp, const INFO_StateArg
 	}
 	
 	// turn towards movement direction if not there yet
-	if (!actor->player)
+	if (!Controlled)
 		if (actor->movedir < 8)
 		{
 			actor->angle &= (7 << 29);
@@ -807,7 +814,7 @@ void A_Chase(mobj_t* actor, player_t* player, pspdef_t* psp, const INFO_StateArg
 				actor->angle += ANG90 / 2;
 		}
 	
-	if (!actor->player)
+	if (!Controlled)
 		if (!actor->target || !(actor->target->flags & MF_SHOOTABLE))
 		{
 			// look for a new target
@@ -827,7 +834,7 @@ void A_Chase(mobj_t* actor, player_t* player, pspdef_t* psp, const INFO_StateArg
 		return;
 	}
 	
-	if (!actor->player)
+	if (!Controlled)
 	{
 		// check for melee attack
 		if (actor->info->meleestate && P_CheckMeleeRange(actor))
@@ -843,9 +850,7 @@ void A_Chase(mobj_t* actor, player_t* player, pspdef_t* psp, const INFO_StateArg
 		if (actor->info->missilestate)
 		{
 			if (!P_EXGSGetValue(PEXGSBID_MONFASTMONSTERS) && actor->movecount)
-			{
 				goto nomissile;
-			}
 		
 			if (!P_CheckMissileRange(actor))
 				goto nomissile;
@@ -857,7 +862,7 @@ void A_Chase(mobj_t* actor, player_t* player, pspdef_t* psp, const INFO_StateArg
 	}
 	
 	// GhostlyDeath <April 29, 2012> -- Player controlled monster
-	else
+	else if (Controlled)
 	{
 		// Attack down?
 		if (actor->player->attackdown)
@@ -887,20 +892,16 @@ void A_Chase(mobj_t* actor, player_t* player, pspdef_t* psp, const INFO_StateArg
 nomissile:
 	// possibly choose another target
 	if (P_EXGSGetValue(PEXGSBID_COMULTIPLAYER) && !actor->threshold && !P_CheckSight(actor, actor->target))
-	{
 		if (P_LookForPlayers(actor, true))
 			return;				// got a new target
-	}
+	
 	// chase towards player
 	if (--actor->movecount < 0 || !P_Move(actor))
-	{
 		P_NewChaseDir(actor);
-	}
+	
 	// make active sound
 	if (actor->info->RActiveSound && P_Random() < 3)
-	{
 		S_StartSound(&actor->NoiseThinker, S_SoundIDForName(actor->info->RActiveSound));
-	}
 }
 
 //
@@ -909,7 +910,7 @@ nomissile:
 void A_FaceTarget(mobj_t* actor, player_t* player, pspdef_t* psp, const INFO_StateArgsNum_t a_ArgC, INFO_StateArgsParm_t* const a_ArgV)
 {
 	// GhostlyDeath <April 29, 2012> -- Player controlled monsters
-	if (actor->player)
+	if (P_EXGSGetValue(PEXGSBID_MONENABLEPLAYASMONSTER) && actor->player)
 	{
 		P_AimLineAttack(actor, actor->angle, MISSILERANGE, NULL);
 		actor->target = linetarget;

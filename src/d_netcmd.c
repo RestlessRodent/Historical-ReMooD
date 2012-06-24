@@ -1408,6 +1408,23 @@ D_NetPlayer_t* D_NCSFindNetPlayer(const char* const a_Name)
 	return NULL;
 }
 
+/* D_NCSFindNetPlayerByProcess() -- Find net player by process ID */
+D_NetPlayer_t* D_NCSFindNetPlayerByProcess(const uint32_t a_ID)
+{
+	D_NetPlayer_t* Rover;
+	
+	/* Rove */
+	for (Rover = l_FirstNetPlayer; Rover; Rover = Rover->ChainPrev)
+	{
+		// Match?
+		if (Rover->ProcessID == a_ID)
+			return Rover;
+	}
+	
+	/* Not Found */
+	return NULL;
+}
+
 /* D_NCSGetPlayerName() -- Get player name */
 const char* D_NCSGetPlayerName(const uint32_t a_PlayerID)
 {

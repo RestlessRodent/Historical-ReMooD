@@ -1438,8 +1438,8 @@ size_t CONL_PrintV(const bool_t a_InBuf, const char* const a_Format, va_list a_A
 size_t CONL_UnicodePrintV(const bool_t a_InBuf, const UnicodeStringID_t a_StrID, const char* const a_Format, va_list a_ArgPtr)
 {
 	// TODO
-	CONL_RawPrint(&l_CONLBuffers[(a_InBuf ? 1 : 0)], DS_GetString(a_StrID));
-	CONL_RawPrint(&l_CONLBuffers[(a_InBuf ? 1 : 0)], a_Format);
+	if (!a_InBuf)
+		CONL_OutputF("%s [%s]", DS_GetString(a_StrID), a_Format);
 	return 0;
 }
 

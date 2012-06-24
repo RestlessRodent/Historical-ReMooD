@@ -919,6 +919,7 @@ StringGroupEX_t UnicodeStrings[NUMUNICODESTRINGS] =
 	{	 "BADDEMO_NETVARNOTSUPPORTED", "The variable $1 is not supported."},
 	{		   "BADDEMO_UNKNOWNXDCMD", "Unknown extra command $1."},
 	{        "BADDEMO_UNKNOWNFACTORY", "Unknown demo factory."},
+	{           "BADDEMO_NONHOSTDEMO", "Demo possibly not recorded by the host, if so then the demo will most likely fail to play back at all."},
 };
 
 /* DS_NameOfString() -- Returns name of pointer to string */

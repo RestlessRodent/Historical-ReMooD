@@ -140,7 +140,9 @@ bool_t D_NCSHandleEvent(const I_EventEx_t* const a_Event);
 
 D_NetPlayer_t* D_NCSAllocNetPlayer(void);
 void D_NCSFreeNetPlayer(D_NetPlayer_t* const a_NetPlayer);
+
 D_NetPlayer_t* D_NCSFindNetPlayer(const char* const a_Name);
+D_NetPlayer_t* D_NCSFindNetPlayerByProcess(const uint32_t a_ID);
 
 const char* D_NCSGetPlayerName(const uint32_t a_PlayerID);
 

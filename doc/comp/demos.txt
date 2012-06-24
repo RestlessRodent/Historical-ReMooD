@@ -7,4 +7,6 @@ lgc1_142.lmp	Doom Legacy 1.42 (Doom II, MAP01 - MAP12)
 lgc2_142.lmp	Doom Legacy 1.42 (Doom II, MAP01 - MAP16, -nomonsters)
 lgc3_142.lmp	Doom Legacy 1.42 (Doom II, MAP01 - MAP03)
 lgc4_142.lmp	Doom Legacy 1.42 (The Ultimate Doom, E1M1 - E1M9)
+lgc5_142.lmp	Doom Legacy 1.42 (Doom II, Coop that turns into DM, Player 1, MAP01 - MAP05)
+lgc6_142.lmp	Doom Legacy 1.42 (Doom II, Coop that turns into DM, Player 2, MAP01 - MAP05)
 

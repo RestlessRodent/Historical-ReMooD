@@ -951,6 +951,15 @@ bool_t G_DEMO_Legacy_StartPlaying(struct G_CurrentDemo_s* a_Current)
 			Data->FavGuns[i][j] = FavGuns[i][j];
 	}
 	
+	/* Display Player Warning */
+	// If a demo was recorded on Legacy 1.30+ and the display (console) player
+	// is not 0, then the game may have been recorded by a joining client. In
+	// this case the demo cannot be played back because only the host can
+	// successfully record a demo.
+	if (Data->VerMarker >= 130)
+		if (Data->DisplayP > 0)
+			G_DemoProblem(true, DSTR_BADDEMO_NONHOSTDEMO, "");
+	
 	/* Success! */
 	return true;
 }
@@ -1433,6 +1442,13 @@ static bool_t GS_DEMO_Legacy_HandleExtraCmd(struct G_CurrentDemo_s* a_Current, c
 						// Recalc Split-screen
 						R_ExecuteSetViewSize();
 					}
+				
+				// Players who join a game (during a session) and record a demo
+				// do not have valid playbackable demos. Only the host can record
+				// a demo. Legacy joins the non-host players but never adds the
+				// first host player.
+				if (!playeringame[0])
+					G_DemoProblem(false, DSTR_BADDEMO_NONHOSTDEMO, "");
 				break;
 	
 			case XD_ADDBOT:

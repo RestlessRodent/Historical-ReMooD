@@ -1038,12 +1038,13 @@ typedef struct D_NCMessageData_s
 /*** FUNCTIONS ***/
 
 bool_t D_NCMH_LocalPlayerRJ(struct D_NCMessageData_s* const a_Data);
+bool_t D_NCMH_PlayerJoinOK(struct D_NCMessageData_s* const a_Data);
 
 // c_NCMessageCodes -- Local messages
 static const D_NCMessageType_t c_NCMessageCodes[] =
 {
-	//{"CONN", DNCMF_PERFECT | DNCMF_SERVER},
 	{1, {0}, "LPRJ", D_NCMH_LocalPlayerRJ, DNCMF_PERFECT | DNCMF_SERVER | DNCMF_HOST | DNCMF_REMOTECL},
+	{1, {0}, "PJOK", D_NCMH_PlayerJoinOK, DNCMF_PERFECT | DNCMF_SERVER | DNCMF_REMOTECL | DNCMF_DEMO},
 	
 	// EOL
 	{0, NULL, ""},
@@ -2293,6 +2294,13 @@ bool_t D_NCMH_LocalPlayerRJ(struct D_NCMessageData_s* const a_Data)
 	if (!a_Data)
 		return false;
 	
+	/* Remote player is neither ready nor got a save game sent to them */
+	if (!a_Data->RemoteClient->ReadyToPlay || !a_Data->RemoteClient->SaveGameSent)
+		return false;
+	
+	/* Get their input stream */
+	Stream = a_Data->InStream;
+	
 	/* Read Message Data */
 	D_RBSReadString(Stream, UUID, MAXPLAYERNAME * 2);
 	D_RBSReadString(Stream, AccountName, MAXPLAYERNAME);
@@ -2374,16 +2382,49 @@ bool_t D_NCMH_LocalPlayerRJ(struct D_NCMessageData_s* const a_Data)
 		D_RBSRecordNetBlock(Stream, &l_Clients[i]->Address);
 	}
 	
-#if 0
-	D_RBSReadString(Stream, 
+	/* Don't handle again */
+	return true;
+}
+
+/* D_NCMH_PlayerJoinOK() -- Player joins the game */
+bool_t D_NCMH_PlayerJoinOK(struct D_NCMessageData_s* const a_Data)
+{
+	char UUID[MAXPLAYERNAME * 2];
+	char AccountName[MAXPLAYERNAME];
+	char DisplayName[MAXPLAYERNAME];
+	uint8_t Color, Bot;
+	int32_t FreeSlot;
+	uint32_t ProcessID;
+	D_NetPlayer_t* NetPlayer;
 	
-	D_RBSWriteString(Stream, a_Profile->UUID);
-	D_RBSWriteString(Stream, a_Profile->AccountName);
-	D_RBSWriteString(Stream, a_Profile->DisplayName);
-	D_RBSWriteUInt8(Stream, a_Profile->Color);
-	D_RBSWriteUInt8(Stream, a_Bot);
-	D_RBSRecordNetBlock(Stream, &Server->Address);
-#endif
+	/* Check */
+	if (!a_Data)
+		return false;
+		
+	/* Read packet data */
+	ProcessID = D_RBSReadUInt32(a_Data->InStream);
+	FreeSlot = D_RBSReadUInt8(a_Data->InStream);
+	Bot = D_RBSReadUInt8(a_Data->InStream);
+	D_RBSReadString(a_Data->InStream, UUID, MAXPLAYERNAME * 2);
+	D_RBSReadString(a_Data->InStream, AccountName, MAXPLAYERNAME);
+	D_RBSReadString(a_Data->InStream, DisplayName, MAXPLAYERNAME);
+	Color = D_RBSReadUInt8(a_Data->InStream);
+	
+	// Cap off strings (to prevent any string based attacks)
+	AccountName[MAXPLAYERNAME - 1] = 0;
+	DisplayName[MAXPLAYERNAME - 1] = 0;
+	
+	/* See if this process ID was already selected */
+	NetPlayer = D_NCSFindNetPlayerByProcess(ProcessID);
+	
+	// It is there already?
+	if (NetPlayer)
+		return true;
+	
+	/* Enqueue an add player command into the tic stream */
+	// This is saved into demos by any encoder that can handle them. So you can
+	// say record Legacy demos with this method. Demos also read it directly
+	// and do not handle packet types at all (abstraction).
 	
 	/* Don't handle again */
 	return true;

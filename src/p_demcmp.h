@@ -271,6 +271,8 @@ typedef enum P_EXGSBitID_e
 	PEXGSBID_COJUMPREGARDLESS,					// Regardless Jump (legacy mishap)
 	PEXGSBID_COOLDLASTLOOKLOGIC,				// Old lastlook Logic
 	PEXGSBID_CORADIALSPAWNCHECK,				// Perform radial spawn check
+	PEXGSBID_MONENABLEPLAYASMONSTER,			// Enable playing of monsters
+	PEXGSBID_COKILLSTOPLAYERONE,				// Give kills to player 1
 	
 	PEXGSNUMBITIDS
 } P_EXGSBitID_t;

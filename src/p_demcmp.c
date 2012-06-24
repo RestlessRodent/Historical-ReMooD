@@ -618,7 +618,7 @@ static P_EXGSVariable_t l_GSVars[PEXGSNUMBITIDS] =
 		PEXGSMC_PLAYERS, PEXGSDA_YESNO, c_PEXGSPVBoolean, NULL},
 	
 	{PEXGST_INTEGER, PEXGSBID_GAMEHERETICGIBBING, "game_hereticgibbing", "Heretic Gibbing",
-		"Objects that can be gibbed are much easier to gib.", PEXGSGM_HERETIC, PEXGSDR_NOCHECK, 0, {0, 1}, 1,
+		"Objects that can be gibbed are much easier to gib.", PEXGSGM_HERETIC, PEXGSDR_NOCHECK, 0, {0, 1}, 0,
 		PEXGSMC_HERETIC, PEXGSDA_YESNO, c_PEXGSPVBoolean, NULL},
 	
 	{PEXGST_INTEGER, PEXGSBID_MONPREDICTMISSILES, "mon_predictmissile", "Predict Missiles",
@@ -832,6 +832,14 @@ static P_EXGSVariable_t l_GSVars[PEXGSNUMBITIDS] =
 		
 	{PEXGST_INTEGER, PEXGSBID_CORADIALSPAWNCHECK, "co_radialspawncheck", "Radial Spawn Check",
 		"Enable radial spawn checking to help prevent stuck spawns. [ReMooD >= 1.0a]", PEXGSGM_ANY, PEXGSDR_ATLEAST, 200, {0, 1}, 1,
+		PEXGSMC_COMPAT, PEXGSDA_YESNO, c_PEXGSPVBoolean, NULL},
+	
+	{PEXGST_INTEGER, PEXGSBID_MONENABLEPLAYASMONSTER, "mon_enableplayasmonster", "Enable Playing as Monsters",
+		"Allows players to take control over monsters.", PEXGSGM_ANY, PEXGSDR_NOCHECK, 0, {0, 1}, 0,
+		PEXGSMC_MONSTERS, PEXGSDA_YESNO, c_PEXGSPVBoolean, NULL},
+	
+	{PEXGST_INTEGER, PEXGSBID_COKILLSTOPLAYERONE, "co_killstoplayerone", "Give Kills to Player 1",
+		"Gives kills performed by non-players to player 1. [ReMooD < 1.0a]", PEXGSGM_ANY, PEXGSDR_LESSTHAN, 200, {0, 1}, 1,
 		PEXGSMC_COMPAT, PEXGSDA_YESNO, c_PEXGSPVBoolean, NULL},
 };
 
