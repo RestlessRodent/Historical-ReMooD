@@ -50,6 +50,14 @@ typedef struct runningscript_s runningscript_t;
 #include "command.h"
 #include "console.h"
 
+typedef enum
+{
+	wt_none,				// not waiting
+	wt_delay,				// wait for a set amount of time
+	wt_tagwait,				// wait for sector to stop moving
+	wt_scriptwait,			// wait for script to finish
+} wait_type_t;
+
 struct runningscript_s
 {
 	script_t* script;
@@ -57,13 +65,7 @@ struct runningscript_s
 	// where we are
 	char* savepoint;
 	
-	enum
-	{
-		wt_none,				// not waiting
-		wt_delay,				// wait for a set amount of time
-		wt_tagwait,				// wait for sector to stop moving
-		wt_scriptwait,			// wait for script to finish
-	} wait_type;
+	wait_type_t wait_type;
 	int wait_data;				// data for wait: tagnum, counter, script number etc
 	
 	// saved variables

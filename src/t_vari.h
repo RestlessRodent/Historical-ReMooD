@@ -118,7 +118,7 @@ svariable_t* add_game_mobj(char* name, mobj_t** mo);
 // functions
 
 svalue_t evaluate_function(int start, int stop);	// actually run a function
-svariable_t* new_function(char* name, void (*handler) ());
+svariable_t* new_function(const char* name, void (*handler) ());
 
 // arguments to handler functions
 

@@ -41,7 +41,7 @@ extern char** myargv;
 
 // Returns the position of the given parameter
 // in the arg list (0 if not found).
-int M_CheckParm(char* check);
+int M_CheckParm(const char* check);
 
 // GhostlyDeath <August 27, 2011> -- + and ++ via command line
 void M_PushSpecialParameters(void);
@@ -49,7 +49,7 @@ void M_PushSpecialPlusParameters(void);
 
 // return true if there is available parameters
 // use it befor M_GetNext
-bool_t M_IsNextParm(void);
+bool M_IsNextParm(void);
 
 // return the next parameter after a M_CheckParm
 // NULL if not found use M_IsNext to find if there is a parameter

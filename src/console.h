@@ -128,12 +128,12 @@ typedef struct CONCTI_MBChain_s
 	struct CONCTI_MBChain_s* Prev;				// Previous character
 	struct CONCTI_MBChain_s* Next;				// Next character
 	
-	bool_t EnableVirtual;						// Virtual byte enabled
+	bool EnableVirtual;						// Virtual byte enabled
 	char VirtualMB[6];							// Virtual multi-byte character
 } CONCTI_MBChain_t;
 
 struct CONCTI_Inputter_s;
-typedef bool_t (*CONCTI_OutBack_t) (struct CONCTI_Inputter_s*, const char* const);
+typedef bool (*CONCTI_OutBack_t) (struct CONCTI_Inputter_s*, const char* const);
 
 /* CONCTI_Inputter_t -- Text inputter */
 typedef struct CONCTI_Inputter_s
@@ -141,7 +141,7 @@ typedef struct CONCTI_Inputter_s
 	CONCTI_MBChain_t* ChainRoot;				// First link in chain
 	int32_t CursorPos;							// Cursor position
 	int32_t NumMBs;								// Number of multibytes
-	bool_t Overwrite;							// Overwrite character
+	bool Overwrite;							// Overwrite character
 	VideoFont_t Font;							// Font to use when drawing
 	
 	char** History;								// Remembered strings
@@ -151,7 +151,7 @@ typedef struct CONCTI_Inputter_s
 	size_t HistoryRove;							// History Rove
 	
 	CONCTI_OutBack_t OutFunc;					// Function to call when text is entered (\n)
-	bool_t Changed;								// Input changed?
+	bool Changed;								// Input changed?
 	
 	struct CONCTI_Inputter_s** RefPtr;			// Reference to this struct
 } CONCTI_Inputter_t;
@@ -160,7 +160,7 @@ typedef struct CONCTI_Inputter_s
 typedef struct CONL_ConVariable_s CONL_ConVariable_t;
 typedef struct CONL_StaticVar_s CONL_StaticVar_t;
 
-typedef bool_t (*CONL_ConVarBackFunc_t)(CONL_ConVariable_t* const a_Var, CONL_StaticVar_t* const a_StaticVar);
+typedef bool (*CONL_ConVarBackFunc_t)(CONL_ConVariable_t* const a_Var, CONL_StaticVar_t* const a_StaticVar);
 
 /* CONL_VarPossibleValue_t -- Possible value for a variable */
 typedef struct CONL_VarPossibleValue_s
@@ -210,38 +210,38 @@ extern const CONL_VarPossibleValue_t c_CVPVBoolean[];
 extern const CONL_VarPossibleValue_t c_CVPVVexColor[];
 extern const CONL_VarPossibleValue_t c_CVPVFont[];
 
-extern bool_t g_EarlyBootConsole;				// Early Boot Console
+extern bool g_EarlyBootConsole;				// Early Boot Console
 extern int32_t g_MousePos[2];					// Mouse Position
-extern bool_t g_MouseDown;						// Mouse is down
-extern bool_t g_QuietConsole;					// Mute startup console
-extern bool_t con_started;						// console has been initialised
-extern bool_t con_startup;						// true at game startup, screen need refreshing
+extern bool g_MouseDown;						// Mouse is down
+extern bool g_QuietConsole;					// Mute startup console
+extern bool con_started;						// console has been initialised
+extern bool con_startup;						// true at game startup, screen need refreshing
 extern int con_clipviewtop;						// Console clip down
 
 /*****************
 *** PROTOTYPES ***
 *****************/
 
-void CONL_EarlyBootTic(const char* const a_Message, const bool_t a_DoTic);
+void CONL_EarlyBootTic(const char* const a_Message, const bool a_DoTic);
 
 /*** Common Text Input ***/
 CONCTI_Inputter_t* CONCTI_CreateInput(const size_t a_NumHistory, const CONCTI_OutBack_t a_OutBack, CONCTI_Inputter_t** const a_RefPtr);
 void CONCTI_DestroyInput(CONCTI_Inputter_t* const a_Input);
-bool_t CONCTI_HandleEvent(CONCTI_Inputter_t* const a_Input, const I_EventEx_t* const a_Event);
+bool CONCTI_HandleEvent(CONCTI_Inputter_t* const a_Input, const I_EventEx_t* const a_Event);
 void CONCTI_SetText(CONCTI_Inputter_t* const a_Input, const char* const a_Text);
 int32_t CONCTI_DrawInput(CONCTI_Inputter_t* const a_Input, const uint32_t a_Options, const int32_t a_x, const int32_t a_y, const int32_t a_x2);
 
 /*** Console Commands ***/
 const char* CONL_ExitCodeToStr(const CONL_ExitCode_t a_Code);
-bool_t CONL_AddCommand(const char* const a_Name, CONL_ExitCode_t (*a_ComFunc)(const uint32_t, const char** const));
+bool CONL_AddCommand(const char* const a_Name, CONL_ExitCode_t (*a_ComFunc)(const uint32_t, const char** const));
 CONL_ExitCode_t CONL_Exec(const uint32_t a_ArgC, const char** const a_ArgV);
 
 /*** Console Variables ***/
-bool_t CONL_VarSetLoaded(const bool_t a_Loaded);
+bool CONL_VarSetLoaded(const bool a_Loaded);
 
 CONL_ConVariable_t* CONL_VarRegister(CONL_StaticVar_t* const a_StaticVar);
 
-bool_t CONL_StaticVarByNum(const size_t a_Num, CONL_StaticVar_t** const a_VarP);
+bool CONL_StaticVarByNum(const size_t a_Num, CONL_StaticVar_t** const a_VarP);
 CONL_StaticVar_t* CONL_VarLocate(const char* const a_Name);
 const char* CONL_VarSetStrByName(const char* const a_Var, const char* const a_NewVal);
 
@@ -250,11 +250,11 @@ int32_t CONL_VarSetInt(CONL_StaticVar_t* a_Var, const int32_t a_NewVal);
 fixed_t CONL_VarSetFixed(CONL_StaticVar_t* a_Var, const fixed_t a_NewVal);
 
 /*** Base Console ***/
-bool_t CONL_Init(const uint32_t a_OutBS, const uint32_t a_InBS);
+bool CONL_Init(const uint32_t a_OutBS, const uint32_t a_InBS);
 void CONL_Stop(void);
 
-size_t CONL_PrintV(const bool_t a_InBuf, const char* const a_Format, va_list a_ArgPtr);
-size_t CONL_UnicodePrintV(const bool_t a_InBuf, const UnicodeStringID_t a_StrID, const char* const a_Format, va_list a_ArgPtr);
+size_t CONL_PrintV(const bool a_InBuf, const char* const a_Format, va_list a_ArgPtr);
+size_t CONL_UnicodePrintV(const bool a_InBuf, const UnicodeStringID_t a_StrID, const char* const a_Format, va_list a_ArgPtr);
 
 size_t CONL_PrintF(const char* const a_Format, ...);
 size_t CONL_OutputF(const char* const a_Format, ...);
@@ -263,16 +263,16 @@ size_t CONL_OutputU(const UnicodeStringID_t a_StrID, const char* const a_Format,
 size_t CONL_InputU(const UnicodeStringID_t a_StrID, const char* const a_Format, ...);
 
 /*** Client Drawing ***/
-bool_t CONL_IsActive(void);
-bool_t CONL_SetActive(const bool_t a_Set);
-bool_t CONL_HandleEvent(const I_EventEx_t* const a_Event);
+bool CONL_IsActive(void);
+bool CONL_SetActive(const bool a_Set);
+bool CONL_HandleEvent(const I_EventEx_t* const a_Event);
 void CONL_Ticker(void);
-bool_t CONL_DrawConsole(void);
+bool CONL_DrawConsole(void);
 
 void CONL_DrawMouse(void);
 void CONLS_DrawOSK(const int32_t a_X, const int32_t a_Y, const int32_t a_W, const int32_t a_H, const uint32_t a_SplitP);
-bool_t CONL_OSKSetVisible(const size_t a_PlayerNum, const bool_t a_IsVis);
-bool_t CONL_OSKHandleEvent(const I_EventEx_t* const a_Event, const size_t a_PlayerNum);
+bool CONL_OSKSetVisible(const size_t a_PlayerNum, const bool a_IsVis);
+bool CONL_OSKHandleEvent(const I_EventEx_t* const a_Event, const size_t a_PlayerNum);
 
 /*** Console Commands ***/
 // Variable Commands
@@ -293,15 +293,15 @@ CONL_ExitCode_t CLC_CloseConsole(const uint32_t a_ArgC, const char** const a_Arg
 size_t CONL_EscapeString(char* const a_Dest, const size_t a_Size, const char* const a_Src);
 size_t CONL_UnEscapeString(char* const a_Dest, const size_t a_Size, const char* const a_Src);
 
-bool_t CONL_FindDefaultConfig(void);
-bool_t CONL_LoadConfigFile(const char* const a_Path);
-bool_t CONL_SaveConfigFile(const char* const a_Path);
+bool CONL_FindDefaultConfig(void);
+bool CONL_LoadConfigFile(const char* const a_Path);
+bool CONL_SaveConfigFile(const char* const a_Path);
 
 /*** Loading Screens ***/
-bool_t CONL_LoadingScreenSet(const int32_t a_NumSteps);
-bool_t CONL_LoadingScreenIncrMaj(const char* const a_Message, const int32_t a_NumSteps);
-bool_t CONL_LoadingScreenIncrSub(void);
-bool_t CONL_LoadingScreenSetSubEnd(const int32_t a_NumSteps);
+bool CONL_LoadingScreenSet(const int32_t a_NumSteps);
+bool CONL_LoadingScreenIncrMaj(const char* const a_Message, const int32_t a_NumSteps);
+bool CONL_LoadingScreenIncrSub(void);
+bool CONL_LoadingScreenSetSubEnd(const int32_t a_NumSteps);
 
 /******************************************************************************/
 

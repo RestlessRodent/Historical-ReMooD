@@ -49,15 +49,15 @@ void P_InitSGConsole(void);
 // These are the load / save game routines.
 
 void P_SaveGame(void);
-bool_t P_LoadGame(void);
+bool P_LoadGame(void);
 
-bool_t P_LoadGameEx(const char* FileName, const char* ExtFileName, size_t ExtFileNameLen, size_t* SaveLen, uint8_t** Origin);
-bool_t P_SaveGameEx(const char* Desc, const char* ExtFileName, size_t ExtFileNameLen, size_t* SaveLen, uint8_t** Origin);
+bool P_LoadGameEx(const char* FileName, const char* ExtFileName, size_t ExtFileNameLen, size_t* SaveLen, uint8_t** Origin);
+bool P_SaveGameEx(const char* Desc, const char* ExtFileName, size_t ExtFileNameLen, size_t* SaveLen, uint8_t** Origin);
 
-bool_t P_LoadGameFromBS(D_RBlockStream_t* const a_Stream, I_HostAddress_t* const a_NetAddr);
-bool_t P_SaveGameToBS(D_RBlockStream_t* const a_Stream, I_HostAddress_t* const a_NetAddr);
+bool P_LoadGameFromBS(D_RBlockStream_t* const a_Stream, I_HostAddress_t* const a_NetAddr);
+bool P_SaveGameToBS(D_RBlockStream_t* const a_Stream, I_HostAddress_t* const a_NetAddr);
 
-bool_t P_SGDXSpec(D_RBlockStream_t* const a_Stream, I_HostAddress_t* const a_NetAddr, bool_t a_Load);
+bool P_SGDXSpec(D_RBlockStream_t* const a_Stream, I_HostAddress_t* const a_NetAddr, bool a_Load);
 
 extern uint8_t* save_p;
 

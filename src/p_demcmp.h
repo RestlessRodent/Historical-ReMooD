@@ -299,7 +299,7 @@ typedef struct P_EXGSVariable_s
 	void (*ChangeFunc)(struct P_EXGSVariable_s* const a_Bit);
 	
 	// Settings
-	bool_t WasSet;								// Was Set to value?
+	bool WasSet;								// Was Set to value?
 	int32_t ActualVal;							// Actually set value
 	
 	// String Value
@@ -317,14 +317,14 @@ P_EXGSVariable_t* P_EXGSVarForName(const char* const a_Name);
 int32_t P_EXGSGetValue(const P_EXGSBitID_t a_Bit);
 fixed_t P_EXGSGetFixed(const P_EXGSBitID_t a_Bit);
 
-int32_t P_EXGSGetNextValue(const P_EXGSBitID_t a_Bit, const bool_t a_Right);
+int32_t P_EXGSGetNextValue(const P_EXGSBitID_t a_Bit, const bool a_Right);
 
 // General Functions
-bool_t P_EXGSRegisterStuff(void);
-bool_t P_EXGSSetAllDefaults(void);
-bool_t P_EXGSSetVersionLevel(const bool_t a_Master, const uint32_t a_Level);
-int32_t P_EXGSSetValue(const bool_t a_Master, const P_EXGSBitID_t a_Bit, const int32_t a_Value);
-int32_t P_EXGSSetValueStr(const bool_t a_Master, const P_EXGSBitID_t a_Bit, const char* const a_Value);
+bool P_EXGSRegisterStuff(void);
+bool P_EXGSSetAllDefaults(void);
+bool P_EXGSSetVersionLevel(const bool a_Master, const uint32_t a_Level);
+int32_t P_EXGSSetValue(const bool a_Master, const P_EXGSBitID_t a_Bit, const int32_t a_Value);
+int32_t P_EXGSSetValueStr(const bool a_Master, const P_EXGSBitID_t a_Bit, const char* const a_Value);
 
 #endif							/* __P_DEMCMP_H__ */
 

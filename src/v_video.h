@@ -370,9 +370,9 @@ typedef struct V_Image_s
 	int32_t					TotalUsage;			// Total usage
 	int32_t					UseCount[3];		// Usage count for data (patch, pic, raw)
 	int8_t					NativeType;			// Native image type
-	bool_t					HasTrans;			// Has transprency
+	bool					HasTrans;			// Has transprency
 	int						PUTagLevel;			// Current PU_ Tag
-	bool_t					DoDelete;			// Do image deletion
+	bool					DoDelete;			// Do image deletion
 	WadIndex_t				Index;				// Index of this image (for find)
 	char					Name[MAXUIANAME];	// Name of the image (for find)
 	uint32_t				NameHash;			// Hash for the name (if applicable)
@@ -401,7 +401,7 @@ V_Image_t* V_ImageFindA(const char* const a_Name, const V_ColorPal_t a_Pal);
 void V_ImageDestroy(V_Image_t* const a_Image);
 
 // Access
-int32_t V_ImageUsage(V_Image_t* const a_Image, const bool_t a_Use);
+int32_t V_ImageUsage(V_Image_t* const a_Image, const bool a_Use);
 uint32_t V_ImageSizePos(V_Image_t* const a_Image, int32_t* const a_Width, int32_t* const a_Height, int32_t* const a_XOff, int32_t* const a_YOff);
 
 // Get data for a specific format

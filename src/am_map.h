@@ -50,13 +50,13 @@ typedef struct
 #define AM_MSGENTERED (AM_MSGHEADER | ('e'<<8))
 #define AM_MSGEXITED (AM_MSGHEADER | ('x'<<8))
 
-extern bool_t am_recalc;		//added:05-02-98:true if screen size changes
-extern bool_t automapactive;	// In AutoMap mode?
-extern bool_t automapoverlay;	// Overlayed automap
+extern bool am_recalc;		//added:05-02-98:true if screen size changes
+extern bool automapactive;	// In AutoMap mode?
+extern bool automapoverlay;	// Overlayed automap
 extern int am_cheating;
 
 // Called by main loop.
-bool_t AM_Responder(event_t* ev);
+bool AM_Responder(event_t* ev);
 
 // Called by main loop.
 void AM_Ticker(void);
@@ -69,4 +69,8 @@ void AM_Drawer(void);
 // if the level is completed while it is up.
 void AM_Stop(void);
 
+void AM_Start(void);
+void AM_LevelInit(void);
+
 #endif
+

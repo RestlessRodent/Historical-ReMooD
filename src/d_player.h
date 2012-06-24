@@ -91,7 +91,7 @@ typedef enum
 /* camera_t -- Chase cam */
 typedef struct camera_s
 {
-	bool_t chase;
+	bool chase;
 	angle_t aiming;
 	int fixedcolormap;
 	
@@ -137,7 +137,7 @@ typedef struct player_s
 	// Power ups. invinc and invis are tic counters.
 	int powers[NUMPOWERS];
 	uint32_t cards;				// bit field see declration of card_t
-	bool_t backpack;
+	bool backpack;
 	
 	// Frags, kills of other players.
 	uint16_t addfrags;			// player have killed a player but is gone
@@ -149,17 +149,17 @@ typedef struct player_s
 	weapontype_t DeadWeapon;					// Weapon held when dead
 	weapontype_t* FavoriteWeapons;				// Favorite Weapons
 	
-	bool_t* weaponowned;
+	bool* weaponowned;
 	int* ammo;
 	int* maxammo;
-	bool_t originalweaponswitch;
+	bool originalweaponswitch;
 	//added:28-02-98:
-	bool_t autoaim_toggle;
+	bool autoaim_toggle;
 	
 	// True if button down last tic.
-	bool_t attackdown;
-	bool_t usedown;
-	bool_t jumpdown;			//added:19-03-98:dont jump like a monkey!
+	bool attackdown;
+	bool usedown;
+	bool jumpdown;			//added:19-03-98:dont jump like a monkey!
 	
 	// Bit flags, for cheats and debug.
 	// See cheat_t, above.
@@ -204,7 +204,7 @@ typedef struct player_s
 	pspdef_t psprites[NUMPSPRITES];
 	
 	// True if secret level has been done.
-	bool_t didsecret;
+	bool didsecret;
 	
 	// heretic
 	int chickenTics;			// player is a chicken if > 0
@@ -235,7 +235,7 @@ typedef struct player_s
 	// GhostlyDeath <March 6, 2012> -- Per-player (chase) camera
 	camera_t camera;
 	fixed_t CamDist, CamHeight, CamSpeed;		// Camera Properties
-	bool_t ChaseCam;							// Chase Camera
+	bool ChaseCam;							// Chase Camera
 	
 	/*** EXTENDED STUFF ***/
 	D_ProfileEx_t* ProfileEx;					// Extended Profiles
@@ -246,7 +246,7 @@ typedef struct player_s
 	int32_t MaxArmor[2];						// Max Armor
 	
 	// Counter-Operative
-	bool_t CounterOpPlayer;						// On the monster's side
+	bool CounterOpPlayer;						// On the monster's side
 	
 	// Kill Totals
 	int32_t TotalFrags;							// Total kills
@@ -260,7 +260,7 @@ typedef struct player_s
 //
 typedef struct
 {
-	bool_t in;					// whether the player is in game
+	bool in;					// whether the player is in game
 	
 	// Player stats, kills, collected items etc.
 	int skills;
@@ -279,7 +279,7 @@ typedef struct
 	int epsd;					// episode # (0-2)
 	
 	// if true, splash the secret level
-	bool_t didsecret;
+	bool didsecret;
 	
 	// previous and next levels, origin 0
 	int last;

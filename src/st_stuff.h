@@ -41,7 +41,7 @@
 
 extern int ST_Y;
 extern int st_x;
-extern bool_t st_statusbaron;
+extern bool st_statusbaron;
 extern float st_scalex;
 extern float st_scaley;
 extern int stbarheight;
@@ -57,13 +57,13 @@ void ST_CalcPos(void);
 void ST_ExternrefreshBackground(void);
 
 // Called by main loop.
-bool_t ST_Responder(event_t* ev);
+bool ST_Responder(event_t* ev);
 
 // Called by main loop.
 void ST_Ticker(void);
 
 // Called by main loop.
-void ST_Drawer(bool_t refresh);
+void ST_Drawer(bool refresh);
 
 // Called when the console player is spawned on each level.
 void ST_Start(void);
@@ -81,7 +81,7 @@ void ST_AddCommands(void);
 void ST_Invalidate(void);
 
 // need this for SCR_Recalc() coz widgets coords change with resolutions
-extern bool_t st_recalc;
+extern bool st_recalc;
 
 // States for status bar code.
 typedef enum
@@ -98,14 +98,14 @@ typedef enum
 	GetChatState
 } st_chatstateenum_t;
 
-bool_t ST_Responder(event_t* ev);
+bool ST_Responder(event_t* ev);
 
 // face load/unload graphics, called when skin changes
 void ST_loadFaceGraphics(char* facestr);
 void ST_unloadFaceGraphics(void);
 
 // return if player a is in the same team of the player b
-bool_t ST_SameTeam(player_t* a, player_t* b);
+bool ST_SameTeam(player_t* a, player_t* b);
 
 // get the frags of the player
 // only one function for calculation : more simple code
@@ -114,7 +114,7 @@ int ST_PlayerFrags(int playernum);
 //--------------------
 // status bar overlay
 //--------------------
-extern bool_t st_overlay;		// sb overlay on or off when fullscreen
+extern bool st_overlay;		// sb overlay on or off when fullscreen
 
 #define TRANSPARENTSTATUSBAR (cv_transparentstatusbar.value && cv_viewsize.value > 9 && (!automapactive || (automapactive && automapoverlay)))
 #define STTRANSPARENTSCREEN \
@@ -124,8 +124,8 @@ extern bool_t st_overlay;		// sb overlay on or off when fullscreen
 
 // heretic status bar
 void SB_Ticker(void);
-void SB_Drawer(bool_t refresh);
-bool_t SB_Responder(event_t* event);
+void SB_Drawer(bool refresh);
+bool SB_Responder(event_t* event);
 void SB_Init(void);
 
 /*****************************************************************************/
@@ -134,10 +134,11 @@ void SB_Init(void);
 
 void ST_DrawPlayerBarsEx(void);
 void ST_InitEx(void);
+void ST_TickerEx(void);
 
 int32_t ST_ExViewBarHeight(void);
-bool_t ST_ExSoloViewTransSBar(void);
-bool_t ST_ExSoloViewScaledSBar(void);
+bool ST_ExSoloViewTransSBar(void);
+bool ST_ExSoloViewScaledSBar(void);
 
 #endif
 

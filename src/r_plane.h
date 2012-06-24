@@ -118,14 +118,14 @@ void R_ExpandPlane(visplane_t* pl, int start, int stop);
 
 // SoM: Draws a single visplane. If !handlesource, it won't allocate or
 // remove ds_source.
-void R_DrawSinglePlane(visplane_t* pl, bool_t handlesource);
+void R_DrawSinglePlane(visplane_t* pl, bool handlesource);
 void R_PlaneBounds(visplane_t* plane);
 
 typedef struct planemgr_s
 {
 	visplane_t* plane;
 	fixed_t height;
-	bool_t mark;
+	bool mark;
 	fixed_t f_pos;				// `F' for `Front sector'.
 	fixed_t b_pos;				// `B' for `Back sector'
 	fixed_t f_frac;

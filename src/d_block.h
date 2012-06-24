@@ -77,18 +77,18 @@ typedef struct D_RBlockStream_s
 	size_t BlkSize;								// Block Size
 	size_t BlkBufferSize;						// Size of buffer
 	size_t ReadOff;								// Read Offset
-	bool_t Marked;								// Marked?
+	bool Marked;								// Marked?
 	
 	/* Functions */
 	size_t (*RecordF)(struct D_RBlockStream_s* const a_Stream);
-	bool_t (*PlayF)(struct D_RBlockStream_s* const a_Stream);
-	bool_t (*FlushF)(struct D_RBlockStream_s* const a_Stream);
+	bool (*PlayF)(struct D_RBlockStream_s* const a_Stream);
+	bool (*FlushF)(struct D_RBlockStream_s* const a_Stream);
 	
 	size_t (*NetRecordF)(struct D_RBlockStream_s* const a_Stream, I_HostAddress_t* const a_Host);
-	bool_t (*NetPlayF)(struct D_RBlockStream_s* const a_Stream, I_HostAddress_t* const a_Host);
+	bool (*NetPlayF)(struct D_RBlockStream_s* const a_Stream, I_HostAddress_t* const a_Host);
 	
 	void (*DeleteF)(struct D_RBlockStream_s* const a_Stream);
-	bool_t (*IOCtlF)(struct D_RBlockStream_s* const a_Stream, const D_RBSStreamIOCtl_t a_IOCtl, int32_t* a_DataP);
+	bool (*IOCtlF)(struct D_RBlockStream_s* const a_Stream, const D_RBSStreamIOCtl_t a_IOCtl, int32_t* a_DataP);
 	
 	/* Stream Stat */
 	uint32_t StatBlock[2];						// Block stats
@@ -108,21 +108,21 @@ void D_RBSCloseStream(D_RBlockStream_t* const a_Stream);
 
 void __REMOOD_DEPRECATED D_RBSStatStream(D_RBlockStream_t* const a_Stream, uint32_t* const a_ReadBk, uint32_t* const a_WriteBk, uint32_t* const a_ReadBy, uint32_t* const a_WriteBy);
 void __REMOOD_DEPRECATED D_RBSUnStatStream(D_RBlockStream_t* const a_Stream);
-bool_t __REMOOD_DEPRECATED D_RBSMarkedStream(D_RBlockStream_t* const a_Stream);
+bool __REMOOD_DEPRECATED D_RBSMarkedStream(D_RBlockStream_t* const a_Stream);
 
-bool_t D_RBSStreamIOCtl(D_RBlockStream_t* const a_Stream, const D_RBSStreamIOCtl_t a_IOCtl, int32_t* a_DataP);
+bool D_RBSStreamIOCtl(D_RBlockStream_t* const a_Stream, const D_RBSStreamIOCtl_t a_IOCtl, int32_t* a_DataP);
 
-bool_t D_RBSCompareHeader(const char* const a_A, const char* const a_B);
-bool_t D_RBSBaseBlock(D_RBlockStream_t* const a_Stream, const char* const a_Header);
-bool_t D_RBSRenameHeader(D_RBlockStream_t* const a_Stream, const char* const a_Header);
+bool D_RBSCompareHeader(const char* const a_A, const char* const a_B);
+bool D_RBSBaseBlock(D_RBlockStream_t* const a_Stream, const char* const a_Header);
+bool D_RBSRenameHeader(D_RBlockStream_t* const a_Stream, const char* const a_Header);
 
-bool_t D_RBSPlayBlock(D_RBlockStream_t* const a_Stream, char* const a_Header);
+bool D_RBSPlayBlock(D_RBlockStream_t* const a_Stream, char* const a_Header);
 void D_RBSRecordBlock(D_RBlockStream_t* const a_Stream);
 
-bool_t D_RBSPlayNetBlock(D_RBlockStream_t* const a_Stream, char* const a_Header, I_HostAddress_t* const a_Host);
+bool D_RBSPlayNetBlock(D_RBlockStream_t* const a_Stream, char* const a_Header, I_HostAddress_t* const a_Host);
 void D_RBSRecordNetBlock(D_RBlockStream_t* const a_Stream, I_HostAddress_t* const a_Host);
 
-bool_t D_RBSFlushStream(D_RBlockStream_t* const a_Stream);
+bool D_RBSFlushStream(D_RBlockStream_t* const a_Stream);
 
 size_t D_RBSWriteChunk(D_RBlockStream_t* const a_Stream, const void* const a_Data, const size_t a_Size);
 

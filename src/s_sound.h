@@ -103,7 +103,7 @@ void S_ChangeMusicName(char* name, int looping);
 void S_StopMusic(void);
 void S_PauseMusic(void);
 void S_ResumeMusic(void);
-void S_UpdateSounds(const bool_t a_Threaded);
+void S_UpdateSounds(const bool a_Threaded);
 void S_SetMusicVolume(int volume);
 void S_SetSfxVolume(int volume);
 void Command_SoundReset_f(void);

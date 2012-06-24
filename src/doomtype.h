@@ -173,6 +173,14 @@
 
 /* C99 Complaint Compilers */
 #elif (__STDC_VERSION__ >= 199901L) || defined(__GNUC__) || defined(__WATCOMC__)
+	#ifndef __STDC_LIMIT_MACROS
+		#define __STDC_LIMIT_MACROS			// We want integer limit macros
+	#endif
+	
+	#ifndef __STDC_CONSTANT_MACROS
+		#define __STDC_CONSTANT_MACROS		// We also want constant macros too
+	#endif
+	
 	#include <stdint.h>
 
 	#define __REMOOD_LL_SUFFIX(a) INT64_C(a)
@@ -205,21 +213,6 @@
 #endif
 
 #endif /* __REMOOD_IGNORE_FIXEDTYPES */
-
-/***********
-*** BOOL ***
-***********/
-
-/* bool_t -- Boolean, true or false */
-#if defined(__palmos__)
-	typedef Boolean bool_t;
-#else
-	typedef enum bool_e
-	{
-		false,
-		true
-	} bool_t;
-#endif
 
 /*****************
 *** C KEYWORDS ***

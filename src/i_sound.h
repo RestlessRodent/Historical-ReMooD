@@ -41,12 +41,12 @@
 #include "g_game.h"
 
 /* Sound Stuff */
-bool_t I_SoundDriverInit(void);
+bool I_SoundDriverInit(void);
 
 //
 //  MUSIC I/O
 //
-bool_t I_MusicDriverInit(void);
+bool I_MusicDriverInit(void);
 
 void I_InitCD(void);
 void I_StopCD(void);
@@ -54,7 +54,7 @@ void I_PauseCD(void);
 void I_ResumeCD(void);
 void I_ShutdownCD(void);
 void I_UpdateCD(void);
-void I_PlayCD(int track, bool_t looping);
+void I_PlayCD(int track, bool looping);
 int I_SetVolumeCD(int volume);	// return 0 on failure
 
 extern uint8_t cdaudio_started;

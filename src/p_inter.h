@@ -33,14 +33,14 @@
 #ifndef __P_INTER__
 #define __P_INTER__
 
-void P_PlayerSwitchToFavorite(player_t* const a_Player, const bool_t a_JustSpawned);
-weapontype_t P_PlayerBestWeapon(player_t* const a_Player, const bool_t a_Best);
+void P_PlayerSwitchToFavorite(player_t* const a_Player, const bool a_JustSpawned);
+weapontype_t P_PlayerBestWeapon(player_t* const a_Player, const bool a_Best);
 
-bool_t P_GivePower(player_t*, int);
+bool P_GivePower(player_t*, int);
 void P_CheckFragLimit(player_t* p);
 
 void P_KillMobj(mobj_t* target, mobj_t* inflictor, mobj_t* source);
-bool_t P_GiveBody(player_t* player, int num);
+bool P_GiveBody(player_t* player, int num);
 
 /* P_PMType_t -- Player Message Type */
 typedef enum P_PMType_e

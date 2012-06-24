@@ -248,8 +248,8 @@ typedef struct I_EventEx_s
 	{
 		struct
 		{
-			bool_t Down;		// Key pressed down
-			bool_t Repeat;		// Is the key repeated?
+			bool Down;		// Key pressed down
+			bool Repeat;		// Is the key repeated?
 			uint8_t KeyCode;	// Code for key
 			uint16_t Character;	// Character pressed
 		} Keyboard;				// Keyboard event
@@ -257,7 +257,7 @@ typedef struct I_EventEx_s
 		struct
 		{
 			uint8_t MouseID;	// ID of the mouse
-			bool_t Down;		// Button down
+			bool Down;		// Button down
 			uint8_t Button;		// Which button
 			int32_t Pos[2];		// Position of cursor
 			int32_t Move[2];	// Movement of cursor
@@ -266,7 +266,7 @@ typedef struct I_EventEx_s
 		struct
 		{
 			uint8_t JoyID;		// ID of the joystick
-			bool_t Down;		// Button pressed down
+			bool Down;		// Button pressed down
 			uint8_t Button;		// Which button was pressed
 			uint8_t Axis;		// Which axis was moved
 			int16_t Value;		// Axis position
@@ -293,15 +293,15 @@ typedef struct I_MusicDriver_s
 	char Name[MAXDRIVERNAME];	// Name of driver
 	char ShortName[MAXDRIVERNAME];	// Short driver name
 	uint32_t MusicType;			// Music types supported (<< I_MusicTypes_t)
-	bool_t ExternalData;		// If true, player requires external MID/MUS/MOD/etc. (on disk)
+	bool ExternalData;		// If true, player requires external MID/MUS/MOD/etc. (on disk)
 	// The play func will be passed a pathname instead of raw data
 	uint8_t Priority;			// Priority of the driver
 	
 	/* Handlers */
 	// Initializes a driver
-	bool_t (*Init) (struct I_MusicDriver_s* const a_Driver);
+	bool (*Init) (struct I_MusicDriver_s* const a_Driver);
 	// Destroys a driver
-	bool_t (*Destroy) (struct I_MusicDriver_s* const a_Driver);
+	bool (*Destroy) (struct I_MusicDriver_s* const a_Driver);
 	// Success
 	void (*Success) (struct I_MusicDriver_s* const a_Driver);
 	// Pauses a song (pause ||)
@@ -315,7 +315,7 @@ typedef struct I_MusicDriver_s
 	// Seeks to a new position
 	void (*Seek) (struct I_MusicDriver_s* const a_Driver, const int a_Handle, const uint32_t a_Pos);
 	// Plays a song
-	int (*Play) (struct I_MusicDriver_s* const a_Driver, const void* const a_Data, const size_t a_Size, const bool_t Loop);
+	int (*Play) (struct I_MusicDriver_s* const a_Driver, const void* const a_Data, const size_t a_Size, const bool Loop);
 	// Changes volume
 	void (*Volume) (struct I_MusicDriver_s* const a_Driver, const int a_Handle, const uint8_t Vol);
 	// Raw MIDI Data
@@ -342,9 +342,9 @@ typedef struct I_SoundDriver_s
 	
 	/* Functions */
 	// Initializes a driver
-	bool_t (*Init) (struct I_SoundDriver_s* const a_Driver);
+	bool (*Init) (struct I_SoundDriver_s* const a_Driver);
 	// Destroys a driver
-	bool_t (*Destroy) (struct I_SoundDriver_s* const a_Driver);
+	bool (*Destroy) (struct I_SoundDriver_s* const a_Driver);
 	// Success
 	void (*Success) (struct I_SoundDriver_s* const a_Driver);
 	// Requests a buffer for this driver
@@ -353,7 +353,7 @@ typedef struct I_SoundDriver_s
 	// Obtains a buffer that was requested
 	void *(*Obtain) (struct I_SoundDriver_s* const a_Driver);
 	// Checks if the buffer is finished playing
-	bool_t (*IsFinished) (struct I_SoundDriver_s* const a_Driver);
+	bool (*IsFinished) (struct I_SoundDriver_s* const a_Driver);
 	// Done streaming into buffer
 	void (*WriteOut) (struct I_SoundDriver_s* const a_Driver);
 	// Unrequest buffer
@@ -361,9 +361,9 @@ typedef struct I_SoundDriver_s
 	// Get frequency
 	uint16_t (*GetFreq) (struct I_SoundDriver_s* const a_Driver);
 	// Is sound threaded?
-	bool_t (*Thread) (struct I_SoundDriver_s* const a_Driver, void (*a_ThreadFunc) (const bool_t a_Threaded));
+	bool (*Thread) (struct I_SoundDriver_s* const a_Driver, void (*a_ThreadFunc) (const bool a_Threaded));
 	// Locks thread
-	void (*LockThread) (struct I_SoundDriver_s* const a_Driver, const bool_t a_Lock);
+	void (*LockThread) (struct I_SoundDriver_s* const a_Driver, const bool a_Lock);
 	
 	/* Dynamic */
 	void* Data;					// Private data
@@ -419,11 +419,11 @@ typedef struct I_HostAddress_s
 /********* BEGIN STOLEN NETWORKING CODE FROM MY SUPER SECRET PROJECT *********/
 
 /*** i_utlnet.c ***/
-bool_t I_NetCompareHost(const I_HostAddress_t* const a_A, const I_HostAddress_t* const a_B);
-bool_t I_NetNameToHost(I_HostAddress_t* const a_Host, const char* const a_Name);
-bool_t I_NetHostToName(const I_HostAddress_t* const a_Host, char* const a_Out, const size_t a_OutSize);
+bool I_NetCompareHost(const I_HostAddress_t* const a_A, const I_HostAddress_t* const a_B);
+bool I_NetNameToHost(I_HostAddress_t* const a_Host, const char* const a_Name);
+bool I_NetHostToName(const I_HostAddress_t* const a_Host, char* const a_Out, const size_t a_OutSize);
 
-I_NetSocket_t* I_NetOpenSocket(const bool_t a_Server, const I_HostAddress_t* const a_Host, const uint16_t a_Port);
+I_NetSocket_t* I_NetOpenSocket(const bool a_Server, const I_HostAddress_t* const a_Host, const uint16_t a_Port);
 void I_NetCloseSocket(I_NetSocket_t* const a_Socket);
 size_t I_NetReadyBytes(I_NetSocket_t* const a_Socket, const size_t a_Bytes);
 
@@ -435,7 +435,7 @@ size_t I_NetRecv(I_NetSocket_t* const a_Socket, I_HostAddress_t* const a_Host, v
 
 /*** i_util.c ***/
 void I_EventExPush(const I_EventEx_t* const a_Event);
-bool_t I_EventExPop(I_EventEx_t* const a_Event);
+bool I_EventExPop(I_EventEx_t* const a_Event);
 void I_EventToOldDoom(const I_EventEx_t* const a_Event);
 void I_DoMouseGrabbing(void);
 void I_StartupMouse(void);
@@ -447,15 +447,15 @@ ticcmd_t* I_BaseTiccmd(void);
 
 int VID_NumModes(void);
 char* __REMOOD_DEPRECATED VID_GetModeName(int a_ModeNum);
-int VID_ClosestMode(int* const a_WidthP, int* const a_HeightP, const bool_t a_Fullscreen);
+int VID_ClosestMode(int* const a_WidthP, int* const a_HeightP, const bool a_Fullscreen);
 int __REMOOD_DEPRECATED VID_GetModeForSize(int a_Width, int a_Height);
-bool_t VID_AddMode(const int a_Width, const int a_Height, const bool_t a_Fullscreen);
+bool VID_AddMode(const int a_Width, const int a_Height, const bool a_Fullscreen);
 int VID_SetMode(int a_ModeNum);
 
-bool_t I_UtilWinArgToUNIXArg(int* const a_argc, char** *const a_argv, const char* const a_Win);
-bool_t I_VideoPreInit(void);
-bool_t I_VideoBefore320200Init(void);
-bool_t I_VideoPostInit(void);
+bool I_UtilWinArgToUNIXArg(int* const a_argc, char** *const a_argv, const char* const a_Win);
+bool I_VideoPreInit(void);
+bool I_VideoBefore320200Init(void);
+bool I_VideoPostInit(void);
 void I_VideoSetBuffer(const uint32_t a_Width, const uint32_t a_Height, const uint32_t a_Pitch, uint8_t* const a_Direct);
 void I_VideoUnsetBuffer(void);
 uint8_t* I_VideoSoftBuffer(uint32_t* const a_WidthP, uint32_t* const a_HeightP);
@@ -463,7 +463,7 @@ void I_BeginRead(void);
 void I_EndRead(void);
 
 uint32_t I_GetTime(void);
-bool_t I_DumpTemporary(char* const a_PathBuf, const size_t a_PathSize, const uint8_t* const a_Data, const size_t a_Size);
+bool I_DumpTemporary(char* const a_PathBuf, const size_t a_PathSize, const uint8_t* const a_Data, const size_t a_Size);
 
 void I_ShowEndTxt(const uint8_t* const a_TextData);
 void I_TextModeChar(const uint8_t a_Char, const uint8_t Attr);
@@ -482,13 +482,13 @@ void I_CommonCommandLine(int* const a_argc, char** *const a_argv, const char* co
 void I_Quit(void);
 
 /*** i_utlnet.c ***/
-bool_t I_InitNetwork(void);
+bool I_InitNetwork(void);
 
 /*** i_utlsfx.c ***/
-bool_t I_AddMusicDriver(I_MusicDriver_t* const a_Driver);
-bool_t I_RemoveMusicDriver(I_MusicDriver_t* const a_Driver);
+bool I_AddMusicDriver(I_MusicDriver_t* const a_Driver);
+bool I_RemoveMusicDriver(I_MusicDriver_t* const a_Driver);
 I_MusicDriver_t* I_FindMusicDriver(const I_MusicType_t a_Type);
-bool_t I_InitMusic(void);
+bool I_InitMusic(void);
 void I_ShutdownMusic(void);
 void I_UpdateMusic(void);
 void I_SetMusicVolume(int volume);
@@ -499,20 +499,20 @@ void I_ResumeSong(int handle);
 void I_PlaySong(int handle, int looping);
 void I_StopSong(int handle);
 
-bool_t I_AddSoundDriver(I_SoundDriver_t* const a_Driver);
-bool_t I_RemoveSoundDriver(I_SoundDriver_t* const a_Driver);
+bool I_AddSoundDriver(I_SoundDriver_t* const a_Driver);
+bool I_RemoveSoundDriver(I_SoundDriver_t* const a_Driver);
 I_SoundDriver_t* I_FindSoundDriver(const I_SoundType_t a_Type);
-bool_t I_StartupSound(void);
+bool I_StartupSound(void);
 void I_ShutdownSound(void);
 void I_UpdateSound(void);
 void I_SubmitSound(void);
 size_t I_SoundBufferRequest(const I_SoundType_t a_Type, const uint8_t a_Bits, const uint16_t a_Freq, const uint8_t a_Channels, const uint32_t a_Samples);
-bool_t I_SoundSetThreaded(void (*a_ThreadFunc) (const bool_t a_Threaded));
+bool I_SoundSetThreaded(void (*a_ThreadFunc) (const bool a_Threaded));
 void* I_SoundBufferObtain(void);
-bool_t I_SoundBufferIsFinished(void);
+bool I_SoundBufferIsFinished(void);
 void I_SoundBufferWriteOut(void* const a_SoundBuf, const size_t a_SoundLen, const int a_Freq, const int a_Bits, const int a_Channels);
 uint16_t I_SoundGetFreq(void);
-void I_SoundLockThread(const bool_t a_Lock);
+void I_SoundLockThread(const bool a_Lock);
 
 void I_StopCD(void);
 void I_PauseCD(void);
@@ -520,7 +520,7 @@ void I_ResumeCD(void);
 void I_ShutdownCD(void);
 void I_InitCD(void);
 void I_UpdateCD(void);
-void I_PlayCD(int track, bool_t looping);
+void I_PlayCD(int track, bool looping);
 int I_SetVolumeCD(int volume);
 
 #endif							/* __I_UTIL_H__ */

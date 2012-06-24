@@ -269,8 +269,8 @@ extern mobjinfo_t** mobjinfo;
 
 /*** RMOD ***/
 
-bool_t INFO_RMODH_MapObjects(Z_Table_t* const a_Table, const WL_WADFile_t* const a_WAD, const D_RMODPrivates_t a_ID, D_RMODPrivate_t* const a_Private);
-bool_t INFO_RMODO_MapObjects(const bool_t a_Pushed, const struct WL_WADFile_s* const a_WAD, const D_RMODPrivates_t a_ID);
+bool INFO_RMODH_MapObjects(Z_Table_t* const a_Table, const WL_WADFile_t* const a_WAD, const D_RMODPrivates_t a_ID, D_RMODPrivate_t* const a_Private);
+bool INFO_RMODO_MapObjects(const bool a_Pushed, const struct WL_WADFile_s* const a_WAD, const D_RMODPrivates_t a_ID);
 
 // RMOD Helpers
 
@@ -297,13 +297,13 @@ typedef struct INFO_RMODStateHelper_s
 	size_t BaseStateNum;						// Base state to start from
 } INFO_RMODStateHelper_t;
 
-bool_t INFO_RMODStateHandlers(Z_Table_t* const a_Sub, void* const a_Data);
+bool INFO_RMODStateHandlers(Z_Table_t* const a_Sub, void* const a_Data);
 void INFO_StateNormalize(const size_t a_MergeBase, const size_t a_MergeCount);
 
 /*** HELPFUL FUNCTIONS ***/
 
 mobjtype_t INFO_GetTypeByName(const char* const a_Name);
-spritenum_t INFO_SpriteNumByName(const char* const a_Name, bool_t a_Create);
+spritenum_t INFO_SpriteNumByName(const char* const a_Name, bool a_Create);
 actionf_t INFO_FunctionPtrByName(const char* const a_Name);
 int INFO_PriorityByName(const char* const a_Name);
 uint32_t INFO_TransparencyByName(const char* const a_Name);

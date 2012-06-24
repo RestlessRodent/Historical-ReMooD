@@ -293,23 +293,23 @@ typedef struct sector_s
 	int* attached;
 	int numattached;
 	
-	bool_t LLSelf;								// True if lightlist is Z_Malloc()
+	bool LLSelf;								// True if lightlist is Z_Malloc()
 	lightlist_t* lightlist;
 	int numlights;
 	
-	bool_t moved;
+	bool moved;
 	
 	int validsort;				//if == validsort allready been sorted
-	bool_t added;
+	bool added;
 	
 	// SoM: 4/3/2000: per-sector colormaps!
 	extracolormap_t* extra_colormap;
 	
 	// ----- for special tricks with HW renderer -----
-	bool_t pseudoSector;
-	bool_t virtualFloor;
+	bool pseudoSector;
+	bool virtualFloor;
 	fixed_t virtualFloorheight;
-	bool_t virtualCeiling;
+	bool virtualCeiling;
 	fixed_t virtualCeilingheight;
 	linechain_t* sectorLines;
 	struct sector_s** stackList;
@@ -322,7 +322,7 @@ typedef struct sector_s
 	fixed_t BBox[4];							// Sector bounding box
 	size_t SoundSecRef;							// Reference to sound sector
 	int32_t AltSkyTexture;						// Alternate Sky Texture
-	bool_t AltSkyFlipped;						// Flipped Alternate Sky
+	bool AltSkyFlipped;						// Flipped Alternate Sky
 	
 	struct sector_s** Adj;						// Adjacent sectors
 	size_t NumAdj;								// Number of adjacent sectors
@@ -354,7 +354,7 @@ typedef struct
 	
 	// GhostlyDeath <September 29, 2011> -- Cool Texture Stuff
 	fixed_t ScaleX, ScaleY;
-	bool_t VFlip;				// vertically flip texture
+	bool VFlip;				// vertically flip texture
 	
 	// ReMooD Additions
 	char* WallTextures[3];						// Textures used on walls
@@ -445,7 +445,7 @@ typedef struct subsector_s
 	int validcount;
 	
 	// GhostlyDeath <April 23, 2012> -- Bots
-	bool_t NodesInit;							// Subsector mapped
+	bool NodesInit;							// Subsector mapped
 	void** BotNodes;							// Node in subsector
 	size_t NumBotNodes;							// Number of nodes in this subsector
 	
@@ -477,7 +477,7 @@ typedef struct msecnode_s
 	struct msecnode_s* m_tnext;	// next msecnode_t for this thing
 	struct msecnode_s* m_sprev;	// prev msecnode_t for this sector
 	struct msecnode_s* m_snext;	// next msecnode_t for this sector
-	bool_t visited;				// killough 4/4/98, 4/7/98: used in search algorithms
+	bool visited;				// killough 4/4/98, 4/7/98: used in search algorithms
 } msecnode_t;
 
 extern msecnode_t** g_MSecNodes;				// Active sector nodes
@@ -747,8 +747,8 @@ typedef struct R_SpriteInfoEx_s
 	uint32_t Code;								// Sprite code name
 	int8_t Frame[2];							// Frame of sprite (2 possible)
 	int8_t Rotation[2];							// Rotation (0 = all, 1.. = rest)
-	bool_t Double;								// Double frames
-	bool_t Init;								// Data initialized?
+	bool Double;								// Double frames
+	bool Init;								// Data initialized?
 	
 	fixed_t Width;								// Width of sprite
 	fixed_t Offset;								// Offset of sprite (x axis)
@@ -779,7 +779,7 @@ typedef struct
 	// If false use 0 for any position.
 	// Note: as eight entries are available,
 	//  we might as well insert the same name eight times.
-	bool_t rotate;
+	bool rotate;
 	
 	// Lump to use for view angles 0-7.
 	int lumppat[8];				// lump number 16:16 wad:lump
@@ -790,7 +790,7 @@ typedef struct
 	
 	// GhostlyDeath <February 21, 2012> -- Extended dynamic sprites
 	R_SpriteInfoEx_t* ExAngles[16];				// Extended frame pointers
-	bool_t ExFlip[16];							// Flip sprites?
+	bool ExFlip[16];							// Flip sprites?
 } spriteframe_t;
 
 //

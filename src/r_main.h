@@ -127,7 +127,7 @@ void R_AddPointToBox(int x, int y, fixed_t* box);
 void R_Init(void);
 
 // just sets setsizeneeded true
-extern bool_t setsizeneeded;
+extern bool setsizeneeded;
 void R_SetViewSize(void);
 
 // add commands related to engine, at game startup

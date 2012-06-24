@@ -351,7 +351,7 @@ typedef struct P_MobjRefLog_s
 {
 	struct mobj_s* Source;
 	struct mobj_s* Ref;
-	bool_t IsSource;
+	bool IsSource;
 	char* File;
 	int Line;
 } P_MobjRefLog_t;
@@ -471,7 +471,7 @@ typedef struct mobj_s
 	int health;
 	
 	// Movement direction, movement generation (zig-zagging).
-	int movedir;				// 0-7
+	dirtype_t movedir;				// 0-7
 	int movecount;				// when 0, select a new dir
 	
 	// Thing being chased/attacked (or NULL),
@@ -537,7 +537,7 @@ typedef struct mobj_s
 	int RefLine[NUMPMOBJREFTYPES];				// Reference From Line
 #endif
 
-	bool_t RemoveMo;							// Remove Map Object
+	bool RemoveMo;							// Remove Map Object
 	mobjtype_t RemType;							// Type removed
 	
 	// Properties
@@ -600,15 +600,15 @@ void P_ClearMobjRefs(mobj_t* const a_Mo);
 	#define P_RefMobj(t,s,r) P_RefMobjReal((t), (s), (r))
 #endif
 
-void P_NightmareRespawn(mobj_t* mobj, const bool_t a_ForceRespawn);
+void P_NightmareRespawn(mobj_t* mobj, const bool a_ForceRespawn);
 
 void P_RemoveFromBodyQueue(mobj_t* const a_Mo);
 void P_MorphObjectClass(mobj_t* const a_Mo, const mobjtype_t a_NewClass);
 
-bool_t P_MobjIsTeamlessMonster(mobj_t* const a_ThisMo);
-bool_t P_MobjOnSameFamily(mobj_t* const a_ThisMo, mobj_t* const a_OtherMo);
-bool_t P_MobjOnSameTeam(mobj_t* const a_ThisMo, mobj_t* const a_OtherMo);
-bool_t P_MobjDamageTeam(mobj_t* const a_ThisMo, mobj_t* const a_OtherMo, mobj_t* const a_Inflictor);
+bool P_MobjIsTeamlessMonster(mobj_t* const a_ThisMo);
+bool P_MobjOnSameFamily(mobj_t* const a_ThisMo, mobj_t* const a_OtherMo);
+bool P_MobjOnSameTeam(mobj_t* const a_ThisMo, mobj_t* const a_OtherMo);
+bool P_MobjDamageTeam(mobj_t* const a_ThisMo, mobj_t* const a_OtherMo, mobj_t* const a_Inflictor);
 
 struct player_s;
 void P_ControlNewMonster(struct player_s* const a_Player);

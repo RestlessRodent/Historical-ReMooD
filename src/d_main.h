@@ -43,7 +43,7 @@
 extern tic_t rendergametic;
 
 // for dedicated server
-extern bool_t dedicated;
+extern bool dedicated;
 
 // the infinite loop of D_DoomLoop() called from win_main for windows version
 void D_DoomLoop(void);
@@ -74,7 +74,7 @@ void D_PageDrawer(const char* const a_LumpName);
 void D_AdvanceDemo(void);
 void D_StartTitle(void);
 
-bool_t D_CheckWADBlacklist(const char* const a_Sum);
+bool D_CheckWADBlacklist(const char* const a_Sum);
 
 #endif							//__D_MAIN__
 

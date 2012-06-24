@@ -931,7 +931,7 @@ typedef struct StringGroupEX_s
 	uint32_t Hash;
 } StringGroupEX_t;
 
-StringGroupEX_t UnicodeStrings[NUMUNICODESTRINGS];
+extern StringGroupEX_t UnicodeStrings[NUMUNICODESTRINGS];
 
 #define PTROFUNICODESTRING(n) (&(UnicodeStrings[(n)].wcharstr))
 #define PTRTOUNICODESTRING(n) (UnicodeStrings[(n)].wcharstr)

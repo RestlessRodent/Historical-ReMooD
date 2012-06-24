@@ -42,25 +42,25 @@
 extern char player_names[MAXPLAYERS][MAXPLAYERNAME];
 extern char team_names[MAXPLAYERS][MAXPLAYERNAME * 2];
 
-extern bool_t nomonsters;		// checkparm of -nomonsters
+extern bool nomonsters;		// checkparm of -nomonsters
 
 #define GAMEMAPNAMESIZE 128
 extern char gamemapname[GAMEMAPNAMESIZE];
 
 extern player_t players[MAXPLAYERS];
-extern bool_t playeringame[MAXPLAYERS];
+extern bool playeringame[MAXPLAYERS];
 
 // ======================================
 // DEMO playback/recording related stuff.
 // ======================================
 
 // demoplaying back and demo recording
-extern bool_t demoplayback;
-extern bool_t demorecording;
-extern bool_t timingdemo;
+extern bool demoplayback;
+extern bool demorecording;
+extern bool timingdemo;
 
 // Quit after playing a demo from cmdline.
-extern bool_t singledemo;
+extern bool singledemo;
 
 // gametic at level start
 extern tic_t levelstarttic;
@@ -72,10 +72,10 @@ extern int localaiming[MAXSPLITSCREENPLAYERS];	// should be a angle_t but signed
 char* G_BuildMapName(int episode, int map);
 short G_ClipAimingPitch(int* aiming);
 void G_DoReborn(int playernum);
-bool_t G_DeathMatchSpawnPlayer(int playernum);
+bool G_DeathMatchSpawnPlayer(int playernum);
 void G_CoopSpawnPlayer(int playernum);
 void G_PlayerReborn(int player);
-void G_DoLoadLevel(bool_t resetplayer);
+void G_DoLoadLevel(bool resetplayer);
 void G_LoadGame(int slot);		// Can be called by the startup code or M_Responder
 void G_DoLoadGame(int slot);	// Can be called by the startup code or M_Responder
 void G_DoSaveGame(int slot, char* description);	// Called by M_Responder.
@@ -85,8 +85,8 @@ void G_ExitLevel(void);
 void G_SecretExitLevel(void);
 void G_NextLevel(void);
 void G_Ticker(void);
-bool_t G_Responder(event_t* ev);
-bool_t G_Downgrade(int version);
+bool G_Responder(event_t* ev);
+bool G_Downgrade(int version);
 void G_PrepareDemoStuff(void);
 
 player_t* G_AddPlayer(int playernum);
@@ -105,22 +105,22 @@ extern uint8_t* demoend;
 
 struct G_CurrentDemo_s;
 
-typedef bool_t (*G_DEMO_StartPlayingType_t)(struct G_CurrentDemo_s* a_Current);
-typedef bool_t (*G_DEMO_StopPlayingType_t)(struct G_CurrentDemo_s* a_Current);
-typedef bool_t (*G_DEMO_StartRecordType_t)(struct G_CurrentDemo_s* a_Current);
-typedef bool_t (*G_DEMO_StopRecordType_t)(struct G_CurrentDemo_s* a_Current);
-typedef bool_t (*G_DEMO_CheckDemoType_t)(struct G_CurrentDemo_s* a_Current);
-typedef bool_t (*G_DEMO_ReadTicCmdType_t)(struct G_CurrentDemo_s* a_Current, ticcmd_t* const a_Cmd, const int32_t a_PlayerNum);
-typedef bool_t (*G_DEMO_WriteTicCmdType_t)(struct G_CurrentDemo_s* a_Current, const ticcmd_t* const a_Cmd, const int32_t a_PlayerNum);
+typedef bool (*G_DEMO_StartPlayingType_t)(struct G_CurrentDemo_s* a_Current);
+typedef bool (*G_DEMO_StopPlayingType_t)(struct G_CurrentDemo_s* a_Current);
+typedef bool (*G_DEMO_StartRecordType_t)(struct G_CurrentDemo_s* a_Current);
+typedef bool (*G_DEMO_StopRecordType_t)(struct G_CurrentDemo_s* a_Current);
+typedef bool (*G_DEMO_CheckDemoType_t)(struct G_CurrentDemo_s* a_Current);
+typedef bool (*G_DEMO_ReadTicCmdType_t)(struct G_CurrentDemo_s* a_Current, ticcmd_t* const a_Cmd, const int32_t a_PlayerNum);
+typedef bool (*G_DEMO_WriteTicCmdType_t)(struct G_CurrentDemo_s* a_Current, const ticcmd_t* const a_Cmd, const int32_t a_PlayerNum);
 
-typedef bool_t (*G_DEMO_PreGTickCmdType_t)(struct G_CurrentDemo_s* a_Current);
-typedef bool_t (*G_DEMO_PostGTickCmdType_t)(struct G_CurrentDemo_s* a_Current);
+typedef bool (*G_DEMO_PreGTickCmdType_t)(struct G_CurrentDemo_s* a_Current);
+typedef bool (*G_DEMO_PostGTickCmdType_t)(struct G_CurrentDemo_s* a_Current);
 
 /* G_DemoFactory_t -- Demo Factory */
 typedef struct G_DemoFactory_s
 {
 	const char* FactoryName;					// Name of factory
-	bool_t DoesRBS;								// Doe RBS Stream
+	bool DoesRBS;								// Doe RBS Stream
 	G_DEMO_StartPlayingType_t StartPlayingFunc;	// Starts playing demo
 	G_DEMO_StopPlayingType_t StopPlayingFunc;	// Stops playing demo
 	G_DEMO_StartRecordType_t StartRecordFunc;	// Starts recording demo
@@ -135,7 +135,7 @@ typedef struct G_DemoFactory_s
 /* G_CurrentDemo_t -- Current Demo Info */
 typedef struct G_CurrentDemo_s
 {
-	bool_t Out;									// Demo is out (being written)
+	bool Out;									// Demo is out (being written)
 	const G_DemoFactory_t* Factory;				// Factory for demo
 	void* CFile;								// CFile
 	WL_EntryStream_t* WLStream;					// Demo Streamer (Raw)
@@ -147,7 +147,7 @@ extern tic_t g_DemoTime;
 
 const G_DemoFactory_t* G_DemoFactoryByName(const char* const a_Name);
 void G_DemoQueue(const char* const a_Name);
-bool_t G_PlayNextQ(void);
+bool G_PlayNextQ(void);
 G_CurrentDemo_t* G_DemoPlay(WL_EntryStream_t* const a_Stream, const G_DemoFactory_t* const a_Factory);
 
 void G_RecordDemo(char* name);	// Only called by startup code.
@@ -155,17 +155,17 @@ void G_StopDemo(void);
 void G_StopDemoRecord(void);
 void G_StopDemoPlay(void);
 void G_BeginRecording(const char* const a_Output, const char* const a_FactoryName);
-void G_DoPlayDemo(char* defdemoname);
+void G_DoPlayDemo(const char* defdemoname);
 void G_TimeDemo(char* name);
 void G_DeferedPlayDemo(char* demo);
-bool_t G_CheckDemoStatus(void);
+bool G_CheckDemoStatus(void);
 
 void G_ReadDemoTiccmd(ticcmd_t* cmd, int playernum);
 void G_WriteDemoTiccmd(ticcmd_t* cmd, int playernum);
 void G_DemoPreGTicker(void);
 void G_DemoPostGTicker(void);
 
-void G_DemoProblem(const bool_t a_IsError, const UnicodeStringID_t a_StrID, const char* const a_Format, ...);
+void G_DemoProblem(const bool a_IsError, const UnicodeStringID_t a_StrID, const char* const a_Format, ...);
 
 #endif							/* __G_GAME_H__ */
 

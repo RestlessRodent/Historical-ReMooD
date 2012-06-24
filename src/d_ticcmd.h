@@ -101,7 +101,7 @@ typedef struct
 	int16_t BaseAngleTurn;						// Base angle turning
 	int16_t BaseAiming;							// Base Aiming
 	uint8_t InventoryBits;						// Inventory Control
-	bool_t ResetAim;							// Reset Aim
+	bool ResetAim;							// Reset Aim
 } ticcmd_t;
 
 #endif

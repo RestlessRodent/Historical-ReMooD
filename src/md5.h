@@ -29,6 +29,7 @@
 // -----------------------------------------------------------------------------
 // DESCRIPTION:
 
+#if 0
 #if !defined(__palmos__)
 
 #ifndef _MD5_H
@@ -154,5 +155,6 @@ extern void* md5_buffer __P((const char* buffer, size_t len, void* resblock));
 
 #endif
 
+#endif
 #endif
 

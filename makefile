@@ -39,6 +39,11 @@ ifndef KEEPCC
 	endif
 endif
 
+# If CXX is not set, then set it to g++
+ifeq (,$(CXX))
+	export CXX := g++
+endif
+
 ifndef AR
 	export AR := ar
 endif
@@ -51,10 +56,12 @@ endif
 # Use toolchain prefix on default $(CC)
 ifneq (,$(TOOLPREFIX))
 	export __INT_CC := $(strip $(TOOLPREFIX))
+	export __INT_CXX := $(strip $(TOOLPREFIX))
 	export __INT_WINDRES := $(strip $(TOOLPREFIX))
 	export __INT_AR := $(strip $(TOOLPREFIX))
 endif
 export __INT_CC := $(__INT_CC)$(CC)
+export __INT_CXX := $(__INT_CXX)$(CXX)
 export __INT_WINDRES := $(__INT_WINDRES)$(WINDRES)
 export __INT_AR := $(__INT_AR)$(AR)
 
@@ -68,7 +75,7 @@ export __INT_HOSTCC := $(__INT_HOSTPREFIX)gcc
 ### COMPILE FLAGS ###
 #####################
 
-__INT_COMMONCFLAGS  := -fno-strict-aliasing
+__INT_COMMONCFLAGS  := -fno-strict-aliasing -D__STDC_LIMIT_MACROS -D__STDC_CONSTANT_MACROS
 __INT_COMMONLDFLAGS :=
 
 # Debugging?

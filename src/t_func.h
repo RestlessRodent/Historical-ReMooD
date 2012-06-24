@@ -49,7 +49,7 @@
 #include "p_local.h"
 
 extern camera_t script_camera;
-extern bool_t script_camera_on;
+extern bool script_camera_on;
 
 void init_functions();
 

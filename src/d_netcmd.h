@@ -118,9 +118,9 @@ typedef struct D_NetPlayer_s
 
 /*** GLOBALS ***/
 
-extern bool_t g_NetDev;
+extern bool g_NetDev;
 extern int g_SplitScreen;						// Players in splits
-extern bool_t g_PlayerInSplit[MAXSPLITSCREEN];	// Players that belong in splits
+extern bool g_PlayerInSplit[MAXSPLITSCREEN];	// Players that belong in splits
 
 /*** FUNCTIONS ***/
 
@@ -136,7 +136,7 @@ void D_NCSNetSetState(const D_NetState_t a_State);
 void D_NCSNetTicTransmit(D_NetPlayer_t* const a_NPp, ticcmd_t* const a_TicCmd);
 void D_NCSNetMergeTics(ticcmd_t* const a_DestCmd, const ticcmd_t* const a_SrcList, const size_t a_NumSrc);
 
-bool_t D_NCSHandleEvent(const I_EventEx_t* const a_Event);
+bool D_NCSHandleEvent(const I_EventEx_t* const a_Event);
 
 D_NetPlayer_t* D_NCSAllocNetPlayer(void);
 void D_NCSFreeNetPlayer(D_NetPlayer_t* const a_NetPlayer);

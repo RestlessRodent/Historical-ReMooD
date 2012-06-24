@@ -128,7 +128,7 @@ extern void (*transtransfunc) (void);	// SSNTails 11-11-2002
 extern viddef_t vid;
 extern int setmodeneeded;		// mode number to set if needed, or 0
 
-extern bool_t fuzzymode;
+extern bool fuzzymode;
 
 extern int scr_bpp;
 extern uint8_t* scr_borderpatch;	// patch used to fill the view borders

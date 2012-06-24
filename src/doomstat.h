@@ -70,6 +70,8 @@ typedef enum
 	pack_tnt,					// TNT mission pack
 	pack_plut,					// Plutonia pack
 	pack_chex,					// Chex Quest
+	
+	mission_heretic,			// Heretic Mission
 	none,
 	
 	numgamemissions
@@ -90,10 +92,10 @@ typedef enum
 //
 extern gamemode_t gamemode;
 extern gamemission_t gamemission;
-extern bool_t inventory;		// true with heretic and hexen
+extern bool inventory;		// true with heretic and hexen
 
 // Set if homebrew PWAD stuff has been added.
-extern bool_t modifiedgame;
+extern bool modifiedgame;
 
 // =========
 // Language.
@@ -111,28 +113,28 @@ extern uint8_t gameepisode;
 extern uint8_t gamemap;
 
 // Nightmare mode flag, single player.
-// extern  bool_t         respawnmonsters;
+// extern  bool         respawnmonsters;
 
 // GhostlyDeath -- Currently optional new network code
-extern bool_t newnet_use;
-extern bool_t newnet_solo;
+extern bool newnet_use;
+extern bool newnet_solo;
 
 // Netgame? only true in a netgame
-extern bool_t netgame;
-extern bool_t serverside;
-extern bool_t localgame;
+extern bool netgame;
+extern bool serverside;
+extern bool localgame;
 
 // Only true if >1 player. netgame => multiplayer but not (multiplayer=>netgame)
-extern bool_t multiplayer;
+extern bool multiplayer;
 
 
 // ========================================
 // Internal parameters for sound rendering.
 // ========================================
 
-extern bool_t nomusic;			//defined in d_main.c
-extern bool_t nosound;
-extern bool_t digmusic;			// SSNTails 12-13-2002
+extern bool nomusic;			//defined in d_main.c
+extern bool nosound;
+extern bool digmusic;			// SSNTails 12-13-2002
 
 // =========================
 // Status flags for refresh.
@@ -142,12 +144,12 @@ extern bool_t digmusic;			// SSNTails 12-13-2002
 // Depending on view size - no status bar?
 // Note that there is no way to disable the
 //  status bar explicitely.
-extern bool_t statusbaractive;
+extern bool statusbaractive;
 
-extern bool_t paused;			// Game Pause?
+extern bool paused;			// Game Pause?
 
-extern bool_t nodrawers;
-extern bool_t noblit;
+extern bool nodrawers;
+extern bool noblit;
 
 extern int viewwindowx;
 extern int viewwindowy;
@@ -204,7 +206,7 @@ extern wbstartstruct_t wminfo;
 extern char basedefault[1024];
 
 // if true, load all graphics at level load
-extern bool_t precache;
+extern bool precache;
 
 // wipegamestate can be set to -1
 //  to force a wipe on the next draw
@@ -212,7 +214,7 @@ extern gamestate_t wipegamestate;
 
 //?
 // debug flag to cancel adaptiveness
-extern bool_t singletics;
+extern bool singletics;
 
 #define   BODYQUESIZE     MAXPLAYERS
 
@@ -227,7 +229,7 @@ extern int bodyqueslot;
 
 extern ticcmd_t netcmds[BACKUPTICS][MAXPLAYERS];
 
-extern bool_t novideo;
+extern bool novideo;
 
 /*********************
 *** EXTENDED STUFF ***
@@ -261,7 +263,7 @@ extern const void* g_ReMooDPtr;					// Pointer to remood.wad
 extern const char* g_IWADMapInfoName;			// Name of IWAD MAPINFO
 extern uint32_t g_IWADFlags;					// IWAD Flags
 
-extern bool_t g_DedicatedServer;				// Dedicated Server
+extern bool g_DedicatedServer;				// Dedicated Server
 
 #endif							//__D_STATE__
 

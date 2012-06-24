@@ -64,7 +64,7 @@ typedef struct
 typedef struct
 {
 	char name[8];
-	bool_t masked;
+	bool masked;
 	short width;
 	short height;
 	
@@ -111,8 +111,8 @@ typedef struct
 	/* Unified Data */
 	uint32_t InternalOrder;						// Internal texture order
 	uint32_t CombinedOrder;						// Texture order (when ordered)
-	bool_t IsFlat;								// Is flat texture (floor)
-	bool_t NonPowerTwo;							// Non power of 2 width texture (slow)
+	bool IsFlat;								// Is flat texture (floor)
+	bool NonPowerTwo;							// Non power of 2 width texture (slow)
 	uint32_t* ColumnOffs;						// Column offsets
 	uint8_t** Composite;						// Composite Data
 	uint8_t* Cache;								// Texture cache
@@ -123,7 +123,7 @@ typedef struct
 	uint32_t Translation;						// Which texture to draw in place of this one
 	uint32_t CacheSize;							// Size of cache
 	void* FlatEntry;							// Entry for flat
-	bool_t Marked;								// Marked?
+	bool Marked;								// Marked?
 	void* FlatImage;							// Image for flat
 	uint16_t OrderMul;							// Order Multiplier
 } texture_t;

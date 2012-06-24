@@ -96,10 +96,10 @@ struct WL_WADFile_s;
 
 // WAD Data loading
 typedef void (*WL_RemoveFunc_t)(const struct WL_WADFile_s* a_WAD);
-typedef bool_t (*WL_PCCreatorFunc_t)(const struct WL_WADFile_s* const a_WAD, const uint32_t a_Key, void** const a_DataPtr, size_t* const a_SizePtr, WL_RemoveFunc_t* const a_RemoveFuncPtr);
+typedef bool (*WL_PCCreatorFunc_t)(const struct WL_WADFile_s* const a_WAD, const uint32_t a_Key, void** const a_DataPtr, size_t* const a_SizePtr, WL_RemoveFunc_t* const a_RemoveFuncPtr);
 
 // Order Change
-typedef bool_t (*WL_OrderCBFunc_t)(const bool_t a_Pushed, const struct WL_WADFile_s* const a_WAD);
+typedef bool (*WL_OrderCBFunc_t)(const bool a_Pushed, const struct WL_WADFile_s* const a_WAD);
 
 /* WL_WADEntry_t -- A lite WAD entry */
 typedef struct WL_WADEntry_s
@@ -107,7 +107,7 @@ typedef struct WL_WADEntry_s
 	/* Private Stuff You Don't Touch */
 	struct
 	{
-		bool_t __Compressed;	// Entry is compressed
+		bool __Compressed;	// Entry is compressed
 		int32_t __UsageCount;	// Times entry used
 		void* __Data;			// Loaded Data (cached)
 		size_t __Offset;		// Offset of the internal data
@@ -141,9 +141,9 @@ typedef struct WL_WADFile_s
 	struct
 	{
 		// Validity
-		bool_t __IsValid;		// Is this WAD valid?
-		bool_t __IsWAD;			// Is this a WAD?
-		bool_t __IsIWAD;		// Is this an IWAD?
+		bool __IsValid;		// Is this WAD valid?
+		bool __IsWAD;			// Is this a WAD?
+		bool __IsIWAD;		// Is this an IWAD?
 		
 		// File related stuff
 		char __PathName[PATH_MAX];	// Path to WAD File
@@ -171,7 +171,7 @@ typedef struct WL_WADFile_s
 		} __PublicData;			// Public data for perWAD data storage
 		
 		// Linkage
-		bool_t __Linked;		// Is the WAD virtually linked?
+		bool __Linked;		// Is the WAD virtually linked?
 		struct WL_WADFile_s* __PrevWAD;	// Previous WAD
 		struct WL_WADFile_s* __NextWAD;	// Next WAD
 	} __Private;				// Don't mess with me
@@ -203,18 +203,18 @@ const char* WL_BaseNameEx(const char* const a_File);
 void WL_Init(void);
 const WL_WADFile_t* WL_OpenWAD(const char* const a_PathName);
 void WL_CloseWAD(const WL_WADFile_t* const a_WAD);
-bool_t WL_LocateWAD(const char* const a_Name, const char* const a_MD5, char* const a_OutPath, const size_t a_OutSize);
+bool WL_LocateWAD(const char* const a_Name, const char* const a_MD5, char* const a_OutPath, const size_t a_OutSize);
 
-const char* const WL_GetWADName(const WL_WADFile_t* const a_WAD, const bool_t a_NonDOSName);
-const WL_WADFile_t* WL_IterateVWAD(const WL_WADFile_t* const a_WAD, const bool_t a_Forwards);
+const char* const WL_GetWADName(const WL_WADFile_t* const a_WAD, const bool a_NonDOSName);
+const WL_WADFile_t* WL_IterateVWAD(const WL_WADFile_t* const a_WAD, const bool a_Forwards);
 
 void WL_PushWAD(const WL_WADFile_t* const a_WAD);
 const WL_WADFile_t* WL_PopWAD(void);
 
-bool_t WL_LockOCCB(const bool_t a_DoLock);
-bool_t WL_RegisterOCCB(WL_OrderCBFunc_t const a_Func, const uint8_t a_Order);
+bool WL_LockOCCB(const bool a_DoLock);
+bool WL_RegisterOCCB(WL_OrderCBFunc_t const a_Func, const uint8_t a_Order);
 
-bool_t WL_RegisterPDC(const uint32_t a_Key, const uint8_t a_Order, WL_PCCreatorFunc_t const a_CreatorFunc, WL_RemoveFunc_t const a_RemoveFunc);
+bool WL_RegisterPDC(const uint32_t a_Key, const uint8_t a_Order, WL_PCCreatorFunc_t const a_CreatorFunc, WL_RemoveFunc_t const a_RemoveFunc);
 void* WL_GetPrivateData(const WL_WADFile_t* const a_WAD, const uint32_t a_Key, size_t* const a_SizePtr);
 
 // Entry Handling
@@ -228,8 +228,8 @@ void WL_StreamClose(WL_EntryStream_t* const a_Stream);
 const WL_WADEntry_t* WL_StreamGetEntry(WL_EntryStream_t* const a_Stream);
 
 uint32_t WL_StreamTell(WL_EntryStream_t* const a_Stream);
-uint32_t WL_StreamSeek(WL_EntryStream_t* const a_Stream, const uint32_t a_NewPos, const bool_t a_End);
-bool_t WL_StreamEOF(WL_EntryStream_t* const a_Stream);
+uint32_t WL_StreamSeek(WL_EntryStream_t* const a_Stream, const uint32_t a_NewPos, const bool a_End);
+bool WL_StreamEOF(WL_EntryStream_t* const a_Stream);
 
 size_t WL_StreamRawRead(WL_EntryStream_t* const a_Stream, const size_t a_Offset, void* const a_Out, const size_t a_OutSize);
 
@@ -245,7 +245,7 @@ int32_t WL_StreamReadLittleInt32(WL_EntryStream_t* const a_Stream);
 uint16_t WL_StreamReadLittleUInt16(WL_EntryStream_t* const a_Stream);
 uint32_t WL_StreamReadLittleUInt32(WL_EntryStream_t* const a_Stream);
 
-bool_t WL_StreamCheckUnicode(WL_EntryStream_t* const a_Stream);
+bool WL_StreamCheckUnicode(WL_EntryStream_t* const a_Stream);
 char WL_StreamReadChar(WL_EntryStream_t* const a_Stream);
 size_t WL_StreamReadLine(WL_EntryStream_t* const a_Stream, char* const a_Buf, const size_t a_Size);
 
@@ -259,7 +259,7 @@ typedef WL_WADFile_t WX_WADFile_t;
 typedef WL_WADEntry_t WX_WADEntry_t;
 
 /*** PROTOTYPES ***/
-WX_WADEntry_t* __REMOOD_DEPRECATED WX_EntryForName(WX_WADFile_t* const a_WAD, const char* const a_Name, const bool_t a_Forwards);
+WX_WADEntry_t* __REMOOD_DEPRECATED WX_EntryForName(WX_WADFile_t* const a_WAD, const char* const a_Name, const bool a_Forwards);
 void* __REMOOD_DEPRECATED WX_CacheEntry(WX_WADEntry_t* const a_Entry);
 size_t __REMOOD_DEPRECATED WX_GetEntrySize(WX_WADEntry_t* const a_Entry);
 

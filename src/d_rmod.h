@@ -73,9 +73,9 @@ typedef struct D_RMODPrivate_s
 	size_t Size;								// Size
 } D_RMODPrivate_t;
 
-typedef bool_t (*D_RMODHandleFunc_t)(Z_Table_t* const a_Table, const WL_WADFile_t* const a_WAD, const D_RMODPrivates_t a_ID, D_RMODPrivate_t* const a_Private);
-typedef bool_t (*D_RMODCleanerFunc_t)(Z_Table_t* const a_Table, const WL_WADFile_t* const a_WAD, const D_RMODPrivates_t a_ID, D_RMODPrivate_t* const a_Private);
-typedef bool_t (*D_RMODOCCBFunc_t)(const bool_t a_Pushed, const struct WL_WADFile_s* const a_WAD, const D_RMODPrivates_t a_ID);
+typedef bool (*D_RMODHandleFunc_t)(Z_Table_t* const a_Table, const WL_WADFile_t* const a_WAD, const D_RMODPrivates_t a_ID, D_RMODPrivate_t* const a_Private);
+typedef bool (*D_RMODCleanerFunc_t)(Z_Table_t* const a_Table, const WL_WADFile_t* const a_WAD, const D_RMODPrivates_t a_ID, D_RMODPrivate_t* const a_Private);
+typedef bool (*D_RMODOCCBFunc_t)(const bool a_Pushed, const struct WL_WADFile_s* const a_WAD, const D_RMODPrivates_t a_ID);
 
 /*****************
 *** PROTOTYPES ***
@@ -84,12 +84,12 @@ typedef bool_t (*D_RMODOCCBFunc_t)(const bool_t a_Pushed, const struct WL_WADFil
 void D_InitRMOD(void);
 D_RMODPrivate_t* D_GetRMODPrivate(const WL_WADFile_t* const a_WAD, const D_RMODPrivates_t a_ID);
 
-bool_t D_RMODGetBool(const char* const a_Str);
+bool D_RMODGetBool(const char* const a_Str);
 
 fixed_t D_RMODGetValueFixed(Z_Table_t* const a_Table, const char* const a_Value, const fixed_t a_MissingVal);
 int32_t D_RMODGetValueInt(Z_Table_t* const a_Table, const char* const a_Value, const int32_t a_MissingVal);
-bool_t D_RMODGetValueBool(Z_Table_t* const a_Table, const char* const a_Value, const bool_t a_MissingVal);
-char* D_RMODGetValueString(Z_Table_t* const a_Table, const char* const a_Value, const char* const a_MissingVal);
+bool D_RMODGetValueBool(Z_Table_t* const a_Table, const char* const a_Value, const bool a_MissingVal);
+char* D_RMODGetValueString(Z_Table_t* const a_Table, const char* const a_Value, char* const a_MissingVal);
 
 #endif							/* __D_RMOD_H__ */
 

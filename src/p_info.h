@@ -97,15 +97,15 @@ typedef struct P_LevelInfoEx_s
 	const WL_WADEntry_t* EntryPtr[MAXPLIEDS];	// Pointer to entry
 	struct
 	{
-		bool_t Hexen;							// Hexen level (false = Doom)
-		bool_t Text;							// Text Level
+		bool Hexen;							// Hexen level (false = Doom)
+		bool Text;							// Text Level
 	} Type;										// Level Type
 	
 	/* Script Related */
 	uint32_t BlockPos[NUMPINFOBLOCKTYPES][2];	// Block positions ([xxx] stuff)
 	
 	/* Block related */
-	bool_t IsComposite;							// Is a composite of information
+	bool IsComposite;							// Is a composite of information
 	
 	/* Info */
 	char LumpName[MAXPLIEXFIELDWIDTH];			// Name of the lump
@@ -119,7 +119,7 @@ typedef struct P_LevelInfoEx_s
 	} Date;										// Date Created
 	
 	/* Compatibility */
-	bool_t Playable;							// Actually playable
+	bool Playable;							// Actually playable
 	
 	/* Settings */
 	int8_t SetBits[MAXPINFOSETFLAGS];			// Bits that were set
@@ -135,14 +135,14 @@ typedef struct P_LevelInfoEx_s
 	char* StoryFlat;							// Flat to use in story mode
 	uint64_t Weapons;							// Weapons
 	char* BootCommand;							// Command to execute on map start
-	bool_t MapSevenSpecial;						// Map can use DOOM.WAD:MAP07 666/667
-	bool_t BaronSpecial;						// Baron of hell special
-	bool_t CyberSpecial;						// Cyberdemon special
-	bool_t SpiderdemonSpecial;					// Spider Mastermind special
-	bool_t ExitOnSpecial;						// Exit on special action
-	bool_t OpenDoorOnSpecial;					// Open door on special action
-	bool_t LowerFloorOnSpecial;					// Floor lowers on special
-	bool_t KillMonstersOnSpecial;				// Kills other monsters on special
+	bool MapSevenSpecial;						// Map can use DOOM.WAD:MAP07 666/667
+	bool BaronSpecial;						// Baron of hell special
+	bool CyberSpecial;						// Cyberdemon special
+	bool SpiderdemonSpecial;					// Spider Mastermind special
+	bool ExitOnSpecial;						// Exit on special action
+	bool OpenDoorOnSpecial;					// Open door on special action
+	bool LowerFloorOnSpecial;					// Floor lowers on special
+	bool KillMonstersOnSpecial;				// Kills other monsters on special
 	int32_t LevelNum;							// Level number
 	int32_t EpisodeNum;							// Episode Number
 } P_LevelInfoEx_t;

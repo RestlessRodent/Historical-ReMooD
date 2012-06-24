@@ -33,6 +33,7 @@
 #ifndef __P_LOCAL__
 #define __P_LOCAL__
 
+#include "doomtype.h"
 #include "command.h"
 #include "d_player.h"
 #include "d_think.h"
@@ -114,6 +115,7 @@ void P_PlayerThink(player_t* player);
 // client prediction
 void CL_ResetSpiritPosition(mobj_t* mobj);
 void P_MoveSpirit(player_t* p, ticcmd_t* cmd, int realtics);
+bool P_PlayerOnSameTeam(player_t* const a_A, player_t* const a_B);
 
 //
 // P_MOBJ
@@ -136,7 +138,7 @@ void P_RespawnWeapons(void);
 mobj_t* P_SpawnMobj(fixed_t x, fixed_t y, fixed_t z, mobjtype_t type);
 
 void P_RemoveMobj(mobj_t* th);
-bool_t P_SetMobjState(mobj_t* mobj, statenum_t state);
+bool P_SetMobjState(mobj_t* mobj, statenum_t state);
 void P_MobjThinker(mobj_t* mobj);
 
 //spawn splash at surface of water in sector where the mobj resides
@@ -189,7 +191,7 @@ void P_InitBrainTarget();
 
 // If "floatok" true, move would be ok
 // if within "tmfloorz - tmceilingz".
-extern bool_t floatok;
+extern bool floatok;
 extern fixed_t tmfloorz;
 extern fixed_t tmceilingz;
 extern fixed_t tmsectorceilingz;	//added:28-02-98: p_spawnmobj
@@ -206,19 +208,19 @@ typedef enum P_CheckPositionFlags_e
 	PCPF_FORSPOTCHECK				= 0x0002,	// For player spot checking
 } P_CheckPositionFlags_t;
 
-bool_t P_CheckPositionDetermine(mobj_t* thing, fixed_t x, fixed_t y, uint32_t a_Flags);
-bool_t P_CheckPosition(mobj_t* thing, fixed_t x, fixed_t y, uint32_t a_Flags);
-bool_t P_CheckPosRadius(fixed_t x, fixed_t y, fixed_t Radius);
-bool_t P_TryMove(mobj_t* thing, fixed_t x, fixed_t y, bool_t allowdropoff, fixed_t* const a_OutX, fixed_t* const a_OutY);
-bool_t P_TeleportMove(mobj_t* thing, fixed_t x, fixed_t y);
+bool P_CheckPositionDetermine(mobj_t* thing, fixed_t x, fixed_t y, uint32_t a_Flags);
+bool P_CheckPosition(mobj_t* thing, fixed_t x, fixed_t y, uint32_t a_Flags);
+bool P_CheckPosRadius(fixed_t x, fixed_t y, fixed_t Radius);
+bool P_TryMove(mobj_t* thing, fixed_t x, fixed_t y, bool allowdropoff, fixed_t* const a_OutX, fixed_t* const a_OutY);
+bool P_TeleportMove(mobj_t* thing, fixed_t x, fixed_t y);
 void P_SlideMove(mobj_t* mo);
-bool_t P_CheckSight(mobj_t* t1, mobj_t* t2);
-bool_t P_CheckSight2(mobj_t* t1, mobj_t* t2, fixed_t x, fixed_t y, fixed_t z);	//added by AC for predicting
+bool P_CheckSight(mobj_t* t1, mobj_t* t2);
+bool P_CheckSight2(mobj_t* t1, mobj_t* t2, fixed_t x, fixed_t y, fixed_t z);	//added by AC for predicting
 void P_UseLines(player_t* player);
-bool_t P_CheckSightLine(const fixed_t x1, const fixed_t y1, const fixed_t x2, const fixed_t y2);
+bool P_CheckSightLine(const fixed_t x1, const fixed_t y1, const fixed_t x2, const fixed_t y2);
 
-bool_t P_CheckSector(sector_t* sector, bool_t crunch);
-bool_t P_ChangeSector(sector_t* sector, bool_t crunch);
+bool P_CheckSector(sector_t* sector, bool crunch);
+bool P_ChangeSector(sector_t* sector, bool crunch);
 
 void P_DelSeclist(msecnode_t*);
 void P_CreateSecNodeList(mobj_t*, fixed_t, fixed_t);
@@ -269,9 +271,9 @@ extern mobj_t** blocklinks;		// for thing chains
 // P_INTER
 //
 
-bool_t P_TouchSpecialThing(mobj_t* special, mobj_t* toucher);
+bool P_TouchSpecialThing(mobj_t* special, mobj_t* toucher);
 
-bool_t P_DamageMobj(mobj_t* target, mobj_t* inflictor, mobj_t* source, int damage);
+bool P_DamageMobj(mobj_t* target, mobj_t* inflictor, mobj_t* source, int damage);
 
 //
 // P_SIGHT
@@ -314,27 +316,27 @@ void P_RepositionMace(mobj_t* mo);
 void P_ActivateBeak(player_t* player);
 void P_DSparilTeleport(mobj_t* actor);
 void P_InitMonsters(void);
-bool_t P_LookForMonsters(mobj_t* actor);
+bool P_LookForMonsters(mobj_t* actor);
 int P_GetThingFloorType(mobj_t* thing);
 mobj_t* P_CheckOnmobj(mobj_t* thing);
 void P_AddMaceSpot(mapthing_t* mthing);
-bool_t P_SightPathTraverse(fixed_t x1, fixed_t y1, fixed_t x2, fixed_t y2);
+bool P_SightPathTraverse(fixed_t x1, fixed_t y1, fixed_t x2, fixed_t y2);
 void P_HerePlayerInSpecialSector(player_t* player);
 void P_UpdateBeak(player_t* player, pspdef_t* psp);
-bool_t P_TestMobjLocation(mobj_t* mobj);
+bool P_TestMobjLocation(mobj_t* mobj);
 void P_PostChickenWeapon(player_t* player, weapontype_t weapon);
 void P_SetPsprite(player_t* player, int position, statenum_t stnum);
-bool_t P_Teleport(mobj_t* thing, fixed_t x, fixed_t y, angle_t angle);
-bool_t P_CheckMissileSpawn(mobj_t* th);
+bool P_Teleport(mobj_t* thing, fixed_t x, fixed_t y, angle_t angle);
+bool P_CheckMissileSpawn(mobj_t* th);
 void P_ThrustMobj(mobj_t* mo, angle_t angle, fixed_t move);
 void P_Thrust(player_t* player, angle_t angle, fixed_t move);
 void P_ExplodeMissile(mobj_t* mo);
 void P_Massacre(void);
 void P_AddBossSpot(fixed_t x, fixed_t y, angle_t angle);
-bool_t P_ChickenMorphPlayer(player_t* player);
+bool P_ChickenMorphPlayer(player_t* player);
 
-bool_t P_WeaponIsUnlocked(const weapontype_t a_Weapon);
-bool_t P_CanUseWeapon(player_t* const a_Player, const weapontype_t a_Weapon);
+bool P_WeaponIsUnlocked(const weapontype_t a_Weapon);
+bool P_CanUseWeapon(player_t* const a_Player, const weapontype_t a_Weapon);
 
 /**************************
 *** RMOD TOUCH SPECIALS ***
@@ -394,7 +396,7 @@ typedef struct P_RMODKey_s
 {
 	uint32_t IDNum;								// ID Number
 	uint32_t BoomID;							// Boom ID
-	bool_t IsSkull;								// Is Skull Key
+	bool IsSkull;								// Is Skull Key
 } P_RMODKey_t;
 
 /*** GLOBALS ***/

@@ -105,7 +105,7 @@ void CONS_Printf(char* fmt, ...);
 char* va(char* format, ...);
 
 // g_game.h
-extern bool_t devparm;			// development mode (-devparm)
+extern bool devparm;			// development mode (-devparm)
 
 #ifdef _MSC_VER
 #define snprintf _snprintf

@@ -131,7 +131,7 @@ void RH_RenderBSPNode(RH_RenderStat_t* const a_Stat, const int a_NodeNum);
 /* rh_plane.c */
 void RH_RenderPlanes(RH_RenderStat_t* const a_Stat);
 RH_VisPlane_t* RH_FindPlane(RH_RenderStat_t* const a_Stat, RH_VisPlane_t* const a_Input);
-bool_t RH_ComparePlane(RH_RenderStat_t* const a_Stat, RH_VisPlane_t* const a_A, RH_VisPlane_t* const a_B);
+bool RH_ComparePlane(RH_RenderStat_t* const a_Stat, RH_VisPlane_t* const a_A, RH_VisPlane_t* const a_B);
 
 /* rh_thing.c */
 void RH_AddSprites(RH_RenderStat_t* const a_Stat, sector_t* const a_Sector);

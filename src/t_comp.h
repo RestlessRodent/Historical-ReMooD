@@ -73,7 +73,7 @@ typedef enum TLS_VariableType_e
 *** PROTOTYPES ***
 *****************/
 
-bool_t TLS_ClearScripts(void);
-bool_t TLS_CompileLump(const WadIndex_t Index);
+bool TLS_ClearScripts(void);
+bool TLS_CompileLump(const WadIndex_t Index);
 
 #endif							/* __T_COMP_H__ */

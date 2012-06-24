@@ -55,7 +55,7 @@ struct D_ProfileEx_s;
 *****************/
 
 void D_SyncNetDebugMessage(const char* const a_Format, ...);
-bool_t D_SyncNetIsArbiter(void);
+bool D_SyncNetIsArbiter(void);
 
 void D_SyncNetSetMapTime(const tic_t a_Time);
 tic_t D_SyncNetMapTime(void);
@@ -63,14 +63,14 @@ tic_t D_SyncNetRealTime(void);
 tic_t D_SyncNetAllReady(void);
 void D_SyncNetAppealTime(void);
 
-bool_t D_SyncNetIsPaused(void);
-bool_t D_SyncNetUpdate(void);
-bool_t D_SyncNetIsSolo(void);
+bool D_SyncNetIsPaused(void);
+bool D_SyncNetUpdate(void);
+bool D_SyncNetIsSolo(void);
 
-bool_t D_CheckNetGame(void);
+bool D_CheckNetGame(void);
 
-bool_t D_NetSetPlayerName(const int32_t a_PlayerID, const char* const a_Name);
-bool_t D_NetPlayerChangedPause(const int32_t a_PlayerID);
+bool D_NetSetPlayerName(const int32_t a_PlayerID, const char* const a_Name);
+bool D_NetPlayerChangedPause(const int32_t a_PlayerID);
 
 /*****************************************************************************/
 
@@ -108,13 +108,13 @@ typedef struct D_NetClient_s
 	struct D_RBlockStream_s* Streams[NUMDNCSTREAMS];	// Client Streams
 	
 	/* Flags */
-	bool_t IsLocal;								// Local client
-	bool_t IsServer;							// Is a server
+	bool IsLocal;								// Local client
+	bool IsServer;							// Is a server
 	
 	/* Other Info */
 	char ReverseDNS[NETCLIENTRHLEN];			// Hostname of player
-	bool_t ReadyToPlay;							// Client is ready to play
-	bool_t SaveGameSent;						// Save game was sent
+	bool ReadyToPlay;							// Client is ready to play
+	bool SaveGameSent;						// Save game was sent
 } D_NetClient_t;
 
 typedef void (*D_NCQCFunc_t)(void* const a_Data);
@@ -145,14 +145,14 @@ void D_NCDisconnect(void);
 void D_NCServize(void);
 void D_NCClientize(I_HostAddress_t* const a_Host, const char* const a_Pass, const char* const a_JoinPass);
 
-bool_t D_NCHostOnBanList(I_HostAddress_t* const a_Host);
+bool D_NCHostOnBanList(I_HostAddress_t* const a_Host);
 
-void D_NCReqAddPlayer(struct D_ProfileEx_s* a_Profile, const bool_t a_Bot);
+void D_NCReqAddPlayer(struct D_ProfileEx_s* a_Profile, const bool a_Bot);
 void D_NCZapNetPlayer(struct D_NetPlayer_s* const a_Player);
 
 /*** NSZZ Funcs ***/
 void D_NSZZ_SendINFO(struct D_RBlockStream_s* a_Stream, const uint32_t a_LocalTime);
-bool_t D_NSZZ_SendINFX(struct D_RBlockStream_s* a_Stream, size_t* const a_It);
+bool D_NSZZ_SendINFX(struct D_RBlockStream_s* a_Stream, size_t* const a_It);
 void D_NSZZ_SendMOTD(struct D_RBlockStream_s* a_Stream);
 void D_NSZZ_SendFullWADS(struct D_RBlockStream_s* a_Stream, I_HostAddress_t* const a_Host);
 

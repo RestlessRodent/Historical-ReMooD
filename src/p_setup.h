@@ -71,12 +71,12 @@ extern int nummapthings;
 extern mapthing_t* mapthings;
 
 // NOT called by W_Ticker. Fixme.
-bool_t P_SetupLevel(int episode, int map, skill_t skill, char* mapname);
+bool P_SetupLevel(int episode, int map, skill_t skill, char* mapname);
 
 subsector_t* R_PointInSubsector(fixed_t x, fixed_t y);
 
-extern bool_t newlevel;
-extern bool_t doom1level;
+extern bool newlevel;
+extern bool doom1level;
 extern char* levelmapname;
 
 /*******************************************************************************
@@ -101,10 +101,10 @@ typedef enum P_ExLLFlags_e
 /*** PROTOTYPES ***/
 void P_InitSetupEx(void);
 
-bool_t P_ExClearLevel(void);
+bool P_ExClearLevel(void);
 
-bool_t P_ExLoadLevel(P_LevelInfoEx_t* const a_Info, const uint32_t a_Flags);
-bool_t P_ExFinalizeLevel(void);
+bool P_ExLoadLevel(const P_LevelInfoEx_t* const a_Info, const uint32_t a_Flags);
+bool P_ExFinalizeLevel(void);
 
 #endif
 

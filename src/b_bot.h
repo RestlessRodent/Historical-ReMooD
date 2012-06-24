@@ -86,7 +86,7 @@ typedef struct B_GhostBot_s
 {
 	uint8_t Junk;								// Junk Data
 	ticcmd_t* TicCmdPtr;						// Pointer to tic command
-	bool_t Initted;								// Initialized
+	bool Initted;								// Initialized
 	void* AtNode;								// At node
 	void* OldNode;								// Old node
 	B_BotData_t* BotData;						// Data
@@ -97,8 +97,8 @@ typedef struct B_GhostBot_s
 	
 	struct
 	{
-		bool_t IsSet;							// Target Set
-		bool_t MoveTarget;						// Movement target
+		bool IsSet;							// Target Set
+		bool MoveTarget;						// Movement target
 		uint32_t ExpireTic;						// Action expires at this time
 		int32_t Priority;						// Priority
 		fixed_t x, y;							// X/Y Target
@@ -107,8 +107,8 @@ typedef struct B_GhostBot_s
 	
 	struct
 	{
-		bool_t JobHere;							// A Job is here
-		bool_t (*JobFunc)(struct B_GhostBot_s* a_GhostBot, const size_t a_JobID);
+		bool JobHere;							// A Job is here
+		bool (*JobFunc)(struct B_GhostBot_s* a_GhostBot, const size_t a_JobID);
 		int32_t Priority;						// Job Priority
 		uint32_t Sleep;							// Job Sleeping (wait until tic happens)
 	} Jobs[MAXBOTJOBS];							// Bot's Jobs
@@ -124,7 +124,7 @@ typedef struct B_GhostBot_s
 *** GLOBALS ***
 **************/
 
-extern bool_t g_BotDebug;						// Debugging Bots
+extern bool g_BotDebug;						// Debugging Bots
 
 /*** B_GHOST.C ***/
 extern fixed_t g_GlobalBoundBox[4];				// Global bounding box

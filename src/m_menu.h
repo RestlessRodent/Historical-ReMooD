@@ -94,7 +94,7 @@ typedef struct M_UIItem_s
 	const char** ValueRef;						// Value (i18n)
 	
 	int32_t DataBits;							// Anything needed for data
-	bool_t (*LRValChangeFunc)(struct M_UIMenu_s* const a_Menu, struct M_UIItem_s* const a_Item, const bool_t a_More);
+	bool (*LRValChangeFunc)(struct M_UIMenu_s* const a_Menu, struct M_UIItem_s* const a_Item, const bool a_More);
 } M_UIItem_t;
 
 struct M_UIMenuHandler_s;
@@ -108,8 +108,8 @@ typedef struct M_UIMenu_s
 	size_t NumItems;							// Number of Items
 	
 	void (*CleanerFunc)(struct M_UIMenuHandler_s* const a_Handler, struct M_UIMenu_s* const a_UIMenu);
-	bool_t (*UnderDrawFunc)(struct M_UIMenuHandler_s* const a_Handler, struct M_UIMenu_s* const a_Menu, const int32_t a_X, const int32_t a_Y, const int32_t a_W, const int32_t a_H);
-	bool_t (*OverDrawFunc)(struct M_UIMenuHandler_s* const a_Handler, struct M_UIMenu_s* const a_Menu, const int32_t a_X, const int32_t a_Y, const int32_t a_W, const int32_t a_H);
+	bool (*UnderDrawFunc)(struct M_UIMenuHandler_s* const a_Handler, struct M_UIMenu_s* const a_Menu, const int32_t a_X, const int32_t a_Y, const int32_t a_W, const int32_t a_H);
+	bool (*OverDrawFunc)(struct M_UIMenuHandler_s* const a_Handler, struct M_UIMenu_s* const a_Menu, const int32_t a_X, const int32_t a_Y, const int32_t a_W, const int32_t a_H);
 } M_UIMenu_t;
 
 /* M_UIMenuHandler_t -- Menu Handler */
@@ -125,11 +125,12 @@ typedef struct M_UIMenuHandler_s
 
 /*** FUNCTIONS ***/
 
-bool_t M_ExUIActive(void);
+bool M_ExUIActive(void);
+void M_MenuExInit(void);
 
-bool_t M_ExUIMessageBox(const M_ExMBType_t a_Type, const uint32_t a_MessageID, const char* const a_Title, const char* const a_Message, const MBCallBackFunc_t a_CallBack);
+bool M_ExUIMessageBox(const M_ExMBType_t a_Type, const uint32_t a_MessageID, const char* const a_Title, const char* const a_Message, const MBCallBackFunc_t a_CallBack);
 
-bool_t M_ExUIHandleEvent(const I_EventEx_t* const a_Event);
+bool M_ExUIHandleEvent(const I_EventEx_t* const a_Event);
 void M_ExUIDrawer(void);
 
 M_UIMenuHandler_t* M_ExPushMenu(const uint8_t a_Player, M_UIMenu_t* const a_UI);

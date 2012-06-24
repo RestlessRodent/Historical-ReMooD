@@ -1,5 +1,5 @@
 /* XPM */
-static char * remood_xpm[] = {
+static const char * remood_xpm[] = {
 "64 64 249 2",
 "  	c None",
 ". 	c #8B0000",

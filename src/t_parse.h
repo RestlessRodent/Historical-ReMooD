@@ -115,7 +115,7 @@ struct script_s
 	mobj_t* trigger;			// object which triggered this script
 	
 	//SoM: Used for if/elseif/else statements
-	bool_t lastiftrue;
+	bool lastiftrue;
 };
 
 struct operator_s
@@ -135,7 +135,7 @@ void run_script(script_t* script);
 void continue_script(script_t* script, char* continue_point);
 void parse_include(char* lumpname);
 void run_statement();
-void script_error(char* s, ...);
+void script_error(const char* s, ...);
 
 svalue_t evaluate_expression(int start, int stop);
 int find_operator(int start, int stop, char* value);
@@ -147,7 +147,7 @@ typedef enum
 {
 	name,						// a name, eg 'count1' or 'frag'
 	number,
-	operator,
+	fragglescript_operator,
 	string,
 	unset,
 	function					// function name

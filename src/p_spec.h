@@ -54,7 +54,7 @@ void P_SpawnSpecials(void);
 void P_UpdateSpecials(void);
 
 // when needed
-bool_t P_UseSpecialLine(mobj_t* thing, line_t* line, int side);
+bool P_UseSpecialLine(mobj_t* thing, line_t* line, int side);
 
 void P_ShootSpecialLine(mobj_t* thing, line_t* line);
 
@@ -103,7 +103,7 @@ fixed_t P_FindNextLowestCeiling(sector_t* sec, int currentheight);
 fixed_t P_FindShortestUpperAround(int secnum);
 fixed_t P_FindShortestTextureAround(int secnum);
 sector_t* P_FindModelCeilingSector(fixed_t ceildestheight, int secnum);
-bool_t P_CanUnlockGenDoor(line_t* line, player_t* player);
+bool P_CanUnlockGenDoor(line_t* line, player_t* player);
 int P_CheckTag(line_t* line);
 
 //
@@ -293,7 +293,7 @@ typedef struct
 	int count;
 	plat_e status;
 	plat_e oldstatus;
-	bool_t crush;
+	bool crush;
 	int tag;
 	plattype_e type;
 	
@@ -387,7 +387,7 @@ void T_VerticalDoor(vldoor_t* door);
 vldoor_t* P_SpawnDoorCloseIn(sector_t* sec, const uint32_t a_Tics, const uint32_t a_Type);
 void P_SpawnDoorCloseIn30(sector_t* sec);
 
-vldoor_t* P_SpawnDoorRaiseIn(sector_t* sec, const bool_t a_InitWait, const uint32_t a_Tics, const uint32_t a_Type);
+vldoor_t* P_SpawnDoorRaiseIn(sector_t* sec, const bool a_InitWait, const uint32_t a_Tics, const uint32_t a_Type);
 void P_SpawnDoorRaiseIn5Mins(sector_t* sec, int secnum);
 
 #if 0							// UNUSED
@@ -495,7 +495,7 @@ typedef struct
 	fixed_t topheight;
 	fixed_t speed;
 	fixed_t oldspeed;			//SoM: 3/6/2000
-	bool_t crush;
+	bool crush;
 	
 	//SoM: 3/6/2000: Support ceiling changers
 	int newspecial;
@@ -615,7 +615,7 @@ typedef struct
 {
 	thinker_t thinker;
 	floor_e type;
-	bool_t crush;
+	bool crush;
 	sector_t* sector;
 	int direction;
 	int newspecial;
@@ -635,13 +635,13 @@ typedef struct					//SoM: 3/6/2000: Elevator struct.
 	fixed_t floordestheight;
 	fixed_t ceilingdestheight;
 	fixed_t speed;
-	bool_t Silent;								// Silent
+	bool Silent;								// Silent
 	fixed_t PerpWait;							// Perp Wait Amount
 	fixed_t PerpTicsLeft;						// Time left until perp moves
 	line_t* CallLine;							// Calling Line
 	fixed_t PDoorSpeed;							// Elevator Door speed
 	int OldDirection;							// Old movement direction
-	bool_t Dinged;								// Elevator Dinged
+	bool Dinged;								// Elevator Dinged
 } elevator_t;
 
 #define ELEVATORSPEED (FRACUNIT*4)	//SoM: 3/6/2000
@@ -654,7 +654,7 @@ typedef enum
 	pastdest
 } result_e;
 
-result_e T_MovePlane(sector_t* sector, fixed_t speed, fixed_t dest, bool_t crush, int floorOrCeiling, int direction);
+result_e T_MovePlane(sector_t* sector, fixed_t speed, fixed_t dest, bool crush, int floorOrCeiling, int direction);
 
 int EV_BuildStairs(line_t* line, stair_e type);
 
@@ -674,7 +674,7 @@ int EV_Teleport(line_t* line, int side, mobj_t* thing);
 
 //SoM: 3/15/2000: Boom silent teleport functions
 int EV_SilentTeleport(line_t* line, int side, mobj_t* thing);
-int EV_SilentLineTeleport(line_t* line, int side, mobj_t* thing, bool_t reverse);
+int EV_SilentLineTeleport(line_t* line, int side, mobj_t* thing, bool reverse);
 int EV_PortalTeleport(line_t* line, mobj_t* thing, int side);
 
 /* SoM: 3/4/2000: This is a large section of copied code. Sorry if this offends people, but
@@ -893,7 +893,7 @@ typedef enum EV_TryGenTypeFlags_e
 /* EV_ReGenMap_t -- Re-Generalize Map */
 typedef struct EV_ReGenMap_s
 {
-	bool_t Sector;								// Applies to sector
+	bool Sector;								// Applies to sector
 	uint32_t Source;							// Source Type
 	uint32_t Target;							// Target Type
 } EV_ReGenMap_t;
@@ -911,11 +911,11 @@ int EV_DoGenCrusher(line_t* line, mobj_t* const a_Object);
 int EV_DoGenDoor(line_t* line, mobj_t* const a_Object);
 int EV_DoGenLockedDoor(line_t* line, mobj_t* const a_Object);
 
-bool_t EV_TryGenTrigger(line_t* const a_Line, const int a_Side, mobj_t* const a_Object, const EV_TryGenType_t a_Type, const uint32_t a_Flags, bool_t* const a_UseAgain);
-void P_ProcessSpecialSectorEx(const EV_TryGenType_t a_Type, mobj_t* const a_Mo, player_t* const a_Player, sector_t* const a_Sector, const bool_t a_InstaDamage);
+bool EV_TryGenTrigger(line_t* const a_Line, const int a_Side, mobj_t* const a_Object, const EV_TryGenType_t a_Type, const uint32_t a_Flags, bool* const a_UseAgain);
+void P_ProcessSpecialSectorEx(const EV_TryGenType_t a_Type, mobj_t* const a_Mo, player_t* const a_Player, sector_t* const a_Sector, const bool a_InstaDamage);
 
-uint32_t EV_DoomToGenTrigger(const bool_t a_Sector, const uint32_t a_Input);
-uint32_t EV_HexenToGenTrigger(const bool_t a_Sector, const uint32_t a_Flags, const uint8_t a_Input, const uint8_t* const a_Args);
+uint32_t EV_DoomToGenTrigger(const bool a_Sector, const uint32_t a_Input);
+uint32_t EV_HexenToGenTrigger(const bool a_Sector, const uint32_t a_Flags, const uint8_t a_Input, const uint8_t* const a_Args);
 
 /****** EXTENDED HIGH GENERALIZATION ******/
 
@@ -1232,6 +1232,15 @@ typedef enum
 
 /* SoM: End generalized linedef code */
 
+typedef enum
+{
+	sc_side,
+	sc_floor,
+	sc_ceiling,
+	sc_carry,
+	sc_carry_ceiling,
+} scrolltype_t;
+
 //SoM: 3/8/2000: Add generalized scroller code
 typedef struct
 {
@@ -1242,14 +1251,7 @@ typedef struct
 	fixed_t last_height;		// Last known height of control sector
 	fixed_t vdx, vdy;			// Accumulated velocity if accelerative
 	int accel;					// Whether it's accelerative
-	enum
-	{
-		sc_side,
-		sc_floor,
-		sc_ceiling,
-		sc_carry,
-		sc_carry_ceiling,
-	} type;
+	scrolltype_t type;
 } scroll_t;
 
 void T_Scroll(scroll_t* s);
@@ -1275,20 +1277,22 @@ void T_Friction(friction_t* f);
 
 //SoM: 3/8/2000: Model for Pushers for push/pull effects
 
+typedef enum
+{
+	p_push,
+	p_pull,
+	p_wind,
+	p_current,
+	p_upcurrent,			// SSNTails 06-10-2002
+	p_downcurrent,			// SSNTails 06-10-2002
+	p_upwind,				// SSNTails 06-10-2003 WOAH! EXACTLY ONE YEAR LATER! FREAKY!
+	p_downwind,				// SSNTails 06-10-2003
+} pushtype_t;
+
 typedef struct
 {
 	thinker_t thinker;			// Thinker structure for Pusher
-	enum
-	{
-		p_push,
-		p_pull,
-		p_wind,
-		p_current,
-		p_upcurrent,			// SSNTails 06-10-2002
-		p_downcurrent,			// SSNTails 06-10-2002
-		p_upwind,				// SSNTails 06-10-2003 WOAH! EXACTLY ONE YEAR LATER! FREAKY!
-		p_downwind,				// SSNTails 06-10-2003
-	} type;
+	pushtype_t type;
 	mobj_t* source;				// Point source if point pusher
 	int x_mag;					// X Strength
 	int y_mag;					// Y Strength
@@ -1300,7 +1304,7 @@ typedef struct
 } pusher_t;
 
 //SoM: 3/9/2000: Prototype functions for pushers
-bool_t PIT_PushThing(mobj_t* thing, void* a_Arg);
+bool PIT_PushThing(mobj_t* thing, void* a_Arg);
 void T_Pusher(pusher_t* p);
 mobj_t* P_GetPushThing(int s);
 
@@ -1333,8 +1337,8 @@ typedef enum P_EXSLineTrigger_s
 
 /*** FUNCTIONS ***/
 
-bool_t P_RMODH_Specials(Z_Table_t* const a_Table, const WL_WADFile_t* const a_WAD, const D_RMODPrivates_t a_ID, D_RMODPrivate_t* const a_Private);
-bool_t P_RMODO_Specials(const bool_t a_Pushed, const struct WL_WADFile_s* const a_WAD, const D_RMODPrivates_t a_ID);
+bool P_RMODH_Specials(Z_Table_t* const a_Table, const WL_WADFile_t* const a_WAD, const D_RMODPrivates_t a_ID, D_RMODPrivate_t* const a_Private);
+bool P_RMODO_Specials(const bool a_Pushed, const struct WL_WADFile_s* const a_WAD, const D_RMODPrivates_t a_ID);
 
 void P_ExtraSpecialStuff(void);
 
