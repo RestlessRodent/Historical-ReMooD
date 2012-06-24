@@ -92,6 +92,8 @@
 
 /* DJGPP */
 #if defined(__REMOOD_SYSTEM_DOS) && defined(__DJGPP__)
+	#include <glib.h>
+	
 	#define snprintf g_snprintf
 	#define vsnprintf g_vsnprintf
 #endif
