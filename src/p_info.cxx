@@ -151,7 +151,7 @@ static const struct
 };
 
 /* PS_ParseLumpHeader() -- Parses lump header */
-static bool PS_ParseLumpHeader(P_LevelInfoEx_t* const a_CurrentInfo, WL_EntryStream_t* const a_Stream)
+static bool PS_ParseLumpHeader(P_LevelInfoEx_t* const a_CurrentInfo, WLEntryStream_c* const a_Stream)
 {
 #define BUFSIZE 512
 	char Buf[BUFSIZE];
@@ -182,21 +182,21 @@ static bool PS_ParseLumpHeader(P_LevelInfoEx_t* const a_CurrentInfo, WL_EntryStr
 		return 0;
 	
 	/* Go back to start of info */
-	WL_StreamSeek(a_Stream, a_CurrentInfo->BlockPos[PIBT_LEVELINFO][0], false);
+	a_Stream->Seek(a_CurrentInfo->BlockPos[PIBT_LEVELINFO][0]);
 	
 	/* Keep reading lines */
 	for (;;)
 	{
 		// EOS?
-		if (WL_StreamEOF(a_Stream))
+		if (a_Stream->EndOfStream())
 			break;
 		
 		// Read a fresh line from the buffer
 		memset(Buf, 0, sizeof(Buf));
-		WL_StreamReadLine(a_Stream, Buf, BUFSIZE - 1);
+		a_Stream->ReadLine(Buf, BUFSIZE - 1);
 		
 		// Now past the end?
-		if (WL_StreamTell(a_Stream) > a_CurrentInfo->BlockPos[PIBT_LEVELINFO][1])
+		if (a_Stream->Tell() > a_CurrentInfo->BlockPos[PIBT_LEVELINFO][1])
 			break;
 		
 		// Debug
@@ -353,7 +353,7 @@ static bool PS_ParseMapInfo(P_LevelInfoHolder_t* const a_Holder, const WL_WADEnt
 	char Buf[BUFSIZE];
 	char Token[BUFSIZE];
 	P_LevelInfoEx_t* CurrentInfo;
-	WL_EntryStream_t* Stream;
+	WLEntryStream_c* Stream;
 	size_t i, FNum;
 	char* p, *q;
 	char* TokenP;
@@ -384,7 +384,7 @@ static bool PS_ParseMapInfo(P_LevelInfoHolder_t* const a_Holder, const WL_WADEnt
 	memset(&DefaultStore, 0, sizeof(DefaultStore));
 	
 	/* Open Stream */
-	Stream = WL_StreamOpen(a_MIEntry);
+	Stream = new WLEntryStream_c(a_MIEntry);
 	
 	// Failed to open
 	if (!Stream)
@@ -395,19 +395,19 @@ static bool PS_ParseMapInfo(P_LevelInfoHolder_t* const a_Holder, const WL_WADEnt
 		CONL_PrintF("PS_ParseMapInfo: Parsing MAPINFO \"%s\" for \"%s\".\n", a_MIEntry->Name, WL_GetWADName(a_Holder->WAD, false));
 	
 	// Check unicode
-	WL_StreamCheckUnicode(Stream);
+	Stream->CheckUnicode();
 	
 	/* Parse till the end */
 	// Not working on any map
 	CurrentInfo = NULL;
 	
 	// Read constantly
-	while (!WL_StreamEOF(Stream))
+	while (!Stream->EndOfStream())
 	{
 		// Read line into buffer
 		memset(Buf, 0, sizeof(Buf));
 		memset(Token, 0, sizeof(Token));
-		WL_StreamReadLine(Stream, Buf, BUFSIZE - 1);
+		Stream->ReadLine(Buf, BUFSIZE - 1);
 		
 		// Skip whitespace
 		for (p = Buf; *p && (*p == ' ' || *p == '\t'); p++)
@@ -680,7 +680,7 @@ static bool PS_ParseMapInfo(P_LevelInfoHolder_t* const a_Holder, const WL_WADEnt
 	}
 	
 	/* Close Stream */
-	WL_StreamClose(Stream);
+	delete Stream;
 	
 	/* Clear default settings */
 	for (FNum = 0; !c_PMIFields[FNum].IsEnd; FNum++)
@@ -708,7 +708,7 @@ static bool PS_ParseMapInfo(P_LevelInfoHolder_t* const a_Holder, const WL_WADEnt
 }
 
 /* PS_LevelInfoGetBlockPoints() -- Locates block points within a file */
-static bool PS_LevelInfoGetBlockPoints(P_LevelInfoEx_t* const a_Info, const WL_WADEntry_t* a_Entry, WL_EntryStream_t* const a_Stream)
+static bool PS_LevelInfoGetBlockPoints(P_LevelInfoEx_t* const a_Info, const WL_WADEntry_t* a_Entry, WLEntryStream_c* const a_Stream)
 {
 #define BUFSIZE 256
 	char Buf[BUFSIZE];
@@ -723,23 +723,23 @@ static bool PS_LevelInfoGetBlockPoints(P_LevelInfoEx_t* const a_Info, const WL_W
 		return false;
 	
 	/* While there is no stream end */
-	while (!WL_StreamEOF(a_Stream))
+	while (!a_Stream->EndOfStream())
 	{
 		// Reset variables
 		i = 0;
 		memset(Buf, 0, sizeof(Buf));
-		LineStartPos = WL_StreamTell(a_Stream);
+		LineStartPos = a_Stream->Tell();
 		FullRead = false;
 		
 		// Read line into buffer
 		do
 		{
 			// No more characters?
-			if (WL_StreamEOF(a_Stream))
+			if (a_Stream->EndOfStream())
 				break;
 			
 			// Read it
-			Char = WL_StreamReadChar(a_Stream);
+			Char = a_Stream->ReadChar();
 			
 			// Place it
 			if (i < BUFSIZE - 1)
@@ -867,7 +867,7 @@ static bool P_WLInfoCreator(const WL_WADFile_t* const a_WAD, const uint32_t a_Ke
 	bool IsDoomHexen;
 	P_LevelInfoHolder_t* Holder;
 	P_LevelInfoEx_t* CurrentInfo;
-	WL_EntryStream_t* ReadStream;
+	WLEntryStream_c* ReadStream;
 	uint16_t Char;
 	
 	/* Check */
@@ -1049,13 +1049,13 @@ static bool P_WLInfoCreator(const WL_WADFile_t* const a_WAD, const uint32_t a_Ke
 		}
 		
 		// Read header lump for Legacy map information
-		ReadStream = WL_StreamOpen(CurrentInfo->EntryPtr[PLIEDS_HEADER]);
+		ReadStream = new WLEntryStream_c(CurrentInfo->EntryPtr[PLIEDS_HEADER]);
 		
 		// Worked?
 		if (ReadStream)
 		{
 			// Determine unicode level
-			WL_StreamCheckUnicode(ReadStream);
+			ReadStream->CheckUnicode();
 			
 			// Determine block locations
 			if (PS_LevelInfoGetBlockPoints(CurrentInfo, CurrentInfo->EntryPtr[PLIEDS_HEADER], ReadStream))
@@ -1067,7 +1067,7 @@ static bool P_WLInfoCreator(const WL_WADFile_t* const a_WAD, const uint32_t a_Ke
 		}
 		
 		// Destroy stream
-		WL_StreamClose(ReadStream);
+		delete ReadStream;
 		
 		// If no level name exists, fake one (as long as this isn't an IWAD)
 		if (!CurrentInfo->WAD->__Private.__IsIWAD)

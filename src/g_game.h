@@ -138,7 +138,7 @@ typedef struct G_CurrentDemo_s
 	bool Out;									// Demo is out (being written)
 	const G_DemoFactory_t* Factory;				// Factory for demo
 	void* CFile;								// CFile
-	WL_EntryStream_t* WLStream;					// Demo Streamer (Raw)
+	WLEntryStream_c* WLStream;					// Demo Streamer (Raw)
 	D_RBlockStream_t* RBSStream;				// Block Streamer
 	void* Data;									// Internal Data
 } G_CurrentDemo_t;
@@ -148,7 +148,7 @@ extern tic_t g_DemoTime;
 const G_DemoFactory_t* G_DemoFactoryByName(const char* const a_Name);
 void G_DemoQueue(const char* const a_Name);
 bool G_PlayNextQ(void);
-G_CurrentDemo_t* G_DemoPlay(WL_EntryStream_t* const a_Stream, const G_DemoFactory_t* const a_Factory);
+G_CurrentDemo_t* G_DemoPlay(WLEntryStream_c* const a_Stream, const G_DemoFactory_t* const a_Factory);
 
 void G_RecordDemo(char* name);	// Only called by startup code.
 void G_StopDemo(void);
@@ -183,13 +183,9 @@ class DemoCODEC
 		~DemoCODEC();
 		
 		/* Decoding */
-		virtual bool LoadDemo(WL_EntryStream_t* const a_Stream);
-		virtual bool LoadDemo(D_RBlockStream_t* const a_Stream) = 0;
 		virtual void DecodeTicCmd(ticcmd_t* const a_TicCmd, const int32_t a_PlayerNum);
 		
 		/* Encoding */
-		virtual bool SaveDemo(void* const a_CFile);
-		virtual bool SaveDemo(D_RBlockStream_t* const a_Stream) = 0;
 		virtual void EncodeTicCmd(const ticcmd_t* const a_TicCmd, const int32_t a_PlayerNum);
 };
 

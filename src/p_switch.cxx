@@ -58,7 +58,7 @@ void P_InitSwitchList(void)
 {
 	int32_t i, j, t;
 	const WL_WADEntry_t* Entry;
-	WL_EntryStream_t* Stream;
+	WLEntryStream_c* Stream;
 	uint16_t Flag;
 	char Texts[2][9];
 	
@@ -70,7 +70,7 @@ void P_InitSwitchList(void)
 		return;
 	
 	// Open stream
-	Stream = WL_StreamOpen(Entry);
+	Stream = new WLEntryStream_c(Entry);
 	
 	// Failed?
 	if (!Stream)
@@ -96,12 +96,12 @@ void P_InitSwitchList(void)
 		for (t = 0; t < 2; t++)
 		{
 			for (j = 0; j < 9; j++)
-				Texts[t][j] = WL_StreamReadUInt8(Stream);
+				Texts[t][j] = Stream->ReadUInt8();
 			Texts[t][8] = 0;
 		}
 		
 		// Read Bits
-		Flag = WL_StreamReadLittleUInt16(Stream);
+		Flag = Stream->ReadLittleUInt16();
 		
 		// End?
 		if (!Flag)

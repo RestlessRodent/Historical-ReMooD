@@ -185,7 +185,7 @@ static size_t DS_RBSWL_RecordF(struct D_RBlockStream_s* const a_Stream)
 /* DS_RBSWL_PlayF() -- Play from file */
 bool DS_RBSWL_PlayF(struct D_RBlockStream_s* const a_Stream)
 {
-	WL_EntryStream_t* Stream;
+	WLEntryStream_c* Stream;
 	char Header[5];
 	uint32_t Len, Sum, i;
 	void* Data;
@@ -195,7 +195,7 @@ bool DS_RBSWL_PlayF(struct D_RBlockStream_s* const a_Stream)
 		return false;
 		
 	/* Get Data */
-	Stream = (WL_EntryStream_t*)a_Stream->Data;
+	Stream = (WLEntryStream_c*)a_Stream->Data;
 	
 	/* Read Header */
 	// Clear
@@ -205,18 +205,17 @@ bool DS_RBSWL_PlayF(struct D_RBlockStream_s* const a_Stream)
 	
 	// Read Header
 	for (i = 0; i < 4; i++)
-		Header[i] = WL_StreamReadChar(Stream);
+		Header[i] = Stream->ReadChar();
 	
 	// Read Length and Sum
-	Len = WL_StreamReadLittleUInt32(Stream);
-	Sum = WL_StreamReadLittleUInt32(Stream);
+	Len = Stream->ReadLittleUInt32();
+	Sum = Stream->ReadLittleUInt32();
 	
 	// Read data, if possible (Len could be zero (empty block?))
 	if (Len > 0)
 	{
 		Data = Z_Malloc(Len, PU_STATIC, NULL);
-		WL_StreamRawRead(Stream, WL_StreamTell(Stream), Data, Len);
-		WL_StreamSeek(Stream, WL_StreamTell(Stream) + Len, false);
+		Stream->ReadChunk(Data, Len);
 	}
 	
 	/* Initialize Block */
@@ -1520,7 +1519,7 @@ D_RBlockStream_t* D_RBSCreateLoopBackStream(void)
 }
 
 /* D_RBSCreateWLStream() -- Creates a stream that wraps an entry stream */
-D_RBlockStream_t* D_RBSCreateWLStream(WL_EntryStream_t* const a_Stream)
+D_RBlockStream_t* D_RBSCreateWLStream(WLEntryStream_c* const a_Stream)
 {
 	D_RBlockStream_t* New;
 	

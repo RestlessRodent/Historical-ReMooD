@@ -238,7 +238,7 @@ static bool RS_TexturePDCreate(const struct WL_WADFile_s* const a_WAD, const uin
 	const WL_WADEntry_t* Entry;
 	const WL_WADEntry_t* MStart;
 	const WL_WADEntry_t* MEnd;
-	WL_EntryStream_t* Stream;
+	WLEntryStream_c* Stream;
 	size_t i, j, k, p, z;
 	char c;
 	bool Continue;
@@ -270,13 +270,13 @@ static bool RS_TexturePDCreate(const struct WL_WADFile_s* const a_WAD, const uin
 	if (Entry)
 	{
 		// Open stream
-		Stream = WL_StreamOpen(Entry);
+		Stream = new WLEntryStream_c(Entry);
 		
 		// Opened?
 		if (Stream)
 		{
 			// Read number of patches
-			Holder->NumPatches = WL_StreamReadLittleUInt32(Stream);
+			Holder->NumPatches = Stream->ReadLittleUInt32();
 			
 			// Allocate array name of patches
 			Holder->RealPatchBuf = (char*)Z_Malloc(sizeof(char) * 9 * Holder->NumPatches, PU_WLDKRMOD, NULL);
@@ -292,7 +292,7 @@ static bool RS_TexturePDCreate(const struct WL_WADFile_s* const a_WAD, const uin
 				for (Continue = true, j = 0; j < 8; j++)
 				{
 					// Always read character
-					c = WL_StreamReadChar(Stream);
+					c = Stream->ReadChar();
 					
 					// No longer continue?
 					if (!c)
@@ -305,7 +305,7 @@ static bool RS_TexturePDCreate(const struct WL_WADFile_s* const a_WAD, const uin
 			}
 			
 			// Close stream
-			WL_StreamClose(Stream);
+			delete Stream;
 		}
 	}
 	
@@ -321,11 +321,11 @@ static bool RS_TexturePDCreate(const struct WL_WADFile_s* const a_WAD, const uin
 			continue;	// Not found, ignore
 		
 		// Attempt to open stream
-		if (!(Stream = WL_StreamOpen(Entry)))
+		if (!(Stream = new WLEntryStream_c(Entry)))
 			continue;	// Failed to open
 		
 		// Read texture count (and add)
-		ThisCount = WL_StreamReadLittleUInt32(Stream);
+		ThisCount = Stream->ReadLittleUInt32();
 		
 		// Allocate offset table
 		Holder->TextureOffsets = (uint32_t*)Z_Malloc(sizeof(*Holder->TextureOffsets) * ThisCount, PU_WLDKRMOD, NULL);
@@ -336,13 +336,13 @@ static bool RS_TexturePDCreate(const struct WL_WADFile_s* const a_WAD, const uin
 		
 		// Read offset table
 		for (j = 0; j < ThisCount; j++)
-			Holder->TextureOffsets[j] = WL_StreamReadLittleUInt32(Stream);
+			Holder->TextureOffsets[j] = Stream->ReadLittleUInt32();
 		
 		// Read in texture data
 		for (z = BaseOffset, j = 0; j < ThisCount; j++, z++)
 		{
 			// Seek to offset in stream
-			WL_StreamSeek(Stream, Holder->TextureOffsets[j], false);
+			Stream->Seek(Holder->TextureOffsets[j], false);
 			
 			// Set internal order
 			Holder->Textures[z].InternalOrder = z;
@@ -351,7 +351,7 @@ static bool RS_TexturePDCreate(const struct WL_WADFile_s* const a_WAD, const uin
 			for (Continue = true, k = 0; k < 8; k++)
 			{
 				// Always read character
-				c = WL_StreamReadChar(Stream);
+				c = Stream->ReadChar();
 				
 				// No longer continue?
 				if (!c)
@@ -363,11 +363,11 @@ static bool RS_TexturePDCreate(const struct WL_WADFile_s* const a_WAD, const uin
 			}
 			
 			// Ignore "masked", unused
-			WL_StreamReadLittleUInt32(Stream);
+			Stream->ReadLittleUInt32();
 			
 			// Read the size of the texture
-			Holder->Textures[z].width = WL_StreamReadLittleInt16(Stream);
-			Holder->Textures[z].height = WL_StreamReadLittleInt16(Stream);
+			Holder->Textures[z].width = Stream->ReadLittleInt16();
+			Holder->Textures[z].height = Stream->ReadLittleInt16();
 			
 			// Fixed-ize the dimensions
 			Holder->Textures[z].XWidth = ((fixed_t)Holder->Textures[z].width) << FRACBITS;
@@ -388,10 +388,10 @@ static bool RS_TexturePDCreate(const struct WL_WADFile_s* const a_WAD, const uin
 				}
 			
 			// Ignore "columndirectory", unused
-			WL_StreamReadLittleUInt32(Stream);
+			Stream->ReadLittleUInt32();
 			
 			// Read patch count
-			Holder->Textures[z].patchcount = WL_StreamReadLittleUInt16(Stream);
+			Holder->Textures[z].patchcount = Stream->ReadLittleUInt16();
 			
 			// Allocate patch data
 			if (Holder->Textures[z].patchcount)
@@ -401,15 +401,15 @@ static bool RS_TexturePDCreate(const struct WL_WADFile_s* const a_WAD, const uin
 			for (p = 0; p < Holder->Textures[z].patchcount; p++)
 			{
 				// Read offsets
-				Holder->Textures[z].patches[p].originx = WL_StreamReadLittleInt16(Stream);
-				Holder->Textures[z].patches[p].originy = WL_StreamReadLittleInt16(Stream);
+				Holder->Textures[z].patches[p].originx = Stream->ReadLittleInt16();
+				Holder->Textures[z].patches[p].originy = Stream->ReadLittleInt16();
 				
 				// Read patch ID
-				Holder->Textures[z].patches[p].patch = WL_StreamReadLittleUInt16(Stream);
+				Holder->Textures[z].patches[p].patch = Stream->ReadLittleUInt16();
 				
 				// Ignore stepdir and colormap
-				WL_StreamReadLittleUInt16(Stream);
-				WL_StreamReadLittleUInt16(Stream);
+				Stream->ReadLittleUInt16();
+				Stream->ReadLittleUInt16();
 				
 				// Translate patch ID to name
 				k = Holder->Textures[z].patches[p].patch;
@@ -421,7 +421,7 @@ static bool RS_TexturePDCreate(const struct WL_WADFile_s* const a_WAD, const uin
 		}
 		
 		// Close stream
-		WL_StreamClose(Stream);
+		delete Stream;
 		
 		// Free offset table (no longer needed)
 		if (Holder->TextureOffsets)

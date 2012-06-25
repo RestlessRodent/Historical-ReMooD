@@ -1259,7 +1259,7 @@ bool P_ExLoadLevel(const P_LevelInfoEx_t* const a_Info, const uint32_t a_Flags)
 bool P_ExFinalizeLevel(void)
 {
 	size_t i;
-	WL_EntryStream_t* ScriptStream;
+	WLEntryStream_c* ScriptStream;
 	
 	/* Set gamestate to level */
 	// So that we can play it now
@@ -1308,22 +1308,22 @@ bool P_ExFinalizeLevel(void)
 		g_CurrentLevelInfo->BlockPos[PIBT_SCRIPTS][0] >= 0)
 	{
 		// Open stream to lump header
-		ScriptStream = WL_StreamOpen(g_CurrentLevelInfo->EntryPtr[PLIEDS_HEADER]);
+		ScriptStream = new WLEntryStream_c(g_CurrentLevelInfo->EntryPtr[PLIEDS_HEADER]);
 		
 		// If it was created
 		if (ScriptStream)
 		{
 			// Check Unicode viability
-			WL_StreamCheckUnicode(ScriptStream);
+			ScriptStream->CheckUnicode();
 			
 			// Seek to script start
-			WL_StreamSeek(ScriptStream, g_CurrentLevelInfo->BlockPos[PIBT_SCRIPTS][0], false);
+			ScriptStream->Seek(g_CurrentLevelInfo->BlockPos[PIBT_SCRIPTS][0], false);
 			
 			// Compile it
 			T_DSVM_CompileStream(ScriptStream, g_CurrentLevelInfo->BlockPos[PIBT_SCRIPTS][1]);
 			
 			// Close it
-			WL_StreamClose(ScriptStream);
+			delete ScriptStream;
 		}
 	}
 	

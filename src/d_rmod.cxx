@@ -64,7 +64,7 @@ typedef struct D_WXRMODPrivate_s
 /* D_RMODTokenInfo_t -- RMOD Token Information */
 typedef struct D_RMODTokenInfo_s
 {
-	WL_EntryStream_t* Stream;					// Stream reader
+	WLEntryStream_c* Stream;					// Stream reader
 	size_t StreamEnd;							// When the stream ends
 	const char* TokenProblem;					// Problem with token
 	
@@ -172,7 +172,7 @@ static bool DS_RMODReadToken(D_RMODTokenInfo_t* const a_Info)
 	a_Info->TokenProblem = NULL;
 	
 	/* Read Loop */
-	for (Action = 0, Flipped = false, wc = WL_StreamReadChar(a_Info->Stream); WL_StreamTell(a_Info->Stream) < a_Info->StreamEnd; wc = WL_StreamReadChar(a_Info->Stream))
+	for (Action = 0, Flipped = false, wc = a_Info->Stream->ReadChar(); a_Info->Stream->Tell() < a_Info->StreamEnd; wc = a_Info->Stream->ReadChar())
 	{
 		// Always increment column
 		a_Info->CurCol++;
@@ -209,7 +209,7 @@ static bool DS_RMODReadToken(D_RMODTokenInfo_t* const a_Info)
 			Action = 4;
 			
 			// Read character
-			wc = WL_StreamReadChar(a_Info->Stream);
+			wc = a_Info->Stream->ReadChar();
 			
 			// Check for '/'
 			if (wc != '/')
@@ -219,7 +219,7 @@ static bool DS_RMODReadToken(D_RMODTokenInfo_t* const a_Info)
 			}
 			
 			// Already is a comment so ignore character until it is '\n'
-			for (wc = WL_StreamReadChar(a_Info->Stream); WL_StreamTell(a_Info->Stream) < a_Info->StreamEnd; wc = WL_StreamReadChar(a_Info->Stream))
+			for (wc = a_Info->Stream->ReadChar(); a_Info->Stream->Tell() < a_Info->StreamEnd; wc = a_Info->Stream->ReadChar())
 				if (wc == '\n')
 					break;
 			
@@ -247,7 +247,7 @@ static bool DS_RMODReadToken(D_RMODTokenInfo_t* const a_Info)
 				a_Info->Token[a_Info->PutAt++] = wc;
 			
 			// Read into buffer, until quote is found again
-			for (wcLast = 0, wc = WL_StreamReadChar(a_Info->Stream); WL_StreamTell(a_Info->Stream) < a_Info->StreamEnd; wc = WL_StreamReadChar(a_Info->Stream))
+			for (wcLast = 0, wc = a_Info->Stream->ReadChar(); a_Info->Stream->Tell() < a_Info->StreamEnd; wc = a_Info->Stream->ReadChar())
 			{
 				// Copy to buffer
 				if (a_Info->PutAt < a_Info->TokenSize)
@@ -325,7 +325,7 @@ static bool DS_RMODPDC(const struct WL_WADFile_s* const a_WAD, const uint32_t a_
 {
 #define BUFSIZE 384
 	const WL_WADEntry_t* DataEntry;
-	WL_EntryStream_t* DataStream;
+	WLEntryStream_c* DataStream;
 	int i = 0, n, Expected, Deepness;
 	uint16_t wc;
 	D_RMODTokenInfo_t Info;
@@ -515,7 +515,7 @@ static bool DS_RMODPDC(const struct WL_WADFile_s* const a_WAD, const uint32_t a_
 			CONL_EarlyBootTic("Parsing REMOODAT", true);
 	
 		// Use streamer
-		DataStream = WL_StreamOpen(DataEntry);
+		DataStream = new WLEntryStream_c(DataEntry);
 	
 		// Failed?
 		if (!DataStream)
@@ -527,7 +527,7 @@ static bool DS_RMODPDC(const struct WL_WADFile_s* const a_WAD, const uint32_t a_
 		}
 	
 		// Determine text type
-		WL_StreamCheckUnicode(DataStream);
+		DataStream->CheckUnicode();
 	
 		// Begin stream parse
 		// Prepare info
@@ -762,7 +762,7 @@ static bool DS_RMODPDC(const struct WL_WADFile_s* const a_WAD, const uint32_t a_
 			CONL_PrintF("DS_RMODPDC: Parse error \"%s\" at row %i, column %i.\n", ErrorText, Info.CurRow + 1, Info.CurCol);
 	
 		// Free streamer
-		WL_StreamClose(DataStream);
+		delete DataStream;
 		
 		// Finish off Cache
 		if (CacheStream)

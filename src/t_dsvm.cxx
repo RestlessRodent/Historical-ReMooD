@@ -565,7 +565,7 @@ static bool TS_VMSolveExpr(T_VMExprHold_t* const a_Hold, const char* const a_Sco
 }
 
 /* T_DSVM_ReadToken() -- Reads Token */
-bool T_DSVM_ReadToken(WL_EntryStream_t* const a_Stream, const size_t a_End, uint32_t* const a_Row, char* const a_Buf, const size_t a_BufSize)
+bool T_DSVM_ReadToken(WLEntryStream_c* const a_Stream, const size_t a_End, uint32_t* const a_Row, char* const a_Buf, const size_t a_BufSize)
 {
 	bool ReadSomething;
 	char Char;
@@ -582,10 +582,10 @@ bool T_DSVM_ReadToken(WL_EntryStream_t* const a_Stream, const size_t a_End, uint
 	/* Read Loop */
 	Mode = 0;
 	ReadString = Ident = Number = Symbol = DidPeriod = EscapeQuote = false;
-	while ((Char = WL_StreamReadChar(a_Stream)))
+	while ((Char = a_Stream->ReadChar()))
 	{
 		// EOS?
-		if (!Char || WL_StreamEOF(a_Stream) || WL_StreamTell(a_Stream) >= a_End)
+		if (!Char || a_Stream->EndOfStream() || a_Stream->Tell() >= a_End)
 			return ReadSomething;
 		
 		// Ignore Whitespace
@@ -608,20 +608,20 @@ bool T_DSVM_ReadToken(WL_EntryStream_t* const a_Stream, const size_t a_End, uint
 		if (!ReadString && (Char == '/'))
 		{
 			// Read Next Char
-			Char = WL_StreamReadChar(a_Stream);
+			Char = a_Stream->ReadChar();
 			
 			// End of read?
-			if (!Char || WL_StreamEOF(a_Stream) || WL_StreamTell(a_Stream) >= a_End)
+			if (!Char || a_Stream->EndOfStream() || a_Stream->Tell() >= a_End)
 				return ReadSomething;
 			
 			// If it is a '/' it is a comment, otherwise it is division
 			if (Char == '/')
 			{
 				// Continue until '\n'
-				while (Char = WL_StreamReadChar(a_Stream))
+				while (Char = a_Stream->ReadChar())
 				{
 					// End of read?
-					if (!Char || WL_StreamEOF(a_Stream) || WL_StreamTell(a_Stream) >= a_End)
+					if (!Char || a_Stream->EndOfStream() || a_Stream->Tell() >= a_End)
 						return ReadSomething;
 					
 					// New line?
@@ -648,7 +648,7 @@ bool T_DSVM_ReadToken(WL_EntryStream_t* const a_Stream, const size_t a_End, uint
 				// This is for `foo+2/5-1` like cases
 				if ((Ident || Number) && !Symbol)
 				{
-					WL_StreamSeek(a_Stream, WL_StreamTell(a_Stream) - 1, false);
+					a_Stream->Seek(a_Stream->Tell() - 1, false);
 					return ReadSomething;
 				}
 				
@@ -671,7 +671,7 @@ bool T_DSVM_ReadToken(WL_EntryStream_t* const a_Stream, const size_t a_End, uint
 			(Symbol)))
 		{
 			// Backup and return what was read
-			WL_StreamSeek(a_Stream, WL_StreamTell(a_Stream) - 1, false);
+			a_Stream->Seek(a_Stream->Tell() - 1, false);
 			return ReadSomething;
 		}
 		
@@ -727,7 +727,7 @@ bool T_DSVM_ReadToken(WL_EntryStream_t* const a_Stream, const size_t a_End, uint
 }
 
 /* T_DSVM_CompileStream() -- Compiles a stream */
-bool T_DSVM_CompileStream(WL_EntryStream_t* const a_Stream, const size_t a_End)
+bool T_DSVM_CompileStream(WLEntryStream_c* const a_Stream, const size_t a_End)
 {
 #define MAXSCOPES 32
 #define BUFSIZE 512
@@ -736,7 +736,7 @@ bool T_DSVM_CompileStream(WL_EntryStream_t* const a_Stream, const size_t a_End)
 	uint32_t Row;
 	bool ScriptProblem, QuickRet, TraversedScope;
 	const WL_WADEntry_t* Entry;
-	WL_EntryStream_t* IncStream;
+	WLEntryStream_c* IncStream;
 	int32_t i, j, n, s;
 	
 	uint32_t ScopeStack[MAXSCOPES], u32;
@@ -761,7 +761,7 @@ bool T_DSVM_CompileStream(WL_EntryStream_t* const a_Stream, const size_t a_End)
 	/* Always push to the include stack */
 	// This helps prevent `include("MAP01");`
 	Z_ResizeArray((void**)&l_IncStack, sizeof(*l_IncStack), l_NumIncStack, l_NumIncStack + 1);
-	l_IncStack[l_NumIncStack++] = WL_StreamGetEntry(a_Stream);
+	l_IncStack[l_NumIncStack++] = a_Stream->GetEntry();
 	
 	/* Constantly Read Tokens */
 	ScriptProblem = false;
@@ -862,7 +862,7 @@ bool T_DSVM_CompileStream(WL_EntryStream_t* const a_Stream, const size_t a_End)
 			}
 			
 			// Open stream on it
-			IncStream = WL_StreamOpen(Entry);
+			IncStream = new WLEntryStream_c(Entry);
 			
 			// Failed to open?
 			if (!IncStream)
@@ -876,7 +876,7 @@ bool T_DSVM_CompileStream(WL_EntryStream_t* const a_Stream, const size_t a_End)
 			QuickRet = T_DSVM_CompileStream(IncStream, Entry->Size);
 			
 			// Close Stream
-			WL_StreamClose(IncStream);
+			delete IncStream;
 			
 			// Something bad happened when including?
 			if (!QuickRet)

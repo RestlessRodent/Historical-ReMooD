@@ -91,7 +91,7 @@ void P_InitPicAnims(void)
 {
 	int32_t i, j, t;
 	const WL_WADEntry_t* Entry;
-	WL_EntryStream_t* Stream;
+	WLEntryStream_c* Stream;
 	uint8_t Flag;
 	char Texts[2][9];
 	int32_t Time;
@@ -104,7 +104,7 @@ void P_InitPicAnims(void)
 		return;
 	
 	// Open stream
-	Stream = WL_StreamOpen(Entry);
+	Stream = new WLEntryStream_c(Entry);
 	
 	// Failed?
 	if (!Stream)
@@ -124,7 +124,7 @@ void P_InitPicAnims(void)
 	for (i = 0; i < maxanims; i++)
 	{
 		// Read Marker
-		Flag = WL_StreamReadUInt8(Stream);
+		Flag = Stream->ReadUInt8();
 		
 		// End?
 		if (Flag == 255)
@@ -136,7 +136,7 @@ void P_InitPicAnims(void)
 		for (t = 0; t < 2; t++)
 		{
 			for (j = 0; j < 9; j++)
-				Texts[t][j] = WL_StreamReadUInt8(Stream);
+				Texts[t][j] = Stream->ReadUInt8();
 			Texts[t][8] = 0;
 			
 			// Upper case
@@ -145,7 +145,7 @@ void P_InitPicAnims(void)
 		
 		
 		// Read time
-		Time = WL_StreamReadLittleInt32(Stream);
+		Time = Stream->ReadLittleInt32();
 		
 		// Fill in real info
 		anims[i].istexture = (Flag == 1 ? true : false);
@@ -176,7 +176,7 @@ void P_InitPicAnims(void)
 	lastanim->istexture = ((bool)-1);
 	
 	/* Close Stream */
-	WL_StreamClose(Stream);
+	delete Stream;
 }
 
 //  Check for flats in levelflats, that are part
@@ -3532,7 +3532,7 @@ static bool PS_ExtraSpecialOCCB(const bool a_Pushed, const struct WL_WADFile_s* 
 #define BUFSIZE 512
 	const WL_WADEntry_t* Entry;
 	const WL_WADEntry_t* MapperEntry;
-	WL_EntryStream_t* Stream;
+	WLEntryStream_c* Stream;
 	size_t i, j, k, zzSpecType;
 	char Buf[BUFSIZE];
 	char* p, *TokStr;
@@ -3587,14 +3587,14 @@ static bool PS_ExtraSpecialOCCB(const bool a_Pushed, const struct WL_WADFile_s* 
 		if (MapperEntry)
 		{
 			// Open stream
-			Stream = WL_StreamOpen(MapperEntry);
+			Stream = new WLEntryStream_c(MapperEntry);
 		
 			// Did it work?
 			if (Stream)
 			{
 #define __REMOOD_MAPTOKEN " \t\r\n"
 				// Check unicode
-				WL_StreamCheckUnicode(Stream);
+				Stream->CheckUnicode();
 			
 				// Init
 				ThisMajor = NULL;
@@ -3602,11 +3602,11 @@ static bool PS_ExtraSpecialOCCB(const bool a_Pushed, const struct WL_WADFile_s* 
 				NumMajors = 0;
 			
 				// While there is no end
-				while (!WL_StreamEOF(Stream))
+				while (!Stream->EndOfStream())
 				{
 					// Read into buffer
 					memset(Buf, 0, sizeof(Buf));
-					WL_StreamReadLine(Stream, Buf, BUFSIZE);
+					Stream->ReadLine(Buf, BUFSIZE);
 				
 					// If it starts with a #, a comment
 					if (Buf[0] == '#')
@@ -3714,7 +3714,7 @@ static bool PS_ExtraSpecialOCCB(const bool a_Pushed, const struct WL_WADFile_s* 
 #undef __REMOOD_MAPTOKEN
 			
 				// Close stream
-				WL_StreamClose(Stream);
+				delete Stream;
 			}
 		}
 		
@@ -3726,20 +3726,20 @@ static bool PS_ExtraSpecialOCCB(const bool a_Pushed, const struct WL_WADFile_s* 
 		if (Entry)
 		{
 			// Open stream
-			Stream = WL_StreamOpen(Entry);
+			Stream = new WLEntryStream_c(Entry);
 		
 			// Did it work?
 			if (Stream)
 			{
 				// Check unicode
-				WL_StreamCheckUnicode(Stream);
+				Stream->CheckUnicode();
 			
 				// While there is no end
-				while (!WL_StreamEOF(Stream))
+				while (!Stream->EndOfStream())
 				{
 					// Read into buffer
 					memset(Buf, 0, sizeof(Buf));
-					WL_StreamReadLine(Stream, Buf, BUFSIZE);
+					Stream->ReadLine(Buf, BUFSIZE);
 				
 					// If it starts with a #, a comment
 					if (Buf[0] == '#')
@@ -3873,7 +3873,7 @@ static bool PS_ExtraSpecialOCCB(const bool a_Pushed, const struct WL_WADFile_s* 
 				}
 			
 				// Close stream
-				WL_StreamClose(Stream);
+				delete Stream;
 			}
 		}
 	
@@ -3911,20 +3911,20 @@ static bool PS_ExtraSpecialOCCB(const bool a_Pushed, const struct WL_WADFile_s* 
 	if (Entry)
 	{
 		// Open stream
-		Stream = WL_StreamOpen(Entry);
+		Stream = new WLEntryStream_c(Entry);
 		
 		// Did it work?
 		if (Stream)
 		{
 			// Check unicode
-			WL_StreamCheckUnicode(Stream);
+			Stream->CheckUnicode();
 			
 			// While there is no end
-			while (!WL_StreamEOF(Stream))
+			while (!Stream->EndOfStream())
 			{
 				// Read into buffer
 				memset(Buf, 0, sizeof(Buf));
-				WL_StreamReadLine(Stream, Buf, BUFSIZE);
+				Stream->ReadLine(Buf, BUFSIZE);
 				
 				// Prepare to read
 				p = Buf;
@@ -3965,7 +3965,7 @@ static bool PS_ExtraSpecialOCCB(const bool a_Pushed, const struct WL_WADFile_s* 
 			}
 			
 			// Close stream
-			WL_StreamClose(Stream);
+			delete Stream;
 		}
 	}
 	
