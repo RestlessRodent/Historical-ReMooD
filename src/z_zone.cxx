@@ -135,3 +135,50 @@ void Z_Init(void)
 	}
 }
 
+#define __REMOOD_MALCODE UINT32_C(0x2A1170C2)
+#define __REMOOD_SYSCODE UINT32_C(0x5157C0DE)
+
+/* operator new() -- Make allocation */
+void* operator new(size_t n)// throw(std::bad_alloc)
+{
+	void* NewPtr;
+	
+	/* Allocate Pointer */
+	if (Z_MallocExWrappee)
+	{
+		NewPtr = Z_Malloc(n + 4, PU_STATIC, NULL);
+		*((uint32_t*)NewPtr) = __REMOOD_MALCODE;
+	}
+	else
+	{
+		NewPtr = I_SysAlloc(n + 4);
+		memset(NewPtr, 0, n + 4);
+		*((uint32_t*)NewPtr) = __REMOOD_SYSCODE;
+	}
+	
+	/* Return allocated pointer */
+	return (void*)(((uintptr_t)NewPtr) + 4);
+}
+
+/* operator delete() -- Delete allocation */
+void operator delete(void* p)// throw()
+{
+	uint32_t* RawP;
+	
+	/* Get raw pointer */
+	RawP = (uint32_t*)((uintptr_t)p - 4);
+	
+	/* Which pointer kind? */
+	// Zone Allocated
+	if (*RawP == __REMOOD_MALCODE)
+		Z_Free(RawP);
+		
+	// System Allocated
+	else if (*RawP == __REMOOD_SYSCODE)
+		I_SysFree(RawP);
+	
+	// Unknown -- Go kaboom
+	else
+		I_Error("C++ delete of pointer of unknown kind!");
+}
+
