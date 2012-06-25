@@ -40,6 +40,7 @@
 #include "m_misc.h"
 #include "c_lib.h"
 #include "m_argv.h"
+#include "c_lib.h"
 
 /******************
 *** FILE STREAM ***
@@ -2068,4 +2069,207 @@ uint64_t D_RBSReadPointer(D_RBlockStream_t* const a_Stream)
 	/* Return the number */
 	return OP;
 }
+
+/**************************
+*** GENERIC BYTE STREAM ***
+**************************/
+
+/* GenericByteStream_c::GenericByteStream_c() -- Constructor */
+GenericByteStream_c::GenericByteStream_c()
+{
+	/* Init */
+	p_IsUnicode = false;
+}
+
+/* GenericByteStream_c::~GenericByteStream_c() -- Deconstructor */
+GenericByteStream_c::~GenericByteStream_c()
+{
+}
+
+/* GenericByteStream_c::CheckUnicode() -- Checks whether a stream is a Unicode stream */
+// ReadChar() and ReadWChar() become translated
+bool GenericByteStream_c::CheckUnicode(void)
+{
+	uint16_t FirstBits;
+	
+	/* Reposition */
+	Seek(0);
+	
+	/* Read the first bytes */
+	FirstBits = ReadUInt16();
+	
+	/* Determine if it is Unicode */
+	if (FirstBits == 0xFFFE)
+		p_IsUnicode = true;
+	else if (FirstBits == 0xFEFF)
+		p_IsUnicode = p_IsSwapped = true;
+	
+	/* Reposition to start of text */
+	if (!p_IsUnicode)
+		Seek(0);
+	else
+		Seek(2);
+	
+	/* Success */
+	return true;
+}
+
+/* GenericByteStream_c::ReadChar() -- Reads a single character */
+char GenericByteStream_c::ReadChar(void)
+{
+	char RetVal;
+	uint16_t wcTemp;
+	
+	/* Depending on stream type */
+	// Non Unicode or UTF-8
+	if (!p_IsUnicode)
+		RetVal = ReadUInt8();
+	
+	// UTF-16/32
+	else
+	{
+		// If UTF-8 buffer contains data, flush it
+		if (p_MBLeft)
+		{
+			// Return this character
+			RetVal = p_MBBuf[0];
+			
+			// Decrease
+			memmove(&p_MBBuf[0], &p_MBBuf[1], sizeof(*p_MBBuf) * 4);
+			p_MBLeft--;
+			
+			// Return
+			return RetVal;
+		}
+		
+		// Read next UTF-16 character
+		if (p_IsSwapped)
+			wcTemp = ReadUInt16();
+		else
+			wcTemp = ReadLittleUInt16();
+		
+		// If character is > 127, convert to UTF-8 and flush first char
+		if (wcTemp > 127)
+		{
+			// Convert
+			p_MBLeft = V_ExtWCharToMB(wcTemp, p_MBBuf);
+			
+			// Return first character
+			if (p_MBLeft)
+			{
+				RetVal = p_MBBuf[0];
+			
+				// Decrease
+				memmove(&p_MBBuf[0], &p_MBBuf[1], sizeof(*p_MBBuf) * 4);
+				p_MBLeft--;
+			
+				// Return
+				return RetVal;
+			}
+		}
+		
+		// A normal character
+		else
+			RetVal = wcTemp;
+	}
+	
+	/* Return */
+	return RetVal;
+}
+
+/* GenericByteStream_c::ReadLine() -- Reads Unicode Line from file */
+size_t GenericByteStream_c::ReadLine(char* const a_Buf, const size_t a_Size)
+{
+	size_t RetVal;
+	char Char;
+	
+	/* Check */
+	if (!a_Buf || !a_Size)
+		return 0;
+	
+	/* Read characters until \n */
+	for (RetVal = 0, Char = ReadChar(); !EndOfStream(); Char = ReadChar())
+	{
+		// If character is \n, the stream has ended
+		if (Char == '\n')
+			break;
+		
+		// Ignore '\r'
+		if (Char == '\r')
+			continue;
+		
+		// Place in buffer
+		if (RetVal < a_Size - 1)
+			a_Buf[RetVal++] = Char;
+	}
+	
+	/* Return retval */
+	return RetVal;
+}
+
+#define __REMOOD_GBSMERGE(a,b) a##b
+
+#define __REMOOD_GBSREADINT(N,T) T GenericByteStream_c::__REMOOD_GBSMERGE(Read,N)(void)\
+{\
+	T Value;\
+	uint64_t OffBase;\
+	OffBase = ReadChunk(&Value, sizeof(Value));\
+	if (Seekable())\
+		Seek(Tell() + OffBase);\
+	return Value;\
+}
+
+__REMOOD_GBSREADINT(Int8,int8_t);
+__REMOOD_GBSREADINT(Int16,int16_t);
+__REMOOD_GBSREADINT(Int32,int32_t);
+__REMOOD_GBSREADINT(Int64,int64_t);
+__REMOOD_GBSREADINT(UInt8,uint8_t);
+__REMOOD_GBSREADINT(UInt16,uint16_t);
+__REMOOD_GBSREADINT(UInt32,uint32_t);
+__REMOOD_GBSREADINT(UInt64,uint64_t);
+
+#define __REMOOD_GBSWRITEINT(N,T) void GenericByteStream_c::__REMOOD_GBSMERGE(Write,N)(const T a_Value)\
+{\
+	uint64_t OffBase;\
+	OffBase = WriteChunk(&a_Value, sizeof(a_Value));\
+	if (Seekable())\
+		Seek(Tell() + OffBase);\
+}
+
+__REMOOD_GBSWRITEINT(Int8,int8_t);
+__REMOOD_GBSWRITEINT(Int16,int16_t);
+__REMOOD_GBSWRITEINT(Int32,int32_t);
+__REMOOD_GBSWRITEINT(Int64,int64_t);
+__REMOOD_GBSWRITEINT(UInt8,uint8_t);
+__REMOOD_GBSWRITEINT(UInt16,uint16_t);
+__REMOOD_GBSWRITEINT(UInt32,uint32_t);
+__REMOOD_GBSWRITEINT(UInt64,uint64_t);
+
+#define __REMOOD_RBDLITTLEREAD(N,T) T GenericByteStream_c::__REMOOD_GBSMERGE(ReadLittle,N)(void)\
+{\
+	T Val;\
+	Val = __REMOOD_GBSMERGE(Read,N)();\
+	return __REMOOD_GBSMERGE(LittleSwap,N)(Val);\
+}
+
+__REMOOD_RBDLITTLEREAD(Int16,int16_t);
+__REMOOD_RBDLITTLEREAD(Int32,int32_t);
+__REMOOD_RBDLITTLEREAD(Int64,int64_t);
+__REMOOD_RBDLITTLEREAD(UInt16,uint16_t);
+__REMOOD_RBDLITTLEREAD(UInt32,uint32_t);
+__REMOOD_RBDLITTLEREAD(UInt64,uint64_t);
+
+#define __REMOOD_RBDBIGREAD(N,T) T GenericByteStream_c::__REMOOD_GBSMERGE(ReadBig,N)(void)\
+{\
+	T Val;\
+	Val = __REMOOD_GBSMERGE(Read,N)();\
+	return __REMOOD_GBSMERGE(BigSwap,N)(Val);\
+}
+
+__REMOOD_RBDBIGREAD(Int16,int16_t);
+__REMOOD_RBDBIGREAD(Int32,int32_t);
+__REMOOD_RBDBIGREAD(Int64,int64_t);
+__REMOOD_RBDBIGREAD(UInt16,uint16_t);
+__REMOOD_RBDBIGREAD(UInt32,uint32_t);
+__REMOOD_RBDBIGREAD(UInt64,uint64_t);
 

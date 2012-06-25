@@ -65,8 +65,18 @@ DemoCODEC::~DemoCODEC()
 {
 }
 
+/* DemoCODEC::LoadDemo() -- Loads demo */
+bool DemoCODEC::LoadDemo(WL_EntryStream_t* const a_Stream)
+{
+}
+
 /* DemoCODEC::DecodeTicCmd() -- Decodes a tic command for given player */
 void DemoCODEC::DecodeTicCmd(ticcmd_t* const a_TicCmd, const int32_t a_PlayerNum)
+{
+}
+
+/* DemoCODEC::SaveDemo() -- Saves Demo */
+bool DemoCODEC::SaveDemo(void* const a_CFile)
 {
 }
 

@@ -1883,3 +1883,171 @@ size_t W_InitMultipleFiles(char** filenames)
 	return OK;
 }
 
+/************************
+*** C++ WLENTRYSTREAM ***
+************************/
+
+/* WLEntryStream_c::WLEntryStream_c() -- Constructor */
+WLEntryStream_c::WLEntryStream_c(const WL_WADEntry_t* a_Entry)
+{
+	/* Initialize */
+	p_Cache = NULL;
+	p_CacheSize = 0;
+	p_CacheOffset = 0;
+	p_CacheRealBase = 0;
+	p_StreamOffset = 0;
+	p_StreamSize = 0;
+	
+	/* Setup for this entry */
+	p_Entry = a_Entry;
+	p_StreamSize = a_Entry->Size;
+	p_CacheSize = WLSTREAMCACHESIZE;
+	p_Cache = new uint8_t[p_CacheSize];
+	
+	/* Read the first bits into the cache */
+	WL_ReadData(p_Entry, p_CacheOffset, p_Cache, p_CacheSize);
+}
+
+/* WLEntryStream_c::~WLEntryStream_c() -- Decontructor */
+WLEntryStream_c::~WLEntryStream_c()
+{
+	/* Delete Cache */
+	if (p_Cache)
+		delete p_Cache;
+}
+
+/* WLEntryStream_c::Seekable() -- Returns true if stream is seekable */
+bool WLEntryStream_c::Seekable(void)
+{
+	return true;
+}
+
+/* WLEntryStream_c::EndOfStream() -- Indicates the stream has ended */
+bool WLEntryStream_c::EndOfStream(void)
+{
+	/* At the end? */
+	if (p_StreamOffset >= p_StreamSize)
+		return true;
+	
+	/* Not at end */
+	return false;
+}
+
+/* WLEntryStream_c::Tell() -- Tells of current position */
+uint64_t WLEntryStream_c::Tell(void)
+{
+	return p_StreamOffset;
+}
+
+/* WLEntryStream_c::Seek() -- Seeks to new position */
+uint64_t WLEntryStream_c::Seek(const uint64_t a_NewPos, const bool a_AtEnd)
+{
+	/* Which endpoint? */
+	// Start
+	if (!a_AtEnd)
+	{
+		// After end?
+		if (a_NewPos >= p_StreamSize)
+			p_StreamOffset = p_StreamSize - 1;
+		else
+			p_StreamOffset = a_NewPos;
+	}
+	
+	// End
+	else
+	{
+		// After start?
+		if (a_NewPos >= p_StreamSize)
+			p_StreamOffset = 0;
+		else
+			p_StreamOffset = p_StreamSize - a_NewPos - 1;
+	}
+	
+	/* Return current position */
+	return Tell();
+}
+
+/* WLEntryStream_c::BufferChunk() -- Reads a chunk into the buffer */
+bool WLEntryStream_c::BufferChunk(const size_t a_Offset)
+{
+	uint32_t WantedChunk;
+	
+	/* Determine the chunk we want */
+	WantedChunk = a_Offset / p_CacheSize;
+	
+	/* Chunk differs? */
+	if (WantedChunk != p_CacheOffset)
+	{
+		// Clean the old cache
+		memset(p_Cache, 0, p_CacheSize);
+		
+		// Set new location chunk
+		p_CacheOffset = WantedChunk;
+		
+		// Determine the position of where to start reading
+		p_CacheRealBase = WantedChunk * p_CacheSize;
+		
+		// Read it in
+		WL_ReadData(p_Entry, p_CacheRealBase, p_Cache, p_CacheSize);
+		
+		// Success!
+		return true;
+	}
+	
+	/* Otherwise if it is the same, do nothing */
+	else
+		return false;
+}
+
+/* WLEntryStream_c::ReadChunk() -- Reads data chunk */
+size_t WLEntryStream_c::ReadChunk(void* const a_Data, const size_t a_Size)
+{
+	uint32_t Left, CurOff, ChunkOff, ChunkCount;
+	
+	/* Check */
+	if (!a_Data || !a_Size)
+		return 0;
+	
+	/* Initialize */
+	Left = a_Size;
+	CurOff = 0;
+	
+	/* Keep reading until nothing is left */
+	while (Left > 0)
+	{
+		// Buffer in area for stream
+		BufferChunk(p_StreamOffset + CurOff);
+		
+		// Determine base chunk to read and how much of it to read
+		ChunkOff = (p_StreamOffset + CurOff) - p_CacheRealBase;
+		ChunkCount = p_CacheSize - ChunkOff;
+		
+		// Exceeds?
+		if (ChunkCount > Left)
+			ChunkCount = Left;
+		
+		// Copy
+		memmove((void*)(((uintptr_t)a_Data) + CurOff), p_Cache + ChunkOff, ChunkCount);
+		
+		// Add offset and remove left
+		Left -= ChunkCount;
+		CurOff += ChunkCount;
+	}
+	
+	/* Return read count */
+	return CurOff;
+}
+
+/* WLEntryStream_c::WriteChunk() -- Write data chunk */
+size_t WLEntryStream_c::WriteChunk(const void* const a_Data, const size_t a_Size)
+{
+	// WL Streams are not writeable
+	return 0;
+}
+
+/* WLEntryStream_c::GetEntry() -- Returns associated entry with stream */
+const WL_WADEntry_t* WLEntryStream_c::GetEntry(void)
+{
+	return p_Entry;
+}
+

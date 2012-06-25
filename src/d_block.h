@@ -37,7 +37,6 @@
 
 #include "doomtype.h"
 #include "d_net.h"
-#include "w_wad.h"
 
 /****************
 *** CONSTANTS ***
@@ -99,8 +98,10 @@ typedef struct D_RBlockStream_s
 *** FUNCTIONS ***
 ****************/
 
+struct WL_EntryStream_s;
+
 D_RBlockStream_t* D_RBSCreateLoopBackStream(void);
-D_RBlockStream_t* D_RBSCreateWLStream(WL_EntryStream_t* const a_Stream);
+D_RBlockStream_t* D_RBSCreateWLStream(struct WL_EntryStream_s* const a_Stream);
 D_RBlockStream_t* D_RBSCreateFileStream(const char* const a_PathName, const uint32_t a_Flags);
 D_RBlockStream_t* D_RBSCreateNetStream(I_NetSocket_t* const a_NetSocket);
 D_RBlockStream_t* D_RBSCreatePerfectStream(D_RBlockStream_t* const a_Wrapped);
@@ -151,6 +152,102 @@ uint64_t D_RBSReadUInt64(D_RBlockStream_t* const a_Stream);
 
 size_t D_RBSReadString(D_RBlockStream_t* const a_Stream, char* const a_Out, const size_t a_OutSize);
 uint64_t D_RBSReadPointer(D_RBlockStream_t* const a_Stream);
+
+/**************************
+*** GENERIC BYTE STREAM ***
+**************************/
+
+/* GenericByteStream -- A Generic Byte Stream (abstract) */
+class GenericByteStream_c
+{
+	private:
+		bool p_IsUnicode;						// UTF-16/32 Stream
+		bool p_IsSwapped;						// Byte Swapped 16/32 Stream
+		char p_MBBuf[5];						// Multi-byte buffer
+		size_t p_MBLeft;						// Characters left in buffer
+	public:
+		GenericByteStream_c();
+		~GenericByteStream_c();
+		
+		/* Abstracted */
+		virtual bool Seekable(void) = 0;
+		virtual bool EndOfStream(void) = 0;
+		virtual uint64_t Tell(void) = 0;
+		virtual uint64_t Seek(const uint64_t a_NewPos, const bool a_AtEnd = false) = 0;
+		virtual size_t ReadChunk(void* const a_Data, const size_t a_Size) = 0;
+		virtual size_t WriteChunk(const void* const a_Data, const size_t a_Size) = 0;
+		
+		/* Reading */
+		int8_t ReadInt8(void);
+		int16_t ReadInt16(void);
+		int32_t ReadInt32(void);
+		int64_t ReadInt64(void);
+		uint8_t ReadUInt8(void);
+		uint16_t ReadUInt16(void);
+		uint32_t ReadUInt32(void);
+		uint64_t ReadUInt64(void);
+		
+		/* Writing */
+		void WriteInt8(const int8_t a_Value);
+		void WriteInt16(const int16_t a_Value);
+		void WriteInt32(const int32_t a_Value);
+		void WriteInt64(const int64_t a_Value);
+		void WriteUInt8(const uint8_t a_Value);
+		void WriteUInt16(const uint16_t a_Value);
+		void WriteUInt32(const uint32_t a_Value);
+		void WriteUInt64(const uint64_t a_Value);
+		
+		/* Little Endian */
+		int16_t ReadLittleInt16(void);
+		int32_t ReadLittleInt32(void);
+		int64_t ReadLittleInt64(void);
+		uint16_t ReadLittleUInt16(void);
+		uint32_t ReadLittleUInt32(void);
+		uint64_t ReadLittleUInt64(void);
+		
+		void WriteLittleInt16(const int16_t a_Value);
+		void WriteLittleInt32(const int32_t a_Value);
+		void WriteLittleInt64(const int64_t a_Value);
+		void WriteLittleUInt16(const uint16_t a_Value);
+		void WriteLittleUInt32(const uint32_t a_Value);
+		void WriteLittleUInt64(const uint64_t a_Value);
+		
+		/* Big Endian */
+		int16_t ReadBigInt16(void);
+		int32_t ReadBigInt32(void);
+		int64_t ReadBigInt64(void);
+		uint16_t ReadBigUInt16(void);
+		uint32_t ReadBigUInt32(void);
+		uint64_t ReadBigUInt64(void);
+		
+		void WriteBigInt16(const int16_t a_Value);
+		void WriteBigInt32(const int32_t a_Value);
+		void WriteBigInt64(const int64_t a_Value);
+		void WriteBigUInt16(const uint16_t a_Value);
+		void WriteBigUInt32(const uint32_t a_Value);
+		void WriteBigUInt64(const uint64_t a_Value);
+		
+		/* Strings */
+		size_t ReadString(char* const a_Buf, const size_t a_Size);
+		size_t ReadStringN(char* const a_Buf, const size_t a_Size);
+		void WriteString(const char* const a_Buf);
+		void WriteStringN(const char* const a_Buf, const size_t a_Size);
+		
+		/* UTF-8 */
+		bool CheckUnicode(void);
+		
+		// UTF-8 Layer
+		char ReadChar(void);
+		size_t ReadLine(char* const a_Buf, const size_t a_Size);
+		
+		void WriteChar(const char a_Value);
+		
+		// UTF-16/32 Layer
+		wchar_t ReadWChar(void);
+		size_t ReadWLine(wchar_t* const a_Buf, const size_t a_Size);
+		
+		void WriteWChar(const wchar_t a_Value);
+};
 
 #endif /* __D_BLOCK_H__ */
 

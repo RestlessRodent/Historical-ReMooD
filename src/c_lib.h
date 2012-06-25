@@ -43,23 +43,23 @@
 *** MACROS ***
 *************/
 
-#define ReadInt8(w) ReadInt8R((const int8_t** const)(w))
-#define ReadInt16(w) ReadInt16R((const int16_t** const)(w))
-#define ReadInt32(w) ReadInt32R((const int32_t** const)(w))
-#define ReadInt64(w) ReadInt64R((const int64_t** const)(w))
-#define ReadUInt8(w) ReadUInt8R((const uint8_t** const)(w))
-#define ReadUInt16(w) ReadUInt16R((const uint16_t** const)(w))
-#define ReadUInt32(w) ReadUInt32R((const uint32_t** const)(w))
-#define ReadUInt64(w) ReadUInt64R((const uint64_t** const)(w))
+#define OLDReadInt8(w) ReadInt8R((const int8_t** const)(w))
+#define OLDReadInt16(w) ReadInt16R((const int16_t** const)(w))
+#define OLDReadInt32(w) ReadInt32R((const int32_t** const)(w))
+#define OLDReadInt64(w) ReadInt64R((const int64_t** const)(w))
+#define OLDReadUInt8(w) ReadUInt8R((const uint8_t** const)(w))
+#define OLDReadUInt16(w) ReadUInt16R((const uint16_t** const)(w))
+#define OLDReadUInt32(w) ReadUInt32R((const uint32_t** const)(w))
+#define OLDReadUInt64(w) ReadUInt64R((const uint64_t** const)(w))
 
-#define WriteInt8(w,x) WriteInt8R((int8_t** const)(w), (x))
-#define WriteInt16(w,x) WriteInt16R((int16_t** const)(w), (x))
-#define WriteInt32(w,x) WriteInt32R((int32_t** const)(w), (x))
-#define WriteInt64(w,x) WriteInt64R((int64_t** const)(w), (x))
-#define WriteUInt8(w,x) WriteUInt8R((uint8_t** const)(w), (x))
-#define WriteUInt16(w,x) WriteUInt16R((uint16_t** const)(w), (x))
-#define WriteUInt32(w,x) WriteUInt32R((uint32_t** const)(w), (x))
-#define WriteUInt64(w,x) WriteUInt64R((uint64_t** const)(w), (x))
+#define OLDWriteInt8(w,x) WriteInt8R((int8_t** const)(w), (x))
+#define OLDWriteInt16(w,x) WriteInt16R((int16_t** const)(w), (x))
+#define OLDWriteInt32(w,x) WriteInt32R((int32_t** const)(w), (x))
+#define OLDWriteInt64(w,x) WriteInt64R((int64_t** const)(w), (x))
+#define OLDWriteUInt8(w,x) WriteUInt8R((uint8_t** const)(w), (x))
+#define OLDWriteUInt16(w,x) WriteUInt16R((uint16_t** const)(w), (x))
+#define OLDWriteUInt32(w,x) WriteUInt32R((uint32_t** const)(w), (x))
+#define OLDWriteUInt64(w,x) WriteUInt64R((uint64_t** const)(w), (x))
 
 /*****************
 *** PROTOTYPES ***

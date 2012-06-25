@@ -33,6 +33,7 @@
 
 #include "doomtype.h"
 #include "z_zone.h"
+#include "d_block.h"
 
 /*************
 *** GLOBAL ***
@@ -248,6 +249,36 @@ uint32_t WL_StreamReadLittleUInt32(WL_EntryStream_t* const a_Stream);
 bool WL_StreamCheckUnicode(WL_EntryStream_t* const a_Stream);
 char WL_StreamReadChar(WL_EntryStream_t* const a_Stream);
 size_t WL_StreamReadLine(WL_EntryStream_t* const a_Stream, char* const a_Buf, const size_t a_Size);
+
+/* WLEntryStream_c -- Stream that handles WL WAD Entries */
+class WLEntryStream_c : public GenericByteStream_c
+{
+	private:
+		const WL_WADEntry_t* p_Entry;			// Entry for stream
+	
+		uint8_t* p_Cache;						// Stream cache
+		uint32_t p_CacheSize;					// Size of cache
+		uint32_t p_CacheOffset;					// Offset of cache data
+		uint32_t p_CacheRealBase;				// Real offset base
+	
+		uint32_t p_StreamOffset;				// Offset of stream
+		uint32_t p_StreamSize;					// Size of stream
+		
+		bool BufferChunk(const size_t a_Offset);
+		
+	public:
+		WLEntryStream_c(const WL_WADEntry_t* a_Entry);
+		~WLEntryStream_c();
+		
+		bool Seekable(void);
+		bool EndOfStream(void);
+		uint64_t Tell(void);
+		uint64_t Seek(const uint64_t a_NewPos, const bool a_AtEnd = false);
+		size_t ReadChunk(void* const a_Data, const size_t a_Size);
+		size_t WriteChunk(const void* const a_Data, const size_t a_Size);
+		
+		const WL_WADEntry_t* GetEntry(void);
+};
 
 /****************************
 *** EXTENDED WAD HANDLING ***
