@@ -167,5 +167,36 @@ void G_DemoPostGTicker(void);
 
 void G_DemoProblem(const bool a_IsError, const UnicodeStringID_t a_StrID, const char* const a_Format, ...);
 
+/*****************
+*** DEMO CODEC ***
+*****************/
+
+/*** CLASSES ***/
+
+/* DemoCODEC -- Base class for demo (en)coders/decoders */
+class DemoCODEC
+{
+	private:
+		
+	public:
+		DemoCODEC();
+		~DemoCODEC();
+		
+		/* Decoding */
+		virtual bool LoadDemo(WL_EntryStream_t* const a_Stream);
+		virtual bool LoadDemo(D_RBlockStream_t* const a_Stream) = 0;
+		virtual void DecodeTicCmd(ticcmd_t* const a_TicCmd, const int32_t a_PlayerNum);
+		
+		/* Encoding */
+		virtual bool SaveDemo(void* const a_CFile);
+		virtual bool SaveDemo(D_RBlockStream_t* const a_Stream) = 0;
+		virtual void EncodeTicCmd(const ticcmd_t* const a_TicCmd, const int32_t a_PlayerNum);
+};
+
+/*** GLOBALS ***/
+
+extern DemoCODEC* g_PlayingDemo;				// Current playing demo
+extern DemoCODEC* g_RecordingDemo;				// Current recording demo
+
 #endif							/* __G_GAME_H__ */
 

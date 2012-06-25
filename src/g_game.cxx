@@ -507,8 +507,8 @@ void G_Ticker(void)
 			{
 				cmd = &players[i].cmd;
 			
-				if (demoplayback)
-					G_ReadDemoTiccmd(cmd, i);
+				if (g_PlayingDemo)
+					g_PlayingDemo->DecodeTicCmd(cmd, i);
 				else
 				{
 					// Determine net player existence
@@ -531,8 +531,8 @@ void G_Ticker(void)
 						}
 				}
 				
-				if (demorecording)
-					G_WriteDemoTiccmd(cmd, i);
+				if (g_RecordingDemo)
+					g_RecordingDemo->EncodeTicCmd(cmd, i);
 				
 				// check for turbo cheats
 				if (cmd->forwardmove > TURBOTHRESHOLD && !(gametic % (32)) && ((gametic / (32)) & 3) == i)

@@ -44,6 +44,37 @@
 #include "p_local.h"
 #include "d_main.h"
 
+/*****************
+*** DEMO CODEC ***
+*****************/
+
+/*** GLOBALS **/
+
+DemoCODEC* g_PlayingDemo = NULL;				// Current playing demo
+DemoCODEC* g_RecordingDemo = NULL;				// Current recording demo
+
+/*** FUNCTIONS ***/
+
+/* DemoCODEC::DemoCODEC() -- Constructor */
+DemoCODEC::DemoCODEC()
+{
+}
+
+/* DemoCODEC::~DemoCODEC() -- Destructor */
+DemoCODEC::~DemoCODEC()
+{
+}
+
+/* DemoCODEC::DecodeTicCmd() -- Decodes a tic command for given player */
+void DemoCODEC::DecodeTicCmd(ticcmd_t* const a_TicCmd, const int32_t a_PlayerNum)
+{
+}
+
+/* DemoCODEC::EncodeTicCmd() -- Encodes a tic command for given player */
+void DemoCODEC::EncodeTicCmd(const ticcmd_t* const a_TicCmd, const int32_t a_PlayerNum)
+{
+}
+
 /**********************
 *** VANILLA FACTORY ***
 **********************/
