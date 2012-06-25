@@ -92,7 +92,8 @@
 
 /* DJGPP */
 #if defined(__REMOOD_SYSTEM_DOS) && defined(__DJGPP__)
-	#include <glib.h>
+	extern "C" int g_snprintf(char *string, unsigned long n, char const *format, ...);
+	extern "C" int g_vsnprintf(char *string, unsigned long n, char const *format, va_list args);
 	
 	#define snprintf g_snprintf
 	#define vsnprintf g_vsnprintf
