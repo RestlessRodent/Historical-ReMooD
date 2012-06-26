@@ -526,9 +526,13 @@ void D_Display(void)
 		// Appeal to the local timing code
 			// So that the game does not catch up during wipes!
 		D_SyncNetAppealTime();
-		DNetController::NetUpdate();							// Update network
+		g_IgnoreWipeTics++;
+		DNetController::NetUpdate();			// Update network
 	}
 	while (!done && I_GetTime() < (unsigned)y);
+	
+	// No longer ignoring tics
+	g_IgnoreWipeTics = 0;
 	
 	// GhostlyDeath <June 4, 2010> -- If a wipe never finished 100% we must end if
 	if (!done)

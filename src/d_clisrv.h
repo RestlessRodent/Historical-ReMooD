@@ -48,5 +48,7 @@ bool Playing(void);			// is there a game running
 void D_QuitNetGame(void);		// Broadcasts special packets to other players to notify of game exit
 void TryRunTics(tic_t realtic);	// how many ticks to run
 
+extern int32_t g_IgnoreWipeTics;				// Demo playback, ignore this many wipe tics
+
 #endif
 

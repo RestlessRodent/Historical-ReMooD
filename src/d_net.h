@@ -205,6 +205,8 @@ class DNetController
 		RBPerfectStream_c* p_PStreams[2];		// Perfect Streams
 		RBStream_c* p_STDStreams[2];			// Standard Streams
 		
+		static tic_t p_ReadyTime;				// Current Ready Time
+		
 	public:
 		DNetController();
 		DNetController(RBStream_c* const a_STDStream);
@@ -221,6 +223,8 @@ class DNetController
 		static void StartServer(void);
 		
 		static void NetUpdate(void);
+		
+		static tic_t ReadyTics(void);
 };
 
 /*** FUNCTIONS ***/

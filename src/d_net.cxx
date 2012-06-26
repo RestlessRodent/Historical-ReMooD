@@ -2847,6 +2847,9 @@ void D_NCQC_MapChange(void* const a_Data)
 static DNetController** l_ServerNCS;			// Server Controllers
 static size_t l_NumServerNCS;					// Number of controllers
 
+
+tic_t DNetController::p_ReadyTime = 0;			// Current Ready Time
+
 /*** CLASSES ***/
 
 /* DNetController::DNetController() -- Creates network controller */
@@ -2958,6 +2961,17 @@ void DNetController::StartServer(void)
 		if (l_ServerNCS[i])
 			if (l_ServerNCS[i]->p_IsLocal)
 				l_ServerNCS[i]->p_IsServer = true;
+	
+	/* Change game state to waiting mode */
+	p_ReadyTime = 0;
+	gamestate = wipegamestate = GS_WAITINGPLAYERS;
+}
+
+/* DNetController::ReadyTics() -- Amount of tics ready to be played */
+// i.e. the amount that statifies NetReadTicCmds for all players
+tic_t DNetController::ReadyTics(void)
+{
+	return 1;
 }
 
 /* DNetController::NetUpdate() -- Updates network code */

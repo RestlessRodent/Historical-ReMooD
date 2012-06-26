@@ -118,6 +118,8 @@ static void TicCmdCopy(ticcmd_t* dst, ticcmd_t* src, int n)
 extern bool advancedemo;
 static int load;
 
+int32_t g_IgnoreWipeTics;						// Demo playback, ignore this many wipe tics
+
 void TryRunTics(tic_t realtics)
 {
 	static tic_t LastTic;
@@ -177,91 +179,62 @@ void TryRunTics(tic_t realtics)
 	}
 	
 	/* While the client is behind, update it to catch up */
-	STRuns = 0;
-	do
-	{
-		// Set local time and target time
-		LocalTic = I_GetTime();
-		
-		// Update the client if it is needed
-		if (singletics || LocalTic > LastTic)
-		{
-			// Update music
-			I_UpdateMusic();
-			
-			// If the game is paused, don't do anything
-			if (D_SyncNetIsPaused())
-				break;
-			
-			// While the game is behind, update it
-			XXSNAR = D_SyncNetAllReady();
-			while ((XXLocalTic = D_SyncNetMapTime()) < XXSNAR)
-			{
-				// Update Net status
-				D_SyncNetUpdate();
-				DNetController::NetUpdate();
-				
-				// Run game ticker and increment the gametic
-				G_DemoPreGTicker();
-				G_Ticker();
-				G_DemoPostGTicker();
-				gametic++;
-			
-				// Set last tic
-				LastTic++;
-				
-				// Increase local time
-				D_SyncNetSetMapTime(++XXLocalTic);
-				
-				// Single tics? -timedemo
-				if (singletics)
-					break;
-			}
-		}
-		
-		// Otherwise no updating is needed
-		else
-		{
-			if (!singletics)
-				I_WaitVBL(20);
-		}
-	}
-	while (!singletics && LocalTic < LastTic);
+	// Update music
+	I_UpdateMusic();
 	
-#if 0
-	if (neededtic > gametic)
+	// If the game is paused, don't do anything
+	if (D_SyncNetIsPaused())
+		return;
+	
+	// Get current time
+	LocalTic = I_GetTime();
+	
+	// While the game is behind, update it
+	if (demoplayback)
 	{
-		if (advancedemo)
-			D_DoAdvanceDemo();
-		else
+		// Play enough tics to keep it synced to real percieved time
+		if (!singletics)
 		{
-			// run the count * tics
-			while (neededtic > gametic)
+			if (LocalTic <= LastTic)
 			{
-			
-				//if (gametic % 5 == 0)
-				I_UpdateMusic();
-				G_Ticker();
-				gametic++;
-				
-				// skip paused tic in a demo
-				if (demoplayback)
-				{
-					if (paused)
-					{
-						neededtic++;
-						//I_WaitVBL(20);
-					}
-				}
+				//I_WaitVBL(20);
+				return;
 			}
+			
+			XXSNAR = LocalTic - (LastTic + g_IgnoreWipeTics);
+			LastTic = LocalTic;
 		}
-	}
-	else if (neededtic == gametic)
-		I_WaitVBL(20);
 		
-	/*else
-	   I_WaitVBL(20); */
-#endif
+		// Force playback of every tic
+		else
+			XXSNAR = 1;
+	}
+	else
+		XXSNAR = DNetController::ReadyTics();
+	
+	if (XXSNAR > 0)
+		while ((XXSNAR--) > 0)
+		{
+			// Update Net status
+			DNetController::NetUpdate();
+		
+			// Run game ticker and increment the gametic
+			G_DemoPreGTicker();
+			G_Ticker();
+			G_DemoPostGTicker();
+			gametic++;
+	
+			// Set last tic
+			//LastTic++;
+		
+			// Single tics? -timedemo
+			if (singletics)
+				break;
+		}
+	
+	// Not behind so sleep
+	else if (!singletics)
+		I_WaitVBL(20);
 }
 
 /* D_GetTics() -- Returns wrap capable time in tics */
