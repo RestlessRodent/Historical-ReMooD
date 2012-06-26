@@ -174,5 +174,31 @@ void D_NCHE_SendSaveGame(D_NetClient_t* const a_Client);
 /*** NCQC Funcs ***/
 void D_NCQC_MapChange(void* const a_Data);
 
+/*****************************
+*** CLASS BASED NETWORKING ***
+*****************************/
+
+/* DNetPlayer -- Networked Player */
+class DNetPlayer
+{
+	public:
+		DNetPlayer();
+		~DNetPlayer();
+};
+
+/* DNetController -- Controls a group of players */
+class DNetController
+{
+	private:
+		DNetPlayer** p_Arbs;					// Controlling players
+		size_t p_NumArbs;						// Number of players
+		
+	public:
+		DNetController();
+		~DNetController();
+};
+
+void D_CNetUpdate(void);
+
 #endif							/* __D_NET_H__ */
 

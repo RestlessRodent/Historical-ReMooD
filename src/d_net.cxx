@@ -2838,4 +2838,49 @@ void D_NCQC_MapChange(void* const a_Data)
 	Z_Free(a_Data);
 }
 
+/*****************************
+*** CLASS BASED NETWORKING ***
+*****************************/
+
+/*** LOCALS ***/
+
+/*** CLASSES ***/
+
+/*** FUNCTIONS ***/
+
+/* D_CNetUpdate() -- Updates network code */
+void D_CNetUpdate(void)
+{
+	RBAddress_c ReadAddr;
+	
+	
+	
+#if 0
+	static RBLoopBackStream_c* lo = new RBLoopBackStream_c();
+	static RBPerfectStream_c* ps = new RBPerfectStream_c(lo);
+	
+	CONL_PrintF("Update!\n");
+	
+	if (ps->BlockPlay(&ReadAddr))
+		CONL_PrintF("played back perfect!\n");
+	if (lo->BlockPlay(&ReadAddr))
+		CONL_PrintF("played back loop!\n");
+	
+	lo->BlockBase("LOL!");
+	lo->BlockRecord(&ReadAddr);
+	
+	ps->BlockBase("WOO!");
+	ps->BlockRecord(&ReadAddr);
+	
+	ps->BlockBase("ACK!");
+	ps->BlockRecord(&ReadAddr);
+	
+	lo->BlockBase("HEH!");
+	lo->BlockRecord(&ReadAddr);
+	
+	lo->BlockFlush();
+	ps->BlockFlush();
+#endif
+}
+
 

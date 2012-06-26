@@ -165,6 +165,7 @@ class GenericByteStream_c
 		bool p_IsSwapped;						// Byte Swapped 16/32 Stream
 		char p_MBBuf[5];						// Multi-byte buffer
 		size_t p_MBLeft;						// Characters left in buffer
+		
 	public:
 		GenericByteStream_c();
 		~GenericByteStream_c();
@@ -247,6 +248,194 @@ class GenericByteStream_c
 		size_t ReadWLine(wchar_t* const a_Buf, const size_t a_Size);
 		
 		void WriteWChar(const wchar_t a_Value);
+};
+
+/********************
+*** RBSTREAM CORE ***
+********************/
+
+/* RBAddress_c -- Address to send blocks */
+class RBAddress_c
+{
+	public:
+		enum AddressType_e
+		{
+			AT_NOTINIT,							// Not Initialized
+			AT_LOCAL,							// Local Address
+			AT_NET,								// Net Address
+		};
+		
+	private:
+		AddressType_e p_Type;					// Type of address
+		
+	public:
+		RBAddress_c();
+		~RBAddress_c();
+		
+		void SetFrom(const RBAddress_c& a_B);
+		
+		bool CompareAddress(const RBAddress_c& a_B) const;
+		static bool CompareAddress(const RBAddress_c& a_A, const RBAddress_c& a_B);
+		
+		void ChooseLocal(void);
+};
+
+/* RBStream_c -- Base class for derived block streams */
+class RBStream_c : public GenericByteStream_c
+{
+	friend class RBAddress_c;
+		
+	protected:
+		/* Info */
+		void* p_Data;							// Private Data
+		uint32_t p_Flags;						// Flags (if ever needed)
+	
+		/* Current Block */
+		char p_BlkHeader[5];					// Block identifier
+		uint8_t* p_BlkData;						// Data
+		size_t p_BlkSize;						// Block Size
+		size_t p_BlkBufferSize;					// Size of buffer
+		size_t p_ReadOff;						// Read Offset
+		bool p_Marked;							// Marked?
+		
+	public:
+		/* Constructors and Destructors */
+		RBStream_c();
+		~RBStream_c();
+		
+		/* Abstracted */
+		bool Seekable(void);
+		bool EndOfStream(void);
+		uint64_t Tell(void);
+		uint64_t Seek(const uint64_t a_NewPos, const bool a_AtEnd = false);
+		size_t ReadChunk(void* const a_Data, const size_t a_Size);
+		size_t WriteChunk(const void* const a_Data, const size_t a_Size);
+		
+		/* RBS Stuff */
+		bool BlockBase(const char* const a_Header);
+		bool BlockRename(const char* const a_Header);
+		bool HeaderCopy(char* const a_Dest);
+		size_t BlockSize(void);
+		uint8_t* BlockData(void);
+		
+		/* Handled by sub classes */
+		virtual bool BlockPlay(RBAddress_c* const a_Address = NULL) = 0;
+		virtual bool BlockRecord(RBAddress_c* const a_Address = NULL) = 0;
+		virtual bool BlockFlush(void) = 0;
+};
+
+/* RBLoopBackStream_c -- Loopback Stream (Master) */
+class RBLoopBackStream_c : public RBStream_c
+{
+	private:
+		struct RBLoopBackHold_s
+		{
+			uint64_t FlushID;							// Current flush ID
+			char Header[5];								// Header
+			uint8_t* Data;								// Data
+			size_t Size;								// Size
+		};
+		
+		uint64_t p_FlushID;							// FlushID
+		RBLoopBackHold_s** p_Q;						// Blocks in Q
+		size_t p_SizeQ;								// Size of Q
+	
+	public:
+		RBLoopBackStream_c();
+		~RBLoopBackStream_c();
+		
+		/* Handled by sub classes */
+		bool BlockPlay(RBAddress_c* const a_Address = NULL);
+		bool BlockRecord(RBAddress_c* const a_Address = NULL);
+		bool BlockFlush(void);
+};
+
+/* RBWLEStream_c -- Streamer that wraps WLEntryStream_c (Master) */
+class WLEntryStream_c;
+class RBWLEStream_c : public RBStream_c
+{
+	private:
+		WLEntryStream_c* p_WLStream;				// Based WL Stream
+		
+	public:
+		RBWLEStream_c(WLEntryStream_c* const a_Stream);
+		~RBWLEStream_c();
+		
+		/* Handled by sub classes */
+		bool BlockPlay(RBAddress_c* const a_Address = NULL);
+		bool BlockRecord(RBAddress_c* const a_Address = NULL);
+		bool BlockFlush(void);
+};
+
+/* RBPerfectStream_c -- Perfect Stream (Slave) */
+class RBPerfectStream_c : public RBStream_c
+{
+	private:
+		friend class RBStream_c;
+		friend class GenericByteStream_c;
+		
+		/* RBPerfectKey_s -- Perfect Key */
+		struct RBPerfectKey_s
+		{
+			uint32_t Key[4];
+			RBAddress_c RemHost;				// Remote Host
+			uint64_t NextReadNum;				// Next packet to read
+			uint64_t NextWriteNum;				// Next packet to write
+
+			uint32_t CreateTime;				// Time when key was created
+			uint32_t LastTime;					// Last activity time
+			uint32_t ExpireTime;				// Time when key expires
+			bool ExpireLessThan;				// Expire time is in the past
+			bool Revoke;						// Revoke key
+		};
+		
+		/* RBPerfectHold_s -- Holding store */
+		struct RBPerfectHold_s
+		{
+			/* Standard */
+			char Header[5];						// Header
+			uint8_t* Data;						// Data
+			size_t Size;						// Size
+	
+			/* Perfect Networking */
+			uint32_t ReTryCount;				// Retransmit count
+			uint64_t PacketNum;					// Packet Number
+			uint32_t CheckSum;					// Simplified Checksum
+			uint32_t ClockTime;					// Time packet was stored
+			uint32_t AutoRackTime;				// time to retransmit
+			bool RackTimeIsLess;				// Less than
+			bool ReTransmit;					// Retransmit block
+			bool BlockAck;						// Block acknowledged
+			RBAddress_c RemHost;				// Remote Host
+	
+			// Packet Key
+			uint32_t Key[4];					// Key Holder
+		};
+		
+		RBStream_c* p_WrapStream;				// Stream to wrap
+		bool p_InFlush;							// In the middle of a flush
+
+		RBPerfectHold_s** p_ReadQ;				// Blocks to read Q
+		size_t p_SizeReadQ;						// Size of read Q
+
+		RBPerfectHold_s** p_WriteQ;				// Blocks to read Q
+		size_t p_SizeWriteQ;					// Size of read Q
+
+		RBPerfectKey_s** p_Keys;				// Packet keys
+		size_t p_NumKeys;						// Number of keys
+
+		bool p_Debug;							// Debug it
+		
+		RBPerfectKey_s* IntFindKey(const uint32_t* const a_InKey, RBAddress_c* const a_Address);
+		
+	public:
+		RBPerfectStream_c(RBStream_c* const a_WrapStream);
+		~RBPerfectStream_c();
+		
+		/* Handled by sub classes */
+		bool BlockPlay(RBAddress_c* const a_Address = NULL);
+		bool BlockRecord(RBAddress_c* const a_Address = NULL);
+		bool BlockFlush(void);
 };
 
 #endif /* __D_BLOCK_H__ */

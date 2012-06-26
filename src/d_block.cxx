@@ -2206,6 +2206,43 @@ size_t GenericByteStream_c::ReadLine(char* const a_Buf, const size_t a_Size)
 	return RetVal;
 }
 
+/* GenericByteStream_c::ReadString() -- Reads string (\0 term) from stream */
+size_t GenericByteStream_c::ReadString(char* const a_Buf, const size_t a_Size)
+{
+	size_t i;
+	uint8_t Char;
+	
+	/* Check */
+	if (!a_Buf || !a_Size)
+		return 0;
+	
+	/* Read variable string data */
+	for (i = 0; ; i++)
+	{
+		// Read Character
+		Char = ReadUInt8();
+		
+		// End of string?
+		if (!Char)
+		{
+			// Append NUL, if possible
+			if (i < a_Size)
+				a_Buf[i] = 0;
+			break;
+		}
+		
+		// Otherwise add to the output
+		if (i < a_Size)
+			a_Buf[i] = Char;
+	}
+	
+	/* Always put NUL at very end */
+	a_Buf[a_Size - 1] = 0;
+	
+	/* Return read count */
+	return i;
+}
+
 #define __REMOOD_GBSMERGE(a,b) a##b
 
 #define __REMOOD_GBSREADINT(N,T) T GenericByteStream_c::__REMOOD_GBSMERGE(Read,N)(void)\
@@ -2271,4 +2308,1254 @@ __REMOOD_RBDBIGREAD(Int64,int64_t);
 __REMOOD_RBDBIGREAD(UInt16,uint16_t);
 __REMOOD_RBDBIGREAD(UInt32,uint32_t);
 __REMOOD_RBDBIGREAD(UInt64,uint64_t);
+
+#define __REMOOD_RBDLITTLEWRITE(N,T) void GenericByteStream_c::__REMOOD_GBSMERGE(WriteLittle,N)(const T a_Value)\
+{\
+	__REMOOD_GBSMERGE(Write,N)(__REMOOD_GBSMERGE(LittleSwap,N)(a_Value));\
+}
+
+__REMOOD_RBDLITTLEWRITE(Int16,int16_t);
+__REMOOD_RBDLITTLEWRITE(Int32,int32_t);
+__REMOOD_RBDLITTLEWRITE(Int64,int64_t);
+__REMOOD_RBDLITTLEWRITE(UInt16,uint16_t);
+__REMOOD_RBDLITTLEWRITE(UInt32,uint32_t);
+__REMOOD_RBDLITTLEWRITE(UInt64,uint64_t);
+
+/*******************************
+*** CLASS BASED BLOCK STREAM ***
+*******************************/
+
+/*** ADDRESS DESCRIPTOR ***/
+
+/* RBAddress_c::RBAddress_c() -- Constructor */
+RBAddress_c::RBAddress_c()
+{
+}
+
+/* RBAddress_c::~RBAddress_c() -- Destructor */
+RBAddress_c::~RBAddress_c()
+{
+}
+
+/* RBAddress_c::SetFrom() -- Copies one address to another */
+void RBAddress_c::SetFrom(const RBAddress_c& a_B)
+{
+	p_Type = a_B.p_Type;
+}
+
+/* RBAddress_c::CompareAddress() -- Compares two addresses */
+bool RBAddress_c::CompareAddress(const RBAddress_c& a_B) const
+{
+	return CompareAddress(*this, a_B);
+}
+
+/* RBAddress_c::CompareAddress() -- Compares two addresses */
+bool RBAddress_c::CompareAddress(const RBAddress_c& a_A, const RBAddress_c& a_B)
+{
+	/* Different Address Types? */
+	if (a_A.p_Type != a_B.p_Type)
+		return false;
+	
+	/* Un-Initialized? */
+	switch (a_A.p_Type)
+	{
+			// Local Address
+		case AT_LOCAL:
+			return true;
+			
+			// Un-Initialized or unknown
+		case AT_NOTINIT:
+		default:
+			return false;
+	}
+}
+
+/* RBAddress_c::ChooseLocal() -- Choose local address */
+void RBAddress_c::ChooseLocal(void)
+{
+	p_Type = AT_LOCAL;
+}
+
+/*** BASE STREAM ***/
+
+/* RBStream_c::RBStream_c -- Constructor */
+RBStream_c::RBStream_c()
+{
+	/* Init */
+	memset(p_BlkHeader, 0, sizeof(p_BlkHeader));
+	p_Data = NULL;
+	p_Flags = 0;
+	p_BlkData = 0;
+	p_BlkSize = 0;
+	p_BlkBufferSize = 0;
+	p_ReadOff = 0;
+	p_Marked = 0;
+}
+
+/* RBStream_c::~RBStream_c() -- Destructor */
+RBStream_c::~RBStream_c()
+{
+	/* Free data if it exists */
+	if (p_BlkData)
+		Z_Free(p_BlkData);
+}
+
+/* RBStream_c::Seekable() -- Block streams are not seekable */
+bool RBStream_c::Seekable(void)
+{
+	return false;
+}
+
+/* RBStream_c::EndOfStream() -- Returns true if at end of data stream */
+bool RBStream_c::EndOfStream(void)
+{
+	if (p_ReadOff >= p_BlkSize)
+		return true;
+	return false;
+}
+
+/* RBStream_c::Tell() -- Current read position */
+uint64_t RBStream_c::Tell(void)
+{
+	return p_ReadOff;
+}
+
+/* RBStream_c::Seek() -- Seek to new location */
+uint64_t RBStream_c::Seek(const uint64_t a_NewPos, const bool a_AtEnd)
+{
+	// Always returns current position
+	return Tell();
+}
+
+/* RBStream_c::ReadChunk() -- Reads chunk from block */
+size_t RBStream_c::ReadChunk(void* const a_Data, const size_t a_Size)
+{
+	ssize_t Count;
+	size_t Read;
+	
+	/* Check */
+	if (!a_Data || !a_Size)
+		return 0;
+	
+	/* Counting Read */
+	Read = 0;
+	for (Count = a_Size; Count > 0; Count--)
+		if (p_ReadOff < p_BlkSize)
+			((uint8_t*)a_Data)[Read++] = p_BlkData[p_ReadOff++];
+	
+	/* Return read amount */
+	return Read;
+}
+
+/* RBStream_c::WriteChunk() -- Writes piece of information to block chunk */
+size_t RBStream_c::WriteChunk(const void* const a_Data, const size_t a_Size)
+{
+	size_t DestSize;
+	
+	/* Check */
+	if (!a_Data || !a_Size)
+		return 0;
+	
+	/* Determine Block Resize */
+	DestSize = p_BlkSize + a_Size;
+	
+	// Too big?
+	while (DestSize >= p_BlkBufferSize)
+	{
+		Z_ResizeArray((void**)&p_BlkData, sizeof(*p_BlkData), p_BlkBufferSize, p_BlkBufferSize + RBLOCKBUFSIZE);
+		p_BlkBufferSize += RBLOCKBUFSIZE;
+	}
+	
+	/* Slap data there */
+	memmove(&p_BlkData[p_BlkSize], a_Data, a_Size);
+	p_BlkSize += a_Size;
+	
+	/* Return size */
+	return a_Size;
+}
+
+/* RBStream_c::BlockBase() -- Creates a new empty block */
+bool RBStream_c::BlockBase(const char* const a_Header)
+{
+	/* Check */
+	if (!a_Header)
+		return false;
+	
+	/* Clear Everything */
+	memset(p_BlkHeader, 0, sizeof(p_BlkHeader));
+	
+	if (p_BlkData)
+		Z_Free(p_BlkData);
+	p_BlkSize = p_BlkBufferSize = 0;
+	
+	/* Create a fresh block */
+	p_BlkBufferSize = RBLOCKBUFSIZE;
+	p_BlkData = (uint8_t*)Z_Malloc(p_BlkBufferSize, PU_BLOCKSTREAM, NULL);
+	p_ReadOff = 0;
+	
+	// Copy header
+	memmove(p_BlkHeader, a_Header, (strlen(a_Header) >= 4 ? 4 : strlen(a_Header)));
+	
+	/* Success */
+	return true;
+}
+
+/* RBStream_c::BlockRename() -- Renames the header of a block */
+bool RBStream_c::BlockRename(const char* const a_Header)
+{
+	/* Check */
+	if (!a_Header)
+		return false;
+	
+	/* Copy header */
+	memset(p_BlkHeader, 0, sizeof(p_BlkHeader));
+	memmove(p_BlkHeader, a_Header, (strlen(a_Header) >= 4 ? 4 : strlen(a_Header)));
+	
+	/* Success */
+	return true;
+}
+
+/* RBStream_c::HeaderCopy() -- Copy Header */
+bool RBStream_c::HeaderCopy(char* const a_Dest)
+{
+	strcpy(a_Dest, p_BlkHeader);
+	return true;
+}
+
+/* RBStream_c::BlockSize() -- Return size of block */
+size_t RBStream_c::BlockSize(void)
+{
+	return p_BlkSize;
+}
+
+/* RBStream_c::BlockData() -- Return data of block */
+uint8_t* RBStream_c::BlockData(void)
+{
+	return p_BlkData;
+}
+
+/*** LOOP BACK STREAM ***/
+
+/* RBLoopBackStream_c::RBLoopBackStream_c() -- Creates loopback */
+RBLoopBackStream_c::RBLoopBackStream_c()
+{
+	/* Init */
+	p_FlushID = 0;
+	p_Q = 0;
+	p_SizeQ = 0;
+}
+
+/* RBLoopBackStream_c::~RBLoopBackStream_c() -- Destroys loopback */
+RBLoopBackStream_c::~RBLoopBackStream_c()
+{
+	size_t i;
+	
+	/* Destroy all blocks */
+	if (p_Q)
+	{
+		for (i = 0; i < p_SizeQ; i++)
+			if (!p_Q[i])
+				Z_Free(p_Q[i]);
+		Z_Free(p_Q);
+	}
+}
+
+/* RBLoopBackStream_c::BlockPlay() -- Plays block from loopback */
+bool RBLoopBackStream_c::BlockPlay(RBAddress_c* const a_Address)
+{
+	RBLoopBackHold_s* Hold;
+	size_t i;
+	
+	/* Always set address to local */
+	if (a_Address)
+		a_Address->ChooseLocal();
+	
+	/* Nothing recorded? */
+	if (!p_SizeQ)
+		return false;
+	
+	/* Nothing in the Q? */
+	if (!p_Q[0])
+		return false;
+	
+	/* Get current hold */
+	Hold = p_Q[0];
+	
+	// See if it after the current flush level
+	if (p_FlushID <= Hold->FlushID)
+		return false;
+	
+	/* Create Base Block */
+	BlockBase(Hold->Header);
+	
+	// Write all our data in it
+	WriteChunk(Hold->Data, Hold->Size);
+	
+	/* Free Hold */
+	if (Hold->Data)
+		Z_Free(Hold->Data);
+	Hold->Data = NULL;
+	Z_Free(Hold);
+	p_Q[0] = NULL;
+	
+	// Move everything down
+	if (p_SizeQ >= 1)
+	{
+		for (i = 0; i < p_SizeQ - 1; i++)
+			p_Q[i] = p_Q[i + 1];
+		p_Q[i] = NULL;
+	}
+	
+	// Nothing left?
+	if (!p_Q[0])
+		p_FlushID = 1;
+	
+	/* Something read */
+	return true;
+}
+
+/* RBLoopBackStream_c::BlockRecord() -- Records block to loopback */
+bool RBLoopBackStream_c::BlockRecord(RBAddress_c* const a_Address)
+{
+	size_t i;
+	RBLoopBackHold_s* Hold;
+	
+	/* Always set address to local */
+	if (a_Address)
+		a_Address->ChooseLocal();
+	
+	/* Find spot to record at */
+	Hold = NULL;
+	for (i = 0; i < p_SizeQ; i++)
+		if (!p_Q[i])
+		{
+			Hold = p_Q[i] = (RBLoopBackHold_s*)Z_Malloc(sizeof(RBLoopBackHold_s), PU_BLOCKSTREAM, NULL);
+			break;
+		}
+	
+	// No blank spots?
+	if (!Hold)
+	{
+		Z_ResizeArray((void**)&p_Q, sizeof(*p_Q),
+						p_SizeQ, p_SizeQ + 2);
+		Hold = p_Q[p_SizeQ++] =
+				(RBLoopBackHold_s*)Z_Malloc(sizeof(RBLoopBackHold_s), PU_BLOCKSTREAM, NULL);
+		p_SizeQ++;
+	}
+	
+	/* Store info in hold */
+	// Copy header
+	memmove(Hold->Header, p_BlkHeader, 4);
+	
+	// Clone Data
+	Hold->Size = p_BlkSize;
+	Hold->Data = (uint8_t*)Z_Malloc(Hold->Size, PU_BLOCKSTREAM, NULL);
+	memmove(Hold->Data, p_BlkData, Hold->Size);
+	Hold->FlushID = p_FlushID + 1;
+	
+	/* Block was recorded */
+	return true;
+}
+
+/* RBLoopBackStream_c::BlockFlush() -- Flushes read and recorded blocks */
+bool RBLoopBackStream_c::BlockFlush(void)
+{
+	/* No data in Q */
+	if (!p_SizeQ)
+		return false;
+	
+	/* Q is empty */
+	if (!p_Q[0])
+		return false;
+		
+	/* Increase flush ID */
+	p_FlushID++;
+	
+	/* Something done */
+	return true;
+}
+
+/*** WL ENTRY STREAMS ***/
+
+/* RBWLEStream_c::RBWLEStream_c() -- Creates entry stream */
+RBWLEStream_c::RBWLEStream_c(WLEntryStream_c* const a_Stream)
+{
+	/* Init */
+	p_WLStream = a_Stream;
+}
+
+/* RBWLEStream_c::~RBWLEStream_c() -- Deletes entry stream */
+RBWLEStream_c::~RBWLEStream_c()
+{
+}
+
+/* RBWLEStream_c::BlockPlay() -- Plays back a block */
+bool RBWLEStream_c::BlockPlay(RBAddress_c* const a_Address)
+{
+	char Header[5];
+	uint32_t Len, Sum, i;
+	void* Data;
+	
+	/* Read Header */
+	// Clear
+	memset(Header, 0, sizeof(Header));
+	Len = Sum = 0;
+	Data = NULL;
+	
+	// Read Header
+	for (i = 0; i < 4; i++)
+		Header[i] = p_WLStream->ReadChar();
+	
+	// Read Length and Sum
+	Len = p_WLStream->ReadLittleUInt32();
+	Sum = p_WLStream->ReadLittleUInt32();
+	
+	// Read data, if possible (Len could be zero (empty block?))
+	if (Len > 0)
+	{
+		Data = Z_Malloc(Len, PU_STATIC, NULL);
+		p_WLStream->ReadChunk(Data, Len);
+	}
+	
+	/* Initialize Block */
+	BlockBase(Header);
+	
+	/* Write Data to Block */
+	WriteChunk(Data, Len);
+	if (Data)
+		Z_Free(Data);
+	
+	/* Success! */
+	return true;
+}
+
+/* RBWLEStream_c::BlockRecord() -- WLStreams are read only */
+bool RBWLEStream_c::BlockRecord(RBAddress_c* const a_Address)
+{
+	return false;
+}
+
+/* RBWLEStream_c::BlockFlush() -- Flushing not needed */
+bool RBWLEStream_c::BlockFlush(void)
+{
+	return true;	// Always flushed
+}
+
+/*** PERFECT STREAM ***/
+
+/* RBPerfectStream_c::RBPerfectStream_c() -- Creates perfect stream */
+RBPerfectStream_c::RBPerfectStream_c(RBStream_c* const a_WrapStream)
+{
+	/* Init */
+	// Load stuff into data
+	p_WrapStream = a_WrapStream;
+	
+	// Debug?
+	if (M_CheckParm("-perfdev"))
+		p_Debug = true;
+}
+
+/* RBPerfectStream_c::~RBPerfectStream_c() -- Destroys a perfect stream */
+RBPerfectStream_c::~RBPerfectStream_c()
+{
+	size_t i;
+	
+	/* Delete blocks */
+	// Read Queue
+	if (p_ReadQ)
+	{
+		for (i = 0; i < p_SizeReadQ; i++)
+			if (p_ReadQ[i])
+				Z_Free(p_ReadQ[i]);
+		Z_Free(p_ReadQ);
+	}
+			
+	// Write Queue
+	if (p_WriteQ)
+	{
+		for (i = 0; i < p_SizeWriteQ; i++)
+			if (p_WriteQ[i])
+				Z_Free(p_WriteQ[i]);
+		Z_Free(p_WriteQ);
+	}
+	
+	/* Delete keys */
+	if (p_Keys)
+	{
+		for (i = 0; i < p_NumKeys; i++)
+			if (p_Keys[i])
+				Z_Free(p_Keys[i]);
+		Z_Free(p_Keys);
+	}
+}
+
+/* RBPerfectStream_c::IntFindKey() -- Finds a key internally */
+RBPerfectStream_c::RBPerfectKey_s* RBPerfectStream_c::IntFindKey(const uint32_t* const a_InKey, RBAddress_c* const a_Address)
+{
+	size_t k, FbK, j, i, b, z;
+	RBPerfectKey_s* Key;
+	uint32_t ThisTime;
+	RBPerfectHold_s* Hold;
+	
+	/* Get Current Time */
+	ThisTime = I_GetTimeMS();
+	
+	/* Look in existing key list */
+	for (FbK = 0, k = 0; k < p_NumKeys; k++)
+	{
+		// Get Key
+		Key = p_Keys[k];
+		
+		// No key here?
+		if (!Key)
+		{
+			if (!FbK)
+				FbK = k;
+			continue;
+		}
+		
+		// Key expires? Revoke it
+		if ((!Key->ExpireLessThan && ThisTime >= Key->ExpireTime) ||
+			(Key->ExpireLessThan && Key->ExpireTime >= ThisTime))
+		{
+			Key->Revoke = true;
+		}
+		
+		// Revoke Key?
+		if (Key->Revoke)
+		{
+			// Go through all read/write blocks and removed all matching keys
+				// Read Q
+			for (b = 0; b < p_SizeReadQ; b++)
+				if (p_ReadQ[b])
+				{
+					// Get Block
+					Hold = p_ReadQ[b];
+					
+					// Key match?
+					for (z = 0; z < 4; z++)
+						if (Hold->Key[z] != Key->Key[z])
+							break;
+					
+					// Matches? Then delete it
+					if (z >= 4)
+					{
+						if (Hold->Data)
+							Z_Free(Hold->Data);
+						Hold->Data = NULL;
+						Z_Free(Hold);
+						p_ReadQ[b] = NULL;
+					}
+				}
+				
+				// Write Q
+			for (b = 0; b < p_SizeWriteQ; b++)
+				if (p_WriteQ[b])
+				{
+					// Get Block
+					Hold = p_WriteQ[b];
+					
+					// Key match?
+					for (z = 0; z < 4; z++)
+						if (Hold->Key[z] != Key->Key[z])
+							break;
+					
+					// Matches? Then delete it
+					if (z >= 4)
+					{
+						if (Hold->Data)
+							Z_Free(Hold->Data);
+						Hold->Data = NULL;
+						Z_Free(Hold);
+						p_WriteQ[b] = NULL;
+					}
+				}
+			
+			// Delete self key
+			Z_Free(Key);
+			Key = p_Keys[k] = NULL;
+			return NULL;	// Was revoked
+		}
+		
+		// If a key was passed, compare it
+		if (a_InKey)
+		{
+			// Match each
+			for (i = 0; i < 4; i++)
+				if (a_InKey[i] != Key->Key[i])
+					break;
+			
+			// No match?
+			if (i < 4)
+				continue;
+		}
+		
+		// Otherwise do host based authentication
+		else
+		{
+			// Match IP
+			if (!a_Address->CompareAddress(Key->RemHost))
+				continue;
+		}
+	
+		// Bump expiration
+		Key->LastTime = ThisTime;
+		Key->ExpireTime = Key->LastTime + PERFECTKEYEXPIRETIME;
+
+		Key->ExpireLessThan = false;
+		if (Key->ExpireTime < Key->LastTime)
+			Key->ExpireLessThan = true;
+		
+		// Return matched key
+		return Key;
+	}
+	
+	/* If this point was reached then the key does not exist */
+	// Use pre-existing blank spot
+	if (FbK > 0 && FbK < p_NumKeys)
+		Key = p_Keys[FbK] = new RBPerfectKey_s;
+	
+	// Resize the key array
+	else
+	{
+		Z_ResizeArray((void**)&p_Keys, sizeof(*p_Keys),
+			p_NumKeys, p_NumKeys + 1);
+		Key = p_Keys[p_NumKeys++] = new RBPerfectKey_s;
+	}
+	
+	// Setup key info
+	Key->RemHost.SetFrom(*a_Address);
+	Key->CreateTime = ThisTime;
+	Key->LastTime = Key->CreateTime;
+	Key->ExpireTime = Key->LastTime + PERFECTKEYEXPIRETIME;
+	
+	Key->ExpireLessThan = false;
+	if (Key->ExpireTime < Key->LastTime)
+		Key->ExpireLessThan = true;
+	
+	/* Generate Hopefully Random Key Data */
+	if (a_InKey)
+		for (i = 0; i < 4; i++)
+			Key->Key[i] = a_InKey[i];
+	else
+		for (i = 0; i < 4; i++)
+		{
+			// Base
+			Key->Key[i] = ThisTime * (i + 1);
+		
+			// Cycle
+			for (j = 0; j < 16; j++)
+				Key->Key[i] ^= (j + (M_Random() * M_Random()) + (((uintptr_t)this) - ((uintptr_t)a_InKey))) << ((j + i) & 24);
+		}
+	
+	/* Place in empty spot */
+	// First known
+	if (FbK > 0 && FbK < p_NumKeys)
+		p_Keys[FbK] = Key;
+	
+	/* Return the new key */
+	return Key;
+}
+
+/* RBPerfectStream_c::BlockPlay() -- Plays a block back */
+bool RBPerfectStream_c::BlockPlay(RBAddress_c* const a_Address)
+{
+	char Header[5];
+	bool OrigRetVal;
+	RBStream_c* NormStream;
+	RBPerfectHold_s* Hold;
+	
+	size_t i, z, b, BlankSpot;
+	
+	RBPerfectKey_s* Key;
+	
+	uint8_t PerfResp;
+	uint32_t PerfKey[4];
+	uint64_t PerfPkNum;
+	uint32_t PerfPkSum, PerfPkSize, PerfMaskEnc, PerfPkNumLow, PerfPkNumHi;
+	uint8_t PerfHeader[5];
+	uint32_t ConfirmMask, MaskEnc;
+	uint32_t BlockSum;
+	
+	uint32_t ThisTime;
+	
+	/* Clear perfection mark */
+	p_Marked = false;
+	ThisTime = I_GetTimeMS();
+	
+	/* Go through ordered stream */
+	// And determine if there are any blocks that are OK and queued
+	for (b = 0; b < p_SizeReadQ; b++)
+	{
+		// Get Current Hold
+		Hold = p_ReadQ[b];
+	
+		// Nothing here?
+		if (!Hold)
+			continue;
+		
+		// Get key associated with block
+		Key = IntFindKey(Hold->Key, &Hold->RemHost);
+		
+		// No key found? probably revoked, delete block
+		if (!Key)
+		{
+			if (Hold->Data)
+				Z_Free(Hold->Data);
+			Hold->Data = NULL;
+			delete Hold;
+			p_ReadQ[b] = NULL;
+			continue;
+		}
+		
+		// If the block does not match the current read pos, skip it
+		// This would mean that we got blocks out of order
+		if (Hold->PacketNum != Key->NextReadNum)
+			continue;	// Still want to keep it though!
+		
+		// Build block
+		BlockBase(Hold->Header);
+		WriteChunk(Hold->Data, Hold->Size);
+		
+		// Copy IP Host -- This is very important
+		if (a_Address)
+			a_Address->SetFrom(Hold->RemHost);
+		
+		// Was sent away, so delete, increment, return
+		if (Hold->Data)
+			Z_Free(Hold->Data);
+		Hold->Data = NULL;
+		delete Hold;
+		p_ReadQ[b] = NULL;
+		Key->NextReadNum++;
+		p_Marked = true;	// and set perfection!
+		return true;
+	}
+	
+	/* Constantly read blocks */
+	for (;;)
+	{
+		// Clear
+		memset(Header, 0, sizeof(Header));
+		OrigRetVal = p_WrapStream->BlockPlay(a_Address);
+		p_WrapStream->HeaderCopy(Header);
+	
+		// If no block was read, return
+		if (!OrigRetVal)
+			return false;
+	
+		// Perfect Block
+		if (D_RBSCompareHeader("PERF", Header))
+		{
+			// Read this block and check to see if it is ordered enough and is
+			// fully checksummed and correct. If the block is good return it,
+			// otherwise add it to a queue to wait on ordered blocks. Also do
+			// handling of retransmission and such.
+			
+			// Read PERFECT Header
+			PerfResp = p_WrapStream->ReadUInt8();
+			
+			for (i = 0; i < 4; i++)
+				PerfKey[i] = p_WrapStream->ReadLittleUInt32();
+			
+			PerfPkNumLow = p_WrapStream->ReadLittleUInt32();
+			PerfPkNumHi = p_WrapStream->ReadLittleUInt32();
+			
+			PerfPkNum = PerfPkNumHi;
+			PerfPkNum <<= UINT64_C(32);
+			PerfPkNum |= PerfPkNumLow;
+			
+			PerfPkSum = p_WrapStream->ReadLittleUInt32();
+			
+			PerfHeader[4] = 0;
+			for (i = 0; i < 4; i++)
+				PerfHeader[i] = p_WrapStream->ReadUInt8();
+			
+			PerfPkSize = p_WrapStream->ReadLittleUInt32();
+			PerfMaskEnc = p_WrapStream->ReadLittleUInt32();
+			
+			// Confirm the value
+			ConfirmMask = 0;
+			ConfirmMask ^= PerfResp;
+			ConfirmMask ^= PerfPkNumLow;
+			ConfirmMask ^= PerfPkNumHi;
+			ConfirmMask ^= PerfPkSum;
+			ConfirmMask ^= PerfPkSize;
+			ConfirmMask ^= PerfKey[0];
+			ConfirmMask ^= PerfKey[1];
+			ConfirmMask ^= PerfKey[2];
+			ConfirmMask ^= PerfKey[3];
+			ConfirmMask ^= PerfHeader[0];
+			ConfirmMask ^= PerfHeader[1];
+			ConfirmMask ^= PerfHeader[2];
+			ConfirmMask ^= PerfHeader[3];
+			
+			//CONL_PrintF("%08x ?= %08x conf!\n", ConfirmMask, PerfMaskEnc);
+			
+			// Does not match?
+			if (ConfirmMask != PerfMaskEnc)
+				// It is lost to the sands of time
+				continue;
+			
+			// Find the key that owns this packet
+			Key = IntFindKey(PerfKey, a_Address);
+			
+			// Compare the input key to the found key
+			for (i = 0; Key && i < 4; i++)
+				if (Key->Key[i] != PerfKey[i])
+					Key = NULL;
+			
+			// No Key?
+			if (!Key)
+				continue;
+			
+			// Compare packet size
+			if (PerfPkSize != p_WrapStream->BlockSize() - 41)
+			{
+				//CONL_PrintF("Not 41!\n");
+				continue;
+			}
+			
+			// Send Block
+			if (PerfResp == 'S')
+			{
+				//CONL_PrintF("send!\n");
+				
+				// Get the checksum of the data (to make sure it got through)
+				BlockSum = 0;
+				for (i = 0; i < PerfPkSize; i++)
+					BlockSum ^= ((uint32_t)(p_WrapStream->BlockData()[i + 41])) << (i & 23);
+				
+				// Bad sum?
+				if (BlockSum != PerfPkSum)
+					// Ignore this block
+					continue;
+				
+				// Add block to the read queue
+					// As long as the following are met:
+					// - The block isn't from the past
+					// - The block isn't already stored
+				if (PerfPkNum >= Key->NextReadNum)
+				{
+					// Find blocks already in queue that match this key
+					// and see if the packet number matches.
+					for (BlankSpot = 0, b = 0; b < p_SizeReadQ; b++)
+					{
+						// Get Current Hold
+						Hold = p_ReadQ[b];
+						
+						// Nothing here?
+						if (!Hold)
+						{
+							if (!BlankSpot)
+								BlankSpot = b;
+							Hold = NULL;
+							continue;
+						}
+						
+						// Compare key
+						for (z = 0; z < 4; z++)
+							if (Hold->Key[z] != PerfKey[z])
+								break;
+						
+						// Compare packet num and check z also
+						if (z < 4 || Hold->PacketNum != PerfPkNum)
+						{
+							Hold = NULL;
+							continue;
+						}
+						
+						// Found the block
+						break;
+					}
+					
+					// Ran out?
+					if (b >= p_SizeReadQ)
+						Hold = NULL;
+					
+					// Pre-existing block not found
+					if (!Hold)
+					{
+						// Use blank spot?
+						if (BlankSpot > 0 && BlankSpot < p_SizeReadQ)
+							Hold = p_ReadQ[BlankSpot] = new RBPerfectHold_s;
+					
+						// Otherwise resize
+						else
+						{
+							//Hold
+							Z_ResizeArray((void**)&p_ReadQ, sizeof(*p_ReadQ),
+											p_SizeReadQ, p_SizeReadQ + 2);
+							Hold = p_ReadQ[p_SizeReadQ++] = new RBPerfectHold_s;
+							p_SizeReadQ++;
+						}
+						
+						// Fill in information
+						Hold->RemHost.SetFrom(*a_Address);
+						Hold->PacketNum = PerfPkNum;
+						Hold->CheckSum = PerfPkSum;
+						
+						for (z = 0; z < 4; z++)
+						{
+							Hold->Header[z] = PerfHeader[z];
+							Hold->Key[z] = PerfKey[z];
+						}
+						
+							// Time packet appeared
+						Hold->ClockTime = ThisTime;
+						Hold->AutoRackTime = Hold->ClockTime + PERFECTRETRANSTIME;
+						Hold->RackTimeIsLess = false;
+						if (Hold->AutoRackTime < Hold->AutoRackTime)
+							Hold->RackTimeIsLess = true;
+						
+						// Copy Data
+						Hold->Size = PerfPkSize;
+						Hold->Data = (uint8_t*)Z_Malloc(Hold->Size, PU_BLOCKSTREAM, NULL);
+						memmove(Hold->Data, &p_WrapStream->BlockData()[41], Hold->Size);
+					}
+				}
+				
+				// ACK it now
+				NormStream = (RBStream_c*)p_WrapStream;
+				
+				// Write to remote host
+				NormStream->BlockBase("PERF");
+				
+				// Write Send, Key, Num, Sum, Header, Size, MaskEnc
+				MaskEnc = 0;
+					
+					// Send
+				NormStream->WriteUInt8('A');
+				MaskEnc ^= 'A';
+					// Key
+				for (z = 0; z < 4; z++)
+				{
+					NormStream->WriteLittleUInt32(PerfKey[z]);
+					MaskEnc ^= PerfKey[z];
+				}
+					// Num
+				PerfPkNumLow = PerfPkNum & (uint64_t)((~UINT32_C(0)));
+				PerfPkNumHi = PerfPkNum >> UINT64_C(32);
+				
+				NormStream->WriteLittleUInt32(PerfPkNumLow);
+				NormStream->WriteLittleUInt32(PerfPkNumHi);
+				
+				MaskEnc ^= PerfPkNumLow;
+				MaskEnc ^= PerfPkNumHi;
+					// Sum
+				NormStream->WriteLittleUInt32(PerfPkSum);
+				MaskEnc ^= PerfPkSum;
+					// Header
+				for (z = 0; z < 4; z++)
+				{
+					NormStream->WriteUInt8(PerfHeader[z]);
+					MaskEnc ^= PerfHeader[z];
+				}
+					// Size -- This is ignored, due to future payload
+				NormStream->WriteLittleUInt32(0);
+				MaskEnc ^= 0;
+					// MaskEnc
+				NormStream->WriteLittleUInt32(MaskEnc);
+				
+				// Record it
+				NormStream->BlockRecord(a_Address);
+				
+				// Was added to Q so deal with later
+				continue;
+			}
+			
+			// ACK Block
+			else if (PerfResp == 'A')
+			{
+				// Find matching write block and set as acknowledged
+				for (b = 0; b < p_SizeWriteQ; b++)
+				{
+					//CONL_PrintF("ack!\n");
+					
+					// Get Current Hold
+					Hold = p_WriteQ[b];
+					
+					// Nothing here?
+					if (!Hold)
+					{
+						Hold = NULL;
+						continue;
+					}
+					
+					// Compare key
+					for (z = 0; z < 4; z++)
+						if (Hold->Key[z] != PerfKey[z])
+							break;
+					
+					// Compare packet num and check z also
+					if (z < 4 || Hold->PacketNum != PerfPkNum)
+					{
+						Hold = NULL;
+						continue;
+					}
+					
+					// Found the block, mark as acknowledged
+					Hold->BlockAck = true;
+					break;
+				}
+				
+				// Modified with response
+				continue;
+			}
+		}
+	
+		// Normal Block
+		else
+		{
+			// Duplicate the data as needed
+				// Don't worry about host because that was copied already (ptrs)
+			BlockBase(Header);
+			WriteChunk(p_WrapStream->BlockData(), p_WrapStream->BlockSize());
+		
+			// Return the original value returned
+			return OrigRetVal;
+		}
+	}
+	
+	/* Nothing was returned */
+	// If any blocks were streamed, they would be played on the next run.
+	return false;
+}
+
+/* RBPerfectStream_c::BlockRecord() -- Records block */
+bool RBPerfectStream_c::BlockRecord(RBAddress_c* const a_Address)
+{
+	size_t i, b, z;
+	RBPerfectHold_s* Hold;
+	RBPerfectKey_s* Key;
+	bool KeepSending;
+	uint32_t ThisTime, MaskEnc;
+	RBStream_c* NormStream;
+	uint32_t PerfPkNumLow, PerfPkNumHi;
+	
+	/* Get Time */
+	ThisTime = I_GetTimeMS();
+	
+	/* First find the key to use */
+	// Don't do this in the middle of a flush (since there is no data to record)
+	if (!p_InFlush)
+	{
+		Key = IntFindKey(NULL, a_Address);
+	
+		// Second record the packet into the write Q
+		if (Key)
+		{
+			// Find blank spot
+			Hold = NULL;
+			for (i = 0; i < p_SizeWriteQ; i++)
+				if (!p_WriteQ[i])
+				{
+					Hold = p_WriteQ[i] = new RBPerfectHold_s;
+					break;
+				}
+	
+			// No blank spots?
+			if (!Hold)
+			{
+				Z_ResizeArray((void**)&p_WriteQ, sizeof(*p_WriteQ),
+								p_SizeWriteQ, p_SizeWriteQ + 2);
+				Hold = p_WriteQ[p_SizeWriteQ++] = new RBPerfectHold_s;
+				p_SizeWriteQ++;
+			}
+	
+			// Store block in the hold
+				// Header
+			memmove(Hold->Header, p_BlkHeader, 4);
+	
+				// Data
+			Hold->Size = p_BlkSize;
+			Hold->Data = (uint8_t*)Z_Malloc(Hold->Size, PU_BLOCKSTREAM, NULL);
+			memmove(Hold->Data, p_BlkData, Hold->Size);
+	
+				// Remote Host
+			if (a_Address)
+				Hold->RemHost.SetFrom(*a_Address);
+		
+				// Determine some kind of sum
+			for (i = 0; i < Hold->Size; i++)
+				Hold->CheckSum ^= ((uint32_t)Hold->Data[i]) << (i & 23);
+		
+				// Time packet appeared
+			Hold->ClockTime = ThisTime;
+			Hold->AutoRackTime = Hold->ClockTime + PERFECTRETRANSTIME;
+			Hold->RackTimeIsLess = false;
+			if (Hold->AutoRackTime < Hold->AutoRackTime)
+				Hold->RackTimeIsLess = true;
+	
+				// I/O Order
+			Hold->PacketNum = Key->NextWriteNum++;
+			Hold->ReTransmit = true;
+		
+				// Copy Key
+			for (i = 0; i < 4; i++)
+				Hold->Key[i] = Key->Key[i];
+		}
+	}
+	
+	/* Third, write any queued writes to the network */
+	KeepSending = true;
+	do
+	{
+		// Find block in Q to write to the network
+		Hold = NULL;
+		Key = NULL;
+		
+		// Go through each block in the Q
+		for (b = 0; b < p_SizeWriteQ; b++)
+		{
+			// Get Current Hold
+			Hold = p_WriteQ[b];
+			
+			// Nothing here?
+			if (!Hold)
+				continue;
+			
+			// Obtain key from block
+			Key = IntFindKey(Hold->Key, &Hold->RemHost);
+			
+			// No key? Must have expired
+			if (!Key)
+			{
+				// Delete block, only IF this spot is blank
+					// because if a key was revoked as we tried to grab it, then
+					// this could be invalid!
+				if (p_WriteQ[b])
+				{
+					if (Hold->Data)
+						Z_Free(Hold->Data);
+					Hold->Data = NULL;
+					Z_Free(Hold);
+				}
+				
+				p_WriteQ[b] = NULL;
+				continue;
+			}
+			
+			// Packet was ACKed!
+			if (Hold->BlockAck)
+			{
+				// Delete block
+				if (Hold->Data)
+					Z_Free(Hold->Data);
+				Hold->Data = NULL;
+				delete Hold;
+				p_WriteQ[b] = NULL;
+				
+				// Increase count
+				//Key->NextWriteNum++;
+				continue;
+			}
+			
+			// Retry count exceeded, revoke keys
+			if (Hold->ReTryCount >= PERFECTMAXRETRIES)
+			{
+				// Delete block
+				if (Hold->Data)
+					Z_Free(Hold->Data);
+				Hold->Data = NULL;
+				delete Hold;
+				p_WriteQ[b] = NULL;
+				
+				// Revoke key
+				Key->Revoke = true;
+				continue;
+			}
+			
+			// Retransmit request?
+			if ((!Hold->RackTimeIsLess && ThisTime >= Hold->AutoRackTime) ||
+				(Hold->RackTimeIsLess && Hold->AutoRackTime >= ThisTime))
+			{
+				// Re-transmit
+				Hold->ReTransmit = true;
+				Hold->ReTryCount++;
+				
+				// Update Time
+				Hold->AutoRackTime = ThisTime + PERFECTRETRANSTIME;
+				Hold->RackTimeIsLess = false;
+				if (Hold->AutoRackTime < Hold->AutoRackTime)
+					Hold->RackTimeIsLess = true;
+			}
+			
+			// Re-transmitting block?
+			if (Hold->ReTransmit)
+			{
+				//CONL_PrintF("retran!\n");
+				// Don't retransmit constantly
+				Hold->ReTransmit = false;
+				
+				// Get encapsulated stream out
+				NormStream = p_WrapStream;
+				
+				// Write to remote host
+				NormStream->BlockBase("PERF");
+				
+				// Write Send, Key, Num, Sum, Header, Size, MaskEnc
+				MaskEnc = 0;
+					
+					// Send
+				NormStream->WriteUInt8('S');
+				MaskEnc ^= 'S';
+					// Key
+				for (z = 0; z < 4; z++)
+				{
+					NormStream->WriteLittleUInt32(Hold->Key[z]);
+					MaskEnc ^= Hold->Key[z];
+				}
+					// Num
+				PerfPkNumLow = Hold->PacketNum & (uint64_t)((~UINT32_C(0)));
+				PerfPkNumHi = Hold->PacketNum >> UINT64_C(32);
+				
+				NormStream->WriteLittleUInt32(PerfPkNumLow);
+				NormStream->WriteLittleUInt32(PerfPkNumHi);
+				
+				MaskEnc ^= PerfPkNumLow;
+				MaskEnc ^= PerfPkNumHi;
+					// Sum
+				NormStream->WriteLittleUInt32(Hold->CheckSum);
+				MaskEnc ^= Hold->CheckSum;
+					// Header
+				for (z = 0; z < 4; z++)
+				{
+					NormStream->WriteUInt8(Hold->Header[z]);
+					MaskEnc ^= Hold->Header[z];
+				}
+					// Size
+				NormStream->WriteLittleUInt32(Hold->Size);
+				MaskEnc ^= Hold->Size;
+					// MaskEnc
+				NormStream->WriteLittleUInt32(MaskEnc);
+				
+				// Write actual block data
+				NormStream->WriteChunk(Hold->Data, Hold->Size);
+				
+				// Record to stream
+				NormStream->BlockRecord(&Hold->RemHost);
+			}
+		}
+		
+		// Stop sending packets like crazy;
+		KeepSending = false;
+	} while (KeepSending);
+
+	/* Return value does not matter */
+	return true;
+}
+
+/* RBPerfectStream_c::BlockFlush() -- Flushes the block stream */
+bool RBPerfectStream_c::BlockFlush(void)
+{
+	RBAddress_c FakeHost;
+	
+	/* Sync? */
+	p_InFlush = true;
+	BlockRecord(&FakeHost);
+	p_InFlush = false;
+	
+	return true;
+}
 

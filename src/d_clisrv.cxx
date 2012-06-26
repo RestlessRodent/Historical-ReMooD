@@ -169,6 +169,7 @@ void TryRunTics(tic_t realtics)
 		
 		// Tic the title screen
 		D_PageTicker();
+		D_CNetUpdate();
 		
 		// Set last time
 		LastTic = LocalTic;
@@ -198,6 +199,7 @@ void TryRunTics(tic_t realtics)
 			{
 				// Update Net status
 				D_SyncNetUpdate();
+				D_CNetUpdate();
 				
 				// Run game ticker and increment the gametic
 				G_DemoPreGTicker();
