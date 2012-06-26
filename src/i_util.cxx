@@ -419,7 +419,7 @@ void I_DoMouseGrabbing(void)
 		
 	/* Don't grab if... */
 	// Dedicated Server, Watching demo, not playing, in a menu, in the console
-	New = !(dedicated || demoplayback || M_ExUIActive() || CONL_IsActive());
+	New = !(dedicated || gamestate == GS_WAITINGPLAYERS || gamestate == GS_WAITFORJOINWINDOW || gamestate == GS_DEMOSCREEN || demoplayback || M_ExUIActive() || CONL_IsActive());
 	
 	if (New != Grabbed && !l_NoMouseGrab)
 	{

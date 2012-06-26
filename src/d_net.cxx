@@ -2960,11 +2960,15 @@ void DNetController::StartServer(void)
 	for (i = 0; i < l_NumServerNCS; i++)
 		if (l_ServerNCS[i])
 			if (l_ServerNCS[i]->p_IsLocal)
+			{
 				l_ServerNCS[i]->p_IsServer = true;
+				l_ServerNCS[i]->p_SaveSent = true;
+			}
 	
 	/* Change game state to waiting mode */
 	p_ReadyTime = 0;
 	gamestate = wipegamestate = GS_WAITINGPLAYERS;
+	S_ChangeMusicName("D_WAITIN", 1);			// Waiting for game to start
 }
 
 /* DNetController::ReadyTics() -- Amount of tics ready to be played */

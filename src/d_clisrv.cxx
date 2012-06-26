@@ -223,10 +223,7 @@ void TryRunTics(tic_t realtics)
 			G_Ticker();
 			G_DemoPostGTicker();
 			gametic++;
-	
-			// Set last tic
-			//LastTic++;
-		
+			
 			// Single tics? -timedemo
 			if (singletics)
 				break;

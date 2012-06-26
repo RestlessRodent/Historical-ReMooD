@@ -202,6 +202,8 @@ class DNetController
 		bool p_IsLocal;							// Is local connection
 		bool p_IsServer;						// Is server connection
 		
+		bool p_SaveSent;						// Savegame sent
+		
 		RBPerfectStream_c* p_PStreams[2];		// Perfect Streams
 		RBStream_c* p_STDStreams[2];			// Standard Streams
 		
