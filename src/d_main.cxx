@@ -526,6 +526,7 @@ void D_Display(void)
 		// Appeal to the local timing code
 			// So that the game does not catch up during wipes!
 		D_SyncNetAppealTime();
+		DNetController::NetUpdate();							// Update network
 	}
 	while (!done && I_GetTime() < (unsigned)y);
 	
@@ -1786,6 +1787,7 @@ void D_DoomMain(void)
 	WL_Init();							// Initialize WL Code
 	M_MenuExInit();						// Initialize Menu
 	G_PrepareDemoStuff();				// Demos
+	D_CNetInit();						// Initialize
 	
 	GuestProf = D_CreateProfileEx("guest");	// Create guest account
 	GuestProf->Flags |= DPEXF_DONTSAVE;	// Never save guest account

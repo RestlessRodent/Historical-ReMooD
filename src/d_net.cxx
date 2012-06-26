@@ -502,7 +502,7 @@ static CONL_ExitCode_t DS_ConnectMultiCom(const uint32_t a_ArgC, const char** co
 	/* Connect */
 	if (strcasecmp("startserver", a_ArgV[0]) == 0)
 	{
-		D_NCServize();
+		DNetController::StartServer();//D_NCServize();
 		
 		return CLE_SUCCESS;
 	}
@@ -2844,16 +2844,159 @@ void D_NCQC_MapChange(void* const a_Data)
 
 /*** LOCALS ***/
 
+static DNetController** l_ServerNCS;			// Server Controllers
+static size_t l_NumServerNCS;					// Number of controllers
+
 /*** CLASSES ***/
 
-/*** FUNCTIONS ***/
+/* DNetController::DNetController() -- Creates network controller */
+DNetController::DNetController()
+{
+}
 
-/* D_CNetUpdate() -- Updates network code */
-void D_CNetUpdate(void)
+/* DNetController::DNetController() -- Constructor */
+DNetController::DNetController(RBStream_c* const a_STDStream)
+{
+	p_Master = true;
+	
+	/* Set standard streams to this */
+	p_STDStreams[0] = a_STDStream;
+	p_STDStreams[1] = a_STDStream;
+	
+	/* Create perfect stream to wrap the standard stream */
+	p_PStreams[0] = new RBPerfectStream_c(a_STDStream);
+	p_PStreams[1] = p_PStreams[0];
+}
+
+/* DNetController::~DNetController() -- Destroys network controller */
+DNetController::~DNetController()
+{
+	size_t i;
+	
+	/* Delete streams if this is a master controller */
+	if (p_Master)
+	{
+		delete p_STDStreams[0];
+		delete p_PStreams[0];
+	}
+}
+
+/* DNetController::GetRead() -- Get read stream */
+RBStream_c* DNetController::GetRead(void)
+{
+	return p_STDStreams[0];
+}
+
+/* DNetController::GetWrite() -- Get write stream */
+RBStream_c* DNetController::GetWrite(void)
+{
+	return p_STDStreams[1];
+}
+
+/* DNetController::GetPerfectRead() -- Get perfect read stream */
+RBPerfectStream_c* DNetController::GetPerfectRead(void)
+{
+	return p_PStreams[0];
+}
+
+/* DNetController::GetPerfectWrite() -- Get perfect write stream */
+RBPerfectStream_c* DNetController::GetPerfectWrite(void)
+{
+	return p_PStreams[1];
+}
+
+/* DNetController::GetServer() -- Gets the current server */
+DNetController* DNetController::GetServer(void)
+{
+	size_t i;
+	
+	/* Find server in chain */
+	for (i = 0; i < l_NumServerNCS; i++)
+		if (l_ServerNCS[i])
+			if (l_ServerNCS[i]->p_IsServer)
+				return l_ServerNCS[i];
+	
+	/* Not Found */
+	return NULL;
+}
+
+/* DNetController::Disconnect() -- Disconnects from server */
+void DNetController::Disconnect(void)
+{
+	size_t i;
+	
+	/* Delete all controllers */
+	for (i = 0; i < l_NumServerNCS; i++)
+		if (l_ServerNCS[i])
+		{
+			delete l_ServerNCS[i];
+			l_ServerNCS[i] = NULL;
+		}
+	
+	/* Create initial controllers */
+	// Allocate the first two, if needed
+	if (l_NumServerNCS < 2)
+		Z_ResizeArray((void**)&l_ServerNCS, sizeof(*l_ServerNCS), 0, 2);
+	
+	// Create local loopback controller
+	l_ServerNCS[0] = new DNetController(new RBLoopBackStream_c());
+	l_ServerNCS[0]->p_IsLocal = true;
+	
+	// Create Internet controller
+}
+
+/* DNetController::StartServer() -- Starts a server */
+void DNetController::StartServer(void)
+{
+	size_t i;
+	
+	/* First Disconnect */
+	DNetController::Disconnect();
+	
+	/* Make local connections servers */
+	for (i = 0; i < l_NumServerNCS; i++)
+		if (l_ServerNCS[i])
+			if (l_ServerNCS[i]->p_IsLocal)
+				l_ServerNCS[i]->p_IsServer = true;
+}
+
+/* DNetController::NetUpdate() -- Updates network code */
+void DNetController::NetUpdate(void)
 {
 	RBAddress_c ReadAddr;
+	size_t i;
 	
+	RBPerfectStream_c* PIn;
+	RBPerfectStream_c* POut;
+	RBStream_c* BOut;
 	
+	DNetController* DNC;
+	
+	/* Read/Write Packets from all controllers */
+	for (i = 0; i < l_NumServerNCS; i++)
+	{
+		// No Controller Here?
+		if (!l_ServerNCS[i])
+			continue;
+		
+		// Get
+		DNC = l_ServerNCS[i];
+		
+		// Get streams for the client
+		PIn = DNC->GetPerfectRead();
+		POut = DNC->GetPerfectWrite();
+		BOut = DNC->GetWrite();
+		
+		// Constantly read perfect blocks
+		while (PIn && PIn->BlockPlay(&ReadAddr))
+		{
+			CONL_PrintF("Read something\n");
+		}
+		
+		// Flush output streams
+		POut->BlockFlush();
+		BOut->BlockFlush();
+	}
 	
 #if 0
 	static RBLoopBackStream_c* lo = new RBLoopBackStream_c();
@@ -2883,4 +3026,12 @@ void D_CNetUpdate(void)
 #endif
 }
 
+/*** FUNCTIONS ***/
+
+/* D_CNetInit() -- Initialize Networking */
+void D_CNetInit(void)
+{
+	/* Initial Disconnect */
+	DNetController::Disconnect();
+}
 

@@ -206,8 +206,8 @@ bool G_DEMO_Vanilla_StartPlaying(struct G_CurrentDemo_s* a_Current)
 	// Options
 	P_EXGSSetValue(true, PEXGSBID_GAMESKILL, Data->Skill);
 	P_EXGSSetValue(true, PEXGSBID_GAMEDEATHMATCH, Data->Deathmatch);
-	P_EXGSSetValue(true, PEXGSBID_MONFASTMONSTERS, Data->Fast);
-	P_EXGSSetValue(true, PEXGSBID_MONRESPAWNMONSTERS, Data->Respawn);
+	P_EXGSSetValue(true, PEXGSBID_MONFASTMONSTERS, Data->Fast || Data->Skill >= 4);
+	P_EXGSSetValue(true, PEXGSBID_MONRESPAWNMONSTERS, Data->Respawn || Data->Skill >= 4);
 	P_EXGSSetValue(true, PEXGSBID_MONSPAWNMONSTERS, !Data->NoMonsters);
 	
 	// Based on Game Mode
@@ -2174,7 +2174,10 @@ void G_StopDemoPlay(void)
 	/* If not a server playing demos (demoplayback server) */
 	// Disconnect from "ourself"
 	if (!l_DemoServer)
+	{
 		D_NCDisconnect();
+		DNetController::Disconnect();
+	}
 	
 	/* Stop recording if advancing/quitting */
 	if ((QuitDoom || Advance) && demorecording)
@@ -2307,6 +2310,9 @@ void G_DoPlayDemo(const char* defdemoname)
 	{
 		D_NCDisconnect();
 		D_NCServize();
+		
+		DNetController::Disconnect();
+		DNetController::StartServer();
 	}
 	
 	/* Play demo in any factory */

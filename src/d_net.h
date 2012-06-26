@@ -41,6 +41,7 @@
 
 #include "i_net.h"
 #include "i_util.h"
+#include "d_block.h"
 
 /*****************
 *** STRUCTURES ***
@@ -178,6 +179,11 @@ void D_NCQC_MapChange(void* const a_Data);
 *** CLASS BASED NETWORKING ***
 *****************************/
 
+/*** CLASSES ***/
+
+class RBPerfectStream_c;
+class RBStream_c;
+
 /* DNetPlayer -- Networked Player */
 class DNetPlayer
 {
@@ -192,13 +198,34 @@ class DNetController
 	private:
 		DNetPlayer** p_Arbs;					// Controlling players
 		size_t p_NumArbs;						// Number of players
+		bool p_Master;							// Streams are master
+		bool p_IsLocal;							// Is local connection
+		bool p_IsServer;						// Is server connection
+		
+		RBPerfectStream_c* p_PStreams[2];		// Perfect Streams
+		RBStream_c* p_STDStreams[2];			// Standard Streams
 		
 	public:
 		DNetController();
+		DNetController(RBStream_c* const a_STDStream);
 		~DNetController();
+		
+		RBStream_c* GetRead(void);
+		RBStream_c* GetWrite(void);
+		RBPerfectStream_c* GetPerfectRead(void);
+		RBPerfectStream_c* GetPerfectWrite(void);
+		
+		static DNetController* GetServer(void);
+		
+		static void Disconnect(void);
+		static void StartServer(void);
+		
+		static void NetUpdate(void);
 };
 
-void D_CNetUpdate(void);
+/*** FUNCTIONS ***/
+
+void D_CNetInit(void);
 
 #endif							/* __D_NET_H__ */
 
