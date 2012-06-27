@@ -14,8 +14,7 @@
 //      :oO8@@@@@@@@@@Oo.
 //         .oCOOOOOCc.                                      http://remood.org/
 // -----------------------------------------------------------------------------
-// Copyright (C) 1998-2000 by DooM Legacy Team.
-// Copyright (C) 2008-2012 GhostlyDeath (ghostlydeath@gmail.com)
+// Copyright (C) 2012 GhostlyDeath <ghostlydeath@remood.org>
 // -----------------------------------------------------------------------------
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
@@ -27,55 +26,68 @@
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 // GNU General Public License for more details.
 // -----------------------------------------------------------------------------
-// DESCRIPTION: flat sprites & blood splats effects
+// DESCRIPTION: Allegro Trickery! Fun!
 
-#ifndef __R_SPLATS_H__
-#define __R_SPLATS_H__
+#ifndef __I_ALLEG_H__
+#define __I_ALLEG_H__
 
-#include "r_defs.h"
-#include "w_wad.h"
+// DJGPP's Allegro explodes if this isn't included first
+#if defined(__DJGPP__)
+	#include <stdint.h>
+#endif
 
-#define WALLSPLATS				// comment this out to compile without splat effects
+#include <allegro.h>
 
-#define MAXLEVELSPLATS      1024
+// Include winalleg on Windows since it conflicts!
+#if defined(_WIN32)
+	#define ALLEGRO_NO_MAGIC_MAIN	// Breaks with mingw-w64
 
-// splat flags
-#define SPLATDRAWMODE_MASK   0x03	// mask to get drawmode from flags
-#define SPLATDRAWMODE_OPAQUE 0x00
-#define SPLATDRAWMODE_SHADE  0x01
-#define SPLATDRAWMODE_TRANS  0x02
+	#include <winalleg.h>
+#endif
 
-/*
-#define SPLATUPPER           0x04
-#define SPLATLOWER           0x08
-*/
-// ==========================================================================
-// DEFINITIONS
-// ==========================================================================
+// If we are on MSVC, we MUST undefine the following...
+// Because a typedef in doomtype.h gives:
+//     ?I_GetTimeMS@@YA_IXZ
+// While allegro's #defines make it:
+//     ?I_GetTimeMS@@YAIXZ
+// Which causes linker problems. So for the sake of allegro and
+// compat on MSVC (which lacks stdint) clear out these headers.
+#if defined(_MSC_VER)
+	#ifdef int8_t
+		#undef int8_t
+	#endif
+	#ifdef int16_t
+		#undef int16_t
+	#endif
+	#ifdef int32_t
+		#undef int32_t
+	#endif
+	#ifdef int64_t
+		#undef int64_t
+	#endif
+	#ifdef uint8_t
+		#undef uint8_t
+	#endif
+	#ifdef uint16_t
+		#undef uint16_t
+	#endif
+	#ifdef uint32_t
+		#undef uint32_t
+	#endif
+	#ifdef uint64_t
+		#undef uint64_t
+	#endif
+	#ifdef intptr_t
+		#undef intptr_t
+	#endif
+	#ifdef uintptr_t
+		#undef uintptr_t
+	#endif
 
-// WALL SPLATS are patches drawn on top of wall segs
-struct wallsplat_s
-{
-	vertex_t v1;				// vertices along the linedef
-	vertex_t v2;
-	fixed_t top;
-	fixed_t offset;				// offset in columns<<FRACBITS from start of linedef to start of splat
-	int flags;
-	fixed_t* yoffset;
-	//short       xofs, yofs;
-	//int         tictime;
-	line_t* line;				// the parent line of the splat seg
-	V_Image_t* Image;							// What the splat looks like
-	struct wallsplat_s* next;
-};
-typedef struct wallsplat_s wallsplat_t;
+	#include "doomtype.h"
+#else
+	// Allegro should have included stdint, so no worry here
+	#define __REMOOD_IGNORE_FIXEDTYPES
+#endif
 
-//p_setup.c
-extern float P_SegLength(seg_t* seg);
-
-// call at P_SetupLevel()
-void R_ClearLevelSplats(void);
-
-void R_AddWallSplat(line_t* wallline, int sectorside, char* patchname, fixed_t top, fixed_t wallfrac, int flags);
-
-#endif /*__R_SPLATS_H__*/
+#endif /* __I_ALLEG_H__ */

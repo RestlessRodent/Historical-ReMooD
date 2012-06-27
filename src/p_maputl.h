@@ -71,7 +71,7 @@ extern intercept_t* intercept_p;
 
 void P_CheckIntercepts();
 
-typedef bool (*traverser_t) (intercept_t* in, void* const a_Data);
+typedef bool (*traverser_t)(intercept_t* in, void* const a_Data);
 
 bool P_PathTraverse(fixed_t x1, fixed_t y1, fixed_t x2, fixed_t y2, int flags, traverser_t trav, void* const a_Data);
 

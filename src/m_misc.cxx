@@ -165,6 +165,7 @@ typedef struct
 //
 bool WritePCXfile(char* filename, uint8_t* data, int width, int height, uint8_t* palette)
 {
+	return false;
 }
 
 //

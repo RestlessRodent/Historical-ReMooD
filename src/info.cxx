@@ -166,7 +166,7 @@ typedef struct INFO_LocalObjects_s
 typedef struct INFO_FlagInfo_s
 {
 	uint32_t Field;
-	const char* const Name;
+	const char* __REMOOD_SCONST Name;
 } INFO_FlagInfo_t;
 
 // c_xFlags -- "flags"

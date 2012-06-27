@@ -86,3 +86,14 @@ glob:parm
 glob:parm.zip
 glob:libarmboot.a
 relre:.*\.zip$
+proj/vc10/ReMooD.opensdf
+proj/vc10/rmdtexDebug/RMDTex.log
+proj/vc10/rmdtexDebug/RMDTex.lastbuildstate
+proj/vc10/rmdtexDebug/RMDTex.unsuccessfulbuild
+.*\.lastbuildstate$
+syntax: regexp
+.*\.dbs$
+.*\.wad\.backup[0-9]*$
+.*\.tlog$
+.*\.unsuccessfulbuild$
+.*_manifest\.rc$

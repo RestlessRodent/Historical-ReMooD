@@ -5,6 +5,7 @@
 	Name="ReMooD"
 	ProjectGUID="{864683B0-3583-49E0-BDDB-96F48A5F58FC}"
 	RootNamespace="ReMooD"
+	TargetFrameworkVersion="0"
 	>
 	<Platforms>
 		<Platform
@@ -30,7 +31,7 @@
 			<Tool
 				Name="VCCustomBuildTool"
 				Description="Building ReMooD.WAD"
-				CommandLine="$(OutDir)\rmdtex.exe $(InputDir)\..\..\wad\wadinfo.txt $(OutDir)\remood.wad $(InputDir)\..\..\wad\"
+				CommandLine="$(OutDir)\rmdtex.exe $(InputDir)\..\..\wad\wadinfo.txt $(OutDir)\remood.wad $(InputDir)\..\..\wad\&#x0D;&#x0A;"
 				AdditionalDependencies=""
 				Outputs="$(OutDir)\remood.wad"
 			/>
@@ -63,7 +64,7 @@
 				AssemblerOutput="2"
 				WarningLevel="4"
 				DebugInformationFormat="3"
-				CompileAs="1"
+				CompileAs="2"
 			/>
 			<Tool
 				Name="VCManagedResourceCompilerTool"
@@ -105,9 +106,6 @@
 				Name="VCAppVerifierTool"
 			/>
 			<Tool
-				Name="VCWebDeploymentTool"
-			/>
-			<Tool
 				Name="VCPostBuildEventTool"
 			/>
 		</Configuration>
@@ -125,7 +123,7 @@
 			<Tool
 				Name="VCCustomBuildTool"
 				Description="Building ReMooD.WAD"
-				CommandLine="$(OutDir)\rmdtex.exe $(InputDir)\..\..\wad\wadinfo.txt $(OutDir)\remood.wad $(InputDir)\..\..\wad\"
+				CommandLine="$(OutDir)\rmdtex.exe $(InputDir)\..\..\wad\wadinfo.txt $(OutDir)\remood.wad $(InputDir)\..\..\wad\&#x0D;&#x0A;"
 				AdditionalDependencies=""
 				Outputs="$(OutDir)\remood.wad"
 			/>
@@ -146,13 +144,14 @@
 				FavorSizeOrSpeed="1"
 				AdditionalIncludeDirectories="..\..\src\;..\..\src\sdl\"
 				PreprocessorDefinitions="WIN32,_WIN32,NDEBUG,_CRT_SECURE_NO_WARNINGS,__REMOOD_SYSTEM_WINDOWS,__REMOOD_INTERFACE_SDL,_CRT_SECURE_NO_DEPRECATE,_CRT_SECURE_NO_DEPRECATE"
-				StringPooling="true"
+				StringPooling="false"
+				ExceptionHandling="0"
 				RuntimeLibrary="2"
 				EnableFunctionLevelLinking="false"
 				FloatingPointModel="2"
 				WarningLevel="4"
 				DebugInformationFormat="0"
-				CompileAs="1"
+				CompileAs="2"
 			/>
 			<Tool
 				Name="VCManagedResourceCompilerTool"
@@ -194,9 +193,6 @@
 				Name="VCAppVerifierTool"
 			/>
 			<Tool
-				Name="VCWebDeploymentTool"
-			/>
-			<Tool
 				Name="VCPostBuildEventTool"
 			/>
 		</Configuration>
@@ -214,7 +210,7 @@
 			<Tool
 				Name="VCCustomBuildTool"
 				Description="Building ReMooD.WAD"
-				CommandLine="$(OutDir)\rmdtex.exe $(InputDir)\..\..\wad\wadinfo.txt $(OutDir)\remood.wad $(InputDir)\..\..\wad\"
+				CommandLine="$(OutDir)\rmdtex.exe $(InputDir)\..\..\wad\wadinfo.txt $(OutDir)\remood.wad $(InputDir)\..\..\wad\&#x0D;&#x0A;"
 				AdditionalDependencies=""
 				Outputs="$(OutDir)\remood.wad"
 			/>
@@ -245,7 +241,7 @@
 				AssemblerOutput="2"
 				WarningLevel="4"
 				DebugInformationFormat="3"
-				CompileAs="1"
+				CompileAs="2"
 			/>
 			<Tool
 				Name="VCManagedResourceCompilerTool"
@@ -289,9 +285,6 @@
 				Name="VCAppVerifierTool"
 			/>
 			<Tool
-				Name="VCWebDeploymentTool"
-			/>
-			<Tool
 				Name="VCPostBuildEventTool"
 			/>
 		</Configuration>
@@ -309,7 +302,7 @@
 			<Tool
 				Name="VCCustomBuildTool"
 				Description="Building ReMooD.WAD"
-				CommandLine="$(OutDir)\rmdtex.exe $(InputDir)\..\..\wad\wadinfo.txt $(OutDir)\remood.wad $(InputDir)\..\..\wad\"
+				CommandLine="$(OutDir)\rmdtex.exe $(InputDir)\..\..\wad\wadinfo.txt $(OutDir)\remood.wad $(InputDir)\..\..\wad\&#x0D;&#x0A;"
 				AdditionalDependencies=""
 				Outputs="$(OutDir)\remood.wad"
 			/>
@@ -330,13 +323,14 @@
 				FavorSizeOrSpeed="1"
 				AdditionalIncludeDirectories="..\..\src\;..\..\src\sdl\"
 				PreprocessorDefinitions="WIN32,_WIN32,NDEBUG,_CRT_SECURE_NO_WARNINGS,__REMOOD_SYSTEM_WINDOWS,__REMOOD_INTERFACE_ALLEGRO,_CRT_SECURE_NO_DEPRECATE"
-				StringPooling="true"
+				StringPooling="false"
+				ExceptionHandling="0"
 				RuntimeLibrary="2"
 				EnableFunctionLevelLinking="false"
 				FloatingPointModel="2"
 				WarningLevel="4"
 				DebugInformationFormat="0"
-				CompileAs="1"
+				CompileAs="2"
 			/>
 			<Tool
 				Name="VCManagedResourceCompilerTool"
@@ -376,9 +370,6 @@
 			/>
 			<Tool
 				Name="VCAppVerifierTool"
-			/>
-			<Tool
-				Name="VCWebDeploymentTool"
 			/>
 			<Tool
 				Name="VCPostBuildEventTool"
@@ -718,6 +709,26 @@
 			<Filter
 				Name="Allegro"
 				>
+				<File
+					RelativePath="..\..\src\allegro\i_alleg.h"
+					>
+					<FileConfiguration
+						Name="Debug (SDL)|Win32"
+						ExcludedFromBuild="true"
+						>
+						<Tool
+							Name="VCCustomBuildTool"
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Release (SDL)|Win32"
+						ExcludedFromBuild="true"
+						>
+						<Tool
+							Name="VCCustomBuildTool"
+						/>
+					</FileConfiguration>
+				</File>
 				<File
 					RelativePath="..\..\src\allegro\i_main.cxx"
 					>
@@ -1517,6 +1528,14 @@
 			>
 		</File>
 		<File
+			RelativePath="..\..\src\ccstub.cxx"
+			>
+		</File>
+		<File
+			RelativePath="..\..\src\ccstub.h"
+			>
+		</File>
+		<File
 			RelativePath="..\..\src\command.cxx"
 			>
 		</File>
@@ -1573,6 +1592,10 @@
 			>
 		</File>
 		<File
+			RelativePath="..\..\src\g_demo.cxx"
+			>
+		</File>
+		<File
 			RelativePath="..\..\src\info.cxx"
 			>
 		</File>
@@ -1602,6 +1625,46 @@
 		</File>
 		<File
 			RelativePath="..\..\rc\remoods.ico"
+			>
+		</File>
+		<File
+			RelativePath="..\..\src\rh_bsp.cxx"
+			>
+		</File>
+		<File
+			RelativePath="..\..\src\rh_draw.cxx"
+			>
+		</File>
+		<File
+			RelativePath="..\..\src\rh_main.cxx"
+			>
+		</File>
+		<File
+			RelativePath="..\..\src\rh_main.h"
+			>
+		</File>
+		<File
+			RelativePath="..\..\src\rh_plane.cxx"
+			>
+		</File>
+		<File
+			RelativePath="..\..\src\rh_thing.cxx"
+			>
+		</File>
+		<File
+			RelativePath="..\..\src\rx_draw.cxx"
+			>
+		</File>
+		<File
+			RelativePath="..\..\src\rx_main.cxx"
+			>
+		</File>
+		<File
+			RelativePath="..\..\src\rx_main.h"
+			>
+		</File>
+		<File
+			RelativePath="..\..\src\rx_sky.cxx"
 			>
 		</File>
 		<File
@@ -1642,6 +1705,26 @@
 		</File>
 		<File
 			RelativePath="..\..\src\tables.h"
+			>
+		</File>
+		<File
+			RelativePath="..\..\src\z_debug.cxx"
+			>
+		</File>
+		<File
+			RelativePath="..\..\src\z_mhs.cxx"
+			>
+		</File>
+		<File
+			RelativePath="..\..\src\z_miniz.cxx"
+			>
+		</File>
+		<File
+			RelativePath="..\..\src\z_miniz.h"
+			>
+		</File>
+		<File
+			RelativePath="..\..\src\z_util.cxx"
 			>
 		</File>
 	</Files>

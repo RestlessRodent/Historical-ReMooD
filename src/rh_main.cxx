@@ -67,7 +67,7 @@ typedef struct RH_FrameInfo_s
 	fixed_t* cachedystep;						// Cache
 	fixed_t* distscale;							// Distance Scale
 	angle_t* xtoviewangle;						// X to view angle
-	int* viewangletox;							// View angle to x
+	fixed_t* viewangletox;						// View angle to x
 } RH_FrameInfo_t;
 
 /**************

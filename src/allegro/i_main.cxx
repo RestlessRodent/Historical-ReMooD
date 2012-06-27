@@ -34,21 +34,8 @@
 ***************/
 
 /* System */
-// DJGPP's Allegro explodes if this isn't included first
-#if defined(__DJGPP__)
-#include <stdint.h>
-#endif
+#include "i_alleg.h"
 
-#include <allegro.h>
-
-// Include winalleg on Windows since it conflicts!
-#if defined(_WIN32)
-#define ALLEGRO_NO_MAGIC_MAIN	// Breaks with mingw-w64
-
-#include <winalleg.h>
-#endif
-
-#define __REMOOD_IGNORE_FIXEDTYPES
 #include "doomdef.h"
 #include "m_argv.h"
 #include "d_main.h"

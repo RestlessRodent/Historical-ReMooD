@@ -283,16 +283,16 @@ typedef enum P_EXGSBitID_e
 typedef struct P_EXGSVariable_s
 {
 	// Base
-	const P_EXGSType_t Type;					// Type of value to conform to
-	const P_EXGSBitID_t BitID;					// BitID of flag
+	__REMOOD_SCONST P_EXGSType_t Type;			// Type of value to conform to
+	__REMOOD_SCONST P_EXGSBitID_t BitID;		// BitID of flag
 	const char* Name;							// Name of game setting
 	const char* MenuTitle;						// Title for menus
 	const char* Description;					// Description
-	const uint8_t GameFlags;					// Game Flags
-	const P_EXGSDemoRange_t DemoRange;			// Range for "demoversion"
-	const uint16_t DemoVersion;					// "demoversion" wrapper
-	const int32_t DemoVal[2];					// Demo values (false, true)
-	const int32_t DefaultVal;					// Default value wherever
+	__REMOOD_SCONST uint8_t GameFlags;			// Game Flags
+	__REMOOD_SCONST P_EXGSDemoRange_t DemoRange;	// Range for "demoversion"
+	__REMOOD_SCONST uint16_t DemoVersion;		// "demoversion" wrapper
+	__REMOOD_SCONST int32_t DemoVal[2];			// Demo values (false, true)
+	__REMOOD_SCONST int32_t DefaultVal;			// Default value wherever
 	P_EXGSMenuCategory_t Category;				// Category for item
 	P_EXGSDisplayAs_t DisplayAs;				// Display as this
 	const CONL_VarPossibleValue_t* Possible;	// Possible values

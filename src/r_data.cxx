@@ -1727,6 +1727,7 @@ int R_ColormapNumForName(char* name)
 	num_extra_colormaps++;
 	return num_extra_colormaps - 1;
 #endif
+	return 0;
 }
 
 // SoM:

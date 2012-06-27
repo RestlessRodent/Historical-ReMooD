@@ -926,7 +926,7 @@ typedef enum UnicodeStringID_e
 /* StringGroupEX_t -- String data holder */
 typedef struct StringGroupEX_s
 {
-	const char* const id;
+	const char* __REMOOD_SCONST id;
 	char* wcharstr;
 	uint32_t Hash;
 } StringGroupEX_t;

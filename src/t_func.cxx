@@ -1780,7 +1780,7 @@ void SF_SetCamera()
 	aiming = fixedvalue(t_argv[3]) * fixedtodeg;
 	//DarkWolf95:Byteshift to right in G_ClipAimingPitch
 	//was causing the camera's angle to be too low, shift back left.
-	script_camera.aiming = G_ClipAimingPitch(&aiming) << 16;
+	script_camera.aiming = G_ClipAimingPitch((int*)&aiming) << 16;
 	G_ClipAimingPitch((int*)&script_camera.aiming);
 	script_camera_on = true;
 	t_return.type = svt_fixed;

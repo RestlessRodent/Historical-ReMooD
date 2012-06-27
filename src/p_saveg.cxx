@@ -2061,6 +2061,7 @@ else if (a_Thinker->function.acv == T_VerticalDoor)	return 'o';
 	return true;
 #undef BUFSIZE
 #endif
+	return false;
 }
 
 /*****************************************************************************/

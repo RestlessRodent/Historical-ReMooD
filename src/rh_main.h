@@ -102,7 +102,7 @@ typedef struct RH_RenderStat_s
 	fixed_t basexscale;							// Scale
 	fixed_t baseyscale;							// Scale
 	angle_t* xtoviewangle;						// X to view angle
-	int* viewangletox;							// View angle to x
+	fixed_t* viewangletox;						// View angle to x
 	angle_t clipangle;							// Clipping angle
 	int rw_angle1;								// Angle
 	

@@ -162,8 +162,8 @@ void WriteString(uint8_t** const Out, uint8_t* const String)
 	
 	// Loop
 	for (i = 0; String[i]; i++)
-		WriteUInt8(Out, (uint8_t)String[i]);
-	WriteUInt8(Out, 0);
+		OLDWriteUInt8(Out, (uint8_t)String[i]);
+	OLDWriteUInt8(Out, 0);
 }
 
 /* WriteStringN() -- Write a string of n length */
@@ -173,9 +173,9 @@ void WriteStringN(uint8_t** const Out, uint8_t* const String, const size_t Count
 	
 	// Loop
 	for (i = 0; i < Count && String[i]; i++)
-		WriteUInt8(Out, (uint8_t)String[i]);
+		OLDWriteUInt8(Out, (uint8_t)String[i]);
 	for (; i < Count; i++)
-		WriteUInt8(Out, 0);
+		OLDWriteUInt8(Out, 0);
 }
 
 /* ReadCompressedUInt16() -- Reads a "compressed" uint16_t */
@@ -189,14 +189,14 @@ uint16_t ReadCompressedUInt16(const void** const p)
 		return 0;
 		
 	/* Read in first value */
-	ReadVal = ReadUInt8((const uint8_t** const)p);
+	ReadVal = OLDReadUInt8((const uint8_t** const)p);
 	
 	// Compressed?
 	if (ReadVal & 0x80U)
 	{
 		ReadVal &= 0x7FU;		// Don't remember upper bit
 		ReadVal <<= 8;
-		ReadVal |= ReadUInt8((const uint8_t** const)p);
+		ReadVal |= OLDReadUInt8((const uint8_t** const)p);
 	}
 	
 	/* Return result */
@@ -213,10 +213,10 @@ void WriteCompressedUInt16(void** const p, const uint16_t Value)
 		
 	/* Write in high value */
 	if (Value > 0x7FU)
-		WriteUInt8((uint8_t** const)p, ((Value & 0x7F00) >> 8) | 0x80U);
+		OLDWriteUInt8((uint8_t** const)p, ((Value & 0x7F00) >> 8) | 0x80U);
 		
 	/* Write in low value */
-	WriteUInt8((uint8_t** const)p, Value & 0xFFU);
+	OLDWriteUInt8((uint8_t** const)p, Value & 0xFFU);
 }
 
 /********************
@@ -311,23 +311,23 @@ BS_x(UInt64, uint64_t);
 #if defined(__REMOOD_BIG_ENDIAN)
 #define BPLREAD_x(w,x) x BP_MERGE(LittleRead,w)(const x** const Ptr)\
 	{\
-		return BP_MERGE(Swap,w)(BP_MERGE(Read,w)(Ptr));\
+		return BP_MERGE(Swap,w)(BP_MERGE(OLDRead,w)(Ptr));\
 	}
 #else
 #define BPLREAD_x(w,x) x BP_MERGE(LittleRead,w)(const x** const Ptr)\
 	{\
-		return BP_MERGE(Read,w)(Ptr);\
+		return BP_MERGE(OLDRead,w)(Ptr);\
 	}
 #endif
 #if defined(__REMOOD_BIG_ENDIAN)
 #define BPLWRITE_x(w,x) void BP_MERGE(LittleWrite,w)(x** const Ptr, const x Val)\
 	{\
-		BP_MERGE(Write,w)(Ptr, BP_MERGE(Swap,w)(Val));\
+		BP_MERGE(OLDWrite,w)(Ptr, BP_MERGE(Swap,w)(Val));\
 	}
 #else
 #define BPLWRITE_x(w,x) void BP_MERGE(LittleWrite,w)(x** const Ptr, const x Val)\
 	{\
-		BP_MERGE(Write,w)(Ptr, Val);\
+		BP_MERGE(OLDWrite,w)(Ptr, Val);\
 	}
 #endif
 BPLREAD_x(Int16, int16_t)

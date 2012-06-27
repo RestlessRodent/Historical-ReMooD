@@ -909,7 +909,7 @@ void R_DrawPSprite(pspdef_t* psp)
 	else
 		vis->texturemid = (BASEYCENTER << FRACBITS) + FRACUNIT / 2 - (psp->sy - SprInfo->TopOffset);
 	
-	if (viewheight == vid.height || (!ST_ExSoloViewTransSBar && vid.dupy > 1))
+	if (viewheight == vid.height || (!ST_ExSoloViewTransSBar() && vid.dupy > 1))
 		vis->texturemid -= viewplayer->weaponinfo[viewplayer->readyweapon]->PSpriteSY;
 		
 	//vis->texturemid += FRACUNIT/2;

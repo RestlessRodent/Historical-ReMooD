@@ -449,8 +449,14 @@ typedef signed short mz_int16;
 typedef unsigned short mz_uint16;
 typedef unsigned int mz_uint32;
 typedef unsigned int mz_uint;
-typedef long long mz_int64;
-typedef unsigned long long mz_uint64;
+
+#if defined(_MSC_VER)
+	typedef signed __int64 mz_int64;
+	typedef unsigned __int64 mz_uint64;
+#else
+	typedef long long mz_int64;
+	typedef unsigned long long mz_uint64;
+#endif
 typedef int mz_bool;
 
 #define MZ_FALSE (0)

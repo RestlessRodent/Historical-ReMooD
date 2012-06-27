@@ -36,19 +36,20 @@
 #if !defined(__REMOOD_USECCSTUB)
 	// On UNIX include the standard header
 	#if defined(__unix__)
-	#include <unistd.h>				// Standard Stuff
+		#include <unistd.h>				// Standard Stuff
 	#endif
 
 	// On Windows include windows.h
 	#if defined(_WIN32)
-	#include <windows.h>
+		#include <windows.h>
+		#include <direct.h>				// mkdir
 	#endif
 
 	// On DOS include dos.h (and conio.h for colors)
 	#if defined(__MSDOS__)
-	#include <dos.h>
-	#include <conio.h>
-	#include <dpmi.h>
+		#include <dos.h>
+		#include <conio.h>
+		#include <dpmi.h>
 	#endif
 
 	// Include the standard C stuff here
@@ -947,7 +948,7 @@ void I_TextModeChar(const uint8_t a_Char, const uint8_t Attr)
 	bool Blink;
 	
 #if defined(_WIN32)
-	HANDLE* StdOut;
+	HANDLE StdOut;
 	
 	static const uint32_t c_BGColorToWin32[8] =
 	{

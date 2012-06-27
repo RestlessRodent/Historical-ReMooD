@@ -841,5 +841,6 @@ bool ST_ExSoloViewScaledSBar(void)
 /* ST_ExViewBarHeight() -- Status Bar Height */
 int32_t ST_ExViewBarHeight(void)
 {
+	return 0;
 }
 

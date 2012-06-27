@@ -33,19 +33,9 @@
 ***************/
 
 /* System */
-#include <stdlib.h>
-#if defined(__DJGPP__)
-#include <stdint.h>
-#endif
-#include <allegro.h>
-
-// Include winalleg on Windows since it conflicts!
-#if defined(_WIN32)
-#include <winalleg.h>
-#endif
+#include "i_alleg.h"
 
 /* Local */
-#define __REMOOD_IGNORE_FIXEDTYPES
 #include "doomtype.h"
 #include "doomdef.h"
 #include "i_video.h"

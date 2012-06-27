@@ -172,7 +172,7 @@ bool I_MUS2MID_MUSReadNextMessage(I_MUS2MIDData_t* const a_Local, uint32_t* cons
 	{
 		// Prepare
 		p = a_Local->Data;
-		ReadUInt32(&p);	// skip header
+		OLDReadUInt32(&p);	// skip header
 		a_Local->MusLen = LittleReadUInt16((const uint16_t**)&p);
 		a_Local->MusStart = LittleReadUInt16((const uint16_t**)&p);
 		
@@ -1286,7 +1286,7 @@ static void IS_WriteMixSample(void** Buf, int32_t Value, size_t a_Bits)
 		v += 32768;
 		
 		// Mix into buffer
-		WriteUInt16(Buf, v);
+		OLDWriteUInt16(Buf, v);
 	}
 	
 	/* Write Narrow */
@@ -1303,7 +1303,7 @@ static void IS_WriteMixSample(void** Buf, int32_t Value, size_t a_Bits)
 		v += 128;
 		
 		// Mix into buffer
-		WriteUInt8(Buf, v);
+		OLDWriteUInt8(Buf, v);
 	}
 }
 

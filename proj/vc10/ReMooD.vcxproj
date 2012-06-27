@@ -279,16 +279,24 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="..\..\src\allegro\i_alleg.h">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug (SDL)|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release (SDL)|Win32'">true</ExcludedFromBuild>
+    </ClInclude>
+    <ClInclude Include="..\..\src\ccstub.h" />
     <ClInclude Include="..\..\src\i_net.h" />
     <ClInclude Include="..\..\src\i_sound.h" />
     <ClInclude Include="..\..\src\i_system.h" />
     <ClInclude Include="..\..\src\i_util.h" />
     <ClInclude Include="..\..\src\i_video.h" />
+    <ClInclude Include="..\..\src\rh_main.h" />
+    <ClInclude Include="..\..\src\rx_main.h" />
     <ClInclude Include="..\..\src\v_video.h" />
     <ClInclude Include="..\..\src\v_widc.h" />
     <ClInclude Include="..\..\src\v_widget.h" />
     <ClInclude Include="..\..\src\w_wad.h" />
     <ClInclude Include="..\..\src\wi_stuff.h" />
+    <ClInclude Include="..\..\src\z_miniz.h" />
     <ClInclude Include="..\..\src\z_zone.h" />
     <ClInclude Include="..\..\src\r_bsp.h" />
     <ClInclude Include="..\..\src\r_data.h" />
@@ -378,9 +386,19 @@
     <ClInclude Include="..\..\src\tables.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="..\..\src\ccstub.cxx" />
+    <ClCompile Include="..\..\src\g_demo.cxx" />
     <ClCompile Include="..\..\src\i_util.cxx" />
     <ClCompile Include="..\..\src\i_utlnet.cxx" />
     <ClCompile Include="..\..\src\i_utlsfx.cxx" />
+    <ClCompile Include="..\..\src\rh_bsp.cxx" />
+    <ClCompile Include="..\..\src\rh_draw.cxx" />
+    <ClCompile Include="..\..\src\rh_main.cxx" />
+    <ClCompile Include="..\..\src\rh_plane.cxx" />
+    <ClCompile Include="..\..\src\rh_thing.cxx" />
+    <ClCompile Include="..\..\src\rx_draw.cxx" />
+    <ClCompile Include="..\..\src\rx_main.cxx" />
+    <ClCompile Include="..\..\src\rx_sky.cxx" />
     <ClCompile Include="..\..\src\sdl\i_main.cxx">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug (Allegro)|Win32'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release (Allegro)|Win32'">true</ExcludedFromBuild>
@@ -433,6 +451,10 @@
     <ClCompile Include="..\..\src\v_widget.cxx" />
     <ClCompile Include="..\..\src\w_wad.cxx" />
     <ClCompile Include="..\..\src\wi_stuff.cxx" />
+    <ClCompile Include="..\..\src\z_debug.cxx" />
+    <ClCompile Include="..\..\src\z_mhs.cxx" />
+    <ClCompile Include="..\..\src\z_miniz.cxx" />
+    <ClCompile Include="..\..\src\z_util.cxx" />
     <ClCompile Include="..\..\src\z_zone.cxx" />
     <ClCompile Include="..\..\src\r_bsp.cxx" />
     <ClCompile Include="..\..\src\r_data.cxx" />

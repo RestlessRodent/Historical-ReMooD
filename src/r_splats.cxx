@@ -162,7 +162,7 @@ void R_AddWallSplat(line_t* wallline, int sectorside, char* patchname, fixed_t t
 	wallsplat_t* Rover;
 	wallsplat_t* Next;
 	sector_t* BackSector = NULL;
-	int* yOffset = NULL;
+	fixed_t* yOffset = NULL;
 	wallsplat_t Temp;
 	V_Image_t* SplatImage;
 	

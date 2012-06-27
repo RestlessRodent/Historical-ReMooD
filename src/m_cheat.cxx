@@ -832,7 +832,7 @@ void Command_CheatSummonFriend_f(void)
 /* M_SingleCheat_t -- A single cheat */
 typedef struct M_SingleCheat_s
 {
-	const char* const Name;						// Cheat name
+	const char* __REMOOD_SCONST Name;			// Cheat name
 	void (*Command)(player_t* const a_Player, const uint32_t a_ArgC, const char** const a_ArgV);
 } M_SingleCheat_t;
 

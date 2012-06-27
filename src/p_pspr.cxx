@@ -1427,7 +1427,7 @@ bool P_RMODO_WeaponsAmmo(const bool a_Pushed, const struct WL_WADFile_s* const a
 	ammoinfo_t* TempAmmo;
 	D_RMODPrivate_t* RMODPrivate;
 	size_t i, j, k, FoundID, Base, Count, MergeBase, MergeCount;
-	int* StateRef;
+	int32_t* StateRef;
 	uint32_t WepID, RefToFind;
 	
 	/* Reset */

@@ -47,7 +47,7 @@ RSC=rc.exe
 # PROP Target_Dir ""
 # ADD BASE CPP /nologo /MDd /W3 /Gm /GX /ZI /Od /I "..\..\sdl" /I "..\..\win32" /I "..\..\src" /I "..\..\src_cl" /D "GAMECLIENT" /D "_WIN32" /D "WIN32" /D "_DEBUG" /D "_WINDOWS" /D "_MBCS" /D "ENABLEMULTITHREADING" /D "HIGHMEMORYUNICODE" /D "__REMOOD_SYSTEM_WINDOWS" /U "GAMESERVER" /FD /GZ /c
 # SUBTRACT BASE CPP /YX
-# ADD CPP /nologo /MDd /W3 /Gm /GX /ZI /Od /I "..\..\sdl" /I "..\..\win32" /I "..\..\src" /I "..\..\src_cl" /D "GAMECLIENT" /D "_WIN32" /D "WIN32" /D "_DEBUG" /D "_WINDOWS" /D "_MBCS" /D "ENABLEMULTITHREADING" /D "HIGHMEMORYUNICODE" /D "__REMOOD_SYSTEM_WINDOWS" /U "GAMESERVER" /FD /GZ /c
+# ADD CPP /nologo /MDd /W3 /Gm /GX- /ZI /Od /I "..\..\sdl" /I "..\..\win32" /I "..\..\src" /I "..\..\src_cl" /D "GAMECLIENT" /D "_WIN32" /D "WIN32" /D "_DEBUG" /D "_WINDOWS" /D "_MBCS" /D "ENABLEMULTITHREADING" /D "HIGHMEMORYUNICODE" /D "__REMOOD_SYSTEM_WINDOWS" /U "GAMESERVER" /FD /GZ /c
 # SUBTRACT CPP /YX
 # ADD BASE MTL /nologo /D "_DEBUG" /mktyplib203 /win32
 # ADD MTL /nologo /D "_DEBUG" /mktyplib203 /win32
@@ -68,7 +68,7 @@ InputPath=\cygwin\home\Steven\ReMooD\bin\remood-dbg.exe
 SOURCE="$(InputPath)"
 
 "$(TargetDir)\remood.wad" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
-	$(TargetDir)\rmdtex.exe  $(ProjDir)\..\..\wad\wadinfo.txt  $(TargetDir)\remood.wad  $(ProjDir)\..\..\wad\ 
+	$(TargetDir)\rmdtex.exe   $(ProjDir)\..\..\wad\wadinfo.txt   $(TargetDir)\remood.wad   $(ProjDir)\..\..\wad\ 
 
 # End Custom Build
 
@@ -88,7 +88,7 @@ SOURCE="$(InputPath)"
 # PROP Target_Dir ""
 # ADD BASE CPP /nologo /MD /W3 /GX /O2 /I "..\..\sdl" /I "..\..\win32" /I "..\..\src_cl" /I "..\..\src" /D "GAMECLIENT" /D "_WIN32" /D "WIN32" /D "NDEBUG" /D "_WINDOWS" /D "_MBCS" /D "ENABLEMULTITHREADING" /D "__REMOOD_SYSTEM_WINDOWS" /U "GAMESERVER" /FD /c
 # SUBTRACT BASE CPP /YX
-# ADD CPP /nologo /MD /W3 /GX /O2 /I "..\..\sdl" /I "..\..\win32" /I "..\..\src_cl" /I "..\..\src" /D "GAMECLIENT" /D "_WIN32" /D "WIN32" /D "NDEBUG" /D "_WINDOWS" /D "_MBCS" /D "ENABLEMULTITHREADING" /D "__REMOOD_SYSTEM_WINDOWS" /U "GAMESERVER" /FD /c
+# ADD CPP /nologo /MD /W3 /GX- /O2 /I "..\..\sdl" /I "..\..\win32" /I "..\..\src_cl" /I "..\..\src" /D "GAMECLIENT" /D "_WIN32" /D "WIN32" /D "NDEBUG" /D "_WINDOWS" /D "_MBCS" /D "ENABLEMULTITHREADING" /D "__REMOOD_SYSTEM_WINDOWS" /U "GAMESERVER" /FD /c
 # SUBTRACT CPP /YX
 # ADD BASE MTL /nologo /D "NDEBUG" /mktyplib203 /win32
 # ADD MTL /nologo /D "NDEBUG" /mktyplib203 /win32
@@ -109,7 +109,7 @@ InputPath=\cygwin\home\Steven\ReMooD\bin\remood.exe
 SOURCE="$(InputPath)"
 
 "$(TargetDir)\remood.wad" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
-	$(TargetDir)\rmdtex.exe  $(ProjDir)\..\..\wad\wadinfo.txt  $(TargetDir)\remood.wad  $(ProjDir)\..\..\wad\ 
+	$(TargetDir)\rmdtex.exe   $(ProjDir)\..\..\wad\wadinfo.txt   $(TargetDir)\remood.wad   $(ProjDir)\..\..\wad\ 
 
 # End Custom Build
 
@@ -129,7 +129,7 @@ SOURCE="$(InputPath)"
 # PROP Target_Dir ""
 # ADD BASE CPP /nologo /MDd /W3 /Gm /GX /ZI /Od /I "..\..\sdl" /I "..\..\win32" /I "..\..\src" /I "..\..\src_cl" /D "GAMECLIENT" /D "_WIN32" /D "WIN32" /D "_DEBUG" /D "_WINDOWS" /D "_MBCS" /D "ENABLEMULTITHREADING" /D "HIGHMEMORYUNICODE" /D "__REMOOD_SYSTEM_WINDOWS" /U "GAMESERVER" /FD /GZ /c
 # SUBTRACT BASE CPP /YX
-# ADD CPP /nologo /MDd /W3 /Gm /GX /ZI /Od /I "..\..\sdl" /I "..\..\win32" /I "..\..\src" /I "..\..\src_cl" /D "GAMECLIENT" /D "_WIN32" /D "WIN32" /D "_DEBUG" /D "_WINDOWS" /D "_MBCS" /D "ENABLEMULTITHREADING" /D "HIGHMEMORYUNICODE" /D "__REMOOD_SYSTEM_WINDOWS" /U "GAMESERVER" /FD /GZ /c
+# ADD CPP /nologo /MDd /W3 /Gm /GX- /ZI /Od /I "..\..\sdl" /I "..\..\win32" /I "..\..\src" /I "..\..\src_cl" /D "GAMECLIENT" /D "_WIN32" /D "WIN32" /D "_DEBUG" /D "_WINDOWS" /D "_MBCS" /D "ENABLEMULTITHREADING" /D "HIGHMEMORYUNICODE" /D "__REMOOD_SYSTEM_WINDOWS" /U "GAMESERVER" /FD /GZ /c
 # SUBTRACT CPP /YX
 # ADD BASE MTL /nologo /D "_DEBUG" /mktyplib203 /win32
 # ADD MTL /nologo /D "_DEBUG" /mktyplib203 /win32
@@ -150,7 +150,7 @@ InputPath=\cygwin\home\Steven\ReMooD\bin\remood-dbg.exe
 SOURCE="$(InputPath)"
 
 "$(TargetDir)\remood.wad" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
-	$(TargetDir)\rmdtex.exe  $(ProjDir)\..\..\wad\wadinfo.txt  $(TargetDir)\remood.wad  $(ProjDir)\..\..\wad\ 
+	$(TargetDir)\rmdtex.exe   $(ProjDir)\..\..\wad\wadinfo.txt   $(TargetDir)\remood.wad   $(ProjDir)\..\..\wad\ 
 
 # End Custom Build
 
@@ -170,7 +170,7 @@ SOURCE="$(InputPath)"
 # PROP Target_Dir ""
 # ADD BASE CPP /nologo /MD /W3 /GX /O2 /I "..\..\sdl" /I "..\..\win32" /I "..\..\src_cl" /I "..\..\src" /D "GAMECLIENT" /D "_WIN32" /D "WIN32" /D "NDEBUG" /D "_WINDOWS" /D "_MBCS" /D "ENABLEMULTITHREADING" /D "__REMOOD_SYSTEM_WINDOWS" /U "GAMESERVER" /FD /c
 # SUBTRACT BASE CPP /YX
-# ADD CPP /nologo /MD /W3 /GX /O2 /I "..\..\sdl" /I "..\..\win32" /I "..\..\src_cl" /I "..\..\src" /D "GAMECLIENT" /D "_WIN32" /D "WIN32" /D "NDEBUG" /D "_WINDOWS" /D "_MBCS" /D "ENABLEMULTITHREADING" /D "__REMOOD_SYSTEM_WINDOWS" /U "GAMESERVER" /FD /c
+# ADD CPP /nologo /MD /W3 /GX- /O2 /I "..\..\sdl" /I "..\..\win32" /I "..\..\src_cl" /I "..\..\src" /D "GAMECLIENT" /D "_WIN32" /D "WIN32" /D "NDEBUG" /D "_WINDOWS" /D "_MBCS" /D "ENABLEMULTITHREADING" /D "__REMOOD_SYSTEM_WINDOWS" /U "GAMESERVER" /FD /c
 # SUBTRACT CPP /YX
 # ADD BASE MTL /nologo /D "NDEBUG" /mktyplib203 /win32
 # ADD MTL /nologo /D "NDEBUG" /mktyplib203 /win32
@@ -191,7 +191,7 @@ InputPath=\cygwin\home\Steven\ReMooD\bin\remood.exe
 SOURCE="$(InputPath)"
 
 "$(TargetDir)\remood.wad" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
-	$(TargetDir)\rmdtex.exe  $(ProjDir)\..\..\wad\wadinfo.txt  $(TargetDir)\remood.wad  $(ProjDir)\..\..\wad\ 
+	$(TargetDir)\rmdtex.exe   $(ProjDir)\..\..\wad\wadinfo.txt   $(TargetDir)\remood.wad   $(ProjDir)\..\..\wad\ 
 
 # End Custom Build
 
@@ -673,6 +673,10 @@ SOURCE=..\..\src\sdl\i_video.cxx
 # PROP Default_Filter ""
 # Begin Source File
 
+SOURCE=..\..\src\allegro\i_alleg.h
+# End Source File
+# Begin Source File
+
 SOURCE=..\..\src\allegro\i_main.cxx
 
 !IF  "$(CFG)" == "ReMooD - Win32 Debug Allegro"
@@ -820,11 +824,47 @@ SOURCE=..\..\src\dstrings.cxx
 # End Source File
 # Begin Source File
 
+SOURCE=..\..\src\g_demo.cxx
+# End Source File
+# Begin Source File
+
 SOURCE=..\..\src\info.cxx
 # End Source File
 # Begin Source File
 
 SOURCE=..\..\src\md5.cxx
+# End Source File
+# Begin Source File
+
+SOURCE=..\..\src\rh_bsp.cxx
+# End Source File
+# Begin Source File
+
+SOURCE=..\..\src\rh_draw.cxx
+# End Source File
+# Begin Source File
+
+SOURCE=..\..\src\rh_main.cxx
+# End Source File
+# Begin Source File
+
+SOURCE=..\..\src\rh_plane.cxx
+# End Source File
+# Begin Source File
+
+SOURCE=..\..\src\rh_thing.cxx
+# End Source File
+# Begin Source File
+
+SOURCE=..\..\src\rx_draw.cxx
+# End Source File
+# Begin Source File
+
+SOURCE=..\..\src\rx_main.cxx
+# End Source File
+# Begin Source File
+
+SOURCE=..\..\src\rx_sky.cxx
 # End Source File
 # Begin Source File
 
@@ -857,6 +897,22 @@ SOURCE=..\..\src\w_wad.cxx
 # Begin Source File
 
 SOURCE=..\..\src\wi_stuff.cxx
+# End Source File
+# Begin Source File
+
+SOURCE=..\..\src\z_debug.cxx
+# End Source File
+# Begin Source File
+
+SOURCE=..\..\src\z_mhs.cxx
+# End Source File
+# Begin Source File
+
+SOURCE=..\..\src\z_miniz.cxx
+# End Source File
+# Begin Source File
+
+SOURCE=..\..\src\z_util.cxx
 # End Source File
 # Begin Source File
 
@@ -1168,6 +1224,14 @@ SOURCE=..\..\src\r_things.h
 # End Source File
 # Begin Source File
 
+SOURCE=..\..\src\rh_main.h
+# End Source File
+# Begin Source File
+
+SOURCE=..\..\src\rx_main.h
+# End Source File
+# Begin Source File
+
 SOURCE=..\..\src\s_sound.h
 # End Source File
 # Begin Source File
@@ -1245,6 +1309,10 @@ SOURCE=..\..\src\w_wad.h
 # Begin Source File
 
 SOURCE=..\..\src\wi_stuff.h
+# End Source File
+# Begin Source File
+
+SOURCE=..\..\src\z_miniz.h
 # End Source File
 # Begin Source File
 

@@ -325,9 +325,9 @@ S_SoundChannel_t* S_PlayEntryOnChannel(const uint32_t a_Channel, WX_WADEntry_t* 
 	
 	/* Read basic stuff */
 	p = (uint16_t*)Data;
-	Header = ReadUInt16(&p);
-	Freq = ReadUInt16(&p);
-	Length = ReadUInt16(&p);
+	Header = OLDReadUInt16(&p);
+	Freq = OLDReadUInt16(&p);
+	Length = OLDReadUInt16(&p);
 	
 	if (!Freq || !Length || Header != 3)
 		return NULL;
@@ -1061,7 +1061,7 @@ static void S_WriteMixSample(void** Buf, uint8_t Value)
 		v += 32768;
 		
 		// Mix into buffer
-		WriteUInt16(Buf, v);
+		OLDWriteUInt16(Buf, v);
 	}
 	
 	/* Write Narrow */
@@ -1078,7 +1078,7 @@ static void S_WriteMixSample(void** Buf, uint8_t Value)
 		v += 128;
 		
 		// Mix into buffer
-		WriteUInt8(Buf, v);
+		OLDWriteUInt8(Buf, v);
 	}
 }
 
@@ -1121,7 +1121,7 @@ void S_UpdateSounds(const bool a_Threaded)
 	/* Clear buffer completely */
 	if (l_Bits == 16)
 		for (Mod = 0x8000, i = 0, p = SoundBuf; i < (SoundLen >> 1); i++)
-			WriteUInt16(&p, Mod);
+			OLDWriteUInt16(&p, Mod);
 	else
 		memset(SoundBuf, 0x80, SoundLen);
 		

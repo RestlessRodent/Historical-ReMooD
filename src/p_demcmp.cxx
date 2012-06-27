@@ -47,7 +47,7 @@
 typedef struct P_EXGSNiceVersion_s
 {
 	uint16_t VersionID;							// Version ID
-	const char* const NiceName;					// Nice name for version
+	const char* __REMOOD_SCONST NiceName;		// Nice name for version
 } P_EXGSNiceVersion_t;
 
 /*** LOCALS ***/

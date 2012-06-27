@@ -182,17 +182,17 @@ typedef struct CONL_VarValue_s
 struct CONL_StaticVar_s
 {
 	/* Defined as static */
-	const CONL_VariableType_t Type;				// Variable type
+	__REMOOD_SCONST CONL_VariableType_t Type;	// Variable type
 	const CONL_VarPossibleValue_t* Possible;	// Possible Value
 	uint32_t Flags;								// Flags for variable
-	const char* const VarName;					// Variable Name
+	const char* __REMOOD_SCONST VarName;					// Variable Name
 	UnicodeStringID_t HintString;				// String used for hint
 	CONL_VariableVisibleType_t ShowAs;			// Kind to show as
-	const char* const DefaultValue;				// Default Value
+	const char* __REMOOD_SCONST DefaultValue;				// Default Value
 	CONL_ConVarBackFunc_t ChangeFunc;			// Function to call when changed
 	
 	/* Contained Value */
-	const CONL_VarValue_t* Value;				// Value for each state
+	__REMOOD_SCONST CONL_VarValue_t* Value;		// Value for each state
 	
 	/* Reference Back */
 	CONL_ConVariable_t* RealLink;				// Registered Variable

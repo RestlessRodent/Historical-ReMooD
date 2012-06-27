@@ -1398,7 +1398,7 @@ void P_HitSlideLine(line_t* ld)
 //
 // PTR_SlideTraverse
 //
-bool PTR_SlideTraverse(intercept_t* in, void* a_Data)
+bool PTR_SlideTraverse(intercept_t* in, void* const a_Data)
 {
 	line_t* li;
 	
@@ -1565,7 +1565,7 @@ fixed_t aimslope;
 //added:15-02-98: comment
 // Returns true if the thing is not shootable, else continue through..
 //
-bool PTR_AimTraverse(intercept_t* in, void* a_Data)
+bool PTR_AimTraverse(intercept_t* in, void* const a_Data)
 {
 	line_t* li;
 	mobj_t* th;
@@ -1720,7 +1720,7 @@ bool PTR_AimTraverse(intercept_t* in, void* a_Data)
 //
 //added:18-02-98: added clipping the shots on the floor and ceiling.
 //
-bool PTR_ShootTraverse(intercept_t* in, void* a_Data)
+bool PTR_ShootTraverse(intercept_t* in, void* const a_Data)
 {
 	fixed_t x;
 	fixed_t y;
@@ -2202,7 +2202,7 @@ void P_LineAttack(mobj_t* t1, angle_t angle, fixed_t distance, fixed_t slope, in
 //
 mobj_t* usething;
 
-bool PTR_UseTraverse(intercept_t* in, void* a_Data)
+bool PTR_UseTraverse(intercept_t* in, void* const a_Data)
 {
 	int side;
 	

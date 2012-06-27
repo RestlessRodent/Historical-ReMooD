@@ -217,6 +217,8 @@ CONL_ExitCode_t M_ExGeneralComm(const uint32_t a_ArgC, const char** const a_ArgV
 		
 		M_ExPushMenu(0, New);
 	}
+
+	return CLE_SUCCESS;
 }
 
 

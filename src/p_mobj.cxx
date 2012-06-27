@@ -2067,7 +2067,7 @@ static mobj_t* bloodthing;
 static fixed_t bloodspawnpointx, bloodspawnpointy;
 
 #ifdef WALLSPLATS
-bool PTR_BloodTraverse(intercept_t* in, void* a_Data)
+bool PTR_BloodTraverse(intercept_t* in, void* const a_Data)
 {
 	line_t* li;
 	divline_t divl;

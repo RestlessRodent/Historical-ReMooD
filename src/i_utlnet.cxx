@@ -47,6 +47,7 @@
 	#include <winsock2.h>
 	#include <ws2tcpip.h>	// IPv6
 	#include <fcntl.h>
+	#include <malloc.h>		// alloca
 	
 	#define __REMOOD_SOCKETCLOSE closesocket
 	#define __REMOOD_DONTWAITMSG 0
@@ -55,13 +56,23 @@
 		#if (_MSC_VER > 1200)
 			#define __REMOOD_ENABLEIPV6
 		#else
+			// VC6 Supports IPv6 but needs some extras
+			#define __REMOOD_ENABLEIPV6
+			
 			// VC6 lacks some newer types
-			typedef int32_t socklen_t;
+			typedef int socklen_t;			// socket length is int
 			struct sockaddr_storage
 			{
 				uint8_t Junk[256];
 			};
+
+			// VC6 Explodes since send(to)/recv(from) use char*
+			#define __REMOOD_BUFCAST(x) ((char*)(x))
+			#define __REMOOD_BUFCASTC(x) ((const char*)(x))
 		#endif
+
+		// in6_addr goes by a different name
+		typedef in_addr6 in6_addr;
 	#endif
 	
 #elif defined(__palmos__)
@@ -81,6 +92,17 @@
 	#define __REMOOD_DONTWAITMSG MSG_DONTWAIT
 
 	#define __REMOOD_ENABLEIPV6
+#endif
+
+// Buffer casting for MSVC
+#ifndef __REMOOD_BUFCAST
+	#define __REMOOD_BUFCAST(x) ((x))
+	#define __REMOOD_BUFCASTC(x) ((x))
+#endif
+
+// If IPv6 is not enabled, typedef sockaddr_in6 so that the code does not explode
+#ifndef __REMOOD_ENABLEIPV6
+	typedef sockaddr_in sockaddr_in6;
 #endif
 
 #include "i_util.h"
@@ -180,7 +202,7 @@ bool I_NetCompareHost(const I_HostAddress_t* const a_A, const I_HostAddress_t* c
 	}
 	
 	/* IPv6 */
-	if (!Match && (a_A->IPvX & INIPVN_IPV4) && (a_B->IPvX & INIPVN_IPV4))
+	if (!Match && (a_A->IPvX & INIPVN_IPV6) && (a_B->IPvX & INIPVN_IPV6))
 	{
 		Match = true;
 		
@@ -298,7 +320,11 @@ I_NetSocket_t* I_NetOpenSocket(const bool a_Server, const I_HostAddress_t* const
 	int* pSockFD;
 	size_t i;
 #if defined(__REMOOD_ENABLEIPV6)
-	struct in6_addr Any6 = IN6ADDR_ANY_INIT;
+	in6_addr Any6
+#if !defined(_WIN32)
+		= IN6ADDR_ANY_INIT
+#endif
+		;
 #endif
 	struct sockaddr* Addr;
 	socklen_t SockLen;
@@ -309,6 +335,11 @@ I_NetSocket_t* I_NetOpenSocket(const bool a_Server, const I_HostAddress_t* const
 		// A server, but no port
 	if (a_Server && !a_Port)
 		return NULL;
+	
+	/* Clear address for MSVC */
+#if defined(_MSC_VER)
+	memset(&Any6, 0, sizeof(Any6));
+#endif
 	
 	/* Attempt socket creation */
 	// Clear
@@ -492,9 +523,9 @@ static size_t IS_NetRecvWrap(I_NetSocket_t* const a_Socket, I_HostAddress_t* con
 	SockLen = sizeof(Addr);
 	
 	if (a_Host)
-		RetVal = recvfrom(a_Socket->SockFD[i], a_OutData, a_Len, __REMOOD_DONTWAITMSG | (a_Peek ? MSG_PEEK : 0), (struct sockaddr*)&Addr, &SockLen);
+		RetVal = recvfrom(a_Socket->SockFD[i], __REMOOD_BUFCAST(a_OutData), a_Len, __REMOOD_DONTWAITMSG | (a_Peek ? MSG_PEEK : 0), (struct sockaddr*)&Addr, &SockLen);
 	else
-		RetVal = recv(a_Socket->SockFD[i], a_OutData, a_Len, __REMOOD_DONTWAITMSG | (a_Peek ? MSG_PEEK : 0));
+		RetVal = recv(a_Socket->SockFD[i], __REMOOD_BUFCAST(a_OutData), a_Len, __REMOOD_DONTWAITMSG | (a_Peek ? MSG_PEEK : 0));
 	
 	// Error?
 	if (RetVal < 0)
@@ -557,9 +588,9 @@ size_t I_NetSend(I_NetSocket_t* const a_Socket, const I_HostAddress_t* const a_H
 	SockLen = sizeof(Addr);
 
 	if (a_Host)
-		RetVal = sendto(a_Socket->SockFD[i], a_InData, a_Len, __REMOOD_DONTWAITMSG, (struct sockaddr*)&Addr, SockLen);
+		RetVal = sendto(a_Socket->SockFD[i], __REMOOD_BUFCAST(a_InData), a_Len, __REMOOD_DONTWAITMSG, (struct sockaddr*)&Addr, SockLen);
 	else
-		RetVal = send(a_Socket->SockFD[i], a_InData, a_Len, __REMOOD_DONTWAITMSG);
+		RetVal = send(a_Socket->SockFD[i], __REMOOD_BUFCAST(a_InData), a_Len, __REMOOD_DONTWAITMSG);
 	
 	// Error?
 	if (RetVal < 0)
@@ -647,7 +678,7 @@ bool I_NetNameToHost(I_HostAddress_t* const a_Host, const char* const a_Name)
 		return false;
 	
 	/* Convert */
-	IS_NetAddrNativeToWrap(a_Host, Ent->h_addr);
+	IS_NetAddrNativeToWrap(a_Host, (const struct sockaddr*)Ent->h_addr);
 	a_Host->Port = MatchPort;
 	
 	/* Success! */
@@ -781,7 +812,7 @@ bool I_NetHostToName(const I_HostAddress_t* const a_Host, char* const a_Out, con
 	
 	/* Obtain host info */
 	Ent = gethostbyaddr(
-			(l_IPv6 ? &SockInfoSix : &SockInfoFour),
+			__REMOOD_BUFCASTC((l_IPv6 ? (struct sockaddr*)&SockInfoSix : (struct sockaddr*)&SockInfoFour)),
 			(l_IPv6 ? sizeof(SockInfoSix) : sizeof(SockInfoFour)),
 			(l_IPv6 ? AF_INET6 : AF_INET)
 			);

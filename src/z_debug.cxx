@@ -587,7 +587,7 @@ void Z_DEBUG_Init(void)
 }
 
 /* Z_DEBUG_MallocExWrappee() -- Allocate memory */
-void* Z_DEBUG_MallocExWrappee(const size_t Size, const Z_MemoryTag_t Tag, void** const Ref, const uint32_t a_Flags _ZMGD_WRAPPEE)
+void* Z_DEBUG_MallocExWrappee(const size_t Size, const Z_MemoryTag_t Tag, void** Ref, const uint32_t a_Flags _ZMGD_WRAPPEE)
 {
 	size_t i, ShiftSize, iBase, iEnd, j, k;
 	Z_DEBUG_MemPartition_t* ResLeft, *ResRight, *New, *Free;

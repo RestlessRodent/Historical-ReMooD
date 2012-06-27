@@ -918,7 +918,7 @@ void I_FinishUpdate(void)
 	Buffer = I_VideoSoftBuffer(&w, &h);
 	
 	// Failed?
-	if (!Buffer)
+	if (!Buffer || !l_SDLSurface)
 		return;
 		
 	/* Lock surface */

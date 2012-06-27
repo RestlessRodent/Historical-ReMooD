@@ -33,22 +33,13 @@
 ***************/
 
 /* System */
-#if defined(__DJGPP__)
-#include <stdint.h>
-#endif
-#include <allegro.h>
-
-// Include winalleg on Windows since it conflicts!
-#if defined(_WIN32)
-#include <winalleg.h>
-#endif
+#include "i_alleg.h"
 
 #if !defined(__REMOOD_SYSTEM_WINDOWS)
 #include <sys/stat.h>
 #endif
 
 /* Local */
-#define __REMOOD_IGNORE_FIXEDTYPES
 #include "doomtype.h"
 
 #include <stdio.h>
@@ -141,6 +132,7 @@ void I_GetJoyEvent()
 
 int joy_open(char* fname)
 {
+	return 0;
 }
 
 uint8_t mb_used = 6 + 2;		// 2 more for caching sound
@@ -160,6 +152,7 @@ uint32_t LastTime = 0;
 int g_RefreshRate = 0;
 
 /* I_GetTimeMS() -- Returns time since the game started (in MS) */
+// extern "C" because of MSVC 6
 uint32_t I_GetTimeMS(void)
 {
 	/* Is the refresh rate known? */

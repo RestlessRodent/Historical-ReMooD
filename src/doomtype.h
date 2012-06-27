@@ -206,16 +206,18 @@
 		typedef size_t uintptr_t;
 		typedef ssize_t intptr_t;
 	#endif
-		
-	#define UINT32_C(x) x
-	#define INT64_C(x) x##i64
-	#define UINT64_C(x) x##ui64
 	
 	#define __REMOOD_LL_SUFFIX(a) a##i64
 	#define __REMOOD_ULL_SUFFIX(a) a##ui64
 #endif
 
 #endif /* __REMOOD_IGNORE_FIXEDTYPES */
+
+#if defined(_MSC_VER)
+	#define UINT32_C(x) x
+	#define INT64_C(x) x##i64
+	#define UINT64_C(x) x##ui64
+#endif
 
 /*****************
 *** C KEYWORDS ***
@@ -284,6 +286,24 @@
 // Max WAD Path
 #ifndef MAX_WADPATH
 	#define MAX_WADPATH PATH_MAX
+#endif
+
+// GhostlyDeath <June 26, 2012> -- The following is for MSVC 6.0!
+// It appears that MSVC absolutely refuses to initialize const members in
+// structs even though it is valid and was valid long before MSVC 6.0 even came
+// out.
+#if defined(_MSC_VER) && (_MSC_VER <= 1200)
+	#define __REMOOD_SCONST
+#else
+	#define __REMOOD_SCONST const
+#endif
+
+// GhostlyDeath <June 26, 2012> -- MSVC 6 requires function pointered callbacks
+// to be __cdecl.
+#if defined(_MSC_VER) && (_MSC_VER <= 1200)
+	#define __REMOOD_CALLBACKPTR __cdecl
+#else
+	#define __REMOOD_CALLBACKPTR
 #endif
 
 /***************************

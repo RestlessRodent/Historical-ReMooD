@@ -495,6 +495,7 @@ bool V_VIDGammaOnChange(CONL_ConVariable_t* const a_Var, CONL_StaticVar_t* const
 	// reload palette
 	LoadPalette("PLAYPAL");
 	V_SetPalette(0);
+	return true;
 }
 
 //added:18-02-98: this is an offset added to the destination address,
@@ -1697,7 +1698,7 @@ typedef enum V_FontNameRule_e
 typedef struct V_FontInfo_s
 {
 	/* Static */
-	const bool LoadThisFont;				// Load this font?
+	__REMOOD_SCONST bool LoadThisFont;		// Load this font?
 	const char* NiceName;					// Font's nice name
 	const char* ScriptName;					// Font's scripted name
 	const char* Mappings[4];				// Doom (+Alt), Heretic (+Alt)
