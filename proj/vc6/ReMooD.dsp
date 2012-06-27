@@ -211,7 +211,7 @@ SOURCE="$(InputPath)"
 # PROP Default_Filter ""
 # Begin Source File
 
-SOURCE=..\..\src\am_map.c
+SOURCE=..\..\src\am_map.cxx
 # End Source File
 # End Group
 # Begin Group "c_"
@@ -219,7 +219,7 @@ SOURCE=..\..\src\am_map.c
 # PROP Default_Filter ""
 # Begin Source File
 
-SOURCE=..\..\src\c_lib.c
+SOURCE=..\..\src\c_lib.cxx
 # End Source File
 # End Group
 # Begin Group "d_"
@@ -227,43 +227,43 @@ SOURCE=..\..\src\c_lib.c
 # PROP Default_Filter ""
 # Begin Source File
 
-SOURCE=..\..\src\d_block.c
+SOURCE=..\..\src\d_block.cxx
 # End Source File
 # Begin Source File
 
-SOURCE=..\..\src\d_clisrv.c
+SOURCE=..\..\src\d_clisrv.cxx
 # End Source File
 # Begin Source File
 
-SOURCE=..\..\src\d_info.c
+SOURCE=..\..\src\d_info.cxx
 # End Source File
 # Begin Source File
 
-SOURCE=..\..\src\d_items.c
+SOURCE=..\..\src\d_items.cxx
 # End Source File
 # Begin Source File
 
-SOURCE=..\..\src\d_main.c
+SOURCE=..\..\src\d_main.cxx
 # End Source File
 # Begin Source File
 
-SOURCE=..\..\src\d_net.c
+SOURCE=..\..\src\d_net.cxx
 # End Source File
 # Begin Source File
 
-SOURCE=..\..\src\d_netcmd.c
+SOURCE=..\..\src\d_netcmd.cxx
 # End Source File
 # Begin Source File
 
-SOURCE=..\..\src\d_prof.c
+SOURCE=..\..\src\d_prof.cxx
 # End Source File
 # Begin Source File
 
-SOURCE=..\..\src\d_rdf.c
+SOURCE=..\..\src\d_rdf.cxx
 # End Source File
 # Begin Source File
 
-SOURCE=..\..\src\d_rmod.c
+SOURCE=..\..\src\d_rmod.cxx
 # End Source File
 # End Group
 # Begin Group "f_"
@@ -271,11 +271,11 @@ SOURCE=..\..\src\d_rmod.c
 # PROP Default_Filter ""
 # Begin Source File
 
-SOURCE=..\..\src\f_finale.c
+SOURCE=..\..\src\f_finale.cxx
 # End Source File
 # Begin Source File
 
-SOURCE=..\..\src\f_wipe.c
+SOURCE=..\..\src\f_wipe.cxx
 # End Source File
 # End Group
 # Begin Group "g_"
@@ -283,15 +283,15 @@ SOURCE=..\..\src\f_wipe.c
 # PROP Default_Filter ""
 # Begin Source File
 
-SOURCE=..\..\src\g_game.c
+SOURCE=..\..\src\g_game.cxx
 # End Source File
 # Begin Source File
 
-SOURCE=..\..\src\g_input.c
+SOURCE=..\..\src\g_input.cxx
 # End Source File
 # Begin Source File
 
-SOURCE=..\..\src\g_state.c
+SOURCE=..\..\src\g_state.cxx
 # End Source File
 # End Group
 # Begin Group "hu_"
@@ -299,7 +299,7 @@ SOURCE=..\..\src\g_state.c
 # PROP Default_Filter ""
 # Begin Source File
 
-SOURCE=..\..\src\hu_stuff.c
+SOURCE=..\..\src\hu_stuff.cxx
 # End Source File
 # End Group
 # Begin Group "i_"
@@ -307,15 +307,15 @@ SOURCE=..\..\src\hu_stuff.c
 # PROP Default_Filter ""
 # Begin Source File
 
-SOURCE=..\..\src\i_util.c
+SOURCE=..\..\src\i_util.cxx
 # End Source File
 # Begin Source File
 
-SOURCE=..\..\src\i_utlnet.c
+SOURCE=..\..\src\i_utlnet.cxx
 # End Source File
 # Begin Source File
 
-SOURCE=..\..\src\i_utlsfx.c
+SOURCE=..\..\src\i_utlsfx.cxx
 # End Source File
 # End Group
 # Begin Group "m_"
@@ -323,39 +323,39 @@ SOURCE=..\..\src\i_utlsfx.c
 # PROP Default_Filter ""
 # Begin Source File
 
-SOURCE=..\..\src\m_argv.c
+SOURCE=..\..\src\m_argv.cxx
 # End Source File
 # Begin Source File
 
-SOURCE=..\..\src\m_bbox.c
+SOURCE=..\..\src\m_bbox.cxx
 # End Source File
 # Begin Source File
 
-SOURCE=..\..\src\m_cheat.c
+SOURCE=..\..\src\m_cheat.cxx
 # End Source File
 # Begin Source File
 
-SOURCE=..\..\src\m_fixed.c
+SOURCE=..\..\src\m_fixed.cxx
 # End Source File
 # Begin Source File
 
-SOURCE=..\..\src\m_menu.c
+SOURCE=..\..\src\m_menu.cxx
 # End Source File
 # Begin Source File
 
-SOURCE=..\..\src\m_menudr.c
+SOURCE=..\..\src\m_menudr.cxx
 # End Source File
 # Begin Source File
 
-SOURCE=..\..\src\m_menufn.c
+SOURCE=..\..\src\m_menufn.cxx
 # End Source File
 # Begin Source File
 
-SOURCE=..\..\src\m_misc.c
+SOURCE=..\..\src\m_misc.cxx
 # End Source File
 # Begin Source File
 
-SOURCE=..\..\src\m_random.c
+SOURCE=..\..\src\m_random.cxx
 # End Source File
 # End Group
 # Begin Group "p_"
@@ -363,95 +363,95 @@ SOURCE=..\..\src\m_random.c
 # PROP Default_Filter ""
 # Begin Source File
 
-SOURCE=..\..\src\p_ceilng.c
+SOURCE=..\..\src\p_ceilng.cxx
 # End Source File
 # Begin Source File
 
-SOURCE=..\..\src\p_demcmp.c
+SOURCE=..\..\src\p_demcmp.cxx
 # End Source File
 # Begin Source File
 
-SOURCE=..\..\src\p_doors.c
+SOURCE=..\..\src\p_doors.cxx
 # End Source File
 # Begin Source File
 
-SOURCE=..\..\src\p_enemy.c
+SOURCE=..\..\src\p_enemy.cxx
 # End Source File
 # Begin Source File
 
-SOURCE=..\..\src\p_fab.c
+SOURCE=..\..\src\p_fab.cxx
 # End Source File
 # Begin Source File
 
-SOURCE=..\..\src\p_floor.c
+SOURCE=..\..\src\p_floor.cxx
 # End Source File
 # Begin Source File
 
-SOURCE=..\..\src\p_genlin.c
+SOURCE=..\..\src\p_genlin.cxx
 # End Source File
 # Begin Source File
 
-SOURCE=..\..\src\p_info.c
+SOURCE=..\..\src\p_info.cxx
 # End Source File
 # Begin Source File
 
-SOURCE=..\..\src\p_inter.c
+SOURCE=..\..\src\p_inter.cxx
 # End Source File
 # Begin Source File
 
-SOURCE=..\..\src\p_lights.c
+SOURCE=..\..\src\p_lights.cxx
 # End Source File
 # Begin Source File
 
-SOURCE=..\..\src\p_map.c
+SOURCE=..\..\src\p_map.cxx
 # End Source File
 # Begin Source File
 
-SOURCE=..\..\src\p_maputl.c
+SOURCE=..\..\src\p_maputl.cxx
 # End Source File
 # Begin Source File
 
-SOURCE=..\..\src\p_mobj.c
+SOURCE=..\..\src\p_mobj.cxx
 # End Source File
 # Begin Source File
 
-SOURCE=..\..\src\p_plats.c
+SOURCE=..\..\src\p_plats.cxx
 # End Source File
 # Begin Source File
 
-SOURCE=..\..\src\p_pspr.c
+SOURCE=..\..\src\p_pspr.cxx
 # End Source File
 # Begin Source File
 
-SOURCE=..\..\src\p_saveg.c
+SOURCE=..\..\src\p_saveg.cxx
 # End Source File
 # Begin Source File
 
-SOURCE=..\..\src\p_setup.c
+SOURCE=..\..\src\p_setup.cxx
 # End Source File
 # Begin Source File
 
-SOURCE=..\..\src\p_sight.c
+SOURCE=..\..\src\p_sight.cxx
 # End Source File
 # Begin Source File
 
-SOURCE=..\..\src\p_spec.c
+SOURCE=..\..\src\p_spec.cxx
 # End Source File
 # Begin Source File
 
-SOURCE=..\..\src\p_switch.c
+SOURCE=..\..\src\p_switch.cxx
 # End Source File
 # Begin Source File
 
-SOURCE=..\..\src\p_telept.c
+SOURCE=..\..\src\p_telept.cxx
 # End Source File
 # Begin Source File
 
-SOURCE=..\..\src\p_tick.c
+SOURCE=..\..\src\p_tick.cxx
 # End Source File
 # Begin Source File
 
-SOURCE=..\..\src\p_user.c
+SOURCE=..\..\src\p_user.cxx
 # End Source File
 # End Group
 # Begin Group "r_"
@@ -459,39 +459,39 @@ SOURCE=..\..\src\p_user.c
 # PROP Default_Filter ""
 # Begin Source File
 
-SOURCE=..\..\src\r_bsp.c
+SOURCE=..\..\src\r_bsp.cxx
 # End Source File
 # Begin Source File
 
-SOURCE=..\..\src\r_data.c
+SOURCE=..\..\src\r_data.cxx
 # End Source File
 # Begin Source File
 
-SOURCE=..\..\src\r_draw.c
+SOURCE=..\..\src\r_draw.cxx
 # End Source File
 # Begin Source File
 
-SOURCE=..\..\src\r_main.c
+SOURCE=..\..\src\r_main.cxx
 # End Source File
 # Begin Source File
 
-SOURCE=..\..\src\r_plane.c
+SOURCE=..\..\src\r_plane.cxx
 # End Source File
 # Begin Source File
 
-SOURCE=..\..\src\r_segs.c
+SOURCE=..\..\src\r_segs.cxx
 # End Source File
 # Begin Source File
 
-SOURCE=..\..\src\r_sky.c
+SOURCE=..\..\src\r_sky.cxx
 # End Source File
 # Begin Source File
 
-SOURCE=..\..\src\r_splats.c
+SOURCE=..\..\src\r_splats.cxx
 # End Source File
 # Begin Source File
 
-SOURCE=..\..\src\r_things.c
+SOURCE=..\..\src\r_things.cxx
 # End Source File
 # End Group
 # Begin Group "st_"
@@ -499,11 +499,11 @@ SOURCE=..\..\src\r_things.c
 # PROP Default_Filter ""
 # Begin Source File
 
-SOURCE=..\..\src\st_lib.c
+SOURCE=..\..\src\st_lib.cxx
 # End Source File
 # Begin Source File
 
-SOURCE=..\..\src\st_stuff.c
+SOURCE=..\..\src\st_stuff.cxx
 # End Source File
 # End Group
 # Begin Group "t_"
@@ -511,43 +511,43 @@ SOURCE=..\..\src\st_stuff.c
 # PROP Default_Filter ""
 # Begin Source File
 
-SOURCE=..\..\src\t_comp.c
+SOURCE=..\..\src\t_comp.cxx
 # End Source File
 # Begin Source File
 
-SOURCE=..\..\src\t_dscc.c
+SOURCE=..\..\src\t_dscc.cxx
 # End Source File
 # Begin Source File
 
-SOURCE=..\..\src\t_dsvm.c
+SOURCE=..\..\src\t_dsvm.cxx
 # End Source File
 # Begin Source File
 
-SOURCE=..\..\src\t_func.c
+SOURCE=..\..\src\t_func.cxx
 # End Source File
 # Begin Source File
 
-SOURCE=..\..\src\t_oper.c
+SOURCE=..\..\src\t_oper.cxx
 # End Source File
 # Begin Source File
 
-SOURCE=..\..\src\t_parse.c
+SOURCE=..\..\src\t_parse.cxx
 # End Source File
 # Begin Source File
 
-SOURCE=..\..\src\t_prepro.c
+SOURCE=..\..\src\t_prepro.cxx
 # End Source File
 # Begin Source File
 
-SOURCE=..\..\src\t_script.c
+SOURCE=..\..\src\t_script.cxx
 # End Source File
 # Begin Source File
 
-SOURCE=..\..\src\t_spec.c
+SOURCE=..\..\src\t_spec.cxx
 # End Source File
 # Begin Source File
 
-SOURCE=..\..\src\t_vari.c
+SOURCE=..\..\src\t_vari.cxx
 # End Source File
 # End Group
 # Begin Group "SDL Interface"
@@ -555,7 +555,7 @@ SOURCE=..\..\src\t_vari.c
 # PROP Default_Filter ""
 # Begin Source File
 
-SOURCE=..\..\src\sdl\i_main.c
+SOURCE=..\..\src\sdl\i_main.cxx
 
 !IF  "$(CFG)" == "ReMooD - Win32 Debug Allegro"
 
@@ -574,7 +574,7 @@ SOURCE=..\..\src\sdl\i_main.c
 # End Source File
 # Begin Source File
 
-SOURCE=..\..\src\sdl\i_music.c
+SOURCE=..\..\src\sdl\i_music.cxx
 
 !IF  "$(CFG)" == "ReMooD - Win32 Debug Allegro"
 
@@ -593,7 +593,7 @@ SOURCE=..\..\src\sdl\i_music.c
 # End Source File
 # Begin Source File
 
-SOURCE=..\..\src\sdl\i_net.c
+SOURCE=..\..\src\sdl\i_net.cxx
 
 !IF  "$(CFG)" == "ReMooD - Win32 Debug Allegro"
 
@@ -612,7 +612,7 @@ SOURCE=..\..\src\sdl\i_net.c
 # End Source File
 # Begin Source File
 
-SOURCE=..\..\src\sdl\i_sound.c
+SOURCE=..\..\src\sdl\i_sound.cxx
 
 !IF  "$(CFG)" == "ReMooD - Win32 Debug Allegro"
 
@@ -631,7 +631,7 @@ SOURCE=..\..\src\sdl\i_sound.c
 # End Source File
 # Begin Source File
 
-SOURCE=..\..\src\sdl\i_system.c
+SOURCE=..\..\src\sdl\i_system.cxx
 
 !IF  "$(CFG)" == "ReMooD - Win32 Debug Allegro"
 
@@ -650,7 +650,7 @@ SOURCE=..\..\src\sdl\i_system.c
 # End Source File
 # Begin Source File
 
-SOURCE=..\..\src\sdl\i_video.c
+SOURCE=..\..\src\sdl\i_video.cxx
 
 !IF  "$(CFG)" == "ReMooD - Win32 Debug Allegro"
 
@@ -673,7 +673,7 @@ SOURCE=..\..\src\sdl\i_video.c
 # PROP Default_Filter ""
 # Begin Source File
 
-SOURCE=..\..\src\allegro\i_main.c
+SOURCE=..\..\src\allegro\i_main.cxx
 
 !IF  "$(CFG)" == "ReMooD - Win32 Debug Allegro"
 
@@ -692,7 +692,7 @@ SOURCE=..\..\src\allegro\i_main.c
 # End Source File
 # Begin Source File
 
-SOURCE=..\..\src\allegro\i_music.c
+SOURCE=..\..\src\allegro\i_music.cxx
 
 !IF  "$(CFG)" == "ReMooD - Win32 Debug Allegro"
 
@@ -711,7 +711,7 @@ SOURCE=..\..\src\allegro\i_music.c
 # End Source File
 # Begin Source File
 
-SOURCE=..\..\src\allegro\i_net.c
+SOURCE=..\..\src\allegro\i_net.cxx
 
 !IF  "$(CFG)" == "ReMooD - Win32 Debug Allegro"
 
@@ -730,7 +730,7 @@ SOURCE=..\..\src\allegro\i_net.c
 # End Source File
 # Begin Source File
 
-SOURCE=..\..\src\allegro\i_sound.c
+SOURCE=..\..\src\allegro\i_sound.cxx
 
 !IF  "$(CFG)" == "ReMooD - Win32 Debug Allegro"
 
@@ -749,7 +749,7 @@ SOURCE=..\..\src\allegro\i_sound.c
 # End Source File
 # Begin Source File
 
-SOURCE=..\..\src\allegro\i_system.c
+SOURCE=..\..\src\allegro\i_system.cxx
 
 !IF  "$(CFG)" == "ReMooD - Win32 Debug Allegro"
 
@@ -768,7 +768,7 @@ SOURCE=..\..\src\allegro\i_system.c
 # End Source File
 # Begin Source File
 
-SOURCE=..\..\src\allegro\i_video.c
+SOURCE=..\..\src\allegro\i_video.cxx
 
 !IF  "$(CFG)" == "ReMooD - Win32 Debug Allegro"
 
@@ -791,76 +791,76 @@ SOURCE=..\..\src\allegro\i_video.c
 # PROP Default_Filter ""
 # Begin Source File
 
-SOURCE=..\..\src\b_bot.c
+SOURCE=..\..\src\b_bot.cxx
 # End Source File
 # Begin Source File
 
-SOURCE=..\..\src\b_ghost.c
+SOURCE=..\..\src\b_ghost.cxx
 # End Source File
 # End Group
 # Begin Source File
 
-SOURCE=..\..\src\command.c
+SOURCE=..\..\src\command.cxx
 # End Source File
 # Begin Source File
 
-SOURCE=..\..\src\console.c
+SOURCE=..\..\src\console.cxx
 # End Source File
 # Begin Source File
 
-SOURCE=..\..\src\dbopl.c
+SOURCE=..\..\src\dbopl.cxx
 # End Source File
 # Begin Source File
 
-SOURCE=..\..\src\dehacked.c
+SOURCE=..\..\src\dehacked.cxx
 # End Source File
 # Begin Source File
 
-SOURCE=..\..\src\dstrings.c
+SOURCE=..\..\src\dstrings.cxx
 # End Source File
 # Begin Source File
 
-SOURCE=..\..\src\info.c
+SOURCE=..\..\src\info.cxx
 # End Source File
 # Begin Source File
 
-SOURCE=..\..\src\md5.c
+SOURCE=..\..\src\md5.cxx
 # End Source File
 # Begin Source File
 
-SOURCE=..\..\src\s_sound.c
+SOURCE=..\..\src\s_sound.cxx
 # End Source File
 # Begin Source File
 
-SOURCE=..\..\src\screen.c
+SOURCE=..\..\src\screen.cxx
 # End Source File
 # Begin Source File
 
-SOURCE=..\..\src\sounds.c
+SOURCE=..\..\src\sounds.cxx
 # End Source File
 # Begin Source File
 
-SOURCE=..\..\src\tables.c
+SOURCE=..\..\src\tables.cxx
 # End Source File
 # Begin Source File
 
-SOURCE=..\..\src\v_video.c
+SOURCE=..\..\src\v_video.cxx
 # End Source File
 # Begin Source File
 
-SOURCE=..\..\src\v_widget.c
+SOURCE=..\..\src\v_widget.cxx
 # End Source File
 # Begin Source File
 
-SOURCE=..\..\src\w_wad.c
+SOURCE=..\..\src\w_wad.cxx
 # End Source File
 # Begin Source File
 
-SOURCE=..\..\src\wi_stuff.c
+SOURCE=..\..\src\wi_stuff.cxx
 # End Source File
 # Begin Source File
 
-SOURCE=..\..\src\z_zone.c
+SOURCE=..\..\src\z_zone.cxx
 # End Source File
 # End Group
 # Begin Group "Header Files"

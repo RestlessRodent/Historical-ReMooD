@@ -1538,3 +1538,20 @@ void I_Quit(void)
 	I_ShutdownSystem();
 	exit(0);
 }
+
+/* I_GetSystemInfo() -- Gets info on the system */
+I_SystemInfo_t* I_GetSystemInfo(void)
+{
+	static I_SystemInfo_t l_Info;
+	
+	/* Already Set? */
+	if (l_Info.Valid)
+		return &l_Info;
+	
+	/* Get Operating System */
+	
+	/* Done, so return it */
+	return &l_Info;
+}
+
+

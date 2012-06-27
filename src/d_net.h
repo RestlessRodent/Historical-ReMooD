@@ -187,6 +187,9 @@ class RBStream_c;
 /* DNetPlayer -- Networked Player */
 class DNetPlayer
 {
+	private:
+		
+		
 	public:
 		DNetPlayer();
 		~DNetPlayer();
@@ -195,6 +198,8 @@ class DNetPlayer
 /* DNetController -- Controls a group of players */
 class DNetController
 {
+	friend class DNetPlayer;
+	
 	private:
 		DNetPlayer** p_Arbs;					// Controlling players
 		size_t p_NumArbs;						// Number of players

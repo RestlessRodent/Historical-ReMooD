@@ -378,146 +378,146 @@
     <ClInclude Include="..\..\src\tables.h" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="..\..\src\i_util.c" />
-    <ClCompile Include="..\..\src\i_utlnet.c" />
-    <ClCompile Include="..\..\src\i_utlsfx.c" />
-    <ClCompile Include="..\..\src\sdl\i_main.c">
+    <ClCompile Include="..\..\src\i_util.cxx" />
+    <ClCompile Include="..\..\src\i_utlnet.cxx" />
+    <ClCompile Include="..\..\src\i_utlsfx.cxx" />
+    <ClCompile Include="..\..\src\sdl\i_main.cxx">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug (Allegro)|Win32'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release (Allegro)|Win32'">true</ExcludedFromBuild>
     </ClCompile>
-    <ClCompile Include="..\..\src\sdl\i_music.c">
+    <ClCompile Include="..\..\src\sdl\i_music.cxx">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug (Allegro)|Win32'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release (Allegro)|Win32'">true</ExcludedFromBuild>
     </ClCompile>
-    <ClCompile Include="..\..\src\sdl\i_net.c">
+    <ClCompile Include="..\..\src\sdl\i_net.cxx">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug (Allegro)|Win32'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release (Allegro)|Win32'">true</ExcludedFromBuild>
     </ClCompile>
-    <ClCompile Include="..\..\src\sdl\i_sound.c">
+    <ClCompile Include="..\..\src\sdl\i_sound.cxx">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug (Allegro)|Win32'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release (Allegro)|Win32'">true</ExcludedFromBuild>
     </ClCompile>
-    <ClCompile Include="..\..\src\sdl\i_system.c">
+    <ClCompile Include="..\..\src\sdl\i_system.cxx">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug (Allegro)|Win32'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release (Allegro)|Win32'">true</ExcludedFromBuild>
     </ClCompile>
-    <ClCompile Include="..\..\src\sdl\i_video.c">
+    <ClCompile Include="..\..\src\sdl\i_video.cxx">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug (Allegro)|Win32'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release (Allegro)|Win32'">true</ExcludedFromBuild>
     </ClCompile>
-    <ClCompile Include="..\..\src\allegro\i_main.c">
+    <ClCompile Include="..\..\src\allegro\i_main.cxx">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug (SDL)|Win32'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release (SDL)|Win32'">true</ExcludedFromBuild>
     </ClCompile>
-    <ClCompile Include="..\..\src\allegro\i_music.c">
+    <ClCompile Include="..\..\src\allegro\i_music.cxx">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug (SDL)|Win32'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release (SDL)|Win32'">true</ExcludedFromBuild>
     </ClCompile>
-    <ClCompile Include="..\..\src\allegro\i_net.c">
+    <ClCompile Include="..\..\src\allegro\i_net.cxx">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug (SDL)|Win32'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release (SDL)|Win32'">true</ExcludedFromBuild>
     </ClCompile>
-    <ClCompile Include="..\..\src\allegro\i_sound.c">
+    <ClCompile Include="..\..\src\allegro\i_sound.cxx">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug (SDL)|Win32'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release (SDL)|Win32'">true</ExcludedFromBuild>
     </ClCompile>
-    <ClCompile Include="..\..\src\allegro\i_system.c">
+    <ClCompile Include="..\..\src\allegro\i_system.cxx">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug (SDL)|Win32'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release (SDL)|Win32'">true</ExcludedFromBuild>
     </ClCompile>
-    <ClCompile Include="..\..\src\allegro\i_video.c">
+    <ClCompile Include="..\..\src\allegro\i_video.cxx">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug (SDL)|Win32'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release (SDL)|Win32'">true</ExcludedFromBuild>
     </ClCompile>
-    <ClCompile Include="..\..\src\v_video.c" />
-    <ClCompile Include="..\..\src\v_widget.c" />
-    <ClCompile Include="..\..\src\w_wad.c" />
-    <ClCompile Include="..\..\src\wi_stuff.c" />
-    <ClCompile Include="..\..\src\z_zone.c" />
-    <ClCompile Include="..\..\src\r_bsp.c" />
-    <ClCompile Include="..\..\src\r_data.c" />
-    <ClCompile Include="..\..\src\r_draw.c" />
-    <ClCompile Include="..\..\src\r_main.c" />
-    <ClCompile Include="..\..\src\r_plane.c" />
-    <ClCompile Include="..\..\src\r_segs.c" />
-    <ClCompile Include="..\..\src\r_sky.c" />
-    <ClCompile Include="..\..\src\r_splats.c" />
-    <ClCompile Include="..\..\src\r_things.c" />
-    <ClCompile Include="..\..\src\s_sound.c" />
-    <ClCompile Include="..\..\src\p_ceilng.c" />
-    <ClCompile Include="..\..\src\p_demcmp.c" />
-    <ClCompile Include="..\..\src\p_doors.c" />
-    <ClCompile Include="..\..\src\p_enemy.c" />
-    <ClCompile Include="..\..\src\p_fab.c" />
-    <ClCompile Include="..\..\src\p_floor.c" />
-    <ClCompile Include="..\..\src\p_genlin.c" />
-    <ClCompile Include="..\..\src\p_info.c" />
-    <ClCompile Include="..\..\src\p_inter.c" />
-    <ClCompile Include="..\..\src\p_lights.c" />
-    <ClCompile Include="..\..\src\p_map.c" />
-    <ClCompile Include="..\..\src\p_maputl.c" />
-    <ClCompile Include="..\..\src\p_mobj.c" />
-    <ClCompile Include="..\..\src\p_plats.c" />
-    <ClCompile Include="..\..\src\p_pspr.c" />
-    <ClCompile Include="..\..\src\p_saveg.c" />
-    <ClCompile Include="..\..\src\p_setup.c" />
-    <ClCompile Include="..\..\src\p_sight.c" />
-    <ClCompile Include="..\..\src\p_spec.c" />
-    <ClCompile Include="..\..\src\p_switch.c" />
-    <ClCompile Include="..\..\src\p_telept.c" />
-    <ClCompile Include="..\..\src\p_tick.c" />
-    <ClCompile Include="..\..\src\p_user.c" />
-    <ClCompile Include="..\..\src\st_lib.c" />
-    <ClCompile Include="..\..\src\st_stuff.c" />
-    <ClCompile Include="..\..\src\t_comp.c" />
-    <ClCompile Include="..\..\src\t_func.c" />
-    <ClCompile Include="..\..\src\t_oper.c" />
-    <ClCompile Include="..\..\src\t_parse.c" />
-    <ClCompile Include="..\..\src\t_prepro.c" />
-    <ClCompile Include="..\..\src\t_script.c" />
-    <ClCompile Include="..\..\src\t_spec.c" />
-    <ClCompile Include="..\..\src\t_vari.c" />
-    <ClCompile Include="..\..\src\m_argv.c" />
-    <ClCompile Include="..\..\src\m_bbox.c" />
-    <ClCompile Include="..\..\src\m_cheat.c" />
-    <ClCompile Include="..\..\src\m_fixed.c" />
-    <ClCompile Include="..\..\src\m_menu.c" />
-    <ClCompile Include="..\..\src\m_menudr.c" />
-    <ClCompile Include="..\..\src\m_menufn.c" />
-    <ClCompile Include="..\..\src\m_misc.c" />
-    <ClCompile Include="..\..\src\m_random.c" />
-    <ClCompile Include="..\..\src\hu_stuff.c" />
-    <ClCompile Include="..\..\src\g_game.c" />
-    <ClCompile Include="..\..\src\g_input.c" />
-    <ClCompile Include="..\..\src\g_state.c" />
-    <ClCompile Include="..\..\src\f_finale.c" />
-    <ClCompile Include="..\..\src\f_wipe.c" />
-    <ClCompile Include="..\..\src\d_block.c" />
-    <ClCompile Include="..\..\src\d_clisrv.c" />
-    <ClCompile Include="..\..\src\d_info.c" />
-    <ClCompile Include="..\..\src\d_items.c" />
-    <ClCompile Include="..\..\src\d_main.c" />
-    <ClCompile Include="..\..\src\d_net.c" />
-    <ClCompile Include="..\..\src\d_netcmd.c" />
-    <ClCompile Include="..\..\src\d_prof.c" />
-    <ClCompile Include="..\..\src\d_rdf.c" />
-    <ClCompile Include="..\..\src\d_rmod.c" />
-    <ClCompile Include="..\..\src\am_map.c" />
-    <ClCompile Include="..\..\src\b_bot.c" />
-    <ClCompile Include="..\..\src\b_ghost.c" />
-    <ClCompile Include="..\..\src\c_lib.c" />
-    <ClCompile Include="..\..\src\command.c" />
-    <ClCompile Include="..\..\src\console.c" />
-    <ClCompile Include="..\..\src\dbopl.c" />
-    <ClCompile Include="..\..\src\dehacked.c" />
-    <ClCompile Include="..\..\src\dstrings.c" />
-    <ClCompile Include="..\..\src\info.c" />
-    <ClCompile Include="..\..\src\md5.c" />
-    <ClCompile Include="..\..\src\screen.c" />
-    <ClCompile Include="..\..\src\sounds.c" />
-    <ClCompile Include="..\..\src\t_dscc.c" />
-    <ClCompile Include="..\..\src\t_dsvm.c" />
-    <ClCompile Include="..\..\src\tables.c" />
+    <ClCompile Include="..\..\src\v_video.cxx" />
+    <ClCompile Include="..\..\src\v_widget.cxx" />
+    <ClCompile Include="..\..\src\w_wad.cxx" />
+    <ClCompile Include="..\..\src\wi_stuff.cxx" />
+    <ClCompile Include="..\..\src\z_zone.cxx" />
+    <ClCompile Include="..\..\src\r_bsp.cxx" />
+    <ClCompile Include="..\..\src\r_data.cxx" />
+    <ClCompile Include="..\..\src\r_draw.cxx" />
+    <ClCompile Include="..\..\src\r_main.cxx" />
+    <ClCompile Include="..\..\src\r_plane.cxx" />
+    <ClCompile Include="..\..\src\r_segs.cxx" />
+    <ClCompile Include="..\..\src\r_sky.cxx" />
+    <ClCompile Include="..\..\src\r_splats.cxx" />
+    <ClCompile Include="..\..\src\r_things.cxx" />
+    <ClCompile Include="..\..\src\s_sound.cxx" />
+    <ClCompile Include="..\..\src\p_ceilng.cxx" />
+    <ClCompile Include="..\..\src\p_demcmp.cxx" />
+    <ClCompile Include="..\..\src\p_doors.cxx" />
+    <ClCompile Include="..\..\src\p_enemy.cxx" />
+    <ClCompile Include="..\..\src\p_fab.cxx" />
+    <ClCompile Include="..\..\src\p_floor.cxx" />
+    <ClCompile Include="..\..\src\p_genlin.cxx" />
+    <ClCompile Include="..\..\src\p_info.cxx" />
+    <ClCompile Include="..\..\src\p_inter.cxx" />
+    <ClCompile Include="..\..\src\p_lights.cxx" />
+    <ClCompile Include="..\..\src\p_map.cxx" />
+    <ClCompile Include="..\..\src\p_maputl.cxx" />
+    <ClCompile Include="..\..\src\p_mobj.cxx" />
+    <ClCompile Include="..\..\src\p_plats.cxx" />
+    <ClCompile Include="..\..\src\p_pspr.cxx" />
+    <ClCompile Include="..\..\src\p_saveg.cxx" />
+    <ClCompile Include="..\..\src\p_setup.cxx" />
+    <ClCompile Include="..\..\src\p_sight.cxx" />
+    <ClCompile Include="..\..\src\p_spec.cxx" />
+    <ClCompile Include="..\..\src\p_switch.cxx" />
+    <ClCompile Include="..\..\src\p_telept.cxx" />
+    <ClCompile Include="..\..\src\p_tick.cxx" />
+    <ClCompile Include="..\..\src\p_user.cxx" />
+    <ClCompile Include="..\..\src\st_lib.cxx" />
+    <ClCompile Include="..\..\src\st_stuff.cxx" />
+    <ClCompile Include="..\..\src\t_comp.cxx" />
+    <ClCompile Include="..\..\src\t_func.cxx" />
+    <ClCompile Include="..\..\src\t_oper.cxx" />
+    <ClCompile Include="..\..\src\t_parse.cxx" />
+    <ClCompile Include="..\..\src\t_prepro.cxx" />
+    <ClCompile Include="..\..\src\t_script.cxx" />
+    <ClCompile Include="..\..\src\t_spec.cxx" />
+    <ClCompile Include="..\..\src\t_vari.cxx" />
+    <ClCompile Include="..\..\src\m_argv.cxx" />
+    <ClCompile Include="..\..\src\m_bbox.cxx" />
+    <ClCompile Include="..\..\src\m_cheat.cxx" />
+    <ClCompile Include="..\..\src\m_fixed.cxx" />
+    <ClCompile Include="..\..\src\m_menu.cxx" />
+    <ClCompile Include="..\..\src\m_menudr.cxx" />
+    <ClCompile Include="..\..\src\m_menufn.cxx" />
+    <ClCompile Include="..\..\src\m_misc.cxx" />
+    <ClCompile Include="..\..\src\m_random.cxx" />
+    <ClCompile Include="..\..\src\hu_stuff.cxx" />
+    <ClCompile Include="..\..\src\g_game.cxx" />
+    <ClCompile Include="..\..\src\g_input.cxx" />
+    <ClCompile Include="..\..\src\g_state.cxx" />
+    <ClCompile Include="..\..\src\f_finale.cxx" />
+    <ClCompile Include="..\..\src\f_wipe.cxx" />
+    <ClCompile Include="..\..\src\d_block.cxx" />
+    <ClCompile Include="..\..\src\d_clisrv.cxx" />
+    <ClCompile Include="..\..\src\d_info.cxx" />
+    <ClCompile Include="..\..\src\d_items.cxx" />
+    <ClCompile Include="..\..\src\d_main.cxx" />
+    <ClCompile Include="..\..\src\d_net.cxx" />
+    <ClCompile Include="..\..\src\d_netcmd.cxx" />
+    <ClCompile Include="..\..\src\d_prof.cxx" />
+    <ClCompile Include="..\..\src\d_rdf.cxx" />
+    <ClCompile Include="..\..\src\d_rmod.cxx" />
+    <ClCompile Include="..\..\src\am_map.cxx" />
+    <ClCompile Include="..\..\src\b_bot.cxx" />
+    <ClCompile Include="..\..\src\b_ghost.cxx" />
+    <ClCompile Include="..\..\src\c_lib.cxx" />
+    <ClCompile Include="..\..\src\command.cxx" />
+    <ClCompile Include="..\..\src\console.cxx" />
+    <ClCompile Include="..\..\src\dbopl.cxx" />
+    <ClCompile Include="..\..\src\dehacked.cxx" />
+    <ClCompile Include="..\..\src\dstrings.cxx" />
+    <ClCompile Include="..\..\src\info.cxx" />
+    <ClCompile Include="..\..\src\md5.cxx" />
+    <ClCompile Include="..\..\src\screen.cxx" />
+    <ClCompile Include="..\..\src\sounds.cxx" />
+    <ClCompile Include="..\..\src\t_dscc.cxx" />
+    <ClCompile Include="..\..\src\t_dsvm.cxx" />
+    <ClCompile Include="..\..\src\tables.cxx" />
   </ItemGroup>
   <ItemGroup>
     <None Include="..\..\rc\remood.ico" />

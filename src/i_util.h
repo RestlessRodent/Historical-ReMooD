@@ -370,6 +370,17 @@ typedef struct I_SoundDriver_s
 	size_t Size;				// Private size
 } I_SoundDriver_t;
 
+#define ISYSINFOBUFSIZE					64		// System Info Buffer Size
+
+/* I_SystemInfo_t -- System Information */
+typedef struct I_SystemInfo_s
+{
+	bool Valid;									// Set with info
+	
+	char OS[ISYSINFOBUFSIZE];					// Operating System
+	char CPU[ISYSINFOBUFSIZE];					// Current CPU
+} I_SystemInfo_t;
+
 /*****************************************************************************/
 /********* BEGIN STOLEN NETWORKING CODE FROM MY SUPER SECRET PROJECT *********/
 
@@ -480,6 +491,7 @@ uint64_t I_GetDiskFreeSpace(const char* const a_Path);
 uint64_t I_GetFreeMemory(uint64_t* const a_TotalMem);
 void I_CommonCommandLine(int* const a_argc, char** *const a_argv, const char* const a_Long);
 void I_Quit(void);
+I_SystemInfo_t* I_GetSystemInfo(void);
 
 /*** i_utlnet.c ***/
 bool I_InitNetwork(void);

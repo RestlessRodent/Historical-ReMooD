@@ -572,7 +572,7 @@
 				>
 			</File>
 			<File
-				RelativePath="..\..\src\i_util.c"
+				RelativePath="..\..\src\i_util.cxx"
 				>
 			</File>
 			<File
@@ -580,11 +580,11 @@
 				>
 			</File>
 			<File
-				RelativePath="..\..\src\i_utlnet.c"
+				RelativePath="..\..\src\i_utlnet.cxx"
 				>
 			</File>
 			<File
-				RelativePath="..\..\src\i_utlsfx.c"
+				RelativePath="..\..\src\i_utlsfx.cxx"
 				>
 			</File>
 			<File
@@ -595,7 +595,7 @@
 				Name="SDL"
 				>
 				<File
-					RelativePath="..\..\src\sdl\i_main.c"
+					RelativePath="..\..\src\sdl\i_main.cxx"
 					>
 					<FileConfiguration
 						Name="Debug (Allegro)|Win32"
@@ -615,7 +615,7 @@
 					</FileConfiguration>
 				</File>
 				<File
-					RelativePath="..\..\src\sdl\i_music.c"
+					RelativePath="..\..\src\sdl\i_music.cxx"
 					>
 					<FileConfiguration
 						Name="Debug (Allegro)|Win32"
@@ -635,7 +635,7 @@
 					</FileConfiguration>
 				</File>
 				<File
-					RelativePath="..\..\src\sdl\i_net.c"
+					RelativePath="..\..\src\sdl\i_net.cxx"
 					>
 					<FileConfiguration
 						Name="Debug (Allegro)|Win32"
@@ -655,7 +655,7 @@
 					</FileConfiguration>
 				</File>
 				<File
-					RelativePath="..\..\src\sdl\i_sound.c"
+					RelativePath="..\..\src\sdl\i_sound.cxx"
 					>
 					<FileConfiguration
 						Name="Debug (Allegro)|Win32"
@@ -675,7 +675,7 @@
 					</FileConfiguration>
 				</File>
 				<File
-					RelativePath="..\..\src\sdl\i_system.c"
+					RelativePath="..\..\src\sdl\i_system.cxx"
 					>
 					<FileConfiguration
 						Name="Debug (Allegro)|Win32"
@@ -695,7 +695,7 @@
 					</FileConfiguration>
 				</File>
 				<File
-					RelativePath="..\..\src\sdl\i_video.c"
+					RelativePath="..\..\src\sdl\i_video.cxx"
 					>
 					<FileConfiguration
 						Name="Debug (Allegro)|Win32"
@@ -719,7 +719,7 @@
 				Name="Allegro"
 				>
 				<File
-					RelativePath="..\..\src\allegro\i_main.c"
+					RelativePath="..\..\src\allegro\i_main.cxx"
 					>
 					<FileConfiguration
 						Name="Debug (SDL)|Win32"
@@ -739,7 +739,7 @@
 					</FileConfiguration>
 				</File>
 				<File
-					RelativePath="..\..\src\allegro\i_music.c"
+					RelativePath="..\..\src\allegro\i_music.cxx"
 					>
 					<FileConfiguration
 						Name="Debug (SDL)|Win32"
@@ -759,7 +759,7 @@
 					</FileConfiguration>
 				</File>
 				<File
-					RelativePath="..\..\src\allegro\i_net.c"
+					RelativePath="..\..\src\allegro\i_net.cxx"
 					>
 					<FileConfiguration
 						Name="Debug (SDL)|Win32"
@@ -779,7 +779,7 @@
 					</FileConfiguration>
 				</File>
 				<File
-					RelativePath="..\..\src\allegro\i_sound.c"
+					RelativePath="..\..\src\allegro\i_sound.cxx"
 					>
 					<FileConfiguration
 						Name="Debug (SDL)|Win32"
@@ -799,7 +799,7 @@
 					</FileConfiguration>
 				</File>
 				<File
-					RelativePath="..\..\src\allegro\i_system.c"
+					RelativePath="..\..\src\allegro\i_system.cxx"
 					>
 					<FileConfiguration
 						Name="Debug (SDL)|Win32"
@@ -819,7 +819,7 @@
 					</FileConfiguration>
 				</File>
 				<File
-					RelativePath="..\..\src\allegro\i_video.c"
+					RelativePath="..\..\src\allegro\i_video.cxx"
 					>
 					<FileConfiguration
 						Name="Debug (SDL)|Win32"
@@ -844,7 +844,7 @@
 			Name="v_ (Video)"
 			>
 			<File
-				RelativePath="..\..\src\v_video.c"
+				RelativePath="..\..\src\v_video.cxx"
 				>
 			</File>
 			<File
@@ -856,7 +856,7 @@
 				>
 			</File>
 			<File
-				RelativePath="..\..\src\v_widget.c"
+				RelativePath="..\..\src\v_widget.cxx"
 				>
 			</File>
 			<File
@@ -868,7 +868,7 @@
 			Name="w_ (WADs)"
 			>
 			<File
-				RelativePath="..\..\src\w_wad.c"
+				RelativePath="..\..\src\w_wad.cxx"
 				>
 			</File>
 			<File
@@ -880,7 +880,7 @@
 			Name="wi_ (Intermission)"
 			>
 			<File
-				RelativePath="..\..\src\wi_stuff.c"
+				RelativePath="..\..\src\wi_stuff.cxx"
 				>
 			</File>
 			<File
@@ -892,7 +892,7 @@
 			Name="z_ (Memory)"
 			>
 			<File
-				RelativePath="..\..\src\z_zone.c"
+				RelativePath="..\..\src\z_zone.cxx"
 				>
 			</File>
 			<File
@@ -907,7 +907,7 @@
 				Name="r_ (Renderer)"
 				>
 				<File
-					RelativePath="..\..\src\r_bsp.c"
+					RelativePath="..\..\src\r_bsp.cxx"
 					>
 				</File>
 				<File
@@ -915,7 +915,7 @@
 					>
 				</File>
 				<File
-					RelativePath="..\..\src\r_data.c"
+					RelativePath="..\..\src\r_data.cxx"
 					>
 				</File>
 				<File
@@ -927,7 +927,7 @@
 					>
 				</File>
 				<File
-					RelativePath="..\..\src\r_draw.c"
+					RelativePath="..\..\src\r_draw.cxx"
 					>
 				</File>
 				<File
@@ -939,7 +939,7 @@
 					>
 				</File>
 				<File
-					RelativePath="..\..\src\r_main.c"
+					RelativePath="..\..\src\r_main.cxx"
 					>
 				</File>
 				<File
@@ -947,7 +947,7 @@
 					>
 				</File>
 				<File
-					RelativePath="..\..\src\r_plane.c"
+					RelativePath="..\..\src\r_plane.cxx"
 					>
 				</File>
 				<File
@@ -955,7 +955,7 @@
 					>
 				</File>
 				<File
-					RelativePath="..\..\src\r_segs.c"
+					RelativePath="..\..\src\r_segs.cxx"
 					>
 				</File>
 				<File
@@ -963,7 +963,7 @@
 					>
 				</File>
 				<File
-					RelativePath="..\..\src\r_sky.c"
+					RelativePath="..\..\src\r_sky.cxx"
 					>
 				</File>
 				<File
@@ -971,7 +971,7 @@
 					>
 				</File>
 				<File
-					RelativePath="..\..\src\r_splats.c"
+					RelativePath="..\..\src\r_splats.cxx"
 					>
 				</File>
 				<File
@@ -983,7 +983,7 @@
 					>
 				</File>
 				<File
-					RelativePath="..\..\src\r_things.c"
+					RelativePath="..\..\src\r_things.cxx"
 					>
 				</File>
 				<File
@@ -995,7 +995,7 @@
 				Name="s_ (Sound)"
 				>
 				<File
-					RelativePath="..\..\src\s_sound.c"
+					RelativePath="..\..\src\s_sound.cxx"
 					>
 				</File>
 				<File
@@ -1007,11 +1007,11 @@
 				Name="p_ (Logic)"
 				>
 				<File
-					RelativePath="..\..\src\p_ceilng.c"
+					RelativePath="..\..\src\p_ceilng.cxx"
 					>
 				</File>
 				<File
-					RelativePath="..\..\src\p_demcmp.c"
+					RelativePath="..\..\src\p_demcmp.cxx"
 					>
 				</File>
 				<File
@@ -1019,15 +1019,15 @@
 					>
 				</File>
 				<File
-					RelativePath="..\..\src\p_doors.c"
+					RelativePath="..\..\src\p_doors.cxx"
 					>
 				</File>
 				<File
-					RelativePath="..\..\src\p_enemy.c"
+					RelativePath="..\..\src\p_enemy.cxx"
 					>
 				</File>
 				<File
-					RelativePath="..\..\src\p_fab.c"
+					RelativePath="..\..\src\p_fab.cxx"
 					>
 				</File>
 				<File
@@ -1035,15 +1035,15 @@
 					>
 				</File>
 				<File
-					RelativePath="..\..\src\p_floor.c"
+					RelativePath="..\..\src\p_floor.cxx"
 					>
 				</File>
 				<File
-					RelativePath="..\..\src\p_genlin.c"
+					RelativePath="..\..\src\p_genlin.cxx"
 					>
 				</File>
 				<File
-					RelativePath="..\..\src\p_info.c"
+					RelativePath="..\..\src\p_info.cxx"
 					>
 				</File>
 				<File
@@ -1051,7 +1051,7 @@
 					>
 				</File>
 				<File
-					RelativePath="..\..\src\p_inter.c"
+					RelativePath="..\..\src\p_inter.cxx"
 					>
 				</File>
 				<File
@@ -1059,7 +1059,7 @@
 					>
 				</File>
 				<File
-					RelativePath="..\..\src\p_lights.c"
+					RelativePath="..\..\src\p_lights.cxx"
 					>
 				</File>
 				<File
@@ -1067,11 +1067,11 @@
 					>
 				</File>
 				<File
-					RelativePath="..\..\src\p_map.c"
+					RelativePath="..\..\src\p_map.cxx"
 					>
 				</File>
 				<File
-					RelativePath="..\..\src\p_maputl.c"
+					RelativePath="..\..\src\p_maputl.cxx"
 					>
 				</File>
 				<File
@@ -1079,7 +1079,7 @@
 					>
 				</File>
 				<File
-					RelativePath="..\..\src\p_mobj.c"
+					RelativePath="..\..\src\p_mobj.cxx"
 					>
 				</File>
 				<File
@@ -1087,11 +1087,11 @@
 					>
 				</File>
 				<File
-					RelativePath="..\..\src\p_plats.c"
+					RelativePath="..\..\src\p_plats.cxx"
 					>
 				</File>
 				<File
-					RelativePath="..\..\src\p_pspr.c"
+					RelativePath="..\..\src\p_pspr.cxx"
 					>
 				</File>
 				<File
@@ -1099,7 +1099,7 @@
 					>
 				</File>
 				<File
-					RelativePath="..\..\src\p_saveg.c"
+					RelativePath="..\..\src\p_saveg.cxx"
 					>
 				</File>
 				<File
@@ -1107,7 +1107,7 @@
 					>
 				</File>
 				<File
-					RelativePath="..\..\src\p_setup.c"
+					RelativePath="..\..\src\p_setup.cxx"
 					>
 				</File>
 				<File
@@ -1115,11 +1115,11 @@
 					>
 				</File>
 				<File
-					RelativePath="..\..\src\p_sight.c"
+					RelativePath="..\..\src\p_sight.cxx"
 					>
 				</File>
 				<File
-					RelativePath="..\..\src\p_spec.c"
+					RelativePath="..\..\src\p_spec.cxx"
 					>
 				</File>
 				<File
@@ -1127,15 +1127,15 @@
 					>
 				</File>
 				<File
-					RelativePath="..\..\src\p_switch.c"
+					RelativePath="..\..\src\p_switch.cxx"
 					>
 				</File>
 				<File
-					RelativePath="..\..\src\p_telept.c"
+					RelativePath="..\..\src\p_telept.cxx"
 					>
 				</File>
 				<File
-					RelativePath="..\..\src\p_tick.c"
+					RelativePath="..\..\src\p_tick.cxx"
 					>
 				</File>
 				<File
@@ -1143,7 +1143,7 @@
 					>
 				</File>
 				<File
-					RelativePath="..\..\src\p_user.c"
+					RelativePath="..\..\src\p_user.cxx"
 					>
 				</File>
 			</Filter>
@@ -1151,7 +1151,7 @@
 				Name="st_ (Status Bar)"
 				>
 				<File
-					RelativePath="..\..\src\st_lib.c"
+					RelativePath="..\..\src\st_lib.cxx"
 					>
 				</File>
 				<File
@@ -1159,7 +1159,7 @@
 					>
 				</File>
 				<File
-					RelativePath="..\..\src\st_stuff.c"
+					RelativePath="..\..\src\st_stuff.cxx"
 					>
 				</File>
 				<File
@@ -1171,11 +1171,11 @@
 				Name="t_ (FraggleScript/ReMooD Script)"
 				>
 				<File
-					RelativePath="..\..\src\t_comp.c"
+					RelativePath="..\..\src\t_comp.cxx"
 					>
 				</File>
 				<File
-					RelativePath="..\..\src\t_func.c"
+					RelativePath="..\..\src\t_func.cxx"
 					>
 				</File>
 				<File
@@ -1183,7 +1183,7 @@
 					>
 				</File>
 				<File
-					RelativePath="..\..\src\t_oper.c"
+					RelativePath="..\..\src\t_oper.cxx"
 					>
 				</File>
 				<File
@@ -1191,7 +1191,7 @@
 					>
 				</File>
 				<File
-					RelativePath="..\..\src\t_parse.c"
+					RelativePath="..\..\src\t_parse.cxx"
 					>
 				</File>
 				<File
@@ -1199,7 +1199,7 @@
 					>
 				</File>
 				<File
-					RelativePath="..\..\src\t_prepro.c"
+					RelativePath="..\..\src\t_prepro.cxx"
 					>
 				</File>
 				<File
@@ -1207,7 +1207,7 @@
 					>
 				</File>
 				<File
-					RelativePath="..\..\src\t_script.c"
+					RelativePath="..\..\src\t_script.cxx"
 					>
 				</File>
 				<File
@@ -1215,7 +1215,7 @@
 					>
 				</File>
 				<File
-					RelativePath="..\..\src\t_spec.c"
+					RelativePath="..\..\src\t_spec.cxx"
 					>
 				</File>
 				<File
@@ -1223,7 +1223,7 @@
 					>
 				</File>
 				<File
-					RelativePath="..\..\src\t_vari.c"
+					RelativePath="..\..\src\t_vari.cxx"
 					>
 				</File>
 				<File
@@ -1235,7 +1235,7 @@
 				Name="m_ (Misc)"
 				>
 				<File
-					RelativePath="..\..\src\m_argv.c"
+					RelativePath="..\..\src\m_argv.cxx"
 					>
 				</File>
 				<File
@@ -1243,7 +1243,7 @@
 					>
 				</File>
 				<File
-					RelativePath="..\..\src\m_bbox.c"
+					RelativePath="..\..\src\m_bbox.cxx"
 					>
 				</File>
 				<File
@@ -1251,7 +1251,7 @@
 					>
 				</File>
 				<File
-					RelativePath="..\..\src\m_cheat.c"
+					RelativePath="..\..\src\m_cheat.cxx"
 					>
 				</File>
 				<File
@@ -1259,7 +1259,7 @@
 					>
 				</File>
 				<File
-					RelativePath="..\..\src\m_fixed.c"
+					RelativePath="..\..\src\m_fixed.cxx"
 					>
 				</File>
 				<File
@@ -1267,7 +1267,7 @@
 					>
 				</File>
 				<File
-					RelativePath="..\..\src\m_menu.c"
+					RelativePath="..\..\src\m_menu.cxx"
 					>
 				</File>
 				<File
@@ -1275,15 +1275,15 @@
 					>
 				</File>
 				<File
-					RelativePath="..\..\src\m_menudr.c"
+					RelativePath="..\..\src\m_menudr.cxx"
 					>
 				</File>
 				<File
-					RelativePath="..\..\src\m_menufn.c"
+					RelativePath="..\..\src\m_menufn.cxx"
 					>
 				</File>
 				<File
-					RelativePath="..\..\src\m_misc.c"
+					RelativePath="..\..\src\m_misc.cxx"
 					>
 				</File>
 				<File
@@ -1291,7 +1291,7 @@
 					>
 				</File>
 				<File
-					RelativePath="..\..\src\m_random.c"
+					RelativePath="..\..\src\m_random.cxx"
 					>
 				</File>
 				<File
@@ -1307,7 +1307,7 @@
 				Name="hu_ (HUD)"
 				>
 				<File
-					RelativePath="..\..\src\hu_stuff.c"
+					RelativePath="..\..\src\hu_stuff.cxx"
 					>
 				</File>
 				<File
@@ -1319,7 +1319,7 @@
 				Name="g_ (Game)"
 				>
 				<File
-					RelativePath="..\..\src\g_game.c"
+					RelativePath="..\..\src\g_game.cxx"
 					>
 				</File>
 				<File
@@ -1327,7 +1327,7 @@
 					>
 				</File>
 				<File
-					RelativePath="..\..\src\g_input.c"
+					RelativePath="..\..\src\g_input.cxx"
 					>
 				</File>
 				<File
@@ -1335,7 +1335,7 @@
 					>
 				</File>
 				<File
-					RelativePath="..\..\src\g_state.c"
+					RelativePath="..\..\src\g_state.cxx"
 					>
 				</File>
 				<File
@@ -1347,7 +1347,7 @@
 				Name="f_ (Finale)"
 				>
 				<File
-					RelativePath="..\..\src\f_finale.c"
+					RelativePath="..\..\src\f_finale.cxx"
 					>
 				</File>
 				<File
@@ -1355,7 +1355,7 @@
 					>
 				</File>
 				<File
-					RelativePath="..\..\src\f_wipe.c"
+					RelativePath="..\..\src\f_wipe.cxx"
 					>
 				</File>
 				<File
@@ -1367,7 +1367,7 @@
 				Name="d_ (Doom)"
 				>
 				<File
-					RelativePath="..\..\src\d_block.c"
+					RelativePath="..\..\src\d_block.cxx"
 					>
 				</File>
 				<File
@@ -1375,7 +1375,7 @@
 					>
 				</File>
 				<File
-					RelativePath="..\..\src\d_clisrv.c"
+					RelativePath="..\..\src\d_clisrv.cxx"
 					>
 				</File>
 				<File
@@ -1395,7 +1395,7 @@
 					>
 				</File>
 				<File
-					RelativePath="..\..\src\d_info.c"
+					RelativePath="..\..\src\d_info.cxx"
 					>
 				</File>
 				<File
@@ -1403,7 +1403,7 @@
 					>
 				</File>
 				<File
-					RelativePath="..\..\src\d_items.c"
+					RelativePath="..\..\src\d_items.cxx"
 					>
 				</File>
 				<File
@@ -1411,7 +1411,7 @@
 					>
 				</File>
 				<File
-					RelativePath="..\..\src\d_main.c"
+					RelativePath="..\..\src\d_main.cxx"
 					>
 				</File>
 				<File
@@ -1419,7 +1419,7 @@
 					>
 				</File>
 				<File
-					RelativePath="..\..\src\d_net.c"
+					RelativePath="..\..\src\d_net.cxx"
 					>
 				</File>
 				<File
@@ -1427,7 +1427,7 @@
 					>
 				</File>
 				<File
-					RelativePath="..\..\src\d_netcmd.c"
+					RelativePath="..\..\src\d_netcmd.cxx"
 					>
 				</File>
 				<File
@@ -1439,7 +1439,7 @@
 					>
 				</File>
 				<File
-					RelativePath="..\..\src\d_prof.c"
+					RelativePath="..\..\src\d_prof.cxx"
 					>
 				</File>
 				<File
@@ -1447,7 +1447,7 @@
 					>
 				</File>
 				<File
-					RelativePath="..\..\src\d_rdf.c"
+					RelativePath="..\..\src\d_rdf.cxx"
 					>
 				</File>
 				<File
@@ -1455,7 +1455,7 @@
 					>
 				</File>
 				<File
-					RelativePath="..\..\src\d_rmod.c"
+					RelativePath="..\..\src\d_rmod.cxx"
 					>
 				</File>
 				<File
@@ -1475,7 +1475,7 @@
 				Name="am_ (Automap)"
 				>
 				<File
-					RelativePath="..\..\src\am_map.c"
+					RelativePath="..\..\src\am_map.cxx"
 					>
 				</File>
 				<File
@@ -1488,7 +1488,7 @@
 			Name="Bots (b_)"
 			>
 			<File
-				RelativePath="..\..\src\b_bot.c"
+				RelativePath="..\..\src\b_bot.cxx"
 				>
 			</File>
 			<File
@@ -1496,7 +1496,7 @@
 				>
 			</File>
 			<File
-				RelativePath="..\..\src\b_ghost.c"
+				RelativePath="..\..\src\b_ghost.cxx"
 				>
 			</File>
 		</Filter>
@@ -1509,7 +1509,7 @@
 			>
 		</File>
 		<File
-			RelativePath="..\..\src\c_lib.c"
+			RelativePath="..\..\src\c_lib.cxx"
 			>
 		</File>
 		<File
@@ -1517,7 +1517,7 @@
 			>
 		</File>
 		<File
-			RelativePath="..\..\src\command.c"
+			RelativePath="..\..\src\command.cxx"
 			>
 		</File>
 		<File
@@ -1525,7 +1525,7 @@
 			>
 		</File>
 		<File
-			RelativePath="..\..\src\console.c"
+			RelativePath="..\..\src\console.cxx"
 			>
 		</File>
 		<File
@@ -1533,7 +1533,7 @@
 			>
 		</File>
 		<File
-			RelativePath="..\..\src\dbopl.c"
+			RelativePath="..\..\src\dbopl.cxx"
 			>
 		</File>
 		<File
@@ -1541,7 +1541,7 @@
 			>
 		</File>
 		<File
-			RelativePath="..\..\src\dehacked.c"
+			RelativePath="..\..\src\dehacked.cxx"
 			>
 		</File>
 		<File
@@ -1565,7 +1565,7 @@
 			>
 		</File>
 		<File
-			RelativePath="..\..\src\dstrings.c"
+			RelativePath="..\..\src\dstrings.cxx"
 			>
 		</File>
 		<File
@@ -1573,7 +1573,7 @@
 			>
 		</File>
 		<File
-			RelativePath="..\..\src\info.c"
+			RelativePath="..\..\src\info.cxx"
 			>
 		</File>
 		<File
@@ -1585,7 +1585,7 @@
 			>
 		</File>
 		<File
-			RelativePath="..\..\src\md5.c"
+			RelativePath="..\..\src\md5.cxx"
 			>
 		</File>
 		<File
@@ -1605,7 +1605,7 @@
 			>
 		</File>
 		<File
-			RelativePath="..\..\src\screen.c"
+			RelativePath="..\..\src\screen.cxx"
 			>
 		</File>
 		<File
@@ -1613,7 +1613,7 @@
 			>
 		</File>
 		<File
-			RelativePath="..\..\src\sounds.c"
+			RelativePath="..\..\src\sounds.cxx"
 			>
 		</File>
 		<File
@@ -1625,11 +1625,11 @@
 			>
 		</File>
 		<File
-			RelativePath="..\..\src\t_dscc.c"
+			RelativePath="..\..\src\t_dscc.cxx"
 			>
 		</File>
 		<File
-			RelativePath="..\..\src\t_dsvm.c"
+			RelativePath="..\..\src\t_dsvm.cxx"
 			>
 		</File>
 		<File
@@ -1637,7 +1637,7 @@
 			>
 		</File>
 		<File
-			RelativePath="..\..\src\tables.c"
+			RelativePath="..\..\src\tables.cxx"
 			>
 		</File>
 		<File

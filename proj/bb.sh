@@ -281,28 +281,13 @@ do
 			echo "$COOLPREFIX Building $TARGETNAME" 1>&2
 			
 			;;
-			
+
+################################ WINDOWS 32-BIT ################################			
+
 			# Win32 Compiler
 		win32_findcc)
 			# Which prefix works?
 			for PREFIX in i686-w64-mingw32 i686-pc-mingw32 i686-mingw32 i586-mingw32msvc i586-pc-mingw32msvc
-			do
-				if which "${PREFIX}-gcc" > /dev/null 2> /dev/null
-				then
-					echo "${PREFIX}-"
-					exit 0
-				fi
-			done
-			
-			# Fallback
-			echo ""
-			;;
-			
-			# Win64 Compiler
-		win64_findcc)
-			# Which prefix works?
-			# These are all the same CCs, second is comp, last is Debian screwy name
-			for PREFIX in x86_64-w64-mingw32 x86_64-pc-mingw32 amd64-mingw32msvc
 			do
 				if which "${PREFIX}-gcc" > /dev/null 2> /dev/null
 				then
@@ -383,6 +368,67 @@ do
 			echo "$COOLPREFIX Building Win32 Default Binary" 1>&2
 			"$BBROOT/bb.sh" win32_allegro
 			;;
+			
+################################ WINDOWS 64-BIT ################################
+			
+			# Win64 Compiler
+		win64_findcc)
+			# Which prefix works?
+			# These are all the same CCs, second is comp, last is Debian screwy name
+			for PREFIX in x86_64-w64-mingw32 x86_64-pc-mingw32 amd64-mingw32msvc
+			do
+				if which "${PREFIX}-gcc" > /dev/null 2> /dev/null
+				then
+					echo "${PREFIX}-"
+					exit 0
+				fi
+			done
+			
+			# Fallback
+			echo ""
+			;;
+			
+			# Win64/SDL Binary
+		win64_sdl)
+			echo "$COOLPREFIX Building Win64 SDL Binary" 1>&2
+			;;
+		
+			# Default Win64 Binary
+		win64)
+			echo "$COOLPREFIX Building Win64 Default Binary" 1>&2
+			"$BBROOT/bb.sh" win64_sdl
+			;;
+
+################################ WINDOWS CE ################################
+
+			# WinCE Compiler
+		wince_findcc)
+			# Which prefix works?
+			for PREFIX in arm-cegcc
+			do
+				if which "${PREFIX}-gcc" > /dev/null 2> /dev/null
+				then
+					echo "${PREFIX}-"
+					exit 0
+				fi
+			done
+			
+			# Fallback
+			echo ""
+			;;
+			
+			# WinCE/SDL Binary
+		wince_sdl)
+			echo "$COOLPREFIX Building WinCE SDL Binary" 1>&2
+			;;
+			
+			# Default WinCE Binary
+		wince)
+			echo "$COOLPREFIX Building WinCE Default Binary" 1>&2
+			"$BBROOT/bb.sh" wince_sdl
+			;;
+
+################################ PALM OS ################################
 			
 			# Palm OS
 		palmos)
