@@ -165,6 +165,10 @@ void operator delete(void* p)// throw()
 {
 	uint32_t* RawP;
 	
+	/* Check */
+	if (!p)
+		return;
+	
 	/* Get raw pointer */
 	RawP = (uint32_t*)((uintptr_t)p - 4);
 	
