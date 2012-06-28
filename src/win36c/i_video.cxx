@@ -42,6 +42,7 @@
 #include "doomdef.h"
 #include "i_video.h"
 #include "i_util.h"
+#include "i_system.h"
 
 #define __G_INPUT_H__
 #include "console.h"
@@ -68,6 +69,67 @@ BITMAPINFO* ceWinBMPInfo = NULL;
 *** FUNCTIONS ***
 ****************/
 
+/* ceWindowProc() -- Main window procedure */
+extern "C" LRESULT CALLBACK ceWindowProc(HWND hWnd, UINT Msg, WPARAM wParam, LPARAM lParam)
+{
+	HDC hDc, bufDc;
+	PAINTSTRUCT Ps;
+	HBITMAP bufBMP;
+	BITMAPINFO bmpInfo;
+	int i, j;
+	
+	switch (Msg)
+	{
+		case WM_CREATE:
+			break;
+
+		case WM_MOUSEMOVE:
+#if 0
+			feVents[feWrite].Type = 1;
+			feVents[feWrite].Data.Mouse.button = 0;
+			feVents[feWrite].Data.Mouse.x = LOWORD(lParam);
+			feVents[feWrite].Data.Mouse.y = HIWORD(lParam);
+
+			// Increment
+			feWrite++;
+			if (feWrite >= NUMFAKEEVENTS)
+				feWrite = 0;
+#endif
+			break;
+
+		case WM_LBUTTONDBLCLK:
+#if 0
+			feVents[feWrite].Type = 1;
+			feVents[feWrite].Data.Mouse.button = 1;
+			feVents[feWrite].Data.Mouse.x = LOWORD(lParam);
+			feVents[feWrite].Data.Mouse.y = HIWORD(lParam);
+
+			// Increment
+			feWrite++;
+			if (feWrite >= NUMFAKEEVENTS)
+				feWrite = 0;
+#endif
+			break;
+			
+		case WM_PAINT:
+			hDc = BeginPaint(hWnd, &Ps);
+			bufDc = CreateCompatibleDC(hDc);
+			SelectObject(bufDc, ceWinBMP);
+			
+			memcpy(vid.direct, screens[0], vid.width * vid.height);
+			
+			BitBlt(hDc, 0, 0, vid.width, vid.height, bufDc, 0, 0, SRCCOPY);
+			DeleteDC(bufDc);
+			EndPaint(hWnd, &Ps);
+			break;
+		
+		default:
+			return DefWindowProc(hWnd, Msg, wParam, lParam);
+	}
+	
+	return 0;
+}
+
 /* I_GetEvent() -- Gets an event and adds it to the queue */
 void I_GetEvent(void)
 {
@@ -80,16 +142,43 @@ void I_UpdateNoBlit(void)
 /* I_StartFrame() -- Called before drawing a frame */
 void I_StartFrame(void)
 {
+	MSG Msg;
+	
+	if (!cePrimaryWindow)
+		return;
+		
+	// Win32 Messages
+	while (PeekMessage(&Msg, cePrimaryWindow, 0, 0, PM_REMOVE))
+	{
+		TranslateMessage(&Msg);
+		DispatchMessage(&Msg);
+	}
 }
 
 /* I_FinishUpdate() -- Called after drawing a frame */
 void I_FinishUpdate(void)
 {
+	InvalidateRect(cePrimaryWindow, NULL, FALSE);
+	UpdateWindow(cePrimaryWindow);
 }
 
 /* I_SetPalette() -- Sets the current palette */
 void I_SetPalette(RGBA_t* palette)
 {
+	int i;
+	HDC hDc = GetDC(cePrimaryWindow);
+	
+	for (i = 0; i < 256; i++)
+	{
+		ceWinBMPInfo->bmiColors[i].rgbRed = palette[i].s.red;
+		ceWinBMPInfo->bmiColors[i].rgbGreen = palette[i].s.green;
+		ceWinBMPInfo->bmiColors[i].rgbBlue = palette[i].s.blue;
+		ceWinBMPInfo->bmiColors[i].rgbReserved = 0;
+	}
+	
+	SelectObject(hDc, ceWinBMPInfo);
+	SetDIBColorTable(hDc, 0, 256, ceWinBMPInfo->bmiColors);
+	ReleaseDC((HWND)ceWinBMPInfo, hDc);
 }
 
 /* VID_PrepareModeList() -- Adds video modes to the mode list */
@@ -107,12 +196,66 @@ void VID_PrepareModeList(void)
 /* I_SetVideoMode() -- Sets the current video mode */
 bool I_SetVideoMode(const uint32_t a_Width, const uint32_t a_Height, const bool a_Fullscreen)
 {
+	HDC hDc;
+	int i;
+	
 	/* Check */
 	if (!a_Width || !a_Height)
 		return false;
 		
 	/* Destroy old buffer */
 	I_VideoUnsetBuffer();		// Remove old buffer if any
+	
+	/* Free old bitmap */
+	if (ceWinBMP)
+	{
+		DeleteObject(ceWinBMP);
+		ceWinBMP = NULL;
+	}
+	
+	if (ceWinBMPInfo)
+	{
+		free(ceWinBMPInfo);
+		ceWinBMPInfo = NULL;
+	}
+	
+	/* Setup Bitmap */
+	ceWinBMPInfo = (BITMAPINFO*)I_SysAlloc(sizeof(*ceWinBMPInfo));
+	ceWinBMPInfo->bmiHeader.biSize			= sizeof(BITMAPINFOHEADER);
+	ceWinBMPInfo->bmiHeader.biWidth			= vid.width;
+	ceWinBMPInfo->bmiHeader.biHeight		= -vid.height;
+	ceWinBMPInfo->bmiHeader.biPlanes		= 1;
+	ceWinBMPInfo->bmiHeader.biSizeImage		= vid.height * vid.width;
+	ceWinBMPInfo->bmiHeader.biXPelsPerMeter	= 0;
+	ceWinBMPInfo->bmiHeader.biYPelsPerMeter	= 0;
+	ceWinBMPInfo->bmiHeader.biClrUsed		= 256;
+	ceWinBMPInfo->bmiHeader.biClrImportant	= 0;
+	ceWinBMPInfo->bmiHeader.biBitCount		= 8;
+	ceWinBMPInfo->bmiHeader.biCompression	= BI_RGB;
+	
+	if (pLocalPalette)
+		for (i = 0; i < 256; i++)
+		{
+			ceWinBMPInfo->bmiColors[i].rgbRed = pLocalPalette[i].s.red;
+			ceWinBMPInfo->bmiColors[i].rgbGreen = pLocalPalette[i].s.green;
+			ceWinBMPInfo->bmiColors[i].rgbBlue = pLocalPalette[i].s.blue;
+			ceWinBMPInfo->bmiColors[i].rgbReserved = 0;
+		}
+	else
+		for (i = 0; i < 256; i++)
+		{
+			ceWinBMPInfo->bmiColors[i].rgbRed = i;
+			ceWinBMPInfo->bmiColors[i].rgbGreen = i;
+			ceWinBMPInfo->bmiColors[i].rgbBlue = i;
+			ceWinBMPInfo->bmiColors[i].rgbReserved = 0;
+		}
+	
+	/* Create Bitmap */
+	hDc = GetDC(cePrimaryWindow);
+	ceWinBMP = CreateDIBSection(hDc, ceWinBMPInfo, DIB_RGB_COLORS, (void**)&vid.direct, NULL, 0);
+	ReleaseDC(cePrimaryWindow, hDc);
+		
+	return 1;
 	
 	/* Allocate Buffer */
 	I_VideoSetBuffer(a_Width, a_Height, a_Width, NULL);
@@ -201,3 +344,4 @@ bool I_RemoveMouse(const size_t a_ID)
 void I_MouseGrab(const bool a_Grab)
 {
 }
+
