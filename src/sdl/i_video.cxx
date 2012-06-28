@@ -942,22 +942,39 @@ void I_FinishUpdate(void)
 	SDL_Flip(l_SDLSurface);
 }
 
+extern CONL_StaticVar_t l_IBGR;
+
 /* I_SetPalette() -- Sets the current palette */
 void I_SetPalette(RGBA_t* palette)
 {
 	size_t i;
 	SDL_Color Colors[256];
+	bool RBSwap;
 	
 	/* No surface or palette? */
 	if (!l_SDLSurface || !palette)
 		return;
-		
+	
+	/* Red/Blue Swap? */
+	RBSwap = false;
+	if (l_IBGR.Value->Int)
+		RBSwap = true;
+	
 	/* Copy colors as is */
 	for (i = 0; i < 256; i++)
 	{
-		Colors[i].r = palette[i].s.red;
+		if (!RBSwap)
+		{
+			Colors[i].r = palette[i].s.red;
+			Colors[i].b = palette[i].s.blue;
+		}
+		else
+		{
+			Colors[i].r = palette[i].s.blue;
+			Colors[i].b = palette[i].s.red;
+		}
+		
 		Colors[i].g = palette[i].s.green;
-		Colors[i].b = palette[i].s.blue;
 	}
 	
 	/* Set colors away */

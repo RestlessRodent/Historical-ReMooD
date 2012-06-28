@@ -37,6 +37,18 @@
 *** INCLUDES ***
 ***************/
 
+// Includes of winsock2 and ws2tcpip break on CEGCC!
+#if defined(_WIN32_WCE)
+	#define fd_set __ws2_fd_set
+	
+	// Include this here (it later explodes!)
+	#if defined(__CEGCC__)
+		#include <sys/wcesocktypes.h>
+	#endif	
+	
+	#define __WSAFDIsSet __ws2___WSAFDIsSet
+#endif
+
 #include "doomtype.h"
 
 #if defined(__MSDOS__)
@@ -44,35 +56,46 @@
 
 #elif defined(_WIN32)
 	// WinSocks
-	#include <winsock2.h>
+	#include <winsock2.h>	
 	#include <ws2tcpip.h>	// IPv6
 	#include <fcntl.h>
 	#include <malloc.h>		// alloca
 	
 	#define __REMOOD_SOCKETCLOSE closesocket
 	#define __REMOOD_DONTWAITMSG 0
-
-	#if defined(_MSC_VER)
-		#if (_MSC_VER > 1200)
-			#define __REMOOD_ENABLEIPV6
-		#else
-			// VC6 Supports IPv6 but needs some extras
-			#define __REMOOD_ENABLEIPV6
+	
+	// Windows CE
+	#if defined(_WIN32_WCE)
+		#define __REMOOD_ENABLEIPV6
+		
+		// Requires casting
+		#define __REMOOD_BUFCAST(x) ((char*)(x))
+		#define __REMOOD_BUFCASTC(x) ((const char*)(x))
+	
+	// However, Windows does not
+	#else
+		#if defined(_MSC_VER)
+			#if (_MSC_VER > 1200)
+				#define __REMOOD_ENABLEIPV6
+			#else
+				// VC6 Supports IPv6 but needs some extras
+				#define __REMOOD_ENABLEIPV6
 			
-			// VC6 lacks some newer types
-			typedef int socklen_t;			// socket length is int
-			struct sockaddr_storage
-			{
-				uint8_t Junk[256];
-			};
+				// VC6 lacks some newer types
+				typedef int socklen_t;			// socket length is int
+				struct sockaddr_storage
+				{
+					uint8_t Junk[256];
+				};
 
-			// VC6 Explodes since send(to)/recv(from) use char*
-			#define __REMOOD_BUFCAST(x) ((char*)(x))
-			#define __REMOOD_BUFCASTC(x) ((const char*)(x))
+				// VC6 Explodes since send(to)/recv(from) use char*
+				#define __REMOOD_BUFCAST(x) ((char*)(x))
+				#define __REMOOD_BUFCASTC(x) ((const char*)(x))
+			#endif
+
+			// in6_addr goes by a different name
+			typedef in_addr6 in6_addr;
 		#endif
-
-		// in6_addr goes by a different name
-		typedef in_addr6 in6_addr;
 	#endif
 	
 #elif defined(__palmos__)

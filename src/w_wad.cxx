@@ -898,11 +898,23 @@ bool WL_LocateWAD(const char* const a_Name, const char* const a_MD5, char* const
 		// Clear it
 		memset(l_SearchList, 0, sizeof(l_SearchList));
 		
-		// Add implicit nothing, current dir, bin/
+		// Add implicit nothing and the data directory
 		strncpy(l_SearchList[l_SearchCount++], "", PATH_MAX);
+		I_GetStorageDir(l_SearchList[l_SearchCount++], PATH_MAX - 1, DST_DATA);
+
+#if defined(_WIN32_WCE)
+		// Windows CE lacks a concept of current directory, so these are all direct
+		strncpy(l_SearchList[l_SearchCount++], "", PATH_MAX);
+		strncpy(l_SearchList[l_SearchCount++], "\\Storage Card\\ReMooD", PATH_MAX);
+		strncpy(l_SearchList[l_SearchCount++], "\\iPAQ File Store\\ReMooD", PATH_MAX);
+		strncpy(l_SearchList[l_SearchCount++], "\\Storage Card", PATH_MAX);
+		strncpy(l_SearchList[l_SearchCount++], "\\iPAQ File Store", PATH_MAX);
+
+#else
+		// current dir, bin/
 		strncpy(l_SearchList[l_SearchCount++], ".", PATH_MAX);
 		strncpy(l_SearchList[l_SearchCount++], "bin", PATH_MAX);
-		I_GetStorageDir(l_SearchList[l_SearchCount++], PATH_MAX - 1, DST_DATA);
+#endif
 		
 		// -waddir argument
 		if (M_CheckParm("-waddir"))
@@ -918,7 +930,7 @@ bool WL_LocateWAD(const char* const a_Name, const char* const a_MD5, char* const
 			}
 		
 		// $DOOMWADDIR
-		if ((DirArg = getenv("DOOMWADDIR")))
+		if ((DirArg = I_GetEnvironment("DOOMWADDIR")))
 		{
 			// Add to search
 			if (l_SearchCount < MAXSEARCHBUFFER)
@@ -927,7 +939,7 @@ bool WL_LocateWAD(const char* const a_Name, const char* const a_MD5, char* const
 		}
 		
 		// $DOOMWADPATH
-		if ((DirArg = getenv("DOOMWADPATH")))
+		if ((DirArg = I_GetEnvironment("DOOMWADPATH")))
 		{
 			do
 			{
@@ -956,7 +968,11 @@ bool WL_LocateWAD(const char* const a_Name, const char* const a_MD5, char* const
 		
 		// Add trailing / to the end of all the searches (except for the first)
 		for (i = 1; i < l_SearchCount; i++)
+#if defined(_WIN32)
+			strncat(l_SearchList[i], "\\", PATH_MAX);
+#else
 			strncat(l_SearchList[i], "/", PATH_MAX);
+#endif
 			
 		// Debug
 		if (devparm)
@@ -995,7 +1011,7 @@ bool WL_LocateWAD(const char* const a_Name, const char* const a_MD5, char* const
 			strncat(CheckBuffer, p, PATH_MAX);
 			
 			// Check whether we can read it
-			if (!access(CheckBuffer, R_OK))
+			if (I_CheckFileAccess(CheckBuffer, false))
 			{
 				// TODO: Check MD5
 				

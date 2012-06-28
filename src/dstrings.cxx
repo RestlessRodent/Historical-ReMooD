@@ -353,6 +353,7 @@ StringGroupEX_t UnicodeStrings[NUMUNICODESTRINGS] =
 	
 	{			   "CVHINT_IENABLEMOUSE", "Enable mouse input."},
 	{			"CVHINT_IENABLEJOYSTICK", "Enable joystick input."},
+	{					   "CVHINT_IBGR", "Swaps Red and Blue colors, only works for certain interfaces that implement this variable."},
 	
 	{			"CVHINT_SNDSPEAKERSETUP", "Number of speakers to use."},
 	{				 "CVHINT_SNDQUALITY", "Quality of sound to be outputted."},

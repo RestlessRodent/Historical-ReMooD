@@ -41,7 +41,7 @@
 
 /* Windows */
 // windows.h is huge as hell and slows down the compile, maybe it can be removed?
-#ifdef _WIN32
+#if defined(_WIN32) && !defined(_WIN32_WCE)
 	// Provided we aren't on Win64, target Windows 98!
 	#if !defined(_WIN64)
 		#undef WINVER
@@ -60,6 +60,8 @@
 	#include <windows.h>
 	#include <io.h>
 	#include <shlobj.h>
+#elif defined(_WIN32_WCE)
+	#define _WIN32
 #endif
 
 /* Palm OS Ugly Includes */

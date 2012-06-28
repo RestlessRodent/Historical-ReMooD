@@ -1533,6 +1533,14 @@ bool G_DEMO_Legacy_ReadTicCmd(struct G_CurrentDemo_s* a_Current, ticcmd_t* const
 	/* Old Demo Format */
 	if (Data->VerMarker < 112)
 	{
+		// Read player's command
+		a_Cmd->forwardmove = a_Current->WLStream->ReadInt8();
+		a_Cmd->sidemove = a_Current->WLStream->ReadInt8();
+		a_Cmd->angleturn = ((int16_t)a_Current->WLStream->ReadInt8()) << 8;
+
+		// Button codes are different in old Legacy
+		ButtonCodes = a_Current->WLStream->ReadUInt8();
+		
 		// Special Action?
 		if (ButtonCodes & 0x80)
 		{
@@ -1553,16 +1561,9 @@ bool G_DEMO_Legacy_ReadTicCmd(struct G_CurrentDemo_s* a_Current, ticcmd_t* const
 				Data->EndDemo = true;
 		}
 		
+		// Normal
 		else
 		{
-			// Read player's command
-			a_Cmd->forwardmove = a_Current->WLStream->ReadInt8();
-			a_Cmd->sidemove = a_Current->WLStream->ReadInt8();
-			a_Cmd->angleturn = ((int16_t)a_Current->WLStream->ReadInt8()) << 8;
-
-			// Button codes are different in old Legacy
-			ButtonCodes = a_Current->WLStream->ReadUInt8();
-
 			// Fire Weapon?
 			if (ButtonCodes & 1)
 				a_Cmd->buttons |= BT_ATTACK;
@@ -1663,7 +1664,16 @@ bool G_DEMO_Legacy_ReadTicCmd(struct G_CurrentDemo_s* a_Current, ticcmd_t* const
 		
 		// Aiming
 		if (ZipTic & ZT_AIMING)
-			Data->OldCmd[a_PlayerNum].aiming = a_Current->WLStream->ReadLittleInt16();
+			if (Data->VerMarker > 125)
+				Data->OldCmd[a_PlayerNum].aiming = a_Current->WLStream->ReadLittleInt16();
+			
+			// Appears <= 1.25 uses a int8_t instead
+			// And the value is not an angle!
+			else
+			{
+				Data->OldCmd[a_PlayerNum].aiming = a_Current->WLStream->ReadInt8();
+				//Data->OldCmd[a_PlayerNum].aiming <<= 8;
+			}
 		
 		// Chat -- Not actually used?
 		if (ZipTic & ZT_CHAT)

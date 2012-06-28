@@ -173,6 +173,7 @@ bool WritePCXfile(char* filename, uint8_t* data, int width, int height, uint8_t*
 //
 void M_ScreenShot(void)
 {
+#if 0
 	int i;
 	uint8_t* linear;
 	char lbmname[MAX_WADPATH];
@@ -204,6 +205,7 @@ void M_ScreenShot(void)
 	else
 		//CONL_PrintF("Couldn't create screen shot\n");
 		CONL_PrintF("%s\n", lbmname);
+#endif
 }
 
 // ==========================================================================

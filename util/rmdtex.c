@@ -34,6 +34,8 @@
 #include <string.h>
 #include <ctype.h>
 
+/*** FIXED SIZE TYPES ***/
+
 /* C99 Complaint Compilers */
 #if (__STDC_VERSION__ >= 199901L) || defined(__GNUC__) || defined(__WATCOMC__)
 	#include <stdint.h>
@@ -60,6 +62,41 @@
 	#else
 		#define PATH_MAX 4096
 	#endif
+#endif
+
+/*** CURRENT ENDIEN ***/
+
+/* Just check for big endian */
+#if !defined(__REMOOD_BIG_ENDIAN) && !defined(__REMOOD_LITTLE_ENDIAN)
+	// GCC has endian.h (but only on linux)
+	#if defined(__GNUC__) && defined(__linux__)
+		#include <endian.h>
+
+		#if defined(BYTE_ORDER) && (BYTE_ORDER == BIG_ENDIAN)
+			#define __REMOOD_BIG_ENDIAN 1
+		#elif defined(__BYTE_ORDER) && (__BYTE_ORDER == __BIG_ENDIAN)
+			#define __REMOOD_BIG_ENDIAN 1
+		#endif
+	#endif
+
+	// Known Big endian systems
+	#if !defined(__REMOOD_BIG_ENDIAN)
+		#if defined(__MIPSEB__) || defined(__BIG_ENDIAN__)
+			#define __REMOOD_BIG_ENDIAN 1
+		#endif
+	#endif
+
+	// Otherwise it is little
+	#if !defined(__REMOOD_BIG_ENDIAN) && !defined(__REMOOD_LITTLE_ENDIAN)
+		#define __REMOOD_LITTLE_ENDIAN 1
+	#endif
+#endif
+
+// Doubly be sure
+#if !defined(__REMOOD_BIG_ENDIAN) && !defined(__REMOOD_LITTLE_ENDIAN)
+	#error Error No endian set
+#elif defined(__REMOOD_BIG_ENDIAN) && defined(__REMOOD_LITTLE_ENDIAN)
+	#error Error Both endians set
 #endif
 
 /********************

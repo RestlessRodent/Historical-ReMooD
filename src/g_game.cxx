@@ -508,7 +508,15 @@ void G_Ticker(void)
 				cmd = &players[i].cmd;
 			
 				if (demoplayback)
+				{
 					G_ReadDemoTiccmd(cmd, i);
+					/*CONL_PrintF("%i: fw %+3i si %+3i at %4i am %4i\n", i,
+							cmd->forwardmove,
+							cmd->sidemove,
+							cmd->angleturn,
+							cmd->aiming
+						);*/
+				}
 				else
 				{
 					// Determine net player existence

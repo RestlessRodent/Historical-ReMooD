@@ -38,9 +38,15 @@
 	#if defined(__unix__)
 		#include <unistd.h>				// Standard Stuff
 	#endif
+	
+	// On WinCE include some things
+	#if defined(_WIN32_WCE)
+		#include <windows.h>
+		#include <winreg.h>
+	#endif
 
 	// On Windows include windows.h
-	#if defined(_WIN32)
+	#if defined(_WIN32) && !defined(_WIN32_WCE)
 		#include <windows.h>
 		#include <direct.h>				// mkdir
 	#endif
@@ -135,6 +141,14 @@ CONL_StaticVar_t l_IEnableJoystick =
 {
 	CLVT_INTEGER, c_CVPVBoolean, CLVF_SAVE,
 	"i_enablejoystick", DSTR_CVHINT_IENABLEJOYSTICK, CLVVT_STRING, "true",
+	NULL
+};
+
+// i_bgr -- Use BGR instead of RGB
+CONL_StaticVar_t l_IBGR =
+{
+	CLVT_INTEGER, c_CVPVBoolean, CLVF_SAVE,
+	"i_bgr", DSTR_CVHINT_IBGR, CLVVT_STRING, "false",
 	NULL
 };
 
@@ -744,6 +758,9 @@ bool I_VideoPreInit(void)
 /* I_VideoBefore320200Init() -- Initialization before initial 320x200 set */
 bool I_VideoBefore320200Init(void)
 {
+	/* Register BGR Swap */
+	CONL_VarRegister(&l_IBGR);
+	
 	return true;
 }
 
@@ -904,7 +921,7 @@ void I_ShowEndTxt(const uint8_t* const a_TextData)
 		
 	/* Get environment */
 	// Columns?
-	if ((p = getenv("COLUMNS")))
+	if ((p = I_GetEnvironment("COLUMNS")))
 		Cols = atoi(p);
 	else
 		Cols = 79;
@@ -1013,8 +1030,10 @@ void I_TextModeChar(const uint8_t a_Char, const uint8_t Attr)
 	// Use Win32 console color functions
 #elif defined(_WIN32)
 	// GetConsoleScreenBufferInfo
+#if !defined(_WIN32_WCE)
 	StdOut = GetStdHandle(STD_OUTPUT_HANDLE);
 	SetConsoleTextAttribute(StdOut, c_BGColorToWin32[BG] | c_FGColorToWin32[FG & 7] | ((FG & 8) ? FOREGROUND_INTENSITY : 0));
+#endif
 	
 	// Use VT escape characters
 #elif defined(__unix__)
@@ -1153,7 +1172,22 @@ void I_ShutdownSystem(void)
 /* I_mkdir() -- Creates a new directory */
 int I_mkdir(const char* a_Path, int a_UNIXPowers)
 {
-#if defined(__REMOOD_SYSTEM_WINDOWS) || defined(__REMOOD_USECCSTUB)
+#if defined(_WIN32_WCE)
+#define BUFSIZE 512
+	TCHAR TCDir[BUFSIZE];
+	int i;
+	
+	// Copy name slowly
+	for (i = 0; a_Path[i] && i < BUFSIZE - 2; i++)
+		TCDir[i] = a_Path[i];
+	TCDir[i] = 0;
+	TCDir[BUFSIZE - 1] = 0;
+	
+	// Use CreateDirectory()
+	return (int)CreateDirectory(TCDir, NULL);
+#undef BUFSIZE
+
+#elif defined(__REMOOD_SYSTEM_WINDOWS) || defined(__REMOOD_USECCSTUB)
 	return mkdir(a_Path);
 	
 #else
@@ -1169,18 +1203,73 @@ const char* I_GetUserName(void)
 	static char RememberName[MAXUSERNAME];
 	const char* p;
 	
-#if defined(_WIN32)
+#if defined(_WIN32_WCE)
+	LONG ErrRet;
+	HKEY hKey;
+	DWORD ByteCount;
+	DWORD Type;
+	TCHAR* ValBuf;
+	size_t i;
+#elif defined(_WIN32)
 	TCHAR Buf[MAXUSERNAME];
 	DWORD Size;
 	size_t i;
 #endif
+
+	/* Name was set? */
+	if (RememberName[0])
+		return RememberName;
 	
 	/* Clear Buffer */
 	memset(RememberName, 0, sizeof(RememberName));
 	
 	/* Try system specific username getting */
+	// Under WinCE, Get the name of the owner (HKEY_CURRENT_USER\Control Panel\Owner)
+#if defined(_WIN32_WCE)
+	ErrRet = RegOpenKeyEx(HKEY_CURRENT_USER, (LPCWSTR)L"\\Control Panel\\Owner", 0, 0, &hKey);
+	
+	// If it is error success, it worked ok
+	if (ErrRet == ERROR_SUCCESS)
+	{
+		// Get the size of the key first
+		ErrRet = RegQueryValueEx(hKey, (LPCWSTR)L"Owner", NULL, &Type, NULL, &ByteCount);
+		if (ByteCount > 0)
+		{
+			// Allocate an array big enough for the value
+			ValBuf = new TCHAR[ByteCount + 1];
+			
+			// Re-obtain the value
+			ErrRet = RegQueryValueEx(hKey, (LPCWSTR)L"Owner", NULL, &Type, (LPBYTE)ValBuf, &ByteCount);
+			
+			// Copy value up to 32
+			for (i = 0; ValBuf[i] && i < 31; i++)
+				RememberName[i] = ValBuf[i];
+			
+			// Clear value
+			delete ValBuf;
+		}
+		
+		// Be sure to close the key
+		RegCloseKey(hKey);
+		
+		// Return the name obtained
+		if (RememberName[0])
+			return RememberName;
+	}
+
+	// Under Win32, use GetUserName
+#elif defined(_WIN32)
+	Size = MAXUSERNAME - 1;
+	if (GetUserName(Buf, &Size))
+	{
+		// Cheap copy
+		for (i = 0; i <= Size; i++)
+			RememberName[i] = Buf[i] & 0x7F;
+		return RememberName;
+	}
+
 	// Under UNIX, use getlogin
-#if defined(__unix__)
+#elif defined(__unix__)
 	// prefer getlogin_r if it exists
 #if _REENTRANT || _POSIX_C_SOURCE >= 199506L
 	if (getlogin_r(RememberName, MAXUSERNAME - 1))
@@ -1197,34 +1286,24 @@ const char* I_GetUserName(void)
 		return RememberName;
 	}
 #endif
-	
-	// Under Win32, use GetUserName
-#elif defined(_WIN32)
-	Size = MAXUSERNAME - 1;
-	if (GetUserName(Buf, &Size))
-	{
-		// Cheap copy
-		for (i = 0; i <= Size; i++)
-			RememberName[i] = Buf[i] & 0x7F;
-		return RememberName;
-	}
+
 	// Otherwise whoops!
 #else
 #endif
 	
 	/* Try environment variables that usually exist */
 	// USER, USERNAME, LOGNAME
-	p = getenv("USER");
+	p = I_GetEnvironment("USER");
 	
 	// Nope
 	if (!p)
 	{
-		p = getenv("USERNAME");
+		p = I_GetEnvironment("USERNAME");
 		
 		// Nope
 		if (!p)
 		{
-			p = getenv("LOGNAME");
+			p = I_GetEnvironment("LOGNAME");
 			
 			// Nope
 			if (!p)
@@ -1250,8 +1329,14 @@ size_t I_GetStorageDir(char* const a_Out, const size_t a_Size, const I_DataStora
 	/* Clear */
 	memset(a_Out, 0, sizeof(*a_Out) * a_Size);
 	
+	/* Windows CE */
+#if defined(_WIN32_WCE)
+	// Always just use ReMooD in the root directory
+	strncpy(a_Out, "\\ReMooD", a_Size);
+	return strlen(a_Out);
+	
 	/* Windows Systems */
-#if defined(_WIN32)
+#elif defined(_WIN32)
 	
 	/* DOS */
 #elif defined(__MSDOS__)
@@ -1262,7 +1347,7 @@ size_t I_GetStorageDir(char* const a_Out, const size_t a_Size, const I_DataStora
 	/* UNIX Systems */
 #elif defined(__unix__)
 	// Get XDG Config directory
-	if ((Env = getenv((a_Type == DST_CONFIG ? "XDG_CONFIG_HOME" : "XDG_DATA_HOME"))))
+	if ((Env = I_GetEnvironment((a_Type == DST_CONFIG ? "XDG_CONFIG_HOME" : "XDG_DATA_HOME"))))
 	{
 		// Use the following then
 		strncat(a_Out, Env, a_Size);
@@ -1279,7 +1364,7 @@ size_t I_GetStorageDir(char* const a_Out, const size_t a_Size, const I_DataStora
 	}
 	
 	// Otherwise, get the home directory
-	else if ((Env = getenv("HOME")))
+	else if ((Env = I_GetEnvironment("HOME")))
 	{
 		// Use the following then
 		strncat(a_Out, Env, a_Size);
@@ -1555,4 +1640,55 @@ I_SystemInfo_t* I_GetSystemInfo(void)
 	return &l_Info;
 }
 
+/* I_GetEnvironment() -- Gets an environment variable */
+char* I_GetEnvironment(const char* const a_VarName)
+{
+	/* Windows CE lacks an environment */
+#if defined(_WIN32_WCE)
+	return NULL;
+	
+	/* Use standard getenv() */
+#else
+	return getenv(a_VarName);
+#endif
+}
+
+/* I_CheckFileAccess() -- Checks file read/write */
+bool I_CheckFileAccess(const char* const a_Path, const bool a_Write)
+{
+	/* On WinCE, always return true */
+#if defined(_WIN32_WCE)
+#define BUFSIZE 512
+	TCHAR TCDir[BUFSIZE];
+	int i;
+	DWORD Attribs;
+	
+	// Copy name slowly
+	for (i = 0; a_Path[i] && i < BUFSIZE - 2; i++)
+		TCDir[i] = a_Path[i];
+	TCDir[i] = 0;
+	TCDir[BUFSIZE - 1] = 0;
+	
+	// Try getting the file attributes
+	Attribs = GetFileAttributes(TCDir);
+	
+	// Does not exist?
+	if (Attribs == 0xFFFFFFFFU)
+		return false;
+	
+	// Asked for write but is read only?
+	if (a_Write && (Attribs & FILE_ATTRIBUTE_READONLY))
+		return false;
+	
+	// Otherwise success
+	return true;
+	
+	/* Use access() */
+#else
+	int Modes, Ret;
+	
+	Modes = R_OK | (a_Write ? W_OK : 0);
+	return !access(a_Path, Modes);	// zero means OK
+#endif
+}
 

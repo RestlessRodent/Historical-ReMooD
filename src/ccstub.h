@@ -125,9 +125,6 @@
 *** PROTOTYPES ***
 *****************/
 
-int mkdir(const char* const a_PathName);
-int socket(int domain, int type, int protocol);
-
 /*****************************************************************************/
 
 #endif /* __REMOOD_USECCSTUB */
