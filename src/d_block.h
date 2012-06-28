@@ -36,7 +36,8 @@
 ***************/
 
 #include "doomtype.h"
-#include "d_net.h"
+//#include "d_net.h"
+#include "i_util.h"
 
 /****************
 *** CONSTANTS ***
@@ -311,6 +312,8 @@ class RBStream_c : public GenericByteStream_c
 		size_t ReadChunk(void* const a_Data, const size_t a_Size);
 		size_t WriteChunk(const void* const a_Data, const size_t a_Size);
 		
+		static bool CompareHeader(const char* const a_A, const char* const a_B);
+		
 		/* RBS Stuff */
 		bool BlockBase(const char* const a_Header);
 		bool BlockRename(const char* const a_Header);
@@ -431,6 +434,36 @@ class RBPerfectStream_c : public RBStream_c
 	public:
 		RBPerfectStream_c(RBStream_c* const a_WrapStream);
 		~RBPerfectStream_c();
+		
+		/* Perfect Stuff */
+		bool IsPerfect(void);
+		
+		/* Handled by sub classes */
+		bool BlockPlay(RBAddress_c* const a_Address = NULL);
+		bool BlockRecord(RBAddress_c* const a_Address = NULL);
+		bool BlockFlush(void);
+};
+
+/* RBMultiCastStream_c -- MultiCasting Stream (Slave) */
+class RBMultiCastStream_c : public RBStream_c
+{
+	private:
+		struct MultiCastInfo_s
+		{
+			RBStream_c* OtherStream;			// Other stream
+			RBAddress_c* Address;				// Address to send to
+		};
+		
+		MultiCastInfo_s** p_Casts;				// Places to go
+		size_t p_NumCasts;						// Number of those places
+		
+	public:
+		RBMultiCastStream_c();
+		~RBMultiCastStream_c();
+		
+		/* Multicast Stuff */
+		void AddMultiCast(RBStream_c* const a_OtherStream, RBAddress_c* const a_Address);
+		void DelMultiCast(RBStream_c* const a_OtherStream, RBAddress_c* const a_Address);
 		
 		/* Handled by sub classes */
 		bool BlockPlay(RBAddress_c* const a_Address = NULL);

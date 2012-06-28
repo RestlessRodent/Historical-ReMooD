@@ -1692,3 +1692,17 @@ bool I_CheckFileAccess(const char* const a_Path, const bool a_Write)
 #endif
 }
 
+/* I_GetCurrentPID() -- Returns the current PID number */
+uint16_t I_GetCurrentPID(void)
+{
+	/* Win32 */
+#if defined(_WIN32)
+	return (uint16_t)GetCurrentProcessId();
+	
+	/* UNIX */
+#elif defined(__unix__)
+	return getpid();
+#endif
+}
+
+

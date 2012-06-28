@@ -42,6 +42,7 @@
 #include "i_net.h"
 #include "i_util.h"
 #include "d_block.h"
+#include "d_prof.h"
 
 /*****************
 *** STRUCTURES ***
@@ -211,8 +212,10 @@ class DNetController
 		
 		RBPerfectStream_c* p_PStreams[2];		// Perfect Streams
 		RBStream_c* p_STDStreams[2];			// Standard Streams
+		RBAddress_c p_Address;					// Address to remote host
 		
 		static tic_t p_ReadyTime;				// Current Ready Time
+		static RBMultiCastStream_c* p_MulCast;	// Multi-Cast
 		
 	public:
 		DNetController();
@@ -224,7 +227,13 @@ class DNetController
 		RBPerfectStream_c* GetPerfectRead(void);
 		RBPerfectStream_c* GetPerfectWrite(void);
 		
+		bool IsLocal(void);
+		bool IsServer(void);
+		RBAddress_c& GetAddress(void);
+		
 		static DNetController* GetServer(void);
+		static DNetController* GetByAddress(RBAddress_c* const a_Address);
+		static RBMultiCastStream_c* GetMultiCast(void);
 		
 		static void Disconnect(void);
 		static void StartServer(void);
@@ -238,5 +247,11 @@ class DNetController
 
 void D_CNetInit(void);
 
+void D_CReqLocalPlayer(D_ProfileEx_t* const a_Profile, const bool a_Bot = false);
+
+uint32_t D_CMakePureRandom(void);
+void D_CMakeUUID(char* const a_Buf);
+
 #endif							/* __D_NET_H__ */
+
 

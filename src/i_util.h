@@ -457,6 +457,7 @@ void I_GetEvent(void);
 ticcmd_t* I_BaseTiccmd(void);
 char* I_GetEnvironment(const char* const a_VarName);
 bool I_CheckFileAccess(const char* const a_Path, const bool a_Write);
+uint16_t I_GetCurrentPID(void);
 
 int VID_NumModes(void);
 char* __REMOOD_DEPRECATED VID_GetModeName(int a_ModeNum);

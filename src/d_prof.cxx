@@ -70,28 +70,11 @@ D_ProfileEx_t* D_CreateProfileEx(const char* const a_Name)
 	New = (D_ProfileEx_t*)Z_Malloc(sizeof(*New), PU_STATIC, NULL);
 	
 	/* Set properties */
+	// UUID (hopefully random)
+	D_CMakeUUID(New->UUID);
+	
 	// First character is never random
 	New->UUID[0] = a_Name[0];
-	
-	// UUID (hopefully random)
-	for (i = 1; i < (MAXPLAYERNAME * 2) - 1; i++)
-	{
-		// Hopefully random enough
-		Char = (((int)(M_Random())) + ((int)I_GetTime() * (int)I_GetTime()));
-		
-		// Limit Char
-		if (!((Char >= '0' && Char <= '9') || (Char >= 'a' && Char <= 'z') || (Char >= 'A' && Char <= 'Z')))
-		{
-			i--;
-			continue;
-		}
-		
-		// Set as
-		New->UUID[i] = Char;
-		
-		// Sleep for some unknown time
-		I_WaitVBL(M_Random() & 1);
-	}
 	
 	/* Copy Name */
 	strncpy(New->AccountName, a_Name, MAXPLAYERNAME - 1);

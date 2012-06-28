@@ -34,7 +34,8 @@
 #include "doomtype.h"
 #include "doomdef.h"
 #include "command.h"
-#include "d_netcmd.h"
+#include "m_fixed.h"
+//#include "d_netcmd.h"
 
 /************************
 *** EXTENDED PROFILES ***
@@ -178,7 +179,7 @@ typedef struct D_ProfileEx_s
 	int32_t LookUpDownSpeed;					// Looking Up/Down Speed
 	
 	/* Network Related */
-	D_NetPlayer_t* NetPlayer;					// Network Player
+	struct D_NetPlayer_s* NetPlayer;			// Network Player
 	
 	/* Profile Chains */
 	struct D_ProfileEx_s* Prev;					// Previous link

@@ -54,6 +54,7 @@
 #include "p_saveg.h"
 #include "p_setup.h"
 #include "m_random.h"
+#include "i_video.h"
 
 /*************
 *** LOCALS ***
@@ -1035,6 +1036,15 @@ typedef struct D_NCMessageData_s
 	D_RBlockStream_t* OutStream;				// Stream to write to
 	I_HostAddress_t* FromAddr;					// Address message is from
 	uint32_t FlagsMask;							// Mask for flags
+	
+	RBPerfectStream_c* PIn;
+	RBPerfectStream_c* POut;
+	RBStream_c* BIn;
+	RBStream_c* BOut;
+	bool IsServ, IsClient, IsHost, IsPerf;
+	DNetController* DNC;
+	DNetController* RC;
+	RBAddress_c* ReadAddr;
 } D_NCMessageData_t;
 
 /*** FUNCTIONS ***/
@@ -2849,18 +2859,26 @@ static size_t l_NumServerNCS;					// Number of controllers
 
 
 tic_t DNetController::p_ReadyTime = 0;			// Current Ready Time
+RBMultiCastStream_c* DNetController::p_MulCast;	// Multi Cast
 
 /*** CLASSES ***/
 
 /* DNetController::DNetController() -- Creates network controller */
 DNetController::DNetController()
 {
+	/* Create multi-cast? */
+	if (!p_MulCast)
+		p_MulCast = new RBMultiCastStream_c();
 }
 
 /* DNetController::DNetController() -- Constructor */
 DNetController::DNetController(RBStream_c* const a_STDStream)
 {
 	p_Master = true;
+	
+	/* Create multi-cast? */
+	if (!p_MulCast)
+		p_MulCast = new RBMultiCastStream_c();
 	
 	/* Set standard streams to this */
 	p_STDStreams[0] = a_STDStream;
@@ -2875,6 +2893,9 @@ DNetController::DNetController(RBStream_c* const a_STDStream)
 DNetController::~DNetController()
 {
 	size_t i;
+	
+	/* Remove from multicast */
+	p_MulCast->DelMultiCast(GetPerfectWrite(), &p_Address);
 	
 	/* Delete streams if this is a master controller */
 	if (p_Master)
@@ -2908,6 +2929,24 @@ RBPerfectStream_c* DNetController::GetPerfectWrite(void)
 	return p_PStreams[1];
 }
 
+/* DNetController::IsLocal() -- Returns true if connection is local */
+bool DNetController::IsLocal(void)
+{
+	return p_IsLocal;
+}
+
+/* DNetController::IsServer() -- Returns true if connection is server */
+bool DNetController::IsServer(void)
+{
+	return p_IsServer;
+}
+
+/* DNetController::GetAddress() -- Returns address of this connection */
+RBAddress_c& DNetController::GetAddress(void)
+{
+	return p_Address;
+}
+
 /* DNetController::GetServer() -- Gets the current server */
 DNetController* DNetController::GetServer(void)
 {
@@ -2923,6 +2962,31 @@ DNetController* DNetController::GetServer(void)
 	return NULL;
 }
 
+/* DNetController::GetByAddress() -- Find host by address */
+DNetController* DNetController::GetByAddress(RBAddress_c* const a_Address)
+{
+	size_t i;
+	
+	/* Check */
+	if (!a_Address)
+		return NULL;
+	
+	/* Find address in chain */
+	for (i = 0; i < l_NumServerNCS; i++)
+		if (l_ServerNCS[i])
+			if (l_ServerNCS[i]->p_Address.CompareAddress(*a_Address))
+				return l_ServerNCS[i];
+	
+	/* Not Found */
+	return NULL;
+}
+
+/* DNetController::GetMultiCast() -- Returns multi-cast */
+RBMultiCastStream_c* DNetController::GetMultiCast(void)
+{
+	return p_MulCast;
+}
+
 /* DNetController::Disconnect() -- Disconnects from server */
 void DNetController::Disconnect(void)
 {
@@ -2932,6 +2996,9 @@ void DNetController::Disconnect(void)
 	for (i = 0; i < l_NumServerNCS; i++)
 		if (l_ServerNCS[i])
 		{
+			// Remove from multicast
+			p_MulCast->DelMultiCast(l_ServerNCS[i]->GetPerfectWrite(), &l_ServerNCS[i]->p_Address);
+			
 			delete l_ServerNCS[i];
 			l_ServerNCS[i] = NULL;
 		}
@@ -2939,11 +3006,16 @@ void DNetController::Disconnect(void)
 	/* Create initial controllers */
 	// Allocate the first two, if needed
 	if (l_NumServerNCS < 2)
+	{
 		Z_ResizeArray((void**)&l_ServerNCS, sizeof(*l_ServerNCS), 0, 2);
+		l_NumServerNCS = 2;
+	}
 	
 	// Create local loopback controller
 	l_ServerNCS[0] = new DNetController(new RBLoopBackStream_c());
 	l_ServerNCS[0]->p_IsLocal = true;
+	l_ServerNCS[0]->p_Address.ChooseLocal();
+	p_MulCast->AddMultiCast(l_ServerNCS[0]->GetPerfectWrite(), &l_ServerNCS[0]->p_Address);
 	
 	// Create Internet controller
 }
@@ -2978,17 +3050,35 @@ tic_t DNetController::ReadyTics(void)
 	return 1;
 }
 
+bool D_EXHC_LPRJ(struct D_NCMessageData_s* const a_Data);
+bool D_EXHC_PJOK(struct D_NCMessageData_s* const a_Data);
+
+// c_NCMessageCodes -- Local messages
+static const D_NCMessageType_t c_NCMessageCodesEx[] =
+{
+	{1, "LPRJ", D_EXHC_LPRJ, (D_NCMessageFlag_t)(DNCMF_PERFECT | DNCMF_SERVER | DNCMF_HOST | DNCMF_REMOTECL)},
+	{1, "PJOK", D_EXHC_PJOK, (D_NCMessageFlag_t)(DNCMF_PERFECT | DNCMF_SERVER | DNCMF_REMOTECL | DNCMF_DEMO)},
+	
+	// EOL
+	{0, NULL},
+};
+
 /* DNetController::NetUpdate() -- Updates network code */
 void DNetController::NetUpdate(void)
 {
 	RBAddress_c ReadAddr;
-	size_t i;
+	size_t i, tN;
+	char Header[5];
 	
 	RBPerfectStream_c* PIn;
 	RBPerfectStream_c* POut;
 	RBStream_c* BOut;
 	
+	bool IsServ, IsClient, IsHost, IsPerf;
+	
 	DNetController* DNC;
+	DNetController* RC;
+	D_NCMessageData_t Data;
 	
 	/* Read/Write Packets from all controllers */
 	for (i = 0; i < l_NumServerNCS; i++)
@@ -3008,40 +3098,162 @@ void DNetController::NetUpdate(void)
 		// Constantly read perfect blocks
 		while (PIn && PIn->BlockPlay(&ReadAddr))
 		{
-			CONL_PrintF("Read something\n");
+			// Copy header
+			memset(Header, 0, sizeof(Header));
+			PIn->HeaderCopy(Header);
+			
+			// Debug
+			if (devparm)
+				CONL_PrintF("Read \"%s\"\n", Header);
+			
+			// Find the remote client that initiated this message
+			// If they aren't in the client chain then this returns NULL.
+			// If it does return NULL then that means they were never connected
+			// in the first place.
+			RC = DNetController::GetByAddress(&ReadAddr);
+			
+			// Determine where this packet came from for flag checking
+				// Is Perfect Packet
+			IsPerf = PIn->IsPerfect();
+				// From Server
+			IsServ = DNC->IsServer();
+				// From Client
+			IsClient = !IsServ;
+				// We are the host
+			IsHost = (DNC->IsServer() && DNC->IsLocal());
+			
+			// Go through head table
+			for (tN = 0; c_NCMessageCodesEx[tN].Valid; tN++)
+			{
+				// Compare Header
+				if (!RBStream_c::CompareHeader(Header, c_NCMessageCodesEx[tN].Header))
+					continue;
+				
+				// Perfect but not set?
+				if (IsPerf && !(c_NCMessageCodesEx[tN].Flags & DNCMF_PERFECT))
+					continue;
+				
+				// Normal but not set?
+				if (!IsPerf && !(c_NCMessageCodesEx[tN].Flags & DNCMF_NORMAL))
+					continue;
+				
+				// From client but not accepted from client
+				if (IsClient && !(c_NCMessageCodesEx[tN].Flags & DNCMF_CLIENT))
+					continue;
+				
+				// From server but not accepted from server
+				if (IsServ && !(c_NCMessageCodesEx[tN].Flags & DNCMF_SERVER))
+					continue;
+				
+				// From somewhere but we are not the host of the game
+				if (IsHost && !(c_NCMessageCodesEx[tN].Flags & DNCMF_HOST))
+					continue;
+				
+				// Requires a remote client exist (a connected player)
+				if ((c_NCMessageCodesEx[tN].Flags & DNCMF_REMOTECL) && !RC)
+					continue;
+				
+				// Clear data
+				memset(&Data, 0, sizeof(Data));
+				
+				// Fill Data
+				Data.Type = &c_NCMessageCodesEx[tN];
+				
+				Data.PIn = PIn;
+				Data.POut = POut;
+				//Data.BIn = BIn;
+				Data.BOut = BOut;
+				Data.IsServ = IsServ;
+				Data.IsClient = IsClient;
+				Data.IsHost = IsHost;
+				Data.IsPerf = IsPerf;
+				Data.DNC = DNC;
+				Data.RC = RC;
+				Data.ReadAddr = &ReadAddr;
+				
+				// Call handler
+				if (c_NCMessageCodesEx[tN].Func(&Data))
+					break;
+			}
+			
+			// Clear header for next read run
+			memset(Header, 0, sizeof(Header));
 		}
 		
 		// Flush output streams
 		POut->BlockFlush();
 		BOut->BlockFlush();
 	}
+}
+
+/*** HANDLERS ***/
+
+/* D_EXHC_LPRJ() -- Player wants to join */
+bool D_EXHC_LPRJ(struct D_NCMessageData_s* const a_Data)
+{
+	RBMultiCastStream_c* MC;
 	
-#if 0
-	static RBLoopBackStream_c* lo = new RBLoopBackStream_c();
-	static RBPerfectStream_c* ps = new RBPerfectStream_c(lo);
+	int32_t i;
+	uint8_t IsBot, MaxSplit; 
+	uint8_t* SplitList;
+	int8_t NextSplit, CurSplits;
+	char UUID[MAXPLAYERNAME * 2];
+	char AccountName[MAXPLAYERNAME], DisplayName[MAXPLAYERNAME];
 	
-	CONL_PrintF("Update!\n");
+	/* Read Data */
+	IsBot = a_Data->PIn->ReadUInt8();
+	a_Data->PIn->ReadString(UUID, MAXPLAYERNAME * 2);
+	a_Data->PIn->ReadString(AccountName, MAXPLAYERNAME);
+	a_Data->PIn->ReadString(DisplayName, MAXPLAYERNAME);
+	CurSplits = a_Data->PIn->ReadInt8();
+	MaxSplit = a_Data->PIn->ReadUInt8();
+	SplitList = new uint8_t[MaxSplit];
+	for (i = 0; i < MaxSplit; i++)
+		SplitList[i] = a_Data->PIn->ReadUInt8();
+	NextSplit = a_Data->PIn->ReadInt8();
 	
-	if (ps->BlockPlay(&ReadAddr))
-		CONL_PrintF("played back perfect!\n");
-	if (lo->BlockPlay(&ReadAddr))
-		CONL_PrintF("played back loop!\n");
+	if (devparm)
+		CONL_PrintF("Add player! [b=%i uuid=%s an=%s dn=%s cs=%i ms=%i ns=%i]\n",
+				IsBot, UUID, AccountName, DisplayName, CurSplits,
+				MaxSplit, NextSplit
+			);
 	
-	lo->BlockBase("LOL!");
-	lo->BlockRecord(&ReadAddr);
+#ifdef forreferenceonly
+	WriteTo->WriteUInt8(a_Bot);
+	WriteTo->WriteString(a_Profile->UUID);
+	WriteTo->WriteString(a_Profile->AccountName);
+	WriteTo->WriteString(a_Profile->DisplayName);
 	
-	ps->BlockBase("WOO!");
-	ps->BlockRecord(&ReadAddr);
-	
-	ps->BlockBase("ACK!");
-	ps->BlockRecord(&ReadAddr);
-	
-	lo->BlockBase("HEH!");
-	lo->BlockRecord(&ReadAddr);
-	
-	lo->BlockFlush();
-	ps->BlockFlush();
+	// Send the current local player configuration
+	WriteTo->WriteInt8(g_SplitScreen);
+	WriteTo->WriteUInt8(MAXSPLITSCREEN);
+	for (j = -1, i = 0; i < MAXSPLITSCREEN; i++)
+	{
+		WriteTo->WriteUInt8(g_PlayerInSplit[i]);
+		
+		if (j == -1 && !g_PlayerInSplit[i])
+			j = i;
+	}
+	WriteTo->WriteInt8(j);
 #endif
+	
+	/* Send to everyone that the join is OK */
+	MC = DNetController::GetMultiCast();
+	
+	MC->BlockBase("PJOK");
+	MC->BlockRecord();
+	
+	/* Stop handling */
+	return true;
+}
+
+/* D_EXHC_PJOK() -- Player Join OK */
+bool D_EXHC_PJOK(struct D_NCMessageData_s* const a_Data)
+{
+	CONL_PrintF("Joined player!\n");	
+	
+	/* Stop handling */
+	return true;
 }
 
 /*** FUNCTIONS ***/
@@ -3051,5 +3263,125 @@ void D_CNetInit(void)
 {
 	/* Initial Disconnect */
 	DNetController::Disconnect();
+}
+
+/* D_CReqLocalPlayer() -- Requests the server add a local player */
+void D_CReqLocalPlayer(D_ProfileEx_t* const a_Profile, const bool a_Bot)
+{
+	DNetController* Server;
+	RBPerfectStream_c* WriteTo;
+	int i, j;
+	
+	/* Check */
+	if (!a_Profile)
+		return;
+	
+	/* Find Server */
+	Server = DNetController::GetServer();
+	
+	// Not found?
+	if (!Server)
+		return;
+	
+	/* Non-Local and wants Bot? */
+	if (!Server->IsLocal() && a_Bot)
+		return;
+	
+	/* Get stream to write to */
+	WriteTo = Server->GetPerfectWrite();
+	
+	// Not around?
+	if (!WriteTo)
+		return;
+	
+	/* Fill Block Info */
+	// Base
+	WriteTo->BlockBase("LPRJ");
+	
+	// Data
+	WriteTo->WriteUInt8(a_Bot);
+	WriteTo->WriteString(a_Profile->UUID);
+	WriteTo->WriteString(a_Profile->AccountName);
+	WriteTo->WriteString(a_Profile->DisplayName);
+	
+	// Send the current local player configuration
+	WriteTo->WriteInt8(g_SplitScreen);
+	WriteTo->WriteUInt8(MAXSPLITSCREEN);
+	for (j = -1, i = 0; i < MAXSPLITSCREEN; i++)
+	{
+		WriteTo->WriteUInt8(g_PlayerInSplit[i]);
+		
+		if (j == -1 && !g_PlayerInSplit[i])
+			j = i;
+	}
+	WriteTo->WriteInt8(j);
+	
+	// Send
+	WriteTo->BlockRecord(&Server->GetAddress());
+}
+
+/* D_CMakePureRandom() -- Create a pure random number */
+uint32_t D_CMakePureRandom(void)
+{
+	uint32_t Garbage;
+	
+	/* Attempt number generation */
+	// Init
+	Garbage = 0;
+	
+	// Current Time
+	Garbage ^= ((int)I_GetTime() * (int)I_GetTime());
+	
+	// Address of this function
+	Garbage ^= (uint32_t)(((uintptr_t)D_CMakePureRandom) * ((uintptr_t)D_CMakePureRandom));
+	
+	// Address of garbage
+	Garbage ^= (uint32_t)(((uintptr_t)&Garbage) * ((uintptr_t)&Garbage));
+	
+	// Current PID
+	Garbage ^= ((uint32_t)I_GetCurrentPID() * (uint32_t)I_GetCurrentPID());
+	
+	/* Return the garbage number */
+	return Garbage;
+}
+
+/* D_CMakeUUID() -- Makes a UUID */
+void D_CMakeUUID(char* const a_Buf)
+{
+	size_t i;
+	uint8_t Char;
+	uint32_t Garbage;
+	
+	/* Generate a hopefully random ID */
+	for (i = 0; i < (MAXPLAYERNAME * 2) - 1; i++)
+	{
+		// Hopefully random enough
+		Garbage = D_CMakePureRandom();
+		Char = (((int)(M_Random())) + Garbage);
+		
+		// Limit Char
+		while (!((Char >= '0' && Char <= '9') || (Char >= 'a' && Char <= 'z') || (Char >= 'A' && Char <= 'Z')))
+		{
+			if (Char <= 'A')
+				Char += 15;
+			else if (Char >= 'z')
+				Char -= 15;
+			else
+				Char ^= D_CMakePureRandom();
+		}
+		
+		// Last character is the same as this?
+		if (i > 0 && Char == a_Buf[i - 1])
+		{
+			i--;
+			continue;
+		}
+		
+		// Set as
+		a_Buf[i] = Char;
+		
+		// Sleep for some unknown time
+		I_WaitVBL(M_Random() & 1);
+	}
 }
 

@@ -293,7 +293,8 @@ static CONL_ExitCode_t DS_NCSNetCommand(const uint32_t a_ArgC, const char** cons
 	{
 		if (devparm)
 			CONL_PrintF("NET: Requesting the server add local player.\n");
-		D_NCReqAddPlayer(D_FindProfileEx((a_ArgC >= 3 ? a_ArgV[2] : "guest")), false);
+		D_CReqLocalPlayer(D_FindProfileEx((a_ArgC >= 3 ? a_ArgV[2] : "guest")), false);
+		//D_NCReqAddPlayer(D_FindProfileEx((a_ArgC >= 3 ? a_ArgV[2] : "guest")), false);
 		return CLE_SUCCESS;
 	}
 	
@@ -302,7 +303,8 @@ static CONL_ExitCode_t DS_NCSNetCommand(const uint32_t a_ArgC, const char** cons
 	{
 		if (devparm)
 			CONL_PrintF("NET: Requesting the server add local bot.\n");
-		D_NCReqAddPlayer(D_FindProfileEx((a_ArgC >= 3 ? a_ArgV[2] : "guest")), true);
+		D_CReqLocalPlayer(D_FindProfileEx((a_ArgC >= 3 ? a_ArgV[2] : "guest")), true);
+		//D_NCReqAddPlayer(D_FindProfileEx((a_ArgC >= 3 ? a_ArgV[2] : "guest")), true);
 	}
 	
 	/* Success */
@@ -1358,24 +1360,7 @@ D_NetPlayer_t* D_NCSAllocNetPlayer(void)
 	
 	/* Set properties */
 	// UUID (hopefully random)
-	for (i = 0; i < (MAXPLAYERNAME * 2) - 1; i++)
-	{
-		// Hopefully random enough
-		Char = (((int)(M_Random())) + ((int)I_GetTime() * (int)I_GetTime()));
-		
-		// Limit Char
-		if (!((Char >= '0' && Char <= '9') || (Char >= 'a' && Char <= 'z') || (Char >= 'A' && Char <= 'Z')))
-		{
-			i--;
-			continue;
-		}
-		
-		// Set as
-		New->UUID[i] = Char;
-		
-		// Sleep for some unknown time
-		I_WaitVBL(M_Random() & 1);
-	}
+	D_CMakeUUID(New->UUID);
 	
 	/* Return New */
 	return New;

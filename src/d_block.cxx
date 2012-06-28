@@ -2243,6 +2243,21 @@ size_t GenericByteStream_c::ReadString(char* const a_Buf, const size_t a_Size)
 	return i;
 }
 
+/* GenericByteStream_c::WriteString() -- Writes string */
+void GenericByteStream_c::WriteString(const char* const a_Buf)
+{
+	const char* c;
+	
+	/* Check */
+	if (!a_Buf)
+		return;
+	
+	/* Constant Write */
+	for (c = a_Buf; *c; c++)
+		WriteUInt8(*c);
+	WriteUInt8(0);	// NUL
+}
+
 #define __REMOOD_GBSMERGE(a,b) a##b
 
 #define __REMOOD_GBSREADINT(N,T) T GenericByteStream_c::__REMOOD_GBSMERGE(Read,N)(void)\
@@ -2472,6 +2487,21 @@ size_t RBStream_c::WriteChunk(const void* const a_Data, const size_t a_Size)
 	
 	/* Return size */
 	return a_Size;
+}
+
+/* RBStream_c::CompareHeader() -- Compares block header */
+bool RBStream_c::CompareHeader(const char* const a_A, const char* const a_B)
+{
+	/* Check */
+	if (!a_A || !a_B)
+		return false;
+	
+	/* See if it matches */
+	if (strcasecmp(a_A, a_B) == 0)
+		return true;
+	
+	/* No match */
+	return false;
 }
 
 /* RBStream_c::BlockBase() -- Creates a new empty block */
@@ -2787,6 +2817,12 @@ RBPerfectStream_c::~RBPerfectStream_c()
 				Z_Free(p_Keys[i]);
 		Z_Free(p_Keys);
 	}
+}
+
+/* RBPerfectStream_c::IsPerfect() -- Packet read is perfect */
+bool RBPerfectStream_c::IsPerfect(void)
+{
+	return p_Marked;
 }
 
 /* RBPerfectStream_c::IntFindKey() -- Finds a key internally */
@@ -3557,5 +3593,110 @@ bool RBPerfectStream_c::BlockFlush(void)
 	p_InFlush = false;
 	
 	return true;
+}
+
+/*** MULTICAST STREAM ***/
+
+/* RBMultiCastStream_c::RBMultiCastStream_c() -- Constructor */
+RBMultiCastStream_c::RBMultiCastStream_c()
+{
+}
+
+/* RBMultiCastStream_c::~RBMultiCastStream_c() -- Destructor */
+RBMultiCastStream_c::~RBMultiCastStream_c()
+{
+}
+
+/* RBMultiCastStream_c::AddMultiCast() -- Adds target */
+void RBMultiCastStream_c::AddMultiCast(RBStream_c* const a_OtherStream, RBAddress_c* const a_Address)
+{
+	size_t i;
+	
+	/* Check */
+	if (!a_OtherStream || !a_Address)
+		return;
+	
+	/* Make sure it doesn't exist already */
+	for (i = 0; i < p_NumCasts; i++)
+		if (p_Casts[i])
+			if (p_Casts[i]->OtherStream == a_OtherStream && a_Address->CompareAddress(*p_Casts[i]->Address))
+				return;
+	
+	/* Find free spot */
+	for (i = 0; i < p_NumCasts; i++)
+		if (!p_Casts[i])
+			break;
+	
+	// No room?
+	if (i >= p_NumCasts)
+	{
+		Z_ResizeArray((void**)&p_Casts, sizeof(*p_Casts), p_NumCasts, p_NumCasts + 1);
+		i = p_NumCasts++;
+	}
+	
+	/* Place here */
+	p_Casts[i] = new MultiCastInfo_s;
+	p_Casts[i]->OtherStream = a_OtherStream;
+	p_Casts[i]->Address = a_Address;
+}
+
+/* RBMultiCastStream_c::DelMultiCast() -- Removes target */
+void RBMultiCastStream_c::DelMultiCast(RBStream_c* const a_OtherStream, RBAddress_c* const a_Address)
+{
+	size_t i;
+	
+	/* Check */
+	if (!a_OtherStream || !a_Address)
+		return;
+		
+	/* Remove from list */
+	for (i = 0; i < p_NumCasts; i++)
+		if (p_Casts[i])
+			if (p_Casts[i]->OtherStream == a_OtherStream && a_Address->CompareAddress(*p_Casts[i]->Address))
+			{
+				delete p_Casts[i];
+				p_Casts[i] = NULL;
+				return;
+			}
+}
+
+/* RBMultiCastStream_c::BlockPlay() -- Does Nothing */
+bool RBMultiCastStream_c::BlockPlay(RBAddress_c* const a_Address)
+{
+	// You cannot read from multicast
+	return false;
+}
+
+/* RBMultiCastStream_c::BlockRecord() -- Sends block away en masse */
+bool RBMultiCastStream_c::BlockRecord(RBAddress_c* const a_Address)
+{
+	size_t i;
+	
+	if (devparm)
+		CONL_PrintF("Multicast record (%s %i)!\n", p_BlkHeader, p_BlkSize);
+	
+	/* Send to everyone in the group */
+	for (i = 0; i < p_NumCasts; i++)
+		if (p_Casts[i])
+		{
+			// Create block base
+			p_Casts[i]->OtherStream->BlockBase(p_BlkHeader);
+			
+			// Copy chunk in whole pieces
+			p_Casts[i]->OtherStream->WriteChunk(p_BlkData, p_BlkSize);
+			
+			// Record on stream
+			p_Casts[i]->OtherStream->BlockRecord(p_Casts[i]->Address);
+		}
+	
+	/* Always works! */
+	return true;
+}
+
+/* RBMultiCastStream_c::BlockPlay() -- Does Nothing */
+bool RBMultiCastStream_c::BlockFlush(void)
+{
+	// Flushing multicasts is not needed
+	return false;
 }
 
