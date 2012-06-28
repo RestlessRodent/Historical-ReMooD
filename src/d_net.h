@@ -180,6 +180,23 @@ void D_NCQC_MapChange(void* const a_Data);
 *** CLASS BASED NETWORKING ***
 *****************************/
 
+/*** CONSTANTS ***/
+
+/* DNetErrorNum_e -- Network Error Number */
+enum DNetErrorNum_e
+{
+	DNEN_SUCCESS,								// Not really an error
+	
+	DNEN_BANNED,								// Banned from server
+	DNEN_MAXPLAYERSLIMIT,						// Exceeds maximum allowed players
+	DNEN_MAXSPLITLIMIT,							// Exceeds maximum split players
+	DNEN_MAXCLIENTLIMIT,						// Exceeds maximum clients
+	DNEN_BOTSSERVERONLY,						// Bots are server only
+	DNEN_DEMOPLAYBACK,							// A demo is playing
+	
+	NUMDNETERRORNUM
+};
+
 /*** CLASSES ***/
 
 class RBPerfectStream_c;
@@ -246,6 +263,10 @@ class DNetController
 /*** FUNCTIONS ***/
 
 void D_CNetInit(void);
+
+uint32_t D_CNetPlayerCount(void);
+
+void D_CRepSendError(RBStream_c* const a_Stream, RBAddress_c* const a_Address, const DNetErrorNum_e a_Num);
 
 void D_CReqLocalPlayer(D_ProfileEx_t* const a_Profile, const bool a_Bot = false);
 

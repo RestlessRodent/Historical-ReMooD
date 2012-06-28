@@ -334,6 +334,9 @@ StringGroupEX_t UnicodeStrings[NUMUNICODESTRINGS] =
 	{					 "CVHINT_SVMOTD", "The message displayed to clients when joining."},
 	{		  "CVHINT_SVCONNECTPASSWORD", "The password needed to connect to a server."},
 	{			 "CVHINT_SVJOINPASSWORD", "The password needed to join the game."},
+	{		   "CVHINT_SVMAXSPLITSCREEN", "Maximum amount of players allowed per client."},
+	{			   "CVHINT_SVMAXPLAYERS", "Maximum amount of players allowed in the game at once."},
+	{			   "CVHINT_SVMAXCLIENTS", "Maximum amount of clients that may be connected."},
 	
 	{			 "CVHINT_RCUTWALLDETAIL", "Lower the detail of wall textures to reduce memory usage at the cost of quality."},
 	{			 "CVHINT_RCUTWALLDETAIL", "Lower the detail of wall textures to reduce memory usage at the cost of quality."},
@@ -383,6 +386,14 @@ StringGroupEX_t UnicodeStrings[NUMUNICODESTRINGS] =
 	{						 "WFGS_PING", "Ping"},
 	{				   "WFGS_DEMOPLAYER", "Demo"},
 	{						 "WFGS_HOST", "Host"},
+	
+	{					  "DNEN_SUCCESS", "Success!"},
+	{					   "DNEN_BANNED", "You are banned!"},
+	{			  "DNEN_MAXPLAYERSLIMIT", "Maximum player limit would have been exceeded."},
+	{				"DNEN_MAXSPLITLIMIT", "Maximum split-screeen limit would have been exceeded."},
+	{			   "DNEN_MAXCLIENTLIMIT", "Maximum client limit would have been exceeded."},
+	{			   "DNEN_BOTSSERVERONLY", "Only the server host is allowed to add bots."},
+	{				 "DNEN_DEMOPLAYBACK", "The server is playing back a demo."},
 	
 	/*** DEPRECATED STRINGS ***/
 	{                              "DEP_D_DEVSTR", "Development mode ON.\n"},

@@ -2814,8 +2814,13 @@ RBPerfectStream_c::~RBPerfectStream_c()
 	{
 		for (i = 0; i < p_NumKeys; i++)
 			if (p_Keys[i])
-				Z_Free(p_Keys[i]);
+			{
+				delete p_Keys[i];
+				p_Keys[i] = NULL;
+			}
+		
 		Z_Free(p_Keys);
+		p_NumKeys = 0;
 	}
 }
 

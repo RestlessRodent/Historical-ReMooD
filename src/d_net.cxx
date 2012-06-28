@@ -360,6 +360,48 @@ CONL_StaticVar_t l_SVJoinPassword =
 	NULL
 };
 
+// c_CVPVMaxSplit -- Max Splitscreen Players
+const CONL_VarPossibleValue_t c_CVPVMaxSplit[] =
+{
+	// End
+	{1, "MINVAL"},
+	{MAXSPLITSCREEN, "MAXVAL"},
+	{0, NULL},
+};
+
+// c_CVPVMaxPlayers -- Max Players
+const CONL_VarPossibleValue_t c_CVPVMaxPlayers[] =
+{
+	// End
+	{1, "MINVAL"},
+	{MAXPLAYERS, "MAXVAL"},
+	{0, NULL},
+};
+
+// sv_maxsplitscreen -- Max players per connection
+CONL_StaticVar_t l_SVMaxSplitScreen =
+{
+	CLVT_INTEGER, c_CVPVMaxSplit, CLVF_SAVE,
+	"sv_maxsplitscreen", DSTR_CVHINT_SVMAXSPLITSCREEN, CLVVT_STRING, "4",
+	NULL
+};
+
+// sv_maxplayers -- Max players allowed inside the game
+CONL_StaticVar_t l_SVMaxPlayers =
+{
+	CLVT_INTEGER, c_CVPVMaxPlayers, CLVF_SAVE,
+	"sv_maxplayers", DSTR_CVHINT_SVMAXPLAYERS, CLVVT_STRING, "32",
+	NULL
+};
+
+// sv_maxclients -- Max clients allowed to connect
+CONL_StaticVar_t l_SVMaxClients =
+{
+	CLVT_INTEGER, c_CVPVPositive, CLVF_SAVE,
+	"sv_maxclients", DSTR_CVHINT_SVMAXCLIENTS, CLVVT_STRING, "32",
+	NULL
+};
+
 /*** FUNCTIONS ***/
 
 /* D_NCAllocClient() -- Creates a new network client */
@@ -608,6 +650,9 @@ bool D_CheckNetGame(void)
 	CONL_VarRegister(&l_SVMOTD);
 	CONL_VarRegister(&l_SVConnectPassword);
 	CONL_VarRegister(&l_SVJoinPassword);
+	CONL_VarRegister(&l_SVMaxSplitScreen);
+	CONL_VarRegister(&l_SVMaxPlayers);
+	CONL_VarRegister(&l_SVMaxClients);
 		
 	/* Create LoopBack Client */
 	Client = D_NCAllocClient();
@@ -2900,8 +2945,8 @@ DNetController::~DNetController()
 	/* Delete streams if this is a master controller */
 	if (p_Master)
 	{
+		delete p_PStreams[0];	// Perfect stream needs to be removed first!
 		delete p_STDStreams[0];
-		delete p_PStreams[0];
 	}
 }
 
@@ -3052,12 +3097,14 @@ tic_t DNetController::ReadyTics(void)
 
 bool D_EXHC_LPRJ(struct D_NCMessageData_s* const a_Data);
 bool D_EXHC_PJOK(struct D_NCMessageData_s* const a_Data);
+bool D_EXHC_EROR(struct D_NCMessageData_s* const a_Data);
 
 // c_NCMessageCodes -- Local messages
 static const D_NCMessageType_t c_NCMessageCodesEx[] =
 {
-	{1, "LPRJ", D_EXHC_LPRJ, (D_NCMessageFlag_t)(DNCMF_PERFECT | DNCMF_SERVER | DNCMF_HOST | DNCMF_REMOTECL)},
-	{1, "PJOK", D_EXHC_PJOK, (D_NCMessageFlag_t)(DNCMF_PERFECT | DNCMF_SERVER | DNCMF_REMOTECL | DNCMF_DEMO)},
+	{1, "LPRJ", D_EXHC_LPRJ, (D_NCMessageFlag_t)(DNCMF_PERFECT | DNCMF_CLIENT | DNCMF_SERVER | DNCMF_HOST | DNCMF_REMOTECL)},
+	{1, "PJOK", D_EXHC_PJOK, (D_NCMessageFlag_t)(DNCMF_PERFECT | DNCMF_SERVER | DNCMF_DEMO)},
+	{1, "EROR", D_EXHC_EROR, (D_NCMessageFlag_t)(DNCMF_PERFECT | DNCMF_NORMAL | DNCMF_SERVER)},
 	
 	// EOL
 	{0, NULL},
@@ -3146,7 +3193,7 @@ void DNetController::NetUpdate(void)
 					continue;
 				
 				// From somewhere but we are not the host of the game
-				if (IsHost && !(c_NCMessageCodesEx[tN].Flags & DNCMF_HOST))
+				if (!IsHost && !(c_NCMessageCodesEx[tN].Flags & DNCMF_HOST))
 					continue;
 				
 				// Requires a remote client exist (a connected player)
@@ -3193,12 +3240,14 @@ bool D_EXHC_LPRJ(struct D_NCMessageData_s* const a_Data)
 {
 	RBMultiCastStream_c* MC;
 	
-	int32_t i;
+	bool FailJoin;
+	int32_t i, j, CurPlayerCount;
 	uint8_t IsBot, MaxSplit; 
 	uint8_t* SplitList;
 	int8_t NextSplit, CurSplits;
 	char UUID[MAXPLAYERNAME * 2];
 	char AccountName[MAXPLAYERNAME], DisplayName[MAXPLAYERNAME];
+	DNetErrorNum_e FailCode;
 	
 	/* Read Data */
 	IsBot = a_Data->PIn->ReadUInt8();
@@ -3211,6 +3260,50 @@ bool D_EXHC_LPRJ(struct D_NCMessageData_s* const a_Data)
 	for (i = 0; i < MaxSplit; i++)
 		SplitList[i] = a_Data->PIn->ReadUInt8();
 	NextSplit = a_Data->PIn->ReadInt8();
+	
+	/* Init */
+	FailJoin = false;
+	FailCode = DNEN_SUCCESS;
+	
+	/* A demo is playing? */
+	if (demoplayback)
+	{
+		FailJoin = true;
+		FailCode = DNEN_DEMOPLAYBACK;
+	}
+	
+	/* Check Global Limits */
+	CurPlayerCount = D_CNetPlayerCount();
+	
+	// Too many inside?
+	if (!FailJoin && (CurPlayerCount >= MAXPLAYERS || CurPlayerCount >= l_SVMaxPlayers.Value->Int))
+	{
+		FailJoin = true;
+		FailCode = DNEN_MAXPLAYERSLIMIT;
+	}
+	
+	/* Bot Check */
+	if (!FailJoin && IsBot)
+	{
+		// Not the server?
+		if (!FailJoin && !a_Data->RC->IsLocal())
+		{
+			FailJoin = true;
+			FailCode = DNEN_BOTSSERVERONLY;
+		}
+	}
+	
+	/* Standard Player Check */
+	else if (!FailJoin)
+	{
+	}
+	
+	/* If failed to join, inform the joiner */
+	if (FailJoin)
+	{
+		D_CRepSendError(a_Data->POut, a_Data->ReadAddr, FailCode);
+		return true;	// Stop handling
+	}
 	
 	if (devparm)
 		CONL_PrintF("Add player! [b=%i uuid=%s an=%s dn=%s cs=%i ms=%i ns=%i]\n",
@@ -3256,6 +3349,27 @@ bool D_EXHC_PJOK(struct D_NCMessageData_s* const a_Data)
 	return true;
 }
 
+/* D_EXHC_EROR() -- Error Occured */
+bool D_EXHC_EROR(struct D_NCMessageData_s* const a_Data)
+{
+	uint8_t Code;
+	
+	/* Read Code */
+	Code = a_Data->PIn->ReadUInt8();
+	
+	/* Bad code? */
+	if (Code < 0 || Code >= NUMDNETERRORNUM)
+		return true;
+	
+	/* Print to screen */
+	CONL_PrintF("{1Error %i: ", Code);
+	CONL_OutputU((UnicodeStringID_t)(DSTR_DNEN_SUCCESS + Code), "");
+	CONL_PrintF("{z\n");
+	
+	/* Stop handling */
+	return true;
+}
+
 /*** FUNCTIONS ***/
 
 /* D_CNetInit() -- Initialize Networking */
@@ -3263,6 +3377,33 @@ void D_CNetInit(void)
 {
 	/* Initial Disconnect */
 	DNetController::Disconnect();
+}
+
+/* D_CNetPlayerCount() -- Return current player count */
+uint32_t D_CNetPlayerCount(void)
+{
+	uint32_t i, Count;
+	
+	/* Determine the total */
+	for (Count = 0, i = 0; i < MAXPLAYERS; i++)
+		if (playeringame[i])
+			Count++;
+	
+	/* Return count */
+	return Count;
+}
+
+/* D_CRepSendError() -- Sends an error response */
+void D_CRepSendError(RBStream_c* const a_Stream, RBAddress_c* const a_Address, const DNetErrorNum_e a_Num)
+{
+	/* Check */
+	if (!a_Stream || !a_Address || a_Num < DNEN_SUCCESS || a_Num >= NUMDNETERRORNUM)
+		return;
+	
+	/* Write Header */
+	a_Stream->BlockBase("EROR");
+	a_Stream->WriteUInt8(a_Num);
+	a_Stream->BlockRecord(a_Address);
 }
 
 /* D_CReqLocalPlayer() -- Requests the server add a local player */
