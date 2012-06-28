@@ -3323,7 +3323,11 @@ void D_CReqLocalPlayer(D_ProfileEx_t* const a_Profile, const bool a_Bot)
 /* D_CMakePureRandom() -- Create a pure random number */
 uint32_t D_CMakePureRandom(void)
 {
-	uint32_t Garbage;
+	uint32_t Garbage, i;
+	uint32_t* RawBits;
+	
+	/* Allocate Raw Bits */
+	RawBits = (uint32_t*)I_SysAlloc(sizeof(*RawBits) * 16);
 	
 	/* Attempt number generation */
 	// Init
@@ -3340,6 +3344,20 @@ uint32_t D_CMakePureRandom(void)
 	
 	// Current PID
 	Garbage ^= ((uint32_t)I_GetCurrentPID() * (uint32_t)I_GetCurrentPID());
+	
+	// Allocated Data
+	if (RawBits)
+	{
+		// Raw bits address
+		Garbage ^= (uint32_t)(((uintptr_t)RawBits) * ((uintptr_t)RawBits));
+	
+		// Raw bits data (unitialized memory)
+		for (i = 0; i < 16; i++)
+			Garbage ^= RawBits[i];
+	
+		// Cleanup
+		I_SysFree(RawBits);
+	}
 	
 	/* Return the garbage number */
 	return Garbage;
