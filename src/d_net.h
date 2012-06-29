@@ -206,11 +206,20 @@ class RBStream_c;
 class DNetPlayer
 {
 	private:
+		bool p_Bot;								// Bot Player
+		bool p_Local;							// Local Player
+		uint32_t p_Code;						// Special Code
 		
+		static DNetPlayer** p_Players;			// Net players
+		static size_t p_NumPlayers;				// Number of them
 		
 	public:
-		DNetPlayer();
+		DNetPlayer(const uint32_t a_Code);
 		~DNetPlayer();
+		
+		bool IsBot(void);						// Player is a bot
+		
+		static DNetPlayer* NetPlayerByCode(const uint32_t a_Code);
 };
 
 /* DNetController -- Controls a group of players */
@@ -243,6 +252,8 @@ class DNetController
 		RBStream_c* GetWrite(void);
 		RBPerfectStream_c* GetPerfectRead(void);
 		RBPerfectStream_c* GetPerfectWrite(void);
+		
+		size_t ArbCount(const bool a_OnlyPlayers = false);
 		
 		bool IsLocal(void);
 		bool IsServer(void);

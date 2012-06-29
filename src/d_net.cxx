@@ -394,10 +394,19 @@ CONL_StaticVar_t l_SVMaxPlayers =
 	NULL
 };
 
+// c_CVPVMaxClients -- Max Clients
+const CONL_VarPossibleValue_t c_CVPVMaxClients[] =
+{
+	// End
+	{0, "MINVAL"},
+	{230, "MAXVAL"},
+	{0, NULL},
+};
+
 // sv_maxclients -- Max clients allowed to connect
 CONL_StaticVar_t l_SVMaxClients =
 {
-	CLVT_INTEGER, c_CVPVPositive, CLVF_SAVE,
+	CLVT_INTEGER, c_CVPVMaxClients, CLVF_SAVE,
 	"sv_maxclients", DSTR_CVHINT_SVMAXCLIENTS, CLVVT_STRING, "32",
 	NULL
 };
@@ -1090,6 +1099,7 @@ typedef struct D_NCMessageData_s
 	DNetController* DNC;
 	DNetController* RC;
 	RBAddress_c* ReadAddr;
+	uint8_t NodeNum;							// Node number of the source
 } D_NCMessageData_t;
 
 /*** FUNCTIONS ***/
@@ -2906,7 +2916,69 @@ static size_t l_NumServerNCS;					// Number of controllers
 tic_t DNetController::p_ReadyTime = 0;			// Current Ready Time
 RBMultiCastStream_c* DNetController::p_MulCast;	// Multi Cast
 
+DNetPlayer** DNetPlayer::p_Players = NULL;		// Net players
+size_t DNetPlayer::p_NumPlayers = 0;			// Number of them
+
 /*** CLASSES ***/
+
+/* DNetPlayer::DNetPlayer() -- Constructor */
+DNetPlayer::DNetPlayer(const uint32_t a_Code)
+{
+	size_t i;
+	
+	/* Copy Code */
+	p_Code = a_Code;
+	
+	/* Find free spot in player list */
+	for (i = 0; i < p_NumPlayers; i++)
+		if (!p_Players[i])
+		{
+			p_Players[i] = this;
+			break;
+		}
+	
+	// Not found?
+	if (i >= p_NumPlayers)
+	{
+		Z_ResizeArray((void**)&p_Players, sizeof(*p_Players), p_NumPlayers, p_NumPlayers + 1);
+		p_Players[p_NumPlayers++] = this;
+	}
+}
+
+/* DNetPlayer::~DNetPlayer() -- Deconstructor */
+DNetPlayer::~DNetPlayer()
+{
+	size_t i;
+	
+	/* Find spot we are at in the player list */
+	for (i = 0; i < p_NumPlayers; i++)
+		if (p_Players[i] == this)
+		{
+			p_Players[i] = NULL;
+			break;
+		}
+}
+
+/* DNetPlayer::IsBot() -- Returns true if player is a bot */
+bool DNetPlayer::IsBot(void)
+{
+	return p_Bot;
+}
+
+/* DNetPlayer::NetPlayerByCode() -- Find net player with this code */
+DNetPlayer* DNetPlayer::NetPlayerByCode(const uint32_t a_Code)
+{
+	size_t i;
+	
+	/* Find spot we are at in the player list */
+	for (i = 0; i < p_NumPlayers; i++)
+		if (p_Players[i])
+			if (p_Players[i]->p_Code == a_Code)
+				return p_Players[i];
+	
+	/* Not found */
+	return NULL;
+}
 
 /* DNetController::DNetController() -- Creates network controller */
 DNetController::DNetController()
@@ -2972,6 +3044,25 @@ RBPerfectStream_c* DNetController::GetPerfectRead(void)
 RBPerfectStream_c* DNetController::GetPerfectWrite(void)
 {
 	return p_PStreams[1];
+}
+
+/* DNetController::ArbCount() -- Counts filled arbitrations */
+size_t DNetController::ArbCount(const bool a_OnlyPlayers)
+{
+	size_t Count, i;
+	
+	/* Go through all arbs */
+	Count = 0;
+	for (i = 0; i < p_NumArbs; i++)
+		if (p_Arbs[i])
+			if (!a_OnlyPlayers)
+				Count++;
+			else
+				if (!p_Arbs[i]->IsBot())
+					Count++;
+	
+	/* Return count */
+	return Count;
 }
 
 /* DNetController::IsLocal() -- Returns true if connection is local */
@@ -3114,7 +3205,7 @@ static const D_NCMessageType_t c_NCMessageCodesEx[] =
 void DNetController::NetUpdate(void)
 {
 	RBAddress_c ReadAddr;
-	size_t i, tN;
+	size_t i, tN, Nn;
 	char Header[5];
 	
 	RBPerfectStream_c* PIn;
@@ -3218,6 +3309,17 @@ void DNetController::NetUpdate(void)
 				Data.RC = RC;
 				Data.ReadAddr = &ReadAddr;
 				
+				// Find node number for remote client
+				Data.NodeNum = (uint8_t)-1;
+				if (Data.RC)
+					for (Nn = 0; Nn < l_NumServerNCS; Nn++)
+						if (l_ServerNCS[Nn])
+							if (l_ServerNCS[Nn] == RC)
+							{
+								Data.NodeNum = Nn;
+								break;
+							}
+				
 				// Call handler
 				if (c_NCMessageCodesEx[tN].Func(&Data))
 					break;
@@ -3241,8 +3343,8 @@ bool D_EXHC_LPRJ(struct D_NCMessageData_s* const a_Data)
 	RBMultiCastStream_c* MC;
 	
 	bool FailJoin;
-	int32_t i, j, CurPlayerCount;
-	uint8_t IsBot, MaxSplit; 
+	int32_t i, j, CurPlayerCount, ArbCount, NewCode;
+	uint8_t IsBot, MaxSplit, PlayID; 
 	uint8_t* SplitList;
 	int8_t NextSplit, CurSplits;
 	char UUID[MAXPLAYERNAME * 2];
@@ -3296,6 +3398,15 @@ bool D_EXHC_LPRJ(struct D_NCMessageData_s* const a_Data)
 	/* Standard Player Check */
 	else if (!FailJoin)
 	{
+		// Get arb count
+		ArbCount = a_Data->RC->ArbCount(true);
+		
+		// Too many players per split?
+		if (!FailJoin && (ArbCount >= l_SVMaxSplitScreen.Value->Int || ArbCount >= MAXSPLITSCREEN || ArbCount >= MaxSplit))
+		{
+			FailJoin = true;
+			FailCode = DNEN_MAXSPLITLIMIT;
+		}
 	}
 	
 	/* If failed to join, inform the joiner */
@@ -3305,9 +3416,25 @@ bool D_EXHC_LPRJ(struct D_NCMessageData_s* const a_Data)
 		return true;	// Stop handling
 	}
 	
+	/* Find the first free spot that doesn't have any players */
+	PlayID = 0;
+	for (i = 0; i < MAXPLAYERS; i++)
+		if (!playeringame[i])
+		{
+			PlayID = i;
+			break;
+		}
+	
+	/* Find a free code that can be used */
+	do
+	{
+		// Generate a new code
+		NewCode = D_CMakePureRandom();
+	} while (DNetPlayer::NetPlayerByCode(NewCode));
+	
 	if (devparm)
-		CONL_PrintF("Add player! [b=%i uuid=%s an=%s dn=%s cs=%i ms=%i ns=%i]\n",
-				IsBot, UUID, AccountName, DisplayName, CurSplits,
+		CONL_PrintF("Add player! [c=%08x b=%i uuid=%s an=%s dn=%s cs=%i ms=%i ns=%i]\n",
+				NewCode, IsBot, UUID, AccountName, DisplayName, CurSplits,
 				MaxSplit, NextSplit
 			);
 	
@@ -3333,7 +3460,27 @@ bool D_EXHC_LPRJ(struct D_NCMessageData_s* const a_Data)
 	/* Send to everyone that the join is OK */
 	MC = DNetController::GetMultiCast();
 	
+	// Base
 	MC->BlockBase("PJOK");
+	
+	// Write Data
+		// Server Usage
+	MC->WriteUInt8(a_Data->NodeNum);			// Node where the player is (server/demo usage!)
+	MC->WriteUInt8(IsBot);						// Player is a bot
+		// Player Location and Limitations
+	MC->WriteLittleUInt32(NewCode);				// Anti-Duplication (prevent duped ident players)
+	MC->WriteUInt8(l_SVMaxPlayers.Value->Int);	// Server's MAXPLAYERS (1st Come, 1st Serve)
+	MC->WriteUInt8(l_SVMaxSplitScreen.Value->Int);	// Server's MAXSPLITSCREEN (1st Come, 1st Serve)
+	MC->WriteUInt8(PlayID);						// players[] location
+	MC->WriteInt8(CurSplits);					// Current Splitscreen
+	MC->WriteUInt8(MaxSplit);					// Max Splitscreen
+	MC->WriteInt8(NextSplit);					// Next split to use
+		// Player Identification (Locally)
+	MC->WriteString(UUID);						// UUID (oh well so you can track players)
+	MC->WriteString(AccountName);				// Account Name
+	MC->WriteString(DisplayName);				// Display Name
+	
+	// Send it to everyone
 	MC->BlockRecord();
 	
 	/* Stop handling */
@@ -3343,7 +3490,12 @@ bool D_EXHC_LPRJ(struct D_NCMessageData_s* const a_Data)
 /* D_EXHC_PJOK() -- Player Join OK */
 bool D_EXHC_PJOK(struct D_NCMessageData_s* const a_Data)
 {
-	CONL_PrintF("Joined player!\n");	
+	CONL_PrintF("Joined player!\n");
+	
+	CONL_PrintF("%s %s\n",
+			(a_Data->IsServ ? "Server" : "Client"),
+			(a_Data->IsHost ? "Host" : "Client")
+		);
 	
 	/* Stop handling */
 	return true;

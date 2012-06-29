@@ -937,7 +937,7 @@ char* D_RMODGetValueString(Z_Table_t* const a_Table, const char* const a_Value, 
 *** DIRECT REMOODAT ***
 **********************/
 
-/* D_DirectREMOODAT_DEL() -- Clears RMOD Data from a WAD */
+/* D_DirectREMOODAT_DEL() -- Clears REMOODAT Data from a WAD */
 void D_DirectREMOODAT_DEL(const struct WL_WADFile_s* a_WAD)
 {
 }
@@ -948,7 +948,7 @@ bool D_DirectREMOODAT_PDC(const struct WL_WADFile_s* const a_WAD, const uint32_t
 	return true;
 }
 
-/* D_DirectREMOODAT_OCCB() -- Calls order changing callbacks on RMOD loaded data */
+/* D_DirectREMOODAT_OCCB() -- Calls order changing callbacks on REMOODAT loaded data */
 bool D_DirectREMOODAT_OCCB(const bool a_Pushed, const struct WL_WADFile_s* const a_WAD)
 {
 	return true;
