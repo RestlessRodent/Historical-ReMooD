@@ -81,8 +81,8 @@ export __INT_CDEFS := $(CDEFS)
 ### COMPILE FLAGS ###
 #####################
 
-__INT_COMMONCFLAGS  := -fno-strict-aliasing -D__STDC_LIMIT_MACROS -D__STDC_CONSTANT_MACROS
-__INT_COMMONLDFLAGS :=
+__INT_COMMONCFLAGS  := -fno-exceptions -fno-strict-aliasing -D__STDC_LIMIT_MACROS -D__STDC_CONSTANT_MACROS
+__INT_COMMONLDFLAGS := -fno-exceptions -static-libgcc $(strip $(shell $(__INT_CXX) -print-file-name=libstdc++.a))
 
 # Debugging?
 ifdef DEBUG
