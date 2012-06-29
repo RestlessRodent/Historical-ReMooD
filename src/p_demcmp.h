@@ -275,6 +275,7 @@ typedef enum P_EXGSBitID_e
 	PEXGSBID_COKILLSTOPLAYERONE,				// Give kills to player 1
 	PEXGSBID_COALLOWCARRYKILLER,				// Allow Carry Killer
 	PEXGSBID_COENABLEMFTWOPASSMOBJ,				// enables MF2_PASSMOBJ
+	PEXGSBID_COOLDMAPDMSPAWNS,					// Use Old Method for initial DM spawns
 	
 	PEXGSNUMBITIDS
 } P_EXGSBitID_t;

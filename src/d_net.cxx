@@ -3507,7 +3507,7 @@ uint32_t D_CMakePureRandom(void)
 /* D_CMakeUUID() -- Makes a UUID */
 void D_CMakeUUID(char* const a_Buf)
 {
-	size_t i;
+	size_t i, FailCount;
 	uint8_t Char;
 	uint32_t Garbage;
 	
@@ -3517,6 +3517,7 @@ void D_CMakeUUID(char* const a_Buf)
 		// Hopefully random enough
 		Garbage = D_CMakePureRandom();
 		Char = (((int)(M_Random())) + Garbage);
+		FailCount = 0;
 		
 		// Limit Char
 		while (!((Char >= '0' && Char <= '9') || (Char >= 'a' && Char <= 'z') || (Char >= 'A' && Char <= 'Z')))
@@ -3527,6 +3528,9 @@ void D_CMakeUUID(char* const a_Buf)
 				Char -= 15;
 			else
 				Char ^= D_CMakePureRandom();
+			
+			if (++FailCount >= 10)
+				Char = 'A' + (M_Random() % ('Y' - 'A'));
 		}
 		
 		// Last character is the same as this?

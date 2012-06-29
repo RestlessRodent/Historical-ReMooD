@@ -847,9 +847,12 @@ static P_EXGSVariable_t l_GSVars[PEXGSNUMBITIDS] =
 		"Allow the carrying of the killer when destroying objects such as barrels. [Legacy >= 1.25]", PEXGSGM_ANY, PEXGSDR_ATLEAST, 125, {0, 1}, 1,
 		PEXGSMC_COMPAT, PEXGSDA_YESNO, c_PEXGSPVBoolean, NULL},
 		
-		
 	{PEXGST_INTEGER, PEXGSBID_COENABLEMFTWOPASSMOBJ, "co_enablemftwopassmobj", "Enable MoveOverUnderObject",
 		"Enables Heretic Style movement over and under objects. [Legacy >= 1.32]", PEXGSGM_ANY, PEXGSDR_ATLEAST, 132, {0, 1}, 1,
+		PEXGSMC_COMPAT, PEXGSDA_YESNO, c_PEXGSPVBoolean, NULL},
+		
+	{PEXGST_INTEGER, PEXGSBID_COOLDMAPDMSPAWNS, "co_oldmapdmspawns", "Old Deathmatch Spawning",
+		"Use older method of spawning in deathmatch. [Legacy < 1.22]", PEXGSGM_ANY, PEXGSDR_LESSTHAN, 122, {0, 1}, 0,
 		PEXGSMC_COMPAT, PEXGSDA_YESNO, c_PEXGSPVBoolean, NULL},
 };
 

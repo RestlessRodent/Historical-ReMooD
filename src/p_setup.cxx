@@ -1228,6 +1228,16 @@ bool P_ExLoadLevel(const P_LevelInfoEx_t* const a_Info, const uint32_t a_Flags)
 		}
 	}
 	
+	/* Spawn Deathmatch Players Now for old demos */
+	if (P_EXGSGetValue(PEXGSBID_COOLDMAPDMSPAWNS))
+		if (P_EXGSGetValue(PEXGSBID_GAMEDEATHMATCH))
+				for (i = 0; i < MAXPLAYERS; i++)
+					if (playeringame[i])
+					{
+						players[i].mo = NULL;
+						G_DeathMatchSpawnPlayer(i);
+					}
+	
 	/* Spawn map specials */
 	if (!(a_Flags & PEXLL_NOSPAWNSPECIALS))
 		P_SpawnSpecials();

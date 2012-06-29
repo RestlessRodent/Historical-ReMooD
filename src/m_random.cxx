@@ -33,6 +33,7 @@
 
 #include "doomdef.h"
 #include "doomtype.h"
+#include "doomstat.h"
 #include "m_random.h"
 #include "d_net.h"
 
@@ -71,7 +72,7 @@ static uint8_t prndindex = 0;
 // P_Random is used throughout all the p_xxx game code.
 uint8_t P_Random()
 {
-#if 0
+#if 1
 	static bool did;
 	static FILE* f;
 	if (!did)
@@ -79,7 +80,7 @@ uint8_t P_Random()
 		f = fopen("pprnd", "wt");
 		did = true;
 	}
-	fprintf(f, "%u\n", D_SyncNetMapTime());
+	fprintf(f, "%u\n", gametic/*D_SyncNetMapTime()*/);
 	fflush(f);
 #endif
 	return rndtable[++prndindex];
