@@ -91,5 +91,13 @@ int32_t D_RMODGetValueInt(Z_Table_t* const a_Table, const char* const a_Value, c
 bool D_RMODGetValueBool(Z_Table_t* const a_Table, const char* const a_Value, const bool a_MissingVal);
 char* D_RMODGetValueString(Z_Table_t* const a_Table, const char* const a_Value, char* const a_MissingVal);
 
+/**********************
+*** DIRECT REMOODAT ***
+**********************/
+
+void D_DirectREMOODAT_DEL(const struct WL_WADFile_s* a_WAD);
+bool D_DirectREMOODAT_PDC(const struct WL_WADFile_s* const a_WAD, const uint32_t a_Key, void** const a_DataPtr, size_t* const a_SizePtr, WL_RemoveFunc_t* const a_RemoveFuncPtr);
+bool D_DirectREMOODAT_OCCB(const bool a_Pushed, const struct WL_WADFile_s* const a_WAD);
+
 #endif							/* __D_RMOD_H__ */
 

@@ -2856,7 +2856,7 @@ void D_NCHE_SendSaveGame(D_NetClient_t* const a_Client)
 	D_RBSRecordNetBlock(Stream, &a_Client->Address);
 	
 	/* Send Save */
-	P_SaveGameToBS(Stream, &a_Client->Address);
+	//P_SaveGameToBS(Stream, &a_Client->Address);
 	
 	/* Send End */
 	D_RBSBaseBlock(Stream, "SAVX");

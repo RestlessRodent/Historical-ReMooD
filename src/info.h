@@ -40,6 +40,7 @@
 #include "doomtype.h"
 #include "d_rmod.h"
 #include "z_zone.h"
+#include "d_block.h"
 
 #define __REMOOD_USEFLATTERSTATES
 

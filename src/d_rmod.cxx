@@ -39,6 +39,7 @@
 #include "z_zone.h"
 #include "w_wad.h"
 #include "d_block.h"							// Cache
+#include "m_argv.h"
 
 // RMOD Handlers are here
 #include "v_widget.h"
@@ -804,13 +805,32 @@ static bool DS_RMODOCCB(const bool a_Pushed, const struct WL_WADFile_s* const a_
 void D_InitRMOD(void)
 {
 	/* Hook WL handlers */
-	// Register PDC
-	if (!WL_RegisterPDC(WLDK_RMOD, WLDPO_RMOD, DS_RMODPDC, DS_RMODPDCRemove))
-		I_Error("D_InitRMOD: Failed to register PDC.");
+	// Experimental "Direct Stream" REMOODAT
+	if (M_CheckParm("-directrmod"))
+	{
+		if (devparm)
+			CONL_PrintF("D_InitRMOD: Experimental Direct REMOODAT.\n");
+			
+		// Register PDC
+		if (!WL_RegisterPDC(WLDK_RMOD, WLDPO_RMOD, D_DirectREMOODAT_PDC, D_DirectREMOODAT_DEL))
+			I_Error("D_InitRMOD: Failed to register dirPDC.");
 	
-	// Register OCCB (this builds a composite)
-	if (!WL_RegisterOCCB(DS_RMODOCCB, WLDCO_RMOD))
-		I_Error("D_InitRMOD: Failed to register OCCB.");
+		// Register OCCB (this builds a composite)
+		if (!WL_RegisterOCCB(D_DirectREMOODAT_OCCB, WLDCO_RMOD))
+			I_Error("D_InitRMOD: Failed to register dirOCCB.");
+	}
+	
+	// Standard RMOD
+	else
+	{
+		// Register PDC
+		if (!WL_RegisterPDC(WLDK_RMOD, WLDPO_RMOD, DS_RMODPDC, DS_RMODPDCRemove))
+			I_Error("D_InitRMOD: Failed to register PDC.");
+	
+		// Register OCCB (this builds a composite)
+		if (!WL_RegisterOCCB(DS_RMODOCCB, WLDCO_RMOD))
+			I_Error("D_InitRMOD: Failed to register OCCB.");
+	}
 }
 
 /* D_GetRMODPrivate() -- Get private RMOD data from this WAD */
@@ -911,5 +931,26 @@ char* D_RMODGetValueString(Z_Table_t* const a_Table, const char* const a_Value, 
 		return (a_MissingVal ? Z_StrDup(a_MissingVal, PU_WLDKRMOD, NULL) : NULL);
 	else
 		return Z_StrDup(Value, PU_WLDKRMOD, NULL);
+}
+
+/**********************
+*** DIRECT REMOODAT ***
+**********************/
+
+/* D_DirectREMOODAT_DEL() -- Clears RMOD Data from a WAD */
+void D_DirectREMOODAT_DEL(const struct WL_WADFile_s* a_WAD)
+{
+}
+
+/* D_DirectREMOODAT_PDC() -- Loads REMOODAT Lump */
+bool D_DirectREMOODAT_PDC(const struct WL_WADFile_s* const a_WAD, const uint32_t a_Key, void** const a_DataPtr, size_t* const a_SizePtr, WL_RemoveFunc_t* const a_RemoveFuncPtr)
+{
+	return true;
+}
+
+/* D_DirectREMOODAT_OCCB() -- Calls order changing callbacks on RMOD loaded data */
+bool D_DirectREMOODAT_OCCB(const bool a_Pushed, const struct WL_WADFile_s* const a_WAD)
+{
+	return true;
 }
 
