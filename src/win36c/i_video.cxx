@@ -74,11 +74,13 @@ static uint8_t* l_ceScreenBuffer = NULL;
 /* ceWindowProc() -- Main window procedure */
 extern "C" LRESULT CALLBACK ceWindowProc(HWND hWnd, UINT Msg, WPARAM wParam, LPARAM lParam)
 {
+	static int32_t OldX, OldY;
 	HDC hDc, bufDc;
 	PAINTSTRUCT Ps;
 	HBITMAP bufBMP;
 	BITMAPINFO bmpInfo;
 	int i, j;
+	I_EventEx_t ExEvent;
 	
 	switch (Msg)
 	{
@@ -86,17 +88,20 @@ extern "C" LRESULT CALLBACK ceWindowProc(HWND hWnd, UINT Msg, WPARAM wParam, LPA
 			break;
 
 		case WM_MOUSEMOVE:
-#if 0
-			feVents[feWrite].Type = 1;
-			feVents[feWrite].Data.Mouse.button = 0;
-			feVents[feWrite].Data.Mouse.x = LOWORD(lParam);
-			feVents[feWrite].Data.Mouse.y = HIWORD(lParam);
-
-			// Increment
-			feWrite++;
-			if (feWrite >= NUMFAKEEVENTS)
-				feWrite = 0;
-#endif
+			// Generate
+			ExEvent.Type = IET_MOUSE;
+			ExEvent.Data.Mouse.MouseID = 0;	// Always mouse Zero
+			ExEvent.Data.Mouse.Pos[0] = LOWORD(lParam);
+			ExEvent.Data.Mouse.Pos[1] = HIWORD(lParam);
+			
+			ExEvent.Data.Mouse.Move[0] = ExEvent.Data.Mouse.Pos[0] - OldX;
+			ExEvent.Data.Mouse.Move[1] = ExEvent.Data.Mouse.Pos[1] - OldY;
+			
+			OldX = ExEvent.Data.Mouse.Pos[0];
+			OldY = ExEvent.Data.Mouse.Pos[1];
+			
+			// Push
+			I_EventExPush(&ExEvent);
 			break;
 
 		case WM_LBUTTONDBLCLK:

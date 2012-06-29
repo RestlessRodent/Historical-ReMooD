@@ -687,7 +687,7 @@ void I_GetEvent(void)
 				
 				// Focus of the window changes
 			case SDL_ACTIVEEVENT:
-				Focused = ! !Event.active.gain;
+				Focused = !!Event.active.gain;
 				continue;
 				
 				// Key event
