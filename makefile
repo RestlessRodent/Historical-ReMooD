@@ -81,8 +81,16 @@ export __INT_CDEFS := $(CDEFS)
 ### COMPILE FLAGS ###
 #####################
 
+# First try cxx (DJGPP)
+__INT_LIBSTDCXX := $(strip $(shell $(__INT_CXX) -print-file-name=libstdcxx.a))
+
+# If it is the same as the input then it probably doesn't exist so then choose c++
+ifeq (libstdcxx.a,$(__INT_LIBSTDCXX))
+	__INT_LIBSTDCXX := $(strip $(shell $(__INT_CXX) -print-file-name=libstdc++.a))
+endif
+
 __INT_COMMONCFLAGS  := -fno-exceptions -fno-strict-aliasing -D__STDC_LIMIT_MACROS -D__STDC_CONSTANT_MACROS
-__INT_COMMONLDFLAGS := -fno-exceptions -static-libgcc $(strip $(shell $(__INT_CXX) -print-file-name=libstdc++.a))
+__INT_COMMONLDFLAGS := -fno-exceptions -static-libgcc $(__INT_LIBSTDCXX)
 
 # Debugging?
 ifdef DEBUG
