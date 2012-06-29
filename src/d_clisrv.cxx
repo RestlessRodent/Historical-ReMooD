@@ -201,7 +201,13 @@ void TryRunTics(tic_t realtics)
 				return;
 			}
 			
-			XXSNAR = LocalTic - (LastTic + g_IgnoreWipeTics);
+			if (g_IgnoreWipeTics)
+			{
+				LastTic = LocalTic;
+				g_IgnoreWipeTics = 0;
+			}
+			
+			XXSNAR = LocalTic - LastTic;
 			LastTic = LocalTic;
 		}
 		

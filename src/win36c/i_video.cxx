@@ -63,6 +63,8 @@ HINSTANCE ceInstance = NULL;
 
 HBITMAP ceWinBMP = NULL;
 BITMAPINFO* ceWinBMPInfo = NULL;
+
+static uint8_t* l_ceScreenBuffer = NULL;
 /**********************/
 
 /****************
@@ -116,7 +118,8 @@ extern "C" LRESULT CALLBACK ceWindowProc(HWND hWnd, UINT Msg, WPARAM wParam, LPA
 			bufDc = CreateCompatibleDC(hDc);
 			SelectObject(bufDc, ceWinBMP);
 			
-			memcpy(vid.direct, screens[0], vid.width * vid.height);
+			if (l_ceScreenBuffer)
+				memcpy(l_ceScreenBuffer, screens[0], vid.width * vid.height);
 			
 			BitBlt(hDc, 0, 0, vid.width, vid.height, bufDc, 0, 0, SRCCOPY);
 			DeleteDC(bufDc);
@@ -166,7 +169,10 @@ void I_FinishUpdate(void)
 void I_SetPalette(RGBA_t* palette)
 {
 	int i;
-	HDC hDc = GetDC(cePrimaryWindow);
+	HDC hDc, hDc2;
+	
+	hDc = GetDC(cePrimaryWindow);
+	hDc2 = CreateCompatibleDC(hDc);
 	
 	for (i = 0; i < 256; i++)
 	{
@@ -176,8 +182,9 @@ void I_SetPalette(RGBA_t* palette)
 		ceWinBMPInfo->bmiColors[i].rgbReserved = 0;
 	}
 	
-	SelectObject(hDc, ceWinBMPInfo);
-	SetDIBColorTable(hDc, 0, 256, ceWinBMPInfo->bmiColors);
+	SelectObject(hDc2, ceWinBMP);
+	SetDIBColorTable(hDc2, 0, 256, ceWinBMPInfo->bmiColors);
+	DeleteDC(hDc2);
 	ReleaseDC((HWND)ceWinBMPInfo, hDc);
 }
 
@@ -190,7 +197,7 @@ void I_SetPalette(RGBA_t* palette)
 void VID_PrepareModeList(void)
 {
 	VID_AddMode(320, 200, true);
-	
+	VID_AddMode(320, 240, true);
 }
 
 /* I_SetVideoMode() -- Sets the current video mode */
@@ -198,13 +205,26 @@ bool I_SetVideoMode(const uint32_t a_Width, const uint32_t a_Height, const bool 
 {
 	HDC hDc;
 	int i;
+	int centerX, centerY;
+	RECT clRect, wnRect;
+	HICON hIcon, hIconSmall;
 	
 	/* Check */
 	if (!a_Width || !a_Height)
 		return false;
-		
+	
 	/* Destroy old buffer */
 	I_VideoUnsetBuffer();		// Remove old buffer if any
+	
+	// Destroy old window
+	if (cePrimaryWindow)
+		DestroyWindow(cePrimaryWindow);
+	cePrimaryWindow = NULL;
+	
+	// Delete direct bitmap
+	if (l_ceScreenBuffer)
+		I_SysFree(l_ceScreenBuffer);
+	l_ceScreenBuffer = NULL;
 	
 	/* Free old bitmap */
 	if (ceWinBMP)
@@ -219,20 +239,74 @@ bool I_SetVideoMode(const uint32_t a_Width, const uint32_t a_Height, const bool 
 		ceWinBMPInfo = NULL;
 	}
 	
+	/* Create Window */
+	centerX = (GetSystemMetrics(SM_CXSCREEN) >> 1) - (a_Width >> 1);
+	centerY = (GetSystemMetrics(SM_CYSCREEN) >> 1) - (a_Height >> 1);
+	
+	/* Create Window */
+	cePrimaryWindow = CreateWindowEx(
+			0,
+			ceClassName,
+			ceWindowName,
+			WS_BORDER | WS_POPUP | WS_SYSMENU | WS_CAPTION | WS_VISIBLE,
+			centerX,
+			centerY,
+			a_Width,
+			a_Height,
+			NULL,
+			NULL,
+			ceInstance,
+			NULL
+		);
+	
+	/* Check */
+	if (!cePrimaryWindow)
+	{
+		I_Error("Failed to create main window.");
+		return false;
+	}
+	
+	I_StartFrame();
+
+	GetWindowRect(cePrimaryWindow, &wnRect);
+	GetClientRect(cePrimaryWindow, &clRect);
+	SetWindowPos(cePrimaryWindow, HWND_TOPMOST, 0, 0,
+		(wnRect.right - wnRect.left) + (a_Width - (clRect.right - clRect.left)),
+		(wnRect.bottom - wnRect.top) + (a_Height - (clRect.bottom - clRect.top)),
+		SWP_NOMOVE);
+		
+	/* Set Icon */
+	// Load
+	hIcon = LoadIcon(GetModuleHandle(NULL), MAKEINTRESOURCE(1));
+	hIconSmall = LoadIcon(GetModuleHandle(NULL), MAKEINTRESOURCE(2));
+
+	// Use Long in 32-bit/CE and LongPtr in 64 (since LongPtr is not avail in 98!)
+#if !defined(_WIN64)
+	SetClassLong(cePrimaryWindow, GCL_HICON, (LONG)hIcon);
+	SetClassLong(cePrimaryWindow, GCL_HICONSM, (LONG)hIconSmall);
+#else
+	SetClassLongPtr(cePrimaryWindow, GCLP_HICON, (LONG_PTR)hIcon);
+	SetClassLongPtr(cePrimaryWindow, GCLP_HICONSM, (LONG_PTR)hIconSmall);
+#endif
+	
+	ShowWindow(cePrimaryWindow, SW_SHOW);
+	UpdateWindow(cePrimaryWindow);
+	
 	/* Setup Bitmap */
-	ceWinBMPInfo = (BITMAPINFO*)I_SysAlloc(sizeof(*ceWinBMPInfo));
+	ceWinBMPInfo = (BITMAPINFO*)I_SysAlloc(sizeof(*ceWinBMPInfo) + (384 * sizeof(RGBQUAD)));
 	ceWinBMPInfo->bmiHeader.biSize			= sizeof(BITMAPINFOHEADER);
-	ceWinBMPInfo->bmiHeader.biWidth			= vid.width;
-	ceWinBMPInfo->bmiHeader.biHeight		= -vid.height;
+	ceWinBMPInfo->bmiHeader.biWidth			= a_Width;
+	ceWinBMPInfo->bmiHeader.biHeight		= -((int)(a_Height));
 	ceWinBMPInfo->bmiHeader.biPlanes		= 1;
-	ceWinBMPInfo->bmiHeader.biSizeImage		= vid.height * vid.width;
+	ceWinBMPInfo->bmiHeader.biSizeImage		= a_Height * a_Width;
 	ceWinBMPInfo->bmiHeader.biXPelsPerMeter	= 0;
 	ceWinBMPInfo->bmiHeader.biYPelsPerMeter	= 0;
 	ceWinBMPInfo->bmiHeader.biClrUsed		= 256;
 	ceWinBMPInfo->bmiHeader.biClrImportant	= 0;
 	ceWinBMPInfo->bmiHeader.biBitCount		= 8;
 	ceWinBMPInfo->bmiHeader.biCompression	= BI_RGB;
-	
+
+#if 0
 	if (pLocalPalette)
 		for (i = 0; i < 256; i++)
 		{
@@ -249,16 +323,19 @@ bool I_SetVideoMode(const uint32_t a_Width, const uint32_t a_Height, const bool 
 			ceWinBMPInfo->bmiColors[i].rgbBlue = i;
 			ceWinBMPInfo->bmiColors[i].rgbReserved = 0;
 		}
+#endif
+	
+	/* Recreate buffer for screen */
+	l_ceScreenBuffer = (uint8_t*)I_SysAlloc(a_Width * a_Height);
 	
 	/* Create Bitmap */
+	CONL_PrintF("DC!\n");
 	hDc = GetDC(cePrimaryWindow);
-	ceWinBMP = CreateDIBSection(hDc, ceWinBMPInfo, DIB_RGB_COLORS, (void**)&vid.direct, NULL, 0);
+	ceWinBMP = CreateDIBSection(hDc, ceWinBMPInfo, DIB_RGB_COLORS, (void**)&l_ceScreenBuffer, NULL, 0);
 	ReleaseDC(cePrimaryWindow, hDc);
-		
-	return 1;
 	
 	/* Allocate Buffer */
-	I_VideoSetBuffer(a_Width, a_Height, a_Width, NULL);
+	I_VideoSetBuffer(a_Width, a_Height, a_Width, l_ceScreenBuffer);
 	
 	/* Success */
 	return true;
@@ -267,10 +344,27 @@ bool I_SetVideoMode(const uint32_t a_Width, const uint32_t a_Height, const bool 
 /* I_StartupGraphics() -- Initializes graphics */
 void I_StartupGraphics(void)
 {
+	WNDCLASS wcex;
+	
 	/* Pre-initialize video */
 	if (!I_VideoPreInit())
 		return;
 		
+	/* Create Class */
+	memset(&wcex, 0, sizeof(wcex));
+	
+	//wcex.cbSize = sizeof(wcex);
+	wcex.lpfnWndProc = ceWindowProc;
+	wcex.hbrBackground = (HBRUSH)GetStockObject(BLACK_BRUSH);
+	wcex.lpszClassName = ceClassName;
+	
+	/* Register */
+	if (!RegisterClass(&wcex))
+	{
+		I_Error("Could not register window class!");
+		return;
+	}	
+	
 	/* Initialize before mode set */
 	if (!I_VideoBefore320200Init())
 		return;

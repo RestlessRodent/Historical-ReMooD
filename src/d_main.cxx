@@ -499,6 +499,9 @@ void D_Display(void)
 	if (!l_VIDScreenLink.Value->Int)
 		return;
 		
+	// Clear ignoring tic indicator
+	g_IgnoreWipeTics = 0;
+		
 	wipe_EndScreen(0, 0, vid.width, vid.height);
 	
 	wipestart = I_GetTime() - 1;
@@ -530,9 +533,6 @@ void D_Display(void)
 		DNetController::NetUpdate();			// Update network
 	}
 	while (!done && I_GetTime() < (unsigned)y);
-	
-	// No longer ignoring tics
-	g_IgnoreWipeTics = 0;
 	
 	// GhostlyDeath <June 4, 2010> -- If a wipe never finished 100% we must end if
 	if (!done)
