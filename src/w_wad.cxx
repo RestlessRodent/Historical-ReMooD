@@ -290,7 +290,7 @@ const WL_WADFile_t* WL_OpenWAD(const char* const a_PathName)
 {
 	static uint32_t BaseTop;
 	char FoundWAD[PATH_MAX];
-	FILE* CFile;
+	FileStream_c* CFile;
 	WL_WADFile_t* NewWAD;
 	uint32_t Magic;
 	bool IsWAD;
@@ -337,21 +337,18 @@ const WL_WADFile_t* WL_OpenWAD(const char* const a_PathName)
 		CONL_PrintF("WL_OpenWAD: Opening \"%s\".\n", FoundWAD);
 		
 	/* Attempt opening of the file */
-	CFile = fopen(FoundWAD, "rb");
+	// See if it exists first
+	if (!I_CheckFileAccess(FoundWAD, false))
+		return NULL;
+	
+	CFile = FileStream_c::Open(FoundWAD, "rb");
 	
 	// Failed?
 	if (!CFile)
 		return NULL;
 		
 	/* Read the first 4 bytes, it is the magic number */
-	Magic = 0;
-	if (!fread(&Magic, 4, 1, CFile))
-	{
-		// Failed to read magic number
-		fclose(CFile);
-		return NULL;
-	}
-	Magic = LittleSwapUInt32(Magic);	// Swap for BE
+	Magic = CFile->ReadLittleUInt32();
 	
 	// Is it a WAD file? If not threat it as a lump instead
 	IsWAD = false;
@@ -418,16 +415,16 @@ const WL_WADFile_t* WL_OpenWAD(const char* const a_PathName)
 	CONL_EarlyBootTic(NewWAD->__Private.__DOSName, true);
 	
 	// Find size
-	fseek(CFile, 0, SEEK_END);
-	NewWAD->__Private.__Size = ftell(CFile);
-	fseek(CFile, 0, SEEK_SET);
+	CFile->Seek(0, true);
+	NewWAD->__Private.__Size = CFile->Tell();
+	CFile->Seek(0);
 	
 	/* Determine checksums */
 	// Simple Sum
 	for (i = 0, j = 0, k = 0; i < NewWAD->__Private.__Size; i++)
 	{
 		// Read single byte
-		fread(&u8, 1, 1, CFile);
+		u8 = CFile->ReadUInt8();
 		
 		// If even, do XOR
 		if (!(i & 0))
@@ -461,17 +458,13 @@ const WL_WADFile_t* WL_OpenWAD(const char* const a_PathName)
 	if (IsWAD)
 	{
 		// Seek to start of info
-		fseek(CFile, 4, SEEK_SET);
+		CFile->Seek(4);
 		
 		// Read lump count and swap it
-		fread(&u32, 4, 1, CFile);
-		u32 = LittleSwapUInt32(u32);
-		NewWAD->NumEntries = u32;
+		NewWAD->NumEntries = CFile->ReadLittleUInt32();
 		
 		// Read index offset and swap it
-		fread(&u32, 4, 1, CFile);
-		u32 = LittleSwapUInt32(u32);
-		NewWAD->__Private.__IndexOff = u32;
+		NewWAD->__Private.__IndexOff = CFile->ReadLittleUInt32();
 		
 		// Index rolls off file? If so, clip number of them
 		if (NewWAD->__Private.__IndexOff + (NewWAD->NumEntries * 16) > NewWAD->__Private.__Size)
@@ -486,7 +479,7 @@ const WL_WADFile_t* WL_OpenWAD(const char* const a_PathName)
 		}
 		
 		// Seek to index location
-		fseek(CFile, NewWAD->__Private.__IndexOff, SEEK_SET);
+		CFile->Seek(NewWAD->__Private.__IndexOff);
 		
 		// Allocate entries
 		NewWAD->Entries = (WL_WADEntry_t*)Z_Malloc(sizeof(WL_WADEntry_t) * NewWAD->NumEntries, PU_STATIC, NULL);
@@ -509,19 +502,15 @@ const WL_WADFile_t* WL_OpenWAD(const char* const a_PathName)
 			ThisEntry->GlobalIndex = NewWAD->__Private.__TopHash + ThisEntry->Index;
 			
 			// Read lump position
-			fread(&u32, 4, 1, CFile);
-			u32 = LittleSwapUInt32(u32);
-			ThisEntry->__Private.__Offset = u32;
+			ThisEntry->__Private.__Offset = CFile->ReadLittleUInt32();
 			
 			// Read lump internal size
-			fread(&u32, 4, 1, CFile);
-			u32 = LittleSwapUInt32(u32);
-			ThisEntry->__Private.__InternalSize = u32;
+			ThisEntry->__Private.__InternalSize = CFile->ReadLittleUInt32();
 			
 			// Read name
 			for (Dot = false, j = 0; j < 8; j++)
 			{
-				fread(&c, 1, 1, CFile);	
+				c = CFile->ReadUInt8();
 				
 				if (!Dot)
 					if (c == '\0')
@@ -551,7 +540,7 @@ const WL_WADFile_t* WL_OpenWAD(const char* const a_PathName)
 	else
 	{
 		// Seek to start of file
-		fseek(CFile, 0, SEEK_SET);
+		CFile->Seek(0);
 		
 		// Create single entry
 		NewWAD->NumEntries = 1;
@@ -1379,19 +1368,8 @@ size_t WL_ReadData(const WL_WADEntry_t* const a_Entry, const size_t a_Offset, vo
 		((WL_WADEntry_t*)a_Entry)->__Private.__Data = Z_Malloc(a_Entry->Size, PU_STATIC, (void**)&a_Entry->__Private.__Data);
 		
 		// Seek to WAD location
-		fseek(
-				((FILE*)((WL_WADEntry_t*)a_Entry)->Owner->__Private.__CFile),
-				a_Entry->__Private.__Offset,
-				SEEK_SET
-			);
-		
-		// Read data
-		fread(
-				((WL_WADEntry_t*)a_Entry)->__Private.__Data,
-				a_Entry->Size,
-				1,
-				((FILE*)((WL_WADEntry_t*)a_Entry)->Owner->__Private.__CFile)
-			);
+		((WL_WADEntry_t*)a_Entry)->Owner->__Private.__CFile->Seek(a_Entry->__Private.__Offset);
+		((WL_WADEntry_t*)a_Entry)->Owner->__Private.__CFile->ReadChunk(((WL_WADEntry_t*)a_Entry)->__Private.__Data, a_Entry->Size);
 	}
 	
 	// Change tag to prevent random free?

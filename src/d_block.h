@@ -256,7 +256,7 @@ class GenericByteStream_c
 **********************/
 
 /* RawDataStream_c -- Raw data stream (wraps raw data) */
-class RawDataStream_c
+class RawDataStream_c : public GenericByteStream_c
 {
 	private:
 		void* p_Base;							// Base of chunk
@@ -276,13 +276,17 @@ class RawDataStream_c
 };
 
 /* FileStream_c -- File Stream */
-class FileStream_c
+class FileStream_c : public GenericByteStream_c
 {
 	private:
+		void* p_CFile;
 		
 	public:
-		RawDataStream_c(const char* const a_Path, const char* const a_Mode);
-		~RawDataStream_c();
+		FileStream_c();
+		~FileStream_c();
+		
+		static FileStream_c* Open(const char* const a_Path, const char* const a_Mode);
+		void Close(void);
 		
 		/* Abstracted */
 		bool Seekable(void);

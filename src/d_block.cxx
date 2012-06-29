@@ -2263,10 +2263,11 @@ void GenericByteStream_c::WriteString(const char* const a_Buf)
 #define __REMOOD_GBSREADINT(N,T) T GenericByteStream_c::__REMOOD_GBSMERGE(Read,N)(void)\
 {\
 	T Value;\
-	uint64_t OffBase;\
+	uint64_t OffBase, ThisOff;\
+	ThisOff = Tell();\
 	OffBase = ReadChunk(&Value, sizeof(Value));\
 	if (Seekable())\
-		Seek(Tell() + OffBase);\
+		Seek(ThisOff + OffBase);\
 	return Value;\
 }
 
@@ -2281,10 +2282,11 @@ __REMOOD_GBSREADINT(UInt64,uint64_t);
 
 #define __REMOOD_GBSWRITEINT(N,T) void GenericByteStream_c::__REMOOD_GBSMERGE(Write,N)(const T a_Value)\
 {\
-	uint64_t OffBase;\
+	uint64_t OffBase, ThisOff;\
+	ThisOff = Tell();\
 	OffBase = WriteChunk(&a_Value, sizeof(a_Value));\
 	if (Seekable())\
-		Seek(Tell() + OffBase);\
+		Seek(ThisOff + OffBase);\
 }
 
 __REMOOD_GBSWRITEINT(Int8,int8_t);
@@ -2339,6 +2341,105 @@ __REMOOD_RBDLITTLEWRITE(UInt64,uint64_t);
 /**********************
 *** WRAPPED STREAMS ***
 **********************/
+
+/* FileStream_c::FileStream_c() -- Constructor */
+FileStream_c::FileStream_c()
+{
+	/* Init */
+	p_CFile = NULL;
+}
+
+/* FileStream_c::~FileStream_c() -- Destructor */
+FileStream_c::~FileStream_c()
+{
+	Close();
+}
+
+/* FileStream_c::Open() -- Attempts file open */
+FileStream_c* FileStream_c::Open(const char* const a_Path, const char* const a_Mode)
+{
+	FILE* CFile;
+	FileStream_c* New;
+	
+	/* Try opening with said modes */
+	CFile = fopen(a_Path, a_Mode);
+	
+	// Failed?
+	if (!CFile)
+		return NULL;
+	
+	/* Create new stream */
+	New = new FileStream_c();
+	New->p_CFile = CFile;
+	
+	// Return it
+	return New;
+}
+
+/* FileStream_c::Close() -- Closes stream */
+void FileStream_c::Close(void)
+{
+	if (p_CFile)
+		fclose((FILE*)p_CFile);
+	p_CFile = NULL;
+}
+
+/* FileStream_c::Seekable() -- Files are seekable */
+bool FileStream_c::Seekable(void)
+{
+	return true;
+}
+
+/* FileStream_c::EndOfStream() -- At end of stream? */
+bool FileStream_c::EndOfStream(void)
+{
+	if (p_CFile)
+		return feof((FILE*)p_CFile);
+	else
+		return true;
+}
+
+/* FileStream_c::Tell() -- Return current position */
+uint64_t FileStream_c::Tell(void)
+{
+	if (p_CFile)
+		return ftell((FILE*)p_CFile);
+	else
+		return 0;
+}
+
+/* FileStream_c::Seek() -- Seeks to new location in file */
+uint64_t FileStream_c::Seek(const uint64_t a_NewPos, const bool a_AtEnd)
+{
+	if (p_CFile)
+		return fseek((FILE*)p_CFile, a_NewPos, (a_AtEnd ? SEEK_END : SEEK_SET));
+	else
+		return 0;
+}
+
+/* FileStream_c::ReadChunk() -- Reads data from file */
+size_t FileStream_c::ReadChunk(void* const a_Data, const size_t a_Size)
+{
+	if (p_CFile)
+		if (fread(a_Data, a_Size, 1, (FILE*)p_CFile) >= 1)
+			return a_Size;
+		else
+			return 0;
+	else
+		return 0;
+}
+
+/* FileStream_c::WriteChunk() -- Writes data to file */
+size_t FileStream_c::WriteChunk(const void* const a_Data, const size_t a_Size)
+{
+	if (p_CFile)
+		if (fwrite(a_Data, a_Size, 1, (FILE*)p_CFile) >= 1)
+			return a_Size;
+		else
+			return 0;
+	else
+		return 0;
+}
 
 /*******************************
 *** CLASS BASED BLOCK STREAM ***

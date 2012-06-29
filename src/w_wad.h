@@ -142,17 +142,17 @@ typedef struct WL_WADFile_s
 	struct
 	{
 		// Validity
-		bool __IsValid;		// Is this WAD valid?
-		bool __IsWAD;			// Is this a WAD?
-		bool __IsIWAD;		// Is this an IWAD?
+		bool __IsValid;							// Is this WAD valid?
+		bool __IsWAD;							// Is this a WAD?
+		bool __IsIWAD;							// Is this an IWAD?
 		
 		// File related stuff
-		char __PathName[PATH_MAX];	// Path to WAD File
-		char __FileName[PATH_MAX];	// File name of WAD
-		char __DOSName[WLMAXDOSNAME];	// DOS Name of the WAD
-		void* __CFile;			// File on disk
-		size_t __IndexOff;		// Offset of index
-		size_t __Size;			// Size of WAD
+		char __PathName[PATH_MAX];				// Path to WAD File
+		char __FileName[PATH_MAX];				// File name of WAD
+		char __DOSName[WLMAXDOSNAME];			// DOS Name of the WAD
+		FileStream_c* __CFile;					// File on disk
+		size_t __IndexOff;						// Offset of index
+		size_t __Size;							// Size of WAD
 		
 		// Entries
 		uint32_t __TopHash;		// Top 8-bits of hash (indexes)
