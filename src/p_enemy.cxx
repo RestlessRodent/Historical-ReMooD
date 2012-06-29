@@ -500,7 +500,7 @@ static bool P_LookForPlayers(mobj_t* actor, bool allaround)
 	mobj_t* BestMo;
 	thinker_t* currentthinker;
 	bool LoopOK;
-	int32_t MaxPlayers;
+	int32_t MaxPlayers, ThinkNum, AtNum;
 	
 	/* Get Max Players */
 	// Demo Compat
@@ -597,11 +597,29 @@ static bool P_LookForPlayers(mobj_t* actor, bool allaround)
 	BestMo = NULL;
 	BestDist = 20000 << FRACBITS;
 	
+#define THINKMASK 127
+	// Do a think spread of THINKMASK, only check every THINKMASK + 1 or so things to target.
+	// This is because if there are tons of monsters in the maps it will be
+	// quite computationaly intensive to check every other monster to see if it
+	// is an enemy.
+	// Also account for the object's spawn order so checking gets spread
+	// evenly around monsters rather than possibly having the framerate jerk
+	// around every THINKMASK tics or so.
+	ThinkNum = (gametic + actor->SpawnOrder) & THINKMASK;
+	AtNum = 0;
+	
 	// Look through thinkers
 	for (currentthinker = thinkercap.next; currentthinker != &thinkercap; currentthinker = currentthinker->next)
 	{
 		// Not a mobj?
 		if (!((currentthinker->function.acp1 == (actionf_p1) P_MobjThinker)))
+			continue;
+		
+		// Increase count
+		AtNum++;
+		
+		// Not at wanted base?
+		if ((AtNum & THINKMASK) != ThinkNum)
 			continue;
 		
 		// Make mo
@@ -670,6 +688,7 @@ static bool P_LookForPlayers(mobj_t* actor, bool allaround)
 	
 	/* Never targetted anything */
 	return false;
+#undef THINKMASK
 }
 
 //

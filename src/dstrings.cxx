@@ -394,6 +394,7 @@ StringGroupEX_t UnicodeStrings[NUMUNICODESTRINGS] =
 	{			   "DNEN_MAXCLIENTLIMIT", "Maximum client limit would have been exceeded."},
 	{			   "DNEN_BOTSSERVERONLY", "Only the server host is allowed to add bots."},
 	{				 "DNEN_DEMOPLAYBACK", "The server is playing back a demo."},
+	{					"DNEN_NOTALEVEL", "The requested map is not a valid level."},
 	
 	/*** DEPRECATED STRINGS ***/
 	{                              "DEP_D_DEVSTR", "Development mode ON.\n"},

@@ -197,26 +197,25 @@ static CONL_ExitCode_t PCLC_Map(const uint32_t a_ArgC, const char** const a_ArgV
 	/* Check */
 	if (a_ArgC < 2)
 		return CLE_INVALIDARGUMENT;
+		
+	/* Switching levels */
+	if (strcasecmp(a_ArgV[0], "switchmap") == 0)
+		LevelSwitch = true;
 	
 	/* Request Map */
 #if defined(__REMOOD_NCSNET)
 	// Send request
-	D_NCSR_RequestMap(a_ArgV[1]);
+	D_CReqMapChange(P_FindLevelByNameEx(a_ArgV[1], NULL), LevelSwitch);
 	
 	// Return success
 	return CLE_SUCCESS;
 #else
-	
 	/* Locate map */
 	Info = P_FindLevelByNameEx(a_ArgV[1], NULL);
 	
 	// Not found?
 	if (!Info)
 		return CLE_RESOURCENOTFOUND;
-	
-	/* Switching levels */
-	if (strcasecmp(a_ArgV[0], "switchmap") == 0)
-		LevelSwitch = true;
 	
 	/* Reset player info */
 	if (!LevelSwitch)
@@ -285,6 +284,12 @@ bool P_ExClearLevel(void)
 	P_SetupLevelFlatAnims();
 	
 	/* Re-init some things */
+	// Spawn Spots
+	memset(deathmatchstarts, 0, sizeof(deathmatchstarts));
+	numdmstarts = 0;
+	
+	memset(playerstarts, 0, sizeof(playerstarts));
+	
 	// Body Queue
 	memset(bodyque, 0, sizeof(bodyque));
 	bodyqueslot = true;

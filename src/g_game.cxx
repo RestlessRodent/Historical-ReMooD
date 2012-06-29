@@ -950,7 +950,7 @@ static bool GS_ClusterTraverser(intercept_t* in, void* const a_Data)
 bool G_ClusterSpawnPlayer(const int PlayerID, const bool a_CheckOp)
 {
 	mapthing_t** Spots;
-	size_t NumSpots, i, s;
+	size_t NumSpots, i, s, TryHits;
 	int x, y, bx, by;
 	mapthing_t OrigThing, FakeThing;
 	subsector_t* SubS;
@@ -1005,14 +1005,38 @@ bool G_ClusterSpawnPlayer(const int PlayerID, const bool a_CheckOp)
 	/* Go through each spot */
 	for (s = 0; s < NumSpots; s++)
 	{
+		// Attempting DM Spawning?
+		if (Tried)
+		{
+			// Break out on the first untried spot
+			for (i = 0; i < NumSpots; i++)
+				if (!Tried[i])
+					break;
+		
+			// All spots already tried? Prevent DM infinite spawn loops
+			if (i >= NumSpots)
+				break;
+		}
+		
 		// Randomize?
 		if (RandomSpot)
 		{
-			// Determine random spot
+			// Determine random spot (but don't infinite loop)
+			TryHits = 0;
 			do
 			{
+				TryHits++;
 				i = P_Random() % NumSpots;
-			} while (Tried[i]);
+			} while (Tried[i] && TryHits < (MAXPLAYERS << 1));
+			
+			// Use the first untried spot
+			for (TryHits = 0; TryHits < MAXPLAYERS; TryHits++)
+				if (!Tried[TryHits])
+					i = TryHits;
+			
+			// There are no more spots?
+			if (TryHits >= MAXPLAYERS)
+				continue;	// try the run again
 			
 			// Mark as tried
 			Tried[i] = true;

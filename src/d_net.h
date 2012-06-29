@@ -193,6 +193,7 @@ enum DNetErrorNum_e
 	DNEN_MAXCLIENTLIMIT,						// Exceeds maximum clients
 	DNEN_BOTSSERVERONLY,						// Bots are server only
 	DNEN_DEMOPLAYBACK,							// A demo is playing
+	DNEN_NOTALEVEL,								// Not a level that can be loaded
 	
 	NUMDNETERRORNUM
 };
@@ -218,6 +219,7 @@ class DNetPlayer
 		~DNetPlayer();
 		
 		bool IsBot(void);						// Player is a bot
+		void SetBot(const bool a_Val);			// Sets bot
 		
 		static DNetPlayer* NetPlayerByCode(const uint32_t a_Code);
 };
@@ -254,6 +256,7 @@ class DNetController
 		RBPerfectStream_c* GetPerfectWrite(void);
 		
 		size_t ArbCount(const bool a_OnlyPlayers = false);
+		void AddArb(DNetPlayer* const a_NetPlayer);
 		
 		bool IsLocal(void);
 		bool IsServer(void);
@@ -279,7 +282,9 @@ uint32_t D_CNetPlayerCount(void);
 
 void D_CRepSendError(RBStream_c* const a_Stream, RBAddress_c* const a_Address, const DNetErrorNum_e a_Num);
 
+struct P_LevelInfoEx_s;
 void D_CReqLocalPlayer(D_ProfileEx_t* const a_Profile, const bool a_Bot = false);
+void D_CReqMapChange(P_LevelInfoEx_s* const a_Level, const bool a_Switch = false);
 
 uint32_t D_CMakePureRandom(void);
 void D_CMakeUUID(char* const a_Buf);

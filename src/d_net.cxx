@@ -2965,6 +2965,12 @@ bool DNetPlayer::IsBot(void)
 	return p_Bot;
 }
 
+/* DNetPlayer::SetBot() -- Sets whether the player is a bot */
+void DNetPlayer::SetBot(const bool a_Val)
+{
+	p_Bot = a_Val;
+}
+
 /* DNetPlayer::NetPlayerByCode() -- Find net player with this code */
 DNetPlayer* DNetPlayer::NetPlayerByCode(const uint32_t a_Code)
 {
@@ -3063,6 +3069,25 @@ size_t DNetController::ArbCount(const bool a_OnlyPlayers)
 	
 	/* Return count */
 	return Count;
+}
+
+/* DNetController::AddArb() -- Add arbitration to new player */
+void DNetController::AddArb(DNetPlayer* const a_NetPlayer)
+{
+	size_t Count, i;
+	
+	/* Go through all arbs */
+	// Use first free slot (if any)
+	for (i = 0; i < p_NumArbs; i++)
+		if (!p_Arbs[i])
+		{
+			p_Arbs[i] = a_NetPlayer;
+			return;
+		}
+	
+	// No Room
+	Z_ResizeArray((void**)&p_Arbs, sizeof(*p_Arbs), p_NumArbs, p_NumArbs + 1);
+	p_Arbs[p_NumArbs++] = a_NetPlayer;
 }
 
 /* DNetController::IsLocal() -- Returns true if connection is local */
@@ -3186,16 +3211,20 @@ tic_t DNetController::ReadyTics(void)
 	return 1;
 }
 
+bool D_EXHC_EROR(struct D_NCMessageData_s* const a_Data);
 bool D_EXHC_LPRJ(struct D_NCMessageData_s* const a_Data);
 bool D_EXHC_PJOK(struct D_NCMessageData_s* const a_Data);
-bool D_EXHC_EROR(struct D_NCMessageData_s* const a_Data);
+bool D_EXHC_MAPR(struct D_NCMessageData_s* const a_Data);
+bool D_EXHC_MAPC(struct D_NCMessageData_s* const a_Data);
 
 // c_NCMessageCodes -- Local messages
 static const D_NCMessageType_t c_NCMessageCodesEx[] =
 {
+	{1, "EROR", D_EXHC_EROR, (D_NCMessageFlag_t)(DNCMF_PERFECT | DNCMF_NORMAL | DNCMF_SERVER)},
 	{1, "LPRJ", D_EXHC_LPRJ, (D_NCMessageFlag_t)(DNCMF_PERFECT | DNCMF_CLIENT | DNCMF_SERVER | DNCMF_HOST | DNCMF_REMOTECL)},
 	{1, "PJOK", D_EXHC_PJOK, (D_NCMessageFlag_t)(DNCMF_PERFECT | DNCMF_SERVER | DNCMF_DEMO)},
-	{1, "EROR", D_EXHC_EROR, (D_NCMessageFlag_t)(DNCMF_PERFECT | DNCMF_NORMAL | DNCMF_SERVER)},
+	{1, "MAPR", D_EXHC_MAPR, (D_NCMessageFlag_t)(DNCMF_PERFECT | DNCMF_SERVER | DNCMF_HOST | DNCMF_REMOTECL)},
+	{1, "MAPC", D_EXHC_MAPC, (D_NCMessageFlag_t)(DNCMF_PERFECT | DNCMF_SERVER | DNCMF_DEMO)},
 	
 	// EOL
 	{0, NULL},
@@ -3337,6 +3366,27 @@ void DNetController::NetUpdate(void)
 
 /*** HANDLERS ***/
 
+/* D_EXHC_EROR() -- Error Occured */
+bool D_EXHC_EROR(struct D_NCMessageData_s* const a_Data)
+{
+	uint8_t Code;
+	
+	/* Read Code */
+	Code = a_Data->PIn->ReadUInt8();
+	
+	/* Bad code? */
+	if (Code < 0 || Code >= NUMDNETERRORNUM)
+		return true;
+	
+	/* Print to screen */
+	CONL_PrintF("{1Error %i: ", Code);
+	CONL_OutputU((UnicodeStringID_t)(DSTR_DNEN_SUCCESS + Code), "");
+	CONL_PrintF("{z\n");
+	
+	/* Stop handling */
+	return true;
+}
+
 /* D_EXHC_LPRJ() -- Player wants to join */
 bool D_EXHC_LPRJ(struct D_NCMessageData_s* const a_Data)
 {
@@ -3438,25 +3488,6 @@ bool D_EXHC_LPRJ(struct D_NCMessageData_s* const a_Data)
 				MaxSplit, NextSplit
 			);
 	
-#ifdef forreferenceonly
-	WriteTo->WriteUInt8(a_Bot);
-	WriteTo->WriteString(a_Profile->UUID);
-	WriteTo->WriteString(a_Profile->AccountName);
-	WriteTo->WriteString(a_Profile->DisplayName);
-	
-	// Send the current local player configuration
-	WriteTo->WriteInt8(g_SplitScreen);
-	WriteTo->WriteUInt8(MAXSPLITSCREEN);
-	for (j = -1, i = 0; i < MAXSPLITSCREEN; i++)
-	{
-		WriteTo->WriteUInt8(g_PlayerInSplit[i]);
-		
-		if (j == -1 && !g_PlayerInSplit[i])
-			j = i;
-	}
-	WriteTo->WriteInt8(j);
-#endif
-	
 	/* Send to everyone that the join is OK */
 	MC = DNetController::GetMultiCast();
 	
@@ -3490,6 +3521,96 @@ bool D_EXHC_LPRJ(struct D_NCMessageData_s* const a_Data)
 /* D_EXHC_PJOK() -- Player Join OK */
 bool D_EXHC_PJOK(struct D_NCMessageData_s* const a_Data)
 {
+	uint8_t NodeNum, IsBot, SVMP, SVMSS, PlayID, MaxSplit, CurTPlayers, CurArbC;
+	int8_t CurSplit, NextSplit;
+	uint32_t NewCode;
+	char UUID[MAXPLAYERNAME * 2];
+	char AccountName[MAXPLAYERNAME], DisplayName[MAXPLAYERNAME];
+	D_ProfileEx_t* Profile;
+	DNetPlayer* NewNetPlayer;
+	
+	/* Read Packet Data */
+	NodeNum = a_Data->PIn->ReadUInt8();
+	IsBot = a_Data->PIn->ReadUInt8();
+	NewCode = a_Data->PIn->ReadLittleUInt32();
+	SVMP = a_Data->PIn->ReadUInt8();
+	SVMSS = a_Data->PIn->ReadUInt8();
+	PlayID = a_Data->PIn->ReadUInt8();
+	CurSplit = a_Data->PIn->ReadInt8();
+	MaxSplit = a_Data->PIn->ReadUInt8();
+	NextSplit = a_Data->PIn->ReadInt8();
+	a_Data->PIn->ReadString(UUID, MAXPLAYERNAME * 2);
+	a_Data->PIn->ReadString(AccountName, MAXPLAYERNAME);
+	a_Data->PIn->ReadString(DisplayName, MAXPLAYERNAME);
+	
+	/* Check Bounds */
+	// Code already used?
+	if (DNetPlayer::NetPlayerByCode(NewCode))
+		return true;
+	
+	// Too many players in game?
+	CurTPlayers = D_CNetPlayerCount();
+	if (CurTPlayers >= MAXPLAYERS || CurTPlayers >= SVMP)
+		return true;
+	
+	// Too many players in split?
+	if (!IsBot)
+		if (NextSplit >= SVMSS || NextSplit >= MAXSPLITSCREEN || NextSplit >= MaxSplit)
+			return true;
+	
+	// See if the current slot is empty
+	for (; PlayID < MAXPLAYERS; PlayID++)
+		if (!playeringame[PlayID])
+			break;
+	
+	// No slots left?
+	if (PlayID >= MAXPLAYERS)
+		return true;
+	
+	// Player exceeds ARB count (server only, non-bot)
+	if (a_Data->IsHost && !IsBot)
+	{
+		CurArbC = a_Data->RC->ArbCount(true);
+		if (CurArbC >= SVMSS || CurArbC >= MAXSPLITSCREEN || CurArbC >= MaxSplit)
+			return true;
+	}
+	
+	/* Create Net Player */
+	NewNetPlayer = new DNetPlayer(NewCode);
+	
+	// Bot? (server only, bot)
+	if (a_Data->IsHost && IsBot)
+		NewNetPlayer->SetBot(true);
+	
+	// Add arbitration to remote client size
+	a_Data->RC->AddArb(NewNetPlayer);
+	
+	/* Successful join! Add player now */
+	playeringame[PlayID] = true;
+	G_AddPlayer(PlayID);
+	
+	/* See if the player is a local one */
+	// Check the UUID
+	Profile = D_FindProfileEx(UUID);
+	
+	// It is!
+	if (Profile)
+	{
+		// Add to split screen
+		if (g_SplitScreen < 3)
+		{
+			g_PlayerInSplit[g_SplitScreen + 1] = true;
+			consoleplayer[g_SplitScreen + 1] = displayplayer[g_SplitScreen + 1] = PlayID;
+			g_SplitScreen++;
+			
+			// Recalc
+			R_ExecuteSetViewSize();
+		}
+		
+		// Set local player's profile
+		players[PlayID].ProfileEx = Profile;
+	}
+	
 	CONL_PrintF("Joined player!\n");
 	
 	CONL_PrintF("%s %s\n",
@@ -3501,22 +3622,72 @@ bool D_EXHC_PJOK(struct D_NCMessageData_s* const a_Data)
 	return true;
 }
 
-/* D_EXHC_EROR() -- Error Occured */
-bool D_EXHC_EROR(struct D_NCMessageData_s* const a_Data)
+/* D_EXHC_MAPR() -- Request Map */
+bool D_EXHC_MAPR(struct D_NCMessageData_s* const a_Data)
 {
-	uint8_t Code;
+	RBMultiCastStream_c* MC;
+	uint8_t SwitchLevel;
+	char LumpName[MAXPLIEXFIELDWIDTH];
+	P_LevelInfoEx_t* Info;
 	
-	/* Read Code */
-	Code = a_Data->PIn->ReadUInt8();
+	/* Read Info */
+	SwitchLevel = a_Data->PIn->ReadUInt8();
+	a_Data->PIn->ReadString(LumpName, MAXPLIEXFIELDWIDTH);
 	
-	/* Bad code? */
-	if (Code < 0 || Code >= NUMDNETERRORNUM)
+	/* Try and locate the level */
+	Info = P_FindLevelByNameEx(LumpName, NULL);
+	
+	// Not found?
+	if (!Info)
+	{
+		D_CRepSendError(a_Data->POut, a_Data->ReadAddr, DNEN_NOTALEVEL);
+		return true;
+	}
+	
+	/* Tell everyone to change to this map */
+	MC = DNetController::GetMultiCast();
+	
+	// Base
+	MC->BlockBase("MAPC");
+	
+	// Data
+	MC->WriteUInt8(SwitchLevel);
+	MC->WriteString(Info->LumpName);
+	
+	// Send
+	MC->BlockRecord();
+	
+	/* Stop handling */
+	return true;
+}
+
+/* D_EXHC_MAPC() -- Change Map */
+bool D_EXHC_MAPC(struct D_NCMessageData_s* const a_Data)
+{
+	RBMultiCastStream_c* MC;
+	uint8_t SwitchLevel, i;
+	char LumpName[MAXPLIEXFIELDWIDTH];
+	P_LevelInfoEx_t* Info;
+	
+	/* Read Info */
+	SwitchLevel = a_Data->PIn->ReadUInt8();
+	a_Data->PIn->ReadString(LumpName, MAXPLIEXFIELDWIDTH);
+	
+	/* Try and locate the level */
+	Info = P_FindLevelByNameEx(LumpName, NULL);
+	
+	// Not found?
+	if (!Info)
 		return true;
 	
-	/* Print to screen */
-	CONL_PrintF("{1Error %i: ", Code);
-	CONL_OutputU((UnicodeStringID_t)(DSTR_DNEN_SUCCESS + Code), "");
-	CONL_PrintF("{z\n");
+	/* Switch to this map */
+	// Reset players?
+	if (!SwitchLevel)
+		for (i = 0; i < MAXPLAYERS; i++)
+			players[i].playerstate = PST_REBORN;
+	
+	// Load it
+	P_ExLoadLevel(Info, 0);
 	
 	/* Stop handling */
 	return true;
@@ -3608,6 +3779,43 @@ void D_CReqLocalPlayer(D_ProfileEx_t* const a_Profile, const bool a_Bot)
 			j = i;
 	}
 	WriteTo->WriteInt8(j);
+	
+	// Send
+	WriteTo->BlockRecord(&Server->GetAddress());
+}
+
+/* D_CReqMapChange() -- Requests that the server change the map */
+void D_CReqMapChange(P_LevelInfoEx_s* const a_Level, const bool a_Switch)
+{		
+	DNetController* Server;
+	RBPerfectStream_c* WriteTo;
+	int i, j;
+	
+	/* Check */
+	if (!a_Level)
+		return;
+	
+	/* Find Server */
+	Server = DNetController::GetServer();
+	
+	// Not found?
+	if (!Server)
+		return;
+	
+	/* Get stream to write to */
+	WriteTo = Server->GetPerfectWrite();
+	
+	// Not around?
+	if (!WriteTo)
+		return;
+	
+	/* Fill Block Info */
+	// Base
+	WriteTo->BlockBase("MAPR");
+	
+	// Data
+	WriteTo->WriteUInt8(a_Switch);
+	WriteTo->WriteString(a_Level->LumpName);
 	
 	// Send
 	WriteTo->BlockRecord(&Server->GetAddress());

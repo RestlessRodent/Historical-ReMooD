@@ -3033,7 +3033,7 @@ RBPerfectStream_c::RBPerfectKey_s* RBPerfectStream_c::IntFindKey(const uint32_t*
 				}
 			
 			// Delete self key
-			Z_Free(Key);
+			delete Key;
 			Key = p_Keys[k] = NULL;
 			return NULL;	// Was revoked
 		}
