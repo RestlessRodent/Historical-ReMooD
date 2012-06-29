@@ -842,6 +842,10 @@ static P_EXGSVariable_t l_GSVars[PEXGSNUMBITIDS] =
 	{PEXGST_INTEGER, PEXGSBID_COKILLSTOPLAYERONE, "co_killstoplayerone", "Give Kills to Player 1",
 		"Gives kills performed by non-players to player 1. [ReMooD < 1.0a]", PEXGSGM_ANY, PEXGSDR_LESSTHAN, 200, {0, 1}, 1,
 		PEXGSMC_COMPAT, PEXGSDA_YESNO, c_PEXGSPVBoolean, NULL},
+		
+	{PEXGST_INTEGER, PEXGSBID_COALLOWCARRYKILLER, "co_allowcarrykiller", "Allow Killer Carrying",
+		"Allow the carrying of the killer when destroying objects such as barrels.. [Legacy >= 1.25]", PEXGSGM_ANY, PEXGSDR_ATLEAST, 125, {0, 1}, 1,
+		PEXGSMC_COMPAT, PEXGSDA_YESNO, c_PEXGSPVBoolean, NULL},
 };
 
 /*** FUNCTIONS ***/
