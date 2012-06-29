@@ -158,7 +158,7 @@ uint64_t D_RBSReadPointer(D_RBlockStream_t* const a_Stream);
 *** GENERIC BYTE STREAM ***
 **************************/
 
-/* GenericByteStream -- A Generic Byte Stream (abstract) */
+/* GenericByteStream_c -- A Generic Byte Stream (abstract) */
 class GenericByteStream_c
 {
 	private:
@@ -249,6 +249,48 @@ class GenericByteStream_c
 		size_t ReadWLine(wchar_t* const a_Buf, const size_t a_Size);
 		
 		void WriteWChar(const wchar_t a_Value);
+};
+
+/**********************
+*** WRAPPED STREAMS ***
+**********************/
+
+/* RawDataStream_c -- Raw data stream (wraps raw data) */
+class RawDataStream_c
+{
+	private:
+		void* p_Base;							// Base of chunk
+		size_t p_ChunkSize;						// Size of chunk
+		
+	public:
+		RawDataStream_c(void* const a_ChunkBase, const size_t a_ChunkSize);
+		~RawDataStream_c();
+		
+		/* Abstracted */
+		bool Seekable(void);
+		bool EndOfStream(void);
+		uint64_t Tell(void);
+		uint64_t Seek(const uint64_t a_NewPos, const bool a_AtEnd = false);
+		size_t ReadChunk(void* const a_Data, const size_t a_Size);
+		size_t WriteChunk(const void* const a_Data, const size_t a_Size);
+};
+
+/* FileStream_c -- File Stream */
+class FileStream_c
+{
+	private:
+		
+	public:
+		RawDataStream_c(const char* const a_Path, const char* const a_Mode);
+		~RawDataStream_c();
+		
+		/* Abstracted */
+		bool Seekable(void);
+		bool EndOfStream(void);
+		uint64_t Tell(void);
+		uint64_t Seek(const uint64_t a_NewPos, const bool a_AtEnd = false);
+		size_t ReadChunk(void* const a_Data, const size_t a_Size);
+		size_t WriteChunk(const void* const a_Data, const size_t a_Size);
 };
 
 /********************

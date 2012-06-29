@@ -2336,6 +2336,10 @@ __REMOOD_RBDLITTLEWRITE(UInt16,uint16_t);
 __REMOOD_RBDLITTLEWRITE(UInt32,uint32_t);
 __REMOOD_RBDLITTLEWRITE(UInt64,uint64_t);
 
+/**********************
+*** WRAPPED STREAMS ***
+**********************/
+
 /*******************************
 *** CLASS BASED BLOCK STREAM ***
 *******************************/
