@@ -173,6 +173,7 @@ class GenericByteStream_c
 		
 		/* Abstracted */
 		virtual bool Seekable(void) = 0;
+		virtual bool AutoSeek(void) = 0;
 		virtual bool EndOfStream(void) = 0;
 		virtual uint64_t Tell(void) = 0;
 		virtual uint64_t Seek(const uint64_t a_NewPos, const bool a_AtEnd = false) = 0;
@@ -268,6 +269,7 @@ class RawDataStream_c : public GenericByteStream_c
 		
 		/* Abstracted */
 		bool Seekable(void);
+		bool AutoSeek(void);
 		bool EndOfStream(void);
 		uint64_t Tell(void);
 		uint64_t Seek(const uint64_t a_NewPos, const bool a_AtEnd = false);
@@ -290,6 +292,7 @@ class FileStream_c : public GenericByteStream_c
 		
 		/* Abstracted */
 		bool Seekable(void);
+		bool AutoSeek(void);
 		bool EndOfStream(void);
 		uint64_t Tell(void);
 		uint64_t Seek(const uint64_t a_NewPos, const bool a_AtEnd = false);
@@ -352,6 +355,7 @@ class RBStream_c : public GenericByteStream_c
 		
 		/* Abstracted */
 		bool Seekable(void);
+		bool AutoSeek(void);
 		bool EndOfStream(void);
 		uint64_t Tell(void);
 		uint64_t Seek(const uint64_t a_NewPos, const bool a_AtEnd = false);

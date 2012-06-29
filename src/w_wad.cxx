@@ -1499,6 +1499,12 @@ bool WLEntryStream_c::Seekable(void)
 	return true;
 }
 
+/* WLEntryStream_c::AutoSeek() -- Returns true if stream is auto-seeked */
+bool WLEntryStream_c::AutoSeek(void)
+{
+	return false;
+}
+
 /* WLEntryStream_c::EndOfStream() -- Indicates the stream has ended */
 bool WLEntryStream_c::EndOfStream(void)
 {

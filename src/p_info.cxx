@@ -722,6 +722,9 @@ static bool PS_LevelInfoGetBlockPoints(P_LevelInfoEx_t* const a_Info, const WL_W
 	if (!a_Info || !a_Entry || !a_Stream)
 		return false;
 	
+	/* Check Unicode */
+	a_Stream->CheckUnicode();
+	
 	/* While there is no stream end */
 	while (!a_Stream->EndOfStream())
 	{
@@ -732,6 +735,9 @@ static bool PS_LevelInfoGetBlockPoints(P_LevelInfoEx_t* const a_Info, const WL_W
 		FullRead = false;
 		
 		// Read line into buffer
+#if 1
+		a_Stream->ReadLine(Buf, BUFSIZE);
+#else
 		do
 		{
 			// No more characters?
@@ -748,6 +754,7 @@ static bool PS_LevelInfoGetBlockPoints(P_LevelInfoEx_t* const a_Info, const WL_W
 				else
 					FullRead = true;
 		} while (Char != '\n');
+#endif
 		
 		// Determine if this is a block specifier
 		if (FullRead && Buf[0] == '[')

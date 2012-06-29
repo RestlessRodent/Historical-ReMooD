@@ -872,7 +872,7 @@ CONL_ExitCode_t CLC_Exec(const uint32_t a_ArgC, const char** const a_ArgV)
 CONL_ExitCode_t CLC_ExecFile(const uint32_t a_ArgC, const char** const a_ArgV)
 {
 #define BUFSIZE 512
-	FILE* File;
+	FileStream_c* File;
 	char Buf[BUFSIZE];
 	char* p;
 	
@@ -884,18 +884,21 @@ CONL_ExitCode_t CLC_ExecFile(const uint32_t a_ArgC, const char** const a_ArgV)
 	CONL_PrintF("Executing \"%s\"...\n", a_ArgV[1]);
 	
 	/* Attempt open of file */
-	File = fopen(a_ArgV[1], "r");
+	File = FileStream_c::Open(a_ArgV[1], "r");
 	
 	// Failed?
 	if (!File)
 		return CLE_RESOURCENOTFOUND;
 	
+	// See if the file is Unicode or not
+	File->CheckUnicode();
+	
 	/* Constantly read file */
-	while (!feof(File))
+	while (!File->EndOfStream())
 	{
 		// Read into buffer
 		memset(Buf, 0, sizeof(Buf));
-		fgets(Buf, BUFSIZE, File);
+		File->ReadLine(Buf, BUFSIZE);
 		
 		// Skip white space at start
 		for (p = Buf; *p && isspace(*p); p++);
@@ -909,7 +912,7 @@ CONL_ExitCode_t CLC_ExecFile(const uint32_t a_ArgC, const char** const a_ArgV)
 	}
 	
 	/* Close File */
-	fclose(File);
+	File->Close();
 	
 	/* Success */
 	return CLE_SUCCESS;

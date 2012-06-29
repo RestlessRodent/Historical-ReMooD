@@ -2187,10 +2187,13 @@ size_t GenericByteStream_c::ReadLine(char* const a_Buf, const size_t a_Size)
 		return 0;
 	
 	/* Read characters until \n */
-	for (RetVal = 0, Char = ReadChar(); !EndOfStream(); Char = ReadChar())
+	for (RetVal = 0; !EndOfStream();)
 	{
-		// If character is \n, the stream has ended
-		if (Char == '\n')
+		// Read Character
+		Char = ReadChar();
+		
+		// If character is \n, the line has ended
+		if (Char == '\n' || Char == 0)
 			break;
 		
 		// Ignore '\r'
@@ -2266,7 +2269,7 @@ void GenericByteStream_c::WriteString(const char* const a_Buf)
 	uint64_t OffBase, ThisOff;\
 	ThisOff = Tell();\
 	OffBase = ReadChunk(&Value, sizeof(Value));\
-	if (Seekable())\
+	if (Seekable() && !AutoSeek())\
 		Seek(ThisOff + OffBase);\
 	return Value;\
 }
@@ -2285,7 +2288,7 @@ __REMOOD_GBSREADINT(UInt64,uint64_t);
 	uint64_t OffBase, ThisOff;\
 	ThisOff = Tell();\
 	OffBase = WriteChunk(&a_Value, sizeof(a_Value));\
-	if (Seekable())\
+	if (Seekable() && !AutoSeek())\
 		Seek(ThisOff + OffBase);\
 }
 
@@ -2390,11 +2393,17 @@ bool FileStream_c::Seekable(void)
 	return true;
 }
 
+/* FileStream_c::AutoSeek() -- Stream auto seeks */
+bool FileStream_c::AutoSeek(void)
+{
+	return true;
+}
+
 /* FileStream_c::EndOfStream() -- At end of stream? */
 bool FileStream_c::EndOfStream(void)
 {
 	if (p_CFile)
-		return feof((FILE*)p_CFile);
+		return feof((FILE*)p_CFile) || ferror((FILE*)p_CFile);
 	else
 		return true;
 }
@@ -2522,6 +2531,12 @@ RBStream_c::~RBStream_c()
 
 /* RBStream_c::Seekable() -- Block streams are not seekable */
 bool RBStream_c::Seekable(void)
+{
+	return false;
+}
+
+/* RBStream_c::AutoSeek() -- Stream auto seeks */
+bool RBStream_c::AutoSeek(void)
 {
 	return false;
 }

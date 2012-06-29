@@ -244,6 +244,7 @@ class WLEntryStream_c : public GenericByteStream_c
 		~WLEntryStream_c();
 		
 		bool Seekable(void);
+		bool AutoSeek(void);
 		bool EndOfStream(void);
 		uint64_t Tell(void);
 		uint64_t Seek(const uint64_t a_NewPos, const bool a_AtEnd = false);
