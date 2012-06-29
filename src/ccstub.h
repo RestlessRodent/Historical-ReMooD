@@ -119,11 +119,78 @@
 	//#define isdigit TxtCharIsDigit
 	//#define isxdigit TxtCharIsHex
 	#define strchr StrChr
+	
+	typedef int32_t time_t;
+	typedef int32_t mode_t;
 #endif
 
 /*****************
 *** PROTOTYPES ***
 *****************/
+
+#if defined(__palmos__)
+	int toupper(int c);
+	int tolower(int c);
+	long int strtol(const char *nptr, char **endptr, int base);
+	int isspace(int c);
+	double atof(const char *nptr);
+	int snprintf(char *str, size_t size, const char *format, ...);
+	FILE *fopen(const char *path, const char *mode);
+	int feof(FILE *stream);
+	char *fgets(char *s, int size, FILE *stream);
+	int fclose(FILE *fp);
+	int vsnprintf(char *str, size_t size, const char *format, va_list ap);
+	int fprintf(FILE *stream, const char *format, ...);
+	int fflush(FILE *stream);
+	size_t fread(void *ptr, size_t size, size_t nmemb, FILE *stream);
+	size_t fwrite(const void *ptr, size_t size, size_t nmemb, FILE *stream);
+	void abort(void);
+	long int labs(long int j);
+	double pow(double x, double y);
+	double sin(double x);
+	int sprintf(char *str, const char *format, ...);
+	int abs(int j);
+	time_t time(time_t *t);
+	int isalnum(int c);
+	int access(const char *pathname, int mode);
+	char *getenv(const char *name);
+	int printf(const char *format, ...);
+	int mkdir(const char *pathname);
+	void exit(int status);
+	int fseek(FILE *stream, long offset, int whence);
+	long ftell(FILE *stream);
+	int vsprintf(char *str, const char *format, va_list ap);
+	void *realloc(void *ptr, size_t size);
+	void free(void *ptr);
+	void *malloc(size_t size);
+	char *strtok(char *str, const char *delim);
+	double sqrt(double x);
+	double log(double x);
+	double exp(double x);
+	double acos(double x);
+	double cos(double x);
+	double asin(double x);
+	double sin(double x);
+	double atan(double x);
+	double tan(double x);
+	double floor(double x);
+	int rand(void);
+	char *strdup(const char *s);
+	int isalnum(int c);
+	int isalpha(int c);
+	int isascii(int c);
+	int isblank(int c);
+	int iscntrl(int c);
+	int isdigit(int c);
+	int isgraph(int c);
+	int islower(int c);
+	int isprint(int c);
+	int ispunct(int c);
+	int isspace(int c);
+	int isupper(int c);
+	int isxdigit(int c);
+	char *strrchr(const char *s, int c);
+#endif
 
 /*****************************************************************************/
 

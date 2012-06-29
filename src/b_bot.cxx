@@ -270,7 +270,7 @@ static void BS_MoveToAndAimAtFrom(const fixed_t a_x1, const fixed_t a_y1, const 
 /* BS_AngleDiff() -- Difference of angle */
 static angle_t BS_AngleDiff(const angle_t a_A, const angle_t a_B)
 {
-	return ((uint32_t)(abs(((int32_t)(a_A >> 1)) - ((int32_t)(a_B >> 1))) & 0x7FFFFFFFU)) << 1;
+	return 0;//return ((uint32_t)(abs(((int32_t)(a_A >> 1)) - ((int32_t)(a_B >> 1))) & 0x7FFFFFFFU)) << 1;
 }
 
 /* BS_NTNPFirst() -- Determines whether point is reachable */

@@ -71,7 +71,6 @@
 
 /* Required Stuff */
 #if defined(__REMOOD_USECCSTUB)
-	#include "ccstub.h"
 #else
 	#include <stdarg.h>
 	#include <stdio.h>
@@ -349,6 +348,9 @@ typedef union FColorRGBA RGBA_t;
 
 #include "c_lib.h"
 
+#if defined(__REMOOD_USECCSTUB)
+	#include "ccstub.h"
+#endif
 
 #endif							/* __DOOMTYPE_H__ */
 

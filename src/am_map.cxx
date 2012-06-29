@@ -193,6 +193,7 @@ mline_t cheat_player_arrow[] =
 #define NUMCHEATPLYRLINES (sizeof(cheat_player_arrow)/sizeof(mline_t))
 
 #define R (FRACUNIT)
+#if 0
 mline_t triangle_guy[] =
 {
 	{	{(fixed_t) - .867 * R, (fixed_t) - .5 * R},
@@ -201,17 +202,20 @@ mline_t triangle_guy[] =
 	{{(fixed_t) .867 * R, (fixed_t) - .5 * R}, {(fixed_t) 0, (fixed_t) R}},
 	{{(fixed_t) 0, (fixed_t) R}, {(fixed_t) - .867 * R, (fixed_t) - .5 * R}}
 };
+#endif
 
 #undef R
 #define NUMTRIANGLEGUYLINES (sizeof(triangle_guy)/sizeof(mline_t))
 
 #define R (FRACUNIT)
+#if 0
 mline_t thintriangle_guy[] =
 {
 	{{-.5 * R, -.7 * R}, {R, 0}},
 	{{R, 0}, {-.5 * R, .7 * R}},
 	{{-.5 * R, .7 * R}, {-.5 * R, -.7 * R}}
 };
+#endif
 
 #undef R
 #define NUMTHINTRIANGLEGUYLINES (sizeof(thintriangle_guy)/sizeof(mline_t))
@@ -1313,8 +1317,7 @@ void AM_drawThings(int colors, int colorrange)
 			else
 				color = colors + lightlev[am_DrawPlayer];
 				
-			AM_drawLineCharacter
-			(thintriangle_guy, NUMTHINTRIANGLEGUYLINES, (t->info->radius > 0 ? t->info->radius / FRACUNIT : 2) << FRACBITS, tangle, color, t->x, t->y);
+			//AM_drawLineCharacter(thintriangle_guy, NUMTHINTRIANGLEGUYLINES, (t->info->radius > 0 ? t->info->radius / FRACUNIT : 2) << FRACBITS, tangle, color, t->x, t->y);
 			t = t->snext;
 		}
 	}

@@ -118,7 +118,7 @@
 #endif
 
 // If IPv6 is not enabled, typedef sockaddr_in6 so that the code does not explode
-#ifndef __REMOOD_ENABLEIPV6
+#if !defined(__MSDOS__) && !defined(__REMOOD_ENABLEIPV6)
 	typedef sockaddr_in sockaddr_in6;
 #endif
 

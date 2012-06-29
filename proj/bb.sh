@@ -442,6 +442,22 @@ do
 				wget -c http://remood.org/downloads/arm-palmos-gcc-floatlib.o -O arm-palmos-gcc-floatlib.o
 			fi
 			
+			# Download PACE Object
+			echo "$COOLPREFIX Checking for PACE object" 1>&2
+			if [ ! -f "arm-palmos-gcc-pace_gen.o" ]
+			then
+				# Download from remood.org
+				wget -c http://remood.org/downloads/arm-palmos-gcc-pace_gen.o -O arm-palmos-gcc-pace_gen.o
+			fi
+			
+			# Download ARM Floats
+			echo "$COOLPREFIX Checking for ARM Floats" 1>&2
+			if [ ! -f "armfloats.ar" ]
+			then
+				# Download from remood.org
+				wget -c http://remood.org/downloads/armfloats.ar -O armfloats.ar
+			fi
+			
 			# Download Boot Lib
 			echo "$COOLPREFIX Checking for libarmboot.a" 1>&2
 			if [ ! -f "libarmboot.a" ]
