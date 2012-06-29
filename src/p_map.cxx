@@ -302,18 +302,19 @@ static bool PIT_CheckThing(mobj_t* thing, void* a_Arg)
 	}
 	
 	// heretic stuffs
-	if (tmthing->flags2 & MF2_PASSMOBJ)
-	{
-		if (tmthing->z >= thing->z + thing->height && !(thing->flags & MF_SPECIAL))
+	if (P_EXGSGetValue(PEXGSBID_COENABLEMFTWOPASSMOBJ))
+		if (tmthing->flags2 & MF2_PASSMOBJ)
 		{
-			return (true);
+			if (tmthing->z >= thing->z + thing->height && !(thing->flags & MF_SPECIAL))
+			{
+				return (true);
+			}
+			else if (tmthing->z + tmthing->height < thing->z && !(thing->flags & MF_SPECIAL))
+			{
+				// under thing
+				return (true);
+			}
 		}
-		else if (tmthing->z + tmthing->height < thing->z && !(thing->flags & MF_SPECIAL))
-		{
-			// under thing
-			return (true);
-		}
-	}
 	
 	// check for skulls slamming into things
 	if (tmflags & MF_SKULLFLY)

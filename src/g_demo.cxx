@@ -540,6 +540,9 @@ bool G_DEMO_Vanilla_ReadTicCmd(struct G_CurrentDemo_s* a_Current, ticcmd_t* cons
 	
 		// Resort weapon over
 		a_Cmd->buttons |= ((((ButtonCodes & 0x38) >> 3)) << BT_SLOTSHIFT) & BT_SLOTMASK;
+		
+		// No looking up/down permitted
+		a_Cmd->aiming = 0;
 	}
 	
 	/* Success! */

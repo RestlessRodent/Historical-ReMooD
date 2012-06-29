@@ -1,6 +1,7 @@
 doom_111.lmp	-longtics Demo (1.91 Hack)
 vd00_109.lmp	Vanilla Doom 1.09 (Doom II, MAP01 - MAP04)
 vd01_109.lmp	Vanilla Doom 1.09 (Doom II, MAP01, Pause Tests)
+vd02_109.lmp	Vanilla Doom 1.09 (Doom II, MAP19, Candle Glide Test)
 legc_111.lmp	Doom Legacy 1.11 (Doom II, MAP01 - MAP05)
 lgc0_142.lmp	Doom Legacy 1.42 (Doom II, MAP01 - MAP05)
 lgc1_142.lmp	Doom Legacy 1.42 (Doom II, MAP01 - MAP12)
