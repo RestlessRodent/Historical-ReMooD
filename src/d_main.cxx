@@ -592,6 +592,7 @@ void D_DoomLoop(void)
 	SCR_Recalc();
 	
 	FPSLastTime = I_GetTimeMS();
+	FPSLastTic = FPSLastTime;
 	
 	// Playing any demos?
 	if (singledemo)
@@ -624,7 +625,6 @@ void D_DoomLoop(void)
 		I_DoMouseGrabbing();
 		
 		// frame syncronous IO operations
-		// UNUSED for the moment (18/12/98)
 		I_StartFrame();
 		
 		// process tics (but maybe not if realtic==0)
@@ -636,9 +636,6 @@ void D_DoomLoop(void)
 			
 			rendergametic = gametic;
 			rendertimeout = entertic + TICRATE / 17;
-			
-			//added:16-01-98:consoleplayer -> displayplayer (hear sounds from viewpoint)
-			
 			// Update display, next frame, with current state.
 			D_Display();
 			supdate = false;
@@ -670,19 +667,20 @@ void D_DoomLoop(void)
 		I_UpdateCD();
 		
 		// GhostlyDeath <July 8, 2009> -- Add FPS Counter
-		if (gametic % TICRATE == 0 && FPSLastTic != gametic)
+			// A simple subtraction might be faster than modulo
+		if ((gametic - FPSLastTic) > (TICRATE + 1))
 		{
 			FPSNowTime = I_GetTimeMS();
 			
 			l_FPSTimePerGS = FPSNowTime - FPSLastTime;
-			l_FPSFrameFPGS = TICRATE - ((l_FPSRanFPS) % TICRATE);
+			l_FPSFrameFPGS = l_FPSRanFPS;//TICRATE - ((l_FPSRanFPS) % TICRATE);
 			// GhostlyDeath <July 9, 2009> -- Floating point is more accurate but fixed may be faster
 			l_FPSTrueFPS =		//((double)l_FPSFrameFPGS / ((double)l_FPSTimePerGS / 1000.0)) * 10.0;
 			    FixedMul(FixedDiv(l_FPSFrameFPGS << FRACBITS, FixedDiv(l_FPSTimePerGS << FRACBITS, 1000 << FRACBITS)), 10 << FRACBITS) >> FRACBITS;
-			    
+			   
+			// Reset stats for future running
 			l_FPSRanFPS = 0;
 			FPSLastTime = FPSNowTime;
-			
 			FPSLastTic = gametic;
 			
 			if (l_FPSTrueFPS > 9999)

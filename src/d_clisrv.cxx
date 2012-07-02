@@ -123,6 +123,7 @@ int32_t g_IgnoreWipeTics;						// Demo playback, ignore this many wipe tics
 void TryRunTics(tic_t realtics)
 {
 	static tic_t LastTic;
+	static bool ToggleUp;
 	tic_t LocalTic, TargetTic;
 	int STRuns;
 	
@@ -237,7 +238,14 @@ void TryRunTics(tic_t realtics)
 	
 	// Not behind so sleep
 	else if (!singletics)
+	{
 		I_WaitVBL(20);
+		
+		// Toggle net updates (reduce CPU/traffic a bit)
+		if (ToggleUp)
+			DNetController::NetUpdate();
+		ToggleUp = !ToggleUp;
+	}
 }
 
 /* D_GetTics() -- Returns wrap capable time in tics */

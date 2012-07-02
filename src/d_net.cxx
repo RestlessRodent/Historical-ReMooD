@@ -2907,14 +2907,21 @@ void D_NCQC_MapChange(void* const a_Data)
 *** CLASS BASED NETWORKING ***
 *****************************/
 
+/*** GLOBALS ***/
+
+extern int32_t g_IgnoreWipeTics;				// Ignore tics ran during wipe (no speedup after wipe)
+
 /*** LOCALS ***/
 
 static DNetController** l_ServerNCS;			// Server Controllers
 static size_t l_NumServerNCS;					// Number of controllers
 
-
 tic_t DNetController::p_ReadyTime = 0;			// Current Ready Time
 RBMultiCastStream_c* DNetController::p_MulCast;	// Multi Cast
+int32_t DNetController::p_LocalCount = 0;		// Local network players count
+int32_t DNetController::p_RemoteCount = 0;		// Remote network players count
+tic_t DNetController::p_LastTime = 0;			// Last time for ready tics
+bool DNetController::p_IsGameHost = false;		// Is host of the game
 
 DNetPlayer** DNetPlayer::p_Players = NULL;		// Net players
 size_t DNetPlayer::p_NumPlayers = 0;			// Number of them
@@ -3082,12 +3089,22 @@ void DNetController::AddArb(DNetPlayer* const a_NetPlayer)
 		if (!p_Arbs[i])
 		{
 			p_Arbs[i] = a_NetPlayer;
-			return;
+			break;
 		}
 	
 	// No Room
-	Z_ResizeArray((void**)&p_Arbs, sizeof(*p_Arbs), p_NumArbs, p_NumArbs + 1);
-	p_Arbs[p_NumArbs++] = a_NetPlayer;
+	if (i >= p_NumArbs)
+	{
+		Z_ResizeArray((void**)&p_Arbs, sizeof(*p_Arbs), p_NumArbs, p_NumArbs + 1);
+		i = p_NumArbs++;
+		p_Arbs[i] = a_NetPlayer;
+	}
+	
+	/* Modify local/remote count */
+	if (p_IsLocal)
+		p_LocalCount++;
+	else
+		p_RemoteCount++;
 }
 
 /* DNetController::IsLocal() -- Returns true if connection is local */
@@ -3179,6 +3196,17 @@ void DNetController::Disconnect(void)
 	p_MulCast->AddMultiCast(l_ServerNCS[0]->GetPerfectWrite(), &l_ServerNCS[0]->p_Address);
 	
 	// Create Internet controller
+	
+	/* Reset Quick Determs */
+	// Count of local/remote players (for timing code)
+	p_LocalCount = 0;
+	p_RemoteCount = 0;
+	
+	// Host of the game
+	p_IsGameHost = false;
+	
+	// Server Tics
+	p_LastTime = 0;
 }
 
 /* DNetController::StartServer() -- Starts a server */
@@ -3198,8 +3226,12 @@ void DNetController::StartServer(void)
 				l_ServerNCS[i]->p_SaveSent = true;
 			}
 	
+	/* Set as server */
+	p_IsGameHost = true;
+	
 	/* Change game state to waiting mode */
 	p_ReadyTime = 0;
+	p_LastTime = I_GetTime();					// For no tics after server start speedup
 	gamestate = wipegamestate = GS_WAITINGPLAYERS;
 	S_ChangeMusicName("D_WAITIN", 1);			// Waiting for game to start
 }
@@ -3208,7 +3240,68 @@ void DNetController::StartServer(void)
 // i.e. the amount that statifies NetReadTicCmds for all players
 tic_t DNetController::ReadyTics(void)
 {
-	return 1;
+	tic_t ThisTime;
+	tic_t DiffTime;
+	
+	/* Get the current time */
+	ThisTime = I_GetTime();
+	
+	/* At least 1 remote player */
+	if (p_RemoteCount > 0)
+	{
+		// Wait on other players, TODO
+		if (p_IsGameHost)
+		{
+			return 0;
+		}
+		
+		// Waiting on server
+		else
+		{
+			return 0;
+		}
+	}
+	
+	/* Only Local Players (Solo, Split) */
+	else if (p_LocalCount > 0)
+	{
+		// Ignoring tics (due to wipe)
+		if (g_IgnoreWipeTics)
+		{
+			p_LastTime = ThisTime;
+			g_IgnoreWipeTics = 0;
+			return 0;
+		}
+		
+		// New Tic?
+		else if (ThisTime > p_LastTime)
+		{
+			DiffTime = ThisTime - p_LastTime;
+			p_LastTime = ThisTime;
+			return DiffTime;
+		}
+		
+		// No lost time or need to update
+		else
+			return 0;
+	}
+	
+	/* An empty server (no players) */
+	// There's no need to waste a bunch of CPU cycles here. Also, say someone
+	// loads up nuts or scythe map26(?) on your server, causes massive infighting
+	// and then just leaves, don't want to lose that CPU.
+	else
+	{
+#define SERVERCOOLDOWN 3
+		if (ThisTime >> SERVERCOOLDOWN > p_LastTime >> SERVERCOOLDOWN)
+		{
+			DiffTime = (ThisTime - p_LastTime) >> SERVERCOOLDOWN;
+			p_LastTime = ThisTime;
+			return DiffTime;
+		}
+		return 0;
+#undef SERVERCOOLDOWN
+	}
 }
 
 bool D_EXHC_EROR(struct D_NCMessageData_s* const a_Data);

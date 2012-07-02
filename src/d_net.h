@@ -244,7 +244,11 @@ class DNetController
 		
 		static tic_t p_ReadyTime;				// Current Ready Time
 		static RBMultiCastStream_c* p_MulCast;	// Multi-Cast
+		static int32_t p_LocalCount;			// Local network players count
+		static int32_t p_RemoteCount;			// Remote network players count
 		
+		static tic_t p_LastTime;				// Last time ran
+		static bool p_IsGameHost;				// Is host of the game
 	public:
 		DNetController();
 		DNetController(RBStream_c* const a_STDStream);
