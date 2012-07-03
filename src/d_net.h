@@ -14,9 +14,7 @@
 //      :oO8@@@@@@@@@@Oo.
 //         .oCOOOOOCc.                                      http://remood.org/
 // -----------------------------------------------------------------------------
-// Copyright (C) 1993-1996 by id Software, Inc.
-// Copyright (C) 1998-2000 by DooM Legacy Team.
-// Copyright (C) 2008-2012 GhostlyDeath (ghostlydeath@gmail.com)
+// Copyright (C) 2008-2012 GhostlyDeath <ghostlydeath@remood.org>
 // -----------------------------------------------------------------------------
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
@@ -29,8 +27,6 @@
 // GNU General Public License for more details.
 // -----------------------------------------------------------------------------
 // DESCRIPTION: Networking stuff.
-//              part of layer 4 (transport) (tp4) of the osi model
-//              assure the reception of packet and proceed a checksums
 
 #ifndef __D_NET_H__
 #define __D_NET_H__

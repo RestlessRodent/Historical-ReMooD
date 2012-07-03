@@ -3983,7 +3983,10 @@ void D_CMakeUUID(char* const a_Buf)
 				Char ^= D_CMakePureRandom();
 			
 			if (++FailCount >= 10)
-				Char = 'A' + (M_Random() % ('Y' - 'A'));
+				if (M_Random() & 1)
+					Char = 'A' + (M_Random() % ('Y' - 'A'));
+				else
+					Char = 'a' + (M_Random() % ('y' - 'a'));
 		}
 		
 		// Last character is the same as this?
