@@ -178,6 +178,8 @@ void D_NCQC_MapChange(void* const a_Data);
 
 /*** CONSTANTS ***/
 
+#define MAXLOCALTICS 						70	// Max local tics
+
 /* DNetErrorNum_e -- Network Error Number */
 enum DNetErrorNum_e
 {
@@ -194,30 +196,111 @@ enum DNetErrorNum_e
 	NUMDNETERRORNUM
 };
 
+/* DNetCommandType_e -- Type of network command */
+enum DNetCommandType_e
+{
+	DNCT_CONNECTCLIENT,							// Client (Dis)Connects
+	DNCT_ADDPLAYER,								// Add player to the game
+	DNCT_CHAT,									// Communication
+	
+	NUMDNETCOMMANDTYPES
+};
+
+#define DNCMAXCHATLINE					256		// Maximum chat line permitted
+
 /*** CLASSES ***/
+
+/* DNetCommand -- Command to be executed */
+struct DNetCommand
+{
+	DNetCommandType_e Type;						// Type of command to execute
+	tic_t TicTime;								// Time command should execute
+	uint32_t Order;								// Order consistency
+	
+	union
+	{
+		struct
+		{
+			uint8_t Disconnect;					// Is a disconnect
+			uint32_t InstanceID;				// Instance ID of connecting player
+		} ConnectClient;						// Client connects
+		
+		struct
+		{
+			uint32_t Flags;						// Flags
+			uint8_t NodeNum;					// Node Number (Server)
+			uint32_t SVInstanceID;				// Server's Instance ID
+			uint32_t CLInstanceID;				// Client's Instance ID
+			uint32_t Code;						// Player's Code
+			uint32_t SVMaxPlayers;				// Server's MAXPLAYERS
+			uint32_t SVMaxSplits;				// Server's MAXSPLITSCREEN
+			uint32_t PlayID;					// Player ID to add
+			int32_t CurSplit;					// Current Player Split (Client)
+			uint32_t MaxSplit;					// Maximum Split Screen (Client)
+			int32_t NextSplit;					// Next split to use (Client)
+			char UUID[MAXPLAYERNAME * 2];		// Player's UUID
+			char AccountName[MAXPLAYERNAME];	// Player's Account Name
+			char DisplayName[MAXPLAYERNAME];	// Player's Display Name
+		} AddPlayer;							// Player is added
+		
+		struct
+		{
+			uint32_t Flags;						// Chat Flags
+			uint32_t InstanceID;				// Instance of talking client
+			uint32_t PlayID;					// Player ID Talking
+			char DisplayName[MAXPLAYERNAME];	// Talking Player's Display Name
+			char Text[DNCMAXCHATLINE];			// Actual Text
+		} Chat;									// Player Communication
+	} Data;										// Data for commands
+};
 
 class RBPerfectStream_c;
 class RBStream_c;
 
 /* DNetPlayer -- Networked Player */
+struct player_s;
+
 class DNetPlayer
 {
 	private:
 		bool p_Bot;								// Bot Player
 		bool p_Local;							// Local Player
 		uint32_t p_Code;						// Special Code
+		int32_t p_PID;							// Player ID
+		tic_t p_BotLastTime;					// Last time bot built commands
+		D_ProfileEx_t* p_Profile;				// Player's Profile
+		struct player_s* p_Player;					// Player that is controlled
 		
 		static DNetPlayer** p_Players;			// Net players
 		static size_t p_NumPlayers;				// Number of them
 		
+		bool GAMEKEYDOWN(D_ProfileEx_t* const a_Profile, const uint8_t a_Key);
+		uint8_t NextWeapon(struct player_s* const a_Player, int step);
+		
 	public:
-		DNetPlayer(const uint32_t a_Code);
+		ticcmd_t** p_TicCmdQ;					// Tic Command Q
+		size_t p_NumTicCmdQ;					// Number of Qed commands
+		
+		ticcmd_t p_LocalTicCmdQ[MAXLOCALTICS];	// Tic Command Q (local)
+		size_t p_LocalSpot;						// Local Tic Spot
+		
+		DNetPlayer(const uint32_t a_Code, const int32_t a_PID);
 		~DNetPlayer();
 		
 		bool IsBot(void);						// Player is a bot
 		void SetBot(const bool a_Val);			// Sets bot
+		tic_t& GetBotLastTime(void);			// Bot's last time
+		
+		bool IsLocal(void);						// Is local player
+		void SetLocal(const bool a_Val);
+		void SetProfile(D_ProfileEx_t* const a_Prof);
+		D_ProfileEx_t* GetProfile(void);
+		
+		void BuildLocalTicCmd(const bool a_ForBot);
+		ticcmd_t* PopTicCmd(void);
 		
 		static DNetPlayer* NetPlayerByCode(const uint32_t a_Code);
+		static DNetPlayer* NetPlayerByPID(const uint32_t a_PID);
 };
 
 /* DNetController -- Controls a group of players */
@@ -238,6 +321,9 @@ class DNetController
 		RBStream_c* p_STDStreams[2];			// Standard Streams
 		RBAddress_c p_Address;					// Address to remote host
 		
+		static DNetCommand** p_CommandQ;		// Command Queue
+		static size_t p_NumCommandQ;			// Size of Q
+		
 		static tic_t p_ReadyTime;				// Current Ready Time
 		static RBMultiCastStream_c* p_MulCast;	// Multi-Cast
 		static int32_t p_LocalCount;			// Local network players count
@@ -245,6 +331,9 @@ class DNetController
 		
 		static tic_t p_LastTime;				// Last time ran
 		static bool p_IsGameHost;				// Is host of the game
+		
+		static tic_t p_Readies;					// Tics that are ready
+		
 	public:
 		DNetController();
 		DNetController(RBStream_c* const a_STDStream);
@@ -272,6 +361,11 @@ class DNetController
 		static void NetUpdate(void);
 		
 		static tic_t ReadyTics(void);
+		static void ReadTicCmd(ticcmd_t* const a_Cmd, const int32_t a_PlayerNum);
+		static void ExecutePreCmds(void);
+		static void ExecutePostCmds(void);
+		
+		static void PushCommand(DNetCommand* const a_Cmd);
 };
 
 /*** FUNCTIONS ***/
@@ -288,6 +382,7 @@ void D_CReqMapChange(P_LevelInfoEx_s* const a_Level, const bool a_Switch = false
 
 uint32_t D_CMakePureRandom(void);
 void D_CMakeUUID(char* const a_Buf);
+bool D_CNetHandleEvent(const I_EventEx_t* const a_Event);
 
 #endif							/* __D_NET_H__ */
 

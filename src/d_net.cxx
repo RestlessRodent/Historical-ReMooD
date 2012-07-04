@@ -55,6 +55,8 @@
 #include "p_setup.h"
 #include "m_random.h"
 #include "i_video.h"
+#include "p_local.h"
+#include "p_inter.h"
 
 /*************
 *** LOCALS ***
@@ -272,6 +274,8 @@ bool D_NetPlayerChangedPause(const int32_t a_PlayerID)
 }
 
 /*****************************************************************************/
+
+/*** CONSTANTS ***/
 
 /*** STRUCTURES ***/
 
@@ -2907,6 +2911,15 @@ void D_NCQC_MapChange(void* const a_Data)
 *** CLASS BASED NETWORKING ***
 *****************************/
 
+/*** CONSTANTS ***/
+
+static const fixed_t c_forwardmove[2] = { 25, 50 };
+static const fixed_t c_sidemove[2] = { 24, 40 };
+static const fixed_t c_angleturn[3] = { 640, 1280, 320 };	// + slow turn
+#define MAXPLMOVE       (c_forwardmove[1])
+
+#define MAXLOCALJOYS	4
+
 /*** GLOBALS ***/
 
 extern int32_t g_IgnoreWipeTics;				// Ignore tics ran during wipe (no speedup after wipe)
@@ -2916,25 +2929,35 @@ extern int32_t g_IgnoreWipeTics;				// Ignore tics ran during wipe (no speedup a
 static DNetController** l_ServerNCS;			// Server Controllers
 static size_t l_NumServerNCS;					// Number of controllers
 
+DNetCommand** DNetController::p_CommandQ;		// Command Queue
+size_t DNetController::p_NumCommandQ;			// Size of Q
 tic_t DNetController::p_ReadyTime = 0;			// Current Ready Time
 RBMultiCastStream_c* DNetController::p_MulCast;	// Multi Cast
 int32_t DNetController::p_LocalCount = 0;		// Local network players count
 int32_t DNetController::p_RemoteCount = 0;		// Remote network players count
 tic_t DNetController::p_LastTime = 0;			// Last time for ready tics
 bool DNetController::p_IsGameHost = false;		// Is host of the game
+tic_t DNetController::p_Readies = 0;			// Tics that are ready
 
 DNetPlayer** DNetPlayer::p_Players = NULL;		// Net players
 size_t DNetPlayer::p_NumPlayers = 0;			// Number of them
 
+static bool l_PermitMouse = false;				// Use mouse input
+static int32_t l_MouseMove[2] = {0, 0};			// Mouse movement (x/y)
+static bool l_KeyDown[NUMIKEYBOARDKEYS];		// Keys that are down
+static uint32_t l_JoyButtons[MAXLOCALJOYS];		// Local Joysticks
+static int16_t l_JoyAxis[MAXLOCALJOYS][MAXJOYAXIS];
+
 /*** CLASSES ***/
 
 /* DNetPlayer::DNetPlayer() -- Constructor */
-DNetPlayer::DNetPlayer(const uint32_t a_Code)
+DNetPlayer::DNetPlayer(const uint32_t a_Code, const int32_t a_PID)
 {
 	size_t i;
 	
 	/* Copy Code */
 	p_Code = a_Code;
+	p_PID = a_PID;
 	
 	/* Find free spot in player list */
 	for (i = 0; i < p_NumPlayers; i++)
@@ -2950,6 +2973,9 @@ DNetPlayer::DNetPlayer(const uint32_t a_Code)
 		Z_ResizeArray((void**)&p_Players, sizeof(*p_Players), p_NumPlayers, p_NumPlayers + 1);
 		p_Players[p_NumPlayers++] = this;
 	}
+	
+	/* Set player ref */
+	p_Player = &players[p_PID];
 }
 
 /* DNetPlayer::~DNetPlayer() -- Deconstructor */
@@ -2978,6 +3004,562 @@ void DNetPlayer::SetBot(const bool a_Val)
 	p_Bot = a_Val;
 }
 
+/* DNetPlayer::GetBotLastTime() -- Returns reference to bot's last time */
+tic_t& DNetPlayer::GetBotLastTime(void)
+{
+	return p_BotLastTime;
+}
+
+/* DNetPlayer::IsLocal() -- Returns true if player is local */
+bool DNetPlayer::IsLocal(void)
+{
+	return p_Local;
+}
+
+/* DNetPlayer::SetLocal() -- Set local player */
+void DNetPlayer::SetLocal(const bool a_Val)
+{
+	p_Local = a_Val;
+}
+
+/* DNetPlayer::SetProfile() -- Sets network profile */
+void DNetPlayer::SetProfile(D_ProfileEx_t* const a_Prof)
+{
+	p_Profile = a_Prof;
+}
+
+/* DNetPlayer::GetProfile() -- Returns network profile */
+D_ProfileEx_t* DNetPlayer::GetProfile(void)
+{
+	return p_Profile;
+}
+
+/* DNetPlayer::GAMEKEYDOWN() -- Key is pressed? */
+bool DNetPlayer::GAMEKEYDOWN(D_ProfileEx_t* const a_Profile, const uint8_t a_Key)
+{
+	size_t i;
+	uint32_t CurrentButton;
+	
+	/* Check Keyboard */
+	for (i = 0; i < 4; i++)
+		if (a_Profile->Ctrls[a_Key][i] >= 0 && a_Profile->Ctrls[a_Key][i] < NUMIKEYBOARDKEYS)
+			if (l_KeyDown[a_Profile->Ctrls[a_Key][i]])
+				return true;
+	
+	/* Check Joysticks */
+	if (a_Profile->Flags & DPEXF_GOTJOY)
+		if (a_Profile->JoyControl >= 0 && a_Profile->JoyControl < 4)
+			for (i = 0; i < 4; i++)
+				if ((a_Profile->Ctrls[a_Key][i] & 0xF000) == 0x1000)
+				{
+					// Get current button
+					CurrentButton = (a_Profile->Ctrls[a_Key][i] & 0x00FF);
+				
+					// Button pressed?
+					if (CurrentButton >= 0 && CurrentButton < 32)
+						if (l_JoyButtons[a_Profile->JoyControl] & (1 << CurrentButton))
+							return true;
+				}
+	
+	/* Not pressed */
+	return false;
+}
+
+/* DNetPlayer::NextWeapon() -- Find next weapon */
+uint8_t DNetPlayer::NextWeapon(struct player_s* const a_Player, int step)
+{
+	return 0;
+}
+
+/* DNetPlayer::BuildLocalTicCmd() -- Builds local tic command for player */
+void DNetPlayer::BuildLocalTicCmd(const bool a_ForBot)
+{
+#define MAXWEAPONSLOTS 12
+	D_ProfileEx_t* Profile;
+	player_t* Player;
+	int32_t TargetMove;
+	size_t i, PID, SID;
+	int8_t SensMod, MoveMod, MouseMod, MoveSpeed, TurnSpeed;
+	int32_t SideMove, ForwardMove, BaseAT, BaseAM;
+	bool IsTurning, GunInSlot, ResetAim;
+	int slot, j, l, k;
+	weapontype_t newweapon;
+	weapontype_t SlotList[MAXWEAPONSLOTS];
+	ticcmd_t TicCmd;
+	
+	/* Build Bot Command? */
+	if (a_ForBot)
+	{
+		// TODO
+		return;
+	}
+	
+	/* Clear */
+	memset(&TicCmd, 0, sizeof(TicCmd));
+	
+	/* Obtain profile */
+	Profile = p_Profile;
+	Player = p_Player;
+	
+	// No profile?
+	if (!Profile)
+		return;
+	
+	/* Find Player ID */
+	PID = p_Player - players;
+	
+	// Illegal player?
+	if (PID < 0 || PID >= MAXPLAYERS)
+		return;
+	
+	/* Find Screen ID */
+	for (SID = 0; SID < MAXSPLITSCREEN; SID++)
+		if (g_PlayerInSplit[SID])
+			if (consoleplayer[SID] == PID)
+				break;
+	
+	// Not found?
+	if (SID >= MAXSPLITSCREEN)
+		return;
+	
+	/* Reset Some Things */
+	SideMove = ForwardMove = BaseAT = BaseAM = 0;
+	IsTurning = ResetAim = false;
+	
+	/* Modifiers */
+	// Mouse Sensitivity
+	SensMod = 0;
+	
+	// Movement Modifier
+	if (GAMEKEYDOWN(Profile, DPEXIC_MOVEMENT))
+		MoveMod = 1;
+	else
+		MoveMod = 0;
+	
+	// Mouse Modifier
+	if (GAMEKEYDOWN(Profile, DPEXIC_LOOKING))
+		MouseMod = 2;
+	else if (MoveMod)
+		MouseMod = 1;
+	else 
+		MouseMod = 0;
+	
+	// Moving Speed
+	if (GAMEKEYDOWN(Profile, DPEXIC_SPEED))
+		MoveSpeed = 1;
+	else
+		MoveSpeed = 0;
+	
+	// Turn Speed
+	if ((Profile->Flags & DPEXF_SLOWTURNING) &&
+			gametic < (Profile->TurnHeld + Profile->SlowTurnTime))
+		TurnSpeed = 2;
+	else if (MoveSpeed)
+		TurnSpeed = 1;
+	else
+		TurnSpeed = 0;
+	
+	/* Player has joystick input? */
+	if (Profile->Flags & DPEXF_GOTJOY)
+	{
+		// Read input for all axis
+		for (i = 0; i < MAXJOYAXIS; i++)
+		{
+			// Modify with sensitivity
+			TargetMove = ((float)l_JoyAxis[Profile->JoyControl][i]) * (((float)Profile->JoySens[SensMod]) / 100.0);
+			
+			// Which movement to perform?
+			switch (Profile->JoyAxis[MouseMod][i])
+			{
+					// Movement
+				case DPEXCMA_MOVEX:
+				case DPEXCMA_MOVEY:
+					// Movement is fractionally based
+					TargetMove = (((float)TargetMove) / ((float)32767.0)) * ((float)c_forwardmove[MoveSpeed]);
+					
+					// Now which action really?
+					if (Profile->JoyAxis[MouseMod][i] == DPEXCMA_MOVEX)
+						SideMove += TargetMove;
+					else
+						ForwardMove -= TargetMove;
+					break;
+					
+					// Looking Left/Right
+				case DPEXCMA_LOOKX:
+					TargetMove = (((float)TargetMove) / ((float)32767.0)) * ((float)c_angleturn[TurnSpeed]);
+					IsTurning = true;
+					BaseAT -= TargetMove;
+					break;
+					
+					// Looking Up/Down
+				case DPEXCMA_LOOKY:
+					break;
+				
+				default:
+					break;
+			}
+		}
+	}
+	
+	/* Player has mouse input? */
+	if (l_PermitMouse && (Profile->Flags & DPEXF_GOTMOUSE))
+	{
+		// Read mouse input for both axis
+		for (i = 0; i < 2; i++)
+		{
+			// Modify with sensitivity
+			TargetMove = l_MouseMove[i] * ((((float)(Profile->MouseSens[SensMod] * Profile->MouseSens[SensMod])) / 110.0) + 0.1);
+			
+			// Do action for which movement type?
+			switch (Profile->MouseAxis[MouseMod][i])
+			{
+					// Strafe Left/Right
+				case DPEXCMA_MOVEX:
+					SideMove += TargetMove;
+					break;
+					
+					// Move Forward/Back
+				case DPEXCMA_MOVEY:
+					ForwardMove += TargetMove;
+					break;
+					
+					// Left/Right Look
+				case DPEXCMA_LOOKX:
+					BaseAT -= TargetMove * 8;
+					break;
+					
+					// Up/Down Look
+				case DPEXCMA_LOOKY:
+					BaseAM += TargetMove << 3;
+					//localaiming[SID] += TargetMove << 19;
+					break;
+				
+					// Unknown
+				default:
+					break;
+			}
+		}
+		
+		// Clear mouse permission
+		l_PermitMouse = false;
+		
+		// Clear mouse input
+		l_MouseMove[0] = l_MouseMove[1] = 0;
+	}
+	
+	/* Handle Player Control Keyboard Stuff */
+	// Weapon Attacks
+	if (GAMEKEYDOWN(Profile, DPEXIC_ATTACK))
+		TicCmd.buttons |= BT_ATTACK;
+	
+	// Use
+	if (GAMEKEYDOWN(Profile, DPEXIC_USE))
+		TicCmd.buttons |= BT_USE;
+	
+	// Jump
+	if (GAMEKEYDOWN(Profile, DPEXIC_JUMP))
+		TicCmd.buttons |= BT_JUMP;
+	
+	// Keyboard Turning
+	if (GAMEKEYDOWN(Profile, DPEXIC_TURNLEFT))
+	{
+		// Strafe
+		if (MoveMod)
+			SideMove -= c_sidemove[MoveSpeed];
+		
+		// Turn
+		else
+		{
+			BaseAT += c_angleturn[TurnSpeed];
+			IsTurning = true;
+		}
+	}
+	if (GAMEKEYDOWN(Profile, DPEXIC_TURNRIGHT))
+	{
+		// Strafe
+		if (MoveMod)
+			SideMove += c_sidemove[MoveSpeed];
+		
+		// Turn
+		else
+		{
+			BaseAT -= c_angleturn[TurnSpeed];
+			IsTurning = true;
+		}
+	}
+	
+	// Keyboard Moving
+	if (GAMEKEYDOWN(Profile, DPEXIC_STRAFELEFT))
+		SideMove -= c_sidemove[MoveSpeed];
+	if (GAMEKEYDOWN(Profile, DPEXIC_STRAFERIGHT))
+		SideMove += c_sidemove[MoveSpeed];
+	if (GAMEKEYDOWN(Profile, DPEXIC_FORWARDS))
+		ForwardMove += c_forwardmove[MoveSpeed];
+	if (GAMEKEYDOWN(Profile, DPEXIC_BACKWARDS))
+		ForwardMove -= c_forwardmove[MoveSpeed];
+		
+	// Looking
+	if (GAMEKEYDOWN(Profile, DPEXIC_LOOKCENTER))
+		ResetAim = true;
+		//localaiming[SID] = 0;
+	else
+	{
+		if (GAMEKEYDOWN(Profile, DPEXIC_LOOKUP))
+			BaseAM += Profile->LookUpDownSpeed >> 16;
+			//localaiming[SID] += Profile->LookUpDownSpeed;
+		
+		if (GAMEKEYDOWN(Profile, DPEXIC_LOOKDOWN))
+			BaseAM -= Profile->LookUpDownSpeed >> 16;
+			//localaiming[SID] -= Profile->LookUpDownSpeed;
+	}
+	
+	// Weapons
+		// Next
+	if (GAMEKEYDOWN(Profile, DPEXIC_NEXTWEAPON))
+	{
+		// Set switch
+		TicCmd.buttons |= BT_CHANGE;
+		TicCmd.XNewWeapon = NextWeapon(Player, 1);
+	}
+		// Prev
+	else if (GAMEKEYDOWN(Profile, DPEXIC_PREVWEAPON))
+	{
+		// Set switch
+		TicCmd.buttons |= BT_CHANGE;
+		TicCmd.XNewWeapon = NextWeapon(Player, -1);
+	}
+		// Best Gun
+	else if (GAMEKEYDOWN(Profile, DPEXIC_BESTWEAPON))
+	{
+		newweapon = P_PlayerBestWeapon(Player, true);
+		
+		if (newweapon != Player->readyweapon)
+		{
+			TicCmd.buttons |= BT_CHANGE;
+			TicCmd.XNewWeapon = newweapon;
+		}
+	}
+		// Worst Gun
+	else if (GAMEKEYDOWN(Profile, DPEXIC_WORSTWEAPON))
+	{
+		newweapon = P_PlayerBestWeapon(Player, false);
+		
+		if (newweapon != Player->readyweapon)
+		{
+			TicCmd.buttons |= BT_CHANGE;
+			TicCmd.XNewWeapon = newweapon;
+		}
+	}
+		// Slots
+	else
+	{
+		// Which slot?
+		slot = -1;
+		
+		// Look for keys
+		for (i = DPEXIC_SLOT1; i <= DPEXIC_SLOT10; i++)
+			if (GAMEKEYDOWN(Profile, i))
+			{
+				slot = (i - DPEXIC_SLOT1) + 1;
+				break;
+			}
+		
+		// Hit slot?
+		if (slot != -1)
+		{
+			// Clear flag
+			GunInSlot = false;
+			l = 0;
+		
+			// Figure out weapons that belong in this slot
+			for (j = 0, i = 0; i < NUMWEAPONS; i++)
+				if (P_CanUseWeapon(Player, i))
+				{
+					// Weapon not in this slot?
+					if (Player->weaponinfo[i]->SlotNum != slot)
+						continue;
+				
+					// Place in slot list before the highest
+					if (j < (MAXWEAPONSLOTS - 1))
+					{
+						// Just place here
+						if (j == 0)
+						{
+							// Current weapon is in this slot?
+							if (Player->readyweapon == i)
+							{
+								GunInSlot = true;
+								l = j;
+							}
+						
+							// Place in last spot
+							SlotList[j++] = i;
+						}
+					
+						// Otherwise more work is needed
+						else
+						{
+							// Start from high to low
+								// When the order is lower, we know to insert now
+							for (k = 0; k < j; k++)
+								if (Player->weaponinfo[i]->SwitchOrder < Player->weaponinfo[SlotList[k]]->SwitchOrder)
+								{
+									// Current gun may need shifting
+									if (!GunInSlot)
+									{
+										// Current weapon is in this slot?
+										if (Player->readyweapon == i)
+										{
+											GunInSlot = true;
+											l = k;
+										}
+									}
+								
+									// Possibly shift gun
+									else
+									{
+										// If the current gun is higher then this gun
+										// then it will be off by whatever is more
+										if (Player->weaponinfo[SlotList[l]]->SwitchOrder > Player->weaponinfo[i]->SwitchOrder)
+											l++;
+									}
+								
+									// move up
+									memmove(&SlotList[k + 1], &SlotList[k], sizeof(SlotList[k]) * (MAXWEAPONSLOTS - k - 1));
+								
+									// Place in slightly upper spot
+									SlotList[k] = i;
+									j++;
+								
+									// Don't add it anymore
+									break;
+								}
+						
+							// Can't put it anywhere? Goes at end then
+							if (k == j)
+							{
+								// Current weapon is in this slot?
+								if (Player->readyweapon == i)
+								{
+									GunInSlot = true;
+									l = k;
+								}
+							
+								// Put
+								SlotList[j++] = i;
+							}
+						}
+					}
+				}
+		
+			// No guns in this slot? Then don't switch to anything
+			if (j == 0)
+				newweapon = Player->readyweapon;
+		
+			// If the current gun is in this slot, go to the next in the slot
+			else if (GunInSlot)		// from [best - worst]
+				newweapon = SlotList[((l - 1) + j) % j];
+		
+			// Otherwise, switch to the best gun there
+			else
+				// Set it to the highest valued gun
+				newweapon = SlotList[j - 1];
+		
+			// Did it work?
+			if (newweapon != Player->readyweapon)
+			{
+				TicCmd.buttons |= BT_CHANGE;
+				TicCmd.XNewWeapon = newweapon;
+			}
+		}
+	}
+	
+	// Inventory
+	if (GAMEKEYDOWN(Profile, DPEXIC_NEXTINVENTORY))
+		TicCmd.InventoryBits = TICCMD_INVRIGHT;
+	else if (GAMEKEYDOWN(Profile, DPEXIC_PREVINVENTORY))
+		TicCmd.InventoryBits = TICCMD_INVLEFT;
+	else if (GAMEKEYDOWN(Profile, DPEXIC_USEINVENTORY))
+		TicCmd.InventoryBits = TICCMD_INVUSE;
+	
+	/* Handle special functions */
+	// Coop Spy
+	if (GAMEKEYDOWN(Profile, DPEXIC_COOPSPY))
+	{
+		// Only every half second
+		if (gametic > (Profile->CoopSpyTime + (TICRATE >> 1)))
+		{
+			do
+			{
+				displayplayer[SID] = (displayplayer[SID] + 1) % MAXPLAYERS;
+			} while (!playeringame[displayplayer[SID]] || !P_PlayerOnSameTeam(&players[consoleplayer[SID]], &players[displayplayer[SID]]));
+			
+			// Print Message
+			CONL_PrintF("%sYou are now watching %s.\n",
+					(SID == 3 ? "\x6" : (SID == 2 ? "\x5" : (SID == 1 ? "\x4" : ""))),
+					(displayplayer[SID] == consoleplayer[SID] ? "Yourself" : D_NCSGetPlayerName(displayplayer[SID]))
+				);
+			
+			// Reset timeout
+			Profile->CoopSpyTime = gametic + (TICRATE >> 1);
+		}
+	}
+	
+	// Key is unpressed to reduce time
+	else
+		Profile->CoopSpyTime = 0;
+	
+	/* Set Movement Now */
+	// Cap
+	if (SideMove > MAXPLMOVE)
+		SideMove = MAXPLMOVE;
+	else if (SideMove < -MAXPLMOVE)
+		SideMove = -MAXPLMOVE;
+	
+	if (ForwardMove > MAXPLMOVE)
+		ForwardMove = MAXPLMOVE;
+	else if (ForwardMove < -MAXPLMOVE)
+		ForwardMove = -MAXPLMOVE;
+	
+	// Set
+	TicCmd.sidemove = SideMove;
+	TicCmd.forwardmove = ForwardMove;
+	
+	/* Slow turning? */
+	if (!IsTurning)
+		Profile->TurnHeld = gametic;
+	
+	/* Turning */
+	TicCmd.BaseAngleTurn = BaseAT;
+	TicCmd.BaseAiming = BaseAM;
+	TicCmd.ResetAim = ResetAim;
+	
+	/* Push Command to local Q */
+	if (p_LocalSpot < MAXLOCALTICS)
+		memmove(&p_LocalTicCmdQ[p_LocalSpot++], &TicCmd, sizeof(TicCmd));
+#undef MAXWEAPONSLOTS
+}
+
+/* DNetPlayer::PopTicCmd() -- Pops the player's last tic command */
+ticcmd_t* DNetPlayer::PopTicCmd(void)
+{
+	ticcmd_t* Ref;
+	
+	/* No Commands */
+	if (!p_NumTicCmdQ)
+		return NULL;
+	
+	/* Use first command */
+	Ref = p_TicCmdQ[0];
+	
+	/* Move all commands down */
+	memmove(&p_TicCmdQ[0], &p_TicCmdQ[1], sizeof(p_TicCmdQ[0]) * (p_NumTicCmdQ - 1));
+	p_TicCmdQ[p_NumTicCmdQ - 1] = NULL;
+	
+	/* Return the command */
+	return Ref;
+}
+
 /* DNetPlayer::NetPlayerByCode() -- Find net player with this code */
 DNetPlayer* DNetPlayer::NetPlayerByCode(const uint32_t a_Code)
 {
@@ -2987,6 +3569,21 @@ DNetPlayer* DNetPlayer::NetPlayerByCode(const uint32_t a_Code)
 	for (i = 0; i < p_NumPlayers; i++)
 		if (p_Players[i])
 			if (p_Players[i]->p_Code == a_Code)
+				return p_Players[i];
+	
+	/* Not found */
+	return NULL;
+}
+
+/* DNetPlayer::NetPlayerByPID() -- Get net player by PID */
+DNetPlayer* DNetPlayer::NetPlayerByPID(const uint32_t a_PID)
+{
+	size_t i;
+	
+	/* Find spot we are at in the player list */
+	for (i = 0; i < p_NumPlayers; i++)
+		if (p_Players[i])
+			if (p_Players[i]->p_PID == a_PID)
 				return p_Players[i];
 	
 	/* Not found */
@@ -3246,6 +3843,9 @@ tic_t DNetController::ReadyTics(void)
 	/* Get the current time */
 	ThisTime = I_GetTime();
 	
+	/* Clear */
+	p_Readies = 0;
+	
 	/* At least 1 remote player */
 	if (p_RemoteCount > 0)
 	{
@@ -3278,6 +3878,7 @@ tic_t DNetController::ReadyTics(void)
 		{
 			DiffTime = ThisTime - p_LastTime;
 			p_LastTime = ThisTime;
+			p_Readies = DiffTime;
 			return DiffTime;
 		}
 		
@@ -3292,7 +3893,7 @@ tic_t DNetController::ReadyTics(void)
 	// and then just leaves, don't want to lose that CPU.
 	else
 	{
-#define SERVERCOOLDOWN 3
+#define SERVERCOOLDOWN 4
 		if (ThisTime >> SERVERCOOLDOWN > p_LastTime >> SERVERCOOLDOWN)
 		{
 			DiffTime = (ThisTime - p_LastTime) >> SERVERCOOLDOWN;
@@ -3327,8 +3928,9 @@ static const D_NCMessageType_t c_NCMessageCodesEx[] =
 void DNetController::NetUpdate(void)
 {
 	RBAddress_c ReadAddr;
-	size_t i, tN, Nn;
+	int32_t i, j, tN, Nn;
 	char Header[5];
+	int32_t SID;
 	
 	RBPerfectStream_c* PIn;
 	RBPerfectStream_c* POut;
@@ -3339,6 +3941,61 @@ void DNetController::NetUpdate(void)
 	DNetController* DNC;
 	DNetController* RC;
 	D_NCMessageData_t Data;
+	
+	DNetPlayer* NetPlay;
+	tic_t CurTics;
+	uint64_t CurMS;
+	ticcmd_t* Top;
+	DNetController* ServerNC;
+	
+	/* Get Current Time */
+	CurTics = I_GetTime();
+	CurMS = I_GetTimeMS();
+	
+	/* Build tic commands for local players */
+	for (i = 0; i < MAXPLAYERS; i++)
+	{
+		// Find network player
+		NetPlay = DNetPlayer::NetPlayerByPID(i);
+		
+		// Not found?
+		if (!NetPlay)
+			continue;
+		
+		// If Local, build commands
+		if (NetPlay->IsLocal())
+		{
+			// Bot (Run bot tic command generator)
+			if (NetPlay->IsBot())
+			{
+				// Bot tics are only done once every 4 gametics
+				if ((CurTics >> 2) > NetPlay->GetBotLastTime())
+				{
+					// Build Commands
+					NetPlay->BuildLocalTicCmd(true);
+					
+					// Set the time
+					NetPlay->GetBotLastTime() = (CurTics >> 2);
+				}
+				
+				// Use the previously used tic commands to control the bot
+				else
+				{
+				}
+			}
+			
+			// Normal player (build from input)
+			else
+			{
+				NetPlay->BuildLocalTicCmd(false);
+			}
+		}
+		
+		// Remote
+		else
+		{
+		}
+	}
 	
 	/* Read/Write Packets from all controllers */
 	for (i = 0; i < l_NumServerNCS; i++)
@@ -3455,6 +4112,159 @@ void DNetController::NetUpdate(void)
 		POut->BlockFlush();
 		BOut->BlockFlush();
 	}
+	
+	/* If playing as the server */
+	// Merge the local commands of everyone
+	ServerNC = GetServer();
+	if (ServerNC && p_Readies > 0 && ServerNC->IsLocal())
+		while (p_Readies-- >= 1)
+			// Merge for all players
+			for (i = 0; i < MAXPLAYERS; i++)
+			{
+				// Find network player
+				NetPlay = DNetPlayer::NetPlayerByPID(i);
+		
+				// Not found?
+				if (!NetPlay)
+					continue;
+			
+				// See if player is on this screen
+				SID = -1;
+				for (j = 0; j < g_SplitScreen + 1; j++)
+					if (g_PlayerInSplit[i])
+						if (j == consoleplayer[j])
+						{
+							SID = j;
+							break;
+						}
+			
+				// Allocation
+				if (!NetPlay->p_TicCmdQ)
+				{
+					NetPlay->p_TicCmdQ = (ticcmd_t**)Z_Malloc(sizeof(*NetPlay->p_TicCmdQ), PU_STATIC, NULL);
+					NetPlay->p_NumTicCmdQ = 1;
+				}
+			
+				// Move last tic here and merge
+				NetPlay->p_TicCmdQ[0] = new ticcmd_t();
+				D_NCSNetMergeTics(NetPlay->p_TicCmdQ[0], NetPlay->p_LocalTicCmdQ, NetPlay->p_LocalSpot);
+			
+				// Clear
+				memset(NetPlay->p_LocalTicCmdQ, 0, sizeof(NetPlay->p_LocalTicCmdQ));
+				NetPlay->p_LocalSpot = 0;
+			
+				// Set local aiming and such
+				if (SID >= 0 && SID < MAXSPLITSCREEN)
+				{
+					// Absolute Angles
+					if (P_EXGSGetValue(PEXGSBID_COABSOLUTEANGLE))
+					{
+						localangle[SID] += NetPlay->p_TicCmdQ[0]->BaseAngleTurn << 16;
+						NetPlay->p_TicCmdQ[0]->angleturn = localangle[SID] >> 16;
+					}
+				
+					// Doom Angles
+					else
+						NetPlay->p_TicCmdQ[0]->angleturn = NetPlay->p_TicCmdQ[0]->BaseAngleTurn;
+					
+					if (NetPlay->p_TicCmdQ[0]->ResetAim)
+						localaiming[SID] = 0;
+					else
+						localaiming[SID] += NetPlay->p_TicCmdQ[0]->BaseAiming << 16;
+					G_ClipAimingPitch(&localaiming[SID]);
+				}
+			}
+		
+		// Reset ready count
+		 = 0;
+	}
+}
+
+/* DNetController::ReadTicCmd() -- Reads queued commands for specific player */
+void DNetController::ReadTicCmd(ticcmd_t* const a_Cmd, const int32_t a_PlayerNum)
+{
+	DNetPlayer* NP;
+	ticcmd_t* Top;
+	
+	/* Check */
+	if (!a_Cmd || a_PlayerNum < 0 || a_PlayerNum >= MAXPLAYERS)
+		return;
+	
+	/* Get net player */
+	NP = DNetPlayer::NetPlayerByPID(a_PlayerNum);
+	
+	/* Read the top command and copy it */
+	Top = NP->PopTicCmd();
+	
+	// Copy
+	memset(a_Cmd, 0, sizeof(*a_Cmd));
+	if (Top)
+		memmove(a_Cmd, Top, sizeof(ticcmd_t));
+	
+	// Delete
+	delete Top;
+}
+
+/* DNetController::ExecutePreCmds() -- Execute Pre Commands */
+void DNetController::ExecutePreCmds(void)
+{
+	/* Demo is playing */
+	if (demoplayback)
+		G_DemoPreGTicker();		// Pushes commands to ReMooD format
+	
+	/* Write Commands to demo (if recording) */
+	if (demorecording)
+		;	// TODO
+	
+	/* Execute Commands */
+	// TODO
+	
+	/* Delete Commands */
+	// TODO
+}
+
+/* DNetController::ExecutePostCmds() -- Execute Post Commands */
+void DNetController::ExecutePostCmds(void)
+{
+	/* Demo is playing */
+	if (demoplayback)
+		G_DemoPostGTicker();		// Pushes commands to ReMooD format
+	
+	/* Write Commands to demo (if recording) */
+	if (demorecording)
+		;	// TODO
+	
+	/* Execute Commands */
+	// TODO
+	
+	/* Delete Commands */
+	// TODO
+}
+
+/* DNetController::PushCommand() -- Adds commands to queue */
+void DNetController::PushCommand(DNetCommand* const a_Cmd)
+{
+	int32_t Spot;
+	
+	/* Check */
+	if (!a_Cmd)
+		return;
+	
+	/* First first last spot in Q */
+	for (Spot = ((int32_t)p_NumCommandQ) - 1; Spot >= 0; Spot--)
+		if (!p_CommandQ[Spot])
+			break;
+	
+	// No spot found?
+	if (Spot <= 0)
+	{
+		Z_ResizeArray((void**)&p_CommandQ, sizeof(*p_CommandQ), p_NumCommandQ, p_NumCommandQ + 1);
+		Spot = p_NumCommandQ++;
+	}
+	
+	/* Place In This spot */
+	p_CommandQ[Spot] = new DNetCommand();
+	memmove(p_CommandQ[Spot], a_Cmd, sizeof(*a_Cmd)); 
 }
 
 /*** HANDLERS ***/
@@ -3669,7 +4479,7 @@ bool D_EXHC_PJOK(struct D_NCMessageData_s* const a_Data)
 	}
 	
 	/* Create Net Player */
-	NewNetPlayer = new DNetPlayer(NewCode);
+	NewNetPlayer = new DNetPlayer(NewCode, PlayID);
 	
 	// Bot? (server only, bot)
 	if (a_Data->IsHost && IsBot)
@@ -3702,6 +4512,8 @@ bool D_EXHC_PJOK(struct D_NCMessageData_s* const a_Data)
 		
 		// Set local player's profile
 		players[PlayID].ProfileEx = Profile;
+		NewNetPlayer->SetProfile(Profile);
+		NewNetPlayer->SetLocal(true);
 	}
 	
 	CONL_PrintF("Joined player!\n");
@@ -4004,3 +4816,74 @@ void D_CMakeUUID(char* const a_Buf)
 	}
 }
 
+/* D_CNetHandleEvent() -- Handle advanced events */
+bool D_CNetHandleEvent(const I_EventEx_t* const a_Event)
+{
+	int32_t ButtonNum, LocalJoy;
+	
+	/* Check */
+	if (!a_Event)
+		return false;
+	
+	/* Which kind of event? */
+	switch (a_Event->Type)
+	{
+			// Mouse
+		case IET_MOUSE:
+			// Add position to movement
+			l_MouseMove[0] += a_Event->Data.Mouse.Move[0];
+			l_MouseMove[1] += a_Event->Data.Mouse.Move[1];
+			break;
+			
+			// Keyboard
+		case IET_KEYBOARD:
+			if (a_Event->Data.Keyboard.KeyCode >= 0 && a_Event->Data.Keyboard.KeyCode < NUMIKEYBOARDKEYS)
+				l_KeyDown[a_Event->Data.Keyboard.KeyCode] = a_Event->Data.Keyboard.Down;
+			break;
+			
+			// Joystick
+		case IET_JOYSTICK:
+			// Get local joystick
+			LocalJoy = a_Event->Data.Joystick.JoyID;
+			
+			// Now determine which action
+			if (LocalJoy >= 0 && LocalJoy < MAXLOCALJOYS)
+			{
+				// Button Pressed Down
+				if (a_Event->Data.Joystick.Button)
+				{
+					// Get Number
+					ButtonNum = a_Event->Data.Joystick.Button;
+					ButtonNum--;
+					
+					// Limited to 32 buttons =(
+					if (ButtonNum >= 0 && ButtonNum < 32)
+					{
+						// Was it pressed?
+						if (a_Event->Data.Joystick.Down)
+							l_JoyButtons[LocalJoy] |= (1 << ButtonNum);
+						else
+							l_JoyButtons[LocalJoy] &= ~(1 << ButtonNum);
+					}
+				}
+				
+				// Axis Moved
+				else if (a_Event->Data.Joystick.Axis)
+				{
+					ButtonNum = a_Event->Data.Joystick.Axis;
+					ButtonNum--;
+					
+					if (ButtonNum >= 0 && ButtonNum < MAXJOYAXIS)
+						l_JoyAxis[LocalJoy][ButtonNum] = a_Event->Data.Joystick.Value;
+				}
+			}
+			break;
+		
+			// Unknown
+		default:
+			break;
+	}
+	
+	/* Un-Handled */
+	return false;
+}

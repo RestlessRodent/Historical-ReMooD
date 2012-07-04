@@ -226,9 +226,7 @@ void TryRunTics(tic_t realtics)
 			DNetController::NetUpdate();
 		
 			// Run game ticker and increment the gametic
-			G_DemoPreGTicker();
 			G_Ticker();
-			G_DemoPostGTicker();
 			gametic++;
 			
 			// Single tics? -timedemo

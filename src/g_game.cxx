@@ -451,9 +451,9 @@ void G_Ticker(void)
 	tic_t ThisTime;
 	
 	// GhostlyDeath <May 13, 2012> -- Run Commands
-	D_NCRunCommands();
+	DNetController::ExecutePreCmds();
 	
-	// do player reborns if needed
+	/* do player reborns if needed */
 	if (gamestate == GS_LEVEL)
 	{
 		for (i = 0; i < MAXPLAYERS; i++)
@@ -507,42 +507,20 @@ void G_Ticker(void)
 			{
 				cmd = &players[i].cmd;
 			
+				// Read Input Commands
+					// From Demo
 				if (demoplayback)
-				{
 					G_ReadDemoTiccmd(cmd, i);
-					/*CONL_PrintF("%i: fw %+3i si %+3i at %4i am %4i\n", i,
-							cmd->forwardmove,
-							cmd->sidemove,
-							cmd->angleturn,
-							cmd->aiming
-						);*/
-				}
+					// From Network
 				else
-				{
-					// Determine net player existence
-					if (players[i].NetPlayer)
-						// Tic count > 0?
-						if (players[i].NetPlayer->TicTotal > 0)
-						{
-							// Copy the oldest command
-							memcpy(cmd, &players[i].NetPlayer->TicCmd[0], sizeof(ticcmd_t));
-						
-							// Reduce down buffered commands
-							players[i].NetPlayer->TicTotal--;
-						
-							// Replace all the old commands
-							memmove(
-									&players[i].NetPlayer->TicCmd[0],
-									&players[i].NetPlayer->TicCmd[1],
-									sizeof(ticcmd_t) * (MAXDNETTICCMDCOUNT - 1)
-								);
-						}
-				}
+					DNetController::ReadTicCmd(cmd, i);
 				
+				// Write Commands That Were Just Read
 				if (demorecording)
 					G_WriteDemoTiccmd(cmd, i);
 				
 				// check for turbo cheats
+#if 0
 				if (cmd->forwardmove > TURBOTHRESHOLD && !(gametic % (32)) && ((gametic / (32)) & 3) == i)
 				{
 					static char turbomessage[80];
@@ -550,6 +528,7 @@ void G_Ticker(void)
 					sprintf(turbomessage, "%s is turbo!", player_names[i]);
 					players[consoleplayer[0]].message = turbomessage;
 				}
+#endif
 			}
 		}
 		
@@ -590,6 +569,9 @@ void G_Ticker(void)
 	
 	/* Check Demo */
 	G_CheckDemoStatus();
+	
+	/* Handle Post Demo Stuff */
+	G_DemoPostGTicker();
 }
 
 //
