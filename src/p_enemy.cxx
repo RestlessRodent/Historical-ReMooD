@@ -597,7 +597,7 @@ static bool P_LookForPlayers(mobj_t* actor, bool allaround)
 	BestMo = NULL;
 	BestDist = 20000 << FRACBITS;
 	
-#define THINKMASK 127
+#define THINKMASK 63
 	// Do a think spread of THINKMASK, only check every THINKMASK + 1 or so things to target.
 	// This is because if there are tons of monsters in the maps it will be
 	// quite computationaly intensive to check every other monster to see if it

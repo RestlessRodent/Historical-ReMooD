@@ -2938,6 +2938,7 @@ int32_t DNetController::p_RemoteCount = 0;		// Remote network players count
 tic_t DNetController::p_LastTime = 0;			// Last time for ready tics
 bool DNetController::p_IsGameHost = false;		// Is host of the game
 tic_t DNetController::p_Readies = 0;			// Tics that are ready
+tic_t DNetController::p_ServerLag = 0;			// Extra Server Lag
 
 DNetPlayer** DNetPlayer::p_Players = NULL;		// Net players
 size_t DNetPlayer::p_NumPlayers = 0;			// Number of them
@@ -2958,6 +2959,7 @@ DNetPlayer::DNetPlayer(const uint32_t a_Code, const int32_t a_PID)
 	/* Copy Code */
 	p_Code = a_Code;
 	p_PID = a_PID;
+	p_PlayerTime = gametic;
 	
 	/* Find free spot in player list */
 	for (i = 0; i < p_NumPlayers; i++)
@@ -3541,8 +3543,8 @@ void DNetPlayer::BuildLocalTicCmd(const bool a_ForBot)
 	TicCmd.ResetAim = ResetAim;
 	
 	/* Push Command to local Q */
-	if (p_LocalSpot < MAXLOCALTICS)
-		memmove(&p_LocalTicCmdQ[p_LocalSpot++], &TicCmd, sizeof(TicCmd));
+	if (p_LocalSpot[DNetController::p_ServerLag] < MAXLOCALTICS)
+		memmove(&p_LocalTicCmdQ[DNetController::p_ServerLag][p_LocalSpot[DNetController::p_ServerLag]++], &TicCmd, sizeof(TicCmd));
 #undef MAXWEAPONSLOTS
 }
 
@@ -3837,21 +3839,30 @@ void DNetController::StartServer(void)
 	p_LastTime = I_GetTime();					// For no tics after server start speedup
 	gamestate = wipegamestate = GS_WAITINGPLAYERS;
 	S_ChangeMusicName("D_WAITIN", 1);			// Waiting for game to start
+	
+	// Set lag to zero
+	p_ServerLag = 5;//10;		// ~300ms ping
 }
 
 /* DNetController::ReadyTics() -- Amount of tics ready to be played */
 // i.e. the amount that statifies NetReadTicCmds for all players
 tic_t DNetController::ReadyTics(void)
 {
+	static tic_t LastTime;
 	tic_t ThisTime;
 	tic_t DiffTime;
+	uint64_t ThisTimeMS;
+	static uint64_t LastTimeMS;
+	size_t i;
+	bool EveryoneIsReady;
+	DNetPlayer* NetPlayer;
 	
 	/* Get the current time */
 	ThisTime = I_GetTime();
+	ThisTimeMS = I_GetTimeMS();
 	
 	/* Clear */
 	p_Readies = 0;
-	
 	
 	/* An empty server (no players) */
 	// There's no need to waste a bunch of CPU cycles here. Also, say someone
@@ -3871,11 +3882,48 @@ tic_t DNetController::ReadyTics(void)
 #undef SERVERCOOLDOWN
 	}
 	
-	/* Players Inside */
+	/* Players Inside (and we are the host) */
+	else if (p_IsGameHost)
+	{
+		// Still enough time for next tic? (or server is laggy and still behind lag time)
+		if ((ThisTimeMS) < (LastTimeMS + (TICSPERMS >> 1)))
+			return 0;
+		
+		// Set as ready (will be unset in the future)
+		EveryoneIsReady = true;
+		
+		// Be sure everyone has at least one local tic command before
+		// moving on.
+		for (i = 0; i < DNetPlayer::p_NumPlayers; i++)
+		{
+			// Nothing here?
+			if (!DNetPlayer::p_Players[i])
+				continue;
+			
+			// Get player
+			NetPlayer = DNetPlayer::p_Players[i];
+			
+			// Local tics not available?
+			if (!NetPlayer->p_LocalSpot[0])
+				EveryoneIsReady = false;
+		}
+		
+		// Set last time
+		LastTime = ThisTime;
+		LastTimeMS = ThisTimeMS;
+		
+		// Proceed if everyone is ready
+		if (EveryoneIsReady)
+			return (p_Readies = 1);
+		else
+			return (p_Readies = 0);
+	}
+	
+	/* We are the guest to a networked game */
+	// We must wait on the server to send us tic commands to pass the time with
 	else
 	{
-		p_Readies = 1;
-		return 1;
+		return 0;
 	}
 	
 #if 0
@@ -3977,24 +4025,42 @@ void DNetController::NetUpdate(void)
 	D_NCMessageData_t Data;
 	
 	DNetPlayer* NetPlay;
-	tic_t CurTics;
+	tic_t CurTics, CurHalfTic;
+	static tic_t LastLocalBuild;
 	uint64_t CurMS;
 	ticcmd_t* Top;
 	DNetController* ServerNC;
 	
 	/* Get Current Time */
 	CurTics = I_GetTime();
+	CurHalfTic = I_GetTimeHalf();
 	CurMS = I_GetTimeMS();
 	
 	/* Build tic commands for local players */
+	// Build local commands for everyone
 	for (i = 0; i < MAXPLAYERS; i++)
 	{
 		// Find network player
 		NetPlay = DNetPlayer::NetPlayerByPID(i);
-		
+	
 		// Not found?
 		if (!NetPlay)
 			continue;
+		
+		// No tics exist before the lag time?
+		if ((gametic - NetPlay->p_PlayerTime) < p_ServerLag)
+		{
+			// Set tic here
+			NetPlay->p_LocalSpot[0] = 1;
+			
+			// Clear
+			memset(&NetPlay->p_LocalTicCmdQ[0][0], 0, sizeof(ticcmd_t));
+			
+			// Set angle to something (Absolute angles, so the player doesn't
+			// immedietly face east).
+			if (P_EXGSGetValue(PEXGSBID_COABSOLUTEANGLE))
+				NetPlay->p_LocalTicCmdQ[0][0].angleturn = NetPlay->p_Player->mo->angle >> 16;
+		}
 		
 		// If Local, build commands
 		if (NetPlay->IsLocal())
@@ -4007,24 +4073,24 @@ void DNetController::NetUpdate(void)
 				{
 					// Build Commands
 					NetPlay->BuildLocalTicCmd(true);
-					
+				
 					// Set the time
 					NetPlay->GetBotLastTime() = (CurTics >> 2);
 				}
-				
+			
 				// Use the previously used tic commands to control the bot
 				else
 				{
 				}
 			}
-			
+		
 			// Normal player (build from input)
 			else
 			{
 				NetPlay->BuildLocalTicCmd(false);
 			}
 		}
-		
+	
 		// Remote
 		else
 		{
@@ -4152,7 +4218,7 @@ void DNetController::NetUpdate(void)
 	/* If playing as the server */
 	// Merge the local commands of everyone
 	ServerNC = GetServer();
-	if (ServerNC && /*p_Readies > 0 &&*/ ServerNC->IsLocal())
+	if (ServerNC && p_Readies > 0 && ServerNC->IsLocal())
 	{
 		// Merge for all players
 		for (i = 0; i < MAXPLAYERS; i++)
@@ -4188,7 +4254,7 @@ void DNetController::NetUpdate(void)
 				NetPlay->p_TicCmdQ[rr] = new ticcmd_t();
 			
 				// No tics in Queue?
-				if (!NetPlay->p_LocalSpot)
+				if (!NetPlay->p_LocalSpot[0])
 				{
 					// Use last command in place
 					memmove(NetPlay->p_TicCmdQ[rr], &NetPlay->GetLastCommand(), sizeof(ticcmd_t));
@@ -4196,11 +4262,11 @@ void DNetController::NetUpdate(void)
 				}
 			
 				// Merge in all tics
-				D_NCSNetMergeTics(NetPlay->p_TicCmdQ[rr], NetPlay->p_LocalTicCmdQ, NetPlay->p_LocalSpot);
+				D_NCSNetMergeTics(NetPlay->p_TicCmdQ[rr], NetPlay->p_LocalTicCmdQ[0], NetPlay->p_LocalSpot[0]);
 		
 				// Clear
-				memset(NetPlay->p_LocalTicCmdQ, 0, sizeof(NetPlay->p_LocalTicCmdQ));
-				NetPlay->p_LocalSpot = 0;
+				memset(NetPlay->p_LocalTicCmdQ[0], 0, sizeof(NetPlay->p_LocalTicCmdQ[0]));
+				NetPlay->p_LocalSpot[0] = 0;
 		
 				// Set local aiming and such
 				if (SID >= 0 && SID < MAXSPLITSCREEN)
@@ -4225,6 +4291,20 @@ void DNetController::NetUpdate(void)
 			
 				// Set last command
 				memmove(&NetPlay->GetLastCommand(), NetPlay->p_TicCmdQ[rr], sizeof(ticcmd_t));
+				
+				// Move player buffers down
+				memmove(&NetPlay->p_LocalTicCmdQ[0], &NetPlay->p_LocalTicCmdQ[1], sizeof(NetPlay->p_LocalTicCmdQ[0]) * (DNCMAXINPUTLAG - 1));
+				memmove(&NetPlay->p_LocalSpot[0], &NetPlay->p_LocalSpot[1], sizeof(NetPlay->p_LocalSpot[0]) * (DNCMAXINPUTLAG - 1));
+				
+				memset(&NetPlay->p_LocalTicCmdQ[DNCMAXINPUTLAG - 1], 0, sizeof(NetPlay->p_LocalTicCmdQ[DNCMAXINPUTLAG - 1]));
+				memset(&NetPlay->p_LocalSpot[DNCMAXINPUTLAG - 1], 0, sizeof(NetPlay->p_LocalSpot[DNCMAXINPUTLAG - 1]));
+				
+#if 0
+				CONL_PrintF(">> ");
+				for (tN = 0; tN < DNCMAXINPUTLAG; tN++)
+					CONL_PrintF("%i ", (int)NetPlay->p_LocalSpot[tN]);
+				CONL_PrintF("<<\n");
+#endif
 			}
 		}
 		

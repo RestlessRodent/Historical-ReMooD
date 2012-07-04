@@ -847,10 +847,16 @@ void I_EndRead(void)
 {
 }
 
-/* I_GetTime() -- Returns time since the game started */
+/* I_GetTime() -- Returns time since the game started in tics */
 uint32_t I_GetTime(void)
 {
 	return (I_GetTimeMS() * TICRATE) / 1000;
+}
+
+/* I_GetTimeHalf() -- Returns time since the game started on half tics */
+uint32_t I_GetTimeHalf(void)
+{
+	return (I_GetTimeMS() * (TICRATE >> 1)) / 1000;
 }
 
 /* I_DumpTemporary() -- Creates a temporary file with data inside of it */

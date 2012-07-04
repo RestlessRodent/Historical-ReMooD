@@ -477,6 +477,7 @@ void I_BeginRead(void);
 void I_EndRead(void);
 
 uint32_t I_GetTime(void);
+uint32_t I_GetTimeHalf(void);
 bool I_DumpTemporary(char* const a_PathBuf, const size_t a_PathSize, const uint8_t* const a_Data, const size_t a_Size);
 
 void I_ShowEndTxt(const uint8_t* const a_TextData);

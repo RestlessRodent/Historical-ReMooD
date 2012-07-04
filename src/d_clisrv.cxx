@@ -123,6 +123,8 @@ int32_t g_IgnoreWipeTics;						// Demo playback, ignore this many wipe tics
 void TryRunTics(tic_t realtics)
 {
 	static tic_t LastTic;
+	static int64_t LastMS;
+	int64_t ThisMS, DiffMS;
 	static bool ToggleUp;
 	tic_t LocalTic, TargetTic;
 	int STRuns;
@@ -131,6 +133,7 @@ void TryRunTics(tic_t realtics)
 
 	// Init
 	LocalTic = 0;
+	ThisMS = I_GetTimeMS();
 	
 	// Last tic not set?
 	if (!LastTic)
@@ -223,6 +226,8 @@ void TryRunTics(tic_t realtics)
 	DNetController::NetUpdate();
 	
 	if (XXSNAR > 0)
+	{
+		// Run tick loops
 		while ((XXSNAR--) > 0)
 		{
 			// Run game ticker and increment the gametic
@@ -233,11 +238,21 @@ void TryRunTics(tic_t realtics)
 			if (singletics)
 				break;
 		}
+		
+		// Set last MS time
+		LastMS = ThisMS;
+	}
 	
 	// Not behind so sleep
 	else if (!singletics)
 	{
-		I_WaitVBL(20);
+		// Get time difference
+		DiffMS = ThisMS - LastMS;
+		
+		if (DiffMS > (TICSPERMS >> 1))
+			I_WaitVBL(DiffMS - (TICSPERMS >> 2));
+		
+		//I_WaitVBL(20);
 	}
 }
 

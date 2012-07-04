@@ -1261,7 +1261,7 @@ void D_NCSNetTicTransmit(D_NetPlayer_t* const a_NPp, ticcmd_t* const a_TicCmd)
 /* D_NCSNetMergeTics() -- Merges all tic commands */
 void D_NCSNetMergeTics(ticcmd_t* const a_DestCmd, const ticcmd_t* const a_SrcList, const size_t a_NumSrc)
 {
-#define __REMOOD_SWIRVYANGLE
+//#define __REMOOD_SWIRVYANGLE
 	size_t i, j;
 	int32_t FM, SM, AT, AM;
 	fixed_t xDiv;

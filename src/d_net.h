@@ -207,6 +207,7 @@ enum DNetCommandType_e
 };
 
 #define DNCMAXCHATLINE					256		// Maximum chat line permitted
+#define DNCMAXINPUTLAG					32		// Maximum Input Lag (tics)
 
 /*** CLASSES ***/
 
@@ -260,6 +261,8 @@ class RBStream_c;
 /* DNetPlayer -- Networked Player */
 struct player_s;
 
+class DNetController;
+
 class DNetPlayer
 {
 	private:
@@ -271,6 +274,7 @@ class DNetPlayer
 		D_ProfileEx_t* p_Profile;				// Player's Profile
 		struct player_s* p_Player;				// Player that is controlled
 		ticcmd_t p_LastCmd;						// Last Command
+		uint64_t p_CmdTime;						// Command Write Time
 		
 		static DNetPlayer** p_Players;			// Net players
 		static size_t p_NumPlayers;				// Number of them
@@ -281,12 +285,16 @@ class DNetPlayer
 		tic_t p_TurnHeld;						// Time turning is held
 		tic_t p_CoopSpyTime;					// Time to wait to respy
 		
-	public:
 		ticcmd_t** p_TicCmdQ;					// Tic Command Q
 		size_t p_NumTicCmdQ;					// Number of Qed commands
 		
-		ticcmd_t p_LocalTicCmdQ[MAXLOCALTICS];	// Tic Command Q (local)
-		size_t p_LocalSpot;						// Local Tic Spot
+		ticcmd_t p_LocalTicCmdQ[DNCMAXINPUTLAG][MAXLOCALTICS];	// Tic Command Q (local)
+		size_t p_LocalSpot[DNCMAXINPUTLAG];		// Local Tic Spot
+		
+		tic_t p_PlayerTime;						// Player's Time
+		
+	public:
+		friend class DNetController;
 		
 		DNetPlayer(const uint32_t a_Code, const int32_t a_PID);
 		~DNetPlayer();
@@ -311,8 +319,6 @@ class DNetPlayer
 /* DNetController -- Controls a group of players */
 class DNetController
 {
-	friend class DNetPlayer;
-	
 	private:
 		DNetPlayer** p_Arbs;					// Controlling players
 		size_t p_NumArbs;						// Number of players
@@ -339,7 +345,11 @@ class DNetController
 		
 		static tic_t p_Readies;					// Tics that are ready
 		
+		static tic_t p_ServerLag;			// Extra Server Lag
+		
 	public:
+		friend class DNetPlayer;
+		
 		DNetController();
 		DNetController(RBStream_c* const a_STDStream);
 		~DNetController();
