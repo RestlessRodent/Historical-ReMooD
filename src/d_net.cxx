@@ -3852,6 +3852,33 @@ tic_t DNetController::ReadyTics(void)
 	/* Clear */
 	p_Readies = 0;
 	
+	
+	/* An empty server (no players) */
+	// There's no need to waste a bunch of CPU cycles here. Also, say someone
+	// loads up nuts or scythe map26(?) on your server, causes massive infighting
+	// and then just leaves, don't want to lose that CPU.
+	if (p_RemoteCount <= 0 && p_LocalCount <= 0)
+	{
+#define SERVERCOOLDOWN 4
+		if (ThisTime >> SERVERCOOLDOWN > p_LastTime >> SERVERCOOLDOWN)
+		{
+			DiffTime = (ThisTime - p_LastTime) >> SERVERCOOLDOWN;
+			p_LastTime = ThisTime;
+			return DiffTime;
+		}
+		
+		return 0;
+#undef SERVERCOOLDOWN
+	}
+	
+	/* Players Inside */
+	else
+	{
+		p_Readies = 1;
+		return 1;
+	}
+	
+#if 0
 	/* At least 1 remote player */
 	if (p_RemoteCount > 0)
 	{
@@ -3909,6 +3936,7 @@ tic_t DNetController::ReadyTics(void)
 		return 0;
 #undef SERVERCOOLDOWN
 	}
+#endif
 }
 
 bool D_EXHC_EROR(struct D_NCMessageData_s* const a_Data);

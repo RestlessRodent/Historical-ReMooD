@@ -503,7 +503,7 @@ void G_Ticker(void)
 		for (i = 0; i < MAXPLAYERS; i++)
 		{
 			// BP: i==0 for playback of demos 1.29 now new players is added with xcmd
-			if ((playeringame[i] || i == 0) && !dedicated)
+			if ((playeringame[i] || (demoplayback && i == 0)))
 			{
 				cmd = &players[i].cmd;
 			
