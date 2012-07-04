@@ -3010,6 +3010,12 @@ tic_t& DNetPlayer::GetBotLastTime(void)
 	return p_BotLastTime;
 }
 
+/* DNetPlayer::GetLastCommand() -- Returns the player's last command */
+ticcmd_t& DNetPlayer::GetLastCommand(void)
+{
+	return p_LastCmd;
+}
+
 /* DNetPlayer::IsLocal() -- Returns true if player is local */
 bool DNetPlayer::IsLocal(void)
 {
@@ -3152,7 +3158,7 @@ void DNetPlayer::BuildLocalTicCmd(const bool a_ForBot)
 	
 	// Turn Speed
 	if ((Profile->Flags & DPEXF_SLOWTURNING) &&
-			gametic < (Profile->TurnHeld + Profile->SlowTurnTime))
+			gametic < (p_TurnHeld + Profile->SlowTurnTime))
 		TurnSpeed = 2;
 	else if (MoveSpeed)
 		TurnSpeed = 1;
@@ -3487,7 +3493,7 @@ void DNetPlayer::BuildLocalTicCmd(const bool a_ForBot)
 	if (GAMEKEYDOWN(Profile, DPEXIC_COOPSPY))
 	{
 		// Only every half second
-		if (gametic > (Profile->CoopSpyTime + (TICRATE >> 1)))
+		if (gametic > (p_CoopSpyTime + (TICRATE >> 1)))
 		{
 			do
 			{
@@ -3501,7 +3507,7 @@ void DNetPlayer::BuildLocalTicCmd(const bool a_ForBot)
 				);
 			
 			// Reset timeout
-			Profile->CoopSpyTime = gametic + (TICRATE >> 1);
+			p_CoopSpyTime = gametic + (TICRATE >> 1);
 		}
 	}
 	
@@ -3527,7 +3533,7 @@ void DNetPlayer::BuildLocalTicCmd(const bool a_ForBot)
 	
 	/* Slow turning? */
 	if (!IsTurning)
-		Profile->TurnHeld = gametic;
+		p_TurnHeld = gametic;
 	
 	/* Turning */
 	TicCmd.BaseAngleTurn = BaseAT;
@@ -3928,7 +3934,7 @@ static const D_NCMessageType_t c_NCMessageCodesEx[] =
 void DNetController::NetUpdate(void)
 {
 	RBAddress_c ReadAddr;
-	int32_t i, j, tN, Nn;
+	int32_t i, j, k, rr, tN, Nn;
 	char Header[5];
 	int32_t SID;
 	
@@ -4113,70 +4119,91 @@ void DNetController::NetUpdate(void)
 		BOut->BlockFlush();
 	}
 	
+	//CONL_PrintF("{%cReadies %lli %lli\n", ((p_Readies > 1) ? '7' : ((p_Readies == 1) ? '3' : 'a')), p_Readies, gametic);
+	
 	/* If playing as the server */
 	// Merge the local commands of everyone
 	ServerNC = GetServer();
-	if (ServerNC && p_Readies > 0 && ServerNC->IsLocal())
-		while (p_Readies-- >= 1)
-			// Merge for all players
-			for (i = 0; i < MAXPLAYERS; i++)
-			{
-				// Find network player
-				NetPlay = DNetPlayer::NetPlayerByPID(i);
+	if (ServerNC && /*p_Readies > 0 &&*/ ServerNC->IsLocal())
+	{
+		// Merge for all players
+		for (i = 0; i < MAXPLAYERS; i++)
+		{
+			// Find network player
+			NetPlay = DNetPlayer::NetPlayerByPID(i);
+	
+			// Not found?
+			if (!NetPlay)
+				continue;
 		
-				// Not found?
-				if (!NetPlay)
-					continue;
+			// See if player is on this screen
+			SID = -1;
+			for (j = 0; j < g_SplitScreen + 1; j++)
+				if (g_PlayerInSplit[j])
+					if (i == consoleplayer[j])
+					{
+						SID = j;
+						break;
+					}
 			
-				// See if player is on this screen
-				SID = -1;
-				for (j = 0; j < g_SplitScreen + 1; j++)
-					if (g_PlayerInSplit[i])
-						if (j == consoleplayer[j])
-						{
-							SID = j;
-							break;
-						}
-			
+			// Ready all tics
+			for (rr = 0; rr < p_Readies; rr++)
+			{
 				// Allocation
-				if (!NetPlay->p_TicCmdQ)
+				if (NetPlay->p_NumTicCmdQ < p_Readies)
 				{
-					NetPlay->p_TicCmdQ = (ticcmd_t**)Z_Malloc(sizeof(*NetPlay->p_TicCmdQ), PU_STATIC, NULL);
-					NetPlay->p_NumTicCmdQ = 1;
+					Z_ResizeArray((void**)&NetPlay->p_TicCmdQ, sizeof(*NetPlay->p_TicCmdQ), NetPlay->p_NumTicCmdQ, p_Readies);
+					NetPlay->p_NumTicCmdQ = p_Readies;
+				}
+		
+				// Move last tic here and merge
+				NetPlay->p_TicCmdQ[rr] = new ticcmd_t();
+			
+				// No tics in Queue?
+				if (!NetPlay->p_LocalSpot)
+				{
+					// Use last command in place
+					memmove(NetPlay->p_TicCmdQ[rr], &NetPlay->GetLastCommand(), sizeof(ticcmd_t));
+					continue;
 				}
 			
-				// Move last tic here and merge
-				NetPlay->p_TicCmdQ[0] = new ticcmd_t();
-				D_NCSNetMergeTics(NetPlay->p_TicCmdQ[0], NetPlay->p_LocalTicCmdQ, NetPlay->p_LocalSpot);
-			
+				// Merge in all tics
+				D_NCSNetMergeTics(NetPlay->p_TicCmdQ[rr], NetPlay->p_LocalTicCmdQ, NetPlay->p_LocalSpot);
+		
 				// Clear
 				memset(NetPlay->p_LocalTicCmdQ, 0, sizeof(NetPlay->p_LocalTicCmdQ));
 				NetPlay->p_LocalSpot = 0;
-			
+		
 				// Set local aiming and such
 				if (SID >= 0 && SID < MAXSPLITSCREEN)
 				{
 					// Absolute Angles
 					if (P_EXGSGetValue(PEXGSBID_COABSOLUTEANGLE))
 					{
-						localangle[SID] += NetPlay->p_TicCmdQ[0]->BaseAngleTurn << 16;
-						NetPlay->p_TicCmdQ[0]->angleturn = localangle[SID] >> 16;
+						localangle[SID] += NetPlay->p_TicCmdQ[rr]->BaseAngleTurn << 16;
+						NetPlay->p_TicCmdQ[rr]->angleturn = localangle[SID] >> 16;
 					}
-				
+			
 					// Doom Angles
 					else
-						NetPlay->p_TicCmdQ[0]->angleturn = NetPlay->p_TicCmdQ[0]->BaseAngleTurn;
-					
-					if (NetPlay->p_TicCmdQ[0]->ResetAim)
+						NetPlay->p_TicCmdQ[rr]->angleturn = NetPlay->p_TicCmdQ[rr]->BaseAngleTurn;
+				
+					if (NetPlay->p_TicCmdQ[rr]->ResetAim)
 						localaiming[SID] = 0;
 					else
-						localaiming[SID] += NetPlay->p_TicCmdQ[0]->BaseAiming << 16;
+						localaiming[SID] += NetPlay->p_TicCmdQ[rr]->BaseAiming << 16;
 					G_ClipAimingPitch(&localaiming[SID]);
 				}
+			
+				// Set last command
+				memmove(&NetPlay->GetLastCommand(), NetPlay->p_TicCmdQ[rr], sizeof(ticcmd_t));
 			}
+		}
 		
 		// Reset ready count
-		 = 0;
+		p_Readies = 0;
+		
+		// Send Everyone the server's allocated tics
 	}
 }
 

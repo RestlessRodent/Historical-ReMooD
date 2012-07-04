@@ -219,12 +219,12 @@ void TryRunTics(tic_t realtics)
 	else
 		XXSNAR = DNetController::ReadyTics();
 	
+	// Update Network
+	DNetController::NetUpdate();
+	
 	if (XXSNAR > 0)
 		while ((XXSNAR--) > 0)
 		{
-			// Update Net status
-			DNetController::NetUpdate();
-		
 			// Run game ticker and increment the gametic
 			G_Ticker();
 			gametic++;
@@ -238,11 +238,6 @@ void TryRunTics(tic_t realtics)
 	else if (!singletics)
 	{
 		I_WaitVBL(20);
-		
-		// Toggle net updates (reduce CPU/traffic a bit)
-		if (ToggleUp)
-			DNetController::NetUpdate();
-		ToggleUp = !ToggleUp;
 	}
 }
 

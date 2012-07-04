@@ -269,13 +269,17 @@ class DNetPlayer
 		int32_t p_PID;							// Player ID
 		tic_t p_BotLastTime;					// Last time bot built commands
 		D_ProfileEx_t* p_Profile;				// Player's Profile
-		struct player_s* p_Player;					// Player that is controlled
+		struct player_s* p_Player;				// Player that is controlled
+		ticcmd_t p_LastCmd;						// Last Command
 		
 		static DNetPlayer** p_Players;			// Net players
 		static size_t p_NumPlayers;				// Number of them
 		
 		bool GAMEKEYDOWN(D_ProfileEx_t* const a_Profile, const uint8_t a_Key);
 		uint8_t NextWeapon(struct player_s* const a_Player, int step);
+		
+		tic_t p_TurnHeld;						// Time turning is held
+		tic_t p_CoopSpyTime;					// Time to wait to respy
 		
 	public:
 		ticcmd_t** p_TicCmdQ;					// Tic Command Q
@@ -290,6 +294,7 @@ class DNetPlayer
 		bool IsBot(void);						// Player is a bot
 		void SetBot(const bool a_Val);			// Sets bot
 		tic_t& GetBotLastTime(void);			// Bot's last time
+		ticcmd_t& GetLastCommand(void);			// Get last command
 		
 		bool IsLocal(void);						// Is local player
 		void SetLocal(const bool a_Val);
