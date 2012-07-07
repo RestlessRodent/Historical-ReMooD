@@ -294,7 +294,7 @@ all:													$(__XX_BIN)/remood$(__INT_EXESUFFIX)$(__XX_EXESUFFIX)
 # Clean targets
 .PHONY: clean
 clean:													$(__XX_OBJSCLEAN)
-														@echo [RM] remood
+														@echo [RM ] remood
 														@$(call __XX_RUNCOMMAND,$(__XX_DELETE) $(call __XX_DOSPATH,$(__XX_BIN)/remood$(__INT_EXESUFFIX)$(__XX_EXESUFFIX))) > $(__XX_DEVNULL)
 
 # Alias for binary
@@ -303,22 +303,22 @@ remood:													$(__XX_BIN)/remood$(__INT_EXESUFFIX)$(__XX_EXESUFFIX)
 
 # The actual binary
 $(__XX_BIN)/remood$(__INT_EXESUFFIX)$(__XX_EXESUFFIX):	$(__XX_OBJS)
-														@echo [LD] $(notdir $@)
+														@echo [LD ] $(notdir $@)
 														$(__INT_CXX) -o $@ $(__XX_OBJS) $(__XX_LDFLAGS)
 
 # Source files in src/
 $(__XX_OBJ)/%.$(__XX_OBJPRIME):							$(__INT_OUTOFTREE)$(__XX_SRC)/%.cxx
-														@echo [CC] $(notdir $<)
+														@echo [CXX] $(notdir $<)
 														@$(__INT_CXX) -c $< -o $@ $(__XX_CFLAGS)
 
 # Source files in interfaces
 $(__XX_OBJ)/%.$(__XX_OBJPRIME):							$(__INT_OUTOFTREE)$(__XX_SRC)/$(__XX_IFACEDIR)/%.cxx
-														@echo [CC] $(notdir $<)
+														@echo [CXX] $(notdir $<)
 														@$(__INT_CXX) -c $< -o $@ $(__XX_CFLAGS) $(__XX_IXFCFLAGS)
 
 # ReMooD Win32 RC File
 $(__XX_OBJ)/%.$(__XX_OBJPRIME):							$(__INT_OUTOFTREE)$(__XX_RC)/%.rc
-														@echo [RC] $(notdir $<)
+														@echo [RC ] $(notdir $<)
 														@$(__INT_WINDRES) --input-format=rc -o $@ $< -O coff $(__XX_RCFLAGS)
 
 # Clean object files built
