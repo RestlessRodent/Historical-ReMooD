@@ -3841,7 +3841,7 @@ void DNetController::StartServer(void)
 	S_ChangeMusicName("D_WAITIN", 1);			// Waiting for game to start
 	
 	// Set lag to zero
-	p_ServerLag = 5;//10;		// ~300ms ping
+	p_ServerLag = 0;//10;		// ~300ms ping
 }
 
 /* DNetController::ReadyTics() -- Amount of tics ready to be played */
@@ -3851,7 +3851,7 @@ tic_t DNetController::ReadyTics(void)
 	static tic_t LastTime;
 	tic_t ThisTime;
 	tic_t DiffTime;
-	uint64_t ThisTimeMS;
+	uint64_t ThisTimeMS, DiffTimeMS;
 	static uint64_t LastTimeMS;
 	size_t i;
 	bool EveryoneIsReady;
@@ -3860,6 +3860,10 @@ tic_t DNetController::ReadyTics(void)
 	/* Get the current time */
 	ThisTime = I_GetTime();
 	ThisTimeMS = I_GetTimeMS();
+	
+	// Get time difference
+	DiffTime = ThisTime - LastTime;
+	DiffTimeMS = ThisTimeMS - LastTimeMS;
 	
 	/* Clear */
 	p_Readies = 0;
@@ -3870,7 +3874,7 @@ tic_t DNetController::ReadyTics(void)
 	// and then just leaves, don't want to lose that CPU.
 	if (p_RemoteCount <= 0 && p_LocalCount <= 0)
 	{
-#define SERVERCOOLDOWN 4
+#define SERVERCOOLDOWN 2
 		if (ThisTime >> SERVERCOOLDOWN > p_LastTime >> SERVERCOOLDOWN)
 		{
 			DiffTime = (ThisTime - p_LastTime) >> SERVERCOOLDOWN;
@@ -3886,7 +3890,7 @@ tic_t DNetController::ReadyTics(void)
 	else if (p_IsGameHost)
 	{
 		// Still enough time for next tic? (or server is laggy and still behind lag time)
-		if ((ThisTimeMS) < (LastTimeMS + (TICSPERMS >> 1)))
+		if (DiffTimeMS < (TICSPERMS >> 1))
 			return 0;
 		
 		// Set as ready (will be unset in the future)
@@ -3908,13 +3912,15 @@ tic_t DNetController::ReadyTics(void)
 				EveryoneIsReady = false;
 		}
 		
-		// Set last time
-		LastTime = ThisTime;
-		LastTimeMS = ThisTimeMS;
-		
 		// Proceed if everyone is ready
 		if (EveryoneIsReady)
-			return (p_Readies = 1);
+		{
+			// Set last time
+			LastTime = ThisTime;
+			LastTimeMS = ThisTimeMS;
+			
+			return (p_Readies = (DiffTime));
+		}
 		else
 			return (p_Readies = 0);
 	}
