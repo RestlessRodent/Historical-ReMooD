@@ -130,7 +130,7 @@ static bool_t MS_TextureTestUnderDraw(struct M_UIMenuHandler_s* const a_Handler,
 }
 
 /* M_ExGeneralComm() -- Menu Commands */
-CONL_ExitCode_t M_ExGeneralComm(const uint32_t a_ArgC, const char** const a_ArgV)
+int M_ExGeneralComm(const uint32_t a_ArgC, const char** const a_ArgV)
 {
 	M_UIMenu_t* New;
 	int32_t i;

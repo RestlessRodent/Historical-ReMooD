@@ -192,7 +192,7 @@ void P_SetupLevelSky(void)
 /*** FUNCTIONS ***/
 
 /* PCLC_Map() -- Switch to another map */
-static CONL_ExitCode_t PCLC_Map(const uint32_t a_ArgC, const char** const a_ArgV)
+static int PCLC_Map(const uint32_t a_ArgC, const char** const a_ArgV)
 {
 	P_LevelInfoEx_t* Info;
 	size_t i;

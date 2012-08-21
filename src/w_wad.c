@@ -99,7 +99,7 @@ static size_t l_SearchCount = 0;	// Number of places to look
 /*** FUNCTIONS ***/
 
 /* WLS_MultiCom() -- Multi command handler */
-static CONL_ExitCode_t WLS_MultiCom(const uint32_t a_ArgC, const char** const a_ArgV)
+static int WLS_MultiCom(const uint32_t a_ArgC, const char** const a_ArgV)
 {
 #define POPARRAY 64
 	WL_WADFile_t* WAD, *NewWAD, *ReMooDWAD;

@@ -1014,7 +1014,7 @@ static void CONLFF_InputFF(const char* const a_Buf)
 	int ArgC, Current, i, j;
 	char** ArgV;
 	char Quote;
-	CONL_ExitCode_t ec;
+	int ec;
 	
 	/* Check */
 	if (!a_Buf)
@@ -1164,6 +1164,9 @@ bool_t CONL_Init(const uint32_t a_OutBS, const uint32_t a_InBS)
 	CONL_AddCommand("exit", CLC_CloseConsole);
 	CONL_AddCommand("closeconsole", CLC_CloseConsole);
 	CONL_AddCommand("close", CLC_CloseConsole);
+	
+	// Profile Stuff
+	CONL_AddCommand("profile", CLC_Profile);
 	
 	/* Initialize the variable system */
 	CONL_VarLocate("theconsolesystemwasjustbooted");
@@ -2877,6 +2880,12 @@ bool_t CONL_LoadConfigFile(const char* const a_Path)
 	return true;
 }
 
+/* CONLS_ConfWriteBack() -- Writes back to the console */
+static void CONLS_ConfWriteBack(const char* const a_Buf, void* const a_Data)
+{
+	fprintf((FILE*)a_Data, "%s", a_Buf);
+}
+
 /* CONL_SaveConfigFile() -- Save configuration file */
 bool_t CONL_SaveConfigFile(const char* const a_Path)
 {
@@ -2936,6 +2945,9 @@ bool_t CONL_SaveConfigFile(const char* const a_Path)
 		// Print end
 		fprintf(File, "\"\n");
 	}
+	
+	/* Save Profile Data */
+	D_SaveProfileData(CONLS_ConfWriteBack, File);
 	
 	/* Close file */
 	fclose(File);

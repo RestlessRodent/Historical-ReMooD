@@ -884,7 +884,7 @@ size_t Z_DEBUG_FreeTagsWrappee(const Z_MemoryTag_t LowTag, const Z_MemoryTag_t H
 }
 
 /* ZS_DEBUG_MemInfo() -- "meminfo" -- Print memory information */
-static CONL_ExitCode_t ZS_DEBUG_MemInfo(const uint32_t a_ArgC, const char** const a_ArgV)
+static int ZS_DEBUG_MemInfo(const uint32_t a_ArgC, const char** const a_ArgV)
 {
 	size_t i;
 	Z_DEBUG_MemPartition_t* Cur;
@@ -954,7 +954,7 @@ static CONL_ExitCode_t ZS_DEBUG_MemInfo(const uint32_t a_ArgC, const char** cons
 }
 
 /* ZS_DEBUG_MemCacheFree() -- "memcachefree" -- Free all cached memory */
-static CONL_ExitCode_t ZS_DEBUG_MemCacheFree(const uint32_t a_ArgC, const char** const a_ArgV)
+static int ZS_DEBUG_MemCacheFree(const uint32_t a_ArgC, const char** const a_ArgV)
 {
 	uint32_t FreeCount;
 	
@@ -969,7 +969,7 @@ static CONL_ExitCode_t ZS_DEBUG_MemCacheFree(const uint32_t a_ArgC, const char**
 }
 
 /* ZS_DEBUG_MemFrag() -- "memfrag" -- Show memory fragmentation */
-static CONL_ExitCode_t ZS_DEBUG_MemFrag(const uint32_t a_ArgC, const char** const a_ArgV)
+static int ZS_DEBUG_MemFrag(const uint32_t a_ArgC, const char** const a_ArgV)
 {
 #define MAXCHARS (30 * 10)
 	uint32_t BytesPerChar;
@@ -1067,7 +1067,7 @@ static CONL_ExitCode_t ZS_DEBUG_MemFrag(const uint32_t a_ArgC, const char** cons
 
 #if defined(_DEBUG)
 /* ZS_DEBUG_MemTrash() -- "memtrash" -- Print hardcore information */
-static CONL_ExitCode_t ZS_DEBUG_MemTrash(const uint32_t a_ArgC, const char** const a_ArgV)
+static int ZS_DEBUG_MemTrash(const uint32_t a_ArgC, const char** const a_ArgV)
 {
 	size_t i;
 	FILE* f;

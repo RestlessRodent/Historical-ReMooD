@@ -70,7 +70,7 @@
 typedef struct CONL_ConCommand_s
 {
 	char Name[MAXCONLCOMMANDNAME];							// Name of command
-	CONL_ExitCode_t (*ComFunc)(const uint32_t, const char** const);	// Function to call
+	int (*ComFunc)(const uint32_t, const char** const);	// Function to call
 	uint32_t Hash;											// Hash table hash
 } CONL_ConCommand_t;
 
@@ -222,7 +222,7 @@ const CONL_VarPossibleValue_t c_CVPVFont[] =
 
 /*** COMMANDS ***/
 
-static CONL_ExitCode_t g_CONLError = CLE_SUCCESS;			// '? command' Exit Code
+static int g_CONLError = CLE_SUCCESS;			// '? command' Exit Code
 
 static CONL_ConCommand_t* l_CONLCommands = NULL;			// Console commands
 static size_t l_CONLNumCommands = 0;						// Number of commands
@@ -367,7 +367,7 @@ static CONL_ConVariable_t* CONLS_PushVar(const char* const a_Name, CONL_StaticVa
 /*** COMMANDS ***/
 
 /* CONL_ExitCodeToStr() -- Converts exit code to string */
-const char* CONL_ExitCodeToStr(const CONL_ExitCode_t a_Code)
+const char* CONL_ExitCodeToStr(const int a_Code)
 {
 	static const char* const CodeStrs[NUMCONLEXITCODES] =
 	{
@@ -392,7 +392,7 @@ const char* CONL_ExitCodeToStr(const CONL_ExitCode_t a_Code)
 }
 
 /* CONL_AddCommand() -- Add console command */
-bool_t CONL_AddCommand(const char* const a_Name, CONL_ExitCode_t (*a_ComFunc)(const uint32_t, const char** const))
+bool_t CONL_AddCommand(const char* const a_Name, int (*a_ComFunc)(const uint32_t, const char** const))
 {
 	uintptr_t x;
 	
@@ -430,7 +430,7 @@ bool_t CONL_AddCommand(const char* const a_Name, CONL_ExitCode_t (*a_ComFunc)(co
 }
 
 /* CONL_Exec() -- Execute command */
-CONL_ExitCode_t CONL_Exec(const uint32_t a_ArgC, const char** const a_ArgV)
+int CONL_Exec(const uint32_t a_ArgC, const char** const a_ArgV)
 {
 	uint32_t Hash;
 	uintptr_t ComNum;
@@ -853,7 +853,7 @@ fixed_t CONL_VarSetFixed(CONL_StaticVar_t* a_Var, const fixed_t a_NewVal)
 ***********************/
 
 /* CLC_Version() -- ReMooD version info */
-CONL_ExitCode_t CLC_Version(const uint32_t a_ArgC, const char** const a_ArgV)
+int CLC_Version(const uint32_t a_ArgC, const char** const a_ArgV)
 {
 	CONL_OutputF("ReMooD %i.%i%c \"%s\"\n", REMOOD_MAJORVERSION, REMOOD_MINORVERSION, REMOOD_RELEASEVERSION, REMOOD_VERSIONCODESTRING);
 	CONL_OutputF("  Please visit %s for more information.\n", REMOOD_URL);
@@ -863,13 +863,13 @@ CONL_ExitCode_t CLC_Version(const uint32_t a_ArgC, const char** const a_ArgV)
 }
 
 /* CLC_Exec() -- Execute command */
-CONL_ExitCode_t CLC_Exec(const uint32_t a_ArgC, const char** const a_ArgV)
+int CLC_Exec(const uint32_t a_ArgC, const char** const a_ArgV)
 {
 	return CONL_Exec(a_ArgC - 1, a_ArgV + 1);
 }
 
 /* CLC_ExecFile() -- Executes a file */
-CONL_ExitCode_t CLC_ExecFile(const uint32_t a_ArgC, const char** const a_ArgV)
+int CLC_ExecFile(const uint32_t a_ArgC, const char** const a_ArgV)
 {
 #define BUFSIZE 512
 	FILE* File;
@@ -917,7 +917,7 @@ CONL_ExitCode_t CLC_ExecFile(const uint32_t a_ArgC, const char** const a_ArgV)
 }
 
 /* CLC_Echo() -- Echo text */
-CONL_ExitCode_t CLC_Echo(const uint32_t a_ArgC, const char** const a_ArgV)
+int CLC_Echo(const uint32_t a_ArgC, const char** const a_ArgV)
 {
 	int i;
 	
@@ -936,9 +936,9 @@ CONL_ExitCode_t CLC_Echo(const uint32_t a_ArgC, const char** const a_ArgV)
 }
 
 /* CLC_Exclamation() -- Runs command and reverses error status */
-CONL_ExitCode_t CLC_Exclamation(const uint32_t a_ArgC, const char** const a_ArgV)
+int CLC_Exclamation(const uint32_t a_ArgC, const char** const a_ArgV)
 {
-	CONL_ExitCode_t Code;
+	int Code;
 	
 	/* Execute */
 	Code = CONL_Exec(a_ArgC - 1, a_ArgV + 1);
@@ -951,9 +951,9 @@ CONL_ExitCode_t CLC_Exclamation(const uint32_t a_ArgC, const char** const a_ArgV
 }
 
 /* CLC_Question() -- Runs command and sets error number */
-CONL_ExitCode_t CLC_Question(const uint32_t a_ArgC, const char** const a_ArgV)
+int CLC_Question(const uint32_t a_ArgC, const char** const a_ArgV)
 {
-	CONL_ExitCode_t Code;
+	int Code;
 	
 	/* Execute */
 	Code = CONL_Exec(a_ArgC - 1, a_ArgV + 1);
@@ -966,7 +966,7 @@ CONL_ExitCode_t CLC_Question(const uint32_t a_ArgC, const char** const a_ArgV)
 }
 
 /* CLC_CVarList() -- List console variables */
-CONL_ExitCode_t CLC_CVarList(const uint32_t a_ArgC, const char** const a_ArgV)
+int CLC_CVarList(const uint32_t a_ArgC, const char** const a_ArgV)
 {
 #define BUFSIZE 512
 	size_t i, j;
@@ -1057,7 +1057,7 @@ CONL_ExitCode_t CLC_CVarList(const uint32_t a_ArgC, const char** const a_ArgV)
 }
 
 /* CLC_CVarSet() -- Set variable to value */
-CONL_ExitCode_t CLC_CVarSet(const uint32_t a_ArgC, const char** const a_ArgV)
+int CLC_CVarSet(const uint32_t a_ArgC, const char** const a_ArgV)
 {
 #define BUFSIZE 512
 	const char* RealValue;
@@ -1084,7 +1084,7 @@ CONL_ExitCode_t CLC_CVarSet(const uint32_t a_ArgC, const char** const a_ArgV)
 }
 
 /* CLC_Quit() -- Quit the game */
-CONL_ExitCode_t CLC_Quit(const uint32_t a_ArgC, const char** const a_ArgV)
+int CLC_Quit(const uint32_t a_ArgC, const char** const a_ArgV)
 {
 	/* Noooooooo! */
 	I_Quit();
@@ -1094,7 +1094,7 @@ CONL_ExitCode_t CLC_Quit(const uint32_t a_ArgC, const char** const a_ArgV)
 }
 
 /* CLC_CloseConsole() -- Close the console */
-CONL_ExitCode_t CLC_CloseConsole(const uint32_t a_ArgC, const char** const a_ArgV)
+int CLC_CloseConsole(const uint32_t a_ArgC, const char** const a_ArgV)
 {
 	/* Close Console */
 	CONL_SetActive(false);

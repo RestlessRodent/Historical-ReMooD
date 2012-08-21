@@ -1353,7 +1353,7 @@ static bool_t PS_WLInfoOCCB(const bool_t a_Pushed, const struct WL_WADFile_s* co
 }
 
 /* PCLC_Maps() -- Print maps available */
-static CONL_ExitCode_t PCLC_Maps(const uint32_t a_ArgC, const char** const a_ArgV)
+static int PCLC_Maps(const uint32_t a_ArgC, const char** const a_ArgV)
 {
 	size_t i;
 	
@@ -1385,7 +1385,7 @@ static CONL_ExitCode_t PCLC_Maps(const uint32_t a_ArgC, const char** const a_Arg
 }
 
 /* PCLC_MapInfo() -- Prints all available information on a map */
-static CONL_ExitCode_t PCLC_MapInfo(const uint32_t a_ArgC, const char** const a_ArgV)
+static int PCLC_MapInfo(const uint32_t a_ArgC, const char** const a_ArgV)
 {
 	P_LevelInfoEx_t* Map;
 	

@@ -206,5 +206,8 @@ D_ProfileEx_t* D_CreateProfileEx(const char* const a_Name);
 
 D_ProfileEx_t* D_FindProfileEx(const char* const a_Name);
 
+void D_SaveProfileData(void (*a_WriteBack)(const char* const a_Buf, void* const a_Data), void* const a_Data);
+int CLC_Profile(const uint32_t a_ArgC, const char** const a_ArgV);
+
 #endif							/* __D_PROF_H__ */
 

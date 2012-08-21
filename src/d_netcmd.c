@@ -272,7 +272,7 @@ struct player_s* D_NCSAddBotPlayer(const char* const a_ProfileID)
 }
 
 /* DS_NCSNetCommand() -- Network commands */
-static CONL_ExitCode_t DS_NCSNetCommand(const uint32_t a_ArgC, const char** const a_ArgV)
+static int DS_NCSNetCommand(const uint32_t a_ArgC, const char** const a_ArgV)
 {
 	struct player_s* p;
 	int i;

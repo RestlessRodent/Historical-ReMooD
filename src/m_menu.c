@@ -158,7 +158,7 @@ CONL_StaticVar_t l_MenuCompact =
 
 /*** MENU FUNCTIONS ***/
 
-CONL_ExitCode_t M_ExGeneralComm(const uint32_t a_ArgC, const char** const a_ArgV);
+int M_ExGeneralComm(const uint32_t a_ArgC, const char** const a_ArgV);
 
 /* M_MenuExInit() -- Init Menu */
 void M_MenuExInit(void)

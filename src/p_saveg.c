@@ -57,7 +57,7 @@
 ****************/
 
 /* CLC_SaveGame() -- Saves the game */
-static CONL_ExitCode_t CLC_SaveGame(const uint32_t a_ArgC, const char** const a_ArgV)
+static int CLC_SaveGame(const uint32_t a_ArgC, const char** const a_ArgV)
 {
 	/* Check */
 	if (a_ArgC < 2)

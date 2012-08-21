@@ -238,3 +238,23 @@ D_ProfileEx_t* D_FindProfileEx(const char* const a_Name)
 	return NULL;
 }
 
+/* D_SaveProfileData() -- Saves profile data */
+void D_SaveProfileData(void (*a_WriteBack)(const char* const a_Buf, void* const a_Data), void* const a_Data)
+{
+	/* Check */
+	if (!a_WriteBack)
+		return;
+	
+	/* Start Header */
+	a_WriteBack("\n// Begin Profiles (edit at your own risk)\n", a_Data);
+	
+	/* End Header */
+	a_WriteBack("// End Profiles\n", a_Data);
+}
+
+/* CLC_Profile() -- Profile command handler */
+int CLC_Profile(const uint32_t a_ArgC, const char** const a_ArgV)
+{
+	return CLE_SUCCESS;
+}
+

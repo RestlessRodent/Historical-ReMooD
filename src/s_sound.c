@@ -747,7 +747,7 @@ void SetChannelsNum(void)
 }
 
 /* SCLC_SoundMulti() -- Sound multi-handler */
-static CONL_ExitCode_t SCLC_SoundMulti(const uint32_t a_ArgC, const char** const a_ArgV)
+static int SCLC_SoundMulti(const uint32_t a_ArgC, const char** const a_ArgV)
 {
 	/* Check */
 	if (a_ArgC < 2)

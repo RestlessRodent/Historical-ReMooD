@@ -1756,6 +1756,12 @@ void D_DoomMain(void)
 	/* Core */
 	CONL_PrintF("Initializing the memory manager...\n");
 	Z_Init();
+	
+	// Profiles are considered somewhat core
+	GuestProf = D_CreateProfileEx("guest");	// Create guest account
+	GuestProf->Flags |= DPEXF_DONTSAVE;	// Never save guest account
+	
+	// Initialize Console
 	CONL_Init(4096, 1024);
 	
 	/* Initialize widgets */
@@ -1785,9 +1791,6 @@ void D_DoomMain(void)
 	WL_Init();							// Initialize WL Code
 	M_MenuExInit();						// Initialize Menu
 	G_PrepareDemoStuff();				// Demos
-	
-	GuestProf = D_CreateProfileEx("guest");	// Create guest account
-	GuestProf->Flags |= DPEXF_DONTSAVE;	// Never save guest account
 	/**************************/
 	
 	// GhostlyDeath <December 14, 2011> -- Use extended identify version

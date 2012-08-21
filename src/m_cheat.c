@@ -1141,7 +1141,7 @@ void MS_CHEAT_Morph(player_t* const a_Player, const uint32_t a_ArgC, const char*
 }
 
 /* MS_MultiCheatCommand() -- Multi-cheat command */
-static CONL_ExitCode_t MS_MultiCheatCommand(const uint32_t a_ArgC, const char** const a_ArgV)
+static int MS_MultiCheatCommand(const uint32_t a_ArgC, const char** const a_ArgV)
 {
 	size_t i;
 	

@@ -488,7 +488,7 @@ void D_NCFudgeOffClient(D_NetClient_t* const a_Client, const char a_Code, const 
 }
 
 /* DS_ConnectMultiCom() -- Connection multi-command */
-static CONL_ExitCode_t DS_ConnectMultiCom(const uint32_t a_ArgC, const char** const a_ArgV)
+static int DS_ConnectMultiCom(const uint32_t a_ArgC, const char** const a_ArgV)
 {
 	D_NetClient_t* ServerNC;
 	I_HostAddress_t Host;

@@ -57,8 +57,8 @@
 #define CONLSCROLLBACK 0						// Backcolor of the scrollbar
 #define CONLSCROLLMISS 200						// Missed color for scrollbar
 
-/* CONL_ExitCode_t -- Exit code for console command */
-typedef enum CONL_ExitCode_e
+/* int -- Exit code for console command */
+enum CONL_ExitCode_e
 {
 	CLE_SUCCESS,								// Success.
 	CLE_FAILURE,								// Failure.
@@ -74,7 +74,7 @@ typedef enum CONL_ExitCode_e
 	CLE_UNKNOWNSUBCOMMAND,						// Unknown sub command
 	
 	NUMCONLEXITCODES
-} CONL_ExitCode_t;
+};
 
 /*** Console Variables ***/
 
@@ -232,9 +232,9 @@ void CONCTI_SetText(CONCTI_Inputter_t* const a_Input, const char* const a_Text);
 int32_t CONCTI_DrawInput(CONCTI_Inputter_t* const a_Input, const uint32_t a_Options, const int32_t a_x, const int32_t a_y, const int32_t a_x2);
 
 /*** Console Commands ***/
-const char* CONL_ExitCodeToStr(const CONL_ExitCode_t a_Code);
-bool_t CONL_AddCommand(const char* const a_Name, CONL_ExitCode_t (*a_ComFunc)(const uint32_t, const char** const));
-CONL_ExitCode_t CONL_Exec(const uint32_t a_ArgC, const char** const a_ArgV);
+const char* CONL_ExitCodeToStr(const int a_Code);
+bool_t CONL_AddCommand(const char* const a_Name, int (*a_ComFunc)(const uint32_t, const char** const));
+int CONL_Exec(const uint32_t a_ArgC, const char** const a_ArgV);
 
 /*** Console Variables ***/
 bool_t CONL_VarSetLoaded(const bool_t a_Loaded);
@@ -276,18 +276,18 @@ bool_t CONL_OSKHandleEvent(const I_EventEx_t* const a_Event, const size_t a_Play
 
 /*** Console Commands ***/
 // Variable Commands
-CONL_ExitCode_t CLC_CVarList(const uint32_t a_ArgC, const char** const a_ArgV);
-CONL_ExitCode_t CLC_CVarSet(const uint32_t a_ArgC, const char** const a_ArgV);
+int CLC_CVarList(const uint32_t a_ArgC, const char** const a_ArgV);
+int CLC_CVarSet(const uint32_t a_ArgC, const char** const a_ArgV);
 
 // Base Commands
-CONL_ExitCode_t CLC_Version(const uint32_t a_ArgC, const char** const a_ArgV);
-CONL_ExitCode_t CLC_Exec(const uint32_t a_ArgC, const char** const a_ArgV);
-CONL_ExitCode_t CLC_ExecFile(const uint32_t a_ArgC, const char** const a_ArgV);
-CONL_ExitCode_t CLC_Echo(const uint32_t a_ArgC, const char** const a_ArgV);
-CONL_ExitCode_t CLC_Exclamation(const uint32_t a_ArgC, const char** const a_ArgV);
-CONL_ExitCode_t CLC_Question(const uint32_t a_ArgC, const char** const a_ArgV);
-CONL_ExitCode_t CLC_Quit(const uint32_t a_ArgC, const char** const a_ArgV);
-CONL_ExitCode_t CLC_CloseConsole(const uint32_t a_ArgC, const char** const a_ArgV);
+int CLC_Version(const uint32_t a_ArgC, const char** const a_ArgV);
+int CLC_Exec(const uint32_t a_ArgC, const char** const a_ArgV);
+int CLC_ExecFile(const uint32_t a_ArgC, const char** const a_ArgV);
+int CLC_Echo(const uint32_t a_ArgC, const char** const a_ArgV);
+int CLC_Exclamation(const uint32_t a_ArgC, const char** const a_ArgV);
+int CLC_Question(const uint32_t a_ArgC, const char** const a_ArgV);
+int CLC_Quit(const uint32_t a_ArgC, const char** const a_ArgV);
+int CLC_CloseConsole(const uint32_t a_ArgC, const char** const a_ArgV);
 
 /*** Configuration Files ***/
 size_t CONL_EscapeString(char* const a_Dest, const size_t a_Size, const char* const a_Src);

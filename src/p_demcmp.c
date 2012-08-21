@@ -995,7 +995,7 @@ int32_t P_XGSGetNextValue(const P_XGSBitID_t a_Bit, const bool_t a_Right)
 }
 
 /* PS_EXGSGeneralComm() -- General command for game settings */
-static CONL_ExitCode_t PS_EXGSGeneralComm(const uint32_t a_ArgC, const char** const a_ArgV)
+static int PS_EXGSGeneralComm(const uint32_t a_ArgC, const char** const a_ArgV)
 {
 	size_t i;
 	P_XGSVariable_t* Var;
