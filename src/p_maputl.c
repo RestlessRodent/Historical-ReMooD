@@ -437,7 +437,7 @@ void P_UnsetThingPosition(mobj_t* thing)
 	thing->bnext = thing->bprev = NULL;
 	
 	// GhostlyDeath <April 27, 2012> -- Improved Mobj on Mobj
-	if (P_EXGSGetValue(PEXGSBID_COIMPROVEDMOBJONMOBJ))
+	if (P_XGSVal(PGS_COIMPROVEDMOBJONMOBJ))
 	{
 	}
 }
@@ -529,7 +529,7 @@ void P_SetThingPosition(mobj_t* thing)
 	}
 	
 	// GhostlyDeath <April 27, 2012> -- Improved Mobj on Mobj
-	if (P_EXGSGetValue(PEXGSBID_COIMPROVEDMOBJONMOBJ))
+	if (P_XGSVal(PGS_COIMPROVEDMOBJONMOBJ))
 	{
 	}
 }

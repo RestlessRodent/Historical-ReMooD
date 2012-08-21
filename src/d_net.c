@@ -2707,7 +2707,7 @@ void D_NSZZ_SendINFO(struct D_RBlockStream_s* a_Stream, const uint32_t a_LocalTi
 bool_t D_NSZZ_SendINFX(struct D_RBlockStream_s* a_Stream, size_t* const a_It)
 {
 	size_t EndIt;
-	P_EXGSVariable_t* XVar;
+	P_XGSVariable_t* XVar;
 	
 	/* Get End */
 	EndIt = *a_It + 5;
@@ -2719,7 +2719,7 @@ bool_t D_NSZZ_SendINFX(struct D_RBlockStream_s* a_Stream, size_t* const a_It)
 		D_RBSWriteUInt8(a_Stream, 'V');
 		
 		// Get Var
-		XVar = P_EXGSVarForBit(*a_It);
+		XVar = P_XGSVarForBit(*a_It);
 		
 		if (!XVar)
 			continue;

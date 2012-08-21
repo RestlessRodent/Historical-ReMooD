@@ -50,7 +50,7 @@ void A_SmokeTrailer(mobj_t* actor)
 	mobj_t* th;
 	
 	// GhostlyDeath <March 6, 2012> -- Check version (not before Legacy 1.11)
-	if (P_EXGSGetValue(PEXGSBID_CONOSMOKETRAILS))
+	if (P_XGSVal(PGS_CONOSMOKETRAILS))
 		return;
 	
 	// Only every 4 gametics
@@ -59,14 +59,14 @@ void A_SmokeTrailer(mobj_t* actor)
 		
 	// GhostlyDeath <April 12, 2012> -- Extra puffs before v1.25
 		// Before 1.25, bullet puffs appeared with smoke puffs for some reason.
-	if (P_EXGSGetValue(PEXGSBID_COEXTRATRAILPUFF))
+	if (P_XGSVal(PGS_COEXTRATRAILPUFF))
 	{
 		PuffType = INFO_GetTypeByName("BulletPuff");
 		P_SpawnPuff(actor->x, actor->y, actor->z);
 	}
 	
 	// add the smoke behind the rocket
-	th = P_SpawnMobj(actor->x - actor->momx, actor->y - actor->momy, actor->z, (P_EXGSGetValue(PEXGSBID_COUSEREALSMOKE) ? INFO_GetTypeByName("LegacySmoke") : INFO_GetTypeByName("TracerSmoke")));
+	th = P_SpawnMobj(actor->x - actor->momx, actor->y - actor->momy, actor->z, (P_XGSVal(PGS_COUSEREALSMOKE) ? INFO_GetTypeByName("LegacySmoke") : INFO_GetTypeByName("TracerSmoke")));
 
 	th->momz = FRACUNIT;
 	th->tics -= P_Random() & 3;
@@ -85,7 +85,7 @@ void A_SmokeTrailerSkull(mobj_t* actor)
 {
 	/* Check flag */
 	// Before v1.25? Lost souls did not emit smoke
-	if (!P_EXGSGetValue(PEXGSBID_COLOSTSOULTRAILS))
+	if (!P_XGSVal(PGS_COLOSTSOULTRAILS))
 		return;
 	
 	A_SmokeTrailer(actor);

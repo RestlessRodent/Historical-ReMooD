@@ -324,7 +324,7 @@ bool_t ST_Responder(event_t* ev)
 
 bool_t ST_SameTeam(player_t* a, player_t* b)
 {
-	switch (P_EXGSGetValue(PEXGSBID_GAMETEAMPLAY))
+	switch (P_XGSVal(PGS_GAMETEAMPLAY))
 	{
 		case 0:
 			return false;
@@ -347,7 +347,7 @@ int ST_PlayerFrags(int playernum)
 	frags = players[playernum].addfrags;
 	for (i = 0; i < MAXPLAYERS; i++)
 	{
-		if ((!P_EXGSGetValue(PEXGSBID_GAMETEAMPLAY) && i != playernum) || (P_EXGSGetValue(PEXGSBID_GAMETEAMPLAY) && !ST_SameTeam(&players[i], &players[playernum])))
+		if ((!P_XGSVal(PGS_GAMETEAMPLAY) && i != playernum) || (P_XGSVal(PGS_GAMETEAMPLAY) && !ST_SameTeam(&players[i], &players[playernum])))
 			frags += players[playernum].frags[i];
 		else
 			frags -= players[playernum].frags[i];
@@ -639,7 +639,7 @@ static void STS_DrawPlayerBarEx(const size_t a_PID, const int32_t a_X, const int
 			// Draw Ammo Text
 			if (DisplayP->ammo)
 			{
-				if (AmmoType < 0 || AmmoType >= NUMAMMO || P_EXGSGetValue(PEXGSBID_PLINFINITEAMMO))
+				if (AmmoType < 0 || AmmoType >= NUMAMMO || P_XGSVal(PGS_PLINFINITEAMMO))
 					snprintf(Buf, BUFSIZE - 1, "-");
 				else
 					snprintf(Buf, BUFSIZE - 1, "%i", DisplayP->ammo[AmmoType]);
@@ -652,7 +652,7 @@ static void STS_DrawPlayerBarEx(const size_t a_PID, const int32_t a_X, const int
 		}
 		
 		//// FRAGS
-		if (P_EXGSGetValue(PEXGSBID_GAMEDEATHMATCH))
+		if (P_XGSVal(PGS_GAMEDEATHMATCH))
 		{
 			// Draw Icon
 			vi = V_ImageFindA("sbofrags", VCP_DOOM);

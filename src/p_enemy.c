@@ -186,7 +186,7 @@ static bool_t P_CheckMeleeRange(mobj_t* actor)
 		
 	//added:19-03-98: check height now, so that damn imps cant attack
 	//                you if you stand on a higher ledge.
-	if (P_EXGSGetValue(PEXGSBID_COLIMITMONSTERZMATTACK) && ((pl->z > actor->z + actor->height) || (actor->z > pl->z + pl->height)))
+	if (P_XGSVal(PGS_COLIMITMONSTERZMATTACK) && ((pl->z > actor->z + actor->height) || (actor->z > pl->z + pl->height)))
 		return false;
 		
 	if (!P_CheckSight(actor, actor->target))
@@ -499,15 +499,15 @@ static bool_t P_LookForPlayers(mobj_t* actor, bool_t allaround)
 	
 	/* Get Max Players */
 	// Demo Compat
-	MaxPlayers = P_EXGSGetValue(PEXGSBID_COLASTLOOKMAXPLAYERS);
+	MaxPlayers = P_XGSVal(PGS_COLASTLOOKMAXPLAYERS);
 	
 	/* Look for players */
-	if (!P_EXGSGetValue(PEXGSBID_FUNNOTARGETPLAYER))
+	if (!P_XGSVal(PGS_FUNNOTARGETPLAYER))
 	{
 		sector = actor->subsector->sector;
 		
 		// BP: first time init, this allow minimum lastlook changes
-		if (actor->lastlook < 0 && P_EXGSGetValue(PEXGSBID_CORANDOMLASTLOOK))
+		if (actor->lastlook < 0 && P_XGSVal(PGS_CORANDOMLASTLOOK))
 			actor->lastlook = P_Random() % MaxPlayers;
 	
 		c = 0;
@@ -516,7 +516,7 @@ static bool_t P_LookForPlayers(mobj_t* actor, bool_t allaround)
 		for (LoopOK = false;; actor->lastlook = (actor->lastlook + 1) & (MaxPlayers - 1))
 		{
 			// GhostlyDeath <June 21, 2012> -- Demo Compat
-			if (P_EXGSGetValue(PEXGSBID_COOLDLASTLOOKLOGIC))
+			if (P_XGSVal(PGS_COOLDLASTLOOKLOGIC))
 			{
 				// Player Missing
 				if (!playeringame[actor->lastlook])
@@ -549,8 +549,8 @@ static bool_t P_LookForPlayers(mobj_t* actor, bool_t allaround)
 				continue;
 			
 			// Player and monster on the same team?
-			if (!P_EXGSGetValue(PEXGSBID_CODISABLETEAMPLAY))
-				if (P_EXGSGetValue(PEXGSBID_COENABLETEAMMONSTERS))
+			if (!P_XGSVal(PGS_CODISABLETEAMPLAY))
+				if (P_XGSVal(PGS_COENABLETEAMMONSTERS))
 					if (P_MobjOnSameTeam(actor, player->mo))
 						continue;
 	
@@ -584,7 +584,7 @@ static bool_t P_LookForPlayers(mobj_t* actor, bool_t allaround)
 	}
 	
 	// GhostlyDeath <June 17, 2012> -- Old Demo and Nothing Found?
-	if (!P_EXGSGetValue(PEXGSBID_COMONSTERLOOKFORMONSTER))
+	if (!P_XGSVal(PGS_COMONSTERLOOKFORMONSTER))
 		return false;	// Nothing found
 	
 	/* Then look for other monsters */
@@ -607,12 +607,12 @@ static bool_t P_LookForPlayers(mobj_t* actor, bool_t allaround)
 			continue;
 		
 		// On the same team?
-		if (!(P_EXGSGetValue(PEXGSBID_FUNMONSTERFFA)))
+		if (!(P_XGSVal(PGS_FUNMONSTERFFA)))
 			if (P_MobjOnSameTeam(actor, mo))
 				continue;
 		
 		// A player? and cannot target them?
-		if (P_EXGSGetValue(PEXGSBID_FUNNOTARGETPLAYER) && mo->player)
+		if (P_XGSVal(PGS_FUNNOTARGETPLAYER) && mo->player)
 			continue;
 		
 		// Not Shootable?
@@ -680,7 +680,7 @@ void A_Look(mobj_t* actor, player_t* player, pspdef_t* psp, const INFO_StateArgs
 	mobj_t* targ;
 	
 	// GhostlyDeath <April 29, 2012> -- If a player move to movement state
-	if (P_EXGSGetValue(PEXGSBID_MONENABLEPLAYASMONSTER))
+	if (P_XGSVal(PGS_MONENABLEPLAYASMONSTER))
 		if (actor->player)
 		{
 			actor->threshold = 0;
@@ -693,13 +693,13 @@ void A_Look(mobj_t* actor, player_t* player, pspdef_t* psp, const INFO_StateArgs
 	targ = actor->subsector->sector->soundtarget;
 	
 	// Target is a player?
-	if (P_EXGSGetValue(PEXGSBID_FUNNOTARGETPLAYER))
+	if (P_XGSVal(PGS_FUNNOTARGETPLAYER))
 		if (targ && targ->player)
 			targ = NULL;
 	
 	// GhostlyDeath <June 6, 2012> -- Target is on your team
-	if (P_EXGSGetValue(PEXGSBID_COENABLETEAMMONSTERS))
-		if (P_EXGSGetValue(PEXGSBID_GAMETEAMPLAY))
+	if (P_XGSVal(PGS_COENABLETEAMMONSTERS))
+		if (P_XGSVal(PGS_GAMETEAMPLAY))
 			if (targ && P_MobjOnSameTeam(targ, actor))
 				targ = NULL;
 	
@@ -773,11 +773,11 @@ void A_Chase(mobj_t* actor, player_t* player, pspdef_t* psp, const INFO_StateArg
 	
 	// GhostlyDeath <June 23, 2012> -- Controlled monster?
 	Controlled = false;
-	if (P_EXGSGetValue(PEXGSBID_MONENABLEPLAYASMONSTER) && actor->player)
+	if (P_XGSVal(PGS_MONENABLEPLAYASMONSTER) && actor->player)
 		Controlled = true;
 	
 	// GhostlyDeath <June 17, 2012> -- Get Skill
-	Skill = P_EXGSGetValue(PEXGSBID_GAMESKILL);
+	Skill = P_XGSVal(PGS_GAMESKILL);
 	
 	if (actor->reactiontime)
 		actor->reactiontime--;
@@ -786,12 +786,12 @@ void A_Chase(mobj_t* actor, player_t* player, pspdef_t* psp, const INFO_StateArg
 	if (actor->threshold)
 	{
 		// No target or target is dead
-		if (!P_EXGSGetValue(PEXGSBID_HEREMONSTERTHRESH) && !actor->player && (!actor->target || actor->target->health <= 0 || (actor->target->flags & MF_CORPSE)))
+		if (!P_XGSVal(PGS_HEREMONSTERTHRESH) && !actor->player && (!actor->target || actor->target->health <= 0 || (actor->target->flags & MF_CORPSE)))
 		{
 			actor->threshold = 0;
 		
 			// GhostlyDeath <April 21, 2012> -- Deref here to remove reference
-			if (P_EXGSGetValue(PEXGSBID_COMONSTERDEADTARGET))
+			if (P_XGSVal(PGS_COMONSTERDEADTARGET))
 				P_RefMobj(PMRT_TARGET, actor, NULL);
 		}
 		
@@ -829,7 +829,7 @@ void A_Chase(mobj_t* actor, player_t* player, pspdef_t* psp, const INFO_StateArg
 	if (actor->flags & MF_JUSTATTACKED)
 	{
 		actor->flags &= ~MF_JUSTATTACKED;
-		if (!P_EXGSGetValue(PEXGSBID_MONFASTMONSTERS))
+		if (!P_XGSVal(PGS_MONFASTMONSTERS))
 			P_NewChaseDir(actor);
 		return;
 	}
@@ -849,7 +849,7 @@ void A_Chase(mobj_t* actor, player_t* player, pspdef_t* psp, const INFO_StateArg
 		// check for missile attack
 		if (actor->info->missilestate)
 		{
-			if (!P_EXGSGetValue(PEXGSBID_MONFASTMONSTERS) && actor->movecount)
+			if (!P_XGSVal(PGS_MONFASTMONSTERS) && actor->movecount)
 				goto nomissile;
 		
 			if (!P_CheckMissileRange(actor))
@@ -891,7 +891,7 @@ void A_Chase(mobj_t* actor, player_t* player, pspdef_t* psp, const INFO_StateArg
 	// ?
 nomissile:
 	// possibly choose another target
-	if (P_EXGSGetValue(PEXGSBID_COMULTIPLAYER) && !actor->threshold && !P_CheckSight(actor, actor->target))
+	if (P_XGSVal(PGS_COMULTIPLAYER) && !actor->threshold && !P_CheckSight(actor, actor->target))
 		if (P_LookForPlayers(actor, true))
 			return;				// got a new target
 	
@@ -910,7 +910,7 @@ nomissile:
 void A_FaceTarget(mobj_t* actor, player_t* player, pspdef_t* psp, const INFO_StateArgsNum_t a_ArgC, INFO_StateArgsParm_t* const a_ArgV)
 {
 	// GhostlyDeath <April 29, 2012> -- Player controlled monsters
-	if (P_EXGSGetValue(PEXGSBID_MONENABLEPLAYASMONSTER) && actor->player)
+	if (P_XGSVal(PGS_MONENABLEPLAYASMONSTER) && actor->player)
 	{
 		P_AimLineAttack(actor, actor->angle, MISSILERANGE, NULL);
 		actor->target = linetarget;
@@ -926,7 +926,7 @@ void A_FaceTarget(mobj_t* actor, player_t* player, pspdef_t* psp, const INFO_Sta
 	
 		actor->angle = R_PointToAngle2(actor->x, actor->y, actor->target->x, actor->target->y);
 	
-		if ((actor->target->flags & MF_SHADOW) || P_EXGSGetValue(PEXGSBID_FUNMONSTERSMISSMORE))
+		if ((actor->target->flags & MF_SHADOW) || P_XGSVal(PGS_FUNMONSTERSMISSMORE))
 			actor->angle += P_SignedRandom() << 21;
 	}
 }
@@ -1350,7 +1350,7 @@ bool_t PIT_VileCheck(mobj_t* thing, void* a_Arg)
 			return true;
 	
 	// GhostlyDeath <April 16, 2012> -- Arch-Viles can ressurect anything variable
-	if (!P_EXGSGetValue(PEXGSBID_MONARCHVILEANYRESPAWN))
+	if (!P_XGSVal(PGS_MONARCHVILEANYRESPAWN))
 		if (thing->info->raisestate == S_NULL)
 			return true;			// monster doesn't have a raise state
 		
@@ -1429,7 +1429,7 @@ void A_VileChase(mobj_t* actor, player_t* player, pspdef_t* psp, const INFO_Stat
 					else
 						P_SetMobjState(corpsehit, info->spawnstate);
 					
-					if (P_EXGSGetValue(PEXGSBID_COUNSHIFTVILERAISE))
+					if (P_XGSVal(PGS_COUNSHIFTVILERAISE))
 						corpsehit->height <<= 2;
 					else
 					{
@@ -1456,7 +1456,7 @@ void A_VileChase(mobj_t* actor, player_t* player, pspdef_t* psp, const INFO_Stat
 					corpsehit->SkinTeamColor = actor->SkinTeamColor;
 					
 					// GhostlyDeath <June 15, 2012> -- Modify kill counts
-					KCMode = P_EXGSGetValue(PEXGSBID_MONKILLCOUNTMODE);
+					KCMode = P_XGSVal(PGS_MONKILLCOUNTMODE);
 					if (KCMode == 1)		// Once
 						corpsehit->flags &= ~MF_COUNTKILL;
 					else if (KCMode == 2)	// Only Count Dead Monsters
@@ -1544,7 +1544,7 @@ void A_VileTarget(mobj_t* actor, player_t* player, pspdef_t* psp, const INFO_Sta
 	
 	fog = P_SpawnMobj(actor->target->x,
 			// GhostlyDeath <April 11, 2012> -- Correct Arch-Vile fire target position
-		(P_EXGSGetValue(PEXGSBID_COCORRECTVILETARGET) ? actor->target->y : actor->target->x),
+		(P_XGSVal(PGS_COCORRECTVILETARGET) ? actor->target->y : actor->target->x),
 		actor->target->z, INFO_GetTypeByName("VileFire"));
 	 
 	P_RefMobj(PMRT_TRACER, actor, fog);
@@ -1717,7 +1717,7 @@ void A_SkullAttack(mobj_t* actor, player_t* player, pspdef_t* psp, const INFO_St
 		actor->flags |= MF_SKULLFLY;
 		S_StartSound(&actor->NoiseThinker, S_SoundIDForName(actor->info->RAttackSound));
 	
-		if (!actor->player && P_EXGSGetValue(PEXGSBID_MONPREDICTMISSILES))	//added by AC for predmonsters
+		if (!actor->player && P_XGSVal(PGS_MONPREDICTMISSILES))	//added by AC for predmonsters
 		{
 	
 			bool_t canHit;
@@ -1930,9 +1930,9 @@ void A_Pain(mobj_t* actor, player_t* player, pspdef_t* psp, const INFO_StateArgs
 void A_Fall(mobj_t* actor, player_t* player, pspdef_t* psp, const INFO_StateArgsNum_t a_ArgC, INFO_StateArgsParm_t* const a_ArgV)
 {
 	// actor is on ground, it can be walked over
-	if (!P_EXGSGetValue(PEXGSBID_GAMESOLIDCORPSES))
+	if (!P_XGSVal(PGS_GAMESOLIDCORPSES))
 		actor->flags &= ~MF_SOLID;
-	if (P_EXGSGetValue(PEXGSBID_COMODIFYCORPSE))
+	if (P_XGSVal(PGS_COMODIFYCORPSE))
 	{
 		actor->flags |= MF_CORPSE | MF_DROPOFF;
 		actor->height >>= 2;
@@ -1959,7 +1959,7 @@ void A_Explode(mobj_t* actor, player_t* player, pspdef_t* psp, const INFO_StateA
 	P_RadiusAttack(actor, actor->target, damage);
 	
 	// GhostlyDeath <June 17, 2012> -- Demo Comp
-	if (P_EXGSGetValue(PEXGSBID_COEXPLODEHITFLOOR))
+	if (P_XGSVal(PGS_COEXPLODEHITFLOOR))
 		P_HitFloor(actor);
 }
 
@@ -2127,7 +2127,7 @@ void A_BossDeath(mobj_t* mo, player_t* player, pspdef_t* psp, const INFO_StateAr
 	// Level Exiting Last
 	if ((CheckFlags & MULTISPECFLAGS) && g_CurrentLevelInfo->ExitOnSpecial)
 	{
-		if (P_EXGSGetValue(PEXGSBID_GAMEALLOWLEVELEXIT))
+		if (P_XGSVal(PGS_GAMEALLOWLEVELEXIT))
 			G_ExitLevel();
 	}
 #undef MULTISPECFLAGS
@@ -2303,7 +2303,7 @@ void A_BrainExplode(mobj_t* mo, player_t* player, pspdef_t* psp, const INFO_Stat
 
 void A_BrainDie(mobj_t* mo, player_t* player, pspdef_t* psp, const INFO_StateArgsNum_t a_ArgC, INFO_StateArgsParm_t* const a_ArgV)
 {
-	if (P_EXGSGetValue(PEXGSBID_GAMEALLOWLEVELEXIT))
+	if (P_XGSVal(PGS_GAMEALLOWLEVELEXIT))
 		G_ExitLevel();
 }
 
@@ -2314,7 +2314,7 @@ void A_BrainSpit(mobj_t* mo, player_t* player, pspdef_t* psp, const INFO_StateAr
 	
 	// GhostlyDeath <June 15, 2012> -- Flip the spit bit
 	mo->RXFlags[1] ^= MFREXB_SPITBIT;
-	if (P_EXGSGetValue(PEXGSBID_GAMESKILL) <= sk_easy)
+	if (P_XGSVal(PGS_GAMESKILL) <= sk_easy)
 		if (!(mo->RXFlags[1] & MFREXB_SPITBIT))
 			return;
 		

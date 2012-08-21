@@ -228,7 +228,7 @@ sector_t* getSector(int currentSector, int line, int side)
 //SoM: 3/7/2000: Use the boom method
 int twoSided(int sector, int line)
 {
-	return P_EXGSGetValue(PEXGSBID_COBOOMSUPPORT) ? ((sectors[sector].lines[line])->sidenum[1] != -1) : ((sectors[sector].lines[line])->flags & ML_TWOSIDED);
+	return P_XGSVal(PGS_COBOOMSUPPORT) ? ((sectors[sector].lines[line])->sidenum[1] != -1) : ((sectors[sector].lines[line])->flags & ML_TWOSIDED);
 }
 
 //
@@ -239,7 +239,7 @@ int twoSided(int sector, int line)
 //SoM: 3/7/2000: Use boom method.
 sector_t* getNextSector(line_t* line, sector_t* sec)
 {
-	if (!P_EXGSGetValue(PEXGSBID_COBOOMSUPPORT))
+	if (!P_XGSVal(PGS_COBOOMSUPPORT))
 	{
 		if (!(line->flags & ML_TWOSIDED))
 			return NULL;
@@ -247,7 +247,7 @@ sector_t* getNextSector(line_t* line, sector_t* sec)
 	
 	if (line->frontsector == sec)
 	{
-		if (!P_EXGSGetValue(PEXGSBID_COBOOMSUPPORT) || line->backsector != sec)
+		if (!P_XGSVal(PGS_COBOOMSUPPORT) || line->backsector != sec)
 			return line->backsector;
 		else
 			return NULL;
@@ -429,7 +429,7 @@ fixed_t P_FindLowestCeilingSurrounding(sector_t* sec)
 	fixed_t height = INT_MAX;
 	int foundsector = 0;
 	
-	if (P_EXGSGetValue(PEXGSBID_COBOOMSUPPORT))
+	if (P_XGSVal(PGS_COBOOMSUPPORT))
 		height = 32000 * FRACUNIT;	//SoM: 3/7/2000: Remove ovf
 		
 	for (i = 0; i < sec->linecount; i++)
@@ -491,7 +491,7 @@ fixed_t P_FindShortestTextureAround(int secnum)
 	int i;
 	sector_t* sec = &sectors[secnum];
 	
-	if (P_EXGSGetValue(PEXGSBID_COBOOMSUPPORT))
+	if (P_XGSVal(PGS_COBOOMSUPPORT))
 		minsize = 32000 << FRACBITS;
 		
 	for (i = 0; i < sec->linecount; i++)
@@ -525,7 +525,7 @@ fixed_t P_FindShortestUpperAround(int secnum)
 	int i;
 	sector_t* sec = &sectors[secnum];
 	
-	if (P_EXGSGetValue(PEXGSBID_COBOOMSUPPORT))
+	if (P_XGSVal(PGS_COBOOMSUPPORT))
 		minsize = 32000 << FRACBITS;
 		
 	for (i = 0; i < sec->linecount; i++)
@@ -563,7 +563,7 @@ sector_t* P_FindModelFloorSector(fixed_t floordestheight, int secnum)
 	
 	sec = &sectors[secnum];
 	linecount = sec->linecount;
-	for (i = 0; i < (!P_EXGSGetValue(PEXGSBID_COBOOMSUPPORT) && sec->linecount < linecount ? sec->linecount : linecount); i++)
+	for (i = 0; i < (!P_XGSVal(PGS_COBOOMSUPPORT) && sec->linecount < linecount ? sec->linecount : linecount); i++)
 	{
 		if (twoSided(secnum, i))
 		{
@@ -597,7 +597,7 @@ sector_t* P_FindModelCeilingSector(fixed_t ceildestheight, int secnum)
 	
 	sec = &sectors[secnum];
 	linecount = sec->linecount;
-	for (i = 0; i < (!P_EXGSGetValue(PEXGSBID_COBOOMSUPPORT) && sec->linecount < linecount ? sec->linecount : linecount); i++)
+	for (i = 0; i < (!P_XGSVal(PGS_COBOOMSUPPORT) && sec->linecount < linecount ? sec->linecount : linecount); i++)
 	{
 		if (twoSided(secnum, i))
 		{
@@ -730,7 +730,7 @@ bool_t P_CanUnlockGenDoor(line_t* line, player_t* player)
 	int skulliscard = (line->special & LockedNKeys) >> LockedNKeysShift;
 	
 	// GhostlyDeath <May 4, 2012> -- All Doors unlocked
-	if (P_EXGSGetValue(PEXGSBID_FUNNOLOCKEDDOORS))
+	if (P_XGSVal(PGS_FUNNOLOCKEDDOORS))
 		return true;
 	
 	// determine for each case of lock type if player's keys are adequate
@@ -829,7 +829,7 @@ bool_t P_CanUnlockGenDoor(line_t* line, player_t* player)
 //
 size_t P_SectorActive(special_e t, sector_t* sec)
 {
-	if (!P_EXGSGetValue(PEXGSBID_COBOOMSUPPORT))
+	if (!P_XGSVal(PGS_COBOOMSUPPORT))
 		return sec->floordata || sec->ceilingdata || sec->lightingdata;
 	else
 		switch (t)
@@ -857,7 +857,7 @@ size_t P_SectorActive(special_e t, sector_t* sec)
 //
 int P_CheckTag(line_t* line)
 {
-	if (!P_EXGSGetValue(PEXGSBID_COBOOMSUPPORT))
+	if (!P_XGSVal(PGS_COBOOMSUPPORT))
 		return 1;
 		
 	if (line->tag)
@@ -2039,7 +2039,7 @@ void P_ProcessSpecialSectorEx(const EV_TryGenType_t a_Type, mobj_t* const a_Mo, 
 						
 						// spawn a puff of smoke
 						//CONL_PrintF ("damage!\n"); //debug
-						if (P_EXGSGetValue(PEXGSBID_COENABLEFLOORSMOKE))
+						if (P_XGSVal(PGS_COENABLEFLOORSMOKE))
 							P_SpawnSmoke(player->mo->x, player->mo->y, player->mo->z);
 					}
 				break;
@@ -2080,7 +2080,7 @@ void P_ProcessSpecialSectorEx(const EV_TryGenType_t a_Type, mobj_t* const a_Mo, 
 				if (instantdamage)
 					P_DamageMobj(player->mo, NULL, NULL, 20);
 					
-				if ((player->health <= 10) && P_EXGSGetValue(PEXGSBID_GAMEALLOWLEVELEXIT))
+				if ((player->health <= 10) && P_XGSVal(PGS_GAMEALLOWLEVELEXIT))
 					G_ExitLevel();
 				break;
 				
@@ -2153,7 +2153,7 @@ void P_PlayerOnSpecial3DFloor(player_t* player)
 			if (player->mo->z != *rover->topheight)
 				continue;
 				
-			if (P_EXGSGetValue(PEXGSBID_CODAMAGEONLAND) && (player->mo->eflags & MF_JUSTHITFLOOR) && sector->heightsec == -1 && (leveltime % (2)))	//SoM: penalize jumping less.
+			if (P_XGSVal(PGS_CODAMAGEONLAND) && (player->mo->eflags & MF_JUSTHITFLOOR) && sector->heightsec == -1 && (leveltime % (2)))	//SoM: penalize jumping less.
 				instantdamage = true;
 			else
 				instantdamage = !(leveltime % (32));
@@ -2202,7 +2202,7 @@ void P_PlayerInSpecialSector(player_t* player)
 		return;
 		
 	//Fab: jumping in lava/slime does instant damage (no jump cheat)
-	if (P_EXGSGetValue(PEXGSBID_CODAMAGEONLAND) && (player->mo->eflags & MF_JUSTHITFLOOR) && sector->heightsec == -1 && (leveltime % (2)))	//SoM: penalize jumping less.
+	if (P_XGSVal(PGS_CODAMAGEONLAND) && (player->mo->eflags & MF_JUSTHITFLOOR) && sector->heightsec == -1 && (leveltime % (2)))	//SoM: penalize jumping less.
 		instantdamage = true;
 	else
 		instantdamage = !(leveltime % (32));
@@ -2224,7 +2224,7 @@ void P_UpdateSpecials(void)
 	levelflat_t* foundflats;	// for flat animation
 	
 	//  LEVEL TIMER
-	if (P_EXGSGetValue(PEXGSBID_GAMETIMELIMIT) && (((uint32_t)P_EXGSGetValue(PEXGSBID_GAMETIMELIMIT)) * (TICRATE * 60)) < leveltime)
+	if (P_XGSVal(PGS_GAMETIMELIMIT) && (((uint32_t)P_XGSVal(PGS_GAMETIMELIMIT)) * (TICRATE * 60)) < leveltime)
 		G_ExitLevel();
 		
 	//  ANIMATE TEXTURES
@@ -2981,7 +2981,7 @@ void T_Friction(friction_t* f)
 	msecnode_t* node;
 	bool_t foundfloor = false;
 	
-	if (!P_EXGSGetValue(PEXGSBID_COBOOMSUPPORT) || !variable_friction)
+	if (!P_XGSVal(PGS_COBOOMSUPPORT) || !variable_friction)
 		return;
 		
 	sec = sectors + f->affectee;
@@ -3150,7 +3150,7 @@ void T_Pusher(pusher_t* p)
 	// Be sure the special sector type is still turned on. If so, proceed.
 	// Else, bail out; the sector type has been changed on us.
 	
-	if (P_EXGSGetValue(PEXGSBID_COOLDFLATPUSHERCODE))
+	if (P_XGSVal(PGS_COOLDFLATPUSHERCODE))
 	{
 		if (!(sec->special & PUSH_MASK))
 			return;
@@ -3223,7 +3223,7 @@ void T_Pusher(pusher_t* p)
 	}
 	// constant pushers p_wind and p_current
 	
-	if (P_EXGSGetValue(PEXGSBID_COOLDFLATPUSHERCODE))
+	if (P_XGSVal(PGS_COOLDFLATPUSHERCODE))
 	{
 		if (sec->heightsec != -1)	// special water sector?
 			ht = sectors[sec->heightsec].floorheight;

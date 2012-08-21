@@ -1271,7 +1271,7 @@ bool_t P_ExFinalizeLevel(void)
 	for (i = 0; i < MAXPLAYERS; i++)
 		if (playeringame[i] && !players[i].mo)
 			// Use cluster spawns
-			if (P_EXGSGetValue(PEXGSBID_GAMEDEATHMATCH))
+			if (P_XGSVal(PGS_GAMEDEATHMATCH))
 				G_DeathMatchSpawnPlayer(i);
 			else
 				G_CoopSpawnPlayer(i);

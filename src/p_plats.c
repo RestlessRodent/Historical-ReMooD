@@ -121,7 +121,7 @@ void T_PlatRaise(plat_t* plat)
 				//jff 1/26/98 remove the plat if it bounced so it can be tried again
 				//only affects plats that raise and bounce
 				
-				if (P_EXGSGetValue(PEXGSBID_COBOOMSUPPORT))
+				if (P_XGSVal(PGS_COBOOMSUPPORT))
 				{
 					switch (plat->type)
 					{

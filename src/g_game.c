@@ -360,7 +360,7 @@ void G_DoLoadLevel(bool_t resetplayer)
 bool_t G_Responder(event_t* ev)
 {
 	// allow spy mode changes even during the demo
-	if (gamestate == GS_LEVEL && ev->type == ev_keydown && ev->data1 == KEY_F12 && (singledemo || !P_EXGSGetValue(PEXGSBID_GAMEDEATHMATCH)))
+	if (gamestate == GS_LEVEL && ev->type == ev_keydown && ev->data1 == KEY_F12 && (singledemo || !P_XGSVal(PGS_GAMEDEATHMATCH)))
 	{
 		// spy mode
 		do
@@ -756,7 +756,7 @@ void G_PlayerReborn(int player)
 	p->MaxHealth[1] = p->MaxArmor[1] = 200;
 	
 	// GhostlyDeath <June 6, 2012> -- Stat Mods
-	if (P_EXGSGetValue(PEXGSBID_PLSPAWNWITHMAXSTATS))
+	if (P_XGSVal(PGS_PLSPAWNWITHMAXSTATS))
 	{
 		p->health = p->MaxHealth[1];
 		p->armorpoints = p->MaxArmor[1];
@@ -774,12 +774,12 @@ void G_PlayerReborn(int player)
 			continue;
 		
 		// Normal Gun?
-		if (P_EXGSGetValue(PEXGSBID_PLSPAWNWITHMAXGUNS))
+		if (P_XGSVal(PGS_PLSPAWNWITHMAXGUNS))
 			if (!(p->weaponinfo[i]->WeaponFlags & WF_SUPERWEAPON))
 				p->weaponowned[i] |= Given |= true;
 				
 		// Super Gun?
-		if (P_EXGSGetValue(PEXGSBID_PLSPAWNWITHSUPERGUNS))
+		if (P_XGSVal(PGS_PLSPAWNWITHSUPERGUNS))
 			if ((p->weaponinfo[i]->WeaponFlags & WF_SUPERWEAPON))
 				p->weaponowned[i] |= Given |= true;
 		
@@ -830,16 +830,16 @@ bool_t G_CheckSpot(int playernum, mapthing_t* mthing, const bool_t a_NoFirstMo)
 	ss = R_PointInSubsector(x, y);
 	
 	// check for respawn in team-sector
-	if (!P_EXGSGetValue(PEXGSBID_CODISABLETEAMPLAY))
+	if (!P_XGSVal(PGS_CODISABLETEAMPLAY))
 		if (ss->sector->teamstartsec)
 		{
-			if (P_EXGSGetValue(PEXGSBID_GAMETEAMPLAY) == 1)
+			if (P_XGSVal(PGS_GAMETEAMPLAY) == 1)
 			{
 				// color
 				if (players[playernum].skincolor != (ss->sector->teamstartsec - 1))	// -1 because wanted to know when it is set
 					return false;
 			}
-			else if (P_EXGSGetValue(PEXGSBID_GAMETEAMPLAY) == 2)
+			else if (P_XGSVal(PGS_GAMETEAMPLAY) == 2)
 			{
 				// skins
 				if (players[playernum].skin != (ss->sector->teamstartsec - 1))	// -1 because wanted to know when it is set
@@ -848,7 +848,7 @@ bool_t G_CheckSpot(int playernum, mapthing_t* mthing, const bool_t a_NoFirstMo)
 		}
 	
 	// GhostlyDeath <April 21, 2012> -- Check 
-	if (a_NoFirstMo && P_EXGSGetValue(PEXGSBID_CORADIALSPAWNCHECK))
+	if (a_NoFirstMo && P_XGSVal(PGS_CORADIALSPAWNCHECK))
 	{
 		if (!P_CheckPosRadius(x, y, 20 << FRACBITS))
 			return false;
@@ -857,13 +857,13 @@ bool_t G_CheckSpot(int playernum, mapthing_t* mthing, const bool_t a_NoFirstMo)
 	// Otherwise compare against object
 	else
 	{
-		if (!P_CheckPosition(players[playernum].mo, x, y, (P_EXGSGetValue(PEXGSBID_COLESSSPAWNSTICKING) ? PCPF_FORSPOTCHECK : 0)))
+		if (!P_CheckPosition(players[playernum].mo, x, y, (P_XGSVal(PGS_COLESSSPAWNSTICKING) ? PCPF_FORSPOTCHECK : 0)))
 			return false;
 	}
 		
 	// flush an old corpse if needed
 		// GhostlyDeath <April 20, 2012> -- This is quite useless here especially when there are 32 players!
-	if (!P_EXGSGetValue(PEXGSBID_COBETTERPLCORPSEREMOVAL))
+	if (!P_XGSVal(PGS_COBETTERPLCORPSEREMOVAL))
 		if (!a_NoFirstMo)
 		{
 			if (bodyqueslot >= BODYQUESIZE)
@@ -967,7 +967,7 @@ bool_t G_ClusterSpawnPlayer(const int PlayerID, const bool_t a_CheckOp)
 	
 	/* Which spots to prefer? */
 	// Deathmatch
-	if (P_EXGSGetValue(PEXGSBID_GAMEDEATHMATCH) || (!P_EXGSGetValue(PEXGSBID_GAMEDEATHMATCH) && a_CheckOp))
+	if (P_XGSVal(PGS_GAMEDEATHMATCH) || (!P_XGSVal(PGS_GAMEDEATHMATCH) && a_CheckOp))
 	{
 		PreDiamond = false;
 		RandomSpot = true;
@@ -977,7 +977,7 @@ bool_t G_ClusterSpawnPlayer(const int PlayerID, const bool_t a_CheckOp)
 	}
 	
 	// Coop
-	else if (!P_EXGSGetValue(PEXGSBID_GAMEDEATHMATCH) || (P_EXGSGetValue(PEXGSBID_GAMEDEATHMATCH) && a_CheckOp))
+	else if (!P_XGSVal(PGS_GAMEDEATHMATCH) || (P_XGSVal(PGS_GAMEDEATHMATCH) && a_CheckOp))
 	{
 		PreDiamond = true;
 		RandomSpot = false;
@@ -987,7 +987,7 @@ bool_t G_ClusterSpawnPlayer(const int PlayerID, const bool_t a_CheckOp)
 	}
 	
 	/* Determine offset base */
-	if (a_CheckOp || P_EXGSGetValue(PEXGSBID_GAMEDEATHMATCH))
+	if (a_CheckOp || P_XGSVal(PGS_GAMEDEATHMATCH))
 		bx = by = 2;
 	else
 		bx = by = 4;
@@ -1024,7 +1024,7 @@ bool_t G_ClusterSpawnPlayer(const int PlayerID, const bool_t a_CheckOp)
 			for (y = -by; y <= by; y++)
 			{
 				// Coop -- Spawn in pre-made diamond
-				if (!P_EXGSGetValue(PEXGSBID_GAMEDEATHMATCH))
+				if (!P_XGSVal(PGS_GAMEDEATHMATCH))
 				{
 					if (!SpawnDiamond[x + bx][y + by])
 						continue;
@@ -1145,13 +1145,13 @@ bool_t G_DeathMatchSpawnPlayer(int playernum)
 		return false;
 	}
 	
-	if (P_EXGSGetValue(PEXGSBID_COONLYTWENTYDMSPOTS))
+	if (P_XGSVal(PGS_COONLYTWENTYDMSPOTS))
 		n = 20;
 	else
 		n = 64;
 	
 	// GhostlyDeath <April 21, 2012> -- Spawn clustering (extra invisible spots)
-	if (P_EXGSGetValue(PEXGSBID_PLSPAWNCLUSTERING))
+	if (P_XGSVal(PGS_PLSPAWNCLUSTERING))
 	{
 		// Try DM starts first
 		if (G_ClusterSpawnPlayer(playernum, false))
@@ -1175,7 +1175,7 @@ bool_t G_DeathMatchSpawnPlayer(int playernum)
 	}
 
 	// no good spot, so the player will probably get stuck
-	if (P_EXGSGetValue(PEXGSBID_COALLOWSTUCKSPAWNS))
+	if (P_XGSVal(PGS_COALLOWSTUCKSPAWNS))
 	{
 		P_SpawnPlayer(playerstarts[playernum]);
 		return true;
@@ -1208,7 +1208,7 @@ void G_CoopSpawnPlayer(int playernum)
 	}
 	
 	// GhostlyDeath <April 21, 2012> -- Spawn clustering (extra invisible spots)
-	if (P_EXGSGetValue(PEXGSBID_PLSPAWNCLUSTERING))
+	if (P_XGSVal(PGS_PLSPAWNCLUSTERING))
 	{
 		// Try Coop starts first
 		if (G_ClusterSpawnPlayer(playernum, false))
@@ -1219,7 +1219,7 @@ void G_CoopSpawnPlayer(int playernum)
 			return;
 	}
 	
-	if (P_EXGSGetValue(PEXGSBID_COALLOWSTUCKSPAWNS) || (!P_EXGSGetValue(PEXGSBID_COALLOWSTUCKSPAWNS) && localgame))
+	if (P_XGSVal(PGS_COALLOWSTUCKSPAWNS) || (!P_XGSVal(PGS_COALLOWSTUCKSPAWNS) && localgame))
 		P_SpawnPlayer(playerstarts[playernum]);
 	else
 	{
@@ -1260,7 +1260,7 @@ void G_DoReborn(int playernum)
 			player->mo->flags2 &= ~MF2_DONTDRAW;
 		}
 		// spawn at random spot if in death match
-		if (P_EXGSGetValue(PEXGSBID_GAMEDEATHMATCH))
+		if (P_XGSVal(PGS_GAMEDEATHMATCH))
 		{
 			if (G_DeathMatchSpawnPlayer(playernum))
 				return;
@@ -1460,7 +1460,7 @@ void G_DoWorldDone(void)
 	P_LevelInfoEx_t* NewInfo;
 
 #if 0
-	if (P_EXGSGetValue(PEXGSBID_COLINEARMAPTRAVERSE))
+	if (P_XGSVal(PGS_COLINEARMAPTRAVERSE))
 	{
 #endif
 		// Clear Info

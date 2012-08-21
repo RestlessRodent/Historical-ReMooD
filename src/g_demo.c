@@ -166,15 +166,15 @@ bool_t G_DEMO_Vanilla_StartPlaying(struct G_CurrentDemo_s* a_Current)
 	}
 	
 	/* Setup Game Rules */
-	P_EXGSSetAllDefaults();
-	P_EXGSSetVersionLevel(true, VerMarker);
+	P_XGSSetAllDefaults();
+	P_XGSSetVersionLevel(true, VerMarker);
 	
 	// Options
-	P_EXGSSetValue(true, PEXGSBID_GAMESKILL, Data->Skill);
-	P_EXGSSetValue(true, PEXGSBID_GAMEDEATHMATCH, Data->Deathmatch);
-	P_EXGSSetValue(true, PEXGSBID_MONFASTMONSTERS, Data->Fast);
-	P_EXGSSetValue(true, PEXGSBID_MONRESPAWNMONSTERS, Data->Respawn);
-	P_EXGSSetValue(true, PEXGSBID_MONSPAWNMONSTERS, !Data->NoMonsters);
+	P_XGSSetValue(true, PGS_GAMESKILL, Data->Skill);
+	P_XGSSetValue(true, PGS_GAMEDEATHMATCH, Data->Deathmatch);
+	P_XGSSetValue(true, PGS_MONFASTMONSTERS, Data->Fast);
+	P_XGSSetValue(true, PGS_MONRESPAWNMONSTERS, Data->Respawn);
+	P_XGSSetValue(true, PGS_MONSPAWNMONSTERS, !Data->NoMonsters);
 	
 	// Based on Game Mode
 		// Solo/Coop
@@ -183,42 +183,42 @@ bool_t G_DEMO_Vanilla_StartPlaying(struct G_CurrentDemo_s* a_Current)
 		// Coop
 		if (Data->MultiPlayer)
 		{
-			P_EXGSSetValue(true, PEXGSBID_GAMESPAWNMULTIPLAYER, 1);
-			P_EXGSSetValue(true, PEXGSBID_ITEMSKEEPWEAPONS, 1);
+			P_XGSSetValue(true, PGS_GAMESPAWNMULTIPLAYER, 1);
+			P_XGSSetValue(true, PGS_ITEMSKEEPWEAPONS, 1);
 		}
 		
 		// Solo
 		else
 		{
-			P_EXGSSetValue(true, PEXGSBID_GAMESPAWNMULTIPLAYER, 0);
-			P_EXGSSetValue(true, PEXGSBID_ITEMSKEEPWEAPONS, 0);
+			P_XGSSetValue(true, PGS_GAMESPAWNMULTIPLAYER, 0);
+			P_XGSSetValue(true, PGS_ITEMSKEEPWEAPONS, 0);
 		}
 	}
 		// DM
 	else
 	{
 		// Shared Flags
-		P_EXGSSetValue(true, PEXGSBID_GAMESPAWNMULTIPLAYER, 1);
+		P_XGSSetValue(true, PGS_GAMESPAWNMULTIPLAYER, 1);
 		
 		// DM
 		if (Data->Deathmatch == 1)
 		{
-			P_EXGSSetValue(true, PEXGSBID_ITEMSKEEPWEAPONS, 1);
-			P_EXGSSetValue(true, PEXGSBID_ITEMRESPAWNITEMS, 0);
+			P_XGSSetValue(true, PGS_ITEMSKEEPWEAPONS, 1);
+			P_XGSSetValue(true, PGS_ITEMRESPAWNITEMS, 0);
 		}
 		
 		// AltDM
 		else
 		{
-			P_EXGSSetValue(true, PEXGSBID_ITEMSKEEPWEAPONS, 0);
-			P_EXGSSetValue(true, PEXGSBID_ITEMRESPAWNITEMS, 1);
+			P_XGSSetValue(true, PGS_ITEMSKEEPWEAPONS, 0);
+			P_XGSSetValue(true, PGS_ITEMRESPAWNITEMS, 1);
 		}
 	}
 	
 	if (Data->MultiPlayer)	// multiplayer/netgame
-		P_EXGSSetValue(true, PEXGSBID_COMULTIPLAYER, 1);
+		P_XGSSetValue(true, PGS_COMULTIPLAYER, 1);
 	else
-		P_EXGSSetValue(true, PEXGSBID_COMULTIPLAYER, 0);
+		P_XGSSetValue(true, PGS_COMULTIPLAYER, 0);
 	
 	/* Reset Indexes */
 	D_SyncNetSetMapTime(0);
@@ -532,7 +532,7 @@ bool_t G_DEMO_Vanilla_WriteTicCmd(struct G_CurrentDemo_s* a_Current, const ticcm
 	if (!Data->WroteHeader)
 		if (g_CurrentLevelInfo)
 		{
-			Bits = P_EXGSGetValue(PEXGSBID_GAMESKILL);
+			Bits = P_XGSVal(PGS_GAMESKILL);
 			fwrite(&Bits, 1, 1, a_Current->CFile);
 			
 			Bits = g_CurrentLevelInfo->EpisodeNum;
@@ -541,16 +541,16 @@ bool_t G_DEMO_Vanilla_WriteTicCmd(struct G_CurrentDemo_s* a_Current, const ticcm
 			Bits = g_CurrentLevelInfo->LevelNum;
 			fwrite(&Bits, 1, 1, a_Current->CFile);
 			
-			Bits = P_EXGSGetValue(PEXGSBID_GAMEDEATHMATCH);
+			Bits = P_XGSVal(PGS_GAMEDEATHMATCH);
 			fwrite(&Bits, 1, 1, a_Current->CFile);
 			
-			Bits = P_EXGSGetValue(PEXGSBID_MONRESPAWNMONSTERS);
+			Bits = P_XGSVal(PGS_MONRESPAWNMONSTERS);
 			fwrite(&Bits, 1, 1, a_Current->CFile);
 			
-			Bits = P_EXGSGetValue(PEXGSBID_MONFASTMONSTERS);
+			Bits = P_XGSVal(PGS_MONFASTMONSTERS);
 			fwrite(&Bits, 1, 1, a_Current->CFile);
 			
-			Bits = !P_EXGSGetValue(PEXGSBID_MONSPAWNMONSTERS);
+			Bits = !P_XGSVal(PGS_MONSPAWNMONSTERS);
 			fwrite(&Bits, 1, 1, a_Current->CFile);
 			
 			Bits = 0;
@@ -886,30 +886,30 @@ bool_t G_DEMO_Legacy_StartPlaying(struct G_CurrentDemo_s* a_Current)
 	
 	/* Modify Settings required for level loading (as needed) */
 	// Set version to the specified value
-	P_EXGSSetVersionLevel(true, VerMarker);
-	P_EXGSSetValue(true, PEXGSBID_GAMESKILL, Skill);
+	P_XGSSetVersionLevel(true, VerMarker);
+	P_XGSSetValue(true, PGS_GAMESKILL, Skill);
 	
 	// DM Before 1.27
 	if (VerMarker < 127)
-		P_EXGSSetValue(true, PEXGSBID_GAMEDEATHMATCH, DM);
+		P_XGSSetValue(true, PGS_GAMEDEATHMATCH, DM);
 	
 	// Respawn and Fast before 1.28
 	if (VerMarker < 128)
 	{
-		P_EXGSSetValue(true, PEXGSBID_MONRESPAWNMONSTERS, Respawn);
-		P_EXGSSetValue(true, PEXGSBID_MONFASTMONSTERS, Fast);
+		P_XGSSetValue(true, PGS_MONRESPAWNMONSTERS, Respawn);
+		P_XGSSetValue(true, PGS_MONFASTMONSTERS, Fast);
 		
 		// Time limit after 1.25
 		if (VerMarker >= 125)
-			P_EXGSSetValue(true, PEXGSBID_GAMETIMELIMIT, TimeLimit);
+			P_XGSSetValue(true, PGS_GAMETIMELIMIT, TimeLimit);
 	}
 	
 	// -nomonsters
-	P_EXGSSetValue(true, PEXGSBID_MONSPAWNMONSTERS, !NoMonsters);
+	P_XGSSetValue(true, PGS_MONSPAWNMONSTERS, !NoMonsters);
 	
 	// Multiplayer
-	P_EXGSSetValue(true, PEXGSBID_COMULTIPLAYER, MultiPlayer);
-	P_EXGSSetValue(true, PEXGSBID_GAMESPAWNMULTIPLAYER, MultiPlayer);
+	P_XGSSetValue(true, PGS_COMULTIPLAYER, MultiPlayer);
+	P_XGSSetValue(true, PGS_GAMESPAWNMULTIPLAYER, MultiPlayer);
 	
 	// Recalc Split-screen
 	R_ExecuteSetViewSize();
@@ -1079,31 +1079,31 @@ static const struct
 {
 	uint16_t ID;								// Variable ID
 	const char* Name;							// Name of variable
-	P_EXGSBitID_t DirectBitMap;					// Direct bit mapping
+	P_XGSBitID_t DirectBitMap;					// Direct bit mapping
 } c_LegacyNetVars[] =
 {
 	{0x6661, "sv_maxplayers"},
-	{0x20af, "teamplay", PEXGSBID_GAMETEAMPLAY},
-	{0x3352, "teamdamage", PEXGSBID_GAMETEAMDAMAGE},
-	{0x2a45, "fraglimit", PEXGSBID_GAMEFRAGLIMIT},
-	{0x2a74, "timelimit", PEXGSBID_GAMETIMELIMIT},	// breaks
-	{0x34c3, "deathmatch", PEXGSBID_GAMEDEATHMATCH},
-	{0x776e, "allowexitlevel", PEXGSBID_GAMEALLOWLEVELEXIT},
+	{0x20af, "teamplay", PGS_GAMETEAMPLAY},
+	{0x3352, "teamdamage", PGS_GAMETEAMDAMAGE},
+	{0x2a45, "fraglimit", PGS_GAMEFRAGLIMIT},
+	{0x2a74, "timelimit", PGS_GAMETIMELIMIT},	// breaks
+	{0x34c3, "deathmatch", PGS_GAMEDEATHMATCH},
+	{0x776e, "allowexitlevel", PGS_GAMEALLOWLEVELEXIT},
 	{0x37c8, "allowturbo"},
-	{0x2b96, "allowjump", PEXGSBID_PLENABLEJUMPING},
-	{0x5304, "allowautoaim", PEXGSBID_PLALLOWAUTOAIM},
-	{0x8cd2, "allowrocketjump", PEXGSBID_GAMEALLOWROCKETJUMP},
-	{0x43a8, "solidcorpse", PEXGSBID_GAMESOLIDCORPSES},
-	{0x55cd, "fastmonsters", PEXGSBID_MONFASTMONSTERS},
-	{0xa420, "predictingmonsters", PEXGSBID_MONPREDICTMISSILES},
-	{0x298f, "bloodtime", PEXGSBID_GAMEBLOODTIME},
-	{0x9fbe, "fragsweaponfalling", PEXGSBID_PLDROPWEAPONS},
-	{0x19b3, "gravity", PEXGSBID_GAMEGRAVITY},
-	{0x8e8d, "respawnmonsters", PEXGSBID_MONRESPAWNMONSTERS},
-	{0xaaa3, "respawnmonsterstime", PEXGSBID_MONRESPAWNMONSTERSTIME},
-	{0x8a30, "respawnitemtime", PEXGSBID_ITEMRESPAWNITEMSTIME},
-	{0x43c1, "respawnitem", PEXGSBID_ITEMRESPAWNITEMS},
-	{0x3752, "allowmlook", PEXGSBID_COUSEMOUSEAIMING},	// Check this!
+	{0x2b96, "allowjump", PGS_PLENABLEJUMPING},
+	{0x5304, "allowautoaim", PGS_PLALLOWAUTOAIM},
+	{0x8cd2, "allowrocketjump", PGS_GAMEALLOWROCKETJUMP},
+	{0x43a8, "solidcorpse", PGS_GAMESOLIDCORPSES},
+	{0x55cd, "fastmonsters", PGS_MONFASTMONSTERS},
+	{0xa420, "predictingmonsters", PGS_MONPREDICTMISSILES},
+	{0x298f, "bloodtime", PGS_GAMEBLOODTIME},
+	{0x9fbe, "fragsweaponfalling", PGS_PLDROPWEAPONS},
+	{0x19b3, "gravity", PGS_GAMEGRAVITY},
+	{0x8e8d, "respawnmonsters", PGS_MONRESPAWNMONSTERS},
+	{0xaaa3, "respawnmonsterstime", PGS_MONRESPAWNMONSTERSTIME},
+	{0x8a30, "respawnitemtime", PGS_ITEMRESPAWNITEMSTIME},
+	{0x43c1, "respawnitem", PGS_ITEMRESPAWNITEMS},
+	{0x3752, "allowmlook", PGS_COUSEMOUSEAIMING},	// Check this!
 	{0, NULL},
 };
 
@@ -1308,7 +1308,7 @@ static bool_t GS_DEMO_Legacy_HandleExtraCmd(struct G_CurrentDemo_s* a_Current, c
 						
 						// If there is a bit here, change it
 						if (c_LegacyNetVars[i].DirectBitMap)
-							P_EXGSSetValueStr(true, c_LegacyNetVars[i].DirectBitMap, Buf);
+							P_XGSSetValueStr(true, c_LegacyNetVars[i].DirectBitMap, Buf);
 						break;
 					}
 				
@@ -1376,7 +1376,7 @@ static bool_t GS_DEMO_Legacy_HandleExtraCmd(struct G_CurrentDemo_s* a_Current, c
 					// Change monster spawning?
 					if (Data->VerMarker >= 128)
 						if (u8b)
-							P_EXGSSetValue(true, PEXGSBID_MONSPAWNMONSTERS, (u8b ? 0 : 1));
+							P_XGSSetValue(true, PGS_MONSPAWNMONSTERS, (u8b ? 0 : 1));
 					
 					// Load The level
 					P_ExLoadLevel(Level, 0);

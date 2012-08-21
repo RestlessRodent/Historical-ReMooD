@@ -223,22 +223,22 @@ CONL_ExitCode_t M_ExGeneralComm(const uint32_t a_ArgC, const char** const a_ArgV
 /* MS_GameVar_LRValChange() -- Game variable value changer callback */
 static bool_t MS_GameVar_LRValChange(struct M_UIMenu_s* const a_Menu, struct M_UIItem_s* const a_Item, const bool_t a_More)
 {
-	P_EXGSVariable_t* Bit;
+	P_XGSVariable_t* Bit;
 	int32_t OldVal, NewVal, ModVal;
 	
 	/* Get bit */
-	Bit = P_EXGSVarForBit(a_Item->DataBits);
+	Bit = P_XGSVarForBit(a_Item->DataBits);
 	
 	// Failed?
 	if (!Bit)
 		return false;
 		
 	/* Value change amount? */
-	ModVal = P_EXGSGetNextValue(Bit->BitID, a_More);
+	ModVal = P_XGSGetNextValue(Bit->BitID, a_More);
 	
 	/* Get values and attempt change */
-	OldVal = P_EXGSGetValue(Bit->BitID);
-	NewVal = P_EXGSSetValue(false, Bit->BitID, ModVal);
+	OldVal = P_XGSVal(Bit->BitID);
+	NewVal = P_XGSSetValue(false, Bit->BitID, ModVal);
 	
 	// Success? Only if actually changed
 	if (NewVal != OldVal)
@@ -251,16 +251,16 @@ M_UIMenu_t* M_ExTemplateMakeGameVars(const int32_t a_Mode)
 {
 	M_UIMenu_t* New;
 	int32_t i, j, k, b, w, z;
-	P_EXGSVariable_t* Bit;
-	P_EXGSVariable_t** SortedBits;
-	P_EXGSMenuCategory_t LastCat;
+	P_XGSVariable_t* Bit;
+	P_XGSVariable_t** SortedBits;
+	P_XGSMenuCategory_t LastCat;
 	
 	/* Sort bits */
 	SortedBits = Z_Malloc(sizeof(*SortedBits) * (PEXGSNUMBITIDS - 1), PU_STATIC, NULL);
 	
 	// Init
 	for (i = 1; i < PEXGSNUMBITIDS; i++)
-		SortedBits[i - 1] = P_EXGSVarForBit(i);
+		SortedBits[i - 1] = P_XGSVarForBit(i);
 	
 	// Sort by category first
 	for (i = 0; i < (PEXGSNUMBITIDS - 1); i++)

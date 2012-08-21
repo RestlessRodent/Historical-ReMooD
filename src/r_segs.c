@@ -405,7 +405,7 @@ void R_RenderMaskedSegRange(drawseg_t* ds, int x1, int x2)
 	
 	
 	// GhostlyDeath <April 12, 2012> -- v1.11 had transparent 2D walls
-	if (P_EXGSGetValue(PEXGSBID_COTRANSTWOSIDED))
+	if (P_XGSVal(PGS_COTRANSTWOSIDED))
 	{
 		dc_transmap = transtables + (0x10000 * VEX_TRANS50);	// get first transtable 50/50
 		colfunc = fuzzcolfunc;

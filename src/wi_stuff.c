@@ -670,13 +670,13 @@ bool_t teamingame(int teamnum)
 {
 	int i;
 	
-	if (P_EXGSGetValue(PEXGSBID_GAMETEAMPLAY) == 1)
+	if (P_XGSVal(PGS_GAMETEAMPLAY) == 1)
 	{
 		for (i = 0; i < MAXPLAYERS; i++)
 			if (playeringame[i] && players[i].skincolor == teamnum)
 				return true;
 	}
-	else if (P_EXGSGetValue(PEXGSBID_GAMETEAMPLAY) == 2)
+	else if (P_XGSVal(PGS_GAMETEAMPLAY) == 2)
 	{
 		for (i = 0; i < MAXPLAYERS; i++)
 			if (playeringame[i] && players[i].skin == teamnum)
@@ -1158,7 +1158,7 @@ void WI_Ticker(void)
 	switch (state)
 	{
 		case StatCount:
-			if (P_EXGSGetValue(PEXGSBID_GAMEDEATHMATCH))
+			if (P_XGSVal(PGS_GAMEDEATHMATCH))
 				WI_updateDeathmatchStats();
 			else if (multiplayer)
 				WI_updateNetgameStats();
@@ -1358,7 +1358,7 @@ void WI_Drawer(void)
 		}
 		
 		// Single-player/Cooperative
-		if (!P_EXGSGetValue(PEXGSBID_GAMEDEATHMATCH))
+		if (!P_XGSVal(PGS_GAMEDEATHMATCH))
 		{
 			for (k = 0; k < 3; k++)
 			{
@@ -1525,7 +1525,7 @@ static void WI_initVariables(wbstartstruct_t* wbstartstruct)
 		}
 	
 	// Un-Claimed Kills/Items/Secrets?
-	if (!P_EXGSGetValue(PEXGSBID_GAMEDEATHMATCH))
+	if (!P_XGSVal(PGS_GAMEDEATHMATCH))
 		if (l_TotalKills < g_MapKIS[0] || l_TotalItems < g_MapKIS[1] || l_TotalSecrets < g_MapKIS[2])
 		{
 			strncpy(TempDP[NumTempDP].PlayerName, "Un-Claimed", MAXPLAYERNAME - 1);
@@ -1586,7 +1586,7 @@ void WI_Start(wbstartstruct_t* wbstartstruct)
 	WI_loadData();
 	
 	/* Initialize Stats */
-	if (P_EXGSGetValue(PEXGSBID_GAMEDEATHMATCH))
+	if (P_XGSVal(PGS_GAMEDEATHMATCH))
 		WI_initDeathmatchStats();
 	else if (multiplayer)
 		WI_initNetgameStats();

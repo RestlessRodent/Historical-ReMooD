@@ -60,17 +60,17 @@
 
 #define PEXGSSTRBUFSIZE						32	// String Buffer Size
 
-/* P_EXGSType_t -- Setting type for said setting */
-typedef enum P_EXGSType_e
+/* P_XGSType_t -- Setting type for said setting */
+typedef enum P_XGSType_e
 {
 	PEXGST_INTEGER,								// Integer
 	PEXGST_FLOAT,								// Floating Point
 	
 	NUMPEXGSTYPES
-} P_EXGSType_t;
+} P_XGSType_t;
 
-/* P_EXGSDisplayAs_t -- Display as whichever value */
-typedef enum P_EXGSDisplayAs_e
+/* P_XGSDisplayAs_t -- Display as whichever value */
+typedef enum P_XGSDisplayAs_e
 {
 	PEXGSDA_INTEGER,							// Plain Integer
 	PEXGSDA_YESNO,								// Yes/No
@@ -79,10 +79,10 @@ typedef enum P_EXGSDisplayAs_e
 	PEXGSDA_TIMEMINS,							// Time in Minutes
 	
 	NUMPEXGSDISPLAYAS
-} P_EXGSDisplayAs_t;
+} P_XGSDisplayAs_t;
 
-/* P_EXGSDemoRange_t -- Range for demo compatibility */
-typedef enum P_EXGSDemoRange_e
+/* P_XGSDemoRange_t -- Range for demo compatibility */
+typedef enum P_XGSDemoRange_e
 {
 	PEXGSDR_NOCHECK,							// Do not check range here
 	PEXGSDR_EQUALS,								// ==
@@ -95,10 +95,10 @@ typedef enum P_EXGSDemoRange_e
 	PEXGSDR_MORETHAN = PEXGSDR_GREATERTHAN,
 	
 	NUMPEXGSDEMORANGES
-} P_EXGSDemoRange_t;
+} P_XGSDemoRange_t;
 
-/* P_EXGSGameMode_t -- Game modes for demo compat */
-typedef enum P_EXGSGameMode_e
+/* P_XGSGameMode_t -- Game modes for demo compat */
+typedef enum P_XGSGameMode_e
 {
 	PEXGSGM_DOOM						= 0x01,	// Doom
 	PEXGSGM_HERETIC						= 0x02,	// Heretic
@@ -106,10 +106,10 @@ typedef enum P_EXGSGameMode_e
 	PEXGSGM_STRIFE						= 0x08,	// Strife
 	
 	PEXGSGM_ANY = PEXGSGM_DOOM | PEXGSGM_HERETIC,
-} P_EXGSGameMode_t;
+} P_XGSGameMode_t;
 
-/* P_EXGSMenuCategory_t -- Menu category */
-typedef enum P_EXGSMenuCategory_s
+/* P_XGSMenuCategory_t -- Menu category */
+typedef enum P_XGSMenuCategory_s
 {
 	PEXGSMC_NONE,								// Nothing
 	PEXGSMC_GAME,								// Game Settings
@@ -122,181 +122,181 @@ typedef enum P_EXGSMenuCategory_s
 	PEXGSMC_COMPAT,								// Compatibility Option
 	
 	NUMPEXGSMENUCATEGORIES
-} P_EXGSMenuCategory_t;
+} P_XGSMenuCategory_t;
 
-/* P_EXGSBitID_t -- Bit ID of flag */
-typedef enum P_EXGSBitID_e
+/* P_XGSBitID_t -- Bit ID of flag */
+typedef enum P_XGSBitID_e
 {
-	PEXGSBID_NOTHINGHERE,						// Nothing is here
-	PEXGSBID_COENABLEBLOODSPLATS,				// Enables blood splats
-	PEXGSBID_CORANDOMLASTLOOK,					// Randomized Last Look
-	PEXGSBID_COUNSHIFTVILERAISE,				// <<=2 when vile resurrects
-	PEXGSBID_COMODIFYCORPSE,					// Modify corpse more in A_Fall()
-	PEXGSBID_CONOSMOKETRAILS,					// Disable smoke trails in A_SmokeTrailer()
-	PEXGSBID_COUSEREALSMOKE,					// Use real smoke on trails
-	PEXGSBID_COOLDCUTCORPSERADIUS,				// Cut corpse radius when !COMODIFYCORPSE
-	PEXGSBID_COSPAWNDROPSONMOFLOORZ,			// Spawn dropped items on the map object's floorz
-	PEXGSBID_CODISABLETEAMPLAY,					// Disable support for team play
-	PEXGSBID_COSLOWINWATER,						// Move slowly in water
-	PEXGSBID_COSLIDEOFFMOFLOOR,					// Slide of mobj's floorz rather than real sector
-	PEXGSBID_COOLDFRICTIONMOVE,					// Use old friction in XYMovement()
-	PEXGSBID_COOUCHONCEILING,					// Go "ouch" when hitting the ceiling
-	PEXGSBID_COENABLESPLASHES,					// Enable water splashes
-	PEXGSBID_COENABLEFLOORSMOKE,				// Enable floor smoke
-	PEXGSBID_COENABLESMOKE,						// Enables spawning of smoke
-	PEXGSBID_CODAMAGEONLAND,					// Damage player once landing on floor
-	PEXGSBID_COABSOLUTEANGLE,					// Use absolute angle turning rather than relative
-	PEXGSBID_COOLDJUMPOVER,						// Use old jump over code
-	PEXGSBID_COENABLESPLATS,					// Enable wall splats
-	PEXGSBID_COOLDFLATPUSHERCODE,				// Use Old (non 3D floor capable) pushers/pullers
-	PEXGSBID_COSPAWNPLAYERSEARLY,				// Spawn players early (during map setup)
-	PEXGSBID_COENABLEUPDOWNSHOOT,				// Enable shooting up/down (aiming) when no target found
-	PEXGSBID_CONOUNDERWATERCHECK,				// Don't check for things being underwater
-	PEXGSBID_COSPLASHTRANSWATER,				// Cause a splash when transitioning to/from water
-	PEXGSBID_COUSEOLDZCHECK,					// Use Old Z Checking Code
-	PEXGSBID_COCHECKXYMOVE,						// Check X/Y Movement in old Z Code
-	PEXGSBID_COWATERZFRICTION,					// Apply friction when underwater on Z plane
-	PEXGSBID_CORANOMLASTLOOKSPAWN,				// Random last look on spawn
-	PEXGSBID_COALWAYSRETURNDEADSPMISSILE,		// Always return the missile even if it died on spawn
-	PEXGSBID_COUSEMOUSEAIMING,					// When player autoaimed at nothing, use mouse aiming angle
-	PEXGSBID_COFIXPLAYERMISSILEANGLE,			// Fix the angle of player missiles being fired
-	PEXGSBID_COREMOVEMOINSKYZ,					// When Z movement into sky, do not explode a missile.
-	PEXGSBID_COFORCEAUTOAIM,					// Force Auto-aim
-	PEXGSBID_COFORCEBERSERKSWITCH,				// Force switching to berserk enabled slots.
-	PEXGSBID_CODOUBLEPICKUPCHECK,				// Check twice when picking things up
-	PEXGSBID_CODISABLEMISSILEIMPACTCHECK,		// Disable check for missile impact
-	PEXGSBID_COMISSILESPLATONWALL,				// Splat missiles on walls
-	PEXGSBID_CONEWBLOODHITSCANCODE,				// Use newer blood spewing code.
-	PEXGSBID_CONEWAIMINGCODE,					// Use newer aiming code.
-	PEXGSBID_COMISSILESPECHIT,					// Missiles could trigger special hits?
-	PEXGSBID_COHITSCANSSLIDEONFLATS,			// Hitscans slide on flats
-	PEXGSBID_CONONSOLIDPASSTHRUOLD,				// Non-solid pass through (older trigger)
-	PEXGSBID_CONONSOLIDPASSTHRUNEW,				// Non-solid pass through (newer trigger)
-	PEXGSBID_COJUMPCHECK,						// Check for jumping
-	PEXGSBID_COLINEARMAPTRAVERSE,				// Linearly traverse maps
-	PEXGSBID_COONLYTWENTYDMSPOTS,				// Only support 20 deathmatch spawn spots.
-	PEXGSBID_COALLOWSTUCKSPAWNS,				// Allow getting stuck in spawn spots.
-	PEXGSBID_COUSEOLDBLOOD,						// Use Older Doom Blood
-	PEXGSBID_FUNMONSTERFFA,						// Monster Free For All
-	PEXGSBID_FUNINFIGHTING,						// Monster Infighting
-	PEXGSBID_COCORRECTVILETARGET,				// Correct Arch-Vile Target Fire
-	PEXGSBID_FUNMONSTERSMISSMORE,				// Monsters miss more
-	PEXGSBID_COMORECRUSHERBLOOD,				// More Crusher Blood
-	PEXGSBID_CORANDOMBLOODDIR,					// Spew Blood in random directions
-	PEXGSBID_COINFINITEROCKETZ,					// Infinite Rocket Z Damage
-	PEXGSBID_COALLOWROCKETJUMPING,				// Allow rocket jumping
-	PEXGSBID_COROCKETZTHRUST,					// Rocket Z Thrust
-	PEXGSBID_COLIMITMONSTERZMATTACK,			// Limit Monster Z Range
-	PEXGSBID_HEREMONSTERTHRESH,					// Heretic Monster Threshold
-	PEXGSBID_COVOODOODOLLS,						// Voodoo Dolls
-	PEXGSBID_COEXTRATRAILPUFF,					// Extra smoke trail puff
-	PEXGSBID_COLOSTSOULTRAILS,					// Trails for lost souls
-	PEXGSBID_COTRANSTWOSIDED,					// Transparent Two Sided walls
-	PEXGSBID_COENABLEBLOODTIME,					// Enable Blood Time
-	PEXGSBID_PLENABLEJUMPING,					// Enable Jumping
-	PEXGSBID_COMOUSEAIM,						// Aim by mouse
-	PEXGSBID_MONRESPAWNMONSTERS,				// Respawn Monsters
-	PEXGSBID_FUNNOTARGETPLAYER,					// Don't Target Players, ever!
-	PEXGSBID_MONARCHVILEANYRESPAWN,				// Arch-Viles can respawn anything
-	PEXGSBID_COOLDCHECKPOSITION,				// Use Old P_CheckPosition()
-	PEXGSBID_COLESSSPAWNSTICKING,				// Make spawn sticking less likely
-	PEXGSBID_PLSPAWNTELEFRAG,					// Telefrag on spawn
-	PEXGSBID_GAMEONEHITKILLS,					// One Hit Kills
-	PEXGSBID_COBETTERPLCORPSEREMOVAL,			// Botter bodyqueue management
-	PEXGSBID_PLSPAWNCLUSTERING,					// Cluster spawn spots
-	PEXGSBID_COIMPROVEDMOBJONMOBJ,				// Improved Mobj on Mobj
-	PEXGSBID_COIMPROVEPATHTRAVERSE,				// Smooth out path traversing
-	PEXGSBID_PLJUMPGRAVITY,						// Player Jump Gravity
-	PEXGSBID_FUNNOLOCKEDDOORS,					// No Doors are locked
-	PEXGSBID_GAMEAIRFRICTION,					// Friction in air
-	PEXGSBID_GAMEWATERFRICTION,					// Friction in water
-	PEXGSBID_GAMEMIDWATERFRICTION,				// Friction in water (not on ground)
-	PEXGSBID_GAMEALLOWLEVELEXIT,				// Allow Exiting the game
-	PEXGSBID_GAMEALLOWROCKETJUMP,				// Allow Rocket Jumping
-	PEXGSBID_PLALLOWAUTOAIM,					// Allow Auto-Aiming
-	PEXGSBID_PLFORCEWEAPONSWITCH,				// Force Weapon Switching
-	PEXGSBID_PLDROPWEAPONS,						// Drop Player Weapons
-	PEXGSBID_PLINFINITEAMMO,					// Infinite Ammo
-	PEXGSBID_GAMEHERETICGIBBING,				// Heretic Gibbing
-	PEXGSBID_MONPREDICTMISSILES,				// cv_predictingmonsters
-	PEXGSBID_MONRESPAWNMONSTERSTIME,			// cv_respawnmonsterstime
-	PEXGSBID_PLSPAWNWITHMAXGUNS,				// Spawn With All Guns
-	PEXGSBID_PLSPAWNWITHSUPERGUNS,				// Spawn With Super Guns
-	PEXGSBID_PLSPAWNWITHMAXSTATS,				// Spawn With Max Stats
-	PEXGSBID_ITEMSSPAWNPICKUPS,					// Spawn Game Pickups
-	PEXGSBID_COHERETICFRICTION,					// Allow Heretic Friction
-	PEXGSBID_GAMEDEATHMATCH,					// Deathmatch Mode
-	PEXGSBID_PLSPAWNWITHALLKEYS,				// Spawn With All Keys
-	PEXGSBID_ITEMSKEEPWEAPONS,					// Keep Weapons on the Floor
-	PEXGSBID_GAMETEAMPLAY,						// Team Play
-	PEXGSBID_GAMETEAMDAMAGE,					// Team Damage
-	PEXGSBID_GAMEFRAGLIMIT,						// Frag Limit
-	PEXGSBID_GAMETIMELIMIT,						// Time Limit
-	PEXGSBID_MONSTATICRESPAWNTIME,				// Static monster respawn time
-	PEXGSBID_PLFASTERWEAPONS,					// Faster Player Weapons
-	PEXGSBID_MONSPAWNMONSTERS,					// Spawn Monsters
-	PEXGSBID_GAMESPAWNMULTIPLAYER,				// Spawn multi-player stuff
-	PEXGSBID_ITEMRESPAWNITEMS,					// Respawn Items
-	PEXGSBID_ITEMRESPAWNITEMSTIME,				// Respawn Item Time
-	PEXGSBID_MONFASTMONSTERS,					// Monsters are fast
-	PEXGSBID_GAMESOLIDCORPSES,					// Corpses are solid
-	PEXGSBID_GAMEBLOODTIME,						// Time blood stays around
-	PEXGSBID_GAMEGRAVITY,						// Level Gravity amount
-	PEXGSBID_MONENABLECLEANUP,					// Cleanup Dead monsters
-	PEXGSBID_MONCLEANUPRESPTIME,				// Time it takes to cleanup respawnable monsters
-	PEXGSBID_MONCLEANUPNONRTIME,				// Time it takes to cleanup non-respawnable monsters
-	PEXGSBID_GAMESKILL,							// Current Game Skill Level
-	PEXGSBID_PLHALFDAMAGE,						// Take Half Damage
-	PEXGSBID_PLDOUBLEAMMO,						// Receive Double Ammo
-	PEXGSBID_MONKILLCOUNTMODE,					// Kill Count Mode
-	PEXGSBID_COOLDBFGSPRAY,						// Old BFG Spraying
-	PEXGSBID_COEXPLODEHITFLOOR,					// HitFloor on explode
-	PEXGSBID_COBOMBTHRUFLOOR,					// Bomb through floors
-	PEXGSBID_COOLDEXPLOSIONS,					// Old Explosion Code
-	PEXGSBID_COAIMCHECKFAKEFLOOR,				// Check 3D Floors when aiming
-	PEXGSBID_CONEWGUNSHOTCODE,					// Use New Gunshot code
-	PEXGSBID_COSHOOTCHECKFAKEFLOOR,				// Check 3D When Shooting
-	PEXGSBID_COSHOOTFLOORCLIPPING,				// Clip gunshots to the floor
-	PEXGSBID_CONEWSSGSPREAD,					// New SSG Spread
-	PEXGSBID_COMONSTERLOOKFORMONSTER,			// Monsters can look for monsters
-	PEXGSBID_COOLDTHINGHEIGHTS,					// Old Thing Heights
-	PEXGSBID_COLASTLOOKMAXPLAYERS,				// Last Look Max Players
-	PEXGSBID_COMOVECHECKFAKEFLOOR,				// Check Fake floor when moving
-	PEXGSBID_COMULTIPLAYER,						// Multiplayer Format
-	PEXGSBID_COBOOMSUPPORT,						// boomsupport Flag
-	PEXGSBID_COSPAWNWITHFAVGUN,					// Spawn with favorite gun
-	PEXGSBID_CONOSAWFACING,						// No facing when sawing
-	PEXGSBID_COENABLETEAMMONSTERS,				// Enable Teamable Monsters
-	PEXGSBID_COMONSTERDEADTARGET,				// Monsters stop targetting dead things
-	PEXGSBID_COJUMPREGARDLESS,					// Regardless Jump (legacy mishap)
-	PEXGSBID_COOLDLASTLOOKLOGIC,				// Old lastlook Logic
-	PEXGSBID_CORADIALSPAWNCHECK,				// Perform radial spawn check
-	PEXGSBID_MONENABLEPLAYASMONSTER,			// Enable playing of monsters
-	PEXGSBID_COKILLSTOPLAYERONE,				// Give kills to player 1
+	PGS_NOTHINGHERE,						// Nothing is here
+	PGS_COENABLEBLOODSPLATS,				// Enables blood splats
+	PGS_CORANDOMLASTLOOK,					// Randomized Last Look
+	PGS_COUNSHIFTVILERAISE,				// <<=2 when vile resurrects
+	PGS_COMODIFYCORPSE,					// Modify corpse more in A_Fall()
+	PGS_CONOSMOKETRAILS,					// Disable smoke trails in A_SmokeTrailer()
+	PGS_COUSEREALSMOKE,					// Use real smoke on trails
+	PGS_COOLDCUTCORPSERADIUS,				// Cut corpse radius when !COMODIFYCORPSE
+	PGS_COSPAWNDROPSONMOFLOORZ,			// Spawn dropped items on the map object's floorz
+	PGS_CODISABLETEAMPLAY,					// Disable support for team play
+	PGS_COSLOWINWATER,						// Move slowly in water
+	PGS_COSLIDEOFFMOFLOOR,					// Slide of mobj's floorz rather than real sector
+	PGS_COOLDFRICTIONMOVE,					// Use old friction in XYMovement()
+	PGS_COOUCHONCEILING,					// Go "ouch" when hitting the ceiling
+	PGS_COENABLESPLASHES,					// Enable water splashes
+	PGS_COENABLEFLOORSMOKE,				// Enable floor smoke
+	PGS_COENABLESMOKE,						// Enables spawning of smoke
+	PGS_CODAMAGEONLAND,					// Damage player once landing on floor
+	PGS_COABSOLUTEANGLE,					// Use absolute angle turning rather than relative
+	PGS_COOLDJUMPOVER,						// Use old jump over code
+	PGS_COENABLESPLATS,					// Enable wall splats
+	PGS_COOLDFLATPUSHERCODE,				// Use Old (non 3D floor capable) pushers/pullers
+	PGS_COSPAWNPLAYERSEARLY,				// Spawn players early (during map setup)
+	PGS_COENABLEUPDOWNSHOOT,				// Enable shooting up/down (aiming) when no target found
+	PGS_CONOUNDERWATERCHECK,				// Don't check for things being underwater
+	PGS_COSPLASHTRANSWATER,				// Cause a splash when transitioning to/from water
+	PGS_COUSEOLDZCHECK,					// Use Old Z Checking Code
+	PGS_COCHECKXYMOVE,						// Check X/Y Movement in old Z Code
+	PGS_COWATERZFRICTION,					// Apply friction when underwater on Z plane
+	PGS_CORANOMLASTLOOKSPAWN,				// Random last look on spawn
+	PGS_COALWAYSRETURNDEADSPMISSILE,		// Always return the missile even if it died on spawn
+	PGS_COUSEMOUSEAIMING,					// When player autoaimed at nothing, use mouse aiming angle
+	PGS_COFIXPLAYERMISSILEANGLE,			// Fix the angle of player missiles being fired
+	PGS_COREMOVEMOINSKYZ,					// When Z movement into sky, do not explode a missile.
+	PGS_COFORCEAUTOAIM,					// Force Auto-aim
+	PGS_COFORCEBERSERKSWITCH,				// Force switching to berserk enabled slots.
+	PGS_CODOUBLEPICKUPCHECK,				// Check twice when picking things up
+	PGS_CODISABLEMISSILEIMPACTCHECK,		// Disable check for missile impact
+	PGS_COMISSILESPLATONWALL,				// Splat missiles on walls
+	PGS_CONEWBLOODHITSCANCODE,				// Use newer blood spewing code.
+	PGS_CONEWAIMINGCODE,					// Use newer aiming code.
+	PGS_COMISSILESPECHIT,					// Missiles could trigger special hits?
+	PGS_COHITSCANSSLIDEONFLATS,			// Hitscans slide on flats
+	PGS_CONONSOLIDPASSTHRUOLD,				// Non-solid pass through (older trigger)
+	PGS_CONONSOLIDPASSTHRUNEW,				// Non-solid pass through (newer trigger)
+	PGS_COJUMPCHECK,						// Check for jumping
+	PGS_COLINEARMAPTRAVERSE,				// Linearly traverse maps
+	PGS_COONLYTWENTYDMSPOTS,				// Only support 20 deathmatch spawn spots.
+	PGS_COALLOWSTUCKSPAWNS,				// Allow getting stuck in spawn spots.
+	PGS_COUSEOLDBLOOD,						// Use Older Doom Blood
+	PGS_FUNMONSTERFFA,						// Monster Free For All
+	PGS_FUNINFIGHTING,						// Monster Infighting
+	PGS_COCORRECTVILETARGET,				// Correct Arch-Vile Target Fire
+	PGS_FUNMONSTERSMISSMORE,				// Monsters miss more
+	PGS_COMORECRUSHERBLOOD,				// More Crusher Blood
+	PGS_CORANDOMBLOODDIR,					// Spew Blood in random directions
+	PGS_COINFINITEROCKETZ,					// Infinite Rocket Z Damage
+	PGS_COALLOWROCKETJUMPING,				// Allow rocket jumping
+	PGS_COROCKETZTHRUST,					// Rocket Z Thrust
+	PGS_COLIMITMONSTERZMATTACK,			// Limit Monster Z Range
+	PGS_HEREMONSTERTHRESH,					// Heretic Monster Threshold
+	PGS_COVOODOODOLLS,						// Voodoo Dolls
+	PGS_COEXTRATRAILPUFF,					// Extra smoke trail puff
+	PGS_COLOSTSOULTRAILS,					// Trails for lost souls
+	PGS_COTRANSTWOSIDED,					// Transparent Two Sided walls
+	PGS_COENABLEBLOODTIME,					// Enable Blood Time
+	PGS_PLENABLEJUMPING,					// Enable Jumping
+	PGS_COMOUSEAIM,						// Aim by mouse
+	PGS_MONRESPAWNMONSTERS,				// Respawn Monsters
+	PGS_FUNNOTARGETPLAYER,					// Don't Target Players, ever!
+	PGS_MONARCHVILEANYRESPAWN,				// Arch-Viles can respawn anything
+	PGS_COOLDCHECKPOSITION,				// Use Old P_CheckPosition()
+	PGS_COLESSSPAWNSTICKING,				// Make spawn sticking less likely
+	PGS_PLSPAWNTELEFRAG,					// Telefrag on spawn
+	PGS_GAMEONEHITKILLS,					// One Hit Kills
+	PGS_COBETTERPLCORPSEREMOVAL,			// Botter bodyqueue management
+	PGS_PLSPAWNCLUSTERING,					// Cluster spawn spots
+	PGS_COIMPROVEDMOBJONMOBJ,				// Improved Mobj on Mobj
+	PGS_COIMPROVEPATHTRAVERSE,				// Smooth out path traversing
+	PGS_PLJUMPGRAVITY,						// Player Jump Gravity
+	PGS_FUNNOLOCKEDDOORS,					// No Doors are locked
+	PGS_GAMEAIRFRICTION,					// Friction in air
+	PGS_GAMEWATERFRICTION,					// Friction in water
+	PGS_GAMEMIDWATERFRICTION,				// Friction in water (not on ground)
+	PGS_GAMEALLOWLEVELEXIT,				// Allow Exiting the game
+	PGS_GAMEALLOWROCKETJUMP,				// Allow Rocket Jumping
+	PGS_PLALLOWAUTOAIM,					// Allow Auto-Aiming
+	PGS_PLFORCEWEAPONSWITCH,				// Force Weapon Switching
+	PGS_PLDROPWEAPONS,						// Drop Player Weapons
+	PGS_PLINFINITEAMMO,					// Infinite Ammo
+	PGS_GAMEHERETICGIBBING,				// Heretic Gibbing
+	PGS_MONPREDICTMISSILES,				// cv_predictingmonsters
+	PGS_MONRESPAWNMONSTERSTIME,			// cv_respawnmonsterstime
+	PGS_PLSPAWNWITHMAXGUNS,				// Spawn With All Guns
+	PGS_PLSPAWNWITHSUPERGUNS,				// Spawn With Super Guns
+	PGS_PLSPAWNWITHMAXSTATS,				// Spawn With Max Stats
+	PGS_ITEMSSPAWNPICKUPS,					// Spawn Game Pickups
+	PGS_COHERETICFRICTION,					// Allow Heretic Friction
+	PGS_GAMEDEATHMATCH,					// Deathmatch Mode
+	PGS_PLSPAWNWITHALLKEYS,				// Spawn With All Keys
+	PGS_ITEMSKEEPWEAPONS,					// Keep Weapons on the Floor
+	PGS_GAMETEAMPLAY,						// Team Play
+	PGS_GAMETEAMDAMAGE,					// Team Damage
+	PGS_GAMEFRAGLIMIT,						// Frag Limit
+	PGS_GAMETIMELIMIT,						// Time Limit
+	PGS_MONSTATICRESPAWNTIME,				// Static monster respawn time
+	PGS_PLFASTERWEAPONS,					// Faster Player Weapons
+	PGS_MONSPAWNMONSTERS,					// Spawn Monsters
+	PGS_GAMESPAWNMULTIPLAYER,				// Spawn multi-player stuff
+	PGS_ITEMRESPAWNITEMS,					// Respawn Items
+	PGS_ITEMRESPAWNITEMSTIME,				// Respawn Item Time
+	PGS_MONFASTMONSTERS,					// Monsters are fast
+	PGS_GAMESOLIDCORPSES,					// Corpses are solid
+	PGS_GAMEBLOODTIME,						// Time blood stays around
+	PGS_GAMEGRAVITY,						// Level Gravity amount
+	PGS_MONENABLECLEANUP,					// Cleanup Dead monsters
+	PGS_MONCLEANUPRESPTIME,				// Time it takes to cleanup respawnable monsters
+	PGS_MONCLEANUPNONRTIME,				// Time it takes to cleanup non-respawnable monsters
+	PGS_GAMESKILL,							// Current Game Skill Level
+	PGS_PLHALFDAMAGE,						// Take Half Damage
+	PGS_PLDOUBLEAMMO,						// Receive Double Ammo
+	PGS_MONKILLCOUNTMODE,					// Kill Count Mode
+	PGS_COOLDBFGSPRAY,						// Old BFG Spraying
+	PGS_COEXPLODEHITFLOOR,					// HitFloor on explode
+	PGS_COBOMBTHRUFLOOR,					// Bomb through floors
+	PGS_COOLDEXPLOSIONS,					// Old Explosion Code
+	PGS_COAIMCHECKFAKEFLOOR,				// Check 3D Floors when aiming
+	PGS_CONEWGUNSHOTCODE,					// Use New Gunshot code
+	PGS_COSHOOTCHECKFAKEFLOOR,				// Check 3D When Shooting
+	PGS_COSHOOTFLOORCLIPPING,				// Clip gunshots to the floor
+	PGS_CONEWSSGSPREAD,					// New SSG Spread
+	PGS_COMONSTERLOOKFORMONSTER,			// Monsters can look for monsters
+	PGS_COOLDTHINGHEIGHTS,					// Old Thing Heights
+	PGS_COLASTLOOKMAXPLAYERS,				// Last Look Max Players
+	PGS_COMOVECHECKFAKEFLOOR,				// Check Fake floor when moving
+	PGS_COMULTIPLAYER,						// Multiplayer Format
+	PGS_COBOOMSUPPORT,						// boomsupport Flag
+	PGS_COSPAWNWITHFAVGUN,					// Spawn with favorite gun
+	PGS_CONOSAWFACING,						// No facing when sawing
+	PGS_COENABLETEAMMONSTERS,				// Enable Teamable Monsters
+	PGS_COMONSTERDEADTARGET,				// Monsters stop targetting dead things
+	PGS_COJUMPREGARDLESS,					// Regardless Jump (legacy mishap)
+	PGS_COOLDLASTLOOKLOGIC,				// Old lastlook Logic
+	PGS_CORADIALSPAWNCHECK,				// Perform radial spawn check
+	PGS_MONENABLEPLAYASMONSTER,			// Enable playing of monsters
+	PGS_COKILLSTOPLAYERONE,				// Give kills to player 1
 	
 	PEXGSNUMBITIDS
-} P_EXGSBitID_t;
+} P_XGSBitID_t;
 
 /*** STRUCTURES ***/
 
-/* P_EXGSVariable_t -- Variable for game setting */
-typedef struct P_EXGSVariable_s
+/* P_XGSVariable_t -- Variable for game setting */
+typedef struct P_XGSVariable_s
 {
 	// Base
-	const P_EXGSType_t Type;					// Type of value to conform to
-	const P_EXGSBitID_t BitID;					// BitID of flag
+	const P_XGSType_t Type;					// Type of value to conform to
+	const P_XGSBitID_t BitID;					// BitID of flag
 	const char* Name;							// Name of game setting
 	const char* MenuTitle;						// Title for menus
 	const char* Description;					// Description
 	const uint8_t GameFlags;					// Game Flags
-	const P_EXGSDemoRange_t DemoRange;			// Range for "demoversion"
+	const P_XGSDemoRange_t DemoRange;			// Range for "demoversion"
 	const uint16_t DemoVersion;					// "demoversion" wrapper
 	const int32_t DemoVal[2];					// Demo values (false, true)
 	const int32_t DefaultVal;					// Default value wherever
-	P_EXGSMenuCategory_t Category;				// Category for item
-	P_EXGSDisplayAs_t DisplayAs;				// Display as this
+	P_XGSMenuCategory_t Category;				// Category for item
+	P_XGSDisplayAs_t DisplayAs;				// Display as this
 	const CONL_VarPossibleValue_t* Possible;	// Possible values
-	void (*ChangeFunc)(struct P_EXGSVariable_s* const a_Bit);
+	void (*ChangeFunc)(struct P_XGSVariable_s* const a_Bit);
 	
 	// Settings
 	bool_t WasSet;								// Was Set to value?
@@ -304,27 +304,27 @@ typedef struct P_EXGSVariable_s
 	
 	// String Value
 	char StrVal[PEXGSSTRBUFSIZE];				// String Value
-} P_EXGSVariable_t;
+} P_XGSVariable_t;
 
 /*** FUNCTIONS ***/
 
 // Setting Finder
-P_EXGSBitID_t P_EXGSBitForName(const char* const a_Name);
-P_EXGSVariable_t* P_EXGSVarForBit(const P_EXGSBitID_t a_Bit);
-P_EXGSVariable_t* P_EXGSVarForName(const char* const a_Name);
+P_XGSBitID_t P_XGSBitForName(const char* const a_Name);
+P_XGSVariable_t* P_XGSVarForBit(const P_XGSBitID_t a_Bit);
+P_XGSVariable_t* P_XGSVarForName(const char* const a_Name);
 
 // Value Getter
-int32_t P_EXGSGetValue(const P_EXGSBitID_t a_Bit);
-fixed_t P_EXGSGetFixed(const P_EXGSBitID_t a_Bit);
+int32_t P_XGSVal(const P_XGSBitID_t a_Bit);
+fixed_t P_XGSFix(const P_XGSBitID_t a_Bit);
 
-int32_t P_EXGSGetNextValue(const P_EXGSBitID_t a_Bit, const bool_t a_Right);
+int32_t P_XGSGetNextValue(const P_XGSBitID_t a_Bit, const bool_t a_Right);
 
 // General Functions
-bool_t P_EXGSRegisterStuff(void);
-bool_t P_EXGSSetAllDefaults(void);
-bool_t P_EXGSSetVersionLevel(const bool_t a_Master, const uint32_t a_Level);
-int32_t P_EXGSSetValue(const bool_t a_Master, const P_EXGSBitID_t a_Bit, const int32_t a_Value);
-int32_t P_EXGSSetValueStr(const bool_t a_Master, const P_EXGSBitID_t a_Bit, const char* const a_Value);
+bool_t P_XGSRegisterStuff(void);
+bool_t P_XGSSetAllDefaults(void);
+bool_t P_XGSSetVersionLevel(const bool_t a_Master, const uint32_t a_Level);
+int32_t P_XGSSetValue(const bool_t a_Master, const P_XGSBitID_t a_Bit, const int32_t a_Value);
+int32_t P_XGSSetValueStr(const bool_t a_Master, const P_XGSBitID_t a_Bit, const char* const a_Value);
 
 #endif							/* __P_DEMCMP_H__ */
 

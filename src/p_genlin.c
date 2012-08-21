@@ -720,13 +720,13 @@ manual_stair:
 				if (!Igno && tsec->floorpic != texture)
 					continue;
 					
-				if (!P_EXGSGetValue(PEXGSBID_COBOOMSUPPORT))
+				if (!P_XGSVal(PGS_COBOOMSUPPORT))
 					height += floor->direction * stairsize;
 					
 				if (P_SectorActive(floor_special, tsec) || tsec->stairlock)
 					continue;
 					
-				if (P_EXGSGetValue(PEXGSBID_COBOOMSUPPORT))
+				if (P_XGSVal(PGS_COBOOMSUPPORT))
 					height += floor->direction * stairsize;
 					
 				// link the stair chain in both directions
@@ -2115,7 +2115,7 @@ void P_ProcessSpecialSectorEx(const EV_TryGenType_t a_Type, mobj_t* const a_Mo, 
 			a_Sector->special &= ~SECRET_MASK;
 			
 			// Secret Message
-			if (!P_EXGSGetValue(PEXGSBID_GAMEDEATHMATCH))
+			if (!P_XGSVal(PGS_GAMEDEATHMATCH))
 				P_PlayerMessage(PPM_SECRET, a_Mo, NULL, PTROFUNICODESTRING(DSTR_FOUNDSECRET));
 		}
 		

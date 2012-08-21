@@ -312,20 +312,20 @@ INFO_BotObjMetric_t INFO_BotMetricByName(const char* const a_Name);
 /*** HELPFUL MACROS ***/
 // Yuck! TODO: Make these real functions
 
-// __REMOOD_BLOODTIMECONST -- use P_EXGSGetValue(PEXGSBID_GAMEBLOODTIME) instead here
+// __REMOOD_BLOODTIMECONST -- use P_XGSVal(PGS_GAMEBLOODTIME) instead here
 #define __REMOOD_BLOODTIMECONST 0x1
 
 // __REMOOD_GETBLOODKIND -- or "LegacyOldDoomBlood"
-#define __REMOOD_GETBLOODKIND (P_EXGSGetValue(PEXGSBID_COUSEOLDBLOOD) ? ("LegacyOldDoomBlood") : ("DoomBlood"))
+#define __REMOOD_GETBLOODKIND (P_XGSVal(PGS_COUSEOLDBLOOD) ? ("LegacyOldDoomBlood") : ("DoomBlood"))
 
 // __REMOOD_GETSPEEDMO -- Get speed of mobj, note that getting the flag from the
 // mobj is intentional. Why? So in -fast you could make certain monsters fast
 // and not others with the same type. You could have a slowdown type weapon that
 // when used with fast monsters negates the fast speed?
-#define __REMOOD_GETSPEEDMO(mo) ((((((mo)->RXFlags[0] & MFREXA_ENABLEFASTSPEED) && P_EXGSGetValue(PEXGSBID_MONFASTMONSTERS)) ? (mo)->info->RFastSpeed : (mo)->info->speed)) >> (((mo)->flags & MF_MISSILE) ? 0 : 16))
+#define __REMOOD_GETSPEEDMO(mo) ((((((mo)->RXFlags[0] & MFREXA_ENABLEFASTSPEED) && P_XGSVal(PGS_MONFASTMONSTERS)) ? (mo)->info->RFastSpeed : (mo)->info->speed)) >> (((mo)->flags & MF_MISSILE) ? 0 : 16))
 
 // __REMOOD_GETHEIGHT -- Get Height of info object
-#define __REMOOD_GETHEIGHT(inf) (((inf)->OldHeight && P_EXGSGetValue(PEXGSBID_COOLDTHINGHEIGHTS)) ? ((inf)->OldHeight) : ((inf)->Height))
+#define __REMOOD_GETHEIGHT(inf) (((inf)->OldHeight && P_XGSVal(PGS_COOLDTHINGHEIGHTS)) ? ((inf)->OldHeight) : ((inf)->Height))
 
 #endif
 

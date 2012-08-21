@@ -1376,7 +1376,7 @@ void AM_drawPlayers(void)
 			
 		p = &players[i];
 		
-		if ((P_EXGSGetValue(PEXGSBID_GAMEDEATHMATCH) && !singledemo) && p != plr[am_DrawPlayer])
+		if ((P_XGSVal(PGS_GAMEDEATHMATCH) && !singledemo) && p != plr[am_DrawPlayer])
 			continue;
 			
 		if (p->powers[pw_invisibility])

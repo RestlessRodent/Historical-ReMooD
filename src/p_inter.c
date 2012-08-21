@@ -112,7 +112,7 @@ void P_PlayerSwitchToFavorite(player_t* const a_Player, const bool_t a_JustSpawn
 	weapontype_t NewGun;
 	
 	/* Don't switch when not freshly reborn */
-	if (!(a_JustSpawned && P_EXGSGetValue(PEXGSBID_COSPAWNWITHFAVGUN)) && (a_Player->pendingweapon != wp_nochange))
+	if (!(a_JustSpawned && P_XGSVal(PGS_COSPAWNWITHFAVGUN)) && (a_Player->pendingweapon != wp_nochange))
 		return;
 	
 	/* Change to the best gun */
@@ -179,8 +179,8 @@ bool_t P_GiveAmmo(player_t* player, ammotype_t ammo, int count)
 	   num = clipammo[ammo]/2;
 	 */
 	 
-	Skill = P_EXGSGetValue(PEXGSBID_GAMESKILL);
-	if (Skill == sk_baby || Skill == sk_nightmare || P_EXGSGetValue(PEXGSBID_PLDOUBLEAMMO))
+	Skill = P_XGSVal(PGS_GAMESKILL);
+	if (Skill == sk_baby || Skill == sk_nightmare || P_XGSVal(PGS_PLDOUBLEAMMO))
 	{
 		// give double ammo in trainer mode,
 		// you'll need in nightmare
@@ -259,7 +259,7 @@ bool_t P_GiveWeapon(player_t* player, weapontype_t weapon, bool_t dropped)
 	AmmoType = player->weaponinfo[weapon]->ammo;
 	
 	/* Coop/DM Mode */
-	if (P_EXGSGetValue(PEXGSBID_ITEMSKEEPWEAPONS) && !dropped)
+	if (P_XGSVal(PGS_ITEMSKEEPWEAPONS) && !dropped)
 	{
 		// leave placed weapons forever on net games
 		if (player->weaponowned[weapon])
@@ -270,7 +270,7 @@ bool_t P_GiveWeapon(player_t* player, weapontype_t weapon, bool_t dropped)
 		
 		if (AmmoType >= 0 && AmmoType < NUMAMMO)
 		{
-			if (P_EXGSGetValue(PEXGSBID_GAMEDEATHMATCH))
+			if (P_XGSVal(PGS_GAMEDEATHMATCH))
 				P_GiveAmmo(player, player->weaponinfo[weapon]->ammo, 5 * ammoinfo[player->weaponinfo[weapon]->ammo]->ClipAmmo);
 			else
 				P_GiveAmmo(player, player->weaponinfo[weapon]->ammo, player->weaponinfo[weapon]->GetAmmo);
@@ -282,7 +282,7 @@ bool_t P_GiveWeapon(player_t* player, weapontype_t weapon, bool_t dropped)
 //			player->pendingweapon = weapon;	// do like Doom2 original
 		
 		// GhostlyDeath <May 20, 2012> -- Force weapon switch
-		if (P_EXGSGetValue(PEXGSBID_PLFORCEWEAPONSWITCH) || player->originalweaponswitch)
+		if (P_XGSVal(PGS_PLFORCEWEAPONSWITCH) || player->originalweaponswitch)
 			player->pendingweapon = weapon;
 		
 		// Or Select Favorite
@@ -323,7 +323,7 @@ bool_t P_GiveWeapon(player_t* player, weapontype_t weapon, bool_t dropped)
 //			player->pendingweapon = weapon;	// Doom2 original stuff
 		
 		// GhostlyDeath <May 20, 2012> -- Force weapon switch
-		if (P_EXGSGetValue(PEXGSBID_PLFORCEWEAPONSWITCH) || player->originalweaponswitch)
+		if (P_XGSVal(PGS_PLFORCEWEAPONSWITCH) || player->originalweaponswitch)
 			player->pendingweapon = weapon;
 		
 		// Or Select Favorite
@@ -574,8 +574,8 @@ bool_t P_TouchSpecialThing(mobj_t* special, mobj_t* toucher)
 			if (Current->ActGiveWeapon != NUMWEAPONS)
 			{
 				// Give weapon?
-				if (!P_EXGSGetValue(PEXGSBID_ITEMSKEEPWEAPONS) ||
-					(P_EXGSGetValue(PEXGSBID_ITEMSKEEPWEAPONS) && !player->weaponowned[Current->ActGiveWeapon]) ||
+				if (!P_XGSVal(PGS_ITEMSKEEPWEAPONS) ||
+					(P_XGSVal(PGS_ITEMSKEEPWEAPONS) && !player->weaponowned[Current->ActGiveWeapon]) ||
 					(special->flags & MF_DROPPED))
 					OKStat |= P_GiveWeapon(player, Current->ActGiveWeapon, special->flags & MF_DROPPED);
 				
@@ -585,7 +585,7 @@ bool_t P_TouchSpecialThing(mobj_t* special, mobj_t* toucher)
 					PickedUp = true;
 					
 					// Cancel removal in coop/dm
-					if (P_EXGSGetValue(PEXGSBID_ITEMSKEEPWEAPONS))
+					if (P_XGSVal(PGS_ITEMSKEEPWEAPONS))
 						CancelRemove = !(special->flags & MF_DROPPED);
 				}
 			}
@@ -1182,7 +1182,7 @@ static void P_DeathMessages(mobj_t* target, mobj_t* inflictor, mobj_t* source)
 // WARNING : check cv_fraglimit>0 before call this function !
 void P_CheckFragLimit(player_t* p)
 {
-	if (P_EXGSGetValue(PEXGSBID_GAMETEAMPLAY))
+	if (P_XGSVal(PGS_GAMETEAMPLAY))
 	{
 		int fragteam = 0, i;
 		
@@ -1190,12 +1190,12 @@ void P_CheckFragLimit(player_t* p)
 			if (ST_SameTeam(p, &players[i]))
 				fragteam += ST_PlayerFrags(i);
 				
-		if (P_EXGSGetValue(PEXGSBID_GAMEFRAGLIMIT) <= fragteam)
+		if (P_XGSVal(PGS_GAMEFRAGLIMIT) <= fragteam)
 			G_ExitLevel();
 	}
 	else
 	{
-		if (P_EXGSGetValue(PEXGSBID_GAMEFRAGLIMIT) <= ST_PlayerFrags(p - players))
+		if (P_XGSVal(PGS_GAMEFRAGLIMIT) <= ST_PlayerFrags(p - players))
 			G_ExitLevel();
 	}
 }
@@ -1232,7 +1232,7 @@ void P_KillMobj(mobj_t* target, mobj_t* inflictor, mobj_t* source)
 		target->player->TotalDeaths++;
 	
 	// dead target is no more shootable
-	if (!P_EXGSGetValue(PEXGSBID_GAMESOLIDCORPSES))
+	if (!P_XGSVal(PGS_GAMESOLIDCORPSES))
 		target->flags &= ~MF_SHOOTABLE;
 		
 	target->flags &= ~(MF_FLOAT | MF_SKULLFLY);
@@ -1267,14 +1267,14 @@ void P_KillMobj(mobj_t* target, mobj_t* inflictor, mobj_t* source)
 		P_RefMobj(PMRT_TARGET, target, source);
 	
 	// GhostlyDeath <April 8, 2012> -- If modifying corpses in A_Fall, then don't modify here
-	if (!P_EXGSGetValue(PEXGSBID_COMODIFYCORPSE))
+	if (!P_XGSVal(PGS_COMODIFYCORPSE))
 	{
 		// in version 131 and higer this is done later in a_fall
 		// (this fix the stepping monster)
 		target->flags |= MF_CORPSE | MF_DROPOFF;
 		target->height >>= 2;
 		
-		if (P_EXGSGetValue(PEXGSBID_COOLDCUTCORPSERADIUS))
+		if (P_XGSVal(PGS_COOLDCUTCORPSERADIUS))
 			target->radius -= (target->radius >> 4);	//for solid corpses
 	}
 	// GhostlyDeath <September 17, 2011> -- Change the way obituaries are done
@@ -1301,7 +1301,7 @@ void P_KillMobj(mobj_t* target, mobj_t* inflictor, mobj_t* source)
 			source->player->frags[target->player - players]++;
 			
 			// check fraglimit cvar
-			if (P_EXGSGetValue(PEXGSBID_GAMEFRAGLIMIT))
+			if (P_XGSVal(PGS_GAMEFRAGLIMIT))
 				P_CheckFragLimit(source->player);
 		}
 	}
@@ -1312,13 +1312,13 @@ void P_KillMobj(mobj_t* target, mobj_t* inflictor, mobj_t* source)
 		// But unlike Doom, they aren't given to player 1 except in compat mode
 		g_MapKIS[0]++;
 		
-		if (P_EXGSGetValue(PEXGSBID_COKILLSTOPLAYERONE) && !P_EXGSGetValue(PEXGSBID_COMULTIPLAYER))
+		if (P_XGSVal(PGS_COKILLSTOPLAYERONE) && !P_XGSVal(PGS_COMULTIPLAYER))
 			players[0].killcount++;
 	}
 	
 	// GhostlyDeath <June 15, 2012> -- Kill count once?
 	if (target->flags & MF_COUNTKILL)
-		if (P_EXGSGetValue(PEXGSBID_MONKILLCOUNTMODE) == 1)
+		if (P_XGSVal(PGS_MONKILLCOUNTMODE) == 1)
 			target->flags &= ~MF_COUNTKILL;
 	
 	// if a player avatar dies...
@@ -1346,7 +1346,7 @@ void P_KillMobj(mobj_t* target, mobj_t* inflictor, mobj_t* source)
 	
 	// Gib Target
 	GibTarget = target->info->spawnhealth;
-	if (P_EXGSGetValue(PEXGSBID_GAMEHERETICGIBBING))
+	if (P_XGSVal(PGS_GAMEHERETICGIBBING))
 		GibTarget >>= 1;
 	
 	if (target->health < -GibTarget && target->info->xdeathstate)
@@ -1367,7 +1367,7 @@ void P_KillMobj(mobj_t* target, mobj_t* inflictor, mobj_t* source)
 	item = NUMMOBJTYPES;
 	
 	// Drop weapons when player is killed (non-monster players only)
-	if (target->player && (target->RXFlags[0] & MFREXA_ISPLAYEROBJECT) && P_EXGSGetValue(PEXGSBID_PLDROPWEAPONS))
+	if (target->player && (target->RXFlags[0] & MFREXA_ISPLAYEROBJECT) && P_XGSVal(PGS_PLDROPWEAPONS))
 	{
 		drop_ammo_count = P_AmmoInWeapon(target->player);
 		//if (!drop_ammo_count)
@@ -1403,10 +1403,10 @@ void P_KillMobj(mobj_t* target, mobj_t* inflictor, mobj_t* source)
 	if (item && item >= 0 && item < NUMMOBJTYPES)
 	{
 		// SoM: Damnit! Why not use the target's floorz?
-		mo = P_SpawnMobj(target->x, target->y, (!P_EXGSGetValue(PEXGSBID_COSPAWNDROPSONMOFLOORZ) ? ONFLOORZ : target->floorz), item);
+		mo = P_SpawnMobj(target->x, target->y, (!P_XGSVal(PGS_COSPAWNDROPSONMOFLOORZ) ? ONFLOORZ : target->floorz), item);
 		mo->flags |= MF_DROPPED;	// special versions of items
 	
-		if (!P_EXGSGetValue(PEXGSBID_PLDROPWEAPONS))
+		if (!P_XGSVal(PGS_PLDROPWEAPONS))
 			drop_ammo_count = 0;	// Doom default ammo count
 		
 		mo->dropped_ammo_count = drop_ammo_count;
@@ -1448,7 +1448,7 @@ bool_t P_DamageMobj(mobj_t* target, mobj_t* inflictor, mobj_t* source, int damag
 	player = target->player;
 	
 	if (target->RXFlags[0] & MFREXA_ISPLAYEROBJECT)
-		if (P_EXGSGetValue(PEXGSBID_GAMESKILL) == sk_baby || P_EXGSGetValue(PEXGSBID_PLHALFDAMAGE))
+		if (P_XGSVal(PGS_GAMESKILL) == sk_baby || P_XGSVal(PGS_PLHALFDAMAGE))
 			damage >>= 1;		// take half damage in trainer mode
 	
 	// Special damage types
@@ -1494,7 +1494,7 @@ bool_t P_DamageMobj(mobj_t* target, mobj_t* inflictor, mobj_t* source, int damag
 		
 		   if (source && demo_version >= 124 && (demo_version < 129 || !cv_allowrocketjump.value))
 		 */
-		if (source && P_EXGSGetValue(PEXGSBID_COROCKETZTHRUST) && (!P_EXGSGetValue(PEXGSBID_COALLOWROCKETJUMPING) || !P_EXGSGetValue(PEXGSBID_GAMEALLOWROCKETJUMP)))
+		if (source && P_XGSVal(PGS_COROCKETZTHRUST) && (!P_XGSVal(PGS_COALLOWROCKETJUMPING) || !P_XGSVal(PGS_GAMEALLOWROCKETJUMP)))
 		{
 			int dist, z;
 			
@@ -1520,7 +1520,7 @@ bool_t P_DamageMobj(mobj_t* target, mobj_t* inflictor, mobj_t* source, int damag
 			amomz = FixedMul(thrust, finesine[ang]);
 		}
 		else					//SoM: 2/28/2000: Added new function.
-			if (P_EXGSGetValue(PEXGSBID_COALLOWROCKETJUMPING) && P_EXGSGetValue(PEXGSBID_GAMEALLOWROCKETJUMP))
+			if (P_XGSVal(PGS_COALLOWROCKETJUMPING) && P_XGSVal(PGS_GAMEALLOWROCKETJUMP))
 			{
 				fixed_t delta1 = abs(inflictor->z - target->z);
 				fixed_t delta2 = abs(inflictor->z - (target->z + target->height));
@@ -1584,9 +1584,9 @@ bool_t P_DamageMobj(mobj_t* target, mobj_t* inflictor, mobj_t* source, int damag
 	if (player && (target->RXFlags[0] & MFREXA_ISPLAYEROBJECT) && (target->flags & MF_CORPSE) == 0)
 	{
 		// added team play and teamdamage (view logboris at 13-8-98 to understand)
-		if (P_EXGSGetValue(PEXGSBID_CODISABLETEAMPLAY) ||	// support old demo version
-		        P_EXGSGetValue(PEXGSBID_GAMETEAMDAMAGE) || damage > 1000 ||	// telefrag
-		        source == target || !source || !(target->RXFlags[0] & MFREXA_ISPLAYEROBJECT) || !(source->player && (source->RXFlags[0] & MFREXA_ISPLAYEROBJECT)) || (P_EXGSGetValue(PEXGSBID_GAMEDEATHMATCH) && (!P_EXGSGetValue(PEXGSBID_GAMETEAMPLAY) || !ST_SameTeam(source->player, player))))
+		if (P_XGSVal(PGS_CODISABLETEAMPLAY) ||	// support old demo version
+		        P_XGSVal(PGS_GAMETEAMDAMAGE) || damage > 1000 ||	// telefrag
+		        source == target || !source || !(target->RXFlags[0] & MFREXA_ISPLAYEROBJECT) || !(source->player && (source->RXFlags[0] & MFREXA_ISPLAYEROBJECT)) || (P_XGSVal(PGS_GAMEDEATHMATCH) && (!P_XGSVal(PGS_GAMETEAMPLAY) || !ST_SameTeam(source->player, player))))
 		{
 			player->health -= damage;	// mirror mobj health here for Dave
 			if (player->health < 0)
@@ -1633,7 +1633,7 @@ bool_t P_DamageMobj(mobj_t* target, mobj_t* inflictor, mobj_t* source, int damag
 		}
 		
 		// GhostlyDeath <April 20, 2012> -- One Hit Kills
-		if (P_EXGSGetValue(PEXGSBID_GAMEONEHITKILLS))
+		if (P_XGSVal(PGS_GAMEONEHITKILLS))
 		{
 			// Set health to zero
 			if (target->health > 0)
@@ -1662,7 +1662,7 @@ bool_t P_DamageMobj(mobj_t* target, mobj_t* inflictor, mobj_t* source, int damag
 	if ((!target->threshold || (target->RXFlags[0] & MFREXA_NOTHRESHOLD)) && source && source != target && !(source->RXFlags[0] & MFREXA_NOTRETAILIATETARGET) && !(source->flags2 & MF2_BOSS))
 	{
 		// If this is another player, do not target
-		if (P_EXGSGetValue(PEXGSBID_FUNNOTARGETPLAYER))
+		if (P_XGSVal(PGS_FUNNOTARGETPLAYER))
 			if (source->player)
 				return takedamage;
 		

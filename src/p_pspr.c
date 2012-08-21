@@ -91,7 +91,7 @@ void P_SetPsprite(player_t* player, int position, statenum_t stnum)
 		psp->tics = state->tics;	// could be 0
 		
 		// GhostlyDeath <June 9, 2012> -- Faster Weapons
-		if (P_EXGSGetValue(PEXGSBID_PLFASTERWEAPONS))
+		if (P_XGSVal(PGS_PLFASTERWEAPONS))
 			if (psp->tics > 1)
 				psp->tics = 1;
 		
@@ -196,7 +196,7 @@ bool_t P_CheckAmmo(player_t* player)
 	
 	ammo = player->weaponinfo[player->readyweapon]->ammo;
 	
-	if (P_EXGSGetValue(PEXGSBID_PLINFINITEAMMO))
+	if (P_XGSVal(PGS_PLINFINITEAMMO))
 		return true;
 		
 	// Minimal amount for one shot varies.
@@ -369,7 +369,7 @@ void A_TicWeapon(mobj_t* mo, player_t* player, pspdef_t* psp, const INFO_StateAr
 /* P_ReduceAmmo() -- Reduces player ammo */
 void P_ReduceAmmo(player_t* player)
 {
-	if (!P_EXGSGetValue(PEXGSBID_PLINFINITEAMMO))
+	if (!P_XGSVal(PGS_PLINFINITEAMMO))
 		player->ammo[player->weaponinfo[player->readyweapon]->ammo] -= player->weaponinfo[player->readyweapon]->ammopershoot;
 }
 
@@ -587,7 +587,7 @@ void A_Saw(mobj_t* mo, player_t* player, pspdef_t* psp, const INFO_StateArgsNum_
 	S_StartSound(&player->mo->NoiseThinker, sfx_sawhit);
 	
 	// turn to face target
-	if (!P_EXGSGetValue(PEXGSBID_CONOSAWFACING))
+	if (!P_XGSVal(PGS_CONOSAWFACING))
 	{
 		angle = R_PointToAngle2(player->mo->x, player->mo->y, linetarget->x, linetarget->y);
 		if (angle - player->mo->angle > ANG180)
@@ -700,8 +700,8 @@ void P_BulletSlope(mobj_t* mo)
 	angle_t an;
 	
 	//added:18-02-98: if AUTOAIM, try to aim at something
-	if (!P_EXGSGetValue(PEXGSBID_COFORCEAUTOAIM))
-		if (!mo->player->autoaim_toggle || !P_EXGSGetValue(PEXGSBID_PLALLOWAUTOAIM) || !P_EXGSGetValue(PEXGSBID_COMOUSEAIM))
+	if (!P_XGSVal(PGS_COFORCEAUTOAIM))
+		if (!mo->player->autoaim_toggle || !P_XGSVal(PGS_PLALLOWAUTOAIM) || !P_XGSVal(PGS_COMOUSEAIM))
 			goto notagetfound;
 		
 	// see which target is to be aimed at
@@ -720,11 +720,11 @@ void P_BulletSlope(mobj_t* mo)
 		}
 		
 		// GhostlyDeath <June 17, 2012> -- Only when mouse aiming is angle used
-		if (P_EXGSGetValue(PEXGSBID_COMOUSEAIM))
+		if (P_XGSVal(PGS_COMOUSEAIM))
 			if (!linetarget)
 			{
 notagetfound:
-				if (P_EXGSGetValue(PEXGSBID_COENABLEUPDOWNSHOOT))
+				if (P_XGSVal(PGS_COENABLEUPDOWNSHOOT))
 					bulletslope = AIMINGTOSLOPE(mo->player->aiming);
 				else
 					bulletslope = (mo->player->aiming << FRACBITS) / 160;
@@ -753,7 +753,7 @@ void P_GunShot(mobj_t* mo, bool_t accurate)
 	{
 		// GhostlyDeath <June 17, 2012> -- Demo Comp
 			// This seems pretty ugly and is probably what breaks demos
-		if (P_EXGSGetValue(PEXGSBID_CONEWGUNSHOTCODE))
+		if (P_XGSVal(PGS_CONEWGUNSHOTCODE))
 		{
 			angle += (P_Random() << 18);	// WARNING: don't put this in one line
 			angle -= (P_Random() << 18);	// else this expretion is ambiguous (evaluation order not diffined)
@@ -827,7 +827,7 @@ void A_FireShotgun2(mobj_t* mo, player_t* player, pspdef_t* psp, const INFO_Stat
 	
 	// GhostlyDeath <June 17, 2012> -- Demo Comp (1.32 moved PR around)
 	NewSpread = false;
-	if (P_EXGSGetValue(PEXGSBID_CONEWSSGSPREAD))
+	if (P_XGSVal(PGS_CONEWSSGSPREAD))
 		NewSpread = true;
 	
 	for (i = 0; i < 20; i++)
@@ -854,7 +854,7 @@ void A_FireCGun(mobj_t* mo, player_t* player, pspdef_t* psp, const INFO_StateArg
 	
 	S_StartSound(&player->mo->NoiseThinker, sfx_pistol);
 	
-	if (!P_EXGSGetValue(PEXGSBID_PLINFINITEAMMO))
+	if (!P_XGSVal(PGS_PLINFINITEAMMO))
 		if (!player->ammo[player->weaponinfo[player->readyweapon]->ammo])
 			return;
 			
@@ -939,7 +939,7 @@ void A_BFGSpray(mobj_t* mo, player_t* player, pspdef_t* psp, const INFO_StateArg
 			damage += (P_Random() & 7) + 1;
 		
 		// GhostlyDeath <June 17, 2012> -- Compatible BFG
-		if (P_EXGSGetValue(PEXGSBID_COOLDBFGSPRAY))
+		if (P_XGSVal(PGS_COOLDBFGSPRAY))
 			P_DamageMobj(linetarget, mo->target, mo->target, damage);
 		
 		// This breaks demo comp all for obituaries! Great!

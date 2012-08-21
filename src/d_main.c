@@ -1778,7 +1778,7 @@ void D_DoomMain(void)
 	P_PrepareLevelInfoEx();				// Level information
 	R_LoadTextures();					// Load texture info
 	P_ExtraSpecialStuff();				// Initialize extra special stuff
-	P_EXGSRegisterStuff();				// Extended Game Settings stuff
+	P_XGSRegisterStuff();				// Extended Game Settings stuff
 	M_CheatInit();						// Initialize Cheats
 	D_NCSInit();						// Initialize Network Code
 	ST_InitEx();						// Extended Status Bar

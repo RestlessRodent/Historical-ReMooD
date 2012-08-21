@@ -3438,7 +3438,7 @@ void P_SGBS_Thinkers(D_RBlockStream_t* const a_Stream)
 void P_SGBS_State(D_RBlockStream_t* const a_Stream)
 {
 	size_t i;
-	P_EXGSVariable_t* Vars;
+	P_XGSVariable_t* Vars;
 	
 	/* Something */
 	// Begin
@@ -3476,7 +3476,7 @@ void P_SGBS_State(D_RBlockStream_t* const a_Stream)
 	for (i = 0; i < PEXGSNUMBITIDS; i++)
 	{
 		// Get Variable
-		Vars = P_EXGSVarForBit(i);
+		Vars = P_XGSVarForBit(i);
 		
 		// No Var?
 		if (!Vars)

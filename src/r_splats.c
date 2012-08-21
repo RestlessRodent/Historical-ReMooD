@@ -176,7 +176,7 @@ void R_AddWallSplat(line_t* wallline, int sectorside, char* patchname, fixed_t t
 		return;
 		
 	// Demo version
-	if (!P_EXGSGetValue(PEXGSBID_COENABLESPLATS))
+	if (!P_XGSVal(PGS_COENABLESPLATS))
 		return;
 		
 	/* Pre-init some variables */

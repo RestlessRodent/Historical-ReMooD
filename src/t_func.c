@@ -393,7 +393,7 @@ void SF_Message()
 void SF_GameSkill()
 {
 	t_return.type = svt_int;
-	t_return.value.i = P_EXGSGetValue(PEXGSBID_GAMESKILL) + 1;	//make 1-5, rather than 0-4
+	t_return.value.i = P_XGSVal(PGS_GAMESKILL) + 1;	//make 1-5, rather than 0-4
 }
 
 // Returns what type of game is going on - Deathmatch, CoOp, or Single Player.
@@ -402,9 +402,9 @@ void SF_GameMode()
 {
 	t_return.type = svt_int;
 	
-	if (P_EXGSGetValue(PEXGSBID_GAMEDEATHMATCH))	// Deathmatch!
+	if (P_XGSVal(PGS_GAMEDEATHMATCH))	// Deathmatch!
 		t_return.value.i = 2;
-	else if (P_EXGSGetValue(PEXGSBID_COMULTIPLAYER))	// Cooperative
+	else if (P_XGSVal(PGS_COMULTIPLAYER))	// Cooperative
 		t_return.value.i = 1;
 	else						// Single Player
 		t_return.value.i = 0;
@@ -1173,7 +1173,7 @@ void SF_Resurrect()
 		return;
 		
 	P_SetMobjState(mo, mo->info->raisestate);
-	if (P_EXGSGetValue(PEXGSBID_COUNSHIFTVILERAISE))
+	if (P_XGSVal(PGS_COUNSHIFTVILERAISE))
 		mo->height <<= 2;
 	else
 	{

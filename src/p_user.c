@@ -305,7 +305,7 @@ void P_MovePlayer(player_t* player)
 	
 	cmd = &player->cmd;
 	
-	if (!P_EXGSGetValue(PEXGSBID_COABSOLUTEANGLE))
+	if (!P_XGSVal(PGS_COABSOLUTEANGLE))
 		player->mo->angle += (((int32_t)cmd->angleturn) << 16);
 	else
 		player->mo->angle = (((int32_t)cmd->angleturn) << 16);
@@ -323,7 +323,7 @@ void P_MovePlayer(player_t* player)
 	//  if not onground.
 	onground = (player->mo->z <= player->mo->floorz) || (player->cheats & CF_FLYAROUND) || (player->mo->flags2 & (MF2_ONMOBJ | MF2_FLY));
 	
-	if (P_EXGSGetValue(PEXGSBID_COOLDJUMPOVER))
+	if (P_XGSVal(PGS_COOLDJUMPOVER))
 	{
 		bool_t jumpover = player->cheats & CF_JUMPOVER;
 		
@@ -351,7 +351,7 @@ void P_MovePlayer(player_t* player)
 		player->aiming = cmd->aiming << 16;
 		if (player->chickenTics)
 			movefactor = 2500;
-		if (P_EXGSGetValue(PEXGSBID_COBOOMSUPPORT) && variable_friction)
+		if (P_XGSVal(PGS_COBOOMSUPPORT) && variable_friction)
 		{
 			//SoM: This seems to be buggy! Can anyone figure out why??
 			movefactor = P_GetMoveFactor(player->mo);
@@ -367,9 +367,9 @@ void P_MovePlayer(player_t* player)
 				// half forward speed when waist under water
 				// a little better grip if feets touch the ground
 				if (!onground)
-					movepushforward = FixedMul(movepushforward, P_EXGSGetFixed(PEXGSBID_GAMEMIDWATERFRICTION));
+					movepushforward = FixedMul(movepushforward, P_XGSFix(PGS_GAMEMIDWATERFRICTION));
 				else
-					movepushforward = FixedMul(movepushforward, P_EXGSGetFixed(PEXGSBID_GAMEWATERFRICTION));
+					movepushforward = FixedMul(movepushforward, P_XGSFix(PGS_GAMEWATERFRICTION));
 					
 				if (D_SyncNetMapTime() > player->flushdelay + TICRATE)
 				{
@@ -381,7 +381,7 @@ void P_MovePlayer(player_t* player)
 			{
 				// allow very small movement while in air for gameplay
 				if (!onground)
-					movepushforward = FixedMul(movepushforward, P_EXGSGetFixed(PEXGSBID_GAMEAIRFRICTION));
+					movepushforward = FixedMul(movepushforward, P_XGSFix(PGS_GAMEAIRFRICTION));
 			}
 			
 			P_Thrust(player, player->mo->angle, movepushforward);
@@ -393,9 +393,9 @@ void P_MovePlayer(player_t* player)
 			if (player->mo->eflags & MF_UNDERWATER)
 			{
 				if (!onground)
-					movepushside = FixedMul(movepushside, P_EXGSGetFixed(PEXGSBID_GAMEMIDWATERFRICTION));
+					movepushside = FixedMul(movepushside, P_XGSFix(PGS_GAMEMIDWATERFRICTION));
 				else
-					movepushside = FixedMul(movepushside, P_EXGSGetFixed(PEXGSBID_GAMEWATERFRICTION));
+					movepushside = FixedMul(movepushside, P_XGSFix(PGS_GAMEWATERFRICTION));
 					
 				if (D_SyncNetMapTime() > player->flushdelay + TICRATE)
 				{
@@ -404,7 +404,7 @@ void P_MovePlayer(player_t* player)
 				}
 			}
 			else if (!onground)
-				movepushside = FixedMul(movepushside, P_EXGSGetFixed(PEXGSBID_GAMEAIRFRICTION));
+				movepushside = FixedMul(movepushside, P_XGSFix(PGS_GAMEAIRFRICTION));
 				
 			P_Thrust(player, player->mo->angle - ANG90, movepushside);
 		}
@@ -434,8 +434,8 @@ void P_MovePlayer(player_t* player)
 	// For some reason, despite cv_allowjump being false, you could still jump
 	// since the check was done in P_BuildTicCommand(). So despite not being
 	// allowed to jump, a hacked client could jump anyway. This fixes it here.
-	i = P_EXGSGetValue(PEXGSBID_PLENABLEJUMPING);
-	if ((P_EXGSGetValue(PEXGSBID_COJUMPREGARDLESS) && !i) || i)
+	i = P_XGSVal(PGS_PLENABLEJUMPING);
+	if ((P_XGSVal(PGS_COJUMPREGARDLESS) && !i) || i)
 	{
 		//added:22-02-98: jumping
 		if (cmd->buttons & BT_JUMP)
@@ -444,7 +444,7 @@ void P_MovePlayer(player_t* player)
 				player->flyheight = 10;
 			if (player->mo->eflags & MF_UNDERWATER)
 			{
-				player->mo->momz = P_EXGSGetFixed(PEXGSBID_PLJUMPGRAVITY) / 2;
+				player->mo->momz = P_XGSFix(PGS_PLJUMPGRAVITY) / 2;
 				if (D_SyncNetMapTime() > player->flushdelay + TICRATE)
 				{
 					S_StartSound(&player->mo->NoiseThinker, sfx_floush);
@@ -455,7 +455,7 @@ void P_MovePlayer(player_t* player)
 				// can't jump while in air, can't jump while jumping
 				if (onground && !(player->jumpdown & 1))
 				{
-					player->mo->momz = P_EXGSGetFixed(PEXGSBID_PLJUMPGRAVITY);
+					player->mo->momz = P_XGSFix(PGS_PLJUMPGRAVITY);
 					if (!(player->cheats & CF_FLYAROUND))
 					{
 						S_StartSound(&player->mo->NoiseThinker, sfx_jump);
@@ -869,7 +869,7 @@ void P_PlayerThink(player_t* player)
 	if (player->mo->flags & MF_JUSTATTACKED)
 	{
 // added : now angle turn is a absolute value not relative
-		if (!P_EXGSGetValue(PEXGSBID_COABSOLUTEANGLE))
+		if (!P_XGSVal(PGS_COABSOLUTEANGLE))
 			cmd->angleturn = 0;
 		cmd->forwardmove = 0xc800 / 512;
 		cmd->sidemove = 0;
@@ -963,7 +963,7 @@ void P_PlayerThink(player_t* player)
 	//
 	// water splashes
 	//
-	if (P_EXGSGetValue(PEXGSBID_COENABLESPLASHES) && player->specialsector >= 887 && player->specialsector <= 888)
+	if (P_XGSVal(PGS_COENABLESPLASHES) && player->specialsector >= 887 && player->specialsector <= 888)
 	{
 		if ((player->mo->momx > (2 * FRACUNIT) || player->mo->momx < (-2 * FRACUNIT) || player->mo->momy > (2 * FRACUNIT) || player->mo->momy < (-2 * FRACUNIT) || player->mo->momz > (2 * FRACUNIT)) &&	// jump out of water
 		        !(D_SyncNetMapTime() % (32)))
@@ -1123,7 +1123,7 @@ void P_PlayerThink(player_t* player)
 			// Weapon switching to is berserk cap flagged
 			if (player->weaponinfo[newweapon]->WeaponFlags & WF_BERSERKTOGGLE)
 				// Only before Legacy 1.28
-				if (P_EXGSGetValue(PEXGSBID_COFORCEBERSERKSWITCH))
+				if (P_XGSVal(PGS_COFORCEBERSERKSWITCH))
 					// Use the lowest weapon with this flag
 					for (i = 0; i < NUMWEAPONS; i++)
 					{
@@ -1235,7 +1235,7 @@ bool_t P_PlayerOnSameTeam(player_t* const a_A, player_t* const a_B)
 		return true;
 	
 	/* Coop? */
-	if (!P_EXGSGetValue(PEXGSBID_GAMEDEATHMATCH))
+	if (!P_XGSVal(PGS_GAMEDEATHMATCH))
 		return true;
 	
 	/* Not the same */

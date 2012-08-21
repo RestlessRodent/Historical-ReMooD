@@ -148,7 +148,7 @@ int P_GetMoveFactor(mobj_t* mo)
 	
 	int momentum, friction;
 	
-	if (P_EXGSGetValue(PEXGSBID_COBOOMSUPPORT) && variable_friction && !(mo->flags & (MF_NOGRAVITY | MF_NOCLIP)))
+	if (P_XGSVal(PGS_COBOOMSUPPORT) && variable_friction && !(mo->flags & (MF_NOGRAVITY | MF_NOCLIP)))
 	{
 		friction = mo->friction;
 		if (friction == ORIG_FRICTION)	// normal floor
@@ -375,7 +375,7 @@ static bool_t PIT_CheckThing(mobj_t* thing, void* a_Arg)
 			
 			Dammed = P_DamageMobj(thing, tmthing, tmthing->target, damage);
 			if (Dammed && (thing->flags & MF_NOBLOOD) == 0 &&
-					P_EXGSGetValue(PEXGSBID_COENABLEBLOODSPLATS))
+					P_XGSVal(PGS_COENABLEBLOODSPLATS))
 				P_SpawnBloodSplats(tmthing->x, tmthing->y, tmthing->z, damage, thing->momx, thing->momy, thing);
 		}
 			
@@ -402,7 +402,7 @@ static bool_t PIT_CheckThing(mobj_t* thing, void* a_Arg)
 	}
 	
 	// check again for special pickup
-	if (P_EXGSGetValue(PEXGSBID_CODOUBLEPICKUPCHECK) && tmthing->flags & MF_SPECIAL)
+	if (P_XGSVal(PGS_CODOUBLEPICKUPCHECK) && tmthing->flags & MF_SPECIAL)
 	{
 		solid = tmthing->flags & MF_SOLID;
 		if (thing->flags & MF_PICKUP)
@@ -415,7 +415,7 @@ static bool_t PIT_CheckThing(mobj_t* thing, void* a_Arg)
 	
 	//added:24-02-98:compatibility with old demos, it used to return with...
 	//added:27-02-98:for version 112+, nonsolid things pass through other things
-	if (P_EXGSGetValue(PEXGSBID_CONONSOLIDPASSTHRUOLD) || P_EXGSGetValue(PEXGSBID_CONONSOLIDPASSTHRUNEW) || !(tmthing->flags & MF_SOLID))
+	if (P_XGSVal(PGS_CONONSOLIDPASSTHRUOLD) || P_XGSVal(PGS_CONONSOLIDPASSTHRUNEW) || !(tmthing->flags & MF_SOLID))
 		return !(thing->flags & MF_SOLID);
 		
 	//added:22-02-98: added z checking at last
@@ -507,7 +507,7 @@ bool_t PIT_CheckLine(line_t* ld, void* a_Arg)
 	blockingline = ld;
 	if (!ld->backsector)
 	{
-		if (P_EXGSGetValue(PEXGSBID_COMISSILESPECHIT) && tmthing->flags & MF_MISSILE && ld->special)
+		if (P_XGSVal(PGS_COMISSILESPECHIT) && tmthing->flags & MF_MISSILE && ld->special)
 			add_spechit(ld);
 			
 		return false;			// one sided line
@@ -613,7 +613,7 @@ bool_t P_CheckPosition(mobj_t* thing, fixed_t x, fixed_t y, uint32_t a_Flags)
 	
 	//SoM: 3/23/2000: Check list of fake floors and see if
 	//tmfloorz/tmceilingz need to be altered.
-	if (P_EXGSGetValue(PEXGSBID_COMOVECHECKFAKEFLOOR))
+	if (P_XGSVal(PGS_COMOVECHECKFAKEFLOOR))
 		if (newsubsec->sector->ffloors)
 		{
 			ffloor_t* rover;
@@ -652,7 +652,7 @@ bool_t P_CheckPosition(mobj_t* thing, fixed_t x, fixed_t y, uint32_t a_Flags)
 	// BP: added MF_NOCLIPTHING :used by camera to don't be blocked by things
 	if (!(thing->flags & MF_NOCLIPTHING) && 
 		((a_Flags & PCPF_FORSPOTCHECK) ||
-			(P_EXGSGetValue(PEXGSBID_COOLDCHECKPOSITION) || (thing->flags & MF_SOLID || thing->flags & MF_MISSILE))))
+			(P_XGSVal(PGS_COOLDCHECKPOSITION) || (thing->flags & MF_SOLID || thing->flags & MF_MISSILE))))
 		/* DarkWolf95:don't check non-solids against other things,
 		   keep them in the map though, so still check against lines */
 	{
@@ -755,7 +755,7 @@ static bool_t PIT_CheckThingDet(mobj_t* thing, void* a_Arg)
 			// Let players missile other players.
 			if (!(thing->RXFlags[0] & MFREXA_ISPLAYEROBJECT))
 				//DarkWolf95:November 21, 2003: Monsters Infight!
-				if (!P_EXGSGetValue(PEXGSBID_FUNINFIGHTING))
+				if (!P_XGSVal(PGS_FUNINFIGHTING))
 					return false;
 		}
 		
@@ -788,7 +788,7 @@ static bool_t PIT_CheckThingDet(mobj_t* thing, void* a_Arg)
 	}
 	
 	// check again for special pickup
-	if (P_EXGSGetValue(PEXGSBID_CODOUBLEPICKUPCHECK) && tmthing->flags & MF_SPECIAL)
+	if (P_XGSVal(PGS_CODOUBLEPICKUPCHECK) && tmthing->flags & MF_SPECIAL)
 	{
 		solid = tmthing->flags & MF_SOLID;
 		if (thing->flags & MF_PICKUP)
@@ -799,7 +799,7 @@ static bool_t PIT_CheckThingDet(mobj_t* thing, void* a_Arg)
 	
 	//added:24-02-98:compatibility with old demos, it used to return with...
 	//added:27-02-98:for version 112+, nonsolid things pass through other things
-	if (P_EXGSGetValue(PEXGSBID_CONONSOLIDPASSTHRUOLD) || P_EXGSGetValue(PEXGSBID_CONONSOLIDPASSTHRUNEW) || !(tmthing->flags & MF_SOLID))
+	if (P_XGSVal(PGS_CONONSOLIDPASSTHRUOLD) || P_XGSVal(PGS_CONONSOLIDPASSTHRUNEW) || !(tmthing->flags & MF_SOLID))
 		return !(thing->flags & MF_SOLID);
 		
 	//added:22-02-98: added z checking at last
@@ -947,7 +947,7 @@ bool_t P_CheckPositionDetermine(mobj_t* thing, fixed_t x, fixed_t y, uint32_t a_
 	// BP: added MF_NOCLIPTHING :used by camera to don't be blocked by things
 	if (!(thing->flags & MF_NOCLIPTHING) && 
 		((a_Flags & PCPF_FORSPOTCHECK) ||
-			(P_EXGSGetValue(PEXGSBID_COOLDCHECKPOSITION) || (thing->flags & MF_SOLID || thing->flags & MF_MISSILE))))
+			(P_XGSVal(PGS_COOLDCHECKPOSITION) || (thing->flags & MF_SOLID || thing->flags & MF_MISSILE))))
 		/* DarkWolf95:don't check non-solids against other things,
 		   keep them in the map though, so still check against lines */
 	{
@@ -995,7 +995,7 @@ static void CheckMissileImpact(mobj_t* mobj, const uint32_t a_Flags)
 {
 	int i;
 	
-	if (P_EXGSGetValue(PEXGSBID_CODISABLEMISSILEIMPACTCHECK) || !numspechit || !(mobj->flags & MF_MISSILE) || !mobj->target)
+	if (P_XGSVal(PGS_CODISABLEMISSILEIMPACTCHECK) || !numspechit || !(mobj->flags & MF_MISSILE) || !mobj->target)
 		return;
 		
 	if (!mobj->target->player)
@@ -1105,7 +1105,7 @@ static bool_t PS_SubTryMove(mobj_t* thing, fixed_t x, fixed_t y, bool_t allowdro
 		if ((thing->flags & MF_MISSILE) && tmfloorz > thing->z)
 			CheckMissileImpact(thing, Flags);
 			
-		if (!P_EXGSGetValue(PEXGSBID_COBOOMSUPPORT) || !allowdropoff)
+		if (!P_XGSVal(PGS_COBOOMSUPPORT) || !allowdropoff)
 			if (!(thing->flags & (MF_DROPOFF | MF_FLOAT)) && !tmfloorthing && tmfloorz - tmdropoffz > MAXSTEPMOVE)
 				return false;	// don't stand over a dropoff
 	}
@@ -1121,7 +1121,7 @@ static bool_t PS_SubTryMove(mobj_t* thing, fixed_t x, fixed_t y, bool_t allowdro
 	//added:28-02-98: gameplay hack : walk over a small wall while 	jumping
 	//                stop jumping it succeeded
 	// BP: removed in 1.28 because we can move in air now
-	if (P_EXGSGetValue(PEXGSBID_COJUMPCHECK) && P_EXGSGetValue(PEXGSBID_COOLDJUMPOVER) && thing->player && (thing->player->cheats & CF_JUMPOVER))
+	if (P_XGSVal(PGS_COJUMPCHECK) && P_XGSVal(PGS_COOLDJUMPOVER) && thing->player && (thing->player->cheats & CF_JUMPOVER))
 	{
 		if (tmfloorz > thing->floorz + MAXSTEPMOVE)
 			thing->momz >>= 2;
@@ -1184,7 +1184,7 @@ bool_t P_TryMove(mobj_t* thing, fixed_t x, fixed_t y, bool_t allowdropoff, fixed
 	/* Smooth Traversing */
 #if 0
 	// GhostlyDeath <April 27, 2012> -- Improve Traversing
-	if (P_EXGSGetValue(PEXGSBID_COIMPROVEPATHTRAVERSE))
+	if (P_XGSVal(PGS_COIMPROVEPATHTRAVERSE))
 	{
 		// No clipping?
 		if ((thing->flags & MF_NOCLIP) || (thing->player && (thing->player->cheats & CF_NOCLIP)))
@@ -1616,7 +1616,7 @@ bool_t PTR_AimTraverse(intercept_t* in, void* a_Data)
 			return false;		// stop
 		
 		// GhostlyDeath <June 17, 2012> -- Demo Comp
-		if (P_EXGSGetValue(PEXGSBID_COAIMCHECKFAKEFLOOR))
+		if (P_XGSVal(PGS_COAIMCHECKFAKEFLOOR))
 			if (li->frontsector->ffloors || li->backsector->ffloors)
 			{
 				int frontflag;
@@ -1812,7 +1812,7 @@ bool_t PTR_ShootTraverse(intercept_t* in, void* a_Data)
 		}
 		
 		// GhostlyDeath <June 17, 2012> -- Demo Comp
-		if (P_EXGSGetValue(PEXGSBID_COSHOOTCHECKFAKEFLOOR))
+		if (P_XGSVal(PGS_COSHOOTCHECKFAKEFLOOR))
 			if (li->frontsector->ffloors || li->backsector->ffloors)
 			{
 				int frontflag;
@@ -1820,7 +1820,7 @@ bool_t PTR_ShootTraverse(intercept_t* in, void* a_Data)
 				frontflag = P_PointOnLineSide(shootthing->x, shootthing->y, li);
 			
 				//SoM: Check 3D FLOORS!
-				if (P_EXGSGetValue(PEXGSBID_COSHOOTCHECKFAKEFLOOR))
+				if (P_XGSVal(PGS_COSHOOTCHECKFAKEFLOOR))
 					if (li->frontsector->ffloors)
 					{
 						ffloor_t* rover = li->frontsector->ffloors;
@@ -1844,7 +1844,7 @@ bool_t PTR_ShootTraverse(intercept_t* in, void* a_Data)
 						}
 					}
 				
-				if (P_EXGSGetValue(PEXGSBID_COSHOOTCHECKFAKEFLOOR))
+				if (P_XGSVal(PGS_COSHOOTCHECKFAKEFLOOR))
 					if (li->backsector->ffloors)
 					{
 						ffloor_t* rover = li->backsector->ffloors;
@@ -1892,7 +1892,7 @@ hitline:
 		//                use a simple triangle stuff a/b = c/d ...
 		// BP:13-3-99: fix the side usage
 		hitplane = false;
-		if (P_EXGSGetValue(PEXGSBID_COSHOOTFLOORCLIPPING))
+		if (P_XGSVal(PGS_COSHOOTFLOORCLIPPING))
 		{
 			sectorside = P_PointOnLineSide(shootthing->x, shootthing->y, li);
 			if (li->sidenum[sectorside] != -1)	// can happen in nocliping mode
@@ -1938,7 +1938,7 @@ hitline:
 			}
 		
 			//SPLAT TEST ----------------------------------------------------------
-			if (!hitplane && P_EXGSGetValue(PEXGSBID_COMISSILESPLATONWALL))
+			if (!hitplane && P_XGSVal(PGS_COMISSILESPLATONWALL))
 			{
 				divline_t divl;
 				fixed_t frac;
@@ -1969,7 +1969,7 @@ hitline:
 				return false;
 				
 			//added:24-02-98: compatibility with older demos
-			if (P_EXGSGetValue(PEXGSBID_COHITSCANSSLIDEONFLATS))
+			if (P_XGSVal(PGS_COHITSCANSSLIDEONFLATS))
 			{
 				diffheights = true;
 				hitplane = false;
@@ -1984,7 +1984,7 @@ hitline:
 		}
 		
 		// GhostlyDeath <June 17, 2012> -- Demo Comp
-		if (P_EXGSGetValue(PEXGSBID_COSHOOTCHECKFAKEFLOOR))
+		if (P_XGSVal(PGS_COSHOOTCHECKFAKEFLOOR))
 			if (sector && sector->ffloors)
 			{
 				if (dir == 1 && z + (16 << FRACBITS) > ceilingz)
@@ -2026,7 +2026,7 @@ hitline:
 	// it appears that the bullet hits the 3D floor but it actually just hits
 	// the line behind it. Thus allowing a bullet to hit things under a 3D
 	// floor and still be clipped a 3D floor.
-	if (P_EXGSGetValue(PEXGSBID_COSHOOTCHECKFAKEFLOOR))
+	if (P_XGSVal(PGS_COSHOOTCHECKFAKEFLOOR))
 		if (th->subsector->sector->ffloors)
 		{
 			sector_t* sector = th->subsector->sector;
@@ -2052,7 +2052,7 @@ hitline:
 	y = trace.y + FixedMul(trace.dy, frac);
 	z = shootz + FixedMul(aimslope, FixedMul(frac, attackrange));
 	
-	if (!P_EXGSGetValue(PEXGSBID_CONEWBLOODHITSCANCODE))
+	if (!P_XGSVal(PGS_CONEWBLOODHITSCANCODE))
 	{
 		// Spawn bullet puffs or blood spots,
 		// depending on target type.
@@ -2067,7 +2067,7 @@ hitline:
 	else
 		hitplane = false;
 		
-	if (P_EXGSGetValue(PEXGSBID_CONEWBLOODHITSCANCODE))
+	if (P_XGSVal(PGS_CONEWBLOODHITSCANCODE))
 	{
 		// Spawn bullet puffs or blood spots,
 		// depending on target type.
@@ -2107,7 +2107,7 @@ fixed_t P_AimLineAttack(mobj_t* t1, angle_t angle, fixed_t distance, P_AimLineAt
 	angle >>= ANGLETOFINESHIFT;
 	shootthing = t1;
 	
-	if (t1->player && P_EXGSGetValue(PEXGSBID_CONEWAIMINGCODE))
+	if (t1->player && P_XGSVal(PGS_CONEWAIMINGCODE))
 	{
 		fixed_t cosineaiming = finecosine[t1->player->aiming >> ANGLETOFINESHIFT];
 		int aiming = ((int)t1->player->aiming) >> ANGLETOFINESHIFT;
@@ -2172,7 +2172,7 @@ void P_LineAttack(mobj_t* t1, angle_t angle, fixed_t distance, fixed_t slope, in
 	la_damage = damage;
 	
 	// player autoaimed attack,
-	if (!P_EXGSGetValue(PEXGSBID_CONEWAIMINGCODE) || !t1->player)
+	if (!P_XGSVal(PGS_CONEWAIMINGCODE) || !t1->player)
 	{
 		x2 = t1->x + (distance >> FRACBITS) * finecosine[angle];
 		y2 = t1->y + (distance >> FRACBITS) * finesine[angle];
@@ -2232,7 +2232,7 @@ bool_t PTR_UseTraverse(intercept_t* in, void* a_Data)
 	
 	// can't use for than one special line in a row
 	// SoM: USE MORE THAN ONE!
-	if (P_EXGSGetValue(PEXGSBID_COBOOMSUPPORT) && (in->d.line->flags & ML_PASSUSE))
+	if (P_XGSVal(PGS_COBOOMSUPPORT) && (in->d.line->flags & ML_PASSUSE))
 		return true;
 	else
 		return false;
@@ -2300,7 +2300,7 @@ bool_t PIT_RadiusAttack(mobj_t* thing, void* a_Arg)
 	
 	//added:22-02-98: now checks also z dist for rockets exploding
 	//                above yer head...
-	if (!P_EXGSGetValue(PEXGSBID_COINFINITEROCKETZ))
+	if (!P_XGSVal(PGS_COINFINITEROCKETZ))
 	{
 		dz = abs(thing->z + (thing->height >> 1) - bombspot->z);
 		dist = dist > dz ? dist : dz;
@@ -2314,7 +2314,7 @@ bool_t PIT_RadiusAttack(mobj_t* thing, void* a_Arg)
 		return true;			// out of range
 		
 	// GhostlyDeath <June 17, 2012> -- Demo Compatibility
-	if (!P_EXGSGetValue(PEXGSBID_COBOMBTHRUFLOOR))
+	if (!P_XGSVal(PGS_COBOMBTHRUFLOOR))
 	{
 		if (thing->floorz > bombspot->z && bombspot->ceilingz < thing->z)
 			return true;
@@ -2328,7 +2328,7 @@ bool_t PIT_RadiusAttack(mobj_t* thing, void* a_Arg)
 		damage = bombdamage - dist;
 		
 		// GhostlyDeath <June 17, 2012> -- Demo Comp
-		if (P_EXGSGetValue(PEXGSBID_COOLDEXPLOSIONS))
+		if (P_XGSVal(PGS_COOLDEXPLOSIONS))
 		{
 			P_DamageMobj(thing, bombspot, bombsource, damage);
 		}
@@ -2343,7 +2343,7 @@ bool_t PIT_RadiusAttack(mobj_t* thing, void* a_Arg)
 			}
 		
 			// must be in direct path
-			if (P_DamageMobj(thing, bombspot, bombsource, damage) && (thing->flags & MF_NOBLOOD) == 0 && P_EXGSGetValue(PEXGSBID_COENABLEBLOODSPLATS))
+			if (P_DamageMobj(thing, bombspot, bombsource, damage) && (thing->flags & MF_NOBLOOD) == 0 && P_XGSVal(PGS_COENABLEBLOODSPLATS))
 				P_SpawnBloodSplats(thing->x, thing->y, thing->z, damage, momx, momy, thing);
 		}
 	}
@@ -2582,7 +2582,7 @@ bool_t PIT_ChangeSector(mobj_t* thing, void* a_Arg)
 		P_DamageMobj(thing, NULL, NULL, 10);
 		
 		// Before Legacy 1.32, there was more blood, and everything bled, even barrels!
-		if (P_EXGSGetValue(PEXGSBID_COMORECRUSHERBLOOD) || ((!(leveltime % (16)) && !(thing->flags & MF_NOBLOOD))))
+		if (P_XGSVal(PGS_COMORECRUSHERBLOOD) || ((!(leveltime % (16)) && !(thing->flags & MF_NOBLOOD))))
 		{
 			// spray blood in a random direction
 			mo = P_SpawnMobj(thing->x, thing->y, thing->z + thing->height / 2, INFO_GetTypeByName(__REMOOD_GETBLOODKIND));
@@ -2622,7 +2622,7 @@ bool_t P_CheckSector(sector_t* sector, bool_t crunch)
 {
 	msecnode_t* n;
 	
-	if (!P_EXGSGetValue(PEXGSBID_COBOOMSUPPORT))			// use the old routine for old demos though
+	if (!P_XGSVal(PGS_COBOOMSUPPORT))			// use the old routine for old demos though
 		return P_ChangeSector(sector, crunch);
 		
 	nofit = false;
@@ -3049,16 +3049,16 @@ static void P_FakeZMovement(mobj_t* mo)
 	else if (mo->flags2 & MF2_LOGRAV)
 	{
 		if (mo->momz == 0)
-			mo->momz = -(P_EXGSGetValue(PEXGSBID_GAMEGRAVITY) >> 3) * 2;
+			mo->momz = -(P_XGSVal(PGS_GAMEGRAVITY) >> 3) * 2;
 		else
-			mo->momz -= P_EXGSGetValue(PEXGSBID_GAMEGRAVITY) >> 3;
+			mo->momz -= P_XGSVal(PGS_GAMEGRAVITY) >> 3;
 	}
 	else if (!(mo->flags & MF_NOGRAVITY))
 	{
 		if (mo->momz == 0)
-			mo->momz = -P_EXGSGetValue(PEXGSBID_GAMEGRAVITY) * 2;
+			mo->momz = -P_XGSVal(PGS_GAMEGRAVITY) * 2;
 		else
-			mo->momz -= P_EXGSGetValue(PEXGSBID_GAMEGRAVITY);
+			mo->momz -= P_XGSVal(PGS_GAMEGRAVITY);
 	}
 	
 	if (mo->z + mo->height > mo->ceilingz)

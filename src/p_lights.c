@@ -285,7 +285,7 @@ int EV_LightTurnOn(line_t* line, int bright)
 				}
 			}
 			sector->lightlevel = tbright;
-			if (!P_EXGSGetValue(PEXGSBID_COBOOMSUPPORT))
+			if (!P_XGSVal(PGS_COBOOMSUPPORT))
 				bright = tbright;
 		}
 	}

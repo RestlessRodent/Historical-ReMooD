@@ -79,13 +79,13 @@ void P_AdjMobjStateTics(mobj_t* const a_Object)
 		return;
 	
 	/* Special value? */
-	if (P_EXGSGetValue(PEXGSBID_COENABLEBLOODTIME))
+	if (P_XGSVal(PGS_COENABLEBLOODTIME))
 		if (a_Object->state->ExtraStateFlags & __REMOOD_BLOODTIMECONST)
 		{
-			if (P_EXGSGetValue(PEXGSBID_GAMEBLOODTIME) <= 0)
+			if (P_XGSVal(PGS_GAMEBLOODTIME) <= 0)
 				a_Object->tics = 0;
 			else
-				a_Object->tics = (P_EXGSGetValue(PEXGSBID_GAMEBLOODTIME) * TICRATE) - 16;
+				a_Object->tics = (P_XGSVal(PGS_GAMEBLOODTIME) * TICRATE) - 16;
 		}
 }
 
@@ -140,7 +140,7 @@ bool_t P_SetMobjState(mobj_t* mobj, statenum_t state)
 		mobj->state = st;
 		
 		// GhostlyDeath <March 5, 2012> -- Remove hack in p_enemy -fast onchange
-		if (st->RMODFastTics && P_EXGSGetValue(PEXGSBID_MONFASTMONSTERS))
+		if (st->RMODFastTics && P_XGSVal(PGS_MONFASTMONSTERS))
 			mobj->tics = st->RMODFastTics;
 		else
 			mobj->tics = st->tics;
@@ -256,7 +256,7 @@ void P_XYFriction(mobj_t* mo, fixed_t oldx, fixed_t oldy, bool_t oldfriction)
 		}
 		
 		// Heretic Friction
-		else if (P_EXGSGetValue(PEXGSBID_COHERETICFRICTION))
+		else if (P_XGSVal(PGS_COHERETICFRICTION))
 		{
             if (mo->subsector->sector->special & REXS_HFRICTMASK)      // Friction_Low
             {
@@ -408,7 +408,7 @@ void P_XYMovement(mobj_t* mo)
 				if (ceilingline && ceilingline->backsector &&
 				        ceilingline->backsector->ceilingpic == skyflatnum &&
 				        ceilingline->frontsector && ceilingline->frontsector->ceilingpic == skyflatnum && mo->subsector->sector->ceilingheight == mo->ceilingz)
-					if (!P_EXGSGetValue(PEXGSBID_COBOOMSUPPORT) || mo->z > ceilingline->backsector->ceilingheight)	//SoM: 4/7/2000: DEMO'S
+					if (!P_XGSVal(PGS_COBOOMSUPPORT) || mo->z > ceilingline->backsector->ceilingheight)	//SoM: 4/7/2000: DEMO'S
 					{
 						// Hack to prevent missiles exploding
 						// against the sky.
@@ -420,7 +420,7 @@ void P_XYMovement(mobj_t* mo)
 				// draw damage on wall
 				//SPLAT TEST ----------------------------------------------------------
 #ifdef WALLSPLATS
-				if (blockingline && P_EXGSGetValue(PEXGSBID_COENABLEBLOODSPLATS))	//set by last P_TryMove() that failed
+				if (blockingline && P_XGSVal(PGS_COENABLEBLOODSPLATS))	//set by last P_TryMove() that failed
 				{
 					divline_t divl;
 					divline_t misl;
@@ -477,10 +477,10 @@ void P_XYMovement(mobj_t* mo)
 		return;					// no friction for missiles ever
 		
 	// slow down in water, not too much for playability issues
-	if (P_EXGSGetValue(PEXGSBID_COSLOWINWATER) && (mo->eflags & MF_UNDERWATER))
+	if (P_XGSVal(PGS_COSLOWINWATER) && (mo->eflags & MF_UNDERWATER))
 	{
-		mo->momx = FixedMul(mo->momx, FixedMul(FRICTION, P_EXGSGetFixed(PEXGSBID_GAMEWATERFRICTION)));
-		mo->momy = FixedMul(mo->momy, FixedMul(FRICTION, P_EXGSGetFixed(PEXGSBID_GAMEWATERFRICTION)));
+		mo->momx = FixedMul(mo->momx, FixedMul(FRICTION, P_XGSFix(PGS_GAMEWATERFRICTION)));
+		mo->momy = FixedMul(mo->momy, FixedMul(FRICTION, P_XGSFix(PGS_GAMEWATERFRICTION)));
 		return;
 	}
 	
@@ -493,7 +493,7 @@ void P_XYMovement(mobj_t* mo)
 		//  if halfway off a step with some momentum
 		if (mo->momx > FRACUNIT / 4 || mo->momx < -FRACUNIT / 4 || mo->momy > FRACUNIT / 4 || mo->momy < -FRACUNIT / 4)
 		{
-			if (!P_EXGSGetValue(PEXGSBID_COSLIDEOFFMOFLOOR))
+			if (!P_XGSVal(PGS_COSLIDEOFFMOFLOOR))
 			{
 				if (mo->z != mo->subsector->sector->floorheight)
 					return;
@@ -506,7 +506,7 @@ void P_XYMovement(mobj_t* mo)
 		}
 	}
 	
-	P_XYFriction(mo, oldx, oldy, P_EXGSGetValue(PEXGSBID_COOLDFRICTIONMOVE));
+	P_XYFriction(mo, oldx, oldy, P_XGSVal(PGS_COOLDFRICTIONMOVE));
 }
 
 //
@@ -519,7 +519,7 @@ void P_ZMovement(mobj_t* mo)
 	fixed_t BounceMomZ;
 	
 	// GhostlyDeath <April 26, 2012> -- Improved on map object
-	if (P_EXGSGetValue(PEXGSBID_COIMPROVEDMOBJONMOBJ))
+	if (P_XGSVal(PGS_COIMPROVEDMOBJONMOBJ))
 	{
 	}
 	
@@ -528,7 +528,7 @@ void P_ZMovement(mobj_t* mo)
 		mo->MaxZObtained = mo->z;
 	
 	// Intercept the stupid 'fall through 3dfloors' bug SSNTails 06-13-2002
-	if (P_EXGSGetValue(PEXGSBID_COMOVECHECKFAKEFLOOR))
+	if (P_XGSVal(PGS_COMOVECHECKFAKEFLOOR))
 		if (mo->subsector->sector->ffloors)
 		{
 			ffloor_t* rover;
@@ -679,9 +679,9 @@ void P_ZMovement(mobj_t* mo)
 	else if (mo->flags2 & MF2_LOGRAV)
 	{
 		if (mo->momz == 0)
-			mo->momz = -(P_EXGSGetValue(PEXGSBID_GAMEGRAVITY) >> 3) * 2;
+			mo->momz = -(P_XGSVal(PGS_GAMEGRAVITY) >> 3) * 2;
 		else
-			mo->momz -= P_EXGSGetValue(PEXGSBID_GAMEGRAVITY) >> 3;
+			mo->momz -= P_XGSVal(PGS_GAMEGRAVITY) >> 3;
 	}
 	else if (!(mo->flags & MF_NOGRAVITY))	// Gravity here!
 	{
@@ -692,7 +692,7 @@ void P_ZMovement(mobj_t* mo)
 		//     (this is done in P_Mobjthinker below normally)
 		mo->eflags &= ~MF_JUSTHITFLOOR;
 		
-		gravityadd = -P_EXGSGetValue(PEXGSBID_GAMEGRAVITY);
+		gravityadd = -P_XGSVal(PGS_GAMEGRAVITY);
 		
 		// if waist under water, slow down the fall
 		if (mo->eflags & MF_UNDERWATER)
@@ -720,7 +720,7 @@ void P_ZMovement(mobj_t* mo)
 		mo->z = mo->ceilingz - mo->height;
 		
 		//added:22-02-98: player avatar hits his head on the ceiling, ouch!
-		if (mo->player && (mo->RXFlags[0] & MFREXA_ISPLAYEROBJECT) && (P_EXGSGetValue(PEXGSBID_COOUCHONCEILING)) && !(mo->player->cheats & CF_FLYAROUND) && !(mo->flags2 & MF2_FLY) && mo->momz > 8 * FRACUNIT)
+		if (mo->player && (mo->RXFlags[0] & MFREXA_ISPLAYEROBJECT) && (P_XGSVal(PGS_COOUCHONCEILING)) && !(mo->player->cheats & CF_FLYAROUND) && !(mo->flags2 & MF2_FLY) && mo->momz > 8 * FRACUNIT)
 			S_StartSound(&mo->NoiseThinker, sfx_ouch);
 		
 		if (mo->flags2 & MF2_BOUNCES)
@@ -743,7 +743,7 @@ void P_ZMovement(mobj_t* mo)
 		if ((mo->flags & MF_MISSILE) && !(mo->flags & MF_NOCLIP))
 		{
 			//SoM: 4/3/2000: Don't explode on the sky!
-			if (P_EXGSGetValue(PEXGSBID_COREMOVEMOINSKYZ) && mo->subsector->sector->ceilingpic == skyflatnum && mo->subsector->sector->ceilingheight == mo->ceilingz)
+			if (P_XGSVal(PGS_COREMOVEMOINSKYZ) && mo->subsector->sector->ceilingpic == skyflatnum && mo->subsector->sector->ceilingheight == mo->ceilingz)
 			{
 				P_RemoveMobj(mo);
 				return;
@@ -754,9 +754,9 @@ void P_ZMovement(mobj_t* mo)
 		}
 	}
 	// z friction in water
-	if (P_EXGSGetValue(PEXGSBID_COWATERZFRICTION) && ((mo->eflags & MF_TOUCHWATER) || (mo->eflags & MF_UNDERWATER)) && !(mo->flags & (MF_MISSILE | MF_SKULLFLY)))
+	if (P_XGSVal(PGS_COWATERZFRICTION) && ((mo->eflags & MF_TOUCHWATER) || (mo->eflags & MF_UNDERWATER)) && !(mo->flags & (MF_MISSILE | MF_SKULLFLY)))
 	{
-		mo->momz = FixedMul(mo->momz, FixedMul(FRICTION, P_EXGSGetFixed(PEXGSBID_GAMEWATERFRICTION)));
+		mo->momz = FixedMul(mo->momz, FixedMul(FRICTION, P_XGSFix(PGS_GAMEWATERFRICTION)));
 	}
 	
 }
@@ -831,7 +831,7 @@ void P_NightmareRespawn(mobj_t* mobj, const bool_t a_ForceRespawn)
 		
 	mo->reactiontime = 18;
 	
-	KCMode = P_EXGSGetValue(PEXGSBID_MONKILLCOUNTMODE);
+	KCMode = P_XGSVal(PGS_MONKILLCOUNTMODE);
 	if (KCMode == 1)		// Count only once
 		mo->flags &= ~MF_COUNTKILL;
 	
@@ -861,7 +861,7 @@ void P_MobjCheckWater(mobj_t* mobj)
 	int oldeflags;
 	
 	// GhostlyDeath <March 6, 2012> -- Some things are not be in the water
-	if (P_EXGSGetValue(PEXGSBID_CONOUNDERWATERCHECK) || (mobj->RXFlags[0] & MFREXA_NOCHECKWATER))
+	if (P_XGSVal(PGS_CONOUNDERWATERCHECK) || (mobj->RXFlags[0] & MFREXA_NOCHECKWATER))
 		return;
 	//
 	// see if we are in water, and set some flags for later
@@ -929,7 +929,7 @@ void P_MobjCheckWater(mobj_t* mobj)
 	 */
 	// blood doesnt make noise when it falls in water
 	if (!(oldeflags & (MF_TOUCHWATER | MF_UNDERWATER)) &&
-	        ((mobj->eflags & MF_TOUCHWATER) || (mobj->eflags & MF_UNDERWATER)) && !(mobj->RXFlags[0] & MFREXA_NOWATERSPLASH) && P_EXGSGetValue(PEXGSBID_COSPLASHTRANSWATER))
+	        ((mobj->eflags & MF_TOUCHWATER) || (mobj->eflags & MF_UNDERWATER)) && !(mobj->RXFlags[0] & MFREXA_NOWATERSPLASH) && P_XGSVal(PGS_COSPLASHTRANSWATER))
 		P_SpawnSplash(mobj, z);	//SoM: 3/17/2000
 }
 
@@ -1057,13 +1057,13 @@ void P_MobjThinker(mobj_t* mobj)
 		mobj->TimeFromDead[0] = mobj->TimeFromDead[1] = 0;
 	
 	// Remove object that has been dead for a long time?
-	else if (!mobj->player && P_EXGSGetValue(PEXGSBID_MONENABLECLEANUP))
+	else if (!mobj->player && P_XGSVal(PGS_MONENABLECLEANUP))
 	{
 		// Get time base
 		if (mobj->info->raisestate)
-			TimeBase = P_EXGSGetValue(PEXGSBID_MONCLEANUPRESPTIME);
+			TimeBase = P_XGSVal(PGS_MONCLEANUPRESPTIME);
 		else
-			TimeBase = P_EXGSGetValue(PEXGSBID_MONCLEANUPNONRTIME);
+			TimeBase = P_XGSVal(PGS_MONCLEANUPNONRTIME);
 		
 		// Exceeded?
 		if (mobj->TimeFromDead[1] >= TimeBase)
@@ -1098,7 +1098,7 @@ void P_MobjThinker(mobj_t* mobj)
 	else
 	{
 		// GhostlyDeath <April 26, 2012> -- Improved on map object
-		if (P_EXGSGetValue(PEXGSBID_COIMPROVEDMOBJONMOBJ))
+		if (P_XGSVal(PGS_COIMPROVEDMOBJONMOBJ))
 		{
 		}
 		
@@ -1108,11 +1108,11 @@ void P_MobjThinker(mobj_t* mobj)
 		{
 			// BP: since version 1.31 we use heretic z-cheching code
 			//     kept old code for backward demo compatibility
-			if (P_EXGSGetValue(PEXGSBID_COUSEOLDZCHECK))
+			if (P_XGSVal(PGS_COUSEOLDZCHECK))
 			{
 			
 				// if didnt check things Z while XYMovement, do the necessary now
-				if (!checkedpos && P_EXGSGetValue(PEXGSBID_COCHECKXYMOVE))
+				if (!checkedpos && P_XGSVal(PGS_COCHECKXYMOVE))
 				{
 					// FIXME : should check only with things, not lines
 					P_CheckPosition(mobj, mobj->x, mobj->y, 0);
@@ -1132,7 +1132,7 @@ void P_MobjThinker(mobj_t* mobj)
 			}
 			
 			// GhostlyDeath <April 26, 2012> -- Improved on map object
-			else if (P_EXGSGetValue(PEXGSBID_COIMPROVEDMOBJONMOBJ))
+			else if (P_XGSVal(PGS_COIMPROVEDMOBJONMOBJ))
 			{
 				// Modify floorz/ceilingz of object based on stacks
 				
@@ -1206,7 +1206,7 @@ void P_MobjThinker(mobj_t* mobj)
 	else
 	{
 		// check for nightmare respawn
-		if (!P_EXGSGetValue(PEXGSBID_MONRESPAWNMONSTERS))
+		if (!P_XGSVal(PGS_MONRESPAWNMONSTERS))
 			return;
 			
 		if (!(mobj->RXFlags[0] & MFREXA_ISMONSTER))
@@ -1218,10 +1218,10 @@ void P_MobjThinker(mobj_t* mobj)
 			
 		mobj->movecount++;
 		
-		if (mobj->movecount < P_EXGSGetValue(PEXGSBID_MONRESPAWNMONSTERSTIME) * TICRATE)
+		if (mobj->movecount < P_XGSVal(PGS_MONRESPAWNMONSTERSTIME) * TICRATE)
 			return;
 		
-		if (!P_EXGSGetValue(PEXGSBID_MONSTATICRESPAWNTIME))
+		if (!P_XGSVal(PGS_MONSTATICRESPAWNTIME))
 		{
 			if (leveltime % (32))
 				return;
@@ -1275,11 +1275,11 @@ mobj_t* P_SpawnMobj(fixed_t x, fixed_t y, fixed_t z, mobjtype_t type)
 	
 	mobj->health = info->spawnhealth;
 	
-	if (P_EXGSGetValue(PEXGSBID_GAMESKILL) != sk_nightmare)
+	if (P_XGSVal(PGS_GAMESKILL) != sk_nightmare)
 		mobj->reactiontime = info->reactiontime;
 		
-	if (P_EXGSGetValue(PEXGSBID_CORANOMLASTLOOKSPAWN) && !(mobj->RXFlags[0] & MFREXA_NORANDOMPLAYERLOOK))
-		mobj->lastlook = P_Random() % P_EXGSGetValue(PEXGSBID_COLASTLOOKMAXPLAYERS);
+	if (P_XGSVal(PGS_CORANOMLASTLOOKSPAWN) && !(mobj->RXFlags[0] & MFREXA_NORANDOMPLAYERLOOK))
+		mobj->lastlook = P_Random() % P_XGSVal(PGS_COLASTLOOKMAXPLAYERS);
 	else
 		mobj->lastlook = -1;	// stuff moved in P_enemy.P_LookForPlayer
 		
@@ -1544,7 +1544,7 @@ void P_RespawnSpecials(void)
 	int i;
 	
 	// only respawn items in deathmatch
-	if (!P_EXGSGetValue(PEXGSBID_ITEMRESPAWNITEMS))
+	if (!P_XGSVal(PGS_ITEMRESPAWNITEMS))
 		return;					//
 		
 	// nothing left to respawn?
@@ -1553,7 +1553,7 @@ void P_RespawnSpecials(void)
 		
 	// the first item in the queue is the first to respawn
 	// wait at least 30 seconds
-	if (leveltime - itemrespawntime[iquetail] < (tic_t)P_EXGSGetValue(PEXGSBID_ITEMRESPAWNITEMSTIME) * TICRATE)
+	if (leveltime - itemrespawntime[iquetail] < (tic_t)P_XGSVal(PGS_ITEMRESPAWNITEMSTIME) * TICRATE)
 		return;
 		
 	mthing = itemrespawnque[iquetail];
@@ -1719,7 +1719,7 @@ void P_SpawnPlayer(mapthing_t* mthing)
 	
 	// Remove bodies
 	// GhostlyDeath <April 20, 2012> -- Remove bodies here so they actually GET removed!
-	if (P_EXGSGetValue(PEXGSBID_COBETTERPLCORPSEREMOVAL))
+	if (P_XGSVal(PGS_COBETTERPLCORPSEREMOVAL))
 	{
 		if (bodyqueslot >= BODYQUESIZE)
 			P_RemoveMobj(bodyque[bodyqueslot % BODYQUESIZE]);
@@ -1796,7 +1796,7 @@ void P_SpawnPlayer(mapthing_t* mthing)
 	P_SetupPsprites(p);
 	
 	// give all cards in death match mode
-	if (P_EXGSGetValue(PEXGSBID_GAMEDEATHMATCH) || P_EXGSGetValue(PEXGSBID_PLSPAWNWITHALLKEYS))
+	if (P_XGSVal(PGS_GAMEDEATHMATCH) || P_XGSVal(PGS_PLSPAWNWITHALLKEYS))
 		p->cards = it_allkeys;
 		
 	if (playernum == consoleplayer[0])
@@ -1809,7 +1809,7 @@ void P_SpawnPlayer(mapthing_t* mthing)
 		P_ResetCamera(p);
 		
 	// GhostlyDeath <April 20, 2012> -- Telefrag whatever was here
-	if (P_EXGSGetValue(PEXGSBID_PLSPAWNTELEFRAG))
+	if (P_XGSVal(PGS_PLSPAWNTELEFRAG))
 	{
 		P_TeleportMove(mobj, mobj->x, mobj->y);
 		mobj->reactiontime = 0;	// Don't telefreeze
@@ -1867,7 +1867,7 @@ void P_SpawnMapThing(mapthing_t* mthing)
 		// old version spawn player now, new version spawn player when level is
 		// loaded, or in network event later when player join game
 		// TODO: GhostlyDeath -- This has to do with voodoo dolls!
-		if (!P_EXGSGetValue(PEXGSBID_GAMEDEATHMATCH) && ((playeringame[pid] && !players[pid].mo) || P_EXGSGetValue(PEXGSBID_COVOODOODOLLS)))
+		if (!P_XGSVal(PGS_GAMEDEATHMATCH) && ((playeringame[pid] && !players[pid].mo) || P_XGSVal(PGS_COVOODOODOLLS)))
 			if (!players[pid].CounterOpPlayer)
 				P_SpawnPlayer(mthing);
 		
@@ -1875,19 +1875,19 @@ void P_SpawnMapThing(mapthing_t* mthing)
 	}
 	
 	// Multiplayer Spawns
-	if (!P_EXGSGetValue(PEXGSBID_GAMESPAWNMULTIPLAYER) && (mthing->options & 16))
+	if (!P_XGSVal(PGS_GAMESPAWNMULTIPLAYER) && (mthing->options & 16))
 		return;
 		
 	//SoM: 4/7/2000: Implement "not deathmatch" thing flag
-	if (P_EXGSGetValue(PEXGSBID_GAMEDEATHMATCH) && (mthing->options & 32))
+	if (P_XGSVal(PGS_GAMEDEATHMATCH) && (mthing->options & 32))
 		return;
 		
 	//SoM: 4/7/2000: Implement "not cooperative" thing flag
-	if (!P_EXGSGetValue(PEXGSBID_GAMEDEATHMATCH) && (mthing->options & 64))
+	if (!P_XGSVal(PGS_GAMEDEATHMATCH) && (mthing->options & 64))
 		return;
 	
 	// check for apropriate skill level
-	Skill = P_EXGSGetValue(PEXGSBID_GAMESKILL);
+	Skill = P_XGSVal(PGS_GAMESKILL);
 	
 	if (Skill <= sk_easy)
 		bit = 0x0001;
@@ -1911,7 +1911,7 @@ void P_SpawnMapThing(mapthing_t* mthing)
 	}
 	
 	// GhostlyDeath <June 6, 2012> -- Spawn Pickups?
-	if (!P_EXGSGetValue(PEXGSBID_ITEMSSPAWNPICKUPS) && (mobjinfo[i]->flags & MF_SPECIAL))
+	if (!P_XGSVal(PGS_ITEMSSPAWNPICKUPS) && (mobjinfo[i]->flags & MF_SPECIAL))
 		return;
 	
 	// GhostlyDeath <March 6, 2012> -- Set thing ID and mark with weapon if possible
@@ -1921,11 +1921,11 @@ void P_SpawnMapThing(mapthing_t* mthing)
 		mthing->MarkedWeapon = true;
 	
 	// don't spawn keycards and players in deathmatch
-	if (P_EXGSGetValue(PEXGSBID_GAMEDEATHMATCH) && mobjinfo[i]->flags & MF_NOTDMATCH)
+	if (P_XGSVal(PGS_GAMEDEATHMATCH) && mobjinfo[i]->flags & MF_NOTDMATCH)
 		return;
 		
 	// don't spawn any monsters if -nomonsters
-	if (!P_EXGSGetValue(PEXGSBID_MONSPAWNMONSTERS) && ((mobjinfo[i]->RXFlags[0] & MFREXA_ISMONSTER) || (mobjinfo[i]->flags & MF_COUNTKILL)))
+	if (!P_XGSVal(PGS_MONSPAWNMONSTERS) && ((mobjinfo[i]->RXFlags[0] & MFREXA_ISMONSTER) || (mobjinfo[i]->flags & MF_COUNTKILL)))
 		return;
 		
 	// spawn it
@@ -1976,7 +1976,7 @@ void P_SpawnSplash(mobj_t* mo, fixed_t z)
 	
 	//fixed_t     z;
 	
-	if (!P_EXGSGetValue(PEXGSBID_COENABLESPLASHES))
+	if (!P_XGSVal(PGS_COENABLESPLASHES))
 		return;
 		
 	// we are supposed to be in water sector and my current
@@ -2013,7 +2013,7 @@ void P_SpawnSmoke(fixed_t x, fixed_t y, fixed_t z)
 {
 	mobj_t* th;
 	
-	if (!P_EXGSGetValue(PEXGSBID_COENABLESMOKE))
+	if (!P_XGSVal(PGS_COENABLESMOKE))
 		return;
 		
 	x = x - ((P_Random() & 8) * FRACUNIT) - 4 * FRACUNIT;
@@ -2137,7 +2137,7 @@ void P_SpawnBloodSplats(fixed_t x, fixed_t y, fixed_t z, int damage, fixed_t mom
 	// spawn the usual falling blood sprites at location
 	P_SpawnBlood(x, y, z, damage, a_BleedThing);
 	//CONL_PrintF ("spawned blood counter %d\n", counter++);
-	if (!P_EXGSGetValue(PEXGSBID_COENABLEBLOODSPLATS))
+	if (!P_XGSVal(PGS_COENABLEBLOODSPLATS))
 		return;
 		
 #ifdef WALLSPLATS
@@ -2200,7 +2200,7 @@ void P_SpawnBlood(fixed_t x, fixed_t y, fixed_t z, int damage, mobj_t* const a_B
 		);
 	
 	// GhostlyDeath <April 12, 2012> -- 1.28 and up added blood spewing
-	if (P_EXGSGetValue(PEXGSBID_CORANDOMBLOODDIR))
+	if (P_XGSVal(PGS_CORANDOMBLOODDIR))
 	{
 		th->momx = P_SignedRandom() << 12;	//faB:19jan99
 		th->momy = P_SignedRandom() << 12;	//faB:19jan99
@@ -2315,7 +2315,7 @@ mobj_t* P_SpawnMissile(mobj_t* source, mobj_t* dest, mobjtype_t type)
 		
 	P_RefMobj(PMRT_TARGET, th, source);		// where it came from
 	
-	if (P_EXGSGetValue(PEXGSBID_MONPREDICTMISSILES))	//added by AC for predmonsters
+	if (P_XGSVal(PGS_MONPREDICTMISSILES))	//added by AC for predmonsters
 	{
 		bool_t canHit;
 		fixed_t px, py, pz;
@@ -2355,7 +2355,7 @@ mobj_t* P_SpawnMissile(mobj_t* source, mobj_t* dest, mobjtype_t type)
 		an = R_PointToAngle2(source->x, source->y, px, py);
 		
 		// fuzzy player
-		if ((dest->flags & MF_SHADOW) || P_EXGSGetValue(PEXGSBID_FUNMONSTERSMISSMORE))
+		if ((dest->flags & MF_SHADOW) || P_XGSVal(PGS_FUNMONSTERSMISSMORE))
 			an += P_SignedRandom() << 20;
 			
 		th->angle = an;
@@ -2373,7 +2373,7 @@ mobj_t* P_SpawnMissile(mobj_t* source, mobj_t* dest, mobjtype_t type)
 		an = R_PointToAngle2(source->x, source->y, dest->x, dest->y);
 		
 		// fuzzy player
-		if ((dest->flags & MF_SHADOW) || P_EXGSGetValue(PEXGSBID_FUNMONSTERSMISSMORE))
+		if ((dest->flags & MF_SHADOW) || P_XGSVal(PGS_FUNMONSTERSMISSMORE))
 		{
 			an += P_SignedRandom() << 20;
 		}
@@ -2393,7 +2393,7 @@ mobj_t* P_SpawnMissile(mobj_t* source, mobj_t* dest, mobjtype_t type)
 	}
 	
 	dist = P_CheckMissileSpawn(th);
-	if (P_EXGSGetValue(PEXGSBID_COALWAYSRETURNDEADSPMISSILE))
+	if (P_XGSVal(PGS_COALWAYSRETURNDEADSPMISSILE))
 		return th;
 	else
 		return dist ? th : NULL;
@@ -2417,7 +2417,7 @@ mobj_t* P_SPMAngle(mobj_t* source, mobjtype_t type, angle_t angle)
 	an = angle;
 	
 	//added:16-02-98: autoaim is now a toggle
-	if (P_EXGSGetValue(PEXGSBID_COFORCEAUTOAIM) || ((source->player->autoaim_toggle && P_EXGSGetValue(PEXGSBID_PLALLOWAUTOAIM))))
+	if (P_XGSVal(PGS_COFORCEAUTOAIM) || ((source->player->autoaim_toggle && P_XGSVal(PGS_PLALLOWAUTOAIM))))
 	{
 		// see which target is to be aimed at
 		slope = P_AimLineAttack(source, an, 16 * 64 * FRACUNIT, NULL);
@@ -2443,10 +2443,10 @@ mobj_t* P_SPMAngle(mobj_t* source, mobjtype_t type, angle_t angle)
 	//added:18-02-98: if not autoaim, or if the autoaim didnt aim something,
 	//                use the mouseaiming
 	
-	if (!P_EXGSGetValue(PEXGSBID_COFORCEAUTOAIM))
-		if (!(source->player->autoaim_toggle && P_EXGSGetValue(PEXGSBID_PLALLOWAUTOAIM)) || (!linetarget && P_EXGSGetValue(PEXGSBID_COMOUSEAIM)))
+	if (!P_XGSVal(PGS_COFORCEAUTOAIM))
+		if (!(source->player->autoaim_toggle && P_XGSVal(PGS_PLALLOWAUTOAIM)) || (!linetarget && P_XGSVal(PGS_COMOUSEAIM)))
 		{
-			if (P_EXGSGetValue(PEXGSBID_COUSEMOUSEAIMING))
+			if (P_XGSVal(PGS_COUSEMOUSEAIMING))
 				slope = AIMINGTOSLOPE(source->player->aiming);
 			else
 				slope = (source->player->aiming << FRACBITS) / 160;
@@ -2469,7 +2469,7 @@ mobj_t* P_SPMAngle(mobj_t* source, mobjtype_t type, angle_t angle)
 	th->momx = FixedMul(__REMOOD_GETSPEEDMO(th), finecosine[an >> ANGLETOFINESHIFT]);
 	th->momy = FixedMul(__REMOOD_GETSPEEDMO(th), finesine[an >> ANGLETOFINESHIFT]);
 	
-	if (P_EXGSGetValue(PEXGSBID_COFIXPLAYERMISSILEANGLE))
+	if (P_XGSVal(PGS_COFIXPLAYERMISSILEANGLE))
 	{
 		// 1.28 fix, allow full aiming must be much precise
 		th->momx = FixedMul(th->momx, finecosine[source->player->aiming >> ANGLETOFINESHIFT]);
@@ -2486,7 +2486,7 @@ mobj_t* P_SPMAngle(mobj_t* source, mobjtype_t type, angle_t angle)
 	else	// Otherwise carry the original weapon
 		th->RXShotWithWeapon = source->RXShotWithWeapon;
 	
-	if (P_EXGSGetValue(PEXGSBID_COALWAYSRETURNDEADSPMISSILE))
+	if (P_XGSVal(PGS_COALWAYSRETURNDEADSPMISSILE))
 		return th;
 	else
 		return slope ? th : NULL;
@@ -2826,7 +2826,7 @@ bool_t P_MobjOnSameFamily(mobj_t* const a_ThisMo, mobj_t* const a_OtherMo)
 		return false;
 		
 	/* When infighting, never on same family */
-	if (P_EXGSGetValue(PEXGSBID_FUNINFIGHTING))
+	if (P_XGSVal(PGS_FUNINFIGHTING))
 		return false;
 	
 	/* Not on same team? */
@@ -2880,10 +2880,10 @@ bool_t P_MobjDamageTeam(mobj_t* const a_ThisMo, mobj_t* const a_OtherMo, mobj_t*
 		IsOtherPlayer = true;
 	
 	/* Team Play Enabled */
-	if (!P_EXGSGetValue(PEXGSBID_CODISABLETEAMPLAY) && P_EXGSGetValue(PEXGSBID_GAMETEAMPLAY))
+	if (!P_XGSVal(PGS_CODISABLETEAMPLAY) && P_XGSVal(PGS_GAMETEAMPLAY))
 	{
 		// Team Damage is On -- Always do damage
-		if (P_EXGSGetValue(PEXGSBID_GAMETEAMDAMAGE))
+		if (P_XGSVal(PGS_GAMETEAMDAMAGE))
 			return true;
 		
 		// Off, check for differing team
@@ -2902,10 +2902,10 @@ bool_t P_MobjDamageTeam(mobj_t* const a_ThisMo, mobj_t* const a_OtherMo, mobj_t*
 		if (IsThisPlayer && IsOtherPlayer)
 		{
 			// Cooperative
-			if (!P_EXGSGetValue(PEXGSBID_GAMEDEATHMATCH))
+			if (!P_XGSVal(PGS_GAMEDEATHMATCH))
 			{
 				// If team damage is on, hurt
-				if (P_EXGSGetValue(PEXGSBID_GAMETEAMDAMAGE))
+				if (P_XGSVal(PGS_GAMETEAMDAMAGE))
 					return true;
 				
 				// Otherwise, don't hurt
@@ -2960,14 +2960,14 @@ bool_t P_MobjOnSameTeam(mobj_t* const a_ThisMo, mobj_t* const a_OtherMo)
 		IsOtherPlayer = true;
 	
 	/* Cooperative Players */
-	if (!P_EXGSGetValue(PEXGSBID_GAMEDEATHMATCH) && IsThisPlayer && IsOtherPlayer)
+	if (!P_XGSVal(PGS_GAMEDEATHMATCH) && IsThisPlayer && IsOtherPlayer)
 		return true;
 	
 	/* Deathmatch Players */
-	if (P_EXGSGetValue(PEXGSBID_GAMEDEATHMATCH) && IsThisPlayer && IsOtherPlayer)
+	if (P_XGSVal(PGS_GAMEDEATHMATCH) && IsThisPlayer && IsOtherPlayer)
 	{
 		// Team play?
-		if (P_EXGSGetValue(PEXGSBID_GAMETEAMPLAY))
+		if (P_XGSVal(PGS_GAMETEAMPLAY))
 		{
 			// On same team?
 			if (a_ThisMo->player->skincolor == a_OtherMo->player->skincolor)
@@ -2986,7 +2986,7 @@ bool_t P_MobjOnSameTeam(mobj_t* const a_ThisMo, mobj_t* const a_OtherMo)
 	
 	/* Monster Teams */
 	// Team Play Enabled
-	if (P_EXGSGetValue(PEXGSBID_GAMETEAMPLAY))
+	if (P_XGSVal(PGS_GAMETEAMPLAY))
 	{
 		// Player and monster on the same colored team?
 		if ((IsThisPlayer && !IsOtherPlayer && a_ThisMo->player &&
@@ -3012,7 +3012,7 @@ bool_t P_MobjOnSameTeam(mobj_t* const a_ThisMo, mobj_t* const a_OtherMo)
 	else
 	{
 		// Cooperative
-		if (!P_EXGSGetValue(PEXGSBID_GAMEDEATHMATCH))
+		if (!P_XGSVal(PGS_GAMEDEATHMATCH))
 		{
 			// Player and teamed monster
 			if ((IsThisPlayer && !IsOtherPlayer && a_OtherMo->SkinTeamColor > 0) ||
