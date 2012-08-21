@@ -798,7 +798,7 @@ void V_Init(void)
 *** LOCALS ***
 *************/
 
-static uint8_t* l_ColorMaps[NUMVEXCOLORS];		// Local colors
+static uint8_t* l_ColorMaps[NUMVEXCOLORS * 2];		// Local colors
 static uint8_t* l_LifeBarColors;				// Life Bar Colors
 
 /*****************

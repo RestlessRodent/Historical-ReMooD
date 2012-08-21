@@ -440,6 +440,9 @@ static bool_t DS_RMODPDC(const struct WL_WADFile_s* const a_WAD, const uint32_t 
 	}
 	
 	/* Cached REMOODAT */
+	// TODO FIXME
+	DoCache = false;
+	
 	// Although the same table functions are called (for simplicity)
 	// Parsing the file structure isn't needed at all
 	if (DoCache)
