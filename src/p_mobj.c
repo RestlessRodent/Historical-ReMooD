@@ -236,7 +236,7 @@ void P_XYFriction(mobj_t* mo, fixed_t oldx, fixed_t oldy, bool_t oldfriction)
 	player_t* player = mo->player;
 	
 	if (mo->momx > -STOPSPEED && mo->momx < STOPSPEED && mo->momy > -STOPSPEED
-	        && mo->momy < STOPSPEED && (!player || (player->cmd.forwardmove == 0 && player->cmd.sidemove == 0)))
+	        && mo->momy < STOPSPEED && (!player || (player->cmd.Std.forwardmove == 0 && player->cmd.Std.sidemove == 0)))
 	{
 		// if in a walking frame, stop moving
 		if (player && (mo->RXFlags[1] & MFREXB_USEPLAYERMOVEMENT) && !(mo->RXFlags[0] & MFREXA_NOPLAYERWALK))

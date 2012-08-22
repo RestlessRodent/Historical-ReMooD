@@ -76,7 +76,7 @@ static void D_Clearticcmd(int tic)
 	int i;
 	
 	for (i = 0; i < MAXPLAYERS; i++)
-		netcmds[tic % BACKUPTICS][i].angleturn = 0;	//&= ~TICCMD_RECEIVED;
+		netcmds[tic % BACKUPTICS][i].Std.angleturn = 0;	//&= ~TICCMD_RECEIVED;
 }
 
 #define ___STRINGIZE(x) #x
@@ -105,11 +105,11 @@ static void TicCmdCopy(ticcmd_t* dst, ticcmd_t* src, int n)
 	
 	for (i = 0; i < n; src++, dst++, i++)
 	{
-		dst->forwardmove = src->forwardmove;
-		dst->sidemove = src->sidemove;
-		dst->angleturn = src->angleturn;
-		dst->aiming = src->aiming;
-		dst->buttons = src->buttons;
+		dst->Std.forwardmove = src->Std.forwardmove;
+		dst->Std.sidemove = src->Std.sidemove;
+		dst->Std.angleturn = src->Std.angleturn;
+		dst->Std.aiming = src->Std.aiming;
+		dst->Std.buttons = src->Std.buttons;
 	}
 }
 

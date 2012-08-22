@@ -329,7 +329,7 @@ void A_WeaponReady(mobj_t* mo, player_t* player, pspdef_t* psp, const INFO_State
 	}
 	// check for fire
 	//  the missile launcher and bfg do not auto fire
-	if (player->cmd.buttons & BT_ATTACK)
+	if (player->cmd.Std.buttons & BT_ATTACK)
 	{
 		if (!player->attackdown || !(player->weaponinfo[player->readyweapon]->WeaponFlags & WF_NOAUTOFIRE))
 		{
@@ -383,7 +383,7 @@ void A_ReFire(mobj_t* mo, player_t* player, pspdef_t* psp, const INFO_StateArgsN
 
 	// check for fire
 	//  (if a weaponchange is pending, let it go through instead)
-	if ((player->cmd.buttons & BT_ATTACK) && player->pendingweapon == wp_nochange && player->health)
+	if ((player->cmd.Std.buttons & BT_ATTACK) && player->pendingweapon == wp_nochange && player->health)
 	{
 		player->refire++;
 		P_FireWeapon(player);
@@ -1056,7 +1056,7 @@ void P_MovePsprites(player_t* player)
 	if (player->mo && !(player->mo->RXFlags[0] & MFREXA_ISPLAYEROBJECT))
 	{
 		// Only handle attack button
-		if (player->cmd.buttons & BT_ATTACK)
+		if (player->cmd.Std.buttons & BT_ATTACK)
 			player->attackdown = true;
 		else
 			player->attackdown = false;

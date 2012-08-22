@@ -1121,7 +1121,7 @@ static void WI_checkForAccelerate(void)
 	{
 		if (playeringame[i])
 		{
-			if (player->cmd.buttons & BT_ATTACK)
+			if (player->cmd.Std.buttons & BT_ATTACK)
 			{
 				if (!player->attackdown)
 					acceleratestage = 1;
@@ -1129,7 +1129,7 @@ static void WI_checkForAccelerate(void)
 			}
 			else
 				player->attackdown = false;
-			if (player->cmd.buttons & BT_USE)
+			if (player->cmd.Std.buttons & BT_USE)
 			{
 				if (!player->usedown)
 					acceleratestage = 1;

@@ -306,18 +306,18 @@ void P_MovePlayer(player_t* player)
 	cmd = &player->cmd;
 	
 	if (!P_XGSVal(PGS_COABSOLUTEANGLE))
-		player->mo->angle += (((int32_t)cmd->angleturn) << 16);
+		player->mo->angle += (((int32_t)cmd->Std.angleturn) << 16);
 	else
-		player->mo->angle = (((int32_t)cmd->angleturn) << 16);
+		player->mo->angle = (((int32_t)cmd->Std.angleturn) << 16);
 	
 	// GhostlyDeath <August 26, 2011> -- Update listener angle (for sounds)
 	player->mo->NoiseThinker.Angle = player->mo->angle;
 	
 	// GhostlyDeath <August 26, 2011> -- "Effort" bobbing
-	if (cmd->forwardmove)
-		P_FakeThrust(player, player->mo->angle, cmd->forwardmove * 2048);
-	if (cmd->sidemove)
-		P_FakeThrust(player, player->mo->angle - ANG90, cmd->sidemove * 2048);
+	if (cmd->Std.forwardmove)
+		P_FakeThrust(player, player->mo->angle, cmd->Std.forwardmove * 2048);
+	if (cmd->Std.sidemove)
+		P_FakeThrust(player, player->mo->angle - ANG90, cmd->Std.sidemove * 2048);
 		
 	// Do not let the player control movement
 	//  if not onground.
@@ -327,28 +327,28 @@ void P_MovePlayer(player_t* player)
 	{
 		bool_t jumpover = player->cheats & CF_JUMPOVER;
 		
-		if (cmd->forwardmove && (onground || jumpover))
+		if (cmd->Std.forwardmove && (onground || jumpover))
 		{
 			// dirty hack to let the player avatar walk over a small wall
 			// while in the air
 			if (jumpover && player->mo->momz > 0)
 				MoveAmount = 5 * 2048;
 			else if (!jumpover)
-				MoveAmount = cmd->forwardmove * 2048;
+				MoveAmount = cmd->Std.forwardmove * 2048;
 				
 			P_Thrust(player, player->mo->angle, MoveAmount);
 		}
 		
-		if (cmd->sidemove && onground)
-			P_Thrust(player, player->mo->angle - ANG90, cmd->sidemove * 2048);
+		if (cmd->Std.sidemove && onground)
+			P_Thrust(player, player->mo->angle - ANG90, cmd->Std.sidemove * 2048);
 		
-		player->aiming = (signed char)cmd->aiming;
+		player->aiming = (signed char)cmd->Std.aiming;
 	}
 	else
 	{
 		fixed_t movepushforward = 0, movepushside = 0;
 		
-		player->aiming = cmd->aiming << 16;
+		player->aiming = cmd->Std.aiming << 16;
 		if (player->chickenTics)
 			movefactor = 2500;
 		if (P_XGSVal(PGS_COBOOMSUPPORT) && variable_friction)
@@ -358,9 +358,9 @@ void P_MovePlayer(player_t* player)
 			//CONL_PrintF("movefactor: %i\n", movefactor);
 		}
 		
-		if (cmd->forwardmove)
+		if (cmd->Std.forwardmove)
 		{
-			movepushforward = cmd->forwardmove * movefactor;
+			movepushforward = cmd->Std.forwardmove * movefactor;
 			
 			if (player->mo->eflags & MF_UNDERWATER)
 			{
@@ -387,9 +387,9 @@ void P_MovePlayer(player_t* player)
 			P_Thrust(player, player->mo->angle, movepushforward);
 		}
 		
-		if (cmd->sidemove)
+		if (cmd->Std.sidemove)
 		{
-			movepushside = cmd->sidemove * movefactor;
+			movepushside = cmd->Std.sidemove * movefactor;
 			if (player->mo->eflags & MF_UNDERWATER)
 			{
 				if (!onground)
@@ -410,7 +410,7 @@ void P_MovePlayer(player_t* player)
 		}
 		
 		// GhostlyDeath <October 23, 2010> -- Slow down
-		if (!cmd->forwardmove && !cmd->sidemove)
+		if (!cmd->Std.forwardmove && !cmd->Std.sidemove)
 			player->MoveMom >>= 1;
 			
 		// mouselook swim when waist underwater
@@ -438,7 +438,7 @@ void P_MovePlayer(player_t* player)
 	if ((P_XGSVal(PGS_COJUMPREGARDLESS) && !i) || i)
 	{
 		//added:22-02-98: jumping
-		if (cmd->buttons & BT_JUMP)
+		if (cmd->Std.buttons & BT_JUMP)
 		{
 			if (player->mo->flags2 & MF2_FLY)
 				player->flyheight = 10;
@@ -468,7 +468,7 @@ void P_MovePlayer(player_t* player)
 			player->jumpdown &= ~1;
 	}
 		
-	if (cmd->forwardmove || cmd->sidemove)
+	if (cmd->Std.forwardmove || cmd->Std.sidemove)
 	{
 		if (player->mo->info->RPlayerRunState)
 			if (player->mo->state == states[player->mo->info->spawnstate])
@@ -599,7 +599,7 @@ void P_DeathThink(player_t* player)
 	else if (player->damagecount)
 		player->damagecount--;
 		
-	if (player->cmd.buttons & BT_USE)
+	if (player->cmd.Std.buttons & BT_USE)
 	{
 		player->playerstate = PST_REBORN;
 		player->mo->special2 = 666;
@@ -870,9 +870,9 @@ void P_PlayerThink(player_t* player)
 	{
 // added : now angle turn is a absolute value not relative
 		if (!P_XGSVal(PGS_COABSOLUTEANGLE))
-			cmd->angleturn = 0;
-		cmd->forwardmove = 0xc800 / 512;
-		cmd->sidemove = 0;
+			cmd->Std.angleturn = 0;
+		cmd->Std.forwardmove = 0xc800 / 512;
+		cmd->Std.sidemove = 0;
 		player->mo->flags &= ~MF_JUSTATTACKED;
 	}
 	
@@ -915,10 +915,10 @@ void P_PlayerThink(player_t* player)
 		else
 		{
 			// Change direction
-			player->mo->movedir = (((uint32_t)player->cmd.angleturn & 0xE000) >> 13U);
+			player->mo->movedir = (((uint32_t)player->cmd.Std.angleturn & 0xE000) >> 13U);
 			
 			// Odd?
-			if ((player->cmd.angleturn >> 12) & 1)
+			if ((player->cmd.Std.angleturn >> 12) & 1)
 				player->mo->movedir++;
 			
 			// Correct direction
@@ -928,10 +928,10 @@ void P_PlayerThink(player_t* player)
 				player->mo->movedir = 0;
 			
 			// Set angle
-			player->mo->angle = ((angle_t)player->cmd.angleturn) << 16;
+			player->mo->angle = ((angle_t)player->cmd.Std.angleturn) << 16;
 			
 			// Move forward?
-			if (player->cmd.forwardmove >= 5)
+			if (player->cmd.Std.forwardmove >= 5)
 				player->mo->movecount = 2;
 			else
 				player->mo->movecount = -1;
@@ -998,19 +998,19 @@ void P_PlayerThink(player_t* player)
 	
 	// Check for weapon change.
 		// GhostlyDeath <March 9, 2012> -- Rewritten for RMOD
-	if (cmd->buttons & BT_CHANGE)
+	if (cmd->Std.buttons & BT_CHANGE)
 	{
 		// Get slot to switch to (if any)
-		slot = ((cmd->buttons & BT_SLOTMASK) >> BT_SLOTSHIFT) + 1;
+		slot = ((cmd->Std.buttons & BT_SLOTMASK) >> BT_SLOTSHIFT) + 1;
 		
 		// Deprecated button shifty? or the new way (more guns)?
-		if (!cmd->XNewWeapon)
-			newweapon = (cmd->buttons & BT_WEAPONMASK) >> BT_WEAPONSHIFT;
+		if (!cmd->Std.XSNewWeapon[0])
+			newweapon = (cmd->Std.buttons & BT_WEAPONMASK) >> BT_WEAPONSHIFT;
 		else
-			newweapon = cmd->XNewWeapon;
+			newweapon = INFO_GetWeaponByName(cmd->Std.XSNewWeapon);
 		
 		// Slot based switching?
-		if (cmd->buttons & BT_EXTRAWEAPON)
+		if (cmd->Std.buttons & BT_EXTRAWEAPON)
 		{
 			// ONLY USED FOR OLD VANILLA DEMOS
 			GunInSlot = false;
@@ -1151,7 +1151,7 @@ void P_PlayerThink(player_t* player)
 	}
 	
 	// check for use
-	if (cmd->buttons & BT_USE)
+	if (cmd->Std.buttons & BT_USE)
 	{
 		if (!player->usedown)
 		{

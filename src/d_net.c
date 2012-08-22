@@ -1095,6 +1095,10 @@ void D_NetWriteGlobalTicCmd(ticcmd_t* const a_TicCmd)
 		if (!NetClient)
 			continue;
 		
+		// Is ourself?
+		if (NetClient->IsLocal)
+			continue;
+		
 		// Write message to them (perfect output)
 		Stream = NetClient->Streams[DNCSP_PERFECTWRITE];
 		
@@ -1140,6 +1144,10 @@ void D_NetWriteTicCmd(ticcmd_t* const a_TicCmd, const int a_Player)
 		
 		// Failed?
 		if (!NetClient)
+			continue;
+		
+		// Is ourself?
+		if (NetClient->IsLocal)
 			continue;
 		
 		// Write message to them (perfect output)

@@ -707,15 +707,15 @@ static void D_NCSLocalBuildTicCmd(D_NetPlayer_t* const a_NPp, ticcmd_t* const a_
 	/* Handle Player Control Keyboard Stuff */
 	// Weapon Attacks
 	if (GAMEKEYDOWN(Profile, DPEXIC_ATTACK))
-		a_TicCmd->buttons |= BT_ATTACK;
+		a_TicCmd->Std.buttons |= BT_ATTACK;
 	
 	// Use
 	if (GAMEKEYDOWN(Profile, DPEXIC_USE))
-		a_TicCmd->buttons |= BT_USE;
+		a_TicCmd->Std.buttons |= BT_USE;
 	
 	// Jump
 	if (GAMEKEYDOWN(Profile, DPEXIC_JUMP))
-		a_TicCmd->buttons |= BT_JUMP;
+		a_TicCmd->Std.buttons |= BT_JUMP;
 	
 	// Keyboard Turning
 	if (GAMEKEYDOWN(Profile, DPEXIC_TURNLEFT))
@@ -775,15 +775,15 @@ static void D_NCSLocalBuildTicCmd(D_NetPlayer_t* const a_NPp, ticcmd_t* const a_
 	if (GAMEKEYDOWN(Profile, DPEXIC_NEXTWEAPON))
 	{
 		// Set switch
-		a_TicCmd->buttons |= BT_CHANGE;
-		a_TicCmd->XNewWeapon = DS_NCSNextWeapon(Player, 1);
+		a_TicCmd->Std.buttons |= BT_CHANGE;
+		D_TicCmdFillWeapon(a_TicCmd, DS_NCSNextWeapon(Player, 1));
 	}
 		// Prev
 	else if (GAMEKEYDOWN(Profile, DPEXIC_PREVWEAPON))
 	{
 		// Set switch
-		a_TicCmd->buttons |= BT_CHANGE;
-		a_TicCmd->XNewWeapon = DS_NCSNextWeapon(Player, -1);
+		a_TicCmd->Std.buttons |= BT_CHANGE;
+		D_TicCmdFillWeapon(a_TicCmd, DS_NCSNextWeapon(Player, -1));
 	}
 		// Best Gun
 	else if (GAMEKEYDOWN(Profile, DPEXIC_BESTWEAPON))
@@ -792,8 +792,8 @@ static void D_NCSLocalBuildTicCmd(D_NetPlayer_t* const a_NPp, ticcmd_t* const a_
 		
 		if (newweapon != Player->readyweapon)
 		{
-			a_TicCmd->buttons |= BT_CHANGE;
-			a_TicCmd->XNewWeapon = newweapon;
+			a_TicCmd->Std.buttons |= BT_CHANGE;
+			D_TicCmdFillWeapon(a_TicCmd, newweapon);
 		}
 	}
 		// Worst Gun
@@ -803,8 +803,8 @@ static void D_NCSLocalBuildTicCmd(D_NetPlayer_t* const a_NPp, ticcmd_t* const a_
 		
 		if (newweapon != Player->readyweapon)
 		{
-			a_TicCmd->buttons |= BT_CHANGE;
-			a_TicCmd->XNewWeapon = newweapon;
+			a_TicCmd->Std.buttons |= BT_CHANGE;
+			D_TicCmdFillWeapon(a_TicCmd, newweapon);
 		}
 	}
 		// Slots
@@ -925,19 +925,19 @@ static void D_NCSLocalBuildTicCmd(D_NetPlayer_t* const a_NPp, ticcmd_t* const a_
 			// Did it work?
 			if (newweapon != Player->readyweapon)
 			{
-				a_TicCmd->buttons |= BT_CHANGE;
-				a_TicCmd->XNewWeapon = newweapon;
+				a_TicCmd->Std.buttons |= BT_CHANGE;
+				D_TicCmdFillWeapon(a_TicCmd, newweapon);
 			}
 		}
 	}
 	
 	// Inventory
 	if (GAMEKEYDOWN(Profile, DPEXIC_NEXTINVENTORY))
-		a_TicCmd->InventoryBits = TICCMD_INVRIGHT;
+		a_TicCmd->Std.InventoryBits = TICCMD_INVRIGHT;
 	else if (GAMEKEYDOWN(Profile, DPEXIC_PREVINVENTORY))
-		a_TicCmd->InventoryBits = TICCMD_INVLEFT;
+		a_TicCmd->Std.InventoryBits = TICCMD_INVLEFT;
 	else if (GAMEKEYDOWN(Profile, DPEXIC_USEINVENTORY))
-		a_TicCmd->InventoryBits = TICCMD_INVUSE;
+		a_TicCmd->Std.InventoryBits = TICCMD_INVUSE;
 	
 	/* Handle special functions */
 	// Coop Spy
@@ -979,17 +979,17 @@ static void D_NCSLocalBuildTicCmd(D_NetPlayer_t* const a_NPp, ticcmd_t* const a_
 		ForwardMove = -MAXPLMOVE;
 	
 	// Set
-	a_TicCmd->sidemove = SideMove;
-	a_TicCmd->forwardmove = ForwardMove;
+	a_TicCmd->Std.sidemove = SideMove;
+	a_TicCmd->Std.forwardmove = ForwardMove;
 	
 	/* Slow turning? */
 	if (!IsTurning)
 		Profile->TurnHeld = gametic;
 	
 	/* Turning */
-	a_TicCmd->BaseAngleTurn = BaseAT;
-	a_TicCmd->BaseAiming = BaseAM;
-	a_TicCmd->ResetAim = ResetAim;
+	a_TicCmd->Std.BaseAngleTurn = BaseAT;
+	a_TicCmd->Std.BaseAiming = BaseAM;
+	a_TicCmd->Std.ResetAim = ResetAim;
 	
 	/* Set from localaiming and such */
 	// Don't change angle when teleporting
@@ -1180,19 +1180,19 @@ void D_NCSNetTicTransmit(D_NetPlayer_t* const a_NPp, ticcmd_t* const a_TicCmd)
 	OSKEvent.Data.SynthOSK.PNum = SID;
 	
 	// Right/Left
-	if ((a_TicCmd->sidemove) >= (c_sidemove[0] >> 1) || (a_TicCmd->BaseAngleTurn) <= -(c_angleturn[2] >> 1))
+	if ((a_TicCmd->Std.sidemove) >= (c_sidemove[0] >> 1) || (a_TicCmd->Std.BaseAngleTurn) <= -(c_angleturn[2] >> 1))
 		OSKEvent.Data.SynthOSK.Right = 1;
-	else if ((a_TicCmd->sidemove) <= -(c_sidemove[0] >> 1) || (a_TicCmd->BaseAngleTurn) >= (c_angleturn[2] >> 1))
+	else if ((a_TicCmd->Std.sidemove) <= -(c_sidemove[0] >> 1) || (a_TicCmd->Std.BaseAngleTurn) >= (c_angleturn[2] >> 1))
 		OSKEvent.Data.SynthOSK.Right = -1;
 	
 	// Up/Down
-	if ((a_TicCmd->forwardmove) <= -(c_forwardmove[0] >> 1))
+	if ((a_TicCmd->Std.forwardmove) <= -(c_forwardmove[0] >> 1))
 		OSKEvent.Data.SynthOSK.Down = 1;
-	else if ((a_TicCmd->forwardmove) >= (c_forwardmove[0] >> 1))
+	else if ((a_TicCmd->Std.forwardmove) >= (c_forwardmove[0] >> 1))
 		OSKEvent.Data.SynthOSK.Down = -1;
 	
 	// Press
-	if (a_TicCmd->buttons & BT_ATTACK)
+	if (a_TicCmd->Std.buttons & BT_ATTACK)
 		OSKEvent.Data.SynthOSK.Press = 1;
 	
 	// Push Event
@@ -1224,23 +1224,23 @@ void D_NCSNetTicTransmit(D_NetPlayer_t* const a_NPp, ticcmd_t* const a_TicCmd)
 				// Absolute Angles
 				if (P_XGSVal(PGS_COABSOLUTEANGLE))
 				{
-					localangle[SID] += Merge.BaseAngleTurn << 16;
-					Merge.angleturn = localangle[SID] >> 16;
+					localangle[SID] += Merge.Std.BaseAngleTurn << 16;
+					Merge.Std.angleturn = localangle[SID] >> 16;
 				}
 				
 				// Doom Angles
 				else
-					Merge.angleturn = Merge.BaseAngleTurn;
+					Merge.Std.angleturn = Merge.Std.BaseAngleTurn;
 			}
 		
 		// Set local aiming angle
 		if (SID < MAXSPLITSCREEN)
 		{
-			if (Merge.ResetAim)
+			if (Merge.Std.ResetAim)
 				localaiming[SID] = 0;
 			else
-				localaiming[SID] += Merge.BaseAiming << 16;
-			Merge.aiming = G_ClipAimingPitch(&localaiming[SID]);
+				localaiming[SID] += Merge.Std.BaseAiming << 16;
+			Merge.Std.aiming = G_ClipAimingPitch(&localaiming[SID]);
 			//Merge.aiming = localaiming[SID] >> 16;
 		}
 		
@@ -1267,40 +1267,40 @@ void D_NCSNetMergeTics(ticcmd_t* const a_DestCmd, const ticcmd_t* const a_SrcLis
 	FM = SM = AT = AM = 0;
 	for (j = 0; j < a_NumSrc; j++)
 	{
-		FM += a_SrcList[j].forwardmove;
-		SM += a_SrcList[j].sidemove;
+		FM += a_SrcList[j].Std.forwardmove;
+		SM += a_SrcList[j].Std.sidemove;
 
 #if defined(__REMOOD_SWIRVYANGLE)
-		AT += a_SrcList[j].BaseAngleTurn;
-		AM += a_SrcList[j].BaseAiming;
+		AT += a_SrcList[j].Std.BaseAngleTurn;
+		AM += a_SrcList[j].Std.BaseAiming;
 #else
 		// Use the furthest aiming angle
-		if (abs(a_SrcList[j].BaseAngleTurn) > abs(AT))
-			AT = a_SrcList[j].BaseAngleTurn;
-		if (abs(a_SrcList[j].BaseAiming) > abs(AM))
-			AM = a_SrcList[j].BaseAiming;
+		if (abs(a_SrcList[j].Std.BaseAngleTurn) > abs(AT))
+			AT = a_SrcList[j].Std.BaseAngleTurn;
+		if (abs(a_SrcList[j].Std.BaseAiming) > abs(AM))
+			AM = a_SrcList[j].Std.BaseAiming;
 #endif
 		
 		// Reset aim?
-		a_DestCmd->ResetAim |= a_SrcList[j].ResetAim;
+		a_DestCmd->Std.ResetAim |= a_SrcList[j].Std.ResetAim;
 			
 		// Merge weapon here
-		if (!a_DestCmd->XNewWeapon)
-			a_DestCmd->XNewWeapon = a_SrcList[j].XNewWeapon;
+		if (!a_DestCmd->Std.XSNewWeapon[0])
+			strncpy(a_DestCmd->Std.XSNewWeapon, a_SrcList[j].Std.XSNewWeapon, MAXTCWEAPNAME);
 		
 		// Clear slot and weapon masks (they OR badly)
-		a_DestCmd->buttons &= ~(BT_WEAPONMASK | BT_SLOTMASK);
+		a_DestCmd->Std.buttons &= ~(BT_WEAPONMASK | BT_SLOTMASK);
 		
 		// Merge Buttons
-		a_DestCmd->buttons |= a_SrcList[j].buttons;
+		a_DestCmd->Std.buttons |= a_SrcList[j].Std.buttons;
 		
-		a_DestCmd->aiming = a_SrcList[j].aiming;
+		a_DestCmd->Std.aiming = a_SrcList[j].Std.aiming;
 	}
 
 	// Do some math
 	xDiv = ((fixed_t)a_NumSrc) << FRACBITS;
-	a_DestCmd->forwardmove = FixedDiv(FM << FRACBITS, xDiv) >> FRACBITS;
-	a_DestCmd->sidemove = FixedDiv(SM << FRACBITS, xDiv) >> FRACBITS;
+	a_DestCmd->Std.forwardmove = FixedDiv(FM << FRACBITS, xDiv) >> FRACBITS;
+	a_DestCmd->Std.sidemove = FixedDiv(SM << FRACBITS, xDiv) >> FRACBITS;
 	
 	/* Aiming is slightly different */
 #if defined(__REMOOD_SWIRVYANGLE)
@@ -1320,13 +1320,13 @@ void D_NCSNetMergeTics(ticcmd_t* const a_DestCmd, const ticcmd_t* const a_SrcLis
 		AM = -32000;
 	
 	// Try now
-	a_DestCmd->BaseAngleTurn = FixedDiv(AT << FRACBITS, xDiv) >> FRACBITS;
-	a_DestCmd->BaseAiming = FixedDiv(AM << FRACBITS, xDiv) >> FRACBITS;
+	a_DestCmd->Std.BaseAngleTurn = FixedDiv(AT << FRACBITS, xDiv) >> FRACBITS;
+	a_DestCmd->Std.BaseAiming = FixedDiv(AM << FRACBITS, xDiv) >> FRACBITS;
 #else
 	// Use furthest angle
 	//AT /= ((int32_t)(a_NumSrc));
-	a_DestCmd->BaseAngleTurn = AT;
-	a_DestCmd->BaseAiming = AM;
+	a_DestCmd->Std.BaseAngleTurn = AT;
+	a_DestCmd->Std.BaseAiming = AM;
 #endif
 }
 
@@ -1452,5 +1452,11 @@ const char* D_NCSGetPlayerName(const uint32_t a_PlayerID)
 	
 	/* Return Unknown */
 	return "Unnamed Player";
+}
+
+/* D_TicCmdFillWeapon() -- Fills weapon for tic command */
+void D_TicCmdFillWeapon(ticcmd_t* const a_Target, const int32_t a_ID)
+{
+	strncpy(a_Target->Std.XSNewWeapon, MAXTCWEAPNAME, wpnlev1info[a_ID]->ClassName);
 }
 

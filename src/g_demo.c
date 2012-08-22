@@ -452,17 +452,17 @@ bool_t G_DEMO_Vanilla_ReadTicCmd(struct G_CurrentDemo_s* a_Current, ticcmd_t* co
 	memset(a_Cmd, 0, sizeof(*a_Cmd));
 	
 	/* Read player's command */
-	a_Cmd->forwardmove = WL_StreamReadInt8(a_Current->WLStream);
-	a_Cmd->sidemove = WL_StreamReadInt8(a_Current->WLStream);
+	a_Cmd->Std.forwardmove = WL_StreamReadInt8(a_Current->WLStream);
+	a_Cmd->Std.sidemove = WL_StreamReadInt8(a_Current->WLStream);
 	
 	// 1.91?
 	if (Data->LongTics)
 	{
-		a_Cmd->angleturn = WL_StreamReadInt8(a_Current->WLStream);
-		a_Cmd->angleturn |= ((int16_t)WL_StreamReadInt8(a_Current->WLStream)) << 8;
+		a_Cmd->Std.angleturn = WL_StreamReadInt8(a_Current->WLStream);
+		a_Cmd->Std.angleturn |= ((int16_t)WL_StreamReadInt8(a_Current->WLStream)) << 8;
 	}
 	else
-		a_Cmd->angleturn = ((int16_t)WL_StreamReadInt8(a_Current->WLStream)) << 8;
+		a_Cmd->Std.angleturn = ((int16_t)WL_StreamReadInt8(a_Current->WLStream)) << 8;
 	
 	/* Button codes require re-handling */
 	// They are different in Vanilla Demos
@@ -493,18 +493,18 @@ bool_t G_DEMO_Vanilla_ReadTicCmd(struct G_CurrentDemo_s* a_Current, ticcmd_t* co
 	{
 		// Fire Weapon?
 		if (ButtonCodes & 1)
-			a_Cmd->buttons |= BT_ATTACK;
+			a_Cmd->Std.buttons |= BT_ATTACK;
 	
 		// Use?
 		if (ButtonCodes & 2)
-			a_Cmd->buttons |= BT_USE;
+			a_Cmd->Std.buttons |= BT_USE;
 	
 		// Change gun?
 		if (ButtonCodes & 4)
-			a_Cmd->buttons |= BT_CHANGE | BT_EXTRAWEAPON;	// Slot based change
+			a_Cmd->Std.buttons |= BT_CHANGE | BT_EXTRAWEAPON;	// Slot based change
 	
 		// Resort weapon over
-		a_Cmd->buttons |= ((((ButtonCodes & 0x38) >> 3)) << BT_SLOTSHIFT) & BT_SLOTMASK;
+		a_Cmd->Std.buttons |= ((((ButtonCodes & 0x38) >> 3)) << BT_SLOTSHIFT) & BT_SLOTMASK;
 	}
 	
 	/* Success! */
@@ -571,26 +571,26 @@ bool_t G_DEMO_Vanilla_WriteTicCmd(struct G_CurrentDemo_s* a_Current, const ticcm
 	if (Data->WroteHeader)
 	{
 		// Movement
-		IntV = a_Cmd->forwardmove;
+		IntV = a_Cmd->Std.forwardmove;
 		fwrite(&IntV, 1, 1, a_Current->CFile);
 		
-		IntV = a_Cmd->sidemove;
+		IntV = a_Cmd->Std.sidemove;
 		fwrite(&IntV, 1, 1, a_Current->CFile);
 		
 		// Turning
 			// Long tics
 		if (Data->LongTics)
 		{
-			IntV = (a_Cmd->angleturn & 0x00FF);
+			IntV = (a_Cmd->Std.angleturn & 0x00FF);
 			fwrite(&IntV, 1, 1, a_Current->CFile);
 			
-			IntV = (a_Cmd->angleturn & 0xFF00) >> 8;
+			IntV = (a_Cmd->Std.angleturn & 0xFF00) >> 8;
 			fwrite(&IntV, 1, 1, a_Current->CFile);
 		}
 			// Normal
 		else
 		{
-			IntV = (a_Cmd->angleturn & 0xFF00) >> 8;
+			IntV = (a_Cmd->Std.angleturn & 0xFF00) >> 8;
 			fwrite(&IntV, 1, 1, a_Current->CFile);
 		}
 		
@@ -598,19 +598,19 @@ bool_t G_DEMO_Vanilla_WriteTicCmd(struct G_CurrentDemo_s* a_Current, const ticcm
 		Bits = 0;
 		
 		// Fire Weapon?
-		if (a_Cmd->buttons & BT_ATTACK)
+		if (a_Cmd->Std.buttons & BT_ATTACK)
 			Bits |= 1;
 	
 		// Use?
-		if (a_Cmd->buttons & BT_USE)
+		if (a_Cmd->Std.buttons & BT_USE)
 			Bits |= 2;
 		
 		// Change gun?
-		if ((a_Cmd->buttons & (BT_CHANGE | BT_EXTRAWEAPON)) == (BT_CHANGE | BT_EXTRAWEAPON))
+		if ((a_Cmd->Std.buttons & (BT_CHANGE | BT_EXTRAWEAPON)) == (BT_CHANGE | BT_EXTRAWEAPON))
 			Bits |= 4;
 		
 		// Resort weapon over
-		Bits |= (((a_Cmd->buttons & BT_SLOTMASK) >> BT_SLOTSHIFT) << 3) & 0x38;
+		Bits |= (((a_Cmd->Std.buttons & BT_SLOTMASK) >> BT_SLOTSHIFT) << 3) & 0x38;
 		
 		// Write
 		fwrite(&Bits, 1, 1, a_Current->CFile);
@@ -1520,27 +1520,27 @@ bool_t G_DEMO_Legacy_ReadTicCmd(struct G_CurrentDemo_s* a_Current, ticcmd_t* con
 		else
 		{
 			// Read player's command
-			a_Cmd->forwardmove = WL_StreamReadInt8(a_Current->WLStream);
-			a_Cmd->sidemove = WL_StreamReadInt8(a_Current->WLStream);
-			a_Cmd->angleturn = ((int16_t)WL_StreamReadInt8(a_Current->WLStream)) << 8;
+			a_Cmd->Std.forwardmove = WL_StreamReadInt8(a_Current->WLStream);
+			a_Cmd->Std.sidemove = WL_StreamReadInt8(a_Current->WLStream);
+			a_Cmd->Std.angleturn = ((int16_t)WL_StreamReadInt8(a_Current->WLStream)) << 8;
 
 			// Button codes are different in old Legacy
 			ButtonCodes = WL_StreamReadUInt8(a_Current->WLStream);
 
 			// Fire Weapon?
 			if (ButtonCodes & 1)
-				a_Cmd->buttons |= BT_ATTACK;
+				a_Cmd->Std.buttons |= BT_ATTACK;
 
 			// Use?
 			if (ButtonCodes & 2)
-				a_Cmd->buttons |= BT_USE;
+				a_Cmd->Std.buttons |= BT_USE;
 
 			// Change gun?
 			if (ButtonCodes & 4)
-				a_Cmd->buttons |= BT_CHANGE | BT_EXTRAWEAPON;	// Slot based change
+				a_Cmd->Std.buttons |= BT_CHANGE | BT_EXTRAWEAPON;	// Slot based change
 
 			// Resort weapon over
-			a_Cmd->buttons |= ((((ButtonCodes & 0x38) >> 3)) << BT_SLOTSHIFT) & BT_SLOTMASK;
+			a_Cmd->Std.buttons |= ((((ButtonCodes & 0x38) >> 3)) << BT_SLOTSHIFT) & BT_SLOTMASK;
 		}
 	}
 	
@@ -1559,48 +1559,48 @@ bool_t G_DEMO_Legacy_ReadTicCmd(struct G_CurrentDemo_s* a_Current, ticcmd_t* con
 		
 		// Forward movement
 		if (ZipTic & ZT_FWD)
-			Data->OldCmd[a_PlayerNum].forwardmove = WL_StreamReadInt8(a_Current->WLStream);
+			Data->OldCmd[a_PlayerNum].Std.forwardmove = WL_StreamReadInt8(a_Current->WLStream);
 		
 		// Side movement
 		if (ZipTic & ZT_SIDE)
-			Data->OldCmd[a_PlayerNum].sidemove = WL_StreamReadInt8(a_Current->WLStream);
+			Data->OldCmd[a_PlayerNum].Std.sidemove = WL_StreamReadInt8(a_Current->WLStream);
 		
 		// Angle turn
 		if (ZipTic & ZT_ANGLE)
 			if (Data->VerMarker < 125)
 			{
-				Data->OldCmd[a_PlayerNum].angleturn = WL_StreamReadInt8(a_Current->WLStream);
-				Data->OldCmd[a_PlayerNum].angleturn <<= 8;
+				Data->OldCmd[a_PlayerNum].Std.angleturn = WL_StreamReadInt8(a_Current->WLStream);
+				Data->OldCmd[a_PlayerNum].Std.angleturn <<= 8;
 			}
 			else
-				Data->OldCmd[a_PlayerNum].angleturn = WL_StreamReadInt16(a_Current->WLStream);
+				Data->OldCmd[a_PlayerNum].Std.angleturn = WL_StreamReadInt16(a_Current->WLStream);
 		
 		// Buttons
 		if (ZipTic & ZT_BUTTONS)
 		{
 			// Read Base Codes
-			Data->OldCmd[a_PlayerNum].buttons = 0;	// Clear!
+			Data->OldCmd[a_PlayerNum].Std.buttons = 0;	// Clear!
 			ButtonCodes =  WL_StreamReadUInt8(a_Current->WLStream);
 			
 			// Attack
 			if (ButtonCodes & 1)
-				Data->OldCmd[a_PlayerNum].buttons |= BT_ATTACK;
+				Data->OldCmd[a_PlayerNum].Std.buttons |= BT_ATTACK;
 			
 			// Use
 			if (ButtonCodes & 2)
-				Data->OldCmd[a_PlayerNum].buttons |= BT_USE;
+				Data->OldCmd[a_PlayerNum].Std.buttons |= BT_USE;
 			
 			// Jump
 			if (ButtonCodes & 64)
-				Data->OldCmd[a_PlayerNum].buttons |= BT_JUMP;
+				Data->OldCmd[a_PlayerNum].Std.buttons |= BT_JUMP;
 				
 			// Change gun?
 			if (ButtonCodes & 4)
 				// Slot based switching (BT_EXTRAWEAPON)
 				if (ButtonCodes & 128)
 				{
-					a_Cmd->buttons |= BT_CHANGE | BT_EXTRAWEAPON;	// Slot based change
-					a_Cmd->buttons |= ((((ButtonCodes & 0x38) >> 3)) << BT_SLOTSHIFT) & BT_SLOTMASK;
+					a_Cmd->Std.buttons |= BT_CHANGE | BT_EXTRAWEAPON;	// Slot based change
+					a_Cmd->Std.buttons |= ((((ButtonCodes & 0x38) >> 3)) << BT_SLOTSHIFT) & BT_SLOTMASK;
 				}
 				
 				// Specific Gun (!BT_EXTRAWEAPON)
@@ -1620,14 +1620,14 @@ bool_t G_DEMO_Legacy_ReadTicCmd(struct G_CurrentDemo_s* a_Current, ticcmd_t* con
 							}
 					
 					// Use new command rather than shifties
-					a_Cmd->buttons |= BT_CHANGE;
-					a_Cmd->XNewWeapon |= u8b;
+					a_Cmd->Std.buttons |= BT_CHANGE;
+					D_TicCmdFillWeapon(a_Cmd, u8b);
 				}
 		}
 		
 		// Aiming
 		if (ZipTic & ZT_AIMING)
-			Data->OldCmd[a_PlayerNum].aiming = WL_StreamReadInt16(a_Current->WLStream);
+			Data->OldCmd[a_PlayerNum].Std.aiming = WL_StreamReadInt16(a_Current->WLStream);
 		
 		// Chat -- Not actually used?
 		if (ZipTic & ZT_CHAT)

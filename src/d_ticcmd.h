@@ -86,23 +86,39 @@ typedef enum
 #define TICCMD_INVACTSHIFT	UINT32_C(0)			// Action Shift
 #define TICCMD_INVACTMASK	UINT32_C(0x3)		// Action Mask
 
-typedef struct
+#define MAXTCWEAPNAME						32	// Max length for weapon name
+
+typedef union
 {
-	int8_t forwardmove;			// *2048 for move
-	int8_t sidemove;			// *2048 for move
-	int16_t angleturn;			// <<16 for angle delta
-	// SAVED AS A BYTE into demos
-	uint16_t aiming;			//added:16-02-98:mouse aiming
-	uint16_t buttons;
-	uint8_t artifact;			// For Heretic
+	uint8_t Type;								// Command Type
 	
-	// Extended tic command stuff
-	uint8_t XNewWeapon;							// New weapon to switch to
-	int16_t BaseAngleTurn;						// Base angle turning
-	int16_t BaseAiming;							// Base Aiming
-	uint8_t InventoryBits;						// Inventory Control
-	bool_t ResetAim;							// Reset Aim
+	struct
+	{
+		uint8_t Type;							// Command Type
+		int8_t forwardmove;						// *2048 for move
+		int8_t sidemove;						// *2048 for move
+		int16_t angleturn;						// <<16 for angle delta
+		// SAVED AS A BYTE into demos
+		uint16_t aiming;						//added:16-02-98:mouse aiming
+		uint16_t buttons;
+		uint8_t artifact;						// For Heretic
+	
+		// Extended tic command stuff
+		uint8_t XSNewWeapon[MAXTCWEAPNAME];		// New weapon (string based)
+		//uint8_t XNewWeapon;					// New weapon to switch to
+		int16_t BaseAngleTurn;					// Base angle turning
+		int16_t BaseAiming;						// Base Aiming
+		uint8_t InventoryBits;					// Inventory Control
+		bool_t ResetAim;						// Reset Aim
+	} Std;
+	
+	struct
+	{
+		uint8_t Type;							// Command Type
+	} Ext;
 } ticcmd_t;
+
+void D_TicCmdFillWeapon(ticcmd_t* const a_Target, const int32_t a_ID);
 
 #endif
 

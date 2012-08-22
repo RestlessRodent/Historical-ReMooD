@@ -1091,7 +1091,7 @@ static bool_t BS_GHOST_JOB_ShootStuff(struct B_GhostBot_s* a_GhostBot, const siz
 					
 					// Force Attacking
 					if (a_GhostBot->Player->pendingweapon < 0)
-						a_GhostBot->TicCmdPtr->buttons |= BT_ATTACK;
+						a_GhostBot->TicCmdPtr->Std.buttons |= BT_ATTACK;
 					
 					// Clear from current
 					ListMos[s] = NULL;
@@ -1113,7 +1113,7 @@ static bool_t BS_GHOST_JOB_ShootStuff(struct B_GhostBot_s* a_GhostBot, const siz
 				
 				// Force Attacking
 				if (a_GhostBot->Player->pendingweapon < 0)
-					a_GhostBot->TicCmdPtr->buttons |= BT_ATTACK;
+					a_GhostBot->TicCmdPtr->Std.buttons |= BT_ATTACK;
 			
 				// Update List
 				s++;
@@ -1177,8 +1177,8 @@ static bool_t BS_GHOST_JOB_GunControl(struct B_GhostBot_s* a_GhostBot, const siz
 	// Switch to that gun
 	if (a_GhostBot->Player->readyweapon != b && a_GhostBot->Player->pendingweapon != b)
 	{
-		a_GhostBot->TicCmdPtr->buttons |= BT_CHANGE;
-		a_GhostBot->TicCmdPtr->XNewWeapon = b;
+		a_GhostBot->TicCmdPtr->Std.buttons |= BT_CHANGE;
+		D_TicCmdFillWeapon(a_GhostBot->TicCmdPtr, b);
 	}
 	
 	/* Always keep this job */
@@ -1333,29 +1333,29 @@ void B_GHOST_Think(B_GhostBot_t* const a_GhostBot, ticcmd_t* const a_TicCmd)
 		// Move to target
 		if (MoveTarg != -1 && AttackTarg == -1)
 		{
-			a_GhostBot->TicCmdPtr->forwardmove = c_forwardmove[1];
-			a_GhostBot->TicCmdPtr->angleturn = BS_PointsToAngleTurn(a_GhostBot->Mo->x, a_GhostBot->Mo->y, a_GhostBot->Targets[MoveTarg].x, a_GhostBot->Targets[MoveTarg].y);
+			a_GhostBot->TicCmdPtr->Std.forwardmove = c_forwardmove[1];
+			a_GhostBot->TicCmdPtr->Std.angleturn = BS_PointsToAngleTurn(a_GhostBot->Mo->x, a_GhostBot->Mo->y, a_GhostBot->Targets[MoveTarg].x, a_GhostBot->Targets[MoveTarg].y);
 		}
 		
 		// Aim at target
 		else if (MoveTarg == -1 && AttackTarg != -1)
 		{
 			if (a_GhostBot->Player->pendingweapon < 0)
-				a_GhostBot->TicCmdPtr->buttons |= BT_ATTACK;
-			a_GhostBot->TicCmdPtr->angleturn = BS_PointsToAngleTurn(a_GhostBot->Mo->x, a_GhostBot->Mo->y, a_GhostBot->Targets[AttackTarg].x, a_GhostBot->Targets[AttackTarg].y);
+				a_GhostBot->TicCmdPtr->Std.buttons |= BT_ATTACK;
+			a_GhostBot->TicCmdPtr->Std.angleturn = BS_PointsToAngleTurn(a_GhostBot->Mo->x, a_GhostBot->Mo->y, a_GhostBot->Targets[AttackTarg].x, a_GhostBot->Targets[AttackTarg].y);
 		}
 		
 		// Dual movement
 		else
 		{
-			a_GhostBot->TicCmdPtr->buttons |= BT_ATTACK;
+			a_GhostBot->TicCmdPtr->Std.buttons |= BT_ATTACK;
 			BS_MoveToAndAimAtFrom(
 					a_GhostBot->Mo->x, a_GhostBot->Mo->y,
 					a_GhostBot->Targets[MoveTarg].x, a_GhostBot->Targets[MoveTarg].y,
 					a_GhostBot->Targets[AttackTarg].x, a_GhostBot->Targets[AttackTarg].y,
-					&a_GhostBot->TicCmdPtr->angleturn,
-					&a_GhostBot->TicCmdPtr->forwardmove,
-					&a_GhostBot->TicCmdPtr->sidemove
+					&a_GhostBot->TicCmdPtr->Std.angleturn,
+					&a_GhostBot->TicCmdPtr->Std.forwardmove,
+					&a_GhostBot->TicCmdPtr->Std.sidemove
 				);
 		}
 	}
