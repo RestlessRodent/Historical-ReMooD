@@ -2322,6 +2322,14 @@ bool_t G_CheckDemoStatus(void)
 	return RetVal;
 }
 
+void G_ReadDemoGlobalTicCmd(ticcmd_t* const a_TicCmd)
+{
+}
+
+void G_WriteDemoGlobalTicCmd(ticcmd_t* const a_TicCmd)
+{
+}
+
 /* G_ReadDemoTiccmd() -- Reads demo tic command */
 void G_ReadDemoTiccmd(ticcmd_t* cmd, int playernum)
 {

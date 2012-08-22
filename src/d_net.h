@@ -174,5 +174,21 @@ void D_NCHE_SendSaveGame(D_NetClient_t* const a_Client);
 /*** NCQC Funcs ***/
 void D_NCQC_MapChange(void* const a_Data);
 
+
+
+
+
+
+
+
+
+
+void D_NetReadGlobalTicCmd(ticcmd_t* const a_TicCmd);
+void D_NetWriteGlobalTicCmd(ticcmd_t* const a_TicCmd);
+
+void D_NetReadTicCmd(ticcmd_t* const a_TicCmd, const int a_Player);
+void D_NetWriteTicCmd(ticcmd_t* const a_TicCmd, const int a_Player);
+
+
 #endif							/* __D_NET_H__ */
 

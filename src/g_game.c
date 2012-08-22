@@ -482,11 +482,14 @@ void G_Ticker(void)
 			case ga_completed:
 				G_DoCompleted();
 				break;
+				
 			case ga_worlddone:
 				G_DoWorldDone();
 				break;
+				
 			case ga_nothing:
 				break;
+				
 			default:
 				I_Error("gameaction = %d\n", gameaction);
 		}
@@ -496,56 +499,37 @@ void G_Ticker(void)
 	
 	// read/write demo and check turbo cheat
 	ThisTime = D_SyncNetMapTime();
-	//if (ThisTime > g_DemoTime)
-	//{
-		for (i = 0; i < MAXPLAYERS; i++)
+	
+	// Read Global Tic Commands
+	if (demoplayback)
+		G_ReadDemoGlobalTicCmd(cmd);
+	else
+		D_NetReadGlobalTicCmd(cmd);
+	
+	// Write Global Tic Commands
+	if (demorecording)
+		G_WriteDemoGlobalTicCmd(cmd);
+	D_NetWriteGlobalTicCmd(cmd);
+	
+	// Read Individual Player Tic Commands
+	for (i = 0; i < MAXPLAYERS; i++)
+		// BP: i==0 for playback of demos 1.29 now new players is added with xcmd
+		if ((playeringame[i] || i == 0) && !dedicated)
 		{
-			// BP: i==0 for playback of demos 1.29 now new players is added with xcmd
-			if ((playeringame[i] || i == 0) && !dedicated)
-			{
-				cmd = &players[i].cmd;
-			
-				if (demoplayback)
-					G_ReadDemoTiccmd(cmd, i);
-				else
-				{
-					// Determine net player existence
-					if (players[i].NetPlayer)
-						// Tic count > 0?
-						if (players[i].NetPlayer->TicTotal > 0)
-						{
-							// Copy the oldest command
-							memcpy(cmd, &players[i].NetPlayer->TicCmd[0], sizeof(ticcmd_t));
-						
-							// Reduce down buffered commands
-							players[i].NetPlayer->TicTotal--;
-						
-							// Replace all the old commands
-							memmove(
-									&players[i].NetPlayer->TicCmd[0],
-									&players[i].NetPlayer->TicCmd[1],
-									sizeof(ticcmd_t) * (MAXDNETTICCMDCOUNT - 1)
-								);
-						}
-				}
-				
-				if (demorecording)
-					G_WriteDemoTiccmd(cmd, i);
-				
-				// check for turbo cheats
-				if (cmd->forwardmove > TURBOTHRESHOLD && !(gametic % (32)) && ((gametic / (32)) & 3) == i)
-				{
-					static char turbomessage[80];
-				
-					sprintf(turbomessage, "%s is turbo!", player_names[i]);
-					players[consoleplayer[0]].message = turbomessage;
-				}
-			}
-		}
+			cmd = &players[i].cmd;
 		
-		// Set new time
-		g_DemoTime = ThisTime;
-	//}
+			if (demoplayback)
+				G_ReadDemoTiccmd(cmd, i);
+			else
+				D_NetReadTicCmd(cmd, i);
+			
+			if (demorecording)
+				G_WriteDemoTiccmd(cmd, i);
+			D_NetWriteTicCmd(cmd, i);
+		}
+	
+	// Set new time
+	g_DemoTime = ThisTime;
 	
 	// do main actions
 	switch (gamestate)

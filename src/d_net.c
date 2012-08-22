@@ -1035,20 +1035,129 @@ typedef struct D_NCMessageData_s
 	uint32_t FlagsMask;							// Mask for flags
 } D_NCMessageData_t;
 
-/*** FUNCTIONS ***/
+/*** PACKET HANDLER FUNCTIONS ***/
 
-bool_t D_NCMH_LocalPlayerRJ(struct D_NCMessageData_s* const a_Data);
-bool_t D_NCMH_PlayerJoinOK(struct D_NCMessageData_s* const a_Data);
+/* D_NCMH_JOIN() -- Player wants to join */
+bool_t D_NCMH_JOIN(struct D_NCMessageData_s* const a_Data)
+{
+}
+
+/* D_NCMH_TICS() -- Recieved player tics */
+bool_t D_NCMH_TICS(struct D_NCMessageData_s* const a_Data)
+{
+	/* Ignore any tic commands from the local server */
+	if (a_Data->NetClient->IsLocal)
+		return false;
+}
 
 // c_NCMessageCodes -- Local messages
 static const D_NCMessageType_t c_NCMessageCodes[] =
 {
-	{1, {0}, "LPRJ", D_NCMH_LocalPlayerRJ, DNCMF_PERFECT | DNCMF_SERVER | DNCMF_HOST | DNCMF_REMOTECL},
-	{1, {0}, "PJOK", D_NCMH_PlayerJoinOK, DNCMF_PERFECT | DNCMF_SERVER | DNCMF_REMOTECL | DNCMF_DEMO},
+	{1, {0}, "JOIN", D_NCMH_JOIN, DNCMF_PERFECT | DNCMF_SERVER | DNCMF_HOST | DNCMF_REMOTECL},
+	{1, {0}, "TICS", D_NCMH_TICS, DNCMF_PERFECT | DNCMF_SERVER | DNCMF_REMOTECL},
+	
+	//{1, {0}, "LPRJ", D_NCMH_LocalPlayerRJ, DNCMF_PERFECT | DNCMF_SERVER | DNCMF_HOST | DNCMF_REMOTECL},
+	//{1, {0}, "PJOK", D_NCMH_PlayerJoinOK, DNCMF_PERFECT | DNCMF_SERVER | DNCMF_REMOTECL | DNCMF_DEMO},
 	
 	// EOL
 	{0, NULL, ""},
 };
+
+/*** FUNCTIONS ***/
+
+/* D_NetReadGlobalTicCmd() -- Reads global tic command */
+void D_NetReadGlobalTicCmd(ticcmd_t* const a_TicCmd)
+{
+}
+
+/* D_NetWriteGlobalTicCmd() -- Writes global tic command */
+void D_NetWriteGlobalTicCmd(ticcmd_t* const a_TicCmd)
+{
+	int nc;
+	D_NetClient_t* ServerNC;
+	D_NetClient_t* NetClient;
+	D_BS_t* Stream;
+	
+	/* Get server client */
+	ServerNC =  D_NCFindClientIsServer();
+	
+	// Non-Local?
+	if (!ServerNC->IsLocal)
+		return;
+	
+	/* Send Commands to everyone */
+	for (nc = 0; nc < l_NumClients; nc++)
+	{
+		// Get current
+		NetClient = l_Clients[nc];
+		
+		// Failed?
+		if (!NetClient)
+			continue;
+		
+		// Write message to them (perfect output)
+		Stream = NetClient->Streams[DNCSP_PERFECTWRITE];
+		
+		// Base
+		D_BSBaseBlock(Stream, "TICS");
+		
+		// Current Game Tic
+		D_BSwu64(Stream, gametic);
+		
+		// Zero Marks Global
+		D_BSwu8(Stream, 0);
+		
+		// Send away
+		D_BSRecordNetBlock(Stream, &NetClient->Address);
+	}
+}
+
+/* D_NetReadTicCmd() -- Read tic commands from network */
+void D_NetReadTicCmd(ticcmd_t* const a_TicCmd, const int a_Player)
+{
+}
+
+/* D_NetWriteTicCmd() -- Write tic commands to network */
+void D_NetWriteTicCmd(ticcmd_t* const a_TicCmd, const int a_Player)
+{
+	int nc;
+	D_NetClient_t* ServerNC;
+	D_NetClient_t* NetClient;
+	D_BS_t* Stream;
+	
+	/* Get server client */
+	ServerNC =  D_NCFindClientIsServer();
+	
+	// Non-Local?
+	if (!ServerNC->IsLocal)
+		return;
+	
+	/* Send Commands to everyone */
+	for (nc = 0; nc < l_NumClients; nc++)
+	{
+		// Get current
+		NetClient = l_Clients[nc];
+		
+		// Failed?
+		if (!NetClient)
+			continue;
+		
+		// Write message to them (perfect output)
+		Stream = NetClient->Streams[DNCSP_PERFECTWRITE];
+		
+		// Base
+		D_BSBaseBlock(Stream, "TICS");
+		
+		// Current Game Tic
+		D_BSwu64(Stream, gametic);
+		
+		// Positive Marks Player
+		D_BSwu8(Stream, a_Player + 1);
+		
+		// Send away
+		D_BSRecordNetBlock(Stream, &NetClient->Address);
+	}
+}
 
 /* D_NCUpdate() -- Update all networking stuff */
 void D_NCUpdate(void)
@@ -1154,1129 +1263,6 @@ void D_NCUpdate(void)
 		D_BSFlushStream(POut);
 		D_BSFlushStream(BOut);
 	}
-
-
-#if 0
-#define BUFSIZE 512
-	char Buf[BUFSIZE];
-	char ZBuf[BUFSIZE];
-	char Header[5];
-	D_BS_t* Stream, *OutStream, *GenOut;
-	D_NetClient_t* NetClient, *OtherClient;
-	size_t nc, snum, i, p, j;
-	I_HostAddress_t FromAddress;
-	D_NetPlayer_t* NetPlayer;
-	D_ProfileEx_t* Profile;
-	player_t* DoomPlayer;
-	char* charp;
-	char* chara[5];
-	const char* charc;
-	
-	const WL_WADFile_t* RemIWAD;
-	const WL_WADFile_t* RemRWAD;
-	const WL_WADFile_t* FoundWAD;
-	const WL_WADFile_t* LastWAD;
-	
-	bool_t SendKeep;
-	bool_t SendPing, ReSend;
-	uint32_t ThisTime, DiffTime;
-	static uint32_t LastKeep;
-	static uint32_t LastTime;
-	
-	bool_t DoContinue, IsOK, OrderOK;
-	uint32_t u32a, u32b, u32c, u32d;
-	uint8_t u8a, u8b, u8c, u8d;
-	
-	/* Send Ping Request? */
-	ThisTime = I_GetTimeMS();
-	
-	// Send pings? Every 10s
-	SendPing = false;
-	if (ThisTime > LastTime + 10000)
-	{
-		DiffTime = ThisTime - LastTime;
-		LastTime = ThisTime;
-		SendPing = true;
-		
-		// Set global stat count to current local stats
-		for (i = 0; i < 4; i++)
-			g_NetStat[i] = l_LocalStat[i];
-	}
-	
-	// Send keep alive? Every minute
-		// Because perfect connections that idle for too long will eventually
-		// get revoked.
-	SendKeep = false;
-	if (ThisTime > LastKeep + 60000)
-	{
-		LastKeep = ThisTime;
-		SendKeep = true;
-	}
-	
-	/* Clear local stats */
-	// This is for traffic monitoring
-	for (i = 0; i < 4; i++)
-		l_LocalStat[i] = 0;
-	
-	/* Go through each client and read/write commands */
-	for (nc = 0; nc < l_NumClients; nc++)
-	{
-		// Get current
-		NetClient = l_Clients[nc];
-		
-		// Failed?
-		if (!NetClient)
-			continue;
-		
-		// Initialize some things
-		memset(&FromAddress, 0, sizeof(FromAddress));
-		
-		// Determine streams to use
-		Stream = NetClient->Streams[DNCSP_PERFECTREAD];
-		OutStream = NetClient->Streams[DNCSP_PERFECTWRITE];
-		GenOut = NetClient->Streams[DNCSP_WRITE];
-		
-		// Sending a ping?
-			// If sending, send command and unstat stream
-		if (SendPing)
-		{
-			// Unstat the stream
-			D_BSUnStatStream(GenOut);
-			
-			// Build PING command
-			D_BSBaseBlock(GenOut, "PING");
-			D_BSwu32(GenOut, ThisTime);
-			D_BSwu32(GenOut, DiffTime);
-			D_BSRecordNetBlock(GenOut, &NetClient->Address);
-		}
-			// Otherwise, Stat the stream and add to local counts
-		else
-		{
-			// Stat it
-			D_BSStatStream(GenOut, &u32a, &u32b, &u32c, &u32d);
-			
-			// Add to local
-			l_LocalStat[0] += u32a;
-			l_LocalStat[1] += u32b;
-			l_LocalStat[2] += u32c;
-			l_LocalStat[3] += u32d;
-		}
-		
-		// Send Keepalive to the perfect stream?
-		if (SendKeep)
-		{
-			D_BSBaseBlock(OutStream, "KEEP");
-			D_BSRecordNetBlock(OutStream, &NetClient->Address);
-		}
-		
-		// Read from the "Perfect" Stream
-			// The perfect stream knows whether a packet is perfect or not and
-			// if a perfect packet is not yet ready it won't return any of them
-			// Also, a read stream might not exist, a client could be using
-			// another clients stream for reading, this would be the case for
-			// network games over UDP. Why? Becuase all network players write
-			// to the server (the local client) for commands.
-		
-		// Constantly read command packets
-		memset(Header, 0, sizeof(Header));
-		if (Stream)
-		{
-			// Constantly Read
-			while (D_BSPlayNetBlock(Stream, Header, &FromAddress))
-			{
-				// Debug?
-				if (devparm)
-					D_SyncNetDebugMessage("%i Got \"%c%c%c%c\" (From %08x:%i)...",
-						(int)nc, Header[0], Header[1], Header[2], Header[3],
-							SwapUInt32(FromAddress.Host.v4.u),
-							FromAddress.Port
-						);
-				
-	////////////////////////////////////////////////////////////////
-	////////////////////////////////////////////////////////////////
-	////////////////
-	//////////////// NON-PERFECT PACKETS
-	////////////////
-	
-	// Everything -- Ping request
-	if (D_BSCompareHeader("PING", Header))
-	{
-		// Send PONG back to the from address (using generic stream)
-		u32a = D_BSru32(Stream);		// Rem: ThisTime
-		u32b = D_BSru32(Stream);		// Rem: DiffTime
-		u32c = ThisTime;					// Loc: ThisTime
-		
-		// Create response and send away
-		D_BSBaseBlock(GenOut, "PONG");
-		D_BSwu32(GenOut, u32a);
-		D_BSwu32(GenOut, u32b);
-		D_BSwu32(GenOut, u32c);
-		D_BSRecordNetBlock(GenOut, &FromAddress);
-	}
-	
-	// Everything -- Pong reply
-	else if (D_BSCompareHeader("PONG", Header))
-	{
-	}
-	
-	// Master Server -- Request List
-	else if (D_BSCompareHeader("MSRQ", Header))
-	{
-		// Read Cookie (Basic Security)
-		u32a = D_BSru32(Stream);
-		u32b = D_BSru32(Stream);
-		
-		// Setup Base Info
-		D_BSBaseBlock(GenOut, "MSLS");
-		D_BSwu32(GenOut, u32a);
-		D_BSwu32(GenOut, u32b);
-		
-		// Send Server Info
-		D_BSwu8(GenOut, 'R');	// Auto-remote end
-		D_NSZZ_SendINFO(GenOut, ThisTime);
-		
-		// Send away
-		D_BSRecordNetBlock(GenOut, &FromAddress);
-	}
-	
-	// Master Server -- List
-	else if (D_BSCompareHeader("MSLS", Header))
-	{
-		// Read Cookie (Basic Security)
-		u32a = D_BSru32(Stream);
-		u32b = D_BSru32(Stream);
-	}
-	
-	// Server -- Request Game Info
-	else if (D_BSCompareHeader("RINF", Header))
-	{
-		// Read Cookie (Basic Security)
-		u32a = D_BSru32(Stream);
-		u32b = D_BSru32(Stream);
-		
-		// Write INFO
-		D_BSBaseBlock(GenOut, "INFO");
-		D_BSwu32(GenOut, u32a);
-		D_BSwu32(GenOut, u32b);
-		
-		// Send Server Info
-		D_NSZZ_SendINFO(GenOut, ThisTime);
-		
-		// Send away
-		D_BSRecordNetBlock(GenOut, &FromAddress);
-		
-		// Write INFX
-		ReSend = false;
-		i = 0;
-		do
-		{
-			D_BSBaseBlock(GenOut, "INFX");
-			D_BSwu32(GenOut, u32a);
-			D_BSwu32(GenOut, u32b);
-		
-			// Send Server Info
-			ReSend = D_NSZZ_SendINFX(GenOut, &i);
-		
-			// Send away
-			D_BSRecordNetBlock(GenOut, &FromAddress);
-		} while (ReSend);
-		
-		// Send MOTD
-		D_BSBaseBlock(GenOut, "MOTD");
-		D_BSwu32(GenOut, u32a);
-		D_BSwu32(GenOut, u32b);
-		D_NSZZ_SendMOTD(GenOut);
-		D_BSRecordNetBlock(GenOut, &FromAddress);
-		
-		// Send INFT
-		for (i = 0; i < 2; i++)
-		{
-			D_BSBaseBlock(GenOut, "INFT");
-			D_BSwu32(GenOut, u32a);
-			D_BSwu32(GenOut, u32b);
-			D_BSRecordNetBlock(GenOut, &FromAddress);
-		}
-	}
-	
-	// Client -- Recieve Game Info
-	else if (D_BSCompareHeader("INFO", Header))
-	{
-	}
-	
-	// Client -- Recieve Game Info Extended
-	else if (D_BSCompareHeader("INFX", Header))
-	{
-	}
-	
-	////////////////////////////////////////////////////////////////
-	////////////////////////////////////////////////////////////////
-	////////////////
-	//////////////// PERFECT PACKETS
-	////////////////
-	else if (D_BSMarkedStream(Stream))
-	{
-		// Debug?
-		if (devparm)
-			D_SyncNetDebugMessage("Perfect!");
-		
-		// MAPC -- Map Change
-		if (D_BSCompareHeader("MAPC", Header))
-		{
-			// Only accept if from a server
-			if (NetClient->IsServer)
-			{
-				// Read map name
-				memset(Buf, 0, sizeof(Buf));
-				D_BSrs(Stream, Buf, BUFSIZE - 1);
-		
-				// Add to command queue
-				D_NCAddQueueCommand(D_NCQC_MapChange, Z_StrDup(Buf, PU_NETWORK, NULL));
-			}
-		}
-		
-		// REDY -- Client is ready
-		else if (D_BSCompareHeader("REDY", Header))
-		{
-			// Only accept if is a server
-			if (!(NetClient->IsServer && NetClient->IsLocal))
-				continue;
-			
-			// Find the client that wants to do this
-			OtherClient = D_NCFindClientByHost(&FromAddress);
-			
-			// Nothing found?
-			if (!OtherClient)
-				continue;
-			
-			// Mark as ready
-			OtherClient->ReadyToPlay = true;
-			
-			// Send Save Game
-			D_NCHE_SendSaveGame(OtherClient);
-		}
-		
-		// WADQ -- Query WADS
-		else if (D_BSCompareHeader("WADQ", Header))
-		{
-			// Only accept if is a server
-			if (!(NetClient->IsServer && NetClient->IsLocal))
-				continue;
-			
-			// Find the client that wants to do this
-			OtherClient = D_NCFindClientByHost(&FromAddress);
-			
-			// Nothing found?
-			if (!OtherClient)
-				continue;
-			
-			// Send WAD configuration
-			D_NSZZ_SendFullWADS(OutStream, &FromAddress);
-		}
-		
-		// WADS -- Server's WAD Configuration
-		else if (D_BSCompareHeader("WADS", Header))
-		{
-			// Only accept if from a server and we aren't local
-			if (!(NetClient->IsServer && !NetClient->IsLocal))
-				continue;
-			
-			// Get current IWAD and ReMooD.WAD
-			RemIWAD = WL_IterateVWAD(NULL, true);
-			RemRWAD = WL_IterateVWAD(RemIWAD, true);
-			FoundWAD = WL_IterateVWAD(NULL, true);
-			
-			// Reset
-			OrderOK = true;
-			DoContinue = true;
-			
-			// Read Input WADs
-			CONL_PrintF("*** Server WADs ***\n");
-			do
-			{
-				// Clear Buffers
-				memset(ZBuf, 0, sizeof(ZBuf));
-				
-				// Read Marker
-				u8a = D_BSru8(Stream);
-				
-				// End?
-				if (u8a == 'X')
-					break;
-				
-				// Optional Bit
-				u8b = D_BSru8(Stream);
-				
-				// Read DOS Name, Real Name, SS, MD5
-				for (j = 0; j < 4; j++)
-				{
-					D_BSrs(Stream, Buf, BUFSIZE - 1);
-					strncat(ZBuf, Buf, BUFSIZE - 1);
-					
-					if (j < 3)
-						strncat(ZBuf, "\1", BUFSIZE - 1);
-				}
-				
-				// Convert all \1s to \0s
-				memset(chara, 0, sizeof(chara));
-				j = 0;
-				charp = ZBuf;
-				chara[j++] = charp;
-				while ((charp = strchr(charp, 1)))
-				{
-					*(charp++) = 0;
-					chara[j++] = charp;
-				}
-				
-				// Print WAD
-				charp = ZBuf;
-				CONL_PrintF("%c: \"%s\"/\"%s\": [SS=%s, MD5=%s]\n",
-					u8b, chara[0], chara[1], chara[2], chara[3]);
-				charp += strlen(charp) + 1;
-				
-				// Compare current WAD to server
-				IsOK = false;
-				if (OrderOK)
-				{
-					// Compare name or sum?
-					if (u8b == 'N')
-						charc = FoundWAD->__Private.__DOSName;
-					else
-						charc = FoundWAD->SimpleSumChars;
-					
-					// Compare True
-					if (strcasecmp(charc, (u8b == 'N' ? chara[0] : chara[2])) == 0)
-					{
-						// Set as OK
-						IsOK = true;
-					}
-					
-					// Mismatch
-					else
-					{
-						// Message
-						CONL_PrintF("\"%s\" [%s] != \"%s\" [%s]\n",
-								FoundWAD->__Private.__DOSName,
-								FoundWAD->SimpleSumChars,
-								
-								chara[0],
-								chara[2]
-							);
-						
-						// WADs were never popped
-						if (u8b != 'O')	// Ignore optionals
-							if (OrderOK)
-							{
-								// Lock OCCB
-								WL_LockOCCB(true);
-								
-								// Pop until the current WAD
-								do
-								{
-									LastWAD = WL_PopWAD();
-								}
-								while (LastWAD != FoundWAD);
-							
-								// Set as popped
-								OrderOK = false;
-							}
-					}
-				}
-				
-				// WAD was not OK (missing?)
-				if (!OrderOK && !IsOK)
-				{
-					// Try loading the WAD
-						// DOS Name
-					FoundWAD = WL_OpenWAD(chara[0]);
-					
-					// Real Name?
-					if (!FoundWAD)
-						FoundWAD = WL_OpenWAD(chara[1]);
-					
-					// Still failed?
-					if (!FoundWAD)
-					{
-						// Not ready to join the game
-						DoContinue = false;
-						
-						// Request WAD from server
-						D_NCSR_RequestWAD(chara[2]);
-					}
-					
-					// Otherwise Push it
-					else
-						WL_PushWAD(FoundWAD);
-				}
-				
-				// Otherwise, iterate to the next WAD
-				else
-					FoundWAD = WL_IterateVWAD(FoundWAD, true);
-			} while (u8a != 'X');
-			CONL_PrintF("*******************\n");
-			
-			// UnLock OCCB if WADs were changed
-			if (!OrderOK)
-				WL_LockOCCB(false);
-			
-			// Inform server that we are ready for save game transmit
-			if (DoContinue)
-				D_NCSR_SendServerReady();
-				
-#if 0
-			// Lock OCCB
-			WL_LockOCCB(true);
-			
-			// Pop all wads
-			while (WL_PopWAD())
-				;
-			
-			// Read all WADs
-			OrderOK = true;
-			DoContinue = true;
-			do
-			{
-				// Read Marker
-				u8a = D_BSru8(Stream);
-				
-				// End?
-				if (u8a == 'X')
-					break;
-				
-				// Read whether WAD is required or not (this is important)
-				u8b = D_BSru8(Stream);
-				
-				// Read DOS Name -- And try opening that...
-				D_BSrs(Stream, Buf, BUFSIZE - 1);
-				
-				FoundWAD = WL_OpenWAD(Buf);
-				
-				// Read Normal Name -- And try opening that if DOS failed us...
-				D_BSrs(Stream, Buf, BUFSIZE - 1);
-				
-				if (!FoundWAD)
-					FoundWAD = WL_OpenWAD(Buf);
-				
-				// No WAD was found at all and it is required
-				if (!FoundWAD && u8b != 'R')
-				{
-					DoContinue = false;
-					IsOK = true;
-					
-					// See if SS is on blacklist
-					D_BSrs(Stream, Buf, BUFSIZE - 1);
-					if (!D_CheckWADBlacklist(Buf))
-						IsOK = false;
-					
-					// See if MD5 is on blacklist
-					j = strlen(Buf);
-					D_BSrs(Stream, Buf + j + 1, (BUFSIZE - j) - 2);
-					if (!D_CheckWADBlacklist(Buf + j + 1))
-						IsOK = false;
-						
-					// Request WAD Download, if possible
-					if (IsOK)
-						D_NCSR_RequestWAD(Buf);
-				}
-				
-				// WAD was found, push it
-				else
-				{
-					// Push to the stack
-					WL_PushWAD(FoundWAD);
-					
-					// Ignore SUMs
-					D_BSrs(Stream, Buf, BUFSIZE - 1);
-					D_BSrs(Stream, Buf, BUFSIZE - 1);
-				}
-			} while (u8a == 'W');
-			
-			// Failed to find a WAD
-			if (!DoContinue)
-			{
-				// Make sure there is an IWAD
-				FoundWAD = WL_IterateVWAD(NULL, true);
-				
-				// If there isn't (we are very lacking today)
-				if (!FoundWAD)
-				{
-					// Push original IWAD and RWAD
-					WL_PushWAD(RemIWAD);
-					WL_PushWAD(RemRWAD);
-					
-					// Disconnect from server
-					D_NCQueueDisconnect();
-				}
-			}
-			
-			// UnLock OCCB
-			WL_LockOCCB(false);
-			
-			// Success! Tell server we are ready for the join window
-			if (DoContinue)
-				D_NCSR_SendServerReady();
-#endif
-		}
-		
-		// WELC -- Connection successful
-		else if (D_BSCompareHeader("WELC", Header))
-		{
-			// Only accept if from a server and we aren't local
-			if (!(NetClient->IsServer && !NetClient->IsLocal))
-				continue;
-			
-			// Request MOTD from server (so it can be displayed)
-		}
-		
-		// DISC -- Disconnection Request
-		else if (D_BSCompareHeader("DISC", Header))
-		{
-			// Only accept from non-local clients
-			if (!(!NetClient->IsServer && !NetClient->IsLocal))
-				continue;
-		}
-		
-		// CONN -- Connection Request
-		else if (D_BSCompareHeader("CONN", Header))
-		{
-			// Read Version
-			u8a = D_BSru8(Stream);
-			u8b = D_BSru8(Stream);
-			u8c = D_BSru8(Stream);
-			u8d = D_BSru8(Stream);
-			
-			// Version Mismatch?
-			if (u8a != VERSION &&
-				u8b != REMOOD_MAJORVERSION &&
-				u8c != REMOOD_MINORVERSION &&
-				u8d != REMOOD_RELEASEVERSION)
-			{
-				snprintf(Buf, BUFSIZE - 1, "You need to version %i.%i%c (%i) and not version %i.%i%c (%i)",
-						REMOOD_MAJORVERSION,
-						REMOOD_MINORVERSION,
-						REMOOD_RELEASEVERSION,
-						VERSION,
-						
-						u8b, u8c, u8d, u8a
-					);
-				D_NCFudgeOffHostStream(&FromAddress, Stream, 'V', Buf);
-				continue;
-			}
-			
-			// Compare connect password
-				// Read password
-			memset(Buf, 0, sizeof(Buf));
-			D_BSrs(Stream, Buf, BUFSIZE - 1);
-			
-			// Only if password is set
-			if (strlen(l_SVConnectPassword.Value->String) > 0)
-				if (strcasecmp(Buf, l_SVConnectPassword.Value->String) != 0)
-				{
-					snprintf(Buf, BUFSIZE - 1, "Incorrect password");
-					D_NCFudgeOffHostStream(&FromAddress, Stream, 'P', Buf);
-					continue;
-				}
-			
-			// Successfully connected, add client to network clients
-			OtherClient = D_NCAllocClient();
-			
-			// Set information
-			memmove(&OtherClient->Address, &FromAddress, sizeof(FromAddress));
-			
-			// Set output streams to the current stream
-			I_NetHostToName(&FromAddress, OtherClient->ReverseDNS, NETCLIENTRHLEN);
-			OtherClient->Streams[DNCSP_WRITE] = NetClient->Streams[DNCSP_WRITE];
-			OtherClient->Streams[DNCSP_PERFECTWRITE] = NetClient->Streams[DNCSP_PERFECTWRITE];
-			
-			// Send welcome message
-			D_BSBaseBlock(OutStream, "WELC");
-			D_BSRecordNetBlock(OutStream, &FromAddress);
-			
-			// Send the currently loaded WADs
-			D_NSZZ_SendFullWADS(OutStream, &FromAddress);
-			
-			// Inform the server of the join
-			CONL_OutputU(DSTR_NET_CLIENTCONNECTED, "%s\n", OtherClient->ReverseDNS);
-		}
-		
-		// FOFF -- Server told us to get lost
-		else if (D_BSCompareHeader("FOFF", Header))
-		{
-			// Only accept if from a server and we aren't local
-			if (!(NetClient->IsServer && !NetClient->IsLocal))
-				continue;
-			
-			// Extract reason why
-			u8a = D_BSru8(Stream);				// Code
-			memset(Buf, 0, sizeof(Buf));
-			D_BSrs(Stream, Buf, BUFSIZE - 1);	// Reason
-			
-			// Write to console
-			CONL_PrintF("%c: %s\n", u8a, Buf);
-			
-			// Disconnect
-			D_NCDisconnect();
-			
-			// Tell the user why
-			//M_ExUIMessageBox(const M_ExMBType_t a_Type, const uint32_t a_MessageID, const char* const a_Title, const char* const a_Message, const MBCallBackFunc_t a_CallBack);
-		}
-		
-		// LPRJ -- Local Player, Request Join
-		else if (D_BSCompareHeader("LPRJ", Header))
-		{
-			// Only accept if is a server
-			if (NetClient->IsServer && NetClient->IsLocal)
-			{
-				// Find the client that wants to do this
-				OtherClient = D_NCFindClientByHost(&FromAddress);
-				
-				// Nothing found?
-				if (!OtherClient)
-				{
-					if (devparm)
-						CONL_OutputU(DSTR_NET_BADCLIENT, "\n");
-					continue;
-				}
-				
-				// Client not ready?
-				if (!OtherClient->ReadyToPlay)
-					continue;
-				
-				// Client was not sent savegame?
-				if (!OtherClient->IsLocal && !OtherClient->SaveGameSent)
-					continue;
-				
-				// Read the UUID
-				D_BSrs(Stream, Buf, BUFSIZE - 1);
-				
-				// Only if one was found is it parsed
-					// If not, maybe someone else is screwing with the server?
-				// Client is arbing too many?
-				if (OtherClient->NumArbs >= MAXSPLITSCREEN)
-				{
-					CONL_OutputU(DSTR_NET_EXCEEDEDSPLIT, "\n");
-					continue;
-				}
-				
-				// Check for free player slots
-				for (p = 0; p < MAXPLAYERS; p++)
-					if (!playeringame[p])
-						break;
-				
-				// No Free Slots
-				if (p >= MAXPLAYERS)
-				{
-					CONL_OutputU(DSTR_NET_ATMAXPLAYERS, "\n");
-					continue;
-				}
-				
-				// Create netplayer combo for this person
-				NetPlayer = D_NCSAllocNetPlayer();
-				NetPlayer->NetClient = OtherClient;
-				
-				// Create a profile for this player
-				if (NetClient == OtherClient)	// Same system
-					Profile = D_FindProfileEx(Buf);	// Use existing one
-				
-				// Read Player Account Name
-				D_BSrs(Stream, Buf, BUFSIZE - 1);
-				
-				// Failed to find it? Then create it
-				if (!Profile)
-					Profile = D_CreateProfileEx(Buf);
-					
-				// Read Player Display Name
-				D_BSrs(Stream, Buf, BUFSIZE - 1);
-				
-				// Mark profile as remote and copy display name
-				if (NetClient != OtherClient)
-				{
-					Profile->Type = DPEXT_NETWORK;	// Set remote
-					strncpy(Profile->DisplayName, Buf, MAXPLAYERNAME - 1);
-					
-					// Read Color
-					Profile->Color = D_BSru8(Stream);
-				}
-				
-				// Set at arbs point
-				Z_ResizeArray((void**)&OtherClient->Arbs, sizeof(*OtherClient->Arbs),
-						OtherClient->NumArbs, OtherClient->NumArbs + 1);
-				OtherClient->Arbs[OtherClient->NumArbs++] = NetPlayer;
-				
-				// Queue Request
-				D_NCHE_ServerCreatePlayer(p, NetPlayer, Profile, OtherClient);
-			}
-		}
-
-	////////////////
-	//////////////// DONE
-	////////////////
-	////////////////////////////////////////////////////////////////
-	////////////////////////////////////////////////////////////////
-				}
-				
-				// Clear from address
-				memset(&FromAddress, 0, sizeof(FromAddress));
-				memset(Header, 0, sizeof(Header));
-			}
-			
-			// Flush write streams
-			D_BSFlushStream(OutStream);
-			D_BSFlushStream(GenOut);
-		}
-	}
-	
-#if 0
-#define BUFSIZE 512
-	char Buf[BUFSIZE];
-	char Header[5];
-	size_t nc, i, j, p;
-	D_NetController_t* CurCtrl, *OtherCtrl, *HostCtrl;
-	D_BS_t* Stream, *OtherStream;
-	
-	D_NetPlayer_t* NetPlayer;
-	D_ProfileEx_t* Profile;
-	player_t* DoomPlayer;
-	
-	uint32_t u32, u32b, u32c, u32d;
-	uint8_t u8;
-	
-	bool_t SendPing, AnythingWritten;
-	uint32_t ThisTime, DiffTime;
-	static uint32_t LastTime;
-	
-	/* Get Host */
-	HostCtrl = l_LocalController;
-	
-	/* Init */
-	memset(Header, 0, sizeof(Header));
-	
-	/* Get Current Time */
-	ThisTime = I_GetTimeMS();
-	
-	// Send pings?
-	SendPing = false;
-	if (ThisTime > LastTime + 1000)
-	{
-		DiffTime = ThisTime - LastTime;
-		LastTime = ThisTime;
-		SendPing = true;
-	}
-	
-	/* Go through every controller */
-	for (nc = 0; nc < l_NumControllers; nc++)
-	{
-		// Get current
-		CurCtrl = l_Controllers[nc];
-		
-		// Nothing here?
-		if (!CurCtrl)
-			continue;
-		
-		// Init some things
-		Stream = CurCtrl->BlockStream;
-		
-		// Send ping command
-		if (SendPing)
-		{
-			// Clear stream stats
-			D_BSUnStatStream(Stream);
-			for (i = 0; i < 4; i++)
-			{
-				g_NetStat[i] = l_LocalStat[i];
-				l_LocalStat[i] = 0;
-			}
-			
-			// Create ping
-			D_BSBaseBlock(Stream, "PING");
-			D_BSwu32(Stream, ThisTime);
-			D_BSwu32(Stream, DiffTime);
-			
-			// Record it
-			D_BSRecordBlock(Stream);
-		}
-		
-		// Collect some infos
-		else
-		{
-			// Stats
-			D_BSStatStream(Stream, &u32, &u32b, &u32c, &u32d);
-			
-			// Add to local
-			l_LocalStat[0] = u32;
-			l_LocalStat[1] = u32b;
-			l_LocalStat[2] = u32c;
-			l_LocalStat[3] = u32d;
-		}
-		
-		// Constantly read blocks (packets)
-		while (D_BSPlayBlock(Stream, Header))
-		{
-			// PING -- Ping Request
-			if (strcasecmp("PING", Header) == 0)
-			{
-				// Send a PONG back to it
-				D_BSRenameHeader(Stream, "PONG");
-				D_BSwu32(Stream, ThisTime);
-				D_BSRecordBlock(Stream);
-			}
-			
-			// PONG -- Ping Reply
-			else if (strcasecmp("PONG", Header) == 0)
-			{
-				CurCtrl->Ping = ThisTime - D_BSru32(Stream);
-			}
-			
-			// VERR -- Version Request
-			else if (strcasecmp("VERR", Header) == 0)
-			{
-				// Create version reply
-				D_BSBaseBlock(Stream, "VERI");
-				
-				// Put in info
-				D_BSwu8(Stream, VERSION);
-				D_BSwu8(Stream, REMOOD_MAJORVERSION);
-				D_BSwu8(Stream, REMOOD_MINORVERSION);
-				D_BSwu8(Stream, REMOOD_RELEASEVERSION);
-				D_BSws(Stream, REMOOD_FULLVERSIONSTRING);
-				D_BSws(Stream, REMOOD_URL);
-				
-				// Send it away
-				D_BSRecordBlock(Stream);
-			}
-			
-			// VERI -- Version Information
-			else if (strcasecmp("VERI", Header) == 0)
-			{
-				// Read version info
-				CurCtrl->VerLeg = D_BSru8(Stream);
-				CurCtrl->VerMaj = D_BSru8(Stream);
-				CurCtrl->VerMin = D_BSru8(Stream);
-				CurCtrl->VerRel = D_BSru8(Stream);
-			}
-			
-			// MESG -- Generic Message
-			else if (strcasecmp("MESG", Header) == 0)
-			{
-				// Get Message
-				memset(Buf, 0, sizeof(Buf));
-				D_BSrs(Stream, Buf, BUFSIZE - 1);
-				
-				// Print
-				CONL_PrintF("%s\n", Buf);
-			}
-			
-			// MAPC -- Map Change
-			else if (strcasecmp("MAPC", Header) == 0)
-			{
-				// Only accept if from a server
-				if (CurCtrl->IsServer)
-				{
-					// Read map name
-					memset(Buf, 0, sizeof(Buf));
-					D_BSrs(Stream, Buf, BUFSIZE - 1);
-					
-					// Add to command queue
-					D_NCAddQueueCommand(D_NCQC_MapChange, Z_StrDup(Buf, PU_NETWORK, NULL));
-				}
-			}
-			
-			// LPRJ -- Local Player, Request Join (Split screen)
-			else if (strcasecmp("LPRJ", Header) == 0)
-			{
-				// Only accept if we are the server
-				if (HostCtrl->IsServer && HostCtrl->IsLocal)
-				{
-					// Get Player UUID/AccountName
-					memset(Buf, 0, sizeof(Buf));
-					D_BSrs(Stream, Buf, BUFSIZE - 1);
-					
-					// Find player
-					NetPlayer = D_NCSFindNetPlayer(Buf);
-					
-					// Find free player spot
-					for (p = 0; p < MAXPLAYERS; p++)
-						if (!playeringame[p])
-							break;
-					
-					// Only resume request joining when there is no player
-						// And the current local player count fits local players
-						// And there is a free player spot
-					if (!NetPlayer && CurCtrl->NumArbs < MAXSPLITSCREEN && p < MAXPLAYERS)
-					{
-						// Create player
-						NetPlayer = D_NCSAllocNetPlayer();
-						
-						// Copy UUID Over
-						strncpy(NetPlayer->UUID, Buf, MAXPLAYERNAME * 2);
-						
-						// Add to arbitrating players
-						Z_ResizeArray((void**)&CurCtrl->Arbs, sizeof(*CurCtrl->Arbs),
-								CurCtrl->NumArbs, CurCtrl->NumArbs + 1);
-						CurCtrl->Arbs[CurCtrl->NumArbs++] = NetPlayer;
-						
-						// Create Profile
-						D_BSrs(Stream, NetPlayer->AccountName, MAXPLAYERNAME);
-						
-						// If server split, use local profile
-						if (CurCtrl->IsLocal)
-						{
-							// Try finding it
-							Profile = D_FindProfileEx(NetPlayer->AccountName);
-							
-							// If not found, make fresh then
-							if (!Profile)
-								Profile = D_CreateProfileEx(NetPlayer->AccountName);
-						}
-						
-						// Otherwise use remote profile
-						else
-							Profile = D_CreateProfileEx(NetPlayer->AccountName);
-						
-						// Fill info
-						if (CurCtrl->IsLocal)	// Server Split
-							Profile->Flags |= DPEXT_LOCAL;
-						else					// Client split
-							Profile->Flags |= DPEXT_NETWORK;
-						D_BSrs(Stream, Profile->DisplayName, MAXPLAYERNAME);
-						Profile->Color = D_BSru8(Stream);
-						
-						// Inform everyone that a player has joined
-						for (j = 0; j < l_NumControllers; j++)
-						{
-							// Get Other
-							OtherCtrl = l_Controllers[j];
-		
-							// Nothing here?
-							if (!OtherCtrl)
-								continue;
-		
-							// Init some things
-							OtherStream = OtherCtrl->BlockStream;
-							
-							// Write player join OK
-							D_BSBaseBlock(OtherStream, "PJOK");
-							D_BSws(OtherStream, NetPlayer->UUID);
-							D_BSwu8(OtherStream, p);
-							if (OtherStream == CurCtrl)
-							{
-								D_BSwu8(OtherStream, CurCtrl->NumArbs);
-								D_BSws(OtherStream, Profile->UUID);
-							}
-							else
-							{
-								D_BSwu8(OtherStream, 0);
-								D_BSws(OtherStream, "");
-							}
-							D_BSws(OtherStream, NetPlayer->AccountName);
-							D_BSws(OtherStream, Profile->AccountName);
-							D_BSws(OtherStream, Profile->DisplayName);
-							D_BSwu8(OtherStream, Profile->Color);
-							D_BSRecordBlock(OtherStream);
-						}
-						
-						// Create Player In Local Server
-						DoomPlayer = G_AddPlayer(p);
-						DoomPlayer->NetPlayer = NetPlayer;
-						DoomPlayer->ProfileEx = Profile;
-						Profile->NetPlayer = NetPlayer;
-						NetPlayer->Player = DoomPlayer;
-						NetPlayer->Profile = Profile;
-						G_InitPlayer(DoomPlayer);
-						
-						// Check split screen
-						if (CurCtrl->IsLocal)
-							for (j = 0; j < MAXSPLITSCREEN; j++)
-								if (!g_PlayerInSplit[j])
-								{
-									g_PlayerInSplit[j] = true;
-									consoleplayer[j] = displayplayer[j] = p;
-									
-									g_SplitScreen = j;
-									break;
-								}
-					}
-				}
-			}
-			
-			// PJOK -- Player Join OK
-			else if (strcasecmp("PJOK", Header) == 0)
-			{
-				// Only accept if from a server and non-local
-					// Non-local because if it is local then the player would
-					// already be in the structures.
-				if (CurCtrl->IsServer && !CurCtrl->IsLocal && CurCtrl != HostCtrl)
-				{
-					// Create network player
-					NetPlayer = D_NCSAllocNetPlayer();
-					
-					// Add to arbitrating players
-					Z_ResizeArray((void**)&CurCtrl->Arbs, sizeof(*CurCtrl->Arbs),
-							CurCtrl->NumArbs, CurCtrl->NumArbs + 1);
-					CurCtrl->Arbs[CurCtrl->NumArbs++] = NetPlayer;
-					
-					// Read NetPlayer UUID and the local player number
-					D_BSrs(Stream, NetPlayer->UUID, MAXPLAYERNAME * 2);
-					p = D_BSru8(Stream);
-					
-					// Determine if the player is our own screen player
-					u8 = D_BSru8(Stream);
-					D_BSrs(Stream, Buf, BUFSIZE);
-					
-					// See if it is worth looking for a profile
-					if (u8)
-						Profile = D_FindProfileEx(NetPlayer->UUID);
-					
-					// No profile found or remote profile
-					if (!Profile)
-					{
-						// Create blank slate
-						u8 = 0;
-						Profile = D_CreateProfileEx(NetPlayer->UUID);
-						
-						// Fill with guessed info
-						Profile->Type = DPEXT_NETWORK;
-						D_BSrs(Stream, NetPlayer->AccountName, MAXPLAYERNAME);
-						D_BSrs(Stream, Profile->AccountName, MAXPLAYERNAME);
-						D_BSrs(Stream, Profile->DisplayName, MAXPLAYERNAME);
-						Profile->Color = D_BSru8(Stream);
-					}
-					else
-						Profile->Type = DPEXT_LOCAL;
-					
-					// Create Player In Local Game
-					DoomPlayer = G_AddPlayer(p);
-					DoomPlayer->NetPlayer = NetPlayer;
-					DoomPlayer->ProfileEx = Profile;
-					Profile->NetPlayer = NetPlayer;
-					NetPlayer->Player = DoomPlayer;
-					NetPlayer->Profile = Profile;
-					G_InitPlayer(DoomPlayer);
-					
-					// Add player to split screen
-					if (u8)
-					{
-						// Find free screen
-						for (j = 0; j < MAXSPLITSCREEN; j++)
-							if (!g_PlayerInSplit[j])
-							{
-								g_PlayerInSplit[j] = true;
-								consoleplayer[j] = displayplayer[j] = p;
-								
-								g_SplitScreen = j;
-								break;
-							}
-					}
-				}
-			}
-		}
-		
-		// Flush commands (Send them together, if possible)
-		D_BSFlushStream(Stream);
-	}
-#endif
-
-#undef BUFSIZE
-#endif
 }
 
 /* D_NCMH_LocalPlayerRJ() -- Player wants to join game */
