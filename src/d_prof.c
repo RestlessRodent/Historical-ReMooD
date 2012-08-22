@@ -47,6 +47,110 @@
 *** EXTENDED PROFILES ***
 ************************/
 
+/*** CONSTANTS ***/
+static const struct
+{
+	const char ShortName[16];					// Short Name
+	const char LongName[32];					// Long Name (menus)
+	D_ProfileExInputCtrl_t ID;					// For Reference
+} c_ControlMapper[NUMDPROFILEEXINPUTCTRLS] =
+{
+	{"null", "Nothing", DPEXIC_NULL},
+	
+	{"modspeed", "Speed Modifier", DPEXIC_SPEED},
+	{"modmove", "Movement Modifier", DPEXIC_MOVEMENT},
+	{"modlook", "Look Modifier", DPEXIC_LOOKING},
+	
+	{"forwards", "Move Forwards", DPEXIC_FORWARDS},
+	{"backwards", "Move Backwards", DPEXIC_BACKWARDS},
+	{"strafeleft", "Strafe Left", DPEXIC_STRAFELEFT},
+	{"straferight", "Strafe Right", DPEXIC_STRAFERIGHT},
+	{"flyup", "Fly Up", DPEXIC_FLYUP},
+	{"flydown", "Fly Down", DPEXIC_FLYDOWN},
+	{"land", "Land", DPEXIC_LAND},
+	{"jump", "Jump", DPEXIC_JUMP},
+	
+	/* Looking */
+	{"turnleft", "Turn Left", DPEXIC_TURNLEFT},
+	{"turnright", "Turn Right", DPEXIC_TURNRIGHT},
+	{"turn180", "Turn 180\xC2\xb0", DPEXIC_TURNSEMICIRCLE},
+	{"lookup", "Look Up", DPEXIC_LOOKUP},
+	{"lookdown", "Look Down", DPEXIC_LOOKDOWN},
+	{"lookcenter", "Center View", DPEXIC_LOOKCENTER},
+	
+	/* Actions */
+	{"use", "Use Action", DPEXIC_USE},
+	{"suicide", "Commit Suicide", DPEXIC_SUICIDE},
+	{"taunt", "Taunt", DPEXIC_TAUNT},
+	{"chat", "Chat", DPEXIC_CHAT},
+	{"teamchat", "Chat With Team", DPEXIC_TEAMCHAT},
+	
+	/* Weapons */
+	{"attack", "Attack", DPEXIC_ATTACK},
+	{"altattack", "Secondary Attack", DPEXIC_ALTATTACK},
+	{"reload", "Reload Weapon", DPEXIC_RELOAD},
+	{"switchfire", "Switch Firing Mode", DPEXIC_SWITCHFIREMODE},
+	{"slot1", "Weapon Slot 1", DPEXIC_SLOT1},
+	{"slot2", "Weapon Slot 2", DPEXIC_SLOT2},
+	{"slot3", "Weapon Slot 3", DPEXIC_SLOT3},
+	{"slot4", "Weapon Slot 4", DPEXIC_SLOT4},
+	{"slot5", "Weapon Slot 5", DPEXIC_SLOT5},
+	{"slot6", "Weapon Slot 6", DPEXIC_SLOT6},
+	{"slot7", "Weapon Slot 7", DPEXIC_SLOT7},
+	{"slot8", "Weapon Slot 8", DPEXIC_SLOT8},
+	{"slot9", "Weapon Slot 9", DPEXIC_SLOT9},
+	{"slot10", "Weapon Slot 10", DPEXIC_SLOT10},
+	{"nextweapon", "Next Weapon", DPEXIC_NEXTWEAPON},
+	{"prevweapon", "Previous Weapon", DPEXIC_PREVWEAPON},
+	{"bestweapon", "Best Weapon", DPEXIC_BESTWEAPON},
+	{"worstweapon", "Worst Weapon", DPEXIC_WORSTWEAPON},
+	
+	/* Inventory */
+	{"nextinventory", "Inventory Cursor Next", DPEXIC_NEXTINVENTORY},
+	{"previnventory", "Inventory Cursor Previous", DPEXIC_PREVINVENTORY},
+	{"useinventory", "Use Inventory Item", DPEXIC_USEINVENTORY},
+	{"cancelinventory", "Cancel Inventory Selection", DPEXIC_CANCELINVENTORY},
+	
+	/* General */
+	{"topscores", "Show Top Scores", DPEXIC_TOPSCORES},
+	{"worstscores", "Show Worst Scores", DPEXIC_BOTTOMSCORES},
+	{"coopspy", "Switch Cooperative Spy Player", DPEXIC_COOPSPY},
+};
+
+/* c_ProfDataStat -- Simplified config space */
+static const struct
+{
+	const char ArgName[16];
+	size_t Offset;
+	uint16_t Size;
+} c_ProfDataStat[] =
+{
+#define QUICKDS(x,s) {#x, offsetof(D_ProfileEx_t, x), s}
+	QUICKDS(Color, 8),
+	QUICKDS(JoyControl, 8),
+	QUICKDS(SlowTurnTime, 717),
+	QUICKDS(MouseSens[0], 32),
+	QUICKDS(MouseSens[1], 32),
+	QUICKDS(JoySens[0], 32),
+	QUICKDS(JoySens[1], 32),
+	QUICKDS(LookUpDownSpeed, 32),
+	QUICKDS(ColorPickup, 8),
+	QUICKDS(ColorSecret, 8),
+	QUICKDS(SoundSecret, 5555),
+	QUICKDS(DrawPSprites, 1010),
+	QUICKDS(BobMode, 8),
+	QUICKDS(ViewHeight, 3232),
+	QUICKDS(CamDist, 3232),
+	QUICKDS(CamHeight, 3232),
+	QUICKDS(CamSpeed, 3232),
+	QUICKDS(ChaseCam, 1010),
+	QUICKDS(TransSBar, 1010),
+	QUICKDS(ScaledSBar, 1010),
+	
+	{"", 0, 0},
+#undef QUICKDS
+};
+
 /*** LOCALS ***/
 
 static D_ProfileEx_t* l_FirstProfile = NULL;	// First in chain
@@ -91,6 +195,9 @@ D_ProfileEx_t* D_CreateProfileEx(const char* const a_Name)
 		I_WaitVBL(M_Random() & 1);
 	}
 	
+	// Set last as NUL (for easy printf)
+	New->UUID[i] = 0;
+	
 	/* Copy Name */
 	strncpy(New->AccountName, a_Name, MAXPLAYERNAME - 1);
 	strncpy(New->DisplayName, a_Name, MAXPLAYERNAME - 1);
@@ -103,7 +210,15 @@ D_ProfileEx_t* D_CreateProfileEx(const char* const a_Name)
 #define SETKEY_M(a,b) a##b
 #define SETKEY(c,k) New->Ctrls[SETKEY_M(DPEXIC_,c)][0] = (SETKEY_M(IKBK_,k))
 #define SETJOY(c,b) New->Ctrls[SETKEY_M(DPEXIC_,c)][3] = 0x1000 | ((b) - 1)
-
+#define SETMOUSE(c,b) New->Ctrls[SETKEY_M(DPEXIC_,c)][1] = 0x2000 | ((b) - 1)
+#define SETDBLMOUSE(c,b) New->Ctrls[SETKEY_M(DPEXIC_,c)][2] = 0x4000 | ((b) - 1)
+	
+	SETMOUSE(ATTACK, 1);
+	SETMOUSE(MOVEMENT, 3);
+	SETMOUSE(PREVWEAPON, 5);
+	SETMOUSE(NEXTWEAPON, 4);
+	SETDBLMOUSE(USE, 3);
+	
 	SETKEY(SPEED, SHIFT);
 	SETKEY(MOVEMENT, ALT);
 	SETKEY(LOOKING, S);
@@ -238,9 +353,34 @@ D_ProfileEx_t* D_FindProfileEx(const char* const a_Name)
 	return NULL;
 }
 
+/* DS_SizeToStr() -- Converts sized argument to a string */
+static void DS_SizeToStr(void* const a_Ptr, const uint16_t a_Size, char* const a_Buf, const size_t a_BufSize)
+{
+	switch (a_Size)
+	{
+		case 8: snprintf(a_Buf, a_BufSize, "%i", *((uint8_t*)a_Ptr)); break;
+		case 16: snprintf(a_Buf, a_BufSize, "%i", *((uint16_t*)a_Ptr)); break;
+		case 32: snprintf(a_Buf, a_BufSize, "%i", *((uint32_t*)a_Ptr)); break;
+		
+		case 3232: snprintf(a_Buf, a_BufSize, "%f", FIXED_TO_FLOAT(*((fixed_t*)a_Ptr))); break;
+		case 717: snprintf(a_Buf, a_BufSize, "%li", *((tic_t*)a_Ptr)); break;
+		case 1010: snprintf(a_Buf, a_BufSize, "%s", (*((bool_t*)a_Ptr) ? "true" : "false")); break;
+		case 5555: snprintf(a_Buf, a_BufSize, "%s", S_sfx[*((int32_t*)a_Ptr)].name); break;
+		
+		default: snprintf(a_Buf, a_BufSize, "0"); break;
+	}
+}
+
 /* D_SaveProfileData() -- Saves profile data */
 void D_SaveProfileData(void (*a_WriteBack)(const char* const a_Buf, void* const a_Data), void* const a_Data)
 {
+#define BUFSIZE 256
+	char Buf[BUFSIZE];
+	char BufB[BUFSIZE];
+	char EscapeUUID[BUFSIZE];
+	D_ProfileEx_t* Rover;
+	int i, j, k;
+	
 	/* Check */
 	if (!a_WriteBack)
 		return;
@@ -248,13 +388,128 @@ void D_SaveProfileData(void (*a_WriteBack)(const char* const a_Buf, void* const 
 	/* Start Header */
 	a_WriteBack("\n// Begin Profiles (edit at your own risk)\n", a_Data);
 	
+	/* Go through every profile */
+	for (Rover = l_FirstProfile; Rover; Rover = Rover->Next)
+	{
+		// Skip ones marked DO NOT SAVE
+		//if (Rover->Flags & DPEXF_DONTSAVE)
+		//	continue;
+		
+		// Escape the Profile Name
+		memset(EscapeUUID, 0, sizeof(EscapeUUID));
+		CONL_EscapeString(EscapeUUID, BUFSIZE, Rover->AccountName);
+		
+		// Mark profile creation
+		memset(BufB, 0, sizeof(BufB));
+		CONL_EscapeString(BufB, BUFSIZE, Rover->UUID);
+		memset(Buf, 0, sizeof(Buf));
+		snprintf(Buf, BUFSIZE, "profile create \"%s\" \"%s\"\n", EscapeUUID, BufB);
+		a_WriteBack(Buf, a_Data);
+		
+		// Write Profile Data
+		for (i = 0; c_ProfDataStat[i].ArgName[0]; i++)
+		{
+			// Value
+			memset(BufB, 0, sizeof(BufB));
+			DS_SizeToStr((void*)((uintptr_t)Rover + c_ProfDataStat[i].Offset), c_ProfDataStat[i].Size, BufB, BUFSIZE);
+			
+			// Write
+			snprintf(Buf, BUFSIZE, "profile value \"%s\" \"%s\" \"%s\"\n", EscapeUUID, c_ProfDataStat[i].ArgName, BufB);
+			a_WriteBack(Buf, a_Data);
+		}
+		
+		// Write Controls
+		for (i = 0; i < NUMDPROFILEEXINPUTCTRLS; i++)
+			for (j = 0; j < 4; j++)
+			{
+				snprintf(Buf, BUFSIZE, "profile control \"%s\" \"%s\" %i \"%s\"\n",
+						EscapeUUID,
+						"thingy",
+						j,
+						"keyset"
+					);
+				a_WriteBack(Buf, a_Data);
+			}
+		
+		// Spacer
+		a_WriteBack("\n", a_Data);
+	}
+	
 	/* End Header */
 	a_WriteBack("// End Profiles\n", a_Data);
+#undef BUFSIZE
 }
 
 /* CLC_Profile() -- Profile command handler */
 int CLC_Profile(const uint32_t a_ArgC, const char** const a_ArgV)
 {
-	return CLE_SUCCESS;
+#define BUFSIZE 256
+	char BufA[BUFSIZE];
+	char BufB[BUFSIZE];
+	D_ProfileEx_t* New;
+	
+	/* Not enough arguments? */
+	if (a_ArgC < 3)
+		return 1;
+		
+	/* Clear Buffers */
+	memset(BufA, 0, sizeof(BufA));
+	memset(BufB, 0, sizeof(BufB));
+	
+	/* Which Sub Command */
+	// Create Profile
+	if (strcasecmp(a_ArgV[1], "create") == 0)
+	{
+		// Read Name
+		CONL_UnEscapeString(BufA, BUFSIZE, a_ArgV[2]);
+		
+		// Possibly read UUID
+		New = NULL;
+		if (a_ArgC >= 4)
+		{
+			CONL_UnEscapeString(BufB, BUFSIZE, a_ArgV[3]);
+			
+			// Check UUID existence
+			New = D_FindProfileEx(BufB);
+		}
+		
+		// See if it already exists
+		if (!New)
+			New = D_FindProfileEx(BufA);
+		
+		// Exists?
+		if (New)
+		{
+			CONL_OutputU(DSTR_DPROFC_ALREADYEXIST, "%s\n", BufA);
+			return 1;
+		}
+		
+		// Create Profile
+		New = D_CreateProfileEx(BufA);
+		
+		// Failed??
+		if (!New)
+		{
+			CONL_OutputU(DSTR_DPROFC_FAILEDCREATE, "\n");
+			return 1;
+		}
+		
+		// Set UUID if preformed
+		if (BufB[0])
+			strncpy(New->UUID, BufB, MAXPROFILEUUID);
+	}
+	
+	// Change Value
+	else if (strcasecmp(a_ArgV[1], "value") == 0)
+	{
+	}
+	
+	// Control
+	else if (strcasecmp(a_ArgV[1], "control") == 0)
+	{
+	}
+	
+	return 0;
+#undef BUFSIZE
 }
 

@@ -152,6 +152,8 @@ typedef enum D_ProfileExCtrlMA_e
 
 #define MAXJOYAXIS		8
 
+#define MAXPROFILEUUID (MAXPLAYERNAME * 2)
+
 /*** STRUCTURES ***/
 
 struct mobj_s;
@@ -166,7 +168,7 @@ typedef struct D_ProfileEx_s
 	char AccountName[MAXPLAYERNAME];			// Local account name (selection limited)
 	uint8_t Color;								// Color
 	uint8_t JoyControl;							// Which joystick player controls
-	char UUID[MAXPLAYERNAME * 2];				// Player Unique ID
+	char UUID[MAXPROFILEUUID + 1];			// Player Unique ID
 	tic_t SlowTurnTime;							// Time to slow turn
 	
 	/* Controls For Player */
