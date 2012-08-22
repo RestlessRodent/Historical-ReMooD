@@ -121,7 +121,7 @@ bool_t P_CheckSizeEx(size_t Need)
 bool_t P_SaveGameEx(const char* SaveName, const char* ExtFileName, size_t ExtFileNameLen, size_t* SaveLen, uint8_t** Origin)
 {
 	bool_t OK = false;
-	D_RBlockStream_t* BS = D_RBSCreateFileStream(ExtFileName, DRBSSF_OVERWRITE);
+	D_BS_t* BS = D_BSCreateFileStream(ExtFileName, DRBSSF_OVERWRITE);
 	
 	if (BS)
 		OK = P_SaveGameToBS(BS, NULL);
@@ -133,7 +133,7 @@ bool_t P_SaveGameEx(const char* SaveName, const char* ExtFileName, size_t ExtFil
 bool_t P_LoadGameEx(const char* FileName, const char* ExtFileName, size_t ExtFileNameLen, size_t* SaveLen, uint8_t** Origin)
 {
 	bool_t OK = false;
-	D_RBlockStream_t* BS = D_RBSCreateFileStream(ExtFileName, DRBSSF_READONLY);
+	D_BS_t* BS = D_BSCreateFileStream(ExtFileName, DRBSSF_READONLY);
 	
 	if (BS)
 	{
@@ -319,7 +319,7 @@ typedef enum P_SGBWTypeRec_e
 /*** STATICS ***/
 
 /* PRWS_DRPointer() -- Pointer to something */
-static bool_t PRWS_DRPointer(D_RBlockStream_t* const a_Stream, const bool_t a_Load, const P_SGBWTypeRec_t a_RecType, void* a_Ptr, const P_SGBWTypeC_t a_CType)
+static bool_t PRWS_DRPointer(D_BS_t* const a_Stream, const bool_t a_Load, const P_SGBWTypeRec_t a_RecType, void* a_Ptr, const P_SGBWTypeC_t a_CType)
 {
 	uint64_t pID;
 	
@@ -333,12 +333,12 @@ static bool_t PRWS_DRPointer(D_RBlockStream_t* const a_Stream, const bool_t a_Lo
 	
 	/* If Saving, Dump Pointer */
 	if (!a_Load)
-		D_RBSWritePointer(a_Stream, *((void**)a_Ptr));
+		D_BSwp(a_Stream, *((void**)a_Ptr));
 	
 	/* If Loading, Get pointer and mark ref */
 	else
 	{
-		pID = D_RBSReadPointer(a_Stream);
+		pID = D_BSrp(a_Stream);
 		PLGS_DeRef(pID, ((void**)a_Ptr));
 		*((void**)a_Ptr) = NULL;	// FIXME: See if this causes problems?
 	}
@@ -348,7 +348,7 @@ static bool_t PRWS_DRPointer(D_RBlockStream_t* const a_Stream, const bool_t a_Lo
 }
 
 /* PRWS_SRPointer() -- This is a pointer (that is pointed to) */
-static bool_t PRWS_SRPointer(D_RBlockStream_t* const a_Stream, const bool_t a_Load, const P_SGBWTypeRec_t a_RecType, void* a_Ptr, const P_SGBWTypeC_t a_CType)
+static bool_t PRWS_SRPointer(D_BS_t* const a_Stream, const bool_t a_Load, const P_SGBWTypeRec_t a_RecType, void* a_Ptr, const P_SGBWTypeC_t a_CType)
 {
 	uint64_t pID;
 	
@@ -364,15 +364,15 @@ static bool_t PRWS_SRPointer(D_RBlockStream_t* const a_Stream, const bool_t a_Lo
 	if (!a_Load)
 	{
 		if (a_CType == PSTC_POINTERISDIRECT)	// Locals pointing to stuff
-			D_RBSWritePointer(a_Stream, ((void**)a_Ptr));
+			D_BSwp(a_Stream, ((void**)a_Ptr));
 		else
-			D_RBSWritePointer(a_Stream, *((void**)a_Ptr));
+			D_BSwp(a_Stream, *((void**)a_Ptr));
 	}
 	
 	/* If Loading, Get pointer and mark ref */
 	else
 	{
-		pID = D_RBSReadPointer(a_Stream);
+		pID = D_BSrp(a_Stream);
 		if (a_CType == PSTC_POINTERISDIRECT)	// Locals pointing to stuff
 			PLGS_SetRef(pID, ((void**)a_Ptr));
 		else		// Arrays
@@ -384,32 +384,32 @@ static bool_t PRWS_SRPointer(D_RBlockStream_t* const a_Stream, const bool_t a_Lo
 }
 
 // __REMOOD_PRWSBASE -- Handles basic integer types (they are all the same anyway)
-#define __REMOOD_PRWSBASE(x,y) static bool_t PRWS_##y(D_RBlockStream_t* const a_Stream, const bool_t a_Load, const P_SGBWTypeRec_t a_RecType, void* a_Ptr, const P_SGBWTypeC_t a_CType)\
+#define __REMOOD_PRWSBASE(x,y) static bool_t PRWS_##y(D_BS_t* const a_Stream, const bool_t a_Load, const P_SGBWTypeRec_t a_RecType, void* a_Ptr, const P_SGBWTypeC_t a_CType)\
 {\
 	if (a_Load)\
 		switch (a_RecType)\
 		{\
-			case PSRC_INT8: *((x*)a_Ptr) = D_RBSReadInt8(a_Stream); break;\
-			case PSRC_INT16: *((x*)a_Ptr) = D_RBSReadInt16(a_Stream); break;\
-			case PSRC_INT32: *((x*)a_Ptr) = D_RBSReadInt32(a_Stream); break;\
-			case PSRC_INT64: *((x*)a_Ptr) = D_RBSReadInt64(a_Stream); break;\
-			case PSRC_UINT8: *((x*)a_Ptr) = D_RBSReadUInt8(a_Stream); break;\
-			case PSRC_UINT16: *((x*)a_Ptr) = D_RBSReadUInt16(a_Stream); break;\
-			case PSRC_UINT32: *((x*)a_Ptr) = D_RBSReadUInt32(a_Stream); break;\
-			case PSRC_UINT64: *((x*)a_Ptr) = D_RBSReadUInt64(a_Stream); break;\
+			case PSRC_INT8: *((x*)a_Ptr) = D_BSri8(a_Stream); break;\
+			case PSRC_INT16: *((x*)a_Ptr) = D_BSri16(a_Stream); break;\
+			case PSRC_INT32: *((x*)a_Ptr) = D_BSri32(a_Stream); break;\
+			case PSRC_INT64: *((x*)a_Ptr) = D_BSri64(a_Stream); break;\
+			case PSRC_UINT8: *((x*)a_Ptr) = D_BSru8(a_Stream); break;\
+			case PSRC_UINT16: *((x*)a_Ptr) = D_BSru16(a_Stream); break;\
+			case PSRC_UINT32: *((x*)a_Ptr) = D_BSru32(a_Stream); break;\
+			case PSRC_UINT64: *((x*)a_Ptr) = D_BSru64(a_Stream); break;\
 			default: return false;\
 		}\
 	else\
 		switch (a_RecType)\
 		{\
-			case PSRC_INT8: D_RBSWriteInt8(a_Stream, *((x*)a_Ptr)); break;\
-			case PSRC_INT16: D_RBSWriteInt16(a_Stream, *((x*)a_Ptr)); break;\
-			case PSRC_INT32: D_RBSWriteInt32(a_Stream, *((x*)a_Ptr)); break;\
-			case PSRC_INT64: D_RBSWriteInt64(a_Stream, *((x*)a_Ptr)); break;\
-			case PSRC_UINT8: D_RBSWriteUInt8(a_Stream, *((x*)a_Ptr)); break;\
-			case PSRC_UINT16: D_RBSWriteUInt16(a_Stream, *((x*)a_Ptr)); break;\
-			case PSRC_UINT32: D_RBSWriteUInt32(a_Stream, *((x*)a_Ptr)); break;\
-			case PSRC_UINT64: D_RBSWriteUInt64(a_Stream, *((x*)a_Ptr)); break;\
+			case PSRC_INT8: D_BSwi8(a_Stream, *((x*)a_Ptr)); break;\
+			case PSRC_INT16: D_BSwi16(a_Stream, *((x*)a_Ptr)); break;\
+			case PSRC_INT32: D_BSwi32(a_Stream, *((x*)a_Ptr)); break;\
+			case PSRC_INT64: D_BSwi64(a_Stream, *((x*)a_Ptr)); break;\
+			case PSRC_UINT8: D_BSwu8(a_Stream, *((x*)a_Ptr)); break;\
+			case PSRC_UINT16: D_BSwu16(a_Stream, *((x*)a_Ptr)); break;\
+			case PSRC_UINT32: D_BSwu32(a_Stream, *((x*)a_Ptr)); break;\
+			case PSRC_UINT64: D_BSwu64(a_Stream, *((x*)a_Ptr)); break;\
 			default: return false;\
 		}\
 	return true;\
@@ -444,7 +444,7 @@ __REMOOD_PRWSBASE(size_t,sizet);
 static const struct
 {
 	size_t Size;								// Size of data
-	bool_t (*RWFunc)(D_RBlockStream_t* const a_Stream, const bool_t a_Load, const P_SGBWTypeRec_t a_RecType, void* a_Ptr, const P_SGBWTypeC_t a_CType);
+	bool_t (*RWFunc)(D_BS_t* const a_Stream, const bool_t a_Load, const P_SGBWTypeRec_t a_RecType, void* a_Ptr, const P_SGBWTypeC_t a_CType);
 } l_NativeData[NUMPSTCS] =
 {
 	{sizeof(char), PRWS_char},					// PSTC_CHAR
@@ -491,7 +491,7 @@ static const char l_RecChars[NUMPSRCS] =
 /* P_SGBiWayReadOrWrite() -- Read or write data */
 // This one should be dirty and ugly
 bool_t P_SGBiWayReadOrWrite(
-		D_RBlockStream_t* const a_Stream,
+		D_BS_t* const a_Stream,
 		const bool_t a_Load,
 		void* const a_Ptr,
 		const size_t a_Size,
@@ -504,7 +504,7 @@ bool_t P_SGBiWayReadOrWrite(
 	
 	/* Read Data Marker */
 	if (a_Load)
-		Marker = D_RBSReadUInt8(a_Stream);
+		Marker = D_BSru8(a_Stream);
 	
 	/* Sanity Checks */
 	if (devparm)
@@ -527,7 +527,7 @@ bool_t P_SGBiWayReadOrWrite(
 	
 	/* Write Data Marker */
 	if (!a_Load)
-		D_RBSWriteUInt8(a_Stream, l_RecChars[a_RecType]);
+		D_BSwu8(a_Stream, l_RecChars[a_RecType]);
 	
 	/* Handle Native Read/Write */
 	if (l_NativeData[a_NativeType].RWFunc)
@@ -536,13 +536,13 @@ bool_t P_SGBiWayReadOrWrite(
 }
 
 /* P_SGBiWayReadStr() -- Read string and Z_StrDup it */
-bool_t P_SGBiWayReadStr(D_RBlockStream_t* const a_Stream, char** const a_Ptr, char* const a_Buf, const size_t a_BufSize)
+bool_t P_SGBiWayReadStr(D_BS_t* const a_Stream, char** const a_Ptr, char* const a_Buf, const size_t a_BufSize)
 {
 	/* Clear */
 	//memset(a_Buf, 0, sizeof(a_Buf) * a_BufSize);
 	
 	/* Read String */
-	D_RBSReadString(a_Stream, a_Buf, a_BufSize - 1);
+	D_BSrs(a_Stream, a_Buf, a_BufSize - 1);
 	
 	/* Dupe it */
 	if (a_Ptr)
@@ -598,30 +598,30 @@ static uint8_t PS_IDThinkerType(thinker_t* const a_Thinker)
 	return '?';
 }
 
-/* PS_WRAPPED_D_RBSWriteString() -- Wrapped for MSVC */
-bool_t PS_WRAPPED_D_RBSWriteString(D_RBlockStream_t* const a_Stream, const char* const a_Val)
+/* PS_WRAPPED_D_BSws() -- Wrapped for MSVC */
+bool_t PS_WRAPPED_D_BSws(D_BS_t* const a_Stream, const char* const a_Val)
 {
-	D_RBSWriteString(a_Stream, a_Val);
+	D_BSws(a_Stream, a_Val);
 	return true;
 }
 
 /* P_SGBiWayBS() -- Saving function that goes both ways */
 // This one should be clean and neat
-bool_t P_SGBiWayBS(D_RBlockStream_t* const a_Stream, const bool_t a_Load)
+bool_t P_SGBiWayBS(D_BS_t* const a_Stream, const bool_t a_Load)
 {
 	// __HEADER -- Determines if header matches or starts a new one
-#define __HEADER(s) (a_Load ? (strcasecmp((s), PS_SGBiWayDH(Header, a_NetAddr, &InAddr)) == 0) : (D_RBSBaseBlock(a_Stream, PS_SGBiWayDH(s, NULL, NULL))))
+#define __HEADER(s) (a_Load ? (strcasecmp((s), PS_SGBiWayDH(Header, a_NetAddr, &InAddr)) == 0) : (D_BSBaseBlock(a_Stream, PS_SGBiWayDH(s, NULL, NULL))))
 	// __REC -- Write: Continues (done with block so who cares); Read: Record block
-#define __REC if (a_Load) HitBlock = true; else D_RBSRecordNetBlock(a_Stream, a_NetAddr)
+#define __REC if (a_Load) HitBlock = true; else D_BSRecordNetBlock(a_Stream, a_NetAddr)
 	// __BI -- Reads or loads data
 #define __BI(x,nt,rc) P_SGBiWayReadOrWrite(a_Stream, a_Load, &x, sizeof(x), PSTC_##nt, PSRC_##rc, __FILE__, __LINE__)
 	// __BISTRZ -- Z_Malloced String
-#define __BISTRZ(x) (a_Load ? P_SGBiWayReadStr(a_Stream,&x,Buf,BUFSIZE) : PS_WRAPPED_D_RBSWriteString(a_Stream, x))
+#define __BISTRZ(x) (a_Load ? P_SGBiWayReadStr(a_Stream,&x,Buf,BUFSIZE) : PS_WRAPPED_D_BSws(a_Stream, x))
 	// __BISTRB -- Buffered String
-#define __BISTRB(buf,bs) (a_Load ? P_SGBiWayReadStr(a_Stream,NULL,buf,bs) : PS_WRAPPED_D_RBSWriteString(a_Stream, buf))
+#define __BISTRB(buf,bs) (a_Load ? P_SGBiWayReadStr(a_Stream,NULL,buf,bs) : PS_WRAPPED_D_BSws(a_Stream, buf))
 	
-	//D_RBSWriteString(D_RBlockStream_t* const a_Stream, const char* const a_Val);
-	//D_RBSReadString(D_RBlockStream_t* const a_Stream, char* const a_Out, const size_t a_OutSize);
+	//D_BSws(D_BS_t* const a_Stream, const char* const a_Val);
+	//D_BSrs(D_BS_t* const a_Stream, char* const a_Out, const size_t a_OutSize);
 
 #define BUFSIZE 512
 #if 0
@@ -668,7 +668,7 @@ bool_t P_SGBiWayBS(D_RBlockStream_t* const a_Stream, const bool_t a_Load)
 		// If loading, read block (play it back)
 		memset(Header, 0, sizeof(Header));
 		if (a_Load)
-			if (!(Continue = D_RBSPlayBlock(a_Stream, Header)))
+			if (!(Continue = D_BSPlayBlock(a_Stream, Header)))
 				break;
 		
 		//////////////////////////////
@@ -2067,7 +2067,7 @@ else if (a_Thinker->function.acv == T_VerticalDoor)	return 'o';
 /*****************************************************************************/
 
 /* P_LoadGameFromBS() -- Load game from block stream */
-bool_t P_LoadGameFromBS(D_RBlockStream_t* const a_Stream, I_HostAddress_t* const a_NetAddr)
+bool_t P_LoadGameFromBS(D_BS_t* const a_Stream, I_HostAddress_t* const a_NetAddr)
 {
 #define BUFSIZE 256
 	char Buf[BUFSIZE];
@@ -2095,7 +2095,7 @@ bool_t P_LoadGameFromBS(D_RBlockStream_t* const a_Stream, I_HostAddress_t* const
 	/* Constantly Read Blocks */
 	memset(Header, 0, sizeof(Header));
 	memset(Buf, 0, sizeof(Buf));
-	while (D_RBSPlayBlock(a_Stream, Header))
+	while (D_BSPlayBlock(a_Stream, Header))
 	{
 		if (devparm)
 			CONL_PrintF("LOAD: Read %s\n", Header);
@@ -2104,10 +2104,10 @@ bool_t P_LoadGameFromBS(D_RBlockStream_t* const a_Stream, I_HostAddress_t* const
 		if (strcasecmp(Header, "SGVR") == 0)
 		{
 			// Read version markers
-			VerLeg = D_RBSReadUInt8(a_Stream);
-			VerMaj = D_RBSReadUInt8(a_Stream);
-			VerMin = D_RBSReadUInt8(a_Stream);
-			VerRel = D_RBSReadUInt8(a_Stream);
+			VerLeg = D_BSru8(a_Stream);
+			VerMaj = D_BSru8(a_Stream);
+			VerMin = D_BSru8(a_Stream);
+			VerRel = D_BSru8(a_Stream);
 			
 			// Print Info
 			CONL_PrintF("LOAD: Loading Version %i.%i%c (%i)\n",
@@ -2116,11 +2116,11 @@ bool_t P_LoadGameFromBS(D_RBlockStream_t* const a_Stream, I_HostAddress_t* const
 				);
 			
 			// Read Other Info
-			D_RBSReadString(a_Stream, Buf, BUFSIZE - 1);
+			D_BSrs(a_Stream, Buf, BUFSIZE - 1);
 			CONL_PrintF("LOAD: Release \"%s\"\n", Buf);
-			D_RBSReadString(a_Stream, Buf, BUFSIZE - 1);
+			D_BSrs(a_Stream, Buf, BUFSIZE - 1);
 			CONL_PrintF("LOAD: Fully known as %s\n", Buf);
-			D_RBSReadString(a_Stream, Buf, BUFSIZE - 1);
+			D_BSrs(a_Stream, Buf, BUFSIZE - 1);
 			CONL_PrintF("LOAD: For more info, see %s\n", Buf);
 		}
 		
@@ -2133,14 +2133,14 @@ bool_t P_LoadGameFromBS(D_RBlockStream_t* const a_Stream, I_HostAddress_t* const
 				;
 			
 			// Keep reading WADs
-			while ((CharBit = D_RBSReadUInt8(a_Stream)) != 'E')
+			while ((CharBit = D_BSru8(a_Stream)) != 'E')
 			{
 				// Read file and DOS Names
 				memset(Buf, 0, sizeof(Buf));
 				memset(BufB, 0, sizeof(BufB));
 				
-				D_RBSReadString(a_Stream, Buf, BUFSIZE - 1);
-				D_RBSReadString(a_Stream, BufB, BUFSIZE - 1);
+				D_BSrs(a_Stream, Buf, BUFSIZE - 1);
+				D_BSrs(a_Stream, BufB, BUFSIZE - 1);
 				
 				// Open the WAD and if that failed, try the DOSNAME
 				if (!(WAD = WL_OpenWAD(Buf)))
@@ -2155,22 +2155,22 @@ bool_t P_LoadGameFromBS(D_RBlockStream_t* const a_Stream, I_HostAddress_t* const
 				}
 				
 				// Check some bits
-				CheckBit = D_RBSReadUInt8(a_Stream); // IP
-				CheckBit = D_RBSReadUInt8(a_Stream); // WN
-				CheckBit = D_RBSReadUInt8(a_Stream); // VI
+				CheckBit = D_BSru8(a_Stream); // IP
+				CheckBit = D_BSru8(a_Stream); // WN
+				CheckBit = D_BSru8(a_Stream); // VI
 				
 				// Ignore index offset sizes and such
-				u32 = D_RBSReadUInt32(a_Stream);
-				u32 = D_RBSReadUInt32(a_Stream);
-				u32 = D_RBSReadUInt32(a_Stream);
+				u32 = D_BSru32(a_Stream);
+				u32 = D_BSru32(a_Stream);
+				u32 = D_BSru32(a_Stream);
 				
 				// Ignore integer sums
 				for (i = 0; i < 8; i++)
-					u32 = D_RBSReadUInt32(a_Stream);
+					u32 = D_BSru32(a_Stream);
 				
 				// Compare MD5/SS against WAD
 				for (i = 0; i < 64; i++)
-					CheckBit = D_RBSReadUInt8(a_Stream);
+					CheckBit = D_BSru8(a_Stream);
 				
 				// Push WAD
 				WL_PushWAD(WAD);
@@ -2184,19 +2184,19 @@ bool_t P_LoadGameFromBS(D_RBlockStream_t* const a_Stream, I_HostAddress_t* const
 		else if (strcasecmp(Header, "SGZS") == 0)
 		{
 			// Read Timing Information
-			gametic = D_RBSReadUInt32(a_Stream);
-			D_SyncNetSetMapTime(D_RBSReadUInt32(a_Stream));
-			D_RBSReadUInt32(a_Stream);	// Ignore real time, not that important
+			gametic = D_BSru32(a_Stream);
+			D_SyncNetSetMapTime(D_BSru32(a_Stream));
+			D_BSru32(a_Stream);	// Ignore real time, not that important
 			
 			// Read State Info
-			gamestate = D_RBSReadUInt8(a_Stream);
-			u8 = D_RBSReadUInt8(a_Stream);	// Ignore demorecording
-			u8 = D_RBSReadUInt8(a_Stream);	// Ignore demoplayback
-			multiplayer = D_RBSReadUInt8(a_Stream);
+			gamestate = D_BSru8(a_Stream);
+			u8 = D_BSru8(a_Stream);	// Ignore demorecording
+			u8 = D_BSru8(a_Stream);	// Ignore demoplayback
+			multiplayer = D_BSru8(a_Stream);
 			
 			// Read Map Name
 			memset(Buf, 0, sizeof(Buf));
-			D_RBSReadString(a_Stream, Buf, BUFSIZE - 1);
+			D_BSrs(a_Stream, Buf, BUFSIZE - 1);
 			
 			// Find level
 			g_CurrentLevelInfo = P_FindLevelByNameEx(Buf, NULL);
@@ -2206,21 +2206,21 @@ bool_t P_LoadGameFromBS(D_RBlockStream_t* const a_Stream, I_HostAddress_t* const
 		else if (strcasecmp(Header, "SGMV") == 0)
 		{
 			// Read Count
-			numvertexes = D_RBSReadUInt32(a_Stream);
+			numvertexes = D_BSru32(a_Stream);
 			vertexes = Z_Malloc(sizeof(*vertexes) * numvertexes, PU_LEVEL, NULL);
 			
 			// Read every vertex
 			for (i = 0; i < numvertexes; i++)
 			{
-				vertexes[i].x = D_RBSReadInt32(a_Stream);
-				vertexes[i].y = D_RBSReadInt32(a_Stream);
+				vertexes[i].x = D_BSri32(a_Stream);
+				vertexes[i].y = D_BSri32(a_Stream);
 			}
 		}
 		
 		// SGMS -- Map Sectors
 		else if (strcasecmp(Header, "SGMS") == 0)
 		{
-			numsectors = D_RBSReadUInt32(a_Stream);
+			numsectors = D_BSru32(a_Stream);
 			sectors = Z_Malloc(sizeof(*sectors) * numsectors, PU_LEVEL, NULL);
 			
 			// Read every sector
@@ -2237,7 +2237,7 @@ bool_t P_LoadGameFromBS(D_RBlockStream_t* const a_Stream, I_HostAddress_t* const
 		else if (strcasecmp(Header, "SGMT") == 0)
 		{
 			// Read Count
-			nummapthings = D_RBSReadUInt32(a_Stream);
+			nummapthings = D_BSru32(a_Stream);
 			mapthings = Z_Malloc(sizeof(*mapthings) * nummapthings, PU_LEVEL, NULL);
 			
 			// Read every map thing
@@ -2245,24 +2245,24 @@ bool_t P_LoadGameFromBS(D_RBlockStream_t* const a_Stream, I_HostAddress_t* const
 			{
 				// Set pointer reference
 				MapThing = &mapthings[i];
-				PLGS_SetRef(D_RBSReadPointer(a_Stream), MapThing);
+				PLGS_SetRef(D_BSrp(a_Stream), MapThing);
 				
 				// Read the remainder
-				MapThing->x = D_RBSReadInt16(a_Stream);
-				MapThing->y = D_RBSReadInt16(a_Stream);
-				MapThing->z = D_RBSReadInt16(a_Stream);
-				MapThing->angle = D_RBSReadInt16(a_Stream);
-				MapThing->type = D_RBSReadInt16(a_Stream);
-				MapThing->options = D_RBSReadInt16(a_Stream);
-				PLGS_DeRef(D_RBSReadPointer(a_Stream), (void**)&MapThing->mobj);
-				MapThing->IsHexen = D_RBSReadUInt8(a_Stream);
-				MapThing->HeightOffset = D_RBSReadInt16(a_Stream);
-				MapThing->ID = D_RBSReadUInt16(a_Stream);
-				MapThing->Special = D_RBSReadUInt8(a_Stream);
+				MapThing->x = D_BSri16(a_Stream);
+				MapThing->y = D_BSri16(a_Stream);
+				MapThing->z = D_BSri16(a_Stream);
+				MapThing->angle = D_BSri16(a_Stream);
+				MapThing->type = D_BSri16(a_Stream);
+				MapThing->options = D_BSri16(a_Stream);
+				PLGS_DeRef(D_BSrp(a_Stream), (void**)&MapThing->mobj);
+				MapThing->IsHexen = D_BSru8(a_Stream);
+				MapThing->HeightOffset = D_BSri16(a_Stream);
+				MapThing->ID = D_BSru16(a_Stream);
+				MapThing->Special = D_BSru8(a_Stream);
 				for (j = 0; j < 5; j++)
-					MapThing->Args[i] = D_RBSReadUInt8(a_Stream);
-				MapThing->MoType = D_RBSReadUInt32(a_Stream);
-				MapThing->MarkedWeapon = D_RBSReadUInt8(a_Stream);
+					MapThing->Args[i] = D_BSru8(a_Stream);
+				MapThing->MoType = D_BSru32(a_Stream);
+				MapThing->MarkedWeapon = D_BSru8(a_Stream);
 			}
 		}
 		
@@ -2270,10 +2270,10 @@ bool_t P_LoadGameFromBS(D_RBlockStream_t* const a_Stream, I_HostAddress_t* const
 		else if (strcasecmp(Header, "SGMR") == 0)
 		{
 			// Read Player Starts
-			j = D_RBSReadUInt32(a_Stream);
+			j = D_BSru32(a_Stream);
 			for (k = 0; k < j; k++)
 			{
-				u32 = D_RBSReadUInt32(a_Stream);
+				u32 = D_BSru32(a_Stream);
 				if (k < MAXPLAYERS && u32 >= 0 && u32 < nummapthings)
 					playerstarts[k] = &mapthings[u32];
 			}
@@ -2293,18 +2293,18 @@ bool_t P_LoadGameFromBS(D_RBlockStream_t* const a_Stream, I_HostAddress_t* const
 }
 
 // Save Game Prototypes
-void P_SGBS_Time(D_RBlockStream_t* const a_Stream);
-void P_SGBS_Version(D_RBlockStream_t* const a_Stream);
-void P_SGBS_WAD(D_RBlockStream_t* const a_Stream);
-void P_SGBS_NetProfiles(D_RBlockStream_t* const a_Stream);
-void P_SGBS_SplitPlayers(D_RBlockStream_t* const a_Stream);
-void P_SGBS_Players(D_RBlockStream_t* const a_Stream);
-void P_SGBS_MapData(D_RBlockStream_t* const a_Stream);
-void P_SGBS_Thinkers(D_RBlockStream_t* const a_Stream);
-void P_SGBS_State(D_RBlockStream_t* const a_Stream);
+void P_SGBS_Time(D_BS_t* const a_Stream);
+void P_SGBS_Version(D_BS_t* const a_Stream);
+void P_SGBS_WAD(D_BS_t* const a_Stream);
+void P_SGBS_NetProfiles(D_BS_t* const a_Stream);
+void P_SGBS_SplitPlayers(D_BS_t* const a_Stream);
+void P_SGBS_Players(D_BS_t* const a_Stream);
+void P_SGBS_MapData(D_BS_t* const a_Stream);
+void P_SGBS_Thinkers(D_BS_t* const a_Stream);
+void P_SGBS_State(D_BS_t* const a_Stream);
 
 /* P_SaveGameToBS() -- Save game to block stream */
-bool_t P_SaveGameToBS(D_RBlockStream_t* const a_Stream, I_HostAddress_t* const a_NetAddr)
+bool_t P_SaveGameToBS(D_BS_t* const a_Stream, I_HostAddress_t* const a_NetAddr)
 {
 	const char* c;
 	
@@ -2319,12 +2319,12 @@ bool_t P_SaveGameToBS(D_RBlockStream_t* const a_Stream, I_HostAddress_t* const a
 	/* Create Header Block */
 	// Save Game Save Stream
 		// Base
-	D_RBSBaseBlock(a_Stream, "SGSS");
+	D_BSBaseBlock(a_Stream, "SGSS");
 		// Fill
 	for (c = "ReMooD Save Game"; *c; c++)
-		D_RBSWriteUInt8(a_Stream, *c);
+		D_BSwu8(a_Stream, *c);
 		// Record
-	D_RBSRecordBlock(a_Stream);
+	D_BSRecordBlock(a_Stream);
 	
 	/* Save Details of Game */
 	P_SGBS_Time(a_Stream);
@@ -2340,12 +2340,12 @@ bool_t P_SaveGameToBS(D_RBlockStream_t* const a_Stream, I_HostAddress_t* const a
 	/* Write End Header */
 	// Save Game End Exit
 		// Base
-	D_RBSBaseBlock(a_Stream, "SGEE");
+	D_BSBaseBlock(a_Stream, "SGEE");
 		// Fill
 	for (c = "End Stream"; *c; c++)
-		D_RBSWriteUInt8(a_Stream, *c);
+		D_BSwu8(a_Stream, *c);
 		// Record
-	D_RBSRecordBlock(a_Stream);
+	D_BSRecordBlock(a_Stream);
 	
 	/* Success */
 	return true;
@@ -2354,90 +2354,90 @@ bool_t P_SaveGameToBS(D_RBlockStream_t* const a_Stream, I_HostAddress_t* const a
 /*** SAVING THE GAME STATE ***/
 
 /* P_SGBS_Time() -- Print Time Information */
-void P_SGBS_Time(D_RBlockStream_t* const a_Stream)
+void P_SGBS_Time(D_BS_t* const a_Stream)
 {
 	/* Begin Header */
-	D_RBSBaseBlock(a_Stream, "SGVT");
+	D_BSBaseBlock(a_Stream, "SGVT");
 	
 	/* Place Time Information (Save Related) */
-	D_RBSWriteUInt32(a_Stream, time(NULL));
-	D_RBSWriteUInt32(a_Stream, g_ProgramTic);
+	D_BSwu32(a_Stream, time(NULL));
+	D_BSwu32(a_Stream, g_ProgramTic);
 	
 	/* Record Block */
-	D_RBSRecordBlock(a_Stream);
+	D_BSRecordBlock(a_Stream);
 }
 
 /* P_SGBS_Version() -- Write version information */
-void P_SGBS_Version(D_RBlockStream_t* const a_Stream)
+void P_SGBS_Version(D_BS_t* const a_Stream)
 {
 	/* Begin Header */
-	D_RBSBaseBlock(a_Stream, "SGVR");
+	D_BSBaseBlock(a_Stream, "SGVR");
 	
 	/* Fill With Versioning */
 		// Legacy Version
-	D_RBSWriteUInt8(a_Stream, VERSION);
+	D_BSwu8(a_Stream, VERSION);
 		// ReMooD Version
-	D_RBSWriteUInt8(a_Stream, REMOOD_MAJORVERSION);
-	D_RBSWriteUInt8(a_Stream, REMOOD_MINORVERSION);
-	D_RBSWriteUInt8(a_Stream, REMOOD_RELEASEVERSION);
+	D_BSwu8(a_Stream, REMOOD_MAJORVERSION);
+	D_BSwu8(a_Stream, REMOOD_MINORVERSION);
+	D_BSwu8(a_Stream, REMOOD_RELEASEVERSION);
 		// Version Strings
-	D_RBSWriteString(a_Stream, REMOOD_VERSIONCODESTRING);
-	D_RBSWriteString(a_Stream, REMOOD_FULLVERSIONSTRING);
-	D_RBSWriteString(a_Stream, REMOOD_URL);
+	D_BSws(a_Stream, REMOOD_VERSIONCODESTRING);
+	D_BSws(a_Stream, REMOOD_FULLVERSIONSTRING);
+	D_BSws(a_Stream, REMOOD_URL);
 		// Compilation Stuff
-	D_RBSWriteString(a_Stream, __TIME__);
-	D_RBSWriteString(a_Stream, __DATE__);
+	D_BSws(a_Stream, __TIME__);
+	D_BSws(a_Stream, __DATE__);
 	
 	/* Record Block */
-	D_RBSRecordBlock(a_Stream);
+	D_BSRecordBlock(a_Stream);
 }
 
 /* P_SGBS_WAD() -- Write WAD State */
-void P_SGBS_WAD(D_RBlockStream_t* const a_Stream)
+void P_SGBS_WAD(D_BS_t* const a_Stream)
 {
 	const WL_WADFile_t* CurVWAD;
 	size_t i;
 	
 	/* Begin Header */
-	D_RBSBaseBlock(a_Stream, "SGVW");
+	D_BSBaseBlock(a_Stream, "SGVW");
 	
 	/* Iterate all VWADs */	
 	for (CurVWAD = WL_IterateVWAD(NULL, true); CurVWAD; CurVWAD = WL_IterateVWAD(CurVWAD, true))
 	{
-		D_RBSWriteUInt8(a_Stream, 'B');
+		D_BSwu8(a_Stream, 'B');
 		
 		// Print WAD Names
-		D_RBSWriteString(a_Stream, CurVWAD->__Private.__FileName);
-		D_RBSWriteString(a_Stream, CurVWAD->__Private.__DOSName);
+		D_BSws(a_Stream, CurVWAD->__Private.__FileName);
+		D_BSws(a_Stream, CurVWAD->__Private.__DOSName);
 		
 		// Print Some Flags
-		D_RBSWriteUInt8(a_Stream, (CurVWAD->__Private.__IsIWAD ? 'I' : 'P'));
-		D_RBSWriteUInt8(a_Stream, (CurVWAD->__Private.__IsWAD ? 'W' : 'N'));
-		D_RBSWriteUInt8(a_Stream, (CurVWAD->__Private.__IsValid ? 'V' : 'I'));
+		D_BSwu8(a_Stream, (CurVWAD->__Private.__IsIWAD ? 'I' : 'P'));
+		D_BSwu8(a_Stream, (CurVWAD->__Private.__IsWAD ? 'W' : 'N'));
+		D_BSwu8(a_Stream, (CurVWAD->__Private.__IsValid ? 'V' : 'I'));
 		
 		// Print Some WAD Identification
-		D_RBSWriteUInt32(a_Stream, CurVWAD->NumEntries);
-		D_RBSWriteUInt32(a_Stream, CurVWAD->__Private.__IndexOff);
-		D_RBSWriteUInt32(a_Stream, CurVWAD->__Private.__Size);
+		D_BSwu32(a_Stream, CurVWAD->NumEntries);
+		D_BSwu32(a_Stream, CurVWAD->__Private.__IndexOff);
+		D_BSwu32(a_Stream, CurVWAD->__Private.__Size);
 		
 		// Print WAD Sums
 		for (i = 0; i < 4; i++)
-			D_RBSWriteUInt32(a_Stream, CurVWAD->CheckSum[i]);
+			D_BSwu32(a_Stream, CurVWAD->CheckSum[i]);
 		for (i = 0; i < 4; i++)
-			D_RBSWriteUInt32(a_Stream, CurVWAD->SimpleSum[i]);
+			D_BSwu32(a_Stream, CurVWAD->SimpleSum[i]);
 		for (i = 0; i < 32; i++)
-			D_RBSWriteUInt8(a_Stream, CurVWAD->CheckSumChars[i]);
+			D_BSwu8(a_Stream, CurVWAD->CheckSumChars[i]);
 		for (i = 0; i < 32; i++)
-			D_RBSWriteUInt8(a_Stream, CurVWAD->SimpleSumChars[i]);
+			D_BSwu8(a_Stream, CurVWAD->SimpleSumChars[i]);
 	}
-	D_RBSWriteUInt8(a_Stream, 'E');
+	D_BSwu8(a_Stream, 'E');
 	
 	/* Record Block */
-	D_RBSRecordBlock(a_Stream);
+	D_BSRecordBlock(a_Stream);
 }
 
 /* P_SGBS_NetProfiles() -- Record network profiles */
-void P_SGBS_NetProfiles(D_RBlockStream_t* const a_Stream)
+void P_SGBS_NetProfiles(D_BS_t* const a_Stream)
 {
 	size_t i, j, k;
 	D_ProfileEx_t* ProfileEx;
@@ -2445,7 +2445,7 @@ void P_SGBS_NetProfiles(D_RBlockStream_t* const a_Stream)
 	ticcmd_t* TicCmd;
 	
 	/* Begin Header */
-	D_RBSBaseBlock(a_Stream, "SGNP");
+	D_BSBaseBlock(a_Stream, "SGNP");
 	
 	/* Go through each player */
 	for (i = 0; i < MAXPLAYERS; i++)
@@ -2455,7 +2455,7 @@ void P_SGBS_NetProfiles(D_RBlockStream_t* const a_Stream)
 			continue;
 		
 		// Print Player ID
-		D_RBSWriteUInt8(a_Stream, i);
+		D_BSwu8(a_Stream, i);
 		
 		// Get Stuff
 		NetPlayer = players[i].NetPlayer;
@@ -2465,26 +2465,26 @@ void P_SGBS_NetProfiles(D_RBlockStream_t* const a_Stream)
 		if (NetPlayer)
 		{
 			// Write ticker
-			D_RBSWriteUInt8(a_Stream, 'N');
+			D_BSwu8(a_Stream, 'N');
 			
 			// Print UUID To Identify
-			D_RBSWritePointer(a_Stream, NetPlayer);
-			D_RBSWriteString(a_Stream, NetPlayer->UUID);
+			D_BSwp(a_Stream, NetPlayer);
+			D_BSws(a_Stream, NetPlayer->UUID);
 			
 			// Print Profile And Player Link
-			D_RBSWriteString(a_Stream, (NetPlayer->Profile ? NetPlayer->Profile->UUID : ""));
-			D_RBSWriteUInt8(a_Stream, NetPlayer->Player - players);
+			D_BSws(a_Stream, (NetPlayer->Profile ? NetPlayer->Profile->UUID : ""));
+			D_BSwu8(a_Stream, NetPlayer->Player - players);
 			
 			// Print Other NetInfo Stuff
-			D_RBSWriteUInt8(a_Stream, NetPlayer->Type);
-			D_RBSWriteString(a_Stream, NetPlayer->DisplayName);
-			D_RBSWriteUInt8(a_Stream, NetPlayer->NetColor);
+			D_BSwu8(a_Stream, NetPlayer->Type);
+			D_BSws(a_Stream, NetPlayer->DisplayName);
+			D_BSwu8(a_Stream, NetPlayer->NetColor);
 			
 			// Print Tic Info
 			for (k = 0; k < 2; k++)
 			{
 				// Write Tic Count
-				D_RBSWriteUInt16(a_Stream, (!k ? NetPlayer->LocalTicTotal : NetPlayer->TicTotal));
+				D_BSwu16(a_Stream, (!k ? NetPlayer->LocalTicTotal : NetPlayer->TicTotal));
 				
 				// Write each tic
 				for (j = 0; j < (!k ? NetPlayer->LocalTicTotal : NetPlayer->TicTotal); j++)
@@ -2493,258 +2493,258 @@ void P_SGBS_NetProfiles(D_RBlockStream_t* const a_Stream)
 					TicCmd = (!k ? &NetPlayer->LocalTicCmd[j] : &NetPlayer->TicCmd[j]);
 					
 					// Write the commands out
-					D_RBSWriteUInt8(a_Stream, TicCmd->forwardmove);
-					D_RBSWriteUInt8(a_Stream, TicCmd->sidemove);
-					D_RBSWriteUInt8(a_Stream, TicCmd->artifact);
-					D_RBSWriteUInt8(a_Stream, TicCmd->XNewWeapon);
-					D_RBSWriteUInt16(a_Stream, TicCmd->BaseAngleTurn);
-					D_RBSWriteUInt16(a_Stream, TicCmd->angleturn);
-					D_RBSWriteUInt16(a_Stream, TicCmd->aiming);
-					D_RBSWriteUInt16(a_Stream, TicCmd->buttons);
+					D_BSwu8(a_Stream, TicCmd->forwardmove);
+					D_BSwu8(a_Stream, TicCmd->sidemove);
+					D_BSwu8(a_Stream, TicCmd->artifact);
+					D_BSwu8(a_Stream, TicCmd->XNewWeapon);
+					D_BSwu16(a_Stream, TicCmd->BaseAngleTurn);
+					D_BSwu16(a_Stream, TicCmd->angleturn);
+					D_BSwu16(a_Stream, TicCmd->aiming);
+					D_BSwu16(a_Stream, TicCmd->buttons);
 				}
 			}
 		}
 		
 		// Missing net player, so ignore it
 		else
-			D_RBSWriteUInt8(a_Stream, 'X');
+			D_BSwu8(a_Stream, 'X');
 		
 		// Parse Profile
 		if (ProfileEx)
 		{
 			// Write ticker
-			D_RBSWriteUInt8(a_Stream, 'P');
+			D_BSwu8(a_Stream, 'P');
 			
 			// Print UUID To Identify
-			D_RBSWritePointer(a_Stream, ProfileEx);
-			D_RBSWriteString(a_Stream, ProfileEx->UUID);
+			D_BSwp(a_Stream, ProfileEx);
+			D_BSws(a_Stream, ProfileEx->UUID);
 			
 			// Print NetPlayer Link
-			D_RBSWriteString(a_Stream, (ProfileEx->NetPlayer ? ProfileEx->NetPlayer->UUID : ""));
+			D_BSws(a_Stream, (ProfileEx->NetPlayer ? ProfileEx->NetPlayer->UUID : ""));
 			
 			// Print Profile Info
-			D_RBSWriteUInt8(a_Stream, ProfileEx->Type);
-			D_RBSWriteString(a_Stream, ProfileEx->DisplayName);
-			D_RBSWriteString(a_Stream, ProfileEx->AccountName);
-			D_RBSWriteUInt8(a_Stream, ProfileEx->Color);
+			D_BSwu8(a_Stream, ProfileEx->Type);
+			D_BSws(a_Stream, ProfileEx->DisplayName);
+			D_BSws(a_Stream, ProfileEx->AccountName);
+			D_BSwu8(a_Stream, ProfileEx->Color);
 		}
 		
 		// Missing profile, so ignore it
 		else
-			D_RBSWriteUInt8(a_Stream, 'X');
+			D_BSwu8(a_Stream, 'X');
 	}
 	
 	/* Record Block */
-	D_RBSRecordBlock(a_Stream);
+	D_BSRecordBlock(a_Stream);
 }
 
 /* P_SGBS_SplitPlayers() -- Split players */
-void P_SGBS_SplitPlayers(D_RBlockStream_t* const a_Stream)
+void P_SGBS_SplitPlayers(D_BS_t* const a_Stream)
 {
 	size_t i;
 	
 	/* Begin Header */
-	D_RBSBaseBlock(a_Stream, "SGSC");
+	D_BSBaseBlock(a_Stream, "SGSC");
 	
 	/* Print Local Players */
-	D_RBSWriteUInt8(a_Stream, g_SplitScreen);
+	D_BSwu8(a_Stream, g_SplitScreen);
 	
 	// Go through Each
 	for (i = 0; i < MAXSPLITSCREEN; i++)
 	{
-		D_RBSWriteUInt8(a_Stream, g_PlayerInSplit[i]);
-		D_RBSWriteUInt8(a_Stream, consoleplayer[i]);
-		D_RBSWriteUInt8(a_Stream, displayplayer[i]);
+		D_BSwu8(a_Stream, g_PlayerInSplit[i]);
+		D_BSwu8(a_Stream, consoleplayer[i]);
+		D_BSwu8(a_Stream, displayplayer[i]);
 	}
 	
 	/* Record Block */
-	D_RBSRecordBlock(a_Stream);
+	D_BSRecordBlock(a_Stream);
 }
 
 /* P_SGBS_Players() -- Dump Players */
-void P_SGBS_Players(D_RBlockStream_t* const a_Stream)
+void P_SGBS_Players(D_BS_t* const a_Stream)
 {
 	size_t i, j;
 	player_t* Player;
 	
 	/* Begin Header */
-	D_RBSBaseBlock(a_Stream, "SGPL");
+	D_BSBaseBlock(a_Stream, "SGPL");
 	
 	for (i = 0; i < MAXPLAYERS; i++)
 	{
 		Player = &players[i];
 		
 		// Print Identifier
-		D_RBSWriteUInt8(a_Stream, i);
-		D_RBSWritePointer(a_Stream, Player);
+		D_BSwu8(a_Stream, i);
+		D_BSwp(a_Stream, Player);
 		
 		// Not in game?
 		if (!playeringame[i])
 		{
-			D_RBSWriteUInt8(a_Stream, 'V');
+			D_BSwu8(a_Stream, 'V');
 			continue;
 		}
 		
 		// Write as In Game
-		D_RBSWriteUInt8(a_Stream, 'P');
+		D_BSwu8(a_Stream, 'P');
 		
 		// Write Links
-		D_RBSWritePointer(a_Stream, Player->ProfileEx);
-		D_RBSWriteString(a_Stream, (Player->ProfileEx ? Player->ProfileEx->UUID : ""));
-		D_RBSWritePointer(a_Stream, Player->NetPlayer);
-		D_RBSWriteString(a_Stream, (Player->NetPlayer ? Player->NetPlayer->UUID : ""));
+		D_BSwp(a_Stream, Player->ProfileEx);
+		D_BSws(a_Stream, (Player->ProfileEx ? Player->ProfileEx->UUID : ""));
+		D_BSwp(a_Stream, Player->NetPlayer);
+		D_BSws(a_Stream, (Player->NetPlayer ? Player->NetPlayer->UUID : ""));
 		
 		// Print Map Objects Connected To
-		D_RBSWritePointer(a_Stream, Player->mo);
-		D_RBSWritePointer(a_Stream, Player->rain1);
-		D_RBSWritePointer(a_Stream, Player->rain2);
-		D_RBSWritePointer(a_Stream, Player->attacker);
+		D_BSwp(a_Stream, Player->mo);
+		D_BSwp(a_Stream, Player->rain1);
+		D_BSwp(a_Stream, Player->rain2);
+		D_BSwp(a_Stream, Player->attacker);
 		
 		// Write Player Info
-		D_RBSWriteUInt8(a_Stream, Player->playerstate);
-		D_RBSWriteInt32(a_Stream, Player->viewz);
-		D_RBSWriteInt32(a_Stream, Player->viewheight);
-		D_RBSWriteInt32(a_Stream, Player->deltaviewheight);
-		D_RBSWriteInt32(a_Stream, Player->bob);
-		D_RBSWriteUInt32(a_Stream, Player->aiming);
-		D_RBSWriteInt32(a_Stream, Player->health);
-		D_RBSWriteInt32(a_Stream, Player->armorpoints);
-		D_RBSWriteInt32(a_Stream, Player->armortype);
-		D_RBSWriteUInt32(a_Stream, Player->cards);
-		D_RBSWriteUInt32(a_Stream, Player->backpack);
-		D_RBSWriteUInt32(a_Stream, Player->addfrags);
-		D_RBSWriteInt32(a_Stream, Player->readyweapon);
-		D_RBSWriteString(a_Stream, Player->weaponinfo[Player->readyweapon]->ClassName);
-		D_RBSWriteInt32(a_Stream, Player->pendingweapon);
-		D_RBSWriteString(a_Stream, ((Player->pendingweapon < 0) ? "NoPending" :Player->weaponinfo[Player->pendingweapon]->ClassName));
-		D_RBSWriteUInt8(a_Stream, Player->originalweaponswitch);
-		D_RBSWriteUInt8(a_Stream, Player->autoaim_toggle);
-		D_RBSWriteUInt8(a_Stream, Player->attackdown);
-		D_RBSWriteUInt8(a_Stream, Player->usedown);
-		D_RBSWriteUInt8(a_Stream, Player->jumpdown);
-		D_RBSWriteUInt32(a_Stream, Player->cheats);
-		D_RBSWriteUInt32(a_Stream, Player->refire);
-		D_RBSWriteUInt32(a_Stream, Player->killcount);
-		D_RBSWriteUInt32(a_Stream, Player->itemcount);
-		D_RBSWriteUInt32(a_Stream, Player->secretcount);
-		D_RBSWriteUInt32(a_Stream, Player->damagecount);
-		D_RBSWriteUInt32(a_Stream, Player->bonuscount);
-		D_RBSWriteUInt32(a_Stream, Player->specialsector);
-		D_RBSWriteUInt32(a_Stream, Player->extralight);
-		D_RBSWriteUInt32(a_Stream, Player->fixedcolormap);
-		D_RBSWriteUInt32(a_Stream, Player->skincolor);
-		D_RBSWriteUInt32(a_Stream, Player->skin);
-		D_RBSWriteUInt8(a_Stream, Player->didsecret);
-		D_RBSWriteInt32(a_Stream, Player->chickenTics);
-		D_RBSWriteInt32(a_Stream, Player->chickenPeck);
-		D_RBSWriteInt32(a_Stream, Player->flamecount);
-		D_RBSWriteInt32(a_Stream, Player->flyheight);
-		D_RBSWriteInt32(a_Stream, Player->inv_ptr);
-		D_RBSWriteInt32(a_Stream, Player->st_curpos);
-		D_RBSWriteInt32(a_Stream, Player->st_inventoryTics);
-		D_RBSWriteInt32(a_Stream, Player->flushdelay);
-		D_RBSWriteInt32(a_Stream, Player->MoveMom);
-		D_RBSWriteInt32(a_Stream, Player->TargetViewZ);
-		D_RBSWriteInt32(a_Stream, Player->FakeMom[0]);
-		D_RBSWriteInt32(a_Stream, Player->FakeMom[1]);
-		D_RBSWriteInt32(a_Stream, Player->FakeMom[2]);
-		D_RBSWriteInt32(a_Stream, Player->MaxHealth[0]);
-		D_RBSWriteInt32(a_Stream, Player->MaxHealth[1]);
-		D_RBSWriteInt32(a_Stream, Player->MaxArmor[0]);
-		D_RBSWriteInt32(a_Stream, Player->MaxArmor[1]);
+		D_BSwu8(a_Stream, Player->playerstate);
+		D_BSwi32(a_Stream, Player->viewz);
+		D_BSwi32(a_Stream, Player->viewheight);
+		D_BSwi32(a_Stream, Player->deltaviewheight);
+		D_BSwi32(a_Stream, Player->bob);
+		D_BSwu32(a_Stream, Player->aiming);
+		D_BSwi32(a_Stream, Player->health);
+		D_BSwi32(a_Stream, Player->armorpoints);
+		D_BSwi32(a_Stream, Player->armortype);
+		D_BSwu32(a_Stream, Player->cards);
+		D_BSwu32(a_Stream, Player->backpack);
+		D_BSwu32(a_Stream, Player->addfrags);
+		D_BSwi32(a_Stream, Player->readyweapon);
+		D_BSws(a_Stream, Player->weaponinfo[Player->readyweapon]->ClassName);
+		D_BSwi32(a_Stream, Player->pendingweapon);
+		D_BSws(a_Stream, ((Player->pendingweapon < 0) ? "NoPending" :Player->weaponinfo[Player->pendingweapon]->ClassName));
+		D_BSwu8(a_Stream, Player->originalweaponswitch);
+		D_BSwu8(a_Stream, Player->autoaim_toggle);
+		D_BSwu8(a_Stream, Player->attackdown);
+		D_BSwu8(a_Stream, Player->usedown);
+		D_BSwu8(a_Stream, Player->jumpdown);
+		D_BSwu32(a_Stream, Player->cheats);
+		D_BSwu32(a_Stream, Player->refire);
+		D_BSwu32(a_Stream, Player->killcount);
+		D_BSwu32(a_Stream, Player->itemcount);
+		D_BSwu32(a_Stream, Player->secretcount);
+		D_BSwu32(a_Stream, Player->damagecount);
+		D_BSwu32(a_Stream, Player->bonuscount);
+		D_BSwu32(a_Stream, Player->specialsector);
+		D_BSwu32(a_Stream, Player->extralight);
+		D_BSwu32(a_Stream, Player->fixedcolormap);
+		D_BSwu32(a_Stream, Player->skincolor);
+		D_BSwu32(a_Stream, Player->skin);
+		D_BSwu8(a_Stream, Player->didsecret);
+		D_BSwi32(a_Stream, Player->chickenTics);
+		D_BSwi32(a_Stream, Player->chickenPeck);
+		D_BSwi32(a_Stream, Player->flamecount);
+		D_BSwi32(a_Stream, Player->flyheight);
+		D_BSwi32(a_Stream, Player->inv_ptr);
+		D_BSwi32(a_Stream, Player->st_curpos);
+		D_BSwi32(a_Stream, Player->st_inventoryTics);
+		D_BSwi32(a_Stream, Player->flushdelay);
+		D_BSwi32(a_Stream, Player->MoveMom);
+		D_BSwi32(a_Stream, Player->TargetViewZ);
+		D_BSwi32(a_Stream, Player->FakeMom[0]);
+		D_BSwi32(a_Stream, Player->FakeMom[1]);
+		D_BSwi32(a_Stream, Player->FakeMom[2]);
+		D_BSwi32(a_Stream, Player->MaxHealth[0]);
+		D_BSwi32(a_Stream, Player->MaxHealth[1]);
+		D_BSwi32(a_Stream, Player->MaxArmor[0]);
+		D_BSwi32(a_Stream, Player->MaxArmor[1]);
 		
 		// Current Weapon Level
-		D_RBSWriteUInt8(a_Stream, (Player->weaponinfo == wpnlev2info ? 1 : 0));
+		D_BSwu8(a_Stream, (Player->weaponinfo == wpnlev2info ? 1 : 0));
 		
 		// Write Variable Info
 			// Powerups
 		for (j = 0; j < NUMPOWERS; j++)
-			D_RBSWriteInt32(a_Stream, Player->powers[j]);
+			D_BSwi32(a_Stream, Player->powers[j]);
 			
 			// Ammo
 		for (j = 0; j < NUMAMMO; j++)
 		{
-			D_RBSWriteInt32(a_Stream, Player->ammo[j]);
-			D_RBSWriteInt32(a_Stream, Player->maxammo[j]);
+			D_BSwi32(a_Stream, Player->ammo[j]);
+			D_BSwi32(a_Stream, Player->maxammo[j]);
 		}
 			
 			// Weapons
 		for (j = 0; j < NUMWEAPONS; j++)
-			D_RBSWriteUInt8(a_Stream, Player->weaponowned[j]);
+			D_BSwu8(a_Stream, Player->weaponowned[j]);
 			
 			// Frags
 		for (j = 0; j < MAXPLAYERS; j++)
-			D_RBSWriteUInt32(a_Stream, Player->frags[j]);
+			D_BSwu32(a_Stream, Player->frags[j]);
 			
 			// Inventory Slots
 		for (j = 0; j < NUMINVENTORYSLOTS; j++)
 		{
-			D_RBSWriteUInt8(a_Stream, Player->inventory[j].type);
-			D_RBSWriteUInt8(a_Stream, Player->inventory[j].count);
+			D_BSwu8(a_Stream, Player->inventory[j].type);
+			D_BSwu8(a_Stream, Player->inventory[j].count);
 		}
 		
 		// Save psprites
 		for (j = 0; j < NUMPSPRITES; j++)
 		{
-			D_RBSWriteInt32(a_Stream, Player->psprites[j].tics);
-			D_RBSWriteInt32(a_Stream, Player->psprites[j].sx);
-			D_RBSWriteInt32(a_Stream, Player->psprites[j].sy);
+			D_BSwi32(a_Stream, Player->psprites[j].tics);
+			D_BSwi32(a_Stream, Player->psprites[j].sx);
+			D_BSwi32(a_Stream, Player->psprites[j].sy);
 			
 			// Write current state
 			if (!Player->psprites[j].state)
-				D_RBSWriteUInt8(a_Stream, 'N');
+				D_BSwu8(a_Stream, 'N');
 			else
 			{
-				D_RBSWriteUInt8(a_Stream, 'S');
-				D_RBSWriteUInt32(a_Stream, Player->psprites[j].state->FrameID);
-				D_RBSWriteUInt32(a_Stream, Player->psprites[j].state->ObjectID);
-				D_RBSWriteUInt32(a_Stream, Player->psprites[j].state->Marker);
-				D_RBSWriteUInt32(a_Stream, Player->psprites[j].state->SpriteID);
-				D_RBSWriteUInt32(a_Stream, Player->psprites[j].state->DehackEdID);
+				D_BSwu8(a_Stream, 'S');
+				D_BSwu32(a_Stream, Player->psprites[j].state->FrameID);
+				D_BSwu32(a_Stream, Player->psprites[j].state->ObjectID);
+				D_BSwu32(a_Stream, Player->psprites[j].state->Marker);
+				D_BSwu32(a_Stream, Player->psprites[j].state->SpriteID);
+				D_BSwu32(a_Stream, Player->psprites[j].state->DehackEdID);
 			}
 		}
 		
 		// Save camera
-		D_RBSWritePointer(a_Stream, Player->camera.mo);
-		D_RBSWriteUInt8(a_Stream, Player->camera.chase);
-		D_RBSWriteUInt32(a_Stream, Player->camera.aiming);
-		D_RBSWriteUInt32(a_Stream, Player->camera.startangle);
-		D_RBSWriteInt32(a_Stream, Player->camera.fixedcolormap);
-		D_RBSWriteInt32(a_Stream, Player->camera.viewheight);
+		D_BSwp(a_Stream, Player->camera.mo);
+		D_BSwu8(a_Stream, Player->camera.chase);
+		D_BSwu32(a_Stream, Player->camera.aiming);
+		D_BSwu32(a_Stream, Player->camera.startangle);
+		D_BSwi32(a_Stream, Player->camera.fixedcolormap);
+		D_BSwi32(a_Stream, Player->camera.viewheight);
 	}
 	
 	/* Record Block */
-	D_RBSRecordBlock(a_Stream);
+	D_BSRecordBlock(a_Stream);
 }
 
 /* PS_SGBS_DumpMapThing() -- Dumps a map thing (occurs alot) */
-void PS_SGBS_DumpMapThing(D_RBlockStream_t* const a_Stream, mapthing_t* const MapThing)
+void PS_SGBS_DumpMapThing(D_BS_t* const a_Stream, mapthing_t* const MapThing)
 {
-	D_RBSWritePointer(a_Stream, MapThing);
-	D_RBSWriteInt16(a_Stream, MapThing->x);
-	D_RBSWriteInt16(a_Stream, MapThing->y);
-	D_RBSWriteInt16(a_Stream, MapThing->z);
-	D_RBSWriteInt16(a_Stream, MapThing->angle);
-	D_RBSWriteInt16(a_Stream, MapThing->type);
-	D_RBSWriteInt16(a_Stream, MapThing->options);
-	D_RBSWritePointer(a_Stream, MapThing->mobj);
-	D_RBSWriteUInt8(a_Stream, MapThing->IsHexen);
-	D_RBSWriteInt16(a_Stream, MapThing->HeightOffset);
-	D_RBSWriteUInt16(a_Stream, MapThing->ID);
-	D_RBSWriteUInt8(a_Stream, MapThing->Special);
-	D_RBSWriteUInt8(a_Stream, MapThing->Args[0]);
-	D_RBSWriteUInt8(a_Stream, MapThing->Args[1]);
-	D_RBSWriteUInt8(a_Stream, MapThing->Args[2]);
-	D_RBSWriteUInt8(a_Stream, MapThing->Args[3]);
-	D_RBSWriteUInt8(a_Stream, MapThing->Args[4]);
-	D_RBSWriteUInt32(a_Stream, MapThing->MoType);
-	D_RBSWriteUInt8(a_Stream, MapThing->MarkedWeapon);
+	D_BSwp(a_Stream, MapThing);
+	D_BSwi16(a_Stream, MapThing->x);
+	D_BSwi16(a_Stream, MapThing->y);
+	D_BSwi16(a_Stream, MapThing->z);
+	D_BSwi16(a_Stream, MapThing->angle);
+	D_BSwi16(a_Stream, MapThing->type);
+	D_BSwi16(a_Stream, MapThing->options);
+	D_BSwp(a_Stream, MapThing->mobj);
+	D_BSwu8(a_Stream, MapThing->IsHexen);
+	D_BSwi16(a_Stream, MapThing->HeightOffset);
+	D_BSwu16(a_Stream, MapThing->ID);
+	D_BSwu8(a_Stream, MapThing->Special);
+	D_BSwu8(a_Stream, MapThing->Args[0]);
+	D_BSwu8(a_Stream, MapThing->Args[1]);
+	D_BSwu8(a_Stream, MapThing->Args[2]);
+	D_BSwu8(a_Stream, MapThing->Args[3]);
+	D_BSwu8(a_Stream, MapThing->Args[4]);
+	D_BSwu32(a_Stream, MapThing->MoType);
+	D_BSwu8(a_Stream, MapThing->MarkedWeapon);
 }
 
 /* P_SGBS_MapData() -- Write All Map Data */
 // Some map data cannot be moved
 // Left: AFHKMQWXY
-void P_SGBS_MapData(D_RBlockStream_t* const a_Stream)
+void P_SGBS_MapData(D_BS_t* const a_Stream)
 {
 	size_t i, j;
 	mapthing_t* MapThing;
@@ -2752,78 +2752,78 @@ void P_SGBS_MapData(D_RBlockStream_t* const a_Stream)
 	
 	/* Vertexes */
 	// Begin
-	D_RBSBaseBlock(a_Stream, "SGMV");
+	D_BSBaseBlock(a_Stream, "SGMV");
 	
 	// Put vertexes
-	D_RBSWriteUInt32(a_Stream, numvertexes);
+	D_BSwu32(a_Stream, numvertexes);
 	for (i = 0; i < numvertexes; i++)
 	{
-		D_RBSWriteInt32(a_Stream, vertexes[i].x);
-		D_RBSWriteInt32(a_Stream, vertexes[i].y);
+		D_BSwi32(a_Stream, vertexes[i].x);
+		D_BSwi32(a_Stream, vertexes[i].y);
 	}
 	
 	// End
-	D_RBSRecordBlock(a_Stream);
+	D_BSRecordBlock(a_Stream);
 	
 	/* Sectors */
 	// Begin
-	D_RBSBaseBlock(a_Stream, "SGMS");
+	D_BSBaseBlock(a_Stream, "SGMS");
 	
 	// Put sectors
-	D_RBSWriteUInt32(a_Stream, numsectors);
+	D_BSwu32(a_Stream, numsectors);
 	for (i = 0; i < numsectors; i++)
 	{
 		// Get Current
 		Sector = &sectors[i];
 		
 		// Dump
-		D_RBSWriteInt32(a_Stream, Sector->floorheight);
-		D_RBSWriteInt32(a_Stream, Sector->ceilingheight);
-		D_RBSWriteInt32(a_Stream, Sector->nexttag);
-		D_RBSWriteInt32(a_Stream, Sector->firsttag);
-		D_RBSWriteInt32(a_Stream, Sector->validcount);
-		D_RBSWriteInt32(a_Stream, Sector->stairlock);
-		D_RBSWriteInt32(a_Stream, Sector->prevsec);
-		D_RBSWriteInt32(a_Stream, Sector->nextsec);
-		D_RBSWriteInt32(a_Stream, Sector->floor_xoffs);
-		D_RBSWriteInt32(a_Stream, Sector->floor_yoffs);
-		D_RBSWriteInt32(a_Stream, Sector->ceiling_xoffs);
-		D_RBSWriteInt32(a_Stream, Sector->ceiling_yoffs);
-		D_RBSWriteInt32(a_Stream, Sector->heightsec);
-		D_RBSWriteInt32(a_Stream, Sector->altheightsec);
-		D_RBSWriteInt32(a_Stream, Sector->floorlightsec);
-		D_RBSWriteInt32(a_Stream, Sector->ceilinglightsec);
-		D_RBSWriteInt32(a_Stream, Sector->teamstartsec);
-		D_RBSWriteInt32(a_Stream, Sector->bottommap);
-		D_RBSWriteInt32(a_Stream, Sector->midmap);
-		D_RBSWriteInt32(a_Stream, Sector->topmap);
-		D_RBSWriteInt32(a_Stream, Sector->validsort);
-		D_RBSWriteInt32(a_Stream, FLOAT_TO_FIXED(Sector->lineoutLength));
+		D_BSwi32(a_Stream, Sector->floorheight);
+		D_BSwi32(a_Stream, Sector->ceilingheight);
+		D_BSwi32(a_Stream, Sector->nexttag);
+		D_BSwi32(a_Stream, Sector->firsttag);
+		D_BSwi32(a_Stream, Sector->validcount);
+		D_BSwi32(a_Stream, Sector->stairlock);
+		D_BSwi32(a_Stream, Sector->prevsec);
+		D_BSwi32(a_Stream, Sector->nextsec);
+		D_BSwi32(a_Stream, Sector->floor_xoffs);
+		D_BSwi32(a_Stream, Sector->floor_yoffs);
+		D_BSwi32(a_Stream, Sector->ceiling_xoffs);
+		D_BSwi32(a_Stream, Sector->ceiling_yoffs);
+		D_BSwi32(a_Stream, Sector->heightsec);
+		D_BSwi32(a_Stream, Sector->altheightsec);
+		D_BSwi32(a_Stream, Sector->floorlightsec);
+		D_BSwi32(a_Stream, Sector->ceilinglightsec);
+		D_BSwi32(a_Stream, Sector->teamstartsec);
+		D_BSwi32(a_Stream, Sector->bottommap);
+		D_BSwi32(a_Stream, Sector->midmap);
+		D_BSwi32(a_Stream, Sector->topmap);
+		D_BSwi32(a_Stream, Sector->validsort);
+		D_BSwi32(a_Stream, FLOAT_TO_FIXED(Sector->lineoutLength));
 		
-		D_RBSWriteUInt32(a_Stream, Sector->special);
-		D_RBSWriteUInt32(a_Stream, Sector->oldspecial);
-		//D_RBSWriteUInt32(a_Stream, Sector->xxxxxxxxx);
-		//D_RBSWriteUInt32(a_Stream, Sector->xxxxxxxxx);
-		//D_RBSWriteUInt32(a_Stream, Sector->xxxxxxxxx);
+		D_BSwu32(a_Stream, Sector->special);
+		D_BSwu32(a_Stream, Sector->oldspecial);
+		//D_BSwu32(a_Stream, Sector->xxxxxxxxx);
+		//D_BSwu32(a_Stream, Sector->xxxxxxxxx);
+		//D_BSwu32(a_Stream, Sector->xxxxxxxxx);
 		
-		D_RBSWriteInt16(a_Stream, Sector->floorpic);
-		D_RBSWriteInt16(a_Stream, Sector->ceilingpic);
-		D_RBSWriteInt16(a_Stream, Sector->lightlevel);
-		D_RBSWriteInt16(a_Stream, Sector->tag);
-		D_RBSWriteInt16(a_Stream, Sector->soundtraversed);
-		D_RBSWriteInt16(a_Stream, Sector->floortype);
+		D_BSwi16(a_Stream, Sector->floorpic);
+		D_BSwi16(a_Stream, Sector->ceilingpic);
+		D_BSwi16(a_Stream, Sector->lightlevel);
+		D_BSwi16(a_Stream, Sector->tag);
+		D_BSwi16(a_Stream, Sector->soundtraversed);
+		D_BSwi16(a_Stream, Sector->floortype);
 		
 		// Arrays
 		for (j = 0; j < 4; j++)
 		{
-			D_RBSWriteInt32(a_Stream, Sector->blockbox[j]);
-			D_RBSWriteInt32(a_Stream, Sector->BBox[j]);
+			D_BSwi32(a_Stream, Sector->blockbox[j]);
+			D_BSwi32(a_Stream, Sector->BBox[j]);
 		}
 		
 		// Variable
 		
 		// Pointers
-		D_RBSWritePointer(a_Stream, Sector->soundtarget);
+		D_BSwp(a_Stream, Sector->soundtarget);
 
 #if 0
 // origin for any sounds played by the sector
@@ -2878,42 +2878,42 @@ size_t SoundSecRef;							// Reference to sound sector
 	}
 	
 	// End
-	D_RBSRecordBlock(a_Stream);
+	D_BSRecordBlock(a_Stream);
 	
 	/* SideDefs */
 	// Begin
-	D_RBSBaseBlock(a_Stream, "SGMI");
+	D_BSBaseBlock(a_Stream, "SGMI");
 	
 	// End
-	D_RBSRecordBlock(a_Stream);
+	D_BSRecordBlock(a_Stream);
 	
 	/* LineDefs */
 	// Begin
-	D_RBSBaseBlock(a_Stream, "SGML");
+	D_BSBaseBlock(a_Stream, "SGML");
 	
 	// End
-	D_RBSRecordBlock(a_Stream);
+	D_BSRecordBlock(a_Stream);
 	
 	/* SubSectors */
 	// Begin
-	D_RBSBaseBlock(a_Stream, "SGMU");
+	D_BSBaseBlock(a_Stream, "SGMU");
 	
 	// End
-	D_RBSRecordBlock(a_Stream);
+	D_BSRecordBlock(a_Stream);
 	
 	/* Nodes */
 	// Begin
-	D_RBSBaseBlock(a_Stream, "SGMN");
+	D_BSBaseBlock(a_Stream, "SGMN");
 	
 	// End
-	D_RBSRecordBlock(a_Stream);
+	D_BSRecordBlock(a_Stream);
 	
 	/* Segs */
 	// Begin
-	D_RBSBaseBlock(a_Stream, "SGMG");
+	D_BSBaseBlock(a_Stream, "SGMG");
 	
 	// End
-	D_RBSRecordBlock(a_Stream);
+	D_BSRecordBlock(a_Stream);
 	
 	/* Block Map */
 	// extern long* blockmaplump;		// offsets in blockmap are from here
@@ -2925,29 +2925,29 @@ size_t SoundSecRef;							// Reference to sound sector
 	// extern mobj_t** blocklinks;		// for thing chains
 	
 	// Begin
-	D_RBSBaseBlock(a_Stream, "SGMB");
+	D_BSBaseBlock(a_Stream, "SGMB");
 	
 	// End
-	D_RBSRecordBlock(a_Stream);
+	D_BSRecordBlock(a_Stream);
 	
 	/* Reject */
 	// extern uint8_t* rejectmatrix;	// for fast sight rejection
 	
 	// Begin
-	D_RBSBaseBlock(a_Stream, "SGMJ");
+	D_BSBaseBlock(a_Stream, "SGMJ");
 	
 	// End
-	D_RBSRecordBlock(a_Stream);
+	D_BSRecordBlock(a_Stream);
 	
 	/* Things */
 	//extern int nummapthings;
 	//extern mapthing_t* mapthings;
 	
 	// Begin
-	D_RBSBaseBlock(a_Stream, "SGMT");
+	D_BSBaseBlock(a_Stream, "SGMT");
 	
 	// Record all things
-	D_RBSWriteUInt32(a_Stream, nummapthings);
+	D_BSwu32(a_Stream, nummapthings);
 	for (i = 0; i < nummapthings; i++)
 	{
 		// Get Current
@@ -2958,34 +2958,34 @@ size_t SoundSecRef;							// Reference to sound sector
 	}
 	
 	// End
-	D_RBSRecordBlock(a_Stream);
+	D_BSRecordBlock(a_Stream);
 	
 	/* Touching Sector Lists */
 	//msecnode_t* sector_list = NULL;
 	
 	// Begin
-	D_RBSBaseBlock(a_Stream, "SGMZ");
+	D_BSBaseBlock(a_Stream, "SGMZ");
 	
 	// End
-	D_RBSRecordBlock(a_Stream);
+	D_BSRecordBlock(a_Stream);
 	
 	/* Active Plats */
 	// platlist_t* activeplats;
 	
 	// Begin
-	D_RBSBaseBlock(a_Stream, "SGMP");
+	D_BSBaseBlock(a_Stream, "SGMP");
 	
 	// End
-	D_RBSRecordBlock(a_Stream);
+	D_BSRecordBlock(a_Stream);
 	
 	/* Active Ceilings */
 	// ceilinglist_t* activeceilings;
 	
 	// Begin
-	D_RBSBaseBlock(a_Stream, "SGME");
+	D_BSBaseBlock(a_Stream, "SGME");
 	
 	// End
-	D_RBSRecordBlock(a_Stream);
+	D_BSRecordBlock(a_Stream);
 	
 	/* Others */
 	// playerstarts[mthing->type - 1] = mthing;
@@ -3000,22 +3000,22 @@ size_t SoundSecRef;							// Reference to sound sector
 	//int bodyqueslot;
 	
 	// Begin
-	D_RBSBaseBlock(a_Stream, "SGMR");
+	D_BSBaseBlock(a_Stream, "SGMR");
 	
 	// Player Starts
-	D_RBSWriteUInt32(a_Stream, MAXPLAYERS);
+	D_BSwu32(a_Stream, MAXPLAYERS);
 	for (i = 0; i < MAXPLAYERS; i++)
-		D_RBSWriteUInt32(a_Stream, playerstarts[i] - mapthings);
+		D_BSwu32(a_Stream, playerstarts[i] - mapthings);
 	
 	// End
-	D_RBSRecordBlock(a_Stream);
+	D_BSRecordBlock(a_Stream);
 }
 
 void P_MobjNullThinker(mobj_t* mobj);
 
 /* P_SGBS_Thinkers() -- Thinkers */
 // extern thinker_t thinkercap;
-void P_SGBS_Thinkers(D_RBlockStream_t* const a_Stream)
+void P_SGBS_Thinkers(D_BS_t* const a_Stream)
 {
 	size_t i, j;
 	thinker_t* CurThinker;
@@ -3045,125 +3045,125 @@ void P_SGBS_Thinkers(D_RBlockStream_t* const a_Stream)
 		CurThinker = CurThinker->next, Capped = true)
 	{
 		// Begin
-		D_RBSBaseBlock(a_Stream, "SGTH");
+		D_BSBaseBlock(a_Stream, "SGTH");
 		
 		// Print Thinker Current Pointer ID
-		D_RBSWritePointer(a_Stream, CurThinker);
+		D_BSwp(a_Stream, CurThinker);
 		
 		// P_MobjNullThinker(mobj_t* mobj) || P_MobjThinker(mobj_t* mobj)
 		if (CurThinker->function.acv == P_MobjNullThinker ||
 				CurThinker->function.acv == P_MobjThinker)
 		{
 			// Thinker Header
-			D_RBSWriteUInt8(a_Stream, 'M');
+			D_BSwu8(a_Stream, 'M');
 			if (CurThinker->function.acv == P_MobjNullThinker)
-				D_RBSWriteUInt8(a_Stream, 'N');
+				D_BSwu8(a_Stream, 'N');
 			else
-				D_RBSWriteUInt8(a_Stream, 'O');
+				D_BSwu8(a_Stream, 'O');
 			
 			// Get Thinker
 			Mobj = (mobj_t*)CurThinker;
 			
 			// Dump Info
-			D_RBSWriteInt32(a_Stream, Mobj->x);
-			D_RBSWriteInt32(a_Stream, Mobj->y);
-			D_RBSWriteInt32(a_Stream, Mobj->z);
-			D_RBSWriteUInt32(a_Stream, Mobj->angle);
-			D_RBSWriteInt32(a_Stream, Mobj->sprite);
-			D_RBSWriteInt32(a_Stream, Mobj->frame);
-			D_RBSWriteInt32(a_Stream, Mobj->skin);
-			D_RBSWriteInt32(a_Stream, Mobj->sprite);
-			D_RBSWriteInt32(a_Stream, Mobj->floorz);
-			D_RBSWriteInt32(a_Stream, Mobj->ceilingz);
-			D_RBSWriteInt32(a_Stream, Mobj->height);
-			D_RBSWriteInt32(a_Stream, Mobj->radius);
-			D_RBSWriteInt32(a_Stream, Mobj->momx);
-			D_RBSWriteInt32(a_Stream, Mobj->momy);
-			D_RBSWriteInt32(a_Stream, Mobj->momz);
-			D_RBSWriteInt32(a_Stream, Mobj->type);
-			D_RBSWriteInt32(a_Stream, Mobj->tics);
-			D_RBSWriteInt32(a_Stream, Mobj->flags);
-			D_RBSWriteInt32(a_Stream, Mobj->eflags);
-			D_RBSWriteInt32(a_Stream, Mobj->flags2);
-			D_RBSWriteInt32(a_Stream, Mobj->special1);
-			D_RBSWriteInt32(a_Stream, Mobj->special2);
-			D_RBSWriteInt32(a_Stream, Mobj->health);
-			D_RBSWriteInt32(a_Stream, Mobj->movedir);
-			D_RBSWriteInt32(a_Stream, Mobj->movecount);
-			D_RBSWriteInt32(a_Stream, Mobj->reactiontime);
-			D_RBSWriteInt32(a_Stream, Mobj->threshold);
-			D_RBSWriteInt32(a_Stream, Mobj->lastlook);
-			D_RBSWriteInt32(a_Stream, Mobj->friction);
-			D_RBSWriteInt32(a_Stream, Mobj->movefactor);
-			D_RBSWriteInt32(a_Stream, Mobj->dropped_ammo_count);
-			D_RBSWriteUInt32(a_Stream, Mobj->XFlagsA);
-			D_RBSWriteUInt32(a_Stream, Mobj->XFlagsB);
-			D_RBSWriteUInt32(a_Stream, Mobj->XFlagsC);
-			D_RBSWriteUInt32(a_Stream, Mobj->XFlagsD);
-			D_RBSWriteUInt32(a_Stream, Mobj->RXAttackAttackType);
-			D_RBSWriteUInt32(a_Stream, Mobj->RXShotWithWeapon);
-			D_RBSWriteUInt8(a_Stream, Mobj->RemoveMo);
-			D_RBSWriteUInt32(a_Stream, Mobj->RemType);
-			D_RBSWriteInt32(a_Stream, Mobj->MaxZObtained);
-			D_RBSWriteInt32(a_Stream, Mobj->SkinTeamColor);
-			D_RBSWriteInt32(a_Stream, Mobj->NoiseThinker.Pitch);
-			D_RBSWriteInt32(a_Stream, Mobj->NoiseThinker.Volume);
+			D_BSwi32(a_Stream, Mobj->x);
+			D_BSwi32(a_Stream, Mobj->y);
+			D_BSwi32(a_Stream, Mobj->z);
+			D_BSwu32(a_Stream, Mobj->angle);
+			D_BSwi32(a_Stream, Mobj->sprite);
+			D_BSwi32(a_Stream, Mobj->frame);
+			D_BSwi32(a_Stream, Mobj->skin);
+			D_BSwi32(a_Stream, Mobj->sprite);
+			D_BSwi32(a_Stream, Mobj->floorz);
+			D_BSwi32(a_Stream, Mobj->ceilingz);
+			D_BSwi32(a_Stream, Mobj->height);
+			D_BSwi32(a_Stream, Mobj->radius);
+			D_BSwi32(a_Stream, Mobj->momx);
+			D_BSwi32(a_Stream, Mobj->momy);
+			D_BSwi32(a_Stream, Mobj->momz);
+			D_BSwi32(a_Stream, Mobj->type);
+			D_BSwi32(a_Stream, Mobj->tics);
+			D_BSwi32(a_Stream, Mobj->flags);
+			D_BSwi32(a_Stream, Mobj->eflags);
+			D_BSwi32(a_Stream, Mobj->flags2);
+			D_BSwi32(a_Stream, Mobj->special1);
+			D_BSwi32(a_Stream, Mobj->special2);
+			D_BSwi32(a_Stream, Mobj->health);
+			D_BSwi32(a_Stream, Mobj->movedir);
+			D_BSwi32(a_Stream, Mobj->movecount);
+			D_BSwi32(a_Stream, Mobj->reactiontime);
+			D_BSwi32(a_Stream, Mobj->threshold);
+			D_BSwi32(a_Stream, Mobj->lastlook);
+			D_BSwi32(a_Stream, Mobj->friction);
+			D_BSwi32(a_Stream, Mobj->movefactor);
+			D_BSwi32(a_Stream, Mobj->dropped_ammo_count);
+			D_BSwu32(a_Stream, Mobj->XFlagsA);
+			D_BSwu32(a_Stream, Mobj->XFlagsB);
+			D_BSwu32(a_Stream, Mobj->XFlagsC);
+			D_BSwu32(a_Stream, Mobj->XFlagsD);
+			D_BSwu32(a_Stream, Mobj->RXAttackAttackType);
+			D_BSwu32(a_Stream, Mobj->RXShotWithWeapon);
+			D_BSwu8(a_Stream, Mobj->RemoveMo);
+			D_BSwu32(a_Stream, Mobj->RemType);
+			D_BSwi32(a_Stream, Mobj->MaxZObtained);
+			D_BSwi32(a_Stream, Mobj->SkinTeamColor);
+			D_BSwi32(a_Stream, Mobj->NoiseThinker.Pitch);
+			D_BSwi32(a_Stream, Mobj->NoiseThinker.Volume);
 			
 			// Map Data Related
-			D_RBSWriteInt32(a_Stream, Mobj->player - players);
-			D_RBSWriteUInt32(a_Stream, Mobj->subsector - subsectors);
-			D_RBSWriteUInt32(a_Stream, Mobj->spawnpoint - mapthings);
+			D_BSwi32(a_Stream, Mobj->player - players);
+			D_BSwu32(a_Stream, Mobj->subsector - subsectors);
+			D_BSwu32(a_Stream, Mobj->spawnpoint - mapthings);
 			
 			// Spawn Point is probably virtualzed
 			if (Mobj->spawnpoint)
 			{
 				MapThing = Mobj->spawnpoint;
-				D_RBSWriteUInt8(a_Stream, 'T');
+				D_BSwu8(a_Stream, 'T');
 				
 				PS_SGBS_DumpMapThing(a_Stream, MapThing);
 			}
 			else
-				D_RBSWriteUInt8(a_Stream, 'X');
+				D_BSwu8(a_Stream, 'X');
 			
 			// Pointer Links
-			D_RBSWritePointer(a_Stream, Mobj->snext);
-			D_RBSWritePointer(a_Stream, Mobj->sprev);
-			D_RBSWritePointer(a_Stream, Mobj->bnext);
-			D_RBSWritePointer(a_Stream, Mobj->bprev);
-			D_RBSWritePointer(a_Stream, Mobj->target);
-			D_RBSWritePointer(a_Stream, Mobj->player);
-			D_RBSWritePointer(a_Stream, Mobj->tracer);
-			D_RBSWritePointer(a_Stream, Mobj->ChildFloor);
-			D_RBSWritePointer(a_Stream, Mobj->touching_sectorlist);
-			D_RBSWritePointer(a_Stream, Mobj->info);
+			D_BSwp(a_Stream, Mobj->snext);
+			D_BSwp(a_Stream, Mobj->sprev);
+			D_BSwp(a_Stream, Mobj->bnext);
+			D_BSwp(a_Stream, Mobj->bprev);
+			D_BSwp(a_Stream, Mobj->target);
+			D_BSwp(a_Stream, Mobj->player);
+			D_BSwp(a_Stream, Mobj->tracer);
+			D_BSwp(a_Stream, Mobj->ChildFloor);
+			D_BSwp(a_Stream, Mobj->touching_sectorlist);
+			D_BSwp(a_Stream, Mobj->info);
 			
 			// Info
-			D_RBSWriteString(a_Stream, (Mobj->info ? Mobj->info->RClassName : "NoRCN"));
+			D_BSws(a_Stream, (Mobj->info ? Mobj->info->RClassName : "NoRCN"));
 			
 			// State
 			if (Mobj->state)
 			{
-				D_RBSWriteUInt8(a_Stream, 'S');
-				D_RBSWriteUInt32(a_Stream, Mobj->state->FrameID);
-				D_RBSWriteUInt32(a_Stream, Mobj->state->ObjectID);
-				D_RBSWriteUInt32(a_Stream, Mobj->state->Marker);
-				D_RBSWriteUInt32(a_Stream, Mobj->state->SpriteID);
-				D_RBSWriteUInt32(a_Stream, Mobj->state->DehackEdID);
+				D_BSwu8(a_Stream, 'S');
+				D_BSwu32(a_Stream, Mobj->state->FrameID);
+				D_BSwu32(a_Stream, Mobj->state->ObjectID);
+				D_BSwu32(a_Stream, Mobj->state->Marker);
+				D_BSwu32(a_Stream, Mobj->state->SpriteID);
+				D_BSwu32(a_Stream, Mobj->state->DehackEdID);
 			}
 			else
-				D_RBSWriteUInt8(a_Stream, 'X');
+				D_BSwu8(a_Stream, 'X');
 			
 			// Variable Info
 				// ReMooD Extended Flags
 			for (i = 0; i < NUMINFORXFIELDS; i++)
-				D_RBSWriteUInt32(a_Stream, Mobj->RXFlags[i]);
+				D_BSwu32(a_Stream, Mobj->RXFlags[i]);
 			
 				// Map Objects On
 			for (i = 0; i < 2; i++)
 			{
-				D_RBSWriteUInt32(a_Stream, Mobj->MoOnCount[i]);
+				D_BSwu32(a_Stream, Mobj->MoOnCount[i]);
 				for (j = 0; j < Mobj->MoOnCount[i]; j++)
-					D_RBSWritePointer(a_Stream, Mobj->MoOn[i][j]);
+					D_BSwp(a_Stream, Mobj->MoOn[i][j]);
 			}
 		}
 		
@@ -3171,306 +3171,306 @@ void P_SGBS_Thinkers(D_RBlockStream_t* const a_Stream)
 		else if (CurThinker->function.acv == T_FireFlicker)
 		{
 			// Thinker Header
-			D_RBSWriteUInt8(a_Stream, 'F');
-			D_RBSWriteUInt8(a_Stream, 'F');
+			D_BSwu8(a_Stream, 'F');
+			D_BSwu8(a_Stream, 'F');
 			
 			// Get Thinker
 			FireFlicker = (fireflicker_t*)CurThinker;
 			
 			// Dump Info
-			D_RBSWriteUInt32(a_Stream, FireFlicker->sector - sectors);
-			D_RBSWriteInt32(a_Stream, FireFlicker->count);
-			D_RBSWriteInt32(a_Stream, FireFlicker->maxlight);
-			D_RBSWriteInt32(a_Stream, FireFlicker->minlight);
+			D_BSwu32(a_Stream, FireFlicker->sector - sectors);
+			D_BSwi32(a_Stream, FireFlicker->count);
+			D_BSwi32(a_Stream, FireFlicker->maxlight);
+			D_BSwi32(a_Stream, FireFlicker->minlight);
 		}
 		
 		// T_Friction(friction_t* f)
 		else if (CurThinker->function.acv == T_Friction)
 		{
 			// Thinker Header
-			D_RBSWriteUInt8(a_Stream, 'F');
-			D_RBSWriteUInt8(a_Stream, 'R');
+			D_BSwu8(a_Stream, 'F');
+			D_BSwu8(a_Stream, 'R');
 			
 			// Get Thinker
 			Friction = (friction_t*)CurThinker;
 			
 			// Dump Info
-			D_RBSWriteInt32(a_Stream, Friction->friction);
-			D_RBSWriteInt32(a_Stream, Friction->movefactor);
-			D_RBSWriteInt32(a_Stream, Friction->affectee);
+			D_BSwi32(a_Stream, Friction->friction);
+			D_BSwi32(a_Stream, Friction->movefactor);
+			D_BSwi32(a_Stream, Friction->affectee);
 		}
 		
 		// T_Glow(glow_t* g)
 		else if (CurThinker->function.acv == T_Glow)
 		{
 			// Thinker Header
-			D_RBSWriteUInt8(a_Stream, 'G');
-			D_RBSWriteUInt8(a_Stream, 'L');
+			D_BSwu8(a_Stream, 'G');
+			D_BSwu8(a_Stream, 'L');
 			
 			// Get Thinker
 			Glow = (glow_t*)CurThinker;
 			
 			// Dump Info
-			D_RBSWriteUInt32(a_Stream, Glow->sector - sectors);
-			D_RBSWriteInt32(a_Stream, Glow->minlight);
-			D_RBSWriteInt32(a_Stream, Glow->maxlight);
-			D_RBSWriteInt32(a_Stream, Glow->direction);
+			D_BSwu32(a_Stream, Glow->sector - sectors);
+			D_BSwi32(a_Stream, Glow->minlight);
+			D_BSwi32(a_Stream, Glow->maxlight);
+			D_BSwi32(a_Stream, Glow->direction);
 		}
 		
 		// T_LightFade(lightlevel_t* ll)
 		else if (CurThinker->function.acv == T_LightFade)
 		{
 			// Thinker Header
-			D_RBSWriteUInt8(a_Stream, 'L');
-			D_RBSWriteUInt8(a_Stream, 'A');
+			D_BSwu8(a_Stream, 'L');
+			D_BSwu8(a_Stream, 'A');
 			
 			// Get Thinker
 			LightFade = (lightlevel_t*)CurThinker;
 			
 			// Dump Info
-			D_RBSWriteUInt32(a_Stream, LightFade->sector - sectors);
-			D_RBSWriteInt32(a_Stream, LightFade->destlevel);
-			D_RBSWriteInt32(a_Stream, LightFade->speed);
+			D_BSwu32(a_Stream, LightFade->sector - sectors);
+			D_BSwi32(a_Stream, LightFade->destlevel);
+			D_BSwi32(a_Stream, LightFade->speed);
 		}
 		
 		// T_LightFlash(lightflash_t* flash)
 		else if (CurThinker->function.acv == T_LightFlash)
 		{
 			// Thinker Header
-			D_RBSWriteUInt8(a_Stream, 'L');
-			D_RBSWriteUInt8(a_Stream, 'F');
+			D_BSwu8(a_Stream, 'L');
+			D_BSwu8(a_Stream, 'F');
 			
 			// Get Thinker
 			LightFlash = (lightflash_t*)CurThinker;
 			
 			// Dump Data
-			D_RBSWriteUInt32(a_Stream, LightFlash->sector - sectors);
-			D_RBSWriteInt32(a_Stream, LightFlash->count);
-			D_RBSWriteInt32(a_Stream, LightFlash->maxlight);
-			D_RBSWriteInt32(a_Stream, LightFlash->minlight);
-			D_RBSWriteInt32(a_Stream, LightFlash->maxtime);
-			D_RBSWriteInt32(a_Stream, LightFlash->mintime);
+			D_BSwu32(a_Stream, LightFlash->sector - sectors);
+			D_BSwi32(a_Stream, LightFlash->count);
+			D_BSwi32(a_Stream, LightFlash->maxlight);
+			D_BSwi32(a_Stream, LightFlash->minlight);
+			D_BSwi32(a_Stream, LightFlash->maxtime);
+			D_BSwi32(a_Stream, LightFlash->mintime);
 		}
 		
 		// T_MoveCeiling(ceiling_t* ceiling)
 		else if (CurThinker->function.acv == T_MoveCeiling)
 		{
 			// Thinker Header
-			D_RBSWriteUInt8(a_Stream, 'M');
-			D_RBSWriteUInt8(a_Stream, 'C');
+			D_BSwu8(a_Stream, 'M');
+			D_BSwu8(a_Stream, 'C');
 			
 			// Get Thinker
 			Ceiling = (ceiling_t*)CurThinker;
 			
 			// Dump Info
-			D_RBSWriteUInt8(a_Stream, Ceiling->type);
-			D_RBSWriteUInt8(a_Stream, Ceiling->crush);
-			D_RBSWriteInt32(a_Stream, Ceiling->bottomheight);
-			D_RBSWriteInt32(a_Stream, Ceiling->topheight);
-			D_RBSWriteInt32(a_Stream, Ceiling->speed);
-			D_RBSWriteInt32(a_Stream, Ceiling->oldspeed);
-			D_RBSWriteInt32(a_Stream, Ceiling->newspecial);
-			D_RBSWriteInt32(a_Stream, Ceiling->oldspecial);
-			D_RBSWriteInt32(a_Stream, Ceiling->texture);
-			D_RBSWriteInt32(a_Stream, Ceiling->direction);
-			D_RBSWriteInt32(a_Stream, Ceiling->tag);
-			D_RBSWriteInt32(a_Stream, Ceiling->olddirection);
-			D_RBSWriteUInt32(a_Stream, Ceiling->sector - sectors);
-			D_RBSWritePointer(a_Stream, Ceiling->list);
+			D_BSwu8(a_Stream, Ceiling->type);
+			D_BSwu8(a_Stream, Ceiling->crush);
+			D_BSwi32(a_Stream, Ceiling->bottomheight);
+			D_BSwi32(a_Stream, Ceiling->topheight);
+			D_BSwi32(a_Stream, Ceiling->speed);
+			D_BSwi32(a_Stream, Ceiling->oldspeed);
+			D_BSwi32(a_Stream, Ceiling->newspecial);
+			D_BSwi32(a_Stream, Ceiling->oldspecial);
+			D_BSwi32(a_Stream, Ceiling->texture);
+			D_BSwi32(a_Stream, Ceiling->direction);
+			D_BSwi32(a_Stream, Ceiling->tag);
+			D_BSwi32(a_Stream, Ceiling->olddirection);
+			D_BSwu32(a_Stream, Ceiling->sector - sectors);
+			D_BSwp(a_Stream, Ceiling->list);
 		}
 		
 		// T_MoveElevator(elevator_t* elevator)
 		else if (CurThinker->function.acv == T_MoveElevator)
 		{
 			// Thinker Header
-			D_RBSWriteUInt8(a_Stream, 'M');
-			D_RBSWriteUInt8(a_Stream, 'E');
+			D_BSwu8(a_Stream, 'M');
+			D_BSwu8(a_Stream, 'E');
 			
 			// Get Thinker
 			Elevator = (elevator_t*)CurThinker;
 			
 			// Dump Info
-			D_RBSWriteUInt8(a_Stream, Elevator->type);
-			D_RBSWriteUInt32(a_Stream, Elevator->sector - sectors);
-			D_RBSWriteInt32(a_Stream, Elevator->direction);
-			D_RBSWriteInt32(a_Stream, Elevator->floordestheight);
-			D_RBSWriteInt32(a_Stream, Elevator->ceilingdestheight);
-			D_RBSWriteInt32(a_Stream, Elevator->speed);
+			D_BSwu8(a_Stream, Elevator->type);
+			D_BSwu32(a_Stream, Elevator->sector - sectors);
+			D_BSwi32(a_Stream, Elevator->direction);
+			D_BSwi32(a_Stream, Elevator->floordestheight);
+			D_BSwi32(a_Stream, Elevator->ceilingdestheight);
+			D_BSwi32(a_Stream, Elevator->speed);
 		}
 		
 		// T_MoveFloor(floormove_t* floor)
 		else if (CurThinker->function.acv == T_MoveFloor)
 		{
 			// Thinker Header
-			D_RBSWriteUInt8(a_Stream, 'M');
-			D_RBSWriteUInt8(a_Stream, 'F');
+			D_BSwu8(a_Stream, 'M');
+			D_BSwu8(a_Stream, 'F');
 			
 			// Get Thinker
 			FloorMove = (floormove_t*)CurThinker;
 			
 			// DumpInfo
-			D_RBSWriteUInt8(a_Stream, FloorMove->type);
-			D_RBSWriteUInt8(a_Stream, FloorMove->crush);
-			D_RBSWriteUInt32(a_Stream, FloorMove->sector - sectors);
-			D_RBSWriteInt32(a_Stream, FloorMove->direction);
-			D_RBSWriteInt32(a_Stream, FloorMove->newspecial);
-			D_RBSWriteInt32(a_Stream, FloorMove->oldspecial);
-			D_RBSWriteInt32(a_Stream, FloorMove->texture);
-			D_RBSWriteInt32(a_Stream, FloorMove->floordestheight);
-			D_RBSWriteInt32(a_Stream, FloorMove->speed);
+			D_BSwu8(a_Stream, FloorMove->type);
+			D_BSwu8(a_Stream, FloorMove->crush);
+			D_BSwu32(a_Stream, FloorMove->sector - sectors);
+			D_BSwi32(a_Stream, FloorMove->direction);
+			D_BSwi32(a_Stream, FloorMove->newspecial);
+			D_BSwi32(a_Stream, FloorMove->oldspecial);
+			D_BSwi32(a_Stream, FloorMove->texture);
+			D_BSwi32(a_Stream, FloorMove->floordestheight);
+			D_BSwi32(a_Stream, FloorMove->speed);
 		}
 		
 		// T_PlatRaise(plat_t* plat)
 		else if (CurThinker->function.acv == T_PlatRaise)
 		{
 			// Thinker Header
-			D_RBSWriteUInt8(a_Stream, 'P');
-			D_RBSWriteUInt8(a_Stream, 'R');
+			D_BSwu8(a_Stream, 'P');
+			D_BSwu8(a_Stream, 'R');
 			
 			// Get Thinker
 			Plat = (plat_t*)CurThinker;
 			
 			// Dump Info
-			D_RBSWriteUInt32(a_Stream, Plat->sector - sectors);
-			D_RBSWriteInt32(a_Stream, Plat->speed);
-			D_RBSWriteInt32(a_Stream, Plat->low);
-			D_RBSWriteInt32(a_Stream, Plat->high);
-			D_RBSWriteInt32(a_Stream, Plat->wait);
-			D_RBSWriteInt32(a_Stream, Plat->count);
-			D_RBSWriteInt32(a_Stream, Plat->tag);
-			D_RBSWriteUInt8(a_Stream, Plat->status);
-			D_RBSWriteUInt8(a_Stream, Plat->oldstatus);
-			D_RBSWriteUInt8(a_Stream, Plat->crush);
-			D_RBSWriteUInt8(a_Stream, Plat->type);
-			D_RBSWritePointer(a_Stream, Plat->list);
+			D_BSwu32(a_Stream, Plat->sector - sectors);
+			D_BSwi32(a_Stream, Plat->speed);
+			D_BSwi32(a_Stream, Plat->low);
+			D_BSwi32(a_Stream, Plat->high);
+			D_BSwi32(a_Stream, Plat->wait);
+			D_BSwi32(a_Stream, Plat->count);
+			D_BSwi32(a_Stream, Plat->tag);
+			D_BSwu8(a_Stream, Plat->status);
+			D_BSwu8(a_Stream, Plat->oldstatus);
+			D_BSwu8(a_Stream, Plat->crush);
+			D_BSwu8(a_Stream, Plat->type);
+			D_BSwp(a_Stream, Plat->list);
 		}
 		
 		// T_Pusher(pusher_t* p)
 		else if (CurThinker->function.acv == T_Pusher)
 		{
 			// Thinker Header
-			D_RBSWriteUInt8(a_Stream, 'P');
-			D_RBSWriteUInt8(a_Stream, 'U');
+			D_BSwu8(a_Stream, 'P');
+			D_BSwu8(a_Stream, 'U');
 			
 			// Get Thinker
 			Pusher = (pusher_t*)CurThinker;
 			
 			// Dump Info
-			D_RBSWriteUInt8(a_Stream, Pusher->type);
-			D_RBSWritePointer(a_Stream, Pusher->source);
-			D_RBSWriteInt32(a_Stream, Pusher->x_mag);
-			D_RBSWriteInt32(a_Stream, Pusher->y_mag);
-			D_RBSWriteInt32(a_Stream, Pusher->magnitude);
-			D_RBSWriteInt32(a_Stream, Pusher->radius);
-			D_RBSWriteInt32(a_Stream, Pusher->x);
-			D_RBSWriteInt32(a_Stream, Pusher->y);
-			D_RBSWriteInt32(a_Stream, Pusher->affectee);
+			D_BSwu8(a_Stream, Pusher->type);
+			D_BSwp(a_Stream, Pusher->source);
+			D_BSwi32(a_Stream, Pusher->x_mag);
+			D_BSwi32(a_Stream, Pusher->y_mag);
+			D_BSwi32(a_Stream, Pusher->magnitude);
+			D_BSwi32(a_Stream, Pusher->radius);
+			D_BSwi32(a_Stream, Pusher->x);
+			D_BSwi32(a_Stream, Pusher->y);
+			D_BSwi32(a_Stream, Pusher->affectee);
 		}
 		
 		// T_Scroll(scroll_t* s)
 		else if (CurThinker->function.acv == T_Scroll)
 		{
 			// Thinker Header
-			D_RBSWriteUInt8(a_Stream, 'S');
-			D_RBSWriteUInt8(a_Stream, 'C');
+			D_BSwu8(a_Stream, 'S');
+			D_BSwu8(a_Stream, 'C');
 			
 			// Get Thinker
 			Scroll = (scroll_t*)CurThinker;
 			
 			// Dump Info
-			D_RBSWriteInt32(a_Stream, Scroll->dx);
-			D_RBSWriteInt32(a_Stream, Scroll->dy);
-			D_RBSWriteInt32(a_Stream, Scroll->affectee);
-			D_RBSWriteInt32(a_Stream, Scroll->control);
-			D_RBSWriteInt32(a_Stream, Scroll->last_height);
-			D_RBSWriteInt32(a_Stream, Scroll->vdx);
-			D_RBSWriteInt32(a_Stream, Scroll->vdy);
-			D_RBSWriteInt32(a_Stream, Scroll->accel);
-			D_RBSWriteUInt8(a_Stream, Scroll->type);
+			D_BSwi32(a_Stream, Scroll->dx);
+			D_BSwi32(a_Stream, Scroll->dy);
+			D_BSwi32(a_Stream, Scroll->affectee);
+			D_BSwi32(a_Stream, Scroll->control);
+			D_BSwi32(a_Stream, Scroll->last_height);
+			D_BSwi32(a_Stream, Scroll->vdx);
+			D_BSwi32(a_Stream, Scroll->vdy);
+			D_BSwi32(a_Stream, Scroll->accel);
+			D_BSwu8(a_Stream, Scroll->type);
 		}
 		
 		// T_StrobeFlash(strobe_t* flash)
 		else if (CurThinker->function.acv == T_StrobeFlash)
 		{
 			// Thinker Header
-			D_RBSWriteUInt8(a_Stream, 'S');
-			D_RBSWriteUInt8(a_Stream, 'F');
+			D_BSwu8(a_Stream, 'S');
+			D_BSwu8(a_Stream, 'F');
 			
 			// Get Thinker
 			Strobe = (strobe_t*)CurThinker;
 			
 			// Dump Info
-			D_RBSWriteUInt32(a_Stream, Strobe->sector - sectors);
-			D_RBSWriteInt32(a_Stream, Strobe->count);
-			D_RBSWriteInt32(a_Stream, Strobe->minlight);
-			D_RBSWriteInt32(a_Stream, Strobe->maxlight);
-			D_RBSWriteInt32(a_Stream, Strobe->darktime);
-			D_RBSWriteInt32(a_Stream, Strobe->brighttime);
+			D_BSwu32(a_Stream, Strobe->sector - sectors);
+			D_BSwi32(a_Stream, Strobe->count);
+			D_BSwi32(a_Stream, Strobe->minlight);
+			D_BSwi32(a_Stream, Strobe->maxlight);
+			D_BSwi32(a_Stream, Strobe->darktime);
+			D_BSwi32(a_Stream, Strobe->brighttime);
 		}
 		
 		// T_VerticalDoor(vldoor_t* door)
 		else if (CurThinker->function.acv == T_VerticalDoor)
 		{
 			// Thinker Header
-			D_RBSWriteUInt8(a_Stream, 'V');
-			D_RBSWriteUInt8(a_Stream, 'D');
+			D_BSwu8(a_Stream, 'V');
+			D_BSwu8(a_Stream, 'D');
 			
 			// Get Thinker
 			VLDoor = (vldoor_t*)CurThinker;
 			
 			// Dump Info
-			D_RBSWriteUInt8(a_Stream, VLDoor->type);
-			D_RBSWriteUInt32(a_Stream, VLDoor->sector - sectors);
-			D_RBSWriteInt32(a_Stream, VLDoor->topheight);
-			D_RBSWriteInt32(a_Stream, VLDoor->speed);
-			D_RBSWriteUInt8(a_Stream, VLDoor->direction);
-			D_RBSWriteInt32(a_Stream, VLDoor->topwait);
-			D_RBSWriteInt32(a_Stream, VLDoor->topcountdown);
-			D_RBSWriteUInt32(a_Stream, VLDoor->line - lines);
+			D_BSwu8(a_Stream, VLDoor->type);
+			D_BSwu32(a_Stream, VLDoor->sector - sectors);
+			D_BSwi32(a_Stream, VLDoor->topheight);
+			D_BSwi32(a_Stream, VLDoor->speed);
+			D_BSwu8(a_Stream, VLDoor->direction);
+			D_BSwi32(a_Stream, VLDoor->topwait);
+			D_BSwi32(a_Stream, VLDoor->topcountdown);
+			D_BSwu32(a_Stream, VLDoor->line - lines);
 		}
 		
 		// End
-		D_RBSRecordBlock(a_Stream);
+		D_BSRecordBlock(a_Stream);
 	}
 }
 
 /* P_SGBS_State() -- Game State */
-void P_SGBS_State(D_RBlockStream_t* const a_Stream)
+void P_SGBS_State(D_BS_t* const a_Stream)
 {
 	size_t i;
 	P_XGSVariable_t* Vars;
 	
 	/* Something */
 	// Begin
-	D_RBSBaseBlock(a_Stream, "SGZA");
+	D_BSBaseBlock(a_Stream, "SGZA");
 	
 	// End
-	D_RBSRecordBlock(a_Stream);
+	D_BSRecordBlock(a_Stream);
 	
 	/* Game State Info */
 	// Begin
-	D_RBSBaseBlock(a_Stream, "SGZS");
+	D_BSBaseBlock(a_Stream, "SGZS");
 	
 	// Write Times
-	D_RBSWriteUInt32(a_Stream, gametic);
-	D_RBSWriteUInt32(a_Stream, D_SyncNetMapTime());
-	D_RBSWriteUInt32(a_Stream, D_SyncNetRealTime());
+	D_BSwu32(a_Stream, gametic);
+	D_BSwu32(a_Stream, D_SyncNetMapTime());
+	D_BSwu32(a_Stream, D_SyncNetRealTime());
 	
 	// Write Game state
-	D_RBSWriteUInt8(a_Stream, gamestate);
-	D_RBSWriteUInt8(a_Stream, demorecording);
-	D_RBSWriteUInt8(a_Stream, demoplayback);
-	D_RBSWriteUInt8(a_Stream, multiplayer);
+	D_BSwu8(a_Stream, gamestate);
+	D_BSwu8(a_Stream, demorecording);
+	D_BSwu8(a_Stream, demoplayback);
+	D_BSwu8(a_Stream, multiplayer);
 	
 	// Write Current Level name
-	D_RBSWriteString(a_Stream, g_CurrentLevelInfo->LumpName);
+	D_BSws(a_Stream, g_CurrentLevelInfo->LumpName);
 	
 	// End
-	D_RBSRecordBlock(a_Stream);
+	D_BSRecordBlock(a_Stream);
 	
 	/* Game Setting Variables */
 	// Begin
-	D_RBSBaseBlock(a_Stream, "SGZV");
+	D_BSBaseBlock(a_Stream, "SGZV");
 	
 	// Go through all variables
 	for (i = 0; i < PEXGSNUMBITIDS; i++)
@@ -3483,18 +3483,18 @@ void P_SGBS_State(D_RBlockStream_t* const a_Stream)
 			continue;
 		
 		// Write ID and Name
-		D_RBSWriteUInt32(a_Stream, Vars->BitID);
-		D_RBSWriteString(a_Stream, Vars->Name);
+		D_BSwu32(a_Stream, Vars->BitID);
+		D_BSws(a_Stream, Vars->Name);
 		
 		// Write Value
 		if (Vars->WasSet)
-			D_RBSWriteInt32(a_Stream, Vars->ActualVal);
+			D_BSwi32(a_Stream, Vars->ActualVal);
 		else
-			D_RBSWriteInt32(a_Stream, Vars->DefaultVal);
+			D_BSwi32(a_Stream, Vars->DefaultVal);
 	}
 	
 	// End
-	D_RBSRecordBlock(a_Stream);
+	D_BSRecordBlock(a_Stream);
 }
 
 /*** WRITING THE GAME STATE ***/
@@ -5908,7 +5908,7 @@ typedef struct P_SGDXTypeIO_s
 {
 	const char* VarName;						// Name of variable
 	P_SGBWTypeC_t CType;						// C Type
-	bool_t (*IOFunc)(D_RBlockStream_t* const a_Stream, const bool_t a_Load, const P_SGBWTypeRec_t a_RecType, const P_SGBWTypeC_t a_CType, void* const a_ValPtr, const size_t a_ValSize, int32_t* const a_Copy);
+	bool_t (*IOFunc)(D_BS_t* const a_Stream, const bool_t a_Load, const P_SGBWTypeRec_t a_RecType, const P_SGBWTypeC_t a_CType, void* const a_ValPtr, const size_t a_ValSize, int32_t* const a_Copy);
 } P_SGDXTypeIO_t;
 
 // __SPEC -- Member Info
@@ -5932,7 +5932,7 @@ typedef struct P_SGDXTypeIO_s
 
 
 /* PRWS_DRPointer() -- Pointer to something */
-static bool_t PS_SGDXPointerHandler(D_RBlockStream_t* const a_Stream, const bool_t a_Load, const P_SGBWTypeRec_t a_RecType, const P_SGBWTypeC_t a_CType, void* const a_ValPtr, const size_t a_ValSize, int32_t* const a_Copy)
+static bool_t PS_SGDXPointerHandler(D_BS_t* const a_Stream, const bool_t a_Load, const P_SGBWTypeRec_t a_RecType, const P_SGBWTypeC_t a_CType, void* const a_ValPtr, const size_t a_ValSize, int32_t* const a_Copy)
 {
 	uint64_t pID;
 	
@@ -5946,12 +5946,12 @@ static bool_t PS_SGDXPointerHandler(D_RBlockStream_t* const a_Stream, const bool
 	
 	/* If Saving, Dump Pointer */
 	if (!a_Load)
-		D_RBSWritePointer(a_Stream, *((void**)a_ValPtr));
+		D_BSwp(a_Stream, *((void**)a_ValPtr));
 	
 	/* If Loading, Get pointer and mark ref */
 	else
 	{
-		pID = D_RBSReadPointer(a_Stream);
+		pID = D_BSrp(a_Stream);
 		PLGS_DeRef(pID, ((void**)a_ValPtr));
 		*((void**)a_ValPtr) = NULL;	// FIXME: See if this causes problems?
 	}
@@ -5961,18 +5961,18 @@ static bool_t PS_SGDXPointerHandler(D_RBlockStream_t* const a_Stream, const bool
 }
 
 #define __REMOOD_SGDXIHM(xxnamexx) PS_SGDXIntHandler_##xxnamexx
-#define __REMOOD_SGDXIH(xxnamexx,xxnativexx) static bool_t PS_SGDXIntHandler_##xxnamexx(D_RBlockStream_t* const a_Stream, const bool_t a_Load, const P_SGBWTypeRec_t a_RecType, const P_SGBWTypeC_t a_CType, void* const a_ValPtr, const size_t a_ValSize, int32_t* const a_Copy)\
+#define __REMOOD_SGDXIH(xxnamexx,xxnativexx) static bool_t PS_SGDXIntHandler_##xxnamexx(D_BS_t* const a_Stream, const bool_t a_Load, const P_SGBWTypeRec_t a_RecType, const P_SGBWTypeC_t a_CType, void* const a_ValPtr, const size_t a_ValSize, int32_t* const a_Copy)\
 {\
 	if (a_Load)\
 	{\
 		switch (a_RecType)\
 		{\
-			case PSRC_INT8: *((xxnativexx*)a_ValPtr) = D_RBSReadInt8(a_Stream); break;\
-			case PSRC_INT16: *((xxnativexx*)a_ValPtr) = D_RBSReadInt16(a_Stream); break;\
-			case PSRC_INT32: *((xxnativexx*)a_ValPtr) = D_RBSReadInt32(a_Stream); break;\
-			case PSRC_UINT8: *((xxnativexx*)a_ValPtr) = D_RBSReadUInt8(a_Stream); break;\
-			case PSRC_UINT16: *((xxnativexx*)a_ValPtr) = D_RBSReadUInt16(a_Stream); break;\
-			case PSRC_UINT32: *((xxnativexx*)a_ValPtr) = D_RBSReadUInt32(a_Stream); break;\
+			case PSRC_INT8: *((xxnativexx*)a_ValPtr) = D_BSri8(a_Stream); break;\
+			case PSRC_INT16: *((xxnativexx*)a_ValPtr) = D_BSri16(a_Stream); break;\
+			case PSRC_INT32: *((xxnativexx*)a_ValPtr) = D_BSri32(a_Stream); break;\
+			case PSRC_UINT8: *((xxnativexx*)a_ValPtr) = D_BSru8(a_Stream); break;\
+			case PSRC_UINT16: *((xxnativexx*)a_ValPtr) = D_BSru16(a_Stream); break;\
+			case PSRC_UINT32: *((xxnativexx*)a_ValPtr) = D_BSru32(a_Stream); break;\
 			default: return false;\
 		}\
 		\
@@ -5983,12 +5983,12 @@ static bool_t PS_SGDXPointerHandler(D_RBlockStream_t* const a_Stream, const bool
 	{\
 		switch (a_RecType)\
 		{\
-			case PSRC_INT8: D_RBSWriteInt8(a_Stream, *((xxnativexx*)a_ValPtr)); break;\
-			case PSRC_INT16: D_RBSWriteInt16(a_Stream, *((xxnativexx*)a_ValPtr)); break;\
-			case PSRC_INT32: D_RBSWriteInt32(a_Stream, *((xxnativexx*)a_ValPtr)); break;\
-			case PSRC_UINT8: D_RBSWriteUInt8(a_Stream, *((xxnativexx*)a_ValPtr)); break;\
-			case PSRC_UINT16: D_RBSWriteUInt16(a_Stream, *((xxnativexx*)a_ValPtr)); break;\
-			case PSRC_UINT32: D_RBSWriteUInt32(a_Stream, *((xxnativexx*)a_ValPtr)); break;\
+			case PSRC_INT8: D_BSwi8(a_Stream, *((xxnativexx*)a_ValPtr)); break;\
+			case PSRC_INT16: D_BSwi16(a_Stream, *((xxnativexx*)a_ValPtr)); break;\
+			case PSRC_INT32: D_BSwi32(a_Stream, *((xxnativexx*)a_ValPtr)); break;\
+			case PSRC_UINT8: D_BSwu8(a_Stream, *((xxnativexx*)a_ValPtr)); break;\
+			case PSRC_UINT16: D_BSwu16(a_Stream, *((xxnativexx*)a_ValPtr)); break;\
+			case PSRC_UINT32: D_BSwu32(a_Stream, *((xxnativexx*)a_ValPtr)); break;\
 			default: return false;\
 		}\
 		\
@@ -6195,7 +6195,7 @@ static const P_SGDXDataSpec_t c_SectorSpec[] =
 /*** FUNCTIONS ***/
 
 /* PS_SGDXReadWriteData() -- Read/Write Data */
-static bool_t PS_SGDXReadWriteData(D_RBlockStream_t* const a_Stream, const bool_t a_Load, void* const a_Ptr, const size_t a_Size, const P_SGBWTypeC_t a_CType, const P_SGBWTypeRec_t a_RType, int32_t* const a_Copy)
+static bool_t PS_SGDXReadWriteData(D_BS_t* const a_Stream, const bool_t a_Load, void* const a_Ptr, const size_t a_Size, const P_SGBWTypeC_t a_CType, const P_SGBWTypeRec_t a_RType, int32_t* const a_Copy)
 {
 	P_SGDXTypeIO_t* IO;
 	
@@ -6215,13 +6215,13 @@ static bool_t PS_SGDXReadWriteData(D_RBlockStream_t* const a_Stream, const bool_
 
 
 /* P_SGBSGDXReadStr() -- Read string and possibly Z_StrDup it */
-bool_t P_SGBSGDXReadStr(D_RBlockStream_t* const a_Stream, char** const a_Ptr, char* const a_Buf, const size_t a_BufSize)
+bool_t P_SGBSGDXReadStr(D_BS_t* const a_Stream, char** const a_Ptr, char* const a_Buf, const size_t a_BufSize)
 {
 	/* Clear */
 	//memset(a_Buf, 0, sizeof(a_Buf) * a_BufSize);
 	
 	/* Read String */
-	D_RBSReadString(a_Stream, a_Buf, a_BufSize - 1);
+	D_BSrs(a_Stream, a_Buf, a_BufSize - 1);
 	
 	/* Dupe it */
 	if (a_Ptr)
@@ -6235,7 +6235,7 @@ bool_t P_SGBSGDXReadStr(D_RBlockStream_t* const a_Stream, char** const a_Ptr, ch
 }
 
 /* PS_SGDXDoStruct() -- Saves/Loads structure specification */
-static bool_t PS_SGDXDoStruct(D_RBlockStream_t* const a_Stream, const bool_t a_Load, void* const a_Base, const P_SGDXDataSpec_t* const a_Spec)
+static bool_t PS_SGDXDoStruct(D_BS_t* const a_Stream, const bool_t a_Load, void* const a_Base, const P_SGDXDataSpec_t* const a_Spec)
 {
 	size_t i;
 	uint64_t pMark;
@@ -6249,13 +6249,13 @@ static bool_t PS_SGDXDoStruct(D_RBlockStream_t* const a_Stream, const bool_t a_L
 		// likely points to this structure.
 	if (a_Load)
 	{
-		pMark = D_RBSReadPointer(a_Stream);
+		pMark = D_BSrp(a_Stream);
 		PLGS_SetRef(pMark, a_Base);
 	}
 	
 	// If saving, write pointer.
 	else
-		D_RBSWritePointer(a_Stream, a_Base);
+		D_BSwp(a_Stream, a_Base);
 	
 	/* Go through each spec */
 	for (i = 0; !a_Spec[i].AtEnd; i++)
@@ -6281,7 +6281,7 @@ static bool_t PS_SGDXDoStruct(D_RBlockStream_t* const a_Stream, const bool_t a_L
 	// a_SizeP -- Pointer to array count (&numwhatever)
 	// a_SizeSz -- Size of array count (sizeof(numwhatever))
 	// a_SizeType -- Native type for array count (INT,SIZE,UINT32,etc.)
-bool_t P_SGDXDoArray(D_RBlockStream_t* const a_Stream, const bool_t a_Load, void** const a_ArrayP, const size_t a_MemSz, void* const a_SizeP, const size_t a_SizeSz, const P_SGBWTypeC_t a_SizeType, const Z_MemoryTag_t a_PUTag)
+bool_t P_SGDXDoArray(D_BS_t* const a_Stream, const bool_t a_Load, void** const a_ArrayP, const size_t a_MemSz, void* const a_SizeP, const size_t a_SizeSz, const P_SGBWTypeC_t a_SizeType, const Z_MemoryTag_t a_PUTag)
 {
 	int32_t i32;
 	
@@ -6328,12 +6328,12 @@ bool_t P_SGDXDoArray(D_RBlockStream_t* const a_Stream, const bool_t a_Load, void
 #define __BI(x,nt,rc) PS_SGDXReadWriteData(a_Stream, a_Load, &x, sizeof(x), PSTC_##nt, PSRC_##rc, NULL)
 
 	// __BISTRZ -- Z_Malloced String
-#define __BISTRZ(x) (a_Load ? P_SGDXReadStr(a_Stream,&x,Buf,BUFSIZE) : PS_WRAPPED_D_RBSWriteString(a_Stream, x))
+#define __BISTRZ(x) (a_Load ? P_SGDXReadStr(a_Stream,&x,Buf,BUFSIZE) : PS_WRAPPED_D_BSws(a_Stream, x))
 	// __BISTRB -- Buffered String
-#define __BISTRB(buf,bs) (a_Load ? P_SGBSGDXReadStr(a_Stream,NULL,buf,bs) : PS_WRAPPED_D_RBSWriteString(a_Stream, buf))
+#define __BISTRB(buf,bs) (a_Load ? P_SGBSGDXReadStr(a_Stream,NULL,buf,bs) : PS_WRAPPED_D_BSws(a_Stream, buf))
 
 /* P_SGDXSpec() -- Save/Load Game via specification */
-bool_t P_SGDXSpec(D_RBlockStream_t* const a_Stream, I_HostAddress_t* const a_NetAddr, const bool_t a_Load)
+bool_t P_SGDXSpec(D_BS_t* const a_Stream, I_HostAddress_t* const a_NetAddr, const bool_t a_Load)
 {
 #define BUFSIZE 128
 	char Buf[BUFSIZE];
@@ -6361,7 +6361,7 @@ bool_t P_SGDXSpec(D_RBlockStream_t* const a_Stream, I_HostAddress_t* const a_Net
 		if (a_Load)
 		{
 			memset(&InAddr, 0, sizeof(InAddr));
-			if (!(Continue = D_RBSPlayNetBlock(a_Stream, Header, &InAddr)))
+			if (!(Continue = D_BSPlayNetBlock(a_Stream, Header, &InAddr)))
 				break;
 			HitBlock = false;	// Check when a valid block was read
 		}

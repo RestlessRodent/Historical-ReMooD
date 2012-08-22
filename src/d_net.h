@@ -47,7 +47,7 @@
 *****************/
 
 struct D_NetPlayer_s;
-struct D_RBlockStream_s;
+struct D_BS_s;
 struct D_ProfileEx_s;
 
 /*****************
@@ -103,9 +103,9 @@ typedef struct D_NetClient_s
 	/* Location and Pathing */
 	I_HostAddress_t Address;					// Address to client
 	I_NetSocket_t* NetSock;						// Network socket
-	struct D_RBlockStream_s* CoreStream;		// Core stream
-	struct D_RBlockStream_s* PerfectStream;		// Core stream
-	struct D_RBlockStream_s* Streams[NUMDNCSTREAMS];	// Client Streams
+	struct D_BS_s* CoreStream;		// Core stream
+	struct D_BS_s* PerfectStream;		// Core stream
+	struct D_BS_s* Streams[NUMDNCSTREAMS];	// Client Streams
 	
 	/* Flags */
 	bool_t IsLocal;								// Local client
@@ -131,7 +131,7 @@ D_NetClient_t* D_NCFindClientByNetPlayer(struct D_NetPlayer_s* const a_NetPlayer
 D_NetClient_t* D_NCFindClientByHost(I_HostAddress_t* const a_Host);
 D_NetClient_t* D_NCFindClientByPlayer(struct player_s* const a_Player);
 
-void D_NCFudgeOffHostStream(I_HostAddress_t* const a_Host, struct D_RBlockStream_s* a_Stream, const char a_Code, const char* const a_Reason);
+void D_NCFudgeOffHostStream(I_HostAddress_t* const a_Host, struct D_BS_s* a_Stream, const char a_Code, const char* const a_Reason);
 void D_NCFudgeOffClient(D_NetClient_t* const a_Client, const char a_Code, const char* const a_Reason);
 
 void D_NCUpdate(void);
@@ -151,10 +151,10 @@ void D_NCReqAddPlayer(struct D_ProfileEx_s* a_Profile, const bool_t a_Bot);
 void D_NCZapNetPlayer(struct D_NetPlayer_s* const a_Player);
 
 /*** NSZZ Funcs ***/
-void D_NSZZ_SendINFO(struct D_RBlockStream_s* a_Stream, const uint32_t a_LocalTime);
-bool_t D_NSZZ_SendINFX(struct D_RBlockStream_s* a_Stream, size_t* const a_It);
-void D_NSZZ_SendMOTD(struct D_RBlockStream_s* a_Stream);
-void D_NSZZ_SendFullWADS(struct D_RBlockStream_s* a_Stream, I_HostAddress_t* const a_Host);
+void D_NSZZ_SendINFO(struct D_BS_s* a_Stream, const uint32_t a_LocalTime);
+bool_t D_NSZZ_SendINFX(struct D_BS_s* a_Stream, size_t* const a_It);
+void D_NSZZ_SendMOTD(struct D_BS_s* a_Stream);
+void D_NSZZ_SendFullWADS(struct D_BS_s* a_Stream, I_HostAddress_t* const a_Host);
 
 /*** NCSR Funcs ***/
 void D_NCSR_RequestMap(const char* const a_Map);

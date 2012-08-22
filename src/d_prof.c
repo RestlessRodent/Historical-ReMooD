@@ -709,3 +709,11 @@ int CLC_Profile(const uint32_t a_ArgC, const char** const a_ArgV)
 #undef BUFSIZE
 }
 
+/* D_PopupProfileMenu() -- Pops up the profile menu */
+void D_PopupProfileMenu(const int32_t a_Player)
+{
+	M_UIMenu_t* New;
+	
+	
+}
+

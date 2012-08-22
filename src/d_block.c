@@ -45,7 +45,7 @@
 ******************/
 
 /* DS_RBSFile_DeleteF() -- Delete file stream */
-static void DS_RBSFile_DeleteF(struct D_RBlockStream_s* const a_Stream)
+static void DS_RBSFile_DeleteF(struct D_BS_s* const a_Stream)
 {
 	/* Check */
 	if (!a_Stream)
@@ -60,7 +60,7 @@ static void DS_RBSFile_DeleteF(struct D_RBlockStream_s* const a_Stream)
 }
 
 /* DS_RBSFile_RecordF() -- Records the current block */
-static size_t DS_RBSFile_RecordF(struct D_RBlockStream_s* const a_Stream)
+static size_t DS_RBSFile_RecordF(struct D_BS_s* const a_Stream)
 {
 	FILE* File;
 	size_t RetVal;
@@ -101,7 +101,7 @@ static size_t DS_RBSFile_RecordF(struct D_RBlockStream_s* const a_Stream)
 }
 
 /* DS_RBSFile_PlayF() -- Play from file */
-bool_t DS_RBSFile_PlayF(struct D_RBlockStream_s* const a_Stream)
+bool_t DS_RBSFile_PlayF(struct D_BS_s* const a_Stream)
 {
 	FILE* File;
 	char Header[5];
@@ -150,10 +150,10 @@ bool_t DS_RBSFile_PlayF(struct D_RBlockStream_s* const a_Stream)
 	}
 	
 	/* Initialize Block */
-	D_RBSBaseBlock(a_Stream, Header);
+	D_BSBaseBlock(a_Stream, Header);
 	
 	/* Write Data to Block */
-	D_RBSWriteChunk(a_Stream, Data, Len);
+	D_BSWriteChunk(a_Stream, Data, Len);
 	if (Data)
 		Z_Free(Data);
 	
@@ -166,7 +166,7 @@ bool_t DS_RBSFile_PlayF(struct D_RBlockStream_s* const a_Stream)
 ******************/
 
 /* DS_RBSWL_DeleteF() -- Delete file stream */
-static void DS_RBSWL_DeleteF(struct D_RBlockStream_s* const a_Stream)
+static void DS_RBSWL_DeleteF(struct D_BS_s* const a_Stream)
 {
 	/* Check */
 	if (!a_Stream)
@@ -174,14 +174,14 @@ static void DS_RBSWL_DeleteF(struct D_RBlockStream_s* const a_Stream)
 }
 
 /* DS_RBSWL_RecordF() -- Records the current block */
-static size_t DS_RBSWL_RecordF(struct D_RBlockStream_s* const a_Stream)
+static size_t DS_RBSWL_RecordF(struct D_BS_s* const a_Stream)
 {
 	// Recording blocks is not supported for WL Streams (read-only!)
 	return 0;
 }
 
 /* DS_RBSWL_PlayF() -- Play from file */
-bool_t DS_RBSWL_PlayF(struct D_RBlockStream_s* const a_Stream)
+bool_t DS_RBSWL_PlayF(struct D_BS_s* const a_Stream)
 {
 	WL_EntryStream_t* Stream;
 	char Header[5];
@@ -218,10 +218,10 @@ bool_t DS_RBSWL_PlayF(struct D_RBlockStream_s* const a_Stream)
 	}
 	
 	/* Initialize Block */
-	D_RBSBaseBlock(a_Stream, Header);
+	D_BSBaseBlock(a_Stream, Header);
 	
 	/* Write Data to Block */
-	D_RBSWriteChunk(a_Stream, Data, Len);
+	D_BSWriteChunk(a_Stream, Data, Len);
 	if (Data)
 		Z_Free(Data);
 	
@@ -251,7 +251,7 @@ typedef struct DS_RBSLoopBackData_s
 } DS_RBSLoopBackData_t;
 
 /* DS_RBSLoopBack_DeleteF() -- Delete loopback stream */
-static void DS_RBSLoopBack_DeleteF(struct D_RBlockStream_s* const a_Stream)
+static void DS_RBSLoopBack_DeleteF(struct D_BS_s* const a_Stream)
 {
 	size_t i;
 	DS_RBSLoopBackData_t* LoopData;
@@ -281,7 +281,7 @@ static void DS_RBSLoopBack_DeleteF(struct D_RBlockStream_s* const a_Stream)
 }
 
 /* DS_RBSLoopBack_RecordF() -- Records a block */
-size_t DS_RBSLoopBack_RecordF(struct D_RBlockStream_s* const a_Stream)
+size_t DS_RBSLoopBack_RecordF(struct D_BS_s* const a_Stream)
 {
 	size_t i;
 	DS_RBSLoopBackData_t* LoopData;
@@ -332,7 +332,7 @@ size_t DS_RBSLoopBack_RecordF(struct D_RBlockStream_s* const a_Stream)
 }
 
 /* DS_RBSLoopBack_PlayF() -- Backs a block back */
-bool_t DS_RBSLoopBack_PlayF(struct D_RBlockStream_s* const a_Stream)
+bool_t DS_RBSLoopBack_PlayF(struct D_BS_s* const a_Stream)
 {
 	DS_RBSLoopBackData_t* LoopData;
 	DS_RBSLoopBackHold_t* Hold;
@@ -365,10 +365,10 @@ bool_t DS_RBSLoopBack_PlayF(struct D_RBlockStream_s* const a_Stream)
 		return false;
 	
 	/* Create Base Block */
-	D_RBSBaseBlock(a_Stream, Hold->Header);
+	D_BSBaseBlock(a_Stream, Hold->Header);
 	
 	// Write all our data in it
-	D_RBSWriteChunk(a_Stream, Hold->Data, Hold->Size);
+	D_BSWriteChunk(a_Stream, Hold->Data, Hold->Size);
 	
 	/* Free Hold */
 	if (Hold->Data)
@@ -394,7 +394,7 @@ bool_t DS_RBSLoopBack_PlayF(struct D_RBlockStream_s* const a_Stream)
 }
 
 /* DS_RBSLoopBack_FlushF() -- Flush block stream */
-bool_t DS_RBSLoopBack_FlushF(struct D_RBlockStream_s* const a_Stream)
+bool_t DS_RBSLoopBack_FlushF(struct D_BS_s* const a_Stream)
 {
 	DS_RBSLoopBackData_t* LoopData;
 	
@@ -437,7 +437,7 @@ typedef struct I_RBSNetSockData_s
 } I_RBSNetSockData_t;
 
 /* DS_RBSNet_DeleteF() -- Delete network stream */
-static void DS_RBSNet_DeleteF(struct D_RBlockStream_s* const a_Stream)
+static void DS_RBSNet_DeleteF(struct D_BS_s* const a_Stream)
 {
 	I_RBSNetSockData_t* NetData;
 	
@@ -456,7 +456,7 @@ static void DS_RBSNet_DeleteF(struct D_RBlockStream_s* const a_Stream)
 }
 
 /* DS_RBSNet_NetRecordF() -- Write block to network */
-size_t DS_RBSNet_NetRecordF(struct D_RBlockStream_s* const a_Stream, I_HostAddress_t* const a_Host)
+size_t DS_RBSNet_NetRecordF(struct D_BS_s* const a_Stream, I_HostAddress_t* const a_Host)
 {
 	I_RBSNetSockData_t* NetData;
 	I_NetSocket_t* Socket;
@@ -499,7 +499,7 @@ size_t DS_RBSNet_NetRecordF(struct D_RBlockStream_s* const a_Stream, I_HostAddre
 }
 
 /* DS_RBSNet_NetPlayF() -- Play block from the network */
-bool_t DS_RBSNet_NetPlayF(struct D_RBlockStream_s* const a_Stream, I_HostAddress_t* const a_Host)
+bool_t DS_RBSNet_NetPlayF(struct D_BS_s* const a_Stream, I_HostAddress_t* const a_Host)
 {
 	I_RBSNetSockData_t* NetData;
 	I_NetSocket_t* Socket;
@@ -546,8 +546,8 @@ bool_t DS_RBSNet_NetPlayF(struct D_RBlockStream_s* const a_Stream, I_HostAddress
 		return false;
 	
 	/* Write data into block */
-	D_RBSBaseBlock(a_Stream, Header);
-	D_RBSWriteChunk(a_Stream, NetData->ReadBuf + 8, Len);
+	D_BSBaseBlock(a_Stream, Header);
+	D_BSWriteChunk(a_Stream, NetData->ReadBuf + 8, Len);
 	
 	/* Was played back */
 	return true;
@@ -602,7 +602,7 @@ typedef struct DS_RBSPerfectHold_s
 /* DS_RBSPerfectData_t -- Perfect Stream */
 typedef struct DS_RBSPerfectData_s
 {
-	D_RBlockStream_t* WrapStream;				// Stream to wrap
+	D_BS_t* WrapStream;				// Stream to wrap
 	bool_t InFlush;								// In the middle of a flush
 	
 	DS_RBSPerfectHold_t** ReadQ;				// Blocks to read Q
@@ -618,7 +618,7 @@ typedef struct DS_RBSPerfectData_s
 } DS_RBSPerfectData_t;
 
 /* DS_RBSPerfect_DeleteF() -- Delete perfect stream */
-static void DS_RBSPerfect_DeleteF(struct D_RBlockStream_s* const a_Stream)
+static void DS_RBSPerfect_DeleteF(struct D_BS_s* const a_Stream)
 {
 	size_t i;
 	DS_RBSPerfectData_t* PerfectData;
@@ -667,7 +667,7 @@ static void DS_RBSPerfect_DeleteF(struct D_RBlockStream_s* const a_Stream)
 }
 
 /* DS_RBSPerfect_IntFindKey() -- Finds the correct key this belongs to */
-static DS_RBSPerfectKey_t* DS_RBSPerfect_IntFindKey(struct D_RBlockStream_s* const a_Stream, DS_RBSPerfectData_t* const a_PerfectData, const uint32_t* const a_InKey, I_HostAddress_t* const a_Host)
+static DS_RBSPerfectKey_t* DS_RBSPerfect_IntFindKey(struct D_BS_s* const a_Stream, DS_RBSPerfectData_t* const a_PerfectData, const uint32_t* const a_InKey, I_HostAddress_t* const a_Host)
 {
 	size_t k, FbK, j, i, b, z;
 	DS_RBSPerfectKey_t* Key;
@@ -839,7 +839,7 @@ static DS_RBSPerfectKey_t* DS_RBSPerfect_IntFindKey(struct D_RBlockStream_s* con
 }
 
 /* DS_RBSPerfect_NetRecordF() -- Write block to perfect stream */
-static size_t DS_RBSPerfect_NetRecordF(struct D_RBlockStream_s* const a_Stream, I_HostAddress_t* const a_Host)
+static size_t DS_RBSPerfect_NetRecordF(struct D_BS_s* const a_Stream, I_HostAddress_t* const a_Host)
 {
 	size_t i, b, z;
 	DS_RBSPerfectData_t* PerfectData;
@@ -847,7 +847,7 @@ static size_t DS_RBSPerfect_NetRecordF(struct D_RBlockStream_s* const a_Stream, 
 	DS_RBSPerfectKey_t* Key;
 	bool_t KeepSending;
 	uint32_t ThisTime, MaskEnc;
-	D_RBlockStream_t* NormStream;
+	D_BS_t* NormStream;
 	uint32_t PerfPkNumLow, PerfPkNumHi;
 	
 	/* Check */
@@ -1021,49 +1021,49 @@ static size_t DS_RBSPerfect_NetRecordF(struct D_RBlockStream_s* const a_Stream, 
 				NormStream = PerfectData->WrapStream;
 				
 				// Write to remote host
-				D_RBSBaseBlock(NormStream, "PERF");
+				D_BSBaseBlock(NormStream, "PERF");
 				
 				// Write Send, Key, Num, Sum, Header, Size, MaskEnc
 				MaskEnc = 0;
 					
 					// Send
-				D_RBSWriteUInt8(NormStream, 'S');
+				D_BSwu8(NormStream, 'S');
 				MaskEnc ^= 'S';
 					// Key
 				for (z = 0; z < 4; z++)
 				{
-					D_RBSWriteUInt32(NormStream, Hold->Key[z]);
+					D_BSwu32(NormStream, Hold->Key[z]);
 					MaskEnc ^= Hold->Key[z];
 				}
 					// Num
 				PerfPkNumLow = Hold->PacketNum & (uint64_t)((~UINT32_C(0)));
 				PerfPkNumHi = Hold->PacketNum >> UINT64_C(32);
 				
-				D_RBSWriteUInt32(NormStream, PerfPkNumLow);
-				D_RBSWriteUInt32(NormStream, PerfPkNumHi);
+				D_BSwu32(NormStream, PerfPkNumLow);
+				D_BSwu32(NormStream, PerfPkNumHi);
 				
 				MaskEnc ^= PerfPkNumLow;
 				MaskEnc ^= PerfPkNumHi;
 					// Sum
-				D_RBSWriteUInt32(NormStream, Hold->CheckSum);
+				D_BSwu32(NormStream, Hold->CheckSum);
 				MaskEnc ^= Hold->CheckSum;
 					// Header
 				for (z = 0; z < 4; z++)
 				{
-					D_RBSWriteUInt8(NormStream, Hold->Header[z]);
+					D_BSwu8(NormStream, Hold->Header[z]);
 					MaskEnc ^= Hold->Header[z];
 				}
 					// Size
-				D_RBSWriteUInt32(NormStream, Hold->Size);
+				D_BSwu32(NormStream, Hold->Size);
 				MaskEnc ^= Hold->Size;
 					// MaskEnc
-				D_RBSWriteUInt32(NormStream, MaskEnc);
+				D_BSwu32(NormStream, MaskEnc);
 				
 				// Write actual block data
-				D_RBSWriteChunk(NormStream, Hold->Data, Hold->Size);
+				D_BSWriteChunk(NormStream, Hold->Data, Hold->Size);
 				
 				// Record to stream
-				D_RBSRecordNetBlock(NormStream, &Hold->RemHost);
+				D_BSRecordNetBlock(NormStream, &Hold->RemHost);
 			}
 		}
 		
@@ -1076,12 +1076,12 @@ static size_t DS_RBSPerfect_NetRecordF(struct D_RBlockStream_s* const a_Stream, 
 }
 
 /* DS_RBSPerfect_NetPlayF() -- Play block from the perfect stream */
-static bool_t DS_RBSPerfect_NetPlayF(struct D_RBlockStream_s* const a_Stream, I_HostAddress_t* const a_Host)
+static bool_t DS_RBSPerfect_NetPlayF(struct D_BS_s* const a_Stream, I_HostAddress_t* const a_Host)
 {
 	char Header[5];
 	DS_RBSPerfectData_t* PerfectData;
 	bool_t OrigRetVal;
-	D_RBlockStream_t* NormStream;
+	D_BS_t* NormStream;
 	DS_RBSPerfectHold_t* Hold;
 	
 	size_t i, z, b, BlankSpot;
@@ -1144,8 +1144,8 @@ static bool_t DS_RBSPerfect_NetPlayF(struct D_RBlockStream_s* const a_Stream, I_
 			continue;	// Still want to keep it though!
 		
 		// Build block
-		D_RBSBaseBlock(a_Stream, Hold->Header);
-		D_RBSWriteChunk(a_Stream, Hold->Data, Hold->Size);
+		D_BSBaseBlock(a_Stream, Hold->Header);
+		D_BSWriteChunk(a_Stream, Hold->Data, Hold->Size);
 		
 		// Copy IP Host -- This is very important
 		if (a_Host)
@@ -1167,14 +1167,14 @@ static bool_t DS_RBSPerfect_NetPlayF(struct D_RBlockStream_s* const a_Stream, I_
 	{
 		// Clear
 		memset(Header, 0, sizeof(Header));
-		OrigRetVal = D_RBSPlayNetBlock(PerfectData->WrapStream, Header, a_Host);
+		OrigRetVal = D_BSPlayNetBlock(PerfectData->WrapStream, Header, a_Host);
 	
 		// If no block was read, return
 		if (!OrigRetVal)
 			return false;
 	
 		// Perfect Block
-		if (D_RBSCompareHeader("PERF", Header))
+		if (D_BSCompareHeader("PERF", Header))
 		{
 			// Read this block and check to see if it is ordered enough and is
 			// fully checksummed and correct. If the block is good return it,
@@ -1182,26 +1182,26 @@ static bool_t DS_RBSPerfect_NetPlayF(struct D_RBlockStream_s* const a_Stream, I_
 			// handling of retransmission and such.
 			
 			// Read PERFECT Header
-			PerfResp = D_RBSReadUInt8(PerfectData->WrapStream);
+			PerfResp = D_BSru8(PerfectData->WrapStream);
 			
 			for (i = 0; i < 4; i++)
-				PerfKey[i] = D_RBSReadUInt32(PerfectData->WrapStream);
+				PerfKey[i] = D_BSru32(PerfectData->WrapStream);
 			
-			PerfPkNumLow = D_RBSReadUInt32(PerfectData->WrapStream);
-			PerfPkNumHi = D_RBSReadUInt32(PerfectData->WrapStream);
+			PerfPkNumLow = D_BSru32(PerfectData->WrapStream);
+			PerfPkNumHi = D_BSru32(PerfectData->WrapStream);
 			
 			PerfPkNum = PerfPkNumHi;
 			PerfPkNum <<= UINT64_C(32);
 			PerfPkNum |= PerfPkNumLow;
 			
-			PerfPkSum = D_RBSReadUInt32(PerfectData->WrapStream);
+			PerfPkSum = D_BSru32(PerfectData->WrapStream);
 			
 			PerfHeader[4] = 0;
 			for (i = 0; i < 4; i++)
-				PerfHeader[i] = D_RBSReadUInt8(PerfectData->WrapStream);
+				PerfHeader[i] = D_BSru8(PerfectData->WrapStream);
 			
-			PerfPkSize = D_RBSReadUInt32(PerfectData->WrapStream);
-			PerfMaskEnc = D_RBSReadUInt32(PerfectData->WrapStream);
+			PerfPkSize = D_BSru32(PerfectData->WrapStream);
+			PerfMaskEnc = D_BSru32(PerfectData->WrapStream);
 			
 			// Confirm the value
 			ConfirmMask = 0;
@@ -1349,46 +1349,46 @@ static bool_t DS_RBSPerfect_NetPlayF(struct D_RBlockStream_s* const a_Stream, I_
 				NormStream = PerfectData->WrapStream;
 				
 				// Write to remote host
-				D_RBSBaseBlock(NormStream, "PERF");
+				D_BSBaseBlock(NormStream, "PERF");
 				
 				// Write Send, Key, Num, Sum, Header, Size, MaskEnc
 				MaskEnc = 0;
 					
 					// Send
-				D_RBSWriteUInt8(NormStream, 'A');
+				D_BSwu8(NormStream, 'A');
 				MaskEnc ^= 'A';
 					// Key
 				for (z = 0; z < 4; z++)
 				{
-					D_RBSWriteUInt32(NormStream, PerfKey[z]);
+					D_BSwu32(NormStream, PerfKey[z]);
 					MaskEnc ^= PerfKey[z];
 				}
 					// Num
 				PerfPkNumLow = PerfPkNum & (uint64_t)((~UINT32_C(0)));
 				PerfPkNumHi = PerfPkNum >> UINT64_C(32);
 				
-				D_RBSWriteUInt32(NormStream, PerfPkNumLow);
-				D_RBSWriteUInt32(NormStream, PerfPkNumHi);
+				D_BSwu32(NormStream, PerfPkNumLow);
+				D_BSwu32(NormStream, PerfPkNumHi);
 				
 				MaskEnc ^= PerfPkNumLow;
 				MaskEnc ^= PerfPkNumHi;
 					// Sum
-				D_RBSWriteUInt32(NormStream, PerfPkSum);
+				D_BSwu32(NormStream, PerfPkSum);
 				MaskEnc ^= PerfPkSum;
 					// Header
 				for (z = 0; z < 4; z++)
 				{
-					D_RBSWriteUInt8(NormStream, PerfHeader[z]);
+					D_BSwu8(NormStream, PerfHeader[z]);
 					MaskEnc ^= PerfHeader[z];
 				}
 					// Size -- This is ignored, due to future payload
-				D_RBSWriteUInt32(NormStream, 0);
+				D_BSwu32(NormStream, 0);
 				MaskEnc ^= 0;
 					// MaskEnc
-				D_RBSWriteUInt32(NormStream, MaskEnc);
+				D_BSwu32(NormStream, MaskEnc);
 				
 				// Record it
-				D_RBSRecordNetBlock(NormStream, a_Host);
+				D_BSRecordNetBlock(NormStream, a_Host);
 				
 				// Was added to Q so deal with later
 				continue;
@@ -1439,8 +1439,8 @@ static bool_t DS_RBSPerfect_NetPlayF(struct D_RBlockStream_s* const a_Stream, I_
 		{
 			// Duplicate the data as needed
 				// Don't worry about host because that was copied already (ptrs)
-			D_RBSBaseBlock(a_Stream, Header);
-			D_RBSWriteChunk(a_Stream, PerfectData->WrapStream->BlkData, PerfectData->WrapStream->BlkSize);
+			D_BSBaseBlock(a_Stream, Header);
+			D_BSWriteChunk(a_Stream, PerfectData->WrapStream->BlkData, PerfectData->WrapStream->BlkSize);
 		
 			// Return the original value returned
 			return OrigRetVal;
@@ -1453,7 +1453,7 @@ static bool_t DS_RBSPerfect_NetPlayF(struct D_RBlockStream_s* const a_Stream, I_
 }
 
 /* DS_RBSPerfect_FlushF() -- Flushes perfect data */
-static bool_t DS_RBSPerfect_FlushF(struct D_RBlockStream_s* const a_Stream)
+static bool_t DS_RBSPerfect_FlushF(struct D_BS_s* const a_Stream)
 {
 	DS_RBSPerfectData_t* PerfectData;
 	I_HostAddress_t FakeHost;
@@ -1478,7 +1478,7 @@ static bool_t DS_RBSPerfect_FlushF(struct D_RBlockStream_s* const a_Stream)
 }
 
 /* DS_RBSPerfect_IOCtlF() -- IOCtl Controller */
-bool_t DS_RBSPerfect_IOCtlF(struct D_RBlockStream_s* const a_Stream, const D_RBSStreamIOCtl_t a_IOCtl, int32_t* a_DataP)
+bool_t DS_RBSPerfect_IOCtlF(struct D_BS_s* const a_Stream, const D_BSStreamIOCtl_t a_IOCtl, int32_t* a_DataP)
 {
 	/* Which IOCTL now? */
 	switch (a_IOCtl)
@@ -1498,10 +1498,10 @@ bool_t DS_RBSPerfect_IOCtlF(struct D_RBlockStream_s* const a_Stream, const D_RBS
 *** FUNCTIONS ***
 ****************/
 
-/* D_RBSCreateLoopBackStream() -- Creates loop back stream */
-D_RBlockStream_t* D_RBSCreateLoopBackStream(void)
+/* D_BSCreateLoopBackStream() -- Creates loop back stream */
+D_BS_t* D_BSCreateLoopBackStream(void)
 {
-	D_RBlockStream_t* New;
+	D_BS_t* New;
 	
 	/* Create block stream */
 	New = Z_Malloc(sizeof(*New), PU_BLOCKSTREAM, NULL);
@@ -1517,10 +1517,10 @@ D_RBlockStream_t* D_RBSCreateLoopBackStream(void)
 	return New;
 }
 
-/* D_RBSCreateWLStream() -- Creates a stream that wraps an entry stream */
-D_RBlockStream_t* D_RBSCreateWLStream(WL_EntryStream_t* const a_Stream)
+/* D_BSCreateWLStream() -- Creates a stream that wraps an entry stream */
+D_BS_t* D_BSCreateWLStream(WL_EntryStream_t* const a_Stream)
 {
-	D_RBlockStream_t* New;
+	D_BS_t* New;
 	
 	/* Check */
 	if (!a_Stream)
@@ -1539,11 +1539,11 @@ D_RBlockStream_t* D_RBSCreateWLStream(WL_EntryStream_t* const a_Stream)
 	return New;
 }
 
-/* D_RBSCreateFileStream() -- Create file stream */
-D_RBlockStream_t* D_RBSCreateFileStream(const char* const a_PathName, const uint32_t a_Flags)
+/* D_BSCreateFileStream() -- Create file stream */
+D_BS_t* D_BSCreateFileStream(const char* const a_PathName, const uint32_t a_Flags)
 {
 	FILE* File;
-	D_RBlockStream_t* New;
+	D_BS_t* New;
 	
 	/* Check */
 	if (!a_PathName)
@@ -1570,10 +1570,10 @@ D_RBlockStream_t* D_RBSCreateFileStream(const char* const a_PathName, const uint
 	return New;
 }
 
-/* D_RBSCreateNetStream() -- Create network stream */
-D_RBlockStream_t* D_RBSCreateNetStream(I_NetSocket_t* const a_NetSocket)
+/* D_BSCreateNetStream() -- Create network stream */
+D_BS_t* D_BSCreateNetStream(I_NetSocket_t* const a_NetSocket)
 {
-	D_RBlockStream_t* New;
+	D_BS_t* New;
 	I_RBSNetSockData_t* NetData;
 	
 	/* Check */
@@ -1596,10 +1596,10 @@ D_RBlockStream_t* D_RBSCreateNetStream(I_NetSocket_t* const a_NetSocket)
 	return New;
 }
 
-/* D_RBSCreatePerfectStream() -- Creates a wrapped "Perfect" Stream */
-D_RBlockStream_t* D_RBSCreatePerfectStream(D_RBlockStream_t* const a_Wrapped)
+/* D_BSCreatePerfectStream() -- Creates a wrapped "Perfect" Stream */
+D_BS_t* D_BSCreatePerfectStream(D_BS_t* const a_Wrapped)
 {
-	D_RBlockStream_t* New;
+	D_BS_t* New;
 	DS_RBSPerfectData_t* Data;
 	
 	/* Check */
@@ -1628,8 +1628,8 @@ D_RBlockStream_t* D_RBSCreatePerfectStream(D_RBlockStream_t* const a_Wrapped)
 	return New;
 }
 
-/* D_RBSCloseStream() -- Closes File Stream */
-void D_RBSCloseStream(D_RBlockStream_t* const a_Stream)
+/* D_BSCloseStream() -- Closes File Stream */
+void D_BSCloseStream(D_BS_t* const a_Stream)
 {
 	/* Check */
 	if (!a_Stream)
@@ -1643,8 +1643,8 @@ void D_RBSCloseStream(D_RBlockStream_t* const a_Stream)
 	Z_Free(a_Stream);
 }
 
-/* D_RBSStreamIOCtl() -- Call special IOCtl Handler on stream */
-bool_t D_RBSStreamIOCtl(D_RBlockStream_t* const a_Stream, const D_RBSStreamIOCtl_t a_IOCtl, int32_t* a_DataP)
+/* D_BSStreamIOCtl() -- Call special IOCtl Handler on stream */
+bool_t D_BSStreamIOCtl(D_BS_t* const a_Stream, const D_BSStreamIOCtl_t a_IOCtl, int32_t* a_DataP)
 {
 	/* Check */
 	if (!a_Stream || !a_DataP || a_IOCtl < 0 || a_IOCtl >= NUMDRBSSTREAMIOCTL)
@@ -1658,8 +1658,8 @@ bool_t D_RBSStreamIOCtl(D_RBlockStream_t* const a_Stream, const D_RBSStreamIOCtl
 	return false;
 }
 
-/* D_RBSStatStream() -- Obtain stream stats */
-void D_RBSStatStream(D_RBlockStream_t* const a_Stream, uint32_t* const a_ReadBk, uint32_t* const a_WriteBk, uint32_t* const a_ReadBy, uint32_t* const a_WriteBy)
+/* D_BSStatStream() -- Obtain stream stats */
+void D_BSStatStream(D_BS_t* const a_Stream, uint32_t* const a_ReadBk, uint32_t* const a_WriteBk, uint32_t* const a_ReadBy, uint32_t* const a_WriteBy)
 {
 	/* Check */
 	if (!a_Stream)
@@ -1677,8 +1677,8 @@ void D_RBSStatStream(D_RBlockStream_t* const a_Stream, uint32_t* const a_ReadBk,
 		*a_WriteBy = a_Stream->StatBytes[1];
 }
 
-/* D_RBSUnStatStream() -- Clear stream stats */
-void D_RBSUnStatStream(D_RBlockStream_t* const a_Stream)
+/* D_BSUnStatStream() -- Clear stream stats */
+void D_BSUnStatStream(D_BS_t* const a_Stream)
 {
 	size_t i;
 	
@@ -1691,8 +1691,8 @@ void D_RBSUnStatStream(D_RBlockStream_t* const a_Stream)
 		a_Stream->StatBlock[i] = a_Stream->StatBytes[i] = 0;
 }
 
-/* D_RBSMarkedStream() -- Returns true if stream is marked */
-bool_t D_RBSMarkedStream(D_RBlockStream_t* const a_Stream)
+/* D_BSMarkedStream() -- Returns true if stream is marked */
+bool_t D_BSMarkedStream(D_BS_t* const a_Stream)
 {
 	/* Check */
 	if (!a_Stream)
@@ -1701,8 +1701,8 @@ bool_t D_RBSMarkedStream(D_RBlockStream_t* const a_Stream)
 	return a_Stream->Marked;
 }
 
-/* D_RBSCompareHeader() -- Compares headers */
-bool_t D_RBSCompareHeader(const char* const a_A, const char* const a_B)
+/* D_BSCompareHeader() -- Compares headers */
+bool_t D_BSCompareHeader(const char* const a_A, const char* const a_B)
 {
 	/* Check */
 	if (!a_A || !a_B)
@@ -1716,9 +1716,9 @@ bool_t D_RBSCompareHeader(const char* const a_A, const char* const a_B)
 	return false;
 }
 
-/* D_RBSBaseBlock() -- Base block */
+/* D_BSBaseBlock() -- Base block */
 // This used to return void, but I need it to return true for the SaveGame code
-bool_t D_RBSBaseBlock(D_RBlockStream_t* const a_Stream, const char* const a_Header)
+bool_t D_BSBaseBlock(D_BS_t* const a_Stream, const char* const a_Header)
 {
 	/* Check */
 	if (!a_Stream || !a_Header)
@@ -1743,8 +1743,8 @@ bool_t D_RBSBaseBlock(D_RBlockStream_t* const a_Stream, const char* const a_Head
 	return true;
 }
 
-/* D_RBSRenameHeader() -- Rename block */
-bool_t D_RBSRenameHeader(D_RBlockStream_t* const a_Stream, const char* const a_Header)
+/* D_BSRenameHeader() -- Rename block */
+bool_t D_BSRenameHeader(D_BS_t* const a_Stream, const char* const a_Header)
 {
 	/* Check */
 	if (!a_Stream || !a_Header)
@@ -1757,8 +1757,8 @@ bool_t D_RBSRenameHeader(D_RBlockStream_t* const a_Stream, const char* const a_H
 	return true;
 }
 
-/* D_RBSRecordBlock() -- Records the current block to the stream */
-void D_RBSRecordBlock(D_RBlockStream_t* const a_Stream)
+/* D_BSRecordBlock() -- Records the current block to the stream */
+void D_BSRecordBlock(D_BS_t* const a_Stream)
 {
 	/* Check */
 	if (!a_Stream)
@@ -1775,8 +1775,8 @@ void D_RBSRecordBlock(D_RBlockStream_t* const a_Stream)
 	a_Stream->StatBytes[1] += a_Stream->BlkSize;
 }
 
-/* D_RBSRecordBlock() -- Plays the current block from the stream */
-bool_t D_RBSPlayBlock(D_RBlockStream_t* const a_Stream, char* const a_Header)
+/* D_BSRecordBlock() -- Plays the current block from the stream */
+bool_t D_BSPlayBlock(D_BS_t* const a_Stream, char* const a_Header)
 {
 	/* Check */
 	if (!a_Stream)
@@ -1822,8 +1822,8 @@ bool_t D_RBSPlayBlock(D_RBlockStream_t* const a_Stream, char* const a_Header)
 	return false;
 }
 
-/* D_RBSPlayNetBlock() -- Plays net block */
-bool_t D_RBSPlayNetBlock(D_RBlockStream_t* const a_Stream, char* const a_Header, I_HostAddress_t* const a_Host)
+/* D_BSPlayNetBlock() -- Plays net block */
+bool_t D_BSPlayNetBlock(D_BS_t* const a_Stream, char* const a_Header, I_HostAddress_t* const a_Host)
 {
 	/* Check */
 	if (!a_Stream)
@@ -1869,8 +1869,8 @@ bool_t D_RBSPlayNetBlock(D_RBlockStream_t* const a_Stream, char* const a_Header,
 	return false;
 }
 
-/* D_RBSRecordNetBlock() -- Record net block */
-void D_RBSRecordNetBlock(D_RBlockStream_t* const a_Stream, I_HostAddress_t* const a_Host)
+/* D_BSRecordNetBlock() -- Record net block */
+void D_BSRecordNetBlock(D_BS_t* const a_Stream, I_HostAddress_t* const a_Host)
 {
 	/* Check */
 	if (!a_Stream)
@@ -1887,8 +1887,8 @@ void D_RBSRecordNetBlock(D_RBlockStream_t* const a_Stream, I_HostAddress_t* cons
 	a_Stream->StatBytes[1] += a_Stream->BlkSize;
 }
 
-/* D_RBSFlushStream() -- Flush stream */
-bool_t D_RBSFlushStream(D_RBlockStream_t* const a_Stream)
+/* D_BSFlushStream() -- Flush stream */
+bool_t D_BSFlushStream(D_BS_t* const a_Stream)
 {
 	/* Check */
 	if (!a_Stream)
@@ -1902,8 +1902,8 @@ bool_t D_RBSFlushStream(D_RBlockStream_t* const a_Stream)
 	return false;
 }
 
-/* D_RBSWriteChunk() -- Write data chunk into block */
-size_t D_RBSWriteChunk(D_RBlockStream_t* const a_Stream, const void* const a_Data, const size_t a_Size)
+/* D_BSWriteChunk() -- Write data chunk into block */
+size_t D_BSWriteChunk(D_BS_t* const a_Stream, const void* const a_Data, const size_t a_Size)
 {
 	size_t DestSize;
 	
@@ -1930,22 +1930,23 @@ size_t D_RBSWriteChunk(D_RBlockStream_t* const a_Stream, const void* const a_Dat
 }
 
 #define BP_MERGE(a,b) a##b
-#define __REMOOD_RBSQUICK(w,x) void BP_MERGE(D_RBSWrite,w)(D_RBlockStream_t* const a_Stream, const x a_Val)\
+#define __REMOOD_BSQUICK(w,x,ww) void BP_MERGE(D_BSw,ww)(D_BS_t* const a_Stream, const x a_Val)\
 {\
-	D_RBSWriteChunk(a_Stream, &a_Val, sizeof(a_Val));\
+	x Val = BP_MERGE(LittleSwap,w)(a_Val);\
+	D_BSWriteChunk(a_Stream, &Val, sizeof(Val));\
 }
 
-__REMOOD_RBSQUICK(Int8,int8_t);
-__REMOOD_RBSQUICK(Int16,int16_t);
-__REMOOD_RBSQUICK(Int32,int32_t);
-__REMOOD_RBSQUICK(Int64,int64_t);
-__REMOOD_RBSQUICK(UInt8,uint8_t);
-__REMOOD_RBSQUICK(UInt16,uint16_t);
-__REMOOD_RBSQUICK(UInt32,uint32_t);
-__REMOOD_RBSQUICK(UInt64,uint64_t);
+__REMOOD_BSQUICK(Int8,int8_t,i8);
+__REMOOD_BSQUICK(Int16,int16_t,i16);
+__REMOOD_BSQUICK(Int32,int32_t,i32);
+__REMOOD_BSQUICK(Int64,int64_t,i64);
+__REMOOD_BSQUICK(UInt8,uint8_t,u8);
+__REMOOD_BSQUICK(UInt16,uint16_t,u16);
+__REMOOD_BSQUICK(UInt32,uint32_t,u32);
+__REMOOD_BSQUICK(UInt64,uint64_t,u64);
 
-/* D_RBSWriteString() -- Write Version String */
-void D_RBSWriteString(D_RBlockStream_t* const a_Stream, const char* const a_Val)
+/* D_BSws() -- Write Version String */
+void D_BSws(D_BS_t* const a_Stream, const char* const a_Val)
 {
 	const char* c;
 	
@@ -1955,28 +1956,28 @@ void D_RBSWriteString(D_RBlockStream_t* const a_Stream, const char* const a_Val)
 	
 	/* Constant Write */
 	for (c = a_Val; *c; c++)
-		D_RBSWriteUInt8(a_Stream, *c);
-	D_RBSWriteUInt8(a_Stream, 0);	// NUL
+		D_BSwu8(a_Stream, *c);
+	D_BSwu8(a_Stream, 0);	// NUL
 }
 
-/* D_RBSWritePointer() -- Write Pointer */
-void D_RBSWritePointer(D_RBlockStream_t* const a_Stream, const void* const a_Ptr)
+/* D_BSwp() -- Write Pointer */
+void D_BSwp(D_BS_t* const a_Stream, const void* const a_Ptr)
 {
 	size_t i;
 	uint64_t XP;
 	
 	/* Write sizeof() */
-	D_RBSWriteUInt8(a_Stream, sizeof(a_Ptr));
+	D_BSwu8(a_Stream, sizeof(a_Ptr));
 	
 	/* Write all the pointer bits (for UUID in a way) */
 	XP = (uint64_t)((uintptr_t)a_Ptr);
 	for (i = 0; i < sizeof(a_Ptr); i++)
-		D_RBSWriteUInt8(a_Stream, (uint8_t)(((XP >> ((UINT64_C(8) * ((uint64_t)i)))) & UINT64_C(0xFF))));
-		//OP |= ((uint64_t)D_RBSReadUInt8(a_Stream)) << ((UINT64_C(8) * ((uint64_t)i)));
+		D_BSwu8(a_Stream, (uint8_t)(((XP >> ((UINT64_C(8) * ((uint64_t)i)))) & UINT64_C(0xFF))));
+		//OP |= ((uint64_t)D_BSru8(a_Stream)) << ((UINT64_C(8) * ((uint64_t)i)));
 }
 
-/* D_RBSReadChunk() -- Reads Chunk */
-size_t D_RBSReadChunk(D_RBlockStream_t* const a_Stream, void* const a_Data, const size_t a_Size)
+/* D_BSReadChunk() -- Reads Chunk */
+size_t D_BSReadChunk(D_BS_t* const a_Stream, void* const a_Data, const size_t a_Size)
 {
 	ssize_t Count;
 	size_t Read;
@@ -1996,24 +1997,24 @@ size_t D_RBSReadChunk(D_RBlockStream_t* const a_Stream, void* const a_Data, cons
 }
 
 #define BP_MERGE(a,b) a##b
-#define __REMOOD_RBSQUICKREAD(w,x) x BP_MERGE(D_RBSRead,w)(D_RBlockStream_t* const a_Stream)\
+#define __REMOOD_BSQUICKREAD(w,x,ww) x BP_MERGE(D_BSr,ww)(D_BS_t* const a_Stream)\
 {\
 	x Ret;\
-	D_RBSReadChunk(a_Stream, &Ret, sizeof(Ret));\
-	return Ret;\
+	D_BSReadChunk(a_Stream, &Ret, sizeof(Ret));\
+	return BP_MERGE(LittleSwap,w)(Ret);\
 }
 
-__REMOOD_RBSQUICKREAD(Int8,int8_t);
-__REMOOD_RBSQUICKREAD(Int16,int16_t);
-__REMOOD_RBSQUICKREAD(Int32,int32_t);
-__REMOOD_RBSQUICKREAD(Int64,int64_t);
-__REMOOD_RBSQUICKREAD(UInt8,uint8_t);
-__REMOOD_RBSQUICKREAD(UInt16,uint16_t);
-__REMOOD_RBSQUICKREAD(UInt32,uint32_t);
-__REMOOD_RBSQUICKREAD(UInt64,uint64_t);
+__REMOOD_BSQUICKREAD(Int8,int8_t,i8);
+__REMOOD_BSQUICKREAD(Int16,int16_t,i16);
+__REMOOD_BSQUICKREAD(Int32,int32_t,i32);
+__REMOOD_BSQUICKREAD(Int64,int64_t,i64);
+__REMOOD_BSQUICKREAD(UInt8,uint8_t,u8);
+__REMOOD_BSQUICKREAD(UInt16,uint16_t,u16);
+__REMOOD_BSQUICKREAD(UInt32,uint32_t,u32);
+__REMOOD_BSQUICKREAD(UInt64,uint64_t,u64);
 
-/* D_RBSReadString() -- Read String */
-size_t D_RBSReadString(D_RBlockStream_t* const a_Stream, char* const a_Out, const size_t a_OutSize)
+/* D_BSrs() -- Read String */
+size_t D_BSrs(D_BS_t* const a_Stream, char* const a_Out, const size_t a_OutSize)
 {
 	size_t i;
 	uint8_t Char;
@@ -2026,7 +2027,7 @@ size_t D_RBSReadString(D_RBlockStream_t* const a_Stream, char* const a_Out, cons
 	for (i = 0; ; i++)
 	{
 		// Read Character
-		Char = D_RBSReadUInt8(a_Stream);
+		Char = D_BSru8(a_Stream);
 		
 		// End of string?
 		if (!Char)
@@ -2049,20 +2050,20 @@ size_t D_RBSReadString(D_RBlockStream_t* const a_Stream, char* const a_Out, cons
 	return i;	
 }
 
-/* D_RBSReadPointer() -- Reads pointer */
-uint64_t D_RBSReadPointer(D_RBlockStream_t* const a_Stream)
+/* D_BSrp() -- Reads pointer */
+uint64_t D_BSrp(D_BS_t* const a_Stream)
 {
 	size_t i;
 	uint8_t SizeOf;
 	uint64_t OP;
 	
 	/* Read sizeof() */
-	SizeOf = D_RBSReadUInt8(a_Stream);
+	SizeOf = D_BSru8(a_Stream);
 	
 	/* Read in pointer bits */
 	OP = 0;
 	for (i = 0; i < SizeOf; i++)
-		OP |= ((uint64_t)D_RBSReadUInt8(a_Stream)) << ((UINT64_C(8) * ((uint64_t)i)));
+		OP |= ((uint64_t)D_BSru8(a_Stream)) << ((UINT64_C(8) * ((uint64_t)i)));
 	
 	/* Return the number */
 	return OP;

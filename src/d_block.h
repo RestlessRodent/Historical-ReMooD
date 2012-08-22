@@ -45,27 +45,27 @@
 
 #define RBLOCKBUFSIZE					128		// Block buffer size
 
-/* D_RBSStreamFlags_t -- Flags for streams */
-typedef enum D_RBSStreamFlags_s
+/* D_BSStreamFlags_t -- Flags for streams */
+typedef enum D_BSStreamFlags_s
 {
 	DRBSSF_OVERWRITE				= 0x0001,	// Overwrite existing file
 	DRBSSF_READONLY					= 0x0002,	// Create Read Only Stream
-} D_RBSStreamFlags_t;
+} D_BSStreamFlags_t;
 
-/* D_RBSStreamIOCtl_t -- IOCtl Command for stream */
-typedef enum D_RBSStreamIOCtl_e
+/* D_BSStreamIOCtl_t -- IOCtl Command for stream */
+typedef enum D_BSStreamIOCtl_e
 {
 	DRBSIOCTL_ISPERFECT,						// Read: Is perfect?
 	
 	NUMDRBSSTREAMIOCTL
-} D_RBSStreamIOCtl_t;
+} D_BSStreamIOCtl_t;
 
 /*****************
 *** STRUCTURES ***
 *****************/
 
-/* D_RBlockStream_t -- Remote block stream */
-typedef struct D_RBlockStream_s
+/* D_BS_t -- Remote block stream */
+typedef struct D_BS_s
 {
 	/* Info */
 	void* Data;									// Private Data
@@ -80,77 +80,77 @@ typedef struct D_RBlockStream_s
 	bool_t Marked;								// Marked?
 	
 	/* Functions */
-	size_t (*RecordF)(struct D_RBlockStream_s* const a_Stream);
-	bool_t (*PlayF)(struct D_RBlockStream_s* const a_Stream);
-	bool_t (*FlushF)(struct D_RBlockStream_s* const a_Stream);
+	size_t (*RecordF)(struct D_BS_s* const a_Stream);
+	bool_t (*PlayF)(struct D_BS_s* const a_Stream);
+	bool_t (*FlushF)(struct D_BS_s* const a_Stream);
 	
-	size_t (*NetRecordF)(struct D_RBlockStream_s* const a_Stream, I_HostAddress_t* const a_Host);
-	bool_t (*NetPlayF)(struct D_RBlockStream_s* const a_Stream, I_HostAddress_t* const a_Host);
+	size_t (*NetRecordF)(struct D_BS_s* const a_Stream, I_HostAddress_t* const a_Host);
+	bool_t (*NetPlayF)(struct D_BS_s* const a_Stream, I_HostAddress_t* const a_Host);
 	
-	void (*DeleteF)(struct D_RBlockStream_s* const a_Stream);
-	bool_t (*IOCtlF)(struct D_RBlockStream_s* const a_Stream, const D_RBSStreamIOCtl_t a_IOCtl, int32_t* a_DataP);
+	void (*DeleteF)(struct D_BS_s* const a_Stream);
+	bool_t (*IOCtlF)(struct D_BS_s* const a_Stream, const D_BSStreamIOCtl_t a_IOCtl, int32_t* a_DataP);
 	
 	/* Stream Stat */
 	uint32_t StatBlock[2];						// Block stats
 	uint32_t StatBytes[2];						// Byte stats
-} D_RBlockStream_t;
+} D_BS_t;
 
 /****************
 *** FUNCTIONS ***
 ****************/
 
-D_RBlockStream_t* D_RBSCreateLoopBackStream(void);
-D_RBlockStream_t* D_RBSCreateWLStream(WL_EntryStream_t* const a_Stream);
-D_RBlockStream_t* D_RBSCreateFileStream(const char* const a_PathName, const uint32_t a_Flags);
-D_RBlockStream_t* D_RBSCreateNetStream(I_NetSocket_t* const a_NetSocket);
-D_RBlockStream_t* D_RBSCreatePerfectStream(D_RBlockStream_t* const a_Wrapped);
-void D_RBSCloseStream(D_RBlockStream_t* const a_Stream);
+D_BS_t* D_BSCreateLoopBackStream(void);
+D_BS_t* D_BSCreateWLStream(WL_EntryStream_t* const a_Stream);
+D_BS_t* D_BSCreateFileStream(const char* const a_PathName, const uint32_t a_Flags);
+D_BS_t* D_BSCreateNetStream(I_NetSocket_t* const a_NetSocket);
+D_BS_t* D_BSCreatePerfectStream(D_BS_t* const a_Wrapped);
+void D_BSCloseStream(D_BS_t* const a_Stream);
 
-void __REMOOD_DEPRECATED D_RBSStatStream(D_RBlockStream_t* const a_Stream, uint32_t* const a_ReadBk, uint32_t* const a_WriteBk, uint32_t* const a_ReadBy, uint32_t* const a_WriteBy);
-void __REMOOD_DEPRECATED D_RBSUnStatStream(D_RBlockStream_t* const a_Stream);
-bool_t __REMOOD_DEPRECATED D_RBSMarkedStream(D_RBlockStream_t* const a_Stream);
+void __REMOOD_DEPRECATED D_BSStatStream(D_BS_t* const a_Stream, uint32_t* const a_ReadBk, uint32_t* const a_WriteBk, uint32_t* const a_ReadBy, uint32_t* const a_WriteBy);
+void __REMOOD_DEPRECATED D_BSUnStatStream(D_BS_t* const a_Stream);
+bool_t __REMOOD_DEPRECATED D_BSMarkedStream(D_BS_t* const a_Stream);
 
-bool_t D_RBSStreamIOCtl(D_RBlockStream_t* const a_Stream, const D_RBSStreamIOCtl_t a_IOCtl, int32_t* a_DataP);
+bool_t D_BSStreamIOCtl(D_BS_t* const a_Stream, const D_BSStreamIOCtl_t a_IOCtl, int32_t* a_DataP);
 
-bool_t D_RBSCompareHeader(const char* const a_A, const char* const a_B);
-bool_t D_RBSBaseBlock(D_RBlockStream_t* const a_Stream, const char* const a_Header);
-bool_t D_RBSRenameHeader(D_RBlockStream_t* const a_Stream, const char* const a_Header);
+bool_t D_BSCompareHeader(const char* const a_A, const char* const a_B);
+bool_t D_BSBaseBlock(D_BS_t* const a_Stream, const char* const a_Header);
+bool_t D_BSRenameHeader(D_BS_t* const a_Stream, const char* const a_Header);
 
-bool_t D_RBSPlayBlock(D_RBlockStream_t* const a_Stream, char* const a_Header);
-void D_RBSRecordBlock(D_RBlockStream_t* const a_Stream);
+bool_t D_BSPlayBlock(D_BS_t* const a_Stream, char* const a_Header);
+void D_BSRecordBlock(D_BS_t* const a_Stream);
 
-bool_t D_RBSPlayNetBlock(D_RBlockStream_t* const a_Stream, char* const a_Header, I_HostAddress_t* const a_Host);
-void D_RBSRecordNetBlock(D_RBlockStream_t* const a_Stream, I_HostAddress_t* const a_Host);
+bool_t D_BSPlayNetBlock(D_BS_t* const a_Stream, char* const a_Header, I_HostAddress_t* const a_Host);
+void D_BSRecordNetBlock(D_BS_t* const a_Stream, I_HostAddress_t* const a_Host);
 
-bool_t D_RBSFlushStream(D_RBlockStream_t* const a_Stream);
+bool_t D_BSFlushStream(D_BS_t* const a_Stream);
 
-size_t D_RBSWriteChunk(D_RBlockStream_t* const a_Stream, const void* const a_Data, const size_t a_Size);
+size_t D_BSWriteChunk(D_BS_t* const a_Stream, const void* const a_Data, const size_t a_Size);
 
-void D_RBSWriteInt8(D_RBlockStream_t* const a_Stream, const int8_t a_Val);
-void D_RBSWriteInt16(D_RBlockStream_t* const a_Stream, const int16_t a_Val);
-void D_RBSWriteInt32(D_RBlockStream_t* const a_Stream, const int32_t a_Val);
-void D_RBSWriteInt64(D_RBlockStream_t* const a_Stream, const int64_t a_Val);
-void D_RBSWriteUInt8(D_RBlockStream_t* const a_Stream, const uint8_t a_Val);
-void D_RBSWriteUInt16(D_RBlockStream_t* const a_Stream, const uint16_t a_Val);
-void D_RBSWriteUInt32(D_RBlockStream_t* const a_Stream, const uint32_t a_Val);
-void D_RBSWriteUInt64(D_RBlockStream_t* const a_Stream, const uint64_t a_Val);
+void D_BSwi8(D_BS_t* const a_Stream, const int8_t a_Val);
+void D_BSwi16(D_BS_t* const a_Stream, const int16_t a_Val);
+void D_BSwi32(D_BS_t* const a_Stream, const int32_t a_Val);
+void D_BSwi64(D_BS_t* const a_Stream, const int64_t a_Val);
+void D_BSwu8(D_BS_t* const a_Stream, const uint8_t a_Val);
+void D_BSwu16(D_BS_t* const a_Stream, const uint16_t a_Val);
+void D_BSwu32(D_BS_t* const a_Stream, const uint32_t a_Val);
+void D_BSwu64(D_BS_t* const a_Stream, const uint64_t a_Val);
 
-void D_RBSWriteString(D_RBlockStream_t* const a_Stream, const char* const a_Val);
-void D_RBSWritePointer(D_RBlockStream_t* const a_Stream, const void* const a_Ptr);
+void D_BSws(D_BS_t* const a_Stream, const char* const a_Val);
+void D_BSwp(D_BS_t* const a_Stream, const void* const a_Ptr);
 
-size_t D_RBSReadChunk(D_RBlockStream_t* const a_Stream, void* const a_Data, const size_t a_Size);
+size_t D_BSReadChunk(D_BS_t* const a_Stream, void* const a_Data, const size_t a_Size);
 
-int8_t D_RBSReadInt8(D_RBlockStream_t* const a_Stream);
-int16_t D_RBSReadInt16(D_RBlockStream_t* const a_Stream);
-int32_t D_RBSReadInt32(D_RBlockStream_t* const a_Stream);
-int64_t D_RBSReadInt64(D_RBlockStream_t* const a_Stream);
-uint8_t D_RBSReadUInt8(D_RBlockStream_t* const a_Stream);
-uint16_t D_RBSReadUInt16(D_RBlockStream_t* const a_Stream);
-uint32_t D_RBSReadUInt32(D_RBlockStream_t* const a_Stream);
-uint64_t D_RBSReadUInt64(D_RBlockStream_t* const a_Stream);
+int8_t D_BSri8(D_BS_t* const a_Stream);
+int16_t D_BSri16(D_BS_t* const a_Stream);
+int32_t D_BSri32(D_BS_t* const a_Stream);
+int64_t D_BSri64(D_BS_t* const a_Stream);
+uint8_t D_BSru8(D_BS_t* const a_Stream);
+uint16_t D_BSru16(D_BS_t* const a_Stream);
+uint32_t D_BSru32(D_BS_t* const a_Stream);
+uint64_t D_BSru64(D_BS_t* const a_Stream);
 
-size_t D_RBSReadString(D_RBlockStream_t* const a_Stream, char* const a_Out, const size_t a_OutSize);
-uint64_t D_RBSReadPointer(D_RBlockStream_t* const a_Stream);
+size_t D_BSrs(D_BS_t* const a_Stream, char* const a_Out, const size_t a_OutSize);
+uint64_t D_BSrp(D_BS_t* const a_Stream);
 
 #endif /* __D_BLOCK_H__ */
 

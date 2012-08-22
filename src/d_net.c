@@ -453,17 +453,17 @@ D_NetClient_t* D_NCFindClientByPlayer(struct player_s* const a_Player)
 }
 
 /* D_NCFudgeOffHostStream() -- Fudge off host by stream */
-void D_NCFudgeOffHostStream(I_HostAddress_t* const a_Host, struct D_RBlockStream_s* a_Stream, const char a_Code, const char* const a_Reason)
+void D_NCFudgeOffHostStream(I_HostAddress_t* const a_Host, struct D_BS_s* a_Stream, const char a_Code, const char* const a_Reason)
 {
 	/* Check */
 	if (!a_Host || !a_Stream)
 		return;
 	
 	/* Send FOFF Message */
-	D_RBSBaseBlock(a_Stream, "FOFF");
-	D_RBSWriteUInt8(a_Stream, a_Code);
-	D_RBSWriteString(a_Stream, a_Reason);
-	D_RBSRecordNetBlock(a_Stream, a_Host);
+	D_BSBaseBlock(a_Stream, "FOFF");
+	D_BSwu8(a_Stream, a_Code);
+	D_BSws(a_Stream, a_Reason);
+	D_BSRecordNetBlock(a_Stream, a_Host);
 	
 	/* Destroy client structure */
 }
@@ -608,10 +608,10 @@ bool_t D_CheckNetGame(void)
 	/* Create LoopBack Client */
 	Client = D_NCAllocClient();
 	Client->IsLocal = true;
-	Client->CoreStream = D_RBSCreateLoopBackStream();
+	Client->CoreStream = D_BSCreateLoopBackStream();
 	
 	// Create perfection Wrapper
-	Client->PerfectStream = D_RBSCreatePerfectStream(Client->CoreStream);
+	Client->PerfectStream = D_BSCreatePerfectStream(Client->CoreStream);
 	
 	// Set read/writes for all streams
 	Client->Streams[DNCSP_READ] = Client->CoreStream;
@@ -636,10 +636,10 @@ bool_t D_CheckNetGame(void)
 		Client->NetSock = Socket;
 		
 		// Create stream from it
-		Client->CoreStream = D_RBSCreateNetStream(Client->NetSock);
+		Client->CoreStream = D_BSCreateNetStream(Client->NetSock);
 		
 		// Create encapsulated perfect stream
-		Client->PerfectStream = D_RBSCreatePerfectStream(Client->CoreStream);
+		Client->PerfectStream = D_BSCreatePerfectStream(Client->CoreStream);
 	
 		// Set read/writes for all streams
 		Client->Streams[DNCSP_READ] = Client->CoreStream;
@@ -789,9 +789,9 @@ void D_NCDisconnect(void)
 				
 				// Free streams, if any
 				if (l_Clients[i]->PerfectStream)
-					D_RBSCloseStream(l_Clients[i]->PerfectStream);
+					D_BSCloseStream(l_Clients[i]->PerfectStream);
 				if (l_Clients[i]->CoreStream)
-					D_RBSCloseStream(l_Clients[i]->CoreStream);
+					D_BSCloseStream(l_Clients[i]->CoreStream);
 					
 				// Close socket, if any
 				if (l_Clients[i]->NetSock)
@@ -844,7 +844,7 @@ void D_NCClientize(I_HostAddress_t* const a_Host, const char* const a_Pass, cons
 	D_NetClient_t* Server;
 	D_NetClient_t* NetClient;
 	I_NetSocket_t* Socket;
-	D_RBlockStream_t* Stream;
+	D_BS_t* Stream;
 	
 	/* Check */
 	if (!a_Host)
@@ -899,10 +899,10 @@ void D_NCClientize(I_HostAddress_t* const a_Host, const char* const a_Pass, cons
 	memmove(&NetClient->Address, a_Host, sizeof(*a_Host));
 	
 	// Create stream from it
-	NetClient->CoreStream = D_RBSCreateNetStream(NetClient->NetSock);
+	NetClient->CoreStream = D_BSCreateNetStream(NetClient->NetSock);
 	
 	// Create encapsulated perfect stream
-	NetClient->PerfectStream = D_RBSCreatePerfectStream(NetClient->CoreStream);
+	NetClient->PerfectStream = D_BSCreatePerfectStream(NetClient->CoreStream);
 	
 	// Create streams for server connection
 	NetClient->Streams[DNCSP_READ] = NetClient->CoreStream;
@@ -921,20 +921,20 @@ void D_NCClientize(I_HostAddress_t* const a_Host, const char* const a_Pass, cons
 	Stream = NetClient->Streams[DNCSP_PERFECTWRITE];
 	
 	// Write out the data
-	D_RBSBaseBlock(Stream, "CONN");
+	D_BSBaseBlock(Stream, "CONN");
 	
 	// Write version
-	D_RBSWriteUInt8(Stream, VERSION);
-	D_RBSWriteUInt8(Stream, REMOOD_MAJORVERSION);
-	D_RBSWriteUInt8(Stream, REMOOD_MINORVERSION);
-	D_RBSWriteUInt8(Stream, REMOOD_RELEASEVERSION);
+	D_BSwu8(Stream, VERSION);
+	D_BSwu8(Stream, REMOOD_MAJORVERSION);
+	D_BSwu8(Stream, REMOOD_MINORVERSION);
+	D_BSwu8(Stream, REMOOD_RELEASEVERSION);
 	
 	// Passwords
-	D_RBSWriteString(Stream, (a_Pass ? a_Pass : ""));
-	D_RBSWriteString(Stream, (a_JoinPass ? a_JoinPass : ""));
+	D_BSws(Stream, (a_Pass ? a_Pass : ""));
+	D_BSws(Stream, (a_JoinPass ? a_JoinPass : ""));
 	
 	// Send to server
-	D_RBSRecordNetBlock(Stream, a_Host);
+	D_BSRecordNetBlock(Stream, a_Host);
 	
 	/* Print message to avid player */
 	CONL_OutputU(DSTR_NET_CONNECTINGTOSERVER, "\n");
@@ -965,7 +965,7 @@ void D_NCZapNetPlayer(struct D_NetPlayer_s* const a_Player)
 void D_NCReqAddPlayer(struct D_ProfileEx_s* a_Profile, const bool_t a_Bot)
 {
 	D_NetClient_t* Server;
-	D_RBlockStream_t* Stream;
+	D_BS_t* Stream;
 	
 	/* Check */
 	if (!a_Profile)
@@ -987,13 +987,13 @@ void D_NCReqAddPlayer(struct D_ProfileEx_s* a_Profile, const bool_t a_Bot)
 	Stream = Server->Streams[DNCSP_PERFECTWRITE];
 	
 	// Put Data
-	D_RBSBaseBlock(Stream, "LPRJ");
-	D_RBSWriteString(Stream, a_Profile->UUID);
-	D_RBSWriteString(Stream, a_Profile->AccountName);
-	D_RBSWriteString(Stream, a_Profile->DisplayName);
-	D_RBSWriteUInt8(Stream, a_Profile->Color);
-	D_RBSWriteUInt8(Stream, a_Bot);
-	D_RBSRecordNetBlock(Stream, &Server->Address);
+	D_BSBaseBlock(Stream, "LPRJ");
+	D_BSws(Stream, a_Profile->UUID);
+	D_BSws(Stream, a_Profile->AccountName);
+	D_BSws(Stream, a_Profile->DisplayName);
+	D_BSwu8(Stream, a_Profile->Color);
+	D_BSwu8(Stream, a_Bot);
+	D_BSRecordNetBlock(Stream, &Server->Address);
 }
 
 /*****************************************************************************/
@@ -1029,8 +1029,8 @@ typedef struct D_NCMessageData_s
 	const D_NCMessageType_t* Type;				// Type of message
 	D_NetClient_t* NetClient;					// Client it is from
 	D_NetClient_t* RemoteClient;				// Attached Remote Client
-	D_RBlockStream_t* InStream;					// Stream to read from
-	D_RBlockStream_t* OutStream;				// Stream to write to
+	D_BS_t* InStream;					// Stream to read from
+	D_BS_t* OutStream;				// Stream to write to
 	I_HostAddress_t* FromAddr;					// Address message is from
 	uint32_t FlagsMask;							// Mask for flags
 } D_NCMessageData_t;
@@ -1057,7 +1057,7 @@ void D_NCUpdate(void)
 	char Header[5];
 	I_HostAddress_t FromAddress;
 	D_NetClient_t* NetClient, *RemoteClient;
-	D_RBlockStream_t* PIn, *POut, *BOut;
+	D_BS_t* PIn, *POut, *BOut;
 	bool_t IsServ, IsClient, IsHost;
 	D_NCMessageData_t Data;
 	
@@ -1078,7 +1078,7 @@ void D_NCUpdate(void)
 		
 		// Constantly read from the perfect input stream (if it is set)
 		memset(Header, 0, sizeof(Header));
-		while (PIn && D_RBSPlayNetBlock(PIn, Header, &FromAddress))
+		while (PIn && D_BSPlayNetBlock(PIn, Header, &FromAddress))
 		{
 			// Debug
 			if (devparm)
@@ -1093,7 +1093,7 @@ void D_NCUpdate(void)
 			// Determine where this packet came from for flag checking
 				// Is Perfect Packet
 			IsPerf = 0;
-			D_RBSStreamIOCtl(PIn, DRBSIOCTL_ISPERFECT, &IsPerf);
+			D_BSStreamIOCtl(PIn, DRBSIOCTL_ISPERFECT, &IsPerf);
 				// From Server
 			IsServ = NetClient->IsServer;
 				// From Client
@@ -1151,8 +1151,8 @@ void D_NCUpdate(void)
 		// Flush write streams so our commands are sent
 			// Commands could be in the local loopback which are unsent until
 			// flushed.
-		D_RBSFlushStream(POut);
-		D_RBSFlushStream(BOut);
+		D_BSFlushStream(POut);
+		D_BSFlushStream(BOut);
 	}
 
 
@@ -1161,7 +1161,7 @@ void D_NCUpdate(void)
 	char Buf[BUFSIZE];
 	char ZBuf[BUFSIZE];
 	char Header[5];
-	D_RBlockStream_t* Stream, *OutStream, *GenOut;
+	D_BS_t* Stream, *OutStream, *GenOut;
 	D_NetClient_t* NetClient, *OtherClient;
 	size_t nc, snum, i, p, j;
 	I_HostAddress_t FromAddress;
@@ -1241,19 +1241,19 @@ void D_NCUpdate(void)
 		if (SendPing)
 		{
 			// Unstat the stream
-			D_RBSUnStatStream(GenOut);
+			D_BSUnStatStream(GenOut);
 			
 			// Build PING command
-			D_RBSBaseBlock(GenOut, "PING");
-			D_RBSWriteUInt32(GenOut, ThisTime);
-			D_RBSWriteUInt32(GenOut, DiffTime);
-			D_RBSRecordNetBlock(GenOut, &NetClient->Address);
+			D_BSBaseBlock(GenOut, "PING");
+			D_BSwu32(GenOut, ThisTime);
+			D_BSwu32(GenOut, DiffTime);
+			D_BSRecordNetBlock(GenOut, &NetClient->Address);
 		}
 			// Otherwise, Stat the stream and add to local counts
 		else
 		{
 			// Stat it
-			D_RBSStatStream(GenOut, &u32a, &u32b, &u32c, &u32d);
+			D_BSStatStream(GenOut, &u32a, &u32b, &u32c, &u32d);
 			
 			// Add to local
 			l_LocalStat[0] += u32a;
@@ -1265,8 +1265,8 @@ void D_NCUpdate(void)
 		// Send Keepalive to the perfect stream?
 		if (SendKeep)
 		{
-			D_RBSBaseBlock(OutStream, "KEEP");
-			D_RBSRecordNetBlock(OutStream, &NetClient->Address);
+			D_BSBaseBlock(OutStream, "KEEP");
+			D_BSRecordNetBlock(OutStream, &NetClient->Address);
 		}
 		
 		// Read from the "Perfect" Stream
@@ -1282,7 +1282,7 @@ void D_NCUpdate(void)
 		if (Stream)
 		{
 			// Constantly Read
-			while (D_RBSPlayNetBlock(Stream, Header, &FromAddress))
+			while (D_BSPlayNetBlock(Stream, Header, &FromAddress))
 			{
 				// Debug?
 				if (devparm)
@@ -1299,112 +1299,112 @@ void D_NCUpdate(void)
 	////////////////
 	
 	// Everything -- Ping request
-	if (D_RBSCompareHeader("PING", Header))
+	if (D_BSCompareHeader("PING", Header))
 	{
 		// Send PONG back to the from address (using generic stream)
-		u32a = D_RBSReadUInt32(Stream);		// Rem: ThisTime
-		u32b = D_RBSReadUInt32(Stream);		// Rem: DiffTime
+		u32a = D_BSru32(Stream);		// Rem: ThisTime
+		u32b = D_BSru32(Stream);		// Rem: DiffTime
 		u32c = ThisTime;					// Loc: ThisTime
 		
 		// Create response and send away
-		D_RBSBaseBlock(GenOut, "PONG");
-		D_RBSWriteUInt32(GenOut, u32a);
-		D_RBSWriteUInt32(GenOut, u32b);
-		D_RBSWriteUInt32(GenOut, u32c);
-		D_RBSRecordNetBlock(GenOut, &FromAddress);
+		D_BSBaseBlock(GenOut, "PONG");
+		D_BSwu32(GenOut, u32a);
+		D_BSwu32(GenOut, u32b);
+		D_BSwu32(GenOut, u32c);
+		D_BSRecordNetBlock(GenOut, &FromAddress);
 	}
 	
 	// Everything -- Pong reply
-	else if (D_RBSCompareHeader("PONG", Header))
+	else if (D_BSCompareHeader("PONG", Header))
 	{
 	}
 	
 	// Master Server -- Request List
-	else if (D_RBSCompareHeader("MSRQ", Header))
+	else if (D_BSCompareHeader("MSRQ", Header))
 	{
 		// Read Cookie (Basic Security)
-		u32a = D_RBSReadUInt32(Stream);
-		u32b = D_RBSReadUInt32(Stream);
+		u32a = D_BSru32(Stream);
+		u32b = D_BSru32(Stream);
 		
 		// Setup Base Info
-		D_RBSBaseBlock(GenOut, "MSLS");
-		D_RBSWriteUInt32(GenOut, u32a);
-		D_RBSWriteUInt32(GenOut, u32b);
+		D_BSBaseBlock(GenOut, "MSLS");
+		D_BSwu32(GenOut, u32a);
+		D_BSwu32(GenOut, u32b);
 		
 		// Send Server Info
-		D_RBSWriteUInt8(GenOut, 'R');	// Auto-remote end
+		D_BSwu8(GenOut, 'R');	// Auto-remote end
 		D_NSZZ_SendINFO(GenOut, ThisTime);
 		
 		// Send away
-		D_RBSRecordNetBlock(GenOut, &FromAddress);
+		D_BSRecordNetBlock(GenOut, &FromAddress);
 	}
 	
 	// Master Server -- List
-	else if (D_RBSCompareHeader("MSLS", Header))
+	else if (D_BSCompareHeader("MSLS", Header))
 	{
 		// Read Cookie (Basic Security)
-		u32a = D_RBSReadUInt32(Stream);
-		u32b = D_RBSReadUInt32(Stream);
+		u32a = D_BSru32(Stream);
+		u32b = D_BSru32(Stream);
 	}
 	
 	// Server -- Request Game Info
-	else if (D_RBSCompareHeader("RINF", Header))
+	else if (D_BSCompareHeader("RINF", Header))
 	{
 		// Read Cookie (Basic Security)
-		u32a = D_RBSReadUInt32(Stream);
-		u32b = D_RBSReadUInt32(Stream);
+		u32a = D_BSru32(Stream);
+		u32b = D_BSru32(Stream);
 		
 		// Write INFO
-		D_RBSBaseBlock(GenOut, "INFO");
-		D_RBSWriteUInt32(GenOut, u32a);
-		D_RBSWriteUInt32(GenOut, u32b);
+		D_BSBaseBlock(GenOut, "INFO");
+		D_BSwu32(GenOut, u32a);
+		D_BSwu32(GenOut, u32b);
 		
 		// Send Server Info
 		D_NSZZ_SendINFO(GenOut, ThisTime);
 		
 		// Send away
-		D_RBSRecordNetBlock(GenOut, &FromAddress);
+		D_BSRecordNetBlock(GenOut, &FromAddress);
 		
 		// Write INFX
 		ReSend = false;
 		i = 0;
 		do
 		{
-			D_RBSBaseBlock(GenOut, "INFX");
-			D_RBSWriteUInt32(GenOut, u32a);
-			D_RBSWriteUInt32(GenOut, u32b);
+			D_BSBaseBlock(GenOut, "INFX");
+			D_BSwu32(GenOut, u32a);
+			D_BSwu32(GenOut, u32b);
 		
 			// Send Server Info
 			ReSend = D_NSZZ_SendINFX(GenOut, &i);
 		
 			// Send away
-			D_RBSRecordNetBlock(GenOut, &FromAddress);
+			D_BSRecordNetBlock(GenOut, &FromAddress);
 		} while (ReSend);
 		
 		// Send MOTD
-		D_RBSBaseBlock(GenOut, "MOTD");
-		D_RBSWriteUInt32(GenOut, u32a);
-		D_RBSWriteUInt32(GenOut, u32b);
+		D_BSBaseBlock(GenOut, "MOTD");
+		D_BSwu32(GenOut, u32a);
+		D_BSwu32(GenOut, u32b);
 		D_NSZZ_SendMOTD(GenOut);
-		D_RBSRecordNetBlock(GenOut, &FromAddress);
+		D_BSRecordNetBlock(GenOut, &FromAddress);
 		
 		// Send INFT
 		for (i = 0; i < 2; i++)
 		{
-			D_RBSBaseBlock(GenOut, "INFT");
-			D_RBSWriteUInt32(GenOut, u32a);
-			D_RBSWriteUInt32(GenOut, u32b);
-			D_RBSRecordNetBlock(GenOut, &FromAddress);
+			D_BSBaseBlock(GenOut, "INFT");
+			D_BSwu32(GenOut, u32a);
+			D_BSwu32(GenOut, u32b);
+			D_BSRecordNetBlock(GenOut, &FromAddress);
 		}
 	}
 	
 	// Client -- Recieve Game Info
-	else if (D_RBSCompareHeader("INFO", Header))
+	else if (D_BSCompareHeader("INFO", Header))
 	{
 	}
 	
 	// Client -- Recieve Game Info Extended
-	else if (D_RBSCompareHeader("INFX", Header))
+	else if (D_BSCompareHeader("INFX", Header))
 	{
 	}
 	
@@ -1413,21 +1413,21 @@ void D_NCUpdate(void)
 	////////////////
 	//////////////// PERFECT PACKETS
 	////////////////
-	else if (D_RBSMarkedStream(Stream))
+	else if (D_BSMarkedStream(Stream))
 	{
 		// Debug?
 		if (devparm)
 			D_SyncNetDebugMessage("Perfect!");
 		
 		// MAPC -- Map Change
-		if (D_RBSCompareHeader("MAPC", Header))
+		if (D_BSCompareHeader("MAPC", Header))
 		{
 			// Only accept if from a server
 			if (NetClient->IsServer)
 			{
 				// Read map name
 				memset(Buf, 0, sizeof(Buf));
-				D_RBSReadString(Stream, Buf, BUFSIZE - 1);
+				D_BSrs(Stream, Buf, BUFSIZE - 1);
 		
 				// Add to command queue
 				D_NCAddQueueCommand(D_NCQC_MapChange, Z_StrDup(Buf, PU_NETWORK, NULL));
@@ -1435,7 +1435,7 @@ void D_NCUpdate(void)
 		}
 		
 		// REDY -- Client is ready
-		else if (D_RBSCompareHeader("REDY", Header))
+		else if (D_BSCompareHeader("REDY", Header))
 		{
 			// Only accept if is a server
 			if (!(NetClient->IsServer && NetClient->IsLocal))
@@ -1456,7 +1456,7 @@ void D_NCUpdate(void)
 		}
 		
 		// WADQ -- Query WADS
-		else if (D_RBSCompareHeader("WADQ", Header))
+		else if (D_BSCompareHeader("WADQ", Header))
 		{
 			// Only accept if is a server
 			if (!(NetClient->IsServer && NetClient->IsLocal))
@@ -1474,7 +1474,7 @@ void D_NCUpdate(void)
 		}
 		
 		// WADS -- Server's WAD Configuration
-		else if (D_RBSCompareHeader("WADS", Header))
+		else if (D_BSCompareHeader("WADS", Header))
 		{
 			// Only accept if from a server and we aren't local
 			if (!(NetClient->IsServer && !NetClient->IsLocal))
@@ -1497,19 +1497,19 @@ void D_NCUpdate(void)
 				memset(ZBuf, 0, sizeof(ZBuf));
 				
 				// Read Marker
-				u8a = D_RBSReadUInt8(Stream);
+				u8a = D_BSru8(Stream);
 				
 				// End?
 				if (u8a == 'X')
 					break;
 				
 				// Optional Bit
-				u8b = D_RBSReadUInt8(Stream);
+				u8b = D_BSru8(Stream);
 				
 				// Read DOS Name, Real Name, SS, MD5
 				for (j = 0; j < 4; j++)
 				{
-					D_RBSReadString(Stream, Buf, BUFSIZE - 1);
+					D_BSrs(Stream, Buf, BUFSIZE - 1);
 					strncat(ZBuf, Buf, BUFSIZE - 1);
 					
 					if (j < 3)
@@ -1636,22 +1636,22 @@ void D_NCUpdate(void)
 			do
 			{
 				// Read Marker
-				u8a = D_RBSReadUInt8(Stream);
+				u8a = D_BSru8(Stream);
 				
 				// End?
 				if (u8a == 'X')
 					break;
 				
 				// Read whether WAD is required or not (this is important)
-				u8b = D_RBSReadUInt8(Stream);
+				u8b = D_BSru8(Stream);
 				
 				// Read DOS Name -- And try opening that...
-				D_RBSReadString(Stream, Buf, BUFSIZE - 1);
+				D_BSrs(Stream, Buf, BUFSIZE - 1);
 				
 				FoundWAD = WL_OpenWAD(Buf);
 				
 				// Read Normal Name -- And try opening that if DOS failed us...
-				D_RBSReadString(Stream, Buf, BUFSIZE - 1);
+				D_BSrs(Stream, Buf, BUFSIZE - 1);
 				
 				if (!FoundWAD)
 					FoundWAD = WL_OpenWAD(Buf);
@@ -1663,13 +1663,13 @@ void D_NCUpdate(void)
 					IsOK = true;
 					
 					// See if SS is on blacklist
-					D_RBSReadString(Stream, Buf, BUFSIZE - 1);
+					D_BSrs(Stream, Buf, BUFSIZE - 1);
 					if (!D_CheckWADBlacklist(Buf))
 						IsOK = false;
 					
 					// See if MD5 is on blacklist
 					j = strlen(Buf);
-					D_RBSReadString(Stream, Buf + j + 1, (BUFSIZE - j) - 2);
+					D_BSrs(Stream, Buf + j + 1, (BUFSIZE - j) - 2);
 					if (!D_CheckWADBlacklist(Buf + j + 1))
 						IsOK = false;
 						
@@ -1685,8 +1685,8 @@ void D_NCUpdate(void)
 					WL_PushWAD(FoundWAD);
 					
 					// Ignore SUMs
-					D_RBSReadString(Stream, Buf, BUFSIZE - 1);
-					D_RBSReadString(Stream, Buf, BUFSIZE - 1);
+					D_BSrs(Stream, Buf, BUFSIZE - 1);
+					D_BSrs(Stream, Buf, BUFSIZE - 1);
 				}
 			} while (u8a == 'W');
 			
@@ -1718,7 +1718,7 @@ void D_NCUpdate(void)
 		}
 		
 		// WELC -- Connection successful
-		else if (D_RBSCompareHeader("WELC", Header))
+		else if (D_BSCompareHeader("WELC", Header))
 		{
 			// Only accept if from a server and we aren't local
 			if (!(NetClient->IsServer && !NetClient->IsLocal))
@@ -1728,7 +1728,7 @@ void D_NCUpdate(void)
 		}
 		
 		// DISC -- Disconnection Request
-		else if (D_RBSCompareHeader("DISC", Header))
+		else if (D_BSCompareHeader("DISC", Header))
 		{
 			// Only accept from non-local clients
 			if (!(!NetClient->IsServer && !NetClient->IsLocal))
@@ -1736,13 +1736,13 @@ void D_NCUpdate(void)
 		}
 		
 		// CONN -- Connection Request
-		else if (D_RBSCompareHeader("CONN", Header))
+		else if (D_BSCompareHeader("CONN", Header))
 		{
 			// Read Version
-			u8a = D_RBSReadUInt8(Stream);
-			u8b = D_RBSReadUInt8(Stream);
-			u8c = D_RBSReadUInt8(Stream);
-			u8d = D_RBSReadUInt8(Stream);
+			u8a = D_BSru8(Stream);
+			u8b = D_BSru8(Stream);
+			u8c = D_BSru8(Stream);
+			u8d = D_BSru8(Stream);
 			
 			// Version Mismatch?
 			if (u8a != VERSION &&
@@ -1765,7 +1765,7 @@ void D_NCUpdate(void)
 			// Compare connect password
 				// Read password
 			memset(Buf, 0, sizeof(Buf));
-			D_RBSReadString(Stream, Buf, BUFSIZE - 1);
+			D_BSrs(Stream, Buf, BUFSIZE - 1);
 			
 			// Only if password is set
 			if (strlen(l_SVConnectPassword.Value->String) > 0)
@@ -1788,8 +1788,8 @@ void D_NCUpdate(void)
 			OtherClient->Streams[DNCSP_PERFECTWRITE] = NetClient->Streams[DNCSP_PERFECTWRITE];
 			
 			// Send welcome message
-			D_RBSBaseBlock(OutStream, "WELC");
-			D_RBSRecordNetBlock(OutStream, &FromAddress);
+			D_BSBaseBlock(OutStream, "WELC");
+			D_BSRecordNetBlock(OutStream, &FromAddress);
 			
 			// Send the currently loaded WADs
 			D_NSZZ_SendFullWADS(OutStream, &FromAddress);
@@ -1799,16 +1799,16 @@ void D_NCUpdate(void)
 		}
 		
 		// FOFF -- Server told us to get lost
-		else if (D_RBSCompareHeader("FOFF", Header))
+		else if (D_BSCompareHeader("FOFF", Header))
 		{
 			// Only accept if from a server and we aren't local
 			if (!(NetClient->IsServer && !NetClient->IsLocal))
 				continue;
 			
 			// Extract reason why
-			u8a = D_RBSReadUInt8(Stream);				// Code
+			u8a = D_BSru8(Stream);				// Code
 			memset(Buf, 0, sizeof(Buf));
-			D_RBSReadString(Stream, Buf, BUFSIZE - 1);	// Reason
+			D_BSrs(Stream, Buf, BUFSIZE - 1);	// Reason
 			
 			// Write to console
 			CONL_PrintF("%c: %s\n", u8a, Buf);
@@ -1821,7 +1821,7 @@ void D_NCUpdate(void)
 		}
 		
 		// LPRJ -- Local Player, Request Join
-		else if (D_RBSCompareHeader("LPRJ", Header))
+		else if (D_BSCompareHeader("LPRJ", Header))
 		{
 			// Only accept if is a server
 			if (NetClient->IsServer && NetClient->IsLocal)
@@ -1846,7 +1846,7 @@ void D_NCUpdate(void)
 					continue;
 				
 				// Read the UUID
-				D_RBSReadString(Stream, Buf, BUFSIZE - 1);
+				D_BSrs(Stream, Buf, BUFSIZE - 1);
 				
 				// Only if one was found is it parsed
 					// If not, maybe someone else is screwing with the server?
@@ -1878,14 +1878,14 @@ void D_NCUpdate(void)
 					Profile = D_FindProfileEx(Buf);	// Use existing one
 				
 				// Read Player Account Name
-				D_RBSReadString(Stream, Buf, BUFSIZE - 1);
+				D_BSrs(Stream, Buf, BUFSIZE - 1);
 				
 				// Failed to find it? Then create it
 				if (!Profile)
 					Profile = D_CreateProfileEx(Buf);
 					
 				// Read Player Display Name
-				D_RBSReadString(Stream, Buf, BUFSIZE - 1);
+				D_BSrs(Stream, Buf, BUFSIZE - 1);
 				
 				// Mark profile as remote and copy display name
 				if (NetClient != OtherClient)
@@ -1894,7 +1894,7 @@ void D_NCUpdate(void)
 					strncpy(Profile->DisplayName, Buf, MAXPLAYERNAME - 1);
 					
 					// Read Color
-					Profile->Color = D_RBSReadUInt8(Stream);
+					Profile->Color = D_BSru8(Stream);
 				}
 				
 				// Set at arbs point
@@ -1920,8 +1920,8 @@ void D_NCUpdate(void)
 			}
 			
 			// Flush write streams
-			D_RBSFlushStream(OutStream);
-			D_RBSFlushStream(GenOut);
+			D_BSFlushStream(OutStream);
+			D_BSFlushStream(GenOut);
 		}
 	}
 	
@@ -1931,7 +1931,7 @@ void D_NCUpdate(void)
 	char Header[5];
 	size_t nc, i, j, p;
 	D_NetController_t* CurCtrl, *OtherCtrl, *HostCtrl;
-	D_RBlockStream_t* Stream, *OtherStream;
+	D_BS_t* Stream, *OtherStream;
 	
 	D_NetPlayer_t* NetPlayer;
 	D_ProfileEx_t* Profile;
@@ -1979,7 +1979,7 @@ void D_NCUpdate(void)
 		if (SendPing)
 		{
 			// Clear stream stats
-			D_RBSUnStatStream(Stream);
+			D_BSUnStatStream(Stream);
 			for (i = 0; i < 4; i++)
 			{
 				g_NetStat[i] = l_LocalStat[i];
@@ -1987,19 +1987,19 @@ void D_NCUpdate(void)
 			}
 			
 			// Create ping
-			D_RBSBaseBlock(Stream, "PING");
-			D_RBSWriteUInt32(Stream, ThisTime);
-			D_RBSWriteUInt32(Stream, DiffTime);
+			D_BSBaseBlock(Stream, "PING");
+			D_BSwu32(Stream, ThisTime);
+			D_BSwu32(Stream, DiffTime);
 			
 			// Record it
-			D_RBSRecordBlock(Stream);
+			D_BSRecordBlock(Stream);
 		}
 		
 		// Collect some infos
 		else
 		{
 			// Stats
-			D_RBSStatStream(Stream, &u32, &u32b, &u32c, &u32d);
+			D_BSStatStream(Stream, &u32, &u32b, &u32c, &u32d);
 			
 			// Add to local
 			l_LocalStat[0] = u32;
@@ -2009,49 +2009,49 @@ void D_NCUpdate(void)
 		}
 		
 		// Constantly read blocks (packets)
-		while (D_RBSPlayBlock(Stream, Header))
+		while (D_BSPlayBlock(Stream, Header))
 		{
 			// PING -- Ping Request
 			if (strcasecmp("PING", Header) == 0)
 			{
 				// Send a PONG back to it
-				D_RBSRenameHeader(Stream, "PONG");
-				D_RBSWriteUInt32(Stream, ThisTime);
-				D_RBSRecordBlock(Stream);
+				D_BSRenameHeader(Stream, "PONG");
+				D_BSwu32(Stream, ThisTime);
+				D_BSRecordBlock(Stream);
 			}
 			
 			// PONG -- Ping Reply
 			else if (strcasecmp("PONG", Header) == 0)
 			{
-				CurCtrl->Ping = ThisTime - D_RBSReadUInt32(Stream);
+				CurCtrl->Ping = ThisTime - D_BSru32(Stream);
 			}
 			
 			// VERR -- Version Request
 			else if (strcasecmp("VERR", Header) == 0)
 			{
 				// Create version reply
-				D_RBSBaseBlock(Stream, "VERI");
+				D_BSBaseBlock(Stream, "VERI");
 				
 				// Put in info
-				D_RBSWriteUInt8(Stream, VERSION);
-				D_RBSWriteUInt8(Stream, REMOOD_MAJORVERSION);
-				D_RBSWriteUInt8(Stream, REMOOD_MINORVERSION);
-				D_RBSWriteUInt8(Stream, REMOOD_RELEASEVERSION);
-				D_RBSWriteString(Stream, REMOOD_FULLVERSIONSTRING);
-				D_RBSWriteString(Stream, REMOOD_URL);
+				D_BSwu8(Stream, VERSION);
+				D_BSwu8(Stream, REMOOD_MAJORVERSION);
+				D_BSwu8(Stream, REMOOD_MINORVERSION);
+				D_BSwu8(Stream, REMOOD_RELEASEVERSION);
+				D_BSws(Stream, REMOOD_FULLVERSIONSTRING);
+				D_BSws(Stream, REMOOD_URL);
 				
 				// Send it away
-				D_RBSRecordBlock(Stream);
+				D_BSRecordBlock(Stream);
 			}
 			
 			// VERI -- Version Information
 			else if (strcasecmp("VERI", Header) == 0)
 			{
 				// Read version info
-				CurCtrl->VerLeg = D_RBSReadUInt8(Stream);
-				CurCtrl->VerMaj = D_RBSReadUInt8(Stream);
-				CurCtrl->VerMin = D_RBSReadUInt8(Stream);
-				CurCtrl->VerRel = D_RBSReadUInt8(Stream);
+				CurCtrl->VerLeg = D_BSru8(Stream);
+				CurCtrl->VerMaj = D_BSru8(Stream);
+				CurCtrl->VerMin = D_BSru8(Stream);
+				CurCtrl->VerRel = D_BSru8(Stream);
 			}
 			
 			// MESG -- Generic Message
@@ -2059,7 +2059,7 @@ void D_NCUpdate(void)
 			{
 				// Get Message
 				memset(Buf, 0, sizeof(Buf));
-				D_RBSReadString(Stream, Buf, BUFSIZE - 1);
+				D_BSrs(Stream, Buf, BUFSIZE - 1);
 				
 				// Print
 				CONL_PrintF("%s\n", Buf);
@@ -2073,7 +2073,7 @@ void D_NCUpdate(void)
 				{
 					// Read map name
 					memset(Buf, 0, sizeof(Buf));
-					D_RBSReadString(Stream, Buf, BUFSIZE - 1);
+					D_BSrs(Stream, Buf, BUFSIZE - 1);
 					
 					// Add to command queue
 					D_NCAddQueueCommand(D_NCQC_MapChange, Z_StrDup(Buf, PU_NETWORK, NULL));
@@ -2088,7 +2088,7 @@ void D_NCUpdate(void)
 				{
 					// Get Player UUID/AccountName
 					memset(Buf, 0, sizeof(Buf));
-					D_RBSReadString(Stream, Buf, BUFSIZE - 1);
+					D_BSrs(Stream, Buf, BUFSIZE - 1);
 					
 					// Find player
 					NetPlayer = D_NCSFindNetPlayer(Buf);
@@ -2115,7 +2115,7 @@ void D_NCUpdate(void)
 						CurCtrl->Arbs[CurCtrl->NumArbs++] = NetPlayer;
 						
 						// Create Profile
-						D_RBSReadString(Stream, NetPlayer->AccountName, MAXPLAYERNAME);
+						D_BSrs(Stream, NetPlayer->AccountName, MAXPLAYERNAME);
 						
 						// If server split, use local profile
 						if (CurCtrl->IsLocal)
@@ -2137,8 +2137,8 @@ void D_NCUpdate(void)
 							Profile->Flags |= DPEXT_LOCAL;
 						else					// Client split
 							Profile->Flags |= DPEXT_NETWORK;
-						D_RBSReadString(Stream, Profile->DisplayName, MAXPLAYERNAME);
-						Profile->Color = D_RBSReadUInt8(Stream);
+						D_BSrs(Stream, Profile->DisplayName, MAXPLAYERNAME);
+						Profile->Color = D_BSru8(Stream);
 						
 						// Inform everyone that a player has joined
 						for (j = 0; j < l_NumControllers; j++)
@@ -2154,24 +2154,24 @@ void D_NCUpdate(void)
 							OtherStream = OtherCtrl->BlockStream;
 							
 							// Write player join OK
-							D_RBSBaseBlock(OtherStream, "PJOK");
-							D_RBSWriteString(OtherStream, NetPlayer->UUID);
-							D_RBSWriteUInt8(OtherStream, p);
+							D_BSBaseBlock(OtherStream, "PJOK");
+							D_BSws(OtherStream, NetPlayer->UUID);
+							D_BSwu8(OtherStream, p);
 							if (OtherStream == CurCtrl)
 							{
-								D_RBSWriteUInt8(OtherStream, CurCtrl->NumArbs);
-								D_RBSWriteString(OtherStream, Profile->UUID);
+								D_BSwu8(OtherStream, CurCtrl->NumArbs);
+								D_BSws(OtherStream, Profile->UUID);
 							}
 							else
 							{
-								D_RBSWriteUInt8(OtherStream, 0);
-								D_RBSWriteString(OtherStream, "");
+								D_BSwu8(OtherStream, 0);
+								D_BSws(OtherStream, "");
 							}
-							D_RBSWriteString(OtherStream, NetPlayer->AccountName);
-							D_RBSWriteString(OtherStream, Profile->AccountName);
-							D_RBSWriteString(OtherStream, Profile->DisplayName);
-							D_RBSWriteUInt8(OtherStream, Profile->Color);
-							D_RBSRecordBlock(OtherStream);
+							D_BSws(OtherStream, NetPlayer->AccountName);
+							D_BSws(OtherStream, Profile->AccountName);
+							D_BSws(OtherStream, Profile->DisplayName);
+							D_BSwu8(OtherStream, Profile->Color);
+							D_BSRecordBlock(OtherStream);
 						}
 						
 						// Create Player In Local Server
@@ -2215,12 +2215,12 @@ void D_NCUpdate(void)
 					CurCtrl->Arbs[CurCtrl->NumArbs++] = NetPlayer;
 					
 					// Read NetPlayer UUID and the local player number
-					D_RBSReadString(Stream, NetPlayer->UUID, MAXPLAYERNAME * 2);
-					p = D_RBSReadUInt8(Stream);
+					D_BSrs(Stream, NetPlayer->UUID, MAXPLAYERNAME * 2);
+					p = D_BSru8(Stream);
 					
 					// Determine if the player is our own screen player
-					u8 = D_RBSReadUInt8(Stream);
-					D_RBSReadString(Stream, Buf, BUFSIZE);
+					u8 = D_BSru8(Stream);
+					D_BSrs(Stream, Buf, BUFSIZE);
 					
 					// See if it is worth looking for a profile
 					if (u8)
@@ -2235,10 +2235,10 @@ void D_NCUpdate(void)
 						
 						// Fill with guessed info
 						Profile->Type = DPEXT_NETWORK;
-						D_RBSReadString(Stream, NetPlayer->AccountName, MAXPLAYERNAME);
-						D_RBSReadString(Stream, Profile->AccountName, MAXPLAYERNAME);
-						D_RBSReadString(Stream, Profile->DisplayName, MAXPLAYERNAME);
-						Profile->Color = D_RBSReadUInt8(Stream);
+						D_BSrs(Stream, NetPlayer->AccountName, MAXPLAYERNAME);
+						D_BSrs(Stream, Profile->AccountName, MAXPLAYERNAME);
+						D_BSrs(Stream, Profile->DisplayName, MAXPLAYERNAME);
+						Profile->Color = D_BSru8(Stream);
 					}
 					else
 						Profile->Type = DPEXT_LOCAL;
@@ -2271,7 +2271,7 @@ void D_NCUpdate(void)
 		}
 		
 		// Flush commands (Send them together, if possible)
-		D_RBSFlushStream(Stream);
+		D_BSFlushStream(Stream);
 	}
 #endif
 
@@ -2288,7 +2288,7 @@ bool_t D_NCMH_LocalPlayerRJ(struct D_NCMessageData_s* const a_Data)
 	uint8_t Color, Bot, Bits;
 	int32_t i, PlCount, FreeSlot;
 	uint32_t ProcessID;
-	D_RBlockStream_t* Stream;
+	D_BS_t* Stream;
 	
 	/* Check */
 	if (!a_Data)
@@ -2302,11 +2302,11 @@ bool_t D_NCMH_LocalPlayerRJ(struct D_NCMessageData_s* const a_Data)
 	Stream = a_Data->InStream;
 	
 	/* Read Message Data */
-	D_RBSReadString(Stream, UUID, MAXPLAYERNAME * 2);
-	D_RBSReadString(Stream, AccountName, MAXPLAYERNAME);
-	D_RBSReadString(Stream, DisplayName, MAXPLAYERNAME);
-	Color = D_RBSReadUInt8(Stream);
-	Bot = D_RBSReadUInt8(Stream);
+	D_BSrs(Stream, UUID, MAXPLAYERNAME * 2);
+	D_BSrs(Stream, AccountName, MAXPLAYERNAME);
+	D_BSrs(Stream, DisplayName, MAXPLAYERNAME);
+	Color = D_BSru8(Stream);
+	Bot = D_BSru8(Stream);
 	
 	/* Disallow non-server from adding bots */
 	if (Bot && !a_Data->RemoteClient->IsServer)
@@ -2367,19 +2367,19 @@ bool_t D_NCMH_LocalPlayerRJ(struct D_NCMessageData_s* const a_Data)
 		Stream = l_Clients[i]->Streams[DNCSP_PERFECTWRITE];
 		
 		// Base
-		D_RBSBaseBlock(Stream, "PJOK");
+		D_BSBaseBlock(Stream, "PJOK");
 		
 		// Data
-		D_RBSWriteUInt32(Stream, ProcessID);
-		D_RBSWriteUInt8(Stream, FreeSlot);
-		D_RBSWriteUInt8(Stream, Bot);
-		D_RBSWriteString(Stream, UUID);
-		D_RBSWriteString(Stream, AccountName);
-		D_RBSWriteString(Stream, DisplayName);
-		D_RBSWriteUInt8(Stream, Color);
+		D_BSwu32(Stream, ProcessID);
+		D_BSwu8(Stream, FreeSlot);
+		D_BSwu8(Stream, Bot);
+		D_BSws(Stream, UUID);
+		D_BSws(Stream, AccountName);
+		D_BSws(Stream, DisplayName);
+		D_BSwu8(Stream, Color);
 		
 		// Send away
-		D_RBSRecordNetBlock(Stream, &l_Clients[i]->Address);
+		D_BSRecordNetBlock(Stream, &l_Clients[i]->Address);
 	}
 	
 	/* Don't handle again */
@@ -2402,13 +2402,13 @@ bool_t D_NCMH_PlayerJoinOK(struct D_NCMessageData_s* const a_Data)
 		return false;
 		
 	/* Read packet data */
-	ProcessID = D_RBSReadUInt32(a_Data->InStream);
-	FreeSlot = D_RBSReadUInt8(a_Data->InStream);
-	Bot = D_RBSReadUInt8(a_Data->InStream);
-	D_RBSReadString(a_Data->InStream, UUID, MAXPLAYERNAME * 2);
-	D_RBSReadString(a_Data->InStream, AccountName, MAXPLAYERNAME);
-	D_RBSReadString(a_Data->InStream, DisplayName, MAXPLAYERNAME);
-	Color = D_RBSReadUInt8(a_Data->InStream);
+	ProcessID = D_BSru32(a_Data->InStream);
+	FreeSlot = D_BSru8(a_Data->InStream);
+	Bot = D_BSru8(a_Data->InStream);
+	D_BSrs(a_Data->InStream, UUID, MAXPLAYERNAME * 2);
+	D_BSrs(a_Data->InStream, AccountName, MAXPLAYERNAME);
+	D_BSrs(a_Data->InStream, DisplayName, MAXPLAYERNAME);
+	Color = D_BSru8(a_Data->InStream);
 	
 	// Cap off strings (to prevent any string based attacks)
 	AccountName[MAXPLAYERNAME - 1] = 0;
@@ -2481,9 +2481,9 @@ void D_NCSR_RequestMap(const char* const a_Map)
 		// Send packet?
 		if ((l_Clients[i]->IsLocal && !LocalHit) || (!l_Clients[i]->IsLocal))
 		{
-			D_RBSBaseBlock(l_Clients[i]->Streams[DNCSP_PERFECTWRITE], "MAPC");
-			D_RBSWriteString(l_Clients[i]->Streams[DNCSP_PERFECTWRITE], a_Map);
-			D_RBSRecordNetBlock(l_Clients[i]->Streams[DNCSP_PERFECTWRITE], &l_Clients[i]->Address);
+			D_BSBaseBlock(l_Clients[i]->Streams[DNCSP_PERFECTWRITE], "MAPC");
+			D_BSws(l_Clients[i]->Streams[DNCSP_PERFECTWRITE], a_Map);
+			D_BSRecordNetBlock(l_Clients[i]->Streams[DNCSP_PERFECTWRITE], &l_Clients[i]->Address);
 		}
 		
 		// Set local
@@ -2496,7 +2496,7 @@ void D_NCSR_RequestMap(const char* const a_Map)
 void D_NCSR_RequestNewPlayer(struct D_ProfileEx_s* a_Profile)
 {
 	D_NetClient_t* Server;
-	D_RBlockStream_t* Stream;
+	D_BS_t* Stream;
 	
 	/* Check */
 	if (!a_Profile)
@@ -2514,12 +2514,12 @@ void D_NCSR_RequestNewPlayer(struct D_ProfileEx_s* a_Profile)
 	Stream = Server->Streams[DNCSP_PERFECTWRITE];
 	
 	// Put Data
-	D_RBSBaseBlock(Stream, "LPRJ");
-	D_RBSWriteString(Stream, a_Profile->UUID);
-	D_RBSWriteString(Stream, a_Profile->AccountName);
-	D_RBSWriteString(Stream, a_Profile->DisplayName);
-	D_RBSWriteUInt8(Stream, a_Profile->Color);
-	D_RBSRecordNetBlock(Stream, &Server->Address);
+	D_BSBaseBlock(Stream, "LPRJ");
+	D_BSws(Stream, a_Profile->UUID);
+	D_BSws(Stream, a_Profile->AccountName);
+	D_BSws(Stream, a_Profile->DisplayName);
+	D_BSwu8(Stream, a_Profile->Color);
+	D_BSRecordNetBlock(Stream, &Server->Address);
 	
 	// Debug
 	if (devparm)
@@ -2543,7 +2543,7 @@ void D_NCSR_RequestServerWADs(void)
 void D_NCSR_SendServerReady(void)
 {
 	D_NetClient_t* Server;
-	D_RBlockStream_t* Stream;
+	D_BS_t* Stream;
 	
 	/* Find Server */
 	Server = D_NCFindClientIsServer();
@@ -2557,8 +2557,8 @@ void D_NCSR_SendServerReady(void)
 	Stream = Server->Streams[DNCSP_PERFECTWRITE];
 	
 	// Put Data
-	D_RBSBaseBlock(Stream, "REDY");
-	D_RBSRecordNetBlock(Stream, &Server->Address);
+	D_BSBaseBlock(Stream, "REDY");
+	D_BSRecordNetBlock(Stream, &Server->Address);
 }
 
 /* D_NCSR_SendLoadingStatus() -- Tell the server we are loading something */
@@ -2623,88 +2623,88 @@ void D_NCHE_ServerCreatePlayer(const size_t a_pNum, struct D_NetPlayer_s* const 
 /*** NSZZ FUNCTIONS ***/
 
 /* D_NSZZ_SendINFO() -- Send server info */
-void D_NSZZ_SendINFO(struct D_RBlockStream_s* a_Stream, const uint32_t a_LocalTime)
+void D_NSZZ_SendINFO(struct D_BS_s* a_Stream, const uint32_t a_LocalTime)
 {
 	const WL_WADFile_t* Rover;
 	uint8_t u8;
 	
 	/* Write Version */
-	D_RBSWriteUInt8(a_Stream, VERSION);
-	D_RBSWriteUInt8(a_Stream, REMOOD_MAJORVERSION);
-	D_RBSWriteUInt8(a_Stream, REMOOD_MINORVERSION);
-	D_RBSWriteUInt8(a_Stream, REMOOD_RELEASEVERSION);
-	D_RBSWriteString(a_Stream, REMOOD_VERSIONCODESTRING);
+	D_BSwu8(a_Stream, VERSION);
+	D_BSwu8(a_Stream, REMOOD_MAJORVERSION);
+	D_BSwu8(a_Stream, REMOOD_MINORVERSION);
+	D_BSwu8(a_Stream, REMOOD_RELEASEVERSION);
+	D_BSws(a_Stream, REMOOD_VERSIONCODESTRING);
 	
 	/* Write Time Info */
-	D_RBSWriteUInt32(a_Stream, a_LocalTime);
-	D_RBSWriteUInt32(a_Stream, time(NULL));
-	D_RBSWriteUInt32(a_Stream, D_SyncNetMapTime());
-	D_RBSWriteUInt32(a_Stream, 0);
+	D_BSwu32(a_Stream, a_LocalTime);
+	D_BSwu32(a_Stream, time(NULL));
+	D_BSwu32(a_Stream, D_SyncNetMapTime());
+	D_BSwu32(a_Stream, 0);
 	
 	/* Write Server Name */
-	D_RBSWriteString(a_Stream, l_SVName.Value->String);
-	D_RBSWriteString(a_Stream, l_SVEMail.Value->String);
-	D_RBSWriteString(a_Stream, l_SVURL.Value->String);
-	D_RBSWriteString(a_Stream, l_SVWADURL.Value->String);
-	D_RBSWriteString(a_Stream, l_SVIRC.Value->String);
+	D_BSws(a_Stream, l_SVName.Value->String);
+	D_BSws(a_Stream, l_SVEMail.Value->String);
+	D_BSws(a_Stream, l_SVURL.Value->String);
+	D_BSws(a_Stream, l_SVWADURL.Value->String);
+	D_BSws(a_Stream, l_SVIRC.Value->String);
 	
 	/* Passwords */
 	// Connect Password
 	u8 = '-';
 	if (strlen(l_SVConnectPassword.Value->String) > 0)
 		u8 = 'P';
-	D_RBSWriteUInt8(a_Stream, u8);
+	D_BSwu8(a_Stream, u8);
 	
 	// Join Password
 	u8 = '-';
 	if (strlen(l_SVJoinPassword.Value->String) > 0)
 		u8 = 'J';
-	D_RBSWriteUInt8(a_Stream, u8);
+	D_BSwu8(a_Stream, u8);
 	
 	/* Write WAD Info */
 	for (Rover = WL_IterateVWAD(NULL, true); Rover; Rover = WL_IterateVWAD(Rover, true))
 	{
 		// Write start
-		D_RBSWriteUInt8(a_Stream, 'W');
+		D_BSwu8(a_Stream, 'W');
 		
 		// TODO: Optional WAD
-		D_RBSWriteUInt8(a_Stream, 'R');
+		D_BSwu8(a_Stream, 'R');
 		
 		// Write Names for WAD (DOS and Base)
-		D_RBSWriteString(a_Stream, WL_GetWADName(Rover, false));
-		D_RBSWriteString(a_Stream, WL_GetWADName(Rover, true));
+		D_BSws(a_Stream, WL_GetWADName(Rover, false));
+		D_BSws(a_Stream, WL_GetWADName(Rover, true));
 		
 		// Write File Sums
-		D_RBSWriteString(a_Stream, Rover->SimpleSumChars);
-		D_RBSWriteString(a_Stream, Rover->CheckSumChars);
+		D_BSws(a_Stream, Rover->SimpleSumChars);
+		D_BSws(a_Stream, Rover->CheckSumChars);
 	}
 	
 	// End List
-	D_RBSWriteUInt8(a_Stream, 'X');
+	D_BSwu8(a_Stream, 'X');
 	
 	/* Level Name */
 	switch (gamestate)
 	{
 			// In Game
 		case GS_LEVEL:
-			D_RBSWriteString(a_Stream, (g_CurrentLevelInfo ? g_CurrentLevelInfo->LumpName : "<UNKNOWN"));
+			D_BSws(a_Stream, (g_CurrentLevelInfo ? g_CurrentLevelInfo->LumpName : "<UNKNOWN"));
 			break;
 			
 			// Non-Games
-		case GS_INTERMISSION: D_RBSWriteString(a_Stream, "<INTERMISSION>"); break;
-		case GS_FINALE: D_RBSWriteString(a_Stream, "<STORY>"); break;
-		case GS_DEMOSCREEN: D_RBSWriteString(a_Stream, "<TITLESCREEN>"); break;
+		case GS_INTERMISSION: D_BSws(a_Stream, "<INTERMISSION>"); break;
+		case GS_FINALE: D_BSws(a_Stream, "<STORY>"); break;
+		case GS_DEMOSCREEN: D_BSws(a_Stream, "<TITLESCREEN>"); break;
 			
 			// Unknown
 		default:
-			D_RBSWriteString(a_Stream, "<UNKNOWN>");
+			D_BSws(a_Stream, "<UNKNOWN>");
 			break;
 	}
 }
 
 /* D_NSZZ_SendINFX() -- Extended Info */
 // This sends all variables
-bool_t D_NSZZ_SendINFX(struct D_RBlockStream_s* a_Stream, size_t* const a_It)
+bool_t D_NSZZ_SendINFX(struct D_BS_s* a_Stream, size_t* const a_It)
 {
 	size_t EndIt;
 	P_XGSVariable_t* XVar;
@@ -2716,7 +2716,7 @@ bool_t D_NSZZ_SendINFX(struct D_RBlockStream_s* a_Stream, size_t* const a_It)
 	for (; *a_It < EndIt && *a_It < PEXGSNUMBITIDS; (*a_It)++)
 	{
 		// Write Marker
-		D_RBSWriteUInt8(a_Stream, 'V');
+		D_BSwu8(a_Stream, 'V');
 		
 		// Get Var
 		XVar = P_XGSVarForBit(*a_It);
@@ -2725,12 +2725,12 @@ bool_t D_NSZZ_SendINFX(struct D_RBlockStream_s* a_Stream, size_t* const a_It)
 			continue;
 		
 		// Write Name and value
-		D_RBSWriteString(a_Stream, XVar->Name);
-		D_RBSWriteUInt32(a_Stream, (XVar->WasSet ? XVar->ActualVal : XVar->DefaultVal));
+		D_BSws(a_Stream, XVar->Name);
+		D_BSwu32(a_Stream, (XVar->WasSet ? XVar->ActualVal : XVar->DefaultVal));
 	}
 	
 	/* End */
-	D_RBSWriteUInt8(a_Stream, 'E');
+	D_BSwu8(a_Stream, 'E');
 	
 	/* More variables available? */
 	if (*a_It < PEXGSNUMBITIDS)
@@ -2739,53 +2739,53 @@ bool_t D_NSZZ_SendINFX(struct D_RBlockStream_s* a_Stream, size_t* const a_It)
 }
 
 /* D_NSZZ_SendMOTD() -- Send Message Of The Day */
-void D_NSZZ_SendMOTD(struct D_RBlockStream_s* a_Stream)
+void D_NSZZ_SendMOTD(struct D_BS_s* a_Stream)
 {
-	D_RBSWriteString(a_Stream, l_SVMOTD.Value->String);
+	D_BSws(a_Stream, l_SVMOTD.Value->String);
 }
 
 /* D_NSZZ_SendFullWADS() -- Send WADs of Server */
-void D_NSZZ_SendFullWADS(struct D_RBlockStream_s* a_Stream, I_HostAddress_t* const a_Host)
+void D_NSZZ_SendFullWADS(struct D_BS_s* a_Stream, I_HostAddress_t* const a_Host)
 {
 	const WL_WADFile_t* Rover;
 	int i;
 	
 	/* Block */
-	D_RBSBaseBlock(a_Stream, "WADS");
+	D_BSBaseBlock(a_Stream, "WADS");
 	
 	/* Write WAD Info */
 	for (i = 0, Rover = WL_IterateVWAD(NULL, true); Rover; Rover = WL_IterateVWAD(Rover, true), i++)
 	{
 		// Write start
-		D_RBSWriteUInt8(a_Stream, 'W');
+		D_BSwu8(a_Stream, 'W');
 		
 		// ReMooD.WAD is name matched only
 		if (i == 1)
-			D_RBSWriteUInt8(a_Stream, 'N');
+			D_BSwu8(a_Stream, 'N');
 		else
 			// TODO: Optional WADs
-			D_RBSWriteUInt8(a_Stream, 'R');
+			D_BSwu8(a_Stream, 'R');
 		
 		// Write Names for WAD (DOS and Base)
-		D_RBSWriteString(a_Stream, WL_GetWADName(Rover, false));
-		D_RBSWriteString(a_Stream, WL_GetWADName(Rover, true));
+		D_BSws(a_Stream, WL_GetWADName(Rover, false));
+		D_BSws(a_Stream, WL_GetWADName(Rover, true));
 		
 		// Write File Sums
-		D_RBSWriteString(a_Stream, Rover->SimpleSumChars);
-		D_RBSWriteString(a_Stream, Rover->CheckSumChars);
+		D_BSws(a_Stream, Rover->SimpleSumChars);
+		D_BSws(a_Stream, Rover->CheckSumChars);
 	}
 	
 	// End List
-	D_RBSWriteUInt8(a_Stream, 'X');
+	D_BSwu8(a_Stream, 'X');
 	
 	/* Record it */
-	D_RBSRecordNetBlock(a_Stream, a_Host);
+	D_BSRecordNetBlock(a_Stream, a_Host);
 }
 
 /* D_NCHE_SendSaveGame() -- Send savegame to client */
 void D_NCHE_SendSaveGame(D_NetClient_t* const a_Client)
 {
-	struct D_RBlockStream_s* Stream;
+	struct D_BS_s* Stream;
 	
 	/* Check */
 	if (!a_Client)
@@ -2795,15 +2795,15 @@ void D_NCHE_SendSaveGame(D_NetClient_t* const a_Client)
 	Stream = a_Client->Streams[DNCSP_PERFECTWRITE];
 	
 	/* Send Start */
-	D_RBSBaseBlock(Stream, "SAVE");
-	D_RBSRecordNetBlock(Stream, &a_Client->Address);
+	D_BSBaseBlock(Stream, "SAVE");
+	D_BSRecordNetBlock(Stream, &a_Client->Address);
 	
 	/* Send Save */
 	P_SaveGameToBS(Stream, &a_Client->Address);
 	
 	/* Send End */
-	D_RBSBaseBlock(Stream, "SAVX");
-	D_RBSRecordNetBlock(Stream, &a_Client->Address);
+	D_BSBaseBlock(Stream, "SAVX");
+	D_BSRecordNetBlock(Stream, &a_Client->Address);
 }
 
 /*** NCQC FUNCTIONS ***/

@@ -332,7 +332,7 @@ static bool_t DS_RMODPDC(const struct WL_WADFile_s* const a_WAD, const uint32_t 
 	Z_Table_t* CurrentTable;
 	const char* tP;
 	D_RMODWADStuff_t* Stuff;
-	D_RBlockStream_t* CacheStream;
+	D_BS_t* CacheStream;
 	uint32_t u32a, u32b;
 	
 	static bool_t CheckRecursive = false;
@@ -392,7 +392,7 @@ static bool_t DS_RMODPDC(const struct WL_WADFile_s* const a_WAD, const uint32_t 
 	// Try opening the stream RO
 	if (devparm)
 		CONL_PrintF("DS_RMODPDC: Attempting cache \"%s\"...\n", TokVals[0]);
-	CacheStream = D_RBSCreateFileStream(TokVals[0], DRBSSF_READONLY);
+	CacheStream = D_BSCreateFileStream(TokVals[0], DRBSSF_READONLY);
 	
 	// If it failed, it does not exist
 	if (!CacheStream)
@@ -406,22 +406,22 @@ static bool_t DS_RMODPDC(const struct WL_WADFile_s* const a_WAD, const uint32_t 
 		
 		// Read the first block
 		memset(TokVals[1], 0, sizeof(TokVals[1]));
-		if (!D_RBSPlayBlock(CacheStream, TokVals[1]))
+		if (!D_BSPlayBlock(CacheStream, TokVals[1]))
 			DoCache = false;
 		else
 		{
 			// Not the header we expected?
-			if (!D_RBSCompareHeader("PWAD", TokVals[1]))
+			if (!D_BSCompareHeader("PWAD", TokVals[1]))
 				DoCache = false;
 				
 			// Read into it more
 			else
 			{
 				// Read Values
-				u32a = D_RBSReadUInt32(CacheStream);
-				u32b = D_RBSReadUInt32(CacheStream);
+				u32a = D_BSru32(CacheStream);
+				u32b = D_BSru32(CacheStream);
 				memset(TokVals[1], 0, sizeof(TokVals[1]));
-				D_RBSReadString(CacheStream, TokVals[1], sizeof(TokVals[1]));
+				D_BSrs(CacheStream, TokVals[1], sizeof(TokVals[1]));
 			
 				// If neither of them match! This is a different WAD
 				if (u32a != a_WAD->__Private.__IndexOff ||
@@ -434,7 +434,7 @@ static bool_t DS_RMODPDC(const struct WL_WADFile_s* const a_WAD, const uint32_t 
 		// Invalid, Non-Matching, Or Out of Date
 		if (!DoCache)
 		{
-			D_RBSCloseStream(CacheStream);
+			D_BSCloseStream(CacheStream);
 			CacheStream = NULL;
 		}
 	}
@@ -498,17 +498,17 @@ static bool_t DS_RMODPDC(const struct WL_WADFile_s* const a_WAD, const uint32_t 
 	else
 	{
 		// Prepare for cache write
-		CacheStream = D_RBSCreateFileStream(TokVals[0], DRBSSF_OVERWRITE);
+		CacheStream = D_BSCreateFileStream(TokVals[0], DRBSSF_OVERWRITE);
 		
 		// Write Information header to the stream
 		if (CacheStream)
 		{
 			// WAD Information Header
-			D_RBSBaseBlock(CacheStream, "PWAD");
-			D_RBSWriteUInt32(CacheStream, a_WAD->__Private.__IndexOff);
-			D_RBSWriteUInt32(CacheStream, a_WAD->__Private.__Size);
-			D_RBSWriteString(CacheStream, a_WAD->SimpleSumChars);
-			D_RBSRecordBlock(CacheStream);
+			D_BSBaseBlock(CacheStream, "PWAD");
+			D_BSwu32(CacheStream, a_WAD->__Private.__IndexOff);
+			D_BSwu32(CacheStream, a_WAD->__Private.__Size);
+			D_BSws(CacheStream, a_WAD->SimpleSumChars);
+			D_BSRecordBlock(CacheStream);
 		}
 		
 		// Info
@@ -771,14 +771,14 @@ static bool_t DS_RMODPDC(const struct WL_WADFile_s* const a_WAD, const uint32_t 
 		if (CacheStream)
 		{
 			// Done Marker
-			D_RBSBaseBlock(CacheStream, "DONE");
-			D_RBSRecordBlock(CacheStream);
+			D_BSBaseBlock(CacheStream, "DONE");
+			D_BSRecordBlock(CacheStream);
 		}
 	}
 	
 	/* Close stream if it was left open */
 	if (CacheStream)
-		D_RBSCloseStream(CacheStream);
+		D_BSCloseStream(CacheStream);
 	
 	/* Unmark recursive */
 	CheckRecursive = false;

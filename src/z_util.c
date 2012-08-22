@@ -778,7 +778,7 @@ const char* Z_TableGetValueOrElse(Z_Table_t* const a_Table, const char* const a_
 }
 
 /* Z_TableStoreToStream() -- Dumps table to stream */
-void Z_TableStoreToStream(Z_Table_t* const a_Table, struct D_RBlockStream_s* const a_Stream)
+void Z_TableStoreToStream(Z_Table_t* const a_Table, struct D_BS_s* const a_Stream)
 {
 	size_t i;
 	Z_TableEntry_t* ThisEnt;
@@ -789,9 +789,9 @@ void Z_TableStoreToStream(Z_Table_t* const a_Table, struct D_RBlockStream_s* con
 	
 	/* Write Table Marker Header */
 	// Write Table Key
-	D_RBSBaseBlock(a_Stream, "TABL");
-	D_RBSWriteString(a_Stream, a_Table->Key);
-	D_RBSRecordBlock(a_Stream);
+	D_BSBaseBlock(a_Stream, "TABL");
+	D_BSws(a_Stream, a_Table->Key);
+	D_BSRecordBlock(a_Stream);
 	
 	// Go through all entries
 	for (i = 0; i < a_Table->NumEntries; i++)
@@ -809,24 +809,24 @@ void Z_TableStoreToStream(Z_Table_t* const a_Table, struct D_RBlockStream_s* con
 		else
 		{
 			// Begin Entry Information
-			D_RBSBaseBlock(a_Stream, "DATA");
+			D_BSBaseBlock(a_Stream, "DATA");
 			
 			// Write it out
-			D_RBSWriteString(a_Stream, ThisEnt->Data.Index.SubKey);
-			D_RBSWriteString(a_Stream, ThisEnt->Data.Index.Value);
+			D_BSws(a_Stream, ThisEnt->Data.Index.SubKey);
+			D_BSws(a_Stream, ThisEnt->Data.Index.Value);
 			
 			// End
-			D_RBSRecordBlock(a_Stream);
+			D_BSRecordBlock(a_Stream);
 		}
 	}
 	
 	/* End Table */
-	D_RBSBaseBlock(a_Stream, "ENDT");
-	D_RBSRecordBlock(a_Stream);
+	D_BSBaseBlock(a_Stream, "ENDT");
+	D_BSRecordBlock(a_Stream);
 }
 
 /* Z_TableStreamToStore() -- Restores table that was previously dumped */
-Z_Table_t* Z_TableStreamToStore(struct D_RBlockStream_s* const a_Stream)
+Z_Table_t* Z_TableStreamToStore(struct D_BS_s* const a_Stream)
 {
 #define BUFSIZE 256
 	char Header[5];
@@ -846,10 +846,10 @@ Z_Table_t* Z_TableStreamToStore(struct D_RBlockStream_s* const a_Stream)
 	RootTable = CurrentTable = NULL;
 	
 	// Constant Read
-	while (D_RBSPlayBlock(a_Stream, Header))
+	while (D_BSPlayBlock(a_Stream, Header))
 	{
 		// End of Table?
-		if (D_RBSCompareHeader("ENDT", Header))
+		if (D_BSCompareHeader("ENDT", Header))
 		{
 			// Go back up
 			Depth--;
@@ -862,11 +862,11 @@ Z_Table_t* Z_TableStreamToStore(struct D_RBlockStream_s* const a_Stream)
 		}
 		
 		// Start of Table?
-		else if (D_RBSCompareHeader("TABL", Header))
+		else if (D_BSCompareHeader("TABL", Header))
 		{
 			// Read Table Key
 			//memset(Buf, 0, sizeof(Buf));
-			D_RBSReadString(a_Stream, Buf, BUFSIZE - 1);
+			D_BSrs(a_Stream, Buf, BUFSIZE - 1);
 			
 			// Creating root table?
 			if (!RootTable)
@@ -882,15 +882,15 @@ Z_Table_t* Z_TableStreamToStore(struct D_RBlockStream_s* const a_Stream)
 		}
 		
 		// Single Entry?
-		else if (D_RBSCompareHeader("DATA", Header))
+		else if (D_BSCompareHeader("DATA", Header))
 		{
 			// Clear, just in case
 			//memset(Buf, 0, sizeof(Buf));
 			//memset(Buf2, 0, sizeof(Buf2));
 			
 			// Read strings
-			D_RBSReadString(a_Stream, Buf, BUFSIZE);	// Key
-			D_RBSReadString(a_Stream, Buf2, BUFSIZE);	// Value
+			D_BSrs(a_Stream, Buf, BUFSIZE);	// Key
+			D_BSrs(a_Stream, Buf2, BUFSIZE);	// Value
 			
 			// Create sub entry
 			Z_TableSetValue(CurrentTable, Buf, Buf2);

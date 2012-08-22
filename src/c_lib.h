@@ -115,6 +115,8 @@ int16_t SwapInt16(const int16_t In);
 int32_t SwapInt32(const int32_t In);
 int64_t SwapInt64(const int64_t In);
 
+#define LittleSwapInt8(x) (x)
+#define LittleSwapUInt8(x) (x)
 
 __REMOOD_LITTLESWAPMACRO(Int16, int16_t);
 __REMOOD_LITTLESWAPMACRO(UInt16, uint16_t);

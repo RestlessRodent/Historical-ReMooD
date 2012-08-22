@@ -178,9 +178,9 @@ bool_t Z_TableSuperCallback(Z_Table_t* const a_Table, bool_t (*a_Callback) (Z_Ta
 
 const char* Z_TableGetValueOrElse(Z_Table_t* const a_Table, const char* const a_SubKey, const char* a_ElseOr);
 
-struct D_RBlockStream_s;
-void Z_TableStoreToStream(Z_Table_t* const a_Table, struct D_RBlockStream_s* const a_Stream);
-Z_Table_t* Z_TableStreamToStore(struct D_RBlockStream_s* const a_Stream);
+struct D_BS_s;
+void Z_TableStoreToStream(Z_Table_t* const a_Table, struct D_BS_s* const a_Stream);
+Z_Table_t* Z_TableStreamToStore(struct D_BS_s* const a_Stream);
 
 /*****************************************************************************/
 

@@ -55,7 +55,7 @@ typedef struct G_VanillaDemoData_s
 	uint8_t Deathmatch, Respawn, Fast, NoMonsters, POV;
 	bool_t MultiPlayer;
 	bool_t LongTics;
-	D_RBlockStream_t* PMPStream;				// Debug Stream
+	D_BS_t* PMPStream;				// Debug Stream
 	bool_t WroteHeader;							// Wrote header
 	bool_t EndDemo;								// EndDemo
 } G_VanillaDemoData_t;
@@ -277,7 +277,7 @@ bool_t G_DEMO_Vanilla_StartPlaying(struct G_CurrentDemo_s* a_Current)
 	/* PMP Debug */
 	// for each player per tic: PMPL 16 ??? <x> <y> <z>
 	if ((p = M_CheckParm("-vanillapmp")) && M_IsNextParm())
-		Data->PMPStream = D_RBSCreateFileStream(M_GetNextParm(), DRBSSF_READONLY);
+		Data->PMPStream = D_BSCreateFileStream(M_GetNextParm(), DRBSSF_READONLY);
 	
 	/* Success! */
 	return true;
@@ -414,10 +414,10 @@ bool_t G_DEMO_Vanilla_ReadTicCmd(struct G_CurrentDemo_s* a_Current, ticcmd_t* co
 	
 	/* PMP */
 	if (Data->PMPStream)
-		if (D_RBSPlayBlock(Data->PMPStream, Header))
+		if (D_BSPlayBlock(Data->PMPStream, Header))
 		{
 			// Read/Check gametic
-			u32 = D_RBSReadUInt32(Data->PMPStream);
+			u32 = D_BSru32(Data->PMPStream);
 			if (u32 > 0 && D_SyncNetMapTime() > 0)
 				if (u32 != D_SyncNetMapTime())
 					I_Error("PMP: gametic/MapTime Mismatch");
@@ -425,17 +425,17 @@ bool_t G_DEMO_Vanilla_ReadTicCmd(struct G_CurrentDemo_s* a_Current, ticcmd_t* co
 			if (u32 > 0 && D_SyncNetMapTime() > 0)
 			{
 				// Read/Check X Position
-				i32 = D_RBSReadInt32(Data->PMPStream);
+				i32 = D_BSri32(Data->PMPStream);
 				if (abs(i32 - players[a_PlayerNum].mo->x) >= (8 << FRACBITS))
 					I_Error("PMP: X Mismatch");
 				
 				// Read/Check Y Position
-				i32 = D_RBSReadInt32(Data->PMPStream);
+				i32 = D_BSri32(Data->PMPStream);
 				if (abs(i32 - players[a_PlayerNum].mo->y) >= (8 << FRACBITS))
 					I_Error("PMP: Y Mismatch");
 				
 				// Read/Check Z Position
-				i32 = D_RBSReadInt32(Data->PMPStream);
+				i32 = D_BSri32(Data->PMPStream);
 				if (abs(i32 - players[a_PlayerNum].mo->z) >= (8 << FRACBITS))
 					I_Error("PMP: Z Mismatch");
 			}
@@ -444,7 +444,7 @@ bool_t G_DEMO_Vanilla_ReadTicCmd(struct G_CurrentDemo_s* a_Current, ticcmd_t* co
 		// Ended?
 		else
 		{
-			D_RBSCloseStream(Data->PMPStream);
+			D_BSCloseStream(Data->PMPStream);
 			Data->PMPStream = NULL;
 		}
 	
@@ -2085,7 +2085,7 @@ void G_StopDemoRecord(void)
 	if (l_RecDemo->CFile)
 		fclose(l_RecDemo->CFile);
 	if (l_RecDemo->RBSStream)
-		D_RBSCloseStream(l_RecDemo->RBSStream);
+		D_BSCloseStream(l_RecDemo->RBSStream);
 	
 	/* Free current */
 	Z_Free(l_RecDemo);
@@ -2170,7 +2170,7 @@ void G_BeginRecording(const char* const a_Output, const char* const a_FactoryNam
 {
 	const G_DemoFactory_t* Factory;
 	G_CurrentDemo_t* New;
-	D_RBlockStream_t* RBSStream;				// Block Streamer
+	D_BS_t* RBSStream;				// Block Streamer
 	void* CFile;								// CFile
 	
 	/* Check */
@@ -2187,7 +2187,7 @@ void G_BeginRecording(const char* const a_Output, const char* const a_FactoryNam
 	/* Setup file */
 	RBSStream = CFile = NULL;
 	if (Factory->DoesRBS)
-		RBSStream = D_RBSCreateFileStream(a_Output, DRBSSF_OVERWRITE);
+		RBSStream = D_BSCreateFileStream(a_Output, DRBSSF_OVERWRITE);
 	else
 		CFile = fopen(a_Output, "wb");
 		
