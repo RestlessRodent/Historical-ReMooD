@@ -431,6 +431,55 @@ static uint32_t DS_KeyStrToCode(const char* const a_Str)
 	}
 }
 
+/* DS_ReloadValue() -- Reloads value into profile */
+static void DS_ReloadValue(D_ProfileEx_t* const a_Profile, const char* const a_Option, const char* const a_Value)
+{
+	int i;
+	void* Ptr;
+	
+	/* Check */
+	if (!a_Profile || !a_Option || !a_Value)
+		return;
+	
+	/* Find Named Option */
+	for (i = 0; c_ProfDataStat[i].ArgName[0]; i++)
+		if (strcasecmp(a_Option, c_ProfDataStat[i].ArgName) == 0)
+			break;
+	
+	// Not found?
+	if (!c_ProfDataStat[i].ArgName[0])
+		return;
+	
+	/* Get offset */
+	Ptr = (void*)((uintptr_t)a_Profile + c_ProfDataStat[i].Offset);
+	
+	/* Based on Size */
+	switch (c_ProfDataStat[i].Size)
+	{
+		case 8: *((uint8_t*)Ptr) = strtol(a_Value, NULL, 10); break;
+		case 16: *((uint16_t*)Ptr) = strtol(a_Value, NULL, 10); break;
+		case 32: *((uint32_t*)Ptr) = strtol(a_Value, NULL, 10); break;
+		case 717: *((tic_t*)Ptr) = strtol(a_Value, NULL, 10); break;
+		case 3232: *((fixed_t*)Ptr) = FLOAT_TO_FIXED(atof(a_Value)); break;
+		
+		case 1010:
+			if (strcasecmp(a_Value, "true") == 0 || strcasecmp(a_Value, "yes") == 0)
+				*((bool_t*)Ptr) = true;
+			else
+				*((bool_t*)Ptr) = false;
+			break;
+		
+		case 5555:
+			for (i = 0; i < NUMSFX; i++)
+				if (strcasecmp(a_Value, S_sfx[i].name) == 0)
+				{
+					*((int32_t*)Ptr) = i;
+					break;
+				}
+			break;
+	}
+}
+
 /* DS_SizeToStr() -- Converts sized argument to a string */
 static void DS_SizeToStr(void* const a_Ptr, const uint16_t a_Size, char* const a_Buf, const size_t a_BufSize)
 {
@@ -470,8 +519,8 @@ void D_SaveProfileData(void (*a_WriteBack)(const char* const a_Buf, void* const 
 	for (Rover = l_FirstProfile; Rover; Rover = Rover->Next)
 	{
 		// Skip ones marked DO NOT SAVE
-		//if (Rover->Flags & DPEXF_DONTSAVE)
-		//	continue;
+		if (Rover->Flags & DPEXF_DONTSAVE)
+			continue;
 		
 		// Escape the Profile Name
 		memset(EscapeUUID, 0, sizeof(EscapeUUID));
@@ -591,6 +640,27 @@ int CLC_Profile(const uint32_t a_ArgC, const char** const a_ArgV)
 	// Change Value
 	else if (strcasecmp(a_ArgV[1], "value") == 0)
 	{
+		// Usage?
+		if (a_ArgC < 5)
+		{
+			CONL_OutputU(DSTR_DPROFC_VALUEUSAGE, "%s\n", a_ArgV[0]);
+			return 1;
+		}
+		
+		// Read Name
+		CONL_UnEscapeString(BufA, BUFSIZE, a_ArgV[2]);
+		
+		// Find profile
+		New = D_FindProfileEx(BufA);
+		
+		// Not found?
+		if (!New)
+		{
+			CONL_OutputU(DSTR_DPROFC_NOTFOUND, "%s\n", BufA);
+			return 1;
+		}
+		
+		DS_ReloadValue(New, a_ArgV[3], a_ArgV[4]);
 	}
 	
 	// Control

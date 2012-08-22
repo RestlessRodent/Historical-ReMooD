@@ -369,12 +369,14 @@ void I_GetEvent(void)
 					Repeat = true;
 					ExEvent.Data.Joystick.Down = 1;
 				}
+				
 				// If button is off and our array is on, then button was released
 				else if (!joy[i].button[j].b && (JoyButtons[i] & (1 << j)))
 				{
 					Repeat = true;
 					ExEvent.Data.Joystick.Down = 0;
 				}
+				
 				// Button not changed
 				if (!Repeat)
 					continue;
