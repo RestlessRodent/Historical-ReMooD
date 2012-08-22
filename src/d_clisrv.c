@@ -65,6 +65,8 @@ static tic_t neededtic;
 // engine
 ticcmd_t netcmds[BACKUPTICS][MAXPLAYERS];
 
+int32_t g_IgnoreWipeTics;						// Demo playback, ignore this many wipe tics
+
 // -----------------------------------------------------------------
 //  Some extra data function for handle textcmd buffer
 // -----------------------------------------------------------------
@@ -118,9 +120,13 @@ static void TicCmdCopy(ticcmd_t* dst, ticcmd_t* src, int n)
 extern bool_t advancedemo;
 static int load;
 
+/* TryRunTics() -- Attempts to run a single tic */
 void TryRunTics(tic_t realtics)
 {
 	static tic_t LastTic;
+	static int64_t LastMS;
+	int64_t ThisMS, DiffMS;
+	static bool_t ToggleUp;
 	tic_t LocalTic, TargetTic;
 	int STRuns;
 	
@@ -128,6 +134,7 @@ void TryRunTics(tic_t realtics)
 
 	// Init
 	LocalTic = 0;
+	ThisMS = I_GetTimeMS();
 	
 	// Last tic not set?
 	if (!LastTic)
@@ -169,6 +176,7 @@ void TryRunTics(tic_t realtics)
 		
 		// Tic the title screen
 		D_PageTicker();
+		D_SyncNetUpdate();
 		
 		// Set last time
 		LastTic = LocalTic;
@@ -176,90 +184,77 @@ void TryRunTics(tic_t realtics)
 	}
 	
 	/* While the client is behind, update it to catch up */
-	STRuns = 0;
-	do
-	{
-		// Set local time and target time
-		LocalTic = I_GetTime();
-		
-		// Update the client if it is needed
-		if (singletics || LocalTic > LastTic)
-		{
-			// Update music
-			I_UpdateMusic();
-			
-			// If the game is paused, don't do anything
-			if (D_SyncNetIsPaused())
-				break;
-			
-			// While the game is behind, update it
-			XXSNAR = D_SyncNetAllReady();
-			while ((XXLocalTic = D_SyncNetMapTime()) < XXSNAR)
-			{
-				// Update Net status
-				D_SyncNetUpdate();
-				
-				// Run game ticker and increment the gametic
-				G_DemoPreGTicker();
-				G_Ticker();
-				G_DemoPostGTicker();
-				gametic++;
-			
-				// Set last tic
-				LastTic++;
-				
-				// Increase local time
-				D_SyncNetSetMapTime(++XXLocalTic);
-				
-				// Single tics? -timedemo
-				if (singletics)
-					break;
-			}
-		}
-		
-		// Otherwise no updating is needed
-		else
-		{
-			if (!singletics)
-				I_WaitVBL(20);
-		}
-	}
-	while (!singletics && LocalTic < LastTic);
+	// Update music
+	I_UpdateMusic();
 	
-#if 0
-	if (neededtic > gametic)
+	// If the game is paused, don't do anything
+	if (D_SyncNetIsPaused())
+		return;
+	
+	// Get current time
+	LocalTic = I_GetTime();
+	
+	// While the game is behind, update it
+	if (demoplayback)
 	{
-		if (advancedemo)
-			D_DoAdvanceDemo();
-		else
+		// Play enough tics to keep it synced to real percieved time
+		if (!singletics)
 		{
-			// run the count * tics
-			while (neededtic > gametic)
+			if (LocalTic <= LastTic)
 			{
-			
-				//if (gametic % 5 == 0)
-				I_UpdateMusic();
-				G_Ticker();
-				gametic++;
-				
-				// skip paused tic in a demo
-				if (demoplayback)
-				{
-					if (paused)
-					{
-						neededtic++;
-						//I_WaitVBL(20);
-					}
-				}
+				//I_WaitVBL(20);
+				return;
 			}
+			
+			if (g_IgnoreWipeTics)
+			{
+				LastTic = LocalTic;
+				g_IgnoreWipeTics = 0;
+			}
+			
+			XXSNAR = LocalTic - LastTic;
+			LastTic = LocalTic;
 		}
-	}
-	else if (neededtic == gametic)
-		I_WaitVBL(20);
 		
-	/*else
-	   I_WaitVBL(20); */
-#endif
+		// Force playback of every tic
+		else
+			XXSNAR = 1;
+	}
+	else
+		XXSNAR = D_SyncNetAllReady();
+	
+	// Update Network
+	D_SyncNetUpdate();
+	
+	if (XXSNAR > 0)
+	{
+		// Run tick loops
+		while ((XXSNAR--) > 0)
+		{
+			// Run game ticker and increment the gametic
+			G_Ticker();
+			gametic++;
+			
+			// Single tics? -timedemo
+			if (singletics)
+				break;
+		}
+		
+		// Set last MS time
+		LastMS = ThisMS;
+	}
+	
+	// Not behind so sleep
+	else if (!singletics)
+	{
+		// Get time difference
+		DiffMS = ThisMS - LastMS;
+		
+		if (DiffMS > (TICSPERMS >> 1))
+			I_WaitVBL(DiffMS - (TICSPERMS >> 2));
+		
+		//I_WaitVBL(20);
+	}
 }
 
 /* D_GetTics() -- Returns wrap capable time in tics */

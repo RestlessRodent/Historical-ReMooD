@@ -227,6 +227,8 @@ CONL_StaticVar_t l_VIDDrawFPS =
 	NULL
 };
 
+extern int32_t g_IgnoreWipeTics;				// Demo playback, ignore this many wipe tics
+
 void D_Display(void)
 {
 #define BUFSIZE 96
@@ -493,6 +495,9 @@ void D_Display(void)
 	if (!l_VIDScreenLink.Value->Int)
 		return;
 		
+	// Clear ignoring tic indicator
+	g_IgnoreWipeTics = 0;
+		
 	wipe_EndScreen(0, 0, vid.width, vid.height);
 	
 	wipestart = I_GetTime() - 1;
@@ -520,6 +525,7 @@ void D_Display(void)
 		// Appeal to the local timing code
 			// So that the game does not catch up during wipes!
 		D_SyncNetAppealTime();
+		g_IgnoreWipeTics++;
 	}
 	while (!done && I_GetTime() < (unsigned)y);
 	
