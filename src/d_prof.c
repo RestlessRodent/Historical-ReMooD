@@ -353,6 +353,40 @@ D_ProfileEx_t* D_FindProfileEx(const char* const a_Name)
 	return NULL;
 }
 
+/* DS_KeyCodeToStr() -- Converts a key code to a string */
+static void DS_KeyCodeToStr(char* const a_Dest, const size_t a_Size, const uint32_t a_Code)
+{
+	/* Check */
+	if (!a_Dest || !a_Size)
+		return;
+	
+	/* Nothing */
+	if (!a_Code)
+		snprintf(a_Dest, a_Size, "---");
+	
+	/* Joystick */
+	else if (a_Code & 0x1000)
+		snprintf(a_Dest, a_Size, "joyb%02i", (int)((a_Code & 0xFFF) - 1));
+	
+	/* Mouse */
+	else if (a_Code & 0x2000)
+		snprintf(a_Dest, a_Size, "mouseb%02i", (int)((a_Code & 0xFFF) - 1));
+	
+	/* Double Mouse */
+	else if (a_Code & 0x4000)
+		snprintf(a_Dest, a_Size, "dblmouseb%02i", (int)((a_Code & 0xFFF) - 1));
+	
+	/* Keyboard */
+	else
+		snprintf(a_Dest, a_Size, "%s", c_KeyNames[a_Code][0]);
+}
+
+#define SETKEY(c,k) New->Ctrls[SETKEY_M(DPEXIC_,c)][0] = (SETKEY_M(IKBK_,k))
+#define SETJOY(c,b) New->Ctrls[SETKEY_M(DPEXIC_,c)][3] = 0x1000 | ((b) - 1)
+#define SETMOUSE(c,b) New->Ctrls[SETKEY_M(DPEXIC_,c)][1] = 0x2000 | ((b) - 1)
+#define SETDBLMOUSE(c,b) New->Ctrls[SETKEY_M(DPEXIC_,c)][2] = 0x4000 | ((b) - 1)
+
+
 /* DS_SizeToStr() -- Converts sized argument to a string */
 static void DS_SizeToStr(void* const a_Ptr, const uint16_t a_Size, char* const a_Buf, const size_t a_BufSize)
 {
@@ -422,9 +456,19 @@ void D_SaveProfileData(void (*a_WriteBack)(const char* const a_Buf, void* const 
 		for (i = 0; i < NUMDPROFILEEXINPUTCTRLS; i++)
 			for (j = 0; j < 4; j++)
 			{
+/*static const struct
+{
+	const char ShortName[16];					// Short Name
+	const char LongName[32];					// Long Name (menus)
+	D_ProfileExInputCtrl_t ID;					// For Reference
+} c_ControlMapper[NUMDPROFILEEXINPUTCTRLS] =*/
+				// Convert Key to String
+				
+				
+				// Write Key
 				snprintf(Buf, BUFSIZE, "profile control \"%s\" \"%s\" %i \"%s\"\n",
 						EscapeUUID,
-						"thingy",
+						c_ControlMapper[i].ShortName,
 						j,
 						"keyset"
 					);

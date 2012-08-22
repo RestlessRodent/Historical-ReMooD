@@ -62,12 +62,13 @@ typedef enum I_KeyBoardKey_e
 	IKBK_SHIFT = 0x0E,
 	IKBK_CTRL = 0x0F,
 	IKBK_ALT = 0x10,
-	IKBK_ESCAPE = 0x1B,
 	
 	IKBK_UP = 0x11,
 	IKBK_DOWN,
 	IKBK_LEFT,
 	IKBK_RIGHT,
+	
+	IKBK_ESCAPE = 0x1B,
 	
 	// Standard ASCII
 	IKBK_SPACE = ' ',
@@ -234,6 +235,8 @@ typedef enum I_SoundType_e
 #ifndef JOYBUTTONS
 #define JOYBUTTONS      32
 #endif
+
+extern const char* c_KeyNames[NUMIKEYBOARDKEYS][2];
 
 /*****************
 *** STRUCTURES ***

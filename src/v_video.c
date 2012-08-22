@@ -2945,7 +2945,7 @@ size_t V_ExtWCharToMB(const uint16_t a_WChar, char* const a_MB)
 	}
 	
 	// Triple byte
-	else if (WChar >= 0x8000U && WChar <= 0xFFFFU)
+	else if (WChar >= 0x0800U && WChar <= 0xFFFFU)
 	{
 		MBx[0] = 0xE0 | (WChar >> 12);
 		MBx[1] = 0x80 | ((WChar >> 6) & 0x3F);

@@ -79,6 +79,189 @@
 #define MODENAMELENGTH		16	// Length of mode name
 #define MAX_QUIT_FUNCS		16	// Max number of quit functions
 
+/* c_KeyNames -- Names for keys */
+const char* c_KeyNames[NUMIKEYBOARDKEYS][2] =
+{
+	// Lower Control keys
+	{"null", "Null"},							// IKBK_NULL
+	{"key01", "Key 01"},						// 0x01
+	{"key02", "Key 02"},						// 0x02
+	{"key03", "Key 03"},						// 0x03
+	{"key04", "Key 04"},						// 0x04
+	{"key05", "Key 05"},						// 0x05
+	{"key06", "Key 06"},						// 0x06
+	{"key07", "Key 07"},						// 0x07
+	{"backspace", "Backspace"},					// IKBK_BACKSPACE = 0x08,
+	{"tab", "Tab"},								// IKBK_TAB = 0x09,
+	{"return", "Return/Enter"},					// IKBK_RETURN = 0x0A,
+	{"key0B", "Key 0B"},						// 0x0B
+	{"key0C", "Key 0C"},						// 0x0C
+	{"key0D", "Key 0D"},						// 0x0D
+	{"shift", "Shift"},							// IKBK_SHIFT = 0x0E,
+	{"ctrl", "Control"},						// IKBK_CTRL = 0x0F,
+	{"alt", "Alt"},								// IKBK_ALT = 0x10,
+	{"up", "Up Arrow"},							// IKBK_UP = 0x11,
+	{"down", "Down Arrow"},						// IKBK_DOWN,
+	{"left", "Left Arrow"},						// IKBK_LEFT,
+	{"right", "Right Arrow"},					// IKBK_RIGHT,
+	{"key15", "Key 15"},						// 0x15
+	{"key16", "Key 16"},						// 0x16
+	{"key17", "Key 17"},						// 0x17
+	{"key18", "Key 18"},						// 0x18
+	{"key19", "Key 19"},						// 0x19
+	{"key1A", "Key 1A"},						// 0x1A
+	{"escape", "Escape"},						// IKBK_ESCAPE = 0x1B,
+	{"key1C", "Key 1C"},						// 0x1C
+	{"key1D", "Key 1D"},						// 0x1D
+	{"key1E", "Key 1E"},						// 0x1E
+	{"key1F", "Key 1F"},						// 0x1F
+	
+	// Standard ASCII
+	{"space", "Spacebar"},						// IKBK_SPACE = ' ',
+	{"exclaim", "Exclaimation Point"},			// IKBK_EXCLAIM,
+	{"quote", "Quote"},							// IKBK_QUOTE,
+	{"hash", "Hash"},							// IKBK_HASH,
+	{"dollar", "Dollar Sign"},					// IKBK_DOLLAR,
+	{"percent", "Percent"},						// IKBK_PERCENT,
+	{"ampersand", "Ampersand"},					// IKBK_AMPERSAND,
+	{"apostrophe", "Apostrophe"},				// IKBK_APOSTROPHE,
+	{"leftparenth", "Left Parenthesis"},		// IKBK_LEFTPARENTHESES,
+	{"rightparenth", "Right Parenthesis"},		// IKBK_RIGHTPARENTHESES,
+	{"asterisk", "Asterisk"},					// IKBK_ASTERISK,
+	{"plus", "Plus"},							// IKBK_PLUS,
+	{"comma", "Comma"},							// IKBK_COMMA,
+	{"minus", "Minus"},							// IKBK_MINUS,
+	{"period", "Period"},						// IKBK_PERIOD,
+	{"fslash", "Forward Slash"},				// IKBK_FORWARDSLASH,
+	{"0", "0"},									// IKBK_0,
+	{"1", "1"},									// IKBK_1,
+	{"2", "2"},									// IKBK_2,
+	{"3", "3"},									// IKBK_3,
+	{"4", "4"},									// IKBK_4,
+	{"5", "5"},									// IKBK_5,
+	{"6", "6"},									// IKBK_6,
+	{"7", "7"},									// IKBK_7,
+	{"8", "8"},									// IKBK_8,
+	{"9", "9"},									// IKBK_9,
+	{"colon", "Colon"},							// IKBK_COLON,
+	{"semicolon", "Semicolon"},					// IKBK_SEMICOLON,
+	{"lessthan", "Less Than"},					// IKBK_LESSTHAN,
+	{"equals", "Equals"},						// IKBK_EQUALS,
+	{"greaterthan", "Greater Than"},			// IKBK_GREATERTHAN,
+	{"questionmark", "Question Mark"},			// IKBK_QUESTION,
+	{"at", "At Sign"},							// IKBK_AT,
+	{"a", "A"},									// IKBK_A,
+	{"b", "B"},									// IKBK_B,
+	{"c", "C"},									// IKBK_C,
+	{"d", "D"},									// IKBK_D,
+	{"e", "E"},									// IKBK_E,
+	{"f", "F"},									// IKBK_F,
+	{"g", "G"},									// IKBK_G,
+	{"h", "H"},									// IKBK_H,
+	{"i", "I"},									// IKBK_I,
+	{"j", "J"},									// IKBK_J,
+	{"k", "K"},									// IKBK_K,
+	{"l", "L"},									// IKBK_L,
+	{"m", "M"},									// IKBK_M,
+	{"n", "N"},									// IKBK_N,
+	{"o", "O"},									// IKBK_O,
+	{"p", "P"},									// IKBK_P,
+	{"q", "Q"},									// IKBK_Q,
+	{"r", "R"},									// IKBK_R,
+	{"s", "S"},									// IKBK_S,
+	{"t", "T"},									// IKBK_T,
+	{"u", "U"},									// IKBK_U,
+	{"v", "V"},									// IKBK_V,
+	{"w", "W"},									// IKBK_W,
+	{"x", "X"},									// IKBK_X,
+	{"y", "Y"},									// IKBK_Y,
+	{"z", "Z"},									// IKBK_Z,
+	{"leftbracket", "Left Bracket"},			// IKBK_LEFTBRACKET,
+	{"backslash", "Backslash"},					// IKBK_BACKSLASH,
+	{"rightbracket", "Right Bracket"},			// IKBK_RIGHTBRACKET,
+	{"caret", "Caret"},							// IKBK_CARET,
+	{"underscore", "Underscore"},				// IKBK_UNDERSCORE,
+	{"grave", "Grave Accent"},					// IKBK_GRAVE,
+	
+	{"key61", "Key 61"},						// 0x61
+	{"key62", "Key 62"},						// 0x62
+	{"key63", "Key 63"},						// 0x63
+	{"key64", "Key 64"},						// 0x64
+	{"key65", "Key 65"},						// 0x65
+	{"key66", "Key 66"},						// 0x66
+	{"key67", "Key 67"},						// 0x67
+	{"key68", "Key 68"},						// 0x68
+	{"key69", "Key 69"},						// 0x69
+	{"key6A", "Key 6A"},						// 0x6A
+	{"key6B", "Key 6B"},						// 0x6B
+	{"key6C", "Key 6C"},						// 0x6C
+	{"key6D", "Key 6D"},						// 0x6D
+	{"key6E", "Key 6E"},						// 0x6E
+	{"key6F", "Key 6F"},						// 0x6F
+	{"key70", "Key 70"},						// 0x70
+	{"key71", "Key 71"},						// 0x71
+	{"key72", "Key 72"},						// 0x72
+	{"key73", "Key 73"},						// 0x73
+	{"key74", "Key 74"},						// 0x74
+	{"key75", "Key 75"},						// 0x75
+	{"key76", "Key 76"},						// 0x76
+	{"key77", "Key 77"},						// 0x77
+	{"key78", "Key 78"},						// 0x78
+	{"key79", "Key 79"},						// 0x79
+	{"key7A", "Key 7A"},						// 0x7A
+	
+	{"leftbrace", "Left Brace"},				// IKBK_LEFTBRACE = 0x7B,
+	{"pipe", "Pipe"},							// IKBK_PIPE,
+	{"rightbrace", "Right Brace"},				// IKBK_RIGHTBRACE,
+	{"tilde", "Tilde"},							// IKBK_TILDE,
+	
+	// Cool Keys
+	{"delete", "Delete"},						// IKBK_KDELETE = 0x7F,
+	{"home", "Home"},							// IKBK_HOME,
+	{"end", "End"},								// IKBK_END,
+	{"ins", "Insert"},							// IKBK_INSERT,
+	{"pgup", "Page Up"},						// IKBK_PAGEUP,
+	{"pgdn", "Page Down"},						// IKBK_PAGEDOWN,
+	{"print", "Print Screen"},					// IKBK_PRINTSCREEN,
+	{"numlock", "Num Lock"},					// IKBK_NUMLOCK,
+	{"capslock", "Caps Lock"},					// IKBK_CAPSLOCK,
+	{"scrolllock", "Scroll Lock"},				// IKBK_SCROLLLOCK,
+	{"pause", "Pause"},							// IKBK_PAUSE,
+	{"f1", "F1"},								// IKBK_F1,
+	{"f2", "F2"},								// IKBK_F2,
+	{"f3", "F3"},								// IKBK_F3,
+	{"f4", "F4"},								// IKBK_F4,
+	{"f5", "F5"},								// IKBK_F5,
+	{"f6", "F6"},								// IKBK_F6,
+	{"f7", "F7"},								// IKBK_F7,
+	{"f8", "F8"},								// IKBK_F8,
+	{"f9", "F9"},								// IKBK_F9,
+	{"f10", "F10"},								// IKBK_F10,
+	{"f11", "F11"},								// IKBK_F11,
+	{"f12", "F12"},								// IKBK_F12,
+	{"num0", "NumPad 0"},						// IKBK_NUM0,
+	{"num1", "NumPad 1"},						// IKBK_NUM1,
+	{"num2", "NumPad 2"},						// IKBK_NUM2,
+	{"num3", "NumPad 3"},						// IKBK_NUM3,
+	{"num4", "NumPad 4"},						// IKBK_NUM4,
+	{"num5", "NumPad 5"},						// IKBK_NUM5,
+	{"num6", "NumPad 6"},						// IKBK_NUM6,
+	{"num7", "NumPad 7"},						// IKBK_NUM7,
+	{"num8", "NumPad 8"},						// IKBK_NUM8,
+	{"num9", "NumPad 9"},						// IKBK_NUM9,
+	{"numdiv", "NumPad Divide"},				// IKBK_NUMDIVIDE,
+	{"nummul", "NumPad Multiply"},				// IKBK_NUMMULTIPLY,
+	{"numsub", "NumPad Subtract"},				// IKBK_NUMSUBTRACT,
+	{"numadd", "NumPad Addition"},				// IKBK_NUMADD,
+	{"nument", "NumPad Enter"},					// IKBK_NUMENTER,
+	{"numdec", "NumPad Decimal Point"},			// IKBK_NUMPERIOD,
+	{"numdel", "NumPad Delete"},				// IKBK_NUMDELETE,
+	
+	{"logokey", "Logo Key"},					// IKBK_WINDOWSKEY,
+	{"menukey", "Menu Key"},					// IKBK_MENUKEY,
+	{"euro", "Euro"},							// IKBK_EVILEURO,
+};
+
 /**************
 *** GLOBALS ***
 **************/
