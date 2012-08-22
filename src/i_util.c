@@ -80,7 +80,7 @@
 #define MAX_QUIT_FUNCS		16	// Max number of quit functions
 
 /* c_KeyNames -- Names for keys */
-const char* c_KeyNames[NUMIKEYBOARDKEYS][2] =
+const char* const c_KeyNames[NUMIKEYBOARDKEYS][2] =
 {
 	// Lower Control keys
 	{"null", "Null"},							// IKBK_NULL

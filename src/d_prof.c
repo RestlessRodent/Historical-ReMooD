@@ -155,6 +155,9 @@ static const struct
 
 static D_ProfileEx_t* l_FirstProfile = NULL;	// First in chain
 
+static bool_t l_DefaultCtrlsMapped = false;
+static uint32_t l_DefaultCtrls[NUMDPROFILEEXINPUTCTRLS][4];
+
 /*** FUNCTIONS ***/
 
 /* D_CreateProfileEx() -- Create Profile */
@@ -206,68 +209,77 @@ D_ProfileEx_t* D_CreateProfileEx(const char* const a_Name)
 	New->Flags |= DPEXF_GOTMOUSE | DPEXF_GOTJOY | DPEXF_SLOWTURNING;
 	New->SlowTurnTime = 6;
 	
-	// Default Controls
+	// Default Controls (First Time)
+	if (!l_DefaultCtrlsMapped)
+	{
 #define SETKEY_M(a,b) a##b
-#define SETKEY(c,k) New->Ctrls[SETKEY_M(DPEXIC_,c)][0] = (SETKEY_M(IKBK_,k))
-#define SETJOY(c,b) New->Ctrls[SETKEY_M(DPEXIC_,c)][3] = 0x1000 | ((b) - 1)
-#define SETMOUSE(c,b) New->Ctrls[SETKEY_M(DPEXIC_,c)][1] = 0x2000 | ((b) - 1)
-#define SETDBLMOUSE(c,b) New->Ctrls[SETKEY_M(DPEXIC_,c)][2] = 0x4000 | ((b) - 1)
+#define SETKEY(c,k) l_DefaultCtrls[SETKEY_M(DPEXIC_,c)][0] = (SETKEY_M(IKBK_,k))
+#define SETJOY(c,b) l_DefaultCtrls[SETKEY_M(DPEXIC_,c)][3] = 0x1000 | ((b) - 1)
+#define SETMOUSE(c,b) l_DefaultCtrls[SETKEY_M(DPEXIC_,c)][1] = 0x2000 | ((b) - 1)
+#define SETDBLMOUSE(c,b) l_DefaultCtrls[SETKEY_M(DPEXIC_,c)][2] = 0x4000 | ((b) - 1)
+		
+		SETMOUSE(ATTACK, 1);
+		SETMOUSE(MOVEMENT, 3);
+		SETMOUSE(PREVWEAPON, 5);
+		SETMOUSE(NEXTWEAPON, 4);
+		SETDBLMOUSE(USE, 3);
 	
-	SETMOUSE(ATTACK, 1);
-	SETMOUSE(MOVEMENT, 3);
-	SETMOUSE(PREVWEAPON, 5);
-	SETMOUSE(NEXTWEAPON, 4);
-	SETDBLMOUSE(USE, 3);
+		SETKEY(SPEED, SHIFT);
+		SETKEY(MOVEMENT, ALT);
+		SETKEY(LOOKING, S);
+		SETKEY(FORWARDS, UP);
+		SETKEY(BACKWARDS, DOWN);
+		SETKEY(STRAFELEFT, COMMA);
+		SETKEY(STRAFERIGHT, PERIOD);
+		SETKEY(JUMP, FORWARDSLASH);
+		SETKEY(LAND, HOME);
+		SETKEY(TURNLEFT, LEFT);
+		SETKEY(TURNRIGHT, RIGHT);
+		SETKEY(LOOKUP, PAGEUP);
+		SETKEY(LOOKDOWN, PAGEDOWN);
+		SETKEY(LOOKCENTER, END);
+		SETKEY(USE, SPACE);
+		SETKEY(TAUNT, U);
+		SETKEY(CHAT, T);
+		SETKEY(TEAMCHAT, Y);
+		SETKEY(ATTACK, CTRL);
+		SETKEY(RELOAD, R);
+		SETKEY(SLOT1, 1);
+		SETKEY(SLOT2, 2);
+		SETKEY(SLOT3, 3);
+		SETKEY(SLOT4, 4);
+		SETKEY(SLOT5, 5);
+		SETKEY(SLOT6, 6);
+		SETKEY(SLOT7, 7);
+		SETKEY(SLOT8, 8);
+		SETKEY(SLOT9, 9);
+		SETKEY(SLOT10, 0);
+		SETKEY(PREVWEAPON, LEFTBRACKET);
+		SETKEY(NEXTWEAPON, RIGHTBRACKET);
+		SETKEY(PREVINVENTORY, SEMICOLON);
+		SETKEY(NEXTINVENTORY, COLON);
+		SETKEY(USEINVENTORY, RETURN);
+		SETKEY(FLYUP, INSERT);
+		SETKEY(FLYDOWN, KDELETE);
+		SETKEY(TOPSCORES, F);
+		SETKEY(COOPSPY, F12);
 	
-	SETKEY(SPEED, SHIFT);
-	SETKEY(MOVEMENT, ALT);
-	SETKEY(LOOKING, S);
-	SETKEY(FORWARDS, UP);
-	SETKEY(BACKWARDS, DOWN);
-	SETKEY(STRAFELEFT, COMMA);
-	SETKEY(STRAFERIGHT, PERIOD);
-	SETKEY(JUMP, FORWARDSLASH);
-	SETKEY(LAND, HOME);
-	SETKEY(TURNLEFT, LEFT);
-	SETKEY(TURNRIGHT, RIGHT);
-	SETKEY(LOOKUP, PAGEUP);
-	SETKEY(LOOKDOWN, PAGEDOWN);
-	SETKEY(LOOKCENTER, END);
-	SETKEY(USE, SPACE);
-	SETKEY(TAUNT, U);
-	SETKEY(CHAT, T);
-	SETKEY(TEAMCHAT, Y);
-	SETKEY(ATTACK, CTRL);
-	SETKEY(RELOAD, R);
-	SETKEY(SLOT1, 1);
-	SETKEY(SLOT2, 2);
-	SETKEY(SLOT3, 3);
-	SETKEY(SLOT4, 4);
-	SETKEY(SLOT5, 5);
-	SETKEY(SLOT6, 6);
-	SETKEY(SLOT7, 7);
-	SETKEY(SLOT8, 8);
-	SETKEY(SLOT9, 9);
-	SETKEY(SLOT10, 0);
-	SETKEY(PREVWEAPON, LEFTBRACKET);
-	SETKEY(NEXTWEAPON, RIGHTBRACKET);
-	SETKEY(PREVINVENTORY, SEMICOLON);
-	SETKEY(NEXTINVENTORY, COLON);
-	SETKEY(USEINVENTORY, RETURN);
-	SETKEY(FLYUP, INSERT);
-	SETKEY(FLYDOWN, KDELETE);
-	SETKEY(TOPSCORES, F);
-	SETKEY(COOPSPY, F12);
-	
-	// Joystick Buttons
-	SETJOY(ATTACK, 1);
-	SETJOY(USE, 2);
-	SETJOY(MOVEMENT, 3);
-	SETJOY(SPEED, 4);
+		// Joystick Buttons
+		SETJOY(ATTACK, 1);
+		SETJOY(USE, 2);
+		SETJOY(MOVEMENT, 3);
+		SETJOY(SPEED, 4);
+		
+		// Now set
+		l_DefaultCtrlsMapped = true;
 
 #undef SETJOY
 #undef SETKEY_M
 #undef SETKEY
+	}
+	
+	// Copy directly from defaults
+	memmove(New->Ctrls, l_DefaultCtrls, sizeof(l_DefaultCtrls));
 	
 	// Mouse Axis
 		// Not ALT
@@ -377,15 +389,47 @@ static void DS_KeyCodeToStr(char* const a_Dest, const size_t a_Size, const uint3
 		snprintf(a_Dest, a_Size, "dblmouseb%02i", (int)((a_Code & 0xFFF) - 1));
 	
 	/* Keyboard */
-	else
+	else if (a_Code >= 0 && a_Code < NUMIKEYBOARDKEYS)
 		snprintf(a_Dest, a_Size, "%s", c_KeyNames[a_Code][0]);
+	
+	/* Illegal */
+	else
+		snprintf(a_Dest, a_Size, "---");
 }
 
-#define SETKEY(c,k) New->Ctrls[SETKEY_M(DPEXIC_,c)][0] = (SETKEY_M(IKBK_,k))
-#define SETJOY(c,b) New->Ctrls[SETKEY_M(DPEXIC_,c)][3] = 0x1000 | ((b) - 1)
-#define SETMOUSE(c,b) New->Ctrls[SETKEY_M(DPEXIC_,c)][1] = 0x2000 | ((b) - 1)
-#define SETDBLMOUSE(c,b) New->Ctrls[SETKEY_M(DPEXIC_,c)][2] = 0x4000 | ((b) - 1)
-
+/* DS_KeyStrToCode() -- Converts string to key code */
+static uint32_t DS_KeyStrToCode(const char* const a_Str)
+{
+	int i;
+	
+	/* Check */
+	if (!a_Str)
+		return 0;
+	
+	/* Illegal/NULL Key */
+	if (strcasecmp(a_Str, "---") == 0)
+		return 0;
+	
+	/* Joystick Buttons */
+	else if (strncasecmp(a_Str, "joyb", 4) == 0)
+		return 0x1000 | (strtol(a_Str + 4, NULL, 10) + 1);
+	
+	/* Mouse Buttons */
+	else if (strncasecmp(a_Str, "mouseb", 6) == 0)
+		return 0x2000 | (strtol(a_Str + 6, NULL, 10) + 1);
+	
+	/* Double Mouse Buttons */
+	else if (strncasecmp(a_Str, "dblmouseb", 9) == 0)
+		return 0x4000 | (strtol(a_Str + 9, NULL, 10) + 1);
+	
+	/* Keyboard Keys */
+	else
+	{
+		for (i = 0; i < NUMIKEYBOARDKEYS; i++)
+			if (strcasecmp(a_Str, c_KeyNames[i][0]) == 0)
+				return i;
+	}
+}
 
 /* DS_SizeToStr() -- Converts sized argument to a string */
 static void DS_SizeToStr(void* const a_Ptr, const uint16_t a_Size, char* const a_Buf, const size_t a_BufSize)
@@ -456,21 +500,21 @@ void D_SaveProfileData(void (*a_WriteBack)(const char* const a_Buf, void* const 
 		for (i = 0; i < NUMDPROFILEEXINPUTCTRLS; i++)
 			for (j = 0; j < 4; j++)
 			{
-/*static const struct
-{
-	const char ShortName[16];					// Short Name
-	const char LongName[32];					// Long Name (menus)
-	D_ProfileExInputCtrl_t ID;					// For Reference
-} c_ControlMapper[NUMDPROFILEEXINPUTCTRLS] =*/
-				// Convert Key to String
+				// If the key does not match the default then save it.
+				// Otherwise don't save it (since this fills the config
+				// file up to insane proportions.
+				if (Rover->Ctrls[i][j] == l_DefaultCtrls[i][j])
+					continue;
 				
+				// Convert Key to String
+				DS_KeyCodeToStr(BufB, BUFSIZE, Rover->Ctrls[i][j]);
 				
 				// Write Key
 				snprintf(Buf, BUFSIZE, "profile control \"%s\" \"%s\" %i \"%s\"\n",
 						EscapeUUID,
 						c_ControlMapper[i].ShortName,
 						j,
-						"keyset"
+						BufB
 					);
 				a_WriteBack(Buf, a_Data);
 			}
@@ -491,6 +535,7 @@ int CLC_Profile(const uint32_t a_ArgC, const char** const a_ArgV)
 	char BufA[BUFSIZE];
 	char BufB[BUFSIZE];
 	D_ProfileEx_t* New;
+	int i, k;
 	
 	/* Not enough arguments? */
 	if (a_ArgC < 3)
@@ -551,6 +596,43 @@ int CLC_Profile(const uint32_t a_ArgC, const char** const a_ArgV)
 	// Control
 	else if (strcasecmp(a_ArgV[1], "control") == 0)
 	{
+		// Usage?
+		if (a_ArgC < 6)
+		{
+			CONL_OutputU(DSTR_DPROFC_CONTROLUSAGE, "%s\n", a_ArgV[0]);
+			return 1;
+		}
+		
+		// Read Name
+		CONL_UnEscapeString(BufA, BUFSIZE, a_ArgV[2]);
+		
+		// Find profile
+		New = D_FindProfileEx(BufA);
+		
+		// Not found?
+		if (!New)
+		{
+			CONL_OutputU(DSTR_DPROFC_NOTFOUND, "%s\n", BufA);
+			return 1;
+		}
+		
+		// Load Index
+		i = strtol(a_ArgV[4], NULL, 10);
+		
+		// Load Control Name
+		for (k = 0; k < NUMDPROFILEEXINPUTCTRLS; k++)
+			if (strcasecmp(a_ArgV[3], c_ControlMapper[k].ShortName) == 0)
+				break;
+		
+		// Not found?
+		if (k >= NUMDPROFILEEXINPUTCTRLS)
+		{
+			CONL_OutputU(DSTR_DPROFC_NOTCONTROLNAME, "%s\n", a_ArgV[3]);
+			return 1;
+		}
+		
+		// Back convert string to ID
+		New->Ctrls[k][i] = DS_KeyStrToCode(a_ArgV[5]);
 	}
 	
 	return 0;

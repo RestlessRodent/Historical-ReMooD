@@ -925,6 +925,9 @@ StringGroupEX_t UnicodeStrings[NUMUNICODESTRINGS] =
 	{			 "DPROFC_CREATEUSAGE", "Usage: $1 create <Name> (UUID)"},
 	{			"DPROFC_ALREADYEXIST", "Profile \"$1\" already exists!"},
 	{			"DPROFC_FAILEDCREATE", "Failed to create profile."},
+	{			"DPROFC_CONTROLUSAGE", "Usage: $1 control <Name> <Action> <Id> <Key>"},
+	{				"DPROFC_NOTFOUND", "Profile $1 not found."},
+	{		  "DPROFC_NOTCONTROLNAME", "$1 is not a valid control."},
 };
 
 /* DS_NameOfString() -- Returns name of pointer to string */

@@ -236,7 +236,7 @@ typedef enum I_SoundType_e
 #define JOYBUTTONS      32
 #endif
 
-extern const char* c_KeyNames[NUMIKEYBOARDKEYS][2];
+extern const char* const c_KeyNames[NUMIKEYBOARDKEYS][2];
 
 /*****************
 *** STRUCTURES ***
