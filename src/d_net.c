@@ -1399,7 +1399,7 @@ bool_t D_NCMH_CONN(struct D_NCMessageData_s* const a_Data)
 	do
 	{
 		HostID = D_CMakePureRandom();
-	} while (!D_NCFindClientByID(HostID));
+	} while (D_NCFindClientByID(HostID));
 	
 	// Streams
 	FreshClient->Streams[DNCSP_WRITE] = a_Data->NetClient->Streams[DNCSP_WRITE];
