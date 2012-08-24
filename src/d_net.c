@@ -137,7 +137,7 @@ bool_t D_SyncNetIsSolo(void)
 	return true;
 }
 
-/* D_SyncNetAllReady() -- Inidicates that all parties are ready to move to the next tic */
+/* D_SyncNetAllReady() -- Indicates that all parties are ready to move to the next tic */
 // It returns the tics in the future that everyone is ready to move to
 tic_t D_SyncNetAllReady(void)
 {
@@ -193,7 +193,10 @@ tic_t D_SyncNetAllReady(void)
 	/* Otherwise time gets dictated to us */
 	else
 	{
-		return l_MapTime;
+		if (g_LastServerTic > l_MapTime)
+			return l_MapTime + 1;
+		else
+			return l_MapTime;
 	}
 	
 	/* Fell through? */
@@ -281,6 +284,7 @@ typedef struct D_NetQueueCommand_s
 /*** GLOBALS ***/
 
 uint32_t g_NetStat[4] = {0, 0, 0, 0};			// Network stats
+tic_t g_LastServerTic = 0;						// Server's Last tic
 
 /*** LOCALS ***/
 
@@ -355,6 +359,14 @@ CONL_StaticVar_t l_SVJoinPassword =
 {
 	CLVT_STRING, NULL, CLVF_SAVE,
 	"sv_joinpassword", DSTR_CVHINT_SVJOINPASSWORD, CLVVT_STRING, "",
+	NULL
+};
+
+// sv_maxclients -- Name of Server
+CONL_StaticVar_t l_SVMaxClients =
+{
+	CLVT_INTEGER, NULL, CLVF_SAVE,
+	"sv_maxclients", DSTR_CVHINT_SVMAXCLIENTS, CLVVT_INTEGER, "32",
 	NULL
 };
 
@@ -655,6 +667,7 @@ bool_t D_CheckNetGame(void)
 	CONL_VarRegister(&l_SVMOTD);
 	CONL_VarRegister(&l_SVConnectPassword);
 	CONL_VarRegister(&l_SVJoinPassword);
+	CONL_VarRegister(&l_SVMaxClients);
 		
 	/* Create LoopBack Client */
 	Client = D_NCAllocClient();
@@ -1104,6 +1117,7 @@ typedef struct D_NCMessageData_s
 
 #define MAXGLOBALBUFSIZE					32	// Size of global buffer
 
+static tic_t l_GlobalTime[MAXGLOBALBUFSIZE];	// Time
 static ticcmd_t l_GlobalBuf[MAXGLOBALBUFSIZE];	// Global buffer
 static int32_t l_GlobalAt = -1;					// Position Global buf is at
 
@@ -1240,17 +1254,86 @@ bool_t D_NCMH_JOIN(struct D_NCMessageData_s* const a_Data)
 /* D_NCMH_TICS() -- Recieved player tics */
 bool_t D_NCMH_TICS(struct D_NCMessageData_s* const a_Data)
 {
+	uint64_t GameTic;
+	uint8_t Class;
+	ticcmd_t Cmd;
+	D_BS_t* Stream;
+	
+	uint16_t* DataSizeP;
+	uint8_t* DataBufP;
+	uint32_t i;
+	uint8_t Bit;
+	
 	/* Ignore any tic commands from the local server */
 	if (a_Data->NetClient->IsLocal)
 		return false;
+		
+	/* Get Stream */
+	Stream = a_Data->InStream;
+	
+	/* Clear */
+	memset(&Cmd, 0, sizeof(Cmd));
+	
+	/* Read Data */
+	// Game tic
+	GameTic = D_BSru64(Stream);
+		
+	// Class
+	Class = D_BSru8(Stream);
+	
+	// Players (Non-Global)
+	if (Class > 0)
+	{
+	}
+	
+	// Extended Data
+	if (Class > 0)
+	{
+		DataSizeP = &Cmd.Std.DataSize;
+		DataBufP = &Cmd.Std.DataBuf;
+	}
+	else
+	{
+		DataSizeP = &Cmd.Ext.DataSize;
+		DataBufP = &Cmd.Ext.DataBuf;
+	}
+	
+	// Really read it now
+	*DataSizeP = D_BSru16(Stream);
+	
+	for (i = 0; i < *DataSizeP; i++)
+	{
+		Bit = D_BSru8(Bit);
+		if (i < MAXTCDATABUF)
+			DataBufP[i] = Bit;
+	}
+	
+	/* Place in the appropriate buffer */
+	// Overflowed? Desync is gonna happen!
+	if (l_GlobalAt >= MAXGLOBALBUFSIZE - 1)
+		CONL_PrintF("Global Buffer Overflow!!!\n");
+	
+	// Place in area
+	else
+	{
+		// Spot?
+		i = ++l_GlobalAt;
+		
+		// Load
+		l_GlobalTime[i] = GameTic;
+		l_GlobalBuf[i] = Cmd;
+		
+		// Set time
+		g_LastServerTic = GameTic;
+	}
 }
 
 /* D_NCMH_CONN() -- Connection Request */
 bool_t D_NCMH_CONN(struct D_NCMessageData_s* const a_Data)
 {
 #define BUFSIZE 64
-	int i;
-	uint32_t ConnectKey[MAXCONNKEYSIZE];
+	int i, c;
+	uint32_t ConnectKey[MAXCONNKEYSIZE], HostID;
 	D_NetClient_t* ServerNC, *FreshClient;
 	D_BS_t* Stream;
 	uint8_t Ver[4];
@@ -1278,6 +1361,58 @@ bool_t D_NCMH_CONN(struct D_NCMessageData_s* const a_Data)
 	// Passwords
 	D_BSrs(Stream, ServerPass, BUFSIZE);
 	D_BSrs(Stream, JoinPass, BUFSIZE);
+	
+	/* Version mismatch? */
+	if (Ver[1] != REMOOD_MAJORVERSION || Ver[2] != REMOOD_MINORVERSION ||
+		Ver[3] != REMOOD_RELEASEVERSION)
+	{
+	}
+	
+	/* Too many clients? */
+	for (i = 0, c = 0; i < l_NumClients; i++)
+		if (l_Clients[i])
+			if (!l_Clients[i]->IsLocal)
+				c++;
+	
+	// Too many now?
+	if (c >= l_SVMaxClients.Value->Int)
+	{
+	}
+	
+	/* Password Mismatch */
+	if (strlen(l_SVConnectPassword.Value->String) > 0)
+		if (strcasecmp(l_SVConnectPassword.Value->String, ServerPass) != 0)
+		{
+		}
+	
+	/* Add to clients */
+	FreshClient = D_NCAllocClient();
+	
+	// Info
+	memmove(&FreshClient->Address, a_Data->FromAddr, sizeof(I_HostAddress_t));
+	FreshClient->CoreStream = a_Data->NetClient->CoreStream;
+	FreshClient->PerfectStream = a_Data->NetClient->PerfectStream;
+	FreshClient->IsLocal = false;
+	FreshClient->IsServer = false;
+	memmove(FreshClient->Key, ConnectKey, sizeof(FreshClient->Key));
+	
+	do
+	{
+		HostID = D_CMakePureRandom();
+	} while (!D_NCFindClientByID(HostID));
+	
+	// Streams
+	FreshClient->Streams[DNCSP_WRITE] = a_Data->NetClient->Streams[DNCSP_WRITE];
+	FreshClient->Streams[DNCSP_PERFECTWRITE] = a_Data->NetClient->Streams[DNCSP_PERFECTWRITE];
+	
+	// Reverse DNS
+	I_NetHostToName(NULL, &FreshClient->Address, FreshClient->ReverseDNS, NETCLIENTRHLEN);
+	
+	/* TODO FIXME */
+	FreshClient->ReadyToPlay = FreshClient->SaveGameSent = true;
+	
+	/* Tell client their host information */
+	
 	
 	/* Info */
 	CONL_OutputU(DSTR_DNETC_CONNECTFROM, "%s%i%i%i%c\n",
@@ -1335,13 +1470,26 @@ void D_NetReadGlobalTicCmd(ticcmd_t* const a_TicCmd)
 	// Then only use the buffer sent to us via TICS from the server.
 	else
 	{
+		// Something is in the buffer
+		if (l_GlobalAt >= 0)
+			// Only match if the same tic
+			if (l_GlobalTime[0] == D_SyncNetMapTime())
+			{
+				// Move the first item inside
+				memmove(a_TicCmd, &l_GlobalBuf[0], sizeof(*a_TicCmd));
+			
+				// Move everything down
+				memmove(&l_GlobalBuf[0], &l_GlobalBuf[1], sizeof(ticcmd_t) * (MAXGLOBALBUFSIZE - 1));
+				memmove(&l_GlobalTime[0], &l_GlobalTime[1], sizeof(tic_t) * (MAXGLOBALBUFSIZE - 1));
+				l_GlobalAt--;
+			}
 	}
 }
 
 /* D_NetWriteGlobalTicCmd() -- Writes global tic command */
 void D_NetWriteGlobalTicCmd(ticcmd_t* const a_TicCmd)
 {
-	int nc;
+	int nc, i;
 	D_NetClient_t* ServerNC;
 	D_NetClient_t* NetClient;
 	D_BS_t* Stream;
@@ -1367,6 +1515,10 @@ void D_NetWriteGlobalTicCmd(ticcmd_t* const a_TicCmd)
 		if (NetClient->IsLocal)
 			continue;
 		
+		// Not ready?
+		if (!NetClient->ReadyToPlay || !NetClient->SaveGameSent)
+			continue;
+		
 		// Write message to them (perfect output)
 		Stream = NetClient->Streams[DNCSP_PERFECTWRITE];
 		
@@ -1378,6 +1530,13 @@ void D_NetWriteGlobalTicCmd(ticcmd_t* const a_TicCmd)
 		
 		// Zero Marks Global
 		D_BSwu8(Stream, 0);
+		
+		// Write Data Size
+		D_BSwu16(Stream, a_TicCmd->Ext.DataSize);
+		
+		// Write buffer contents
+		for (i = 0; i < a_TicCmd->Ext.DataSize; i++)
+			D_BSwu8(Stream, a_TicCmd->Ext.DataBuf[i]);
 		
 		// Send away
 		D_BSRecordNetBlock(Stream, &NetClient->Address);
@@ -1470,6 +1629,10 @@ void D_NetWriteTicCmd(ticcmd_t* const a_TicCmd, const int a_Player)
 		
 		// Is ourself?
 		if (NetClient->IsLocal)
+			continue;
+		
+		// Not ready?
+		if (!NetClient->ReadyToPlay || !NetClient->SaveGameSent)
 			continue;
 		
 		// Write message to them (perfect output)

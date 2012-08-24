@@ -125,6 +125,7 @@ typedef void (*D_NCQCFunc_t)(void* const a_Data);
 /*** GLOBALS ***/
 
 extern uint32_t g_NetStat[4];					// Network stats
+extern tic_t g_LastServerTic;					// Last Server Tic
 
 /*** FUNCTIONS ***/
 

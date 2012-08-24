@@ -676,14 +676,16 @@ void G_Ticker(void)
 	else
 		D_NetReadGlobalTicCmd(&GlobalCmd);
 	
-	// Write Global Tic Commands
-	if (demorecording)
-		G_WriteDemoGlobalTicCmd(&GlobalCmd);
-	D_NetWriteGlobalTicCmd(&GlobalCmd);
-	
 	// Process Global Commands
 	if (GlobalCmd.Type >= 1)
+	{
+		// Write Global Tic Commands
+		if (demorecording)
+			G_WriteDemoGlobalTicCmd(&GlobalCmd);
+		D_NetWriteGlobalTicCmd(&GlobalCmd);
+		
 		GS_HandleExtraCommands(&GlobalCmd, -1);
+	}
 	
 	/* Player Commands */
 	// Read Individual Player Tic Commands
