@@ -250,6 +250,10 @@ void TryRunTics(tic_t realtics)
 		// Get time difference
 		DiffMS = ThisMS - LastMS;
 		
+		// Cap
+		if (DiffMS > 100)
+			DiffMS = 100;
+		
 		if (DiffMS > (TICSPERMS >> 1))
 			I_WaitVBL(DiffMS - (TICSPERMS >> 2));
 		

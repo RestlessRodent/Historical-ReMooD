@@ -823,6 +823,12 @@ void D_NCDisconnect(void)
 	for (i = 0; i < l_NumClients; i++)
 		if (l_Clients[i])
 		{
+			// Modify local ID
+			if (l_Clients[i]->IsLocal)
+			{
+				l_Clients[i]->HostID = D_CMakePureRandom();
+			}
+			
 			// Remove arbritation list
 			if (l_Clients[i]->NumArbs)
 			{
@@ -860,12 +866,6 @@ void D_NCDisconnect(void)
 				// Free it
 				Z_Free(l_Clients[i]);
 				l_Clients[i] = NULL;
-			}
-			
-			// Modify local ID
-			if (l_Clients[i]->IsLocal)
-			{
-				l_Clients[i]->HostID = D_CMakePureRandom();
 			}
 		}
 }
@@ -953,8 +953,8 @@ void D_NCClientize(D_NetClient_t* a_BoundClient, I_HostAddress_t* const a_Host, 
 	NetClient->PerfectStream = a_BoundClient->PerfectStream;
 	
 	// Create streams for server connection
-	NetClient->Streams[DNCSP_READ] = NetClient->CoreStream;
-	NetClient->Streams[DNCSP_WRITE] = NetClient->CoreStream;
+	NetClient->Streams[DNCSP_READ] = NULL;//NetClient->CoreStream;
+	NetClient->Streams[DNCSP_WRITE] = NULL;//NetClient->CoreStream;
 	NetClient->Streams[DNCSP_PERFECTREAD] = NetClient->PerfectStream;
 	NetClient->Streams[DNCSP_PERFECTWRITE] = NetClient->PerfectStream;
 	
