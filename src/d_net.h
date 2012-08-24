@@ -145,7 +145,7 @@ void D_NCQueueDisconnect(void);
 
 void D_NCDisconnect(void);
 void D_NCServize(void);
-void D_NCClientize(I_HostAddress_t* const a_Host, const char* const a_Pass, const char* const a_JoinPass);
+void D_NCClientize(D_NetClient_t* a_BoundClient, I_HostAddress_t* const a_Host, const char* const a_Pass, const char* const a_JoinPass);
 
 bool_t D_NCHostOnBanList(I_HostAddress_t* const a_Host);
 

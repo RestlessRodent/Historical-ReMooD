@@ -1050,12 +1050,157 @@ static bool_t IS_ConvertHost(const bool_t a_ToNative, I_HostAddress_t* const a_H
 }
 #endif
 
-bool_t I_NetNameToHost(I_HostAddress_t* const a_Host, const char* const a_Name)
+/* I_NetNameToHost() -- Converts hostname to address */
+bool_t I_NetNameToHost(I_NetSocket_t* const a_Socket, I_HostAddress_t* const a_Host, const char* const a_Name)
 {
+#define BUFSIZE	256
+	char Buf[BUFSIZE];
+	char* PortP;
+	uint16_t MatchPort;
+	
+	/* Variables */
+#if __REMOOD_SOCKLEVEL == __REMOOD_SOCKPOSIX || __REMOOD_SOCKLEVEL == __REMOOD_SOCKBSD
+	size_t i;
+	struct addrinfo AddrInfo;
+	struct addrinfo* Find, *Rover;
+	struct sockaddr_in SockInfoFour;
+	struct sockaddr_in6 SockInfoSix;
+#elif __REMOOD_SOCKLEVEL == __REMOOD_SOCKWIN
+	struct hostent* Ent;
+#else
+#endif
+	
+	/* Check */
+	if (!a_Host || !a_Name)
+		return false;
+	
+	/* Extract port (if any) */
+	memset(Buf, 0, sizeof(Buf));
+	strncpy(Buf, a_Name, BUFSIZE - 1);
+	PortP = strchr(Buf, ':');
+	
+	// No :, presume default port
+	if (!PortP)
+		MatchPort = __REMOOD_BASEPORT;
+	
+	// Otherwise, take the name out
+	else
+	{
+		// Erase it
+		*PortP = 0;
+		
+		// Move it up
+		PortP++;
+		
+		// Translate to integer
+		MatchPort = atoi(PortP);
+	}
+
+	/* Code */
+#if __REMOOD_SOCKLEVEL == __REMOOD_SOCKPOSIX || __REMOOD_SOCKLEVEL == __REMOOD_SOCKBSD
+	/* Clear all */
+	memset(a_Host, 0, sizeof(*a_Host));
+	memset(&AddrInfo, 0, sizeof(AddrInfo));
+	memset(&SockInfoSix, 0, sizeof(SockInfoSix));
+	memset(&SockInfoFour, 0, sizeof(SockInfoFour));
+	
+	/* Prepare for getaddrinfo */
+	// I want both IPv4 and IPv6 addresses!
+	AddrInfo.ai_family = AF_UNSPEC;
+	AddrInfo.ai_socktype = SOCK_STREAM;
+#if !defined(_WIN32)
+	AddrInfo.ai_flags = AI_ADDRCONFIG | AI_ALL | AI_V4MAPPED;
+#endif
+
+	/* Get address info */
+	if (getaddrinfo(Buf, NULL, &AddrInfo, &Find) != 0)
+		return false;
+	
+	/* Rove through addresses */
+	for (Rover = Find; Rover; Rover = Rover->ai_next)
+	{
+		// Not IPv4 or IPv6? (UNIX sockets!?)
+		if (Rover->ai_family != AF_INET && Rover->ai_family != AF_INET6)
+			continue;
+		
+		// Not TCP or UDP (other kinds of net sockets)
+		if (Rover->ai_socktype != SOCK_STREAM && Rover->ai_socktype != SOCK_DGRAM)
+			continue;
+		
+		// If this is an IPv4 Address and host has none, use it!
+		if (((a_Socket && !(a_Socket->Flags & INSF_V6)) || a_Host->IPvX == INIPVN_IPV4) && Rover->ai_family == AF_INET)
+		{
+			// Fill flag
+			a_Host->IPvX = INIPVN_IPV4;
+			
+			// Copy over (in case of unaligned access)
+			memmove(&SockInfoFour, Rover->ai_addr, Rover->ai_addrlen);
+			
+			// Convert to host byte order
+			SockInfoFour.sin_addr.s_addr = ntohl(SockInfoFour.sin_addr.s_addr);
+			
+			// Copy over IP into host
+			for (i = 0; i < 4; i++)
+				a_Host->Host.v4.b[i] = (SockInfoFour.sin_addr.s_addr >> ((3-i) * 8U)) & 0xFFU;
+			
+			// Done
+			freeaddrinfo(Find);
+			return true;
+		}
+		
+		// Same as above, but for IPv6
+		else if (((a_Socket && !(a_Socket->Flags & INSF_V6)) || a_Host->IPvX == INIPVN_IPV6) && Rover->ai_family == AF_INET6)
+		{
+			// Fill flag
+			a_Host->IPvX = INIPVN_IPV6;
+			
+			// Copy over (in case of unaligned access)
+			memmove(&SockInfoSix, Rover->ai_addr, Rover->ai_addrlen);
+			
+			// Copy over IP into host
+			for (i = 0; i < 16; i++)
+				a_Host->Host.v6.b[i] = SockInfoSix.sin6_addr.s6_addr[i];
+			
+			// Success!
+			freeaddrinfo(Find);
+			return true;
+		}
+	}
+	
+	/* Free address info */
+	freeaddrinfo(Find);
+	
+	/* No match found */
 	return false;
+	
+#elif __REMOOD_SOCKLEVEL == __REMOOD_SOCKWIN
+	/* WinXP+ supports getnameinfo() etc. but I want Win98 Support */
+	
+	/* Obtain host info */
+	Ent = gethostbyname(Buf);
+	
+	// No IP found?
+	if (!Ent)
+		return false;
+	
+	/* IPv4/IPv6 Check */
+	if ((l_IPv6 && Ent->h_addrtype != AF_INET6) || (!l_IPv6 && Ent->h_addrtype != AF_INET))
+		return false;
+	
+	/* Convert */
+	IS_ConvertHost(false, a_Host, (const struct sockaddr*)Ent->h_addr);
+	a_Host->Port = MatchPort;
+	
+	/* Success! */
+	return true;
+#else
+	return false;
+#endif
+
+#undef BUFSIZE
 }
 
-bool_t I_NetHostToName(const I_HostAddress_t* const a_Host, char* const a_Out, const size_t a_OutSize)
+bool_t I_NetHostToName(I_NetSocket_t* const a_Socket, const I_HostAddress_t* const a_Host, char* const a_Out, const size_t a_OutSize)
 {
 	return false;
 }

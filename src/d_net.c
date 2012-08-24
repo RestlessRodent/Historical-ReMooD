@@ -519,6 +519,7 @@ static int DS_ConnectMultiCom(const uint32_t a_ArgC, const char** const a_ArgV)
 {
 	D_NetClient_t* ServerNC;
 	I_HostAddress_t Host;
+	int nc;
 	
 	/* Clear Host */
 	memset(&Host, 0, sizeof(Host));
@@ -540,17 +541,32 @@ static int DS_ConnectMultiCom(const uint32_t a_ArgC, const char** const a_ArgV)
 			return CLE_FAILURE;
 		}
 		
-		// Get hostname
-		if (!I_NetNameToHost(&Host, a_ArgV[1]))
-		{
-			CONL_OutputU(DSTR_NET_BADHOSTRESOLVE, "\n");
-			return CLE_FAILURE;
-		}
+		// Determination loop
+		for (nc = 0; nc < l_NumClients; nc++)
+			if (l_Clients[nc])
+			{
+				// Not local (isn't ours)
+				if (!l_Clients[nc]->IsLocal)
+					continue;
+				
+				// No net socket?
+				if (!l_Clients[nc]->NetSock)
+					continue;
+				
+				// Get hostname
+				if (!I_NetNameToHost(l_Clients[nc]->NetSock, &Host, a_ArgV[1]))
+				{
+					CONL_OutputU(DSTR_NET_BADHOSTRESOLVE, "\n");
+					continue;
+				}
 		
-		// Attempt connect to server
-		D_NCClientize(&Host, (a_ArgC >= 3 ? a_ArgV[2] : ""), (a_ArgC >= 4 ? a_ArgV[3] : ""));
+				// Attempt connect to server
+				D_NCClientize(l_Clients[nc], &Host, (a_ArgC >= 3 ? a_ArgV[2] : ""), (a_ArgC >= 4 ? a_ArgV[3] : ""));
+				
+				return CLE_SUCCESS;
+			}
 		
-		return CLE_SUCCESS;
+		return CLE_FAILURE;
 	}
 	
 	/* Disconnect */
@@ -564,6 +580,7 @@ static int DS_ConnectMultiCom(const uint32_t a_ArgC, const char** const a_ArgV)
 	}
 	
 	/* Reconnect */
+#if 0
 	else if (strcasecmp("reconnect", a_ArgV[0]) == 0)
 	{
 		// Find server host
@@ -588,11 +605,12 @@ static int DS_ConnectMultiCom(const uint32_t a_ArgC, const char** const a_ArgV)
 		
 		// Connect to server
 			// TODO FIXME: Server Password
-		D_NCClientize(&Host, NULL, NULL);
+		D_NCClientize(ServerNC, &Host, NULL, NULL);
 		
 		// Success! I hope
 		return CLE_SUCCESS;
 	}
+#endif
 	
 	/* Failure */
 	return CLE_FAILURE;
@@ -886,7 +904,7 @@ void D_NCServize(void)
 }
 
 /* D_NCClientize() -- Turn into client and connect to server */
-void D_NCClientize(I_HostAddress_t* const a_Host, const char* const a_Pass, const char* const a_JoinPass)
+void D_NCClientize(D_NetClient_t* a_BoundClient, I_HostAddress_t* const a_Host, const char* const a_Pass, const char* const a_JoinPass)
 {
 	size_t i;
 	D_NetClient_t* Server;
@@ -895,7 +913,7 @@ void D_NCClientize(I_HostAddress_t* const a_Host, const char* const a_Pass, cons
 	D_BS_t* Stream;
 	
 	/* Check */
-	if (!a_Host)
+	if (!a_BoundClient || !a_Host)
 		return;
 	
 	/* See if already connected to this server */
@@ -913,23 +931,6 @@ void D_NCClientize(I_HostAddress_t* const a_Host, const char* const a_Pass, cons
 	/* First Disconnect */
 	D_NCDisconnect();
 	
-	/* Try creating socket to server */
-	for (i = 0; i < 10; i++)
-	{
-		Socket = I_NetOpenSocket(0, a_Host, __REMOOD_BASEPORT + i);
-		
-		// Was created?
-		if (Socket)
-			break;
-	}
-	
-	// Failed to create?
-	if (!Socket)
-	{
-		CONL_OutputU(DSTR_NET_CONNECTNOSOCKET, "\n");
-		return;
-	}
-	
 	/* Revoke self serverness */
 	for (i = 0; i < l_NumClients; i++)
 		if (l_Clients[i])
@@ -943,14 +944,13 @@ void D_NCClientize(I_HostAddress_t* const a_Host, const char* const a_Pass, cons
 	NetClient = D_NCAllocClient();
 	
 	// Fill stuff in it
-	NetClient->NetSock = Socket;
 	memmove(&NetClient->Address, a_Host, sizeof(*a_Host));
 	
 	// Create stream from it
-	NetClient->CoreStream = D_BSCreateNetStream(NetClient->NetSock);
+	NetClient->CoreStream = a_BoundClient->CoreStream;
 	
 	// Create encapsulated perfect stream
-	NetClient->PerfectStream = D_BSCreatePerfectStream(NetClient->CoreStream);
+	NetClient->PerfectStream = a_BoundClient->PerfectStream;
 	
 	// Create streams for server connection
 	NetClient->Streams[DNCSP_READ] = NetClient->CoreStream;
