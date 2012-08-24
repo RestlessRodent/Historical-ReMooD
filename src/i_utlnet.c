@@ -70,6 +70,8 @@
 	#include <netdb.h>
 	#include <fcntl.h>
 	#include <errno.h>
+	
+	#define __REMOOD_DONTWAITMSG MSG_DONTWAIT
 
 #elif __REMOOD_SOCKLEVEL == __REMOOD_SOCKBSD
 	#include <sys/socket.h>
@@ -78,11 +80,15 @@
 	#include <netdb.h>
 	#include <fcntl.h>
 	#include <errno.h>
+	
+	#define __REMOOD_DONTWAITMSG MSG_DONTWAIT
 
 #elif __REMOOD_SOCKLEVEL == __REMOOD_SOCKWIN
 	#include <winsock2.h>
 	#include <ws2tcpip.h>	// IPv6
 	#include <fcntl.h>
+	
+	#define __REMOOD_DONTWAITMSG 0
 
 #elif __REMOOD_SOCKLEVEL == __REMOOD_SOCKNETLIB
 
@@ -183,8 +189,6 @@ struct I_NetSocket_s
 /*************
 *** LOCALS ***
 *************/
-
-static bool_t l_IPv6 = false;					// using IPv6 Mode
 
 /****************
 *** FUNCTIONS ***
@@ -955,6 +959,97 @@ bool_t I_InitNetwork(void)
 	return true;
 }
 
+#if __REMOOD_SOCKLEVEL == __REMOOD_SOCKPOSIX || __REMOOD_SOCKLEVEL == __REMOOD_SOCKBSD || __REMOOD_SOCKLEVEL == __REMOOD_SOCKWIN
+/* IS_ConvertHost() -- Converts hostname */
+static bool_t IS_ConvertHost(const bool_t a_ToNative, I_HostAddress_t* const a_Host, struct sockaddr_storage* const a_Native)
+{
+	size_t i;
+	uint32_t T4;
+	
+	/* Wrapped to Native */
+	if (a_ToNative)
+	{
+		// IPv4
+		if (a_Host->IPvX == INIPVN_IPV4)
+		{
+			((struct sockaddr_in*)a_Native)->sin_family = AF_INET;
+			((struct sockaddr_in*)a_Native)->sin_port = htons(a_Host->Port);
+		
+			// Fill IP information
+			for (T4 = 0, i = 0; i < 4; i++)
+				T4 |= ((uint32_t)a_Host->Host.v4.b[i]) << ((3-i) * 8U);
+		
+			// Flip in
+			((struct sockaddr_in*)a_Native)->sin_addr.s_addr = htonl(T4);
+			
+			// Success!
+			return true;
+		}
+		
+#if defined(__REMOOD_ENABLEIPV6)
+		// IPv6
+		else if (a_Host->IPvX == INIPVN_IPV6)
+		{
+			((struct sockaddr_in6*)a_Native)->sin6_family = AF_INET6;
+			((struct sockaddr_in6*)a_Native)->sin6_port = htons(a_Host->Port);
+	
+			for (i = 0; i < 16; i++)
+				((struct sockaddr_in6*)a_Native)->sin6_addr.s6_addr[i] = a_Host->Host.v6.b[i];
+			
+			// Success!
+			return true;
+		}
+#endif
+		
+		// Missed
+		return false;
+	}
+	
+	/* Native to Wrapped */
+	else
+	{
+		// IPv4 Address
+		if (((struct sockaddr_in*)a_Native)->sin_family == AF_INET)
+		{
+			// Fill flag
+			a_Host->IPvX = INIPVN_IPV4;
+		
+			// Convert to host byte order
+			T4 = ((struct sockaddr_in*)a_Native)->sin_addr.s_addr;
+			T4 = htonl(T4);
+		
+			// Copy over IP into host
+			a_Host->Port = ntohs(((struct sockaddr_in*)a_Native)->sin_port);
+			for (i = 0; i < 4; i++)
+				a_Host->Host.v4.b[i] = (T4 >> ((3-i) * 8U)) & 0xFFU;
+			
+			// Success!
+			return true;
+		}
+	
+#if defined(__REMOOD_ENABLEIPV6)
+		// IPv6 Address
+		else if (((struct sockaddr_in6*)a_Native)->sin6_family == AF_INET6)
+		{
+			// Fill flag
+			a_Host->IPvX = INIPVN_IPV6;
+		
+			// Copy over IP into host
+			a_Host->Port = ntohs(((struct sockaddr_in6*)a_Native)->sin6_port);
+			for (i = 0; i < 16; i++)
+				a_Host->Host.v6.b[i] = ((struct sockaddr_in6*)a_Native)->sin6_addr.s6_addr[i];
+				
+			// Success!
+			return true;
+		}
+		
+		// Failed
+		return false;
+#endif
+	}
+}
+#endif
+
 bool_t I_NetNameToHost(I_HostAddress_t* const a_Host, const char* const a_Name)
 {
 	return false;
@@ -1078,45 +1173,90 @@ I_NetSocket_t* I_NetOpenSocket(const uint32_t a_Flags, const I_HostAddress_t* co
 /* I_NetCloseSocket() -- Closes the specified socket */
 void I_NetCloseSocket(I_NetSocket_t* const a_Socket)
 {
-#if __REMOOD_SOCKLEVEL == __REMOOD_SOCKPOSIX || __REMOOD_SOCKLEVEL == __REMOOD_SOCKBSD
+#if __REMOOD_SOCKLEVEL == __REMOOD_SOCKPOSIX || __REMOOD_SOCKLEVEL == __REMOOD_SOCKBSD || __REMOOD_SOCKLEVEL == __REMOOD_SOCKWIN
 	/* Check */
 	if (!a_Socket)
 		return;
 	
-#elif __REMOOD_SOCKLEVEL == __REMOOD_SOCKWIN
-	/* Check */
-	if (!a_Socket)
-		return;
+	/* Close */
+#if __REMOOD_SOCKLEVEL == __REMOOD_SOCKWIN
+	closesocket(a_Socket->SockFD);
+#else
+	close(a_Socket->SockFD);
+#endif
 	
+	/* Free it */
+	Z_Free(a_Socket);
 #else
 	return;
 #endif
 }
 
-size_t I_NetReadyBytes(I_NetSocket_t* const a_Socket, const size_t a_Bytes)
+/* IS_NetRecvWrap() -- Recieve data from remote end */
+static size_t IS_NetRecvWrap(I_NetSocket_t* const a_Socket, I_HostAddress_t* const a_Host, void* const a_OutData, const size_t a_Len, const bool_t a_Peek, const bool_t a_CheckConn)
 {
 #if __REMOOD_SOCKLEVEL == __REMOOD_SOCKPOSIX || __REMOOD_SOCKLEVEL == __REMOOD_SOCKBSD || __REMOOD_SOCKLEVEL == __REMOOD_SOCKWIN
-	return 0;
+	struct sockaddr_storage Addr;
+	socklen_t SockLen;
+	bool_t DisconSock;
+	ssize_t RetVal;
+	size_t i;
+	
+	/* Check */
+	if (!a_Socket || !a_OutData || !a_Len)
+		return 0;
+	
+	/* Receive from socket */
+	SockLen = sizeof(Addr);
+	
+	RetVal = recvfrom(a_Socket->SockFD, a_OutData, a_Len, __REMOOD_DONTWAITMSG | (a_Peek ? MSG_PEEK : 0), (struct sockaddr*)&Addr, &SockLen);
+	
+	// Error?
+	if (RetVal < 0)
+		return 0;
+	
+	// Convert address to host
+	IS_ConvertHost(false, a_Host, &Addr);
+	
+	/* Return written bytes */
+	return RetVal;
+	
 #else
 	return 0;
 #endif
 }
+
+/* I_NetReadyBytes() -- Determines amount of ready bytes */
+size_t I_NetReadyBytes(I_NetSocket_t* const a_Socket, const size_t a_Bytes)
+{
+	int8_t* JunkBuf;
+	
+	/* Check */
+	if (!a_Socket || !a_Bytes)
+		return 0;
+	
+	/* Peek the message */
+	JunkBuf = (int8_t*)alloca(a_Bytes);
+	return IS_NetRecvWrap(a_Socket, NULL, JunkBuf, a_Bytes, true, true);
+}
+
 
 size_t I_NetSend(I_NetSocket_t* const a_Socket, const I_HostAddress_t* const a_Host, const void* const a_InData, const size_t a_Len)
 {
 #if __REMOOD_SOCKLEVEL == __REMOOD_SOCKPOSIX || __REMOOD_SOCKLEVEL == __REMOOD_SOCKBSD || __REMOOD_SOCKLEVEL == __REMOOD_SOCKWIN
+
+//IS_ConvertHost(const bool_t a_ToNative, I_HostAddress_t* const a_Host, struct sockaddr_storage* const a_Native)
+
+
 	return 0;
 #else
 	return 0;
 #endif
 }
 
+/* I_NetRecv() -- Sends data to remote host */
 size_t I_NetRecv(I_NetSocket_t* const a_Socket, I_HostAddress_t* const a_Host, void* const a_OutData, const size_t a_Len)
 {
-#if __REMOOD_SOCKLEVEL == __REMOOD_SOCKPOSIX || __REMOOD_SOCKLEVEL == __REMOOD_SOCKBSD || __REMOOD_SOCKLEVEL == __REMOOD_SOCKWIN
-	return 0;
-#else
-	return 0;
-#endif
+	return IS_NetRecvWrap(a_Socket, a_Host, a_OutData, a_Len, false, true);
 }
 
