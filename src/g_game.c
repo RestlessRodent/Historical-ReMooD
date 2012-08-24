@@ -479,7 +479,11 @@ void GS_HandleExtraCommands(ticcmd_t* const a_TicCmd, const int32_t a_PlayerNum)
 		// Not big enough?
 		if ((uintptr_t)(Rp + c_TCDataSize[Command]) > (uintptr_t)(Re))
 			break;
+			
+		// Clear
+		memset(NameBuf, 0, sizeof(NameBuf));
 		
+		// Which command?
 		switch (Command)
 		{
 				// Player Joins
@@ -563,9 +567,29 @@ void GS_HandleExtraCommands(ticcmd_t* const a_TicCmd, const int32_t a_PlayerNum)
 					}
 				}
 				
+				// Debug
 				if (g_NetDev)
 					CONL_PrintF("NET: Join (%x, %u, %x, %x, %s)\n",
 							u32[0], u16[0], u32[1], u32[2], NameBuf
+						);
+				break;
+				
+				// Map Changes
+			case DTCT_MAPCHANGE:
+				// Read Data
+				u8[0] = ReadUInt8((uint8_t**)&Rp);
+				
+				for (i = 0; i < 8; i++)
+					NameBuf[i] = ReadUInt8((uint8_t**)&Rp);
+				
+				// Change the level
+				if (!P_ExLoadLevel(P_FindLevelByNameEx(NameBuf, NULL), 0))
+					CONL_PrintF("Level \"%s\" failed to load.\n", NameBuf);
+					
+				// Debug
+				if (g_NetDev)
+					CONL_PrintF("NET: Map (%x, %s)\n",
+							u8[0], NameBuf
 						);
 				break;
 			

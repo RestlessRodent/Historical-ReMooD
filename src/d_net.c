@@ -1647,8 +1647,10 @@ void D_NCSR_RequestMap(const char* const a_Map)
 {
 	D_NetClient_t* Server;
 	P_LevelInfoEx_t* Info;
-	size_t i;
+	size_t i, j;
 	bool_t LocalHit;
+	void* Wp;
+	ticcmd_t* Placement;
 	
 	/* Check */
 	if (!a_Map)
@@ -1678,25 +1680,25 @@ void D_NCSR_RequestMap(const char* const a_Map)
 		return;
 	}
 	
-	/* Inform that everyone should change the map */
-	LocalHit = false;	// Prevent sending via double-client
-	for (i = 0; i < l_NumClients; i++)
+	/* Place */
+	Wp = NULL;
+	Placement = DS_GrabGlobal(DTCT_MAPCHANGE, c_TCDataSize[DTCT_MAPCHANGE], &Wp);
+	
+	if (Placement)
 	{
-		// Skip empty spots
-		if (!l_Clients[i])
-			continue;
+		// Fill in data
+		WriteUInt8((uint8_t**)&Wp, 0);
 		
-		// Send packet?
-		if ((l_Clients[i]->IsLocal && !LocalHit) || (!l_Clients[i]->IsLocal))
-		{
-			D_BSBaseBlock(l_Clients[i]->Streams[DNCSP_PERFECTWRITE], "MAPC");
-			D_BSws(l_Clients[i]->Streams[DNCSP_PERFECTWRITE], a_Map);
-			D_BSRecordNetBlock(l_Clients[i]->Streams[DNCSP_PERFECTWRITE], &l_Clients[i]->Address);
-		}
-		
-		// Set local
-		if (l_Clients[i]->IsLocal)
-			LocalHit = true;
+		for (i = 0, j = 0; i < 8; i++)
+			if (!j)
+			{
+				WriteUInt8((uint8_t**)&Wp, Info->LumpName[i]);
+				
+				if (!Info->LumpName[i])
+					j = 1;
+			}
+			else
+				WriteUInt8((uint8_t**)&Wp, 1);
 	}
 }
 

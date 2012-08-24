@@ -147,6 +147,11 @@ const int32_t c_TCDataSize[NUMDTCT] =
 		// uint32 Symbols
 		// uint32 Profile Instance
 		// uint8* Name
+	
+	// MAP CHANGE
+	1 + 8,
+		// uint8  Flags
+		// uint8* Lump Name
 };
 
 /*** GLOBALS ***/

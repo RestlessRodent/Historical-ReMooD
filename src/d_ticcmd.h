@@ -133,6 +133,7 @@ enum
 {
 	DTCT_NULL,									// NULL
 	DTCT_JOIN,									// Join Sub Command
+	DTCT_MAPCHANGE,								// Change the map
 	
 	NUMDTCT
 };
