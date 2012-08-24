@@ -146,5 +146,8 @@ D_NetPlayer_t* D_NCSFindNetPlayerByProcess(const uint32_t a_ID);
 
 const char* D_NCSGetPlayerName(const uint32_t a_PlayerID);
 
+uint32_t D_CMakePureRandom(void);
+void D_CMakeUUID(char* const a_Buf);
+
 #endif
 

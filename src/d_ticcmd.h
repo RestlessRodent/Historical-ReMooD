@@ -87,6 +87,7 @@ typedef enum
 #define TICCMD_INVACTMASK	UINT32_C(0x3)		// Action Mask
 
 #define MAXTCWEAPNAME						32	// Max length for weapon name
+#define MAXTCDATABUF					1024	// Data Buffer size
 
 typedef union
 {
@@ -95,6 +96,8 @@ typedef union
 	struct
 	{
 		uint8_t Type;							// Command Type
+		uint16_t Player;						// Player it is meant for
+		
 		int8_t forwardmove;						// *2048 for move
 		int8_t sidemove;						// *2048 for move
 		int16_t angleturn;						// <<16 for angle delta
@@ -110,15 +113,31 @@ typedef union
 		int16_t BaseAiming;						// Base Aiming
 		uint8_t InventoryBits;					// Inventory Control
 		bool_t ResetAim;						// Reset Aim
+		
+		uint16_t DataSize;						// Size of Data
+		uint8_t DataBuf[MAXTCDATABUF];			// Data Buffer
 	} Std;
 	
 	struct
 	{
 		uint8_t Type;							// Command Type
+		
+		uint16_t DataSize;						// Size of Data
+		uint8_t DataBuf[MAXTCDATABUF];			// Data Buffer
 	} Ext;
 } ticcmd_t;
 
 void D_TicCmdFillWeapon(ticcmd_t* const a_Target, const int32_t a_ID);
+
+enum
+{
+	DTCT_NULL,									// NULL
+	DTCT_JOIN,									// Join Sub Command
+	
+	NUMDTCT
+};
+
+extern const int32_t c_TCDataSize[NUMDTCT];
 
 #endif
 

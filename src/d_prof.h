@@ -168,8 +168,9 @@ typedef struct D_ProfileEx_s
 	char AccountName[MAXPLAYERNAME];			// Local account name (selection limited)
 	uint8_t Color;								// Color
 	uint8_t JoyControl;							// Which joystick player controls
-	char UUID[MAXPROFILEUUID + 1];			// Player Unique ID
+	char UUID[MAXPROFILEUUID + 1];				// Player Unique ID
 	tic_t SlowTurnTime;							// Time to slow turn
+	uint32_t InstanceID;						// Instance ID
 	
 	/* Controls For Player */
 	uint32_t Ctrls[NUMDPROFILEEXINPUTCTRLS][4];	// Player Controls
@@ -207,6 +208,7 @@ typedef struct D_ProfileEx_s
 D_ProfileEx_t* D_CreateProfileEx(const char* const a_Name);
 
 D_ProfileEx_t* D_FindProfileEx(const char* const a_Name);
+D_ProfileEx_t* D_FindProfileExByInstance(const uint32_t a_ID);
 
 void D_SaveProfileData(void (*a_WriteBack)(const char* const a_Buf, void* const a_Data), void* const a_Data);
 int CLC_Profile(const uint32_t a_ArgC, const char** const a_ArgV);

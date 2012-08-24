@@ -175,31 +175,14 @@ D_ProfileEx_t* D_CreateProfileEx(const char* const a_Name)
 	New = Z_Malloc(sizeof(*New), PU_STATIC, NULL);
 	
 	/* Set properties */
+	// UUID (hopefully random)
+	D_CMakeUUID(New->UUID);
+	
 	// First character is never random
 	New->UUID[0] = a_Name[0];
 	
-	// UUID (hopefully random)
-	for (i = 1; i < (MAXPLAYERNAME * 2) - 1; i++)
-	{
-		// Hopefully random enough
-		Char = (((int)(M_Random())) + ((int)I_GetTime() * (int)I_GetTime()));
-		
-		// Limit Char
-		if (!((Char >= '0' && Char <= '9') || (Char >= 'a' && Char <= 'z') || (Char >= 'A' && Char <= 'Z')))
-		{
-			i--;
-			continue;
-		}
-		
-		// Set as
-		New->UUID[i] = Char;
-		
-		// Sleep for some unknown time
-		I_WaitVBL(M_Random() & 1);
-	}
-	
-	// Set last as NUL (for easy printf)
-	New->UUID[i] = 0;
+	// Instance ID (multiplayer)
+	New->InstanceID = D_CMakePureRandom();
 	
 	/* Copy Name */
 	strncpy(New->AccountName, a_Name, MAXPLAYERNAME - 1);
@@ -360,6 +343,20 @@ D_ProfileEx_t* D_FindProfileEx(const char* const a_Name)
 		else if (strcasecmp(Rover->AccountName, a_Name) == 0)
 			return Rover;
 	}
+	
+	/* Not found */
+	return NULL;
+}
+
+/* D_FindProfileExByInstance() -- Find profile instance ID */
+D_ProfileEx_t* D_FindProfileExByInstance(const uint32_t a_ID)
+{
+	D_ProfileEx_t* Rover;
+	
+	/* Rove */
+	for (Rover = l_FirstProfile; Rover; Rover = Rover->Next)
+		if (Rover->InstanceID == a_ID)
+			return Rover;
 	
 	/* Not found */
 	return NULL;

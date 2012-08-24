@@ -135,6 +135,20 @@ static const fixed_t c_angleturn[3] = { 640, 1280, 320 };	// + slow turn
 
 #define MAXLOCALJOYS	4
 
+const int32_t c_TCDataSize[NUMDTCT] =
+{
+	// NULL
+	0,
+	
+	// JOIN
+	4 + 2 + 4 + 4 + MAXPLAYERNAME,
+		// uint32 HostID
+		// uint16 players[] Spot
+		// uint32 Symbols
+		// uint32 Profile Instance
+		// uint8* Name
+};
+
 /*** GLOBALS ***/
 
 bool_t g_NetDev = false;						// Network Debug
@@ -1351,25 +1365,7 @@ D_NetPlayer_t* D_NCSAllocNetPlayer(void)
 	}
 	
 	/* Set properties */
-	// UUID (hopefully random)
-	for (i = 0; i < (MAXPLAYERNAME * 2) - 1; i++)
-	{
-		// Hopefully random enough
-		Char = (((int)(M_Random())) + ((int)I_GetTime() * (int)I_GetTime()));
-		
-		// Limit Char
-		if (!((Char >= '0' && Char <= '9') || (Char >= 'a' && Char <= 'z') || (Char >= 'A' && Char <= 'Z')))
-		{
-			i--;
-			continue;
-		}
-		
-		// Set as
-		New->UUID[i] = Char;
-		
-		// Sleep for some unknown time
-		I_WaitVBL(M_Random() & 1);
-	}
+	D_CMakeUUID(New->UUID);
 	
 	/* Return New */
 	return New;
@@ -1459,4 +1455,95 @@ void D_TicCmdFillWeapon(ticcmd_t* const a_Target, const int32_t a_ID)
 {
 	strncpy(a_Target->Std.XSNewWeapon, MAXTCWEAPNAME, wpnlev1info[a_ID]->ClassName);
 }
+
+/* D_CMakePureRandom() -- Create a pure random number */
+uint32_t D_CMakePureRandom(void)
+{
+	uint32_t Garbage, i;
+	uint32_t* RawBits;
+	
+	/* Allocate Raw Bits */
+	RawBits = (uint32_t*)I_SysAlloc(sizeof(*RawBits) * 16);
+	
+	/* Attempt number generation */
+	// Init
+	Garbage = 0;
+	
+	// Current Time
+	Garbage ^= ((int)I_GetTime() * (int)I_GetTime());
+	
+	// Address of this function
+	Garbage ^= (uint32_t)(((uintptr_t)D_CMakePureRandom) * ((uintptr_t)D_CMakePureRandom));
+	
+	// Address of garbage
+	Garbage ^= (uint32_t)(((uintptr_t)&Garbage) * ((uintptr_t)&Garbage));
+	
+	// Current PID
+	Garbage ^= ((uint32_t)I_GetCurrentPID() * (uint32_t)I_GetCurrentPID());
+	
+	// Allocated Data
+	if (RawBits)
+	{
+		// Raw bits address
+		Garbage ^= (uint32_t)(((uintptr_t)RawBits) * ((uintptr_t)RawBits));
+	
+		// Raw bits data (unitialized memory)
+		for (i = 0; i < 16; i++)
+			Garbage ^= RawBits[i];
+	
+		// Cleanup
+		I_SysFree(RawBits);
+	}
+	
+	/* Return the garbage number */
+	return Garbage;
+}
+
+/* D_CMakeUUID() -- Makes a UUID */
+void D_CMakeUUID(char* const a_Buf)
+{
+	size_t i, FailCount;
+	uint8_t Char;
+	uint32_t Garbage;
+	
+	/* Generate a hopefully random ID */
+	for (i = 0; i < (MAXPLAYERNAME * 2) - 1; i++)
+	{
+		// Hopefully random enough
+		Garbage = D_CMakePureRandom();
+		Char = (((int)(M_Random())) + Garbage);
+		FailCount = 0;
+		
+		// Limit Char
+		while (!((Char >= '0' && Char <= '9') || (Char >= 'a' && Char <= 'z') || (Char >= 'A' && Char <= 'Z')))
+		{
+			if (Char <= 'A')
+				Char += 15;
+			else if (Char >= 'z')
+				Char -= 15;
+			else
+				Char ^= D_CMakePureRandom();
+			
+			if (++FailCount >= 10)
+				if (M_Random() & 1)
+					Char = 'A' + (M_Random() % ('Y' - 'A'));
+				else
+					Char = 'a' + (M_Random() % ('y' - 'a'));
+		}
+		
+		// Last character is the same as this?
+		if (i > 0 && Char == a_Buf[i - 1])
+		{
+			i--;
+			continue;
+		}
+		
+		// Set as
+		a_Buf[i] = Char;
+		
+		// Sleep for some unknown time
+		I_WaitVBL(M_Random() & 1);
+	}
+}
+
 

@@ -1717,3 +1717,70 @@ void I_Quit(void)
 	I_ShutdownSystem();
 	exit(0);
 }
+
+
+/* I_GetEnvironment() -- Gets an environment variable */
+char* I_GetEnvironment(const char* const a_VarName)
+{
+	/* Windows CE lacks an environment */
+#if defined(_WIN32_WCE)
+	return NULL;
+	
+	/* Use standard getenv() */
+#else
+	return getenv(a_VarName);
+#endif
+}
+
+/* I_CheckFileAccess() -- Checks file read/write */
+bool_t I_CheckFileAccess(const char* const a_Path, const bool_t a_Write)
+{
+	/* On WinCE, always return true */
+#if defined(_WIN32_WCE)
+#define BUFSIZE 512
+	TCHAR TCDir[BUFSIZE];
+	int i;
+	DWORD Attribs;
+	
+	// Copy name slowly
+	for (i = 0; a_Path[i] && i < BUFSIZE - 2; i++)
+		TCDir[i] = a_Path[i];
+	TCDir[i] = 0;
+	TCDir[BUFSIZE - 1] = 0;
+	
+	// Try getting the file attributes
+	Attribs = GetFileAttributes(TCDir);
+	
+	// Does not exist?
+	if (Attribs == 0xFFFFFFFFU)
+		return false;
+	
+	// Asked for write but is read only?
+	if (a_Write && (Attribs & FILE_ATTRIBUTE_READONLY))
+		return false;
+	
+	// Otherwise success
+	return true;
+	
+	/* Use access() */
+#else
+	int Modes, Ret;
+	
+	Modes = R_OK | (a_Write ? W_OK : 0);
+	return !access(a_Path, Modes);	// zero means OK
+#endif
+}
+
+/* I_GetCurrentPID() -- Returns the current PID number */
+uint16_t I_GetCurrentPID(void)
+{
+	/* Win32 */
+#if defined(_WIN32)
+	return (uint16_t)GetCurrentProcessId();
+	
+	/* UNIX */
+#elif defined(__unix__)
+	return getpid();
+#endif
+}
+

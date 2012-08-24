@@ -437,6 +437,145 @@ bool_t G_Responder(event_t* ev)
 	return false;
 }
 
+/* GS_HandleExtraCommands() -- Handles extra commands */
+void GS_HandleExtraCommands(ticcmd_t* const a_TicCmd, const int32_t a_PlayerNum)
+{
+	const void* Rp, *Rb, *Re;
+	uint8_t Command;
+	
+	int i, j, k, l;
+	
+	D_ProfileEx_t* Profile;
+	D_NetClient_t* NC;
+	D_NetPlayer_t* NetPlayer;
+	player_t* Player;
+	
+	uint32_t u32[4];
+	uint16_t u16[4];
+	uint8_t u8[4];
+	char NameBuf[MAXPLAYERNAME];
+	
+	/* Get pointer base */
+	if (a_TicCmd->Type == 1)
+	{
+		Rb = Rp = a_TicCmd->Ext.DataBuf;
+		Re = (uintptr_t)(Rb + a_TicCmd->Ext.DataSize);
+	}
+	else
+	{
+		Rb = Rp = a_TicCmd->Std.DataBuf;
+		Re = (uintptr_t)(Rb + a_TicCmd->Std.DataSize);
+	}
+	
+	/* Constantly Read Bits */
+	do
+	{
+		Command = ReadUInt8((uint8_t**)&Rp);
+		
+		// Don't overflow! untrusted!
+		if (Command < 0 || Command >= NUMDTCT)
+			break;
+			
+		// Not big enough?
+		if ((uintptr_t)(Rp + c_TCDataSize[Command]) > (uintptr_t)(Re))
+			break;
+		
+		switch (Command)
+		{
+				// Player Joins
+			case DTCT_JOIN:
+				// Read Data
+				u32[0] = LittleReadUInt32((uint32_t**)&Rp);
+				u16[0] = LittleReadUInt16((uint16_t**)&Rp);
+				u32[1] = LittleReadUInt32((uint32_t**)&Rp);
+				u32[2] = LittleReadUInt32((uint32_t**)&Rp);
+				
+				for (i = 0; i < MAXPLAYERNAME; i++)
+					NameBuf[i] = ReadUInt8((uint8_t**)&Rp);
+				NameBuf[MAXPLAYERNAME - 1] = 0;
+				
+				// Determine spot for player (this is in case 1000 players
+				// join in a single tic).
+				while (u16[0] < MAXPLAYERS)
+					if (playeringame[u16[0]])
+						u16[0]++;
+					else
+						break;
+				
+				// Fits in the game
+				if (u16[0] < MAXPLAYERS)
+				{
+					// Find player host
+					NC = D_NCFindClientByID(u32[0]);
+					
+					// Give arbitration to player
+					if (NC)
+					{
+						// Add to arbs list
+						for (i = 0; i < NC->NumArbs; i++)
+							if (!NC->Arbs[i])
+								break;
+						
+						// No room?
+						if (i >= NC->NumArbs)
+						{
+							Z_ResizeArray((void**)&NC->Arbs, sizeof(*NC->Arbs),
+								NC->NumArbs, NC->NumArbs + 1);
+							NC->NumArbs++;
+						}
+						
+						// Allocate net player here
+						NC->Arbs[i] = NetPlayer = D_NCSAllocNetPlayer();
+						NetPlayer->NetClient = NC;
+						
+						if (NC->IsLocal)
+						{
+							NetPlayer->Type = DNPT_LOCAL;
+							
+							// Setup split screen player
+							if (g_SplitScreen < 3)
+								g_SplitScreen++;
+						}
+						else
+							NetPlayer->Type = DNPT_NETWORK;
+						
+						// Obtain profile (if possible)
+						Profile = D_FindProfileExByInstance(u32[2]);
+						NetPlayer->Profile = Profile;
+						
+						// Fill player spot
+						playeringame[u16[0]] = true;
+						
+						// Initialize Player
+						Player = G_AddPlayer(u16[0]);
+						Player->NetPlayer = NetPlayer;
+						Player->ProfileEx = Profile;
+						D_NetSetPlayerName(u16[0], NameBuf);
+						
+						// Finish off split screen
+						if (NC->IsLocal)
+						{
+							g_PlayerInSplit[g_SplitScreen] = true;
+							consoleplayer[g_SplitScreen] =
+								displayplayer[g_SplitScreen] = u16[0];
+							R_ExecuteSetViewSize();
+						}
+					}
+				}
+				
+				if (g_NetDev)
+					CONL_PrintF("NET: Join (%x, %u, %x, %x, %s)\n",
+							u32[0], u16[0], u32[1], u32[2], NameBuf
+						);
+				break;
+			
+			default:
+				Command = 0;
+				break;
+		}
+	} while (Command != 0);
+}
+
 //
 // G_Ticker
 // Make ticcmd_ts for the players.
@@ -447,6 +586,7 @@ void G_Ticker(void)
 	int buf;
 	ticcmd_t* cmd;
 	tic_t ThisTime;
+	ticcmd_t GlobalCmd;
 	
 	// GhostlyDeath <May 13, 2012> -- Run Commands
 	D_NCRunCommands();
@@ -500,32 +640,46 @@ void G_Ticker(void)
 	// read/write demo and check turbo cheat
 	ThisTime = D_SyncNetMapTime();
 	
+	/* Global Commands */
+	// Clear
+	memset(&GlobalCmd, 0, sizeof(GlobalCmd));
+	
 	// Read Global Tic Commands
 	if (demoplayback)
-		G_ReadDemoGlobalTicCmd(cmd);
+		G_ReadDemoGlobalTicCmd(&GlobalCmd);
 	else
-		D_NetReadGlobalTicCmd(cmd);
+		D_NetReadGlobalTicCmd(&GlobalCmd);
 	
 	// Write Global Tic Commands
 	if (demorecording)
-		G_WriteDemoGlobalTicCmd(cmd);
-	D_NetWriteGlobalTicCmd(cmd);
+		G_WriteDemoGlobalTicCmd(&GlobalCmd);
+	D_NetWriteGlobalTicCmd(&GlobalCmd);
 	
+	// Process Global Commands
+	if (GlobalCmd.Type >= 1)
+		GS_HandleExtraCommands(&GlobalCmd, -1);
+	
+	/* Player Commands */
 	// Read Individual Player Tic Commands
 	for (i = 0; i < MAXPLAYERS; i++)
 		// BP: i==0 for playback of demos 1.29 now new players is added with xcmd
 		if ((playeringame[i] || i == 0) && !dedicated)
 		{
 			cmd = &players[i].cmd;
-		
+			
+			// Read Command
 			if (demoplayback)
 				G_ReadDemoTiccmd(cmd, i);
 			else
 				D_NetReadTicCmd(cmd, i);
 			
+			// Write Command
 			if (demorecording)
 				G_WriteDemoTiccmd(cmd, i);
 			D_NetWriteTicCmd(cmd, i);
+			
+			// Process Command
+			GS_HandleExtraCommands(cmd, i);
 		}
 	
 	// Set new time

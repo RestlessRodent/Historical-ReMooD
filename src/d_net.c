@@ -452,6 +452,33 @@ D_NetClient_t* D_NCFindClientByPlayer(struct player_s* const a_Player)
 		return NULL;
 }
 
+/* D_NCFindClientByID() -- Finds player by ID */
+D_NetClient_t* D_NCFindClientByID(const uint32_t a_ID)
+{
+	D_NetClient_t* Server;
+	int i;
+	
+	/* Obtain server */
+	Server = D_NCFindClientIsServer;
+	
+	/* Go through all clients to find the match */
+	for (i = 0; i < l_NumClients; i++)
+		if (l_Clients[i])
+			if (l_Clients[i]->HostID == a_ID)
+				// Return our own ID
+				if (l_Clients[i]->IsLocal ||
+						(!l_Clients[i]->IsLocal && Server->IsLocal))
+					return l_Clients[i];
+	
+	/* If not a server, return the server */
+	if (!Server->IsLocal)
+		return Server;
+	
+	// Otherwise return nothing (no client)
+	else
+		return NULL;
+}
+
 /* D_NCFudgeOffHostStream() -- Fudge off host by stream */
 void D_NCFudgeOffHostStream(I_HostAddress_t* const a_Host, struct D_BS_s* a_Stream, const char a_Code, const char* const a_Reason)
 {
@@ -801,6 +828,12 @@ void D_NCDisconnect(void)
 				Z_Free(l_Clients[i]);
 				l_Clients[i] = NULL;
 			}
+			
+			// Modify local ID
+			if (l_Clients[i]->IsLocal)
+			{
+				l_Clients[i]->HostID = D_CMakePureRandom();
+			}
 		}
 }
 
@@ -987,12 +1020,11 @@ void D_NCReqAddPlayer(struct D_ProfileEx_s* a_Profile, const bool_t a_Bot)
 	Stream = Server->Streams[DNCSP_PERFECTWRITE];
 	
 	// Put Data
-	D_BSBaseBlock(Stream, "LPRJ");
+	D_BSBaseBlock(Stream, "JOIN");
+	D_BSwu8(Stream, a_Bot);
 	D_BSws(Stream, a_Profile->UUID);
 	D_BSws(Stream, a_Profile->AccountName);
 	D_BSws(Stream, a_Profile->DisplayName);
-	D_BSwu8(Stream, a_Profile->Color);
-	D_BSwu8(Stream, a_Bot);
 	D_BSRecordNetBlock(Stream, &Server->Address);
 }
 
@@ -1028,18 +1060,148 @@ typedef struct D_NCMessageData_s
 {
 	const D_NCMessageType_t* Type;				// Type of message
 	D_NetClient_t* NetClient;					// Client it is from
-	D_NetClient_t* RemoteClient;				// Attached Remote Client
+	D_NetClient_t* RCl;							// Attached Remote Client
 	D_BS_t* InStream;					// Stream to read from
 	D_BS_t* OutStream;				// Stream to write to
 	I_HostAddress_t* FromAddr;					// Address message is from
 	uint32_t FlagsMask;							// Mask for flags
 } D_NCMessageData_t;
 
+/*** LOCALS ***/
+
+#define MAXGLOBALBUFSIZE					32	// Size of global buffer
+
+static ticcmd_t l_GlobalBuf[MAXGLOBALBUFSIZE];	// Global buffer
+static int32_t l_GlobalAt = -1;					// Position Global buf is at
+
 /*** PACKET HANDLER FUNCTIONS ***/
+
+/* DS_GrabGlobal() -- Grabs the next global command */
+static ticcmd_t* DS_GrabGlobal(const uint8_t a_ID, const int32_t a_NeededSize, void** const a_Wp)
+{
+	ticcmd_t* Placement;
+	void* Wp;
+	
+	/* Clear */
+	Placement = NULL;
+	
+	/* Determine */
+	if (l_GlobalAt < MAXGLOBALBUFSIZE - 1)
+	{
+		// Append to last global tic command, if possible
+		if (l_GlobalAt >= 0)
+		{
+			if (l_GlobalBuf[l_GlobalAt].Ext.DataSize < MAXTCDATABUF - (a_NeededSize + 2))
+				Placement = &l_GlobalBuf[l_GlobalAt];
+			else
+			{
+				// Write Commands Here
+				Placement = &l_GlobalBuf[++l_GlobalAt];
+		
+				// Clear it
+				memset(Placement, 0, sizeof(*Placement));
+		
+				// Set as extended
+				Placement->Type = 1;
+			}
+		}
+		
+		// Otherwise eat first spot
+		else
+		{
+			Placement = &l_GlobalBuf[++l_GlobalAt];
+			Placement->Type = 1;
+		}
+	}
+	
+	/* Worked? */
+	if (Placement)
+	{
+		*a_Wp = &Placement->Ext.DataBuf[Placement->Ext.DataSize];
+		WriteUInt8((uint8_t**)a_Wp, a_ID);
+		l_GlobalBuf[l_GlobalAt].Ext.DataSize += a_NeededSize + 1;
+	}
+	
+	/* Return it */
+	return Placement;
+}
 
 /* D_NCMH_JOIN() -- Player wants to join */
 bool_t D_NCMH_JOIN(struct D_NCMessageData_s* const a_Data)
 {
+	ticcmd_t* Placement;
+	D_NetClient_t* ServerNC;
+	D_BS_t* Stream;
+	uint8_t UUID[(MAXPLAYERNAME * 2) + 1];
+	uint8_t PName[MAXPLAYERNAME], AName[MAXPLAYERNAME];
+	int16_t FreeSlot;
+	uint32_t PInstance;
+	void* Wp;
+	int i;
+	
+	uint8_t IsBot;
+	
+	/* Get server client */
+	ServerNC = D_NCFindClientIsServer();
+	
+	// We are not the server?
+	if (!ServerNC->IsLocal)
+		return true;
+	
+	/* Remote client is not ready */
+	if (!a_Data->RCl->ReadyToPlay || !a_Data->RCl->SaveGameSent)
+		return true;
+	
+	/* Get Stream */
+	Stream = a_Data->InStream;
+	
+	// Read Data
+	IsBot = D_BSru8(Stream);
+	PInstance = D_BSru32(Stream);
+	D_BSrs(Stream, UUID, (MAXPLAYERNAME * 2) + 1);
+	D_BSrs(Stream, PName, MAXPLAYERNAME);
+	D_BSrs(Stream, AName, MAXPLAYERNAME);
+	
+	/* Only the server can add bots */
+	if (IsBot && !a_Data->RCl->IsServer)
+		return true;
+	
+	/* Non-Bot: Check client max splits */
+	if (!IsBot)
+	{
+	}
+	
+	/* Find Free Player Slot */
+	FreeSlot = -1;
+	for (i = 0; i < MAXPLAYERS; i++)
+		if (!playeringame[i])
+		{
+			FreeSlot = i;
+			break;
+		}
+	
+	// No slot?
+	if (FreeSlot == -1)
+		return true;
+	
+	/* Place */
+	Wp = NULL;
+	Placement = DS_GrabGlobal(DTCT_JOIN, c_TCDataSize[DTCT_JOIN], &Wp);
+	
+	if (Placement)
+	{
+		// Fill in data
+		LittleWriteUInt32((uint32_t**)&Wp, a_Data->RCl->HostID);
+		LittleWriteUInt16((uint16_t**)&Wp, FreeSlot);
+		LittleWriteUInt32((uint32_t**)&Wp, 0);
+		LittleWriteUInt32((uint32_t**)&Wp, PInstance);
+		
+		for (i = 0; i < MAXPLAYERNAME; i++)
+			WriteUInt8((uint8_t**)&Wp, AName[i]);
+	}
+	
+	/* Do not continue */
+	return true;
 }
 
 /* D_NCMH_TICS() -- Recieved player tics */
@@ -1068,6 +1230,35 @@ static const D_NCMessageType_t c_NCMessageCodes[] =
 /* D_NetReadGlobalTicCmd() -- Reads global tic command */
 void D_NetReadGlobalTicCmd(ticcmd_t* const a_TicCmd)
 {
+	int nc;
+	D_NetClient_t* ServerNC;
+	D_NetClient_t* NetClient;
+	D_BS_t* Stream;
+	
+	/* Get server client */
+	ServerNC = D_NCFindClientIsServer();
+	
+	/* If we are the server... */
+	// Read the global command tic buffer
+	if (ServerNC->IsLocal)
+	{
+		// Something is in the buffer
+		if (l_GlobalAt >= 0)
+		{
+			// Move the first item inside
+			memmove(a_TicCmd, &l_GlobalBuf[0], sizeof(*a_TicCmd));
+			
+			// Move everything down
+			memmove(&l_GlobalBuf[0], &l_GlobalBuf[1], sizeof(ticcmd_t) * (MAXGLOBALBUFSIZE - 1));
+			l_GlobalAt--;
+		}
+	}
+	
+	/* Not the server */
+	// Then only use the buffer sent to us via TICS from the server.
+	else
+	{
+	}
 }
 
 /* D_NetWriteGlobalTicCmd() -- Writes global tic command */
@@ -1079,7 +1270,7 @@ void D_NetWriteGlobalTicCmd(ticcmd_t* const a_TicCmd)
 	D_BS_t* Stream;
 	
 	/* Get server client */
-	ServerNC =  D_NCFindClientIsServer();
+	ServerNC = D_NCFindClientIsServer();
 	
 	// Non-Local?
 	if (!ServerNC->IsLocal)
@@ -1119,6 +1310,26 @@ void D_NetWriteGlobalTicCmd(ticcmd_t* const a_TicCmd)
 /* D_NetReadTicCmd() -- Read tic commands from network */
 void D_NetReadTicCmd(ticcmd_t* const a_TicCmd, const int a_Player)
 {
+	int nc;
+	D_NetClient_t* ServerNC;
+	D_NetClient_t* NetClient;
+	D_BS_t* Stream;
+	
+	/* Get server client */
+	ServerNC = D_NCFindClientIsServer();
+	
+	/* If we are the server... */
+	// Scan through all the players and read the next tic that should be
+	// processed for all non-local clients.
+	if (ServerNC->IsLocal)
+	{
+	}
+	
+	/* Not the server */
+	// Then only use the buffer sent to us via TICS from the server.
+	else
+	{
+	}
 }
 
 /* D_NetWriteTicCmd() -- Write tic commands to network */
@@ -1193,6 +1404,9 @@ void D_NCUpdate(void)
 		POut = NetClient->Streams[DNCSP_PERFECTWRITE];
 		BOut = NetClient->Streams[DNCSP_WRITE];
 		
+		// Clear from address (since it is invalid for locals)
+		memset(&FromAddress, 0, sizeof(FromAddress));
+		
 		// Constantly read from the perfect input stream (if it is set)
 		memset(Header, 0, sizeof(Header));
 		while (PIn && D_BSPlayNetBlock(PIn, Header, &FromAddress))
@@ -1242,7 +1456,7 @@ void D_NCUpdate(void)
 					continue;
 				
 				// Requires a remote client exist (a connected player)
-				if ((c_NCMessageCodes[tN].Flags& DNCMF_REMOTECL) && !RemoteClient)
+				if ((c_NCMessageCodes[tN].Flags & DNCMF_REMOTECL) && !RemoteClient)
 					continue;
 				
 				// Clear data
@@ -1251,7 +1465,7 @@ void D_NCUpdate(void)
 				// Fill Data
 				Data.Type = &c_NCMessageCodes[tN];
 				Data.NetClient = NetClient;
-				Data.RemoteClient = RemoteClient;
+				Data.RCl = RemoteClient;
 				Data.InStream = PIn;
 				Data.OutStream = (IsPerf ? POut : BOut);
 				Data.FromAddr = &FromAddress;
@@ -1289,7 +1503,7 @@ bool_t D_NCMH_LocalPlayerRJ(struct D_NCMessageData_s* const a_Data)
 		return false;
 	
 	/* Remote player is neither ready nor got a save game sent to them */
-	if (!a_Data->RemoteClient->ReadyToPlay || !a_Data->RemoteClient->SaveGameSent)
+	if (!a_Data->RCl->ReadyToPlay || !a_Data->RCl->SaveGameSent)
 		return false;
 	
 	/* Get their input stream */
@@ -1303,16 +1517,16 @@ bool_t D_NCMH_LocalPlayerRJ(struct D_NCMessageData_s* const a_Data)
 	Bot = D_BSru8(Stream);
 	
 	/* Disallow non-server from adding bots */
-	if (Bot && !a_Data->RemoteClient->IsServer)
+	if (Bot && !a_Data->RCl->IsServer)
 		return true;
 	
 	/* If not adding a bot, don't exceed non-bot arbs */
 	if (!Bot)
 	{
 		PlCount = 0;
-		for (i = 0; i < a_Data->RemoteClient->NumArbs; i++)
-			if (a_Data->RemoteClient->Arbs[i]->Type == DNPT_LOCAL ||
-				a_Data->RemoteClient->Arbs[i]->Type == DNPT_NETWORK)
+		for (i = 0; i < a_Data->RCl->NumArbs; i++)
+			if (a_Data->RCl->Arbs[i]->Type == DNPT_LOCAL ||
+				a_Data->RCl->Arbs[i]->Type == DNPT_NETWORK)
 				PlCount++;
 	
 		// Exceeds max permitted splitscreen count?
@@ -1510,6 +1724,7 @@ void D_NCSR_RequestNewPlayer(struct D_ProfileEx_s* a_Profile)
 	// Put Data
 	D_BSBaseBlock(Stream, "LPRJ");
 	D_BSws(Stream, a_Profile->UUID);
+	D_BSwu32(Stream, a_Profile->InstanceID);
 	D_BSws(Stream, a_Profile->AccountName);
 	D_BSws(Stream, a_Profile->DisplayName);
 	D_BSwu8(Stream, a_Profile->Color);

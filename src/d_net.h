@@ -115,6 +115,7 @@ typedef struct D_NetClient_s
 	char ReverseDNS[NETCLIENTRHLEN];			// Hostname of player
 	bool_t ReadyToPlay;							// Client is ready to play
 	bool_t SaveGameSent;						// Save game was sent
+	uint32_t HostID;							// Host Identity (Unique, hopefully)
 } D_NetClient_t;
 
 typedef void (*D_NCQCFunc_t)(void* const a_Data);
@@ -130,6 +131,7 @@ D_NetClient_t* D_NCFindClientIsServer(void);
 D_NetClient_t* D_NCFindClientByNetPlayer(struct D_NetPlayer_s* const a_NetPlayer);
 D_NetClient_t* D_NCFindClientByHost(I_HostAddress_t* const a_Host);
 D_NetClient_t* D_NCFindClientByPlayer(struct player_s* const a_Player);
+D_NetClient_t* D_NCFindClientByID(const uint32_t a_ID);
 
 void D_NCFudgeOffHostStream(I_HostAddress_t* const a_Host, struct D_BS_s* a_Stream, const char a_Code, const char* const a_Reason);
 void D_NCFudgeOffClient(D_NetClient_t* const a_Client, const char a_Code, const char* const a_Reason);

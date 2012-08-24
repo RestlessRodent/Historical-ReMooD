@@ -1830,7 +1830,7 @@ void CONL_EarlyBootTic(const char* const a_Message, const bool_t a_DoTic)
 	
 	/* Update Screen */
 	// Only update every 1/4th of a second (4fps)
-	if (!LastTime || (ThisTime > LastTime + 250))
+	if (!LastTime || (ThisTime > LastTime + 1000))
 	{
 		I_FinishUpdate();
 		LastTime = ThisTime;
@@ -3046,7 +3046,7 @@ static void CONLS_DrawLoadingScreen(const bool_t a_QuickDraw)
 	
 	/* Update Screen */
 	// Only update every 1/4th of a second (4fps)
-	if (!LastTime || (ThisTime > LastTime + 250))
+	if (!LastTime || (ThisTime > LastTime + 1000))
 	{
 		I_FinishUpdate();
 		LastTime = ThisTime;
