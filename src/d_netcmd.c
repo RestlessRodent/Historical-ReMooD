@@ -1458,7 +1458,7 @@ const char* D_NCSGetPlayerName(const uint32_t a_PlayerID)
 /* D_TicCmdFillWeapon() -- Fills weapon for tic command */
 void D_TicCmdFillWeapon(ticcmd_t* const a_Target, const int32_t a_ID)
 {
-	strncpy(a_Target->Std.XSNewWeapon, MAXTCWEAPNAME, wpnlev1info[a_ID]->ClassName);
+	strncpy(a_Target->Std.XSNewWeapon, wpnlev1info[a_ID]->ClassName, MAXTCWEAPNAME);
 }
 
 /* D_CMakePureRandom() -- Create a pure random number */
