@@ -164,6 +164,8 @@ bool_t g_PlayerInSplit[MAXSPLITSCREEN] = {false, false, false, false};
 
 static bool_t l_PermitMouse = false;			// Use mouse input
 static int32_t l_MouseMove[2] = {0, 0};			// Mouse movement (x/y)
+static uint32_t l_MouseButtons[2];				// Mouse buttons down (sng/dbl)
+static tic_t l_MouseLastTime[32];				// Last time pressed
 static bool_t l_KeyDown[NUMIKEYBOARDKEYS];		// Keys that are down
 static uint32_t l_JoyButtons[MAXLOCALJOYS];		// Local Joysticks
 static int16_t l_JoyAxis[MAXLOCALJOYS][MAXJOYAXIS];
@@ -337,6 +339,7 @@ void D_NCSInit(void)
 bool_t D_NCSHandleEvent(const I_EventEx_t* const a_Event)
 {
 	int32_t ButtonNum, LocalJoy;
+	uint32_t Bit;
 	
 	/* Check */
 	if (!a_Event)
@@ -350,6 +353,38 @@ bool_t D_NCSHandleEvent(const I_EventEx_t* const a_Event)
 			// Add position to movement
 			l_MouseMove[0] += a_Event->Data.Mouse.Move[0];
 			l_MouseMove[1] += a_Event->Data.Mouse.Move[1];
+			
+			// Handling of buttons (with double click)
+			if (a_Event->Data.Mouse.Button > 0 && a_Event->Data.Mouse.Button < 32)
+			{
+				// Determine bit
+				ButtonNum = a_Event->Data.Mouse.Button - 1U;
+				Bit = 1U << (ButtonNum);
+				
+				// Unpressed?
+				if (!a_Event->Data.Mouse.Down)
+				{
+					l_MouseButtons[0] &= ~Bit;
+					l_MouseButtons[1] &= ~Bit;
+				}
+				else
+				{
+					// Always set single bit
+					l_MouseButtons[0] |= Bit;
+					
+					// Double Click?
+						// TODO make this a CVAR of sorts
+					if (g_ProgramTic - l_MouseLastTime[ButtonNum] < 17)
+					{
+						l_MouseButtons[1] |= Bit;
+						l_MouseLastTime[ButtonNum] = 0;
+					}
+				
+					// Single Click (set last time for double)
+					else
+						l_MouseLastTime[ButtonNum] = g_ProgramTic;
+				}
+			}
 			break;
 			
 			// Keyboard
@@ -532,17 +567,48 @@ static bool_t GAMEKEYDOWN(D_ProfileEx_t* const a_Profile, const uint8_t a_Key)
 	/* Check Joysticks */
 	if (a_Profile->Flags & DPEXF_GOTJOY)
 		if (a_Profile->JoyControl >= 0 && a_Profile->JoyControl < 4)
+			if (l_JoyButtons[a_Profile->JoyControl])
+				for (i = 0; i < 4; i++)
+					if ((a_Profile->Ctrls[a_Key][i] & 0xF000) == 0x1000)
+					{
+						// Get current button
+						CurrentButton = (a_Profile->Ctrls[a_Key][i] & 0x00FF);
+				
+						// Button pressed?
+						if (CurrentButton >= 0 && CurrentButton < 32)
+							if (l_JoyButtons[a_Profile->JoyControl] & (1 << CurrentButton))
+								return true;
+					}
+				
+	/* Check Mice */
+	if (a_Profile->Flags & DPEXF_GOTMOUSE)
+		if (l_MouseButtons[0] || l_MouseButtons[1])
 			for (i = 0; i < 4; i++)
-				if ((a_Profile->Ctrls[a_Key][i] & 0xF000) == 0x1000)
+			{
+				// Single
+				if ((a_Profile->Ctrls[a_Key][i] & 0xF000) == 0x2000)
 				{
 					// Get current button
 					CurrentButton = (a_Profile->Ctrls[a_Key][i] & 0x00FF);
-				
+		
 					// Button pressed?
 					if (CurrentButton >= 0 && CurrentButton < 32)
-						if (l_JoyButtons[a_Profile->JoyControl] & (1 << CurrentButton))
+						if (l_MouseButtons[0] & (1 << CurrentButton))
 							return true;
 				}
+		
+				// Double
+				if ((a_Profile->Ctrls[a_Key][i] & 0xF000) == 0x4000)
+				{
+					// Get current button
+					CurrentButton = (a_Profile->Ctrls[a_Key][i] & 0x00FF);
+		
+					// Button pressed?
+					if (CurrentButton >= 0 && CurrentButton < 32)
+						if (l_MouseButtons[1] & (1 << CurrentButton))
+							return true;
+				}
+			}
 	
 	/* Not pressed */
 	return false;

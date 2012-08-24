@@ -202,10 +202,10 @@ D_ProfileEx_t* D_CreateProfileEx(const char* const a_Name)
 #define SETDBLMOUSE(c,b) l_DefaultCtrls[SETKEY_M(DPEXIC_,c)][2] = 0x4000 | ((b) - 1)
 		
 		SETMOUSE(ATTACK, 1);
-		SETMOUSE(MOVEMENT, 3);
+		SETMOUSE(MOVEMENT, 2);
 		SETMOUSE(PREVWEAPON, 5);
 		SETMOUSE(NEXTWEAPON, 4);
-		SETDBLMOUSE(USE, 3);
+		SETDBLMOUSE(USE, 2);
 	
 		SETKEY(SPEED, SHIFT);
 		SETKEY(MOVEMENT, ALT);
