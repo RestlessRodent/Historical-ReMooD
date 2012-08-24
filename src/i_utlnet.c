@@ -39,6 +39,58 @@
 
 #include "doomtype.h"
 
+#define __REMOOD_SOCKNONE	0					// No Sockets
+#define __REMOOD_SOCKBSD	1					// BSD Sockets
+#define __REMOOD_SOCKPOSIX	2					// POSIX Sockets
+#define __REMOOD_SOCKWIN	3					// WinSock Sockets
+#define __REMOOD_SOCKNETLIB	4					// NetLib Sockets 
+
+#ifndef __REMOOD_SOCKLEVEL
+	#if defined(__MSDOS__)
+		#define __REMOOD_SOCKLEVEL __REMOOD_SOCKNONE
+	#elif defined(__palmos__)
+		#define __REMOOD_SOCKLEVEL __REMOOD_SOCKNETLIB
+	#elif defined(_WIN32)
+		#define __REMOOD_SOCKLEVEL __REMOOD_SOCKWIN
+	#else
+		#define __REMOOD_SOCKLEVEL __REMOOD_SOCKPOSIX
+	#endif
+#endif
+
+/* IPv6? */
+#if !defined(__REMOOD_NOIPV6)
+	#define __REMOOD_ENABLEIPV6
+#endif
+
+/* Include The Correct Headers */
+#if __REMOOD_SOCKLEVEL == __REMOOD_SOCKPOSIX
+	#include <sys/socket.h>
+	#include <netinet/in.h>
+	#include <arpa/inet.h>
+	#include <netdb.h>
+	#include <fcntl.h>
+	#include <errno.h>
+
+#elif __REMOOD_SOCKLEVEL == __REMOOD_SOCKBSD
+	#include <sys/socket.h>
+	#include <netinet/in.h>
+	#include <arpa/inet.h>
+	#include <netdb.h>
+	#include <fcntl.h>
+	#include <errno.h>
+
+#elif __REMOOD_SOCKLEVEL == __REMOOD_SOCKWIN
+	#include <winsock2.h>
+	#include <ws2tcpip.h>	// IPv6
+	#include <fcntl.h>
+
+#elif __REMOOD_SOCKLEVEL == __REMOOD_SOCKNETLIB
+
+#else
+	// No Sockets
+#endif
+
+#if 0
 #if defined(__MSDOS__)
 	// DOS Has Nothing
 
@@ -82,6 +134,7 @@
 
 	#define __REMOOD_ENABLEIPV6
 #endif
+#endif
 
 #include "i_util.h"
 #include "i_net.h"
@@ -94,6 +147,7 @@
 /*****************************************************************************/
 /********* BEGIN STOLEN NETWORKING CODE FROM MY SUPER SECRET PROJECT *********/
 
+#if 0
 /* I_NetSocket_s -- Network socket */
 struct I_NetSocket_s
 {
@@ -124,9 +178,7 @@ struct I_NetSocket_s
 	} Buffers[2];
 #endif
 };
-
-/********** END STOLEN NETWORKING CODE FROM MY SUPER SECRET PROJECT **********/
-/*****************************************************************************/
+#endif
 
 /*************
 *** LOCALS ***
@@ -137,9 +189,6 @@ static bool_t l_IPv6 = false;					// using IPv6 Mode
 /****************
 *** FUNCTIONS ***
 ****************/
-
-/*****************************************************************************/
-/********* BEGIN STOLEN NETWORKING CODE FROM MY SUPER SECRET PROJECT *********/
 
 /*** COMMUNICATION ***/
 
@@ -161,42 +210,36 @@ bool_t I_NetCompareHost(const I_HostAddress_t* const a_A, const I_HostAddress_t*
 	if (a_A->Port != a_B->Port)
 		return false;
 	
-	/* Prepare IP matches */
-	Match = false;
+	/* Protocol Mismatch */
+	if (a_A->IPvX != a_B->IPvX)
+		return false;
 	
 	/* IPv4 */
-	if (!Match && (a_A->IPvX & INIPVN_IPV4) && (a_B->IPvX & INIPVN_IPV4))
+	if (a_A->IPvX == INIPVN_IPV4)
 	{
-		Match = true;
-		
 		// Check
 		if (a_A->Host.v4.u != a_B->Host.v4.u)
-			Match = false;
-		
-		// Matched?
-		if (Match)
-			return true;
+			return false;
+		return true;
 	}
 	
 	/* IPv6 */
-	if (!Match && (a_A->IPvX & INIPVN_IPV4) && (a_B->IPvX & INIPVN_IPV4))
+	else if (a_A->IPvX == INIPVN_IPV6)
 	{
-		Match = true;
-		
 		// Check
 		for (i = 0; i < 4; i++)
 			if (a_A->Host.v6.u[i] != a_B->Host.v6.u[i])
-				Match = false;
-		
-		// Matched?
-		if (Match)
-			return true;
+				return false;
+		return true;
 	}
 	
 	/* Was Not Matched */
-	return false;
+	else
+		return false;
 }
 
+
+#if 0
 #if !defined(__MSDOS__)
 /* IS_NetAddrWrapToNative() -- Convert wrapped host to native address */
 static void IS_NetAddrWrapToNative(const I_HostAddress_t* const a_Host, struct sockaddr_in* const a_V4, struct sockaddr_in6* const a_V6)
@@ -870,15 +913,161 @@ bool_t I_NetHostToName(const I_HostAddress_t* const a_Host, char* const a_Out, c
 	return RetVal;
 #endif
 }
+#endif
 
-/********** END STOLEN NETWORKING CODE FROM MY SUPER SECRET PROJECT **********/
-/*****************************************************************************/
-
+/* I_NetSocket_s -- Socket Data */
+struct I_NetSocket_s
+{
+};
 
 /* I_InitNetwork() -- Initializes the network */
 bool_t I_InitNetwork(void)
 {
+#if __REMOOD_SOCKLEVEL == __REMOOD_SOCKWIN
+	/* WinSock requires initialization */
+	WSADATA wsaData;
+	WORD version;
+	
+	// Get version
+	version = MAKEWORD(2, 0);
+	
+	// Attempt Initialization
+	if (WSAStartup(version, &wsaData) != 0)
+		return false;
+	
+	// Bad version?
+	if (LOBYTE(wsaData.wVersion) != LOBYTE(version) &&
+		HIBYTE(wsaData.wVersion) != HIBYTE(version))
+	{
+		WSACleanup();
+		return false;
+	}
+#endif
+
 	/* Success! */
 	return true;
+}
+
+bool_t I_NetNameToHost(I_HostAddress_t* const a_Host, const char* const a_Name)
+{
+	return false;
+}
+
+bool_t I_NetHostToName(const I_HostAddress_t* const a_Host, char* const a_Out, const size_t a_OutSize)
+{
+	return false;
+}
+
+/* I_NetOpenSocket() -- Opens a socket on the specified port */
+I_NetSocket_t* I_NetOpenSocket(const uint32_t a_Flags, const I_HostAddress_t* const a_Host, const uint16_t a_Port)
+{
+#if __REMOOD_SOCKLEVEL == __REMOOD_SOCKPOSIX || __REMOOD_SOCKLEVEL == __REMOOD_SOCKBSD || __REMOOD_SOCKLEVEL == __REMOOD_SOCKWIN
+	int SockFD, SockOpt;
+	struct sockaddr_in In4;
+#if defined(__REMOOD_ENABLEIPV6)
+	struct sockaddr_in6 In6;
+#endif
+	
+	/* V6 not supported? */
+#if !defined(__REMOOD_ENABLEIPV6)
+	if (a_Flags & INSF_V6)
+		return NULL;
+#endif
+	
+	/* Attempt socket creation */
+#if defined(__REMOOD_ENABLEIPV6)
+	if (a_Flags & INSF_V6)
+		SockFD = socket(AF_INET6, (a_Flags & INSF_TCP ? SOCK_STREAM : SOCK_DGRAM), 0);
+	else
+#endif
+		SockFD = socket(AF_INET, (a_Flags & INSF_TCP ? SOCK_STREAM : SOCK_DGRAM), 0);
+	
+	// Creation failed
+	if (SockFD < 0)
+		return NULL;
+
+	/* Disable multi-binding on IPv6 socket */
+#if defined(__REMOOD_ENABLEIPV6) && defined(IPV6_V6ONLY)
+	SockOpt = 1;
+	setsockopt(SockFD, IPPROTO_IPV6, IPV6_V6ONLY, (void*)&SockOpt, sizeof(SockOpt));
+#endif
+	
+	/* Bind to local address and port */
+#if defined(__REMOOD_ENABLEIPV6)
+	if (a_Flags & INSF_V6)
+	{
+		// Set Any (all zeroes)
+		memset(&In6, 0, sizeof(In6));
+		
+		// Lookup Host?
+		if (a_Host)
+			;
+			
+		// Set Port
+		In6.sin6_port = htons(a_Port);
+	}
+	else
+#endif
+	{
+		// Set Any
+		In4.sin_addr.s_addr = INADDR_ANY;
+		
+		// Lookup Host?
+		if (a_Host)
+			;
+		
+		// Set Port
+		In4.sin_port = htons(a_Port);
+	}
+
+#else
+	/* Not Implemented */
+	return NULL;
+#endif
+}
+
+/* I_NetCloseSocket() -- Closes the specified socket */
+void I_NetCloseSocket(I_NetSocket_t* const a_Socket)
+{
+#if __REMOOD_SOCKLEVEL == __REMOOD_SOCKPOSIX || __REMOOD_SOCKLEVEL == __REMOOD_SOCKBSD
+	/* Check */
+	if (!a_Socket)
+		return;
+	
+#elif __REMOOD_SOCKLEVEL == __REMOOD_SOCKWIN
+	/* Check */
+	if (!a_Socket)
+		return;
+	
+#else
+	return;
+#endif
+}
+
+size_t I_NetReadyBytes(I_NetSocket_t* const a_Socket, const size_t a_Bytes)
+{
+#if __REMOOD_SOCKLEVEL == __REMOOD_SOCKPOSIX || __REMOOD_SOCKLEVEL == __REMOOD_SOCKBSD || __REMOOD_SOCKLEVEL == __REMOOD_SOCKWIN
+	return 0;
+#else
+	return 0;
+#endif
+}
+
+size_t I_NetSend(I_NetSocket_t* const a_Socket, const I_HostAddress_t* const a_Host, const void* const a_InData, const size_t a_Len)
+{
+#if __REMOOD_SOCKLEVEL == __REMOOD_SOCKPOSIX || __REMOOD_SOCKLEVEL == __REMOOD_SOCKBSD || __REMOOD_SOCKLEVEL == __REMOOD_SOCKWIN
+	return 0;
+#else
+	return 0;
+#endif
+}
+
+size_t I_NetRecv(I_NetSocket_t* const a_Socket, I_HostAddress_t* const a_Host, void* const a_OutData, const size_t a_Len)
+{
+#if __REMOOD_SOCKLEVEL == __REMOOD_SOCKPOSIX || __REMOOD_SOCKLEVEL == __REMOOD_SOCKBSD || __REMOOD_SOCKLEVEL == __REMOOD_SOCKWIN
+	return 0;
+#else
+	return 0;
+#endif
 }
 

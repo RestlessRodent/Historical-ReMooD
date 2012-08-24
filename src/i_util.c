@@ -1082,7 +1082,7 @@ void I_ShowEndTxt(const uint8_t* const a_TextData)
 		
 	/* Get environment */
 	// Columns?
-	if ((p = getenv("COLUMNS")))
+	if ((p = I_GetEnvironment("COLUMNS")))
 		Cols = atoi(p);
 	else
 		Cols = 79;
@@ -1392,17 +1392,17 @@ const char* I_GetUserName(void)
 	
 	/* Try environment variables that usually exist */
 	// USER, USERNAME, LOGNAME
-	p = getenv("USER");
+	p = I_GetEnvironment("USER");
 	
 	// Nope
 	if (!p)
 	{
-		p = getenv("USERNAME");
+		p = I_GetEnvironment("USERNAME");
 		
 		// Nope
 		if (!p)
 		{
-			p = getenv("LOGNAME");
+			p = I_GetEnvironment("LOGNAME");
 			
 			// Nope
 			if (!p)
@@ -1440,7 +1440,7 @@ size_t I_GetStorageDir(char* const a_Out, const size_t a_Size, const I_DataStora
 	/* UNIX Systems */
 #elif defined(__unix__)
 	// Get XDG Config directory
-	if ((Env = getenv((a_Type == DST_CONFIG ? "XDG_CONFIG_HOME" : "XDG_DATA_HOME"))))
+	if ((Env = I_GetEnvironment((a_Type == DST_CONFIG ? "XDG_CONFIG_HOME" : "XDG_DATA_HOME"))))
 	{
 		// Use the following then
 		strncat(a_Out, Env, a_Size);
@@ -1457,7 +1457,7 @@ size_t I_GetStorageDir(char* const a_Out, const size_t a_Size, const I_DataStora
 	}
 	
 	// Otherwise, get the home directory
-	else if ((Env = getenv("HOME")))
+	else if ((Env = I_GetEnvironment("HOME")))
 	{
 		// Use the following then
 		strncat(a_Out, Env, a_Size);
@@ -1726,7 +1726,7 @@ char* I_GetEnvironment(const char* const a_VarName)
 #if defined(_WIN32_WCE)
 	return NULL;
 	
-	/* Use standard getenv() */
+	/* Use standard I_GetEnvironment() */
 #else
 	return getenv(a_VarName);
 #endif

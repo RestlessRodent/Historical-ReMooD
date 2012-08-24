@@ -793,11 +793,19 @@ static bool_t DS_RMODOCCB(const bool_t a_Pushed, const struct WL_WADFile_s* cons
 	int i;
 	
 	/* Call each order notifier */
-	for (i = 0; i < NUMDRMODPRIVATES; i++)
-		if (c_RMODHandlers[i].OrderFunc)
-			if (!c_RMODHandlers[i].OrderFunc(a_Pushed, a_WAD, i))
-				if (devparm)
-					CONL_PrintF("DS_RMODOCCB: Order change for \"%s\" failed.\n", c_RMODHandlers[i].TableType);
+	if (!M_CheckParm("-onlyoccb"))
+	{
+		for (i = 0; i < NUMDRMODPRIVATES; i++)
+			if (c_RMODHandlers[i].OrderFunc)
+				if (!c_RMODHandlers[i].OrderFunc(a_Pushed, a_WAD, i))
+					if (devparm)
+						CONL_PrintF("DS_RMODOCCB: Order change for \"%s\" failed.\n", c_RMODHandlers[i].TableType);
+	}
+	
+	/* Flat REMOODAT Handler */
+	else
+	{
+	}
 	
 	/* Success! */
 	return true;
@@ -808,8 +816,9 @@ void D_InitRMOD(void)
 {
 	/* Hook WL handlers */
 	// Register PDC
-	if (!WL_RegisterPDC(WLDK_RMOD, WLDPO_RMOD, DS_RMODPDC, DS_RMODPDCRemove))
-		I_Error("D_InitRMOD: Failed to register PDC.");
+	if (!M_CheckParm("-onlyoccb"))
+		if (!WL_RegisterPDC(WLDK_RMOD, WLDPO_RMOD, DS_RMODPDC, DS_RMODPDCRemove))
+			I_Error("D_InitRMOD: Failed to register PDC.");
 	
 	// Register OCCB (this builds a composite)
 	if (!WL_RegisterOCCB(DS_RMODOCCB, WLDCO_RMOD))

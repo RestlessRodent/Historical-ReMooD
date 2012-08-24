@@ -918,7 +918,7 @@ bool_t WL_LocateWAD(const char* const a_Name, const char* const a_MD5, char* con
 			}
 		
 		// $DOOMWADDIR
-		if ((DirArg = getenv("DOOMWADDIR")))
+		if ((DirArg = I_GetEnvironment("DOOMWADDIR")))
 		{
 			// Add to search
 			if (l_SearchCount < MAXSEARCHBUFFER)
@@ -927,7 +927,7 @@ bool_t WL_LocateWAD(const char* const a_Name, const char* const a_MD5, char* con
 		}
 		
 		// $DOOMWADPATH
-		if ((DirArg = getenv("DOOMWADPATH")))
+		if ((DirArg = I_GetEnvironment("DOOMWADPATH")))
 		{
 			do
 			{

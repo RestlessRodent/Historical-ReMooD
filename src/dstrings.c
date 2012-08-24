@@ -929,6 +929,10 @@ StringGroupEX_t UnicodeStrings[NUMUNICODESTRINGS] =
 	{				"DPROFC_NOTFOUND", "Profile $1 not found."},
 	{		  "DPROFC_NOTCONTROLNAME", "$1 is not a valid control."},
 	{			  "DPROFC_VALUEUSAGE", "Usage: $1 value <Option> <Value>"},
+	
+	/*** D_NET.C ***/
+	{		 "DNETC_SOCKFAILEDTOOPEN", "The UDPv$1 socket failed to open."},
+	{			  "DNETC_BOUNDTOPORT", "UDPv$1 socket bound to port $2."},
 };
 
 /* DS_NameOfString() -- Returns name of pointer to string */

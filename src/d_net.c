@@ -604,7 +604,7 @@ bool_t D_CheckNetGame(void)
 	I_NetSocket_t* Socket;
 	D_NetClient_t* Client;
 	bool_t ret = false;
-	size_t i;
+	uint16_t i, v;
 	
 	// I_InitNetwork sets doomcom and netgame
 	// check and initialize the network driver
@@ -647,32 +647,41 @@ bool_t D_CheckNetGame(void)
 	Client->Streams[DNCSP_PERFECTWRITE] = Client->PerfectStream;
 	
 	/* Create Local Network Client */
-	// Attempt creating a UDP Server
-	Socket = NULL;
-	for (i = 0; i < 20 && !Socket; i++)
-		Socket = I_NetOpenSocket(true, NULL, __REMOOD_BASEPORT + i);
-	
-	// Initial input/output of stream
-	if (Socket)
+	for (v = 0; v < 2; v++)
 	{
-		// Allocate local client
-		Client = D_NCAllocClient();
-		Client->IsLocal = true;
+		// Attempt open of UDPv4 and UDPv6 socket
+		Socket = NULL;
+		for (i = 0; i < 20 && !Socket; i++)
+			Socket = I_NetOpenSocket((v ? INSF_V6 : 0), NULL, __REMOOD_BASEPORT + i);
 		
-		// Copy socket
-		Client->NetSock = Socket;
+		// Failed?
+		if (!Socket)
+			CONL_OutputU(DSTR_DNETC_SOCKFAILEDTOOPEN, "%i\n", (v ? 6 : 4));
 		
-		// Create stream from it
-		Client->CoreStream = D_BSCreateNetStream(Client->NetSock);
+		// Initialize input/output of stream
+		else
+		{
+			CONL_OutputU(DSTR_DNETC_BOUNDTOPORT, "%i%i\n", (v ? 6 : 4), i - 1);
+			
+			// Allocate local client
+			Client = D_NCAllocClient();
+			Client->IsLocal = true;
 		
-		// Create encapsulated perfect stream
-		Client->PerfectStream = D_BSCreatePerfectStream(Client->CoreStream);
+			// Copy socket
+			Client->NetSock = Socket;
+		
+			// Create stream from it
+			Client->CoreStream = D_BSCreateNetStream(Client->NetSock);
+		
+			// Create encapsulated perfect stream
+			Client->PerfectStream = D_BSCreatePerfectStream(Client->CoreStream);
 	
-		// Set read/writes for all streams
-		Client->Streams[DNCSP_READ] = Client->CoreStream;
-		Client->Streams[DNCSP_WRITE] = Client->CoreStream;
-		Client->Streams[DNCSP_PERFECTREAD] = Client->PerfectStream;
-		Client->Streams[DNCSP_PERFECTWRITE] = Client->PerfectStream;
+			// Set read/writes for all streams
+			Client->Streams[DNCSP_READ] = Client->CoreStream;
+			Client->Streams[DNCSP_WRITE] = Client->CoreStream;
+			Client->Streams[DNCSP_PERFECTREAD] = Client->PerfectStream;
+			Client->Streams[DNCSP_PERFECTWRITE] = Client->PerfectStream;
+		}
 	}
 	
 	return ret;
@@ -814,6 +823,11 @@ void D_NCDisconnect(void)
 				// Fudge off!
 				D_NCFudgeOffClient(l_Clients[i], 'X', "Server disconnected.");
 				
+				// DONT FREE STREAMS AND DONT FREE SOCKETS BECAUSE OTHERWISE
+				// WE WILL BE TERMINATING OUR LITTLE CREATED UDP SOCKET AND
+				// PERFECTION STREAMS. CLOSING ISN'T NEEDED SINCE UDP IS
+				// CONNECTION-LESS.
+#if 0
 				// Free streams, if any
 				if (l_Clients[i]->PerfectStream)
 					D_BSCloseStream(l_Clients[i]->PerfectStream);
@@ -823,6 +837,7 @@ void D_NCDisconnect(void)
 				// Close socket, if any
 				if (l_Clients[i]->NetSock)
 					I_NetCloseSocket(l_Clients[i]->NetSock);
+#endif
 				
 				// Free it
 				Z_Free(l_Clients[i]);
@@ -901,7 +916,7 @@ void D_NCClientize(I_HostAddress_t* const a_Host, const char* const a_Pass, cons
 	/* Try creating socket to server */
 	for (i = 0; i < 10; i++)
 	{
-		Socket = I_NetOpenSocket(false, a_Host, __REMOOD_BASEPORT + i);
+		Socket = I_NetOpenSocket(0, a_Host, __REMOOD_BASEPORT + i);
 		
 		// Was created?
 		if (Socket)

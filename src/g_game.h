@@ -68,6 +68,8 @@ extern tic_t levelstarttic;
 extern angle_t localangle[MAXSPLITSCREENPLAYERS];
 extern int localaiming[MAXSPLITSCREENPLAYERS];	// should be a angle_t but signed
 
+extern uint32_t g_CheatFlags;
+
 /* Prototypes */
 char* G_BuildMapName(int episode, int map);
 short G_ClipAimingPitch(int* aiming);

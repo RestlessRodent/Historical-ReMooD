@@ -318,6 +318,9 @@ bool_t P_ExClearLevel(void)
 	spechit = NULL;
 	numspechit = 0;
 	
+	// Cheats
+	g_CheatFlags = 0;
+	
 	/* Scripting */
 	T_DSVM_Cleanup();
 	
