@@ -1400,6 +1400,7 @@ bool_t D_NCMH_CONN(struct D_NCMessageData_s* const a_Data)
 	{
 		HostID = D_CMakePureRandom();
 	} while (D_NCFindClientByID(HostID));
+	FreshClient->HostID = HostID;
 	
 	// Streams
 	FreshClient->Streams[DNCSP_WRITE] = a_Data->NetClient->Streams[DNCSP_WRITE];
@@ -1412,7 +1413,20 @@ bool_t D_NCMH_CONN(struct D_NCMessageData_s* const a_Data)
 	FreshClient->ReadyToPlay = FreshClient->SaveGameSent = true;
 	
 	/* Tell client their host information */
+	// Write message to them (perfect output)
+	Stream = FreshClient->Streams[DNCSP_PERFECTWRITE];
 	
+	// Base
+	D_BSBaseBlock(Stream, "PLAY");
+	
+	// Info
+	for (i = 0; i < MAXCONNKEYSIZE; i++)
+		D_BSwu32(Stream, ConnectKey[i]);
+	D_BSwu64(Stream, gametic);					// Current game tic
+	D_BSwu32(Stream, HostID);					// Their server identity
+	
+	// Send away
+	D_BSRecordNetBlock(Stream, &FreshClient->Address);
 	
 	/* Info */
 	CONL_OutputU(DSTR_DNETC_CONNECTFROM, "%s%i%i%i%c\n",
@@ -1423,12 +1437,63 @@ bool_t D_NCMH_CONN(struct D_NCMessageData_s* const a_Data)
 	return true;
 }
 
+/* D_NCMH_PLAY() -- We can play */
+bool_t D_NCMH_PLAY(struct D_NCMessageData_s* const a_Data)
+{
+	D_NetClient_t* ServerNC;
+	D_BS_t* Stream;
+	int i;
+	uint32_t ConnectKey[MAXCONNKEYSIZE], HostID;
+	uint64_t GameTic;
+	
+	/* Get server client */
+	ServerNC = D_NCFindClientIsServer();
+	
+	// We are the server?
+	if (ServerNC->IsLocal)
+		return true;
+	
+	/* Get Stream */
+	Stream = a_Data->InStream;
+	
+	/* Read in data */
+	// Key
+	for (i = 0; i < MAXCONNKEYSIZE; i++)
+	{
+		ConnectKey[i] = D_BSru32(Stream);
+		
+		// Mismatch (might be a hacker)
+		if (ConnectKey[i] != l_ConnectKey[i])
+			return true;
+	}
+	
+	// Read Others
+	GameTic = D_BSru64(Stream);
+	HostID = D_BSru32(Stream);
+	
+	/* Local local ID */
+	for (i = 0; i < l_NumClients; i++)
+		if (l_Clients[i])
+			if (l_Clients[i]->IsLocal)
+				l_Clients[i]->HostID = HostID;
+			else
+				l_Clients[i]->HostID = NULL;
+	
+	/* Set the game tic and timing stuff */
+	gametic = GameTic;
+	D_SyncNetSetMapTime(GameTic);
+	
+	/* Done processing */
+	return true;
+}
+
 // c_NCMessageCodes -- Local messages
 static const D_NCMessageType_t c_NCMessageCodes[] =
 {
 	{1, {0}, "JOIN", D_NCMH_JOIN, DNCMF_PERFECT | DNCMF_SERVER | DNCMF_HOST | DNCMF_REMOTECL},
 	{1, {0}, "TICS", D_NCMH_TICS, DNCMF_PERFECT | DNCMF_SERVER | DNCMF_REMOTECL},
 	{1, {0}, "CONN", D_NCMH_CONN, DNCMF_PERFECT | DNCMF_SERVER | DNCMF_HOST},
+	{1, {0}, "PLAY", D_NCMH_PLAY, DNCMF_PERFECT | DNCMF_SERVER | DNCMF_REMOTECL},
 	
 	//{1, {0}, "LPRJ", D_NCMH_LocalPlayerRJ, DNCMF_PERFECT | DNCMF_SERVER | DNCMF_HOST | DNCMF_REMOTECL},
 	//{1, {0}, "PJOK", D_NCMH_PlayerJoinOK, DNCMF_PERFECT | DNCMF_SERVER | DNCMF_REMOTECL | DNCMF_DEMO},
