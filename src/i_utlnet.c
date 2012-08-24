@@ -1240,15 +1240,35 @@ size_t I_NetReadyBytes(I_NetSocket_t* const a_Socket, const size_t a_Bytes)
 	return IS_NetRecvWrap(a_Socket, NULL, JunkBuf, a_Bytes, true, true);
 }
 
-
+/* I_NetSend() -- Send data to remote host */
 size_t I_NetSend(I_NetSocket_t* const a_Socket, const I_HostAddress_t* const a_Host, const void* const a_InData, const size_t a_Len)
 {
 #if __REMOOD_SOCKLEVEL == __REMOOD_SOCKPOSIX || __REMOOD_SOCKLEVEL == __REMOOD_SOCKBSD || __REMOOD_SOCKLEVEL == __REMOOD_SOCKWIN
-
-//IS_ConvertHost(const bool_t a_ToNative, I_HostAddress_t* const a_Host, struct sockaddr_storage* const a_Native)
-
-
-	return 0;
+	struct sockaddr_storage Addr;
+	socklen_t SockLen;
+	bool_t DisconSock;
+	ssize_t RetVal;
+	size_t i;
+	
+	/* Check */
+	if (!a_Socket || !a_InData || !a_Len)
+		return 0;
+	
+	/* Recieve from which socket? */
+	// Convert address to host
+	IS_ConvertHost(true, a_Host, &Addr);
+	
+	// Receive from it
+	SockLen = sizeof(Addr);
+	
+	RetVal = sendto(a_Socket->SockFD, a_InData, a_Len, __REMOOD_DONTWAITMSG, (struct sockaddr*)&Addr, SockLen);
+	
+	// Error?
+	if (RetVal < 0)
+		return 0;
+	
+	/* Return written bytes */
+	return RetVal;
 #else
 	return 0;
 #endif
