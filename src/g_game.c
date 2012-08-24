@@ -554,6 +554,8 @@ void GS_HandleExtraCommands(ticcmd_t* const a_TicCmd, const int32_t a_PlayerNum)
 						Player = G_AddPlayer(u16[0]);
 						Player->NetPlayer = NetPlayer;
 						Player->ProfileEx = Profile;
+						NetPlayer->Player = Player;
+						NetPlayer->Profile = Profile;
 						D_NetSetPlayerName(u16[0], NameBuf);
 						
 						// Finish off split screen
@@ -689,6 +691,7 @@ void G_Ticker(void)
 		// BP: i==0 for playback of demos 1.29 now new players is added with xcmd
 		if ((playeringame[i] || i == 0) && !dedicated)
 		{
+			memset(&players[i].cmd, 0, sizeof(players[i].cmd));
 			cmd = &players[i].cmd;
 			
 			// Read Command

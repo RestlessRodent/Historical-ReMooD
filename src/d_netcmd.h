@@ -98,6 +98,7 @@ typedef struct D_NetPlayer_s
 	int TicTotal;								// Total number of tic commands
 	ticcmd_t TicCmd[MAXDNETTICCMDCOUNT];		// Tic Command to execute
 	int LocalTicTotal;							// Number of local tics
+	ticcmd_t LastGoodTic;						// Last good player tics
 	ticcmd_t LocalTicCmd[MAXDNETTICCMDCOUNT];	// Local Tic Commands
 	tic_t LastLocalTic;							// Last local tic time
 	char DisplayName[MAXPLAYERNAME];			// Name to show in network games

@@ -1023,6 +1023,7 @@ void D_NCReqAddPlayer(struct D_ProfileEx_s* a_Profile, const bool_t a_Bot)
 	D_BSBaseBlock(Stream, "JOIN");
 	D_BSwu8(Stream, a_Bot);
 	D_BSws(Stream, a_Profile->UUID);
+	D_BSwu32(Stream, a_Profile->InstanceID);
 	D_BSws(Stream, a_Profile->AccountName);
 	D_BSws(Stream, a_Profile->DisplayName);
 	D_BSRecordNetBlock(Stream, &Server->Address);
@@ -1157,8 +1158,8 @@ bool_t D_NCMH_JOIN(struct D_NCMessageData_s* const a_Data)
 	
 	// Read Data
 	IsBot = D_BSru8(Stream);
-	PInstance = D_BSru32(Stream);
 	D_BSrs(Stream, UUID, (MAXPLAYERNAME * 2) + 1);
+	PInstance = D_BSru32(Stream);
 	D_BSrs(Stream, PName, MAXPLAYERNAME);
 	D_BSrs(Stream, AName, MAXPLAYERNAME);
 	
@@ -1310,19 +1311,53 @@ void D_NetWriteGlobalTicCmd(ticcmd_t* const a_TicCmd)
 /* D_NetReadTicCmd() -- Read tic commands from network */
 void D_NetReadTicCmd(ticcmd_t* const a_TicCmd, const int a_Player)
 {
-	int nc;
+	int nc, arb;
 	D_NetClient_t* ServerNC;
 	D_NetClient_t* NetClient;
 	D_BS_t* Stream;
+	D_NetPlayer_t* NetPlayer;
 	
 	/* Get server client */
 	ServerNC = D_NCFindClientIsServer();
 	
+	/* Player not in game? */
+	if (!playeringame[a_Player])
+		return;
+	
 	/* If we are the server... */
-	// Scan through all the players and read the next tic that should be
-	// processed for all non-local clients.
+	// See if the local player has any tics waiting.
 	if (ServerNC->IsLocal)
 	{
+		NetPlayer = players[a_Player].NetPlayer;
+		
+		// Missing?
+		if (!NetPlayer)
+			return;
+		
+		// Tic waiting for us?
+		if (NetPlayer->TicTotal > 0)
+		{
+			// Copy and splice down tic
+			memmove(a_TicCmd, &NetPlayer->TicCmd[0], sizeof(*a_TicCmd));
+			memmove(&NetPlayer->TicCmd[0], &NetPlayer->TicCmd[1], sizeof(ticcmd_t) * (MAXDNETTICCMDCOUNT - 1));
+			NetPlayer->TicTotal--;
+			
+			// Copy into last good
+			memmove(&NetPlayer->LastGoodTic, a_TicCmd, sizeof(*a_TicCmd));
+		}
+		
+		// No tics available (dup based on player option)
+		else
+		{
+			// Last Good Transmitted Tic
+			memmove(a_TicCmd, &NetPlayer->LastGoodTic, sizeof(*a_TicCmd));
+		}
+		
+		// Set player ID
+		a_TicCmd->Std.Player = a_Player;
+		
+		// Successfully gave tic, so return now
+		return;
 	}
 	
 	/* Not the server */
