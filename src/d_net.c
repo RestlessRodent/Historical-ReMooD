@@ -972,7 +972,7 @@ void D_NCClientize(D_NetClient_t* a_BoundClient, I_HostAddress_t* const a_Host, 
 	
 	/* Send connection command to server */
 	// Send perfect write packets
-	Stream = NetClient->Streams[DNCSP_WRITE/*DNCSP_PERFECTWRITE*/];
+	Stream = NetClient->Streams[DNCSP_PERFECTWRITE];
 	
 	// Write out the data
 	D_BSBaseBlock(Stream, "CONN");
