@@ -918,6 +918,13 @@ bool_t I_NetHostToName(const I_HostAddress_t* const a_Host, char* const a_Out, c
 /* I_NetSocket_s -- Socket Data */
 struct I_NetSocket_s
 {
+	uint32_t Flags;								// Socket Flags
+	
+#if __REMOOD_SOCKLEVEL == __REMOOD_SOCKPOSIX || __REMOOD_SOCKLEVEL == __REMOOD_SOCKBSD || __REMOOD_SOCKLEVEL == __REMOOD_SOCKWIN
+	int SockFD;
+	socklen_t SockLen;
+	struct sockaddr_storage Addr;
+#endif
 };
 
 /* I_InitNetwork() -- Initializes the network */
@@ -963,7 +970,11 @@ I_NetSocket_t* I_NetOpenSocket(const uint32_t a_Flags, const I_HostAddress_t* co
 {
 #if __REMOOD_SOCKLEVEL == __REMOOD_SOCKPOSIX || __REMOOD_SOCKLEVEL == __REMOOD_SOCKBSD || __REMOOD_SOCKLEVEL == __REMOOD_SOCKWIN
 	int SockFD, SockOpt;
+	socklen_t SockLen;
+	unsigned long NBVal;
+	struct sockaddr* Addr;
 	struct sockaddr_in In4;
+	I_NetSocket_t* RetVal;
 #if defined(__REMOOD_ENABLEIPV6)
 	struct sockaddr_in6 In6;
 #endif
@@ -977,10 +988,10 @@ I_NetSocket_t* I_NetOpenSocket(const uint32_t a_Flags, const I_HostAddress_t* co
 	/* Attempt socket creation */
 #if defined(__REMOOD_ENABLEIPV6)
 	if (a_Flags & INSF_V6)
-		SockFD = socket(AF_INET6, (a_Flags & INSF_TCP ? SOCK_STREAM : SOCK_DGRAM), 0);
+		SockFD = socket(AF_INET6, ((a_Flags & INSF_TCP) ? SOCK_STREAM : SOCK_DGRAM), 0);
 	else
 #endif
-		SockFD = socket(AF_INET, (a_Flags & INSF_TCP ? SOCK_STREAM : SOCK_DGRAM), 0);
+		SockFD = socket(AF_INET, ((a_Flags & INSF_TCP) ? SOCK_STREAM : SOCK_DGRAM), 0);
 	
 	// Creation failed
 	if (SockFD < 0)
@@ -1004,7 +1015,10 @@ I_NetSocket_t* I_NetOpenSocket(const uint32_t a_Flags, const I_HostAddress_t* co
 			;
 			
 		// Set Port
+		In6.sin6_family = AF_INET6;
 		In6.sin6_port = htons(a_Port);
+		Addr = &In6;
+		SockLen = sizeof(In6);
 	}
 	else
 #endif
@@ -1017,9 +1031,44 @@ I_NetSocket_t* I_NetOpenSocket(const uint32_t a_Flags, const I_HostAddress_t* co
 			;
 		
 		// Set Port
+		In4.sin_family = AF_INET;
 		In4.sin_port = htons(a_Port);
+		Addr = &In4;
+		SockLen = sizeof(In4);
 	}
-
+	
+	/* Bind */
+	if (bind(SockFD, Addr, SockLen) < 0)
+	{
+#if __REMOOD_SOCKLEVEL == __REMOOD_SOCKWIN
+		socketclose(SockFD);
+#else
+		close(SockFD);
+#endif
+		return NULL;
+	}
+	
+	/* Set non-blocking socket */
+#if __REMOOD_SOCKLEVEL == __REMOOD_SOCKWIN
+	NBVal = 1;
+	ioctlsocket(SockFD, FIONBIO, &NBVal);
+#else
+	SockOpt = fcntl(SockFD, F_GETFL, 0);
+	SockOpt |= O_NONBLOCK;
+	fcntl(SockFD, F_SETFL, SockOpt);
+#endif
+	
+	/* Allocate for socket return */
+	RetVal = Z_Malloc(sizeof(*RetVal), PU_STATIC, NULL);
+	
+	// Set Values
+	RetVal->Flags = a_Flags;
+	RetVal->SockFD = SockFD;
+	memmove(&RetVal->Addr, Addr, SockLen);
+	RetVal->SockLen = SockLen;
+	
+	// Return it
+	return RetVal;
 #else
 	/* Not Implemented */
 	return NULL;
