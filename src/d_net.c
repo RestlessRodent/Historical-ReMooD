@@ -284,6 +284,8 @@ uint32_t g_NetStat[4] = {0, 0, 0, 0};			// Network stats
 
 /*** LOCALS ***/
 
+static uint32_t l_ConnectKey[MAXCONNKEYSIZE];	// Connection Key
+
 static D_NetQueueCommand_t** l_ComQueue = NULL;	// Command Queue
 static size_t l_NumComQueue = 0;				// Number of commands
 
@@ -559,6 +561,10 @@ static int DS_ConnectMultiCom(const uint32_t a_ArgC, const char** const a_ArgV)
 					CONL_OutputU(DSTR_NET_BADHOSTRESOLVE, "\n");
 					continue;
 				}
+				
+				// No port?
+				if (!Host.Port)
+					Host.Port = __REMOOD_BASEPORT;
 		
 				// Attempt connect to server
 				D_NCClientize(l_Clients[nc], &Host, (a_ArgC >= 3 ? a_ArgV[2] : ""), (a_ArgC >= 4 ? a_ArgV[3] : ""));
@@ -954,8 +960,8 @@ void D_NCClientize(D_NetClient_t* a_BoundClient, I_HostAddress_t* const a_Host, 
 	
 	// Create streams for server connection
 	NetClient->Streams[DNCSP_READ] = NULL;//NetClient->CoreStream;
-	NetClient->Streams[DNCSP_WRITE] = NULL;//NetClient->CoreStream;
-	NetClient->Streams[DNCSP_PERFECTREAD] = NetClient->PerfectStream;
+	NetClient->Streams[DNCSP_WRITE] = NetClient->CoreStream;
+	NetClient->Streams[DNCSP_PERFECTREAD] = NULL;//NetClient->PerfectStream;
 	NetClient->Streams[DNCSP_PERFECTWRITE] = NetClient->PerfectStream;
 	
 	// Set as server
@@ -966,10 +972,17 @@ void D_NCClientize(D_NetClient_t* a_BoundClient, I_HostAddress_t* const a_Host, 
 	
 	/* Send connection command to server */
 	// Send perfect write packets
-	Stream = NetClient->Streams[DNCSP_PERFECTWRITE];
+	Stream = NetClient->Streams[DNCSP_WRITE/*DNCSP_PERFECTWRITE*/];
 	
 	// Write out the data
 	D_BSBaseBlock(Stream, "CONN");
+	
+	// Key -- Generate and send
+	for (i = 0; i < MAXCONNKEYSIZE; i++)
+	{
+		l_ConnectKey[i] = D_CMakePureRandom();
+		D_BSwu32(Stream, l_ConnectKey[i]);
+	}
 	
 	// Write version
 	D_BSwu8(Stream, VERSION);
@@ -983,6 +996,10 @@ void D_NCClientize(D_NetClient_t* a_BoundClient, I_HostAddress_t* const a_Host, 
 	
 	// Send to server
 	D_BSRecordNetBlock(Stream, a_Host);
+	
+	// Flush streams
+	D_BSFlushStream(NetClient->Streams[DNCSP_WRITE]);
+	D_BSFlushStream(NetClient->Streams[DNCSP_PERFECTWRITE]);
 	
 	/* Print message to avid player */
 	CONL_OutputU(DSTR_NET_CONNECTINGTOSERVER, "\n");
@@ -1228,11 +1245,55 @@ bool_t D_NCMH_TICS(struct D_NCMessageData_s* const a_Data)
 		return false;
 }
 
+/* D_NCMH_CONN() -- Connection Request */
+bool_t D_NCMH_CONN(struct D_NCMessageData_s* const a_Data)
+{
+#define BUFSIZE 64
+	int i;
+	uint32_t ConnectKey[MAXCONNKEYSIZE];
+	D_NetClient_t* ServerNC, *FreshClient;
+	D_BS_t* Stream;
+	uint8_t Ver[4];
+	char ServerPass[BUFSIZE], JoinPass[BUFSIZE];
+	
+	/* Get server client */
+	ServerNC = D_NCFindClientIsServer();
+	
+	// Not the server?
+	if (!ServerNC->IsLocal)
+		return true;
+	
+	/* Get Stream */
+	Stream = a_Data->InStream;
+	
+	/* Read Data */
+	// Key
+	for (i = 0; i < MAXCONNKEYSIZE; i++)
+		ConnectKey[i] = D_BSru32(Stream);
+	
+	// Version
+	for (i = 0; i < 4; i++)
+		Ver[i] = D_BSru8(Stream);
+	
+	// Passwords
+	D_BSrs(Stream, ServerPass, BUFSIZE);
+	D_BSrs(Stream, JoinPass, BUFSIZE);
+	
+	/* Info */
+	CONL_OutputU(DSTR_DNETC_CONNECTFROM, "%s%i%i%i%c\n",
+			"TODO FIXME: Implement name lookup here",
+			Ver[1], Ver[2], Ver[3]
+		);
+	
+	return true;
+}
+
 // c_NCMessageCodes -- Local messages
 static const D_NCMessageType_t c_NCMessageCodes[] =
 {
 	{1, {0}, "JOIN", D_NCMH_JOIN, DNCMF_PERFECT | DNCMF_SERVER | DNCMF_HOST | DNCMF_REMOTECL},
 	{1, {0}, "TICS", D_NCMH_TICS, DNCMF_PERFECT | DNCMF_SERVER | DNCMF_REMOTECL},
+	{1, {0}, "CONN", D_NCMH_CONN, DNCMF_PERFECT | DNCMF_SERVER | DNCMF_HOST},
 	
 	//{1, {0}, "LPRJ", D_NCMH_LocalPlayerRJ, DNCMF_PERFECT | DNCMF_SERVER | DNCMF_HOST | DNCMF_REMOTECL},
 	//{1, {0}, "PJOK", D_NCMH_PlayerJoinOK, DNCMF_PERFECT | DNCMF_SERVER | DNCMF_REMOTECL | DNCMF_DEMO},

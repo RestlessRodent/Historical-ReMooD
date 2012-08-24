@@ -77,6 +77,7 @@ bool_t D_NetPlayerChangedPause(const int32_t a_PlayerID);
 #define __REMOOD_NCSNET
 
 #define NETCLIENTRHLEN					256		// Reverse host length
+#define MAXCONNKEYSIZE					8		// Connection Key Size
 
 /*** STRUCTURES ***/
 
@@ -116,6 +117,7 @@ typedef struct D_NetClient_s
 	bool_t ReadyToPlay;							// Client is ready to play
 	bool_t SaveGameSent;						// Save game was sent
 	uint32_t HostID;							// Host Identity (Unique, hopefully)
+	uint32_t Key[MAXCONNKEYSIZE];				// Connection Key
 } D_NetClient_t;
 
 typedef void (*D_NCQCFunc_t)(void* const a_Data);

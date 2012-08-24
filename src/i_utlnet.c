@@ -1142,6 +1142,7 @@ bool_t I_NetNameToHost(I_NetSocket_t* const a_Socket, I_HostAddress_t* const a_H
 			// Copy over IP into host
 			for (i = 0; i < 4; i++)
 				a_Host->Host.v4.b[i] = (SockInfoFour.sin_addr.s_addr >> ((3-i) * 8U)) & 0xFFU;
+			a_Host->Port = MatchPort;
 			
 			// Done
 			freeaddrinfo(Find);
@@ -1160,6 +1161,8 @@ bool_t I_NetNameToHost(I_NetSocket_t* const a_Socket, I_HostAddress_t* const a_H
 			// Copy over IP into host
 			for (i = 0; i < 16; i++)
 				a_Host->Host.v6.b[i] = SockInfoSix.sin6_addr.s6_addr[i];
+			
+			a_Host->Port = MatchPort;
 			
 			// Success!
 			freeaddrinfo(Find);

@@ -935,6 +935,7 @@ StringGroupEX_t UnicodeStrings[NUMUNICODESTRINGS] =
 	/*** D_NET.C ***/
 	{		 "DNETC_SOCKFAILEDTOOPEN", "The UDPv$1 socket failed to open."},
 	{			  "DNETC_BOUNDTOPORT", "UDPv$1 socket bound to port $2."},
+	{			  "DNETC_CONNECTFROM", "New connection from \"$1\" (ReMooD $2.$3$4)"},
 };
 
 /* DS_NameOfString() -- Returns name of pointer to string */
