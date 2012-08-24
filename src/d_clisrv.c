@@ -183,6 +183,26 @@ void TryRunTics(tic_t realtics)
 		return;
 	}
 	
+	// Connecting?
+	else if (gamestate == GS_WAITFORJOINWINDOW)
+	{
+		LocalTic = I_GetTime();
+		
+		// No update needed?
+		if (LocalTic <= LastTic)
+		{
+			I_WaitVBL(20);
+			return;
+		}
+		
+		// Update Network
+		D_SyncNetUpdate();
+		
+		// Set last time
+		LastTic = LocalTic;
+		return;
+	}
+	
 	/* While the client is behind, update it to catch up */
 	// Update music
 	I_UpdateMusic();

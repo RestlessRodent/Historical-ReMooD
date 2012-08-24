@@ -383,6 +383,8 @@ StringGroupEX_t UnicodeStrings[NUMUNICODESTRINGS] =
 	{				   "WFGS_DEMOPLAYER", "Demo"},
 	{						 "WFGS_HOST", "Host"},
 	
+	{						"WFJW_TITLE", "Connecting to Server"},
+	
 	/*** DEPRECATED STRINGS ***/
 	{                              "DEP_D_DEVSTR", "Development mode ON.\n"},
 	{                               "DEP_D_CDROM", "CD-ROM Version: default.cfg from c:\\doomdata\n"},

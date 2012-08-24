@@ -382,6 +382,8 @@ typedef enum UnicodeStringID_e
 	DSTR_WFGS_DEMOPLAYER,
 	DSTR_WFGS_HOST,
 	
+	DSTR_WFJW_TITLE,
+	
 	/* Deprecated Strings */
 	DSTR_DEP_D_DEVSTR,
 	DSTR_DEP_D_CDROM,

@@ -962,7 +962,7 @@ void D_NCClientize(D_NetClient_t* a_BoundClient, I_HostAddress_t* const a_Host, 
 	NetClient->IsServer = true;
 	
 	/* Prepare for connection to server */
-	gamestate = GS_WAITFORJOINWINDOW;
+	gamestate = wipegamestate = GS_WAITFORJOINWINDOW;
 	
 	/* Send connection command to server */
 	// Send perfect write packets

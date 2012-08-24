@@ -313,6 +313,11 @@ void D_Display(void)
 			D_WaitingPlayersDrawer();
 			break;
 			
+			// GhostlyDeath <August 24, 2012> -- Waiting for join window
+		case GS_WAITFORJOINWINDOW:
+			D_WFJWDrawer();
+			break;
+			
 		case GS_DEMOSCREEN:
 			D_PageDrawer(pagename);
 		case GS_NULL:
@@ -638,10 +643,10 @@ void D_DoomLoop(void)
 			D_Display();
 			supdate = false;
 		}
-		else if (gamestate == GS_DEMOSCREEN || rendertimeout < entertic)	// in case the server hang or netsplit
+		else if (gamestate == GS_DEMOSCREEN || gamestate == GS_WAITFORJOINWINDOW || rendertimeout < entertic)	// in case the server hang or netsplit
 		{
 			l_FPSRanFPS++;
-			if (gamestate == GS_DEMOSCREEN)
+			if (gamestate == GS_DEMOSCREEN || gamestate == GS_WAITFORJOINWINDOW)
 				l_FPSPanic = false;	// Don't panic on titlescreen!
 			D_Display();
 		}
@@ -781,6 +786,31 @@ void D_WaitingPlayersDrawer(void)
 				310 - sw, y
 			);
 	}
+	
+	/* Draw Mouse */
+	CONL_DrawMouse();
+#undef BUFSIZE
+}
+
+/* D_WFJWDrawer() -- Waiting for join window */
+void D_WFJWDrawer(void)
+{
+#define BUFSIZE 32
+	char Buf[BUFSIZE];
+	static V_Image_t* BGImage;
+	int32_t i, y, ya, sw;
+	
+	/* Draw a nice picture */
+	// Load it first
+	if (!BGImage)
+		BGImage = V_ImageFindA("RMD_LLOA", VCP_DOOM);
+	
+	// Draw it
+	V_ImageDraw(0, BGImage, 0, 0, NULL);
+	
+	/* Draw Text */
+	// Notice
+	V_DrawStringA(VFONT_LARGE, 0, DS_GetString(DSTR_WFJW_TITLE), 10, 10);
 	
 	/* Draw Mouse */
 	CONL_DrawMouse();
