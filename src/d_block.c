@@ -557,9 +557,15 @@ bool_t DS_RBSNet_NetPlayF(struct D_BS_s* const a_Stream, I_HostAddress_t* const 
 *** PERFECT STREAM ***
 *********************/
 
-#define PERFECTKEYEXPIRETIME			300000	// Time until key expires (in MS, 5min)
-#define PERFECTRETRANSTIME				1000	// If no ack recieved, retransmit (1s)
-#define PERFECTMAXRETRIES				150		// Max before key revocation (1s * 150 = 150s/2.5m)
+#if defined(__REMOOD_WELIKEBEINGDOSED)
+	#define PERFECTKEYEXPIRETIME		300000	// Time until key expires (in MS, 5min)
+	#define PERFECTRETRANSTIME			1000	// If no ack recieved, retransmit (1s)
+	#define PERFECTMAXRETRIES			150		// Max before key revocation (1s * 150 = 150s/2.5m)
+#else
+	#define PERFECTKEYEXPIRETIME		30000	// Time until key expires (in MS, 5min)
+	#define PERFECTRETRANSTIME			2000	// If no ack recieved, retransmit (1s)
+	#define PERFECTMAXRETRIES			15		// Max before key revocation (2s * 150 = 150s/2.5m)
+#endif
 
 /* DS_RBSPerfectKey_t -- Key for perfect entry */
 typedef struct DS_RBSPerfectKey_s
