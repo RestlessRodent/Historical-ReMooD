@@ -104,6 +104,8 @@ D_BS_t* D_BSCreateWLStream(WL_EntryStream_t* const a_Stream);
 D_BS_t* D_BSCreateFileStream(const char* const a_PathName, const uint32_t a_Flags);
 D_BS_t* D_BSCreateNetStream(I_NetSocket_t* const a_NetSocket);
 D_BS_t* D_BSCreatePerfectStream(D_BS_t* const a_Wrapped);
+D_BS_t* D_BSCreateReliableStream(D_BS_t* const a_Wrapped);
+
 void D_BSCloseStream(D_BS_t* const a_Stream);
 
 void __REMOOD_DEPRECATED D_BSStatStream(D_BS_t* const a_Stream, uint32_t* const a_ReadBk, uint32_t* const a_WriteBk, uint32_t* const a_ReadBy, uint32_t* const a_WriteBy);

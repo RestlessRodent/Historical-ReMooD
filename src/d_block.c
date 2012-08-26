@@ -1643,6 +1643,12 @@ D_BS_t* D_BSCreatePerfectStream(D_BS_t* const a_Wrapped)
 	return New;
 }
 
+/* D_BSCreateReliableStream() -- Creates a reliable stream */
+D_BS_t* D_BSCreateReliableStream(D_BS_t* const a_Wrapped)
+{
+	return NULL;
+}
+
 /* D_BSCloseStream() -- Closes File Stream */
 void D_BSCloseStream(D_BS_t* const a_Stream)
 {
