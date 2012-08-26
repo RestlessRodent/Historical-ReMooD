@@ -88,7 +88,7 @@ typedef struct D_BS_s
 	bool_t (*NetPlayF)(struct D_BS_s* const a_Stream, I_HostAddress_t* const a_Host);
 	
 	void (*DeleteF)(struct D_BS_s* const a_Stream);
-	bool_t (*IOCtlF)(struct D_BS_s* const a_Stream, const D_BSStreamIOCtl_t a_IOCtl, int32_t* a_DataP);
+	bool_t (*IOCtlF)(struct D_BS_s* const a_Stream, const D_BSStreamIOCtl_t a_IOCtl, intptr_t* a_DataP);
 	
 	/* Stream Stat */
 	uint32_t StatBlock[2];						// Block stats
@@ -112,7 +112,7 @@ void __REMOOD_DEPRECATED D_BSStatStream(D_BS_t* const a_Stream, uint32_t* const 
 void __REMOOD_DEPRECATED D_BSUnStatStream(D_BS_t* const a_Stream);
 bool_t __REMOOD_DEPRECATED D_BSMarkedStream(D_BS_t* const a_Stream);
 
-bool_t D_BSStreamIOCtl(D_BS_t* const a_Stream, const D_BSStreamIOCtl_t a_IOCtl, int32_t* a_DataP);
+bool_t D_BSStreamIOCtl(D_BS_t* const a_Stream, const D_BSStreamIOCtl_t a_IOCtl, intptr_t* a_DataP);
 
 bool_t D_BSCompareHeader(const char* const a_A, const char* const a_B);
 bool_t D_BSBaseBlock(D_BS_t* const a_Stream, const char* const a_Header);

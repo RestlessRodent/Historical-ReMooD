@@ -1493,7 +1493,7 @@ static bool_t DS_RBSPerfect_FlushF(struct D_BS_s* const a_Stream)
 }
 
 /* DS_RBSPerfect_IOCtlF() -- IOCtl Controller */
-bool_t DS_RBSPerfect_IOCtlF(struct D_BS_s* const a_Stream, const D_BSStreamIOCtl_t a_IOCtl, int32_t* a_DataP)
+bool_t DS_RBSPerfect_IOCtlF(struct D_BS_s* const a_Stream, const D_BSStreamIOCtl_t a_IOCtl, intptr_t* a_DataP)
 {
 	/* Which IOCTL now? */
 	switch (a_IOCtl)
@@ -1507,6 +1507,47 @@ bool_t DS_RBSPerfect_IOCtlF(struct D_BS_s* const a_Stream, const D_BSStreamIOCtl
 		default:
 			return false;
 	}
+}
+
+
+/**********************
+*** RELIABLE STREAM ***
+*********************/
+
+/* DS_RBSReliableData_t -- Reliable transport stream data */
+typedef struct DS_RBSReliableData_s
+{
+	bool_t Debug;								// Debug Enabled
+	D_BS_t* WrapStream;							// Stream being wrapped
+} DS_RBSReliableData_t;
+
+/* DS_RBSReliable_FlushF() -- Flushes stream */
+bool_t DS_RBSReliable_FlushF(struct D_BS_s* const a_Stream)
+{
+	return false;
+}
+
+/* DS_RBSReliable_NetRecordF() -- Records to stream */
+size_t DS_RBSReliable_NetRecordF(struct D_BS_s* const a_Stream, I_HostAddress_t* const a_Host)
+{
+	return 0;
+}
+
+/* DS_RBSReliable_NetPlayF() -- Plays from stream */
+bool_t DS_RBSReliable_NetPlayF(struct D_BS_s* const a_Stream, I_HostAddress_t* const a_Host)
+{
+	return false;
+}
+
+/* DS_RBSReliable_DeleteF() -- Deletes stream */
+void DS_RBSReliable_DeleteF(struct D_BS_s* const a_Stream)
+{
+}
+
+/* DS_RBSReliable_IOCtlF() -- Advanced I/O Control */
+bool_t DS_RBSReliable_IOCtlF(struct D_BS_s* const a_Stream, const D_BSStreamIOCtl_t a_IOCtl, intptr_t* a_DataP)
+{
+	return false;
 }
 
 /****************
@@ -1646,7 +1687,33 @@ D_BS_t* D_BSCreatePerfectStream(D_BS_t* const a_Wrapped)
 /* D_BSCreateReliableStream() -- Creates a reliable stream */
 D_BS_t* D_BSCreateReliableStream(D_BS_t* const a_Wrapped)
 {
-	return NULL;
+	D_BS_t* New;
+	DS_RBSReliableData_t* Data;
+	
+	/* Check */
+	if (!a_Wrapped)
+		return NULL;
+	
+	/* Create block stream */
+	New = Z_Malloc(sizeof(*New), PU_BLOCKSTREAM, NULL);
+	
+	/* Setup Data */
+	New->Data = Data = Z_Malloc(sizeof(*Data), PU_BLOCKSTREAM, NULL);
+	New->NetRecordF = DS_RBSReliable_NetRecordF;
+	New->NetPlayF = DS_RBSReliable_NetPlayF;
+	New->FlushF = DS_RBSReliable_FlushF;
+	New->DeleteF = DS_RBSReliable_DeleteF;
+	New->IOCtlF = DS_RBSReliable_IOCtlF;
+	
+	// Load stuff into data
+	Data->WrapStream = a_Wrapped;
+	
+	// Debug?
+	if (M_CheckParm("-reliabledev"))
+		Data->Debug = true;
+	
+	/* Return Stream */
+	return New;
 }
 
 /* D_BSCloseStream() -- Closes File Stream */
@@ -1665,7 +1732,7 @@ void D_BSCloseStream(D_BS_t* const a_Stream)
 }
 
 /* D_BSStreamIOCtl() -- Call special IOCtl Handler on stream */
-bool_t D_BSStreamIOCtl(D_BS_t* const a_Stream, const D_BSStreamIOCtl_t a_IOCtl, int32_t* a_DataP)
+bool_t D_BSStreamIOCtl(D_BS_t* const a_Stream, const D_BSStreamIOCtl_t a_IOCtl, intptr_t* a_DataP)
 {
 	/* Check */
 	if (!a_Stream || !a_DataP || a_IOCtl < 0 || a_IOCtl >= NUMDRBSSTREAMIOCTL)
