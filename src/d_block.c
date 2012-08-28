@@ -434,6 +434,7 @@ typedef struct I_RBSNetSockData_s
 #define IRBSNETSOCKBUFSIZE 2048
 	I_NetSocket_t* Socket;						// Socket
 	uint8_t ReadBuf[IRBSNETSOCKBUFSIZE];		// Read Buffer Fill
+	uint8_t WriteBuf[IRBSNETSOCKBUFSIZE];		// Output Buffer Fill
 } I_RBSNetSockData_t;
 
 /* DS_RBSNet_DeleteF() -- Delete network stream */
@@ -460,8 +461,9 @@ size_t DS_RBSNet_NetRecordF(struct D_BS_s* const a_Stream, I_HostAddress_t* cons
 {
 	I_RBSNetSockData_t* NetData;
 	I_NetSocket_t* Socket;
-	size_t RetVal, sz, i;
+	size_t RetVal, sz, i, ChunkSize;
 	uint8_t* TBuf = NULL;
+	uint32_t lenSize;
 	
 	/* Check */
 	if (!a_Stream)
@@ -475,17 +477,25 @@ size_t DS_RBSNet_NetRecordF(struct D_BS_s* const a_Stream, I_HostAddress_t* cons
 	
 	/* Get socket */
 	Socket = NetData->Socket;
+	ChunkSize = a_Stream->BlkSize;
+	
+	if (ChunkSize > IRBSNETSOCKBUFSIZE - 16)
+		ChunkSize = IRBSNETSOCKBUFSIZE - 16;
 	
 	/* Create temporary buffer for sending */
-	sz = 4 + 4 + a_Stream->BlkSize;
-	TBuf = Z_Malloc(sz, PU_BLOCKSTREAM, NULL);//alloca(sz);
+	sz = 4 + 4 + ChunkSize;
+	
+	//TBuf = Z_Malloc(sz, PU_BLOCKSTREAM, NULL);//alloca(sz);
+	memset(NetData->WriteBuf, 0, sizeof(NetData->WriteBuf));
+	TBuf = NetData->WriteBuf;
 	
 	// Write to it
 		// Header
 	for (i = 0; i < 4; i++)
 		TBuf[i] = a_Stream->BlkHeader[i];
-	((uint32_t*)TBuf)[1] = LittleSwapUInt32((uint32_t)a_Stream->BlkSize);
-	memmove(&(((uint32_t*)TBuf)[2]), a_Stream->BlkData, a_Stream->BlkSize);
+	lenSize = LittleSwapUInt32((uint32_t)ChunkSize);
+	memmove(&(((uint32_t*)TBuf)[1]), &lenSize, sizeof(lenSize));
+	memmove(&(((uint32_t*)TBuf)[2]), a_Stream->BlkData, ChunkSize);
 	
 	/* Send the entire buffer */
 	// Sending 4 different packets alone could cause fragmentation and out of
@@ -494,7 +504,7 @@ size_t DS_RBSNet_NetRecordF(struct D_BS_s* const a_Stream, I_HostAddress_t* cons
 	RetVal = I_NetSend(Socket, a_Host, TBuf, sz);
 	
 	/* Clean up and return */
-	Z_Free(TBuf);
+	//Z_Free(TBuf);
 	return RetVal;
 }
 
@@ -551,6 +561,27 @@ bool_t DS_RBSNet_NetPlayF(struct D_BS_s* const a_Stream, I_HostAddress_t* const 
 	
 	/* Was played back */
 	return true;
+}
+
+/* DS_RBSNet_IOCtlF() -- IO Ctl */
+static bool_t DS_RBSNet_IOCtlF(struct D_BS_s* const a_Stream, const D_BSStreamIOCtl_t a_IOCtl, intptr_t* a_DataP)
+{
+	/* Check */
+	if (!a_DataP)
+		return false;
+	
+	/* Which? */
+	switch (a_IOCtl)
+	{
+			// Maximum transport
+		case DRBSIOCTL_MAXTRANSPORT:
+			*a_DataP = IRBSNETSOCKBUFSIZE - 16;
+			return true;
+			
+			// Unknown
+		default:
+			return false;
+	}
 }
 
 /*********************
@@ -1644,6 +1675,7 @@ D_BS_t* D_BSCreateNetStream(I_NetSocket_t* const a_NetSocket)
 	New->NetRecordF = DS_RBSNet_NetRecordF;
 	New->NetPlayF = DS_RBSNet_NetPlayF;
 	New->DeleteF = DS_RBSNet_DeleteF;
+	New->IOCtlF = DS_RBSNet_IOCtlF;
 	
 	/* Load into data */
 	NetData->Socket = a_NetSocket;

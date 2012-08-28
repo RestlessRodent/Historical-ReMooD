@@ -56,6 +56,7 @@ typedef enum D_BSStreamFlags_s
 typedef enum D_BSStreamIOCtl_e
 {
 	DRBSIOCTL_ISPERFECT,						// Read: Is perfect?
+	DRBSIOCTL_MAXTRANSPORT,						// Read/Write: Max transport size
 	
 	NUMDRBSSTREAMIOCTL
 } D_BSStreamIOCtl_t;
