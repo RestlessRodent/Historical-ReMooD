@@ -2022,6 +2022,17 @@ bool_t D_BSFlushStream(D_BS_t* const a_Stream)
 	return false;
 }
 
+/* D_BSRewind() -- Rewinds the selected stream */
+void D_BSRewind(D_BS_t* const a_Stream)
+{
+	/* Check */
+	if (!a_Stream)
+		return;
+	
+	/* Reset read position */
+	a_Stream->ReadOff = 0;
+}
+
 /* D_BSWriteChunk() -- Write data chunk into block */
 size_t D_BSWriteChunk(D_BS_t* const a_Stream, const void* const a_Data, const size_t a_Size)
 {

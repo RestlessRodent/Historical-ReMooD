@@ -675,7 +675,7 @@ bool_t D_CheckNetGame(void)
 	Client->CoreStream = D_BSCreateLoopBackStream();
 	
 	// Create perfection Wrapper
-	Client->PerfectStream = D_BSCreatePerfectStream(Client->CoreStream);
+	Client->PerfectStream = D_BSCreateReliableStream(Client->CoreStream);
 	
 	// Set read/writes for all streams
 	Client->Streams[DNCSP_READ] = Client->CoreStream;
@@ -711,7 +711,7 @@ bool_t D_CheckNetGame(void)
 			Client->CoreStream = D_BSCreateNetStream(Client->NetSock);
 		
 			// Create encapsulated perfect stream
-			Client->PerfectStream = D_BSCreatePerfectStream(Client->CoreStream);
+			Client->PerfectStream = D_BSCreateReliableStream(Client->CoreStream);
 	
 			// Set read/writes for all streams
 			Client->Streams[DNCSP_READ] = Client->CoreStream;

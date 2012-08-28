@@ -126,6 +126,7 @@ bool_t D_BSPlayNetBlock(D_BS_t* const a_Stream, char* const a_Header, I_HostAddr
 void D_BSRecordNetBlock(D_BS_t* const a_Stream, I_HostAddress_t* const a_Host);
 
 bool_t D_BSFlushStream(D_BS_t* const a_Stream);
+void D_BSRewind(D_BS_t* const a_Stream);
 
 size_t D_BSWriteChunk(D_BS_t* const a_Stream, const void* const a_Data, const size_t a_Size);
 
