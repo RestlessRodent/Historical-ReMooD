@@ -94,6 +94,14 @@ typedef enum D_NCStreamPath_e
 	NUMDNCSTREAMS
 } D_NCStreamPath_t;
 
+/* D_LastConsistData_t -- Last Consistency Data of last tic */
+typedef struct D_LastConsistData_s
+{
+	tic_t GameTic;								// Tic Ran
+	uint8_t PrIndex;							// P_Random() Index
+	uint32_t PosMask;							// Position Mask
+} D_LastConsistData_t;
+
 /* D_NetClient_t -- Network Client */
 typedef struct D_NetClient_s
 {
@@ -120,6 +128,10 @@ typedef struct D_NetClient_s
 	uint32_t Key[MAXCONNKEYSIZE];				// Connection Key
 	uint32_t GenKey[MAXCONNKEYSIZE];			// Generated Server-Side Key
 	uint32_t ReadyTimeout;						// Time until must be ready
+	
+	D_LastConsistData_t Consist;				// Consistency
+	uint64_t ProgramTic;						// Last recieved program tic
+	tic_t GameTic;								// Client Gametic
 } D_NetClient_t;
 
 typedef void (*D_NCQCFunc_t)(void* const a_Data);
@@ -128,6 +140,7 @@ typedef void (*D_NCQCFunc_t)(void* const a_Data);
 
 extern uint32_t g_NetStat[4];					// Network stats
 extern tic_t g_LastServerTic;					// Last Server Tic
+extern D_LastConsistData_t g_LastConsist;		// Last consistency
 
 /*** FUNCTIONS ***/
 

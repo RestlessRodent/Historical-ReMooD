@@ -150,6 +150,7 @@ typedef enum D_DiffBits_e
 	DDB_BAM							= 0x0040,	// Base aiming changes
 	DDB_RESETAIM					= 0x0080,	// Aim is reset
 	DDB_ANGLE						= 0x0100,	// Angle changes
+	DDB_INVENTORY					= 0x0200,	// Inventory Control
 } D_DiffBits_t;
 
 extern const int32_t c_TCDataSize[NUMDTCT];

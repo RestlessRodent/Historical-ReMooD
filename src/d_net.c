@@ -220,6 +220,7 @@ typedef struct D_NetQueueCommand_s
 
 uint32_t g_NetStat[4] = {0, 0, 0, 0};			// Network stats
 tic_t g_LastServerTic = 0;						// Server's Last tic
+D_LastConsistData_t g_LastConsist = {0, 0, 0};	// Last consistency
 
 /*** LOCALS ***/
 
@@ -1414,6 +1415,8 @@ bool_t D_NCMH_TICS(struct D_NCMessageData_s* const a_Data)
 			Target->Std.buttons = D_BSru16(Stream);
 		if (DiffBits & DDB_RESETAIM)
 			Target->Std.ResetAim = D_BSru8(Stream);
+		if (DiffBits & DDB_INVENTORY)
+			Target->Std.InventoryBits = D_BSru8(Stream);
 		
 		if (DiffBits & DDB_WEAPON)
 		{
@@ -1440,6 +1443,111 @@ bool_t D_NCMH_TICS(struct D_NCMessageData_s* const a_Data)
 	}
 	
 	/* No more handling */
+	return true;
+}
+
+/* D_NCMH_TCMD() -- Tic Command */
+bool_t D_NCMH_TCMD(struct D_NCMessageData_s* const a_Data)
+{
+	D_NetClient_t* ServerNC;
+	D_BS_t* Stream;
+	int SplitScreen, i, Player;
+	ticcmd_t* WriteTo;
+	ticcmd_t Garbage;
+	uint64_t ProgramTic;
+	tic_t GameTic;
+	
+	/* Get server client */
+	ServerNC = D_NCFindClientIsServer();
+	
+	// We are not the server?
+	if (!ServerNC->IsLocal)
+		return true;
+	
+	/* Remote client is not ready */
+	if (!a_Data->RCl->ReadyToPlay || !a_Data->RCl->SaveGameSent)
+		return true;
+	
+	/* Get Stream */
+	Stream = a_Data->InStream;
+	
+	/* Read Timing Data */
+	GameTic = D_BSru64(Stream);
+	ProgramTic = D_BSru64(Stream);
+	
+	// Older tic?
+	if (ProgramTic <= a_Data->RCl->ProgramTic)
+		return true;
+	
+	a_Data->RCl->GameTic = GameTic;
+	a_Data->RCl->ProgramTic = ProgramTic;
+	a_Data->RCl->Consist.GameTic = D_BSru64(Stream);
+	a_Data->RCl->Consist.PrIndex = D_BSru8(Stream);
+	a_Data->RCl->Consist.PosMask = D_BSru32(Stream);
+	
+	/* Read Split Count */
+	SplitScreen = D_BSri8(Stream);
+	
+	/* Read input commands */
+	for (i = 0; i < SplitScreen + 1; i++)
+	{
+		// Something not here?
+		if (!D_BSru8(Stream))
+			continue;
+		
+		// Read player to control
+		Player = D_BSru8(Stream);
+		
+		// Check control of player
+		if (Player >= 0 && Player < MAXPLAYERS && players[Player].NetPlayer &&
+			players[Player].NetPlayer->NetClient == a_Data->RCl &&
+			players[Player].NetPlayer->TicTotal < MAXDNETTICCMDCOUNT - 1)
+			WriteTo = &players[Player].NetPlayer->TicCmd[players[Player].NetPlayer->TicTotal = 1];
+		else
+			WriteTo = &Garbage;
+		
+		// Read Stuff
+		WriteTo->Std.forwardmove = D_BSri8(Stream);
+		WriteTo->Std.sidemove = D_BSri8(Stream);
+		WriteTo->Std.angleturn = D_BSri16(Stream);
+		WriteTo->Std.aiming = D_BSru16(Stream);
+		WriteTo->Std.buttons = D_BSru16(Stream);
+		WriteTo->Std.BaseAngleTurn = D_BSri16(Stream);
+		WriteTo->Std.BaseAiming = D_BSri16(Stream);
+		WriteTo->Std.InventoryBits = D_BSru8(Stream);
+		WriteTo->Std.ResetAim = D_BSru8(Stream);
+		D_BSrs(Stream, WriteTo->Std.XSNewWeapon, MAXTCWEAPNAME);
+	}
+
+#ifdef iaudiuasdn
+
+			memmove(a_TicCmd, &NetPlayer->TicCmd[0], sizeof(*a_TicCmd));
+			memmove(&NetPlayer->TicCmd[0], &NetPlayer->TicCmd[1], sizeof(ticcmd_t) * (MAXDNETTICCMDCOUNT - 1));
+			NetPlayer->TicTotal--;
+			
+		// Current Time Codes
+		D_BSwu64(Stream, gametic);
+		D_BSwu64(Stream, g_ProgramTic);
+		
+		// Consistency Double-Check (the kicking part)
+		D_BSwu64(Stream, g_LastConsist.GameTic);
+		D_BSwu8(Stream, g_LastConsist.PrIndex);
+		D_BSwu32(Stream, g_LastConsist.PosMask);
+		
+			D_BSwu8(Stream, 1);
+			D_BSwu8(Stream, consoleplayer[i]);
+		
+			D_BSwi8(Stream, InTic->Std.forwardmove);
+			D_BSwi8(Stream, InTic->Std.sidemove);
+			D_BSwi16(Stream, InTic->Std.angleturn);
+			D_BSwu16(Stream, InTic->Std.aiming);
+			D_BSwu16(Stream, InTic->Std.buttons);
+			D_BSwi16(Stream, InTic->Std.BaseAngleTurn);
+			D_BSwi16(Stream, InTic->Std.BaseAiming);
+			D_BSwu8(Stream, InTic->Std.InventoryBits);
+#endif	
+
+	/* Done handling */
 	return true;
 }
 
@@ -1585,6 +1693,10 @@ bool_t D_NCMH_PLAY(struct D_NCMessageData_s* const a_Data)
 	if (ServerNC->IsLocal)
 		return true;
 	
+	// Server already ready?
+	if (ServerNC->ReadyToPlay)
+		return true;
+	
 	/* Get Stream */
 	Stream = a_Data->InStream;
 	
@@ -1634,6 +1746,9 @@ bool_t D_NCMH_PLAY(struct D_NCMessageData_s* const a_Data)
 		D_BSwu32(Stream, l_ConnectKey[i]);
 	}
 	D_BSRecordNetBlock(Stream, &ServerNC->Address);
+	
+	// Set ready
+	ServerNC->ReadyToPlay = true;
 	
 	/* Done processing */
 	return true;
@@ -1685,6 +1800,7 @@ static const D_NCMessageType_t c_NCMessageCodes[] =
 {
 	{1, {0}, "JOIN", D_NCMH_JOIN, DNCMF_PERFECT | DNCMF_SERVER | DNCMF_CLIENT | DNCMF_HOST | DNCMF_REMOTECL},
 	{1, {0}, "TICS", D_NCMH_TICS, DNCMF_PERFECT | DNCMF_SERVER | DNCMF_REMOTECL},
+	{1, {0}, "TCMD", D_NCMH_TCMD, DNCMF_PERFECT | DNCMF_CLIENT | DNCMF_HOST},
 	{1, {0}, "CONN", D_NCMH_CONN, DNCMF_PERFECT | DNCMF_CLIENT | DNCMF_HOST},
 	{1, {0}, "PLAY", D_NCMH_PLAY, DNCMF_PERFECT | DNCMF_SERVER | DNCMF_REMOTECL},
 	{1, {0}, "REDY", D_NCMH_REDY, DNCMF_PERFECT | DNCMF_CLIENT | DNCMF_HOST},
@@ -1717,6 +1833,11 @@ void D_LoadNetTic(void)
 	
 	// Random Index
 	PrIndex = P_GetRandIndex();
+	
+	// Load into consistency info
+	g_LastConsist.GameTic = gametic;
+	g_LastConsist.PrIndex = PrIndex;
+	g_LastConsist.PosMask = PosMask;
 
 	/* Find it, copy it, delete it */
 	for (i = 0; i < l_NetTicBufSize; i++)
@@ -1779,6 +1900,17 @@ void D_NetXMitCmds(void)
 	
 	ticcmd_t* Old, *New;
 	
+	/* Get Server */
+	ServerNC = D_NCFindClientIsServer();
+	
+	// No server?
+	if (!ServerNC)
+		return;
+	
+	/* Not the server */
+	if (!ServerNC->IsLocal)
+		return;
+	
 	/* Clear output buffer */
 	memset(OutBuf, 0, sizeof(BUFSIZE));
 	p = OutBuf;
@@ -1834,6 +1966,8 @@ void D_NetXMitCmds(void)
 			DiffBits |= DDB_BAM;
 		if (New->Std.ResetAim)
 			DiffBits |= DDB_RESETAIM;
+		if (New->Std.InventoryBits)
+			DiffBits |= DDB_INVENTORY;
 #else
 		if (Old->Std.forwardmove != New->Std.forwardmove)
 			DiffBits |= DDB_FORWARD;
@@ -1871,6 +2005,8 @@ void D_NetXMitCmds(void)
 			LittleWriteUInt16((uint16_t**)&p, New->Std.buttons);
 		if (DiffBits & DDB_RESETAIM)
 			WriteUInt8((uint8_t**)&p, New->Std.ResetAim);
+		if (DiffBits & DDB_INVENTORY)
+			WriteUInt8((uint8_t**)&p, New->Std.InventoryBits);
 		
 		if (DiffBits & DDB_WEAPON)
 		{
@@ -2012,10 +2148,16 @@ void D_NetReadTicCmd(ticcmd_t* const a_TicCmd, const int a_Player)
 		// Tic waiting for us?
 		if (NetPlayer->TicTotal > 0)
 		{
+#if 0
+			D_NCSNetMergeTics(a_TicCmd, NetPlayer->TicCmd, NetPlayer->TicTotal);
+			memset(NetPlayer->TicCmd, 0, sizeof(NetPlayer->TicCmd));
+			NetPlayer->TicTotal = 0;
+#else
 			// Copy and splice down tic
 			memmove(a_TicCmd, &NetPlayer->TicCmd[0], sizeof(*a_TicCmd));
 			memmove(&NetPlayer->TicCmd[0], &NetPlayer->TicCmd[1], sizeof(ticcmd_t) * (MAXDNETTICCMDCOUNT - 1));
 			NetPlayer->TicTotal--;
+#endif
 			
 			// Copy into last good
 			memmove(&NetPlayer->LastGoodTic, a_TicCmd, sizeof(*a_TicCmd));
@@ -2046,10 +2188,13 @@ void D_NetReadTicCmd(ticcmd_t* const a_TicCmd, const int a_Player)
 /* D_NetWriteTicCmd() -- Write tic commands to network */
 void D_NetWriteTicCmd(ticcmd_t* const a_TicCmd, const int a_Player)
 {
-	int nc;
+	int nc, i;
 	D_NetClient_t* ServerNC;
 	D_NetClient_t* NetClient;
 	D_BS_t* Stream;
+	static tic_t LastGT;
+	ticcmd_t* InTic;
+	D_NetPlayer_t* NetPlayer;
 	
 	/* Get server client */
 	ServerNC = D_NCFindClientIsServer();
@@ -2058,18 +2203,91 @@ void D_NetWriteTicCmd(ticcmd_t* const a_TicCmd, const int a_Player)
 	if (!ServerNC)
 		return;
 	
-	// Non-Local?
-	if (!ServerNC->IsLocal)
-		return;
+	/* We are the server */
+	if (ServerNC->IsLocal)
+	{	
+		// Write in store
+		memmove(&l_StoreCmds[0][a_Player], a_TicCmd, sizeof(ticcmd_t));
+	}
+	
+	/* We are the client */
+	// This is a bit hacky here, but it can work
+	else
+	{
+		// No local players?
+		if (g_SplitScreen <= -1)
+			return;
 		
-	/* Write in global store */
-	memmove(&l_StoreCmds[0][a_Player], a_TicCmd, sizeof(ticcmd_t));
+		// Game tic not changed?
+		if (gametic == LastGT)
+			return;
+		
+		// Set changed
+		LastGT = gametic;
+			
+		// Use server stream
+		Stream = ServerNC->Streams[DNCSP_PERFECTWRITE];
+			
+		// Build packet
+		D_BSBaseBlock(Stream, "TCMD");
+		
+		// Current Time Codes
+		D_BSwu64(Stream, gametic);
+		D_BSwu64(Stream, g_ProgramTic);
+		
+		// Consistency Double-Check (the kicking part)
+		D_BSwu64(Stream, g_LastConsist.GameTic);
+		D_BSwu8(Stream, g_LastConsist.PrIndex);
+		D_BSwu32(Stream, g_LastConsist.PosMask);
+		
+		// Send stuff for all our local players
+		D_BSwi8(Stream, g_SplitScreen);
+		for (i = 0; i < g_SplitScreen + 1; i++)
+		{
+			// Get net player
+			NetPlayer = players[consoleplayer[i]].NetPlayer;
+			
+			// Does not exist? No tics in buffer?
+			if (!NetPlayer || (NetPlayer && !NetPlayer->TicTotal))
+			{
+				D_BSwu8(Stream, 0);
+				continue;
+			}
+			
+			// Write Marker
+			D_BSwu8(Stream, 1);
+			D_BSwu8(Stream, consoleplayer[i]);
+			
+			// Get tic to send
+			InTic = &NetPlayer->TicCmd[0];
+			
+			// Send Tic Data
+			D_BSwi8(Stream, InTic->Std.forwardmove);
+			D_BSwi8(Stream, InTic->Std.sidemove);
+			D_BSwi16(Stream, InTic->Std.angleturn);
+			D_BSwu16(Stream, InTic->Std.aiming);
+			D_BSwu16(Stream, InTic->Std.buttons);
+			D_BSwi16(Stream, InTic->Std.BaseAngleTurn);
+			D_BSwi16(Stream, InTic->Std.BaseAiming);
+			D_BSwu8(Stream, InTic->Std.InventoryBits);
+			D_BSwu8(Stream, InTic->Std.ResetAim);
+			D_BSws(Stream, InTic->Std.XSNewWeapon);
+			
+			// Delete Command
+			NetPlayer->TicTotal = 0;
+			memset(InTic, 0, sizeof(InTic));
+		}
+		
+		// Send
+		D_BSRecordNetBlock(Stream, &ServerNC->Address);
+	}
 }
 
 /* D_NCUpdate() -- Update all networking stuff */
 void D_NCUpdate(void)
 {
-	int32_t nc, IsPerf, tN;
+	int32_t nc, tN;
+	intptr_t IsPerf;
 	char Header[5];
 	I_HostAddress_t FromAddress;
 	D_NetClient_t* NetClient, *RemoteClient;
@@ -2113,7 +2331,7 @@ void D_NCUpdate(void)
 		{
 			// Debug
 			if (devparm)
-				CONL_PrintF("Read \"%s\"\n", Header);
+				;//CONL_PrintF("Read \"%s\"\n", Header);
 			
 			// Find the remote client that initiated this message
 			// If they aren't in the client chain then this returns NULL.
@@ -2237,157 +2455,6 @@ void D_NCDrawer(void)
 	}
 }
 
-/* D_NCMH_LocalPlayerRJ() -- Player wants to join game */
-bool_t D_NCMH_LocalPlayerRJ(struct D_NCMessageData_s* const a_Data)
-{
-	char UUID[MAXPLAYERNAME * 2];
-	char AccountName[MAXPLAYERNAME];
-	char DisplayName[MAXPLAYERNAME];
-	uint8_t Color, Bot, Bits;
-	int32_t i, PlCount, FreeSlot;
-	uint32_t ProcessID;
-	D_BS_t* Stream;
-	
-	/* Check */
-	if (!a_Data)
-		return false;
-	
-	/* Remote player is neither ready nor got a save game sent to them */
-	if (!a_Data->RCl->ReadyToPlay || !a_Data->RCl->SaveGameSent)
-		return false;
-	
-	/* Get their input stream */
-	Stream = a_Data->InStream;
-	
-	/* Read Message Data */
-	D_BSrs(Stream, UUID, MAXPLAYERNAME * 2);
-	D_BSrs(Stream, AccountName, MAXPLAYERNAME);
-	D_BSrs(Stream, DisplayName, MAXPLAYERNAME);
-	Color = D_BSru8(Stream);
-	Bot = D_BSru8(Stream);
-	
-	/* Disallow non-server from adding bots */
-	if (Bot && !a_Data->RCl->IsServer)
-		return true;
-	
-	/* If not adding a bot, don't exceed non-bot arbs */
-	if (!Bot)
-	{
-		PlCount = 0;
-		for (i = 0; i < a_Data->RCl->NumArbs; i++)
-			if (a_Data->RCl->Arbs[i]->Type == DNPT_LOCAL ||
-				a_Data->RCl->Arbs[i]->Type == DNPT_NETWORK)
-				PlCount++;
-	
-		// Exceeds max permitted splitscreen count?
-		if (PlCount >= MAXSPLITSCREEN)
-			return true;
-	}
-	
-	/* Find free player slot */
-	FreeSlot = -1;
-	for (i = 0; i < MAXPLAYERS; i++)
-		if (!playeringame[i])
-		{
-			FreeSlot = i;
-			break;
-		}
-	
-	// No slot found (too many players inside)
-	if (FreeSlot == -1)
-		return true;
-	
-	/* Appears that the join is OK, so join em in! */
-	// Create process ID for them (this is so the server doesn't add it's own
-	// local player twice for each listener, since multiple NetClients can point
-	// to the same place.)
-	ProcessID = Z_Hash(UUID) ^ Z_Hash(AccountName) ^ Z_Hash(DisplayName);
-	
-	// Modify bits some more (to hopefully prevent process ID attacks)
-		// Also someone could add the same profile over again (multiple guests)
-	for (i = 0; i < 31; i += 3)
-	{
-		// Generate Random Junk
-		Bits = (((int)(M_Random())) + ((int)I_GetTime() * (int)I_GetTime()));
-		
-		// XOR it in
-		ProcessID ^= ((uint32_t)Bits) << i;
-	}
-	
-	/* Send command to all clients */
-	for (i = 0; i < l_NumClients; i++)
-	{
-		// Missing?
-		if (!l_Clients[i])
-			continue;
-		
-		// Write message to them (perfect output)
-		Stream = l_Clients[i]->Streams[DNCSP_PERFECTWRITE];
-		
-		// Base
-		D_BSBaseBlock(Stream, "PJOK");
-		
-		// Data
-		D_BSwu32(Stream, ProcessID);
-		D_BSwu8(Stream, FreeSlot);
-		D_BSwu8(Stream, Bot);
-		D_BSws(Stream, UUID);
-		D_BSws(Stream, AccountName);
-		D_BSws(Stream, DisplayName);
-		D_BSwu8(Stream, Color);
-		
-		// Send away
-		D_BSRecordNetBlock(Stream, &l_Clients[i]->Address);
-	}
-	
-	/* Don't handle again */
-	return true;
-}
-
-/* D_NCMH_PlayerJoinOK() -- Player joins the game */
-bool_t D_NCMH_PlayerJoinOK(struct D_NCMessageData_s* const a_Data)
-{
-	char UUID[MAXPLAYERNAME * 2];
-	char AccountName[MAXPLAYERNAME];
-	char DisplayName[MAXPLAYERNAME];
-	uint8_t Color, Bot;
-	int32_t FreeSlot;
-	uint32_t ProcessID;
-	D_NetPlayer_t* NetPlayer;
-	
-	/* Check */
-	if (!a_Data)
-		return false;
-		
-	/* Read packet data */
-	ProcessID = D_BSru32(a_Data->InStream);
-	FreeSlot = D_BSru8(a_Data->InStream);
-	Bot = D_BSru8(a_Data->InStream);
-	D_BSrs(a_Data->InStream, UUID, MAXPLAYERNAME * 2);
-	D_BSrs(a_Data->InStream, AccountName, MAXPLAYERNAME);
-	D_BSrs(a_Data->InStream, DisplayName, MAXPLAYERNAME);
-	Color = D_BSru8(a_Data->InStream);
-	
-	// Cap off strings (to prevent any string based attacks)
-	AccountName[MAXPLAYERNAME - 1] = 0;
-	DisplayName[MAXPLAYERNAME - 1] = 0;
-	
-	/* See if this process ID was already selected */
-	NetPlayer = D_NCSFindNetPlayerByProcess(ProcessID);
-	
-	// It is there already?
-	if (NetPlayer)
-		return true;
-	
-	/* Enqueue an add player command into the tic stream */
-	// This is saved into demos by any encoder that can handle them. So you can
-	// say record Legacy demos with this method. Demos also read it directly
-	// and do not handle packet types at all (abstraction).
-	
-	/* Don't handle again */
-	return true;
-}
-
 /*****************************************************************************/
 
 /*** NCSR FUNCTIONS ***/
@@ -2452,349 +2519,8 @@ void D_NCSR_RequestMap(const char* const a_Map)
 	}
 }
 
-/* D_NCSR_RequestNewPlayer() -- Requests that a local profile join remote server */
-void D_NCSR_RequestNewPlayer(struct D_ProfileEx_s* a_Profile)
-{
-	D_NetClient_t* Server;
-	D_BS_t* Stream;
-	
-	/* Check */
-	if (!a_Profile)
-		return;
-	
-	/* Find Server */
-	Server = D_NCFindClientIsServer();
-	
-	// Not found?
-	if (!Server)
-		return;
-	
-	/* Tell server to add player */
-	// Use server stream
-	Stream = Server->Streams[DNCSP_PERFECTWRITE];
-	
-	// Put Data
-	D_BSBaseBlock(Stream, "LPRJ");
-	D_BSws(Stream, a_Profile->UUID);
-	D_BSwu32(Stream, a_Profile->InstanceID);
-	D_BSws(Stream, a_Profile->AccountName);
-	D_BSws(Stream, a_Profile->DisplayName);
-	D_BSwu8(Stream, a_Profile->Color);
-	D_BSRecordNetBlock(Stream, &Server->Address);
-	
-	// Debug
-	if (devparm)
-		CONL_PrintF("Request Sent!\n");
-}
-
-/* D_NCSR_RequestWAD() -- Request WAD from server */
-void D_NCSR_RequestWAD(const char* const a_WADSum)
-{
-	/* Check */
-	if (!a_WADSum)
-		return;
-}
-
-/* D_NCSR_RequestServerWADs() -- Request the server send WAD Info */
-void D_NCSR_RequestServerWADs(void)
-{
-}
-
-/* D_NCSR_SendServerReady() -- Tell server we are ready */
-void D_NCSR_SendServerReady(void)
-{
-	D_NetClient_t* Server;
-	D_BS_t* Stream;
-	
-	/* Find Server */
-	Server = D_NCFindClientIsServer();
-	
-	// Not found?
-	if (!Server)
-		return;
-	
-	/* Tell server to add player */
-	// Use server stream
-	Stream = Server->Streams[DNCSP_PERFECTWRITE];
-	
-	// Put Data
-	D_BSBaseBlock(Stream, "REDY");
-	D_BSRecordNetBlock(Stream, &Server->Address);
-}
-
 /* D_NCSR_SendLoadingStatus() -- Tell the server we are loading something */
 void D_NCSR_SendLoadingStatus(const int32_t a_MajIs, const int32_t a_MajOf, const int32_t a_MinIs, const int32_t a_MinOf)
 {
 }
-
-/*** NCHE FUNCTIONS ***/
-
-/* D_NCHE_ServerCreatePlayer() -- Server creates player */
-void D_NCHE_ServerCreatePlayer(const size_t a_pNum, struct D_NetPlayer_s* const a_NetPlayer, struct D_ProfileEx_s* const a_Profile, D_NetClient_t* const a_NetClient)
-{
-	size_t i, j;
-	D_NetClient_t* Server;
-	player_t* DoomPlayer;
-	
-	/* Create Player Locally */
-	DoomPlayer = G_AddPlayer(a_pNum);
-	DoomPlayer->NetPlayer = a_NetPlayer;
-	DoomPlayer->ProfileEx = a_Profile;
-	a_Profile->NetPlayer = a_NetPlayer;
-	a_NetPlayer->Player = DoomPlayer;
-	a_NetPlayer->Profile = a_Profile;
-	G_InitPlayer(DoomPlayer);
-	
-	/* See if we are the server */
-	Server = D_NCFindClientIsServer();
-	
-	// Not found?
-	if (!Server)
-		return;
-	
-	// Check split screen
-		// If we are the server
-		// If this is the local client
-	if (a_NetClient == Server || a_NetClient->IsLocal)
-	{
-		for (j = 0; j < MAXSPLITSCREEN; j++)
-			if (!g_PlayerInSplit[j])
-			{
-				g_PlayerInSplit[j] = true;
-				consoleplayer[j] = displayplayer[j] = a_pNum;
-				
-				g_SplitScreen = j;
-				R_ExecuteSetViewSize();
-				break;
-			}
-	}
-	
-	// Inform everyone else if we are the server
-	if (Server->IsLocal)
-	{
-		for (i = 0; i < l_NumClients; i++)
-			if (l_Clients[i])
-				if (!l_Clients[i]->IsLocal)
-				{
-				
-				}
-	}
-}
-
-/*** NSZZ FUNCTIONS ***/
-
-/* D_NSZZ_SendINFO() -- Send server info */
-void D_NSZZ_SendINFO(struct D_BS_s* a_Stream, const uint32_t a_LocalTime)
-{
-	const WL_WADFile_t* Rover;
-	uint8_t u8;
-	
-	/* Write Version */
-	D_BSwu8(a_Stream, VERSION);
-	D_BSwu8(a_Stream, REMOOD_MAJORVERSION);
-	D_BSwu8(a_Stream, REMOOD_MINORVERSION);
-	D_BSwu8(a_Stream, REMOOD_RELEASEVERSION);
-	D_BSws(a_Stream, REMOOD_VERSIONCODESTRING);
-	
-	/* Write Time Info */
-	D_BSwu32(a_Stream, a_LocalTime);
-	D_BSwu32(a_Stream, time(NULL));
-	D_BSwu32(a_Stream, D_SyncNetMapTime());
-	D_BSwu32(a_Stream, 0);
-	
-	/* Write Server Name */
-	D_BSws(a_Stream, l_SVName.Value->String);
-	D_BSws(a_Stream, l_SVEMail.Value->String);
-	D_BSws(a_Stream, l_SVURL.Value->String);
-	D_BSws(a_Stream, l_SVWADURL.Value->String);
-	D_BSws(a_Stream, l_SVIRC.Value->String);
-	
-	/* Passwords */
-	// Connect Password
-	u8 = '-';
-	if (strlen(l_SVConnectPassword.Value->String) > 0)
-		u8 = 'P';
-	D_BSwu8(a_Stream, u8);
-	
-	// Join Password
-	u8 = '-';
-	if (strlen(l_SVJoinPassword.Value->String) > 0)
-		u8 = 'J';
-	D_BSwu8(a_Stream, u8);
-	
-	/* Write WAD Info */
-	for (Rover = WL_IterateVWAD(NULL, true); Rover; Rover = WL_IterateVWAD(Rover, true))
-	{
-		// Write start
-		D_BSwu8(a_Stream, 'W');
-		
-		// TODO: Optional WAD
-		D_BSwu8(a_Stream, 'R');
-		
-		// Write Names for WAD (DOS and Base)
-		D_BSws(a_Stream, WL_GetWADName(Rover, false));
-		D_BSws(a_Stream, WL_GetWADName(Rover, true));
-		
-		// Write File Sums
-		D_BSws(a_Stream, Rover->SimpleSumChars);
-		D_BSws(a_Stream, Rover->CheckSumChars);
-	}
-	
-	// End List
-	D_BSwu8(a_Stream, 'X');
-	
-	/* Level Name */
-	switch (gamestate)
-	{
-			// In Game
-		case GS_LEVEL:
-			D_BSws(a_Stream, (g_CurrentLevelInfo ? g_CurrentLevelInfo->LumpName : "<UNKNOWN"));
-			break;
-			
-			// Non-Games
-		case GS_INTERMISSION: D_BSws(a_Stream, "<INTERMISSION>"); break;
-		case GS_FINALE: D_BSws(a_Stream, "<STORY>"); break;
-		case GS_DEMOSCREEN: D_BSws(a_Stream, "<TITLESCREEN>"); break;
-			
-			// Unknown
-		default:
-			D_BSws(a_Stream, "<UNKNOWN>");
-			break;
-	}
-}
-
-/* D_NSZZ_SendINFX() -- Extended Info */
-// This sends all variables
-bool_t D_NSZZ_SendINFX(struct D_BS_s* a_Stream, size_t* const a_It)
-{
-	size_t EndIt;
-	P_XGSVariable_t* XVar;
-	
-	/* Get End */
-	EndIt = *a_It + 5;
-	
-	/* Loop */
-	for (; *a_It < EndIt && *a_It < PEXGSNUMBITIDS; (*a_It)++)
-	{
-		// Write Marker
-		D_BSwu8(a_Stream, 'V');
-		
-		// Get Var
-		XVar = P_XGSVarForBit(*a_It);
-		
-		if (!XVar)
-			continue;
-		
-		// Write Name and value
-		D_BSws(a_Stream, XVar->Name);
-		D_BSwu32(a_Stream, (XVar->WasSet ? XVar->ActualVal : XVar->DefaultVal));
-	}
-	
-	/* End */
-	D_BSwu8(a_Stream, 'E');
-	
-	/* More variables available? */
-	if (*a_It < PEXGSNUMBITIDS)
-		return true;
-	return false;
-}
-
-/* D_NSZZ_SendMOTD() -- Send Message Of The Day */
-void D_NSZZ_SendMOTD(struct D_BS_s* a_Stream)
-{
-	D_BSws(a_Stream, l_SVMOTD.Value->String);
-}
-
-/* D_NSZZ_SendFullWADS() -- Send WADs of Server */
-void D_NSZZ_SendFullWADS(struct D_BS_s* a_Stream, I_HostAddress_t* const a_Host)
-{
-	const WL_WADFile_t* Rover;
-	int i;
-	
-	/* Block */
-	D_BSBaseBlock(a_Stream, "WADS");
-	
-	/* Write WAD Info */
-	for (i = 0, Rover = WL_IterateVWAD(NULL, true); Rover; Rover = WL_IterateVWAD(Rover, true), i++)
-	{
-		// Write start
-		D_BSwu8(a_Stream, 'W');
-		
-		// ReMooD.WAD is name matched only
-		if (i == 1)
-			D_BSwu8(a_Stream, 'N');
-		else
-			// TODO: Optional WADs
-			D_BSwu8(a_Stream, 'R');
-		
-		// Write Names for WAD (DOS and Base)
-		D_BSws(a_Stream, WL_GetWADName(Rover, false));
-		D_BSws(a_Stream, WL_GetWADName(Rover, true));
-		
-		// Write File Sums
-		D_BSws(a_Stream, Rover->SimpleSumChars);
-		D_BSws(a_Stream, Rover->CheckSumChars);
-	}
-	
-	// End List
-	D_BSwu8(a_Stream, 'X');
-	
-	/* Record it */
-	D_BSRecordNetBlock(a_Stream, a_Host);
-}
-
-/* D_NCHE_SendSaveGame() -- Send savegame to client */
-void D_NCHE_SendSaveGame(D_NetClient_t* const a_Client)
-{
-	struct D_BS_s* Stream;
-	
-	/* Check */
-	if (!a_Client)
-		return;
-	
-	/* Set Info */
-	Stream = a_Client->Streams[DNCSP_PERFECTWRITE];
-	
-	/* Send Start */
-	D_BSBaseBlock(Stream, "SAVE");
-	D_BSRecordNetBlock(Stream, &a_Client->Address);
-	
-	/* Send Save */
-	P_SaveGameToBS(Stream, &a_Client->Address);
-	
-	/* Send End */
-	D_BSBaseBlock(Stream, "SAVX");
-	D_BSRecordNetBlock(Stream, &a_Client->Address);
-}
-
-/*** NCQC FUNCTIONS ***/
-
-/* D_NCQC_MapChange() -- Change Map */
-void D_NCQC_MapChange(void* const a_Data)
-{
-	char* MapName;
-	P_LevelInfoEx_t* Info;
-	
-	/* Check */
-	if (!a_Data)
-		return;
-	
-	/* Get Map */
-	MapName = (char*)a_Data;
-	
-	/* Switch to that level */
-	// Try finding the level
-	Info = P_FindLevelByNameEx(MapName, NULL);
-	
-	// Load the level
-	if (!Info)
-		CONL_PrintF("NET: Could not find level.\n");
-	else
-		if (!P_ExLoadLevel(Info, 0))
-			CONL_PrintF("NET: Could not load level.\n");
-	
-	/* Free string (was Z_StrDup) */
-	Z_Free(a_Data);
-}
-
 

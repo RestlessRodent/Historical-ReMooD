@@ -960,11 +960,11 @@ void R_SetupFrame(player_t* player)
 			aimingangle = player->aiming;
 			viewangle = viewmobj->angle + viewangleoffset;
 			
-#if 0
+#if 1
 			if (!demoplayback && player->playerstate != PST_DEAD)
 			{
-				for (i = 0; i < MAXSPLITSCREENPLAYERS; i++)
-					if (playeringame[consoleplayer[i]] && player == &players[consoleplayer[i]])
+				for (i = 0; i < g_SplitScreen + 1; i++)
+					if (playeringame[consoleplayer[i]] && player == &players[consoleplayer[i]] && consoleplayer[i] == displayplayer[i])
 					{
 						viewangle = localangle[i];
 						aimingangle = localaiming[i];

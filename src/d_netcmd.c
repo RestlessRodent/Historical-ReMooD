@@ -1245,12 +1245,16 @@ void D_NCSNetTicTransmit(D_NetPlayer_t* const a_NPp, ticcmd_t* const a_TicCmd)
 	ticcmd_t* DestTic;
 	ticcmd_t Merge;
 	I_EventEx_t OSKEvent;
+	D_NetClient_t* Server;
+	D_BS_t* Stream;
+	int32_t PNum;
 	
 	/* Check */
 	if (!a_NPp || !a_TicCmd)
 		return;
 	
 	/* Determine Local Screen */
+	PNum = (a_NPp->Player - players);
 	for (SID = 0; SID < MAXSPLITSCREEN; SID++)
 		if (g_PlayerInSplit[SID] && (a_NPp->Player - players) == consoleplayer[SID])
 			break;
@@ -1287,52 +1291,47 @@ void D_NCSNetTicTransmit(D_NetPlayer_t* const a_NPp, ticcmd_t* const a_TicCmd)
 	// if the OSK is visible do not transmit
 		// TODO FIXME
 	
-	/* Remote Game */
-	if (!D_SyncNetIsSolo())
+	// Get Server
+	Server = D_NCFindClientIsServer();
+	
+	// Add local command to end
+	a_NPp->TicCmd[a_NPp->TicTotal++] = *a_TicCmd;
+	
+	// Merge it All
+	memset(&Merge, 0, sizeof(Merge));
+	D_NCSNetMergeTics(&Merge, a_NPp->TicCmd, a_NPp->TicTotal);
+	
+	// Set local view angle
+	if (SID < MAXSPLITSCREEN)
+		if (!a_NPp->Player || (a_NPp->Player && a_NPp->Player->mo && !a_NPp->Player->mo->reactiontime))
+		{
+			// Absolute Angles
+			if (P_XGSVal(PGS_COABSOLUTEANGLE))
+			{
+				localangle[SID] += Merge.Std.BaseAngleTurn << 16;
+				Merge.Std.angleturn = localangle[SID] >> 16;
+			}
+			
+			// Doom Angles
+			else
+				Merge.Std.angleturn = Merge.Std.BaseAngleTurn;
+		}
+	
+	// Set local aiming angle
+	if (SID < MAXSPLITSCREEN)
 	{
+		if (Merge.Std.ResetAim)
+			localaiming[SID] = 0;
+		else
+			localaiming[SID] += Merge.Std.BaseAiming << 16;
+		Merge.Std.aiming = G_ClipAimingPitch(&localaiming[SID]);
+		//Merge.aiming = localaiming[SID] >> 16;
 	}
 	
-	/* Local Game */
-	else
-	{
-		// Add local command to end
-		a_NPp->TicCmd[a_NPp->TicTotal++] = *a_TicCmd;
-		
-		// Merge it All
-		memset(&Merge, 0, sizeof(Merge));
-		D_NCSNetMergeTics(&Merge, a_NPp->TicCmd, a_NPp->TicTotal);
-		
-		// Set local view angle
-		if (SID < MAXSPLITSCREEN)
-			if (!a_NPp->Player || (a_NPp->Player && a_NPp->Player->mo && !a_NPp->Player->mo->reactiontime))
-			{
-				// Absolute Angles
-				if (P_XGSVal(PGS_COABSOLUTEANGLE))
-				{
-					localangle[SID] += Merge.Std.BaseAngleTurn << 16;
-					Merge.Std.angleturn = localangle[SID] >> 16;
-				}
-				
-				// Doom Angles
-				else
-					Merge.Std.angleturn = Merge.Std.BaseAngleTurn;
-			}
-		
-		// Set local aiming angle
-		if (SID < MAXSPLITSCREEN)
-		{
-			if (Merge.Std.ResetAim)
-				localaiming[SID] = 0;
-			else
-				localaiming[SID] += Merge.Std.BaseAiming << 16;
-			Merge.Std.aiming = G_ClipAimingPitch(&localaiming[SID]);
-			//Merge.aiming = localaiming[SID] >> 16;
-		}
-		
-		// Only use this tic (single player game)
-		a_NPp->TicCmd[0] = Merge;
-		a_NPp->TicTotal = 1;
-	}
+	// Only use this tic (single player game)
+	a_NPp->TicCmd[0] = Merge;
+	a_NPp->TicTotal = 1;
+	a_NPp->XMitCount++;
 }
 
 /* D_NCSNetMergeTics() -- Merges all tic commands */

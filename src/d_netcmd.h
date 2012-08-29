@@ -97,6 +97,7 @@ typedef struct D_NetPlayer_s
 	// Sync
 	int TicTotal;								// Total number of tic commands
 	ticcmd_t TicCmd[MAXDNETTICCMDCOUNT];		// Tic Command to execute
+	tic_t TicGameTime;							// Last tic in game time (client)
 	int LocalTicTotal;							// Number of local tics
 	ticcmd_t LastGoodTic;						// Last good player tics
 	ticcmd_t LocalTicCmd[MAXDNETTICCMDCOUNT];	// Local Tic Commands
@@ -104,6 +105,9 @@ typedef struct D_NetPlayer_s
 	char DisplayName[MAXPLAYERNAME];			// Name to show in network games
 	D_NetState_t NetState;						// Current network state
 	D_NetClient_t* NetClient;					// Network Client
+	D_LastConsistData_t Consist;				// Consistency
+	uint32_t ProgramTic;						// Last recieved program tic
+	int32_t XMitCount;							// Transmit Count
 	
 	// Desync
 	
