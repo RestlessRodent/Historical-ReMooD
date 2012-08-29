@@ -1312,10 +1312,11 @@ bool_t D_NCMH_TICS(struct D_NCMessageData_s* const a_Data)
 	uint64_t GameTic;
 	D_BS_t* Stream;
 	D_NetTicData_t* Data;
-	int i, Blank;
+	int i, j, Blank;
+	ticcmd_t* Target;
 	
 	uint8_t u8;
-	uint16_t u16, BufSize;
+	uint16_t u16, BufSize, DiffBits;
 	
 	/* Ignore any tic commands from the local server */
 	//if (a_Data->NetClient->IsLocal)
@@ -1361,21 +1362,70 @@ bool_t D_NCMH_TICS(struct D_NCMessageData_s* const a_Data)
 	// Tic buffer size
 	BufSize = D_BSru16(Stream);
 	
-	// Read global commands
+	/* Read global commands */
 	Data->Data[MAXPLAYERS].Type = 1;
 	u16 = D_BSru16(Stream);
 	if (u16)
-	{
-		g_WatchTic = GameTic;
-		CONL_PrintF(">> %i\n", u16);
 		Data->Data[MAXPLAYERS].Ext.DataSize = u16;
-	}
 	
 	for (i = 0; i < u16; i++)
 	{
 		u8 = D_BSru8(Stream);
 		if (i < MAXTCDATABUF)
 			Data->Data[MAXPLAYERS].Ext.DataBuf[i] = u8;
+	}
+	
+	/* Per-Player Commands */
+	for (i = 0; i < MAXPLAYERS; i++)
+	{
+		// Determine target
+		Target = &Data->Data[i];
+		
+		// Get playeringame status
+		u8 = D_BSru8(Stream);
+		
+		// Not in game, don't bother
+		if (!u8)
+			continue;
+		
+		// Read Diff Bits
+		DiffBits = D_BSru16(Stream);
+		
+		if (DiffBits & DDB_FORWARD)
+			Target->Std.forwardmove = D_BSri8(Stream);
+		if (DiffBits & DDB_SIDE)
+			Target->Std.sidemove = D_BSri8(Stream);
+		if (DiffBits & DDB_ANGLE)
+			Target->Std.angleturn = D_BSri16(Stream);
+		if (DiffBits & DDB_AIMING)
+			Target->Std.aiming = D_BSru16(Stream);
+		if (DiffBits & DDB_BUTTONS)
+			Target->Std.buttons = D_BSru16(Stream);
+		if (DiffBits & DDB_RESETAIM)
+			Target->Std.ResetAim = D_BSru8(Stream);
+		
+		if (DiffBits & DDB_WEAPON)
+		{
+			j = 0;
+			do
+			{
+				u8 = D_BSru8(Stream);
+				if (j < MAXTCWEAPNAME)
+					Target->Std.XSNewWeapon[j++] = u8;
+			} while (u8);
+		}
+		
+		// Data bits
+		u16 = D_BSru16(Stream);
+		if (u16)
+			Target->Std.DataSize = u16;
+
+		for (j = 0; j < u16; j++)
+		{
+			u8 = D_BSru8(Stream);
+			if (i < MAXTCDATABUF)
+				Target->Std.DataBuf[j] = u8;
+		}
 	}
 	
 	/* No more handling */
