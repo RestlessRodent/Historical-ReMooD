@@ -1274,7 +1274,7 @@ bool_t D_NCMH_TICS(struct D_NCMessageData_s* const a_Data)
 	int i, Blank;
 	
 	uint8_t u8;
-	uint16_t u16;
+	uint16_t u16, BufSize;
 	
 	/* Ignore any tic commands from the local server */
 	if (a_Data->NetClient->IsLocal)
@@ -1317,19 +1317,28 @@ bool_t D_NCMH_TICS(struct D_NCMessageData_s* const a_Data)
 	// Set current tic
 	Data->RunAt = GameTic;
 	
+	// Tic buffer size
+	BufSize = D_BSru16(Stream);
+	CONL_PrintF(">> %i\n", BufSize);
+	
 	// Read global commands
 	Data->Data[MAXPLAYERS].Type = 1;
 	u16 = D_BSru16(Stream);
 	
+	if (u16)
+		CONL_PrintF(">>");
 	for (i = 0; i < u16; i++)
 	{
 		u8 = D_BSru8(Stream);
 		if (i < MAXTCDATABUF)
 		{
+			CONL_PrintF("%c", (isalnum(u8) ? u8 : '?'));
 			Data->Data[MAXPLAYERS].Ext.DataSize = i;
 			Data->Data[MAXPLAYERS].Ext.DataBuf[i] = u8;
 		}
 	}
+	if (u16)
+		CONL_PrintF("<<\n");
 	
 	/* No more handling */
 	return true;
@@ -1498,9 +1507,9 @@ bool_t D_NCMH_PLAY(struct D_NCMessageData_s* const a_Data)
 // c_NCMessageCodes -- Local messages
 static const D_NCMessageType_t c_NCMessageCodes[] =
 {
-	{1, {0}, "JOIN", D_NCMH_JOIN, DNCMF_PERFECT | DNCMF_SERVER | DNCMF_HOST | DNCMF_REMOTECL},
+	{1, {0}, "JOIN", D_NCMH_JOIN, DNCMF_PERFECT | DNCMF_SERVER | DNCMF_CLIENT | DNCMF_HOST | DNCMF_REMOTECL},
 	{1, {0}, "TICS", D_NCMH_TICS, DNCMF_PERFECT | DNCMF_SERVER | DNCMF_REMOTECL},
-	{1, {0}, "CONN", D_NCMH_CONN, DNCMF_PERFECT | DNCMF_SERVER | DNCMF_HOST},
+	{1, {0}, "CONN", D_NCMH_CONN, DNCMF_PERFECT | DNCMF_CLIENT | DNCMF_HOST},
 	{1, {0}, "PLAY", D_NCMH_PLAY, DNCMF_PERFECT | DNCMF_SERVER | DNCMF_REMOTECL},
 	
 	//{1, {0}, "LPRJ", D_NCMH_LocalPlayerRJ, DNCMF_PERFECT | DNCMF_SERVER | DNCMF_HOST | DNCMF_REMOTECL},
@@ -1895,7 +1904,9 @@ void D_NCUpdate(void)
 			IsPerf = 0;
 			D_BSStreamIOCtl(PIn, DRBSIOCTL_ISPERFECT, &IsPerf);
 				// From Server
-			IsServ = NetClient->IsServer;
+			IsServ = false;
+			if (RemoteClient)
+				IsServ = RemoteClient->IsServer;
 				// From Client
 			IsClient = !IsServ;
 				// We are the host
@@ -1904,6 +1915,10 @@ void D_NCUpdate(void)
 			// Go through head table
 			for (tN = 0; c_NCMessageCodes[tN].Valid; tN++)
 			{
+				// Wrong header packet?
+				if (!D_BSCompareHeader(c_NCMessageCodes[tN].Header, Header))
+					continue;
+				
 				// Perfect but not set?
 				/*if (IsPerf && !(c_NCMessageCodes[tN].Flags & DNCMF_PERFECT))
 					continue;*/
