@@ -602,6 +602,8 @@ void GS_HandleExtraCommands(ticcmd_t* const a_TicCmd, const int32_t a_PlayerNum)
 	} while (Command != 0);
 }
 
+extern tic_t g_WatchTic;
+
 //
 // G_Ticker
 // Make ticcmd_ts for the players.
@@ -613,6 +615,9 @@ void G_Ticker(void)
 	ticcmd_t* cmd;
 	tic_t ThisTime;
 	ticcmd_t GlobalCmd;
+	
+	//for (i = 0; i == 0 && (gametic == g_WatchTic);)
+		;
 	
 	// GhostlyDeath <May 13, 2012> -- Run Commands
 	D_NCRunCommands();

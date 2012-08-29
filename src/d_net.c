@@ -488,7 +488,7 @@ D_NetClient_t* D_NCFindClientByID(const uint32_t a_ID)
 	int i;
 	
 	/* Obtain server */
-	Server = D_NCFindClientIsServer;
+	Server = D_NCFindClientIsServer();
 	
 	/* Go through all clients to find the match */
 	for (i = 0; i < l_NumClients; i++)
@@ -1304,6 +1304,8 @@ bool_t D_NCMH_JOIN(struct D_NCMessageData_s* const a_Data)
 	return true;
 }
 
+tic_t g_WatchTic = 0;
+
 /* D_NCMH_TICS() -- Recieved player tics */
 bool_t D_NCMH_TICS(struct D_NCMessageData_s* const a_Data)
 {
@@ -1363,16 +1365,17 @@ bool_t D_NCMH_TICS(struct D_NCMessageData_s* const a_Data)
 	Data->Data[MAXPLAYERS].Type = 1;
 	u16 = D_BSru16(Stream);
 	if (u16)
+	{
+		g_WatchTic = GameTic;
 		CONL_PrintF(">> %i\n", u16);
+		Data->Data[MAXPLAYERS].Ext.DataSize = u16;
+	}
 	
 	for (i = 0; i < u16; i++)
 	{
 		u8 = D_BSru8(Stream);
 		if (i < MAXTCDATABUF)
-		{
-			Data->Data[MAXPLAYERS].Ext.DataSize = i;
 			Data->Data[MAXPLAYERS].Ext.DataBuf[i] = u8;
-		}
 	}
 	
 	/* No more handling */
@@ -1393,6 +1396,10 @@ bool_t D_NCMH_CONN(struct D_NCMessageData_s* const a_Data)
 	
 	/* Get server client */
 	ServerNC = D_NCFindClientIsServer();
+	
+	// No server?
+	if (!ServerNC)
+		return true;
 	
 	// Not the server?
 	if (!ServerNC->IsLocal)
