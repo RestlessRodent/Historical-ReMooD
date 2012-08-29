@@ -1812,7 +1812,7 @@ bool_t DS_RBSReliable_FlushF(struct D_BS_s* const a_Stream)
 					D_BSwu32(RelData->WrapStream, 0xDEADBEEFU);
 					D_BSwu32(RelData->WrapStream, 0xDEADBEEFU);
 					
-					D_BSRecordBlock(RelData->WrapStream);
+					D_BSRecordNetBlock(RelData->WrapStream, &CurFlat->Address);
 					D_BSFlushStream(RelData->WrapStream);
 					break;
 					
