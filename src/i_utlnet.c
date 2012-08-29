@@ -196,6 +196,44 @@ struct I_NetSocket_s
 
 /*** COMMUNICATION ***/
 
+/* I_NetHashHost() -- Hashes a host */
+uint32_t I_NetHashHost(const I_HostAddress_t* const a_Host)
+{
+	register int i;
+	uint32_t HashVal;
+	
+	/* Check */
+	if (!a_Host)
+		return 0;
+	
+	/* Init */
+	HashVal = 0;
+	
+	/* Hash it */
+	// IPv4
+	if (a_Host->IPvX == INIPVN_IPV4)
+	{
+		HashVal = a_Host->Host.v4.u;
+		HashVal ^= ((uint32_t)a_Host->Port) << 16U;
+	}
+	
+	// IPv6
+	else if (a_Host->IPvX == INIPVN_IPV6)
+	{
+		for (i = 0; i < 16; i++)
+			HashVal ^= ((uint32_t)a_Host->Host.v6.b[i]) << ((i & 3) * 8);
+		HashVal ^= ((uint32_t)a_Host->Port) << 16U;
+	}
+	
+	// Unknown
+	else
+	{
+	}
+	
+	/* Return hash result */
+	return HashVal;
+}
+
 /* I_NetCompareHost() -- Returns true if the hosts are the same */
 bool_t I_NetCompareHost(const I_HostAddress_t* const a_A, const I_HostAddress_t* const a_B)
 {

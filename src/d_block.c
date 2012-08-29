@@ -1545,40 +1545,255 @@ bool_t DS_RBSPerfect_IOCtlF(struct D_BS_s* const a_Stream, const D_BSStreamIOCtl
 *** RELIABLE STREAM ***
 *********************/
 
+#define RBSMAXRELIABLEKEEP				128		// Max reliable keeps
+
+/* DS_ReliablePk_t -- Reliable packet */
+typedef struct DS_ReliablePk_s
+{
+	uint32_t Key;								// Key for packet
+	char Header[5];								// Data Header
+	uintptr_t Size;								// Data Size
+	void* Data;									// Actual Data
+} DS_ReliablePk_t;
+
+/* DS_ReliableFlat_t -- Reliable storage area */
+typedef struct DS_ReliableFlat_s
+{
+	uint32_t HostHash;							// Hash of host
+	I_HostAddress_t Address;					// Address of host
+	D_BS_t* outStore;							// Loopback storage (sent data)
+	DS_ReliablePk_t OutPks[RBSMAXRELIABLEKEEP];	// Output packets
+	//uint32_t KeepKeys[RBSMAXRELIABLEKEEP];	// Maximum Keep keys
+	uint64_t GoCount;							// Go count (sent stuff)
+	D_BS_t* inStore;							// Input storage
+	uint64_t LastTime[2];						// Last IO time (stale connection)
+} DS_ReliableFlat_t;
+
 /* DS_RBSReliableData_t -- Reliable transport stream data */
 typedef struct DS_RBSReliableData_s
 {
+	D_BS_t* Self;								// Self
 	bool_t Debug;								// Debug Enabled
 	D_BS_t* WrapStream;							// Stream being wrapped
+	uint32_t TransSize;							// Transport Size
+	bool_t IsPerf;								// Is perfect
+	
+	DS_ReliableFlat_t** Flats;					// Flats (per-host data)
+	size_t NumFlats;							// Number of flats
+	uint32_t RR;						// Round rover
 } DS_RBSReliableData_t;
+
+/* DS_RBSReliable_FlatByHost() -- Get flat by host address */
+static DS_ReliableFlat_t* DS_RBSReliable_FlatByHost(DS_RBSReliableData_t* const a_Data, const I_HostAddress_t* const a_Address, const bool_t a_Create)
+{
+	uint32_t CurHash;
+	DS_ReliableFlat_t* CurFlat;
+	register int i;
+	
+	/* Hash current address */
+	CurHash = I_NetHashHost(a_Address);
+	
+	/* Go through data entries */
+	for (i = 0; i < a_Data->NumFlats; i++)
+	{
+		// Get current
+		CurFlat = a_Data->Flats[i];
+		
+		// Check
+		if (!CurFlat)
+			continue;
+		
+		// Compare hash
+		if (CurHash == CurFlat->HostHash)
+			if (I_NetCompareHost(a_Address, &CurFlat->Address))
+				return CurFlat;
+	}
+	
+	/* Create it if wanted */
+	if (a_Create)
+	{
+		// Find blank spot
+		for (i = 0; i < a_Data->NumFlats; i++)
+			if (!a_Data->Flats[i])
+				break;
+		
+		// No room?
+		if (i >= a_Data->NumFlats)
+		{
+			Z_ResizeArray((void**)&a_Data->Flats, sizeof(*a_Data->Flats),
+				a_Data->NumFlats, a_Data->NumFlats + 1);
+			i = a_Data->NumFlats++;
+		}
+		
+		// Create
+		a_Data->Flats[i] = CurFlat = Z_Malloc(sizeof(*CurFlat), PU_STATIC, NULL);
+		
+		// Setup
+		CurFlat->HostHash = CurHash;
+		memmove(&CurFlat->Address, a_Address, sizeof(I_HostAddress_t));
+		CurFlat->outStore = D_BSCreateLoopBackStream();
+		CurFlat->inStore = D_BSCreateLoopBackStream();
+		
+		// Return it
+		return CurFlat;	
+	}
+	
+	/* Do nothing */
+	else
+		return NULL;
+}
 
 /* DS_RBSReliable_FlushF() -- Flushes stream */
 bool_t DS_RBSReliable_FlushF(struct D_BS_s* const a_Stream)
 {
+	DS_RBSReliableData_t* RelData;
+	
+	/* Get Data */
+	RelData = a_Stream->Data;
+	
+	// Check
+	if (!RelData)
+		return false;
+	
 	return false;
 }
 
 /* DS_RBSReliable_NetRecordF() -- Records to stream */
 size_t DS_RBSReliable_NetRecordF(struct D_BS_s* const a_Stream, I_HostAddress_t* const a_Host)
 {
-	return 0;
+	DS_RBSReliableData_t* RelData;
+	DS_ReliableFlat_t* Flat;
+	
+	/* Get Data */
+	RelData = a_Stream->Data;
+	
+	// Check
+	if (!RelData)
+		return 0;
+	
+	/* Get flat for address */
+	Flat = DS_RBSReliable_FlatByHost(RelData, a_Host, true);
+	
+	// Not found? Whoops!
+	if (!Flat)
+		return 0;
+	
+	/* Write to output queue, stuff to be done, eventually... */
+	D_BSBaseBlock(Flat->outStore, a_Stream->BlkHeader);
+	
+	// Write entire data chunk
+	D_BSWriteChunk(Flat->outStore, a_Stream->BlkData, a_Stream->BlkSize);
+	
+	// Record it
+	D_BSRecordBlock(Flat->outStore);
+	
+	// Flush it
+	D_BSFlushStream(Flat->outStore);
+	
+	/* Always successful */
+	return a_Stream->BlkSize;
 }
 
 /* DS_RBSReliable_NetPlayF() -- Plays from stream */
 bool_t DS_RBSReliable_NetPlayF(struct D_BS_s* const a_Stream, I_HostAddress_t* const a_Host)
 {
+	DS_RBSReliableData_t* RelData;
+	uint32_t Stop;
+	bool_t Blipped;
+	DS_ReliableFlat_t* CurFlat;
+	char Header[5];
+	
+	/* Get Data */
+	RelData = a_Stream->Data;
+	
+	// Check
+	if (!RelData)
+		return false;
+	
+	/* No communications performed, ever */
+	if (!RelData->NumFlats)
+		return false;
+	
+	/* Setup stop point */
+	Stop = RelData->RR % RelData->NumFlats;
+	memset(Header, 0, sizeof(Header));
+	
+	/* Go through all the rounds */
+	Blipped = false;
+	for (RelData->RR = RelData->RR % RelData->NumFlats;
+			!Blipped || (Blipped && Stop != RelData->RR);
+			RelData->RR = (RelData->RR + 1) % RelData->NumFlats, Blipped = true)
+	{
+		// Get current flat
+		CurFlat = RelData->Flats[RelData->RR];
+		
+		// Nothing here?
+		if (!CurFlat)
+			continue;
+		
+		// Try playing back something
+		if (D_BSPlayBlock(CurFlat->inStore, Header))
+		{
+			// Current base
+			D_BSBaseBlock(a_Stream, Header);
+			
+			// Write chunk, the entire lo data
+			D_BSWriteChunk(a_Stream, CurFlat->inStore->BlkData, CurFlat->inStore->BlkSize);
+			
+			// Copy Address
+			memmove(a_Host, &CurFlat->Address, sizeof(I_HostAddress_t));
+			
+			// Something was played, so return
+			return true;
+		}
+	}
+	
+	/* Nothing was played back */
 	return false;
 }
 
 /* DS_RBSReliable_DeleteF() -- Deletes stream */
 void DS_RBSReliable_DeleteF(struct D_BS_s* const a_Stream)
 {
+	DS_RBSReliableData_t* RelData;
+	
+	/* Get Data */
+	RelData = a_Stream->Data;
+	
+	// Check
+	if (!RelData)
+		return;
 }
 
 /* DS_RBSReliable_IOCtlF() -- Advanced I/O Control */
 bool_t DS_RBSReliable_IOCtlF(struct D_BS_s* const a_Stream, const D_BSStreamIOCtl_t a_IOCtl, intptr_t* a_DataP)
 {
-	return false;
+	DS_RBSReliableData_t* RelData;
+	
+	/* Get Data */
+	RelData = a_Stream->Data;
+	
+	// Check
+	if (!RelData)
+		return false;
+	
+	/* Which IOCtl? */
+	switch (a_IOCtl)
+	{
+			// Perfect Packet
+		case DRBSIOCTL_ISPERFECT:
+			*a_DataP = RelData->IsPerf;
+			return true;
+			
+			// Max supported transport
+		case DRBSIOCTL_MAXTRANSPORT:
+			*a_DataP = RelData->TransSize - 32;
+			return true;
+			
+			// Unknown
+		default:
+			return false;
+	}
 }
 
 /****************
@@ -1721,6 +1936,7 @@ D_BS_t* D_BSCreateReliableStream(D_BS_t* const a_Wrapped)
 {
 	D_BS_t* New;
 	DS_RBSReliableData_t* Data;
+	intptr_t Trans;
 	
 	/* Check */
 	if (!a_Wrapped)
@@ -1738,7 +1954,12 @@ D_BS_t* D_BSCreateReliableStream(D_BS_t* const a_Wrapped)
 	New->IOCtlF = DS_RBSReliable_IOCtlF;
 	
 	// Load stuff into data
+	Data->Self = New;
 	Data->WrapStream = a_Wrapped;
+	if (D_BSStreamIOCtl(a_Wrapped, DRBSIOCTL_MAXTRANSPORT, &Trans))
+		Data->TransSize = Trans;
+	else
+		Data->TransSize = 2048;
 	
 	// Debug?
 	if (M_CheckParm("-reliabledev"))

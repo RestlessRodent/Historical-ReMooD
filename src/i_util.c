@@ -393,7 +393,7 @@ void I_OsPolling(void)
 	
 	/* Check for event debugging */
 	if (!DevEvents)
-		DevEvents = (! !M_CheckParm("-devevent")) + 1;
+		DevEvents = (!!M_CheckParm("-devevent")) + 1;
 		
 	/* Update things */
 	// Joysticks need updating before being able to be used
