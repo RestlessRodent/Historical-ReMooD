@@ -118,6 +118,8 @@ typedef struct D_NetClient_s
 	bool_t SaveGameSent;						// Save game was sent
 	uint32_t HostID;							// Host Identity (Unique, hopefully)
 	uint32_t Key[MAXCONNKEYSIZE];				// Connection Key
+	uint32_t GenKey[MAXCONNKEYSIZE];			// Generated Server-Side Key
+	uint32_t ReadyTimeout;						// Time until must be ready
 } D_NetClient_t;
 
 typedef void (*D_NCQCFunc_t)(void* const a_Data);

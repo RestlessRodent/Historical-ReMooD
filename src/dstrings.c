@@ -335,6 +335,7 @@ StringGroupEX_t UnicodeStrings[NUMUNICODESTRINGS] =
 	{		  "CVHINT_SVCONNECTPASSWORD", "The password needed to connect to a server."},
 	{			 "CVHINT_SVJOINPASSWORD", "The password needed to join the game."},
 	{			   "CVHINT_SVMAXCLIENTS", "The maximum amount of clients that may join the game."},
+	{				  "CVHINT_SVREADYBY", "Amount of time in milliseconds a client has to be ready by before a forced disconnect."},
 	
 	{			 "CVHINT_RCUTWALLDETAIL", "Lower the detail of wall textures to reduce memory usage at the cost of quality."},
 	{			 "CVHINT_RCUTWALLDETAIL", "Lower the detail of wall textures to reduce memory usage at the cost of quality."},
@@ -937,6 +938,7 @@ StringGroupEX_t UnicodeStrings[NUMUNICODESTRINGS] =
 	{		 "DNETC_SOCKFAILEDTOOPEN", "The UDPv$1 socket failed to open."},
 	{			  "DNETC_BOUNDTOPORT", "UDPv$1 socket bound to port $2."},
 	{			  "DNETC_CONNECTFROM", "New connection from \"$1\" (ReMooD $2.$3$4)"},
+	{		   "DNETC_CLIENTNOWREADY", "Client $1 is now ready."},
 };
 
 /* DS_NameOfString() -- Returns name of pointer to string */

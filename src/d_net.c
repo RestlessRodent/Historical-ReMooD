@@ -137,71 +137,6 @@ bool_t D_SyncNetIsSolo(void)
 	return true;
 }
 
-/* D_SyncNetAllReady() -- Indicates that all parties are ready to move to the next tic */
-// It returns the tics in the future that everyone is ready to move to
-tic_t D_SyncNetAllReady(void)
-{
-	tic_t ThisTime, DiffTime;
-	
-	/*** START BIG HACK AREA ***/
-	static fixed_t CurVal, ModVal, TicsPerMS = TICSPERMS;
-	
-	if (!TicsPerMS)
-		TicsPerMS = TICSPERMS;
-	
-	/* Slow */
-#if 0
-	if (CurVal != cv_g_gamespeed.value)
-	{
-		ModVal = CurVal = cv_g_gamespeed.value;
-		if (ModVal < 16384)		// limit to 0.25 speed
-			ModVal = 16384;
-			
-		ModVal = FixedDiv(1 << FRACBITS, cv_g_gamespeed.value);
-		
-		// Calculate new speed
-		TicsPerMS = FixedMul((TICSPERMS << FRACBITS), ModVal) >> FRACBITS;
-		
-		if (TicsPerMS < 1)
-			TicsPerMS = 1;
-	}
-#endif
-	
-	/*** END BIG HACK AREA ***/
-	
-	/* -timedemo */
-	if (singletics)
-		return l_MapTime + 1;
-	
-	/* If we are the server, we dictate time */
-	if (D_SyncNetIsArbiter())
-	{
-		// The map time is determined by the framerate
-		ThisTime = (I_GetTimeMS() / TICSPERMS) - l_BaseTime;
-		DiffTime = ThisTime - l_LocalTime;
-		
-		if (DiffTime > 0)
-		{
-			// Return the time difference
-			l_LocalTime = ThisTime;
-			return l_MapTime + DiffTime;
-		}
-		else
-			return l_MapTime;
-	}
-	
-	/* Otherwise time gets dictated to us */
-	else
-	{
-		if (D_TicReady(gametic))
-			return l_MapTime + 1;
-		return l_MapTime;
-	}
-	
-	/* Fell through? */
-	return (tic_t)-1;
-}
-
 /* D_SyncNetAppealTime() -- Appeals to the time code */
 void D_SyncNetAppealTime(void)
 {
@@ -364,12 +299,93 @@ CONL_StaticVar_t l_SVJoinPassword =
 // sv_maxclients -- Name of Server
 CONL_StaticVar_t l_SVMaxClients =
 {
-	CLVT_INTEGER, NULL, CLVF_SAVE,
+	CLVT_INTEGER, c_CVPVPositive, CLVF_SAVE,
 	"sv_maxclients", DSTR_CVHINT_SVMAXCLIENTS, CLVVT_INTEGER, "32",
 	NULL
 };
 
+// sv_readyby -- Name of Server
+CONL_StaticVar_t l_SVReadyBy =
+{
+	CLVT_INTEGER, c_CVPVPositive, CLVF_SAVE,
+	"sv_readyby", DSTR_CVHINT_SVREADYBY, CLVVT_INTEGER, "2000",
+	NULL
+};
+
 /*** FUNCTIONS ***/
+
+
+/* D_SyncNetAllReady() -- Indicates that all parties are ready to move to the next tic */
+// It returns the tics in the future that everyone is ready to move to
+tic_t D_SyncNetAllReady(void)
+{
+	tic_t ThisTime, DiffTime;
+	int nc;
+	
+	/*** START BIG HACK AREA ***/
+	static fixed_t CurVal, ModVal, TicsPerMS = TICSPERMS;
+	
+	if (!TicsPerMS)
+		TicsPerMS = TICSPERMS;
+	
+	/* Slow */
+#if 0
+	if (CurVal != cv_g_gamespeed.value)
+	{
+		ModVal = CurVal = cv_g_gamespeed.value;
+		if (ModVal < 16384)		// limit to 0.25 speed
+			ModVal = 16384;
+			
+		ModVal = FixedDiv(1 << FRACBITS, cv_g_gamespeed.value);
+		
+		// Calculate new speed
+		TicsPerMS = FixedMul((TICSPERMS << FRACBITS), ModVal) >> FRACBITS;
+		
+		if (TicsPerMS < 1)
+			TicsPerMS = 1;
+	}
+#endif
+	
+	/*** END BIG HACK AREA ***/
+	
+	/* -timedemo */
+	if (singletics)
+		return l_MapTime + 1;
+	
+	/* If we are the server, we dictate time */
+	if (D_SyncNetIsArbiter())
+	{
+		// Determine if everyone is ready to play
+		for (nc = 0; nc < l_NumClients; nc++)
+			if (l_Clients[nc])
+				if (!l_Clients[nc]->ReadyToPlay)
+					return l_MapTime;
+		
+		// The map time is determined by the framerate
+		ThisTime = (I_GetTimeMS() / TICSPERMS) - l_BaseTime;
+		DiffTime = ThisTime - l_LocalTime;
+		
+		if (DiffTime > 0)
+		{
+			// Return the time difference
+			l_LocalTime = ThisTime;
+			return l_MapTime + DiffTime;
+		}
+		else
+			return l_MapTime;
+	}
+	
+	/* Otherwise time gets dictated to us */
+	else
+	{
+		if (D_TicReady(gametic))
+			return l_MapTime + 1;
+		return l_MapTime;
+	}
+	
+	/* Fell through? */
+	return (tic_t)-1;
+}
 
 /* D_NCAllocClient() -- Creates a new network client */
 D_NetClient_t* D_NCAllocClient(void)
@@ -495,6 +511,9 @@ D_NetClient_t* D_NCFindClientByID(const uint32_t a_ID)
 /* D_NCFudgeOffHostStream() -- Fudge off host by stream */
 void D_NCFudgeOffHostStream(I_HostAddress_t* const a_Host, struct D_BS_s* a_Stream, const char a_Code, const char* const a_Reason)
 {
+	int nc;
+	D_NetClient_t* NetClient;
+	
 	/* Check */
 	if (!a_Host || !a_Stream)
 		return;
@@ -504,8 +523,32 @@ void D_NCFudgeOffHostStream(I_HostAddress_t* const a_Host, struct D_BS_s* a_Stre
 	D_BSwu8(a_Stream, a_Code);
 	D_BSws(a_Stream, a_Reason);
 	D_BSRecordNetBlock(a_Stream, a_Host);
+	D_BSFlushStream(a_Stream);
 	
-	/* Destroy client structure */
+	/* Disconnect from all streams */
+	for (nc = 0; nc < l_NumClients; nc++)
+	{
+		// Get current
+		NetClient = l_Clients[nc];
+		
+		// Nothing?
+		if (!NetClient)
+			continue;
+		
+		// Wrong host?
+		if (!I_NetCompareHost(a_Host, &NetClient->Address))
+			continue;
+			
+		// Server Message
+		CONL_PrintF("Disconnecting %s [Code: %c, Reason: %s]...\n", NetClient->ReverseDNS, a_Code, a_Reason);
+		
+		// Send reliable drop
+		D_BSStreamIOCtl(NetClient->PerfectStream, DRBSIOCTL_DROPHOST, a_Host);
+		
+		// Remove from table
+		Z_Free(NetClient);
+		l_Clients[nc] = NULL;
+	}
 }
 
 /* D_NCFudgeOffClient() -- Disconnect client */
@@ -639,7 +682,7 @@ bool_t D_CheckNetGame(void)
 	I_NetSocket_t* Socket;
 	D_NetClient_t* Client;
 	bool_t ret = false;
-	uint16_t i, v;
+	uint16_t i, v, PortNum;
 	
 	// I_InitNetwork sets doomcom and netgame
 	// check and initialize the network driver
@@ -667,11 +710,13 @@ bool_t D_CheckNetGame(void)
 	CONL_VarRegister(&l_SVConnectPassword);
 	CONL_VarRegister(&l_SVJoinPassword);
 	CONL_VarRegister(&l_SVMaxClients);
+	CONL_VarRegister(&l_SVReadyBy);
 		
 	/* Create LoopBack Client */
 	Client = D_NCAllocClient();
 	Client->IsLocal = true;
 	Client->CoreStream = D_BSCreateLoopBackStream();
+	strncpy(Client->ReverseDNS, "loop://", NETCLIENTRHLEN);
 	
 	// Create perfection Wrapper
 	Client->PerfectStream = D_BSCreateReliableStream(Client->CoreStream);
@@ -685,10 +730,15 @@ bool_t D_CheckNetGame(void)
 	/* Create Local Network Client */
 	for (v = 0; v < 2; v++)
 	{
+		// Allow changing of port
+		PortNum = __REMOOD_BASEPORT;
+		if (M_CheckParm("-port"))
+			PortNum = strtol(M_GetNextParm(), NULL, 10);
+		
 		// Attempt open of UDPv4 and UDPv6 socket
 		Socket = NULL;
 		for (i = 0; i < 20 && !Socket; i++)
-			Socket = I_NetOpenSocket((v ? INSF_V6 : 0), NULL, __REMOOD_BASEPORT + i);
+			Socket = I_NetOpenSocket((v ? INSF_V6 : 0), NULL, PortNum + i);
 		
 		// Failed?
 		if (!Socket)
@@ -702,6 +752,7 @@ bool_t D_CheckNetGame(void)
 			// Allocate local client
 			Client = D_NCAllocClient();
 			Client->IsLocal = true;
+			snprintf(Client->ReverseDNS, NETCLIENTRHLEN, "ipv%i://", (v ? 6 : 4));
 		
 			// Copy socket
 			Client->NetSock = Socket;
@@ -867,18 +918,6 @@ void D_NCDisconnect(void)
 			{
 				// Fudge off!
 				D_NCFudgeOffClient(l_Clients[i], 'X', "Server disconnected.");
-				
-				// DONT FREE STREAMS AND DONT FREE SOCKETS BECAUSE OTHERWISE
-				// WE WILL BE TERMINATING OUR LITTLE CREATED UDP SOCKET AND
-				// PERFECTION STREAMS. CLOSING ISN'T NEEDED SINCE UDP IS
-				// CONNECTION-LESS.
-
-				// Drop host from stream
-				D_BSStreamIOCtl(l_Clients[i]->PerfectStream, DRBSIOCTL_DROPHOST, &l_Clients[i]->Address);
-				
-				// Free it
-				Z_Free(l_Clients[i]);
-				l_Clients[i] = NULL;
 			}
 			
 			else
@@ -1277,8 +1316,8 @@ bool_t D_NCMH_TICS(struct D_NCMessageData_s* const a_Data)
 	uint16_t u16, BufSize;
 	
 	/* Ignore any tic commands from the local server */
-	if (a_Data->NetClient->IsLocal)
-		return false;
+	//if (a_Data->NetClient->IsLocal)
+	//	return false;
 		
 	/* Get Stream */
 	Stream = a_Data->InStream;
@@ -1319,26 +1358,22 @@ bool_t D_NCMH_TICS(struct D_NCMessageData_s* const a_Data)
 	
 	// Tic buffer size
 	BufSize = D_BSru16(Stream);
-	CONL_PrintF(">> %i\n", BufSize);
 	
 	// Read global commands
 	Data->Data[MAXPLAYERS].Type = 1;
 	u16 = D_BSru16(Stream);
-	
 	if (u16)
-		CONL_PrintF(">>");
+		CONL_PrintF(">> %i\n", u16);
+	
 	for (i = 0; i < u16; i++)
 	{
 		u8 = D_BSru8(Stream);
 		if (i < MAXTCDATABUF)
 		{
-			CONL_PrintF("%c", (isalnum(u8) ? u8 : '?'));
 			Data->Data[MAXPLAYERS].Ext.DataSize = i;
 			Data->Data[MAXPLAYERS].Ext.DataBuf[i] = u8;
 		}
 	}
-	if (u16)
-		CONL_PrintF("<<\n");
 	
 	/* No more handling */
 	return true;
@@ -1353,6 +1388,7 @@ bool_t D_NCMH_CONN(struct D_NCMessageData_s* const a_Data)
 	D_NetClient_t* ServerNC, *FreshClient;
 	D_BS_t* Stream;
 	uint8_t Ver[4];
+	uint32_t KeyMask;
 	char ServerPass[BUFSIZE], JoinPass[BUFSIZE];
 	
 	/* Get server client */
@@ -1417,6 +1453,7 @@ bool_t D_NCMH_CONN(struct D_NCMessageData_s* const a_Data)
 		HostID = D_CMakePureRandom();
 	} while (D_NCFindClientByID(HostID));
 	FreshClient->HostID = HostID;
+	FreshClient->ReadyTimeout = I_GetTimeMS() + l_SVReadyBy.Value->Int;
 	
 	// Streams
 	FreshClient->Streams[DNCSP_WRITE] = a_Data->NetClient->Streams[DNCSP_WRITE];
@@ -1425,9 +1462,6 @@ bool_t D_NCMH_CONN(struct D_NCMessageData_s* const a_Data)
 	// Reverse DNS
 	I_NetHostToName(NULL, &FreshClient->Address, FreshClient->ReverseDNS, NETCLIENTRHLEN);
 	
-	/* TODO FIXME */
-	FreshClient->ReadyToPlay = FreshClient->SaveGameSent = true;
-	
 	/* Tell client their host information */
 	// Write message to them (perfect output)
 	Stream = FreshClient->Streams[DNCSP_PERFECTWRITE];
@@ -1435,10 +1469,20 @@ bool_t D_NCMH_CONN(struct D_NCMessageData_s* const a_Data)
 	// Base
 	D_BSBaseBlock(Stream, "PLAY");
 	
-	// Info
+	// Generate server side key to authenticate client with
+	KeyMask = 0;
 	for (i = 0; i < MAXCONNKEYSIZE; i++)
-		D_BSwu32(Stream, ConnectKey[i]);
-	D_BSwu64(Stream, gametic);					// Current game tic
+	{
+		FreshClient->GenKey[i] = D_CMakePureRandom();
+		D_BSwu32(Stream, FreshClient->GenKey[i]);
+		
+		// Mask key (client verification)
+		KeyMask ^= ConnectKey[i];
+	}
+	
+	// Info
+	D_BSwu32(Stream, KeyMask);
+	D_BSwu64(Stream, gametic + 1);				// Current game tic
 	D_BSwu32(Stream, HostID);					// Their server identity
 	
 	// Send away
@@ -1460,7 +1504,8 @@ bool_t D_NCMH_PLAY(struct D_NCMessageData_s* const a_Data)
 	D_NetClient_t* ServerNC;
 	D_BS_t* Stream;
 	int i;
-	uint32_t ConnectKey[MAXCONNKEYSIZE], HostID;
+	uint32_t SelfMask, CalcedMask;
+	uint32_t ServerGenKey[MAXCONNKEYSIZE], HostID;
 	uint64_t GameTic;
 	
 	/* Get server client */
@@ -1475,18 +1520,22 @@ bool_t D_NCMH_PLAY(struct D_NCMessageData_s* const a_Data)
 	
 	/* Read in data */
 	// Key
+	CalcedMask = 0;
 	for (i = 0; i < MAXCONNKEYSIZE; i++)
 	{
-		ConnectKey[i] = D_BSru32(Stream);
-		
-		// Mismatch (might be a hacker)
-		if (ConnectKey[i] != l_ConnectKey[i])
-			return true;
+		ServerGenKey[i] = D_BSru32(Stream);
+		CalcedMask ^= l_ConnectKey[i];
 	}
+	SelfMask = D_BSru32(Stream);
+	
+	// Servers sent back mask does not match (probably hacked request)
+	if (SelfMask != CalcedMask)
+		return true;
 	
 	// Read Others
 	GameTic = D_BSru64(Stream);
 	HostID = D_BSru32(Stream);
+	gamestate = GS_WAITINGPLAYERS;
 	
 	/* Local local ID */
 	for (i = 0; i < l_NumClients; i++)
@@ -1498,7 +1547,60 @@ bool_t D_NCMH_PLAY(struct D_NCMessageData_s* const a_Data)
 	
 	/* Set the game tic and timing stuff */
 	gametic = GameTic;
-	D_SyncNetSetMapTime(GameTic);
+	
+	/* Send REDY packet to server */
+	// Get stream
+	Stream = ServerNC->Streams[DNCSP_PERFECTWRITE];
+	
+	// Write to server, that we are ready (and send both keys!
+	D_BSBaseBlock(Stream, "REDY");
+	for (i = 0; i < MAXCONNKEYSIZE; i++)
+	{
+		D_BSwu32(Stream, ServerGenKey[i]);
+		D_BSwu32(Stream, l_ConnectKey[i]);
+	}
+	D_BSRecordNetBlock(Stream, &ServerNC->Address);
+	
+	/* Done processing */
+	return true;
+}
+
+/* D_NCMH_REDY() -- We can play */
+// Client ready to play
+bool_t D_NCMH_REDY(struct D_NCMessageData_s* const a_Data)
+{
+	D_NetClient_t* ServerNC;
+	D_BS_t* Stream;
+	int i;
+	uint32_t ServerGenKey[MAXCONNKEYSIZE], ClientGenKey[MAXCONNKEYSIZE];
+	
+	/* Get server client */
+	ServerNC = D_NCFindClientIsServer();
+	
+	/* Get Stream */
+	Stream = a_Data->InStream;
+	
+	/* Read in data */
+	// Key
+	for (i = 0; i < MAXCONNKEYSIZE; i++)
+	{
+		ServerGenKey[i] = D_BSru32(Stream);
+		ClientGenKey[i] = D_BSru32(Stream);
+		
+		if (ClientGenKey[i] != a_Data->RCl->Key[i] ||
+			ServerGenKey[i] != a_Data->RCl->GenKey[i])
+		{
+			D_NCFudgeOffClient(a_Data->RCl, 'K', "Key authorization mismatch.");
+			return true;
+		}
+	}
+	
+	/* Ready! */
+	a_Data->RCl->ReadyToPlay = true;
+	CONL_OutputU(DSTR_DNETC_CLIENTNOWREADY, "%s\n", a_Data->RCl->ReverseDNS);
+	
+	// TODO FIXME
+	a_Data->RCl->SaveGameSent = true;
 	
 	/* Done processing */
 	return true;
@@ -1511,6 +1613,7 @@ static const D_NCMessageType_t c_NCMessageCodes[] =
 	{1, {0}, "TICS", D_NCMH_TICS, DNCMF_PERFECT | DNCMF_SERVER | DNCMF_REMOTECL},
 	{1, {0}, "CONN", D_NCMH_CONN, DNCMF_PERFECT | DNCMF_CLIENT | DNCMF_HOST},
 	{1, {0}, "PLAY", D_NCMH_PLAY, DNCMF_PERFECT | DNCMF_SERVER | DNCMF_REMOTECL},
+	{1, {0}, "REDY", D_NCMH_REDY, DNCMF_PERFECT | DNCMF_CLIENT | DNCMF_HOST},
 	
 	//{1, {0}, "LPRJ", D_NCMH_LocalPlayerRJ, DNCMF_PERFECT | DNCMF_SERVER | DNCMF_HOST | DNCMF_REMOTECL},
 	//{1, {0}, "PJOK", D_NCMH_PlayerJoinOK, DNCMF_PERFECT | DNCMF_SERVER | DNCMF_REMOTECL | DNCMF_DEMO},
@@ -1532,7 +1635,7 @@ void D_LoadNetTic(void)
 	/* Find it, copy it, delete it */
 	for (i = 0; i < l_NetTicBufSize; i++)
 		if (l_NetTicBuf[i])
-			if (l_NetTicBuf[i]->RunAt == l_MapTime)
+			if (l_NetTicBuf[i]->RunAt == gametic)
 			{
 				// Clone
 				memmove(&l_ClientRunTic, l_NetTicBuf[i], sizeof(l_ClientRunTic));
@@ -1846,7 +1949,11 @@ void D_NetWriteTicCmd(ticcmd_t* const a_TicCmd, const int a_Player)
 	D_BS_t* Stream;
 	
 	/* Get server client */
-	ServerNC =  D_NCFindClientIsServer();
+	ServerNC = D_NCFindClientIsServer();
+	
+	// No server?
+	if (!ServerNC)
+		return;
 	
 	// Non-Local?
 	if (!ServerNC->IsLocal)
@@ -1866,6 +1973,10 @@ void D_NCUpdate(void)
 	D_BS_t* PIn, *POut, *BOut;
 	bool_t IsServ, IsClient, IsHost;
 	D_NCMessageData_t Data;
+	uint32_t ThisTime;
+	
+	/* Get current time */
+	ThisTime = I_GetTimeMS();
 	
 	/* Go through each client and read/write commands */
 	for (nc = 0; nc < l_NumClients; nc++)
@@ -1876,6 +1987,14 @@ void D_NCUpdate(void)
 		// Failed?
 		if (!NetClient)
 			continue;
+		
+		// A client was not ready fast enough.
+		if (!NetClient->IsServer && !NetClient->IsLocal)
+			if (!NetClient->ReadyToPlay && ThisTime > NetClient->ReadyTimeout)
+			{
+				D_NCFudgeOffClient(NetClient, 'T', "Connection readyness timed out.");
+				continue;
+			}
 		
 		// Set streams to read/write from
 		PIn = NetClient->Streams[DNCSP_PERFECTREAD];
@@ -1917,7 +2036,11 @@ void D_NCUpdate(void)
 			{
 				// Wrong header packet?
 				if (!D_BSCompareHeader(c_NCMessageCodes[tN].Header, Header))
+				{
+					//if (g_NetDev)
+					//	CONL_PrintF("NET: \"%s\" not \"%s\".\n", Header, c_NCMessageCodes[tN].Header);
 					continue;
+				}
 				
 				// Perfect but not set?
 				/*if (IsPerf && !(c_NCMessageCodes[tN].Flags & DNCMF_PERFECT))
@@ -1929,19 +2052,35 @@ void D_NCUpdate(void)
 				
 				// From client but not accepted from client
 				if (IsClient && !(c_NCMessageCodes[tN].Flags & DNCMF_CLIENT))
+				{
+					if (g_NetDev)
+						CONL_PrintF("NET: \"%s\" not client.\n", Header);
 					continue;
+				}
 				
 				// From server but not accepted from server
 				if (IsServ && !(c_NCMessageCodes[tN].Flags & DNCMF_SERVER))
+				{
+					if (g_NetDev)
+						CONL_PrintF("NET: \"%s\" not server.\n", Header);
 					continue;
+				}
 				
 				// From somewhere but we are not the host of the game
 				if (IsHost && !(c_NCMessageCodes[tN].Flags & DNCMF_HOST))
+				{
+					if (g_NetDev)
+						CONL_PrintF("NET: \"%s\" not host.\n", Header);
 					continue;
+				}
 				
 				// Requires a remote client exist (a connected player)
 				if ((c_NCMessageCodes[tN].Flags & DNCMF_REMOTECL) && !RemoteClient)
+				{
+					if (g_NetDev)
+						CONL_PrintF("NET: \"%s\" not remote client.\n", Header);
 					continue;
+				}
 				
 				// Clear data
 				memset(&Data, 0, sizeof(Data));
@@ -1957,11 +2096,23 @@ void D_NCUpdate(void)
 				// Call handler
 				if (c_NCMessageCodes[tN].Func(&Data))
 					break;
+				
+				// Client removed?
+				if (!l_Clients[nc])
+					break;
 			}
 			
 			// Clear header for next read run
 			memset(Header, 0, sizeof(Header));
+			
+			// Client removed?
+			if (!l_Clients[nc])
+				break;
 		}
+		
+		// Client removed?
+		if (!l_Clients[nc])
+			continue;
 		
 		// Flush write streams so our commands are sent
 			// Commands could be in the local loopback which are unsent until
