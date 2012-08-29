@@ -236,7 +236,7 @@ bool_t DS_RBSWL_PlayF(struct D_BS_s* const a_Stream)
 /* DS_RBSLoopBackHold_t -- Holding store */
 typedef struct DS_RBSLoopBackHold_s
 {
-	uint32_t FlushID;							// Current flush ID
+	uint64_t FlushID;							// Current flush ID
 	char Header[5];								// Header
 	uint8_t* Data;								// Data
 	size_t Size;								// Size
@@ -245,7 +245,7 @@ typedef struct DS_RBSLoopBackHold_s
 /* DS_RBSLoopBackData_t -- Loop back device */
 typedef struct DS_RBSLoopBackData_s
 {
-	uint32_t FlushID;							// FlushID
+	uint64_t FlushID;							// FlushID
 	DS_RBSLoopBackHold_t** Q;					// Blocks in Q
 	size_t SizeQ;								// Size of Q
 } DS_RBSLoopBackData_t;
@@ -271,7 +271,7 @@ static void DS_RBSLoopBack_DeleteF(struct D_BS_s* const a_Stream)
 	if (LoopData->Q)
 	{
 		for (i = 0; i < LoopData->SizeQ; i++)
-			if (!LoopData->Q[i])
+			if (LoopData->Q[i])
 				Z_Free(LoopData->Q[i]);
 		Z_Free(LoopData->Q);
 	}
@@ -1540,17 +1540,21 @@ bool_t DS_RBSPerfect_IOCtlF(struct D_BS_s* const a_Stream, const D_BSStreamIOCtl
 	}
 }
 
-
 /**********************
 *** RELIABLE STREAM ***
 *********************/
 
 #define RBSMAXRELIABLEKEEP				128		// Max reliable keeps
+#define RBSRELIABLERETRAN				500		// Retransmit reliables after this
+#define RBSRELIABLETIMEOUT				120000	// Remove connection after 2 mins
 
 /* DS_ReliablePk_t -- Reliable packet */
 typedef struct DS_ReliablePk_s
 {
 	uint32_t Key;								// Key for packet
+	int32_t Time;								// Time wrote
+	int32_t FirstTime;							// First time
+	bool_t Transmit;							// Transmit data
 	char Header[5];								// Data Header
 	uintptr_t Size;								// Data Size
 	void* Data;									// Actual Data
@@ -1582,6 +1586,75 @@ typedef struct DS_RBSReliableData_s
 	size_t NumFlats;							// Number of flats
 	uint32_t RR;						// Round rover
 } DS_RBSReliableData_t;
+
+/* DS_RBSReliable_KillFlat() -- Kills a flat */
+static void DS_RBSReliable_KillFlat(DS_RBSReliableData_t* const a_Data, DS_ReliableFlat_t* const a_Flat)
+{
+	int i, j;
+	DS_ReliableFlat_t* CurFlat;
+	
+	/* Check */
+	if (!a_Flat)
+		return;
+		
+	/* Find out spot */
+	for (i = 0; i < a_Data->NumFlats; i++)
+	{
+		// Get current
+		CurFlat = a_Data->Flats[i];
+		
+		// Missing?
+		if (!CurFlat)
+			continue;
+		
+		// Not the flat we want to clear
+		if (a_Flat != CurFlat)
+			continue;
+		
+		// Remove from list
+		a_Data->Flats[i] = NULL;
+		
+		// Destroy loopback stores
+		D_BSCloseStream(CurFlat->inStore);
+		D_BSCloseStream(CurFlat->outStore);
+		
+		// Destroy and active holds
+		for (j = 0; j < RBSMAXRELIABLEKEEP; j++)
+		{
+			// Free data if it existed
+			if (CurFlat->OutPks[j].Data)
+				Z_Free(CurFlat->OutPks[j].Data);
+			CurFlat->OutPks[j].Data = NULL;
+		}
+		
+		// Free self
+		Z_Free(CurFlat);
+		
+		// Done
+		break;
+	}
+}
+
+/* DS_RBSReliable_Reset() -- Resets reliable stream */
+static void DS_RBSReliable_Reset(DS_RBSReliableData_t* const a_Data)
+{
+	int i;
+	DS_ReliableFlat_t* CurFlat;
+	
+	/* Kill off all flats */
+	for (i = 0; i < a_Data->NumFlats; i++)
+	{
+		// Get current
+		CurFlat = a_Data->Flats[i];
+		
+		// Missing?
+		if (!CurFlat)
+			continue;
+		
+		// Kill it
+		DS_RBSReliable_KillFlat(a_Data, CurFlat);
+	}	
+}
 
 /* DS_RBSReliable_FlatByHost() -- Get flat by host address */
 static DS_ReliableFlat_t* DS_RBSReliable_FlatByHost(DS_RBSReliableData_t* const a_Data, const I_HostAddress_t* const a_Address, const bool_t a_Create)
@@ -1647,6 +1720,19 @@ static DS_ReliableFlat_t* DS_RBSReliable_FlatByHost(DS_RBSReliableData_t* const 
 bool_t DS_RBSReliable_FlushF(struct D_BS_s* const a_Stream)
 {
 	DS_RBSReliableData_t* RelData;
+	DS_ReliableFlat_t* CurFlat;
+	I_HostAddress_t Addr;
+	char Header[5], inHeader[5];
+	int i, j, nai, pkc, z;
+	int NotActive[RBSMAXRELIABLEKEEP];
+	uint32_t ThisTime;
+	DS_ReliablePk_t* PkP;
+	uintptr_t CopyCount;
+	bool_t Kill;
+	
+	uint8_t inCode;
+	uint16_t inSlot;
+	uint32_t inKey, inTime, inFTime, inSize;
 	
 	/* Get Data */
 	RelData = a_Stream->Data;
@@ -1655,7 +1741,264 @@ bool_t DS_RBSReliable_FlushF(struct D_BS_s* const a_Stream)
 	if (!RelData)
 		return false;
 	
-	return false;
+	/* Init */
+	memset(Header, 0, sizeof(Header));
+	memset(&Addr, 0, sizeof(Addr));
+	memset(NotActive, 0xFF, sizeof(NotActive));
+	
+	ThisTime = I_GetTimeMS();
+	
+	/* Read input from the upper stream first */
+	// Any reliable data sent to us will have an ACK back.
+	// If we recieve an ACK, then clear the out packet specified.
+	while (D_BSPlayNetBlock(RelData->WrapStream, Header, &Addr))
+	{
+		// Clear input header
+		memset(inHeader, 0, sizeof(inHeader));
+		
+		// Get current flat
+		CurFlat = DS_RBSReliable_FlatByHost(RelData, &Addr, true);
+		
+		// Reliable Packet?
+		if (D_BSCompareHeader(Header, "RELY"))
+		{
+			// Read Header
+			inCode = D_BSru8(RelData->WrapStream);
+			inSlot = D_BSru16(RelData->WrapStream);
+			inKey = D_BSru32(RelData->WrapStream);
+			inTime = D_BSru32(RelData->WrapStream);
+			inFTime = D_BSru32(RelData->WrapStream);
+			inSize = D_BSru32(RelData->WrapStream);
+			
+			// Reserved
+			D_BSru32(RelData->WrapStream);
+			D_BSru32(RelData->WrapStream);
+			D_BSru32(RelData->WrapStream);
+			
+			// Which Code?
+			switch (inCode)
+			{
+					// Packet
+				case 'P':
+					// Contained header
+					for (z = 0; z < 4; z++)
+						inHeader[z] = D_BSru8(RelData->WrapStream);
+			
+					// Base Block
+					D_BSBaseBlock(CurFlat->inStore, inHeader);
+			
+					// Write direct chunk
+					D_BSWriteChunk(CurFlat->inStore, &RelData->WrapStream->BlkData[RelData->WrapStream->ReadOff], inSize);
+			
+					// Record it
+					D_BSRecordBlock(CurFlat->inStore);
+		
+					// Flush
+					D_BSFlushStream(CurFlat->inStore);
+					
+					// Reply with ACK
+					D_BSBaseBlock(RelData->WrapStream, "RELY");
+			
+					// Write protocol head
+					D_BSwu8(RelData->WrapStream, 'A');	// A for ack
+					D_BSwu16(RelData->WrapStream, inSlot);	// Current slot
+					D_BSwu32(RelData->WrapStream, inKey);
+					D_BSwu32(RelData->WrapStream, inTime);
+					D_BSwu32(RelData->WrapStream, inFTime);
+					D_BSwu32(RelData->WrapStream, inSize);
+			
+					// Reserved
+					D_BSwu32(RelData->WrapStream, 0xDEADBEEFU);
+					D_BSwu32(RelData->WrapStream, 0xDEADBEEFU);
+					D_BSwu32(RelData->WrapStream, 0xDEADBEEFU);
+					
+					D_BSRecordBlock(RelData->WrapStream);
+					D_BSFlushStream(RelData->WrapStream);
+					break;
+					
+					// Acknowledge
+				case 'A':
+					// Slot bounds check
+					if (inSlot >= 0 && inSlot < RBSMAXRELIABLEKEEP)
+					{
+						// Get current output
+						PkP = &CurFlat->OutPks[inSlot];
+						
+						// Same key?
+						if (inKey == PkP->Key)
+						{
+							// Clear Data
+							PkP->Key = 0;
+							PkP->Time = 0;
+							PkP->FirstTime = 0;
+							PkP->Transmit = false;
+							memset(PkP->Header, 0, sizeof(PkP->Header));
+							PkP->Size = 0;
+						}
+					}
+					break;
+					
+					// Unknown
+				default:
+					break;
+			}
+		}
+		
+		// Un-Reliable Packet
+		else
+		{
+			// Base Block
+			D_BSBaseBlock(CurFlat->inStore, RelData->WrapStream->BlkHeader);
+			
+			// Write Data 1:1
+			D_BSWriteChunk(CurFlat->inStore, RelData->WrapStream->BlkData, RelData->WrapStream->BlkSize);
+			
+			// Record it
+			D_BSRecordBlock(CurFlat->inStore);
+		
+			// Flush
+			D_BSFlushStream(CurFlat->inStore);
+		}
+		
+		// Clear address for another cycle
+		memset(&Addr, 0, sizeof(Addr));
+	}
+	
+	/* Handle all data that needs outputting */
+	for (i = 0; i < RelData->NumFlats; i++)
+	{
+		// Get current
+		CurFlat = RelData->Flats[i];
+		
+		// Missing?
+		if (!CurFlat)
+			continue;
+		
+		// Go through the active chain
+		nai = -1;
+		for (Kill = false, j = 0; j < RBSMAXRELIABLEKEEP; j++)
+		{
+			// Not active?
+			if (!CurFlat->OutPks[j].Key)
+			{
+				if (nai < (RBSMAXRELIABLEKEEP >> 1))
+					NotActive[++nai] = j;
+				continue;
+			}
+			
+			// Retransmit?
+			if (ThisTime - CurFlat->OutPks[j].Time > RBSRELIABLERETRAN)
+				CurFlat->OutPks[j].Transmit = true;
+			
+			// Packet timeout? Possibly a now headless connection
+			if (ThisTime - CurFlat->OutPks[j].FirstTime > RBSRELIABLETIMEOUT)
+			{
+				Kill = true;
+				DS_RBSReliable_KillFlat(RelData, CurFlat);
+				break;
+			}
+		}
+		
+		// Connection was killed
+		if (Kill)
+			continue;
+		
+		// Something was not active? free spot!
+		while (nai >= 0)
+		{
+			// Read location
+			pkc = NotActive[nai--];
+			
+			// Out of bounds?
+			if (pkc < 0 || pkc >= RBSMAXRELIABLEKEEP)
+				continue;
+			
+			// Pointer to output
+			PkP = &CurFlat->OutPks[pkc];
+			
+			// Read input from output stream
+			memset(PkP->Header, 0, sizeof(PkP->Header));
+			D_BSFlushStream(CurFlat->outStore);
+			if (!D_BSPlayBlock(CurFlat->outStore, PkP->Header))
+				break;	// Means nothing was in the loopback
+			
+			// Generate key and time
+			for (PkP->Key = 0; PkP->Key == 0;)	// cannot be zero!
+				PkP->Key = D_CMakePureRandom();
+			PkP->Time = PkP->FirstTime = ThisTime;
+			PkP->Transmit = true;
+			
+			// Set data
+			PkP->Size = CurFlat->outStore->BlkSize;
+			
+			// Allocate Data Buffer?
+			if (!PkP->Data)
+				PkP->Data = Z_Malloc(RelData->TransSize, PU_STATIC, NULL);
+			else
+				memset(PkP->Data, 0, RelData->TransSize);
+			
+			// Determine bytes to copy
+			if (PkP->Size < RelData->TransSize)
+				CopyCount = PkP->Size;
+			else
+				CopyCount = RelData->TransSize;
+			
+			// Read entire chunk
+			D_BSReadChunk(CurFlat->outStore, PkP->Data, CopyCount);
+		}
+		
+		// Transmit all packets needing transmission
+		for (j = 0; j < RBSMAXRELIABLEKEEP; j++)
+		{
+			// Not active?
+			if (!CurFlat->OutPks[j].Key)
+				continue;
+			
+			// Not being transmitted
+			if (!CurFlat->OutPks[j].Transmit)
+				continue;
+				
+			// Pointer to output
+			PkP = &CurFlat->OutPks[j];
+			
+			// Do not transmit again
+			PkP->Transmit = false;
+			PkP->Time = ThisTime;	// Set current time for better retrans
+			
+			// Write base block for wrapped stream
+			D_BSBaseBlock(RelData->WrapStream, "RELY");
+			
+			// Write protocol head
+			D_BSwu8(RelData->WrapStream, 'P');	// P for packet
+			D_BSwu16(RelData->WrapStream, j);	// Current slot
+			D_BSwu32(RelData->WrapStream, PkP->Key);
+			D_BSwu32(RelData->WrapStream, PkP->Time);
+			D_BSwu32(RelData->WrapStream, PkP->FirstTime);
+			D_BSwu32(RelData->WrapStream, PkP->Size);
+			
+			// Reserved
+			D_BSwu32(RelData->WrapStream, 0xDEADBEEFU);
+			D_BSwu32(RelData->WrapStream, 0xDEADBEEFU);
+			D_BSwu32(RelData->WrapStream, 0xDEADBEEFU);
+			
+			// Block Header
+			for (z = 0; z < 4; z++)
+				D_BSwu8(RelData->WrapStream, PkP->Header[z]);
+			
+			// Actual Data
+			D_BSWriteChunk(RelData->WrapStream, PkP->Data, PkP->Size);
+			
+			// Transmit to remote host
+			D_BSRecordNetBlock(RelData->WrapStream, &CurFlat->Address);
+		}
+	}
+	
+	/* Flush the wrapped stream */
+	// This is so any data that was written is sent
+	D_BSFlushStream(RelData->WrapStream);
+	
+	/* Flush always successful */
+	return true;
 }
 
 /* DS_RBSReliable_NetRecordF() -- Records to stream */
@@ -1691,7 +2034,7 @@ size_t DS_RBSReliable_NetRecordF(struct D_BS_s* const a_Stream, I_HostAddress_t*
 	D_BSFlushStream(Flat->outStore);
 	
 	/* Always successful */
-	return a_Stream->BlkSize;
+	return 1;
 }
 
 /* DS_RBSReliable_NetPlayF() -- Plays from stream */
@@ -1731,6 +2074,9 @@ bool_t DS_RBSReliable_NetPlayF(struct D_BS_s* const a_Stream, I_HostAddress_t* c
 		if (!CurFlat)
 			continue;
 		
+		// Flush
+		D_BSFlushStream(CurFlat->inStore);
+		
 		// Try playing back something
 		if (D_BSPlayBlock(CurFlat->inStore, Header))
 		{
@@ -1763,6 +2109,13 @@ void DS_RBSReliable_DeleteF(struct D_BS_s* const a_Stream)
 	// Check
 	if (!RelData)
 		return;
+	
+	/* Reset takes care of most of the work */
+	DS_RBSReliable_Reset(RelData);
+	
+	/* Finish it off */
+	if (RelData->Flats)
+		Z_Free(RelData->Flats);
 }
 
 /* DS_RBSReliable_IOCtlF() -- Advanced I/O Control */
@@ -1789,6 +2142,16 @@ bool_t DS_RBSReliable_IOCtlF(struct D_BS_s* const a_Stream, const D_BSStreamIOCt
 		case DRBSIOCTL_MAXTRANSPORT:
 			*a_DataP = RelData->TransSize - 32;
 			return true;
+			
+			// Drop a single host
+		case DRBSIOCTL_DROPHOST:
+			DS_RBSReliable_KillFlat(RelData, DS_RBSReliable_FlatByHost(RelData, a_DataP, false));
+			return true;
+			
+			// Reset reliable streams
+		case DRBSIOCTL_RELRESET:
+			DS_RBSReliable_Reset(RelData);
+			break;
 			
 			// Unknown
 		default:

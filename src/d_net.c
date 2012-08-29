@@ -870,21 +870,22 @@ void D_NCDisconnect(void)
 				// WE WILL BE TERMINATING OUR LITTLE CREATED UDP SOCKET AND
 				// PERFECTION STREAMS. CLOSING ISN'T NEEDED SINCE UDP IS
 				// CONNECTION-LESS.
-#if 0
-				// Free streams, if any
-				if (l_Clients[i]->PerfectStream)
-					D_BSCloseStream(l_Clients[i]->PerfectStream);
-				if (l_Clients[i]->CoreStream)
-					D_BSCloseStream(l_Clients[i]->CoreStream);
-					
-				// Close socket, if any
-				if (l_Clients[i]->NetSock)
-					I_NetCloseSocket(l_Clients[i]->NetSock);
-#endif
+
+				// Drop host from stream
+				D_BSStreamIOCtl(l_Clients[i]->PerfectStream, DRBSIOCTL_DROPHOST, &l_Clients[i]->Address);
 				
 				// Free it
 				Z_Free(l_Clients[i]);
 				l_Clients[i] = NULL;
+			}
+			
+			else
+			{
+				// Drop host from stream
+				D_BSStreamIOCtl(l_Clients[i]->PerfectStream, DRBSIOCTL_DROPHOST, &l_Clients[i]->Address);
+				
+				// Reset reliable stream
+				D_BSStreamIOCtl(l_Clients[i]->PerfectStream, DRBSIOCTL_RELRESET, "");
 			}
 		}
 }
@@ -1775,12 +1776,12 @@ void D_NCUpdate(void)
 			for (tN = 0; c_NCMessageCodes[tN].Valid; tN++)
 			{
 				// Perfect but not set?
-				if (IsPerf && !(c_NCMessageCodes[tN].Flags & DNCMF_PERFECT))
-					continue;
+				/*if (IsPerf && !(c_NCMessageCodes[tN].Flags & DNCMF_PERFECT))
+					continue;*/
 				
 				// Normal but not set?
-				if (!IsPerf && !(c_NCMessageCodes[tN].Flags & DNCMF_NORMAL))
-					continue;
+				/*if (!IsPerf && !(c_NCMessageCodes[tN].Flags & DNCMF_NORMAL))
+					continue;*/
 				
 				// From client but not accepted from client
 				if (IsClient && !(c_NCMessageCodes[tN].Flags & DNCMF_CLIENT))
