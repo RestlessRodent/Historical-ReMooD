@@ -35,6 +35,7 @@
 #include "g_input.h"
 #include "p_local.h"
 #include "g_game.h"
+#include "p_inter.h"
 
 /*****************************
 *** EXTENDED GAME SETTINGS ***

@@ -51,6 +51,7 @@
 #include "m_menu.h"
 #include "r_main.h"
 #include "doomstat.h"
+#include "p_setup.h"
 
 /*************
 *** LOCALS ***
@@ -429,6 +430,8 @@ D_NetClient_t* D_NCFindClientByNetPlayer(D_NetPlayer_t* const a_NetPlayer)
 	/* Check */
 	if (!a_NetPlayer)
 		return NULL;
+	
+	return NULL;
 }
 
 /* D_NCFindClientByHost() -- Finds client by host name */
@@ -481,6 +484,8 @@ D_NetClient_t* D_NCFindClientByPlayer(struct player_s* const a_Player)
 	/* Check */
 	if (!a_Player)
 		return NULL;
+	
+	return NULL;
 }
 
 /* D_NCFindClientByID() -- Finds player by ID */
@@ -1846,7 +1851,18 @@ void D_LoadNetTic(void)
 			{
 				// Detect consistency failure
 				if (PrIndex != l_NetTicBuf[i]->PRandom || PosMask != l_NetTicBuf[i]->PosMask)
+				{
+					// Previously not failed?
+					if (devparm && !l_ConsistencyFailed)
+					{
+						if (PrIndex != l_NetTicBuf[i]->PRandom)
+							CONL_PrintF("pr: %02x !- %02x\n", PrIndex, l_NetTicBuf[i]->PRandom);
+						if (PosMask != l_NetTicBuf[i]->PosMask)
+							CONL_PrintF("pm: %08x != %08x\n", PosMask, l_NetTicBuf[i]->PosMask);
+					}
+					
 					l_ConsistencyFailed = true;
+				}
 				
 				// Clone
 				memmove(&l_ClientRunTic, l_NetTicBuf[i], sizeof(l_ClientRunTic));

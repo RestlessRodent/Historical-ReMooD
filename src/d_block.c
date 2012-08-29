@@ -39,6 +39,7 @@
 #include "m_random.h"
 #include "m_misc.h"
 #include "c_lib.h"
+#include "m_argv.h"
 
 /******************
 *** FILE STREAM ***

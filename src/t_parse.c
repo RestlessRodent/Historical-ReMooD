@@ -60,6 +60,7 @@
 #include "t_oper.h"
 #include "t_vari.h"
 #include "t_func.h"
+#include "console.h"
 
 void parse_script();
 void parse_data(char* data, char* end);

@@ -126,6 +126,10 @@ void P_PlayerSwitchToFavorite(player_t* const a_Player, const bool_t a_JustSpawn
 // GET STUFF
 //
 
+int FindBestWeapon(player_t* player)
+{
+	return wp_nochange;
+}
 
 // added by Boris : preferred weapons order
 void VerifFavoritWeapon(player_t* player)
@@ -139,11 +143,6 @@ void VerifFavoritWeapon(player_t* player)
 	
 	if (newweapon != player->readyweapon)
 		player->pendingweapon = newweapon;
-}
-
-int FindBestWeapon(player_t* player)
-{
-	return wp_nochange;
 }
 
 //

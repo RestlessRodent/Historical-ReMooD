@@ -38,6 +38,7 @@
 
 #include "doomtype.h"
 #include "w_wad.h"
+#include "m_argv.h"
 
 // the file where all game vars and settings are saved
 #define CONFIGFILENAME   "remood.cfg"

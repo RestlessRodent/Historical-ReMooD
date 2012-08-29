@@ -33,6 +33,7 @@
 ***************/
 
 #include "t_comp.h"
+#include "console.h"
 
 /****************
 *** CONSTANTS ***

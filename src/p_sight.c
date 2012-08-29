@@ -36,6 +36,7 @@
 #include "p_local.h"
 #include "r_main.h"
 #include "r_state.h"
+#include "console.h"
 
 //
 // P_CheckSight

@@ -71,6 +71,9 @@
 #include "p_info.h"
 #include "p_demcmp.h"
 #include "d_rdf.h"
+#include "b_bot.h"
+#include "st_stuff.h"
+
 
 // added 8-3-98 increse savegame size from 0x2c000 (180kb) to 512*1024
 #define SAVEGAMESIZE    (512*1024)

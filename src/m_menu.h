@@ -125,6 +125,8 @@ typedef struct M_UIMenuHandler_s
 
 /*** FUNCTIONS ***/
 
+void M_MenuExInit(void);
+
 bool_t M_ExUIActive(void);
 
 bool_t M_ExUIMessageBox(const M_ExMBType_t a_Type, const uint32_t a_MessageID, const char* const a_Title, const char* const a_Message, const MBCallBackFunc_t a_CallBack);

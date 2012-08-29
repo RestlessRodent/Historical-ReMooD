@@ -39,6 +39,7 @@
 #include "m_bbox.h"
 #include "r_state.h"
 #include "r_sky.h"
+#include "r_main.h"
 
 /****************
 *** CONSTANTS ***

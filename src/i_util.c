@@ -70,6 +70,7 @@
 #include "m_argv.h"
 #include "g_game.h"
 #include "d_netcmd.h"
+#include "m_menu.h"
 
 /****************
 *** CONSTANTS ***

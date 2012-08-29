@@ -58,6 +58,7 @@
 #include "i_sound.h"
 #include "s_sound.h"
 #include "dbopl.h"
+#include "i_video.h"
 
 /****************
 *** CONSTANTS ***

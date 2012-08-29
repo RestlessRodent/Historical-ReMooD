@@ -84,6 +84,9 @@
 #include "m_cheat.h"
 
 #include "d_prof.h"
+#include "p_spec.h"
+#include "m_menu.h"
+#include "p_demcmp.h"
 
 #if defined(__REMOOD_DEDICATED)
 bool_t g_DedicatedServer = true;				// Dedicated Server
@@ -1802,11 +1805,6 @@ void D_DoomMain(void)
 	
 	// Initialize Console
 	CONL_Init(4096, 1024);
-	
-	/* Initialize widgets */
-	if (!g_DedicatedServer)
-		if (!V_InitWidgetSystem())
-			I_Error("D_Main: Failed to initialize the widget handler.");
 	
 	/* Start Graphics REALLY early! */
 	SCR_SetDefaultMode();				// Screen Size

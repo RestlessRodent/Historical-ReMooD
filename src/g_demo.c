@@ -41,6 +41,8 @@
 #include "m_argv.h"
 #include "p_setup.h"
 #include "r_main.h"
+#include "d_main.h"
+#include "p_local.h"
 
 /**********************
 *** VANILLA FACTORY ***

@@ -55,6 +55,7 @@
 #include "t_parse.h"
 #include "t_spec.h"
 #include "t_vari.h"
+#include "console.h"
 
 int find_operator(int start, int stop, char* value);
 

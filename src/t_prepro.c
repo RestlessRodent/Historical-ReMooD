@@ -65,6 +65,7 @@
 #include "t_oper.h"
 #include "t_vari.h"
 #include "t_func.h"
+#include "w_wad.h"
 
 // clear the script: section and variable slots
 
@@ -395,6 +396,7 @@ void parse_data(char* data, char* end);	// t_parse.c
 
 void parse_include(char* lumpname)
 {
+#if 0
 	int lumpnum;
 	char* temp;
 	char* lump, *end;
@@ -450,6 +452,7 @@ void parse_include(char* lumpname)
 	// free the lump
 	Z_Free(lump);
 	Z_Free(temp);
+#endif
 }
 
 //---------------------------------------------------------------------------

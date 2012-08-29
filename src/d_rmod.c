@@ -41,9 +41,9 @@
 #include "d_block.h"							// Cache
 
 // RMOD Handlers are here
-#include "v_widget.h"
 #include "p_spec.h"
 #include "info.h"
+#include "m_argv.h"
 
 /****************
 *** CONSTANTS ***

@@ -34,6 +34,8 @@
 #include "doomdef.h"
 #include "doomtype.h"
 #include "m_random.h"
+#include "d_net.h"
+
 //
 // M_Random
 // Returns a 0-255 number
@@ -69,7 +71,7 @@ static uint8_t prndindex = 0;
 // P_Random is used throughout all the p_xxx game code.
 uint8_t P_Random()
 {
-#if 1
+#if 0
 	static bool_t did;
 	static FILE* f;
 	if (!did)

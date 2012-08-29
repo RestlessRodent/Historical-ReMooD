@@ -70,6 +70,7 @@
 #include "command.h"
 #include "p_demcmp.h"
 #include "b_bot.h"
+#include "t_dsvm.h"
 
 //#define COOLFLIPLEVELS
 

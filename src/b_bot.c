@@ -51,6 +51,7 @@
 #include "r_main.h"
 #include "p_local.h"
 #include "g_game.h"
+#include "m_argv.h"
 
 /****************
 *** CONSTANTS ***

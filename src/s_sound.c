@@ -43,6 +43,9 @@
 #include "i_util.h"
 #include "w_wad.h"
 #include "g_game.h"
+#include "m_argv.h"
+#include "r_main.h"
+#include "p_maputl.h"
 
 /*****************
 *** PROTOTYPES ***

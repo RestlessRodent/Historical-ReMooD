@@ -44,6 +44,7 @@
 #include "v_video.h"
 #include "p_pspr.h"
 #include "console.h"
+#include "m_random.h"
 
 // Doesn't work with g++, needs actionf_p1
 void A_Light0();

@@ -62,6 +62,8 @@
 #include "p_demcmp.h"
 #include "i_sound.h"
 #include "i_util.h"
+#include "i_video.h"
+#include "am_map.h"
 
 #include "b_bot.h"
 
