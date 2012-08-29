@@ -1547,6 +1547,7 @@ bool_t DS_RBSPerfect_IOCtlF(struct D_BS_s* const a_Stream, const D_BSStreamIOCtl
 #define RBSMAXRELIABLEKEEP				128		// Max reliable keeps
 #define RBSRELIABLERETRAN				500		// Retransmit reliables after this
 #define RBSRELDECAYADD					50		// Retransmit decay rate
+#define RBSRELMAXDECAY					5000	// Maximum decay retransmission
 #define RBSRELIABLETIMEOUT				120000	// Remove connection after 2 min
 
 /* DS_ReliablePk_t -- Reliable packet */
@@ -1968,6 +1969,9 @@ bool_t DS_RBSReliable_FlushF(struct D_BS_s* const a_Stream)
 			PkP->Transmit = false;
 			PkP->Time = ThisTime;	// Set current time for better retrans
 			PkP->Decay += RBSRELDECAYADD;	// Decay transmission
+			
+			if (PkP->Decay >= RBSRELMAXDECAY)
+				PkP->Decay = RBSRELMAXDECAY;
 			
 			// Write base block for wrapped stream
 			D_BSBaseBlock(RelData->WrapStream, "RELY");
