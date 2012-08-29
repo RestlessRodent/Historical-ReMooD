@@ -1566,7 +1566,7 @@ void D_NetXMitCmds(void)
 #define BUFSIZE 1500
 	uint8_t OutBuf[BUFSIZE];
 	uint8_t* p;
-	int i, BufferSize, nc;
+	int i, j, BufferSize, nc;
 	D_NetClient_t* ServerNC;
 	D_NetClient_t* NetClient;
 	D_BS_t* Stream;
@@ -1659,15 +1659,15 @@ void D_NetXMitCmds(void)
 		
 		if (DiffBits & DDB_WEAPON)
 		{
-			for (i = 0; New->Std.XSNewWeapon[i] && i < MAXTCWEAPNAME; i++)
-				WriteUInt8((uint8_t**)&p, New->Std.XSNewWeapon[i]);
+			for (j = 0; New->Std.XSNewWeapon[j] && j < MAXTCWEAPNAME; j++)
+				WriteUInt8((uint8_t**)&p, New->Std.XSNewWeapon[j]);
 			WriteUInt8((uint8_t**)&p, 0);
 		}
 		
 		// Data Bits
-		LittleWriteUInt16((uint16_t**)&p, l_StoreCmds[0][MAXPLAYERS].Std.DataSize);
-		for (i = 0; i < l_StoreCmds[0][MAXPLAYERS].Std.DataSize; i++)
-			WriteUInt8((uint8_t**)&p, l_StoreCmds[0][MAXPLAYERS].Std.DataBuf[i]);
+		LittleWriteUInt16((uint16_t**)&p, l_StoreCmds[0][j].Std.DataSize);
+		for (j = 0; j < l_StoreCmds[0][j].Std.DataSize; j++)
+			WriteUInt8((uint8_t**)&p, l_StoreCmds[0][j].Std.DataBuf[j]);
 	}
 	
 	/* Get buffer size */
