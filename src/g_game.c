@@ -714,6 +714,9 @@ void G_Ticker(void)
 			GS_HandleExtraCommands(cmd, i);
 		}
 	
+	/* Transmit Network Commands */
+	D_NetXMitCmds();
+	
 	// Set new time
 	g_DemoTime = ThisTime;
 	
