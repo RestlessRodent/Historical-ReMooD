@@ -3642,13 +3642,13 @@ static bool_t PS_ExtraSpecialOCCB(const bool_t a_Pushed, const struct WL_WADFile
 						TokStr = strtok(NULL, __REMOOD_MAPTOKEN);
 						if (!TokStr)
 							continue;
-						ThisMinor->Shift = strtol(TokStr, NULL, 10);
+						ThisMinor->Shift = strtoul(TokStr, NULL, 10);
 					
 						// Read Mask
 						TokStr = strtok(NULL, __REMOOD_MAPTOKEN);
 						if (!TokStr)
 							continue;
-						ThisMinor->Mask = strtol(TokStr, NULL, 16);
+						ThisMinor->Mask = strtoul(TokStr, NULL, 16);
 					
 						// Debug
 						//if (devparm)
@@ -3701,7 +3701,7 @@ static bool_t PS_ExtraSpecialOCCB(const bool_t a_Pushed, const struct WL_WADFile
 						}
 					
 						// Set Value (from hex)
-						ThisMajor->BaseInt = strtol(TokStr, NULL, 16);
+						ThisMajor->BaseInt = strtoul(TokStr, NULL, 16);
 					
 						// Debug
 						//if (devparm)
