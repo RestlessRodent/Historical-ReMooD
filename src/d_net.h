@@ -187,6 +187,10 @@ void D_NCQC_MapChange(void* const a_Data);
 
 
 
+void D_LoadNetTic(void);
+bool_t D_TicReady(const tic_t a_WhichTic);
+void D_ClearNetTics(void);
+void D_NetXMitCmds(void);
 
 void D_NetReadGlobalTicCmd(ticcmd_t* const a_TicCmd);
 void D_NetWriteGlobalTicCmd(ticcmd_t* const a_TicCmd);

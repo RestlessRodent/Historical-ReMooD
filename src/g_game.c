@@ -666,6 +666,9 @@ void G_Ticker(void)
 	// read/write demo and check turbo cheat
 	ThisTime = D_SyncNetMapTime();
 	
+	/* Load network tic */
+	D_LoadNetTic();
+	
 	/* Global Commands */
 	// Clear
 	memset(&GlobalCmd, 0, sizeof(GlobalCmd));

@@ -193,10 +193,9 @@ tic_t D_SyncNetAllReady(void)
 	/* Otherwise time gets dictated to us */
 	else
 	{
-		if (g_LastServerTic > l_MapTime)
+		if (D_TicReady(gametic))
 			return l_MapTime + 1;
-		else
-			return l_MapTime;
+		return l_MapTime;
 	}
 	
 	/* Fell through? */
@@ -808,6 +807,9 @@ void D_NCDisconnect(void)
 		G_StopDemoPlay();
 	}
 	
+	/* Clear network tics */
+	D_ClearNetTics();
+	
 	/* Clear all player information */
 	// Just wipe ALL of it!
 	memset(players, 0, sizeof(players));
@@ -1114,6 +1116,13 @@ typedef struct D_NCMessageData_s
 	uint32_t FlagsMask;							// Mask for flags
 } D_NCMessageData_t;
 
+/* D_NetTicData_t -- Network tic data */
+typedef struct D_NetTicData_s
+{
+	tic_t RunAt;								// Run on this tic
+	ticcmd_t Data[MAXPLAYERS + 1];				// Tic Data
+} D_NetTicData_t;
+
 /*** LOCALS ***/
 
 #define MAXGLOBALBUFSIZE					32	// Size of global buffer
@@ -1121,6 +1130,10 @@ typedef struct D_NCMessageData_s
 static tic_t l_GlobalTime[MAXGLOBALBUFSIZE];	// Time
 static ticcmd_t l_GlobalBuf[MAXGLOBALBUFSIZE];	// Global buffer
 static int32_t l_GlobalAt = -1;					// Position Global buf is at
+static D_NetTicData_t** l_NetTicBuf;			// Buffer
+static size_t l_NetTicBufSize;					// Size of buffer
+static ticcmd_t l_StoreCmds[2][MAXPLAYERS + 1];	// Stored server commands
+static D_NetTicData_t l_ClientRunTic;			// Tic for client to run
 
 /*** PACKET HANDLER FUNCTIONS ***/
 
@@ -1256,14 +1269,12 @@ bool_t D_NCMH_JOIN(struct D_NCMessageData_s* const a_Data)
 bool_t D_NCMH_TICS(struct D_NCMessageData_s* const a_Data)
 {
 	uint64_t GameTic;
-	uint8_t Class;
-	ticcmd_t Cmd;
 	D_BS_t* Stream;
+	D_NetTicData_t* Data;
+	int i, Blank;
 	
-	uint16_t* DataSizeP;
-	uint8_t* DataBufP;
-	uint32_t i;
-	uint8_t Bit;
+	uint8_t u8;
+	uint16_t u16;
 	
 	/* Ignore any tic commands from the local server */
 	if (a_Data->NetClient->IsLocal)
@@ -1272,61 +1283,56 @@ bool_t D_NCMH_TICS(struct D_NCMessageData_s* const a_Data)
 	/* Get Stream */
 	Stream = a_Data->InStream;
 	
-	/* Clear */
-	memset(&Cmd, 0, sizeof(Cmd));
-	
 	/* Read Data */
 	// Game tic
 	GameTic = D_BSru64(Stream);
-		
-	// Class
-	Class = D_BSru8(Stream);
 	
-	// Players (Non-Global)
-	if (Class > 0)
+	// Old tic (probably a dupe or old retransmit)
+	if (GameTic < gametic)
+		return true;
+	
+	/* See if this tic was never buffered */
+	Blank = -1;	// Find blank spot while we are at it
+	for (i = 0; i < l_NetTicBufSize; i++)
+		if (l_NetTicBuf[i])
+		{
+			if (l_NetTicBuf[i]->RunAt == GameTic)
+				return true;	// Same
+		}
+		else
+			Blank = i;
+	
+	/* No blank? */
+	if (Blank == -1)
 	{
+		Z_ResizeArray((void**)&l_NetTicBuf, sizeof(*l_NetTicBuf),
+			l_NetTicBufSize, l_NetTicBufSize + 1);
+		Blank = l_NetTicBufSize++;
 	}
 	
-	// Extended Data
-	if (Class > 0)
-	{
-		DataSizeP = &Cmd.Std.DataSize;
-		DataBufP = &Cmd.Std.DataBuf;
-	}
-	else
-	{
-		DataSizeP = &Cmd.Ext.DataSize;
-		DataBufP = &Cmd.Ext.DataBuf;
-	}
+	/* Create in spot */
+	l_NetTicBuf[Blank] = Data = Z_Malloc(sizeof(*Data), PU_STATIC, NULL);
 	
-	// Really read it now
-	*DataSizeP = D_BSru16(Stream);
+	/* Read packet data into storage */
+	// Set current tic
+	Data->RunAt = GameTic;
 	
-	for (i = 0; i < *DataSizeP; i++)
+	// Read global commands
+	Data->Data[MAXPLAYERS].Type = 1;
+	u16 = D_BSru16(Stream);
+	
+	for (i = 0; i < u16; i++)
 	{
-		Bit = D_BSru8(Bit);
+		u8 = D_BSru8(Stream);
 		if (i < MAXTCDATABUF)
-			DataBufP[i] = Bit;
+		{
+			Data->Data[MAXPLAYERS].Ext.DataSize = i;
+			Data->Data[MAXPLAYERS].Ext.DataBuf[i] = u8;
+		}
 	}
 	
-	/* Place in the appropriate buffer */
-	// Overflowed? Desync is gonna happen!
-	if (l_GlobalAt >= MAXGLOBALBUFSIZE - 1)
-		CONL_PrintF("Global Buffer Overflow!!!\n");
-	
-	// Place in area
-	else
-	{
-		// Spot?
-		i = ++l_GlobalAt;
-		
-		// Load
-		l_GlobalTime[i] = GameTic;
-		l_GlobalBuf[i] = Cmd;
-		
-		// Set time
-		g_LastServerTic = GameTic;
-	}
+	/* No more handling */
+	return true;
 }
 
 /* D_NCMH_CONN() -- Connection Request */
@@ -1436,6 +1442,7 @@ bool_t D_NCMH_CONN(struct D_NCMessageData_s* const a_Data)
 		);
 	
 	return true;
+#undef BUFSIZE
 }
 
 /* D_NCMH_PLAY() -- We can play */
@@ -1505,6 +1512,208 @@ static const D_NCMessageType_t c_NCMessageCodes[] =
 
 /*** FUNCTIONS ***/
 
+/* D_LoadNetTic() -- Loads network tic */
+void D_LoadNetTic(void)
+{	
+	size_t i;
+	
+	/* Clear run tic */
+	memset(&l_ClientRunTic, 0, sizeof(l_ClientRunTic));
+
+	/* Find it, copy it, delete it */
+	for (i = 0; i < l_NetTicBufSize; i++)
+		if (l_NetTicBuf[i])
+			if (l_NetTicBuf[i]->RunAt == l_MapTime)
+			{
+				// Clone
+				memmove(&l_ClientRunTic, l_NetTicBuf[i], sizeof(l_ClientRunTic));
+				
+				// Delete
+				Z_Free(l_NetTicBuf[i]);
+				l_NetTicBuf[i] = NULL;
+				
+				// Return
+				return;
+			}
+}
+
+/* D_TicReady() -- Tic is enqueued (we have it) */
+bool_t D_TicReady(const tic_t a_WhichTic)
+{
+	size_t i;
+	
+	/* Have it */
+	for (i = 0; i < l_NetTicBufSize; i++)
+		if (l_NetTicBuf[i])
+			if (l_NetTicBuf[i]->RunAt == a_WhichTic)
+				return true;
+	
+	/* Don't have it */
+	return false;
+}
+
+/* D_ClearNetTics() -- Clears network tics */
+void D_ClearNetTics(void)
+{
+	// static D_NetTicData_t** l_NetTicBuf;			// Buffer
+	// static size_t l_NetTicBufSize;					// Size of buffer
+	// l_StoreCmds
+}
+
+/* D_NetXMitCmds() -- Transmit commands */
+void D_NetXMitCmds(void)
+{
+#define BUFSIZE 1500
+	uint8_t OutBuf[BUFSIZE];
+	uint8_t* p;
+	int i, BufferSize, nc;
+	D_NetClient_t* ServerNC;
+	D_NetClient_t* NetClient;
+	D_BS_t* Stream;
+	uint16_t DiffBits;
+	
+	ticcmd_t* Old, *New;
+	
+	/* Clear output buffer */
+	memset(OutBuf, 0, sizeof(BUFSIZE));
+	p = OutBuf;
+	
+	/* Write into the buffer */
+	// Global
+	LittleWriteUInt16((uint16_t**)&p, l_StoreCmds[0][MAXPLAYERS].Ext.DataSize);
+	
+	for (i = 0; i < l_StoreCmds[0][MAXPLAYERS].Ext.DataSize; i++)
+		WriteUInt8((uint8_t**)&p, l_StoreCmds[0][MAXPLAYERS].Ext.DataBuf[i]);
+	
+	// Players
+	for (i = 0; i < MAXPLAYERS; i++)
+	{
+		// Get Old/New
+		Old = &l_StoreCmds[1][i];
+		New = &l_StoreCmds[0][i];
+		
+		// Write playeringame status
+		WriteUInt8((uint8_t**)&p, playeringame[i]);
+		
+		// Don't write tics for players not in the game
+		if (!playeringame[i])
+			continue;
+		
+		// Determine diff bits
+		DiffBits = 0;
+		
+#if 1
+		if (New->Std.forwardmove)
+			DiffBits |= DDB_FORWARD;
+		if (New->Std.sidemove)
+			DiffBits |= DDB_SIDE;
+		if (New->Std.angleturn)
+			DiffBits |= DDB_ANGLE;
+		if (New->Std.aiming)
+			DiffBits |= DDB_AIMING;
+		if (New->Std.buttons)
+			DiffBits |= DDB_BUTTONS;
+		if (New->Std.BaseAngleTurn)
+			DiffBits |= DDB_BAT;
+		if (New->Std.BaseAiming)
+			DiffBits |= DDB_BAM;
+		if (New->Std.ResetAim)
+			DiffBits |= DDB_RESETAIM;
+#else
+		if (Old->Std.forwardmove != New->Std.forwardmove)
+			DiffBits |= DDB_FORWARD;
+		if (Old->Std.sidemove != New->Std.sidemove)
+			DiffBits |= DDB_SIDE;
+		if (Old->Std.angleturn != New->Std.angleturn)
+			DiffBits |= DDB_ANGLE;
+		if (Old->Std.aiming != New->Std.aiming)
+			DiffBits |= DDB_AIMING;
+		if (Old->Std.buttons != New->Std.buttons)
+			DiffBits |= DDB_BUTTONS;
+		if (Old->Std.BaseAngleTurn != New->Std.BaseAngleTurn)
+			DiffBits |= DDB_BAT;
+		if (Old->Std.BaseAiming != New->Std.BaseAiming)
+			DiffBits |= DDB_BAM;
+		if (Old->Std.ResetAim != New->Std.ResetAim)
+			DiffBits |= DDB_RESETAIM;
+#endif
+		
+		// Always set weapon
+		DiffBits |= DDB_WEAPON;
+		
+		// Write bits
+		LittleWriteUInt16((uint16_t**)&p, DiffBits);
+		
+		if (DiffBits & DDB_FORWARD)
+			WriteInt8((int8_t**)&p, New->Std.forwardmove);
+		if (DiffBits & DDB_SIDE)
+			WriteInt8((int8_t**)&p, New->Std.sidemove);
+		if (DiffBits & DDB_ANGLE)
+			LittleWriteInt16((int16_t**)&p, New->Std.angleturn);
+		if (DiffBits & DDB_AIMING)
+			LittleWriteUInt16((uint16_t**)&p, New->Std.aiming);
+		if (DiffBits & DDB_BUTTONS)
+			LittleWriteUInt16((uint16_t**)&p, New->Std.buttons);
+		if (DiffBits & DDB_RESETAIM)
+			WriteUInt8((uint8_t**)&p, New->Std.ResetAim);
+		
+		if (DiffBits & DDB_WEAPON)
+		{
+			for (i = 0; New->Std.XSNewWeapon[i] && i < MAXTCWEAPNAME; i++)
+				WriteUInt8((uint8_t**)&p, New->Std.XSNewWeapon[i]);
+			WriteUInt8((uint8_t**)&p, 0);
+		}
+		
+		// Data Bits
+		LittleWriteUInt16((uint16_t**)&p, l_StoreCmds[0][MAXPLAYERS].Std.DataSize);
+		for (i = 0; i < l_StoreCmds[0][MAXPLAYERS].Std.DataSize; i++)
+			WriteUInt8((uint8_t**)&p, l_StoreCmds[0][MAXPLAYERS].Std.DataBuf[i]);
+	}
+	
+	/* Get buffer size */
+	BufferSize = (uintptr_t)p - (uintptr_t)OutBuf;
+	
+	/* Send Commands to everyone */
+	for (nc = 0; nc < l_NumClients; nc++)
+	{
+		// Get current
+		NetClient = l_Clients[nc];
+		
+		// Failed?
+		if (!NetClient)
+			continue;
+		
+		// Is ourself?
+		if (NetClient->IsLocal)
+			continue;
+		
+		// Not ready?
+		if (!NetClient->ReadyToPlay || !NetClient->SaveGameSent)
+			continue;
+		
+		// Write message to them (perfect output)
+		Stream = NetClient->Streams[DNCSP_PERFECTWRITE];
+		
+		// Base
+		D_BSBaseBlock(Stream, "TICS");
+		
+		// Current Game Tic
+		D_BSwu64(Stream, gametic);
+		
+		// Write buffer that was created
+		D_BSwu16(Stream, BufferSize);
+		D_BSWriteChunk(Stream, OutBuf, BufferSize);
+		
+		// Send away
+		D_BSRecordNetBlock(Stream, &NetClient->Address);
+	}
+	
+	/* Move stored commands */
+	memmove(l_StoreCmds[1], l_StoreCmds[0], sizeof(l_StoreCmds[0]));
+	memset(l_StoreCmds[0], 0, sizeof(l_StoreCmds[0]));
+#undef BUFSIZE
+}
+
 /* D_NetReadGlobalTicCmd() -- Reads global tic command */
 void D_NetReadGlobalTicCmd(ticcmd_t* const a_TicCmd)
 {
@@ -1536,19 +1745,7 @@ void D_NetReadGlobalTicCmd(ticcmd_t* const a_TicCmd)
 	// Then only use the buffer sent to us via TICS from the server.
 	else
 	{
-		// Something is in the buffer
-		if (l_GlobalAt >= 0)
-			// Only match if the same tic
-			if (l_GlobalTime[0] == D_SyncNetMapTime())
-			{
-				// Move the first item inside
-				memmove(a_TicCmd, &l_GlobalBuf[0], sizeof(*a_TicCmd));
-			
-				// Move everything down
-				memmove(&l_GlobalBuf[0], &l_GlobalBuf[1], sizeof(ticcmd_t) * (MAXGLOBALBUFSIZE - 1));
-				memmove(&l_GlobalTime[0], &l_GlobalTime[1], sizeof(tic_t) * (MAXGLOBALBUFSIZE - 1));
-				l_GlobalAt--;
-			}
+		memmove(a_TicCmd, &l_ClientRunTic.Data[MAXPLAYERS], sizeof(*a_TicCmd));
 	}
 }
 
@@ -1567,46 +1764,8 @@ void D_NetWriteGlobalTicCmd(ticcmd_t* const a_TicCmd)
 	if (!ServerNC->IsLocal)
 		return;
 	
-	/* Send Commands to everyone */
-	for (nc = 0; nc < l_NumClients; nc++)
-	{
-		// Get current
-		NetClient = l_Clients[nc];
-		
-		// Failed?
-		if (!NetClient)
-			continue;
-		
-		// Is ourself?
-		if (NetClient->IsLocal)
-			continue;
-		
-		// Not ready?
-		if (!NetClient->ReadyToPlay || !NetClient->SaveGameSent)
-			continue;
-		
-		// Write message to them (perfect output)
-		Stream = NetClient->Streams[DNCSP_PERFECTWRITE];
-		
-		// Base
-		D_BSBaseBlock(Stream, "TICS");
-		
-		// Current Game Tic
-		D_BSwu64(Stream, gametic);
-		
-		// Zero Marks Global
-		D_BSwu8(Stream, 0);
-		
-		// Write Data Size
-		D_BSwu16(Stream, a_TicCmd->Ext.DataSize);
-		
-		// Write buffer contents
-		for (i = 0; i < a_TicCmd->Ext.DataSize; i++)
-			D_BSwu8(Stream, a_TicCmd->Ext.DataBuf[i]);
-		
-		// Send away
-		D_BSRecordNetBlock(Stream, &NetClient->Address);
-	}
+	/* Write in global store */
+	memmove(&l_StoreCmds[0][MAXPLAYERS], a_TicCmd, sizeof(ticcmd_t));
 }
 
 /* D_NetReadTicCmd() -- Read tic commands from network */
@@ -1665,6 +1824,7 @@ void D_NetReadTicCmd(ticcmd_t* const a_TicCmd, const int a_Player)
 	// Then only use the buffer sent to us via TICS from the server.
 	else
 	{
+		memmove(a_TicCmd, &l_ClientRunTic.Data[a_Player], sizeof(*a_TicCmd));
 	}
 }
 
@@ -1682,40 +1842,9 @@ void D_NetWriteTicCmd(ticcmd_t* const a_TicCmd, const int a_Player)
 	// Non-Local?
 	if (!ServerNC->IsLocal)
 		return;
-	
-	/* Send Commands to everyone */
-	for (nc = 0; nc < l_NumClients; nc++)
-	{
-		// Get current
-		NetClient = l_Clients[nc];
 		
-		// Failed?
-		if (!NetClient)
-			continue;
-		
-		// Is ourself?
-		if (NetClient->IsLocal)
-			continue;
-		
-		// Not ready?
-		if (!NetClient->ReadyToPlay || !NetClient->SaveGameSent)
-			continue;
-		
-		// Write message to them (perfect output)
-		Stream = NetClient->Streams[DNCSP_PERFECTWRITE];
-		
-		// Base
-		D_BSBaseBlock(Stream, "TICS");
-		
-		// Current Game Tic
-		D_BSwu64(Stream, gametic);
-		
-		// Positive Marks Player
-		D_BSwu8(Stream, a_Player + 1);
-		
-		// Send away
-		D_BSRecordNetBlock(Stream, &NetClient->Address);
-	}
+	/* Write in global store */
+	memmove(&l_StoreCmds[0][a_Player], a_TicCmd, sizeof(ticcmd_t));
 }
 
 /* D_NCUpdate() -- Update all networking stuff */

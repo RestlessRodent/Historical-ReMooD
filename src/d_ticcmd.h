@@ -87,7 +87,7 @@ typedef enum
 #define TICCMD_INVACTMASK	UINT32_C(0x3)		// Action Mask
 
 #define MAXTCWEAPNAME						32	// Max length for weapon name
-#define MAXTCDATABUF					1024	// Data Buffer size
+#define MAXTCDATABUF					384		// Data Buffer size
 
 typedef union
 {
@@ -137,6 +137,20 @@ enum
 	
 	NUMDTCT
 };
+
+/* D_DiffBits_t -- Diff bits */
+typedef enum D_DiffBits_e
+{
+	DDB_FORWARD						= 0x0001,	// Forward Changes
+	DDB_SIDE						= 0x0002,	// Side Changes
+	DDB_AIMING						= 0x0004,	// Aiming Changes
+	DDB_BUTTONS						= 0x0008,	// Button Changes
+	DDB_WEAPON						= 0x0010,	// Weapon Changes
+	DDB_BAT							= 0x0020,	// Base turn angle changes
+	DDB_BAM							= 0x0040,	// Base aiming changes
+	DDB_RESETAIM					= 0x0080,	// Aim is reset
+	DDB_ANGLE						= 0x0100,	// Angle changes
+} D_DiffBits_t;
 
 extern const int32_t c_TCDataSize[NUMDTCT];
 

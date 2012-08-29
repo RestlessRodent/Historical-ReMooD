@@ -253,7 +253,7 @@ void TryRunTics(tic_t realtics)
 		{
 			// Run game ticker and increment the gametic
 			G_Ticker();
-			gametic++;
+			++gametic;
 			
 			// Single tics? -timedemo
 			if (singletics)
