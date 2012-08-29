@@ -1546,7 +1546,8 @@ bool_t DS_RBSPerfect_IOCtlF(struct D_BS_s* const a_Stream, const D_BSStreamIOCtl
 
 #define RBSMAXRELIABLEKEEP				128		// Max reliable keeps
 #define RBSRELIABLERETRAN				500		// Retransmit reliables after this
-#define RBSRELIABLETIMEOUT				120000	// Remove connection after 2 mins
+#define RBSRELDECAYADD					50		// Retransmit decay rate
+#define RBSRELIABLETIMEOUT				120000	// Remove connection after 2 min
 
 /* DS_ReliablePk_t -- Reliable packet */
 typedef struct DS_ReliablePk_s
@@ -1554,6 +1555,7 @@ typedef struct DS_ReliablePk_s
 	uint32_t Key;								// Key for packet
 	int32_t Time;								// Time wrote
 	int32_t FirstTime;							// First time
+	int32_t Decay;								// Decay Time
 	bool_t Transmit;							// Transmit data
 	char Header[5];								// Data Header
 	uintptr_t Size;								// Data Size
@@ -1831,6 +1833,7 @@ bool_t DS_RBSReliable_FlushF(struct D_BS_s* const a_Stream)
 							PkP->Key = 0;
 							PkP->Time = 0;
 							PkP->FirstTime = 0;
+							PkP->Decay = 0;
 							PkP->Transmit = false;
 							memset(PkP->Header, 0, sizeof(PkP->Header));
 							PkP->Size = 0;
@@ -1887,7 +1890,7 @@ bool_t DS_RBSReliable_FlushF(struct D_BS_s* const a_Stream)
 			}
 			
 			// Retransmit?
-			if (ThisTime - CurFlat->OutPks[j].Time > RBSRELIABLERETRAN)
+			if (ThisTime - CurFlat->OutPks[j].Time > (RBSRELIABLERETRAN + CurFlat->OutPks[j].Decay))
 				CurFlat->OutPks[j].Transmit = true;
 			
 			// Packet timeout? Possibly a now headless connection
@@ -1964,6 +1967,7 @@ bool_t DS_RBSReliable_FlushF(struct D_BS_s* const a_Stream)
 			// Do not transmit again
 			PkP->Transmit = false;
 			PkP->Time = ThisTime;	// Set current time for better retrans
+			PkP->Decay += RBSRELDECAYADD;	// Decay transmission
 			
 			// Write base block for wrapped stream
 			D_BSBaseBlock(RelData->WrapStream, "RELY");
