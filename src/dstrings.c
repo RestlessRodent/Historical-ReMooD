@@ -939,6 +939,8 @@ StringGroupEX_t UnicodeStrings[NUMUNICODESTRINGS] =
 	{			  "DNETC_BOUNDTOPORT", "UDPv$1 socket bound to port $2."},
 	{			  "DNETC_CONNECTFROM", "New connection from \"$1\" (ReMooD $2.$3$4)"},
 	{		   "DNETC_CLIENTNOWREADY", "Client $1 is now ready."},
+	{			  "DNETC_CONSISTFAIL", "Consistency Failure"},
+	{			  "DNETC_PLEASERECON", "Please Reconnect"},
 };
 
 /* DS_NameOfString() -- Returns name of pointer to string */

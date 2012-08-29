@@ -443,6 +443,9 @@ void D_Display(void)
 	
 	// Draw the console on the menu (if it is opened anyway)
 	CONL_DrawConsole();
+	
+	// GhostlyDeath <August 29, 2012> -- Network Stuff
+	D_NCDrawer();
 		
 	// GhostlyDeath <May 6, 2012> -- Network Update
 	D_SyncNetUpdate();

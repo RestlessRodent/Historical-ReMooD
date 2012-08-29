@@ -691,8 +691,6 @@ void G_Ticker(void)
 		if (demorecording)
 			G_WriteDemoGlobalTicCmd(&GlobalCmd);
 		D_NetWriteGlobalTicCmd(&GlobalCmd);
-		
-		GS_HandleExtraCommands(&GlobalCmd, -1);
 	}
 	
 	/* Player Commands */
@@ -714,13 +712,20 @@ void G_Ticker(void)
 			if (demorecording)
 				G_WriteDemoTiccmd(cmd, i);
 			D_NetWriteTicCmd(cmd, i);
-			
-			// Process Command
-			GS_HandleExtraCommands(cmd, i);
 		}
 	
 	/* Transmit Network Commands */
 	D_NetXMitCmds();
+	
+	/* Handle Commands */
+	// Process Global Commands
+	if (GlobalCmd.Type >= 1)
+		GS_HandleExtraCommands(&GlobalCmd, -1);
+		
+	// Per Player Commands
+	for (i = 0; i < MAXPLAYERS; i++)
+		if ((playeringame[i] || i == 0) && !dedicated)
+			GS_HandleExtraCommands(cmd, i);
 	
 	// Set new time
 	g_DemoTime = ThisTime;

@@ -59,6 +59,7 @@
 static tic_t l_MapTime = 0;						// Map local time
 static tic_t l_BaseTime = 0;					// Base Game Time
 static tic_t l_LocalTime = 0;					// Local Time
+static bool_t l_ConsistencyFailed = false;		// Consistency failed
 
 /****************
 *** FUNCTIONS ***
@@ -858,8 +859,12 @@ void D_NCDisconnect(void)
 		G_StopDemoPlay();
 	}
 	
-	/* Clear network tics */
+	/* Clear network stuff */
+	// Tics
 	D_ClearNetTics();
+	
+	// Consistency problems
+	l_ConsistencyFailed = false;
 	
 	/* Clear all player information */
 	// Just wipe ALL of it!
@@ -1159,6 +1164,8 @@ typedef struct D_NCMessageData_s
 typedef struct D_NetTicData_s
 {
 	tic_t RunAt;								// Run on this tic
+	uint8_t PRandom;							// P_Random() Index
+	uint32_t PosMask;							// In game player position mask
 	ticcmd_t Data[MAXPLAYERS + 1];				// Tic Data
 } D_NetTicData_t;
 
@@ -1362,6 +1369,10 @@ bool_t D_NCMH_TICS(struct D_NCMessageData_s* const a_Data)
 	// Tic buffer size
 	BufSize = D_BSru16(Stream);
 	
+	/* Read consistency info */
+	Data->PRandom = D_BSru8(Stream);
+	Data->PosMask = D_BSru32(Stream);
+	
 	/* Read global commands */
 	Data->Data[MAXPLAYERS].Type = 1;
 	u16 = D_BSru16(Stream);
@@ -1541,6 +1552,7 @@ bool_t D_NCMH_CONN(struct D_NCMessageData_s* const a_Data)
 	D_BSwu32(Stream, KeyMask);
 	D_BSwu64(Stream, gametic + 1);				// Current game tic
 	D_BSwu32(Stream, HostID);					// Their server identity
+	D_BSwu8(Stream, P_GetRandIndex());			// Random Index
 	
 	// Send away
 	D_BSRecordNetBlock(Stream, &FreshClient->Address);
@@ -1564,6 +1576,7 @@ bool_t D_NCMH_PLAY(struct D_NCMessageData_s* const a_Data)
 	uint32_t SelfMask, CalcedMask;
 	uint32_t ServerGenKey[MAXCONNKEYSIZE], HostID;
 	uint64_t GameTic;
+	uint8_t PrIndex;
 	
 	/* Get server client */
 	ServerNC = D_NCFindClientIsServer();
@@ -1592,7 +1605,11 @@ bool_t D_NCMH_PLAY(struct D_NCMessageData_s* const a_Data)
 	// Read Others
 	GameTic = D_BSru64(Stream);
 	HostID = D_BSru32(Stream);
+	PrIndex = D_BSru8(Stream);
 	gamestate = GS_WAITINGPLAYERS;
+	
+	// Set random index
+	P_SetRandIndex(PrIndex);
 	
 	/* Local local ID */
 	for (i = 0; i < l_NumClients; i++)
@@ -1685,15 +1702,31 @@ static const D_NCMessageType_t c_NCMessageCodes[] =
 void D_LoadNetTic(void)
 {	
 	size_t i;
+	uint32_t PosMask;
+	uint8_t PrIndex;
 	
 	/* Clear run tic */
 	memset(&l_ClientRunTic, 0, sizeof(l_ClientRunTic));
+	
+	/* Determine Consistency */
+	// Player position
+	for (PosMask = 0, i = 0; i < MAXPLAYERS; i++)
+		if (playeringame[i])
+			if (players[i].mo)
+				PosMask ^= players[i].mo->x ^ players[i].mo->y ^ players[i].mo->z;
+	
+	// Random Index
+	PrIndex = P_GetRandIndex();
 
 	/* Find it, copy it, delete it */
 	for (i = 0; i < l_NetTicBufSize; i++)
 		if (l_NetTicBuf[i])
 			if (l_NetTicBuf[i]->RunAt == gametic)
 			{
+				// Detect consistency failure
+				if (PrIndex != l_NetTicBuf[i]->PRandom || PosMask != l_NetTicBuf[i]->PosMask)
+					l_ConsistencyFailed = true;
+				
 				// Clone
 				memmove(&l_ClientRunTic, l_NetTicBuf[i], sizeof(l_ClientRunTic));
 				
@@ -1741,6 +1774,9 @@ void D_NetXMitCmds(void)
 	D_BS_t* Stream;
 	uint16_t DiffBits;
 	
+	uint8_t PRi;
+	uint32_t PosMask;
+	
 	ticcmd_t* Old, *New;
 	
 	/* Clear output buffer */
@@ -1748,6 +1784,16 @@ void D_NetXMitCmds(void)
 	p = OutBuf;
 	
 	/* Write into the buffer */
+	// Consistency Info
+	for (PosMask = 0, i = 0; i < MAXPLAYERS; i++)
+		if (playeringame[i])
+			if (players[i].mo)
+				PosMask ^= players[i].mo->x ^ players[i].mo->y ^ players[i].mo->z;
+	
+	PRi = P_GetRandIndex();
+	WriteUInt8((uint8_t**)&p, PRi);
+	LittleWriteUInt32((uint32_t**)&p, PosMask);
+	
 	// Global
 	LittleWriteUInt16((uint16_t**)&p, l_StoreCmds[0][MAXPLAYERS].Ext.DataSize);
 	
@@ -2176,6 +2222,18 @@ void D_NCUpdate(void)
 			// flushed.
 		D_BSFlushStream(POut);
 		D_BSFlushStream(BOut);
+	}
+}
+
+/* D_NCDrawer() -- Draws net stuff */
+void D_NCDrawer(void)
+{
+	/* Consistency failure message */
+	if (l_ConsistencyFailed)
+	{
+		// Draw text
+		V_DrawStringA(VFONT_LARGE, 0, DS_GetString(DSTR_DNETC_CONSISTFAIL), 10, 20);
+		V_DrawStringA(VFONT_SMALL, 0, DS_GetString(DSTR_DNETC_PLEASERECON), 10, 35);
 	}
 }
 

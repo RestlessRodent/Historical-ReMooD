@@ -142,6 +142,7 @@ void D_NCFudgeOffHostStream(I_HostAddress_t* const a_Host, struct D_BS_s* a_Stre
 void D_NCFudgeOffClient(D_NetClient_t* const a_Client, const char a_Code, const char* const a_Reason);
 
 void D_NCUpdate(void);
+void D_NCDrawer(void);
 
 void D_NCAddQueueCommand(const D_NCQCFunc_t a_Func, void* const a_Data);
 void D_NCRunCommands(void);

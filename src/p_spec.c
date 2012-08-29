@@ -3762,7 +3762,7 @@ static bool_t PS_ExtraSpecialOCCB(const bool_t a_Pushed, const struct WL_WADFile
 						if (i == 0)
 						{
 							// Get the type to translate from
-							Source = atoi(TokStr);
+							Source = strtoul(TokStr, NULL, 0);
 						
 							// Bad number?
 							if (!Source/* || Source >= GenCrusherBase*/)
