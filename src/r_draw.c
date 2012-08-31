@@ -207,22 +207,23 @@ static bool_t RS_TransTableOCCB(const bool_t a_Pushed, const struct WL_WADFile_s
 	static struct
 	{
 		char Name[9];
+		char HereticName[9];
 		bool_t Flip;
 	} TransLumps[NUMVEXTRANSPARENCIES] =
 	{
-		{"RMD_TRFF", true},
-		{"RMD_TR10", false},
-		{"RMD_TR20", false},
-		{"RMD_TR30", false},
-		{"RMD_TR40", false},
-		{"RMD_TR50", false},
-		{"RMD_TR40", true},
-		{"RMD_TR30", true},
-		{"RMD_TR20", true},
-		{"RMD_TR10", true},
-		{"RMD_TRFF", false},
-		{"RMD_TRFR", false},
-		{"TRANSFX1", true},
+		{"RMD_TRFF", "RMD_HRFF", true},
+		{"RMD_TR10", "RMD_HR10", false},
+		{"RMD_TR20", "RMD_HR20", false},
+		{"RMD_TR30", "RMD_HR30", false},
+		{"RMD_TR40", "RMD_HR40", false},
+		{"RMD_TR50", "RMD_HR50", false},
+		{"RMD_TR40", "RMD_HR40", true},
+		{"RMD_TR30", "RMD_HR30", true},
+		{"RMD_TR20", "RMD_HR20", true},
+		{"RMD_TR10", "RMD_HR10", true},
+		{"RMD_TRFF", "RMD_HRFF", false},
+		{"RMD_TRFR", "RMD_HRFR", false},
+		{"TRANSFX1", "RMD_TR50", true},
 	};
 	
 	/* Load transparency tables */
@@ -237,7 +238,7 @@ static bool_t RS_TransTableOCCB(const bool_t a_Pushed, const struct WL_WADFile_s
 	for (i = 0; i < NUMVEXTRANSPARENCIES; i++)
 	{
 		// Load lump data
-		Entry = WL_FindEntry(NULL, 0, TransLumps[i].Name);
+		Entry = WL_FindEntry(NULL, 0, (g_CoreGame == COREGAME_HERETIC ? TransLumps[i].HereticName : TransLumps[i].Name));
 		p = transtables + (0x10000 * i);
 		
 		// Found?
