@@ -67,6 +67,8 @@
 
 char* C_strupr(char* s);
 char* C_strlwr(char* s);
+int32_t C_strtoi32(const char* a_NPtr, char** a_EndPtr, int a_Base);
+uint32_t C_strtou32(const char* a_NPtr, char** a_EndPtr, int a_Base);
 
 /*** Byte Operations ***/
 #define __REMOOD_MACROMERGE(a,b) a##b

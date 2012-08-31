@@ -854,7 +854,7 @@ bool_t D_RMODGetBool(const char* const a_Str)
 		return false;
 	
 	/* Dictionary Attack */
-	if (strcasecmp(a_Str, "true") == 0 || strcasecmp(a_Str, "yes") == 0 || strcasecmp(a_Str, "on") == 0 || atoi(a_Str) != 0)
+	if (strcasecmp(a_Str, "true") == 0 || strcasecmp(a_Str, "yes") == 0 || strcasecmp(a_Str, "on") == 0 || C_strtoi32(a_Str, NULL, 0) != 0)
 		return true;
 	
 	/* Everything else is false */
@@ -873,7 +873,7 @@ fixed_t D_RMODGetValueFixed(Z_Table_t* const a_Table, const char* const a_Value,
 	if (!(Value = Z_TableGetValue(a_Table, a_Value)))
 		return a_MissingVal;
 	else
-		return (fixed_t)(atof(Value) * 65536.0);
+		return (fixed_t)(strtod(Value, NULL) * 65536.0);
 }
 
 /* D_RMODGetValueInt() -- Get RMOD Value Int */

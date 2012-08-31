@@ -409,15 +409,15 @@ static uint32_t DS_KeyStrToCode(const char* const a_Str)
 	
 	/* Joystick Buttons */
 	else if (strncasecmp(a_Str, "joyb", 4) == 0)
-		return 0x1000 | (strtol(a_Str + 4, NULL, 10) + 1);
+		return 0x1000 | (C_strtou32(a_Str + 4, NULL, 10) + 1);
 	
 	/* Mouse Buttons */
 	else if (strncasecmp(a_Str, "mouseb", 6) == 0)
-		return 0x2000 | (strtol(a_Str + 6, NULL, 10) + 1);
+		return 0x2000 | (C_strtou32(a_Str + 6, NULL, 10) + 1);
 	
 	/* Double Mouse Buttons */
 	else if (strncasecmp(a_Str, "dblmouseb", 9) == 0)
-		return 0x4000 | (strtol(a_Str + 9, NULL, 10) + 1);
+		return 0x4000 | (C_strtou32(a_Str + 9, NULL, 10) + 1);
 	
 	/* Keyboard Keys */
 	else
@@ -453,10 +453,10 @@ static void DS_ReloadValue(D_ProfileEx_t* const a_Profile, const char* const a_O
 	/* Based on Size */
 	switch (c_ProfDataStat[i].Size)
 	{
-		case 8: *((uint8_t*)Ptr) = strtol(a_Value, NULL, 10); break;
-		case 16: *((uint16_t*)Ptr) = strtol(a_Value, NULL, 10); break;
-		case 32: *((uint32_t*)Ptr) = strtol(a_Value, NULL, 10); break;
-		case 717: *((tic_t*)Ptr) = strtol(a_Value, NULL, 10); break;
+		case 8: *((uint8_t*)Ptr) = C_strtou32(a_Value, NULL, 10); break;
+		case 16: *((uint16_t*)Ptr) = C_strtou32(a_Value, NULL, 10); break;
+		case 32: *((uint32_t*)Ptr) = C_strtou32(a_Value, NULL, 10); break;
+		case 717: *((tic_t*)Ptr) = C_strtou32(a_Value, NULL, 10); break;
 		case 3232: *((fixed_t*)Ptr) = FLOAT_TO_FIXED(atof(a_Value)); break;
 		
 		case 1010:
@@ -684,7 +684,14 @@ int CLC_Profile(const uint32_t a_ArgC, const char** const a_ArgV)
 		}
 		
 		// Load Index
-		i = strtol(a_ArgV[4], NULL, 10);
+		i = C_strtou32(a_ArgV[4], NULL, 10);
+		
+		// Out of bounds?
+		if (i < 0 || i >= 4)
+		{
+			CONL_OutputU(DSTR_DPROFC_INDEXOUTOFRANGE, "%i\n", i);
+			return 1;
+		}
 		
 		// Load Control Name
 		for (k = 0; k < NUMDPROFILEEXINPUTCTRLS; k++)

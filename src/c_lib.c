@@ -78,6 +78,41 @@ char* C_strlwr(char* s)
 	return s;
 }
 
+/* C_strtoi32() -- Convert string to 32-bit */
+int32_t C_strtoi32(const char* a_NPtr, char** a_EndPtr, int a_Base)
+{
+	long LongVal;
+	
+	/* Call native func */
+	LongVal = strtol(a_NPtr, a_EndPtr, a_Base);
+	
+	/* Limit */
+	if (LongVal > INT_MAX)
+		LongVal = INT_MAX;
+	else if (LongVal < INT_MIN)
+		LongVal = INT_MIN;
+	
+	/* Return */
+	return LongVal;
+}
+
+/* C_strtou32() -- Convert string to 32-bit (unsigned) */
+uint32_t C_strtou32(const char* a_NPtr, char** a_EndPtr, int a_Base)
+{
+	unsigned long LongVal;
+	
+	/* Call native func */
+	LongVal = strtoul(a_NPtr, a_EndPtr, a_Base);
+	
+	/* Limit */
+	if (LongVal > UINT_MAX)
+		LongVal = UINT_MAX;
+	
+	/* Return */
+	return LongVal;
+}
+
+
 /**************************************
 *** BYTE OPERATIONS FROM DOOMTYPE.H ***
 **************************************/

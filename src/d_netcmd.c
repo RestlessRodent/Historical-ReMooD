@@ -1531,15 +1531,25 @@ void D_TicCmdFillWeapon(ticcmd_t* const a_Target, const int32_t a_ID)
 /* D_CMakePureRandom() -- Create a pure random number */
 uint32_t D_CMakePureRandom(void)
 {
+//#define __REMOOD_RANDRAWBITS
 	uint32_t Garbage, i;
 	uint32_t* RawBits;
+	void* StackP;
 	
 	/* Allocate Raw Bits */
+#ifdef __REMOOD_RANDRAWBITS
 	RawBits = (uint32_t*)I_SysAlloc(sizeof(*RawBits) * 16);
+#endif
 	
 	/* Attempt number generation */
 	// Init
-	Garbage = 0;
+	Garbage = M_Random();
+	Garbage <<= 8;
+	Garbage |= M_Random();
+	Garbage <<= 8;
+	Garbage |= M_Random();
+	Garbage <<= 8;
+	Garbage |= M_Random();
 	
 	// Current Time
 	Garbage ^= ((int)I_GetTime() * (int)I_GetTime());
@@ -1553,6 +1563,11 @@ uint32_t D_CMakePureRandom(void)
 	// Current PID
 	Garbage ^= ((uint32_t)I_GetCurrentPID() * (uint32_t)I_GetCurrentPID());
 	
+	// Stack Pointer
+	StackP = alloca(1);
+	Garbage ^= (uint32_t)((uintptr_t)StackP ^ ((uintptr_t)StackP >> UINT64_C(32)));
+	
+#ifdef __REMOOD_RANDRAWBITS
 	// Allocated Data
 	if (RawBits)
 	{
@@ -1566,6 +1581,7 @@ uint32_t D_CMakePureRandom(void)
 		// Cleanup
 		I_SysFree(RawBits);
 	}
+#endif
 	
 	/* Return the garbage number */
 	return Garbage;

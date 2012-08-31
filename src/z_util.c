@@ -680,7 +680,7 @@ bool_t Z_TableSetValue(Z_Table_t* const a_Table, const char* const a_SubKey, con
 			Z_Free(Entry->Data.Index.Value);
 			
 		Entry->Data.Index.Value = Z_StrDup(a_NewValue, PU_STATIC, NULL);
-		Entry->Data.Index.IntValue = strtol(Entry->Data.Index.Value, NULL, 0);
+		Entry->Data.Index.IntValue = C_strtoi32(Entry->Data.Index.Value, NULL, 0);
 		
 		// Success!
 		return true;

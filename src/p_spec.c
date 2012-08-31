@@ -3642,13 +3642,13 @@ static bool_t PS_ExtraSpecialOCCB(const bool_t a_Pushed, const struct WL_WADFile
 						TokStr = strtok(NULL, __REMOOD_MAPTOKEN);
 						if (!TokStr)
 							continue;
-						ThisMinor->Shift = strtoul(TokStr, NULL, 10);
+						ThisMinor->Shift = C_strtou32(TokStr, NULL, 10);
 					
 						// Read Mask
 						TokStr = strtok(NULL, __REMOOD_MAPTOKEN);
 						if (!TokStr)
 							continue;
-						ThisMinor->Mask = strtoul(TokStr, NULL, 16);
+						ThisMinor->Mask = C_strtou32(TokStr, NULL, 16);
 					
 						// Debug
 						//if (devparm)
@@ -3701,7 +3701,7 @@ static bool_t PS_ExtraSpecialOCCB(const bool_t a_Pushed, const struct WL_WADFile
 						}
 					
 						// Set Value (from hex)
-						ThisMajor->BaseInt = strtoul(TokStr, NULL, 16);
+						ThisMajor->BaseInt = C_strtou32(TokStr, NULL, 16);
 					
 						// Debug
 						//if (devparm)
@@ -3762,7 +3762,7 @@ static bool_t PS_ExtraSpecialOCCB(const bool_t a_Pushed, const struct WL_WADFile
 						if (i == 0)
 						{
 							// Get the type to translate from
-							Source = strtoul(TokStr, NULL, 0);
+							Source = C_strtou32(TokStr, NULL, 0);
 						
 							// Bad number?
 							if (!Source/* || Source >= GenCrusherBase*/)

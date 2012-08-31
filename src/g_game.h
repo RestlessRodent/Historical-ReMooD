@@ -143,7 +143,7 @@ typedef struct G_CurrentDemo_s
 	const G_DemoFactory_t* Factory;				// Factory for demo
 	void* CFile;								// CFile
 	WL_EntryStream_t* WLStream;					// Demo Streamer (Raw)
-	D_BS_t* RBSStream;				// Block Streamer
+	D_BS_t* RBSStream;							// Block Streamer
 	void* Data;									// Internal Data
 } G_CurrentDemo_t;
 

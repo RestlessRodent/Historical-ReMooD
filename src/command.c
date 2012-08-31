@@ -682,7 +682,7 @@ const char* CONL_VarSetStr(CONL_StaticVar_t* a_Var, const char* const a_NewVal)
 		Whole = true;
 		
 		// Convert string to integer (using strtol() to detect errors)
-		IntVal = strtol(a_NewVal, &StoppedAt, 10);
+		IntVal = C_strtoi32(a_NewVal, &StoppedAt, 10);
 		
 		// No numbers?
 		if (a_Var->Type == CLVT_INTEGER)
@@ -693,7 +693,7 @@ const char* CONL_VarSetStr(CONL_StaticVar_t* a_Var, const char* const a_NewVal)
 			}
 		
 		// Convert to double
-		DblVal = atof(a_NewVal);
+		DblVal = strtod(a_NewVal, NULL);
 		
 		// Other Stuff
 		FixVal = FLOAT_TO_FIXED(DblVal);

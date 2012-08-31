@@ -2324,10 +2324,12 @@ bool_t G_CheckDemoStatus(void)
 	return RetVal;
 }
 
+/* G_ReadDemoGlobalTicCmd() -- Reads global tic command from demo */
 void G_ReadDemoGlobalTicCmd(ticcmd_t* const a_TicCmd)
 {
 }
 
+/* G_WriteDemoGlobalTicCmd() -- Writes global tic command to demo */
 void G_WriteDemoGlobalTicCmd(ticcmd_t* const a_TicCmd)
 {
 }
