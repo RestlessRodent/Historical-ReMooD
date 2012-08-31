@@ -325,6 +325,21 @@ typedef union FColorRGBA RGBA_t;
 #define UINT2RGBA(a) ((a&0xff)<<24)|((a&0xff00)<<8)|((a&0xff0000)>>8)|(((ULONG)a&0xff000000)>>24)
 #endif
 
+/**************
+*** VA_COPY ***
+**************/
+
+#if defined(__GNUC__)
+	#define __REMOOD_VA_COPY(a,b) va_copy((a),(b))
+	#define __REMOOD_VA_COPYEND(a) va_end((a))
+#elif defined(_MSC_VER)
+	#define __REMOOD_VA_COPY(a,b) ((a) = (b))
+	#define __REMOOD_VA_COPYEND(a)
+#else
+	#define __REMOOD_VA_COPY(a,b) ((a) = (b))
+	#define __REMOOD_VA_COPYEND(a)
+#endif
+
 /****************************
 *** INCLUDE LIBRARY STUFF ***
 ****************************/

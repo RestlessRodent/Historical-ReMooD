@@ -1429,9 +1429,7 @@ size_t CONL_PrintV(const bool_t a_InBuf, const char* const a_Format, va_list a_A
 	/* Debug print here */
 #if defined(_DEBUG)
 	if (devparm || !con_started || g_DedicatedServer)
-	{
 		I_OutputText(Buf);
-	}
 #endif
 	
 	/* Return */
@@ -1442,10 +1440,25 @@ size_t CONL_PrintV(const bool_t a_InBuf, const char* const a_Format, va_list a_A
 /* CONL_UnicodePrintV() -- Prints localized text to a buffer */
 size_t CONL_UnicodePrintV(const bool_t a_InBuf, const UnicodeStringID_t a_StrID, const char* const a_Format, va_list a_ArgPtr)
 {
-	// TODO
-	if (!a_InBuf)
-		CONL_OutputF("%s [%s]", DS_GetString(a_StrID), a_Format);
-	return 0;
+#define BUFSIZE 512
+	char Buf[BUFSIZE];
+	size_t RetVal;
+	va_list ArgPtrCopy;
+	
+	/* Make string */
+	memset(Buf, 0, sizeof(Buf));
+	__REMOOD_VA_COPY(ArgPtrCopy, a_ArgPtr);
+	D_USPrint(Buf, BUFSIZE, a_StrID, a_Format, a_ArgPtr);
+	RetVal = CONL_RawPrint(&l_CONLBuffers[(a_InBuf ? 1 : 0)], Buf);
+	__REMOOD_VA_COPYEND(ArgPtrCopy);
+	
+	/* Debug print here */
+#if defined(_DEBUG)
+	if (devparm || !con_started || g_DedicatedServer)
+		I_OutputText(Buf);
+#endif
+
+	return RetVal;
 }
 
 /* CONL_OutputF() -- Prints formatted text to the output buffer */

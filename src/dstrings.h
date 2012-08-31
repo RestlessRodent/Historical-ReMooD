@@ -926,6 +926,7 @@ typedef enum UnicodeStringID_e
 	DSTR_BADDEMO_ILLEGALHEADER,
 	DSTR_BADDEMO_UNHANDLEDDATA,
 	DSTR_BADDEMO_SKIPPEDTIC,
+	DSTR_BADDEMO_DESYNC,
 	
 	/* d_prof.c */
 	DSTR_DPROFC_CREATEUSAGE,
@@ -964,6 +965,8 @@ StringGroupEX_t UnicodeStrings[NUMUNICODESTRINGS];
 
 const char* DS_NameOfString(char** const WCharStr);
 const char** DS_FindStringRef(const char* const a_StrID);
+
+size_t D_USPrint(char* const a_OutBuf, const size_t a_OutSize, const UnicodeStringID_t a_StrID, const char* const a_Format, va_list a_ArgPtr);
 
 #endif							/* __DSTRINGS_H__ */
 

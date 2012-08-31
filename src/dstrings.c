@@ -927,6 +927,7 @@ StringGroupEX_t UnicodeStrings[NUMUNICODESTRINGS] =
 	{		  "BADDEMO_ILLEGALHEADER", "Demo contains an illegal header."},
 	{		  "BADDEMO_UNHANDLEDDATA", "Unhandled data labeled \"$1\"."},
 	{			 "BADDEMO_SKIPPEDTIC", "Demo skipped to tic $1, expected tic $1."},
+	{				 "BADDEMO_DESYNC", "Demo desynced at tic $1, expected {$2, $4} but got {$3. $5}."},
 	
 	/*** D_PROF.C ***/
 	{			 "DPROFC_CREATEUSAGE", "Usage: $1 create <Name> (UUID)"},
@@ -999,4 +1000,175 @@ const char** DS_FindStringRef(const char* const a_StrID)
 	/* Not found */
 	return NULL;
 }
+
+/* D_USPrint() -- Prints internationalized string */
+size_t D_USPrint(char* const a_OutBuf, const size_t a_OutSize, const UnicodeStringID_t a_StrID, const char* const a_Format, va_list a_ArgPtr)
+{
+#define BUFSIZE 128
+#define SMALLBUF 32
+#define HACKBUF 72
+	char MiniBuf[BUFSIZE];
+	char SmallBuf[SMALLBUF];
+	char HackBuf[HACKBUF];
+	
+	char* Points[10];
+	char* o, *oe, *f, *Sym, *NextSym, *h;
+	const char* i, *iold;
+	int SpecialNum, sn, len, zz, hl;
+	int HackLeft;
+	bool_t SpecialPoint, NewLine;
+	va_list ArgPtrCopy;
+	
+	void* PtrType;
+	int IntType;
+	long LongType;
+	
+	/* Copy Arguments */
+	__REMOOD_VA_COPY(ArgPtrCopy, a_ArgPtr);
+	
+	/* Clear Mini Buffer */
+	memset(MiniBuf, 0, sizeof(MiniBuf));
+	memset(Points, 0, sizeof(Points));
+	memset(HackBuf, 0, sizeof(HackBuf));
+	
+	/* Read and parse specials */
+	// Clone small buffer
+	memset(SmallBuf, 0, sizeof(SmallBuf));
+	strncat(SmallBuf, a_Format, SMALLBUF);
+	
+	// Go through format
+	NewLine = false;
+	HackLeft = HACKBUF - 1;
+	h = HackBuf;
+	for (Sym = strchr(SmallBuf, '%'); Sym; Sym = NextSym)
+	{
+		// Get occurance of next symbol
+		NextSym = strchr(Sym + 1, '%');
+		
+		// Does not exist?
+		if (!NextSym)
+		{
+			// Go to \n if it exists
+			oe = strchr(Sym + 1, '\n');
+			
+			// And it that does not exist, go to the end
+			if (!oe)
+				oe = &Sym[strlen(Sym)];
+			else
+				NewLine = true;
+		}
+		
+		// Otherwise set holder to it
+		else
+			oe = NextSym;
+		
+		// Convert to NUL
+		*oe = 0;
+		
+		// Determine the sequence to print
+		f = oe - 1;
+		
+		switch (*f)
+		{
+				// Integers
+			case 'i':
+			case 'o':
+			case 'u':
+			case 'x':
+			case 'X':
+			case 'c':
+				// Long
+				if (*(f - 1) == 'l')
+				{
+					LongType = va_arg(a_ArgPtr, long);
+					snprintf(h, HackLeft, Sym, LongType);
+				}
+				
+				// Standard
+				else
+				{
+					IntType = va_arg(a_ArgPtr, int);
+					snprintf(h, HackLeft, Sym, IntType);
+				}
+				break;
+			
+				// Pointers
+			case 'p':
+			case 's':
+				PtrType = va_arg(a_ArgPtr, void*);
+				snprintf(h, HackLeft, Sym, PtrType);
+				break;
+				
+				// Unknown
+			default:
+				break;
+		}
+		
+		if (sn < 9)
+		{
+			// Place here
+			Points[sn++] = h;
+			
+			// Move around
+			hl = strlen(h);
+			h += hl + 1;
+			HackLeft -= hl + 1;
+		}
+		
+		// Convert back to whatever, if anything exists
+		if (NextSym)
+			*oe = '%';
+	}
+	
+	/* Read Input and place in output buffer */
+	i = DS_GetString(a_StrID);
+	SpecialPoint = false;
+	for (o = a_OutBuf, oe = (o + a_OutSize) - 1; o < oe;)
+	{
+		// Dollar Special
+		if (!SpecialPoint && *i == '$')
+		{
+			// Obtain special
+			SpecialNum = *(++i) - '1';
+			i++;	// Done later
+			
+			// Exists?
+			if (SpecialNum >= 0 && SpecialNum < 9)
+				if (Points[SpecialNum])
+				{
+					iold = i;
+					i = Points[SpecialNum];
+					SpecialPoint = true;
+				}
+		}
+		
+		// Normal
+		else
+		{
+			*(o++) = *(i++);
+			
+			if (SpecialPoint)
+				if (!*i)
+				{
+					SpecialPoint = false;
+					i = iold;
+				}
+		}
+	}
+	
+	/* Append Newline? */
+	if (NewLine)
+		if (o < oe)
+			*o = '\n';
+		else
+			a_OutBuf[strlen(a_OutBuf) - 1] = '\n';
+	
+	/* End Arguments */
+	__REMOOD_VA_COPYEND(ArgPtrCopy);
+	
+	/* Return Written Length */
+	return o - a_OutBuf;
+#undef BUFSIZE
+}
+
 

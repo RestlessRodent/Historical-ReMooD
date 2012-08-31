@@ -493,19 +493,27 @@ void P_PlayerMessage(const P_PMType_t a_Type, mobj_t* const a_Picker, mobj_t* co
 		CONL_PrintF("%c", 4 + (i - 1));
 		
 	// Send pickup color
+	Color = 0;
 	if (Prof)
 	{
 		if (a_Type == PPM_PICKUP)
 			Color = Prof->ColorPickup;
 		else if (a_Type == PPM_SECRET)
 			Color = Prof->ColorSecret;
-		else
-			Color = 0;
-		
-		// Print Color
-		if (Color >= 0 && Color < NUMVEXCOLORS)
-			CONL_PrintF("{%c", (Color < 10 ? '0' + Color : 'a' + (Color - 10)));
 	}
+	
+	// Default Colors
+	else
+	{
+		if (a_Type == PPM_PICKUP)
+			Color = VEX_MAP_WHITE;
+		else if (a_Type == PPM_SECRET)
+			Color = VEX_MAP_BRIGHTWHITE;
+	}
+	
+	// Print Color
+	if (Color >= 0 && Color < NUMVEXCOLORS)
+		CONL_PrintF("{%c", (Color < 10 ? '0' + Color : 'a' + (Color - 10)));
 	
 	// Send actual message
 	CONL_PrintF("%s{z\n", Buf);

@@ -1759,11 +1759,11 @@ bool_t G_DEMO_Legacy_PostGTickCmd(struct G_CurrentDemo_s* a_Current)
 typedef struct g_ReMooDDemoData_s
 {
 	bool_t EndDemo;								// Force end of demo
+	bool_t Desynced;							// Demo Desynced
 	D_BS_t* CBs;								// Compressed Block Stream
 	tic_t LastTic;								// Tics for last packet
 	tic_t ExecAt;								// Execute At
 	ticcmd_t NewCmds[MAXPLAYERS + 1];			// Commands active now
-	ticcmd_t OldCmds[MAXPLAYERS + 1];			// Commands that were active
 	
 	uint32_t HostID;							// Recorder's HostID (Splits)
 } G_ReMooDDemoData_t;
@@ -1951,9 +1951,9 @@ bool_t G_DEMO_ReMooD_ReadGlblCmd(struct G_CurrentDemo_s* a_Current, ticcmd_t* co
 	ticcmd_t* Target;
 	
 	tic_t ThisTic, LastTic;
-	uint8_t PrIndex, u8;
+	uint8_t PrIndex, RealPrIndex, u8;
 	uint16_t u16, DiffBits;
-	uint32_t PosMask;
+	uint32_t PosMask, RealPosMask;
 	int i, j;
 	bool_t ReadOne;
 	
@@ -1988,11 +1988,24 @@ bool_t G_DEMO_ReMooD_ReadGlblCmd(struct G_CurrentDemo_s* a_Current, ticcmd_t* co
 				if (ThisTic != gametic)
 					G_DemoProblem(false, DSTR_BADDEMO_SKIPPEDTIC, "%u%u\n", ThisTic, gametic);
 				
-				//CONL_PrintF("Read %u on %u\n", ThisTic, gametic);
-				
 				// Read consistency info
-				PrIndex = D_BSru8(Data->CBs);
+				RealPrIndex = D_BSru8(Data->CBs);
 				PosMask = D_BSru32(Data->CBs);
+				
+				// Double check consistency
+				RealPrIndex = P_GetRandIndex();
+				for (RealPosMask = 0, i = 0; i < MAXPLAYERS; i++)
+					if (playeringame[i])
+						if (players[i].mo)
+							RealPosMask ^= players[i].mo->x ^ players[i].mo->y ^ players[i].mo->z;
+				
+				// Mistmatch?
+				if (PrIndex != RealPrIndex || PosMask != RealPosMask)
+				{
+					if (!Data->Desynced)
+						G_DemoProblem(false, DSTR_BADDEMO_DESYNC, "%u%u%u%08x%08x\n", ThisTic, PrIndex, RealPrIndex, PosMask, RealPosMask);
+					Data->Desynced = true;
+				}
 				
 				// Read Global Commands
 				Target = &Data->NewCmds[MAXPLAYERS];
@@ -2063,9 +2076,6 @@ bool_t G_DEMO_ReMooD_ReadGlblCmd(struct G_CurrentDemo_s* a_Current, ticcmd_t* co
 							Target->Std.DataBuf[j] = u8;
 					}
 				}
-				
-				// Move new commands to old area
-				memmove(Data->OldCmds, Data->NewCmds, sizeof(Data->NewCmds));
 			}
 			
 			// Unknown Header
@@ -2153,7 +2163,6 @@ bool_t G_DEMO_ReMooD_WriteGlblCmd(struct G_CurrentDemo_s* a_Current, const ticcm
 				continue;
 			
 			// Get Bit Differences
-			Old = &Data->OldCmds[i];
 			New = &Data->NewCmds[i];
 			DiffBits = 0;
 		

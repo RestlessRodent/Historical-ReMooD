@@ -18095,7 +18095,7 @@ MapWeapon "SuperShotgun"
 MapWeapon "BetaBFG"
 {
 	Ammo "Cell";
-	NiceName "BFG2074";
+	NiceName "Press Release BFG9000";
 	SBOGraphic "sboammo6";
 	SlotNum "7";
 	SwitchOrder "901";
