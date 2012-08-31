@@ -515,6 +515,21 @@ D_NetClient_t* D_NCFindClientByID(const uint32_t a_ID)
 		return NULL;
 }
 
+/* D_NCGetMyHostID() -- Finds your own host ID */
+uint32_t D_NCGetMyHostID(void)
+{
+	int i;
+	
+	/* Go through all clients */
+	for (i = 0; i < l_NumClients; i++)
+		if (l_Clients[i])
+			if (l_Clients[i]->IsLocal)
+				return l_Clients[i]->HostID;
+	
+	/* Not found */
+	return 0;
+}
+
 /* D_NCFudgeOffHostStream() -- Fudge off host by stream */
 void D_NCFudgeOffHostStream(I_HostAddress_t* const a_Host, struct D_BS_s* a_Stream, const char a_Code, const char* const a_Reason)
 {
@@ -928,7 +943,7 @@ void D_NCDisconnect(void)
 			if (!l_Clients[i]->IsLocal)
 			{
 				// Fudge off!
-				D_NCFudgeOffClient(l_Clients[i], 'X', "Server disconnected.");
+				D_NCFudgeOffClient(l_Clients[i], 'X', "Disconnected.");
 			}
 			
 			else

@@ -150,6 +150,7 @@ D_NetClient_t* D_NCFindClientByNetPlayer(struct D_NetPlayer_s* const a_NetPlayer
 D_NetClient_t* D_NCFindClientByHost(I_HostAddress_t* const a_Host);
 D_NetClient_t* D_NCFindClientByPlayer(struct player_s* const a_Player);
 D_NetClient_t* D_NCFindClientByID(const uint32_t a_ID);
+uint32_t D_NCGetMyHostID(void);
 
 void D_NCFudgeOffHostStream(I_HostAddress_t* const a_Host, struct D_BS_s* a_Stream, const char a_Code, const char* const a_Reason);
 void D_NCFudgeOffClient(D_NetClient_t* const a_Client, const char a_Code, const char* const a_Reason);

@@ -443,13 +443,13 @@ const char *mz_error(int err);
 
 // ------------------- Types and macros
 
-typedef unsigned char mz_uint8;
-typedef signed short mz_int16;
-typedef unsigned short mz_uint16;
-typedef unsigned int mz_uint32;
+typedef uint8_t mz_uint8;
+typedef int16_t mz_int16;
+typedef uint16_t mz_uint16;
+typedef uint32_t mz_uint32;
 typedef unsigned int mz_uint;
-typedef long long mz_int64;
-typedef unsigned long long mz_uint64;
+typedef int64_t mz_int64;
+typedef uint64_t mz_uint64;
 typedef int mz_bool;
 
 #define MZ_FALSE (0)
@@ -914,14 +914,15 @@ typedef unsigned char mz_validate_uint64[sizeof(mz_uint64)==8 ? 1 : -1];
 void* ZS_MiniZMalloc(const size_t a_Size)
 {
 	uint32_t* PBase;
-	PBase = Z_Malloc(a_Size + 8, PU_STATIC, NULL);
-	*PBase = a_Size;
+	PBase = Z_Malloc(a_Size + (sizeof(uint32_t) * 2), PU_STATIC, NULL);
+	PBase[0] = a_Size;
+	PBase[1] = 0xDEADBEEF;
 	return PBase + 2;
 }
 
 void ZS_MiniZFree(void* const a_Ptr)
 {
-	Z_Free(a_Ptr);
+	Z_Free(((uint32_t*)a_Ptr) - 2);
 }
 
 void* ZS_MiniZRealloc(void* const a_Ptr, const size_t a_Size)

@@ -44,6 +44,12 @@
 #include "d_main.h"
 #include "p_local.h"
 
+/**************
+*** GLOBALS ***
+**************/
+
+static uint32_t l_DemoHostID = 0;				// Demo's HostID
+
 /**********************
 *** VANILLA FACTORY ***
 **********************/
@@ -1755,8 +1761,11 @@ typedef struct g_ReMooDDemoData_s
 	bool_t EndDemo;								// Force end of demo
 	D_BS_t* CBs;								// Compressed Block Stream
 	tic_t LastTic;								// Tics for last packet
+	tic_t ExecAt;								// Execute At
 	ticcmd_t NewCmds[MAXPLAYERS + 1];			// Commands active now
 	ticcmd_t OldCmds[MAXPLAYERS + 1];			// Commands that were active
+	
+	uint32_t HostID;							// Recorder's HostID (Splits)
 } G_ReMooDDemoData_t;
 
 /*** FUNCTIONS ***/
@@ -1783,6 +1792,9 @@ bool_t G_DEMO_ReMooD_StartPlaying(struct G_CurrentDemo_s* a_Current)
 	D_BSPlayBlock(Data->CBs, Header);
 	if (D_BSCompareHeader(Header, "REDM"))
 	{
+		// Read Host ID
+		l_DemoHostID = Data->HostID = D_BSru32(a_Current->BSs);
+		
 		// Success!
 		return true;
 	}
@@ -1815,6 +1827,10 @@ bool_t G_DEMO_ReMooD_StartRecord(struct G_CurrentDemo_s* a_Current)
 	
 	/* Write Demo Info */
 	D_BSBaseBlock(a_Current->BSs, "REDM");
+	
+	// The recorder's host ID
+	D_BSwu32(a_Current->BSs, D_NCGetMyHostID());
+	
 	// ...
 	D_BSRecordBlock(a_Current->BSs);
 	
@@ -1900,6 +1916,9 @@ bool_t G_DEMO_ReMooD_ReadTicCmd(struct G_CurrentDemo_s* a_Current, ticcmd_t* con
 	// Check
 	if (!Data)
 		return false;
+		
+	/* Copy into command */
+	memmove(a_Cmd, &Data->NewCmds[a_PlayerNum], sizeof(ticcmd_t));
 	
 	/* Success! */
 	return true;
@@ -1927,7 +1946,15 @@ bool_t G_DEMO_ReMooD_WriteTicCmd(struct G_CurrentDemo_s* a_Current, const ticcmd
 /* G_DEMO_ReMooD_ReadGlblCmd() -- Reads global command */
 bool_t G_DEMO_ReMooD_ReadGlblCmd(struct G_CurrentDemo_s* a_Current, ticcmd_t* const a_Cmd)
 {
+	char Header[5];
 	G_ReMooDDemoData_t* Data;
+	ticcmd_t* Target;
+	
+	tic_t ThisTic, LastTic;
+	uint8_t PrIndex, u8;
+	uint16_t u16, DiffBits;
+	uint32_t PosMask;
+	int i, j;
 	
 	/* Get Data */
 	Data = a_Current->Data;
@@ -1935,6 +1962,127 @@ bool_t G_DEMO_ReMooD_ReadGlblCmd(struct G_CurrentDemo_s* a_Current, ticcmd_t* co
 	// Check
 	if (!Data)
 		return false;
+	
+	/* Load New Commands? */
+	if (gametic != Data->LastTic)
+	{
+		// Load block from stream
+		memset(Header, 0, sizeof(Header));
+		while (D_BSPlayBlock(Data->CBs, Header))
+		{
+			// Demo Tic Commands
+			if (D_BSCompareHeader(Header, "DMTC"))
+			{
+				// Move old commands to new area
+				memmove(Data->NewCmds, Data->OldCmds, sizeof(Data->NewCmds));
+				
+				// Always clear new global commands
+				memset(&Data->NewCmds[MAXPLAYERS], 0, sizeof(Data->NewCmds[MAXPLAYERS]));
+				
+				// Read Tic Info
+				ThisTic = D_BSru64(Data->CBs);
+				LastTic = D_BSru64(Data->CBs);
+				
+				CONL_PrintF("Read %u on %u\n", ThisTic, gametic);
+				
+				// Read consistency info
+				PrIndex = D_BSru8(Data->CBs);
+				PosMask = D_BSru32(Data->CBs);
+				
+				// Read Global Commands
+				Target = &Data->NewCmds[MAXPLAYERS];
+				
+				Target->Type = 1;
+				u16 = D_BSru16(Data->CBs);
+				if (u16)
+					Target->Ext.DataSize = u16;
+
+				for (i = 0; i < u16; i++)
+				{
+					u8 = D_BSru8(Data->CBs);
+					if (i < MAXTCDATABUF)
+						Target->Ext.DataBuf[i] = u8;
+				}
+				
+				// Read Per Player Commands
+				for (i = 0; i < MAXPLAYERS; i++)
+				{
+					// Determine target
+					Target = &Data->NewCmds[i];
+		
+					// Get playeringame status
+					u8 = D_BSru8(Data->CBs);
+		
+					// Not in game, don't bother
+					if (!u8)
+						continue;
+		
+					// Read Diff Bits
+					DiffBits = D_BSru16(Data->CBs);
+		
+					if (DiffBits & DDB_FORWARD)
+						Target->Std.forwardmove = D_BSri8(Data->CBs);
+					if (DiffBits & DDB_SIDE)
+						Target->Std.sidemove = D_BSri8(Data->CBs);
+					if (DiffBits & DDB_ANGLE)
+						Target->Std.angleturn = D_BSri16(Data->CBs);
+					if (DiffBits & DDB_AIMING)
+						Target->Std.aiming = D_BSru16(Data->CBs);
+					if (DiffBits & DDB_BUTTONS)
+						Target->Std.buttons = D_BSru16(Data->CBs);
+					if (DiffBits & DDB_RESETAIM)
+						Target->Std.ResetAim = D_BSru8(Data->CBs);
+					if (DiffBits & DDB_INVENTORY)
+						Target->Std.InventoryBits = D_BSru8(Data->CBs);
+		
+					if (DiffBits & DDB_WEAPON)
+					{
+						j = 0;
+						do
+						{
+							u8 = D_BSru8(Data->CBs);
+							if (j < MAXTCWEAPNAME)
+								Target->Std.XSNewWeapon[j++] = u8;
+						} while (u8);
+					}
+		
+					// Data bits
+					u16 = D_BSru16(Data->CBs);
+					if (u16)
+						Target->Std.DataSize = u16;
+
+					for (j = 0; j < u16; j++)
+					{
+						u8 = D_BSru8(Data->CBs);
+						if (i < MAXTCDATABUF)
+							Target->Std.DataBuf[j] = u8;
+					}
+				}
+				
+				// Move new commands to old area
+				memmove(Data->OldCmds, Data->NewCmds, sizeof(Data->NewCmds));
+			}
+			
+			// Unknown Header
+			else
+			{
+				G_DemoProblem(false, DSTR_BADDEMO_UNHANDLEDDATA, "%s\n", Header);
+				break;
+			}
+			
+			// Set new tic
+			Data->LastTic = gametic;
+			
+			// Done
+			break;
+		}
+	}
+	
+	/* Copy Global Commands */
+	memmove(a_Cmd, &Data->NewCmds[MAXPLAYERS], sizeof(ticcmd_t));
+	
+	// Erase global commands (they are not saved)
+	memset(&Data->NewCmds[MAXPLAYERS], 0, sizeof(Data->NewCmds[MAXPLAYERS]));
 	
 	/* Success! */
 	return true;
@@ -2289,6 +2437,9 @@ G_CurrentDemo_t* G_DemoPlay(WL_EntryStream_t* const a_Stream, const G_DemoFactor
 {
 	G_CurrentDemo_t* New;
 	uint8_t Marker, MarkerB;
+	
+	/* Clear */
+	l_DemoHostID = 0;
 	
 	/* Allocate Demo */
 	New = Z_Malloc(sizeof(*New), PU_STATIC, NULL);
@@ -2682,6 +2833,12 @@ void G_DemoPostGTicker(void)
 		if (l_RecDemo)
 			if (l_RecDemo->Factory->PostGTickCmdFunc)
 				l_RecDemo->Factory->PostGTickCmdFunc(l_RecDemo);
+}
+
+/* G_GetDemoHostID() -- Returns demo's host ID */
+uint32_t G_GetDemoHostID(void)
+{
+	return l_DemoHostID;
 }
 
 /* G_DemoProblem() -- Problem with demo! Uh oh! */

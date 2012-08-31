@@ -1719,7 +1719,10 @@ void I_Quit(void)
 		G_StopDemoRecord();
 	}
 	
+	// Disconnect from network game
+	D_NCDisconnect();
 	D_QuitNetGame();
+	
 	// use this for 1.28 19990220 by Kin
 	I_ShutdownSystem();
 	exit(0);

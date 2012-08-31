@@ -175,6 +175,7 @@ void G_ReadDemoTiccmd(ticcmd_t* cmd, int playernum);
 void G_WriteDemoTiccmd(ticcmd_t* cmd, int playernum);
 void G_DemoPreGTicker(void);
 void G_DemoPostGTicker(void);
+uint32_t G_GetDemoHostID(void);
 
 void G_DemoProblem(const bool_t a_IsError, const UnicodeStringID_t a_StrID, const char* const a_Format, ...);
 

@@ -457,6 +457,7 @@ void GS_HandleExtraCommands(ticcmd_t* const a_TicCmd, const int32_t a_PlayerNum)
 	uint16_t u16[4];
 	uint8_t u8[4];
 	char NameBuf[MAXPLAYERNAME];
+	bool_t OK;
 	
 	/* Get pointer base */
 	if (a_TicCmd->Type == 1)
@@ -512,11 +513,31 @@ void GS_HandleExtraCommands(ticcmd_t* const a_TicCmd, const int32_t a_PlayerNum)
 				// Fits in the game
 				if (u16[0] < MAXPLAYERS)
 				{
-					// Find player host
-					NC = D_NCFindClientByID(u32[0]);
+					// Find player host (if in net game)
+					NC = NULL;
+					if (!demoplayback)
+						NC = D_NCFindClientByID(u32[0]);
+					
+					// Clear
+					Profile = NULL;
+					NetPlayer = NULL;
+					
+					// Playing Demo (no netclients, but show on screen)
+					OK = false;
+					if (demoplayback)
+					{
+						// Fits in screen and matches demo host
+						if (G_GetDemoHostID() == 0 ||
+							u32[0] == G_GetDemoHostID())
+							if (g_SplitScreen < 3)
+							{
+								g_SplitScreen++;
+								OK = true;
+							}
+					}
 					
 					// Give arbitration to player
-					if (NC)
+					else if (NC)
 					{
 						// Add to arbs list
 						for (i = 0; i < NC->NumArbs; i++)
@@ -549,26 +570,33 @@ void GS_HandleExtraCommands(ticcmd_t* const a_TicCmd, const int32_t a_PlayerNum)
 						// Obtain profile (if possible)
 						Profile = D_FindProfileExByInstance(u32[2]);
 						NetPlayer->Profile = Profile;
-						
-						// Fill player spot
-						playeringame[u16[0]] = true;
-						
-						// Initialize Player
-						Player = G_AddPlayer(u16[0]);
-						Player->NetPlayer = NetPlayer;
-						Player->ProfileEx = Profile;
+					}
+					
+					// Fill player spot
+					playeringame[u16[0]] = true;
+					
+					// Initialize Player
+					Player = G_AddPlayer(u16[0]);
+					D_NetSetPlayerName(u16[0], NameBuf);
+					
+					// Link player to profile
+					Player->NetPlayer = NetPlayer;
+					Player->ProfileEx = Profile;
+					
+					// Link netplayer
+					if (NetPlayer)
+					{
 						NetPlayer->Player = Player;
 						NetPlayer->Profile = Profile;
-						D_NetSetPlayerName(u16[0], NameBuf);
-						
-						// Finish off split screen
-						if (NC->IsLocal)
-						{
-							g_PlayerInSplit[g_SplitScreen] = true;
-							consoleplayer[g_SplitScreen] =
-								displayplayer[g_SplitScreen] = u16[0];
-							R_ExecuteSetViewSize();
-						}
+					}
+					
+					// Finish off split screen
+					if ((NC && NC->IsLocal) || (demoplayback && OK))
+					{
+						g_PlayerInSplit[g_SplitScreen] = true;
+						consoleplayer[g_SplitScreen] =
+							displayplayer[g_SplitScreen] = u16[0];
+						R_ExecuteSetViewSize();
 					}
 				}
 				
