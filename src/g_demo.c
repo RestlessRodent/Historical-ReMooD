@@ -1978,11 +1978,8 @@ bool_t G_DEMO_ReMooD_ReadGlblCmd(struct G_CurrentDemo_s* a_Current, ticcmd_t* co
 			// Demo Tic Commands
 			if (D_BSCompareHeader(Header, "DMTC"))
 			{
-				// Move old commands to new area
-				memmove(Data->NewCmds, Data->OldCmds, sizeof(Data->NewCmds));
-				
-				// Always clear new global commands
-				memset(&Data->NewCmds[MAXPLAYERS], 0, sizeof(Data->NewCmds[MAXPLAYERS]));
+				// Always clear commands
+				memset(&Data->NewCmds, 0, sizeof(Data->NewCmds));
 				
 				// Read Tic Info
 				ThisTic = D_BSru64(Data->CBs);
@@ -2161,23 +2158,23 @@ bool_t G_DEMO_ReMooD_WriteGlblCmd(struct G_CurrentDemo_s* a_Current, const ticcm
 			DiffBits = 0;
 		
 			// Calculate
-			if (Old->Std.forwardmove != New->Std.forwardmove)
+			if (New->Std.forwardmove)
 				DiffBits |= DDB_FORWARD;
-			if (Old->Std.sidemove != New->Std.sidemove)
+			if (New->Std.sidemove)
 				DiffBits |= DDB_SIDE;
-			if (Old->Std.angleturn != New->Std.angleturn)
+			if (New->Std.angleturn)
 				DiffBits |= DDB_ANGLE;
-			if (Old->Std.aiming != New->Std.aiming)
+			if (New->Std.aiming)
 				DiffBits |= DDB_AIMING;
-			if (Old->Std.buttons != New->Std.buttons)
+			if (New->Std.buttons)
 				DiffBits |= DDB_BUTTONS;
-			if (Old->Std.BaseAngleTurn != New->Std.BaseAngleTurn)
+			if (New->Std.BaseAngleTurn)
 				DiffBits |= DDB_BAT;
-			if (Old->Std.BaseAiming != New->Std.BaseAiming)
+			if (New->Std.BaseAiming)
 				DiffBits |= DDB_BAM;
-			if (Old->Std.ResetAim != New->Std.ResetAim)
+			if (New->Std.ResetAim)
 				DiffBits |= DDB_RESETAIM;
-			if (Old->Std.InventoryBits != New->Std.InventoryBits)
+			if (New->Std.InventoryBits)
 				DiffBits |= DDB_INVENTORY;
 		
 			// Always set weapon
