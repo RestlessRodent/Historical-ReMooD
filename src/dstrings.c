@@ -924,6 +924,7 @@ StringGroupEX_t UnicodeStrings[NUMUNICODESTRINGS] =
 	{		   "BADDEMO_UNKNOWNXDCMD", "Unknown extra command $1."},
 	{        "BADDEMO_UNKNOWNFACTORY", "Unknown demo factory."},
 	{           "BADDEMO_NONHOSTDEMO", "Demo possibly not recorded by the host, if so then the demo will most likely fail to play back at all."},
+	{		  "BADDEMO_ILLEGALHEADER", "Demo contains an illegal header."},
 	
 	/*** D_PROF.C ***/
 	{			 "DPROFC_CREATEUSAGE", "Usage: $1 create <Name> (UUID)"},

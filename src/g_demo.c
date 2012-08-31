@@ -1764,7 +1764,35 @@ typedef struct g_ReMooDDemoData_s
 /* G_DEMO_ReMooD_StartPlaying() -- Start playing Demo */
 bool_t G_DEMO_ReMooD_StartPlaying(struct G_CurrentDemo_s* a_Current)
 {
-	return false;
+	char Header[5];
+	G_ReMooDDemoData_t* Data;
+	
+	/* Init Info */
+	if (!a_Current->Data)
+		Data = a_Current->Data = Z_Malloc(sizeof(*Data), PU_STATIC, NULL);
+	
+	// Last last tic to a bad value (so it always changes)
+	Data->LastTic = (tic_t)-1;
+	
+	/* Setup compressed stream */
+	a_Current->BSs = D_BSCreateWLStream(a_Current->WLStream);
+	Data->CBs = D_BSCreatePackedStream(a_Current->BSs);
+	
+	/* Read DEMO block? */
+	memset(Header, 0, sizeof(Header));
+	D_BSPlayBlock(Data->CBs, Header);
+	if (D_BSCompareHeader(Header, "REDM"))
+	{
+		// Success!
+		return true;
+	}
+	
+	/* Otherwise */
+	else
+	{
+		G_DemoProblem(true, DSTR_BADDEMO_ILLEGALHEADER, "\n");
+		return false;
+	}
 }
 
 /* G_DEMO_ReMooD_StopPlaying() -- Stop playing demo */
@@ -1786,12 +1814,8 @@ bool_t G_DEMO_ReMooD_StartRecord(struct G_CurrentDemo_s* a_Current)
 	Data->LastTic = (tic_t)-1;
 	
 	/* Write Demo Info */
-	// Header
-	D_BSBaseBlock(a_Current->BSs, "DEMO");
-	
-	// Data
-	
-	// Record
+	D_BSBaseBlock(a_Current->BSs, "REDM");
+	// ...
 	D_BSRecordBlock(a_Current->BSs);
 	
 	/* Start Compressing */
@@ -1824,7 +1848,6 @@ bool_t G_DEMO_ReMooD_StopRecord(struct G_CurrentDemo_s* a_Current)
 	D_BSBaseBlock(a_Current->BSs, "EDMO");
 	// ...
 	D_BSRecordBlock(a_Current->BSs);
-	
 	
 	/* Clear Data */
 	if (a_Current->Data)

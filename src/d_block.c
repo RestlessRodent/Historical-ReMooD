@@ -197,6 +197,10 @@ bool_t DS_RBSWL_PlayF(struct D_BS_s* const a_Stream)
 	/* Get Data */
 	Stream = (WL_EntryStream_t*)a_Stream->Data;
 	
+	/* EOS? */
+	if (WL_StreamEOF(Stream))
+		return false;
+	
 	/* Read Header */
 	// Clear
 	memset(Header, 0, sizeof(Header));
@@ -527,7 +531,7 @@ bool_t DS_RBSNet_NetPlayF(struct D_BS_s* const a_Stream, I_HostAddress_t* const 
 	NetData = a_Stream->Data;
 	
 	if (!NetData)
-		return 0;
+		return false;
 	
 	/* Get socket */
 	Socket = NetData->Socket;
@@ -2194,6 +2198,8 @@ typedef struct DS_RBSPackedData_s
 	
 	mz_stream ZStream;							// Z Stream
 	uint8_t ZChunk[RBSPACKEDZLIBCHUNK];			// Z Chunk
+	
+	D_BS_t* InputBuf;							// Input block buffers
 } DS_RBSPackedData_t;
 
 /* DS_RBSPacked_FlushF() -- Flushes stream */
@@ -2331,7 +2337,7 @@ size_t DS_RBSPacked_NetRecordF(struct D_BS_s* const a_Stream, I_HostAddress_t* c
 			if (mz_deflate(&PackData->ZStream, MZ_NO_FLUSH) != MZ_STREAM_ERROR)
 			{
 				// Write packed chunk
-				D_BSwu16(PackData->WrapStream, RBSPACKEDZLIBCHUNK - PackData->ZStream.avail_out);
+				//D_BSwu16(PackData->WrapStream, RBSPACKEDZLIBCHUNK - PackData->ZStream.avail_out);
 				D_BSWriteChunk(PackData->WrapStream, PackData->ZChunk, RBSPACKEDZLIBCHUNK - PackData->ZStream.avail_out);
 			}
 		
@@ -2359,6 +2365,9 @@ size_t DS_RBSPacked_NetRecordF(struct D_BS_s* const a_Stream, I_HostAddress_t* c
 bool_t DS_RBSPacked_NetPlayF(struct D_BS_s* const a_Stream, I_HostAddress_t* const a_Host)
 {
 	DS_RBSPackedData_t* PackData;
+	int i, ReadCount;
+	I_HostAddress_t Addr;
+	char Header[5];
 	
 	/* Get Data */
 	PackData = a_Stream->Data;
@@ -2366,6 +2375,63 @@ bool_t DS_RBSPacked_NetPlayF(struct D_BS_s* const a_Stream, I_HostAddress_t* con
 	// Check
 	if (!PackData)
 		return false;
+	
+	/* Try again and again */
+	for (;;)
+	{
+		// Clear
+		memset(Header, 0, sizeof(Header));
+		memset(&Addr, 0, sizeof(Addr));
+		ReadCount = 0;
+		
+		// See if there is a block in the input buffer
+		D_BSFlushStream(PackData->InputBuf);
+		if (D_BSPlayNetBlock(PackData->InputBuf, Header, a_Host))
+		{
+			// Clone Block
+			D_BSBaseBlock(a_Stream, Header);
+			D_BSWriteChunk(a_Stream, PackData->InputBuf->BlkData, PackData->InputBuf->BlkSize);
+			
+			// A block was read
+			return true;
+		}
+		
+		// Load input blocks to be processed
+		if (D_BSPlayNetBlock(PackData->WrapStream, Header, &Addr))
+		{
+			// Increase read count
+			ReadCount++;
+			
+			// Compressed?
+			if (D_BSCompareHeader(Header, "ZLIB"))
+			{
+				// Constantly read inflated data
+			}
+			
+			// Uncompressed, pass as it
+			else
+			{
+				// Clone data into input
+				D_BSBaseBlock(PackData->InputBuf, Header);
+				D_BSWriteChunk(PackData->InputBuf, PackData->WrapStream->BlkData, PackData->WrapStream->BlkSize);
+				D_BSRecordNetBlock(PackData->InputBuf, &Addr);
+				
+				// Flush
+				D_BSFlushStream(PackData->InputBuf);
+			}
+			
+			// Clear for next round
+			memset(Header, 0, sizeof(Header));
+			memset(&Addr, 0, sizeof(Addr));
+		}
+		
+		// Nothing read?
+		if (!ReadCount)
+			return false;
+	}
+	
+	/* Failed */
+	return false;
 }
 
 /* DS_RBSPacked_DeleteF() -- Deletes stream */
@@ -2379,6 +2445,16 @@ void DS_RBSPacked_DeleteF(struct D_BS_s* const a_Stream)
 	// Check
 	if (!PackData)
 		return;
+	
+	/* Flush */
+	// This is so any unwritten compressed data gets written
+	DS_RBSPacked_FlushF(a_Stream);
+		
+	/* Destroy input */
+	D_BSCloseStream(PackData->InputBuf);
+	
+	/* Destroy Data */
+	Z_Free(PackData);
 }
 
 /* DS_RBSPacked_IOCtlF() -- Advanced I/O Control */
@@ -2599,6 +2675,7 @@ D_BS_t* D_BSCreatePackedStream(D_BS_t* const a_Wrapped)
 		Data->TransSize = Trans;
 	else
 		Data->TransSize = 2048;
+	Data->InputBuf = D_BSCreateLoopBackStream();
 	
 	/* Return Stream */
 	return New;
