@@ -778,6 +778,7 @@ bool_t D_CheckNetGame(void)
 		
 			// Copy socket
 			Client->NetSock = Socket;
+			Client->Protected = true;
 		
 			// Create stream from it
 			Client->CoreStream = D_BSCreateNetStream(Client->NetSock);
@@ -2445,6 +2446,11 @@ void D_NCUpdate(void)
 			// If it does return NULL then that means they were never connected
 			// in the first place.
 			RemoteClient = D_NCFindClientByHost(&FromAddress);
+			
+			// Server Protection
+			if (RemoteClient)
+				if (RemoteClient->Protected)
+					continue;
 			
 			// Determine where this packet came from for flag checking
 				// Is Perfect Packet

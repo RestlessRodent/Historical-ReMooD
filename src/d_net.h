@@ -132,6 +132,7 @@ typedef struct D_NetClient_s
 	D_LastConsistData_t Consist;				// Consistency
 	uint64_t ProgramTic;						// Last recieved program tic
 	tic_t GameTic;								// Client Gametic
+	bool_t Protected;							// Protected (anti-spoof)
 } D_NetClient_t;
 
 typedef void (*D_NCQCFunc_t)(void* const a_Data);
