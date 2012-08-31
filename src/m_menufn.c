@@ -239,11 +239,12 @@ static bool_t MS_GameVar_LRValChange(struct M_UIMenu_s* const a_Menu, struct M_U
 	/* Get values and attempt change */
 	OldVal = P_XGSVal(Bit->BitID);
 	NewVal = P_XGSSetValue(false, Bit->BitID, ModVal);
+	g_ResumeMenu++;
 	
 	// Success? Only if actually changed
 	if (NewVal != OldVal)
 		return true;
-	return false;
+	return true;	// Always play sound
 }
 
 /* M_ExTemplateMakeGameVars() -- Make Game Variable Template */

@@ -454,6 +454,7 @@ void GS_HandleExtraCommands(ticcmd_t* const a_TicCmd, const int32_t a_PlayerNum)
 	player_t* Player;
 	
 	uint32_t u32[4];
+	int32_t i32[4];
 	uint16_t u16[4];
 	uint8_t u8[4];
 	char NameBuf[MAXPLAYERNAME];
@@ -625,6 +626,16 @@ void GS_HandleExtraCommands(ticcmd_t* const a_TicCmd, const int32_t a_PlayerNum)
 							u8[0], NameBuf
 						);
 				break;
+				
+				// Variable Change
+			case DTCT_GAMEVAR:
+				// Read Data
+				u32[0] = LittleReadUInt32((uint32_t**)&Rp);
+				i32[0] = LittleReadInt32((int32_t**)&Rp);
+				
+				// Change Variable
+				P_XGSSetValue(true, u32[0], i32[0]);
+				break;
 			
 			default:
 				Command = 0;
@@ -646,6 +657,10 @@ void G_Ticker(void)
 	ticcmd_t* cmd;
 	tic_t ThisTime;
 	ticcmd_t GlobalCmd;
+	
+	/* Reduce Menu */
+	if (g_ResumeMenu > 0)
+		g_ResumeMenu--;
 	
 	//for (i = 0; i == 0 && (gametic == g_WatchTic);)
 		;

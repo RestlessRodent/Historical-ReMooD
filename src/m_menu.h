@@ -123,6 +123,9 @@ typedef struct M_UIMenuHandler_s
 	int32_t OSKWait;							// OSK Wait
 } M_UIMenuHandler_t;
 
+/*** GLOBALS ***/
+extern int32_t g_ResumeMenu;					// Resume menu for n tics
+
 /*** FUNCTIONS ***/
 
 void M_MenuExInit(void);

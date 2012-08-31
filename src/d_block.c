@@ -2512,7 +2512,11 @@ bool_t DS_RBSPacked_NetPlayF(struct D_BS_s* const a_Stream, I_HostAddress_t* con
 				
 				// Record it
 				if (BasedBlock)
+				{
 					D_BSRecordNetBlock(PackData->InputBuf, &Addr);
+					D_BSFlushStream(PackData->InputBuf);
+					D_BSFlushStream(PackData->InputBuf);
+				}
 			}
 			
 			// Uncompressed, pass as is
@@ -2526,6 +2530,7 @@ bool_t DS_RBSPacked_NetPlayF(struct D_BS_s* const a_Stream, I_HostAddress_t* con
 				
 				// Flush
 				D_BSFlushStream(PackData->InputBuf);
+				D_BSFlushStream(PackData->InputBuf);
 			}
 			
 			// Clear for next round
@@ -2534,6 +2539,10 @@ bool_t DS_RBSPacked_NetPlayF(struct D_BS_s* const a_Stream, I_HostAddress_t* con
 			
 			if (devparm)
 				CONL_PrintF("Read %i compressed blocks.\n", ReadCount);
+			
+			// Nothing read?
+			if (!ReadCount)
+				return false;
 			
 			continue;
 		}

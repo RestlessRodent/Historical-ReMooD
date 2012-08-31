@@ -128,7 +128,7 @@ extern CONL_StaticVar_t l_CONPauseGame;
 // INCREMENTED AT ALL.
 bool_t D_SyncNetIsPaused(void)
 {
-	if (D_SyncNetIsSolo() && !demoplayback && (M_ExUIActive() || (l_CONPauseGame.Value->Int && CONL_IsActive())))
+	if (D_SyncNetIsSolo() && !demoplayback && ((M_ExUIActive() && g_ResumeMenu <= 0) || (l_CONPauseGame.Value->Int && CONL_IsActive())))
 		return true;
 	return false;
 }
@@ -704,7 +704,7 @@ bool_t D_CheckNetGame(void)
 	I_NetSocket_t* Socket;
 	D_NetClient_t* Client;
 	bool_t ret = false;
-	uint16_t i, v, PortNum;
+	uint16_t i, v, PortNum, ShowPort;
 	
 	// I_InitNetwork sets doomcom and netgame
 	// check and initialize the network driver
@@ -760,7 +760,7 @@ bool_t D_CheckNetGame(void)
 		// Attempt open of UDPv4 and UDPv6 socket
 		Socket = NULL;
 		for (i = 0; i < 20 && !Socket; i++)
-			Socket = I_NetOpenSocket((v ? INSF_V6 : 0), NULL, PortNum + i);
+			Socket = I_NetOpenSocket((v ? INSF_V6 : 0), NULL, (ShowPort = PortNum + i));
 		
 		// Failed?
 		if (!Socket)
@@ -769,7 +769,7 @@ bool_t D_CheckNetGame(void)
 		// Initialize input/output of stream
 		else
 		{
-			CONL_OutputU(DSTR_DNETC_BOUNDTOPORT, "%i%i\n", (v ? 6 : 4), i - 1);
+			CONL_OutputU(DSTR_DNETC_BOUNDTOPORT, "%i%u\n", (v ? 6 : 4), ShowPort);
 			
 			// Allocate local client
 			Client = D_NCAllocClient();
@@ -1107,6 +1107,30 @@ void D_NCZapNetPlayer(struct D_NetPlayer_s* const a_Player)
 		return;
 }
 
+/* D_NCReqVarChange() -- Request variable change */
+void D_NCReqVarChange(const uint32_t a_Code, const int32_t a_NewVal)
+{
+	D_NetClient_t* Server;
+	D_BS_t* Stream;
+	
+	/* Find server to send request to */
+	Server = D_NCFindClientIsServer();
+	
+	// Not found?
+	if (!Server)
+		return;
+	
+	/* Tell server to add player */
+	// Use server stream
+	Stream = Server->Streams[DNCSP_PERFECTWRITE];
+	
+	// Put Data
+	D_BSBaseBlock(Stream, "GVAR");
+	D_BSwu32(Stream, a_Code);
+	D_BSwi32(Stream, a_NewVal);
+	D_BSRecordNetBlock(Stream, &Server->Address);
+}
+
 /* D_NCReqAddPlayer() -- Requests that the server add local player */
 void D_NCReqAddPlayer(struct D_ProfileEx_s* a_Profile, const bool_t a_Bot)
 {
@@ -1252,6 +1276,52 @@ static ticcmd_t* DS_GrabGlobal(const uint8_t a_ID, const int32_t a_NeededSize, v
 	
 	/* Return it */
 	return Placement;
+}
+
+/* D_NCMH_GVAR() -- Change Variable */
+bool_t D_NCMH_GVAR(struct D_NCMessageData_s* const a_Data)
+{
+	ticcmd_t* Placement;
+	D_NetClient_t* ServerNC;
+	D_BS_t* Stream;
+	uint32_t Code;
+	int32_t NewVal;
+	uint8_t* Wp;
+	
+	/* Get server client */
+	ServerNC = D_NCFindClientIsServer();
+	
+	// We are not the server?
+	if (!ServerNC->IsLocal)
+		return true;
+	
+	/* Remote client is not ready */
+	if (!a_Data->RCl->ReadyToPlay || !a_Data->RCl->SaveGameSent)
+		return true;
+	
+	/* Currently only allow the server to change it */
+	if (!a_Data->RCl->IsLocal)
+		return true;
+	
+	/* Get Stream */
+	Stream = a_Data->InStream;
+	
+	/* Read Data */
+	Code = D_BSru32(Stream);
+	NewVal = D_BSri32(Stream);
+	
+	/* Encode in command */
+	Placement = DS_GrabGlobal(DTCT_GAMEVAR, c_TCDataSize[DTCT_GAMEVAR], &Wp);
+	
+	if (Placement)
+	{
+		// Fill in data
+		LittleWriteUInt32((uint32_t**)&Wp, Code);
+		LittleWriteUInt16((uint32_t**)&Wp, NewVal);
+	}
+	
+	/* Done processing */
+	return true;
 }
 
 /* D_NCMH_JOIN() -- Player wants to join */
@@ -1818,9 +1888,13 @@ bool_t D_NCMH_REDY(struct D_NCMessageData_s* const a_Data)
 // c_NCMessageCodes -- Local messages
 static const D_NCMessageType_t c_NCMessageCodes[] =
 {
-	{1, {0}, "JOIN", D_NCMH_JOIN, DNCMF_PERFECT | DNCMF_SERVER | DNCMF_CLIENT | DNCMF_HOST | DNCMF_REMOTECL},
+	// Needs fast access
 	{1, {0}, "TICS", D_NCMH_TICS, DNCMF_PERFECT | DNCMF_SERVER | DNCMF_REMOTECL},
 	{1, {0}, "TCMD", D_NCMH_TCMD, DNCMF_PERFECT | DNCMF_CLIENT | DNCMF_REMOTECL | DNCMF_HOST},
+	
+	// Slower
+	{1, {0}, "GVAR", D_NCMH_GVAR, DNCMF_PERFECT | DNCMF_SERVER | DNCMF_CLIENT | DNCMF_HOST | DNCMF_REMOTECL},
+	{1, {0}, "JOIN", D_NCMH_JOIN, DNCMF_PERFECT | DNCMF_SERVER | DNCMF_CLIENT | DNCMF_HOST | DNCMF_REMOTECL},
 	{1, {0}, "CONN", D_NCMH_CONN, DNCMF_PERFECT | DNCMF_CLIENT | DNCMF_HOST},
 	{1, {0}, "PLAY", D_NCMH_PLAY, DNCMF_PERFECT | DNCMF_SERVER | DNCMF_REMOTECL},
 	{1, {0}, "REDY", D_NCMH_REDY, DNCMF_PERFECT | DNCMF_CLIENT | DNCMF_REMOTECL | DNCMF_HOST},

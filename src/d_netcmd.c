@@ -154,6 +154,11 @@ const int32_t c_TCDataSize[NUMDTCT] =
 	1 + 8,
 		// uint8  Flags
 		// uint8* Lump Name
+	
+	// GAME VARIABLE
+	4 + 4,
+		// uint32 Code
+		// int32  New Value
 };
 
 /*** GLOBALS ***/

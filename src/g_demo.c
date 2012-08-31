@@ -1787,6 +1787,9 @@ bool_t G_DEMO_ReMooD_StartPlaying(struct G_CurrentDemo_s* a_Current)
 	a_Current->BSs = D_BSCreateWLStream(a_Current->WLStream);
 	Data->CBs = D_BSCreatePackedStream(a_Current->BSs);
 	
+	/* Prep Stuff */
+	P_SetRandIndex(0);
+	
 	/* Read DEMO block? */
 	memset(Header, 0, sizeof(Header));
 	D_BSPlayBlock(Data->CBs, Header);
@@ -1794,6 +1797,7 @@ bool_t G_DEMO_ReMooD_StartPlaying(struct G_CurrentDemo_s* a_Current)
 	{
 		// Read Host ID
 		l_DemoHostID = Data->HostID = D_BSru32(a_Current->BSs);
+		P_SetRandIndex(D_BSru8(a_Current->BSs));
 		
 		// Success!
 		return true;
@@ -1830,6 +1834,7 @@ bool_t G_DEMO_ReMooD_StartRecord(struct G_CurrentDemo_s* a_Current)
 	
 	// The recorder's host ID
 	D_BSwu32(a_Current->BSs, D_NCGetMyHostID());
+	D_BSwu8(a_Current->BSs, P_GetRandIndex());
 	
 	// ...
 	D_BSRecordBlock(a_Current->BSs);

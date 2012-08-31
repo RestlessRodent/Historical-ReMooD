@@ -927,7 +927,7 @@ StringGroupEX_t UnicodeStrings[NUMUNICODESTRINGS] =
 	{		  "BADDEMO_ILLEGALHEADER", "Demo contains an illegal header."},
 	{		  "BADDEMO_UNHANDLEDDATA", "Unhandled data labeled \"$1\"."},
 	{			 "BADDEMO_SKIPPEDTIC", "Demo skipped to tic $1, expected tic $1."},
-	{				 "BADDEMO_DESYNC", "Demo desynced at tic $1, expected {$2, $4} but got {$3. $5}."},
+	{				 "BADDEMO_DESYNC", "Demo desynced at tic $1, expected {$2, $4} but got {$3, $5}."},
 	
 	/*** D_PROF.C ***/
 	{			 "DPROFC_CREATEUSAGE", "Usage: $1 create <Name> (UUID)"},
@@ -1040,6 +1040,7 @@ size_t D_USPrint(char* const a_OutBuf, const size_t a_OutSize, const UnicodeStri
 	NewLine = false;
 	HackLeft = HACKBUF - 1;
 	h = HackBuf;
+	sn = 0;
 	for (Sym = strchr(SmallBuf, '%'); Sym; Sym = NextSym)
 	{
 		// Get occurance of next symbol

@@ -107,6 +107,10 @@ typedef struct M_UILocalBox_s
 
 #define MUIBOXFONT VFONT_SMALL
 
+/*** GLOBALS ***/
+
+int32_t g_ResumeMenu = 0;						// Resume menu for n tics
+
 /*** LOCALS ***/
 
 static M_UILocalBox_t** l_UIBoxes = NULL;
