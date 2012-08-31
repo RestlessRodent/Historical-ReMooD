@@ -40,6 +40,7 @@
 #include "m_misc.h"
 #include "c_lib.h"
 #include "m_argv.h"
+#include "z_miniz.h"
 
 /******************
 *** FILE STREAM ***
@@ -2168,6 +2169,234 @@ bool_t DS_RBSReliable_IOCtlF(struct D_BS_s* const a_Stream, const D_BSStreamIOCt
 	}
 }
 
+/********************
+*** PACKED STREAM ***
+********************/
+
+#define RBSPACKEDMAXWAITBLOCK				512	// Max blocks in queue
+#define RBSPACKEDMAXWAITBYTES			10240	// Max bytes in queue
+#define RBSPACKEDZLIBLEVEL				6		// Zlib compression level
+#define RBSPACKEDZLIBCHUNK				2048	// Compress 2K bytes at a time
+
+/* DS_RBSPackedData_t -- Reliable transport stream data */
+typedef struct DS_RBSPackedData_s
+{
+	D_BS_t* Self;								// Self
+	D_BS_t* WrapStream;							// Stream being wrapped
+	uint32_t TransSize;							// Transport Size
+	
+	bool_t InPack;								// Currently Packing
+	bool_t HasAddr;								// Has Address
+	I_HostAddress_t CurAddr;					// Current Address
+	
+	uint32_t WaitingBlocks;						// Blocks waiting
+	uint32_t WaitingBytes;						// Bytes waiting
+	
+	mz_stream ZStream;							// Z Stream
+	uint8_t ZChunk[RBSPACKEDZLIBCHUNK];			// Z Chunk
+} DS_RBSPackedData_t;
+
+/* DS_RBSPacked_FlushF() -- Flushes stream */
+bool_t DS_RBSPacked_FlushF(struct D_BS_s* const a_Stream)
+{
+	DS_RBSPackedData_t* PackData;
+	
+	/* Get Data */
+	PackData = a_Stream->Data;
+	
+	// Check
+	if (!PackData)
+		return false;
+	
+	/* Finish output compressed data */
+	// Clear
+	memset(PackData->ZChunk, 0, sizeof(PackData->ZChunk));
+	PackData->ZStream.avail_out = RBSPACKEDZLIBCHUNK;
+	PackData->ZStream.next_out = PackData->ZChunk;
+	
+	// Finish Compression
+	memset(PackData->ZChunk, 0, sizeof(PackData->ZChunk));
+	PackData->ZStream.avail_out = RBSPACKEDZLIBCHUNK;
+	PackData->ZStream.next_out = PackData->ZChunk;
+
+	// Deflate some data
+	if (mz_deflate(&PackData->ZStream, MZ_FINISH) != MZ_STREAM_ERROR)
+	{
+		// Write packed chunk
+		D_BSwu16(PackData->WrapStream, RBSPACKEDZLIBCHUNK - PackData->ZStream.avail_out);
+		D_BSWriteChunk(PackData->WrapStream, PackData->ZChunk, RBSPACKEDZLIBCHUNK - PackData->ZStream.avail_out);
+	}
+	
+	/* Send to remote host */
+	D_BSRecordNetBlock(PackData->WrapStream, (PackData->HasAddr ? &PackData->CurAddr : NULL));
+	
+	/* Reset info */
+	PackData->InPack = false;
+	PackData->HasAddr = false;
+	PackData->WaitingBlocks = 0;
+	PackData->WaitingBytes = 0;
+	
+	/* Success! */
+	return true;
+}
+
+/* DS_RBSPacked_NetRecordF() -- Records to stream */
+size_t DS_RBSPacked_NetRecordF(struct D_BS_s* const a_Stream, I_HostAddress_t* const a_Host)
+{
+	DS_RBSPackedData_t* PackData;
+	int i;
+	uint32_t u32;
+	
+	/* Get Data */
+	PackData = a_Stream->Data;
+	
+	// Check
+	if (!PackData)
+		return false;
+	
+	/* Different target address? */
+	// Check if packing anything
+	if (PackData->InPack)
+		if ((a_Host && !PackData->HasAddr) || (!a_Host && PackData->HasAddr) ||
+			(a_Host && PackData->HasAddr &&
+				!I_NetCompareHost(a_Host, &PackData->CurAddr)) ||
+			PackData->WaitingBlocks >= RBSPACKEDMAXWAITBLOCK ||
+			PackData->WaitingBytes >= RBSPACKEDMAXWAITBYTES)
+			DS_RBSPacked_FlushF(a_Stream);
+	
+	/* Not packing? */
+	if (!PackData->InPack)
+	{
+		// Setup Compression
+		memset(&PackData->ZStream, 0, sizeof(PackData->ZStream));
+		if (mz_deflateInit(&PackData->ZStream, RBSPACKEDZLIBLEVEL) != MZ_OK)
+		{
+			// Initialization failed, so write block 1:1 to host stream
+			D_BSBaseBlock(PackData->WrapStream, a_Stream->BlkHeader);
+			D_BSWriteChunk(PackData->WrapStream, a_Stream->BlkData, a_Stream->BlkSize);
+			D_BSRecordNetBlock(PackData->WrapStream, a_Host);
+			return 1;
+		}
+		
+		// Now in pack
+		PackData->InPack = true;
+		
+		// Create Block for contained compressed data
+		D_BSBaseBlock(PackData->WrapStream, "ZLIB");
+	}
+	
+	/* Create Block Header */
+	//D_BSWriteChunk(PackData->WrapStream, a_Stream->BlkHeader, 4);
+	//D_BSwu32(PackData->WrapStream, a_Stream->BlkSize);
+	
+	// Increase wait queue
+	PackData->WaitingBlocks += 1;
+	PackData->WaitingBytes += a_Stream->BlkSize;
+	
+	/* Compress Data */
+	
+	// Write all needed data
+	for (i = 0; i < 3; i++)
+	{
+		// Header
+		if (i == 0)
+		{
+			PackData->ZStream.avail_in = 4;
+			PackData->ZStream.next_in = a_Stream->BlkHeader;
+		}
+		
+		// Size
+		else if (i == 1)
+		{
+			u32 = a_Stream->BlkSize;
+			PackData->ZStream.avail_in = sizeof(u32);
+			PackData->ZStream.next_in = &u32;
+		}
+		
+		// Actual Data
+		else
+		{
+			PackData->ZStream.avail_in = a_Stream->BlkSize;
+			PackData->ZStream.next_in = a_Stream->BlkData;
+		}
+
+		do
+		{
+			// Clear
+			memset(PackData->ZChunk, 0, sizeof(PackData->ZChunk));
+			PackData->ZStream.avail_out = RBSPACKEDZLIBCHUNK;
+			PackData->ZStream.next_out = PackData->ZChunk;
+	
+			// Deflate some data
+			if (mz_deflate(&PackData->ZStream, MZ_NO_FLUSH) != MZ_STREAM_ERROR)
+			{
+				// Write packed chunk
+				D_BSwu16(PackData->WrapStream, RBSPACKEDZLIBCHUNK - PackData->ZStream.avail_out);
+				D_BSWriteChunk(PackData->WrapStream, PackData->ZChunk, RBSPACKEDZLIBCHUNK - PackData->ZStream.avail_out);
+			}
+		
+			// An error of some sort
+			else
+				PackData->ZStream.avail_in = 0;
+		}
+		while (PackData->ZStream.avail_in != 0);
+	}
+	
+	/* Change Host */
+	if (!a_Host)
+		PackData->HasAddr = false;
+	else
+	{
+		PackData->HasAddr = true;
+		memmove(&PackData->CurAddr, a_Host, sizeof(*a_Host));
+	}
+	
+	/* Success! */
+	return true;
+}
+
+/* DS_RBSPacked_NetPlayF() -- Plays from stream */
+bool_t DS_RBSPacked_NetPlayF(struct D_BS_s* const a_Stream, I_HostAddress_t* const a_Host)
+{
+	DS_RBSPackedData_t* PackData;
+	
+	/* Get Data */
+	PackData = a_Stream->Data;
+	
+	// Check
+	if (!PackData)
+		return false;
+}
+
+/* DS_RBSPacked_DeleteF() -- Deletes stream */
+void DS_RBSPacked_DeleteF(struct D_BS_s* const a_Stream)
+{
+	DS_RBSPackedData_t* PackData;
+	
+	/* Get Data */
+	PackData = a_Stream->Data;
+	
+	// Check
+	if (!PackData)
+		return;
+}
+
+/* DS_RBSPacked_IOCtlF() -- Advanced I/O Control */
+bool_t DS_RBSPacked_IOCtlF(struct D_BS_s* const a_Stream, const D_BSStreamIOCtl_t a_IOCtl, intptr_t* a_DataP)
+{
+	DS_RBSPackedData_t* PackData;
+	
+	/* Get Data */
+	PackData = a_Stream->Data;
+	
+	// Check
+	if (!PackData)
+		return false;
+	
+	/* Forward IOCTls */
+	return D_BSStreamIOCtl(PackData->WrapStream, a_IOCtl, a_DataP);
+}
+
 /****************
 *** FUNCTIONS ***
 ****************/
@@ -2336,6 +2565,40 @@ D_BS_t* D_BSCreateReliableStream(D_BS_t* const a_Wrapped)
 	// Debug?
 	if (M_CheckParm("-reliabledev"))
 		Data->Debug = true;
+	
+	/* Return Stream */
+	return New;
+}
+
+/* D_BSCreatePackedStream() -- Creates a packed stream */
+D_BS_t* D_BSCreatePackedStream(D_BS_t* const a_Wrapped)
+{
+	D_BS_t* New;
+	DS_RBSPackedData_t* Data;
+	intptr_t Trans;
+	
+	/* Check */
+	if (!a_Wrapped)
+		return NULL;
+	
+	/* Create block stream */
+	New = Z_Malloc(sizeof(*New), PU_BLOCKSTREAM, NULL);
+	
+	/* Setup Data */
+	New->Data = Data = Z_Malloc(sizeof(*Data), PU_BLOCKSTREAM, NULL);
+	New->NetRecordF = DS_RBSPacked_NetRecordF;
+	New->NetPlayF = DS_RBSPacked_NetPlayF;
+	New->FlushF = DS_RBSPacked_FlushF;
+	New->DeleteF = DS_RBSPacked_DeleteF;
+	New->IOCtlF = DS_RBSPacked_IOCtlF;
+	
+	// Load stuff into data
+	Data->Self = New;
+	Data->WrapStream = a_Wrapped;
+	if (D_BSStreamIOCtl(a_Wrapped, DRBSIOCTL_MAXTRANSPORT, &Trans))
+		Data->TransSize = Trans;
+	else
+		Data->TransSize = 2048;
 	
 	/* Return Stream */
 	return New;

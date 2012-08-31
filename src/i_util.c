@@ -1712,7 +1712,13 @@ void I_Quit(void)
 	//added:16-02-98: when recording a demo, should exit using 'q' key,
 	//        but sometimes we forget and use 'F10'.. so save here too.
 	if (demorecording)
+	{
 		G_CheckDemoStatus();
+		
+		// Force stop record, even if demo was checked already!
+		G_StopDemoRecord();
+	}
+	
 	D_QuitNetGame();
 	// use this for 1.28 19990220 by Kin
 	I_ShutdownSystem();

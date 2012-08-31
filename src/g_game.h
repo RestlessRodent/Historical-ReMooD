@@ -117,6 +117,9 @@ typedef bool_t (*G_DEMO_CheckDemoType_t)(struct G_CurrentDemo_s* a_Current);
 typedef bool_t (*G_DEMO_ReadTicCmdType_t)(struct G_CurrentDemo_s* a_Current, ticcmd_t* const a_Cmd, const int32_t a_PlayerNum);
 typedef bool_t (*G_DEMO_WriteTicCmdType_t)(struct G_CurrentDemo_s* a_Current, const ticcmd_t* const a_Cmd, const int32_t a_PlayerNum);
 
+typedef bool_t (*G_DEMO_ReadGlblCmdType_t)(struct G_CurrentDemo_s* a_Current, ticcmd_t* const a_Cmd);
+typedef bool_t (*G_DEMO_WriteGlblCmdType_t)(struct G_CurrentDemo_s* a_Current, const ticcmd_t* const a_Cmd);
+
 typedef bool_t (*G_DEMO_PreGTickCmdType_t)(struct G_CurrentDemo_s* a_Current);
 typedef bool_t (*G_DEMO_PostGTickCmdType_t)(struct G_CurrentDemo_s* a_Current);
 
@@ -134,6 +137,8 @@ typedef struct G_DemoFactory_s
 	G_DEMO_WriteTicCmdType_t WriteTicCmdFunc;	// Writes tic command
 	G_DEMO_PreGTickCmdType_t PreGTickCmdFunc;	// Pre G_Ticker() Command
 	G_DEMO_PreGTickCmdType_t PostGTickCmdFunc;	// Post G_Ticker() Command
+	G_DEMO_ReadGlblCmdType_t ReadGlblCmdFunc;	// Read of global commands
+	G_DEMO_WriteGlblCmdType_t WriteGlblCmdFunc;	// Read of global commands
 } G_DemoFactory_t;
 
 /* G_CurrentDemo_t -- Current Demo Info */
@@ -143,7 +148,7 @@ typedef struct G_CurrentDemo_s
 	const G_DemoFactory_t* Factory;				// Factory for demo
 	void* CFile;								// CFile
 	WL_EntryStream_t* WLStream;					// Demo Streamer (Raw)
-	D_BS_t* RBSStream;							// Block Streamer
+	D_BS_t* BSs;								// Block Streamer
 	void* Data;									// Internal Data
 } G_CurrentDemo_t;
 

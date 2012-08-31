@@ -108,6 +108,7 @@ D_BS_t* D_BSCreateFileStream(const char* const a_PathName, const uint32_t a_Flag
 D_BS_t* D_BSCreateNetStream(I_NetSocket_t* const a_NetSocket);
 D_BS_t* D_BSCreatePerfectStream(D_BS_t* const a_Wrapped);
 D_BS_t* D_BSCreateReliableStream(D_BS_t* const a_Wrapped);
+D_BS_t* D_BSCreatePackedStream(D_BS_t* const a_Wrapped);
 
 void D_BSCloseStream(D_BS_t* const a_Stream);
 

@@ -134,11 +134,8 @@
 #include "doomtype.h"
 #include "z_zone.h"
 
-// Use these
-#define MINIZ_NO_ARCHIVE_APIS
-#define MINIZ_NO_STDIO
-#define MINIZ_HEADER_FILE_ONLY
-#define MINIZ_NO_TIME
+#define __REMOOD_NOMINIZINCLUDE
+#include "z_miniz.h"
 
 #ifndef MINIZ_HEADER_INCLUDED
 #define MINIZ_HEADER_INCLUDED
@@ -187,7 +184,9 @@
 
 #if (__BYTE_ORDER__==__ORDER_LITTLE_ENDIAN__) || MINIZ_X86_OR_X64_CPU
 // Set MINIZ_LITTLE_ENDIAN to 1 if the processor is little endian.
+#ifndef MINIZ_LITTLE_ENDIAN
 #define MINIZ_LITTLE_ENDIAN 1
+#endif
 #endif
 
 #if MINIZ_X86_OR_X64_CPU
@@ -2282,6 +2281,7 @@ static MZ_FORCEINLINE void tdefl_find_match(tdefl_compressor *d, mz_uint lookahe
     {
       if (--num_probes_left == 0) return;
       #define TDEFL_PROBE \
+
         next_probe_pos = d->m_next[probe_pos]; \
         if ((!next_probe_pos) || ((dist = (mz_uint16)(lookahead_pos - next_probe_pos)) > max_dist)) return; \
         probe_pos = next_probe_pos & TDEFL_LZ_DICT_SIZE_MASK; \

@@ -1749,6 +1749,16 @@ bool_t G_DEMO_Legacy_PostGTickCmd(struct G_CurrentDemo_s* a_Current)
 
 /*** STRUCTURES ***/
 
+/* G_ReMooDDemoData_t -- ReMooD Demo Data */
+typedef struct g_ReMooDDemoData_s
+{
+	bool_t EndDemo;								// Force end of demo
+	D_BS_t* CBs;								// Compressed Block Stream
+	tic_t LastTic;								// Tics for last packet
+	ticcmd_t NewCmds[MAXPLAYERS + 1];			// Commands active now
+	ticcmd_t OldCmds[MAXPLAYERS + 1];			// Commands that were active
+} G_ReMooDDemoData_t;
+
 /*** FUNCTIONS ***/
 
 /* G_DEMO_ReMooD_StartPlaying() -- Start playing Demo */
@@ -1766,31 +1776,272 @@ bool_t G_DEMO_ReMooD_StopPlaying(struct G_CurrentDemo_s* a_Current)
 /* G_DEMO_ReMooD_StartRecord() -- Start recording demo */
 bool_t G_DEMO_ReMooD_StartRecord(struct G_CurrentDemo_s* a_Current)
 {
-	return false;
+	G_ReMooDDemoData_t* Data;
+	
+	/* Init Info */
+	if (!a_Current->Data)
+		Data = a_Current->Data = Z_Malloc(sizeof(*Data), PU_STATIC, NULL);
+	
+	// Last last tic to a bad value (so it always changes)
+	Data->LastTic = (tic_t)-1;
+	
+	/* Write Demo Info */
+	// Header
+	D_BSBaseBlock(a_Current->BSs, "DEMO");
+	
+	// Data
+	
+	// Record
+	D_BSRecordBlock(a_Current->BSs);
+	
+	/* Start Compressing */
+	Data->CBs = D_BSCreatePackedStream(a_Current->BSs);
+	
+	/* Success! */
+	return true;
 }
 
 /* G_DEMO_ReMooD_StopRecord() -- Stop recording demo */
 bool_t G_DEMO_ReMooD_StopRecord(struct G_CurrentDemo_s* a_Current)
 {
-	return false;
+	G_ReMooDDemoData_t* Data;
+	
+	/* Get Data */
+	Data = a_Current->Data;
+	
+	// Check
+	if (!Data)
+		return false;
+	
+	/* Flush */
+	// Flush compressed stream
+	D_BSFlushStream(Data->CBs);
+	
+	// Delete compressed stream
+	D_BSCloseStream(Data->CBs);
+	
+	// Write End of demo
+	D_BSBaseBlock(a_Current->BSs, "EDMO");
+	// ...
+	D_BSRecordBlock(a_Current->BSs);
+	
+	
+	/* Clear Data */
+	if (a_Current->Data)
+		Z_Free(a_Current->Data);
+	
+	return true;
 }
 
 /* G_DEMO_ReMooD_CheckDemo() -- Check Status */
 bool_t G_DEMO_ReMooD_CheckDemo(struct G_CurrentDemo_s* a_Current)
 {
+	G_ReMooDDemoData_t* Data;
+	
+	/* Get Data */
+	Data = a_Current->Data;
+	
+	// Check
+	if (!Data)
+		return false;
+	
+	/* Force Demo End */
+	if (Data->EndDemo)
+		return true;
+	
+	/* Playing Demo */
+	if (!a_Current->Out)
+	{
+		// Stream ended?
+		//if (WL_StreamEOF(a_Current->WLStream))
+			//return true;
+	}
+	
+	/* Recording Demo */
+	else
+	{
+	}
+	
+	/* Still playing/recording */
 	return false;
 }
 
 /* G_DEMO_ReMooD_ReadTicCmd() -- Read Tic Command */
 bool_t G_DEMO_ReMooD_ReadTicCmd(struct G_CurrentDemo_s* a_Current, ticcmd_t* const a_Cmd, const int32_t a_PlayerNum)
 {
-	return false;
+	G_ReMooDDemoData_t* Data;
+	
+	/* Get Data */
+	Data = a_Current->Data;
+	
+	// Check
+	if (!Data)
+		return false;
+	
+	/* Success! */
+	return true;
 }
 
 /* G_DEMO_ReMooD_WriteTicCmd() -- Write Tic Commnd */
 bool_t G_DEMO_ReMooD_WriteTicCmd(struct G_CurrentDemo_s* a_Current, const ticcmd_t* const a_Cmd, const int32_t a_PlayerNum)
 {
-	return false;
+	G_ReMooDDemoData_t* Data;
+	
+	/* Get Data */
+	Data = a_Current->Data;
+	
+	// Check
+	if (!Data)
+		return false;
+	
+	/* Clone into now commands */
+	memmove(&Data->NewCmds[a_PlayerNum], a_Cmd, sizeof(ticcmd_t));
+	
+	/* Success! */
+	return true;
+}
+
+/* G_DEMO_ReMooD_ReadGlblCmd() -- Reads global command */
+bool_t G_DEMO_ReMooD_ReadGlblCmd(struct G_CurrentDemo_s* a_Current, ticcmd_t* const a_Cmd)
+{
+	G_ReMooDDemoData_t* Data;
+	
+	/* Get Data */
+	Data = a_Current->Data;
+	
+	// Check
+	if (!Data)
+		return false;
+	
+	/* Success! */
+	return true;
+}
+
+/* G_DEMO_ReMooD_WriteGlblCmd() -- Writes global command */
+bool_t G_DEMO_ReMooD_WriteGlblCmd(struct G_CurrentDemo_s* a_Current, const ticcmd_t* const a_Cmd)
+{
+	G_ReMooDDemoData_t* Data;
+	uint16_t DiffBits;
+	int i, j;
+	uint32_t PosMask;
+	uint8_t PRi;
+	ticcmd_t* Old, *New;
+	
+	/* Get Data */
+	Data = a_Current->Data;
+	
+	// Check
+	if (!Data)
+		return false;
+	
+	/* Tic Difference? */
+	if (gametic != Data->LastTic)
+	{
+		// Header
+		D_BSBaseBlock(Data->CBs, "DMTC");
+		
+		// Current Tics
+		D_BSwu64(Data->CBs, gametic);
+		D_BSwu64(Data->CBs, Data->LastTic);
+		
+		// Consistency Info
+		PRi = P_GetRandIndex();
+		for (PosMask = 0, i = 0; i < MAXPLAYERS; i++)
+			if (playeringame[i])
+				if (players[i].mo)
+					PosMask ^= players[i].mo->x ^ players[i].mo->y ^ players[i].mo->z;
+		
+		// Write
+		D_BSwu8(Data->CBs, PRi);
+		D_BSwu32(Data->CBs, PosMask);
+		
+		// Global Commands
+		New = &Data->NewCmds[MAXPLAYERS];
+		D_BSwu16(Data->CBs, New->Ext.DataSize);
+		for (i = 0; i < New->Ext.DataSize; i++)
+			D_BSwu8(Data->CBs, New->Ext.DataBuf[i]);
+		
+		// For each player
+		for (i = 0; i < MAXPLAYERS; i++)
+		{
+			// Write playeringame status
+			D_BSwu8(Data->CBs, playeringame[i]);
+		
+			// Don't write tics for players not in the game
+			if (!playeringame[i])
+				continue;
+			
+			// Get Bit Differences
+			Old = &Data->OldCmds[i];
+			New = &Data->NewCmds[i];
+			DiffBits = 0;
+		
+			// Calculate
+			if (Old->Std.forwardmove != New->Std.forwardmove)
+				DiffBits |= DDB_FORWARD;
+			if (Old->Std.sidemove != New->Std.sidemove)
+				DiffBits |= DDB_SIDE;
+			if (Old->Std.angleturn != New->Std.angleturn)
+				DiffBits |= DDB_ANGLE;
+			if (Old->Std.aiming != New->Std.aiming)
+				DiffBits |= DDB_AIMING;
+			if (Old->Std.buttons != New->Std.buttons)
+				DiffBits |= DDB_BUTTONS;
+			if (Old->Std.BaseAngleTurn != New->Std.BaseAngleTurn)
+				DiffBits |= DDB_BAT;
+			if (Old->Std.BaseAiming != New->Std.BaseAiming)
+				DiffBits |= DDB_BAM;
+			if (Old->Std.ResetAim != New->Std.ResetAim)
+				DiffBits |= DDB_RESETAIM;
+			if (Old->Std.InventoryBits != New->Std.InventoryBits)
+				DiffBits |= DDB_INVENTORY;
+		
+			// Always set weapon
+			DiffBits |= DDB_WEAPON;
+			
+			// Write bits
+			D_BSwu16(Data->CBs, DiffBits);
+	
+			if (DiffBits & DDB_FORWARD)
+				D_BSwi8(Data->CBs, New->Std.forwardmove);
+			if (DiffBits & DDB_SIDE)
+				D_BSwi8(Data->CBs, New->Std.sidemove);
+			if (DiffBits & DDB_ANGLE)
+				D_BSwi16(Data->CBs, New->Std.angleturn);
+			if (DiffBits & DDB_AIMING)
+				D_BSwu16(Data->CBs, New->Std.aiming);
+			if (DiffBits & DDB_BUTTONS)
+				D_BSwu16(Data->CBs, New->Std.buttons);
+			if (DiffBits & DDB_RESETAIM)
+				D_BSwu8(Data->CBs, New->Std.ResetAim);
+			if (DiffBits & DDB_INVENTORY)
+				D_BSwu8(Data->CBs, New->Std.InventoryBits);
+	
+			if (DiffBits & DDB_WEAPON)
+			{
+				for (j = 0; New->Std.XSNewWeapon[j] && j < MAXTCWEAPNAME; j++)
+					D_BSwu8(Data->CBs, New->Std.XSNewWeapon[j]);
+				D_BSwu8(Data->CBs, 0);
+			}
+	
+			// Data Bits
+			D_BSwu16(Data->CBs, New->Std.DataSize);
+			for (j = 0; j < New->Std.DataSize; j++)
+				D_BSwu8(Data->CBs, New->Std.DataBuf[j]);
+		}
+		
+		// Record
+		D_BSRecordBlock(Data->CBs);
+		
+		// Set new time
+		Data->LastTic = gametic;
+	}
+	
+	/* Clone into now commands */
+	memmove(&Data->NewCmds[MAXPLAYERS], a_Cmd, sizeof(ticcmd_t));
+	
+	/* Success! */
+	return true;
 }
 
 /*******************
@@ -1836,6 +2087,8 @@ static const G_DemoFactory_t c_DemoFactories[] =
 		G_DEMO_Vanilla_WriteTicCmd,
 		NULL,
 		NULL,
+		NULL,
+		NULL,
 	},
 	
 	// Legacy Factory
@@ -1851,6 +2104,8 @@ static const G_DemoFactory_t c_DemoFactories[] =
 		G_DEMO_Legacy_WriteTicCmd,
 		NULL,
 		G_DEMO_Legacy_PostGTickCmd,
+		NULL,
+		NULL,
 	},
 	
 	// ReMooD Factory
@@ -1866,6 +2121,8 @@ static const G_DemoFactory_t c_DemoFactories[] =
 		G_DEMO_ReMooD_WriteTicCmd,
 		NULL,
 		NULL,
+		G_DEMO_ReMooD_ReadGlblCmd,
+		G_DEMO_ReMooD_WriteGlblCmd,
 	},
 	
 	// End
@@ -2086,8 +2343,8 @@ void G_StopDemoRecord(void)
 	/* Close any files and streams */
 	if (l_RecDemo->CFile)
 		fclose(l_RecDemo->CFile);
-	if (l_RecDemo->RBSStream)
-		D_BSCloseStream(l_RecDemo->RBSStream);
+	if (l_RecDemo->BSs)
+		D_BSCloseStream(l_RecDemo->BSs);
 	
 	/* Free current */
 	Z_Free(l_RecDemo);
@@ -2172,7 +2429,7 @@ void G_BeginRecording(const char* const a_Output, const char* const a_FactoryNam
 {
 	const G_DemoFactory_t* Factory;
 	G_CurrentDemo_t* New;
-	D_BS_t* RBSStream;				// Block Streamer
+	D_BS_t* BSs;				// Block Streamer
 	void* CFile;								// CFile
 	
 	/* Check */
@@ -2187,14 +2444,14 @@ void G_BeginRecording(const char* const a_Output, const char* const a_FactoryNam
 		return;
 		
 	/* Setup file */
-	RBSStream = CFile = NULL;
+	BSs = CFile = NULL;
 	if (Factory->DoesRBS)
-		RBSStream = D_BSCreateFileStream(a_Output, DRBSSF_OVERWRITE);
+		BSs = D_BSCreateFileStream(a_Output, DRBSSF_OVERWRITE);
 	else
 		CFile = fopen(a_Output, "wb");
 		
 	// Failed?
-	if (!CFile && !RBSStream)
+	if (!CFile && !BSs)
 		return;
 	
 	/* Create Demo */
@@ -2204,7 +2461,7 @@ void G_BeginRecording(const char* const a_Output, const char* const a_FactoryNam
 	New->Out = true;
 	New->Factory = Factory;
 	New->CFile = CFile;
-	New->RBSStream = RBSStream;
+	New->BSs = BSs;
 	
 	/* Call recorder start */
 	if (New->Factory->StartRecordFunc)
@@ -2327,11 +2584,25 @@ bool_t G_CheckDemoStatus(void)
 /* G_ReadDemoGlobalTicCmd() -- Reads global tic command from demo */
 void G_ReadDemoGlobalTicCmd(ticcmd_t* const a_TicCmd)
 {
+	/* Not Playing Demo? */
+	if (!demoplayback)
+		return;
+	
+	/* Read tic command */
+	if (l_PlayDemo->Factory->ReadGlblCmdFunc)
+		l_PlayDemo->Factory->ReadGlblCmdFunc(l_PlayDemo, a_TicCmd);
 }
 
 /* G_WriteDemoGlobalTicCmd() -- Writes global tic command to demo */
 void G_WriteDemoGlobalTicCmd(ticcmd_t* const a_TicCmd)
 {
+	/* Not Recording Demo? */
+	if (!demorecording)
+		return;
+	
+	/* Read tic command */
+	if (l_RecDemo->Factory->WriteGlblCmdFunc)
+		l_RecDemo->Factory->WriteGlblCmdFunc(l_RecDemo, a_TicCmd);
 }
 
 /* G_ReadDemoTiccmd() -- Reads demo tic command */

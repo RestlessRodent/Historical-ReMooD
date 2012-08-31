@@ -2001,6 +2001,8 @@ void D_NetXMitCmds(void)
 			DiffBits |= DDB_BAM;
 		if (Old->Std.ResetAim != New->Std.ResetAim)
 			DiffBits |= DDB_RESETAIM;
+		if (Old->Std.InventoryBits != New->Std.InventoryBits)
+			DiffBits |= DDB_INVENTORY;
 #endif
 		
 		// Always set weapon
