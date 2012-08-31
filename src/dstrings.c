@@ -926,6 +926,7 @@ StringGroupEX_t UnicodeStrings[NUMUNICODESTRINGS] =
 	{           "BADDEMO_NONHOSTDEMO", "Demo possibly not recorded by the host, if so then the demo will most likely fail to play back at all."},
 	{		  "BADDEMO_ILLEGALHEADER", "Demo contains an illegal header."},
 	{		  "BADDEMO_UNHANDLEDDATA", "Unhandled data labeled \"$1\"."},
+	{			 "BADDEMO_SKIPPEDTIC", "Demo skipped to tic $1, expected tic $1."},
 	
 	/*** D_PROF.C ***/
 	{			 "DPROFC_CREATEUSAGE", "Usage: $1 create <Name> (UUID)"},

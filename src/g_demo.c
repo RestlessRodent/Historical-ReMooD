@@ -1955,6 +1955,7 @@ bool_t G_DEMO_ReMooD_ReadGlblCmd(struct G_CurrentDemo_s* a_Current, ticcmd_t* co
 	uint16_t u16, DiffBits;
 	uint32_t PosMask;
 	int i, j;
+	bool_t ReadOne;
 	
 	/* Get Data */
 	Data = a_Current->Data;
@@ -1968,8 +1969,12 @@ bool_t G_DEMO_ReMooD_ReadGlblCmd(struct G_CurrentDemo_s* a_Current, ticcmd_t* co
 	{
 		// Load block from stream
 		memset(Header, 0, sizeof(Header));
+		ReadOne = false;
 		while (D_BSPlayBlock(Data->CBs, Header))
 		{
+			// Read something
+			ReadOne = true;
+			
 			// Demo Tic Commands
 			if (D_BSCompareHeader(Header, "DMTC"))
 			{
@@ -1983,7 +1988,10 @@ bool_t G_DEMO_ReMooD_ReadGlblCmd(struct G_CurrentDemo_s* a_Current, ticcmd_t* co
 				ThisTic = D_BSru64(Data->CBs);
 				LastTic = D_BSru64(Data->CBs);
 				
-				CONL_PrintF("Read %u on %u\n", ThisTic, gametic);
+				if (ThisTic != gametic)
+					G_DemoProblem(false, DSTR_BADDEMO_SKIPPEDTIC, "%u%u\n", ThisTic, gametic);
+				
+				//CONL_PrintF("Read %u on %u\n", ThisTic, gametic);
 				
 				// Read consistency info
 				PrIndex = D_BSru8(Data->CBs);
@@ -2066,6 +2074,7 @@ bool_t G_DEMO_ReMooD_ReadGlblCmd(struct G_CurrentDemo_s* a_Current, ticcmd_t* co
 			// Unknown Header
 			else
 			{
+				// Show error
 				G_DemoProblem(false, DSTR_BADDEMO_UNHANDLEDDATA, "%s\n", Header);
 				break;
 			}
@@ -2076,6 +2085,10 @@ bool_t G_DEMO_ReMooD_ReadGlblCmd(struct G_CurrentDemo_s* a_Current, ticcmd_t* co
 			// Done
 			break;
 		}
+		
+		// End of demo
+		if (!ReadOne)
+			Data->EndDemo = true;
 	}
 	
 	/* Copy Global Commands */
