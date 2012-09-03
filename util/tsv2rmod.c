@@ -10,6 +10,7 @@ typedef struct StateInfo_s
 	char* DEHName;
 	char* Sprite;
 	char* NextState;
+	uint32_t NextID;
 	char* Func;
 	uint32_t Frame;
 	uint32_t Tics;
@@ -25,7 +26,7 @@ int main(int argc, char** argv)
 	
 	StateInfo_t* States;
 	StateInfo_t* CurState;
-	size_t NumStates;
+	size_t NumStates, i, j;
 	size_t CurStateNum, ReadNum;
 	
 	/* Load State Tables */
@@ -40,6 +41,7 @@ int main(int argc, char** argv)
 		CurState = 0;
 		
 		// Constantly read
+		fprintf(stderr, "\nReading states");
 		while (!feof(inST))
 		{
 			// Read string
@@ -49,9 +51,9 @@ int main(int argc, char** argv)
 			fprintf(stderr, ".", Buf);
 			
 			// Resize
-			States = realloc(States, sizeof(States) * (NumStates + 2));
+			States = realloc(States, sizeof(*States) * (NumStates + 2));
 			CurState = &States[CurStateNum = NumStates++];
-			memset(CurState, 0, sizeof(CurState));
+			memset(CurState, 0, sizeof(*CurState));
 			
 			// DeHackEd ID
 			CurState->DEHId = CurStateNum;
@@ -85,12 +87,12 @@ int main(int argc, char** argv)
 						
 						// Function
 					case 4:
-						CurState->Func = strdup(Tok + 4);
+						CurState->Func = strdup(Tok);
 						break;
 						
 						// Next State
 					case 5:
-						CurState->NextState = strdup(Tok + 4);
+						CurState->NextState = strdup(Tok);
 						break;
 						
 					default:
@@ -98,6 +100,20 @@ int main(int argc, char** argv)
 				}
 		}
 	}
+	fprintf(stderr, "done!\n");
+	
+	/* Map next states to IDs */
+	fprintf(stderr, "Linking IDs");
+	for (i = 0; i < NumStates; i++)
+		for (j = 0; j < NumStates; j++)
+			if (States[i].NextState && States[j].DEHName)
+				if (strcasecmp(States[i].NextState, States[j].DEHName) == 0)
+				{
+					fprintf(stderr, ".");
+					States[i].NextID = j;
+					break;
+				}
+	fprintf(stderr, "done!\n");
 	
 	/* Run through object tables */
 	inMI = fopen("her_mos.tsv", "rt");
