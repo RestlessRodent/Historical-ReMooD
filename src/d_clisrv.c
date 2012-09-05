@@ -131,6 +131,7 @@ void TryRunTics(tic_t realtics)
 	int STRuns;
 	
 	tic_t XXLocalTic, XXSNAR;
+	static tic_t LastNCSNU = (tic_t)-1;
 
 	// Init
 	LocalTic = 0;

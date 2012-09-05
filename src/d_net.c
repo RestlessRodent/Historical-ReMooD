@@ -894,6 +894,9 @@ void D_NCDisconnect(void)
 	l_ConsistencyFailed = false;
 	
 	/* Clear all player information */
+	// Reset all vars
+	P_XGSSetAllDefaults();
+	
 	// Just wipe ALL of it!
 	memset(players, 0, sizeof(players));
 	memset(playeringame, 0, sizeof(playeringame));
