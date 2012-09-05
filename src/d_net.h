@@ -49,6 +49,7 @@
 struct D_NetPlayer_s;
 struct D_BS_s;
 struct D_ProfileEx_s;
+struct B_BotTemplate_s;
 
 /*****************
 *** PROTOTYPES ***
@@ -172,6 +173,8 @@ bool_t D_NCHostOnBanList(I_HostAddress_t* const a_Host);
 
 void D_NCReqAddPlayer(struct D_ProfileEx_s* a_Profile, const bool_t a_Bot);
 void D_NCReqVarChange(const uint32_t a_Code, const int32_t a_NewVal);
+void D_NCReqPrefChange(struct D_ProfileEx_s* a_Profile, struct B_BotTemplate_s* a_Bot, const uint32_t a_Player);
+
 void D_NCZapNetPlayer(struct D_NetPlayer_s* const a_Player);
 
 /*** NSZZ Funcs ***/

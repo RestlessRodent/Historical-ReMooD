@@ -223,7 +223,7 @@ const B_BotTemplate_t* B_GHOST_RandomTemplate(void)
 		;
 	
 	/* Choose random number */
-	Rand = B_GHOST_TemplateByID(M_Random() % i);
+	Rand = B_GHOST_TemplateByID(abs(M_Random()) % i);
 	if (Rand)
 		return Rand;
 	return &c_BotTemplates[0];

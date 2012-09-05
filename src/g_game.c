@@ -458,6 +458,7 @@ void GS_HandleExtraCommands(ticcmd_t* const a_TicCmd, const int32_t a_PlayerNum)
 	uint16_t u16[4];
 	uint8_t u8[4];
 	char NameBuf[MAXPLAYERNAME];
+	char AltBuf[MAXPLAYERNAME];
 	bool_t OK, LegalMove;
 	
 	B_BotData_t* NewBot;
@@ -500,10 +501,15 @@ void GS_HandleExtraCommands(ticcmd_t* const a_TicCmd, const int32_t a_PlayerNum)
 				u16[0] = LittleReadUInt16((uint16_t**)&Rp);
 				u32[1] = LittleReadUInt32((uint32_t**)&Rp);
 				u32[2] = LittleReadUInt32((uint32_t**)&Rp);
+				u8[0] = ReadUInt8((uint8_t**)&Rp);
 				
 				for (i = 0; i < MAXPLAYERNAME; i++)
 					NameBuf[i] = ReadUInt8((uint8_t**)&Rp);
 				NameBuf[MAXPLAYERNAME - 1] = 0;
+				
+				for (i = 0; i < MAXPLAYERNAME; i++)
+					AltBuf[i] = ReadUInt8((uint8_t**)&Rp);
+				AltBuf[MAXPLAYERNAME - 1] = 0;
 				
 				// Determine spot for player (this is in case 1000 players
 				// join in a single tic).
@@ -599,6 +605,8 @@ void GS_HandleExtraCommands(ticcmd_t* const a_TicCmd, const int32_t a_PlayerNum)
 					// Initialize Player
 					Player = G_AddPlayer(u16[0]);
 					D_NetSetPlayerName(u16[0], NameBuf);
+					Player->skincolor = u8[0];
+					// TODO FIXME: Hexen Class (AltBuf)
 					
 					// Link player to profile
 					Player->NetPlayer = NetPlayer;
@@ -616,6 +624,9 @@ void GS_HandleExtraCommands(ticcmd_t* const a_TicCmd, const int32_t a_PlayerNum)
 						// Initialize Bot
 						NewBot = NetPlayer->BotData = B_InitBot(NetPlayer, B_GHOST_TemplateByID(u32[2]));
 					
+					// Send server local profile info
+					D_NCReqPrefChange(Profile, NewBot, u16[0]);
+					
 					// Finish off split screen
 					if ((NC && NC->IsLocal && LegalMove) || (demoplayback && OK))
 					{
@@ -628,8 +639,8 @@ void GS_HandleExtraCommands(ticcmd_t* const a_TicCmd, const int32_t a_PlayerNum)
 				
 				// Debug
 				if (g_NetDev)
-					CONL_PrintF("NET: Join (%x, %u, %x, %x, %s)\n",
-							u32[0], u16[0], u32[1], u32[2], NameBuf
+					CONL_PrintF("NET: Join (%x, %u, %x, %x, %u, %s, %s)\n",
+							u32[0], u16[0], u32[1], u32[2], u8[0], NameBuf, AltBuf
 						);
 				break;
 				

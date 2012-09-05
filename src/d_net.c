@@ -1113,6 +1113,72 @@ void D_NCZapNetPlayer(struct D_NetPlayer_s* const a_Player)
 		return;
 }
 
+/* D_NCReqPrefChange() -- Request profile settings */
+void D_NCReqPrefChange(struct D_ProfileEx_s* a_Profile, struct B_BotTemplate_s* a_Bot, const uint32_t a_Player)
+{
+	D_NetClient_t* Server;
+	D_BS_t* Stream;
+	
+	uint8_t outColor;
+	const char* outName;
+	const char* outWPref;
+	const char* outHexClass;
+	fixed_t outCamDist, outCamHeight, outCamSpeed;
+	
+	/* Check */
+	if (a_Player < 0 || a_Player >= MAXPLAYERS || (!a_Profile && !a_Bot))
+		return;
+	
+	/* Find server to send request to */
+	Server = D_NCFindClientIsServer();
+	
+	// Not found?
+	if (!Server)
+		return;
+	
+	/* Send Bot Info? */
+	if (a_Bot)
+	{
+		outName = a_Bot->DisplayName;
+		outColor = a_Bot->SkinColor;
+		outCamDist = 128 << FRACBITS;
+		outCamHeight = 20 << FRACBITS;
+		outCamSpeed = 16384;
+		outWPref = a_Bot->WeaponOrder;
+		outHexClass = a_Bot->HexenClass;
+	}
+	
+	/* Send Player Info? */
+	else
+	{
+		outName = a_Profile->DisplayName;
+		outColor = a_Profile->Color;
+		outCamDist = a_Profile->CamDist;
+		outCamHeight = a_Profile->CamHeight;
+		outCamSpeed = a_Profile->CamSpeed;
+		outWPref = "";
+		outHexClass = "Fighter";
+	}
+	
+	/* Tell server to add player */
+	// Use server stream
+	Stream = Server->Streams[DNCSP_PERFECTWRITE];
+	
+	// Put Data
+	D_BSBaseBlock(Stream, "PREF");
+	
+	D_BSwu8(Stream, a_Player);
+	D_BSwu8(Stream, outColor);
+	D_BSwi32(Stream, outCamDist);
+	D_BSwi32(Stream, outCamHeight);
+	D_BSwi32(Stream, outCamSpeed);
+	D_BSws(Stream, (outName ? outName : ""));
+	D_BSws(Stream, (outHexClass ? outHexClass : ""));
+	D_BSws(Stream, (outWPref ? outWPref : ""));
+	
+	D_BSRecordNetBlock(Stream, &Server->Address);
+}
+
 /* D_NCReqVarChange() -- Request variable change */
 void D_NCReqVarChange(const uint32_t a_Code, const int32_t a_NewVal)
 {
@@ -1181,6 +1247,8 @@ void D_NCReqAddPlayer(struct D_ProfileEx_s* a_Profile, const bool_t a_Bot)
 		D_BSwu32(Stream, BotTemplate->BotIDNum);
 		D_BSws(Stream, BotTemplate->AccountName);
 		D_BSws(Stream, BotTemplate->DisplayName);
+		D_BSwu8(Stream, BotTemplate->SkinColor);
+		D_BSws(Stream, BotTemplate->HexenClass);
 	}
 	
 	// Otherwise use player ones
@@ -1190,6 +1258,8 @@ void D_NCReqAddPlayer(struct D_ProfileEx_s* a_Profile, const bool_t a_Bot)
 		D_BSwu32(Stream, a_Profile->InstanceID);
 		D_BSws(Stream, a_Profile->AccountName);
 		D_BSws(Stream, a_Profile->DisplayName);
+		D_BSwu8(Stream, a_Profile->Color);
+		D_BSws(Stream, a_Profile->HexenClass);
 	}
 	
 	// Send
@@ -1361,6 +1431,7 @@ bool_t D_NCMH_JOIN(struct D_NCMessageData_s* const a_Data)
 	D_BS_t* Stream;
 	uint8_t UUID[(MAXPLAYERNAME * 2) + 1];
 	uint8_t PName[MAXPLAYERNAME], AName[MAXPLAYERNAME];
+	uint8_t HexClass[MAXPLAYERNAME], Color;
 	int16_t FreeSlot;
 	uint32_t PInstance;
 	void* Wp;
@@ -1388,8 +1459,12 @@ bool_t D_NCMH_JOIN(struct D_NCMessageData_s* const a_Data)
 	IsBot = D_BSru8(Stream);
 	D_BSrs(Stream, UUID, (MAXPLAYERNAME * 2) + 1);
 	PInstance = D_BSru32(Stream);
-	D_BSrs(Stream, PName, MAXPLAYERNAME);
 	D_BSrs(Stream, AName, MAXPLAYERNAME);
+	D_BSrs(Stream, PName, MAXPLAYERNAME);
+	
+	// Added 2012/09/05
+	Color = D_BSru8(Stream);
+	D_BSrs(Stream, HexClass, MAXPLAYERNAME);
 	
 	/* Only the server can add bots */
 	if (IsBot && !a_Data->RCl->IsServer)
@@ -1432,9 +1507,13 @@ bool_t D_NCMH_JOIN(struct D_NCMessageData_s* const a_Data)
 		LittleWriteUInt16((uint16_t**)&Wp, FreeSlot);
 		LittleWriteUInt32((uint32_t**)&Wp, JoinFlags);
 		LittleWriteUInt32((uint32_t**)&Wp, PInstance);
+		WriteUInt8((uint8_t**)&Wp, Color);
 		
 		for (i = 0; i < MAXPLAYERNAME; i++)
 			WriteUInt8((uint8_t**)&Wp, AName[i]);
+		
+		for (i = 0; i < MAXPLAYERNAME; i++)
+			WriteUInt8((uint8_t**)&Wp, HexClass[i]);
 	}
 	
 	/* Do not continue */

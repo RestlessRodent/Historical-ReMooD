@@ -201,6 +201,7 @@ typedef struct D_ProfileEx_s
 	bool_t ChaseCam;							// Enable chase camera
 	bool_t TransSBar;							// Transparent Status Bar
 	bool_t ScaledSBar;							// Scaled Status Bar
+	char HexenClass[MAXPLAYERNAME];				// Hexen Class
 } D_ProfileEx_t;
 
 /*** FUNCTIONS ***/

@@ -143,12 +143,14 @@ const int32_t c_TCDataSize[NUMDTCT] =
 	0,
 	
 	// JOIN
-	4 + 2 + 4 + 4 + MAXPLAYERNAME,
+	4 + 2 + 4 + 4 + 1 + MAXPLAYERNAME + MAXPLAYERNAME,
 		// uint32 HostID
 		// uint16 players[] Spot
 		// uint32 Symbols
 		// uint32 Profile Instance
+		// uint8  Color
 		// uint8* Name
+		// uint8* Hexen Class
 	
 	// MAP CHANGE
 	1 + 8,
