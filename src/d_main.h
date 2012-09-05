@@ -36,6 +36,7 @@
 #include "doomtype.h"
 #include "d_event.h"
 #include "w_wad.h"				// for MAX_WADFILES
+#include "i_util.h"
 
 //void D_AddFile (char *file);
 
