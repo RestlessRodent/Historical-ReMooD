@@ -76,7 +76,7 @@
 *** CONSTANTS ***
 ****************/
 
-#define EVENTQUEUESIZE		64	// Max events allowed in queue
+#define EVENTQUEUESIZE		128	// Max events allowed in queue
 #define MODENAMELENGTH		16	// Length of mode name
 #define MAX_QUIT_FUNCS		16	// Max number of quit functions
 

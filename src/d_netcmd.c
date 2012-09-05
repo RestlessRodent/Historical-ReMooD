@@ -577,8 +577,8 @@ static bool_t GAMEKEYDOWN(D_ProfileEx_t* const a_Profile, const uint8_t a_SID, c
 	//if (a_Profile->Flags & DPEXF_GOTJOY)
 		//if (a_Profile->JoyControl >= 0 && a_Profile->JoyControl < 4)
 	if (a_SID >= 0 && a_SID < MAXSPLITSCREEN && g_JoyPortBound[a_SID])
-		if (g_JoyPortID[a_SID] >= 0 && g_JoyPortID[a_SID] < MAXLOCALJOYS)
-			if (l_JoyButtons[g_JoyPortID[a_SID]])
+		if (g_JoyPortID[a_SID] >= 1 && g_JoyPortID[a_SID] <= MAXLOCALJOYS)
+			if (l_JoyButtons[g_JoyPortID[a_SID] - 1])
 				for (i = 0; i < 4; i++)
 					if ((a_Profile->Ctrls[a_Key][i] & 0xF000) == 0x1000)
 					{
@@ -587,7 +587,7 @@ static bool_t GAMEKEYDOWN(D_ProfileEx_t* const a_Profile, const uint8_t a_SID, c
 				
 						// Button pressed?
 						if (CurrentButton >= 0 && CurrentButton < 32)
-							if (l_JoyButtons[g_JoyPortID[a_SID]] & (1 << CurrentButton))
+							if (l_JoyButtons[g_JoyPortID[a_SID] - 1] & (1 << CurrentButton))
 								return true;
 					}
 				
@@ -715,11 +715,11 @@ static void D_NCSLocalBuildTicCmd(D_NetPlayer_t* const a_NPp, ticcmd_t* const a_
 	/* Player has joystick input? */
 	// Read input for all axis
 	if (SID >= 0 && SID < MAXSPLITSCREEN && g_JoyPortBound[SID])
-		if (g_JoyPortID[SID] >= 0 && g_JoyPortID[SID] < MAXLOCALJOYS)
+		if (g_JoyPortID[SID] >= 1 && g_JoyPortID[SID] <= MAXLOCALJOYS)
 			for (i = 0; i < MAXJOYAXIS; i++)
 			{
 				// Modify with sensitivity
-				TargetMove = ((float)l_JoyAxis[g_JoyPortID[SID]][i]) * (((float)Profile->JoySens[SensMod]) / 100.0);
+				TargetMove = ((float)l_JoyAxis[g_JoyPortID[SID] - 1][i]) * (((float)Profile->JoySens[SensMod]) / 100.0);
 			
 				// Which movement to perform?
 				switch (Profile->JoyAxis[MouseMod][i])

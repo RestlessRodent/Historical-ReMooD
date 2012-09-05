@@ -414,8 +414,7 @@ void D_Display(void)
 					if (players[displayplayer[0]].mo)
 					{
 						activeylookup = ylookup;
-						if (players[displayplayer[0]].mo)
-							R_RenderPlayerView(&players[displayplayer[0]], 0);
+						R_RenderPlayerView(&players[displayplayer[0]], 0);
 					}
 					break;
 			}
@@ -1783,7 +1782,7 @@ uint32_t D_PortToJoy(const uint8_t a_PortID)
 	
 	/* Only if bound */
 	if (g_JoyPortBound[a_PortID])
-		return g_JoyPortID[a_PortID] + 1;
+		return g_JoyPortID[a_PortID];
 	
 	/* Not Bound */
 	return 0;
@@ -1801,7 +1800,7 @@ uint8_t D_JoyToPort(const uint32_t a_JoyID)
 	/* Look in list */
 	for (i = 0; i < MAXSPLITSCREEN; i++)
 		if (g_JoyPortBound[i])
-			if (g_JoyPortID[i] == a_JoyID - 1)
+			if (g_JoyPortID[i] == a_JoyID)
 				return i + 1;
 	
 	/* Not found */
@@ -1992,15 +1991,18 @@ bool_t D_JoySpecialEvent(const I_EventEx_t* const a_Event)
 	if (ForPlayer == (MAXSPLITSCREEN + 1))
 		RealPlayer = 0;
 	else
-		RealPlayer = ForPlayer - 1;
+		RealPlayer = ForPlayer;
+	
+	if (devparm)
+		CONL_PrintF("FP = %i, RP = %i, JID = %i, BND = {%i, %i, %i, %i}\n", ForPlayer, RealPlayer, JoyID, g_JoyPortBound[0], g_JoyPortBound[1], g_JoyPortBound[2], g_JoyPortBound[3]);
 	
 	/* Magic Joystick Combination */
 	// Only the first 8 joysticks support magic combos
-	if (l_JoyMagicAt != MAXSPLITSCREEN)
-		if (ForPlayer == (MAXSPLITSCREEN + 1) || !g_JoyPortBound[ForPlayer - 1])
+	if (l_JoyMagicAt != MAXSPLITSCREEN && !D_JoyToPort(JoyID + 1))
+		if (ForPlayer == (MAXSPLITSCREEN + 1) || !g_JoyPortBound[RealPlayer])
 		{
 			// Out of bounds?
-			if (a_Event->Data.Joystick.JoyID >= MAXPORTJOYS - 1)
+			if (JoyID >= MAXPORTJOYS - 1)
 				return false;
 		
 			// Place axis info into last info
@@ -2024,8 +2026,9 @@ bool_t D_JoySpecialEvent(const I_EventEx_t* const a_Event)
 				{
 					// Bind Port to stick
 					g_JoyPortBound[l_JoyMagicAt] = true;
-					g_JoyPortID[l_JoyMagicAt] = JoyID;
+					g_JoyPortID[l_JoyMagicAt] = JoyID + 1;
 					g_JoyPortProf[l_JoyMagicAt] = NULL;
+					l_JoyMagicAt = MAXSPLITSCREEN;
 					return true;
 				}
 		
