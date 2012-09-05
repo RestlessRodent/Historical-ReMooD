@@ -229,7 +229,7 @@ bool_t M_ExMenuHandleEvent(const I_EventEx_t* const a_Event)
 				continue;
 			
 			// Handled somewhere
-			TopMenu->OSKWait = g_ProgramTic + (TICRATE >> 2);
+			TopMenu->OSKWait = g_ProgramTic + (TICRATE >> 3);
 		}
 		
 		// Normal Menu access (Only by Player 1)
@@ -360,6 +360,21 @@ bool_t M_ExMenuHandleEvent(const I_EventEx_t* const a_Event)
 }
 
 /*** MB FUNCTIONS ***/
+
+/* M_ExPlayerUIActive() -- This player's menu is active */
+bool_t M_ExPlayerUIActive(const uint32_t a_Player)
+{
+	/* Check */
+	if (a_Player < 0 || a_Player >= MAXSPLITSCREEN)
+		return false;
+	
+	/* Out of bounds? */
+	if (a_Player >= __REMOOD_NUMSPLITS)
+		return false;
+	
+	/* Return active state */
+	return l_NumUIMenus[a_Player];
+}
 
 /* M_ExUIActive() -- Returns true if UI is active */
 bool_t M_ExUIActive(void)

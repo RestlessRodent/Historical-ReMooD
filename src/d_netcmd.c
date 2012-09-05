@@ -1276,38 +1276,39 @@ void D_NCSNetTicTransmit(D_NetPlayer_t* const a_NPp, ticcmd_t* const a_TicCmd)
 	/* Create Synthetic OSK Events */
 	// But never do it for bots
 	if (a_NPp->Type == DNPT_LOCAL)
-	{
-		// These are player movement based
-		// Right/Left Movement
-		memset(&OSKEvent, 0, sizeof(OSKEvent));
+		if (CONL_OSKIsActive(SID) || M_ExPlayerUIActive(SID))
+		{
+			// These are player movement based
+			// Right/Left Movement
+			memset(&OSKEvent, 0, sizeof(OSKEvent));
 	
-		// Set type
-		OSKEvent.Type = IET_SYNTHOSK;
-		OSKEvent.Data.SynthOSK.PNum = SID;
+			// Set type
+			OSKEvent.Type = IET_SYNTHOSK;
+			OSKEvent.Data.SynthOSK.PNum = SID;
 	
-		// Right/Left
-		if ((a_TicCmd->Std.sidemove) >= (c_sidemove[0] >> 1) || (a_TicCmd->Std.BaseAngleTurn) <= -(c_angleturn[2] >> 1))
-			OSKEvent.Data.SynthOSK.Right = 1;
-		else if ((a_TicCmd->Std.sidemove) <= -(c_sidemove[0] >> 1) || (a_TicCmd->Std.BaseAngleTurn) >= (c_angleturn[2] >> 1))
-			OSKEvent.Data.SynthOSK.Right = -1;
+			// Right/Left
+			if ((a_TicCmd->Std.sidemove) >= (c_sidemove[0] >> 1) || (a_TicCmd->Std.BaseAngleTurn) <= -(c_angleturn[2] >> 1))
+				OSKEvent.Data.SynthOSK.Right = 1;
+			else if ((a_TicCmd->Std.sidemove) <= -(c_sidemove[0] >> 1) || (a_TicCmd->Std.BaseAngleTurn) >= (c_angleturn[2] >> 1))
+				OSKEvent.Data.SynthOSK.Right = -1;
 	
-		// Up/Down
-		if ((a_TicCmd->Std.forwardmove) <= -(c_forwardmove[0] >> 1))
-			OSKEvent.Data.SynthOSK.Down = 1;
-		else if ((a_TicCmd->Std.forwardmove) >= (c_forwardmove[0] >> 1))
-			OSKEvent.Data.SynthOSK.Down = -1;
+			// Up/Down
+			if ((a_TicCmd->Std.forwardmove) <= -(c_forwardmove[0] >> 1))
+				OSKEvent.Data.SynthOSK.Down = 1;
+			else if ((a_TicCmd->Std.forwardmove) >= (c_forwardmove[0] >> 1))
+				OSKEvent.Data.SynthOSK.Down = -1;
 	
-		// Press
-		if (a_TicCmd->Std.buttons & BT_ATTACK)
-			OSKEvent.Data.SynthOSK.Press = 1;
+			// Press
+			if (a_TicCmd->Std.buttons & BT_ATTACK)
+				OSKEvent.Data.SynthOSK.Press = 1;
 	
-		// Push Event
-		if (OSKEvent.Data.SynthOSK.Right || OSKEvent.Data.SynthOSK.Down || OSKEvent.Data.SynthOSK.Press)	
-			I_EventExPush(&OSKEvent);
-	
-		// if the OSK is invisible do not transmit
-			// TODO FIXME
-	}
+			// Push Event
+			if (OSKEvent.Data.SynthOSK.Right || OSKEvent.Data.SynthOSK.Down || OSKEvent.Data.SynthOSK.Press)	
+				I_EventExPush(&OSKEvent);
+			
+			// OSK is active, so don't continue any further
+			return;
+		}
 	
 	// Add local command to end
 	a_NPp->TicCmd[a_NPp->TicTotal++] = *a_TicCmd;

@@ -191,9 +191,6 @@ void P_Ticker(void)
 	if (paused)
 		return;
 	
-	// GhostlyDeath <May 6, 2012> -- Player tic update
-	D_NCSNetUpdateSingleTic();
-	
 	//fprintf(stderr, "Ran tic %lli / %lli.\n", LocalTic, SNAR);
 	
 	for (i = 0; i < MAXPLAYERS; i++)

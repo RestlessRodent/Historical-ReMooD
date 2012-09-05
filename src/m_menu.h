@@ -130,6 +130,7 @@ extern int32_t g_ResumeMenu;					// Resume menu for n tics
 
 void M_MenuExInit(void);
 
+bool_t M_ExPlayerUIActive(const uint32_t a_Player);
 bool_t M_ExUIActive(void);
 
 bool_t M_ExUIMessageBox(const M_ExMBType_t a_Type, const uint32_t a_MessageID, const char* const a_Title, const char* const a_Message, const MBCallBackFunc_t a_CallBack);

@@ -1984,6 +1984,17 @@ static uint32_t l_OSKLast[MAXSPLITSCREEN][2];
 static bool_t l_OSKVis[MAXSPLITSCREEN];
 static int32_t l_OSKShift[MAXSPLITSCREEN];
 
+/* CONL_OSKIsActive() -- OSK is active */
+bool_t CONL_OSKIsActive(const size_t a_PlayerNum)
+{
+	/* Check */
+	if (a_PlayerNum < 0 || a_PlayerNum >= MAXSPLITSCREEN)
+		return false;
+	
+	/* Set and return */
+	return l_OSKVis[a_PlayerNum];
+}
+
 /* CONL_OSKSetVisible() -- Sets OSK Visibility */
 bool_t CONL_OSKSetVisible(const size_t a_PlayerNum, const bool_t a_IsVis)
 {
@@ -2114,7 +2125,7 @@ bool_t CONL_OSKHandleEvent(const I_EventEx_t* const a_Event, const size_t a_Play
 	}
 	
 	/* Move Around Board */
-	else if (ThisTime >= (l_OSKLast[a_Event->Data.SynthOSK.PNum][0] + 250))
+	else if (ThisTime >= (l_OSKLast[a_Event->Data.SynthOSK.PNum][0] + 100))
 	{
 		l_OSKLast[a_Event->Data.SynthOSK.PNum][0] = ThisTime;
 		
@@ -2144,7 +2155,7 @@ bool_t CONL_OSKHandleEvent(const I_EventEx_t* const a_Event, const size_t a_Play
 	
 	/* Type On Board */
 	if (a_Event->Data.SynthOSK.Press || g_MouseDown)
-		if (ThisTime >= (l_OSKLast[a_Event->Data.SynthOSK.PNum][1] + 250))
+		if (ThisTime >= (l_OSKLast[a_Event->Data.SynthOSK.PNum][1] + 100))
 		{
 			l_OSKLast[a_Event->Data.SynthOSK.PNum][1] = ThisTime;
 			
@@ -2196,8 +2207,8 @@ bool_t CONL_OSKHandleEvent(const I_EventEx_t* const a_Event, const size_t a_Play
 			}
 		}
 	
-	/* Un-handled */
-	return false;
+	/* Always eat as handled */
+	return true;
 }
 
 /* CONL_DrawConsole() -- Draws the console */
