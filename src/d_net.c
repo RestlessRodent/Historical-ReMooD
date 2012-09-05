@@ -62,6 +62,7 @@ static tic_t l_MapTime = 0;						// Map local time
 static tic_t l_BaseTime = 0;					// Base Game Time
 static tic_t l_LocalTime = 0;					// Local Time
 static bool_t l_ConsistencyFailed = false;		// Consistency failed
+static bool_t l_SoloNet = true;					// Solo Network
 
 /****************
 *** FUNCTIONS ***
@@ -141,7 +142,7 @@ bool_t D_SyncNetIsPaused(void)
 /* D_SyncNetIsSolo() -- Is solo game (non-networked) */
 bool_t D_SyncNetIsSolo(void)
 {
-	return true;
+	return l_SoloNet;
 }
 
 /* D_SyncNetAppealTime() -- Appeals to the time code */
@@ -893,6 +894,9 @@ void D_NCDisconnect(void)
 	// Consistency problems
 	l_ConsistencyFailed = false;
 	
+	// Revert back to solo networking
+	l_SoloNet = true;
+	
 	/* Clear all player information */
 	// Reset all vars
 	P_XGSSetAllDefaults();
@@ -1035,6 +1039,9 @@ void D_NCClientize(D_NetClient_t* a_BoundClient, I_HostAddress_t* const a_Host, 
 			l_Clients[i]->ReadyToPlay = false;
 			l_Clients[i]->SaveGameSent = false;
 		}
+	
+	/* Set non-solo */
+	l_SoloNet = false;
 	
 	/* Create NetClient for server */
 	NetClient = D_NCAllocClient();
@@ -1826,6 +1833,9 @@ bool_t D_NCMH_CONN(struct D_NCMessageData_s* const a_Data)
 	
 	/* Add to clients */
 	FreshClient = D_NCAllocClient();
+	
+	// Set non-solo
+	l_SoloNet = false;
 	
 	// Info
 	memmove(&FreshClient->Address, a_Data->FromAddr, sizeof(I_HostAddress_t));
