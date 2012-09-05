@@ -251,7 +251,7 @@ void B_ClearNodes(void)
 }
 
 /* B_InitBot() -- Initializes Bot */
-B_BotData_t* B_InitBot(D_NetPlayer_t* const a_NPp)
+B_BotData_t* B_InitBot(D_NetPlayer_t* const a_NPp, const B_BotTemplate_t* a_Template)
 {
 	B_BotData_t* New;
 	thinker_t* currentthinker;

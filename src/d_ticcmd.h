@@ -139,6 +139,12 @@ enum
 	NUMDTCT
 };
 
+/* D_TCJoinFlags_t -- Join Flags */
+typedef enum D_TCJoinFlags_e
+{
+	DTCJF_ISBOT						= 0x0001,	// Is a Bot
+} D_TCJoinFlags_t;
+
 /* D_DiffBits_t -- Diff bits */
 typedef enum D_DiffBits_e
 {

@@ -275,6 +275,8 @@ fixed_t S_GetListenerEmitterWithDist(S_SoundChannel_t* const a_Channel, S_NoiseT
 		// Attempt getting listener
 		if (players[displayplayer[i]].mo)
 			Attempt = &players[displayplayer[i]].mo->NoiseThinker;
+		else
+			continue;
 			
 		// Get distance
 		NewDist = P_AproxDistance(Attempt->x - (*a_Emit)->x, Attempt->y - (*a_Emit)->y);

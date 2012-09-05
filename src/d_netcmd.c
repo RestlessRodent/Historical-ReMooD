@@ -324,7 +324,7 @@ static int DS_NCSNetCommand(const uint32_t a_ArgC, const char** const a_ArgV)
 	{
 		if (devparm)
 			CONL_PrintF("NET: Requesting the server add local bot.\n");
-		D_NCReqAddPlayer(D_FindProfileEx((a_ArgC >= 3 ? a_ArgV[2] : "guest")), true);
+		D_NCReqAddPlayer(B_GHOST_FindTemplate((a_ArgC >= 3 ? a_ArgV[2] : NULL)), true);
 	}
 	
 	/* Success */
@@ -1161,10 +1161,10 @@ void D_NCSNetUpdateSingle(struct player_s* a_Player)
 		case DNPT_BOT:
 			// No bot data?
 			if (!NPp->BotData)
-				NPp->BotData = B_InitBot(NPp);
+				NPp->BotData = B_InitBot(NPp, NULL);
 			
 			// Build bot tic command
-			TicCmd = &NPp->TicCmd[i];
+			//TicCmd = &NPp->TicCmd[i];
 			B_BuildBotTicCmd(NPp->BotData, TicCmd);
 			break;
 			
@@ -1255,9 +1255,14 @@ void D_NCSNetTicTransmit(D_NetPlayer_t* const a_NPp, ticcmd_t* const a_TicCmd)
 	D_NetClient_t* Server;
 	D_BS_t* Stream;
 	int32_t PNum;
+	bool_t DidAngle;
 	
 	/* Check */
 	if (!a_NPp || !a_TicCmd)
+		return;
+	
+	/* Only transmit local commands */
+	if (a_NPp->Type == DNPT_NETWORK)
 		return;
 	
 	/* Determine Local Screen */
@@ -1267,39 +1272,40 @@ void D_NCSNetTicTransmit(D_NetPlayer_t* const a_NPp, ticcmd_t* const a_TicCmd)
 			break;
 		
 	/* Create Synthetic OSK Events */
-	// These are player movement based
-	// Right/Left Movement
-	memset(&OSKEvent, 0, sizeof(OSKEvent));
+	// But never do it for bots
+	if (a_NPp->Type == DNPT_LOCAL)
+	{
+		// These are player movement based
+		// Right/Left Movement
+		memset(&OSKEvent, 0, sizeof(OSKEvent));
 	
-	// Set type
-	OSKEvent.Type = IET_SYNTHOSK;
-	OSKEvent.Data.SynthOSK.PNum = SID;
+		// Set type
+		OSKEvent.Type = IET_SYNTHOSK;
+		OSKEvent.Data.SynthOSK.PNum = SID;
 	
-	// Right/Left
-	if ((a_TicCmd->Std.sidemove) >= (c_sidemove[0] >> 1) || (a_TicCmd->Std.BaseAngleTurn) <= -(c_angleturn[2] >> 1))
-		OSKEvent.Data.SynthOSK.Right = 1;
-	else if ((a_TicCmd->Std.sidemove) <= -(c_sidemove[0] >> 1) || (a_TicCmd->Std.BaseAngleTurn) >= (c_angleturn[2] >> 1))
-		OSKEvent.Data.SynthOSK.Right = -1;
+		// Right/Left
+		if ((a_TicCmd->Std.sidemove) >= (c_sidemove[0] >> 1) || (a_TicCmd->Std.BaseAngleTurn) <= -(c_angleturn[2] >> 1))
+			OSKEvent.Data.SynthOSK.Right = 1;
+		else if ((a_TicCmd->Std.sidemove) <= -(c_sidemove[0] >> 1) || (a_TicCmd->Std.BaseAngleTurn) >= (c_angleturn[2] >> 1))
+			OSKEvent.Data.SynthOSK.Right = -1;
 	
-	// Up/Down
-	if ((a_TicCmd->Std.forwardmove) <= -(c_forwardmove[0] >> 1))
-		OSKEvent.Data.SynthOSK.Down = 1;
-	else if ((a_TicCmd->Std.forwardmove) >= (c_forwardmove[0] >> 1))
-		OSKEvent.Data.SynthOSK.Down = -1;
+		// Up/Down
+		if ((a_TicCmd->Std.forwardmove) <= -(c_forwardmove[0] >> 1))
+			OSKEvent.Data.SynthOSK.Down = 1;
+		else if ((a_TicCmd->Std.forwardmove) >= (c_forwardmove[0] >> 1))
+			OSKEvent.Data.SynthOSK.Down = -1;
 	
-	// Press
-	if (a_TicCmd->Std.buttons & BT_ATTACK)
-		OSKEvent.Data.SynthOSK.Press = 1;
+		// Press
+		if (a_TicCmd->Std.buttons & BT_ATTACK)
+			OSKEvent.Data.SynthOSK.Press = 1;
 	
-	// Push Event
-	if (OSKEvent.Data.SynthOSK.Right || OSKEvent.Data.SynthOSK.Down || OSKEvent.Data.SynthOSK.Press)	
-		I_EventExPush(&OSKEvent);
+		// Push Event
+		if (OSKEvent.Data.SynthOSK.Right || OSKEvent.Data.SynthOSK.Down || OSKEvent.Data.SynthOSK.Press)	
+			I_EventExPush(&OSKEvent);
 	
-	// if the OSK is visible do not transmit
-		// TODO FIXME
-	
-	// Get Server
-	Server = D_NCFindClientIsServer();
+		// if the OSK is invisible do not transmit
+			// TODO FIXME
+	}
 	
 	// Add local command to end
 	a_NPp->TicCmd[a_NPp->TicTotal++] = *a_TicCmd;
@@ -1346,7 +1352,7 @@ void D_NCSNetMergeTics(ticcmd_t* const a_DestCmd, const ticcmd_t* const a_SrcLis
 {
 //#define __REMOOD_SWIRVYANGLE
 	size_t i, j;
-	int32_t FM, SM, AT, AM;
+	int32_t FM, SM, AT, AM, RANG;
 	fixed_t xDiv;
 	
 	/* Check */
@@ -1355,11 +1361,12 @@ void D_NCSNetMergeTics(ticcmd_t* const a_DestCmd, const ticcmd_t* const a_SrcLis
 	
 	/* Merge Variadic Stuff */
 	// Super merging
-	FM = SM = AT = AM = 0;
+	FM = SM = AT = AM = RANG = 0;
 	for (j = 0; j < a_NumSrc; j++)
 	{
 		FM += a_SrcList[j].Std.forwardmove;
 		SM += a_SrcList[j].Std.sidemove;
+		RANG += a_SrcList[j].Std.angleturn;
 
 #if defined(__REMOOD_SWIRVYANGLE)
 		AT += a_SrcList[j].Std.BaseAngleTurn;
@@ -1392,6 +1399,7 @@ void D_NCSNetMergeTics(ticcmd_t* const a_DestCmd, const ticcmd_t* const a_SrcLis
 	xDiv = ((fixed_t)a_NumSrc) << FRACBITS;
 	a_DestCmd->Std.forwardmove = FixedDiv(FM << FRACBITS, xDiv) >> FRACBITS;
 	a_DestCmd->Std.sidemove = FixedDiv(SM << FRACBITS, xDiv) >> FRACBITS;
+	a_DestCmd->Std.angleturn = a_SrcList[0].Std.angleturn;//FixedDiv(RANG << FRACBITS, xDiv) >> FRACBITS;
 	
 	/* Aiming is slightly different */
 #if defined(__REMOOD_SWIRVYANGLE)

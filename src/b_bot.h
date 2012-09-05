@@ -61,6 +61,7 @@ typedef enum B_GhostCoopMode_e
 	BGCM_MAXSECRETS,							// 100% Secrets
 	BGCM_MAXITEMS,								// 100% Items
 	BGCM_EXITRUN,								// Exit Running
+	BGCM_MAXKILLSITEMS,							// 100% Kills, Items
 	
 	NUMBGHOSTCOOPMODES
 } B_GhostCoopMode_t;
@@ -80,6 +81,7 @@ typedef enum B_GhostAtkPosture_e
 *****************/
 
 typedef struct B_BotData_s B_BotData_t;
+struct B_BotTemplate_s;
 
 /* B_GhostBot_t -- GhostlyBots information */
 typedef struct B_GhostBot_s
@@ -120,6 +122,19 @@ typedef struct B_GhostBot_s
 	} AISpec;									// AI Specification
 } B_GhostBot_t;
 
+/* B_BotTemplate_t -- Bot Template */
+typedef struct B_BotTemplate_s
+{
+	uint32_t BotIDNum;							// Bot ID Number
+	const char* AccountName;					// Account Name
+	const char* DisplayName;					// Display Name
+	uint8_t SkinColor;							// Skin Color
+	const char* WeaponOrder;					// Weapon Order
+	B_GhostAtkPosture_t Posture;				// Posture
+	B_GhostCoopMode_t CoopMode;					// Coop Mode
+	const char* HexenClass;						// Favorite Weapon Class
+} B_BotTemplate_t;
+
 /**************
 *** GLOBALS ***
 **************/
@@ -134,7 +149,7 @@ extern fixed_t g_GlobalBoundBox[4];				// Global bounding box
 ****************/
 
 /*** B_BOT.C ***/
-B_BotData_t* B_InitBot(D_NetPlayer_t* const a_NPp);
+B_BotData_t* B_InitBot(D_NetPlayer_t* const a_NPp, const B_BotTemplate_t* a_Template);
 void B_InitNodes(void);
 void B_ClearNodes(void);
 
@@ -148,6 +163,10 @@ void B_GHOST_ClearLevel(void);
 void B_GHOST_InitLevel(void);
 
 void B_GHOST_Think(B_GhostBot_t* const a_GhostBot, ticcmd_t* const a_TicCmd);
+
+const B_BotTemplate_t* B_GHOST_FindTemplate(const char* const a_Name);
+const B_BotTemplate_t* B_GHOST_RandomTemplate(void);
+const B_BotTemplate_t* B_GHOST_TemplateByID(const uint32_t a_ID);
 
 #endif /* __B_BOT_H__ */
 

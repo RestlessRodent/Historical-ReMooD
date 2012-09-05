@@ -3,6 +3,8 @@
 #include <stdlib.h>
 #include <string.h>
 
+#define TOKSYMS " \t\r\n"
+
 /* StateInfo_t -- Single State */
 typedef struct StateInfo_s
 {
@@ -87,9 +89,9 @@ uint32_t StateForName(const char* const a_Name)
 int main(int argc, char** argv)
 {
 #define BUFSIZE 512
-	char Buf[BUFSIZE];
+	char Buf[BUFSIZE], BufB[BUFSIZE];
 	char* Tok;
-	FILE* inMI, *inST;
+	FILE* inMI, *inST, *inNM;
 	
 	StateInfo_t* CurState;
 	size_t i, j;
@@ -128,7 +130,6 @@ int main(int argc, char** argv)
 			CurState->DEHId = CurStateNum;
 			
 			// Tokenize
-#define TOKSYMS " \t\r\n"
 			ReadNum = 0;
 			for (Tok = strtok(Buf, TOKSYMS); Tok; Tok = strtok(NULL, TOKSYMS))
 				// Which read number?
@@ -182,6 +183,7 @@ int main(int argc, char** argv)
 	
 	/* Run through object tables */
 	inMI = fopen("her_mos.tsv", "rt");
+	inNM = fopen("her_name.tsv", "rt");
 	
 	// Handle
 	if (inMI)
@@ -206,9 +208,17 @@ int main(int argc, char** argv)
 			CurInfo->DEHId = CurInfoNum;
 			CurInfo->DoomEdNum = -1;
 			
+			// Read Name
+			if (inNM)
+				if (!feof(inNM))
+				{
+					fgets(BufB, BUFSIZE, inNM);
+					Tok = strtok(BufB, TOKSYMS);
+					if (Tok)
+						CurInfo->ClassName = strdup(Tok);
+				}
+			
 			// Tokenize
-#undef TOKSYMS
-#define TOKSYMS " \t\r\n"
 			ReadNum = 0;
 			for (Tok = strtok(Buf, TOKSYMS); Tok; Tok = strtok(NULL, TOKSYMS))
 				switch (ReadNum++)
@@ -323,6 +333,12 @@ int main(int argc, char** argv)
 		fprintf(stdout, "\tDeHackEdNum \"%i\";\n", CurInfo->DEHId);
 		fprintf(stdout, "\tMTName \"%s\";\n", CurInfo->MTName);
 		fprintf(stdout, "\tSpawnHealth \"%i\";\n", CurInfo->SpawnHealth);
+		fprintf(stdout, "\tDamage \"%i\";\n", CurInfo->Damage);
+		fprintf(stdout, "\tMass \"%i\";\n", CurInfo->Mass);
+		fprintf(stdout, "\tSpeed \"%i\";\n", CurInfo->Speed);
+		fprintf(stdout, "\tPainChance \"%g\";\n", (double)CurInfo->PainChance / 255.0);
+		fprintf(stdout, "\tHeight \"%g\";\n", (double)CurInfo->Height);
+		fprintf(stdout, "\tRadius \"%g\";\n", (double)CurInfo->Radius);
 		
 		// Footer
 		fprintf(stdout, "}\n\n");

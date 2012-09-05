@@ -458,7 +458,9 @@ void GS_HandleExtraCommands(ticcmd_t* const a_TicCmd, const int32_t a_PlayerNum)
 	uint16_t u16[4];
 	uint8_t u8[4];
 	char NameBuf[MAXPLAYERNAME];
-	bool_t OK;
+	bool_t OK, LegalMove;
+	
+	B_BotData_t* NewBot;
 	
 	/* Get pointer base */
 	if (a_TicCmd->Type == 1)
@@ -522,6 +524,7 @@ void GS_HandleExtraCommands(ticcmd_t* const a_TicCmd, const int32_t a_PlayerNum)
 					// Clear
 					Profile = NULL;
 					NetPlayer = NULL;
+					NewBot = NULL;
 					
 					// Playing Demo (no netclients, but show on screen)
 					OK = false;
@@ -559,18 +562,35 @@ void GS_HandleExtraCommands(ticcmd_t* const a_TicCmd, const int32_t a_PlayerNum)
 						
 						if (NC->IsLocal)
 						{
-							NetPlayer->Type = DNPT_LOCAL;
+							// Always legal
+							LegalMove = true;
 							
-							// Setup split screen player
-							if (g_SplitScreen < 3)
-								g_SplitScreen++;
+							// Bot?
+							if (NC->IsServer && (u32[1] & DTCJF_ISBOT))
+							{
+								// Set as bot
+								NetPlayer->Type = DNPT_BOT;
+								
+								// Don't mess with bot splits
+								LegalMove = false;
+							}
+							
+							// Standard Player
+							else
+							{
+								NetPlayer->Type = DNPT_LOCAL;
+							
+								// Setup split screen player
+								if (g_SplitScreen < 3)
+									g_SplitScreen++;
+							
+								// Obtain profile (if possible)
+								Profile = D_FindProfileExByInstance(u32[2]);
+								NetPlayer->Profile = Profile;
+							}
 						}
 						else
 							NetPlayer->Type = DNPT_NETWORK;
-						
-						// Obtain profile (if possible)
-						Profile = D_FindProfileExByInstance(u32[2]);
-						NetPlayer->Profile = Profile;
 					}
 					
 					// Fill player spot
@@ -591,8 +611,13 @@ void GS_HandleExtraCommands(ticcmd_t* const a_TicCmd, const int32_t a_PlayerNum)
 						NetPlayer->Profile = Profile;
 					}
 					
+					// Setup Bot Player
+					if (NetPlayer->Type == DNPT_BOT)
+						// Initialize Bot
+						NewBot = NetPlayer->BotData = B_InitBot(NetPlayer, B_GHOST_TemplateByID(u32[2]));
+					
 					// Finish off split screen
-					if ((NC && NC->IsLocal) || (demoplayback && OK))
+					if ((NC && NC->IsLocal && LegalMove) || (demoplayback && OK))
 					{
 						g_PlayerInSplit[g_SplitScreen] = true;
 						consoleplayer[g_SplitScreen] =

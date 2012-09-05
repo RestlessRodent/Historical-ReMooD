@@ -62,18 +62,6 @@ static const fixed_t c_angleturn[3] = { 640, 1280, 320 };	// + slow turn
 *** STRUCTURES ***
 *****************/
 
-/* B_BotTemplate_t -- Bot Template */
-typedef struct B_BotTemplate_s
-{
-	const char* AccountName;					// Account Name
-	const char* DisplayName;					// Display Name
-	uint8_t SkinColor;							// Skin Color
-	const char* WeaponOrder;					// Weapon Order
-	B_GhostAtkPosture_t Posture;				// Posture
-	B_GhostCoopMode_t CoopMode;					// Coop Mode
-	const char* HexenClass;						// Favorite Weapon Class
-} B_BotTemplate_t;
-
 /* B_GhostNode_t -- A Node */
 typedef struct B_GhostNode_s
 {
@@ -126,6 +114,7 @@ typedef struct B_LineSet_s
 static const B_BotTemplate_t c_BotTemplates[] =
 {
 	{
+		0,										// ID
 		"GhostlyBot",							// Account Name
 		"{2Ghostly{x7cBot",						// Display Name
 		0xC,									// Color: Orange
@@ -136,6 +125,7 @@ static const B_BotTemplate_t c_BotTemplates[] =
 	},
 	
 	{
+		1,										// ID
 		"FreeBOT",								// Account Name
 		"FreeBOT",								// Display Name
 		0xF,									// Color: Pink
@@ -146,6 +136,7 @@ static const B_BotTemplate_t c_BotTemplates[] =
 	},
 	
 	{
+		2,										// ID
 		"MP2Bot",								// Account Name
 		"{9MP{62{BBot",							// Display Name
 		0x8,									// Color: Dark Blue
@@ -156,6 +147,18 @@ static const B_BotTemplate_t c_BotTemplates[] =
 	},
 	
 	{
+		3,										// ID
+		"{4zearBot",							// Account Name
+		"zearBot",								// Display Name
+		0x0,									// Color: Green
+		"SuperShotgun BFG PlasmaRifle RocketLauncher Chaingun Shotgun Pistol Chainsaw Fist",
+		BGAP_DEFENSE,							// Posture
+		BGCM_MAXKILLSITEMS,						// Coop Mode
+		"Fighter",								// Hexen Class
+	},
+	
+	{
+		UINT_MAX,
 		NULL,
 	}
 };
@@ -190,6 +193,55 @@ static int32_t l_SSBuildChain = 0;				// Final Stage Chaining
 /****************
 *** FUNCTIONS ***
 ****************/
+
+/* B_GHOST_FindTemplate() -- Find template by name */
+const B_BotTemplate_t* B_GHOST_FindTemplate(const char* const a_Name)
+{
+	size_t i;
+	
+	/* Check */
+	if (!a_Name)
+		return 0;
+	
+	/* Search */
+	for (i = 0; c_BotTemplates[i].AccountName; i++)
+		if (strcasecmp(a_Name, c_BotTemplates[i].AccountName) == 0)
+			return &c_BotTemplates[i];
+	
+	/* None found */
+	return 0;
+}
+
+/* B_GHOST_RandomTemplate() -- Loads a random template */
+const B_BotTemplate_t* B_GHOST_RandomTemplate(void)
+{
+	size_t i;
+	const B_BotTemplate_t* Rand;
+	
+	/* Count */
+	for (i = 0; c_BotTemplates[i].AccountName; i++)
+		;
+	
+	/* Choose random number */
+	Rand = B_GHOST_TemplateByID(M_Random() % i);
+	if (Rand)
+		return Rand;
+	return &c_BotTemplates[0];
+}
+
+/* B_GHOST_TemplateByID() -- Finds template by ID number */
+const B_BotTemplate_t* B_GHOST_TemplateByID(const uint32_t a_ID)
+{
+	size_t i;
+	
+	/* Look in directory */
+	for (i = 0; c_BotTemplates[i].AccountName; i++)
+		if (c_BotTemplates[i].BotIDNum == a_ID)
+			return &c_BotTemplates[i];
+	
+	/* Not Found */
+	return NULL;
+}
 
 /* BS_Random() -- Random Number */
 static int BS_Random(B_GhostBot_t* const a_Bot)

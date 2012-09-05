@@ -52,6 +52,7 @@
 #include "r_main.h"
 #include "doomstat.h"
 #include "p_setup.h"
+#include "b_bot.h"
 
 /*************
 *** LOCALS ***
@@ -1137,10 +1138,18 @@ void D_NCReqAddPlayer(struct D_ProfileEx_s* a_Profile, const bool_t a_Bot)
 {
 	D_NetClient_t* Server;
 	D_BS_t* Stream;
+	B_BotTemplate_t* BotTemplate;
 	
 	/* Check */
-	if (!a_Profile)
+	if (!a_Profile && !a_Bot)
 		return;
+	
+	// Get template
+	if (a_Bot)
+		if (a_Profile)
+			BotTemplate = (B_BotTemplate_t*)a_Profile;
+		else
+			BotTemplate = B_GHOST_RandomTemplate();
 	
 	/* Only servers are allowed to add bots */
 	if (!D_SyncNetIsArbiter() && a_Bot)
@@ -1160,10 +1169,26 @@ void D_NCReqAddPlayer(struct D_ProfileEx_s* a_Profile, const bool_t a_Bot)
 	// Put Data
 	D_BSBaseBlock(Stream, "JOIN");
 	D_BSwu8(Stream, a_Bot);
-	D_BSws(Stream, a_Profile->UUID);
-	D_BSwu32(Stream, a_Profile->InstanceID);
-	D_BSws(Stream, a_Profile->AccountName);
-	D_BSws(Stream, a_Profile->DisplayName);
+	
+	// If adding bot, use bot profiles
+	if (a_Bot)
+	{
+		D_BSws(Stream, BotTemplate->AccountName);
+		D_BSwu32(Stream, BotTemplate->BotIDNum);
+		D_BSws(Stream, BotTemplate->AccountName);
+		D_BSws(Stream, BotTemplate->DisplayName);
+	}
+	
+	// Otherwise use player ones
+	else
+	{
+		D_BSws(Stream, a_Profile->UUID);
+		D_BSwu32(Stream, a_Profile->InstanceID);
+		D_BSws(Stream, a_Profile->AccountName);
+		D_BSws(Stream, a_Profile->DisplayName);
+	}
+	
+	// Send
 	D_BSRecordNetBlock(Stream, &Server->Address);
 }
 
@@ -1188,7 +1213,6 @@ typedef bool_t (*D_NCMessageHandlerFunc_t)(struct D_NCMessageData_s* const a_Dat
 typedef struct D_NCMessageType_s
 {
 	int8_t Valid;								// Valid
-	uint32_t* HashPtr;							// Hash Ptr
 	char Header[5];								// Message Header
 	D_NCMessageHandlerFunc_t Func;				// Handler Func
 	D_NCMessageFlag_t Flags;					// Flags
@@ -1339,6 +1363,8 @@ bool_t D_NCMH_JOIN(struct D_NCMessageData_s* const a_Data)
 	int i;
 	
 	uint8_t IsBot;
+	uint32_t JoinFlags;
+	B_BotTemplate_t* BotTemplate;
 	
 	/* Get server client */
 	ServerNC = D_NCFindClientIsServer();
@@ -1389,10 +1415,18 @@ bool_t D_NCMH_JOIN(struct D_NCMessageData_s* const a_Data)
 	
 	if (Placement)
 	{
+		// Setup Flags
+		JoinFlags = 0;
+		
+		if (IsBot)
+			JoinFlags |= DTCJF_ISBOT;
+		
+		JoinFlags = LittleSwapUInt32(JoinFlags);
+		
 		// Fill in data
 		LittleWriteUInt32((uint32_t**)&Wp, a_Data->RCl->HostID);
 		LittleWriteUInt16((uint16_t**)&Wp, FreeSlot);
-		LittleWriteUInt32((uint32_t**)&Wp, 0);
+		LittleWriteUInt32((uint32_t**)&Wp, JoinFlags);
 		LittleWriteUInt32((uint32_t**)&Wp, PInstance);
 		
 		for (i = 0; i < MAXPLAYERNAME; i++)
@@ -1890,21 +1924,21 @@ bool_t D_NCMH_REDY(struct D_NCMessageData_s* const a_Data)
 static const D_NCMessageType_t c_NCMessageCodes[] =
 {
 	// Needs fast access
-	{1, {0}, "TICS", D_NCMH_TICS, DNCMF_PERFECT | DNCMF_SERVER | DNCMF_REMOTECL},
-	{1, {0}, "TCMD", D_NCMH_TCMD, DNCMF_PERFECT | DNCMF_CLIENT | DNCMF_REMOTECL | DNCMF_HOST},
+	{1, "TICS", D_NCMH_TICS, DNCMF_PERFECT | DNCMF_SERVER | DNCMF_REMOTECL},
+	{1, "TCMD", D_NCMH_TCMD, DNCMF_PERFECT | DNCMF_CLIENT | DNCMF_REMOTECL | DNCMF_HOST},
 	
 	// Slower
-	{1, {0}, "GVAR", D_NCMH_GVAR, DNCMF_PERFECT | DNCMF_SERVER | DNCMF_CLIENT | DNCMF_HOST | DNCMF_REMOTECL},
-	{1, {0}, "JOIN", D_NCMH_JOIN, DNCMF_PERFECT | DNCMF_SERVER | DNCMF_CLIENT | DNCMF_HOST | DNCMF_REMOTECL},
-	{1, {0}, "CONN", D_NCMH_CONN, DNCMF_PERFECT | DNCMF_CLIENT | DNCMF_HOST},
-	{1, {0}, "PLAY", D_NCMH_PLAY, DNCMF_PERFECT | DNCMF_SERVER | DNCMF_REMOTECL},
-	{1, {0}, "REDY", D_NCMH_REDY, DNCMF_PERFECT | DNCMF_CLIENT | DNCMF_REMOTECL | DNCMF_HOST},
+	{1, "GVAR", D_NCMH_GVAR, DNCMF_PERFECT | DNCMF_SERVER | DNCMF_CLIENT | DNCMF_HOST | DNCMF_REMOTECL},
+	{1, "JOIN", D_NCMH_JOIN, DNCMF_PERFECT | DNCMF_SERVER | DNCMF_CLIENT | DNCMF_HOST | DNCMF_REMOTECL},
+	{1, "CONN", D_NCMH_CONN, DNCMF_PERFECT | DNCMF_CLIENT | DNCMF_HOST},
+	{1, "PLAY", D_NCMH_PLAY, DNCMF_PERFECT | DNCMF_SERVER | DNCMF_REMOTECL},
+	{1, "REDY", D_NCMH_REDY, DNCMF_PERFECT | DNCMF_CLIENT | DNCMF_REMOTECL | DNCMF_HOST},
 	
 	//{1, {0}, "LPRJ", D_NCMH_LocalPlayerRJ, DNCMF_PERFECT | DNCMF_SERVER | DNCMF_HOST | DNCMF_REMOTECL},
 	//{1, {0}, "PJOK", D_NCMH_PlayerJoinOK, DNCMF_PERFECT | DNCMF_SERVER | DNCMF_REMOTECL | DNCMF_DEMO},
 	
 	// EOL
-	{0, NULL, ""},
+	{0, ""},
 };
 
 /*** FUNCTIONS ***/
