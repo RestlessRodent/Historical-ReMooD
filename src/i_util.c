@@ -465,10 +465,11 @@ void I_OsPolling(void)
 		}
 		
 		// Translate
-		if (!CONL_HandleEvent(&Event))
-			if (!M_ExUIHandleEvent(&Event))
-				if (!D_NCSHandleEvent(&Event))
-					I_EventToOldDoom(&Event);
+		if (!D_JoySpecialEvent(&Event))
+			if (!CONL_HandleEvent(&Event))
+				if (!M_ExUIHandleEvent(&Event))
+					if (!D_NCSHandleEvent(&Event))
+						I_EventToOldDoom(&Event);
 	}
 }
 
@@ -780,6 +781,12 @@ void I_InitJoystick(void)
 		l_JoyOK = false;
 	}
 #undef BUFSIZE
+}
+
+/* I_NumJoysticks() -- Returns Joystick Count */
+uint8_t I_NumJoysticks(void)
+{
+	return l_NumJoys;
 }
 
 /* I_BaseTiccmd() -- Obtain driver based tic command */

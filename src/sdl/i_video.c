@@ -868,6 +868,7 @@ void I_GetEvent(void)
 					continue;
 					
 				ExEvent[0].Type = IET_JOYSTICK;
+				ExEvent[0].Data.Joystick.JoyID = Event.jbutton.which;
 				ExEvent[0].Data.Joystick.Button = l_Joys[Event.jbutton.which].ButtonMap[Event.jbutton.button] + 1;
 				break;
 				
@@ -1205,7 +1206,7 @@ size_t I_ProbeJoysticks(void)
 		return 0;
 		
 	// Allocate array
-	l_Joys = Z_Malloc(sizeof(*l_Joys), PU_STATIC, NULL);
+	l_Joys = Z_Malloc(sizeof(*l_Joys) * l_NumJoys, PU_STATIC, NULL);
 	
 	// Go through each array filling in info
 	for (i = 0; i < l_NumJoys; i++)

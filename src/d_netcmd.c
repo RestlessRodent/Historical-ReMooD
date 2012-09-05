@@ -135,7 +135,7 @@ static const fixed_t c_sidemove[2] = { 24, 40 };
 static const fixed_t c_angleturn[3] = { 640, 1280, 320 };	// + slow turn
 #define MAXPLMOVE       (c_forwardmove[1])
 
-#define MAXLOCALJOYS	4
+#define MAXLOCALJOYS	MAXJOYSTICKS
 
 const int32_t c_TCDataSize[NUMDTCT] =
 {
@@ -562,7 +562,7 @@ static uint8_t DS_NCSNextWeapon(player_t* player, int step)
 }
 
 /* GAMEKEYDOWN() -- Checks if a key is down */
-static bool_t GAMEKEYDOWN(D_ProfileEx_t* const a_Profile, const uint8_t a_Key)
+static bool_t GAMEKEYDOWN(D_ProfileEx_t* const a_Profile, const uint8_t a_SID, const uint8_t a_Key)
 {
 	size_t i;
 	uint32_t CurrentButton;
@@ -574,9 +574,11 @@ static bool_t GAMEKEYDOWN(D_ProfileEx_t* const a_Profile, const uint8_t a_Key)
 				return true;
 	
 	/* Check Joysticks */
-	if (a_Profile->Flags & DPEXF_GOTJOY)
-		if (a_Profile->JoyControl >= 0 && a_Profile->JoyControl < 4)
-			if (l_JoyButtons[a_Profile->JoyControl])
+	//if (a_Profile->Flags & DPEXF_GOTJOY)
+		//if (a_Profile->JoyControl >= 0 && a_Profile->JoyControl < 4)
+	if (a_SID >= 0 && a_SID < MAXSPLITSCREEN && g_JoyPortBound[a_SID])
+		if (g_JoyPortID[a_SID] >= 0 && g_JoyPortID[a_SID] < MAXLOCALJOYS)
+			if (l_JoyButtons[g_JoyPortID[a_SID]])
 				for (i = 0; i < 4; i++)
 					if ((a_Profile->Ctrls[a_Key][i] & 0xF000) == 0x1000)
 					{
@@ -585,7 +587,7 @@ static bool_t GAMEKEYDOWN(D_ProfileEx_t* const a_Profile, const uint8_t a_Key)
 				
 						// Button pressed?
 						if (CurrentButton >= 0 && CurrentButton < 32)
-							if (l_JoyButtons[a_Profile->JoyControl] & (1 << CurrentButton))
+							if (l_JoyButtons[g_JoyPortID[a_SID]] & (1 << CurrentButton))
 								return true;
 					}
 				
@@ -682,13 +684,13 @@ static void D_NCSLocalBuildTicCmd(D_NetPlayer_t* const a_NPp, ticcmd_t* const a_
 	SensMod = 0;
 	
 	// Movement Modifier
-	if (GAMEKEYDOWN(Profile, DPEXIC_MOVEMENT))
+	if (GAMEKEYDOWN(Profile, SID, DPEXIC_MOVEMENT))
 		MoveMod = 1;
 	else
 		MoveMod = 0;
 	
 	// Mouse Modifier
-	if (GAMEKEYDOWN(Profile, DPEXIC_LOOKING))
+	if (GAMEKEYDOWN(Profile, SID, DPEXIC_LOOKING))
 		MouseMod = 2;
 	else if (MoveMod)
 		MouseMod = 1;
@@ -696,7 +698,7 @@ static void D_NCSLocalBuildTicCmd(D_NetPlayer_t* const a_NPp, ticcmd_t* const a_
 		MouseMod = 0;
 	
 	// Moving Speed
-	if (GAMEKEYDOWN(Profile, DPEXIC_SPEED))
+	if (GAMEKEYDOWN(Profile, SID, DPEXIC_SPEED))
 		MoveSpeed = 1;
 	else
 		MoveSpeed = 0;
@@ -711,46 +713,45 @@ static void D_NCSLocalBuildTicCmd(D_NetPlayer_t* const a_NPp, ticcmd_t* const a_
 		TurnSpeed = 0;
 	
 	/* Player has joystick input? */
-	if (Profile->Flags & DPEXF_GOTJOY)
-	{
-		// Read input for all axis
-		for (i = 0; i < MAXJOYAXIS; i++)
-		{
-			// Modify with sensitivity
-			TargetMove = ((float)l_JoyAxis[Profile->JoyControl][i]) * (((float)Profile->JoySens[SensMod]) / 100.0);
-			
-			// Which movement to perform?
-			switch (Profile->JoyAxis[MouseMod][i])
+	// Read input for all axis
+	if (SID >= 0 && SID < MAXSPLITSCREEN && g_JoyPortBound[SID])
+		if (g_JoyPortID[SID] >= 0 && g_JoyPortID[SID] < MAXLOCALJOYS)
+			for (i = 0; i < MAXJOYAXIS; i++)
 			{
-					// Movement
-				case DPEXCMA_MOVEX:
-				case DPEXCMA_MOVEY:
-					// Movement is fractionally based
-					TargetMove = (((float)TargetMove) / ((float)32767.0)) * ((float)c_forwardmove[MoveSpeed]);
+				// Modify with sensitivity
+				TargetMove = ((float)l_JoyAxis[g_JoyPortID[SID]][i]) * (((float)Profile->JoySens[SensMod]) / 100.0);
+			
+				// Which movement to perform?
+				switch (Profile->JoyAxis[MouseMod][i])
+				{
+						// Movement
+					case DPEXCMA_MOVEX:
+					case DPEXCMA_MOVEY:
+						// Movement is fractionally based
+						TargetMove = (((float)TargetMove) / ((float)32767.0)) * ((float)c_forwardmove[MoveSpeed]);
 					
-					// Now which action really?
-					if (Profile->JoyAxis[MouseMod][i] == DPEXCMA_MOVEX)
-						SideMove += TargetMove;
-					else
-						ForwardMove -= TargetMove;
-					break;
+						// Now which action really?
+						if (Profile->JoyAxis[MouseMod][i] == DPEXCMA_MOVEX)
+							SideMove += TargetMove;
+						else
+							ForwardMove -= TargetMove;
+						break;
 					
-					// Looking Left/Right
-				case DPEXCMA_LOOKX:
-					TargetMove = (((float)TargetMove) / ((float)32767.0)) * ((float)c_angleturn[TurnSpeed]);
-					IsTurning = true;
-					BaseAT -= TargetMove;
-					break;
+						// Looking Left/Right
+					case DPEXCMA_LOOKX:
+						TargetMove = (((float)TargetMove) / ((float)32767.0)) * ((float)c_angleturn[TurnSpeed]);
+						IsTurning = true;
+						BaseAT -= TargetMove;
+						break;
 					
-					// Looking Up/Down
-				case DPEXCMA_LOOKY:
-					break;
+						// Looking Up/Down
+					case DPEXCMA_LOOKY:
+						break;
 				
-				default:
-					break;
+					default:
+						break;
+				}
 			}
-		}
-	}
 	
 	/* Player has mouse input? */
 	if (l_PermitMouse && (Profile->Flags & DPEXF_GOTMOUSE))
@@ -800,19 +801,19 @@ static void D_NCSLocalBuildTicCmd(D_NetPlayer_t* const a_NPp, ticcmd_t* const a_
 	
 	/* Handle Player Control Keyboard Stuff */
 	// Weapon Attacks
-	if (GAMEKEYDOWN(Profile, DPEXIC_ATTACK))
+	if (GAMEKEYDOWN(Profile, SID, DPEXIC_ATTACK))
 		a_TicCmd->Std.buttons |= BT_ATTACK;
 	
 	// Use
-	if (GAMEKEYDOWN(Profile, DPEXIC_USE))
+	if (GAMEKEYDOWN(Profile, SID, DPEXIC_USE))
 		a_TicCmd->Std.buttons |= BT_USE;
 	
 	// Jump
-	if (GAMEKEYDOWN(Profile, DPEXIC_JUMP))
+	if (GAMEKEYDOWN(Profile, SID, DPEXIC_JUMP))
 		a_TicCmd->Std.buttons |= BT_JUMP;
 	
 	// Keyboard Turning
-	if (GAMEKEYDOWN(Profile, DPEXIC_TURNLEFT))
+	if (GAMEKEYDOWN(Profile, SID, DPEXIC_TURNLEFT))
 	{
 		// Strafe
 		if (MoveMod)
@@ -825,7 +826,7 @@ static void D_NCSLocalBuildTicCmd(D_NetPlayer_t* const a_NPp, ticcmd_t* const a_
 			IsTurning = true;
 		}
 	}
-	if (GAMEKEYDOWN(Profile, DPEXIC_TURNRIGHT))
+	if (GAMEKEYDOWN(Profile, SID, DPEXIC_TURNRIGHT))
 	{
 		// Strafe
 		if (MoveMod)
@@ -840,47 +841,47 @@ static void D_NCSLocalBuildTicCmd(D_NetPlayer_t* const a_NPp, ticcmd_t* const a_
 	}
 	
 	// Keyboard Moving
-	if (GAMEKEYDOWN(Profile, DPEXIC_STRAFELEFT))
+	if (GAMEKEYDOWN(Profile, SID, DPEXIC_STRAFELEFT))
 		SideMove -= c_sidemove[MoveSpeed];
-	if (GAMEKEYDOWN(Profile, DPEXIC_STRAFERIGHT))
+	if (GAMEKEYDOWN(Profile, SID, DPEXIC_STRAFERIGHT))
 		SideMove += c_sidemove[MoveSpeed];
-	if (GAMEKEYDOWN(Profile, DPEXIC_FORWARDS))
+	if (GAMEKEYDOWN(Profile, SID, DPEXIC_FORWARDS))
 		ForwardMove += c_forwardmove[MoveSpeed];
-	if (GAMEKEYDOWN(Profile, DPEXIC_BACKWARDS))
+	if (GAMEKEYDOWN(Profile, SID, DPEXIC_BACKWARDS))
 		ForwardMove -= c_forwardmove[MoveSpeed];
 		
 	// Looking
-	if (GAMEKEYDOWN(Profile, DPEXIC_LOOKCENTER))
+	if (GAMEKEYDOWN(Profile, SID, DPEXIC_LOOKCENTER))
 		ResetAim = true;
 		//localaiming[SID] = 0;
 	else
 	{
-		if (GAMEKEYDOWN(Profile, DPEXIC_LOOKUP))
+		if (GAMEKEYDOWN(Profile, SID, DPEXIC_LOOKUP))
 			BaseAM += Profile->LookUpDownSpeed >> 16;
 			//localaiming[SID] += Profile->LookUpDownSpeed;
 		
-		if (GAMEKEYDOWN(Profile, DPEXIC_LOOKDOWN))
+		if (GAMEKEYDOWN(Profile, SID, DPEXIC_LOOKDOWN))
 			BaseAM -= Profile->LookUpDownSpeed >> 16;
 			//localaiming[SID] -= Profile->LookUpDownSpeed;
 	}
 	
 	// Weapons
 		// Next
-	if (GAMEKEYDOWN(Profile, DPEXIC_NEXTWEAPON))
+	if (GAMEKEYDOWN(Profile, SID, DPEXIC_NEXTWEAPON))
 	{
 		// Set switch
 		a_TicCmd->Std.buttons |= BT_CHANGE;
 		D_TicCmdFillWeapon(a_TicCmd, DS_NCSNextWeapon(Player, 1));
 	}
 		// Prev
-	else if (GAMEKEYDOWN(Profile, DPEXIC_PREVWEAPON))
+	else if (GAMEKEYDOWN(Profile, SID, DPEXIC_PREVWEAPON))
 	{
 		// Set switch
 		a_TicCmd->Std.buttons |= BT_CHANGE;
 		D_TicCmdFillWeapon(a_TicCmd, DS_NCSNextWeapon(Player, -1));
 	}
 		// Best Gun
-	else if (GAMEKEYDOWN(Profile, DPEXIC_BESTWEAPON))
+	else if (GAMEKEYDOWN(Profile, SID, DPEXIC_BESTWEAPON))
 	{
 		newweapon = P_PlayerBestWeapon(Player, true);
 		
@@ -891,7 +892,7 @@ static void D_NCSLocalBuildTicCmd(D_NetPlayer_t* const a_NPp, ticcmd_t* const a_
 		}
 	}
 		// Worst Gun
-	else if (GAMEKEYDOWN(Profile, DPEXIC_WORSTWEAPON))
+	else if (GAMEKEYDOWN(Profile, SID, DPEXIC_WORSTWEAPON))
 	{
 		newweapon = P_PlayerBestWeapon(Player, false);
 		
@@ -909,7 +910,7 @@ static void D_NCSLocalBuildTicCmd(D_NetPlayer_t* const a_NPp, ticcmd_t* const a_
 		
 		// Look for keys
 		for (i = DPEXIC_SLOT1; i <= DPEXIC_SLOT10; i++)
-			if (GAMEKEYDOWN(Profile, i))
+			if (GAMEKEYDOWN(Profile, SID, i))
 			{
 				slot = (i - DPEXIC_SLOT1) + 1;
 				break;
@@ -1026,16 +1027,16 @@ static void D_NCSLocalBuildTicCmd(D_NetPlayer_t* const a_NPp, ticcmd_t* const a_
 	}
 	
 	// Inventory
-	if (GAMEKEYDOWN(Profile, DPEXIC_NEXTINVENTORY))
+	if (GAMEKEYDOWN(Profile, SID, DPEXIC_NEXTINVENTORY))
 		a_TicCmd->Std.InventoryBits = TICCMD_INVRIGHT;
-	else if (GAMEKEYDOWN(Profile, DPEXIC_PREVINVENTORY))
+	else if (GAMEKEYDOWN(Profile, SID, DPEXIC_PREVINVENTORY))
 		a_TicCmd->Std.InventoryBits = TICCMD_INVLEFT;
-	else if (GAMEKEYDOWN(Profile, DPEXIC_USEINVENTORY))
+	else if (GAMEKEYDOWN(Profile, SID, DPEXIC_USEINVENTORY))
 		a_TicCmd->Std.InventoryBits = TICCMD_INVUSE;
 	
 	/* Handle special functions */
 	// Coop Spy
-	if (GAMEKEYDOWN(Profile, DPEXIC_COOPSPY))
+	if (GAMEKEYDOWN(Profile, SID, DPEXIC_COOPSPY))
 	{
 		// Only every half second
 		if (gametic > (Profile->CoopSpyTime + (TICRATE >> 1)))
@@ -1274,6 +1275,9 @@ void D_NCSNetTicTransmit(D_NetPlayer_t* const a_NPp, ticcmd_t* const a_TicCmd)
 			break;
 		
 	/* Create Synthetic OSK Events */
+	// Moved high up in the event chain since this really does not belong here.
+	// And this was a cheap hack to begin with anyway.
+#if 0
 	// But never do it for bots
 	if (a_NPp->Type == DNPT_LOCAL)
 		if (CONL_OSKIsActive(SID) || M_ExPlayerUIActive(SID))
@@ -1309,6 +1313,7 @@ void D_NCSNetTicTransmit(D_NetPlayer_t* const a_NPp, ticcmd_t* const a_TicCmd)
 			// OSK is active, so don't continue any further
 			return;
 		}
+#endif
 	
 	// Add local command to end
 	a_NPp->TicCmd[a_NPp->TicTotal++] = *a_TicCmd;

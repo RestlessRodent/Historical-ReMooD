@@ -77,5 +77,12 @@ void D_StartTitle(void);
 
 bool_t D_CheckWADBlacklist(const char* const a_Sum);
 
+bool_t D_JoyPortsEmpty(void);
+uint32_t D_PortToJoy(const uint8_t a_PortID);
+uint8_t D_JoyToPort(const uint32_t a_JoyID);
+void D_JoySpecialTicker(void);
+void D_JoySpecialDrawer(void);
+bool_t D_JoySpecialEvent(const I_EventEx_t* const a_Event);
+
 #endif							//__D_MAIN__
 

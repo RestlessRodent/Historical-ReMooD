@@ -375,7 +375,8 @@ void D_Display(void)
 							else
 								viewwindowy = 0;
 								
-							R_RenderPlayerView(&players[displayplayer[i]], i);
+							if (players[displayplayer[i]].mo)
+								R_RenderPlayerView(&players[displayplayer[i]], i);
 							
 							viewwindowx = 0;
 							viewwindowy = 0;
@@ -399,7 +400,8 @@ void D_Display(void)
 						activeylookup = ylookup;
 						memcpy(ylookup, ylookup2, viewheight * sizeof(ylookup[0]));
 						
-						R_RenderPlayerView(&players[displayplayer[1]], 1);
+						if (players[displayplayer[1]].mo)
+							R_RenderPlayerView(&players[displayplayer[1]], 1);
 						
 						viewwindowy = 0;
 						activeylookup = ylookup;
@@ -412,7 +414,8 @@ void D_Display(void)
 					if (players[displayplayer[0]].mo)
 					{
 						activeylookup = ylookup;
-						R_RenderPlayerView(&players[displayplayer[0]], 0);
+						if (players[displayplayer[0]].mo)
+							R_RenderPlayerView(&players[displayplayer[0]], 0);
 					}
 					break;
 			}
@@ -444,14 +447,18 @@ void D_Display(void)
 	
 	//CON_Drawer();
 	
+	
+	// GhostlyDeath <August 29, 2012> -- Network Stuff
+	D_NCDrawer();
+	
+	// GhostlyDeath <September 5, 2012> -- Joystick specials
+	D_JoySpecialDrawer();
+	
 	// GhostlyDeath <May 12, 2012> -- Extended UI Draw
 	M_ExUIDrawer();
 	
 	// Draw the console on the menu (if it is opened anyway)
 	CONL_DrawConsole();
-	
-	// GhostlyDeath <August 29, 2012> -- Network Stuff
-	D_NCDrawer();
 		
 	// GhostlyDeath <May 6, 2012> -- Network Update
 	D_SyncNetUpdate();
@@ -1742,6 +1749,298 @@ void D_MakeTitleString(char* s)
 }
 
 extern bool_t g_PaintBallMode;
+
+#define MAXPORTJOYS				MAXJOYSTICKS	// Max joys supported here (auto)
+
+bool_t g_JoyPortBound[MAXSPLITSCREEN] = {0, 0, 0, 0};	// Port Bound
+uint32_t g_JoyPortID[MAXSPLITSCREEN];			// Joy attached to port
+D_ProfileEx_t* g_JoyPortProf[MAXSPLITSCREEN] = {NULL, NULL, NULL, NULL};	// Profile in port
+
+static int16_t l_JoyLastAxis[MAXPORTJOYS][3];
+static int8_t l_JoyMagicAt;
+static int32_t l_JoyMagicTime;
+
+/* D_JoyPortsEmpty() -- Returns true if all ports are empty */
+bool_t D_JoyPortsEmpty(void)
+{
+	size_t i;
+	
+	/* Run through */
+	for (i = 0; i < MAXSPLITSCREEN; i++)
+		if (g_JoyPortBound[i])
+			return false;	// Bound
+	
+	/* Ports all empty */
+	return true;
+}
+
+/* D_PortToJoy() -- Converts port to joystick */
+uint32_t D_PortToJoy(const uint8_t a_PortID)
+{
+	/* Check */
+	if (a_PortID < 0 || a_PortID >= MAXSPLITSCREEN)
+		return 0;
+	
+	/* Only if bound */
+	if (g_JoyPortBound[a_PortID])
+		return g_JoyPortID[a_PortID] + 1;
+	
+	/* Not Bound */
+	return 0;
+}
+
+/* D_JoyToPort() -- Converts port to joystick */
+uint8_t D_JoyToPort(const uint32_t a_JoyID)
+{
+	size_t i;
+	
+	/* Check */
+	if (a_JoyID == 0)
+		return 0;
+	
+	/* Look in list */
+	for (i = 0; i < MAXSPLITSCREEN; i++)
+		if (g_JoyPortBound[i])
+			if (g_JoyPortID[i] == a_JoyID - 1)
+				return i + 1;
+	
+	/* Not found */
+	return 0;
+}
+
+/* D_JoySpecialTicker() -- Ticker for joystick specials */
+void D_JoySpecialTicker(void)
+{
+	bool_t LastOK;
+	int i;
+	
+	/* Profile */
+	l_JoyMagicAt = MAXSPLITSCREEN;
+	for (i = 0; i < MAXSPLITSCREEN; i++)
+	{
+		// Determine profile selection
+			// Player is missing
+		if (!g_PlayerInSplit[i])
+		{
+			// Unbound?
+			if (!g_JoyPortBound[i])
+				g_JoyPortProf[i] = NULL;
+			
+			// ???
+			else
+			{
+			}
+		}
+			// Player is inside
+		else if (!demoplayback)
+		{
+			// Not bound? Give it something illegal (keyboard/mouse player?)
+			if (!g_JoyPortBound[i])
+			{
+				g_JoyPortBound[i] = true;
+				g_JoyPortID[i] = INT_MAX;	// Illegal joystick
+			}
+			
+			// No Profile?
+			if (!g_JoyPortProf[i])
+				// Set from player
+				if (players[consoleplayer[i]].ProfileEx)
+					g_JoyPortProf[i] = players[consoleplayer[i]].ProfileEx;
+				
+				// Annoy with prompt
+				else
+				{
+				}
+		}
+		
+		// Choose location
+		if (!g_JoyPortBound[i] && !g_JoyPortProf[i])
+			if (l_JoyMagicAt == MAXSPLITSCREEN)
+				l_JoyMagicAt = i;
+	}
+	
+	/* No joysticks? Don't bother */
+	if (!I_NumJoysticks())
+		return;
+	
+	/* Decay Time */
+	l_JoyMagicTime--;
+	
+	// End?
+	if (l_JoyMagicTime < -(TICRATE * 2))
+		l_JoyMagicTime = TICRATE * 3;
+}
+
+/* D_JoySpecialDrawer() -- Draws joy specials */
+void D_JoySpecialDrawer(void)
+{
+#define BUFSIZE 32
+	int i;
+	bool_t LastOK;
+	int32_t tX, tY;
+	char* TextString;
+	char Buf[BUFSIZE];
+	
+	/* No joysticks? Don't bother */
+	if (!I_NumJoysticks())
+		return;
+	
+	/* Do not draw if no menu of sort is active */
+	if (!((gamestate != GS_LEVEL) || demoplayback ||
+		(gamestate == GS_LEVEL && (CONL_IsActive() || M_ExUIActive() || g_SplitScreen < 0))))
+		return;
+	
+	/* Draw Fade Bar */
+	//V_DrawFadeConsBackEx(VEX_COLORMAP(VEX_MAP_BRIGHTWHITE), 0, 180, 320, 200);
+	
+	/* Draw screen statuses */
+	LastOK = false;
+	for (i = 0; i < MAXSPLITSCREEN; i++)
+	{
+		// Determine Text Position
+			// Bottom of screen somewhere
+		if (i & 2)
+			tY = 190;
+		else
+			tY = 180;
+			
+			// Left or right
+		if (i & 1)
+			tX = 165;
+		else
+			tX = 5;
+		
+		// Player is here (with some profile)
+		if (g_JoyPortBound[i] || (!demoplayback && g_PlayerInSplit[i]))
+		{
+			// Set Ok
+			LastOK = true;
+			
+			// Set string to their name
+			if (g_JoyPortProf[i])
+				TextString = g_JoyPortProf[i]->DisplayName;
+			else
+				TextString = "Choose!";
+			snprintf(Buf, BUFSIZE, "{x7%iP%i:{z %s", i, i + 1, TextString);
+			V_DrawStringA(VFONT_OEM, 0, Buf, tX, tY);
+		}
+		
+		// Player is not here
+		else
+		{
+			// Set Not Ok
+			LastOK = false;
+			
+			// Tell them to do the magic combo
+			if (i == l_JoyMagicAt && l_JoyMagicTime > 0)
+			{
+				snprintf(Buf, BUFSIZE, "Joy Move + 1 + 2");
+				
+				V_DrawStringA(VFONT_OEM, 1 + (g_ProgramTic & 7)/*(g_ProgramTic & 1 ? VFO_COLOR(VEX_MAP_RED) : VFO_COLOR(VEX_MAP_BRIGHTWHITE))*/, Buf, tX, tY);
+			}
+			
+			// Otherwise print player color and spot thing
+			else
+			{
+				snprintf(Buf, BUFSIZE, "{x7%iPlayer %i", i, i + 1);
+				
+				V_DrawStringA(VFONT_OEM, 0, Buf, tX, tY);
+			}
+		}
+		
+		// If last was not OK, stop
+		if (!LastOK)
+			break;
+	}
+	//V_DrawStringA(VFONT_LARGE, 0, "Hi", 10, 175);
+#undef BUFSIZE
+}
+
+/* D_JoySpecialEvent() -- Specially Handles Joystick Events */
+bool_t D_JoySpecialEvent(const I_EventEx_t* const a_Event)
+{
+	uint8_t ForPlayer, RealPlayer, JoyID;
+	
+	/* Not a joystick event? */
+	if (a_Event->Type != IET_JOYSTICK)
+		return false;
+	
+	/* Get ID */
+	JoyID = a_Event->Data.Joystick.JoyID;
+	
+	/* Determine Player to Handle */
+	if (D_JoyPortsEmpty())
+		ForPlayer = MAXSPLITSCREEN + 1;
+	else
+	{
+		// See if the joystick is bound to a port first
+		ForPlayer = D_JoyToPort(JoyID + 1);
+		
+		// If it isn't bound to any port, steal the last port
+		if (!ForPlayer)
+			if (g_SplitScreen < 3)
+				ForPlayer = g_SplitScreen + 1;
+			else
+				return false;	// Does not belong to anyone, so ignore
+	}
+	
+	// No player?
+	if (!ForPlayer)
+		return false;
+	
+	// Convert to real player
+	if (ForPlayer == (MAXSPLITSCREEN + 1))
+		RealPlayer = 0;
+	else
+		RealPlayer = ForPlayer - 1;
+	
+	/* Magic Joystick Combination */
+	// Only the first 8 joysticks support magic combos
+	if (l_JoyMagicAt != MAXSPLITSCREEN)
+		if (ForPlayer == (MAXSPLITSCREEN + 1) || !g_JoyPortBound[ForPlayer - 1])
+		{
+			// Out of bounds?
+			if (a_Event->Data.Joystick.JoyID >= MAXPORTJOYS - 1)
+				return false;
+		
+			// Place axis info into last info
+			if (a_Event->Data.Joystick.Axis > 0)
+				if (a_Event->Data.Joystick.Axis < 3)
+					l_JoyLastAxis[JoyID][a_Event->Data.Joystick.Axis - 1] = a_Event->Data.Joystick.Value;
+		
+			// Place buttons also
+			if (a_Event->Data.Joystick.Button > 0)
+				if (a_Event->Data.Joystick.Button < 3)
+					if (!a_Event->Data.Joystick.Down)
+						l_JoyLastAxis[JoyID][2] = 0;
+					else
+						l_JoyLastAxis[JoyID][2] |= 1 << (a_Event->Data.Joystick.Button - 1);
+		
+			// Magic Triggered?
+			if (l_JoyMagicTime > 0)
+				if ((l_JoyLastAxis[JoyID][2] & 3) == 3 &&
+					(abs(l_JoyLastAxis[JoyID][0]) >= 16383 ||
+					abs(l_JoyLastAxis[JoyID][1]) >= 16383))
+				{
+					// Bind Port to stick
+					g_JoyPortBound[l_JoyMagicAt] = true;
+					g_JoyPortID[l_JoyMagicAt] = JoyID;
+					g_JoyPortProf[l_JoyMagicAt] = NULL;
+					return true;
+				}
+		
+			//CONL_PrintF("Magic %i %i %x\n", l_JoyLastAxis[0][0], l_JoyLastAxis[0][1], l_JoyLastAxis[0][2]);
+		}
+	
+	/* Synthetic OSK Events */
+	if (ForPlayer == (MAXSPLITSCREEN + 1) || g_JoyPortBound[ForPlayer - 1])
+	{
+		//CONL_PrintF("Synth\n");
+	}
+	
+	/* Not Handled */
+	return false;
+}
 
 //
 // D_DoomMain

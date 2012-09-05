@@ -456,7 +456,7 @@ void GS_HandleExtraCommands(ticcmd_t* const a_TicCmd, const int32_t a_PlayerNum)
 	uint32_t u32[4];
 	int32_t i32[4];
 	uint16_t u16[4];
-	uint8_t u8[4];
+	uint8_t u8[4], SplitNum;
 	char NameBuf[MAXPLAYERNAME];
 	char AltBuf[MAXPLAYERNAME];
 	bool_t OK, LegalMove;
@@ -531,6 +531,7 @@ void GS_HandleExtraCommands(ticcmd_t* const a_TicCmd, const int32_t a_PlayerNum)
 					Profile = NULL;
 					NetPlayer = NULL;
 					NewBot = NULL;
+					SplitNum = 0;
 					
 					// Playing Demo (no netclients, but show on screen)
 					OK = false;
@@ -541,7 +542,7 @@ void GS_HandleExtraCommands(ticcmd_t* const a_TicCmd, const int32_t a_PlayerNum)
 							u32[0] == G_GetDemoHostID())
 							if (g_SplitScreen < 3)
 							{
-								g_SplitScreen++;
+								SplitNum = ++g_SplitScreen;
 								OK = true;
 							}
 					}
@@ -586,9 +587,22 @@ void GS_HandleExtraCommands(ticcmd_t* const a_TicCmd, const int32_t a_PlayerNum)
 							{
 								NetPlayer->Type = DNPT_LOCAL;
 							
-								// Setup split screen player
-								if (g_SplitScreen < 3)
-									g_SplitScreen++;
+								// See if there is room in a split
+								for (SplitNum = 0;
+									SplitNum < (g_SplitScreen + 1); SplitNum++)
+									if (!g_PlayerInSplit[SplitNum])
+									{
+										LegalMove = true;
+										break;
+									}
+										
+								// No room?
+								if (SplitNum == (g_SplitScreen + 1) &&
+									g_SplitScreen < 3)
+								{
+									LegalMove = true;
+									SplitNum = ++g_SplitScreen;
+								}
 							
 								// Obtain profile (if possible)
 								Profile = D_FindProfileExByInstance(u32[2]);
@@ -633,9 +647,9 @@ void GS_HandleExtraCommands(ticcmd_t* const a_TicCmd, const int32_t a_PlayerNum)
 					// Finish off split screen
 					if ((NC && NC->IsLocal && LegalMove) || (demoplayback && OK))
 					{
-						g_PlayerInSplit[g_SplitScreen] = true;
-						consoleplayer[g_SplitScreen] =
-							displayplayer[g_SplitScreen] = u16[0];
+						g_PlayerInSplit[SplitNum] = true;
+						consoleplayer[SplitNum] =
+							displayplayer[SplitNum] = u16[0];
 						R_ExecuteSetViewSize();
 					}
 				}

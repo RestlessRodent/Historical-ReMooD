@@ -443,6 +443,7 @@ void I_StartupMouse(void);
 void I_StartupMouse2(void);
 void I_UpdateJoysticks(void);
 void I_InitJoystick(void);
+uint8_t I_NumJoysticks(void);
 void I_GetEvent(void);
 ticcmd_t* I_BaseTiccmd(void);
 char* I_GetEnvironment(const char* const a_VarName);

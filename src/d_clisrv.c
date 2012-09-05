@@ -343,5 +343,6 @@ void NetUpdate(void)
 		neededtic = maketic;
 		
 	CONL_Ticker();
+	D_JoySpecialTicker();
 	//CON_Ticker();
 }
