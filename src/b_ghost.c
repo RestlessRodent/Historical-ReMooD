@@ -148,8 +148,8 @@ static const B_BotTemplate_t c_BotTemplates[] =
 	
 	{
 		3,										// ID
-		"{4zearBot",							// Account Name
-		"zearBot",								// Display Name
+		"zearBot",								// Account Name
+		"{4zearBot",							// Display Name
 		0x0,									// Color: Green
 		"SuperShotgun BFG PlasmaRifle RocketLauncher Chaingun Shotgun Pistol Chainsaw Fist",
 		BGAP_DEFENSE,							// Posture
