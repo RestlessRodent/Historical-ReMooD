@@ -260,13 +260,13 @@ fixed_t S_GetListenerEmitterWithDist(S_SoundChannel_t* const a_Channel, S_NoiseT
 		return 0;
 	
 	/* No local players */
-	if (g_SplitScreen < 0)
-		return 0;
+	//if (g_SplitScreen < 0)
+	//	return 0;
 		
 	/* Find the closest listener */
 	*a_Listen = NULL;
 	ApproxDist = 32000 << FRACBITS;
-	for (i = 0; i <= g_SplitScreen; i++)
+	for (i = 0; i <= (g_SplitScreen < 0 ? 0 : g_SplitScreen); i++)
 	{
 		// Check to see if the player is in game (if not ignore)
 		if (displayplayer[i] < 0 || displayplayer[i] >= MAXPLAYERS || !playeringame[displayplayer[i]])

@@ -608,6 +608,9 @@ void GS_HandleExtraCommands(ticcmd_t* const a_TicCmd, const int32_t a_PlayerNum)
 					Player->skincolor = u8[0];
 					// TODO FIXME: Hexen Class (AltBuf)
 					
+					if (u32[1] & DTCJF_MONSTERTEAM)
+						Player->CounterOpPlayer = true;
+					
 					// Link player to profile
 					Player->NetPlayer = NetPlayer;
 					Player->ProfileEx = Profile;

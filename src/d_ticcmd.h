@@ -143,6 +143,7 @@ enum
 typedef enum D_TCJoinFlags_e
 {
 	DTCJF_ISBOT						= 0x0001,	// Is a Bot
+	DTCJF_MONSTERTEAM				= 0x0002,	// On monster team
 } D_TCJoinFlags_t;
 
 /* D_DiffBits_t -- Diff bits */

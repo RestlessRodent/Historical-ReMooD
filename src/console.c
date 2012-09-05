@@ -2546,7 +2546,7 @@ bool_t CONL_DrawConsole(void)
 	else
 	{
 		// On intermission, only draw player 1's stuff
-		if (gamestate == GS_INTERMISSION)
+		if (gamestate == GS_INTERMISSION || g_SplitScreen < 0)
 			n = 1;
 		
 		// Otherwise for each player

@@ -356,32 +356,9 @@ void D_Display(void)
 			// added 16-6-98: render the second screen
 			switch (g_SplitScreen)
 			{
-				case 1:
-					if (playeringame[displayplayer[1]] && players[displayplayer[1]].mo)
-					{
-						//faB: Boris hack :P !!
-						viewwindowy = vid.height / 2;
-						activeylookup = ylookup;
-						memcpy(ylookup, ylookup2, viewheight * sizeof(ylookup[0]));
-						
-						R_RenderPlayerView(&players[displayplayer[1]], 1);
-						
-						viewwindowy = 0;
-						activeylookup = ylookup;
-						memcpy(ylookup, ylookup1, viewheight * sizeof(ylookup[0]));
-					}
-					else
-						V_DrawColorBoxEx(VEX_NOSCALESTART | VEX_NOSCALESCREEN, 0, 0, vid.height >> 1, vid.width, vid.height);
-				case 0:
-					if (players[displayplayer[0]].mo)
-					{
-						activeylookup = ylookup;
-						R_RenderPlayerView(&players[displayplayer[0]], 0);
-					}
-					break;
+					// 3/4 Player split
 				case 2:
 				case 3:
-				default:
 					for (i = 0; i < 4; i++)
 					{
 						if (playeringame[displayplayer[i]] && players[displayplayer[i]].mo && i < g_SplitScreen + 1)
@@ -410,6 +387,32 @@ void D_Display(void)
 							        (((i == 1 || i == 3) ? vid.width >> 1 : 0)) + (vid.width >> 1),
 							        (((i == 2 || i == 3) ? vid.height >> 1 : 0)) + (vid.height >> 1)
 								);
+					}
+					break;
+					
+					// 1 Full, 2 player split
+				case 1:
+					if (playeringame[displayplayer[1]] && players[displayplayer[1]].mo)
+					{
+						//faB: Boris hack :P !!
+						viewwindowy = vid.height / 2;
+						activeylookup = ylookup;
+						memcpy(ylookup, ylookup2, viewheight * sizeof(ylookup[0]));
+						
+						R_RenderPlayerView(&players[displayplayer[1]], 1);
+						
+						viewwindowy = 0;
+						activeylookup = ylookup;
+						memcpy(ylookup, ylookup1, viewheight * sizeof(ylookup[0]));
+					}
+					else
+						V_DrawColorBoxEx(VEX_NOSCALESTART | VEX_NOSCALESCREEN, 0, 0, vid.height >> 1, vid.width, vid.height);
+				case 0:
+				default:
+					if (players[displayplayer[0]].mo)
+					{
+						activeylookup = ylookup;
+						R_RenderPlayerView(&players[displayplayer[0]], 0);
 					}
 					break;
 			}

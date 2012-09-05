@@ -703,7 +703,7 @@ void ST_DrawPlayerBarsEx(void)
 		w /= 2;
 		
 	/* Use standard palette */
-	if (g_SplitScreen != 0)
+	if (g_SplitScreen > 0)
 	{
 		if (LastPal != 0)
 			V_SetPalette(0);
@@ -711,14 +711,22 @@ void ST_DrawPlayerBarsEx(void)
 	}
 	
 	/* Draw each player */
-	for (p = 0; p < g_SplitScreen + 1; p++)
+	for (p = 0; p < (g_SplitScreen < 0 ? 1 : g_SplitScreen + 1); p++)
 	{
 		// Get players to draw for
 		ConsoleP = &players[consoleplayer[p]];
 		DisplayP = &players[displayplayer[p]];
-		
+	
+		// Display player not in game?
+		if (!playeringame[DisplayP - players])
+			DisplayP = ConsoleP;
+	
+		// Console player not in game?
+		if (!playeringame[ConsoleP - players])
+			continue;
+	
 		// Modify palette?
-		if (g_SplitScreen == 0)	// Only 1 player inside
+		if (g_SplitScreen <= 0)	// Only 1 player inside
 		{
 			if (LastPal != DisplayP->PalChoice)
 			{
@@ -726,17 +734,17 @@ void ST_DrawPlayerBarsEx(void)
 				LastPal = DisplayP->PalChoice;
 			}
 		}
-		
+	
 		// Draw Bar
 		STS_DrawPlayerBarEx(p, x, y, w, h);
-		
+	
 		// Add to coords (finished drawing everything)
 		if (g_SplitScreen == 1)
 			y += h;
 		else if (g_SplitScreen > 1)
 		{
 			x += w;
-			
+		
 			if (x == (w * 2))
 			{
 				x = 0;
