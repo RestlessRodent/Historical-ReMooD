@@ -110,8 +110,10 @@ typedef struct B_LineSet_s
 *** CONSTANTS ***
 ****************/
 
+#define MAXBOTTEMPLATES 48
+
 /* c_BotTemplates -- Bot template */
-static const B_BotTemplate_t c_BotTemplates[] =
+static const B_BotTemplate_t c_BotTemplates[MAXBOTTEMPLATES] =
 {
 	{
 		0,										// ID
@@ -131,7 +133,7 @@ static const B_BotTemplate_t c_BotTemplates[] =
 		"FreeBOT",								// Display Name
 		0xF,									// Color: Pink
 		{0xff, 0x70, 0x70},						// Hex Color
-		"SuperShotgun BFG PlasmaRifle RocketLauncher Chaingun Shotgun Pistol Chainsaw Fist",
+		"SuperShotgun BFGNineK RocketLauncher PlasmaRifle Chaingun Shotgun Pistol Chainsaw Fist",
 		BGAP_MIDDLE,							// Posture
 		BGCM_UVALLMAX,							// Coop Mode
 		"Cleric",								// Hexen Class
@@ -143,7 +145,7 @@ static const B_BotTemplate_t c_BotTemplates[] =
 		"{9MP{62{BBot",							// Display Name
 		0x8,									// Color: Dark Blue
 		{0x00, 0x00, 0x80},						// Hex Color
-		"BFG Firemace Bloodscourge Wraithverge Quietus SuperShotgun Hellstaff FrostShards Firestorm HammerOfRetribution RocketLauncher EthrealCrossBow ArcOfDeath SerpentStaff TimonsAxe PlasmaRifle PheonixRod Sapphire MaceOfContrition SpikedGauntlets Chaingun DragonClaw Shotgun ElvenWannd Pistol Gauntlets Chainsaw Staff Fist",
+		"BFGNineK Firemace Bloodscourge Wraithverge Quietus SuperShotgun Hellstaff FrostShards Firestorm HammerOfRetribution RocketLauncher EthrealCrossBow ArcOfDeath SerpentStaff TimonsAxe PlasmaRifle PheonixRod Sapphire MaceOfContrition SpikedGauntlets Chaingun DragonClaw Shotgun ElvenWannd Pistol Gauntlets Chainsaw Staff Fist",
 		BGAP_OFFENSE,							// Posture
 		BGCM_EXITRUN,							// Coop Mode
 		"Mage",									// Hexen Class
@@ -155,7 +157,7 @@ static const B_BotTemplate_t c_BotTemplates[] =
 		"{4zearBot",							// Display Name
 		0x0,									// Color: Green
 		{0x00, 0xff, 0x00},						// Hex Color
-		"SuperShotgun BFG PlasmaRifle RocketLauncher Chaingun Shotgun Pistol Chainsaw Fist",
+		"SuperShotgun BFGNineK PlasmaRifle RocketLauncher Chaingun Shotgun Pistol Chainsaw Fist",
 		BGAP_DEFENSE,							// Posture
 		BGCM_MAXKILLSITEMS,						// Coop Mode
 		"Fighter",								// Hexen Class
@@ -180,7 +182,7 @@ static const B_BotTemplate_t c_BotTemplates[] =
 		"{abot{x71512",								// Display Name
 		0x0,									// Color: Green
 		{0x01, 0x54, 0x22},						// Hex Color
-		"",										// Weapons
+		"BFGNineK SuperShotgun PlasmaRifle Shotgun RocketLauncher Chaingun Pistol Chainsaw Fist",										// Weapons
 		BGAP_DONTCARE,							// Posture
 		BGCM_DONTCARE,						// Coop Mode
 		"Random",								// Hexen Class
@@ -244,15 +246,60 @@ const B_BotTemplate_t* B_GHOST_FindTemplate(const char* const a_Name)
 /* B_GHOST_RandomTemplate() -- Loads a random template */
 const B_BotTemplate_t* B_GHOST_RandomTemplate(void)
 {
-	size_t i;
+	size_t i, j;
 	const B_BotTemplate_t* Rand;
+	int8_t Counts[MAXBOTTEMPLATES], MinCount, MaxCount, Failures, MinAt;
+	const B_BotTemplate_t* Temp;
+	
+	/* Clear */
+	memset(Counts, 0, sizeof(Counts));
 	
 	/* Count */
-	for (i = 0; c_BotTemplates[i].AccountName; i++)
-		;
+	for (i = 0; i < MAXPLAYERS; i++)
+	{
+		Temp = B_BotGetTemplate(i);
+		
+		if (Temp)
+			Counts[Temp - c_BotTemplates]++;
+	}
+	
+	// Determine Minimum Count
+	MinCount = 125;
+	MaxCount = -125;
+	MinAt = 0;
+	for (i = 0; i < MAXBOTTEMPLATES && c_BotTemplates[i].AccountName; i++)
+	{
+		// Minimum
+		if (Counts[i] < MinCount)
+		{
+			MinCount = Counts[i];
+			MinAt = i;
+		}
+		
+		// Maximum
+		if (Counts[i] > MaxCount)
+			MaxCount = Counts[i];
+			
+		CONL_PrintF("$$$>>> %i %i (%i %i)\n", i, Counts[i], MinCount, MaxCount	);
+	}
 	
 	/* Choose random number */
-	Rand = B_GHOST_TemplateByID(abs(M_Random()) % i);
+	Failures = 0;
+	do
+	{
+		// Obtain Random Bot
+		Rand = B_GHOST_TemplateByID(abs(M_Random()) % i);
+		
+		// Bot Statifies Minimum Quantity
+		if (Counts[Rand - c_BotTemplates] == MinCount)
+			break;
+	} while (++Failures < 32);	// Only try so much (anti-infinite loop)
+	
+	/* No bot? One final try */
+	if (!Rand)
+		Rand = B_GHOST_TemplateByID(c_BotTemplates[MinAt].BotIDNum);
+	
+	/* Return if found */
 	if (Rand)
 		return Rand;
 	return &c_BotTemplates[0];
@@ -1218,9 +1265,13 @@ static bool_t BS_GHOST_JOB_GunControl(struct B_GhostBot_s* a_GhostBot, const siz
 	int32_t SwitchChance[MAXGUNSWITCHERS];
 	fixed_t AmmoCount;
 	ammotype_t AmmoType;
+	weapontype_t FavoriteGun;
 	
 	/* Sleep Job */
-	a_GhostBot->Jobs[a_JobID].Sleep = gametic << 2;
+	a_GhostBot->Jobs[a_JobID].Sleep = gametic + (TICRATE * 10);
+	
+	/* Get Our Favorite Gun */
+	FavoriteGun = P_PlayerBestWeapon(a_GhostBot->Player);
 	
 	/* Determine guns to switch to */
 	for (i = 0; i < MAXGUNSWITCHERS && i < NUMWEAPONS; i++)
@@ -1246,6 +1297,10 @@ static bool_t BS_GHOST_JOB_GunControl(struct B_GhostBot_s* a_GhostBot, const siz
 		
 		// Modified by the amount of ammo the weapon holds
 		SwitchChance[i] = FixedMul(SwitchChance[i] << FRACBITS, AmmoCount);
+		
+		// Favorite Gun Boost
+		if (i == FavoriteGun)
+			SwitchChance[i] += 350;
 	}
 	
 	/* Find gun to switch to */

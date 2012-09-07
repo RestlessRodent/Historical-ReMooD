@@ -299,10 +299,38 @@ B_BotData_t* B_InitBot(D_NetPlayer_t* const a_NPp, const B_BotTemplate_t* a_Temp
 	New->NetPlayer = a_NPp;
 	New->Player = New->NetPlayer->Player;
 	New->ActSub = BBAS_GHOSTLYAI;//BBAS_FOLLOWNEARESTPLAYER;
+	New->GHOSTData.BotTemplate = a_Template;
 	
 	/* Set and return */
 	a_NPp->BotData = New;
 	return New;
+}
+
+/* B_BotGetTemplate() -- Returns player bot template */
+const B_BotTemplate_t* B_BotGetTemplate(const int32_t a_Player)
+{
+	/* Check */
+	if (a_Player < 0 || a_Player >= MAXPLAYERS)
+		return NULL;
+	
+	/* Not playing? */
+	if (!playeringame[a_Player])
+		return NULL;
+	
+	/* No Net Player? */
+	if (!players[a_Player].NetPlayer)
+		return NULL;
+	
+	/* Not a bot? */
+	if (players[a_Player].NetPlayer->Type != DNPT_BOT)
+		return NULL;
+	
+	/* No Data? */
+	if (!players[a_Player].NetPlayer->BotData)
+		return NULL;
+	
+	/* Return the template */
+	return players[a_Player].NetPlayer->BotData->GHOSTData.BotTemplate;
 }
 
 /* B_BuildBotTicCmd() -- Builds tic command for bot */

@@ -96,6 +96,7 @@ typedef struct B_GhostBot_s
 	B_BotData_t* BotData;						// Data
 	player_t* Player;							// Player
 	mobj_t* Mo;									// Mo
+	struct B_BotTemplate_s* BotTemplate;		// Template
 	
 	int32_t RoamX, RoamY;						// Roaming X/Y
 	
@@ -153,6 +154,7 @@ extern fixed_t g_GlobalBoundBox[4];				// Global bounding box
 
 /*** B_BOT.C ***/
 B_BotData_t* B_InitBot(D_NetPlayer_t* const a_NPp, const B_BotTemplate_t* a_Template);
+const B_BotTemplate_t* B_BotGetTemplate(const int32_t a_Player);
 void B_InitNodes(void);
 void B_ClearNodes(void);
 

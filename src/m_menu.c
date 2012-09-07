@@ -172,7 +172,12 @@ static int8_t MS_NumScrSplits(void)
 	/* Go through players */
 	for (i = 0; i < MAXSPLITSCREEN; i++)
 		if (!g_Splits[i].Waiting && ((demoplayback) || (!demoplayback && !g_Splits[i].Active)))
+		{
+			// Always return something
+			if (i == 0)
+				return 0;
 			return i - 1;
+		}
 	
 	/* Return the max */
 	return 3;
