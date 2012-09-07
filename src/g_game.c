@@ -454,7 +454,8 @@ void GS_HandleExtraCommands(ticcmd_t* const a_TicCmd, const int32_t a_PlayerNum)
 	uint32_t u32[4];
 	int32_t i32[4];
 	uint16_t u16[4];
-	uint8_t u8[4], SplitNum;
+	uint8_t u8[4];
+	int8_t SplitNum;
 	char NameBuf[MAXPLAYERNAME];
 	char AltBuf[MAXPLAYERNAME];
 	bool_t OK, LegalMove;
@@ -498,8 +499,8 @@ void GS_HandleExtraCommands(ticcmd_t* const a_TicCmd, const int32_t a_PlayerNum)
 				u32[0] = LittleReadUInt32((uint32_t**)&Rp);
 				u16[0] = LittleReadUInt16((uint16_t**)&Rp);
 				u32[1] = LittleReadUInt32((uint32_t**)&Rp);
-				u32[2] = LittleReadUInt32((uint32_t**)&Rp);
-				u32[3] = LittleReadUInt32((uint32_t**)&Rp);
+				u32[2] = LittleReadUInt32((uint32_t**)&Rp);	// Profile
+				u32[3] = LittleReadUInt32((uint32_t**)&Rp);	// Screen Instance
 				u8[0] = ReadUInt8((uint8_t**)&Rp);
 				
 				for (i = 0; i < MAXPLAYERNAME; i++)
@@ -586,23 +587,34 @@ void GS_HandleExtraCommands(ticcmd_t* const a_TicCmd, const int32_t a_PlayerNum)
 							else
 							{
 								NetPlayer->Type = DNPT_LOCAL;
-							
-								// See if there is room in a split
-								for (SplitNum = 0;
-									SplitNum < (g_SplitScreen + 1); SplitNum++)
-									if (!g_Splits[SplitNum].Active)
+								
+								// Locate split based on instance
+								SplitNum = D_NCSFindSplitByProcess(u32[3]);
+								
+								// Illegal Split?
+								if (SplitNum < 0 && g_SplitScreen < 3)
+								{
+									// See if there is room in a split
+									for (SplitNum = 0;
+										SplitNum <= (g_SplitScreen + 1); SplitNum++)
+										if (!g_Splits[SplitNum].Active && !g_Splits[SplitNum].Waiting)
+										{
+											LegalMove = true;
+											break;
+										}
+									
+									// It fits
+									if (SplitNum == (g_SplitScreen + 1) &&
+										g_SplitScreen < 3)
 									{
 										LegalMove = true;
-										break;
+										SplitNum = ++g_SplitScreen;
 									}
-										
-								// No room?
-								if (SplitNum == (g_SplitScreen + 1) &&
-									g_SplitScreen < 3)
-								{
-									LegalMove = true;
-									SplitNum = ++g_SplitScreen;
 								}
+								
+								// Legal
+								else
+									LegalMove = true;
 							
 								// Obtain profile (if possible)
 								Profile = D_FindProfileExByInstance(u32[2]);
@@ -647,9 +659,11 @@ void GS_HandleExtraCommands(ticcmd_t* const a_TicCmd, const int32_t a_PlayerNum)
 					// Finish off split screen
 					if ((NC && NC->IsLocal && LegalMove) || (demoplayback && OK))
 					{
+						g_Splits[SplitNum].Waiting = false;
 						g_Splits[SplitNum].Active = true;
 						g_Splits[SplitNum].Display = 
 							g_Splits[SplitNum].Console = u16[0];
+						g_Splits[SplitNum].Profile = Profile;
 						
 						R_ExecuteSetViewSize();
 					}

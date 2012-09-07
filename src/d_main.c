@@ -2021,7 +2021,7 @@ bool_t D_JoySpecialEvent(const I_EventEx_t* const a_Event)
 					abs(l_JoyLastAxis[JoyID][1]) >= 16383))
 				{
 					// Add local player (super handled)
-					D_NCLocalPlayerAdd(NULL, false, JoyID + 1, l_JoyMagicAt);
+					D_NCLocalPlayerAdd(NULL, false, JoyID + 1, l_JoyMagicAt, true);
 					l_JoyMagicAt = MAXSPLITSCREEN;
 					return true;
 				}

@@ -474,7 +474,7 @@ void P_PlayerMessage(const P_PMType_t a_Type, mobj_t* const a_Picker, mobj_t* co
 		
 	/* Find player that is picking this up */
 	for (i = 0; i < MAXSPLITSCREENPLAYERS; i++)
-		if (playeringame[g_Splits[i].Display] && &players[g_Splits[i].Display] == a_Picker->player)
+		if (g_Splits[i].Active && playeringame[g_Splits[i].Display] && &players[g_Splits[i].Display] == a_Picker->player)
 			break;
 			
 	// Nobody on these screens

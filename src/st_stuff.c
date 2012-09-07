@@ -713,10 +713,14 @@ void ST_DrawPlayerBarsEx(void)
 	/* Draw each player */
 	for (p = 0; p < (g_SplitScreen < 0 ? 1 : g_SplitScreen + 1); p++)
 	{
+		// Split player not active?
+		if (!g_Splits[p].Active)
+			continue;
+		
 		// Get players to draw for
 		ConsoleP = &players[g_Splits[p].Console];
 		DisplayP = &players[g_Splits[p].Display];
-	
+		
 		// Display player not in game?
 		if (!playeringame[DisplayP - players])
 			DisplayP = ConsoleP;

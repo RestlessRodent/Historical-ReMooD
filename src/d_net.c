@@ -1212,7 +1212,7 @@ void D_NCReqVarChange(const uint32_t a_Code, const int32_t a_NewVal)
 }
 
 /* D_NCLocalPlayerAdd() -- Adds a local player */
-void D_NCLocalPlayerAdd(const char* const a_Name, const bool_t a_Bot, const uint32_t a_JoyID, const int8_t a_ScreenID)
+void D_NCLocalPlayerAdd(const char* const a_Name, const bool_t a_Bot, const uint32_t a_JoyID, const int8_t a_ScreenID, const bool_t a_UseJoy)
 {
 	uint32_t ProcessID, PlaceAt;
 	D_ProfileEx_t* Profile;
@@ -1232,7 +1232,7 @@ void D_NCLocalPlayerAdd(const char* const a_Name, const bool_t a_Bot, const uint
 	do
 	{
 		ProcessID = D_CMakePureRandom();
-	} while (!ProcessID || (!D_NCSFindNetPlayerByProcess(ProcessID) && (ProcessID) < 0));
+	} while (!ProcessID || D_NCSFindNetPlayerByProcess(ProcessID) || D_NCSFindSplitByProcess(ProcessID) >= 0);
 	
 	/* If not a bot, bind to a local screen */
 	if (!a_Bot)
@@ -1243,7 +1243,16 @@ void D_NCLocalPlayerAdd(const char* const a_Name, const bool_t a_Bot, const uint
 		if (!Profile)
 			Profile = D_FindProfileEx("guest");
 		
+		// Wipe
+		memset(&g_Splits[PlaceAt], 0, sizeof(g_Splits[PlaceAt]));
+		
 		// Bind stuff here
+		g_Splits[PlaceAt].Waiting = true;
+		g_Splits[PlaceAt].Profile = Profile;
+		g_Splits[PlaceAt].JoyBound = a_UseJoy;
+		g_Splits[PlaceAt].JoyID = a_JoyID;
+		g_Splits[PlaceAt].ProcessID = ProcessID;
+		
 #if 0
 		g_JoyPortBound[PlaceAt] = true;			// Screen bound to something
 		g_JoyPortID[PlaceAt] = a_JoyID;			// Joystick to use
@@ -1259,7 +1268,7 @@ void D_NCLocalPlayerAdd(const char* const a_Name, const bool_t a_Bot, const uint
 		R_ExecuteSetViewSize();
 	}
 	
-	/* Otherwise it is not bound to a slot */
+	/* Otherwise it "is not bound to a slot */
 	else
 	{
 	}

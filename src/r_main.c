@@ -964,7 +964,7 @@ void R_SetupFrame(player_t* player)
 			if (!demoplayback && player->playerstate != PST_DEAD)
 			{
 				for (i = 0; i < g_SplitScreen + 1; i++)
-					if (playeringame[g_Splits[i].Console] && player == &players[g_Splits[i].Console] && g_Splits[i].Console == g_Splits[i].Display)
+					if (g_Splits[i].Active && playeringame[g_Splits[i].Console] && player == &players[g_Splits[i].Console] && g_Splits[i].Console == g_Splits[i].Display)
 					{
 						viewangle = localangle[i];
 						aimingangle = localaiming[i];

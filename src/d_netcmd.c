@@ -335,7 +335,7 @@ static int DS_NCSNetCommand(const uint32_t a_ArgC, const char** const a_ArgV)
 	{
 		if (devparm)
 			CONL_PrintF("NET: Requesting the server add local player.\n");
-		D_NCLocalPlayerAdd((a_ArgC >= 3 ? a_ArgV[2] : NULL), false, g_SplitScreen, INT_MAX);
+		D_NCLocalPlayerAdd((a_ArgC >= 3 ? a_ArgV[2] : NULL), false, g_SplitScreen, INT_MAX, false);
 		return CLE_SUCCESS;
 	}
 	
@@ -345,7 +345,7 @@ static int DS_NCSNetCommand(const uint32_t a_ArgC, const char** const a_ArgV)
 	{
 		if (devparm)
 			CONL_PrintF("NET: Requesting the server add local bot.\n");
-		D_NCLocalPlayerAdd((a_ArgC >= 3 ? a_ArgV[2] : NULL), true, g_SplitScreen, INT_MAX);
+		D_NCLocalPlayerAdd((a_ArgC >= 3 ? a_ArgV[2] : NULL), true, g_SplitScreen, INT_MAX, false);
 		return CLE_SUCCESS;
 	}
 	
@@ -1555,6 +1555,10 @@ D_NetPlayer_t* D_NCSFindNetPlayerByProcess(const uint32_t a_ID)
 int8_t D_NCSFindSplitByProcess(const uint32_t a_ID)
 {
 	int i;
+	
+	/* Check */
+	if (!a_ID)
+		return -1;
 	
 	/* Loop */
 	for (i = 0; i < MAXSPLITSCREEN; i++)
