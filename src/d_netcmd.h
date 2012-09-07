@@ -127,9 +127,10 @@ typedef struct D_SplitInfo_s
 	bool_t Active;								// Is Active
 	int32_t Console;							// The console player
 	int32_t Display;							// Display Player
-	uint32_t InstanceID;						// Instance ID
+	uint32_t ProcessID;							// Local Processing ID
 	struct D_ProfileEx_s* Profile;				// Player Profile
 	
+	bool_t JoyBound;							// Joystick Bound
 	uint32_t JoyID;								// Joystick ID
 } D_SplitInfo_t;
 

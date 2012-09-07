@@ -904,9 +904,7 @@ void D_NCDisconnect(void)
 	// Just wipe ALL of it!
 	memset(players, 0, sizeof(players));
 	memset(playeringame, 0, sizeof(playeringame));
-	memset(displayplayer, 0, sizeof(displayplayer));
-	memset(consoleplayer, 0, sizeof(consoleplayer));
-	memset(g_PlayerInSplit, 0, sizeof(g_PlayerInSplit));
+	memset(g_Splits, 0, sizeof(g_Splits));
 	g_SplitScreen = -1;
 	
 	// Initialize some players some
@@ -1246,6 +1244,7 @@ void D_NCLocalPlayerAdd(const char* const a_Name, const bool_t a_Bot, const uint
 			Profile = D_FindProfileEx("guest");
 		
 		// Bind stuff here
+#if 0
 		g_JoyPortBound[PlaceAt] = true;			// Screen bound to something
 		g_JoyPortID[PlaceAt] = a_JoyID;			// Joystick to use
 		g_JoyPortProf[PlaceAt] = Profile;		// Profile to use (if any)
@@ -1253,6 +1252,7 @@ void D_NCLocalPlayerAdd(const char* const a_Name, const bool_t a_Bot, const uint
 		g_SplitPlayerInstance[PlaceAt] = ProcessID;	// ID to remembers
 		consoleplayer[PlaceAt] = 0;				// Fake console player
 		displayplayer[PlaceAt] = 0;				// Fake display player
+#endif
 		
 		// Resize Splits
 		g_SplitScreen++;
@@ -1569,6 +1569,7 @@ bool_t D_NCMH_JOIN(struct D_NCMessageData_s* const a_Data)
 		LittleWriteUInt16((uint16_t**)&Wp, FreeSlot);
 		LittleWriteUInt32((uint32_t**)&Wp, JoinFlags);
 		LittleWriteUInt32((uint32_t**)&Wp, PInstance);
+		LittleWriteUInt32((uint32_t**)&Wp, 0);	// TODO FIXME: Screen Instance
 		WriteUInt8((uint8_t**)&Wp, Color);
 		
 		for (i = 0; i < MAXPLAYERNAME; i++)

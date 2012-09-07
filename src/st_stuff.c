@@ -551,8 +551,8 @@ static void STS_DrawPlayerBarEx(const size_t a_PID, const int32_t a_X, const int
 	}
 	
 	/* Get players to draw for */
-	ConsoleP = &players[consoleplayer[a_PID]];
-	DisplayP = &players[displayplayer[a_PID]];
+	ConsoleP = &players[g_Splits[a_PID].Console];
+	DisplayP = &players[g_Splits[a_PID].Display];
 	
 	/* Get profile of player */
 	Profile = ConsoleP->ProfileEx;

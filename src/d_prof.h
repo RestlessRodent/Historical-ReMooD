@@ -206,10 +206,6 @@ typedef struct D_ProfileEx_s
 
 /*** GLOBALS ***/
 
-extern bool_t g_JoyPortBound[MAXSPLITSCREEN];	// Port Bound
-extern uint32_t g_JoyPortID[MAXSPLITSCREEN];			// Joy attached to port
-extern D_ProfileEx_t* g_JoyPortProf[MAXSPLITSCREEN];	// Profile in port
-
 /*** FUNCTIONS ***/
 
 D_ProfileEx_t* D_CreateProfileEx(const char* const a_Name);

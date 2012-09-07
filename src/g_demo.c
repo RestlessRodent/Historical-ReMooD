@@ -234,7 +234,7 @@ bool_t G_DEMO_Vanilla_StartPlaying(struct G_CurrentDemo_s* a_Current)
 	
 	/* Setup Players */
 	memset(playeringame, 0, sizeof(playeringame));
-	memset(g_PlayerInSplit, 0, sizeof(g_PlayerInSplit));
+	memset(g_Splits, 0, sizeof(g_Splits));
 	g_SplitScreen = -1;
 	
 	// Set them all up (split-screen)
@@ -818,7 +818,7 @@ bool_t G_DEMO_Legacy_StartPlaying(struct G_CurrentDemo_s* a_Current)
 	
 	/* Setup Players */
 	memset(playeringame, 0, sizeof(playeringame));
-	memset(g_PlayerInSplit, 0, sizeof(g_PlayerInSplit));
+	memset(g_Splits, 0, sizeof(g_Splits));
 	g_SplitScreen = -1;
 	
 	// Set them all up (split-screen)
@@ -886,8 +886,8 @@ bool_t G_DEMO_Legacy_StartPlaying(struct G_CurrentDemo_s* a_Current)
 				if (ss < 4)
 				{
 					g_SplitScreen++;
-					g_PlayerInSplit[ss] = true;
-					displayplayer[ss] = consoleplayer[ss] = i;
+					g_Splits[ss].Active = true;
+					g_Splits[ss].Display = g_Splits[ss].Console = i;
 					ss++;
 				}
 		}
@@ -1443,9 +1443,10 @@ static bool_t GS_DEMO_Legacy_HandleExtraCmd(struct G_CurrentDemo_s* a_Current, c
 				if (u8a == Data->DisplayPNode)
 					if (g_SplitScreen < 3)	// 0 = 1p, 1 = 2p, 2 = 3p, 3 = 4p
 					{
-						g_PlayerInSplit[g_SplitScreen + 1] = true;
-						consoleplayer[g_SplitScreen + 1] = displayplayer[g_SplitScreen + 1] = u8b;
 						g_SplitScreen++;
+						
+						g_Splits[g_SplitScreen].Active = true;
+						g_Splits[g_SplitScreen].Display = g_Splits[g_SplitScreen].Console = u8b;
 						
 						// Recalc Split-screen
 						R_ExecuteSetViewSize();

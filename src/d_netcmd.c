@@ -168,8 +168,7 @@ const int32_t c_TCDataSize[NUMDTCT] =
 
 bool_t g_NetDev = false;						// Network Debug
 int g_SplitScreen = -1;							// Split screen players (-1 based)
-bool_t g_PlayerInSplit[MAXSPLITSCREEN] = {false, false, false, false};
-uint32_t g_SplitPlayerInstance[MAXSPLITSCREEN] = {0, 0, 0, 0};	// Split player instance
+D_SplitInfo_t g_Splits[MAXSPLITSCREEN];			// Split Information
 
 /*** LOCALS ***/
 
@@ -597,9 +596,9 @@ static bool_t GAMEKEYDOWN(D_ProfileEx_t* const a_Profile, const uint8_t a_SID, c
 	/* Check Joysticks */
 	//if (a_Profile->Flags & DPEXF_GOTJOY)
 		//if (a_Profile->JoyControl >= 0 && a_Profile->JoyControl < 4)
-	if (a_SID >= 0 && a_SID < MAXSPLITSCREEN && g_JoyPortBound[a_SID])
-		if (g_JoyPortID[a_SID] >= 1 && g_JoyPortID[a_SID] <= MAXLOCALJOYS)
-			if (l_JoyButtons[g_JoyPortID[a_SID] - 1])
+	if (a_SID >= 0 && a_SID < MAXSPLITSCREEN && g_Splits[a_SID].JoyBound)
+		if (g_Splits[a_SID].JoyID >= 1 && g_Splits[a_SID].JoyID <= MAXLOCALJOYS)
+			if (l_JoyButtons[g_Splits[a_SID].JoyID - 1])
 				for (i = 0; i < 4; i++)
 					if ((a_Profile->Ctrls[a_Key][i] & 0xF000) == 0x1000)
 					{
@@ -608,7 +607,7 @@ static bool_t GAMEKEYDOWN(D_ProfileEx_t* const a_Profile, const uint8_t a_SID, c
 				
 						// Button pressed?
 						if (CurrentButton >= 0 && CurrentButton < 32)
-							if (l_JoyButtons[g_JoyPortID[a_SID] - 1] & (1 << CurrentButton))
+							if (l_JoyButtons[g_Splits[a_SID].JoyID - 1] & (1 << CurrentButton))
 								return true;
 					}
 				
@@ -684,12 +683,12 @@ static void D_NCSLocalBuildTicCmd(D_NetPlayer_t* const a_NPp, ticcmd_t* const a_
 	
 	/* Find Screen ID */
 	for (SID = 0; SID < MAXSPLITSCREEN; SID++)
-		if (g_PlayerInSplit[SID])
-			if (consoleplayer[SID] == PID)
+		if (g_Splits[SID].Active)
+			if (g_Splits[SID].Console == PID)
 				break;
 	
 	// No player here?
-	if (!g_PlayerInSplit[SID])
+	if (!g_Splits[SID].Active)
 		return;
 	
 	// Not found?
@@ -739,12 +738,12 @@ static void D_NCSLocalBuildTicCmd(D_NetPlayer_t* const a_NPp, ticcmd_t* const a_
 	
 	/* Player has joystick input? */
 	// Read input for all axis
-	if (SID >= 0 && SID < MAXSPLITSCREEN && g_JoyPortBound[SID])
-		if (g_JoyPortID[SID] >= 1 && g_JoyPortID[SID] <= MAXLOCALJOYS)
+	if (SID >= 0 && SID < MAXSPLITSCREEN && g_Splits[SID].JoyBound)
+		if (g_Splits[SID].JoyID >= 1 && g_Splits[SID].JoyID <= MAXLOCALJOYS)
 			for (i = 0; i < MAXJOYAXIS; i++)
 			{
 				// Modify with sensitivity
-				TargetMove = ((float)l_JoyAxis[g_JoyPortID[SID] - 1][i]) * (((float)Profile->JoySens[SensMod]) / 100.0);
+				TargetMove = ((float)l_JoyAxis[g_Splits[SID].JoyID - 1][i]) * (((float)Profile->JoySens[SensMod]) / 100.0);
 			
 				// Which movement to perform?
 				switch (Profile->JoyAxis[MouseMod][i])
@@ -1068,13 +1067,13 @@ static void D_NCSLocalBuildTicCmd(D_NetPlayer_t* const a_NPp, ticcmd_t* const a_
 		{
 			do
 			{
-				displayplayer[SID] = (displayplayer[SID] + 1) % MAXPLAYERS;
-			} while (!playeringame[displayplayer[SID]] || !P_PlayerOnSameTeam(&players[consoleplayer[SID]], &players[displayplayer[SID]]));
+				g_Splits[SID].Display = (g_Splits[SID].Display + 1) % MAXPLAYERS;
+			} while (!playeringame[g_Splits[SID].Display] || !P_PlayerOnSameTeam(&players[g_Splits[SID].Console], &players[g_Splits[SID].Display]));
 			
 			// Print Message
 			CONL_PrintF("%sYou are now watching %s.\n",
 					(SID == 3 ? "\x6" : (SID == 2 ? "\x5" : (SID == 1 ? "\x4" : ""))),
-					(displayplayer[SID] == consoleplayer[SID] ? "Yourself" : D_NCSGetPlayerName(displayplayer[SID]))
+					(g_Splits[SID].Display == g_Splits[SID].Console ? "Yourself" : D_NCSGetPlayerName(g_Splits[SID].Display))
 				);
 			
 			// Reset timeout
@@ -1143,8 +1142,8 @@ void D_NCSNetUpdateSingle(struct player_s* a_Player)
 	
 	// Get Screen ID
 	for (SID = 0; SID < MAXSPLITSCREEN; SID++)
-		if (g_PlayerInSplit[SID])
-			if (PID == consoleplayer[SID])
+		if (g_Splits[SID].Active)
+			if (PID == g_Splits[SID].Console)
 				break;
 	
 	// More checks
@@ -1296,7 +1295,7 @@ void D_NCSNetTicTransmit(D_NetPlayer_t* const a_NPp, ticcmd_t* const a_TicCmd)
 	/* Determine Local Screen */
 	PNum = (a_NPp->Player - players);
 	for (SID = 0; SID < MAXSPLITSCREEN; SID++)
-		if (g_PlayerInSplit[SID] && (a_NPp->Player - players) == consoleplayer[SID])
+		if (g_Splits[SID].Active && (a_NPp->Player - players) == g_Splits[SID].Console)
 			break;
 		
 	/* Create Synthetic OSK Events */
@@ -1547,7 +1546,7 @@ int8_t D_NCSFindSplitByProcess(const uint32_t a_ID)
 	/* Loop */
 	for (i = 0; i < MAXSPLITSCREEN; i++)
 		if (g_Splits[i].Active)
-			if (g_SplitPlayerInstance[i] == a_ID)
+			if (g_Splits[i].ProcessID == a_ID)
 				return i;
 	
 	/* Not found */

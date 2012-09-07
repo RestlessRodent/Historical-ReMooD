@@ -1754,10 +1754,6 @@ extern bool_t g_PaintBallMode;
 
 #define MAXPORTJOYS				MAXJOYSTICKS	// Max joys supported here (auto)
 
-bool_t g_JoyPortBound[MAXSPLITSCREEN] = {0, 0, 0, 0};	// Port Bound
-uint32_t g_JoyPortID[MAXSPLITSCREEN];			// Joy attached to port
-D_ProfileEx_t* g_JoyPortProf[MAXSPLITSCREEN] = {NULL, NULL, NULL, NULL};	// Profile in port
-
 static int16_t l_JoyLastAxis[MAXPORTJOYS][3];
 static int8_t l_JoyMagicAt;
 static int32_t l_JoyMagicTime;
@@ -1769,7 +1765,7 @@ bool_t D_JoyPortsEmpty(void)
 	
 	/* Run through */
 	for (i = 0; i < MAXSPLITSCREEN; i++)
-		if (g_JoyPortBound[i])
+		if (g_Splits[i].JoyBound)
 			return false;	// Bound
 	
 	/* Ports all empty */
@@ -1784,8 +1780,8 @@ uint32_t D_PortToJoy(const uint8_t a_PortID)
 		return 0;
 	
 	/* Only if bound */
-	if (g_JoyPortBound[a_PortID])
-		return g_JoyPortID[a_PortID];
+	if (g_Splits[a_PortID].JoyBound)
+		return g_Splits[a_PortID].JoyBound;
 	
 	/* Not Bound */
 	return 0;
@@ -1802,8 +1798,8 @@ uint8_t D_JoyToPort(const uint32_t a_JoyID)
 	
 	/* Look in list */
 	for (i = 0; i < MAXSPLITSCREEN; i++)
-		if (g_JoyPortBound[i])
-			if (g_JoyPortID[i] == a_JoyID)
+		if (g_Splits[i].JoyBound)
+			if (g_Splits[i].JoyID == a_JoyID)
 				return i + 1;
 	
 	/* Not found */
@@ -1825,8 +1821,8 @@ void D_JoySpecialTicker(void)
 		if (!g_Splits[i].Active)
 		{
 			// Unbound?
-			if (!g_JoyPortBound[i])
-				g_JoyPortProf[i] = NULL;
+			if (!g_Splits[i].JoyBound)
+				g_Splits[i].Profile = NULL;
 			
 			// ???
 			else
@@ -1837,17 +1833,17 @@ void D_JoySpecialTicker(void)
 		else if (!demoplayback)
 		{
 			// Not bound? Give it something illegal (keyboard/mouse player?)
-			if (!g_JoyPortBound[i])
+			if (!g_Splits[i].JoyBound)
 			{
-				g_JoyPortBound[i] = true;
-				g_JoyPortID[i] = INT_MAX;	// Illegal joystick
+				g_Splits[i].JoyBound = true;
+				g_Splits[i].JoyID = INT_MAX;	// Illegal joystick
 			}
 			
 			// No Profile?
-			if (!g_JoyPortProf[i])
+			if (!g_Splits[i].Profile)
 				// Set from player
 				if (players[g_Splits[i].Console].ProfileEx)
-					g_JoyPortProf[i] = players[g_Splits[i].Console].ProfileEx;
+					g_Splits[i].Profile = players[g_Splits[i].Console].ProfileEx;
 				
 				// Annoy with prompt
 				else
@@ -1856,7 +1852,7 @@ void D_JoySpecialTicker(void)
 		}
 		
 		// Choose location
-		if (!g_JoyPortBound[i] && !g_JoyPortProf[i])
+		if (!g_Splits[i].JoyBound && !g_Splits[i].Profile)
 			if (l_JoyMagicAt == MAXSPLITSCREEN)
 				l_JoyMagicAt = i;
 	}
@@ -1913,14 +1909,14 @@ void D_JoySpecialDrawer(void)
 			tX = 5;
 		
 		// Player is here (with some profile)
-		if (g_JoyPortBound[i] || (!demoplayback && g_Splits[i].Active))
+		if (g_Splits[i].JoyBound || (!demoplayback && g_Splits[i].Active))
 		{
 			// Set Ok
 			LastOK = true;
 			
 			// Set string to their name
-			if (g_JoyPortProf[i])
-				TextString = g_JoyPortProf[i]->DisplayName;
+			if (g_Splits[i].Profile)
+				TextString = g_Splits[i].Profile->DisplayName;
 			else
 				TextString = "Choose!";
 			snprintf(Buf, BUFSIZE, "{x7%iP%i:{z %s", i, i + 1, TextString);
@@ -1996,13 +1992,10 @@ bool_t D_JoySpecialEvent(const I_EventEx_t* const a_Event)
 	else
 		RealPlayer = ForPlayer;
 	
-	if (devparm)
-		CONL_PrintF("FP = %i, RP = %i, JID = %i, BND = {%i, %i, %i, %i}\n", ForPlayer, RealPlayer, JoyID, g_JoyPortBound[0], g_JoyPortBound[1], g_JoyPortBound[2], g_JoyPortBound[3]);
-	
 	/* Magic Joystick Combination */
 	// Only the first 8 joysticks support magic combos
 	if (l_JoyMagicAt != MAXSPLITSCREEN && !D_JoyToPort(JoyID + 1))
-		if (ForPlayer == (MAXSPLITSCREEN + 1) || !g_JoyPortBound[RealPlayer])
+		if (ForPlayer == (MAXSPLITSCREEN + 1) || !g_Splits[RealPlayer].JoyBound)
 		{
 			// Out of bounds?
 			if (JoyID >= MAXPORTJOYS - 1)
@@ -2037,7 +2030,7 @@ bool_t D_JoySpecialEvent(const I_EventEx_t* const a_Event)
 		}
 	
 	/* Synthetic OSK Events */
-	if (ForPlayer == (MAXSPLITSCREEN + 1) || g_JoyPortBound[ForPlayer - 1])
+	if (ForPlayer == (MAXSPLITSCREEN + 1) || g_Splits[ForPlayer - 1].JoyBound)
 	{
 		//CONL_PrintF("Synth\n");
 	}
@@ -2084,6 +2077,7 @@ void D_DoomMain(void)
 	memset(player_names, 0, sizeof(player_names));
 	memset(team_names, 0, sizeof(team_names));
 	memset(players, 0, sizeof(players));
+	memset(g_Splits, 0, sizeof(g_Splits));
 	for (i = 0; i < MAXPLAYERS; i++)
 	{
 		sprintf(player_names[i], "Player %i", i + 1);

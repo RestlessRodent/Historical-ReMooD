@@ -119,8 +119,6 @@ bool_t localgame;
 bool_t playeringame[MAXPLAYERS];
 player_t players[MAXPLAYERS];
 
-int consoleplayer[MAXSPLITSCREENPLAYERS];	// player taking events and displaying
-int displayplayer[MAXSPLITSCREENPLAYERS];	// view being displayed
 int secondarydisplayplayer;		// for splitscreen
 int statusbarplayer;			// player who's statusbar is displayed
 
@@ -592,7 +590,7 @@ void GS_HandleExtraCommands(ticcmd_t* const a_TicCmd, const int32_t a_PlayerNum)
 								// See if there is room in a split
 								for (SplitNum = 0;
 									SplitNum < (g_SplitScreen + 1); SplitNum++)
-									if (!g_PlayerInSplit[SplitNum])
+									if (!g_Splits[SplitNum].Active)
 									{
 										LegalMove = true;
 										break;
@@ -649,9 +647,10 @@ void GS_HandleExtraCommands(ticcmd_t* const a_TicCmd, const int32_t a_PlayerNum)
 					// Finish off split screen
 					if ((NC && NC->IsLocal && LegalMove) || (demoplayback && OK))
 					{
-						g_PlayerInSplit[SplitNum] = true;
-						consoleplayer[SplitNum] =
-							displayplayer[SplitNum] = u16[0];
+						g_Splits[SplitNum].Active = true;
+						g_Splits[SplitNum].Display = 
+							g_Splits[SplitNum].Console = u16[0];
+						
 						R_ExecuteSetViewSize();
 					}
 				}

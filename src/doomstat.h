@@ -159,10 +159,6 @@ extern int scaledviewwidth;
 // ANG90 = left side, ANG270 = right
 extern int viewangleoffset;
 
-// Player taking events, and displaying.
-extern int consoleplayer[MAXSPLITSCREENPLAYERS];
-extern int displayplayer[MAXSPLITSCREENPLAYERS];
-
 //added:16-01-98: player from which the statusbar displays the infos.
 extern int statusbarplayer;
 
