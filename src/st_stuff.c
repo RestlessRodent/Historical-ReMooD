@@ -713,36 +713,36 @@ void ST_DrawPlayerBarsEx(void)
 	/* Draw each player */
 	for (p = 0; p < (g_SplitScreen < 0 ? 1 : g_SplitScreen + 1); p++)
 	{
-		// Split player not active?
-		if (!g_Splits[p].Active)
-			continue;
-		
-		// Get players to draw for
-		ConsoleP = &players[g_Splits[p].Console];
-		DisplayP = &players[g_Splits[p].Display];
-		
-		// Display player not in game?
-		if (!playeringame[DisplayP - players])
-			DisplayP = ConsoleP;
-	
-		// Console player not in game?
-		if (!playeringame[ConsoleP - players])
-			continue;
-	
-		// Modify palette?
-		if (g_SplitScreen <= 0)	// Only 1 player inside
+		// Split player active
+		if (g_Splits[p].Active)
 		{
-			if (LastPal != DisplayP->PalChoice)
+			// Get players to draw for
+			ConsoleP = &players[g_Splits[p].Console];
+			DisplayP = &players[g_Splits[p].Display];
+		
+			// Display player not in game?
+			if (!playeringame[DisplayP - players])
+				DisplayP = ConsoleP;
+	
+			// Console player not in game?
+			if (!playeringame[ConsoleP - players])
+				continue;
+	
+			// Modify palette?
+			if (g_SplitScreen <= 0)	// Only 1 player inside
 			{
-				V_SetPalette(DisplayP->PalChoice);
-				LastPal = DisplayP->PalChoice;
+				if (LastPal != DisplayP->PalChoice)
+				{
+					V_SetPalette(DisplayP->PalChoice);
+					LastPal = DisplayP->PalChoice;
+				}
 			}
+	
+			// Draw Bar
+			STS_DrawPlayerBarEx(p, x, y, w, h);
 		}
 	
-		// Draw Bar
-		STS_DrawPlayerBarEx(p, x, y, w, h);
-	
-		// Add to coords (finished drawing everything)
+		// Add to coords (finished drawing everything, or not drawn at all)
 		if (g_SplitScreen == 1)
 			y += h;
 		else if (g_SplitScreen > 1)

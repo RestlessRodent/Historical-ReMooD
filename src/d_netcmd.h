@@ -144,9 +144,6 @@ extern bool_t g_NetDev;
 
 /*** FUNCTIONS ***/
 
-struct player_s* D_NCSAddLocalPlayer(const char* const a_ProfileID);
-struct player_s* D_NCSAddBotPlayer(const char* const a_ProfileID);
-
 void D_NCSInit(void);
 void D_NCSNetUpdateSingle(struct player_s* a_Player);
 void D_NCSNetUpdateAll(void);

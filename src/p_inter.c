@@ -76,6 +76,11 @@ weapontype_t P_PlayerBestWeapon(player_t* const a_Player, const bool_t a_Best)
 		if (!P_WeaponIsUnlocked(i))
 			continue;
 		
+		// No Ammo?
+		if (a_Player->weaponinfo[i]->ammo != am_noammo)
+			if (a_Player->ammo[a_Player->weaponinfo[i]->ammo] <= 0)
+				continue;
+		
 		// Find slot where this weapon is
 		for (j = 0; j < NUMWEAPONS; j++)
 			if (a_Player->FavoriteWeapons[j] == i)
