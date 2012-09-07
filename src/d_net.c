@@ -131,7 +131,9 @@ extern CONL_StaticVar_t l_CONPauseGame;
 // INCREMENTED AT ALL.
 bool_t D_SyncNetIsPaused(void)
 {
-	if (D_SyncNetIsSolo() && !demoplayback && ((M_ExUIActive() && g_ResumeMenu <= 0) || (l_CONPauseGame.Value->Int && CONL_IsActive())))
+	if (D_SyncNetIsSolo() && !demoplayback &&
+		((M_ExAllUIActive() && g_ResumeMenu <= 0)
+			|| (l_CONPauseGame.Value->Int && CONL_IsActive())))
 	{
 		// Appeal to the time code so the game doesn't speed up
 		D_SyncNetAppealTime();

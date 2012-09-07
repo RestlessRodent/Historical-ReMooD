@@ -465,8 +465,20 @@ static uint8_t DS_NCSNextWeapon(player_t* player, int step)
 /* GAMEKEYDOWN() -- Checks if a key is down */
 static bool_t GAMEKEYDOWN(D_ProfileEx_t* const a_Profile, const uint8_t a_SID, const uint8_t a_Key)
 {
+	static bool_t Recoursed;
+	bool_t MoreDown;
 	size_t i;
 	uint32_t CurrentButton;
+	
+	/* Determine if more key is down */
+	// But do not infinite loop here
+	MoreDown = false;
+	if (!Recoursed)
+	{
+		Recoursed = true;
+		MoreDown = GAMEKEYDOWN(a_Profile, a_SID, DPEXIC_MORESTUFF);
+		Recoursed = false;
+	}
 	
 	/* Check Keyboard */
 	for (i = 0; i < 4; i++)
@@ -481,7 +493,7 @@ static bool_t GAMEKEYDOWN(D_ProfileEx_t* const a_Profile, const uint8_t a_SID, c
 		if (g_Splits[a_SID].JoyID >= 1 && g_Splits[a_SID].JoyID <= MAXLOCALJOYS)
 			if (l_JoyButtons[g_Splits[a_SID].JoyID - 1])
 				for (i = 0; i < 4; i++)
-					if ((a_Profile->Ctrls[a_Key][i] & 0xF000) == 0x1000)
+					if ((a_Profile->Ctrls[a_Key][i] & 0xF000) == (MoreDown ? 0x4000 : 0x1000))
 					{
 						// Get current button
 						CurrentButton = (a_Profile->Ctrls[a_Key][i] & 0x00FF);
@@ -498,7 +510,7 @@ static bool_t GAMEKEYDOWN(D_ProfileEx_t* const a_Profile, const uint8_t a_SID, c
 			for (i = 0; i < 4; i++)
 			{
 				// Single
-				if ((a_Profile->Ctrls[a_Key][i] & 0xF000) == 0x2000)
+				if ((a_Profile->Ctrls[a_Key][i] & 0xF000) == (MoreDown ? 0x5000 : 0x2000))
 				{
 					// Get current button
 					CurrentButton = (a_Profile->Ctrls[a_Key][i] & 0x00FF);
@@ -510,7 +522,7 @@ static bool_t GAMEKEYDOWN(D_ProfileEx_t* const a_Profile, const uint8_t a_SID, c
 				}
 		
 				// Double
-				if ((a_Profile->Ctrls[a_Key][i] & 0xF000) == 0x4000)
+				if ((a_Profile->Ctrls[a_Key][i] & 0xF000) == (MoreDown ? 0x6000 : 0x3000))
 				{
 					// Get current button
 					CurrentButton = (a_Profile->Ctrls[a_Key][i] & 0x00FF);
@@ -1195,9 +1207,8 @@ void D_NCSNetTicTransmit(D_NetPlayer_t* const a_NPp, ticcmd_t* const a_TicCmd)
 	/* Create Synthetic OSK Events */
 	// Moved high up in the event chain since this really does not belong here.
 	// And this was a cheap hack to begin with anyway.
-#if 0
-	// But never do it for bots
-	if (a_NPp->Type == DNPT_LOCAL)
+	// But never do it for bots, and only for those without joys
+	if (a_NPp->Type == DNPT_LOCAL && !g_Splits[SID].JoyBound)
 		if (CONL_OSKIsActive(SID) || M_ExPlayerUIActive(SID))
 		{
 			// These are player movement based
@@ -1231,7 +1242,6 @@ void D_NCSNetTicTransmit(D_NetPlayer_t* const a_NPp, ticcmd_t* const a_TicCmd)
 			// OSK is active, so don't continue any further
 			return;
 		}
-#endif
 	
 	// Add local command to end
 	a_NPp->TicCmd[a_NPp->TicTotal++] = *a_TicCmd;

@@ -130,6 +130,7 @@ extern int32_t g_ResumeMenu;					// Resume menu for n tics
 
 void M_MenuExInit(void);
 
+bool_t M_ExAllUIActive(void);
 bool_t M_ExPlayerUIActive(const uint32_t a_Player);
 bool_t M_ExUIActive(void);
 

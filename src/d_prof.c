@@ -115,6 +115,10 @@ static const struct
 	{"topscores", "Show Top Scores", DPEXIC_TOPSCORES},
 	{"worstscores", "Show Worst Scores", DPEXIC_BOTTOMSCORES},
 	{"coopspy", "Switch Cooperative Spy Player", DPEXIC_COOPSPY},
+	{"automap",	"Toggle the Automap", DPEXIC_AUTOMAP},
+	{"chatmode", "Enter Chat Mode", DPEXIC_CHATMODE},
+	{"popupmenu", "Show the Menu", DPEXIC_POPUPMENU},
+	{"morestuff", "More Commands Modifier", DPEXIC_MORESTUFF},
 };
 
 /* c_ProfDataStat -- Simplified config space */
@@ -198,8 +202,9 @@ D_ProfileEx_t* D_CreateProfileEx(const char* const a_Name)
 #define SETKEY_M(a,b) a##b
 #define SETKEY(c,k) l_DefaultCtrls[SETKEY_M(DPEXIC_,c)][0] = (SETKEY_M(IKBK_,k))
 #define SETJOY(c,b) l_DefaultCtrls[SETKEY_M(DPEXIC_,c)][3] = 0x1000 | ((b) - 1)
+#define SETJOYMORE(c,b) l_DefaultCtrls[SETKEY_M(DPEXIC_,c)][3] = 0x4000 | ((b) - 1)
 #define SETMOUSE(c,b) l_DefaultCtrls[SETKEY_M(DPEXIC_,c)][1] = 0x2000 | ((b) - 1)
-#define SETDBLMOUSE(c,b) l_DefaultCtrls[SETKEY_M(DPEXIC_,c)][2] = 0x4000 | ((b) - 1)
+#define SETDBLMOUSE(c,b) l_DefaultCtrls[SETKEY_M(DPEXIC_,c)][2] = 0x3000 | ((b) - 1)
 		
 		SETMOUSE(ATTACK, 1);
 		SETMOUSE(MOVEMENT, 2);
@@ -252,6 +257,31 @@ D_ProfileEx_t* D_CreateProfileEx(const char* const a_Name)
 		SETJOY(USE, 2);
 		SETJOY(MOVEMENT, 3);
 		SETJOY(SPEED, 4);
+		
+		SETJOY(STRAFELEFT, 5);
+		SETJOY(STRAFERIGHT, 6);
+		
+		SETJOY(PREVWEAPON, 7);
+		SETJOY(NEXTWEAPON, 8);
+		
+		SETJOY(MORESTUFF, 9);
+		SETJOY(POPUPMENU, 10);
+		
+		SETJOY(JUMP, 11);
+		
+		// More Joystick Buttons (with more key)
+		SETJOYMORE(TOPSCORES, 1);
+		SETJOYMORE(COOPSPY, 2);
+		SETJOYMORE(AUTOMAP, 3);
+		SETJOYMORE(USEINVENTORY, 4);
+		
+		SETJOYMORE(RELOAD, 5);
+		SETJOYMORE(SWITCHFIREMODE, 6);
+		
+		SETJOYMORE(PREVINVENTORY, 7);
+		SETJOYMORE(NEXTINVENTORY, 8);
+		
+		SETJOYMORE(CHATMODE, 10);
 		
 		// Now set
 		l_DefaultCtrlsMapped = true;
@@ -382,8 +412,20 @@ static void DS_KeyCodeToStr(char* const a_Dest, const size_t a_Size, const uint3
 		snprintf(a_Dest, a_Size, "mouseb%02i", (int)((a_Code & 0xFFF) - 1));
 	
 	/* Double Mouse */
-	else if (a_Code & 0x4000)
+	else if (a_Code & 0x3000)
 		snprintf(a_Dest, a_Size, "dblmouseb%02i", (int)((a_Code & 0xFFF) - 1));
+		
+	/* More Joystick */
+	else if (a_Code & 0x4000)
+		snprintf(a_Dest, a_Size, "morejoyb%02i", (int)((a_Code & 0xFFF) - 1));
+	
+	/* More Mouse */
+	else if (a_Code & 0x5000)
+		snprintf(a_Dest, a_Size, "moremouseb%02i", (int)((a_Code & 0xFFF) - 1));
+	
+	/* More Double Mouse */
+	else if (a_Code & 0x6000)
+		snprintf(a_Dest, a_Size, "moredblmouseb%02i", (int)((a_Code & 0xFFF) - 1));
 	
 	/* Keyboard */
 	else if (a_Code >= 0 && a_Code < NUMIKEYBOARDKEYS)
@@ -417,7 +459,19 @@ static uint32_t DS_KeyStrToCode(const char* const a_Str)
 	
 	/* Double Mouse Buttons */
 	else if (strncasecmp(a_Str, "dblmouseb", 9) == 0)
-		return 0x4000 | (C_strtou32(a_Str + 9, NULL, 10) + 1);
+		return 0x3000 | (C_strtou32(a_Str + 9, NULL, 10) + 1);
+		
+	/* More Joystick Buttons */
+	else if (strncasecmp(a_Str, "morejoyb", 8) == 0)
+		return 0x4000 | (C_strtou32(a_Str + 4, NULL, 10) + 1);
+	
+	/* More Mouse Buttons */
+	else if (strncasecmp(a_Str, "moremouseb", 10) == 0)
+		return 0x5000 | (C_strtou32(a_Str + 6, NULL, 10) + 1);
+	
+	/* More Double Mouse Buttons */
+	else if (strncasecmp(a_Str, "moredblmouseb", 13) == 0)
+		return 0x6000 | (C_strtou32(a_Str + 9, NULL, 10) + 1);
 	
 	/* Keyboard Keys */
 	else

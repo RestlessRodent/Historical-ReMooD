@@ -134,6 +134,10 @@ typedef enum D_ProfileExInputCtrl_e
 	DPEXIC_TOPSCORES,							// Show the best players
 	DPEXIC_BOTTOMSCORES,						// Show the worst players
 	DPEXIC_COOPSPY,								// Coop Spy
+	DPEXIC_AUTOMAP,								// Toggle Automap
+	DPEXIC_CHATMODE,							// Chat Mode
+	DPEXIC_POPUPMENU,							// Popup the menu
+	DPEXIC_MORESTUFF,							// Access to more stuff
 	
 	NUMDPROFILEEXINPUTCTRLS
 } D_ProfileExInputCtrl_t;

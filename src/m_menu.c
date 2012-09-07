@@ -76,8 +76,10 @@
 
 /*** CONSTANTS ***/
 
-#define __REMOOD_FORCESINGLE (demoplayback || gamestate == GS_DEMOSCREEN)
-#define __REMOOD_NUMSPLITS (__REMOOD_FORCESINGLE ? 1 : (g_SplitScreen > 0 ? g_SplitScreen + 1 : 1))
+//#define __REMOOD_FORCESINGLE (demoplayback || gamestate == GS_DEMOSCREEN)
+//#define __REMOOD_NUMSPLITS (__REMOOD_FORCESINGLE ? 1 : (g_SplitScreen > 0 ? g_SplitScreen + 1 : 1))
+
+#define __REMOOD_NUMSPLITS (MS_NumScrSplits())
 
 #define MAXUIBUTTONS 32
 
@@ -162,6 +164,20 @@ CONL_StaticVar_t l_MenuCompact =
 
 /*** MENU FUNCTIONS ***/
 
+/* MS_NumScrSplits() -- Calculate True Split Count */
+static int8_t MS_NumScrSplits(void)
+{
+	int8_t Ret, i;
+	
+	/* Go through players */
+	for (i = 0; i < MAXSPLITSCREEN; i++)
+		if (!g_Splits[i].Waiting && ((demoplayback) || (!demoplayback && !g_Splits[i].Active)))
+			return i - 1;
+	
+	/* Return the max */
+	return 3;
+}
+
 int M_ExGeneralComm(const uint32_t a_ArgC, const char** const a_ArgV);
 
 /* M_MenuExInit() -- Init Menu */
@@ -186,7 +202,7 @@ bool_t M_ExMenuHandleEvent(const I_EventEx_t* const a_Event)
 	bool_t Up, DoCancel;
 	
 	/* Control for each player */
-	for (i = 0; i < __REMOOD_NUMSPLITS; i++)
+	for (i = 0; i < __REMOOD_NUMSPLITS + 1; i++)
 	{
 		// No menus for this player?
 		if (!l_NumUIMenus[i])
@@ -361,6 +377,27 @@ bool_t M_ExMenuHandleEvent(const I_EventEx_t* const a_Event)
 
 /*** MB FUNCTIONS ***/
 
+/* M_ExAllUIActive() -- Returns true if all player UIs are active */
+bool_t M_ExAllUIActive(void)
+{
+	int i, Count, Total;
+	
+	/* Go through players */
+	Count = Total = 0;
+	for (i = 0; i < MAXSPLITSCREEN; i++)
+		if ((demoplayback && g_Splits[i].Waiting) || (!demoplayback && (g_Splits[i].Waiting || g_Splits[i].Active)))
+		{
+			Total++;
+			if (M_ExPlayerUIActive(i))
+				Count++;
+		}
+	
+	/* If total is the same as count */
+	if (Total > 0 && Total == Count)
+		return true;
+	return false;
+}
+
 /* M_ExPlayerUIActive() -- This player's menu is active */
 bool_t M_ExPlayerUIActive(const uint32_t a_Player)
 {
@@ -369,7 +406,7 @@ bool_t M_ExPlayerUIActive(const uint32_t a_Player)
 		return false;
 	
 	/* Out of bounds? */
-	if (a_Player >= __REMOOD_NUMSPLITS)
+	if (a_Player >= __REMOOD_NUMSPLITS + 1)
 		return false;
 	
 	/* Return active state */
@@ -386,7 +423,7 @@ bool_t M_ExUIActive(void)
 		return true;
 	
 	/* Check menu count as per drawer/handler rules */
-	for (i = 0; i < __REMOOD_NUMSPLITS; i++)
+	for (i = 0; i < __REMOOD_NUMSPLITS + 1; i++)
 		if (l_NumUIMenus[i])
 			return true;
 	
@@ -409,7 +446,7 @@ void M_ExMenuDrawer(void)
 	
 	/* Draw for each player */
 	DrewAMenu = false;
-	for (i = 0; i < __REMOOD_NUMSPLITS; i++)
+	for (i = 0; i < __REMOOD_NUMSPLITS + 1; i++)
 	{
 		// No menus for this player?
 		if (!l_NumUIMenus[i])
@@ -428,20 +465,20 @@ void M_ExMenuDrawer(void)
 		if (!(demoplayback || gamestate == GS_DEMOSCREEN))
 		{
 			// 2+ Split = Half Height
-			if (g_SplitScreen > 0)
+			if (__REMOOD_NUMSPLITS > 0)
 				ScrH >>= 1;
 		
 			// 3+ Split = Half Width
-			if (g_SplitScreen > 1)
+			if (__REMOOD_NUMSPLITS > 1)
 				ScrW >>= 1;
 		
 			// Modify h/w?
 				// 2 player
-			if (g_SplitScreen == 1)
+			if (__REMOOD_NUMSPLITS == 1)
 				ScrY = ScrH * (i & 1);
 		
 				// 3/4 player
-			else if (g_SplitScreen > 1)
+			else if (__REMOOD_NUMSPLITS > 1)
 			{
 				ScrX = ScrW * (i & 1);
 				ScrY = ScrH * ((i >> 1) & 1);
