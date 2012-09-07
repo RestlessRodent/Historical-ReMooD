@@ -263,6 +263,7 @@ typedef struct
 	char* RGenericMissile;						// Generic Monster Missile Attack
 	
 	INFO_BotObjMetric_t RBotMetric;				// Metric for bot
+	char* RSNiceName;							// Short Nice Name
 } mobjinfo_t;
 
 extern mobjinfo_t** mobjinfo;

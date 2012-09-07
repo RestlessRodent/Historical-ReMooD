@@ -947,6 +947,7 @@ void D_NCDisconnect(void)
 				
 				// Free it
 				Z_Free(l_Clients[i]->Arbs);
+				l_Clients[i]->Arbs = NULL;
 				l_Clients[i]->NumArbs = 0;
 			}
 			

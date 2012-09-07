@@ -400,7 +400,8 @@ bool_t INFO_RMODH_MapObjects(Z_Table_t* const a_Table, const WL_WADFile_t* const
 		CONL_EarlyBootTic(Value, true);
 	
 	// String Values
-	ThisObject.RNiceName = D_RMODGetValueString(a_Table, "NiceName", NULL);
+	ThisObject.RNiceName = D_RMODGetValueString(a_Table, "NiceName", ThisObject.RClassName);
+	ThisObject.RSNiceName = D_RMODGetValueString(a_Table, "ShortNiceName", ThisObject.RNiceName);
 	ThisObject.RMTName = D_RMODGetValueString(a_Table, "MTName", NULL);
 	ThisObject.RDropClass = D_RMODGetValueString(a_Table, "DropsClass", NULL);
 	ThisObject.RFamilyClass = D_RMODGetValueString(a_Table, "BaseFamily", NULL);

@@ -24,6 +24,7 @@
 MapObject "DoomPlayer"
 {
 	NiceName "The Doom Guy";
+	ShortNiceName "Marine";
 	DoomEdNum "-1";
 	DeHackEdNum "0";
 	MTName "MT_PLAYER";
@@ -399,6 +400,7 @@ MapObject "DoomPlayer"
 MapObject "Zombieman"
 {
 	NiceName "Zombieman";
+	ShortNiceName "Zombieman";
 	DoomEdNum "3004";
 	DeHackEdNum "1";
 	MTName "MT_POSSESSED";
@@ -800,6 +802,7 @@ MapObject "Zombieman"
 MapObject "Sergeant"
 {
 	NiceName "Shotgun Sergeant";
+	ShortNiceName "Sergeant";
 	DoomEdNum "9";
 	DeHackEdNum "2";
 	MTName "MT_SHOTGUY";
@@ -1212,6 +1215,7 @@ MapObject "Sergeant"
 MapObject "Archvile"
 {
 	NiceName "Arch-Vile";
+	ShortNiceName "Vile";
 	DoomEdNum "64";
 	DeHackEdNum "3";
 	MTName "MT_VILE";
@@ -1706,6 +1710,7 @@ MapObject "Archvile"
 MapObject "VileFire"
 {
 	NiceName "Arch-Vile Fire";
+	ShortNiceName "Fire";
 	DoomEdNum "-1";
 	DeHackEdNum "4";
 	MTName "MT_FIRE";
@@ -2124,6 +2129,7 @@ MapObject "VileFire"
 MapObject "Revenant"
 {
 	NiceName "Revenant";
+	ShortNiceName "Revenant";
 	DoomEdNum "66";
 	DeHackEdNum "5";
 	MTName "MT_UNDEAD";
@@ -2567,6 +2573,7 @@ MapObject "Revenant"
 MapObject "TracerShot"
 {
 	NiceName "Revenant Fireball";
+	ShortNiceName "Fireball";
 	DoomEdNum "-1";
 	DeHackEdNum "6";
 	MTName "MT_TRACER";
@@ -2664,6 +2671,7 @@ MapObject "TracerShot"
 MapObject "TracerSmoke"
 {
 	NiceName "Revenant Fireball Smoke";
+	ShortNiceName "Smoke";
 	DoomEdNum "-1";
 	DeHackEdNum "7";
 	MTName "MT_SMOKE";
@@ -2747,6 +2755,7 @@ MapObject "TracerSmoke"
 MapObject "Mancubus"
 {
 	NiceName "Mancubus";
+	ShortNiceName "Mancubus";
 	DoomEdNum "67";
 	DeHackEdNum "8";
 	MTName "MT_FATSO";
@@ -3269,6 +3278,7 @@ MapObject "Mancubus"
 MapObject "MancubusShot"
 {
 	NiceName "Mancubus Fireball";
+	ShortNiceName "Fireball";
 	DoomEdNum "-1";
 	DeHackEdNum "9";
 	MTName "MT_FATSHOT";
@@ -3364,6 +3374,7 @@ MapObject "MancubusShot"
 MapObject "HeavyWeaponDude"
 {
 	NiceName "Heavy Weapon Dude";
+	ShortNiceName "Gunner";
 	DoomEdNum "65";
 	DeHackEdNum "10";
 	MTName "MT_CHAINGUY";
@@ -3798,6 +3809,7 @@ MapObject "HeavyWeaponDude"
 MapObject "Imp"
 {
 	NiceName "Imp";
+	ShortNiceName "Imp";
 	DoomEdNum "3001";
 	DeHackEdNum "11";
 	MTName "MT_TROOP";
@@ -4236,6 +4248,7 @@ MapObject "Imp"
 MapObject "Demon"
 {
 	NiceName "Demon";
+	ShortNiceName "Demon";
 	DoomEdNum "3002";
 	DeHackEdNum "12";
 	MTName "MT_SERGEANT";
@@ -4585,6 +4598,7 @@ MapObject "Demon"
 MapObject "Specter"
 {
 	NiceName "Specter";
+	ShortNiceName "Specter";
 	DoomEdNum "58";
 	DeHackEdNum "13";
 	MTName "MT_SHADOWS";
@@ -4935,6 +4949,7 @@ MapObject "Specter"
 MapObject "Cacodemon"
 {
 	NiceName "Cacodemon";
+	ShortNiceName "Caco";
 	DoomEdNum "3005";
 	DeHackEdNum "14";
 	MTName "MT_HEAD";
@@ -5196,6 +5211,7 @@ MapObject "Cacodemon"
 MapObject "BaronOfHell"
 {
 	NiceName "Baron of Hell";
+	ShortNiceName "Baron";
 	DoomEdNum "3003";
 	DeHackEdNum "15";
 	MTName "MT_BRUISER";
@@ -5592,6 +5608,7 @@ MapObject "BaronOfHell"
 MapObject "BaronShot"
 {
 	NiceName "Baron of Hell Fireball";
+	ShortNiceName "Fireball";
 	DoomEdNum "-1";
 	DeHackEdNum "16";
 	MTName "MT_BRUISERSHOT";
@@ -5690,6 +5707,7 @@ MapObject "BaronShot"
 MapObject "HellKnight"
 {
 	NiceName "Hell Knight";
+	ShortNiceName "Knight";
 	DoomEdNum "69";
 	DeHackEdNum "17";
 	MTName "MT_KNIGHT";
@@ -6084,6 +6102,7 @@ MapObject "HellKnight"
 MapObject "LostSoul"
 {
 	NiceName "Lost Soul";
+	ShortNiceName "Soul";
 	DoomEdNum "3006";
 	DeHackEdNum "18";
 	MTName "MT_SKULL";
@@ -6333,6 +6352,7 @@ MapObject "LostSoul"
 MapObject "Spiderdemon"
 {
 	NiceName "Spider Mastermind";
+	ShortNiceName "Spider";
 	DoomEdNum "7";
 	DeHackEdNum "19";
 	MTName "MT_SPIDER";
@@ -6718,6 +6738,7 @@ MapObject "Spiderdemon"
 MapObject "Arachnotron"
 {
 	NiceName "Arachnotron";
+	ShortNiceName "Arach.";
 	DoomEdNum "68";
 	DeHackEdNum "20";
 	MTName "MT_BABY";
@@ -7405,6 +7426,7 @@ MapObject "Arachnotron"
 MapObject "Cyberdemon"
 {
 	NiceName "Cyberdemon";
+	ShortNiceName "Cyber";
 	DoomEdNum "16";
 	DeHackEdNum "21";
 	MTName "MT_CYBORG";
@@ -7746,6 +7768,7 @@ MapObject "Cyberdemon"
 MapObject "PainElemental"
 {
 	NiceName "Pain Elemental";
+	ShortNiceName "Pain";
 	DoomEdNum "71";
 	DeHackEdNum "22";
 	MTName "MT_PAIN";
@@ -8070,6 +8093,7 @@ MapObject "PainElemental"
 MapObject "WolfSS"
 {
 	NiceName "Wolfenstein Schutzstaffel";
+	ShortNiceName "Nazi";
 	DoomEdNum "84";
 	DeHackEdNum "23";
 	MTName "MT_WOLFSS";
@@ -8516,6 +8540,7 @@ MapObject "WolfSS"
 MapObject "CommanderKeen"
 {
 	NiceName "Commander Keen";
+	ShortNiceName "Keen";
 	DoomEdNum "72";
 	DeHackEdNum "24";
 	MTName "MT_KEEN";
@@ -8711,6 +8736,7 @@ MapObject "CommanderKeen"
 MapObject "BossBrain"
 {
 	NiceName "Icon of Sin";
+	ShortNiceName "Icon";
 	DoomEdNum "88";
 	DeHackEdNum "25";
 	MTName "MT_BOSSBRAIN";
@@ -8813,6 +8839,7 @@ MapObject "BossBrain"
 MapObject "BossCubeSpitter"
 {
 	NiceName "Icon of Sin Cube Shooter";
+	ShortNiceName "Cube Shooter";
 	DoomEdNum "89";
 	DeHackEdNum "26";
 	MTName "MT_BOSSSPIT";
@@ -8877,6 +8904,7 @@ MapObject "BossCubeSpitter"
 MapObject "BossSpawnSpot"
 {
 	NiceName "Icon of Sin Spawn Spot";
+	ShortNiceName "Spawn Spot";
 	DoomEdNum "87";
 	DeHackEdNum "27";
 	MTName "MT_BOSSTARGET";
@@ -8905,6 +8933,7 @@ MapObject "BossSpawnSpot"
 MapObject "BossSpawnCube"
 {
 	NiceName "Icon of Sin Cube";
+	ShortNiceName "Cube";
 	DoomEdNum "-1";
 	DeHackEdNum "28";
 	MTName "MT_SPAWNSHOT";
@@ -8986,6 +9015,7 @@ MapObject "BossSpawnCube"
 MapObject "BossSpawnFire"
 {
 	NiceName "Icon of Sin Spawn Fire";
+	ShortNiceName "Fire";
 	DoomEdNum "-1";
 	DeHackEdNum "29";
 	MTName "MT_SPAWNFIRE";
@@ -9118,6 +9148,7 @@ MapObject "BossSpawnFire"
 MapObject "ExplosiveBarrel"
 {
 	NiceName "Explosive Barrel";
+	ShortNiceName "Barrel";
 	DoomEdNum "2035";
 	DeHackEdNum "30";
 	MTName "MT_BARREL";
@@ -9231,6 +9262,7 @@ MapObject "ExplosiveBarrel"
 MapObject "ImpShot"
 {
 	NiceName "Imp Fireball";
+	ShortNiceName "Fireball";
 	DoomEdNum "-1";
 	DeHackEdNum "31";
 	MTName "MT_TROOPSHOT";
@@ -9329,6 +9361,7 @@ MapObject "ImpShot"
 MapObject "CacodemonShot"
 {
 	NiceName "Cacodemon Fireball";
+	ShortNiceName "Fireball";
 	DoomEdNum "-1";
 	DeHackEdNum "32";
 	MTName "MT_HEADSHOT";
@@ -9427,6 +9460,7 @@ MapObject "CacodemonShot"
 MapObject "RocketShot"
 {
 	NiceName "Rocket";
+	ShortNiceName "Rocket";
 	DoomEdNum "-1";
 	DeHackEdNum "33";
 	MTName "MT_ROCKET";
@@ -9549,6 +9583,7 @@ MapObject "RocketShot"
 MapObject "PlasmaShot"
 {
 	NiceName "Plasma Bolt";
+	ShortNiceName "Plasma";
 	DoomEdNum "-1";
 	DeHackEdNum "34";
 	MTName "MT_PLASMA";
@@ -9669,6 +9704,7 @@ MapObject "PlasmaShot"
 MapObject "BFGShot"
 {
 	NiceName "BFG Ball";
+	ShortNiceName "Ball";
 	DoomEdNum "-1";
 	DeHackEdNum "35";
 	MTName "MT_BFG";
@@ -9802,6 +9838,7 @@ MapObject "BFGShot"
 MapObject "ArachnotronShot"
 {
 	NiceName "Arachnotron Plasma Bolt";
+	ShortNiceName "Plasma";
 	DoomEdNum "-1";
 	DeHackEdNum "36";
 	MTName "MT_ARACHPLAZ";
@@ -9921,6 +9958,7 @@ MapObject "ArachnotronShot"
 MapObject "BulletPuff"
 {
 	NiceName "Bullet Puff";
+	ShortNiceName "Puff";
 	DoomEdNum "-1";
 	DeHackEdNum "37";
 	MTName "MT_PUFF";
@@ -10000,6 +10038,7 @@ MapObject "BulletPuff"
 MapObject "DoomBlood"
 {
 	NiceName "Blood";
+	ShortNiceName "Blood";
 	DoomEdNum "-1";
 	DeHackEdNum "38";
 	MTName "MT_BLOOD";
@@ -10067,6 +10106,7 @@ MapObject "DoomBlood"
 MapObject "TeleportFog"
 {
 	NiceName "Teleport Fog";
+	ShortNiceName "Fog";
 	DoomEdNum "-1";
 	DeHackEdNum "39";
 	MTName "MT_TFOG";
@@ -10240,6 +10280,7 @@ MapObject "TeleportFog"
 MapObject "ItemFog"
 {
 	NiceName "Item Respawn Fog";
+	ShortNiceName "Fog";
 	DoomEdNum "-1";
 	DeHackEdNum "40";
 	MTName "MT_IFOG";
@@ -10353,6 +10394,7 @@ MapObject "ItemFog"
 MapObject "LegacyTeleportman"
 {
 	NiceName "Teleport Destination";
+	ShortNiceName "TeleDest";
 	DoomEdNum "14";
 	DeHackEdNum "41";
 	MTName "MT_TELEPORTMAN";
@@ -10379,6 +10421,7 @@ MapObject "LegacyTeleportman"
 MapObject "BFGFlash"
 {
 	NiceName "BFG Flash";
+	ShortNiceName "Flash";
 	DoomEdNum "-1";
 	DeHackEdNum "42";
 	MTName "MT_EXTRABFG";
@@ -10455,6 +10498,7 @@ MapObject "BFGFlash"
 MapObject "GreenArmor"
 {
 	NiceName "Green Armor";
+	ShortNiceName "G. Armor";
 	DoomEdNum "2018";
 	DeHackEdNum "43";
 	MTName "MT_MISC0";
@@ -10505,6 +10549,7 @@ MapObject "GreenArmor"
 MapObject "BlueArmor"
 {
 	NiceName "Blue Armor";
+	ShortNiceName "B. Armor";
 	DoomEdNum "2019";
 	DeHackEdNum "44";
 	MTName "MT_MISC1";
@@ -10555,6 +10600,7 @@ MapObject "BlueArmor"
 MapObject "HealthBonus"
 {
 	NiceName "Health Bonus";
+	ShortNiceName "H. Bonus";
 	DoomEdNum "2014";
 	DeHackEdNum "45";
 	MTName "MT_MISC2";
@@ -10645,6 +10691,7 @@ MapObject "HealthBonus"
 MapObject "ArmorBonus"
 {
 	NiceName "Armor Bonus";
+	ShortNiceName "A. Bonus";
 	DoomEdNum "2015";
 	DeHackEdNum "46";
 	MTName "MT_MISC3";
@@ -10735,6 +10782,7 @@ MapObject "ArmorBonus"
 MapObject "BlueCard"
 {
 	NiceName "Blue Keycard";
+	ShortNiceName "Blue Key";
 	DoomEdNum "5";
 	DeHackEdNum "47";
 	MTName "MT_MISC4";
@@ -10786,6 +10834,7 @@ MapObject "BlueCard"
 MapObject "RedCard"
 {
 	NiceName "Red Keycard";
+	ShortNiceName "Red Key";
 	DoomEdNum "13";
 	DeHackEdNum "48";
 	MTName "MT_MISC5";
@@ -10837,6 +10886,7 @@ MapObject "RedCard"
 MapObject "YellowCard"
 {
 	NiceName "Yellow Keycard";
+	ShortNiceName "Yellow Key";
 	DoomEdNum "6";
 	DeHackEdNum "49";
 	MTName "MT_MISC6";
@@ -10888,6 +10938,7 @@ MapObject "YellowCard"
 MapObject "YellowSkull"
 {
 	NiceName "Yellow Skull";
+	ShortNiceName "Yellow Skull";
 	DoomEdNum "39";
 	DeHackEdNum "50";
 	MTName "MT_MISC7";
@@ -10939,6 +10990,7 @@ MapObject "YellowSkull"
 MapObject "RedSkull"
 {
 	NiceName "Red Skull";
+	ShortNiceName "Red Skull";
 	DoomEdNum "38";
 	DeHackEdNum "51";
 	MTName "MT_MISC8";
@@ -10990,6 +11042,7 @@ MapObject "RedSkull"
 MapObject "BlueSkull"
 {
 	NiceName "Blue Skull";
+	ShortNiceName "Blue Skull";
 	DoomEdNum "40";
 	DeHackEdNum "52";
 	MTName "MT_MISC9";
@@ -11041,6 +11094,7 @@ MapObject "BlueSkull"
 MapObject "StimPack"
 {
 	NiceName "Stimpack";
+	ShortNiceName "Stimpack";
 	DoomEdNum "2011";
 	DeHackEdNum "53";
 	MTName "MT_MISC10";
@@ -11080,6 +11134,7 @@ MapObject "StimPack"
 MapObject "MediKit"
 {
 	NiceName "Medical Kit";
+	ShortNiceName "MedKit";
 	DoomEdNum "2012";
 	DeHackEdNum "54";
 	MTName "MT_MISC11";
@@ -11119,6 +11174,7 @@ MapObject "MediKit"
 MapObject "SoulSphere"
 {
 	NiceName "Soul Sphere";
+	ShortNiceName "Sphere";
 	DoomEdNum "2013";
 	DeHackEdNum "55";
 	MTName "MT_MISC12";
@@ -11222,6 +11278,7 @@ MapObject "SoulSphere"
 MapObject "InvulnSphere"
 {
 	NiceName "Invulnerability Sphere";
+	ShortNiceName "Invuln";
 	DoomEdNum "2022";
 	DeHackEdNum "56";
 	MTName "MT_INV";
@@ -11302,6 +11359,7 @@ MapObject "InvulnSphere"
 MapObject "Berserker"
 {
 	NiceName "Berserker Kit";
+	ShortNiceName "Berserk";
 	DoomEdNum "2023";
 	DeHackEdNum "57";
 	MTName "MT_MISC13";
@@ -11344,6 +11402,7 @@ MapObject "Berserker"
 MapObject "InvisSphere"
 {
 	NiceName "Invisibility Sphere";
+	ShortNiceName "InvisSphere";
 	DoomEdNum "2024";
 	DeHackEdNum "58";
 	MTName "MT_INS";
@@ -11424,6 +11483,7 @@ MapObject "InvisSphere"
 MapObject "RadiationSuit"
 {
 	NiceName "Radiation Suit";
+	ShortNiceName "Rad. Suit";
 	DoomEdNum "2025";
 	DeHackEdNum "59";
 	MTName "MT_MISC14";
@@ -11465,6 +11525,7 @@ MapObject "RadiationSuit"
 MapObject "ComputerMap"
 {
 	NiceName "Computer Automap";
+	ShortNiceName "Automap";
 	DoomEdNum "2026";
 	DeHackEdNum "60";
 	MTName "MT_MISC15";
@@ -11562,6 +11623,7 @@ MapObject "ComputerMap"
 MapObject "LightAmpVisor"
 {
 	NiceName "Light Amplification Visor";
+	ShortNiceName "LitAmp Visor";
 	DoomEdNum "2045";
 	DeHackEdNum "61";
 	MTName "MT_MISC16";
@@ -11614,6 +11676,7 @@ MapObject "LightAmpVisor"
 MapObject "MegaSphere"
 {
 	NiceName "Mega Sphere";
+	ShortNiceName "Mega";
 	DoomEdNum "83";
 	DeHackEdNum "62";
 	MTName "MT_MEGA";
@@ -11693,6 +11756,7 @@ MapObject "MegaSphere"
 MapObject "SmallClipAmmo"
 {
 	NiceName "Clip";
+	ShortNiceName "Clip";
 	DoomEdNum "2007";
 	DeHackEdNum "63";
 	MTName "MT_CLIP";
@@ -11732,6 +11796,7 @@ MapObject "SmallClipAmmo"
 MapObject "LargeClipAmmo"
 {
 	NiceName "Box of Bullets";
+	ShortNiceName "Bullets";
 	DoomEdNum "2048";
 	DeHackEdNum "64";
 	MTName "MT_MISC17";
@@ -11771,6 +11836,7 @@ MapObject "LargeClipAmmo"
 MapObject "SmallRocketAmmo"
 {
 	NiceName "Rocket";
+	ShortNiceName "Rocket";
 	DoomEdNum "2010";
 	DeHackEdNum "65";
 	MTName "MT_MISC18";
@@ -11810,6 +11876,7 @@ MapObject "SmallRocketAmmo"
 MapObject "LargeRocketAmmo"
 {
 	NiceName "Box of Rockets";
+	ShortNiceName "Rocket Box";
 	DoomEdNum "2046";
 	DeHackEdNum "66";
 	MTName "MT_MISC19";
@@ -11849,6 +11916,7 @@ MapObject "LargeRocketAmmo"
 MapObject "SmallCellAmmo"
 {
 	NiceName "Cell Pack";
+	ShortNiceName "Cells";
 	DoomEdNum "2047";
 	DeHackEdNum "67";
 	MTName "MT_MISC20";
@@ -11888,6 +11956,7 @@ MapObject "SmallCellAmmo"
 MapObject "LargeCellAmmo"
 {
 	NiceName "Large Cell Pack";
+	ShortNiceName "Cell Pack";
 	DoomEdNum "17";
 	DeHackEdNum "68";
 	MTName "MT_MISC21";
@@ -11927,6 +11996,7 @@ MapObject "LargeCellAmmo"
 MapObject "SmallShellAmmo"
 {
 	NiceName "Shotgun Shells";
+	ShortNiceName "Shells";
 	DoomEdNum "2008";
 	DeHackEdNum "69";
 	MTName "MT_MISC22";
@@ -11966,6 +12036,7 @@ MapObject "SmallShellAmmo"
 MapObject "LargeShellAmmo"
 {
 	NiceName "Box of Shotgun Shells";
+	ShortNiceName "Shell Box";
 	DoomEdNum "2049";
 	DeHackEdNum "70";
 	MTName "MT_MISC23";
@@ -12005,6 +12076,7 @@ MapObject "LargeShellAmmo"
 MapObject "Backpack"
 {
 	NiceName "Backpack";
+	ShortNiceName "Backpack";
 	DoomEdNum "8";
 	DeHackEdNum "71";
 	MTName "MT_MISC24";
@@ -12044,6 +12116,7 @@ MapObject "Backpack"
 MapObject "BFG"
 {
 	NiceName "BFG9000";
+	ShortNiceName "BFG";
 	DoomEdNum "2006";
 	DeHackEdNum "72";
 	MTName "MT_BFG9000";
@@ -12084,6 +12157,7 @@ MapObject "BFG"
 MapObject "Chaingun"
 {
 	NiceName "Chaingun";
+	ShortNiceName "Chaingun";
 	DoomEdNum "2002";
 	DeHackEdNum "73";
 	MTName "MT_CHAINGUN";
@@ -12124,6 +12198,7 @@ MapObject "Chaingun"
 MapObject "Chainsaw"
 {
 	NiceName "Chainsaw";
+	ShortNiceName "Chainsaw";
 	DoomEdNum "2005";
 	DeHackEdNum "74";
 	MTName "MT_SHAINSAW";
@@ -12164,6 +12239,7 @@ MapObject "Chainsaw"
 MapObject "RocketLauncher"
 {
 	NiceName "Rocket Launcher";
+	ShortNiceName "R. Launcher";
 	DoomEdNum "2003";
 	DeHackEdNum "75";
 	MTName "MT_ROCKETLAUNCH";
@@ -12204,6 +12280,7 @@ MapObject "RocketLauncher"
 MapObject "PlasmaRifle"
 {
 	NiceName "Plasma Rifle";
+	ShortNiceName "P. Rifle";
 	DoomEdNum "2004";
 	DeHackEdNum "76";
 	MTName "MT_PLASMAGUN";
@@ -12244,6 +12321,7 @@ MapObject "PlasmaRifle"
 MapObject "Shotgun"
 {
 	NiceName "Shotgun";
+	ShortNiceName "Shotgun";
 	DoomEdNum "2001";
 	DeHackEdNum "77";
 	MTName "MT_SHOTGUN";
@@ -12284,6 +12362,7 @@ MapObject "Shotgun"
 MapObject "SuperShotgun"
 {
 	NiceName "Super Shotgun";
+	ShortNiceName "S.S.G.";
 	DoomEdNum "82";
 	DeHackEdNum "78";
 	MTName "MT_SUPERSHOTGUN";
@@ -12324,6 +12403,7 @@ MapObject "SuperShotgun"
 MapObject "TechLamp1"
 {
 	NiceName "Technical Lamp 1";
+	ShortNiceName "Light";
 	DoomEdNum "85";
 	DeHackEdNum "79";
 	MTName "MT_MISC29";
@@ -12396,6 +12476,7 @@ MapObject "TechLamp1"
 MapObject "TechLamp2"
 {
 	NiceName "Technical Lamp 2";
+	ShortNiceName "Light";
 	DoomEdNum "86";
 	DeHackEdNum "80";
 	MTName "MT_MISC30";
@@ -12468,6 +12549,7 @@ MapObject "TechLamp2"
 MapObject "ShortLamp"
 {
 	NiceName "Short Lamp";
+	ShortNiceName "Light";
 	DoomEdNum "2028";
 	DeHackEdNum "81";
 	MTName "MT_MISC31";
@@ -12507,6 +12589,7 @@ MapObject "ShortLamp"
 MapObject "GreenTallColumn"
 {
 	NiceName "Tall Green Column";
+	ShortNiceName "Column";
 	DoomEdNum "30";
 	DeHackEdNum "82";
 	MTName "MT_MISC32";
@@ -12545,6 +12628,7 @@ MapObject "GreenTallColumn"
 MapObject "GreenShortColumn"
 {
 	NiceName "Short Green Column";
+	ShortNiceName "Column";
 	DoomEdNum "31";
 	DeHackEdNum "83";
 	MTName "MT_MISC33";
@@ -12583,6 +12667,7 @@ MapObject "GreenShortColumn"
 MapObject "RedTallColumn"
 {
 	NiceName "Tall Red Column";
+	ShortNiceName "Column";
 	DoomEdNum "32";
 	DeHackEdNum "84";
 	MTName "MT_MISC34";
@@ -12621,6 +12706,7 @@ MapObject "RedTallColumn"
 MapObject "RedShortColumn"
 {
 	NiceName "Short Red Column";
+	ShortNiceName "Column";
 	DoomEdNum "33";
 	DeHackEdNum "85";
 	MTName "MT_MISC35";
@@ -12659,6 +12745,7 @@ MapObject "RedShortColumn"
 MapObject "RedSkullColumn"
 {
 	NiceName "Red Column with Skulls";
+	ShortNiceName "Column";
 	DoomEdNum "37";
 	DeHackEdNum "86";
 	MTName "MT_MISC36";
@@ -12697,6 +12784,7 @@ MapObject "RedSkullColumn"
 MapObject "GreenHeartColumn"
 {
 	NiceName "Green Column with Heart";
+	ShortNiceName "Column";
 	DoomEdNum "36";
 	DeHackEdNum "87";
 	MTName "MT_MISC37";
@@ -12745,6 +12833,7 @@ MapObject "GreenHeartColumn"
 MapObject "EvilEye"
 {
 	NiceName "Evil Eye";
+	ShortNiceName "Eye";
 	DoomEdNum "41";
 	DeHackEdNum "88";
 	MTName "MT_MISC38";
@@ -12820,6 +12909,7 @@ MapObject "EvilEye"
 MapObject "FloatingSkulls"
 {
 	NiceName "Floating Skulls";
+	ShortNiceName "Skulls";
 	DoomEdNum "42";
 	DeHackEdNum "89";
 	MTName "MT_MISC39";
@@ -12881,6 +12971,7 @@ MapObject "FloatingSkulls"
 MapObject "GrayShortTree"
 {
 	NiceName "Short Gray Tree";
+	ShortNiceName "Tree";
 	DoomEdNum "43";
 	DeHackEdNum "90";
 	MTName "MT_MISC40";
@@ -12919,6 +13010,7 @@ MapObject "GrayShortTree"
 MapObject "BlueTallTorch"
 {
 	NiceName "Tall Blue Torch";
+	ShortNiceName "Torch";
 	DoomEdNum "44";
 	DeHackEdNum "91";
 	MTName "MT_MISC41";
@@ -12991,6 +13083,7 @@ MapObject "BlueTallTorch"
 MapObject "GreenTallTorch"
 {
 	NiceName "Tall Green Torch";
+	ShortNiceName "Torch";
 	DoomEdNum "45";
 	DeHackEdNum "92";
 	MTName "MT_MISC42";
@@ -13067,6 +13160,7 @@ MapObject "GreenTallTorch"
 MapObject "RedTallTorch"
 {
 	NiceName "Tall Red Torch";
+	ShortNiceName "Torch";
 	DoomEdNum "46";
 	DeHackEdNum "93";
 	MTName "MT_MISC43";
@@ -13143,6 +13237,7 @@ MapObject "RedTallTorch"
 MapObject "BlueShortTorch"
 {
 	NiceName "Short Blue Torch";
+	ShortNiceName "Torch";
 	DoomEdNum "55";
 	DeHackEdNum "94";
 	MTName "MT_MISC44";
@@ -13215,6 +13310,7 @@ MapObject "BlueShortTorch"
 MapObject "GreenShortTorch"
 {
 	NiceName "Short Green Torch";
+	ShortNiceName "Torch";
 	DoomEdNum "56";
 	DeHackEdNum "95";
 	MTName "MT_MISC45";
@@ -13291,6 +13387,7 @@ MapObject "GreenShortTorch"
 MapObject "RedShortTorch"
 {
 	NiceName "Short Red Torch";
+	ShortNiceName "Torch";
 	DoomEdNum "57";
 	DeHackEdNum "96";
 	MTName "MT_MISC46";
@@ -13367,6 +13464,7 @@ MapObject "RedShortTorch"
 MapObject "ThornySpikes"
 {
 	NiceName "Thorny Spikes";
+	ShortNiceName "Spike";
 	DoomEdNum "47";
 	DeHackEdNum "97";
 	MTName "MT_MISC47";
@@ -13405,6 +13503,7 @@ MapObject "ThornySpikes"
 MapObject "TechPillar"
 {
 	NiceName "Technical Pillar";
+	ShortNiceName "Column";
 	DoomEdNum "48";
 	DeHackEdNum "98";
 	MTName "MT_MISC48";
@@ -13443,6 +13542,7 @@ MapObject "TechPillar"
 MapObject "BlackCandle"
 {
 	NiceName "Black Candle";
+	ShortNiceName "Candle";
 	DoomEdNum "34";
 	DeHackEdNum "99";
 	MTName "MT_MISC49";
@@ -13480,6 +13580,7 @@ MapObject "BlackCandle"
 MapObject "Candelabra"
 {
 	NiceName "Candelabra";
+	ShortNiceName "Candles";
 	DoomEdNum "35";
 	DeHackEdNum "100";
 	MTName "MT_MISC50";
@@ -13519,6 +13620,7 @@ MapObject "Candelabra"
 MapObject "HangingBodyTwitch"
 {
 	NiceName "Twitching Hanging Body";
+	ShortNiceName "Corpse";
 	DoomEdNum "49";
 	DeHackEdNum "101";
 	MTName "MT_MISC51";
@@ -13588,6 +13690,7 @@ MapObject "HangingBodyTwitch"
 MapObject "HangingBodyJacket"
 {
 	NiceName "Hanging Body Wearing Jacket";
+	ShortNiceName "Corpse";
 	DoomEdNum "50";
 	DeHackEdNum "102";
 	MTName "MT_MISC52";
@@ -13627,6 +13730,7 @@ MapObject "HangingBodyJacket"
 MapObject "HangingBodyNoLeg"
 {
 	NiceName "Hanging Body Without Leg";
+	ShortNiceName "Corpse";
 	DoomEdNum "51";
 	DeHackEdNum "103";
 	MTName "MT_MISC53";
@@ -13666,6 +13770,7 @@ MapObject "HangingBodyNoLeg"
 MapObject "HangingBodyTorso"
 {
 	NiceName "Hanging Torso";
+	ShortNiceName "Corpse";
 	DoomEdNum "52";
 	DeHackEdNum "104";
 	MTName "MT_MISC54";
@@ -13705,6 +13810,7 @@ MapObject "HangingBodyTorso"
 MapObject "HangingBodyLeg"
 {
 	NiceName "Hanging Leg";
+	ShortNiceName "Corpse";
 	DoomEdNum "53";
 	DeHackEdNum "105";
 	MTName "MT_MISC55";
@@ -13744,6 +13850,7 @@ MapObject "HangingBodyLeg"
 MapObject "HangingBodyJacketPass"
 {
 	NiceName "Hanging Body With Jacket";
+	ShortNiceName "Corpse";
 	DoomEdNum "59";
 	DeHackEdNum "106";
 	MTName "MT_MISC56";
@@ -13782,6 +13889,7 @@ MapObject "HangingBodyJacketPass"
 MapObject "HangingBodyTorsoPass"
 {
 	NiceName "Hanging Torso";
+	ShortNiceName "Corpse";
 	DoomEdNum "60";
 	DeHackEdNum "107";
 	MTName "MT_MISC57";
@@ -13820,6 +13928,7 @@ MapObject "HangingBodyTorsoPass"
 MapObject "HangingBodyNoLegPass"
 {
 	NiceName "Hanging Body";
+	ShortNiceName "Corpse";
 	DoomEdNum "61";
 	DeHackEdNum "108";
 	MTName "MT_MISC58";
@@ -13858,6 +13967,7 @@ MapObject "HangingBodyNoLegPass"
 MapObject "HangingBodyLegPass"
 {
 	NiceName "Hanging Body";
+	ShortNiceName "Corpse";
 	DoomEdNum "62";
 	DeHackEdNum "109";
 	MTName "MT_MISC59";
@@ -13896,6 +14006,7 @@ MapObject "HangingBodyLegPass"
 MapObject "HangingBodyTwitchPass"
 {
 	NiceName "Twitching Hanging Body";
+	ShortNiceName "Corpse";
 	DoomEdNum "63";
 	DeHackEdNum "110";
 	MTName "MT_MISC60";
@@ -13964,6 +14075,7 @@ MapObject "HangingBodyTwitchPass"
 MapObject "DeadCacodemon"
 {
 	NiceName "Dead Cacodemon";
+	ShortNiceName "Corpse";
 	DoomEdNum "22";
 	DeHackEdNum "111";
 	MTName "MT_MISC61";
@@ -14000,6 +14112,7 @@ MapObject "DeadCacodemon"
 MapObject "DeadPlayer"
 {
 	NiceName "Dead Doomguy";
+	ShortNiceName "Corpse";
 	DoomEdNum "15";
 	DeHackEdNum "112";
 	MTName "MT_MISC62";
@@ -14036,6 +14149,7 @@ MapObject "DeadPlayer"
 MapObject "DeadZombieman"
 {
 	NiceName "Dead Zombieman";
+	ShortNiceName "Corpse";
 	DoomEdNum "18";
 	DeHackEdNum "113";
 	MTName "MT_MISC63";
@@ -14072,6 +14186,7 @@ MapObject "DeadZombieman"
 MapObject "DeadDemon"
 {
 	NiceName "Dead Demon";
+	ShortNiceName "Corpse";
 	DoomEdNum "21";
 	DeHackEdNum "114";
 	MTName "MT_MISC64";
@@ -14108,6 +14223,7 @@ MapObject "DeadDemon"
 MapObject "DeadLostSoul"
 {
 	NiceName "Dead Lost Soul";
+	ShortNiceName "Corpse";
 	DoomEdNum "23";
 	DeHackEdNum "115";
 	MTName "MT_MISC65";
@@ -14145,6 +14261,7 @@ MapObject "DeadLostSoul"
 MapObject "DeadImp"
 {
 	NiceName "Dead Imp";
+	ShortNiceName "Corpse";
 	DoomEdNum "20";
 	DeHackEdNum "116";
 	MTName "MT_MISC66";
@@ -14181,6 +14298,7 @@ MapObject "DeadImp"
 MapObject "DeadSergeant"
 {
 	NiceName "Dead Shotgun Sergeant";
+	ShortNiceName "Corpse";
 	DoomEdNum "19";
 	DeHackEdNum "117";
 	MTName "MT_MISC67";
@@ -14217,6 +14335,7 @@ MapObject "DeadSergeant"
 MapObject "DeadPlayerGibs"
 {
 	NiceName "Gibbed Doom Guy";
+	ShortNiceName "Corpse";
 	DoomEdNum "10";
 	DeHackEdNum "118";
 	MTName "MT_MISC68";
@@ -14253,6 +14372,7 @@ MapObject "DeadPlayerGibs"
 MapObject "DeadPlayerGibs2"
 {
 	NiceName "Gibbed Doom Guy";
+	ShortNiceName "Corpse";
 	DoomEdNum "12";
 	DeHackEdNum "119";
 	MTName "MT_MISC69";
@@ -14289,6 +14409,7 @@ MapObject "DeadPlayerGibs2"
 MapObject "HeadShishkabob"
 {
 	NiceName "Head Shishkabob";
+	ShortNiceName "Corpse";
 	DoomEdNum "28";
 	DeHackEdNum "120";
 	MTName "MT_MISC70";
@@ -14327,6 +14448,7 @@ MapObject "HeadShishkabob"
 MapObject "CrushedGibs"
 {
 	NiceName "Crushed Gibs";
+	ShortNiceName "Corpse";
 	DoomEdNum "24";
 	DeHackEdNum "121";
 	MTName "MT_MISC71";
@@ -14363,6 +14485,7 @@ MapObject "CrushedGibs"
 MapObject "HeadOnStick"
 {
 	NiceName "Head On A Stick";
+	ShortNiceName "Corpse";
 	DoomEdNum "27";
 	DeHackEdNum "122";
 	MTName "MT_MISC72";
@@ -14401,6 +14524,7 @@ MapObject "HeadOnStick"
 MapObject "SkullsAndCandles"
 {
 	NiceName "Skulls and Candle Display";
+	ShortNiceName "Skulls";
 	DoomEdNum "29";
 	DeHackEdNum "123";
 	MTName "MT_MISC73";
@@ -14451,6 +14575,7 @@ MapObject "SkullsAndCandles"
 MapObject "ImpaledZombieman"
 {
 	NiceName "Impaled Zombieman";
+	ShortNiceName "Corpse";
 	DoomEdNum "25";
 	DeHackEdNum "124";
 	MTName "MT_MISC74";
@@ -14489,6 +14614,7 @@ MapObject "ImpaledZombieman"
 MapObject "TwitchingImpaledZombieman"
 {
 	NiceName "Twitching Impaled Zombieman";
+	ShortNiceName "Corpse";
 	DoomEdNum "26";
 	DeHackEdNum "125";
 	MTName "MT_MISC75";
@@ -14537,6 +14663,7 @@ MapObject "TwitchingImpaledZombieman"
 MapObject "LargeTree"
 {
 	NiceName "Large Tree";
+	ShortNiceName "Tree";
 	DoomEdNum "54";
 	DeHackEdNum "126";
 	MTName "MT_MISC76";
@@ -14575,6 +14702,7 @@ MapObject "LargeTree"
 MapObject "FlamingBarrel"
 {
 	NiceName "Flaming Barrel";
+	ShortNiceName "Barrel";
 	DoomEdNum "70";
 	DeHackEdNum "127";
 	MTName "MT_MISC77";
@@ -14639,6 +14767,7 @@ MapObject "FlamingBarrel"
 MapObject "HangingCorpseNoGuts"
 {
 	NiceName "Hanging Corpse";
+	ShortNiceName "Corpse";
 	DoomEdNum "73";
 	DeHackEdNum "128";
 	MTName "MT_MISC78";
@@ -14678,6 +14807,7 @@ MapObject "HangingCorpseNoGuts"
 MapObject "HangingCorpseNoBrain"
 {
 	NiceName "Hanging Corpse";
+	ShortNiceName "Corpse";
 	DoomEdNum "74";
 	DeHackEdNum "129";
 	MTName "MT_MISC79";
@@ -14717,6 +14847,7 @@ MapObject "HangingCorpseNoBrain"
 MapObject "HangingCorpseTop"
 {
 	NiceName "Hanging Corpse";
+	ShortNiceName "Corpse";
 	DoomEdNum "75";
 	DeHackEdNum "130";
 	MTName "MT_MISC80";
@@ -14756,6 +14887,7 @@ MapObject "HangingCorpseTop"
 MapObject "HangingCorpseTopBrain"
 {
 	NiceName "Hanging Corpse";
+	ShortNiceName "Corpse";
 	DoomEdNum "76";
 	DeHackEdNum "131";
 	MTName "MT_MISC81";
@@ -14795,6 +14927,7 @@ MapObject "HangingCorpseTopBrain"
 MapObject "HangingCorpseTopLookUp"
 {
 	NiceName "Hanging Corpse";
+	ShortNiceName "Corpse";
 	DoomEdNum "77";
 	DeHackEdNum "132";
 	MTName "MT_MISC82";
@@ -14834,6 +14967,7 @@ MapObject "HangingCorpseTopLookUp"
 MapObject "HangingCorpseTopNoBrain"
 {
 	NiceName "Hanging Corpse";
+	ShortNiceName "Corpse";
 	DoomEdNum "78";
 	DeHackEdNum "133";
 	MTName "MT_MISC83";
@@ -14873,6 +15007,7 @@ MapObject "HangingCorpseTopNoBrain"
 MapObject "BloodPoolAndGuts"
 {
 	NiceName "Blood Pool with Guts";
+	ShortNiceName "Blood";
 	DoomEdNum "79";
 	DeHackEdNum "134";
 	MTName "MT_MISC84";
@@ -14910,6 +15045,7 @@ MapObject "BloodPoolAndGuts"
 MapObject "BloodPool"
 {
 	NiceName "Blood Pool";
+	ShortNiceName "Blood";
 	DoomEdNum "80";
 	DeHackEdNum "135";
 	MTName "MT_MISC85";
@@ -14947,6 +15083,7 @@ MapObject "BloodPool"
 MapObject "BloodPoolAndBrain"
 {
 	NiceName "Blood Pool with Brain";
+	ShortNiceName "Blood";
 	DoomEdNum "81";
 	DeHackEdNum "136";
 	MTName "MT_MISC86";
@@ -14984,6 +15121,7 @@ MapObject "BloodPoolAndBrain"
 MapObject "LegacyChasecam"
 {
 	NiceName "Chase Camera";
+	ShortNiceName "Camera";
 	DoomEdNum "-1";
 	DeHackEdNum "137";
 	MTName "MT_CHASECAM";
@@ -15017,6 +15155,7 @@ MapObject "LegacyChasecam"
 MapObject "LegacySpirit"
 {
 	NiceName "Spirit";
+	ShortNiceName "Spirit";
 	DoomEdNum "-1";
 	DeHackEdNum "138";
 	MTName "MT_SPIRIT";
@@ -15047,6 +15186,7 @@ MapObject "LegacySpirit"
 MapObject "LegacySmoke"
 {
 	NiceName "Smoke";
+	ShortNiceName "Smoke";
 	DoomEdNum "-1";
 	DeHackEdNum "139";
 	MTName "MT_SMOK";
@@ -15131,6 +15271,7 @@ MapObject "LegacySmoke"
 MapObject "LegacySplash"
 {
 	NiceName "Water Splash";
+	ShortNiceName "Splash";
 	DoomEdNum "-1";
 	DeHackEdNum "140";
 	MTName "MT_SPLASH";
@@ -15195,6 +15336,7 @@ MapObject "LegacySplash"
 MapObject "LegacyPusher"
 {
 	NiceName "Pusher";
+	ShortNiceName "Pusher";
 	DoomEdNum "5001";
 	DeHackEdNum "141";
 	MTName "MT_PUSH";
@@ -15234,6 +15376,7 @@ MapObject "LegacyPusher"
 MapObject "LegacyPuller"
 {
 	NiceName "Puller";
+	ShortNiceName "Puller";
 	DoomEdNum "5002";
 	DeHackEdNum "142";
 	MTName "MT_PULL";
@@ -15272,6 +15415,7 @@ MapObject "LegacyPuller"
 MapObject "LegacyDog"
 {
 	NiceName "Dog";
+	ShortNiceName "Dog";
 	DoomEdNum "888";
 	DeHackEdNum "143";
 	MTName "MT_DOGS";
@@ -15608,6 +15752,7 @@ MapObject "LegacyDog"
 MapObject "LegacyPlasma1"
 {
 	NiceName "Plasma Bolt";
+	ShortNiceName "Plasma";
 	DoomEdNum "-1";
 	DeHackEdNum "144";
 	MTName "MT_PLASMA1";
@@ -15719,6 +15864,7 @@ MapObject "LegacyPlasma1"
 MapObject "LegacyPlasma2"
 {
 	NiceName "Plasma Bolt";
+	ShortNiceName "Plasma";
 	DoomEdNum "-1";
 	DeHackEdNum "145";
 	MTName "MT_PLASMA2";
@@ -15808,6 +15954,7 @@ MapObject "LegacyPlasma2"
 MapObject "LegacyCamera"
 {
 	NiceName "Camera";
+	ShortNiceName "Camera";
 	DoomEdNum "5003";
 	DeHackEdNum "146";
 	MTName "MT_CAMERA";
@@ -15849,6 +15996,7 @@ MapObject "LegacyCamera"
 MapObject "LegacyNode"
 {
 	NiceName "Node";
+	ShortNiceName "Node";
 	DoomEdNum "5004";
 	DeHackEdNum "147";
 	MTName "MT_NODE";
@@ -15889,6 +16037,7 @@ MapObject "LegacyNode"
 MapObject "RedFlag"
 {
 	NiceName "Red CTF Flag";
+	ShortNiceName "Red Flag";
 	DoomEdNum "5131";
 	DeHackEdNum "148";
 	MTName "MT_REDFLAG";
@@ -15999,6 +16148,7 @@ MapObject "RedFlag"
 MapObject "BlueFlag"
 {
 	NiceName "Blue CTF Flag";
+	ShortNiceName "Blue Flag";
 	DoomEdNum "5130";
 	DeHackEdNum "149";
 	MTName "MT_BLUEFLAG";
@@ -16109,6 +16259,7 @@ MapObject "BlueFlag"
 MapObject "GreenFlag"
 {
 	NiceName "Green CTF Flag";
+	ShortNiceName "Green Flag";
 	DoomEdNum "5133";
 	DeHackEdNum "150";
 	MTName "MT_GREENFLAG";
@@ -16217,6 +16368,7 @@ MapObject "GreenFlag"
 MapObject "YellowFlag"
 {
 	NiceName "Yellow CTF Flag";
+	ShortNiceName "Yellow Flag";
 	DoomEdNum "5134";
 	DeHackEdNum "151";
 	MTName "MT_YELLOWFLAG";
@@ -16327,6 +16479,7 @@ MapObject "YellowFlag"
 MapObject "NeutralFlag"
 {
 	NiceName "Neutral CTF Flag";
+	ShortNiceName "White Flag";
 	DoomEdNum "5132";
 	DeHackEdNum "152";
 	MTName "MT_NEUTRALFLAG";
@@ -16437,6 +16590,7 @@ MapObject "NeutralFlag"
 MapObject "LegacyOldDoomBlood"
 {
 	NiceName "Blood";
+	ShortNiceName "Blood";
 	DoomEdNum "-1";
 	DeHackEdNum "153";
 	MTName "MT_OLDDOOMBLOOD";
@@ -16508,6 +16662,7 @@ MapObject "LegacyOldDoomBlood"
 MapObject "ReMooDBotDebugNode"
 {
 	NiceName "Bot Debug Node";
+	ShortNiceName "Bot Node";
 	DoomEdNum "-1";
 	DeHackEdNum "9999";
 	SpawnHealth "1000";
@@ -16547,6 +16702,7 @@ MapObject "ReMooDBotDebugNode"
 MapObject "ReMooDBotDebugBadNode"
 {
 	NiceName "Bad Bot Node";
+	ShortNiceName "Bot Node";
 	DoomEdNum "-1";
 	DeHackEdNum "9995";
 	SpawnHealth "1000";
@@ -16586,6 +16742,7 @@ MapObject "ReMooDBotDebugBadNode"
 MapObject "ReMooDBotDebugFloatNode"
 {
 	NiceName "Floating Bot Node";
+	ShortNiceName "Bot Node";
 	DoomEdNum "-1";
 	DeHackEdNum "9996";
 	SpawnHealth "1000";
@@ -16625,6 +16782,7 @@ MapObject "ReMooDBotDebugFloatNode"
 MapObject "ReMooDBotDebugPath"
 {
 	NiceName "Bot Path";
+	ShortNiceName "Bot Node";
 	DoomEdNum "-1";
 	DeHackEdNum "9998";
 	SpawnHealth "1000";
@@ -16665,6 +16823,7 @@ MapObject "ReMooDBotDebugPath"
 MapObject "ReMooDBotDebugTarget"
 {
 	NiceName "Bot Target";
+	ShortNiceName "Bot Node";
 	DoomEdNum "-1";
 	DeHackEdNum "9997";
 	SpawnHealth "1000";
@@ -16705,6 +16864,7 @@ MapObject "ReMooDBotDebugTarget"
 MapObject "ReMooDBotDebugQuestion"
 {
 	NiceName "Bot Question";
+	ShortNiceName "Bot Node";
 	DoomEdNum "-1";
 	DeHackEdNum "9997";
 	SpawnHealth "1000";

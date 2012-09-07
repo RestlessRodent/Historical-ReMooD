@@ -525,6 +525,9 @@ void P_PlayerMessage(const P_PMType_t a_Type, mobj_t* const a_Picker, mobj_t* co
 //
 bool_t P_TouchSpecialThing(mobj_t* special, mobj_t* toucher)
 {
+#define BUFSIZE 16
+	char Buf[BUFSIZE], FirstChar, LastChar;
+	const char* HackRef;
 	player_t* player;
 	int i, j, k, n;
 	fixed_t delta;
@@ -532,6 +535,7 @@ bool_t P_TouchSpecialThing(mobj_t* special, mobj_t* toucher)
 	P_RMODTouchSpecial_t* Current;
 	bool_t OKStat, NewWear, PickedUp, CancelRemove;
 	int32_t Target, Max, Amount;
+	char* SplitMessageRef;
 	
 	delta = special->z - toucher->z;
 	
@@ -799,6 +803,9 @@ bool_t P_TouchSpecialThing(mobj_t* special, mobj_t* toucher)
 			S_StartSound(toucher, sound);
 		}
 		
+		// Remember Short Nice Name
+		SplitMessageRef = special->info->RSNiceName;
+		
 		// The object picking this up happens to have died?
 		if (toucher->health <= 0)
 			P_KillMobj(toucher, special, special);
@@ -808,8 +815,38 @@ bool_t P_TouchSpecialThing(mobj_t* special, mobj_t* toucher)
 			P_RemoveMobj(special);
 		
 		// Message?
-		if (Current->PickupMsgRef)
-			P_PlayerMessage(PPM_PICKUP, toucher, special, Current->PickupMsgRef);
+			// 3/4 Player (Hacky)
+		if (g_SplitScreen > 1)
+		{
+			// Get characters of short name (of the object)
+			FirstChar = tolower(SplitMessageRef[0]);
+			LastChar = tolower(SplitMessageRef[strlen(SplitMessageRef) - 1]);
+			
+			// Plural?
+			if (LastChar == 's')
+				snprintf(Buf, BUFSIZE, "%s", SplitMessageRef);
+			
+			// Singular
+			else
+			{
+				// Vowel?
+				if (FirstChar == 'a' || FirstChar == 'e' || FirstChar == 'i' ||
+					FirstChar == 'o' || FirstChar == 'u')
+					snprintf(Buf, BUFSIZE, "an %s", SplitMessageRef);
+				else
+					snprintf(Buf, BUFSIZE, "a %s", SplitMessageRef);
+			}
+			
+			// Show it
+			HackRef = Buf;
+			P_PlayerMessage(PPM_PICKUP, toucher, special, &HackRef);
+		}
+			// 1/2 Player
+		else
+		{
+			if (Current->PickupMsgRef)
+				P_PlayerMessage(PPM_PICKUP, toucher, special, Current->PickupMsgRef);
+		}
 		
 		// Don't process anymore
 		return true;
@@ -953,6 +990,7 @@ bool_t P_TouchSpecialThing(mobj_t* special, mobj_t* toucher)
 		if (player == &players[g_Splits[i].Display])
 			S_StartSound(NULL, sound);
 #endif
+#undef BUFSIZE
 }
 
 #ifdef thatsbuggycode
@@ -1128,33 +1166,63 @@ static const char* PS_GetMobjNoun(mobj_t* const a_Mobj, bool_t* const a_Special,
 			
 			// If we never returned, then there was no weapon used
 			if (!a_IsInflictor)
+			{
 				// Return nice name of object
-				return (a_Mobj->info->RNiceName ? a_Mobj->info->RNiceName : a_Mobj->info->RClassName);
+				if (g_SplitScreen > 1)
+					return a_Mobj->info->RSNiceName;
+				else
+					return a_Mobj->info->RNiceName;
+			}
 			
 			// Return attack type if the inflictor is the source
 			else if (a_IsInflictor && a_Mobj == a_Source)
 			{
-				switch (a_Mobj->RXAttackAttackType)
-				{
-					case PRXAT_MELEE:
-						return "Melee Attack";
+				// 3/4 Player Split
+				if (g_SplitScreen > 1)
+					switch (a_Mobj->RXAttackAttackType)
+					{
+						case PRXAT_MELEE:
+							return "Melee";
 						
-					case PRXAT_RANGED:
-						return "Ranged Attack";
+						case PRXAT_RANGED:
+							return "Ranged";
 						
-					case PRXAT_TELEFRAG:
-						return "TeleFrag";
+						case PRXAT_TELEFRAG:
+							return "TeleFrag";
 						
-					case PRXAT_UNKNOWN:
-					default:
-						return "Unknown";
-				}
+						case PRXAT_UNKNOWN:
+						default:
+							return "Unknown";
+					}
+				
+				// 1/2 Player Split
+				else
+					switch (a_Mobj->RXAttackAttackType)
+					{
+						case PRXAT_MELEE:
+							return "Melee Attack";
+						
+						case PRXAT_RANGED:
+							return "Ranged Attack";
+						
+						case PRXAT_TELEFRAG:
+							return "TeleFrag";
+						
+						case PRXAT_UNKNOWN:
+						default:
+							return "Unknown";
+					}
 			}
 			
 			// Otherwise return the inflictor
 			else if (a_IsInflictor && a_Mobj != a_Source)
-				// Return nice name
-				return (a_Mobj->info->RNiceName ? a_Mobj->info->RNiceName : a_Mobj->info->RClassName);
+			{
+				// Return nice name of object
+				if (g_SplitScreen > 1)
+					return a_Mobj->info->RSNiceName;
+				else
+					return a_Mobj->info->RNiceName;
+			}
 		}
 	}
 
@@ -1181,7 +1249,19 @@ static void P_DeathMessages(mobj_t* target, mobj_t* inflictor, mobj_t* source)
 	   return;
 	
 	/* Print message */
-	CONL_PrintF("\x7{4%s{0 -> {5%s {2({3%s{2)\n", sNoun, tNoun, iNoun);
+	// 3/4 Split
+	if (g_SplitScreen > 1)
+		if (target == source)
+			CONL_PrintF("\x7{4%.6s{0< {2({3%.6s{2)\n", sNoun, iNoun);
+		else
+			CONL_PrintF("\x7{4%.6s{0/{5%.6s {2({3%.6s{2)\n", sNoun, tNoun, iNoun);
+	
+	// 1/2 Split
+	else
+		if (target == source)
+			CONL_PrintF("\x7{4%s{0 <- {2({3%s{2)\n", sNoun, iNoun);
+		else
+			CONL_PrintF("\x7{4%s{0 -> {5%s {2({3%s{2)\n", sNoun, tNoun, iNoun);
 	
 #undef BUFSIZE
 }
