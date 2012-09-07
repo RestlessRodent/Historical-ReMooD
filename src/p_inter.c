@@ -293,7 +293,7 @@ bool_t P_GiveWeapon(player_t* player, weapontype_t weapon, bool_t dropped)
 		for (i = 0; i < g_SplitScreen + 1; i++)
 			if (player == &players[g_Splits[i].Display])
 				S_StartSound(NULL, sfx_wpnup);
-		return false;
+		return true;
 	}
 	
 	if (AmmoType >= 0 && AmmoType < NUMAMMO)
@@ -622,15 +622,15 @@ bool_t P_TouchSpecialThing(mobj_t* special, mobj_t* toucher)
 				for (; j < n; j++)
 				{
 					Amount = ammoinfo[j]->ClipAmmo * Current->AmmoMul;
-				
+					
 					// Dropped ammo?
 					if (special->flags & MF_DROPPED)
 						Amount /= 2;
-				
+					
 					// No ammo?
 					if (Amount <= 0)
 						Amount = 1;
-				
+					
 					OKStat |= P_GiveAmmo(player, j, Amount);
 					if (OKStat)
 						PickedUp = true;

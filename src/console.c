@@ -2227,6 +2227,7 @@ bool_t CONL_DrawConsole(void)
 	const char* p;
 	char TempFill[6];
 	CONL_BasicBuffer_t* Out;
+	int8_t DrawLineCount;
 	
 	static int32_t BootLines = -1;
 	static int32_t BootCount = 0;
@@ -2608,6 +2609,7 @@ bool_t CONL_DrawConsole(void)
 				if (l_CONLMessageQ[i][j].Text[0])
 				{
 					// Reset everything
+					DrawLineCount = 0;
 					x = bx;
 					p = &l_CONLMessageQ[i][j].Text[0];
 					DefaultOptions = Options = l_CONLMessageQ[i][j].Flags;
@@ -2640,7 +2642,12 @@ bool_t CONL_DrawConsole(void)
 							// Reset x and increase y some
 							x = bx;
 							y += V_FontHeight(VFONT_SMALL);
+							DrawLineCount++;
 						}
+						
+						// Drawing too many lines?
+						if (DrawLineCount >= 2)
+							break;
 					}
 					
 					// Done drawing line
