@@ -416,7 +416,7 @@ void D_Display(void)
 					if (players[g_Splits[0].Display].mo)
 					{
 						activeylookup = ylookup;
-						if (g_Splits[0].Active)
+						if (g_Splits[0].Active || g_SplitScreen == -1)
 							R_RenderPlayerView(&players[g_Splits[0].Display], 0);
 					}
 					break;

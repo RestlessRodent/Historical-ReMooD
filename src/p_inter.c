@@ -117,14 +117,21 @@ void P_PlayerSwitchToFavorite(player_t* const a_Player, const bool_t a_JustSpawn
 	weapontype_t NewGun;
 	
 	/* Don't switch when not freshly reborn */
-	if (!(a_JustSpawned && P_XGSVal(PGS_COSPAWNWITHFAVGUN)) && (a_Player->pendingweapon != wp_nochange))
+	if (!(a_JustSpawned && P_XGSVal(PGS_PLSPAWNWITHFAVGUN)) && (a_Player->pendingweapon != wp_nochange))
 		return;
 	
 	/* Change to the best gun */
 	NewGun = P_PlayerBestWeapon(a_Player, true);
 
-	if (NewGun != a_Player->readyweapon)
+	if (NewGun != wp_nochange && NewGun != NUMWEAPONS &&
+		NewGun != a_Player->readyweapon)
+	{
 		a_Player->pendingweapon = NewGun;
+		
+		// If we just spawned (and spawnfav enabled), set the ready weapon also
+		if (a_JustSpawned && P_XGSVal(PGS_PLSPAWNWITHFAVGUN))
+			a_Player->readyweapon = NewGun;
+	}
 }
 
 //

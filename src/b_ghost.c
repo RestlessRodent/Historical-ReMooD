@@ -279,8 +279,6 @@ const B_BotTemplate_t* B_GHOST_RandomTemplate(void)
 		// Maximum
 		if (Counts[i] > MaxCount)
 			MaxCount = Counts[i];
-			
-		CONL_PrintF("$$$>>> %i %i (%i %i)\n", i, Counts[i], MinCount, MaxCount	);
 	}
 	
 	/* Choose random number */

@@ -714,7 +714,7 @@ void ST_DrawPlayerBarsEx(void)
 	for (p = 0; p < (g_SplitScreen < 0 ? 1 : g_SplitScreen + 1); p++)
 	{
 		// Split player active
-		if (g_Splits[p].Active)
+		if (g_Splits[p].Active || (p == 0 && g_SplitScreen == -1))
 		{
 			// Get players to draw for
 			ConsoleP = &players[g_Splits[p].Console];
@@ -770,6 +770,7 @@ void ST_TickerEx(void)
 	int ChosePal = 0;
 	int BaseDam = 0, BzFade;
 	size_t p;
+	bool_t ActiveMenu;
 	
 	/* Update for all players */
 	for (p = 0; p < MAXPLAYERS; p++)
@@ -780,6 +781,9 @@ void ST_TickerEx(void)
 		// No player here?
 		if (!playeringame[p])
 			continue;
+		
+		// Player has a menu open?
+		ActiveMenu = M_ExPlayerUIActive(p);
 		
 		// Player Palette
 			// Reset variables -- Otherwise palettes "stick"
@@ -803,7 +807,11 @@ void ST_TickerEx(void)
 			ChosePal = FixedMul(NUMREDPALS << FRACBITS, FixedDiv((BaseDam) << FRACBITS, 100 << FRACBITS)) >> FRACBITS;
 			ChosePal++;				// +7
 			//ChosePal = (plyr->damagecount * (10000 / NUMREDPALS) ) / 100;
-		
+			
+			// Menu Cutdown
+			if (ActiveMenu)
+				ChosePal >>= 1;
+			
 			// Don't exceed
 			if (ChosePal >= NUMREDPALS)
 				ChosePal = NUMREDPALS - 1;
@@ -818,6 +826,10 @@ void ST_TickerEx(void)
 			// Division is number of palettes
 			ChosePal = FixedMul(NUMBONUSPALS << FRACBITS, FixedDiv((Player->bonuscount) << FRACBITS, 100 << FRACBITS)) >> FRACBITS;
 			ChosePal++;				// +7
+			
+			// Menu Cutdown
+			if (ActiveMenu)
+				ChosePal >>= 1;
 		
 			// Don't exceed
 			if (ChosePal >= NUMBONUSPALS)

@@ -264,7 +264,7 @@ typedef enum P_XGSBitID_e
 	PGS_COMOVECHECKFAKEFLOOR,				// Check Fake floor when moving
 	PGS_COMULTIPLAYER,						// Multiplayer Format
 	PGS_COBOOMSUPPORT,						// boomsupport Flag
-	PGS_COSPAWNWITHFAVGUN,					// Spawn with favorite gun
+	PGS_PLSPAWNWITHFAVGUN,					// Spawn with favorite gun
 	PGS_CONOSAWFACING,						// No facing when sawing
 	PGS_COENABLETEAMMONSTERS,				// Enable Teamable Monsters
 	PGS_COMONSTERDEADTARGET,				// Monsters stop targetting dead things

@@ -1606,7 +1606,7 @@ player_t* G_AddPlayer(int playernum)
 /* G_InitPlayer() -- Initializes Player */
 void G_InitPlayer(player_t* const a_Player)
 {
-	size_t i;
+	int i, j, k, l;
 	int32_t pNum;
 	
 	/* Check */
@@ -1618,7 +1618,7 @@ void G_InitPlayer(player_t* const a_Player)
 	
 	/* Allocate */
 	// Guns
-	a_Player->FavoriteWeapons = Z_Malloc(sizeof(*a_Player->FavoriteWeapons) * NUMWEAPONS, PU_STATIC, NULL);
+	a_Player->FavoriteWeapons = Z_Malloc(sizeof(*a_Player->FavoriteWeapons) * (NUMWEAPONS + 2), PU_STATIC, NULL);
 	a_Player->weaponowned = Z_Malloc(sizeof(*a_Player->weaponowned) * NUMWEAPONS, PU_STATIC, NULL);
 	
 	// Ammo
@@ -1651,9 +1651,32 @@ void G_InitPlayer(player_t* const a_Player)
 	snprintf(player_names[pNum], MAXPLAYERNAME - 1, "Player %i", (pNum + 1));
 	
 	/* Default Weapon Order */
+#if 0
 	// Directly mapped weapon IDs
 	for (i = 0; i < NUMWEAPONS; i++)
 		a_Player->FavoriteWeapons[i] = i;
+#else
+	for (k = j = i = 0; i < NUMWEAPONS; i++)
+	{
+		// Find spot to place this weapons
+		for (j = 0; j < k; j++)
+			if (wpnlev1info[i]->SwitchOrder < wpnlev1info[a_Player->FavoriteWeapons[j]]->SwitchOrder)
+				break;
+		
+		// At end?
+		if (j == k || k == 0)
+			a_Player->FavoriteWeapons[k++] = i;
+		
+		// Move everything over
+		else
+		{
+			for (l = k; l > j; l--)
+				a_Player->FavoriteWeapons[l] = a_Player->FavoriteWeapons[l - 1];
+			a_Player->FavoriteWeapons[j] = i;
+			k++;
+		}
+	}
+#endif
 }
 
 //
