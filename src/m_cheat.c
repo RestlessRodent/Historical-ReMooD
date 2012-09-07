@@ -262,7 +262,7 @@ bool_t cht_Responder(event_t* ev)
 			return false;
 
 		// added 17-5-98
-		plyr = &players[consoleplayer[0]];
+		plyr = &players[g_Splits[0].Console];
 		// b. - enabled for more debug fun.
 		// if (gameskill != sk_nightmare) {
 
@@ -511,7 +511,7 @@ void Command_CheatNoClip_f(void)
 	if (multiplayer)
 		return;
 
-	plyr = &players[consoleplayer[0]];
+	plyr = &players[g_Splits[0].Console];
 
 	plyr->cheats ^= CF_NOCLIP;
 
@@ -535,7 +535,7 @@ void Command_CheatGod_f(void)
 	if (multiplayer)
 		return;
 
-	plyr = &players[consoleplayer[0]];
+	plyr = &players[g_Splits[0].Console];
 
 	plyr->cheats ^= CF_GODMODE;
 	if (plyr->cheats & CF_GODMODE)
@@ -573,13 +573,13 @@ void Command_CheatGimme_f(void)
 		return;
 	}
 
-	plyr = &players[consoleplayer[0]];
+	plyr = &players[g_Splits[0].Console];
 
 	for (k = 0; k < (g_SplitScreen ? 2 : 1); k++)
 	{
 		if (k == 1)
 		{
-			plyr = &players[displayplayer[1]];
+			plyr = &players[g_Splits[1].Display];
 		}
 
 		for (i = 1; i < COM_Argc(); i++)
@@ -755,7 +755,7 @@ void Command_CheatSummon_f(void)
 		return;
 	}
 
-	plyr = &players[consoleplayer[0]];
+	plyr = &players[g_Splits[0].Console];
 
 	s = COM_Argv(1);
 
@@ -1156,7 +1156,7 @@ static int MS_MultiCheatCommand(const uint32_t a_ArgC, const char** const a_ArgV
 		// Compare Name
 		if (strcasecmp(a_ArgV[1], l_LocalCheats[i].Name) == 0)
 			// Call cheat handler
-			l_LocalCheats[i].Command(&players[consoleplayer[0]], a_ArgC - 2, a_ArgV + 2);
+			l_LocalCheats[i].Command(&players[g_Splits[0].Console], a_ArgC - 2, a_ArgV + 2);
 	
 	/* Return */
 	return CLE_SUCCESS;

@@ -202,7 +202,7 @@ struct player_s* D_NCSAddLocalPlayer(const char* const a_ProfileID)
 	
 	/* Find Free screen */
 	for (s = 0; s < MAXSPLITSCREEN; s++)
-		if (!g_PlayerInSplit[s])
+		if (!g_Splits[s].Active)
 			break;
 	
 	// No free screens (too many local players?)
@@ -220,9 +220,9 @@ struct player_s* D_NCSAddLocalPlayer(const char* const a_ProfileID)
 	
 	/* Add player to game */
 	playeringame[p] = true;
-	g_PlayerInSplit[s] = true;
-	consoleplayer[s] = p;
-	displayplayer[s] = p;
+	g_Splits[s].Active = true;
+	g_Splits[s].Console = p;
+	g_Splits[s].Display = p;
 	g_SplitScreen++;
 	
 	/* Initialize Player */
@@ -1268,9 +1268,9 @@ void D_NCSNetSetState(const D_NetState_t a_State)
 	
 	/* Set it for all local players */
 	for (i = 0; i < MAXSPLITSCREEN; i++)
-		if (g_PlayerInSplit[i] && playeringame[consoleplayer[i]])
-			if (players[consoleplayer[i]].NetPlayer)
-				players[consoleplayer[i]].NetPlayer->NetState = a_State;
+		if (g_Splits[i].Active && playeringame[g_Splits[i].Console])
+			if (players[g_Splits[i].Console].NetPlayer)
+				players[g_Splits[i].Console].NetPlayer->NetState = a_State;
 }
 
 /* D_NCSNetTicTransmit() -- Transmit tic command to server */
@@ -1546,7 +1546,7 @@ int8_t D_NCSFindSplitByProcess(const uint32_t a_ID)
 	
 	/* Loop */
 	for (i = 0; i < MAXSPLITSCREEN; i++)
-		if (g_PlayerInSplit[i])
+		if (g_Splits[i].Active)
 			if (g_SplitPlayerInstance[i] == a_ID)
 				return i;
 	

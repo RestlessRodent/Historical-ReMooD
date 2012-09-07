@@ -1754,8 +1754,8 @@ void P_SpawnPlayer(mapthing_t* mthing)
 	mobj->angle = ANG45 * (mthing->angle / 45);
 	
 	for (i = 0; i < MAXSPLITSCREENPLAYERS; i++)
-		if (g_PlayerInSplit[i])
-			if (playernum == consoleplayer[i])
+		if (g_Splits[i].Active)
+			if (playernum == g_Splits[i].Console)
 				localangle[i] = mobj->angle;
 			
 	mobj->player = p;
@@ -1799,7 +1799,7 @@ void P_SpawnPlayer(mapthing_t* mthing)
 	if (P_XGSVal(PGS_GAMEDEATHMATCH) || P_XGSVal(PGS_PLSPAWNWITHALLKEYS))
 		p->cards = it_allkeys;
 		
-	if (playernum == consoleplayer[0])
+	if (playernum == g_Splits[0].Console)
 	{
 		// wake up the status bar
 		ST_Start();
@@ -3142,8 +3142,8 @@ void P_ControlNewMonster(struct player_s* const a_Player)
 	
 		// Set local angle
 		for (i = 0; i < MAXSPLITSCREEN; i++)
-			if (g_PlayerInSplit[i])
-				if (consoleplayer[i] == a_Player - players)
+			if (g_Splits[i].Active)
+				if (g_Splits[i].Console == a_Player - players)
 				{
 					localangle[i] = mo->angle;
 					break;

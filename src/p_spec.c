@@ -2068,7 +2068,7 @@ void P_ProcessSpecialSectorEx(const EV_TryGenType_t a_Type, mobj_t* const a_Mo, 
 				sector->special = 0;
 				
 				//faB: useful only in single & coop.
-				if (!cv_deathmatch.value && players - player == displayplayer[0])
+				if (!cv_deathmatch.value && players - player == g_Splits[0].Display)
 					CONL_PrintF("\x02You found a secret area!\n");
 					
 				break;
@@ -2117,7 +2117,7 @@ void P_ProcessSpecialSectorEx(const EV_TryGenType_t a_Type, mobj_t* const a_Mo, 
 			player->secretcount++;
 			sector->special &= ~SECRET_MASK;
 			
-			if (!cv_deathmatch.value && players - player == displayplayer[0])
+			if (!cv_deathmatch.value && players - player == g_Splits[0].Display)
 				CONL_PrintF("\2You found a secret area!\n");
 				
 			if (sector->special < 32)

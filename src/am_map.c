@@ -480,7 +480,7 @@ static void AM_initVariables(void)
 		m_h[am_DrawPlayer] = FTOM(f_h[am_DrawPlayer]);
 	
 		// find player to center on initially
-		if (!playeringame[pnum = consoleplayer[p]])
+		if (!playeringame[pnum = g_Splits[p].Console])
 			for (pnum = 0; pnum < MAXPLAYERS; pnum++)
 				if (playeringame[pnum])
 					break;

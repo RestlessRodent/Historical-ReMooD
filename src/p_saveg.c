@@ -720,15 +720,15 @@ bool_t P_SGBiWayBS(D_BS_t* const a_Stream, const bool_t a_Load)
 			__BI(u32,UINT32,UINT32);
 			for (i = 0; i < u32; i++)
 			{
-				__BI(consoleplayer[i],INT,UINT8);
-				__BI(displayplayer[i],INT,UINT8);
+				__BI(g_Splits[i].Console,INT,UINT8);
+				__BI(g_Splits[i].Display,INT,UINT8);
 				
 				// g_game.h
 				__BI(localangle[i],ANGLET,UINT32);
 				__BI(localaiming[i],INT,UINT32);
 				
 				// g_netcmd.h
-				__BI(g_PlayerInSplit[i],BOOLT,UINT8);
+				__BI(g_Splits[i].Active,BOOLT,UINT8);
 			}
 			
 			u32 = BODYQUESIZE;
@@ -2455,9 +2455,9 @@ void P_SGBS_SplitPlayers(D_BS_t* const a_Stream)
 	// Go through Each
 	for (i = 0; i < MAXSPLITSCREEN; i++)
 	{
-		D_BSwu8(a_Stream, g_PlayerInSplit[i]);
-		D_BSwu8(a_Stream, consoleplayer[i]);
-		D_BSwu8(a_Stream, displayplayer[i]);
+		D_BSwu8(a_Stream, g_Splits[i].Active);
+		D_BSwu8(a_Stream, g_Splits[i].Console);
+		D_BSwu8(a_Stream, g_Splits[i].Display);
 	}
 	
 	/* Record Block */
@@ -5002,7 +5002,7 @@ void P_UnArchiveThinkers(void)
 					mobj->player = &players[i];
 					mobj->player->mo = mobj;
 					for (j = 0; j < MAXSPLITSCREENPLAYERS; j++)
-						if (consoleplayer[i] == i)
+						if (g_Splits[i].Console == i)
 							localangle[i] = mobj->angle;
 				}
 				if (diff & MD_MOVEDIR)

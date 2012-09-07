@@ -1291,7 +1291,7 @@ void B_GHOST_Think(B_GhostBot_t* const a_GhostBot, ticcmd_t* const a_TicCmd)
 	{
 		j = 0;
 		for (i = 0; i < MAXSPLITSCREEN; i++)
-			if (g_PlayerInSplit[i] && consoleplayer[i] == (a_GhostBot->Player - players))
+			if (g_Splits[i].Active && g_Splits[i].Console == (a_GhostBot->Player - players))
 			{
 				j = 1;
 				break;

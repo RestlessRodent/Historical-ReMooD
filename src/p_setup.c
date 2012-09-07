@@ -231,10 +231,10 @@ static int PCLC_Map(const uint32_t a_ArgC, const char** const a_ArgV)
 			playeringame[i] = false;
 	
 		for (i = 0; i < MAXSPLITSCREENPLAYERS; i++)
-			consoleplayer[i] = displayplayer[i] = i;
+			g_Splits[i].Console = g_Splits[i].Display = i;
 		
 		for (i = 0; i < MAXSPLITSCREEN; i++)
-			g_PlayerInSplit[i] = false;
+			g_Splits[i].Active = false;
 		
 		g_SplitScreen = -1;
 	
@@ -1282,11 +1282,11 @@ bool_t P_ExFinalizeLevel(void)
 	
 	/* Correct local player angles */
 	for (i = 0; i < MAXSPLITSCREEN; i++)
-		if (g_PlayerInSplit[i] && playeringame[consoleplayer[i]])
+		if (g_Splits[i].Active && playeringame[g_Splits[i].Console])
 		{
-			if (players[consoleplayer[i]].mo)
-				localangle[i] = players[consoleplayer[i]].mo->angle;
-			localaiming[i] = players[consoleplayer[i]].aiming;
+			if (players[g_Splits[i].Console].mo)
+				localangle[i] = players[g_Splits[i].Console].mo->angle;
+			localaiming[i] = players[g_Splits[i].Console].aiming;
 		}
 	
 	/* Setup sky */

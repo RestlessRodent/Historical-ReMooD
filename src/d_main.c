@@ -361,7 +361,7 @@ void D_Display(void)
 				case 3:
 					for (i = 0; i < 4; i++)
 					{
-						if (playeringame[displayplayer[i]] && players[displayplayer[i]].mo && i < g_SplitScreen + 1)
+						if (playeringame[g_Splits[i].Display] && players[g_Splits[i].Display].mo && i < g_SplitScreen + 1)
 						{
 							activeylookup = ylookup4[i];
 							
@@ -375,9 +375,9 @@ void D_Display(void)
 							else
 								viewwindowy = 0;
 								
-							if (g_PlayerInSplit[i])
-								if (players[displayplayer[i]].mo)
-									R_RenderPlayerView(&players[displayplayer[i]], i);
+							if (g_Splits[i].Active)
+								if (players[g_Splits[i].Display].mo)
+									R_RenderPlayerView(&players[g_Splits[i].Display], i);
 							
 							viewwindowx = 0;
 							viewwindowy = 0;
@@ -394,16 +394,16 @@ void D_Display(void)
 					
 					// 1 Full, 2 player split
 				case 1:
-					if (playeringame[displayplayer[1]] && players[displayplayer[1]].mo)
+					if (playeringame[g_Splits[1].Display] && players[g_Splits[1].Display].mo)
 					{
 						//faB: Boris hack :P !!
 						viewwindowy = vid.height / 2;
 						activeylookup = ylookup;
 						memcpy(ylookup, ylookup2, viewheight * sizeof(ylookup[0]));
 						
-						if (g_PlayerInSplit[1])
-							if (players[displayplayer[1]].mo)
-								R_RenderPlayerView(&players[displayplayer[1]], 1);
+						if (g_Splits[1].Active)
+							if (players[g_Splits[1].Display].mo)
+								R_RenderPlayerView(&players[g_Splits[1].Display], 1);
 						
 						viewwindowy = 0;
 						activeylookup = ylookup;
@@ -413,11 +413,11 @@ void D_Display(void)
 						V_DrawColorBoxEx(VEX_NOSCALESTART | VEX_NOSCALESCREEN, 0, 0, vid.height >> 1, vid.width, vid.height);
 				case 0:
 				default:
-					if (players[displayplayer[0]].mo)
+					if (players[g_Splits[0].Display].mo)
 					{
 						activeylookup = ylookup;
-						if (g_PlayerInSplit[0])
-							R_RenderPlayerView(&players[displayplayer[0]], 0);
+						if (g_Splits[0].Active)
+							R_RenderPlayerView(&players[g_Splits[0].Display], 0);
 					}
 					break;
 			}
@@ -852,7 +852,7 @@ void D_DoAdvanceDemo(void)
 {
 	static bool_t RanPlusPlus = false;
 	
-	players[consoleplayer[0]].playerstate = PST_LIVE;	// not reborn
+	players[g_Splits[0].Console].playerstate = PST_LIVE;	// not reborn
 	advancedemo = false;
 	gameaction = ga_nothing;
 	
@@ -937,7 +937,7 @@ void D_StartTitle(void)
 		
 	gameaction = ga_nothing;
 	for (i = 0; i < MAXSPLITSCREENPLAYERS; i++)
-		displayplayer[i] = consoleplayer[i] = 0;
+		g_Splits[i].Display = g_Splits[i].Console = 0;
 	statusbarplayer = 0;
 	demosequence = -1;
 	paused = false;
@@ -1822,7 +1822,7 @@ void D_JoySpecialTicker(void)
 	{
 		// Determine profile selection
 			// Player is missing
-		if (!g_PlayerInSplit[i])
+		if (!g_Splits[i].Active)
 		{
 			// Unbound?
 			if (!g_JoyPortBound[i])
@@ -1846,8 +1846,8 @@ void D_JoySpecialTicker(void)
 			// No Profile?
 			if (!g_JoyPortProf[i])
 				// Set from player
-				if (players[consoleplayer[i]].ProfileEx)
-					g_JoyPortProf[i] = players[consoleplayer[i]].ProfileEx;
+				if (players[g_Splits[i].Console].ProfileEx)
+					g_JoyPortProf[i] = players[g_Splits[i].Console].ProfileEx;
 				
 				// Annoy with prompt
 				else
@@ -1913,7 +1913,7 @@ void D_JoySpecialDrawer(void)
 			tX = 5;
 		
 		// Player is here (with some profile)
-		if (g_JoyPortBound[i] || (!demoplayback && g_PlayerInSplit[i]))
+		if (g_JoyPortBound[i] || (!demoplayback && g_Splits[i].Active))
 		{
 			// Set Ok
 			LastOK = true;

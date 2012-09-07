@@ -527,7 +527,7 @@ void A_Punch(mobj_t* mo, player_t* player, pspdef_t* psp, const INFO_StateArgsNu
 		
 		// GhostlyDeath -- Affect Local Aiming yknow
 		for (i = 0; i < MAXSPLITSCREENPLAYERS; i++)
-			if (playeringame[consoleplayer[i]] && player == &players[consoleplayer[i]])
+			if (playeringame[g_Splits[i].Console] && player == &players[g_Splits[i].Console])
 				locang = &localangle[i];
 				
 		if (locang)
@@ -607,7 +607,7 @@ void A_Saw(mobj_t* mo, player_t* player, pspdef_t* psp, const INFO_StateArgsNum_
 	
 		// GhostlyDeath -- Affect Local Aiming yknow
 		for (i = 0; i < MAXSPLITSCREENPLAYERS; i++)
-			if (playeringame[consoleplayer[i]] && player == &players[consoleplayer[i]])
+			if (playeringame[g_Splits[i].Console] && player == &players[g_Splits[i].Console])
 				locang = &localangle[i];
 			
 		if (locang)

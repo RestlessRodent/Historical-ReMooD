@@ -269,12 +269,12 @@ fixed_t S_GetListenerEmitterWithDist(S_SoundChannel_t* const a_Channel, S_NoiseT
 	for (i = 0; i <= (g_SplitScreen < 0 ? 0 : g_SplitScreen); i++)
 	{
 		// Check to see if the player is in game (if not ignore)
-		if (displayplayer[i] < 0 || displayplayer[i] >= MAXPLAYERS || !playeringame[displayplayer[i]])
+		if (g_Splits[i].Display < 0 || g_Splits[i].Display >= MAXPLAYERS || !playeringame[g_Splits[i].Display])
 			continue;
 			
 		// Attempt getting listener
-		if (players[displayplayer[i]].mo)
-			Attempt = &players[displayplayer[i]].mo->NoiseThinker;
+		if (players[g_Splits[i].Display].mo)
+			Attempt = &players[g_Splits[i].Display].mo->NoiseThinker;
 		else
 			continue;
 			

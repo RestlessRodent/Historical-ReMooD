@@ -368,18 +368,18 @@ bool_t G_Responder(event_t* ev)
 		// spy mode
 		do
 		{
-			displayplayer[0]++;
-			if (displayplayer[0] == MAXPLAYERS)
-				displayplayer[0] = 0;
+			g_Splits[0].Display++;
+			if (g_Splits[0].Display == MAXPLAYERS)
+				g_Splits[0].Display = 0;
 		}
-		while (!playeringame[displayplayer[0]] && displayplayer[0] != consoleplayer[0]);
+		while (!playeringame[g_Splits[0].Display] && g_Splits[0].Display != g_Splits[0].Console);
 		
 		//added:16-01-98:change statusbar also if playingback demo
 		if (singledemo)
 			ST_changeDemoView();
 			
 		//added:11-04-98: tell who's the view
-		CONL_PrintF("Viewpoint : %s\n", player_names[displayplayer[0]]);
+		CONL_PrintF("Viewpoint : %s\n", player_names[g_Splits[0].Display]);
 		
 		return true;
 	}
@@ -1163,7 +1163,7 @@ bool_t G_CheckSpot(int playernum, mapthing_t* mthing, const bool_t a_NoFirstMo)
 	
 		//added:16-01-98:consoleplayer -> displayplayer (hear snds from viewpt)
 		// removed 9-12-98: why not ????
-		if (players[displayplayer[0]].viewz != 1)
+		if (players[g_Splits[0].Display].viewz != 1)
 			S_StartSound(mo, sfx_telept);	// don't start sound on first frame
 	}
 		
@@ -1691,7 +1691,7 @@ void G_DoCompleted(void)
 		players[i].didsecret = true;
 	
 	if (!dedicated)
-		wminfo.didsecret = players[consoleplayer[0]].didsecret;
+		wminfo.didsecret = players[g_Splits[0].Console].didsecret;
 	wminfo.epsd = gameepisode - 1;
 	wminfo.last = gamemap - 1;
 	wminfo.maxkills = totalkills;
@@ -1699,7 +1699,7 @@ void G_DoCompleted(void)
 	wminfo.maxsecret = totalsecret;
 	wminfo.maxfrags = 0;
 	wminfo.partime = TICRATE * g_CurrentLevelInfo->ParTime;
-	wminfo.pnum = consoleplayer[0];
+	wminfo.pnum = g_Splits[0].Console;
 	
 	for (i = 0; i < MAXPLAYERS; i++)
 	{
@@ -1732,7 +1732,7 @@ void G_NextLevel(void)
 	gameaction = ga_worlddone;
 	
 	if (secretexit)
-		players[consoleplayer[0]].didsecret = true;
+		players[g_Splits[0].Console].didsecret = true;
 }
 
 void G_DoWorldDone(void)
@@ -1846,7 +1846,7 @@ void G_DoLoadGame(int slot)
 	
 	gameaction = ga_nothing;
 	gamestate = GS_LEVEL;
-	displayplayer[0] = consoleplayer[0];
+	g_Splits[0].Display = g_Splits[0].Console;
 	
 	// done
 	Z_Free(savebuffer);
@@ -1911,7 +1911,7 @@ void G_DoSaveGame(int savegameslot, char* savedescription)
 	
 	gameaction = ga_nothing;
 	
-	players[consoleplayer[0]].message = GGSAVED;
+	players[g_Splits[0].Console].message = GGSAVED;
 	
 	// draw the pattern into the back screen
 	R_FillBackScreen();
@@ -2128,7 +2128,7 @@ no_demo:
 	
 	//added:08-02-98: added displayplayer because the status bar links
 	// to the display player when playing back a demo.
-	displayplayer[0] = consoleplayer[0] = *demo_p++;
+	g_Splits[0].Display = g_Splits[0].Console = *demo_p++;
 	
 	//added:11-01-98:
 	//  support old v1.9 demos with ONLY 4 PLAYERS ! Man! what a shame!!!
@@ -2193,8 +2193,8 @@ no_demo:
 	if (g_SplitScreen)
 		for (i = 0; i < MAXSPLITSCREENPLAYERS; i++)
 		{
-			displayplayer[i] = i;
-			consoleplayer[i] = i;
+			g_Splits[i].Display = i;
+			g_Splits[i].Console = i;
 		}
 		
 	demoplayback = true;
@@ -2219,8 +2219,8 @@ void G_TimeDemo(char* name)
 	if (g_SplitScreen > 0)
 		for (i = 0; i < MAXSPLITSCREENPLAYERS; i++)
 		{
-			displayplayer[i] = i;
-			consoleplayer[i] = i;
+			g_Splits[i].Display = i;
+			g_Splits[i].Console = i;
 		}
 	nodrawers = M_CheckParm("-nodraw");
 	noblit = M_CheckParm("-noblit");

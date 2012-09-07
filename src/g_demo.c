@@ -269,8 +269,8 @@ bool_t G_DEMO_Vanilla_StartPlaying(struct G_CurrentDemo_s* a_Current)
 			if (j < 4)
 			{
 				g_SplitScreen++;
-				g_PlayerInSplit[j] = true;
-				consoleplayer[j] = displayplayer[j] = i;
+				g_Splits[j].Active = true;
+				g_Splits[j].Console = g_Splits[j].Display = i;
 				j++;
 			}
 		}

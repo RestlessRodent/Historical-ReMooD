@@ -1805,7 +1805,7 @@ bool_t D_NCMH_TCMD(struct D_NCMessageData_s* const a_Data)
 		D_BSwu32(Stream, g_LastConsist.PosMask);
 		
 			D_BSwu8(Stream, 1);
-			D_BSwu8(Stream, consoleplayer[i]);
+			D_BSwu8(Stream, g_Splits[i].Console);
 		
 			D_BSwi8(Stream, InTic->Std.forwardmove);
 			D_BSwi8(Stream, InTic->Std.sidemove);
@@ -2535,7 +2535,7 @@ void D_NetWriteTicCmd(ticcmd_t* const a_TicCmd, const int a_Player)
 		for (i = 0; i < g_SplitScreen + 1; i++)
 		{
 			// Get net player
-			NetPlayer = players[consoleplayer[i]].NetPlayer;
+			NetPlayer = players[g_Splits[i].Console].NetPlayer;
 			
 			// Does not exist? No tics in buffer?
 			if (!NetPlayer || (NetPlayer && !NetPlayer->TicTotal))
@@ -2546,7 +2546,7 @@ void D_NetWriteTicCmd(ticcmd_t* const a_TicCmd, const int a_Player)
 			
 			// Write Marker
 			D_BSwu8(Stream, 1);
-			D_BSwu8(Stream, consoleplayer[i]);
+			D_BSwu8(Stream, g_Splits[i].Console);
 			
 			// Get tic to send
 			InTic = &NetPlayer->TicCmd[0];

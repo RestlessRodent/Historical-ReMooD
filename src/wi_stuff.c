@@ -1509,7 +1509,7 @@ static void WI_initVariables(wbstartstruct_t* wbstartstruct)
 			
 			// Determine if is local player (on screen)
 			for (k = 0; k < MAXSPLITSCREEN; k++)
-				if (g_PlayerInSplit[k] && i == consoleplayer[k])
+				if (g_Splits[k].Active && i == g_Splits[k].Console)
 				{
 					TempDP[NumTempDP].LocalPlayer = true;
 					TempDP[NumTempDP].ScreenNum = k;

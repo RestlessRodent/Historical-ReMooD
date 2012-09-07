@@ -291,7 +291,7 @@ bool_t P_GiveWeapon(player_t* player, weapontype_t weapon, bool_t dropped)
 		//added:16-01-98:changed consoleplayer to displayplayer
 		//               (hear the sounds from the viewpoint)
 		for (i = 0; i < g_SplitScreen + 1; i++)
-			if (player == &players[displayplayer[i]])
+			if (player == &players[g_Splits[i].Display])
 				S_StartSound(NULL, sfx_wpnup);
 		return false;
 	}
@@ -474,7 +474,7 @@ void P_PlayerMessage(const P_PMType_t a_Type, mobj_t* const a_Picker, mobj_t* co
 		
 	/* Find player that is picking this up */
 	for (i = 0; i < MAXSPLITSCREENPLAYERS; i++)
-		if (playeringame[displayplayer[i]] && &players[displayplayer[i]] == a_Picker->player)
+		if (playeringame[g_Splits[i].Display] && &players[g_Splits[i].Display] == a_Picker->player)
 			break;
 			
 	// Nobody on these screens
@@ -784,7 +784,7 @@ bool_t P_TouchSpecialThing(mobj_t* special, mobj_t* toucher)
 			
 			//added:16-01-98:consoleplayer -> displayplayer (hear sounds from viewpoint)
 			for (i = 0; i < g_SplitScreen + 1; i++)
-				if (player == &players[displayplayer[i]])
+				if (player == &players[g_Splits[i].Display])
 					S_StartSound(NULL, sound);
 		}
 		
@@ -950,7 +950,7 @@ bool_t P_TouchSpecialThing(mobj_t* special, mobj_t* toucher)
 	
 	//added:16-01-98:consoleplayer -> displayplayer (hear sounds from viewpoint)
 	for (i = 0; i < g_SplitScreen + 1; i++)
-		if (player == &players[displayplayer[i]])
+		if (player == &players[g_Splits[i].Display])
 			S_StartSound(NULL, sound);
 #endif
 }
@@ -1347,7 +1347,7 @@ void P_KillMobj(mobj_t* target, mobj_t* inflictor, mobj_t* source)
 		P_DropWeapon(target->player);	// put weapon away
 		
 		for (i = 0; i < MAXSPLITSCREENPLAYERS; i++)
-			if (playeringame[consoleplayer[i]] && target->player == &players[consoleplayer[i]])
+			if (playeringame[g_Splits[i].Console] && target->player == &players[g_Splits[i].Console])
 				localaiming[i] = 0;
 	}
 	
@@ -1606,7 +1606,7 @@ bool_t P_DamageMobj(mobj_t* target, mobj_t* inflictor, mobj_t* source, int damag
 				player->damagecount = 100;	// teleport stomp does 10k points...
 				
 			//added:22-02-98: force feedback ??? electro-shock???
-			if (player == &players[consoleplayer[0]])
+			if (player == &players[g_Splits[0].Console])
 				I_Tactile(40, 10, 40 + (damage < 100 ? damage : 100) * 2);
 		}
 	}
