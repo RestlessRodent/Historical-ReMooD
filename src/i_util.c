@@ -1727,7 +1727,7 @@ void I_Quit(void)
 	}
 	
 	// Disconnect from network game
-	D_NCDisconnect();
+	D_NCDisconnect(false);
 	D_QuitNetGame();
 	
 	// use this for 1.28 19990220 by Kin

@@ -63,6 +63,7 @@ static tic_t l_BaseTime = 0;					// Base Game Time
 static tic_t l_LocalTime = 0;					// Local Time
 static bool_t l_ConsistencyFailed = false;		// Consistency failed
 static bool_t l_SoloNet = true;					// Solo Network
+static bool_t l_IsConnected = false;			// Connected to server
 
 /****************
 *** FUNCTIONS ***
@@ -661,7 +662,7 @@ static int DS_ConnectMultiCom(const uint32_t a_ArgC, const char** const a_ArgV)
 	else if (strcasecmp("disconnect", a_ArgV[0]) == 0)
 	{
 		// Disconnect
-		D_NCDisconnect();
+		D_NCDisconnect(false);
 		
 		// Success!
 		return CLE_SUCCESS;
@@ -863,7 +864,7 @@ void D_NCRunCommands(void)
 static void DS_NCDoDisconnect(void* const a_Data)
 {
 	/* Do the disconnect */
-	D_NCDisconnect();
+	D_NCDisconnect(false);
 }
 
 /* D_NCQueueDisconnect() -- Queue Disconnect */
@@ -873,7 +874,7 @@ void D_NCQueueDisconnect(void)
 }
 
 /* D_NCDisconnect() -- Disconnect from existing server */
-void D_NCDisconnect(void)
+void D_NCDisconnect(const bool_t a_FromDemo)
 {
 	size_t i, j;
 	
@@ -896,6 +897,7 @@ void D_NCDisconnect(void)
 	
 	// Revert back to solo networking
 	l_SoloNet = true;
+	l_IsConnected = false;	// Set disconnected
 	
 	/* Clear all player information */
 	// Reset all vars
@@ -904,8 +906,13 @@ void D_NCDisconnect(void)
 	// Just wipe ALL of it!
 	memset(players, 0, sizeof(players));
 	memset(playeringame, 0, sizeof(playeringame));
-	memset(g_Splits, 0, sizeof(g_Splits));
-	g_SplitScreen = -1;
+	
+	// If connected, reset splits
+	if (l_IsConnected)
+		D_NCResetSplits(a_FromDemo);
+	
+	// Always reset demo splits though
+	D_NCResetSplits(true);
 	
 	// Initialize some players some
 	for (i = 0; i < MAXPLAYERS; i++)
@@ -976,7 +983,7 @@ void D_NCServize(void)
 	
 	/* First Disconnect */
 	// This does most of the work for us
-	D_NCDisconnect();
+	D_NCDisconnect(false);
 	
 	/* Go through local clients and set as server */
 	for (i = 0; i < l_NumClients; i++)
@@ -996,6 +1003,9 @@ void D_NCServize(void)
 	l_BaseTime = I_GetTimeMS() / TICSPERMS;
 	l_LocalTime = 0;
 	l_MapTime = 0;
+	
+	/* Set as connected */
+	l_IsConnected = true;
 	
 	/* Change gamestate to waiting for player */
 	gamestate = wipegamestate = GS_WAITINGPLAYERS;
@@ -1028,7 +1038,7 @@ void D_NCClientize(D_NetClient_t* a_BoundClient, I_HostAddress_t* const a_Host, 
 		}
 	
 	/* First Disconnect */
-	D_NCDisconnect();
+	D_NCDisconnect(false);
 	
 	/* Revoke self serverness */
 	for (i = 0; i < l_NumClients; i++)
@@ -1222,12 +1232,15 @@ void D_NCLocalPlayerAdd(const char* const a_Name, const bool_t a_Bot, const uint
 	if (!D_SyncNetIsArbiter() && a_Bot)
 		return;
 	
-	/* No split-screens available? */
-	if (g_SplitScreen >= 3)
-		return;
+	/* Find first free slot */
+	for (PlaceAt = 0; PlaceAt < MAXSPLITSCREEN; PlaceAt++)
+		// If nobody is waiting here (also ignore active in demos)
+		if (!g_Splits[PlaceAt].Waiting && ((demoplayback) || (!demoplayback && !g_Splits[PlaceAt].Active)))
+			break;
 	
-	// Place here
-	PlaceAt = g_SplitScreen + 1;
+	// No Room?
+	if (PlaceAt >= MAXSPLITSCREEN)
+		return;
 	
 	/* Create Process ID */
 	do
@@ -1245,7 +1258,17 @@ void D_NCLocalPlayerAdd(const char* const a_Name, const bool_t a_Bot, const uint
 			Profile = D_FindProfileEx("guest");
 		
 		// Wipe
-		memset(&g_Splits[PlaceAt], 0, sizeof(g_Splits[PlaceAt]));
+		//memset(&g_Splits[PlaceAt], 0, sizeof(g_Splits[PlaceAt]));
+		
+		if (!demoplayback)
+		{
+			g_Splits[PlaceAt].Active = false;
+			g_Splits[PlaceAt].Console = 0;
+			g_Splits[PlaceAt].Display = 0;
+		}
+		
+		g_Splits[PlaceAt].RequestSent = false;
+		g_Splits[PlaceAt].GiveUpAt = 0;
 		
 		// Bind stuff here
 		g_Splits[PlaceAt].Waiting = true;
@@ -1265,8 +1288,11 @@ void D_NCLocalPlayerAdd(const char* const a_Name, const bool_t a_Bot, const uint
 #endif
 		
 		// Resize Splits
-		g_SplitScreen++;
-		R_ExecuteSetViewSize();
+		if (!demoplayback)
+		{
+			g_SplitScreen++;
+			R_ExecuteSetViewSize();
+		}
 	}
 	
 	/* Otherwise it "is not bound to a slot */
@@ -1505,7 +1531,7 @@ bool_t D_NCMH_JOIN(struct D_NCMessageData_s* const a_Data)
 	uint8_t PName[MAXPLAYERNAME], AName[MAXPLAYERNAME];
 	uint8_t HexClass[MAXPLAYERNAME], Color;
 	int16_t FreeSlot;
-	uint32_t PInstance;
+	uint32_t PInstance, SplitInstance;
 	void* Wp;
 	int i;
 	
@@ -1531,6 +1557,7 @@ bool_t D_NCMH_JOIN(struct D_NCMessageData_s* const a_Data)
 	IsBot = D_BSru8(Stream);
 	D_BSrs(Stream, UUID, (MAXPLAYERNAME * 2) + 1);
 	PInstance = D_BSru32(Stream);
+	SplitInstance = D_BSru32(Stream);
 	D_BSrs(Stream, AName, MAXPLAYERNAME);
 	D_BSrs(Stream, PName, MAXPLAYERNAME);
 	
@@ -1579,7 +1606,7 @@ bool_t D_NCMH_JOIN(struct D_NCMessageData_s* const a_Data)
 		LittleWriteUInt16((uint16_t**)&Wp, FreeSlot);
 		LittleWriteUInt32((uint32_t**)&Wp, JoinFlags);
 		LittleWriteUInt32((uint32_t**)&Wp, PInstance);
-		LittleWriteUInt32((uint32_t**)&Wp, 0);	// TODO FIXME: Screen Instance
+		LittleWriteUInt32((uint32_t**)&Wp, SplitInstance);
 		WriteUInt8((uint8_t**)&Wp, Color);
 		
 		for (i = 0; i < MAXPLAYERNAME; i++)
@@ -2034,6 +2061,9 @@ bool_t D_NCMH_PLAY(struct D_NCMessageData_s* const a_Data)
 	// Set ready
 	ServerNC->ReadyToPlay = true;
 	
+	// TODO FIXME: set this after savegame sent
+	l_IsConnected = true;
+	
 	/* Done processing */
 	return true;
 }
@@ -2072,7 +2102,7 @@ bool_t D_NCMH_REDY(struct D_NCMessageData_s* const a_Data)
 	a_Data->RCl->ReadyToPlay = true;
 	CONL_OutputU(DSTR_DNETC_CLIENTNOWREADY, "%s\n", a_Data->RCl->ReverseDNS);
 	
-	// TODO FIXME
+	// TODO FIXME: Actually send a save game
 	a_Data->RCl->SaveGameSent = true;
 	
 	/* Done processing */
@@ -2412,6 +2442,10 @@ void D_NetWriteGlobalTicCmd(ticcmd_t* const a_TicCmd)
 	/* Get server client */
 	ServerNC = D_NCFindClientIsServer();
 	
+	// No server?
+	if (!ServerNC)
+		return;
+	
 	// Non-Local?
 	if (!ServerNC->IsLocal)
 		return;
@@ -2596,6 +2630,81 @@ void D_NCUpdate(void)
 	bool_t IsServ, IsClient, IsHost;
 	D_NCMessageData_t Data;
 	uint32_t ThisTime;
+	static int8_t LastSplitMode;
+	
+	/* Handle Profiling */
+	for (nc = 0; nc < MAXSPLITSCREEN; nc++)
+	{
+		// Stop?
+		if (!g_Splits[nc].Waiting && ((demoplayback) || (!demoplayback && !g_Splits[nc].Active)))
+			break;
+		
+		// Waiting for join?
+		if (g_Splits[nc].Waiting)
+			// No Profile Active?
+			if (!g_Splits[nc].Profile)
+			{
+				// Annoy player with profile selection, if not doing so already
+			}
+			
+			// Profile active (send/timeout, but only if connected)
+			else if (l_IsConnected)
+			{
+				// Send request to server?
+				if (!g_Splits[nc].RequestSent)
+				{
+					// Get server to send join request to
+					RemoteClient = D_NCFindClientIsServer();
+					
+					if (RemoteClient)
+					{
+						// Get Stream
+						POut = RemoteClient->Streams[DNCSP_PERFECTWRITE];
+						
+						// Put Data
+						D_BSBaseBlock(POut, "JOIN");
+						D_BSwu8(POut, 0);		// Not a bot
+						D_BSws(POut, g_Splits[nc].Profile->UUID);
+						D_BSwu32(POut, g_Splits[nc].Profile->InstanceID);
+						D_BSwu32(POut, g_Splits[nc].ProcessID);
+						D_BSws(POut, g_Splits[nc].Profile->AccountName);
+						D_BSws(POut, g_Splits[nc].Profile->DisplayName);
+						D_BSwu8(POut, g_Splits[nc].Profile->Color);
+						D_BSws(POut, g_Splits[nc].Profile->HexenClass);
+					
+						// Send
+						D_BSRecordNetBlock(POut, &RemoteClient->Address);
+						
+						// Set as sent and timeout at 3 minutes
+						g_Splits[nc].RequestSent = true;
+						g_Splits[nc].GiveUpAt = g_ProgramTic + (TICRATE * 180);
+						
+						// Message for the avid player
+						CONL_OutputU(DSTR_DNETC_JOININGPLAYER, "%s\n", g_Splits[nc].Profile->DisplayName);
+					}
+				}
+				
+				// Request sent, check timeout
+				else
+				{
+				}
+			}
+	}
+	
+	// If connected, reset splitscreen
+	if (l_IsConnected)
+	{
+		g_SplitScreen = ((int32_t)nc) - 1;
+		
+		if (g_SplitScreen != LastSplitMode)
+			R_ExecuteSetViewSize();
+		
+		LastSplitMode = g_SplitScreen;
+	}
+	
+	// Remember Last
+	else
+		LastSplitMode = g_SplitScreen;
 	
 	/* Get current time */
 	ThisTime = I_GetTimeMS();

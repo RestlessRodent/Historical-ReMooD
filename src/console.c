@@ -2651,7 +2651,8 @@ bool_t CONL_DrawConsole(void)
 					}
 					
 					// Done drawing line
-					y += V_FontHeight(VFONT_SMALL);
+					if (DrawLineCount < 2)
+						y += V_FontHeight(VFONT_SMALL);
 				}
 			}
 		}

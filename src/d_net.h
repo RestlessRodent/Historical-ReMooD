@@ -165,7 +165,7 @@ void D_NCRunCommands(void);
 
 void D_NCQueueDisconnect(void);
 
-void D_NCDisconnect(void);
+void D_NCDisconnect(const bool_t a_FromDemo);
 void D_NCServize(void);
 void D_NCClientize(D_NetClient_t* a_BoundClient, I_HostAddress_t* const a_Host, const char* const a_Pass, const char* const a_JoinPass);
 

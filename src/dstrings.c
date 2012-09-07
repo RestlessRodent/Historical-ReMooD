@@ -946,6 +946,7 @@ StringGroupEX_t UnicodeStrings[NUMUNICODESTRINGS] =
 	{		   "DNETC_CLIENTNOWREADY", "Client $1 is now ready."},
 	{			  "DNETC_CONSISTFAIL", "Consistency Failure"},
 	{			  "DNETC_PLEASERECON", "Please Reconnect"},
+	{			"DNETC_JOININGPLAYER", "Joining player \"$1{z\"."},
 };
 
 /* DS_NameOfString() -- Returns name of pointer to string */

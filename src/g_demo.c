@@ -234,8 +234,7 @@ bool_t G_DEMO_Vanilla_StartPlaying(struct G_CurrentDemo_s* a_Current)
 	
 	/* Setup Players */
 	memset(playeringame, 0, sizeof(playeringame));
-	memset(g_Splits, 0, sizeof(g_Splits));
-	g_SplitScreen = -1;
+	D_NCResetSplits(true);
 	
 	// Set them all up (split-screen)
 	for (j = 0, i = 0; i < 4; i++)
@@ -818,8 +817,7 @@ bool_t G_DEMO_Legacy_StartPlaying(struct G_CurrentDemo_s* a_Current)
 	
 	/* Setup Players */
 	memset(playeringame, 0, sizeof(playeringame));
-	memset(g_Splits, 0, sizeof(g_Splits));
-	g_SplitScreen = -1;
+	D_NCResetSplits(true);
 	
 	// Set them all up (split-screen)
 	for (ss = 0, i = 0; i < MAXPLAYERS; i++)
@@ -2596,7 +2594,7 @@ void G_StopDemoPlay(void)
 	/* If not a server playing demos (demoplayback server) */
 	// Disconnect from "ourself"
 	if (!l_DemoServer)
-		D_NCDisconnect();
+		D_NCDisconnect(true);
 	
 	/* Stop recording if advancing/quitting */
 	if ((QuitDoom || Advance) && demorecording)
@@ -2723,11 +2721,11 @@ void G_DoPlayDemo(char* defdemoname)
 	G_StopDemoPlay();
 	
 	/* If not a server playing demos (demoplayback server) */
-	// We need to switch to a server state before servers can be played.
+	// We need to switch to a server state before demos can be played.
 	if (!l_DemoServer)
 	{
-		D_NCDisconnect();
-		D_NCServize();
+		D_NCDisconnect(true);
+		//D_NCServize();
 	}
 	
 	/* Play demo in any factory */

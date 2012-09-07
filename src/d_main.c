@@ -1816,6 +1816,7 @@ void D_JoySpecialTicker(void)
 	l_JoyMagicAt = MAXSPLITSCREEN;
 	for (i = 0; i < MAXSPLITSCREEN; i++)
 	{
+#if 0
 		// Determine profile selection
 			// Player is missing
 		if (!g_Splits[i].Active)
@@ -1850,9 +1851,9 @@ void D_JoySpecialTicker(void)
 				{
 				}
 		}
-		
+#endif
 		// Choose location
-		if (!g_Splits[i].JoyBound && !g_Splits[i].Profile)
+		if ((!g_Splits[i].Waiting || ((demoplayback) || (!demoplayback && !g_Splits[i].Active))) && !g_Splits[i].Profile)
 			if (l_JoyMagicAt == MAXSPLITSCREEN)
 				l_JoyMagicAt = i;
 	}
@@ -1907,9 +1908,10 @@ void D_JoySpecialDrawer(void)
 			tX = 165;
 		else
 			tX = 5;
+		//if (g_Splits[i].JoyBound || (!demoplayback && g_Splits[i].Active))
 		
-		// Player is here (with some profile)
-		if (g_Splits[i].JoyBound || (!demoplayback && g_Splits[i].Active))
+		// Player is here
+		if (g_Splits[i].Waiting || (!demoplayback && g_Splits[i].Active))
 		{
 			// Set Ok
 			LastOK = true;

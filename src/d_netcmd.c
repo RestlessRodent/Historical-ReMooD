@@ -1443,12 +1443,34 @@ int8_t D_NCSFindSplitByProcess(const uint32_t a_ID)
 	
 	/* Loop */
 	for (i = 0; i < MAXSPLITSCREEN; i++)
-		if (g_Splits[i].Active)
+		if (g_Splits[i].Waiting || (!demoplayback && g_Splits[i].Active))
 			if (g_Splits[i].ProcessID == a_ID)
 				return i;
 	
 	/* Not found */
 	return -1;
+}
+
+/* D_NCResetSplits() -- Resets all splits */
+void D_NCResetSplits(const bool_t a_Demo)
+{
+	int i;
+	
+	/* Not in demo */
+	if (!a_Demo)
+	{
+		memset(g_Splits, 0, sizeof(g_Splits));
+	}
+	
+	/* In Demo */
+	else
+	{
+		for (i = 0; i < MAXSPLITSCREEN; i++)
+			g_Splits[i].Active = false;
+	}
+	
+	/* Reset Split Count */
+	g_SplitScreen = -1;
 }
 
 /* D_NCSGetPlayerName() -- Get player name */

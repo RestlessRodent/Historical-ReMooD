@@ -133,6 +133,9 @@ typedef struct D_SplitInfo_s
 	
 	bool_t JoyBound;							// Joystick Bound
 	uint32_t JoyID;								// Joystick ID
+	
+	bool_t RequestSent;							// Sent join request
+	tic_t GiveUpAt;								// Give up joining at this time
 } D_SplitInfo_t;
 
 /*** GLOBALS ***/
@@ -161,6 +164,8 @@ void D_NCSFreeNetPlayer(D_NetPlayer_t* const a_NetPlayer);
 D_NetPlayer_t* D_NCSFindNetPlayer(const char* const a_Name);
 D_NetPlayer_t* D_NCSFindNetPlayerByProcess(const uint32_t a_ID);
 int8_t D_NCSFindSplitByProcess(const uint32_t a_ID);
+
+void D_NCResetSplits(const bool_t a_Demo);
 
 const char* D_NCSGetPlayerName(const uint32_t a_PlayerID);
 
