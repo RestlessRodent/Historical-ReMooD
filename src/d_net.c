@@ -1229,6 +1229,9 @@ void D_NCLocalPlayerAdd(const char* const a_Name, const bool_t a_Bot, const uint
 {
 	uint32_t ProcessID, PlaceAt;
 	D_ProfileEx_t* Profile;
+	const B_BotTemplate_t* BotTemplate;
+	D_NetClient_t* Server;
+	D_BS_t* Stream;
 		
 	/* Only servers are allowed to add bots */
 	if (!D_SyncNetIsArbiter() && a_Bot)
@@ -1259,9 +1262,6 @@ void D_NCLocalPlayerAdd(const char* const a_Name, const bool_t a_Bot, const uint
 		if (!Profile)
 			Profile = D_FindProfileEx("guest");
 		
-		// Wipe
-		//memset(&g_Splits[PlaceAt], 0, sizeof(g_Splits[PlaceAt]));
-		
 		if (!demoplayback)
 		{
 			g_Splits[PlaceAt].Active = false;
@@ -1279,16 +1279,6 @@ void D_NCLocalPlayerAdd(const char* const a_Name, const bool_t a_Bot, const uint
 		g_Splits[PlaceAt].JoyID = a_JoyID;
 		g_Splits[PlaceAt].ProcessID = ProcessID;
 		
-#if 0
-		g_JoyPortBound[PlaceAt] = true;			// Screen bound to something
-		g_JoyPortID[PlaceAt] = a_JoyID;			// Joystick to use
-		g_JoyPortProf[PlaceAt] = Profile;		// Profile to use (if any)
-		g_PlayerInSplit[PlaceAt] = false;		// Place player in split
-		g_SplitPlayerInstance[PlaceAt] = ProcessID;	// ID to remembers
-		consoleplayer[PlaceAt] = 0;				// Fake console player
-		displayplayer[PlaceAt] = 0;				// Fake display player
-#endif
-		
 		// Resize Splits
 		if (!demoplayback)
 		{
@@ -1300,70 +1290,42 @@ void D_NCLocalPlayerAdd(const char* const a_Name, const bool_t a_Bot, const uint
 	/* Otherwise it "is not bound to a slot */
 	else
 	{
-	}
-}
-
-/* D_NCReqAddPlayer() -- Requests that the server add local player */
-void D_NCReqAddPlayer(struct D_ProfileEx_s* a_Profile, const bool_t a_Bot)
-{
-	D_NetClient_t* Server;
-	D_BS_t* Stream;
-	B_BotTemplate_t* BotTemplate;
-	
-	/* Check */
-	if (!a_Profile && !a_Bot)
-		return;
-	
-	// Get template
-	if (a_Bot)
-		if (a_Profile)
-			BotTemplate = (B_BotTemplate_t*)a_Profile;
-		else
+		// Find template
+		BotTemplate = NULL;
+		if (a_Name)
+			BotTemplate = B_GHOST_FindTemplate(a_Name);
+		
+		// Not found?
+		if (!BotTemplate)
 			BotTemplate = B_GHOST_RandomTemplate();
+		
+		/* Find server to send request to */
+		Server = D_NCFindClientIsServer();
 	
-	/* Only servers are allowed to add bots */
-	if (!D_SyncNetIsArbiter() && a_Bot)
-		return;
+		// Not found?
+		if (!Server)
+			return;
 	
-	/* Find server to send request to */
-	Server = D_NCFindClientIsServer();
-	
-	// Not found?
-	if (!Server)
-		return;
-	
-	/* Tell server to add player */
-	// Use server stream
-	Stream = Server->Streams[DNCSP_PERFECTWRITE];
-	
-	// Put Data
-	D_BSBaseBlock(Stream, "JOIN");
-	D_BSwu8(Stream, a_Bot);
-	
-	// If adding bot, use bot profiles
-	if (a_Bot)
-	{
+		/* Tell server to add player */
+		// Use server stream
+		Stream = Server->Streams[DNCSP_PERFECTWRITE];
+		
+		// Base
+		D_BSBaseBlock(Stream, "JOIN");
+		
+		// Write
+		D_BSwu8(Stream, a_Bot);
 		D_BSws(Stream, BotTemplate->AccountName);
 		D_BSwu32(Stream, BotTemplate->BotIDNum);
+		D_BSwu32(Stream, 0);	// No process ID
 		D_BSws(Stream, BotTemplate->AccountName);
 		D_BSws(Stream, BotTemplate->DisplayName);
 		D_BSwu8(Stream, BotTemplate->SkinColor);
 		D_BSws(Stream, BotTemplate->HexenClass);
+		
+		// Send
+		D_BSRecordNetBlock(Stream, &Server->Address);
 	}
-	
-	// Otherwise use player ones
-	else
-	{
-		D_BSws(Stream, a_Profile->UUID);
-		D_BSwu32(Stream, a_Profile->InstanceID);
-		D_BSws(Stream, a_Profile->AccountName);
-		D_BSws(Stream, a_Profile->DisplayName);
-		D_BSwu8(Stream, a_Profile->Color);
-		D_BSws(Stream, a_Profile->HexenClass);
-	}
-	
-	// Send
-	D_BSRecordNetBlock(Stream, &Server->Address);
 }
 
 /*****************************************************************************/

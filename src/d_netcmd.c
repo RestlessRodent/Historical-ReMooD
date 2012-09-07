@@ -194,25 +194,8 @@ static int DS_NCSNetCommand(const uint32_t a_ArgC, const char** const a_ArgV)
 		return CLE_INVALIDARGUMENT;
 	
 	/* Which Sub Command? */
-	// Add Player to Game
-	if (strcasecmp(a_ArgV[1], "addplayer") == 0)
-	{
-		if (devparm)
-			CONL_PrintF("NET: Requesting the server add local player.\n");
-		D_NCReqAddPlayer(D_FindProfileEx((a_ArgC >= 3 ? a_ArgV[2] : "guest")), false);
-		return CLE_SUCCESS;
-	}
-	
-	// Add Bot to game
-	else if (strcasecmp(a_ArgV[1], "addbot") == 0)
-	{
-		if (devparm)
-			CONL_PrintF("NET: Requesting the server add local bot.\n");
-		D_NCReqAddPlayer(B_GHOST_FindTemplate((a_ArgC >= 3 ? a_ArgV[2] : NULL)), true);
-	}
-	
 	// Internal add Player
-	else if (strcasecmp(a_ArgV[1], "addplayerex") == 0)
+	else if (strcasecmp(a_ArgV[1], "addplayer") == 0)
 	{
 		if (devparm)
 			CONL_PrintF("NET: Requesting the server add local player.\n");
@@ -222,7 +205,7 @@ static int DS_NCSNetCommand(const uint32_t a_ArgC, const char** const a_ArgV)
 	
 	
 	// Internal add Player
-	else if (strcasecmp(a_ArgV[1], "addbotex") == 0)
+	else if (strcasecmp(a_ArgV[1], "addbot") == 0)
 	{
 		if (devparm)
 			CONL_PrintF("NET: Requesting the server add local bot.\n");

@@ -118,6 +118,7 @@ static const B_BotTemplate_t c_BotTemplates[] =
 		"GhostlyBot",							// Account Name
 		"{2Ghostly{x7cBot",						// Display Name
 		0xC,									// Color: Orange
+		{0xff, 0x50, 0x00},						// Hex Color
 		"",
 		BGAP_DEFENSE,							// Posture
 		BGCM_UVMAX,								// Coop Mode
@@ -129,6 +130,7 @@ static const B_BotTemplate_t c_BotTemplates[] =
 		"FreeBOT",								// Account Name
 		"FreeBOT",								// Display Name
 		0xF,									// Color: Pink
+		{0xff, 0x70, 0x70},						// Hex Color
 		"SuperShotgun BFG PlasmaRifle RocketLauncher Chaingun Shotgun Pistol Chainsaw Fist",
 		BGAP_MIDDLE,							// Posture
 		BGCM_UVALLMAX,							// Coop Mode
@@ -140,6 +142,7 @@ static const B_BotTemplate_t c_BotTemplates[] =
 		"MP2Bot",								// Account Name
 		"{9MP{62{BBot",							// Display Name
 		0x8,									// Color: Dark Blue
+		{0x00, 0x00, 0x80},						// Hex Color
 		"BFG Firemace Bloodscourge Wraithverge Quietus SuperShotgun Hellstaff FrostShards Firestorm HammerOfRetribution RocketLauncher EthrealCrossBow ArcOfDeath SerpentStaff TimonsAxe PlasmaRifle PheonixRod Sapphire MaceOfContrition SpikedGauntlets Chaingun DragonClaw Shotgun ElvenWannd Pistol Gauntlets Chainsaw Staff Fist",
 		BGAP_OFFENSE,							// Posture
 		BGCM_EXITRUN,							// Coop Mode
@@ -151,10 +154,36 @@ static const B_BotTemplate_t c_BotTemplates[] =
 		"zearBot",								// Account Name
 		"{4zearBot",							// Display Name
 		0x0,									// Color: Green
+		{0x00, 0xff, 0x00},						// Hex Color
 		"SuperShotgun BFG PlasmaRifle RocketLauncher Chaingun Shotgun Pistol Chainsaw Fist",
 		BGAP_DEFENSE,							// Posture
 		BGCM_MAXKILLSITEMS,						// Coop Mode
 		"Fighter",								// Hexen Class
+	},
+	
+	{
+		4,										// ID
+		"CatoBot",								// Account Name
+		"{9CatoBot",							// Display Name
+		0xb,									// Color: White
+		{0xff, 0xff, 0xff},						// Hex Color
+		"",
+		BGAP_DONTCARE,							// Posture
+		BGCM_DONTCARE,						// Coop Mode
+		"Fighter",								// Hexen Class
+	},
+	
+	
+	{
+		5,										// ID
+		"bot512",								// Account Name
+		"{abot{x71512",								// Display Name
+		0x0,									// Color: Green
+		{0x01, 0x54, 0x22},						// Hex Color
+		"",										// Weapons
+		BGAP_DONTCARE,							// Posture
+		BGCM_DONTCARE,						// Coop Mode
+		"Random",								// Hexen Class
 	},
 	
 	{

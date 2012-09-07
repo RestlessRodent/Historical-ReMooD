@@ -55,6 +55,7 @@
 /* B_GhostCoopMode_t -- Coop Mode */
 typedef enum B_GhostCoopMode_e
 {
+	BGCM_DONTCARE,								// Don't care
 	BGCM_MAXKILLS,								// 100% Kills
 	BGCM_UVMAX,									// 100% Kills and Secrets
 	BGCM_UVALLMAX,								// 100% Kills, Items, Secrets
@@ -69,6 +70,7 @@ typedef enum B_GhostCoopMode_e
 /* B_GhostAtkPosture_t -- Attack posture for bot */
 typedef enum B_GhostAtkPosture_e
 {
+	BGAP_DONTCARE,								// Don't Care
 	BGAP_DEFENSE,								// Lean twords Defense
 	BGAP_MIDDLE,								// Neither offensive or defensive
 	BGAP_OFFENSE,								// Lean twords Offence	
@@ -129,6 +131,7 @@ typedef struct B_BotTemplate_s
 	const char* AccountName;					// Account Name
 	const char* DisplayName;					// Display Name
 	uint8_t SkinColor;							// Skin Color
+	uint8_t RGBSkinColor[3];					// Skin Color in RGB
 	const char* WeaponOrder;					// Weapon Order
 	B_GhostAtkPosture_t Posture;				// Posture
 	B_GhostCoopMode_t CoopMode;					// Coop Mode
