@@ -605,7 +605,6 @@ void P_NightmareRespawn(mobj_t* mobj, const bool_t a_ForceRespawn);
 void P_RemoveFromBodyQueue(mobj_t* const a_Mo);
 void P_MorphObjectClass(mobj_t* const a_Mo, const mobjtype_t a_NewClass);
 
-bool_t P_MobjIsTeamlessMonster(mobj_t* const a_ThisMo);
 bool_t P_MobjOnSameFamily(mobj_t* const a_ThisMo, mobj_t* const a_OtherMo);
 bool_t P_MobjOnSameTeam(mobj_t* const a_ThisMo, mobj_t* const a_OtherMo);
 bool_t P_MobjDamageTeam(mobj_t* const a_ThisMo, mobj_t* const a_OtherMo, mobj_t* const a_Inflictor);

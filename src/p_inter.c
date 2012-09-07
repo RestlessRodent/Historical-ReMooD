@@ -1249,6 +1249,8 @@ static void P_DeathMessages(mobj_t* target, mobj_t* inflictor, mobj_t* source)
 	char Message[BUFSIZE];
 	const char* tNoun, *iNoun, *sNoun;
 	bool_t tSpecial, iSpecial, sSpecial;
+	const char* SrcPrefix, *TargPrefix;
+	char SrcColor, TargColor;
 	
 	/* Determine nouns of objects */
 	tNoun = PS_GetMobjNoun(target, &tSpecial, false, source);
@@ -1258,22 +1260,65 @@ static void P_DeathMessages(mobj_t* target, mobj_t* inflictor, mobj_t* source)
 	/* If neither side is special, who cares? */
 	// Only care for target specials
 	if (!(tSpecial/* | sSpecial*/))
-	   return;
+		return;
+	
+	/* Colors to use */
+	// Default Colors
+	SrcPrefix = "";
+	TargPrefix = "";
+	SrcColor = '4';
+	TargColor = '5';
+	
+	// Check Team Game
+	if (P_XGSVal(PGS_GAMETEAMPLAY))
+	{
+		// Source is on a team
+		if (source)
+			if (source->player || source->SkinTeamColor)
+			{
+				SrcPrefix = "x7";
+				if (source->player)
+					SrcColor = source->player->skincolor;
+				else
+					SrcColor = (source->SkinTeamColor - 1);
+				
+				if (SrcColor >= 10)
+					SrcColor = 'a' + (SrcColor - 10);
+				else
+					SrcColor = '0' + SrcColor;
+			}
+			
+		// Target is on a team
+		if (target)
+			if (target->player || target->SkinTeamColor)
+			{
+				TargPrefix = "x7";
+				if (target->player)
+					TargColor = target->player->skincolor;
+				else
+					TargColor = (target->SkinTeamColor - 1);
+					
+				if (TargColor >= 10)
+					TargColor = 'a' + (TargColor - 10);
+				else
+					TargColor = '0' + TargColor;
+			}
+	}
 	
 	/* Print message */
 	// 3/4 Split
 	if (g_SplitScreen > 1)
 		if (target == source)
-			CONL_PrintF("\x7{4%.6s{0< {2({3%.6s{2)\n", sNoun, iNoun);
+			CONL_PrintF("\x7{%s%c%.6s{0< {2({3%.6s{2)\n", SrcPrefix, SrcColor, sNoun, iNoun);
 		else
-			CONL_PrintF("\x7{4%.6s{0/{5%.6s {2({3%.6s{2)\n", sNoun, tNoun, iNoun);
+			CONL_PrintF("\x7{%s%c%.6s{0/{%s%c%.6s {2({3%.6s{2)\n", SrcPrefix, SrcColor, sNoun, TargPrefix, TargColor, tNoun, iNoun);
 	
 	// 1/2 Split
 	else
 		if (target == source)
-			CONL_PrintF("\x7{4%s{0 <- {2({3%s{2)\n", sNoun, iNoun);
+			CONL_PrintF("\x7{%s%c%s{0 <- {2({3%s{2)\n", SrcPrefix, SrcColor, sNoun, iNoun);
 		else
-			CONL_PrintF("\x7{4%s{0 -> {5%s {2({3%s{2)\n", sNoun, tNoun, iNoun);
+			CONL_PrintF("\x7{%s%c%s{0 -> {%s%c%s {2({3%s{2)\n", SrcPrefix, SrcColor, sNoun, TargPrefix, TargColor, tNoun, iNoun);
 	
 #undef BUFSIZE
 }
