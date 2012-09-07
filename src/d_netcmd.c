@@ -143,11 +143,12 @@ const int32_t c_TCDataSize[NUMDTCT] =
 	0,
 	
 	// JOIN
-	4 + 2 + 4 + 4 + 1 + MAXPLAYERNAME + MAXPLAYERNAME,
+	4 + 2 + 4 + 4 + 4 + 1 + MAXPLAYERNAME + MAXPLAYERNAME,
 		// uint32 HostID
 		// uint16 players[] Spot
 		// uint32 Symbols
 		// uint32 Profile Instance
+		// uint32 Process ID
 		// uint8  Color
 		// uint8* Name
 		// uint8* Hexen Class
@@ -168,6 +169,7 @@ const int32_t c_TCDataSize[NUMDTCT] =
 bool_t g_NetDev = false;						// Network Debug
 int g_SplitScreen = -1;							// Split screen players (-1 based)
 bool_t g_PlayerInSplit[MAXSPLITSCREEN] = {false, false, false, false};
+uint32_t g_SplitPlayerInstance[MAXSPLITSCREEN] = {0, 0, 0, 0};	// Split player instance
 
 /*** LOCALS ***/
 
@@ -327,6 +329,25 @@ static int DS_NCSNetCommand(const uint32_t a_ArgC, const char** const a_ArgV)
 		if (devparm)
 			CONL_PrintF("NET: Requesting the server add local bot.\n");
 		D_NCReqAddPlayer(B_GHOST_FindTemplate((a_ArgC >= 3 ? a_ArgV[2] : NULL)), true);
+	}
+	
+	// Internal add Player
+	else if (strcasecmp(a_ArgV[1], "addplayerex") == 0)
+	{
+		if (devparm)
+			CONL_PrintF("NET: Requesting the server add local player.\n");
+		D_NCLocalPlayerAdd((a_ArgC >= 3 ? a_ArgV[2] : NULL), false, g_SplitScreen, INT_MAX);
+		return CLE_SUCCESS;
+	}
+	
+	
+	// Internal add Player
+	else if (strcasecmp(a_ArgV[1], "addbotex") == 0)
+	{
+		if (devparm)
+			CONL_PrintF("NET: Requesting the server add local bot.\n");
+		D_NCLocalPlayerAdd((a_ArgC >= 3 ? a_ArgV[2] : NULL), true, g_SplitScreen, INT_MAX);
+		return CLE_SUCCESS;
 	}
 	
 	/* Success */
@@ -666,6 +687,10 @@ static void D_NCSLocalBuildTicCmd(D_NetPlayer_t* const a_NPp, ticcmd_t* const a_
 		if (g_PlayerInSplit[SID])
 			if (consoleplayer[SID] == PID)
 				break;
+	
+	// No player here?
+	if (!g_PlayerInSplit[SID])
+		return;
 	
 	// Not found?
 	if (SID >= MAXSPLITSCREEN)
@@ -1512,6 +1537,21 @@ D_NetPlayer_t* D_NCSFindNetPlayerByProcess(const uint32_t a_ID)
 	
 	/* Not Found */
 	return NULL;
+}
+
+/* D_NCSFindSplitByProcess() -- Finds split screen by process */
+int8_t D_NCSFindSplitByProcess(const uint32_t a_ID)
+{
+	int i;
+	
+	/* Loop */
+	for (i = 0; i < MAXSPLITSCREEN; i++)
+		if (g_PlayerInSplit[i])
+			if (g_SplitPlayerInstance[i] == a_ID)
+				return i;
+	
+	/* Not found */
+	return -1;
 }
 
 /* D_NCSGetPlayerName() -- Get player name */

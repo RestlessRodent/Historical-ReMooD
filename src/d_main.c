@@ -375,8 +375,9 @@ void D_Display(void)
 							else
 								viewwindowy = 0;
 								
-							if (players[displayplayer[i]].mo)
-								R_RenderPlayerView(&players[displayplayer[i]], i);
+							if (g_PlayerInSplit[i])
+								if (players[displayplayer[i]].mo)
+									R_RenderPlayerView(&players[displayplayer[i]], i);
 							
 							viewwindowx = 0;
 							viewwindowy = 0;
@@ -400,8 +401,9 @@ void D_Display(void)
 						activeylookup = ylookup;
 						memcpy(ylookup, ylookup2, viewheight * sizeof(ylookup[0]));
 						
-						if (players[displayplayer[1]].mo)
-							R_RenderPlayerView(&players[displayplayer[1]], 1);
+						if (g_PlayerInSplit[1])
+							if (players[displayplayer[1]].mo)
+								R_RenderPlayerView(&players[displayplayer[1]], 1);
 						
 						viewwindowy = 0;
 						activeylookup = ylookup;
@@ -414,7 +416,8 @@ void D_Display(void)
 					if (players[displayplayer[0]].mo)
 					{
 						activeylookup = ylookup;
-						R_RenderPlayerView(&players[displayplayer[0]], 0);
+						if (g_PlayerInSplit[0])
+							R_RenderPlayerView(&players[displayplayer[0]], 0);
 					}
 					break;
 			}
@@ -2024,10 +2027,8 @@ bool_t D_JoySpecialEvent(const I_EventEx_t* const a_Event)
 					(abs(l_JoyLastAxis[JoyID][0]) >= 16383 ||
 					abs(l_JoyLastAxis[JoyID][1]) >= 16383))
 				{
-					// Bind Port to stick
-					g_JoyPortBound[l_JoyMagicAt] = true;
-					g_JoyPortID[l_JoyMagicAt] = JoyID + 1;
-					g_JoyPortProf[l_JoyMagicAt] = NULL;
+					// Add local player (super handled)
+					D_NCLocalPlayerAdd(NULL, false, JoyID + 1, l_JoyMagicAt);
 					l_JoyMagicAt = MAXSPLITSCREEN;
 					return true;
 				}

@@ -501,6 +501,7 @@ void GS_HandleExtraCommands(ticcmd_t* const a_TicCmd, const int32_t a_PlayerNum)
 				u16[0] = LittleReadUInt16((uint16_t**)&Rp);
 				u32[1] = LittleReadUInt32((uint32_t**)&Rp);
 				u32[2] = LittleReadUInt32((uint32_t**)&Rp);
+				u32[3] = LittleReadUInt32((uint32_t**)&Rp);
 				u8[0] = ReadUInt8((uint8_t**)&Rp);
 				
 				for (i = 0; i < MAXPLAYERNAME; i++)
@@ -566,6 +567,7 @@ void GS_HandleExtraCommands(ticcmd_t* const a_TicCmd, const int32_t a_PlayerNum)
 						// Allocate net player here
 						NC->Arbs[i] = NetPlayer = D_NCSAllocNetPlayer();
 						NetPlayer->NetClient = NC;
+						NetPlayer->ProcessID = u32[3];
 						
 						if (NC->IsLocal)
 						{

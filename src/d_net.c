@@ -1213,6 +1213,58 @@ void D_NCReqVarChange(const uint32_t a_Code, const int32_t a_NewVal)
 	D_BSRecordNetBlock(Stream, &Server->Address);
 }
 
+/* D_NCLocalPlayerAdd() -- Adds a local player */
+void D_NCLocalPlayerAdd(const char* const a_Name, const bool_t a_Bot, const uint32_t a_JoyID, const int8_t a_ScreenID)
+{
+	uint32_t ProcessID, PlaceAt;
+	D_ProfileEx_t* Profile;
+		
+	/* Only servers are allowed to add bots */
+	if (!D_SyncNetIsArbiter() && a_Bot)
+		return;
+	
+	/* No split-screens available? */
+	if (g_SplitScreen >= 3)
+		return;
+	
+	// Place here
+	PlaceAt = g_SplitScreen + 1;
+	
+	/* Create Process ID */
+	do
+	{
+		ProcessID = D_CMakePureRandom();
+	} while (!ProcessID || (!D_NCSFindNetPlayerByProcess(ProcessID) && (ProcessID) < 0));
+	
+	/* If not a bot, bind to a local screen */
+	if (!a_Bot)
+	{
+		// Find Profile
+		Profile = D_FindProfileEx(a_Name);
+		
+		if (!Profile)
+			Profile = D_FindProfileEx("guest");
+		
+		// Bind stuff here
+		g_JoyPortBound[PlaceAt] = true;			// Screen bound to something
+		g_JoyPortID[PlaceAt] = a_JoyID;			// Joystick to use
+		g_JoyPortProf[PlaceAt] = Profile;		// Profile to use (if any)
+		g_PlayerInSplit[PlaceAt] = false;		// Place player in split
+		g_SplitPlayerInstance[PlaceAt] = ProcessID;	// ID to remembers
+		consoleplayer[PlaceAt] = 0;				// Fake console player
+		displayplayer[PlaceAt] = 0;				// Fake display player
+		
+		// Resize Splits
+		g_SplitScreen++;
+		R_ExecuteSetViewSize();
+	}
+	
+	/* Otherwise it is not bound to a slot */
+	else
+	{
+	}
+}
+
 /* D_NCReqAddPlayer() -- Requests that the server add local player */
 void D_NCReqAddPlayer(struct D_ProfileEx_s* a_Profile, const bool_t a_Bot)
 {

@@ -171,9 +171,10 @@ void D_NCClientize(D_NetClient_t* a_BoundClient, I_HostAddress_t* const a_Host, 
 
 bool_t D_NCHostOnBanList(I_HostAddress_t* const a_Host);
 
-void D_NCReqAddPlayer(struct D_ProfileEx_s* a_Profile, const bool_t a_Bot);
-void D_NCReqVarChange(const uint32_t a_Code, const int32_t a_NewVal);
 void D_NCReqPrefChange(struct D_ProfileEx_s* a_Profile, struct B_BotTemplate_s* a_Bot, const uint32_t a_Player);
+void D_NCReqVarChange(const uint32_t a_Code, const int32_t a_NewVal);
+void D_NCLocalPlayerAdd(const char* const a_Name, const bool_t a_Bot, const uint32_t a_JoyID, const int8_t a_ScreenID);
+void D_NCReqAddPlayer(struct D_ProfileEx_s* a_Profile, const bool_t a_Bot);
 
 void D_NCZapNetPlayer(struct D_NetPlayer_s* const a_Player);
 

@@ -126,6 +126,7 @@ typedef struct D_NetPlayer_s
 extern bool_t g_NetDev;
 extern int g_SplitScreen;						// Players in splits
 extern bool_t g_PlayerInSplit[MAXSPLITSCREEN];	// Players that belong in splits
+extern uint32_t g_SplitPlayerInstance[MAXSPLITSCREEN];
 
 /*** FUNCTIONS ***/
 
@@ -148,6 +149,7 @@ void D_NCSFreeNetPlayer(D_NetPlayer_t* const a_NetPlayer);
 
 D_NetPlayer_t* D_NCSFindNetPlayer(const char* const a_Name);
 D_NetPlayer_t* D_NCSFindNetPlayerByProcess(const uint32_t a_ID);
+int8_t D_NCSFindSplitByProcess(const uint32_t a_ID);
 
 const char* D_NCSGetPlayerName(const uint32_t a_PlayerID);
 
