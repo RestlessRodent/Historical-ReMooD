@@ -209,7 +209,7 @@ void TryRunTics(tic_t realtics)
 	I_UpdateMusic();
 	
 	// Update Tics
-	D_NCSNetUpdateSingleTic();
+	//D_NCSNetUpdateSingleTic();
 	
 	// If the game is paused, don't do anything
 	if (D_SyncNetIsPaused())

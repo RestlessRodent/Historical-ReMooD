@@ -1047,13 +1047,13 @@ void R_RenderPlayerViewEx_DOOM(player_t* player, int quarter)
 	R_ClearSprites();
 	
 	// GhostlyDeath <May 6, 2012> -- Network Update
-	D_SyncNetUpdate();
+	//D_SyncNetUpdate();
 	
 	// The head node is the last node output.
 	
 	R_RenderBSPNode(numnodes - 1);
 	
-	D_SyncNetUpdate();
+	//D_SyncNetUpdate();
 	
 	//R_DrawPortals ();
 	R_DrawPlanes();
@@ -1126,7 +1126,7 @@ void R_RenderPlayerViewEx_DOOM(player_t* player, int quarter)
 #endif
 	
 	// GhostlyDeath <May 6, 2012> -- Network Update
-	D_SyncNetUpdate();
+	//D_SyncNetUpdate();
 	
 	//player->mo->flags &= ~MF_NOSECTOR;	// don't show self (uninit) clientprediction code
 	

@@ -1204,12 +1204,21 @@ void D_NCSNetUpdateSingle(struct player_s* a_Player)
 /* D_NCSNetUpdateAll() -- Update all players */
 void D_NCSNetUpdateAll(void)
 {
+	static tic_t LastProgram, LastTic;
 	size_t i, j, SID;
 	D_NetPlayer_t* NetPlayer;
 	ticcmd_t TicMerge;
 	
 	// Extended tic command stuff
 	uint8_t XNewWeapon;							// New weapon to switch to
+	
+	/* Same tic? */
+	if (LastProgram == g_ProgramTic && LastTic == gametic)
+		return;
+	
+	// Set time
+	LastProgram = g_ProgramTic;
+	LastTic = gametic;
 	
 	/* Enable Mouse Input */
 	l_PermitMouse = true;
@@ -1218,6 +1227,10 @@ void D_NCSNetUpdateAll(void)
 	for (i = 0; i < MAXPLAYERS; i++)
 		D_NCSNetUpdateSingle(&players[i]);
 	
+	// Transmit Commands
+	D_NCSNetUpdateSingleTic();
+	
+	// Update Networking
 	D_NCUpdate();
 }
 
