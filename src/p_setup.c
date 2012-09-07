@@ -277,10 +277,18 @@ bool_t P_ExClearLevel(void)
 	/* Free all level tags */
 	Z_FreeTags(PU_LEVEL, PU_ENDLEVELTAGS);
 	
-	/* Wipe cameras */
+	/* Wipe Player Stuff */
 	for (i = 0; i < MAXPLAYERS; i++)
+	{
+		// Cameras
 		if (players[i].camera.chase)
 			players[i].camera.mo = NULL;
+			
+		// Player Stats
+		players[i].killcount = 0;
+		players[i].itemcount = 0;
+		players[i].secretcount = 0;
+	}
 	
 	/* Re-initialize */
 	P_Initsecnode();

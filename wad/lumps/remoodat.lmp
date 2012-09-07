@@ -12153,6 +12153,45 @@ MapObject "BFG"
 	}
 }
 
+// Object -- BFG
+MapObject "BetaBFG"
+{
+	NiceName "Press Release BFG9000";
+	ShortNiceName "Beta BFG";
+	DoomEdNum "-1";
+	MTName "MT_BETABFG9000";
+	SpawnHealth "1000";
+	Damage "0";
+	ReactionTime "8";
+	Mass "100";
+	Speed "0";
+	PainChance "0";
+	Height "16";
+	Radius "20";
+	WakeSound "none";
+	AttackSound "none";
+	PainSound "none";
+	DeathSound "none";
+	ActiveSound "none";
+	
+	IsSpecial "true";
+	MarkRestoreWeapon "true";
+	
+	BotMetric "Weapon";
+	
+	State "SpawnState"
+	{
+		Frame "1"
+		{
+			Sprite "BBFG";
+			Frame "0";
+			Tics "-1";
+			ViewPriority "Weapons";
+			Next "0";
+		}
+	}
+}
+
 // Object -- Chaingun
 MapObject "Chaingun"
 {
@@ -16664,7 +16703,6 @@ MapObject "ReMooDBotDebugNode"
 	NiceName "Bot Debug Node";
 	ShortNiceName "Bot Node";
 	DoomEdNum "-1";
-	DeHackEdNum "9999";
 	SpawnHealth "1000";
 	Damage "0";
 	ReactionTime "0";
@@ -16687,7 +16725,6 @@ MapObject "ReMooDBotDebugNode"
 	{
 		Frame "1"
 		{
-			DeHackEdNum "99990";
 			Sprite "RBDZ";
 			Frame "0";
 			Tics "-1";
@@ -16704,7 +16741,6 @@ MapObject "ReMooDBotDebugBadNode"
 	NiceName "Bad Bot Node";
 	ShortNiceName "Bot Node";
 	DoomEdNum "-1";
-	DeHackEdNum "9995";
 	SpawnHealth "1000";
 	Damage "0";
 	ReactionTime "0";
@@ -16727,7 +16763,6 @@ MapObject "ReMooDBotDebugBadNode"
 	{
 		Frame "1"
 		{
-			DeHackEdNum "99990";
 			Sprite "RBDZ";
 			Frame "0";
 			Tics "-1";
@@ -16744,7 +16779,6 @@ MapObject "ReMooDBotDebugFloatNode"
 	NiceName "Floating Bot Node";
 	ShortNiceName "Bot Node";
 	DoomEdNum "-1";
-	DeHackEdNum "9996";
 	SpawnHealth "1000";
 	Damage "0";
 	ReactionTime "0";
@@ -16767,7 +16801,6 @@ MapObject "ReMooDBotDebugFloatNode"
 	{
 		Frame "1"
 		{
-			DeHackEdNum "99990";
 			Sprite "RBDZ";
 			Frame "0";
 			Tics "-1";
@@ -16784,7 +16817,6 @@ MapObject "ReMooDBotDebugPath"
 	NiceName "Bot Path";
 	ShortNiceName "Bot Node";
 	DoomEdNum "-1";
-	DeHackEdNum "9998";
 	SpawnHealth "1000";
 	Damage "0";
 	ReactionTime "0";
@@ -16808,7 +16840,6 @@ MapObject "ReMooDBotDebugPath"
 	{
 		Frame "1"
 		{
-			DeHackEdNum "99990";
 			Sprite "RBDY";
 			Frame "0";
 			Tics "35";
@@ -16825,7 +16856,6 @@ MapObject "ReMooDBotDebugTarget"
 	NiceName "Bot Target";
 	ShortNiceName "Bot Node";
 	DoomEdNum "-1";
-	DeHackEdNum "9997";
 	SpawnHealth "1000";
 	Damage "0";
 	ReactionTime "0";
@@ -16849,7 +16879,6 @@ MapObject "ReMooDBotDebugTarget"
 	{
 		Frame "1"
 		{
-			DeHackEdNum "99990";
 			Sprite "RBDY";
 			Frame "0";
 			Tics "35";
@@ -16866,7 +16895,6 @@ MapObject "ReMooDBotDebugQuestion"
 	NiceName "Bot Question";
 	ShortNiceName "Bot Node";
 	DoomEdNum "-1";
-	DeHackEdNum "9997";
 	SpawnHealth "1000";
 	Damage "0";
 	ReactionTime "0";
@@ -16890,7 +16918,6 @@ MapObject "ReMooDBotDebugQuestion"
 	{
 		Frame "1"
 		{
-			DeHackEdNum "99990";
 			Sprite "RBDX";
 			Frame "0";
 			Tics "35";
@@ -18262,7 +18289,7 @@ MapWeapon "BetaBFG"
 	NoAmmoSwitchOrder "201";
 	AmmoPerShot "1";
 	PickupAmmo "40";
-	DroppedObject "BFG";
+	DroppedObject "BetaBFG";
 	SpriteYOffset "0";
 	IsDoom "true";
 	IsNotShareware "true";
@@ -18821,8 +18848,17 @@ MapTouchSpecial "BPAK"
 // BFUG -- BFG9000
 MapTouchSpecial "BFUG"
 {
-	Message "DEP_GOTCHAINGUN";
+	Message "DEP_GOTBFG9000";
 	GiveWeapon "BFGNineK";
+	PickupSound "wpnup";
+	IsKeepIfNotNeeded "true";
+}
+
+// BBFG -- Press Release BFG9000
+MapTouchSpecial "BBFG"
+{
+	Message "ITEM_GOTPRESSRELEASEBFG";
+	GiveWeapon "BetaBFG";
 	PickupSound "wpnup";
 	IsKeepIfNotNeeded "true";
 }

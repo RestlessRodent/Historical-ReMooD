@@ -916,6 +916,9 @@ StringGroupEX_t UnicodeStrings[NUMUNICODESTRINGS] =
 	{					 "GAMEPAUSED", "$1 paused the game."},
 	{				   "GAMEUNPAUSED", "$1 resumed the game."},
 	
+	/*** ITEMS ***/
+	{		"ITEM_GOTPRESSRELEASEBFG", "You got the press release BFG9000!"},
+	
 	/*** DEMO STUFF ***/
 	{		  "BADDEMO_LEVELNOTFOUND", "The level named \"$1\" was not found."},
 	{  "BADDEMO_LOADGAMENOTSUPPORTED", "Loading save games are not supported."},
