@@ -121,12 +121,24 @@ typedef struct D_NetPlayer_s
 	struct D_NetPlayer_s* ChainNext;			// Next
 } D_NetPlayer_t;
 
+/* D_SplitInfo_t -- Split Screen Info */
+typedef struct D_SplitInfo_s
+{
+	bool_t Active;								// Is Active
+	int32_t Console;							// The console player
+	int32_t Display;							// Display Player
+	uint32_t InstanceID;						// Instance ID
+	struct D_ProfileEx_s* Profile;				// Player Profile
+	
+	uint32_t JoyID;								// Joystick ID
+} D_SplitInfo_t;
+
 /*** GLOBALS ***/
 
-extern bool_t g_NetDev;
 extern int g_SplitScreen;						// Players in splits
-extern bool_t g_PlayerInSplit[MAXSPLITSCREEN];	// Players that belong in splits
-extern uint32_t g_SplitPlayerInstance[MAXSPLITSCREEN];
+extern D_SplitInfo_t g_Splits[MAXSPLITSCREEN];	// Split Information
+
+extern bool_t g_NetDev;
 
 /*** FUNCTIONS ***/
 
