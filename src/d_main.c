@@ -1757,6 +1757,7 @@ extern bool_t g_PaintBallMode;
 static int16_t l_JoyLastAxis[MAXPORTJOYS][3];
 static int8_t l_JoyMagicAt;
 static int32_t l_JoyMagicTime;
+static I_EventEx_t l_JoyKeepEvent[MAXSPLITSCREEN];
 
 /* D_JoyPortsEmpty() -- Returns true if all ports are empty */
 bool_t D_JoyPortsEmpty(void)
@@ -1811,6 +1812,37 @@ void D_JoySpecialTicker(void)
 {
 	bool_t LastOK;
 	int i;
+	static tic_t MultiEventTic[MAXSPLITSCREEN][2];
+	
+	/* Send OSK Events multiple times */
+	// If there are any events and only about every 1/4th of a second
+	for (i = 0; i < MAXSPLITSCREEN; i++)
+		if (l_JoyKeepEvent[i].Data.SynthOSK.Down ||
+			l_JoyKeepEvent[i].Data.SynthOSK.Right ||
+			l_JoyKeepEvent[i].Data.SynthOSK.Press ||
+			l_JoyKeepEvent[i].Data.SynthOSK.Cancel ||
+			l_JoyKeepEvent[i].Data.SynthOSK.Shift)
+		{
+			// Send
+			if (MultiEventTic[i][0] == 0)
+			{
+				// Push
+				I_EventExPush(&l_JoyKeepEvent[i]);
+				
+				// Repeat Delay
+				MultiEventTic[i][0] = g_ProgramTic + (g_ProgramTic > MultiEventTic[i][1] ? 4 : 8);
+				
+				// Faster Repeat after hold
+				if (!MultiEventTic[i][1])
+					MultiEventTic[i][1] = g_ProgramTic + 40;
+			}
+			
+			// Timeout expired
+			else if (g_ProgramTic >= MultiEventTic[i][0])
+				MultiEventTic[i][0] = 0;
+		}
+		else
+			MultiEventTic[i][1] = MultiEventTic[i][0] = 0;
 	
 	/* Profile */
 	l_JoyMagicAt = MAXSPLITSCREEN;
@@ -1960,6 +1992,8 @@ void D_JoySpecialDrawer(void)
 bool_t D_JoySpecialEvent(const I_EventEx_t* const a_Event)
 {
 	uint8_t ForPlayer, RealPlayer, JoyID;
+	int8_t TrueVal;
+	bool_t Changed;
 	
 	/* Not a joystick event? */
 	if (a_Event->Type != IET_JOYSTICK)
@@ -2032,10 +2066,76 @@ bool_t D_JoySpecialEvent(const I_EventEx_t* const a_Event)
 		}
 	
 	/* Synthetic OSK Events */
-	if (ForPlayer == (MAXSPLITSCREEN + 1) || g_Splits[ForPlayer - 1].JoyBound)
-	{
-		//CONL_PrintF("Synth\n");
-	}
+	if (ForPlayer == (MAXSPLITSCREEN + 1) || g_Splits[RealPlayer].JoyBound)
+		// Only if a menu is active, console, chat string, etc.
+		if (!(M_ExPlayerUIActive(RealPlayer) ||
+			(RealPlayer == 0 && CONL_IsActive()) ||
+			CONL_OSKIsActive(RealPlayer) ||
+			(gamestate != GS_LEVEL)))
+			memset(&l_JoyKeepEvent[RealPlayer], 0, sizeof(l_JoyKeepEvent[RealPlayer]));
+		else
+		{
+			// Clear Event
+			l_JoyKeepEvent[RealPlayer].Type = IET_SYNTHOSK;
+			Changed = false;
+			
+			// Up/Down Movement?
+			if (a_Event->Data.Joystick.Axis == 1 || a_Event->Data.Joystick.Axis == 2)
+			{
+				// Get true value
+				if (a_Event->Data.Joystick.Value >= 16384)
+					TrueVal = 1;
+				else if (a_Event->Data.Joystick.Value <= -16384)
+					TrueVal = -1;
+				else
+					TrueVal = 0;
+				
+				// Down?
+				if (a_Event->Data.Joystick.Axis == 2)
+					l_JoyKeepEvent[RealPlayer].Data.SynthOSK.Down = TrueVal;
+				else
+					l_JoyKeepEvent[RealPlayer].Data.SynthOSK.Right = TrueVal;
+				
+				// Change
+				Changed = true;
+			}
+			
+			// Buttons?
+			switch (a_Event->Data.Joystick.Button)
+			{
+					// Trigger
+				case 1:
+					l_JoyKeepEvent[RealPlayer].Data.SynthOSK.Press = a_Event->Data.Joystick.Down;
+					Changed = true;
+					break;
+				
+					// Cancel
+				case 2:
+					l_JoyKeepEvent[RealPlayer].Data.SynthOSK.Cancel = a_Event->Data.Joystick.Down;
+					Changed = true;
+					break;
+			
+					// Shift
+				case 3:
+					l_JoyKeepEvent[RealPlayer].Data.SynthOSK.Shift = a_Event->Data.Joystick.Down;
+					Changed = true;
+					break;
+			
+					// Unknown
+				default:
+					break;
+			}
+			
+			// Was eaten, so steal it
+			if (Changed)
+				return true;
+						
+			//CONL_PrintF("Synth\n");
+		
+			// Menu Button
+			//if (a_Event->Data.Joystick.Button)
+			//a_Event->Data.Joystick.Button
+		}
 	
 	/* Not Handled */
 	return false;

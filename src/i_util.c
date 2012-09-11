@@ -451,6 +451,19 @@ void I_OsPolling(void)
 						CONL_PrintF(" Ax:%2i Vl:%+6i\n", Event.Data.Joystick.Axis, Event.Data.Joystick.Value);
 					break;
 					
+					// OSK
+				case IET_SYNTHOSK:
+					CONL_PrintF("Event: SYNOSK Pl:%2u Ri:%+1i Dn:%+1i Pr:%u Sh:%u Dr:%08x Cn:%u\n",
+							Event.Data.SynthOSK.PNum,
+							Event.Data.SynthOSK.Right,
+							Event.Data.SynthOSK.Down,
+							Event.Data.SynthOSK.Press,
+							Event.Data.SynthOSK.Shift,
+							Event.Data.SynthOSK.Direct,
+							Event.Data.SynthOSK.Cancel
+						);
+					break;
+					
 					// Unknown
 				default:
 					CONL_PrintF("Event: UNKNWN\n");

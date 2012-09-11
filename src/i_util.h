@@ -283,6 +283,7 @@ typedef struct I_EventEx_s
 			uint8_t Press;		// Press Button
 			uint8_t Shift;		// Shifted
 			uint32_t Direct;	// Direct Change
+			uint8_t Cancel;		// Cancel
 		} SynthOSK;				// Synthetic OSK
 	} Data;						// Event data
 } I_EventEx_t;
