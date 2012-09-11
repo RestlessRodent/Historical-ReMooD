@@ -4544,7 +4544,7 @@ void V_ImageDrawScaledIntoBuffer(const uint32_t a_Flags, V_Image_t* const a_Imag
 				if (TransMap)
 				{
 					for (i = 0; i < c && dP < dPend; i++)
-						for (ESXy = (sxY & _FIXED_FRAC); ESXy <= FRACUNIT; ESXy += YFrac, sxY += YFrac)
+						for (ESXy = (sxY & _FIXED_FRAC); ESXy < FRACUNIT; ESXy += YFrac, sxY += YFrac)
 						{
 							Pixel = sP[i];
 							*(dP) = TransMap[(ColorMap[ColorMapE[Pixel]] << 8) + (*dP)];
