@@ -1326,6 +1326,10 @@ void D_NCLocalPlayerAdd(const char* const a_Name, const bool_t a_Bot, const uint
 		// Send
 		D_BSRecordNetBlock(Stream, &Server->Address);
 	}
+	
+	/* Add resume menu time */
+	// i.e. HOM when adding a player in the menu
+	g_ResumeMenu++;
 }
 
 /*****************************************************************************/

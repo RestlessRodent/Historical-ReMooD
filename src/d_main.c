@@ -2068,15 +2068,14 @@ bool_t D_JoySpecialEvent(const I_EventEx_t* const a_Event)
 	/* Synthetic OSK Events */
 	if (ForPlayer == (MAXSPLITSCREEN + 1) || g_Splits[RealPlayer].JoyBound)
 		// Only if a menu is active, console, chat string, etc.
-		if (!(M_ExPlayerUIActive(RealPlayer) ||
+		if ((M_ExPlayerUIActive(RealPlayer) ||
 			(RealPlayer == 0 && CONL_IsActive()) ||
 			CONL_OSKIsActive(RealPlayer) ||
 			(gamestate != GS_LEVEL)))
-			memset(&l_JoyKeepEvent[RealPlayer], 0, sizeof(l_JoyKeepEvent[RealPlayer]));
-		else
 		{
 			// Clear Event
 			l_JoyKeepEvent[RealPlayer].Type = IET_SYNTHOSK;
+			l_JoyKeepEvent[RealPlayer].Data.SynthOSK.PNum = RealPlayer;
 			Changed = false;
 			
 			// Up/Down Movement?
@@ -2101,33 +2100,34 @@ bool_t D_JoySpecialEvent(const I_EventEx_t* const a_Event)
 			}
 			
 			// Buttons?
-			switch (a_Event->Data.Joystick.Button)
-			{
-					// Trigger
-				case 1:
-					l_JoyKeepEvent[RealPlayer].Data.SynthOSK.Press = a_Event->Data.Joystick.Down;
-					Changed = true;
-					break;
+			if (a_Event->Data.Joystick.Button)
+				switch (a_Event->Data.Joystick.Button)
+				{
+						// Trigger
+					case 1:
+						l_JoyKeepEvent[RealPlayer].Data.SynthOSK.Press = a_Event->Data.Joystick.Down;
+						Changed = true;
+						break;
 				
-					// Cancel
-				case 2:
-					l_JoyKeepEvent[RealPlayer].Data.SynthOSK.Cancel = a_Event->Data.Joystick.Down;
-					Changed = true;
-					break;
+						// Cancel
+					case 2:
+						l_JoyKeepEvent[RealPlayer].Data.SynthOSK.Cancel = a_Event->Data.Joystick.Down;
+						Changed = true;
+						break;
 			
-					// Shift
-				case 3:
-					l_JoyKeepEvent[RealPlayer].Data.SynthOSK.Shift = a_Event->Data.Joystick.Down;
-					Changed = true;
-					break;
+						// Shift
+					case 3:
+						l_JoyKeepEvent[RealPlayer].Data.SynthOSK.Shift = a_Event->Data.Joystick.Down;
+						Changed = true;
+						break;
 			
-					// Unknown
-				default:
-					break;
-			}
+						// Unknown
+					default:
+						break;
+				}
 			
 			// Was eaten, so steal it
-			if (Changed)
+			//if (Changed)
 				return true;
 						
 			//CONL_PrintF("Synth\n");

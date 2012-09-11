@@ -4341,12 +4341,12 @@ void V_ImageDrawScaledIntoBuffer(const uint32_t a_Flags, V_Image_t* const a_Imag
 #define __REMOOD_ONESHORT
 
 	uint8_t* RawData;
-	int32_t x, y, w, h, xx, yy, i, c, Mask, vvx, vvy;
+	int32_t x, y, w, h, xx, yy, i, c, Mask, vvx, vvy, PixOff;
 	
 	int32_t sX, sY, tW, tY, px;
 	uint8_t* dP, *dPend;
 	uint8_t* sP;
-	fixed_t XFrac, YFrac, sxX, sxY, xw, xh, dxY, ESXy, limxw, limxh, Off;
+	fixed_t XFrac, YFrac, sxX, sxY, xw, xh, dxY, ESXy, limxw, limxh, Off, BaseOff;
 	uint8_t* ColorMap;
 	uint8_t* ColorMapE;
 	uint8_t* TransMap;
@@ -4522,8 +4522,11 @@ void V_ImageDrawScaledIntoBuffer(const uint32_t a_Flags, V_Image_t* const a_Imag
 			// While there are no more columns
 			while (*sP != 0xFF)
 			{
+#define __REMOOD_ALTPATCH
 				// Get destination
-				Off = FixedMul(((fixed_t)(*sP)) << FRACBITS, a_YScale) >> FRACBITS;
+				PixOff = *sP;
+				BaseOff = FixedMul(((fixed_t)(PixOff)) << FRACBITS, a_YScale);
+				Off = BaseOff >> FRACBITS;
 				dP = a_DestBuffer + (a_DestPitch * (y + ((fixed_t)Off))) + (xx);
 				dPend = a_DestBuffer + (a_DestPitch * a_DestHeight);
 				sP++;
@@ -4532,12 +4535,16 @@ void V_ImageDrawScaledIntoBuffer(const uint32_t a_Flags, V_Image_t* const a_Imag
 				c = *sP;
 				sP += 2;
 				
-				// Draw for count
+				// Get Virtual Offset
 				sxY = 0;
+				for (sxY = 0, i = 0; i < (y + Off); i++)
+					sxY += YFrac;
+				
+				// Draw for count
 				if (TransMap)
 				{
 					for (i = 0; i < c && dP < dPend; i++)
-						for (ESXy = (sxY & _FIXED_FRAC); ESXy < FRACUNIT; ESXy += YFrac, sxY += YFrac)
+						for (ESXy = (sxY & _FIXED_FRAC); ESXy <= FRACUNIT; ESXy += YFrac, sxY += YFrac)
 						{
 							Pixel = sP[i];
 							*(dP) = TransMap[(ColorMap[ColorMapE[Pixel]] << 8) + (*dP)];
