@@ -113,6 +113,8 @@ typedef struct D_NetPlayer_s
 	
 	/* Specifics */
 	int NetColor;								// Network Color
+	tic_t CoopSpyTime;							// Time to wait to respy
+	tic_t TurnHeld;								// Time turning is held
 	
 	/* Bot Related */
 	struct B_BotData_s* BotData;				// Bot Data

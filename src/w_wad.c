@@ -112,7 +112,7 @@ static int WLS_MultiCom(const uint32_t a_ArgC, const char** const a_ArgV)
 		// Not enough args?
 		if (a_ArgC < 2)
 		{
-			CONL_PrintF("%s <wad>", a_ArgV[0]);
+			CONL_PrintF("%s <wad>\n", a_ArgV[0]);
 			return CLE_FAILURE;
 		}
 		
@@ -162,7 +162,7 @@ static int WLS_MultiCom(const uint32_t a_ArgC, const char** const a_ArgV)
 		// Not enough args?
 		if (a_ArgC < 2)
 		{
-			CONL_PrintF("%s <iwad>", a_ArgV[0]);
+			CONL_PrintF("%s <iwad>\n", a_ArgV[0]);
 			return CLE_FAILURE;
 		}
 		

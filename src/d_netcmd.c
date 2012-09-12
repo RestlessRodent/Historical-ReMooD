@@ -605,7 +605,7 @@ static void D_NCSLocalBuildTicCmd(D_NetPlayer_t* const a_NPp, ticcmd_t* const a_
 	
 	// Turn Speed
 	if ((Profile->Flags & DPEXF_SLOWTURNING) &&
-			gametic < (Profile->TurnHeld + Profile->SlowTurnTime))
+			gametic < (a_NPp->TurnHeld + Profile->SlowTurnTime))
 		TurnSpeed = 2;
 	else if (MoveSpeed)
 		TurnSpeed = 1;
@@ -939,7 +939,7 @@ static void D_NCSLocalBuildTicCmd(D_NetPlayer_t* const a_NPp, ticcmd_t* const a_
 	if (GAMEKEYDOWN(Profile, SID, DPEXIC_COOPSPY))
 	{
 		// Only every half second
-		if (gametic > (Profile->CoopSpyTime + (TICRATE >> 1)))
+		if (gametic > (a_NPp->CoopSpyTime + (TICRATE >> 1)))
 		{
 			do
 			{
@@ -953,13 +953,13 @@ static void D_NCSLocalBuildTicCmd(D_NetPlayer_t* const a_NPp, ticcmd_t* const a_
 				);
 			
 			// Reset timeout
-			Profile->CoopSpyTime = gametic + (TICRATE >> 1);
+			a_NPp->CoopSpyTime = gametic + (TICRATE >> 1);
 		}
 	}
 	
 	// Key is unpressed to reduce time
 	else
-		Profile->CoopSpyTime = 0;
+		a_NPp->CoopSpyTime = 0;
 	
 	/* Set Movement Now */
 	// Cap
@@ -979,7 +979,7 @@ static void D_NCSLocalBuildTicCmd(D_NetPlayer_t* const a_NPp, ticcmd_t* const a_
 	
 	/* Slow turning? */
 	if (!IsTurning)
-		Profile->TurnHeld = gametic;
+		a_NPp->TurnHeld = gametic;
 	
 	/* Turning */
 	a_TicCmd->Std.BaseAngleTurn = BaseAT;

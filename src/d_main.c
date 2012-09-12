@@ -1814,8 +1814,21 @@ void D_JoySpecialTicker(void)
 	int i;
 	static tic_t MultiEventTic[MAXSPLITSCREEN][2];
 	
+	/* Profile */
+	l_JoyMagicAt = MAXSPLITSCREEN;
+	for (i = 0; i < MAXSPLITSCREEN; i++)
+		// Choose location
+		if ((!g_Splits[i].Waiting || ((demoplayback) || (!demoplayback && !g_Splits[i].Active))) && !g_Splits[i].Profile)
+			if (l_JoyMagicAt == MAXSPLITSCREEN)
+				l_JoyMagicAt = i;
+	
+	/* No joysticks? Don't bother */
+	if (!I_NumJoysticks())
+		return;
+			
 	/* Send OSK Events multiple times */
 	// If there are any events and only about every 1/4th of a second
+	LastOK = D_JoyPortsEmpty();
 	for (i = 0; i < MAXSPLITSCREEN; i++)
 		if (l_JoyKeepEvent[i].Data.SynthOSK.Down ||
 			l_JoyKeepEvent[i].Data.SynthOSK.Right ||
@@ -1823,6 +1836,18 @@ void D_JoySpecialTicker(void)
 			l_JoyKeepEvent[i].Data.SynthOSK.Cancel ||
 			l_JoyKeepEvent[i].Data.SynthOSK.Shift)
 		{
+			// No joystick bound? (allow player 1s to transmit)
+			CONL_PrintF("%i %i %i\n", i, LastOK, g_Splits[i].JoyBound);
+			if ((i > 0 && LastOK) || (!LastOK && !g_Splits[i].JoyBound))
+				continue;
+			
+			// Not Active
+			if (!(M_ExPlayerUIActive(i) ||
+				(i == 0 && CONL_IsActive()) ||
+				CONL_OSKIsActive(i) ||
+				(i != GS_LEVEL)))
+				continue;
+			
 			// Send
 			if (MultiEventTic[i][0] == 0)
 			{
@@ -1844,55 +1869,6 @@ void D_JoySpecialTicker(void)
 		else
 			MultiEventTic[i][1] = MultiEventTic[i][0] = 0;
 	
-	/* Profile */
-	l_JoyMagicAt = MAXSPLITSCREEN;
-	for (i = 0; i < MAXSPLITSCREEN; i++)
-	{
-#if 0
-		// Determine profile selection
-			// Player is missing
-		if (!g_Splits[i].Active)
-		{
-			// Unbound?
-			if (!g_Splits[i].JoyBound)
-				g_Splits[i].Profile = NULL;
-			
-			// ???
-			else
-			{
-			}
-		}
-			// Player is inside
-		else if (!demoplayback)
-		{
-			// Not bound? Give it something illegal (keyboard/mouse player?)
-			if (!g_Splits[i].JoyBound)
-			{
-				g_Splits[i].JoyBound = true;
-				g_Splits[i].JoyID = INT_MAX;	// Illegal joystick
-			}
-			
-			// No Profile?
-			if (!g_Splits[i].Profile)
-				// Set from player
-				if (players[g_Splits[i].Console].ProfileEx)
-					g_Splits[i].Profile = players[g_Splits[i].Console].ProfileEx;
-				
-				// Annoy with prompt
-				else
-				{
-				}
-		}
-#endif
-		// Choose location
-		if ((!g_Splits[i].Waiting || ((demoplayback) || (!demoplayback && !g_Splits[i].Active))) && !g_Splits[i].Profile)
-			if (l_JoyMagicAt == MAXSPLITSCREEN)
-				l_JoyMagicAt = i;
-	}
-	
-	/* No joysticks? Don't bother */
-	if (!I_NumJoysticks())
-		return;
 	
 	/* Decay Time */
 	l_JoyMagicTime--;
@@ -2016,11 +1992,9 @@ bool_t D_JoySpecialEvent(const I_EventEx_t* const a_Event)
 				ForPlayer = g_SplitScreen + 1;
 			else
 				return false;	// Does not belong to anyone, so ignore
+		else
+			ForPlayer--;
 	}
-	
-	// No player?
-	if (!ForPlayer)
-		return false;
 	
 	// Convert to real player
 	if (ForPlayer == (MAXSPLITSCREEN + 1))
@@ -2032,38 +2006,35 @@ bool_t D_JoySpecialEvent(const I_EventEx_t* const a_Event)
 	// Only the first 8 joysticks support magic combos
 	if (l_JoyMagicAt != MAXSPLITSCREEN && !D_JoyToPort(JoyID + 1))
 		if (ForPlayer == (MAXSPLITSCREEN + 1) || !g_Splits[RealPlayer].JoyBound)
-		{
-			// Out of bounds?
-			if (JoyID >= MAXPORTJOYS - 1)
-				return false;
+			// Make sure it is in bounds
+			if (JoyID < MAXPORTJOYS - 1)
+			{
+				// Place axis info into last info
+				if (a_Event->Data.Joystick.Axis > 0)
+					if (a_Event->Data.Joystick.Axis < 3)
+						l_JoyLastAxis[JoyID][a_Event->Data.Joystick.Axis - 1] = a_Event->Data.Joystick.Value;
 		
-			// Place axis info into last info
-			if (a_Event->Data.Joystick.Axis > 0)
-				if (a_Event->Data.Joystick.Axis < 3)
-					l_JoyLastAxis[JoyID][a_Event->Data.Joystick.Axis - 1] = a_Event->Data.Joystick.Value;
+				// Place buttons also
+				if (a_Event->Data.Joystick.Button > 0)
+					if (a_Event->Data.Joystick.Button < 3)
+						if (!a_Event->Data.Joystick.Down)
+							l_JoyLastAxis[JoyID][2] = 0;
+						else
+							l_JoyLastAxis[JoyID][2] |= 1 << (a_Event->Data.Joystick.Button - 1);
 		
-			// Place buttons also
-			if (a_Event->Data.Joystick.Button > 0)
-				if (a_Event->Data.Joystick.Button < 3)
-					if (!a_Event->Data.Joystick.Down)
-						l_JoyLastAxis[JoyID][2] = 0;
-					else
-						l_JoyLastAxis[JoyID][2] |= 1 << (a_Event->Data.Joystick.Button - 1);
-		
-			// Magic Triggered?
-			if (l_JoyMagicTime > 0)
-				if ((l_JoyLastAxis[JoyID][2] & 3) == 3 &&
-					(abs(l_JoyLastAxis[JoyID][0]) >= 16383 ||
-					abs(l_JoyLastAxis[JoyID][1]) >= 16383))
-				{
-					// Add local player (super handled)
-					D_NCLocalPlayerAdd(NULL, false, JoyID + 1, l_JoyMagicAt, true);
-					l_JoyMagicAt = MAXSPLITSCREEN;
-					return true;
+				// Magic Triggered?
+				if (l_JoyMagicTime > 0)
+					if ((l_JoyLastAxis[JoyID][2] & 3) == 3 &&
+						(abs(l_JoyLastAxis[JoyID][0]) >= 16383 ||
+						abs(l_JoyLastAxis[JoyID][1]) >= 16383))
+					{
+						// Add local player (super handled)
+						memset(&l_JoyKeepEvent[l_JoyMagicAt], 0, sizeof(l_JoyKeepEvent[l_JoyMagicAt]));
+						D_NCLocalPlayerAdd(NULL, false, JoyID + 1, l_JoyMagicAt, true);
+						l_JoyMagicAt = MAXSPLITSCREEN;
+						return true;
+					}
 				}
-		
-			//CONL_PrintF("Magic %i %i %x\n", l_JoyLastAxis[0][0], l_JoyLastAxis[0][1], l_JoyLastAxis[0][2]);
-		}
 	
 	/* Synthetic OSK Events */
 	if (ForPlayer == (MAXSPLITSCREEN + 1) || g_Splits[RealPlayer].JoyBound)
