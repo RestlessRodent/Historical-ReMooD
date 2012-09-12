@@ -445,6 +445,10 @@ M_UIMenu_t* M_ExMakeMenu(const M_NewMenuID_t a_MenuID, void* const a_Data)
 	/* Which Menu? */
 	switch (a_MenuID)
 	{
+			// Hello World
+		case MNMID_HELLO:
+			;
+			
 			// Unknown
 		default:
 			return NULL;

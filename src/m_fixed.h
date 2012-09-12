@@ -54,6 +54,7 @@
 #define FRACUNIT (1 << _FIXED_FRACBITS)
 
 typedef int32_t fixed_t;
+#define FIXEDT_C(c) INT32_C(c)
 
 #define FIXED_TO_FLOAT(x) (((float)(x)) / 65536.0)
 #define FLOAT_TO_FIXED(x) (((fixed_t)(((float)(x)) * 65536.0)))

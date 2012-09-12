@@ -112,6 +112,9 @@ typedef struct M_UIMenu_s
 {
 	uint8_t Junk;								// Junk
 	
+	const char* Title;							// Menu Title
+	const char** TitleRef;						// Title Reference
+	
 	M_UIItem_t* Items;							// Items
 	size_t NumItems;							// Number of Items
 	

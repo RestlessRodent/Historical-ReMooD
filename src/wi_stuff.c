@@ -403,6 +403,15 @@ typedef struct WI_PlayerInfo_s
 	int32_t Kills;
 	int32_t Items;
 	int32_t Secrets;
+	
+	int32_t KillPcnt;
+	int32_t ItemPcnt;
+	int32_t SecretPcnt;
+	
+	/* Percent Pointers */
+	int* cntKillsPtr;
+	int* cntItemsPtr;
+	int* cntSecretsPtr;
 } WI_PlayerInfo_t;
 
 /*************
@@ -1210,8 +1219,9 @@ void WI_Drawer(void)
 	uint32_t DrawFlags;
 	int8_t ScreenNum;
 	const char* Title;
-	int32_t Val;
+	int32_t Val, pVal;
 	bool_t Flash, All;
+	fixed_t mVal;
 	
 	/* Generic Drawing */
 	// Draw interpic
@@ -1367,27 +1377,72 @@ void WI_Drawer(void)
 				// Secrets
 				if (k == 0)
 				{
+					// Get Multiplier
+					mVal = FIXEDT_C(1) << FRACBITS;
+					if (dp < l_NumDrawPlayers)
+						if (l_DrawPlayers[dp].cntSecretsPtr)
+							mVal = FixedDiv(
+									(fixed_t)*l_DrawPlayers[dp].cntSecretsPtr,
+									(fixed_t)l_DrawPlayers[dp].SecretPcnt);
+					
+					// Get Value
 					if (dp >= 0)
 						Val = (dp < l_NumDrawPlayers ? l_DrawPlayers[dp].Secrets :
 								(!All ? l_TotalSecrets : totalsecret));
+								
+					// Multiply by percent
+					Val = FixedMul(Val << FRACBITS, mVal) >> FRACBITS;
+					if (Val < 0)
+						Val = 0;
+					
 					Title = "SCRT";
 				}
 				
 				// Items
 				else if (k == 1)
 				{
+					// Get Multiplier
+					mVal = FIXEDT_C(1) << FRACBITS;
+					if (dp < l_NumDrawPlayers)
+						if (l_DrawPlayers[dp].cntItemsPtr)
+							mVal = FixedDiv(
+									(fixed_t)*l_DrawPlayers[dp].cntItemsPtr,
+									(fixed_t)l_DrawPlayers[dp].ItemPcnt);
+					
+					// Get Value
 					if (dp >= 0)
 						Val = (dp < l_NumDrawPlayers ? l_DrawPlayers[dp].Items :
 								(!All ? l_TotalItems : totalitems));
+								
+					// Multiply by percent
+					Val = FixedMul(Val << FRACBITS, mVal) >> FRACBITS;
+					if (Val < 0)
+						Val = 0;
+					
 					Title = "ITEM";
 				}
 				
 				// Kills
 				else if (k == 2)
 				{
+					// Get Multiplier
+					mVal = FIXEDT_C(1) << FRACBITS;
+					if (dp < l_NumDrawPlayers)
+						if (l_DrawPlayers[dp].cntKillsPtr)
+							mVal = FixedDiv(
+									(fixed_t)*l_DrawPlayers[dp].cntKillsPtr,
+									(fixed_t)l_DrawPlayers[dp].KillPcnt);
+					
+					// Get Value
 					if (dp >= 0)
 						Val = (dp < l_NumDrawPlayers ? l_DrawPlayers[dp].Kills :
 								(!All ? l_TotalKills : totalkills));
+					
+					// Multiply by percent
+					Val = FixedMul(Val << FRACBITS, mVal) >> FRACBITS;
+					if (Val < 0)
+						Val = 0;
+					
 					Title = "KILL";
 				}
 				
@@ -1516,11 +1571,20 @@ static void WI_initVariables(wbstartstruct_t* wbstartstruct)
 					break;
 				}
 			
+			// True Percentage for kills, items, secrets, etc.
+			TempDP[NumTempDP].KillPcnt = (plrs[i].skills * 100) / wbs->maxkills;
+			TempDP[NumTempDP].ItemPcnt = (plrs[i].sitems * 100) / wbs->maxitems;
+			TempDP[NumTempDP].SecretPcnt = (plrs[i].ssecret * 100) / wbs->maxsecret;
+			
 			// Setup fields
 			strncpy(TempDP[NumTempDP].PlayerName, D_NCSGetPlayerName(i), MAXPLAYERNAME - 1);
 			TempDP[NumTempDP].Kills = Player->killcount;
 			TempDP[NumTempDP].Items = Player->itemcount;
 			TempDP[NumTempDP].Secrets = Player->secretcount;
+			TempDP[NumTempDP].cntKillsPtr = &cnt_kills[i];
+			TempDP[NumTempDP].cntItemsPtr = &cnt_items[i];
+			TempDP[NumTempDP].cntSecretsPtr = &cnt_secret[i];
+			
 			TempDP[NumTempDP++].Rank = i;
 		}
 	

@@ -504,13 +504,25 @@ void M_ExMenuDrawer(void)
 		if (UI->UnderDrawFunc)
 			if (!UI->UnderDrawFunc(TopMenu, UI, ScrX, ScrY, ScrW, ScrH))
 				continue;
+			
+		// Base
+		y = ScrY + 4;
 		
-		// Draw Title
-		V_DrawStringA(VFONT_LARGE, 0, "Title", 0, 2);
+		// Draw Title?
+		if (UI->TitleRef)
+			TitleStr = *UI->TitleRef;
+		else
+			TitleStr = UI->Title;
+			
+		// Draw if set
+		if (TitleStr)
+		{
+			V_DrawStringA(VFONT_LARGE, 0, TitleStr, 0, 2);
+			y += V_FontHeight(VFONT_LARGE) + 4;
+		}
 		
 		// Base Position
 		x = ScrX + 10;
-		y = ScrY + V_FontHeight(VFONT_LARGE) + 4;
 		ya = V_FontHeight(l_MenuFont.Value[0].Int) + 2;
 		TopMenu->IPS = ((ScrH - 20) - y) / ya;
 		
