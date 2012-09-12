@@ -898,19 +898,78 @@ bool_t VID_AddMode(const int a_Width, const int a_Height, const bool_t a_Fullscr
 	return true;
 }
 
+extern CONL_StaticVar_t l_SCRWidth;
+extern CONL_StaticVar_t l_SCRHeight;
 extern CONL_StaticVar_t l_SCRFullScreen;
 
 /* VID_SetMode() -- Sets the specified video mode */
 // Funny thing is, despite returning an int, Legacy never checked if it worked!
 int VID_SetMode(int a_ModeNum)
 {
+	int Try;
+	int32_t w, h;
+	
 	/* Check */
 	if (a_ModeNum < 0 || a_ModeNum >= l_NumModes)
 		return 0;				// Failure despite not being checked!
 		
 	/* Try to set the mode */
-	if (!I_SetVideoMode(l_Modes[a_ModeNum].Width, l_Modes[a_ModeNum].Height, l_SCRFullScreen.Value[0].Int))
+	for (Try = 0; Try < 6; Try++)
+	{
+		// See which mode to attempt
+		switch (Try)
+		{
+				// Actual Mode
+			case 0:
+				w = l_Modes[a_ModeNum].Width,
+				h = l_Modes[a_ModeNum].Height;
+				break;
+				
+				// Saved Default
+			case 1:
+				w = l_SCRWidth.Value->Int;
+				h = l_SCRHeight.Value->Int;
+				break;
+				
+				// 640x480
+			case 2:
+				w = 640;
+				h = 480;
+				break;
+				
+				// 320x240
+			case 3:
+				w = 320;
+				h = 240;
+				break;
+				
+				// 320x200
+			case 4:
+				w = 320;
+				h = 200;
+				break;
+				
+				// First Found Mode
+			case 5:
+				w = l_Modes[0].Width,
+				h = l_Modes[0].Height;
+				break;
+				
+				// Unknown
+			default:
+				break;
+		}
+		
+		// Try it
+		if (I_SetVideoMode(w, h, l_SCRFullScreen.Value[0].Int))
+			break;
+	}
+	
+	/* Too many failed tries? */
+	if (Try >= 6)
 		return false;
+	
+	/* Success! */
 	return true;
 }
 
