@@ -392,7 +392,7 @@ void D_Display(void)
 					
 					// 1 Full, 2 player split
 				case 1:
-					if (playeringame[g_Splits[1].Display] && players[g_Splits[1].Display].mo && g_Splits[i].Active)
+					if (playeringame[g_Splits[1].Display] && players[g_Splits[1].Display].mo && g_Splits[1].Active)
 					{
 						//faB: Boris hack :P !!
 						viewwindowy = vid.height / 2;
