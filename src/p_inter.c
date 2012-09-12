@@ -1443,6 +1443,7 @@ void P_KillMobj(mobj_t* target, mobj_t* inflictor, mobj_t* source)
 		{
 			source->player->TotalFrags++;
 			source->player->frags[target->player - players]++;
+			g_MapKIS[3]++;
 			
 			// check fraglimit cvar
 			if (P_XGSVal(PGS_GAMEFRAGLIMIT))

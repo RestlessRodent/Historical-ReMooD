@@ -170,7 +170,7 @@ extern int totalkills;
 extern int totalitems;
 extern int totalsecret;
 
-extern int32_t g_MapKIS[3];
+extern int32_t g_MapKIS[4];
 
 // ===========================
 // Internal parameters, fixed.

@@ -166,7 +166,7 @@ int numdmstarts;
 //mapthing_t**    deathmatch_p;
 mapthing_t* playerstarts[MAXPLAYERS];
 
-int32_t g_MapKIS[3] = {0, 0, 0};
+int32_t g_MapKIS[4] = {0, 0, 0, 0};
 
 void P_SetupLevelSky(void)
 {

@@ -403,15 +403,18 @@ typedef struct WI_PlayerInfo_s
 	int32_t Kills;
 	int32_t Items;
 	int32_t Secrets;
+	int32_t Frags;
 	
 	int32_t KillPcnt;
 	int32_t ItemPcnt;
 	int32_t SecretPcnt;
+	int32_t FragsPcnt;
 	
 	/* Percent Pointers */
 	int* cntKillsPtr;
 	int* cntItemsPtr;
 	int* cntSecretsPtr;
+	int* cntFragsPtr;
 } WI_PlayerInfo_t;
 
 /*************
@@ -421,7 +424,7 @@ typedef struct WI_PlayerInfo_s
 static V_Image_t* l_PicINTER = NULL;
 static WI_PlayerInfo_t l_DrawPlayers[MAXPLAYERS + 1];
 static size_t l_NumDrawPlayers;
-static int32_t l_TotalKills, l_TotalItems, l_TotalSecrets;
+static int32_t l_TotalKills, l_TotalItems, l_TotalSecrets, l_TotalFrags;
 
 /****************
 *** FUNCTIONS ***
@@ -832,7 +835,7 @@ static void WI_initNetgameStats(void)
 		dofrags += ST_PlayerFrags(i);
 	}
 	
-	dofrags = ! !dofrags;
+	dofrags = !!dofrags;
 	
 	WI_initAnimatedBack();
 }
@@ -878,7 +881,7 @@ static void WI_updateNetgameStats(void)
 		{
 			if (!playeringame[i])
 				continue;
-				
+			
 			cnt_kills[i] += 2;
 			
 			if (cnt_kills[i] >= (plrs[i].skills * 100) / wbs->maxkills)
@@ -1169,7 +1172,7 @@ void WI_Ticker(void)
 		case StatCount:
 			if (P_XGSVal(PGS_GAMEDEATHMATCH))
 				WI_updateDeathmatchStats();
-			else if (multiplayer)
+			else if (P_XGSVal(PGS_COMULTIPLAYER))
 				WI_updateNetgameStats();
 			else
 				WI_updateStats();
@@ -1306,7 +1309,7 @@ void WI_Drawer(void)
 			// Draw player band (their skin color)
 			if (l_DrawPlayers[dp].Player)
 				V_DrawColorBoxEx(
-						VEX_TRANS(VEX_TRANS50) | VEX_COLORMAP(VEX_MAP_GREEN) |
+						VEX_TRANS(VEX_TRANS50)/* | VEX_COLORMAP(VEX_MAP_GREEN)*/ |
 							VEX_PCOLOR(l_DrawPlayers[dp].Player->skincolor),
 						120, 0, yBase + y, 320, yBase + y + yAdd);
 			
@@ -1370,12 +1373,27 @@ void WI_Drawer(void)
 		// Single-player/Cooperative
 		if (!P_XGSVal(PGS_GAMEDEATHMATCH))
 		{
-			for (k = 0; k < 3; k++)
+			for (k = 0; k < 4; k++)
 			{
 				Val = 0;
 				
+				// Frags
+				if (dofrags && k == 0)
+				{
+					// Get frags value
+					if (dp < l_NumDrawPlayers)
+						if (l_DrawPlayers[dp].cntFragsPtr)
+							Val = *l_DrawPlayers[dp].cntFragsPtr;
+						else
+							Val = l_DrawPlayers[dp].Frags;
+					else
+						Val = l_TotalFrags;
+					
+					Title = "FRAG";
+				}
+				
 				// Secrets
-				if (k == 0)
+				if (k == 1)
 				{
 					// Get Multiplier
 					mVal = FIXEDT_C(1) << FRACBITS;
@@ -1399,7 +1417,7 @@ void WI_Drawer(void)
 				}
 				
 				// Items
-				else if (k == 1)
+				else if (k == 2)
 				{
 					// Get Multiplier
 					mVal = FIXEDT_C(1) << FRACBITS;
@@ -1423,7 +1441,7 @@ void WI_Drawer(void)
 				}
 				
 				// Kills
-				else if (k == 2)
+				else if (k == 3)
 				{
 					// Get Multiplier
 					mVal = FIXEDT_C(1) << FRACBITS;
@@ -1497,13 +1515,53 @@ void WI_Drawer(void)
 #undef BUFSIZE
 }
 
+/* WIS_ComparePI() -- Compares player info */
+static int WIS_ComparePI(const bool_t a_Deathmatch, WI_PlayerInfo_t* const a_A, WI_PlayerInfo_t* const a_B)
+{
+	/* Check */
+	if (!a_A || !a_B)
+		return 0;
+	
+	/* DM Mode */
+	if (a_Deathmatch)
+	{
+	}
+	
+	/* Coop Mode */
+	else
+	{
+		// Kills most important
+		if (a_A->Kills < a_B->Kills)
+			return -1;
+		else if (a_A->Kills > a_B->Kills)
+			return 1;
+		
+		// Then secrets
+		if (a_A->Secrets < a_B->Secrets)
+			return -1;
+		else if (a_A->Secrets > a_B->Secrets)
+			return 1;
+		
+		// Then Items
+		if (a_A->Items < a_B->Items)
+			return -1;
+		else if (a_A->Items > a_B->Items)
+			return 1;
+	}
+	
+	/* Unknown? */
+	return 0;
+}
+
 /* WI_initVariables() -- Initializes variables */
 static void WI_initVariables(wbstartstruct_t* wbstartstruct)
 {
-	size_t i, j, k;
+	int i, j, k;
 	WI_PlayerInfo_t TempDP[MAXPLAYERS + 1];
 	size_t NumTempDP;
 	player_t* Player;
+	WI_PlayerInfo_t Store;
+	bool_t DMSort;
 	
 	wbs = wbstartstruct;
 	
@@ -1546,10 +1604,13 @@ static void WI_initVariables(wbstartstruct_t* wbstartstruct)
 	// Clear
 	memset(l_DrawPlayers, 0, sizeof(l_DrawPlayers));
 	l_NumDrawPlayers = 0;
-	l_TotalKills = l_TotalItems = l_TotalSecrets = 0;
+	l_TotalKills = l_TotalItems = l_TotalSecrets = l_TotalFrags = 0;
 	
 	memset(TempDP, 0, sizeof(TempDP));
 	NumTempDP = 0;
+	
+	// Deathmatch?
+	DMSort = P_XGSVal(PGS_GAMEDEATHMATCH);
 	
 	// Use players in game
 	for (i = 0; i < MAXPLAYERS; i++)
@@ -1561,6 +1622,7 @@ static void WI_initVariables(wbstartstruct_t* wbstartstruct)
 			l_TotalKills += Player->killcount;
 			l_TotalItems += Player->itemcount;
 			l_TotalSecrets += Player->secretcount;
+			l_TotalFrags += ST_PlayerFrags(i);
 			
 			// Determine if is local player (on screen)
 			for (k = 0; k < MAXSPLITSCREEN; k++)
@@ -1581,16 +1643,18 @@ static void WI_initVariables(wbstartstruct_t* wbstartstruct)
 			TempDP[NumTempDP].Kills = Player->killcount;
 			TempDP[NumTempDP].Items = Player->itemcount;
 			TempDP[NumTempDP].Secrets = Player->secretcount;
+			TempDP[NumTempDP].Frags = ST_PlayerFrags(i);
 			TempDP[NumTempDP].cntKillsPtr = &cnt_kills[i];
 			TempDP[NumTempDP].cntItemsPtr = &cnt_items[i];
 			TempDP[NumTempDP].cntSecretsPtr = &cnt_secret[i];
+			TempDP[NumTempDP].cntFragsPtr = &cnt_frags[i];
 			
 			TempDP[NumTempDP++].Rank = i;
 		}
 	
 	// Un-Claimed Kills/Items/Secrets?
 	if (!P_XGSVal(PGS_GAMEDEATHMATCH))
-		if (l_TotalKills < g_MapKIS[0] || l_TotalItems < g_MapKIS[1] || l_TotalSecrets < g_MapKIS[2])
+		if (l_TotalKills < g_MapKIS[0] || l_TotalItems < g_MapKIS[1] || l_TotalSecrets < g_MapKIS[2] || l_TotalFrags < g_MapKIS[3])
 		{
 			strncpy(TempDP[NumTempDP].PlayerName, "Un-Claimed", MAXPLAYERNAME - 1);
 			
@@ -1606,6 +1670,10 @@ static void WI_initVariables(wbstartstruct_t* wbstartstruct)
 			if (l_TotalSecrets < g_MapKIS[2])
 				TempDP[NumTempDP].Secrets = g_MapKIS[2] - l_TotalSecrets;
 			
+			// Frags
+			if (l_TotalFrags < g_MapKIS[3])
+				TempDP[NumTempDP].Frags = g_MapKIS[3] - l_TotalFrags;
+			
 			// Rank Last Always
 			TempDP[NumTempDP++].Rank = i;
 		}
@@ -1615,6 +1683,22 @@ static void WI_initVariables(wbstartstruct_t* wbstartstruct)
 	l_TotalSecrets = g_MapKIS[2];
 	
 	// Sort players based on statistics
+		// TODO FIXME: Slow selection sort, but max of 1024 runs
+	for (i = 0; i < NumTempDP; i++)
+	{
+		// Find option to swap with
+		for (k = i, j = i + 1; j < NumTempDP; j++)
+			if (WIS_ComparePI(DMSort, &TempDP[k], &TempDP[j]) < 0)
+				k = j;
+		
+		// Swap around, if not already the lowest
+		if (k != i)
+		{
+			memmove(&Store, &TempDP[k], sizeof(Store));
+			memmove(&TempDP[k], &TempDP[i], sizeof(Store));
+			memmove(&TempDP[i], &Store, sizeof(Store));
+		}
+	}
 	
 	// Move into draw players, limiting to 16
 	for (i = 0; i < NumTempDP; i++)
@@ -1624,15 +1708,35 @@ static void WI_initVariables(wbstartstruct_t* wbstartstruct)
 			l_DrawPlayers[l_NumDrawPlayers++] = TempDP[i];
 		
 		// Bump a non-local player out (but never replace 1st place)
-		else if (TempDP[i].Player->NetPlayer && TempDP[i].Player->NetPlayer->Type == DNPT_LOCAL)
+		else if (TempDP[i].Player && TempDP[i].Player->NetPlayer && TempDP[i].Player->NetPlayer->Type == DNPT_LOCAL)
 		{
 			// If the player is NOT a local player
 			for (j = WIDPLIMIT - 1; j > 1; j--)
-				if ((!l_DrawPlayers[j].Player->NetPlayer) || (l_DrawPlayers[j].Player->NetPlayer && l_DrawPlayers[j].Player->NetPlayer->Type != DNPT_LOCAL))
-				{
-					l_DrawPlayers[j] = TempDP[i];
-					break;
-				}
+				if (l_DrawPlayers[j].Player)
+					if ((!l_DrawPlayers[j].Player->NetPlayer) || (l_DrawPlayers[j].Player->NetPlayer && l_DrawPlayers[j].Player->NetPlayer->Type != DNPT_LOCAL))
+					{
+						l_DrawPlayers[j] = TempDP[i];
+						break;
+					}
+		}
+	}
+	
+	
+	/* Sort Final Draw Players */
+		// TODO FIXME: Slow selection sort, but max of 1024 runs
+	for (i = 0; i < l_NumDrawPlayers; i++)
+	{
+		// Find option to swap with
+		for (k = i, j = i + 1; j < l_NumDrawPlayers; j++)
+			if (WIS_ComparePI(DMSort, &l_DrawPlayers[k], &l_DrawPlayers[j]) < 0)
+				k = j;
+		
+		// Swap around, if not already the lowest
+		if (k != i)
+		{
+			memmove(&Store, &l_DrawPlayers[k], sizeof(Store));
+			memmove(&l_DrawPlayers[k], &l_DrawPlayers[i], sizeof(Store));
+			memmove(&l_DrawPlayers[i], &Store, sizeof(Store));
 		}
 	}
 }
@@ -1652,7 +1756,7 @@ void WI_Start(wbstartstruct_t* wbstartstruct)
 	/* Initialize Stats */
 	if (P_XGSVal(PGS_GAMEDEATHMATCH))
 		WI_initDeathmatchStats();
-	else if (multiplayer)
+	else if (P_XGSVal(PGS_COMULTIPLAYER))
 		WI_initNetgameStats();
 	else
 		WI_initStats();

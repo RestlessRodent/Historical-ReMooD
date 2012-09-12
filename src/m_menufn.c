@@ -447,7 +447,7 @@ M_UIMenu_t* M_ExMakeMenu(const M_NewMenuID_t a_MenuID, void* const a_Data)
 	{
 			// Hello World
 		case MNMID_HELLO:
-			;
+			break;
 			
 			// Unknown
 		default:

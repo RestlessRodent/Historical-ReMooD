@@ -1238,14 +1238,17 @@ void D_NCLocalPlayerAdd(const char* const a_Name, const bool_t a_Bot, const uint
 		return;
 	
 	/* Find first free slot */
-	for (PlaceAt = 0; PlaceAt < MAXSPLITSCREEN; PlaceAt++)
-		// If nobody is waiting here (also ignore active in demos)
-		if (!g_Splits[PlaceAt].Waiting && ((demoplayback) || (!demoplayback && !g_Splits[PlaceAt].Active)))
-			break;
+	if (!a_Bot)
+	{
+		for (PlaceAt = 0; PlaceAt < MAXSPLITSCREEN; PlaceAt++)
+			// If nobody is waiting here (also ignore active in demos)
+			if (!g_Splits[PlaceAt].Waiting && ((demoplayback) || (!demoplayback && !g_Splits[PlaceAt].Active)))
+				break;
 	
-	// No Room?
-	if (PlaceAt >= MAXSPLITSCREEN)
-		return;
+		// No Room?
+		if (PlaceAt >= MAXSPLITSCREEN)
+			return;
+	}
 	
 	/* Create Process ID */
 	do
