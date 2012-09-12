@@ -1545,16 +1545,12 @@ void G_DoReborn(int playernum)
 {
 	player_t* player = &players[playernum];
 	
-	// boris comment : this test is like 'single player game'
-	//                 all this kind of hiden variable must be removed
-#if 0
-	if (!multiplayer && !cv_deathmatch.value)
-	{
-		// reload the level from scratch
-		G_DoLoadLevel(true);
-	}
+	/* Single Player Mode */
+	if (!P_XGSVal(PGS_COMULTIPLAYER))
+		P_ExLoadLevel(g_CurrentLevelInfo, 0);
+
+	/* Multiplayer Mode */
 	else
-#endif
 	{
 		// respawn at the start
 		
