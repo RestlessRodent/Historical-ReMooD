@@ -217,6 +217,8 @@ int main(int argc, char** argv)
 					if (Tok)
 						CurInfo->ClassName = strdup(Tok);
 				}
+				else
+					CurInfo->ClassName = strdup("Whoops!");
 			
 			// Tokenize
 			ReadNum = 0;
@@ -252,7 +254,7 @@ int main(int argc, char** argv)
 						
 						// See Sound
 					case 5:
-						CurInfo->WakeSound = strdup(Tok);
+						CurInfo->WakeSound = strdup(Tok + 4);
 						break;
 						
 						// Reaction Time
@@ -262,7 +264,7 @@ int main(int argc, char** argv)
 						
 						// Attack Sound
 					case 7:
-						CurInfo->AttackSound = strdup(Tok);
+						CurInfo->AttackSound = strdup(Tok + 4);
 						break;
 						
 						// Pain State
@@ -274,6 +276,92 @@ int main(int argc, char** argv)
 						// Pain Chance
 					case 9:
 						CurInfo->PainChance = strtol(Tok, NULL, 0);
+						break;
+						
+						// Pain Sound
+					case 10:
+						CurInfo->PainSound = strdup(Tok + 4);
+						break;
+						
+						// Melee State
+					case 11:
+						CurInfo->MeleeState = strdup(Tok);
+						CurInfo->MeleeStateID = StateForName(CurInfo->MeleeState);
+						break;
+						
+						// Missile State
+					case 12:
+						CurInfo->MissileState = strdup(Tok);
+						CurInfo->MissileStateID = StateForName(CurInfo->MissileState);
+						break;
+						
+						// Crash State
+					case 13:
+						CurInfo->CrashState = strdup(Tok);
+						CurInfo->CrashStateID = StateForName(CurInfo->CrashState);
+						break;
+						
+						// Death State
+					case 14:
+						CurInfo->DeathState = strdup(Tok);
+						CurInfo->DeathStateID = StateForName(CurInfo->DeathState);
+						break;
+						
+						// XDeath State
+					case 15:
+						CurInfo->XDeathState = strdup(Tok);
+						CurInfo->XDeathStateID = StateForName(CurInfo->XDeathState);
+						break;
+						
+						// Death Sound
+					case 16:
+						CurInfo->DeathSound = strdup(Tok + 4);
+						break;
+						
+						// Speed
+					case 17:
+						CurInfo->Speed = strtol(Tok, NULL, 0);
+						break;
+						
+						// Radius
+					case 18:
+						CurInfo->Radius = strtol(Tok, NULL, 0);
+						break;
+						
+						// Height
+					case 19:
+						CurInfo->Height = strtol(Tok, NULL, 0);
+						break;
+						
+						// Mass
+					case 20:
+						CurInfo->Mass = strtol(Tok, NULL, 0);
+						break;
+						
+						// Damage
+					case 21:
+						CurInfo->Damage = strtol(Tok, NULL, 0);
+						break;
+						
+						// Active Sound
+					case 22:
+						CurInfo->ActiveSound = strdup(Tok + 4);
+						break;
+						
+						// Flags
+					case 23:
+						CurInfo->Flags = strdup(Tok);
+						break;
+						
+						// Raise State
+					case 24:
+						CurInfo->RaiseState = strdup(Tok);
+						CurInfo->RaiseStateID = StateForName(CurInfo->RaiseState);
+						break;
+						
+						// Flags 2
+					case 25:
+						CurInfo->FlagsTwo = strdup(Tok);
 						break;
 						
 						// Unknown
@@ -333,7 +421,10 @@ int main(int argc, char** argv)
 		fprintf(stdout, "\tDeHackEdNum \"%i\";\n", CurInfo->DEHId);
 		fprintf(stdout, "\tMTName \"%s\";\n", CurInfo->MTName);
 		fprintf(stdout, "\tSpawnHealth \"%i\";\n", CurInfo->SpawnHealth);
-		fprintf(stdout, "\tDamage \"%i\";\n", CurInfo->Damage);
+		
+		if (CurInfo->Damage)
+			fprintf(stdout, "\tDamage \"%i\";\n", CurInfo->Damage);
+		
 		fprintf(stdout, "\tMass \"%i\";\n", CurInfo->Mass);
 		fprintf(stdout, "\tSpeed \"%i\";\n", CurInfo->Speed);
 		fprintf(stdout, "\tPainChance \"%g\";\n", (double)CurInfo->PainChance / 255.0);

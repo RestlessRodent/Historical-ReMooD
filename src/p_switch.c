@@ -173,11 +173,14 @@ void P_ChangeSwitchTexture(line_t* line, int useAgain)
 	texMid = sides[line->sidenum[0]].midtexture;
 	texBot = sides[line->sidenum[0]].bottomtexture;
 	
-	sound = sfx_swtchn;
+	if (line->SwitchSounds[0])
+		sound = line->SwitchSounds[0];
+	else
+		sound = sfx_generic_switchon;
 	
 	// EXIT SWITCH?
 	if (line->special == 11)
-		sound = sfx_swtchx;
+		sound = sfx_generic_switchoff;
 	
 	for (i = 0; i < numswitches * 2; i++)
 	{

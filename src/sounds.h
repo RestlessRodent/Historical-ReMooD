@@ -490,6 +490,10 @@ typedef enum
 	sfx_amb10,
 	sfx_amb11,
 	
+	// GhostlyDeath <September 12, 2012> -- Generic Sounds
+	sfx_generic_switchon,
+	sfx_generic_switchoff,
+	
 	// free slots for S_AddSoundFx() at run-time --------------------
 	sfx_freeslot0,
 	//

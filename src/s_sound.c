@@ -454,7 +454,7 @@ void S_StartSoundAtVolume(S_NoiseThinker_t* a_Origin, int sound_id, int volume)
 	char Buf[BUFSIZE];
 	WX_WADEntry_t* Entry;
 	S_SoundChannel_t* Target;
-	int OnChannel, i, LowestP, MyP;
+	int OnChannel, i, LowestP, MyP, RealID;
 	fixed_t RPA, Dist, GS;
 	S_NoiseThinker_t* Listener;
 	S_NoiseThinker_t* Emitter;
@@ -525,13 +525,18 @@ void S_StartSoundAtVolume(S_NoiseThinker_t* a_Origin, int sound_id, int volume)
 		OnChannel--;
 		
 	/* Obtain entry then play on said channel */
+	// Get real sound
+	RealID = sound_id;
+	if (S_sfx[sound_id].link)
+		RealID = S_sfx[sound_id].link - S_sfx;
+	
 	// Prefix with ds
-	snprintf(Buf, BUFSIZE, "ds%.6s", S_sfx[sound_id].name);
+	snprintf(Buf, BUFSIZE, "ds%.6s", S_sfx[RealID].name);
 	Entry = WX_EntryForName(NULL, Buf, false);
 	
 	// Try direct name
 	if (!Entry)
-		Entry = WX_EntryForName(NULL, S_sfx[sound_id].name, false);
+		Entry = WX_EntryForName(NULL, S_sfx[RealID].name, false);
 	Target = S_PlayEntryOnChannel(OnChannel, Entry);
 	
 	// Failed?

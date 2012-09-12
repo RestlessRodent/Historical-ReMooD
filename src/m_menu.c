@@ -293,7 +293,7 @@ bool_t M_ExMenuHandleEvent(const I_EventEx_t* const a_Event)
 		if (DoCancel)
 		{
 			// Pop Menu
-			S_StartSound(NULL, sfx_swtchx);
+			S_StartSound(NULL, sfx_generic_switchoff);
 			M_ExPopMenu(i);
 			return true;	// always handled
 		}
@@ -685,7 +685,7 @@ M_UIMenuHandler_t* M_ExPushMenu(const uint8_t a_Player, M_UIMenu_t* const a_UI)
 	l_UIMenus[a_Player][l_NumUIMenus[a_Player]++] = New;
 	
 	/* Play Sound */
-	S_StartSound(NULL, sfx_swtchn);
+	S_StartSound(NULL, sfx_generic_switchon);
 }
 
 /* M_GenericCleanerFunc() -- Generic Menu Cleaner */

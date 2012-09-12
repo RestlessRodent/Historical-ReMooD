@@ -410,8 +410,11 @@ sfxinfo_t S_sfx[NUMSFX] =
 	{"amb8", false, 1, NULL, -1, -1, NULL, -1},
 	{"amb9", false, 1, NULL, -1, -1, NULL, -1},
 	{"amb10", false, 1, NULL, -1, -1, NULL, -1},
-	{"amb11", false, 1, NULL, -1, -1, NULL, -1}
+	{"amb11", false, 1, NULL, -1, -1, NULL, -1},
 	
+	// GhostlyDeath <September 12, 2012> -- Generic Sounds
+	{"generic_switchon", false, 78, 0, -1, -1, 0, -1},
+	{"generic_switchoff", false, 78, 0, -1, -1, 0, -1},
 };
 
 // Prepare free sfx slots to add sfx at run time

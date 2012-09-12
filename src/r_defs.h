@@ -425,6 +425,9 @@ typedef struct line_s
 	// Hexen
 	uint8_t HexenSpecial;						// Hexen special ID
 	uint8_t ACSArgs[5];							// Arguments for ACS lines
+	
+	// GhostlyDeath <September 12, 2012> -- Sound Effects
+	int SwitchSounds[2];						// Switch Sounds to use
 } line_t;
 
 //

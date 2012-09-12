@@ -488,6 +488,10 @@ static void PS_ExLineDefInit(line_t* const a_LineDef)
 	/* Set side special from linedef */
 	//if (ld->sidenum[0] != -1 && ld->special)
 	//	sides[ld->sidenum[0]].special = ld->special;
+	
+	/* Change exit switch sound */
+	if (((a_LineDef->special & EVGENHE_TYPEMASK) >> EVGENHE_TYPESHIFT) == EVGHET_XEXIT)
+		a_LineDef->SwitchSounds[0] = sfx_generic_switchoff;
 }
 
 /* PS_ExSubSectorInit() -- Initializes extra data in subsector */

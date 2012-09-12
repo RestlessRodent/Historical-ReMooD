@@ -87,6 +87,7 @@
 #include "p_spec.h"
 #include "m_menu.h"
 #include "p_demcmp.h"
+#include "sounds.h"
 
 #if defined(__REMOOD_DEDICATED)
 bool_t g_DedicatedServer = true;				// Dedicated Server
@@ -1510,6 +1511,25 @@ static bool_t DS_DetectGameMode(const bool_t a_Pushed, const struct WL_WADFile_s
 	
 	g_IWADMapInfoName = c_IWADInfos[Best].MapInfoLump;
 	g_IWADFlags = c_IWADInfos[Best].Flags;
+	
+	/* Based on core game, modify generic sounds */
+	switch (g_CoreGame)
+	{
+			// Doom
+		case COREGAME_DOOM:
+			S_sfx[sfx_generic_switchon].link = &S_sfx[sfx_swtchn];
+			S_sfx[sfx_generic_switchoff].link = &S_sfx[sfx_swtchx];
+			break;
+			
+			// Heretic
+		case COREGAME_HERETIC:
+			S_sfx[sfx_generic_switchon].link = &S_sfx[sfx_dorcls];
+			S_sfx[sfx_generic_switchoff].link = &S_sfx[sfx_keyup];
+			break;
+			
+		default:
+			break;
+	}
 	
 	/* Cleanup */
 	Z_Free(Confidence);

@@ -53,6 +53,7 @@ GlitterGenerator1
 GlitterGenerator2
 Glitter1
 Glitter2
+HereticTeleportFog
 HereticTeleportMan
 StaffPuff1
 StaffPuff2
@@ -91,7 +92,9 @@ CrossbowEffect1
 CrossbowEffect2
 CrossbowEffect3
 CrossbowEffect4
+HereticBlood
 BloodSplatter
+HereticPlayer
 PlayerSkull
 PlayerChicken
 Chicken
