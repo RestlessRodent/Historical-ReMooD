@@ -75,6 +75,14 @@ typedef enum M_UIItemFlags_e
 	MUIIF_NOPARK		= UINT32_C(0x0000001),	// No parking
 } M_UIItemFlags_t;
 
+/* M_NewMenuID_t -- ID of the new menu to create */
+typedef enum M_NewMenuID_e
+{
+	MNMID_HELLO,								// Hello World	
+	
+	NUMMNEWMENUIDS
+} M_NewMenuID_t;
+
 /*** STRUCTURES ***/
 
 typedef void (*MBCallBackFunc_t)(const uint32_t a_MessageID, const M_ExMBType_t a_Response, const char** const a_TitleP, const char** const a_MessageP);
@@ -144,6 +152,9 @@ void M_ExPopMenu(const uint8_t a_Player);
 
 void M_GenericCleanerFunc(struct M_UIMenuHandler_s* const a_Handler, struct M_UIMenu_s* const a_UIMenu);
 
+M_UIMenu_t* M_ExMakeMenu(const M_NewMenuID_t a_MenuID, void* const a_Data);
+
+int CLC_ExMakeMenuCom(const uint32_t a_ArgC, const char** const a_ArgV);
 M_UIMenu_t* M_ExTemplateMakeGameVars(const int32_t a_Mode);
 
 #endif

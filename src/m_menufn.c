@@ -375,4 +375,82 @@ M_UIMenu_t* M_ExTemplateMakeGameVars(const int32_t a_Mode)
 	return New;
 }
 
+/***********************
+*** COMBINED MENUING ***
+***********************/
+
+/* c_NewMenuName -- Names of menus */
+static const char* c_NewMenuName[NUMMNEWMENUIDS] =
+{
+	"hello",									// MNMID_HELLO
+};
+
+/* CLC_ExMakeMenuCom() -- Makes menu for someone */
+int CLC_ExMakeMenuCom(const uint32_t a_ArgC, const char** const a_ArgV)
+{
+	int32_t PlayerID, MenuID;
+	
+	/* No enough args? */
+	if (a_ArgC < 2)
+	{
+		// Show Usage
+		
+		
+		// Show menus available
+		
+		// Failed
+		return 0;
+	}
+	
+	/* Player specified? */
+	PlayerID = 0;
+	if (a_ArgC >= 3)
+		PlayerID = strtol(a_ArgV[2], NULL, 10);
+	
+	// Illegal?
+	if (PlayerID < 0 || PlayerID >= MAXSPLITSCREEN)
+		return 0;
+	
+	/* Determine Menu */
+	// By Number?
+	if (isdigit(a_ArgV[1][0]))
+		MenuID = strtol(a_ArgV[1][0], NULL, 10);
+	
+	// By Name
+	else
+		for (MenuID = 0; MenuID < NUMMNEWMENUIDS; MenuID++)
+			if (strcasecmp(c_NewMenuName[MenuID], a_ArgV[1]) == 0)
+				break;
+	
+	/* Check Menu */
+	if (MenuID < 0 || MenuID >= NUMMNEWMENUIDS)
+		return 0;
+	
+	/* Create Menu */
+	return !!M_ExPushMenu(PlayerID, M_ExMakeMenu(MenuID, NULL));;
+}
+
+/* M_ExMakeMenu() -- Creates a new menu */
+M_UIMenu_t* M_ExMakeMenu(const M_NewMenuID_t a_MenuID, void* const a_Data)
+{
+	M_UIMenu_t* NewMenu;
+	
+	/* Check */
+	if (a_MenuID < 0 || a_MenuID >= NUMMNEWMENUIDS)
+		return NULL;
+	
+	/* Clear */
+	NewMenu = 0;
+	
+	/* Which Menu? */
+	switch (a_MenuID)
+	{
+			// Unknown
+		default:
+			return NULL;
+	}
+	
+	/* Return the created menu */
+	return NewMenu;
+}
 

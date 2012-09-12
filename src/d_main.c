@@ -361,7 +361,7 @@ void D_Display(void)
 				case 3:
 					for (i = 0; i < 4; i++)
 					{
-						if (playeringame[g_Splits[i].Display] && players[g_Splits[i].Display].mo && i < g_SplitScreen + 1)
+						if (playeringame[g_Splits[i].Display] && players[g_Splits[i].Display].mo && i < g_SplitScreen + 1 && g_Splits[i].Active)
 						{
 							activeylookup = ylookup4[i];
 							
@@ -375,9 +375,7 @@ void D_Display(void)
 							else
 								viewwindowy = 0;
 								
-							if (g_Splits[i].Active)
-								if (players[g_Splits[i].Display].mo)
-									R_RenderPlayerView(&players[g_Splits[i].Display], i);
+							R_RenderPlayerView(&players[g_Splits[i].Display], i);
 							
 							viewwindowx = 0;
 							viewwindowy = 0;
@@ -394,16 +392,14 @@ void D_Display(void)
 					
 					// 1 Full, 2 player split
 				case 1:
-					if (playeringame[g_Splits[1].Display] && players[g_Splits[1].Display].mo)
+					if (playeringame[g_Splits[1].Display] && players[g_Splits[1].Display].mo && g_Splits[i].Active)
 					{
 						//faB: Boris hack :P !!
 						viewwindowy = vid.height / 2;
 						activeylookup = ylookup;
 						memcpy(ylookup, ylookup2, viewheight * sizeof(ylookup[0]));
 						
-						if (g_Splits[1].Active)
-							if (players[g_Splits[1].Display].mo)
-								R_RenderPlayerView(&players[g_Splits[1].Display], 1);
+						R_RenderPlayerView(&players[g_Splits[1].Display], 1);
 						
 						viewwindowy = 0;
 						activeylookup = ylookup;
@@ -413,12 +409,13 @@ void D_Display(void)
 						V_DrawColorBoxEx(VEX_NOSCALESTART | VEX_NOSCALESCREEN, 0, 0, vid.height >> 1, vid.width, vid.height);
 				case 0:
 				default:
-					if (players[g_Splits[0].Display].mo)
+					if (players[g_Splits[0].Display].mo && (g_Splits[0].Active || g_SplitScreen == -1))
 					{
 						activeylookup = ylookup;
-						if (g_Splits[0].Active || g_SplitScreen == -1)
-							R_RenderPlayerView(&players[g_Splits[0].Display], 0);
+						R_RenderPlayerView(&players[g_Splits[0].Display], 0);
 					}
+					else
+						V_DrawColorBoxEx(VEX_NOSCALESTART | VEX_NOSCALESCREEN, 0, 0, 0, vid.width, vid.height >> (g_SplitScreen >= 1 ? 1 : 0));
 					break;
 			}
 		}
@@ -1837,7 +1834,6 @@ void D_JoySpecialTicker(void)
 			l_JoyKeepEvent[i].Data.SynthOSK.Shift)
 		{
 			// No joystick bound? (allow player 1s to transmit)
-			CONL_PrintF("%i %i %i\n", i, LastOK, g_Splits[i].JoyBound);
 			if ((i > 0 && LastOK) || (!LastOK && !g_Splits[i].JoyBound))
 				continue;
 			
