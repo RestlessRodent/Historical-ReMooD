@@ -669,6 +669,18 @@ void GS_HandleExtraCommands(ticcmd_t* const a_TicCmd, const int32_t a_PlayerNum)
 					}
 				}
 				
+				// Recount player total
+				for (j = 0, i = 0; i < MAXPLAYERS; i++)
+					if (playeringame[i])
+						j++;
+				
+				// If more than 1 player, set multiplayer modes
+				if (j > 1)
+				{
+					P_XGSSetValue(true, PGS_GAMESPAWNMULTIPLAYER, 1);
+					P_XGSSetValue(true, PGS_COMULTIPLAYER, 1);
+				}
+				
 				// Debug
 				if (g_NetDev)
 					CONL_PrintF("NET: Join (%x, %u, %x, %x, %u, %s, %s)\n",
