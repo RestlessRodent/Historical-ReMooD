@@ -674,6 +674,7 @@ M_UIMenuHandler_t* M_ExPushMenu(const uint8_t a_Player, M_UIMenu_t* const a_UI)
 	
 	/* Setup */
 	New->UIMenu = a_UI;
+	New->ScreenID = a_Player;
 	
 	/* Don't park on unparkable items */
 	while (New->CurItem < a_UI->NumItems && (a_UI->Items[New->CurItem].Flags & MUIIF_NOPARK))

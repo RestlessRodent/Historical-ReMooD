@@ -103,6 +103,7 @@ typedef struct M_UIItem_s
 	
 	int32_t DataBits;							// Anything needed for data
 	bool_t (*LRValChangeFunc)(struct M_UIMenu_s* const a_Menu, struct M_UIItem_s* const a_Item, const bool_t a_More);
+	bool_t (*ItemPressFunc)(struct M_UIMenu_s* const a_Menu, struct M_UIItem_s* const a_Item);
 } M_UIItem_t;
 
 struct M_UIMenuHandler_s;
@@ -132,6 +133,7 @@ typedef struct M_UIMenuHandler_s
 	int32_t StartOff;							// Starting Offset
 	int32_t IPS;								// Known IPS
 	int32_t OSKWait;							// OSK Wait
+	int32_t ScreenID;							// Screen
 } M_UIMenuHandler_t;
 
 /*** GLOBALS ***/

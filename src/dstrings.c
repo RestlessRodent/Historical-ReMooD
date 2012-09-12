@@ -357,6 +357,7 @@ StringGroupEX_t UnicodeStrings[NUMUNICODESTRINGS] =
 	
 	{			   "CVHINT_IENABLEMOUSE", "Enable mouse input."},
 	{			"CVHINT_IENABLEJOYSTICK", "Enable joystick input."},
+	{				"CVHINT_IOSSMIDIDEV", "Open Sound System /dev/midi device to use when playing MIDI music."},
 	
 	{			"CVHINT_SNDSPEAKERSETUP", "Number of speakers to use."},
 	{				 "CVHINT_SNDQUALITY", "Quality of sound to be outputted."},

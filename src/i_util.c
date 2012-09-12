@@ -37,6 +37,7 @@
 	// On UNIX include the standard header
 	#if defined(__unix__)
 	#include <unistd.h>				// Standard Stuff
+	#include <dirent.h>
 	#endif
 
 	// On Windows include windows.h
@@ -1870,6 +1871,86 @@ uint16_t I_GetCurrentPID(void)
 	/* UNIX */
 #elif defined(__unix__)
 	return getpid();
+#endif
+}
+
+#if defined(__unix__)
+	DIR* l_UNIXDir = NULL;
+#else
+#endif
+
+/* I_OpenDir() -- Opens a directory */
+bool_t I_OpenDir(const char* const a_Path)
+{
+#if defined(__unix__)
+	/* Check */
+	if (!a_Path)
+		return false;
+	
+	/* Already open? */
+	if (l_UNIXDir)
+		return false;
+	
+	/* Attempt Directory Open */
+	l_UNIXDir = opendir(a_Path);
+	
+	/* If it worked, return */
+	if (l_UNIXDir)
+		return true;
+	
+	/* Failure */
+	return false;
+#else
+	/* Unknown */
+	return false;
+#endif
+}
+
+/* I_ReadDir() -- Reads directory contents */
+bool_t I_ReadDir(char* const a_Dest, const size_t a_BufSize)
+{
+#if defined(__unix__)
+	struct dirent* DEnt;
+	
+	/* Check */
+	if (!a_Dest || !a_BufSize)
+		return false;
+	
+	/* No Directory Open */
+	if (!l_UNIXDir)
+		return false;
+	
+	/* Read single entry */
+	DEnt = readdir(l_UNIXDir);
+	
+	// Failed?
+	if (!DEnt)
+		return false;
+	
+	/* Copy name, return */
+	strncpy(a_Dest, DEnt->d_name, a_BufSize);
+	return true;
+#else
+	/* Unknown */
+	return false;
+#endif
+}
+
+/* I_CloseDir() -- Closes directory */
+void I_CloseDir(void)
+{
+#if defined(__unix__)
+	/* No Directory Open */
+	if (!l_UNIXDir)
+		return;
+	
+	/* Close it */
+	closedir(l_UNIXDir);
+	
+	/* Wipe it */
+	l_UNIXDir = NULL;
+#else
+	/* Unknown */
 #endif
 }
 

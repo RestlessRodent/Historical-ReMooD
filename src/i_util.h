@@ -487,6 +487,10 @@ uint64_t I_GetFreeMemory(uint64_t* const a_TotalMem);
 void I_CommonCommandLine(int* const a_argc, char** *const a_argv, const char* const a_Long);
 void I_Quit(void);
 
+bool_t I_OpenDir(const char* const a_Path);
+bool_t I_ReadDir(char* const a_Dest, const size_t a_BufSize);
+void I_CloseDir(void);
+
 /*** i_utlnet.c ***/
 bool_t I_InitNetwork(void);
 

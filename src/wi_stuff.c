@@ -1392,8 +1392,12 @@ void WI_Drawer(void)
 					Title = "FRAG";
 				}
 				
+				// Skip frags drawing
+				else if (!dofrags && k == 0)
+					continue;
+				
 				// Secrets
-				if (k == 1)
+				else if (k == 1)
 				{
 					// Get Multiplier
 					mVal = FIXEDT_C(1) << FRACBITS;
@@ -1475,7 +1479,7 @@ void WI_Drawer(void)
 						VFONT_SMALL,
 						DrawFlags,
 						Buf,
-						(320 - (xBase << 1)) - (35 * (k + 1)), yBase + y
+						(320 - (xBase << 1)) - (35 * (k + (dofrags ? 1 : 0))), yBase + y
 					);
 			}
 		}

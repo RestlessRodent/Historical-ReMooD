@@ -36,6 +36,7 @@
 // On UNIX include the standard header
 #if defined(__unix__)
 #include <unistd.h>				// Standard Stuff
+#include <fcntl.h>
 #endif
 
 // On Windows include windows.h
@@ -1420,6 +1421,148 @@ static I_MusicDriver_t l_OPLEMDriver =
 	IS_OPLEm_SoundLayer,
 };
 
+/*****************************
+*** OPEN SOUND SYSTEM MIDI ***
+*****************************/
+
+/* I_OSSMidiData_t -- OSS Midi Data */
+typedef struct I_OSSMidiData_s
+{
+	int OSSFd;									// OSS file descriptor
+} I_OSSMidiData_t;
+
+// i_ossmididev -- OSS /dev/midi device to use
+CONL_StaticVar_t l_IOSSMidiDev =
+{
+	CLVT_STRING, NULL, CLVF_SAVE,
+	"i_ossmididev", DSTR_CVHINT_IOSSMIDIDEV, CLVVT_STRING, "",
+	NULL
+};
+
+/* IS_OSSMidi_Init() -- /dev/midi Driver */
+bool_t IS_OSSMidi_Init(struct I_MusicDriver_s* const a_Driver)
+{
+#define BUFSIZE 64
+	char Buf[BUFSIZE];
+	char BufB[BUFSIZE];
+	static bool_t l_OSSMidiReg;
+	I_OSSMidiData_t* Data;
+	
+	/* Register */
+	if (!l_OSSMidiReg)
+	{
+		// Register OSS driver option
+		CONL_VarRegister(&l_IOSSMidiDev);
+		
+		// Done
+		l_OSSMidiReg = true;
+	}
+	
+	/* Check */
+	if (!a_Driver)
+		return false;
+	
+	/* Initialize Data Area */
+	a_Driver->Size = sizeof(*Data);
+	Data = a_Driver->Data = Z_Malloc(a_Driver->Size, PU_STATIC, NULL);
+	
+	// Init fields
+	Data->OSSFd = -1;
+	
+	/* If a string exists, try opening that */
+	if (l_IOSSMidiDev.Value->String && strlen(l_IOSSMidiDev.Value->String))
+		Data->OSSFd = open(l_IOSSMidiDev.Value->String, O_WRONLY);
+	
+	/* If nothing was opened, try auto-detecting */
+	if (Data->OSSFd == -1)
+	{
+		// Open /dev/ dir
+		if (I_OpenDir("/dev"))
+		{
+			// Read Contents
+			while (I_ReadDir(Buf, BUFSIZE))
+				// Name matches "midi"?
+				if (strncmp(Buf, "midi", 4) == 0)
+				{
+					// Attempt open of it
+					snprintf(BufB, BUFSIZE, "/dev/%s", Buf);
+					Data->OSSFd = open(BufB, O_WRONLY);
+					
+					// Worked?
+					if (Data->OSSFd != -1)
+						break;
+				}
+			
+			// Close directory
+			I_CloseDir();
+		}
+		
+		// Still nothing?
+		if (Data->OSSFd == -1)
+			return false;
+	}
+	
+	/* Success! */
+	return true;
+#undef BUFSIZE
+}
+
+/* IS_OSSMidi_RawMIDI() -- Writes raw data to driver */
+void IS_OSSMidi_RawMIDI(struct I_MusicDriver_s* const a_Driver, const uint32_t a_Msg, const uint32_t a_BitLength)
+{
+	I_OSSMidiData_t* Data;
+	int i;
+	uint32_t AsBig;
+	uint8_t MIDI[4];
+	
+	/* Check */
+	if (!a_Driver || !a_Msg || !a_BitLength)
+		return;
+	
+	/* Get Data */
+	Data = a_Driver->Data;
+	
+	/* Write to FD */
+	if (Data->OSSFd != -1)
+	{
+		// Copy from message
+		AsBig = /*SwapUInt32*/(a_Msg);
+		MIDI[0] = AsBig & UINT32_C(0x000000FF);
+		MIDI[1] = (AsBig & UINT32_C(0x0000FF00)) >> UINT32_C(8);
+		MIDI[2] = (AsBig & UINT32_C(0x00FF0000)) >> UINT32_C(16);
+		MIDI[3] = (AsBig & UINT32_C(0xFF000000)) >> UINT32_C(24);
+
+		// Write
+		write(Data->OSSFd, &a_Msg, a_BitLength);
+	}
+}
+
+// l_OSSMidiDriver -- OSS MIDI Driver
+static I_MusicDriver_t l_OSSMidiDriver =
+{
+	/* Data */
+	"OSS Midi",
+	"ossmidi",
+	1 << IMT_MIDI,
+	false,
+	35,
+	
+	/* Handlers */
+	IS_OSSMidi_Init,
+	NULL,//I_MUS2MID_Destroy,
+	NULL,//I_MUS2MID_Success,
+	NULL,//I_MUS2MID_Pause,
+	NULL,//I_MUS2MID_Resume,
+	NULL,//I_MUS2MID_Stop,
+	NULL,//I_MUS2MID_Length,
+	NULL,//I_MUS2MID_Seek,
+	NULL,//I_MUS2MID_Play,
+	NULL,//I_MUS2MID_Volume,
+	IS_OSSMidi_RawMIDI,//NULL,
+	NULL,//I_MUS2MID_Update
+	NULL,//IS_OSSMidi_SoundLayer,
+};
+
 /**********************
 *** MUSIC FUNCTIONS ***
 **********************/
@@ -1516,6 +1659,10 @@ bool_t I_InitMusic(void)
 	// OPL Emulation!
 	if (!I_AddMusicDriver(&l_OPLEMDriver))
 		CONL_PrintF("I_InitMusic: Failed to add the OPL Emulation Driver.\n");
+	
+	// OSS Driver
+	if (!I_AddMusicDriver(&l_OSSMidiDriver))
+		CONL_PrintF("I_InitMusic: Failed to add the OSS MIDI Driver.\n");
 	
 	// Native MOD Support
 	
