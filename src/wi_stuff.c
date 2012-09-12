@@ -1739,6 +1739,10 @@ static void WI_initVariables(wbstartstruct_t* wbstartstruct)
 			memmove(&l_DrawPlayers[i], &Store, sizeof(Store));
 		}
 	}
+	
+	/* Re-Rank */
+	for (i = 0; i < l_NumDrawPlayers; i++)
+		l_DrawPlayers[i].Rank = i;
 }
 
 /* WI_Start() -- Starts the intermission */

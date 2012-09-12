@@ -1217,9 +1217,13 @@ void D_NCSNetTicTransmit(D_NetPlayer_t* const a_NPp, ticcmd_t* const a_TicCmd)
 			// Press
 			if (a_TicCmd->Std.buttons & BT_ATTACK)
 				OSKEvent.Data.SynthOSK.Press = 1;
+			
+			// Cancel
+			if (a_TicCmd->Std.buttons & BT_JUMP)
+				OSKEvent.Data.SynthOSK.Cancel = 1;
 	
 			// Push Event
-			if (OSKEvent.Data.SynthOSK.Right || OSKEvent.Data.SynthOSK.Down || OSKEvent.Data.SynthOSK.Press)	
+			if (OSKEvent.Data.SynthOSK.Right || OSKEvent.Data.SynthOSK.Down || OSKEvent.Data.SynthOSK.Press || OSKEvent.Data.SynthOSK.Cancel)	
 				I_EventExPush(&OSKEvent);
 			
 			// OSK is active, so don't continue any further

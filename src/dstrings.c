@@ -295,6 +295,8 @@ StringGroupEX_t UnicodeStrings[NUMUNICODESTRINGS] =
 	{			"MENUGAMEVAR_CATHERETIC", "*** HERETIC ***"},
 	{			 "MENUGAMEVAR_CATCOMPAT", "*** COMPATIBILITY ***"},
 	
+	{			"MENUGENERAL_HELLOWORLD", "Hello World!"},
+	
 	/*** INTERMISSION ***/
 	{"INTERMISSION_FINISHED", "Finished"},
 	{"INTERMISSION_ENTERING", "Entering"},

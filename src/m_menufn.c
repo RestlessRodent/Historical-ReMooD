@@ -397,6 +397,14 @@ int CLC_ExMakeMenuCom(const uint32_t a_ArgC, const char** const a_ArgV)
 		
 		
 		// Show menus available
+		for (MenuID = 0; MenuID < NUMMNEWMENUIDS; MenuID++)
+		{
+			CONL_PrintF("{4%s", c_NewMenuName[MenuID]);
+			
+			if (MenuID < NUMMNEWMENUIDS - 1)
+				CONL_PrintF("{z, ");
+		}
+		CONL_PrintF("{z\n");
 		
 		// Failed
 		return 0;
@@ -414,7 +422,7 @@ int CLC_ExMakeMenuCom(const uint32_t a_ArgC, const char** const a_ArgV)
 	/* Determine Menu */
 	// By Number?
 	if (isdigit(a_ArgV[1][0]))
-		MenuID = strtol(a_ArgV[1][0], NULL, 10);
+		MenuID = strtol(a_ArgV[1], NULL, 10);
 	
 	// By Name
 	else
@@ -439,18 +447,20 @@ M_UIMenu_t* M_ExMakeMenu(const M_NewMenuID_t a_MenuID, void* const a_Data)
 	if (a_MenuID < 0 || a_MenuID >= NUMMNEWMENUIDS)
 		return NULL;
 	
-	/* Clear */
-	NewMenu = 0;
+	/* Init Base */
+	NewMenu = Z_Malloc(sizeof(*NewMenu), PU_STATIC, NULL);
 	
 	/* Which Menu? */
 	switch (a_MenuID)
 	{
 			// Hello World
 		case MNMID_HELLO:
+			NewMenu->TitleRef = DS_GetStringRef(DSTR_MENUGENERAL_HELLOWORLD);
 			break;
 			
 			// Unknown
 		default:
+			Z_Free(NewMenu);
 			return NULL;
 	}
 	

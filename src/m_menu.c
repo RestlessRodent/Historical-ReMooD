@@ -245,6 +245,10 @@ bool_t M_ExMenuHandleEvent(const I_EventEx_t* const a_Event)
 			else if (a_Event->Data.SynthOSK.Right != 0)
 				DoRight = a_Event->Data.SynthOSK.Right;
 			
+			// Cancel
+			else if (a_Event->Data.SynthOSK.Cancel)
+				DoCancel = true;
+			
 			// Un-handled
 			else
 				continue;
@@ -289,9 +293,14 @@ bool_t M_ExMenuHandleEvent(const I_EventEx_t* const a_Event)
 		if (DoCancel)
 		{
 			// Pop Menu
+			S_StartSound(NULL, sfx_swtchx);
 			M_ExPopMenu(i);
 			return true;	// always handled
 		}
+		
+		// No menu items?
+		if (!UI->NumItems)
+			continue;
 		
 		// Up/Down?
 		if (DoDown != 0)
@@ -496,6 +505,12 @@ void M_ExMenuDrawer(void)
 		// Menu Here?
 		if (!TopMenu)
 			continue;
+			
+		// Draw Faded Background
+		V_DrawFadeConsBackEx(
+				VEX_COLORMAP(VEX_MAP_BLACK),
+				ScrX, ScrY, ScrX + ScrW, ScrY + ScrH
+			);
 		
 		// Get UI
 		UI = TopMenu->UIMenu;
@@ -517,7 +532,7 @@ void M_ExMenuDrawer(void)
 		// Draw if set
 		if (TitleStr)
 		{
-			V_DrawStringA(VFONT_LARGE, 0, TitleStr, 0, 2);
+			V_DrawStringA(VFONT_LARGE, 0, TitleStr, ScrX, ScrY + 2);
 			y += V_FontHeight(VFONT_LARGE) + 4;
 		}
 		
@@ -667,6 +682,9 @@ M_UIMenuHandler_t* M_ExPushMenu(const uint8_t a_Player, M_UIMenu_t* const a_UI)
 	/* Add to end of stack */
 	Z_ResizeArray((void**)&l_UIMenus[a_Player], sizeof(*l_UIMenus[a_Player]), l_NumUIMenus[a_Player], l_NumUIMenus[a_Player] + 1);
 	l_UIMenus[a_Player][l_NumUIMenus[a_Player]++] = New;
+	
+	/* Play Sound */
+	S_StartSound(NULL, sfx_swtchn);
 }
 
 /* M_GenericCleanerFunc() -- Generic Menu Cleaner */

@@ -294,6 +294,8 @@ typedef enum UnicodeStringID_e
 	DSTR_MENUGAMEVAR_CATHERETIC,
 	DSTR_MENUGAMEVAR_CATCOMPAT,
 	
+	DSTR_MENUGENERAL_HELLOWORLD,
+	
 	/* Intermission Screen */
 	DSTR_INTERMISSION_FINISHED,
 	DSTR_INTERMISSION_ENTERING,
@@ -966,6 +968,7 @@ StringGroupEX_t UnicodeStrings[NUMUNICODESTRINGS];
 #define PTROFUNICODESTRING(n) (&(UnicodeStrings[(n)].wcharstr))
 #define PTRTOUNICODESTRING(n) (UnicodeStrings[(n)].wcharstr)
 #define DS_GetString(n) ((const char*)(UnicodeStrings[(UnicodeStringID_t)(n)].wcharstr))
+#define DS_GetStringRef(n) ((const char**)(&UnicodeStrings[(UnicodeStringID_t)(n)].wcharstr))
 
 const char* DS_NameOfString(char** const WCharStr);
 const char** DS_FindStringRef(const char* const a_StrID);
