@@ -787,7 +787,7 @@ static bool_t DS_RMODPDC(const struct WL_WADFile_s* const a_WAD, const uint32_t 
 #undef BUFSIZE
 }
 
-void INFO_REMOODATKeyer(void** a_DataPtr, const int32_t a_Stack, const D_RMODCommand_t a_Command, const char* const a_Field, const char* const a_Value);
+bool_t INFO_REMOODATKeyer(void** a_DataPtr, const int32_t a_Stack, const D_RMODCommand_t a_Command, const char* const a_Field, const char* const a_Value);
 
 /* DS_RMODOCCB() -- Order change callback for REMOODAT */
 static bool_t DS_RMODOCCB(const bool_t a_Pushed, const struct WL_WADFile_s* const a_WAD)
@@ -865,8 +865,10 @@ static bool_t DS_RMODOCCB(const bool_t a_Pushed, const struct WL_WADFile_s* cons
 			
 			// Send Initialize
 			DataRef = NULL;
+			ErrOut = false;
 			if (c_RMODNamespaces[ns].Keyer)
-				c_RMODNamespaces[ns].Keyer(&DataRef, -1, DRC_INIT, WL_GetWADName(CurWAD, false), Entry->Name);
+				if (!c_RMODNamespaces[ns].Keyer(&DataRef, -1, DRC_INIT, WL_GetWADName(CurWAD, false), Entry->Name))
+					ErrOut = true;
 	
 			// Determine text type
 			WL_StreamCheckUnicode(DataStream);
@@ -881,7 +883,6 @@ static bool_t DS_RMODOCCB(const bool_t a_Pushed, const struct WL_WADFile_s* cons
 			// Clear out basic stuff
 			Stack = OldStack = 0;
 			j = 0;
-			ErrOut = false;
 			
 			// Begin stream parse
 			while (!ErrOut && DS_RMODReadToken(&Info))
@@ -896,7 +897,12 @@ static bool_t DS_RMODOCCB(const bool_t a_Pushed, const struct WL_WADFile_s* cons
 						{
 							// Send close to keyer
 							if (c_RMODNamespaces[ns].Keyer)
-								c_RMODNamespaces[ns].Keyer(&DataRef, Stack, DRC_CLOSE, NULL, NULL);
+								if (!c_RMODNamespaces[ns].Keyer(&DataRef, Stack, DRC_CLOSE, NULL, NULL))
+								{
+									ErrOut = true;
+									break;
+								}
+							
 							// Decrease the stack
 							OldStack = Stack--;
 							
@@ -978,7 +984,11 @@ static bool_t DS_RMODOCCB(const bool_t a_Pushed, const struct WL_WADFile_s* cons
 						
 						// Send to keyer
 						if (c_RMODNamespaces[ns].Keyer)
-							c_RMODNamespaces[ns].Keyer(&DataRef, Stack, (Stack == OldStack ? DRC_DATA : DRC_OPEN), BufF, BufV);
+							if (!c_RMODNamespaces[ns].Keyer(&DataRef, Stack, (Stack == OldStack ? DRC_DATA : DRC_OPEN), BufF, BufV))
+							{
+								ErrOut = true;
+								break;
+							}
 						
 						// Legal, go back to start
 						j = 0;
@@ -988,19 +998,19 @@ static bool_t DS_RMODOCCB(const bool_t a_Pushed, const struct WL_WADFile_s* cons
 			
 			// Problems?
 			if (ErrOut)
-			{
 				if (devparm)
 					CONL_OutputUT(CT_WDATA, DSTR_DRMOD_PARSEERROR, "%s%s%s%i%i\n",
 							WL_GetWADName(CurWAD, false), c_RMODNamespaces[ns].NiceName, Entry->Name, Info.CurRow, Info.CurCol
 						);
-			}
 			
 			// If any stack remains send closure
+			ErrOut = false;
 			while (Stack > 0)
 			{
 				// Send close to keyer to simulate short REMOODAT
 				if (c_RMODNamespaces[ns].Keyer)
-					c_RMODNamespaces[ns].Keyer(&DataRef, Stack, DRC_CLOSE, NULL, NULL);
+					if (c_RMODNamespaces[ns].Keyer(&DataRef, Stack, DRC_CLOSE, NULL, NULL))
+						ErrOut = true;
 				
 				// Decrease Stack
 				Stack--;

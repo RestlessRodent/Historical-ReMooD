@@ -914,30 +914,30 @@ bool_t INFO_RMODStateHandlers(Z_Table_t* const a_Sub, void* const a_Data)
 }
 
 /* INFO_REMOODATKeyer() -- Keyer for REMOODAT */
-void INFO_REMOODATKeyer(void** a_DataPtr, const int32_t a_Stack, const D_RMODCommand_t a_Command, const char* const a_Field, const char* const a_Value)
-{		
+bool_t INFO_REMOODATKeyer(void** a_DataPtr, const int32_t a_Stack, const D_RMODCommand_t a_Command, const char* const a_Field, const char* const a_Value)
+{
 	/* Which Command? */
 	switch (a_Command)
 	{
 			// Opening {
 		case DRC_OPEN:
-			break;
+			return true;
 			
 			// Closing }
 		case DRC_CLOSE:
-			break;
+			return true;
 			
 			// Data Entry
 		case DRC_DATA:
-			break;
+			return true;
 			
 			// Initialize
 		case DRC_INIT:
-			break;
+			return true;
 			
 			// Finalize
 		case DRC_FINAL:
-			break;
+			return true;
 			
 			// First Time
 		case DRC_FIRST:
@@ -955,11 +955,11 @@ void INFO_REMOODATKeyer(void** a_DataPtr, const int32_t a_Stack, const D_RMODCom
 			wpnlev1info = 0;
 			wpnlev2info = 0;
 			NUMWEAPONS = 0;
-			break;
+			return true;
 			
 			// Last Time
 		case DRC_LAST:
-			break;
+			return true;
 	}
 }
 

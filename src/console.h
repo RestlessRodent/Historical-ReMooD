@@ -124,6 +124,7 @@ typedef enum CONL_MessageType_e
 	CT_WDATA,									// WAD Loader
 	CT_OBIT,									// Obituary
 	CT_SPECIALITEM,								// Special Item Picked Up
+	CT_REMOODAT,								// ReMooD Data
 	
 	NUMCMESSAGETYPES
 } CONL_MessageType_t;

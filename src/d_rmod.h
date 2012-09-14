@@ -81,7 +81,7 @@ typedef enum D_RMODCommand_e
 *** STRUCTURES ***
 *****************/
 
-typedef void (*D_RMODKeyerFuncType_t)(void** a_DataPtr, const int32_t a_Stack, const D_RMODCommand_t a_Command, const char* const a_Field, const char* const a_Value);
+typedef bool_t (*D_RMODKeyerFuncType_t)(void** a_DataPtr, const int32_t a_Stack, const D_RMODCommand_t a_Command, const char* const a_Field, const char* const a_Value);
 
 /* D_RMODPrivate_t -- RMOD Private Stuff */
 typedef struct D_RMODPrivate_s
