@@ -81,11 +81,12 @@ static size_t DS_RBSFile_RecordF(struct D_BS_s* const a_Stream)
 	
 	/* Write Header */
 	fwrite(a_Stream->BlkHeader, 4, 1, File);
-	BlockLen = LittleSwapUInt32(a_Stream->BlkSize);
+	BlockLen = a_Stream->BlkSize;
+	BlockLen = LittleSwapUInt32(BlockLen);
 	fwrite(&BlockLen, sizeof(BlockLen), 1, File);
 	
 	/* Determine Quicksum */
-	for (i = 0; i < BlockLen; i++)
+	for (i = 0; i < a_Stream->BlkSize; i++)
 		if (i & 1)
 			QuickSum ^= (((uint8_t*)a_Stream->BlkData)[i]) << ((i & 2) ? 4 : 0);
 		else
@@ -94,7 +95,7 @@ static size_t DS_RBSFile_RecordF(struct D_BS_s* const a_Stream)
 	fwrite(&QuickSum, sizeof(QuickSum), 1, File);
 	
 	/* Write Data */
-	RetVal = fwrite(a_Stream->BlkData, BlockLen, 1, File);
+	RetVal = fwrite(a_Stream->BlkData, a_Stream->BlkSize, 1, File);
 	
 	/* Flush for write */
 	fflush(File);
