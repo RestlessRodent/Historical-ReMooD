@@ -124,7 +124,7 @@ void P_InitPicAnims(void)
 	for (i = 0; i < maxanims; i++)
 	{
 		// Read Marker
-		Flag = WL_StreamReadUInt8(Stream);
+		Flag = WL_Sru8(Stream);
 		
 		// End?
 		if (Flag == 255)
@@ -136,7 +136,7 @@ void P_InitPicAnims(void)
 		for (t = 0; t < 2; t++)
 		{
 			for (j = 0; j < 9; j++)
-				Texts[t][j] = WL_StreamReadUInt8(Stream);
+				Texts[t][j] = WL_Sru8(Stream);
 			Texts[t][8] = 0;
 			
 			// Upper case
@@ -145,7 +145,7 @@ void P_InitPicAnims(void)
 		
 		
 		// Read time
-		Time = WL_StreamReadLittleInt32(Stream);
+		Time = WL_Srli32(Stream);
 		
 		// Fill in real info
 		anims[i].istexture = (Flag == 1 ? true : false);

@@ -2088,7 +2088,7 @@ void G_DoPlayDemo(char* defdemoname)
 			// Fill
 			g_CurDemoInfo->Entry = Entry;
 			g_CurDemoInfo->EntryStream = Stream;
-			g_CurDemoInfo->DemoVersion = WL_StreamReadUInt8(Stream);
+			g_CurDemoInfo->DemoVersion = WL_Sru8(Stream);
 		}
 	}
 	

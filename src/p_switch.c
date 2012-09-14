@@ -96,12 +96,12 @@ void P_InitSwitchList(void)
 		for (t = 0; t < 2; t++)
 		{
 			for (j = 0; j < 9; j++)
-				Texts[t][j] = WL_StreamReadUInt8(Stream);
+				Texts[t][j] = WL_Sru8(Stream);
 			Texts[t][8] = 0;
 		}
 		
 		// Read Bits
-		Flag = WL_StreamReadLittleUInt16(Stream);
+		Flag = WL_Srlu16(Stream);
 		
 		// End?
 		if (!Flag)

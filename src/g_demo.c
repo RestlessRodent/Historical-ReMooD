@@ -85,19 +85,19 @@ bool_t G_DEMO_Vanilla_StartPlaying(struct G_CurrentDemo_s* a_Current)
 		return false;
 	
 	/* Read Version Marker */
-	VerMarker = WL_StreamReadUInt8(a_Current->WLStream);
+	VerMarker = WL_Sru8(a_Current->WLStream);
 	
 	/* Which Demo Format? */
 	// Doom 1.2 and Heretic
 	if (VerMarker <= 4)
 	{
 		Skill = VerMarker;
-		Episode = WL_StreamReadUInt8(a_Current->WLStream);
-		Map = WL_StreamReadUInt8(a_Current->WLStream);
+		Episode = WL_Sru8(a_Current->WLStream);
+		Map = WL_Sru8(a_Current->WLStream);
 		
 		// Read Players
 		for (i = 0; i < 4; i++)
-			Players[i] = WL_StreamReadUInt8(a_Current->WLStream);
+			Players[i] = WL_Sru8(a_Current->WLStream);
 		
 		// Hack Version ID
 		if (g_CoreGame == COREGAME_DOOM)
@@ -109,18 +109,18 @@ bool_t G_DEMO_Vanilla_StartPlaying(struct G_CurrentDemo_s* a_Current)
 	// Doom 1.4 and up
 	else
 	{
-		Skill = WL_StreamReadUInt8(a_Current->WLStream);
-		Episode = WL_StreamReadUInt8(a_Current->WLStream);
-		Map = WL_StreamReadUInt8(a_Current->WLStream);
-		Deathmatch = WL_StreamReadUInt8(a_Current->WLStream);
-		Respawn = WL_StreamReadUInt8(a_Current->WLStream);
-		Fast = WL_StreamReadUInt8(a_Current->WLStream);
-		NoMonsters = WL_StreamReadUInt8(a_Current->WLStream);
-		POV = WL_StreamReadUInt8(a_Current->WLStream);
+		Skill = WL_Sru8(a_Current->WLStream);
+		Episode = WL_Sru8(a_Current->WLStream);
+		Map = WL_Sru8(a_Current->WLStream);
+		Deathmatch = WL_Sru8(a_Current->WLStream);
+		Respawn = WL_Sru8(a_Current->WLStream);
+		Fast = WL_Sru8(a_Current->WLStream);
+		NoMonsters = WL_Sru8(a_Current->WLStream);
+		POV = WL_Sru8(a_Current->WLStream);
 		
 		// Read Players
 		for (i = 0; i < 4; i++)
-			Players[i] = WL_StreamReadUInt8(a_Current->WLStream);
+			Players[i] = WL_Sru8(a_Current->WLStream);
 	}
 	
 	/* Determine if the map is legal */
@@ -459,21 +459,21 @@ bool_t G_DEMO_Vanilla_ReadTicCmd(struct G_CurrentDemo_s* a_Current, ticcmd_t* co
 	memset(a_Cmd, 0, sizeof(*a_Cmd));
 	
 	/* Read player's command */
-	a_Cmd->Std.forwardmove = WL_StreamReadInt8(a_Current->WLStream);
-	a_Cmd->Std.sidemove = WL_StreamReadInt8(a_Current->WLStream);
+	a_Cmd->Std.forwardmove = WL_Sri8(a_Current->WLStream);
+	a_Cmd->Std.sidemove = WL_Sri8(a_Current->WLStream);
 	
 	// 1.91?
 	if (Data->LongTics)
 	{
-		a_Cmd->Std.angleturn = WL_StreamReadInt8(a_Current->WLStream);
-		a_Cmd->Std.angleturn |= ((int16_t)WL_StreamReadInt8(a_Current->WLStream)) << 8;
+		a_Cmd->Std.angleturn = WL_Sri8(a_Current->WLStream);
+		a_Cmd->Std.angleturn |= ((int16_t)WL_Sri8(a_Current->WLStream)) << 8;
 	}
 	else
-		a_Cmd->Std.angleturn = ((int16_t)WL_StreamReadInt8(a_Current->WLStream)) << 8;
+		a_Cmd->Std.angleturn = ((int16_t)WL_Sri8(a_Current->WLStream)) << 8;
 	
 	/* Button codes require re-handling */
 	// They are different in Vanilla Demos
-	ButtonCodes = WL_StreamReadUInt8(a_Current->WLStream);
+	ButtonCodes = WL_Sru8(a_Current->WLStream);
 	
 	// Special Action?
 	if (ButtonCodes & 0x80)
@@ -702,10 +702,10 @@ bool_t G_DEMO_Legacy_StartPlaying(struct G_CurrentDemo_s* a_Current)
 	P_SetRandIndex(0);
 	
 	/* Read Demo Info */
-	VerMarker = WL_StreamReadUInt8(a_Current->WLStream);
-	Skill = WL_StreamReadUInt8(a_Current->WLStream);
-	Episode = WL_StreamReadUInt8(a_Current->WLStream);
-	Map = WL_StreamReadUInt8(a_Current->WLStream);
+	VerMarker = WL_Sru8(a_Current->WLStream);
+	Skill = WL_Sru8(a_Current->WLStream);
+	Episode = WL_Sru8(a_Current->WLStream);
+	Map = WL_Sru8(a_Current->WLStream);
 	
 	/* Locate Map (Only before 1.27) */
 	if (VerMarker < 127)
@@ -732,26 +732,26 @@ bool_t G_DEMO_Legacy_StartPlaying(struct G_CurrentDemo_s* a_Current)
 		LevelInfo = NULL;
 	
 	// Only Before 1.27
-	DM = WL_StreamReadUInt8(a_Current->WLStream);
+	DM = WL_Sru8(a_Current->WLStream);
 	
 	// Only Before 1.28
-	Respawn = WL_StreamReadUInt8(a_Current->WLStream);
-	Fast = WL_StreamReadUInt8(a_Current->WLStream);
+	Respawn = WL_Sru8(a_Current->WLStream);
+	Fast = WL_Sru8(a_Current->WLStream);
 	
-	NoMonsters = WL_StreamReadUInt8(a_Current->WLStream);
-	DisplayP = WL_StreamReadUInt8(a_Current->WLStream);
+	NoMonsters = WL_Sru8(a_Current->WLStream);
+	DisplayP = WL_Sru8(a_Current->WLStream);
 	
 	// 1.09
 	if (VerMarker <= 109)
 		for (i = 0; i < 4; i++)
-			Players[i] = WL_StreamReadUInt8(a_Current->WLStream);
+			Players[i] = WL_Sru8(a_Current->WLStream);
 	
 	// 1.11+
 	else
 	{
 		// 1.25+? Adds timelimit here
 		if (VerMarker >= 125)
-			TimeLimit = WL_StreamReadUInt8(a_Current->WLStream);
+			TimeLimit = WL_Sru8(a_Current->WLStream);
 		
 		// before 1.13, max 8 players
 		if (VerMarker < 113)
@@ -761,7 +761,7 @@ bool_t G_DEMO_Legacy_StartPlaying(struct G_CurrentDemo_s* a_Current)
 			{
 				// 1.11 Encodes players in game with their skin color with
 				// bit 1 set so...
-				Players[i] = WL_StreamReadUInt8(a_Current->WLStream);
+				Players[i] = WL_Sru8(a_Current->WLStream);
 				
 				// If it isn't set, then make them not in game
 				if (!(Players[i] & 1))
@@ -779,19 +779,19 @@ bool_t G_DEMO_Legacy_StartPlaying(struct G_CurrentDemo_s* a_Current)
 					// Name
 					for (j = 0; j < 21; j++)
 					{
-						c = WL_StreamReadUInt8(a_Current->WLStream);
+						c = WL_Sru8(a_Current->WLStream);
 						
 						if (j < MAXPLAYERNAME - 1)
 							Names[i][j] = c;
 					}
 					
 					// Original Switch
-					OrigSwitch[i] = WL_StreamReadUInt8(a_Current->WLStream);
+					OrigSwitch[i] = WL_Sru8(a_Current->WLStream);
 					
 					// Favorite Guns
 					for (j = 0; j < 9; j++)
 					{
-						FavGuns[i][j] = WL_StreamReadUInt8(a_Current->WLStream);
+						FavGuns[i][j] = WL_Sru8(a_Current->WLStream);
 						
 						// For some reason, the guns are zero character based!
 						FavGuns[i][j] -= '0';
@@ -804,10 +804,10 @@ bool_t G_DEMO_Legacy_StartPlaying(struct G_CurrentDemo_s* a_Current)
 		{
 			// 1.31+ saves multiplayer, but before it is implied
 			if (VerMarker >= 131)
-				MultiPlayer = WL_StreamReadUInt8(a_Current->WLStream);
+				MultiPlayer = WL_Sru8(a_Current->WLStream);
 			
 			for (i = 0; i < 32; i++)
-				Players[i] = WL_StreamReadUInt8(a_Current->WLStream);
+				Players[i] = WL_Sru8(a_Current->WLStream);
 		}
 	}
 	
@@ -1527,12 +1527,12 @@ bool_t G_DEMO_Legacy_ReadTicCmd(struct G_CurrentDemo_s* a_Current, ticcmd_t* con
 		else
 		{
 			// Read player's command
-			a_Cmd->Std.forwardmove = WL_StreamReadInt8(a_Current->WLStream);
-			a_Cmd->Std.sidemove = WL_StreamReadInt8(a_Current->WLStream);
-			a_Cmd->Std.angleturn = ((int16_t)WL_StreamReadInt8(a_Current->WLStream)) << 8;
+			a_Cmd->Std.forwardmove = WL_Sri8(a_Current->WLStream);
+			a_Cmd->Std.sidemove = WL_Sri8(a_Current->WLStream);
+			a_Cmd->Std.angleturn = ((int16_t)WL_Sri8(a_Current->WLStream)) << 8;
 
 			// Button codes are different in old Legacy
-			ButtonCodes = WL_StreamReadUInt8(a_Current->WLStream);
+			ButtonCodes = WL_Sru8(a_Current->WLStream);
 
 			// Fire Weapon?
 			if (ButtonCodes & 1)
@@ -1555,7 +1555,7 @@ bool_t G_DEMO_Legacy_ReadTicCmd(struct G_CurrentDemo_s* a_Current, ticcmd_t* con
 	else
 	{
 		// Read the Zip tic
-		ZipTic = WL_StreamReadUInt8(a_Current->WLStream);
+		ZipTic = WL_Sru8(a_Current->WLStream);
 		
 		// End of demo?
 		if (ZipTic == 0x80)
@@ -1566,28 +1566,28 @@ bool_t G_DEMO_Legacy_ReadTicCmd(struct G_CurrentDemo_s* a_Current, ticcmd_t* con
 		
 		// Forward movement
 		if (ZipTic & ZT_FWD)
-			Data->OldCmd[a_PlayerNum].Std.forwardmove = WL_StreamReadInt8(a_Current->WLStream);
+			Data->OldCmd[a_PlayerNum].Std.forwardmove = WL_Sri8(a_Current->WLStream);
 		
 		// Side movement
 		if (ZipTic & ZT_SIDE)
-			Data->OldCmd[a_PlayerNum].Std.sidemove = WL_StreamReadInt8(a_Current->WLStream);
+			Data->OldCmd[a_PlayerNum].Std.sidemove = WL_Sri8(a_Current->WLStream);
 		
 		// Angle turn
 		if (ZipTic & ZT_ANGLE)
 			if (Data->VerMarker < 125)
 			{
-				Data->OldCmd[a_PlayerNum].Std.angleturn = WL_StreamReadInt8(a_Current->WLStream);
+				Data->OldCmd[a_PlayerNum].Std.angleturn = WL_Sri8(a_Current->WLStream);
 				Data->OldCmd[a_PlayerNum].Std.angleturn <<= 8;
 			}
 			else
-				Data->OldCmd[a_PlayerNum].Std.angleturn = WL_StreamReadInt16(a_Current->WLStream);
+				Data->OldCmd[a_PlayerNum].Std.angleturn = WL_Sri16(a_Current->WLStream);
 		
 		// Buttons
 		if (ZipTic & ZT_BUTTONS)
 		{
 			// Read Base Codes
 			Data->OldCmd[a_PlayerNum].Std.buttons = 0;	// Clear!
-			ButtonCodes =  WL_StreamReadUInt8(a_Current->WLStream);
+			ButtonCodes =  WL_Sru8(a_Current->WLStream);
 			
 			// Attack
 			if (ButtonCodes & 1)
@@ -1634,17 +1634,17 @@ bool_t G_DEMO_Legacy_ReadTicCmd(struct G_CurrentDemo_s* a_Current, ticcmd_t* con
 		
 		// Aiming
 		if (ZipTic & ZT_AIMING)
-			Data->OldCmd[a_PlayerNum].Std.aiming = WL_StreamReadInt16(a_Current->WLStream);
+			Data->OldCmd[a_PlayerNum].Std.aiming = WL_Sri16(a_Current->WLStream);
 		
 		// Chat -- Not actually used?
 		if (ZipTic & ZT_CHAT)
-			ButtonCodes = WL_StreamReadUInt8(a_Current->WLStream);
+			ButtonCodes = WL_Sru8(a_Current->WLStream);
 		
 		// Extra Data
 		if (ZipTic & ZT_EXTRADATA)
 		{
 			// Read Extra Count
-			ExtraCount = WL_StreamReadUInt8(a_Current->WLStream);
+			ExtraCount = WL_Sru8(a_Current->WLStream);
 			memset(Buf, 0, sizeof(Buf));
 			
 			// Old 1.12 Method
@@ -1657,7 +1657,7 @@ bool_t G_DEMO_Legacy_ReadTicCmd(struct G_CurrentDemo_s* a_Current, ticcmd_t* con
 			{
 				// Read String
 				for (i = 0; i < ExtraCount; i++)
-					Buf[i] = WL_StreamReadUInt8(a_Current->WLStream);
+					Buf[i] = WL_Sru8(a_Current->WLStream);
 				
 				// Enqueue it
 				NewBuf = Z_Malloc(sizeof(*NewBuf), PU_STATIC, NULL);
@@ -2476,8 +2476,8 @@ G_CurrentDemo_t* G_DemoPlay(WL_ES_t* const a_Stream, const G_DemoFactory_t* cons
 	else
 	{
 		// Read first byte
-		Marker = WL_StreamReadUInt8(a_Stream);
-		MarkerB = WL_StreamReadUInt8(a_Stream);
+		Marker = WL_Sru8(a_Stream);
+		MarkerB = WL_Sru8(a_Stream);
 		
 		// Based on marker Value
 			// ReMooD

@@ -1650,7 +1650,7 @@ size_t WL_StreamRawRead(WL_ES_t* const a_Stream, const size_t a_Offset, void* co
 
 #define __REMOOD_MACROMERGE(a,b) a##b
 
-#define __REMOOD_WLSTREAMREAD(w,x) x __REMOOD_MACROMERGE(WL_StreamRead,w)(WL_ES_t* const a_Stream)\
+#define __REMOOD_WLSTREAMREAD(ww,w,x) x __REMOOD_MACROMERGE(WL_Sr,ww)(WL_ES_t* const a_Stream)\
 {\
 	x Out = 0;\
 	\
@@ -1662,22 +1662,22 @@ size_t WL_StreamRawRead(WL_ES_t* const a_Stream, const size_t a_Offset, void* co
 	return Out;\
 }
 
-#define __REMOOD_WLSTREAMLITTLEREAD(w,x) x __REMOOD_MACROMERGE(WL_StreamReadLittle,w)(WL_ES_t* const a_Stream)\
+#define __REMOOD_WLSTREAMLITTLEREAD(ww,w,x) x __REMOOD_MACROMERGE(WL_Srl,ww)(WL_ES_t* const a_Stream)\
 {\
-	return __REMOOD_MACROMERGE(LittleSwap,w)(__REMOOD_MACROMERGE(WL_StreamRead,w)(a_Stream));\
+	return __REMOOD_MACROMERGE(LittleSwap,w)(__REMOOD_MACROMERGE(WL_Sr,ww)(a_Stream));\
 }
 
-__REMOOD_WLSTREAMREAD(Int8,int8_t);
-__REMOOD_WLSTREAMREAD(Int16,int16_t);
-__REMOOD_WLSTREAMREAD(Int32,int32_t);
-__REMOOD_WLSTREAMREAD(UInt8,uint8_t);
-__REMOOD_WLSTREAMREAD(UInt16,uint16_t);
-__REMOOD_WLSTREAMREAD(UInt32,uint32_t);
+__REMOOD_WLSTREAMREAD(i8,Int8,int8_t);
+__REMOOD_WLSTREAMREAD(i16,Int16,int16_t);
+__REMOOD_WLSTREAMREAD(i32,Int32,int32_t);
+__REMOOD_WLSTREAMREAD(u8,UInt8,uint8_t);
+__REMOOD_WLSTREAMREAD(u16,UInt16,uint16_t);
+__REMOOD_WLSTREAMREAD(u32,UInt32,uint32_t);
 
-__REMOOD_WLSTREAMLITTLEREAD(Int16,int16_t);
-__REMOOD_WLSTREAMLITTLEREAD(Int32,int32_t);
-__REMOOD_WLSTREAMLITTLEREAD(UInt16,uint16_t);
-__REMOOD_WLSTREAMLITTLEREAD(UInt32,uint32_t);
+__REMOOD_WLSTREAMLITTLEREAD(i16,Int16,int16_t);
+__REMOOD_WLSTREAMLITTLEREAD(i32,Int32,int32_t);
+__REMOOD_WLSTREAMLITTLEREAD(u16,UInt16,uint16_t);
+__REMOOD_WLSTREAMLITTLEREAD(u32,UInt32,uint32_t);
 
 #undef __REMOOD_WLSTREAMREAD
 #undef __REMOOD_WLSTREAMLITTLEREAD
@@ -1697,7 +1697,7 @@ bool_t WL_StreamCheckUnicode(WL_ES_t* const a_Stream)
 	WL_StreamSeek(a_Stream, 0, false);
 	
 	/* Read the first bytes */
-	FirstBits = WL_StreamReadUInt16(a_Stream);
+	FirstBits = WL_Sru16(a_Stream);
 	
 	/* Determine if it is Unicode */
 	if (FirstBits == 0xFFFE)
@@ -1727,7 +1727,7 @@ char WL_StreamReadChar(WL_ES_t* const a_Stream)
 	
 	/* Depending on stream type */
 	if (!a_Stream->IsUnicode)
-		RetVal = WL_StreamReadUInt8(a_Stream);
+		RetVal = WL_Sru8(a_Stream);
 	else
 	{
 		// If UTF-8 buffer contains data, flush it
@@ -1745,7 +1745,7 @@ char WL_StreamReadChar(WL_ES_t* const a_Stream)
 		}
 		
 		// Read next UTF-16 character
-		wcTemp = WL_StreamReadUInt16(a_Stream);
+		wcTemp = WL_Sru16(a_Stream);
 		
 		// Swap the bits?
 		if (a_Stream->IsSwapped)

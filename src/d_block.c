@@ -212,8 +212,8 @@ bool_t DS_RBSWL_PlayF(struct D_BS_s* const a_Stream)
 		Header[i] = WL_StreamReadChar(Stream);
 	
 	// Read Length and Sum
-	Len = WL_StreamReadLittleUInt32(Stream);
-	Sum = WL_StreamReadLittleUInt32(Stream);
+	Len = WL_Srlu32(Stream);
+	Sum = WL_Srlu32(Stream);
 	
 	// Read data, if possible (Len could be zero (empty block?))
 	if (Len > 0)

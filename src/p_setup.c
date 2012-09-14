@@ -779,8 +779,8 @@ bool_t P_ExLoadLevel(P_LevelInfoEx_t* const a_Info, const uint32_t a_Flags)
 				VertexP = &vertexes[i];
 				
 				// Read
-				VertexP->x = ((fixed_t)WL_StreamReadLittleInt16(Stream)) <<  FRACBITS;
-				VertexP->y = ((fixed_t)WL_StreamReadLittleInt16(Stream)) <<  FRACBITS;
+				VertexP->x = ((fixed_t)WL_Srli16(Stream)) <<  FRACBITS;
+				VertexP->y = ((fixed_t)WL_Srli16(Stream)) <<  FRACBITS;
 				
 				// Initialize
 				PS_ExVertexInit(VertexP);
@@ -820,22 +820,22 @@ bool_t P_ExLoadLevel(P_LevelInfoEx_t* const a_Info, const uint32_t a_Flags)
 				SectorP = &sectors[i];
 				
 				// Read
-				SectorP->floorheight = ((fixed_t)WL_StreamReadLittleInt16(Stream)) << FRACBITS;
-				SectorP->ceilingheight = ((fixed_t)WL_StreamReadLittleInt16(Stream)) << FRACBITS;
+				SectorP->floorheight = ((fixed_t)WL_Srli16(Stream)) << FRACBITS;
+				SectorP->ceilingheight = ((fixed_t)WL_Srli16(Stream)) << FRACBITS;
 				
 				memset(Buf, 0, sizeof(Buf));
 				for (j = 0; j < 8; j++)
-					Buf[j] = WL_StreamReadUInt8(Stream);
+					Buf[j] = WL_Sru8(Stream);
 				SectorP->FloorTexture = Z_StrDup(Buf, PU_LEVEL, NULL);
 				
 				memset(Buf, 0, sizeof(Buf));
 				for (j = 0; j < 8; j++)
-					Buf[j] = WL_StreamReadUInt8(Stream);
+					Buf[j] = WL_Sru8(Stream);
 				SectorP->CeilingTexture = Z_StrDup(Buf, PU_LEVEL, NULL);
 				
-				SectorP->lightlevel = WL_StreamReadLittleInt16(Stream);
-				SectorP->special = WL_StreamReadLittleUInt16(Stream);
-				SectorP->tag = WL_StreamReadLittleUInt16(Stream);
+				SectorP->lightlevel = WL_Srli16(Stream);
+				SectorP->special = WL_Srlu16(Stream);
+				SectorP->tag = WL_Srlu16(Stream);
 				
 				// Initialize
 				PS_ExSectorInit(SectorP);
@@ -875,18 +875,18 @@ bool_t P_ExLoadLevel(P_LevelInfoEx_t* const a_Info, const uint32_t a_Flags)
 				SideDefP = &sides[i];
 				
 				// Read
-				SideDefP->textureoffset = ((fixed_t)WL_StreamReadLittleInt16(Stream)) <<  FRACBITS;
-				SideDefP->rowoffset = ((fixed_t)WL_StreamReadLittleInt16(Stream)) <<  FRACBITS;
+				SideDefP->textureoffset = ((fixed_t)WL_Srli16(Stream)) <<  FRACBITS;
+				SideDefP->rowoffset = ((fixed_t)WL_Srli16(Stream)) <<  FRACBITS;
 				
 				for (k = 0; k < 3; k++)
 				{
 					memset(Buf, 0, sizeof(Buf));
 					for (j = 0; j < 8; j++)
-						Buf[j] = WL_StreamReadUInt8(Stream);
+						Buf[j] = WL_Sru8(Stream);
 					SideDefP->WallTextures[k] = Z_StrDup(Buf, PU_LEVEL, NULL);
 				}
 				
-				SideDefP->SectorNum = WL_StreamReadLittleUInt16(Stream);
+				SideDefP->SectorNum = WL_Srlu16(Stream);
 				
 				// Initialize
 				PS_ExSideDefInit(SideDefP);
@@ -927,23 +927,23 @@ bool_t P_ExLoadLevel(P_LevelInfoEx_t* const a_Info, const uint32_t a_Flags)
 				
 				// Read
 				for (k = 0; k < 2; k++)
-					LineDefP->VertexNum[k] = WL_StreamReadLittleUInt16(Stream);
-				LineDefP->flags = WL_StreamReadLittleUInt16(Stream);
+					LineDefP->VertexNum[k] = WL_Srlu16(Stream);
+				LineDefP->flags = WL_Srlu16(Stream);
 				
 				if (a_Info->Type.Hexen)	// Hexen
 				{
-					LineDefP->HexenSpecial = WL_StreamReadUInt8(Stream);
+					LineDefP->HexenSpecial = WL_Sru8(Stream);
 					for (k = 0; k < 5; k++)
-						LineDefP->ACSArgs[k] = WL_StreamReadUInt8(Stream);
+						LineDefP->ACSArgs[k] = WL_Sru8(Stream);
 				}
 				else					// Doom
 				{
-					LineDefP->special = WL_StreamReadLittleUInt16(Stream);
-					LineDefP->tag = WL_StreamReadLittleUInt16(Stream);
+					LineDefP->special = WL_Srlu16(Stream);
+					LineDefP->tag = WL_Srlu16(Stream);
 				}
 				
 				for (k = 0; k < 2; k++)
-					LineDefP->sidenum[k] = WL_StreamReadLittleUInt16(Stream);
+					LineDefP->sidenum[k] = WL_Srlu16(Stream);
 				
 				// Initialize
 				PS_ExLineDefInit(LineDefP);
@@ -983,8 +983,8 @@ bool_t P_ExLoadLevel(P_LevelInfoEx_t* const a_Info, const uint32_t a_Flags)
 				SubSectorP = &subsectors[i];
 				
 				// Read
-				SubSectorP->numlines = WL_StreamReadLittleUInt16(Stream);
-				SubSectorP->firstline = WL_StreamReadLittleUInt16(Stream);
+				SubSectorP->numlines = WL_Srlu16(Stream);
+				SubSectorP->firstline = WL_Srlu16(Stream);
 				
 				// Initialize
 				PS_ExSubSectorInit(SubSectorP);
@@ -1024,17 +1024,17 @@ bool_t P_ExLoadLevel(P_LevelInfoEx_t* const a_Info, const uint32_t a_Flags)
 				NodeP = &nodes[i];
 				
 				// Read
-				NodeP->x = ((fixed_t)WL_StreamReadLittleInt16(Stream)) << FRACBITS;
-				NodeP->y = ((fixed_t)WL_StreamReadLittleInt16(Stream)) << FRACBITS;
-				NodeP->dx = ((fixed_t)WL_StreamReadLittleInt16(Stream)) << FRACBITS;
-				NodeP->dy = ((fixed_t)WL_StreamReadLittleInt16(Stream)) << FRACBITS;
+				NodeP->x = ((fixed_t)WL_Srli16(Stream)) << FRACBITS;
+				NodeP->y = ((fixed_t)WL_Srli16(Stream)) << FRACBITS;
+				NodeP->dx = ((fixed_t)WL_Srli16(Stream)) << FRACBITS;
+				NodeP->dy = ((fixed_t)WL_Srli16(Stream)) << FRACBITS;
 				
 				for (k = 0; k < 2; k++)
 					for (j = 0; j < 4; j++)
-						NodeP->bbox[k][j] = ((fixed_t)WL_StreamReadLittleInt16(Stream)) <<  FRACBITS;
+						NodeP->bbox[k][j] = ((fixed_t)WL_Srli16(Stream)) <<  FRACBITS;
 				
 				for (k = 0; k < 2; k++)
-					NodeP->children[k] = WL_StreamReadLittleUInt16(Stream);
+					NodeP->children[k] = WL_Srlu16(Stream);
 				
 				// Initialize
 				PS_ExNodeInit(NodeP);
@@ -1075,11 +1075,11 @@ bool_t P_ExLoadLevel(P_LevelInfoEx_t* const a_Info, const uint32_t a_Flags)
 				
 				// Read
 				for (k = 0; k < 2; k++)
-					SegP->VertexID[k] = WL_StreamReadLittleUInt16(Stream);
-				SegP->angle = ((angle_t)WL_StreamReadLittleUInt16(Stream)) << 16;
-				SegP->LineID = WL_StreamReadLittleUInt16(Stream);
-				SegP->side = WL_StreamReadLittleUInt16(Stream);
-				SegP->offset = ((fixed_t)WL_StreamReadLittleInt16(Stream)) <<  FRACBITS;
+					SegP->VertexID[k] = WL_Srlu16(Stream);
+				SegP->angle = ((angle_t)WL_Srlu16(Stream)) << 16;
+				SegP->LineID = WL_Srlu16(Stream);
+				SegP->side = WL_Srlu16(Stream);
+				SegP->offset = ((fixed_t)WL_Srli16(Stream)) <<  FRACBITS;
 				
 				// Initialize
 				PS_ExSegInit(SegP);
@@ -1115,14 +1115,14 @@ bool_t P_ExLoadLevel(P_LevelInfoEx_t* const a_Info, const uint32_t a_Flags)
 			blockmap = blockmaplump + 4;	// Needed for compat
 			
 			// Read blockmap origin
-			blockmaplump[0] = WL_StreamReadLittleInt16(Stream);
+			blockmaplump[0] = WL_Srli16(Stream);
 			bmaporgx = ((fixed_t)blockmaplump[0]) <<  FRACBITS;
-			blockmaplump[1] = WL_StreamReadLittleInt16(Stream);
+			blockmaplump[1] = WL_Srli16(Stream);
 			bmaporgy = ((fixed_t)blockmaplump[1]) <<  FRACBITS;
 			
 			// Read blockmap size
-			blockmaplump[2] = bmapwidth = ((int32_t)WL_StreamReadLittleUInt16(Stream)) & 0xFFFFU;
-			blockmaplump[3] = bmapheight = ((int32_t)WL_StreamReadLittleUInt16(Stream)) & 0xFFFFU;
+			blockmaplump[2] = bmapwidth = ((int32_t)WL_Srlu16(Stream)) & 0xFFFFU;
+			blockmaplump[3] = bmapheight = ((int32_t)WL_Srlu16(Stream)) & 0xFFFFU;
 			
 			// Load remaining blockmap data
 			for (i = 0; i < k; i++)
@@ -1132,7 +1132,7 @@ bool_t P_ExLoadLevel(P_LevelInfoEx_t* const a_Info, const uint32_t a_Flags)
 					CONL_LoadingScreenIncrSub();
 				
 				// Load in
-				TempShort = WL_StreamReadLittleInt16(Stream);
+				TempShort = WL_Srli16(Stream);
 				
 				// Keep -1, but drop everything else
 				if (TempShort == -1)
@@ -1171,7 +1171,7 @@ bool_t P_ExLoadLevel(P_LevelInfoEx_t* const a_Info, const uint32_t a_Flags)
 				if ((j & LOADMASK) == 0)
 					CONL_LoadingScreenIncrSub();
 				
-				rejectmatrix[j] = WL_StreamReadUInt8(Stream);
+				rejectmatrix[j] = WL_Sru8(Stream);
 			}
 			
 			// Close stream
@@ -1216,23 +1216,23 @@ bool_t P_ExLoadLevel(P_LevelInfoEx_t* const a_Info, const uint32_t a_Flags)
 				ThingP->IsHexen = a_Info->Type.Hexen;
 				
 				if (ThingP->IsHexen)
-					ThingP->ID = WL_StreamReadLittleUInt16(Stream);
+					ThingP->ID = WL_Srlu16(Stream);
 				
-				ThingP->x = WL_StreamReadLittleInt16(Stream);
-				ThingP->y = WL_StreamReadLittleInt16(Stream);
+				ThingP->x = WL_Srli16(Stream);
+				ThingP->y = WL_Srli16(Stream);
 				
 				if (ThingP->IsHexen)
-					ThingP->HeightOffset = WL_StreamReadLittleInt16(Stream);
+					ThingP->HeightOffset = WL_Srli16(Stream);
 				
-				ThingP->angle = WL_StreamReadLittleInt16(Stream);
-				ThingP->type = WL_StreamReadLittleInt16(Stream);
-				ThingP->options = WL_StreamReadLittleInt16(Stream);
+				ThingP->angle = WL_Srli16(Stream);
+				ThingP->type = WL_Srli16(Stream);
+				ThingP->options = WL_Srli16(Stream);
 				
 				if (ThingP->IsHexen)
 				{
-					ThingP->Special = WL_StreamReadUInt8(Stream);
+					ThingP->Special = WL_Sru8(Stream);
 					for (k = 0; k < 5; k++)
-						ThingP->Args[k] = WL_StreamReadUInt8(Stream);
+						ThingP->Args[k] = WL_Sru8(Stream);
 				}
 				
 				// Init
