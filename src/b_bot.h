@@ -147,6 +147,7 @@ extern bool_t g_BotDebug;						// Debugging Bots
 
 /*** B_GHOST.C ***/
 extern fixed_t g_GlobalBoundBox[4];				// Global bounding box
+extern bool_t g_GotBots;						// Got a bot?
 
 /****************
 *** FUNCTIONS ***

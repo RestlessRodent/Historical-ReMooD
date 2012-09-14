@@ -668,6 +668,10 @@ M_UIMenuHandler_t* M_ExPushMenu(const uint8_t a_Player, M_UIMenu_t* const a_UI)
 	/* Check */
 	if (!a_UI || a_Player < 0 || a_Player >= MAXSPLITSCREEN)
 		return NULL;
+	
+	/* Player not active? */
+	if (!g_Splits[a_Player].Waiting && (demoplayback || (!demoplayback && !g_Splits[a_Player].Active)))
+		return NULL;
 		
 	/* Allocate */
 	New = Z_Malloc(sizeof(*New), PU_STATIC, NULL);

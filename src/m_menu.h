@@ -89,6 +89,10 @@ typedef void (*MBCallBackFunc_t)(const uint32_t a_MessageID, const M_ExMBType_t 
 
 
 struct M_UIMenu_s;
+struct M_UIItem_s;
+
+typedef bool_t (*M_UIItemLRValChangeFuncType_t)(struct M_UIMenu_s* const a_Menu, struct M_UIItem_s* const a_Item, const bool_t a_More);
+typedef bool_t (*M_UIItemPressFuncType_t)(struct M_UIMenu_s* const a_Menu, struct M_UIItem_s* const a_Item);
 
 /* M_UIItem_t -- Menu Item */
 typedef struct M_UIItem_s
@@ -102,8 +106,8 @@ typedef struct M_UIItem_s
 	const char** ValueRef;						// Value (i18n)
 	
 	int32_t DataBits;							// Anything needed for data
-	bool_t (*LRValChangeFunc)(struct M_UIMenu_s* const a_Menu, struct M_UIItem_s* const a_Item, const bool_t a_More);
-	bool_t (*ItemPressFunc)(struct M_UIMenu_s* const a_Menu, struct M_UIItem_s* const a_Item);
+	M_UIItemLRValChangeFuncType_t LRValChangeFunc;
+	M_UIItemPressFuncType_t ItemPressFunc;
 } M_UIItem_t;
 
 struct M_UIMenuHandler_s;

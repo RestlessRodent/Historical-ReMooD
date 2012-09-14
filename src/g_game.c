@@ -650,8 +650,11 @@ void GS_HandleExtraCommands(ticcmd_t* const a_TicCmd, const int32_t a_PlayerNum)
 					
 					// Setup Bot Player
 					if (NetPlayer->Type == DNPT_BOT)
+					{
 						// Initialize Bot
 						NewBot = NetPlayer->BotData = B_InitBot(NetPlayer, B_GHOST_TemplateByID(u32[2]));
+						g_GotBots = true;
+					}
 					
 					// Send server local profile info
 					D_NCReqPrefChange(Profile, NewBot, u16[0]);

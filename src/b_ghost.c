@@ -199,6 +199,7 @@ static const B_BotTemplate_t c_BotTemplates[MAXBOTTEMPLATES] =
 **************/
 
 fixed_t g_GlobalBoundBox[4];					// Global bounding box
+bool_t g_GotBots = false;						// Got a bot?
 
 /*************
 *** LOCALS ***
@@ -806,6 +807,14 @@ void B_GHOST_Ticker(void)
 	int32_t uX, uY;
 	int8_t lox, loy;
 	
+	/* No Bots? */
+	if (!g_GotBots)
+		return;
+		
+	/* Do not build bot data if not the server */
+	if (!D_SyncNetIsArbiter())
+		return;
+	
 	/* Adjanceny chains not yet complete? */
 	if (l_BBuildAdj < l_BNumSecs)
 	{
@@ -1011,11 +1020,16 @@ void B_GHOST_ClearLevel(void)
 	
 	/* Clear anything extra there may be */
 	Z_FreeTags(PU_BOTS, PU_BOTS);
+	
+	/* Unset that we have bots */
+	g_GotBots = false;
 }
 
 /* B_GHOST_InitLevel() -- Initializes level */
 void B_GHOST_InitLevel(void)
 {
+	int i;
+	
 	/* Clear old data */
 	B_GHOST_ClearLevel();
 	
@@ -1046,6 +1060,12 @@ void B_GHOST_InitLevel(void)
 				l_UMSize[0], l_UMSize[1],
 				l_UMBase[0] >> FRACBITS, l_UMBase[1] >> FRACBITS
 			);
+	
+	/* Determine if bots are already inside */
+	for (i = 0; i < MAXPLAYERS; i++)
+		if (playeringame[i] && players[i].NetPlayer)
+			if (players[i].NetPlayer->Type == DNPT_BOT)
+				g_GotBots = true;
 }
 
 /* BS_GHOST_JOB_RandomNav() -- Random navigation */

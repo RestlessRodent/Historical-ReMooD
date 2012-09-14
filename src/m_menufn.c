@@ -379,11 +379,20 @@ M_UIMenu_t* M_ExTemplateMakeGameVars(const int32_t a_Mode)
 *** COMBINED MENUING ***
 ***********************/
 
+/*** SUB-MENU HANDLER FUNCTIONS ***/
+
+/*** GENERATION ***/
+
 /* c_NewMenuName -- Names of menus */
 static const char* c_NewMenuName[NUMMNEWMENUIDS] =
 {
 	"hello",									// MNMID_HELLO
 };
+
+/* MS_AddNewItem() -- Adds item to menu */
+static M_UIItem_t* MS_AddNewItem(M_UIMenu_t* a_Menu, const M_UIItemType_t a_Type, const uint32_t a_Flags, const int32_t a_Bits, const char** const a_TextRef, const char** const a_ValRef, M_UIItemLRValChangeFuncType_t a_LRValFunc, M_UIItemPressFuncType_t a_PressFunc)
+{
+}
 
 /* CLC_ExMakeMenuCom() -- Makes menu for someone */
 int CLC_ExMakeMenuCom(const uint32_t a_ArgC, const char** const a_ArgV)
@@ -438,6 +447,8 @@ int CLC_ExMakeMenuCom(const uint32_t a_ArgC, const char** const a_ArgV)
 	return !!M_ExPushMenu(PlayerID, M_ExMakeMenu(MenuID, NULL));;
 }
 
+static M_UIMenu_t* l_PreMenus[NUMMNEWMENUIDS];	// Pre-Created Menus
+
 /* M_ExMakeMenu() -- Creates a new menu */
 M_UIMenu_t* M_ExMakeMenu(const M_NewMenuID_t a_MenuID, void* const a_Data)
 {
@@ -446,6 +457,10 @@ M_UIMenu_t* M_ExMakeMenu(const M_NewMenuID_t a_MenuID, void* const a_Data)
 	/* Check */
 	if (a_MenuID < 0 || a_MenuID >= NUMMNEWMENUIDS)
 		return NULL;
+	
+	/* Already created? */
+	if (l_PreMenus[a_MenuID])
+		return l_PreMenus[a_MenuID];
 	
 	/* Init Base */
 	NewMenu = Z_Malloc(sizeof(*NewMenu), PU_STATIC, NULL);
@@ -463,6 +478,9 @@ M_UIMenu_t* M_ExMakeMenu(const M_NewMenuID_t a_MenuID, void* const a_Data)
 			Z_Free(NewMenu);
 			return NULL;
 	}
+	
+	/* Set */
+	l_PreMenus[a_MenuID] = NewMenu;
 	
 	/* Return the created menu */
 	return NewMenu;
