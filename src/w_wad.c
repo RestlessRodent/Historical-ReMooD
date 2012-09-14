@@ -288,6 +288,7 @@ static bool_t ZLP_EntryHashCheck(void* const a_A, void* const a_B)
 /* WL_OpenWAD() -- Opens a WAD File */
 const WL_WADFile_t* WL_OpenWAD(const char* const a_PathName)
 {
+#define SUMBUF 128
 	static uint32_t BaseTop;
 	char FoundWAD[PATH_MAX];
 	FILE* CFile;
@@ -303,6 +304,8 @@ const WL_WADFile_t* WL_OpenWAD(const char* const a_PathName)
 	uint32_t u32;
 	WL_WADEntry_t* ThisEntry;
 	WL_WADFile_t* WAD;
+	uint8_t SumBuf[SUMBUF];
+	void* p;
 	
 	/* Check */
 	if (!a_PathName)
@@ -424,26 +427,30 @@ const WL_WADFile_t* WL_OpenWAD(const char* const a_PathName)
 	
 	/* Determine checksums */
 	// Simple Sum
-	for (i = 0, j = 0, k = 0; i < NewWAD->__Private.__Size; i++)
+	for (i = 0, j = 0, k = 0; i < NewWAD->__Private.__Size; i += SUMBUF)
 	{
-		// Read single byte
-		fread(&u8, 1, 1, CFile);
+		// Read bytes
+		n = fread(&SumBuf, 1, SUMBUF, CFile);
 		
-		// If even, do XOR
-		if (!(i & 0))
-			NewWAD->SimpleSum[k] ^= (uint32_t)u8 << ((uint32_t)j * 8);
-		
-		// Otherwise, do XNOR
-		else
-			NewWAD->SimpleSum[k] ^= ((uint32_t)(~u8)) << ((uint32_t)j * 8);
-		
-		// Cycle?
-		if (++j >= 4)
+		// Process
+		for (u32 = 0; u32 < n && u32 < SUMBUF; u32++)
 		{
-			j = 0;
+			// If even, do XOR
+			if (!(i & 0))
+				NewWAD->SimpleSum[k] ^= (uint32_t)SumBuf[u32] << ((uint32_t)j * 8);
+		
+			// Otherwise, do XNOR
+			else
+				NewWAD->SimpleSum[k] ^= ((uint32_t)(~SumBuf[u32])) << ((uint32_t)j * 8);
+		
+			// Cycle?
+			if (++j >= 4)
+			{
+				j = 0;
 			
-			if (++k >= 4)
-				k = 0;
+				if (++k >= 4)
+					k = 0;
+			}
 		}
 	}
 	
@@ -508,20 +515,23 @@ const WL_WADFile_t* WL_OpenWAD(const char* const a_PathName)
 			ThisEntry->Index = i;
 			ThisEntry->GlobalIndex = NewWAD->__Private.__TopHash + ThisEntry->Index;
 			
+			// Read in bulk
+			memset(SumBuf, 0, sizeof(*SumBuf) * 16);
+			if (fread(SumBuf, 16, 1, CFile) < 1)
+				break;
+				
+			p = SumBuf;
+			
 			// Read lump position
-			fread(&u32, 4, 1, CFile);
-			u32 = LittleSwapUInt32(u32);
-			ThisEntry->__Private.__Offset = u32;
+			ThisEntry->__Private.__Offset = LittleReadUInt32((uint32_t**)&p);
 			
 			// Read lump internal size
-			fread(&u32, 4, 1, CFile);
-			u32 = LittleSwapUInt32(u32);
-			ThisEntry->__Private.__InternalSize = u32;
+			ThisEntry->__Private.__InternalSize = LittleReadUInt32((uint32_t**)&p);
 			
 			// Read name
 			for (Dot = false, j = 0; j < 8; j++)
 			{
-				fread(&c, 1, 1, CFile);	
+				c = SumBuf[8 + j];
 				
 				if (!Dot)
 					if (c == '\0')
@@ -605,6 +615,7 @@ const WL_WADFile_t* WL_OpenWAD(const char* const a_PathName)
 		
 	/* Return the generated WAD */
 	return NewWAD;
+#undef SUMBUF
 }
 
 /* WL_GetWADName() -- Get the name of a WAD */
