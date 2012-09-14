@@ -103,7 +103,7 @@ typedef struct D_BS_s
 ****************/
 
 D_BS_t* D_BSCreateLoopBackStream(void);
-D_BS_t* D_BSCreateWLStream(WL_EntryStream_t* const a_Stream);
+D_BS_t* D_BSCreateWLStream(WL_ES_t* const a_Stream);
 D_BS_t* D_BSCreateFileStream(const char* const a_PathName, const uint32_t a_Flags);
 D_BS_t* D_BSCreateNetStream(I_NetSocket_t* const a_NetSocket);
 D_BS_t* D_BSCreatePerfectStream(D_BS_t* const a_Wrapped);

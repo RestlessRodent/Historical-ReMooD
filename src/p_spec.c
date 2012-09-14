@@ -91,7 +91,7 @@ void P_InitPicAnims(void)
 {
 	int32_t i, j, t;
 	const WL_WADEntry_t* Entry;
-	WL_EntryStream_t* Stream;
+	WL_ES_t* Stream;
 	uint8_t Flag;
 	char Texts[2][9];
 	int32_t Time;
@@ -3532,7 +3532,7 @@ static bool_t PS_ExtraSpecialOCCB(const bool_t a_Pushed, const struct WL_WADFile
 #define BUFSIZE 512
 	const WL_WADEntry_t* Entry;
 	const WL_WADEntry_t* MapperEntry;
-	WL_EntryStream_t* Stream;
+	WL_ES_t* Stream;
 	size_t i, j, k, zzSpecType;
 	char Buf[BUFSIZE];
 	char* p, *TokStr;

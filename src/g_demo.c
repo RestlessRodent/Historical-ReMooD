@@ -2456,7 +2456,7 @@ bool_t G_PlayNextQ(void)
 }
 
 /* G_DemoPlay() -- Plays demo with factory */
-G_CurrentDemo_t* G_DemoPlay(WL_EntryStream_t* const a_Stream, const G_DemoFactory_t* const a_Factory)
+G_CurrentDemo_t* G_DemoPlay(WL_ES_t* const a_Stream, const G_DemoFactory_t* const a_Factory)
 {
 	G_CurrentDemo_t* New;
 	uint8_t Marker, MarkerB;
@@ -2674,7 +2674,7 @@ void G_DoPlayDemo(char* defdemoname)
 {
 	char Base[12];
 	const WL_WADEntry_t* Entry;
-	WL_EntryStream_t* Stream;
+	WL_ES_t* Stream;
 	G_CurrentDemo_t* Demo;
 	char* At;
 	const G_DemoFactory_t* Factory;

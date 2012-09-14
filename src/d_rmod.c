@@ -64,7 +64,7 @@ typedef struct D_WXRMODPrivate_s
 /* D_RMODTokenInfo_t -- RMOD Token Information */
 typedef struct D_RMODTokenInfo_s
 {
-	WL_EntryStream_t* Stream;					// Stream reader
+	WL_ES_t* Stream;					// Stream reader
 	size_t StreamEnd;							// When the stream ends
 	const char* TokenProblem;					// Problem with token
 	
@@ -325,7 +325,7 @@ static bool_t DS_RMODPDC(const struct WL_WADFile_s* const a_WAD, const uint32_t 
 {
 #define BUFSIZE 384
 	const WL_WADEntry_t* DataEntry;
-	WL_EntryStream_t* DataStream;
+	WL_ES_t* DataStream;
 	int i = 0, n, Expected, Deepness;
 	uint16_t wc;
 	D_RMODTokenInfo_t Info;
@@ -792,7 +792,7 @@ static bool_t DS_RMODOCCB(const bool_t a_Pushed, const struct WL_WADFile_s* cons
 {
 	int i, ns;
 	const WL_WADFile_t* CurWAD;
-	WL_EntryStream_t* DataStream;
+	WL_ES_t* DataStream;
 	D_RMODTokenInfo_t Info;
 	const WL_WADEntry_t* Entry;
 	

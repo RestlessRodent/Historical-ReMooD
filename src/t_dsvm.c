@@ -565,7 +565,7 @@ static bool_t TS_VMSolveExpr(T_VMExprHold_t* const a_Hold, const char* const a_S
 }
 
 /* T_DSVM_ReadToken() -- Reads Token */
-bool_t T_DSVM_ReadToken(WL_EntryStream_t* const a_Stream, const size_t a_End, uint32_t* const a_Row, char* const a_Buf, const size_t a_BufSize)
+bool_t T_DSVM_ReadToken(WL_ES_t* const a_Stream, const size_t a_End, uint32_t* const a_Row, char* const a_Buf, const size_t a_BufSize)
 {
 	bool_t ReadSomething;
 	char Char;
@@ -727,7 +727,7 @@ bool_t T_DSVM_ReadToken(WL_EntryStream_t* const a_Stream, const size_t a_End, ui
 }
 
 /* T_DSVM_CompileStream() -- Compiles a stream */
-bool_t T_DSVM_CompileStream(WL_EntryStream_t* const a_Stream, const size_t a_End)
+bool_t T_DSVM_CompileStream(WL_ES_t* const a_Stream, const size_t a_End)
 {
 #define MAXSCOPES 32
 #define BUFSIZE 512
@@ -736,7 +736,7 @@ bool_t T_DSVM_CompileStream(WL_EntryStream_t* const a_Stream, const size_t a_End
 	uint32_t Row;
 	bool_t ScriptProblem, QuickRet, TraversedScope;
 	const WL_WADEntry_t* Entry;
-	WL_EntryStream_t* IncStream;
+	WL_ES_t* IncStream;
 	int32_t i, j, n, s;
 	
 	uint32_t ScopeStack[MAXSCOPES], u32;

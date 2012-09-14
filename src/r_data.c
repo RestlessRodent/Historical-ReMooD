@@ -238,7 +238,7 @@ static bool_t RS_TexturePDCreate(const struct WL_WADFile_s* const a_WAD, const u
 	const WL_WADEntry_t* Entry;
 	const WL_WADEntry_t* MStart;
 	const WL_WADEntry_t* MEnd;
-	WL_EntryStream_t* Stream;
+	WL_ES_t* Stream;
 	size_t i, j, k, p, z;
 	char c;
 	bool_t Continue;

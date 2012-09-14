@@ -44,5 +44,5 @@
 *****************/
 
 bool_t T_DSVM_Cleanup(void);
-bool_t T_DSVM_CompileStream(WL_EntryStream_t* const a_Stream, const size_t a_End);
+bool_t T_DSVM_CompileStream(WL_ES_t* const a_Stream, const size_t a_End);
 

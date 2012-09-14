@@ -185,7 +185,7 @@ static size_t DS_RBSWL_RecordF(struct D_BS_s* const a_Stream)
 /* DS_RBSWL_PlayF() -- Play from file */
 bool_t DS_RBSWL_PlayF(struct D_BS_s* const a_Stream)
 {
-	WL_EntryStream_t* Stream;
+	WL_ES_t* Stream;
 	char Header[5];
 	uint32_t Len, Sum, i;
 	void* Data;
@@ -195,7 +195,7 @@ bool_t DS_RBSWL_PlayF(struct D_BS_s* const a_Stream)
 		return false;
 		
 	/* Get Data */
-	Stream = (WL_EntryStream_t*)a_Stream->Data;
+	Stream = (WL_ES_t*)a_Stream->Data;
 	
 	/* EOS? */
 	if (WL_StreamEOF(Stream))
@@ -2619,7 +2619,7 @@ D_BS_t* D_BSCreateLoopBackStream(void)
 }
 
 /* D_BSCreateWLStream() -- Creates a stream that wraps an entry stream */
-D_BS_t* D_BSCreateWLStream(WL_EntryStream_t* const a_Stream)
+D_BS_t* D_BSCreateWLStream(WL_ES_t* const a_Stream)
 {
 	D_BS_t* New;
 	

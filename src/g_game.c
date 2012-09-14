@@ -2063,7 +2063,7 @@ void G_DoPlayDemo(char* defdemoname)
 	int i, j, episode, map;
 	
 	WL_WADEntry_t* Entry;
-	WL_EntryStream_t* Stream;
+	WL_ES_t* Stream;
 	
 	/* Stop playing old demo */
 	if (g_CurDemoInfo)

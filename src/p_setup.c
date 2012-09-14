@@ -700,7 +700,7 @@ bool_t P_ExLoadLevel(P_LevelInfoEx_t* const a_Info, const uint32_t a_Flags)
 #define LOADSHIFT 6
 #define LOADMASK ((1 << LOADSHIFT) - 1)
 	const WL_WADEntry_t* Entry;
-	WL_EntryStream_t* Stream;
+	WL_ES_t* Stream;
 	vertex_t* VertexP;
 	sector_t* SectorP;
 	side_t* SideDefP;
@@ -1275,7 +1275,7 @@ bool_t P_ExLoadLevel(P_LevelInfoEx_t* const a_Info, const uint32_t a_Flags)
 bool_t P_ExFinalizeLevel(void)
 {
 	size_t i;
-	WL_EntryStream_t* ScriptStream;
+	WL_ES_t* ScriptStream;
 	
 	/* Set gamestate to level */
 	// So that we can play it now

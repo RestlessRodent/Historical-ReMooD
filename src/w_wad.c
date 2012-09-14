@@ -1394,8 +1394,8 @@ size_t WL_ReadData(const WL_WADEntry_t* const a_Entry, const size_t a_Offset, vo
 /*** ENTRY STREAM ***/
 #define WLSTREAMCACHESIZE				4096	// Default size of cache stream
 
-/* WL_EntryStream_s -- Stream for an entry */
-struct WL_EntryStream_s
+/* WL_ES_s -- Stream for an entry */
+struct WL_ES_s
 {
 	const WL_WADEntry_t* Entry;					// Entry for stream
 	
@@ -1415,9 +1415,9 @@ struct WL_EntryStream_s
 };
 
 /* WL_StreamOpen() -- Opens a stream */
-WL_EntryStream_t* WL_StreamOpen(const WL_WADEntry_t* const a_Entry)
+WL_ES_t* WL_StreamOpen(const WL_WADEntry_t* const a_Entry)
 {
-	WL_EntryStream_t* New;
+	WL_ES_t* New;
 	
 	/* Check */
 	if (!a_Entry)
@@ -1440,7 +1440,7 @@ WL_EntryStream_t* WL_StreamOpen(const WL_WADEntry_t* const a_Entry)
 }
 
 /* WL_StreamClose() -- Closes a stream */
-void WL_StreamClose(WL_EntryStream_t* const a_Stream)
+void WL_StreamClose(WL_ES_t* const a_Stream)
 {
 	/* Check */
 	if (!a_Stream)
@@ -1456,7 +1456,7 @@ void WL_StreamClose(WL_EntryStream_t* const a_Stream)
 }
 
 /* WL_StreamGetEntry() -- Get stream's entry */
-const WL_WADEntry_t* WL_StreamGetEntry(WL_EntryStream_t* const a_Stream)
+const WL_WADEntry_t* WL_StreamGetEntry(WL_ES_t* const a_Stream)
 {
 	/* Check */
 	if (!a_Stream)
@@ -1467,7 +1467,7 @@ const WL_WADEntry_t* WL_StreamGetEntry(WL_EntryStream_t* const a_Stream)
 }
 
 /* WL_StreamTell() -- Return current position of stream */
-uint32_t WL_StreamTell(WL_EntryStream_t* const a_Stream)
+uint32_t WL_StreamTell(WL_ES_t* const a_Stream)
 {
 	/* Check */
 	if (!a_Stream)
@@ -1476,7 +1476,7 @@ uint32_t WL_StreamTell(WL_EntryStream_t* const a_Stream)
 }
 
 /* WL_StreamSeek() -- Relocate stream */
-uint32_t WL_StreamSeek(WL_EntryStream_t* const a_Stream, const uint32_t a_NewPos, const bool_t a_End)
+uint32_t WL_StreamSeek(WL_ES_t* const a_Stream, const uint32_t a_NewPos, const bool_t a_End)
 {
 	/* Check */
 	if (!a_Stream)
@@ -1508,7 +1508,7 @@ uint32_t WL_StreamSeek(WL_EntryStream_t* const a_Stream, const uint32_t a_NewPos
 }
 
 /* WL_StreamEOF() -- Checks end of file */
-bool_t WL_StreamEOF(WL_EntryStream_t* const a_Stream)
+bool_t WL_StreamEOF(WL_ES_t* const a_Stream)
 {
 	/* Check */
 	if (!a_Stream)
@@ -1523,7 +1523,7 @@ bool_t WL_StreamEOF(WL_EntryStream_t* const a_Stream)
 }
 
 /* WLS_StreamBufferChunk() -- Buffer this offset */
-static bool_t WLS_StreamBufferChunk(WL_EntryStream_t* const a_Stream, const size_t a_Offset)
+static bool_t WLS_StreamBufferChunk(WL_ES_t* const a_Stream, const size_t a_Offset)
 {
 	uint32_t WantedChunk;
 	
@@ -1559,7 +1559,7 @@ static bool_t WLS_StreamBufferChunk(WL_EntryStream_t* const a_Stream, const size
 }
 
 /* WL_StreamRawRead() -- Reads a raw stream */
-size_t WL_StreamRawRead(WL_EntryStream_t* const a_Stream, const size_t a_Offset, void* const a_Out, const size_t a_OutSize)
+size_t WL_StreamRawRead(WL_ES_t* const a_Stream, const size_t a_Offset, void* const a_Out, const size_t a_OutSize)
 {
 #if 0
 	size_t Expected;
@@ -1650,7 +1650,7 @@ size_t WL_StreamRawRead(WL_EntryStream_t* const a_Stream, const size_t a_Offset,
 
 #define __REMOOD_MACROMERGE(a,b) a##b
 
-#define __REMOOD_WLSTREAMREAD(w,x) x __REMOOD_MACROMERGE(WL_StreamRead,w)(WL_EntryStream_t* const a_Stream)\
+#define __REMOOD_WLSTREAMREAD(w,x) x __REMOOD_MACROMERGE(WL_StreamRead,w)(WL_ES_t* const a_Stream)\
 {\
 	x Out = 0;\
 	\
@@ -1662,7 +1662,7 @@ size_t WL_StreamRawRead(WL_EntryStream_t* const a_Stream, const size_t a_Offset,
 	return Out;\
 }
 
-#define __REMOOD_WLSTREAMLITTLEREAD(w,x) x __REMOOD_MACROMERGE(WL_StreamReadLittle,w)(WL_EntryStream_t* const a_Stream)\
+#define __REMOOD_WLSTREAMLITTLEREAD(w,x) x __REMOOD_MACROMERGE(WL_StreamReadLittle,w)(WL_ES_t* const a_Stream)\
 {\
 	return __REMOOD_MACROMERGE(LittleSwap,w)(__REMOOD_MACROMERGE(WL_StreamRead,w)(a_Stream));\
 }
@@ -1685,7 +1685,7 @@ __REMOOD_WLSTREAMLITTLEREAD(UInt32,uint32_t);
 #undef __REMOOD_MACROMERGE
 
 /* WL_StreamCheckUnicode() -- Checks if the stream is unicode */
-bool_t WL_StreamCheckUnicode(WL_EntryStream_t* const a_Stream)
+bool_t WL_StreamCheckUnicode(WL_ES_t* const a_Stream)
 {
 	uint16_t FirstBits;
 	
@@ -1716,7 +1716,7 @@ bool_t WL_StreamCheckUnicode(WL_EntryStream_t* const a_Stream)
 }
 
 /* WL_StreamReadChar() -- Read character from stream */
-char WL_StreamReadChar(WL_EntryStream_t* const a_Stream)
+char WL_StreamReadChar(WL_ES_t* const a_Stream)
 {
 	char RetVal;
 	uint16_t wcTemp;
@@ -1781,7 +1781,7 @@ char WL_StreamReadChar(WL_EntryStream_t* const a_Stream)
 }
 
 /* WL_StreamReadLine() -- Read single line from stream */
-size_t WL_StreamReadLine(WL_EntryStream_t* const a_Stream, char* const a_Buf, const size_t a_Size)
+size_t WL_StreamReadLine(WL_ES_t* const a_Stream, char* const a_Buf, const size_t a_Size)
 {
 	size_t RetVal;
 	char Char;

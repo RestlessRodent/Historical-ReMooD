@@ -147,7 +147,7 @@ typedef struct G_CurrentDemo_s
 	bool_t Out;									// Demo is out (being written)
 	const G_DemoFactory_t* Factory;				// Factory for demo
 	void* CFile;								// CFile
-	WL_EntryStream_t* WLStream;					// Demo Streamer (Raw)
+	WL_ES_t* WLStream;					// Demo Streamer (Raw)
 	D_BS_t* BSs;								// Block Streamer
 	void* Data;									// Internal Data
 } G_CurrentDemo_t;
@@ -157,7 +157,7 @@ extern tic_t g_DemoTime;
 const G_DemoFactory_t* G_DemoFactoryByName(const char* const a_Name);
 void G_DemoQueue(const char* const a_Name);
 bool_t G_PlayNextQ(void);
-G_CurrentDemo_t* G_DemoPlay(WL_EntryStream_t* const a_Stream, const G_DemoFactory_t* const a_Factory);
+G_CurrentDemo_t* G_DemoPlay(WL_ES_t* const a_Stream, const G_DemoFactory_t* const a_Factory);
 
 void G_RecordDemo(char* name);	// Only called by startup code.
 void G_StopDemo(void);

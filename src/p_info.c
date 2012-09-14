@@ -151,7 +151,7 @@ static const struct
 };
 
 /* PS_ParseLumpHeader() -- Parses lump header */
-static bool_t PS_ParseLumpHeader(P_LevelInfoEx_t* const a_CurrentInfo, WL_EntryStream_t* const a_Stream)
+static bool_t PS_ParseLumpHeader(P_LevelInfoEx_t* const a_CurrentInfo, WL_ES_t* const a_Stream)
 {
 #define BUFSIZE 512
 	char Buf[BUFSIZE];
@@ -357,7 +357,7 @@ static bool_t PS_ParseMapInfo(P_LevelInfoHolder_t* const a_Holder, const WL_WADE
 	char Buf[BUFSIZE];
 	char Token[BUFSIZE];
 	P_LevelInfoEx_t* CurrentInfo;
-	WL_EntryStream_t* Stream;
+	WL_ES_t* Stream;
 	size_t i, FNum;
 	char* p, *q;
 	char* TokenP;
@@ -715,7 +715,7 @@ static bool_t PS_ParseMapInfo(P_LevelInfoHolder_t* const a_Holder, const WL_WADE
 }
 
 /* PS_LevelInfoGetBlockPoints() -- Locates block points within a file */
-static bool_t PS_LevelInfoGetBlockPoints(P_LevelInfoEx_t* const a_Info, const WL_WADEntry_t* a_Entry, WL_EntryStream_t* const a_Stream)
+static bool_t PS_LevelInfoGetBlockPoints(P_LevelInfoEx_t* const a_Info, const WL_WADEntry_t* a_Entry, WL_ES_t* const a_Stream)
 {
 #define BUFSIZE 256
 	char Buf[BUFSIZE];
@@ -874,7 +874,7 @@ static bool_t P_WLInfoCreator(const WL_WADFile_t* const a_WAD, const uint32_t a_
 	bool_t IsDoomHexen;
 	P_LevelInfoHolder_t* Holder;
 	P_LevelInfoEx_t* CurrentInfo;
-	WL_EntryStream_t* ReadStream;
+	WL_ES_t* ReadStream;
 	uint16_t Char;
 	
 	/* Check */

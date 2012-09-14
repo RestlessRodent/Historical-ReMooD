@@ -58,7 +58,7 @@ void P_InitSwitchList(void)
 {
 	int32_t i, j, t;
 	const WL_WADEntry_t* Entry;
-	WL_EntryStream_t* Stream;
+	WL_ES_t* Stream;
 	uint16_t Flag;
 	char Texts[2][9];
 	
