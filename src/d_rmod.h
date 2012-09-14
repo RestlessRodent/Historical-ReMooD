@@ -68,6 +68,11 @@ typedef enum D_RMODCommand_e
 	DRC_OPEN,									// Opening {
 	DRC_CLOSE,									// Closing }
 	DRC_DATA,									// Data Entry
+	DRC_INIT,									// Initialize
+	DRC_FINAL,									// Finalize
+	
+	DRC_FIRST,									// First Time
+	DRC_LAST,									// Last Time
 	
 	NUMDRMODCOMMANDS
 } D_RMODCommand_t;

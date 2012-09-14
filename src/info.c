@@ -915,8 +915,38 @@ bool_t INFO_RMODStateHandlers(Z_Table_t* const a_Sub, void* const a_Data)
 
 /* INFO_REMOODATKeyer() -- Keyer for REMOODAT */
 void INFO_REMOODATKeyer(void** a_DataPtr, const int32_t a_Stack, const D_RMODCommand_t a_Command, const char* const a_Field, const char* const a_Value)
-{
-	CONL_PrintF(">> %i %i \"%s\" \"%s\"\n", a_Stack, a_Command, a_Field, a_Value);
+{		
+	/* Which Command? */
+	switch (a_Command)
+	{
+			// Opening {
+		case DRC_OPEN:
+			break;
+			
+			// Closing }
+		case DRC_CLOSE:
+			break;
+			
+			// Data Entry
+		case DRC_DATA:
+			break;
+			
+			// Initialize
+		case DRC_INIT:
+			break;
+			
+			// Finalize
+		case DRC_FINAL:
+			break;
+			
+			// First Time
+		case DRC_FIRST:
+			break;
+			
+			// Last Time
+		case DRC_LAST:
+			break;
+	}
 }
 
 /*****************************************************************************/

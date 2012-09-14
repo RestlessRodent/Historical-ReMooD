@@ -828,6 +828,11 @@ static bool_t DS_RMODOCCB(const bool_t a_Pushed, const struct WL_WADFile_s* cons
 		return true;
 	}
 	
+	/* First Time Initialization */
+	for (ns = 0; c_RMODNamespaces[ns].LumpName; ns++)
+		if (c_RMODNamespaces[ns].Keyer)
+			c_RMODNamespaces[ns].Keyer(NULL, -1, DRC_FIRST, NULL, NULL);
+	
 	/* Handle all WADs and namespaces */
 	for (CurWAD = WL_IterateVWAD(NULL, true); CurWAD; CurWAD = WL_IterateVWAD(CurWAD, true))
 		for (ns = 0; c_RMODNamespaces[ns].LumpName; ns++)
@@ -857,6 +862,11 @@ static bool_t DS_RMODOCCB(const bool_t a_Pushed, const struct WL_WADFile_s* cons
 						);
 				continue;
 			}
+			
+			// Send Initialize
+			DataRef = NULL;
+			if (c_RMODNamespaces[ns].Keyer)
+				c_RMODNamespaces[ns].Keyer(&DataRef, -1, DRC_INIT, WL_GetWADName(CurWAD, false), Entry->Name);
 	
 			// Determine text type
 			WL_StreamCheckUnicode(DataStream);
@@ -872,7 +882,6 @@ static bool_t DS_RMODOCCB(const bool_t a_Pushed, const struct WL_WADFile_s* cons
 			Stack = OldStack = 0;
 			j = 0;
 			ErrOut = false;
-			DataRef = NULL;
 			
 			// Begin stream parse
 			while (!ErrOut && DS_RMODReadToken(&Info))
@@ -996,7 +1005,16 @@ static bool_t DS_RMODOCCB(const bool_t a_Pushed, const struct WL_WADFile_s* cons
 				// Decrease Stack
 				Stack--;
 			}
+			
+			// Send Finalization
+			if (c_RMODNamespaces[ns].Keyer)
+				c_RMODNamespaces[ns].Keyer(&DataRef, -1, DRC_FINAL, WL_GetWADName(CurWAD, false), Entry->Name);
 		}
+		
+	/* Last Time Initialization */
+	for (ns = 0; c_RMODNamespaces[ns].LumpName; ns++)
+		if (c_RMODNamespaces[ns].Keyer)
+			c_RMODNamespaces[ns].Keyer(NULL, -1, DRC_LAST, NULL, NULL);
 	
 	/* Success! */
 	return true;
