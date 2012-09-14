@@ -733,9 +733,7 @@ void WL_PushWAD(const WL_WADFile_t* const a_WAD)
 	/* Re-link into chain */
 	// No chain at all?
 	if (!l_LFirstVWAD)
-	{
 		l_LLastVWAD = l_LFirstVWAD = (WL_WADFile_t*)a_WAD;
-	}
 	
 	// Chain needs linking
 	else
