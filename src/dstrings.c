@@ -958,8 +958,10 @@ StringGroupEX_t UnicodeStrings[NUMUNICODESTRINGS] =
 	{			  "DNETC_PLEASERECON", "Please Reconnect"},
 	{			"DNETC_JOININGPLAYER", "Joining player \"$1{z\"."},
 	
+	/*** D_RMOD.C ***/
 	{		"DRMOD_NAMESPACENOTINWAD", "Namespace \"$2\" not in WAD \"$1\"."},
 	{			"DRMOD_DATASTREAMERR", "Failed to open datastream for \"$1\" in WAD \"$1\"."},
+	{			   "DRMOD_PARSEERROR", "Parse error in \"$3\" ($1), at row $4, column $5."},
 };
 
 /* DS_NameOfString() -- Returns name of pointer to string */

@@ -913,6 +913,12 @@ bool_t INFO_RMODStateHandlers(Z_Table_t* const a_Sub, void* const a_Data)
 	return true;
 }
 
+/* INFO_REMOODATKeyer() -- Keyer for REMOODAT */
+void INFO_REMOODATKeyer(void** a_DataPtr, const int32_t a_Stack, const D_RMODCommand_t a_Command, const char* const a_Field, const char* const a_Value)
+{
+	CONL_PrintF(">> %i %i \"%s\" \"%s\"\n", a_Stack, a_Command, a_Field, a_Value);
+}
+
 /*****************************************************************************/
 
 /* INFO_GetTypeByName() -- Returns a map object by it's name */

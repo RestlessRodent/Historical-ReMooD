@@ -787,23 +787,32 @@ static bool_t DS_RMODPDC(const struct WL_WADFile_s* const a_WAD, const uint32_t 
 #undef BUFSIZE
 }
 
+void INFO_REMOODATKeyer(void** a_DataPtr, const int32_t a_Stack, const D_RMODCommand_t a_Command, const char* const a_Field, const char* const a_Value);
+
 /* DS_RMODOCCB() -- Order change callback for REMOODAT */
 static bool_t DS_RMODOCCB(const bool_t a_Pushed, const struct WL_WADFile_s* const a_WAD)
 {
-	int i, ns;
+#define BUFSIZE	256
+	char BufF[BUFSIZE], BufV[BUFSIZE];
+	int i, ns, j, k, n;
 	const WL_WADFile_t* CurWAD;
 	WL_ES_t* DataStream;
 	D_RMODTokenInfo_t Info;
 	const WL_WADEntry_t* Entry;
+	int32_t Stack, OldStack;
+	bool_t ErrOut;
+	void* DataRef;
+	char* p;
 	
 	static const struct
 	{
 		const char* const LumpName;				// Name of Lump
 		const char* const NiceName;				// Nice Name
+		D_RMODKeyerFuncType_t Keyer;			// Data Keyer
 	} c_RMODNamespaces[] = 
 	{
-		{"REMOODAT", "ReMooD Data"},
-		{"RMD_MENU", "Menu Definitions"},
+		{"REMOODAT", "ReMooD Data", INFO_REMOODATKeyer},
+		{"RMD_MENU", "Menu Definitions", NULL},
 		{NULL},
 	};
 	
@@ -859,15 +868,139 @@ static bool_t DS_RMODOCCB(const bool_t a_Pushed, const struct WL_WADFile_s* cons
 			Info.TokenSize = TOKENBUFSIZE;
 			Info.StreamEnd = Entry->Size;
 			
+			// Clear out basic stuff
+			Stack = OldStack = 0;
+			j = 0;
+			ErrOut = false;
+			DataRef = NULL;
+			
 			// Begin stream parse
-			while (DS_RMODReadToken(&Info))
+			while (!ErrOut && DS_RMODReadToken(&Info))
 			{
-				CONL_PrintF(">> `%s`\n", Info.Token);
+				// Which Handling?
+				switch (j)
+				{
+						// Field
+					case 0:
+						// Closer
+						if (strcasecmp(Info.Token, "}") == 0)
+						{
+							// Send close to keyer
+							if (c_RMODNamespaces[ns].Keyer)
+								c_RMODNamespaces[ns].Keyer(&DataRef, Stack, DRC_CLOSE, NULL, NULL);
+							// Decrease the stack
+							OldStack = Stack--;
+							
+							// Too much stack loss?
+							if (Stack < 0)
+							{
+								ErrOut = true;
+								break;
+							}
+														
+							// Stay on zero to handle property possibly
+						}
+						
+						// Standard Field Property
+						else
+						{
+							// Validate Field Params
+							n = strlen(p = Info.Token);
+							for (k = 0; k < n; k++)
+								if (!((*p >= 'a' && *p <= 'z') ||
+									(*p >= 'A' && *p <= 'Z')))
+										break;
+							
+							// Illegal?
+							if (k < n)
+							{
+								ErrOut = true;
+								break;
+							}
+						
+							// Copy to buffer
+							strncpy(BufF, Info.Token, BUFSIZE - 1);
+						
+							// Legal so move on
+							j++;
+						}
+						break;
+						
+						// Value
+					case 1:
+						// Validate
+						n = strlen(p = Info.Token);
+						
+						// Starts and Ends with double quotes
+						if (!(*p == '\"' && p[n - 1] == '\"'))
+							{
+								ErrOut = true;
+								break;
+							}
+						
+						// Remove Last Quote and skip first
+						p[n - 1] = 0;
+						p++;
+						
+						// Copy to buffer
+						strncpy(BufV, p, BUFSIZE - 1);
+						
+						// Legal so move on
+						j++;
+						break;
+						
+						// Successor
+					case 2:
+						// Opener?
+						if (strcasecmp(Info.Token, "{") == 0)
+							// Increase the stack
+							OldStack = Stack++;
+						
+						// Property?
+						else if (strcasecmp(Info.Token, ";") == 0)
+							OldStack = Stack;
+						
+						// Illegal
+						else
+						{
+							ErrOut = true;
+							break;
+						}
+						
+						// Send to keyer
+						if (c_RMODNamespaces[ns].Keyer)
+							c_RMODNamespaces[ns].Keyer(&DataRef, Stack, (Stack == OldStack ? DRC_DATA : DRC_OPEN), BufF, BufV);
+						
+						// Legal, go back to start
+						j = 0;
+						break;
+				}
+			}
+			
+			// Problems?
+			if (ErrOut)
+			{
+				if (devparm)
+					CONL_OutputUT(CT_WDATA, DSTR_DRMOD_PARSEERROR, "%s%s%s%i%i\n",
+							WL_GetWADName(CurWAD, false), c_RMODNamespaces[ns].NiceName, Entry->Name, Info.CurRow, Info.CurCol
+						);
+			}
+			
+			// If any stack remains send closure
+			while (Stack > 0)
+			{
+				// Send close to keyer to simulate short REMOODAT
+				if (c_RMODNamespaces[ns].Keyer)
+					c_RMODNamespaces[ns].Keyer(&DataRef, Stack, DRC_CLOSE, NULL, NULL);
+				
+				// Decrease Stack
+				Stack--;
 			}
 		}
 	
 	/* Success! */
 	return true;
+#undef BUFSIZE
 }
 
 /* D_InitRMOD() -- Initializes REMOODAT handling */

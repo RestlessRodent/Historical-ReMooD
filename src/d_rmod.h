@@ -62,9 +62,21 @@ typedef enum D_RMODPrivates_e
 	NUMDRMODPRIVATES
 } D_RMODPrivates_t;
 
+/* D_RMODCommand_t -- REMOODAT Command */
+typedef enum D_RMODCommand_e
+{
+	DRC_OPEN,									// Opening {
+	DRC_CLOSE,									// Closing }
+	DRC_DATA,									// Data Entry
+	
+	NUMDRMODCOMMANDS
+} D_RMODCommand_t;
+
 /*****************
 *** STRUCTURES ***
 *****************/
+
+typedef void (*D_RMODKeyerFuncType_t)(void** a_DataPtr, const int32_t a_Stack, const D_RMODCommand_t a_Command, const char* const a_Field, const char* const a_Value);
 
 /* D_RMODPrivate_t -- RMOD Private Stuff */
 typedef struct D_RMODPrivate_s
