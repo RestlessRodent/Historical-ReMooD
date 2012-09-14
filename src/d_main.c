@@ -1835,7 +1835,7 @@ void D_JoySpecialTicker(void)
 	l_JoyMagicAt = MAXSPLITSCREEN;
 	for (i = 0; i < MAXSPLITSCREEN; i++)
 		// Choose location
-		if ((!g_Splits[i].Waiting || ((demoplayback) || (!demoplayback && !g_Splits[i].Active))) && !g_Splits[i].Profile)
+		if (!D_ScrSplitHasPlayer(i))
 			if (l_JoyMagicAt == MAXSPLITSCREEN)
 				l_JoyMagicAt = i;
 	
@@ -1935,7 +1935,7 @@ void D_JoySpecialDrawer(void)
 		//if (g_Splits[i].JoyBound || (!demoplayback && g_Splits[i].Active))
 		
 		// Player is here
-		if (g_Splits[i].Waiting || (!demoplayback && g_Splits[i].Active))
+		if (D_ScrSplitHasPlayer(i))
 		{
 			// Set Ok
 			LastOK = true;

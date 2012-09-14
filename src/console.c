@@ -1525,6 +1525,67 @@ size_t CONL_InputU(const UnicodeStringID_t a_StrID, const char* const a_Format, 
 	return RetVal;
 }
 
+/* CONL_UTPrintV() -- Prints localized text to a buffer */
+size_t CONL_UTPrintV(const CONL_MessageType_t a_Type, const UnicodeStringID_t a_StrID, const char* const a_Format, va_list a_ArgPtr)
+{
+	static const char* c_CTNames[NUMCMESSAGETYPES] =
+	{
+		"GENR",									// CT_GENERAL
+		"WDAT",									// CT_WDATA
+		"OBIT",									// CT_OBIT
+		"ITEM",									// CT_SPECIALITEM
+	};
+	
+#define BUFSIZE 512
+	char Buf[BUFSIZE];
+	size_t RetVal;
+	va_list ArgPtrCopy;
+	CONL_MessageType_t Real;
+	
+	/* Cap */
+	Real = a_Type;
+	if (Real < 0 || Real >= NUMCMESSAGETYPES)
+		Real = 0;
+	
+	/* Make string */
+	memset(Buf, 0, sizeof(Buf));
+	__REMOOD_VA_COPY(ArgPtrCopy, a_ArgPtr);
+	D_USPrint(Buf, BUFSIZE, a_StrID, a_Format, a_ArgPtr);
+	RetVal = CONL_RawPrint(&l_CONLBuffers[0], Buf);
+	__REMOOD_VA_COPYEND(ArgPtrCopy);
+	
+	/* Debug print here */
+#if defined(_DEBUG)
+	if (devparm || !con_started || g_DedicatedServer)
+	{
+		I_OutputText("[");
+		I_OutputText(c_CTNames[Real]);
+		I_OutputText("] ");
+		
+		I_OutputText(Buf);
+	}
+#endif
+
+	/* TODO: Text to speech, etc. */
+
+	return RetVal;
+}
+
+/* CONL_OutputUT() -- Type Specific Console Output */
+size_t CONL_OutputUT(const CONL_MessageType_t a_Type, const UnicodeStringID_t a_StrID, const char* const a_Format, ...)
+{
+	size_t RetVal;
+	va_list ArgPtr;
+	
+	/* Send to PrintV() */
+	va_start(ArgPtr, a_Format);
+	RetVal = CONL_UTPrintV(a_Type, a_StrID, a_Format, ArgPtr);
+	va_end(ArgPtr);
+	
+	/* Return */
+	return RetVal;
+}
+
 /*** Client Drawing ***/
 
 /* CONL_IsActive() -- Returns true if the console is active */

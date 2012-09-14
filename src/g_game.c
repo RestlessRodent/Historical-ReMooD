@@ -597,7 +597,7 @@ void GS_HandleExtraCommands(ticcmd_t* const a_TicCmd, const int32_t a_PlayerNum)
 									// See if there is room in a split
 									for (SplitNum = 0;
 										SplitNum <= (g_SplitScreen + 1); SplitNum++)
-										if (!g_Splits[SplitNum].Active && !g_Splits[SplitNum].Waiting)
+										if (!D_ScrSplitHasPlayer(SplitNum))
 										{
 											LegalMove = true;
 											break;

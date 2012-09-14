@@ -86,6 +86,7 @@ typedef enum P_LevelInfoBitLevels_e
 	PLIBL_LUMPHEADER,							// Set by lump header
 } P_LevelInfoBitLevels_t;
 
+#define MAXPINFOPROPERNAME	64					// Max Level Proper Name
 #define MAXPINFOSETFLAGS 24						// Max stuff to set flags for
 
 /*** STRUCTURES ***/
@@ -108,6 +109,7 @@ typedef struct P_LevelInfoEx_s
 	bool_t IsComposite;							// Is a composite of information
 	
 	/* Info */
+	char ProperTitle[MAXPINFOPROPERNAME];		// Proper Name of Level
 	char LumpName[MAXPLIEXFIELDWIDTH];			// Name of the lump
 	char* Title;								// Level Title
 	char* Author;								// Creator of level

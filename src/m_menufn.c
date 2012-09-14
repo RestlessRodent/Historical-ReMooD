@@ -381,17 +381,64 @@ M_UIMenu_t* M_ExTemplateMakeGameVars(const int32_t a_Mode)
 
 /*** SUB-MENU HANDLER FUNCTIONS ***/
 
+/* MS_NEWGAME_t -- NewGame Data */
+typedef struct MS_NEWGAME_s
+{
+	const char** NullRef;
+	const char** TypeRef;
+	const char** LevelRef;
+} MS_NEWGAME_t;
+
+/* MS_NEWGAME_Init() -- New Game Initialized */
+static void MS_NEWGAME_Init(struct M_UIMenuHandler_s* const a_Handler, struct M_UIMenu_s* const a_UIMenu)
+{
+	MS_NEWGAME_t* pd;
+	
+	/* Get Private */
+	pd = a_Handler->PrivateData;
+	
+	/* Set type references */
+	pd->TypeRef = DS_GetStringRef(DSTR_MENUGENERAL_NEWGAMEISLOCAL);
+	
+	/* Setup Initial Level */
+	pd->LevelRef = DS_GetStringRef(DSTR_MENUGENERAL_NEWGAMEISLOCAL);
+	pd->TypeRef = DS_GetStringRef(DSTR_MENUGENERAL_NEWGAMEISLOCAL);
+}
+
 /*** GENERATION ***/
 
 /* c_NewMenuName -- Names of menus */
 static const char* c_NewMenuName[NUMMNEWMENUIDS] =
 {
 	"hello",									// MNMID_HELLO
+	"newgame",									// MNMID_NEWGAME
 };
 
 /* MS_AddNewItem() -- Adds item to menu */
 static M_UIItem_t* MS_AddNewItem(M_UIMenu_t* a_Menu, const M_UIItemType_t a_Type, const uint32_t a_Flags, const int32_t a_Bits, const char** const a_TextRef, const char** const a_ValRef, M_UIItemLRValChangeFuncType_t a_LRValFunc, M_UIItemPressFuncType_t a_PressFunc)
 {
+	M_UIItem_t* NewItem;
+	
+	/* Check */
+	if (!a_Menu)
+		return NULL;
+	
+	/* Resize items in menu */
+	Z_ResizeArray((void**)&a_Menu->Items, sizeof(*a_Menu->Items),
+		a_Menu->NumItems, a_Menu->NumItems + 1);
+	NewItem = &a_Menu->Items[a_Menu->NumItems++];
+	
+	/* Set Stuff in it */
+	NewItem->Type = a_Type;
+	NewItem->Flags = a_Flags;
+	NewItem->DataBits = a_Bits;
+	NewItem->TextRef = a_TextRef;
+	NewItem->ValueRef = a_ValRef;
+	NewItem->LRValChangeFunc = a_LRValFunc;
+	NewItem->ItemPressFunc = a_PressFunc;
+	
+	/* Return it */
+	return NewItem;
 }
 
 /* CLC_ExMakeMenuCom() -- Makes menu for someone */
@@ -470,7 +517,27 @@ M_UIMenu_t* M_ExMakeMenu(const M_NewMenuID_t a_MenuID, void* const a_Data)
 	{
 			// Hello World
 		case MNMID_HELLO:
+			// Set Title
 			NewMenu->TitleRef = DS_GetStringRef(DSTR_MENUGENERAL_HELLOWORLD);
+			
+			// Create Items
+			MS_AddNewItem(NewMenu, MUIIT_NORMAL, 0, 0, DS_GetStringRef(DSTR_MENUGENERAL_NEWGAMETYPE), NULL, NULL, NULL);
+			break;
+			
+			// Create New Game
+		case MNMID_NEWGAME:
+			// Set Title
+			NewMenu->TitleRef = DS_GetStringRef(DSTR_MENUNEWGAME_TITLE);
+			NewMenu->InitFunc = MS_NEWGAME_Init;
+			NewMenu->PrivateSize = sizeof(MS_NEWGAME_t);
+			
+			// Create Items
+#define __GEN_NG(bit, flags, title, ref) MS_AddNewItem(NewMenu, MUIIT_NORMAL, flags, bit, DS_GetStringRef(title), offsetof(MS_NEWGAME_t, ref), NULL, NULL)
+			__GEN_NG(0, 0, DSTR_MENUGENERAL_NEWGAMETYPE, TypeRef);
+			__GEN_NG(0, MUIIF_NOPARK, DSTR_MENU_NULLSPACE, NullRef);
+			__GEN_NG(0, 0, DSTR_MENUGENERAL_NEWGAMELEVEL, LevelRef);
+#undef __GEN_NG
+			
 			break;
 			
 			// Unknown

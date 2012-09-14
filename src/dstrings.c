@@ -296,6 +296,10 @@ StringGroupEX_t UnicodeStrings[NUMUNICODESTRINGS] =
 	{			 "MENUGAMEVAR_CATCOMPAT", "*** COMPATIBILITY ***"},
 	
 	{			"MENUGENERAL_HELLOWORLD", "Hello World!"},
+	{		   "MENUGENERAL_NEWGAMETYPE", "Connection Type"},
+	{		"MENUGENERAL_NEWGAMEISLOCAL", "Local System"},
+	{	   "MENUGENERAL_NEWGAMEISSERVER", "Network Server"},
+	{		  "MENUGENERAL_NEWGAMELEVEL", "Level"},
 	
 	/*** INTERMISSION ***/
 	{"INTERMISSION_FINISHED", "Finished"},
@@ -953,6 +957,9 @@ StringGroupEX_t UnicodeStrings[NUMUNICODESTRINGS] =
 	{			  "DNETC_CONSISTFAIL", "Consistency Failure"},
 	{			  "DNETC_PLEASERECON", "Please Reconnect"},
 	{			"DNETC_JOININGPLAYER", "Joining player \"$1{z\"."},
+	
+	{		"DRMOD_NAMESPACENOTINWAD", "Namespace \"$2\" not in WAD \"$1\"."},
+	{			"DRMOD_DATASTREAMERR", "Failed to open datastream for \"$1\" in WAD \"$1\"."},
 };
 
 /* DS_NameOfString() -- Returns name of pointer to string */
@@ -1029,6 +1036,10 @@ size_t D_USPrint(char* const a_OutBuf, const size_t a_OutSize, const UnicodeStri
 	void* PtrType;
 	int IntType;
 	long LongType;
+	
+	/* Check */
+	if (a_StrID < 0 || a_StrID >= NUMUNICODESTRINGS)
+		return 0;
 	
 	/* Copy Arguments */
 	__REMOOD_VA_COPY(ArgPtrCopy, a_ArgPtr);

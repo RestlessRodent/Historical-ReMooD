@@ -1,0 +1,10 @@
+Menu "hello"
+{
+	Title "MENUGENERAL_HELLOWORLD";
+}
+
+Menu "newgame"
+{
+	Title "MENUNEWGAME_TITLE";
+}
+

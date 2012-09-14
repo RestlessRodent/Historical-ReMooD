@@ -1242,7 +1242,7 @@ void D_NCLocalPlayerAdd(const char* const a_Name, const bool_t a_Bot, const uint
 	{
 		for (PlaceAt = 0; PlaceAt < MAXSPLITSCREEN; PlaceAt++)
 			// If nobody is waiting here (also ignore active in demos)
-			if (!g_Splits[PlaceAt].Waiting && ((demoplayback) || (!demoplayback && !g_Splits[PlaceAt].Active)))
+			if (!D_ScrSplitHasPlayer(PlaceAt))
 				break;
 	
 		// No Room?
@@ -2607,7 +2607,7 @@ void D_NCUpdate(void)
 	for (nc = 0; nc < MAXSPLITSCREEN; nc++)
 	{
 		// Stop?
-		if (!g_Splits[nc].Waiting && ((demoplayback) || (!demoplayback && !g_Splits[nc].Active)))
+		if (!D_ScrSplitHasPlayer(nc))
 			break;
 		
 		// Waiting for join?

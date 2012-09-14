@@ -171,7 +171,7 @@ static int8_t MS_NumScrSplits(void)
 	
 	/* Go through players */
 	for (i = 0; i < MAXSPLITSCREEN; i++)
-		if (!g_Splits[i].Waiting && ((demoplayback) || (!demoplayback && !g_Splits[i].Active)))
+		if (!D_ScrSplitHasPlayer(i))
 		{
 			// Always return something
 			if (i == 0)
@@ -399,7 +399,7 @@ bool_t M_ExAllUIActive(void)
 	/* Go through players */
 	Count = Total = 0;
 	for (i = 0; i < MAXSPLITSCREEN; i++)
-		if ((demoplayback && g_Splits[i].Waiting) || (!demoplayback && (g_Splits[i].Waiting || g_Splits[i].Active)))
+		if (D_ScrSplitHasPlayer(i))
 		{
 			Total++;
 			if (M_ExPlayerUIActive(i))
@@ -556,7 +556,10 @@ void M_ExMenuDrawer(void)
 				
 				// Value
 			if (Item->ValueRef)
-				ValStr = *Item->ValueRef;
+				if (TopMenu->PrivateData)
+					ValStr = *((const char**)(((uintptr_t)TopMenu->PrivateData) + (uintptr_t)Item->ValueRef));
+				else
+					ValStr = *Item->ValueRef;
 			else
 				ValStr = Item->Value;
 			
@@ -651,6 +654,10 @@ void M_ExPopMenu(const uint8_t a_Player)
 	if (Handler->UIMenu->CleanerFunc)
 		Handler->UIMenu->CleanerFunc(Handler, Handler->UIMenu);
 	
+	// Delete private data
+	if (Handler->PrivateData)
+		Z_Free(Handler->PrivateData);
+	
 	// Free handler
 	Z_Free(Handler);
 	
@@ -670,7 +677,7 @@ M_UIMenuHandler_t* M_ExPushMenu(const uint8_t a_Player, M_UIMenu_t* const a_UI)
 		return NULL;
 	
 	/* Player not active? */
-	if (!g_Splits[a_Player].Waiting && (demoplayback || (!demoplayback && !g_Splits[a_Player].Active)))
+	if (a_Player != 0 && !D_ScrSplitHasPlayer(a_Player))
 		return NULL;
 		
 	/* Allocate */
@@ -687,6 +694,15 @@ M_UIMenuHandler_t* M_ExPushMenu(const uint8_t a_Player, M_UIMenu_t* const a_UI)
 	/* Add to end of stack */
 	Z_ResizeArray((void**)&l_UIMenus[a_Player], sizeof(*l_UIMenus[a_Player]), l_NumUIMenus[a_Player], l_NumUIMenus[a_Player] + 1);
 	l_UIMenus[a_Player][l_NumUIMenus[a_Player]++] = New;
+	
+	/* Initialize */
+	// Allocate private area?
+	if (New->UIMenu->PrivateSize)
+		New->PrivateData = Z_Malloc(New->UIMenu->PrivateSize, PU_STATIC, NULL);
+	
+	// Call Initializer
+	if (New->UIMenu->InitFunc)
+		New->UIMenu->InitFunc(New, New->UIMenu);
 	
 	/* Play Sound */
 	S_StartSound(NULL, sfx_generic_switchon);

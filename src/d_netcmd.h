@@ -149,6 +149,9 @@ extern bool_t g_NetDev;
 
 /*** FUNCTIONS ***/
 
+bool_t D_ScrSplitHasPlayer(const int8_t a_Player);
+bool_t D_ScrSplitVisible(const int8_t a_Player);
+
 void D_NCSInit(void);
 void D_NCSNetUpdateSingle(struct player_s* a_Player);
 void D_NCSNetUpdateAll(void);

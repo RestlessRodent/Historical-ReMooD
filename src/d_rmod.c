@@ -790,7 +790,22 @@ static bool_t DS_RMODPDC(const struct WL_WADFile_s* const a_WAD, const uint32_t 
 /* DS_RMODOCCB() -- Order change callback for REMOODAT */
 static bool_t DS_RMODOCCB(const bool_t a_Pushed, const struct WL_WADFile_s* const a_WAD)
 {
-	int i;
+	int i, ns;
+	const WL_WADFile_t* CurWAD;
+	WL_EntryStream_t* DataStream;
+	D_RMODTokenInfo_t Info;
+	const WL_WADEntry_t* Entry;
+	
+	static const struct
+	{
+		const char* const LumpName;				// Name of Lump
+		const char* const NiceName;				// Nice Name
+	} c_RMODNamespaces[] = 
+	{
+		{"REMOODAT", "ReMooD Data"},
+		{"RMD_MENU", "Menu Definitions"},
+		{NULL},
+	};
 	
 	/* Call each order notifier */
 	if (!M_CheckParm("-onlyoccb"))
@@ -800,12 +815,56 @@ static bool_t DS_RMODOCCB(const bool_t a_Pushed, const struct WL_WADFile_s* cons
 				if (!c_RMODHandlers[i].OrderFunc(a_Pushed, a_WAD, i))
 					if (devparm)
 						CONL_PrintF("DS_RMODOCCB: Order change for \"%s\" failed.\n", c_RMODHandlers[i].TableType);
+		
+		return true;
 	}
 	
-	/* Flat REMOODAT Handler */
-	else
-	{
-	}
+	/* Handle all WADs and namespaces */
+	for (CurWAD = WL_IterateVWAD(NULL, true); CurWAD; CurWAD = WL_IterateVWAD(CurWAD, true))
+		for (ns = 0; c_RMODNamespaces[ns].LumpName; ns++)
+		{
+			// Attempt locate of WAD Entry
+			Entry = WL_FindEntry(CurWAD, 0, c_RMODNamespaces[ns].LumpName);
+			
+			// Not Found?
+			if (!Entry)
+			{
+				if (devparm)
+					CONL_OutputUT(CT_WDATA, DSTR_DRMOD_NAMESPACENOTINWAD, "%s%s\n",
+							WL_GetWADName(CurWAD, false), c_RMODNamespaces[ns].NiceName
+						);
+				continue;
+			}
+			
+			// Use streamer
+			DataStream = WL_StreamOpen(Entry);
+	
+			// Failed?
+			if (!DataStream)
+			{
+				if (devparm)
+					CONL_OutputUT(CT_WDATA, DSTR_DRMOD_DATASTREAMERR, "%s%s\n",
+							WL_GetWADName(CurWAD, false), c_RMODNamespaces[ns].NiceName
+						);
+				continue;
+			}
+	
+			// Determine text type
+			WL_StreamCheckUnicode(DataStream);
+	
+			// Prepare info
+			memset(&Info, 0, sizeof(Info));
+	
+			Info.Stream = DataStream;
+			Info.TokenSize = TOKENBUFSIZE;
+			Info.StreamEnd = Entry->Size;
+			
+			// Begin stream parse
+			while (DS_RMODReadToken(&Info))
+			{
+				CONL_PrintF(">> `%s`\n", Info.Token);
+			}
+		}
 	
 	/* Success! */
 	return true;

@@ -79,6 +79,7 @@ typedef enum M_UIItemFlags_e
 typedef enum M_NewMenuID_e
 {
 	MNMID_HELLO,								// Hello World	
+	MNMID_NEWGAME,								// Create New Game
 	
 	NUMMNEWMENUIDS
 } M_NewMenuID_t;
@@ -86,7 +87,6 @@ typedef enum M_NewMenuID_e
 /*** STRUCTURES ***/
 
 typedef void (*MBCallBackFunc_t)(const uint32_t a_MessageID, const M_ExMBType_t a_Response, const char** const a_TitleP, const char** const a_MessageP);
-
 
 struct M_UIMenu_s;
 struct M_UIItem_s;
@@ -123,21 +123,25 @@ typedef struct M_UIMenu_s
 	M_UIItem_t* Items;							// Items
 	size_t NumItems;							// Number of Items
 	
+	void (*InitFunc)(struct M_UIMenuHandler_s* const a_Handler, struct M_UIMenu_s* const a_UIMenu);
 	void (*CleanerFunc)(struct M_UIMenuHandler_s* const a_Handler, struct M_UIMenu_s* const a_UIMenu);
 	bool_t (*UnderDrawFunc)(struct M_UIMenuHandler_s* const a_Handler, struct M_UIMenu_s* const a_Menu, const int32_t a_X, const int32_t a_Y, const int32_t a_W, const int32_t a_H);
 	bool_t (*OverDrawFunc)(struct M_UIMenuHandler_s* const a_Handler, struct M_UIMenu_s* const a_Menu, const int32_t a_X, const int32_t a_Y, const int32_t a_W, const int32_t a_H);
+	
+	size_t PrivateSize;							// Size of private data
 } M_UIMenu_t;
 
 /* M_UIMenuHandler_t -- Menu Handler */
 typedef struct M_UIMenuHandler_s
 {
-	M_UIMenu_t* UIMenu;							// Defined UI Menu
+	const M_UIMenu_t* UIMenu;					// Defined UI Menu
 	int32_t CurItem;							// Current Selected Item
 	int32_t OldCurItem;							// Old Selected Item
 	int32_t StartOff;							// Starting Offset
 	int32_t IPS;								// Known IPS
 	int32_t OSKWait;							// OSK Wait
 	int32_t ScreenID;							// Screen
+	void* PrivateData;							// Private Menu Data
 } M_UIMenuHandler_t;
 
 /*** GLOBALS ***/

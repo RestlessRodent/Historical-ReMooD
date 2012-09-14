@@ -183,6 +183,40 @@ static D_NetPlayer_t* l_FirstNetPlayer = NULL;	// First Net Player
 
 /*** FUNCTIONS ***/
 
+/* D_ScrSplitHasPlayer() -- Split-screen has player */
+bool_t D_ScrSplitHasPlayer(const int8_t a_Player)
+{
+	/* Check */
+	if (a_Player < 0 || a_Player >= MAXSPLITSCREEN)
+		return false;
+	
+	/* Active (Non-Demo Only) */
+	if (!demoplayback && g_Splits[a_Player].Active)
+		return true;
+	
+	/* Waiting for player */
+	if (g_Splits[a_Player].Waiting)
+		return true;
+	
+	/* No player */
+	return false;
+}
+
+/* D_ScrSplitVisible() -- Screen can be seen */
+bool_t D_ScrSplitVisible(const int8_t a_Player)
+{
+	/* Check */
+	if (a_Player < 0 || a_Player >= MAXSPLITSCREEN)
+		return false;
+	
+	/* Visible if has a player */
+	if (a_Player == 0 || D_ScrSplitHasPlayer(a_Player))
+		return true;
+	
+	/* Not visible */
+	return false;
+}
+
 /* DS_NCSNetCommand() -- Network commands */
 static int DS_NCSNetCommand(const uint32_t a_ArgC, const char** const a_ArgV)
 {
@@ -1440,7 +1474,7 @@ int8_t D_NCSFindSplitByProcess(const uint32_t a_ID)
 	
 	/* Loop */
 	for (i = 0; i < MAXSPLITSCREEN; i++)
-		if (g_Splits[i].Waiting || (!demoplayback && g_Splits[i].Active))
+		if (D_ScrSplitHasPlayer(i))
 			if (g_Splits[i].ProcessID == a_ID)
 				return i;
 	

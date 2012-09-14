@@ -341,6 +341,10 @@ static bool_t PS_ParseLumpHeader(P_LevelInfoEx_t* const a_CurrentInfo, WL_EntryS
 		}
 	}
 	
+	/* Proper Title? */
+	if (a_CurrentInfo->Title)
+		snprintf(a_CurrentInfo->ProperTitle, MAXPINFOPROPERNAME, "%s - %s", a_CurrentInfo->LumpName, a_CurrentInfo->Title);
+	
 	/* Success! */
 	return true;
 #undef BUFSIZE
@@ -496,6 +500,9 @@ static bool_t PS_ParseMapInfo(P_LevelInfoHolder_t* const a_Holder, const WL_WADE
 				
 					// Place level name here
 					CurrentInfo->Title = Z_StrDup(p, PU_WLDKRMOD, NULL);
+					
+					// Properize
+					snprintf(CurrentInfo->ProperTitle, MAXPINFOPROPERNAME, "%s - %s", CurrentInfo->LumpName, CurrentInfo->Title);
 				}
 			}
 			
@@ -930,6 +937,9 @@ static bool_t P_WLInfoCreator(const WL_WADFile_t* const a_WAD, const uint32_t a_
 			
 			// Initialize new info with base stuff
 			strncat(CurrentInfo->LumpName, Base->Name, MAXPLIEXFIELDWIDTH);
+			
+			// Basic Proper Title
+			snprintf(CurrentInfo->ProperTitle, MAXPINFOPROPERNAME, "%s %s\n", a_WAD->__Private.__DOSName, CurrentInfo->LumpName);
 			
 			CurrentInfo->WAD = a_WAD;
 			CurrentInfo->EntryPtr[PLIEDS_HEADER] = Base;

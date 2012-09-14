@@ -117,6 +117,17 @@ typedef enum CONL_VariableVisibleType_e
 	MAXCONLVARIABLEVISIBLETYPES
 } CONL_VariableVisibleType_t;
 
+/* CONL_MessageType_t -- Message Type */
+typedef enum CONL_MessageType_e
+{
+	CT_GENERAL,									// General Message
+	CT_WDATA,									// WAD Loader
+	CT_OBIT,									// Obituary
+	CT_SPECIALITEM,								// Special Item Picked Up
+	
+	NUMCMESSAGETYPES
+} CONL_MessageType_t;
+
 /*****************
 *** STRUCTURES ***
 *****************/
@@ -256,11 +267,14 @@ void CONL_Stop(void);
 size_t CONL_PrintV(const bool_t a_InBuf, const char* const a_Format, va_list a_ArgPtr);
 size_t CONL_UnicodePrintV(const bool_t a_InBuf, const UnicodeStringID_t a_StrID, const char* const a_Format, va_list a_ArgPtr);
 
-size_t CONL_PrintF(const char* const a_Format, ...);
-size_t CONL_OutputF(const char* const a_Format, ...);
+size_t __REMOOD_DEPRECATED CONL_PrintF(const char* const a_Format, ...);
+size_t __REMOOD_DEPRECATED CONL_OutputF(const char* const a_Format, ...);
 size_t CONL_InputF(const char* const a_Format, ...);
-size_t CONL_OutputU(const UnicodeStringID_t a_StrID, const char* const a_Format, ...);
+size_t __REMOOD_DEPRECATED CONL_OutputU(const UnicodeStringID_t a_StrID, const char* const a_Format, ...);
 size_t CONL_InputU(const UnicodeStringID_t a_StrID, const char* const a_Format, ...);
+
+size_t CONL_UTPrintV(const CONL_MessageType_t a_Type, const UnicodeStringID_t a_StrID, const char* const a_Format, va_list a_ArgPtr);
+size_t CONL_OutputUT(const CONL_MessageType_t a_Type, const UnicodeStringID_t a_StrID, const char* const a_Format, ...);
 
 /*** Client Drawing ***/
 bool_t CONL_IsActive(void);
