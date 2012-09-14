@@ -941,6 +941,20 @@ void INFO_REMOODATKeyer(void** a_DataPtr, const int32_t a_Stack, const D_RMODCom
 			
 			// First Time
 		case DRC_FIRST:
+			// Do full purge of REMOODAT allocations
+			Z_FreeTags(PU_REMOODAT, PU_REMOODAT);
+			
+			// Do other unsets, as needed
+			g_SprTouchSpecials = NULL;
+			NUMMOBJTYPES = 0;
+			mobjinfo = NULL;
+			sprnames = NULL;
+			NUMSPRITES = 0;
+			states = NULL;
+			NUMSTATES = 0;
+			wpnlev1info = 0;
+			wpnlev2info = 0;
+			NUMWEAPONS = 0;
 			break;
 			
 			// Last Time

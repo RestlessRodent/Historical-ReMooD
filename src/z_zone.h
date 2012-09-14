@@ -56,7 +56,9 @@ typedef enum Z_MemoryTag_e
 	PU_NETWORK,									// Networking Stuff
 	PU_BOTS,									// Bot Stuff
 	
-	PU_WLDKRMOD,				// WAD Level and RMOD
+	PU_REMOODAT,								// ReMooD Data
+	
+	PU_WLDKRMOD,								// WAD Level
 	PU_SOUND,
 	PU_MUSIC,
 	PU_DAVE,
