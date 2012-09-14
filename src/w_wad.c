@@ -1715,8 +1715,8 @@ bool_t WL_StreamCheckUnicode(WL_ES_t* const a_Stream)
 	return true;
 }
 
-/* WL_StreamReadChar() -- Read character from stream */
-char WL_StreamReadChar(WL_ES_t* const a_Stream)
+/* WL_Src() -- Read character from stream */
+char WL_Src(WL_ES_t* const a_Stream)
 {
 	char RetVal;
 	uint16_t wcTemp;
@@ -1780,8 +1780,8 @@ char WL_StreamReadChar(WL_ES_t* const a_Stream)
 	return RetVal;
 }
 
-/* WL_StreamReadLine() -- Read single line from stream */
-size_t WL_StreamReadLine(WL_ES_t* const a_Stream, char* const a_Buf, const size_t a_Size)
+/* WL_Srl() -- Read single line from stream */
+size_t WL_Srl(WL_ES_t* const a_Stream, char* const a_Buf, const size_t a_Size)
 {
 	size_t RetVal;
 	char Char;
@@ -1791,7 +1791,7 @@ size_t WL_StreamReadLine(WL_ES_t* const a_Stream, char* const a_Buf, const size_
 		return 0;
 	
 	/* Read characters until \n */
-	for (RetVal = 0, Char = WL_StreamReadChar(a_Stream); !WL_StreamEOF(a_Stream); Char = WL_StreamReadChar(a_Stream))
+	for (RetVal = 0, Char = WL_Src(a_Stream); !WL_StreamEOF(a_Stream); Char = WL_Src(a_Stream))
 	{
 		// If character is \n, the stream has ended
 		if (Char == '\n')

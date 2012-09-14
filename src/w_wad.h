@@ -246,8 +246,8 @@ uint16_t WL_Srlu16(WL_ES_t* const a_Stream);
 uint32_t WL_Srlu32(WL_ES_t* const a_Stream);
 
 bool_t WL_StreamCheckUnicode(WL_ES_t* const a_Stream);
-char WL_StreamReadChar(WL_ES_t* const a_Stream);
-size_t WL_StreamReadLine(WL_ES_t* const a_Stream, char* const a_Buf, const size_t a_Size);
+char WL_Src(WL_ES_t* const a_Stream);
+size_t WL_Srl(WL_ES_t* const a_Stream, char* const a_Buf, const size_t a_Size);
 
 /****************************
 *** EXTENDED WAD HANDLING ***

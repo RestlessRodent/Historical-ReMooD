@@ -193,7 +193,7 @@ static bool_t PS_ParseLumpHeader(P_LevelInfoEx_t* const a_CurrentInfo, WL_ES_t* 
 		
 		// Read a fresh line from the buffer
 		memset(Buf, 0, sizeof(Buf));
-		WL_StreamReadLine(a_Stream, Buf, BUFSIZE - 1);
+		WL_Srl(a_Stream, Buf, BUFSIZE - 1);
 		
 		// Now past the end?
 		if (WL_StreamTell(a_Stream) > a_CurrentInfo->BlockPos[PIBT_LEVELINFO][1])
@@ -411,7 +411,7 @@ static bool_t PS_ParseMapInfo(P_LevelInfoHolder_t* const a_Holder, const WL_WADE
 		// Read line into buffer
 		memset(Buf, 0, sizeof(Buf));
 		memset(Token, 0, sizeof(Token));
-		WL_StreamReadLine(Stream, Buf, BUFSIZE - 1);
+		WL_Srl(Stream, Buf, BUFSIZE - 1);
 		
 		// Skip whitespace
 		for (p = Buf; *p && (*p == ' ' || *p == '\t'); p++)
@@ -746,7 +746,7 @@ static bool_t PS_LevelInfoGetBlockPoints(P_LevelInfoEx_t* const a_Info, const WL
 				break;
 			
 			// Read it
-			Char = WL_StreamReadChar(a_Stream);
+			Char = WL_Src(a_Stream);
 			
 			// Place it
 			if (i < BUFSIZE - 1)

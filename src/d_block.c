@@ -209,7 +209,7 @@ bool_t DS_RBSWL_PlayF(struct D_BS_s* const a_Stream)
 	
 	// Read Header
 	for (i = 0; i < 4; i++)
-		Header[i] = WL_StreamReadChar(Stream);
+		Header[i] = WL_Src(Stream);
 	
 	// Read Length and Sum
 	Len = WL_Srlu32(Stream);

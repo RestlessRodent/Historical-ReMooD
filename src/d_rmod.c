@@ -172,7 +172,7 @@ static bool_t DS_RMODReadToken(D_RMODTokenInfo_t* const a_Info)
 	a_Info->TokenProblem = NULL;
 	
 	/* Read Loop */
-	for (Action = 0, Flipped = false, wc = WL_StreamReadChar(a_Info->Stream); WL_StreamTell(a_Info->Stream) < a_Info->StreamEnd; wc = WL_StreamReadChar(a_Info->Stream))
+	for (Action = 0, Flipped = false, wc = WL_Src(a_Info->Stream); WL_StreamTell(a_Info->Stream) < a_Info->StreamEnd; wc = WL_Src(a_Info->Stream))
 	{
 		// Always increment column
 		a_Info->CurCol++;
@@ -209,7 +209,7 @@ static bool_t DS_RMODReadToken(D_RMODTokenInfo_t* const a_Info)
 			Action = 4;
 			
 			// Read character
-			wc = WL_StreamReadChar(a_Info->Stream);
+			wc = WL_Src(a_Info->Stream);
 			
 			// Check for '/'
 			if (wc != '/')
@@ -219,7 +219,7 @@ static bool_t DS_RMODReadToken(D_RMODTokenInfo_t* const a_Info)
 			}
 			
 			// Already is a comment so ignore character until it is '\n'
-			for (wc = WL_StreamReadChar(a_Info->Stream); WL_StreamTell(a_Info->Stream) < a_Info->StreamEnd; wc = WL_StreamReadChar(a_Info->Stream))
+			for (wc = WL_Src(a_Info->Stream); WL_StreamTell(a_Info->Stream) < a_Info->StreamEnd; wc = WL_Src(a_Info->Stream))
 				if (wc == '\n')
 					break;
 			
@@ -247,7 +247,7 @@ static bool_t DS_RMODReadToken(D_RMODTokenInfo_t* const a_Info)
 				a_Info->Token[a_Info->PutAt++] = wc;
 			
 			// Read into buffer, until quote is found again
-			for (wcLast = 0, wc = WL_StreamReadChar(a_Info->Stream); WL_StreamTell(a_Info->Stream) < a_Info->StreamEnd; wc = WL_StreamReadChar(a_Info->Stream))
+			for (wcLast = 0, wc = WL_Src(a_Info->Stream); WL_StreamTell(a_Info->Stream) < a_Info->StreamEnd; wc = WL_Src(a_Info->Stream))
 			{
 				// Copy to buffer
 				if (a_Info->PutAt < a_Info->TokenSize)

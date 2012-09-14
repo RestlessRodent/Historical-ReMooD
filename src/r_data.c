@@ -292,7 +292,7 @@ static bool_t RS_TexturePDCreate(const struct WL_WADFile_s* const a_WAD, const u
 				for (Continue = true, j = 0; j < 8; j++)
 				{
 					// Always read character
-					c = WL_StreamReadChar(Stream);
+					c = WL_Src(Stream);
 					
 					// No longer continue?
 					if (!c)
@@ -351,7 +351,7 @@ static bool_t RS_TexturePDCreate(const struct WL_WADFile_s* const a_WAD, const u
 			for (Continue = true, k = 0; k < 8; k++)
 			{
 				// Always read character
-				c = WL_StreamReadChar(Stream);
+				c = WL_Src(Stream);
 				
 				// No longer continue?
 				if (!c)

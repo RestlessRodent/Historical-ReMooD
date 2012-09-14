@@ -3603,7 +3603,7 @@ static bool_t PS_ExtraSpecialOCCB(const bool_t a_Pushed, const struct WL_WADFile
 				{
 					// Read into buffer
 					memset(Buf, 0, sizeof(Buf));
-					WL_StreamReadLine(Stream, Buf, BUFSIZE);
+					WL_Srl(Stream, Buf, BUFSIZE);
 				
 					// If it starts with a #, a comment
 					if (Buf[0] == '#')
@@ -3736,7 +3736,7 @@ static bool_t PS_ExtraSpecialOCCB(const bool_t a_Pushed, const struct WL_WADFile
 				{
 					// Read into buffer
 					memset(Buf, 0, sizeof(Buf));
-					WL_StreamReadLine(Stream, Buf, BUFSIZE);
+					WL_Srl(Stream, Buf, BUFSIZE);
 				
 					// If it starts with a #, a comment
 					if (Buf[0] == '#')
@@ -3921,7 +3921,7 @@ static bool_t PS_ExtraSpecialOCCB(const bool_t a_Pushed, const struct WL_WADFile
 			{
 				// Read into buffer
 				memset(Buf, 0, sizeof(Buf));
-				WL_StreamReadLine(Stream, Buf, BUFSIZE);
+				WL_Srl(Stream, Buf, BUFSIZE);
 				
 				// Prepare to read
 				p = Buf;

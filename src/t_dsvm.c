@@ -582,7 +582,7 @@ bool_t T_DSVM_ReadToken(WL_ES_t* const a_Stream, const size_t a_End, uint32_t* c
 	/* Read Loop */
 	Mode = 0;
 	ReadString = Ident = Number = Symbol = DidPeriod = EscapeQuote = false;
-	while ((Char = WL_StreamReadChar(a_Stream)))
+	while ((Char = WL_Src(a_Stream)))
 	{
 		// EOS?
 		if (!Char || WL_StreamEOF(a_Stream) || WL_StreamTell(a_Stream) >= a_End)
@@ -608,7 +608,7 @@ bool_t T_DSVM_ReadToken(WL_ES_t* const a_Stream, const size_t a_End, uint32_t* c
 		if (!ReadString && (Char == '/'))
 		{
 			// Read Next Char
-			Char = WL_StreamReadChar(a_Stream);
+			Char = WL_Src(a_Stream);
 			
 			// End of read?
 			if (!Char || WL_StreamEOF(a_Stream) || WL_StreamTell(a_Stream) >= a_End)
@@ -618,7 +618,7 @@ bool_t T_DSVM_ReadToken(WL_ES_t* const a_Stream, const size_t a_End, uint32_t* c
 			if (Char == '/')
 			{
 				// Continue until '\n'
-				while (Char = WL_StreamReadChar(a_Stream))
+				while (Char = WL_Src(a_Stream))
 				{
 					// End of read?
 					if (!Char || WL_StreamEOF(a_Stream) || WL_StreamTell(a_Stream) >= a_End)
