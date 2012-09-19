@@ -1674,7 +1674,8 @@ spritenum_t INFO_SpriteNumByName(const char* const a_Name, bool_t a_Create)
 	{
 		i = NUMSPRITES++;
 		Z_ResizeArray((void**)&sprnames, sizeof(*sprnames), i, NUMSPRITES);
-		sprnames[i] = Z_StrDup(a_Name, PU_WLDKRMOD, NULL);
+		sprnames[i] = Z_Malloc(5, PU_REMOODAT, NULL);
+		strncpy(sprnames[i], a_Name, 4);
 		
 		// Return the freshly added one
 		return i;

@@ -879,7 +879,29 @@ void P_PlayerThink(player_t* player)
 	// GhostlyDeath <May 17, 2012> -- If player is reborning still, reborn again
 	if (player->playerstate == PST_REBORN)
 		G_DoReborn(player - players);
-		
+	
+	/* Suicide Pill */
+	// GhostlyDeath <September 19, 2012> -- In case one gets stuck?
+	if (cmd->Std.buttons & BT_SUICIDE)
+		if (gametic >= player->SuicideDelay)
+		{
+			// If playing as monster
+			if (P_XGSVal(PGS_MONENABLEPLAYASMONSTER) && player->CounterOpPlayer)
+				P_ControlNewMonster(player);
+			
+			// A player, but only if suicides are enabled
+			else
+				if (P_XGSVal(PGS_PLALLOWSUICIDE))
+					if (player->mo && player->health > 0)
+					{
+						player->mo->RXAttackAttackType = PRXAT_SUICIDE;
+						P_KillMobj(player->mo, player->mo, player->mo);
+					}
+			
+			// Prevent suicide abuse
+			player->SuicideDelay = gametic + (TICRATE * P_XGSVal(PGS_PLSUICIDEDELAY));
+		}
+	
 	if (player->playerstate == PST_DEAD)
 	{
 		//Fab:25-04-98: show the dm rankings while dead, only in deathmatch
@@ -1220,29 +1242,6 @@ void P_PlayerThink(player_t* player)
 	}
 	else
 		player->fixedcolormap = 0;
-	
-	/* Suicide Pill */
-	// GhostlyDeath <September 19, 2012> -- In case one gets stuck?
-	if (cmd->Std.buttons & BT_SUICIDE)
-		if (gametic >= player->SuicideDelay)
-		{
-			// If playing as monster
-			if (P_XGSVal(PGS_MONENABLEPLAYASMONSTER) && player->CounterOpPlayer)
-				P_ControlNewMonster(player);
-			
-			// A player, but only if suicides are enabled
-			else
-				if (P_XGSVal(PGS_PLALLOWSUICIDE))
-					if (player->mo && player->health > 0)
-					{
-						player->mo->RXAttackAttackType = PRXAT_SUICIDE;
-						P_KillMobj(player->mo, player->mo, player->mo);
-					}
-			
-			// Prevent suicide abuse
-			player->SuicideDelay = gametic + (TICRATE * P_XGSVal(PGS_PLSUICIDEDELAY));
-		}
-	
 #undef MAXWEAPONSLOTS
 }
 

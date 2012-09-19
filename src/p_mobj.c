@@ -772,7 +772,7 @@ void P_NightmareRespawn(mobj_t* mobj, const bool_t a_ForceRespawn)
 	subsector_t* ss;
 	mobj_t* mo;
 	mapthing_t* mthing;
-	int KCMode;
+	int KCMode, i;
 	
 	mthing = mobj->spawnpoint;
 	
@@ -847,7 +847,26 @@ void P_NightmareRespawn(mobj_t* mobj, const bool_t a_ForceRespawn)
 					players[mobj->KillerPlayer - 1].killcount--;
 	}
 	
-	// remove the old monster,
+	/* remove the old monster */
+	// If under control of a player, remap player
+	mo->player = mobj->player;
+	mobj->player = NULL;
+	
+	// Player points to this object?
+	if (mo->player && mo->player->mo == mobj)
+	{
+		mo->player->mo = mo;
+		mo->player->health = mo->health;
+		mo->player->playerstate = PST_LIVE;
+		
+		// Find local screen for player and correct angle
+		for (i = 0; i < MAXSPLITSCREEN; i++)
+			if (g_Splits[i].Active)
+				if (mo->player == &players[g_Splits[i].Console])
+					localangle[i] = mo->angle;
+	}
+	
+	// Remove it
 	P_RemoveMobj(mobj);
 }
 
@@ -2566,6 +2585,11 @@ mobj_t* P_RefMobjReal(const P_MobjRefType_t a_Type, mobj_t* const a_SourceRef, m
 	// And increment it
 	if (a_RefThis)
 	{
+		// Probably illegal?
+		if (a_RefThis > 0 && a_RefThis < sizeof(*a_RefThis))
+			if (devparm)
+				I_Error("Illegal low reference.");
+		
 		// Add reference count
 		(*ChangePtr)->RefCount[a_Type]++;
 		
