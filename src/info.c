@@ -913,22 +913,195 @@ bool_t INFO_RMODStateHandlers(Z_Table_t* const a_Sub, void* const a_Data)
 	return true;
 }
 
+/*****************************************************************************/
+
+/*** UPPER CONSTANTS ***/
+
+/* INFO_REMOODATValType_t -- Value Type */
+typedef enum INFO_REMOODATValType_e
+{
+	IRVT_INT32,
+	
+	NUMINFOREMOODDATVALTYPES
+} INFO_REMOODATValType_t;
+
+/*** STRUCTURES ***/
+
+/* INFO_REMOODATValEntry_t -- Value Entry */
+typedef struct INFO_REMOODATValEntry_s
+{
+	const char* Name;							// Name of field
+	INFO_REMOODATValType_t Type;				// Type of value
+	size_t Offset;								// Offset to data
+} INFO_REMOODATValEntry_t;
+
+/* INFO_REMOODATKeyChain_t -- Keychain */
+typedef struct INFO_REMOODATKeyChain_s
+{
+	const char* Name;							// Name of chain group
+	int32_t ValidDepth;							// Valid Depth
+	const INFO_REMOODATValEntry_t* Table;		// Lookup table
+	void** vPP;									// Pointer to array
+	void** (*GetvPPFunc)(void** const a_Data);	// Get void pointer function
+	size_t SubArraySize;						// Sub array size
+	void* CountP;								// Array Count
+	size_t CountSize;							// Array Count Size
+	size_t IndivSize;							// Individual size
+	void* (*GrabEntry)(void** const a_Data, const char* const a_Name);	// Grabs new entry
+} INFO_REMOODATKeyChain_t;
+
+/*** CONSTANTS ***/
+
+void* INFO_MobjInfoGrabEntry(void** const a_Data, const char* const a_Name);
+
+// c_INFOMobjTables -- Object Tables
+static const INFO_REMOODATValEntry_t c_INFOMobjTables[] =
+{
+	{"DoomEdNum", IRVT_INT32, offsetof(mobjinfo_t, EdNum[COREGAME_DOOM])},
+	
+	{NULL},
+};
+
+// c_INFOChains -- Chains for REMOODAT
+static const INFO_REMOODATKeyChain_t c_INFOChains[] =
+{
+	{"MapObject", 1, c_INFOMobjTables,
+		&mobjinfo, NULL, sizeof(*mobjinfo), &NUMMOBJTYPES,
+		sizeof(NUMMOBJTYPES), sizeof(**mobjinfo), INFO_MobjInfoGrabEntry},
+	
+	{NULL},
+};
+
+/*** FUNCTIONS ***/
+
+/* INFO_DataStore_t -- Data Storage */
+typedef struct INFO_DataStore_s
+{
+	struct INFO_DataStore_s* Parent;			// Parent Store
+	INFO_REMOODATKeyChain_t* CurrentKey;		// Current Key used
+	union
+	{
+		void* vP;								// Void pointer
+		mobjinfo_t* InfoP;						// Info
+		state_t* StateP;						// State
+	} Cur;										// Current pointer sets
+} INFO_DataStore_t;
+
+/* INFO_MobjInfoGrabEntry() -- Grabs mobjinfo_t */
+void* INFO_MobjInfoGrabEntry(void** const a_Data, const char* const a_Name)
+{
+	mobjtype_t Type;
+	mobjinfo_t* Ptr;
+	
+	/* Do normal name lookup */
+	Type = INFO_GetTypeByName(a_Name);
+	Ptr = NULL;
+	
+	/* Found? */
+	if (Type < NUMMOBJTYPES)
+		Ptr = mobjinfo[Type];
+	
+	/* Not Found */
+	else
+	{
+		Z_ResizeArray((void**)&mobjinfo, sizeof(*mobjinfo),
+			NUMMOBJTYPES, NUMMOBJTYPES + 1);
+		Ptr = mobjinfo[NUMMOBJTYPES++] = Z_Malloc(sizeof(**mobjinfo), PU_REMOODAT, NULL);
+		Z_ChangeTag(mobjinfo, PU_REMOODAT);
+	}
+	
+	/* Return pointer */
+	return Ptr;
+}
+
 /* INFO_REMOODATKeyer() -- Keyer for REMOODAT */
 bool_t INFO_REMOODATKeyer(void** a_DataPtr, const int32_t a_Stack, const D_RMODCommand_t a_Command, const char* const a_Field, const char* const a_Value)
 {
+	INFO_DataStore_t** StorePP;
+	INFO_DataStore_t* This;
+	INFO_REMOODATValEntry_t* ValEnt;
+	void* DataP;
+	int32_t i;
+	
+	/* Storage Pointer */
+	StorePP = a_DataPtr;
+	if (StorePP)
+		This = *StorePP;
+	
 	/* Which Command? */
 	switch (a_Command)
 	{
 			// Opening {
 		case DRC_OPEN:
+			// Look through chains
+			for (i = 0; c_INFOChains[i].Name; i++)
+				if (c_INFOChains[i].ValidDepth == a_Stack)
+					if (strcasecmp(c_INFOChains[i].Name, a_Field) == 0)
+						break;
+			
+			// Create data
+			This = Z_Malloc(sizeof(*This), PU_STATIC, NULL);
+			This->Parent = *StorePP;
+			*StorePP = This;
+			
+			// Setup Data Store
+			This->CurrentKey = &c_INFOChains[i];
+			
+			if (This->CurrentKey->GrabEntry)
+				This->Cur.vP = This->CurrentKey->GrabEntry(a_DataPtr, a_Field);
+				
+			// Print to loading screen
+			CONL_EarlyBootTic(a_Field, true);
 			return true;
 			
 			// Closing }
 		case DRC_CLOSE:
+			// Pop?
+			if (This)
+			{
+				(*StorePP) = This->Parent;
+				Z_Free(This);
+			}
+			
 			return true;
 			
 			// Data Entry
 		case DRC_DATA:
+			// No data?
+			if (!This || (This && !This->Cur.vP))
+				return true;
+			
+			// No lookup table?
+			if (!This->CurrentKey->Table)
+				return true;
+			
+			// Find Value Entry
+			for (i = 0; This->CurrentKey->Table[i].Name; i++)
+				if (strcasecmp(a_Field, This->CurrentKey->Table[i].Name) == 0)
+					break;
+			
+			// Current value entry
+			ValEnt = &This->CurrentKey->Table[i];
+			
+			// Only if a value exists
+			if (ValEnt && ValEnt->Name)
+			{
+				// Get Offset
+				DataP = (void*)(((uintptr_t)This->Cur.InfoP) + ValEnt->Offset);
+				
+				// Which Type
+				switch (ValEnt->Type)
+				{
+						// Integer
+					case IRVT_INT32:
+						*((uint32_t*)DataP) = C_strtoi32(a_Value, NULL, 10);
+						break;
+						
+						// Unknown
+					default:
+						break;
+				}
+			}
 			return true;
 			
 			// Initialize
@@ -955,11 +1128,20 @@ bool_t INFO_REMOODATKeyer(void** a_DataPtr, const int32_t a_Stack, const D_RMODC
 			wpnlev1info = 0;
 			wpnlev2info = 0;
 			NUMWEAPONS = 0;
+			
+			// Create initial S_NULL
+			Z_ResizeArray((void**)&states, sizeof(*states),
+				NUMSTATES, NUMSTATES + 1);
+			Z_ChangeTag(states, PU_REMOODAT);
+			states[NUMSTATES++] = Z_Malloc(sizeof(**states), PU_REMOODAT, NULL);
 			return true;
 			
 			// Last Time
 		case DRC_LAST:
 			return true;
+		
+		default:
+			return false;
 	}
 }
 
