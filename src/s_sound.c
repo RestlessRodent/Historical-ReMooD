@@ -852,6 +852,7 @@ void S_Init(int sfxVolume, int musicVolume)
 		if (!(l_Len = I_SoundBufferRequest(IST_WAVEFORM, l_SNDDensity.Value->Int, l_SNDQuality.Value->Int, l_SNDSpeakerSetup.Value->Int, l_SNDBufferSize.Value->Int)))
 		{
 			l_Bits = l_Freq = l_Channels = l_Len = 0;
+			l_SoundOK = false;
 			CONL_PrintF("S_Init: Failed to obtain a sound buffer.\n");
 		}
 		// Setup buffer

@@ -186,6 +186,13 @@ size_t I_SDLSD_Request(struct I_SoundDriver_s* const a_Driver, const uint8_t a_B
 	// Failed?
 	if (Local->RetVal != 0)
 		return 0;
+	
+	// It worked but the frequency is zero?
+	if (!Local->Spec.freq)
+	{
+		SDL_CloseAudio();
+		return 0;
+	}
 		
 	/* Success */
 	return Local->Spec.samples;
