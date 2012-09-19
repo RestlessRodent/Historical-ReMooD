@@ -953,6 +953,8 @@ typedef struct INFO_REMOODATKeyChain_s
 /*** CONSTANTS ***/
 
 void* INFO_MobjInfoGrabEntry(void** const a_Data, const char* const a_Name);
+void* INFO_StateGrabEntry(void** const a_Data, const char* const a_Name);
+void* INFO_StEntryGrabEntry(void** const a_Data, const char* const a_Name);
 
 // c_INFOMobjTables -- Object Tables
 static const INFO_REMOODATValEntry_t c_INFOMobjTables[] =
@@ -962,12 +964,30 @@ static const INFO_REMOODATValEntry_t c_INFOMobjTables[] =
 	{NULL},
 };
 
+// c_INFOStateTables -- State Tables
+static const INFO_REMOODATValEntry_t c_INFOStateTables[] =
+{
+	{NULL},
+};
+
+// c_INFOFrameTables -- State Frame Tables
+static const INFO_REMOODATValEntry_t c_INFOFrameTables[] =
+{
+	{NULL},
+};
+
 // c_INFOChains -- Chains for REMOODAT
 static const INFO_REMOODATKeyChain_t c_INFOChains[] =
 {
 	{"MapObject", 1, c_INFOMobjTables,
 		&mobjinfo, NULL, sizeof(*mobjinfo), &NUMMOBJTYPES,
 		sizeof(NUMMOBJTYPES), sizeof(**mobjinfo), INFO_MobjInfoGrabEntry},
+	{"State", 2, c_INFOStateTables,
+		NULL, NULL, sizeof(*states), &NUMSTATES,
+		sizeof(NUMSTATES), sizeof(**states), INFO_StateGrabEntry},
+	{"Frame", 3, c_INFOFrameTables,
+		NULL, NULL, 0, NULL,
+		0, sizeof(**states), INFO_StEntryGrabEntry},
 	
 	{NULL},
 };
@@ -979,10 +999,13 @@ typedef struct INFO_DataStore_s
 {
 	struct INFO_DataStore_s* Parent;			// Parent Store
 	INFO_REMOODATKeyChain_t* CurrentKey;		// Current Key used
+	INFO_ObjectStateGroup_t StateGroup;			// State group operating on
+	mobjtype_t MoType;							// Object Type
 	union
 	{
 		void* vP;								// Void pointer
 		mobjinfo_t* InfoP;						// Info
+		statenum_t* StateRefP;					// State Reference
 		state_t* StateP;						// State
 	} Cur;										// Current pointer sets
 } INFO_DataStore_t;
@@ -990,8 +1013,15 @@ typedef struct INFO_DataStore_s
 /* INFO_MobjInfoGrabEntry() -- Grabs mobjinfo_t */
 void* INFO_MobjInfoGrabEntry(void** const a_Data, const char* const a_Name)
 {
+	INFO_DataStore_t** StorePP;
+	INFO_DataStore_t* This;
 	mobjtype_t Type;
 	mobjinfo_t* Ptr;
+	
+	/* Storage Pointer */
+	StorePP = a_Data;
+	if (StorePP)
+		This = *StorePP;
 	
 	/* Do normal name lookup */
 	Type = INFO_GetTypeByName(a_Name);
@@ -1006,12 +1036,142 @@ void* INFO_MobjInfoGrabEntry(void** const a_Data, const char* const a_Name)
 	{
 		Z_ResizeArray((void**)&mobjinfo, sizeof(*mobjinfo),
 			NUMMOBJTYPES, NUMMOBJTYPES + 1);
-		Ptr = mobjinfo[NUMMOBJTYPES++] = Z_Malloc(sizeof(**mobjinfo), PU_REMOODAT, NULL);
+		Ptr = mobjinfo[(Type = NUMMOBJTYPES++)] = Z_Malloc(sizeof(**mobjinfo), PU_REMOODAT, NULL);
 		Z_ChangeTag(mobjinfo, PU_REMOODAT);
+		
+		// Initialize
+		memset(Ptr->EdNum, 0xFF, sizeof(Ptr->EdNum));
 	}
+	
+	/* Set object type */
+	This->MoType = Type + 1;
+	
+	/* Loading Screen */
+	CONL_EarlyBootTic(a_Name, true);
 	
 	/* Return pointer */
 	return Ptr;
+}
+
+/* INFO_StateGrabEntry() -- Grabs a state entry */
+void* INFO_StateGrabEntry(void** const a_Data, const char* const a_Name)
+{
+	INFO_DataStore_t** StorePP;
+	INFO_DataStore_t* This;
+	int32_t i;
+	int8_t WantedFor;
+	
+	static const struct
+	{
+		int8_t For;								// Kind it is for
+		INFO_ObjectStateGroup_t ID;				// ID
+		const char* Name;						// Name
+		size_t Offset;							// Offset
+	} c_StateGroups[NUMSTATEGROUPS] =
+	{
+		{0, IOSG_SPAWN, "SpawnState", offsetof(mobjinfo_t,spawnstate)},
+		{0, IOSG_ACTIVE, "ActiveState", offsetof(mobjinfo_t,seestate)},
+		{0, IOSG_PAIN, "PainState", offsetof(mobjinfo_t,painstate)},
+		{0, IOSG_MELEEATTACK, "MeleeAttackState", offsetof(mobjinfo_t,meleestate)},
+		{0, IOSG_RANGEDATTACK, "RangedAttackState", offsetof(mobjinfo_t,missilestate)},
+		{0, IOSG_CRASH, "CrashState", offsetof(mobjinfo_t,crashstate)},
+		{0, IOSG_DEATH, "DeathState", offsetof(mobjinfo_t,deathstate)},
+		{0, IOSG_GIB, "GibState", offsetof(mobjinfo_t,xdeathstate)},
+		{0, IOSG_RAISE, "RaiseState", offsetof(mobjinfo_t,raisestate)},
+		{0, IOSG_PLAYERRUN, "PlayerRunState", offsetof(mobjinfo_t,RPlayerRunState)},
+		{0, IOSG_PLAYERMELEE, "PlayerMeleeAttackState", offsetof(mobjinfo_t,RPlayerMeleeAttackState)},
+		{0, IOSG_PLAYERRANGED, "PlayerRangedAttackState", offsetof(mobjinfo_t,RPlayerRangedAttackState)},
+		{0, IOSG_VILEHEAL, "VileHealState", offsetof(mobjinfo_t,RVileHealState)},
+		{0, IOSG_LESSBLOODA, "LessLessBloodState", offsetof(mobjinfo_t,RLessBlood[0])},
+		{0, IOSG_LESSBLOODB, "LessMoreBloodState", offsetof(mobjinfo_t,RLessBlood[1])},
+		{0, IOSG_BRAINEXPLODE, "BrainExplodeState", offsetof(mobjinfo_t,RBrainExplodeState)},
+		{0, IOSG_MELEEPUFF, "MeleePuffState", offsetof(mobjinfo_t,RMeleePuffState)},
+	};
+	
+	/* Storage Pointer */
+	StorePP = a_Data;
+	if (StorePP)
+		This = *StorePP;
+	
+	/* Missing? */
+	if (!This || (This && !This->Parent->Cur.vP))
+		return NULL;
+	
+	/* Which kind of thing with states are we looking for? */
+	WantedFor = 0;	// TODO FIXME
+	
+	/* Find in groupings */
+	for (i = 0; i < NUMSTATEGROUPS; i++)
+		if (c_StateGroups[i].For == WantedFor)
+			if (c_StateGroups[i].Name)
+				if (strcasecmp(a_Name, c_StateGroups[i].Name) == 0)
+					break;
+	
+	// Not found?
+	if (i >= NUMSTATEGROUPS)
+		return NULL;
+	
+	/* Return reference to it */
+	This->StateGroup = c_StateGroups[i].ID;
+	return (void*)(((uintptr_t)This->Parent->Cur.InfoP) + c_StateGroups[i].Offset);
+}
+
+/* INFO_StEntryGrabEntry() -- Grab State */
+void* INFO_StEntryGrabEntry(void** const a_Data, const char* const a_Name)
+{
+	INFO_DataStore_t** StorePP;
+	INFO_DataStore_t* This;
+	uint8_t IOSG;
+	uint32_t FrameID, ObjectID;
+	int32_t i;
+	state_t* StateP;
+	
+	/* Storage Pointer */
+	StorePP = a_Data;
+	if (StorePP)
+		This = *StorePP;
+	
+	/* Missing? */
+	if (!This || (This && !This->Parent->Cur.vP))
+		return NULL;
+	
+	/* Get Current IDs */
+	ObjectID = This->Parent->Parent->MoType;
+	IOSG = This->Parent->StateGroup;
+	FrameID = C_strtou32(a_Name, NULL, 10) - 1;
+	
+	/* Go through all state tables for a match */
+	StateP = NULL;
+	for (i = 0; i < NUMSTATES; i++)
+		if (ObjectID == states[i]->ObjectID &&
+			IOSG == states[i]->IOSG &&
+			FrameID == states[i]->FrameID)
+				break;
+	
+	/* Found? */
+	if (i < NUMSTATES)
+		StateP = states[i];
+	
+	/* Not Found */
+	else
+	{
+		Z_ResizeArray((void**)states, sizeof(*states),
+			NUMSTATES, NUMSTATES + 1);
+		StateP = states[NUMSTATES++] = Z_Malloc(sizeof(*StateP), PU_REMOODAT, NULL);
+		
+		// Set references
+		StateP->ObjectID = ObjectID;
+		StateP->IOSG = IOSG;
+		StateP->FrameID = FrameID;
+	}
+	
+	/* Frame is zero and reference not set? */
+	if (FrameID == 0 &&
+		*This->Parent->Cur.StateRefP == 0)
+		*This->Parent->Cur.StateRefP = i;
+	
+	/* Return pointer */
+	return StateP;
 }
 
 /* INFO_REMOODATKeyer() -- Keyer for REMOODAT */
@@ -1048,10 +1208,7 @@ bool_t INFO_REMOODATKeyer(void** a_DataPtr, const int32_t a_Stack, const D_RMODC
 			This->CurrentKey = &c_INFOChains[i];
 			
 			if (This->CurrentKey->GrabEntry)
-				This->Cur.vP = This->CurrentKey->GrabEntry(a_DataPtr, a_Field);
-				
-			// Print to loading screen
-			CONL_EarlyBootTic(a_Field, true);
+				This->Cur.vP = This->CurrentKey->GrabEntry(a_DataPtr, a_Value);
 			return true;
 			
 			// Closing }
@@ -1102,6 +1259,7 @@ bool_t INFO_REMOODATKeyer(void** a_DataPtr, const int32_t a_Stack, const D_RMODC
 						break;
 				}
 			}
+			
 			return true;
 			
 			// Initialize

@@ -157,6 +157,8 @@ typedef enum INFO_ObjectStateGroup_e
 	PWSG_FLASH,
 	
 	NUMPWEAPONSTATEGROUPS,
+	
+	NUMSTATEGROUPS = NUMINFOOBJECTSTATEGROUPS + NUMPWEAPONSTATEGROUPS,
 } INFO_ObjectStateGroup_t;
 
 /* INFO_BotObjMetric_t -- Bot metric */
