@@ -298,7 +298,8 @@ void P_FireWeapon(player_t* player)
 //
 void P_DropWeapon(player_t* player)
 {
-	P_SetPsprite(player, ps_weapon, player->weaponinfo[player->readyweapon]->downstate);
+	if (player->weaponinfo)
+		P_SetPsprite(player, ps_weapon, player->weaponinfo[player->readyweapon]->downstate);
 }
 
 //

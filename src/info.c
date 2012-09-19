@@ -928,6 +928,7 @@ typedef enum INFO_REMOODATValType_e
 	IRVT_UINT32,
 	IRVT_FUNC,
 	IRVT_STRING,
+	IRVT_FIXED,
 	
 	NUMINFOREMOODDATVALTYPES
 } INFO_REMOODATValType_t;
@@ -991,12 +992,48 @@ void* INFO_MobjInfoGrabEntry(void** const a_Data, const char* const a_Name);
 void* INFO_StateGrabEntry(void** const a_Data, const char* const a_Name);
 void* INFO_StEntryGrabEntry(void** const a_Data, const char* const a_Name);
 
+void INFO_MiscObjectGF(void** const a_Data, struct INFO_REMOODATValEntry_s* a_ValEnt, const char* const a_Field, const char* const a_Value, void* const a_WriteP);
+
 // c_INFOMobjTables -- Object Tables
 static const INFO_REMOODATValEntry_t c_INFOMobjTables[] =
 {
 	{"-", IRVT_STRING, offsetof(mobjinfo_t, RClassName)},
 	{"DoomEdNum", IRVT_INT32, offsetof(mobjinfo_t, EdNum[COREGAME_DOOM])},
 	{"DehackEdID", IRVT_UINT32, offsetof(mobjinfo_t, RDehackEdID)},
+	
+	{"DropsClass", IRVT_STRING, offsetof(mobjinfo_t, RDropClass)},
+	{"BrainExplodeClass", IRVT_STRING, offsetof(mobjinfo_t, RBrainExplodeThing)},
+	{"MTName", IRVT_STRING, offsetof(mobjinfo_t, RMTName)},
+	{"NiceName", IRVT_STRING, offsetof(mobjinfo_t, RNiceName)},
+	{"BaseFamily", IRVT_STRING, offsetof(mobjinfo_t, RFamilyClass)},
+	{"WakeSound", IRVT_STRING, offsetof(mobjinfo_t, RSeeSound)},
+	{"AttackSound", IRVT_STRING, offsetof(mobjinfo_t, RAttackSound)},
+	{"PainSound", IRVT_STRING, offsetof(mobjinfo_t, RPainSound)},
+	{"DeathSound", IRVT_STRING, offsetof(mobjinfo_t, RDeathSound)},
+	{"ActiveSound", IRVT_STRING, offsetof(mobjinfo_t, RActiveSound)},
+	{"MissileSplat", IRVT_STRING, offsetof(mobjinfo_t, RMissileSplat)},
+	{"BloodSplat", IRVT_STRING, offsetof(mobjinfo_t, RBloodSplat)},
+	{"BloodSpewClass", IRVT_STRING, offsetof(mobjinfo_t, RBloodSpewClass)},
+	{"GenericMissile", IRVT_STRING, offsetof(mobjinfo_t, RGenericMissile)},
+	{"ShortNiceName", IRVT_STRING, offsetof(mobjinfo_t, RSNiceName)},
+	
+	{"SpawnHealth", IRVT_INT32, offsetof(mobjinfo_t, spawnhealth)},
+	{"Mass", IRVT_INT32, offsetof(mobjinfo_t, mass)},
+	{"Damage", IRVT_INT32, offsetof(mobjinfo_t, damage)},
+	
+	{"Speed", IRVT_FIXED, offsetof(mobjinfo_t, speed)},
+	{"Radius", IRVT_FIXED, offsetof(mobjinfo_t, radius)},
+	{"Height", IRVT_FIXED, offsetof(mobjinfo_t, Height)},
+	{"OldHeight", IRVT_FIXED, offsetof(mobjinfo_t, OldHeight)},
+	{"MinMissileDist", IRVT_FIXED, offsetof(mobjinfo_t, RMissileDist[0])},
+	{"MaxMissileDist", IRVT_FIXED, offsetof(mobjinfo_t, RMissileDist[1])},
+	{"CapMissileDist", IRVT_FIXED, offsetof(mobjinfo_t, RCapMissileDist)},
+	{"FastSpeed", IRVT_FIXED, offsetof(mobjinfo_t, RFastSpeed)},
+	{"BounceFactor", IRVT_FIXED, offsetof(mobjinfo_t, RBounceFactor)},
+	{"AirGravity", IRVT_FIXED, offsetof(mobjinfo_t, RAirGravity)},
+	{"WaterGravity", IRVT_FIXED, offsetof(mobjinfo_t, RWaterGravity)},
+	
+	{"?", IRVT_FUNC, 0, INFO_MiscObjectGF},
 	
 	{NULL},
 };
@@ -1015,6 +1052,7 @@ static const INFO_REMOODATValEntry_t c_INFOFrameTables[] =
 	{"DehackEdID", IRVT_UINT32, offsetof(state_t, DehackEdID)},
 	{"Frame", IRVT_INT32, offsetof(state_t, frame)},
 	{"Tics", IRVT_INT32, offsetof(state_t, tics)},
+	{"Function", IRVT_STRING, offsetof(state_t, Function)},
 	{"Next", IRVT_FUNC, offsetof(state_t, SimNext), INFO_FrameNextGoto},
 	{"Goto", IRVT_FUNC, offsetof(state_t, SimNext), INFO_FrameNextGoto},
 	
@@ -1087,6 +1125,7 @@ void* INFO_MobjInfoGrabEntry(void** const a_Data, const char* const a_Name)
 		
 		// Initialize
 		memset(Ptr->EdNum, 0xFF, sizeof(Ptr->EdNum));
+		Ptr->ObjectID = Type;
 	}
 	
 	/* Set object type */
@@ -1203,6 +1242,84 @@ void* INFO_StEntryGrabEntry(void** const a_Data, const char* const a_Name)
 	return StateP;
 }
 
+/* INFO_MiscObjectGF() -- Guess object flags */
+void INFO_MiscObjectGF(void** const a_Data, struct INFO_REMOODATValEntry_s* a_ValEnt, const char* const a_Field, const char* const a_Value, void* const a_WriteP)
+{
+	INFO_DataStore_t** StorePP;
+	INFO_DataStore_t* This;
+	mobjinfo_t* Obj;
+	bool_t SetFlag;
+	int32_t i, r;
+	const INFO_FlagInfo_t* BaseArr;
+	
+	uint32_t Bit;
+	uint32_t* Ref;
+	
+	/* Storage Pointer */
+	StorePP = a_Data;
+	if (StorePP)
+		This = *StorePP;
+	
+	/* Get Object */
+	Obj = This->Cur.InfoP;
+	
+	/* Determine flag change */
+	SetFlag = false;
+	if (strcasecmp(a_Value, "true") == 0 ||
+		strcasecmp(a_Value, "yes") == 0 ||
+		C_strtoi32(a_Value, NULL, 10) != 0)
+		SetFlag = true;
+	
+	/* Find field */
+	// Reset
+	Bit = 0;
+	Ref = NULL;
+	
+	// Find flag in flag fields
+	for (r = 0; r < 2 + NUMINFORXFIELDS; r++)
+	{
+		if (r == 0)
+		{
+			BaseArr = c_xFlags;
+			Ref = &Obj->flags;
+		}
+		else if (r == 1)
+		{
+			BaseArr = c_xFlagsTwo;
+			Ref = &Obj->flags2;
+		}
+		else if (r == 2)
+		{
+			BaseArr = c_xRXFlagsA;
+			Ref = &Obj->RXFlags[0];
+		}
+		else if (r == 3)
+		{
+			BaseArr = c_xRXFlagsB;
+			Ref = &Obj->RXFlags[1];
+		}
+		else
+			BaseArr = NULL;
+			
+		if (BaseArr)
+			for (i = 0; BaseArr[i].Name; i++)
+				if (strcasecmp(BaseArr[i].Name, a_Field) == 0)
+				{
+					Bit = BaseArr[i].Field;
+					r = 125;
+					break;
+				}
+	}
+	
+	/* Bit found? */
+	// Either set or unset
+	if (Bit && Ref)
+		if (SetFlag)
+			*Ref |= Bit;
+		else
+			*Ref &= ~Bit;
+}
+
 /* INFO_FrameNextGoto() -- Determine frame to go to */
 void INFO_FrameNextGoto(void** const a_Data, struct INFO_REMOODATValEntry_s* a_ValEnt, const char* const a_Field, const char* const a_Value, void* const a_WriteP)
 {
@@ -1278,6 +1395,7 @@ bool_t INFO_REMOODATKeyer(void** a_DataPtr, const int32_t a_Stack, const D_RMODC
 	INFO_DataStore_t** StorePP;
 	INFO_DataStore_t* This;
 	INFO_REMOODATValEntry_t* ValEnt;
+	mobjinfo_t* ThisMT;
 	void* DataP;
 	int32_t i;
 	
@@ -1339,7 +1457,7 @@ bool_t INFO_REMOODATKeyer(void** a_DataPtr, const int32_t a_Stack, const D_RMODC
 			
 			// Find Value Entry
 			for (i = 0; This->CurrentKey->Table[i].Name; i++)
-				if (strcasecmp(a_Field, This->CurrentKey->Table[i].Name) == 0)
+				if (strcasecmp(a_Field, This->CurrentKey->Table[i].Name) == 0 || This->CurrentKey->Table[i].Name[0] == '?')
 					break;
 			
 			// Current value entry
@@ -1369,6 +1487,11 @@ bool_t INFO_REMOODATKeyer(void** a_DataPtr, const int32_t a_Stack, const D_RMODC
 						*((char**)DataP) = Z_StrDup(a_Value, PU_REMOODAT, NULL);
 						break;
 						
+						// Fixed
+					case IRVT_FIXED:
+						*((int32_t*)DataP) = C_strtofx(a_Value, NULL);
+						break;
+						
 						// Function
 					case IRVT_FUNC:
 						if (ValEnt->Func)
@@ -1389,8 +1512,6 @@ bool_t INFO_REMOODATKeyer(void** a_DataPtr, const int32_t a_Stack, const D_RMODC
 			
 			// Finalize
 		case DRC_FINAL:
-			// Normalize all states
-			INFO_StateNormalize(0, NUMSTATES);
 			return true;
 			
 			// First Time
@@ -1419,6 +1540,35 @@ bool_t INFO_REMOODATKeyer(void** a_DataPtr, const int32_t a_Stack, const D_RMODC
 			
 			// Last Time
 		case DRC_LAST:
+			// Normalize all states (reference them, etc.)
+			INFO_StateNormalize(0, NUMSTATES);
+			
+			// Handle all classes loaded
+			for (i = 0; i < NUMMOBJTYPES; i++)
+			{
+				// Get
+				ThisMT = mobjinfo[i];
+				
+				// Missing?
+				if (!ThisMT)
+					continue;
+				
+				// Family object belongs to
+				if (ThisMT->RFamilyClass)
+				{
+					ThisMT->RBaseFamily = INFO_GetTypeByName(ThisMT->RFamilyClass);
+					Z_Free(ThisMT->RFamilyClass);
+					ThisMT->RFamilyClass = NULL;
+					
+					// Illegal?
+					if (ThisMT->RBaseFamily >= NUMMOBJTYPES)
+						ThisMT->RBaseFamily = ThisMT->ObjectID;
+				}
+				else
+					ThisMT->RBaseFamily = ThisMT->ObjectID;
+				
+				// Sounds
+			}
 			return true;
 		
 		default:

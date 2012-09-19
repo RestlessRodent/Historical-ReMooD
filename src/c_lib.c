@@ -112,6 +112,115 @@ uint32_t C_strtou32(const char* a_NPtr, char** a_EndPtr, int a_Base)
 	return LongVal;
 }
 
+/* C_strtofx() -- Convert string to fixed */
+fixed_t C_strtofx(const char* a_NPtr, char** a_EndPtr)
+{
+	fixed_t Temp, SubFrac;
+	const char* c;
+	bool_t Deci, Neg, FirstChar;
+	int32_t Int, Frac;
+	uint8_t FracCount;
+	
+	/* Check */
+	if (!a_NPtr)
+		return 0;
+	
+	/* Init */
+	Temp = 0;
+	Int = Frac = 0;
+	FracCount = 0;
+	Deci = false;
+	Neg = false;
+	FirstChar = true;
+	
+	/* Start reading */
+	for (c = a_NPtr; *c; c++, FirstChar = false)
+	{
+		// Initial Space
+		while (FirstChar && *c && isspace(*c))
+			c++;
+		
+		// Negative?
+		if (FirstChar && *c == '-')
+			Neg = true;
+		
+		// Positive?
+		else if (FirstChar && *c == '+')
+			Neg = false;
+		
+		// Decimal Point
+		else if (!FirstChar && !Deci && *c == '.')
+			Deci = true;
+		
+		// Number
+		else if (*c >= '0' && *c <= '9')
+		{
+			// Before decimal point
+			if (!Deci)
+			{
+				Int *= 10;
+				Int += (int32_t)(*c - '0');
+			}
+			
+			// After decimal point
+			else
+			{
+				Frac *= 10;
+				Frac += (int32_t)(*c - '0');
+				FracCount++;
+			}
+		}
+		
+		// Illegal?
+		else
+			break;
+	}
+	
+	/* Limit Integers */
+	if (Int < INT32_C(-32767))
+		Int = INT32_C(-32767);
+	else if (Int > INT32_C(32767))
+		Int = INT32_C(32767);
+	
+	/* Limit Fraction */
+	// If above 10 places, decrease places
+	while (FracCount > 10)
+	{
+		Frac /= 10;
+		FracCount--;
+	}
+	
+	// If below 10 places, increase places
+	while (FracCount < 10)
+	{
+		Frac *= 10;
+		FracCount++;
+	}
+	
+	// Setup Fraction
+		// 1 / 65536 = 0.000015258789
+		// So 10 depth is 0000152587
+#if 1
+	SubFrac = Frac / INT32_C(152587);
+#else
+	SubFrac = 0;
+	while (Frac > INT32_C(152587))
+	{
+		SubFrac++;
+		Frac -= 152587;
+	}
+#endif
+	
+	// Combine
+	Temp = (Int << FRACBITS) + SubFrac;
+	
+	/* Set left off pointer */
+	if (a_EndPtr)
+		*a_EndPtr = c;
+	
+	/* Return value */
+	return Temp;
+}
 
 /**************************************
 *** BYTE OPERATIONS FROM DOOMTYPE.H ***

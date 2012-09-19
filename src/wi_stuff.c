@@ -1400,7 +1400,7 @@ void WI_Drawer(void)
 				else if (k == 1)
 				{
 					// Get Multiplier
-					mVal = FIXEDT_C(1) << FRACBITS;
+					mVal = FIXEDT_C(1);
 					if (dp < l_NumDrawPlayers)
 						if (l_DrawPlayers[dp].cntSecretsPtr)
 							mVal = FixedDiv(
@@ -1424,7 +1424,7 @@ void WI_Drawer(void)
 				else if (k == 2)
 				{
 					// Get Multiplier
-					mVal = FIXEDT_C(1) << FRACBITS;
+					mVal = FIXEDT_C(1);
 					if (dp < l_NumDrawPlayers)
 						if (l_DrawPlayers[dp].cntItemsPtr)
 							mVal = FixedDiv(
@@ -1448,7 +1448,7 @@ void WI_Drawer(void)
 				else if (k == 3)
 				{
 					// Get Multiplier
-					mVal = FIXEDT_C(1) << FRACBITS;
+					mVal = FIXEDT_C(1);
 					if (dp < l_NumDrawPlayers)
 						if (l_DrawPlayers[dp].cntKillsPtr)
 							mVal = FixedDiv(

@@ -196,30 +196,30 @@ typedef struct
 {
 	int32_t EdNum[6];
 	statenum_t spawnstate;
-	int spawnhealth;
+	int32_t spawnhealth;
 	statenum_t seestate;
-	int seesound;
-	int reactiontime;
-	int attacksound;
+	int32_t seesound;
+	int32_t reactiontime;
+	int32_t attacksound;
 	statenum_t painstate;
-	int painchance;
-	int painsound;
+	int32_t painchance;
+	int32_t painsound;
 	statenum_t meleestate;
 	statenum_t missilestate;
 	statenum_t crashstate;				// from heretic/hexen
 	statenum_t deathstate;
 	statenum_t xdeathstate;
-	int deathsound;
+	int32_t deathsound;
 	fixed_t speed;
 	fixed_t radius;
 	fixed_t Height;								// Standard Height
 	fixed_t OldHeight;							// < 1.32 Height
-	int mass;
-	int damage;
-	int activesound;
-	int flags;
+	int32_t mass;
+	int32_t damage;
+	int32_t activesound;
+	uint32_t flags;
 	statenum_t raisestate;
-	int flags2;					// from heretic/hexen
+	uint32_t flags2;					// from heretic/hexen
 	
 	// RMOD Extended Support
 	uint32_t RXFlags[NUMINFORXFIELDS];			// ReMooD Extended Flags
@@ -228,8 +228,8 @@ typedef struct
 	statenum_t RPlayerMeleeAttackState;			// S_PLAY_ATK2
 	statenum_t RPlayerRangedAttackState;		// S_PLAY_ATK1
 	statenum_t RVileHealState;					// Heal state for Arch-Vile
-	int RMissileDist[2];						// Min/Max missile distances [P_CheckMissileRange]
-	int RCapMissileDist;						// Distance cap [P_CheckMissileRange]
+	fixed_t RMissileDist[2];						// Min/Max missile distances [P_CheckMissileRange]
+	fixed_t RCapMissileDist;						// Distance cap [P_CheckMissileRange]
 	statenum_t RLessBlood[2];					// Less blood to spew? (0 = 9-12, 1 = < 9) [P_SpawnBlood]
 	char* RDropClass;							// Class to "drop" when dead
 	mobjtype_t RBaseFamily;						// Base object family [PIT_CheckThing]
