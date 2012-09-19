@@ -1000,7 +1000,7 @@ static const INFO_REMOODATValEntry_t c_INFOMobjTables[] =
 {
 	{"-", IRVT_STRING, offsetof(mobjinfo_t, RClassName)},
 	{"DoomEdNum", IRVT_INT32, offsetof(mobjinfo_t, EdNum[COREGAME_DOOM])},
-	{"DehackEdID", IRVT_UINT32, offsetof(mobjinfo_t, RDehackEdID)},
+	{"DeHackEdNum", IRVT_UINT32, offsetof(mobjinfo_t, RDehackEdID)},
 	
 	{"DropsClass", IRVT_STRING, offsetof(mobjinfo_t, RDropClass)},
 	{"BrainExplodeClass", IRVT_STRING, offsetof(mobjinfo_t, RBrainExplodeThing)},
@@ -1047,20 +1047,24 @@ static const INFO_REMOODATValEntry_t c_INFOStateTables[] =
 };
 
 void INFO_FrameNextGoto(void** const a_Data, struct INFO_REMOODATValEntry_s* a_ValEnt, const char* const a_Field, const char* const a_Value, void* const a_WriteP);
-void INFO_FrameSprite(void** const a_Data, struct INFO_REMOODATValEntry_s* a_ValEnt, const char* const a_Field, const char* const a_Value, void* const a_WriteP);
+void INFO_FrameMisc(void** const a_Data, struct INFO_REMOODATValEntry_s* a_ValEnt, const char* const a_Field, const char* const a_Value, void* const a_WriteP);
 
 // c_INFOFrameTables -- State Frame Tables
 static const INFO_REMOODATValEntry_t c_INFOFrameTables[] =
 {
-	{"DehackEdID", IRVT_UINT32, offsetof(state_t, DehackEdID)},
-	{"Frame", IRVT_INT32, offsetof(state_t, frame)},
+	{"DeHackEdNum", IRVT_UINT32, offsetof(state_t, DehackEdID)},
 	{"Tics", IRVT_INT32, offsetof(state_t, tics)},
+	{"FastTics", IRVT_INT32, offsetof(state_t, RMODFastTics)},
 	{"Function", IRVT_STRING, offsetof(state_t, Function)},
 	
 	{"Next", IRVT_FUNC, offsetof(state_t, SimNext), INFO_FrameNextGoto},
 	{"Goto", IRVT_FUNC, offsetof(state_t, SimNext), INFO_FrameNextGoto},
 	
-	{"Sprite", IRVT_FUNC, offsetof(state_t, HoldSprite), INFO_FrameSprite},
+	{"Frame", IRVT_FUNC, offsetof(state_t, frame), INFO_FrameMisc},
+	{"Sprite", IRVT_FUNC, offsetof(state_t, HoldSprite), INFO_FrameMisc},
+	{"Transparency", IRVT_FUNC, offsetof(state_t, frame), INFO_FrameMisc},
+	{"FullBright", IRVT_FUNC, offsetof(state_t, frame), INFO_FrameMisc},
+	{"Priority", IRVT_FUNC, offsetof(state_t, Priority), INFO_FrameMisc},
 	
 	{NULL},
 };
@@ -1270,11 +1274,7 @@ void INFO_MiscObjectGF(void** const a_Data, struct INFO_REMOODATValEntry_s* a_Va
 	Obj = This->Cur.InfoP;
 	
 	/* Determine flag change */
-	SetFlag = false;
-	if (strcasecmp(a_Value, "true") == 0 ||
-		strcasecmp(a_Value, "yes") == 0 ||
-		C_strtoi32(a_Value, NULL, 10) != 0)
-		SetFlag = true;
+	SetFlag = INFO_BoolFromString(a_Value);
 	
 	/* Find field */
 	// Reset
@@ -1424,8 +1424,8 @@ void INFO_FrameNextGoto(void** const a_Data, struct INFO_REMOODATValEntry_s* a_V
 	*((uint64_t*)a_WriteP) |= ((uint64_t)ObjectID) << UINT64_C(32);
 }
 
-/* INFO_FrameSprite() -- Load sprite into state */
-void INFO_FrameSprite(void** const a_Data, struct INFO_REMOODATValEntry_s* a_ValEnt, const char* const a_Field, const char* const a_Value, void* const a_WriteP)
+/* INFO_FrameMisc() -- Load misc into state */
+void INFO_FrameMisc(void** const a_Data, struct INFO_REMOODATValEntry_s* a_ValEnt, const char* const a_Field, const char* const a_Value, void* const a_WriteP)
 {
 	INFO_DataStore_t** StorePP;
 	INFO_DataStore_t* This;
@@ -1435,9 +1435,48 @@ void INFO_FrameSprite(void** const a_Data, struct INFO_REMOODATValEntry_s* a_Val
 	if (StorePP)
 		This = *StorePP;
 	
-	/* Copy */
-	strncpy(This->Cur.StateP->HoldSprite, a_Value, 4);
+	/* Sprite */
+	if (strcasecmp(a_Field, "Sprite") == 0)
+		strncpy(This->Cur.StateP->HoldSprite, a_Value, 4);
+	
+	/* Frame */
+	else if (strcasecmp(a_Field, "Frame") == 0)
+	{
+		This->Cur.StateP->frame &= FF_FRAMEMASK;
+		
+		// DECORATE-like
+		if (toupper(a_Value[0]) >= 'A' && toupper(a_Value[1]) <= 'Z')
+			This->Cur.StateP->frame |= (toupper(a_Value[0]) - 'A') & FF_FRAMEMASK;
+		else
+			This->Cur.StateP->frame |= C_strtou32(a_Value, NULL, 10) & FF_FRAMEMASK;
+	}
+	
+	/* Full Bright */
+	else if (strcasecmp(a_Field, "FullBright") == 0)
+	{
+		This->Cur.StateP->frame &= ~FF_FULLBRIGHT;
+		
+		if (INFO_BoolFromString(a_Value))
+			This->Cur.StateP->frame |= FF_FULLBRIGHT;
+	}
+	
+	/* Transparency */
+	else if (strcasecmp(a_Field, "Transparency") == 0)
+	{
+		This->Cur.StateP->frame &= ~FF_TRANSMASK;
+		This->Cur.StateP->frame |= (INFO_TransparencyByName(a_Value) << FF_TRANSSHIFT) & FF_TRANSMASK;
+	}
+	
+	/* Priority */
+	else if (strcasecmp(a_Field, "Priority") == 0)
+	{
+		This->Cur.StateP->Priority = INFO_PriorityByName(a_Value);
+	}
 }
+
+
+void INFO_FrameNum(void** const a_Data, struct INFO_REMOODATValEntry_s* a_ValEnt, const char* const a_Field, const char* const a_Value, void* const a_WriteP);
+void INFO_FrameTrans(void** const a_Data, struct INFO_REMOODATValEntry_s* a_ValEnt, const char* const a_Field, const char* const a_Value, void* const a_WriteP);
 
 /* INFO_REMOODATKeyer() -- Keyer for REMOODAT */
 bool_t INFO_REMOODATKeyer(void** a_DataPtr, const int32_t a_Stack, const D_RMODCommand_t a_Command, const char* const a_Field, const char* const a_Value)
@@ -1627,6 +1666,26 @@ bool_t INFO_REMOODATKeyer(void** a_DataPtr, const int32_t a_Stack, const D_RMODC
 }
 
 /*****************************************************************************/
+
+/* INFO_BoolFromString() -- Returns bool from string value */
+bool_t INFO_BoolFromString(const char* const a_String)
+{
+	/* Check */
+	if (!a_String)
+		return false;
+		
+	/* Only a certain subset are true */
+	if (C_strtoi32(a_String, NULL, 10) != 0 ||
+		strcasecmp(a_String, "true") == 0 ||
+		strcasecmp(a_String, "yes") == 0 ||
+		strcasecmp(a_String, "on") == 0 ||
+		strcasecmp(a_String, "set") == 0 ||
+		strcasecmp(a_String, "enabled") == 0)
+		return true;
+	
+	/* False */
+	return false;
+}
 
 /* INFO_GetTypeByName() -- Returns a map object by it's name */
 mobjtype_t INFO_GetTypeByName(const char* const a_Name)

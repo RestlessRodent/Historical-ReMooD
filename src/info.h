@@ -305,6 +305,7 @@ void INFO_StateNormalize(const size_t a_MergeBase, const size_t a_MergeCount);
 
 /*** HELPFUL FUNCTIONS ***/
 
+bool_t INFO_BoolFromString(const char* const a_String);
 mobjtype_t INFO_GetTypeByName(const char* const a_Name);
 spritenum_t INFO_SpriteNumByName(const char* const a_Name, bool_t a_Create);
 actionf_t INFO_FunctionPtrByName(const char* const a_Name);

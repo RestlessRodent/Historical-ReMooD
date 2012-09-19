@@ -17030,7 +17030,7 @@ MapAmmo "Rocket"
 // Weapon -- Fist
 MapWeapon "Fist"
 {
-	DeHackEdID "0";
+	DeHackEdNum "0";
 	Ammo "None";
 	NiceName "Fist";
 	SBOGraphic "sboempty";
@@ -17142,7 +17142,7 @@ MapWeapon "Fist"
 // Weapon -- Pistol
 MapWeapon "Pistol"
 {
-	DeHackEdID "1";
+	DeHackEdNum "1";
 	Ammo "Clip";
 	NiceName "Pistol";
 	SBOGraphic "sboammo1";
@@ -17267,7 +17267,7 @@ MapWeapon "Pistol"
 // Weapon -- Shotgun
 MapWeapon "Shotgun"
 {
-	DeHackEdID "2";
+	DeHackEdNum "2";
 	Ammo "Shell";
 	NiceName "Shotgun";
 	SBOGraphic "sboammo2";
@@ -17447,7 +17447,7 @@ MapWeapon "Shotgun"
 // Weapon -- Chaingun
 MapWeapon "Chaingun"
 {
-	DeHackEdID "3";
+	DeHackEdNum "3";
 	Ammo "Clip";
 	NiceName "Chaingun";
 	SBOGraphic "sboammo3";
@@ -17574,7 +17574,7 @@ MapWeapon "Chaingun"
 // Weapon -- Rocket Launcher
 MapWeapon "RocketLauncher"
 {
-	DeHackEdID "4";
+	DeHackEdNum "4";
 	Ammo "Rocket";
 	NiceName "Rocket Launcher";
 	SBOGraphic "sboammo4";
@@ -17723,7 +17723,7 @@ MapWeapon "RocketLauncher"
 // Weapon -- Plasma Rifle
 MapWeapon "PlasmaRifle"
 {
-	DeHackEdID "5";
+	DeHackEdNum "5";
 	Ammo "Cell";
 	NiceName "Plasma Rifle";
 	SBOGraphic "sboammo5";
@@ -17841,7 +17841,7 @@ MapWeapon "PlasmaRifle"
 // Weapon -- BFG9000
 MapWeapon "BFGNineK"
 {
-	DeHackEdID "6";
+	DeHackEdNum "6";
 	Ammo "Cell";
 	NiceName "BFG9000";
 	SBOGraphic "sboammo6";
@@ -17981,7 +17981,7 @@ MapWeapon "BFGNineK"
 // Weapon -- Chainsaw
 MapWeapon "Chainsaw"
 {
-	DeHackEdID "7";
+	DeHackEdNum "7";
 	Ammo "None";
 	NiceName "Chainsaw";
 	SBOGraphic "sboempty";
@@ -18087,7 +18087,7 @@ MapWeapon "Chainsaw"
 // Weapon -- Super Shotgun
 MapWeapon "SuperShotgun"
 {
-	DeHackEdID "8";
+	DeHackEdNum "8";
 	Ammo "Shell";
 	NiceName "Super Shotgun";
 	SBOGraphic "sboammo8";
