@@ -957,6 +957,8 @@ typedef struct INFO_REMOODATKeyChain_s
 	size_t CountSize;							// Array Count Size
 	size_t IndivSize;							// Individual size
 	void* (*GrabEntry)(void** const a_Data, const char* const a_Name);	// Grabs new entry
+	uint8_t For;								// For (states)
+	uint32_t Bits;								// Bits
 } INFO_REMOODATKeyChain_t;
 
 /*** CONSTANTS ***/
@@ -986,11 +988,19 @@ static const struct
 	{0, IOSG_LESSBLOODB, "LessMoreBloodState", offsetof(mobjinfo_t,RLessBlood[1])},
 	{0, IOSG_BRAINEXPLODE, "BrainExplodeState", offsetof(mobjinfo_t,RBrainExplodeState)},
 	{0, IOSG_MELEEPUFF, "MeleePuffState", offsetof(mobjinfo_t,RMeleePuffState)},
+	
+	{1, PWSG_UP, "PrimaryBringUpState", offsetof(weaponinfo_t, upstate)},
+	{1, PWSG_DOWN, "PrimaryPutDownState", offsetof(weaponinfo_t, downstate)},
+	{1, PWSG_READY, "PrimaryReadyState", offsetof(weaponinfo_t, readystate)},
+	{1, PWSG_ATTACK, "PrimaryFireState", offsetof(weaponinfo_t, atkstate)},
+	{1, PWSG_HOLDATTACK, "PrimaryFireHeldState", offsetof(weaponinfo_t, holdatkstate)},
+	{1, PWSG_FLASH, "PrimaryFlashState", offsetof(weaponinfo_t, flashstate)},
 };
 
 void* INFO_MobjInfoGrabEntry(void** const a_Data, const char* const a_Name);
 void* INFO_StateGrabEntry(void** const a_Data, const char* const a_Name);
 void* INFO_StEntryGrabEntry(void** const a_Data, const char* const a_Name);
+void* INFO_WeaponGrabEntry(void** const a_Data, const char* const a_Name);
 
 void INFO_MiscObjectGF(void** const a_Data, struct INFO_REMOODATValEntry_s* a_ValEnt, const char* const a_Field, const char* const a_Value, void* const a_WriteP);
 void INFO_ObjectPainChance(void** const a_Data, struct INFO_REMOODATValEntry_s* a_ValEnt, const char* const a_Field, const char* const a_Value, void* const a_WriteP);
@@ -1000,6 +1010,9 @@ static const INFO_REMOODATValEntry_t c_INFOMobjTables[] =
 {
 	{"-", IRVT_STRING, offsetof(mobjinfo_t, RClassName)},
 	{"DoomEdNum", IRVT_INT32, offsetof(mobjinfo_t, EdNum[COREGAME_DOOM])},
+	{"HereticEdNum", IRVT_INT32, offsetof(mobjinfo_t, EdNum[COREGAME_HERETIC])},
+	{"HexenEdNum", IRVT_INT32, offsetof(mobjinfo_t, EdNum[COREGAME_HEXEN])},
+	{"StrifeEdNum", IRVT_INT32, offsetof(mobjinfo_t, EdNum[COREGAME_STRIFE])},
 	{"DeHackEdNum", IRVT_UINT32, offsetof(mobjinfo_t, RDehackEdID)},
 	
 	{"DropsClass", IRVT_STRING, offsetof(mobjinfo_t, RDropClass)},
@@ -1046,6 +1059,36 @@ static const INFO_REMOODATValEntry_t c_INFOStateTables[] =
 	{NULL},
 };
 
+void INFO_MiscWeaponGF(void** const a_Data, struct INFO_REMOODATValEntry_s* a_ValEnt, const char* const a_Field, const char* const a_Value, void* const a_WriteP);
+
+// c_INFOWeaponTables -- Weapon Tables
+static const INFO_REMOODATValEntry_t c_INFOWeaponTables[] =
+{
+	{"-", IRVT_STRING, offsetof(weaponinfo_t, ClassName)},
+	{"DroppedObject", IRVT_STRING, offsetof(weaponinfo_t, DropWeaponClass)},
+	{"NiceName", IRVT_STRING, offsetof(weaponinfo_t, NiceName)},
+	{"SBOGraphic", IRVT_STRING, offsetof(weaponinfo_t, SBOGraphic)},
+	{"BringUpSound", IRVT_STRING, offsetof(weaponinfo_t, BringUpSound)},
+	{"IdleNoise", IRVT_STRING, offsetof(weaponinfo_t, IdleNoise)},
+	{"Ammo", IRVT_STRING, offsetof(weaponinfo_t, AmmoClass)},
+	{"PuffClass", IRVT_STRING, offsetof(weaponinfo_t, ReplacePuffType)},
+	{"GenericProjectile", IRVT_STRING, offsetof(weaponinfo_t, GenericProjectile)},
+	{"TracerSplat", IRVT_STRING, offsetof(weaponinfo_t, TracerSplat)},
+	
+	{"AmmoPerShot", IRVT_INT32, offsetof(weaponinfo_t, ammopershoot)},
+	{"SwitchOrder", IRVT_INT32, offsetof(weaponinfo_t, SwitchOrder)},
+	{"PickupAmmo", IRVT_INT32, offsetof(weaponinfo_t, GetAmmo)},
+	{"SlotNum", IRVT_INT32, offsetof(weaponinfo_t, SlotNum)},
+	{"NoAmmoSwitchOrder", IRVT_INT32, offsetof(weaponinfo_t, NoAmmoOrder)},
+	{"DeHackEdID", IRVT_INT32, offsetof(weaponinfo_t, DEHId)},
+	
+	{"SpriteYOffset", IRVT_FIXED, offsetof(weaponinfo_t, PSpriteSY)},
+	
+	{"?", IRVT_FUNC, 0, INFO_MiscWeaponGF},
+	
+	{NULL},
+};
+
 void INFO_FrameNextGoto(void** const a_Data, struct INFO_REMOODATValEntry_s* a_ValEnt, const char* const a_Field, const char* const a_Value, void* const a_WriteP);
 void INFO_FrameMisc(void** const a_Data, struct INFO_REMOODATValEntry_s* a_ValEnt, const char* const a_Field, const char* const a_Value, void* const a_WriteP);
 
@@ -1074,13 +1117,20 @@ static const INFO_REMOODATKeyChain_t c_INFOChains[] =
 {
 	{"MapObject", 1, c_INFOMobjTables,
 		&mobjinfo, NULL, sizeof(*mobjinfo), &NUMMOBJTYPES,
-		sizeof(NUMMOBJTYPES), sizeof(**mobjinfo), INFO_MobjInfoGrabEntry},
+		sizeof(NUMMOBJTYPES), sizeof(**mobjinfo), INFO_MobjInfoGrabEntry, 0,
+		1},
 	{"State", 2, c_INFOStateTables,
 		NULL, NULL, sizeof(*states), &NUMSTATES,
-		sizeof(NUMSTATES), sizeof(**states), INFO_StateGrabEntry},
+		sizeof(NUMSTATES), sizeof(**states), INFO_StateGrabEntry, 0,
+		1 | 2},
 	{"Frame", 3, c_INFOFrameTables,
 		NULL, NULL, 0, NULL,
-		0, sizeof(**states), INFO_StEntryGrabEntry},
+		0, sizeof(**states), INFO_StEntryGrabEntry, 0,
+		1 | 2},
+	{"MapWeapon", 1, c_INFOWeaponTables,
+		NULL, NULL, 0, NULL,
+		0, 0, INFO_WeaponGrabEntry, 1,
+		2},
 	
 	{NULL},
 };
@@ -1101,6 +1151,8 @@ typedef struct INFO_DataStore_s
 		mobjinfo_t* InfoP;						// Info
 		statenum_t* StateRefP;					// State Reference
 		state_t* StateP;						// State
+		weaponinfo_t* WeaponP;					// Weapon
+		ammoinfo_t* AmmoP;						// Ammo
 	} Cur;										// Current pointer sets
 } INFO_DataStore_t;
 
@@ -1166,7 +1218,7 @@ void* INFO_StateGrabEntry(void** const a_Data, const char* const a_Name)
 		return NULL;
 	
 	/* Which kind of thing with states are we looking for? */
-	WantedFor = 0;	// TODO FIXME
+	WantedFor = This->Parent->FrameFor;	// TODO FIXME
 	
 	/* Find in groupings */
 	for (i = 0; i < NUMSTATEGROUPS; i++)
@@ -1250,6 +1302,50 @@ void* INFO_StEntryGrabEntry(void** const a_Data, const char* const a_Name)
 	
 	/* Return pointer */
 	return StateP;
+}
+
+
+/* INFO_WeaponGrabEntry() -- Grabs weaponinfo_t */
+void* INFO_WeaponGrabEntry(void** const a_Data, const char* const a_Name)
+{
+	INFO_DataStore_t** StorePP;
+	INFO_DataStore_t* This;
+	weapontype_t Type;
+	weaponinfo_t* Ptr;
+	
+	/* Storage Pointer */
+	StorePP = a_Data;
+	if (StorePP)
+		This = *StorePP;
+	
+	/* Do normal name lookup */
+	Type = INFO_GetWeaponByName(a_Name);
+	Ptr = NULL;
+	
+	/* Found? */
+	if (Type < NUMWEAPONS)
+		Ptr = wpnlev1info[Type];
+	
+	/* Not Found */
+	else
+	{
+		Z_ResizeArray((void**)&wpnlev1info, sizeof(*wpnlev1info),
+			NUMWEAPONS, NUMWEAPONS + 1);
+		Ptr = wpnlev1info[(Type = NUMWEAPONS++)] = Z_Malloc(sizeof(**wpnlev1info), PU_REMOODAT, NULL);
+		Z_ChangeTag(wpnlev1info, PU_REMOODAT);
+		
+		// Initialize
+		Ptr->WeaponID = ~(Type + 1);
+	}
+	
+	/* Set object type */
+	This->MoType = ~(Type + 1);
+	
+	/* Loading Screen */
+	CONL_EarlyBootTic(a_Name, true);
+	
+	/* Return pointer */
+	return Ptr;
 }
 
 /* INFO_MiscObjectGF() -- Guess object flags */
@@ -1353,6 +1449,73 @@ void INFO_ObjectPainChance(void** const a_Data, struct INFO_REMOODATValEntry_s* 
 	
 	// Multiply by 255 to get it
 	Obj->painchance = FixedMul(FIXEDT_C(255), FixedVal) >> FRACBITS;
+}
+
+/* INFO_MiscWeaponGF() -- Weapon General Flags */
+void INFO_MiscWeaponGF(void** const a_Data, struct INFO_REMOODATValEntry_s* a_ValEnt, const char* const a_Field, const char* const a_Value, void* const a_WriteP)
+{
+	INFO_DataStore_t** StorePP;
+	INFO_DataStore_t* This;
+	weaponinfo_t* Wep;
+	bool_t SetFlag;
+	int32_t i, r;
+	
+	uint32_t Bit;
+	uint32_t* Ref;
+	
+	static const INFO_FlagInfo_t c_WeaponFlags[] =
+	{
+		{WF_ISDOOM, "IsDoom"}, 
+		{WF_ISHERETIC, "IsHeretic"}, 
+		{WF_ISHEXEN, "IsHexen"}, 
+		{WF_ISSTRIFE, "IsStrife"}, 
+		{WF_NOTSHAREWARE, "IsNotShareware"}, 
+		{WF_INCOMMERCIAL, "IsInCommercial"}, 
+		{WF_INREGISTERED, "IsRegistered"}, 
+		{WF_BERSERKTOGGLE, "IsBerserkToggle"}, 
+		{WF_SWITCHFROMNOAMMO, "IsSwitchFromNoAmmo"}, 
+		{WF_STARTINGWEAPON, "IsStartingWeapon"}, 
+		{WF_NOTHRUST, "NoThrust"}, 
+		{WF_NOAUTOFIRE, "NoAutoFire"}, 
+		{WF_INEXTENDED, "IsInExtended"}, 
+		{WF_NOBLEEDTARGET, "NoBleedTarget"}, 
+		{WF_SUPERWEAPON, "IsSuperWeapon"}, 
+		{WF_NONOISEALERT, "NoNoiseAlert"},
+		
+		{0, NULL},
+	};
+	
+	/* Storage Pointer */
+	StorePP = a_Data;
+	if (StorePP)
+		This = *StorePP;
+	
+	/* Get Object */
+	Wep = This->Cur.WeaponP;
+	
+	/* Determine flag change */
+	SetFlag = INFO_BoolFromString(a_Value);
+	
+	/* Find field */
+	// Reset
+	Bit = 0;
+	Ref = &Wep->WeaponFlags;
+	
+	// Find flag in flag fields
+	for (i = 0; c_WeaponFlags[i].Name; i++)
+		if (strcasecmp(c_WeaponFlags[i].Name, a_Field) == 0)
+		{
+			Bit = c_WeaponFlags[i].Field;
+			break;
+		}
+	
+	/* Bit found? */
+	// Either set or unset
+	if (Bit && Ref)
+		if (SetFlag)
+			*Ref |= Bit;
+		else
+			*Ref &= ~Bit;
 }
 
 /* INFO_FrameNextGoto() -- Determine frame to go to */
@@ -1485,8 +1648,10 @@ bool_t INFO_REMOODATKeyer(void** a_DataPtr, const int32_t a_Stack, const D_RMODC
 	INFO_DataStore_t* This;
 	INFO_REMOODATValEntry_t* ValEnt;
 	mobjinfo_t* ThisMT;
+	weaponinfo_t* ThisWep;
 	void* DataP;
-	int32_t i;
+	int32_t i, j, k, l;
+	uint32_t RefToFind;
 	
 	/* Storage Pointer */
 	StorePP = a_DataPtr;
@@ -1501,6 +1666,7 @@ bool_t INFO_REMOODATKeyer(void** a_DataPtr, const int32_t a_Stack, const D_RMODC
 			// Look through chains
 			for (i = 0; c_INFOChains[i].Name; i++)
 				if (c_INFOChains[i].ValidDepth == a_Stack)
+					if (!This || (This && (This->CurrentKey->Bits & c_INFOChains[i].Bits) != 0))
 					if (strcasecmp(c_INFOChains[i].Name, a_Field) == 0)
 						break;
 			
@@ -1511,6 +1677,7 @@ bool_t INFO_REMOODATKeyer(void** a_DataPtr, const int32_t a_Stack, const D_RMODC
 			
 			// Setup Data Store
 			This->CurrentKey = &c_INFOChains[i];
+			This->FrameFor = This->CurrentKey->For;
 			
 			if (This->CurrentKey->GrabEntry)
 				This->Cur.vP = This->CurrentKey->GrabEntry(a_DataPtr, a_Value);
@@ -1632,6 +1799,65 @@ bool_t INFO_REMOODATKeyer(void** a_DataPtr, const int32_t a_Stack, const D_RMODC
 			// Normalize all states (reference them, etc.)
 			INFO_StateNormalize(0, NUMSTATES);
 			
+			// Weapons
+			wpnlev2info = wpnlev1info;
+			for (i = 0; i < NUMWEAPONS; i++)
+			{
+				// Get
+				ThisWep = wpnlev1info[i];
+				
+				// Missing?
+				if (!ThisWep)
+					continue;
+				
+				// Get ammo type
+				ThisWep->ammo = INFO_GetAmmoByName(ThisWep->AmmoClass);
+				
+				// Determine flash states
+				RefToFind = ((PWSG_FLASH & UINT32_C(0xFFFF)) << UINT32_C(16));
+				
+				// Determine flash order
+				for (k = 0; k < NUMSTATES; k++)
+					if (states[k]->ObjectID == ThisWep->WeaponID)
+						if ((states[k]->Marker & UINT32_C(0xFFFF0000)) == RefToFind)
+						{
+							// No func?
+							if (!states[k]->action.acv)
+								continue;
+							
+							// Function only on A_Light*()
+							if (states[k]->action.acv != A_Light1 &&
+								states[k]->action.acv != A_Light2)
+								continue;
+							
+							// Add to array
+							Z_ResizeArray((void**)&ThisWep->FlashStates,
+									sizeof(*ThisWep->FlashStates),
+									ThisWep->NumFlashStates,
+									ThisWep->NumFlashStates + 1
+								);
+							ThisWep->FlashStates[ThisWep->NumFlashStates++] = k;
+							Z_ChangeTag(ThisWep->FlashStates, PU_REMOODAT);
+						}
+				
+				// Sort Flash states
+				for (j = 0; j < ThisWep->NumFlashStates; j++)
+				{
+					// Find one with lowest value
+					for (l = j, k = j + 1; k < ThisWep->NumFlashStates; k++)
+						if (states[ThisWep->FlashStates[k]]->FrameID < states[ThisWep->FlashStates[l]]->FrameID)
+							l = k;
+					
+					// Not the same?
+					if (j != l)
+					{
+						k = ThisWep->FlashStates[j];
+						ThisWep->FlashStates[j] = ThisWep->FlashStates[l];
+						ThisWep->FlashStates[l] = k;
+					}
+				}
+			}
+			
 			// Handle all classes loaded
 			for (i = 0; i < NUMMOBJTYPES; i++)
 			{
@@ -1655,8 +1881,6 @@ bool_t INFO_REMOODATKeyer(void** a_DataPtr, const int32_t a_Stack, const D_RMODC
 				}
 				else
 					ThisMT->RBaseFamily = ThisMT->ObjectID;
-				
-				// Sounds
 			}
 			return true;
 		

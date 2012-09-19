@@ -145,7 +145,7 @@ typedef enum WeaponFlags_e
 typedef struct
 {
 	ammotype_t ammo;
-	statenum_t ammopershoot;
+	int32_t ammopershoot;
 	statenum_t upstate;
 	statenum_t downstate;
 	statenum_t readystate;

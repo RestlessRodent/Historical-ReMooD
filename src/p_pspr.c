@@ -869,7 +869,7 @@ void A_FireCGun(mobj_t* mo, player_t* player, pspdef_t* psp, const INFO_StateArg
 	P_ReduceAmmo(player);
 	
 	// GhostlyDeath <April 29, 2012> -- Set corresponding flash state
-	StateDiff = player->psprites[ps_weapon].state->FrameID - 1;
+	StateDiff = player->psprites[ps_weapon].state->FrameID/* - 1*/;
 	if (StateDiff < player->weaponinfo[player->readyweapon]->NumFlashStates)
 		P_SetPsprite(player, ps_flash, player->weaponinfo[player->readyweapon]->FlashStates[StateDiff]);
 	
