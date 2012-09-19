@@ -198,25 +198,25 @@ typedef struct
 	statenum_t spawnstate;
 	int32_t spawnhealth;
 	statenum_t seestate;
-	int32_t seesound;
+	//int32_t seesound;
 	int32_t reactiontime;
-	int32_t attacksound;
+	//int32_t attacksound;
 	statenum_t painstate;
 	int32_t painchance;
-	int32_t painsound;
+	//int32_t painsound;
 	statenum_t meleestate;
 	statenum_t missilestate;
 	statenum_t crashstate;				// from heretic/hexen
 	statenum_t deathstate;
 	statenum_t xdeathstate;
-	int32_t deathsound;
+	//int32_t deathsound;
 	fixed_t speed;
 	fixed_t radius;
 	fixed_t Height;								// Standard Height
 	fixed_t OldHeight;							// < 1.32 Height
 	int32_t mass;
 	int32_t damage;
-	int32_t activesound;
+	//int32_t activesound;
 	uint32_t flags;
 	statenum_t raisestate;
 	uint32_t flags2;					// from heretic/hexen

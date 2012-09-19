@@ -33,6 +33,7 @@
 ***************/
 
 #include "c_lib.h"
+#include "m_fixed.h"
 
 /****************
 *** FUNCTIONS ***
@@ -113,8 +114,9 @@ uint32_t C_strtou32(const char* a_NPtr, char** a_EndPtr, int a_Base)
 }
 
 /* C_strtofx() -- Convert string to fixed */
-fixed_t C_strtofx(const char* a_NPtr, char** a_EndPtr)
+int32_t C_strtofx(const char* a_NPtr, char** a_EndPtr)
 {
+#define FRACLIMIT 8
 	fixed_t Temp, SubFrac;
 	const char* c;
 	bool_t Deci, Neg, FirstChar;
@@ -165,9 +167,12 @@ fixed_t C_strtofx(const char* a_NPtr, char** a_EndPtr)
 			// After decimal point
 			else
 			{
-				Frac *= 10;
-				Frac += (int32_t)(*c - '0');
-				FracCount++;
+				if (FracCount < FRACLIMIT)
+				{
+					Frac *= 10;
+					Frac += (int32_t)(*c - '0');
+					FracCount++;
+				}
 			}
 		}
 		
@@ -183,15 +188,15 @@ fixed_t C_strtofx(const char* a_NPtr, char** a_EndPtr)
 		Int = INT32_C(32767);
 	
 	/* Limit Fraction */
-	// If above 10 places, decrease places
-	while (FracCount > 10)
+	// If above FRACLIMIT places, decrease places
+	while (FracCount > FRACLIMIT)
 	{
 		Frac /= 10;
 		FracCount--;
 	}
 	
-	// If below 10 places, increase places
-	while (FracCount < 10)
+	// If below FRACLIMIT places, increase places
+	while (FracCount < FRACLIMIT)
 	{
 		Frac *= 10;
 		FracCount++;
@@ -199,15 +204,14 @@ fixed_t C_strtofx(const char* a_NPtr, char** a_EndPtr)
 	
 	// Setup Fraction
 		// 1 / 65536 = 0.000015258789
-		// So 10 depth is 0000152587
 #if 1
-	SubFrac = Frac / INT32_C(152587);
+	SubFrac = Frac / INT32_C(1526);
 #else
 	SubFrac = 0;
-	while (Frac > INT32_C(152587))
+	while (Frac > INT32_C(1526))
 	{
 		SubFrac++;
-		Frac -= 152587;
+		Frac -= 1526;
 	}
 #endif
 	
@@ -220,6 +224,7 @@ fixed_t C_strtofx(const char* a_NPtr, char** a_EndPtr)
 	
 	/* Return value */
 	return Temp;
+#undef FRACLIMIT
 }
 
 /**************************************

@@ -344,8 +344,8 @@ void F_CastTicker(void)
 		castdeath = false;
 		if (castorder[castnum].name == NULL)
 			castnum = 0;
-		if (mobjinfo[castorder[castnum].type]->seesound)
-			S_StartSound(NULL, mobjinfo[castorder[castnum].type]->seesound);
+		//if (mobjinfo[castorder[castnum].type]->seesound)
+		//	S_StartSound(NULL, mobjinfo[castorder[castnum].type]->seesound);
 		caststate = states[mobjinfo[castorder[castnum].type]->seestate];
 		castframes = 0;
 	}
@@ -484,8 +484,8 @@ bool_t F_CastResponder(event_t* ev)
 	casttics = caststate->tics;
 	castframes = 0;
 	castattacking = false;
-	if (mobjinfo[castorder[castnum].type]->deathsound)
-		S_StartSound(NULL, mobjinfo[castorder[castnum].type]->deathsound);
+	//if (mobjinfo[castorder[castnum].type]->deathsound)
+	//	S_StartSound(NULL, mobjinfo[castorder[castnum].type]->deathsound);
 		
 	return true;
 }

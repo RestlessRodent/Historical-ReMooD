@@ -371,10 +371,10 @@ void P_MovePlayer(player_t* player)
 				else
 					movepushforward = FixedMul(movepushforward, P_XGSFix(PGS_GAMEWATERFRICTION));
 					
-				if (D_SyncNetMapTime() > player->flushdelay + TICRATE)
+				if (gametic > player->flushdelay + TICRATE)
 				{
 					S_StartSound(&player->mo->NoiseThinker, sfx_floush);
-					player->flushdelay = D_SyncNetMapTime();
+					player->flushdelay = gametic;
 				}
 			}
 			else
@@ -397,10 +397,10 @@ void P_MovePlayer(player_t* player)
 				else
 					movepushside = FixedMul(movepushside, P_XGSFix(PGS_GAMEWATERFRICTION));
 					
-				if (D_SyncNetMapTime() > player->flushdelay + TICRATE)
+				if (gametic > player->flushdelay + TICRATE)
 				{
 					S_StartSound(&player->mo->NoiseThinker, sfx_floush);
-					player->flushdelay = D_SyncNetMapTime();
+					player->flushdelay = gametic;
 				}
 			}
 			else if (!onground)
@@ -445,10 +445,10 @@ void P_MovePlayer(player_t* player)
 			if (player->mo->eflags & MF_UNDERWATER)
 			{
 				player->mo->momz = P_XGSFix(PGS_PLJUMPGRAVITY) / 2;
-				if (D_SyncNetMapTime() > player->flushdelay + TICRATE)
+				if (gametic > player->flushdelay + TICRATE)
 				{
 					S_StartSound(&player->mo->NoiseThinker, sfx_floush);
-					player->flushdelay = D_SyncNetMapTime();
+					player->flushdelay = gametic;
 				}
 			}
 			else
@@ -844,7 +844,7 @@ void P_PlayerThink(player_t* player)
 	if (!player->mo)
 	{
 		// Counter-Op Player?
-		if (player->CounterOpPlayer)
+		if (P_XGSVal(PGS_MONENABLEPLAYASMONSTER) && player->CounterOpPlayer)
 			P_ControlNewMonster(player);
 		
 		// Still bad?
@@ -966,7 +966,7 @@ void P_PlayerThink(player_t* player)
 	if (P_XGSVal(PGS_COENABLESPLASHES) && player->specialsector >= 887 && player->specialsector <= 888)
 	{
 		if ((player->mo->momx > (2 * FRACUNIT) || player->mo->momx < (-2 * FRACUNIT) || player->mo->momy > (2 * FRACUNIT) || player->mo->momy < (-2 * FRACUNIT) || player->mo->momz > (2 * FRACUNIT)) &&	// jump out of water
-		        !(D_SyncNetMapTime() % (32)))
+		        !(gametic % (32)))
 		{
 			//
 			// make sure we disturb the surface of water (we touch it)
@@ -1220,6 +1220,29 @@ void P_PlayerThink(player_t* player)
 	}
 	else
 		player->fixedcolormap = 0;
+	
+	/* Suicide Pill */
+	// GhostlyDeath <September 19, 2012> -- In case one gets stuck?
+	if (cmd->Std.buttons & BT_SUICIDE)
+		if (gametic >= player->SuicideDelay)
+		{
+			// If playing as monster
+			if (P_XGSVal(PGS_MONENABLEPLAYASMONSTER) && player->CounterOpPlayer)
+				P_ControlNewMonster(player);
+			
+			// A player, but only if suicides are enabled
+			else
+				if (P_XGSVal(PGS_PLALLOWSUICIDE))
+					if (player->mo && player->health > 0)
+					{
+						player->mo->RXAttackAttackType = PRXAT_SUICIDE;
+						P_KillMobj(player->mo, player->mo, player->mo);
+					}
+			
+			// Prevent suicide abuse
+			player->SuicideDelay = gametic + (TICRATE * P_XGSVal(PGS_PLSUICIDEDELAY));
+		}
+	
 #undef MAXWEAPONSLOTS
 }
 

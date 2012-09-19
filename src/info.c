@@ -993,6 +993,7 @@ void* INFO_StateGrabEntry(void** const a_Data, const char* const a_Name);
 void* INFO_StEntryGrabEntry(void** const a_Data, const char* const a_Name);
 
 void INFO_MiscObjectGF(void** const a_Data, struct INFO_REMOODATValEntry_s* a_ValEnt, const char* const a_Field, const char* const a_Value, void* const a_WriteP);
+void INFO_ObjectPainChance(void** const a_Data, struct INFO_REMOODATValEntry_s* a_ValEnt, const char* const a_Field, const char* const a_Value, void* const a_WriteP);
 
 // c_INFOMobjTables -- Object Tables
 static const INFO_REMOODATValEntry_t c_INFOMobjTables[] =
@@ -1033,6 +1034,7 @@ static const INFO_REMOODATValEntry_t c_INFOMobjTables[] =
 	{"AirGravity", IRVT_FIXED, offsetof(mobjinfo_t, RAirGravity)},
 	{"WaterGravity", IRVT_FIXED, offsetof(mobjinfo_t, RWaterGravity)},
 	
+	{"PainChance", IRVT_FUNC, 0, INFO_ObjectPainChance},
 	{"?", IRVT_FUNC, 0, INFO_MiscObjectGF},
 	
 	{NULL},
@@ -1045,6 +1047,7 @@ static const INFO_REMOODATValEntry_t c_INFOStateTables[] =
 };
 
 void INFO_FrameNextGoto(void** const a_Data, struct INFO_REMOODATValEntry_s* a_ValEnt, const char* const a_Field, const char* const a_Value, void* const a_WriteP);
+void INFO_FrameSprite(void** const a_Data, struct INFO_REMOODATValEntry_s* a_ValEnt, const char* const a_Field, const char* const a_Value, void* const a_WriteP);
 
 // c_INFOFrameTables -- State Frame Tables
 static const INFO_REMOODATValEntry_t c_INFOFrameTables[] =
@@ -1053,8 +1056,11 @@ static const INFO_REMOODATValEntry_t c_INFOFrameTables[] =
 	{"Frame", IRVT_INT32, offsetof(state_t, frame)},
 	{"Tics", IRVT_INT32, offsetof(state_t, tics)},
 	{"Function", IRVT_STRING, offsetof(state_t, Function)},
+	
 	{"Next", IRVT_FUNC, offsetof(state_t, SimNext), INFO_FrameNextGoto},
 	{"Goto", IRVT_FUNC, offsetof(state_t, SimNext), INFO_FrameNextGoto},
+	
+	{"Sprite", IRVT_FUNC, offsetof(state_t, HoldSprite), INFO_FrameSprite},
 	
 	{NULL},
 };
@@ -1320,6 +1326,35 @@ void INFO_MiscObjectGF(void** const a_Data, struct INFO_REMOODATValEntry_s* a_Va
 			*Ref &= ~Bit;
 }
 
+/* INFO_ObjectPainChance() -- Pain chance of object */
+void INFO_ObjectPainChance(void** const a_Data, struct INFO_REMOODATValEntry_s* a_ValEnt, const char* const a_Field, const char* const a_Value, void* const a_WriteP)
+{
+	INFO_DataStore_t** StorePP;
+	INFO_DataStore_t* This;
+	mobjinfo_t* Obj;
+	fixed_t FixedVal;
+	
+	/* Storage Pointer */
+	StorePP = a_Data;
+	if (StorePP)
+		This = *StorePP;
+	
+	/* Get Object */
+	Obj = This->Cur.InfoP;
+	
+	/* Get Value */
+	FixedVal = C_strtofx(a_Value, NULL);
+	
+	// Cap value
+	if (FixedVal > FIXEDT_C(1))
+		FixedVal = FIXEDT_C(1);
+	else if (FixedVal < FIXEDT_C(-1))
+		FixedVal = FIXEDT_C(0);
+	
+	// Multiply by 255 to get it
+	Obj->painchance = FixedMul(FIXEDT_C(255), FixedVal) >> FRACBITS;
+}
+
 /* INFO_FrameNextGoto() -- Determine frame to go to */
 void INFO_FrameNextGoto(void** const a_Data, struct INFO_REMOODATValEntry_s* a_ValEnt, const char* const a_Field, const char* const a_Value, void* const a_WriteP)
 {
@@ -1387,6 +1422,21 @@ void INFO_FrameNextGoto(void** const a_Data, struct INFO_REMOODATValEntry_s* a_V
 	
 	// Object
 	*((uint64_t*)a_WriteP) |= ((uint64_t)ObjectID) << UINT64_C(32);
+}
+
+/* INFO_FrameSprite() -- Load sprite into state */
+void INFO_FrameSprite(void** const a_Data, struct INFO_REMOODATValEntry_s* a_ValEnt, const char* const a_Field, const char* const a_Value, void* const a_WriteP)
+{
+	INFO_DataStore_t** StorePP;
+	INFO_DataStore_t* This;
+	
+	/* Storage Pointer */
+	StorePP = a_Data;
+	if (StorePP)
+		This = *StorePP;
+	
+	/* Copy */
+	strncpy(This->Cur.StateP->HoldSprite, a_Value, 4);
 }
 
 /* INFO_REMOODATKeyer() -- Keyer for REMOODAT */

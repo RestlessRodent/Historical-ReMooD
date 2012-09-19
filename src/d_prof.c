@@ -282,6 +282,7 @@ D_ProfileEx_t* D_CreateProfileEx(const char* const a_Name)
 		SETJOYMORE(NEXTINVENTORY, 8);
 		
 		SETJOYMORE(CHATMODE, 10);
+		SETJOYMORE(SUICIDE, 11);
 		
 		// Now set
 		l_DefaultCtrlsMapped = true;

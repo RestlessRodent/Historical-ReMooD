@@ -268,7 +268,7 @@ void SF_Clock()
 	t_return.type = svt_int;
 	
 	// GhostlyDeath <September 2, 2011> -- Use map time instead
-	t_return.value.i = (D_SyncNetMapTime() * 100) / 35;
+	t_return.value.i = (gametic * 100) / 35;
 }
 
 /**************** doom stuff ****************/

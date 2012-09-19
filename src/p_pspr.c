@@ -923,6 +923,9 @@ void A_BFGSpray(mobj_t* mo, player_t* player, pspdef_t* psp, const INFO_StateArg
 	// Set owner weapon to BFG, etc.
 	BallOwner->RXShotWithWeapon = mo->RXShotWithWeapon;
 	
+	// Set owner's attack to ranged
+	BallOwner->RXAttackAttackType = PRXAT_RANGED;
+	
 	// offset angles from its attack angle
 	for (i = 0; i < 40; i++)
 	{

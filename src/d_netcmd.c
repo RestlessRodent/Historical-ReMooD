@@ -746,6 +746,10 @@ static void D_NCSLocalBuildTicCmd(D_NetPlayer_t* const a_NPp, ticcmd_t* const a_
 	if (GAMEKEYDOWN(Profile, SID, DPEXIC_JUMP))
 		a_TicCmd->Std.buttons |= BT_JUMP;
 	
+	// Suicide
+	if (GAMEKEYDOWN(Profile, SID, DPEXIC_SUICIDE))
+		a_TicCmd->Std.buttons |= BT_SUICIDE;
+	
 	// Keyboard Turning
 	if (GAMEKEYDOWN(Profile, SID, DPEXIC_TURNLEFT))
 	{

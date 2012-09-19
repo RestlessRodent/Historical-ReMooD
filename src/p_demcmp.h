@@ -273,6 +273,8 @@ typedef enum P_XGSBitID_e
 	PGS_CORADIALSPAWNCHECK,				// Perform radial spawn check
 	PGS_MONENABLEPLAYASMONSTER,			// Enable playing of monsters
 	PGS_COKILLSTOPLAYERONE,				// Give kills to player 1
+	PGS_PLALLOWSUICIDE,							// Allow Suicides
+	PGS_PLSUICIDEDELAY,							// Suicide Delay
 	
 	PEXGSNUMBITIDS
 } P_XGSBitID_t;

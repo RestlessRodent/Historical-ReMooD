@@ -836,12 +836,20 @@ static P_XGSVariable_t l_GSVars[PEXGSNUMBITIDS] =
 		PEXGSMC_COMPAT, PEXGSDA_YESNO, c_PEXGSPVBoolean, NULL},
 	
 	{PEXGST_INTEGER, PGS_MONENABLEPLAYASMONSTER, "mon_enableplayasmonster", "Enable Playing as Monsters",
-		"Allows players to take control over monsters.", PEXGSGM_ANY, PEXGSDR_NOCHECK, 0, {0, 1}, 0,
+		"Allows players to take control over monsters.", PEXGSGM_ANY, PEXGSDR_NOCHECK, 200, {0, 1}, 0,
 		PEXGSMC_MONSTERS, PEXGSDA_YESNO, c_PEXGSPVBoolean, NULL},
 	
 	{PEXGST_INTEGER, PGS_COKILLSTOPLAYERONE, "co_killstoplayerone", "Give Kills to Player 1",
 		"Gives kills performed by non-players to player 1. [ReMooD < 1.0a]", PEXGSGM_ANY, PEXGSDR_LESSTHAN, 200, {0, 1}, 1,
 		PEXGSMC_COMPAT, PEXGSDA_YESNO, c_PEXGSPVBoolean, NULL},
+	
+	// GhostlyDeath <September 19, 2012> -- Suicides
+	{PEXGST_INTEGER, PGS_PLALLOWSUICIDE, "pl_allowsuicide", "Allow Suicide Pill",
+		"Allows player to use the suicide pill key to instantly commit suicide [ReMooD >= 1.0a].", PEXGSGM_ANY, PEXGSDR_ATLEAST, 200, {0, 1}, 1,
+		PEXGSMC_PLAYERS, PEXGSDA_YESNO, c_PEXGSPVBoolean, NULL},
+	{PEXGST_INTEGER, PGS_PLSUICIDEDELAY, "pl_suicidedelay", "Suicide Pill Delay",
+		"Time in seconds after allowing another suicide pill after consuming an existing suicide pill [ReMooD >= 1.0a].", PEXGSGM_ANY, PEXGSDR_NOCHECK, 0, {0, 3}, 3,
+		PEXGSMC_PLAYERS, PEXGSDA_TIMESECS, c_PEXGSPVPositive, NULL},
 };
 
 /*** FUNCTIONS ***/

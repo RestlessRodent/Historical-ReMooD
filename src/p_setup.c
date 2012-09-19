@@ -1286,11 +1286,12 @@ bool_t P_ExFinalizeLevel(void)
 	// This occurs when there are more players than starts on a new map load...
 	for (i = 0; i < MAXPLAYERS; i++)
 		if (playeringame[i] && !players[i].mo)
-			// Use cluster spawns
-			if (P_XGSVal(PGS_GAMEDEATHMATCH))
-				G_DeathMatchSpawnPlayer(i);
-			else
-				G_CoopSpawnPlayer(i);
+			if (!players[i].CounterOpPlayer)
+				// Use cluster spawns
+				if (P_XGSVal(PGS_GAMEDEATHMATCH))
+					G_DeathMatchSpawnPlayer(i);
+				else
+					G_CoopSpawnPlayer(i);
 	
 	/* Correct local player angles */
 	for (i = 0; i < MAXSPLITSCREEN; i++)

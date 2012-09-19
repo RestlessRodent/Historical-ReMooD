@@ -572,7 +572,7 @@ static void STS_DrawPlayerBarEx(const size_t a_PID, const int32_t a_X, const int
 	
 	/* Monster? */
 	IsMonster = false;
-	if (DisplayP->mo && ((DisplayP->mo->flags & MF_COUNTKILL) || (DisplayP->mo->RXFlags[0] & MFREXA_ISMONSTER)))
+	if (DisplayP->mo && ((DisplayP->mo->flags & MF_COUNTKILL) || !(DisplayP->mo->RXFlags[0] & MFREXA_ISPLAYEROBJECT)))
 		IsMonster = true;
 	
 	/* Which status bar type to draw? */
@@ -591,7 +591,10 @@ static void STS_DrawPlayerBarEx(const size_t a_PID, const int32_t a_X, const int
 				);
 		
 		// Draw Health Text
-		snprintf(Buf, BUFSIZE - 1, "%i", DisplayP->health);
+		if (IsMonster)
+			snprintf(Buf, BUFSIZE - 1, "%i", DisplayP->mo->health);
+		else
+			snprintf(Buf, BUFSIZE - 1, "%i", DisplayP->health);
 		V_DrawStringA(
 				Font, 0, Buf,
 				a_X + STS_SBX(Profile, 8, a_W, a_H) + 20 - (BigLetters ? 0 : 2),

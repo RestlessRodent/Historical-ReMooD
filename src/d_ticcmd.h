@@ -57,6 +57,9 @@ typedef enum
 	// Jump button.
 	BT_JUMP = 8,
 	
+	// Suicide
+	BT_SUICIDE = 16,
+	
 	// The 3bit weapon mask and shift, convenience.
 	BT_WEAPONMASK = (32 + 64 + 128 + 256),
 	BT_WEAPONSHIFT = 5,

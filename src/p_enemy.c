@@ -678,6 +678,7 @@ static bool_t P_LookForPlayers(mobj_t* actor, bool_t allaround)
 void A_Look(mobj_t* actor, player_t* player, pspdef_t* psp, const INFO_StateArgsNum_t a_ArgC, INFO_StateArgsParm_t* const a_ArgV)
 {
 	mobj_t* targ;
+	sfxid_t SoundID;
 	
 	// GhostlyDeath <April 29, 2012> -- If a player move to movement state
 	if (P_XGSVal(PGS_MONENABLEPLAYASMONSTER))
@@ -722,12 +723,12 @@ void A_Look(mobj_t* actor, player_t* player, pspdef_t* psp, const INFO_StateArgs
 	// go into chase state
 seeyou:
 	
-	actor->info->seesound = S_SoundIDForName(actor->info->RSeeSound);
-	if (actor->info->seesound)
+	SoundID = S_SoundIDForName(actor->info->RSeeSound);
+	if (SoundID)
 	{
 		int sound;
 		
-		switch (actor->info->seesound)
+		switch (SoundID)
 		{
 			case sfx_posit1:
 			case sfx_posit2:
@@ -741,7 +742,7 @@ seeyou:
 				break;
 				
 			default:
-				sound = actor->info->seesound;
+				sound = SoundID;
 				break;
 		}
 		
@@ -1232,7 +1233,7 @@ void A_Tracer(mobj_t* actor, player_t* player, pspdef_t* psp, const INFO_StateAr
 	// TODO: Demo Desync!
 	
 	// GhostlyDeath <September 2, 2011> -- Use map time instead of gametic
-	if (D_SyncNetMapTime() % (4))
+	if (gametic % (4))
 		return;
 		
 	// spawn a puff of smoke behind the rocket
@@ -1879,9 +1880,10 @@ void A_PainDie(mobj_t* actor, player_t* player, pspdef_t* psp, const INFO_StateA
 void A_Scream(mobj_t* actor, player_t* player, pspdef_t* psp, const INFO_StateArgsNum_t a_ArgC, INFO_StateArgsParm_t* const a_ArgV)
 {
 	int sound;
+	sfxid_t SoundID;
 	
-	actor->info->deathsound = S_SoundIDForName(actor->info->RDeathSound);
-	switch (actor->info->deathsound)
+	SoundID = S_SoundIDForName(actor->info->RDeathSound);
+	switch (SoundID)
 	{
 		case 0:
 			return;
@@ -1898,7 +1900,7 @@ void A_Scream(mobj_t* actor, player_t* player, pspdef_t* psp, const INFO_StateAr
 			break;
 			
 		default:
-			sound = actor->info->deathsound;
+			sound = SoundID;
 			break;
 	}
 	

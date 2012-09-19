@@ -425,11 +425,11 @@ bool_t G_DEMO_Vanilla_ReadTicCmd(struct G_CurrentDemo_s* a_Current, ticcmd_t* co
 		{
 			// Read/Check gametic
 			u32 = D_BSru32(Data->PMPStream);
-			if (u32 > 0 && D_SyncNetMapTime() > 0)
-				if (u32 != D_SyncNetMapTime())
+			if (u32 > 0 && gametic > 0)
+				if (u32 != gametic)
 					I_Error("PMP: gametic/MapTime Mismatch");
 			
-			if (u32 > 0 && D_SyncNetMapTime() > 0)
+			if (u32 > 0 && gametic > 0)
 			{
 				// Read/Check X Position
 				i32 = D_BSri32(Data->PMPStream);

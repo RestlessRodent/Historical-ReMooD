@@ -368,6 +368,7 @@ typedef enum P_RXAttackType_e
 	PRXAT_MELEE,								// Melee Attack
 	PRXAT_RANGED,								// Ranged Attack
 	PRXAT_TELEFRAG,								// Telefrag
+	PRXAT_SUICIDE,								// Suicide Pill
 	
 	NUMPRXATTACKTYPES
 } P_RXAttackType_t;

@@ -952,6 +952,7 @@ void G_PlayerReborn(int player)
 	int* ammo;
 	int* maxammo;
 	uint32_t FraggerID;
+	tic_t SuicideDelay;
 	
 	D_ProfileEx_t* PEp;
 	D_NetPlayer_t* NPp;
@@ -976,6 +977,7 @@ void G_PlayerReborn(int player)
 	TotalFrags = players[player].TotalFrags;
 	TotalDeaths = players[player].TotalDeaths;
 	FraggerID = players[player].FraggerID;
+	SuicideDelay = players[player].SuicideDelay;
 	
 	FavoriteWeapons = players[player].FavoriteWeapons;
 	weaponowned = players[player].weaponowned;
@@ -1001,6 +1003,7 @@ void G_PlayerReborn(int player)
 	players[player].TotalDeaths = TotalDeaths;
 	players[player].FraggerID = FraggerID;
 	players[player].FavoriteWeapons = FavoriteWeapons;
+	players[player].SuicideDelay = SuicideDelay;
 	
 	// Weapons
 	if (!weaponowned)

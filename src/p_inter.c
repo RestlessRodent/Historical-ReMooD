@@ -1142,14 +1142,18 @@ static const char* PS_GetMobjNoun(mobj_t* const a_Mobj, bool_t* const a_Special,
 				if (a_Mobj->RXAttackAttackType == PRXAT_TELEFRAG)
 					return "TeleFrag";
 					
+				// Check for suicide
+				if (a_Mobj->RXAttackAttackType == PRXAT_SUICIDE)
+					return "Suicide Pill";
+					
 				// Inflictor is the source (melee or gun attack?)
-				else if (a_Mobj == a_Source)
+				else if (a_Mobj == a_Source && a_Mobj->player->weaponinfo)
 					return a_Mobj->player->weaponinfo[a_Mobj->player->readyweapon]->NiceName;
 				
 				// It must be a missile then, return the weapon there
 				else
 				{
-					if (a_Mobj->RXShotWithWeapon >= 0 && a_Mobj->RXShotWithWeapon < NUMWEAPONS)
+					if (a_Mobj->RXShotWithWeapon >= 0 && a_Mobj->RXShotWithWeapon < NUMWEAPONS && a_Mobj->player->weaponinfo)
 						return a_Mobj->player->weaponinfo[a_Mobj->RXShotWithWeapon]->NiceName;
 					else
 						return "Unknown Weapon";
@@ -1201,6 +1205,9 @@ static const char* PS_GetMobjNoun(mobj_t* const a_Mobj, bool_t* const a_Special,
 						
 						case PRXAT_TELEFRAG:
 							return "TeleFrag";
+							
+						case PRXAT_SUICIDE:
+							return "Suicide";
 						
 						case PRXAT_UNKNOWN:
 						default:
@@ -1219,6 +1226,9 @@ static const char* PS_GetMobjNoun(mobj_t* const a_Mobj, bool_t* const a_Special,
 						
 						case PRXAT_TELEFRAG:
 							return "TeleFrag";
+							
+						case PRXAT_SUICIDE:
+							return "Suicide Pill";
 						
 						case PRXAT_UNKNOWN:
 						default:
@@ -1610,7 +1620,7 @@ bool_t P_DamageMobj(mobj_t* target, mobj_t* inflictor, mobj_t* source, int damag
 	// inflict thrust and push the victim out of reach,
 	// thus kick away unless using the chainsaw.
 	if (inflictor
-	        && !(target->flags & MF_NOCLIP) && !(inflictor->flags2 & MF2_NODMGTHRUST) && (!source || !source->player || !(source->player->weaponinfo[source->player->readyweapon]->WeaponFlags & WF_NOTHRUST)))
+	        && !(target->flags & MF_NOCLIP) && !(inflictor->flags2 & MF2_NODMGTHRUST) && (!source || !(source->RXFlags[0] & MFREXA_ISPLAYEROBJECT) || !(source->player->weaponinfo[source->player->readyweapon]->WeaponFlags & WF_NOTHRUST)))
 	{
 		fixed_t amomx, amomy, amomz = 0;	//SoM: 3/28/2000
 		

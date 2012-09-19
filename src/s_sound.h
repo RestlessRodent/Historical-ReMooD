@@ -51,6 +51,8 @@
 *** STRUCTURES ***
 *****************/
 
+typedef int32_t sfxid_t;
+
 struct mobj_s;
 
 /* S_NoiseThinker_t -- A thinker that makes noise */
@@ -90,8 +92,8 @@ void S_Start(void);
 int S_GetSfxLumpNum(sfxinfo_t* sfx);
 void S_FreeSfx(sfxinfo_t* sfx);
 
-void S_StartSound(S_NoiseThinker_t* a_Origin, int sound_id);
-void S_StartSoundAtVolume(S_NoiseThinker_t* a_Origin, int sound_id, int volume);
+void S_StartSound(S_NoiseThinker_t* a_Origin, sfxid_t sound_id);
+void S_StartSoundAtVolume(S_NoiseThinker_t* a_Origin, sfxid_t sound_id, int volume);
 void S_StartSoundName(S_NoiseThinker_t* a_Origin, char* soundname);
 void S_StopSound(S_NoiseThinker_t* a_Origin);
 int S_SoundPlaying(S_NoiseThinker_t* a_Origin, int id);
@@ -108,7 +110,7 @@ void S_SetMusicVolume(int volume);
 void S_SetSfxVolume(int volume);
 void Command_SoundReset_f(void);
 
-int S_SoundIDForName(const char* const a_Name);
+sfxid_t S_SoundIDForName(const char* const a_Name);
 
 #endif							/* __S_SOUND_H__ */
 

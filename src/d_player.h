@@ -252,6 +252,9 @@ typedef struct player_s
 	int32_t TotalFrags;							// Total kills
 	int32_t TotalDeaths;						// Total deaths
 	uint32_t FraggerID;							// Fragger ID
+	
+	// Load prevention
+	tic_t SuicideDelay;							// Prevent suicides until after
 } player_t;
 
 //

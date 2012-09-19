@@ -68,7 +68,7 @@ typedef struct S_SoundChannel_s
 	fixed_t ChanVolume[16];		// Per channel volume
 	WX_WADEntry_t* Entry;		// WAD entry being played
 	void* Data;					// Sound data being played
-	int SoundID;				// Sound being played
+	sfxid_t SoundID;			// Sound being played
 	int Priority;				// Priority of the sound being played
 	int BasePriority;			// Priority of the original sound
 	bool_t Used;				// Channel is being used
@@ -415,7 +415,7 @@ void S_StopChannel(const uint32_t a_Channel)
 
 /* S_SoundPlaying() -- Checks whether a sound is being played by the object */
 // Returns the current channel + 1
-int S_SoundPlaying(S_NoiseThinker_t* a_Origin, int id)
+int S_SoundPlaying(S_NoiseThinker_t* a_Origin, sfxid_t id)
 {
 	size_t i;
 	
@@ -448,7 +448,7 @@ int S_SoundPlaying(S_NoiseThinker_t* a_Origin, int id)
 void S_UpdateSingleChannel(S_SoundChannel_t* const a_Channel, S_NoiseThinker_t* const a_Listen, S_NoiseThinker_t* const a_Emit, const fixed_t a_Dist);
 
 /* S_StartSoundAtVolume() -- Starts playing a sound */
-void S_StartSoundAtVolume(S_NoiseThinker_t* a_Origin, int sound_id, int volume)
+void S_StartSoundAtVolume(S_NoiseThinker_t* a_Origin, sfxid_t sound_id, int volume)
 {
 #define BUFSIZE 24
 	char Buf[BUFSIZE];
@@ -587,7 +587,7 @@ void S_StartSoundAtVolume(S_NoiseThinker_t* a_Origin, int sound_id, int volume)
 }
 
 /* S_StartSound() -- Play a sound at full volume */
-void S_StartSound(S_NoiseThinker_t* a_Origin, int sound_id)
+void S_StartSound(S_NoiseThinker_t* a_Origin, sfxid_t sound_id)
 {
 	/* Check */
 	if (!l_SoundOK)
@@ -1221,9 +1221,9 @@ void S_FreeSfx(sfxinfo_t* sfx)
 
 /* S_SoundIDForName() -- Return sound ID for sound name */
 // TODO FIXME: Speed this up
-int S_SoundIDForName(const char* const a_Name)
+sfxid_t S_SoundIDForName(const char* const a_Name)
 {
-	size_t i;
+	sfxid_t i;
 	
 	/* Check */
 	if (!a_Name)

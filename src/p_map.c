@@ -1752,7 +1752,7 @@ bool_t PTR_ShootTraverse(intercept_t* in, void* a_Data)
 	P_LineAtkArgs_t* Args = a_Data;
 	
 	/* Get Player */
-	if (shootthing)
+	if (shootthing && (shootthing->RXFlags[0] & MFREXA_ISPLAYEROBJECT))
 		Player = shootthing->player;
 	else
 		Player = NULL;
