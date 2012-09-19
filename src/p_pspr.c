@@ -160,6 +160,10 @@ void P_BringUpWeapon(player_t* player)
 	/* Check */
 	if (!player)
 		return;
+	
+	/* No Info? */
+	if (!player->weaponinfo)
+		return;
 		
 	if (player->pendingweapon == wp_nochange)
 		player->pendingweapon = player->readyweapon;

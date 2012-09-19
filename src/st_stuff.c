@@ -566,7 +566,9 @@ static void STS_DrawPlayerBarEx(const size_t a_PID, const int32_t a_X, const int
 	
 	/* Obtain some info */
 	ReadyWeapon = DisplayP->readyweapon;
-	AmmoType = DisplayP->weaponinfo[DisplayP->readyweapon]->ammo;
+	AmmoType = NUMAMMO;
+	if (DisplayP->weaponinfo)
+		AmmoType = DisplayP->weaponinfo[DisplayP->readyweapon]->ammo;
 	
 	/* Monster? */
 	IsMonster = false;
@@ -627,7 +629,7 @@ static void STS_DrawPlayerBarEx(const size_t a_PID, const int32_t a_X, const int
 		if (!IsMonster)
 		{
 			// Draw Icon
-			vi = V_ImageFindA((DisplayP->weaponinfo[ReadyWeapon]->SBOGraphic ? DisplayP->weaponinfo[ReadyWeapon]->SBOGraphic : "sboempty"), VCP_DOOM);
+			vi = V_ImageFindA((DisplayP->weaponinfo && DisplayP->weaponinfo[ReadyWeapon]->SBOGraphic ? DisplayP->weaponinfo[ReadyWeapon]->SBOGraphic : "sboempty"), VCP_DOOM);
 			if (vi)
 				V_ImageDraw(
 						0, vi,

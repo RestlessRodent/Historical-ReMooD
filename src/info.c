@@ -682,7 +682,11 @@ void INFO_StateNormalize(const size_t a_MergeBase, const size_t a_MergeCount)
 		
 		// Reference function
 		if (states[i]->Function)
+		{
 			states[i]->action = INFO_FunctionPtrByName(states[i]->Function);
+			Z_Free(states[i]->Function);
+			states[i]->Function = NULL;
+		}
 		
 		// Find next reference
 		if (states[i]->SimNext)
@@ -921,6 +925,9 @@ bool_t INFO_RMODStateHandlers(Z_Table_t* const a_Sub, void* const a_Data)
 typedef enum INFO_REMOODATValType_e
 {
 	IRVT_INT32,
+	IRVT_UINT32,
+	IRVT_FUNC,
+	IRVT_STRING,
 	
 	NUMINFOREMOODDATVALTYPES
 } INFO_REMOODATValType_t;
@@ -933,6 +940,7 @@ typedef struct INFO_REMOODATValEntry_s
 	const char* Name;							// Name of field
 	INFO_REMOODATValType_t Type;				// Type of value
 	size_t Offset;								// Offset to data
+	void (*Func)(void** const a_Data, struct INFO_REMOODATValEntry_s* a_ValEnt, const char* const a_Field, const char* const a_Value, void* const a_WriteP);
 } INFO_REMOODATValEntry_t;
 
 /* INFO_REMOODATKeyChain_t -- Keychain */
@@ -952,6 +960,33 @@ typedef struct INFO_REMOODATKeyChain_s
 
 /*** CONSTANTS ***/
 
+static const struct
+{
+	int8_t For;								// Kind it is for
+	INFO_ObjectStateGroup_t ID;				// ID
+	const char* Name;						// Name
+	size_t Offset;							// Offset
+} c_StateGroups[NUMSTATEGROUPS] =
+{
+	{0, IOSG_SPAWN, "SpawnState", offsetof(mobjinfo_t,spawnstate)},
+	{0, IOSG_ACTIVE, "ActiveState", offsetof(mobjinfo_t,seestate)},
+	{0, IOSG_PAIN, "PainState", offsetof(mobjinfo_t,painstate)},
+	{0, IOSG_MELEEATTACK, "MeleeAttackState", offsetof(mobjinfo_t,meleestate)},
+	{0, IOSG_RANGEDATTACK, "RangedAttackState", offsetof(mobjinfo_t,missilestate)},
+	{0, IOSG_CRASH, "CrashState", offsetof(mobjinfo_t,crashstate)},
+	{0, IOSG_DEATH, "DeathState", offsetof(mobjinfo_t,deathstate)},
+	{0, IOSG_GIB, "GibState", offsetof(mobjinfo_t,xdeathstate)},
+	{0, IOSG_RAISE, "RaiseState", offsetof(mobjinfo_t,raisestate)},
+	{0, IOSG_PLAYERRUN, "PlayerRunState", offsetof(mobjinfo_t,RPlayerRunState)},
+	{0, IOSG_PLAYERMELEE, "PlayerMeleeAttackState", offsetof(mobjinfo_t,RPlayerMeleeAttackState)},
+	{0, IOSG_PLAYERRANGED, "PlayerRangedAttackState", offsetof(mobjinfo_t,RPlayerRangedAttackState)},
+	{0, IOSG_VILEHEAL, "VileHealState", offsetof(mobjinfo_t,RVileHealState)},
+	{0, IOSG_LESSBLOODA, "LessLessBloodState", offsetof(mobjinfo_t,RLessBlood[0])},
+	{0, IOSG_LESSBLOODB, "LessMoreBloodState", offsetof(mobjinfo_t,RLessBlood[1])},
+	{0, IOSG_BRAINEXPLODE, "BrainExplodeState", offsetof(mobjinfo_t,RBrainExplodeState)},
+	{0, IOSG_MELEEPUFF, "MeleePuffState", offsetof(mobjinfo_t,RMeleePuffState)},
+};
+
 void* INFO_MobjInfoGrabEntry(void** const a_Data, const char* const a_Name);
 void* INFO_StateGrabEntry(void** const a_Data, const char* const a_Name);
 void* INFO_StEntryGrabEntry(void** const a_Data, const char* const a_Name);
@@ -959,7 +994,9 @@ void* INFO_StEntryGrabEntry(void** const a_Data, const char* const a_Name);
 // c_INFOMobjTables -- Object Tables
 static const INFO_REMOODATValEntry_t c_INFOMobjTables[] =
 {
+	{"-", IRVT_STRING, offsetof(mobjinfo_t, RClassName)},
 	{"DoomEdNum", IRVT_INT32, offsetof(mobjinfo_t, EdNum[COREGAME_DOOM])},
+	{"DehackEdID", IRVT_UINT32, offsetof(mobjinfo_t, RDehackEdID)},
 	
 	{NULL},
 };
@@ -970,9 +1007,17 @@ static const INFO_REMOODATValEntry_t c_INFOStateTables[] =
 	{NULL},
 };
 
+void INFO_FrameNextGoto(void** const a_Data, struct INFO_REMOODATValEntry_s* a_ValEnt, const char* const a_Field, const char* const a_Value, void* const a_WriteP);
+
 // c_INFOFrameTables -- State Frame Tables
 static const INFO_REMOODATValEntry_t c_INFOFrameTables[] =
 {
+	{"DehackEdID", IRVT_UINT32, offsetof(state_t, DehackEdID)},
+	{"Frame", IRVT_INT32, offsetof(state_t, frame)},
+	{"Tics", IRVT_INT32, offsetof(state_t, tics)},
+	{"Next", IRVT_FUNC, offsetof(state_t, SimNext), INFO_FrameNextGoto},
+	{"Goto", IRVT_FUNC, offsetof(state_t, SimNext), INFO_FrameNextGoto},
+	
 	{NULL},
 };
 
@@ -1001,6 +1046,7 @@ typedef struct INFO_DataStore_s
 	INFO_REMOODATKeyChain_t* CurrentKey;		// Current Key used
 	INFO_ObjectStateGroup_t StateGroup;			// State group operating on
 	mobjtype_t MoType;							// Object Type
+	uint32_t FrameFor;							// Frame fors
 	union
 	{
 		void* vP;								// Void pointer
@@ -1061,33 +1107,6 @@ void* INFO_StateGrabEntry(void** const a_Data, const char* const a_Name)
 	int32_t i;
 	int8_t WantedFor;
 	
-	static const struct
-	{
-		int8_t For;								// Kind it is for
-		INFO_ObjectStateGroup_t ID;				// ID
-		const char* Name;						// Name
-		size_t Offset;							// Offset
-	} c_StateGroups[NUMSTATEGROUPS] =
-	{
-		{0, IOSG_SPAWN, "SpawnState", offsetof(mobjinfo_t,spawnstate)},
-		{0, IOSG_ACTIVE, "ActiveState", offsetof(mobjinfo_t,seestate)},
-		{0, IOSG_PAIN, "PainState", offsetof(mobjinfo_t,painstate)},
-		{0, IOSG_MELEEATTACK, "MeleeAttackState", offsetof(mobjinfo_t,meleestate)},
-		{0, IOSG_RANGEDATTACK, "RangedAttackState", offsetof(mobjinfo_t,missilestate)},
-		{0, IOSG_CRASH, "CrashState", offsetof(mobjinfo_t,crashstate)},
-		{0, IOSG_DEATH, "DeathState", offsetof(mobjinfo_t,deathstate)},
-		{0, IOSG_GIB, "GibState", offsetof(mobjinfo_t,xdeathstate)},
-		{0, IOSG_RAISE, "RaiseState", offsetof(mobjinfo_t,raisestate)},
-		{0, IOSG_PLAYERRUN, "PlayerRunState", offsetof(mobjinfo_t,RPlayerRunState)},
-		{0, IOSG_PLAYERMELEE, "PlayerMeleeAttackState", offsetof(mobjinfo_t,RPlayerMeleeAttackState)},
-		{0, IOSG_PLAYERRANGED, "PlayerRangedAttackState", offsetof(mobjinfo_t,RPlayerRangedAttackState)},
-		{0, IOSG_VILEHEAL, "VileHealState", offsetof(mobjinfo_t,RVileHealState)},
-		{0, IOSG_LESSBLOODA, "LessLessBloodState", offsetof(mobjinfo_t,RLessBlood[0])},
-		{0, IOSG_LESSBLOODB, "LessMoreBloodState", offsetof(mobjinfo_t,RLessBlood[1])},
-		{0, IOSG_BRAINEXPLODE, "BrainExplodeState", offsetof(mobjinfo_t,RBrainExplodeState)},
-		{0, IOSG_MELEEPUFF, "MeleePuffState", offsetof(mobjinfo_t,RMeleePuffState)},
-	};
-	
 	/* Storage Pointer */
 	StorePP = a_Data;
 	if (StorePP)
@@ -1113,6 +1132,7 @@ void* INFO_StateGrabEntry(void** const a_Data, const char* const a_Name)
 	
 	/* Return reference to it */
 	This->StateGroup = c_StateGroups[i].ID;
+	This->FrameFor = WantedFor;
 	return (void*)(((uintptr_t)This->Parent->Cur.InfoP) + c_StateGroups[i].Offset);
 }
 
@@ -1138,7 +1158,14 @@ void* INFO_StEntryGrabEntry(void** const a_Data, const char* const a_Name)
 	/* Get Current IDs */
 	ObjectID = This->Parent->Parent->MoType;
 	IOSG = This->Parent->StateGroup;
-	FrameID = C_strtou32(a_Name, NULL, 10) - 1;
+	FrameID = C_strtou32(a_Name, NULL, 10);
+	
+	// Bad frame?
+	if (FrameID == 0)
+		return NULL;
+	
+	// Zero Correct
+	FrameID--;
 	
 	/* Go through all state tables for a match */
 	StateP = NULL;
@@ -1155,7 +1182,7 @@ void* INFO_StEntryGrabEntry(void** const a_Data, const char* const a_Name)
 	/* Not Found */
 	else
 	{
-		Z_ResizeArray((void**)states, sizeof(*states),
+		Z_ResizeArray((void**)&states, sizeof(*states),
 			NUMSTATES, NUMSTATES + 1);
 		StateP = states[NUMSTATES++] = Z_Malloc(sizeof(*StateP), PU_REMOODAT, NULL);
 		
@@ -1163,6 +1190,8 @@ void* INFO_StEntryGrabEntry(void** const a_Data, const char* const a_Name)
 		StateP->ObjectID = ObjectID;
 		StateP->IOSG = IOSG;
 		StateP->FrameID = FrameID;
+		StateP->Marker = ((uint32_t)StateP->IOSG) << UINT32_C(16);
+		StateP->Marker |= ((uint32_t)StateP->FrameID) & UINT32_C(0xFFFF);
 	}
 	
 	/* Frame is zero and reference not set? */
@@ -1172,6 +1201,75 @@ void* INFO_StEntryGrabEntry(void** const a_Data, const char* const a_Name)
 	
 	/* Return pointer */
 	return StateP;
+}
+
+/* INFO_FrameNextGoto() -- Determine frame to go to */
+void INFO_FrameNextGoto(void** const a_Data, struct INFO_REMOODATValEntry_s* a_ValEnt, const char* const a_Field, const char* const a_Value, void* const a_WriteP)
+{
+	INFO_DataStore_t** StorePP;
+	INFO_DataStore_t* This;
+	uint8_t IOSG, For;
+	uint32_t FrameID, ObjectID;
+	int32_t i;
+	
+	/* Storage Pointer */
+	StorePP = a_Data;
+	if (StorePP)
+		This = *StorePP;
+	
+	/* Determine Base */
+	ObjectID = This->Parent->Parent->MoType;
+	IOSG = This->Parent->StateGroup;
+	FrameID = This->Cur.StateP->FrameID;
+	For = This->Parent->FrameFor;
+	
+	/* Goto? */
+	if (strcasecmp(a_Field, "Goto") == 0)
+	{
+		// Change IOSG
+		for (i = 0; i < NUMSTATEGROUPS; i++)
+			if (c_StateGroups[i].For == For)
+				if (strcasecmp(c_StateGroups[i].Name, a_Value) == 0)
+				{
+					IOSG = c_StateGroups[i].ID;
+					break;
+				}
+		
+		// Use the first frame
+		FrameID = 1;
+	}
+	
+	/* Next? */
+	else if (strcasecmp(a_Field, "Next") == 0)
+	{
+		// Change Frame
+		FrameID = C_strtou32(a_Value, NULL, 10);
+	}
+	
+	/* Unknown */
+	else
+		return;
+	
+	/* Going zero? */
+	if (!FrameID)
+	{
+		*((uint64_t*)a_WriteP) = 0;
+		return;
+	}
+	
+	/* Mod to zero */
+	FrameID--;
+	
+	/* Find Next */
+	// Build simulated next (SimNext)
+	*((uint64_t*)a_WriteP) = 0;
+	
+	// Group it belongs to and the wanted frame
+	*((uint64_t*)a_WriteP) = ((uint64_t)IOSG) << UINT64_C(16);
+	*((uint64_t*)a_WriteP) |= ((uint64_t)FrameID) & UINT64_C(0xFFFF);
+	
+	// Object
+	*((uint64_t*)a_WriteP) |= ((uint64_t)ObjectID) << UINT64_C(32);
 }
 
 /* INFO_REMOODATKeyer() -- Keyer for REMOODAT */
@@ -1209,6 +1307,13 @@ bool_t INFO_REMOODATKeyer(void** a_DataPtr, const int32_t a_Stack, const D_RMODC
 			
 			if (This->CurrentKey->GrabEntry)
 				This->Cur.vP = This->CurrentKey->GrabEntry(a_DataPtr, a_Value);
+			
+			// First table value is a -?
+			if (This->CurrentKey->Table)
+				if (This->CurrentKey->Table[0].Name)
+					if (strncasecmp("-", This->CurrentKey->Table[0].Name, 1) == 0)
+						INFO_REMOODATKeyer(a_DataPtr, a_Stack, DRC_DATA, This->CurrentKey->Table[0].Name, a_Value);
+			
 			return true;
 			
 			// Closing }
@@ -1251,7 +1356,23 @@ bool_t INFO_REMOODATKeyer(void** a_DataPtr, const int32_t a_Stack, const D_RMODC
 				{
 						// Integer
 					case IRVT_INT32:
-						*((uint32_t*)DataP) = C_strtoi32(a_Value, NULL, 10);
+						*((int32_t*)DataP) = C_strtoi32(a_Value, NULL, 10);
+						break;
+						
+						// Unsigned Integer
+					case IRVT_UINT32:
+						*((uint32_t*)DataP) = C_strtou32(a_Value, NULL, 10);
+						break;
+						
+						// String
+					case IRVT_STRING:
+						*((char**)DataP) = Z_StrDup(a_Value, PU_REMOODAT, NULL);
+						break;
+						
+						// Function
+					case IRVT_FUNC:
+						if (ValEnt->Func)
+							ValEnt->Func(a_DataPtr, ValEnt, a_Field, a_Value, DataP);
 						break;
 						
 						// Unknown
@@ -1268,6 +1389,8 @@ bool_t INFO_REMOODATKeyer(void** a_DataPtr, const int32_t a_Stack, const D_RMODC
 			
 			// Finalize
 		case DRC_FINAL:
+			// Normalize all states
+			INFO_StateNormalize(0, NUMSTATES);
 			return true;
 			
 			// First Time
