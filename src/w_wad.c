@@ -183,6 +183,7 @@ static int WLS_MultiCom(const uint32_t a_ArgC, const char** const a_ArgV)
 		memset(WArray, 0, sizeof(WArray));
 		
 		// First pop all WADs
+		i = 0;
 		while ((WAD = WL_PopWAD()))
 			if (i < POPARRAY - 1)
 				WArray[i++] = WAD;

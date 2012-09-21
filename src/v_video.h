@@ -234,6 +234,8 @@ typedef enum
 	/* Aliases */
 	VFONT_SMALL,				// Doom, Heretic, Hexen, and Strife (alias to VFONT_SMALL_x)
 	VFONT_LARGE,				// Doom, Heretic, Hexen, and Strife (alias to VFONT_LARGE_x)
+
+	VFONT_LASTALIAS = VFONT_LARGE,
 	
 	/* Real Fonts */
 	VFONT_STATUSBARSMALL,		// Defined by Doom

@@ -1729,6 +1729,8 @@ typedef struct V_UniChar_s
 	
 	struct V_UniChar_s* Chain;	// Chain link
 	bool_t Linked;				// Linked in chain
+	bool_t DoNotFree;			// Do not free
+	int32_t RefCount;			// Reference Count
 } V_UniChar_t;
 
 /* V_LocalFontStuff_t -- Info for a font in WAD */
@@ -2117,7 +2119,7 @@ static V_UniChar_t* VS_AddCharacter(const bool_t a_Local, V_LocalFontStuff_t* co
 		
 		// Check to see if the local stuff has the super structure
 		if (!a_LocalStuff->CGroups[a_Font])
-			a_LocalStuff->CGroups[a_Font] = Z_Malloc(sizeof(*a_LocalStuff->CGroups[a_Font]) * 256, PU_STATIC, (void**)&a_LocalStuff->CGroups[a_Font]);
+			a_LocalStuff->CGroups[a_Font] = Z_Malloc(sizeof(*a_LocalStuff->CGroups[a_Font]) * 256, PU_FONTCHARS, (void**)&a_LocalStuff->CGroups[a_Font]);
 		
 		// Find the master and slave index
 		Master = (a_Hex & 0xFF00) >> 8;
@@ -2125,7 +2127,7 @@ static V_UniChar_t* VS_AddCharacter(const bool_t a_Local, V_LocalFontStuff_t* co
 		
 		// Check if the master is allocated for this group
 		if (!a_LocalStuff->CGroups[a_Font][Master])
-			a_LocalStuff->CGroups[a_Font][Master] = Z_Malloc(sizeof(*a_LocalStuff->CGroups[a_Font][Master]) * 256, PU_STATIC, (void**)&a_LocalStuff->CGroups[a_Font][Master]);
+			a_LocalStuff->CGroups[a_Font][Master] = Z_Malloc(sizeof(*a_LocalStuff->CGroups[a_Font][Master]) * 256, PU_FONTCHARS, (void**)&a_LocalStuff->CGroups[a_Font][Master]);
 		
 		// Get slave
 		CharP = &a_LocalStuff->CGroups[a_Font][Master][Slave];
@@ -2191,7 +2193,7 @@ static V_UniChar_t* VS_AddCharacter(const bool_t a_Local, V_LocalFontStuff_t* co
 			
 		// See if the super structure needs creation
 		if (!l_CGroups[a_Font])
-			l_CGroups[a_Font] = Z_Malloc(sizeof(*l_CGroups[a_Font]) * 256, PU_STATIC, NULL);
+			l_CGroups[a_Font] = Z_Malloc(sizeof(*l_CGroups[a_Font]) * 256, PU_FONTCHARS, NULL);
 		
 		// Find the master and slave index
 		Master = (a_Hex & 0xFF00) >> 8;
@@ -2199,7 +2201,7 @@ static V_UniChar_t* VS_AddCharacter(const bool_t a_Local, V_LocalFontStuff_t* co
 		
 		// Allocate master if needed
 		if (!l_CGroups[a_Font][Master])
-			l_CGroups[a_Font][Master] = Z_Malloc(sizeof(*l_CGroups[a_Font][Master]) * 256, PU_STATIC, NULL);
+			l_CGroups[a_Font][Master] = Z_Malloc(sizeof(*l_CGroups[a_Font][Master]) * 256, PU_FONTCHARS, NULL);
 		
 		// If not set, increment count
 		if (!l_CGroups[a_Font][Master][Slave])
@@ -2207,6 +2209,9 @@ static V_UniChar_t* VS_AddCharacter(const bool_t a_Local, V_LocalFontStuff_t* co
 		
 		// Set slave pointer to the character being added
 		l_CGroups[a_Font][Master][Slave] = a_CharP;
+		
+		// Increase Reference Count
+		a_CharP->RefCount++;
 			
 		// Return self on success
 		return a_CharP;
@@ -2246,7 +2251,7 @@ static bool_t VS_FontPDCCreate(const struct WL_WADFile_s* const a_WAD, const uin
 	
 	/* Create private data */
 	*a_SizePtr = sizeof(*FontStuff);
-	FontStuff = *a_DataPtr = Z_Malloc(*a_SizePtr, PU_STATIC, NULL);
+	FontStuff = *a_DataPtr = Z_Malloc(*a_SizePtr, PU_FONTCHARS, NULL);
 	
 	/* Go through every single entry in a WAD */
 	for (i = 0; i < a_WAD->NumEntries; i++)
@@ -2378,13 +2383,28 @@ static bool_t VS_FontOCCB(const bool_t a_Pushed, const struct WL_WADFile_s* cons
 			for (i = 0; i < 256; i++)
 				if (l_CGroups[f][i])
 				{
+#if 0
 					// Clear slave groups
 					for (j = 0; j < 256; j++)
 						if (l_CGroups[f][i][j])
-						{
-							Z_Free(l_CGroups[f][i][j]);
-							l_CGroups[f][i][j] = NULL;
-						}
+							if (!l_CGroups[f][i][j]->DoNotFree)
+							{
+								// Still being used?
+								if (--l_CGroups[f][i][j]->RefCount)
+									;	// Don't free it
+								
+								// Otherwise destroy it
+								else
+								{
+									if (l_CGroups[f][i][j]->Image)
+										V_ImageDestroy(l_CGroups[f][i][j]->Image);
+									l_CGroups[f][i][j]->Image = NULL;
+								
+									Z_Free(l_CGroups[f][i][j]);
+									l_CGroups[f][i][j] = NULL;
+								}
+							}
+#endif
 					
 					Z_Free(l_CGroups[f][i]);
 					l_CGroups[f][i] = NULL;
@@ -2439,7 +2459,7 @@ static bool_t VS_FontOCCB(const bool_t a_Pushed, const struct WL_WADFile_s* cons
 	else
 	{
 		// Allocate data
-		UTData = Z_Malloc(UTTT->Size + 5, PU_STATIC, NULL);
+		UTData = Z_Malloc(UTTT->Size + 5, PU_FONTCHARS, NULL);
 		WL_ReadData(UTTT, 0, UTData, UTTT->Size);
 		
 		// Get base pointer
@@ -2540,6 +2560,7 @@ static bool_t VS_FontOCCB(const bool_t a_Pushed, const struct WL_WADFile_s* cons
 							continue;
 				
 				// It does not, so add it
+				l_VSpace[f].DoNotFree = true;
 				if (VS_AddCharacter(false, NULL, NULL, v, f, 0, 0, &l_VSpace[f]))
 					Count++;
 			}

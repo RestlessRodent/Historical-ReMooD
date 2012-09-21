@@ -1464,7 +1464,6 @@ bool_t INFO_REMOODATKeyer(void** a_DataPtr, const int32_t a_Stack, const D_RMODC
 			Z_FreeTags(PU_REMOODAT, PU_REMOODAT);
 			
 			// Do other unsets, as needed
-			g_SprTouchSpecials = NULL;
 			NUMMOBJTYPES = 0;
 			mobjinfo = NULL;
 			sprnames = NULL;
@@ -1474,6 +1473,10 @@ bool_t INFO_REMOODATKeyer(void** a_DataPtr, const int32_t a_Stack, const D_RMODC
 			wpnlev1info = 0;
 			wpnlev2info = 0;
 			NUMWEAPONS = 0;
+			ammoinfo = NULL;
+			NUMAMMO = 0;
+			g_RMODNumTouchSpecials = 0;
+			g_RMODTouchSpecials = NULL;
 			
 			// Create initial S_NULL
 			Z_ResizeArray((void**)&states, sizeof(*states),

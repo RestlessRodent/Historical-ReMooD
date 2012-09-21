@@ -57,6 +57,7 @@ typedef enum Z_MemoryTag_e
 	PU_BOTS,									// Bot Stuff
 	
 	PU_REMOODAT,								// ReMooD Data
+	PU_FONTCHARS,								// Font Characters
 	
 	PU_WLDKRMOD,								// WAD Level
 	PU_SOUND,
