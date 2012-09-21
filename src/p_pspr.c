@@ -186,11 +186,7 @@ void P_BringUpWeapon(player_t* player)
 	P_SetPsprite(player, ps_weapon, newstate);
 }
 
-//
-// P_CheckAmmo
-// Returns true if there is enough ammo to shoot.
-// If not, selects the next weapon to use.
-//
+/* P_CheckAmmo() -- Returns true if there is enough ammo to shoot. If not, selects the next weapon to use. */
 bool_t P_CheckAmmo(player_t* player)
 {
 	ammotype_t ammo;
@@ -198,8 +194,10 @@ bool_t P_CheckAmmo(player_t* player)
 	size_t i;
 	weapontype_t BestWeapon;
 	
+	/* get ammo type */
 	ammo = player->weaponinfo[player->readyweapon]->ammo;
 	
+	/* Early infinite ammo out */
 	if (P_XGSVal(PGS_PLINFINITEAMMO))
 		return true;
 		
@@ -211,8 +209,9 @@ bool_t P_CheckAmmo(player_t* player)
 	{
 		// Check all ammo types
 		for (i = 0; i < NUMAMMO; i++)
-			if (player->ammo[i] < count)
-				break;
+			if (!(ammoinfo[i]->Flags & AF_INFINITE))
+				if (player->ammo[i] < count)
+					break;
 		
 		// Enough ammo?
 		if (i >= NUMAMMO)
@@ -221,7 +220,8 @@ bool_t P_CheckAmmo(player_t* player)
 	
 	// Some do not need ammunition anyway.
 	// Return if current ammunition sufficient.
-	else if (ammo == am_noammo || player->ammo[ammo] >= count)
+	else if (ammo == am_noammo || player->ammo[ammo] >= count ||
+		(ammoinfo[ammo]->Flags & AF_INFINITE))
 		return true;
 		
 	// Out of ammo, pick a weapon to change to.
@@ -374,8 +374,30 @@ void A_TicWeapon(mobj_t* mo, player_t* player, pspdef_t* psp, const INFO_StateAr
 /* P_ReduceAmmo() -- Reduces player ammo */
 void P_ReduceAmmo(player_t* player)
 {
-	if (!P_XGSVal(PGS_PLINFINITEAMMO))
-		player->ammo[player->weaponinfo[player->readyweapon]->ammo] -= player->weaponinfo[player->readyweapon]->ammopershoot;
+	bool_t AmTypeInfinite;
+	ammotype_t Ammo;
+	int32_t i;
+	
+	/* Check if the ammo type is infinite */
+	AmTypeInfinite = true;	// Always infinite (prevent bounds)
+	Ammo = player->weaponinfo[player->readyweapon]->ammo;
+	if (Ammo != am_noammo && Ammo >= 0 && Ammo < NUMAMMO)
+		if (!(ammoinfo[Ammo]->Flags & AF_INFINITE))
+			AmTypeInfinite = false;
+	
+	/* If not infinite ammo, and the ammo type is not infinite */
+	if (!P_XGSVal(PGS_PLINFINITEAMMO) && !AmTypeInfinite)
+		// Uses all ammo types
+		if (Ammo == am_all)
+			for (i = 0; i < NUMAMMO; i++)
+			{
+				if (!(ammoinfo[i]->Flags & AF_INFINITE))
+					player->ammo[i] -= player->weaponinfo[player->readyweapon]->ammopershoot;
+			}
+		
+		// Only a single ammo type
+		else
+			player->ammo[player->weaponinfo[player->readyweapon]->ammo] -= player->weaponinfo[player->readyweapon]->ammopershoot;
 }
 
 //
@@ -511,6 +533,9 @@ void A_Punch(mobj_t* mo, player_t* player, pspdef_t* psp, const INFO_StateArgsNu
 	int somemyangle = 0;
 	int someoffset = 0;
 	
+	// GhostlyDeath <September 21, 2012> -- Reduce ammo (possibly)
+	P_ReduceAmmo(player);
+	
 	PuffType = PS_GetPuffType(player);
 	damage = (P_Random() % 10 + 1) << 1;
 	
@@ -572,6 +597,9 @@ void A_Saw(mobj_t* mo, player_t* player, pspdef_t* psp, const INFO_StateArgsNum_
 	int damage;
 	int slope;
 	int i;
+	
+	// GhostlyDeath <September 21, 2012> -- Reduce ammo (possibly)
+	P_ReduceAmmo(player);
 	
 	PuffType = PS_GetPuffType(player);
 	damage = 2 * (P_Random() % 10 + 1);
