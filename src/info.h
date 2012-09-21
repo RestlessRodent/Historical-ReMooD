@@ -266,6 +266,7 @@ typedef struct
 	
 	INFO_BotObjMetric_t RBotMetric;				// Metric for bot
 	char* RSNiceName;							// Short Nice Name
+	uint32_t RQuickHash[2];						// Hash
 } mobjinfo_t;
 
 extern mobjinfo_t** mobjinfo;

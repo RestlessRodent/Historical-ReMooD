@@ -361,6 +361,8 @@ typedef enum P_RMODTouchSpecialFlags_e
 
 /*** STRUCTURES ***/
 
+typedef int32_t P_TouchNum_t;
+
 /* P_RMODTouchSpecial_t -- Special toucher for RMOD */
 typedef struct P_RMODTouchSpecial_s
 {
@@ -401,12 +403,13 @@ typedef struct P_RMODKey_s
 
 /*** GLOBALS ***/
 
-extern size_t g_RMODNumTouchSpecials;
+extern P_TouchNum_t g_RMODNumTouchSpecials;
 extern P_RMODTouchSpecial_t** g_RMODTouchSpecials;
 
 extern size_t g_RMODNumKeys;
 extern P_RMODKey_t** g_RMODKeys;
 
+P_TouchNum_t P_RMODTouchSpecialByString(const char* const a_String);
 P_RMODTouchSpecial_t* P_RMODTouchSpecialForSprite(const uint32_t a_SprNum);
 P_RMODTouchSpecial_t* P_RMODTouchSpecialForCode(const uint32_t a_Code);
 

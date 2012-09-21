@@ -45,6 +45,7 @@
 #include "p_pspr.h"
 #include "console.h"
 #include "m_random.h"
+#include "p_local.h"
 
 // Doesn't work with g++, needs actionf_p1
 void A_Light0();
@@ -677,6 +678,10 @@ void INFO_StateNormalize(const size_t a_MergeBase, const size_t a_MergeCount)
 		// State number here
 		states[i]->StateNum = i;
 		
+		// Calculate SpriteID
+		for (j = 0; j < 4 && states[i]->HoldSprite[j]; j++)
+			states[i]->SpriteID |= ((uint32_t)toupper(states[i]->HoldSprite[j])) << (j * UINT32_C(8));
+		
 		// Reference states and functions
 		states[i]->sprite = INFO_SpriteNumByName(states[i]->HoldSprite, true);
 		
@@ -1002,6 +1007,7 @@ void* INFO_StateGrabEntry(void** const a_Data, const char* const a_Name);
 void* INFO_StEntryGrabEntry(void** const a_Data, const char* const a_Name);
 void* INFO_WeaponGrabEntry(void** const a_Data, const char* const a_Name);
 void* INFO_AmmoGrabEntry(void** const a_Data, const char* const a_Name);
+void* INFO_TouchGrabEntry(void** const a_Data, const char* const a_Name);
 
 void INFO_MiscObjectGF(void** const a_Data, struct INFO_REMOODATValEntry_s* a_ValEnt, const char* const a_Field, const char* const a_Value, void* const a_WriteP);
 void INFO_ObjectPainChance(void** const a_Data, struct INFO_REMOODATValEntry_s* a_ValEnt, const char* const a_Field, const char* const a_Value, void* const a_WriteP);
@@ -1106,6 +1112,30 @@ static const INFO_REMOODATValEntry_t c_INFOAmmoTables[] =
 	{NULL},
 };
 
+void INFO_MiscTouchGF(void** const a_Data, struct INFO_REMOODATValEntry_s* a_ValEnt, const char* const a_Field, const char* const a_Value, void* const a_WriteP);
+
+// c_INFOTouchTables -- Ammo Tables
+static const INFO_REMOODATValEntry_t c_INFOTouchTables[] =
+{
+	{"-", IRVT_FUNC, 0, INFO_MiscTouchGF},
+	
+	{"Message", IRVT_FUNC, 0, INFO_MiscTouchGF},
+	
+	{"PickupSound", IRVT_STRING, offsetof(P_RMODTouchSpecial_t, PickupSnd)},
+	{"GiveWeapon", IRVT_STRING, offsetof(P_RMODTouchSpecial_t, GiveWeapon)},
+	{"GiveAmmo", IRVT_STRING, offsetof(P_RMODTouchSpecial_t, GiveAmmo)},
+	
+	{"ArmorClass", IRVT_INT32, offsetof(P_RMODTouchSpecial_t, ArmorClass)},
+	{"ArmorAmount", IRVT_INT32, offsetof(P_RMODTouchSpecial_t, ArmorAmount)},
+	{"HealthAmount", IRVT_INT32, offsetof(P_RMODTouchSpecial_t, HealthAmount)},
+	{"AmmoMul", IRVT_INT32, offsetof(P_RMODTouchSpecial_t, AmmoMul)},
+	{"MaxAmmoMul", IRVT_INT32, offsetof(P_RMODTouchSpecial_t, MaxAmmoMul)},
+	
+	{"?", IRVT_FUNC, 0, INFO_MiscTouchGF},
+	
+	{NULL},
+};
+
 void INFO_FrameNextGoto(void** const a_Data, struct INFO_REMOODATValEntry_s* a_ValEnt, const char* const a_Field, const char* const a_Value, void* const a_WriteP);
 void INFO_FrameMisc(void** const a_Data, struct INFO_REMOODATValEntry_s* a_ValEnt, const char* const a_Field, const char* const a_Value, void* const a_WriteP);
 
@@ -1152,6 +1182,10 @@ static const INFO_REMOODATKeyChain_t c_INFOChains[] =
 		NULL, NULL, 0, NULL,
 		0, 0, INFO_AmmoGrabEntry, 1,
 		4},
+	{"MapTouchSpecial", 1, c_INFOTouchTables,
+		NULL, NULL, 0, NULL,
+		0, 0, INFO_TouchGrabEntry, 1,
+		5},
 	
 	{NULL},
 };
@@ -1174,6 +1208,7 @@ typedef struct INFO_DataStore_s
 		state_t* StateP;						// State
 		weaponinfo_t* WeaponP;					// Weapon
 		ammoinfo_t* AmmoP;						// Ammo
+		P_RMODTouchSpecial_t* TouchP;			// Toucher
 	} Cur;										// Current pointer sets
 } INFO_DataStore_t;
 
@@ -1396,6 +1431,54 @@ void* INFO_AmmoGrabEntry(void** const a_Data, const char* const a_Name)
 			NUMAMMO, NUMAMMO + 1);
 		Ptr = ammoinfo[(Type = NUMAMMO++)] = Z_Malloc(sizeof(**ammoinfo), PU_REMOODAT, NULL);
 		Z_ChangeTag(ammoinfo, PU_REMOODAT);
+	}
+	
+	/* Set object type */
+	This->MoType = Type;
+	
+	/* Loading Screen */
+	CONL_EarlyBootTic(a_Name, true);
+	
+	/* Return pointer */
+	return Ptr;
+}
+
+/* INFO_TouchGrabEntry() -- Grab Toucher */
+void* INFO_TouchGrabEntry(void** const a_Data, const char* const a_Name)
+{
+	INFO_DataStore_t** StorePP;
+	INFO_DataStore_t* This;
+	P_TouchNum_t Type;
+	P_RMODTouchSpecial_t* Ptr;
+	
+	/* Storage Pointer */
+	StorePP = a_Data;
+	if (StorePP)
+		This = *StorePP;
+	
+	/* Do normal name lookup */
+	Type = P_RMODTouchSpecialByString(a_Name);
+	Ptr = NULL;
+	
+	/* Found? */
+	if (Type < g_RMODNumTouchSpecials)
+		Ptr = g_RMODTouchSpecials[Type];
+	
+	/* Not Found */
+	else
+	{
+		Z_ResizeArray((void**)&g_RMODTouchSpecials, sizeof(*g_RMODTouchSpecials),
+			g_RMODNumTouchSpecials, g_RMODNumTouchSpecials + 1);
+		Ptr = g_RMODTouchSpecials[(Type = g_RMODNumTouchSpecials++)] = Z_Malloc(sizeof(**g_RMODTouchSpecials), PU_REMOODAT, NULL);
+		Z_ChangeTag(g_RMODTouchSpecials, PU_REMOODAT);
+		
+		// Init
+		Ptr->ActSpriteNum = NUMSPRITES;
+		Ptr->ActGiveWeapon = NUMWEAPONS;
+		Ptr->ActGiveAmmo = NUMAMMO;
+		
+		Ptr->AmmoMul = 1;
+		Ptr->MaxAmmoMul = 1;
 	}
 	
 	/* Set object type */
@@ -1631,6 +1714,85 @@ void INFO_MiscAmmoGF(void** const a_Data, struct INFO_REMOODATValEntry_s* a_ValE
 			*Ref &= ~Bit;
 }
 
+/* INFO_MiscTouchGF() -- Misc Toucher Stuff */
+void INFO_MiscTouchGF(void** const a_Data, struct INFO_REMOODATValEntry_s* a_ValEnt, const char* const a_Field, const char* const a_Value, void* const a_WriteP)
+{
+	INFO_DataStore_t** StorePP;
+	INFO_DataStore_t* This;
+	P_RMODTouchSpecial_t* Touch;
+	bool_t SetFlag;
+	int32_t i, r;
+	
+	uint32_t Bit;
+	uint32_t* Ref;
+	
+	static const INFO_FlagInfo_t c_TouchFlags[] =
+	{
+		{PMTSF_KEEPNOTNEEDED, "IsKeepIfNotNeeded"},
+		{PMTSF_REMOVEALWAYS, "IsRemoveAlways"},
+		{PMTSF_MONSTERCANGRAB, "IsMonsterGrab"},
+		{PMTSF_DEVALUE, "IsDeValue"},
+		{PMTSF_CAPNORMSTAT, "IsCapNormStat"},
+		{PMTSF_CAPMAXSTAT, "IsCapMaxStat"},
+		{PMTSF_GREATERARMORCLASS, "IsGreaterArmorClass"},
+		{PMTSF_SETBACKPACK, "SetBackpack"},
+		
+		{0, NULL},
+	};
+	
+	/* Storage Pointer */
+	StorePP = a_Data;
+	if (StorePP)
+		This = *StorePP;
+	
+	/* Get Object */
+	Touch = This->Cur.TouchP;
+	
+	/* Changing Flags */
+	if (strcasecmp("?", a_ValEnt->Name) == 0)
+	{
+		// Determine flag change
+		SetFlag = INFO_BoolFromString(a_Value);
+	
+		// Find field
+		Bit = 0;
+		Ref = &Touch->Flags;
+	
+		// Find flag in flag fields
+		for (i = 0; c_TouchFlags[i].Name; i++)
+			if (strcasecmp(c_TouchFlags[i].Name, a_Field) == 0)
+			{
+				Bit = c_TouchFlags[i].Field;
+				break;
+			}
+	
+		// Bit found?, Either set or unset
+		if (Bit && Ref)
+			if (SetFlag)
+				*Ref |= Bit;
+			else
+				*Ref &= ~Bit;
+	}
+	
+	/* Changing Name? */
+	else if (strcasecmp("-", a_ValEnt->Name) == 0)
+		strncpy(Touch->SpriteName, a_Value, 4);
+	
+	/* Message? */
+	else if (strcasecmp("Message", a_ValEnt->Name) == 0)
+	{
+		// Locate i18n string
+		Touch->PickupMsgRef = DS_FindStringRef(a_Value);
+		
+		// Not found? Must be explicit
+		if (!Touch->PickupMsgRef)
+		{
+			Touch->PickupMsgFaked = Z_StrDup(a_Value, PU_REMOODAT, NULL);
+			Touch->PickupMsgRef = &Touch->PickupMsgFaked;
+		}
+	}
+}
+
 /* INFO_FrameNextGoto() -- Determine frame to go to */
 void INFO_FrameNextGoto(void** const a_Data, struct INFO_REMOODATValEntry_s* a_ValEnt, const char* const a_Field, const char* const a_Value, void* const a_WriteP)
 {
@@ -1762,6 +1924,7 @@ bool_t INFO_REMOODATKeyer(void** a_DataPtr, const int32_t a_Stack, const D_RMODC
 	INFO_REMOODATValEntry_t* ValEnt;
 	mobjinfo_t* ThisMT;
 	weaponinfo_t* ThisWep;
+	P_RMODTouchSpecial_t* ThisTC;
 	void* DataP;
 	int32_t i, j, k, l;
 	uint32_t RefToFind;
@@ -1981,6 +2144,11 @@ bool_t INFO_REMOODATKeyer(void** a_DataPtr, const int32_t a_Stack, const D_RMODC
 				if (!ThisMT)
 					continue;
 				
+				// Hash Name
+				ThisMT->RQuickHash[0] = Z_Hash(ThisMT->RClassName);
+				if (ThisMT->RMTName)
+					ThisMT->RQuickHash[1] = Z_Hash(ThisMT->RMTName);
+				
 				// Family object belongs to
 				if (ThisMT->RFamilyClass)
 				{
@@ -1995,6 +2163,44 @@ bool_t INFO_REMOODATKeyer(void** a_DataPtr, const int32_t a_Stack, const D_RMODC
 				else
 					ThisMT->RBaseFamily = ThisMT->ObjectID;
 			}
+			
+			// Touch Specials (not that trivial)
+			for (i = 0; i < g_RMODNumTouchSpecials; i++)
+			{
+				// Get
+				ThisTC = g_RMODTouchSpecials[i];
+				
+				// Missing?
+				if (!ThisTC)
+					continue;
+					
+				// Init Fields (they changed)
+				ThisTC->ActSpriteNum = NUMSPRITES;
+				ThisTC->ActGiveWeapon = NUMWEAPONS;
+				ThisTC->ActGiveAmmo = NUMAMMO;
+				
+				// Reference Weapon
+				if (ThisTC->GiveWeapon)
+				{
+					ThisTC->ActGiveWeapon = INFO_GetWeaponByName(ThisTC->GiveWeapon);
+					Z_Free(ThisTC->GiveWeapon);
+					ThisTC->GiveWeapon = NULL;
+				}
+				
+				// Reference Ammo
+				if (ThisTC->GiveAmmo)
+				{
+					ThisTC->ActGiveAmmo = INFO_GetAmmoByName(ThisTC->GiveAmmo);
+					Z_Free(ThisTC->GiveAmmo);
+					ThisTC->GiveAmmo = NULL;
+				}
+			
+				// Find sprite to map to
+				for (j = 0; j < 4 && ThisTC->SpriteName[j]; j++)
+					ThisTC->ActSpriteID |= ((uint32_t)toupper(ThisTC->SpriteName[j])) << (j * 8);
+			}
+			
+			// All-done!
 			return true;
 		
 		default:
@@ -2034,18 +2240,23 @@ mobjtype_t INFO_GetTypeByName(const char* const a_Name)
 	if (!a_Name)
 		return NUMMOBJTYPES;
 	
+	/* Hash String */
+	Hash = Z_Hash(a_Name);
+	
 	/* Go through class list */
 	// By Class Name
 	for (i = 0; i < NUMMOBJTYPES; i++)
 		if (mobjinfo[i]->RClassName)
-			if (strcasecmp(a_Name, mobjinfo[i]->RClassName) == 0)
-				return i;
+			if (!mobjinfo[i]->RQuickHash[0] || Hash == mobjinfo[i]->RQuickHash[0])
+				if (strcasecmp(a_Name, mobjinfo[i]->RClassName) == 0)
+					return i;
 			
 	// By MT Name
 	for (i = 0; i < NUMMOBJTYPES; i++)
 		if (mobjinfo[i]->RMTName)
-			if (strcasecmp(a_Name, mobjinfo[i]->RMTName) == 0)
-				return i;
+			if (!mobjinfo[i]->RQuickHash[1] || Hash == mobjinfo[i]->RQuickHash[1])
+				if (strcasecmp(a_Name, mobjinfo[i]->RMTName) == 0)
+					return i;
 	
 	/* Not found? */
 	return NUMMOBJTYPES;

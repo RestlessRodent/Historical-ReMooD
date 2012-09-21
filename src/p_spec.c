@@ -2422,7 +2422,7 @@ typedef struct P_RMODSpecials_s
 
 /*** GLOBALS ***/
 
-size_t g_RMODNumTouchSpecials = 0;
+P_TouchNum_t g_RMODNumTouchSpecials = 0;
 P_RMODTouchSpecial_t** g_RMODTouchSpecials = NULL;
 
 /*** FUNCTIONS ***/
@@ -2642,6 +2642,24 @@ bool_t P_RMODO_Specials(const bool_t a_Pushed, const struct WL_WADFile_s* const 
 	
 	/* Succes */
 	return true;
+}
+
+/* P_RMODTouchSpecialByString() -- Find touch special by string */
+P_TouchNum_t P_RMODTouchSpecialByString(const char* const a_String)
+{
+	P_TouchNum_t i;
+	
+	/* Check */
+	if (!a_String)
+		return g_RMODNumTouchSpecials;
+	
+	/* Go through list */
+	for (i = 0; i < g_RMODNumTouchSpecials; i++)
+		if (strncasecmp(a_String, g_RMODTouchSpecials[i]->SpriteName, 4) == 0)
+			return i;
+	
+	/* Not Found */
+	return g_RMODNumTouchSpecials;
 }
 
 /* P_RMODTouchSpecialForSprite() -- Find touch special via sprite */
