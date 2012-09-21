@@ -1001,6 +1001,7 @@ void* INFO_MobjInfoGrabEntry(void** const a_Data, const char* const a_Name);
 void* INFO_StateGrabEntry(void** const a_Data, const char* const a_Name);
 void* INFO_StEntryGrabEntry(void** const a_Data, const char* const a_Name);
 void* INFO_WeaponGrabEntry(void** const a_Data, const char* const a_Name);
+void* INFO_AmmoGrabEntry(void** const a_Data, const char* const a_Name);
 
 void INFO_MiscObjectGF(void** const a_Data, struct INFO_REMOODATValEntry_s* a_ValEnt, const char* const a_Field, const char* const a_Value, void* const a_WriteP);
 void INFO_ObjectPainChance(void** const a_Data, struct INFO_REMOODATValEntry_s* a_ValEnt, const char* const a_Field, const char* const a_Value, void* const a_WriteP);
@@ -1089,6 +1090,22 @@ static const INFO_REMOODATValEntry_t c_INFOWeaponTables[] =
 	{NULL},
 };
 
+void INFO_MiscAmmoGF(void** const a_Data, struct INFO_REMOODATValEntry_s* a_ValEnt, const char* const a_Field, const char* const a_Value, void* const a_WriteP);
+
+// c_INFOAmmoTables -- Ammo Tables
+static const INFO_REMOODATValEntry_t c_INFOAmmoTables[] =
+{
+	{"-", IRVT_STRING, offsetof(ammoinfo_t, ClassName)},
+	
+	{"ClipAmmo", IRVT_INT32, offsetof(ammoinfo_t, ClipAmmo)},
+	{"MaxAmmo", IRVT_INT32, offsetof(ammoinfo_t, MaxAmmo)},
+	{"StartingAmmo", IRVT_INT32, offsetof(ammoinfo_t, StartingAmmo)},
+	
+	{"?", IRVT_FUNC, 0, INFO_MiscAmmoGF},
+	
+	{NULL},
+};
+
 void INFO_FrameNextGoto(void** const a_Data, struct INFO_REMOODATValEntry_s* a_ValEnt, const char* const a_Field, const char* const a_Value, void* const a_WriteP);
 void INFO_FrameMisc(void** const a_Data, struct INFO_REMOODATValEntry_s* a_ValEnt, const char* const a_Field, const char* const a_Value, void* const a_WriteP);
 
@@ -1131,6 +1148,10 @@ static const INFO_REMOODATKeyChain_t c_INFOChains[] =
 		NULL, NULL, 0, NULL,
 		0, 0, INFO_WeaponGrabEntry, 1,
 		2},
+	{"MapAmmo", 1, c_INFOAmmoTables,
+		NULL, NULL, 0, NULL,
+		0, 0, INFO_AmmoGrabEntry, 1,
+		4},
 	
 	{NULL},
 };
@@ -1304,7 +1325,6 @@ void* INFO_StEntryGrabEntry(void** const a_Data, const char* const a_Name)
 	return StateP;
 }
 
-
 /* INFO_WeaponGrabEntry() -- Grabs weaponinfo_t */
 void* INFO_WeaponGrabEntry(void** const a_Data, const char* const a_Name)
 {
@@ -1340,6 +1360,46 @@ void* INFO_WeaponGrabEntry(void** const a_Data, const char* const a_Name)
 	
 	/* Set object type */
 	This->MoType = ~(Type + 1);
+	
+	/* Loading Screen */
+	CONL_EarlyBootTic(a_Name, true);
+	
+	/* Return pointer */
+	return Ptr;
+}
+
+/* INFO_AmmoGrabEntry() -- Grab Ammo */
+void* INFO_AmmoGrabEntry(void** const a_Data, const char* const a_Name)
+{
+	INFO_DataStore_t** StorePP;
+	INFO_DataStore_t* This;
+	ammotype_t Type;
+	ammoinfo_t* Ptr;
+	
+	/* Storage Pointer */
+	StorePP = a_Data;
+	if (StorePP)
+		This = *StorePP;
+	
+	/* Do normal name lookup */
+	Type = INFO_GetAmmoByName(a_Name);
+	Ptr = NULL;
+	
+	/* Found? */
+	if (Type < NUMAMMO)
+		Ptr = ammoinfo[Type];
+	
+	/* Not Found */
+	else
+	{
+		Z_ResizeArray((void**)&ammoinfo, sizeof(*ammoinfo),
+			NUMAMMO, NUMAMMO + 1);
+		Ptr = ammoinfo[(Type = NUMAMMO++)] = Z_Malloc(sizeof(**ammoinfo), PU_REMOODAT, NULL);
+		Z_ChangeTag(ammoinfo, PU_REMOODAT);
+	}
+	
+	/* Set object type */
+	This->MoType = Type;
 	
 	/* Loading Screen */
 	CONL_EarlyBootTic(a_Name, true);
@@ -1506,6 +1566,59 @@ void INFO_MiscWeaponGF(void** const a_Data, struct INFO_REMOODATValEntry_s* a_Va
 		if (strcasecmp(c_WeaponFlags[i].Name, a_Field) == 0)
 		{
 			Bit = c_WeaponFlags[i].Field;
+			break;
+		}
+	
+	/* Bit found? */
+	// Either set or unset
+	if (Bit && Ref)
+		if (SetFlag)
+			*Ref |= Bit;
+		else
+			*Ref &= ~Bit;
+}
+
+
+/* INFO_MiscWeaponGF() -- Weapon General Flags */
+void INFO_MiscAmmoGF(void** const a_Data, struct INFO_REMOODATValEntry_s* a_ValEnt, const char* const a_Field, const char* const a_Value, void* const a_WriteP)
+{
+	INFO_DataStore_t** StorePP;
+	INFO_DataStore_t* This;
+	ammoinfo_t* Amm;
+	bool_t SetFlag;
+	int32_t i, r;
+	
+	uint32_t Bit;
+	uint32_t* Ref;
+	
+	static const INFO_FlagInfo_t c_AmmoFlags[] =
+	{
+		{AF_INFINITE, "IsInfinite"},
+		
+		{0, NULL},
+	};
+	
+	/* Storage Pointer */
+	StorePP = a_Data;
+	if (StorePP)
+		This = *StorePP;
+	
+	/* Get Object */
+	Amm = This->Cur.AmmoP;
+	
+	/* Determine flag change */
+	SetFlag = INFO_BoolFromString(a_Value);
+	
+	/* Find field */
+	// Reset
+	Bit = 0;
+	Ref = &Amm->Flags;
+	
+	// Find flag in flag fields
+	for (i = 0; c_AmmoFlags[i].Name; i++)
+		if (strcasecmp(c_AmmoFlags[i].Name, a_Field) == 0)
+		{
+			Bit = c_AmmoFlags[i].Field;
 			break;
 		}
 	
