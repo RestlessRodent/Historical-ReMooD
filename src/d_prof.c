@@ -155,6 +155,10 @@ static const struct
 #undef QUICKDS
 };
 
+/*** GLOBALS ***/
+
+D_ProfileEx_t* g_KeyDefaultProfile = NULL;		// Profile with our key defaults
+
 /*** LOCALS ***/
 
 static D_ProfileEx_t* l_FirstProfile = NULL;	// First in chain
@@ -349,6 +353,10 @@ D_ProfileEx_t* D_CreateProfileEx(const char* const a_Name)
 		l_FirstProfile->Prev = New;
 		l_FirstProfile = New;
 	}
+	
+	/* Key defaults unset? */
+	if (!g_KeyDefaultProfile)
+		g_KeyDefaultProfile = New;
 	
 	/* Return the new one */
 	return New;

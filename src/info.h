@@ -264,7 +264,7 @@ typedef struct
 	char* RBloodSpewClass;						// Bleeds this class
 	char* RGenericMissile;						// Generic Monster Missile Attack
 	
-	INFO_BotObjMetric_t RBotMetric;				// Metric for bot
+	INFO_BotObjMetric_t BotMetric;				// Metric for bot
 	char* RSNiceName;							// Short Nice Name
 	uint32_t RQuickHash[2];						// Hash
 } mobjinfo_t;

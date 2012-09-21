@@ -1156,11 +1156,13 @@ static bool_t BS_GHOST_JOB_RandomNav(struct B_GhostBot_s* a_GhostBot, const size
 static bool_t BS_GHOST_JOB_ShootStuff(struct B_GhostBot_s* a_GhostBot, const size_t a_JobID)
 {
 #define CLOSEMOS 8
-	int32_t s, i, m;
+	int32_t s, i, m, BigTarg;
 	sector_t* CurSec;
 	mobj_t* Mo;
 	mobj_t* ListMos[CLOSEMOS];
 	int slope;
+	INFO_BotObjMetric_t GunMetric;
+	fixed_t Mod;
 	
 	/* Sleep Job */
 	a_GhostBot->Jobs[a_JobID].Sleep = gametic + (TICRATE >> 1);
@@ -1168,6 +1170,9 @@ static bool_t BS_GHOST_JOB_ShootStuff(struct B_GhostBot_s* a_GhostBot, const siz
 	/* Clear object list */
 	memset(ListMos, 0, sizeof(ListMos));
 	m = 0;
+	
+	/* Get metric of current gun */
+	GunMetric = a_GhostBot->Player->weaponinfo[a_GhostBot->Player->readyweapon]->BotMetric;
 	
 	/* Go through adjacent sectors */
 	// Get current sector
@@ -1222,6 +1227,9 @@ static bool_t BS_GHOST_JOB_ShootStuff(struct B_GhostBot_s* a_GhostBot, const siz
 		}
 	}
 	
+	/* Find most important object */
+	BigTarg = -1;
+	
 	/* Go through objects and update pre-existings */
 	for (i = 0; i < MAXBOTTARGETS; i++)
 		if (a_GhostBot->Targets[i].IsSet)
@@ -1235,12 +1243,34 @@ static bool_t BS_GHOST_JOB_ShootStuff(struct B_GhostBot_s* a_GhostBot, const siz
 					a_GhostBot->Targets[i].y = ListMos[s]->y;
 					a_GhostBot->Targets[i].Key = (uintptr_t)ListMos[s];
 					
+					// Based on metric, possibly move target location
+					if (GunMetric == INFOBM_SPRAYPLASMA)
+					{
+						// Modify X Value
+						Mod = BS_Random(a_GhostBot) - 128;
+						Mod = FixedMul(Mod << FRACBITS, INT32_C(1024));
+						Mod = FixedMul(Mod, FIXEDT_C(64));
+						a_GhostBot->Targets[i].x += Mod;
+						
+						// Modify Y Value
+						Mod = BS_Random(a_GhostBot) - 128;
+						Mod = FixedMul(Mod << FRACBITS, INT32_C(1024));
+						Mod = FixedMul(Mod, FIXEDT_C(48));
+						a_GhostBot->Targets[i].y += Mod;
+					}
+					
 					// Force Attacking
 					if (a_GhostBot->Player->pendingweapon < 0)
 						a_GhostBot->TicCmdPtr->Std.buttons |= BT_ATTACK;
 					
 					// Clear from current
 					ListMos[s] = NULL;
+					
+					// Big time target?
+					if (BigTarg == -1 ||
+						a_GhostBot->Targets[i].Priority >
+							a_GhostBot->Targets[BigTarg].Priority)
+						BigTarg = i;
 				}
 	
 	/* Put objects into the target list */
@@ -1260,11 +1290,41 @@ static bool_t BS_GHOST_JOB_ShootStuff(struct B_GhostBot_s* a_GhostBot, const siz
 				// Force Attacking
 				if (a_GhostBot->Player->pendingweapon < 0)
 					a_GhostBot->TicCmdPtr->Std.buttons |= BT_ATTACK;
-			
+				
+				// Big time target?
+				if (BigTarg == -1 ||
+					a_GhostBot->Targets[i].Priority >
+						a_GhostBot->Targets[BigTarg].Priority)
+					BigTarg = i;
+				
 				// Update List
 				s++;
 				break;
 			}
+	
+	/* Big time target? Move to it! */
+	if (BigTarg != -1)
+		switch (GunMetric)
+		{
+				// Melee Attack
+			case INFOBM_WEAPONMELEE:
+				// Make a movement target at the target spot
+				for (i = 0; i < MAXBOTTARGETS; i++)
+					if (!a_GhostBot->Targets[i].IsSet)
+					{
+						// Clone directly
+						a_GhostBot->Targets[i] = a_GhostBot->Targets[BigTarg];
+						
+						// Increase Priority and make it a move target
+						a_GhostBot->Targets[i].MoveTarget = true;
+						a_GhostBot->Targets[i].Priority = (a_GhostBot->Targets[i].Priority / 2) + 10;
+					}
+				break;
+				
+				// No Metric
+			default:
+				break;
+		}
 
 //static sector_t* (*l_BAdj)[MAXBGADJDEPTH] = NULL;	// Adjacent sector list
 //static size_t* l_BNumAdj = NULL;				// Number of adjacent sectors
@@ -1346,6 +1406,8 @@ void B_GHOST_Think(B_GhostBot_t* const a_GhostBot, ticcmd_t* const a_TicCmd)
 	size_t J, i, j;
 	int32_t MoveTarg, AttackTarg;
 	bool_t Blip;
+	INFO_BotObjMetric_t GunMetric;
+	fixed_t TargOff[2], TargDist;
 	
 	/* Check */
 	if (!a_GhostBot || !a_TicCmd)
@@ -1480,6 +1542,41 @@ void B_GHOST_Think(B_GhostBot_t* const a_GhostBot, ticcmd_t* const a_TicCmd)
 					AttackTarg = i;
 			}
 		}
+		
+			
+	/* Get metric of current gun */
+	GunMetric = a_GhostBot->Player->weaponinfo[a_GhostBot->Player->readyweapon]->BotMetric;
+	TargOff[0] = TargOff[1] = 0;
+	
+	// Special Metric?
+	if (AttackTarg != -1)
+	{
+		// Distance to target
+		TargDist = P_AproxDistance(
+				a_GhostBot->Player->mo->x - a_GhostBot->Targets[AttackTarg].x,
+				a_GhostBot->Player->mo->y - a_GhostBot->Targets[AttackTarg].y
+			);
+		
+		// Based on metric
+		switch (GunMetric)
+		{
+				// Inaccurate Plasma
+			case INFOBM_SPRAYPLASMA:
+				// Not too close
+				if (TargDist >= FIXEDT_C(192))
+					for (i = 0; i < 2; i++)
+						{
+							TargOff[i] = BS_Random(a_GhostBot) - 128;
+							TargOff[i] = FixedMul(TargOff[i] << FRACBITS, INT32_C(1024));
+							TargOff[i] = FixedMul(TargOff[i], FIXEDT_C(48));
+						}
+				break;
+			
+				// Un-Handled
+			default:
+				break;
+		}
+	}
 	
 	/* Commence Movement/Attacking? */
 	if (MoveTarg != -1 || AttackTarg != -1)
@@ -1496,7 +1593,13 @@ void B_GHOST_Think(B_GhostBot_t* const a_GhostBot, ticcmd_t* const a_TicCmd)
 		{
 			if (a_GhostBot->Player->pendingweapon < 0)
 				a_GhostBot->TicCmdPtr->Std.buttons |= BT_ATTACK;
-			a_GhostBot->TicCmdPtr->Std.angleturn = BS_PointsToAngleTurn(a_GhostBot->Mo->x, a_GhostBot->Mo->y, a_GhostBot->Targets[AttackTarg].x, a_GhostBot->Targets[AttackTarg].y);
+			a_GhostBot->TicCmdPtr->Std.angleturn =
+				BS_PointsToAngleTurn(
+						a_GhostBot->Mo->x,
+						a_GhostBot->Mo->y,
+						a_GhostBot->Targets[AttackTarg].x + TargOff[0],
+						a_GhostBot->Targets[AttackTarg].y + TargOff[1]
+					);
 		}
 		
 		// Dual movement
@@ -1506,7 +1609,8 @@ void B_GHOST_Think(B_GhostBot_t* const a_GhostBot, ticcmd_t* const a_TicCmd)
 			BS_MoveToAndAimAtFrom(
 					a_GhostBot->Mo->x, a_GhostBot->Mo->y,
 					a_GhostBot->Targets[MoveTarg].x, a_GhostBot->Targets[MoveTarg].y,
-					a_GhostBot->Targets[AttackTarg].x, a_GhostBot->Targets[AttackTarg].y,
+					a_GhostBot->Targets[AttackTarg].x + TargOff[0],
+					a_GhostBot->Targets[AttackTarg].y + TargOff[1],
 					&a_GhostBot->TicCmdPtr->Std.angleturn,
 					&a_GhostBot->TicCmdPtr->Std.forwardmove,
 					&a_GhostBot->TicCmdPtr->Std.sidemove

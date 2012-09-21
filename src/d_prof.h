@@ -60,6 +60,7 @@ typedef enum D_ProfileExFlags_e
 	DPEXF_PLAYING				= 0x00000004,	// Is playing the game
 	DPEXF_SLOWTURNING			= 0x00000008,	// Enables Slow Turning
 	DPEXF_DONTSAVE				= 0x00000010,	// Don't save in configs
+	DPEXF_DEFAULTKEYS			= 0x00000020,	// Default Keys here!
 } D_ProfileExFlags_t;
 
 /* D_ProfileExBotFlags_t -- Bot Flags */
@@ -206,6 +207,8 @@ typedef struct D_ProfileEx_s
 } D_ProfileEx_t;
 
 /*** GLOBALS ***/
+
+extern D_ProfileEx_t* g_KeyDefaultProfile;
 
 /*** FUNCTIONS ***/
 

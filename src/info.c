@@ -421,7 +421,6 @@ void* INFO_AmmoGrabEntry(void** const a_Data, const char* const a_Name);
 void* INFO_TouchGrabEntry(void** const a_Data, const char* const a_Name);
 
 void INFO_MiscObjectGF(void** const a_Data, struct INFO_REMOODATValEntry_s* a_ValEnt, const char* const a_Field, const char* const a_Value, void* const a_WriteP);
-void INFO_ObjectPainChance(void** const a_Data, struct INFO_REMOODATValEntry_s* a_ValEnt, const char* const a_Field, const char* const a_Value, void* const a_WriteP);
 
 // c_INFOMobjTables -- Object Tables
 static const INFO_REMOODATValEntry_t c_INFOMobjTables[] =
@@ -466,7 +465,8 @@ static const INFO_REMOODATValEntry_t c_INFOMobjTables[] =
 	{"AirGravity", IRVT_FIXED, offsetof(mobjinfo_t, RAirGravity)},
 	{"WaterGravity", IRVT_FIXED, offsetof(mobjinfo_t, RWaterGravity)},
 	
-	{"PainChance", IRVT_FUNC, 0, INFO_ObjectPainChance},
+	{"BotMetric", IRVT_FUNC, 0, INFO_MiscObjectGF},
+	{"PainChance", IRVT_FUNC, 0, INFO_MiscObjectGF},
 	{"?", IRVT_FUNC, 0, INFO_MiscObjectGF},
 	
 	{NULL},
@@ -503,6 +503,7 @@ static const INFO_REMOODATValEntry_t c_INFOWeaponTables[] =
 	
 	{"SpriteYOffset", IRVT_FIXED, offsetof(weaponinfo_t, PSpriteSY)},
 	
+	{"BotMetric", IRVT_FUNC, 0, INFO_MiscWeaponGF},
 	{"?", IRVT_FUNC, 0, INFO_MiscWeaponGF},
 	
 	{NULL},
@@ -912,6 +913,7 @@ void INFO_MiscObjectGF(void** const a_Data, struct INFO_REMOODATValEntry_s* a_Va
 	bool_t SetFlag;
 	int32_t i, r;
 	const INFO_FlagInfo_t* BaseArr;
+	fixed_t FixedVal;
 	
 	uint32_t Bit;
 	uint32_t* Ref;
@@ -924,86 +926,82 @@ void INFO_MiscObjectGF(void** const a_Data, struct INFO_REMOODATValEntry_s* a_Va
 	/* Get Object */
 	Obj = This->Cur.InfoP;
 	
-	/* Determine flag change */
-	SetFlag = INFO_BoolFromString(a_Value);
-	
-	/* Find field */
-	// Reset
-	Bit = 0;
-	Ref = NULL;
-	
-	// Find flag in flag fields
-	for (r = 0; r < 2 + NUMINFORXFIELDS; r++)
+	/* Metric? */
+	if (strcasecmp(a_Field, "BotMetric") == 0)
 	{
-		if (r == 0)
-		{
-			BaseArr = c_xFlags;
-			Ref = &Obj->flags;
-		}
-		else if (r == 1)
-		{
-			BaseArr = c_xFlagsTwo;
-			Ref = &Obj->flags2;
-		}
-		else if (r == 2)
-		{
-			BaseArr = c_xRXFlagsA;
-			Ref = &Obj->RXFlags[0];
-		}
-		else if (r == 3)
-		{
-			BaseArr = c_xRXFlagsB;
-			Ref = &Obj->RXFlags[1];
-		}
-		else
-			BaseArr = NULL;
-			
-		if (BaseArr)
-			for (i = 0; BaseArr[i].Name; i++)
-				if (strcasecmp(BaseArr[i].Name, a_Field) == 0)
-				{
-					Bit = BaseArr[i].Field;
-					r = 125;
-					break;
-				}
+		Obj->BotMetric = INFO_BotMetricByName(a_Value);
+		return;
 	}
 	
-	/* Bit found? */
-	// Either set or unset
-	if (Bit && Ref)
-		if (SetFlag)
-			*Ref |= Bit;
-		else
-			*Ref &= ~Bit;
-}
-
-/* INFO_ObjectPainChance() -- Pain chance of object */
-void INFO_ObjectPainChance(void** const a_Data, struct INFO_REMOODATValEntry_s* a_ValEnt, const char* const a_Field, const char* const a_Value, void* const a_WriteP)
-{
-	INFO_DataStore_t** StorePP;
-	INFO_DataStore_t* This;
-	mobjinfo_t* Obj;
-	fixed_t FixedVal;
+	/* Pain Chance? */
+	else if (strcasecmp(a_Field, "PainChance") == 0)
+	{
+		// Get Value
+		FixedVal = C_strtofx(a_Value, NULL);
 	
-	/* Storage Pointer */
-	StorePP = a_Data;
-	if (StorePP)
-		This = *StorePP;
+		// Cap value
+		if (FixedVal > FIXEDT_C(1))
+			FixedVal = FIXEDT_C(1);
+		else if (FixedVal < FIXEDT_C(-1))
+			FixedVal = FIXEDT_C(0);
 	
-	/* Get Object */
-	Obj = This->Cur.InfoP;
+		// Multiply by 255 to get it
+		Obj->painchance = FixedMul(FIXEDT_C(255), FixedVal) >> FRACBITS;
+	}
 	
-	/* Get Value */
-	FixedVal = C_strtofx(a_Value, NULL);
+	/* Determine flag change */
+	else
+	{
+		// Initialize with new value
+		SetFlag = INFO_BoolFromString(a_Value);
+		
+		// Reset
+		Bit = 0;
+		Ref = NULL;
 	
-	// Cap value
-	if (FixedVal > FIXEDT_C(1))
-		FixedVal = FIXEDT_C(1);
-	else if (FixedVal < FIXEDT_C(-1))
-		FixedVal = FIXEDT_C(0);
+		// Find flag in flag fields
+		for (r = 0; r < 2 + NUMINFORXFIELDS; r++)
+		{
+			if (r == 0)
+			{
+				BaseArr = c_xFlags;
+				Ref = &Obj->flags;
+			}
+			else if (r == 1)
+			{
+				BaseArr = c_xFlagsTwo;
+				Ref = &Obj->flags2;
+			}
+			else if (r == 2)
+			{
+				BaseArr = c_xRXFlagsA;
+				Ref = &Obj->RXFlags[0];
+			}
+			else if (r == 3)
+			{
+				BaseArr = c_xRXFlagsB;
+				Ref = &Obj->RXFlags[1];
+			}
+			else
+				BaseArr = NULL;
+			
+			if (BaseArr)
+				for (i = 0; BaseArr[i].Name; i++)
+					if (strcasecmp(BaseArr[i].Name, a_Field) == 0)
+					{
+						Bit = BaseArr[i].Field;
+						r = 125;
+						break;
+					}
+		}
 	
-	// Multiply by 255 to get it
-	Obj->painchance = FixedMul(FIXEDT_C(255), FixedVal) >> FRACBITS;
+		// Bit found? Either set or unset
+		if (Bit && Ref)
+			if (SetFlag)
+				*Ref |= Bit;
+			else
+				*Ref &= ~Bit;
+	}
 }
 
 /* INFO_MiscWeaponGF() -- Weapon General Flags */
@@ -1047,6 +1045,13 @@ void INFO_MiscWeaponGF(void** const a_Data, struct INFO_REMOODATValEntry_s* a_Va
 	
 	/* Get Object */
 	Wep = This->Cur.WeaponP;
+	
+	/* Metric? */
+	if (strcasecmp(a_Field, "BotMetric") == 0)
+	{
+		Wep->BotMetric = INFO_BotMetricByName(a_Value);
+		return;
+	}
 	
 	/* Determine flag change */
 	SetFlag = INFO_BoolFromString(a_Value);
