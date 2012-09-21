@@ -136,6 +136,12 @@ void A_GenericMonsterMissile();
 
 /*****************************************************************************/
 
+weaponinfo_t** wpnlev1info = NULL;
+weaponinfo_t** wpnlev2info = NULL;
+size_t NUMWEAPONS = 0;
+
+ammoinfo_t** ammoinfo = NULL;
+size_t NUMAMMO = 0;
 char** sprnames = NULL;
 void** g_SprTouchSpecials = NULL;				// Sprite touch special markers
 size_t NUMSPRITES = 0;
@@ -143,25 +149,10 @@ state_t** states = 0;
 size_t NUMSTATES = 0;
 mobjinfo_t** mobjinfo = NULL;
 mobjtype_t NUMMOBJTYPES = 0;
+P_TouchNum_t g_RMODNumTouchSpecials = 0;
+P_RMODTouchSpecial_t** g_RMODTouchSpecials = NULL;
 
 #define LOCALSTATEJUMPS						64	// Local State Jumping
-
-/* INFO_LocalObjects_t -- Local map objects */
-typedef struct INFO_LocalObjects_s
-{
-	// Actual map objects
-	mobjinfo_t** Objects;
-	size_t NumObjects;
-	
-	// States used by defined objects
-#if defined(__REMOOD_USEFLATTERSTATES)
-	state_t* ObjectStates;
-#else
-	state_t** ObjectStates;
-#endif
-	size_t NumObjectStates;
-	size_t MaxObjectStates;
-} INFO_LocalObjects_t;
 
 /* INFO_FlagInfo_t -- Flag Information */
 typedef struct INFO_FlagInfo_s
@@ -295,376 +286,7 @@ static const INFO_FlagInfo_t c_xRXFlagsB[] =
 	{0, NULL},
 };
 
-// c_ObjectLocalStates -- Object local states
-static const struct
-{
-	INFO_ObjectStateGroup_t IOSG;
-	const char* Name;
-	ptrdiff_t RefDiff;
-} c_ObjectLocalStates[] =
-{
-	{IOSG_SPAWN, "SpawnState", offsetof(mobjinfo_t,spawnstate)},
-	{IOSG_ACTIVE, "ActiveState", offsetof(mobjinfo_t,seestate)},
-	{IOSG_PAIN, "PainState", offsetof(mobjinfo_t,painstate)},
-	{IOSG_MELEEATTACK, "MeleeAttackState", offsetof(mobjinfo_t,meleestate)},
-	{IOSG_RANGEDATTACK, "RangedAttackState", offsetof(mobjinfo_t,missilestate)},
-	{IOSG_CRASH, "CrashState", offsetof(mobjinfo_t,crashstate)},
-	{IOSG_DEATH, "DeathState", offsetof(mobjinfo_t,deathstate)},
-	{IOSG_GIB, "GibState", offsetof(mobjinfo_t,xdeathstate)},
-	{IOSG_RAISE, "RaiseState", offsetof(mobjinfo_t,raisestate)},
-	{IOSG_PLAYERRUN, "PlayerRunState", offsetof(mobjinfo_t,RPlayerRunState)},
-	{IOSG_PLAYERMELEE, "PlayerMeleeAttackState", offsetof(mobjinfo_t,RPlayerMeleeAttackState)},
-	{IOSG_PLAYERRANGED, "PlayerRangedAttackState", offsetof(mobjinfo_t,RPlayerRangedAttackState)},
-	{IOSG_VILEHEAL, "VileHealState", offsetof(mobjinfo_t,RVileHealState)},
-	{IOSG_LESSBLOODA, "LessLessBloodState", offsetof(mobjinfo_t,RLessBlood[0])},
-	{IOSG_LESSBLOODB, "LessMoreBloodState", offsetof(mobjinfo_t,RLessBlood[1])},
-	{IOSG_BRAINEXPLODE, "BrainExplodeState", offsetof(mobjinfo_t,RBrainExplodeState)},
-	{IOSG_MELEEPUFF, "MeleePuffState", offsetof(mobjinfo_t,RMeleePuffState)},
-
-	{0, NULL, 0},
-};
-
-/* INFO_RMODObjectStateForName() -- Get information needed for state handling */
-static statenum_t* INFO_RMODObjectStateForName(void* const a_Input, const char* const a_Name, INFO_ObjectStateGroup_t* const IOSG, uint32_t** const a_RefState, uint32_t*** const a_LRefs, size_t* a_NumLRefs)
-{
-	mobjinfo_t* Object = a_Input;
-	size_t i;
-	
-	/* Check */
-	if (!a_Input || !a_Name)
-		return NULL;
-	
-	/* Go through list */
-	for (i = 0; c_ObjectLocalStates[i].Name; i++)
-		if (strcasecmp(a_Name, c_ObjectLocalStates[i].Name) == 0)
-		{
-			*IOSG = c_ObjectLocalStates[i].IOSG;
-			if (a_RefState)
-				*a_RefState = &Object->RefStates[*IOSG];
-			return (void*)(((uintptr_t)a_Input) + c_ObjectLocalStates[i].RefDiff);
-		}
-	
-	/* Not Found */
-	*IOSG = -1;
-	if (a_RefState)
-		*a_RefState = NULL;
-	return NULL;
-}
-
-/* INFO_RMODH_MapObjects() -- Parser for map objects */
-bool_t INFO_RMODH_MapObjects(Z_Table_t* const a_Table, const WL_WADFile_t* const a_WAD, const D_RMODPrivates_t a_ID, D_RMODPrivate_t* const a_Private)
-{
-	static uint32_t ObjectIDBase;
-	INFO_LocalObjects_t* LocalStuff;
-	INFO_RMODStateHelper_t Helper;
-	mobjinfo_t ThisObject;
-	size_t i;
-	const char* Value;
-	
-	/* Check */
-	if (!a_Table || !a_WAD || !a_Private)
-		return false;
-	
-	/* Init */
-	memset(&ThisObject, 0, sizeof(ThisObject));
-	
-	/* Create specials list */
-	// Does not exist
-	if (!a_Private->Data)
-	{
-		a_Private->Size = sizeof(*LocalStuff);
-		a_Private->Data = Z_Malloc(a_Private->Size, PU_WLDKRMOD, (void**)&a_Private->Data);
-	}
-	
-	// Get the local stuff
-	LocalStuff = a_Private->Data;
-	
-	/* Get ClassName */
-	Value = Z_TableName(a_Table);
-	
-	// Knock off #
-	Value = strchr(Value, '#');
-	
-	// Not found?
-	if (!Value)
-		return false;
-	
-	// Add 1 to remove #
-	Value++;
-	
-	/* Parse Objects */
-	// Class Name
-	ThisObject.RClassName = Z_StrDup(Value, PU_WLDKRMOD, NULL);
-	
-	// Early Boot Notice
-	if (g_EarlyBootConsole)
-		CONL_EarlyBootTic(Value, true);
-	
-	// String Values
-	ThisObject.RNiceName = D_RMODGetValueString(a_Table, "NiceName", ThisObject.RClassName);
-	ThisObject.RSNiceName = D_RMODGetValueString(a_Table, "ShortNiceName", ThisObject.RNiceName);
-	ThisObject.RMTName = D_RMODGetValueString(a_Table, "MTName", NULL);
-	ThisObject.RDropClass = D_RMODGetValueString(a_Table, "DropsClass", NULL);
-	ThisObject.RFamilyClass = D_RMODGetValueString(a_Table, "BaseFamily", NULL);
-	ThisObject.RBrainExplodeThing = D_RMODGetValueString(a_Table, "BrainExplodeClass", NULL);
-	ThisObject.RMissileSplat = D_RMODGetValueString(a_Table, "MissileSplat", NULL);
-	ThisObject.RBloodSplat = D_RMODGetValueString(a_Table, "BloodSplat", NULL);
-	ThisObject.RBloodSpewClass = D_RMODGetValueString(a_Table, "BloodSpewClass", NULL);
-	ThisObject.RGenericMissile = D_RMODGetValueString(a_Table, "GenericMissile", NULL);
-	
-	// Integer Values
-	ThisObject.EdNum[COREGAME_DOOM] = D_RMODGetValueInt(a_Table, "DoomEdNum", 0);
-	ThisObject.EdNum[COREGAME_HERETIC] = D_RMODGetValueInt(a_Table, "HereticEdNum", 0);
-	ThisObject.EdNum[COREGAME_HEXEN] = D_RMODGetValueInt(a_Table, "HexenEdNum", 0);
-	ThisObject.EdNum[COREGAME_STRIFE] = D_RMODGetValueInt(a_Table, "StrifeEdNum", 0);
-	
-	ThisObject.RDehackEdID = D_RMODGetValueInt(a_Table, "DeHackEdNum", 0);
-	ThisObject.spawnhealth = D_RMODGetValueInt(a_Table, "SpawnHealth", 0);
-	ThisObject.reactiontime = D_RMODGetValueInt(a_Table, "ReactionTime", 0);
-	ThisObject.mass = D_RMODGetValueInt(a_Table, "Mass", 0);
-	ThisObject.damage = D_RMODGetValueInt(a_Table, "Damage", 0);
-	ThisObject.RCapMissileDist = D_RMODGetValueInt(a_Table, "CapMissileDist", 0);
-	ThisObject.RMissileDist[0] = D_RMODGetValueInt(a_Table, "MinMissileDist", 0);
-	ThisObject.RMissileDist[1] = D_RMODGetValueInt(a_Table, "MaxMissileDist", 0);
-	
-	// Fixed Values
-	ThisObject.speed = D_RMODGetValueFixed(a_Table, "Speed", 0);
-	ThisObject.RFastSpeed = D_RMODGetValueFixed(a_Table, "FastSpeed", 0);
-	ThisObject.radius = D_RMODGetValueFixed(a_Table, "Radius", 0);
-	ThisObject.Height = D_RMODGetValueFixed(a_Table, "Height", 0);
-	ThisObject.OldHeight = D_RMODGetValueFixed(a_Table, "OldHeight", 0);
-	ThisObject.painchance = FixedMul(D_RMODGetValueFixed(a_Table, "PainChance", 0), (255 << FRACBITS)) >> FRACBITS;
-	ThisObject.RBounceFactor = D_RMODGetValueFixed(a_Table, "BounceFactor", (1 << FRACBITS));
-	
-	ThisObject.RAirGravity = D_RMODGetValueFixed(a_Table, "AirGravity", (1 << FRACBITS));
-	ThisObject.RWaterGravity = D_RMODGetValueFixed(a_Table, "WaterGravity", (1 << FRACBITS));
-	
-	// Sounds
-	ThisObject.RSeeSound = D_RMODGetValueString(a_Table, "WakeSound", NULL);;
-	ThisObject.RAttackSound = D_RMODGetValueString(a_Table, "AttackSound", NULL);;;
-	ThisObject.RPainSound = D_RMODGetValueString(a_Table, "PainSound", NULL);;;
-	ThisObject.RDeathSound = D_RMODGetValueString(a_Table, "DeathSound", NULL);;;
-	ThisObject.RActiveSound = D_RMODGetValueString(a_Table, "ActiveSound", NULL);;;
-	
-	// Flags (This is a huge up taking in time and speed)
-		// Normal Doom Flags
-	for (i = 0; c_xFlags[i].Name; i++)
-		if (D_RMODGetValueBool(a_Table, c_xFlags[i].Name, false))
-			ThisObject.flags |= c_xFlags[i].Field;
-		else
-			ThisObject.flags &= ~c_xFlags[i].Field;
-			
-		// Normal Heretic Flags + Legacy Ones
-	for (i = 0; c_xFlagsTwo[i].Name; i++)
-		if (D_RMODGetValueBool(a_Table, c_xFlagsTwo[i].Name, false))
-			ThisObject.flags2 |= c_xFlagsTwo[i].Field;
-		else
-			ThisObject.flags2 &= ~c_xFlagsTwo[i].Field;
-		
-		// ReMooD Extended Group A
-	for (i = 0; c_xRXFlagsA[i].Name; i++)
-		if (D_RMODGetValueBool(a_Table, c_xRXFlagsA[i].Name, false))
-			ThisObject.RXFlags[0] |= c_xRXFlagsA[i].Field;
-		else
-			ThisObject.RXFlags[0] &= ~c_xRXFlagsA[i].Field;
-		
-		// ReMooD Extended Group B
-	for (i = 0; c_xRXFlagsB[i].Name; i++)
-		if (D_RMODGetValueBool(a_Table, c_xRXFlagsB[i].Name, false))
-			ThisObject.RXFlags[1] |= c_xRXFlagsB[i].Field;
-		else
-			ThisObject.RXFlags[1] &= ~c_xRXFlagsB[i].Field;
-	
-	// Convert Color to Name
-	if ((Value = Z_TableGetValue(a_Table, "TranslationColor")))
-		// Find translation color
-		for (i = 0; i < MAXSKINCOLORS; i++)
-			if (strcasecmp(Value, Color_Names[i]) == 0)
-			{
-				ThisObject.flags |= ((((uint32_t)i) << MF_TRANSSHIFT) & MF_TRANSLATION);
-				break;
-			}
-		
-	// Bot Metrics
-	if ((Value = Z_TableGetValue(a_Table, "BotMetric")))
-		ThisObject.RBotMetric = INFO_BotMetricByName(Value);
-	
-	// Object ID (semi-unique)
-	ThisObject.ObjectID = (((uint32_t)(M_Random() & 0xFF)) | ((++ObjectIDBase) << 8));
-	
-	// States
-	memset(&Helper, 0, sizeof(Helper));
-		
-	Helper.StatesRef = &LocalStuff->ObjectStates;
-	Helper.NumStatesRef = &LocalStuff->NumObjectStates;
-	Helper.MaxStatesRef = &LocalStuff->MaxObjectStates;
-	Helper.StateForName = INFO_RMODObjectStateForName;
-	Helper.InputPtr = &ThisObject;
-	Helper.ObjectID = ThisObject.ObjectID;
-	
-	Z_TableSuperCallback(a_Table, INFO_RMODStateHandlers, (void*)&Helper);
-	
-	/* Add to end */
-	Z_ResizeArray((void**)&LocalStuff->Objects, sizeof(*LocalStuff->Objects), LocalStuff->NumObjects, LocalStuff->NumObjects + 1);
-	LocalStuff->Objects[LocalStuff->NumObjects] = Z_Malloc(sizeof(*LocalStuff->Objects[LocalStuff->NumObjects]), PU_WLDKRMOD, NULL);
-	memmove(LocalStuff->Objects[LocalStuff->NumObjects], &ThisObject, sizeof(ThisObject));
-	LocalStuff->NumObjects++;
-
-	/* Success! */
-	return true;
-}
-
 static state_t StaticSNull;
-
-/* INFO_RMODO_MapObjects() -- Order for map objects */
-bool_t INFO_RMODO_MapObjects(const bool_t a_Pushed, const struct WL_WADFile_s* const a_WAD, const D_RMODPrivates_t a_ID)
-{
-	INFO_LocalObjects_t* LocalStuff;
-	D_RMODPrivate_t* RMODPrivate;
-	const WL_WADFile_t* RoveWAD;
-	size_t i, j, k, z, Base, Count, MergeBase, MergeCount;
-	mobjtype_t FoundID;
-	mobjinfo_t* TempObject;
-	uint32_t ObjID, RefToFind;
-	statenum_t* StateRef;
-	
-	/* Reset */
-	MergeCount = 0;
-	MergeBase = (size_t)-1;
-	
-	/* Reset States */
-	// Clear old states
-	if (states)
-		Z_Free(states);
-	states = NULL;
-	NUMSTATES = 0;
-	
-	// Clear old sprites
-	if (sprnames)
-		Z_Free(sprnames);
-	sprnames = NULL;
-	NUMSPRITES = 0;
-	
-	/* Remove All Objects Pre-Defined */
-	if (mobjinfo)
-		Z_Free(mobjinfo);
-	mobjinfo = NULL;
-	NUMMOBJTYPES = 0;
-	
-	// Add first state, an S_NULL
-	Z_ResizeArray((void**)&states, sizeof(*states), NUMSTATES, NUMSTATES + 1);
-	states[NUMSTATES++] = &StaticSNull;
-	
-	/* Go through every WAD */
-	for (RoveWAD = WL_IterateVWAD(NULL, true); RoveWAD; RoveWAD = WL_IterateVWAD(RoveWAD, true))
-	{
-		// Obtain private menu stuff for this WAD
-		RMODPrivate = D_GetRMODPrivate(RoveWAD, a_ID);
-		
-		// Not found? Ignore this WAD then
-		if (!RMODPrivate)
-			continue;
-		
-		// Load menu stuff
-		LocalStuff = RMODPrivate->Data;
-		
-		// Not found?
-		if (!LocalStuff)
-			continue;
-		
-		// Add objects to the list, overwriting everything
-		for (i = 0; i < LocalStuff->NumObjects; i++)
-		{
-			// Get Current
-			TempObject = LocalStuff->Objects[i];
-			
-			// See if it already exists
-			FoundID = INFO_GetTypeByName(TempObject->RClassName);
-			
-			// Not found? Add to end
-			if (FoundID == NUMMOBJTYPES)
-			{
-				Z_ResizeArray((void**)&mobjinfo, sizeof(*mobjinfo), NUMMOBJTYPES, NUMMOBJTYPES + 1);
-				mobjinfo[NUMMOBJTYPES++] = TempObject;
-			}
-			
-			// Found, replace
-			else
-			{
-				// Replace here
-				mobjinfo[FoundID] = TempObject;
-			}
-		}
-		
-		// Push all states
-		if (LocalStuff->NumObjectStates)
-		{
-			Base = NUMSTATES;
-			Count = LocalStuff->NumObjectStates;
-			
-			if (MergeBase == (size_t)-1)
-			{
-				MergeBase = Base;
-				MergeCount = Count;
-			}
-			else
-				MergeCount += Count;
-			
-			// Resize array of states
-			Z_ResizeArray((void**)&states, sizeof(*states), NUMSTATES, NUMSTATES + Count);
-			NUMSTATES += Count;
-			
-			// Reference every single state
-			for (j = 0, i = Base; i < Base + Count; i++, j++)
-				states[i] = __REMOOD_REFSTATE(LocalStuff->ObjectStates[j]);
-		}
-	}
-	
-	/* Normalize Objects */
-	for (i = 0; i < NUMMOBJTYPES; i++)
-	{
-		// Get Current
-		TempObject = mobjinfo[i];
-		
-		// Dereference Classes
-		if (TempObject->RFamilyClass)
-			TempObject->RBaseFamily = INFO_GetTypeByName(TempObject->RFamilyClass);
-		
-		// Setup States
-		for (z = 0; z < NUMINFOOBJECTSTATEGROUPS; z++)
-			for (j = 0; c_ObjectLocalStates[j].Name; j++)
-				if (c_ObjectLocalStates[j].IOSG == z)
-				{
-					// Get pointer reference of state
-					StateRef = (statenum_t*)(((uintptr_t)TempObject) + c_ObjectLocalStates[j].RefDiff);
-					
-					// No Ref?
-					if (!StateRef)
-						continue;
-					
-					// The state we want (the first)
-					RefToFind = ((j & 0xFFFF) << 16) | 1;
-					
-					// Find states in merge bases
-					for (k = MergeBase; k < MergeBase + MergeCount; k++)
-						if (states[k]->ObjectID == TempObject->ObjectID)
-							if (states[k]->Marker == RefToFind)
-							{
-								*StateRef = k;
-								break;
-							}
-					
-					// Stop current loop and go to the upper loop
-					break;
-				}
-	}
-	
-	/* Normalize state references */
-	INFO_StateNormalize(MergeBase, MergeCount);
-	
-	/* Success! */
-	return true;
-}
 
 /* INFO_StateNormalize() -- Normalizes State References */
 void INFO_StateNormalize(const size_t a_MergeBase, const size_t a_MergeCount)
@@ -709,217 +331,6 @@ void INFO_StateNormalize(const size_t a_MergeBase, const size_t a_MergeCount)
 				}
 		}
 	}
-}
-
-/*** RMOD HELPERS ***/
-
-/* INFO_RMODInnerStateHandler() -- Inner state handlers */
-static bool_t INFO_RMODInnerStateHandler(Z_Table_t* const a_Sub, void* const a_Data)
-{
-	INFO_RMODStateHelper_t* HelperP = a_Data;
-	INFO_ObjectStateGroup_t IOSG;
-	const char* Value;
-	int CurFrameID;
-	state_t* StateP;
-	size_t i;
-	int32_t MarkerVal;
-	int32_t IntVal;
-	
-	/* Check */
-	if (!a_Sub || !a_Data)
-		return true;
-	
-	/* Retrive item name */
-	// Obtain
-	Value = Z_TableName(a_Sub);
-	
-	// Not a frame?
-	if (strncasecmp(Value, "frame#", 6) != 0)
-		return true;
-	
-	// Knock off #
-	Value = strchr(Value, '#');
-	
-	// Not found?
-	if (!Value)
-		return true;
-	
-	// Add 1 to remove #
-	Value++;
-	
-	// Convert to integer
-	CurFrameID = atoi(Value);
-	
-	/* Less than 1? invalid frame */
-	if (CurFrameID < 1)
-		return true;
-	
-	/* Add state frame to latest? */
-	// Determine marker value
-	MarkerVal = (HelperP->StateGroup << 16) | (CurFrameID & 0xFFFF);
-	
-	// Set group marker
-	*HelperP->StateSplasher = MarkerVal;
-	
-	// See if it already exists
-	StateP = NULL;
-	for (i = 0; i < (*HelperP->NumStatesRef); i++)
-		if (HelperP->ObjectID == __REMOOD_REFSTATE((*HelperP->StatesRef)[i])->ObjectID && MarkerVal == __REMOOD_REFSTATE((*HelperP->StatesRef)[i])->Marker)
-		{
-			StateP = __REMOOD_REFSTATE((*HelperP->StatesRef)[i]);
-			break;
-		}
-	
-	// Missing still?
-	if (!StateP)
-	{
-		// Max array too small?
-		if ((*HelperP->NumStatesRef) >= (*HelperP->MaxStatesRef))
-		{
-			Z_ResizeArray((void**)&(*HelperP->StatesRef), sizeof(*(*HelperP->StatesRef)), (*HelperP->MaxStatesRef), (*HelperP->MaxStatesRef) + LOCALSTATEJUMPS);
-			(*HelperP->MaxStatesRef) += LOCALSTATEJUMPS;
-		}
-		
-		// Place here
-#if defined(__REMOOD_USEFLATTERSTATES)
-		StateP = &((*HelperP->StatesRef)[(*HelperP->NumStatesRef)++]);
-#else
-		StateP = (*HelperP->StatesRef)[(*HelperP->NumStatesRef)++] = Z_Malloc(sizeof(*StateP), PU_WLDKRMOD, NULL);
-#endif
-	}
-	
-	/* Fill state with info */
-	// Remember marker for later uses
-	StateP->FrameID = CurFrameID;
-	StateP->Marker = MarkerVal;
-	StateP->ObjectID = HelperP->ObjectID;
-	StateP->IOSG = HelperP->StateGroup;
-	
-	// DeHackEd Support
-	StateP->DehackEdID = D_RMODGetValueInt(a_Sub, "DeHackEdNum", 0);
-	
-	// Get normal values
-	StateP->tics = D_RMODGetValueInt(a_Sub, "Tics", 0);
-	StateP->RMODFastTics = D_RMODGetValueInt(a_Sub, "FastTics", 0);
-	
-	// GhostlyDeath <April 28, 2012> -- To make DECORATE translation easier I
-	// have decided to add support for A-Z.
-	Value = Z_TableGetValue(a_Sub, "Frame");
-	
-	// Is it a letter?
-	if (Value)
-	{
-		if (toupper(Value[0]) >= 'A' && toupper(Value[1]) <= 'Z')
-			StateP->frame = toupper(Value[0]) - 'A';
-		else
-			StateP->frame = D_RMODGetValueInt(a_Sub, "Frame", 0);
-	}
-	
-	// Get booleans
-	if (D_RMODGetValueBool(a_Sub, "FullBright", false))
-		StateP->frame |= FF_FULLBRIGHT;
-	
-	// Get Sprite
-	Value = Z_TableGetValue(a_Sub, "Sprite");
-	
-	if (Value)
-		for (i = 0; i < 4 && Value[i]; i++)
-		{
-			StateP->HoldSprite[i] = Value[i];
-			StateP->SpriteID |= ((uint32_t)toupper(Value[i])) << (i * 8);
-		}
-		
-	// Get Priority
-	Value = Z_TableGetValue(a_Sub, "Priority");
-	
-	if (Value)
-		StateP->Priority = INFO_PriorityByName(Value);
-	
-	// Get Transparency
-	Value = Z_TableGetValue(a_Sub, "Transparency");
-	
-	if (Value)
-		StateP->frame |= (INFO_TransparencyByName(Value) << FF_TRANSSHIFT) & FF_TRANSMASK;
-		
-	// Get function
-	StateP->Function = D_RMODGetValueString(a_Sub, "Function", NULL);
-	
-	// Next?
-	Value = Z_TableGetValue(a_Sub, "Goto");
-	if (!Value)
-	{
-		// SimNext is squashed WeaponID and Marker
-		StateP->SimNext = HelperP->ObjectID;
-		StateP->SimNext <<= 32;
-		
-		// Determine marker
-		IntVal = D_RMODGetValueInt(a_Sub, "Next", 0);
-		
-		// 0 is S_NULL, otherwise...
-		if (IntVal <= 0)
-			StateP->SimNext = 0;
-		else
-			StateP->SimNext |= (HelperP->StateGroup << 16) | (IntVal & 0xFFFF);
-	}
-	
-	// Goto?
-	else
-	{
-		// Match string to group
-		if (HelperP->StateForName(HelperP->InputPtr, Value, &IOSG, NULL, NULL, NULL))
-		{
-			// Simulated Next is similar to above, but jumps to another group
-			StateP->SimNext = HelperP->ObjectID;
-			StateP->SimNext <<= 32;
-			StateP->SimNext |= (IOSG << 16) | 1;
-		}
-	}
-
-	/* Always return true */
-	return true;
-}
-
-/* INFO_RMODStateHandlers() -- State handler */
-bool_t INFO_RMODStateHandlers(Z_Table_t* const a_Sub, void* const a_Data)
-{
-	INFO_RMODStateHelper_t* HelperP = a_Data;
-	const char* Value;
-	
-	/* Check */
-	if (!a_Sub || !a_Data)
-		return true;
-	
-	/* Retrive item name */
-	// Obtain
-	Value = Z_TableName(a_Sub);
-	
-	// Not a state table?
-	if (strncasecmp(Value, "state#", 6) != 0)
-		return true;
-	
-	// Knock off #
-	Value = strchr(Value, '#');
-	
-	// Not found?
-	if (!Value)
-		return true;
-	
-	// Add 1 to remove #
-	Value++;
-	
-	/* Determine state value */
-	HelperP->StateValueP = HelperP->StateForName(HelperP->InputPtr, Value, &HelperP->StateGroup, &HelperP->StateSplasher, NULL, NULL);
-	HelperP->BaseStateNum = 0;
-	
-	// Something here? (Future reference state groups?)
-	if (!HelperP->StateValueP)
-		return true;
-	
-	/* Run through an inner inner state callback */
-	Z_TableSuperCallback(a_Sub, INFO_RMODInnerStateHandler, (void*)HelperP);
-
-	/* Keep Going */
-	return true;
 }
 
 /*****************************************************************************/
@@ -1041,6 +452,7 @@ static const INFO_REMOODATValEntry_t c_INFOMobjTables[] =
 	{"SpawnHealth", IRVT_INT32, offsetof(mobjinfo_t, spawnhealth)},
 	{"Mass", IRVT_INT32, offsetof(mobjinfo_t, mass)},
 	{"Damage", IRVT_INT32, offsetof(mobjinfo_t, damage)},
+	{"ReactionTime", IRVT_INT32, offsetof(mobjinfo_t, reactiontime)},
 	
 	{"Speed", IRVT_FIXED, offsetof(mobjinfo_t, speed)},
 	{"Radius", IRVT_FIXED, offsetof(mobjinfo_t, radius)},
@@ -2486,4 +1898,56 @@ INFO_BotObjMetric_t INFO_BotMetricByName(const char* const a_Name)
 	/* Unknown */
 	return INFOBM_DEFAULT;
 }
+
+
+/* P_RMODTouchSpecialByString() -- Find touch special by string */
+P_TouchNum_t P_RMODTouchSpecialByString(const char* const a_String)
+{
+	P_TouchNum_t i;
+	
+	/* Check */
+	if (!a_String)
+		return g_RMODNumTouchSpecials;
+	
+	/* Go through list */
+	for (i = 0; i < g_RMODNumTouchSpecials; i++)
+		if (strncasecmp(a_String, g_RMODTouchSpecials[i]->SpriteName, 4) == 0)
+			return i;
+	
+	/* Not Found */
+	return g_RMODNumTouchSpecials;
+}
+
+/* P_RMODTouchSpecialForSprite() -- Find touch special via sprite */
+P_RMODTouchSpecial_t* P_RMODTouchSpecialForSprite(const uint32_t a_SprNum)
+{
+	/* Check */
+	if (a_SprNum < 0 || a_SprNum >= NUMSPRITES)
+		return NULL;
+	
+	/* Return preknown array */
+	return g_SprTouchSpecials[a_SprNum];
+}
+
+/* P_RMODTouchSpecialForCode() -- Find touch special via code */
+P_RMODTouchSpecial_t* P_RMODTouchSpecialForCode(const uint32_t a_Code)
+{
+	size_t i;
+	P_RMODTouchSpecial_t* Current;
+	
+	/* Look through list */
+	for (i = 0; i < g_RMODNumTouchSpecials; i++)
+	{
+		// Get current
+		Current = g_RMODTouchSpecials[i];
+		
+		// Got it?
+		if (Current->ActSpriteID == a_Code)
+			return Current;
+	}
+	
+	/* Not Found */
+	return NULL;
+}
+
 

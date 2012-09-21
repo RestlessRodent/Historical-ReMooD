@@ -46,22 +46,6 @@
 *** CONSTANTS ***
 ****************/
 
-/* D_RMODPrivates_t -- RMOD Private info */
-typedef enum D_RMODPrivates_e
-{
-	/* Objects, Weapons, Ammo, etc. */
-	DRMODP_MAPOBJECT,							// "MapObject"
-	DRMODP_ITEMAMMO,							// "MapAmmo"
-		// MapWeapon needs states[NUMSTATES] to be initialized by MapObject
-	DRMODP_ITEMWEAPON,							// "MapWeapon"
-	
-	/* Specials */
-		// MapTouchSpecial needs weapons and ammo to be registered first
-	DRMODP_SPECTOUCH,							// "MapTouchSpecial"
-	
-	NUMDRMODPRIVATES
-} D_RMODPrivates_t;
-
 /* D_RMODCommand_t -- REMOODAT Command */
 typedef enum D_RMODCommand_e
 {
@@ -83,30 +67,11 @@ typedef enum D_RMODCommand_e
 
 typedef bool_t (*D_RMODKeyerFuncType_t)(void** a_DataPtr, const int32_t a_Stack, const D_RMODCommand_t a_Command, const char* const a_Field, const char* const a_Value);
 
-/* D_RMODPrivate_t -- RMOD Private Stuff */
-typedef struct D_RMODPrivate_s
-{
-	void* Data;									// Data
-	size_t Size;								// Size
-} D_RMODPrivate_t;
-
-typedef bool_t (*D_RMODHandleFunc_t)(Z_Table_t* const a_Table, const WL_WADFile_t* const a_WAD, const D_RMODPrivates_t a_ID, D_RMODPrivate_t* const a_Private);
-typedef bool_t (*D_RMODCleanerFunc_t)(Z_Table_t* const a_Table, const WL_WADFile_t* const a_WAD, const D_RMODPrivates_t a_ID, D_RMODPrivate_t* const a_Private);
-typedef bool_t (*D_RMODOCCBFunc_t)(const bool_t a_Pushed, const struct WL_WADFile_s* const a_WAD, const D_RMODPrivates_t a_ID);
-
 /*****************
 *** PROTOTYPES ***
 *****************/
 
 void D_InitRMOD(void);
-D_RMODPrivate_t* D_GetRMODPrivate(const WL_WADFile_t* const a_WAD, const D_RMODPrivates_t a_ID);
-
-bool_t D_RMODGetBool(const char* const a_Str);
-
-fixed_t D_RMODGetValueFixed(Z_Table_t* const a_Table, const char* const a_Value, const fixed_t a_MissingVal);
-int32_t D_RMODGetValueInt(Z_Table_t* const a_Table, const char* const a_Value, const int32_t a_MissingVal);
-bool_t D_RMODGetValueBool(Z_Table_t* const a_Table, const char* const a_Value, const bool_t a_MissingVal);
-char* D_RMODGetValueString(Z_Table_t* const a_Table, const char* const a_Value, const char* const a_MissingVal);
 
 #endif							/* __D_RMOD_H__ */
 

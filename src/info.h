@@ -271,37 +271,174 @@ typedef struct
 
 extern mobjinfo_t** mobjinfo;
 
+
+/* AMMO */
+
+typedef int32_t ammotype_t;
+
+#define wp_nochange				-1
+#define am_noammo				-1
+#define am_all					-2
+
+/* AmmoFlags_t -- Ammunition Flags */
+typedef enum AmmoFlags_e
+{
+	AF_INFINITE						= 0x0001,	// Infinite Ammo
+} AmmoFlags_t;
+
+/* ammoinfo_t -- Hold ammo information */
+typedef struct ammoinfo_s
+{
+	char* ClassName;							// Class name
+	int32_t ClipAmmo;							// Ammo in clip
+	int32_t MaxAmmo;							// Max ammo held
+	uint32_t Flags;								// Ammo Flags
+	int32_t StartingAmmo;						// Starting Ammo
+} ammoinfo_t;
+
+extern ammoinfo_t** ammoinfo;
+extern size_t NUMAMMO;
+
+/* WEAPON */
+
+typedef int32_t weapontype_t;
+
+/* WeaponFlags_t -- Flags for weapons */
+typedef enum WeaponFlags_e
+{
+	// Game bases
+	WF_ISDOOM					= 0x00000001,	// Weapon appears in Doom
+	WF_ISHERETIC				= 0x00000002,	// Weapon appears in Heretic
+	WF_ISHEXEN					= 0x00000004,	// Weapon appears in Hexen
+	WF_ISSTRIFE					= 0x00000008,	// Weapon appears in Strife
+	
+	// Visibility Status
+	WF_NOTSHAREWARE				= 0x00000010,	// Does not appear in shareware
+	WF_INCOMMERCIAL				= 0x00000020,	// Appears in commercial mode
+	WF_INREGISTERED				= 0x00000040,	// Appears in registered mode
+	
+	// Other
+	WF_BERSERKTOGGLE			= 0x00000080,	// Only accept least weapon when berserk
+	WF_SWITCHFROMNOAMMO			= 0x00000100,	// When player has 0 ammo, switch away!
+	WF_STARTINGWEAPON			= 0x00000200,	// Start with this gun
+	WF_NOAUTOFIRE				= 0x00000400,	// No automatic fire
+	WF_NOTHRUST					= 0x00000800,	// No thrusting the enemy
+	
+	WF_INEXTENDED				= 0x00001000,	// Appears in extended mode
+	WF_NOBLEEDTARGET			= 0x00002000,	// Do not bleed target
+	WF_SUPERWEAPON				= 0x00004000,	// Is a Super Weapon
+	WF_NONOISEALERT				= 0x00008000,	// Does not alert to noise
+} WeaponFlags_t;
+
+// Weapon info: sprite frames, ammunition use.
+typedef struct
+{
+	ammotype_t ammo;
+	int32_t ammopershoot;
+	statenum_t upstate;
+	statenum_t downstate;
+	statenum_t readystate;
+	statenum_t atkstate;
+	statenum_t holdatkstate;
+	statenum_t flashstate;
+	
+	// ReMooD Extended
+	int32_t DEHId;								// DeHackEd ID
+	char* DropWeaponClass;						// Thing to "drop" when a player dies
+	char* NiceName;								// Name of weapon (obit)
+	char* ClassName;							// Weapon class Name
+	int32_t SwitchOrder;						// Weapon switch order
+	int8_t SlotNum;								// Weapon slot number
+	uint32_t WeaponFlags;						// Flags for weapon
+	int32_t GetAmmo;							// Amount of ammo to pick up for this weapon
+	int32_t NoAmmoOrder;						// No Ammo Order
+	fixed_t PSpriteSY;							// PSprite offset
+	char* SBOGraphic;							// SBO Graphic
+	char* AmmoClass;							// Name of ammo to use
+	char* BringUpSound;							// Sound to play when brung up
+	char* IdleNoise;							// Noise when idling (chainsaw)
+	uint32_t WeaponID;							// Unique Weapon ID
+	uint32_t RefStates[NUMPWEAPONSTATEGROUPS];	// Reference States
+	char* ReplacePuffType;						// Replacement puff type (rather than default)
+	char* ReplaceFireSound;						// Replacement Fire Sound
+	char* GenericProjectile;					// Generic Projectile
+	char* TracerSplat;							// Splat when tracing
+	INFO_BotObjMetric_t BotMetric;				// Bot Metric
+	
+	// State References
+	statenum_t* FlashStates;					// Weapon flash states
+	size_t NumFlashStates;						// Number of flash states
+} weaponinfo_t;
+
+extern weaponinfo_t** wpnlev1info;
+extern weaponinfo_t** wpnlev2info;
+extern size_t NUMWEAPONS;
+
+/* TOUCHERS */
+
+typedef int32_t P_TouchNum_t;
+
+/* P_RMODTouchSpecialFlags_t -- Touch specials for flags */
+typedef enum P_RMODTouchSpecialFlags_e
+{
+	PMTSF_KEEPNOTNEEDED		= UINT32_C(0x0001),	// Keep when not needed
+	PMTSF_REMOVEALWAYS		= UINT32_C(0x0002),	// Remove always
+	PMTSF_MONSTERCANGRAB	= UINT32_C(0x0004),	// Monster can grab item
+	PMTSF_DEVALUE			= UINT32_C(0x0008),	// Allow devaluing
+	PMTSF_CAPNORMSTAT		= UINT32_C(0x0010),	// Cap to normal stats
+	PMTSF_CAPMAXSTAT		= UINT32_C(0x0020),	// Cap to max stats
+	PMTSF_GREATERARMORCLASS	= UINT32_C(0x0040),	// Use when armor class is better
+	PMTSF_SETBACKPACK		= UINT32_C(0x0080),	// Modify max ammo when !backpack
+} P_RMODTouchSpecialFlags_t;
+
+/* P_RMODTouchSpecial_t -- Special toucher for RMOD */
+typedef struct P_RMODTouchSpecial_s
+{
+	/* General */
+	char SpriteName[4];							// Name of sprite
+	char* PickupSnd;							// Sound to play when picked up
+	const char** PickupMsgRef;					// Message to print when picked up
+	const char* PickupMsgFaked;					// Faked pickup message
+	
+	/* Modifiers */
+	char* GiveWeapon;							// Weapon to give
+	char* GiveAmmo;								// Ammo to give
+	
+	/* Actual */
+	uint32_t Flags;								// Flags
+	spritenum_t ActSpriteNum;					// Sprite number to match
+	weapontype_t ActGiveWeapon;					// Actual weapon to give
+	ammotype_t ActGiveAmmo;						// Actual ammo to give
+	uint32_t ActSpriteID;						// Actual Sprite ID
+	
+	/* Health */
+	int8_t ArmorClass;							// Armor Class
+	int32_t ArmorAmount;						// Armor Amount
+	int32_t HealthAmount;						// Health Amount
+	
+	/* Weapons and Ammo */
+	int32_t AmmoMul;							// Ammo multiplier
+	int32_t MaxAmmoMul;							// Max ammo multiplier
+} P_RMODTouchSpecial_t;
+
+extern P_TouchNum_t g_RMODNumTouchSpecials;
+extern P_RMODTouchSpecial_t** g_RMODTouchSpecials;
+
+/* KEYS */
+
+/* P_RMODKey_t -- Key definition */
+typedef struct P_RMODKey_s
+{
+	uint32_t IDNum;								// ID Number
+	uint32_t BoomID;							// Boom ID
+	bool_t IsSkull;								// Is Skull Key
+} P_RMODKey_t;
+
+extern size_t g_RMODNumKeys;
+extern P_RMODKey_t** g_RMODKeys;
+
 /*** RMOD ***/
 
-bool_t INFO_RMODH_MapObjects(Z_Table_t* const a_Table, const WL_WADFile_t* const a_WAD, const D_RMODPrivates_t a_ID, D_RMODPrivate_t* const a_Private);
-bool_t INFO_RMODO_MapObjects(const bool_t a_Pushed, const struct WL_WADFile_s* const a_WAD, const D_RMODPrivates_t a_ID);
-
-// RMOD Helpers
-
-typedef statenum_t* (*INFO_RMODStateForNameFunc_t)(void* const a_Input, const char* const a_Name, INFO_ObjectStateGroup_t* const IOSG, uint32_t** const a_RefState, uint32_t*** const a_LRefs, size_t** a_NumLRefs);
-
-/* INFO_RMODStateHelper_t -- RMOD State Helper */
-typedef struct INFO_RMODStateHelper_s
-{
-	INFO_RMODStateForNameFunc_t StateForName;	// State for Name function
-
-	void* InputPtr;								// Input Pointer
-	uint32_t ObjectID;							// Object ID
-	uint32_t* StateSplasher;					// Splasher for states
-	INFO_ObjectStateGroup_t StateGroup;			// Current State Group
-	uint32_t* StateValueP;						// Reference State
-	
-#if defined(__REMOOD_USEFLATTERSTATES)
-	state_t** StatesRef;						// Reference to stored states
-#else
-	state_t*** StatesRef;						// Reference to stored states
-#endif
-	size_t* NumStatesRef;						// Reference to number of states
-	size_t* MaxStatesRef;						// Reference to max states
-	size_t BaseStateNum;						// Base state to start from
-} INFO_RMODStateHelper_t;
-
-bool_t INFO_RMODStateHandlers(Z_Table_t* const a_Sub, void* const a_Data);
 void INFO_StateNormalize(const size_t a_MergeBase, const size_t a_MergeCount);
 
 /*** HELPFUL FUNCTIONS ***/
@@ -313,6 +450,11 @@ actionf_t INFO_FunctionPtrByName(const char* const a_Name);
 int INFO_PriorityByName(const char* const a_Name);
 uint32_t INFO_TransparencyByName(const char* const a_Name);
 INFO_BotObjMetric_t INFO_BotMetricByName(const char* const a_Name);
+P_TouchNum_t P_RMODTouchSpecialByString(const char* const a_String);
+P_RMODTouchSpecial_t* P_RMODTouchSpecialForSprite(const uint32_t a_SprNum);
+P_RMODTouchSpecial_t* P_RMODTouchSpecialForCode(const uint32_t a_Code);
+weapontype_t INFO_GetWeaponByName(const char* const a_Name);
+ammotype_t INFO_GetAmmoByName(const char* const a_Name);
 
 /*** HELPFUL MACROS ***/
 // Yuck! TODO: Make these real functions
