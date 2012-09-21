@@ -2199,6 +2199,11 @@ void D_DoomMain(void)
 	SCR_SetDefaultMode();				// Screen Size
 	CONL_PrintF("I_StartupGraphics...\n");
 	I_StartupGraphics();
+	
+	// Make the console "started"
+	con_started = true;
+	
+	// Initialize Buffers
 	SCR_Startup();
 	SCR_ReclassBuffers();
 	g_EarlyBootConsole = true;
