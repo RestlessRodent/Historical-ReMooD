@@ -17045,6 +17045,7 @@ MapWeapon "Fist"
 	IsBerserkToggle "true";
 	IsSwitchFromNoAmmo "true";
 	IsStartingWeapon "true";
+	IsMelee "true";
 	
 	BotMetric "Melee";
 	
@@ -17997,6 +17998,7 @@ MapWeapon "Chainsaw"
 	BringUpSound "sawup";
 	NoThrust "true";
 	IdleNoise "sawidl";
+	IsMelee "true";
 	
 	BotMetric "Melee";
 	

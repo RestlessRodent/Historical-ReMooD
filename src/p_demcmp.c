@@ -850,6 +850,12 @@ static P_XGSVariable_t l_GSVars[PEXGSNUMBITIDS] =
 	{PEXGST_INTEGER, PGS_PLSUICIDEDELAY, "pl_suicidedelay", "Suicide Pill Delay",
 		"Time in seconds after allowing another suicide pill after consuming an existing suicide pill [ReMooD >= 1.0a].", PEXGSGM_ANY, PEXGSDR_NOCHECK, 0, {0, 3}, 3,
 		PEXGSMC_PLAYERS, PEXGSDA_TIMESECS, c_PEXGSPVPositive, NULL},
+		
+		
+	// GhostlyDeath <September 21, 2012> -- Spawn with only melee weapons
+	{PEXGST_INTEGER, PGS_PLSPAWNWITHMELEEONLY, "pl_spawnwithmeleeonly", "Spawn With Only Melee Weapons",
+		"When a player is spawned, they are only spawned with melee weapons.", PEXGSGM_ANY, PEXGSDR_NOCHECK, 0, {0, 1}, 0,
+		PEXGSMC_PLAYERS, PEXGSDA_YESNO, c_PEXGSPVBoolean, NULL},
 };
 
 /*** FUNCTIONS ***/

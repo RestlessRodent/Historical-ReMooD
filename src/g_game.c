@@ -1043,6 +1043,11 @@ void G_PlayerReborn(int player)
 			// Is this a starting weapon
 			if (p->weaponinfo[i]->WeaponFlags & WF_STARTINGWEAPON)
 			{
+				// Only starting with melee weapons
+				if (P_XGSVal(PGS_PLSPAWNWITHMELEEONLY))
+					if (!(p->weaponinfo[i]->WeaponFlags & WF_ISMELEE))
+						continue;
+				
 				// Set as owned
 				p->weaponowned[i] = true;
 				
@@ -1093,6 +1098,11 @@ void G_PlayerReborn(int player)
 		if (P_XGSVal(PGS_PLSPAWNWITHSUPERGUNS))
 			if ((p->weaponinfo[i]->WeaponFlags & WF_SUPERWEAPON))
 				p->weaponowned[i] |= Given |= true;
+		
+		// Melee Only Cancel?
+		if (P_XGSVal(PGS_PLSPAWNWITHMELEEONLY))
+			if (!(p->weaponinfo[i]->WeaponFlags & WF_ISMELEE))
+				p->weaponowned[i] = Given = false;
 		
 		// Gave something? Then give max ammo
 		if (Given)

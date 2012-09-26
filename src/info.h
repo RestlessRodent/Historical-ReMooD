@@ -328,6 +328,7 @@ typedef enum WeaponFlags_e
 	WF_NOBLEEDTARGET			= 0x00002000,	// Do not bleed target
 	WF_SUPERWEAPON				= 0x00004000,	// Is a Super Weapon
 	WF_NONOISEALERT				= 0x00008000,	// Does not alert to noise
+	WF_ISMELEE					= 0x00010000,	// Melee Weapon
 } WeaponFlags_t;
 
 // Weapon info: sprite frames, ammunition use.

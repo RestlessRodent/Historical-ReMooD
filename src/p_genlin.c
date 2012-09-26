@@ -98,11 +98,16 @@ manual_floor:
 		// Do not start another function if floor already moving
 		if (P_SectorActive(floor_special, sec))
 		{
-			if (!manual)
+			// Get floor special
+			floor = sec->floordata;
+			
+			// If the floor is not manual, or it isn't a floor we handle
+			if (!manual || floor->thinker.function.acp1 != (actionf_p1)T_MoveFloor)
 				continue;
 			else
 				return rtn;
 		}
+		
 		// new floor thinker
 		rtn = 1;
 		floor = Z_Malloc(sizeof(floormove_t), PU_LEVSPEC, 0);
@@ -283,7 +288,11 @@ manual_ceiling:
 		// Do not start another function if ceiling already moving
 		if (P_SectorActive(ceiling_special, sec))
 		{
-			if (!manual)
+			// Get ceiling
+			ceiling = sec->ceilingdata;
+			
+			// Is not manual, or is not something we handle
+			if (!manual || ceiling->thinker.function.acp1 != (actionf_p1)T_MoveCeiling)
 				continue;
 			else
 				return rtn;
@@ -477,11 +486,16 @@ manual_lift:
 		// Do not start another function if floor already moving
 		if (P_SectorActive(floor_special, sec))
 		{
-			if (!manual)
+			// Get thinker
+			plat = sec->floordata;
+			
+			// Is not manual or is not a plat
+			if (!manual || plat->thinker.function.acp1 != (actionf_p1)T_PlatRaise)
 				continue;
 			else
 				return rtn;
 		}
+		
 		// Setup the plat thinker
 		rtn = 1;
 		plat = Z_Malloc(sizeof(*plat), PU_LEVSPEC, 0);
@@ -635,7 +649,11 @@ manual_stair:
 		//staircase to build before retriggering
 		if (P_SectorActive(floor_special, sec) || sec->stairlock)
 		{
-			if (!manual)
+			// Get floor thinker
+			floor = sec->floordata;
+			
+			// Is not manual or is not a staircase
+			if (!manual || floor->thinker.function.acp1 != (actionf_p1)T_MoveFloor)
 				continue;
 			else
 				return rtn;
@@ -812,7 +830,11 @@ manual_crusher:
 		// Do not start another function if ceiling already moving
 		if (P_SectorActive(ceiling_special, sec))
 		{
-			if (!manual)
+			// Get ceiling
+			ceiling = sec->ceilingdata;
+			
+			// Not manual, or not a handled type
+			if (!manual || ceiling->thinker.function.acp1 != (actionf_p1)T_MoveCeiling)
 				continue;
 			else
 				return rtn;
@@ -906,7 +928,11 @@ manual_locked:
 		// Do not start another function if ceiling already moving
 		if (P_SectorActive(ceiling_special, sec))
 		{
-			if (!manual)
+			// Get Door
+			door = sec->ceilingdata;
+			
+			// Not manual or is not a door?
+			if (!manual || door->thinker.function.acp1 != (actionf_p1)T_VerticalDoor)
 				continue;
 			else
 				return rtn;
@@ -1009,24 +1035,33 @@ int EV_DoGenDoor(line_t* line, mobj_t* const a_Object)
 		// Do not start another function if ceiling already moving
 		if (P_SectorActive(ceiling_special, sec))
 		{
-			if (!manual)
+			// Get existing special
+			door = sec->ceilingdata;
+			
+			// Just in case
+			if (!door)
+				return rtn;
+			
+			// Manual Line, or not a door
+			if (!manual || door->thinker.function.acp1 != (actionf_p1)T_VerticalDoor)
 				continue;
+			
+			// Otherwise handle it
 			else
 			{
-				// Get existing special
-				door = sec->ceilingdata;
-				
-				// Just in case
-				if (!door)
-					return rtn;
-				
 				// GhostlyDeath <May 19, 2012> -- Change direction here
 				if (door->type != genBlazeOpen && door->type != genOpen &&
 					door->type != genBlazeClose && door->type != genClose)
 				{
 						// Moving Door
 					if (door->direction > 0)
+					{
+						// Monsters never close doors
+						if (!(a_Object->RXFlags[0] & MFREXA_ISPLAYEROBJECT))
+							return 0;
+						
 						door->direction = -1;
+					}
 					else if (door->direction < 0)
 						door->direction = 1;
 					

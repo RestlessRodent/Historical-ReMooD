@@ -1034,6 +1034,7 @@ void INFO_MiscWeaponGF(void** const a_Data, struct INFO_REMOODATValEntry_s* a_Va
 		{WF_NOBLEEDTARGET, "NoBleedTarget"}, 
 		{WF_SUPERWEAPON, "IsSuperWeapon"}, 
 		{WF_NONOISEALERT, "NoNoiseAlert"},
+		{WF_ISMELEE, "IsMelee"},
 		
 		{0, NULL},
 	};
