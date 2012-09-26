@@ -71,8 +71,6 @@ void I_OsPolling(void);
 // Called by M_Responder when quit is selected, return code 0.
 void I_Quit(void);
 
-void I_Error(char* error, ...);
-
 // Allocates from low memory under dos,
 // just mallocs under unix
 uint8_t* I_AllocLow(int length);

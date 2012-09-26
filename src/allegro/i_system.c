@@ -203,40 +203,6 @@ uint8_t* I_AllocLow(int length)
 //
 extern bool_t demorecording;
 
-void I_Error(char* error, ...)
-{
-	va_list argptr;
-	char txt[512];
-	
-	if (devparm)
-		abort();
-		
-	// Message first.
-	va_start(argptr, error);
-	fprintf(stderr, "Error: ");
-	vfprintf(stderr, error, argptr);
-	fprintf(stderr, "\n");
-	va_end(argptr);
-	
-	fflush(stderr);
-	
-#ifdef _WIN32
-	va_start(argptr, error);
-	wvsprintf(txt, error, argptr);
-	va_end(argptr);
-	MessageBox(NULL, txt, "ReMooD Error", MB_OK | MB_ICONERROR);
-#endif
-	
-	// Shutdown. Here might be other errors.
-	if (demorecording)
-		G_CheckDemoStatus();
-		
-	// shutdown everything else which was registered
-	I_ShutdownSystem();
-	
-	exit(-1);
-}
-
 void I_LocateWad(void)
 {
 	// relict from the Linux version

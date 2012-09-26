@@ -178,36 +178,6 @@ uint8_t* I_AllocLow(int length)
 	return mem;
 }
 
-//
-// I_Error
-//
-void I_Error(char* error, ...)
-{
-	va_list argptr;
-	char txt[512];
-	
-	if (devparm)
-		abort();
-		
-	// Message first.
-	va_start(argptr, error);
-	fprintf(stderr, "Error: ");
-	vfprintf(stderr, error, argptr);
-	fprintf(stderr, "\n");
-	va_end(argptr);
-	
-	fflush(stderr);
-	
-	// Shutdown. Here might be other errors.
-	if (demorecording)
-		G_CheckDemoStatus();
-		
-	// shutdown everything else which was registered
-	I_ShutdownSystem();
-	
-	exit(-1);
-}
-
 void I_LocateWad(void)
 {
 	// relict from the Linux version

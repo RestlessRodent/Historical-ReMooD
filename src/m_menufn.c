@@ -553,3 +553,51 @@ M_UIMenu_t* M_ExMakeMenu(const M_NewMenuID_t a_MenuID, void* const a_Data)
 	return NewMenu;
 }
 
+/***************************************************
+*** REMOODAT/RMD_MENU -- DYNAMIC MENU GENERATION ***
+***************************************************/
+
+/*** FUNCTIONS ***/
+
+/* M_MenuDataKeyer() -- Handles menus */
+bool_t M_MenuDataKeyer(void** a_DataPtr, const int32_t a_Stack, const D_RMODCommand_t a_Command, const char* const a_Field, const char* const a_Value)
+{
+	/* Which Command? */
+	switch (a_Command)
+	{
+			// Opening {
+		case DRC_OPEN:
+		
+			return true;
+			
+			// Closing }
+		case DRC_CLOSE:
+			return true;
+			
+			// Data Entry
+		case DRC_DATA:
+			return true;
+			
+			// Initialize
+		case DRC_INIT:
+			return true;
+			
+			// Finalize
+		case DRC_FINAL:
+			return true;
+			
+			// First Time
+		case DRC_FIRST:
+			return true;
+			
+			// Last Time
+		case DRC_LAST:
+			return true;
+			
+			// Unknown
+		default:
+			return false;
+	}
+}
+
+
