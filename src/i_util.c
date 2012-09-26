@@ -1989,6 +1989,6 @@ void I_Error(char* error, ...)
 	MessageBox(NULL, txt, "ReMooD Error", MB_OK | MB_ICONERROR);
 #endif
 	
-	exit(-1);
+	exit(EXIT_FAILURE);
 }
 
