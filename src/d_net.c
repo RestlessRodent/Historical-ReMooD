@@ -1831,8 +1831,9 @@ bool_t D_NCMH_TCMD(struct D_NCMessageData_s* const a_Data)
 		WriteTo->Std.buttons = D_BSru16(Stream);
 		WriteTo->Std.BaseAngleTurn = D_BSri16(Stream);
 		WriteTo->Std.BaseAiming = D_BSri16(Stream);
-		WriteTo->Std.InventoryBits = D_BSru8(Stream);
 		WriteTo->Std.ResetAim = D_BSru8(Stream);
+		WriteTo->Std.InventoryBits = D_BSru8(Stream);
+		WriteTo->Std.StatFlags = D_BSru32(Stream);
 		D_BSrs(Stream, WriteTo->Std.XSNewWeapon, MAXTCWEAPNAME);
 	}
 
@@ -2565,6 +2566,11 @@ void D_NetWriteTicCmd(ticcmd_t* const a_TicCmd, const int a_Player)
 			// Get tic to send
 			InTic = &NetPlayer->TicCmd[0];
 			
+			// Timing
+			D_BSwu64(Stream, InTic->Ctrl.ProgramTic);
+			D_BSwu64(Stream, InTic->Ctrl.GameTic);
+			D_BSwu16(Stream, InTic->Ctrl.Ping);
+			
 			// Send Tic Data
 			D_BSwi8(Stream, InTic->Std.forwardmove);
 			D_BSwi8(Stream, InTic->Std.sidemove);
@@ -2573,8 +2579,9 @@ void D_NetWriteTicCmd(ticcmd_t* const a_TicCmd, const int a_Player)
 			D_BSwu16(Stream, InTic->Std.buttons);
 			D_BSwi16(Stream, InTic->Std.BaseAngleTurn);
 			D_BSwi16(Stream, InTic->Std.BaseAiming);
-			D_BSwu8(Stream, InTic->Std.InventoryBits);
 			D_BSwu8(Stream, InTic->Std.ResetAim);
+			D_BSwu8(Stream, InTic->Std.InventoryBits);
+			D_BSwu32(Stream, InTic->Std.StatFlags);
 			D_BSws(Stream, InTic->Std.XSNewWeapon);
 			
 			// Delete Command
