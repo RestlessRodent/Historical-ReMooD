@@ -324,8 +324,15 @@ CONL_StaticVar_t l_SVReadyBy =
 	NULL
 };
 
-/*** FUNCTIONS ***/
+// sv_maxcatchup -- Name of Server
+CONL_StaticVar_t l_SVMaxCatchup =
+{
+	CLVT_INTEGER, c_CVPVPositive, CLVF_SAVE,
+	"sv_maxcatchup", DSTR_CVHINT_SVMAXCATCHUP, CLVVT_INTEGER, "105",
+	NULL
+};
 
+/*** FUNCTIONS ***/
 
 /* D_SyncNetAllReady() -- Indicates that all parties are ready to move to the next tic */
 // It returns the tics in the future that everyone is ready to move to
@@ -362,7 +369,7 @@ tic_t D_SyncNetAllReady(void)
 	
 	/* -timedemo */
 	if (singletics)
-		return l_MapTime + 1;
+		return 1;
 	
 	/* If we are the server, we dictate time */
 	if (D_SyncNetIsArbiter())
@@ -381,22 +388,26 @@ tic_t D_SyncNetAllReady(void)
 		{
 			// Return the time difference
 			l_LocalTime = ThisTime;
-			return l_MapTime + DiffTime;
+			
+			// Catch-up limit?
+			if (DiffTime > l_SVMaxCatchup.Value->Int)
+				return l_SVMaxCatchup.Value->Int + 1;	// prevent zero!
+			return DiffTime;
 		}
 		else
-			return l_MapTime;
+			return 0;
 	}
 	
 	/* Otherwise time gets dictated to us */
 	else
 	{
 		if (D_TicReady(gametic))
-			return l_MapTime + 1;
-		return l_MapTime;
+			return 1;
+		return 0;
 	}
 	
 	/* Fell through? */
-	return (tic_t)-1;
+	return 0;//(tic_t)-1;
 }
 
 /* D_NCAllocClient() -- Creates a new network client */
@@ -742,6 +753,7 @@ bool_t D_CheckNetGame(void)
 	CONL_VarRegister(&l_SVJoinPassword);
 	CONL_VarRegister(&l_SVMaxClients);
 	CONL_VarRegister(&l_SVReadyBy);
+	CONL_VarRegister(&l_SVMaxCatchup);
 		
 	/* Create LoopBack Client */
 	Client = D_NCAllocClient();

@@ -342,6 +342,7 @@ StringGroupEX_t UnicodeStrings[NUMUNICODESTRINGS] =
 	{			 "CVHINT_SVJOINPASSWORD", "The password needed to join the game."},
 	{			   "CVHINT_SVMAXCLIENTS", "The maximum amount of clients that may join the game."},
 	{				  "CVHINT_SVREADYBY", "Amount of time in milliseconds a client has to be ready by before a forced disconnect."},
+	{			   "CVHINT_SVMAXCATCHUP", "Maximum amount of time to catchup when playing as the server, after this threshold catchup stops."},
 	
 	{			 "CVHINT_RCUTWALLDETAIL", "Lower the detail of wall textures to reduce memory usage at the cost of quality."},
 	{			 "CVHINT_RCUTWALLDETAIL", "Lower the detail of wall textures to reduce memory usage at the cost of quality."},
