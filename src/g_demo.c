@@ -2014,7 +2014,7 @@ bool_t G_DEMO_ReMooD_ReadGlblCmd(struct G_CurrentDemo_s* a_Current, ticcmd_t* co
 				// Read Global Commands
 				Target = &Data->NewCmds[MAXPLAYERS];
 				
-				Target->Type = 1;
+				Target->Ctrl.Type = 1;
 				u16 = D_BSru16(Data->CBs);
 				if (u16)
 					Target->Ext.DataSize = u16;
@@ -2038,6 +2038,11 @@ bool_t G_DEMO_ReMooD_ReadGlblCmd(struct G_CurrentDemo_s* a_Current, ticcmd_t* co
 					// Not in game, don't bother
 					if (!u8)
 						continue;
+					
+					// Read Timing Code
+					Target->Ctrl.ProgramTic = D_BSru64(Data->CBs);
+					Target->Ctrl.GameTic = D_BSru64(Data->CBs);
+					Target->Ctrl.Ping = D_BSru16(Data->CBs);
 		
 					// Read Diff Bits
 					DiffBits = D_BSru16(Data->CBs);
@@ -2056,6 +2061,8 @@ bool_t G_DEMO_ReMooD_ReadGlblCmd(struct G_CurrentDemo_s* a_Current, ticcmd_t* co
 						Target->Std.ResetAim = D_BSru8(Data->CBs);
 					if (DiffBits & DDB_INVENTORY)
 						Target->Std.InventoryBits = D_BSru8(Data->CBs);
+					if (DiffBits & DDB_STATFLAGS)
+						Target->Std.StatFlags = D_BSru32(Data->CBs);
 		
 					if (DiffBits & DDB_WEAPON)
 					{
@@ -2169,6 +2176,11 @@ bool_t G_DEMO_ReMooD_WriteGlblCmd(struct G_CurrentDemo_s* a_Current, const ticcm
 			// Get Bit Differences
 			New = &Data->NewCmds[i];
 			DiffBits = 0;
+			
+			// Write Timing Code
+			D_BSwu64(Data->CBs, New->Ctrl.ProgramTic);
+			D_BSwu64(Data->CBs, New->Ctrl.GameTic);
+			D_BSwu16(Data->CBs, New->Ctrl.Ping);
 		
 			// Calculate
 			if (New->Std.forwardmove)
@@ -2189,6 +2201,8 @@ bool_t G_DEMO_ReMooD_WriteGlblCmd(struct G_CurrentDemo_s* a_Current, const ticcm
 				DiffBits |= DDB_RESETAIM;
 			if (New->Std.InventoryBits)
 				DiffBits |= DDB_INVENTORY;
+			if (New->Std.StatFlags)
+				DiffBits |= DDB_STATFLAGS;
 		
 			// Always set weapon
 			DiffBits |= DDB_WEAPON;
@@ -2210,6 +2224,8 @@ bool_t G_DEMO_ReMooD_WriteGlblCmd(struct G_CurrentDemo_s* a_Current, const ticcm
 				D_BSwu8(Data->CBs, New->Std.ResetAim);
 			if (DiffBits & DDB_INVENTORY)
 				D_BSwu8(Data->CBs, New->Std.InventoryBits);
+			if (DiffBits & DDB_STATFLAGS)
+				D_BSwu32(Data->CBs, New->Std.StatFlags);
 	
 			if (DiffBits & DDB_WEAPON)
 			{

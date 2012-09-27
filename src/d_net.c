@@ -501,10 +501,21 @@ D_NetClient_t* D_NCFindClientByHost(I_HostAddress_t* const a_Host)
 /* D_NCFindClientByPlayer() -- Find client by player */
 D_NetClient_t* D_NCFindClientByPlayer(struct player_s* const a_Player)
 {
+	size_t i, j;
+	
 	/* Check */
 	if (!a_Player)
 		return NULL;
 	
+	/* Go through each client and compare the host */
+	for (i = 0; i < l_NumClients; i++)
+		if (l_Clients[i])
+			for (j = 0; j < l_Clients[i]->NumArbs; j++)
+				if (l_Clients[i]->Arbs[j])
+					if (l_Clients[i]->Arbs[j]->Player == a_Player)
+						return l_Clients[i];
+	
+	/* No match */
 	return NULL;
 }
 
@@ -1434,7 +1445,7 @@ static ticcmd_t* DS_GrabGlobal(const uint8_t a_ID, const int32_t a_NeededSize, v
 				memset(Placement, 0, sizeof(*Placement));
 		
 				// Set as extended
-				Placement->Type = 1;
+				Placement->Ctrl.Type = 1;
 			}
 		}
 		
@@ -1442,7 +1453,7 @@ static ticcmd_t* DS_GrabGlobal(const uint8_t a_ID, const int32_t a_NeededSize, v
 		else
 		{
 			Placement = &l_GlobalBuf[++l_GlobalAt];
-			Placement->Type = 1;
+			Placement->Ctrl.Type = 1;
 		}
 	}
 	
@@ -1666,7 +1677,7 @@ bool_t D_NCMH_TICS(struct D_NCMessageData_s* const a_Data)
 	Data->PosMask = D_BSru32(Stream);
 	
 	/* Read global commands */
-	Data->Data[MAXPLAYERS].Type = 1;
+	Data->Data[MAXPLAYERS].Ctrl.Type = 1;
 	u16 = D_BSru16(Stream);
 	if (u16)
 		Data->Data[MAXPLAYERS].Ext.DataSize = u16;
@@ -1691,6 +1702,10 @@ bool_t D_NCMH_TICS(struct D_NCMessageData_s* const a_Data)
 		if (!u8)
 			continue;
 		
+		// Read Timing Code
+		Target->Ctrl.ProgramTic = D_BSru64(Stream);
+		Target->Ctrl.GameTic = D_BSru64(Stream);
+		
 		// Read Diff Bits
 		DiffBits = D_BSru16(Stream);
 		
@@ -1708,6 +1723,8 @@ bool_t D_NCMH_TICS(struct D_NCMessageData_s* const a_Data)
 			Target->Std.ResetAim = D_BSru8(Stream);
 		if (DiffBits & DDB_INVENTORY)
 			Target->Std.InventoryBits = D_BSru8(Stream);
+		if (DiffBits & DDB_STATFLAGS)
+			Target->Std.StatFlags = D_BSru32(Stream);
 		
 		if (DiffBits & DDB_WEAPON)
 		{
@@ -1797,6 +1814,11 @@ bool_t D_NCMH_TCMD(struct D_NCMessageData_s* const a_Data)
 		else
 			WriteTo = &Garbage;
 		
+		// Read Timing
+		WriteTo->Ctrl.ProgramTic = D_BSru64(Stream);
+		WriteTo->Ctrl.GameTic = D_BSru64(Stream);
+		WriteTo->Ctrl.Ping = D_BSru16(Stream);
+		
 		// Read Stuff
 		WriteTo->Std.forwardmove = D_BSri8(Stream);
 		WriteTo->Std.sidemove = D_BSri8(Stream);
@@ -1809,34 +1831,6 @@ bool_t D_NCMH_TCMD(struct D_NCMessageData_s* const a_Data)
 		WriteTo->Std.ResetAim = D_BSru8(Stream);
 		D_BSrs(Stream, WriteTo->Std.XSNewWeapon, MAXTCWEAPNAME);
 	}
-
-#ifdef iaudiuasdn
-
-			memmove(a_TicCmd, &NetPlayer->TicCmd[0], sizeof(*a_TicCmd));
-			memmove(&NetPlayer->TicCmd[0], &NetPlayer->TicCmd[1], sizeof(ticcmd_t) * (MAXDNETTICCMDCOUNT - 1));
-			NetPlayer->TicTotal--;
-			
-		// Current Time Codes
-		D_BSwu64(Stream, gametic);
-		D_BSwu64(Stream, g_ProgramTic);
-		
-		// Consistency Double-Check (the kicking part)
-		D_BSwu64(Stream, g_LastConsist.GameTic);
-		D_BSwu8(Stream, g_LastConsist.PrIndex);
-		D_BSwu32(Stream, g_LastConsist.PosMask);
-		
-			D_BSwu8(Stream, 1);
-			D_BSwu8(Stream, g_Splits[i].Console);
-		
-			D_BSwi8(Stream, InTic->Std.forwardmove);
-			D_BSwi8(Stream, InTic->Std.sidemove);
-			D_BSwi16(Stream, InTic->Std.angleturn);
-			D_BSwu16(Stream, InTic->Std.aiming);
-			D_BSwu16(Stream, InTic->Std.buttons);
-			D_BSwi16(Stream, InTic->Std.BaseAngleTurn);
-			D_BSwi16(Stream, InTic->Std.BaseAiming);
-			D_BSwu8(Stream, InTic->Std.InventoryBits);
-#endif	
 
 	/* Done handling */
 	return true;
@@ -2258,10 +2252,14 @@ void D_NetXMitCmds(void)
 		if (!playeringame[i])
 			continue;
 		
+		// Write Timing from player
+		LittleWriteUInt64((uint64_t**)&p, New->Ctrl.ProgramTic);
+		LittleWriteUInt64((uint64_t**)&p, New->Ctrl.GameTic);
+		LittleWriteUInt16((uint16_t**)&p, New->Ctrl.Ping);
+		
 		// Determine diff bits
 		DiffBits = 0;
 		
-#if 1
 		if (New->Std.forwardmove)
 			DiffBits |= DDB_FORWARD;
 		if (New->Std.sidemove)
@@ -2280,26 +2278,8 @@ void D_NetXMitCmds(void)
 			DiffBits |= DDB_RESETAIM;
 		if (New->Std.InventoryBits)
 			DiffBits |= DDB_INVENTORY;
-#else
-		if (Old->Std.forwardmove != New->Std.forwardmove)
-			DiffBits |= DDB_FORWARD;
-		if (Old->Std.sidemove != New->Std.sidemove)
-			DiffBits |= DDB_SIDE;
-		if (Old->Std.angleturn != New->Std.angleturn)
-			DiffBits |= DDB_ANGLE;
-		if (Old->Std.aiming != New->Std.aiming)
-			DiffBits |= DDB_AIMING;
-		if (Old->Std.buttons != New->Std.buttons)
-			DiffBits |= DDB_BUTTONS;
-		if (Old->Std.BaseAngleTurn != New->Std.BaseAngleTurn)
-			DiffBits |= DDB_BAT;
-		if (Old->Std.BaseAiming != New->Std.BaseAiming)
-			DiffBits |= DDB_BAM;
-		if (Old->Std.ResetAim != New->Std.ResetAim)
-			DiffBits |= DDB_RESETAIM;
-		if (Old->Std.InventoryBits != New->Std.InventoryBits)
-			DiffBits |= DDB_INVENTORY;
-#endif
+		if (New->Std.StatFlags)
+			DiffBits |= DDB_STATFLAGS;
 		
 		// Always set weapon
 		DiffBits |= DDB_WEAPON;
@@ -2321,6 +2301,8 @@ void D_NetXMitCmds(void)
 			WriteUInt8((uint8_t**)&p, New->Std.ResetAim);
 		if (DiffBits & DDB_INVENTORY)
 			WriteUInt8((uint8_t**)&p, New->Std.InventoryBits);
+		if (DiffBits & DDB_STATFLAGS)
+			LittleWriteUInt32((uint32_t**)&p, New->Std.StatFlags);
 		
 		if (DiffBits & DDB_WEAPON)
 		{

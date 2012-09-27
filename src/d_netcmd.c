@@ -1113,6 +1113,10 @@ void D_NCSNetUpdateSingle(struct player_s* a_Player)
 		default:
 			break;
 	}
+	
+	/* Place time in tics */
+	TicCmd->Ctrl.ProgramTic = g_ProgramTic;
+	TicCmd->Ctrl.GameTic = gametic;
 }
 
 /* D_NCSNetUpdateAll() -- Update all players */
@@ -1354,6 +1358,12 @@ void D_NCSNetMergeTics(ticcmd_t* const a_DestCmd, const ticcmd_t* const a_SrcLis
 		a_DestCmd->Std.buttons |= a_SrcList[j].Std.buttons;
 		
 		a_DestCmd->Std.aiming = a_SrcList[j].Std.aiming;
+		
+		// Use latest time codes
+		if (a_SrcList[j].Ctrl.ProgramTic > a_DestCmd->Ctrl.ProgramTic)
+			a_DestCmd->Ctrl.ProgramTic = a_SrcList[j].Ctrl.ProgramTic;
+		if (a_SrcList[j].Ctrl.GameTic > a_DestCmd->Ctrl.GameTic)
+			a_DestCmd->Ctrl.GameTic = a_SrcList[j].Ctrl.GameTic;
 	}
 
 	// Do some math

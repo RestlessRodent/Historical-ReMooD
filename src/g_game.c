@@ -463,7 +463,7 @@ void GS_HandleExtraCommands(ticcmd_t* const a_TicCmd, const int32_t a_PlayerNum)
 	B_BotData_t* NewBot;
 	
 	/* Get pointer base */
-	if (a_TicCmd->Type == 1)
+	if (a_TicCmd->Ctrl.Type == 1)
 	{
 		Rb = Rp = a_TicCmd->Ext.DataBuf;
 		Re = (uintptr_t)(Rb + a_TicCmd->Ext.DataSize);
@@ -844,7 +844,7 @@ void G_Ticker(void)
 	
 	/* Handle Commands */
 	// Process Global Commands
-	if (GlobalCmd.Type >= 1)
+	if (GlobalCmd.Ctrl.Type >= 1)
 		GS_HandleExtraCommands(&GlobalCmd, -1);
 		
 	// Per Player Commands

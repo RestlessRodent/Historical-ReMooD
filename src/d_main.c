@@ -753,6 +753,7 @@ void D_WaitingPlayersDrawer(void)
 	char Buf[BUFSIZE];
 	static V_Image_t* BGImage;
 	int32_t i, y, ya, sw;
+	D_NetClient_t* NC;
 	
 	/* Draw a nice picture */
 	// Load it first
@@ -783,15 +784,20 @@ void D_WaitingPlayersDrawer(void)
 				10, y
 			);
 		
+		// Find net client, possibly
+		NC = NULL;
+		if (i > 0)
+			NC = D_NCFindClientByPlayer(&players[i - 1]);
+		
 		// Ping
 		if (i == 0)
 			snprintf(Buf, BUFSIZE - 1, "%s", DS_GetString(DSTR_WFGS_PING));
-		else if (demoplayback)
+		else if (false)//(demoplayback)
 			snprintf(Buf, BUFSIZE - 1, "%s", DS_GetString(DSTR_WFGS_DEMOPLAYER));
-		else if (false)//host
+		else if (NC && NC->IsServer)
 			snprintf(Buf, BUFSIZE - 1, "%s", DS_GetString(DSTR_WFGS_HOST));
 		else
-			snprintf(Buf, BUFSIZE - 1, "%i ms", 1337);
+			snprintf(Buf, BUFSIZE - 1, "%i ms", players[i - 1].cmd.Ctrl.Ping);
 		
 		// Get width
 		sw = V_StringWidthA(VFONT_SMALL, 0, Buf);

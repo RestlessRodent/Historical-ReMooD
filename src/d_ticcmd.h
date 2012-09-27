@@ -92,13 +92,24 @@ typedef enum
 #define MAXTCWEAPNAME						32	// Max length for weapon name
 #define MAXTCDATABUF					384		// Data Buffer size
 
+/* D_TicControl_t -- Tic Control */
+typedef struct D_TicControl_s
+{
+	uint8_t Type;								// Type of Command
+	
+	// Timing
+	uint64_t ProgramTic;						// Program Tic
+	uint64_t GameTic;							// Last game tic
+	uint16_t Ping;								// Players' Ping
+} D_TicControl_t;
+
 typedef union
 {
-	uint8_t Type;								// Command Type
+	D_TicControl_t Ctrl;						// Control
 	
 	struct
 	{
-		uint8_t Type;							// Command Type
+		D_TicControl_t Ctrl;						// Control
 		uint16_t Player;						// Player it is meant for
 		
 		int8_t forwardmove;						// *2048 for move
@@ -117,13 +128,15 @@ typedef union
 		uint8_t InventoryBits;					// Inventory Control
 		bool_t ResetAim;						// Reset Aim
 		
+		uint32_t StatFlags;						// Player Status Flags
+		
 		uint16_t DataSize;						// Size of Data
 		uint8_t DataBuf[MAXTCDATABUF];			// Data Buffer
 	} Std;
 	
 	struct
 	{
-		uint8_t Type;							// Command Type
+		D_TicControl_t Ctrl;						// Control
 		
 		uint16_t DataSize;						// Size of Data
 		uint8_t DataBuf[MAXTCDATABUF];			// Data Buffer
@@ -162,6 +175,7 @@ typedef enum D_DiffBits_e
 	DDB_RESETAIM					= 0x0080,	// Aim is reset
 	DDB_ANGLE						= 0x0100,	// Angle changes
 	DDB_INVENTORY					= 0x0200,	// Inventory Control
+	DDB_STATFLAGS					= 0x0400,	// Status Flags
 } D_DiffBits_t;
 
 extern const int32_t c_TCDataSize[NUMDTCT];
