@@ -1520,14 +1520,15 @@ bool_t D_NCMH_JOIN(struct D_NCMessageData_s* const a_Data)
 {
 	ticcmd_t* Placement;
 	D_NetClient_t* ServerNC;
+	D_NetPlayer_t* NetPlayer;
 	D_BS_t* Stream;
 	uint8_t UUID[(MAXPLAYERNAME * 2) + 1];
 	uint8_t PName[MAXPLAYERNAME], AName[MAXPLAYERNAME];
 	uint8_t HexClass[MAXPLAYERNAME], Color;
 	int16_t FreeSlot;
-	uint32_t PInstance, SplitInstance;
+	uint32_t PInstance, SplitInstance, UniqueID;
 	void* Wp;
-	int i;
+	int i, j;
 	
 	uint8_t IsBot;
 	uint32_t JoinFlags;
@@ -1564,8 +1565,20 @@ bool_t D_NCMH_JOIN(struct D_NCMessageData_s* const a_Data)
 		return true;
 	
 	/* Non-Bot: Check client max splits */
+	NetPlayer = NULL;
+	j = 0;
 	if (!IsBot)
 	{
+		// Count non-spectators
+		for (i = 0; i < a_Data->RCl->NumArbs; i++)
+			if (a_Data->RCl->Arbs[i])
+				if (a_Data->RCl->Arbs[i]->Type != DNPT_SPECTATOR)
+				{
+					j++;
+					
+					if (!NetPlayer)
+						NetPlayer = a_Data->RCl->Arbs[i];
+				}
 	}
 	
 	/* Find Free Player Slot */
@@ -1580,6 +1593,19 @@ bool_t D_NCMH_JOIN(struct D_NCMessageData_s* const a_Data)
 	// No slot?
 	if (FreeSlot == -1)
 		return true;
+	
+	/* Generate Unique ID */
+	// This links players and spectators together, etc.
+		// No player, or there is already one, create new ID for spec
+	if (!NetPlayer || j > 1)
+		do
+		{
+			UniqueID = D_CMakePureRandom();
+		} while (!UniqueID || D_NCSFindNetPlayerByUnique(UniqueID));
+		
+		// Otherwise, use the spectators unique ID
+	else
+		UniqueID = NetPlayer->UniqueID;
 	
 	/* Place */
 	Wp = NULL;
@@ -1601,6 +1627,7 @@ bool_t D_NCMH_JOIN(struct D_NCMessageData_s* const a_Data)
 		LittleWriteUInt32((uint32_t**)&Wp, JoinFlags);
 		LittleWriteUInt32((uint32_t**)&Wp, PInstance);
 		LittleWriteUInt32((uint32_t**)&Wp, SplitInstance);
+		LittleWriteUInt32((uint32_t**)&Wp, UniqueID);
 		WriteUInt8((uint8_t**)&Wp, Color);
 		
 		for (i = 0; i < MAXPLAYERNAME; i++)
@@ -2058,6 +2085,8 @@ bool_t D_NCMH_REDY(struct D_NCMessageData_s* const a_Data)
 	D_BS_t* Stream;
 	int i;
 	uint32_t ServerGenKey[MAXCONNKEYSIZE], ClientGenKey[MAXCONNKEYSIZE];
+	uint32_t UniqueID;
+	D_NetPlayer_t* NetPlayer;
 	
 	/* Get server client */
 	ServerNC = D_NCFindClientIsServer();
@@ -2086,6 +2115,41 @@ bool_t D_NCMH_REDY(struct D_NCMessageData_s* const a_Data)
 	
 	// TODO FIXME: Actually send a save game
 	a_Data->RCl->SaveGameSent = true;
+	
+	/* Create Initial Spectator */
+	// UUID For it
+	do
+	{
+		UniqueID = D_CMakePureRandom();
+	} while (!UniqueID || D_NCSFindNetPlayerByUnique(UniqueID));
+	
+	// Create NetPlayer
+	NetPlayer = D_NCSAllocNetPlayer();
+	
+	// Add to arbitration
+	for (i = 0; i < a_Data->RCl->NumArbs; i++)
+		if (!a_Data->RCl->Arbs[i])
+			break;
+	
+	// No Room?
+	if (i >= a_Data->RCl->NumArbs)
+	{
+		Z_ResizeArray((void**)&a_Data->RCl->Arbs, sizeof(*a_Data->RCl->Arbs),
+					a_Data->RCl->NumArbs, a_Data->RCl->NumArbs + 1);
+		a_Data->RCl->NumArbs++;
+	}
+	
+	// Place there
+	a_Data->RCl->Arbs[i] = NetPlayer;
+	
+	// Setup as spectator
+	NetPlayer->Type = DNPT_SPECTATOR;
+	NetPlayer->UniqueID = UniqueID;
+	
+	// Setup Name
+	strncpy(NetPlayer->AccountName, MAXPLAYERNAME, "NoAccount");
+	
+	/* Queue Add Spectator to clients */
 	
 	/* Done processing */
 	return true;

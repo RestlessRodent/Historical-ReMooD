@@ -451,10 +451,10 @@ void GS_HandleExtraCommands(ticcmd_t* const a_TicCmd, const int32_t a_PlayerNum)
 	D_NetPlayer_t* NetPlayer;
 	player_t* Player;
 	
-	uint32_t u32[4];
-	int32_t i32[4];
-	uint16_t u16[4];
-	uint8_t u8[4];
+	uint32_t u32[6];
+	int32_t i32[6];
+	uint16_t u16[6];
+	uint8_t u8[6];
 	int8_t SplitNum;
 	char NameBuf[MAXPLAYERNAME];
 	char AltBuf[MAXPLAYERNAME];
@@ -493,6 +493,10 @@ void GS_HandleExtraCommands(ticcmd_t* const a_TicCmd, const int32_t a_PlayerNum)
 		// Which command?
 		switch (Command)
 		{
+				// Player Leaves
+			case DTCT_PART:
+				break;
+				
 				// Player Joins
 			case DTCT_JOIN:
 				// Read Data
@@ -501,6 +505,7 @@ void GS_HandleExtraCommands(ticcmd_t* const a_TicCmd, const int32_t a_PlayerNum)
 				u32[1] = LittleReadUInt32((uint32_t**)&Rp);
 				u32[2] = LittleReadUInt32((uint32_t**)&Rp);	// Profile
 				u32[3] = LittleReadUInt32((uint32_t**)&Rp);	// Screen Instance
+				u32[4] = LittleReadUInt32((uint32_t**)&Rp);	// Unique ID
 				u8[0] = ReadUInt8((uint8_t**)&Rp);
 				
 				for (i = 0; i < MAXPLAYERNAME; i++)
@@ -550,23 +555,41 @@ void GS_HandleExtraCommands(ticcmd_t* const a_TicCmd, const int32_t a_PlayerNum)
 					// Give arbitration to player
 					else if (NC)
 					{
-						// Add to arbs list
-						for (i = 0; i < NC->NumArbs; i++)
-							if (!NC->Arbs[i])
-								break;
+						// See if player already exists (as a spec)
+						NetPlayer = D_NCSFindNetPlayerByUnique(u32[4]);
 						
-						// No room?
-						if (i >= NC->NumArbs)
+						// Found?
+						if (NetPlayer)
 						{
-							Z_ResizeArray((void**)&NC->Arbs, sizeof(*NC->Arbs),
-								NC->NumArbs, NC->NumArbs + 1);
-							NC->NumArbs++;
 						}
 						
-						// Allocate net player here
-						NC->Arbs[i] = NetPlayer = D_NCSAllocNetPlayer();
+						// Not Found
+						else
+						{
+							// Allocate New player
+							NetPlayer = D_NCSAllocNetPlayer();
+							
+							// Add to arbs list
+							for (i = 0; i < NC->NumArbs; i++)
+								if (!NC->Arbs[i])
+									break;
+						
+							// No room?
+							if (i >= NC->NumArbs)
+							{
+								Z_ResizeArray((void**)&NC->Arbs, sizeof(*NC->Arbs),
+									NC->NumArbs, NC->NumArbs + 1);
+								NC->NumArbs++;
+							}
+						
+							// Allocate net player here
+							NC->Arbs[i] = NetPlayer;
+						}
+						
+						// Set details
 						NetPlayer->NetClient = NC;
 						NetPlayer->ProcessID = u32[3];
+						NetPlayer->UniqueID = u32[4];
 						
 						if (NC->IsLocal)
 						{
@@ -683,6 +706,9 @@ void GS_HandleExtraCommands(ticcmd_t* const a_TicCmd, const int32_t a_PlayerNum)
 					P_XGSSetValue(true, PGS_GAMESPAWNMULTIPLAYER, 1);
 					P_XGSSetValue(true, PGS_COMULTIPLAYER, 1);
 				}
+				
+				// Update the scoreboard (to add new player)
+				P_UpdateScores();
 				
 				// Debug
 				if (g_NetDev)

@@ -151,6 +151,7 @@ enum
 	DTCT_JOIN,									// Join Sub Command
 	DTCT_MAPCHANGE,								// Change the map
 	DTCT_GAMEVAR,								// Game Variable
+	DTCT_PART,									// Part Game
 	
 	NUMDTCT
 };

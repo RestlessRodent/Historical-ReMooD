@@ -1264,3 +1264,9 @@ bool_t P_PlayerOnSameTeam(player_t* const a_A, player_t* const a_B)
 	return false;
 }
 
+/* P_UpdateScores() -- Updates the local scoreboard */
+void P_UpdateScores(void)
+{
+	CONL_PrintF("New Scores\n");
+}
+

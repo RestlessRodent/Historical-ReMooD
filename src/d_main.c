@@ -754,6 +754,7 @@ void D_WaitingPlayersDrawer(void)
 	static V_Image_t* BGImage;
 	int32_t i, y, ya, sw;
 	D_NetClient_t* NC;
+	D_NetPlayer_t* Spec;
 	
 	/* Draw a nice picture */
 	// Load it first
@@ -806,6 +807,18 @@ void D_WaitingPlayersDrawer(void)
 				(i > 0 ? 0 : VFO_COLOR(VEX_MAP_BRIGHTWHITE)),
 				Buf,
 				310 - sw, y
+			);
+	}
+	
+	/* Spectators */
+	for (Spec = D_NCSIterSpec(NULL); Spec; Spec = D_NCSIterSpec(Spec))
+	{
+		// Player Name
+		V_DrawStringA(
+				VFONT_SMALL,
+				VFO_COLOR(VEX_MAP_GRAY),
+				Spec->AccountName,
+				10, y
 			);
 	}
 	

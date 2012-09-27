@@ -143,12 +143,13 @@ const int32_t c_TCDataSize[NUMDTCT] =
 	0,
 	
 	// JOIN
-	4 + 2 + 4 + 4 + 4 + 1 + MAXPLAYERNAME + MAXPLAYERNAME,
+	4 + 2 + 4 + 4 + 4 + 4 + 1 + MAXPLAYERNAME + MAXPLAYERNAME,
 		// uint32 HostID
 		// uint16 players[] Spot
 		// uint32 Symbols
 		// uint32 Profile Instance
 		// uint32 Process ID
+		// uint32 Unique ID
 		// uint8  Color
 		// uint8* Name
 		// uint8* Hexen Class
@@ -162,6 +163,11 @@ const int32_t c_TCDataSize[NUMDTCT] =
 	4 + 4,
 		// uint32 Code
 		// int32  New Value
+	
+	// DTCT_PART, Player Leaves
+	1 + 4,
+		// uint8  Going to spectate
+		// uint32 Viewport UUID
 };
 
 /*** GLOBALS ***/
@@ -237,14 +243,18 @@ static int DS_NCSNetCommand(const uint32_t a_ArgC, const char** const a_ArgV)
 		return CLE_SUCCESS;
 	}
 	
-	
-	// Internal add Player
+	// Internal add bot
 	else if (strcasecmp(a_ArgV[1], "addbot") == 0)
 	{
 		if (devparm)
 			CONL_PrintF("NET: Requesting the server add local bot.\n");
 		D_NCLocalPlayerAdd((a_ArgC >= 3 ? a_ArgV[2] : NULL), true, g_SplitScreen, INT_MAX, false);
 		return CLE_SUCCESS;
+	}
+	
+	// Internal spectate
+	else if (strcasecmp(a_ArgV[1], "spectate") == 0)
+	{
 	}
 	
 	/* Success */
@@ -973,6 +983,14 @@ static void D_NCSLocalBuildTicCmd(D_NetPlayer_t* const a_NPp, ticcmd_t* const a_
 		a_TicCmd->Std.InventoryBits = TICCMD_INVUSE;
 	
 	/* Handle special functions */
+	// Show Scores
+	if (GAMEKEYDOWN(Profile, SID, DPEXIC_TOPSCORES))
+		a_NPp->Scores = 1;
+	else if (GAMEKEYDOWN(Profile, SID, DPEXIC_BOTTOMSCORES))
+		a_NPp->Scores = -1;
+	else
+		a_NPp->Scores = 0;
+	
 	// Coop Spy
 	if (GAMEKEYDOWN(Profile, SID, DPEXIC_COOPSPY))
 	{
@@ -1477,6 +1495,27 @@ D_NetPlayer_t* D_NCSFindNetPlayerByProcess(const uint32_t a_ID)
 	return NULL;
 }
 
+/* D_NCSFindNetPlayerByUnique() -- Finds unique net player */
+D_NetPlayer_t* D_NCSFindNetPlayerByUnique(const uint32_t a_ID)
+{
+	D_NetPlayer_t* Rover;
+	
+	/* Check */
+	if (!a_ID)
+		return NULL;
+	
+	/* Rove */
+	for (Rover = l_FirstNetPlayer; Rover; Rover = Rover->ChainPrev)
+	{
+		// Match?
+		if (Rover->UniqueID == a_ID)
+			return Rover;
+	}
+	
+	/* Not Found */
+	return NULL;
+}
+
 /* D_NCSFindSplitByProcess() -- Finds split screen by process */
 int8_t D_NCSFindSplitByProcess(const uint32_t a_ID)
 {
@@ -1494,6 +1533,23 @@ int8_t D_NCSFindSplitByProcess(const uint32_t a_ID)
 	
 	/* Not found */
 	return -1;
+}
+
+/* D_NCSIterSpec() -- Iterate spectators */
+D_NetPlayer_t* D_NCSIterSpec(D_NetPlayer_t* const a_At)
+{
+	D_NetPlayer_t* Rover;
+	
+	/* Rove */
+	for (Rover = (!a_At ? l_FirstNetPlayer : a_At->ChainPrev); Rover; Rover = Rover->ChainPrev)
+	{
+		// Is a spectator?
+		if (Rover->Type == DNPT_SPECTATOR)
+			return Rover;
+	}
+	
+	/* Not Found */
+	return NULL;
 }
 
 /* D_NCResetSplits() -- Resets all splits */

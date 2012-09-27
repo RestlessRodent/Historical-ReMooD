@@ -794,6 +794,7 @@ bool_t P_TouchSpecialThing(mobj_t* special, mobj_t* toucher)
 			{
 				player->itemcount++;
 				g_MapKIS[1]++;
+				P_UpdateScores();
 			}
 			
 			player->bonuscount += BONUSADD;
@@ -1446,6 +1447,7 @@ void P_KillMobj(mobj_t* target, mobj_t* inflictor, mobj_t* source)
 			target->KillerPlayer = (source->player - players) + 1;
 			target->FraggerID = source->player->FraggerID;
 			g_MapKIS[0]++;
+			P_UpdateScores();
 		}
 			
 		// count frags if player killed player
@@ -1454,6 +1456,7 @@ void P_KillMobj(mobj_t* target, mobj_t* inflictor, mobj_t* source)
 			source->player->TotalFrags++;
 			source->player->frags[target->player - players]++;
 			g_MapKIS[3]++;
+			P_UpdateScores();
 			
 			// check fraglimit cvar
 			if (P_XGSVal(PGS_GAMEFRAGLIMIT))
@@ -1487,6 +1490,7 @@ void P_KillMobj(mobj_t* target, mobj_t* inflictor, mobj_t* source)
 		{
 			target->player->TotalFrags--;
 			target->player->frags[target->player - players]++;
+			P_UpdateScores();
 		}
 			
 		target->flags &= ~MF_SOLID;	// does not block

@@ -108,6 +108,13 @@ void P_DropWeapon(player_t* player);
 // P_USER
 //
 
+/* P_ScoreInfo_t -- Score information */
+typedef struct P_ScoreInfo_s
+{
+	char Name[MAXPLAYERNAME];					// Name of player
+	char Account[MAXPLAYERNAME];				// Account of player
+} P_ScoreInfo_t;
+
 void P_ResetCamera(player_t* player);
 void P_PlayerThink(player_t* player);
 
@@ -116,6 +123,7 @@ void CL_ResetSpiritPosition(mobj_t* mobj);
 void P_MoveSpirit(player_t* p, ticcmd_t* cmd, int realtics);
 
 bool_t P_PlayerOnSameTeam(player_t* const a_A, player_t* const a_B);
+void P_UpdateScores(void);
 
 //
 // P_MOBJ

@@ -533,8 +533,10 @@ static void STS_DrawPlayerBarEx(const size_t a_PID, const int32_t a_X, const int
 	weapontype_t ReadyWeapon;
 	ammotype_t AmmoType;
 	bool_t BigLetters, IsMonster;
+	D_NetPlayer_t* NP;
 	
 	/* Init */
+	// Font to use
 	if (a_W < 320)
 	{
 		BigLetters = false;
@@ -553,6 +555,9 @@ static void STS_DrawPlayerBarEx(const size_t a_PID, const int32_t a_X, const int
 	/* Get players to draw for */
 	ConsoleP = &players[g_Splits[a_PID].Console];
 	DisplayP = &players[g_Splits[a_PID].Display];
+	
+	// Net player
+	NP = ConsoleP->NetPlayer;
 	
 	/* Get profile of player */
 	Profile = ConsoleP->ProfileEx;
@@ -679,7 +684,23 @@ static void STS_DrawPlayerBarEx(const size_t a_PID, const int32_t a_X, const int
 		}
 	}
 	
+	/* Classic Doom */
+	else
+	{
+	}
+	
 	/* Draw Object Overlays */
+	
+	/* Scoreboard */
+	if (NP && NP->Scores)
+	{
+		// Score Header
+		V_DrawStringA(
+					VFONT_LARGE | VFO_COLOR(VEX_MAP_BRIGHTWHITE), 0, "*** Scores ***",
+					a_X + STS_SBX(Profile, 8, a_W, a_H),
+					a_Y + STS_SBY(Profile, 8, a_W, a_H)
+				);
+	}
 #undef BUFSIZE
 }
 

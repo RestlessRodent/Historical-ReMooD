@@ -1470,6 +1470,9 @@ void A_VileChase(mobj_t* actor, player_t* player, pspdef_t* psp, const INFO_Stat
 							if (playeringame[corpsehit->KillerPlayer - 1])
 								if (players[corpsehit->KillerPlayer - 1].FraggerID == corpsehit->FraggerID)
 									players[corpsehit->KillerPlayer - 1].killcount--;
+						
+						// Update Scores	
+						P_UpdateScores();
 					}
 					
 					return;

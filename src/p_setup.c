@@ -333,6 +333,9 @@ bool_t P_ExClearLevel(void)
 	/* Scripting */
 	T_DSVM_Cleanup();
 	
+	/* Scores */
+	P_UpdateScores();
+	
 	/* Always succeeds */
 	return true;
 }

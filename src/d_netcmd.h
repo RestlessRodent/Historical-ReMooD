@@ -59,6 +59,7 @@ typedef enum D_NetPlayerType_e
 	DNPT_LOCAL,									// Local player
 	DNPT_NETWORK,								// Network player
 	DNPT_BOT,									// Bot player
+	DNPT_SPECTATOR,								// Watching Player
 	
 	NUMDNETPLAYERTYPES
 } D_NetPlayerType_t;
@@ -92,6 +93,7 @@ typedef struct D_NetPlayer_s
 	char UUID[MAXPLAYERNAME * 2];				// Network Player Unique ID
 	char AccountName[MAXPLAYERNAME];			// Networked player account
 	uint32_t ProcessID;							// Processing ID
+	uint32_t UniqueID;							// Player Unique ID
 	
 	/* Player Control */
 	// Sync
@@ -115,6 +117,7 @@ typedef struct D_NetPlayer_s
 	int NetColor;								// Network Color
 	tic_t CoopSpyTime;							// Time to wait to respy
 	tic_t TurnHeld;								// Time turning is held
+	int32_t Scores;								// Scoreboard showing
 	
 	/* Bot Related */
 	struct B_BotData_s* BotData;				// Bot Data
@@ -168,7 +171,10 @@ void D_NCSFreeNetPlayer(D_NetPlayer_t* const a_NetPlayer);
 
 D_NetPlayer_t* D_NCSFindNetPlayer(const char* const a_Name);
 D_NetPlayer_t* D_NCSFindNetPlayerByProcess(const uint32_t a_ID);
+D_NetPlayer_t* D_NCSFindNetPlayerByUnique(const uint32_t a_ID);
 int8_t D_NCSFindSplitByProcess(const uint32_t a_ID);
+
+D_NetPlayer_t* D_NCSIterSpec(D_NetPlayer_t* const a_At);
 
 void D_NCResetSplits(const bool_t a_Demo);
 
