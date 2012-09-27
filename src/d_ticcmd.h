@@ -152,6 +152,7 @@ enum
 	DTCT_MAPCHANGE,								// Change the map
 	DTCT_GAMEVAR,								// Game Variable
 	DTCT_PART,									// Part Game
+	DTCT_ADDSPEC,								// Add Spectator
 	
 	NUMDTCT
 };

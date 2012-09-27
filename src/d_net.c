@@ -2079,6 +2079,8 @@ bool_t D_NCMH_PLAY(struct D_NCMessageData_s* const a_Data)
 // Client ready to play
 bool_t D_NCMH_REDY(struct D_NCMessageData_s* const a_Data)
 {
+	void* Wp;
+	ticcmd_t* Placement;
 	D_NetClient_t* ServerNC;
 	D_BS_t* Stream;
 	int i;
@@ -2148,6 +2150,20 @@ bool_t D_NCMH_REDY(struct D_NCMessageData_s* const a_Data)
 	strncpy(NetPlayer->AccountName, "NoAccount", MAXPLAYERNAME);
 	
 	/* Queue Add Spectator to clients */
+	/* Place */
+	Wp = NULL;
+	Placement = DS_GrabGlobal(DTCT_ADDSPEC, c_TCDataSize[DTCT_ADDSPEC], &Wp);
+	
+	if (Placement)
+	{
+		// Write Unique ID
+		LittleWriteUInt32((uint32_t**)&Wp, UniqueID);
+		LittleWriteUInt32((uint32_t**)&Wp, a_Data->RCl->HostID);
+		
+		// Write Account Name
+		for (i = 0; i < MAXPLAYERNAME; i++)
+			WriteUInt8((uint8_t**)&Wp, NetPlayer->AccountName[i]);
+	}
 	
 	/* Done processing */
 	return true;

@@ -168,6 +168,12 @@ const int32_t c_TCDataSize[NUMDTCT] =
 	1 + 4,
 		// uint8  Going to spectate
 		// uint32 Viewport UUID
+	
+	// DTCT_ADDSPEC, Add Spectator
+	4 + 4 + MAXPLAYERNAME,
+		// uint32 Unique ID
+		// uint32 Host ID
+		// uint8* Account Name
 };
 
 /*** GLOBALS ***/

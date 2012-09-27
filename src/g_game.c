@@ -456,8 +456,8 @@ void GS_HandleExtraCommands(ticcmd_t* const a_TicCmd, const int32_t a_PlayerNum)
 	uint16_t u16[6];
 	uint8_t u8[6];
 	int8_t SplitNum;
-	char NameBuf[MAXPLAYERNAME];
-	char AltBuf[MAXPLAYERNAME];
+	char NameBuf[MAXPLAYERNAME + 1];
+	char AltBuf[MAXPLAYERNAME + 1];
 	bool_t OK, LegalMove;
 	
 	B_BotData_t* NewBot;
@@ -489,12 +489,71 @@ void GS_HandleExtraCommands(ticcmd_t* const a_TicCmd, const int32_t a_PlayerNum)
 			
 		// Clear
 		memset(NameBuf, 0, sizeof(NameBuf));
+		memset(AltBuf, 0, sizeof(AltBuf));
 		
 		// Which command?
 		switch (Command)
 		{
 				// Player Leaves
 			case DTCT_PART:
+				break;
+				
+				// Add Spectator
+			case DTCT_ADDSPEC:
+				// Read Data
+				u32[0] = LittleReadUInt32((uint32_t**)&Rp);
+				u32[1] = LittleReadUInt32((uint32_t**)&Rp);
+				
+				for (i = 0; i < MAXPLAYERNAME; i++)
+					NameBuf[i] = ReadUInt8((uint8_t**)&Rp);
+				NameBuf[MAXPLAYERNAME - 1] = 0;
+				
+				// Try and find the net client
+				NC = NULL;
+				if (!demoplayback)
+					NC = D_NCFindClientByID(u32[1]);
+				
+				// Try and find unique ID
+				NetPlayer = D_NCSFindNetPlayerByUnique(u32[4]);
+				
+				// If it already exists, ignore
+				if (NetPlayer)
+				{
+				}
+				
+				// Otherwise, create it
+				else
+				{
+					// Allocate New player
+					NetPlayer = D_NCSAllocNetPlayer();
+					
+					// If net client is available, use it
+					if (NC)
+					{
+						// Add to arbs list
+						for (i = 0; i < NC->NumArbs; i++)
+							if (!NC->Arbs[i])
+								break;
+		
+						// No room?
+						if (i >= NC->NumArbs)
+						{
+							Z_ResizeArray((void**)&NC->Arbs, sizeof(*NC->Arbs),
+								NC->NumArbs, NC->NumArbs + 1);
+							NC->NumArbs++;
+						}
+		
+						// Allocate net player here
+						NC->Arbs[i] = NetPlayer;
+					}
+					
+					// Setup as spectator
+					NetPlayer->Type = DNPT_SPECTATOR;
+					NetPlayer->UniqueID = u32[0];
+	
+					// Setup Name
+					strncpy(NetPlayer->AccountName, NameBuf, MAXPLAYERNAME);
+				}
 				break;
 				
 				// Player Joins
