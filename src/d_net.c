@@ -1705,6 +1705,7 @@ bool_t D_NCMH_TICS(struct D_NCMessageData_s* const a_Data)
 		// Read Timing Code
 		Target->Ctrl.ProgramTic = D_BSru64(Stream);
 		Target->Ctrl.GameTic = D_BSru64(Stream);
+		Target->Ctrl.Ping = D_BSru16(Stream);
 		
 		// Read Diff Bits
 		DiffBits = D_BSru16(Stream);
@@ -1818,6 +1819,9 @@ bool_t D_NCMH_TCMD(struct D_NCMessageData_s* const a_Data)
 		WriteTo->Ctrl.ProgramTic = D_BSru64(Stream);
 		WriteTo->Ctrl.GameTic = D_BSru64(Stream);
 		WriteTo->Ctrl.Ping = D_BSru16(Stream);
+		
+		// Fake player ping here, ouch
+		WriteTo->Ctrl.Ping = (gametic - WriteTo->Ctrl.GameTic) * TICSPERMS;
 		
 		// Read Stuff
 		WriteTo->Std.forwardmove = D_BSri8(Stream);
