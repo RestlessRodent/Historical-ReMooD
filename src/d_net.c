@@ -1573,12 +1573,10 @@ bool_t D_NCMH_JOIN(struct D_NCMessageData_s* const a_Data)
 		for (i = 0; i < a_Data->RCl->NumArbs; i++)
 			if (a_Data->RCl->Arbs[i])
 				if (a_Data->RCl->Arbs[i]->Type != DNPT_SPECTATOR)
-				{
 					j++;
-					
-					if (!NetPlayer)
-						NetPlayer = a_Data->RCl->Arbs[i];
-				}
+				// Is a spectator, claim it
+				else if (!NetPlayer)
+					NetPlayer = a_Data->RCl->Arbs[i];
 	}
 	
 	/* Find Free Player Slot */
@@ -2147,7 +2145,7 @@ bool_t D_NCMH_REDY(struct D_NCMessageData_s* const a_Data)
 	NetPlayer->UniqueID = UniqueID;
 	
 	// Setup Name
-	strncpy(NetPlayer->AccountName, MAXPLAYERNAME, "NoAccount");
+	strncpy(NetPlayer->AccountName, "NoAccount", MAXPLAYERNAME);
 	
 	/* Queue Add Spectator to clients */
 	

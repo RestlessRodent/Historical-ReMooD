@@ -752,7 +752,8 @@ void D_WaitingPlayersDrawer(void)
 #define BUFSIZE 32
 	char Buf[BUFSIZE];
 	static V_Image_t* BGImage;
-	int32_t i, y, ya, sw;
+	int32_t i, y, ya, sw, Stage;
+	uint32_t DrawFlags;
 	D_NetClient_t* NC;
 	D_NetPlayer_t* Spec;
 	
@@ -768,58 +769,80 @@ void D_WaitingPlayersDrawer(void)
 	// Notice
 	V_DrawStringA(VFONT_LARGE, 0, DS_GetString(DSTR_WFGS_TITLE), 10, 10);
 	
-	// Players currently inside
-	ya = V_FontHeight(VFONT_SMALL);
-	ya += (ya >> 1);
-	y = 10 + V_FontHeight(VFONT_LARGE) + ya;
-	for (i = 0; i < MAXPLAYERS + 1; i++, y += ya)
+	// Double stage drawing (if lots of people, don't scale!)
+	DrawFlags = 0;
+	for (Stage = 0; Stage < 2; Stage++)
 	{
-		if (i > 0 && !playeringame[i - 1])
-			continue;
+		// Players currently inside
+		ya = V_FontHeight(VFONT_SMALL);
+		ya += (ya >> 1);
+		y = 10 + V_FontHeight(VFONT_LARGE) + ya;
 		
-		// Player Name
-		V_DrawStringA(
-				VFONT_SMALL,
-				(i > 0 ? 0 : VFO_COLOR(VEX_MAP_BRIGHTWHITE)),
-				(i > 0 ? player_names[i - 1] : DS_GetString(DSTR_WFGS_PLAYERNAME)),
-				10, y
-			);
+		for (i = 0; i < MAXPLAYERS + 1; i++)
+		{
+			if (i > 0 && !playeringame[i - 1])
+				continue;
 		
-		// Find net client, possibly
-		NC = NULL;
-		if (i > 0)
-			NC = D_NCFindClientByPlayer(&players[i - 1]);
+			// Player Name
+			if (Stage > 0)
+			{
+				V_DrawStringA(
+						VFONT_SMALL,
+						(i > 0 ? 0 : VFO_COLOR(VEX_MAP_BRIGHTWHITE)) | DrawFlags,
+						(i > 0 ? player_names[i - 1] : DS_GetString(DSTR_WFGS_PLAYERNAME)),
+						10, y
+					);
 		
-		// Ping
-		if (i == 0)
-			snprintf(Buf, BUFSIZE - 1, "%s", DS_GetString(DSTR_WFGS_PING));
-		else if (false)//(demoplayback)
-			snprintf(Buf, BUFSIZE - 1, "%s", DS_GetString(DSTR_WFGS_DEMOPLAYER));
-		else if (NC && NC->IsServer)
-			snprintf(Buf, BUFSIZE - 1, "%s", DS_GetString(DSTR_WFGS_HOST));
-		else
-			snprintf(Buf, BUFSIZE - 1, "%i ms", players[i - 1].cmd.Ctrl.Ping);
+				// Find net client, possibly
+				NC = NULL;
+				if (i > 0)
+					NC = D_NCFindClientByPlayer(&players[i - 1]);
 		
-		// Get width
-		sw = V_StringWidthA(VFONT_SMALL, 0, Buf);
-		V_DrawStringA(
-				VFONT_SMALL,
-				(i > 0 ? 0 : VFO_COLOR(VEX_MAP_BRIGHTWHITE)),
-				Buf,
-				310 - sw, y
-			);
-	}
+				// Ping
+				if (i == 0)
+					snprintf(Buf, BUFSIZE - 1, "%s", DS_GetString(DSTR_WFGS_PING));
+				else if (false)//(demoplayback)
+					snprintf(Buf, BUFSIZE - 1, "%s", DS_GetString(DSTR_WFGS_DEMOPLAYER));
+				else if (NC && NC->IsServer)
+					snprintf(Buf, BUFSIZE - 1, "%s", DS_GetString(DSTR_WFGS_HOST));
+				else
+					snprintf(Buf, BUFSIZE - 1, "%i ms", players[i - 1].cmd.Ctrl.Ping);
+		
+				// Get width
+				sw = V_StringWidthA(VFONT_SMALL, 0, Buf);
+				V_DrawStringA(
+						VFONT_SMALL,
+						(i > 0 ? 0 : VFO_COLOR(VEX_MAP_BRIGHTWHITE)) | DrawFlags,
+						Buf,
+						310 - sw, y
+					);
+			}
+			
+			// Add to y
+			y += ya;
+		}
 	
-	/* Spectators */
-	for (Spec = D_NCSIterSpec(NULL); Spec; Spec = D_NCSIterSpec(Spec))
-	{
-		// Player Name
-		V_DrawStringA(
-				VFONT_SMALL,
-				VFO_COLOR(VEX_MAP_GRAY),
-				Spec->AccountName,
-				10, y
-			);
+		/* Spectators */
+		for (Spec = D_NCSIterSpec(NULL); Spec; Spec = D_NCSIterSpec(Spec))
+		{
+			if (Stage > 0)
+			{
+				// Player Name
+				V_DrawStringA(
+						VFONT_SMALL,
+						VFO_COLOR(VEX_MAP_GRAY) | DrawFlags,
+						Spec->AccountName,
+						10, y
+					);
+			}
+		
+			// Increase Y
+			y += ya;
+		}
+		
+		// Y past screen?
+		if (y > 180)
+			DrawFlags |= VFO_NOSCALEPATCH;
 	}
 	
 	/* Draw Mouse */
