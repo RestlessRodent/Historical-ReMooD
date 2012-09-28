@@ -519,7 +519,7 @@ D_NetClient_t* D_NCFindClientByPlayer(struct player_s* const a_Player)
 	return NULL;
 }
 
-/* D_NCFindClientByID() -- Finds player by ID */
+/* D_NCFindClientByID() -- Finds client by ID */
 D_NetClient_t* D_NCFindClientByID(const uint32_t a_ID)
 {
 	D_NetClient_t* Server;
