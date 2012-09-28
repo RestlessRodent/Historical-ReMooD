@@ -176,6 +176,7 @@ int8_t D_NCSFindSplitByProcess(const uint32_t a_ID);
 
 D_NetPlayer_t* D_NCSIterSpec(D_NetPlayer_t* const a_At);
 
+void D_NCRemoveSplit(const int32_t a_Split, const bool_t a_Demo);
 void D_NCResetSplits(const bool_t a_Demo);
 
 const char* D_NCSGetPlayerName(const uint32_t a_PlayerID);

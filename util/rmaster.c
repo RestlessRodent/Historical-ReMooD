@@ -88,7 +88,7 @@ typedef struct MC_GameServer_s
 
 /*** LOCALS ***/
 
-static MC_GameServer_t* l_Servers = NULL;
+static MC_GameServer_t** l_Servers = NULL;
 static size_t l_NumServers = 0;
 
 /*** FUNCTIONS ***/

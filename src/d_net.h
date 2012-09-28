@@ -261,6 +261,10 @@ typedef struct D_XSocket_s
 	size_t NumPlayers;							// Number of slots
 } D_XSocket_t;
 
+struct player_s;
+struct D_ProfileEx_s;
+struct B_BotData_s;
+
 /* D_XPlayer_t -- A player, spectator, bot, whatever */
 typedef struct D_XPlayer_s
 {
@@ -271,12 +275,11 @@ typedef struct D_XPlayer_s
 	char CLToken[MAXUUIDLENGTH];				// Token set by client
 	
 	// Identification
-	uint32_t ID;								// Unique Player ID	
+	uint32_t ID;								// Unique Player ID
+	uint32_t ClProcessID;						// Client's Process ID
 	char AccountName[MAXPLAYERNAME];			// Player's Account Name
 	char DisplayName[MAXPLAYERNAME];			// Player's Display Name
 	char ProfileUUID[MAXPLAYERNAME];			// Player's Profile UUID
-	
-	char ProfileUUID[MAXUUIDLENGTH];			// UUID for profile
 	char LoginUUID[MAXUUIDLENGTH];				// UUID used for login (cookie rather)
 	
 	// Socket
@@ -292,7 +295,7 @@ typedef struct D_XPlayer_s
 	// In-Game
 	int8_t ScreenID;							// Screen Identity
 	int32_t InGameID;							// Player in game number
-	player_t* Player;							// Pointer to player
+	struct player_s* Player;					// Pointer to player
 	struct D_ProfileEx_s* Profile;				// Profile Used by player
 	struct B_BotData_s* BotData;				// Bot data used by player
 } D_XPlayer_t;
@@ -306,6 +309,14 @@ extern D_XPlayer_t** g_XPlays;					// Extended Players
 extern size_t g_NumXPlays;						// Number of them
 
 /*** FUNCTIONS ***/
+
+void D_XNetDisconnect(const bool_t a_FromDemo);
+
+bool_t D_XNetIsServer(void);
+D_XPlayer_t* D_XNetPlayerByID(const uint32_t a_ID);
+
+void D_XNetDelSocket(D_XSocket_t* const a_Socket);
+void D_XNetKickPlayer(D_XPlayer_t* const a_Player, const char* const a_Reason);
 
 void D_XNetUpdate(void);
 

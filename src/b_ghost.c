@@ -1619,3 +1619,8 @@ void B_GHOST_Think(B_GhostBot_t* const a_GhostBot, ticcmd_t* const a_TicCmd)
 	}
 }
 
+/* B_XDestroyBot() -- Destroys Bot */
+void B_XDestroyBot(B_BotData_t* const a_BotData)
+{
+}
+

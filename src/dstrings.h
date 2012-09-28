@@ -393,6 +393,7 @@ typedef enum UnicodeStringID_e
 	DSTR_WFGS_HOST,
 	
 	DSTR_WFJW_TITLE,
+	DSTR_NET_SERVERDISCON,
 	
 	/* Deprecated Strings */
 	DSTR_DEP_D_DEVSTR,

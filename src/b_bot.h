@@ -174,6 +174,8 @@ const B_BotTemplate_t* B_GHOST_FindTemplate(const char* const a_Name);
 const B_BotTemplate_t* B_GHOST_RandomTemplate(void);
 const B_BotTemplate_t* B_GHOST_TemplateByID(const uint32_t a_ID);
 
+void B_XDestroyBot(B_BotData_t* const a_BotData);
+
 #endif /* __B_BOT_H__ */
 
 

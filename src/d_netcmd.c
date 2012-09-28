@@ -174,6 +174,12 @@ const int32_t c_TCDataSize[NUMDTCT] =
 		// uint32 Unique ID
 		// uint32 Host ID
 		// uint8* Account Name
+	
+	// DTCT_XKICKPLAYER, Kick Player
+	2 + 4 + MAXTCCBUFSIZE,
+		// uint16 In Game ID
+		// uint32 Unique ID
+		// uint8* Reason (MAXTCCBUFSIZE)
 };
 
 /*** GLOBALS ***/
@@ -1174,6 +1180,7 @@ void D_NCSNetUpdateAll(void)
 	
 	// Update Networking
 	D_NCUpdate();
+	D_XNetUpdate();
 }
 
 /* D_NCSNetUpdateSingleTic() -- Single tic update */
@@ -1558,26 +1565,67 @@ D_NetPlayer_t* D_NCSIterSpec(D_NetPlayer_t* const a_At)
 	return NULL;
 }
 
+/* D_NCRemoveSplit() -- Removes Split */
+void D_NCRemoveSplit(const int32_t a_Split, const bool_t a_Demo)
+{
+	int i;
+	
+	/* Check */
+	if (a_Split < 0 || a_Split >= MAXSPLITSCREEN)
+		return;	
+	
+	/* Not in demo */
+	if (!a_Demo)
+	{
+		// Move splits down, to replace this split
+		for (i = a_Split; i < MAXSPLITSCREEN; i++)
+			// Last spot?
+			if (i == MAXSPLITSCREEN - 1)
+				memset(&g_Splits[i], 0, sizeof(g_Splits[i]));
+			
+			// Move the stuff from the next spot over this one
+			else
+				memmove(&g_Splits[i], &g_Splits[i + 1], sizeof(g_Splits[i]));
+	}
+	
+	/* In demo */
+	else
+	{
+		// Move splits down, to replace this split
+		for (i = a_Split; i < MAXSPLITSCREEN; i++)
+			// Last spot?
+			if (i == MAXSPLITSCREEN - 1)
+			{
+				// Make inactive
+				g_Splits[i].Active = false;
+			}
+			
+			// Move the stuff from the next spot over this one
+			else
+			{
+				// Grab non breaking stuff from demos over
+				g_Splits[i].Active = g_Splits[i + 1].Active;
+				g_Splits[i].Console = g_Splits[i + 1].Console;
+				g_Splits[i].Display = g_Splits[i + 1].Display;
+			}
+	}
+	
+	/* Correctsplit screen */
+	// Subtract the removed player
+	g_SplitScreen--;
+	
+	// Correct visual display
+	R_ExecuteSetViewSize();
+}
+
 /* D_NCResetSplits() -- Resets all splits */
 void D_NCResetSplits(const bool_t a_Demo)
 {
 	int i;
 	
-	/* Not in demo */
-	if (!a_Demo)
-	{
-		memset(g_Splits, 0, sizeof(g_Splits));
-	}
-	
-	/* In Demo */
-	else
-	{
-		for (i = 0; i < MAXSPLITSCREEN; i++)
-			g_Splits[i].Active = false;
-	}
-	
-	/* Reset Split Count */
-	g_SplitScreen = -1;
+	/* Wipe all splits */
+	for (i = MAXSPLITSCREEN; i > 0; i--)
+		D_NCRemoveSplit(i - 1, a_Demo);
 }
 
 /* D_NCSGetPlayerName() -- Get player name */

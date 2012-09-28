@@ -145,6 +145,8 @@ typedef union
 
 void D_TicCmdFillWeapon(ticcmd_t* const a_Target, const int32_t a_ID);
 
+#define MAXTCCBUFSIZE					32		// Max buffer size in commands
+
 enum
 {
 	DTCT_NULL,									// NULL
@@ -153,6 +155,9 @@ enum
 	DTCT_GAMEVAR,								// Game Variable
 	DTCT_PART,									// Part Game
 	DTCT_ADDSPEC,								// Add Spectator
+	
+	// Extended
+	DTCT_XKICKPLAYER,							// Kick Player
 	
 	NUMDTCT
 };

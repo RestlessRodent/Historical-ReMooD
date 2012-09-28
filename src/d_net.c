@@ -165,6 +165,7 @@ bool_t D_SyncNetUpdate(void)
 	
 	/* Update network code */
 	D_NCUpdate();
+	D_XNetUpdate();
 	
 	/* Success */
 	return true;
@@ -765,66 +766,9 @@ bool_t D_CheckNetGame(void)
 	CONL_VarRegister(&l_SVMaxClients);
 	CONL_VarRegister(&l_SVReadyBy);
 	CONL_VarRegister(&l_SVMaxCatchup);
-		
-	/* Create LoopBack Client */
-	Client = D_NCAllocClient();
-	Client->IsLocal = true;
-	Client->CoreStream = D_BSCreateLoopBackStream();
-	strncpy(Client->ReverseDNS, "loop://", NETCLIENTRHLEN);
 	
-	// Create perfection Wrapper
-	Client->PerfectStream = D_BSCreateReliableStream(Client->CoreStream);
-	
-	// Set read/writes for all streams
-	Client->Streams[DNCSP_READ] = Client->CoreStream;
-	Client->Streams[DNCSP_WRITE] = Client->CoreStream;
-	Client->Streams[DNCSP_PERFECTREAD] = Client->PerfectStream;
-	Client->Streams[DNCSP_PERFECTWRITE] = Client->PerfectStream;
-	
-	/* Create Local Network Client */
-	for (v = 0; v < 2; v++)
-	{
-		// Allow changing of port
-		PortNum = __REMOOD_BASEPORT;
-		if (M_CheckParm("-port"))
-			PortNum = strtol(M_GetNextParm(), NULL, 10);
-		
-		// Attempt open of UDPv4 and UDPv6 socket
-		Socket = NULL;
-		for (i = 0; i < 20 && !Socket; i++)
-			Socket = I_NetOpenSocket((v ? INSF_V6 : 0), NULL, (ShowPort = PortNum + i));
-		
-		// Failed?
-		if (!Socket)
-			CONL_OutputU(DSTR_DNETC_SOCKFAILEDTOOPEN, "%i\n", (v ? 6 : 4));
-		
-		// Initialize input/output of stream
-		else
-		{
-			CONL_OutputU(DSTR_DNETC_BOUNDTOPORT, "%i%u\n", (v ? 6 : 4), ShowPort);
-			
-			// Allocate local client
-			Client = D_NCAllocClient();
-			Client->IsLocal = true;
-			snprintf(Client->ReverseDNS, NETCLIENTRHLEN, "ipv%i://", (v ? 6 : 4));
-		
-			// Copy socket
-			Client->NetSock = Socket;
-			Client->Protected = true;
-		
-			// Create stream from it
-			Client->CoreStream = D_BSCreateNetStream(Client->NetSock);
-		
-			// Create encapsulated perfect stream
-			Client->PerfectStream = D_BSCreateReliableStream(Client->CoreStream);
-	
-			// Set read/writes for all streams
-			Client->Streams[DNCSP_READ] = Client->CoreStream;
-			Client->Streams[DNCSP_WRITE] = Client->CoreStream;
-			Client->Streams[DNCSP_PERFECTREAD] = Client->PerfectStream;
-			Client->Streams[DNCSP_PERFECTWRITE] = Client->PerfectStream;
-		}
-	}
+	/* Initial Disconnect */
+	D_XNetDisconnect(false);
 	
 	return ret;
 }
@@ -902,6 +846,10 @@ void D_NCQueueDisconnect(void)
 void D_NCDisconnect(const bool_t a_FromDemo)
 {
 	size_t i, j;
+	
+	/* Use Newer Code Instead */
+	D_XNetDisconnect(a_FromDemo);
+	return;
 	
 	/* Demos? */
 	if (demoplayback)
@@ -3003,6 +2951,211 @@ void D_NCSR_SendLoadingStatus(const int32_t a_MajIs, const int32_t a_MajOf, cons
 /******************************
 *** NEW EXTENDED NETWORKING ***
 ******************************/
+
+/*** GLOBALS ***/
+
+D_XSocket_t** g_XSocks = NULL;					// Extended Sockets
+size_t g_NumXSocks = 0;							// Number of them
+
+D_XPlayer_t** g_XPlays = NULL;					// Extended Players
+size_t g_NumXPlays = 0;							// Number of them
+
+/*** FUNCTIONS ***/
+
+/* D_XNetDisconnect() -- Disconnect from server/self server */
+// Replaces D_NCDisconnect()
+void D_XNetDisconnect(const bool_t a_FromDemo)
+{
+	int32_t i;
+	static bool_t DoingDiscon;
+	
+	/* Already disconnecting? */
+	if (DoingDiscon)
+		return;
+	DoingDiscon = true;
+	
+	/* Disconnect all players */
+	for (i = 0; i < g_NumXPlays; i++)
+		if (g_XPlays[i])
+			D_XNetKickPlayer(g_XPlays[i], DS_GetString(DSTR_NET_SERVERDISCON));
+	
+	/* Remove all sockets */
+	for (i = 0; i < g_NumXSocks; i++)
+		if (g_XSocks[i])
+			D_XNetDelSocket(g_XSocks[i]);
+	
+	/* Demos? */
+	if (demoplayback)
+	{
+		// Don't quit when the demo stops
+		singledemo = false;
+		
+		// Stop it
+		G_StopDemoPlay();
+	}
+	
+	/* Clear network stuff */
+	// Tics
+	D_ClearNetTics();
+	
+	// Consistency problems
+	l_ConsistencyFailed = false;
+	
+	// Revert back to solo networking
+	l_SoloNet = true;
+	l_IsConnected = false;	// Set disconnected
+	
+	/* Clear all player information */
+	// Reset all vars
+	P_XGSSetAllDefaults();
+	
+	// Just wipe ALL of it!
+	memset(players, 0, sizeof(players));
+	memset(playeringame, 0, sizeof(playeringame));
+	
+	// If connected, reset splits
+	if (l_IsConnected)
+		D_NCResetSplits(a_FromDemo);
+	
+	// Always reset demo splits though
+	D_NCResetSplits(true);
+	
+	// Initialize some players some
+	for (i = 0; i < MAXPLAYERS; i++)
+		G_InitPlayer(&players[i]);
+	
+	/* Destroy the level */
+	P_ExClearLevel();
+	
+	/* Go back to the title screen */
+	gamestate = GS_DEMOSCREEN;
+	
+	/* Done disconnecting */
+	DoingDiscon = false;
+}
+
+/* D_XNetIsServer() -- Returns true if we are the server */
+bool_t D_XNetIsServer(void)
+{
+	int32_t i;
+	
+	/* Grab server status from first local player */
+	for (i = 0; i < g_NumXPlays; i++)
+		if (g_XPlays[i])
+			if (g_XPlays[i]->Flags & DXPF_LOCAL)
+				return !!(g_XPlays[i]->Flags & DXPF_SERVER);
+	
+	/* Fall through */
+	return false;
+}
+
+/* D_XNetPlayerByID() -- Finds player by ID */
+D_XPlayer_t* D_XNetPlayerByID(const uint32_t a_ID)
+{
+	int32_t i;
+	
+	/* Check */
+	if (!a_ID)
+		return NULL;
+	
+	/* Search players */
+	for (i = 0; i < g_NumXPlays; i++)
+		if (g_XPlays[i])
+			if (g_XPlays[i]->ID == a_ID)
+				return g_XPlays[i];
+	
+	/* Not Found */
+	return NULL;
+}
+
+/* D_XNetDelSocket() -- Deletes Socket */
+void D_XNetDelSocket(D_XSocket_t* const a_Socket)
+{
+}
+
+/* D_XNetKickPlayer() -- Kicks player for some reason */
+void D_XNetKickPlayer(D_XPlayer_t* const a_Player, const char* const a_Reason)
+{
+	size_t Slot;
+	int32_t i, j;
+	void* Wp;
+	ticcmd_t* Placement;
+	
+	/* Check */
+	if (!a_Player)
+		return;
+	
+	/* Find slot player uses */
+	for (Slot = 0; Slot < g_NumXPlays; Slot++)
+		if (a_Player == g_XPlays[Slot])
+			break;
+	
+	// Not in any slot
+	if (Slot >= g_NumXPlays)
+		return;
+	
+	/* Remove from slot */
+	g_XPlays[Slot] = NULL;
+	
+	/* Local Player */
+	if (g_Player->Flags & DXPF_LOCAL)
+	{
+		// Disconnect from server
+		D_XNetDisconnect(false);
+		
+		// Remove from local screen
+		for (i = 0; i < MAXSPLITSCREEN; i++)
+			if (D_ScrSplitHasPlayer(i))
+				if (g_Player->ClProcessID == g_Splits[i].ProcessID)
+					D_NCRemoveSplit(i, demoplayback);
+	}
+	
+	/* Remote Player */
+	else
+	{
+		// Send disconnection packet to them, if we are the server
+		if (D_XNetIsServer())
+		{
+		}
+	}
+	
+	/* Enqueue Special Command, if server */
+	// This informs the other clients (w/ demo) to delete the player. This is
+	// also read for the game state, to remove players who have no controller.
+	// So if a player is dropping and everyone is stuck on a WFP screen and the
+	// player is removed, they will still be "in" the game until the tic command
+	// removes them.
+	if (D_XNetIsServer())
+	{
+		// Grab global command
+		Placement = DS_GrabGlobal(DTCT_XKICKPLAYER, c_TCDataSize[DTCT_XKICKPLAYER], &Wp);
+		
+		// Got one
+		if (Placement)
+		{
+			// Send player to remove
+			LittleWriteUInt16((uint16_t**)&Wp, a_Player->InGameID);
+			LittleWriteUInt32((uint32_t**)&Wp, a_Player->ID);
+			
+			// Write reason
+			for (i = 0, j = 0; i < MAXTCCBUFSIZE; i++)
+				if (a_Reason && a_Reason[j] && j < MAXTCCBUFSIZE - 1)
+					WriteUInt8((uint8_t**)&Wp, a_Reason[j++]);
+				else
+					WriteUInt8((uint8_t**)&Wp, 0);
+		}
+	}
+	
+	/* Delete bot, if any */
+	if (a_Player->BotData)
+	{
+		B_XDestroyBot(a_Player->BotData);
+		a_Player->BotData = NULL;
+	}
+	
+	/* Free associated data */
+	Z_Free(g_XPlays);
+}
 
 /* D_XNetUpdate() -- Updates Extended Network */
 void D_XNetUpdate(void)

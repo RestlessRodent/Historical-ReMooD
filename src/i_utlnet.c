@@ -1440,6 +1440,12 @@ size_t I_NetSend(I_NetSocket_t* const a_Socket, const I_HostAddress_t* const a_H
 	if (!a_Socket || !a_InData || !a_Len)
 		return 0;
 	
+	/* Wrong Host? */
+	if (a_Host)
+		if ((a_Host->IPvX == INIPVN_IPV6 && !(a_Socket->Flags & INSF_V6)) ||
+			(a_Host->IPvX == INIPVN_IPV4 && (a_Socket->Flags & INSF_V6)))
+			return 0;
+	
 	/* Recieve from which socket? */
 	// Convert address to host
 	IS_ConvertHost(true, a_Host, &Addr);
