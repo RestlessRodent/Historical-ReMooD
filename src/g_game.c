@@ -771,8 +771,8 @@ void GS_HandleExtraCommands(ticcmd_t* const a_TicCmd, const int32_t a_PlayerNum)
 				
 				// Debug
 				if (g_NetDev)
-					CONL_PrintF("NET: Join (%x, %u, %x, %x, %u, %s, %s)\n",
-							u32[0], u16[0], u32[1], u32[2], u8[0], NameBuf, AltBuf
+					CONL_PrintF("NET: Join (%x, %u, %x, %x, %x, %x, %u, %s, %s)\n",
+							u32[0], u16[0], u32[1], u32[2], u32[3], u32[4], u8[0], NameBuf, AltBuf
 						);
 				break;
 				

@@ -1574,6 +1574,7 @@ bool_t D_NCMH_JOIN(struct D_NCMessageData_s* const a_Data)
 			if (a_Data->RCl->Arbs[i])
 				if (a_Data->RCl->Arbs[i]->Type != DNPT_SPECTATOR)
 					j++;
+				
 				// Is a spectator, claim it
 				else if (!NetPlayer)
 					NetPlayer = a_Data->RCl->Arbs[i];
@@ -1603,7 +1604,12 @@ bool_t D_NCMH_JOIN(struct D_NCMessageData_s* const a_Data)
 		
 		// Otherwise, use the spectators unique ID
 	else
+	{
 		UniqueID = NetPlayer->UniqueID;
+		
+		// Set as networked
+		NetPlayer->Type = DNPT_NETWORK;
+	}
 	
 	/* Place */
 	Wp = NULL;
@@ -2156,7 +2162,7 @@ bool_t D_NCMH_REDY(struct D_NCMessageData_s* const a_Data)
 	
 	if (Placement)
 	{
-		// Write Unique ID
+		// Write Unique ID_
 		LittleWriteUInt32((uint32_t**)&Wp, UniqueID);
 		LittleWriteUInt32((uint32_t**)&Wp, a_Data->RCl->HostID);
 		
