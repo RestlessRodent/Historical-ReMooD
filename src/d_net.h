@@ -221,6 +221,93 @@ void D_NetWriteGlobalTicCmd(ticcmd_t* const a_TicCmd);
 void D_NetReadTicCmd(ticcmd_t* const a_TicCmd, const int a_Player);
 void D_NetWriteTicCmd(ticcmd_t* const a_TicCmd, const int a_Player);
 
+/******************************
+*** NEW EXTENDED NETWORKING ***
+******************************/
+
+/*** CONSTANTS ***/
+
+#define MAXXSOCKTEXTSIZE				64		// Max size of text fields
+#define MAXUUIDLENGTH	(MAXPLAYERNAME * 2)		// Length of UUIDs
+
+/* D_XPlayerFlags_t -- Player Flags */
+typedef enum D_XPlayerFlags_e
+{
+	DXPF_LOCAL			= UINT32_C(0x0000001),	// Player is Local
+	DXPF_SERVER			= UINT32_C(0x0000002),	// Player is Server
+	DXPF_NOLOGIN		= UINT32_C(0x0000004),	// Player has no login (local)
+	DXPF_DEMO			= UINT32_C(0x0000008),	// Generated from a demo
+	DXPF_CHALLENGED		= UINT32_C(0x0000010),	// Connection Challenged
+} D_XPlayerFlags_t;
+
+/*** STRUCTURES ***/
+
+struct D_XPlayer_s;
+
+/* D_XSocket_t -- Socket used to communicate to player */
+typedef struct D_XSocket_s
+{
+	// Identification
+	uint32_t ID;								// Unique Socket ID	
+	
+	// Socket Info
+	I_NetSocket_t* NetSock;						// Network socket
+	struct D_BS_s* CoreStream;					// Core stream
+	struct D_BS_s* PerfectStream;				// Core stream
+	struct D_BS_s* Streams[NUMDNCSTREAMS];		// Client Streams
+	
+	// Reverse Player Lookup
+	struct D_XPlayer_s** Players;				// Players using socket
+	size_t NumPlayers;							// Number of slots
+} D_XSocket_t;
+
+/* D_XPlayer_t -- A player, spectator, bot, whatever */
+typedef struct D_XPlayer_s
+{
+	uint32_t Flags;								// Flags
+	
+	// Security
+	char SSToken[MAXUUIDLENGTH];				// Token set by server
+	char CLToken[MAXUUIDLENGTH];				// Token set by client
+	
+	// Identification
+	uint32_t ID;								// Unique Player ID	
+	char AccountName[MAXPLAYERNAME];			// Player's Account Name
+	char DisplayName[MAXPLAYERNAME];			// Player's Display Name
+	char ProfileUUID[MAXPLAYERNAME];			// Player's Profile UUID
+	
+	char ProfileUUID[MAXUUIDLENGTH];			// UUID for profile
+	char LoginUUID[MAXUUIDLENGTH];				// UUID used for login (cookie rather)
+	
+	// Socket
+	D_XSocket_t* Socket;						// Socket player uses
+	I_HostAddress_t Address;					// Address to player
+	char ReverseDNS[MAXXSOCKTEXTSIZE];			// Reverse DNS of Host
+	
+	// Account Server
+	char AccountServer[MAXXSOCKTEXTSIZE];		// Server that manages the account
+	I_HostAddress_t AccountServAddr;			// Address to account server
+	char AccountServRDNS[MAXXSOCKTEXTSIZE];		// Reverse DNS to account server
+	
+	// In-Game
+	int8_t ScreenID;							// Screen Identity
+	int32_t InGameID;							// Player in game number
+	player_t* Player;							// Pointer to player
+	struct D_ProfileEx_s* Profile;				// Profile Used by player
+	struct B_BotData_s* BotData;				// Bot data used by player
+} D_XPlayer_t;
+
+/*** GLOBALS ***/
+
+extern D_XSocket_t** g_XSocks;					// Extended Sockets
+extern size_t g_NumXSocks;						// Number of them
+
+extern D_XPlayer_t** g_XPlays;					// Extended Players
+extern size_t g_NumXPlays;						// Number of them
+
+/*** FUNCTIONS ***/
+
+void D_XNetUpdate(void);
 
 #endif							/* __D_NET_H__ */
 

@@ -2999,3 +2999,13 @@ void D_NCSR_SendLoadingStatus(const int32_t a_MajIs, const int32_t a_MajOf, cons
 {
 }
 
+
+/******************************
+*** NEW EXTENDED NETWORKING ***
+******************************/
+
+/* D_XNetUpdate() -- Updates Extended Network */
+void D_XNetUpdate(void)
+{
+}
+
