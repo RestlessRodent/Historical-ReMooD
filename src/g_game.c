@@ -450,17 +450,20 @@ void GS_HandleExtraCommands(ticcmd_t* const a_TicCmd, const int32_t a_PlayerNum)
 	D_NetClient_t* NC;
 	D_NetPlayer_t* NetPlayer;
 	player_t* Player;
+	mobj_t* Mo;
 	
 	uint32_t u32[6];
 	int32_t i32[6];
 	uint16_t u16[6];
 	uint8_t u8[6];
 	int8_t SplitNum;
-	char NameBuf[MAXPLAYERNAME + 1];
-	char AltBuf[MAXPLAYERNAME + 1];
+	char NameBuf[MAXTCCBUFSIZE + 1];
+	char AltBuf[MAXTCCBUFSIZE + 1];
 	bool_t OK, LegalMove;
 	
 	B_BotData_t* NewBot;
+	
+	D_XPlayer_t* XPlayer;
 	
 	/* Get pointer base */
 	if (a_TicCmd->Ctrl.Type == 1)
@@ -494,6 +497,51 @@ void GS_HandleExtraCommands(ticcmd_t* const a_TicCmd, const int32_t a_PlayerNum)
 		// Which command?
 		switch (Command)
 		{
+				// Kick Player
+			case DTCT_XKICKPLAYER:
+				// Read Data
+				u16[0] = LittleReadUInt16((uint32_t**)&Rp);
+				u32[0] = LittleReadUInt32((uint32_t**)&Rp);
+				
+				for (i = 0; i < MAXTCCBUFSIZE; i++)
+					AltBuf[i] = ReadUInt8((uint8_t**)&Rp);
+				
+				// Find the player's ID
+				XPlayer = D_XNetPlayerByID(u32[0]);
+				
+				// Player exists in our structures
+				if (XPlayer)
+				{
+					// Kill the player in question (if in game)
+					if (XPlayer->Player && 
+						u16[0] < MAXPLAYERS && playeringame[u16[0]])
+					{
+						// Get player's object
+						Mo = players[u16[0]].mo;
+					
+						// Remove object binding
+						if (Mo)
+							Mo->player = NULL;
+						players[u16[0]].mo = NULL;
+					
+						// Set the player as not in game
+						playeringame[u16[0]] = false;
+				
+						// Kill object, if it exists
+							// Don't remove it, corpse cleanup will get to it eventually
+						if (Mo)
+							P_KillMobj(Mo, Mo, Mo);
+					}
+				}
+				
+				// Kick player from game (network wise)
+				D_XNetKickPlayer(XPlayer, AltBuf);
+				break;
+				
+				
+				
+				
+			
 				// Player Leaves
 			case DTCT_PART:
 				break;

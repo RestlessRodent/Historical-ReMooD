@@ -318,6 +318,7 @@ D_XPlayer_t* D_XNetPlayerByID(const uint32_t a_ID);
 void D_XNetDelSocket(D_XSocket_t* const a_Socket);
 void D_XNetKickPlayer(D_XPlayer_t* const a_Player, const char* const a_Reason);
 
+tic_t D_XNetTicsToRun(void);
 void D_XNetUpdate(void);
 
 #endif							/* __D_NET_H__ */

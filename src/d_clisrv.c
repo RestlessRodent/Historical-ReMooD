@@ -245,7 +245,7 @@ void TryRunTics(tic_t realtics)
 			XXSNAR = 1;
 	}
 	else
-		XXSNAR = D_SyncNetAllReady();
+		XXSNAR = D_XNetTicsToRun();
 	
 	// Update Network
 	D_SyncNetUpdate();

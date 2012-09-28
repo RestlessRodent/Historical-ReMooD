@@ -325,11 +325,19 @@ CONL_StaticVar_t l_SVReadyBy =
 	NULL
 };
 
-// sv_maxcatchup -- Name of Server
+// sv_maxcatchup -- Limit to the amount of time the server can catchup
 CONL_StaticVar_t l_SVMaxCatchup =
 {
 	CLVT_INTEGER, c_CVPVPositive, CLVF_SAVE,
 	"sv_maxcatchup", DSTR_CVHINT_SVMAXCATCHUP, CLVVT_INTEGER, "105",
+	NULL
+};
+
+// sv_maxdemocatchup -- Similar to sv_maxcatchup, but for demos
+CONL_StaticVar_t l_SVMaxDemoCatchup =
+{
+	CLVT_INTEGER, c_CVPVPositive, CLVF_SAVE,
+	"sv_maxdemocatchup", DSTR_CVHINT_SVMAXDEMOCATCHUP, CLVVT_INTEGER, "52",
 	NULL
 };
 
@@ -766,6 +774,7 @@ bool_t D_CheckNetGame(void)
 	CONL_VarRegister(&l_SVMaxClients);
 	CONL_VarRegister(&l_SVReadyBy);
 	CONL_VarRegister(&l_SVMaxCatchup);
+	CONL_VarRegister(&l_SVMaxDemoCatchup);
 	
 	/* Initial Disconnect */
 	D_XNetDisconnect(false);
@@ -2406,6 +2415,8 @@ void D_NetReadGlobalTicCmd(ticcmd_t* const a_TicCmd)
 	D_NetClient_t* NetClient;
 	D_BS_t* Stream;
 	
+	return;
+	
 	/* Get server client */
 	ServerNC = D_NCFindClientIsServer();
 	
@@ -2960,6 +2971,9 @@ size_t g_NumXSocks = 0;							// Number of them
 D_XPlayer_t** g_XPlays = NULL;					// Extended Players
 size_t g_NumXPlays = 0;							// Number of them
 
+/*** LOCALS ***/
+static tic_t l_XNLastPTic;						// Last Program Tic
+
 /*** FUNCTIONS ***/
 
 /* D_XNetDisconnect() -- Disconnect from server/self server */
@@ -3004,6 +3018,9 @@ void D_XNetDisconnect(const bool_t a_FromDemo)
 	// Revert back to solo networking
 	l_SoloNet = true;
 	l_IsConnected = false;	// Set disconnected
+	
+	// Reset time to now
+	l_XNLastPTic = g_ProgramTic;
 	
 	/* Clear all player information */
 	// Reset all vars
@@ -3090,7 +3107,7 @@ void D_XNetKickPlayer(D_XPlayer_t* const a_Player, const char* const a_Reason)
 		if (a_Player == g_XPlays[Slot])
 			break;
 	
-	// Not in any slot
+	// Not in any slot? Must have been removed then
 	if (Slot >= g_NumXPlays)
 		return;
 	
@@ -3098,15 +3115,22 @@ void D_XNetKickPlayer(D_XPlayer_t* const a_Player, const char* const a_Reason)
 	g_XPlays[Slot] = NULL;
 	
 	/* Local Player */
-	if (g_Player->Flags & DXPF_LOCAL)
+	if (a_Player->Flags & DXPF_LOCAL)
 	{
-		// Disconnect from server
-		D_XNetDisconnect(false);
+		// Disconnect from server, if no more local players remain
+		for (j = 0, i = 0; i < g_NumXPlays; i++)
+			if (g_XPlays[i])
+				if (g_XPlays[i]->Flags & DXPF_LOCAL)
+					j++;
+		
+		// No players, so disconnect ourself
+		if (j <= 0)
+			D_XNetDisconnect(false);
 		
 		// Remove from local screen
 		for (i = 0; i < MAXSPLITSCREEN; i++)
 			if (D_ScrSplitHasPlayer(i))
-				if (g_Player->ClProcessID == g_Splits[i].ProcessID)
+				if (a_Player->ClProcessID == g_Splits[i].ProcessID)
 					D_NCRemoveSplit(i, demoplayback);
 	}
 	
@@ -3116,6 +3140,7 @@ void D_XNetKickPlayer(D_XPlayer_t* const a_Player, const char* const a_Reason)
 		// Send disconnection packet to them, if we are the server
 		if (D_XNetIsServer())
 		{
+			// See if the player is not shared by any more hosts (all gone)
 		}
 	}
 	
@@ -3155,6 +3180,80 @@ void D_XNetKickPlayer(D_XPlayer_t* const a_Player, const char* const a_Reason)
 	
 	/* Free associated data */
 	Z_Free(g_XPlays);
+}
+
+/* D_XNetTicsToRun() -- Amount of tics to run */
+tic_t D_XNetTicsToRun(void)
+{
+	tic_t Diff;
+	
+	/* Playing a demo back */
+	if (demoplayback)
+	{
+		// Timing Demo
+		if (singletics)
+			return 1;
+		
+		// Get time difference
+		Diff = g_ProgramTic - l_XNLastPTic;
+		l_XNLastPTic = g_ProgramTic;
+		
+		// If the difference is too great, cap it
+			// i.e. debug break, moving window, etc. doesn't cause the game to
+			// catchup for all the time that was lost
+		if (Diff > l_SVMaxDemoCatchup.Value->Int)
+			return l_SVMaxDemoCatchup.Value->Int + 1;
+		return Diff;
+	}
+	
+	/* We are the server */
+	else if (D_XNetIsServer())
+	{
+		// Timing Server
+		if (singletics)
+			return 1;
+		
+		// See if everyone is not lagging behind
+			// If not, freeze the game until everyone catches up some
+		
+		// Clients need to catchup
+		if (false)
+		{
+			l_XNLastPTic = g_ProgramTic;
+			return 0;
+		}
+			
+		// Get time difference
+		Diff = g_ProgramTic - l_XNLastPTic;
+		l_XNLastPTic = g_ProgramTic;
+		
+		// If the difference is too great, cap it
+			// i.e. debug break, moving window, etc. doesn't cause the game to
+			// catchup for all the time that was lost
+		if (Diff > l_SVMaxCatchup.Value->Int)
+			return l_SVMaxCatchup.Value->Int + 1;
+		return Diff;
+	}
+	
+	/* We are the client */
+	else
+	{
+		// If time smoothing is enabled...
+			// If running to far behind, execute more tics
+			// If running within threshold, execute tic at certain time
+			// so that the client game is not jerky and is consistent.
+		if (false)
+		{
+		}
+		
+		// Otherwise, return the amount of tics that are in queue
+		else
+		{
+		}
+	}
+	
+	/* Fell through? */
+	return 0;
 }
 
 /* D_XNetUpdate() -- Updates Extended Network */
