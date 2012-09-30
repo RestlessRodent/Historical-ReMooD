@@ -963,6 +963,10 @@ void D_NCServize(void)
 {
 	int32_t i;
 	
+	/* Use new code instead */
+	D_XNetMakeServer(false, 0);
+	return;
+	
 	/* First Disconnect */
 	// This does most of the work for us
 	D_NCDisconnect(false);
@@ -2988,6 +2992,9 @@ void D_XNetDisconnect(const bool_t a_FromDemo)
 		return;
 	DoingDiscon = true;
 	
+	/* Send quit message to server */
+	D_XNetSendQuit();
+	
 	/* Disconnect all players */
 	for (i = 0; i < g_NumXPlays; i++)
 		if (g_XPlays[i])
@@ -3051,6 +3058,30 @@ void D_XNetDisconnect(const bool_t a_FromDemo)
 	DoingDiscon = false;
 }
 
+/* DS_XNetMakeServPB() -- Callback for make player */
+static void DS_XNetMakeServPB(D_XPlayer_t* const a_Player)
+{
+}
+
+/* D_XNetMakeServer() -- Creates a server, possibly networked */
+void D_XNetMakeServer(const bool_t a_Networked, const uint16_t a_NetPort)
+{
+	D_XPlayer_t* SPlay;
+	
+	/* Disconnect First */
+	D_XNetDisconnect();
+	
+	/* Create a starting spectator (the host) */
+	SPlay = D_XNetAddPlayer(DS_XNetMakeServPB, NULL);
+	
+	// Set server infos
+	
+	
+	/* Set the proper gamestate */
+	gamestate = wipegamestate = GS_WAITINGPLAYERS;
+	S_ChangeMusicName("D_WAITIN", 1);			// A nice tune
+}
+
 /* D_XNetIsServer() -- Returns true if we are the server */
 bool_t D_XNetIsServer(void)
 {
@@ -3088,6 +3119,38 @@ D_XPlayer_t* D_XNetPlayerByID(const uint32_t a_ID)
 /* D_XNetDelSocket() -- Deletes Socket */
 void D_XNetDelSocket(D_XSocket_t* const a_Socket)
 {
+}
+
+/* D_XNetAddPlayer() -- Adds new player */
+D_XPlayer_t* D_XNetAddPlayer(void (*a_PacketBack)(D_XPlayer_t* const a_Player, void* const a_Data), void* const a_Data);
+{
+	D_XPlayer_t* New;
+	uint32_t ID;
+	
+	/* Allocate */
+	New = Z_Malloc(sizeof(*New), PU_STATIC, NULL);
+	
+	/* Call callback */
+	if (a_PacketBack)
+		a_PacketBack(New, a_Data);
+	
+	// ID already taken?
+	if (New->ID && D_XNetPlayerByID(New->ID) != New)
+	{
+		Z_Free(New);
+		return NULL;
+	}
+	
+	/* Create ID for the player */
+	do
+	{
+		ID = D_CMakePureRandom();
+	} while (!ID || D_XNetPlayerByID(ID));
+	
+	// Set ID, is hopefully really random
+	New->ID = ID;
+	
+	/* Send player creation packet */
 }
 
 /* D_XNetKickPlayer() -- Kicks player for some reason */
@@ -3180,6 +3243,18 @@ void D_XNetKickPlayer(D_XPlayer_t* const a_Player, const char* const a_Reason)
 	
 	/* Free associated data */
 	Z_Free(g_XPlays);
+}
+
+/* D_XNetSendQuit() -- Informs the server we are quitting */
+void D_XNetSendQuit(void)
+{
+	/* If we are note the server, tell the server */
+	if (!D_XNetIsServer())
+	{
+	}
+	
+	/* Disconnect from the server */
+	D_XNetDisconnect();
 }
 
 /* D_XNetTicsToRun() -- Amount of tics to run */

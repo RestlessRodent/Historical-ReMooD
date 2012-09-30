@@ -276,6 +276,7 @@ typedef struct D_XPlayer_s
 	
 	// Identification
 	uint32_t ID;								// Unique Player ID
+	uint32_t HostID;							// ID to the host (shared)
 	uint32_t ClProcessID;						// Client's Process ID
 	char AccountName[MAXPLAYERNAME];			// Player's Account Name
 	char DisplayName[MAXPLAYERNAME];			// Player's Display Name
@@ -311,12 +312,16 @@ extern size_t g_NumXPlays;						// Number of them
 /*** FUNCTIONS ***/
 
 void D_XNetDisconnect(const bool_t a_FromDemo);
+void D_XNetMakeServer(const bool_t a_Networked, const uint16_t a_NetPort);
 
 bool_t D_XNetIsServer(void);
+
 D_XPlayer_t* D_XNetPlayerByID(const uint32_t a_ID);
 
 void D_XNetDelSocket(D_XSocket_t* const a_Socket);
+D_XPlayer_t* D_XNetAddPlayer(void (*a_PacketBack)(D_XPlayer_t* const a_Player, void* const a_Data), void* const a_Data);
 void D_XNetKickPlayer(D_XPlayer_t* const a_Player, const char* const a_Reason);
+void D_XNetSendQuit(void);
 
 tic_t D_XNetTicsToRun(void);
 void D_XNetUpdate(void);
