@@ -239,6 +239,8 @@ typedef enum D_XPlayerFlags_e
 	DXPF_DEMO			= UINT32_C(0x0000008),	// Generated from a demo
 	DXPF_CHALLENGED		= UINT32_C(0x0000010),	// Connection Challenged
 	DXPF_BOT			= UINT32_C(0x0000020),	// Bot Controller Player
+	
+	DXPF_CONVEYED = DXPF_SERVER | DXPF_NOLOGIN | DXPF_DEMO | DXPF_BOT,
 } D_XPlayerFlags_t;
 
 /*** STRUCTURES ***/

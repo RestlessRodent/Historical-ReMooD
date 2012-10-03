@@ -354,92 +354,26 @@ void G_DoLoadLevel(bool_t resetplayer)
 {
 }
 
-//
-// G_Responder
-//  Get info needed to make ticcmd_ts for the players.
-//
-bool_t G_Responder(event_t* ev)
+/* GS_XAddPlayerCB() -- Add player callback */
+static void GS_XAddPlayerCB(D_XPlayer_t* const a_Player, void* const a_Data)
 {
-	// allow spy mode changes even during the demo
-	if (gamestate == GS_LEVEL && ev->type == ev_keydown && ev->data1 == KEY_F12 && (singledemo || !P_XGSVal(PGS_GAMEDEATHMATCH)))
-	{
-		// spy mode
-		do
-		{
-			g_Splits[0].Display++;
-			if (g_Splits[0].Display == MAXPLAYERS)
-				g_Splits[0].Display = 0;
-		}
-		while (!playeringame[g_Splits[0].Display] && g_Splits[0].Display != g_Splits[0].Console);
-		
-		//added:16-01-98:change statusbar also if playingback demo
-		if (singledemo)
-			ST_changeDemoView();
-			
-		//added:11-04-98: tell who's the view
-		CONL_PrintF("Viewpoint : %s\n", player_names[g_Splits[0].Display]);
-		
-		return true;
-	}
-	// any other key pops up menu if in demos
-		// GhostlyDeath <March 17, 2012> -- This messes up the console not opening when pressing any key during boot
-#if 0
-	if (gameaction == ga_nothing && !singledemo && (demoplayback || gamestate == GS_DEMOSCREEN))
-	{
-		if (ev->type == ev_keydown)
-		{
-			M_StartControlPanel();
-			return true;
-		}
-		return false;
-	}
-#endif
+	D_XPlayer_t* CopyFrom;
 	
-	if (gamestate == GS_LEVEL)
-	{
-		if (!multiplayer)
-			if (cht_Responder(ev))
-				return true;
-		if (ST_Responder(ev))
-			return true;		// status window ate it
-		if (AM_Responder(ev))
-			return true;		// automap ate it
-		//added:07-02-98: map the event (key/mouse/joy) to a gamecontrol
-	}
+	/* Get one to copy from */
+	CopyFrom = a_Data;
 	
-	if (gamestate == GS_FINALE)
-	{
-		if (F_Responder(ev))
-			return true;		// finale ate the event
-	}
+	/* Set copies */
+	a_Player->Flags |= CopyFrom->Flags;
+	a_Player->ID = CopyFrom->ID;
+	a_Player->HostID = CopyFrom->HostID;
+	a_Player->ClProcessID = CopyFrom->ClProcessID;
 	
-	switch (ev->type)
-	{
-		case ev_keydown:
-			if (ev->data1 == KEY_PAUSE)
-			{
-				return true;
-			}
-			return true;
-			
-		case ev_keyup:
-			return false;		// always let key up events filter down
-			
-		case ev_mouse:
-			return true;		// eat events
-			
-		case ev_joystick:
-			return true;		// eat events
-			
-		default:
-			break;
-	}
-	
-	return false;
+	strncpy(a_Player->AccountName, CopyFrom->AccountName, MAXPLAYERNAME);
+	strncpy(a_Player->AccountCookie, CopyFrom->AccountCookie, MAXPLAYERNAME);
 }
 
 /* GS_HandleExtraCommands() -- Handles extra commands */
-void GS_HandleExtraCommands(ticcmd_t* const a_TicCmd, const int32_t a_PlayerNum)
+static void GS_HandleExtraCommands(ticcmd_t* const a_TicCmd, const int32_t a_PlayerNum)
 {
 	const void* Rp, *Rb, *Re;
 	uint8_t Command;
@@ -464,6 +398,7 @@ void GS_HandleExtraCommands(ticcmd_t* const a_TicCmd, const int32_t a_PlayerNum)
 	B_BotData_t* NewBot;
 	
 	D_XPlayer_t* XPlayer;
+	D_XPlayer_t Clone;
 	
 	/* Get pointer base */
 	if (a_TicCmd->Ctrl.Type == 1)
@@ -497,6 +432,51 @@ void GS_HandleExtraCommands(ticcmd_t* const a_TicCmd, const int32_t a_PlayerNum)
 		// Which command?
 		switch (Command)
 		{
+				// Add Player
+			case DTCT_XADDPLAYER:
+				// Read Data
+				u32[0] = LittleReadUInt32((uint32_t**)&Rp);
+				u32[1] = LittleReadUInt32((uint32_t**)&Rp);
+				u32[2] = LittleReadUInt32((uint32_t**)&Rp);
+				u8[0] = ReadUInt8((uint8_t**)&Rp);
+				u32[3] = LittleReadUInt32((uint32_t**)&Rp);
+				u32[4] = LittleReadUInt32((uint32_t**)&Rp);
+				
+				for (i = 0; i < MAXPLAYERNAME; i++)
+				{
+					NameBuf[i] = ReadUInt8((uint8_t**)&Rp);
+					AltBuf[i] = ReadUInt8((uint8_t**)&Rp);
+				}
+				
+				// Locate player ID
+				XPlayer = D_XNetPlayerByID(u32[0]);
+				
+				// Mask conveyed
+				u32[4] &= DXPF_CONVEYED;
+				
+				// If player already exists, modify settings
+				j = 0;
+				if (!XPlayer)
+				{
+					XPlayer = &Clone;
+					j = 1;
+				}
+				
+				// Setup clone
+				memset(&Clone, 0, sizeof(Clone));
+				
+				XPlayer->Flags |= u32[4];
+				XPlayer->ID = u32[0];
+				XPlayer->HostID = u32[1];
+				XPlayer->ClProcessID = u32[2];
+				strncpy(XPlayer->AccountName, NameBuf, MAXPLAYERNAME);
+				strncpy(XPlayer->AccountCookie, AltBuf, MAXPLAYERNAME);
+				
+				// Add it
+				if (!j)
+					D_XNetAddPlayer(GS_XAddPlayerCB, XPlayer);
+				break;
+				
 				// Kick Player
 			case DTCT_XKICKPLAYER:
 				// Read Data
@@ -538,321 +518,6 @@ void GS_HandleExtraCommands(ticcmd_t* const a_TicCmd, const int32_t a_PlayerNum)
 				D_XNetKickPlayer(XPlayer, AltBuf);
 				break;
 				
-				
-				
-				
-			
-				// Player Leaves
-			case DTCT_PART:
-				break;
-				
-				// Add Spectator
-			case DTCT_ADDSPEC:
-				// Read Data
-				u32[0] = LittleReadUInt32((uint32_t**)&Rp);
-				u32[1] = LittleReadUInt32((uint32_t**)&Rp);
-				
-				for (i = 0; i < MAXPLAYERNAME; i++)
-					NameBuf[i] = ReadUInt8((uint8_t**)&Rp);
-				NameBuf[MAXPLAYERNAME - 1] = 0;
-				
-				// Try and find the net client
-				NC = NULL;
-				if (!demoplayback)
-					NC = D_NCFindClientByID(u32[1]);
-				
-				// Try and find unique ID
-				NetPlayer = D_NCSFindNetPlayerByUnique(u32[4]);
-				
-				// If it already exists, ignore
-				if (NetPlayer)
-				{
-				}
-				
-				// Otherwise, create it
-				else
-				{
-					// Allocate New player
-					NetPlayer = D_NCSAllocNetPlayer();
-					
-					// If net client is available, use it
-					if (NC)
-					{
-						// Add to arbs list
-						for (i = 0; i < NC->NumArbs; i++)
-							if (!NC->Arbs[i])
-								break;
-		
-						// No room?
-						if (i >= NC->NumArbs)
-						{
-							Z_ResizeArray((void**)&NC->Arbs, sizeof(*NC->Arbs),
-								NC->NumArbs, NC->NumArbs + 1);
-							NC->NumArbs++;
-						}
-		
-						// Allocate net player here
-						NC->Arbs[i] = NetPlayer;
-					}
-					
-					// Setup as spectator
-					NetPlayer->Type = DNPT_SPECTATOR;
-					NetPlayer->UniqueID = u32[0];
-	
-					// Setup Name
-					strncpy(NetPlayer->AccountName, NameBuf, MAXPLAYERNAME);
-				}
-				break;
-				
-				// Player Joins
-			case DTCT_JOIN:
-				// Read Data
-				u32[0] = LittleReadUInt32((uint32_t**)&Rp);
-				u16[0] = LittleReadUInt16((uint16_t**)&Rp);
-				u32[1] = LittleReadUInt32((uint32_t**)&Rp);
-				u32[2] = LittleReadUInt32((uint32_t**)&Rp);	// Profile
-				u32[3] = LittleReadUInt32((uint32_t**)&Rp);	// Screen Instance
-				u32[4] = LittleReadUInt32((uint32_t**)&Rp);	// Unique ID
-				u8[0] = ReadUInt8((uint8_t**)&Rp);
-				
-				for (i = 0; i < MAXPLAYERNAME; i++)
-					NameBuf[i] = ReadUInt8((uint8_t**)&Rp);
-				NameBuf[MAXPLAYERNAME - 1] = 0;
-				
-				for (i = 0; i < MAXPLAYERNAME; i++)
-					AltBuf[i] = ReadUInt8((uint8_t**)&Rp);
-				AltBuf[MAXPLAYERNAME - 1] = 0;
-				
-				// Determine spot for player (this is in case 1000 players
-				// join in a single tic).
-				while (u16[0] < MAXPLAYERS)
-					if (playeringame[u16[0]])
-						u16[0]++;
-					else
-						break;
-				
-				// Fits in the game
-				if (u16[0] < MAXPLAYERS)
-				{
-					// Find player host (if in net game)
-					NC = NULL;
-					if (!demoplayback)
-						NC = D_NCFindClientByID(u32[0]);
-					
-					// Clear
-					Profile = NULL;
-					NetPlayer = NULL;
-					NewBot = NULL;
-					SplitNum = 0;
-					
-					// Playing Demo (no netclients, but show on screen)
-					OK = false;
-					if (demoplayback)
-					{
-						// Fits in screen and matches demo host
-						if (G_GetDemoHostID() == 0 ||
-							u32[0] == G_GetDemoHostID())
-							if (g_SplitScreen < 3)
-							{
-								SplitNum = ++g_SplitScreen;
-								OK = true;
-							}
-					}
-					
-					// Give arbitration to player
-					else if (NC)
-					{
-						// See if player already exists (as a spec)
-						NetPlayer = D_NCSFindNetPlayerByUnique(u32[4]);
-						
-						// Found?
-						if (NetPlayer)
-						{
-						}
-						
-						// Not Found
-						else
-						{
-							// Allocate New player
-							NetPlayer = D_NCSAllocNetPlayer();
-							
-							// Add to arbs list
-							for (i = 0; i < NC->NumArbs; i++)
-								if (!NC->Arbs[i])
-									break;
-						
-							// No room?
-							if (i >= NC->NumArbs)
-							{
-								Z_ResizeArray((void**)&NC->Arbs, sizeof(*NC->Arbs),
-									NC->NumArbs, NC->NumArbs + 1);
-								NC->NumArbs++;
-							}
-						
-							// Allocate net player here
-							NC->Arbs[i] = NetPlayer;
-						}
-						
-						// Set details
-						NetPlayer->NetClient = NC;
-						NetPlayer->ProcessID = u32[3];
-						NetPlayer->UniqueID = u32[4];
-						
-						if (NC->IsLocal)
-						{
-							// Always legal
-							LegalMove = true;
-							
-							// Bot?
-							if (NC->IsServer && (u32[1] & DTCJF_ISBOT))
-							{
-								// Set as bot
-								NetPlayer->Type = DNPT_BOT;
-								
-								// Don't mess with bot splits
-								LegalMove = false;
-							}
-							
-							// Standard Player
-							else
-							{
-								NetPlayer->Type = DNPT_LOCAL;
-								
-								// Locate split based on instance
-								SplitNum = D_NCSFindSplitByProcess(u32[3]);
-								
-								// Illegal Split?
-								if (SplitNum < 0 && g_SplitScreen < 3)
-								{
-									// See if there is room in a split
-									for (SplitNum = 0;
-										SplitNum <= (g_SplitScreen + 1); SplitNum++)
-										if (!D_ScrSplitHasPlayer(SplitNum))
-										{
-											LegalMove = true;
-											break;
-										}
-									
-									// It fits
-									if (SplitNum == (g_SplitScreen + 1) &&
-										g_SplitScreen < 3)
-									{
-										LegalMove = true;
-										SplitNum = ++g_SplitScreen;
-									}
-								}
-								
-								// Legal
-								else
-									LegalMove = true;
-							
-								// Obtain profile (if possible)
-								Profile = D_FindProfileExByInstance(u32[2]);
-								NetPlayer->Profile = Profile;
-							}
-						}
-						else
-							NetPlayer->Type = DNPT_NETWORK;
-					}
-					
-					// Fill player spot
-					playeringame[u16[0]] = true;
-					
-					// Initialize Player
-					Player = G_AddPlayer(u16[0]);
-					D_NetSetPlayerName(u16[0], NameBuf);
-					Player->skincolor = u8[0];
-					// TODO FIXME: Hexen Class (AltBuf)
-					
-					if (u32[1] & DTCJF_MONSTERTEAM)
-						Player->CounterOpPlayer = true;
-					
-					// Link player to profile
-					Player->NetPlayer = NetPlayer;
-					Player->ProfileEx = Profile;
-					
-					// Link netplayer
-					if (NetPlayer)
-					{
-						NetPlayer->Player = Player;
-						NetPlayer->Profile = Profile;
-					}
-					
-					// Setup Bot Player
-					if (NetPlayer->Type == DNPT_BOT)
-					{
-						// Initialize Bot
-						NewBot = NetPlayer->BotData = B_InitBot(NetPlayer, B_GHOST_TemplateByID(u32[2]));
-						g_GotBots = true;
-					}
-					
-					// Send server local profile info
-					D_NCReqPrefChange(Profile, NewBot, u16[0]);
-					
-					// Finish off split screen
-					if ((NC && NC->IsLocal && LegalMove) || (demoplayback && OK))
-					{
-						g_Splits[SplitNum].Waiting = false;
-						g_Splits[SplitNum].Active = true;
-						g_Splits[SplitNum].Display = 
-							g_Splits[SplitNum].Console = u16[0];
-						g_Splits[SplitNum].Profile = Profile;
-						
-						R_ExecuteSetViewSize();
-					}
-				}
-				
-				// Recount player total
-				for (j = 0, i = 0; i < MAXPLAYERS; i++)
-					if (playeringame[i])
-						j++;
-				
-				// If more than 1 player, set multiplayer modes
-				if (j > 1)
-				{
-					P_XGSSetValue(true, PGS_GAMESPAWNMULTIPLAYER, 1);
-					P_XGSSetValue(true, PGS_COMULTIPLAYER, 1);
-				}
-				
-				// Update the scoreboard (to add new player)
-				P_UpdateScores();
-				
-				// Debug
-				if (g_NetDev)
-					CONL_PrintF("NET: Join (%x, %u, %x, %x, %x, %x, %u, %s, %s)\n",
-							u32[0], u16[0], u32[1], u32[2], u32[3], u32[4], u8[0], NameBuf, AltBuf
-						);
-				break;
-				
-				// Map Changes
-			case DTCT_MAPCHANGE:
-				// Read Data
-				u8[0] = ReadUInt8((uint8_t**)&Rp);
-				
-				for (i = 0; i < 8; i++)
-					NameBuf[i] = ReadUInt8((uint8_t**)&Rp);
-				
-				// Change the level
-				if (!P_ExLoadLevel(P_FindLevelByNameEx(NameBuf, NULL), 0))
-					CONL_PrintF("Level \"%s\" failed to load.\n", NameBuf);
-					
-				// Debug
-				if (g_NetDev)
-					CONL_PrintF("NET: Map (%x, %s)\n",
-							u8[0], NameBuf
-						);
-				break;
-				
-				// Variable Change
-			case DTCT_GAMEVAR:
-				// Read Data
-				u32[0] = LittleReadUInt32((uint32_t**)&Rp);
-				i32[0] = LittleReadInt32((int32_t**)&Rp);
-				
-				// Change Variable
-				P_XGSSetValue(true, u32[0], i32[0]);
-				break;
-			
 			default:
 				CONL_PrintF("Unknown command %i.\n", Command);
 				Command = 0;

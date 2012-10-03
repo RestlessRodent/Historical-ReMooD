@@ -173,19 +173,6 @@ bool_t shiftdown = false;
 //
 void D_ProcessEvents(void)
 {
-	event_t* ev;
-	
-	for (; eventtail != eventhead; eventtail = (++eventtail) & (MAXEVENTS - 1))
-	{
-		ev = &events[eventtail];
-		
-		if (ev->type == ev_keydown && ev->data1 == KEY_SHIFT)
-			shiftdown = true;
-		else if (ev->type == ev_keyup && ev->data1 == KEY_SHIFT)
-			shiftdown = false;
-		
-		G_Responder(ev);
-	}
 }
 
 //

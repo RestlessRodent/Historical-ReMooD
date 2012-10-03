@@ -3192,6 +3192,7 @@ D_XPlayer_t* D_XNetAddPlayer(void (*a_PacketBack)(D_XPlayer_t* const a_Player, v
 			LittleWriteUInt32((uint32_t**)&Wp, New->ClProcessID);
 			WriteUInt8((uint8_t**)&Wp, New->ScreenID);
 			LittleWriteUInt32((uint32_t**)&Wp, 0);
+			LittleWriteUInt32((uint32_t**)&Wp, New->Flags);
 			
 			// Write Names
 			for (i = 0; i < MAXPLAYERNAME; i++)
@@ -3201,6 +3202,11 @@ D_XPlayer_t* D_XNetAddPlayer(void (*a_PacketBack)(D_XPlayer_t* const a_Player, v
 			}
 		}
 	}
+	
+	/* Write console message */
+	CONL_OutputUT(CT_NETWORK, DSTR_NET_CLIENTCONNECTED, "%s\n",
+			New->AccountName
+		);
 	
 	/* Return fresh player */
 	return New;
@@ -3293,6 +3299,12 @@ void D_XNetKickPlayer(D_XPlayer_t* const a_Player, const char* const a_Reason)
 		B_XDestroyBot(a_Player->BotData);
 		a_Player->BotData = NULL;
 	}
+	
+	/* Write console message */
+	CONL_OutputUT(CT_NETWORK, DSTR_NET_CLIENTGONE, "%s%s\n",
+			a_Player->AccountName,
+			(!a_Reason ? DS_GetString(DSTR_NET_NOREASON) : a_Reason)
+		);
 	
 	/* Free associated data */
 	Z_Free(g_XPlays);

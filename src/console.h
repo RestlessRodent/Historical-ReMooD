@@ -125,6 +125,7 @@ typedef enum CONL_MessageType_e
 	CT_OBIT,									// Obituary
 	CT_SPECIALITEM,								// Special Item Picked Up
 	CT_REMOODAT,								// ReMooD Data
+	CT_NETWORK,									// Network
 	
 	NUMCMESSAGETYPES
 } CONL_MessageType_t;

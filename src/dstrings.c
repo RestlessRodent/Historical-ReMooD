@@ -387,6 +387,8 @@ StringGroupEX_t UnicodeStrings[NUMUNICODESTRINGS] =
 	{		 "NET_RECONNECTYOUARESERVER", "Cannot reconnect to the server, because you are the server."},
 	{				"NET_BADHOSTRESOLVE", "Cannot resolve hostname."},
 	{			   "NET_CLIENTCONNECTED", "Client $1 has connected."},
+	{					"NET_CLIENTGONE", "Client $1 has disconnected ($2)."},
+	{					  "NET_NOREASON", "No reason."},
 	
 	{						"WFGS_TITLE", "Waiting For Game Start"},
 	{				   "WFGS_PLAYERNAME", "Player Name"},
