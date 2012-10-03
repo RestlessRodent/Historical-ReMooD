@@ -4615,7 +4615,10 @@ void V_ImageDrawScaledIntoBuffer(const uint32_t a_Flags, V_Image_t* const a_Imag
 			
 				// Scaled row draw
 				for (sxX = 0; sxX < xw && vvx < vid.width; sxX += XFrac, vvx++)
-					*(dP++) = TransMap[(ColorMap[ColorMapE[sP[sxX >> FRACBITS]]] << 8) + (*dP)];
+				{
+					*(dP) = TransMap[(ColorMap[ColorMapE[sP[sxX >> FRACBITS]]] << 8) + (*dP)];
+					dP++;	// Sequence point undefined
+				}
 			}
 		
 		// Drawing an opaque image (with scale)

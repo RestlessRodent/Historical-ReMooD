@@ -632,24 +632,76 @@ void D_NCFudgeOffClient(D_NetClient_t* const a_Client, const char a_Code, const 
 	// To everyone else (for sync and demo usage)
 }
 
-/* DS_ConnectMultiCom() -- Connection multi-command */
-static int DS_ConnectMultiCom(const uint32_t a_ArgC, const char** const a_ArgV)
+/* DS_NetMultiComm() -- Connection multi-command */
+static int DS_NetMultiComm(const uint32_t a_ArgC, const char** const a_ArgV)
 {
+#define BUFSIZE 128
 	D_NetClient_t* ServerNC;
 	I_HostAddress_t Host;
 	int nc;
+	D_XPlayer_t* XPlay;
+	char Buf[BUFSIZE];
 	
 	/* Clear Host */
 	memset(&Host, 0, sizeof(Host));
 	
-	/* Connect */
-	if (strcasecmp("startserver", a_ArgV[0]) == 0)
+	/* List active clients */
+	if (strcasecmp("listclients", a_ArgV[0]) == 0)
+	{
+		// Print Header
+		CONL_OutputUT(CT_NETWORK, DSTR_DNETC_PLAYERLISTENT,
+				"%3s%-8s%s\n",
+				"Cl#",
+				"ID/Host#",
+				"Name/Account^Server"
+			);
+		CONL_OutputUT(CT_NETWORK, DSTR_DNETC_PLAYERLISTENT,
+				"%3s%-8s%s\n",
+				"---",
+				"--------",
+				"-------------------------"
+			);
+		
+		// Go through list
+		for (nc = 0; nc < g_NumXPlays; nc++)
+		{
+			XPlay = g_XPlays[nc];
+			
+			// No player?
+			if (!XPlay)
+				continue;
+			
+			// List details
+			CONL_OutputUT(CT_NETWORK, DSTR_DNETC_PLAYERLISTENT,
+					"%3u%-08x%s\n",
+					nc,
+					XPlay->ID,
+					XPlay->DisplayName
+				);
+			
+			// Account w/ Server
+			snprintf(Buf, BUFSIZE, "%s^%s", XPlay->AccountName, XPlay->AccountServer);
+			CONL_OutputUT(CT_NETWORK, DSTR_DNETC_PLAYERLISTENT,
+					"%3s%-08x%s\n",
+					"",
+					XPlay->HostID,
+					Buf
+				);
+		}
+		
+		// Success!
+		return 0;
+	}
+	
+	/* Start A Server */
+	else if (strcasecmp("startserver", a_ArgV[0]) == 0)
 	{
 		D_NCServize();
 		
 		return CLE_SUCCESS;
 	}
 	
+	/* Connect */
 	else if (strcasecmp("connect", a_ArgV[0]) == 0)
 	{
 		// Not enough args?
@@ -736,6 +788,7 @@ static int DS_ConnectMultiCom(const uint32_t a_ArgC, const char** const a_ArgV)
 	
 	/* Failure */
 	return CLE_FAILURE;
+#undef BUFSIZE
 }
 
 /* D_CheckNetGame() -- Checks whether the game was started on the network */
@@ -757,10 +810,13 @@ bool_t D_CheckNetGame(void)
 		netgame = false;
 	
 	/* Register server commands */
-	CONL_AddCommand("startserver", DS_ConnectMultiCom);
-	CONL_AddCommand("connect", DS_ConnectMultiCom);
-	CONL_AddCommand("disconnect", DS_ConnectMultiCom);
-	CONL_AddCommand("reconnect", DS_ConnectMultiCom);
+	// Control
+	CONL_AddCommand("startserver", DS_NetMultiComm);
+	CONL_AddCommand("connect", DS_NetMultiComm);
+	CONL_AddCommand("disconnect", DS_NetMultiComm);
+	CONL_AddCommand("reconnect", DS_NetMultiComm);
+	
+	CONL_AddCommand("listclients", DS_NetMultiComm);
 	
 	/* Register variables */
 	CONL_VarRegister(&l_SVName);
@@ -3095,8 +3151,23 @@ bool_t D_XNetIsServer(void)
 			if (g_XPlays[i]->Flags & DXPF_LOCAL)
 				return !!(g_XPlays[i]->Flags & DXPF_SERVER);
 	
-	/* Fall through */
+	/* Fell through */
 	return false;
+}
+
+/* D_XNetGetHostID() -- Gets our host ID */
+bool_t D_XNetGetHostID(void)
+{
+	int32_t i;
+	
+	/* Grab server status from first local player */
+	for (i = 0; i < g_NumXPlays; i++)
+		if (g_XPlays[i])
+			if (g_XPlays[i]->Flags & DXPF_LOCAL)
+				return g_XPlays[i]->HostID;
+	
+	/* Fell through */
+	return 0;
 }
 
 /* D_XNetPlayerByID() -- Finds player by ID */
@@ -3127,7 +3198,7 @@ void D_XNetDelSocket(D_XSocket_t* const a_Socket)
 D_XPlayer_t* D_XNetAddPlayer(void (*a_PacketBack)(D_XPlayer_t* const a_Player, void* const a_Data), void* const a_Data)
 {
 	D_XPlayer_t* New;
-	uint32_t ID;
+	uint32_t ID, OurHID;
 	void* Wp;
 	ticcmd_t* Placement;
 	int32_t i;
@@ -3138,7 +3209,7 @@ D_XPlayer_t* D_XNetAddPlayer(void (*a_PacketBack)(D_XPlayer_t* const a_Player, v
 	/* Base initialization */
 	New->InGameID = -1;
 	strncpy(New->AccountName, "I have no account!", MAXPLAYERNAME);
-	strncpy(New->AccountServer, "remood.org", MAXPLAYERNAME);
+	strncpy(New->AccountServer, "remood.org", MAXXSOCKTEXTSIZE);
 	
 	/* Call callback */
 	if (a_PacketBack)
@@ -3176,6 +3247,14 @@ D_XPlayer_t* D_XNetAddPlayer(void (*a_PacketBack)(D_XPlayer_t* const a_Player, v
 	
 	// Set here
 	g_XPlays[i] = New;
+	
+	/* Bind to screen */
+	OurHID = D_XNetGetHostID();
+	if (New->HostID == OurHID)
+		for (i = 0; i < MAXSPLITSCREEN; i++)
+			if (D_ScrSplitHasPlayer(i))
+				if (g_Splits[i].ProcessID = New->ClProcessID)
+					g_Splits[i].XPlayer = New;
 	
 	/* Send player creation packet (if server) */
 	if (D_XNetIsServer())
@@ -3219,10 +3298,14 @@ void D_XNetKickPlayer(D_XPlayer_t* const a_Player, const char* const a_Reason)
 	int32_t i, j;
 	void* Wp;
 	ticcmd_t* Placement;
+	uint32_t OurHID;
 	
 	/* Check */
 	if (!a_Player)
 		return;
+		
+	/* Get our host ID */
+	OurHID = D_XNetGetHostID();
 	
 	/* Find slot player uses */
 	for (Slot = 0; Slot < g_NumXPlays; Slot++)
@@ -3250,10 +3333,11 @@ void D_XNetKickPlayer(D_XPlayer_t* const a_Player, const char* const a_Reason)
 			D_XNetDisconnect(false);
 		
 		// Remove from local screen
-		for (i = 0; i < MAXSPLITSCREEN; i++)
-			if (D_ScrSplitHasPlayer(i))
-				if (a_Player->ClProcessID == g_Splits[i].ProcessID)
-					D_NCRemoveSplit(i, demoplayback);
+		if (a_Player->HostID == OurHID)
+			for (i = 0; i < MAXSPLITSCREEN; i++)
+				if (D_ScrSplitHasPlayer(i))
+					if (a_Player->ClProcessID == g_Splits[i].ProcessID)
+						D_NCRemoveSplit(i, demoplayback);
 	}
 	
 	/* Remote Player */
@@ -3263,6 +3347,15 @@ void D_XNetKickPlayer(D_XPlayer_t* const a_Player, const char* const a_Reason)
 		if (D_XNetIsServer())
 		{
 			// See if the player is not shared by any more hosts (all gone)
+			for (j = 0, i = 0; i < g_NumXPlays; i++)
+				if (g_XPlays[i])
+					if (g_XPlays[i]->HostID == a_Player->HostID)
+						j++;
+			
+			// None left
+			if (!j)
+			{
+			}
 		}
 	}
 	

@@ -320,6 +320,7 @@ void D_XNetDisconnect(const bool_t a_FromDemo);
 void D_XNetMakeServer(const bool_t a_Networked, const uint16_t a_NetPort);
 
 bool_t D_XNetIsServer(void);
+uint32_t D_XNetGetHostID(void);
 
 D_XPlayer_t* D_XNetPlayerByID(const uint32_t a_ID);
 

@@ -390,7 +390,7 @@ StringGroupEX_t UnicodeStrings[NUMUNICODESTRINGS] =
 	{					"NET_CLIENTGONE", "Client $1 has disconnected ($2)."},
 	{					  "NET_NOREASON", "No reason."},
 	
-	{						"WFGS_TITLE", "Waiting For Game Start"},
+	{						"WFGS_TITLE", "Waiting For Game To Start"},
 	{				   "WFGS_PLAYERNAME", "Player Name"},
 	{						 "WFGS_PING", "Ping"},
 	{				   "WFGS_DEMOPLAYER", "Demo"},
@@ -963,6 +963,7 @@ StringGroupEX_t UnicodeStrings[NUMUNICODESTRINGS] =
 	{			  "DNETC_CONSISTFAIL", "Consistency Failure"},
 	{			  "DNETC_PLEASERECON", "Please Reconnect"},
 	{			"DNETC_JOININGPLAYER", "Joining player \"$1{z\"."},
+	{			"DNETC_PLAYERLISTENT", "$1 $2 $3{z"},
 	
 	/*** D_RMOD.C ***/
 	{		"DRMOD_NAMESPACENOTINWAD", "Namespace \"$2\" not in WAD \"$1\"."},
@@ -1138,8 +1139,8 @@ size_t D_USPrint(char* const a_OutBuf, const size_t a_OutSize, const UnicodeStri
 			
 			// Move around
 			hl = strlen(h);
-			h += hl + 1;
-			HackLeft -= hl + 1;
+			h += hl + 2;
+			HackLeft -= hl + 2;
 		}
 		
 		// Convert back to whatever, if anything exists
@@ -1172,14 +1173,20 @@ size_t D_USPrint(char* const a_OutBuf, const size_t a_OutSize, const UnicodeStri
 		// Normal
 		else
 		{
-			*(o++) = *(i++);
+			// End of string?
+			if (!SpecialPoint && !*i)
+				break;
 			
+			// End of special point
 			if (SpecialPoint)
 				if (!*i)
 				{
 					SpecialPoint = false;
 					i = iold;
 				}
+				
+			// Copy Character
+			*(o++) = *(i++);
 		}
 	}
 	
@@ -1188,7 +1195,7 @@ size_t D_USPrint(char* const a_OutBuf, const size_t a_OutSize, const UnicodeStri
 		if (o < oe)
 			*o = '\n';
 		else
-			a_OutBuf[strlen(a_OutBuf) - 1] = '\n';
+			a_OutBuf[a_OutSize - 1] = '\n';
 	
 	/* End Arguments */
 	__REMOOD_VA_COPYEND(ArgPtrCopy);
