@@ -1225,8 +1225,9 @@ bool_t I_NetNameToHost(I_NetSocket_t* const a_Socket, I_HostAddress_t* const a_H
 		return false;
 	
 	/* IPv4/IPv6 Check */
-	if ((l_IPv6 && Ent->h_addrtype != AF_INET6) || (!l_IPv6 && Ent->h_addrtype != AF_INET))
-		return false;
+	// TODO FIXME
+	//if ((l_IPv6 && Ent->h_addrtype != AF_INET6) || (!l_IPv6 && Ent->h_addrtype != AF_INET))
+	//	return false;
 	
 	/* Convert */
 	IS_ConvertHost(false, a_Host, (const struct sockaddr*)Ent->h_addr);
@@ -1322,7 +1323,7 @@ I_NetSocket_t* I_NetOpenSocket(const uint32_t a_Flags, const I_HostAddress_t* co
 	if (bind(SockFD, Addr, SockLen) < 0)
 	{
 #if __REMOOD_SOCKLEVEL == __REMOOD_SOCKWIN
-		socketclose(SockFD);
+		closesocket(SockFD);
 #else
 		close(SockFD);
 #endif

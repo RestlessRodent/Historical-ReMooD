@@ -238,6 +238,7 @@ typedef enum D_XPlayerFlags_e
 	DXPF_NOLOGIN		= UINT32_C(0x0000004),	// Player has no login (local)
 	DXPF_DEMO			= UINT32_C(0x0000008),	// Generated from a demo
 	DXPF_CHALLENGED		= UINT32_C(0x0000010),	// Connection Challenged
+	DXPF_BOT			= UINT32_C(0x0000020),	// Bot Controller Player
 } D_XPlayerFlags_t;
 
 /*** STRUCTURES ***/
@@ -289,6 +290,7 @@ typedef struct D_XPlayer_s
 	char ReverseDNS[MAXXSOCKTEXTSIZE];			// Reverse DNS of Host
 	
 	// Account Server
+	char AccountCookie[MAXPLAYERNAME];			// Cookie for account
 	char AccountServer[MAXXSOCKTEXTSIZE];		// Server that manages the account
 	I_HostAddress_t AccountServAddr;			// Address to account server
 	char AccountServRDNS[MAXXSOCKTEXTSIZE];		// Reverse DNS to account server
@@ -299,6 +301,7 @@ typedef struct D_XPlayer_s
 	struct player_s* Player;					// Pointer to player
 	struct D_ProfileEx_s* Profile;				// Profile Used by player
 	struct B_BotData_s* BotData;				// Bot data used by player
+	int32_t Ping;								// Player's Ping
 } D_XPlayer_t;
 
 /*** GLOBALS ***/

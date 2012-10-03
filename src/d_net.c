@@ -3061,6 +3061,8 @@ void D_XNetDisconnect(const bool_t a_FromDemo)
 /* DS_XNetMakeServPB() -- Callback for make player */
 static void DS_XNetMakeServPB(D_XPlayer_t* const a_Player)
 {
+	/* Set initial information */
+	a_Player->Flags |= DXPF_SERVER | DXPF_LOCAL;
 }
 
 /* D_XNetMakeServer() -- Creates a server, possibly networked */
@@ -3069,7 +3071,7 @@ void D_XNetMakeServer(const bool_t a_Networked, const uint16_t a_NetPort)
 	D_XPlayer_t* SPlay;
 	
 	/* Disconnect First */
-	D_XNetDisconnect();
+	D_XNetDisconnect(false);
 	
 	/* Create a starting spectator (the host) */
 	SPlay = D_XNetAddPlayer(DS_XNetMakeServPB, NULL);
@@ -3122,13 +3124,21 @@ void D_XNetDelSocket(D_XSocket_t* const a_Socket)
 }
 
 /* D_XNetAddPlayer() -- Adds new player */
-D_XPlayer_t* D_XNetAddPlayer(void (*a_PacketBack)(D_XPlayer_t* const a_Player, void* const a_Data), void* const a_Data);
+D_XPlayer_t* D_XNetAddPlayer(void (*a_PacketBack)(D_XPlayer_t* const a_Player, void* const a_Data), void* const a_Data)
 {
 	D_XPlayer_t* New;
 	uint32_t ID;
+	void* Wp;
+	ticcmd_t* Placement;
+	int32_t i;
 	
 	/* Allocate */
 	New = Z_Malloc(sizeof(*New), PU_STATIC, NULL);
+	
+	/* Base initialization */
+	New->InGameID = -1;
+	strncpy(New->AccountName, "I have no account!", MAXPLAYERNAME);
+	strncpy(New->AccountServer, "remood.org", MAXPLAYERNAME);
 	
 	/* Call callback */
 	if (a_PacketBack)
@@ -3150,7 +3160,47 @@ D_XPlayer_t* D_XNetAddPlayer(void (*a_PacketBack)(D_XPlayer_t* const a_Player, v
 	// Set ID, is hopefully really random
 	New->ID = ID;
 	
-	/* Send player creation packet */
+	/* Link into players list */
+	// Find free spot
+	for (i = 0; i < g_NumXPlays; i++)
+		if (!g_XPlays[i])
+			break;
+	
+	// No room?
+	if (i >= g_NumXPlays)
+	{
+		Z_ResizeArray((void**)&g_XPlays, sizeof(*g_XPlays),
+			g_NumXPlays, g_NumXPlays + 1);
+		i = g_NumXPlays++;
+	}
+	
+	// Set here
+	g_XPlays[i] = New;
+	
+	/* Send player creation packet (if server) */
+	if (D_XNetIsServer())
+	{
+		// Grab global command
+		Placement = DS_GrabGlobal(DTCT_XADDPLAYER, c_TCDataSize[DTCT_XADDPLAYER], &Wp);
+		
+		// Got one
+		if (Placement)
+		{
+			// Addition Info
+			LittleWriteUInt32((uint32_t**)&Wp, New->ID);
+			LittleWriteUInt32((uint32_t**)&Wp, New->HostID);
+			LittleWriteUInt32((uint32_t**)&Wp, New->ClProcessID);
+			WriteUInt8((uint8_t**)&Wp, New->ScreenID);
+			LittleWriteUInt32((uint32_t**)&Wp, 0);
+			
+			// Write Names
+			for (i = 0; i < MAXPLAYERNAME; i++)
+			{
+				WriteUInt8((uint8_t**)&Wp, New->AccountName[i]);
+				WriteUInt8((uint8_t**)&Wp, New->AccountCookie);
+			}
+		}
+	}
 }
 
 /* D_XNetKickPlayer() -- Kicks player for some reason */
@@ -3254,7 +3304,7 @@ void D_XNetSendQuit(void)
 	}
 	
 	/* Disconnect from the server */
-	D_XNetDisconnect();
+	D_XNetDisconnect(false);
 }
 
 /* D_XNetTicsToRun() -- Amount of tics to run */

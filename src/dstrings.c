@@ -393,6 +393,7 @@ StringGroupEX_t UnicodeStrings[NUMUNICODESTRINGS] =
 	{						 "WFGS_PING", "Ping"},
 	{				   "WFGS_DEMOPLAYER", "Demo"},
 	{						 "WFGS_HOST", "Host"},
+	{						  "WFGS_BOT", "Bot"},
 	
 	{						"WFJW_TITLE", "Connecting to Server"},
 	{				  "NET_SERVERDISCON", "Server Disconnected."},

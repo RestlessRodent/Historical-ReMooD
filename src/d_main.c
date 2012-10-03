@@ -749,13 +749,15 @@ void D_PageDrawer(const char* const a_LumpName)
 // Before map start
 void D_WaitingPlayersDrawer(void)
 {
-#define BUFSIZE 32
+#define BUFSIZE 64
 	char Buf[BUFSIZE];
 	static V_Image_t* BGImage;
-	int32_t i, y, ya, sw, Stage;
-	uint32_t DrawFlags;
+	int32_t i, y, ya, sw, Stage, Col[2];
+	uint32_t DrawFlags, DrawColor;
 	D_NetClient_t* NC;
 	D_NetPlayer_t* Spec;
+	
+	D_XPlayer_t* Player;
 	
 	/* Draw a nice picture */
 	// Load it first
@@ -769,6 +771,146 @@ void D_WaitingPlayersDrawer(void)
 	// Notice
 	V_DrawStringA(VFONT_LARGE, 0, DS_GetString(DSTR_WFGS_TITLE), 10, 10);
 	
+	/* Draw players and clients */
+#if 1
+	// Base position
+	ya = V_FontHeight(VFONT_SMALL);
+	ya += (ya >> 1);
+	
+	// Multi-stage drawing
+	for (DrawFlags = Stage = 0; Stage < 2; Stage++)
+	{
+		// Move y around
+		y = 10 + V_FontHeight(VFONT_LARGE) + ya;
+		Col[0] = 10;
+		Col[1] = 310;
+		
+		// Draw Titles
+		if (Stage)
+		{
+			// Players
+			V_DrawStringA(
+					VFONT_SMALL,
+					VFO_COLOR(VEX_MAP_BRIGHTWHITE),
+					DS_GetString(DSTR_WFGS_PLAYERNAME),
+					Col[0], y
+				);
+			
+			// Ping
+			sw = V_StringWidthA(VFONT_SMALL, 0, DS_GetString(DSTR_WFGS_PING));
+			V_DrawStringA(
+					VFONT_SMALL,
+					VFO_COLOR(VEX_MAP_BRIGHTWHITE),
+					DS_GetString(DSTR_WFGS_PING),
+					Col[1] - sw, y
+				);
+			
+			y += ya;
+		}
+		
+		// Skip title
+		else
+			y += ya;
+		
+		if (DrawFlags & VFO_NOSCALEPATCH)
+		{
+			y += FixedMul(V_FontHeight(VFONT_SMALL) << FRACBITS,
+				vid.fxdupy) >> FRACBITS;
+			Col[0] = FixedMul(Col[0] << FRACBITS, vid.fxdupx) >> FRACBITS;
+			Col[1] = FixedMul(Col[1] << FRACBITS, vid.fxdupx) >> FRACBITS;
+		}
+		
+		// Draw all listed players
+		for (i = 0; i < g_NumXPlays; i++)
+		{
+			// Get player
+			Player = g_XPlays[i];
+			
+			// Nothing here?
+			if (!Player)
+				continue;
+			
+			// Quick step, how big to draw the stuff
+			if (!Stage)
+			{
+				y += ya;
+				continue;
+			}
+			
+			// Determine how to draw the player's name
+				// They are playing
+			if (Player->Player)
+			{
+				DrawColor = 0;
+				
+				if (Player->Flags & (DXPF_NOLOGIN | DXPF_BOT | DXPF_DEMO))
+					snprintf(Buf, BUFSIZE, "%s",
+							player_names[Player->Player - players]
+						);
+				else
+					snprintf(Buf, BUFSIZE, "%s (%s^%s)",
+							player_names[Player->Player - players],
+							Player->AccountName,
+							Player->AccountServer
+						);
+			}
+				// Spectating or otherwise
+			else
+			{
+				DrawColor = VFO_COLOR(VEX_MAP_GRAY);
+				
+				snprintf(Buf, BUFSIZE, "%s^%s",
+						Player->AccountName,
+						Player->AccountServer
+					);
+			}
+			
+			// Draw their name
+			V_DrawStringA(
+						VFONT_SMALL,
+						DrawColor | DrawFlags,
+						Buf,
+						Col[0], y
+					);
+			
+			// Draw Ping
+				// Bot
+			if (Player->Flags & DXPF_BOT)
+				snprintf(Buf, BUFSIZE, "%s", DS_GetString(DSTR_WFGS_BOT));
+			
+				// Server Host
+			else if (Player->Flags & DXPF_SERVER)
+				snprintf(Buf, BUFSIZE, "%s", DS_GetString(DSTR_WFGS_HOST));
+				
+				// Everyone else
+			else
+				snprintf(Buf, BUFSIZE, "%i ms", Player->Ping);
+				
+			// Draw their name
+			sw = V_StringWidthA(VFONT_SMALL, DrawFlags, Buf);
+			V_DrawStringA(
+						VFONT_SMALL,
+						DrawColor | DrawFlags,
+						Buf,
+						Col[1] - sw, y
+					);
+#if 0
+			if (i == 0)
+				snprintf(Buf, BUFSIZE - 1, "%s", DS_GetString(DSTR_WFGS_PING));
+			else if (false)//(demoplayback)
+				snprintf(Buf, BUFSIZE - 1, "%s", DS_GetString(DSTR_WFGS_DEMOPLAYER));
+			else if (NC && NC->IsServer)
+				snprintf(Buf, BUFSIZE - 1, "%s", DS_GetString(DSTR_WFGS_HOST));
+			else
+				snprintf(Buf, BUFSIZE - 1, "%i ms", players[i - 1].cmd.Ctrl.Ping);
+#endif
+		}
+		
+		// Down scale the text?
+		if (!Stage && y >= 190)
+			DrawFlags |= VFO_NOSCALEPATCH;
+	}
+#else
 	// Double stage drawing (if lots of people, don't scale!)
 	DrawFlags = 0;
 	for (Stage = 0; Stage < 2; Stage++)
@@ -844,6 +986,7 @@ void D_WaitingPlayersDrawer(void)
 		if (y > 180)
 			DrawFlags |= VFO_NOSCALEPATCH;
 	}
+#endif
 	
 	/* Draw Mouse */
 	CONL_DrawMouse();

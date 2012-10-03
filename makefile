@@ -170,7 +170,7 @@ ifeq (,$(strip $(__INT_SDLCFLAGS)))
 	ifneq (,$(strip $(SDL_INCLUDE)))
 		export __INT_SDLCFLAGS  := -I$(SDL_INCLUDE)
 	else
-		export __INT_SDLCFLAGS  := -Iinclude -ISDL
+		export __INT_SDLCFLAGS  := -Iinclude -ISDL -Iinclude/SDL
 	endif
 endif
 
@@ -178,7 +178,7 @@ ifeq (,$(strip $(__INT_SDLLDFLAGS)))
 	ifneq (,$(strip $(SDL_LIB)))
 		export __INT_SDLLDFLAGS := -L$(SDL_LIB) -lSDLmain -lSDL
 	else
-		export __INT_SDLLDFLAGS := -Llib -lSDLmain -lSDL
+		export __INT_SDLLDFLAGS := -Llib -LSDL -lSDLmain -lSDL
 	endif
 endif
 

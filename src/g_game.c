@@ -854,6 +854,7 @@ void GS_HandleExtraCommands(ticcmd_t* const a_TicCmd, const int32_t a_PlayerNum)
 				break;
 			
 			default:
+				CONL_PrintF("Unknown command %i.\n", Command);
 				Command = 0;
 				break;
 		}

@@ -69,6 +69,10 @@
 #define MODENAMELENGTH		16	// Length of mode name
 #define MAX_QUIT_FUNCS		16	// Max number of quit functions
 
+#if !defined(O_WRONLY)
+	#define O_WRONLY 0
+#endif
+
 /**************
 *** GLOBALS ***
 **************/

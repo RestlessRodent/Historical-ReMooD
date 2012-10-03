@@ -180,6 +180,15 @@ const int32_t c_TCDataSize[NUMDTCT] =
 		// uint16 In Game ID
 		// uint32 Unique ID
 		// uint8* Reason (MAXTCCBUFSIZE)
+	
+	// DTCT_XADDPLAYER, Add Player
+	4 + 4 + 4 + 1 + 4 + MAXPLAYERNAME + MAXPLAYERNAME
+		// uint32 Unique ID
+		// uint32 Host ID
+		// uint32 Process ID
+		// uint8  Screen ID
+		// uint32 Reserved (set to zero)
+		// uint8* Account Name + Cookie
 };
 
 /*** GLOBALS ***/
