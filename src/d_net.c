@@ -3201,6 +3201,9 @@ D_XPlayer_t* D_XNetAddPlayer(void (*a_PacketBack)(D_XPlayer_t* const a_Player, v
 			}
 		}
 	}
+	
+	/* Return fresh player */
+	return New;
 }
 
 /* D_XNetKickPlayer() -- Kicks player for some reason */

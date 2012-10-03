@@ -814,8 +814,7 @@ void D_WaitingPlayersDrawer(void)
 		
 		if (DrawFlags & VFO_NOSCALEPATCH)
 		{
-			y += FixedMul(V_FontHeight(VFONT_SMALL) << FRACBITS,
-				vid.fxdupy) >> FRACBITS;
+			y = FixedMul(y << FRACBITS, vid.fxdupy) >> FRACBITS;
 			Col[0] = FixedMul(Col[0] << FRACBITS, vid.fxdupx) >> FRACBITS;
 			Col[1] = FixedMul(Col[1] << FRACBITS, vid.fxdupx) >> FRACBITS;
 		}
@@ -894,21 +893,14 @@ void D_WaitingPlayersDrawer(void)
 						Buf,
 						Col[1] - sw, y
 					);
-#if 0
-			if (i == 0)
-				snprintf(Buf, BUFSIZE - 1, "%s", DS_GetString(DSTR_WFGS_PING));
-			else if (false)//(demoplayback)
-				snprintf(Buf, BUFSIZE - 1, "%s", DS_GetString(DSTR_WFGS_DEMOPLAYER));
-			else if (NC && NC->IsServer)
-				snprintf(Buf, BUFSIZE - 1, "%s", DS_GetString(DSTR_WFGS_HOST));
-			else
-				snprintf(Buf, BUFSIZE - 1, "%i ms", players[i - 1].cmd.Ctrl.Ping);
-#endif
+			
+			// Increase y
+			y += ya;
 		}
 		
 		// Down scale the text?
 		if (!Stage && y >= 190)
-			DrawFlags |= VFO_NOSCALEPATCH;
+			DrawFlags |= VFO_NOSCALEPATCH | VFO_NOSCALESTART;
 	}
 #else
 	// Double stage drawing (if lots of people, don't scale!)
