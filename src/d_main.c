@@ -2049,12 +2049,11 @@ void D_JoySpecialTicker(void)
 		else
 			MultiEventTic[i][1] = MultiEventTic[i][0] = 0;
 	
-	
 	/* Decay Time */
 	l_JoyMagicTime--;
 	
 	// End?
-	if (l_JoyMagicTime < -(TICRATE * 2))
+	if (l_JoyMagicTime < -((int32_t)(TICRATE * 2)))
 		l_JoyMagicTime = TICRATE * 3;
 }
 

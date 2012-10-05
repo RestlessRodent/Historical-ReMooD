@@ -3124,6 +3124,7 @@ static void DS_XNetMakeServPB(D_XPlayer_t* const a_Player)
 /* D_XNetMakeServer() -- Creates a server, possibly networked */
 void D_XNetMakeServer(const bool_t a_Networked, const uint16_t a_NetPort)
 {
+	int32_t i;
 	D_XPlayer_t* SPlay;
 	
 	/* Disconnect First */
@@ -3138,6 +3139,19 @@ void D_XNetMakeServer(const bool_t a_Networked, const uint16_t a_NetPort)
 	/* Set the proper gamestate */
 	gamestate = wipegamestate = GS_WAITINGPLAYERS;
 	S_ChangeMusicName("D_WAITIN", 1);			// A nice tune
+	
+	/* Initialize screens */
+	// Only give players to screens that have occupents
+	for (i = 0; i < MAXSPLITSCREEN; i++)
+		if (D_ScrSplitHasPlayer(i))
+		{
+			// Create initial player for server (2nd player and up)
+			if (!i)
+				SPlay = D_XNetAddPlayer(DS_XNetMakeServPB, NULL);
+			
+			// Assign player
+			g_Splits[0].XPlayer = SPlay;
+		}
 }
 
 /* D_XNetIsServer() -- Returns true if we are the server */
@@ -3400,19 +3414,87 @@ void D_XNetKickPlayer(D_XPlayer_t* const a_Player, const char* const a_Reason)
 		);
 	
 	/* Free associated data */
-	Z_Free(g_XPlays);
+	Z_Free(a_Player);
 }
 
 /* D_XNetSendQuit() -- Informs the server we are quitting */
 void D_XNetSendQuit(void)
 {
-	/* If we are note the server, tell the server */
+	/* If we are not the server, tell the server */
 	if (!D_XNetIsServer())
 	{
 	}
 	
 	/* Disconnect from the server */
 	D_XNetDisconnect(false);
+}
+
+/* D_XNetChangeVar() -- Change Variable */
+void D_XNetChangeVar(const uint32_t a_Code, const int32_t a_Value)
+{
+	ticcmd_t* Placement;
+	void* Wp;
+	
+	/* Server can always change variables */
+	if (D_XNetIsServer())
+	{
+		// Encode in command
+		Placement = DS_GrabGlobal(DTCT_GAMEVAR, c_TCDataSize[DTCT_GAMEVAR], &Wp);
+	
+		if (Placement)
+		{
+			// Fill in data
+			LittleWriteUInt32((uint32_t**)&Wp, a_Code);
+			LittleWriteInt32((int32_t**)&Wp, a_Value);
+		}
+	}
+	
+	/* Client must ask the server */
+	else
+	{
+	}
+}
+
+/* D_XNetMultiTics() -- Read/Write Tics all in one */
+void D_XNetMultiTics(ticcmd_t* const a_TicCmd, const bool_t a_Write, const int32_t a_Player)
+{
+	/* We are the server */
+	if (D_XNetIsServer())
+	{
+		// Write commands to clients
+		if (a_Write)
+		{
+		}
+	
+		// Read commands
+		else
+		{
+			// Global
+			if (a_Player < 0)
+			{
+				// Something is in the buffer
+				if (l_GlobalAt >= 0)
+				{
+					// Move the first item inside
+					memmove(a_TicCmd, &l_GlobalBuf[0], sizeof(*a_TicCmd));
+					
+					// Move everything down
+					memmove(&l_GlobalBuf[0], &l_GlobalBuf[1], sizeof(ticcmd_t) * (MAXGLOBALBUFSIZE - 1));
+					l_GlobalAt--;
+				}
+			}
+			
+			// Individual player
+			else
+			{
+			}
+		}
+	}
+	
+	/* We are the client */
+	else
+	{
+	}
 }
 
 /* D_XNetTicsToRun() -- Amount of tics to run */

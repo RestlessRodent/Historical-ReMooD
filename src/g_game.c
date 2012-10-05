@@ -518,6 +518,35 @@ static void GS_HandleExtraCommands(ticcmd_t* const a_TicCmd, const int32_t a_Pla
 				D_XNetKickPlayer(XPlayer, AltBuf);
 				break;
 				
+				// Map Changes
+			case DTCT_MAPCHANGE:
+				// Read Data
+				u8[0] = ReadUInt8((uint8_t**)&Rp);
+				
+				for (i = 0; i < 8; i++)
+					NameBuf[i] = ReadUInt8((uint8_t**)&Rp);
+				
+				// Change the level
+				if (!P_ExLoadLevel(P_FindLevelByNameEx(NameBuf, NULL), 0))
+					CONL_PrintF("Level \"%s\" failed to load.\n", NameBuf);
+					
+				// Debug
+				if (g_NetDev)
+					CONL_PrintF("NET: Map (%x, %s)\n",
+							u8[0], NameBuf
+						);
+				break;
+				
+				// Variable Change
+			case DTCT_GAMEVAR:
+				// Read Data
+				u32[0] = LittleReadUInt32((uint32_t**)&Rp);
+				i32[0] = LittleReadInt32((int32_t**)&Rp);
+				
+				// Change Variable
+				P_XGSSetValue(true, u32[0], i32[0]);
+				break;
+				
 			default:
 				CONL_PrintF("Unknown command %i.\n", Command);
 				Command = 0;
@@ -610,12 +639,12 @@ void G_Ticker(void)
 	if (demoplayback)
 		G_ReadDemoGlobalTicCmd(&GlobalCmd);
 	else
-		D_NetReadGlobalTicCmd(&GlobalCmd);
+		D_XNetMultiTics(&GlobalCmd, false, -1);
 	
 	// Write Global Tic Commands
 	if (demorecording)
 		G_WriteDemoGlobalTicCmd(&GlobalCmd);
-	D_NetWriteGlobalTicCmd(&GlobalCmd);
+	D_XNetMultiTics(&GlobalCmd, true, -1);
 	
 	/* Player Commands */
 	// Read Individual Player Tic Commands
@@ -630,12 +659,12 @@ void G_Ticker(void)
 			if (demoplayback)
 				G_ReadDemoTiccmd(cmd, i);
 			else
-				D_NetReadTicCmd(cmd, i);
+				D_XNetMultiTics(cmd, false, i);
 			
 			// Write Command
 			if (demorecording)
 				G_WriteDemoTiccmd(cmd, i);
-			D_NetWriteTicCmd(cmd, i);
+			D_XNetMultiTics(cmd, true, i);
 		}
 	
 	/* Transmit Network Commands */

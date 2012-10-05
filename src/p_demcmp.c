@@ -1371,7 +1371,7 @@ int32_t P_XGSSetValue(const bool_t a_Master, const P_XGSBitID_t a_Bit, const int
 	if (!a_Master)
 	{
 		// Change it in a tic command
-		D_NCReqVarChange(a_Bit, a_Value);
+		D_XNetChangeVar(a_Bit, a_Value);
 		
 		// Return the previous value
 		if (Var->WasSet)

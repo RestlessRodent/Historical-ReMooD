@@ -1310,7 +1310,8 @@ void R_DrawTranslucentSpan_8(void)
 		//  re-index using light/colormap.
 		//      *dest++ = ds_colormap[ds_source[spot]];
 //              *dest++ = ds_colormap[*(ds_transmap + (ds_source[spot] << 8) + (*dest))];
-		*dest++ = ds_colormap[*(ds_transmap + (ds_source[((yfrac >> (16 - flatsubtract)) & (flatmask)) | (xfrac >> 16)] << 8) + (*dest))];
+		*dest = ds_colormap[*(ds_transmap + (ds_source[((yfrac >> (16 - flatsubtract)) & (flatmask)) | (xfrac >> 16)] << 8) + (*dest))];
+		dest++;	// Sequence Point
 		
 		// Next step in u,v.
 		xfrac += xstep;
@@ -1416,7 +1417,10 @@ void R_DrawFogSpan_8(void)
 	}
 	
 	while (count--)
-		*dest++ = colormap[*dest];
+	{
+		*dest = colormap[*dest];
+		dest++;	// Sequence point
+	}
 }
 
 //SoM: Fog wall.
