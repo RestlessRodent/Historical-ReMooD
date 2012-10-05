@@ -1622,7 +1622,8 @@ void D_NCRemoveSplit(const int32_t a_Split, const bool_t a_Demo)
 	
 	/* Correctsplit screen */
 	// Subtract the removed player
-	g_SplitScreen--;
+	if (g_SplitScreen >= 0)
+		g_SplitScreen--;
 	
 	// Correct visual display
 	R_ExecuteSetViewSize();

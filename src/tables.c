@@ -2419,3 +2419,10 @@ angle_t tantoangle[2049] =
 	536704000,
 	536870912
 };
+
+/* TBL_BAMToDeg() -- Converts BAM to Degrees */
+fixed_t TBL_BAMToDeg(const angle_t a_Angle)
+{
+	return ((int64_t)a_Angle << ((int64_t)(FRACBITS + FRACBITS))) / (UINT64_C(0xB60B60) << ((int64_t)FRACBITS));
+}
+

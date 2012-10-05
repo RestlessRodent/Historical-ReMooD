@@ -1002,13 +1002,16 @@ void S_ChangeMusicName(char* name, int looping)
 /* S_StopMusic() -- Stops playing music */
 void S_StopMusic(void)
 {
+	int Song;
+	
 	/* Check */
 	if (!l_MusicOK || !l_CurrentSong)
 		return;
 		
 	/* Call interface code */
-	I_StopSong(l_CurrentSong);
-	I_UnRegisterSong(l_CurrentSong);
+	Song = l_CurrentSong;
+	I_StopSong(Song);
+	I_UnRegisterSong(Song);
 	l_CurrentSong = 0;
 }
 

@@ -46,6 +46,8 @@ extern tic_t rendergametic;
 // for dedicated server
 extern bool_t dedicated;
 
+extern bool_t g_TitleScreenDemo;				// Titlescreen demo
+
 // the infinite loop of D_DoomLoop() called from win_main for windows version
 void D_DoomLoop(void);
 

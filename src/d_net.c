@@ -2711,6 +2711,8 @@ void D_NCUpdate(void)
 	uint32_t ThisTime;
 	static int8_t LastSplitMode;
 	
+	return;
+	
 	/* Handle Profiling */
 	for (nc = 0; nc < MAXSPLITSCREEN; nc++)
 	{
@@ -3135,6 +3137,9 @@ void D_XNetMakeServer(const bool_t a_Networked, const uint16_t a_NetPort)
 	
 	// Set server infos
 	
+	/* Clear important flags */
+	// not playing title screen demos
+	g_TitleScreenDemo = false;
 	
 	/* Set the proper gamestate */
 	gamestate = wipegamestate = GS_WAITINGPLAYERS;
@@ -3198,6 +3203,26 @@ D_XPlayer_t* D_XNetPlayerByID(const uint32_t a_ID)
 		if (g_XPlays[i])
 			if (g_XPlays[i]->ID == a_ID)
 				return g_XPlays[i];
+	
+	/* Not Found */
+	return NULL;
+}
+
+/* D_XNetLocalPlayerByPID() -- Finds local player by process ID */
+D_XPlayer_t* D_XNetLocalPlayerByPID(const uint32_t a_ID)
+{
+	int32_t i;
+	
+	/* Check */
+	if (!a_ID)
+		return NULL;
+	
+	/* Search players */
+	for (i = 0; i < g_NumXPlays; i++)
+		if (g_XPlays[i])
+			if (g_XPlays[i]->Flags & DXPF_LOCAL)
+				if (g_XPlays[i]->ClProcessID == a_ID)
+					return g_XPlays[i];
 	
 	/* Not Found */
 	return NULL;
@@ -3455,6 +3480,54 @@ void D_XNetChangeVar(const uint32_t a_Code, const int32_t a_Value)
 	}
 }
 
+/* D_XNetChangeMap() -- Changes the map */
+void D_XNetChangeMap(const char* const a_Map)
+{
+	P_LevelInfoEx_t* Info;
+	size_t i, j;
+	void* Wp;
+	ticcmd_t* Placement;
+	
+	/* Find level */
+	Info = P_FindLevelByNameEx(a_Map, NULL);
+	
+	// Check
+	if (!Info)
+	{
+		CONL_OutputUT(CT_NETWORK, DSTR_NET_LEVELNOTFOUND, "%s\n", a_Map);
+		return;
+	}
+	
+	/* Server can change the map no problem */
+	if (D_XNetIsServer())
+	{
+		Wp = NULL;
+		Placement = DS_GrabGlobal(DTCT_MAPCHANGE, c_TCDataSize[DTCT_MAPCHANGE], &Wp);
+	
+		if (Placement)
+		{
+			// Fill in data
+			WriteUInt8((uint8_t**)&Wp, 0);
+		
+			for (i = 0, j = 0; i < 8; i++)
+				if (!j)
+				{
+					WriteUInt8((uint8_t**)&Wp, Info->LumpName[i]);
+				
+					if (!Info->LumpName[i])
+						j = 1;
+				}
+				else
+					WriteUInt8((uint8_t**)&Wp, 1);
+		}
+	}
+	
+	/* Client must ask the server though */
+	else
+	{
+	}
+}
+
 /* D_XNetMultiTics() -- Read/Write Tics all in one */
 void D_XNetMultiTics(ticcmd_t* const a_TicCmd, const bool_t a_Write, const int32_t a_Player)
 {
@@ -3500,7 +3573,10 @@ void D_XNetMultiTics(ticcmd_t* const a_TicCmd, const bool_t a_Write, const int32
 /* D_XNetTicsToRun() -- Amount of tics to run */
 tic_t D_XNetTicsToRun(void)
 {
-	tic_t Diff;
+	tic_t Diff, ThisTic;
+	
+	/* Get current tic */
+	ThisTic = I_GetTime();
 	
 	/* Playing a demo back */
 	if (demoplayback)
@@ -3510,8 +3586,8 @@ tic_t D_XNetTicsToRun(void)
 			return 1;
 		
 		// Get time difference
-		Diff = g_ProgramTic - l_XNLastPTic;
-		l_XNLastPTic = g_ProgramTic;
+		Diff = ThisTic - l_XNLastPTic;
+		l_XNLastPTic = ThisTic;
 		
 		// If the difference is too great, cap it
 			// i.e. debug break, moving window, etc. doesn't cause the game to
@@ -3534,13 +3610,13 @@ tic_t D_XNetTicsToRun(void)
 		// Clients need to catchup
 		if (false)
 		{
-			l_XNLastPTic = g_ProgramTic;
+			l_XNLastPTic = ThisTic;
 			return 0;
 		}
 			
 		// Get time difference
-		Diff = g_ProgramTic - l_XNLastPTic;
-		l_XNLastPTic = g_ProgramTic;
+		Diff = ThisTic - l_XNLastPTic;
+		l_XNLastPTic = ThisTic;
 		
 		// If the difference is too great, cap it
 			// i.e. debug break, moving window, etc. doesn't cause the game to
@@ -3574,5 +3650,309 @@ tic_t D_XNetTicsToRun(void)
 /* D_XNetUpdate() -- Updates Extended Network */
 void D_XNetUpdate(void)
 {
+	int32_t i;
+	
+	/* Handle local players and splits */ 
+	if (!demoplayback && gamestate != GS_DEMOSCREEN)
+	{
+		// Players in split, but not mapped player?
+		for (i = 0; i < MAXSPLITSCREEN; i++)
+			if (D_ScrSplitHasPlayer(i) && !g_Splits[i].XPlayer)
+				g_Splits[i].XPlayer = D_XNetLocalPlayerByPID(g_Splits[i].ProcessID);
+	}
+}
+
+static player_t l_XFakePlayer[MAXSPLITSCREEN];	// Fake Player
+static mobj_t l_XFakeMobj[MAXSPLITSCREEN];		// Fake Mobj
+
+/* D_XFakePlayerInit() -- Initializes the fake player */
+void D_XFakePlayerInit(void)
+{
+	int i;
+	mapthing_t* MapThing;
+	mobj_t* AnotherMo;
+	subsector_t* SubS;
+	
+	/* Reset */
+	memset(l_XFakePlayer, 0, sizeof(l_XFakePlayer));
+	memset(l_XFakeMobj, 0, sizeof(l_XFakeMobj));
+	
+	/* Find a map thing to initialize the view from */
+	MapThing = NULL;
+	AnotherMo = NULL;
+	
+	// Try existing players
+	for (i = 0; i < MAXPLAYERS && !AnotherMo; i++)
+		if (playeringame[i])
+			if (players[i].mo)
+				AnotherMo = players[i].mo;
+	
+	// Try player starts first
+	if (!MapThing)
+		for (i = 0; i < MAXPLAYERS && !MapThing; i++)
+			MapThing = playerstarts[i];
+	
+	// Then deathmatch starts
+	if (!MapThing)
+		for (i = 0; i < MAX_DM_STARTS && !MapThing; i++)
+			MapThing = deathmatchstarts[i];
+	
+	/* Initialize each player */
+	for (i = 0; i < MAXSPLITSCREEN; i++)
+	{
+		// Bind objects
+		l_XFakePlayer[i].mo = &l_XFakeMobj[i];
+		l_XFakeMobj[i].player = &l_XFakePlayer[i];
+		
+		// Player has object
+		if (AnotherMo)
+		{
+			l_XFakeMobj[i].x = AnotherMo->x;
+			l_XFakeMobj[i].y = AnotherMo->y;
+			l_XFakeMobj[i].z = AnotherMo->z + (AnotherMo->height >> 1);
+		}
+		
+		// Only if MapThing is set
+		else if (MapThing)
+		{
+			// Set Initial Position
+			l_XFakeMobj[i].x = MapThing->x;
+			l_XFakeMobj[i].y = MapThing->y;
+		
+			// Calculate Z position
+			l_XFakeMobj[i].subsector = SubS = R_PointInSubsector(l_XFakeMobj[i].x, l_XFakeMobj[i].y);
+			l_XFakeMobj[i].z = SubS->sector->floorheight + ((SubS->sector->ceilingheight + SubS->sector->floorheight) >> 1);
+		}
+		
+		// Correct View Hieght
+		l_XFakePlayer[i].viewz = l_XFakeMobj[i].z;
+	}
+}
+
+/* D_XFakePlayerGet() -- Returns the fake player */
+struct player_s* D_XFakePlayerGet(const int32_t a_Screen)
+{
+	return &l_XFakePlayer[a_Screen];
+}
+
+/* D_XFakePlayerTicker() -- Ticks fake players */
+void D_XFakePlayerTicker(void)
+{
+#define TSCAMDIST FIXEDT_C(128)
+#define BUDGEDIST FIXEDT_C(32)
+#define TSMOVEUNIT FIXEDT_C(16)
+	int32_t i;
+	player_t* Mod, *VPlay;
+	mobj_t* ChaseThis, *PeerThis, *CamMo;
+	fixed_t Dist, DistX, DistY, ToMove, MyAng, TargAng;
+	fixed_t VeerX, VeerY;
+	angle_t Angle, PeerAngle;
+	bool_t DeadView;
+	
+	fixed_t ToDist, ToPos[0], BCPos[2], CDist, BCDist;
+	
+	/* Title Screen Demo */
+	if (g_TitleScreenDemo)
+	{
+		// For each player split
+		for (i = 0; i < MAXSPLITSCREEN; i++)
+			if (g_Splits[i].Active)
+			{
+				// Player to modify
+				Mod = &l_XFakePlayer[i];
+				VPlay = &players[g_Splits[i].Console];
+				
+				// Camera Object
+				CamMo = Mod->mo;
+				
+				// Get subsector
+				CamMo->subsector = R_PointInSubsector(CamMo->x, CamMo->y);
+				
+				// Chase the player's object
+				ChaseThis = VPlay->mo;
+				
+				// Player is alive and has a BFG ball
+				if (VPlay->LastBFGBall && VPlay->health > 0)
+				{
+					// Chase and look after the ball
+					PeerThis = ChaseThis = VPlay->LastBFGBall;
+				}
+				
+				// Player is alive
+				else if (VPlay->health > 0)
+				{
+					DeadView = false;
+					
+					// If player is under attack, peer at attacker
+					PeerThis = NULL;
+					if (VPlay->attacker && VPlay->attacker->health > 0)
+					{
+						// Get attacker distance
+						Dist = P_AproxDistance(VPlay->attacker->x - ChaseThis->x,
+								VPlay->attacker->y - ChaseThis->y);
+					
+						// Object close by
+						if (Dist < FIXEDT_C(2048) &&
+							P_CheckSight(ChaseThis, VPlay->attacker))
+							PeerThis = VPlay->attacker;
+					}
+				
+					// Otherwise stare at player object
+					if (!PeerThis)
+						PeerThis = VPlay->mo;
+				}
+				
+				// Player is dead
+				else
+				{
+					DeadView = true;
+					
+					// Chase killer
+					ChaseThis = VPlay->attacker;
+					
+					if (!ChaseThis)
+						ChaseThis = VPlay->mo;
+					
+					// Stare at player object
+					PeerThis = VPlay->mo;
+				}
+
+#if 1
+				// Get 128 units behind chase target
+				BCPos[0] = ChaseThis->x + FixedMul(
+						finecosine[ChaseThis->angle >> ANGLETOFINESHIFT],
+						-TSCAMDIST
+					);
+				BCPos[1] = ChaseThis->y + FixedMul(
+						finesine[ChaseThis->angle >> ANGLETOFINESHIFT],
+						-TSCAMDIST
+					);
+				
+				// Get Distance to chase target
+				CDist = P_AproxDistance(
+							CamMo->x - ChaseThis->x,
+							CamMo->y - ChaseThis->y
+						);
+				
+				// Get Distance to behind target
+				BCDist = P_AproxDistance(
+							CamMo->x - BCPos[0],
+							CamMo->y - BCPos[1]
+						);
+				
+				// If too far away from target, move to it
+					// Or it cannot be seen by the camera
+				if (!P_CheckSight(CamMo, ChaseThis) || (CDist > TSCAMDIST + BUDGEDIST) && !VPlay->attackdown)
+				{
+					ToPos[0] = ChaseThis->x;
+					ToPos[1] = ChaseThis->y;
+					ToDist = CDist / 16;
+				}
+				
+				// If really close, back off
+#if 0
+				else if (CDist < BUDGEDIST)
+				{
+					ToPos[0] = ChaseThis->x;
+					ToPos[1] = ChaseThis->y;
+					ToDist = -(CDist / 4);
+				}
+#endif
+				
+				// If close enough, move to behind target then
+				else
+				{
+					ToPos[0] = BCPos[0];
+					ToPos[1] = BCPos[1];
+					
+					if (VPlay->attackdown)
+						ToDist = BCDist / 8;
+					else
+						ToDist = BCDist / 32;
+				}
+				
+				// Move to location
+				Angle = R_PointToAngle2(CamMo->x, CamMo->y,
+					ToPos[0], ToPos[1]);
+				CamMo->x += FixedMul(finecosine[Angle >> ANGLETOFINESHIFT], ToDist);
+				CamMo->y += FixedMul(finesine[Angle >> ANGLETOFINESHIFT], ToDist);
+#else
+				// Get distance and angle to chase target
+				Dist = P_AproxDistance(
+						CamMo->x - ChaseThis->x,
+						CamMo->y - ChaseThis->y
+					);
+				
+				
+				// Move Camera closer to object chasing
+				if (DeadView || Dist > TSCAMDIST)
+				{
+					Dist /= 16;
+					
+					CamMo->x += FixedMul(finecosine[Angle >> ANGLETOFINESHIFT], Dist);
+					CamMo->y += FixedMul(finesine[Angle >> ANGLETOFINESHIFT], Dist);
+				}
+				
+				// Slowly drift camera behind chase object
+					// Location we want to drift to
+				VeerX = ChaseThis->x + FixedMul(finecosine[
+							ChaseThis->angle >> ANGLETOFINESHIFT], -TSCAMDIST);
+				VeerY = ChaseThis->y + FixedMul(finesine[
+							ChaseThis->angle >> ANGLETOFINESHIFT], -TSCAMDIST);
+					// Get distance to point
+				Dist = P_AproxDistance(
+						CamMo->x - VeerX,
+						CamMo->y - VeerY
+					);
+					// Reduce it alot!
+				Dist /= 32;
+					// Move
+				CamMo->x += FixedMul(finecosine[ChaseThis->angle >> ANGLETOFINESHIFT], Dist);
+				CamMo->y += FixedMul(finecosine[ChaseThis->angle >> ANGLETOFINESHIFT], Dist);
+#endif
+				Angle = R_PointToAngle2(CamMo->x, CamMo->y,
+					ChaseThis->x, ChaseThis->y);
+				PeerAngle = R_PointToAngle2(CamMo->x, CamMo->y,
+					PeerThis->x, PeerThis->y);
+
+				// Pan Camera to peer
+				MyAng = TBL_BAMToDeg(CamMo->angle);
+				TargAng = TBL_BAMToDeg(PeerAngle);
+				
+				// Get dual angles
+				DistX = abs(MyAng - TargAng);
+				DistY = abs((MyAng + 360) - TargAng);
+				
+				// Move in the smaller direction
+				if (DistY < DistX)
+					CamMo->angle += (ANGLE_1 * ((DistY / 4) >> FRACBITS));
+				else
+					CamMo->angle -= (ANGLE_1 * ((DistX / 4) >> FRACBITS));
+				
+				// Normalize Height
+				Dist = (CamMo->z - (ChaseThis->z + (ChaseThis->height >> 1))) >> 2;
+				CamMo->z -= Dist;
+				
+				// Raise above the floor
+				CamMo->subsector = R_PointInSubsector(CamMo->x, CamMo->y);
+				
+#if 0
+				if (CamMo->z < CamMo->subsector->sector->floorheight)
+					CamMo->z = CamMo->subsector->sector->floorheight;
+				else if (CamMo->z > CamMo->subsector->sector->ceilingheight)
+					CamMo->z = CamMo->subsector->sector->ceilingheight;
+#endif
+				
+				// Correct height
+				Mod->viewz = CamMo->z;
+			}
+	}
+	
+	/* Normal fake */
+	else
+	{
+	}
+#undef TSCAMDIST
+#undef TSMOVEUNIT
 }
 

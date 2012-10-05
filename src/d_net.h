@@ -327,16 +327,23 @@ bool_t D_XNetIsServer(void);
 uint32_t D_XNetGetHostID(void);
 
 D_XPlayer_t* D_XNetPlayerByID(const uint32_t a_ID);
+D_XPlayer_t* D_XNetLocalPlayerByPID(const uint32_t a_ID);
 
 void D_XNetDelSocket(D_XSocket_t* const a_Socket);
 D_XPlayer_t* D_XNetAddPlayer(void (*a_PacketBack)(D_XPlayer_t* const a_Player, void* const a_Data), void* const a_Data);
 void D_XNetKickPlayer(D_XPlayer_t* const a_Player, const char* const a_Reason);
 void D_XNetSendQuit(void);
 void D_XNetChangeVar(const uint32_t a_Code, const int32_t a_Value);
+void D_XNetChangeMap(const char* const a_Map);
 
 void D_XNetMultiTics(ticcmd_t* const a_TicCmd, const bool_t a_Write, const int32_t a_Player);
 tic_t D_XNetTicsToRun(void);
 void D_XNetUpdate(void);
+
+void D_XFakePlayerInit(void);
+struct player_s;
+struct player_s* D_XFakePlayerGet(const int32_t a_Screen);
+void D_XFakePlayerTicker(void);
 
 #endif							/* __D_NET_H__ */
 

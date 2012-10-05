@@ -2357,13 +2357,14 @@ static int CLC_PlayDemo(const uint32_t a_ArgC, const char** const a_ArgV)
 	
 	/* Play Demo */
 	l_CommandedDemo = true;
-	G_DoPlayDemo(a_ArgV[1]);
+	G_DoPlayDemo(a_ArgV[1], !!(strcasecmp(a_ArgV[0], "titledemo") == 0));
 }
 
 /* G_PrepareDemoStuff() -- Registers any demo stuff */
 void G_PrepareDemoStuff(void)
 {
 	CONL_AddCommand("playdemo", CLC_PlayDemo);
+	CONL_AddCommand("titledemo", CLC_PlayDemo);
 }
 
 /* G_DemoFactoryByName() -- Get factory by name */
@@ -2686,7 +2687,7 @@ void G_BeginRecording(const char* const a_Output, const char* const a_FactoryNam
 }
 
 /* G_DoPlayDemo() -- Plays demo */
-void G_DoPlayDemo(char* defdemoname)
+void G_DoPlayDemo(char* defdemoname, const bool_t a_TitleScreen)
 {
 	char Base[12];
 	const WL_WADEntry_t* Entry;
@@ -2741,7 +2742,6 @@ void G_DoPlayDemo(char* defdemoname)
 	if (!l_DemoServer)
 	{
 		D_NCDisconnect(true);
-		//D_NCServize();
 	}
 	
 	/* Play demo in any factory */
@@ -2755,6 +2755,7 @@ void G_DoPlayDemo(char* defdemoname)
 	demoplayback = true;
 	l_PlayDemo = Demo;
 	g_DemoTime = 0;
+	g_TitleScreenDemo = a_TitleScreen;
 }
 
 void G_TimeDemo(char* name)

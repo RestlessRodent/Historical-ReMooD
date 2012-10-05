@@ -583,8 +583,10 @@ static bool_t PS_ParseMapInfo(P_LevelInfoHolder_t* const a_Holder, const WL_WADE
 			// Reached end?
 			if (c_PMIFields[FNum].IsEnd)
 			{
+#if 0
 				if (devparm)
 					CONL_PrintF("PS_ParseMapInfo: Unknown \"%s\".\n", Token);
+#endif
 				continue;
 			}
 			
@@ -653,8 +655,10 @@ static bool_t PS_ParseMapInfo(P_LevelInfoHolder_t* const a_Holder, const WL_WADE
 				*StrValP = Z_StrDup(p, PU_WLDKRMOD, NULL);
 				
 				// Debug
+#if 0
 				if (devparm)
 					CONL_PrintF("PS_ParseMapInfo: \"%s\" set to \"%s\".\n", c_PMIFields[FNum].MapInfo, *StrValP);
+#endif
 			}
 				// Integer
 			else if (c_PMIFields[FNum].Type == PPMFIFT_INTEGER)
@@ -666,8 +670,10 @@ static bool_t PS_ParseMapInfo(P_LevelInfoHolder_t* const a_Holder, const WL_WADE
 				*IntValP = atoi(p);
 				
 				// Debug
+#if 0
 				if (devparm)
-					CONL_PrintF("PS_ParseMapInfo: \"%s\" set to \'%i\'.\n", c_PMIFields[FNum].MapInfo, *IntValP);
+					CONL_PrintF("PS_ParseMapInfo: \"%s\" set to \'%i\'.\n", c_PMIFields[FNum].MapInfo, *IntValP);|
+#endif
 			}
 				
 				// Bool
@@ -680,8 +686,10 @@ static bool_t PS_ParseMapInfo(P_LevelInfoHolder_t* const a_Holder, const WL_WADE
 				*BoolValP = true;
 				
 				// Debug
+#if 0
 				if (devparm)
 					CONL_PrintF("PS_ParseMapInfo: \"%s\" flagged.\n", c_PMIFields[FNum].MapInfo);
+#endif
 			}
 		}
 	}

@@ -220,6 +220,7 @@ CONL_StaticVar_t l_VIDDrawFPS =
 
 extern int32_t g_IgnoreWipeTics;				// Demo playback, ignore this many wipe tics
 
+/* D_Display() -- Draws the game */
 void D_Display(void)
 {
 #define BUFSIZE 96
@@ -236,7 +237,7 @@ void D_Display(void)
 	int oldviewwidth;
 	bool_t done;
 	bool_t wipe;
-	bool_t redrawsbar;
+	bool_t redrawsbar, CoolDemo;
 	bool_t viewactivestate = false;
 	V_Image_t* PausePic;
 	
@@ -245,7 +246,7 @@ void D_Display(void)
 		
 	if (nodrawers)
 		return;					// for comparative timing / profiling
-		
+	
 	redrawsbar = false;
 	
 	//added:21-01-98: check for change of screen size (video mode)
@@ -319,11 +320,15 @@ void D_Display(void)
 	// see if the border needs to be initially drawn
 	if (gamestate == GS_LEVEL)
 	{
+		// GhostlyDeath <October 5, 2012> -- Draw Anti-HOM
+		V_DrawColorBoxEx(0, 0, 0, 0, 320, 200);
+		
 		if (oldgamestate != GS_LEVEL)
 		{
 			viewactivestate = false;	// view was not active
 			R_FillBackScreen();	// draw the pattern into the back screen
 		}
+		
 		// see if the border needs to be updated to the screen
 		if ((!automapactive || automapoverlay) && (scaledviewwidth != vid.width))
 		{
@@ -338,9 +343,13 @@ void D_Display(void)
 				borderdrawcount--;
 			}
 		}
+		
 		// draw the view directly
 		if (!automapactive || automapoverlay)
 		{
+			// Cool demos?
+			CoolDemo = (demoplayback && g_TitleScreenDemo);
+			
 			// added 16-6-98: render the second screen
 			switch (g_SplitScreen)
 			{
@@ -349,25 +358,22 @@ void D_Display(void)
 				case 3:
 					for (i = 0; i < 4; i++)
 					{
-						if (playeringame[g_Splits[i].Display] && players[g_Splits[i].Display].mo && i < g_SplitScreen + 1 && g_Splits[i].Active)
-						{
-							activeylookup = ylookup4[i];
-							
-							if (i % 2 == 1)
-								viewwindowx = vid.width / 2;
-							else
-								viewwindowx = 0;
-							
-							if (i > 1)
-								viewwindowy = vid.height / 2;
-							else
-								viewwindowy = 0;
-								
-							R_RenderPlayerView(&players[g_Splits[i].Display], i);
-							
+						activeylookup = ylookup4[i];
+						
+						if (i % 2 == 1)
+							viewwindowx = vid.width / 2;
+						else
 							viewwindowx = 0;
+						
+						if (i > 1)
+							viewwindowy = vid.height / 2;
+						else
 							viewwindowy = 0;
-						}
+							
+						if (!CoolDemo && playeringame[g_Splits[i].Display] && players[g_Splits[i].Display].mo && i < g_SplitScreen + 1 && g_Splits[i].Active)
+							R_RenderPlayerView(&players[g_Splits[i].Display], i);
+						else if (CoolDemo)
+							R_RenderPlayerView(D_XFakePlayerGet(i), i);
 						else
 							V_DrawColorBoxEx(VEX_NOSCALESTART | VEX_NOSCALESCREEN, 0,
 									((i == 1 || i == 3) ? vid.width >> 1 : 0),
@@ -375,35 +381,40 @@ void D_Display(void)
 							        (((i == 1 || i == 3) ? vid.width >> 1 : 0)) + (vid.width >> 1),
 							        (((i == 2 || i == 3) ? vid.height >> 1 : 0)) + (vid.height >> 1)
 								);
+								
+						viewwindowx = 0;
+						viewwindowy = 0;
 					}
 					break;
 					
 					// 1 Full, 2 player split
 				case 1:
-					if (playeringame[g_Splits[1].Display] && players[g_Splits[1].Display].mo && g_Splits[1].Active)
-					{
-						//faB: Boris hack :P !!
-						viewwindowy = vid.height / 2;
-						activeylookup = ylookup;
-						memcpy(ylookup, ylookup2, viewheight * sizeof(ylookup[0]));
-						
+					viewwindowy = vid.height / 2;
+					activeylookup = ylookup;
+					memcpy(ylookup, ylookup2, viewheight * sizeof(ylookup[0]));
+					
+					if (!CoolDemo && playeringame[g_Splits[1].Display] && players[g_Splits[1].Display].mo && g_Splits[1].Active)
 						R_RenderPlayerView(&players[g_Splits[1].Display], 1);
-						
-						viewwindowy = 0;
-						activeylookup = ylookup;
-						memcpy(ylookup, ylookup1, viewheight * sizeof(ylookup[0]));
-					}
+					else if (CoolDemo)
+						R_RenderPlayerView(D_XFakePlayerGet(1), 1);
 					else
 						V_DrawColorBoxEx(VEX_NOSCALESTART | VEX_NOSCALESCREEN, 0, 0, vid.height >> 1, vid.width, vid.height);
+						
+					viewwindowy = 0;
+					activeylookup = ylookup;
+					memcpy(ylookup, ylookup1, viewheight * sizeof(ylookup[0]));
 				case 0:
 				default:
-					if (players[g_Splits[0].Display].mo && (g_Splits[0].Active || g_SplitScreen == -1))
-					{
-						activeylookup = ylookup;
+					activeylookup = ylookup;
+					
+					// Real Player
+					if (!CoolDemo && players[g_Splits[0].Display].mo && (g_Splits[0].Active || g_SplitScreen == -1))
 						R_RenderPlayerView(&players[g_Splits[0].Display], 0);
-					}
+					
+					// Fake Spectator
 					else
-						V_DrawColorBoxEx(VEX_NOSCALESTART | VEX_NOSCALESCREEN, 0, 0, 0, vid.width, vid.height >> (g_SplitScreen >= 1 ? 1 : 0));
+						R_RenderPlayerView(D_XFakePlayerGet(0), 0);
+						//V_DrawColorBoxEx(VEX_NOSCALESTART | VEX_NOSCALESCREEN, 0, 0, 0, vid.width, vid.height >> (g_SplitScreen >= 1 ? 1 : 0));
 					break;
 			}
 		}
@@ -450,14 +461,8 @@ void D_Display(void)
 	// GhostlyDeath <May 6, 2012> -- Network Update
 	D_SyncNetUpdate();
 	
-	// GhostlyDeath <May 12, 2012> -- Net Dev
-	if (g_NetDev)
-	{
-		snprintf(Buf, BUFSIZE - 1, "Bk/s: {3%u{z / {4%u{z", g_NetStat[0], g_NetStat[1]);
-		V_DrawStringA(VFONT_OEM, VFO_NOSCALEPATCH, Buf, 0, 100);
-		snprintf(Buf, BUFSIZE - 1, "By/s: {3%u{zB / {4%u{zB", g_NetStat[2], g_NetStat[3]);
-		V_DrawStringA(VFONT_OEM, VFO_NOSCALEPATCH, Buf, 0, 108);
-	}
+	// GhostlyDeath <May 5, 2012> -- Update Music
+	I_UpdateMusic();
 	
 	// GhostlyDeath <July 8, 2009> -- Add FPS Counter
 	if (l_VIDDrawFPS.Value->Int)
@@ -1006,6 +1011,8 @@ void D_AdvanceDemo(void)
 	advancedemo = true;
 }
 
+bool_t g_TitleScreenDemo = false;				// Titlescreen demo
+
 //
 // This cycles through the demo sequences.
 // FIXME - version dependend demo numbers?
@@ -1043,7 +1050,7 @@ void D_DoAdvanceDemo(void)
 			break;
 		case 1:
 			pagetic = 9999999;
-			G_DoPlayDemo("demo1");
+			G_DoPlayDemo("demo1", true);
 			break;
 		case 2:
 			pagetic = 200;
@@ -1052,7 +1059,7 @@ void D_DoAdvanceDemo(void)
 			break;
 		case 3:
 			pagetic = 9999999;
-			G_DoPlayDemo("demo2");
+			G_DoPlayDemo("demo2", true);
 			break;
 		case 4:
 			gamestate = GS_DEMOSCREEN;
@@ -1070,11 +1077,11 @@ void D_DoAdvanceDemo(void)
 			break;
 		case 5:
 			pagetic = 9999999;
-			G_DoPlayDemo("demo3");
+			G_DoPlayDemo("demo3", true);
 			break;
 		case 6:			// THE DEFINITIVE DOOM Special Edition demo
 			pagetic = 9999999;
-			G_DoPlayDemo("demo4");
+			G_DoPlayDemo("demo4", true);
 			break;
 	}
 	

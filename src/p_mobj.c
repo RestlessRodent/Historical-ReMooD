@@ -1487,6 +1487,10 @@ void P_RemoveMobj(mobj_t* mobj)
 			if (players[i].attacker == mobj)
 				players[i].attacker = NULL;
 			
+			// Remove BFG ball from player
+			if (players[i].LastBFGBall == mobj)
+				players[i].LastBFGBall = NULL;
+			
 			// Remove references done by players
 			if (players[i].mo)
 			{

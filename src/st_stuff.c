@@ -714,6 +714,10 @@ void ST_DrawPlayerBarsEx(void)
 	bool_t BigLetters;
 	static uint32_t LastPal;	// Lowers palette change (faster drawing)
 	
+	/* Ignore if playing titlescreen demo */
+	if (g_TitleScreenDemo)
+		return;
+	
 	/* Screen division? */
 	// Initial
 	x = y = 0;

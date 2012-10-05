@@ -699,7 +699,7 @@ void A_FireBFG(mobj_t* mo, player_t* player, pspdef_t* psp, const INFO_StateArgs
 {
 	P_ReduceAmmo(player);
 	//added:16-02-98:added player arg3
-	P_SpawnPlayerMissile(player->mo, INFO_GetTypeByName("BFGShot"));
+	player->LastBFGBall = P_SpawnPlayerMissile(player->mo, INFO_GetTypeByName("BFGShot"));
 }
 
 //
@@ -947,6 +947,10 @@ void A_BFGSpray(mobj_t* mo, player_t* player, pspdef_t* psp, const INFO_StateArg
 		BallOwner = mo;
 		OldWeapon = NUMWEAPONS;
 	}
+	
+	// Remove fired BFG ball
+	if (BallOwner->player)
+		BallOwner->player->LastBFGBall = NULL;
 	
 	// Set owner weapon to BFG, etc.
 	BallOwner->RXShotWithWeapon = mo->RXShotWithWeapon;

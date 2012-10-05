@@ -687,6 +687,9 @@ void G_Ticker(void)
 	switch (gamestate)
 	{
 		case GS_LEVEL:
+			// Title Screen Demo Fun
+			D_XFakePlayerTicker();
+	
 			B_GHOST_Ticker();
 			P_Ticker();			// tic the game
 			ST_Ticker();

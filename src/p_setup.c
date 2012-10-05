@@ -206,7 +206,7 @@ static int PCLC_Map(const uint32_t a_ArgC, const char** const a_ArgV)
 	/* Request Map */
 #if defined(__REMOOD_NCSNET)
 	// Send request
-	D_NCSR_RequestMap(a_ArgV[1]);
+	D_XNetChangeMap(a_ArgV[1]);
 	
 	// Return success
 	return CLE_SUCCESS;
@@ -266,7 +266,7 @@ bool_t P_ExClearLevel(void)
 	
 	/* Stop Playing Music and Sound */
 	S_StopSounds();
-	S_StopMusic();
+	//S_StopMusic();
 	
 	/* Clear Stuff */
 	S_StopSounds();
@@ -1346,6 +1346,9 @@ bool_t P_ExFinalizeLevel(void)
 			WL_StreamClose(ScriptStream);
 		}
 	}
+	
+	/* Initialize Fake Player */
+	D_XFakePlayerInit();
 	
 	/* Success! */
 	return true;

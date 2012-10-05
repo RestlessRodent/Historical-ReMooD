@@ -2539,7 +2539,7 @@ void SF_PlayDemo()
 		return;
 	}
 	
-	G_DoPlayDemo(t_argv[0].value.s);
+	G_DoPlayDemo(t_argv[0].value.s, false);
 }
 
 // run console cmd
