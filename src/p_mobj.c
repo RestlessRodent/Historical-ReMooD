@@ -1491,6 +1491,10 @@ void P_RemoveMobj(mobj_t* mobj)
 			if (players[i].LastBFGBall == mobj)
 				players[i].LastBFGBall = NULL;
 			
+			// Remove attackee
+			if (players[i].Attackee == mobj)
+				players[i].Attackee = NULL;
+			
 			// Remove references done by players
 			if (players[i].mo)
 			{

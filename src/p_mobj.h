@@ -332,6 +332,7 @@ typedef enum mobjflagrexb_e
 	MFREXB_ISDOOMPALETTE		= 0x00004000U,	// Uses Doom Palette
 	MFREXB_SPITBIT				= 0x00008000U,	// Brain Spit Something (easy shifter)
 	MFREXB_NONMRESPAWN			= 0x00010000U,	// Cannot be respawned
+	MFREXB_FREEZEDEMO			= 0x00020000U,	// Freezes Demo Playback
 } mobjflagrexb_t;
 
 /* P_MobjRefType_t -- Reference type */

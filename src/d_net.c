@@ -3033,6 +3033,8 @@ size_t g_NumXSocks = 0;							// Number of them
 D_XPlayer_t** g_XPlays = NULL;					// Extended Players
 size_t g_NumXPlays = 0;							// Number of them
 
+tic_t g_DemoFreezeTics = 0;						// Tics to freeze demo for
+
 /*** LOCALS ***/
 static tic_t l_XNLastPTic;						// Last Program Tic
 
@@ -3086,6 +3088,7 @@ void D_XNetDisconnect(const bool_t a_FromDemo)
 	
 	// Reset time to now
 	l_XNLastPTic = g_ProgramTic;
+	g_DemoFreezeTics = 0;
 	
 	/* Clear all player information */
 	// Reset all vars
@@ -3589,6 +3592,15 @@ tic_t D_XNetTicsToRun(void)
 		Diff = ThisTic - l_XNLastPTic;
 		l_XNLastPTic = ThisTic;
 		
+		// Frozen Demo
+		if (Diff)
+			if (g_DemoFreezeTics)
+			{
+				D_XFakePlayerTicker();	// Tic fake camera for effects
+				g_DemoFreezeTics--;
+				return 0;
+			}
+		
 		// If the difference is too great, cap it
 			// i.e. debug break, moving window, etc. doesn't cause the game to
 			// catchup for all the time that was lost
@@ -3743,7 +3755,7 @@ void D_XFakePlayerTicker(void)
 #define TSMOVEUNIT FIXEDT_C(16)
 	int32_t i;
 	player_t* Mod, *VPlay;
-	mobj_t* ChaseThis, *PeerThis, *CamMo;
+	mobj_t* ChaseThis, *PeerThis, *CamMo, *AttackSpec;
 	fixed_t Dist, DistX, DistY, ToMove, MyAng, TargAng;
 	fixed_t VeerX, VeerY;
 	angle_t Angle, PeerAngle;
@@ -3783,18 +3795,33 @@ void D_XFakePlayerTicker(void)
 				{
 					DeadView = false;
 					
-					// If player is under attack, peer at attacker
+					// If player is under attack or attacking
 					PeerThis = NULL;
-					if (VPlay->attacker && VPlay->attacker->health > 0)
+					
+					// First check attacker
+					AttackSpec = VPlay->attacker;
+					
+					if (!(AttackSpec && AttackSpec->health > 0 &&
+						P_CheckSight(VPlay->mo, AttackSpec)))
+						AttackSpec = NULL;
+					
+					// Now check attackee
+					AttackSpec = VPlay->Attackee;
+					
+					if (!(AttackSpec && AttackSpec->health > 0 &&
+						P_CheckSight(VPlay->mo, AttackSpec)))
+						AttackSpec = NULL;
+					
+					// It is OK
+					if (AttackSpec)
 					{
 						// Get attacker distance
-						Dist = P_AproxDistance(VPlay->attacker->x - ChaseThis->x,
-								VPlay->attacker->y - ChaseThis->y);
+						Dist = P_AproxDistance(AttackSpec->x - ChaseThis->x,
+								AttackSpec->y - ChaseThis->y);
 					
 						// Object close by
-						if (Dist < FIXEDT_C(2048) &&
-							P_CheckSight(ChaseThis, VPlay->attacker))
-							PeerThis = VPlay->attacker;
+						if (Dist < FIXEDT_C(2048))
+							PeerThis = AttackSpec;
 					}
 				
 					// Otherwise stare at player object

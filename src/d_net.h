@@ -318,6 +318,8 @@ extern size_t g_NumXSocks;						// Number of them
 extern D_XPlayer_t** g_XPlays;					// Extended Players
 extern size_t g_NumXPlays;						// Number of them
 
+extern tic_t g_DemoFreezeTics;					// Tics to freeze demo for
+
 /*** FUNCTIONS ***/
 
 void D_XNetDisconnect(const bool_t a_FromDemo);

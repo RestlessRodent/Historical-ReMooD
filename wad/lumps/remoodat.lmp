@@ -9727,6 +9727,7 @@ MapObject "BFGShot"
 	IsDropOff "true";
 	IsMissile "true";
 	NoLineCrossTrigger "true";
+	FreezesDemo "true";
 	
 	BotMetric "Projectile";
 	

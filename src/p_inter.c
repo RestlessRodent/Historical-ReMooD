@@ -1729,6 +1729,9 @@ bool_t P_DamageMobj(mobj_t* target, mobj_t* inflictor, mobj_t* source, int damag
 		}
 		
 		player->attacker = source;
+		
+		if (source && source->player)
+			source->player->Attackee = target;
 	}
 	else
 		takedamage = true;

@@ -237,8 +237,9 @@ typedef struct player_s
 	fixed_t CamDist, CamHeight, CamSpeed;		// Camera Properties
 	bool_t ChaseCam;							// Chase Camera
 	
-	// GhostlyDeath <October 5, 2012> -- Last BFG Ball
-	mobj_t* LastBFGBall;
+	// GhostlyDeath <October 5, 2012> -- Title-screen Demo Stuff
+	mobj_t* LastBFGBall;						// Player's last BFG Ball
+	mobj_t* Attackee;							// Thing being attacked
 	
 	/*** EXTENDED STUFF ***/
 	D_ProfileEx_t* ProfileEx;					// Extended Profiles
