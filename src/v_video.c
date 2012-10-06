@@ -236,6 +236,7 @@ uint8_t gammatable[5][256] =
 // value for a color index at any time.
 // local copy of the palette for V_GetColor()
 RGBA_t* pLocalPalette = NULL;
+uint8_t g_ThreePal[256][3];
 
 RGBA_t** l_DoomPals = NULL;
 uint8_t** l_MappedDoomPals = NULL;
@@ -408,6 +409,8 @@ void LoadPalette(char* lumpname)
 	}
 }
 
+extern bool_t g_FramePipe;
+
 /* V_SetPalette() -- Set the current palette */
 void V_SetPalette(int palettenum)
 {
@@ -456,9 +459,18 @@ void V_SetPalette(int palettenum)
 	
 	/* Use lump data */
 	if (palettenum < 0 || palettenum >= l_NumDoomPals || !l_DoomPals[palettenum])
-		I_SetPalette(l_DoomPals[0]);
+		I_SetPalette(l_DoomPals[(palettenum = 0)]);
 	else
 		I_SetPalette(l_DoomPals[palettenum]);
+	
+	/* Fill triple */
+	if (g_FramePipe)
+		for (i = 0; i < 256; i++)
+		{
+			g_ThreePal[i][0] = l_DoomPals[palettenum][i].s.red;
+			g_ThreePal[i][1] = l_DoomPals[palettenum][i].s.green;
+			g_ThreePal[i][2] = l_DoomPals[palettenum][i].s.blue;
+		}
 }
 
 /* V_GetPalette() -- Gets palette */

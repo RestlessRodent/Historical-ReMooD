@@ -70,6 +70,7 @@ uint8_t* V_GetPaletteMapped(int palettenum);
 void V_SetPaletteLump(char* pal);
 
 extern RGBA_t* pLocalPalette;
+extern uint8_t g_ThreePal[256][3];
 
 // Retrieve the ARGB value from a palette color index
 #define V_GetColor(color)  (pLocalPalette[color&0xFF])

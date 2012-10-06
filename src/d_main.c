@@ -498,11 +498,12 @@ void D_Display(void)
 	}
 	
 	//I_BeginProfile();
-	I_FinishUpdate();			// page flip or blit buffer
+	if (!noblit)
+		I_FinishUpdate();			// page flip or blit buffer
 	
 	// GhostlyDeath <October 6, 2012> -- Video pipe
 	if (g_FramePipe)
-		M_ScreenShotEx(MSSF_PPM, NULL, stdout);
+		M_ScreenShotEx(MSSF_FASTPPM, NULL, stdout);
 	
 	//CONL_PrintF ("last frame update took %d\n", I_EndProfile());
 	
@@ -540,7 +541,9 @@ void D_Display(void)
 		I_OsPolling();
 		I_UpdateNoBlit();
 		M_ExUIDrawer();
-		I_FinishUpdate();		// page flip or blit buffer
+		
+		if (!noblit)
+			I_FinishUpdate();		// page flip or blit buffer
 		
 		// Appeal to the local timing code
 			// So that the game does not catch up during wipes!
@@ -2336,6 +2339,10 @@ void D_DoomMain(void)
 	g_DedicatedServer = true;
 #endif
 
+	// GhostlyDeath <October 6, 2012> -- Frame Pipe
+	g_FramePipe = M_CheckParm("-videopipe");
+	noblit = M_CheckParm("-noblit");
+
 	// Replace old variable
 	dedicated = g_DedicatedServer;
 	
@@ -2440,9 +2447,6 @@ void D_DoomMain(void)
 	// GhostlyDeath <October 6, 2012> -- Force single tics
 	singletics = 0;
 	singletics = M_CheckParm("-singletics");
-	
-	// Frame Pipe
-	g_FramePipe = M_CheckParm("-videopipe");
 	
 	// GhostlyDeath <June 18, 2012> -- Demo Queues (woo!)
 	singletics |= M_CheckParm("-timedemo");

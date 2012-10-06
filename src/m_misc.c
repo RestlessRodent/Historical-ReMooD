@@ -242,11 +242,15 @@ void M_ScreenShotEx(const M_SSFormat_t a_Format, const char* const a_PathName, v
 	const char* Str;
 	char HBuf[HBUFSIZE];
 	void* p;
-	int32_t i;
+	int32_t i, zz;
 	uint8_t* s, *se, u8;
 	
 	uint8_t* w, *StoreBuf;
 	size_t StoreOff, StoreSize;
+	char c;
+	
+	static uint8_t* FPBuf;
+	static size_t FPSize;
 	
 	/* Check */
 	if (!a_PathName && !a_CFile)
@@ -266,8 +270,8 @@ void M_ScreenShotEx(const M_SSFormat_t a_Format, const char* const a_PathName, v
 	}
 	
 	/* Get the screen */
-	s = vid.buffer;
-	if (!s)
+	//s = vid.buffer;
+	//if (!s)
 		s = screens[0];
 	se = s + (vid.height * vid.width);
 	
@@ -307,6 +311,39 @@ void M_ScreenShotEx(const M_SSFormat_t a_Format, const char* const a_PathName, v
 			
 			break;
 		
+			// Fast PPM
+		case MSSF_FASTPPM:
+			// Realloc?
+			zz = vid.width * vid.height;
+			StoreSize = (zz * 3) + 32;
+			if (!FPBuf || FPSize != StoreSize)
+			{
+				if (FPBuf)
+					Z_Free(FPBuf);
+				FPBuf = Z_Malloc(StoreSize, PU_STATIC, NULL);
+				FPSize = StoreSize;
+			}
+			
+			// Setup Header
+			w = FPBuf;
+			sprintf(w, "P6 %i %i 255\n", (int)vid.width, (int)vid.height);
+			w += strlen(w);
+			
+			// Record Image Data
+			for (i = 0; i < zz; i++)
+			{
+				w[0] = g_ThreePal[*s][0];
+				w[1] = g_ThreePal[*s][1];
+				w[2] = g_ThreePal[*s][2];
+				w += 3;
+				s++;
+			}
+			
+			// Write to file
+			fwrite(FPBuf, (w - FPBuf), 1, OutFile);
+			break;
+		
+			// Slow PPM
 		case MSSF_PPM:
 			// Generate Header
 			snprintf(HBuf, HBUFSIZE, "P6\n%i\n%i\n255\n", (int)vid.width, (int)vid.height);

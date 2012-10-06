@@ -90,6 +90,7 @@ typedef enum M_SSFormat_e
 	MSSF_PNG,									// PNGs
 	MSSF_FASTPNG,								// Fast PNGs
 	MSSF_PPM,									// Portable Pixmap
+	MSSF_FASTPPM,								// Fast PPM
 	
 	NUMMSSFORMATS
 } M_SSFormat_t;
