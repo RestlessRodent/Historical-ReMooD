@@ -95,6 +95,8 @@ bool_t g_DedicatedServer = true;				// Dedicated Server
 bool_t g_DedicatedServer = false;				// Dedicated Server
 #endif
 
+bool_t g_FramePipe = false;
+
 //
 //  DEMO LOOP
 //
@@ -321,7 +323,7 @@ void D_Display(void)
 	if (gamestate == GS_LEVEL)
 	{
 		// GhostlyDeath <October 5, 2012> -- Draw Anti-HOM
-		V_DrawColorBoxEx(0, 0, 0, 0, 320, 200);
+		//V_DrawColorBoxEx(0, 0, 0, 0, 320, 200);
 		
 		if (oldgamestate != GS_LEVEL)
 		{
@@ -497,6 +499,11 @@ void D_Display(void)
 	
 	//I_BeginProfile();
 	I_FinishUpdate();			// page flip or blit buffer
+	
+	// GhostlyDeath <October 6, 2012> -- Video pipe
+	if (g_FramePipe)
+		M_ScreenShotEx(MSSF_PPM, NULL, stdout);
+	
 	//CONL_PrintF ("last frame update took %d\n", I_EndProfile());
 	
 	if (!wipe)
@@ -2430,8 +2437,15 @@ void D_DoomMain(void)
 			D_AddFile(M_GetNextParm());
 	}
 	
+	// GhostlyDeath <October 6, 2012> -- Force single tics
+	singletics = 0;
+	singletics = M_CheckParm("-singletics");
+	
+	// Frame Pipe
+	g_FramePipe = M_CheckParm("-videopipe");
+	
 	// GhostlyDeath <June 18, 2012> -- Demo Queues (woo!)
-	singletics = M_CheckParm("-timedemo");
+	singletics |= M_CheckParm("-timedemo");
 	if (M_CheckParm("-playdemo") || M_CheckParm("-timedemo"))
 		while (M_IsNextParm())
 		{

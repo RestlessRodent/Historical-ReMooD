@@ -494,6 +494,45 @@ BPLWRITE_x(UInt64, uint64_t)
 #undef BPLREAD_x
 #undef BPLWRITE_x
 
+
+/*** Reading/Writing Big Endian Data ***/
+#if !defined(__REMOOD_BIG_ENDIAN)
+#define BPBREAD_x(w,x) x BP_MERGE(BigRead,w)(const x** const Ptr)\
+	{\
+		return BP_MERGE(Swap,w)(BP_MERGE(Read,w)(Ptr));\
+	}
+#else
+#define BPBREAD_x(w,x) x BP_MERGE(BigRead,w)(const x** const Ptr)\
+	{\
+		return BP_MERGE(Read,w)(Ptr);\
+	}
+#endif
+#if !defined(__REMOOD_BIG_ENDIAN)
+#define BPBWRITE_x(w,x) void BP_MERGE(BigWrite,w)(x** const Ptr, const x Val)\
+	{\
+		BP_MERGE(Write,w)(Ptr, BP_MERGE(Swap,w)(Val));\
+	}
+#else
+#define BPBWRITE_x(w,x) void BP_MERGE(BigWrite,w)(x** const Ptr, const x Val)\
+	{\
+		BP_MERGE(Write,w)(Ptr, Val);\
+	}
+#endif
+BPBREAD_x(Int16, int16_t)
+BPBREAD_x(UInt16, uint16_t)
+BPBREAD_x(Int32, int32_t)
+BPBREAD_x(UInt32, uint32_t)
+BPBREAD_x(Int64, int64_t)
+BPBREAD_x(UInt64, uint64_t)
+BPBWRITE_x(Int16, int16_t)
+BPBWRITE_x(UInt16, uint16_t)
+BPBWRITE_x(Int32, int32_t)
+BPBWRITE_x(UInt32, uint32_t)
+BPBWRITE_x(Int64, int64_t)
+BPBWRITE_x(UInt64, uint64_t)
+#undef BPBREAD_x
+#undef BPBWRITE_x
+
 /* End */
 #undef BP_MERGE
 

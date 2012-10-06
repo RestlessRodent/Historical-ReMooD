@@ -1659,7 +1659,7 @@ void CONL_Ticker(void)
 		return;
 	
 	/* Remove old messages */
-	CurrentTime = I_GetTime();
+	CurrentTime = g_ProgramTic;
 	for (i = 0; i < MAXSPLITSCREENPLAYERS; i++)
 		for (j = 0; j < MAXCONLPLAYERMQ; j++)
 			if (l_CONLMessageQ[i][j].Text[0])

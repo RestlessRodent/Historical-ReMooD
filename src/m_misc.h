@@ -83,4 +83,18 @@ void strcatbf(char* s1, char* s2, char* s3);
 
 extern char SaveGameLocation[MAX_WADPATH];
 
+/* M_SSFormat_t -- Screenshot format */
+typedef enum M_SSFormat_e
+{
+	MSSF_PCX,									// Standard PCX
+	MSSF_PNG,									// PNGs
+	MSSF_FASTPNG,								// Fast PNGs
+	MSSF_PPM,									// Portable Pixmap
+	
+	NUMMSSFORMATS
+} M_SSFormat_t;
+
+void M_ScreenShotEx(const M_SSFormat_t a_Format, const char* const a_PathName, void* const a_CFile);
+
 #endif
+

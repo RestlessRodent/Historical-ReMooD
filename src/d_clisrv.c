@@ -323,7 +323,11 @@ void NetUpdate(void)
 	
 	nowtime = D_GetTics();		//I_GetTime();
 	realtics = nowtime - gametime;
-	g_ProgramTic = I_GetTimeMS() / TICRATE;	//nowtime;
+	
+	if (singletics)
+		g_ProgramTic = gametic;
+	else
+		g_ProgramTic = I_GetTimeMS() / TICRATE;	//nowtime;
 	
 	if (singletics)
 		realtics = 1;

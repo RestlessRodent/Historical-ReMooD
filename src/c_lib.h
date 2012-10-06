@@ -83,6 +83,9 @@ int32_t C_strtofx(const char* a_NPtr, char** a_EndPtr);
 #define __REMOOD_LITTLEREADMACRO(w,x) x __REMOOD_MACROMERGE(LittleRead,w)(const x** const Ptr)
 #define __REMOOD_LITTLEWRITEMACRO(w,x) void __REMOOD_MACROMERGE(LittleWrite,w)(x** const Ptr, const x Val)
 
+#define __REMOOD_BIGREADMACRO(w,x) x __REMOOD_MACROMERGE(BigRead,w)(const x** const Ptr)
+#define __REMOOD_BIGWRITEMACRO(w,x) void __REMOOD_MACROMERGE(BigWrite,w)(x** const Ptr, const x Val)
+
 // Read
 __REMOOD_READMACRO(Int8R, int8_t);
 __REMOOD_READMACRO(Int16R, int16_t);
@@ -135,7 +138,6 @@ __REMOOD_BIGSWAPMACRO(UInt32, uint32_t);
 __REMOOD_BIGSWAPMACRO(Int64, int64_t);
 __REMOOD_BIGSWAPMACRO(UInt64, uint64_t);
 
-
 __REMOOD_LITTLEREADMACRO(Int16, int16_t);
 __REMOOD_LITTLEREADMACRO(UInt16, uint16_t);
 __REMOOD_LITTLEREADMACRO(Int32, int32_t);
@@ -149,6 +151,19 @@ __REMOOD_LITTLEWRITEMACRO(UInt32, uint32_t);
 __REMOOD_LITTLEWRITEMACRO(Int64, int64_t);
 __REMOOD_LITTLEWRITEMACRO(UInt64, uint64_t);
 
+__REMOOD_BIGREADMACRO(Int16, int16_t);
+__REMOOD_BIGREADMACRO(UInt16, uint16_t);
+__REMOOD_BIGREADMACRO(Int32, int32_t);
+__REMOOD_BIGREADMACRO(UInt32, uint32_t);
+__REMOOD_BIGREADMACRO(Int64, int64_t);
+__REMOOD_BIGREADMACRO(UInt64, uint64_t);
+__REMOOD_BIGWRITEMACRO(Int16, int16_t);
+__REMOOD_BIGWRITEMACRO(UInt16, uint16_t);
+__REMOOD_BIGWRITEMACRO(Int32, int32_t);
+__REMOOD_BIGWRITEMACRO(UInt32, uint32_t);
+__REMOOD_BIGWRITEMACRO(Int64, int64_t);
+__REMOOD_BIGWRITEMACRO(UInt64, uint64_t);
+
 // Remove Macros
 #undef __REMOOD_MACROMERGE
 #undef __REMOOD_READMACRO
@@ -157,6 +172,8 @@ __REMOOD_LITTLEWRITEMACRO(UInt64, uint64_t);
 #undef __REMOOD_BIGSWAPMACRO
 #undef __REMOOD_LITTLEREADMACRO
 #undef __REMOOD_LITTLEWRITEMACRO
+#undef __REMOOD_BIGREADMACRO
+#undef __REMOOD_BIGWRITEMACRO
 
 /******************************************************************************/
 

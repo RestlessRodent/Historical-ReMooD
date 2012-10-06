@@ -232,3 +232,113 @@ void strcatbf(char* s1, char* s2, char* s3)
 	strcat(s1, s3);
 	strcat(s1, tmp);
 }
+
+/* M_ScreenShotEx() -- Captures the screen to a file */
+void M_ScreenShotEx(const M_SSFormat_t a_Format, const char* const a_PathName, void* const a_CFile)
+{
+#define PNGHEADER "\x89\x50\x4e\x47\x0d\x0a\x1a\x0a"
+#define HBUFSIZE 64
+	FILE* OutFile;
+	const char* Str;
+	char HBuf[HBUFSIZE];
+	void* p;
+	int32_t i;
+	uint8_t* s, *se, u8;
+	
+	uint8_t* w, *StoreBuf;
+	size_t StoreOff, StoreSize;
+	
+	/* Check */
+	if (!a_PathName && !a_CFile)
+		return;
+	
+	/* Determine output file */
+	// Already existing file
+	if (a_CFile)
+		OutFile = a_CFile;
+	else
+	{
+		OutFile = fopen(a_PathName, "wb");
+		
+		// Failed to open
+		if (!OutFile)
+			return;
+	}
+	
+	/* Get the screen */
+	s = vid.buffer;
+	if (!s)
+		s = screens[0];
+	se = s + (vid.height * vid.width);
+	
+	/* Which Format Now? */
+	switch (a_Format)
+	{
+			// Save PCX Image
+		case MSSF_PCX:
+			break;
+			
+			// Save PNG Image
+		case MSSF_PNG:
+			break;
+			
+			// Save Fast PNG Image
+		case MSSF_FASTPNG:
+			// Generate Header
+			p = HBuf;
+			
+			WriteStringN((uint8_t**)&p, PNGHEADER, 8);
+			BigWriteUInt32((uint32_t**)&p, 13);
+			WriteStringN((uint8_t**)&p, "IHDR", 4);
+			BigWriteUInt32((uint32_t**)&p, vid.width);
+			BigWriteUInt32((uint32_t**)&p, vid.height);
+			WriteUInt8((uint8_t**)&p, 8);
+			WriteUInt8((uint8_t**)&p, 2);
+			WriteUInt8((uint8_t**)&p, 0);
+			WriteUInt8((uint8_t**)&p, 0);
+			WriteUInt8((uint8_t**)&p, 0);
+			
+			// Write it
+			fwrite(HBuf, 28, 1, OutFile);
+			
+			// Create dynamic sizing buffer for screen data
+			w = StoreBuf = NULL;
+			StoreOff = StoreSize = 0;
+			
+			break;
+		
+		case MSSF_PPM:
+			// Generate Header
+			snprintf(HBuf, HBUFSIZE, "P6\n%i\n%i\n255\n", (int)vid.width, (int)vid.height);
+			fwrite(HBuf, strlen(HBuf), 1, OutFile);
+			
+			// Write Raw Bits
+			while (s < se)
+			{
+				u8 = pLocalPalette[*s].s.red;
+				fwrite(&u8, 1, 1, OutFile);
+				u8 = pLocalPalette[*s].s.green;
+				fwrite(&u8, 1, 1, OutFile);
+				u8 = pLocalPalette[*s].s.blue;
+				fwrite(&u8, 1, 1, OutFile);
+				
+				s++;
+			}
+			
+			u8 = '\n';
+			fwrite(&u8, 1, 1, OutFile);
+			break;
+			
+			// Unknown
+		default:
+			break;
+	}
+	
+	/* Close File */
+	fflush(OutFile);
+	if (!a_CFile)
+		fclose(OutFile);
+
+#undef HBUFSIZE
+}
+

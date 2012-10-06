@@ -1624,7 +1624,7 @@ bool_t P_DamageMobj(mobj_t* target, mobj_t* inflictor, mobj_t* source, int damag
 	// inflict thrust and push the victim out of reach,
 	// thus kick away unless using the chainsaw.
 	if (inflictor
-	        && !(target->flags & MF_NOCLIP) && !(inflictor->flags2 & MF2_NODMGTHRUST) && (!source || !(source->RXFlags[0] & MFREXA_ISPLAYEROBJECT) || !(source->player->weaponinfo[source->player->readyweapon]->WeaponFlags & WF_NOTHRUST)))
+	        && !(target->flags & MF_NOCLIP) && !(inflictor->flags2 & MF2_NODMGTHRUST) && (!source || !(source->RXFlags[0] & MFREXA_ISPLAYEROBJECT) || !(source->player && (source->player->weaponinfo[source->player->readyweapon]->WeaponFlags & WF_NOTHRUST))))
 	{
 		fixed_t amomx, amomy, amomz = 0;	//SoM: 3/28/2000
 		
