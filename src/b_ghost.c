@@ -1062,10 +1062,11 @@ void B_GHOST_InitLevel(void)
 			);
 	
 	/* Determine if bots are already inside */
-	for (i = 0; i < MAXPLAYERS; i++)
-		if (playeringame[i] && players[i].NetPlayer)
-			if (players[i].NetPlayer->Type == DNPT_BOT)
-				g_GotBots = true;
+	g_GotBots = false;
+	for (i = 0; i < g_NumXPlays; i++)
+		if (g_XPlays[i])
+			if (g_XPlays[i]->Flags & (DXPF_LOCAL | DXPF_BOT) == (DXPF_LOCAL | DXPF_BOT))
+			g_GotBots = true;
 }
 
 /* BS_GHOST_JOB_RandomNav() -- Random navigation */

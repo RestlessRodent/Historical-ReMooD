@@ -229,6 +229,7 @@ void D_NetWriteTicCmd(ticcmd_t* const a_TicCmd, const int a_Player);
 
 #define MAXXSOCKTEXTSIZE				64		// Max size of text fields
 #define MAXUUIDLENGTH	(MAXPLAYERNAME * 2)		// Length of UUIDs
+#define MAXLBTSIZE						16		// Max tics in local buffer
 
 /* D_XPlayerFlags_t -- Player Flags */
 typedef enum D_XPlayerFlags_e
@@ -242,6 +243,12 @@ typedef enum D_XPlayerFlags_e
 	
 	DXPF_CONVEYED = DXPF_SERVER | DXPF_NOLOGIN | DXPF_DEMO | DXPF_BOT,
 } D_XPlayerFlags_t;
+
+/* D_XPlayerStatBits_t -- XPlayer status bits */
+typedef enum D_XPlayerStatBits_e
+{
+	DXPSB_LBOVERFLOW	= UINT32_C(0x0000001),	// Local buffer overflowing
+} D_XPlayerStatBits_t;
 
 /*** STRUCTURES ***/
 
@@ -304,10 +311,15 @@ typedef struct D_XPlayer_s
 	struct D_ProfileEx_s* Profile;				// Profile Used by player
 	struct B_BotData_s* BotData;				// Bot data used by player
 	int32_t Ping;								// Player's Ping
+	uint32_t StatusBits;						// Status Flags
 	
 	// Timing
 	tic_t LastRanTic;							// Last tic ran
 	uint64_t LastProgramTic[2];					// Remote/Local program tic
+	
+	// Tics
+	ticcmd_t LocalBuf[MAXLBTSIZE];				// Local Buffer
+	int8_t LocalAt;								// Currently Place At...
 } D_XPlayer_t;
 
 /*** GLOBALS ***/
@@ -341,6 +353,8 @@ void D_XNetChangeMap(const char* const a_Map);
 void D_XNetMultiTics(ticcmd_t* const a_TicCmd, const bool_t a_Write, const int32_t a_Player);
 tic_t D_XNetTicsToRun(void);
 void D_XNetUpdate(void);
+
+/*** FAKE PLAYER ***/
 
 void D_XFakePlayerInit(void);
 struct player_s;

@@ -3663,6 +3663,8 @@ tic_t D_XNetTicsToRun(void)
 void D_XNetUpdate(void)
 {
 	int32_t i;
+	D_XPlayer_t* XPlay;
+	ticcmd_t* TicCmdP;
 	
 	/* Handle local players and splits */ 
 	if (!demoplayback && gamestate != GS_DEMOSCREEN)
@@ -3672,7 +3674,47 @@ void D_XNetUpdate(void)
 			if (D_ScrSplitHasPlayer(i) && !g_Splits[i].XPlayer)
 				g_Splits[i].XPlayer = D_XNetLocalPlayerByPID(g_Splits[i].ProcessID);
 	}
+	
+	/* Build Local Tic Commands (possibly) */
+	for (i = 0; i < g_NumXPlays; i++)
+	{
+		// Get current player
+		XPlay = g_XPlays[i];
+		
+		// Missing?
+		if (!XPlay)
+			continue;
+		
+		// Non-local player?
+		if (!(XPlay->Flags & DXPF_LOCAL))
+			continue;
+		
+		// Place tic command at last spot, when possible
+		TicCmdP = NULL;
+		if (XPlay->LocalAt < MAXLBTSIZE - 1)
+			TicCmdP = &XPlay->LocalBuf[XPlay->LocalAt++];
+		
+		// Local buffer overflow?
+		if (!TicCmdP)
+		{
+			StatusBits |= DXPSB_LBOVERFLOW;
+			continue;
+		}
+		
+		// Clear overflow bit
+		StatusBits &= ~DXPSB_LBOVERFLOW;
+		
+		// Bot Player?
+		if (XPlay->Flags & DXPF_BOT)
+			B_BuildBotTicCmd(XPlay->BotData, TicCmdP);
+		
+		// Human player
+		else
+			;
+	}
 }
+
+/*** FAKE PLAYER ***/
 
 static player_t l_XFakePlayer[MAXSPLITSCREEN];	// Fake Player
 static mobj_t l_XFakeMobj[MAXSPLITSCREEN];		// Fake Mobj
