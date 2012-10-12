@@ -97,6 +97,7 @@ typedef struct B_GhostBot_s
 	player_t* Player;							// Player
 	mobj_t* Mo;									// Mo
 	struct B_BotTemplate_s* BotTemplate;		// Template
+	struct D_XPlayer_s* XPlayer;				// Bot's XPlayer
 	
 	int32_t RoamX, RoamY;						// Roaming X/Y
 	
@@ -154,12 +155,13 @@ extern bool_t g_GotBots;						// Got a bot?
 ****************/
 
 /*** B_BOT.C ***/
-B_BotData_t* B_InitBot(D_NetPlayer_t* const a_NPp, const B_BotTemplate_t* a_Template);
+B_BotData_t* B_InitBot(const B_BotTemplate_t* a_Template);
 const B_BotTemplate_t* B_BotGetTemplate(const int32_t a_Player);
 void B_InitNodes(void);
 void B_ClearNodes(void);
 
-void B_BuildBotTicCmd(B_BotData_t* const a_BotData, ticcmd_t* const a_TicCmd);
+struct D_XPlayer_s;
+void B_BuildBotTicCmd(struct D_XPlayer_s* const a_XPlayer, B_BotData_t* const a_BotData, ticcmd_t* const a_TicCmd);
 
 void B_RemoveMobj(void* const a_Mo);
 

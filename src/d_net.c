@@ -833,6 +833,7 @@ bool_t D_CheckNetGame(void)
 	CONL_VarRegister(&l_SVMaxDemoCatchup);
 	
 	/* Initial Disconnect */
+	D_XNetInit();
 	D_XNetDisconnect(false);
 	
 	return ret;
@@ -3659,6 +3660,66 @@ tic_t D_XNetTicsToRun(void)
 	return 0;
 }
 
+/* DS_PBAddBot() -- Adds a bot */
+static void DS_PBAddBot(D_XPlayer_t* const a_Player, void* const a_Data)
+{
+	B_BotTemplate_t* BotTemp;
+	
+	/* Set Initial Flags */
+	a_Player->Flags |= DXPF_BOT | DXPF_NOLOGIN | DXPF_LOCAL;
+	
+	/* Init Bot */
+	BotTemp = a_Data;
+	a_Player->BotData = B_InitBot(BotTemp);
+	
+	strncpy(a_Player->AccountName, BotTemp->AccountName, MAXPLAYERNAME);
+	strncpy(a_Player->DisplayName, BotTemp->DisplayName, MAXPLAYERNAME);
+}
+
+/* DS_XNetCon() -- Command */
+static int DS_XNetCon(const uint32_t a_ArgC, const char** const a_ArgV)
+{
+	B_BotTemplate_t* BotTemp;
+	
+	/* Not enough args? */
+	if (a_ArgC < 2)
+	{
+		return 1;
+	}
+	
+	/* Adding Bot */
+	if (strcasecmp(a_ArgV[1], "addbot") == 0)
+	{
+		// Not server?
+		if (!D_XNetIsServer())
+			return 1;
+		
+		// Use Bot Template?
+		BotTemp = NULL;
+		if (a_ArgC >= 3)
+			BotTemp = B_GHOST_FindTemplate(a_ArgV[2]);
+		
+		// Random?
+		if (!BotTemp)
+			BotTemp = B_GHOST_RandomTemplate();
+		
+		// Add Player
+		D_XNetAddPlayer(DS_PBAddBot, BotTemp);
+		
+		// Success?
+		return 0;
+	}
+	
+	/* Failure */
+	return 1;
+}
+
+/* D_XNetInit() -- Initializes the Extended Network Code */
+void D_XNetInit(void)
+{
+	CONL_AddCommand("xnet", DS_XNetCon);
+}
+
 /* D_XNetUpdate() -- Updates Extended Network */
 void D_XNetUpdate(void)
 {
@@ -3697,16 +3758,16 @@ void D_XNetUpdate(void)
 		// Local buffer overflow?
 		if (!TicCmdP)
 		{
-			StatusBits |= DXPSB_LBOVERFLOW;
+			XPlay->StatusBits |= DXPSB_LBOVERFLOW;
 			continue;
 		}
 		
 		// Clear overflow bit
-		StatusBits &= ~DXPSB_LBOVERFLOW;
+		XPlay->StatusBits &= ~DXPSB_LBOVERFLOW;
 		
 		// Bot Player?
 		if (XPlay->Flags & DXPF_BOT)
-			B_BuildBotTicCmd(XPlay->BotData, TicCmdP);
+			B_BuildBotTicCmd(XPlay, XPlay->BotData, TicCmdP);
 		
 		// Human player
 		else

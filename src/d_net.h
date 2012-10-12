@@ -350,6 +350,7 @@ void D_XNetSendQuit(void);
 void D_XNetChangeVar(const uint32_t a_Code, const int32_t a_Value);
 void D_XNetChangeMap(const char* const a_Map);
 
+void D_XNetInit(void);
 void D_XNetMultiTics(ticcmd_t* const a_TicCmd, const bool_t a_Write, const int32_t a_Player);
 tic_t D_XNetTicsToRun(void);
 void D_XNetUpdate(void);

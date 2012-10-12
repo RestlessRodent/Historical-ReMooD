@@ -860,10 +860,15 @@ void D_WaitingPlayersDrawer(void)
 			{
 				DrawColor = VFO_COLOR(VEX_MAP_GRAY);
 				
-				snprintf(Buf, BUFSIZE, "%s^%s",
-						Player->AccountName,
-						Player->AccountServer
-					);
+				if (Player->Flags & (DXPF_NOLOGIN | DXPF_BOT | DXPF_DEMO))
+					snprintf(Buf, BUFSIZE, "%s",
+							Player->AccountName
+						);
+				else
+					snprintf(Buf, BUFSIZE, "%s^%s",
+							Player->AccountName,
+							Player->AccountServer
+						);
 			}
 			
 			// Draw their name

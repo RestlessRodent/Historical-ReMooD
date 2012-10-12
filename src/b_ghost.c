@@ -1439,6 +1439,18 @@ void B_GHOST_Think(B_GhostBot_t* const a_GhostBot, ticcmd_t* const a_TicCmd)
 		a_GhostBot->Initted = true;
 	}
 	
+	/* A spectating bot? */
+	if (a_GhostBot->XPlayer)
+	{
+		// If there is no player, they are spectating
+		if (!a_GhostBot->XPlayer->Player)
+		{
+			if ((gametic / TICRATE) & 1)
+				a_TicCmd->Std.buttons |= BT_USE;
+			return;
+		}
+	}
+	
 	/* Init */
 	a_GhostBot->TicCmdPtr = a_TicCmd;
 	a_GhostBot->AtNode = B_GHOST_NodeNearPos(a_GhostBot->Mo->x, a_GhostBot->Mo->y, a_GhostBot->Mo->z, true);

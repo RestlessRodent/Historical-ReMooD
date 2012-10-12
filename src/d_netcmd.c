@@ -1142,11 +1142,11 @@ void D_NCSNetUpdateSingle(struct player_s* a_Player)
 		case DNPT_BOT:
 			// No bot data?
 			if (!NPp->BotData)
-				NPp->BotData = B_InitBot(NPp, NULL);
+				NPp->BotData = B_InitBot(NULL);
 			
 			// Build bot tic command
 			//TicCmd = &NPp->TicCmd[i];
-			B_BuildBotTicCmd(NPp->BotData, TicCmd);
+			B_BuildBotTicCmd(NULL, NPp->BotData, TicCmd);
 			break;
 			
 			// Unknown

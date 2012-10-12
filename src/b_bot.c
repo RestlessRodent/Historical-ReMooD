@@ -251,15 +251,11 @@ void B_ClearNodes(void)
 }
 
 /* B_InitBot() -- Initializes Bot */
-B_BotData_t* B_InitBot(D_NetPlayer_t* const a_NPp, const B_BotTemplate_t* a_Template)
+B_BotData_t* B_InitBot(const B_BotTemplate_t* a_Template)
 {
 	B_BotData_t* New;
 	thinker_t* currentthinker;
 	mobj_t* mo;
-	
-	/* Check */
-	if (!a_NPp)
-		return NULL;
 	
 	/* Debugging? */
 	if (M_CheckParm("-devbots"))
@@ -296,13 +292,11 @@ B_BotData_t* B_InitBot(D_NetPlayer_t* const a_NPp, const B_BotTemplate_t* a_Temp
 	New = Z_Malloc(sizeof(*New), PU_STATIC, NULL);
 	
 	/* Set Data */
-	New->NetPlayer = a_NPp;
-	New->Player = New->NetPlayer->Player;
+	//New->Player = New->NetPlayer->Player;
 	New->ActSub = BBAS_GHOSTLYAI;//BBAS_FOLLOWNEARESTPLAYER;
 	New->GHOSTData.BotTemplate = a_Template;
 	
 	/* Set and return */
-	a_NPp->BotData = New;
 	return New;
 }
 
@@ -334,7 +328,7 @@ const B_BotTemplate_t* B_BotGetTemplate(const int32_t a_Player)
 }
 
 /* B_BuildBotTicCmd() -- Builds tic command for bot */
-void B_BuildBotTicCmd(B_BotData_t* const a_BotData, ticcmd_t* const a_TicCmd)
+void B_BuildBotTicCmd(struct D_XPlayer_s* const a_XPlayer, B_BotData_t* const a_BotData, ticcmd_t* const a_TicCmd)
 {
 	size_t i;
 	player_t* Player;
@@ -421,6 +415,7 @@ void B_BuildBotTicCmd(B_BotData_t* const a_BotData, ticcmd_t* const a_TicCmd)
 			a_BotData->GHOSTData.BotData = a_BotData;
 			a_BotData->GHOSTData.Player = Player;
 			a_BotData->GHOSTData.Mo = Player->mo;
+			a_BotData->GHOSTData.XPlayer = a_XPlayer;
 			B_GHOST_Think(&a_BotData->GHOSTData, a_TicCmd);
 			break;
 		
