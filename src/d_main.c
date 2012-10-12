@@ -1708,6 +1708,7 @@ static bool_t DS_DetectGameMode(const bool_t a_Pushed, const struct WL_WADFile_s
 			S_sfx[sfx_generic_menupress].link = &S_sfx[sfx_pistol];
 			S_sfx[sfx_generic_menumove].link = &S_sfx[sfx_pstop];
 			S_sfx[sfx_generic_menuslide].link = &S_sfx[sfx_stnmov];
+			S_sfx[sfx_generic_menufail].link = &S_sfx[sfx_oof];
 			break;
 			
 			// Heretic
@@ -1717,6 +1718,7 @@ static bool_t DS_DetectGameMode(const bool_t a_Pushed, const struct WL_WADFile_s
 			S_sfx[sfx_generic_menupress].link = &S_sfx[sfx_dorcls];
 			S_sfx[sfx_generic_menumove].link = &S_sfx[sfx_switch];
 			S_sfx[sfx_generic_menuslide].link = &S_sfx[sfx_keyup];
+			S_sfx[sfx_generic_menufail].link = &S_sfx[sfx_oof];
 			break;
 			
 		default:

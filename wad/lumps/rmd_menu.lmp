@@ -1,8 +1,11 @@
+
+// Hello World!
 Menu "hello"
 {
 	Title "MENUGENERAL_HELLOWORLD";
 }
 
+// Main Menu
 Menu "mainmenu"
 {
 	TitlePic "M_DOOM";
@@ -25,8 +28,397 @@ Menu "mainmenu"
 	}
 }
 
+// Single Player Menu
 Menu "solomain"
 {
 	Title "MENUGENERAL_SOLOGAME";
+	
+	Item "sologame"
+	{
+		Text "MENUGENERAL_CLASSICSTART";
+		
+		SelectFunc "Console";
+		SelectVal "m_startclassic #";
+	}
+}
+
+// Doom Skill Levels
+Menu "classicskilldoom"
+{
+	Title "MENUGENERAL_SKILLLEVEL";
+	
+	Item "itytd"
+	{
+		Text "MENU_CLASSICGAME_DOOMSKILLA";
+		
+		SelectFunc "Console";
+		SelectVal "m_startclassic2 # 0";
+	}
+	
+	Item "hntr"
+	{
+		Text "MENU_CLASSICGAME_DOOMSKILLB";
+		
+		SelectFunc "Console";
+		SelectVal "m_startclassic2 # 1";
+	}
+	
+	Item "hmp"
+	{
+		Text "MENU_CLASSICGAME_DOOMSKILLC";
+		
+		SelectFunc "Console";
+		SelectVal "m_startclassic2 # 2";
+	}
+	
+	Item "uv"
+	{
+		Text "MENU_CLASSICGAME_DOOMSKILLD";
+		
+		SelectFunc "Console";
+		SelectVal "m_startclassic2 # 3";
+	}
+	
+	Item "nm"
+	{
+		Text "MENU_CLASSICGAME_DOOMSKILLE";
+		
+		SelectFunc "Console";
+		SelectVal "m_startclassic2 # 4";
+	}
+}
+
+// Heretic Skill Levels
+Menu "classicskillheretic"
+{
+	Title "MENUGENERAL_SKILLLEVEL";
+	
+	Item "itytd"
+	{
+		Text "MENU_CLASSICGAME_HERETICSKILLA";
+		
+		SelectFunc "Console";
+		SelectVal "m_startclassic2 # 0";
+	}
+	
+	Item "hntr"
+	{
+		Text "MENU_CLASSICGAME_HERETICSKILLB";
+		
+		SelectFunc "Console";
+		SelectVal "m_startclassic2 # 1";
+	}
+	
+	Item "hmp"
+	{
+		Text "MENU_CLASSICGAME_HERETICSKILLC";
+		
+		SelectFunc "Console";
+		SelectVal "m_startclassic2 # 2";
+	}
+	
+	Item "uv"
+	{
+		Text "MENU_CLASSICGAME_HERETICSKILLD";
+		
+		SelectFunc "Console";
+		SelectVal "m_startclassic2 # 3";
+	}
+	
+	Item "nm"
+	{
+		Text "MENU_CLASSICGAME_HERETICSKILLE";
+		
+		SelectFunc "Console";
+		SelectVal "m_startclassic2 # 4";
+	}
+}
+
+// Ultimate Doom Episodes
+Menu "episdoomud"
+{
+	Title "MENUGENERAL_SELECTEPIS";
+	
+	Item "kditd"
+	{
+		Text "MENU_CLASSICGAME_DOOMEPISODEA";
+		
+		SelectFunc "Console";
+		SelectVal "m_classicmap e1m1";
+	}
+	
+	Item "tsoh"
+	{
+		Text "MENU_CLASSICGAME_DOOMEPISODEB";
+		
+		SelectFunc "Console";
+		SelectVal "m_classicmap e2m1";
+	}
+	
+	Item "inf"
+	{
+		Text "MENU_CLASSICGAME_DOOMEPISODEC";
+		
+		SelectFunc "Console";
+		SelectVal "m_classicmap e3m1";
+	}
+	
+	Item "ttc"
+	{
+		Text "MENU_CLASSICGAME_DOOMEPISODED";
+		
+		SelectFunc "Console";
+		SelectVal "m_classicmap e4m1";
+	}
+}
+
+// Doom Registered Episodes
+Menu "episdoomrg"
+{
+	Title "MENUGENERAL_SELECTEPIS";
+	
+	Item "kditd"
+	{
+		Text "MENU_CLASSICGAME_DOOMEPISODEA";
+		
+		SelectFunc "Console";
+		SelectVal "m_classicmap e1m1";
+	}
+	
+	Item "tsoh"
+	{
+		Text "MENU_CLASSICGAME_DOOMEPISODEB";
+		
+		SelectFunc "Console";
+		SelectVal "m_classicmap e2m1";
+	}
+	
+	Item "inf"
+	{
+		Text "MENU_CLASSICGAME_DOOMEPISODEC";
+		
+		SelectFunc "Console";
+		SelectVal "m_classicmap e3m1";
+	}
+	
+	Item "ttc"
+	{
+		Text "MENU_CLASSICGAME_DOOMEPISODED";
+		Disabled "true";
+		
+		SelectFunc "Console";
+		SelectVal "m_classicmap e4m1";
+	}
+}
+
+// Doom Shareware Episodes
+Menu "episdoomsw"
+{
+	Title "MENUGENERAL_SELECTEPIS";
+	
+	Item "kditd"
+	{
+		Text "MENU_CLASSICGAME_DOOMEPISODEA";
+		
+		SelectFunc "Console";
+		SelectVal "m_classicmap e1m1";
+	}
+	
+	Item "tsoh"
+	{
+		Text "MENU_CLASSICGAME_DOOMEPISODEB";
+		Disabled "true";
+		
+		SelectFunc "Console";
+		SelectVal "m_classicmap e2m1";
+	}
+	
+	Item "inf"
+	{
+		Text "MENU_CLASSICGAME_DOOMEPISODEC";
+		Disabled "true";
+		
+		SelectFunc "Console";
+		SelectVal "m_classicmap e3m1";
+	}
+	
+	Item "ttc"
+	{
+		Text "MENU_CLASSICGAME_DOOMEPISODED";
+		Disabled "true";
+		
+		SelectFunc "Console";
+		SelectVal "m_classicmap e4m1";
+	}
+}
+
+// Heretic Extended Episodes
+Menu "episheresr"
+{
+	Title "MENUGENERAL_SELECTEPIS";
+	
+	Item "cotd"
+	{
+		Text "MENU_CLASSICGAME_HERETICEPISODEA";
+		
+		SelectFunc "Console";
+		SelectVal "m_classicmap e1m1";
+	}
+	
+	Item "hm"
+	{
+		Text "MENU_CLASSICGAME_HERETICEPISODEB";
+		
+		SelectFunc "Console";
+		SelectVal "m_classicmap e2m1";
+	}
+	
+	Item "tdods"
+	{
+		Text "MENU_CLASSICGAME_HERETICEPISODEC";
+		
+		SelectFunc "Console";
+		SelectVal "m_classicmap e3m1";
+	}
+	
+	Item "to"
+	{
+		Text "MENU_CLASSICGAME_HERETICEPISODED";
+		
+		SelectFunc "Console";
+		SelectVal "m_classicmap e4m1";
+	}
+	
+	Item "tsd"
+	{
+		Text "MENU_CLASSICGAME_HERETICEPISODEE";
+		
+		SelectFunc "Console";
+		SelectVal "m_classicmap e5m1";
+	}
+	
+	Item "fp"
+	{
+		Text "MENU_CLASSICGAME_HERETICEPISODEF";
+		
+		SelectFunc "Console";
+		SelectVal "m_classicmap e6m1";
+	}
+}
+
+// Heretic Registered Episodes
+Menu "epishererg"
+{
+	Title "MENUGENERAL_SELECTEPIS";
+	
+	Item "cotd"
+	{
+		Text "MENU_CLASSICGAME_HERETICEPISODEA";
+		
+		SelectFunc "Console";
+		SelectVal "m_classicmap e1m1";
+	}
+	
+	Item "hm"
+	{
+		Text "MENU_CLASSICGAME_HERETICEPISODEB";
+		
+		SelectFunc "Console";
+		SelectVal "m_classicmap e2m1";
+	}
+	
+	Item "tdods"
+	{
+		Text "MENU_CLASSICGAME_HERETICEPISODEC";
+		
+		SelectFunc "Console";
+		SelectVal "m_classicmap e3m1";
+	}
+	
+	Item "to"
+	{
+		Text "MENU_CLASSICGAME_HERETICEPISODED";
+		Disabled "true";
+		
+		SelectFunc "Console";
+		SelectVal "m_classicmap e4m1";
+	}
+	
+	Item "tsd"
+	{
+		Text "MENU_CLASSICGAME_HERETICEPISODEE";
+		Disabled "true";
+		
+		SelectFunc "Console";
+		SelectVal "m_classicmap e5m1";
+	}
+	
+	Item "fp"
+	{
+		Text "MENU_CLASSICGAME_HERETICEPISODEF";
+		Disabled "true";
+		
+		SelectFunc "Console";
+		SelectVal "m_classicmap e6m1";
+	}
+}
+
+// Heretic Shareware Episodes
+Menu "episheresw"
+{
+	Title "MENUGENERAL_SELECTEPIS";
+	
+	Item "cotd"
+	{
+		Text "MENU_CLASSICGAME_HERETICEPISODEA";
+		
+		SelectFunc "Console";
+		SelectVal "m_classicmap e1m1";
+	}
+	
+	Item "hm"
+	{
+		Text "MENU_CLASSICGAME_HERETICEPISODEB";
+		Disabled "true";
+		
+		SelectFunc "Console";
+		SelectVal "m_classicmap e2m1";
+	}
+	
+	Item "tdods"
+	{
+		Text "MENU_CLASSICGAME_HERETICEPISODEC";
+		Disabled "true";
+		
+		SelectFunc "Console";
+		SelectVal "m_classicmap e3m1";
+	}
+	
+	Item "to"
+	{
+		Text "MENU_CLASSICGAME_HERETICEPISODED";
+		Disabled "true";
+		
+		SelectFunc "Console";
+		SelectVal "m_classicmap e4m1";
+	}
+	
+	Item "tsd"
+	{
+		Text "MENU_CLASSICGAME_HERETICEPISODEE";
+		Disabled "true";
+		
+		SelectFunc "Console";
+		SelectVal "m_classicmap e5m1";
+	}
+	
+	Item "fp"
+	{
+		Text "MENU_CLASSICGAME_HERETICEPISODEF";
+		Disabled "true";
+		
+		SelectFunc "Console";
+		SelectVal "m_classicmap e6m1";
+	}
 }
 

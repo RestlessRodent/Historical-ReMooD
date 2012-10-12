@@ -303,6 +303,9 @@ StringGroupEX_t UnicodeStrings[NUMUNICODESTRINGS] =
 	{			  "MENUGENERAL_SOLOGAME", "Single Player"},
 	{			  "MENUGENERAL_MAINMENU", "Main Menu"},
 	{			 	  "MENUGENERAL_QUIT", "Quit"},
+	{		  "MENUGENERAL_CLASSICSTART", "Start Classic Game"},
+	{			"MENUGENERAL_SKILLLEVEL", "Choose Skill Level"},
+	{			"MENUGENERAL_SELECTEPIS", "Select Episode"},
 	
 	{				"UIGENERAL_DONTCARE", "Don't Care!"},
 	{					 "UIGENERAL_YES", "Yes"},

@@ -201,6 +201,9 @@ void M_MenuExInit(void)
 	
 	/* Normal Commands */
 	CONL_AddCommand("m_quitprompt", M_ExMultiMenuCom);
+	CONL_AddCommand("m_startclassic", M_ExMultiMenuCom);
+	CONL_AddCommand("m_startclassic2", M_ExMultiMenuCom);
+	CONL_AddCommand("m_classicmap", M_ExMultiMenuCom);
 }
 
 /* M_ExMenuHandleEvent() -- Handles Menu Events */
@@ -398,17 +401,30 @@ bool_t M_ExMenuHandleEvent(const I_EventEx_t* const a_Event)
 		//TopMenu->StartOff = TopMenu->CurItem;
 		TopMenu->OldCurItem = TopMenu->CurItem;
 		
-		// Left/Right?
-		if (DoRight != 0)
-			if (UI->Items[TopMenu->CurItem].LRValChangeFunc)
-				if (UI->Items[TopMenu->CurItem].LRValChangeFunc(i, UI, &UI->Items[TopMenu->CurItem], DoRight > 0))
-					S_StartSound(NULL, sfx_generic_menuslide);
+		// Disabled Item?
+		if (TopMenu->UIMenu->Items[TopMenu->CurItem].Flags & MUIIF_DISABLED)
+		{
+			// Make sound?
+			if ((DoRight && UI->Items[TopMenu->CurItem].LRValChangeFunc) ||
+				(DoPress && UI->Items[TopMenu->CurItem].ItemPressFunc))
+				S_StartSound(NULL, sfx_generic_menufail);
+		}
 		
-		// Press
-		if (DoPress != 0)
-			if (UI->Items[TopMenu->CurItem].ItemPressFunc)
-				if (UI->Items[TopMenu->CurItem].ItemPressFunc(i, UI, &UI->Items[TopMenu->CurItem]))
-					S_StartSound(NULL, sfx_generic_menupress);
+		// Perform action on it
+		else
+		{
+			// Left/Right?
+			if (DoRight != 0)
+				if (UI->Items[TopMenu->CurItem].LRValChangeFunc)
+					if (UI->Items[TopMenu->CurItem].LRValChangeFunc(i, UI, &UI->Items[TopMenu->CurItem], DoRight > 0))
+						S_StartSound(NULL, sfx_generic_menuslide);
+		
+			// Press
+			if (DoPress != 0)
+				if (UI->Items[TopMenu->CurItem].ItemPressFunc)
+					if (UI->Items[TopMenu->CurItem].ItemPressFunc(i, UI, &UI->Items[TopMenu->CurItem]))
+						S_StartSound(NULL, sfx_generic_menupress);
+		}
 		
 		// Was handled
 		return true;
@@ -618,8 +634,18 @@ void M_ExMenuDrawer(void)
 				DrawFlags |= VFO_COLOR(l_MenuHeaderColor.Value[0].Int);
 			else
 			{
+				// Disabled
+				if (Item->Flags & MUIIF_DISABLED)
+				{
+					// Currently Selected?
+					if (j == TopMenu->CurItem && !(g_ProgramTic & 0x8))
+						DrawFlags |= VFO_COLOR(VEX_MAP_RED);
+					else
+						DrawFlags |= VFO_COLOR(VEX_MAP_GRAY);
+				}
+				
 				// Selected (Show indicator)
-				if (j == TopMenu->CurItem)
+				else if (j == TopMenu->CurItem)
 				{
 					if (g_ProgramTic & 0x8)
 						DrawFlags |= VFO_COLOR(VEX_MAP_YELLOW);
@@ -935,6 +961,9 @@ bool_t M_ExUIHandleEvent(const I_EventEx_t* const a_Event)
 				
 				DidSomething = true;
 			}
+			
+			// Always did something, for the keyboard
+			DidSomething = true;
 		}
 		
 		// Mouse Event

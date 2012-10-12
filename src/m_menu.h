@@ -73,6 +73,7 @@ typedef enum M_UIItemType_e
 typedef enum M_UIItemFlags_e
 {
 	MUIIF_NOPARK		= UINT32_C(0x0000001),	// No parking
+	MUIIF_DISABLED		= UINT32_C(0x0000002),	// Disabled
 } M_UIItemFlags_t;
 
 /*** STRUCTURES ***/

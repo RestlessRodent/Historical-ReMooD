@@ -36,6 +36,7 @@
 #include "p_demcmp.h"
 #include "p_local.h"
 #include "r_data.h"
+#include "p_info.h"
 
 /****************
 *** FUNCTIONS ***
@@ -596,13 +597,127 @@ void MS_QuitResp(const uint32_t a_MessageID, const M_ExMBType_t a_Response, cons
 /* M_ExMultiMenuCom() -- Multi-Menu Command */
 int M_ExMultiMenuCom(const uint32_t a_ArgC, const char** const a_ArgV)
 {
-	int32_t i;
+	int32_t i, j;
+	P_LevelInfoEx_t* LInfo;
 	
 	/* Quit Prompt */
 	if (strcasecmp(a_ArgV[0], "m_quitprompt") == 0)
 	{
 		i = DSTR_DEP_QUITMSG + (M_Random() % (DSTR_DEP_QUIT2MSG6 - DSTR_DEP_QUITMSG));
 		M_ExUIMessageBox(MEXMBT_YES | MEXMBT_NO, 1, DS_GetString(DSTR_MENUGENERAL_QUIT), DS_GetString(i), MS_QuitResp);
+		return 0;
+	}
+	
+	/* Start Classic Game selection */
+	else if (strcasecmp(a_ArgV[0], "m_startclassic") == 0)
+	{
+		// Which player?
+		if (a_ArgC > 1)
+			i = strtol(a_ArgV[1], NULL, 10);
+		else
+			i = 0;
+		
+		// Doom
+		if (g_CoreGame == COREGAME_DOOM)
+			return !!M_ExPushMenu(i,
+				M_ExMakeMenu(M_ExMenuIDByName("classicskilldoom"), NULL));
+		
+		// Heretic
+		else if (g_CoreGame == COREGAME_HERETIC)
+			return !!M_ExPushMenu(i,
+				M_ExMakeMenu(M_ExMenuIDByName("classicskillheretic"), NULL));
+		
+		// Unknown
+		else
+			return 0;
+	}
+	
+	/* After Skill Selection */
+	else if (strcasecmp(a_ArgV[0], "m_startclassic2") == 0)
+	{
+		i = j = 0;
+		
+		// Which player?
+		if (a_ArgC > 1)
+			i = strtol(a_ArgV[1], NULL, 10);
+		
+		// Which Skill?
+		if (a_ArgC > 2)
+			j = strtol(a_ArgV[2], NULL, 10);
+		
+		// Doom, Episodes or straight game?
+		if (g_CoreGame == COREGAME_DOOM)
+			// Doom II
+			if (g_IWADFlags & CIF_COMMERCIAL)
+			{
+				CONL_InputF("m_classicmap map01 %i\n", j);
+				return 0;
+			}
+			
+			// Ultimate Doom
+			else if (g_IWADFlags & CIF_EXTENDED)
+				return !!M_ExPushMenu(i,
+					M_ExMakeMenu(M_ExMenuIDByName("episdoomud"), NULL));
+			
+			// Registered Doom	
+			else if (g_IWADFlags & CIF_EXTENDED)
+				return !!M_ExPushMenu(i,
+					M_ExMakeMenu(M_ExMenuIDByName("episdoomrg"), NULL));
+			
+			// Shareware Doom	
+			else
+				return !!M_ExPushMenu(i,
+					M_ExMakeMenu(M_ExMenuIDByName("episdoomsw"), NULL));
+		
+		// Heretic
+		else if (g_CoreGame == COREGAME_HERETIC)
+			// Shadow of the Serpent Riders
+			if (g_IWADFlags & CIF_EXTENDED)
+				return !!M_ExPushMenu(i,
+					M_ExMakeMenu(M_ExMenuIDByName("episheresr"), NULL));
+			
+			// Registered Heretic	
+			else if (g_IWADFlags & CIF_EXTENDED)
+				return !!M_ExPushMenu(i,
+					M_ExMakeMenu(M_ExMenuIDByName("epishererg"), NULL));
+			
+			// Shareware Heretic	
+			else
+				return !!M_ExPushMenu(i,
+					M_ExMakeMenu(M_ExMenuIDByName("episheresw"), NULL));
+		
+		// Unknown
+		else
+			return 0;
+	}
+	
+	/* Start Classic Map */
+	else if (strcasecmp(a_ArgV[0], "m_classicmap") == 0)
+	{
+		i = 0;
+		
+		// Skill Specified?
+		if (a_ArgC > 2)
+			i = strtol(a_ArgV[2], NULL, 10);
+		
+		// No map?
+		if (a_ArgC < 2)
+			return 1;
+		
+		// Locate Level
+		LInfo = P_FindLevelByNameEx(a_ArgV[1], NULL);
+		
+		// Not found?
+		if (!LInfo)
+			return 1;
+		
+		// Do the runs for a local game
+		D_XNetDisconnect(false);
+		P_XGSSetAllDefaults();
+		D_XNetMakeServer(false, 0);
+		D_XNetChangeMap(a_ArgV[1]);
+		
+		// It worked, hopefully
 		return 0;
 	}
 	
@@ -645,7 +760,7 @@ static bool_t MS_Gen_Console_Press(const int32_t a_PlayerID, struct M_UIMenu_s* 
 		
 		// Player ID
 		else if (*i == '#')
-			*o = '1' + a_PlayerID;
+			*o = '0' + a_PlayerID;
 		
 		// Normal Text
 		else
@@ -802,7 +917,7 @@ bool_t M_MenuDataKeyer(void** a_DataPtr, const int32_t a_Stack, const D_RMODComm
 						THISITEM->ItemPressFunc = MS_Gen_SubMenu_Press;
 						
 					// Execute Console Command
-					if (strcasecmp("Console", a_Value) == 0)
+					else if (strcasecmp("Console", a_Value) == 0)
 						THISITEM->ItemPressFunc = MS_Gen_Console_Press;
 					
 					// Illegal
@@ -818,6 +933,15 @@ bool_t M_MenuDataKeyer(void** a_DataPtr, const int32_t a_Stack, const D_RMODComm
 					
 					// Copy string
 					THISITEM->SubVal = Z_StrDup(a_Value, PU_MENUDAT, NULL);
+				}
+				
+				// Disabled?
+				else if (strcasecmp("Disabled", a_Field) == 0)
+				{
+					THISITEM->Flags &= ~MUIIF_DISABLED;
+					
+					if (INFO_BoolFromString(a_Value))
+						THISITEM->Flags |= MUIIF_DISABLED;
 				}
 			}
 			

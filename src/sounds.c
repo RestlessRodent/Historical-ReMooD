@@ -418,6 +418,7 @@ sfxinfo_t S_sfx[NUMSFX] =
 	{"generic_menupress", false, 78, 0, -1, -1, 0, -1},
 	{"generic_menumove", false, 78, 0, -1, -1, 0, -1},
 	{"generic_menuslide", false, 78, 0, -1, -1, 0, -1},
+	{"generic_menufail", false, 78, 0, -1, -1, 0, -1},
 };
 
 // Prepare free sfx slots to add sfx at run time
