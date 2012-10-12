@@ -204,7 +204,7 @@ bool_t M_ExMenuHandleEvent(const I_EventEx_t* const a_Event)
 	int32_t i, RowPos, RowEnd, DoDown, DoRight, z;
 	M_UIMenuHandler_t* TopMenu;
 	M_UIMenu_t* UI;
-	bool_t Up, DoCancel;
+	bool_t Up, DoCancel, DoPress;
 	
 	/* Control for each player */
 	for (i = 0; i < __REMOOD_NUMSPLITS + 1; i++)
@@ -224,7 +224,7 @@ bool_t M_ExMenuHandleEvent(const I_EventEx_t* const a_Event)
 		UI = TopMenu->UIMenu;
 		Up = false;
 		DoRight = DoDown = 0;
-		DoCancel = false;
+		DoCancel = DoPress = false;
 		
 		// Which key command?
 		if (a_Event->Type == IET_SYNTHOSK)
@@ -248,6 +248,10 @@ bool_t M_ExMenuHandleEvent(const I_EventEx_t* const a_Event)
 			// Cancel
 			else if (a_Event->Data.SynthOSK.Cancel)
 				DoCancel = true;
+			
+			// Press
+			else if (a_Event->Data.SynthOSK.Press)
+				DoPress = true;
 			
 			// Un-handled
 			else
@@ -282,6 +286,10 @@ bool_t M_ExMenuHandleEvent(const I_EventEx_t* const a_Event)
 					DoCancel = true;
 					break;
 				
+				case IKBK_RETURN:
+					DoPress = true;
+					break;
+				
 				default:
 					continue;
 			}
@@ -308,12 +316,6 @@ bool_t M_ExMenuHandleEvent(const I_EventEx_t* const a_Event)
 			TopMenu->CurItem += DoDown;
 			Up = DoDown > 0;
 		}
-		
-		// Left/Right?
-		if (DoRight != 0)
-			if (UI->Items[TopMenu->CurItem].LRValChangeFunc)
-				if (UI->Items[TopMenu->CurItem].LRValChangeFunc(UI, &UI->Items[TopMenu->CurItem], DoRight > 0))
-					S_StartSound(NULL, sfx_stnmov);
 		
 		// Non-parkable Item?
 		for (;;)
@@ -380,6 +382,18 @@ bool_t M_ExMenuHandleEvent(const I_EventEx_t* const a_Event)
 
 		//TopMenu->StartOff = TopMenu->CurItem;
 		TopMenu->OldCurItem = TopMenu->CurItem;
+		
+		// Left/Right?
+		if (DoRight != 0)
+			if (UI->Items[TopMenu->CurItem].LRValChangeFunc)
+				if (UI->Items[TopMenu->CurItem].LRValChangeFunc(i, UI, &UI->Items[TopMenu->CurItem], DoRight > 0))
+					S_StartSound(NULL, sfx_stnmov);
+		
+		// Press
+		if (DoPress != 0)
+			if (UI->Items[TopMenu->CurItem].ItemPressFunc)
+				if (UI->Items[TopMenu->CurItem].ItemPressFunc(i, UI, &UI->Items[TopMenu->CurItem]))
+					S_StartSound(NULL, sfx_pistol);
 		
 		// Was handled
 		return true;

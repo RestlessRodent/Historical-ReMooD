@@ -221,7 +221,7 @@ int M_ExGeneralComm(const uint32_t a_ArgC, const char** const a_ArgV)
 
 
 /* MS_GameVar_LRValChange() -- Game variable value changer callback */
-static bool_t MS_GameVar_LRValChange(struct M_UIMenu_s* const a_Menu, struct M_UIItem_s* const a_Item, const bool_t a_More)
+static bool_t MS_GameVar_LRValChange(const int32_t a_PlayerID, struct M_UIMenu_s* const a_Menu, struct M_UIItem_s* const a_Item, const bool_t a_More)
 {
 	P_XGSVariable_t* Bit;
 	int32_t OldVal, NewVal, ModVal;
@@ -407,13 +407,6 @@ static void MS_NEWGAME_Init(struct M_UIMenuHandler_s* const a_Handler, struct M_
 
 /*** GENERATION ***/
 
-/* c_NewMenuName -- Names of menus */
-static const char* c_NewMenuName[NUMMNEWMENUIDS] =
-{
-	"hello",									// MNMID_HELLO
-	"newgame",									// MNMID_NEWGAME
-};
-
 /* MS_AddNewItem() -- Adds item to menu */
 static M_UIItem_t* MS_AddNewItem(M_UIMenu_t* a_Menu, const M_UIItemType_t a_Type, const uint32_t a_Flags, const int32_t a_Bits, const char** const a_TextRef, const char** const a_ValRef, M_UIItemLRValChangeFuncType_t a_LRValFunc, M_UIItemPressFuncType_t a_PressFunc)
 {
@@ -473,13 +466,18 @@ int CLC_ExMakeMenuCom(const uint32_t a_ArgC, const char** const a_ArgV)
 	{
 		// Show Usage
 		
-		
 		// Show menus available
-		for (MenuID = 0; MenuID < NUMMNEWMENUIDS; MenuID++)
+		for (MenuID = 0; MenuID < l_NumPreMenus; MenuID++)
 		{
-			CONL_PrintF("{4%s", c_NewMenuName[MenuID]);
+			if (!l_PreMenus[MenuID])
+				continue;
 			
-			if (MenuID < NUMMNEWMENUIDS - 1)
+			if (l_PreMenus[MenuID]->ClassName)
+				CONL_PrintF("{4%s", l_PreMenus[MenuID]->ClassName);
+			else
+				CONL_PrintF("{4%i", MenuID);
+			
+			if (MenuID < l_NumPreMenus - 1)
 				CONL_PrintF("{z, ");
 		}
 		CONL_PrintF("{z\n");
@@ -515,7 +513,7 @@ int CLC_ExMakeMenuCom(const uint32_t a_ArgC, const char** const a_ArgV)
 }
 
 /* M_ExMakeMenu() -- Creates a new menu */
-M_UIMenu_t* M_ExMakeMenu(const M_NewMenuID_t a_MenuID, void* const a_Data)
+M_UIMenu_t* M_ExMakeMenu(const int32_t a_MenuID, void* const a_Data)
 {
 	M_UIMenu_t* NewMenu;
 	
@@ -586,6 +584,21 @@ typedef struct M_RDATInfo_s
 } M_RDATInfo_t;
 
 /*** FUNCTIONS ***/
+
+/* MS_Gen_SubMenu_Press() -- Generic Sub-Menu Press */
+static bool_t MS_Gen_SubMenu_Press(const int32_t a_PlayerID, struct M_UIMenu_s* const a_Menu, struct M_UIItem_s* const a_Item)
+{
+	int32_t NewMenu;
+	
+	/* Find new menu, possibly */
+	NewMenu = M_MenuIDByName(a_Item->SubVal);
+	
+	// Invalid?
+	if (NewMenu < 0 || NewMenu >= l_NumPreMenus)
+		return false;
+	
+	return !!M_ExPushMenu(a_PlayerID, M_ExMakeMenu(NewMenu, NULL));
+}
 
 /* M_MenuDataKeyer() -- Handles menus */
 bool_t M_MenuDataKeyer(void** a_DataPtr, const int32_t a_Stack, const D_RMODCommand_t a_Command, const char* const a_Field, const char* const a_Value)
@@ -695,7 +708,11 @@ bool_t M_MenuDataKeyer(void** a_DataPtr, const int32_t a_Stack, const D_RMODComm
 					
 					// Otherwise, direct string
 					else
+					{
+						if (THISMENU->Title)
+							Z_Free(THISMENU->Title);
 						THISMENU->Title = Z_StrDup(a_Value, PU_MENUDAT, NULL);
+					}
 				}
 			}
 			
@@ -713,7 +730,39 @@ bool_t M_MenuDataKeyer(void** a_DataPtr, const int32_t a_Stack, const D_RMODComm
 					
 					// Otherwise, direct string
 					else
+					{
+						if (THISITEM->Text)
+							Z_Free(THISITEM->Text);
 						THISITEM->Text = Z_StrDup(a_Value, PU_MENUDAT, NULL);
+					}
+				}
+				
+				// Item Function?
+				else if (strcasecmp("SelectFunc", a_Field) == 0)
+				{
+					// Call sub-menu
+					if (strcasecmp("SubMenu", a_Value) == 0)
+					{
+						THISITEM->LRValChangeFunc = NULL;
+						THISITEM->ItemPressFunc = MS_Gen_SubMenu_Press;
+					}
+					
+					// Illegal
+					else
+					{
+						THISITEM->LRValChangeFunc = NULL;
+						THISITEM->ItemPressFunc = NULL;
+					}
+				}
+				
+				// Item Value?
+				else if (strcasecmp("SelectVal", a_Field) == 0)
+				{
+					if (THISITEM->SubVal)
+						Z_Free(THISITEM->SubVal);
+					
+					// Copy string
+					THISITEM->SubVal = Z_StrDup(a_Value, PU_MENUDAT, NULL);
 				}
 			}
 			

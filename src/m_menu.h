@@ -75,15 +75,6 @@ typedef enum M_UIItemFlags_e
 	MUIIF_NOPARK		= UINT32_C(0x0000001),	// No parking
 } M_UIItemFlags_t;
 
-/* M_NewMenuID_t -- ID of the new menu to create */
-typedef enum M_NewMenuID_e
-{
-	MNMID_HELLO,								// Hello World	
-	MNMID_NEWGAME,								// Create New Game
-	
-	NUMMNEWMENUIDS
-} M_NewMenuID_t;
-
 /*** STRUCTURES ***/
 
 typedef void (*MBCallBackFunc_t)(const uint32_t a_MessageID, const M_ExMBType_t a_Response, const char** const a_TitleP, const char** const a_MessageP);
@@ -91,8 +82,8 @@ typedef void (*MBCallBackFunc_t)(const uint32_t a_MessageID, const M_ExMBType_t 
 struct M_UIMenu_s;
 struct M_UIItem_s;
 
-typedef bool_t (*M_UIItemLRValChangeFuncType_t)(struct M_UIMenu_s* const a_Menu, struct M_UIItem_s* const a_Item, const bool_t a_More);
-typedef bool_t (*M_UIItemPressFuncType_t)(struct M_UIMenu_s* const a_Menu, struct M_UIItem_s* const a_Item);
+typedef bool_t (*M_UIItemLRValChangeFuncType_t)(const int32_t a_PlayerID, struct M_UIMenu_s* const a_Menu, struct M_UIItem_s* const a_Item, const bool_t a_More);
+typedef bool_t (*M_UIItemPressFuncType_t)(const int32_t a_PlayerID, struct M_UIMenu_s* const a_Menu, struct M_UIItem_s* const a_Item);
 
 /* M_UIItem_t -- Menu Item */
 typedef struct M_UIItem_s
@@ -106,7 +97,9 @@ typedef struct M_UIItem_s
 	const char** TextRef;						// Item Text (i18n)
 	const char** ValueRef;						// Value (i18n)
 	
-	int32_t DataBits;							// Anything needed for data
+	const char* SubVal;							// SubValue
+	
+	intptr_t DataBits;							// Anything needed for data
 	M_UIItemLRValChangeFuncType_t LRValChangeFunc;
 	M_UIItemPressFuncType_t ItemPressFunc;
 } M_UIItem_t;
@@ -169,7 +162,7 @@ void M_ExPopMenu(const uint8_t a_Player);
 
 void M_GenericCleanerFunc(struct M_UIMenuHandler_s* const a_Handler, struct M_UIMenu_s* const a_UIMenu);
 
-M_UIMenu_t* M_ExMakeMenu(const M_NewMenuID_t a_MenuID, void* const a_Data);
+M_UIMenu_t* M_ExMakeMenu(const int32_t a_MenuID, void* const a_Data);
 
 int CLC_ExMakeMenuCom(const uint32_t a_ArgC, const char** const a_ArgV);
 M_UIMenu_t* M_ExTemplateMakeGameVars(const int32_t a_Mode);
