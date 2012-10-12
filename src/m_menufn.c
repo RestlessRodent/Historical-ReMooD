@@ -585,6 +585,32 @@ typedef struct M_RDATInfo_s
 
 /*** FUNCTIONS ***/
 
+/* MS_QuitResp() -- Quit the game */
+void MS_QuitResp(const uint32_t a_MessageID, const M_ExMBType_t a_Response, const char** const a_TitleP, const char** const a_MessageP)
+{
+	/* Quitting? */
+	if (a_Response & MEXMBT_YES)
+		I_Quit();
+}
+
+/* M_ExMultiMenuCom() -- Multi-Menu Command */
+int M_ExMultiMenuCom(const uint32_t a_ArgC, const char** const a_ArgV)
+{
+	int32_t i;
+	
+	/* Quit Prompt */
+	if (strcasecmp(a_ArgV[0], "m_quitprompt") == 0)
+	{
+		i = DSTR_DEP_QUITMSG + (M_Random() % (DSTR_DEP_QUIT2MSG6 - DSTR_DEP_QUITMSG));
+		M_ExUIMessageBox(MEXMBT_YES | MEXMBT_NO, 1, DS_GetString(DSTR_MENUGENERAL_QUIT), DS_GetString(i), MS_QuitResp);
+		return 0;
+	}
+	
+	/* Unknown */
+	else
+		return 1;
+}
+
 /* MS_Gen_SubMenu_Press() -- Generic Sub-Menu Press */
 static bool_t MS_Gen_SubMenu_Press(const int32_t a_PlayerID, struct M_UIMenu_s* const a_Menu, struct M_UIItem_s* const a_Item)
 {
@@ -598,6 +624,37 @@ static bool_t MS_Gen_SubMenu_Press(const int32_t a_PlayerID, struct M_UIMenu_s* 
 		return false;
 	
 	return !!M_ExPushMenu(a_PlayerID, M_ExMakeMenu(NewMenu, NULL));
+}
+
+/* MS_Gen_Console_Press() -- Executes console command */
+static bool_t MS_Gen_Console_Press(const int32_t a_PlayerID, struct M_UIMenu_s* const a_Menu, struct M_UIItem_s* const a_Item)
+{
+#define BUFSIZE 128
+	char Buf[BUFSIZE];
+	char* o, *i;
+	int32_t n;
+	
+	/* Generate String */
+	memset(Buf, 0, sizeof(Buf));
+	for (o = Buf, i = a_Item->SubVal, n = 0; i && *i && n < BUFSIZE - 1; n++, i++, o++)
+	{
+		// Special Variable
+		if (*i == '@')
+		{
+		}
+		
+		// Player ID
+		else if (*i == '#')
+			*o = '1' + a_PlayerID;
+		
+		// Normal Text
+		else
+			*o = *i;
+	}
+	
+	/* Send to console */
+	CONL_InputF("%s\n", Buf);
+#undef BUFSIZE
 }
 
 /* M_MenuDataKeyer() -- Handles menus */
@@ -743,6 +800,10 @@ bool_t M_MenuDataKeyer(void** a_DataPtr, const int32_t a_Stack, const D_RMODComm
 					// Call sub-menu
 					if (strcasecmp("SubMenu", a_Value) == 0)
 						THISITEM->ItemPressFunc = MS_Gen_SubMenu_Press;
+						
+					// Execute Console Command
+					if (strcasecmp("Console", a_Value) == 0)
+						THISITEM->ItemPressFunc = MS_Gen_Console_Press;
 					
 					// Illegal
 					else

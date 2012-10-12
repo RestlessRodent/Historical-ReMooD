@@ -302,6 +302,11 @@ StringGroupEX_t UnicodeStrings[NUMUNICODESTRINGS] =
 	{		  "MENUGENERAL_NEWGAMELEVEL", "Level"},
 	{			  "MENUGENERAL_SOLOGAME", "Single Player"},
 	{			  "MENUGENERAL_MAINMENU", "Main Menu"},
+	{			 	  "MENUGENERAL_QUIT", "Quit"},
+	
+	{				"UIGENERAL_DONTCARE", "Don't Care!"},
+	{					 "UIGENERAL_YES", "Yes"},
+	{					  "UIGENERAL_NO", "No"},
 	
 	/*** INTERMISSION ***/
 	{"INTERMISSION_FINISHED", "Finished"},

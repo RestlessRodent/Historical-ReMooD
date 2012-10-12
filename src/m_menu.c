@@ -185,6 +185,8 @@ static int8_t MS_NumScrSplits(void)
 
 int M_ExGeneralComm(const uint32_t a_ArgC, const char** const a_ArgV);
 
+int M_ExMultiMenuCom(const uint32_t a_ArgC, const char** const a_ArgV);
+
 /* M_MenuExInit() -- Init Menu */
 void M_MenuExInit(void)
 {
@@ -196,6 +198,9 @@ void M_MenuExInit(void)
 	
 	CONL_AddCommand("menucolortest", M_ExGeneralComm);
 	CONL_AddCommand("menutexturetest", M_ExGeneralComm);
+	
+	/* Normal Commands */
+	CONL_AddCommand("m_quitprompt", M_ExMultiMenuCom);
 }
 
 /* M_ExMenuHandleEvent() -- Handles Menu Events */
@@ -763,7 +768,19 @@ bool_t M_ExUIMessageBox(const M_ExMBType_t a_Type, const uint32_t a_MessageID, c
 #define UIMIDSPACE (UISPACING >> 1)
 	M_UILocalBox_t* New;
 	int32_t tW, tH, mW, mH, bW, bX, bY;
-	size_t i;
+	size_t i, j;
+	
+	static const struct
+	{
+		uint32_t Bit;							// Bit
+		uint32_t String;						// String
+	} c_ButFlags[] =
+	{
+		{MEXMBT_DONTCARE, DSTR_UIGENERAL_DONTCARE},
+		{MEXMBT_YES, DSTR_UIGENERAL_YES},
+		{MEXMBT_NO, DSTR_UIGENERAL_NO},
+		{0},
+	};
 	
 	/* Create at end of stack */
 	Z_ResizeArray((void**)&l_UIBoxes, sizeof(*l_UIBoxes), l_NumUIBoxes, l_NumUIBoxes + 1);
@@ -777,15 +794,16 @@ bool_t M_ExUIMessageBox(const M_ExMBType_t a_Type, const uint32_t a_MessageID, c
 	New->AppearTime = I_GetTimeMS();
 	
 	/* Create Buttons */
-	if (a_Type & MEXMBT_DONTCARE)
-	{
-		// Get last button
-		i = New->NumButtons++;
-		New->Buttons[i].Response = MEXMBT_DONTCARE;
-		New->Buttons[i].Text = "Don't Care";
-		New->Buttons[i].w = V_StringWidthA(MUIBOXFONT, 0, New->Buttons[i].Text);
-		New->Buttons[i].h = V_StringHeightA(MUIBOXFONT, 0, New->Buttons[i].Text);
-	}
+	for (j = 0; c_ButFlags[j].Bit; j++)
+		if ((a_Type & c_ButFlags[j].Bit) == c_ButFlags[j].Bit)
+		{
+			// Get last button
+			i = New->NumButtons++;
+			New->Buttons[i].Response = c_ButFlags[j].Bit;
+			New->Buttons[i].Text = DS_GetString(c_ButFlags[j].String);
+			New->Buttons[i].w = V_StringWidthA(MUIBOXFONT, 0, New->Buttons[i].Text);
+			New->Buttons[i].h = V_StringHeightA(MUIBOXFONT, 0, New->Buttons[i].Text);
+		}
 	
 	/* Size everything down */
 	// Get size of strings
@@ -861,6 +879,10 @@ bool_t M_ExUIHandleEvent(const I_EventEx_t* const a_Event)
 		// Keyboard Event
 		if (a_Event->Type == IET_KEYBOARD)
 		{
+			// Up?
+			if (!a_Event->Data.Keyboard.Down)
+				return true;
+			
 			// Enter is hit
 			if (a_Event->Data.Keyboard.KeyCode == IKBK_RETURN)
 			{
@@ -868,15 +890,16 @@ bool_t M_ExUIHandleEvent(const I_EventEx_t* const a_Event)
 				ThisTime = I_GetTimeMS();
 				
 				// Don't press enter too soon
-				if (ThisTime > Box->AppearTime + 1500)
+				if (ThisTime > Box->AppearTime + 1000)
 				{
 					// Make noise
-					S_StartSound(NULL, sfx_osktyp);
+					S_StartSound(NULL, sfx_generic_menupress);
 							
 					// End
-					DidSomething = true;
 					DidAClick = true;
 				}
+				
+				DidSomething = true;
 			}
 			
 			// Moving cursor
@@ -905,11 +928,12 @@ bool_t M_ExUIHandleEvent(const I_EventEx_t* const a_Event)
 					Box->SelButton = b;
 					
 					// Make noise
-					S_StartSound(NULL, sfx_oskmov);
+					S_StartSound(NULL, sfx_generic_menumove);
 					
 					// End
-					DidSomething = true;
 				}
+				
+				DidSomething = true;
 			}
 		}
 		
@@ -932,7 +956,7 @@ bool_t M_ExUIHandleEvent(const I_EventEx_t* const a_Event)
 							Box->SelButton = b;
 							
 							// Make noise
-							S_StartSound(NULL, sfx_oskmov);
+							S_StartSound(NULL, sfx_generic_menumove);
 							
 							// End
 							DidSomething = true;
@@ -943,7 +967,7 @@ bool_t M_ExUIHandleEvent(const I_EventEx_t* const a_Event)
 						else if (a_Event->Data.Mouse.Down && b == Box->SelButton)
 						{
 							// Make noise
-							S_StartSound(NULL, sfx_osktyp);
+							S_StartSound(NULL, sfx_generic_menupress);
 							
 							// End
 							DidSomething = true;
@@ -954,7 +978,7 @@ bool_t M_ExUIHandleEvent(const I_EventEx_t* const a_Event)
 		}
 		
 		// Did something?
-		if (DidSomething)
+		if (DidSomething || DidAClick)
 		{
 			// Chose this button?
 			if (DidAClick)

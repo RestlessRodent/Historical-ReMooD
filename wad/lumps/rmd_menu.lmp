@@ -15,6 +15,14 @@ Menu "mainmenu"
 		SelectFunc "SubMenu";
 		SelectVal "solomain";
 	}
+	
+	Item "quitgame"
+	{
+		Text "MENUGENERAL_QUIT";
+		
+		SelectFunc "Console";
+		SelectVal "m_quitprompt";
+	}
 }
 
 Menu "solomain"
