@@ -415,6 +415,9 @@ sfxinfo_t S_sfx[NUMSFX] =
 	// GhostlyDeath <September 12, 2012> -- Generic Sounds
 	{"generic_switchon", false, 78, 0, -1, -1, 0, -1},
 	{"generic_switchoff", false, 78, 0, -1, -1, 0, -1},
+	{"generic_menupress", false, 78, 0, -1, -1, 0, -1},
+	{"generic_menumove", false, 78, 0, -1, -1, 0, -1},
+	{"generic_menuslide", false, 78, 0, -1, -1, 0, -1},
 };
 
 // Prepare free sfx slots to add sfx at run time

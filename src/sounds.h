@@ -493,6 +493,9 @@ typedef enum
 	// GhostlyDeath <September 12, 2012> -- Generic Sounds
 	sfx_generic_switchon,
 	sfx_generic_switchoff,
+	sfx_generic_menupress,
+	sfx_generic_menumove,
+	sfx_generic_menuslide,
 	
 	// free slots for S_AddSoundFx() at run-time --------------------
 	sfx_freeslot0,

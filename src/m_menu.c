@@ -206,6 +206,16 @@ bool_t M_ExMenuHandleEvent(const I_EventEx_t* const a_Event)
 	M_UIMenu_t* UI;
 	bool_t Up, DoCancel, DoPress;
 	
+	/* Player 1 has no menu? */
+	if (!l_NumUIMenus[0])
+		if (a_Event->Type == IET_KEYBOARD)
+			if (a_Event->Data.Keyboard.Down &&
+				a_Event->Data.Keyboard.KeyCode == IKBK_ESCAPE)
+			{
+				M_ExPushMenu(0, M_ExMakeMenu(M_ExMenuIDByName("mainmenu"), NULL));
+				return true;
+			}
+	
 	/* Control for each player */
 	for (i = 0; i < __REMOOD_NUMSPLITS + 1; i++)
 	{
@@ -338,7 +348,7 @@ bool_t M_ExMenuHandleEvent(const I_EventEx_t* const a_Event)
 		
 		// Item changed? Play sound
 		if (TopMenu->CurItem != TopMenu->OldCurItem)
-			S_StartSound(NULL, sfx_pstop);
+			S_StartSound(NULL, sfx_generic_menumove);
 		
 		// Change view?
 		for (z = 0; z < 10; z++)
@@ -387,13 +397,13 @@ bool_t M_ExMenuHandleEvent(const I_EventEx_t* const a_Event)
 		if (DoRight != 0)
 			if (UI->Items[TopMenu->CurItem].LRValChangeFunc)
 				if (UI->Items[TopMenu->CurItem].LRValChangeFunc(i, UI, &UI->Items[TopMenu->CurItem], DoRight > 0))
-					S_StartSound(NULL, sfx_stnmov);
+					S_StartSound(NULL, sfx_generic_menuslide);
 		
 		// Press
 		if (DoPress != 0)
 			if (UI->Items[TopMenu->CurItem].ItemPressFunc)
 				if (UI->Items[TopMenu->CurItem].ItemPressFunc(i, UI, &UI->Items[TopMenu->CurItem]))
-					S_StartSound(NULL, sfx_pistol);
+					S_StartSound(NULL, sfx_generic_menupress);
 		
 		// Was handled
 		return true;
@@ -695,6 +705,7 @@ void M_ExPopMenu(const uint8_t a_Player)
 M_UIMenuHandler_t* M_ExPushMenu(const uint8_t a_Player, M_UIMenu_t* const a_UI)
 {
 	M_UIMenuHandler_t* New;
+	bool_t NoMenu;
 	
 	/* Check */
 	if (!a_UI || a_Player < 0 || a_Player >= MAXSPLITSCREEN)
@@ -703,6 +714,9 @@ M_UIMenuHandler_t* M_ExPushMenu(const uint8_t a_Player, M_UIMenu_t* const a_UI)
 	/* Player not active? */
 	if (a_Player != 0 && !D_ScrSplitHasPlayer(a_Player))
 		return NULL;
+	
+	/* No menu active? */
+	NoMenu = !l_NumUIMenus[a_Player];
 		
 	/* Allocate */
 	New = Z_Malloc(sizeof(*New), PU_STATIC, NULL);
@@ -729,7 +743,10 @@ M_UIMenuHandler_t* M_ExPushMenu(const uint8_t a_Player, M_UIMenu_t* const a_UI)
 		New->UIMenu->InitFunc(New, New->UIMenu);
 	
 	/* Play Sound */
-	S_StartSound(NULL, sfx_generic_switchon);
+	if (NoMenu)
+		S_StartSound(NULL, sfx_generic_switchon);
+	else
+		S_StartSound(NULL, sfx_generic_menupress);
 }
 
 /* M_GenericCleanerFunc() -- Generic Menu Cleaner */

@@ -1705,12 +1705,18 @@ static bool_t DS_DetectGameMode(const bool_t a_Pushed, const struct WL_WADFile_s
 		case COREGAME_DOOM:
 			S_sfx[sfx_generic_switchon].link = &S_sfx[sfx_swtchn];
 			S_sfx[sfx_generic_switchoff].link = &S_sfx[sfx_swtchx];
+			S_sfx[sfx_generic_menupress].link = &S_sfx[sfx_pistol];
+			S_sfx[sfx_generic_menumove].link = &S_sfx[sfx_pstop];
+			S_sfx[sfx_generic_menuslide].link = &S_sfx[sfx_stnmov];
 			break;
 			
 			// Heretic
 		case COREGAME_HERETIC:
 			S_sfx[sfx_generic_switchon].link = &S_sfx[sfx_dorcls];
 			S_sfx[sfx_generic_switchoff].link = &S_sfx[sfx_keyup];
+			S_sfx[sfx_generic_menupress].link = &S_sfx[sfx_dorcls];
+			S_sfx[sfx_generic_menumove].link = &S_sfx[sfx_switch];
+			S_sfx[sfx_generic_menuslide].link = &S_sfx[sfx_keyup];
 			break;
 			
 		default:

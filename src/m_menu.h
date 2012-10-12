@@ -162,6 +162,7 @@ void M_ExPopMenu(const uint8_t a_Player);
 
 void M_GenericCleanerFunc(struct M_UIMenuHandler_s* const a_Handler, struct M_UIMenu_s* const a_UIMenu);
 
+int32_t M_ExMenuIDByName(const char* const a_Name);
 M_UIMenu_t* M_ExMakeMenu(const int32_t a_MenuID, void* const a_Data);
 
 int CLC_ExMakeMenuCom(const uint32_t a_ArgC, const char** const a_ArgV);

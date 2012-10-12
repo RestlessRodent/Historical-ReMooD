@@ -437,8 +437,8 @@ static M_UIItem_t* MS_AddNewItem(M_UIMenu_t* a_Menu, const M_UIItemType_t a_Type
 static M_UIMenu_t** l_PreMenus;					// Pre-Created Menus
 static size_t l_NumPreMenus;					// Number of them
 
-/* M_MenuIDByName() -- Returns menu ID by name */
-int32_t M_MenuIDByName(const char* const a_Name)
+/* M_ExMenuIDByName() -- Returns menu ID by name */
+int32_t M_ExMenuIDByName(const char* const a_Name)
 {
 	int32_t MenuID;
 	
@@ -502,7 +502,7 @@ int CLC_ExMakeMenuCom(const uint32_t a_ArgC, const char** const a_ArgV)
 	
 	// By Name
 	else
-		MenuID = M_MenuIDByName(a_ArgV[1]);
+		MenuID = M_ExMenuIDByName(a_ArgV[1]);
 	
 	/* Check Menu */
 	if (MenuID < 0 || MenuID >= l_NumPreMenus)
@@ -591,7 +591,7 @@ static bool_t MS_Gen_SubMenu_Press(const int32_t a_PlayerID, struct M_UIMenu_s* 
 	int32_t NewMenu;
 	
 	/* Find new menu, possibly */
-	NewMenu = M_MenuIDByName(a_Item->SubVal);
+	NewMenu = M_ExMenuIDByName(a_Item->SubVal);
 	
 	// Invalid?
 	if (NewMenu < 0 || NewMenu >= l_NumPreMenus)
@@ -623,7 +623,7 @@ bool_t M_MenuDataKeyer(void** a_DataPtr, const int32_t a_Stack, const D_RMODComm
 			if (a_Stack == 1 && strcasecmp(a_Field, "Menu") == 0)
 			{
 				// Switch to menu
-				i = M_MenuIDByName(a_Value);
+				i = M_ExMenuIDByName(a_Value);
 				
 				// Legal?
 				if (i >= 0 && i < l_NumPreMenus)
@@ -742,17 +742,11 @@ bool_t M_MenuDataKeyer(void** a_DataPtr, const int32_t a_Stack, const D_RMODComm
 				{
 					// Call sub-menu
 					if (strcasecmp("SubMenu", a_Value) == 0)
-					{
-						THISITEM->LRValChangeFunc = NULL;
 						THISITEM->ItemPressFunc = MS_Gen_SubMenu_Press;
-					}
 					
 					// Illegal
 					else
-					{
-						THISITEM->LRValChangeFunc = NULL;
 						THISITEM->ItemPressFunc = NULL;
-					}
 				}
 				
 				// Item Value?
