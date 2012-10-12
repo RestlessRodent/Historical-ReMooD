@@ -42,6 +42,42 @@ Menu "solomain"
 	}
 }
 
+// Select Profile
+Menu "profileselect"
+{
+	Title "MENUGENERAL_SELECTPROFILE";
+	
+	Item "selectthisone"
+	{
+		Text "MENUGENERAL_SELECTTHISPROF";
+		
+		SelectFunc "Console";
+		SelectVal "m_usethisprof #";
+	}
+	
+	Item "createprof"
+	{
+		Text "MENUGENERAL_CREATEPROF";
+		
+		SelectFunc "Console";
+		SelectVal "m_createprof #";
+	}
+	
+	Item "spacer"
+	{
+		Text "";
+		NoPark "true";
+	}
+	
+	Item "profslider"
+	{
+		Text "MENUGENERAL_CURRENTPROF";
+		
+		//SelectFunc "Console";
+		//SelectVal "m_createprof #";
+	}
+}
+
 // Doom Skill Levels
 Menu "classicskilldoom"
 {

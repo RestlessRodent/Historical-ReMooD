@@ -562,7 +562,7 @@ void M_ExMenuDrawer(void)
 		
 		// Draw underneath
 		if (UI->UnderDrawFunc)
-			if (!UI->UnderDrawFunc(TopMenu, UI, ScrX, ScrY, ScrW, ScrH))
+			if (!UI->UnderDrawFunc(i, TopMenu, UI, ScrX, ScrY, ScrW, ScrH))
 				continue;
 			
 		// Base
@@ -690,7 +690,7 @@ void M_ExMenuDrawer(void)
 		
 		// Draw over
 		if (UI->OverDrawFunc)
-			if (!UI->OverDrawFunc(TopMenu, UI, ScrX, ScrY, ScrW, ScrH))
+			if (!UI->OverDrawFunc(i, TopMenu, UI, ScrX, ScrY, ScrW, ScrH))
 				continue;
 	}
 	
@@ -700,24 +700,24 @@ void M_ExMenuDrawer(void)
 }
 
 /* M_ExPopMenu() -- Pops menu from stack */
-void M_ExPopMenu(const uint8_t a_Player)
+int32_t M_ExPopMenu(const uint8_t a_Player)
 {
 	M_UIMenuHandler_t* Handler;
 	
 	/* Check */
 	if (a_Player < 0 || a_Player >= MAXSPLITSCREEN)
-		return;
+		return 0;
 		
 	/* No menus for player? */
 	if (l_NumUIMenus[a_Player] <= 0)
-		return;
+		return 0;
 	
 	/* Get top item */
 	Handler = l_UIMenus[a_Player][l_NumUIMenus[a_Player] - 1];
 	
 	// Call cleaners
 	if (Handler->UIMenu->CleanerFunc)
-		Handler->UIMenu->CleanerFunc(Handler, Handler->UIMenu);
+		Handler->UIMenu->CleanerFunc(a_Player, Handler, Handler->UIMenu);
 	
 	// Delete private data
 	if (Handler->PrivateData)
@@ -730,6 +730,34 @@ void M_ExPopMenu(const uint8_t a_Player)
 	l_UIMenus[a_Player][l_NumUIMenus[a_Player] - 1] = NULL;
 	Z_ResizeArray((void**)&l_UIMenus[a_Player], sizeof(*l_UIMenus[a_Player]), l_NumUIMenus[a_Player], l_NumUIMenus[a_Player] - 1);
 	l_NumUIMenus[a_Player]--;
+	
+	/* Return amount of menus left */
+	return l_NumUIMenus[a_Player];
+}
+
+/* M_ExPopAllMenus() -- Pops all menus for a player */
+void M_ExPopAllMenus(const uint8_t a_Player)
+{
+	while (M_ExPopMenu(a_Player))
+		;
+}
+
+/* M_ExFirstMenuSpot() -- Finds first spot containing menu */
+int32_t M_ExFirstMenuSpot(const uint8_t a_Player, M_UIMenu_t* const a_UIMenu)
+{
+	int32_t i;
+	
+	/* Check */
+	if (a_Player < 0 || a_Player >= MAXSPLITSCREEN)
+		return -1;
+	
+	/* Go through menus */
+	for (i = 0; i < l_NumUIMenus[a_Player]; i++)
+		if (l_UIMenus[a_Player][i]->UIMenu == a_UIMenu)
+			return i;
+	
+	/* Not Found */
+	return -1;
 }
 
 /* M_ExPushMenu() -- Pushes menu to handle stack */
@@ -771,7 +799,7 @@ M_UIMenuHandler_t* M_ExPushMenu(const uint8_t a_Player, M_UIMenu_t* const a_UI)
 	
 	// Call Initializer
 	if (New->UIMenu->InitFunc)
-		New->UIMenu->InitFunc(New, New->UIMenu);
+		New->UIMenu->InitFunc(a_Player, New, New->UIMenu);
 	
 	/* Play Sound */
 	if (NoMenu)
@@ -781,7 +809,7 @@ M_UIMenuHandler_t* M_ExPushMenu(const uint8_t a_Player, M_UIMenu_t* const a_UI)
 }
 
 /* M_GenericCleanerFunc() -- Generic Menu Cleaner */
-void M_GenericCleanerFunc(struct M_UIMenuHandler_s* const a_Handler, struct M_UIMenu_s* const a_UIMenu)
+void M_GenericCleanerFunc(const int32_t a_Player, struct M_UIMenuHandler_s* const a_Handler, struct M_UIMenu_s* const a_UIMenu)
 {
 	Z_Free(a_Handler->UIMenu->Items);
 	Z_Free(a_Handler->UIMenu);

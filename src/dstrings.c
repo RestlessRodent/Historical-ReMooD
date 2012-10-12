@@ -306,6 +306,10 @@ StringGroupEX_t UnicodeStrings[NUMUNICODESTRINGS] =
 	{		  "MENUGENERAL_CLASSICSTART", "Start Classic Game"},
 	{			"MENUGENERAL_SKILLLEVEL", "Choose Skill Level"},
 	{			"MENUGENERAL_SELECTEPIS", "Select Episode"},
+	{		 "MENUGENERAL_SELECTPROFILE", "Select Profile"},
+	{		"MENUGENERAL_SELECTTHISPROF", "Use This Profile"},
+	{			"MENUGENERAL_CREATEPROF", "Create Profile"},
+	{		   "MENUGENERAL_CURRENTPROF", "Current Profile"},
 	
 	{				"UIGENERAL_DONTCARE", "Don't Care!"},
 	{					 "UIGENERAL_YES", "Yes"},

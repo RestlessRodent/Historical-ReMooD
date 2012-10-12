@@ -44,7 +44,7 @@
 
 
 /* MS_TextureTestUnderDraw() -- Menu Under Drawer */
-static bool_t MS_TextureTestUnderDraw(struct M_UIMenuHandler_s* const a_Handler, struct M_UIMenu_s* const a_Menu, const int32_t a_X, const int32_t a_Y, const int32_t a_W, const int32_t a_H)
+static bool_t MS_TextureTestUnderDraw(const int32_t a_Player, struct M_UIMenuHandler_s* const a_Handler, struct M_UIMenu_s* const a_Menu, const int32_t a_X, const int32_t a_Y, const int32_t a_W, const int32_t a_H)
 {
 #define BUFSIZE 32
 	texture_t* Texture;
@@ -712,6 +712,8 @@ int M_ExMultiMenuCom(const uint32_t a_ArgC, const char** const a_ArgV)
 			return 1;
 		
 		// Do the runs for a local game
+		for (j = 0; j < MAXSPLITSCREEN; j++)
+			M_ExPopAllMenus(j);
 		D_XNetDisconnect(false);
 		P_XGSSetAllDefaults();
 		D_XNetMakeServer(false, 0);
@@ -942,6 +944,15 @@ bool_t M_MenuDataKeyer(void** a_DataPtr, const int32_t a_Stack, const D_RMODComm
 					
 					if (INFO_BoolFromString(a_Value))
 						THISITEM->Flags |= MUIIF_DISABLED;
+				}
+				
+				// No Parking?
+				else if (strcasecmp("NoPark", a_Field) == 0)
+				{
+					THISITEM->Flags &= ~MUIIF_NOPARK;
+					
+					if (INFO_BoolFromString(a_Value))
+						THISITEM->Flags |= MUIIF_NOPARK;
 				}
 			}
 			

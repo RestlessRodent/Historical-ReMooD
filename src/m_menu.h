@@ -121,10 +121,10 @@ typedef struct M_UIMenu_s
 	M_UIItem_t* Items;							// Items
 	size_t NumItems;							// Number of Items
 	
-	void (*InitFunc)(struct M_UIMenuHandler_s* const a_Handler, struct M_UIMenu_s* const a_UIMenu);
-	void (*CleanerFunc)(struct M_UIMenuHandler_s* const a_Handler, struct M_UIMenu_s* const a_UIMenu);
-	bool_t (*UnderDrawFunc)(struct M_UIMenuHandler_s* const a_Handler, struct M_UIMenu_s* const a_Menu, const int32_t a_X, const int32_t a_Y, const int32_t a_W, const int32_t a_H);
-	bool_t (*OverDrawFunc)(struct M_UIMenuHandler_s* const a_Handler, struct M_UIMenu_s* const a_Menu, const int32_t a_X, const int32_t a_Y, const int32_t a_W, const int32_t a_H);
+	void (*InitFunc)(const int32_t a_Player, struct M_UIMenuHandler_s* const a_Handler, struct M_UIMenu_s* const a_UIMenu);
+	void (*CleanerFunc)(const int32_t a_Player, struct M_UIMenuHandler_s* const a_Handler, struct M_UIMenu_s* const a_UIMenu);
+	bool_t (*UnderDrawFunc)(const int32_t a_Player, struct M_UIMenuHandler_s* const a_Handler, struct M_UIMenu_s* const a_Menu, const int32_t a_X, const int32_t a_Y, const int32_t a_W, const int32_t a_H);
+	bool_t (*OverDrawFunc)(const int32_t a_Player, struct M_UIMenuHandler_s* const a_Handler, struct M_UIMenu_s* const a_Menu, const int32_t a_X, const int32_t a_Y, const int32_t a_W, const int32_t a_H);
 	
 	size_t PrivateSize;							// Size of private data
 } M_UIMenu_t;
@@ -159,9 +159,11 @@ bool_t M_ExUIHandleEvent(const I_EventEx_t* const a_Event);
 void M_ExUIDrawer(void);
 
 M_UIMenuHandler_t* M_ExPushMenu(const uint8_t a_Player, M_UIMenu_t* const a_UI);
-void M_ExPopMenu(const uint8_t a_Player);
+int32_t M_ExPopMenu(const uint8_t a_Player);
+void M_ExPopAllMenus(const uint8_t a_Player);
+int32_t M_ExFirstMenuSpot(const uint8_t a_Player, M_UIMenu_t* const a_UIMenu);
 
-void M_GenericCleanerFunc(struct M_UIMenuHandler_s* const a_Handler, struct M_UIMenu_s* const a_UIMenu);
+void M_GenericCleanerFunc(const int32_t a_Player, struct M_UIMenuHandler_s* const a_Handler, struct M_UIMenu_s* const a_UIMenu);
 
 int32_t M_ExMenuIDByName(const char* const a_Name);
 M_UIMenu_t* M_ExMakeMenu(const int32_t a_MenuID, void* const a_Data);

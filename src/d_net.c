@@ -3728,9 +3728,10 @@ void D_XNetBuildTicCmd(D_XPlayer_t* const a_Player, ticcmd_t* const a_TicCmd)
 /* D_XNetUpdate() -- Updates Extended Network */
 void D_XNetUpdate(void)
 {
-	int32_t i, a;
+	int32_t i, a, j, ScrID;
 	D_XPlayer_t* XPlay;
 	ticcmd_t* TicCmdP;
+	M_UIMenu_t* ProfMenu;
 	
 	/* Not playing? */
 	if (gamestate == GS_DEMOSCREEN || demoplayback)
@@ -3752,6 +3753,24 @@ void D_XNetUpdate(void)
 		// No local players? Give a local player, if possible
 		if (!a)
 		{
+			for (i = 0; i < g_NumXPlays; i++)
+			{
+				// Get player
+				XPlay = g_XPlays[i];
+				
+				// Missing?
+				if (!XPlay)
+					continue;
+				
+				// Local and not a bot?
+				if ((XPlay->Flags & (DXPF_LOCAL | DXPF_BOT)) == DXPF_LOCAL)
+				{
+					g_Splits[0].Waiting = true;
+					g_Splits[0].XPlayer = XPlay;
+					g_Splits[0].ProcessID = XPlay->ID;
+					g_SplitScreen = 1;
+				}
+			}
 		}
 	}	
 	
@@ -3768,6 +3787,50 @@ void D_XNetUpdate(void)
 		// Non-local player?
 		if (!(XPlay->Flags & DXPF_LOCAL))
 			continue;
+		
+		// Map to screen
+		for (ScrID = 0; ScrID < MAXSPLITSCREEN; ScrID++)
+			if (XPlay == g_Splits[ScrID].XPlayer)
+				break;
+		
+		// Illegal?
+		if (ScrID >= MAXSPLITSCREEN)
+			ScrID = -1;
+		
+		// No profile loaded?
+		if (ScrID >= 0)
+			if (!XPlay->Profile)
+			{
+				// Not in level
+				if (gamestate != GS_LEVEL)
+					continue;
+				
+				// Set as needing a profile
+				XPlay->StatusBits |= DXPSB_NEEDSPROFILE;
+				
+				// Check players menus for profile prompt
+				ProfMenu = M_ExMakeMenu(M_ExMenuIDByName("profileselect"), NULL);
+				
+				// Failed?
+				if (!ProfMenu)
+					continue;
+				
+				// See where the menu is
+				a = M_ExFirstMenuSpot(ScrID, ProfMenu);
+			
+				// Not in first spot?
+				if (a != 0)
+				{
+					// Clear all menus and place there
+					M_ExPopAllMenus(ScrID);
+					M_ExPushMenu(ScrID, ProfMenu);
+					g_ResumeMenu++;
+				}
+				continue;
+			}
+		
+		// Does not need profile
+		XPlay->StatusBits &= ~DXPSB_NEEDSPROFILE;
 		
 		// Place tic command at last spot, when possible
 		TicCmdP = NULL;

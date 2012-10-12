@@ -248,6 +248,7 @@ typedef enum D_XPlayerFlags_e
 typedef enum D_XPlayerStatBits_e
 {
 	DXPSB_LBOVERFLOW	= UINT32_C(0x0000001),	// Local buffer overflowing
+	DXPSB_NEEDSPROFILE	= UINT32_C(0x0000002),	// Needs profile loaded
 } D_XPlayerStatBits_t;
 
 /*** STRUCTURES ***/

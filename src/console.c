@@ -979,7 +979,7 @@ static void CONLFF_OutputFF(const char* const a_Buf)
 		return;
 	
 	/* Add messages to queues */
-	CurrentTime = I_GetTime();
+	CurrentTime = g_ProgramTic;
 	for (i = 0; i < MAXSPLITSCREENPLAYERS; i++)
 		if (pNum & (1 << i))	// Only if selected
 		{
