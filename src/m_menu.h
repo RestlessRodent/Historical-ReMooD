@@ -97,6 +97,7 @@ typedef bool_t (*M_UIItemPressFuncType_t)(struct M_UIMenu_s* const a_Menu, struc
 /* M_UIItem_t -- Menu Item */
 typedef struct M_UIItem_s
 {
+	const char* ClassName;						// Class Name for Item
 	struct M_UIMenu_s* Menu;					// Menu Owner
 	uint32_t Flags;								// Flags
 	M_UIItemType_t Type;						// Type of item
@@ -111,12 +112,15 @@ typedef struct M_UIItem_s
 } M_UIItem_t;
 
 struct M_UIMenuHandler_s;
+struct V_Image_s;
 
 /* M_UIMenu_t -- Interface Menu */
 typedef struct M_UIMenu_s
 {
 	uint8_t Junk;								// Junk
+	const char* ClassName;						// Menu Class Name
 	
+	struct V_Image_s* TitlePic;					// Title Picture
 	const char* Title;							// Menu Title
 	const char** TitleRef;						// Title Reference
 	

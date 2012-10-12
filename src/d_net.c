@@ -3720,21 +3720,40 @@ void D_XNetInit(void)
 	CONL_AddCommand("xnet", DS_XNetCon);
 }
 
+/* D_XNetBuildTicCmd() -- Builds tic command for player */
+void D_XNetBuildTicCmd(D_XPlayer_t* const a_Player, ticcmd_t* const a_TicCmd)
+{
+}
+
 /* D_XNetUpdate() -- Updates Extended Network */
 void D_XNetUpdate(void)
 {
-	int32_t i;
+	int32_t i, a;
 	D_XPlayer_t* XPlay;
 	ticcmd_t* TicCmdP;
+	
+	/* Not playing? */
+	if (gamestate == GS_DEMOSCREEN || demoplayback)
+		return;
 	
 	/* Handle local players and splits */ 
 	if (!demoplayback && gamestate != GS_DEMOSCREEN)
 	{
 		// Players in split, but not mapped player?
-		for (i = 0; i < MAXSPLITSCREEN; i++)
-			if (D_ScrSplitHasPlayer(i) && !g_Splits[i].XPlayer)
-				g_Splits[i].XPlayer = D_XNetLocalPlayerByPID(g_Splits[i].ProcessID);
-	}
+		for (a = 0, i = 0; i < MAXSPLITSCREEN; i++)
+			if (D_ScrSplitHasPlayer(i))
+			{
+				a++;
+				
+				if (!g_Splits[i].XPlayer)
+					g_Splits[i].XPlayer = D_XNetLocalPlayerByPID(g_Splits[i].ProcessID);
+			}
+		
+		// No local players? Give a local player, if possible
+		if (!a)
+		{
+		}
+	}	
 	
 	/* Build Local Tic Commands (possibly) */
 	for (i = 0; i < g_NumXPlays; i++)
@@ -3771,7 +3790,7 @@ void D_XNetUpdate(void)
 		
 		// Human player
 		else
-			;
+			D_XNetBuildTicCmd(XPlay, TicCmdP);
 	}
 }
 

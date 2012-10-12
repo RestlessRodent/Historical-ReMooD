@@ -441,6 +441,28 @@ static M_UIItem_t* MS_AddNewItem(M_UIMenu_t* a_Menu, const M_UIItemType_t a_Type
 	return NewItem;
 }
 
+static M_UIMenu_t** l_PreMenus;					// Pre-Created Menus
+static size_t l_NumPreMenus;					// Number of them
+
+/* M_MenuIDByName() -- Returns menu ID by name */
+int32_t M_MenuIDByName(const char* const a_Name)
+{
+	int32_t MenuID;
+	
+	/* Check */
+	if (!a_Name)
+		return l_NumPreMenus;
+		
+	/* Go through menus */
+	for (MenuID = 0; MenuID < l_NumPreMenus; MenuID++)
+		if (l_PreMenus[MenuID])
+			if (strcasecmp(l_PreMenus[MenuID]->ClassName, a_Name) == 0)
+				return MenuID;
+	
+	/* Not found */
+	return l_NumPreMenus;
+}
+
 /* CLC_ExMakeMenuCom() -- Makes menu for someone */
 int CLC_ExMakeMenuCom(const uint32_t a_ArgC, const char** const a_ArgV)
 {
@@ -482,19 +504,15 @@ int CLC_ExMakeMenuCom(const uint32_t a_ArgC, const char** const a_ArgV)
 	
 	// By Name
 	else
-		for (MenuID = 0; MenuID < NUMMNEWMENUIDS; MenuID++)
-			if (strcasecmp(c_NewMenuName[MenuID], a_ArgV[1]) == 0)
-				break;
+		MenuID = M_MenuIDByName(a_ArgV[1]);
 	
 	/* Check Menu */
-	if (MenuID < 0 || MenuID >= NUMMNEWMENUIDS)
+	if (MenuID < 0 || MenuID >= l_NumPreMenus)
 		return 0;
 	
 	/* Create Menu */
-	return !!M_ExPushMenu(PlayerID, M_ExMakeMenu(MenuID, NULL));;
+	return !!M_ExPushMenu(PlayerID, M_ExMakeMenu(MenuID, NULL));
 }
-
-static M_UIMenu_t* l_PreMenus[NUMMNEWMENUIDS];	// Pre-Created Menus
 
 /* M_ExMakeMenu() -- Creates a new menu */
 M_UIMenu_t* M_ExMakeMenu(const M_NewMenuID_t a_MenuID, void* const a_Data)
@@ -502,13 +520,13 @@ M_UIMenu_t* M_ExMakeMenu(const M_NewMenuID_t a_MenuID, void* const a_Data)
 	M_UIMenu_t* NewMenu;
 	
 	/* Check */
-	if (a_MenuID < 0 || a_MenuID >= NUMMNEWMENUIDS)
+	if (a_MenuID < 0 || a_MenuID >= l_NumPreMenus)
 		return NULL;
 	
-	/* Already created? */
-	if (l_PreMenus[a_MenuID])
-		return l_PreMenus[a_MenuID];
-	
+	/* Return Created Menu */
+	return l_PreMenus[a_MenuID];
+
+#if 0
 	/* Init Base */
 	NewMenu = Z_Malloc(sizeof(*NewMenu), PU_STATIC, NULL);
 	
@@ -551,43 +569,183 @@ M_UIMenu_t* M_ExMakeMenu(const M_NewMenuID_t a_MenuID, void* const a_Data)
 	
 	/* Return the created menu */
 	return NewMenu;
+#endif
 }
 
 /***************************************************
 *** REMOODAT/RMD_MENU -- DYNAMIC MENU GENERATION ***
 ***************************************************/
 
+/*** STRUCTURES ***/
+
+/* M_RDATInfo_t -- ReMooD Data Info */
+typedef struct M_RDATInfo_s
+{
+	M_UIMenu_t* AMenu;
+	int32_t AItem;
+} M_RDATInfo_t;
+
 /*** FUNCTIONS ***/
 
 /* M_MenuDataKeyer() -- Handles menus */
 bool_t M_MenuDataKeyer(void** a_DataPtr, const int32_t a_Stack, const D_RMODCommand_t a_Command, const char* const a_Field, const char* const a_Value)
 {
+#define THISMENU ((*InfoPP)->AMenu)
+#define THISITEM (&THISMENU->Items[(*InfoPP)->AItem])
+	M_RDATInfo_t** InfoPP;
+	int32_t i;
+	const char** SRef;
+	
+	/* Get Active Menu */
+	InfoPP = NULL;
+	if (a_DataPtr)
+		InfoPP = a_DataPtr;
+	
 	/* Which Command? */
 	switch (a_Command)
 	{
 			// Opening {
 		case DRC_OPEN:
-		
+			// Creating Fresh Menu?
+			if (a_Stack == 1 && strcasecmp(a_Field, "Menu") == 0)
+			{
+				// Switch to menu
+				i = M_MenuIDByName(a_Value);
+				
+				// Legal?
+				if (i >= 0 && i < l_NumPreMenus)
+					THISMENU = l_PreMenus[i];
+				
+				// Otherwise, append to the list
+				else
+				{
+					Z_ResizeArray((void**)&l_PreMenus, sizeof(*l_PreMenus),
+						l_NumPreMenus, l_NumPreMenus + 1);
+					THISMENU = l_PreMenus[l_NumPreMenus++] =
+						Z_Malloc(sizeof(*THISMENU), PU_MENUDAT, NULL);
+						
+					// Set class name
+					THISMENU->ClassName = Z_StrDup(a_Value, PU_MENUDAT, NULL);
+				}
+			}
+			
+			// Creating Menu Item?
+			else if (a_Stack == 2 && strcasecmp(a_Field, "Item") == 0)
+			{
+				// See if item already exists
+				for (i = 0; i < THISMENU->NumItems; i++)
+					if (strcasecmp(a_Value, THISMENU->Items[i].ClassName) == 0)
+						break;
+				
+				// Not found?
+				if (i >= THISMENU->NumItems)
+				{
+					Z_ResizeArray((void**)&THISMENU->Items,
+						sizeof(*THISMENU->Items),
+						THISMENU->NumItems, THISMENU->NumItems + 1);
+					
+					// Select this one now
+					(*InfoPP)->AItem = THISMENU->NumItems++;
+					
+					// Set class name
+					THISITEM->ClassName = Z_StrDup(a_Value, PU_MENUDAT, NULL);
+				}
+				
+				// Select here
+				else
+					(*InfoPP)->AItem = &THISMENU->Items[i];
+			}
+			
 			return true;
 			
 			// Closing }
 		case DRC_CLOSE:
+			// Close Item
+			if (a_Stack == 2)
+			{
+				(*InfoPP)->AItem = -1;
+			}
+			
+			// Close Menu
+			else if (a_Stack == 1)
+			{
+				THISMENU = NULL;
+			}
 			return true;
 			
 			// Data Entry
 		case DRC_DATA:
+			// Menu Properties
+			if (a_Stack == 1 && THISMENU)
+			{
+				// Menu Picture?
+				if (strcasecmp("TitlePic", a_Field) == 0)
+				{
+					THISMENU->TitlePic = V_ImageFindA(a_Value, 0);
+				}
+				
+				// Menu Title?
+				else if (strcasecmp("Title", a_Field) == 0)
+				{
+					SRef = DS_FindStringRef(a_Value);
+					
+					// Reference found?
+					if (SRef)
+						THISMENU->TitleRef = SRef;
+					
+					// Otherwise, direct string
+					else
+						THISMENU->Title = Z_StrDup(a_Value, PU_MENUDAT, NULL);
+				}
+			}
+			
+			// Item Properties
+			else if (a_Stack == 2 && (*InfoPP)->AItem != -1)
+			{
+				// Item Text?
+				if (strcasecmp("Text", a_Field) == 0)
+				{
+					SRef = DS_FindStringRef(a_Value);
+					
+					// Reference found?
+					if (SRef)
+						THISITEM->TextRef = SRef;
+					
+					// Otherwise, direct string
+					else
+						THISITEM->Text = Z_StrDup(a_Value, PU_MENUDAT, NULL);
+				}
+			}
+			
 			return true;
 			
 			// Initialize
 		case DRC_INIT:
+			(*InfoPP) = Z_Malloc(sizeof(*(*InfoPP)), PU_MENUDAT, NULL);
 			return true;
 			
 			// Finalize
 		case DRC_FINAL:
+			Z_Free((*InfoPP));
 			return true;
 			
 			// First Time
 		case DRC_FIRST:
+			// Delete all menus
+			if (l_PreMenus)
+			{
+				// Delete inner defined menus
+				for (i = 0; i < l_NumPreMenus; i++)
+					if (l_PreMenus[i])
+						Z_Free(l_PreMenus[i]);
+				
+				// Free
+				Z_Free(l_PreMenus);
+				l_NumPreMenus = NULL;
+			}
+			
+			// Free Tags
+			Z_FreeTags(PU_MENUDAT, PU_MENUDAT);
 			return true;
 			
 			// Last Time

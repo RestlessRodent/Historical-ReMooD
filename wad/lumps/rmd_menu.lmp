@@ -3,8 +3,22 @@ Menu "hello"
 	Title "MENUGENERAL_HELLOWORLD";
 }
 
-Menu "newgame"
+Menu "mainmenu"
 {
-	Title "MENUNEWGAME_TITLE";
+	TitlePic "M_DOOM";
+	Title "MENUGENERAL_MAINMENU";
+	
+	Item "sologame"
+	{
+		Text "MENUGENERAL_SOLOGAME";
+		
+		SelectFunc "SubMenu";
+		SelectVal "solomain";
+	}
+}
+
+Menu "solomain"
+{
+	Title "MENUGENERAL_SOLOGAME";
 }
 

@@ -523,17 +523,27 @@ void M_ExMenuDrawer(void)
 		// Base
 		y = ScrY + 4;
 		
-		// Draw Title?
-		if (UI->TitleRef)
-			TitleStr = *UI->TitleRef;
-		else
-			TitleStr = UI->Title;
-			
-		// Draw if set
-		if (TitleStr)
+		// Draw Title Picture?
+		if (UI->TitlePic)
 		{
-			V_DrawStringA(VFONT_LARGE, 0, TitleStr, ScrX, ScrY + 2);
-			y += V_FontHeight(VFONT_LARGE) + 4;
+			V_ImageDraw(0, UI->TitlePic, 0, y, NULL);
+			y += UI->TitlePic->Height;
+		}
+		
+		// Draw Title Text
+		else
+		{
+			if (UI->TitleRef)
+				TitleStr = *UI->TitleRef;
+			else
+				TitleStr = UI->Title;
+			
+			// Draw if set
+			if (TitleStr)
+			{
+				V_DrawStringA(VFONT_LARGE, 0, TitleStr, ScrX, ScrY + 2);
+				y += V_FontHeight(VFONT_LARGE) + 4;
+			}
 		}
 		
 		// Base Position

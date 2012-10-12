@@ -300,6 +300,8 @@ StringGroupEX_t UnicodeStrings[NUMUNICODESTRINGS] =
 	{		"MENUGENERAL_NEWGAMEISLOCAL", "Local System"},
 	{	   "MENUGENERAL_NEWGAMEISSERVER", "Network Server"},
 	{		  "MENUGENERAL_NEWGAMELEVEL", "Level"},
+	{			  "MENUGENERAL_SOLOGAME", "Single Player"},
+	{			  "MENUGENERAL_MAINMENU", "Main Menu"},
 	
 	/*** INTERMISSION ***/
 	{"INTERMISSION_FINISHED", "Finished"},
