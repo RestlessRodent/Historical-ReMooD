@@ -1043,7 +1043,7 @@ static int PS_EXGSGeneralComm(const uint32_t a_ArgC, const char** const a_ArgV)
 			}
 			
 			// Success!
-			return CLE_SUCCESS;
+			return 0;
 		}
 		
 		// Two Arguments = Get value of setting
@@ -1054,14 +1054,14 @@ static int PS_EXGSGeneralComm(const uint32_t a_ArgC, const char** const a_ArgV)
 			
 			// Not found?
 			if (!Var)
-				return CLE_UNKNOWNVARIABLE;
+				return 1;
 			
 			// Return value and information
 			CONL_PrintF("{4%-30s{z \"{7%s{z\"\n", Var->Name, Var->MenuTitle);
 			CONL_PrintF("  Desc: %s\n", Var->Description);
 			CONL_PrintF("  Valu: %i\n", P_XGSVal(Var->BitID));
 			
-			return CLE_SUCCESS;
+			return 0;
 		}
 		
 		// Other arguments = Set value of setting
@@ -1072,12 +1072,12 @@ static int PS_EXGSGeneralComm(const uint32_t a_ArgC, const char** const a_ArgV)
 			
 			// Not found?
 			if (!Var)
-				return CLE_UNKNOWNVARIABLE;
+				return 1;
 			
 			// Set value
 			P_XGSSetValueStr(false, Var->BitID, a_ArgV[2]);
 			
-			return CLE_SUCCESS;
+			return 0;
 		}
 	}
 	
@@ -1105,11 +1105,11 @@ static int PS_EXGSGeneralComm(const uint32_t a_ArgC, const char** const a_ArgV)
 		}
 		
 		// Success!
-		return CLE_SUCCESS;
+		return 0;
 	}
 	
 	/* Unknown */
-	return CLE_INVALIDARGUMENT;
+	return 1;
 }
 
 /* PS_EXGSValToStr() -- Convert Value to String */

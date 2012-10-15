@@ -698,7 +698,7 @@ static int DS_NetMultiComm(const uint32_t a_ArgC, const char** const a_ArgV)
 	{
 		D_NCServize();
 		
-		return CLE_SUCCESS;
+		return 0;
 	}
 	
 	/* Connect */
@@ -708,7 +708,7 @@ static int DS_NetMultiComm(const uint32_t a_ArgC, const char** const a_ArgV)
 		if (a_ArgC < 2)
 		{
 			CONL_PrintF("%s <address> (password) (join password)", a_ArgV[0]);
-			return CLE_FAILURE;
+			return 1;
 		}
 		
 		// Determination loop
@@ -737,10 +737,10 @@ static int DS_NetMultiComm(const uint32_t a_ArgC, const char** const a_ArgV)
 				// Attempt connect to server
 				D_NCClientize(l_Clients[nc], &Host, (a_ArgC >= 3 ? a_ArgV[2] : ""), (a_ArgC >= 4 ? a_ArgV[3] : ""));
 				
-				return CLE_SUCCESS;
+				return 0;
 			}
 		
-		return CLE_FAILURE;
+		return 1;
 	}
 	
 	/* Disconnect */
@@ -750,7 +750,7 @@ static int DS_NetMultiComm(const uint32_t a_ArgC, const char** const a_ArgV)
 		D_NCDisconnect(false);
 		
 		// Success!
-		return CLE_SUCCESS;
+		return 0;
 	}
 	
 	/* Reconnect */
@@ -762,13 +762,13 @@ static int DS_NetMultiComm(const uint32_t a_ArgC, const char** const a_ArgV)
 		
 		// No server found?
 		if (!ServerNC)
-			return CLE_FAILURE;
+			return 1;
 		
 		// We are the server?
 		if (ServerNC->IsServer && ServerNC->IsLocal)
 		{
 			CONL_OutputU(DSTR_NET_RECONNECTYOUARESERVER, "\n");
-			return CLE_FAILURE;
+			return 1;
 		}
 		
 		// Copy host
@@ -782,12 +782,12 @@ static int DS_NetMultiComm(const uint32_t a_ArgC, const char** const a_ArgV)
 		D_NCClientize(ServerNC, &Host, NULL, NULL);
 		
 		// Success! I hope
-		return CLE_SUCCESS;
+		return 0;
 	}
 #endif
 	
 	/* Failure */
-	return CLE_FAILURE;
+	return 1;
 #undef BUFSIZE
 }
 

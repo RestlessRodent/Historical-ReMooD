@@ -57,25 +57,6 @@
 #define CONLSCROLLBACK 0						// Backcolor of the scrollbar
 #define CONLSCROLLMISS 200						// Missed color for scrollbar
 
-/* int -- Exit code for console command */
-enum CONL_ExitCode_e
-{
-	CLE_SUCCESS,								// Success.
-	CLE_FAILURE,								// Failure.
-	CLE_NOTANERRORSTRING,						// Invalid Error String
-	CLE_CRITICALFAILURE,						// Critical Failure
-	CLE_UNKNOWNCOMMAND,							// Unknown Command
-	CLE_UNKNOWNVARIABLE,						// Unknown Variable
-	CLE_INVALIDARGUMENT,						// Invalid argument
-	CLE_RESOURCENOTFOUND,						// Something was not found (file, wad, lump, url, etc.)
-	CLE_CONNECTIONREFUSED,						// Refused Connection
-	CLE_DISKREADONLY,							// The disk is read only
-	CLE_PERMISSIONDENIED,						// Not allowed to do this
-	CLE_UNKNOWNSUBCOMMAND,						// Unknown sub command
-	
-	NUMCONLEXITCODES
-};
-
 /*** Console Variables ***/
 
 #define MAXCONLVARIABLENAME		128				// Max name for console command

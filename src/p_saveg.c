@@ -63,25 +63,25 @@ static int CLC_SaveGame(const uint32_t a_ArgC, const char** const a_ArgV)
 	if (a_ArgC < 2)
 	{
 		CONL_OutputF("Usage: %s \"<filename>\"\n", a_ArgV[0]);
-		return CLE_INVALIDARGUMENT;
+		return 1;
 	}
 	
 	/* Save the game */
 	if (strcasecmp(a_ArgV[0], "save") == 0)
 	{
 		if (P_SaveGameEx(NULL, a_ArgV[1], strlen(a_ArgV[1]), NULL, NULL))
-			return CLE_SUCCESS;
+			return 0;
 	}
 	
 	/* Load the game */
 	else if (strcasecmp(a_ArgV[0], "load") == 0)
 	{
 		if (P_LoadGameEx(NULL, a_ArgV[1], strlen(a_ArgV[1]), NULL, NULL))
-			return CLE_SUCCESS;
+			return 0;
 	}
 	
 	/* Return success always */
-	return CLE_FAILURE;
+	return 1;
 }
 
 /* P_InitSGConsole() -- Initialize save command */

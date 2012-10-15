@@ -113,7 +113,7 @@ static int WLS_MultiCom(const uint32_t a_ArgC, const char** const a_ArgV)
 		if (a_ArgC < 2)
 		{
 			CONL_PrintF("%s <wad>\n", a_ArgV[0]);
-			return CLE_FAILURE;
+			return 1;
 		}
 		
 		// Try opening the WAD
@@ -123,14 +123,14 @@ static int WLS_MultiCom(const uint32_t a_ArgC, const char** const a_ArgV)
 		if (!WAD)
 		{
 			CONL_PrintF("WAD: Failed to open WAD\n");
-			return CLE_FAILURE;
+			return 1;
 		}
 		
 		// Add to VWAD stack
 		WL_PushWAD(WAD);
 		
 		// Success!
-		return CLE_SUCCESS;
+		return 0;
 	}
 	
 	/* Pop Top-Most WAD */
@@ -146,14 +146,14 @@ static int WLS_MultiCom(const uint32_t a_ArgC, const char** const a_ArgV)
 		if (!WAD || (WAD && WAD == ReMooDWAD))
 		{
 			CONL_PrintF("WAD: Nothing to pop\n");
-			return CLE_FAILURE;
+			return 1;
 		}
 		
 		// Pop it
 		WL_PopWAD();
 		
 		// Success!
-		return CLE_SUCCESS;
+		return 0;
 	}
 	
 	/* Change IWAD */
@@ -163,7 +163,7 @@ static int WLS_MultiCom(const uint32_t a_ArgC, const char** const a_ArgV)
 		if (a_ArgC < 2)
 		{
 			CONL_PrintF("%s <iwad>\n", a_ArgV[0]);
-			return CLE_FAILURE;
+			return 1;
 		}
 		
 		// Open the specified IWAD (will need it)
@@ -173,7 +173,7 @@ static int WLS_MultiCom(const uint32_t a_ArgC, const char** const a_ArgV)
 		if (!NewWAD)
 		{
 			CONL_PrintF("WAD: Failed to open WAD\n");
-			return CLE_FAILURE;
+			return 1;
 		}
 		
 		// Lock OCCB (Massive changes)
@@ -199,7 +199,7 @@ static int WLS_MultiCom(const uint32_t a_ArgC, const char** const a_ArgV)
 		WL_LockOCCB(false);
 	}
 	
-	return CLE_FAILURE;
+	return 1;
 }
 
 /* WL_Init() -- Initializes the WL Code */

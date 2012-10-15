@@ -1377,7 +1377,7 @@ static int PCLC_Maps(const uint32_t a_ArgC, const char** const a_ArgV)
 	
 	/* No maps? */
 	if (!l_NumCompInfos)
-		return CLE_RESOURCENOTFOUND;
+		return 1;
 	
 	/* Go through list */
 	for (i = 0; i < l_NumCompInfos; i++)
@@ -1399,7 +1399,7 @@ static int PCLC_Maps(const uint32_t a_ArgC, const char** const a_ArgV)
 	CONL_PrintF("\n");
 	
 	/* Always success */
-	return CLE_SUCCESS;
+	return 0;
 }
 
 /* PCLC_MapInfo() -- Prints all available information on a map */
@@ -1409,14 +1409,14 @@ static int PCLC_MapInfo(const uint32_t a_ArgC, const char** const a_ArgV)
 	
 	/* Check */
 	if (a_ArgC < 2)
-		return CLE_INVALIDARGUMENT;
+		return 1;
 	
 	/* Locate map */
 	Map = P_FindLevelByNameEx(a_ArgV[1], NULL);
 	
 	// Not found?
 	if (!Map)
-		return CLE_RESOURCENOTFOUND;
+		return 1;
 	
 	/* Print information on map */
 	CONL_PrintF("{zFormat of map is {3%s{z.\n", (Map->Type.Text ? "Textual" : (Map->Type.Hexen ? "Hexen" : "Doom")));
@@ -1447,7 +1447,7 @@ static int PCLC_MapInfo(const uint32_t a_ArgC, const char** const a_ArgV)
 	CONL_PrintF("{1  {z: {9%s{z\n", Map->);*/
 	
 	/* Success! */
-	return CLE_SUCCESS;
+	return 0;
 }
 
 /* P_PrepareLevelInfoEx() -- Prepare extended level info */

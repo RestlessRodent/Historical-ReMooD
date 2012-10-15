@@ -761,7 +761,7 @@ static int SCLC_SoundMulti(const uint32_t a_ArgC, const char** const a_ArgV)
 {
 	/* Check */
 	if (a_ArgC < 2)
-		return CLE_FAILURE;
+		return 1;
 	
 	/* Play Song */
 	if (strcasecmp(a_ArgV[0], "soundchangemus") == 0)
@@ -775,7 +775,7 @@ static int SCLC_SoundMulti(const uint32_t a_ArgC, const char** const a_ArgV)
 	}
 	
 	/* Success */
-	return CLE_SUCCESS;
+	return 0;
 }
 
 /* S_RegisterSoundStuff() -- Register the sound console variables */

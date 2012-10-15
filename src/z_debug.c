@@ -950,7 +950,7 @@ static int ZS_DEBUG_MemInfo(const uint32_t a_ArgC, const char** const a_ArgV)
 	CONL_PrintF("{zPartSiz: {3%8u{zKiB\n", PBytes >> 10);
 	
 	/* Success */
-	return CLE_SUCCESS;
+	return 0;
 }
 
 /* ZS_DEBUG_MemCacheFree() -- "memcachefree" -- Free all cached memory */
@@ -965,7 +965,7 @@ static int ZS_DEBUG_MemCacheFree(const uint32_t a_ArgC, const char** const a_Arg
 	CONL_PrintF("Freed %u blocks.\n", FreeCount);
 	
 	/* Success */
-	return CLE_SUCCESS;
+	return 0;
 }
 
 /* ZS_DEBUG_MemFrag() -- "memfrag" -- Show memory fragmentation */
@@ -1062,7 +1062,7 @@ static int ZS_DEBUG_MemFrag(const uint32_t a_ArgC, const char** const a_ArgV)
 	CONL_PrintF("{z\n");
 	
 	/* Success */
-	return CLE_SUCCESS;
+	return 0;
 }
 
 #if defined(_DEBUG)
@@ -1109,7 +1109,7 @@ static int ZS_DEBUG_MemTrash(const uint32_t a_ArgC, const char** const a_ArgV)
 	fclose(f);
 	
 	/* Success */
-	return CLE_SUCCESS;
+	return 0;
 }
 #endif
 

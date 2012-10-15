@@ -253,7 +253,7 @@ static int DS_NCSNetCommand(const uint32_t a_ArgC, const char** const a_ArgV)
 	
 	/* Check */
 	if (a_ArgC < 2)
-		return CLE_INVALIDARGUMENT;
+		return 1;
 	
 	/* Which Sub Command? */
 	// Internal add Player
@@ -262,7 +262,7 @@ static int DS_NCSNetCommand(const uint32_t a_ArgC, const char** const a_ArgV)
 		if (devparm)
 			CONL_PrintF("NET: Requesting the server add local player.\n");
 		D_NCLocalPlayerAdd((a_ArgC >= 3 ? a_ArgV[2] : NULL), false, g_SplitScreen, INT_MAX, false);
-		return CLE_SUCCESS;
+		return 0;
 	}
 	
 	// Internal add bot
@@ -271,7 +271,7 @@ static int DS_NCSNetCommand(const uint32_t a_ArgC, const char** const a_ArgV)
 		if (devparm)
 			CONL_PrintF("NET: Requesting the server add local bot.\n");
 		D_NCLocalPlayerAdd((a_ArgC >= 3 ? a_ArgV[2] : NULL), true, g_SplitScreen, INT_MAX, false);
-		return CLE_SUCCESS;
+		return 0;
 	}
 	
 	// Internal spectate
@@ -280,7 +280,7 @@ static int DS_NCSNetCommand(const uint32_t a_ArgC, const char** const a_ArgV)
 	}
 	
 	/* Success */
-	return CLE_SUCCESS;
+	return 0;
 }
 
 /* D_NCSInit() -- Initialize network client/server */

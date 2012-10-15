@@ -201,7 +201,7 @@ static int PCLC_Map(const uint32_t a_ArgC, const char** const a_ArgV)
 	
 	/* Check */
 	if (a_ArgC < 2)
-		return CLE_INVALIDARGUMENT;
+		return 1;
 	
 	/* Request Map */
 #if defined(__REMOOD_NCSNET)
@@ -209,7 +209,7 @@ static int PCLC_Map(const uint32_t a_ArgC, const char** const a_ArgV)
 	D_XNetChangeMap(a_ArgV[1]);
 	
 	// Return success
-	return CLE_SUCCESS;
+	return 0;
 #else
 	
 	/* Locate map */
@@ -217,7 +217,7 @@ static int PCLC_Map(const uint32_t a_ArgC, const char** const a_ArgV)
 	
 	// Not found?
 	if (!Info)
-		return CLE_RESOURCENOTFOUND;
+		return 1;
 	
 	/* Switching levels */
 	if (strcasecmp(a_ArgV[0], "switchmap") == 0)
@@ -244,10 +244,10 @@ static int PCLC_Map(const uint32_t a_ArgC, const char** const a_ArgV)
 	
 	/* Load level */
 	if (P_ExLoadLevel(Info, true))
-		return CLE_SUCCESS;
+		return 0;
 	
 	/* Failed */
-	return CLE_FAILURE;
+	return 1;
 #endif
 }
 

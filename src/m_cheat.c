@@ -1147,7 +1147,7 @@ static int MS_MultiCheatCommand(const uint32_t a_ArgC, const char** const a_ArgV
 	
 	/* Check */
 	if (a_ArgC < 2)
-		return CLE_INVALIDARGUMENT;
+		return 1;
 	
 	/* See if cheating is permitted in this game */
 	
@@ -1159,7 +1159,7 @@ static int MS_MultiCheatCommand(const uint32_t a_ArgC, const char** const a_ArgV
 			l_LocalCheats[i].Command(&players[g_Splits[0].Console], a_ArgC - 2, a_ArgV + 2);
 	
 	/* Return */
-	return CLE_SUCCESS;
+	return 0;
 }
 
 /* M_CheatInit() -- Initialize Cheating */

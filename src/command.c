@@ -222,7 +222,7 @@ const CONL_VarPossibleValue_t c_CVPVFont[] =
 
 /*** COMMANDS ***/
 
-static int g_CONLError = CLE_SUCCESS;			// '? command' Exit Code
+static int g_CONLError = 0;			// '? command' Exit Code
 
 static CONL_ConCommand_t* l_CONLCommands = NULL;			// Console commands
 static size_t l_CONLNumCommands = 0;						// Number of commands
@@ -369,25 +369,15 @@ static CONL_ConVariable_t* CONLS_PushVar(const char* const a_Name, CONL_StaticVa
 /* CONL_ExitCodeToStr() -- Converts exit code to string */
 const char* CONL_ExitCodeToStr(const int a_Code)
 {
-	static const char* const CodeStrs[NUMCONLEXITCODES] =
+	static const char* const CodeStrs[2] =
 	{
-		"Success",				// CLE_SUCCESS
-		"Failure",				// CLE_FAILURE
-		"Not An Error String",	// CLE_NOTANERRORSTRING
-		"Critical Failure",		// CLE_CRITICALFAILURE
-		"Unknown Command",		// CLE_UNKNOWNCOMMAND
-		"Unknown Variable",		// CLE_UNKNOWNVARIABLE
-		"Invalid Argument",		// CLE_INVALIDARGUMENT
-		"Resource Not Found",	// CLE_RESOURCENOTFOUND
-		"Connection Refused",	// CLE_CONNECTIONREFUSED
-		"Read-only Medium",		// CLE_DISKREADONLY
-		"Permission Denied",	// CLE_PERMISSIONDENIED
-		"Unknown Sub-Command",	// CLE_UNKNOWNSUBCOMMAND
+		"Success",				// 0
+		"Failure",				// 1
 	};
 	
 	/* Return static char */
-	if (a_Code >= NUMCONLEXITCODES || a_Code < 0)
-		return CodeStrs[CLE_NOTANERRORSTRING];
+	if (a_Code >= 2 || a_Code < 0)
+		return CodeStrs[1];
 	return CodeStrs[a_Code];
 }
 
@@ -437,7 +427,7 @@ int CONL_Exec(const uint32_t a_ArgC, const char** const a_ArgV)
 	
 	/* Check */
 	if (!a_ArgC || !a_ArgV)
-		return CLE_CRITICALFAILURE;
+		return 1;
 	
 	/* Find hash for command */
 	Hash = Z_Hash(a_ArgV[0]);
@@ -449,7 +439,7 @@ int CONL_Exec(const uint32_t a_ArgC, const char** const a_ArgV)
 	// Check, if not found try variables
 	if (ComNum >= l_CONLNumCommands)
 	{
-		return CLE_UNKNOWNCOMMAND;	// not found
+		return 1;	// not found
 	}
 	
 	/* Execute */
@@ -859,7 +849,7 @@ int CLC_Version(const uint32_t a_ArgC, const char** const a_ArgV)
 	CONL_OutputF("  Please visit %s for more information.\n", REMOOD_URL);
 	
 	/* Return success always */
-	return CLE_SUCCESS;
+	return 0;
 }
 
 /* CLC_Exec() -- Execute command */
@@ -878,7 +868,7 @@ int CLC_ExecFile(const uint32_t a_ArgC, const char** const a_ArgV)
 	
 	/* Check */
 	if (a_ArgC < 2)
-		return CLE_INVALIDARGUMENT;
+		return 1;
 		
 	/* Message */
 	CONL_PrintF("Executing \"%s\"...\n", a_ArgV[1]);
@@ -888,7 +878,7 @@ int CLC_ExecFile(const uint32_t a_ArgC, const char** const a_ArgV)
 	
 	// Failed?
 	if (!File)
-		return CLE_RESOURCENOTFOUND;
+		return 1;
 	
 	/* Constantly read file */
 	while (!feof(File))
@@ -912,7 +902,7 @@ int CLC_ExecFile(const uint32_t a_ArgC, const char** const a_ArgV)
 	fclose(File);
 	
 	/* Success */
-	return CLE_SUCCESS;
+	return 0;
 #undef BUFSIZE
 }
 
@@ -932,7 +922,7 @@ int CLC_Echo(const uint32_t a_ArgC, const char** const a_ArgV)
 	CONL_PrintF("\n");
 	
 	/* Always works */
-	return CLE_SUCCESS;
+	return 0;
 }
 
 /* CLC_Exclamation() -- Runs command and reverses error status */
@@ -945,9 +935,9 @@ int CLC_Exclamation(const uint32_t a_ArgC, const char** const a_ArgV)
 	
 	/* Which do we return? */
 	if (!Code)
-		return CLE_FAILURE;
+		return 1;
 	else
-		return CLE_SUCCESS;
+		return 0;
 }
 
 /* CLC_Question() -- Runs command and sets error number */
@@ -962,7 +952,7 @@ int CLC_Question(const uint32_t a_ArgC, const char** const a_ArgV)
 	g_CONLError = Code;
 	
 	/* Always succeed */
-	return CLE_SUCCESS;
+	return 0;
 }
 
 /* CLC_CVarList() -- List console variables */
@@ -976,11 +966,11 @@ int CLC_CVarList(const uint32_t a_ArgC, const char** const a_ArgV)
 	
 	/* Check */
 	if (!a_ArgC || !a_ArgV)
-		return CLE_INVALIDARGUMENT;
+		return 1;
 	
 	/* No Variables? */
 	if (!l_CONLNumVariables)
-		return CLE_RESOURCENOTFOUND;
+		return 1;
 	
 	/* Go through variable list */
 	for (i = 0; i < l_CONLNumVariables; i++)
@@ -1052,7 +1042,7 @@ int CLC_CVarList(const uint32_t a_ArgC, const char** const a_ArgV)
 	}
 	
 	/* Success! */
-	return CLE_SUCCESS;
+	return 0;
 #undef BUFSIZE
 }
 
@@ -1065,7 +1055,7 @@ int CLC_CVarSet(const uint32_t a_ArgC, const char** const a_ArgV)
 	
 	/* Requires three arguments */
 	if (a_ArgC < 3)
-		return CLE_INVALIDARGUMENT;
+		return 1;
 	
 	/* Set value */
 	RealValue = CONL_VarSetStrByName(a_ArgV[1], a_ArgV[2]);
@@ -1079,7 +1069,7 @@ int CLC_CVarSet(const uint32_t a_ArgC, const char** const a_ArgV)
 		CONL_PrintF("{z{3%s{z was set to \"{5%s{z\".\n", a_ArgV[1], Buf);
 	
 	/* Success */
-	return CLE_SUCCESS;
+	return 0;
 #undef BUFSIZE
 }
 
@@ -1090,7 +1080,7 @@ int CLC_Quit(const uint32_t a_ArgC, const char** const a_ArgV)
 	I_Quit();
 	
 	/* Success */
-	return CLE_SUCCESS;
+	return 0;
 }
 
 /* CLC_CloseConsole() -- Close the console */
@@ -1100,7 +1090,7 @@ int CLC_CloseConsole(const uint32_t a_ArgC, const char** const a_ArgV)
 	CONL_SetActive(false);
 	
 	/* Success */
-	return CLE_SUCCESS;
+	return 0;
 }
 
 

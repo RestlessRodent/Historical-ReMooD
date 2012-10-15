@@ -2348,7 +2348,7 @@ static int CLC_PlayDemo(const uint32_t a_ArgC, const char** const a_ArgV)
 	if (a_ArgC < 2)
 	{
 		CONL_PrintF("Usage: %s <Demo Name>\n", a_ArgV[0]);
-		return CLE_FAILURE;
+		return 1;
 	}
 	
 	/* Stop old demo from playing */
