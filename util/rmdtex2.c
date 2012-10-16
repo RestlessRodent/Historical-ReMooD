@@ -27,18 +27,16 @@
 *** INCLUDES ***
 ***************/
 
-/* Standard Includes Everyone Has */
-
-/***************
-*** INCLUDES ***
-***************/
-
 #include <stdio.h>
 #include <stdlib.h>
 #include <stddef.h>
 #include <limits.h>
 #include <string.h>
 #include <ctype.h>
+#include <sys/stat.h>
+#include <sys/types.h>
+#include <unistd.h>
+#include <errno.h>
 
 /* C99 Complaint Compilers */
 #if (__STDC_VERSION__ >= 199901L) || defined(__GNUC__) || defined(__WATCOMC__)
@@ -67,6 +65,12 @@
 		#define PATH_MAX 4096
 	#endif
 #endif
+
+typedef enum
+{
+	false,
+	true
+} bool_t;
 
 /********************
 *** BYTE SWAPPING ***
@@ -105,9 +109,13 @@ static uint32_t LittleSwapUInt32(const uint32_t In)
 /* main() -- Main entry point */
 int main(int argc, char** argv)
 {
-	int Regen, WADExists;
-	char* TXTName, *WADName;
+#define BUFSIZE 128
+	char Buf[BUFSIZE];
+	int en, len, i;
+	bool_t Regen, WADExists;
+	char* TXTName, *WADName, *d, *s;
 	struct stat StatBuf;
+	FILE* TXTFile, *WADFile;
 	
 	time_t WADDate, TXTDate;
 	
@@ -127,8 +135,19 @@ int main(int argc, char** argv)
 	stat(TXTName, &StatBuf);
 	TXTDate = StatBuf.st_mtime;
 	
+	/* Attempt opening the text file */
+	TXTFile = fopen(TXTName, "rt");
+	en = errno;
+	
+	// Failed?
+	if (!TXTFile)
+	{
+		fprintf(stderr, "Failed to open %s: %s.\n", TXTName, strerror(en));
+		return EXIT_FAILURE;
+	}
+	
 	/* See if WAD Exists */
-	WADExists = !!(access(WADName, R_OK) != 0);
+	WADExists = !!(access(WADName, R_OK) == 0);
 	
 	// If it does exist, get the date
 	WADDate = 0;
@@ -151,5 +170,74 @@ int main(int argc, char** argv)
 	// TXT newer than WAD
 	if (!Regen && TXTDate > WADDate)
 		Regen = true;
+	
+	/* Read INFO text */
+	while (!feof(TXTFile))
+	{
+		// Read line
+		memset(Buf, 0, sizeof(Buf));
+		fgets(Buf, BUFSIZE - 1, TXTFile);
+		
+		// Go through string and convert all whitespace to standard space
+		len = strlen(Buf);
+		for (i = 0; i < len; i++)
+			if (isspace(Buf[i]))
+				Buf[i] = ' ';
+		
+		// Skip whitespace at start
+		while (Buf[0] && isspace(Buf[0]))
+			memmove(&Buf[0], &Buf[1], sizeof(*Buf) * (BUFSIZE - 1));
+		
+		// Comment?
+		if (Buf[0] == '#')
+			continue;
+		
+		// Remove whitespace at end of line
+		for (;;)
+		{
+			len = strlen(Buf);
+			
+			if (len > 0 && Buf[len - 1] == ' ')
+				Buf[len - 1] = 0;
+			else
+				break;
+		}
+		
+		// Empty Line
+		if (!Buf[0])
+			continue;
+		
+		// Debug
+		fprintf(stdout, ">> `%s`\n", Buf);
+	}
+	
+	/* Not regenerating */
+	if (!Regen)
+	{
+		fprintf(stdout, "%s does not need updating.\n", WADName);
+	}
+	
+	/* Regenerate WAD? */
+	else
+	{
+		// Message
+		fprintf(stdout, "%senerating %s...\n", (!WADExists ? "G" : "Reg"), WADName);
+		fprintf(stdout, "Because ");
+		
+		if (!WADExists)
+			fprintf(stdout, "%s does not exist", WADName);
+		else if (TXTDate > WADDate)
+			fprintf(stdout, "%s is newer than %s", TXTName, WADName);
+		else
+			fprintf(stdout, "of an unknown reason"); 
+		
+		fprintf(stdout, ".\n");
+		
+		// Attempt creation of target WAD
+		
+		// Start Regeneration Cycle
+	}
+
+#undef BUFSIZE
 }
 
