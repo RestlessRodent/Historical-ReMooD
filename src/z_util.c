@@ -182,8 +182,13 @@ uint32_t Z_Hash(const char* const a_Str)
 	uint32_t Ret = 0;
 	static const uint32_t c_Primes[16] =
 	{
+#if 1
+		0, 1, 2, 3, 5, 7, 11, 13, 17, 19,	// Base
+		17, 13, 11, 7, 5, 3 // For Masking
+#else
 		0, 1, 2, 3, 5, 7, 11, 13, 17, 19, 29, 31,	// Base
 		29, 19, 17, 13,	// For Masking
+#endif
 	};
 	
 	/* Check */
@@ -197,7 +202,14 @@ uint32_t Z_Hash(const char* const a_Str)
 	for (i = 0; a_Str[i]; i++)
 	{
 		// Current Value (Remove caps, hopefully)
+#if 1
+		Val = toupper(a_Str[i]) & 0x7F;
+		
+		if ((i & 1) == 0)
+			Val = ~Val;
+#else
 		Val = /*toupper*/(a_Str[i]) & (~0x20);
+#endif
 		
 		// Modify return value
 		Ret ^= (Val << c_Primes[i & 15]);// | (Val << c_Primes[31 - (Val & 7)]);

@@ -81,8 +81,8 @@ Menu "profileselect"
 	{
 		Text "MENUGENERAL_CURRENTPROF";
 		
-		DrawValueFunc "Variable";
-		DrawValueVal "$con_forecolor";
+		OmniFunc "Variable";
+		OmniVal "~mvm_curprof1";
 		
 		//SelectFunc "Console";
 		//SelectVal "m_createprof #";

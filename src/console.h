@@ -84,7 +84,6 @@ typedef enum CONL_VariableFlags_e
 	CLVF_READONLY				= 0x00000010U,	// Variable cannot be changed
 												// (except by internal calls)
 	CLVF_NOISY					= 0x00000040U,	// Creates lots of noise
-	CLVF_QUADVALUE				= 0x00000080U,	// Contains quad values
 } CONL_VariableFlags_t;
 
 /* CONL_VariableVisibleType_t -- How to show the variable (in the menu) */
@@ -157,6 +156,7 @@ typedef struct CONL_ConVariable_s CONL_ConVariable_t;
 typedef struct CONL_StaticVar_s CONL_StaticVar_t;
 
 typedef bool_t (*CONL_ConVarBackFunc_t)(CONL_ConVariable_t* const a_Var, CONL_StaticVar_t* const a_StaticVar);
+typedef bool_t (*CONL_ConVarSlideFunc_t)(CONL_ConVariable_t* const a_Var, CONL_StaticVar_t* const a_StaticVar, const int32_t a_Right);
 
 /* CONL_VarPossibleValue_t -- Possible value for a variable */
 typedef struct CONL_VarPossibleValue_s
@@ -186,6 +186,7 @@ struct CONL_StaticVar_s
 	CONL_VariableVisibleType_t ShowAs;			// Kind to show as
 	const char* const DefaultValue;				// Default Value
 	CONL_ConVarBackFunc_t ChangeFunc;			// Function to call when changed
+	CONL_ConVarSlideFunc_t SlideFunc;			// Function when slid
 	
 	/* Contained Value */
 	const CONL_VarValue_t* Value;				// Value for each state

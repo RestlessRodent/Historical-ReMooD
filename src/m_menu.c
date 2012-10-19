@@ -204,6 +204,8 @@ void M_MenuExInit(void)
 	CONL_AddCommand("m_startclassic", M_ExMultiMenuCom);
 	CONL_AddCommand("m_startclassic2", M_ExMultiMenuCom);
 	CONL_AddCommand("m_classicmap", M_ExMultiMenuCom);
+	CONL_AddCommand("m_usethisprof", M_ExMultiMenuCom);
+	CONL_AddCommand("m_createprof", M_ExMultiMenuCom);
 }
 
 /* M_ExMenuHandleEvent() -- Handles Menu Events */

@@ -178,5 +178,7 @@ M_UIMenu_t* M_ExMakeMenu(const int32_t a_MenuID, void* const a_Data);
 int CLC_ExMakeMenuCom(const uint32_t a_ArgC, const char** const a_ArgV);
 M_UIMenu_t* M_ExTemplateMakeGameVars(const int32_t a_Mode);
 
+void M_DoMappedVars(void);
+
 #endif
 

@@ -3532,6 +3532,33 @@ void D_XNetChangeMap(const char* const a_Map)
 	}
 }
 
+/* D_XNetChangeLocalProf() -- Change local screen to use this profile */
+void D_XNetChangeLocalProf(const int32_t a_ScreenID, struct D_ProfileEx_s* const a_Profile)
+{
+	/* Check */
+	if (a_ScreenID < 0 || a_ScreenID >= MAXSPLITSCREEN || !a_Profile)
+		return;
+	
+	/* No player? */
+	if (!g_Splits[a_ScreenID].XPlayer)
+		return;
+	
+	/* Set screen to use profile */
+	g_Splits[a_ScreenID].XPlayer->Profile = a_Profile;
+	g_Splits[a_ScreenID].Profile = a_Profile;
+	
+	/* Send information to server to change colors and stuff */
+	D_XNetSendColors(g_Splits[a_ScreenID].XPlayer);
+}
+
+/* D_XNetSendColors() -- Sends colors and such to server */
+void D_XNetSendColors(D_XPlayer_t* const a_Player)
+{
+	/* Check */
+	if (!a_Player)
+		return;
+}
+
 /* D_XNetMultiTics() -- Read/Write Tics all in one */
 void D_XNetMultiTics(ticcmd_t* const a_TicCmd, const bool_t a_Write, const int32_t a_Player)
 {

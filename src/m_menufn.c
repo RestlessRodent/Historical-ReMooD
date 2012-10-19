@@ -584,7 +584,157 @@ typedef struct M_RDATInfo_s
 	int32_t AItem;
 } M_RDATInfo_t;
 
+/* M_MappedVars_t -- Multi-Variable Map */
+typedef struct M_MappedVars_s
+{
+	const char* const Name;						// Mapping Name
+	
+	uint32_t Hash;								// Hash Code
+	uint32_t HashMap[MAXSPLITSCREEN];			// Mapped Hashes
+} M_MappedVars_t;
+
+/*** LOCALS ***/
+
+/* l_MappedVars -- Available mapped variables */
+static M_MappedVars_t l_MappedVars[] =
+{
+	{"mvm_curprof1"},
+	
+	// End
+	{NULL},
+};
+
+bool_t MS_CurProfBack(CONL_ConVariable_t* const, CONL_StaticVar_t* const);
+bool_t MS_CurProfSlide(CONL_ConVariable_t* const, CONL_StaticVar_t* const, const int32_t);
+
+CONL_StaticVar_t l_StaticMapVars[][MAXSPLITSCREEN] =
+{
+		// mvm_curprof -- Current Profile
+	{{
+			CLVT_STRING, NULL, 0/*CLVF_SAVE*/,
+			"mvm_curprof1", 0, CLVVT_STRING, "guest",
+			MS_CurProfBack, MS_CurProfSlide
+	}},
+	
+	// END
+	{{
+			CLVT_STRING, NULL, 0,
+			NULL
+	}}
+};
+
 /*** FUNCTIONS ***/
+
+
+bool_t MS_CurProfBack(CONL_ConVariable_t* const a_Var, CONL_StaticVar_t* const a_SVar)
+{
+}
+
+bool_t MS_CurProfSlide(CONL_ConVariable_t* const a_Var, CONL_StaticVar_t* const a_SVar, const int32_t a_Right)
+{
+}
+
+/* M_DoMappedVars() -- Register menu variables */
+void M_DoMappedVars(void)
+{
+#define BUFSIZE 64
+	char Buf[BUFSIZE];
+	char* End;
+	int32_t i, j;
+	
+	/* Go through all variables listed */
+	for (i = 0; l_StaticMapVars[i][0].VarName; i++)
+	{
+		// Copy name
+		memset(Buf, 0, sizeof(Buf));
+		strncpy(Buf, l_StaticMapVars[i][0].VarName, BUFSIZE - 1);
+		
+		// Get end of string
+		End = Buf + (strlen(Buf) - 1);
+		
+		// Clone and setup variables
+		for (j = MAXSPLITSCREEN; j > 0; j--)
+		{
+			// Copy from last
+			if (j > 1)
+			{
+				// All the data
+				memmove(&l_StaticMapVars[i][j - 1], &l_StaticMapVars[i][0],
+					sizeof(l_StaticMapVars[i][0]));
+				
+				// Then clone the name
+				*End = '0' + j;
+				*((char**)&l_StaticMapVars[i][j - 1].VarName) = Z_StrDup(Buf, PU_STATIC, NULL);
+			}
+			
+			// Register
+			CONL_VarRegister(&l_StaticMapVars[i][j - 1]);
+		}
+	}
+#undef BUFSIZE
+}
+
+/* MS_MapToSV() -- Gets map name to variable set */
+static CONL_StaticVar_t* MS_MapToSV(const int32_t a_PlayerID, const char* const a_Name, const int32_t a_ID, M_MappedVars_t** const a_MapOut)
+{
+#define BUFSIZE 64
+	char Buf[BUFSIZE];
+	char* End;
+	int32_t i, j;
+	int32_t CheckID;
+	
+	static bool_t MTSVDone;
+	static int32_t MTSVCount;
+	
+	/* Initialize Mappings? */
+	if (!MTSVDone)
+	{
+		// Hash them all
+		for (i = 0; l_MappedVars[i].Name; i++)
+		{
+			MTSVCount++;
+			l_MappedVars[i].Hash = Z_Hash(l_MappedVars[i].Name);
+			
+			// Setup buffer
+			for (j = 1; j <= MAXSPLITSCREEN; j++)
+			{
+				memset(Buf, 0, sizeof(Buf));
+				strncpy(Buf, l_MappedVars[i].Name, BUFSIZE - 2);
+				End = Buf + (strlen(Buf) - 1);
+				*End = '0' + j;
+				l_MappedVars[i].HashMap[j - 1] = Z_Hash(Buf);
+			}
+		}
+		
+		// Set as done
+		MTSVDone = true;
+	}
+	
+	/* Need ID? */
+	if (a_Name || a_ID < 0)
+	{
+		// Look in mappings list
+		CheckID = -1;
+		for (i = 0; l_MappedVars[i].Name; i++)
+			if (strcasecmp(a_Name, l_MappedVars[i].Name) == 0)
+			{
+				CheckID = i;
+				break;
+			}
+	}
+	
+	// Don't need it
+	else
+		CheckID = a_ID;
+	
+	/* Illegal? */
+	if (CheckID < 0 || CheckID >= MTSVCount || a_PlayerID < 0 || a_PlayerID >= MAXSPLITSCREEN)
+		return NULL;
+	
+	/* Return explicit find */
+	return CONL_VarLocateHash(l_MappedVars[CheckID].HashMap[a_PlayerID]);
+#undef BUFSIZE
+} 
 
 /* MS_QuitResp() -- Quit the game */
 void MS_QuitResp(const uint32_t a_MessageID, const M_ExMBType_t a_Response, const char** const a_TitleP, const char** const a_MessageP)
@@ -599,6 +749,7 @@ int M_ExMultiMenuCom(const uint32_t a_ArgC, const char** const a_ArgV)
 {
 	int32_t i, j;
 	P_LevelInfoEx_t* LInfo;
+	CONL_StaticVar_t* SVar;
 	
 	/* Quit Prompt */
 	if (strcasecmp(a_ArgV[0], "m_quitprompt") == 0)
@@ -723,9 +874,39 @@ int M_ExMultiMenuCom(const uint32_t a_ArgC, const char** const a_ArgV)
 		return 0;
 	}
 	
+	/* Use currently selected profile */
+	else if (strcasecmp(a_ArgV[0], "m_usethisprof") == 0)
+	{
+		i = -1;
+		
+		// Player Specified?
+		if (a_ArgC > 1)
+			i = strtol(a_ArgV[1], NULL, 10);
+		
+		// Bad player?
+		if (i < 0 || i >= MAXSPLITSCREEN)
+			return 1;
+			
+		// Find profile name to use
+		SVar = MS_MapToSV(i, "mvm_curprof1", -1, NULL);
+		
+		// Set player to use this profile, if found
+		if (SVar)
+		{
+			D_XNetChangeLocalProf(i, D_FindProfileEx(SVar->Value->String));
+			M_ExPopAllMenus(i);
+			return 0;
+		}
+		
+		return 1;
+	}
+	
 	/* Unknown */
 	else
 		return 1;
+	
+	/* Fall through? */
+	return 2;
 }
 
 /* MS_Gen_SubMenu_Press() -- Generic Sub-Menu Press */
@@ -794,8 +975,23 @@ static bool_t MS_Gen_Variable_Value(const int32_t a_PlayerID, struct M_UIMenu_s*
 	/* Has a draw value */
 	else
 	{
+		// Is mapped variable
+		if (*a_Item->DrawVal == '~')
+		{
+			// Locate mapping
+			SVar = MS_MapToSV(a_PlayerID, NULL, a_Item->DrawValInt, NULL);
+			
+			// Found?
+			if (SVar)
+				*a_ValOut = SVar->Value->String;
+			
+			// Not found, use illegal value
+			else
+				*a_ValOut = NULL;
+		}
+		
 		// Is variable?
-		if (*a_Item->DrawVal == '$')
+		else if (*a_Item->DrawVal == '$')
 		{
 			// Locate hash
 			SVar = CONL_VarLocateHash(a_Item->DrawValInt);
@@ -822,12 +1018,23 @@ static bool_t MS_Gen_Variable_Value(const int32_t a_PlayerID, struct M_UIMenu_s*
 /* MS_ValToInt() -- Returns value from Int */
 static intptr_t MS_ValToInt(const char* const a_Str)
 {
+	int32_t i;
+	
 	/* Check */
 	if (!a_Str)
 		return 0;
 	
-	/* If it starts with $, it is a variable map */
-	if (*a_Str == '$')
+	/* If it starts with ~, it is mapped to a mapped set */
+	if (*a_Str == '~')
+	{
+		for (i = 0; l_MappedVars[i].Name; i++)
+			if (strcasecmp(a_Str + 1, l_MappedVars[i].Name) == 0)
+				return i;
+		return -1;
+	}
+	
+	/* If it starts with $, it is mapped to a single var */
+	else if (*a_Str == '$')
 		return Z_Hash(a_Str + 1);
 	
 	/* Otherwise, it is an integer */

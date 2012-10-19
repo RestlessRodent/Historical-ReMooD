@@ -2419,6 +2419,7 @@ void D_DoomMain(void)
 	WL_Init();							// Initialize WL Code
 	M_MenuExInit();						// Initialize Menu
 	G_PrepareDemoStuff();				// Demos
+	M_DoMappedVars();					// Mapped Vars
 	/**************************/
 	
 	// GhostlyDeath <December 14, 2011> -- Use extended identify version

@@ -93,6 +93,9 @@ struct CONL_ConVariable_s
 	CONL_VarValue_t Value;						// Value of variable (actual)
 	char* Name;									// Name
 	uint32_t Hash;								// Hash of name
+	
+	/* Bar Graph */
+	int32_t BarCaps[2];							// Bar caps
 };
 
 /**********************
