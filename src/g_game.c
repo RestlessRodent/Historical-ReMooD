@@ -385,6 +385,7 @@ static void GS_HandleExtraCommands(ticcmd_t* const a_TicCmd, const int32_t a_Pla
 	D_NetPlayer_t* NetPlayer;
 	player_t* Player;
 	mobj_t* Mo;
+	D_XJoinPlayerData_t JoinDat;
 	
 	uint32_t u32[6];
 	int32_t i32[6];
@@ -432,6 +433,39 @@ static void GS_HandleExtraCommands(ticcmd_t* const a_TicCmd, const int32_t a_Pla
 		// Which command?
 		switch (Command)
 		{
+				// Join Player
+			case DTCT_XJOINPLAYER:
+				// Read Data
+				u32[0] = LittleReadUInt32((uint32_t**)&Rp);
+				u32[1] = LittleReadUInt32((uint32_t**)&Rp);
+				u32[2] = LittleReadUInt32((uint32_t**)&Rp);
+				u32[3] = LittleReadUInt32((uint32_t**)&Rp);
+				u8[0] = ReadUInt8((uint8_t**)&Rp);
+				u8[1] = ReadUInt8((uint8_t**)&Rp);
+				u32[4] = LittleReadUInt32((uint32_t**)&Rp);
+				
+				for (i = 0; i < MAXPLAYERNAME; i++)
+					NameBuf[i] = ReadUInt8((uint8_t**)&Rp);
+					
+				for (i = 0; i < MAXPLAYERNAME; i++)
+					AltBuf[i] = ReadUInt8((uint8_t**)&Rp);
+				
+				// Build structure
+				memset(&JoinDat, 0, sizeof(JoinDat));
+				
+				JoinDat.ID = u32[0];
+				JoinDat.ProcessID = u32[1];
+				JoinDat.HostID = u32[2];
+				JoinDat.Flags = u32[3];
+				JoinDat.Color = u8[0];
+				JoinDat.CTFTeam = u8[1];
+				JoinDat.SkinHash = u32[4];
+				strncpy(JoinDat.DisplayName, NameBuf, MAXPLAYERNAME);
+				strncpy(JoinDat.HexenClass, AltBuf, MAXPLAYERNAME);
+				
+				D_XNetCreatePlayer(&JoinDat);
+				break;
+			
 				// Add Player
 			case DTCT_XADDPLAYER:
 				// Read Data
@@ -787,6 +821,7 @@ void G_PlayerReborn(int player)
 	
 	D_ProfileEx_t* PEp;
 	D_NetPlayer_t* NPp;
+	D_XPlayer_t* XPl;
 	
 	//from Boris
 	int skincolor;
@@ -799,6 +834,7 @@ void G_PlayerReborn(int player)
 	
 	PEp = players[player].ProfileEx;
 	NPp = players[player].NetPlayer;
+	XPl = players[player].XPlayer;
 	
 	memcpy(frags, players[player].frags, sizeof(frags));
 	addfrags = players[player].addfrags;
@@ -894,6 +930,7 @@ void G_PlayerReborn(int player)
 	
 	players[player].ProfileEx = PEp;
 	players[player].NetPlayer = NPp;
+	players[player].XPlayer = XPl;
 	
 	for (i = 0; i < NUMAMMO; i++)
 		p->maxammo[i] = ammoinfo[i]->MaxAmmo;
@@ -1091,8 +1128,9 @@ static bool_t GS_ClusterTraverser(intercept_t* in, void* const a_Data)
 /* G_ClusterSpawnPlayer() -- Spawns player in cluster spot */
 bool_t G_ClusterSpawnPlayer(const int PlayerID, const bool_t a_CheckOp)
 {
+#define MAXFAILURES 128
 	mapthing_t** Spots;
-	size_t NumSpots, i, s;
+	size_t NumSpots, i, s, j, f;
 	int x, y, bx, by;
 	mapthing_t OrigThing, FakeThing;
 	subsector_t* SubS;
@@ -1151,9 +1189,22 @@ bool_t G_ClusterSpawnPlayer(const int PlayerID, const bool_t a_CheckOp)
 		if (RandomSpot)
 		{
 			// Determine random spot
+			f = 0;
 			do
 			{
+				f++;
 				i = P_Random() % NumSpots;
+				
+				// Too many failures?
+				if (f >= MAXFAILURES)
+					break;
+				
+				// All tried?
+				for (j = 0; j < NumSpots; j++)
+					if (!Tried[j])
+						break;
+				if (j >= NumSpots)
+					break;
 			} while (Tried[i]);
 			
 			// Mark as tried
@@ -1279,6 +1330,7 @@ bool_t G_ClusterSpawnPlayer(const int PlayerID, const bool_t a_CheckOp)
 	
 	/* Did not find a spot nor spawned a player */
 	return false;
+#undef MAXFAILURES
 }
 
 //

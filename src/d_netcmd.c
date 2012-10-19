@@ -182,7 +182,7 @@ const int32_t c_TCDataSize[NUMDTCT] =
 		// uint8* Reason (MAXTCCBUFSIZE)
 	
 	// DTCT_XADDPLAYER, Add Player
-	4 + 4 + 4 + 1 + 4 + 4 + MAXPLAYERNAME + MAXPLAYERNAME
+	4 + 4 + 4 + 1 + 4 + 4 + MAXPLAYERNAME + MAXPLAYERNAME,
 		// uint32 Unique ID
 		// uint32 Host ID
 		// uint32 Process ID
@@ -190,6 +190,18 @@ const int32_t c_TCDataSize[NUMDTCT] =
 		// uint32 Reserved (set to zero)
 		// uint32 Conveyed Flags
 		// uint8* Account Name + Cookie
+	
+	// DTCT_XJOINPLAYER, Join Player
+	4 + 4 + 4 + 4 + 1 + 1 + 4 + MAXPLAYERNAME + MAXPLAYERNAME,
+		// uint32 Player ID
+		// uint32 Process ID
+		// uint32 Host ID
+		// uint32 Flags
+		// uint8  Color
+		// uint8  CTF Team
+		// uint32 Skin Name Hash
+		// uint8* Display Name
+		// uint8* Hexen Class
 };
 
 /*** GLOBALS ***/

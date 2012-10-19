@@ -321,7 +321,25 @@ typedef struct D_XPlayer_s
 	// Tics
 	ticcmd_t LocalBuf[MAXLBTSIZE];				// Local Buffer
 	int8_t LocalAt;								// Currently Place At...
+	
+	// Game/Profile Stuff
+	tic_t LastJoinAttempt;						// Last join attempt
 } D_XPlayer_t;
+
+/* D_XJoinPlayerData_t -- Data for joining player */
+typedef struct D_XJoinPlayerData_s
+{
+	// Standard
+	uint32_t ID;								// XPlayer ID
+	uint32_t ProcessID;							// ClProcessID
+	uint32_t HostID;							// Host ID
+	uint32_t Flags;								// Flags
+	uint8_t Color;								// Color
+	uint8_t CTFTeam;							// CTFTeam
+	uint32_t SkinHash;							// Skin Hash
+	char DisplayName[MAXPLAYERNAME];			// Display name
+	char HexenClass[MAXPLAYERNAME];				// Hexen Class
+} D_XJoinPlayerData_t;
 
 /*** GLOBALS ***/
 
@@ -352,6 +370,8 @@ void D_XNetChangeVar(const uint32_t a_Code, const int32_t a_Value);
 void D_XNetChangeMap(const char* const a_Map);
 void D_XNetChangeLocalProf(const int32_t a_ScreenID, struct D_ProfileEx_s* const a_Profile);
 void D_XNetSendColors(D_XPlayer_t* const a_Player);
+void D_XNetTryJoin(D_XPlayer_t* const a_Player);
+void D_XNetCreatePlayer(D_XJoinPlayerData_t* const a_JoinData);
 
 void D_XNetInit(void);
 void D_XNetMultiTics(ticcmd_t* const a_TicCmd, const bool_t a_Write, const int32_t a_Player);

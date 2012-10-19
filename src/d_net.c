@@ -3251,6 +3251,7 @@ D_XPlayer_t* D_XNetAddPlayer(void (*a_PacketBack)(D_XPlayer_t* const a_Player, v
 	
 	/* Base initialization */
 	New->InGameID = -1;
+	New->ScreenID = -1;
 	strncpy(New->AccountName, "I have no account!", MAXPLAYERNAME);
 	strncpy(New->AccountServer, "remood.org", MAXXSOCKTEXTSIZE);
 	
@@ -3559,9 +3560,134 @@ void D_XNetSendColors(D_XPlayer_t* const a_Player)
 		return;
 }
 
+/* D_XNetTryJoin() -- Player attempt to join game */
+void D_XNetTryJoin(D_XPlayer_t* const a_Player)
+{
+	const B_BotTemplate_t* BotTemplate;
+	D_ProfileEx_t* Profile;
+	ticcmd_t* Placement;
+	void* Wp;
+	int32_t i;
+	
+	/* Already playing? */
+	if (a_Player->Player)
+		return;
+	
+	/* If we are the server and this is ourself, join ourself */
+	if (D_XNetIsServer())
+	{
+		// Grab global command
+		Placement = DS_GrabGlobal(DTCT_XJOINPLAYER, c_TCDataSize[DTCT_XJOINPLAYER], &Wp);
+		
+		// Got one
+		if (Placement)
+		{
+			// Is a bot
+			if (a_Player->Flags & DXPF_BOT)
+			{
+				// Get Template
+				BotTemplate = B_BotGetTemplateDataPtr(a_Player->BotData);
+				
+				// Write to network
+				LittleWriteUInt32((uint32_t**)&Wp, a_Player->ID);
+				LittleWriteUInt32((uint32_t**)&Wp, a_Player->ClProcessID);
+				LittleWriteUInt32((uint32_t**)&Wp, a_Player->HostID);
+				LittleWriteUInt32((uint32_t**)&Wp, DTCJF_ISBOT);
+				WriteUInt8((uint8_t**)&Wp, BotTemplate->SkinColor);
+				WriteUInt8((uint8_t**)&Wp, 0);
+				LittleWriteUInt32((uint32_t**)&Wp, 0);
+				
+				for (i = 0; i < MAXPLAYERNAME; i++)
+					WriteUInt8((uint8_t**)&Wp, BotTemplate->DisplayName[i]);
+					
+				for (i = 0; i < MAXPLAYERNAME; i++)
+					WriteUInt8((uint8_t**)&Wp, BotTemplate->HexenClass[i]);
+			}
+			
+			// Normal Player
+			else
+			{
+				// Get player
+				Profile = a_Player->Profile;
+				
+				// Write to network
+				LittleWriteUInt32((uint32_t**)&Wp, a_Player->ID);
+				LittleWriteUInt32((uint32_t**)&Wp, a_Player->ClProcessID);
+				LittleWriteUInt32((uint32_t**)&Wp, a_Player->HostID);
+				LittleWriteUInt32((uint32_t**)&Wp, 0);
+				WriteUInt8((uint8_t**)&Wp, Profile->Color);
+				WriteUInt8((uint8_t**)&Wp, 0);
+				LittleWriteUInt32((uint32_t**)&Wp, 0);
+				
+				for (i = 0; i < MAXPLAYERNAME; i++)
+					WriteUInt8((uint8_t**)&Wp, Profile->DisplayName[i]);
+					
+				for (i = 0; i < MAXPLAYERNAME; i++)
+					WriteUInt8((uint8_t**)&Wp, Profile->HexenClass[i]);
+			}
+		}
+	}
+	
+	/* Otherwise, we must ask the server */
+	else
+	{
+	}
+}
+
+/* D_XNetCreatePlayer() -- Create player joined in game */
+void D_XNetCreatePlayer(D_XJoinPlayerData_t* const a_JoinData)
+{
+	int i, j, k;
+	D_XPlayer_t* XPlay;
+	player_t* Player;
+	
+	/* Check */
+	if (!a_JoinData)
+		return;
+	
+	/* Check player limits */
+	k = -1;
+	for (j = i = 0; i < MAXPLAYERS; i++)
+		if (playeringame[i])
+			j++;
+		else
+			if (k < 0)
+				k = i;
+	
+	// Too many players?
+	if (j >= MAXPLAYERS)
+		return;
+	
+	/* Change variables */
+	// Set multiplayer mode, if player already exists
+	if (j > 0)
+		P_XGSSetValue(true, PGS_COMULTIPLAYER, 1);
+	
+	/* Find XPlayer */
+	XPlay = D_XNetPlayerByID(a_JoinData->ID);
+	
+	/* Setup XPlayer */
+	XPlay->InGameID = k;
+	
+	/* Setup Game Player */
+	XPlay->Player = Player = G_AddPlayer(k);
+	
+	Player->XPlayer = XPlay;
+	Player->skincolor = a_JoinData->Color;
+	D_NetSetPlayerName(k, a_JoinData->DisplayName);
+	
+	/* Print Message */
+	CONL_OutputUT(CT_NETWORK, DSTR_NET_PLAYERJOINED, "%s\n",
+			player_names[k]
+		);
+}
+
 /* D_XNetMultiTics() -- Read/Write Tics all in one */
 void D_XNetMultiTics(ticcmd_t* const a_TicCmd, const bool_t a_Write, const int32_t a_Player)
 {
+	int32_t i;
+	D_XPlayer_t* XPlay;
+	
 	/* We are the server */
 	if (D_XNetIsServer())
 	{
@@ -3591,6 +3717,17 @@ void D_XNetMultiTics(ticcmd_t* const a_TicCmd, const bool_t a_Write, const int32
 			// Individual player
 			else
 			{
+				// Get player
+				XPlay = players[a_Player].XPlayer;
+				
+				// No player?
+				if (!XPlay)
+					return;
+				
+				// Merge local tic commands
+				D_NCSNetMergeTics(a_TicCmd, XPlay->LocalBuf, XPlay->LocalAt);
+				XPlay->LocalAt = 0;
+				memset(XPlay->LocalBuf, 0, sizeof(XPlay->LocalBuf));
 			}
 		}
 	}
@@ -3863,12 +4000,10 @@ void D_XNetUpdate(void)
 		TicCmdP = NULL;
 		if (XPlay->LocalAt < MAXLBTSIZE - 1)
 			TicCmdP = &XPlay->LocalBuf[XPlay->LocalAt++];
-		
-		// Local buffer overflow?
-		if (!TicCmdP)
+		else
 		{
+			TicCmdP = &XPlay->LocalBuf[0];
 			XPlay->StatusBits |= DXPSB_LBOVERFLOW;
-			continue;
 		}
 		
 		// Clear overflow bit
@@ -3881,6 +4016,14 @@ void D_XNetUpdate(void)
 		// Human player
 		else
 			D_XNetBuildTicCmd(XPlay, TicCmdP);
+		
+		// No player and use is down? Attempt joining
+		if (!XPlay->Player && g_ProgramTic >= XPlay->LastJoinAttempt)
+			if (TicCmdP->Std.buttons & BT_USE)
+			{
+				XPlay->LastJoinAttempt = g_ProgramTic + TICRATE;
+				D_XNetTryJoin(XPlay);
+			}
 	}
 }
 

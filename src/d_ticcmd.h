@@ -159,6 +159,7 @@ enum
 	// Extended
 	DTCT_XKICKPLAYER,							// Kick Player
 	DTCT_XADDPLAYER,							// Adds a new player
+	DTCT_XJOINPLAYER,							// Joins player
 	
 	NUMDTCT
 };

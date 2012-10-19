@@ -327,6 +327,17 @@ const B_BotTemplate_t* B_BotGetTemplate(const int32_t a_Player)
 	return players[a_Player].NetPlayer->BotData->GHOSTData.BotTemplate;
 }
 
+/* B_BotGetTemplateDataPtr() -- Get template by pointer */
+const B_BotTemplate_t* B_BotGetTemplateDataPtr(B_BotData_t* const a_BotData)
+{
+	/* Check */
+	if (!a_BotData)
+		return NULL;
+	
+	/* Return the template used */
+	return a_BotData->GHOSTData.BotTemplate;
+}
+
 /* B_BuildBotTicCmd() -- Builds tic command for bot */
 void B_BuildBotTicCmd(struct D_XPlayer_s* const a_XPlayer, B_BotData_t* const a_BotData, ticcmd_t* const a_TicCmd)
 {
@@ -373,11 +384,16 @@ void B_BuildBotTicCmd(struct D_XPlayer_s* const a_XPlayer, B_BotData_t* const a_
 	}
 	
 	/* Get variables */
+	a_BotData->Player = a_XPlayer->Player;
 	Player = a_BotData->Player;
 	
 	// No player?
 	if (!Player)
+	{
+		// Spectating then, so try to join
+		a_TicCmd->Std.buttons |= BT_USE;
 		return;
+	}
 	
 	/* Depending on player state */
 	switch (Player->playerstate)

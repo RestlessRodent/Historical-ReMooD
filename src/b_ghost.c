@@ -236,7 +236,7 @@ const B_BotTemplate_t* B_GHOST_FindTemplate(const char* const a_Name)
 		return 0;
 	
 	/* Search */
-	for (i = 0; c_BotTemplates[i].AccountName; i++)
+	for (i = 0; c_BotTemplates[i].AccountName[0]; i++)
 		if (strcasecmp(a_Name, c_BotTemplates[i].AccountName) == 0)
 			return &c_BotTemplates[i];
 	
@@ -268,7 +268,7 @@ const B_BotTemplate_t* B_GHOST_RandomTemplate(void)
 	MinCount = 125;
 	MaxCount = -125;
 	MinAt = 0;
-	for (i = 0; i < MAXBOTTEMPLATES && c_BotTemplates[i].AccountName; i++)
+	for (i = 0; i < MAXBOTTEMPLATES && c_BotTemplates[i].AccountName[0]; i++)
 	{
 		// Minimum
 		if (Counts[i] < MinCount)
@@ -310,7 +310,7 @@ const B_BotTemplate_t* B_GHOST_TemplateByID(const uint32_t a_ID)
 	size_t i;
 	
 	/* Look in directory */
-	for (i = 0; c_BotTemplates[i].AccountName; i++)
+	for (i = 0; c_BotTemplates[i].AccountName[0]; i++)
 		if (c_BotTemplates[i].BotIDNum == a_ID)
 			return &c_BotTemplates[i];
 	
@@ -812,7 +812,7 @@ void B_GHOST_Ticker(void)
 		return;
 		
 	/* Do not build bot data if not the server */
-	if (!D_SyncNetIsArbiter())
+	if (!D_XNetIsServer())
 		return;
 	
 	/* Adjanceny chains not yet complete? */

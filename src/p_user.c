@@ -880,6 +880,16 @@ void P_PlayerThink(player_t* player)
 	if (player->playerstate == PST_REBORN)
 		G_DoReborn(player - players);
 	
+	/* Failed to reborn? */
+	if (!player->mo)
+	{
+		// In the middle of nowhere could be better than nothing
+		player->mo = P_SpawnMobj(0, 0, 0, INFO_GetTypeByName("DoomPlayer"));
+	
+		// Set as reborn
+		player->playerstate = PST_REBORN;
+	}
+	
 	/* Suicide Pill */
 	// GhostlyDeath <September 19, 2012> -- In case one gets stuck?
 	if (cmd->Std.buttons & BT_SUICIDE)

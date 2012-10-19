@@ -130,14 +130,14 @@ typedef struct B_GhostBot_s
 typedef struct B_BotTemplate_s
 {
 	uint32_t BotIDNum;							// Bot ID Number
-	const char* AccountName;					// Account Name
-	const char* DisplayName;					// Display Name
+	char AccountName[MAXPLAYERNAME];			// Account Name
+	char DisplayName[MAXPLAYERNAME];			// Display Name
 	uint8_t SkinColor;							// Skin Color
 	uint8_t RGBSkinColor[3];					// Skin Color in RGB
 	const char* WeaponOrder;					// Weapon Order
 	B_GhostAtkPosture_t Posture;				// Posture
 	B_GhostCoopMode_t CoopMode;					// Coop Mode
-	const char* HexenClass;						// Favorite Weapon Class
+	char HexenClass[MAXPLAYERNAME];				// Favorite Hexen Class
 } B_BotTemplate_t;
 
 /**************
@@ -157,6 +157,7 @@ extern bool_t g_GotBots;						// Got a bot?
 /*** B_BOT.C ***/
 B_BotData_t* B_InitBot(const B_BotTemplate_t* a_Template);
 const B_BotTemplate_t* B_BotGetTemplate(const int32_t a_Player);
+const B_BotTemplate_t* B_BotGetTemplateDataPtr(B_BotData_t* const a_BotData);
 void B_InitNodes(void);
 void B_ClearNodes(void);
 
