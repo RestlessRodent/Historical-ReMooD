@@ -1536,6 +1536,7 @@ size_t CONL_UTPrintV(const CONL_MessageType_t a_Type, const UnicodeStringID_t a_
 		"ITEM",									// CT_SPECIALITEM
 		"RMOD",									// CT_REMOODAT
 		"NETW",									// CT_NETWORK
+		"CONL",									// CT_CONSOLE
 	};
 	
 #define BUFSIZE 512

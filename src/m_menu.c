@@ -610,7 +610,10 @@ void M_ExMenuDrawer(void)
 				TitleStr = Item->Text;
 				
 				// Value
-			if (Item->ValueRef)
+			ValStr = NULL;
+			if (Item->ValueFunc)
+				Item->ValueFunc(i, TopMenu, Item, &ValStr);
+			else if (Item->ValueRef)
 				if (TopMenu->PrivateData)
 					ValStr = *((const char**)(((uintptr_t)TopMenu->PrivateData) + (uintptr_t)Item->ValueRef));
 				else
@@ -666,7 +669,7 @@ void M_ExMenuDrawer(void)
 				);
 			
 			// Value to draw?
-			if (Item->Value)
+			if (ValStr)
 			{
 				// Get Dimensions of value
 				V_StringDimensionsA(l_MenuFont.Value[0].Int, 0, ValStr, &ValW, &ValH);

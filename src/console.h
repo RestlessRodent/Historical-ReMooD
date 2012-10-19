@@ -84,6 +84,7 @@ typedef enum CONL_VariableFlags_e
 	CLVF_READONLY				= 0x00000010U,	// Variable cannot be changed
 												// (except by internal calls)
 	CLVF_NOISY					= 0x00000040U,	// Creates lots of noise
+	CLVF_QUADVALUE				= 0x00000080U,	// Contains quad values
 } CONL_VariableFlags_t;
 
 /* CONL_VariableVisibleType_t -- How to show the variable (in the menu) */
@@ -107,6 +108,7 @@ typedef enum CONL_MessageType_e
 	CT_SPECIALITEM,								// Special Item Picked Up
 	CT_REMOODAT,								// ReMooD Data
 	CT_NETWORK,									// Network
+	CT_CONSOLE,									// Console Message
 	
 	NUMCMESSAGETYPES
 } CONL_MessageType_t;
@@ -237,6 +239,7 @@ CONL_ConVariable_t* CONL_VarRegister(CONL_StaticVar_t* const a_StaticVar);
 
 bool_t CONL_StaticVarByNum(const size_t a_Num, CONL_StaticVar_t** const a_VarP);
 CONL_StaticVar_t* CONL_VarLocate(const char* const a_Name);
+CONL_StaticVar_t* CONL_VarLocateHash(const uint32_t a_Hash);
 const char* CONL_VarSetStrByName(const char* const a_Var, const char* const a_NewVal);
 
 const char* CONL_VarSetStr(CONL_StaticVar_t* a_Var, const char* const a_NewVal);

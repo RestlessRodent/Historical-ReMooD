@@ -310,6 +310,9 @@ StringGroupEX_t UnicodeStrings[NUMUNICODESTRINGS] =
 	{		"MENUGENERAL_SELECTTHISPROF", "Use This Profile"},
 	{			"MENUGENERAL_CREATEPROF", "Create Profile"},
 	{		   "MENUGENERAL_CURRENTPROF", "Current Profile"},
+	{			   "MENUGENERAL_OPTIONS", "Options"},
+	{			"MENUGENERAL_SERVERVARS", "Internet/LAN Server Settings"},
+	{				"MENUGENERAL_SVNAME", "Name"},
 	
 	{				"UIGENERAL_DONTCARE", "Don't Care!"},
 	{					 "UIGENERAL_YES", "Yes"},
@@ -983,6 +986,9 @@ StringGroupEX_t UnicodeStrings[NUMUNICODESTRINGS] =
 	{		"DRMOD_NAMESPACENOTINWAD", "Namespace \"$2\" not in WAD \"$1\"."},
 	{			"DRMOD_DATASTREAMERR", "Failed to open datastream for \"$1\" in WAD \"$1\"."},
 	{			   "DRMOD_PARSEERROR", "Parse error in \"$3\" ($1), at row $4, column $5."},
+	
+	/*** COMMAND.C ***/
+	{	  "COMMANDC_WOULDHASHCOLLIDE", "Variable \"$1\" hash collides with \"$2\"."},
 };
 
 /* DS_NameOfString() -- Returns name of pointer to string */

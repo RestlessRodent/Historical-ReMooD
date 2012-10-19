@@ -734,7 +734,7 @@ static bool_t MS_Gen_SubMenu_Press(const int32_t a_PlayerID, struct M_UIMenu_s* 
 	int32_t NewMenu;
 	
 	/* Find new menu, possibly */
-	NewMenu = M_ExMenuIDByName(a_Item->SubVal);
+	NewMenu = M_ExMenuIDByName(a_Item->PressVal);
 	
 	// Invalid?
 	if (NewMenu < 0 || NewMenu >= l_NumPreMenus)
@@ -753,7 +753,7 @@ static bool_t MS_Gen_Console_Press(const int32_t a_PlayerID, struct M_UIMenu_s* 
 	
 	/* Generate String */
 	memset(Buf, 0, sizeof(Buf));
-	for (o = Buf, i = a_Item->SubVal, n = 0; i && *i && n < BUFSIZE - 1; n++, i++, o++)
+	for (o = Buf, i = a_Item->PressVal, n = 0; i && *i && n < BUFSIZE - 1; n++, i++, o++)
 	{
 		// Special Variable
 		if (*i == '@')
@@ -771,7 +771,68 @@ static bool_t MS_Gen_Console_Press(const int32_t a_PlayerID, struct M_UIMenu_s* 
 	
 	/* Send to console */
 	CONL_InputF("%s\n", Buf);
+	
+	/* Success */
+	return true;
 #undef BUFSIZE
+}
+
+/* MS_Gen_Variable_Value() -- Obtain variable string */
+static bool_t MS_Gen_Variable_Value(const int32_t a_PlayerID, struct M_UIMenu_s* const a_Menu, struct M_UIItem_s* const a_Item, const char** const a_ValOut)
+{
+#define BUFSIZE 8
+	char Buf[BUFSIZE];
+	CONL_StaticVar_t* SVar;
+	
+	/* Missing draw value */
+	if (!a_Item->DrawVal)
+	{
+		snprintf(Buf, BUFSIZE, "%i", a_Item->DrawValInt);
+		*a_ValOut = Buf;
+	}
+	
+	/* Has a draw value */
+	else
+	{
+		// Is variable?
+		if (*a_Item->DrawVal == '$')
+		{
+			// Locate hash
+			SVar = CONL_VarLocateHash(a_Item->DrawValInt);
+			
+			// Found?
+			if (SVar)
+				*a_ValOut = SVar->Value->String;
+			
+			// Not found, use illegal value
+			else
+				*a_ValOut = NULL;
+		}
+		
+		// Standard string
+		else
+			*a_ValOut = a_Item->DrawVal;
+	}
+	
+	/* Success! */
+	return true;
+#undef BUFSIZE
+}
+
+/* MS_ValToInt() -- Returns value from Int */
+static intptr_t MS_ValToInt(const char* const a_Str)
+{
+	/* Check */
+	if (!a_Str)
+		return 0;
+	
+	/* If it starts with $, it is a variable map */
+	if (*a_Str == '$')
+		return Z_Hash(a_Str + 1);
+	
+	/* Otherwise, it is an integer */
+	else
+		return strtol(a_Str, NULL, 10);
 }
 
 /* M_MenuDataKeyer() -- Handles menus */
@@ -911,6 +972,24 @@ bool_t M_MenuDataKeyer(void** a_DataPtr, const int32_t a_Stack, const D_RMODComm
 					}
 				}
 				
+				// Omni Function?
+				else if (strcasecmp("OmniFunc", a_Field) == 0)
+				{
+					M_MenuDataKeyer(a_DataPtr, a_Stack, a_Command,
+							"SelectFunc", a_Value);
+					M_MenuDataKeyer(a_DataPtr, a_Stack, a_Command,
+							"DrawValueFunc", a_Value);
+				}
+				
+				// Omni Value?
+				else if (strcasecmp("OmniVal", a_Field) == 0)
+				{
+					M_MenuDataKeyer(a_DataPtr, a_Stack, a_Command,
+							"SelectVal", a_Value);
+					M_MenuDataKeyer(a_DataPtr, a_Stack, a_Command,
+							"DrawValueVal", a_Value);
+				}
+				
 				// Item Function?
 				else if (strcasecmp("SelectFunc", a_Field) == 0)
 				{
@@ -930,11 +1009,35 @@ bool_t M_MenuDataKeyer(void** a_DataPtr, const int32_t a_Stack, const D_RMODComm
 				// Item Value?
 				else if (strcasecmp("SelectVal", a_Field) == 0)
 				{
-					if (THISITEM->SubVal)
-						Z_Free(THISITEM->SubVal);
+					if (THISITEM->PressVal)
+						Z_Free(THISITEM->PressVal);
 					
 					// Copy string
-					THISITEM->SubVal = Z_StrDup(a_Value, PU_MENUDAT, NULL);
+					THISITEM->PressVal = Z_StrDup(a_Value, PU_MENUDAT, NULL);
+					THISITEM->PressValInt = MS_ValToInt(a_Value);
+				}
+				
+				// Draw Value Function?
+				else if (strcasecmp("DrawValueFunc", a_Field) == 0)
+				{
+					// Menu Variable
+					if (strcasecmp("Variable", a_Value) == 0)
+						THISITEM->ValueFunc = MS_Gen_Variable_Value;
+					
+					// Illegal
+					else
+						THISITEM->ValueFunc = NULL;
+				}
+				
+				// Draw Value?
+				else if (strcasecmp("DrawValueVal", a_Field) == 0)
+				{
+					if (THISITEM->DrawVal)
+						Z_Free(THISITEM->DrawVal);
+					
+					// Copy string
+					THISITEM->DrawVal = Z_StrDup(a_Value, PU_MENUDAT, NULL);
+					THISITEM->DrawValInt = MS_ValToInt(a_Value);
 				}
 				
 				// Disabled?

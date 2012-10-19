@@ -19,6 +19,14 @@ Menu "mainmenu"
 		SelectVal "solomain";
 	}
 	
+	Item "options"
+	{
+		Text "MENUGENERAL_OPTIONS";
+		
+		SelectFunc "SubMenu";
+		SelectVal "optionsmain";
+	}
+	
 	Item "quitgame"
 	{
 		Text "MENUGENERAL_QUIT";
@@ -73,10 +81,62 @@ Menu "profileselect"
 	{
 		Text "MENUGENERAL_CURRENTPROF";
 		
+		DrawValueFunc "Variable";
+		DrawValueVal "$con_forecolor";
+		
 		//SelectFunc "Console";
 		//SelectVal "m_createprof #";
 	}
 }
+
+//////////////////////////
+////// OPTIONS MENU //////
+//////////////////////////
+
+// Main Options Menu
+Menu "optionsmain"
+{
+	Title "MENUGENERAL_OPTIONS";
+	
+	Item "serversettings"
+	{
+		Text "MENUGENERAL_SERVERVARS";
+		
+		SelectFunc "SubMenu";
+		SelectVal "servervars";
+	}
+}
+
+// Server Variables Menu
+Menu "servervars"
+{
+	Title "MENUGENERAL_SERVERVARS";
+	
+	Item "sv_name"
+	{
+		Text "MENUGENERAL_SVNAME";
+		
+		OmniFunc "Variable";
+		OmniVal "$sv_name";
+	}
+	
+//cvset "sv_name" "Untitled ReMooD Server"
+//cvset "sv_email" "nobody@localhost"
+//cvset "sv_url" "http://remood.org/"
+//cvset "sv_wadurl" "http://remood.org/wads/"
+//cvset "sv_irc" "irc://irc.oftc.net/remood"
+//cvset "sv_motd" "Welcome to ReMooD! Enjoy your stay!"
+//cvset "sv_connectpassword" ""
+//cvset "sv_joinpassword" ""
+//cvset "sv_maxclients" "32"
+//cvset "sv_readyby" "2000"
+//cvset "sv_maxcatchup" "105"
+//cvset "sv_maxdemocatchup" "52"
+}
+
+//////////////////////////////
+////// SKILL LEVEL JUNK //////
+//////////////////////////////
 
 // Doom Skill Levels
 Menu "classicskilldoom"
@@ -199,7 +259,7 @@ Menu "episdoomud"
 		SelectVal "m_classicmap e3m1";
 	}
 	
-	Item "ttc"
+	Item "tfc"
 	{
 		Text "MENU_CLASSICGAME_DOOMEPISODED";
 		
@@ -237,7 +297,7 @@ Menu "episdoomrg"
 		SelectVal "m_classicmap e3m1";
 	}
 	
-	Item "ttc"
+	Item "tfc"
 	{
 		Text "MENU_CLASSICGAME_DOOMEPISODED";
 		Disabled "true";
@@ -278,7 +338,7 @@ Menu "episdoomsw"
 		SelectVal "m_classicmap e3m1";
 	}
 	
-	Item "ttc"
+	Item "tfc"
 	{
 		Text "MENU_CLASSICGAME_DOOMEPISODED";
 		Disabled "true";

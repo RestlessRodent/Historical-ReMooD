@@ -285,7 +285,7 @@ static bool_t CONL_VariableHashCompare(void* const a_A, void* const a_B)
 	return false;
 }
 
-/* CONLS_VarCoreLocate() -- Locate internal varaible by name */
+/* CONLS_VarCoreLocate() -- Locate internal variable by name */
 static CONL_ConVariable_t* CONLS_VarCoreLocate(const char* const a_Name)
 {
 	uint32_t Hash;
@@ -314,6 +314,29 @@ static CONL_ConVariable_t* CONLS_VarCoreLocate(const char* const a_Name)
 	
 	/* Return result (if found) */
 	return Found;
+}
+
+/* CONLS_VarCoreLocateHash() -- Locates internal variable by hash */
+static CONL_ConVariable_t* CONLS_VarCoreLocateHash(const uint32_t a_Hash, const bool_t a_OnlyRegged)
+{
+	size_t i;
+	
+	/* Long loop */
+	for (i = 0; i < l_CONLNumVariables; i++)
+		if (l_CONLVariables[i])
+			if (l_CONLVariables[i]->Hash == a_Hash)
+			{
+				// If we want only registered ones, but this one is not...
+				if (a_OnlyRegged)
+					if (l_CONLVariables[i]->IsVirtual)
+						continue;
+				
+				// Otherwise, return this one
+				return l_CONLVariables[i];
+			}	
+	
+	/* Not found */
+	return NULL;
 }
 
 /* CONLS_PushVar() -- Pushes a new variable */
@@ -464,6 +487,8 @@ bool_t CONL_VarSetLoaded(const bool_t a_Loaded)
 CONL_ConVariable_t* CONL_VarRegister(CONL_StaticVar_t* const a_StaticVar)
 {
 	CONL_ConVariable_t* NewVar;
+	CONL_ConVariable_t* FoundVar;
+	uint32_t Hash;
 	
 	/* Check */
 	if (!a_StaticVar)
@@ -476,6 +501,22 @@ CONL_ConVariable_t* CONL_VarRegister(CONL_StaticVar_t* const a_StaticVar)
 	// String types do not require possible values, but other types do
 	if (a_StaticVar->Type != CLVT_STRING && !a_StaticVar->Possible)
 		return NULL;
+	
+	/* See if varaible is already taken, by hash */
+	// Hash name
+	Hash = Z_Hash(a_StaticVar->VarName);
+	
+	// Try to find it
+	FoundVar = CONLS_VarCoreLocateHash(Hash, true);
+	
+	// Already found?
+	if (FoundVar)
+	{
+		CONL_OutputUT(CT_CONSOLE, DSTR_COMMANDC_WOULDHASHCOLLIDE, "%s%s\n",
+				a_StaticVar->VarName, FoundVar->Name
+			);
+		return NULL;
+	}
 	
 	/* Locate variable to see if it is virtualized or registered */
 	if ((NewVar = CONLS_VarCoreLocate(a_StaticVar->VarName)))
@@ -555,6 +596,25 @@ CONL_StaticVar_t* CONL_VarLocate(const char* const a_Name)
 	
 	/* Locate by name */
 	if ((FoundVar = CONLS_VarCoreLocate(a_Name)))
+		// Only if it actually is registered
+		if (FoundVar->StaticLink)
+			return FoundVar->StaticLink;
+	
+	/* Failed */
+	return NULL;
+}
+
+/* CONL_VarLocateHash() -- Locates variable by hash */
+CONL_StaticVar_t* CONL_VarLocateHash(const uint32_t a_Hash)
+{
+	CONL_ConVariable_t* FoundVar;
+	
+	/* Check */
+	if (!a_Hash)
+		return NULL;
+	
+	/* Locate by hash */
+	if ((FoundVar = CONLS_VarCoreLocateHash(a_Hash, true)))
 		// Only if it actually is registered
 		if (FoundVar->StaticLink)
 			return FoundVar->StaticLink;

@@ -85,6 +85,7 @@ struct M_UIItem_s;
 
 typedef bool_t (*M_UIItemLRValChangeFuncType_t)(const int32_t a_PlayerID, struct M_UIMenu_s* const a_Menu, struct M_UIItem_s* const a_Item, const bool_t a_More);
 typedef bool_t (*M_UIItemPressFuncType_t)(const int32_t a_PlayerID, struct M_UIMenu_s* const a_Menu, struct M_UIItem_s* const a_Item);
+typedef bool_t (*M_UIItemValueFuncType_t)(const int32_t a_PlayerID, struct M_UIMenu_s* const a_Menu, struct M_UIItem_s* const a_Item, const char** const a_ValOut);
 
 /* M_UIItem_t -- Menu Item */
 typedef struct M_UIItem_s
@@ -98,11 +99,17 @@ typedef struct M_UIItem_s
 	const char** TextRef;						// Item Text (i18n)
 	const char** ValueRef;						// Value (i18n)
 	
-	const char* SubVal;							// SubValue
+	const char* PressVal;						// Press Value
+	intptr_t PressValInt;						// As integer
+	
+	const char* DrawVal;						// Draw Value
+	intptr_t DrawValInt;						// As Integer
 	
 	intptr_t DataBits;							// Anything needed for data
+	
 	M_UIItemLRValChangeFuncType_t LRValChangeFunc;
 	M_UIItemPressFuncType_t ItemPressFunc;
+	M_UIItemValueFuncType_t ValueFunc;
 } M_UIItem_t;
 
 struct M_UIMenuHandler_s;
