@@ -260,6 +260,9 @@ typedef struct player_s
 	
 	// Load prevention
 	tic_t SuicideDelay;							// Prevent suicides until after
+	
+	// Key Cards
+	uint32_t KeyCards[2];						// Cards and Skulls
 } player_t;
 
 //

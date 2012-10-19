@@ -288,6 +288,10 @@ bool_t P_ExClearLevel(void)
 		players[i].killcount = 0;
 		players[i].itemcount = 0;
 		players[i].secretcount = 0;
+		
+		// Junk
+		players[i].KeyCards[0] = 0;
+		players[i].KeyCards[1] = 0;
 	}
 	
 	/* Re-initialize */

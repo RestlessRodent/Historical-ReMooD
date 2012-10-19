@@ -548,6 +548,7 @@ bool_t P_TouchSpecialThing(mobj_t* special, mobj_t* toucher)
 	bool_t OKStat, NewWear, PickedUp, CancelRemove;
 	int32_t Target, Max, Amount;
 	char* SplitMessageRef;
+	P_RMODKey_t* RMODKey;
 	
 	delta = special->z - toucher->z;
 	
@@ -593,8 +594,22 @@ bool_t P_TouchSpecialThing(mobj_t* special, mobj_t* toucher)
 		// Weapon
 		if (player)
 		{
+			// Give key?
+			if (Current->ActGiveKey >= 0 && Current->ActGiveKey < g_RMODNumKeys)
+			{
+				RMODKey = g_RMODKeys[Current->ActGiveKey];
+				
+				// Valid?
+				if (RMODKey)
+				{
+					// Set player keygroup to mask value
+					player->KeyCards[RMODKey->Group] |= RMODKey->Bit;
+					PickedUp = true;
+				}
+			}
+			
 			// Give gun?
-			if (Current->ActGiveWeapon != NUMWEAPONS)
+			if (Current->ActGiveWeapon >= 0 && Current->ActGiveWeapon < NUMWEAPONS)
 			{
 				// Give weapon?
 				if (!P_XGSVal(PGS_ITEMSKEEPWEAPONS) ||
@@ -823,6 +838,11 @@ bool_t P_TouchSpecialThing(mobj_t* special, mobj_t* toucher)
 		if (toucher->health <= 0)
 			P_KillMobj(toucher, special, special);
 		
+		// Cancel removing in multi-player mode?
+		if (Current->Flags & PMTSF_KEEPINMULTI)
+			if (P_XGSVal(PGS_COMULTIPLAYER))
+				CancelRemove = true;
+		
 		// Remove if we used it? or remove regardless
 		if (!CancelRemove && (((Current->Flags & PMTSF_KEEPNOTNEEDED) && OKStat) || !(Current->Flags & PMTSF_KEEPNOTNEEDED) || (Current->Flags & PMTSF_REMOVEALWAYS)))
 			P_RemoveMobj(special);
@@ -872,61 +892,6 @@ bool_t P_TouchSpecialThing(mobj_t* special, mobj_t* toucher)
 	// Identify by sprite.
 	switch (special->sprite)
 	{
-			// cards
-			// leave cards for everyone
-		case SPR_BKEY:
-			if (P_GiveCard(player, it_bluecard))
-			{
-				P_PlayerMessage(toucher, special, GOTBLUECARD);
-			}
-			if (!multiplayer)
-				break;
-			return;
-			
-		case SPR_YKEY:
-			if (P_GiveCard(player, it_yellowcard))
-			{
-				P_PlayerMessage(toucher, special, GOTYELWCARD);
-			}
-			if (!multiplayer)
-				break;
-			return;
-			
-		case SPR_RKEY:
-			if (P_GiveCard(player, it_redcard))
-			{
-				P_PlayerMessage(toucher, special, GOTREDCARD);
-			}
-			if (!multiplayer)
-				break;
-			return;
-			
-		case SPR_BSKU:
-			if (P_GiveCard(player, it_blueskull))
-			{
-				P_PlayerMessage(toucher, special, GOTBLUESKUL);
-			}
-			if (!multiplayer)
-				break;
-			return;
-			
-		case SPR_YSKU:
-			if (P_GiveCard(player, it_yellowskull))
-			{
-				P_PlayerMessage(toucher, special, GOTYELWSKUL);
-			}
-			if (!multiplayer)
-				break;
-			return;
-			
-		case SPR_RSKU:
-			if (P_GiveCard(player, it_redskull))
-			{
-				P_PlayerMessage(toucher, special, GOTREDSKULL);
-			}
-			if (!multiplayer)
-				break;
-			return;
 			
 			// power ups
 		case SPR_PINV:

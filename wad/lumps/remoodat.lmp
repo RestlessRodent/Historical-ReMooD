@@ -16939,41 +16939,45 @@ MapObject "ReMooDBotDebugQuestion"
 
 MapKey "BlueCard"
 {
-	Id "1";
-	BoomId "2";
+	Bit "1";
+	Group "Card";
+	
 	Color "Blue";
 	Icon "stkeys0";
 }
 
 MapKey "BlueSkull"
 {
-	Id "4";
-	BoomId "5";
+	Bit "1";
+	Group "Skull";
+	
 	Color "Blue";
-	IsSkull "true";
 	Icon "stkeys3";
 }
 
 MapKey "YellowCard"
 {
-	Id "2";
-	BoomId "3";
+	Bit "2";
+	Group "Card";
+	
 	Color "Yellow";
 	Icon "stkeys1";
 }
 
 MapKey "YellowSkull"
 {
-	Id "5";
-	BoomId "6";
+	Bit "2";
+	Group "Skull";
+	
 	Color "Yellow";
-	IsSkull "true";
 	Icon "stkeys4";
 }
 
 MapKey "RedCard"
 {
-	Id "3";
+	Bit "3";
+	Group "Card";
+	
 	BoomId "1";
 	Color "Red";
 	Icon "stkeys2";
@@ -16981,10 +16985,10 @@ MapKey "RedCard"
 
 MapKey "RedSkull"
 {
-	Id "6";
-	BoomId "4";
+	Bit "3";
+	Group "Skull";
+	
 	Color "Red";
-	IsSkull "true";
 	Icon "stkeys5";
 }
 
@@ -19009,4 +19013,51 @@ MapTouchSpecial "STIM"
 	IsKeepIfNotNeeded "true";
 }
 
+// BKEY -- Blue Key
+MapTouchSpecial "BKEY"
+{
+	Message "DEP_GOTBLUECARD";
+	GiveKey "BlueCard";
+	IsKeepInMultiplayer "true";
+}
+
+// YKEY -- Yellow Key
+MapTouchSpecial "YKEY"
+{
+	Message "DEP_GOTYELWCARD";
+	GiveKey "YellowCard";
+	IsKeepInMultiplayer "true";
+}
+
+// RKEY -- Yellow Key
+MapTouchSpecial "RKEY"
+{
+	Message "DEP_GOTREDCARD";
+	GiveKey "RedCard";
+	IsKeepInMultiplayer "true";
+}
+
+// BSKU -- Blue Skull
+MapTouchSpecial "BSKU"
+{
+	Message "DEP_GOTBLUESKUL";
+	GiveKey "BlueSkull";
+	IsKeepInMultiplayer "true";
+}
+
+// YSKU -- Yellow Skull
+MapTouchSpecial "YSKU"
+{
+	Message "DEP_GOTYELWSKUL";
+	GiveKey "YellowSkull";
+	IsKeepInMultiplayer "true";
+}
+
+// RSKU -- Yellow Skull
+MapTouchSpecial "RSKU"
+{
+	Message "DEP_GOTREDSKUL";
+	GiveKey "RedSkull";
+	IsKeepInMultiplayer "true";
+}
 

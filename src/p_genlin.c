@@ -1687,7 +1687,7 @@ bool_t EV_TryGenTrigger(line_t* const a_Line, const int a_Side, mobj_t* const a_
 			if (!a_Object->player)
 				return false;
 			
-			// No keys to unlock door
+			// No keys to unlock door?
 			if (!P_CanUnlockGenDoor(a_Line, a_Object->player))
 				return false;
 			

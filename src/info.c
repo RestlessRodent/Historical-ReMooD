@@ -151,6 +151,8 @@ mobjinfo_t** mobjinfo = NULL;
 mobjtype_t NUMMOBJTYPES = 0;
 P_TouchNum_t g_RMODNumTouchSpecials = 0;
 P_RMODTouchSpecial_t** g_RMODTouchSpecials = NULL;
+size_t g_RMODNumKeys = 0;
+P_RMODKey_t** g_RMODKeys = NULL;
 
 #define LOCALSTATEJUMPS						64	// Local State Jumping
 
@@ -420,6 +422,7 @@ void* INFO_StEntryGrabEntry(void** const a_Data, const char* const a_Name);
 void* INFO_WeaponGrabEntry(void** const a_Data, const char* const a_Name);
 void* INFO_AmmoGrabEntry(void** const a_Data, const char* const a_Name);
 void* INFO_TouchGrabEntry(void** const a_Data, const char* const a_Name);
+void* INFO_KeyGrabEntry(void** const a_Data, const char* const a_Name);
 
 void INFO_MiscObjectGF(void** const a_Data, struct INFO_REMOODATValEntry_s* a_ValEnt, const char* const a_Field, const char* const a_Value, void* const a_WriteP);
 
@@ -526,9 +529,26 @@ static const INFO_REMOODATValEntry_t c_INFOAmmoTables[] =
 	{NULL},
 };
 
+
+void INFO_MiscKeyGF(void** const a_Data, struct INFO_REMOODATValEntry_s* a_ValEnt, const char* const a_Field, const char* const a_Value, void* const a_WriteP);
+
+// c_INFOKeyTables -- Key Cards Table
+static const INFO_REMOODATValEntry_t c_INFOKeyTables[] =
+{
+	{"-", IRVT_STRING, offsetof(P_RMODKey_t, ClassName)},
+	
+	{"Bit", IRVT_FUNC, 0, INFO_MiscKeyGF},
+	{"Group", IRVT_FUNC, 0, INFO_MiscKeyGF},
+	
+	{"Icon", IRVT_STRING, offsetof(P_RMODKey_t, ImageName)},
+	{"Color", IRVT_STRING, offsetof(P_RMODKey_t, ColorName)},
+	
+	{NULL},
+};
+
 void INFO_MiscTouchGF(void** const a_Data, struct INFO_REMOODATValEntry_s* a_ValEnt, const char* const a_Field, const char* const a_Value, void* const a_WriteP);
 
-// c_INFOTouchTables -- Ammo Tables
+// c_INFOTouchTables -- Toucher Tables
 static const INFO_REMOODATValEntry_t c_INFOTouchTables[] =
 {
 	{"-", IRVT_FUNC, 0, INFO_MiscTouchGF},
@@ -538,6 +558,7 @@ static const INFO_REMOODATValEntry_t c_INFOTouchTables[] =
 	{"PickupSound", IRVT_STRING, offsetof(P_RMODTouchSpecial_t, PickupSnd)},
 	{"GiveWeapon", IRVT_STRING, offsetof(P_RMODTouchSpecial_t, GiveWeapon)},
 	{"GiveAmmo", IRVT_STRING, offsetof(P_RMODTouchSpecial_t, GiveAmmo)},
+	{"GiveKey", IRVT_STRING, offsetof(P_RMODTouchSpecial_t, GiveKey)},
 	
 	{"ArmorClass", IRVT_INT32, offsetof(P_RMODTouchSpecial_t, ArmorClass)},
 	{"ArmorAmount", IRVT_INT32, offsetof(P_RMODTouchSpecial_t, ArmorAmount)},
@@ -599,7 +620,11 @@ static const INFO_REMOODATKeyChain_t c_INFOChains[] =
 	{"MapTouchSpecial", 1, c_INFOTouchTables,
 		NULL, NULL, 0, NULL,
 		0, 0, INFO_TouchGrabEntry, 1,
-		5},
+		8},
+	{"MapKey", 1, c_INFOKeyTables,
+		NULL, NULL, 0, NULL,
+		0, 0, INFO_KeyGrabEntry, 1,
+		16},
 	
 	{NULL},
 };
@@ -623,6 +648,7 @@ typedef struct INFO_DataStore_s
 		weaponinfo_t* WeaponP;					// Weapon
 		ammoinfo_t* AmmoP;						// Ammo
 		P_RMODTouchSpecial_t* TouchP;			// Toucher
+		P_RMODKey_t* KeyP;						// Key
 	} Cur;										// Current pointer sets
 } INFO_DataStore_t;
 
@@ -887,12 +913,56 @@ void* INFO_TouchGrabEntry(void** const a_Data, const char* const a_Name)
 		Z_ChangeTag(g_RMODTouchSpecials, PU_REMOODAT);
 		
 		// Init
-		Ptr->ActSpriteNum = NUMSPRITES;
-		Ptr->ActGiveWeapon = NUMWEAPONS;
-		Ptr->ActGiveAmmo = NUMAMMO;
+		Ptr->ActSpriteNum = INT_MAX;//NUMSPRITES;
+		Ptr->ActGiveWeapon = INT_MAX;//NUMWEAPONS;
+		Ptr->ActGiveAmmo = INT_MAX;//NUMAMMO;
+		Ptr->ActGiveKey = INT_MAX;
 		
 		Ptr->AmmoMul = 1;
 		Ptr->MaxAmmoMul = 1;
+	}
+	
+	/* Set object type */
+	This->MoType = Type;
+	
+	/* Loading Screen */
+	CONL_EarlyBootTic(a_Name, true);
+	
+	/* Return pointer */
+	return Ptr;
+}
+
+/* INFO_KeyGrabEntry() -- Grabs a new key */
+void* INFO_KeyGrabEntry(void** const a_Data, const char* const a_Name)
+{
+	INFO_DataStore_t** StorePP;
+	INFO_DataStore_t* This;
+	P_KeyNum_t Type;
+	P_RMODKey_t* Ptr;
+	
+	/* Storage Pointer */
+	StorePP = a_Data;
+	if (StorePP)
+		This = *StorePP;
+	
+	/* Do normal name lookup */
+	Type = INFO_GetKeyByName(a_Name);
+	Ptr = NULL;
+	
+	/* Found? */
+	if (Type < g_RMODNumKeys)
+		Ptr = g_RMODKeys[Type];
+	
+	/* Not Found */
+	else
+	{
+		Z_ResizeArray((void**)&g_RMODKeys, sizeof(*g_RMODKeys),
+			g_RMODNumKeys, g_RMODNumKeys + 1);
+		Ptr = g_RMODKeys[(Type = g_RMODNumKeys++)] = Z_Malloc(sizeof(**g_RMODKeys), PU_REMOODAT, NULL);
+		Z_ChangeTag(g_RMODKeys, PU_REMOODAT);
+		
+		// Init
+		Ptr->Group = -1;
 	}
 	
 	/* Set object type */
@@ -1133,6 +1203,58 @@ void INFO_MiscAmmoGF(void** const a_Data, struct INFO_REMOODATValEntry_s* a_ValE
 			*Ref &= ~Bit;
 }
 
+/* INFO_MiscKeyGF() -- Key Handling Stuff */
+void INFO_MiscKeyGF(void** const a_Data, struct INFO_REMOODATValEntry_s* a_ValEnt, const char* const a_Field, const char* const a_Value, void* const a_WriteP)
+{
+	INFO_DataStore_t** StorePP;
+	INFO_DataStore_t* This;
+	P_RMODKey_t* Key;
+	uint32_t Val;
+	
+	/* Storage Pointer */
+	StorePP = a_Data;
+	if (StorePP)
+		This = *StorePP;
+	
+	/* Get Object */
+	Key = This->Cur.KeyP;
+	
+	/* Changing Bit */
+	if (strcasecmp(a_Field, "Bit") == 0)
+	{
+		// Convert to integer
+		Val = C_strtou32(a_Value, NULL, 0);
+		
+		// Limit to 32-bits
+		if (Val < 1)
+			Val = 1;
+		else if (Val > 32)
+			Val = 32;
+		
+		// Subtract one
+		Val--;
+		
+		// Set Key bit
+		Key->Bit = UINT32_C(1) << Val;
+	}
+	
+	/* Changing Group */
+	else if (strcasecmp(a_Field, "Group") == 0)
+	{
+		// Card Key
+		if (strcasecmp(a_Value, "Card") == 0)
+			Key->Group = 0;
+		
+		// Skull Key
+		else if (strcasecmp(a_Value, "Skull") == 0)
+			Key->Group = 1;
+		
+		// Illegal
+		else
+			Key->Group = -1;
+	}
+}
+
 /* INFO_MiscTouchGF() -- Misc Toucher Stuff */
 void INFO_MiscTouchGF(void** const a_Data, struct INFO_REMOODATValEntry_s* a_ValEnt, const char* const a_Field, const char* const a_Value, void* const a_WriteP)
 {
@@ -1155,6 +1277,7 @@ void INFO_MiscTouchGF(void** const a_Data, struct INFO_REMOODATValEntry_s* a_Val
 		{PMTSF_CAPMAXSTAT, "IsCapMaxStat"},
 		{PMTSF_GREATERARMORCLASS, "IsGreaterArmorClass"},
 		{PMTSF_SETBACKPACK, "SetBackpack"},
+		{PMTSF_KEEPINMULTI, "IsKeepInMultiplayer"},
 		
 		{0, NULL},
 	};
@@ -1484,6 +1607,8 @@ bool_t INFO_REMOODATKeyer(void** a_DataPtr, const int32_t a_Stack, const D_RMODC
 			NUMAMMO = 0;
 			g_RMODNumTouchSpecials = 0;
 			g_RMODTouchSpecials = NULL;
+			g_RMODNumKeys = 0;
+			g_RMODKeys = NULL;
 			
 			// Create initial S_NULL
 			Z_ResizeArray((void**)&states, sizeof(*states),
@@ -1600,6 +1725,7 @@ bool_t INFO_REMOODATKeyer(void** a_DataPtr, const int32_t a_Stack, const D_RMODC
 				ThisTC->ActSpriteNum = NUMSPRITES;
 				ThisTC->ActGiveWeapon = NUMWEAPONS;
 				ThisTC->ActGiveAmmo = NUMAMMO;
+				ThisTC->ActGiveKey = g_RMODNumKeys;
 				
 				// Reference Weapon
 				if (ThisTC->GiveWeapon)
@@ -1615,6 +1741,14 @@ bool_t INFO_REMOODATKeyer(void** a_DataPtr, const int32_t a_Stack, const D_RMODC
 					ThisTC->ActGiveAmmo = INFO_GetAmmoByName(ThisTC->GiveAmmo);
 					Z_Free(ThisTC->GiveAmmo);
 					ThisTC->GiveAmmo = NULL;
+				}
+				
+				// Reference Key
+				if (ThisTC->GiveKey)
+				{
+					ThisTC->ActGiveKey = INFO_GetKeyByName(ThisTC->GiveKey);
+					Z_Free(ThisTC->GiveKey);
+					ThisTC->GiveKey = NULL;
 				}
 			
 				// Find sprite to map to
@@ -1960,4 +2094,22 @@ P_RMODTouchSpecial_t* P_RMODTouchSpecialForCode(const uint32_t a_Code)
 	return NULL;
 }
 
+/* INFO_GetKeyByName() -- Returns key by class name */
+P_KeyNum_t INFO_GetKeyByName(const char* const a_Name)
+{
+	P_KeyNum_t i;
+	
+	/* Check */
+	if (!a_Name)
+		return g_RMODNumKeys;
+	
+	/* Search by name */
+	for (i = 0; i < g_RMODNumKeys; i++)
+		if (g_RMODKeys[i])
+			if (strcasecmp(g_RMODKeys[i]->ClassName, a_Name) == 0)
+				return i;
+	
+	/* Not found */
+	return g_RMODNumKeys;
+}
 

@@ -727,96 +727,78 @@ int P_FindMinSurroundingLight(sector_t* sector, int max)
 bool_t P_CanUnlockGenDoor(line_t* line, player_t* player)
 {
 	// does this line special distinguish between skulls and keys?
-	int skulliscard = (line->special & LockedNKeys) >> LockedNKeysShift;
+	int i, skulliscard = (line->special & LockedNKeys) >> LockedNKeysShift;
+	uint32_t Groups[2], BothGrp;
 	
 	// GhostlyDeath <May 4, 2012> -- All Doors unlocked
 	if (P_XGSVal(PGS_FUNNOLOCKEDDOORS))
 		return true;
 	
-	// determine for each case of lock type if player's keys are adequate
+	/* Reset Groups */
+	for (i = 0; i < 2; i++)
+		Groups[i] = 0;
+	
+	/* Determine based on Boom Line */
 	switch ((line->special & LockedKey) >> LockedKeyShift)
 	{
-		case AnyKey_:
-			if (!(player->cards & it_redcard) &&
-			        !(player->cards & it_redskull) &&
-			        !(player->cards & it_bluecard) && !(player->cards & it_blueskull) && !(player->cards & it_yellowcard) && !(player->cards & it_yellowskull))
-			{
-				//player->message = PD_ANY;
-				S_StartSound(&player->mo->NoiseThinker, sfx_oof);
-				return false;
-			}
-			break;
 		case RCard:
-			if (!(player->cards & it_redcard) && (!skulliscard || !(player->cards & it_redskull)))
-			{
-				//player->message = skulliscard ? PD_REDK : PD_REDC;
-				S_StartSound(&player->mo->NoiseThinker, sfx_oof);
-				return false;
-			}
+			Groups[0] |= INFO_REDKEYCOMPAT;
 			break;
-		case BCard:
-			if (!(player->cards & it_bluecard) && (!skulliscard || !(player->cards & it_blueskull)))
-			{
-				//player->message = skulliscard ? PD_BLUEK : PD_BLUEC;
-				S_StartSound(&player->mo->NoiseThinker, sfx_oof);
-				return false;
-			}
-			break;
-		case YCard:
-			if (!(player->cards & it_yellowcard) && (!skulliscard || !(player->cards & it_yellowskull)))
-			{
-				//player->message = skulliscard ? PD_YELLOWK : PD_YELLOWC;
-				S_StartSound(&player->mo->NoiseThinker, sfx_oof);
-				return false;
-			}
-			break;
+			
 		case RSkull:
-			if (!(player->cards & it_redskull) && (!skulliscard || !(player->cards & it_redcard)))
-			{
-				//player->message = skulliscard ? PD_REDK : PD_REDS;
-				S_StartSound(&player->mo->NoiseThinker, sfx_oof);
-				return false;
-			}
+			Groups[1] |= INFO_REDKEYCOMPAT;
 			break;
+			
+		case BCard:
+			Groups[0] |= INFO_BLUEKEYCOMPAT;
+			break;
+			
 		case BSkull:
-			if (!(player->cards & it_blueskull) && (!skulliscard || !(player->cards & it_bluecard)))
-			{
-				//player->message = skulliscard ? PD_BLUEK : PD_BLUES;
-				S_StartSound(&player->mo->NoiseThinker, sfx_oof);
-				return false;
-			}
+			Groups[1] |= INFO_BLUEKEYCOMPAT;
 			break;
+			
+		case YCard:
+			Groups[0] |= INFO_YELLOWKEYCOMPAT;
+			break;
+			
 		case YSkull:
-			if (!(player->cards & it_yellowskull) && (!skulliscard || !(player->cards & it_yellowcard)))
-			{
-				//player->message = skulliscard ? PD_YELLOWK : PD_YELLOWS;
-				S_StartSound(&player->mo->NoiseThinker, sfx_oof);
-				return false;
-			}
+			Groups[1] |= INFO_YELLOWKEYCOMPAT;
 			break;
+		
 		case AllKeys:
-			if (!skulliscard &&
-			        (!(player->cards & it_redcard) ||
-			         !(player->cards & it_redskull) ||
-			         !(player->cards & it_bluecard) || !(player->cards & it_blueskull) || !(player->cards & it_yellowcard) || !(player->cards & it_yellowskull)))
-			{
-				//player->message = PD_ALL6;
-				S_StartSound(&player->mo->NoiseThinker, sfx_oof);
-				return false;
-			}
-			if (skulliscard &&
-			        ((!(player->cards & it_redcard) &&
-			          !(player->cards & it_redskull)) ||
-			         (!(player->cards & it_bluecard) &&
-			          !(player->cards & it_blueskull)) || (!(player->cards & it_yellowcard) && !(player->cards & it_yellowskull))))
-			{
-				//player->message = PD_ALL3;
-				S_StartSound(&player->mo->NoiseThinker, sfx_oof);
-				return false;
-			}
+			Groups[0] = Groups[1] = INFO_ALLKEYCOMPAT;
 			break;
+		
+			// Any key is special case
+		case AnyKey_:
+			if ((player->KeyCards[0] | player->KeyCards[1]) & INFO_ALLKEYCOMPAT)
+				return true;
+			return false;
 	}
-	return true;
+	
+	/* Merge */
+	BothGrp = Groups[0] | Groups[1];
+	
+	/* Compare player card groups */
+	// Skull keys are card keys
+	if (skulliscard)
+	{
+		if (BothGrp && (((player->KeyCards[0] | player->KeyCards[1]) & BothGrp) == BothGrp))
+			return true;
+	}
+	
+	// They are not the same
+	else
+	{
+		if (
+			(!Groups[0] || (Groups[0] && ((player->KeyCards[0] & Groups[0]) == Groups[0]))) &&
+			(!Groups[1] || (Groups[1] && ((player->KeyCards[1] & Groups[1]) == Groups[1])))
+			)
+			return true;
+	}
+	
+	/* Cannot unlock, due to lack of keys */
+	return false;
 }
 
 //

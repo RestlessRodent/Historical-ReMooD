@@ -375,6 +375,30 @@ extern weaponinfo_t** wpnlev1info;
 extern weaponinfo_t** wpnlev2info;
 extern size_t NUMWEAPONS;
 
+/* KEYS */
+
+#define INFO_BLUEKEYCOMPAT UINT32_C(0x1)
+#define INFO_YELLOWKEYCOMPAT UINT32_C(0x2)
+#define INFO_REDKEYCOMPAT UINT32_C(0x4)
+
+#define INFO_ALLKEYCOMPAT (INFO_BLUEKEYCOMPAT | INFO_YELLOWKEYCOMPAT | INFO_REDKEYCOMPAT)
+
+typedef int32_t P_KeyNum_t;
+
+/* P_RMODKey_t -- Key definition */
+typedef struct P_RMODKey_s
+{
+	char* ClassName;
+	char* ColorName;
+	char* ImageName;
+	
+	uint32_t Bit;
+	uint8_t Group;
+} P_RMODKey_t;
+
+extern size_t g_RMODNumKeys;
+extern P_RMODKey_t** g_RMODKeys;
+
 /* TOUCHERS */
 
 typedef int32_t P_TouchNum_t;
@@ -390,6 +414,7 @@ typedef enum P_RMODTouchSpecialFlags_e
 	PMTSF_CAPMAXSTAT		= UINT32_C(0x0020),	// Cap to max stats
 	PMTSF_GREATERARMORCLASS	= UINT32_C(0x0040),	// Use when armor class is better
 	PMTSF_SETBACKPACK		= UINT32_C(0x0080),	// Modify max ammo when !backpack
+	PMTSF_KEEPINMULTI		= UINT32_C(0x0100),	// Keep in multiplayer mode
 } P_RMODTouchSpecialFlags_t;
 
 /* P_RMODTouchSpecial_t -- Special toucher for RMOD */
@@ -404,6 +429,7 @@ typedef struct P_RMODTouchSpecial_s
 	/* Modifiers */
 	char* GiveWeapon;							// Weapon to give
 	char* GiveAmmo;								// Ammo to give
+	char* GiveKey;								// Key to give
 	
 	/* Actual */
 	uint32_t Flags;								// Flags
@@ -411,6 +437,7 @@ typedef struct P_RMODTouchSpecial_s
 	weapontype_t ActGiveWeapon;					// Actual weapon to give
 	ammotype_t ActGiveAmmo;						// Actual ammo to give
 	uint32_t ActSpriteID;						// Actual Sprite ID
+	P_KeyNum_t ActGiveKey;
 	
 	/* Health */
 	int8_t ArmorClass;							// Armor Class
@@ -424,19 +451,6 @@ typedef struct P_RMODTouchSpecial_s
 
 extern P_TouchNum_t g_RMODNumTouchSpecials;
 extern P_RMODTouchSpecial_t** g_RMODTouchSpecials;
-
-/* KEYS */
-
-/* P_RMODKey_t -- Key definition */
-typedef struct P_RMODKey_s
-{
-	uint32_t IDNum;								// ID Number
-	uint32_t BoomID;							// Boom ID
-	bool_t IsSkull;								// Is Skull Key
-} P_RMODKey_t;
-
-extern size_t g_RMODNumKeys;
-extern P_RMODKey_t** g_RMODKeys;
 
 /*** RMOD ***/
 
@@ -456,6 +470,7 @@ P_RMODTouchSpecial_t* P_RMODTouchSpecialForSprite(const uint32_t a_SprNum);
 P_RMODTouchSpecial_t* P_RMODTouchSpecialForCode(const uint32_t a_Code);
 weapontype_t INFO_GetWeaponByName(const char* const a_Name);
 ammotype_t INFO_GetAmmoByName(const char* const a_Name);
+P_KeyNum_t INFO_GetKeyByName(const char* const a_Name);
 
 /*** HELPFUL MACROS ***/
 // Yuck! TODO: Make these real functions
