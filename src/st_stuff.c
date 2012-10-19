@@ -533,7 +533,7 @@ static void STS_DrawPlayerBarEx(const size_t a_PID, const int32_t a_X, const int
 	weapontype_t ReadyWeapon;
 	ammotype_t AmmoType;
 	bool_t BigLetters, IsMonster;
-	D_NetPlayer_t* NP;
+	D_XPlayer_t* XPlay;
 	
 	/* Init */
 	// Font to use
@@ -557,7 +557,7 @@ static void STS_DrawPlayerBarEx(const size_t a_PID, const int32_t a_X, const int
 	DisplayP = &players[g_Splits[a_PID].Display];
 	
 	// Net player
-	NP = ConsoleP->NetPlayer;
+	XPlay = ConsoleP->XPlayer;
 	
 	/* Get profile of player */
 	Profile = ConsoleP->ProfileEx;
@@ -692,7 +692,7 @@ static void STS_DrawPlayerBarEx(const size_t a_PID, const int32_t a_X, const int
 	/* Draw Object Overlays */
 	
 	/* Scoreboard */
-	if (NP && NP->Scores)
+	if (XPlay && XPlay->Scores)
 	{
 		// Score Header
 		V_DrawStringA(
