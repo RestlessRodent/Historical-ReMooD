@@ -105,33 +105,470 @@ Menu "optionsmain"
 		SelectFunc "SubMenu";
 		SelectVal "servervars";
 	}
+	
+	Item "consolesettings"
+	{
+		Text "MENUGENERAL_CONSOLEVARS";
+		
+		SelectFunc "SubMenu";
+		SelectVal "consolevars";
+	}
+	
+	Item "menusettings"
+	{
+		Text "MENUGENERAL_MENUVARS";
+		
+		SelectFunc "SubMenu";
+		SelectVal "menuvars";
+	}
+	
+	Item "renderersettings"
+	{
+		Text "MENUGENERAL_RENDERERVARS";
+		
+		SelectFunc "SubMenu";
+		SelectVal "renderervars";
+	}
+	
+	Item "screensettings"
+	{
+		Text "MENUGENERAL_SCREENVARS";
+		
+		SelectFunc "SubMenu";
+		SelectVal "screenvars";
+	}
+	
+	Item "interfacesettings"
+	{
+		Text "MENUGENERAL_INTERFACEVARS";
+		
+		SelectFunc "SubMenu";
+		SelectVal "interfacevars";
+	}
 }
 
-// Server Variables Menu
+// Console Variables Menu
+Menu "consolevars"
+{
+	Title "MENUGENERAL_CONSOLEVARS";
+
+	Item "con_font"
+	{
+		Text "MENUGENERAL_CONFONT";
+	
+		OmniFunc "Variable";
+		OmniVal "$con_font";
+	}
+	
+	Item "con_backcolor"
+	{
+		Text "MENUGENERAL_CONBACKCOLOR";
+	
+		OmniFunc "Variable";
+		OmniVal "$con_backcolor";
+	}
+
+	Item "con_forecolor"
+	{
+		Text "MENUGENERAL_CONFORECOLOR";
+	
+		OmniFunc "Variable";
+		OmniVal "$con_forecolor";
+	}
+
+	Item "con_monospace"
+	{
+		Text "MENUGENERAL_CONMONOSPACE";
+	
+		OmniFunc "Variable";
+		OmniVal "$con_monospace";
+	}
+
+	Item "con_pausegame"
+	{
+		Text "MENUGENERAL_CONPAUSEGAME";
+	
+		OmniFunc "Variable";
+		OmniVal "$con_pausegame";
+	}
+
+	Item "con_scale"
+	{
+		Text "MENUGENERAL_CONSCALE";
+	
+		OmniFunc "Variable";
+		OmniVal "$con_scale";
+	}
+
+	Item "con_screenheight"
+	{
+		Text "MENUGENERAL_CONSCREENHEIGHT";
+	
+		OmniFunc "Variable";
+		OmniVal "$con_screenheight";
+	}
+}
+
+// Interface Variables Menu
+Menu "interfacevars"
+{
+	Title "MENUGENERAL_INTERFACEVARS";
+	
+	Item "i_enablejoystick"
+	{
+		Text "MENUGENERAL_IENABLEJOYSTICK";
+	
+		OmniFunc "Variable";
+		OmniVal "$i_enablejoystick";
+	}
+
+	Item "i_enablemouse"
+	{
+		Text "MENUGENERAL_IENABLEMOUSE";
+	
+		OmniFunc "Variable";
+		OmniVal "$i_enablemouse";
+	}
+
+	Item "i_ossmididev"
+	{
+		Text "MENUGENERAL_IOSSMIDIDEV";
+	
+		OmniFunc "Variable";
+		OmniVal "$i_ossmididev";
+	}
+}
+
+// Menu Variables Menu
+Menu "menuvars"
+{
+	Title "MENUGENERAL_MENUVARS";
+	
+	Item "menu_compact"
+	{
+		Text "MENUGENERAL_MENUCOMPACT";
+	
+		OmniFunc "Variable";
+		OmniVal "$menu_compact";
+	}
+
+	Item "menu_font"
+	{
+		Text "MENUGENERAL_MENUFONT";
+	
+		OmniFunc "Variable";
+		OmniVal "$menu_font";
+	}
+
+	Item "menu_headercolor"
+	{
+		Text "MENUGENERAL_MENUHEADERCOLOR";
+	
+		OmniFunc "Variable";
+		OmniVal "$menu_headercolor";
+	}
+
+	Item "menu_itemcolor"
+	{
+		Text "MENUGENERAL_MENUITEMCOLOR";
+	
+		OmniFunc "Variable";
+		OmniVal "$menu_itemcolor";
+	}
+
+	Item "menu_valcolor"
+	{
+		Text "MENUGENERAL_MENUVALCOLOR";
+	
+		OmniFunc "Variable";
+		OmniVal "$menu_valcolor";
+	}
+}
+
+// Renderer Variables Menu
+Menu "renderervars"
+{
+	Title "MENUGENERAL_RENDERERVARS";
+	
+	Item "r_renderer"
+	{
+		Text "MENUGENERAL_RRENDERER";
+	
+		OmniFunc "Variable";
+		OmniVal "$r_renderer";
+	}
+
+	Item "r_viewsize"
+	{
+		Text "MENUGENERAL_RVIEWSIZE";
+	
+		OmniFunc "Variable";
+		OmniVal "$r_viewsize";
+	}
+	
+	Item "r_cutwalldetail"
+	{
+		Text "MENUGENERAL_RCUTWALLDETAIL";
+	
+		OmniFunc "Variable";
+		OmniVal "$r_cutwalldetail";
+	}
+
+	Item "r_drawsplats"
+	{
+		Text "MENUGENERAL_RDRAWSPLATS";
+	
+		OmniFunc "Variable";
+		OmniVal "$r_drawsplats";
+	}
+
+	Item "r_maxsplats"
+	{
+		Text "MENUGENERAL_RMAXSPLATS";
+	
+		OmniFunc "Variable";
+		OmniVal "$r_maxsplats";
+	}
+
+	Item "r_fakesspal"
+	{
+		Text "MENUGENERAL_RFAKESSPAL";
+	
+		OmniFunc "Variable";
+		OmniVal "$r_fakesspal";
+	}
+
+	Item "r_transparency"
+	{
+		Text "MENUGENERAL_RTRANSPARENCY";
+	
+		OmniFunc "Variable";
+		OmniVal "$r_transparency";
+	}
+}
+
+// Sound Variables
+Menu "soundvars"
+{
+	TITLE "MENUGENERAL_SOUNDVARS";	
+
+	Item "snd_soundvolume"
+	{
+		Text "MENUGENERAL_SNDSOUNDVOLUME";
+	
+		OmniFunc "Variable";
+		OmniVal "$snd_soundvolume";
+	}
+
+	Item "snd_musicvolume"
+	{
+		Text "MENUGENERAL_SNDMUSICVOLUME";
+	
+		OmniFunc "Variable";
+		OmniVal "$snd_musicvolume";
+	}
+	
+	Item "snd_buffersize"
+	{
+		Text "MENUGENERAL_SNDBUFFERSIZE";
+	
+		OmniFunc "Variable";
+		OmniVal "$snd_buffersize";
+	}
+
+	Item "snd_speakersetup"
+	{
+		Text "MENUGENERAL_SNDSPEAKERSETUP";
+	
+		OmniFunc "Variable";
+		OmniVal "$snd_speakersetup";
+	}
+
+	Item "snd_quality"
+	{
+		Text "MENUGENERAL_SNDQUALITY";
+	
+		OmniFunc "Variable";
+		OmniVal "$snd_quality";
+	}
+
+	Item "snd_density"
+	{
+		Text "MENUGENERAL_SNDDENSITY";
+	
+		OmniFunc "Variable";
+		OmniVal "$snd_density";
+	}
+
+	Item "snd_channels"
+	{
+		Text "MENUGENERAL_SNDCHANNELS";
+	
+		OmniFunc "Variable";
+		OmniVal "$snd_channels";
+	}
+
+	Item "snd_reservedchannels"
+	{
+		Text "MENUGENERAL_SNDRESERVEDCHANNELS";
+	
+		OmniFunc "Variable";
+		OmniVal "$snd_reservedchannels";
+	}
+
+	Item "snd_randompitch"
+	{
+		Text "MENUGENERAL_SNDRANDOMPITCH";
+	
+		OmniFunc "Variable";
+		OmniVal "$snd_randompitch";
+	}
+}
+
 Menu "servervars"
 {
 	Title "MENUGENERAL_SERVERVARS";
+
+	Item "sv_maxclients"
+	{
+		Text "MENUGENERAL_SVMAXCLIENTS";
+	
+		OmniFunc "Variable";
+		OmniVal "$sv_maxclients";
+	}
 	
 	Item "sv_name"
 	{
 		Text "MENUGENERAL_SVNAME";
-		
+	
 		OmniFunc "Variable";
 		OmniVal "$sv_name";
 	}
 	
-//cvset "sv_name" "Untitled ReMooD Server"
-//cvset "sv_email" "nobody@localhost"
-//cvset "sv_url" "http://remood.org/"
-//cvset "sv_wadurl" "http://remood.org/wads/"
-//cvset "sv_irc" "irc://irc.oftc.net/remood"
-//cvset "sv_motd" "Welcome to ReMooD! Enjoy your stay!"
-//cvset "sv_connectpassword" ""
-//cvset "sv_joinpassword" ""
-//cvset "sv_maxclients" "32"
-//cvset "sv_readyby" "2000"
-//cvset "sv_maxcatchup" "105"
-//cvset "sv_maxdemocatchup" "52"
+	Item "sv_email"
+	{
+		Text "MENUGENERAL_SVEMAIL";
+	
+		OmniFunc "Variable";
+		OmniVal "$sv_email";
+	}
+
+	Item "sv_url"
+	{
+		Text "MENUGENERAL_SVURL";
+	
+		OmniFunc "Variable";
+		OmniVal "$sv_url";
+	}
+
+	Item "sv_wadurl"
+	{
+		Text "MENUGENERAL_SVWADURL";
+	
+		OmniFunc "Variable";
+		OmniVal "$sv_wadurl";
+	}
+
+	Item "sv_irc"
+	{
+		Text "MENUGENERAL_SVIRC";
+	
+		OmniFunc "Variable";
+		OmniVal "$sv_irc";
+	}
+	
+	Item "sv_connectpassword"
+	{
+		Text "MENUGENERAL_SVCONNECTPASSWORD";
+	
+		OmniFunc "Variable";
+		OmniVal "$sv_connectpassword";
+	}
+
+	Item "sv_joinpassword"
+	{
+		Text "MENUGENERAL_SVJOINPASSWORD";
+	
+		OmniFunc "Variable";
+		OmniVal "$sv_joinpassword";
+	}
+
+	Item "sv_motd"
+	{
+		Text "MENUGENERAL_SVMOTD";
+	
+		OmniFunc "Variable";
+		OmniVal "$sv_motd";
+	}
+
+	Item "sv_maxcatchup"
+	{
+		Text "MENUGENERAL_SVMAXCATCHUP";
+	
+		OmniFunc "Variable";
+		OmniVal "$sv_maxcatchup";
+	}
+
+	Item "sv_maxdemocatchup"
+	{
+		Text "MENUGENERAL_SVMAXDEMOCATCHUP";
+	
+		OmniFunc "Variable";
+		OmniVal "$sv_maxdemocatchup";
+	}
+
+	Item "sv_readyby"
+	{
+		Text "MENUGENERAL_SVREADYBY";
+	
+		OmniFunc "Variable";
+		OmniVal "$sv_readyby";
+	}
+}
+
+Menu "screenvars"
+{
+	Title "MENUGENERAL_SCREENVARS";	
+	
+	Item "scr_fullscreen"
+	{
+		Text "MENUGENERAL_SCRFULLSCREEN";
+	
+		OmniFunc "Variable";
+		OmniVal "$scr_fullscreen";
+	}
+
+	Item "scr_width"
+	{
+		Text "MENUGENERAL_SCRWIDTH";
+	
+		OmniFunc "Variable";
+		OmniVal "$scr_width";
+	}
+
+	Item "scr_height"
+	{
+		Text "MENUGENERAL_SCRHEIGHT";
+	
+		OmniFunc "Variable";
+		OmniVal "$scr_height";
+	}
+
+	Item "vid_drawfps"
+	{
+		Text "MENUGENERAL_VIDDRAWFPS";
+	
+		OmniFunc "Variable";
+		OmniVal "$vid_drawfps";
+	}
+
+	Item "vid_screenlink"
+	{
+		Text "MENUGENERAL_VIDSCREENLINK";
+	
+		OmniFunc "Variable";
+		OmniVal "$vid_screenlink";
+	}
 }
 
 //////////////////////////////
