@@ -249,6 +249,7 @@ typedef enum D_XPlayerStatBits_e
 {
 	DXPSB_LBOVERFLOW	= UINT32_C(0x0000001),	// Local buffer overflowing
 	DXPSB_NEEDSPROFILE	= UINT32_C(0x0000002),	// Needs profile loaded
+	DXPSB_MISSINGTICS	= UINT32_C(0x0000004),	// Missing Tics
 } D_XPlayerStatBits_t;
 
 /*** STRUCTURES ***/
@@ -327,6 +328,7 @@ typedef struct D_XPlayer_s
 	tic_t CoopSpyTime;							// Time to wait to respy
 	tic_t TurnHeld;								// Time turning is held
 	int32_t Scores;								// Scoreboard showing
+	ticcmd_t BackupTicCmd;						// Backup Tic Command
 } D_XPlayer_t;
 
 /* D_XJoinPlayerData_t -- Data for joining player */

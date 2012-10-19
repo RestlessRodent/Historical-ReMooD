@@ -150,6 +150,8 @@ void TryRunTics(tic_t realtics)
 		
 	//D_SyncNetUpdate();
 	
+	D_XNetUpdate();
+	
 	if (demoplayback)
 	{
 		neededtic = gametic + realtics;

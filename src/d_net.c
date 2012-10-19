@@ -3760,33 +3760,55 @@ void D_XNetMultiTics(ticcmd_t* const a_TicCmd, const bool_t a_Write, const int32
 				if (!XPlay)
 					return;
 				
-				// Merge local tic commands
-				D_NCSNetMergeTics(a_TicCmd, XPlay->LocalBuf, XPlay->LocalAt);
-				XPlay->LocalAt = 0;
-				memset(XPlay->LocalBuf, 0, sizeof(XPlay->LocalBuf));
+				// No commands available in queue? (lag)
+				if (!XPlay->LocalAt)
+				{
+					// Ouch =(
+					memmove(a_TicCmd, &XPlay->BackupTicCmd, sizeof(ticcmd_t));
+					
+					// Set as missing commands
+					XPlay->StatusBits |= DXPSB_MISSINGTICS;
+				}
 				
-				// If player is local, modify angle set
-				if (XPlay->Flags & DXPF_LOCAL)
-					if (XPlay->ScreenID >= 0 && XPlay->ScreenID < MAXSPLITSCREEN)
-					{
-						// Absolute Angles
-						if (P_XGSVal(PGS_COABSOLUTEANGLE))
+				// Merge local tic commands
+				else
+				{
+					D_NCSNetMergeTics(a_TicCmd, XPlay->LocalBuf, XPlay->LocalAt);
+					XPlay->LocalAt = 0;
+					memset(XPlay->LocalBuf, 0, sizeof(XPlay->LocalBuf));
+				
+					// If player is local, modify angle set
+					if (XPlay->Flags & DXPF_LOCAL)
+						if (XPlay->ScreenID >= 0 && XPlay->ScreenID < MAXSPLITSCREEN)
 						{
-							localangle[XPlay->ScreenID] += a_TicCmd->Std.BaseAngleTurn << 16;
-							a_TicCmd->Std.angleturn = localangle[XPlay->ScreenID] >> 16;
-						}
+							// Absolute Angles
+							if (P_XGSVal(PGS_COABSOLUTEANGLE))
+							{
+								localangle[XPlay->ScreenID] += a_TicCmd->Std.BaseAngleTurn << 16;
+								a_TicCmd->Std.angleturn = localangle[XPlay->ScreenID] >> 16;
+							}
 			
-						// Doom Angles
-						else
-							a_TicCmd->Std.angleturn = a_TicCmd->Std.BaseAngleTurn;
+							// Doom Angles
+							else
+								a_TicCmd->Std.angleturn = a_TicCmd->Std.BaseAngleTurn;
 						
-						// Aiming Angle
-						if (a_TicCmd->Std.ResetAim)
-							localaiming[XPlay->ScreenID] = 0;
-						else
-							localaiming[XPlay->ScreenID] += a_TicCmd->Std.BaseAiming << 16;
-						a_TicCmd->Std.aiming = G_ClipAimingPitch(&localaiming[XPlay->ScreenID]);
-					}
+							// Aiming Angle
+							if (a_TicCmd->Std.ResetAim)
+								localaiming[XPlay->ScreenID] = 0;
+							else
+								localaiming[XPlay->ScreenID] += a_TicCmd->Std.BaseAiming << 16;
+							a_TicCmd->Std.aiming = G_ClipAimingPitch(&localaiming[XPlay->ScreenID]);
+						}
+					
+					// Copy command to backup command
+					memmove(&XPlay->BackupTicCmd, a_TicCmd, sizeof(ticcmd_t));
+					
+					// Clear missing commands
+					XPlay->StatusBits &= ~DXPSB_MISSINGTICS;
+				}
+				
+				// Always move over status bits
+				a_TicCmd->Std.StatFlags = XPlay->StatusBits;
 			}
 		}
 	}
