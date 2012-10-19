@@ -324,6 +324,9 @@ typedef struct D_XPlayer_s
 	
 	// Game/Profile Stuff
 	tic_t LastJoinAttempt;						// Last join attempt
+	tic_t CoopSpyTime;							// Time to wait to respy
+	tic_t TurnHeld;								// Time turning is held
+	int32_t Scores;								// Scoreboard showing
 } D_XPlayer_t;
 
 /* D_XJoinPlayerData_t -- Data for joining player */
@@ -377,6 +380,7 @@ void D_XNetInit(void);
 void D_XNetMultiTics(ticcmd_t* const a_TicCmd, const bool_t a_Write, const int32_t a_Player);
 tic_t D_XNetTicsToRun(void);
 void D_XNetUpdate(void);
+bool_t D_XNetHandleEvent(const I_EventEx_t* const a_Event);
 
 /*** FAKE PLAYER ***/
 

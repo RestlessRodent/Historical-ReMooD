@@ -3026,6 +3026,14 @@ void D_NCSR_SendLoadingStatus(const int32_t a_MajIs, const int32_t a_MajOf, cons
 *** NEW EXTENDED NETWORKING ***
 ******************************/
 
+/*** CONSTANTS ***/
+
+static const fixed_t c_forwardmove[2] = { 25, 50 };
+static const fixed_t c_sidemove[2] = { 24, 40 };
+static const fixed_t c_angleturn[3] = { 640, 1280, 320 };	// + slow turn
+#define MAXPLMOVE       (c_forwardmove[1])
+#define MAXLOCALJOYS	MAXJOYSTICKS			// Max joysticks handled
+
 /*** GLOBALS ***/
 
 D_XSocket_t** g_XSocks = NULL;					// Extended Sockets
@@ -3037,7 +3045,16 @@ size_t g_NumXPlays = 0;							// Number of them
 tic_t g_DemoFreezeTics = 0;						// Tics to freeze demo for
 
 /*** LOCALS ***/
+
 static tic_t l_XNLastPTic;						// Last Program Tic
+
+static bool_t l_PermitMouse = false;			// Use mouse input
+static int32_t l_MouseMove[2] = {0, 0};			// Mouse movement (x/y)
+static uint32_t l_MouseButtons[2];				// Mouse buttons down (sng/dbl)
+static tic_t l_MouseLastTime[32];				// Last time pressed
+static bool_t l_KeyDown[NUMIKEYBOARDKEYS];		// Keys that are down
+static uint32_t l_JoyButtons[MAXLOCALJOYS];		// Local Joysticks
+static int16_t l_JoyAxis[MAXLOCALJOYS][MAXJOYAXIS];
 
 /*** FUNCTIONS ***/
 
@@ -3331,6 +3348,9 @@ D_XPlayer_t* D_XNetAddPlayer(void (*a_PacketBack)(D_XPlayer_t* const a_Player, v
 			New->AccountName
 		);
 	
+	/* Update Scores */
+	P_UpdateScores();
+	
 	/* Return fresh player */
 	return New;
 }
@@ -3445,6 +3465,9 @@ void D_XNetKickPlayer(D_XPlayer_t* const a_Player, const char* const a_Reason)
 	
 	/* Free associated data */
 	Z_Free(a_Player);
+	
+	/* Update Scores */
+	P_UpdateScores();
 }
 
 /* D_XNetSendQuit() -- Informs the server we are quitting */
@@ -3676,10 +3699,23 @@ void D_XNetCreatePlayer(D_XJoinPlayerData_t* const a_JoinData)
 	Player->skincolor = a_JoinData->Color;
 	D_NetSetPlayerName(k, a_JoinData->DisplayName);
 	
+	/* Setup Screen */
+	for (i = 0; i < MAXSPLITSCREEN; i++)
+		if (D_ScrSplitVisible(i))
+			if (g_Splits[i].XPlayer == XPlay)
+			{
+				g_Splits[i].Active = true;
+				g_Splits[i].Waiting = false;
+				g_Splits[i].Console = g_Splits[i].Display = k;
+			}
+	
 	/* Print Message */
 	CONL_OutputUT(CT_NETWORK, DSTR_NET_PLAYERJOINED, "%s\n",
 			player_names[k]
 		);
+	
+	/* Update Scores */
+	P_UpdateScores();
 }
 
 /* D_XNetMultiTics() -- Read/Write Tics all in one */
@@ -3728,6 +3764,29 @@ void D_XNetMultiTics(ticcmd_t* const a_TicCmd, const bool_t a_Write, const int32
 				D_NCSNetMergeTics(a_TicCmd, XPlay->LocalBuf, XPlay->LocalAt);
 				XPlay->LocalAt = 0;
 				memset(XPlay->LocalBuf, 0, sizeof(XPlay->LocalBuf));
+				
+				// If player is local, modify angle set
+				if (XPlay->Flags & DXPF_LOCAL)
+					if (XPlay->ScreenID >= 0 && XPlay->ScreenID < MAXSPLITSCREEN)
+					{
+						// Absolute Angles
+						if (P_XGSVal(PGS_COABSOLUTEANGLE))
+						{
+							localangle[XPlay->ScreenID] += a_TicCmd->Std.BaseAngleTurn << 16;
+							a_TicCmd->Std.angleturn = localangle[XPlay->ScreenID] >> 16;
+						}
+			
+						// Doom Angles
+						else
+							a_TicCmd->Std.angleturn = a_TicCmd->Std.BaseAngleTurn;
+						
+						// Aiming Angle
+						if (a_TicCmd->Std.ResetAim)
+							localaiming[XPlay->ScreenID] = 0;
+						else
+							localaiming[XPlay->ScreenID] += a_TicCmd->Std.BaseAiming << 16;
+						a_TicCmd->Std.aiming = G_ClipAimingPitch(&localaiming[XPlay->ScreenID]);
+					}
 			}
 		}
 	}
@@ -3884,9 +3943,763 @@ void D_XNetInit(void)
 	CONL_AddCommand("xnet", DS_XNetCon);
 }
 
-/* D_XNetBuildTicCmd() -- Builds tic command for player */
-void D_XNetBuildTicCmd(D_XPlayer_t* const a_Player, ticcmd_t* const a_TicCmd)
+/* D_XNetHandleEvent() -- Handle advanced events */
+bool_t D_XNetHandleEvent(const I_EventEx_t* const a_Event)
 {
+	int32_t ButtonNum, LocalJoy;
+	uint32_t Bit;
+	
+	/* Check */
+	if (!a_Event)
+		return false;
+	
+	/* Which kind of event? */
+	switch (a_Event->Type)
+	{
+			// Mouse
+		case IET_MOUSE:
+			// Add position to movement
+			l_MouseMove[0] += a_Event->Data.Mouse.Move[0];
+			l_MouseMove[1] += a_Event->Data.Mouse.Move[1];
+			
+			// Handling of buttons (with double click)
+			if (a_Event->Data.Mouse.Button > 0 && a_Event->Data.Mouse.Button < 32)
+			{
+				// Determine bit
+				ButtonNum = a_Event->Data.Mouse.Button - 1U;
+				Bit = 1U << (ButtonNum);
+				
+				// Unpressed?
+				if (!a_Event->Data.Mouse.Down)
+				{
+					l_MouseButtons[0] &= ~Bit;
+					l_MouseButtons[1] &= ~Bit;
+				}
+				else
+				{
+					// Always set single bit
+					l_MouseButtons[0] |= Bit;
+					
+					// Double Click?
+						// TODO make this a CVAR of sorts
+					if (g_ProgramTic - l_MouseLastTime[ButtonNum] < 17)
+					{
+						l_MouseButtons[1] |= Bit;
+						l_MouseLastTime[ButtonNum] = 0;
+					}
+				
+					// Single Click (set last time for double)
+					else
+						l_MouseLastTime[ButtonNum] = g_ProgramTic;
+				}
+			}
+			break;
+			
+			// Keyboard
+		case IET_KEYBOARD:
+			if (a_Event->Data.Keyboard.KeyCode >= 0 && a_Event->Data.Keyboard.KeyCode < NUMIKEYBOARDKEYS)
+				l_KeyDown[a_Event->Data.Keyboard.KeyCode] = a_Event->Data.Keyboard.Down;
+			break;
+			
+			// Joystick
+		case IET_JOYSTICK:
+			// Get local joystick
+			LocalJoy = a_Event->Data.Joystick.JoyID;
+			
+			// Now determine which action
+			if (LocalJoy >= 0 && LocalJoy < MAXLOCALJOYS)
+			{
+				// Button Pressed Down
+				if (a_Event->Data.Joystick.Button)
+				{
+					// Get Number
+					ButtonNum = a_Event->Data.Joystick.Button;
+					ButtonNum--;
+					
+					// Limited to 32 buttons =(
+					if (ButtonNum >= 0 && ButtonNum < 32)
+					{
+						// Was it pressed?
+						if (a_Event->Data.Joystick.Down)
+							l_JoyButtons[LocalJoy] |= (1 << ButtonNum);
+						else
+							l_JoyButtons[LocalJoy] &= ~(1 << ButtonNum);
+					}
+				}
+				
+				// Axis Moved
+				else if (a_Event->Data.Joystick.Axis)
+				{
+					ButtonNum = a_Event->Data.Joystick.Axis;
+					ButtonNum--;
+					
+					if (ButtonNum >= 0 && ButtonNum < MAXJOYAXIS)
+						l_JoyAxis[LocalJoy][ButtonNum] = a_Event->Data.Joystick.Value;
+				}
+			}
+			break;
+		
+			// Unknown
+		default:
+			break;
+	}
+	
+	/* Un-Handled */
+	return false;
+}
+
+/* NextWeapon() -- Finds the next weapon in the chain */
+// This is for PrevWeapon and NextWeapon
+// Rewritten for RMOD Support!
+// This uses the fields in weaponinfo_t for ordering info
+static uint8_t DS_XNetNextWeapon(player_t* player, int step)
+{
+	size_t g, w, fw, BestNum;
+	int32_t s, StepsLeft, StepsAdd, BestDiff, ThisDiff;
+	size_t MostOrder, LeastOrder;
+	bool_t Neg;
+	weaponinfo_t** weapons;
+	
+	/* Get current weapon info */
+	weapons = player->weaponinfo;
+	
+	/* Get the weapon with the lowest and highest order */
+	// Find first gun the player has (so order is correct)
+	MostOrder = LeastOrder = 0;
+	for (w = 0; w < NUMWEAPONS; w++)
+		if (P_CanUseWeapon(player, w))
+		{
+			// Got the first available gun
+			MostOrder = LeastOrder = w;
+			break;
+		}
+	
+	// Now go through
+	for (w = 0; w < NUMWEAPONS; w++)
+	{
+		// Can't use this gun?
+		if (!P_CanUseWeapon(player, w))
+			continue;
+		
+		// Least
+		if (weapons[w]->SwitchOrder < weapons[LeastOrder]->SwitchOrder)
+			LeastOrder = w;
+		
+		// Most
+		if (weapons[w]->SwitchOrder > weapons[MostOrder]->SwitchOrder)
+			MostOrder = w;
+	}
+	
+	/* Look for the current weapon in the weapon list */
+	// Well that was easy
+	fw = s = g = player->readyweapon;
+	
+	/* Constantly change the weapon */
+	// Prepare variables
+	Neg = (step < 0 ? true : false);
+	StepsAdd = (Neg ? -1 : 1);
+	StepsLeft = step * StepsAdd;
+	
+	// Go through the weapon list, step times
+	while (StepsLeft > 0)
+	{
+		// Clear variables
+		BestDiff = 9999999;		// The worst weapon difference ever
+		BestNum = NUMWEAPONS;
+		
+		// Go through every weapon and find the next in the order
+		for (w = 0; w < NUMWEAPONS; w++)
+		{
+			// Ignore the current weapon (don't want to switch back to it)
+			if (w == fw)		// Otherwise BestDiff is zero!
+				continue;
+			
+			// Can't use this gun?
+			if (!P_CanUseWeapon(player, w))
+				continue;
+			
+			// Only consider worse/better weapons?
+			if ((Neg && weapons[w]->SwitchOrder > weapons[fw]->SwitchOrder) || (!Neg && weapons[w]->SwitchOrder < weapons[fw]->SwitchOrder))
+				continue;
+			
+			// Get current diff
+			ThisDiff = abs(weapons[fw]->SwitchOrder - weapons[w]->SwitchOrder);
+			
+			// Closer weapon?
+			if (ThisDiff < BestDiff)
+			{
+				BestDiff = ThisDiff;
+				BestNum = w;
+			}
+		}
+		
+		// Found no weapon? Then "loop" around
+		if (BestNum == NUMWEAPONS)
+		{
+			// Switch to the highest gun if going down
+			if (Neg)
+				fw = MostOrder;
+			
+			// And if going up, go to the lowest
+			else
+				fw = LeastOrder;
+		}
+		
+		// Found a weapon
+		else
+		{
+			// Switch to this gun
+			fw = BestNum;
+		}
+		
+		// Next step
+		StepsLeft--;
+	}
+	
+	/* Return the weapon we want */
+	return fw;
+}
+
+/* GAMEKEYDOWN() -- Checks if a key is down */
+static bool_t GAMEKEYDOWN(D_ProfileEx_t* const a_Profile, const uint8_t a_SID, const uint8_t a_Key)
+{
+	static bool_t Recoursed;
+	bool_t MoreDown;
+	size_t i;
+	uint32_t CurrentButton;
+	
+	/* Determine if more key is down */
+	// But do not infinite loop here
+	MoreDown = false;
+	if (!Recoursed)
+	{
+		Recoursed = true;
+		MoreDown = GAMEKEYDOWN(a_Profile, a_SID, DPEXIC_MORESTUFF);
+		Recoursed = false;
+	}
+	
+	/* Check Keyboard */
+	for (i = 0; i < 4; i++)
+		if (a_Profile->Ctrls[a_Key][i] >= 0 && a_Profile->Ctrls[a_Key][i] < NUMIKEYBOARDKEYS)
+			if (l_KeyDown[a_Profile->Ctrls[a_Key][i]])
+				return true;
+	
+	/* Check Joysticks */
+	//if (a_Profile->Flags & DPEXF_GOTJOY)
+		//if (a_Profile->JoyControl >= 0 && a_Profile->JoyControl < 4)
+	if (a_SID >= 0 && a_SID < MAXSPLITSCREEN && g_Splits[a_SID].JoyBound)
+		if (g_Splits[a_SID].JoyID >= 1 && g_Splits[a_SID].JoyID <= MAXLOCALJOYS)
+			if (l_JoyButtons[g_Splits[a_SID].JoyID - 1])
+				for (i = 0; i < 4; i++)
+					if ((a_Profile->Ctrls[a_Key][i] & 0xF000) == (MoreDown ? 0x4000 : 0x1000))
+					{
+						// Get current button
+						CurrentButton = (a_Profile->Ctrls[a_Key][i] & 0x00FF);
+				
+						// Button pressed?
+						if (CurrentButton >= 0 && CurrentButton < 32)
+							if (l_JoyButtons[g_Splits[a_SID].JoyID - 1] & (1 << CurrentButton))
+								return true;
+					}
+				
+	/* Check Mice */
+	if (a_Profile->Flags & DPEXF_GOTMOUSE)
+		if (l_MouseButtons[0] || l_MouseButtons[1])
+			for (i = 0; i < 4; i++)
+			{
+				// Single
+				if ((a_Profile->Ctrls[a_Key][i] & 0xF000) == (MoreDown ? 0x5000 : 0x2000))
+				{
+					// Get current button
+					CurrentButton = (a_Profile->Ctrls[a_Key][i] & 0x00FF);
+		
+					// Button pressed?
+					if (CurrentButton >= 0 && CurrentButton < 32)
+						if (l_MouseButtons[0] & (1 << CurrentButton))
+							return true;
+				}
+		
+				// Double
+				if ((a_Profile->Ctrls[a_Key][i] & 0xF000) == (MoreDown ? 0x6000 : 0x3000))
+				{
+					// Get current button
+					CurrentButton = (a_Profile->Ctrls[a_Key][i] & 0x00FF);
+		
+					// Button pressed?
+					if (CurrentButton >= 0 && CurrentButton < 32)
+						if (l_MouseButtons[1] & (1 << CurrentButton))
+							return true;
+				}
+			}
+	
+	/* Not pressed */
+	return false;
+}
+
+/* D_XNetBuildTicCmd() -- Builds tic command for player */
+void D_XNetBuildTicCmd(D_XPlayer_t* const a_NPp, ticcmd_t* const a_TicCmd)
+{
+#define MAXWEAPONSLOTS 12
+	D_ProfileEx_t* Profile;
+	player_t* Player;
+	int32_t TargetMove;
+	size_t i, PID, SID;
+	int8_t SensMod, MoveMod, MouseMod, MoveSpeed, TurnSpeed;
+	int32_t SideMove, ForwardMove, BaseAT, BaseAM;
+	bool_t IsTurning, GunInSlot, ResetAim;
+	int slot, j, l, k;
+	weapontype_t newweapon;
+	weapontype_t SlotList[MAXWEAPONSLOTS];
+	
+	/* Check */
+	if (!a_NPp || !a_TicCmd)
+		return;
+	
+	/* Obtain profile */
+	Profile = a_NPp->Profile;
+	Player = a_NPp->Player;
+	
+	// No profile?
+	if (!Profile)
+		return;
+	
+	/* Find Player ID */
+	PID = a_NPp->Player - players;
+	
+	/* Find Screen ID */
+	for (SID = 0; SID < MAXSPLITSCREEN; SID++)
+		if (D_ScrSplitVisible(SID))
+			if (g_Splits[SID].XPlayer == a_NPp)
+				break;
+	
+	// Not found?
+	if (SID >= MAXSPLITSCREEN)
+		return;
+	
+	/* Reset Some Things */
+	SideMove = ForwardMove = BaseAT = BaseAM = 0;
+	IsTurning = ResetAim = false;
+	
+	/* Modifiers */
+	// Mouse Sensitivity
+	SensMod = 0;
+	
+	// Movement Modifier
+	if (GAMEKEYDOWN(Profile, SID, DPEXIC_MOVEMENT))
+		MoveMod = 1;
+	else
+		MoveMod = 0;
+	
+	// Mouse Modifier
+	if (GAMEKEYDOWN(Profile, SID, DPEXIC_LOOKING))
+		MouseMod = 2;
+	else if (MoveMod)
+		MouseMod = 1;
+	else 
+		MouseMod = 0;
+	
+	// Moving Speed
+	if (GAMEKEYDOWN(Profile, SID, DPEXIC_SPEED))
+		MoveSpeed = 1;
+	else
+		MoveSpeed = 0;
+	
+	// Turn Speed
+	if ((Profile->Flags & DPEXF_SLOWTURNING) &&
+			gametic < (a_NPp->TurnHeld + Profile->SlowTurnTime))
+		TurnSpeed = 2;
+	else if (MoveSpeed)
+		TurnSpeed = 1;
+	else
+		TurnSpeed = 0;
+	
+	/* Player has joystick input? */
+	// Read input for all axis
+	if (SID >= 0 && SID < MAXSPLITSCREEN && g_Splits[SID].JoyBound)
+		if (g_Splits[SID].JoyID >= 1 && g_Splits[SID].JoyID <= MAXLOCALJOYS)
+			for (i = 0; i < MAXJOYAXIS; i++)
+			{
+				// Modify with sensitivity
+				TargetMove = ((float)l_JoyAxis[g_Splits[SID].JoyID - 1][i]) * (((float)Profile->JoySens[SensMod]) / 100.0);
+			
+				// Which movement to perform?
+				switch (Profile->JoyAxis[MouseMod][i])
+				{
+						// Movement
+					case DPEXCMA_MOVEX:
+					case DPEXCMA_MOVEY:
+						// Movement is fractionally based
+						TargetMove = (((float)TargetMove) / ((float)32767.0)) * ((float)c_forwardmove[MoveSpeed]);
+					
+						// Now which action really?
+						if (Profile->JoyAxis[MouseMod][i] == DPEXCMA_MOVEX)
+							SideMove += TargetMove;
+						else
+							ForwardMove -= TargetMove;
+						break;
+					
+						// Looking Left/Right
+					case DPEXCMA_LOOKX:
+						TargetMove = (((float)TargetMove) / ((float)32767.0)) * ((float)c_angleturn[TurnSpeed]);
+						IsTurning = true;
+						BaseAT -= TargetMove;
+						break;
+					
+						// Looking Up/Down
+					case DPEXCMA_LOOKY:
+						break;
+				
+					default:
+						break;
+				}
+			}
+	
+	/* Player has mouse input? */
+	if (l_PermitMouse && (Profile->Flags & DPEXF_GOTMOUSE))
+	{
+		// Read mouse input for both axis
+		for (i = 0; i < 2; i++)
+		{
+			// Modify with sensitivity
+			TargetMove = l_MouseMove[i] * ((((float)(Profile->MouseSens[SensMod] * Profile->MouseSens[SensMod])) / 110.0) + 0.1);
+			
+			// Do action for which movement type?
+			switch (Profile->MouseAxis[MouseMod][i])
+			{
+					// Strafe Left/Right
+				case DPEXCMA_MOVEX:
+					SideMove += TargetMove;
+					break;
+					
+					// Move Forward/Back
+				case DPEXCMA_MOVEY:
+					ForwardMove += TargetMove;
+					break;
+					
+					// Left/Right Look
+				case DPEXCMA_LOOKX:
+					BaseAT -= TargetMove * 8;
+					break;
+					
+					// Up/Down Look
+				case DPEXCMA_LOOKY:
+					BaseAM += TargetMove << 3;
+					//localaiming[SID] += TargetMove << 19;
+					break;
+				
+					// Unknown
+				default:
+					break;
+			}
+		}
+		
+		// Clear mouse permission
+		l_PermitMouse = false;
+		
+		// Clear mouse input
+		l_MouseMove[0] = l_MouseMove[1] = 0;
+	}
+	
+	/* Handle Player Control Keyboard Stuff */
+	// Weapon Attacks
+	if (GAMEKEYDOWN(Profile, SID, DPEXIC_ATTACK))
+		a_TicCmd->Std.buttons |= BT_ATTACK;
+	
+	// Use
+	if (GAMEKEYDOWN(Profile, SID, DPEXIC_USE))
+		a_TicCmd->Std.buttons |= BT_USE;
+	
+	// Jump
+	if (GAMEKEYDOWN(Profile, SID, DPEXIC_JUMP))
+		a_TicCmd->Std.buttons |= BT_JUMP;
+	
+	// Suicide
+	if (GAMEKEYDOWN(Profile, SID, DPEXIC_SUICIDE))
+		a_TicCmd->Std.buttons |= BT_SUICIDE;
+	
+	// Keyboard Turning
+	if (GAMEKEYDOWN(Profile, SID, DPEXIC_TURNLEFT))
+	{
+		// Strafe
+		if (MoveMod)
+			SideMove -= c_sidemove[MoveSpeed];
+		
+		// Turn
+		else
+		{
+			BaseAT += c_angleturn[TurnSpeed];
+			IsTurning = true;
+		}
+	}
+	if (GAMEKEYDOWN(Profile, SID, DPEXIC_TURNRIGHT))
+	{
+		// Strafe
+		if (MoveMod)
+			SideMove += c_sidemove[MoveSpeed];
+		
+		// Turn
+		else
+		{
+			BaseAT -= c_angleturn[TurnSpeed];
+			IsTurning = true;
+		}
+	}
+	
+	// Keyboard Moving
+	if (GAMEKEYDOWN(Profile, SID, DPEXIC_STRAFELEFT))
+		SideMove -= c_sidemove[MoveSpeed];
+	if (GAMEKEYDOWN(Profile, SID, DPEXIC_STRAFERIGHT))
+		SideMove += c_sidemove[MoveSpeed];
+	if (GAMEKEYDOWN(Profile, SID, DPEXIC_FORWARDS))
+		ForwardMove += c_forwardmove[MoveSpeed];
+	if (GAMEKEYDOWN(Profile, SID, DPEXIC_BACKWARDS))
+		ForwardMove -= c_forwardmove[MoveSpeed];
+		
+	// Looking
+	if (GAMEKEYDOWN(Profile, SID, DPEXIC_LOOKCENTER))
+		ResetAim = true;
+		//localaiming[SID] = 0;
+	else
+	{
+		if (GAMEKEYDOWN(Profile, SID, DPEXIC_LOOKUP))
+			BaseAM += Profile->LookUpDownSpeed >> 16;
+			//localaiming[SID] += Profile->LookUpDownSpeed;
+		
+		if (GAMEKEYDOWN(Profile, SID, DPEXIC_LOOKDOWN))
+			BaseAM -= Profile->LookUpDownSpeed >> 16;
+			//localaiming[SID] -= Profile->LookUpDownSpeed;
+	}
+	
+	// Weapons
+		// Next
+	if (GAMEKEYDOWN(Profile, SID, DPEXIC_NEXTWEAPON))
+	{
+		// Set switch
+		a_TicCmd->Std.buttons |= BT_CHANGE;
+		D_TicCmdFillWeapon(a_TicCmd, DS_XNetNextWeapon(Player, 1));
+	}
+		// Prev
+	else if (GAMEKEYDOWN(Profile, SID, DPEXIC_PREVWEAPON))
+	{
+		// Set switch
+		a_TicCmd->Std.buttons |= BT_CHANGE;
+		D_TicCmdFillWeapon(a_TicCmd, DS_XNetNextWeapon(Player, -1));
+	}
+		// Best Gun
+	else if (GAMEKEYDOWN(Profile, SID, DPEXIC_BESTWEAPON))
+	{
+		newweapon = P_PlayerBestWeapon(Player, true);
+		
+		if (newweapon != Player->readyweapon)
+		{
+			a_TicCmd->Std.buttons |= BT_CHANGE;
+			D_TicCmdFillWeapon(a_TicCmd, newweapon);
+		}
+	}
+		// Worst Gun
+	else if (GAMEKEYDOWN(Profile, SID, DPEXIC_WORSTWEAPON))
+	{
+		newweapon = P_PlayerBestWeapon(Player, false);
+		
+		if (newweapon != Player->readyweapon)
+		{
+			a_TicCmd->Std.buttons |= BT_CHANGE;
+			D_TicCmdFillWeapon(a_TicCmd, newweapon);
+		}
+	}
+		// Slots
+	else
+	{
+		// Which slot?
+		slot = -1;
+		
+		// Look for keys
+		for (i = DPEXIC_SLOT1; i <= DPEXIC_SLOT10; i++)
+			if (GAMEKEYDOWN(Profile, SID, i))
+			{
+				slot = (i - DPEXIC_SLOT1) + 1;
+				break;
+			}
+		
+		// Hit slot?
+		if (slot != -1)
+		{
+			// Clear flag
+			GunInSlot = false;
+			l = 0;
+		
+			// Figure out weapons that belong in this slot
+			for (j = 0, i = 0; i < NUMWEAPONS; i++)
+				if (P_CanUseWeapon(Player, i))
+				{
+					// Weapon not in this slot?
+					if (Player->weaponinfo[i]->SlotNum != slot)
+						continue;
+				
+					// Place in slot list before the highest
+					if (j < (MAXWEAPONSLOTS - 1))
+					{
+						// Just place here
+						if (j == 0)
+						{
+							// Current weapon is in this slot?
+							if (Player->readyweapon == i)
+							{
+								GunInSlot = true;
+								l = j;
+							}
+						
+							// Place in last spot
+							SlotList[j++] = i;
+						}
+					
+						// Otherwise more work is needed
+						else
+						{
+							// Start from high to low
+								// When the order is lower, we know to insert now
+							for (k = 0; k < j; k++)
+								if (Player->weaponinfo[i]->SwitchOrder < Player->weaponinfo[SlotList[k]]->SwitchOrder)
+								{
+									// Current gun may need shifting
+									if (!GunInSlot)
+									{
+										// Current weapon is in this slot?
+										if (Player->readyweapon == i)
+										{
+											GunInSlot = true;
+											l = k;
+										}
+									}
+								
+									// Possibly shift gun
+									else
+									{
+										// If the current gun is higher then this gun
+										// then it will be off by whatever is more
+										if (Player->weaponinfo[SlotList[l]]->SwitchOrder > Player->weaponinfo[i]->SwitchOrder)
+											l++;
+									}
+								
+									// move up
+									memmove(&SlotList[k + 1], &SlotList[k], sizeof(SlotList[k]) * (MAXWEAPONSLOTS - k - 1));
+								
+									// Place in slightly upper spot
+									SlotList[k] = i;
+									j++;
+								
+									// Don't add it anymore
+									break;
+								}
+						
+							// Can't put it anywhere? Goes at end then
+							if (k == j)
+							{
+								// Current weapon is in this slot?
+								if (Player->readyweapon == i)
+								{
+									GunInSlot = true;
+									l = k;
+								}
+							
+								// Put
+								SlotList[j++] = i;
+							}
+						}
+					}
+				}
+		
+			// No guns in this slot? Then don't switch to anything
+			if (j == 0)
+				newweapon = Player->readyweapon;
+		
+			// If the current gun is in this slot, go to the next in the slot
+			else if (GunInSlot)		// from [best - worst]
+				newweapon = SlotList[((l - 1) + j) % j];
+		
+			// Otherwise, switch to the best gun there
+			else
+				// Set it to the highest valued gun
+				newweapon = SlotList[j - 1];
+		
+			// Did it work?
+			if (newweapon != Player->readyweapon)
+			{
+				a_TicCmd->Std.buttons |= BT_CHANGE;
+				D_TicCmdFillWeapon(a_TicCmd, newweapon);
+			}
+		}
+	}
+	
+	// Inventory
+	if (GAMEKEYDOWN(Profile, SID, DPEXIC_NEXTINVENTORY))
+		a_TicCmd->Std.InventoryBits = TICCMD_INVRIGHT;
+	else if (GAMEKEYDOWN(Profile, SID, DPEXIC_PREVINVENTORY))
+		a_TicCmd->Std.InventoryBits = TICCMD_INVLEFT;
+	else if (GAMEKEYDOWN(Profile, SID, DPEXIC_USEINVENTORY))
+		a_TicCmd->Std.InventoryBits = TICCMD_INVUSE;
+	
+	/* Handle special functions */
+	// Show Scores
+	if (GAMEKEYDOWN(Profile, SID, DPEXIC_TOPSCORES))
+		a_NPp->Scores = 1;
+	else if (GAMEKEYDOWN(Profile, SID, DPEXIC_BOTTOMSCORES))
+		a_NPp->Scores = -1;
+	else
+		a_NPp->Scores = 0;
+	
+	// Coop Spy
+	if (GAMEKEYDOWN(Profile, SID, DPEXIC_COOPSPY))
+	{
+		// Only every half second
+		if (gametic > (a_NPp->CoopSpyTime + (TICRATE >> 1)))
+		{
+			do
+			{
+				g_Splits[SID].Display = (g_Splits[SID].Display + 1) % MAXPLAYERS;
+			} while (!playeringame[g_Splits[SID].Display] || !P_PlayerOnSameTeam(&players[g_Splits[SID].Console], &players[g_Splits[SID].Display]));
+			
+			// Print Message
+			CONL_PrintF("%sYou are now watching %s.\n",
+					(SID == 3 ? "\x6" : (SID == 2 ? "\x5" : (SID == 1 ? "\x4" : ""))),
+					(g_Splits[SID].Display == g_Splits[SID].Console ? "Yourself" : D_NCSGetPlayerName(g_Splits[SID].Display))
+				);
+			
+			// Reset timeout
+			a_NPp->CoopSpyTime = gametic + (TICRATE >> 1);
+		}
+	}
+	
+	// Key is unpressed to reduce time
+	else
+		a_NPp->CoopSpyTime = 0;
+	
+	/* Set Movement Now */
+	// Cap
+	if (SideMove > MAXPLMOVE)
+		SideMove = MAXPLMOVE;
+	else if (SideMove < -MAXPLMOVE)
+		SideMove = -MAXPLMOVE;
+	
+	if (ForwardMove > MAXPLMOVE)
+		ForwardMove = MAXPLMOVE;
+	else if (ForwardMove < -MAXPLMOVE)
+		ForwardMove = -MAXPLMOVE;
+	
+	// Set
+	a_TicCmd->Std.sidemove = SideMove;
+	a_TicCmd->Std.forwardmove = ForwardMove;
+	
+	/* Slow turning? */
+	if (!IsTurning)
+		a_NPp->TurnHeld = gametic;
+	
+	/* Turning */
+	a_TicCmd->Std.BaseAngleTurn = BaseAT;
+	a_TicCmd->Std.BaseAiming = BaseAM;
+	a_TicCmd->Std.ResetAim = ResetAim;
+	
+#undef MAXWEAPONSLOTS
 }
 
 /* D_XNetUpdate() -- Updates Extended Network */
@@ -3929,10 +4742,11 @@ void D_XNetUpdate(void)
 				// Local and not a bot?
 				if ((XPlay->Flags & (DXPF_LOCAL | DXPF_BOT)) == DXPF_LOCAL)
 				{
+					XPlay->ScreenID = 0;
 					g_Splits[0].Waiting = true;
 					g_Splits[0].XPlayer = XPlay;
 					g_Splits[0].ProcessID = XPlay->ID;
-					g_SplitScreen = 1;
+					g_SplitScreen = 0;
 				}
 			}
 		}

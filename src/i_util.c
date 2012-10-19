@@ -72,6 +72,7 @@
 #include "g_game.h"
 #include "d_netcmd.h"
 #include "m_menu.h"
+#include "d_net.h"
 
 /****************
 *** CONSTANTS ***
@@ -482,7 +483,7 @@ void I_OsPolling(void)
 		if (!D_JoySpecialEvent(&Event))
 			if (!CONL_HandleEvent(&Event))
 				if (!M_ExUIHandleEvent(&Event))
-					if (!D_NCSHandleEvent(&Event))
+					if (!D_XNetHandleEvent(&Event))
 						I_EventToOldDoom(&Event);
 	}
 }
