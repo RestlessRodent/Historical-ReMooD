@@ -164,7 +164,7 @@ typedef enum VEX_ColorList_s
 /* Color masking (Matches skin colors) */
 #define VEX_COLORMASK			0x00F00000	// Mask of the colors
 #define VEX_COLORSHIFT			20	// Shift
-#define VEX_PCOLOR(x)			(((x) << VEX_COLORSHIFT) & VEX_COLORMASK)
+#define VEX_PCOLOR(x)			((((x) << VEX_COLORSHIFT) & VEX_COLORMASK) | VEX_COLORSET)
 
 /* Transparency */
 // MAX OF 16

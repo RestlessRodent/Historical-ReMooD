@@ -1712,12 +1712,12 @@ static void WI_initVariables(wbstartstruct_t* wbstartstruct)
 			l_DrawPlayers[l_NumDrawPlayers++] = TempDP[i];
 		
 		// Bump a non-local player out (but never replace 1st place)
-		else if (TempDP[i].Player && TempDP[i].Player->NetPlayer && TempDP[i].Player->NetPlayer->Type == DNPT_LOCAL)
+		else if (TempDP[i].Player && TempDP[i].Player->XPlayer && ((TempDP[i].Player->XPlayer->Flags & (DXPF_LOCAL | DXPF_BOT)) == (DXPF_LOCAL)))
 		{
 			// If the player is NOT a local player
 			for (j = WIDPLIMIT - 1; j > 1; j--)
 				if (l_DrawPlayers[j].Player)
-					if ((!l_DrawPlayers[j].Player->NetPlayer) || (l_DrawPlayers[j].Player->NetPlayer && l_DrawPlayers[j].Player->NetPlayer->Type != DNPT_LOCAL))
+					if ((!l_DrawPlayers[j].Player->XPlayer) || (l_DrawPlayers[j].Player->XPlayer && (TempDP[i].Player->XPlayer->Flags & (DXPF_LOCAL | DXPF_BOT)) != (DXPF_LOCAL)))
 					{
 						l_DrawPlayers[j] = TempDP[i];
 						break;

@@ -1261,10 +1261,13 @@ void V_DrawColorBoxEx(const uint32_t a_Flags, const uint8_t a_Color, const int32
 		Map = l_ColorMaps[0];
 	
 	/* Use player translation tables? */
-	Mask = (a_Flags & VEX_COLORMASK) >> VEX_COLORSHIFT;
-	
-	if (Mask > 0)
-		ExtraMap = translationtables + (256 * Mask);
+	if (a_Flags & VEX_COLORSET)
+	{
+		// Use player translation tables?
+		Mask = ((a_Flags & VEX_COLORMASK) >> VEX_COLORSHIFT) & 0xFU;
+		
+		ExtraMap = V_ReturnColormapPtr(16 + Mask);
+	}
 	else
 		ExtraMap = V_ReturnColormapPtr(VEX_MAP_NONE);
 		

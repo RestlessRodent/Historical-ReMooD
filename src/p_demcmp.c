@@ -854,8 +854,14 @@ static P_XGSVariable_t l_GSVars[PEXGSNUMBITIDS] =
 		
 	// GhostlyDeath <September 21, 2012> -- Spawn with only melee weapons
 	{PEXGST_INTEGER, PGS_PLSPAWNWITHMELEEONLY, "pl_spawnwithmeleeonly", "Spawn With Only Melee Weapons",
-		"When a player is spawned, they are only spawned with melee weapons.", PEXGSGM_ANY, PEXGSDR_NOCHECK, 0, {0, 1}, 0,
+		"When a player is spawned, they are only spawned with melee weapons. Spawn with non-super/super affects this option.", PEXGSGM_ANY, PEXGSDR_NOCHECK, 0, {0, 1}, 0,
 		PEXGSMC_PLAYERS, PEXGSDA_YESNO, c_PEXGSPVBoolean, NULL},
+		
+	// GhostlyDeath <October 20, 2012> -- Spawn with random weapon
+	{PEXGST_INTEGER, PGS_PLSPAWNWITHRANDOMGUN, "pl_spawnwithrandom", "Spawn With A Random Weapon",
+		"When a player is spawned, they are spawned with a random weapon. Spawn with non-super/super/melee affects this option.", PEXGSGM_ANY, PEXGSDR_NOCHECK, 0, {0, 1}, 0,
+		PEXGSMC_PLAYERS, PEXGSDA_YESNO, c_PEXGSPVBoolean, NULL},
+		PGS_PLSPAWNWITHRANDOMGUN
 };
 
 /*** FUNCTIONS ***/

@@ -275,7 +275,8 @@ typedef enum P_XGSBitID_e
 	PGS_COKILLSTOPLAYERONE,				// Give kills to player 1
 	PGS_PLALLOWSUICIDE,							// Allow Suicides
 	PGS_PLSUICIDEDELAY,							// Suicide Delay
-	PGS_PLSPAWNWITHMELEEONLY,					// Spawn With All Guns
+	PGS_PLSPAWNWITHMELEEONLY,					// Spawn With Melee Only
+	PGS_PLSPAWNWITHRANDOMGUN,					// Spawn With Random Gun
 	
 	PEXGSNUMBITIDS
 } P_XGSBitID_t;

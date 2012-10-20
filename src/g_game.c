@@ -806,7 +806,7 @@ int initial_bullets = 50;
 void G_PlayerReborn(int player)
 {
 	player_t* p;
-	int i;
+	int i, j;
 	uint16_t frags[MAXPLAYERS];
 	int killcount;
 	int itemcount;
@@ -818,6 +818,7 @@ void G_PlayerReborn(int player)
 	int* maxammo;
 	uint32_t FraggerID;
 	tic_t SuicideDelay;
+	bool_t* RandGuns;
 	
 	D_ProfileEx_t* PEp;
 	D_NetPlayer_t* NPp;
@@ -976,6 +977,44 @@ void G_PlayerReborn(int player)
 		if (Given)
 			if (p->weaponinfo[i]->ammo >= 0 && p->weaponinfo[i]->ammo < NUMAMMO)
 				p->ammo[p->weaponinfo[i]->ammo] = p->maxammo[p->weaponinfo[i]->ammo];
+	}
+	
+	/* Spawn with a single random gun */
+	if (P_XGSVal(PGS_PLSPAWNWITHRANDOMGUN))
+	{
+		// Allocate Array
+		RandGuns = Z_Malloc(sizeof(*RandGuns) * NUMWEAPONS, PU_STATIC, NULL);
+		
+		// Go through weapons and fill in owned guns
+		for (j = 0, i = 0; i < NUMWEAPONS; i++)
+			if (p->weaponowned[i])
+				RandGuns[j++] = i;
+		
+		// Make sure he has at least one gun!
+		if (j > 0)
+		{
+			// Select a random gun from this list
+			i = P_Random() % j;
+			
+			// Go through all weapons again
+			for (j = 0; j < NUMWEAPONS; j++)
+			{
+				// Gun we want to keep
+				if (RandGuns[i] == j)
+					continue;
+				
+				// Remove ownership of it
+				p->weaponowned[j] = false;
+				
+				// Remove Ammo
+				if (p->weaponinfo[j]->ammo >= 0 && p->weaponinfo[j]->ammo < NUMAMMO)
+					if (p->weaponinfo[RandGuns[i]]->ammo != p->weaponinfo[j]->ammo)
+						p->ammo[p->weaponinfo[j]->ammo] = 0;
+			}
+		}
+		
+		// Cleanup
+		Z_Free(RandGuns);
 	}
 	
 	/* Switch to favorite weapon? */
