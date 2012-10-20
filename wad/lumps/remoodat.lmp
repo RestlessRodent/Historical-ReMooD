@@ -19019,6 +19019,7 @@ MapTouchSpecial "BKEY"
 	Message "DEP_GOTBLUECARD";
 	GiveKey "BlueCard";
 	IsKeepInMultiplayer "true";
+	IsKeepIfNotNeeded "true";
 }
 
 // YKEY -- Yellow Key
@@ -19027,6 +19028,7 @@ MapTouchSpecial "YKEY"
 	Message "DEP_GOTYELWCARD";
 	GiveKey "YellowCard";
 	IsKeepInMultiplayer "true";
+	IsKeepIfNotNeeded "true";
 }
 
 // RKEY -- Yellow Key
@@ -19035,6 +19037,7 @@ MapTouchSpecial "RKEY"
 	Message "DEP_GOTREDCARD";
 	GiveKey "RedCard";
 	IsKeepInMultiplayer "true";
+	IsKeepIfNotNeeded "true";
 }
 
 // BSKU -- Blue Skull
@@ -19043,6 +19046,7 @@ MapTouchSpecial "BSKU"
 	Message "DEP_GOTBLUESKUL";
 	GiveKey "BlueSkull";
 	IsKeepInMultiplayer "true";
+	IsKeepIfNotNeeded "true";
 }
 
 // YSKU -- Yellow Skull
@@ -19051,6 +19055,7 @@ MapTouchSpecial "YSKU"
 	Message "DEP_GOTYELWSKUL";
 	GiveKey "YellowSkull";
 	IsKeepInMultiplayer "true";
+	IsKeepIfNotNeeded "true";
 }
 
 // RSKU -- Yellow Skull
@@ -19059,5 +19064,6 @@ MapTouchSpecial "RSKU"
 	Message "DEP_GOTREDSKUL";
 	GiveKey "RedSkull";
 	IsKeepInMultiplayer "true";
+	IsKeepIfNotNeeded "true";
 }
 

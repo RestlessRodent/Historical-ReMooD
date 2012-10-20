@@ -603,8 +603,15 @@ bool_t P_TouchSpecialThing(mobj_t* special, mobj_t* toucher)
 				if (RMODKey)
 				{
 					// Set player keygroup to mask value
-					player->KeyCards[RMODKey->Group] |= RMODKey->Bit;
-					PickedUp = true;
+						// Provided we lack this key
+					if (((Current->Flags & PMTSF_KEEPNOTNEEDED) && !(player->KeyCards[RMODKey->Group] & RMODKey->Bit)) || !(Current->Flags & PMTSF_KEEPNOTNEEDED))
+					{
+						player->KeyCards[RMODKey->Group] |= RMODKey->Bit;
+						OKStat |= true;
+					}
+					
+					if (OKStat)
+						PickedUp = true;
 				}
 			}
 			
