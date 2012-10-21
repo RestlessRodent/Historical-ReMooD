@@ -3407,8 +3407,8 @@ void D_XNetKickPlayer(D_XPlayer_t* const a_Player, const char* const a_Reason)
 		// Remove from local screen
 		if (a_Player->HostID == OurHID)
 			for (i = 0; i < MAXSPLITSCREEN; i++)
-				if (D_ScrSplitHasPlayer(i))
-					if (a_Player->ClProcessID == g_Splits[i].ProcessID)
+				if (D_ScrSplitVisible(i))
+					if (a_Player == g_Splits[i].XPlayer)
 						D_NCRemoveSplit(i, demoplayback);
 	}
 	
