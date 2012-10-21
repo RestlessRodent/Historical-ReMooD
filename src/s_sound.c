@@ -241,6 +241,7 @@ fixed_t S_GetListenerEmitterWithDist(S_SoundChannel_t* const a_Channel, S_NoiseT
 	fixed_t ApproxDist, NewDist = 0;
 	int i;
 	S_NoiseThinker_t* Attempt;
+	player_t* ListenPlayer;
 	
 	/* Check */
 	if (!a_Listen || !a_Emit)
@@ -268,13 +269,16 @@ fixed_t S_GetListenerEmitterWithDist(S_SoundChannel_t* const a_Channel, S_NoiseT
 	ApproxDist = 32000 << FRACBITS;
 	for (i = 0; i <= (g_SplitScreen < 0 ? 0 : g_SplitScreen); i++)
 	{
-		// Check to see if the player is in game (if not ignore)
-		if (g_Splits[i].Display < 0 || g_Splits[i].Display >= MAXPLAYERS || !playeringame[g_Splits[i].Display])
+		// Try to find listening player
+		ListenPlayer = D_XFakePlayerGetPOV(i);
+		
+		// There is none?
+		if (!ListenPlayer)
 			continue;
 			
 		// Attempt getting listener
-		if (players[g_Splits[i].Display].mo)
-			Attempt = &players[g_Splits[i].Display].mo->NoiseThinker;
+		if (ListenPlayer->mo)
+			Attempt = &ListenPlayer->mo->NoiseThinker;
 		else
 			continue;
 			

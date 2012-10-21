@@ -392,5 +392,7 @@ struct player_s* D_XFakePlayerGet(const int32_t a_Screen);
 void D_XFakePlayerTicker(void);
 void D_XFakePlayerDoTicCmd(const int32_t a_Screen, ticcmd_t* const a_TicCmd);
 
+struct player_c* D_XFakePlayerGetPOV(const int32_t a_Screen);
+
 #endif							/* __D_NET_H__ */
 

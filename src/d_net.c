@@ -5255,6 +5255,17 @@ void D_XFakePlayerTicker(void)
 			CamMo->momx = FixedMul(CamMo->momx, ORIG_FRICTION);
 			CamMo->momy = FixedMul(CamMo->momy, ORIG_FRICTION);
 			CamMo->momz = FixedMul(CamMo->momz, ORIG_FRICTION);
+			
+			// Set sound thinker
+			CamMo->NoiseThinker.x = CamMo->x;
+			CamMo->NoiseThinker.y = CamMo->y;
+			CamMo->NoiseThinker.z = CamMo->z;
+			CamMo->NoiseThinker.momx = CamMo->momx;
+			CamMo->NoiseThinker.momy = CamMo->momy;
+			CamMo->NoiseThinker.momz = CamMo->momz;
+			CamMo->NoiseThinker.Angle = CamMo->angle;
+			CamMo->NoiseThinker.Pitch = FIXEDT_C(1);
+			CamMo->NoiseThinker.Volume = FIXEDT_C(1);
 		}
 	}
 #undef TSCAMDIST
@@ -5291,7 +5302,34 @@ void D_XFakePlayerDoTicCmd(const int32_t a_Screen, ticcmd_t* const a_TicCmd)
 	Play->aiming = localaiming[a_Screen];
 	
 	/* Set Momentums */
+	Mo->subsector = &subsectors[0];
 	P_Thrust(Play, Mo->angle, a_TicCmd->Std.forwardmove * 2048);
 	P_Thrust(Play, Mo->angle - ANG90, a_TicCmd->Std.sidemove * 2048);
+}
+
+/* D_XFakePlayerGetPOV() -- Get player point of view */
+struct player_c* D_XFakePlayerGetPOV(const int32_t a_Screen)
+{
+	/* Check */
+	if (a_Screen < 0 || a_Screen >= MAXSPLITSCREEN)
+		return NULL;
+	
+	/* No XPlayer? */
+	if (!g_Splits[a_Screen].XPlayer)
+		return &players[g_Splits[a_Screen].Display];
+	
+	/* There is one */
+	else
+		// Not playing? Return spectator
+		if (!g_Splits[a_Screen].XPlayer->Player)
+			return D_XFakePlayerGet(a_Screen);
+		
+		// Playing, return display
+		else if (playeringame[g_Splits[a_Screen].Display])
+			return &players[g_Splits[a_Screen].Display];
+		
+		// Return standard player
+		else
+			return g_Splits[a_Screen].XPlayer->Player;
 }
 
