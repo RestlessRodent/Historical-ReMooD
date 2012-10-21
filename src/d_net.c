@@ -1318,7 +1318,7 @@ void D_NCLocalPlayerAdd(const char* const a_Name, const bool_t a_Bot, const uint
 		
 		// Bind stuff here
 		g_Splits[PlaceAt].Waiting = true;
-		g_Splits[PlaceAt].Profile = Profile;
+		//g_Splits[PlaceAt].Profile = Profile;
 		g_Splits[PlaceAt].JoyBound = a_UseJoy;
 		g_Splits[PlaceAt].JoyID = a_JoyID;
 		g_Splits[PlaceAt].ProcessID = ProcessID;
@@ -3178,6 +3178,7 @@ void D_XNetMakeServer(const bool_t a_Networked, const uint16_t a_NetPort)
 			// Assign player
 			g_Splits[i].XPlayer = SPlay;
 			SPlay->ScreenID = i;
+			SPlay->Profile = g_Splits[i].Profile;	// if lucky
 		}
 }
 
