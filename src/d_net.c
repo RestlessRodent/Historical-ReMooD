@@ -53,6 +53,8 @@
 #include "doomstat.h"
 #include "p_setup.h"
 #include "b_bot.h"
+#include "p_local.h"
+#include "p_spec.h"
 
 /*************
 *** LOCALS ***
@@ -5233,10 +5235,33 @@ void D_XFakePlayerTicker(void)
 	/* Normal fake */
 	else
 	{
+		// Apply momentum
+		for (i = 0; i < MAXSPLITSCREEN; i++)
+		{
+			// Get Objects
+			Mod = &l_XFakePlayer[i];
+			CamMo = Mod->mo;
+			
+			// No object?
+			if (!CamMo)
+				continue;
+			
+			// Apply momentum to object
+			CamMo->x += CamMo->momx;
+			CamMo->y += CamMo->momy;
+			CamMo->z += CamMo->momz;
+			
+			// Reduce momentum (for friction)
+			CamMo->momx = FixedMul(CamMo->momx, ORIG_FRICTION);
+			CamMo->momy = FixedMul(CamMo->momy, ORIG_FRICTION);
+			CamMo->momz = FixedMul(CamMo->momz, ORIG_FRICTION);
+		}
 	}
 #undef TSCAMDIST
 #undef TSMOVEUNIT
 }
+
+void P_Thrust(player_t* player, angle_t angle, fixed_t move);
 
 /* D_XFakePlayerDoTicCmd() -- Tic commands on screen */
 void D_XFakePlayerDoTicCmd(const int32_t a_Screen, ticcmd_t* const a_TicCmd)
@@ -5264,5 +5289,9 @@ void D_XFakePlayerDoTicCmd(const int32_t a_Screen, ticcmd_t* const a_TicCmd)
 	/* Set object looking angles to local */
 	Mo->angle = localangle[a_Screen];
 	Play->aiming = localaiming[a_Screen];
+	
+	/* Set Momentums */
+	P_Thrust(Play, Mo->angle, a_TicCmd->Std.forwardmove * 2048);
+	P_Thrust(Play, Mo->angle - ANG90, a_TicCmd->Std.sidemove * 2048);
 }
 
