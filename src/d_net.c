@@ -3171,12 +3171,13 @@ void D_XNetMakeServer(const bool_t a_Networked, const uint16_t a_NetPort)
 	for (i = 0; i < MAXSPLITSCREEN; i++)
 		if (D_ScrSplitHasPlayer(i))
 		{
-			// Create initial player for server (2nd player and up)
-			if (!i)
+			// Create initial player for server, but not for P1
+			if (i)
 				SPlay = D_XNetAddPlayer(DS_XNetMakeServPB, NULL);
 			
 			// Assign player
-			g_Splits[0].XPlayer = SPlay;
+			g_Splits[i].XPlayer = SPlay;
+			SPlay->ScreenID = i;
 		}
 }
 
@@ -4258,6 +4259,8 @@ static bool_t GAMEKEYDOWN(D_ProfileEx_t* const a_Profile, const uint8_t a_SID, c
 	return false;
 }
 
+short G_ClipAimingPitch(int* aiming);
+
 /* D_XNetBuildTicCmd() -- Builds tic command for player */
 void D_XNetBuildTicCmd(D_XPlayer_t* const a_NPp, ticcmd_t* const a_TicCmd)
 {
@@ -4772,7 +4775,10 @@ void D_XNetUpdate(void)
 				}
 			}
 		}
-	}	
+	}
+	
+	/* Enable Mouse Input */
+	l_PermitMouse = true;
 	
 	/* Build Local Tic Commands (possibly) */
 	for (i = 0; i < g_NumXPlays; i++)
