@@ -3179,7 +3179,13 @@ void D_XNetMakeServer(const bool_t a_Networked, const uint16_t a_NetPort)
 			g_Splits[i].XPlayer = SPlay;
 			SPlay->ScreenID = i;
 			SPlay->Profile = g_Splits[i].Profile;	// if lucky
+			
+			// Up splitscreen
+			g_SplitScreen = i;
 		}
+	
+	/* Calculate Split-screen */
+	R_ExecuteSetViewSize();
 }
 
 /* D_XNetIsServer() -- Returns true if we are the server */
