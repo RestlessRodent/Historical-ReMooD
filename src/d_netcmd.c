@@ -815,6 +815,17 @@ void D_NCRemoveSplit(const int32_t a_Split, const bool_t a_Demo)
 	/* In demo */
 	else
 	{
+		// Remove current info
+#if 0
+		g_Splits[a_Split].ProcessID = 0;
+		g_Splits[a_Split].Profile = NULL;
+		g_Splits[a_Split].XPlayer = NULL;
+		g_Splits[a_Split].JoyBound = false;
+		g_Splits[a_Split].JoyID = 0;
+		g_Splits[a_Split].RequestSent = false;
+		g_Splits[a_Split].GiveUpAt = 0;
+#endif
+		
 		// Move splits down, to replace this split
 		for (i = a_Split; i < MAXSPLITSCREEN; i++)
 			// Last spot?

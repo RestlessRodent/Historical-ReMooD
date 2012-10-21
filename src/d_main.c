@@ -372,7 +372,7 @@ void D_Display(void)
 						else
 							viewwindowy = 0;
 							
-						if (!CoolDemo && playeringame[g_Splits[i].Display] && players[g_Splits[i].Display].mo && i < g_SplitScreen + 1 && g_Splits[i].Active)
+						if (!CoolDemo && playeringame[g_Splits[i].Display] && players[g_Splits[i].Display].mo && g_Splits[i].Active)
 							R_RenderPlayerView(&players[g_Splits[i].Display], i);
 						else if (CoolDemo)
 							R_RenderPlayerView(D_XFakePlayerGet(i), i);
@@ -397,10 +397,10 @@ void D_Display(void)
 					
 					if (!CoolDemo && playeringame[g_Splits[1].Display] && players[g_Splits[1].Display].mo && g_Splits[1].Active)
 						R_RenderPlayerView(&players[g_Splits[1].Display], 1);
-					else if (CoolDemo)
+					else// if (CoolDemo)
 						R_RenderPlayerView(D_XFakePlayerGet(1), 1);
-					else
-						V_DrawColorBoxEx(VEX_NOSCALESTART | VEX_NOSCALESCREEN, 0, 0, vid.height >> 1, vid.width, vid.height);
+					/*else
+						V_DrawColorBoxEx(VEX_NOSCALESTART | VEX_NOSCALESCREEN, 0, 0, vid.height >> 1, vid.width, vid.height);*/
 						
 					viewwindowy = 0;
 					activeylookup = ylookup;
@@ -451,11 +451,11 @@ void D_Display(void)
 	// GhostlyDeath <August 29, 2012> -- Network Stuff
 	D_NCDrawer();
 	
-	// GhostlyDeath <September 5, 2012> -- Joystick specials
-	D_JoySpecialDrawer();
-	
 	// GhostlyDeath <May 12, 2012> -- Extended UI Draw
 	M_ExUIDrawer();
+	
+	// GhostlyDeath <September 5, 2012> -- Joystick specials
+	D_JoySpecialDrawer();
 	
 	// Draw the console on the menu (if it is opened anyway)
 	CONL_DrawConsole();
@@ -2047,16 +2047,24 @@ void D_JoySpecialTicker(void)
 			l_JoyKeepEvent[i].Data.SynthOSK.Cancel ||
 			l_JoyKeepEvent[i].Data.SynthOSK.Shift)
 		{
-			// No joystick bound? (allow player 1s to transmit)
+			// No joystick bound? (allow player 1 event to transmit)
 			if ((i > 0 && LastOK) || (!LastOK && !g_Splits[i].JoyBound))
+			{
+				// Trash events if no joy is bound
+				if (!g_Splits[i].JoyBound)
+					memset(&l_JoyKeepEvent[i], 0, sizeof(l_JoyKeepEvent[i]));
 				continue;
+			}
 			
 			// Not Active
 			if (!(M_ExPlayerUIActive(i) ||
 				(i == 0 && CONL_IsActive()) ||
-				CONL_OSKIsActive(i) ||
-				(i != GS_LEVEL)))
+				CONL_OSKIsActive(i)))
+			{
+				// Trash events to prevent retriggers
+				memset(&l_JoyKeepEvent[i], 0, sizeof(l_JoyKeepEvent[i]));
 				continue;
+			}
 			
 			// Send
 			if (MultiEventTic[i][0] == 0)
@@ -2237,8 +2245,14 @@ bool_t D_JoySpecialEvent(const I_EventEx_t* const a_Event)
 						(abs(l_JoyLastAxis[JoyID][0]) >= 16383 ||
 						abs(l_JoyLastAxis[JoyID][1]) >= 16383))
 					{
-						// Add local player (super handled)
+						// Clear kept events for OSK and magic
+							// This is so if the joy is now dead and
+							// the game disconnects, they don't auto-rejoin.
 						memset(&l_JoyKeepEvent[l_JoyMagicAt], 0, sizeof(l_JoyKeepEvent[l_JoyMagicAt]));
+						l_JoyLastAxis[JoyID][2] = l_JoyLastAxis[JoyID][1] =
+							l_JoyLastAxis[JoyID][0] = 0;
+						
+						// Add local player (super handled)
 						D_NCLocalPlayerAdd(NULL, false, JoyID + 1, l_JoyMagicAt, true);
 						l_JoyMagicAt = MAXSPLITSCREEN;
 						return true;

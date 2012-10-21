@@ -3983,6 +3983,16 @@ bool_t D_XNetHandleEvent(const I_EventEx_t* const a_Event)
 	if (!a_Event)
 		return false;
 	
+	/* Clear events if not playing */
+	if (gamestate == GS_DEMOSCREEN || demoplayback)
+	{
+		memset(l_MouseMove, 0, sizeof(l_MouseMove));
+		memset(l_KeyDown, 0, sizeof(l_KeyDown));
+		memset(l_JoyButtons, 0, sizeof(l_JoyButtons));
+		memset(l_JoyAxis, 0, sizeof(l_JoyAxis));
+		return false;
+	}
+	
 	/* Which kind of event? */
 	switch (a_Event->Type)
 	{
@@ -4023,13 +4033,13 @@ bool_t D_XNetHandleEvent(const I_EventEx_t* const a_Event)
 						l_MouseLastTime[ButtonNum] = g_ProgramTic;
 				}
 			}
-			break;
+			return true;
 			
 			// Keyboard
 		case IET_KEYBOARD:
 			if (a_Event->Data.Keyboard.KeyCode >= 0 && a_Event->Data.Keyboard.KeyCode < NUMIKEYBOARDKEYS)
 				l_KeyDown[a_Event->Data.Keyboard.KeyCode] = a_Event->Data.Keyboard.Down;
-			break;
+			return true;
 			
 			// Joystick
 		case IET_JOYSTICK:
@@ -4039,6 +4049,14 @@ bool_t D_XNetHandleEvent(const I_EventEx_t* const a_Event)
 			// Now determine which action
 			if (LocalJoy >= 0 && LocalJoy < MAXLOCALJOYS)
 			{
+				// Not bound? Then remove anything remembered (prevents stuckness)
+				if (!D_JoyToPort(LocalJoy + 1))
+				{
+					l_JoyButtons[LocalJoy] = 0;
+					memset(&l_JoyAxis[LocalJoy], 0, sizeof(l_JoyAxis[LocalJoy]));
+					break;
+				}
+				
 				// Button Pressed Down
 				if (a_Event->Data.Joystick.Button)
 				{
@@ -4067,7 +4085,7 @@ bool_t D_XNetHandleEvent(const I_EventEx_t* const a_Event)
 						l_JoyAxis[LocalJoy][ButtonNum] = a_Event->Data.Joystick.Value;
 				}
 			}
-			break;
+			return true;
 		
 			// Unknown
 		default:
@@ -4089,6 +4107,10 @@ static uint8_t DS_XNetNextWeapon(player_t* player, int step)
 	size_t MostOrder, LeastOrder;
 	bool_t Neg;
 	weaponinfo_t** weapons;
+	
+	/* No player? */
+	if (!player)
+		return 0;
 	
 	/* Get current weapon info */
 	weapons = player->weaponinfo;
@@ -4503,162 +4525,165 @@ void D_XNetBuildTicCmd(D_XPlayer_t* const a_NPp, ticcmd_t* const a_TicCmd)
 	}
 	
 	// Weapons
+	if (Player)
+	{
 		// Next
-	if (GAMEKEYDOWN(Profile, SID, DPEXIC_NEXTWEAPON))
-	{
-		// Set switch
-		a_TicCmd->Std.buttons |= BT_CHANGE;
-		D_TicCmdFillWeapon(a_TicCmd, DS_XNetNextWeapon(Player, 1));
-	}
+		if (GAMEKEYDOWN(Profile, SID, DPEXIC_NEXTWEAPON))
+		{
+			// Set switch
+			a_TicCmd->Std.buttons |= BT_CHANGE;
+			D_TicCmdFillWeapon(a_TicCmd, DS_XNetNextWeapon(Player, 1));
+		}
 		// Prev
-	else if (GAMEKEYDOWN(Profile, SID, DPEXIC_PREVWEAPON))
-	{
-		// Set switch
-		a_TicCmd->Std.buttons |= BT_CHANGE;
-		D_TicCmdFillWeapon(a_TicCmd, DS_XNetNextWeapon(Player, -1));
-	}
+		else if (GAMEKEYDOWN(Profile, SID, DPEXIC_PREVWEAPON))
+		{
+			// Set switch
+			a_TicCmd->Std.buttons |= BT_CHANGE;
+			D_TicCmdFillWeapon(a_TicCmd, DS_XNetNextWeapon(Player, -1));
+		}
 		// Best Gun
-	else if (GAMEKEYDOWN(Profile, SID, DPEXIC_BESTWEAPON))
-	{
-		newweapon = P_PlayerBestWeapon(Player, true);
-		
-		if (newweapon != Player->readyweapon)
+		else if (GAMEKEYDOWN(Profile, SID, DPEXIC_BESTWEAPON))
 		{
-			a_TicCmd->Std.buttons |= BT_CHANGE;
-			D_TicCmdFillWeapon(a_TicCmd, newweapon);
-		}
-	}
-		// Worst Gun
-	else if (GAMEKEYDOWN(Profile, SID, DPEXIC_WORSTWEAPON))
-	{
-		newweapon = P_PlayerBestWeapon(Player, false);
+			newweapon = P_PlayerBestWeapon(Player, true);
 		
-		if (newweapon != Player->readyweapon)
-		{
-			a_TicCmd->Std.buttons |= BT_CHANGE;
-			D_TicCmdFillWeapon(a_TicCmd, newweapon);
-		}
-	}
-		// Slots
-	else
-	{
-		// Which slot?
-		slot = -1;
-		
-		// Look for keys
-		for (i = DPEXIC_SLOT1; i <= DPEXIC_SLOT10; i++)
-			if (GAMEKEYDOWN(Profile, SID, i))
+			if (newweapon != Player->readyweapon)
 			{
-				slot = (i - DPEXIC_SLOT1) + 1;
-				break;
+				a_TicCmd->Std.buttons |= BT_CHANGE;
+				D_TicCmdFillWeapon(a_TicCmd, newweapon);
 			}
-		
-		// Hit slot?
-		if (slot != -1)
+		}
+		// Worst Gun
+		else if (GAMEKEYDOWN(Profile, SID, DPEXIC_WORSTWEAPON))
 		{
-			// Clear flag
-			GunInSlot = false;
-			l = 0;
+			newweapon = P_PlayerBestWeapon(Player, false);
 		
-			// Figure out weapons that belong in this slot
-			for (j = 0, i = 0; i < NUMWEAPONS; i++)
-				if (P_CanUseWeapon(Player, i))
+			if (newweapon != Player->readyweapon)
+			{
+				a_TicCmd->Std.buttons |= BT_CHANGE;
+				D_TicCmdFillWeapon(a_TicCmd, newweapon);
+			}
+		}
+		// Slots
+		else
+		{
+			// Which slot?
+			slot = -1;
+		
+			// Look for keys
+			for (i = DPEXIC_SLOT1; i <= DPEXIC_SLOT10; i++)
+				if (GAMEKEYDOWN(Profile, SID, i))
 				{
-					// Weapon not in this slot?
-					if (Player->weaponinfo[i]->SlotNum != slot)
-						continue;
-				
-					// Place in slot list before the highest
-					if (j < (MAXWEAPONSLOTS - 1))
+					slot = (i - DPEXIC_SLOT1) + 1;
+					break;
+				}
+		
+			// Hit slot?
+			if (slot != -1)
+			{
+				// Clear flag
+				GunInSlot = false;
+				l = 0;
+		
+				// Figure out weapons that belong in this slot
+				for (j = 0, i = 0; i < NUMWEAPONS; i++)
+					if (P_CanUseWeapon(Player, i))
 					{
-						// Just place here
-						if (j == 0)
+						// Weapon not in this slot?
+						if (Player->weaponinfo[i]->SlotNum != slot)
+							continue;
+				
+						// Place in slot list before the highest
+						if (j < (MAXWEAPONSLOTS - 1))
 						{
-							// Current weapon is in this slot?
-							if (Player->readyweapon == i)
-							{
-								GunInSlot = true;
-								l = j;
-							}
-						
-							// Place in last spot
-							SlotList[j++] = i;
-						}
-					
-						// Otherwise more work is needed
-						else
-						{
-							// Start from high to low
-								// When the order is lower, we know to insert now
-							for (k = 0; k < j; k++)
-								if (Player->weaponinfo[i]->SwitchOrder < Player->weaponinfo[SlotList[k]]->SwitchOrder)
-								{
-									// Current gun may need shifting
-									if (!GunInSlot)
-									{
-										// Current weapon is in this slot?
-										if (Player->readyweapon == i)
-										{
-											GunInSlot = true;
-											l = k;
-										}
-									}
-								
-									// Possibly shift gun
-									else
-									{
-										// If the current gun is higher then this gun
-										// then it will be off by whatever is more
-										if (Player->weaponinfo[SlotList[l]]->SwitchOrder > Player->weaponinfo[i]->SwitchOrder)
-											l++;
-									}
-								
-									// move up
-									memmove(&SlotList[k + 1], &SlotList[k], sizeof(SlotList[k]) * (MAXWEAPONSLOTS - k - 1));
-								
-									// Place in slightly upper spot
-									SlotList[k] = i;
-									j++;
-								
-									// Don't add it anymore
-									break;
-								}
-						
-							// Can't put it anywhere? Goes at end then
-							if (k == j)
+							// Just place here
+							if (j == 0)
 							{
 								// Current weapon is in this slot?
 								if (Player->readyweapon == i)
 								{
 									GunInSlot = true;
-									l = k;
+									l = j;
 								}
-							
-								// Put
+						
+								// Place in last spot
 								SlotList[j++] = i;
+							}
+					
+							// Otherwise more work is needed
+							else
+							{
+								// Start from high to low
+									// When the order is lower, we know to insert now
+								for (k = 0; k < j; k++)
+									if (Player->weaponinfo[i]->SwitchOrder < Player->weaponinfo[SlotList[k]]->SwitchOrder)
+									{
+										// Current gun may need shifting
+										if (!GunInSlot)
+										{
+											// Current weapon is in this slot?
+											if (Player->readyweapon == i)
+											{
+												GunInSlot = true;
+												l = k;
+											}
+										}
+								
+										// Possibly shift gun
+										else
+										{
+											// If the current gun is higher then this gun
+											// then it will be off by whatever is more
+											if (Player->weaponinfo[SlotList[l]]->SwitchOrder > Player->weaponinfo[i]->SwitchOrder)
+												l++;
+										}
+								
+										// move up
+										memmove(&SlotList[k + 1], &SlotList[k], sizeof(SlotList[k]) * (MAXWEAPONSLOTS - k - 1));
+								
+										// Place in slightly upper spot
+										SlotList[k] = i;
+										j++;
+								
+										// Don't add it anymore
+										break;
+									}
+						
+								// Can't put it anywhere? Goes at end then
+								if (k == j)
+								{
+									// Current weapon is in this slot?
+									if (Player->readyweapon == i)
+									{
+										GunInSlot = true;
+										l = k;
+									}
+							
+									// Put
+									SlotList[j++] = i;
+								}
 							}
 						}
 					}
+		
+				// No guns in this slot? Then don't switch to anything
+				if (j == 0)
+					newweapon = Player->readyweapon;
+		
+				// If the current gun is in this slot, go to the next in the slot
+				else if (GunInSlot)		// from [best - worst]
+					newweapon = SlotList[((l - 1) + j) % j];
+		
+				// Otherwise, switch to the best gun there
+				else
+					// Set it to the highest valued gun
+					newweapon = SlotList[j - 1];
+		
+				// Did it work?
+				if (newweapon != Player->readyweapon)
+				{
+					a_TicCmd->Std.buttons |= BT_CHANGE;
+					D_TicCmdFillWeapon(a_TicCmd, newweapon);
 				}
-		
-			// No guns in this slot? Then don't switch to anything
-			if (j == 0)
-				newweapon = Player->readyweapon;
-		
-			// If the current gun is in this slot, go to the next in the slot
-			else if (GunInSlot)		// from [best - worst]
-				newweapon = SlotList[((l - 1) + j) % j];
-		
-			// Otherwise, switch to the best gun there
-			else
-				// Set it to the highest valued gun
-				newweapon = SlotList[j - 1];
-		
-			// Did it work?
-			if (newweapon != Player->readyweapon)
-			{
-				a_TicCmd->Std.buttons |= BT_CHANGE;
-				D_TicCmdFillWeapon(a_TicCmd, newweapon);
 			}
 		}
 	}
