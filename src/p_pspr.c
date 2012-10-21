@@ -555,35 +555,11 @@ void A_Punch(mobj_t* mo, player_t* player, pspdef_t* psp, const INFO_StateArgsNu
 		S_StartSound(&player->mo->NoiseThinker, sfx_punch);
 		player->mo->angle = R_PointToAngle2(player->mo->x, player->mo->y, linetarget->x, linetarget->y);
 		
-		// GhostlyDeath -- Affect Local Aiming yknow
-		for (i = 0; i < MAXSPLITSCREENPLAYERS; i++)
-			if (playeringame[g_Splits[i].Console] && player == &players[g_Splits[i].Console])
-				locang = &localangle[i];
-				
-		if (locang)
-		{
-			// First Face the target
-			actualangle = R_PointToAngle2(player->mo->x, player->mo->y, linetarget->x, linetarget->y);
-			virtualangle = *locang;
-			myangle = *locang;
-			
-			someactualangle = actualangle >> 16;
-			somevirtualangle = virtualangle >> 16;
-			somemyangle = myangle >> 16;
-			
-			while (somevirtualangle != (someactualangle))
-			{
-				if (somevirtualangle + someoffset < (someactualangle))
-					someoffset++;
-				else if (somevirtualangle + someoffset > (someactualangle))
-					someoffset--;
-				else
-				{
-					*locang += (someoffset << 16);
-					break;
-				}
-			}
-		}
+		// GhostlyDeath <October 21, 2012> -- Turn to face, locally
+		if (player->XPlayer)
+			if (player->XPlayer->ScreenID >= 0 &&
+					player->XPlayer->ScreenID < MAXSPLITSCREEN)
+				localangle[player->XPlayer->ScreenID] = player->mo->angle;
 	}
 }
 
@@ -637,45 +613,12 @@ void A_Saw(mobj_t* mo, player_t* player, pspdef_t* psp, const INFO_StateArgsNum_
 			else
 				player->mo->angle += ANG90 / 20;
 		}
-	
-		// GhostlyDeath -- Affect Local Aiming yknow
-		for (i = 0; i < MAXSPLITSCREENPLAYERS; i++)
-			if (playeringame[g_Splits[i].Console] && player == &players[g_Splits[i].Console])
-				locang = &localangle[i];
-			
-		if (locang)
-		{
-			angle_t victimangle = 0;
-			angle_t myangle = 0;
-			angle_t actualangle = 0;
-			angle_t virtualangle = 0;
-			int someactualangle = 0;
-			int somevirtualangle = 0;
-			int somemyangle = 0;
-			int someoffset = 0;
 		
-			// First Face the target
-			actualangle = R_PointToAngle2(player->mo->x, player->mo->y, linetarget->x, linetarget->y);
-			virtualangle = *locang;
-			myangle = *locang;
-		
-			someactualangle = actualangle >> 16;
-			somevirtualangle = virtualangle >> 16;
-			somemyangle = myangle >> 16;
-		
-			while (somevirtualangle != (someactualangle))
-			{
-				if (somevirtualangle + someoffset < (someactualangle))
-					someoffset++;
-				else if (somevirtualangle + someoffset > (someactualangle))
-					someoffset--;
-				else
-				{
-					*locang += (someoffset << 16);
-					break;
-				}
-			}
-		}
+		// GhostlyDeath <October 21, 2012> -- Turn to face, locally
+		if (player->XPlayer)
+			if (player->XPlayer->ScreenID >= 0 &&
+					player->XPlayer->ScreenID < MAXSPLITSCREEN)
+				localangle[player->XPlayer->ScreenID] = angle;
 	}
 	
 	player->mo->flags |= MF_JUSTATTACKED;
