@@ -390,6 +390,7 @@ void D_XFakePlayerInit(void);
 struct player_s;
 struct player_s* D_XFakePlayerGet(const int32_t a_Screen);
 void D_XFakePlayerTicker(void);
+void D_XFakePlayerDoTicCmd(const int32_t a_Screen, ticcmd_t* const a_TicCmd);
 
 #endif							/* __D_NET_H__ */
 

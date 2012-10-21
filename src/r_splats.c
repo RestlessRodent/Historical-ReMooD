@@ -57,7 +57,7 @@ const CONL_VarPossibleValue_t c_CVPVMaxSplats[] =
 CONL_StaticVar_t l_RMaxSplats =
 {
 	CLVT_INTEGER, c_CVPVMaxSplats, CLVF_SAVE,
-	"r_maxsplats", DSTR_CVHINT_RMAXSPLATS, CLVVT_STRING, "true",
+	"r_maxsplats", DSTR_CVHINT_RMAXSPLATS, CLVVT_STRING, "MAXVAL",
 	NULL
 };
 

@@ -3785,7 +3785,7 @@ void D_XNetMultiTics(ticcmd_t* const a_TicCmd, const bool_t a_Write, const int32
 					XPlay->LocalAt = 0;
 					memset(XPlay->LocalBuf, 0, sizeof(XPlay->LocalBuf));
 				
-					// If player is local, modify angle set
+					// If player is local, modify angle set, and spectating
 					if (XPlay->Flags & DXPF_LOCAL)
 						if (XPlay->ScreenID >= 0 && XPlay->ScreenID < MAXSPLITSCREEN)
 						{
@@ -4711,10 +4711,12 @@ void D_XNetBuildTicCmd(D_XPlayer_t* const a_NPp, ticcmd_t* const a_TicCmd)
 		// Only every half second
 		if (gametic > (a_NPp->CoopSpyTime + (TICRATE >> 1)))
 		{
+			j = 0;
 			do
 			{
 				g_Splits[SID].Display = (g_Splits[SID].Display + 1) % MAXPLAYERS;
-			} while (!playeringame[g_Splits[SID].Display] || !P_PlayerOnSameTeam(&players[g_Splits[SID].Console], &players[g_Splits[SID].Display]));
+				j++;
+			} while (j < MAXPLAYERS && (!playeringame[g_Splits[SID].Display] || !P_PlayerOnSameTeam(&players[g_Splits[SID].Console], &players[g_Splits[SID].Display])));
 			
 			// Print Message
 			CONL_PrintF("%sYou are now watching %s.\n",
@@ -4766,6 +4768,8 @@ void D_XNetUpdate(void)
 	D_XPlayer_t* XPlay;
 	ticcmd_t* TicCmdP;
 	M_UIMenu_t* ProfMenu;
+	static tic_t LastSpecTic;
+	ticcmd_t MergeTrunk;
 	
 	/* Not playing? */
 	if (gamestate == GS_DEMOSCREEN || demoplayback)
@@ -4891,14 +4895,36 @@ void D_XNetUpdate(void)
 		else
 			D_XNetBuildTicCmd(XPlay, TicCmdP);
 		
-		// No player and use is down? Attempt joining
-		if (!XPlay->Player && g_ProgramTic >= XPlay->LastJoinAttempt)
-			if (TicCmdP->Std.buttons & BT_USE)
+		// No player for this one?
+		if (!XPlay->Player)
+		{
+			// Use is down? Attempt joining
+			if (g_ProgramTic >= XPlay->LastJoinAttempt&& (TicCmdP->Std.buttons & BT_USE))
 			{
 				XPlay->LastJoinAttempt = g_ProgramTic + TICRATE;
 				D_XNetTryJoin(XPlay);
 			}
+			
+			// Move the spectator camera around
+			else if (XPlay->ScreenID >= 0 && XPlay->ScreenID < MAXSPLITSCREEN)
+			{
+				// Modify the fake spectator camera
+				if (gametic != LastSpecTic)
+				{
+					// Merge tics
+					memset(&MergeTrunk, 0, sizeof(MergeTrunk));
+					D_NCSNetMergeTics(&MergeTrunk, XPlay->LocalBuf, XPlay->LocalAt);
+					XPlay->LocalAt = 0;
+					
+					// Execute Command
+					D_XFakePlayerDoTicCmd(XPlay->ScreenID, &MergeTrunk);
+				}
+			}
+		}
 	}
+	
+	/* Modify spectators */
+	LastSpecTic = gametic;
 }
 
 /*** FAKE PLAYER ***/
@@ -5210,5 +5236,33 @@ void D_XFakePlayerTicker(void)
 	}
 #undef TSCAMDIST
 #undef TSMOVEUNIT
+}
+
+/* D_XFakePlayerDoTicCmd() -- Tic commands on screen */
+void D_XFakePlayerDoTicCmd(const int32_t a_Screen, ticcmd_t* const a_TicCmd)
+{
+	player_t* Play;
+	mobj_t* Mo;
+	
+	/* Check */
+	if (a_Screen < 0 || a_Screen >= MAXSPLITSCREEN || !a_TicCmd)
+		return;
+	
+	/* Player to modify */
+	Play = &l_XFakePlayer[a_Screen];
+	Mo = Play->mo;
+	
+	// Oops!
+	if (!Mo)
+		return;
+	
+	/* Modify local angles from tic command */
+	//localangle[a_Screen] += a_TicCmd->Std.BaseAngleTurn << 16;
+	localangle[a_Screen] += (uint32_t)a_TicCmd->Std.BaseAngleTurn << UINT32_C(16);
+	localaiming[a_Screen] += (uint32_t)a_TicCmd->Std.BaseAiming << UINT32_C(16);
+	
+	/* Set object looking angles to local */
+	Mo->angle = localangle[a_Screen];
+	Play->aiming = localaiming[a_Screen];
 }
 
